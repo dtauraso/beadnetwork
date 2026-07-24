@@ -44,7 +44,7 @@ const PulseSpeedWuPerTick = PulseSpeedWuPerMs * MsPerTick
 // beadPlacement bundles everything one placement needs. The in-flight time times
 // delivery; the segment endpoints + source identity drive the per-frame position
 // stream. Geometry travels WITH the bead, never stored on the shared wire, so
-// fan-in is safe: each in-flight bead evaluates the exact segment it is drawn on.
+// each in-flight bead evaluates the exact segment it is drawn on.
 // The zero value (empty segment + identity) means "no position stream" — unit
 // tests that only exercise delivery pass just InFlightMs.
 type beadPlacement struct {

@@ -220,7 +220,7 @@ func ParseSendRule(s string) (SendRule, error) {
 //   - Start/End: this edge's straight-segment endpoints (source OUT-port world pos,
 //     dest IN-port world pos) in the SAME 3-D frame the renderer draws. They travel
 //     WITH each placed bead (beadPlacement) so the wire's position stream evaluates
-//     P(t)=Start+t*(End-Start) on this edge — fan-in safe because the shared dest
+//     P(t)=Start+t*(End-Start) on this edge, because the shared dest
 //     wire never stores per-edge geometry.
 type outGeom struct {
 	ArcLength    float64
