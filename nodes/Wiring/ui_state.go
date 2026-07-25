@@ -45,7 +45,7 @@ type uiState struct {
 	// goroutine. nil until SetViewStream runs (no dedicated view stream ⇒ nothing to send
 	// to; nodeMover call sites nil-check before sending).
 	abcDragCh chan struct{}
-	// abcDragCount is this goroutine's OWN plain int (no atomic, no lock: only the
+	// abcDragCount is this goroutine's OWN plain int (only the
 	// gesture/stdin-reader goroutine ever reads or writes it, via DrainAbcDragChan) — the
 	// VIEW frame's Overlay.AbcDragCount column reads this directly. Cumulative for the
 	// run's lifetime (never reset).
@@ -62,7 +62,7 @@ type uiState struct {
 	// goroutine on the OTHER end of a round trip from the goroutine that actually sets the
 	// intent. It is now owned directly by whichever goroutine sets it: the gesture/
 	// MoveDispatch goroutine tracks its OWN local record of the current selection/hover/
-	// latched node below (single-owner, no lock needed — mutated only here), and MESSAGES
+	// latched node below (single-owner, mutated only here), and MESSAGES
 	// each change to the owning mover's own dedicated channel (moveMsgKindSelect/Hover/
 	// Latched/AbcReset — see setSelectionUI/setHoverUI/resetAbcDrag). Each mover stores its
 	// OWN selected/hovered/latchedSel/gotDragMsg/dragDelta*/kindID fields (nodeMover) or
@@ -106,7 +106,7 @@ func (ui *uiState) sendEdgeSelect(edgeMovers map[string]*edgeMover, ctx context.
 // a newly-selected node (left untouched on a deselect), and MESSAGES every affected
 // mover to update its OWN selected/latchedSel bit — no shared/republished map. Called
 // only from the gesture/MoveDispatch goroutine (applySelect); ui.sel/ui.latchedNode are
-// mutated only here, so no lock is needed on them, and each message ride the mover's own
+// mutated only here, and each message ride the mover's own
 // dedicated channel so the mover mutates only its own fields on its own goroutine.
 // edgeMovers/ctx/sendMove are threaded through from MoveDispatch (not part of uiState).
 func (ui *uiState) setSelectionUI(edgeMovers map[string]*edgeMover, ctx context.Context, sendMove func(id string, msg moveMsg), node, edge string) {
@@ -138,8 +138,8 @@ func (ui *uiState) setSelectionUI(edgeMovers map[string]*edgeMover, ctx context.
 
 // setHoverUI sets the Go-owned hover state and MESSAGES the affected node(s) to update
 // their OWN hovered bit — no shared/republished map. Called only from the gesture
-// goroutine (setHover's dedupe check reads ui.sel.hoverNode/Port/Input directly — safe
-// without a lock since only this same goroutine ever writes them — see gesture.go's
+// goroutine (setHover's dedupe check reads ui.sel.hoverNode/Port/Input directly —
+// safe since only this same goroutine ever writes them — see gesture.go's
 // setHover). sendMove is threaded through from MoveDispatch (not part of uiState).
 func (ui *uiState) setHoverUI(sendMove func(id string, msg moveMsg), node, port string, isInput bool) {
 	prevNode := ui.sel.hoverNode

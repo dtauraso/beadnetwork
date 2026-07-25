@@ -31,7 +31,7 @@ type portGeom struct {
 // (applyCenter, setPortAnchorId, emitGeometry — grepped clean of writes to these fields).
 // It is split out from nodeGeom specifically so a reader that only wants IDENTITY (e.g.
 // MoveDispatch.NodeKind, called from the gesture/stdin-reader goroutine, NOT the mover's
-// own goroutine) can read it with NO LOCK: the memory it touches is never in a writer's
+// own goroutine) can read it safely: the memory it touches is never in a writer's
 // footprint, by construction of the type, not by coincidence of which fields a particular
 // access happens to touch. See node_mover.go's geomMu doc-comment history for why a
 // "the two byte ranges just don't happen to overlap today" argument is the bug class this

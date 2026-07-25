@@ -168,8 +168,8 @@ const maxFrameBytes = 1 << 20
 // channel (LoadTopology's 4th return value, per-goroutine-clock.md
 // "Delivery"), collected ONCE at load before any goroutine spawned. This
 // RunStdinReader goroutine is the sole writer of every channel in it from here
-// on — nothing else sends on them — so broadcasting a speed change by looping
-// over the slice and calling SendSpeedNonBlocking needs no lock. nil (or an
+// on — nothing else sends on them — broadcasting a speed change loops
+// over the slice and calls SendSpeedNonBlocking. nil (or an
 // empty slice) is fine: the speed edit then simply reaches nobody, same as
 // today's known-inert slider before this delivery path existed.
 func RunStdinReader(ctx context.Context, r io.Reader, slotReg SlotRegistry, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
@@ -369,7 +369,7 @@ func applyUpdate(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan 
 			// EVERY clock-owning goroutine's own channel (collected once, at load,
 			// before any goroutine spawned — see LoadTopology's speedSinks return
 			// value). This RunStdinReader goroutine is the sole writer of any of these
-			// channels, so no lock is needed; SendSpeedNonBlocking never blocks on a
+			// channels; SendSpeedNonBlocking never blocks on a
 			// receiver that is asleep or never reads (latest-wins coalescing).
 			for _, ch := range speedSinks {
 				SendSpeedNonBlocking(ch, float64(msg.Num))

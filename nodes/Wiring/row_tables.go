@@ -33,7 +33,7 @@ type moveDispatchEdgeEndpoint struct {
 // before Start (and never mutated afterward), so — unlike that accumulator's
 // atomic.Pointer tables — a plain
 // slice/map here is already safe for every reader goroutine (gesture, movers) to read
-// concurrently with no lock and no atomic: the write happened-before every goroutine
+// concurrently: the write happened-before every goroutine
 // that could read it (Go launches nodeMover/edgeMover goroutines only in Start, which
 // runs after newMoveDispatch returns).
 type rowTables struct {

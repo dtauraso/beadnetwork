@@ -690,17 +690,17 @@ func (md *MoveDispatch) resetAbcDrag() {
 // nodeMover's own goroutine — this is the ONE genuine cross-goroutine read of
 // nm.geom.
 //
-// It takes NO LOCK. Kind lives on nm.geom's embedded nodeIdentity (port_geometry.go),
-// a type carrying only the fields the loader sets once at construction and that no
-// handler (applyCenter, setPortAnchorId, emitGeometry) ever writes again — grepped
-// clean of any write to nodeIdentity's fields outside the load-time literal. That
-// split makes the "no lock needed" claim true by CONSTRUCTION rather than by
-// coincidence of which byte ranges a particular access happens to touch: identity
-// fields are not merely unwritten-in-practice today, they are not reachable from any
-// writer's field-assignment at all, in a different embedded struct from the mutable
+// Kind lives on nm.geom's embedded nodeIdentity (port_geometry.go), a type carrying
+// only the fields the loader sets once at construction and that no handler
+// (applyCenter, setPortAnchorId, emitGeometry) ever writes again — grepped clean of
+// any write to nodeIdentity's fields outside the load-time literal. That split makes
+// this safe by CONSTRUCTION rather than by coincidence of which byte ranges a
+// particular access happens to touch: identity fields are not merely
+// unwritten-in-practice today, they are not reachable from any writer's
+// field-assignment at all, in a different embedded struct from the mutable
 // ScenePolar/HasPos/ReachR/Inputs/Outputs applyCenter and setPortAnchorId do write.
 // TestNodeKindConcurrentWithApplyCenterUnderRace exercises this concurrently under
-// -race as a regression check on the split holding, not as a proof a lock is needed.
+// -race as a regression check on the split holding.
 func (md *MoveDispatch) NodeKind(nodeID string) string {
 	if nm, ok := md.mr.nodeMovers[nodeID]; ok {
 		return nm.geom.Kind

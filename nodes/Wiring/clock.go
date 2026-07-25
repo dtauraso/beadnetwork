@@ -112,7 +112,7 @@ func NewRealClock() *RealClock {
 }
 
 // scaledElapsed returns total scaled elapsed = accumulated prior segments + the
-// live segment (wall time since lastChange × current speed). No locking: only
+// live segment (wall time since lastChange × current speed). Only
 // the owning goroutine ever calls this.
 func (c *RealClock) scaledElapsed() time.Duration {
 	live := time.Duration(float64(time.Since(c.lastChange)) * c.speed)
@@ -167,8 +167,8 @@ var _ Clock = (*RealClock)(nil)
 // "Delivery": every paced loop grows exactly this one poll, folded into its
 // existing sleep/select point. speedCh is a buffered-1, latest-wins channel
 // built once at load time (see loader.go / builders.go) and owned from then on
-// by exactly the one goroutine that reads it — nothing else may read it, so no
-// lock is needed. A pending value (if any) is drained and applied to clk's OWN
+// by exactly the one goroutine that reads it — nothing else may read it.
+// A pending value (if any) is drained and applied to clk's OWN
 // copy via SetSpeed; an empty channel is a no-op; a nil channel (unwired
 // goroutines, or test builds constructed with no loader) is always a no-op
 // too, since a receive on a nil channel is never selected. This is

@@ -421,8 +421,8 @@ const bufInteriorSlotsPerNode = 4
 // returns (i.e. after this node's own construction runs) — see the prior
 // buildInteriorStream doc comment this replaces. The returned func's first REAL
 // call is always made from this node's OWN Update goroutine (after node-goroutine
-// launch, by which point interiorOuts is fully populated and never mutated again),
-// so no lock is needed: exactly one goroutine ever calls this closure, matching
+// launch, by which point interiorOuts is fully populated and never mutated again):
+// exactly one goroutine ever calls this closure, matching
 // every other single-writer-per-goroutine field in this package.
 func newInteriorStreamGetter(name string, pb PortBindings) func() *interiorStream {
 	var built bool

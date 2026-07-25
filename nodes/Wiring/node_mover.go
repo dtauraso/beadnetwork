@@ -23,7 +23,7 @@ import (
 
 // pendingSend is one (destination, message) pair this node's own goroutine tried to
 // deliver, failed (the target's inbox was momentarily full), and is retrying — see
-// nodeMover.pending's doc comment. There is no separate sender goroutine and no lock:
+// nodeMover.pending's doc comment. There is no separate sender goroutine:
 // only nm's own goroutine ever reads or writes nm.pending.
 type pendingSend struct {
 	destID string
@@ -94,14 +94,14 @@ type nodeMover struct {
 	// (run/handle), so there is never more than one goroutine touching that memory. The
 	// one cross-goroutine reader, MoveDispatch.NodeKind (node_move.go), called from the
 	// gesture/stdin-reader goroutine, reads ONLY nm.geom.Kind — a field on the embedded
-	// nodeIdentity, which no writer here ever touches. So the two properties that would
-	// require a lock (a mutable field read cross-goroutine, or an identity field that
-	// could gain a second writer) both provably don't hold, by construction of the type
+	// nodeIdentity, which no writer here ever touches. So the property that would
+	// require synchronization (a mutable field read cross-goroutine, or an identity field
+	// that could gain a second writer) provably doesn't hold, by construction of the type
 	// split, not by coincidence of which byte ranges happen to overlap today.
 	//
 	// CHECKED BY CODE: TestNodeKindConcurrentWithApplyCenterUnderRace
 	// (node_mover_geom_race_test.go) drives NodeKind's reader loop and applyCenter's
-	// writer loop concurrently under -race with no lock on either side, as a standing
+	// writer loop concurrently under -race, as a standing
 	// regression check that the split holds (a future change reintroducing a write to an
 	// identity field, or widening NodeKind's read to a whole-struct copy, would make it
 	// fail). There is no separate per-node "Update()" writer goroutine — that was the
@@ -155,7 +155,7 @@ type nodeMover struct {
 	// non-blocking send; an item that can't be delivered right now (the target's
 	// inbox is momentarily full) stays here and is retried — before any newer item to
 	// the SAME destination — on the next flushPending call, which nm's own run loop
-	// makes every cycle. There is no dedicated sender goroutine and no lock: only
+	// makes every cycle. There is no dedicated sender goroutine: only
 	// nm's own goroutine ever touches nm.pending (every sendMove call originates from
 	// nm.handle, which only ever runs on nm's own run-loop goroutine). This is the
 	// same retain-and-retry shape PacedWire already uses for its outCh delivery
@@ -197,7 +197,7 @@ type nodeMover struct {
 	// default — no WIREFOLD_STREAM_FDS "node" entry, e.g. headless tests) means
 	// writeStreamFrame is a no-op: this node's geometry+ports+label are simply never
 	// written to a per-node stream. Written ONLY by this
-	// nodeMover's own goroutine (emitGeometry/run) — no lock.
+	// nodeMover's own goroutine (emitGeometry/run).
 	streamOut io.Writer
 	// nodeRow is this node's stable buffer NODE-ROW index (the seed order — see
 	// MoveDispatch.SetNodeStreams), carried on every Port row this node's stream frame
@@ -413,7 +413,7 @@ func (m *nodeMover) applyCenter(center vec3, reach float64) {
 // emitGeometry re-emits this node's authoritative geometry. A CONNECTED port marker is
 // AIMED at its partner's current center (m.partnerCenter, atomic-snapshot-backed); an
 // edgeless port falls back to its own polar-torus ring-anchor placement (portWorldPos).
-// No lock: this method, applyCenter, and setPortAnchorId (via handle) all run on
+// This method, applyCenter, and setPortAnchorId (via handle) all run on
 // nodeMover's own inbox-drain goroutine only (see the doc comment on nodeMover.geom),
 // so a plain field read here can never race a concurrent writer.
 func (m *nodeMover) emitGeometry() {
@@ -435,7 +435,7 @@ func (m *nodeMover) emitGeometry() {
 // ring-normals + ports + label + selection-UI columns) to its OWN dedicated fd
 // (streamOut). No-op when streamOut is nil (the fallback — see its doc comment) or
 // buildFrame was never injected (bare test construction). Called only by this nodeMover's
-// own goroutine (emitGeometry and run's per-cycle loop), so no lock is needed reading
+// own goroutine (emitGeometry and run's per-cycle loop), reading
 // m.geom. events carries whatever this call's caller wants riding this frame's trailing
 // EVENTS section (nil from run()'s plain tick-driven write).
 func (m *nodeMover) writeStreamFrame(events []RowEvent) {
@@ -520,8 +520,7 @@ func (m *nodeMover) writeStreamFrame(events []RowEvent) {
 // is preserved (a retained item is never overtaken by a newer one to the same
 // destination). An item whose destination doesn't resolve (unknown id) is dropped,
 // matching the old deliverMove no-op for an unknown id. Called only from m's own
-// goroutine (sendMove, at enqueue time, and run's own loop, every cycle) — no lock
-// needed.
+// goroutine (sendMove, at enqueue time, and run's own loop, every cycle).
 func (m *nodeMover) flushPending() {
 	if len(m.pending) == 0 || m.resolveDest == nil {
 		return

@@ -29,7 +29,7 @@ func (gs *geomSeeds) edgeSeedsFn() []EdgeGeomSeed { return gs.edgeSeeds }
 // gs.nodeSeeds (frozen at construction, in newMoveDispatch, and never mutated
 // afterward). Used only by LoadSceneSphere's content-fit fallback, which runs on the
 // main goroutine before Start launches any mover goroutine — nodeSeeds is already
-// fully populated by then, so this is a safe, lock-free read.
+// fully populated by then, so this is a safe read.
 func (gs *geomSeeds) loadTimeCenters() map[string]vec3 {
 	out := make(map[string]vec3, len(gs.nodeSeeds))
 	for _, sd := range gs.nodeSeeds {
