@@ -524,10 +524,10 @@ func (b *buildCtx) buildMoveDispatch() {
 	}
 	md := newMoveDispatch(b.nodeGeoms, b.edgeEndpoints, b.tr, nodeOrder, edgeOrder, b.clk, &b.speedSinks)
 	if b.hasScene {
-		// Persisted scene sphere: install it now so md.sceneSphere is consistent straight out
+		// Persisted scene sphere: install it now so md.ui.sceneSphere is consistent straight out
 		// of LoadTopology (a fresh/legacy scene has none — main.go's LoadSceneSphere then
 		// content-fits it from the loaded node centers).
-		md.sceneSphere = b.sphere
+		md.ui.sceneSphere = b.sphere
 	}
 
 	// The quantized layout is authoritative by default — b.quantizedOffsets was already

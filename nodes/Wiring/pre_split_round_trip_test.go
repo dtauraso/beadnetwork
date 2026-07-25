@@ -75,11 +75,11 @@ func TestPreSplitTopologyRoundTrips(t *testing.T) {
 	}
 	// src's pre-split position is legacy meta.json's inline scenePolar (r=37.4165738677,
 	// theta=1.00685368543, phi=1.2490457724). If the reader silently dropped the legacy
-	// fallback, src would load HasPos=false and sit at md.sceneSphere.Center instead — this
+	// fallback, src would load HasPos=false and sit at md.ui.sceneSphere.Center instead — this
 	// is the check that catches exactly that regression (see the deliberate-failure drill
 	// this test's author ran while writing it: removing the legacy-field copy in
-	// loader_tree.go turns this into a false pass at md.sceneSphere.Center).
-	wantSrcCenter := md.sceneSphere.Center.add(polar2cart(polar{R: 37.4165738677, Theta: 1.00685368543, Phi: 1.2490457724}))
+	// loader_tree.go turns this into a false pass at md.ui.sceneSphere.Center).
+	wantSrcCenter := md.ui.sceneSphere.Center.add(polar2cart(polar{R: 37.4165738677, Theta: 1.00685368543, Phi: 1.2490457724}))
 	if d := srcCenterBefore.sub(wantSrcCenter).length(); d > 1e-6 {
 		t.Fatalf("src's pre-split legacy meta.json position did not load: got=%+v want=%+v (off by %g)", srcCenterBefore, wantSrcCenter, d)
 	}

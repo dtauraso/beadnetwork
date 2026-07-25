@@ -11,7 +11,7 @@ import (
 )
 
 // overlayState groups the per-toggle overlay-visibility booleans and their
-// flip/emit logic. Owned by MoveDispatch (md.ov); the delegators below keep the
+// flip/emit logic. Owned by MoveDispatch (md.ui.ov); the delegators below keep the
 // stdin reader's overlayToggles method-expression table binding MoveDispatch.
 type overlayState struct {
 	sceneToriVisible      bool
@@ -94,20 +94,20 @@ func defaultOverlayState() overlayState {
 
 // Overlay-visibility API — thin delegators to the owned overlayState. The public
 // signatures are unchanged (overlayToggles binds these method expressions).
-func (md *MoveDispatch) ToggleSceneTori(tr *T.Trace) { md.ov.ToggleSceneTori(tr) }
+func (md *MoveDispatch) ToggleSceneTori(tr *T.Trace) { md.ui.ov.ToggleSceneTori(tr) }
 func (md *MoveDispatch) ToggleScenePoles(tr *T.Trace) {
-	md.ov.ToggleScenePoles(tr)
-	md.EmitBreadcrumb(RowEvent{Label: T.BreadcrumbPoleToggleGo, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1, Value: int32(boolU8(md.ov.scenePolesVisible)), Text: "scene"})
+	md.ui.ov.ToggleScenePoles(tr)
+	md.EmitBreadcrumb(RowEvent{Label: T.BreadcrumbPoleToggleGo, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1, Value: int32(boolU8(md.ui.ov.scenePolesVisible)), Text: "scene"})
 }
 func (md *MoveDispatch) ToggleNodePoles(tr *T.Trace) {
-	md.ov.ToggleNodePoles(tr)
-	md.EmitBreadcrumb(RowEvent{Label: T.BreadcrumbPoleToggleGo, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1, Value: int32(boolU8(md.ov.nodePolesVisible)), Text: "nodes"})
+	md.ui.ov.ToggleNodePoles(tr)
+	md.EmitBreadcrumb(RowEvent{Label: T.BreadcrumbPoleToggleGo, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1, Value: int32(boolU8(md.ui.ov.nodePolesVisible)), Text: "nodes"})
 }
-func (md *MoveDispatch) ToggleSelSpherePoles(tr *T.Trace) { md.ov.ToggleSelSpherePoles(tr) }
-func (md *MoveDispatch) ToggleHandholds(tr *T.Trace)      { md.ov.ToggleHandholds(tr) }
-func (md *MoveDispatch) ToggleLabelsGlobal(tr *T.Trace)   { md.ov.ToggleLabelsGlobal(tr) }
-func (md *MoveDispatch) ToggleOverlaysVis(tr *T.Trace)    { md.ov.ToggleOverlaysVis(tr) }
-func (md *MoveDispatch) ToggleDoubleLinks(tr *T.Trace)    { md.ov.ToggleDoubleLinks(tr) }
+func (md *MoveDispatch) ToggleSelSpherePoles(tr *T.Trace) { md.ui.ov.ToggleSelSpherePoles(tr) }
+func (md *MoveDispatch) ToggleHandholds(tr *T.Trace)      { md.ui.ov.ToggleHandholds(tr) }
+func (md *MoveDispatch) ToggleLabelsGlobal(tr *T.Trace)   { md.ui.ov.ToggleLabelsGlobal(tr) }
+func (md *MoveDispatch) ToggleOverlaysVis(tr *T.Trace)    { md.ui.ov.ToggleOverlaysVis(tr) }
+func (md *MoveDispatch) ToggleDoubleLinks(tr *T.Trace)    { md.ui.ov.ToggleDoubleLinks(tr) }
 
 // overlayToggles maps an overlay FLAG name (the attr="toggle" wire name) to the
 // MoveDispatch method that flips it.

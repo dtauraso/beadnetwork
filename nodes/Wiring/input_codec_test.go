@@ -132,7 +132,7 @@ func TestSavePersistsCurrentOverlayState(t *testing.T) {
 		t.Fatal("decode toggle failed")
 	}
 	applyEdit(toggle, md, nil, nil)
-	if err := writeSceneOverlays(overlaysFilePath(root), md.ov); err != nil {
+	if err := writeSceneOverlays(overlaysFilePath(root), md.ui.ov); err != nil {
 		t.Fatalf("writeSceneOverlays: %v", err)
 	}
 	raw, _ := os.ReadFile(filepath.Join(root, "view", "overlays.json"))

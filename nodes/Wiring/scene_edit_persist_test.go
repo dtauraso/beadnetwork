@@ -22,7 +22,7 @@ import (
 // state. LoadOverlays must ALWAYS stream the resolved state (file data or defaults).
 func TestLoadOverlaysEmitsDefaultsWhenNoPersistedKeys(t *testing.T) {
 	root := writeTree(t) // no view/scene.json → loadSceneOverlays returns found=false
-	md := &MoveDispatch{ov: defaultOverlayState()}
+	md := &MoveDispatch{ui: uiState{ov: defaultOverlayState()}}
 	var kinds []string
 	// Decentralized (Step C, memory/feedback_no_single_writer_bridge.md): LoadOverlays writes its own VIEW
 	// frame directly via md.emitViewFrame; capture the RowEvent kinds it carries instead of
@@ -121,7 +121,7 @@ func TestPersistAnchorRoundTrips(t *testing.T) {
 }
 
 // TestPersistOverlaysRoundTrips: toggle an overlay flag → debounced flush → scene.json carries
-// the (inverted) key; a fresh MoveDispatch.LoadOverlays reads it back into md.ov.
+// the (inverted) key; a fresh MoveDispatch.LoadOverlays reads it back into md.ui.ov.
 func TestPersistOverlaysRoundTrips(t *testing.T) {
 	root := writeTree(t)
 	md := loadTreeMD(t, root)
@@ -130,7 +130,7 @@ func TestPersistOverlaysRoundTrips(t *testing.T) {
 	// Flip a visible-sense flag off (tori) and the hidden-sense flag on (labelsGlobal off).
 	md.ToggleSceneTori(nil)    // sceneToriVisible: true -> false
 	md.ToggleLabelsGlobal(nil) // labelsGlobalVisible: true -> false
-	md.persist.overlays.schedule(md.ov)
+	md.persist.overlays.schedule(md.ui.ov)
 
 	ov, found := loadSceneOverlays(overlaysFilePath(root), sceneCameraPath(root))
 	if !found {
@@ -147,13 +147,13 @@ func TestPersistOverlaysRoundTrips(t *testing.T) {
 		t.Fatalf("handholdsVisible should default visible, got hidden")
 	}
 
-	// Seed a fresh dispatch from disk and confirm md.ov is restored.
-	fresh := &MoveDispatch{ov: defaultOverlayState()}
+	// Seed a fresh dispatch from disk and confirm md.ui.ov is restored.
+	fresh := &MoveDispatch{ui: uiState{ov: defaultOverlayState()}}
 	fresh.LoadOverlays(root, nil)
-	if fresh.ov.sceneToriVisible {
+	if fresh.ui.ov.sceneToriVisible {
 		t.Fatalf("LoadOverlays did not restore sceneToriVisible=false")
 	}
-	if fresh.ov.labelsGlobalVisible {
+	if fresh.ui.ov.labelsGlobalVisible {
 		t.Fatalf("LoadOverlays did not restore labelsGlobalVisible=false")
 	}
 }
@@ -170,7 +170,7 @@ func TestOverlaysPersistPreservesCamera(t *testing.T) {
 	md.EnableEditPersist(root)
 
 	md.ToggleSceneTori(nil)
-	md.persist.overlays.schedule(md.ov)
+	md.persist.overlays.schedule(md.ui.ov)
 
 	// Camera survives.
 	if _, _, _, _, ok := loadSceneViewpoint(root); !ok {
@@ -194,7 +194,7 @@ func TestEnableEditPersistTrueMonolithicNoTree(t *testing.T) {
 	if err := os.WriteFile(topoFile, []byte("{}"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	md := &MoveDispatch{ov: defaultOverlayState()}
+	md := &MoveDispatch{ui: uiState{ov: defaultOverlayState()}}
 	md.EnableEditPersist(topoFile)
 	if md.persist.pos.root != "" {
 		t.Fatalf("posPersist.root=%q want empty (no nodes/ subdir → true monolithic)", md.persist.pos.root)
@@ -217,7 +217,7 @@ func TestOverlaysPersistMonolithicForm(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	md := &MoveDispatch{ov: defaultOverlayState()}
+	md := &MoveDispatch{ui: uiState{ov: defaultOverlayState()}}
 	md.EnableEditPersist(topoFile) // topologyPath is a FILE, not a dir
 
 	// overlaysPersist.path must be non-empty (the sceneCameraPath sibling).
@@ -227,7 +227,7 @@ func TestOverlaysPersistMonolithicForm(t *testing.T) {
 
 	// Toggle an overlay and flush.
 	md.ToggleSceneTori(nil) // sceneToriVisible: true -> false
-	md.persist.overlays.schedule(md.ov)
+	md.persist.overlays.schedule(md.ui.ov)
 
 	// Load back via sceneCameraPath.
 	ov, found := loadSceneOverlays(overlaysFilePath(topoFile), sceneCameraPath(topoFile))
@@ -239,9 +239,9 @@ func TestOverlaysPersistMonolithicForm(t *testing.T) {
 	}
 
 	// LoadOverlays must restore into a fresh dispatch.
-	fresh := &MoveDispatch{ov: defaultOverlayState()}
+	fresh := &MoveDispatch{ui: uiState{ov: defaultOverlayState()}}
 	fresh.LoadOverlays(topoFile, nil)
-	if fresh.ov.sceneToriVisible {
+	if fresh.ui.ov.sceneToriVisible {
 		t.Fatal("LoadOverlays did not restore sceneToriVisible=false on monolithic form")
 	}
 }

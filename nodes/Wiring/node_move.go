@@ -186,56 +186,23 @@ type MoveDispatch struct {
 	// public NodeSeeds/EdgeSeeds methods are thin delegators so the external API is
 	// unchanged.
 	gs geomSeeds
-	// sceneSphere is the first-class scene reference every node's SCENE polar is measured
-	// about (polar-model.md, sphere_layout.go). Loaded from scene.json (or defaulted from
-	// the content-fit) at startup; its Center is the one cartesian anchor. Phase 1 stores
-	// it; later phases derive node world from it and move it on pan.
-	sceneSphere sceneSphere
-	// vp is the polar camera viewpoint state (viewpoint_state.go). Owned entirely by
-	// MoveDispatch — no separate goroutine; callers serialize externally (stdin reader
-	// runs in a single goroutine). MoveDispatch exposes thin delegating methods.
-	vp viewpointState
 	// tr is the trace sink (retained for trace emission; diagnostic breadcrumbs removed).
 	tr *T.Trace
-	// ov groups the 9 overlay-toggle visibility booleans and their flip/emit logic
-	// (overlay_state.go). Initialized to defaults by newMoveDispatch (all true).
-	// MoveDispatch exposes thin delegating methods.
-	ov overlayState
-	// gest is the gesture state machine (gesture.go): it consumes raw pointer/wheel input
-	// and produces camera (viewpoint) + topology (node-move) changes. Owned by
-	// MoveDispatch; serialized by the single-goroutine stdin reader. Zero value = idle.
-	gest gestureState
 	// persist groups the six debounced disk persisters (move_persist.go), each nil until
 	// armed by EnableViewpointPersist / EnableEditPersist after the startup seed. Grouped
-	// the same way vp/ov/gest are, so a bare test-constructed MoveDispatch only has to
-	// reason about one zero-value sub-struct instead of six loose nilable fields.
+	// the same way ui.vp/ui.ov/ui.gest are, so a bare test-constructed MoveDispatch only
+	// has to reason about one zero-value sub-struct instead of six loose nilable fields.
 	persist persisters
 	// sw owns the fd-wiring for the per-node interior stream and the dedicated VIEW
 	// stream (stream_wiring.go). MoveDispatch's public SetEdgeStreams/SetNodeStreams
 	// methods stay as thin delegators so the external API is unchanged; view_stream.go's
 	// emitViewFrame reads md.sw.viewOut/viewBuildFrame/viewTick directly (it also reads
-	// md.vp/md.ov/md.sceneSphere/md.abcDragCount, which are NOT part of this extraction).
+	// md.ui.vp/md.ui.ov/md.ui.sceneSphere/md.ui.abcDragCount, which are NOT part of this extraction).
 	sw streamWiring
-	// abcDragCh is the non-blocking, message-passing bridge from an abc-drag RECIPIENT's
-	// own nodeMover goroutine (quantized_move.go's neighborSetCRequantize, potentially many
-	// different goroutines) to the ONE gesture/stdin-reader goroutine that owns
-	// abcDragCount and writes the VIEW frame. Per MODEL.md/explicit no-atomic directive:
-	// message-passing, never a shared/atomic counter. A full channel just drops that one
-	// count-observability tick (no delivery guarantee, same shape as every other
-	// fire-and-forget bridge in this codebase) rather than blocking the recipient's own
-	// goroutine. nil until SetViewStream runs (no dedicated view stream ⇒ nothing to send
-	// to; nodeMover call sites nil-check before sending).
-	abcDragCh chan struct{}
-	// abcDragCount is this goroutine's OWN plain int (no atomic, no lock: only the
-	// gesture/stdin-reader goroutine ever reads or writes it, via DrainAbcDragChan) — the
-	// VIEW frame's Overlay.AbcDragCount column reads this directly. Cumulative for the
-	// run's lifetime (never reset).
-	abcDragCount uint32
-	// sel groups the CURRENTLY-SELECTED (click-select) and CURRENTLY-HOVERED (pointer hover)
-	// UI-only state (selection_state.go) — pure routing-directory-parked UI state, owned by
-	// Go but not part of the dispatch/persist/camera concerns. Grouped the same way
-	// vp/ov/gest are.
-	sel selectionState
+	// ui owns the camera/overlay/gesture/selection/abc-drag UI state (ui_state.go).
+	// MoveDispatch's public setSelectionUI/setHoverUI/sendEdgeSelect/resetAbcDrag stay as
+	// thin delegators so the external API is unchanged.
+	ui uiState
 	// quantizedLayout gates the quantized absolute-scene-polar snap (quantized_layout.go)
 	// — every node is a root, measured/derived about the scene center only.
 	quantizedLayout bool
@@ -267,29 +234,6 @@ type MoveDispatch struct {
 	// public Lookup*/…RowFor methods below are thin delegators to it so the external
 	// API is unchanged.
 	rt rowTables
-
-	// --- selection/hover/abc-drag UI state: per-owner, no shared/republished copy ---
-	//
-	// This state used to live on the old central accumulator only, written by the Trace-drain
-	// goroutine on the OTHER end of a round trip from the goroutine that actually sets the
-	// intent. It is now owned directly by whichever goroutine sets it: the gesture/
-	// MoveDispatch goroutine tracks its OWN local record of the current selection/hover/
-	// latched node below (single-owner, no lock needed — mutated only here), and MESSAGES
-	// each change to the owning mover's own dedicated channel (moveMsgKindSelect/Hover/
-	// Latched/AbcReset — see setSelectionUI/setHoverUI/resetAbcDrag). Each mover stores its
-	// OWN selected/hovered/latchedSel/gotDragMsg/dragDelta*/kindID fields (nodeMover) or
-	// selected field (edgeMover) and writes them into its own stream frame — no shared map,
-	// no mutex, no atomic. tr.Select/tr.Hover/tr.AbcDrag/tr.AbcDragReset still fire
-	// alongside this, but ONLY for the -trace/.probe EVENT LOG (the central accumulator
-	// that used to also feed a fallback packer was deleted
-	// entirely — memory/feedback_no_single_writer_bridge.md's final step; WIREFOLD_STREAM_FDS is now
-	// mandatory, there is no fallback left).
-	//
-	// latchedNode is the node id whose LatchedSel bit stays set across a deselect (mirrors
-	// the old central accumulator's setSelected latchedSel handling: moves to the newly-selected node, and
-	// is left untouched — NOT cleared — on a deselect). Mutated only by the gesture
-	// goroutine (setSelectionUI), which also messages the affected movers.
-	latchedNode string
 }
 
 // LookupNodeRow resolves a numeric buffer NODE-ROW index to its node id via the row table
@@ -501,9 +445,9 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 		edgeMovers:    map[string]*edgeMover{},
 		edgeOut:       map[string]*Out{},
 		tr:            tr,
-		ov:            defaultOverlayState(),
 		layoutHolders: map[string]*LayoutHolder{},
 	}
+	md.ui.ov = defaultOverlayState()
 	// Static partner-center lookup for the seed pass: every node's center is already known
 	// off the load-time geoms map (no goroutine/atomic-snap needed), so this is the SAME
 	// buildPartnerCenterFn the dynamic movers use below, just closed over geoms directly
@@ -800,85 +744,22 @@ func (md *MoveDispatch) enqueueFor(nm *nodeMover) func(id string, msg moveMsg) {
 // TestMutuallyAdjacentDragFloodNoDeadlock still passes with this change, so the deadlock
 // risk sendMoveLossy was guarding against does not require a lossy send.
 
-// sendEdgeSelect routes a select/deselect message to one edge's OWN dedicated extIn
-// channel (mirrors sendMove's node counterpart) — the edgeMover sets its OWN selected
-// field on its own goroutine, no shared map. A blocking send with a ctx-cancel escape
-// hatch, same reasoning as sendMove.
-func (md *MoveDispatch) sendEdgeSelect(label string, on bool) {
-	em, ok := md.edgeMovers[label]
-	if !ok {
-		return
-	}
-	msg := moveMsg{Kind: moveMsgKindSelect, Bool: on}
-	if md.ctx == nil {
-		em.extIn <- msg
-		return
-	}
-	select {
-	case em.extIn <- msg:
-	case <-md.ctx.Done():
-	}
-}
-
-// setSelectionUI sets the Go-owned selection (node XOR edge, exclusive — mirrors
-// the old central accumulator's setSelected/setSelectedEdge exclusivity), moving latchedNode to
-// a newly-selected node (left untouched on a deselect), and MESSAGES every affected
-// mover to update its OWN selected/latchedSel bit — no shared/republished map. Called
-// only from the gesture/MoveDispatch goroutine (applySelect); md.sel/md.latchedNode are
-// mutated only here, so no lock is needed on them, and each message ride the mover's own
-// dedicated channel so the mover mutates only its own fields on its own goroutine.
+// setSelectionUI sets the Go-owned selection (node XOR edge, exclusive). Thin delegator
+// to md.ui (ui_state.go).
 func (md *MoveDispatch) setSelectionUI(node, edge string) {
-	prevNode := md.sel.selected
-	prevEdge := md.sel.selectedEdge
-	md.sel.selected = node
-	md.sel.selectedEdge = edge
-	if prevNode != "" && prevNode != node {
-		md.sendMove(prevNode, moveMsg{Kind: moveMsgKindSelect, NodeID: prevNode, Bool: false})
-	}
-	if node != "" && node != prevNode {
-		md.sendMove(node, moveMsg{Kind: moveMsgKindSelect, NodeID: node, Bool: true})
-	}
-	if prevEdge != "" && prevEdge != edge {
-		md.sendEdgeSelect(prevEdge, false)
-	}
-	if edge != "" && edge != prevEdge {
-		md.sendEdgeSelect(edge, true)
-	}
-	if node != "" && node != md.latchedNode {
-		prevLatched := md.latchedNode
-		md.latchedNode = node
-		if prevLatched != "" {
-			md.sendMove(prevLatched, moveMsg{Kind: moveMsgKindLatched, NodeID: prevLatched, Bool: false})
-		}
-		md.sendMove(node, moveMsg{Kind: moveMsgKindLatched, NodeID: node, Bool: true})
-	}
+	md.ui.setSelectionUI(md.edgeMovers, md.ctx, md.sendMove, node, edge)
 }
 
-// setHoverUI sets the Go-owned hover state and MESSAGES the affected node(s) to update
-// their OWN hovered bit — no shared/republished map. Called only from the gesture
-// goroutine (setHover's dedupe check reads md.sel.hoverNode/Port/Input directly — safe
-// without a lock since only this same goroutine ever writes them — see gesture.go's
-// setHover).
+// setHoverUI sets the Go-owned hover state and MESSAGES the affected node(s). Thin
+// delegator to md.ui (ui_state.go).
 func (md *MoveDispatch) setHoverUI(node, port string, isInput bool) {
-	prevNode := md.sel.hoverNode
-	md.sel.hoverNode, md.sel.hoverPort, md.sel.hoverInput = node, port, isInput
-	if prevNode != "" && prevNode != node {
-		md.sendMove(prevNode, moveMsg{Kind: moveMsgKindHover, NodeID: prevNode, Bool: false})
-	}
-	if node != "" {
-		md.sendMove(node, moveMsg{Kind: moveMsgKindHover, NodeID: node, Bool: true, Port: port, IsInput: isInput})
-	}
+	md.ui.setHoverUI(md.sendMove, node, port, isInput)
 }
 
-// resetAbcDrag re-scopes the recipient SET to the drag about to start: MESSAGES every
-// node mover to clear its OWN abc-drag recipient bit (mirrors the old central accumulator's
-// KindAbcDragReset handling). Called from the gesture goroutine at the pending→dragging
-// transition (gesture.go). Broadcast, not a shared flag: each mover clears its own bit
-// on its own goroutine, no generation counter.
+// resetAbcDrag re-scopes the recipient SET to the drag about to start. Thin delegator to
+// md.ui (ui_state.go).
 func (md *MoveDispatch) resetAbcDrag() {
-	for id := range md.nodeMovers {
-		md.sendMove(id, moveMsg{Kind: moveMsgKindAbcReset, NodeID: id})
-	}
+	md.ui.resetAbcDrag(md.nodeMovers, md.sendMove)
 }
 
 // NodeKind returns the kind string for the given node id, or "" if unknown.

@@ -5,7 +5,7 @@
 // local tick counter). MoveDispatch's public SetEdgeStreams/SetNodeStreams methods stay
 // as thin delegators so the external API is unchanged. view_stream.go's emitViewFrame
 // reads md.sw.viewOut/viewBuildFrame/viewTick directly — it ALSO reads
-// md.vp/md.ov/md.sceneSphere/md.abcDragCount, which are owned elsewhere and are NOT part
+// md.ui.vp/md.ui.ov/md.ui.sceneSphere/md.ui.abcDragCount, which are owned elsewhere and are NOT part
 // of this extraction, so emitViewFrame itself stays a MoveDispatch method rather than
 // moving here.
 

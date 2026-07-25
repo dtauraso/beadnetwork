@@ -71,19 +71,19 @@ func TestSetViewpointClearsLock(t *testing.T) {
 
 	// After SetViewpoint the lock must be nil.
 	md.SetViewpoint(vec3{}, 100, dir{Theta: 1.0}, dir{Theta: 1.5708})
-	if md.vp.lockedAxis != nil {
+	if md.ui.vp.lockedAxis != nil {
 		t.Fatal("lockedAxis should be nil after SetViewpoint")
 	}
 
 	// After the first OrbitLocked the lock must be non-nil.
 	md.OrbitLockedViewpoint(dir{Theta: 1.0, Phi: 0.0}, dir{Theta: 1.1, Phi: 0.1}, tr)
-	if md.vp.lockedAxis == nil {
+	if md.ui.vp.lockedAxis == nil {
 		t.Fatal("lockedAxis should be non-nil after first OrbitLockedViewpoint")
 	}
 
 	// Another SetViewpoint must clear the lock again.
 	md.SetViewpoint(vec3{}, 100, dir{Theta: 1.0}, dir{Theta: 1.5708})
-	if md.vp.lockedAxis != nil {
+	if md.ui.vp.lockedAxis != nil {
 		t.Fatal("lockedAxis should be nil after second SetViewpoint")
 	}
 }

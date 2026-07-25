@@ -251,17 +251,17 @@ func TestDragPersistsOnlyDraggedNodeAndRequantizesNeighborsOnDisk(t *testing.T) 
 	metaC := persistedMeta(t, root, "C")
 
 	// (a) A's own persisted scenePolar/center changed to the drag target.
-	gotA := persistedScenePolarCenter(t, metaA, md.sceneSphere.Center)
+	gotA := persistedScenePolarCenter(t, metaA, md.ui.sceneSphere.Center)
 	if d := gotA.sub(target).length(); d > 1e-6 {
 		t.Fatalf("(a) A's persisted center should equal the drag target: persisted=%+v target=%+v (off by %g)", gotA, target, d)
 	}
 
 	// (b) B's and C's persisted scenePolar/center are UNCHANGED.
-	gotB := persistedScenePolarCenter(t, metaB, md.sceneSphere.Center)
+	gotB := persistedScenePolarCenter(t, metaB, md.ui.sceneSphere.Center)
 	if d := gotB.sub(centerBefore["B"]).length(); d > 1e-6 {
 		t.Fatalf("(b) B's persisted center must stay put on an A drag: pre-drag=%+v persisted=%+v (off by %g)", centerBefore["B"], gotB, d)
 	}
-	gotC := persistedScenePolarCenter(t, metaC, md.sceneSphere.Center)
+	gotC := persistedScenePolarCenter(t, metaC, md.ui.sceneSphere.Center)
 	if d := gotC.sub(centerBefore["C"]).length(); d > 1e-6 {
 		t.Fatalf("(b) C's persisted center must stay put on an A drag: pre-drag=%+v persisted=%+v (off by %g)", centerBefore["C"], gotC, d)
 	}

@@ -12,7 +12,7 @@ import (
 
 func newGestureMD(v viewpoint) *MoveDispatch {
 	md := &MoveDispatch{}
-	md.vp.viewpoint = v
+	md.ui.vp.viewpoint = v
 	return md
 }
 
@@ -37,45 +37,45 @@ func TestGestureEmptyDragOrbits(t *testing.T) {
 
 	down := rawEvent("pointerdown", 400, 300)
 	md.HandleRawInput(down, nil, nil)
-	if md.gest.phase != gestPending || !md.gest.emptyDown {
-		t.Fatalf("after pointerdown: phase=%v emptyDown=%v", md.gest.phase, md.gest.emptyDown)
+	if md.ui.gest.phase != gestPending || !md.ui.gest.emptyDown {
+		t.Fatalf("after pointerdown: phase=%v emptyDown=%v", md.ui.gest.phase, md.ui.gest.emptyDown)
 	}
 	// Orbit pivot is the content ahead (focusAhead). Empty centers → a point on the view axis a
 	// fixed distance ahead: eye=(0,0,100), forward=(0,0,-1), focusMin=10 → (0,0,90).
-	if !vecClose(md.gest.rotPivot, vec3{0, 0, 90}, 1e-9) {
-		t.Fatalf("rotPivot=%v want focus-ahead (0,0,90)", md.gest.rotPivot)
+	if !vecClose(md.ui.gest.rotPivot, vec3{0, 0, 90}, 1e-9) {
+		t.Fatalf("rotPivot=%v want focus-ahead (0,0,90)", md.ui.gest.rotPivot)
 	}
 
 	// First move past the slop: transitions to rotating and seeds the viewpoint. The first
 	// frame's arc is ~zero (prev==curr), so pose is essentially the seeded one.
 	md.HandleRawInput(rawEvent("pointermove", 420, 300), nil, nil)
-	if md.gest.phase != gestRotating {
-		t.Fatalf("after slop-cross move: phase=%v want rotating", md.gest.phase)
+	if md.ui.gest.phase != gestRotating {
+		t.Fatalf("after slop-cross move: phase=%v want rotating", md.ui.gest.phase)
 	}
-	if !vecClose(md.vp.pivot, vec3{0, 0, 90}, 1e-9) {
-		t.Fatalf("seed pivot=%v want focus-ahead (0,0,90)", md.vp.pivot)
+	if !vecClose(md.ui.vp.pivot, vec3{0, 0, 90}, 1e-9) {
+		t.Fatalf("seed pivot=%v want focus-ahead (0,0,90)", md.ui.vp.pivot)
 	}
-	if math.Abs(md.vp.r-10) > 1e-9 {
-		t.Fatalf("seed r=%v want 10 (eye→focus-ahead)", md.vp.r)
+	if math.Abs(md.ui.vp.r-10) > 1e-9 {
+		t.Fatalf("seed r=%v want 10 (eye→focus-ahead)", md.ui.vp.r)
 	}
-	posBefore := md.vp.pos
-	rBefore, pivotBefore := md.vp.r, md.vp.pivot
+	posBefore := md.ui.vp.pos
+	rBefore, pivotBefore := md.ui.vp.r, md.ui.vp.pivot
 
 	// Second move: genuine cursor delta → orbit. pos must change; r + pivot preserved.
 	md.HandleRawInput(rawEvent("pointermove", 480, 320), nil, nil)
-	if math.Abs(md.vp.r-rBefore) > 1e-9 {
-		t.Fatalf("orbit changed r: %v != %v", md.vp.r, rBefore)
+	if math.Abs(md.ui.vp.r-rBefore) > 1e-9 {
+		t.Fatalf("orbit changed r: %v != %v", md.ui.vp.r, rBefore)
 	}
-	if !vecClose(md.vp.pivot, pivotBefore, 1e-9) {
-		t.Fatalf("orbit moved pivot: %v != %v", md.vp.pivot, pivotBefore)
+	if !vecClose(md.ui.vp.pivot, pivotBefore, 1e-9) {
+		t.Fatalf("orbit moved pivot: %v != %v", md.ui.vp.pivot, pivotBefore)
 	}
-	if angularDistance(md.vp.pos, posBefore) < 1e-6 {
-		t.Fatalf("orbit did not change pos (dir stayed %v)", md.vp.pos)
+	if angularDistance(md.ui.vp.pos, posBefore) < 1e-6 {
+		t.Fatalf("orbit did not change pos (dir stayed %v)", md.ui.vp.pos)
 	}
 
 	md.HandleRawInput(rawEvent("pointerup", 480, 320), nil, nil)
-	if md.gest.phase != gestIdle {
-		t.Fatalf("after pointerup: phase=%v want idle", md.gest.phase)
+	if md.ui.gest.phase != gestIdle {
+		t.Fatalf("after pointerup: phase=%v want idle", md.ui.gest.phase)
 	}
 }
 
@@ -83,18 +83,18 @@ func TestGestureEmptyDragOrbits(t *testing.T) {
 // toward the cursor target). Both leave the radius set by the region-focus seed.
 func TestGestureWheelStrafesCamera(t *testing.T) {
 	md := newGestureMD(canonicalViewpoint())
-	pivotBefore := md.vp.pivot
-	centerBefore := md.sceneSphere.Center
+	pivotBefore := md.ui.vp.pivot
+	centerBefore := md.ui.sceneSphere.Center
 	ev := rawEvent("wheel", 400, 300)
 	ev.DeltaX = 10
 	ev.DeltaY = 0
 	md.HandleRawInput(ev, nil, nil)
 	// Lateral pan strafes the CAMERA (free-camera model); the fixed scene does not move.
-	if vecClose(md.vp.pivot, pivotBefore, 1e-9) {
-		t.Fatalf("plain wheel did not strafe the camera (pivot stayed %v)", md.vp.pivot)
+	if vecClose(md.ui.vp.pivot, pivotBefore, 1e-9) {
+		t.Fatalf("plain wheel did not strafe the camera (pivot stayed %v)", md.ui.vp.pivot)
 	}
-	if !vecClose(md.sceneSphere.Center, centerBefore, 1e-9) {
-		t.Fatalf("plain wheel moved the scene center %v; the scene must stay fixed", md.sceneSphere.Center)
+	if !vecClose(md.ui.sceneSphere.Center, centerBefore, 1e-9) {
+		t.Fatalf("plain wheel moved the scene center %v; the scene must stay fixed", md.ui.sceneSphere.Center)
 	}
 }
 
@@ -110,14 +110,14 @@ func TestGestureWheelPansOverNodeAndEdgeHit(t *testing.T) {
 	} {
 		md := newGestureMD(canonicalViewpoint())
 		md.rt.nodeRowTable = []string{"N7"}
-		before := md.vp.pivot
+		before := md.ui.vp.pivot
 		ev := rawEvent("wheel", 400, 300)
 		ev.DeltaX = 10
 		ev.DeltaY = 0
 		ev.Hit = h
 		md.HandleRawInput(ev, nil, nil)
-		if vecClose(md.vp.pivot, before, 1e-9) {
-			t.Fatalf("plain wheel with %s hit did not strafe the camera (pivot stayed %v)", h.Kind, md.vp.pivot)
+		if vecClose(md.ui.vp.pivot, before, 1e-9) {
+			t.Fatalf("plain wheel with %s hit did not strafe the camera (pivot stayed %v)", h.Kind, md.ui.vp.pivot)
 		}
 	}
 }
@@ -134,18 +134,18 @@ func TestGestureCtrlWheelZoomsToCursor(t *testing.T) {
 	// floor (minStep = vp.r*(zoomBase-1) = 1), so the camera moves minStep AWAY (DeltaY=1) →
 	// pivot.Z = +1.
 	wantZ := 100 * (gestureZoomBase - 1)
-	if math.Abs(md.vp.pivot.Z-wantZ) > 1e-9 || math.Abs(md.vp.pivot.X) > 1e-9 {
-		t.Fatalf("ctrl-wheel pivot=%v want Z≈%v (dolly toward cursor)", md.vp.pivot, wantZ)
+	if math.Abs(md.ui.vp.pivot.Z-wantZ) > 1e-9 || math.Abs(md.ui.vp.pivot.X) > 1e-9 {
+		t.Fatalf("ctrl-wheel pivot=%v want Z≈%v (dolly toward cursor)", md.ui.vp.pivot, wantZ)
 	}
 	// The look direction is unchanged (no re-aim).
-	if angularDistance(md.vp.pos, canonicalViewpoint().pos) > 1e-9 {
+	if angularDistance(md.ui.vp.pos, canonicalViewpoint().pos) > 1e-9 {
 		t.Fatalf("ctrl-wheel re-aimed the camera (pos changed); zoom-to-cursor must keep orientation")
 	}
 }
 
 // Click-select is Go-owned for EDGES too: a click on an edge (new-system: a numeric buffer
 // EDGE-ROW hit) resolves the row → edge label via the injected edge-row table and sets
-// md.sel.selectedEdge, clearing any node selection (exclusive). Selecting a node afterwards
+// md.ui.sel.selectedEdge, clearing any node selection (exclusive). Selecting a node afterwards
 // clears the edge selection, and an empty click clears both.
 func TestGestureClickSelectsEdgeGoOwned(t *testing.T) {
 	md := newGestureMD(canonicalViewpoint())
@@ -159,8 +159,8 @@ func TestGestureClickSelectsEdgeGoOwned(t *testing.T) {
 	nu := rawEvent("pointerup", 400, 300)
 	nu.Hit = rawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(nu, nil, nil)
-	if md.sel.selected != "N7" {
-		t.Fatalf("pre: selected=%q want N7", md.sel.selected)
+	if md.ui.sel.selected != "N7" {
+		t.Fatalf("pre: selected=%q want N7", md.ui.sel.selected)
 	}
 
 	// Tap EDGE row 1 → selectedEdge=e1, node selection cleared.
@@ -170,11 +170,11 @@ func TestGestureClickSelectsEdgeGoOwned(t *testing.T) {
 	eu := rawEvent("pointerup", 400, 300)
 	eu.Hit = rawHit{Kind: "edge", EdgeRow: 1}
 	md.HandleRawInput(eu, nil, nil)
-	if md.sel.selectedEdge != "e1" {
-		t.Fatalf("selectedEdge=%q want e1", md.sel.selectedEdge)
+	if md.ui.sel.selectedEdge != "e1" {
+		t.Fatalf("selectedEdge=%q want e1", md.ui.sel.selectedEdge)
 	}
-	if md.sel.selected != "" {
-		t.Fatalf("selected=%q want empty (edge select clears node)", md.sel.selected)
+	if md.ui.sel.selected != "" {
+		t.Fatalf("selected=%q want empty (edge select clears node)", md.ui.sel.selected)
 	}
 
 	// Selecting a node clears the edge selection (exclusive both ways).
@@ -184,19 +184,19 @@ func TestGestureClickSelectsEdgeGoOwned(t *testing.T) {
 	nu2 := rawEvent("pointerup", 400, 300)
 	nu2.Hit = rawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(nu2, nil, nil)
-	if md.sel.selectedEdge != "" {
-		t.Fatalf("selectedEdge=%q want empty after node select", md.sel.selectedEdge)
+	if md.ui.sel.selectedEdge != "" {
+		t.Fatalf("selectedEdge=%q want empty after node select", md.ui.sel.selectedEdge)
 	}
 
 	// Empty-space click clears the current selection (highlight is transient).
 	md.HandleRawInput(rawEvent("pointerdown", 400, 300), nil, nil)
 	md.HandleRawInput(rawEvent("pointerup", 400, 300), nil, nil)
-	if md.sel.selected != "" || md.sel.selectedEdge != "" {
-		t.Fatalf("after empty click: selected=%q selectedEdge=%q want empty,empty (cleared)", md.sel.selected, md.sel.selectedEdge)
+	if md.ui.sel.selected != "" || md.ui.sel.selectedEdge != "" {
+		t.Fatalf("after empty click: selected=%q selectedEdge=%q want empty,empty (cleared)", md.ui.sel.selected, md.ui.sel.selectedEdge)
 	}
 }
 
-// Click-select is Go-owned: a click on a node sets md.sel.selected to that node id; a click on
+// Click-select is Go-owned: a click on a node sets md.ui.sel.selected to that node id; a click on
 // empty space clears it. (No camera change — covered by TestGestureClickNoCameraChange.)
 func TestGestureClickSelectsNodeGoOwned(t *testing.T) {
 	md := newGestureMD(canonicalViewpoint())
@@ -210,17 +210,17 @@ func TestGestureClickSelectsNodeGoOwned(t *testing.T) {
 		e.Hit = rawHit{Kind: "node", NodeRow: 0}
 		return e
 	}(), nil, nil)
-	if md.sel.selected != "N7" {
-		t.Fatalf("selected=%q want N7", md.sel.selected)
+	if md.ui.sel.selected != "N7" {
+		t.Fatalf("selected=%q want N7", md.ui.sel.selected)
 	}
 
-	// Empty-space click CLEARS the highlight (md.sel.selected), even though the rule-builder's
+	// Empty-space click CLEARS the highlight (md.ui.sel.selected), even though the rule-builder's
 	// sticky panel Center (md.ruleCenter) stays put — see TestGestureRuleCenterStickyOnEmptyClick.
 	d2 := rawEvent("pointerdown", 400, 300) // Hit defaults to empty
 	md.HandleRawInput(d2, nil, nil)
 	md.HandleRawInput(rawEvent("pointerup", 401, 300), nil, nil)
-	if md.sel.selected != "" {
-		t.Fatalf("selected=%q want empty (cleared) after empty-space click", md.sel.selected)
+	if md.ui.sel.selected != "" {
+		t.Fatalf("selected=%q want empty (cleared) after empty-space click", md.ui.sel.selected)
 	}
 }
 
@@ -229,7 +229,7 @@ func TestGestureClickSelectsNodeGoOwned(t *testing.T) {
 // a body hit); a move over a port records the hovered port (clearing the node hover); a move
 // over empty space — or over the node BODY — clears hover. The FSM dedupes on the
 // (node,port,isInput) triple so a still/same-target move does not re-emit. Drives moves and
-// asserts md.sel.hoverNode/hoverPort track the hit.
+// asserts md.ui.sel.hoverNode/hoverPort track the hit.
 func TestGestureHoverTracksNodeAndPort(t *testing.T) {
 	md := newGestureMD(canonicalViewpoint())
 	md.rt.portRowTable = []moveDispatchPortRow{{node: "A", port: "in", isInput: true}}
@@ -239,30 +239,30 @@ func TestGestureHoverTracksNodeAndPort(t *testing.T) {
 	mv := rawEvent("pointermove", 400, 300)
 	mv.Hit = rawHit{Kind: "torus", NodeRow: 0}
 	md.HandleRawInput(mv, nil, nil)
-	if md.sel.hoverNode != "N7" || md.sel.hoverPort != "" {
-		t.Fatalf("torus hover: hoverNode=%q hoverPort=%q want N7,''", md.sel.hoverNode, md.sel.hoverPort)
+	if md.ui.sel.hoverNode != "N7" || md.ui.sel.hoverPort != "" {
+		t.Fatalf("torus hover: hoverNode=%q hoverPort=%q want N7,''", md.ui.sel.hoverNode, md.ui.sel.hoverPort)
 	}
 
 	// Move over the node BODY (kind "node") → hover clears (body does not light the ring).
 	bodyMv := rawEvent("pointermove", 402, 300)
 	bodyMv.Hit = rawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(bodyMv, nil, nil)
-	if md.sel.hoverNode != "" || md.sel.hoverPort != "" {
-		t.Fatalf("body hover: hoverNode=%q hoverPort=%q want '',''", md.sel.hoverNode, md.sel.hoverPort)
+	if md.ui.sel.hoverNode != "" || md.ui.sel.hoverPort != "" {
+		t.Fatalf("body hover: hoverNode=%q hoverPort=%q want '',''", md.ui.sel.hoverNode, md.ui.sel.hoverPort)
 	}
 
 	// Move onto a port (row 0 = A.in) → hovered port, node hover cleared.
 	pv := rawEvent("pointermove", 410, 300)
 	pv.Hit = rawHit{Kind: "port", PortRow: 0}
 	md.HandleRawInput(pv, nil, nil)
-	if md.sel.hoverPort != "in" || md.sel.hoverNode != "A" || !md.sel.hoverInput {
-		t.Fatalf("port hover: hoverNode=%q hoverPort=%q input=%v want A,in,true", md.sel.hoverNode, md.sel.hoverPort, md.sel.hoverInput)
+	if md.ui.sel.hoverPort != "in" || md.ui.sel.hoverNode != "A" || !md.ui.sel.hoverInput {
+		t.Fatalf("port hover: hoverNode=%q hoverPort=%q input=%v want A,in,true", md.ui.sel.hoverNode, md.ui.sel.hoverPort, md.ui.sel.hoverInput)
 	}
 
 	// Move over empty space → hover cleared.
 	md.HandleRawInput(rawEvent("pointermove", 500, 300), nil, nil)
-	if md.sel.hoverNode != "" || md.sel.hoverPort != "" {
-		t.Fatalf("empty hover: hoverNode=%q hoverPort=%q want '',''", md.sel.hoverNode, md.sel.hoverPort)
+	if md.ui.sel.hoverNode != "" || md.ui.sel.hoverPort != "" {
+		t.Fatalf("empty hover: hoverNode=%q hoverPort=%q want '',''", md.ui.sel.hoverNode, md.ui.sel.hoverPort)
 	}
 }
 
@@ -279,23 +279,23 @@ func TestGestureSecondaryTapSelectsThroughDrift(t *testing.T) {
 	down.Button = 2
 	down.Hit = rawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(down, nil, nil)
-	if !md.gest.secondary || md.gest.phase != gestPending {
-		t.Fatalf("after secondary down: secondary=%v phase=%v", md.gest.secondary, md.gest.phase)
+	if !md.ui.gest.secondary || md.ui.gest.phase != gestPending {
+		t.Fatalf("after secondary down: secondary=%v phase=%v", md.ui.gest.secondary, md.ui.gest.phase)
 	}
 	// Finger drift past the slop must NOT convert to drag/rotate — it stays a tap-select.
 	drift := rawEvent("pointermove", 400+gestureMoveSlopPx+10, 300)
 	drift.Button = 2
 	drift.Hit = rawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(drift, nil, nil)
-	if md.gest.phase != gestPending {
-		t.Fatalf("secondary tap converted out of pending: phase=%v", md.gest.phase)
+	if md.ui.gest.phase != gestPending {
+		t.Fatalf("secondary tap converted out of pending: phase=%v", md.ui.gest.phase)
 	}
 	up := rawEvent("pointerup", 400+gestureMoveSlopPx+10, 300)
 	up.Button = 2
 	up.Hit = rawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(up, nil, nil)
-	if md.sel.selected != "N7" {
-		t.Fatalf("selected=%q want N7 after secondary tap-select through drift", md.sel.selected)
+	if md.ui.sel.selected != "N7" {
+		t.Fatalf("selected=%q want N7 after secondary tap-select through drift", md.ui.sel.selected)
 	}
 
 	// Two-finger tap on EMPTY space (with drift) clears the current selection.
@@ -308,8 +308,8 @@ func TestGestureSecondaryTapSelectsThroughDrift(t *testing.T) {
 	u2 := rawEvent("pointerup", 400+gestureMoveSlopPx+10, 300)
 	u2.Button = 2
 	md.HandleRawInput(u2, nil, nil)
-	if md.sel.selected != "" {
-		t.Fatalf("selected=%q want empty (cleared) after secondary empty-space tap", md.sel.selected)
+	if md.ui.sel.selected != "" {
+		t.Fatalf("selected=%q want empty (cleared) after secondary empty-space tap", md.ui.sel.selected)
 	}
 }
 
@@ -320,27 +320,27 @@ func TestGestureHandholdOrbits(t *testing.T) {
 	down := rawEvent("pointerdown", 400, 300)
 	down.Hit = rawHit{Kind: "handhold"}
 	md.HandleRawInput(down, nil, nil)
-	if !md.gest.handholdDown || md.gest.phase != gestPending {
-		t.Fatalf("after handhold down: handholdDown=%v phase=%v", md.gest.handholdDown, md.gest.phase)
+	if !md.ui.gest.handholdDown || md.ui.gest.phase != gestPending {
+		t.Fatalf("after handhold down: handholdDown=%v phase=%v", md.ui.gest.handholdDown, md.ui.gest.phase)
 	}
 	md.HandleRawInput(rawEvent("pointermove", 460, 320), nil, nil)
-	if md.gest.phase != gestHandhold {
-		t.Fatalf("phase=%v want handhold", md.gest.phase)
+	if md.ui.gest.phase != gestHandhold {
+		t.Fatalf("phase=%v want handhold", md.ui.gest.phase)
 	}
-	rBefore, pivotBefore, posBefore := md.vp.r, md.vp.pivot, md.vp.pos
+	rBefore, pivotBefore, posBefore := md.ui.vp.r, md.ui.vp.pivot, md.ui.vp.pos
 	md.HandleRawInput(rawEvent("pointermove", 520, 360), nil, nil)
-	if math.Abs(md.vp.r-rBefore) > 1e-9 {
-		t.Fatalf("handhold orbit changed r: %v != %v", md.vp.r, rBefore)
+	if math.Abs(md.ui.vp.r-rBefore) > 1e-9 {
+		t.Fatalf("handhold orbit changed r: %v != %v", md.ui.vp.r, rBefore)
 	}
-	if !vecClose(md.vp.pivot, pivotBefore, 1e-9) {
-		t.Fatalf("handhold orbit moved pivot: %v != %v", md.vp.pivot, pivotBefore)
+	if !vecClose(md.ui.vp.pivot, pivotBefore, 1e-9) {
+		t.Fatalf("handhold orbit moved pivot: %v != %v", md.ui.vp.pivot, pivotBefore)
 	}
-	if angularDistance(md.vp.pos, posBefore) < 1e-6 {
-		t.Fatalf("handhold orbit did not change pos (stayed %v)", md.vp.pos)
+	if angularDistance(md.ui.vp.pos, posBefore) < 1e-6 {
+		t.Fatalf("handhold orbit did not change pos (stayed %v)", md.ui.vp.pos)
 	}
 	md.HandleRawInput(rawEvent("pointerup", 520, 360), nil, nil)
-	if md.gest.phase != gestIdle {
-		t.Fatalf("after handhold up phase=%v want idle", md.gest.phase)
+	if md.ui.gest.phase != gestIdle {
+		t.Fatalf("after handhold up phase=%v want idle", md.ui.gest.phase)
 	}
 }
 
@@ -356,20 +356,20 @@ func TestGestureConnectedPortRingMove(t *testing.T) {
 		"e1": {Source: "N1", Target: "N2", SourceHandle: "out", TargetHandle: "in"},
 	}
 	md := newMoveDispatch(geoms, edges, nil, nil, nil, NewRealClock(), nil)
-	md.vp.viewpoint = canonicalViewpoint()
+	md.ui.vp.viewpoint = canonicalViewpoint()
 	md.rt.portRowTable = []moveDispatchPortRow{{node: "N1", port: "out", isInput: false}}
 
 	// Grab the CONNECTED out-port of N1.
 	down := rawEvent("pointerdown", 400, 300)
 	down.Hit = rawHit{Kind: "port", PortRow: 0, IsInput: false}
 	md.HandleRawInput(down, nil, nil)
-	if md.gest.portMoveNode != "N1" {
-		t.Fatalf("connected-port down: portMoveNode=%q want N1 (phase=%v)", md.gest.portMoveNode, md.gest.phase)
+	if md.ui.gest.portMoveNode != "N1" {
+		t.Fatalf("connected-port down: portMoveNode=%q want N1 (phase=%v)", md.ui.gest.portMoveNode, md.ui.gest.phase)
 	}
 	// Drag past slop, off-center so the ring direction is nonzero.
 	md.HandleRawInput(rawEvent("pointermove", 520, 300), nil, nil)
-	if md.gest.phase != gestPortMove {
-		t.Fatalf("phase=%v want portMove", md.gest.phase)
+	if md.ui.gest.phase != gestPortMove {
+		t.Fatalf("phase=%v want portMove", md.ui.gest.phase)
 	}
 	// The N1 mover's extIn channel (buffered) must have received an anchor update.
 	select {
@@ -386,25 +386,25 @@ func TestGestureConnectedPortRingMove(t *testing.T) {
 // (recognized only); it must NOT change the camera pose.
 func TestGestureClickNoCameraChange(t *testing.T) {
 	md := newGestureMD(canonicalViewpoint())
-	before := md.vp.viewpoint
+	before := md.ui.vp.viewpoint
 	nodeHit := rawEvent("pointerdown", 400, 300)
 	nodeHit.Hit = rawHit{Kind: "empty"}
 	md.HandleRawInput(nodeHit, nil, nil)
 	md.HandleRawInput(rawEvent("pointerup", 402, 301), nil, nil) // <6px → click
-	if md.vp.viewpoint != before {
-		t.Fatalf("click changed camera: %+v != %+v", md.vp.viewpoint, before)
+	if md.ui.vp.viewpoint != before {
+		t.Fatalf("click changed camera: %+v != %+v", md.ui.vp.viewpoint, before)
 	}
-	if md.gest.phase != gestIdle {
-		t.Fatalf("after click phase=%v want idle", md.gest.phase)
+	if md.ui.gest.phase != gestIdle {
+		t.Fatalf("after click phase=%v want idle", md.ui.gest.phase)
 	}
 }
 
-// A node click sets md.sel.selected regardless of the selSpherePoles overlay state (the
+// A node click sets md.ui.sel.selected regardless of the selSpherePoles overlay state (the
 // rule-builder authoring path that used to intercept it under selSpherePoles has been
 // removed; click-select is now uniform).
 func TestGestureSelectModeOffStillHighlights(t *testing.T) {
 	md := newGestureMD(canonicalViewpoint())
-	md.ov.selSpherePolesVisible = false
+	md.ui.ov.selSpherePolesVisible = false
 	md.rt.nodeRowTable = []string{"A"}
 
 	down := rawEvent("pointerdown", 400, 300)
@@ -414,7 +414,7 @@ func TestGestureSelectModeOffStillHighlights(t *testing.T) {
 	up.Hit = rawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(up, nil, nil)
 
-	if md.sel.selected != "A" {
-		t.Fatalf("selected=%q after node click with select mode OFF, want A", md.sel.selected)
+	if md.ui.sel.selected != "A" {
+		t.Fatalf("selected=%q after node click with select mode OFF, want A", md.ui.sel.selected)
 	}
 }

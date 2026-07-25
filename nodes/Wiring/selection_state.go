@@ -2,7 +2,7 @@ package Wiring
 
 // selection_state.go — selectionState groups the CURRENTLY-SELECTED (click-select) and
 // CURRENTLY-HOVERED (pointer hover) fields, pure UI state parked on the routing directory
-// (MoveDispatch). It is owned as a field by MoveDispatch (md.sel); there is no goroutine —
+// (MoveDispatch). It is owned as a field by MoveDispatch (md.ui.sel); there is no goroutine —
 // the gesture FSM mutates it directly, serialized by the single-goroutine stdin reader.
 
 // selectionState carries the current click-selection and pointer-hover state.

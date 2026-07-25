@@ -190,7 +190,7 @@ func TestIndividualSnap_OnlyDraggedNodePersists(t *testing.T) {
 	if err := json.Unmarshal(srcA["scenePolarPhi"], &gotP.Phi); err != nil {
 		t.Fatalf("unmarshal src scenePolarPhi: %v", err)
 	}
-	gotCenter := md.sceneSphere.Center.add(polar2cart(gotP))
+	gotCenter := md.ui.sceneSphere.Center.add(polar2cart(gotP))
 	if d := gotCenter.sub(srcCenterBefore).length(); d > 1e-6 {
 		t.Fatalf("src's persisted scenePolar should still match its pre-drag (unmoved) world center: persisted=%+v pre-drag=%+v", gotCenter, srcCenterBefore)
 	}

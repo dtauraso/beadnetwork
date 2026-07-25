@@ -10,7 +10,7 @@
 // scene document crosses the TS→Go bridge — Go writes ITS OWN current snapshot.
 //
 // LOAD side: loadSceneOverlays reads the keys back (inverting the *Hidden polarity) and
-// MoveDispatch.LoadOverlays installs them into md.ov on startup + emits them so the first
+// MoveDispatch.LoadOverlays installs them into md.ui.ov on startup + emits them so the first
 // snapshot reflects the saved state — closing the toggle→reload→still-toggled round trip.
 // It tries overlays.json first and falls back to the legacy scene.json's overlay keys (a
 // pre-split topology) — see loadSceneOverlays.
@@ -153,7 +153,7 @@ func loadSceneOverlays(overlaysPath, legacyScenePath string) (overlayState, bool
 	return ov, found
 }
 
-// LoadOverlays reads the overlay-visibility state from scene.json (FILE DATA) into md.ov and
+// LoadOverlays reads the overlay-visibility state from scene.json (FILE DATA) into md.ui.ov and
 // streams it so the buffer reflects the current overlay state from the first frame. A scene.json
 // with no overlay keys resolves to the code defaults (loadSceneOverlays starts from
 // defaultOverlayState and applies any present keys) — and those defaults are STILL emitted, so
@@ -163,7 +163,7 @@ func loadSceneOverlays(overlaysPath, legacyScenePath string) (overlayState, bool
 // directory-tree and monolithic forms.
 func (md *MoveDispatch) LoadOverlays(topologyPath string, tr *T.Trace) {
 	ov, _ := loadSceneOverlays(overlaysFilePath(topologyPath), sceneCameraPath(topologyPath)) // ov = defaults with any persisted keys applied
-	md.ov.SetGuideVisibility(ov)
+	md.ui.ov.SetGuideVisibility(ov)
 	// Decentralized (Step C, memory/feedback_no_single_writer_bridge.md): the gesture/stdin-reader goroutine
 	// (this one) writes its own VIEW frame directly, carrying the 8 one-time overlay-flag
 	// events this load implies — one RowEvent per flag kind. Every overlay kind decodes

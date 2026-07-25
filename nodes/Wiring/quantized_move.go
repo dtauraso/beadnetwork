@@ -316,7 +316,7 @@ func (md *MoveDispatch) commitNodeMoveLocal(nm *nodeMover, newPos vec3) {
 	// CARTESIAN center is read live off that neighbor's OWN atomically-published snap
 	// (md.centerOfNode), resolved via nm.edgeIDs (this node's own incident edges,
 	// fixed at construction); scene polar is a pure re-derive off the fixed,
-	// write-once md.sceneSphere.Center (never mutated after load), so this stays
+	// write-once md.ui.sceneSphere.Center (never mutated after load), so this stays
 	// race-free without the old all-nodes atomic-snapshot read (heldPolar).
 	polars := map[string]polar{}
 	for _, edgeID := range nm.edgeIDs {
@@ -329,14 +329,14 @@ func (md *MoveDispatch) commitNodeMoveLocal(nm *nodeMover, newPos vec3) {
 			neighborID = em.dstID
 		}
 		if c, ok := md.centerOfNode(neighborID); ok {
-			polars[neighborID] = cart2polar(c.sub(md.sceneSphere.Center))
+			polars[neighborID] = cart2polar(c.sub(md.ui.sceneSphere.Center))
 		}
 	}
 	// Single cart2polar boundary conversion for this drag target — newPos is mouse-
 	// derived cartesian (gesture.go ray/plane unproject); everything downstream
 	// (reach, measureScalar, the persist schedule) reuses this one polar value rather
 	// than re-deriving it from newPos.
-	nodePolar := cart2polar(newPos.sub(md.sceneSphere.Center))
+	nodePolar := cart2polar(newPos.sub(md.ui.sceneSphere.Center))
 	polars[nodeID] = nodePolar
 	reach := reachRFromPolar(polars, edges)
 

@@ -2,12 +2,12 @@ package Wiring
 
 // viewpoint_state.go — viewpointState owns the polar camera viewpoint value plus its
 // set/orbit/zoom/pan mutators and the camera-trace emit. It is owned as a field by
-// MoveDispatch (md.vp), which exposes thin delegating methods; extracting it here keeps
+// MoveDispatch (md.ui.vp), which exposes thin delegating methods; extracting it here keeps
 // node_move.go focused on the dispatch registry. There is no goroutine — callers
 // serialize externally (the stdin reader runs in a single goroutine).
 //
 // The viewpoint value is embedded so callers that reach through the field (e.g. tests
-// asserting md.vp.lockedAxis) keep resolving, and the *viewpoint navigation ops
+// asserting md.ui.vp.lockedAxis) keep resolving, and the *viewpoint navigation ops
 // (orbit/orbitLocked/zoom/pan) promote onto viewpointState.
 
 import (
@@ -74,10 +74,10 @@ func (v *viewpointState) PanViewpoint(delta vec3, tr *T.Trace) {
 }
 
 // Camera viewpoint API — thin delegators to the owned viewpointState above.
-// The public signatures are unchanged; the state and behavior live on md.vp.
+// The public signatures are unchanged; the state and behavior live on md.ui.vp.
 
 func (md *MoveDispatch) SetViewpoint(pivot vec3, r float64, pos, up dir) {
-	md.vp.SetViewpoint(pivot, r, pos, up)
+	md.ui.vp.SetViewpoint(pivot, r, pos, up)
 }
 
 // cameraViewEvent is the single Camera event every camera-changing delegator below hands
@@ -88,28 +88,28 @@ func cameraViewEvent() []RowEvent {
 }
 
 func (md *MoveDispatch) EmitViewpoint(tr *T.Trace) {
-	md.vp.EmitViewpoint(tr)
+	md.ui.vp.EmitViewpoint(tr)
 	md.emitViewFrame(cameraViewEvent())
 }
 func (md *MoveDispatch) OrbitViewpoint(from, to dir, tr *T.Trace) {
-	md.vp.OrbitViewpoint(from, to, tr)
+	md.ui.vp.OrbitViewpoint(from, to, tr)
 	md.emitViewFrame(cameraViewEvent())
 }
 func (md *MoveDispatch) OrbitLockedViewpoint(from, to dir, tr *T.Trace) {
-	md.vp.OrbitLockedViewpoint(from, to, tr)
+	md.ui.vp.OrbitLockedViewpoint(from, to, tr)
 	md.emitViewFrame(cameraViewEvent())
 }
 func (md *MoveDispatch) ZoomViewpoint(factor float64, tr *T.Trace) {
-	md.vp.ZoomViewpoint(factor, tr)
+	md.ui.vp.ZoomViewpoint(factor, tr)
 	md.emitViewFrame(cameraViewEvent())
 }
 func (md *MoveDispatch) PanViewpoint(delta vec3, tr *T.Trace) {
 	// A dolly is a pure CAMERA move (the eye translates toward the cursor). It must NOT move the
-	// scene sphere: coupling them left md.sceneSphere.Center diverged from the movers' held
+	// scene sphere: coupling them left md.ui.sceneSphere.Center diverged from the movers' held
 	// center until a later broadcast reconciled it with a jump (the "zoom got canceled"
 	// symptom). Nothing moves the sphere — MODEL.md: "It is established once and never moves."
 	// Pan-moves-the-sphere is REJECTED doctrine, not a gap to fill; if it is ever revisited it
 	// must be its own gesture, never a side effect of a camera move.
-	md.vp.PanViewpoint(delta, tr)
+	md.ui.vp.PanViewpoint(delta, tr)
 	md.emitViewFrame(cameraViewEvent())
 }

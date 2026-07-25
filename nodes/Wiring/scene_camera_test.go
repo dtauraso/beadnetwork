@@ -74,15 +74,15 @@ func TestLoadSceneViewpointMatchesCameraPolar(t *testing.T) {
 	// pivot within a valid basis (the exact thing the old zero-value viewpoint broke).
 	md := &MoveDispatch{}
 	SeedInitialViewpoint(dir, md, nil)
-	if !vecClose(md.vp.pivot, vec3{10, 20, 30}, 1e-9) || math.Abs(md.vp.r-250) > 1e-9 {
-		t.Fatalf("SeedInitialViewpoint did not install the loaded pose: %+v", md.vp.viewpoint)
+	if !vecClose(md.ui.vp.pivot, vec3{10, 20, 30}, 1e-9) || math.Abs(md.ui.vp.r-250) > 1e-9 {
+		t.Fatalf("SeedInitialViewpoint did not install the loaded pose: %+v", md.ui.vp.viewpoint)
 	}
-	basisNonDegenerate(t, md.vp.pos, md.vp.up)
+	basisNonDegenerate(t, md.ui.vp.pos, md.ui.vp.up)
 
-	before := md.vp.pivot
+	before := md.ui.vp.pivot
 	md.PanViewpoint(vec3{X: 5, Y: -7, Z: 2}, nil)
-	if !vecClose(md.vp.pivot, before.add(vec3{5, -7, 2}), 1e-9) {
-		t.Fatalf("pan pivot=%v want %v", md.vp.pivot, before.add(vec3{5, -7, 2}))
+	if !vecClose(md.ui.vp.pivot, before.add(vec3{5, -7, 2}), 1e-9) {
+		t.Fatalf("pan pivot=%v want %v", md.ui.vp.pivot, before.add(vec3{5, -7, 2}))
 	}
 }
 
@@ -97,25 +97,25 @@ func TestSeedInitialViewpointAbsentFileUsesDefault(t *testing.T) {
 	SeedInitialViewpoint(dir, md, nil)
 
 	// Default: pivot=origin, r=defaultViewpointR, pos=+Z (square-on), up=+Y.
-	if !vecClose(md.vp.pivot, vec3{0, 0, 0}, 1e-9) {
-		t.Fatalf("default pivot=%v want origin", md.vp.pivot)
+	if !vecClose(md.ui.vp.pivot, vec3{0, 0, 0}, 1e-9) {
+		t.Fatalf("default pivot=%v want origin", md.ui.vp.pivot)
 	}
-	if math.Abs(md.vp.r-defaultViewpointR) > 1e-9 {
-		t.Fatalf("default r=%v want %v", md.vp.r, defaultViewpointR)
+	if math.Abs(md.ui.vp.r-defaultViewpointR) > 1e-9 {
+		t.Fatalf("default r=%v want %v", md.ui.vp.r, defaultViewpointR)
 	}
 	// pos +Z, up +Y → non-degenerate basis, and pan works.
-	basisNonDegenerate(t, md.vp.pos, md.vp.up)
-	posW := anglesToWorldOffset(1, md.vp.pos.Theta, md.vp.pos.Phi)
+	basisNonDegenerate(t, md.ui.vp.pos, md.ui.vp.up)
+	posW := anglesToWorldOffset(1, md.ui.vp.pos.Theta, md.ui.vp.pos.Phi)
 	if !vecClose(posW, vec3{0, 0, 1}, 1e-9) {
 		t.Fatalf("default pos world=%v want +Z", posW)
 	}
-	upW := anglesToWorldOffset(1, md.vp.up.Theta, md.vp.up.Phi)
+	upW := anglesToWorldOffset(1, md.ui.vp.up.Theta, md.ui.vp.up.Phi)
 	if !vecClose(upW, vec3{0, 1, 0}, 1e-9) {
 		t.Fatalf("default up world=%v want +Y", upW)
 	}
 	md.PanViewpoint(vec3{X: 1, Y: 2, Z: 3}, nil)
-	if !vecClose(md.vp.pivot, vec3{1, 2, 3}, 1e-9) {
-		t.Fatalf("default pan pivot=%v want (1,2,3)", md.vp.pivot)
+	if !vecClose(md.ui.vp.pivot, vec3{1, 2, 3}, 1e-9) {
+		t.Fatalf("default pan pivot=%v want (1,2,3)", md.ui.vp.pivot)
 	}
 }
 
