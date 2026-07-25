@@ -36,10 +36,11 @@ const (
 	KindRecv = "recv"
 	KindFire = "fire"
 	KindSend = "send"
-	// KindPosition is the per-frame bead-position kind. The wire's delivery goroutine
-	// resolves one every ~16 ms while a bead is in flight, carrying the bead's evaluated
-	// 3-D position so the renderer plots it without computing geometry itself.
-	KindPosition = "edge-bead"
+	// KindEdgeBead is the per-frame bead-position kind (wire value "edge-bead", paired with
+	// KindNodeBead below). The wire's delivery goroutine resolves one every ~16 ms while a
+	// bead is in flight, carrying the bead's evaluated 3-D position so the renderer plots it
+	// without computing geometry itself.
+	KindEdgeBead = "edge-bead"
 	// KindGeometry carries an edge's authoritative straight-segment endpoints. The
 	// edgeMover resolves one per edge on load and again whenever a node-move re-derives
 	// that edge's segment, so the renderer draws the wire tube from Go's endpoints and
@@ -160,7 +161,7 @@ var BreadcrumbLabels = []string{
 // numeric id for the wire encoding. There is no tsc exhaustiveness check derived from
 // it — adding a kind here does not force a TS branch anywhere; it only extends the
 // lookup table.
-var TraceEventKinds = []string{KindRecv, KindFire, KindSend, KindPosition, KindGeometry, KindNodeGeometry, KindArrive, KindNodeBead, KindCamera, KindSceneTori, KindScenePoles, KindNodePoles, KindSelSpherePoles, KindHandholds, KindLabelsGlobal, KindOverlaysVis, KindDoubleLinks, KindLayoutLink, KindSelect, KindHover, KindSceneSphere, KindAbcDrag, KindAbcDragReset, KindBreadcrumb}
+var TraceEventKinds = []string{KindRecv, KindFire, KindSend, KindEdgeBead, KindGeometry, KindNodeGeometry, KindArrive, KindNodeBead, KindCamera, KindSceneTori, KindScenePoles, KindNodePoles, KindSelSpherePoles, KindHandholds, KindLabelsGlobal, KindOverlaysVis, KindDoubleLinks, KindLayoutLink, KindSelect, KindHover, KindSceneSphere, KindAbcDrag, KindAbcDragReset, KindBreadcrumb}
 
 // PortGeom is one port's authoritative world geometry: its name, whether it is an
 // input, its sphere-surface world position (PX/PY/PZ), and the unit direction from node

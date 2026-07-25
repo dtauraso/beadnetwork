@@ -1,17 +1,18 @@
-// frame-tags.ts — hand-authored mirror of Buffer/frame_tags.go's frame ENVELOPE
-// discriminator. NOT generated (see that file's header comment for why: it's the
-// outer frame's tag byte, not a column-layout block). Keep these values in lockstep
-// with BufBlockTagScene/BufBlockTagBead by hand, the same way input-layout.ts mirrors
-// input_codec.go.
+// frame-tags.ts — hand-authored frame ENVELOPE discriminators. NOT generated (it's the
+// outer frame's tag byte, not a column-layout block). Only the SYNTHETIC per-owner-stream
+// tags 4-7 (VIEW/EDGE_STREAM/NODE_STREAM/INTERIOR_STREAM) have a Go counterpart —
+// Buffer/frame_tags.go's BufBlockTagView/…/BufBlockTagInteriorStream — kept in lockstep by
+// hand (the same way input-layout.ts mirrors input_codec.go). The 0-3 constants below are
+// TS-ONLY and have NO Go symbol: they name the retired combined-snapshot payload layouts
+// (SCENE) and the per-block payload layouts (BEAD/NODE/EDGE) that the per-owner streams
+// reuse. Do not "keep them in lockstep" with Go — Go defines no BufBlockTagScene/Bead/etc.
 //
 // Historical frame format (see runCommand.ts splitFrames/handleViewFd/handleEdgeFd/
 // handleNodeFd for the current per-goroutine dedicated-stream decoders):
 //   [len:u32-LE][blockTag:u8][block bytes]
-// len counts the tag byte plus the block bytes. Four tag values exist today:
+// len counts the tag byte plus the block bytes. Tag 0 was the retired combined snapshot
+// (BUF_BLOCK_TAG_SCENE, now deleted); the per-block payload layouts below plus VIEW remain:
 //
-//   - BUF_BLOCK_TAG_SCENE: the combined snapshot (layout-link/camera/overlay/scene/event
-//     blocks). No longer carries beads, the node-owner-group blocks, or the Edge block +
-//     edge-label bytes (see BUF_HEADER_SIZE's comment in buffer-layout.ts).
 //   - BUF_BLOCK_TAG_BEAD: the Bead block ALONE, in its own self-contained per-tick
 //     frame. Its payload layout is:
 //
@@ -33,7 +34,7 @@
 //     Label     labelBytesCount bytes (node labels' UTF-8 bytes, node-row order)
 //     PortName  portNameBytesCount bytes (port names' UTF-8 bytes, flattened port-row order)
 //
-//     The scene frame's LayoutLink block still packs SrcNodeRow/DstNodeRow as node-row
+//     The LayoutLink block still packs SrcNodeRow/DstNodeRow as node-row
 //     indices — those rows resolve against THIS frame's Node block (both frames are
 //     built from the same stable seed-order row tables and share the
 //     same stable node-row order).
@@ -64,13 +65,10 @@
 //     Overlay  OVERLAY_STRIDE bytes
 //     Scene    SCENE_STRIDE bytes
 //
-// The four block-tag constants below name the payload layouts each per-owner dedicated
+// The block-tag constants below name the payload layouts each per-owner dedicated
 // stream reuses; each goroutine now streams its own tagged frame over its own dedicated
-// inherited pipe (WIREFOLD_STREAM_FDS) rather than a single shared pipe.
-
-/** Block tag naming the combined content-buffer snapshot's payload layout (everything
- * except beads, the node-owner-group blocks, and the Edge block). */
-export const BUF_BLOCK_TAG_SCENE = 0;
+// inherited pipe (WIREFOLD_STREAM_FDS) rather than a single shared pipe. Tag 0 is a
+// retired gap (the deleted combined-snapshot layout); BEAD/NODE/EDGE keep values 1/2/3.
 
 /** Block tag naming the self-contained per-tick Bead frame's payload layout. See this
  * file's header comment for its payload layout. */

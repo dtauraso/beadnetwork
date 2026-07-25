@@ -122,7 +122,7 @@ export type WebviewToHostMsg =
   // BINARY bridge envelope: a fully-encoded editor→Go record (raw-input or edit). The
   // webview builds the binary record via schema/input-layout.ts and posts it here; the
   // host writes it FRAMED to Go's stdin. This is the TS→Go binary buffer (symmetric with
-  // the fd-3 content buffer). The logical Go-bound kinds ("raw-input", "edit") are no
+  // the per-goroutine content-buffer streams). The logical Go-bound kinds ("raw-input", "edit") are no
   // longer posted as JSON objects — they are encoded into this record — but stay declared
   // below (and EditMsg is kept in this union) as the shared vocabulary the message-kind +
   // edit-op parity guards check.
@@ -137,7 +137,7 @@ export type WebviewToHostMsg =
   | EditMsg;
 
 export type HostToWebviewMsg =
-  // Binary snapshot from Go's fd3 side channel — the ONLY render path (see
+  // Binary snapshot from Go's per-goroutine content-buffer streams — the ONLY render path (see
   // webview/snapshot-buffer.ts + handle-message.ts); there is no separate JSON-trace
   // render path and no pending phase to flip to.
   // The ArrayBuffer is transferred zero-copy (postMessage transferable).
@@ -145,7 +145,7 @@ export type HostToWebviewMsg =
   // rides the buffer node block (LabelOff/LabelLen into the trailing label section) and is
   // decoded row-keyed via buffer-decode nodeLabel.
   //
-  // tag carries the fd-3 frame's block tag (schema/frame-tags.ts BUF_BLOCK_TAG_SCENE /
+  // tag carries the decoded frame's block-tag payload-layout id (schema/frame-tags.ts
   // BUF_BLOCK_TAG_BEAD / BUF_BLOCK_TAG_NODE / BUF_BLOCK_TAG_EDGE), or a SYNTHETIC tag the
   // ext host attaches when relaying a frame decoded off a dedicated fd (never a wire tag
   // byte there — see frame-tags.ts): BUF_BLOCK_TAG_VIEW (the singleton view fd) or

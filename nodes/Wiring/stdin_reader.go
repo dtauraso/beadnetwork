@@ -32,7 +32,7 @@
 //     gesture FSM.
 //
 // A remounted webview that has nothing new to render (Go idle) is served from the
-// EXT HOST's cached last fd3 snapshot instead of asking Go to manufacture one — see
+// EXT HOST's cached last stream frame instead of asking Go to manufacture one — see
 // runCommand.ts's BuildAndRunRunner.lastSnapshot/getLastSnapshot. Go has no "resend"
 // concept: it emits a frame only when something changes, and that stays true here.
 //
