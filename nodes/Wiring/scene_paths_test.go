@@ -87,7 +87,7 @@ func TestAllPersistersConsistentBothForms(t *testing.T) {
 	run := func(t *testing.T, label, topologyPath, expectedRoot string) {
 		t.Helper()
 		md := &MoveDispatch{
-			ov: defaultOverlayState(),
+			ui: uiState{ov: defaultOverlayState()},
 		}
 		md.EnableViewpointPersist(topologyPath)
 		md.EnableEditPersist(topologyPath)
@@ -131,11 +131,11 @@ func TestAllPersistersConsistentBothForms(t *testing.T) {
 
 	// Cross-check: the dir-form and file-form must agree on both the root and the scene path.
 	{
-		mdDir := &MoveDispatch{ov: defaultOverlayState()}
+		mdDir := &MoveDispatch{ui: uiState{ov: defaultOverlayState()}}
 		mdDir.EnableViewpointPersist(root)
 		mdDir.EnableEditPersist(root)
 
-		mdFile := &MoveDispatch{ov: defaultOverlayState()}
+		mdFile := &MoveDispatch{ui: uiState{ov: defaultOverlayState()}}
 		mdFile.EnableViewpointPersist(topoFile)
 		mdFile.EnableEditPersist(topoFile)
 

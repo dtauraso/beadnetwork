@@ -21,7 +21,7 @@ type persisters struct {
 	// the flat polar model. Armed by EnableEditPersist; scheduled from commitNodeMoveLocal
 	// for the dragged node.
 	quantOffset *quantOffsetPersister
-	// sphere is the disk persister for the scene sphere (sphere_layout.go md.sceneSphere),
+	// sphere is the disk persister for the scene sphere (sphere_layout.go md.ui.sceneSphere),
 	// armed by EnableEditPersist. It is only ever flushed — by LoadSceneSphere on a
 	// content-fit, and by handleSaveMsg — never scheduled on a value-change, because the
 	// sphere is "established once and never moves" (MODEL.md). nil until armed (tests that
@@ -37,7 +37,7 @@ type persisters struct {
 func (md *MoveDispatch) EnableViewpointPersist(topologyPath string) {
 	p := &viewpointPersister{path: cameraFilePath(topologyPath)}
 	md.persist.vp = p
-	md.vp.persist = p.schedule
+	md.ui.vp.persist = p.schedule
 }
 
 // EnableEditPersist arms disk persistence for the FSM-applied topology edits:

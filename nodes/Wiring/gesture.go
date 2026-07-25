@@ -29,7 +29,7 @@ import (
 //   portMove  — a CONNECTED port is being dragged along its node's ring (ring-anchor snap).
 //   handhold  — a handhold grab-sphere is dragged for axis-locked (constrained) orbit.
 //
-// Phase 7 closed the interaction gaps: click-select is Go-owned (md.sel.selected +
+// Phase 7 closed the interaction gaps: click-select is Go-owned (md.ui.sel.selected +
 // KindSelect trace → buffer Selected column); handhold-constrained orbit and
 // connected-port ring-move are ported here formula-faithfully from
 // interaction-handlers.ts. Wire-drop no longer creates an edge — the create/delete edit
@@ -115,7 +115,7 @@ func (r gestureRect) aspect() float64 {
 // type=="raw-input" message. slotReg resolves an edge's destination slot; tr emits camera
 // events + breadcrumbs. Fire-and-forget: nothing here triggers delivery.
 func (md *MoveDispatch) HandleRawInput(ev rawInputMsg, slotReg SlotRegistry, tr *T.Trace) {
-	g := &md.gest
+	g := &md.ui.gest
 	g.fov = ev.Fov
 	g.rect = gestureRect{left: ev.RectLeft, top: ev.RectTop, width: ev.RectWidth, height: ev.RectHeight}
 	switch ev.Kind {
@@ -146,7 +146,7 @@ func (md *MoveDispatch) gestHome(ev rawInputMsg, tr *T.Trace) {
 	for id := range centers {
 		radius[id] = md.nodeBodyRadius(id)
 	}
-	pivot, r, pos, up, ok := homeFitPose(centers, radius, ev.Fov, md.gest.rect.aspect())
+	pivot, r, pos, up, ok := homeFitPose(centers, radius, ev.Fov, md.ui.gest.rect.aspect())
 	if !ok {
 		return
 	}
@@ -172,7 +172,7 @@ func (g *gestureState) pixelToNDC(x, y float64) (nx, ny float64) {
 }
 
 func (md *MoveDispatch) gestPointerDown(ev rawInputMsg, tr *T.Trace) {
-	g := &md.gest
+	g := &md.ui.gest
 	g.downX, g.downY = ev.X, ev.Y
 	g.prevX, g.prevY = ev.X, ev.Y
 	g.button = ev.Button
@@ -227,8 +227,8 @@ func (md *MoveDispatch) gestPointerDown(ev rawInputMsg, tr *T.Trace) {
 // have flown to and centered (fly to a node → rotate spins around it), the orbit depth tracks
 // what you look at, and — because the pivot is on the view axis — it does not re-aim the camera.
 func (md *MoveDispatch) beginSphereRotation(ev rawInputMsg) {
-	g := &md.gest
-	vp := md.vp.viewpoint
+	g := &md.ui.gest
+	vp := md.ui.vp.viewpoint
 	pivot := focusAhead(vp, md.heldCenters())
 	g.rotPivot = pivot
 
@@ -253,7 +253,7 @@ func (md *MoveDispatch) beginSphereRotation(ev rawInputMsg) {
 }
 
 func (md *MoveDispatch) gestPointerMove(ev rawInputMsg, tr *T.Trace) {
-	g := &md.gest
+	g := &md.ui.gest
 	if g.phase == gestIdle {
 		return
 	}
@@ -366,7 +366,7 @@ func (md *MoveDispatch) updateHover(ev rawInputMsg, tr *T.Trace) {
 // sendViewpointSet at rotation start): pos/up/r recompute about the new pivot so the
 // subsequent orbit is rigid about it.
 func (md *MoveDispatch) seedOrbitPivot(pivot vec3) {
-	vp := md.vp.viewpoint
+	vp := md.ui.vp.viewpoint
 	eye := eyeOf(vp)
 	r := eye.sub(pivot).length()
 	pos := worldDirToAngles(eye.sub(pivot))
@@ -377,8 +377,8 @@ func (md *MoveDispatch) seedOrbitPivot(pivot vec3) {
 // map prev/curr cursor pixels through the frozen sphere frame to world directions and orbit
 // (curr → prev), so the grabbed direction follows the cursor.
 func (md *MoveDispatch) applyOrbit(ev rawInputMsg, tr *T.Trace) {
-	g := &md.gest
-	vp := md.vp.viewpoint
+	g := &md.ui.gest
+	vp := md.ui.vp.viewpoint
 	basis := basisFromViewpoint(vp.pos, vp.up)
 	prev := screenToPolar(g.prevX-g.rotCx, g.prevY-g.rotCy, g.rotPxPerRad)
 	curr := screenToPolar(ev.X-g.rotCx, ev.Y-g.rotCy, g.rotPxPerRad)
@@ -392,8 +392,8 @@ func (md *MoveDispatch) applyOrbit(ev rawInputMsg, tr *T.Trace) {
 // arc is applied through OrbitLockedViewpoint, which locks the rotation axis on the first
 // call and reuses it (constrained "disk" orbit). The lock clears on the next SetViewpoint.
 func (md *MoveDispatch) applyOrbitLocked(ev rawInputMsg, tr *T.Trace) {
-	g := &md.gest
-	vp := md.vp.viewpoint
+	g := &md.ui.gest
+	vp := md.ui.vp.viewpoint
 	basis := basisFromViewpoint(vp.pos, vp.up)
 	prev := screenToPolar(g.prevX-g.rotCx, g.prevY-g.rotCy, g.rotPxPerRad)
 	curr := screenToPolar(ev.X-g.rotCx, ev.Y-g.rotCy, g.rotPxPerRad)
@@ -407,7 +407,7 @@ func (md *MoveDispatch) applyOrbitLocked(ev rawInputMsg, tr *T.Trace) {
 // (z = center.z), take the in-plane direction from center to the hit (z zeroed, matching
 // pointerRingAnchor), and apply it as a ring-anchor update via the existing anchor path.
 func (md *MoveDispatch) applyPortMove(ev rawInputMsg) {
-	g := &md.gest
+	g := &md.ui.gest
 	hit, ok := md.pointerOnRingPlane(ev, g.portMoveCenter.Z)
 	if !ok {
 		return
@@ -424,8 +424,8 @@ func (md *MoveDispatch) applyPortMove(ev rawInputMsg) {
 // world height planeZ, mirroring interaction-handlers.ts unprojectToPlane. Returns
 // (hit, false) if the ray is parallel to the plane or the result is non-finite.
 func (md *MoveDispatch) pointerOnRingPlane(ev rawInputMsg, planeZ float64) (vec3, bool) {
-	g := &md.gest
-	vp := md.vp.viewpoint
+	g := &md.ui.gest
+	vp := md.ui.vp.viewpoint
 	eye := eyeOf(vp)
 	basis := basisFromViewpoint(vp.pos, vp.up)
 	nx, ny := g.pixelToNDC(ev.X, ev.Y)
@@ -446,8 +446,8 @@ func (md *MoveDispatch) pointerOnRingPlane(ev rawInputMsg, planeZ float64) (vec3
 // RootMove the node (Go snaps it to the parent sphere). Returns false if the ray is parallel
 // to the plane.
 func (md *MoveDispatch) applyNodeDragTarget(ev rawInputMsg) bool {
-	g := &md.gest
-	vp := md.vp.viewpoint
+	g := &md.ui.gest
+	vp := md.ui.vp.viewpoint
 	eye := eyeOf(vp)
 	basis := basisFromViewpoint(vp.pos, vp.up)
 	nx, ny := g.pixelToNDC(ev.X, ev.Y)
@@ -467,7 +467,7 @@ func (md *MoveDispatch) applyNodeDragTarget(ev rawInputMsg) bool {
 }
 
 func (md *MoveDispatch) gestPointerUp(ev rawInputMsg, slotReg SlotRegistry, tr *T.Trace) {
-	g := &md.gest
+	g := &md.ui.gest
 	switch {
 	case g.phase == gestPortMove:
 		md.applyPortMove(ev) // final ring-anchor flush
@@ -477,20 +477,20 @@ func (md *MoveDispatch) gestPointerUp(ev rawInputMsg, slotReg SlotRegistry, tr *
 		// Rotation completed (free or handhold-constrained): nothing to flush.
 	case g.phase == gestPending:
 		// Click → Go-owned selection. A node hit selects it; empty space clears the
-		// selection. md.sel.selected is the authoritative selection; Select() emits it so the
+		// selection. md.ui.sel.selected is the authoritative selection; Select() emits it so the
 		// buffer snapshot marks the node's Selected column.
 		md.applySelect(ev, tr)
 	}
-	g.reset(&md.vp.viewpoint)
+	g.reset(&md.ui.vp.viewpoint)
 }
 
 // setHover is the shared dedupe+emit hover write; updateHover (pointer path) is its
 // one caller.
 func (md *MoveDispatch) setHover(node, port string, isInput bool, tr *T.Trace) {
-	if node == md.sel.hoverNode && port == md.sel.hoverPort && isInput == md.sel.hoverInput {
+	if node == md.ui.sel.hoverNode && port == md.ui.sel.hoverPort && isInput == md.ui.sel.hoverInput {
 		return // no change → no re-emit (dedupe)
 	}
-	// setHoverUI (node_move.go) is the AUTHORITATIVE write: it sets md.sel's hover
+	// setHoverUI (node_move.go) is the AUTHORITATIVE write: it sets md.ui.sel's hover
 	// fields (mutated only by this goroutine, no lock) and MESSAGES the affected
 	// node(s) to set their OWN hovered bit — no shared/republished map.
 	md.setHoverUI(node, port, isInput)
@@ -517,11 +517,11 @@ func (md *MoveDispatch) setHover(node, port string, isInput bool, tr *T.Trace) {
 // applySelect sets the Go-owned selection from a click hit and emits it. Selection is
 // single + EXCLUSIVE across nodes and edges: an EDGE hit selects that edge (clearing any
 // node selection); a node/port hit selects that node (clearing any edge selection); an
-// empty-space hit CLEARS the transient highlight (md.sel.selected / md.sel.selectedEdge) — this is
+// empty-space hit CLEARS the transient highlight (md.ui.sel.selected / md.ui.sel.selectedEdge) — this is
 // the original click-empty-clears behavior.
 func (md *MoveDispatch) applySelect(ev rawInputMsg, tr *T.Trace) {
 	// setSelectionUI (node_move.go) is the AUTHORITATIVE write, same reasoning as
-	// setHoverUI above: it sets md.sel's selection fields (+ latchedNode, mutated only
+	// setHoverUI above: it sets md.ui.sel's selection fields (+ latchedNode, mutated only
 	// by this goroutine, no lock) and MESSAGES the affected node(s)/edge to set their
 	// OWN selected/latchedSel bit.
 	if ev.Hit.Kind == "empty" {
@@ -595,7 +595,7 @@ func (md *MoveDispatch) edgeFromHit(h rawHit) (label string, ok bool) {
 // dolly (expressed as a PAN in the polar model — a pivot translation, not a radius change),
 // plain wheel = screen-space pan. Both first seed the viewpoint to region-focus, then pan.
 func (md *MoveDispatch) gestWheel(ev rawInputMsg, tr *T.Trace) {
-	vp := md.vp.viewpoint
+	vp := md.ui.vp.viewpoint
 	eye := eyeOf(vp)
 	pivot := regionFocus(vp, md.heldCenters())
 
@@ -606,9 +606,9 @@ func (md *MoveDispatch) gestWheel(ev rawInputMsg, tr *T.Trace) {
 		// the view and threw the cursor off. PanViewpoint translates the whole camera (pivot+eye
 		// ride together); pos/up are unchanged, so the node keeps projecting to the same pixel.
 		// The cursor→node pick is a screen-space selection at the input boundary (projectNDC).
-		mouseNdcX, mouseNdcY := md.gest.pixelToNDC(ev.X, ev.Y)
+		mouseNdcX, mouseNdcY := md.ui.gest.pixelToNDC(ev.X, ev.Y)
 		basis := basisFromViewpoint(vp.pos, vp.up)
-		aspect := md.gest.rect.aspect()
+		aspect := md.ui.gest.rect.aspect()
 		target := pivot
 		best := math.Inf(1)
 		for _, c := range md.heldCenters() {
@@ -648,7 +648,7 @@ func (md *MoveDispatch) gestWheel(ev rawInputMsg, tr *T.Trace) {
 	// stays a usable pilot speed at any zoom. The displacement is built in polar; PanViewpoint
 	// translates pivot+eye together with the look direction unchanged. The scene does not move.
 	fovRad := ev.Fov * math.Pi / 180
-	worldPerPixel := (2 * vp.r * math.Tan(fovRad/2)) / md.gest.rect.height
+	worldPerPixel := (2 * vp.r * math.Tan(fovRad/2)) / md.ui.gest.rect.height
 	disp := panDisplacementPolar(vp.pos, vp.up, ev.DeltaX, ev.DeltaY, worldPerPixel)
 	md.PanViewpoint(disp, tr)
 }
@@ -693,10 +693,10 @@ func (g *gestureState) reset(vp *viewpoint) {
 func (md *MoveDispatch) applyRingAnchor(node, port string, isInput bool, dir vec3) {
 	anchorID := snapToRingAnchorIndex(md.NodeKind(node), dir)
 	msg := moveMsg{Kind: moveMsgKindAnchor, NodeID: node, Port: port, IsInput: isInput, AnchorId: anchorID}
-	if nm, ok := md.nodeMovers[node]; ok {
+	if nm, ok := md.mr.nodeMovers[node]; ok {
 		nm.extIn <- msg
 	}
-	for _, em := range md.edgeMovers {
+	for _, em := range md.mr.edgeMovers {
 		incident := (isInput && em.dstID == node && em.dstH == port) ||
 			(!isInput && em.srcID == node && em.srcH == port)
 		if !incident {
@@ -714,7 +714,7 @@ func (md *MoveDispatch) applyRingAnchor(node, port string, isInput bool, dir vec
 // edge movers' endpoints (the held topology) — the FSM's own state, not a fact carried on
 // the wire from TS.
 func (md *MoveDispatch) portConnected(node, port string, isInput bool) bool {
-	for _, em := range md.edgeMovers {
+	for _, em := range md.mr.edgeMovers {
 		if isInput {
 			if em.dstID == node && em.dstH == port {
 				return true

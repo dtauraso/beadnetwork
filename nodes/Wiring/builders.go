@@ -76,8 +76,8 @@ type PortBindings struct {
 	// had a clock to speed up before this plan).
 	speedSinks *[]chan float64
 	// md, when non-nil, gives injectClosures's interior-bead Emit* closures access to
-	// this node's OWN dedicated interior fd (md.interiorOuts, keyed by node id) and the
-	// injected interior-frame builder (md.buildInteriorFrame) — see
+	// this node's OWN dedicated interior fd (md.sw.interiorOuts, keyed by node id) and the
+	// injected interior-frame builder (md.sw.buildInteriorFrame) — see
 	// MoveDispatch.SetNodeStreams / memory/feedback_no_single_writer_bridge.md. Set once
 	// per node at construction (loader.go's buildNodes: pb.md = b.md); nil in test builds
 	// with no loader, in which case the Emit* closures just skip the dedicated-stream
@@ -410,14 +410,14 @@ const bufInteriorSlotsPerNode = 4
 
 // newInteriorStreamGetter returns a func() *interiorStream that lazily builds
 // (exactly once) and thereafter always returns THIS node's one dedicated
-// interior-stream instance from pb.md.interiorOuts — so every closure/port
+// interior-stream instance from pb.md.sw.interiorOuts — so every closure/port
 // belonging to this node (EmitNodeBeads/EmitHeldBead/EmitInputBeads via
 // injectClosures, and Fire/Recv/Send via the Fire closure and In/Out — see
 // wirePorts) shares the SAME instance, and therefore the same cached last-known
 // bead-slot snapshot (interiorStream.lastPresent's doc comment) a Fire/Recv/Send
 // event needs to flush a valid frame between bead-state changes.
 //
-// Lazy because pb.md.interiorOuts is only populated by main.go AFTER LoadTopology
+// Lazy because pb.md.sw.interiorOuts is only populated by main.go AFTER LoadTopology
 // returns (i.e. after this node's own construction runs) — see the prior
 // buildInteriorStream doc comment this replaces. The returned func's first REAL
 // call is always made from this node's OWN Update goroutine (after node-goroutine
@@ -432,11 +432,11 @@ func newInteriorStreamGetter(name string, pb PortBindings) func() *interiorStrea
 			return stream
 		}
 		built = true
-		if pb.md == nil || pb.md.interiorOuts == nil {
+		if pb.md == nil || pb.md.sw.interiorOuts == nil {
 			return nil
 		}
-		out, ok := pb.md.interiorOuts[name]
-		if !ok || out == nil || pb.md.buildInteriorFrame == nil {
+		out, ok := pb.md.sw.interiorOuts[name]
+		if !ok || out == nil || pb.md.sw.buildInteriorFrame == nil {
 			return nil
 		}
 		nodeRow := int32(-1)
@@ -447,7 +447,7 @@ func newInteriorStreamGetter(name string, pb PortBindings) func() *interiorStrea
 		zeroI := make([]int32, bufInteriorSlotsPerNode)
 		zeroF := make([]float32, bufInteriorSlotsPerNode)
 		stream = &interiorStream{
-			out: out, buildFrame: pb.md.buildInteriorFrame, nodeRow: nodeRow,
+			out: out, buildFrame: pb.md.sw.buildInteriorFrame, nodeRow: nodeRow,
 			lastPresent: absent, lastValue: zeroI,
 			lastOx: zeroF, lastOy: append([]float32{}, zeroF...), lastOz: append([]float32{}, zeroF...),
 		}

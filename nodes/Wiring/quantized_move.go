@@ -1,11 +1,21 @@
-// quantized_move.go — the quantized double-link local-polar move math split out of
-// node_move.go: pure move, no logic changes. Held-state snapshots (heldCenters/
-// heldEdges), the broadcast to edges/partners on a re-propagated center, pole requantizing,
-// the one-hop neighborSetC propagation, the owner-goroutine commit (commitNodeMoveLocal),
-// RootMove (the decentralized drag entry), requantizeLocalPolars, and reachRFromPolar.
+// quantized_move.go — the quantized double-link local-polar move math, owned by
+// layoutQuantizer (god-object decomposition): pure move, no logic changes. Held-state
+// snapshots (heldCenters/heldEdges), the broadcast to edges/partners on a re-propagated
+// center, pole requantizing, the one-hop neighborSetC propagation, the owner-goroutine
+// commit (commitNodeMoveLocal), RootMove (the decentralized drag entry),
+// requantizeLocalPolars, and reachRFromPolar.
 //
 // RootMove's invariant is load-bearing and MUST stay prominent after this move: it runs
 // ONCE PER POINTER-MOVE EVENT, not once per drag (memory/project_rootmove_is_per_pointer_move.md).
+//
+// Every method below takes md *MoveDispatch explicitly for everything that is NOT part of
+// layoutQuantizer's own two fields (quantizedLayout, layoutHolders) — mr/ui/tr/persist/
+// centerOfNode/sendAbcDragTick/NodeRowFor/sendMove are owned elsewhere. MoveDispatch's
+// public RootMove, and its several package-private methods of the same names as below
+// (heldCenters, heldEdges, broadcastToEdgesAndPartners, requantizePoleTraced,
+// neighborSetCRequantize, commitNodeMoveLocal, requantizeLocalPolars), stay thin
+// delegators in node_move.go so their existing in-package call sites (tests, node_move.go,
+// gesture.go) are unchanged.
 
 package Wiring
 
@@ -16,14 +26,28 @@ import (
 	T "github.com/dtauraso/wirefold/Trace"
 )
 
+// layoutQuantizer owns the quantized double-link local-polar move math. See
+// MoveDispatch.lq's doc comment (node_move.go) for what it owns and why.
+type layoutQuantizer struct {
+	// quantizedLayout gates the quantized absolute-scene-polar snap — every node is a
+	// root, measured/derived about the scene center only.
+	quantizedLayout bool
+	// layoutHolders resolves a node id to the *LayoutHolder embedded in that node's
+	// built struct (reflection-attached by buildNodes the same way LocalPolars itself
+	// is attached — see loader.go). This is the ONLY route from the drag path
+	// (RootMove) to each node's own LayoutHolder; MoveDispatch does not own or copy
+	// LocalPolars itself, it just routes the update to the owning node.
+	layoutHolders map[string]*LayoutHolder
+}
+
 // heldCenters returns a fresh snapshot of every node's current world center, read from
 // each nodeMover's own atomically-published snap (centerOfNode) — safe to call from any
 // goroutine (every live caller runs on the stdin/gesture dispatch loop). There is no
 // separate accumulated positions map to drain: each mover publishes its own snapshot
 // directly.
-func (md *MoveDispatch) heldCenters() map[string]vec3 {
-	out := make(map[string]vec3, len(md.nodeMovers))
-	for id := range md.nodeMovers {
+func (lq *layoutQuantizer) heldCenters(md *MoveDispatch) map[string]vec3 {
+	out := make(map[string]vec3, len(md.mr.nodeMovers))
+	for id := range md.mr.nodeMovers {
 		if c, ok := md.centerOfNode(id); ok {
 			out[id] = c
 		}
@@ -31,9 +55,9 @@ func (md *MoveDispatch) heldCenters() map[string]vec3 {
 	return out
 }
 
-func (md *MoveDispatch) heldEdges() []sphereEdge {
-	edges := make([]sphereEdge, 0, len(md.edgeMovers))
-	for _, em := range md.edgeMovers {
+func (lq *layoutQuantizer) heldEdges(md *MoveDispatch) []sphereEdge {
+	edges := make([]sphereEdge, 0, len(md.mr.edgeMovers))
+	for _, em := range md.mr.edgeMovers {
 		edges = append(edges, sphereEdge{Source: em.srcID, Target: em.dstID})
 	}
 	return edges
@@ -47,7 +71,7 @@ func (md *MoveDispatch) heldEdges() []sphereEdge {
 // fanCenters, was removed — it deadlocked/staled when its only caller turned out to run
 // on the moved node's own goroutine too. See commitNodeMoveLocal for the applyCenter +
 // broadcastToEdgesAndPartners pattern).
-func (md *MoveDispatch) broadcastToEdgesAndPartners(newCenters map[string]vec3, enqueue func(id string, msg moveMsg)) {
+func (lq *layoutQuantizer) broadcastToEdgesAndPartners(md *MoveDispatch, newCenters map[string]vec3, enqueue func(id string, msg moveMsg)) {
 	// Per-edge: send ONE batched message carrying every moved endpoint of that edge,
 	// so an edge whose both endpoints moved this frame recomputes/emits exactly once.
 	// enqueue (the sending node's own retry queue — nm.sendMove) appends the
@@ -59,7 +83,7 @@ func (md *MoveDispatch) broadcastToEdgesAndPartners(newCenters map[string]vec3, 
 	// resolve to a live mover) is checked at send time inside that retry path, matching
 	// enqueue's other call sites (m.sendMove), which already tap/enqueue unconditionally
 	// regardless of whether id resolves.
-	for edgeID, em := range md.edgeMovers {
+	for edgeID, em := range md.mr.edgeMovers {
 		eps := map[string]vec3{}
 		if c, ok := newCenters[em.srcID]; ok {
 			eps[em.srcID] = c
@@ -86,7 +110,7 @@ func (md *MoveDispatch) broadcastToEdgesAndPartners(newCenters map[string]vec3, 
 	// parity with the prior shape; movedID itself is otherwise unused now that the
 	// re-emit carries no cache payload).
 	partners := map[string]string{}
-	for _, em := range md.edgeMovers {
+	for _, em := range md.mr.edgeMovers {
 		if _, moved := newCenters[em.srcID]; moved {
 			if _, alsoMoved := newCenters[em.dstID]; !alsoMoved {
 				partners[em.dstID] = em.srcID
@@ -99,7 +123,7 @@ func (md *MoveDispatch) broadcastToEdgesAndPartners(newCenters map[string]vec3, 
 		}
 	}
 	for partnerID, movedID := range partners {
-		if _, ok := md.nodeMovers[partnerID]; !ok {
+		if _, ok := md.mr.nodeMovers[partnerID]; !ok {
 			continue
 		}
 		// Center is deliberately nil (see the doc comment above): this is a PURE
@@ -140,7 +164,7 @@ func (md *MoveDispatch) broadcastToEdgesAndPartners(newCenters map[string]vec3, 
 // re-expressed indices are byte-identical to what's already stored (fromAxisFrame then
 // azimuthFrom about the SAME pole is an exact round-trip): the write is skipped, a true
 // no-op, not a reproject that happens to land on the same numbers.
-func (md *MoveDispatch) requantizePoleTraced(lh *LayoutHolder, updates map[string]vec3) dir {
+func (lq *layoutQuantizer) requantizePoleTraced(lh *LayoutHolder, updates map[string]vec3) dir {
 	existing := lh.LocalPolarsSnapshot()
 	oldPole := lh.Pole()
 
@@ -213,8 +237,8 @@ func (md *MoveDispatch) requantizePoleTraced(lh *LayoutHolder, updates map[strin
 // to selfID's own position/quantize math. selfCenter is selfID's OWN current center —
 // read by the caller (nodeMover.handle, on selfID's own goroutine, nodeWorldPos(m.geom))
 // rather than by an atomic cross-goroutine snap read.
-func (md *MoveDispatch) neighborSetCRequantize(selfID, fromID string, selfCenter, fromCenter vec3, deltaA, deltaB, deltaC int) {
-	lh, ok := md.layoutHolders[selfID]
+func (lq *layoutQuantizer) neighborSetCRequantize(md *MoveDispatch, selfID, fromID string, selfCenter, fromCenter vec3, deltaA, deltaB, deltaC int) {
+	lh, ok := lq.layoutHolders[selfID]
 	if !ok {
 		return
 	}
@@ -222,7 +246,7 @@ func (md *MoveDispatch) neighborSetCRequantize(selfID, fromID string, selfCenter
 	// center. fromID is the ONLY fresh update, so requantizePoleTraced re-derives selfID's
 	// edge to fromID (theta, phi AND r, about selfID's rotating pole) at the cart<->polar
 	// boundary, while every OTHER neighbor of selfID is carried forward as index x step.
-	md.requantizePoleTraced(lh, map[string]vec3{fromID: fromCenter.sub(selfCenter)})
+	lq.requantizePoleTraced(lh, map[string]vec3{fromID: fromCenter.sub(selfCenter)})
 
 	// EVERY node that receives an abc change from a dragged peer logs its response so the
 	// drag propagation is observable (probe-merge.sh --debug -> .probe/go-debug.jsonl) and
@@ -257,7 +281,7 @@ func (md *MoveDispatch) neighborSetCRequantize(selfID, fromID string, selfCenter
 	// The RunStdinReader goroutine's own abcDragCount (view_stream.go) is the sole
 	// source of the VIEW frame's AbcDragCount now — no second EVENT-LOG accumulation
 	// needed here.
-	if nm, ok := md.nodeMovers[selfID]; ok {
+	if nm, ok := md.mr.nodeMovers[selfID]; ok {
 		nm.gotDragMsg = 1
 		nm.dragDeltaA, nm.dragDeltaB, nm.dragDeltaC = int32(deltaA), int32(deltaB), int32(deltaC)
 		// Structured buffer counterpart of the "abc-drag" breadcrumb above, riding
@@ -307,20 +331,20 @@ func (md *MoveDispatch) neighborSetCRequantize(selfID, fromID string, selfCenter
 // (nodeMover.quantOffset — never a shared map, so no other mover goroutine's commit
 // can race this write even for a different node id), and requantizes nodeID's
 // local-polar double-links against its (unmoved) neighbors.
-func (md *MoveDispatch) commitNodeMoveLocal(nm *nodeMover, newPos vec3) {
+func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeMover, newPos vec3) {
 	nodeID := nm.id
-	edges := md.heldEdges()
+	edges := lq.heldEdges(md)
 	// reach[nodeID] only ever needs nodeID's own fresh polar plus its DIRECT
 	// neighbors' polar (reachRFromPolar only accumulates reach for an edge's
 	// SOURCE, from that edge's Target) — each direct neighbor's last-reported
 	// CARTESIAN center is read live off that neighbor's OWN atomically-published snap
 	// (md.centerOfNode), resolved via nm.edgeIDs (this node's own incident edges,
 	// fixed at construction); scene polar is a pure re-derive off the fixed,
-	// write-once md.sceneSphere.Center (never mutated after load), so this stays
+	// write-once md.ui.sceneSphere.Center (never mutated after load), so this stays
 	// race-free without the old all-nodes atomic-snapshot read (heldPolar).
 	polars := map[string]polar{}
 	for _, edgeID := range nm.edgeIDs {
-		em, ok := md.edgeMovers[edgeID]
+		em, ok := md.mr.edgeMovers[edgeID]
 		if !ok {
 			continue
 		}
@@ -329,21 +353,21 @@ func (md *MoveDispatch) commitNodeMoveLocal(nm *nodeMover, newPos vec3) {
 			neighborID = em.dstID
 		}
 		if c, ok := md.centerOfNode(neighborID); ok {
-			polars[neighborID] = cart2polar(c.sub(md.sceneSphere.Center))
+			polars[neighborID] = cart2polar(c.sub(md.ui.sceneSphere.Center))
 		}
 	}
 	// Single cart2polar boundary conversion for this drag target — newPos is mouse-
 	// derived cartesian (gesture.go ray/plane unproject); everything downstream
 	// (reach, measureScalar, the persist schedule) reuses this one polar value rather
 	// than re-deriving it from newPos.
-	nodePolar := cart2polar(newPos.sub(md.sceneSphere.Center))
+	nodePolar := cart2polar(newPos.sub(md.ui.sceneSphere.Center))
 	polars[nodeID] = nodePolar
 	reach := reachRFromPolar(polars, edges)
 
 	nm.applyCenter(newPos, reach[nodeID])
-	md.broadcastToEdgesAndPartners(map[string]vec3{nodeID: newPos}, nm.sendMove)
+	lq.broadcastToEdgesAndPartners(md, map[string]vec3{nodeID: newPos}, nm.sendMove)
 
-	if md.quantizedLayout {
+	if lq.quantizedLayout {
 		off := measureScalar(nodePolar, nm.quantOffset)
 		nm.quantOffset = off
 		if md.persist.quantOffset != nil {
@@ -351,7 +375,7 @@ func (md *MoveDispatch) commitNodeMoveLocal(nm *nodeMover, newPos vec3) {
 		}
 	}
 
-	md.requantizeLocalPolars(nm, newPos)
+	lq.requantizeLocalPolars(md, nm, newPos)
 }
 
 // RootMove handles a node-drag under the flat absolute scene-polar layout: every node
@@ -378,8 +402,8 @@ func (md *MoveDispatch) commitNodeMoveLocal(nm *nodeMover, newPos vec3) {
 // memory/project_rootmove_is_per_pointer_move.md). The drag-log reset is NOT emitted
 // here for that reason: the reset belongs at the real drag-start edge (the
 // pending→dragging transition in gesture.go), not on every move tick RootMove sees.
-func (md *MoveDispatch) RootMove(nodeID string, target vec3) bool {
-	if _, ok := md.nodeMovers[nodeID]; !ok {
+func (lq *layoutQuantizer) RootMove(md *MoveDispatch, nodeID string, target vec3) bool {
+	if _, ok := md.mr.nodeMovers[nodeID]; !ok {
 		return false
 	}
 	// Route the drag itself to the dragged node's OWN inbox instead of committing on
@@ -408,14 +432,14 @@ func (md *MoveDispatch) RootMove(nodeID string, target vec3) bool {
 // holder is mutated only by its own node's goroutine, exactly like quantOffset. M keeps
 // its own stored bearing to X and repositions itself at the new distance along it (see
 // neighborSetCReposition) — unconditional for every neighbor.
-func (md *MoveDispatch) requantizeLocalPolars(nm *nodeMover, newPos vec3) {
+func (lq *layoutQuantizer) requantizeLocalPolars(md *MoveDispatch, nm *nodeMover, newPos vec3) {
 	nodeID := nm.id
-	lhX, okX := md.layoutHolders[nodeID]
+	lhX, okX := lq.layoutHolders[nodeID]
 	if !okX {
 		return
 	}
 	neighbors := map[string]bool{}
-	for _, em := range md.edgeMovers {
+	for _, em := range md.mr.edgeMovers {
 		if em.srcID == nodeID {
 			neighbors[em.dstID] = true
 		} else if em.dstID == nodeID {
@@ -473,7 +497,7 @@ func (md *MoveDispatch) requantizeLocalPolars(nm *nodeMover, newPos vec3) {
 		nm.armDragAnchor()
 	}
 	oldByTo := nm.dragAnchorByTo
-	md.requantizePoleTraced(lhX, updatesX)
+	lq.requantizePoleTraced(lhX, updatesX)
 	writePersist(nodeID, lhX)
 
 	// X tells EVERY direct domain neighbor M its NEW c (the quantized edge radius X just

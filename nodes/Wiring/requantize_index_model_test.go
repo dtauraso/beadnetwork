@@ -210,7 +210,7 @@ func TestPersistedPoleDrivesReloadWorldPositions(t *testing.T) {
 	}
 
 	md2 := loadTreeMD(t, root)
-	lhSelf, ok := md2.layoutHolders["self"]
+	lhSelf, ok := md2.lq.layoutHolders["self"]
 	if !ok {
 		t.Fatal("no LayoutHolder for self on reload")
 	}

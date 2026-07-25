@@ -62,7 +62,7 @@ func TestDragDeltaAnchoredAtDragStart(t *testing.T) {
 	_, cancel, md := loadDragAnchorTopo(t)
 	defer cancel()
 
-	lh, ok := md.layoutHolders["src"]
+	lh, ok := md.lq.layoutHolders["src"]
 	if !ok {
 		t.Fatal("no LayoutHolder for src")
 	}
@@ -130,7 +130,7 @@ func TestDragAnchorRearmsOnNewDrag(t *testing.T) {
 	_, cancel, md := loadDragAnchorTopo(t)
 	defer cancel()
 
-	lh, ok := md.layoutHolders["src"]
+	lh, ok := md.lq.layoutHolders["src"]
 	if !ok {
 		t.Fatal("no LayoutHolder for src")
 	}

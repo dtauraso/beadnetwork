@@ -524,10 +524,10 @@ func (b *buildCtx) buildMoveDispatch() {
 	}
 	md := newMoveDispatch(b.nodeGeoms, b.edgeEndpoints, b.tr, nodeOrder, edgeOrder, b.clk, &b.speedSinks)
 	if b.hasScene {
-		// Persisted scene sphere: install it now so md.sceneSphere is consistent straight out
+		// Persisted scene sphere: install it now so md.ui.sceneSphere is consistent straight out
 		// of LoadTopology (a fresh/legacy scene has none — main.go's LoadSceneSphere then
 		// content-fits it from the loaded node centers).
-		md.sceneSphere = b.sphere
+		md.ui.sceneSphere = b.sphere
 	}
 
 	// The quantized layout is authoritative by default — b.quantizedOffsets was already
@@ -539,9 +539,9 @@ func (b *buildCtx) buildMoveDispatch() {
 	// was the "concurrent map read and map write" fatal fixed by node6-drag-decentralized.md's
 	// per-node ownership). A node missing an entry in b.quantizedOffsets keeps its
 	// nodeMover's zero-value quantOffset, matching the old map's zero-value-on-miss read.
-	md.quantizedLayout = true
+	md.lq.quantizedLayout = true
 	for id, off := range b.quantizedOffsets {
-		if nm, ok := md.nodeMovers[id]; ok {
+		if nm, ok := md.mr.nodeMovers[id]; ok {
 			nm.quantOffset = off
 		}
 	}
@@ -556,7 +556,7 @@ func (b *buildCtx) buildMoveDispatch() {
 	}
 	sort.Strings(ids)
 	for _, id := range ids {
-		nm, ok := md.nodeMovers[id]
+		nm, ok := md.mr.nodeMovers[id]
 		if !ok {
 			continue
 		}
@@ -656,8 +656,8 @@ func (b *buildCtx) buildNodes() error {
 		// list carries every clock-owning goroutine across the whole build.
 		pb.speedSinks = &b.speedSinks
 		// md gives injectClosures's interior-bead Emit* closures access to this node's
-		// OWN dedicated interior fd (md.interiorOuts, keyed by node id) + the injected
-		// frame builder (md.buildInteriorFrame) — the SECOND emitting goroutine per node
+		// OWN dedicated interior fd (md.sw.interiorOuts, keyed by node id) + the injected
+		// frame builder (md.sw.buildInteriorFrame) — the SECOND emitting goroutine per node
 		// (memory/feedback_no_single_writer_bridge.md). nil until SetNodeStreams runs
 		// (main.go, after LoadTopology returns); the Emit* closures nil-check both before
 		// writing and no-op until then.
@@ -705,7 +705,7 @@ func (b *buildCtx) buildNodes() error {
 		// (buildMoveDispatch runs before buildNodes) so the INITIAL geometry emit and every
 		// later re-emit compute a connected port's aim identically.
 		var pc partnerCenterFn
-		if nm, ok := b.md.nodeMovers[n.ID]; ok {
+		if nm, ok := b.md.mr.nodeMovers[n.ID]; ok {
 			pc = nm.partnerCenter
 		}
 		nd, err := bind.Build(b.ctx, n.ID, n.Data, pb, b.tr, b.nodeGeoms[n.ID], pc)
@@ -738,7 +738,7 @@ func (b *buildCtx) buildNodes() error {
 					// dispatcher so a later drag (RootMove) can route a local-polar
 					// re-quantize to the OWNING node's own holder — MoveDispatch never
 					// copies or owns LocalPolars itself.
-					b.md.layoutHolders[n.ID] = lh
+					b.md.lq.layoutHolders[n.ID] = lh
 				}
 			}
 		}

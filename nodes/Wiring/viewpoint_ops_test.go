@@ -51,7 +51,7 @@ func TestOrbitViewpointEmitsMovedPos(t *testing.T) {
 }
 
 // TestMoveDispatchViewpointDelegatorsEmit: the MoveDispatch delegators (Zoom/Pan/Orbit)
-// forward to md.vp and each writes a camera RowEvent onto the VIEW stream.
+// forward to md.ui.vp and each writes a camera RowEvent onto the VIEW stream.
 func TestMoveDispatchViewpointDelegatorsEmit(t *testing.T) {
 	tr := T.New(0)
 	md := &MoveDispatch{}
@@ -67,7 +67,7 @@ func TestMoveDispatchViewpointDelegatorsEmit(t *testing.T) {
 		t.Fatalf("expected >=3 camera events from delegators, got %d", n)
 	}
 	// Confirm the final viewpoint state reflects the zoom+pan (r halved, pivot moved).
-	if md.vp.r != 50 || md.vp.pivot.X != 5 {
-		t.Fatalf("delegator state: r=%v pivot.X=%v, want r=50 pivot.X=5", md.vp.r, md.vp.pivot.X)
+	if md.ui.vp.r != 50 || md.ui.vp.pivot.X != 5 {
+		t.Fatalf("delegator state: r=%v pivot.X=%v, want r=50 pivot.X=5", md.ui.vp.r, md.ui.vp.pivot.X)
 	}
 }

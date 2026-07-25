@@ -1,8 +1,8 @@
 // view_stream.go — the VIEW stream's write side (Step C, docs/planning/visual-editor/
 // memory/feedback_no_single_writer_bridge.md; memory/feedback_no_single_writer_bridge.md).
 //
-// Camera/overlay/scene-sphere/selection/hover state already lives on MoveDispatch (md.vp/
-// md.ov/md.sceneSphere/md.sel), mutated only by the gesture/stdin-reader goroutine
+// Camera/overlay/scene-sphere/selection/hover state already lives on MoveDispatch (md.ui.vp/
+// md.ui.ov/md.ui.sceneSphere/md.ui.sel), mutated only by the gesture/stdin-reader goroutine
 // (RunStdinReader's single dispatch loop) — no lock. This file adds the WRITE side: pack
 // that state into the VIEW stream's own frame (the layout produced by
 // Buffer.BuildViewStreamFrame) and write it to the
@@ -45,9 +45,9 @@ type ViewFrameBuilder func(tick uint32,
 // (Buffer.BuildViewStreamFrame, injected from main.go). Call once at startup, before any
 // gesture/edit reaches RunStdinReader, when WIREFOLD_STREAM_FDS carries a "view" entry.
 func (md *MoveDispatch) SetViewStream(out io.Writer, buildFrame ViewFrameBuilder) {
-	md.viewOut = out
-	md.viewBuildFrame = buildFrame
-	md.abcDragCh = make(chan struct{}, 64)
+	md.sw.viewOut = out
+	md.sw.viewBuildFrame = buildFrame
+	md.ui.abcDragCh = make(chan struct{}, 64)
 }
 
 // sendAbcDragTick is called by an abc-drag RECIPIENT's own nodeMover goroutine
@@ -57,7 +57,7 @@ func (md *MoveDispatch) SetViewStream(out io.Writer, buildFrame ViewFrameBuilder
 // directly: only DrainAbcDragChan (the view-owner goroutine) does that.
 func (md *MoveDispatch) sendAbcDragTick() {
 	select {
-	case md.abcDragCh <- struct{}{}:
+	case md.ui.abcDragCh <- struct{}{}:
 	default:
 	}
 }
@@ -71,8 +71,8 @@ func (md *MoveDispatch) DrainAbcDragChan() int {
 	n := 0
 	for {
 		select {
-		case <-md.abcDragCh:
-			md.abcDragCount++
+		case <-md.ui.abcDragCh:
+			md.ui.abcDragCount++
 			n++
 		default:
 			return n
@@ -110,29 +110,29 @@ func (md *MoveDispatch) EmitBreadcrumb(ev RowEvent) {
 // abc-drag/overlay-toggle) — resolved to buffer rows by the caller, mirroring
 // owner_events.go's pattern for every other per-owner stream.
 func (md *MoveDispatch) emitViewFrame(events []RowEvent) {
-	if md.viewBuildFrame == nil {
+	if md.sw.viewBuildFrame == nil {
 		return
 	}
-	md.viewTick++
-	v := md.vp.viewpoint
-	sc := md.sceneSphere
-	frame := md.viewBuildFrame(md.viewTick,
+	md.sw.viewTick++
+	v := md.ui.vp.viewpoint
+	sc := md.ui.sceneSphere
+	frame := md.sw.viewBuildFrame(md.sw.viewTick,
 		float32(v.pivot.X), float32(v.pivot.Y), float32(v.pivot.Z), float32(v.r),
 		float32(v.pos.Theta), float32(v.pos.Phi), float32(v.up.Theta), float32(v.up.Phi),
-		boolU8(md.ov.sceneToriVisible), boolU8(md.ov.scenePolesVisible), boolU8(md.ov.nodePolesVisible),
-		boolU8(md.ov.selSpherePolesVisible), boolU8(md.ov.handholdsVisible), boolU8(md.ov.labelsGlobalVisible),
-		boolU8(md.ov.overlaysVisible), boolU8(md.ov.doubleLinksVisible),
-		md.abcDragCount,
+		boolU8(md.ui.ov.sceneToriVisible), boolU8(md.ui.ov.scenePolesVisible), boolU8(md.ui.ov.nodePolesVisible),
+		boolU8(md.ui.ov.selSpherePolesVisible), boolU8(md.ui.ov.handholdsVisible), boolU8(md.ui.ov.labelsGlobalVisible),
+		boolU8(md.ui.ov.overlaysVisible), boolU8(md.ui.ov.doubleLinksVisible),
+		md.ui.abcDragCount,
 		float32(sc.Center.X), float32(sc.Center.Y), float32(sc.Center.Z), float32(sc.Radius),
 		events,
 	)
-	if md.viewOut == nil {
+	if md.sw.viewOut == nil {
 		return
 	}
 	var hdr [4]byte
 	binary.LittleEndian.PutUint32(hdr[:], uint32(len(frame)))
 	// Fire-and-forget, same reasoning as every other stream's frame write in this codebase:
 	// no delivery guarantee on this channel, errors ignored.
-	_, _ = md.viewOut.Write(hdr[:])
-	_, _ = md.viewOut.Write(frame)
+	_, _ = md.sw.viewOut.Write(hdr[:])
+	_, _ = md.sw.viewOut.Write(frame)
 }

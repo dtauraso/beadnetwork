@@ -52,19 +52,19 @@ func seedsFromCenters(centers map[string]vec3) []NodeGeomSeed {
 // back to a content-fit of the node centers rather than a zero sphere.
 func TestSceneSphereDefaultsFromContentFit(t *testing.T) {
 	md := &MoveDispatch{}
-	md.nodeSeeds = seedsFromCenters(map[string]vec3{
+	md.gs.nodeSeeds = seedsFromCenters(map[string]vec3{
 		"a": {X: 0, Y: 0, Z: 0},
 		"b": {X: 100, Y: 0, Z: 0},
 	})
 	// LoadSceneSphere's content-fit path now reads loadTimeCenters() (rebuilt from the
-	// frozen md.nodeSeeds set above), not an atomic snap.
+	// frozen md.gs.nodeSeeds set above), not an atomic snap.
 	md.LoadSceneSphere(t.TempDir()) // no scene.json → content-fit
-	if md.sceneSphere.Radius <= 0 {
-		t.Fatalf("content-fit sphere has non-positive radius: %+v", md.sceneSphere)
+	if md.ui.sceneSphere.Radius <= 0 {
+		t.Fatalf("content-fit sphere has non-positive radius: %+v", md.ui.sceneSphere)
 	}
 	// Center should be the bbox midpoint (≈ (50,0,0)), not the origin default.
-	if md.sceneSphere.Center.X < 40 || md.sceneSphere.Center.X > 60 {
-		t.Fatalf("content-fit center X=%v, want ≈50", md.sceneSphere.Center.X)
+	if md.ui.sceneSphere.Center.X < 40 || md.ui.sceneSphere.Center.X > 60 {
+		t.Fatalf("content-fit center X=%v, want ≈50", md.ui.sceneSphere.Center.X)
 	}
 }
 
@@ -83,7 +83,7 @@ func TestSceneSphereContentFitSurvivesReloadAfterMove(t *testing.T) {
 
 	newMD := func(bx float64) *MoveDispatch {
 		md := &MoveDispatch{}
-		md.nodeSeeds = seedsFromCenters(map[string]vec3{
+		md.gs.nodeSeeds = seedsFromCenters(map[string]vec3{
 			"a": {X: 0, Y: 0, Z: 0},
 			"b": {X: bx, Y: 0, Z: 0},
 		})
@@ -93,7 +93,7 @@ func TestSceneSphereContentFitSurvivesReloadAfterMove(t *testing.T) {
 	// Load 1: no scene.json → content-fit S1, which must be persisted.
 	md1 := newMD(100)
 	md1.LoadSceneSphere(dir)
-	s1 := md1.sceneSphere
+	s1 := md1.ui.sceneSphere
 	if s1.Radius <= 0 {
 		t.Fatalf("load 1: content-fit sphere has non-positive radius: %+v", s1)
 	}
@@ -102,7 +102,7 @@ func TestSceneSphereContentFitSurvivesReloadAfterMove(t *testing.T) {
 	// Load 2: a NEW process over the MOVED tree. It must read S1 back, not re-fit.
 	md2 := newMD(900)
 	md2.LoadSceneSphere(dir)
-	s2 := md2.sceneSphere
+	s2 := md2.ui.sceneSphere
 
 	if s2.Center != s1.Center || s2.Radius != s1.Radius {
 		t.Fatalf("scene sphere drifted across reload after a move:\n  load 1: %+v\n  load 2: %+v\n"+

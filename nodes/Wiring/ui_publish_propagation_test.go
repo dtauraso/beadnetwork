@@ -6,7 +6,7 @@
 // on its OWN periodic every-cycle emit — no central trigger, no nudge mechanism needed
 // (nodeMover.run's writeStreamFrame call already runs every cycle regardless of geometry
 // change, same as edgeMover.run — see node_mover.go). The abc-drag COUNT is proven via
-// MoveDispatch's own single-goroutine counter (md.abcDragCount, touched only by whichever
+// MoveDispatch's own single-goroutine counter (md.ui.abcDragCount, touched only by whichever
 // goroutine calls DrainAbcDragChan) reflected in the VIEW frame.
 
 package Wiring
@@ -153,7 +153,7 @@ func TestGesturePathPropagatesUIStateToMoverStream(t *testing.T) {
 			sceneCX, sceneCY, sceneCZ, sceneRadius, nil)
 	})
 
-	nm, ok := md.nodeMovers["x"]
+	nm, ok := md.mr.nodeMovers["x"]
 	if !ok {
 		t.Fatal("no nodeMover for x")
 	}
@@ -161,7 +161,7 @@ func TestGesturePathPropagatesUIStateToMoverStream(t *testing.T) {
 	if !ok {
 		t.Fatal("no NODE-ROW for x")
 	}
-	nmT, ok := md.nodeMovers["t"]
+	nmT, ok := md.mr.nodeMovers["t"]
 	if !ok {
 		t.Fatal("no nodeMover for t")
 	}
@@ -208,12 +208,12 @@ func TestGesturePathPropagatesUIStateToMoverStream(t *testing.T) {
 	// --- Abc-drag: the real recipient path is a moveMsgKindNeighborSetC message routed
 	// to the RECIPIENT's own dedicated channel (mirrors requantizeLocalPolars' fan) —
 	// t's own goroutine runs neighborSetCRequantize, sets its OWN gotDragMsg/dragDelta*
-	// fields, and sends a non-blocking tick on md.abcDragCh (view_stream.go) for the
+	// fields, and sends a non-blocking tick on md.ui.abcDragCh (view_stream.go) for the
 	// VIEW-stream owner goroutine to drain. In production that owner is RunStdinReader's
 	// own dispatch loop; this test has none running, so it plays that goroutine's part
 	// directly (DrainAbcDragChan + emitViewFrame), same shape, no cross-goroutine race —
 	// AbcDragCount is only ever touched by whichever goroutine calls DrainAbcDragChan. ---
-	before := md.abcDragCount
+	before := md.ui.abcDragCount
 	md.sendMove("t", moveMsg{
 		Kind: moveMsgKindNeighborSetC, NodeID: "t", SenderID: "x",
 		FromCenter: vec3{X: 1, Y: 2, Z: 3}, DeltaA: 1, DeltaB: 2, DeltaC: 3,
@@ -222,8 +222,8 @@ func TestGesturePathPropagatesUIStateToMoverStream(t *testing.T) {
 		return got == 1 && dA == 1 && dB == 2 && dC == 3
 	})
 	waitForAbcDragTickDrained(t, md)
-	if md.abcDragCount != before+1 {
-		t.Fatalf("abcDragCount after one abc-drag tick = %d, want %d", md.abcDragCount, before+1)
+	if md.ui.abcDragCount != before+1 {
+		t.Fatalf("abcDragCount after one abc-drag tick = %d, want %d", md.ui.abcDragCount, before+1)
 	}
 	if count, ok := lastViewFrameAbcDragCount(viewBuf.Bytes()); !ok || count != before+1 {
 		t.Fatalf("view frame AbcDragCount = %v (ok=%v), want %d", count, ok, before+1)
@@ -277,7 +277,7 @@ func waitForNodeDragMsg(t *testing.T, buf *uiPubLockedBuf, check func(gotDragMsg
 	}
 }
 
-// waitForAbcDragTickDrained polls md.abcDragCh (via DrainAbcDragChan) until at least one
+// waitForAbcDragTickDrained polls md.ui.abcDragCh (via DrainAbcDragChan) until at least one
 // tick has been drained (or a bounded deadline elapses), then emits one VIEW frame — the
 // same two-step (drain, then emit) RunStdinReader's own select loop performs in
 // production (stdin_reader.go), played manually here since this test drives the gesture/
@@ -293,7 +293,7 @@ func waitForAbcDragTickDrained(t *testing.T, md *MoveDispatch) {
 			return
 		}
 		if time.Now().After(deadline) {
-			t.Fatalf("abc-drag tick never arrived on md.abcDragCh within deadline")
+			t.Fatalf("abc-drag tick never arrived on md.ui.abcDragCh within deadline")
 		}
 		time.Sleep(2 * time.Millisecond)
 	}

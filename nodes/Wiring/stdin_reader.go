@@ -236,7 +236,7 @@ func RunStdinReader(ctx context.Context, r io.Reader, slotReg SlotRegistry, md *
 	// stream" fallback everywhere else in this file.
 	var abcDragCh chan struct{}
 	if md != nil {
-		abcDragCh = md.abcDragCh
+		abcDragCh = md.ui.abcDragCh
 	}
 	for {
 		select {
@@ -300,11 +300,11 @@ func handleSaveMsg(md *MoveDispatch) {
 	if md == nil {
 		return
 	}
-	md.persist.overlays.schedule(md.ov)
+	md.persist.overlays.schedule(md.ui.ov)
 	// Persist the scene sphere immediately (not debounced) so save reliably activates
 	// the polar-load path (scene_sphere_persist.go LoadSceneSphere) — until the sphere
 	// is in sphere.json, reload stays on cartesian x/y/z.
-	md.persist.sphere.flushNow(md.sceneSphere)
+	md.persist.sphere.flushNow(md.ui.sceneSphere)
 }
 
 // overlayToggles (the FLAG name → MoveDispatch flip-method table) is GENERATED into
@@ -396,7 +396,7 @@ func applyUpdate(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan 
 		// Persist ON CHANGE (mirrors camera): schedule a debounced write of the new
 		// overlay snapshot so toggles survive a reload without an explicit save. No-op until
 		// EnableEditPersist arms the writer (nil-receiver / empty-treeRoot guard in schedule).
-		md.persist.overlays.schedule(md.ov)
+		md.persist.overlays.schedule(md.ui.ov)
 	}
 	// EDIT_UPDATE_KINDS_END
 }

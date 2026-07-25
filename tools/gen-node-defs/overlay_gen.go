@@ -147,7 +147,7 @@ func writeOverlayGen(outPath string, flags []overlayFlag) error {
 
 	// overlayState struct.
 	fmt.Fprintln(w, `// overlayState groups the per-toggle overlay-visibility booleans and their`)
-	fmt.Fprintln(w, `// flip/emit logic. Owned by MoveDispatch (md.ov); the delegators below keep the`)
+	fmt.Fprintln(w, `// flip/emit logic. Owned by MoveDispatch (md.ui.ov); the delegators below keep the`)
 	fmt.Fprintln(w, `// stdin reader's overlayToggles method-expression table binding MoveDispatch.`)
 	fmt.Fprintln(w, `type overlayState struct {`)
 	for _, f := range flags {
@@ -212,7 +212,7 @@ func writeOverlayGen(outPath string, flags []overlayFlag) error {
 	fmt.Fprintln(w)
 
 	// MoveDispatch delegators. Only Toggle* (and accessors) are delegated: callers
-	// that need Emit*/SetGuideVisibility reach md.ov directly (no MoveDispatch-level
+	// that need Emit*/SetGuideVisibility reach md.ui.ov directly (no MoveDispatch-level
 	// Emit tier — see scene_overlays_persist.go).
 	fmt.Fprintln(w, `// Overlay-visibility API — thin delegators to the owned overlayState. The public`)
 	fmt.Fprintln(w, `// signatures are unchanged (overlayToggles binds these method expressions).`)
@@ -225,14 +225,14 @@ func writeOverlayGen(outPath string, flags []overlayFlag) error {
 			// the scope ("scene"/"nodes") rides the sanctioned free-form Text
 			// column since it names which pole-flag fired, not a typed row ref.
 			fmt.Fprintf(w, "func (md *MoveDispatch) Toggle%s(tr *T.Trace) {\n", f.method)
-			fmt.Fprintf(w, "\tmd.ov.Toggle%s(tr)\n", f.method)
-			fmt.Fprintf(w, "\tmd.EmitBreadcrumb(RowEvent{Label: T.BreadcrumbPoleToggleGo, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1, Value: int32(boolU8(md.ov.%s)), Text: %q})\n", f.field, f.breadcrumb)
+			fmt.Fprintf(w, "\tmd.ui.ov.Toggle%s(tr)\n", f.method)
+			fmt.Fprintf(w, "\tmd.EmitBreadcrumb(RowEvent{Label: T.BreadcrumbPoleToggleGo, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1, Value: int32(boolU8(md.ui.ov.%s)), Text: %q})\n", f.field, f.breadcrumb)
 			fmt.Fprintln(w, `}`)
 		} else {
-			fmt.Fprintf(w, "func (md *MoveDispatch) Toggle%s(tr *T.Trace) { md.ov.Toggle%s(tr) }\n", f.method, f.method)
+			fmt.Fprintf(w, "func (md *MoveDispatch) Toggle%s(tr *T.Trace) { md.ui.ov.Toggle%s(tr) }\n", f.method, f.method)
 		}
 		if f.accessor {
-			fmt.Fprintf(w, "func (md *MoveDispatch) %s() bool { return md.ov.%s() }\n", f.method, f.method)
+			fmt.Fprintf(w, "func (md *MoveDispatch) %s() bool { return md.ui.ov.%s() }\n", f.method, f.method)
 		}
 	}
 	fmt.Fprintln(w)

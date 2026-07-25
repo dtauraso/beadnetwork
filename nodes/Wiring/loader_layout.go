@@ -12,7 +12,7 @@ import (
 // directly about the scene center (every node independent — no reference/parent) and
 // overwrites b.nodeGeoms/b.centers with the result. Every later phase (reach radii,
 // per-edge arc/segment, the movers seeded in buildMoveDispatch) therefore operates on
-// the composed centers, and md.quantizedLayout defaults to true (buildMoveDispatch) so
+// the composed centers, and md.lq.quantizedLayout defaults to true (buildMoveDispatch) so
 // the live drag path (RootMove) treats this same offset model as authoritative too.
 func (b *buildCtx) computeQuantizedLayout() {
 	ids := make(map[string]bool, len(b.spec.Nodes))

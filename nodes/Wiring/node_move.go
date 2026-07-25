@@ -28,9 +28,6 @@ package Wiring
 
 import (
 	"context"
-	"fmt"
-	"io"
-	"os"
 	"sort"
 	"sync"
 	"sync/atomic"
@@ -176,110 +173,46 @@ type moveMsg struct {
 
 // MoveDispatch is the pure registry built at load that owns every mover and wires their
 // dedicated channels together — there
-// is no shared dispatch map anymore; md.nodeMovers/md.edgeMovers themselves are the
+// is no shared dispatch map anymore; md.mr.nodeMovers/md.mr.edgeMovers themselves are the
 // directories a mover's resolveDest closure and the external-entry helpers below look up.
 // It also retains the per-edge source Outs so out-of-package test/verifier callers can
 // read an edge's loaded geometry (EdgeOut) without going through a central coordinator.
 type MoveDispatch struct {
-	nodeMovers map[string]*nodeMover
-	edgeMovers map[string]*edgeMover
-	// edgeOut: edgeId → source *Out, for read-only access by tests/verifiers.
-	edgeOut map[string]*Out
-	// nodeSeeds/edgeSeeds are every node/edge's load-time seed geometry, captured ONCE at
-	// construction (newMoveDispatch) in spec order — the deterministic directory-sorted
-	// order LoadTopology read the topology in, NOT map iteration order. Exposed via
-	// NodeSeeds/EdgeSeeds so main.go can seed the buffer's row tables from the diagram
-	// itself before any node goroutine starts (CLAUDE.md: rows are a projection of the
-	// diagram, not a discovery log built by racing goroutines to their first emit).
-	nodeSeeds []NodeGeomSeed
-	edgeSeeds []EdgeGeomSeed
-	// sceneSphere is the first-class scene reference every node's SCENE polar is measured
-	// about (polar-model.md, sphere_layout.go). Loaded from scene.json (or defaulted from
-	// the content-fit) at startup; its Center is the one cartesian anchor. Phase 1 stores
-	// it; later phases derive node world from it and move it on pan.
-	sceneSphere sceneSphere
-	// vp is the polar camera viewpoint state (viewpoint_state.go). Owned entirely by
-	// MoveDispatch — no separate goroutine; callers serialize externally (stdin reader
-	// runs in a single goroutine). MoveDispatch exposes thin delegating methods.
-	vp viewpointState
+	// mr owns the nodeMover/edgeMover directories + edgeOut (mover_registry.go).
+	// MoveDispatch's public Bind/Start/EdgeOut methods are thin delegators so the
+	// external API is unchanged.
+	mr moverRegistry
+	// gs owns every node/edge's load-time seed geometry (geom_seeds.go). MoveDispatch's
+	// public NodeSeeds/EdgeSeeds methods are thin delegators so the external API is
+	// unchanged.
+	gs geomSeeds
 	// tr is the trace sink (retained for trace emission; diagnostic breadcrumbs removed).
 	tr *T.Trace
-	// ov groups the 9 overlay-toggle visibility booleans and their flip/emit logic
-	// (overlay_state.go). Initialized to defaults by newMoveDispatch (all true).
-	// MoveDispatch exposes thin delegating methods.
-	ov overlayState
-	// gest is the gesture state machine (gesture.go): it consumes raw pointer/wheel input
-	// and produces camera (viewpoint) + topology (node-move) changes. Owned by
-	// MoveDispatch; serialized by the single-goroutine stdin reader. Zero value = idle.
-	gest gestureState
 	// persist groups the six debounced disk persisters (move_persist.go), each nil until
 	// armed by EnableViewpointPersist / EnableEditPersist after the startup seed. Grouped
-	// the same way vp/ov/gest are, so a bare test-constructed MoveDispatch only has to
-	// reason about one zero-value sub-struct instead of six loose nilable fields.
+	// the same way ui.vp/ui.ov/ui.gest are, so a bare test-constructed MoveDispatch only
+	// has to reason about one zero-value sub-struct instead of six loose nilable fields.
 	persist persisters
-	// interiorOuts holds ONE dedicated per-node interior-bead fd, keyed by node id — the
-	// SECOND emitting goroutine per node (its own Update loop, not its nodeMover) writes
-	// here (memory/feedback_no_single_writer_bridge.md). Populated ONCE by
-	// SetNodeStreams, BEFORE any node's Update goroutine launches (mirrors
-	// SetEdgeStreams' "wire before launch" ordering) — read-only afterward, so a node's
-	// own Update-loop closures (builders.go's injectClosures) can look it up by name with
-	// no lock. nil map entries / a nil map itself (no WIREFOLD_STREAM_FDS "interior"
-	// entry) mean the interior frame is simply never written for that node — tr.NodeBead
-	// is a cheap no-op on the live path (neither its sink nor its onEvent hook is wired
-	// in production).
-	interiorOuts map[string]io.Writer
-	// buildInteriorFrame packs one node's fixed-slot interior frame bytes
-	// (Buffer.BuildInteriorStreamFrame), injected here (rather than importing Buffer) so
-	// this package stays Buffer-independent, matching portRowFor/buildFrame's existing
-	// interface-injection pattern on edgeMover.
-	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []RowEvent) []byte
-	// --- the dedicated VIEW stream (memory/feedback_no_single_writer_bridge.md,
-	// memory/feedback_no_single_writer_bridge.md Step C) --- see view_stream.go.
-	//
-	// viewOut, when non-nil, is the VIEW stream's OWN dedicated fd (see SetViewStream /
-	// Buffer/stream_fds.go's StreamKindView). Nil (the default — no WIREFOLD_STREAM_FDS
-	// "view" entry, e.g. headless tests) means emitViewFrame is a no-op: nothing here
-	// ever writes, and camera/overlay/scene are simply never emitted. Written ONLY by
-	// the gesture/stdin-reader
-	// goroutine (the sole caller of every MoveDispatch method that can change camera/
-	// overlay/scene/selection/hover) — no lock.
-	viewOut io.Writer
-	// viewBuildFrame packs this goroutine's own VIEW frame (Buffer.BuildViewStreamFrame),
-	// injected via SetViewStream so this package stays Buffer-independent, mirroring
-	// buildInteriorFrame/buildFrame's existing interface-injection pattern.
-	viewBuildFrame ViewFrameBuilder
-	// viewTick is a purely local frame-sequence counter for the VIEW stream (not shared
-	// with any other stream's tick) — written only by the gesture/stdin-reader goroutine.
-	viewTick uint32
-	// abcDragCh is the non-blocking, message-passing bridge from an abc-drag RECIPIENT's
-	// own nodeMover goroutine (quantized_move.go's neighborSetCRequantize, potentially many
-	// different goroutines) to the ONE gesture/stdin-reader goroutine that owns
-	// abcDragCount and writes the VIEW frame. Per MODEL.md/explicit no-atomic directive:
-	// message-passing, never a shared/atomic counter. A full channel just drops that one
-	// count-observability tick (no delivery guarantee, same shape as every other
-	// fire-and-forget bridge in this codebase) rather than blocking the recipient's own
-	// goroutine. nil until SetViewStream runs (no dedicated view stream ⇒ nothing to send
-	// to; nodeMover call sites nil-check before sending).
-	abcDragCh chan struct{}
-	// abcDragCount is this goroutine's OWN plain int (no atomic, no lock: only the
-	// gesture/stdin-reader goroutine ever reads or writes it, via DrainAbcDragChan) — the
-	// VIEW frame's Overlay.AbcDragCount column reads this directly. Cumulative for the
-	// run's lifetime (never reset).
-	abcDragCount uint32
-	// sel groups the CURRENTLY-SELECTED (click-select) and CURRENTLY-HOVERED (pointer hover)
-	// UI-only state (selection_state.go) — pure routing-directory-parked UI state, owned by
-	// Go but not part of the dispatch/persist/camera concerns. Grouped the same way
-	// vp/ov/gest are.
-	sel selectionState
-	// quantizedLayout gates the quantized absolute-scene-polar snap (quantized_layout.go)
-	// — every node is a root, measured/derived about the scene center only.
-	quantizedLayout bool
-	// layoutHolders resolves a node id to the *LayoutHolder embedded in that node's
-	// built struct (reflection-attached by buildNodes the same way LocalPolars
-	// itself is attached — see loader.go). This is the ONLY route from the drag
-	// path (RootMove) to each node's own LayoutHolder; MoveDispatch does not own
-	// or copy LocalPolars itself, it just routes the update to the owning node.
-	layoutHolders map[string]*LayoutHolder
+	// sw owns the fd-wiring for the per-node interior stream and the dedicated VIEW
+	// stream (stream_wiring.go). MoveDispatch's public SetEdgeStreams/SetNodeStreams
+	// methods stay as thin delegators so the external API is unchanged; view_stream.go's
+	// emitViewFrame reads md.sw.viewOut/viewBuildFrame/viewTick directly (it also reads
+	// md.ui.vp/md.ui.ov/md.ui.sceneSphere/md.ui.abcDragCount, which are NOT part of this extraction).
+	sw streamWiring
+	// ui owns the camera/overlay/gesture/selection/abc-drag UI state (ui_state.go).
+	// MoveDispatch's public setSelectionUI/setHoverUI/sendEdgeSelect/resetAbcDrag stay as
+	// thin delegators so the external API is unchanged.
+	ui uiState
+	// lq owns the quantized double-link local-polar move math (quantized_move.go):
+	// quantizedLayout (gates the quantized absolute-scene-polar snap — every node is a
+	// root, measured/derived about the scene center only) and layoutHolders (resolves a
+	// node id to the *LayoutHolder embedded in that node's built struct — the ONLY
+	// route from the drag path (RootMove) to each node's own LayoutHolder; MoveDispatch
+	// does not own or copy LocalPolars itself, it just routes the update to the owning
+	// node). MoveDispatch's public RootMove stays a thin delegator; the several
+	// package-private quantized_move.go methods also stay thin delegators so their
+	// existing in-package call sites (tests, node_move.go, gesture.go) are unchanged.
+	lq layoutQuantizer
 	// msgTap is a TEST-ONLY observability seam: when non-nil, sendMove invokes it with
 	// every (destID, msg) it routes, BEFORE the send. nil in production — production code
 	// never calls SetMsgTap, so msgTap.Load() is always nil there (one atomic load, no
@@ -298,91 +231,10 @@ type MoveDispatch struct {
 	// and falls back to the plain blocking send (matches prior test behavior).
 	ctx context.Context
 
-	// --- row-identity tables (hit-testing + mover row resolution) ---
-	//
-	// These four tables used to live on a central accumulator, built as a side effect of
-	// the Trace-drain goroutine observing the FIRST geometry event for each node/edge — a
-	// discovery log. Node/edge/port row order is actually a LOAD-TIME CONSTANT (spec
-	// order, md.nodeSeeds/md.edgeSeeds — see their doc comments): nodes/edges are only
-	// ever added via respawn, which re-runs load from scratch. So the tables are built
-	// ONCE here, in newMoveDispatch, from the SAME nodeSeeds/edgeSeeds order the seed loop
-	// in main.go streams through tr.NodeGeometry/tr.Geometry — reproducing byte-for-byte
-	// the row order the old central accumulator used to discover independently. Built
-	// before Start (and never mutated afterward), so — unlike that accumulator's
-	// atomic.Pointer tables — a plain
-	// slice/map here is already safe for every reader goroutine (gesture, movers) to read
-	// concurrently with no lock and no atomic: the write happened-before every goroutine
-	// that could read it (Go launches nodeMover/edgeMover goroutines only in Start, which
-	// runs after newMoveDispatch returns).
-	//
-	// nodeRowTable: node ids in stable row order (== md.nodeSeeds order).
-	nodeRowTable []string
-	// edgeRowTable: edge labels in stable row order (== md.edgeSeeds order).
-	edgeRowTable []string
-	// portRowTable: the flattened port-row table in the SAME order Buffer's Port block is
-	// written — node-row order × each node's Ports order (== md.nodeSeeds[i].Ports order).
-	portRowTable []moveDispatchPortRow
-	// edgeEndpointRowTable: each edge row's (srcNode, dstNode) ids, same order as edgeRowTable.
-	edgeEndpointRowTable []moveDispatchEdgeEndpoint
-
-	// --- selection/hover/abc-drag UI state: per-owner, no shared/republished copy ---
-	//
-	// This state used to live on the old central accumulator only, written by the Trace-drain
-	// goroutine on the OTHER end of a round trip from the goroutine that actually sets the
-	// intent. It is now owned directly by whichever goroutine sets it: the gesture/
-	// MoveDispatch goroutine tracks its OWN local record of the current selection/hover/
-	// latched node below (single-owner, no lock needed — mutated only here), and MESSAGES
-	// each change to the owning mover's own dedicated channel (moveMsgKindSelect/Hover/
-	// Latched/AbcReset — see setSelectionUI/setHoverUI/resetAbcDrag). Each mover stores its
-	// OWN selected/hovered/latchedSel/gotDragMsg/dragDelta*/kindID fields (nodeMover) or
-	// selected field (edgeMover) and writes them into its own stream frame — no shared map,
-	// no mutex, no atomic. tr.Select/tr.Hover/tr.AbcDrag/tr.AbcDragReset still fire
-	// alongside this, but ONLY for the -trace/.probe EVENT LOG (the central accumulator
-	// that used to also feed a fallback packer was deleted
-	// entirely — memory/feedback_no_single_writer_bridge.md's final step; WIREFOLD_STREAM_FDS is now
-	// mandatory, there is no fallback left).
-	//
-	// latchedNode is the node id whose LatchedSel bit stays set across a deselect (mirrors
-	// the old central accumulator's setSelected latchedSel handling: moves to the newly-selected node, and
-	// is left untouched — NOT cleared — on a deselect). Mutated only by the gesture
-	// goroutine (setSelectionUI), which also messages the affected movers.
-	latchedNode string
-}
-
-// moveDispatchPortRow is one row of MoveDispatch's port-row table — the (node, port)
-// identity a numeric buffer PORT-ROW index resolves to. Mirrors Buffer.PortRowEntry's
-// shape (kept as a local type so this package stays Buffer-independent).
-type moveDispatchPortRow struct {
-	node    string
-	port    string
-	isInput bool
-}
-
-// moveDispatchEdgeEndpoint is one edge row's endpoint node ids.
-type moveDispatchEdgeEndpoint struct {
-	srcNode, dstNode string
-}
-
-// buildRowTables constructs the four row-identity tables from md.nodeSeeds/md.edgeSeeds
-// (already in stable spec order at this point in newMoveDispatch). Called once, before
-// any mover goroutine exists.
-func (md *MoveDispatch) buildRowTables() {
-	md.nodeRowTable = make([]string, len(md.nodeSeeds))
-	for i, sd := range md.nodeSeeds {
-		md.nodeRowTable[i] = sd.ID
-	}
-	md.portRowTable = md.portRowTable[:0]
-	for _, sd := range md.nodeSeeds {
-		for _, p := range sd.Ports {
-			md.portRowTable = append(md.portRowTable, moveDispatchPortRow{node: sd.ID, port: p.Name, isInput: p.IsInput})
-		}
-	}
-	md.edgeRowTable = make([]string, len(md.edgeSeeds))
-	md.edgeEndpointRowTable = make([]moveDispatchEdgeEndpoint, len(md.edgeSeeds))
-	for i, sd := range md.edgeSeeds {
-		md.edgeRowTable[i] = sd.Label
-		md.edgeEndpointRowTable[i] = moveDispatchEdgeEndpoint{srcNode: sd.SrcNode, dstNode: sd.DstNode}
-	}
+	// rowTables owns the four row-identity tables (row_tables.go). MoveDispatch's
+	// public Lookup*/…RowFor methods below are thin delegators to it so the external
+	// API is unchanged.
+	rt rowTables
 }
 
 // LookupNodeRow resolves a numeric buffer NODE-ROW index to its node id via the row table
@@ -391,10 +243,7 @@ func (md *MoveDispatch) buildRowTables() {
 // == its buffer node row) resolves back to the node id here in Go, so the numeric buffer
 // carries no node id strings and the webview forwards only the row.
 func (md *MoveDispatch) LookupNodeRow(row int) (nodeID string, ok bool) {
-	if row < 0 || row >= len(md.nodeRowTable) {
-		return "", false
-	}
-	return md.nodeRowTable[row], true
+	return md.rt.lookupNodeRow(row)
 }
 
 // NodeRowFor resolves nodeID to its buffer NODE-ROW index via the row table built at
@@ -402,12 +251,7 @@ func (md *MoveDispatch) LookupNodeRow(row int) (nodeID string, ok bool) {
 // (memory/feedback_no_single_writer_bridge.md) to resolve its own layout-link's dst node
 // row for its per-node stream frame. ok=false when nodeID is not a registered node.
 func (md *MoveDispatch) NodeRowFor(nodeID string) (int32, bool) {
-	for i, id := range md.nodeRowTable {
-		if id == nodeID {
-			return int32(i), true
-		}
-	}
-	return -1, false
+	return md.rt.nodeRowFor(nodeID)
 }
 
 // LookupEdgeRow resolves a numeric buffer EDGE-ROW index to its edge label via the row
@@ -415,10 +259,7 @@ func (md *MoveDispatch) NodeRowFor(nodeID string) (int32, bool) {
 // the gesture FSM uses to mark the Go-owned edge selection — the numeric buffer carries
 // no edge label strings.
 func (md *MoveDispatch) LookupEdgeRow(row int) (label string, ok bool) {
-	if row < 0 || row >= len(md.edgeRowTable) {
-		return "", false
-	}
-	return md.edgeRowTable[row], true
+	return md.rt.lookupEdgeRow(row)
 }
 
 // LayoutLinkPairs returns every LAYOUT double-link pair (id, to), one per unordered pair
@@ -434,7 +275,7 @@ func (md *MoveDispatch) LookupEdgeRow(row int) (label string, ok bool) {
 // .probe log is a multiset of events, per memory/feedback_no_single_writer_bridge.md's own doc comment.
 func (md *MoveDispatch) LayoutLinkPairs() [][2]string {
 	var out [][2]string
-	for id, nm := range md.nodeMovers {
+	for id, nm := range md.mr.nodeMovers {
 		for _, to := range nm.layoutLinkTos {
 			out = append(out, [2]string{id, to})
 		}
@@ -448,12 +289,7 @@ func (md *MoveDispatch) LayoutLinkPairs() [][2]string {
 // goroutine to resolve its own layout-link's edge row for its per-node stream frame.
 // ok=false when no such edge exists.
 func (md *MoveDispatch) EdgeRowForPair(a, b string) (int32, bool) {
-	for i, e := range md.edgeEndpointRowTable {
-		if (e.srcNode == a && e.dstNode == b) || (e.srcNode == b && e.dstNode == a) {
-			return int32(i), true
-		}
-	}
-	return -1, false
+	return md.rt.edgeRowForPair(a, b)
 }
 
 // LookupPortRow resolves a numeric buffer PORT-ROW index to its (node, port, isInput)
@@ -461,11 +297,7 @@ func (md *MoveDispatch) EdgeRowForPair(a, b string) (int32, bool) {
 // the row→(node,port) resolution the gesture FSM uses for wiring/handhold — the numeric
 // buffer carries no port strings.
 func (md *MoveDispatch) LookupPortRow(row int) (node, port string, isInput, ok bool) {
-	if row < 0 || row >= len(md.portRowTable) {
-		return "", "", false, false
-	}
-	e := md.portRowTable[row]
-	return e.node, e.port, e.isInput, true
+	return md.rt.lookupPortRow(row)
 }
 
 // PortRowFor resolves (node, port, isInput) to its buffer PORT-ROW index via the port-row
@@ -473,12 +305,7 @@ func (md *MoveDispatch) LookupPortRow(row int) (node, port string, isInput, ok b
 // goroutine to resolve its own SrcPortRow/DstPortRow for its per-edge stream frame.
 // ok=false when no port matches.
 func (md *MoveDispatch) PortRowFor(node, port string, isInput bool) (int32, bool) {
-	for i, e := range md.portRowTable {
-		if e.node == node && e.port == port && e.isInput == isInput {
-			return int32(i), true
-		}
-	}
-	return -1, false
+	return md.rt.portRowFor(node, port, isInput)
 }
 
 // SetMsgTap installs (or clears, with nil) the test-only message-trace hook. Test-only —
@@ -493,7 +320,7 @@ func (md *MoveDispatch) SetMsgTap(tap func(destID string, msg moveMsg)) {
 
 // SetEdgeStreams wires every edgeMover to ITS OWN dedicated fd — the per-edge stream
 // (memory/feedback_no_single_writer_bridge.md): fd = baseFd + row, where row is the
-// STABLE edge-seed order (md.edgeSeeds, the same spec order the Edge
+// STABLE edge-seed order (md.gs.edgeSeeds, the same spec order the Edge
 // block uses — see main.go's md.EdgeSeeds() seed loop). portRowFor/buildFrame are
 // injected funcs (not a Buffer import) so this package stays Buffer-independent,
 // matching PortRowResolver/EdgeRowResolver's existing pattern: portRowFor resolves
@@ -510,18 +337,7 @@ func (md *MoveDispatch) SetEdgeStreams(
 	nodeRowFor func(id string) (int32, bool),
 	buildFrame func(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, beadVal []int32, beadX, beadY, beadZ []float32, events []RowEvent) []byte,
 ) {
-	for row, seed := range md.edgeSeeds {
-		em, ok := md.edgeMovers[seed.Label]
-		if !ok {
-			continue
-		}
-		fd := baseFd + row
-		em.streamOut = os.NewFile(uintptr(fd), fmt.Sprintf("edge-fd%d", fd))
-		em.edgeRow = int32(row)
-		em.portRowFor = portRowFor
-		em.nodeRowFor = nodeRowFor
-		em.buildFrame = buildFrame
-	}
+	md.sw.setEdgeStreams(md.gs.edgeSeeds, md.mr.edgeMovers, baseFd, portRowFor, nodeRowFor, buildFrame)
 }
 
 // SetNodeStreams wires every nodeMover to ITS OWN dedicated node-fd (geometry+ports+
@@ -529,7 +345,7 @@ func (md *MoveDispatch) SetEdgeStreams(
 // Update-loop closures (builders.go's injectClosures) look up for its own dedicated
 // interior-fd — the two emitting goroutines per node (memory/feedback_no_single_writer_bridge.md).
 // nodeBase/interiorBase are the two fd ranges' base fds; row is the STABLE node-seed
-// order (md.nodeSeeds, the same spec order the Node block uses — see
+// order (md.gs.nodeSeeds, the same spec order the Node block uses — see
 // main.go's md.NodeSeeds() seed loop). nodeRowFor/edgeRowForPair/buildFrame/
 // buildInteriorFrame are injected funcs (not a Buffer import), matching SetEdgeStreams'
 // existing pattern. Selection/hover/abc-drag/kind are NOT injected lookups: each nodeMover
@@ -547,28 +363,7 @@ func (md *MoveDispatch) SetNodeStreams(
 	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []RowEvent) []byte,
 	kindIDFor func(kind string) uint8,
 ) {
-	md.interiorOuts = map[string]io.Writer{}
-	md.buildInteriorFrame = buildInteriorFrame
-	for row, seed := range md.nodeSeeds {
-		nm, ok := md.nodeMovers[seed.ID]
-		if !ok {
-			continue
-		}
-		nFd := nodeBase + row
-		nm.streamOut = os.NewFile(uintptr(nFd), fmt.Sprintf("node-fd%d", nFd))
-		nm.nodeRow = int32(row)
-		// kindID is static per node (never changes after load) — resolved once here,
-		// directly onto the mover's own field, not via a per-emit lookup func.
-		if kindIDFor != nil {
-			nm.kindID = kindIDFor(seed.Kind)
-		}
-		nm.nodeRowFor = nodeRowFor
-		nm.edgeRowForPair = edgeRowForPair
-		nm.buildFrame = buildFrame
-
-		iFd := interiorBase + row
-		md.interiorOuts[seed.ID] = os.NewFile(uintptr(iFd), fmt.Sprintf("interior-fd%d", iFd))
-	}
+	md.sw.setNodeStreams(md.gs.nodeSeeds, md.mr.nodeMovers, nodeBase, interiorBase, nodeRowFor, edgeRowForPair, buildFrame, buildInteriorFrame, kindIDFor)
 }
 
 // NodeGeomSeed is one node's load-time seed geometry, exported in spec order and consumed
@@ -600,34 +395,27 @@ type EdgeGeomSeed struct {
 }
 
 // NodeSeeds returns every node's load-time seed geometry in SPEC ORDER (see
-// MoveDispatch.nodeSeeds). Call after LoadTopology returns, before launching any node
-// goroutine, and stream each entry via tr.NodeGeometry (main.go).
-func (md *MoveDispatch) NodeSeeds() []NodeGeomSeed { return md.nodeSeeds }
+// geomSeeds.nodeSeeds). Call after LoadTopology returns, before launching any node
+// goroutine, and stream each entry via tr.NodeGeometry (main.go). Thin delegator to
+// md.gs (geom_seeds.go).
+func (md *MoveDispatch) NodeSeeds() []NodeGeomSeed { return md.gs.nodeSeedsFn() }
 
-// loadTimeCenters returns the node-id → LOAD-TIME world center map, rebuilt from
-// md.nodeSeeds (frozen at construction, in newMoveDispatch, and never mutated
-// afterward). Used only by LoadSceneSphere's content-fit fallback, which runs on the
-// main goroutine before Start launches any mover goroutine — nodeSeeds is already
-// fully populated by then, so this is a safe, lock-free read.
-func (md *MoveDispatch) loadTimeCenters() map[string]vec3 {
-	out := make(map[string]vec3, len(md.nodeSeeds))
-	for _, sd := range md.nodeSeeds {
-		out[sd.ID] = vec3{X: sd.CX, Y: sd.CY, Z: sd.CZ}
-	}
-	return out
-}
+// loadTimeCenters returns the node-id → LOAD-TIME world center map. Thin delegator to
+// md.gs (geom_seeds.go).
+func (md *MoveDispatch) loadTimeCenters() map[string]vec3 { return md.gs.loadTimeCenters() }
 
 // EdgeSeeds returns every edge's load-time seed topology (with real endpoint geometry) in
-// SPEC ORDER. Call alongside NodeSeeds; stream each entry via tr.Geometry (main.go).
-func (md *MoveDispatch) EdgeSeeds() []EdgeGeomSeed { return md.edgeSeeds }
+// SPEC ORDER. Call alongside NodeSeeds; stream each entry via tr.Geometry (main.go). Thin
+// delegator to md.gs (geom_seeds.go).
+func (md *MoveDispatch) EdgeSeeds() []EdgeGeomSeed { return md.gs.edgeSeedsFn() }
 
 // newMoveDispatch builds the registry from per-node geometry and per-edge endpoints.
 // It creates one nodeMover per node and one edgeMover per edge, registering each under
-// its key (node id / edge id) in md.nodeMovers/md.edgeMovers, and wires the dedicated
+// its key (node id / edge id) in md.mr.nodeMovers/md.mr.edgeMovers, and wires the dedicated
 // directed channels between adjacent movers. Outs and dest wires are bound later by Bind once node
 // construction has populated them. nodeOrder/edgeOrder are the
 // SPEC order (deterministic directory-sorted order, not map iteration order) used to
-// build md.nodeSeeds/edgeSeeds for buffer row seeding.
+// build md.gs.nodeSeeds/edgeSeeds for buffer row seeding.
 //
 // speedSinks, when non-nil, is the loader's build-wide accumulator
 // (buildCtx.speedSinks): each nodeMover AND each edgeMover created below gets its own
@@ -654,17 +442,17 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 		sort.Strings(edgeOrder)
 	}
 	md := &MoveDispatch{
-		nodeMovers:    map[string]*nodeMover{},
-		edgeMovers:    map[string]*edgeMover{},
-		edgeOut:       map[string]*Out{},
-		tr:            tr,
-		ov:            defaultOverlayState(),
-		layoutHolders: map[string]*LayoutHolder{},
+		tr: tr,
 	}
+	md.mr.nodeMovers = map[string]*nodeMover{}
+	md.mr.edgeMovers = map[string]*edgeMover{}
+	md.mr.edgeOut = map[string]*Out{}
+	md.lq.layoutHolders = map[string]*LayoutHolder{}
+	md.ui.ov = defaultOverlayState()
 	// Static partner-center lookup for the seed pass: every node's center is already known
 	// off the load-time geoms map (no goroutine/atomic-snap needed), so this is the SAME
 	// buildPartnerCenterFn the dynamic movers use below, just closed over geoms directly
-	// instead of md.nodeMovers' atomic snaps. Kept per-node (not shared) to match
+	// instead of md.mr.nodeMovers' atomic snaps. Kept per-node (not shared) to match
 	// buildPartnerCenterFn's (nodeID, edgeEndpoints, centerOf) shape.
 	seedPartnerCenter := func(nodeID string) partnerCenterFn {
 		return buildPartnerCenterFn(nodeID, edgeEndpoints, func(otherID string) vec3 {
@@ -674,7 +462,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 			return vec3{}
 		})
 	}
-	md.nodeSeeds = make([]NodeGeomSeed, 0, len(nodeOrder))
+	md.gs.nodeSeeds = make([]NodeGeomSeed, 0, len(nodeOrder))
 	for _, id := range nodeOrder {
 		g, ok := geoms[id]
 		if !ok {
@@ -690,7 +478,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 			cx, cy, cz = c.X, c.Y, c.Z
 		}
 		ports := buildPortGeoms(g, aimedPortPosDir(g, seedPartnerCenter(id)))
-		md.nodeSeeds = append(md.nodeSeeds, NodeGeomSeed{
+		md.gs.nodeSeeds = append(md.gs.nodeSeeds, NodeGeomSeed{
 			ID: id, Label: label, Kind: g.Kind,
 			CX: cx, CY: cy, CZ: cz,
 			Radius: nodeRadius(g.Kind), SphereR: effectiveRadius(g),
@@ -699,7 +487,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 			FRX: flatRingNormalX, FRY: flatRingNormalY, FRZ: flatRingNormalZ,
 		})
 	}
-	md.edgeSeeds = make([]EdgeGeomSeed, 0, len(edgeOrder))
+	md.gs.edgeSeeds = make([]EdgeGeomSeed, 0, len(edgeOrder))
 	for _, label := range edgeOrder {
 		ep, ok := edgeEndpoints[label]
 		if !ok {
@@ -716,7 +504,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 				ex, ey, ez = seg.End.X, seg.End.Y, seg.End.Z
 			}
 		}
-		md.edgeSeeds = append(md.edgeSeeds, EdgeGeomSeed{
+		md.gs.edgeSeeds = append(md.gs.edgeSeeds, EdgeGeomSeed{
 			Label: label, SrcNode: ep.Source, DstNode: ep.Target,
 			SrcPort: ep.SourceHandle, DstPort: ep.TargetHandle,
 			SX: sx, SY: sy, SZ: sz, EX: ex, EY: ey, EZ: ez,
@@ -732,12 +520,12 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 		// resolveDest resolves the ONE dedicated directed channel FROM this node
 		// (selfID, captured below) TO destID: another node's own neighborIn[selfID]
 		// slot, or an incident edge's srcIn/dstIn depending on which endpoint this
-		// node is. There is no shared dispatch map to look up — md.nodeMovers/md.edgeMovers are the
+		// node is. There is no shared dispatch map to look up — md.mr.nodeMovers/md.mr.edgeMovers are the
 		// read-only directories, safe to read from any goroutine once construction
 		// finishes.
 		selfID := id
 		nm.resolveDest = func(destID string) (chan moveMsg, bool) {
-			if em, ok := md.edgeMovers[destID]; ok {
+			if em, ok := md.mr.edgeMovers[destID]; ok {
 				switch selfID {
 				case em.srcID:
 					return em.srcIn, true
@@ -746,7 +534,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 				}
 				return nil, false
 			}
-			if other, ok := md.nodeMovers[destID]; ok {
+			if other, ok := md.mr.nodeMovers[destID]; ok {
 				if ch, ok := other.neighborIn[selfID]; ok {
 					return ch, true
 				}
@@ -760,8 +548,8 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 		nm.neighborSetC = md.neighborSetCRequantize
 		// Go 1.22+ loop semantics give each iteration its own id, so this closure safely
 		// captures THIS iteration's id (no shared-variable capture bug).
-		nm.layoutHolderFn = func() *LayoutHolder { return md.layoutHolders[id] }
-		md.nodeMovers[id] = nm
+		nm.layoutHolderFn = func() *LayoutHolder { return md.lq.layoutHolders[id] }
+		md.mr.nodeMovers[id] = nm
 	}
 	for edgeID, ep := range edgeEndpoints {
 		em := newEdgeMover(ep, edgeID, geoms[ep.Source], geoms[ep.Target], tr, clk)
@@ -770,13 +558,13 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 			em.speedCh = edgeSpeedCh
 			*speedSinks = append(*speedSinks, edgeSpeedCh)
 		}
-		md.edgeMovers[edgeID] = em
+		md.mr.edgeMovers[edgeID] = em
 		// This edge's two nodes each get a dedicated channel TO this edge (already
 		// created above, srcIn/dstIn) — and each other's own dedicated channel for
 		// node-to-node traffic (neighborIn, the plain-neighbor/partner-reemit fan):
 		// two directed channels per ordered pair, never a shared inbox.
-		if srcNM, ok := md.nodeMovers[ep.Source]; ok {
-			if dstNM, ok := md.nodeMovers[ep.Target]; ok {
+		if srcNM, ok := md.mr.nodeMovers[ep.Source]; ok {
+			if dstNM, ok := md.mr.nodeMovers[ep.Target]; ok {
 				if _, exists := dstNM.neighborIn[ep.Source]; !exists {
 					dstNM.neighborIn[ep.Source] = make(chan moveMsg, 8)
 				}
@@ -788,11 +576,11 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 	}
 	// Wire each nodeMover's aimed-port lookup: for (port,isInput) on nodeID, find its one
 	// edge (edgeEndpoints) and read the partner's CURRENT center off the partner
-	// nodeMover's atomic snap (md.nodeMovers is a read-only map after this point — only the
+	// nodeMover's atomic snap (md.mr.nodeMovers is a read-only map after this point — only the
 	// individual *nodeMover.snap is read cross-goroutine, via the existing atomic pattern).
-	for id, nm := range md.nodeMovers {
+	for id, nm := range md.mr.nodeMovers {
 		nm.partnerCenter = buildPartnerCenterFn(id, edgeEndpoints, func(otherID string) vec3 {
-			other, ok := md.nodeMovers[otherID]
+			other, ok := md.mr.nodeMovers[otherID]
 			if !ok {
 				return vec3{}
 			}
@@ -805,8 +593,8 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 	// Give every nodeMover the ids of its OWN incident edges, so a lock-driven move can
 	// notify its edges via sendMove (resolveDest's per-pair channel lookup) — no cached
 	// channel slice.
-	for id, nm := range md.nodeMovers {
-		for edgeID, em := range md.edgeMovers {
+	for id, nm := range md.mr.nodeMovers {
+		for edgeID, em := range md.mr.edgeMovers {
 			if em.srcID == id || em.dstID == id {
 				nm.edgeIDs = append(nm.edgeIDs, edgeID)
 			}
@@ -815,127 +603,47 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 	// Row-identity tables: built ONCE here, from nodeSeeds/edgeSeeds (already in stable
 	// spec order above) — see buildRowTables' doc comment for why this is a load-time
 	// constant, not a discovery log.
-	md.buildRowTables()
+	md.rt.buildRowTables(md.gs.nodeSeeds, md.gs.edgeSeeds)
 	return md
 }
 
-// Bind wires the per-edge source Outs (keyed "source.sourceHandle" in outSink) and
-// dest wires (slotReg, keyed "target.targetHandle") into each edgeMover. Call once
-// after node construction.
+// Bind wires the per-edge source Outs and dest wires into each edgeMover. Thin delegator
+// to md.mr (mover_registry.go).
 func (md *MoveDispatch) Bind(outSink map[string]*Out, slotReg SlotRegistry) {
-	for edgeID, em := range md.edgeMovers {
-		if o, ok := outSink[em.srcID+"."+em.srcH]; ok {
-			em.out = o
-			md.edgeOut[edgeID] = o
-		}
-		if pw, ok := slotReg[em.dstID+"."+em.dstH]; ok {
-			em.dest = pw
-		}
-	}
+	md.mr.bind(outSink, slotReg)
 }
 
-// Start launches every mover's goroutine — ONE goroutine per node and ONE per edge, no
-// dedicated sender/watcher goroutines (an earlier shared-outbox-plus-sender-goroutine
-// design was removed: each mover's own run loop drains its own inbox AND retries its own
-// pending sends, non-blockingly, every cycle).
-//
-// Returns a *sync.WaitGroup covering every launched goroutine, so a caller that wants a
-// complete shutdown (main.go: "wait for everything, then close" — see
-// the wait-for-everything-then-close change) can wg.Wait() on it after cancelling
-// ctx. Both nm.run and em.run select on ctx.Done() at the top of their loop (their only
-// blocking call is SleepCycle, which also selects on ctx), so cancel-to-return is one
-// clock tick, worst case. Callers that don't care about shutdown completeness (most
-// existing tests) can ignore the return value — Start(ctx) alone still compiles and
-// still launches every goroutine exactly as before.
+// Start launches every mover's goroutine. Thin delegator to md.mr (mover_registry.go);
+// md.ctx is set here (not part of moverRegistry — see sendMove/enqueueFor's doc
+// comments for why sendMove needs it threaded through).
 func (md *MoveDispatch) Start(ctx context.Context) *sync.WaitGroup {
 	md.ctx = ctx
-	wg := new(sync.WaitGroup)
-	for _, nm := range md.nodeMovers {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			nm.run(ctx)
-		}()
-	}
-	for _, em := range md.edgeMovers {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			em.run(ctx)
-		}()
-	}
-	return wg
+	return md.mr.start(ctx)
 }
 
 // EdgeOut returns the source *Out bound to the given edge label, or nil if unknown.
-// Read-only accessor for out-of-package verifiers (the headless cascade reads an
-// edge's per-edge in-flight time from the loaded geometry).
+// Thin delegator to md.mr (mover_registry.go).
 func (md *MoveDispatch) EdgeOut(edgeID string) *Out {
-	return md.edgeOut[edgeID]
+	return md.mr.edgeOutFor(edgeID)
 }
 
-// centerOfNode returns the current world center for a node id by loading the
-// nodeMover's atomically-published snapshot. Safe to call from any goroutine
-// without synchronization — the snap is published via atomic.Pointer after each
-// center update so this never races with the mover's live geom writes.
+// centerOfNode returns the current world center for a node id. Thin delegator to md.mr
+// (mover_registry.go).
 func (md *MoveDispatch) centerOfNode(id string) (vec3, bool) {
-	if nm, ok := md.nodeMovers[id]; ok {
-		if s := nm.snap.Load(); s != nil {
-			return s.c, true
-		}
-	}
-	return vec3{}, false
+	return md.mr.centerOfNode(id)
 }
 
-// sendMove routes one moveMsg to a node's dedicated external-entry channel (extIn), if
-// the id is a known node. This is the EXTERNAL-caller path — RootMove (drag) and
-// gesture.go's dragStart send — not a mover-to-mover send (those go through a mover's
-// own nm.pending/flushPending onto its OWN dedicated channel, never through this
-// function). md.nodeMovers is a read-only directory once construction finishes, safe to
-// read from any goroutine.
+// sendMove routes one moveMsg to a node's dedicated external-entry channel (extIn).
+// Thin delegator to md.mr (mover_registry.go); md.msgTap/md.ctx are threaded through
+// (not part of moverRegistry).
 func (md *MoveDispatch) sendMove(id string, msg moveMsg) {
-	if tap := md.msgTap.Load(); tap != nil {
-		(*tap)(id, msg)
-	}
-	nm, ok := md.nodeMovers[id]
-	if !ok {
-		return
-	}
-	// Blocking send with a ctx-cancel escape hatch: this is the bare external-entry
-	// send used by callers (RootMove, gesture.go) that have no owning mover goroutine
-	// to thread a ctx from. Without the ctx.Done() arm, a send into a torn-down/full
-	// extIn on shutdown parks this goroutine forever (the target's own run loop has
-	// already returned on the same ctx cancel, so nothing will ever drain it). md.ctx
-	// is nil only in tests that build a bare MoveDispatch without Start — a nil
-	// Context's Done() channel would panic, so guard it and fall back to a plain
-	// blocking send there (matches prior test behavior; no shutdown path exists in
-	// that setting anyway).
-	if md.ctx == nil {
-		nm.extIn <- msg
-		return
-	}
-	select {
-	case nm.extIn <- msg:
-	case <-md.ctx.Done():
-	}
+	md.mr.sendMove(&md.msgTap, md.ctx, id, msg)
 }
 
-// enqueueFor returns nm's own non-blocking send function: it fires the msgTap (at enqueue time, so tap-based tests'
-// counts/ordering match today's behavior), appends the message to nm's own pending
-// retry queue, and attempts an immediate flush — never blocking the calling handler
-// goroutine. Bound once per node at construction (nm.sendMove = md.enqueueFor(nm)) so
-// every send a nodeMover's own handle performs — including the ones
-// fanEdgesAndPartners/requantizeLocalPolars make on that node's behalf — goes through
-// nm's own retry queue, never a raw blocking channel write and never a second mover's
-// queue (there is no shared outbox to route through anymore).
+// enqueueFor returns nm's own non-blocking send function. Thin delegator to md.mr
+// (mover_registry.go); md.msgTap is threaded through (not part of moverRegistry).
 func (md *MoveDispatch) enqueueFor(nm *nodeMover) func(id string, msg moveMsg) {
-	return func(id string, msg moveMsg) {
-		if tap := md.msgTap.Load(); tap != nil {
-			(*tap)(id, msg)
-		}
-		nm.pending = append(nm.pending, pendingSend{destID: id, msg: msg})
-		nm.flushPending()
-	}
+	return md.mr.enqueueFor(&md.msgTap, nm)
 }
 
 // NOTE (neighborSetC drop history): moveMsgKindNeighborSetC (requantizeLocalPolars'
@@ -957,85 +665,22 @@ func (md *MoveDispatch) enqueueFor(nm *nodeMover) func(id string, msg moveMsg) {
 // TestMutuallyAdjacentDragFloodNoDeadlock still passes with this change, so the deadlock
 // risk sendMoveLossy was guarding against does not require a lossy send.
 
-// sendEdgeSelect routes a select/deselect message to one edge's OWN dedicated extIn
-// channel (mirrors sendMove's node counterpart) — the edgeMover sets its OWN selected
-// field on its own goroutine, no shared map. A blocking send with a ctx-cancel escape
-// hatch, same reasoning as sendMove.
-func (md *MoveDispatch) sendEdgeSelect(label string, on bool) {
-	em, ok := md.edgeMovers[label]
-	if !ok {
-		return
-	}
-	msg := moveMsg{Kind: moveMsgKindSelect, Bool: on}
-	if md.ctx == nil {
-		em.extIn <- msg
-		return
-	}
-	select {
-	case em.extIn <- msg:
-	case <-md.ctx.Done():
-	}
-}
-
-// setSelectionUI sets the Go-owned selection (node XOR edge, exclusive — mirrors
-// the old central accumulator's setSelected/setSelectedEdge exclusivity), moving latchedNode to
-// a newly-selected node (left untouched on a deselect), and MESSAGES every affected
-// mover to update its OWN selected/latchedSel bit — no shared/republished map. Called
-// only from the gesture/MoveDispatch goroutine (applySelect); md.sel/md.latchedNode are
-// mutated only here, so no lock is needed on them, and each message ride the mover's own
-// dedicated channel so the mover mutates only its own fields on its own goroutine.
+// setSelectionUI sets the Go-owned selection (node XOR edge, exclusive). Thin delegator
+// to md.ui (ui_state.go).
 func (md *MoveDispatch) setSelectionUI(node, edge string) {
-	prevNode := md.sel.selected
-	prevEdge := md.sel.selectedEdge
-	md.sel.selected = node
-	md.sel.selectedEdge = edge
-	if prevNode != "" && prevNode != node {
-		md.sendMove(prevNode, moveMsg{Kind: moveMsgKindSelect, NodeID: prevNode, Bool: false})
-	}
-	if node != "" && node != prevNode {
-		md.sendMove(node, moveMsg{Kind: moveMsgKindSelect, NodeID: node, Bool: true})
-	}
-	if prevEdge != "" && prevEdge != edge {
-		md.sendEdgeSelect(prevEdge, false)
-	}
-	if edge != "" && edge != prevEdge {
-		md.sendEdgeSelect(edge, true)
-	}
-	if node != "" && node != md.latchedNode {
-		prevLatched := md.latchedNode
-		md.latchedNode = node
-		if prevLatched != "" {
-			md.sendMove(prevLatched, moveMsg{Kind: moveMsgKindLatched, NodeID: prevLatched, Bool: false})
-		}
-		md.sendMove(node, moveMsg{Kind: moveMsgKindLatched, NodeID: node, Bool: true})
-	}
+	md.ui.setSelectionUI(md.mr.edgeMovers, md.ctx, md.sendMove, node, edge)
 }
 
-// setHoverUI sets the Go-owned hover state and MESSAGES the affected node(s) to update
-// their OWN hovered bit — no shared/republished map. Called only from the gesture
-// goroutine (setHover's dedupe check reads md.sel.hoverNode/Port/Input directly — safe
-// without a lock since only this same goroutine ever writes them — see gesture.go's
-// setHover).
+// setHoverUI sets the Go-owned hover state and MESSAGES the affected node(s). Thin
+// delegator to md.ui (ui_state.go).
 func (md *MoveDispatch) setHoverUI(node, port string, isInput bool) {
-	prevNode := md.sel.hoverNode
-	md.sel.hoverNode, md.sel.hoverPort, md.sel.hoverInput = node, port, isInput
-	if prevNode != "" && prevNode != node {
-		md.sendMove(prevNode, moveMsg{Kind: moveMsgKindHover, NodeID: prevNode, Bool: false})
-	}
-	if node != "" {
-		md.sendMove(node, moveMsg{Kind: moveMsgKindHover, NodeID: node, Bool: true, Port: port, IsInput: isInput})
-	}
+	md.ui.setHoverUI(md.sendMove, node, port, isInput)
 }
 
-// resetAbcDrag re-scopes the recipient SET to the drag about to start: MESSAGES every
-// node mover to clear its OWN abc-drag recipient bit (mirrors the old central accumulator's
-// KindAbcDragReset handling). Called from the gesture goroutine at the pending→dragging
-// transition (gesture.go). Broadcast, not a shared flag: each mover clears its own bit
-// on its own goroutine, no generation counter.
+// resetAbcDrag re-scopes the recipient SET to the drag about to start. Thin delegator to
+// md.ui (ui_state.go).
 func (md *MoveDispatch) resetAbcDrag() {
-	for id := range md.nodeMovers {
-		md.sendMove(id, moveMsg{Kind: moveMsgKindAbcReset, NodeID: id})
-	}
+	md.ui.resetAbcDrag(md.mr.nodeMovers, md.sendMove)
 }
 
 // NodeKind returns the kind string for the given node id, or "" if unknown.
@@ -1057,10 +702,30 @@ func (md *MoveDispatch) resetAbcDrag() {
 // TestNodeKindConcurrentWithApplyCenterUnderRace exercises this concurrently under
 // -race as a regression check on the split holding, not as a proof a lock is needed.
 func (md *MoveDispatch) NodeKind(nodeID string) string {
-	if nm, ok := md.nodeMovers[nodeID]; ok {
+	if nm, ok := md.mr.nodeMovers[nodeID]; ok {
 		return nm.geom.Kind
 	}
 	return ""
+}
+
+// Quantized double-link local-polar move math (quantized_move.go): thin delegators to
+// md.lq so their existing in-package call sites (tests, node_move.go, gesture.go) are
+// unchanged.
+func (md *MoveDispatch) heldCenters() map[string]vec3 { return md.lq.heldCenters(md) }
+func (md *MoveDispatch) requantizePoleTraced(lh *LayoutHolder, updates map[string]vec3) dir {
+	return md.lq.requantizePoleTraced(lh, updates)
+}
+func (md *MoveDispatch) neighborSetCRequantize(selfID, fromID string, selfCenter, fromCenter vec3, deltaA, deltaB, deltaC int) {
+	md.lq.neighborSetCRequantize(md, selfID, fromID, selfCenter, fromCenter, deltaA, deltaB, deltaC)
+}
+func (md *MoveDispatch) commitNodeMoveLocal(nm *nodeMover, newPos vec3) {
+	md.lq.commitNodeMoveLocal(md, nm, newPos)
+}
+
+// RootMove handles a node-drag under the flat absolute scene-polar layout. Thin
+// delegator to md.lq (quantized_move.go).
+func (md *MoveDispatch) RootMove(nodeID string, target vec3) bool {
+	return md.lq.RootMove(md, nodeID, target)
 }
 
 // Overlay-visibility API (MoveDispatch delegators), the overlayState methods, the
