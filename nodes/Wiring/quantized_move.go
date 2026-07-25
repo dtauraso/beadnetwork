@@ -335,12 +335,15 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeMover, 
 	edges := lq.heldEdges(md)
 	// reach[nodeID] only ever needs nodeID's own fresh polar plus its DIRECT
 	// neighbors' polar (reachRFromPolar only accumulates reach for an edge's
-	// SOURCE, from that edge's Target) — each direct neighbor's last-reported
-	// CARTESIAN center is read live off that neighbor's OWN atomically-published snap
-	// (md.centerOfNode), resolved via nm.edgeIDs (this node's own incident edges,
-	// fixed at construction); scene polar is a pure re-derive off the fixed,
-	// write-once md.ui.sceneSphere.Center (never mutated after load), so this stays
-	// race-free without the old all-nodes atomic-snapshot read (heldPolar).
+	// SOURCE, from that edge's Target) — each direct neighbor's last-pushed
+	// CARTESIAN center is read from THIS node's OWN partnerCenters map (nm.
+	// partnerCenters, kept current by every neighbor's applyCenter push — see its
+	// doc comment), resolved via nm.edgeIDs (this node's own incident edges, fixed
+	// at construction; every edgeIDs neighbor is by construction a key of
+	// nm.neighborIn, the same set partnerCenters is seeded/kept from). scene polar
+	// is a pure re-derive off the fixed, write-once md.ui.sceneSphere.Center (never
+	// mutated after load), so this stays race-free with no cross-goroutine read at
+	// all now (this runs on nm's own goroutine, reading nm's own map).
 	polars := map[string]polar{}
 	for _, edgeID := range nm.edgeIDs {
 		em, ok := md.mr.edgeMovers[edgeID]
@@ -351,7 +354,7 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeMover, 
 		if neighborID == nodeID {
 			neighborID = em.dstID
 		}
-		if c, ok := md.centerOfNode(neighborID); ok {
+		if c, ok := nm.partnerCenters[neighborID]; ok {
 			polars[neighborID] = cart2polar(c.sub(md.ui.sceneSphere.Center))
 		}
 	}
@@ -464,11 +467,12 @@ func (lq *layoutQuantizer) requantizeLocalPolars(md *MoveDispatch, nm *nodeMover
 	// X's local polars TO every reachable neighbor, resolved about X's rotating local
 	// pole (rotating_pole.go) in ONE pass — the pole must see the WHOLE neighbor set, not
 	// just one at a time, so a kick from one offset is checked against every other. cM is
-	// read live off M's OWN atomically-published snap (md.centerOfNode) — the standard
-	// cross-goroutine center read every other call site in this file uses.
+	// read from nm's OWN partnerCenters map (kept current by each neighbor M's own
+	// applyCenter push — see its doc comment); every m in neighbors is, by construction,
+	// a key of nm.neighborIn, the same set partnerCenters is seeded/kept from.
 	updatesX := map[string]vec3{}
 	for m := range neighbors {
-		cM, ok := md.centerOfNode(m)
+		cM, ok := nm.partnerCenters[m]
 		if !ok {
 			continue
 		}

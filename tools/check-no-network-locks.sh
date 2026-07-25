@@ -38,9 +38,12 @@ atomic_pat = re.compile(r'\batomic\.')
 # Known atomic sites that predate the no-atomic rule — DEFECTS being removed, matched by the
 # trimmed code text of the line. This list may only shrink. Each is pending a redesign to
 # push-to-owned-copies / single-threaded ownership; see the branch descriptions.
-ALLOWED_ATOMIC = {
-    "snap atomic.Pointer[centerSnap]",     # node_mover.go #3: cross-goroutine position oracle — redesign to push-to-owned-copies
-}
+#
+# Empty as of the atomic #3 removal (node_mover.go's snap atomic.Pointer[centerSnap] —
+# redesigned to push-to-owned-copies: bucket-3/quantize reads now use nm.partnerCenters,
+# bucket-1/camera reads now use the dispatch goroutine's owned centerMirror). The network
+# is atomic-free.
+ALLOWED_ATOMIC = set()
 
 mutex_hits = []
 atomic_hits = []            # non-allowlisted atomic usage — forbidden

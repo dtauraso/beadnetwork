@@ -107,15 +107,6 @@ const (
 	moveMsgKindNeighborCenter = "neighborCenter"
 )
 
-// centerSnap is an immutable snapshot of a node's position published by the nodeMover
-// via an atomic.Pointer so readers on other goroutines (stdin reader, etc.) can observe
-// the current center without touching the mover's live geom.
-type centerSnap struct {
-	c     vec3  // world center — cartesian, published for the emit/input boundaries only
-	p     polar // scene polar (r,θ,φ about the scene center) — the polar source of truth for geometry math
-	reach float64
-}
-
 // moveMsg is one entry routed to one of a mover's own dedicated channels (there is no
 // shared inbox). kind selects the
 // payload:
@@ -464,6 +455,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 	md.mr.nodeMovers = map[string]*nodeMover{}
 	md.mr.edgeMovers = map[string]*edgeMover{}
 	md.mr.edgeOut = map[string]*Out{}
+	md.mr.centerMirror = map[string]vec3{}
 	md.lq.layoutHolders = map[string]*LayoutHolder{}
 	md.ui.ov = defaultOverlayState()
 	// Static partner-center lookup for the seed pass: every node's center is already known
@@ -568,6 +560,11 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 		// captures THIS iteration's id (no shared-variable capture bug).
 		nm.layoutHolderFn = func() *LayoutHolder { return md.lq.layoutHolders[id] }
 		md.mr.nodeMovers[id] = nm
+		// Seed the dispatch goroutine's center mirror from the same load-time geom
+		// (single-threaded setup, before md.Start — no mover goroutine is running yet)
+		// so the first framing read has every center before any push arrives (mirrors
+		// the partnerCenters seed below).
+		md.mr.centerMirror[id] = nodeWorldPos(g)
 	}
 	for edgeID, ep := range edgeEndpoints {
 		em := newEdgeMover(ep, edgeID, geoms[ep.Source], geoms[ep.Target], tr, clk)
