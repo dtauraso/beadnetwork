@@ -64,6 +64,7 @@ type viewDef struct {
 type kindEntry struct {
 	kind        string // RF/view kind name (camelCase, from SPEC.md)
 	goKind      string // Go/topology kind name (PascalCase, from Wiring.Register)
+	dir         string // node package directory name under nodes/ (import path segment)
 	view        viewDef
 	ports       []port
 	dataFields  []dataField
@@ -154,13 +155,24 @@ func main() {
 			}
 		}
 		defaultData := parseDefaultData(pkgDir)
-		kinds = append(kinds, kindEntry{kind: view.kind, goKind: goKind, view: view, ports: ports, dataFields: dataFields, defaultData: defaultData})
+		kinds = append(kinds, kindEntry{kind: view.kind, goKind: goKind, dir: e.Name(), view: view, ports: ports, dataFields: dataFields, defaultData: defaultData})
 	}
 
 	// Sort alphabetically by Go kind name (PascalCase spec kind).
 	sort.Slice(kinds, func(i, j int) bool {
 		return kinds[i].goKind < kinds[j].goKind
 	})
+
+	// kinds_generated.go — blank imports that make each node package's init() (and thus
+	// its Wiring.Register) run. Folded in from the former standalone tools/gen-kind-imports
+	// so ONE registration scan feeds every kind-derived output; a separate binary could
+	// silently diverge from this one (audit finding). check-generated.sh guards it via the
+	// "wrote" line below, so no dedicated guard is needed.
+	kindImportsPath := filepath.Join(repoRoot, "kinds_generated.go")
+	if err := writeKindImports(kindImportsPath, kinds); err != nil {
+		fatalf("write %s: %v", kindImportsPath, err)
+	}
+	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d kinds)\n", kindImportsPath, len(kinds))
 
 	outPath := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "schema", "node-defs.ts")
 	if err := writeNodeDefs(outPath, kinds); err != nil {

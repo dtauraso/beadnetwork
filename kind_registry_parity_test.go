@@ -30,7 +30,7 @@ import (
 func TestRegistryMatchesGeneratedKindTable(t *testing.T) {
 	if len(Wiring.Registry) == 0 {
 		t.Fatal("Wiring.Registry is empty — no node package registered; " +
-			"kinds_generated.go is missing its blank imports (run: go run ./tools/gen-kind-imports)")
+			"kinds_generated.go is missing its blank imports (run: go run ./tools/gen-node-defs)")
 	}
 
 	// Every registered kind must be in the generated table. A typo'd Register string
@@ -58,7 +58,7 @@ func TestRegistryMatchesGeneratedKindTable(t *testing.T) {
 		if _, ok := seen[uint8(want)]; !ok {
 			t.Errorf("no registered kind has KindID %d — a kind is in the generated table but "+
 				"never registered.\n  Its package is probably missing from kinds_generated.go "+
-				"(run: go run ./tools/gen-kind-imports).", want)
+				"(run: go run ./tools/gen-node-defs).", want)
 		}
 	}
 }

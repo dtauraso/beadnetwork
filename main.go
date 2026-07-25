@@ -1,6 +1,6 @@
 package main
 
-//go:generate go run ./tools/gen-kind-imports
+//go:generate go run ./tools/gen-node-defs
 
 import (
 	"context"
