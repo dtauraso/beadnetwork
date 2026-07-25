@@ -23,9 +23,12 @@ import (
 // matches the actual IN_KIND_* constants" test. On the Go side `kinds=save:4,...` is
 // DOCUMENTATION ONLY: parseFPList never reads it (only the eventKinds/hitKinds/updateKinds/
 // overlayFlags tokens), so nothing otherwise ties save:4 to inKindSave=4. Without this,
-// an inKind* value could drift from the documented byte, pass check-input-layout-parity
-// (a Go-string==TS-string compare) and the compiler's duplicate-case check, yet still
-// break the wire (Go encodes the const's value, a peer decodes the fingerprint's).
+// an inKind* value could drift from the documented byte and still pass the compiler's
+// duplicate-case check, yet break the wire (Go encodes the const's value, a peer decodes
+// the fingerprint's). The TS side is generated straight from this fingerprint
+// (tools/gen-node-defs/input_layout.go), so it cannot itself diverge — but Go's OWN
+// kind consts are hand-written literals next to the doc token, and this test is what
+// ties those together.
 func TestKindsTokenMatchesConstants(t *testing.T) {
 	want := map[string]int{
 		"save":        inKindSave,

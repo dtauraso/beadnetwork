@@ -1,6 +1,8 @@
 // input-layout binary record tests: exact byte layout for the simple records + encode/
 // decode round-trips. The Go decoder (input_codec.go) mirrors this layout; the shared
-// fingerprint is parity-guarded by tools/check-input-layout-parity.sh.
+// fingerprint (and the IN_KIND_*/enum-array constants) are GENERATED from Go's
+// InputLayoutFingerprint into ./input-layout-gen.ts, so they cannot drift from Go by
+// construction — see tools/gen-node-defs/input_layout.go.
 import { describe, it, expect } from "vitest";
 import {
   IN_KIND_SAVE,
@@ -77,12 +79,13 @@ describe("fingerprint self-consistency", () => {
 
   // These orderings are WIRE INDICES: only a u8 index crosses the bridge, so a reorder on
   // either side silently re-points every value (a raycast hit on a node decoding as an
-  // edge) with nothing to fail — no type error, no crash, a valid byte either way.
-  // check-input-layout-parity.sh only diffs the two FINGERPRINT STRINGS, so it catches
-  // half-remembering (array + one fingerprint edited) and is blind to forgetting (array
-  // edited, neither fingerprint touched). These tests pin the TS end of each chain; Go
-  // derives its arrays from its own fingerprint (input_codec.go parseFPList), so the loop
-  // TS array → token → [guard] → Go token → Go array is closed at every link.
+  // edge) with nothing to fail — no type error, no crash, a valid byte either way. Both the
+  // TS arrays here and Go's own arrays (input_codec.go parseFPList) are now generated from
+  // the SAME Go fingerprint string (tools/gen-node-defs/input_layout.go), so a reorder can
+  // only happen by editing input_codec.go's InputLayoutFingerprint — at which point BOTH
+  // sides regenerate/re-derive together. This test still pins that the generated TS array
+  // matches the generated TS fingerprint token (protects against a stale/uncommitted
+  // regeneration of input-layout-gen.ts, which check-generated.sh also catches).
   it.each([
     ["eventKinds", IN_EVENT_KINDS],
     ["hitKinds", IN_HIT_KINDS],

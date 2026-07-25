@@ -8,9 +8,9 @@
 // so applyEdit / HandleRawInput dispatch is UNCHANGED — only the wire
 // decode differs.
 //
-// The record layout is defined ONCE here and mirrored in
-// tools/topology-vscode/src/schema/input-layout.ts. The two sides carry an identical
-// InputLayoutFingerprint, enforced by tools/check-input-layout-parity.sh.
+// The record layout is defined ONCE here. The TS side
+// (tools/topology-vscode/src/schema/input-layout-gen.ts) is GENERATED from this file's
+// InputLayoutFingerprint by tools/gen-node-defs, so it cannot hand-drift from Go.
 //
 // Numbers are little-endian (matching the content buffer's little-endian encoding). Enum discriminators
 // (event kind, hit kind, update entity kind, update attr, overlay flag) are u8 indices
@@ -37,9 +37,11 @@ import (
 	"strings"
 )
 
-// InputLayoutFingerprint pins the binary input-record layout. It MUST be byte-identical
-// to INPUT_LAYOUT_FINGERPRINT in input-layout.ts (guarded by check-input-layout-parity.sh).
-// Bump on both sides whenever any record kind, field, or enum ordering changes.
+// InputLayoutFingerprint pins the binary input-record layout. It is the SINGLE source: the
+// TS-side INPUT_LAYOUT_FINGERPRINT in input-layout-gen.ts is GENERATED from this string
+// (tools/gen-node-defs/input_layout.go), so it always matches by construction — regenerate
+// (npm run gen:node-defs) after bumping this whenever any record kind, field, or enum
+// ordering changes.
 //
 // INPUT_LAYOUT_FINGERPRINT: v19 kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock updateAttrs=toggle,speed overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays,doubleLinks
 const InputLayoutFingerprint = "v19 kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock updateAttrs=toggle,speed overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays,doubleLinks"
@@ -65,20 +67,23 @@ const (
 	inClockAttrSpeed    = 1 // clock: set the playback-speed multiplier
 )
 
-// Enum orderings (u8 index → string), shared with input-layout.ts. Every one is DERIVED
+// Enum orderings (u8 index → string), shared with input-layout-gen.ts. Every one is DERIVED
 // from its token in the fingerprint, so a Go-side ordering CANNOT drift from the pinned
 // layout: there is no second array to reorder. The chain that keeps both languages in
 // lockstep, per enum:
 //
-//	TS array (the source)  →[vitest pins the token to the array]→  TS fingerprint
-//	   →[check-input-layout-parity.sh diffs the two strings]→  Go fingerprint
-//	   →[parseFPList, here]→  Go array
+//	Go fingerprint (the source)  →[parseFPList, here]→  Go array
+//	   Go fingerprint  →[tools/gen-node-defs/input_layout.go parses the same string]→  TS array
 //
-// Every link is checked, so the loop is closed. These orderings are WIRE INDICES (a u8
+// Every link is DERIVED from the one Go fingerprint string — there is no second
+// hand-authored copy on either side to fall out of sync. These orderings are WIRE INDICES (a u8
 // index is all that crosses the bridge), so an unchecked reorder is a silent
 // mis-dispatch — a raycast hit on a node decoding as an edge — with nothing to fail.
 // overlayFlags derived this way already; the other three were hand-synced literals whose
-// ends of the chain dangled.
+// ends of the chain dangled. The TS array is now GENERATED straight from this same Go
+// fingerprint string (tools/gen-node-defs/input_layout.go) — the TS side can no longer
+// diverge because there is no second hand-authored copy of it (the former fingerprint-diff
+// guard was retired as redundant).
 var (
 	inEventKinds   = parseFPList(InputLayoutFingerprint, "eventKinds=")
 	inHitKinds     = parseFPList(InputLayoutFingerprint, "hitKinds=")

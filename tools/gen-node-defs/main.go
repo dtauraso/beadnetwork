@@ -278,6 +278,18 @@ func main() {
 		fatalf("write %s: %v", frameTagsTSPath, err)
 	}
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d constants)\n", frameTagsTSPath, len(frameTagConsts))
+
+	inputCodecGoPath := filepath.Join(repoRoot, "nodes", "Wiring", "input_codec.go")
+	inputFP, err := parseInputLayoutFingerprint(inputCodecGoPath)
+	if err != nil {
+		fatalf("parse input layout fingerprint: %v", err)
+	}
+	inputLayoutTSPath := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "schema", "input-layout-gen.ts")
+	if err := writeInputLayout(inputLayoutTSPath, inputFP); err != nil {
+		fatalf("write %s: %v", inputLayoutTSPath, err)
+	}
+	numConsts := 1 /* fingerprint */ + len(inputFP.kindNames) + 4 /* enum arrays */
+	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d constants)\n", inputLayoutTSPath, numConsts)
 }
 
 // findRepoRoot walks up from dir until it finds a directory containing "nodes/".
