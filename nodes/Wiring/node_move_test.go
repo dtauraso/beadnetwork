@@ -66,7 +66,7 @@ func TestDecentralizedNodeMove(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	tr := T.New(0)
+	tr := T.New()
 	clk := NewRealClock()
 	_, slotReg, md, _, err := LoadTopology(ctx, path, tr, clk)
 	if err != nil {
@@ -230,7 +230,7 @@ func TestNodeGeometryLabelSidecar(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	tr := T.New(0)
+	tr := T.New()
 	_, _, md, _, err := LoadTopology(ctx, path, tr, NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology: %v", err)
@@ -290,7 +290,7 @@ func TestMoverCenterRace(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	tr := T.New(4096)
+	tr := T.New()
 	_, _, md, _, err := LoadTopology(ctx, path, tr, NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology: %v", err)
@@ -311,7 +311,6 @@ func TestMoverCenterRace(t *testing.T) {
 		}
 	}()
 	wg.Wait()
-	tr.Close()
 }
 
 // TestOutGeomRace is a -race regression for the data race between the edgeMover
@@ -344,7 +343,7 @@ func TestOutGeomRace(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	tr := T.New(4096)
+	tr := T.New()
 	_, _, md, _, err := LoadTopology(ctx, path, tr, NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology: %v", err)
@@ -380,7 +379,6 @@ func TestOutGeomRace(t *testing.T) {
 		}
 	}()
 	wg.Wait()
-	tr.Close()
 }
 
 // TestRootMoveContinuousPositionLocalPolarRequantize verifies the double-link
@@ -411,8 +409,7 @@ func TestRootMoveContinuousPositionLocalPolarRequantize(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	tr := T.New(4096)
-	defer tr.Close()
+	tr := T.New()
 	_, _, md, _, err := LoadTopology(ctx, path, tr, NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology: %v", err)

@@ -80,7 +80,7 @@ func wireNodeStream(t *testing.T, md *MoveDispatch, id string) *uiPubLockedBuf {
 func TestAbcDragLogIsScopedToCurrentDrag(t *testing.T) {
 	root := writeXTNY(t)
 
-	tr := T.NewWithSinkHook(0, nil, nil)
+	tr := T.NewWithSinkHook(nil, nil)
 
 	_, _, md, _, err := LoadTopology(context.Background(), root, tr, NewRealClock())
 	if err != nil {

@@ -11,7 +11,7 @@ import (
 
 func TestNodeBeadCallsOnEvent(t *testing.T) {
 	var got []Event
-	tr := NewWithSinkHook(0, nil, func(e Event) { got = append(got, e) })
+	tr := NewWithSinkHook(nil, func(e Event) { got = append(got, e) })
 	tr.NodeBead("N1", 1, 0, true, 1, 4.5, -6.5, 0)
 
 	if len(got) != 1 {
@@ -31,7 +31,7 @@ func TestNodeBeadCallsOnEvent(t *testing.T) {
 
 func TestNodeBeadWritesSinkJSON(t *testing.T) {
 	var buf bytes.Buffer
-	tr := NewWithSink(0, &buf)
+	tr := NewWithSink(&buf)
 	tr.NodeBead("N1", 1, 0, true, 1, 4.5, -6.5, 0)
 
 	var got struct {

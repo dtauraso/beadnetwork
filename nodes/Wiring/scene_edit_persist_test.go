@@ -39,7 +39,7 @@ func TestLoadOverlaysEmitsDefaultsWhenNoPersistedKeys(t *testing.T) {
 		}
 		return nil
 	})
-	tr := T.New(0)
+	tr := T.New()
 	md.LoadOverlays(root, tr)
 	// The default-visible overlay flags must have been emitted, not skipped.
 	for _, want := range []string{"scene-tori", "overlays-vis"} {
@@ -72,7 +72,7 @@ func writeTree(t *testing.T) string {
 
 func loadTreeMD(t *testing.T, root string) *MoveDispatch {
 	t.Helper()
-	tr := T.New(0)
+	tr := T.New()
 	_, _, md, _, err := LoadTopology(context.Background(), root, tr, NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology: %v", err)

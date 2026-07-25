@@ -11,7 +11,7 @@ import (
 // positive-x offset. A value of -1 means "not held" → present=false. Row is always 0.
 
 func TestEmitInputBeadsBothHeld(t *testing.T) {
-	tr := T.New(0)
+	tr := T.New()
 	var snap nodeBeadSnapshot
 	emitInputBeads(tr, "G", 1, 0, captureInteriorSnapshot(&snap))
 
@@ -41,7 +41,7 @@ func TestEmitInputBeadsBothHeld(t *testing.T) {
 
 // TestEmitInputBeadsNotHeld: a -1 input marks the slot empty (present=false).
 func TestEmitInputBeadsNotHeld(t *testing.T) {
-	tr := T.New(0)
+	tr := T.New()
 	var snap nodeBeadSnapshot
 	emitInputBeads(tr, "G", -1, 5, captureInteriorSnapshot(&snap))
 

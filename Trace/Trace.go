@@ -214,30 +214,23 @@ type Trace struct {
 	onEvent func(Event) // optional in-process observation hook (headless tests only)
 }
 
-// New allocates a Trace with no sinks wired. buf is accepted only for call-site
-// compatibility with the pre-decentralization API (there is no channel to size
-// anymore); pass any value.
-func New(buf int) *Trace {
-	return NewWithSink(buf, nil)
+// New allocates a Trace with no sinks wired.
+func New() *Trace {
+	return NewWithSink(nil)
 }
 
 // NewWithSink is like New but wires sink as the in-process test-observation sink (see
 // Breadcrumb/NodeBead's doc comments) — never wired in production.
-func NewWithSink(buf int, sink io.Writer) *Trace {
-	return NewWithSinkHook(buf, sink, nil)
+func NewWithSink(sink io.Writer) *Trace {
+	return NewWithSinkHook(sink, nil)
 }
 
 // NewWithSinkHook is like NewWithSink but also installs onEvent, called synchronously
 // (on the calling goroutine) by NodeBead — the one surviving Trace event. Pass nil for
 // onEvent to omit the hook (production always does).
-func NewWithSinkHook(buf int, sink io.Writer, onEvent func(Event)) *Trace {
+func NewWithSinkHook(sink io.Writer, onEvent func(Event)) *Trace {
 	return &Trace{sink: sink, onEvent: onEvent}
 }
-
-// Close is a no-op kept for call-site compatibility (there is no channel/goroutine to
-// drain anymore — every producer writes its own RowEvent/breadcrumb directly and
-// synchronously).
-func (t *Trace) Close() {}
 
 // SetSink wires (or replaces) the in-process TEST-OBSERVATION sink after construction —
 // for tests that build a *Trace via a helper (e.g. LoadTopology) that doesn't take a

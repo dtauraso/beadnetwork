@@ -72,7 +72,7 @@ func TestOverlayToggleFlips(t *testing.T) {
 			// Start from a known false, so a flip lands on true.
 			var o overlayState
 			var dbg strings.Builder
-			tr := T.New(0)
+			tr := T.New()
 			tr.SetSink(&dbg)
 			c.toggle(&o, tr)
 

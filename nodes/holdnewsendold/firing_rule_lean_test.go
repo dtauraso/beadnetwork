@@ -32,8 +32,7 @@ func stepWire(ctx context.Context, pw *Wiring.PacedWire, clk Wiring.Clock) {
 // entry, then stores the new value in Held.
 func TestFireOnReceiveLean(t *testing.T) {
 	const latMs = 40.0
-	tr := T.New(0)
-	defer tr.Close()
+	tr := T.New()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

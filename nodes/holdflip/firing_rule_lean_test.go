@@ -31,8 +31,7 @@ func stepWire(ctx context.Context, pw *Wiring.PacedWire, clk Wiring.Clock) {
 // FLIPPED value (1-held) out. Feed 0 -> expect 1 on Out; feed 1 -> expect 0.
 func TestFlipRoundTripLean(t *testing.T) {
 	const latMs = 10.0
-	tr := T.New(0)
-	defer tr.Close()
+	tr := T.New()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

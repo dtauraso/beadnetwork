@@ -37,7 +37,7 @@ func captureInteriorSnapshot(snap *nodeBeadSnapshot) *interiorStream {
 // present=false (not omitted) so TS can clear it. Always a 4-element snapshot.
 func TestEmitNodeBeadsPositions(t *testing.T) {
 	// Full state: working=[1,0], backup=[1,0] → 4 present slots.
-	tr := T.New(0)
+	tr := T.New()
 	var snap nodeBeadSnapshot
 	emitNodeBeads(tr, "in", []int{1, 0}, []int{1, 0}, captureInteriorSnapshot(&snap))
 	if len(snap.present) != 4 {
@@ -81,7 +81,7 @@ func TestEmitNodeBeadsPositions(t *testing.T) {
 	// After one pop: working=[1] (end 0 removed). Still a 4-slot snapshot, but the
 	// working col-1 slot (row=1,col=1 → slot 3) is now present=false; the other 3
 	// are present=true.
-	tr2 := T.New(0)
+	tr2 := T.New()
 	var snap2 nodeBeadSnapshot
 	emitNodeBeads(tr2, "in", []int{1}, []int{1, 0}, captureInteriorSnapshot(&snap2))
 	if len(snap2.present) != 4 {

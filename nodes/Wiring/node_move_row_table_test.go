@@ -39,7 +39,7 @@ func TestMoveDispatchRowTablesMatchSeedOrder(t *testing.T) {
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	tr := T.New(256)
+	tr := T.New()
 	clk := NewRealClock()
 	_, _, md, _, err := LoadTopology(ctx, path, tr, clk)
 	if err != nil {

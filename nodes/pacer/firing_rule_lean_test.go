@@ -32,8 +32,7 @@ func stepWire(ctx context.Context, pw *Wiring.PacedWire, clk Wiring.Clock) {
 // 0 when it repeats.
 func TestPacerChangeStepFeedbackLean(t *testing.T) {
 	const latMs = 10.0
-	tr := T.New(0)
-	defer tr.Close()
+	tr := T.New()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

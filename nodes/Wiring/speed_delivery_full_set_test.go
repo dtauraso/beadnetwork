@@ -87,8 +87,7 @@ func TestSpeedSinksCoverEveryClockOwningGoroutine(t *testing.T) {
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	tr := T.New(256)
-	defer tr.Close()
+	tr := T.New()
 
 	_, _, _, speedSinks, err := W.LoadTopology(ctx, path, tr, W.NewRealClock())
 	if err != nil {

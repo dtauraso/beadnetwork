@@ -39,8 +39,7 @@ func loadDragAnchorTopo(t *testing.T) (context.Context, context.CancelFunc, *Mov
 		t.Fatal(err)
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	tr := T.New(4096)
-	t.Cleanup(tr.Close)
+	tr := T.New()
 	_, _, md, _, err := LoadTopology(ctx, path, tr, NewRealClock())
 	if err != nil {
 		cancel()

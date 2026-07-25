@@ -47,7 +47,7 @@ func TestUnfedRequiredPortLoadsAndStaysInert(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	nodes, _, _, _, err := Wiring.LoadTopology(ctx, path, T.New(16), Wiring.NewRealClock())
+	nodes, _, _, _, err := Wiring.LoadTopology(ctx, path, T.New(), Wiring.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology rejected an unfed port, but validate.go promises it loads: %v", err)
 	}

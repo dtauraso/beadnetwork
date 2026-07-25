@@ -55,7 +55,7 @@ func TestPreSplitTopologyRoundTrips(t *testing.T) {
 	root := writePreSplitStar2(t)
 
 	// ---- Load 1: read the pre-split format. ----
-	tr := T.New(0)
+	tr := T.New()
 	_, _, md, _, err := LoadTopology(context.Background(), root, tr, NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology (pre-split): %v", err)
@@ -113,7 +113,7 @@ func TestPreSplitTopologyRoundTrips(t *testing.T) {
 	pollPositionFileWritten(t, root, "src")
 
 	// ---- Load 2: a completely fresh MoveDispatch over the now-partially-migrated tree. ----
-	tr2 := T.New(0)
+	tr2 := T.New()
 	_, _, md2, _, err := LoadTopology(context.Background(), root, tr2, NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology (reload): %v", err)

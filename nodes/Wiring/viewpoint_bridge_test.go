@@ -42,7 +42,7 @@ func captureViewFrameKinds(md *MoveDispatch, kinds *[]RowEvent) {
 }
 
 func TestOrbitLockedViewpointEmitsCamera(t *testing.T) {
-	tr := T.New(0)
+	tr := T.New()
 	md := &MoveDispatch{}
 	var events []RowEvent
 	captureViewFrameKinds(md, &events)
@@ -66,7 +66,7 @@ func TestOrbitLockedViewpointEmitsCamera(t *testing.T) {
 }
 
 func TestSetViewpointClearsLock(t *testing.T) {
-	tr := T.New(0)
+	tr := T.New()
 	md := &MoveDispatch{}
 
 	// After SetViewpoint the lock must be nil.

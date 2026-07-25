@@ -43,7 +43,7 @@ func runSlideAndTimeCompletion(t *testing.T, setSpeed float64) time.Duration {
 			closeOnce.Do(func() { close(done) })
 		}
 	}
-	tr := T.NewWithSinkHook(64, nil, onEvent)
+	tr := T.NewWithSinkHook(nil, onEvent)
 
 	clk := NewRealClock()
 	speedCh := make(chan float64, 1)
@@ -106,7 +106,7 @@ func TestEmitRefillSlideAppliesMidSlideSpeedChange(t *testing.T) {
 			closeOnce.Do(func() { close(done) })
 		}
 	}
-	tr := T.NewWithSinkHook(64, nil, onEvent)
+	tr := T.NewWithSinkHook(nil, onEvent)
 
 	clk := NewRealClock()
 	clk.SetSpeed(0) // frozen from the start
