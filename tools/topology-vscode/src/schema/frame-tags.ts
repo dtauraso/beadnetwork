@@ -1,10 +1,11 @@
-// frame-tags.ts — hand-authored mirror of Buffer/frame_tags.go's fd-3 frame ENVELOPE
+// frame-tags.ts — hand-authored mirror of Buffer/frame_tags.go's frame ENVELOPE
 // discriminator. NOT generated (see that file's header comment for why: it's the
 // outer frame's tag byte, not a column-layout block). Keep these values in lockstep
 // with BufBlockTagScene/BufBlockTagBead by hand, the same way input-layout.ts mirrors
 // input_codec.go.
 //
-// Frame format on fd 3 (see runCommand.ts splitFrames/handleFd3):
+// Historical frame format (see runCommand.ts splitFrames/handleViewFd/handleEdgeFd/
+// handleNodeFd for the current per-goroutine dedicated-stream decoders):
 //   [len:u32-LE][blockTag:u8][block bytes]
 // len counts the tag byte plus the block bytes. Four tag values exist today:
 //
@@ -34,7 +35,7 @@
 //
 //     The scene frame's LayoutLink block still packs SrcNodeRow/DstNodeRow as node-row
 //     indices — those rows resolve against THIS frame's Node block (both frames are
-//     built from the same Go SnapshotState in the same emitSnapshot call and share the
+//     built from the same stable seed-order row tables and share the
 //     same stable node-row order).
 //
 //   - BUF_BLOCK_TAG_EDGE: the Edge block ALONE + its EdgeLabel bytes section, in its own
@@ -49,12 +50,12 @@
 //     EdgeLabel edgeLabelBytesCount bytes (edge labels' UTF-8 bytes, edge-row order)
 //
 //   - BUF_BLOCK_TAG_VIEW: SYNTHETIC ext-host-side tag for a decoded VIEW-stream frame
-//     (camera + overlay + scene-sphere), the first stream migrated OFF fd 3 onto its
-//     own dedicated inherited pipe (see runCommand.ts's stream-fd allocation and
-//     Buffer/stream_fds.go — memory/feedback_no_single_writer_bridge.md). The wire bytes
-//     on that dedicated fd carry NO tag byte (the fd POSITION identifies the stream);
-//     this tag exists only so the ext host can relay a decoded view frame to the
-//     webview under the SAME "buffer-snapshot" message shape as the fd-3 tags above,
+//     (camera + overlay + scene-sphere), streamed over its own dedicated inherited pipe
+//     (see runCommand.ts's stream-fd allocation and Buffer/stream_fds.go —
+//     memory/feedback_no_single_writer_bridge.md). The wire bytes on that dedicated fd
+//     carry NO tag byte (the fd POSITION identifies the stream); this tag exists only so
+//     the ext host can relay a decoded view frame to the webview under the SAME
+//     "buffer-snapshot" message shape as the other synthetic stream tags below,
 //     extending the existing tag-routed-cell pattern to a fifth cell instead of adding a
 //     second message shape. Its payload layout (dedicated-fd wire bytes, no tag):
 //
@@ -63,26 +64,24 @@
 //     Overlay  OVERLAY_STRIDE bytes
 //     Scene    SCENE_STRIDE bytes
 //
-// This is the protocol foundation for eventually splitting the rest of the single
-// content buffer into N per-block buffers, each streamed as its own tagged frame; Bead,
-// Node, and Edge above are three of that series; View is the first to move onto its own
-// dedicated fd rather than just its own tag within fd 3 (do not add a further tag value
-// to the fd-3 vocabulary until the next such split actually lands).
+// The four block-tag constants below name the payload layouts each per-owner dedicated
+// stream reuses; each goroutine now streams its own tagged frame over its own dedicated
+// inherited pipe (WIREFOLD_STREAM_FDS) rather than a single shared pipe.
 
-/** The fd-3 block tag for the combined content-buffer snapshot (everything except beads,
- * the node-owner-group blocks, and the Edge block). */
+/** Block tag naming the combined content-buffer snapshot's payload layout (everything
+ * except beads, the node-owner-group blocks, and the Edge block). */
 export const BUF_BLOCK_TAG_SCENE = 0;
 
-/** The fd-3 block tag for the self-contained per-tick Bead frame. See this file's header
- * comment for its payload layout. */
+/** Block tag naming the self-contained per-tick Bead frame's payload layout. See this
+ * file's header comment for its payload layout. */
 export const BUF_BLOCK_TAG_BEAD = 1;
 
-/** The fd-3 block tag for the self-contained Node/Interior/Port frame (+ Label/PortName
- * bytes). See this file's header comment for its payload layout. */
+/** Block tag naming the self-contained Node/Interior/Port frame's payload layout
+ * (+ Label/PortName bytes). See this file's header comment for its payload layout. */
 export const BUF_BLOCK_TAG_NODE = 2;
 
-/** The fd-3 block tag for the self-contained Edge frame (+ EdgeLabel bytes). See this
- * file's header comment for its payload layout. */
+/** Block tag naming the self-contained Edge frame's payload layout (+ EdgeLabel bytes).
+ * See this file's header comment for its payload layout. */
 export const BUF_BLOCK_TAG_EDGE = 3;
 
 /** Byte width of the Bead frame's own header: [tick:u32][beadCount:u32]. Hand-authored
@@ -101,7 +100,7 @@ export const BUF_NODE_FRAME_HEADER_SIZE = 20;
 export const BUF_EDGE_FRAME_HEADER_SIZE = 12;
 
 /** SYNTHETIC ext-host-side tag for a decoded VIEW-stream frame (camera+overlay+scene),
- * relayed to the webview under the same message shape as the fd-3 tags. NEVER a wire
+ * relayed to the webview under the same message shape as the other stream tags. NEVER a wire
  * tag byte on the dedicated view fd itself — see this file's header comment. Mirrors
  * Buffer/frame_tags.go's BufBlockTagView. */
 export const BUF_BLOCK_TAG_VIEW = 4;
@@ -153,7 +152,7 @@ export const BUF_BLOCK_TAG_INTERIOR_STREAM = 7;
 export const BUF_NODE_STREAM_FRAME_HEADER_SIZE = 20;
 
 /** Byte width of ONE layout-link row within a node stream frame:
- * [DstNodeRow:i32][EdgeRow:i32]. Narrower than LAYOUT_LINK_STRIDE (the shared fd-3
+ * [DstNodeRow:i32][EdgeRow:i32]. Narrower than LAYOUT_LINK_STRIDE (the combined
  * LayoutLink block's 12-byte row, SrcNodeRow+DstNodeRow+EdgeRow) because on a per-node
  * stream the source IS this node — implicit from the fd position / aggregate row index. */
 export const NODE_STREAM_LAYOUT_LINK_STRIDE = 8;
@@ -161,5 +160,5 @@ export const NODE_STREAM_LAYOUT_LINK_STRIDE = 8;
 /** Byte layout of one node's INTERIOR per-fd frame (Buffer.BuildInteriorStreamFrame), no
  * outer tag: [tick:u32] followed by a FIXED INTERIOR_SLOTS_PER_NODE × INTERIOR_STRIDE bytes
  * (no count — the decoder derives the length from the fixed per-node slot count, same as
- * the shared fd-3 Interior block). */
+ * the combined Interior block). */
 export const BUF_INTERIOR_STREAM_FRAME_HEADER_SIZE = 4;

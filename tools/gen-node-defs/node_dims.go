@@ -54,7 +54,7 @@ func writeNodeDims(outPath string, kinds []kindEntry) error {
 }
 
 // writeNodeKindID emits Buffer/node_kind_id_gen.go: a kind → uint8 index map so
-// Go's SnapshotState can populate the KindId column in the buffer node block.
+// each node's own emit path can populate the KindId column in the buffer node block.
 // The index is 0-based and follows the same alphabetical Go-kind sort order as
 // NODE_DEFS_ARRAY in node-defs.ts, guaranteeing Go and TS use the same numbering.
 func writeNodeKindID(outPath string, kinds []kindEntry) error {

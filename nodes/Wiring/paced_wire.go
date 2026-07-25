@@ -453,7 +453,7 @@ func (pw *PacedWire) stepAll(tick int64) {
 // the same lerp math advanceBead uses but with NO side effects — no trace emit, no state
 // mutation. Used only by the dedicated per-edge stream (edgeMover.writeStreamFrame,
 // node_mover.go) to snapshot this wire's current beads without duplicating tr.Position's
-// separate accumulation into Buffer.SnapshotState.
+// separate accumulation into a central buffer.
 type LiveBeadRow struct {
 	Val     int
 	X, Y, Z float64

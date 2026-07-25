@@ -8,8 +8,8 @@
 // bytes — the Edge block carries NO endpoint coordinates (it references its two port rows,
 // resolved against the NODE frame's Port block — see EdgeTube.tsx). decodeViewFrame takes
 // the dedicated VIEW-stream frame and returns the Camera/Overlay/Scene blocks. There is no
-// combined SCENE-frame decoder anymore: Buffer.SnapshotState (the central accumulator that
-// used to write that fd-3 fallback frame) was deleted entirely — memory/feedback_no_single_writer_bridge.md's
+// combined SCENE-frame decoder anymore: the central accumulator that used to write that
+// combined fallback frame was deleted entirely — memory/feedback_no_single_writer_bridge.md's
 // final step; WIREFOLD_STREAM_FDS is mandatory.
 //
 // Node frame layout (little-endian, packed; see frame-tags.ts BUF_BLOCK_TAG_NODE):
@@ -315,7 +315,7 @@ export interface DecodedEdgeStreamFrame {
   /** DataView over the single Edge row (row 0); byteLength = EDGE_STRIDE. */
   edgeView: DataView;
   /** This edge's own label, decoded straight from its inline bytes (no shared section / no
-   *  Off into a foreign frame — unlike the fd-3 Edge block's EdgeLabelOff/Len). */
+   *  Off into a foreign frame — unlike the combined Edge block's EdgeLabelOff/Len). */
   label: string;
   beadCount: number;
   /** DataView over this edge's own bead rows; byteLength = beadCount × BEAD_STRIDE. */

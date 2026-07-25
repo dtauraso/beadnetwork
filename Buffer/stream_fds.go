@@ -15,8 +15,8 @@
 //     WIREFOLD_STREAM_FDS = "view:4"        (one kind)
 //     WIREFOLD_STREAM_FDS = "view:4,foo:8"  (comma-separated "kind:baseFd" pairs)
 //
-//     Empty/unset ⇒ no dedicated stream fd for ANY kind ⇒ every stream FALLS BACK to
-//     its pre-existing fd-3 path (headless tests, non-extension launches, or a launch
+//     Empty/unset ⇒ no dedicated stream fd for ANY kind ⇒ every stream's write side
+//     nil-checks its fd and no-ops (headless tests, non-extension launches, or a launch
 //     that simply doesn't wire the extra pipe).
 //
 //   - Ordering convention within a kind: fd = baseFd[kind] + rowIndex, where rowIndex is
@@ -33,9 +33,8 @@
 //
 // ParseStreamFDs / StreamFDs.FD are the Go-side half of this contract: the owner
 // (main.go, for the view stream) resolves its own fd number, opens it via os.NewFile,
-// and gets nil back when the env var doesn't name its kind — the required dual-path
-// fallback (see NewSnapshotState/SetViewOut in snapshot.go, and buildSnapshot/
-// buildViewFrame in pack.go for the resulting either/or on the WRITE side).
+// and gets nil back when the env var doesn't name its kind — the write side (e.g.
+// MoveDispatch.SetViewStream) nil-checks that and simply never writes the frame.
 package Buffer
 
 import (
@@ -102,7 +101,7 @@ func ParseStreamFDs(env string) StreamFDs {
 
 // FD resolves (kind, row) to its inherited-pipe fd number per this file's ordering
 // convention (fd = baseFd[kind] + row), or ok=false if this StreamFDs has no base fd
-// for kind (⇒ caller falls back to its pre-existing fd-3 path).
+// for kind (⇒ caller's write side nil-checks and no-ops).
 func (m StreamFDs) FD(kind string, row int) (int, bool) {
 	base, ok := m[kind]
 	if !ok {

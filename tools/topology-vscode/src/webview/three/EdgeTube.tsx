@@ -323,7 +323,7 @@ export function EdgeTubes({ capacity, layoutLinkCapacity }: { capacity: number; 
     const { layoutLinkCount, layoutLinkView } = getLayoutLinks();
     const { overlayView } = blocks;
     // LayoutLink's SrcNodeRow/DstNodeRow resolve against the NODE frame's Node block — both
-    // frames are built from the same Go SnapshotState in the same emitSnapshot call, so they
+    // frames are built from the same stable seed-order row tables in the same emit call, so they
     // share the same stable node-row order (see frame_tags.go's BufBlockTagNode comment).
     const { nodeView, portView } = decodedNode;
     // The Edge block carries NO endpoint coordinates: SrcPortRow/DstPortRow reference the

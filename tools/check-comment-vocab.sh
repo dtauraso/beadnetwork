@@ -27,6 +27,16 @@ cd "$REPO_ROOT"
 readonly DEAD_COMMENT_TOKENS=(
   "fan-in is safe"
   "fan-in safe"
+  # fd-3 / SnapshotState bridge machinery was deleted: the Go->TS bridge is now one
+  # dedicated inherited-stdio pipe per goroutine (WIREFOLD_STREAM_FDS), and stdio index 3
+  # is a reserved, UNUSED slot. These name code that no longer exists, so any reappearance
+  # in a comment is drift. (Verified dead-as-code 2026-07-24: no SnapshotState type, no
+  # handleFd3 def, nothing reads/writes fd 3.) NOTE: bare "fd 3" is intentionally NOT
+  # guarded — the accurate "stdio index 3 is a reserved, unused slot" comments must survive.
+  "SnapshotState"
+  "handleFd3"
+  "fd-3 fallback"
+  "fd3 fallback"
 )
 
 fail=0

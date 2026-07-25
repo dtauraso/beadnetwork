@@ -30,7 +30,7 @@ const EDGE_BASE_FD = 5;
 // MAX_EDGE_STREAMS bounds the per-edge fd range: one dedicated pipe PER EDGE (see
 // EDGE_BASE_FD's doc comment) — fine for current graph sizes (this is a scaling bound the
 // no-single-writer-bridge migration accepts explicitly, not an oversight). A topology with
-// more edges than this falls back entirely to the shared fd-3 Edge/Bead path (edgeCount is
+// more edges than this omits the dedicated per-edge streams entirely (edgeCount is
 // clamped, WIREFOLD_STREAM_FDS omits "edge", Go never calls SetEdgeStreamActive).
 const MAX_EDGE_STREAMS = 256;
 
@@ -45,7 +45,7 @@ const MAX_EDGE_STREAMS = 256;
 
 // MAX_NODE_STREAMS bounds the per-node fd range (mirrors MAX_EDGE_STREAMS) — one
 // dedicated pipe PER NODE for EACH of node/interior. A topology with more nodes than this
-// falls back entirely to the shared fd-3 Node/Interior/Port path.
+// omits the dedicated per-node NODE/INTERIOR/Port streams entirely.
 const MAX_NODE_STREAMS = 256;
 
 // countNodes reads the topology spec's node count WITHOUT the full Go-side validate/build
@@ -81,7 +81,7 @@ export function countNodes(topologyPath: string): number {
 // must know the fd RANGE before spawning Go, so it cannot ask Go for this). Mirrors
 // nodes/Wiring/loader.go's parseSpec dispatch: a directory tree (one file per
 // `<root>/edges/<label>.json`) or a monolithic topology.json (`{"edges":[...]}`). Returns
-// 0 (⇒ no dedicated edge fds; the fd-3 fallback stays active) on any read/parse failure —
+// 0 (⇒ no dedicated edge fds are allocated) on any read/parse failure —
 // a missing/malformed spec is Go's error to report, not this sizing probe's.
 export function countEdges(topologyPath: string): number {
   try {
@@ -254,7 +254,7 @@ function ensureBinaryBuilt(
 // and a partial length-prefixed binary frame per dedicated stream fd — and is meaningful
 // ONLY within a single Go process's stream: a leftover tail is a fragment of THAT process's
 // output. Its lifetime is therefore the process's, not the runner's. fd 3 itself carries no
-// frames anymore (WIREFOLD_STREAM_FDS is mandatory — the fd-3 SnapshotState accumulator and
+// frames anymore (WIREFOLD_STREAM_FDS is mandatory — the old central accumulator and
 // its fallback frames were deleted, memory/feedback_no_single_writer_bridge.md's final step); the pipe slot
 // stays allocated (see run()) purely to keep the remaining fd numbering unchanged.
 interface StreamParseState {
@@ -411,14 +411,14 @@ export class BuildAndRunRunner {
     this.looping = true;
     // Size the dedicated per-edge fd range from the topology spec BEFORE spawning (the
     // ext host must know the range up front — see countEdges' doc comment). Clamped to
-    // MAX_EDGE_STREAMS; 0 (spec unreadable, or more edges than the bound) falls back
-    // entirely to the shared fd-3 Edge/Bead path — see MAX_EDGE_STREAMS's doc comment.
+    // MAX_EDGE_STREAMS; 0 (spec unreadable, or more edges than the bound) omits the
+    // dedicated per-edge streams entirely — see MAX_EDGE_STREAMS's doc comment.
     const edgeCountRaw = countEdges(this.topologyPath ?? path.join(repoRoot, "topology"));
     this.edgeCount = edgeCountRaw > MAX_EDGE_STREAMS ? 0 : edgeCountRaw;
     // Size the dedicated per-node NODE + INTERIOR fd ranges the same way, right after the
     // edge range (nodeBase = EDGE_BASE_FD + edgeCount, interiorBase = nodeBase + nodeCount —
-    // see NODE_BASE_FD's doc comment). Clamped to MAX_NODE_STREAMS; 0 falls back entirely to
-    // the shared fd-3 Node/Interior/Port path.
+    // see NODE_BASE_FD's doc comment). Clamped to MAX_NODE_STREAMS; 0 omits the dedicated
+    // per-node NODE/INTERIOR/Port streams entirely.
     const nodeCountRaw = countNodes(this.topologyPath ?? path.join(repoRoot, "topology"));
     this.nodeCount = nodeCountRaw > MAX_NODE_STREAMS ? 0 : nodeCountRaw;
     const nodeBaseFd = EDGE_BASE_FD + this.edgeCount;
@@ -441,8 +441,8 @@ export class BuildAndRunRunner {
     // prebuilt binary is the sole group member, so kill(-pid) reaches it
     // directly. Without this, SIGTERM could leave it orphaned on macOS.
     // stdio index 3 is a RESERVED, UNUSED pipe slot: Go no longer writes anything to fd 3
-    // (Buffer.SnapshotState — the central accumulator that used to write it, plus its
-    // fallback frames — was deleted entirely; memory/feedback_no_single_writer_bridge.md's final step). The
+    // (the central accumulator that used to write it, plus its fallback frames, was
+    // deleted entirely; memory/feedback_no_single_writer_bridge.md's final step). The
     // slot stays allocated purely so the remaining fd numbering (VIEW_FD=4, edge/node/
     // interior ranges after it) matches this file's existing constants unchanged. stdio
     // index VIEW_FD (4) = the dedicated VIEW-stream pipe (WIREFOLD_STREAM_FDS=

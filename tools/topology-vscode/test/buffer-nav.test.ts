@@ -65,8 +65,8 @@ function makeNodeFrame(nodeCount: number, fields: NodeFields[]): ArrayBuffer {
 }
 
 // Build a VIEW-stream frame (camera+overlay+scene) with the Scene block filled — the live
-// production shape (decodeViewFrame), replacing the deleted fd-3 SCENE frame fixture
-// (decodeSnapshot, removed with Buffer.SnapshotState — memory/feedback_no_single_writer_bridge.md's final
+// production shape (decodeViewFrame), replacing the deleted combined SCENE frame fixture
+// (decodeSnapshot, removed with the central accumulator — memory/feedback_no_single_writer_bridge.md's final
 // step). `scene` defaults to all-zero, i.e. "not yet populated".
 function makeSceneSnapshot(scene?: SceneFields): ArrayBuffer {
   const total = BUF_VIEW_FRAME_HEADER_SIZE + CAMERA_STRIDE + OVERLAY_STRIDE + SCENE_STRIDE;

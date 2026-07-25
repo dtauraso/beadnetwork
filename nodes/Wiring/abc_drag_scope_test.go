@@ -16,13 +16,13 @@ package Wiring
 // (recipient {z}) and assert the FINAL state's gotDragMsg set is exactly {z} — if the reset
 // were missing (old accumulating behavior), {t,n} would still show gotDragMsg=1.
 //
-// Per-owner-buffer-rows.md's final step deleted the central Buffer.SnapshotState
-// accumulator + its fd-3 fallback frame this test used to poll; each recipient's
+// Per-owner-buffer-rows.md's final step deleted the central accumulator + its combined
+// fallback frame this test used to poll; each recipient's
 // gotDragMsg/dragDelta* now live ONLY on that node's own nodeMover (set by its own
 // goroutine — node_mover.go), so this test wires each recipient's OWN dedicated stream
 // directly (test-only direct field assignment, mirroring ui_publish_propagation_test.go's
 // TestGesturePathPropagatesUIStateToMoverStream) and polls that node's own captured frame
-// instead of a shared fd-3 NODE frame.
+// instead of a shared combined NODE frame.
 
 import (
 	"context"

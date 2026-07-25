@@ -61,7 +61,7 @@ func toStreamEvents(events []W.RowEvent) []B.StreamEvent {
 func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath string, clk W.Clock) {
 	// The VIEW stream (camera+overlay+scene, one singleton row) — per-owner buffer rows
 	// (memory/feedback_no_single_writer_bridge.md, memory/feedback_no_single_writer_bridge.md): WIREFOLD_STREAM_FDS
-	// is now MANDATORY (the fd-3 SnapshotState accumulator + fallback packer were deleted along
+	// is now MANDATORY (the old central accumulator + fallback packer were deleted along
 	// with this migration's final step — see Buffer/stream_fds.go). The gesture/stdin-reader
 	// goroutine (nodes/Wiring's MoveDispatch, wired below once it exists) is the sole WRITER of
 	// this stream.
@@ -212,7 +212,7 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 	//
 	// The buffer's node/edge/port row-identity tables now live ON md itself (built once at
 	// load, in newMoveDispatch's buildRowTables call, from the same spec-order nodeSeeds/
-	// edgeSeeds used to seed SnapshotState's rows below) — a node/edge/port hit (which
+	// edgeSeeds each per-owner stream frame uses below) — a node/edge/port hit (which
 	// carries only a numeric buffer row index) resolves back to its identity via
 	// md.LookupNodeRow/LookupEdgeRow/LookupPortRow with no separate resolver wiring.
 	// Initial camera viewpoint = FILE DATA: Go reads the saved camera from

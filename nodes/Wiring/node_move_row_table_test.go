@@ -1,7 +1,7 @@
 // node_move_row_table_test.go — pins that MoveDispatch's row-identity tables (node/edge/
 // port hit-test resolution + the mover-side row lookups) are built ONCE at load, from the
-// SAME stable seed order (md.nodeSeeds/md.edgeSeeds) that Buffer.SnapshotState's row order
-// used to be independently discovered in via its first-geometry-event bookkeeping. This is
+// SAME stable seed order (md.nodeSeeds/md.edgeSeeds) that the old central accumulator's row
+// order used to be independently discovered in via its first-geometry-event bookkeeping. This is
 // the MoveDispatch-side analogue of Buffer/row_order_test.go: proof that the row tables
 // this package now owns produce the identical row indices for a representative graph.
 

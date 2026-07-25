@@ -224,8 +224,9 @@ type MoveDispatch struct {
 	// SetEdgeStreams' "wire before launch" ordering) — read-only afterward, so a node's
 	// own Update-loop closures (builders.go's injectClosures) can look it up by name with
 	// no lock. nil map entries / a nil map itself (no WIREFOLD_STREAM_FDS "interior"
-	// entry) are the REQUIRED fallback: tr.NodeBead keeps flowing into the shared
-	// Buffer.SnapshotState (fd 3's Node/Interior/Port/Label/PortName frame) unchanged.
+	// entry) mean the interior frame is simply never written for that node — tr.NodeBead
+	// is a cheap no-op on the live path (neither its sink nor its onEvent hook is wired
+	// in production).
 	interiorOuts map[string]io.Writer
 	// buildInteriorFrame packs one node's fixed-slot interior frame bytes
 	// (Buffer.BuildInteriorStreamFrame), injected here (rather than importing Buffer) so
@@ -237,9 +238,9 @@ type MoveDispatch struct {
 	//
 	// viewOut, when non-nil, is the VIEW stream's OWN dedicated fd (see SetViewStream /
 	// Buffer/stream_fds.go's StreamKindView). Nil (the default — no WIREFOLD_STREAM_FDS
-	// "view" entry, e.g. headless tests) is the REQUIRED fallback: nothing here ever
-	// writes, and Buffer.SnapshotState's own fd-3 embed keeps carrying camera/overlay/
-	// scene exactly as before this migration. Written ONLY by the gesture/stdin-reader
+	// "view" entry, e.g. headless tests) means emitViewFrame is a no-op: nothing here
+	// ever writes, and camera/overlay/scene are simply never emitted. Written ONLY by
+	// the gesture/stdin-reader
 	// goroutine (the sole caller of every MoveDispatch method that can change camera/
 	// overlay/scene/selection/hover) — no lock.
 	viewOut io.Writer
@@ -263,8 +264,7 @@ type MoveDispatch struct {
 	// abcDragCount is this goroutine's OWN plain int (no atomic, no lock: only the
 	// gesture/stdin-reader goroutine ever reads or writes it, via DrainAbcDragChan) — the
 	// VIEW frame's Overlay.AbcDragCount column reads this directly. Cumulative for the
-	// run's lifetime (never reset — mirrors Buffer.SnapshotState's own
-	// s.overlay.AbcDragCount, which stays the fd-3 fallback's independent copy).
+	// run's lifetime (never reset).
 	abcDragCount uint32
 	// sel groups the CURRENTLY-SELECTED (click-select) and CURRENTLY-HOVERED (pointer hover)
 	// UI-only state (selection_state.go) — pure routing-directory-parked UI state, owned by
@@ -300,15 +300,16 @@ type MoveDispatch struct {
 
 	// --- row-identity tables (hit-testing + mover row resolution) ---
 	//
-	// These four tables used to live on Buffer.SnapshotState, built as a side effect of
+	// These four tables used to live on a central accumulator, built as a side effect of
 	// the Trace-drain goroutine observing the FIRST geometry event for each node/edge — a
 	// discovery log. Node/edge/port row order is actually a LOAD-TIME CONSTANT (spec
 	// order, md.nodeSeeds/md.edgeSeeds — see their doc comments): nodes/edges are only
 	// ever added via respawn, which re-runs load from scratch. So the tables are built
 	// ONCE here, in newMoveDispatch, from the SAME nodeSeeds/edgeSeeds order the seed loop
 	// in main.go streams through tr.NodeGeometry/tr.Geometry — reproducing byte-for-byte
-	// the row order SnapshotState used to discover independently. Built before Start (and
-	// never mutated afterward), so — unlike SnapshotState's atomic.Pointer tables — a plain
+	// the row order the old central accumulator used to discover independently. Built
+	// before Start (and never mutated afterward), so — unlike that accumulator's
+	// atomic.Pointer tables — a plain
 	// slice/map here is already safe for every reader goroutine (gesture, movers) to read
 	// concurrently with no lock and no atomic: the write happened-before every goroutine
 	// that could read it (Go launches nodeMover/edgeMover goroutines only in Start, which
@@ -326,7 +327,7 @@ type MoveDispatch struct {
 
 	// --- selection/hover/abc-drag UI state: per-owner, no shared/republished copy ---
 	//
-	// This state used to live on Buffer.SnapshotState only, written by the Trace-drain
+	// This state used to live on the old central accumulator only, written by the Trace-drain
 	// goroutine on the OTHER end of a round trip from the goroutine that actually sets the
 	// intent. It is now owned directly by whichever goroutine sets it: the gesture/
 	// MoveDispatch goroutine tracks its OWN local record of the current selection/hover/
@@ -336,13 +337,13 @@ type MoveDispatch struct {
 	// OWN selected/hovered/latchedSel/gotDragMsg/dragDelta*/kindID fields (nodeMover) or
 	// selected field (edgeMover) and writes them into its own stream frame — no shared map,
 	// no mutex, no atomic. tr.Select/tr.Hover/tr.AbcDrag/tr.AbcDragReset still fire
-	// alongside this, but ONLY for the -trace/.probe EVENT LOG (Buffer.SnapshotState, the
-	// central accumulator that used to also feed a fd-3 fallback packer, was deleted
+	// alongside this, but ONLY for the -trace/.probe EVENT LOG (the central accumulator
+	// that used to also feed a fallback packer was deleted
 	// entirely — memory/feedback_no_single_writer_bridge.md's final step; WIREFOLD_STREAM_FDS is now
 	// mandatory, there is no fallback left).
 	//
 	// latchedNode is the node id whose LatchedSel bit stays set across a deselect (mirrors
-	// Buffer.SnapshotState.setSelected's latchedSel: moves to the newly-selected node, and
+	// the old central accumulator's setSelected latchedSel handling: moves to the newly-selected node, and
 	// is left untouched — NOT cleared — on a deselect). Mutated only by the gesture
 	// goroutine (setSelectionUI), which also messages the affected movers.
 	latchedNode string
@@ -424,7 +425,7 @@ func (md *MoveDispatch) LookupEdgeRow(row int) (label string, ok bool) {
 // (id is always the alphabetically-first side — mirrors loader.go's emitLayoutLinks own
 // de-dup rule), by walking each nodeMover's own layoutLinkTos (seeded once at load,
 // static since — see its doc comment in node_mover.go). This is the SAME set
-// emitLayoutLinks streams via tr.LayoutLink for Buffer.SnapshotState's LayoutLink BLOCK
+// emitLayoutLinks streams via tr.LayoutLink for the old central accumulator's LayoutLink BLOCK
 // (still the sole source of that block; unaffected by this method), reconstructed here
 // so main.go can ALSO emit each pair once as a view-owner VIEW-frame event (Step C,
 // memory/feedback_no_single_writer_bridge.md — LayoutLink is load-time-once, like SceneSphere, so it has no
@@ -492,11 +493,11 @@ func (md *MoveDispatch) SetMsgTap(tap func(destID string, msg moveMsg)) {
 
 // SetEdgeStreams wires every edgeMover to ITS OWN dedicated fd — the per-edge stream
 // (memory/feedback_no_single_writer_bridge.md): fd = baseFd + row, where row is the
-// STABLE edge-seed order (md.edgeSeeds, the same spec order Buffer.SnapshotState's Edge
+// STABLE edge-seed order (md.edgeSeeds, the same spec order the Edge
 // block uses — see main.go's md.EdgeSeeds() seed loop). portRowFor/buildFrame are
 // injected funcs (not a Buffer import) so this package stays Buffer-independent,
 // matching PortRowResolver/EdgeRowResolver's existing pattern: portRowFor resolves
-// (node,port,isInput) to a buffer PORT-ROW index (Buffer.SnapshotState.PortRowFor), and
+// (node,port,isInput) to a buffer PORT-ROW index (mirroring the old central accumulator's PortRowFor), and
 // buildFrame packs the combined per-edge frame bytes (Buffer.BuildEdgeStreamFrame).
 // Edge selection is NOT injected: each edgeMover owns its OWN selected bit, set via a
 // moveMsgKindSelect message on its extIn (md.sendEdgeSelect), not a lookup. Call once at
@@ -528,7 +529,7 @@ func (md *MoveDispatch) SetEdgeStreams(
 // Update-loop closures (builders.go's injectClosures) look up for its own dedicated
 // interior-fd — the two emitting goroutines per node (memory/feedback_no_single_writer_bridge.md).
 // nodeBase/interiorBase are the two fd ranges' base fds; row is the STABLE node-seed
-// order (md.nodeSeeds, the same spec order Buffer.SnapshotState's Node block uses — see
+// order (md.nodeSeeds, the same spec order the Node block uses — see
 // main.go's md.NodeSeeds() seed loop). nodeRowFor/edgeRowForPair/buildFrame/
 // buildInteriorFrame are injected funcs (not a Buffer import), matching SetEdgeStreams'
 // existing pattern. Selection/hover/abc-drag/kind are NOT injected lookups: each nodeMover
@@ -977,7 +978,7 @@ func (md *MoveDispatch) sendEdgeSelect(label string, on bool) {
 }
 
 // setSelectionUI sets the Go-owned selection (node XOR edge, exclusive — mirrors
-// Buffer.SnapshotState.setSelected/setSelectedEdge's exclusivity), moving latchedNode to
+// the old central accumulator's setSelected/setSelectedEdge exclusivity), moving latchedNode to
 // a newly-selected node (left untouched on a deselect), and MESSAGES every affected
 // mover to update its OWN selected/latchedSel bit — no shared/republished map. Called
 // only from the gesture/MoveDispatch goroutine (applySelect); md.sel/md.latchedNode are
@@ -1027,7 +1028,7 @@ func (md *MoveDispatch) setHoverUI(node, port string, isInput bool) {
 }
 
 // resetAbcDrag re-scopes the recipient SET to the drag about to start: MESSAGES every
-// node mover to clear its OWN abc-drag recipient bit (mirrors Buffer.SnapshotState's
+// node mover to clear its OWN abc-drag recipient bit (mirrors the old central accumulator's
 // KindAbcDragReset handling). Called from the gesture goroutine at the pending→dragging
 // transition (gesture.go). Broadcast, not a shared flag: each mover clears its own bit
 // on its own goroutine, no generation counter.

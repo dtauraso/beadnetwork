@@ -24,7 +24,7 @@ import (
 )
 
 // uiPubLockedBuf is a mutex-guarded io.Writer capturing framed stream bytes from a
-// nodeMover/edgeMover/SnapshotState goroutine, mirroring abc_drag_scope_test.go's fd-3
+// nodeMover/edgeMover/VIEW-stream goroutine, mirroring abc_drag_scope_test.go's
 // capture pattern but for a per-owner dedicated stream (no leading block-tag byte — the
 // fd position identifies it).
 type uiPubLockedBuf struct {
@@ -134,7 +134,7 @@ func TestGesturePathPropagatesUIStateToMoverStream(t *testing.T) {
 	}
 
 	// The VIEW stream is now owned/written by MoveDispatch itself (Step C), not
-	// Buffer.SnapshotState — wire md the same way main.go does, straight to a captured
+	// a central accumulator — wire md the same way main.go does, straight to a captured
 	// buffer, mirroring bufX/bufT's direct-field-assignment test wiring below.
 	viewBuf := &uiPubLockedBuf{}
 	md.SetViewStream(viewBuf, func(tick uint32,
@@ -231,7 +231,7 @@ func TestGesturePathPropagatesUIStateToMoverStream(t *testing.T) {
 
 	// --- AbcDragReset (resetAbcDrag) broadcasts moveMsgKindAbcReset to every node
 	// mover, clearing t's OWN recipient bit — the count (view frame) is left alone
-	// (mirrors Buffer.SnapshotState's KindAbcDragReset handling: count is a cumulative
+	// (mirrors the VIEW stream's KindAbcDragReset handling: count is a cumulative
 	// total-events affirmation, not drag-scoped). ---
 	md.resetAbcDrag()
 	waitForNodeDragMsg(t, bufT, func(got uint8, dA, dB, dC int32) bool { return got == 0 })

@@ -547,7 +547,7 @@ func (b *buildCtx) buildMoveDispatch() {
 	}
 	// Seed each node's OWN layoutLinkTos (nodeMover.layoutLinkTos doc comment) from
 	// b.localPolars — the SAME LAYOUT model + de-dup rule (alphabetically-first id is the
-	// source) emitLayoutLinks uses for the legacy shared fd-3 block, so the per-node
+	// source) emitLayoutLinks uses for the combined LayoutLink block, so the per-node
 	// stream carries exactly the same pairs, split by source node instead of merged. Sort
 	// ids for determinism, matching emitLayoutLinks' own sort.
 	ids := make([]string, 0, len(b.localPolars))
@@ -660,7 +660,7 @@ func (b *buildCtx) buildNodes() error {
 		// frame builder (md.buildInteriorFrame) — the SECOND emitting goroutine per node
 		// (memory/feedback_no_single_writer_bridge.md). nil until SetNodeStreams runs
 		// (main.go, after LoadTopology returns); the Emit* closures nil-check both before
-		// writing, so this is the required fallback (fd3-only) until then.
+		// writing and no-op until then.
 		pb.md = b.md
 
 		for _, port := range bind.Ports {
