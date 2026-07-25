@@ -77,8 +77,7 @@ func (lp LocalPolar) effectiveSteps() (t, p, r float64) {
 // and it is the neighbor's own run/handle goroutine that drains that message
 // and calls neighborSetCRequantize -> lh.SetLocalPolar/SetPole on ITS OWN
 // holder. One holder, one owning goroutine, neighbors reached only by
-// message — no cross-goroutine access to guard against, so no lock is needed.
-// Do not re-add one without first breaking this invariant on purpose.
+// message — no cross-goroutine access to guard against.
 type LayoutHolder struct {
 	localPolars []LocalPolar
 	// pole is the measurement pole (rotating_pole.go localPole result) that

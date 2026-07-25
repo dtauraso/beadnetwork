@@ -18,7 +18,7 @@
 //
 // Breadcrumb is the other survivor: a free-form diagnostic line (outside the closed
 // Kind vocabulary), written directly — one `sink.Write` call per breadcrumb, on the
-// calling goroutine, no channel and no lock. A single small write to a pipe is atomic
+// calling goroutine, no channel. A single small write to a pipe is atomic
 // per POSIX PIPE_BUF, so concurrent breadcrumbs from many goroutines never interleave
 // into a fused line; breadcrumbs are short, sparse control-event lines (see CLAUDE.md's
 // "Debugging the Go layer" section), never a per-tick firehose, so this holds in practice.
@@ -196,7 +196,7 @@ type Event struct {
 // production). It is set ONCE at startup (New*) before any producer goroutine exists,
 // and never mutated again — read-only for the rest of the process, so every later
 // caller (running in a goroutine spawned after startup) sees the write via the
-// ordinary happens-before edge from goroutine creation. No lock needed: there is no
+// ordinary happens-before edge from goroutine creation. There is no
 // second writer of the field, and NodeBead/Breadcrumb only ever READ it.
 //
 // There used to be a second, PRODUCTION debug sink here (os.Stdout, wired by
@@ -236,7 +236,7 @@ func NewWithSinkHook(sink io.Writer, onEvent func(Event)) *Trace {
 // for tests that build a *Trace via a helper (e.g. LoadTopology) that doesn't take a
 // sink at New time, rather than the (removed) production stdout path. Never wired in
 // production. Set once, before any producer goroutine exists (same ordering
-// requirement the old SetDebugSink had) — no lock, relying on the happens-before edge
+// requirement the old SetDebugSink had), relying on the happens-before edge
 // from goroutine creation.
 func (t *Trace) SetSink(w io.Writer) {
 	if t == nil {
@@ -246,7 +246,7 @@ func (t *Trace) SetSink(w io.Writer) {
 }
 
 // Breadcrumb writes a free-form diagnostic line DIRECTLY to the in-process test sink —
-// one `sink.Write` call, on the CALLING goroutine. No channel, no lock, no ordinal:
+// one `sink.Write` call, on the CALLING goroutine. No channel, no ordinal:
 // breadcrumbs are outside the closed Kind vocabulary (RowEvents carry the closed
 // vocabulary; this is a control-event log line). Production no longer has a stdout
 // sink here (see this file's header + Trace struct doc comments) — the PRODUCTION

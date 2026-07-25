@@ -42,7 +42,7 @@ type edgeMover struct {
 	clockSrc Clock
 	// clk is this edgeMover's OWN clock copy, set once by run() at goroutine
 	// start. Only this goroutine (handle, called from run's loop) ever reads
-	// it, so no lock is needed. Defaults to a fresh, real, live-ticking
+	// it. Defaults to a fresh, real, live-ticking
 	// RealClock (see newEdgeMover) so a test that calls handle() directly
 	// without launching run() as a goroutine never dereferences a nil Clock —
 	// per-goroutine-clock.md's API demolition deleted the old inert/zero-Tick
@@ -62,7 +62,7 @@ type edgeMover struct {
 	// default — no WIREFOLD_STREAM_FDS "edge" entry, e.g. headless tests) means
 	// writeStreamFrame is a no-op: this edge's geometry+beads are simply never written
 	// to a per-edge stream. Written ONLY by this edgeMover's own
-	// goroutine (run/recomputeGeometry) — no lock, mirroring every other single-
+	// goroutine (run/recomputeGeometry), mirroring every other single-
 	// writer-per-goroutine field in this struct.
 	streamOut io.Writer
 	// edgeRow is this edge's stable buffer EDGE-ROW index (the seed order — see
@@ -207,8 +207,7 @@ func (m *edgeMover) recomputeGeometry() {
 	}
 	// Re-derive an in-flight bead on this edge from the new arc + segment (no-op if
 	// none in flight); this runs on the SAME goroutine that owns the dest wire's
-	// bead state (this is that wire's own goroutine — see edgeMover.run), so no
-	// lock is needed.
+	// bead state (this is that wire's own goroutine — see edgeMover.run).
 	if m.dest != nil {
 		m.dest.ReviseInFlightGeometry(m.clk.Tick(), arc, seg)
 	}
@@ -229,7 +228,7 @@ func (m *edgeMover) recomputeGeometry() {
 // this wire's currently live in-flight beads) to its OWN dedicated fd (streamOut). No-op
 // when streamOut is nil (the fallback — see its doc comment) or buildFrame was never
 // injected (bare test construction). Called only by this edgeMover's own goroutine
-// (recomputeGeometry and run's per-cycle loop), so no lock is needed reading m.dest's
+// (recomputeGeometry and run's per-cycle loop), reading m.dest's
 // live bead state via LiveBeadRows (same single-goroutine-ownership contract PacedWire's
 // other methods rely on).
 func (m *edgeMover) writeStreamFrame(tick int64, events []RowEvent) {
@@ -306,7 +305,7 @@ func (m *edgeMover) writeStreamFrame(tick int64, events []RowEvent) {
 // ownership (DriveOneCycle — placement drain, position-step, delivery
 // handoff), then paces to the next cycle on its OWN clock copy. This is what
 // lets ReviseInFlightGeometry (called from handle, below, on this SAME
-// goroutine) touch pw.inflight with no lock: there is exactly one goroutine
+// goroutine) touch pw.inflight: there is exactly one goroutine
 // on either side of that call.
 func (m *edgeMover) run(ctx context.Context) {
 	// Copy taken ONCE at this goroutine's start (run IS the goroutine). If no clockSrc was

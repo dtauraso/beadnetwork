@@ -38,7 +38,7 @@ import (
 // UNLIKE this package's other four persisters, this one has MULTIPLE writers: every node
 // has its OWN mover goroutine, and commitNodeMoveLocal runs schedule() on that node's own
 // goroutine — so two different nodes' drags can call schedule() on this SAME
-// quantOffsetPersister struct concurrently. That is safe without a lock because they write
+// quantOffsetPersister struct concurrently. That is safe because they write
 // to DIFFERENT files (position.json is keyed by node id, so no two calls ever race the same
 // os.WriteFile/Rename) and this struct holds no other shared mutable state.
 type quantOffsetPersister struct {

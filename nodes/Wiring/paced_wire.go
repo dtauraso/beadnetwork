@@ -82,7 +82,6 @@ type placeRequest struct {
 //
 // Every field here is touched by EXACTLY ONE goroutine: this wire's own (folded
 // into edgeMover.run via driveOneCycle — see the PacedWire doc comment below).
-// There is no lock; ownership replaces locking.
 type inflightBead struct {
 	val           int
 	placementTick float64     // this wire's own tick reading when placed (fractional after a geometry rebase)
@@ -124,19 +123,15 @@ func (pw *PacedWire) ticksToCross(arc float64) float64 {
 //   - outCh is the wire's OUT-CHANNEL: the destination node's own goroutine calls
 //     RecvTick/Recv, a non-blocking buffered-channel receive.
 //   - inflight/nextGen/pulseSpeed are owned EXCLUSIVELY by the wire's
-//     own goroutine (driveOneCycle, called every cycle from edgeMover.run) — no
-//     lock guards them; there is exactly one writer and one reader (the same
-//     goroutine). Do not reintroduce a mutex here "for safety": a lock on top of
-//     single-goroutine ownership is dead weight, and if a second goroutine ever
-//     needs to touch this state again, that is a sign the ownership model broke,
-//     not a reason to add one back.
+//     own goroutine (driveOneCycle, called every cycle from edgeMover.run) — exactly
+//     one writer and one reader (the same goroutine).
 type PacedWire struct {
 	inCh  chan placeRequest
 	outCh chan deliveredBead
 
 	// Owned exclusively by this wire's own goroutine (driveOneCycle and its
 	// helpers, and ReviseInFlightGeometry — both called only from edgeMover.run,
-	// which IS this wire's goroutine). No mu.
+	// which IS this wire's goroutine).
 	inflight []inflightBead
 	// nextGen mints a unique id for each placed bead (the bead's emitted identity).
 	nextGen    uint64
@@ -158,7 +153,7 @@ type PacedWire struct {
 	// (memory/feedback_no_single_writer_bridge.md): appended only by stepAll (this
 	// wire's own goroutine, via edgeMover.run's DriveOneCycle call) and drained only by
 	// edgeMover.writeStreamFrame — the SAME goroutine on both ends (edgeMover.run calls
-	// DriveOneCycle then writeStreamFrame back to back, every cycle), so no lock.
+	// DriveOneCycle then writeStreamFrame back to back, every cycle).
 	pending []pendingWireEvent
 
 	// breadcrumbCh carries this wire's "wire-send-buffer-full" DEBUG BREADCRUMB
@@ -396,7 +391,7 @@ func (pw *PacedWire) drainPlacements(tick int64) {
 // attempts FIFO-head delivery for any that have reached their deadline. It
 // processes beads head-first so an earlier bead's delivery in this same call can
 // unblock a later bead's delivery within the same cycle — the same shape the old
-// per-call gens-snapshot loop had, without a lock since only this wire's own
+// per-call gens-snapshot loop had; only this wire's own
 // goroutine ever calls it.
 func (pw *PacedWire) stepAll(tick int64) {
 	nowTick := float64(tick)
@@ -450,7 +445,7 @@ type LiveBeadRow struct {
 
 // LiveBeadRows returns every in-flight, position-streaming bead's CURRENT world position
 // at tick (this wire's own goroutine's clock reading), in FIFO order. Safe to call ONLY
-// from this wire's own goroutine (reads pw.inflight directly, no lock — same single-
+// from this wire's own goroutine (reads pw.inflight directly — same single-
 // goroutine-ownership contract stepAll/ReviseInFlightGeometry rely on). A bead with no
 // position stream (bp.streams()==false) is omitted, matching advanceBead's own emit gate.
 func (pw *PacedWire) LiveBeadRows(tick int64) []LiveBeadRow {

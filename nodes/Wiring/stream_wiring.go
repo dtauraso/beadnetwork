@@ -25,8 +25,8 @@ type streamWiring struct {
 	// here (memory/feedback_no_single_writer_bridge.md). Populated ONCE by
 	// SetNodeStreams, BEFORE any node's Update goroutine launches (mirrors
 	// SetEdgeStreams' "wire before launch" ordering) — read-only afterward, so a node's
-	// own Update-loop closures (builders.go's injectClosures) can look it up by name with
-	// no lock. nil map entries / a nil map itself (no WIREFOLD_STREAM_FDS "interior"
+	// own Update-loop closures (builders.go's injectClosures) can look it up by name.
+	// nil map entries / a nil map itself (no WIREFOLD_STREAM_FDS "interior"
 	// entry) mean the interior frame is simply never written for that node — tr.NodeBead
 	// is a cheap no-op on the live path (neither its sink nor its onEvent hook is wired
 	// in production).
@@ -45,7 +45,7 @@ type streamWiring struct {
 	// ever writes, and camera/overlay/scene are simply never emitted. Written ONLY by
 	// the gesture/stdin-reader
 	// goroutine (the sole caller of every MoveDispatch method that can change camera/
-	// overlay/scene/selection/hover) — no lock.
+	// overlay/scene/selection/hover).
 	viewOut io.Writer
 	// viewBuildFrame packs this goroutine's own VIEW frame (Buffer.BuildViewStreamFrame),
 	// injected via SetViewStream so this package stays Buffer-independent, mirroring

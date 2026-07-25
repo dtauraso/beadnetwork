@@ -3,15 +3,15 @@
 //
 // Camera/overlay/scene-sphere/selection/hover state already lives on MoveDispatch (md.ui.vp/
 // md.ui.ov/md.ui.sceneSphere/md.ui.sel), mutated only by the gesture/stdin-reader goroutine
-// (RunStdinReader's single dispatch loop) — no lock. This file adds the WRITE side: pack
+// (RunStdinReader's single dispatch loop). This file adds the WRITE side: pack
 // that state into the VIEW stream's own frame (the layout produced by
 // Buffer.BuildViewStreamFrame) and write it to the
 // dedicated view fd whenever it changes.
 //
 // AbcDragCount is the one exception: it is INCREMENTED by a DIFFERENT goroutine (an
 // abc-drag recipient's own nodeMover, quantized_move.go's neighborSetCRequantize) than the
-// one that WRITES the view frame. Per MODEL.md's explicit no-atomic/no-mutex directive,
-// this is message-passing: a recipient sends on abcDragCh (non-blocking — a full channel
+// one that WRITES the view frame. Per MODEL.md's message-passing directive,
+// a recipient sends on abcDragCh (non-blocking — a full channel
 // just drops that one count-observability tick, same "no delivery guarantee" shape as
 // every other cross-goroutine bridge here), and RunStdinReader's own select loop drains it,
 // incrementing its OWN plain int (abcDragCount, touched by no other goroutine) and
@@ -63,7 +63,7 @@ func (md *MoveDispatch) sendAbcDragTick() {
 }
 
 // DrainAbcDragChan drains every pending abc-drag tick non-blockingly, incrementing
-// abcDragCount once per tick (this goroutine's OWN plain int — no atomic, no lock: only
+// abcDragCount once per tick (this goroutine's OWN plain int: only
 // RunStdinReader's single dispatch goroutine ever touches it) and reporting how many were
 // drained (0 = nothing pending, or no dedicated view stream — the caller's cue to skip the
 // re-emit). Call from RunStdinReader's own select loop whenever it wakes on abcDragCh.

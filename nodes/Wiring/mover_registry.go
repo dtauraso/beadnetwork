@@ -2,15 +2,15 @@
 // (god-object decomposition), as a pure move (no logic changes): moverRegistry owns
 // nodeMovers/edgeMovers/edgeOut and the Bind/Start/EdgeOut/sendMove/enqueueFor/
 // centerOfNode logic. MoveDispatch's public Bind/Start/EdgeOut stay as thin delegators so
-// the external API is unchanged; sendMove/enqueueFor thread through md.msgTap/md.ctx
-// (owned elsewhere, NOT part of this extraction) as parameters.
+// the external API is unchanged; sendMove threads through md.ctx (owned elsewhere, NOT
+// part of this extraction) as a parameter. The test-only message tap is per-mover
+// (nodeMover.tap, node_mover.go) — enqueueFor no longer takes or threads a shared tap.
 
 package Wiring
 
 import (
 	"context"
 	"sync"
-	"sync/atomic"
 )
 
 // moverRegistry is the pure registry that owns every mover and wires their dedicated
@@ -97,13 +97,12 @@ func (mr *moverRegistry) centerOfNode(id string) (vec3, bool) {
 // the id is a known node. This is the EXTERNAL-caller path — RootMove (drag) and
 // gesture.go's dragStart send — not a mover-to-mover send (those go through a mover's
 // own nm.pending/flushPending onto its OWN dedicated channel, never through this
-// function). mr.nodeMovers is a read-only directory once construction finishes, safe to
-// read from any goroutine. msgTap/ctx are threaded through from MoveDispatch (not part
+// function), so it has no owning mover to fire a tap through — this bare path never
+// fires the test-only tap (see nodeMover.tap's doc comment; only enqueueFor, a mover's
+// own send, does). mr.nodeMovers is a read-only directory once construction finishes,
+// safe to read from any goroutine. ctx is threaded through from MoveDispatch (not part
 // of moverRegistry).
-func (mr *moverRegistry) sendMove(msgTap *atomic.Pointer[func(destID string, msg moveMsg)], ctx context.Context, id string, msg moveMsg) {
-	if tap := msgTap.Load(); tap != nil {
-		(*tap)(id, msg)
-	}
+func (mr *moverRegistry) sendMove(ctx context.Context, id string, msg moveMsg) {
 	nm, ok := mr.nodeMovers[id]
 	if !ok {
 		return
@@ -127,19 +126,20 @@ func (mr *moverRegistry) sendMove(msgTap *atomic.Pointer[func(destID string, msg
 	}
 }
 
-// enqueueFor returns nm's own non-blocking send function: it fires the msgTap (at enqueue time, so tap-based tests'
-// counts/ordering match today's behavior), appends the message to nm's own pending
-// retry queue, and attempts an immediate flush — never blocking the calling handler
-// goroutine. Bound once per node at construction (nm.sendMove = md.enqueueFor(nm)) so
-// every send a nodeMover's own handle performs — including the ones
+// enqueueFor returns nm's own non-blocking send function: it fires nm's own tap (at
+// enqueue time, so tap-based tests' counts/ordering match today's behavior — a plain
+// nil check + direct call, since nm.tap is owned and read only by nm's own goroutine,
+// which is the only caller of the closure returned here), appends the message to nm's
+// own pending retry queue, and attempts an immediate flush — never blocking the calling
+// handler goroutine. Bound once per node at construction (nm.sendMove = md.enqueueFor(nm))
+// so every send a nodeMover's own handle performs — including the ones
 // fanEdgesAndPartners/requantizeLocalPolars make on that node's behalf — goes through
 // nm's own retry queue, never a raw blocking channel write and never a second mover's
-// queue (there is no shared outbox to route through anymore). msgTap is threaded through
-// from MoveDispatch (not part of moverRegistry).
-func (mr *moverRegistry) enqueueFor(msgTap *atomic.Pointer[func(destID string, msg moveMsg)], nm *nodeMover) func(id string, msg moveMsg) {
+// queue (there is no shared outbox to route through anymore).
+func (mr *moverRegistry) enqueueFor(nm *nodeMover) func(id string, msg moveMsg) {
 	return func(id string, msg moveMsg) {
-		if tap := msgTap.Load(); tap != nil {
-			(*tap)(id, msg)
+		if nm.tap != nil {
+			nm.tap(id, msg)
 		}
 		nm.pending = append(nm.pending, pendingSend{destID: id, msg: msg})
 		nm.flushPending()

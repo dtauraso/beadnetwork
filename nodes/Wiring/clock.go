@@ -92,24 +92,9 @@ type Clock interface {
 // a condition variable — pacing loops call SleepCycle (wall time.After) and
 // re-check Tick() themselves.
 type RealClock struct {
-	// No mutex here on purpose. The mutex this struct used to carry existed for a
-	// contention shape that no longer applies: many pacing-loop readers of Tick()
-	// racing the one SetSpeed writer, all reaching through ONE shared *RealClock.
-	// Per-goroutine ownership removes that shape by ownership rather than by
-	// locking — a RealClock is now
-	// held by exactly ONE goroutine, which is the only thing that ever reads or
-	// writes it. There is no second goroutine to race, so there is nothing left to
-	// guard. A mutex on state nobody else touches is not "extra safety," it is dead
-	// weight documenting a sharing relationship that no longer exists.
-	//
-	// Deleting mu is also what makes RealClock legal to COPY: `sync.Mutex` is a
-	// `go vet` copylocks violation, so as long as it lived here the struct could
-	// only be passed by pointer — which is exactly the "one object, many holders"
-	// shape being removed. With mu gone, `c2 := *c1` is a plain value copy, and
-	// that copy is how a goroutine gets ITS OWN clock: it dereference-copies from
-	// an existing RealClock, inheriting its origin/accScaled/speed by value, and
-	// from then on is independent — SetSpeed on one copy is invisible to the
-	// other, correctly, because nothing is shared to make it otherwise.
+	// RealClock is copied by VALUE: `c2 := *c1` is how a goroutine gets ITS OWN
+	// independent clock, inheriting origin/accScaled/speed by value (a later SetSpeed on
+	// one copy is correctly invisible to the other).
 	// speed is the current playback multiplier (>= 0). Default 1.
 	speed float64
 	// accScaled is scaled elapsed accumulated across all PRIOR speed segments, up
@@ -127,7 +112,7 @@ func NewRealClock() *RealClock {
 }
 
 // scaledElapsed returns total scaled elapsed = accumulated prior segments + the
-// live segment (wall time since lastChange × current speed). No locking: only
+// live segment (wall time since lastChange × current speed). Only
 // the owning goroutine ever calls this.
 func (c *RealClock) scaledElapsed() time.Duration {
 	live := time.Duration(float64(time.Since(c.lastChange)) * c.speed)
@@ -182,8 +167,8 @@ var _ Clock = (*RealClock)(nil)
 // "Delivery": every paced loop grows exactly this one poll, folded into its
 // existing sleep/select point. speedCh is a buffered-1, latest-wins channel
 // built once at load time (see loader.go / builders.go) and owned from then on
-// by exactly the one goroutine that reads it — nothing else may read it, so no
-// lock is needed. A pending value (if any) is drained and applied to clk's OWN
+// by exactly the one goroutine that reads it — nothing else may read it.
+// A pending value (if any) is drained and applied to clk's OWN
 // copy via SetSpeed; an empty channel is a no-op; a nil channel (unwired
 // goroutines, or test builds constructed with no loader) is always a no-op
 // too, since a receive on a nil channel is never selected. This is

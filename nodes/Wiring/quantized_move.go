@@ -276,7 +276,7 @@ func (lq *layoutQuantizer) neighborSetCRequantize(md *MoveDispatch, selfID, from
 	md.sendAbcDragTick()
 	// selfID's OWN recipient bit: this runs on selfID's OWN nodeMover goroutine
 	// (neighborSetC dispatch, node_mover.go's moveMsgKindNeighborSetC case), so it is
-	// safe to write nm's fields directly — no shared map, no lock. This is what
+	// safe to write nm's fields directly — no shared map. This is what
 	// writeStreamFrame (also this goroutine) reads for its own dedicated stream frame.
 	// The RunStdinReader goroutine's own abcDragCount (view_stream.go) is the sole
 	// source of the VIEW frame's AbcDragCount now — no second EVENT-LOG accumulation
@@ -286,8 +286,7 @@ func (lq *layoutQuantizer) neighborSetCRequantize(md *MoveDispatch, selfID, from
 		nm.dragDeltaA, nm.dragDeltaB, nm.dragDeltaC = int32(deltaA), int32(deltaB), int32(deltaC)
 		// Structured buffer counterpart of the "abc-drag" breadcrumb above, riding
 		// THIS node's (selfID's) own dedicated stream — this runs on selfID's own
-		// nodeMover goroutine, so writeStreamFrame here needs no lock, mirroring
-		// gotDragMsg/dragDelta* just above. it/ip/ir (selfID's re-quantized abc to
+		// nodeMover goroutine, mirroring gotDragMsg/dragDelta* just above. it/ip/ir (selfID's re-quantized abc to
 		// fromID) reuse Value/EdgeRow/Slot; deltaA/B/C (fromID's own change) reuse
 		// X/Y/Z — none of those columns carry their ordinary meaning on a
 		// Breadcrumb-kind row (see bufLayoutEvent's doc comment: columns are REUSED
