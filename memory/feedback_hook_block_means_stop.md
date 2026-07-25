@@ -1,5 +1,6 @@
 ---
 name: feedback-hook-block-means-stop
+description: A PreToolUse hook returning exit 2 means stop and report to the user — never route around the block via python3/sed/tee/redirect or any other write path.
 metadata: 
   node_type: memory
   type: feedback
