@@ -17,7 +17,7 @@ package Buffer
 import "encoding/binary"
 
 // BufNodeStreamLayoutLinkStride is the byte width of ONE layout-link row within a node
-// stream frame: [DstNodeRow:i32][EdgeRow:i32]. Narrower than the shared fd-3 LayoutLink
+// stream frame: [DstNodeRow:i32][EdgeRow:i32]. Narrower than the combined LayoutLink
 // block's BufLayoutLinkStride (12 bytes, SrcNodeRow+DstNodeRow+EdgeRow) because on a
 // per-node stream the source IS this node — its own row is implicit (the fd position /
 // the aggregator's row index), so only the dst endpoint + resolved edge row travel.
@@ -115,7 +115,7 @@ func BuildNodeStreamFrame(
 // BuildInteriorStreamFrame packs one node's fixed-slot interior-bead frame payload (no
 // outer tag byte): [tick:u32] followed by len(present) Interior rows (SAME SetInteriorRow
 // column writer buildNodeFrame uses) — no count, the decoder derives the length from the
-// fixed per-node slot count (BufInteriorSlotsPerNode), same as the shared fd-3 Interior
+// fixed per-node slot count (BufInteriorSlotsPerNode), same as the combined Interior
 // block. present/value/ox/oy/oz are parallel slices, same length, same slot order.
 func BuildInteriorStreamFrame(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []StreamEvent) []byte {
 	n := len(present)

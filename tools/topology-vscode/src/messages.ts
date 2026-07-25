@@ -205,7 +205,7 @@ export function parseHostToWebview(raw: unknown): HostToWebviewMsg | undefined {
   switch (t) {
     case "buffer-snapshot":
       // buffer must be an ArrayBuffer (transferred zero-copy from the host); tag must be
-      // the numeric fd-3 block tag it carries.
+      // the numeric block tag the ext host attaches for cell routing.
       return m.buffer instanceof ArrayBuffer && typeof m.tag === "number"
         ? (m as unknown as HostToWebviewMsg)
         : undefined;

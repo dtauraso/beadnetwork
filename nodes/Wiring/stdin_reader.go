@@ -313,7 +313,7 @@ func handleSaveMsg(md *MoveDispatch) {
 
 // overlayFlagTraceKind maps the wire FLAG name (same keys as overlayToggles) to its
 // Trace.Kind* string, so applyUpdate's toggle case can hand emitViewFrame the ONE event
-// that flag's toggle logged (matching the fd-3 fallback's per-toggle tr.X(bool) call).
+// that flag's toggle logged (matching the per-toggle tr.X(bool) call).
 // Hand-authored (overlay_gen.go is GENERATED and does not carry Trace kinds) — kept in
 // sync with overlayToggles by check-edit-op-parity.sh's OVERLAY_TOGGLES sentinels, which
 // already assert this exact flag-name set.
@@ -387,7 +387,7 @@ func applyUpdate(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan 
 				// Decentralized (Step C, memory/feedback_no_single_writer_bridge.md): this goroutine (the sole
 				// caller of every overlay Toggle*) also writes its own VIEW frame directly,
 				// carrying the one flag that just changed — matches the ONE tr.X(bool) event
-				// the toggle already logged on the fd-3 fallback path.
+				// the toggle already logged.
 				if kind, ok := overlayFlagTraceKind[msg.Flag]; ok {
 					md.emitViewFrame([]RowEvent{{Kind: kind, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}})
 				}

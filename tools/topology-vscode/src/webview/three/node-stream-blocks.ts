@@ -17,7 +17,7 @@
 // A node row with no INTERIOR-stream frame yet is treated as all-Present=0 (no interior
 // beads drawn for that node until its own Update goroutine's first frame arrives).
 //
-// WIREFOLD_STREAM_FDS "node"+"interior" are now MANDATORY (the fd-3 fallback frame was
+// WIREFOLD_STREAM_FDS "node"+"interior" are now MANDATORY (the combined fallback frame was
 // deleted, memory/feedback_no_single_writer_bridge.md's final step) — null means "no frame has arrived yet",
 // not "the dedicated path is off".
 
@@ -67,7 +67,7 @@ export function getNodeFrame(): DecodedNodeFrame | null {
 }
 
 /** Shape of the LayoutLink block the LayoutLink overlay (EdgeTube.tsx) consumes — the SAME
- *  shape the fd-3 scene frame's LayoutLink block produces (SrcNodeRow/DstNodeRow/EdgeRow,
+ *  shape the old combined scene frame's LayoutLink block produced (SrcNodeRow/DstNodeRow/EdgeRow,
  *  LAYOUT_LINK_STRIDE-byte rows), so EdgeTube's read logic doesn't have to change. */
 export interface LayoutLinkAgg {
   layoutLinkCount: number;

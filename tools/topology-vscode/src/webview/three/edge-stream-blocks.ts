@@ -1,8 +1,8 @@
 // edge-stream-blocks.ts — the per-edge dedicated-stream either/or, mirroring
 // view-blocks.ts's role for the VIEW stream (memory/feedback_no_single_writer_bridge.md).
 // EdgeTube.tsx/BeadInstances.tsx read edge geometry/selection and beads through this ONE
-// accessor rather than each re-implementing the "dedicated fds active, or fall back to the
-// fd-3 Edge/Bead frame" branch.
+// accessor rather than each re-implementing the "no per-edge stream frame has arrived yet,
+// so draw nothing this frame" null-check.
 
 import { getLatestEdgeStreamFrames } from "../snapshot-buffer";
 import { decodeEdgeStreamFrame, type DecodedEdgeStreamFrame } from "./buffer-decode";
@@ -31,8 +31,8 @@ function decodedFor(frames: ReadonlyMap<number, ArrayBuffer>, row: number): Deco
 /**
  * getEdgeStreamAccessor returns the per-edge dedicated-stream accessor when at least one
  * edge-stream frame has arrived (the dedicated path is active — WIREFOLD_STREAM_FDS
- * carried an "edge" entry), else null (the required fallback: callers read the fd-3 Edge/
- * Bead frames instead, exactly as before this migration).
+ * carried an "edge" entry), else null — callers nil-check this and draw nothing that
+ * frame (no per-edge stream frame has arrived yet).
  */
 export function getEdgeStreamAccessor(): EdgeAccessor | null {
   const frames = getLatestEdgeStreamFrames();

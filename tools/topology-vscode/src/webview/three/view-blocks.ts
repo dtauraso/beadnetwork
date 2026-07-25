@@ -1,6 +1,6 @@
 // view-blocks.ts — the ONE read for camera/overlay/scene, sourced from the dedicated VIEW
 // stream (see memory/feedback_no_single_writer_bridge.md). WIREFOLD_STREAM_FDS "view" is
-// now MANDATORY (the fd-3 SnapshotState accumulator + its fallback SCENE frame were
+// now MANDATORY (the old central accumulator + its fallback SCENE frame were
 // deleted, memory/feedback_no_single_writer_bridge.md's final step) — null means "no frame has arrived yet",
 // not "the dedicated path is off".
 //

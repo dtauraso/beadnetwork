@@ -102,7 +102,8 @@ export type DecodedEventLine =
  * (minus the `step` ordinal, which the buffer path does not carry).
  *
  * `nodeFrameBuf` is the most-recently cached BUF_BLOCK_TAG_NODE frame and `edgeFrameBuf`
- * the most-recently cached BUF_BLOCK_TAG_EDGE frame (see runCommand.ts handleFd3): the
+ * the most-recently cached BUF_BLOCK_TAG_EDGE frame (see runCommand.ts's handleNodeFd/
+ * handleEdgeFd): the
  * EVENT block's node/port row references (node-geometry, node-bead, recv/send/etc.'s
  * node+port labels) resolve against the Node/Port blocks + Label/PortName bytes, and its
  * edge row references (geometry, select) resolve against the Edge block + EdgeLabel

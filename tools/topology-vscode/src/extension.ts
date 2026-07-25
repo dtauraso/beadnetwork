@@ -72,8 +72,9 @@ function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode
     void panel.webview.postMessage(msg);
   };
   const runner = new BuildAndRunRunner(
-    // fd3 buffer-snapshot frames: forward each to the webview verbatim. Without this
-    // wiring the runner reads fd3 (handleFd3) but drops every frame, so the new-system
+    // buffer-snapshot frames: forward each to the webview verbatim. Without this
+    // wiring the runner decodes each per-owner stream (handleViewFd/handleEdgeFd/
+    // handleNodeFd/handleInteriorFd) but drops every frame, so the new-system
     // BufferScene (which polls getLatestSnapshot each frame) never receives node/edge/
     // camera/bead geometry and renders nothing. Fire-and-forget host→webview send.
     (snapshot) => post(snapshot),

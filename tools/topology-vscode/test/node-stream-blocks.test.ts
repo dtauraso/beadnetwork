@@ -250,7 +250,7 @@ describe("getNodeFrame — aggregated dedicated streams", () => {
 });
 
 describe("getNodeFrame — no per-node stream frame has arrived yet", () => {
-  it("returns null (WIREFOLD_STREAM_FDS is mandatory — no fd-3 fallback)", async () => {
+  it("returns null (WIREFOLD_STREAM_FDS is mandatory — no fallback path)", async () => {
     const { nodeStreamBlocks } = await freshNodeStreamModules();
     expect(nodeStreamBlocks.getNodeFrame()).toBeNull();
   });
@@ -292,7 +292,7 @@ describe("getLayoutLinks", () => {
     expect(readLayoutLinkEdgeRow(agg.layoutLinkView, 1)).toBe(-1);
   });
 
-  it("returns an empty aggregate when no per-node stream has arrived (WIREFOLD_STREAM_FDS is mandatory — no fd-3 fallback)", async () => {
+  it("returns an empty aggregate when no per-node stream has arrived (WIREFOLD_STREAM_FDS is mandatory — no fallback path)", async () => {
     const { nodeStreamBlocks } = await freshNodeStreamModules();
     const agg = nodeStreamBlocks.getLayoutLinks();
     expect(agg.layoutLinkCount).toBe(0);

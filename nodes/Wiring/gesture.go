@@ -282,8 +282,8 @@ func (md *MoveDispatch) gestPointerMove(ev rawInputMsg, tr *T.Trace) {
 			md.emitViewFrame([]RowEvent{{Kind: T.KindAbcDragReset, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}})
 			// Re-scope MoveDispatch's OWN published recipient set the same way (count is
 			// a cumulative total-events affirmation and is intentionally left alone — only
-			// the NAME SET is drag-scoped, mirroring Buffer.SnapshotState's KindAbcDragReset
-			// handling of the fd-3 fallback's abcDragged/gotDragMsg).
+			// the NAME SET is drag-scoped, mirroring the old central accumulator's
+			// KindAbcDragReset handling of its abcDragged/gotDragMsg).
 			md.resetAbcDrag()
 			// Arm the dragged node's OWN drag-anchor snapshot (moveMsgKindDragStart, see
 			// its doc comment in node_move.go) at this same slop-crossing edge — the ONE

@@ -4,8 +4,8 @@
 // Camera/overlay/scene-sphere/selection/hover state already lives on MoveDispatch (md.vp/
 // md.ov/md.sceneSphere/md.sel), mutated only by the gesture/stdin-reader goroutine
 // (RunStdinReader's single dispatch loop) — no lock. This file adds the WRITE side: pack
-// that state into the VIEW stream's own frame (byte-identical to Buffer.SnapshotState's
-// (retired) buildViewFrame layout — see Buffer.BuildViewStreamFrame) and write it to the
+// that state into the VIEW stream's own frame (the layout produced by
+// Buffer.BuildViewStreamFrame) and write it to the
 // dedicated view fd whenever it changes.
 //
 // AbcDragCount is the one exception: it is INCREMENTED by a DIFFERENT goroutine (an
@@ -40,8 +40,8 @@ type ViewFrameBuilder func(tick uint32,
 ) []byte
 
 // SetViewStream installs the VIEW stream's write side: out is the dedicated view fd (nil =
-// no dedicated stream — the fallback, Buffer.SnapshotState's own fd-3 embed keeps serving
-// camera/overlay/scene) and buildFrame packs this goroutine's own frame bytes
+// no dedicated stream, so emitViewFrame early-returns as a no-op and no
+// camera/overlay/scene frame is written) and buildFrame packs this goroutine's own frame bytes
 // (Buffer.BuildViewStreamFrame, injected from main.go). Call once at startup, before any
 // gesture/edit reaches RunStdinReader, when WIREFOLD_STREAM_FDS carries a "view" entry.
 func (md *MoveDispatch) SetViewStream(out io.Writer, buildFrame ViewFrameBuilder) {

@@ -176,7 +176,7 @@ when a bead has arrived. Go owns the clock.
   byte — the fd POSITION identifies the stream/row.
   `WIREFOLD_STREAM_FDS` (the ext host's spawn env var,
   `tools/topology-vscode/src/runCommand.ts`) is **mandatory**: there is no
-  central accumulator or fd-3 fallback left to fall back to.
+  central accumulator and no fallback path left to fall back to.
 - **Go → TS is binary content buffers** (`buffer-snapshot`) ALONE — no
   sidecar. Each node's kind is a numeric `KindId` column (TS maps it to
   `NODE_DEFS` colors), its label rides its own stream frame's inline label
@@ -205,12 +205,14 @@ when a bead has arrived. Go owns the clock.
   Camera row onto the three.js camera). Nothing in this tree owns traversal
   timing, positions, or geometry.
 - **Bridge surface — binary BOTH ways.** **Go → TS:** the binary content
-  buffer ALONE (`buffer-snapshot`, carried as a tagged frame on fd 3) — stated
-  in full under "Go → TS is the binary content buffer" above; not restated
-  here, so the two copies cannot drift apart. **TS → Go:** framed binary records
-  on stdin (`[len:u32-LE][record]`, symmetric in framing style with fd 3, though
-  stdin records carry no block-tag byte — that discriminator exists only on the
-  fd-3 direction) — `raw-input` (raw pointer/wheel + the stateless raycast
+  buffer ALONE (`buffer-snapshot`, each goroutine streamed over its own
+  dedicated inherited-stdio pipe) — stated in full under "Go → TS is the
+  binary content buffer" above; not restated here, so the two copies cannot
+  drift apart. **TS → Go:** framed binary records on stdin (`[len:u32-LE][record]`,
+  symmetric in framing style with the dedicated per-goroutine streams, though
+  stdin records carry no block-tag byte — that discriminator exists only on
+  the Go → TS direction, where the ext host adds a synthetic tag purely for
+  cell routing) — `raw-input` (raw pointer/wheel + the stateless raycast
   hit as numeric rows; Go's gesture FSM decides what each gesture MEANS), the
   geometry-CRUD `edit` (`op` = update — the sole remaining op; a `create` /
   `delete` op pair was removed end-to-end, no live TS sender ever emitted them.

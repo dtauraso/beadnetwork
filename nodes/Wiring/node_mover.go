@@ -195,10 +195,9 @@ type nodeMover struct {
 	// --- dedicated per-node stream (memory/feedback_no_single_writer_bridge.md) ---
 	// streamOut, when non-nil, is THIS node's OWN dedicated fd (see
 	// MoveDispatch.SetNodeStreams / Buffer/stream_fds.go's StreamKindNode). Nil (the
-	// default — no WIREFOLD_STREAM_FDS "node" entry, e.g. headless tests) is the
-	// REQUIRED fallback: this node's geometry+ports+label keep flowing only through
-	// tr.NodeGeometry into the shared Buffer.SnapshotState (fd 3's Node/Interior/Port/
-	// Label/PortName frame), exactly as before this migration. Written ONLY by this
+	// default — no WIREFOLD_STREAM_FDS "node" entry, e.g. headless tests) means
+	// writeStreamFrame is a no-op: this node's geometry+ports+label are simply never
+	// written to a per-node stream. Written ONLY by this
 	// nodeMover's own goroutine (emitGeometry/run) — no lock.
 	streamOut io.Writer
 	// nodeRow is this node's stable buffer NODE-ROW index (the seed order — see
@@ -214,14 +213,15 @@ type nodeMover struct {
 	// since layout-link pairs are static after load — no per-cycle recompute. nil when
 	// this node has no outbound layout-link pair (or in bare test construction).
 	layoutLinkTos []string
-	// nodeRowFor resolves a node id to its buffer NODE-ROW index (Buffer.SnapshotState.
-	// NodeRowFor), injected via MoveDispatch.SetNodeStreams so this package stays
-	// Buffer-independent. Used only to resolve this node's own layoutLinkTos dst rows.
+	// nodeRowFor resolves a node id to its buffer NODE-ROW index (mirroring the old
+	// central accumulator's NodeRowFor), injected via MoveDispatch.SetNodeStreams so this
+	// package stays Buffer-independent. Used only to resolve this node's own
+	// layoutLinkTos dst rows.
 	nodeRowFor func(id string) (int32, bool)
 	// edgeRowForPair resolves the buffer EDGE-ROW index of the bead edge connecting two
-	// node ids (Buffer.SnapshotState.EdgeRowForPair), injected the same way as
-	// nodeRowFor. -1/false when no bead edge connects the pair (the node-centers
-	// fallback the overlay already handles for the shared fd-3 block).
+	// node ids (mirroring the old central accumulator's EdgeRowForPair), injected the same
+	// way as nodeRowFor. -1/false when no bead edge connects the pair (the node-centers
+	// fallback the overlay already handles for the combined block).
 	edgeRowForPair func(a, b string) (int32, bool)
 	// --- own selection/hover/abc-drag UI state (per-owner, no shared/republished map) ---
 	//
@@ -475,8 +475,8 @@ func (m *nodeMover) writeStreamFrame(events []RowEvent) {
 	dA, dB, dC := m.dragDeltaA, m.dragDeltaB, m.dragDeltaC
 	// This node's own outbound layout-links (layoutLinkTos, static since load — see its
 	// doc comment): resolve each dst id to its CURRENT buffer node row + the CURRENT bead
-	// edge row connecting the pair (both re-resolved every emit, mirroring the shared fd-3
-	// block's edgeRowForPair re-resolve every buildSnapshot). A dst id that hasn't
+	// edge row connecting the pair (both re-resolved every emit, mirroring the combined
+	// block's edgeRowForPair re-resolve every emit). A dst id that hasn't
 	// registered a node row yet is skipped (mirrors resolvableLayoutLinks' endpoint
 	// filter) rather than packed with a -1 dst row.
 	var dstNodeRows, edgeRows []int32
@@ -508,7 +508,7 @@ func (m *nodeMover) writeStreamFrame(events []RowEvent) {
 		dstNodeRows, edgeRows, events)
 	var hdr [4]byte
 	binary.LittleEndian.PutUint32(hdr[:], uint32(len(frame)))
-	// Fire-and-forget, same reasoning as SnapshotState.writeFrame: no delivery
+	// Fire-and-forget, same reasoning throughout this bridge: no delivery
 	// guarantee on this channel, errors ignored.
 	_, _ = m.streamOut.Write(hdr[:])
 	_, _ = m.streamOut.Write(frame)
@@ -619,9 +619,9 @@ func (m *nodeMover) run(ctx context.Context) {
 		// destination that was full earlier may have drained since.
 		m.flushPending()
 		// Selection/hover/drag UI state may have changed even with no geometry change
-		// this cycle (that state is Buffer.SnapshotState-owned, not this nodeMover's own
+		// this cycle (that state is centrally owned elsewhere, not this nodeMover's own
 		// — see uiStateFor's doc comment) — write this node's dedicated stream frame
-		// every cycle (no-op when streamOut is nil, the fallback path), mirroring
+		// every cycle (no-op when streamOut is nil), mirroring
 		// edgeMover.run's same every-cycle writeStreamFrame call.
 		m.writeStreamFrame(nil)
 		if err := m.clk.SleepCycle(ctx); err != nil {
@@ -675,10 +675,9 @@ type edgeMover struct {
 	// --- dedicated per-edge stream (memory/feedback_no_single_writer_bridge.md) ---
 	// streamOut, when non-nil, is THIS edge's OWN dedicated fd (see
 	// MoveDispatch.SetEdgeStreams / Buffer/stream_fds.go's StreamKindEdge). Nil (the
-	// default — no WIREFOLD_STREAM_FDS "edge" entry, e.g. headless tests) is the
-	// REQUIRED fallback: this edge's geometry+beads keep flowing only through
-	// tr.Geometry/tr.Position into the shared Buffer.SnapshotState (fd 3's Edge/Bead
-	// blocks), exactly as before this migration. Written ONLY by this edgeMover's own
+	// default — no WIREFOLD_STREAM_FDS "edge" entry, e.g. headless tests) means
+	// writeStreamFrame is a no-op: this edge's geometry+beads are simply never written
+	// to a per-edge stream. Written ONLY by this edgeMover's own
 	// goroutine (run/recomputeGeometry) — no lock, mirroring every other single-
 	// writer-per-goroutine field in this struct.
 	streamOut io.Writer
@@ -693,9 +692,9 @@ type edgeMover struct {
 	// Buffer-independent, matching PortRowResolver/EdgeRowResolver's existing
 	// interface-injection pattern.
 	portRowFor func(node, port string, isInput bool) (int32, bool)
-	// nodeRowFor resolves a node id to its buffer NODE-ROW index (Buffer.SnapshotState.
-	// NodeRowFor), injected the same way as portRowFor. Used to resolve the SOURCE
-	// node's row for this edge's own Geometry/Position/Arrive events.
+	// nodeRowFor resolves a node id to its buffer NODE-ROW index (mirroring the old
+	// central accumulator's NodeRowFor), injected the same way as portRowFor. Used to
+	// resolve the SOURCE node's row for this edge's own Geometry/Position/Arrive events.
 	nodeRowFor func(id string) (int32, bool)
 	// selected is this edge's OWN CURRENT click-selected bit — set only by this
 	// edgeMover's own goroutine (handle's moveMsgKindSelect case, from a
@@ -833,8 +832,7 @@ func (m *edgeMover) recomputeGeometry() {
 	// Geometry rides THIS edgeMover's own dedicated stream (fully decentralized — it never
 	// rides the VIEW stream's fallback bucket), since this goroutine is the sole owner of
 	// this edge's geometry.
-	// Dedicated per-edge stream (either/or with the shared fd-3 Edge/Bead blocks — see
-	// streamOut's doc comment): write this edge's own combined frame immediately on a
+	// Dedicated per-edge stream (see streamOut's doc comment): write this edge's own combined frame immediately on a
 	// geometry change, in addition to the tick-driven write in run()'s loop. Carries
 	// this edgeMover's own row-resolved Geometry event (owner_events.go).
 	m.writeStreamFrame(m.clk.Tick(), []RowEvent{{
@@ -910,7 +908,7 @@ func (m *edgeMover) writeStreamFrame(tick int64, events []RowEvent) {
 	frame := m.buildFrame(uint32(tick), srcRow, dstRow, selected, m.edgeID, beadVal, beadX, beadY, beadZ, events)
 	var hdr [4]byte
 	binary.LittleEndian.PutUint32(hdr[:], uint32(len(frame)))
-	// Fire-and-forget, same reasoning as SnapshotState.writeFrame: no delivery
+	// Fire-and-forget, same reasoning throughout this bridge: no delivery
 	// guarantee on this channel, errors ignored.
 	_, _ = m.streamOut.Write(hdr[:])
 	_, _ = m.streamOut.Write(frame)

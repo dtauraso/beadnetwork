@@ -44,7 +44,7 @@ const PulseSpeedWuPerTick = PulseSpeedWuPerMs * MsPerTick
 // beadPlacement bundles everything one placement needs. The in-flight time times
 // delivery; the segment endpoints + source identity drive the per-frame position
 // stream. Geometry travels WITH the bead, never stored on the shared wire, so
-// fan-in is safe: each in-flight bead evaluates the exact segment it is drawn on.
+// each in-flight bead evaluates the exact segment it is drawn on.
 // The zero value (empty segment + identity) means "no position stream" — unit
 // tests that only exercise delivery pass just InFlightMs.
 type beadPlacement struct {
@@ -453,7 +453,7 @@ func (pw *PacedWire) stepAll(tick int64) {
 // the same lerp math advanceBead uses but with NO side effects — no trace emit, no state
 // mutation. Used only by the dedicated per-edge stream (edgeMover.writeStreamFrame,
 // node_mover.go) to snapshot this wire's current beads without duplicating tr.Position's
-// separate accumulation into Buffer.SnapshotState.
+// separate accumulation into a central buffer.
 type LiveBeadRow struct {
 	Val     int
 	X, Y, Z float64

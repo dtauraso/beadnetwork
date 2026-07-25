@@ -93,7 +93,7 @@ func writeInteriorStreamFrame(out io.Writer, buildFrame func(tick uint32, presen
 	frame := buildFrame(tick, present, value, ox, oy, oz, events)
 	var hdr [4]byte
 	binary.LittleEndian.PutUint32(hdr[:], uint32(len(frame)))
-	// Fire-and-forget, same reasoning as SnapshotState.writeFrame: no delivery
+	// Fire-and-forget, same reasoning throughout this bridge: no delivery
 	// guarantee on this channel, errors ignored.
 	_, _ = out.Write(hdr[:])
 	_, _ = out.Write(frame)
