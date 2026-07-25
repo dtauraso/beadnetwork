@@ -52,12 +52,12 @@ func seedsFromCenters(centers map[string]vec3) []NodeGeomSeed {
 // back to a content-fit of the node centers rather than a zero sphere.
 func TestSceneSphereDefaultsFromContentFit(t *testing.T) {
 	md := &MoveDispatch{}
-	md.nodeSeeds = seedsFromCenters(map[string]vec3{
+	md.gs.nodeSeeds = seedsFromCenters(map[string]vec3{
 		"a": {X: 0, Y: 0, Z: 0},
 		"b": {X: 100, Y: 0, Z: 0},
 	})
 	// LoadSceneSphere's content-fit path now reads loadTimeCenters() (rebuilt from the
-	// frozen md.nodeSeeds set above), not an atomic snap.
+	// frozen md.gs.nodeSeeds set above), not an atomic snap.
 	md.LoadSceneSphere(t.TempDir()) // no scene.json → content-fit
 	if md.sceneSphere.Radius <= 0 {
 		t.Fatalf("content-fit sphere has non-positive radius: %+v", md.sceneSphere)
@@ -83,7 +83,7 @@ func TestSceneSphereContentFitSurvivesReloadAfterMove(t *testing.T) {
 
 	newMD := func(bx float64) *MoveDispatch {
 		md := &MoveDispatch{}
-		md.nodeSeeds = seedsFromCenters(map[string]vec3{
+		md.gs.nodeSeeds = seedsFromCenters(map[string]vec3{
 			"a": {X: 0, Y: 0, Z: 0},
 			"b": {X: bx, Y: 0, Z: 0},
 		})

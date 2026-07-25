@@ -185,14 +185,10 @@ type MoveDispatch struct {
 	edgeMovers map[string]*edgeMover
 	// edgeOut: edgeId → source *Out, for read-only access by tests/verifiers.
 	edgeOut map[string]*Out
-	// nodeSeeds/edgeSeeds are every node/edge's load-time seed geometry, captured ONCE at
-	// construction (newMoveDispatch) in spec order — the deterministic directory-sorted
-	// order LoadTopology read the topology in, NOT map iteration order. Exposed via
-	// NodeSeeds/EdgeSeeds so main.go can seed the buffer's row tables from the diagram
-	// itself before any node goroutine starts (CLAUDE.md: rows are a projection of the
-	// diagram, not a discovery log built by racing goroutines to their first emit).
-	nodeSeeds []NodeGeomSeed
-	edgeSeeds []EdgeGeomSeed
+	// gs owns every node/edge's load-time seed geometry (geom_seeds.go). MoveDispatch's
+	// public NodeSeeds/EdgeSeeds methods are thin delegators so the external API is
+	// unchanged.
+	gs geomSeeds
 	// sceneSphere is the first-class scene reference every node's SCENE polar is measured
 	// about (polar-model.md, sphere_layout.go). Loaded from scene.json (or defaulted from
 	// the content-fit) at startup; its Center is the one cartesian anchor. Phase 1 stores
@@ -410,7 +406,7 @@ func (md *MoveDispatch) SetMsgTap(tap func(destID string, msg moveMsg)) {
 
 // SetEdgeStreams wires every edgeMover to ITS OWN dedicated fd — the per-edge stream
 // (memory/feedback_no_single_writer_bridge.md): fd = baseFd + row, where row is the
-// STABLE edge-seed order (md.edgeSeeds, the same spec order the Edge
+// STABLE edge-seed order (md.gs.edgeSeeds, the same spec order the Edge
 // block uses — see main.go's md.EdgeSeeds() seed loop). portRowFor/buildFrame are
 // injected funcs (not a Buffer import) so this package stays Buffer-independent,
 // matching PortRowResolver/EdgeRowResolver's existing pattern: portRowFor resolves
@@ -427,7 +423,7 @@ func (md *MoveDispatch) SetEdgeStreams(
 	nodeRowFor func(id string) (int32, bool),
 	buildFrame func(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, beadVal []int32, beadX, beadY, beadZ []float32, events []RowEvent) []byte,
 ) {
-	for row, seed := range md.edgeSeeds {
+	for row, seed := range md.gs.edgeSeeds {
 		em, ok := md.edgeMovers[seed.Label]
 		if !ok {
 			continue
@@ -446,7 +442,7 @@ func (md *MoveDispatch) SetEdgeStreams(
 // Update-loop closures (builders.go's injectClosures) look up for its own dedicated
 // interior-fd — the two emitting goroutines per node (memory/feedback_no_single_writer_bridge.md).
 // nodeBase/interiorBase are the two fd ranges' base fds; row is the STABLE node-seed
-// order (md.nodeSeeds, the same spec order the Node block uses — see
+// order (md.gs.nodeSeeds, the same spec order the Node block uses — see
 // main.go's md.NodeSeeds() seed loop). nodeRowFor/edgeRowForPair/buildFrame/
 // buildInteriorFrame are injected funcs (not a Buffer import), matching SetEdgeStreams'
 // existing pattern. Selection/hover/abc-drag/kind are NOT injected lookups: each nodeMover
@@ -466,7 +462,7 @@ func (md *MoveDispatch) SetNodeStreams(
 ) {
 	md.interiorOuts = map[string]io.Writer{}
 	md.buildInteriorFrame = buildInteriorFrame
-	for row, seed := range md.nodeSeeds {
+	for row, seed := range md.gs.nodeSeeds {
 		nm, ok := md.nodeMovers[seed.ID]
 		if !ok {
 			continue
@@ -517,26 +513,19 @@ type EdgeGeomSeed struct {
 }
 
 // NodeSeeds returns every node's load-time seed geometry in SPEC ORDER (see
-// MoveDispatch.nodeSeeds). Call after LoadTopology returns, before launching any node
-// goroutine, and stream each entry via tr.NodeGeometry (main.go).
-func (md *MoveDispatch) NodeSeeds() []NodeGeomSeed { return md.nodeSeeds }
+// geomSeeds.nodeSeeds). Call after LoadTopology returns, before launching any node
+// goroutine, and stream each entry via tr.NodeGeometry (main.go). Thin delegator to
+// md.gs (geom_seeds.go).
+func (md *MoveDispatch) NodeSeeds() []NodeGeomSeed { return md.gs.nodeSeedsFn() }
 
-// loadTimeCenters returns the node-id → LOAD-TIME world center map, rebuilt from
-// md.nodeSeeds (frozen at construction, in newMoveDispatch, and never mutated
-// afterward). Used only by LoadSceneSphere's content-fit fallback, which runs on the
-// main goroutine before Start launches any mover goroutine — nodeSeeds is already
-// fully populated by then, so this is a safe, lock-free read.
-func (md *MoveDispatch) loadTimeCenters() map[string]vec3 {
-	out := make(map[string]vec3, len(md.nodeSeeds))
-	for _, sd := range md.nodeSeeds {
-		out[sd.ID] = vec3{X: sd.CX, Y: sd.CY, Z: sd.CZ}
-	}
-	return out
-}
+// loadTimeCenters returns the node-id → LOAD-TIME world center map. Thin delegator to
+// md.gs (geom_seeds.go).
+func (md *MoveDispatch) loadTimeCenters() map[string]vec3 { return md.gs.loadTimeCenters() }
 
 // EdgeSeeds returns every edge's load-time seed topology (with real endpoint geometry) in
-// SPEC ORDER. Call alongside NodeSeeds; stream each entry via tr.Geometry (main.go).
-func (md *MoveDispatch) EdgeSeeds() []EdgeGeomSeed { return md.edgeSeeds }
+// SPEC ORDER. Call alongside NodeSeeds; stream each entry via tr.Geometry (main.go). Thin
+// delegator to md.gs (geom_seeds.go).
+func (md *MoveDispatch) EdgeSeeds() []EdgeGeomSeed { return md.gs.edgeSeedsFn() }
 
 // newMoveDispatch builds the registry from per-node geometry and per-edge endpoints.
 // It creates one nodeMover per node and one edgeMover per edge, registering each under
@@ -544,7 +533,7 @@ func (md *MoveDispatch) EdgeSeeds() []EdgeGeomSeed { return md.edgeSeeds }
 // directed channels between adjacent movers. Outs and dest wires are bound later by Bind once node
 // construction has populated them. nodeOrder/edgeOrder are the
 // SPEC order (deterministic directory-sorted order, not map iteration order) used to
-// build md.nodeSeeds/edgeSeeds for buffer row seeding.
+// build md.gs.nodeSeeds/edgeSeeds for buffer row seeding.
 //
 // speedSinks, when non-nil, is the loader's build-wide accumulator
 // (buildCtx.speedSinks): each nodeMover AND each edgeMover created below gets its own
@@ -591,7 +580,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 			return vec3{}
 		})
 	}
-	md.nodeSeeds = make([]NodeGeomSeed, 0, len(nodeOrder))
+	md.gs.nodeSeeds = make([]NodeGeomSeed, 0, len(nodeOrder))
 	for _, id := range nodeOrder {
 		g, ok := geoms[id]
 		if !ok {
@@ -607,7 +596,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 			cx, cy, cz = c.X, c.Y, c.Z
 		}
 		ports := buildPortGeoms(g, aimedPortPosDir(g, seedPartnerCenter(id)))
-		md.nodeSeeds = append(md.nodeSeeds, NodeGeomSeed{
+		md.gs.nodeSeeds = append(md.gs.nodeSeeds, NodeGeomSeed{
 			ID: id, Label: label, Kind: g.Kind,
 			CX: cx, CY: cy, CZ: cz,
 			Radius: nodeRadius(g.Kind), SphereR: effectiveRadius(g),
@@ -616,7 +605,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 			FRX: flatRingNormalX, FRY: flatRingNormalY, FRZ: flatRingNormalZ,
 		})
 	}
-	md.edgeSeeds = make([]EdgeGeomSeed, 0, len(edgeOrder))
+	md.gs.edgeSeeds = make([]EdgeGeomSeed, 0, len(edgeOrder))
 	for _, label := range edgeOrder {
 		ep, ok := edgeEndpoints[label]
 		if !ok {
@@ -633,7 +622,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 				ex, ey, ez = seg.End.X, seg.End.Y, seg.End.Z
 			}
 		}
-		md.edgeSeeds = append(md.edgeSeeds, EdgeGeomSeed{
+		md.gs.edgeSeeds = append(md.gs.edgeSeeds, EdgeGeomSeed{
 			Label: label, SrcNode: ep.Source, DstNode: ep.Target,
 			SrcPort: ep.SourceHandle, DstPort: ep.TargetHandle,
 			SX: sx, SY: sy, SZ: sz, EX: ex, EY: ey, EZ: ez,
@@ -732,7 +721,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 	// Row-identity tables: built ONCE here, from nodeSeeds/edgeSeeds (already in stable
 	// spec order above) — see buildRowTables' doc comment for why this is a load-time
 	// constant, not a discovery log.
-	md.rt.buildRowTables(md.nodeSeeds, md.edgeSeeds)
+	md.rt.buildRowTables(md.gs.nodeSeeds, md.gs.edgeSeeds)
 	return md
 }
 
