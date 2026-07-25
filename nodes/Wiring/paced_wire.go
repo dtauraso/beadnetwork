@@ -91,7 +91,7 @@ type inflightBead struct {
 	node          string      // source node id — the position/cancel routing key
 	port          string      // source output port — the position/cancel routing key
 	streams       bool        // whether this bead carries position-stream context
-	gen           uint64      // per-bead id; retained for teardownGen invalidation
+	gen           uint64      // per-bead id (the bead's emitted identity)
 	// finalPending is true once a drive cycle has advanced this bead to its
 	// delivery deadline (target==deadline) but the handoff to outCh has not yet
 	// succeeded (e.g. it was not yet at the FIFO head, or outCh had no room that
@@ -123,7 +123,7 @@ func (pw *PacedWire) ticksToCross(arc float64) float64 {
 //     back-pressure, ever).
 //   - outCh is the wire's OUT-CHANNEL: the destination node's own goroutine calls
 //     RecvTick/Recv, a non-blocking buffered-channel receive.
-//   - inflight/nextGen/teardownGen/pulseSpeed are owned EXCLUSIVELY by the wire's
+//   - inflight/nextGen/pulseSpeed are owned EXCLUSIVELY by the wire's
 //     own goroutine (driveOneCycle, called every cycle from edgeMover.run) — no
 //     lock guards them; there is exactly one writer and one reader (the same
 //     goroutine). Do not reintroduce a mutex here "for safety": a lock on top of
@@ -138,14 +138,9 @@ type PacedWire struct {
 	// helpers, and ReviseInFlightGeometry — both called only from edgeMover.run,
 	// which IS this wire's goroutine). No mu.
 	inflight []inflightBead
-	// nextGen mints a unique id for each placed bead and is also bumped on
-	// teardown to invalidate ALL outstanding beads at once.
-	nextGen uint64
-	// teardownGen: a bead whose gen is < teardownGen is invalidated wholesale.
-	// No current caller bumps it above 0 (kept because drainPlacements/stepAll
-	// still gate on it for future teardown wiring).
-	teardownGen uint64
-	pulseSpeed  float64
+	// nextGen mints a unique id for each placed bead (the bead's emitted identity).
+	nextGen    uint64
+	pulseSpeed float64
 
 	Target       string   // destination node id — authoritative slot identity
 	TargetHandle string   // destination input-port name — authoritative slot identity
@@ -378,9 +373,6 @@ func (pw *PacedWire) drainPlacements(tick int64) {
 		select {
 		case req := <-pw.inCh:
 			pw.nextGen++
-			if pw.nextGen < pw.teardownGen {
-				pw.nextGen = pw.teardownGen
-			}
 			pw.inflight = append(pw.inflight, inflightBead{
 				val:           req.val,
 				placementTick: float64(tick),
@@ -410,10 +402,6 @@ func (pw *PacedWire) stepAll(tick int64) {
 	nowTick := float64(tick)
 	for i := 0; i < len(pw.inflight); {
 		b := &pw.inflight[i]
-		if b.gen < pw.teardownGen {
-			pw.inflight = append(pw.inflight[:i], pw.inflight[i+1:]...)
-			continue
-		}
 		if !b.finalPending {
 			if nowTick <= b.placementTick {
 				i++
