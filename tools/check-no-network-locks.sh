@@ -39,7 +39,6 @@ atomic_pat = re.compile(r'\batomic\.')
 # trimmed code text of the line. This list may only shrink. Each is pending a redesign to
 # push-to-owned-copies / single-threaded ownership; see the branch descriptions.
 ALLOWED_ATOMIC = {
-    "snap atomic.Pointer[[]wireSegment]",  # paced_wire.go #2: test-only in-flight snapshot — remove by single-threading its test
     "snap atomic.Pointer[centerSnap]",     # node_mover.go #3: cross-goroutine position oracle — redesign to push-to-owned-copies
 }
 
