@@ -17,12 +17,12 @@ import (
 // via a real nodeMover's atomic snap (newNodeMover + setNodeWorld) so heldCenters() observes
 // it, mirroring a live post-layout dispatch after nodeMovers are constructed.
 func homeMD(v viewpoint, centers map[string]vec3) *MoveDispatch {
-	md := &MoveDispatch{nodeMovers: map[string]*nodeMover{}, edgeMovers: map[string]*edgeMover{}}
+	md := &MoveDispatch{mr: moverRegistry{nodeMovers: map[string]*nodeMover{}, edgeMovers: map[string]*edgeMover{}}}
 	md.ui.vp.viewpoint = v
 	for id, c := range centers {
 		g := nodeGeom{nodeIdentity: nodeIdentity{Kind: "Hold"}}
 		setNodeWorld(&g, c)
-		md.nodeMovers[id] = newNodeMover(id, g, nil, NewRealClock())
+		md.mr.nodeMovers[id] = newNodeMover(id, g, nil, NewRealClock())
 	}
 	return md
 }
@@ -79,7 +79,7 @@ func TestGestureHomeFramesUnknownKindAtRenderRadius(t *testing.T) {
 	// the mover's kind to an unrecognized one so nodeBodyRadius takes the (110,60) fallback.
 	centers := map[string]vec3{"x": {X: 0, Y: 0, Z: 0}}
 	md := homeMD(stale, centers)
-	md.nodeMovers["x"].geom.Kind = "NotAKind"
+	md.mr.nodeMovers["x"].geom.Kind = "NotAKind"
 
 	const fov, aspect = 50.0, 800.0 / 600.0
 	md.HandleRawInput(rawInputMsg{Kind: "home", Fov: fov, RectWidth: aspect, RectHeight: 1}, nil, nil)

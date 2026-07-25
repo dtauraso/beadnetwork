@@ -70,8 +70,8 @@ func TestPerEdgeTravelTimeDistinctPorts(t *testing.T) {
 	deliver(nmr, "srcNear", 100, 0, 0)
 	deliver(nmr, "srcFar", 400, 0, 0)
 
-	nearOut := nmr.edgeOut["eNear"]
-	farOut := nmr.edgeOut["eFar"]
+	nearOut := nmr.mr.edgeOut["eNear"]
+	farOut := nmr.mr.edgeOut["eFar"]
 	if nearOut == nil || farOut == nil {
 		t.Fatalf("missing per-edge Outs: near=%v far=%v", nearOut, farOut)
 	}

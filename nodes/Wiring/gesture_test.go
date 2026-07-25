@@ -373,7 +373,7 @@ func TestGestureConnectedPortRingMove(t *testing.T) {
 	}
 	// The N1 mover's extIn channel (buffered) must have received an anchor update.
 	select {
-	case msg := <-md.nodeMovers["N1"].extIn:
+	case msg := <-md.mr.nodeMovers["N1"].extIn:
 		if msg.Kind != moveMsgKindAnchor || msg.NodeID != "N1" || msg.Port != "out" || msg.IsInput {
 			t.Fatalf("anchor msg mismatch: %+v", msg)
 		}

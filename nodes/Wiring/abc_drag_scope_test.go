@@ -54,7 +54,7 @@ func writeXTNY(t *testing.T) string {
 // own periodic emit (nodeMover.run's writeStreamFrame call) can be polled without any real fd.
 func wireNodeStream(t *testing.T, md *MoveDispatch, id string) *uiPubLockedBuf {
 	t.Helper()
-	nm, ok := md.nodeMovers[id]
+	nm, ok := md.mr.nodeMovers[id]
 	if !ok {
 		t.Fatalf("no nodeMover for %s", id)
 	}

@@ -173,15 +173,15 @@ type moveMsg struct {
 
 // MoveDispatch is the pure registry built at load that owns every mover and wires their
 // dedicated channels together — there
-// is no shared dispatch map anymore; md.nodeMovers/md.edgeMovers themselves are the
+// is no shared dispatch map anymore; md.mr.nodeMovers/md.mr.edgeMovers themselves are the
 // directories a mover's resolveDest closure and the external-entry helpers below look up.
 // It also retains the per-edge source Outs so out-of-package test/verifier callers can
 // read an edge's loaded geometry (EdgeOut) without going through a central coordinator.
 type MoveDispatch struct {
-	nodeMovers map[string]*nodeMover
-	edgeMovers map[string]*edgeMover
-	// edgeOut: edgeId → source *Out, for read-only access by tests/verifiers.
-	edgeOut map[string]*Out
+	// mr owns the nodeMover/edgeMover directories + edgeOut (mover_registry.go).
+	// MoveDispatch's public Bind/Start/EdgeOut methods are thin delegators so the
+	// external API is unchanged.
+	mr moverRegistry
 	// gs owns every node/edge's load-time seed geometry (geom_seeds.go). MoveDispatch's
 	// public NodeSeeds/EdgeSeeds methods are thin delegators so the external API is
 	// unchanged.
@@ -274,7 +274,7 @@ func (md *MoveDispatch) LookupEdgeRow(row int) (label string, ok bool) {
 // .probe log is a multiset of events, per memory/feedback_no_single_writer_bridge.md's own doc comment.
 func (md *MoveDispatch) LayoutLinkPairs() [][2]string {
 	var out [][2]string
-	for id, nm := range md.nodeMovers {
+	for id, nm := range md.mr.nodeMovers {
 		for _, to := range nm.layoutLinkTos {
 			out = append(out, [2]string{id, to})
 		}
@@ -336,7 +336,7 @@ func (md *MoveDispatch) SetEdgeStreams(
 	nodeRowFor func(id string) (int32, bool),
 	buildFrame func(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, beadVal []int32, beadX, beadY, beadZ []float32, events []RowEvent) []byte,
 ) {
-	md.sw.setEdgeStreams(md.gs.edgeSeeds, md.edgeMovers, baseFd, portRowFor, nodeRowFor, buildFrame)
+	md.sw.setEdgeStreams(md.gs.edgeSeeds, md.mr.edgeMovers, baseFd, portRowFor, nodeRowFor, buildFrame)
 }
 
 // SetNodeStreams wires every nodeMover to ITS OWN dedicated node-fd (geometry+ports+
@@ -362,7 +362,7 @@ func (md *MoveDispatch) SetNodeStreams(
 	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []RowEvent) []byte,
 	kindIDFor func(kind string) uint8,
 ) {
-	md.sw.setNodeStreams(md.gs.nodeSeeds, md.nodeMovers, nodeBase, interiorBase, nodeRowFor, edgeRowForPair, buildFrame, buildInteriorFrame, kindIDFor)
+	md.sw.setNodeStreams(md.gs.nodeSeeds, md.mr.nodeMovers, nodeBase, interiorBase, nodeRowFor, edgeRowForPair, buildFrame, buildInteriorFrame, kindIDFor)
 }
 
 // NodeGeomSeed is one node's load-time seed geometry, exported in spec order and consumed
@@ -410,7 +410,7 @@ func (md *MoveDispatch) EdgeSeeds() []EdgeGeomSeed { return md.gs.edgeSeedsFn() 
 
 // newMoveDispatch builds the registry from per-node geometry and per-edge endpoints.
 // It creates one nodeMover per node and one edgeMover per edge, registering each under
-// its key (node id / edge id) in md.nodeMovers/md.edgeMovers, and wires the dedicated
+// its key (node id / edge id) in md.mr.nodeMovers/md.mr.edgeMovers, and wires the dedicated
 // directed channels between adjacent movers. Outs and dest wires are bound later by Bind once node
 // construction has populated them. nodeOrder/edgeOrder are the
 // SPEC order (deterministic directory-sorted order, not map iteration order) used to
@@ -441,17 +441,17 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 		sort.Strings(edgeOrder)
 	}
 	md := &MoveDispatch{
-		nodeMovers:    map[string]*nodeMover{},
-		edgeMovers:    map[string]*edgeMover{},
-		edgeOut:       map[string]*Out{},
 		tr:            tr,
 		layoutHolders: map[string]*LayoutHolder{},
 	}
+	md.mr.nodeMovers = map[string]*nodeMover{}
+	md.mr.edgeMovers = map[string]*edgeMover{}
+	md.mr.edgeOut = map[string]*Out{}
 	md.ui.ov = defaultOverlayState()
 	// Static partner-center lookup for the seed pass: every node's center is already known
 	// off the load-time geoms map (no goroutine/atomic-snap needed), so this is the SAME
 	// buildPartnerCenterFn the dynamic movers use below, just closed over geoms directly
-	// instead of md.nodeMovers' atomic snaps. Kept per-node (not shared) to match
+	// instead of md.mr.nodeMovers' atomic snaps. Kept per-node (not shared) to match
 	// buildPartnerCenterFn's (nodeID, edgeEndpoints, centerOf) shape.
 	seedPartnerCenter := func(nodeID string) partnerCenterFn {
 		return buildPartnerCenterFn(nodeID, edgeEndpoints, func(otherID string) vec3 {
@@ -519,12 +519,12 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 		// resolveDest resolves the ONE dedicated directed channel FROM this node
 		// (selfID, captured below) TO destID: another node's own neighborIn[selfID]
 		// slot, or an incident edge's srcIn/dstIn depending on which endpoint this
-		// node is. There is no shared dispatch map to look up — md.nodeMovers/md.edgeMovers are the
+		// node is. There is no shared dispatch map to look up — md.mr.nodeMovers/md.mr.edgeMovers are the
 		// read-only directories, safe to read from any goroutine once construction
 		// finishes.
 		selfID := id
 		nm.resolveDest = func(destID string) (chan moveMsg, bool) {
-			if em, ok := md.edgeMovers[destID]; ok {
+			if em, ok := md.mr.edgeMovers[destID]; ok {
 				switch selfID {
 				case em.srcID:
 					return em.srcIn, true
@@ -533,7 +533,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 				}
 				return nil, false
 			}
-			if other, ok := md.nodeMovers[destID]; ok {
+			if other, ok := md.mr.nodeMovers[destID]; ok {
 				if ch, ok := other.neighborIn[selfID]; ok {
 					return ch, true
 				}
@@ -548,7 +548,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 		// Go 1.22+ loop semantics give each iteration its own id, so this closure safely
 		// captures THIS iteration's id (no shared-variable capture bug).
 		nm.layoutHolderFn = func() *LayoutHolder { return md.layoutHolders[id] }
-		md.nodeMovers[id] = nm
+		md.mr.nodeMovers[id] = nm
 	}
 	for edgeID, ep := range edgeEndpoints {
 		em := newEdgeMover(ep, edgeID, geoms[ep.Source], geoms[ep.Target], tr, clk)
@@ -557,13 +557,13 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 			em.speedCh = edgeSpeedCh
 			*speedSinks = append(*speedSinks, edgeSpeedCh)
 		}
-		md.edgeMovers[edgeID] = em
+		md.mr.edgeMovers[edgeID] = em
 		// This edge's two nodes each get a dedicated channel TO this edge (already
 		// created above, srcIn/dstIn) — and each other's own dedicated channel for
 		// node-to-node traffic (neighborIn, the plain-neighbor/partner-reemit fan):
 		// two directed channels per ordered pair, never a shared inbox.
-		if srcNM, ok := md.nodeMovers[ep.Source]; ok {
-			if dstNM, ok := md.nodeMovers[ep.Target]; ok {
+		if srcNM, ok := md.mr.nodeMovers[ep.Source]; ok {
+			if dstNM, ok := md.mr.nodeMovers[ep.Target]; ok {
 				if _, exists := dstNM.neighborIn[ep.Source]; !exists {
 					dstNM.neighborIn[ep.Source] = make(chan moveMsg, 8)
 				}
@@ -575,11 +575,11 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 	}
 	// Wire each nodeMover's aimed-port lookup: for (port,isInput) on nodeID, find its one
 	// edge (edgeEndpoints) and read the partner's CURRENT center off the partner
-	// nodeMover's atomic snap (md.nodeMovers is a read-only map after this point — only the
+	// nodeMover's atomic snap (md.mr.nodeMovers is a read-only map after this point — only the
 	// individual *nodeMover.snap is read cross-goroutine, via the existing atomic pattern).
-	for id, nm := range md.nodeMovers {
+	for id, nm := range md.mr.nodeMovers {
 		nm.partnerCenter = buildPartnerCenterFn(id, edgeEndpoints, func(otherID string) vec3 {
-			other, ok := md.nodeMovers[otherID]
+			other, ok := md.mr.nodeMovers[otherID]
 			if !ok {
 				return vec3{}
 			}
@@ -592,8 +592,8 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 	// Give every nodeMover the ids of its OWN incident edges, so a lock-driven move can
 	// notify its edges via sendMove (resolveDest's per-pair channel lookup) — no cached
 	// channel slice.
-	for id, nm := range md.nodeMovers {
-		for edgeID, em := range md.edgeMovers {
+	for id, nm := range md.mr.nodeMovers {
+		for edgeID, em := range md.mr.edgeMovers {
 			if em.srcID == id || em.dstID == id {
 				nm.edgeIDs = append(nm.edgeIDs, edgeID)
 			}
@@ -606,123 +606,43 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 	return md
 }
 
-// Bind wires the per-edge source Outs (keyed "source.sourceHandle" in outSink) and
-// dest wires (slotReg, keyed "target.targetHandle") into each edgeMover. Call once
-// after node construction.
+// Bind wires the per-edge source Outs and dest wires into each edgeMover. Thin delegator
+// to md.mr (mover_registry.go).
 func (md *MoveDispatch) Bind(outSink map[string]*Out, slotReg SlotRegistry) {
-	for edgeID, em := range md.edgeMovers {
-		if o, ok := outSink[em.srcID+"."+em.srcH]; ok {
-			em.out = o
-			md.edgeOut[edgeID] = o
-		}
-		if pw, ok := slotReg[em.dstID+"."+em.dstH]; ok {
-			em.dest = pw
-		}
-	}
+	md.mr.bind(outSink, slotReg)
 }
 
-// Start launches every mover's goroutine — ONE goroutine per node and ONE per edge, no
-// dedicated sender/watcher goroutines (an earlier shared-outbox-plus-sender-goroutine
-// design was removed: each mover's own run loop drains its own inbox AND retries its own
-// pending sends, non-blockingly, every cycle).
-//
-// Returns a *sync.WaitGroup covering every launched goroutine, so a caller that wants a
-// complete shutdown (main.go: "wait for everything, then close" — see
-// the wait-for-everything-then-close change) can wg.Wait() on it after cancelling
-// ctx. Both nm.run and em.run select on ctx.Done() at the top of their loop (their only
-// blocking call is SleepCycle, which also selects on ctx), so cancel-to-return is one
-// clock tick, worst case. Callers that don't care about shutdown completeness (most
-// existing tests) can ignore the return value — Start(ctx) alone still compiles and
-// still launches every goroutine exactly as before.
+// Start launches every mover's goroutine. Thin delegator to md.mr (mover_registry.go);
+// md.ctx is set here (not part of moverRegistry — see sendMove/enqueueFor's doc
+// comments for why sendMove needs it threaded through).
 func (md *MoveDispatch) Start(ctx context.Context) *sync.WaitGroup {
 	md.ctx = ctx
-	wg := new(sync.WaitGroup)
-	for _, nm := range md.nodeMovers {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			nm.run(ctx)
-		}()
-	}
-	for _, em := range md.edgeMovers {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			em.run(ctx)
-		}()
-	}
-	return wg
+	return md.mr.start(ctx)
 }
 
 // EdgeOut returns the source *Out bound to the given edge label, or nil if unknown.
-// Read-only accessor for out-of-package verifiers (the headless cascade reads an
-// edge's per-edge in-flight time from the loaded geometry).
+// Thin delegator to md.mr (mover_registry.go).
 func (md *MoveDispatch) EdgeOut(edgeID string) *Out {
-	return md.edgeOut[edgeID]
+	return md.mr.edgeOutFor(edgeID)
 }
 
-// centerOfNode returns the current world center for a node id by loading the
-// nodeMover's atomically-published snapshot. Safe to call from any goroutine
-// without synchronization — the snap is published via atomic.Pointer after each
-// center update so this never races with the mover's live geom writes.
+// centerOfNode returns the current world center for a node id. Thin delegator to md.mr
+// (mover_registry.go).
 func (md *MoveDispatch) centerOfNode(id string) (vec3, bool) {
-	if nm, ok := md.nodeMovers[id]; ok {
-		if s := nm.snap.Load(); s != nil {
-			return s.c, true
-		}
-	}
-	return vec3{}, false
+	return md.mr.centerOfNode(id)
 }
 
-// sendMove routes one moveMsg to a node's dedicated external-entry channel (extIn), if
-// the id is a known node. This is the EXTERNAL-caller path — RootMove (drag) and
-// gesture.go's dragStart send — not a mover-to-mover send (those go through a mover's
-// own nm.pending/flushPending onto its OWN dedicated channel, never through this
-// function). md.nodeMovers is a read-only directory once construction finishes, safe to
-// read from any goroutine.
+// sendMove routes one moveMsg to a node's dedicated external-entry channel (extIn).
+// Thin delegator to md.mr (mover_registry.go); md.msgTap/md.ctx are threaded through
+// (not part of moverRegistry).
 func (md *MoveDispatch) sendMove(id string, msg moveMsg) {
-	if tap := md.msgTap.Load(); tap != nil {
-		(*tap)(id, msg)
-	}
-	nm, ok := md.nodeMovers[id]
-	if !ok {
-		return
-	}
-	// Blocking send with a ctx-cancel escape hatch: this is the bare external-entry
-	// send used by callers (RootMove, gesture.go) that have no owning mover goroutine
-	// to thread a ctx from. Without the ctx.Done() arm, a send into a torn-down/full
-	// extIn on shutdown parks this goroutine forever (the target's own run loop has
-	// already returned on the same ctx cancel, so nothing will ever drain it). md.ctx
-	// is nil only in tests that build a bare MoveDispatch without Start — a nil
-	// Context's Done() channel would panic, so guard it and fall back to a plain
-	// blocking send there (matches prior test behavior; no shutdown path exists in
-	// that setting anyway).
-	if md.ctx == nil {
-		nm.extIn <- msg
-		return
-	}
-	select {
-	case nm.extIn <- msg:
-	case <-md.ctx.Done():
-	}
+	md.mr.sendMove(&md.msgTap, md.ctx, id, msg)
 }
 
-// enqueueFor returns nm's own non-blocking send function: it fires the msgTap (at enqueue time, so tap-based tests'
-// counts/ordering match today's behavior), appends the message to nm's own pending
-// retry queue, and attempts an immediate flush — never blocking the calling handler
-// goroutine. Bound once per node at construction (nm.sendMove = md.enqueueFor(nm)) so
-// every send a nodeMover's own handle performs — including the ones
-// fanEdgesAndPartners/requantizeLocalPolars make on that node's behalf — goes through
-// nm's own retry queue, never a raw blocking channel write and never a second mover's
-// queue (there is no shared outbox to route through anymore).
+// enqueueFor returns nm's own non-blocking send function. Thin delegator to md.mr
+// (mover_registry.go); md.msgTap is threaded through (not part of moverRegistry).
 func (md *MoveDispatch) enqueueFor(nm *nodeMover) func(id string, msg moveMsg) {
-	return func(id string, msg moveMsg) {
-		if tap := md.msgTap.Load(); tap != nil {
-			(*tap)(id, msg)
-		}
-		nm.pending = append(nm.pending, pendingSend{destID: id, msg: msg})
-		nm.flushPending()
-	}
+	return md.mr.enqueueFor(&md.msgTap, nm)
 }
 
 // NOTE (neighborSetC drop history): moveMsgKindNeighborSetC (requantizeLocalPolars'
@@ -747,7 +667,7 @@ func (md *MoveDispatch) enqueueFor(nm *nodeMover) func(id string, msg moveMsg) {
 // setSelectionUI sets the Go-owned selection (node XOR edge, exclusive). Thin delegator
 // to md.ui (ui_state.go).
 func (md *MoveDispatch) setSelectionUI(node, edge string) {
-	md.ui.setSelectionUI(md.edgeMovers, md.ctx, md.sendMove, node, edge)
+	md.ui.setSelectionUI(md.mr.edgeMovers, md.ctx, md.sendMove, node, edge)
 }
 
 // setHoverUI sets the Go-owned hover state and MESSAGES the affected node(s). Thin
@@ -759,7 +679,7 @@ func (md *MoveDispatch) setHoverUI(node, port string, isInput bool) {
 // resetAbcDrag re-scopes the recipient SET to the drag about to start. Thin delegator to
 // md.ui (ui_state.go).
 func (md *MoveDispatch) resetAbcDrag() {
-	md.ui.resetAbcDrag(md.nodeMovers, md.sendMove)
+	md.ui.resetAbcDrag(md.mr.nodeMovers, md.sendMove)
 }
 
 // NodeKind returns the kind string for the given node id, or "" if unknown.
@@ -781,7 +701,7 @@ func (md *MoveDispatch) resetAbcDrag() {
 // TestNodeKindConcurrentWithApplyCenterUnderRace exercises this concurrently under
 // -race as a regression check on the split holding, not as a proof a lock is needed.
 func (md *MoveDispatch) NodeKind(nodeID string) string {
-	if nm, ok := md.nodeMovers[nodeID]; ok {
+	if nm, ok := md.mr.nodeMovers[nodeID]; ok {
 		return nm.geom.Kind
 	}
 	return ""

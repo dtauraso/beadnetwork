@@ -153,7 +153,7 @@ func TestGesturePathPropagatesUIStateToMoverStream(t *testing.T) {
 			sceneCX, sceneCY, sceneCZ, sceneRadius, nil)
 	})
 
-	nm, ok := md.nodeMovers["x"]
+	nm, ok := md.mr.nodeMovers["x"]
 	if !ok {
 		t.Fatal("no nodeMover for x")
 	}
@@ -161,7 +161,7 @@ func TestGesturePathPropagatesUIStateToMoverStream(t *testing.T) {
 	if !ok {
 		t.Fatal("no NODE-ROW for x")
 	}
-	nmT, ok := md.nodeMovers["t"]
+	nmT, ok := md.mr.nodeMovers["t"]
 	if !ok {
 		t.Fatal("no nodeMover for t")
 	}

@@ -22,8 +22,8 @@ import (
 // separate accumulated positions map to drain: each mover publishes its own snapshot
 // directly.
 func (md *MoveDispatch) heldCenters() map[string]vec3 {
-	out := make(map[string]vec3, len(md.nodeMovers))
-	for id := range md.nodeMovers {
+	out := make(map[string]vec3, len(md.mr.nodeMovers))
+	for id := range md.mr.nodeMovers {
 		if c, ok := md.centerOfNode(id); ok {
 			out[id] = c
 		}
@@ -32,8 +32,8 @@ func (md *MoveDispatch) heldCenters() map[string]vec3 {
 }
 
 func (md *MoveDispatch) heldEdges() []sphereEdge {
-	edges := make([]sphereEdge, 0, len(md.edgeMovers))
-	for _, em := range md.edgeMovers {
+	edges := make([]sphereEdge, 0, len(md.mr.edgeMovers))
+	for _, em := range md.mr.edgeMovers {
 		edges = append(edges, sphereEdge{Source: em.srcID, Target: em.dstID})
 	}
 	return edges
@@ -59,7 +59,7 @@ func (md *MoveDispatch) broadcastToEdgesAndPartners(newCenters map[string]vec3, 
 	// resolve to a live mover) is checked at send time inside that retry path, matching
 	// enqueue's other call sites (m.sendMove), which already tap/enqueue unconditionally
 	// regardless of whether id resolves.
-	for edgeID, em := range md.edgeMovers {
+	for edgeID, em := range md.mr.edgeMovers {
 		eps := map[string]vec3{}
 		if c, ok := newCenters[em.srcID]; ok {
 			eps[em.srcID] = c
@@ -86,7 +86,7 @@ func (md *MoveDispatch) broadcastToEdgesAndPartners(newCenters map[string]vec3, 
 	// parity with the prior shape; movedID itself is otherwise unused now that the
 	// re-emit carries no cache payload).
 	partners := map[string]string{}
-	for _, em := range md.edgeMovers {
+	for _, em := range md.mr.edgeMovers {
 		if _, moved := newCenters[em.srcID]; moved {
 			if _, alsoMoved := newCenters[em.dstID]; !alsoMoved {
 				partners[em.dstID] = em.srcID
@@ -99,7 +99,7 @@ func (md *MoveDispatch) broadcastToEdgesAndPartners(newCenters map[string]vec3, 
 		}
 	}
 	for partnerID, movedID := range partners {
-		if _, ok := md.nodeMovers[partnerID]; !ok {
+		if _, ok := md.mr.nodeMovers[partnerID]; !ok {
 			continue
 		}
 		// Center is deliberately nil (see the doc comment above): this is a PURE
@@ -257,7 +257,7 @@ func (md *MoveDispatch) neighborSetCRequantize(selfID, fromID string, selfCenter
 	// The RunStdinReader goroutine's own abcDragCount (view_stream.go) is the sole
 	// source of the VIEW frame's AbcDragCount now — no second EVENT-LOG accumulation
 	// needed here.
-	if nm, ok := md.nodeMovers[selfID]; ok {
+	if nm, ok := md.mr.nodeMovers[selfID]; ok {
 		nm.gotDragMsg = 1
 		nm.dragDeltaA, nm.dragDeltaB, nm.dragDeltaC = int32(deltaA), int32(deltaB), int32(deltaC)
 		// Structured buffer counterpart of the "abc-drag" breadcrumb above, riding
@@ -320,7 +320,7 @@ func (md *MoveDispatch) commitNodeMoveLocal(nm *nodeMover, newPos vec3) {
 	// race-free without the old all-nodes atomic-snapshot read (heldPolar).
 	polars := map[string]polar{}
 	for _, edgeID := range nm.edgeIDs {
-		em, ok := md.edgeMovers[edgeID]
+		em, ok := md.mr.edgeMovers[edgeID]
 		if !ok {
 			continue
 		}
@@ -379,7 +379,7 @@ func (md *MoveDispatch) commitNodeMoveLocal(nm *nodeMover, newPos vec3) {
 // here for that reason: the reset belongs at the real drag-start edge (the
 // pending→dragging transition in gesture.go), not on every move tick RootMove sees.
 func (md *MoveDispatch) RootMove(nodeID string, target vec3) bool {
-	if _, ok := md.nodeMovers[nodeID]; !ok {
+	if _, ok := md.mr.nodeMovers[nodeID]; !ok {
 		return false
 	}
 	// Route the drag itself to the dragged node's OWN inbox instead of committing on
@@ -415,7 +415,7 @@ func (md *MoveDispatch) requantizeLocalPolars(nm *nodeMover, newPos vec3) {
 		return
 	}
 	neighbors := map[string]bool{}
-	for _, em := range md.edgeMovers {
+	for _, em := range md.mr.edgeMovers {
 		if em.srcID == nodeID {
 			neighbors[em.dstID] = true
 		} else if em.dstID == nodeID {

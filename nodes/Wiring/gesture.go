@@ -693,10 +693,10 @@ func (g *gestureState) reset(vp *viewpoint) {
 func (md *MoveDispatch) applyRingAnchor(node, port string, isInput bool, dir vec3) {
 	anchorID := snapToRingAnchorIndex(md.NodeKind(node), dir)
 	msg := moveMsg{Kind: moveMsgKindAnchor, NodeID: node, Port: port, IsInput: isInput, AnchorId: anchorID}
-	if nm, ok := md.nodeMovers[node]; ok {
+	if nm, ok := md.mr.nodeMovers[node]; ok {
 		nm.extIn <- msg
 	}
-	for _, em := range md.edgeMovers {
+	for _, em := range md.mr.edgeMovers {
 		incident := (isInput && em.dstID == node && em.dstH == port) ||
 			(!isInput && em.srcID == node && em.srcH == port)
 		if !incident {
@@ -714,7 +714,7 @@ func (md *MoveDispatch) applyRingAnchor(node, port string, isInput bool, dir vec
 // edge movers' endpoints (the held topology) — the FSM's own state, not a fact carried on
 // the wire from TS.
 func (md *MoveDispatch) portConnected(node, port string, isInput bool) bool {
-	for _, em := range md.edgeMovers {
+	for _, em := range md.mr.edgeMovers {
 		if isInput {
 			if em.dstID == node && em.dstH == port {
 				return true

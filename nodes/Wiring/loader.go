@@ -541,7 +541,7 @@ func (b *buildCtx) buildMoveDispatch() {
 	// nodeMover's zero-value quantOffset, matching the old map's zero-value-on-miss read.
 	md.quantizedLayout = true
 	for id, off := range b.quantizedOffsets {
-		if nm, ok := md.nodeMovers[id]; ok {
+		if nm, ok := md.mr.nodeMovers[id]; ok {
 			nm.quantOffset = off
 		}
 	}
@@ -556,7 +556,7 @@ func (b *buildCtx) buildMoveDispatch() {
 	}
 	sort.Strings(ids)
 	for _, id := range ids {
-		nm, ok := md.nodeMovers[id]
+		nm, ok := md.mr.nodeMovers[id]
 		if !ok {
 			continue
 		}
@@ -705,7 +705,7 @@ func (b *buildCtx) buildNodes() error {
 		// (buildMoveDispatch runs before buildNodes) so the INITIAL geometry emit and every
 		// later re-emit compute a connected port's aim identically.
 		var pc partnerCenterFn
-		if nm, ok := b.md.nodeMovers[n.ID]; ok {
+		if nm, ok := b.md.mr.nodeMovers[n.ID]; ok {
 			pc = nm.partnerCenter
 		}
 		nd, err := bind.Build(b.ctx, n.ID, n.Data, pb, b.tr, b.nodeGeoms[n.ID], pc)

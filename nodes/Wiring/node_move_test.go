@@ -29,11 +29,11 @@ import (
 // to the node's extIn + every incident edge's extIn, blocking on acks.
 func deliver(md *MoveDispatch, nodeID string, x, y, z float64) {
 	center := &vec3{X: x, Y: y, Z: z}
-	acks := make([]chan struct{}, 0, len(md.edgeMovers)+1)
+	acks := make([]chan struct{}, 0, len(md.mr.edgeMovers)+1)
 	nodeAck := make(chan struct{})
-	md.nodeMovers[nodeID].extIn <- moveMsg{Kind: moveMsgKindCenter, NodeID: nodeID, Center: center, testDone: nodeAck}
+	md.mr.nodeMovers[nodeID].extIn <- moveMsg{Kind: moveMsgKindCenter, NodeID: nodeID, Center: center, testDone: nodeAck}
 	acks = append(acks, nodeAck)
-	for _, em := range md.edgeMovers {
+	for _, em := range md.mr.edgeMovers {
 		if em.srcID != nodeID && em.dstID != nodeID {
 			continue
 		}
@@ -78,15 +78,15 @@ func TestDecentralizedNodeMove(t *testing.T) {
 	// RowEvents on move, mirroring the retired central Trace event assertions below.
 	var nodeEvents, edgeEvents []RowEvent
 	var nodeMu, edgeMu sync.Mutex
-	md.nodeMovers["src"].streamOut = io.Discard
-	md.nodeMovers["src"].buildFrame = func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows, edgeRows []int32, events []RowEvent) []byte {
+	md.mr.nodeMovers["src"].streamOut = io.Discard
+	md.mr.nodeMovers["src"].buildFrame = func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows, edgeRows []int32, events []RowEvent) []byte {
 		nodeMu.Lock()
 		nodeEvents = append(nodeEvents, events...)
 		nodeMu.Unlock()
 		return nil
 	}
-	md.edgeMovers["e0"].streamOut = io.Discard
-	md.edgeMovers["e0"].buildFrame = func(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, beadVal []int32, beadX, beadY, beadZ []float32, events []RowEvent) []byte {
+	md.mr.edgeMovers["e0"].streamOut = io.Discard
+	md.mr.edgeMovers["e0"].buildFrame = func(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, beadVal []int32, beadX, beadY, beadZ []float32, events []RowEvent) []byte {
 		edgeMu.Lock()
 		edgeEvents = append(edgeEvents, events...)
 		edgeMu.Unlock()
@@ -243,7 +243,7 @@ func TestNodeGeometryLabelSidecar(t *testing.T) {
 	wantKind := map[string]string{"src": "SrcNode", "dst": "SinkNode"}
 
 	seen := map[string]bool{}
-	for _, nm := range md.nodeMovers {
+	for _, nm := range md.mr.nodeMovers {
 		seen[nm.id] = true
 		label := nm.geom.Label
 		if label == "" {
