@@ -30,7 +30,6 @@ import (
 	"context"
 	"sort"
 	"sync"
-	"sync/atomic"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -213,15 +212,16 @@ type MoveDispatch struct {
 	// package-private quantized_move.go methods also stay thin delegators so their
 	// existing in-package call sites (tests, node_move.go, gesture.go) are unchanged.
 	lq layoutQuantizer
-	// msgTap is a TEST-ONLY observability seam: when non-nil, sendMove invokes it with
-	// every (destID, msg) it routes, BEFORE the send. nil in production — production code
-	// never calls SetMsgTap, so msgTap.Load() is always nil there (one atomic load, no
-	// lock, no allocation). This exists only so tests can assert the message trace
-	// between movers (e.g. the neighborSetC single-hop propagation) is exactly what's
-	// expected. It is pure observation — it never authors domain state or changes
-	// routing. Stored as an atomic.Pointer (not a plain field) because sendMove is the
-	// one chokepoint every mover goroutine calls concurrently.
-	msgTap atomic.Pointer[func(destID string, msg moveMsg)]
+	// tapToInstall is a TEST-ONLY observability seam: when SetMsgTap is called (before
+	// Start), this is stashed here so any nodeMover constructed AFTER that call (there
+	// are none in practice — all nodeMovers are built once in newMoveDispatch, before
+	// SetMsgTap could ever run — but this keeps the two code paths symmetric and cheap)
+	// also gets the tap installed at construction. The live seam every mover goroutine
+	// actually fires is its OWN nm.tap field (node_mover.go), set once per mover by
+	// SetMsgTap below — there is no shared/concurrently-read tap anymore: each mover
+	// owns and reads only its own copy, on its own goroutine. nil in production —
+	// production code never calls SetMsgTap.
+	tapToInstall func(destID string, msg moveMsg)
 	// ctx is the process-lifetime context, captured in Start. sendMove (the bare
 	// blocking directory send, used by external entry points like RootMove with
 	// no owning mover goroutine to thread a ctx from) selects on ctx.Done() so a
@@ -308,14 +308,16 @@ func (md *MoveDispatch) PortRowFor(node, port string, isInput bool) (int32, bool
 	return md.rt.portRowFor(node, port, isInput)
 }
 
-// SetMsgTap installs (or clears, with nil) the test-only message-trace hook. Test-only —
-// production code never calls this.
+// SetMsgTap installs (or clears, with nil) the test-only message-trace hook, on md.tapToInstall
+// AND on every already-constructed nodeMover's own nm.tap field. MUST be called before
+// Start (a setup-goroutine write to each mover's plain field — no atomic needed — is
+// safe only because it happens-before the mover goroutines are launched; there is no
+// concurrent access once Start has run). Test-only — production code never calls this.
 func (md *MoveDispatch) SetMsgTap(tap func(destID string, msg moveMsg)) {
-	if tap == nil {
-		md.msgTap.Store(nil)
-		return
+	md.tapToInstall = tap
+	for _, nm := range md.mr.nodeMovers {
+		nm.tap = tap
 	}
-	md.msgTap.Store(&tap)
 }
 
 // SetEdgeStreams wires every edgeMover to ITS OWN dedicated fd — the per-edge stream
@@ -542,6 +544,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 			return nil, false
 		}
 		nm.sendMove = md.enqueueFor(nm)
+		nm.tap = md.tapToInstall
 		nm.centerOf = md.centerOfNode
 		ownMover := nm
 		nm.commitLocal = func(_ string, newPos vec3) { md.commitNodeMoveLocal(ownMover, newPos) }
@@ -634,16 +637,17 @@ func (md *MoveDispatch) centerOfNode(id string) (vec3, bool) {
 }
 
 // sendMove routes one moveMsg to a node's dedicated external-entry channel (extIn).
-// Thin delegator to md.mr (mover_registry.go); md.msgTap/md.ctx are threaded through
-// (not part of moverRegistry).
+// Thin delegator to md.mr (mover_registry.go); md.ctx is threaded through (not part of
+// moverRegistry). This is the bare external-entry path (RootMove, gesture.go) with no
+// owning mover goroutine, so it never fires a tap — see nodeMover.tap's doc comment.
 func (md *MoveDispatch) sendMove(id string, msg moveMsg) {
-	md.mr.sendMove(&md.msgTap, md.ctx, id, msg)
+	md.mr.sendMove(md.ctx, id, msg)
 }
 
 // enqueueFor returns nm's own non-blocking send function. Thin delegator to md.mr
-// (mover_registry.go); md.msgTap is threaded through (not part of moverRegistry).
+// (mover_registry.go).
 func (md *MoveDispatch) enqueueFor(nm *nodeMover) func(id string, msg moveMsg) {
-	return md.mr.enqueueFor(&md.msgTap, nm)
+	return md.mr.enqueueFor(nm)
 }
 
 // NOTE (neighborSetC drop history): moveMsgKindNeighborSetC (requantizeLocalPolars'

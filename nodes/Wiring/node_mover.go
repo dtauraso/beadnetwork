@@ -162,6 +162,16 @@ type nodeMover struct {
 	// handoff (full → retry next cycle, bead stays in inflight) — reused rather than
 	// a second invented pattern.
 	pending []pendingSend
+	// tap is a TEST-ONLY observability seam: when non-nil, THIS mover's own enqueueFor
+	// closure invokes it with every (destID, msg) it routes, before appending to
+	// pending. nil in production — production code never calls MoveDispatch.SetMsgTap,
+	// so this stays nil and every enqueueFor call skips it with one plain nil check, no
+	// atomic, no lock. Owned entirely by this mover: set once before Start (by
+	// SetMsgTap, which runs on the setup goroutine before any mover goroutine is
+	// launched — happens-before every later read) and read only by this mover's own
+	// enqueueFor closure, which only ever runs on this mover's own goroutine. It is pure
+	// observation — it never authors domain state or changes routing.
+	tap func(destID string, msg moveMsg)
 	// resolveDest looks up the ONE dedicated directed channel FROM this node TO the
 	// given destination id — the destination's neighborIn[this node's id] if destID is
 	// another node, or the destination edge's srcIn/dstIn depending on which endpoint
