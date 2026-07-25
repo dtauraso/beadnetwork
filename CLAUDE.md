@@ -222,15 +222,36 @@ it belongs on a branch description, in memory, or in MODEL.md — not in a synce
 Before declaring agent/model behavior healthy (or when "the AI is getting worse"),
 run these (borrowed, ECC agent-architecture-audit — keep the questions, not the rest):
 
-1. Can the model skip a required step/tool and still answer? → not code-gated.
-2. Does old conversation content appear in new turns? → context contamination.
-3. Is the same info in CLAUDE.md AND `memory/` AND history? → context duplication.
-4. Does a second pass silently rewrite the answer before delivery? → hidden repair loop.
-5. Does output differ between what was generated and what's delivered? → rendering corruption.
-6. Are "must do X" rules only in prose, never enforced in code? → discipline failure.
-7. Can the agent's own monologue become persistent `memory/`? → memory poisoning.
+Each question is tagged with how it's checked: **[guarded]** = a deterministic
+`tools/check-*.sh` now enforces it (run automatically by stop-checks); **[partial]** =
+only slices are mechanizable; **[manual]** = inherently behavioral, no repo proxy exists.
 
-Fix order is code-first: enforce in code (a guard/hook) before adding more prose.
+1. Can the model skip a required step/tool and still answer? → not code-gated. **[partial —
+   folds into #6: a required step with no code gate]**
+2. Does old conversation content appear in new turns? → context contamination. **[guarded:
+   `check-no-state-cache.sh` forbids the handoff/continuation snapshot files that
+   reintroduce stale state — the mechanism, since the turns themselves aren't visible]**
+3. Is the same info in CLAUDE.md AND `memory/` AND history? → context duplication.
+   **[partial: `check-doc-drift`/`check-dead-doc-tokens`/`check-doc-citations`/
+   `check-doc-symbols` cover slices; substantive-dup detection is false-positive-prone
+   (intentional index/pointers), so stays manual]**
+4. Does a second pass silently rewrite the answer before delivery? → hidden repair loop.
+   **[guarded: `check-hooks-allowlist.sh` pins every `settings.json` hook to a known
+   check/reminder script — a new hook that could rewrite output fails until reviewed]**
+5. Does output differ between what was generated and what's delivered? → rendering
+   corruption. **[manual — purely the harness delivery pipeline; no repo artifact evidences
+   it]**
+6. Are "must do X" rules only in prose, never enforced in code? → discipline failure.
+   **[partial — the prose→guard mapping isn't mechanical; inventory the must/never lines by
+   hand and confirm each has a guard/hook or is deliberately prose-only]**
+7. Can the agent's own monologue become persistent `memory/`? → memory poisoning.
+   **[guarded: `check-memory-hygiene.sh` — every `memory/*.md` must have valid frontmatter
+   (name/description/type) and a `MEMORY.md` index entry, so malformed monologue can't
+   silently persist]**
+
+Fix order is code-first: enforce in code (a guard/hook) before adding more prose. Of the 7,
+**3 are now guarded** (#2/#4/#7), **3 are partial/manual** (#1/#3/#6), and **#5 is
+inherently behavioral** — run those four by hand.
 
 ## Posture (post-v0)
 
