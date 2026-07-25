@@ -71,3 +71,40 @@ func TestReviseInFlightGeometryNoSkewWithSingleClockCopy(t *testing.T) {
 			diff, tolerance, trueT, gotT)
 	}
 }
+
+// TestReviseInFlightGeometryRevisesInFlightSegment is the single-threaded
+// replacement for the polling assertion node_move_test.go used to make across
+// the concurrent edgeMover goroutine (via the now-deleted atomic snap/
+// InFlightSegments). Everything here runs on the TEST goroutine only — no
+// background driver — so pw.inflight is read directly, same-goroutine and
+// race-free, exactly like TestReviseInFlightGeometryNoSkewWithSingleClockCopy
+// above.
+func TestReviseInFlightGeometryRevisesInFlightSegment(t *testing.T) {
+	const crossTicks = 40.0
+	pw := NewPacedWire(0, PulseSpeedWuPerTick)
+	arc := crossTicks * PulseSpeedWuPerTick
+	inFlightMs := crossTicks * MsPerTick
+
+	ctx := context.Background()
+	startSeg := wireSegment{Start: vec3{}, End: vec3{X: 1}}
+
+	if pw.Send(0, beadPlacement{InFlightMs: inFlightMs, Start: startSeg.Start, End: startSeg.End}) != SendPlaced {
+		t.Fatalf("Send failed")
+	}
+	// Drain the placement into pw.inflight (the wire's own per-cycle drive).
+	pw.DriveOneCycle(ctx, 0)
+	if len(pw.inflight) != 1 {
+		t.Fatalf("expected 1 in-flight bead after DriveOneCycle, got %d", len(pw.inflight))
+	}
+
+	newSeg := wireSegment{Start: vec3{X: 2}, End: vec3{X: 3}}
+	pw.ReviseInFlightGeometry(0, arc, newSeg)
+
+	if len(pw.inflight) != 1 {
+		t.Fatalf("expected 1 in-flight bead after revision, got %d", len(pw.inflight))
+	}
+	got := pw.inflight[0].seg
+	if !approxEq(got.Start.X, newSeg.Start.X) || !approxEq(got.End.X, newSeg.End.X) {
+		t.Fatalf("in-flight bead segment = %+v..%+v, want %+v..%+v", got.Start, got.End, newSeg.Start, newSeg.End)
+	}
+}

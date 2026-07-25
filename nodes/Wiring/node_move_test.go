@@ -144,34 +144,10 @@ func TestDecentralizedNodeMove(t *testing.T) {
 		t.Fatalf("Out segment = %+v..%+v, want %+v..%+v", out.Geom().Start, out.Geom().End, wantSeg.Start, wantSeg.End)
 	}
 
-	// In-flight bead's geometry was revised to the new segment (still in flight).
-	// pw is owned exclusively by its own goroutine now (the edgeMover md.Start
-	// launched) — read its state via the atomic InFlightSegments snapshot rather
-	// than the live (unexported, unlocked) inflight slice.
-	//
-	// deliver() acks once the edgeMover has recomputed out.Geom, but the wire
-	// republishes its in-flight-segment snapshot (publishSnap) on its OWN next
-	// DriveOneCycle — one human-clock cycle after the revision, not at ack time.
-	// So poll the atomic snapshot until the revision is observable rather than
-	// reading it once (flake fix: wait on the real happens-before edge — the
-	// published revision — instead of assuming it lands synchronously with the ack).
-	var revisedSeg wireSegment
-	deadline := time.Now().Add(2 * time.Second)
-	for {
-		segs := pw.InFlightSegments()
-		if len(segs) == 0 {
-			t.Fatal("bead left flight unexpectedly during move")
-		}
-		revisedSeg = segs[0]
-		if approxEq(revisedSeg.End.X, wantSeg.End.X) && approxEq(revisedSeg.Start.X, wantSeg.Start.X) {
-			break
-		}
-		if time.Now().After(deadline) {
-			t.Fatalf("in-flight segment not revised within timeout: got %+v..%+v, want %+v..%+v",
-				revisedSeg.Start, revisedSeg.End, wantSeg.Start, wantSeg.End)
-		}
-		time.Sleep(time.Millisecond)
-	}
+	// In-flight bead's geometry-revision math (ReviseInFlightGeometry re-projecting
+	// a bead onto a new segment) is now covered single-threaded by
+	// TestReviseInFlightGeometryRevisesInFlightSegment (paced_wire_rebase_tolerance_test.go)
+	// rather than polled here across the concurrent edgeMover goroutine.
 
 	// Give the goroutines a moment, then assert the node re-emitted its own
 	// node-geometry RowEvent and the edge re-emitted its own geometry RowEvent.
