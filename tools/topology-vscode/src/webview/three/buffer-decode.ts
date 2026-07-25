@@ -55,7 +55,7 @@ const STR_DECODER = new TextDecoder();
 
 /** Decodes a trailing EVENTS section ([count:u32] + count × EVENT_STRIDE rows) appended
  *  after `offset` bytes of already-known content in ANY per-owner frame (NODE/EDGE/
- *  INTERIOR/VIEW — memory/feedback_no_single_writer_bridge.md). The fd-3 SCENE frame no
+ *  INTERIOR/VIEW — memory/feedback_no_single_writer_bridge.md). The view/scene frame no
  *  longer carries an EVENT block at all — each per-owner stream carries its own instead.
  *  Returns {count:0, view: empty} when the buffer is too short to hold even the count
  *  (never null — callers can always safely iterate 0 times). */
@@ -221,7 +221,7 @@ export function nodeLabel(decoded: DecodedNodeFrame, row: number): string {
   // Bound the row against THIS frame's node count BEFORE indexing the node block:
   // reading the off/len columns at row×NODE_STRIDE throws (nodeView is exactly
   // nodeCount×NODE_STRIDE bytes) when a VIEW-bucket event carries a node row valid for
-  // the topology but beyond a STALE cached fd-3 node frame's count (a cross-generation
+  // the topology but beyond a STALE cached per-node stream frame's count (a cross-generation
   // skew inherent to per-owner streaming). Degrade to "" — the graceful-empty contract
   // this function's callers already document (decodeBufferLog, buffer-log.ts).
   if (row < 0 || row >= decoded.nodeCount) return "";
@@ -461,7 +461,7 @@ export interface DecodedNodeStreamFrame {
   /** DataView over this node's single Node row; byteLength = NODE_STRIDE. */
   nodeView: DataView;
   /** This node's own label, decoded straight from its inline bytes (LabelOff is always 0
-   *  into THIS frame's own bytes — unlike the fd-3 Node block's shared label section). */
+   *  into THIS frame's own bytes — unlike the combined Node block's shared label section). */
   label: string;
   portCount: number;
   /** DataView over this node's own port rows; byteLength = portCount × PORT_STRIDE. */

@@ -747,7 +747,7 @@ export class BuildAndRunRunner {
 
   /**
    * Write a BINARY editor→Go record to Go's stdin, FRAMED as [len:u32-LE][record]
-   * (symmetric with the fd-3 content buffer). Accepts either a bare record ArrayBuffer
+   * (symmetric with the per-goroutine content-buffer streams). Accepts either a bare record ArrayBuffer
    * (framed here) or an already-framed Uint8Array. If the process is not yet spawned,
    * BUFFER the framed bytes and flush once stdin exists (in run()) — early writes must not
    * be dropped (that lost the load-time guide-vis push, which races the spawn).

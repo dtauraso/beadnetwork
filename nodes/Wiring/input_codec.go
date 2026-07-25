@@ -12,7 +12,7 @@
 // tools/topology-vscode/src/schema/input-layout.ts. The two sides carry an identical
 // InputLayoutFingerprint, enforced by tools/check-input-layout-parity.sh.
 //
-// Numbers are little-endian (matching the fd-3 content buffer). Enum discriminators
+// Numbers are little-endian (matching the content buffer's little-endian encoding). Enum discriminators
 // (event kind, hit kind, update entity kind, update attr, overlay flag) are u8 indices
 // into the shared orderings. There is NO JSON on the wire: every record is fully numeric.
 // The live editor→Go traffic is raw-input, overlays toggle (numeric flag-id), and
@@ -23,7 +23,7 @@
 // kind bytes (20, 21) are left as GAPS below, never renumbered. Only edit-update
 // remains.
 //
-// Kind 3 was inKindResend (removed: the ext host now caches the last fd3 snapshot and
+// Kind 3 was inKindResend (removed: the ext host now caches the last stream frame and
 // replays it on webview "ready" instead of asking Go to re-emit geometry — see
 // runCommand.ts's BuildAndRunRunner.lastSnapshot/getLastSnapshot). Left as an intentional
 // GAP rather than renumbered, so no other kind's wire value moves.

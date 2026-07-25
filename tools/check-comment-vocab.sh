@@ -37,6 +37,18 @@ readonly DEAD_COMMENT_TOKENS=(
   "handleFd3"
   "fd-3 fallback"
   "fd3 fallback"
+  # vocab-drift audit round: stale "fd3/fd-3 <live channel>" framings that imply fd 3
+  # carries the live render path. The live path is per-goroutine dedicated streams.
+  "fd3 side channel"
+  "fd-3 side channel"
+  "fd-3 content buffer"
+  "fd3 content buffer"
+  "fd-3 SCENE"
+  "fd3 SCENE"
+  "fd-3 node frame"
+  "fd-3 Node block"
+  "fd3 binary side"
+  "fd3 snapshot"
 )
 
 fail=0

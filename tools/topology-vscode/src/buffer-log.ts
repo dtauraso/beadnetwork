@@ -125,7 +125,7 @@ interface ViewBlocksOrNull {
 // decodeBufferLog decodes the VIEW frame's own trailing EVENTS section — the fallback
 // bucket of trace kinds not yet decentralized to their own owner fd (Fire/Recv/Send/
 // Select/Hover/AbcDrag*/Camera/SceneSphere/overlay toggles/LayoutLink — see Buffer/
-// pack.go's viewEventsSection). The fd-3 SCENE frame no longer carries an EVENT block at
+// pack.go's viewEventsSection). The view/scene frame no longer carries an EVENT block at
 // all (memory/feedback_no_single_writer_bridge.md); genuinely decentralized kinds
 // (NodeGeometry/Geometry/Position/Arrive/NodeBead) arrive on their OWN owner fd instead —
 // see decodeStreamFrameEvents below, called once per node/edge/interior stream frame.
@@ -313,7 +313,7 @@ function decodeEventLine(ev: DataView, eventTextView: DataView, dn: DecodedNodeF
 
 function nodeGeometryLine(dn: DecodedNodeFrame, nodeRow: number, node: string): Line {
   // A node-geometry event riding the VIEW bucket resolves its node columns against the
-  // last cached fd-3 node frame, which can be a STALE generation with fewer rows than the
+  // last cached per-node stream frame, which can be a STALE generation with fewer rows than the
   // topology — reading nodeRow past nodeView would throw. Degrade to the label-only line
   // (same graceful-empty contract as nodeLabel/portName), never crash the .probe logger.
   if (nodeRow < 0 || nodeRow >= dn.nodeCount) return { kind: "node-geometry", node };

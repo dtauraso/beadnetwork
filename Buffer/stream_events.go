@@ -1,8 +1,8 @@
 // Buffer/stream_events.go — the per-owner-frame trailing EVENTS section (memory/
 // feedback_no_single_writer_bridge.md): every per-owner stream frame (NODE/EDGE/INTERIOR/
 // VIEW) appends [count:u32] + count × BufEventStride bytes AFTER its own self-describing
-// payload, using the SAME row layout (SetEventRow) the fd3 SCENE frame's EVENT block used
-// before this migration — so the ext host decodes an event identically regardless of which
+// payload, using the SAME row layout (SetEventRow) the old combined view/scene frame's EVENT
+// block used before this migration — so the ext host decodes an event identically regardless of which
 // fd it rode in on. No frame header needs an eventCount field of its own: the decoder reads
 // this section as "whatever bytes remain" once each frame's own known counts are exhausted.
 package Buffer

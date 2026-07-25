@@ -1,7 +1,8 @@
 // input-layout.ts — BINARY encode of the editor→Go input stream.
 //
 // The TS→Go bridge is a purely BINARY buffer, symmetric with the Go→TS content buffer
-// streamed on fd 3. The webview builds a binary RECORD per message here; the extension
+// (the render buffer is per-goroutine streams; the input record here travels on Go's
+// stdin). The webview builds a binary RECORD per message here; the extension
 // host writes each record FRAMED as [len:u32-LE][record] to Go's stdin. Go decodes it in
 // nodes/Wiring/input_codec.go into the SAME stdinMsg the dispatch loop consumes.
 //
@@ -9,7 +10,7 @@
 // codec. The two carry an identical fingerprint (INPUT_LAYOUT_FINGERPRINT below ==
 // InputLayoutFingerprint in input_codec.go), enforced by tools/check-input-layout-parity.sh.
 //
-// Numbers are little-endian (matching fd 3). Enum discriminators (event kind, hit kind,
+// Numbers are little-endian (matching the content buffer's little-endian encoding). Enum discriminators (event kind, hit kind,
 // update entity kind, update attr, overlay flag) are u8 indices into the shared orderings.
 // There is NO JSON on the wire: every record is fully numeric. The live editor→Go traffic
 // is raw-input (numeric), overlays toggle (numeric flag-id), and the bare save
@@ -18,7 +19,7 @@
 // emitted them, and their only trigger (a port-drop gesture) unconditionally tore down a
 // live wire's in-flight beads via PacedWire.Restore(). Only edit-update remains.
 //
-// Kind 3 was IN_KIND_RESEND (removed: the ext host now caches the last fd3 snapshot and
+// Kind 3 was IN_KIND_RESEND (removed: the ext host now caches the last stream frame and
 // replays it on webview "ready" instead of asking Go to re-emit geometry — see
 // BuildAndRunRunner.lastSnapshot / getLastSnapshot in runCommand.ts). Left as an
 // intentional GAP rather than renumbered, so no other kind's wire value moves.

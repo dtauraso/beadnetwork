@@ -1,4 +1,4 @@
-// splitFrames is the pure length-prefix framing step for Go's fd3 binary side
+// splitFrames is the pure length-prefix framing step for Go's per-goroutine binary stream
 // channel. Frames are [len:u32-LE][payload bytes]. These tests lock the three
 // framing cases mirroring splitJsonlLines: reassembly across chunks, multiple
 // frames per chunk, and a trailing partial buffered until enough bytes arrive.
