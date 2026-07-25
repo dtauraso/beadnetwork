@@ -92,24 +92,13 @@ type Clock interface {
 // a condition variable — pacing loops call SleepCycle (wall time.After) and
 // re-check Tick() themselves.
 type RealClock struct {
-	// No mutex here on purpose. The mutex this struct used to carry existed for a
-	// contention shape that no longer applies: many pacing-loop readers of Tick()
-	// racing the one SetSpeed writer, all reaching through ONE shared *RealClock.
-	// Per-goroutine ownership removes that shape by ownership rather than by
-	// locking — a RealClock is now
-	// held by exactly ONE goroutine, which is the only thing that ever reads or
-	// writes it. There is no second goroutine to race, so there is nothing left to
-	// guard. A mutex on state nobody else touches is not "extra safety," it is dead
-	// weight documenting a sharing relationship that no longer exists.
-	//
-	// Deleting mu is also what makes RealClock legal to COPY: `sync.Mutex` is a
-	// `go vet` copylocks violation, so as long as it lived here the struct could
-	// only be passed by pointer — which is exactly the "one object, many holders"
-	// shape being removed. With mu gone, `c2 := *c1` is a plain value copy, and
-	// that copy is how a goroutine gets ITS OWN clock: it dereference-copies from
-	// an existing RealClock, inheriting its origin/accScaled/speed by value, and
-	// from then on is independent — SetSpeed on one copy is invisible to the
-	// other, correctly, because nothing is shared to make it otherwise.
+	// No mutex here on purpose (the no-lock rule is enforced by
+	// tools/check-no-network-locks.sh): a RealClock is held by exactly ONE goroutine —
+	// the only thing that reads or writes its state — so nothing races it. Deleting mu is
+	// also what makes RealClock legal to COPY: `sync.Mutex` is a `go vet` copylocks
+	// violation, so with mu gone `c2 := *c1` is a plain value copy — and that copy is how a
+	// goroutine gets ITS OWN independent clock, inheriting origin/accScaled/speed by value
+	// (a later SetSpeed on one copy is correctly invisible to the other).
 	// speed is the current playback multiplier (>= 0). Default 1.
 	speed float64
 	// accScaled is scaled elapsed accumulated across all PRIOR speed segments, up

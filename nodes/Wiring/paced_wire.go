@@ -126,10 +126,7 @@ func (pw *PacedWire) ticksToCross(arc float64) float64 {
 //   - inflight/nextGen/pulseSpeed are owned EXCLUSIVELY by the wire's
 //     own goroutine (driveOneCycle, called every cycle from edgeMover.run) — no
 //     lock guards them; there is exactly one writer and one reader (the same
-//     goroutine). Do not reintroduce a mutex here "for safety": a lock on top of
-//     single-goroutine ownership is dead weight, and if a second goroutine ever
-//     needs to touch this state again, that is a sign the ownership model broke,
-//     not a reason to add one back.
+//     goroutine). The no-mutex rule here is enforced by tools/check-no-network-locks.sh.
 type PacedWire struct {
 	inCh  chan placeRequest
 	outCh chan deliveredBead
