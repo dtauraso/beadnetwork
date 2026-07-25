@@ -47,7 +47,7 @@ func BuildEdgeStreamFrame(tick uint32, srcPortRow, dstPortRow int32, selected ui
 	off += 4
 	beadBuf := buf[off:]
 	for i := 0; i < beadCount; i++ {
-		SetBeadRow(beadBuf, i, beadX[i], beadY[i], beadZ[i], beadVal[i], 1)
+		SetBeadRow(beadBuf, i, beadX[i], beadY[i], beadZ[i], beadVal[i])
 	}
 	return append(buf, BuildEventsSection(events)...)
 }

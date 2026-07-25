@@ -54,11 +54,10 @@ only asserts the two GENERATED files carry the same `BUF_LAYOUT_FINGERPRINT` —
 `layout.go`, so it catches a botched/partial regen or a deleted generated file, not an
 unregenerated column. A generated READER exists for every column automatically; nothing forces
 a production CONSUMER, but `check-no-dead-buffer-column.sh` now enforces one — a generated
-`read*` helper with no non-test `src/` caller fails that guard (one known exception,
-`readBeadLive` for the packed-but-unconsumed `Bead.Live` column, is allowlisted pending a
-decision to remove the column). So an unconsumed column is now a guard failure, not silent
-dead surface — the last of the grep-discoverable edits the four items above don't cover is now
-machine-checked.
+`read*` helper with no non-test `src/` caller fails that guard (the allowlist is empty; a
+dead column like the former `Bead.Live` gets deleted from the schema, not allowlisted). So
+an unconsumed column is now a guard failure, not silent dead surface — the last of the
+grep-discoverable edits the four items above don't cover is now machine-checked.
 
 **Wire props:** Wire props (`WireProps` from `tools/topology-vscode/src/schema/wire-defs.ts`,
 generated from `wire:"prop,..."` tags on `specEdge` in `nodes/Wiring/loader.go`) are

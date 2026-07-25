@@ -33,7 +33,6 @@ fi
 # column from Buffer/layout.go (a MODEL.md-gated codec-spine edit, not a guard-commit change).
 # This list must never GROW without that decision — a new dead column is a bug, not an entry.
 readonly ALLOWED_DEAD=(
-  "readBeadLive"   # Bead.Live (layout.go:63) packed Go-side, no TS consumer. Remove-column pending.
 )
 
 is_allowed() {

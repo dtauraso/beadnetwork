@@ -60,7 +60,6 @@ type bufLayoutBead struct {
 	Y     float32 `buf:"f32"` // world y position
 	Z     float32 `buf:"f32"` // world z position
 	Value int32   `buf:"i32"` // bead integer value
-	Live  uint8   `buf:"u8"`  // 1 = slot occupied; 0 = absent (sentinel row)
 }
 
 // bufLayoutNode defines one row of the nodes column block.

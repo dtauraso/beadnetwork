@@ -12,7 +12,7 @@ import {
   PORT_COL_NODE_ROW, PORT_COL_DX, PORT_COL_DY, PORT_COL_DZ, PORT_COL_IS_INPUT,
   NODE_COL_LABEL_OFF, NODE_COL_LABEL_LEN,
   EDGE_COL_SRC_PORT_ROW, EDGE_COL_DST_PORT_ROW,
-  readBeadX, readBeadY, readBeadZ, readBeadLive,
+  readBeadX, readBeadY, readBeadZ,
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius,
   readInteriorPresent, readInteriorValue, readInteriorOX, readInteriorOY, readInteriorOZ,
   readEdgeSrcPortRow, readEdgeDstPortRow,
@@ -135,17 +135,15 @@ describe("decodeBeadFrame — bead block", () => {
   it("decodes two bead rows correctly", () => {
     const { buf, dv, beadOff } = makeBeadFrame(2);
 
-    // Row 0: live bead at (1, 2, 3)
+    // Row 0: bead at (1, 2, 3)
     dv.setFloat32(beadOff + 0 * BEAD_STRIDE + 0,  1.0, true); // X
     dv.setFloat32(beadOff + 0 * BEAD_STRIDE + 4,  2.0, true); // Y
     dv.setFloat32(beadOff + 0 * BEAD_STRIDE + 8,  3.0, true); // Z
-    dv.setUint8(  beadOff + 0 * BEAD_STRIDE + 16, 1);         // Live=1
 
-    // Row 1: dead bead at (10, 20, 30)
+    // Row 1: bead at (10, 20, 30)
     dv.setFloat32(beadOff + 1 * BEAD_STRIDE + 0,  10.0, true);
     dv.setFloat32(beadOff + 1 * BEAD_STRIDE + 4,  20.0, true);
     dv.setFloat32(beadOff + 1 * BEAD_STRIDE + 8,  30.0, true);
-    dv.setUint8(  beadOff + 1 * BEAD_STRIDE + 16, 0);          // Live=0
 
     const d = decodeBeadFrame(buf)!;
     expect(d.beadCount).toBe(2);
@@ -155,12 +153,10 @@ describe("decodeBeadFrame — bead block", () => {
     expectF32(readBeadX(bv, 0), 1.0);
     expectF32(readBeadY(bv, 0), 2.0);
     expectF32(readBeadZ(bv, 0), 3.0);
-    expect(readBeadLive(bv, 0)).toBe(1);
 
     expectF32(readBeadX(bv, 1), 10.0);
     expectF32(readBeadY(bv, 1), 20.0);
     expectF32(readBeadZ(bv, 1), 30.0);
-    expect(readBeadLive(bv, 1)).toBe(0);
   });
 });
 
@@ -242,39 +238,6 @@ describe("decodeEdgeFrame — edge block", () => {
     const ev = d.edgeView;
     expect(readEdgeSrcPortRow(ev, 0)).toBe(3);
     expect(readEdgeDstPortRow(ev, 0)).toBe(7);
-  });
-});
-
-describe("live-bead instance-count logic", () => {
-  it("counts only live=1 bead rows, matching BeadInstances slot-fill logic", () => {
-    // 3 beads: rows 0 and 2 live, row 1 dead. Mirrors the filter in BeadInstances.useFrame.
-    const { buf, dv, beadOff } = makeBeadFrame(3);
-    dv.setUint8(beadOff + 0 * BEAD_STRIDE + 16, 1); // Live=1
-    dv.setUint8(beadOff + 1 * BEAD_STRIDE + 16, 0); // Live=0 (dead)
-    dv.setUint8(beadOff + 2 * BEAD_STRIDE + 16, 1); // Live=1
-
-    const d = decodeBeadFrame(buf)!;
-    expect(d.beadCount).toBe(3); // header count is total rows (live + dead)
-
-    let liveSlot = 0;
-    for (let i = 0; i < d.beadCount; i++) {
-      if (readBeadLive(d.beadView, i)) liveSlot++;
-    }
-    // Only 2 live beads → only 2 instances should be drawn, not 3
-    expect(liveSlot).toBe(2);
-  });
-
-  it("all-dead beads yield zero live slots", () => {
-    const { buf, dv, beadOff } = makeBeadFrame(2);
-    dv.setUint8(beadOff + 0 * BEAD_STRIDE + 16, 0);
-    dv.setUint8(beadOff + 1 * BEAD_STRIDE + 16, 0);
-
-    const d = decodeBeadFrame(buf)!;
-    let liveSlot = 0;
-    for (let i = 0; i < d.beadCount; i++) {
-      if (readBeadLive(d.beadView, i)) liveSlot++;
-    }
-    expect(liveSlot).toBe(0);
   });
 });
 

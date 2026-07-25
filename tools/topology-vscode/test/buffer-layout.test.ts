@@ -10,9 +10,8 @@ import {
   BUF_HEADER_SIZE,
   // Bead
   BEAD_COL_X, BEAD_COL_Y, BEAD_COL_Z, BEAD_COL_VALUE,
-  BEAD_COL_LIVE, BEAD_STRIDE,
+  BEAD_STRIDE,
   readBeadX, readBeadY, readBeadZ, readBeadValue,
-  readBeadLive,
   // Node
   NODE_COL_CX, NODE_COL_CY, NODE_COL_CZ, NODE_COL_RADIUS, NODE_COL_SPHERE_R,
   NODE_COL_SELECTED,
@@ -73,8 +72,8 @@ function expectF32(got: number, want: number): void {
 
 describe("buffer-layout — Bead block", () => {
   it("stride equals packed field sizes", () => {
-    // 3×f32 + i32 + u8 = 4×4 + 1 = 17
-    expect(BEAD_STRIDE).toBe(17);
+    // 3×f32 + i32 = 4×4 = 16
+    expect(BEAD_STRIDE).toBe(16);
   });
 
   it("column offsets are contiguous packed", () => {
@@ -82,7 +81,6 @@ describe("buffer-layout — Bead block", () => {
     expect(BEAD_COL_Y).toBe(4);
     expect(BEAD_COL_Z).toBe(8);
     expect(BEAD_COL_VALUE).toBe(12);
-    expect(BEAD_COL_LIVE).toBe(16);
   });
 
   it("read helpers decode known bytes correctly (row 0 and row 1)", () => {
@@ -94,22 +92,18 @@ describe("buffer-layout — Bead block", () => {
     dv.setFloat32(0 * BEAD_STRIDE + BEAD_COL_Y, -2.25, true);
     dv.setFloat32(0 * BEAD_STRIDE + BEAD_COL_Z, 3.0, true);
     dv.setInt32(0 * BEAD_STRIDE + BEAD_COL_VALUE, -7, true);
-    dv.setUint8(0 * BEAD_STRIDE + BEAD_COL_LIVE, 1);
 
     // Row 1 (different values to verify row indexing)
     dv.setFloat32(1 * BEAD_STRIDE + BEAD_COL_X, 10.0, true);
     dv.setFloat32(1 * BEAD_STRIDE + BEAD_COL_Y, 20.0, true);
-    dv.setUint8(1 * BEAD_STRIDE + BEAD_COL_LIVE, 0);
 
     expectF32(readBeadX(dv, 0), 1.5);
     expectF32(readBeadY(dv, 0), -2.25);
     expectF32(readBeadZ(dv, 0), 3.0);
     expect(readBeadValue(dv, 0)).toBe(-7);
-    expect(readBeadLive(dv, 0)).toBe(1);
 
     expectF32(readBeadX(dv, 1), 10.0);
     expectF32(readBeadY(dv, 1), 20.0);
-    expect(readBeadLive(dv, 1)).toBe(0);
   });
 });
 
