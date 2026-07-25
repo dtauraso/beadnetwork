@@ -1,8 +1,11 @@
-// frame-tags.ts — hand-authored mirror of Buffer/frame_tags.go's frame ENVELOPE
-// discriminator. NOT generated (see that file's header comment for why: it's the
-// outer frame's tag byte, not a column-layout block). Keep these values in lockstep
-// with BufBlockTagScene/BufBlockTagBead by hand, the same way input-layout.ts mirrors
-// input_codec.go.
+// frame-tags.ts — hand-authored frame ENVELOPE discriminators. NOT generated (it's the
+// outer frame's tag byte, not a column-layout block). Only the SYNTHETIC per-owner-stream
+// tags 4-7 (VIEW/EDGE_STREAM/NODE_STREAM/INTERIOR_STREAM) have a Go counterpart —
+// Buffer/frame_tags.go's BufBlockTagView/…/BufBlockTagInteriorStream — kept in lockstep by
+// hand (the same way input-layout.ts mirrors input_codec.go). The 0-3 constants below are
+// TS-ONLY and have NO Go symbol: they name the retired combined-snapshot payload layouts
+// (SCENE) and the per-block payload layouts (BEAD/NODE/EDGE) that the per-owner streams
+// reuse. Do not "keep them in lockstep" with Go — Go defines no BufBlockTagScene/Bead/etc.
 //
 // Historical frame format (see runCommand.ts splitFrames/handleViewFd/handleEdgeFd/
 // handleNodeFd for the current per-goroutine dedicated-stream decoders):
