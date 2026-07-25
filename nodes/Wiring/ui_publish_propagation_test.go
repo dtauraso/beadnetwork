@@ -126,7 +126,7 @@ func lastViewFrameAbcDragCount(raw []byte) (count uint32, ok bool) {
 func TestGesturePathPropagatesUIStateToMoverStream(t *testing.T) {
 	root := writeXTN(t) // x --Out--> t (chain), x --Out--> n (data)
 
-	tr := T.NewWithSinkHook(0, nil, nil)
+	tr := T.NewWithSinkHook(nil, nil)
 
 	_, _, md, _, err := LoadTopology(context.Background(), root, tr, NewRealClock())
 	if err != nil {

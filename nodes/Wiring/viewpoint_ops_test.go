@@ -14,7 +14,7 @@ import (
 
 // TestZoomViewpointEmitsRadius: ZoomViewpoint scales r.
 func TestZoomViewpointEmitsRadius(t *testing.T) {
-	tr := T.New(0)
+	tr := T.New()
 	vp := &viewpointState{}
 	vp.SetViewpoint(vec3{}, 100, dir{Theta: 1.0}, dir{Theta: 1.5708})
 
@@ -26,7 +26,7 @@ func TestZoomViewpointEmitsRadius(t *testing.T) {
 
 // TestPanViewpointEmitsPivot: PanViewpoint slides the pivot.
 func TestPanViewpointEmitsPivot(t *testing.T) {
-	tr := T.New(0)
+	tr := T.New()
 	vp := &viewpointState{}
 	vp.SetViewpoint(vec3{X: 1, Y: 2, Z: 3}, 100, dir{Theta: 1.0}, dir{Theta: 1.5708})
 
@@ -39,7 +39,7 @@ func TestPanViewpointEmitsPivot(t *testing.T) {
 // TestOrbitViewpointEmitsMovedPos: OrbitViewpoint carries pos from→to and changes the
 // pos direction.
 func TestOrbitViewpointEmitsMovedPos(t *testing.T) {
-	tr := T.New(0)
+	tr := T.New()
 	vp := &viewpointState{}
 	before := dir{Theta: 1.0, Phi: 0.0}
 	vp.SetViewpoint(vec3{}, 100, before, dir{Theta: 1.5708})
@@ -53,7 +53,7 @@ func TestOrbitViewpointEmitsMovedPos(t *testing.T) {
 // TestMoveDispatchViewpointDelegatorsEmit: the MoveDispatch delegators (Zoom/Pan/Orbit)
 // forward to md.ui.vp and each writes a camera RowEvent onto the VIEW stream.
 func TestMoveDispatchViewpointDelegatorsEmit(t *testing.T) {
-	tr := T.New(0)
+	tr := T.New()
 	md := &MoveDispatch{}
 	var events []RowEvent
 	captureViewFrameKinds(md, &events)

@@ -49,8 +49,7 @@ func TestGateWithUnwiredOutputStillObeysSpeed(t *testing.T) {
 	defer cancel()
 
 	var dbg syncBuffer
-	tr := T.NewWithSink(0, &dbg)
-	defer tr.Close()
+	tr := T.NewWithSink(&dbg)
 
 	const latMs = 10.0
 	leftPw := Wiring.NewPacedWire(latMs*Wiring.PulseSpeedWuPerMs, Wiring.PulseSpeedWuPerMs)

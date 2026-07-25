@@ -34,8 +34,7 @@ func stepWire(ctx context.Context, pw *Wiring.PacedWire, clk Wiring.Clock) {
 // held bead with the new value; Held reflects the latest received value.
 func TestHoldFiresAndHoldsOnReceiveLean(t *testing.T) {
 	const latMs = 20.0
-	tr := T.New(0)
-	defer tr.Close()
+	tr := T.New()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

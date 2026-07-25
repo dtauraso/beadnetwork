@@ -59,7 +59,7 @@ func TestPerEdgeTravelTimeDistinctPorts(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	_, _, nmr, _, err := LoadTopology(ctx, path, T.New(16), NewRealClock())
+	_, _, nmr, _, err := LoadTopology(ctx, path, T.New(), NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology: %v", err)
 	}
@@ -122,7 +122,7 @@ func TestFanInRejectedAtLoad(t *testing.T) {
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	if _, _, _, _, err := LoadTopology(ctx, path, T.New(16), NewRealClock()); err == nil {
+	if _, _, _, _, err := LoadTopology(ctx, path, T.New(), NewRealClock()); err == nil {
 		t.Fatalf("LoadTopology accepted a fan-in topology (two edges into sink.In); want a fan-in rejection error")
 	}
 }

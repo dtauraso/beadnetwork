@@ -32,8 +32,7 @@ func stepWire(ctx context.Context, pw *Wiring.PacedWire, clk Wiring.Clock) {
 // immediate interior-bead update) whenever a new value arrives on FromInput.
 func TestPulseDrivesHeldValueLean(t *testing.T) {
 	const latMs = 10.0
-	tr := T.New(0)
-	defer tr.Close()
+	tr := T.New()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

@@ -55,7 +55,7 @@ func TestGateFireAndOutputTraversal(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	tr := T.New(0)
+	tr := T.New()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 

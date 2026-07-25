@@ -41,11 +41,11 @@ func (w *lockedWriter) String() string {
 }
 
 // loadTreeMDWithDebugSink is loadTreeMD but with a caller-supplied debug sink so the test
-// can count "requantize.drop" breadcrumbs, which loadTreeMD's private tr.New(0) (no sink)
+// can count "requantize.drop" breadcrumbs, which loadTreeMD's private tr.New() (no sink)
 // makes unobservable.
 func loadTreeMDWithDebugSink(t *testing.T, root string, dbg *lockedWriter) *MoveDispatch {
 	t.Helper()
-	tr := T.New(0)
+	tr := T.New()
 	tr.SetSink(dbg)
 	_, _, md, _, err := LoadTopology(context.Background(), root, tr, NewRealClock())
 	if err != nil {

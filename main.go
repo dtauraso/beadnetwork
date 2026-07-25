@@ -70,7 +70,7 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 	// Trace is now just the breadcrumb writer (the central event channel/drain and the
 	// -trace JSONL dump were deleted — memory/feedback_no_single_writer_bridge.md's final step: every
 	// emitting goroutine packs its own frame directly; see Trace/Trace.go's doc comment).
-	tr := T.New(0)
+	tr := T.New()
 	// DEBUG BREADCRUMB channel: each Breadcrumb() call site emits a structured
 	// Kind==KindBreadcrumb EVENT row on its own owning per-owner stream (node/edge/
 	// interior/VIEW) — see Trace.go's Breadcrumb/Trace-struct doc comments and each

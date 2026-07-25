@@ -36,7 +36,7 @@ func TestInputToHoldNewSendOldTraversal(t *testing.T) {
 	  ]
 	}`
 
-	tr := T.New(0)
+	tr := T.New()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 

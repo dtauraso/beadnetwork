@@ -39,8 +39,7 @@ func stepWire(ctx context.Context, pw *Wiring.PacedWire, clk Wiring.Clock) {
 func runGate(t *testing.T, left, right int) int {
 	t.Helper()
 	const latMs = 10.0
-	tr := T.New(0)
-	defer tr.Close()
+	tr := T.New()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
