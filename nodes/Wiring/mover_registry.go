@@ -24,6 +24,15 @@ type moverRegistry struct {
 	edgeMovers map[string]*edgeMover
 	// edgeOut: edgeId → source *Out, for read-only access by tests/verifiers.
 	edgeOut map[string]*Out
+	// centerMirror is the DISPATCH goroutine's OWN mirror of every node's last-known
+	// world center — the replacement for the old atomic.Pointer[centerSnap] cross-
+	// goroutine read. Seeded once at construction (newMoveDispatch, single-threaded
+	// setup, from each node's load-time geom) so the first framing read has every
+	// center before any push arrives, then kept current by drainCenterMirror pulling
+	// each nodeMover's own centerOut channel. Written and read ONLY from the dispatch/
+	// gesture goroutine (centerOfNode is, after the quantize call sites moved to each
+	// node's own partnerCenters map, called only from that goroutine) — no lock.
+	centerMirror map[string]vec3
 }
 
 // bind wires the per-edge source Outs (keyed "source.sourceHandle" in outSink) and dest
@@ -80,17 +89,34 @@ func (mr *moverRegistry) edgeOutFor(edgeID string) *Out {
 	return mr.edgeOut[edgeID]
 }
 
-// centerOfNode returns the current world center for a node id by loading the
-// nodeMover's atomically-published snapshot. Safe to call from any goroutine
-// without synchronization — the snap is published via atomic.Pointer after each
-// center update so this never races with the mover's live geom writes.
-func (mr *moverRegistry) centerOfNode(id string) (vec3, bool) {
-	if nm, ok := mr.nodeMovers[id]; ok {
-		if s := nm.snap.Load(); s != nil {
-			return s.c, true
+// drainCenterMirror drains every nodeMover's centerOut channel non-blockingly,
+// updating mr.centerMirror with whatever's newest for each node. Called before every
+// dispatch-side framing read (centerOfNode) so those reads always see the latest
+// pushed center. This is EVENTUALLY CONSISTENT (a read may be one push behind a node
+// that just moved on its own goroutine) — acceptable for camera/framing reads, which
+// is the only remaining caller class (see moverRegistry.centerMirror's doc comment).
+// Must only be called from the dispatch/gesture goroutine — it is the sole
+// reader of every nodeMover.centerOut channel.
+func (mr *moverRegistry) drainCenterMirror() {
+	if mr.centerMirror == nil {
+		mr.centerMirror = map[string]vec3{}
+	}
+	for id, nm := range mr.nodeMovers {
+		select {
+		case c := <-nm.centerOut:
+			mr.centerMirror[id] = c
+		default:
 		}
 	}
-	return vec3{}, false
+}
+
+// centerOfNode returns the current world center for a node id by draining the center
+// mirror (drainCenterMirror) and reading mr.centerMirror. Must only be called from the
+// dispatch/gesture goroutine.
+func (mr *moverRegistry) centerOfNode(id string) (vec3, bool) {
+	mr.drainCenterMirror()
+	c, ok := mr.centerMirror[id]
+	return c, ok
 }
 
 // sendMove routes one moveMsg to a node's dedicated external-entry channel (extIn), if

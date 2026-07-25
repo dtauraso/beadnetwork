@@ -16,7 +16,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
-	"sync/atomic"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -106,11 +105,16 @@ type nodeMover struct {
 	// identity field, or widening NodeKind's read to a whole-struct copy, would make it
 	// fail). There is no separate per-node "Update()" writer goroutine — that was the
 	// retired SLICE 3 architecture.
-	// snap is an atomically-published immutable snapshot of this node's current
-	// center+reachR. Written only by the mover's own goroutine after every center
-	// update; read by any goroutine (stdin reader) to observe the current position
-	// without crossing into the mover's live geom.
-	snap atomic.Pointer[centerSnap]
+	// centerOut is this node's OWN dedicated one-slot delivery channel to the
+	// DISPATCH goroutine's owned center mirror (moverRegistry.centerMirror) — the
+	// message-delivered replacement for the old atomic.Pointer[centerSnap] snap. A
+	// size-1 buffered channel written with LATEST-WINS semantics (applyCenter drains
+	// any stale unread value before sending the fresh one, never blocking): only the
+	// newest pushed center matters to a framing read, so an unread stale value is
+	// simply overwritten rather than queued. Only this node's own goroutine
+	// (applyCenter) ever sends here; only the dispatch goroutine (moverRegistry.
+	// drainCenterMirror) ever receives.
+	centerOut chan vec3
 	// sendMove routes a moveMsg to another id's OWN dedicated channel (resolveDest, above)
 	// — no shared inbox, no shared mutable state.
 	// Bound to md.enqueueFor(nm): it appends to nm.pending and immediately attempts a
@@ -281,13 +285,16 @@ func newNodeMover(id string, geom nodeGeom, tr *T.Trace, clockSrc Clock) *nodeMo
 		id: id, geom: geom,
 		extIn: make(chan moveMsg, 8), neighborIn: map[string]chan moveMsg{}, tr: tr,
 		partnerCenters: map[string]vec3{},
+		centerOut:      make(chan vec3, 1),
 		clockSrc:       clockSrc, clk: NewRealClock(),
 	}
-	// Seed the atomic snapshot from the initial geometry (even when !HasPos, in which case
-	// nodeWorldPos falls back to the origin) so readers — including another node's aimed-port
-	// partnerCenter lookup — always have a valid center to read before the first center
-	// message arrives.
-	nm.snap.Store(&centerSnap{c: nodeWorldPos(geom), p: geom.ScenePolar, reach: geom.ReachR})
+	// Self-seed centerOut with the initial geometry (even when !HasPos, in which case
+	// nodeWorldPos falls back to the origin) so the dispatch goroutine's first drain
+	// always finds a valid center — decentralized, same as the old atomic snap's
+	// construction-time seed, and covers every construction path (not just
+	// newMoveDispatch's loop, which additionally seeds moverRegistry.centerMirror
+	// directly before any mover goroutine runs).
+	nm.centerOut <- nodeWorldPos(geom)
 	return nm
 }
 
@@ -439,13 +446,24 @@ func (m *nodeMover) armDragAnchor() {
 // applyCenter is the SOLE WRITE of this node's center/reach. It is called ONLY from
 // this nodeMover's own inbox-drain goroutine (handle's moveMsgKindCenter case, driven
 // by fanCenters below), which is what makes that one goroutine the exclusive writer of
-// m.geom/m.snap. It sets the held polar position, publishes the atomic snapshot readers
-// observe cross-goroutine (stdin reader: centerOfNode/heldCenters/heldPolar/fanCenters'
-// partner lookup, edgeMover's partnerCenter), and re-emits this node's live geometry.
+// m.geom. It sets the held polar position, pushes the fresh center to the dispatch
+// goroutine's owned center mirror (m.centerOut, latest-wins — see its doc comment) and
+// to every direct neighbor's partnerCenters map (below), and re-emits this node's live
+// geometry.
 func (m *nodeMover) applyCenter(center vec3, reach float64) {
 	setNodeWorld(&m.geom, center)
 	m.geom.ReachR = reach
-	m.snap.Store(&centerSnap{c: center, p: m.geom.ScenePolar, reach: reach})
+	// Latest-wins non-blocking push onto centerOut: drain any stale unread value first
+	// so the slot always ends up holding the newest center, never blocking this
+	// goroutine even if the dispatch goroutine hasn't drained the previous push yet.
+	select {
+	case <-m.centerOut:
+	default:
+	}
+	select {
+	case m.centerOut <- center:
+	default:
+	}
 	// Push this fresh center to every direct neighbor (nm.neighborIn's key set — one
 	// hop, no cascade) so each neighbor's OWN partnerCenters map picks it up via
 	// moveMsgKindNeighborCenter (handle, below) — the delivery-mechanism replacement
