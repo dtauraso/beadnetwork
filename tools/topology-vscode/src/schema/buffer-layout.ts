@@ -9,13 +9,11 @@ export const BUF_LAYOUT_VERSION = 33;
  * Generated (part of BUF_LAYOUT_FINGERPRINT): a mismatch fails check-buffer-layout-parity.sh. */
 export const INTERIOR_SLOTS_PER_NODE = 4;
 
-/** SCENE frame's snapshot header. The Bead block (see BUF_BEAD_HEADER_SIZE), the
- * Node/Interior/Port blocks + Label/PortName bytes (see BUF_NODE_FRAME_HEADER_SIZE), and
- * the Edge block + edge-label bytes (see BUF_EDGE_FRAME_HEADER_SIZE) are their own tagged
- * frames — frame-tags.ts — so the SCENE header no longer carries their counts. The EVENT
- * block was also RETIRED from this frame (memory/feedback_no_single_writer_bridge.md —
- * each per-owner stream now carries its own trailing EVENTS section instead):
- * [tick:u32][layoutLinkCount:u32] */
+/** Byte width of the retired combined-snapshot frame's header. The combined SCENE/BEAD/
+ * NODE/EDGE frame is gone entirely — each goroutine now streams its own per-owner frame
+ * (VIEW/EDGE_STREAM/NODE_STREAM/INTERIOR_STREAM — see frame-tags.ts and
+ * memory/feedback_no_single_writer_bridge.md); this constant is a historical layout
+ * marker, not consumed by any live decoder: [tick:u32][layoutLinkCount:u32] */
 export const BUF_HEADER_SIZE = 8;
 
 // ── Bead block ───────────────────────────────────────────────

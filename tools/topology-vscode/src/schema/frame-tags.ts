@@ -1,54 +1,19 @@
 // frame-tags.ts — hand-authored frame ENVELOPE discriminators. NOT generated (it's the
-// outer frame's tag byte, not a column-layout block). Only the SYNTHETIC per-owner-stream
-// tags 4-7 (VIEW/EDGE_STREAM/NODE_STREAM/INTERIOR_STREAM) have a Go counterpart —
-// Buffer/frame_tags.go's BufBlockTagView/…/BufBlockTagInteriorStream — kept in lockstep by
-// hand (the same way input-layout.ts mirrors input_codec.go). The 0-3 constants below are
-// TS-ONLY and have NO Go symbol: they name the retired combined-snapshot payload layouts
-// (SCENE) and the per-block payload layouts (BEAD/NODE/EDGE) that the per-owner streams
-// reuse. Do not "keep them in lockstep" with Go — Go defines no BufBlockTagScene/Bead/etc.
+// outer frame's tag byte, not a column-layout block). The SYNTHETIC per-owner-stream tags
+// 4-7 (VIEW/EDGE_STREAM/NODE_STREAM/INTERIOR_STREAM) are the only tags that exist — each
+// has a Go counterpart, Buffer/frame_tags.go's BufBlockTagView/…/BufBlockTagInteriorStream —
+// kept in lockstep by hand (the same way input-layout.ts mirrors input_codec.go). Tags 0-3
+// (the retired combined SCENE/BEAD/NODE/EDGE frame layouts) are gone: Go now streams only
+// per-owner dedicated frames (one per goroutine, over its own inherited pipe —
+// memory/feedback_no_single_writer_bridge.md), never a shared combined frame.
 //
-// Historical frame format (see runCommand.ts splitFrames/handleViewFd/handleEdgeFd/
-// handleNodeFd for the current per-goroutine dedicated-stream decoders):
-//   [len:u32-LE][blockTag:u8][block bytes]
-// len counts the tag byte plus the block bytes. Tag 0 was the retired combined snapshot
-// (BUF_BLOCK_TAG_SCENE, now deleted); the per-block payload layouts below plus VIEW remain:
-//
-//   - BUF_BLOCK_TAG_BEAD: the Bead block ALONE, in its own self-contained per-tick
-//     frame. Its payload layout is:
-//
-//     BUF_BEAD_HEADER_SIZE (8) bytes: [tick:u32][beadCount:u32]
-//     Bead                    beadCount × BEAD_STRIDE bytes (same Bead block columns
-//                             as before — buffer-layout.ts's BEAD_* — unchanged)
-//
-//   - BUF_BLOCK_TAG_NODE: the Node/Interior/Port blocks + their string sections (node
-//     Label bytes, Port-name bytes) ALONE, in their own self-contained frame. These
-//     three blocks share ONE owner group (the node movers), so they travel together.
-//     Its payload layout is:
-//
-//     BUF_NODE_FRAME_HEADER_SIZE (20) bytes: [tick:u32][nodeCount:u32][portCount:u32]
-//       [labelBytesCount:u32][portNameBytesCount:u32]
-//     Node      nodeCount × NODE_STRIDE bytes
-//     Interior  nodeCount × INTERIOR_SLOTS_PER_NODE × INTERIOR_STRIDE bytes (fixed slots
-//               per node — no separate count; length derives from nodeCount)
-//     Port      portCount × PORT_STRIDE bytes (flattened over nodes in node-row order)
-//     Label     labelBytesCount bytes (node labels' UTF-8 bytes, node-row order)
-//     PortName  portNameBytesCount bytes (port names' UTF-8 bytes, flattened port-row order)
-//
-//     The LayoutLink block still packs SrcNodeRow/DstNodeRow as node-row
-//     indices — those rows resolve against THIS frame's Node block (both frames are
-//     built from the same stable seed-order row tables and share the
-//     same stable node-row order).
-//
-//   - BUF_BLOCK_TAG_EDGE: the Edge block ALONE + its EdgeLabel bytes section, in its own
-//     self-contained frame. The Edge block carries NO endpoint coordinates: it
-//     references its two port rows (SrcPortRow/DstPortRow), which resolve against THIS
-//     SAME TICK's NODE frame's Port block — the endpoint's world position lives ONLY
-//     there (node-owned), so a fast drag can never composite a fresh Node frame against
-//     a stale Edge-block endpoint (the tear this replaces). Its payload layout is:
-//
-//     BUF_EDGE_FRAME_HEADER_SIZE (12) bytes: [tick:u32][edgeCount:u32][edgeLabelBytesCount:u32]
-//     Edge      edgeCount × EDGE_STRIDE bytes
-//     EdgeLabel edgeLabelBytesCount bytes (edge labels' UTF-8 bytes, edge-row order)
+// Current frame format (see runCommand.ts's handleViewFd/handleEdgeFd/handleNodeFd/
+// handleInteriorFd for the per-goroutine dedicated-stream decoders): each dedicated fd's
+// wire bytes carry NO outer tag byte at all — the fd POSITION identifies which stream (and,
+// for edge/node/interior fds, which row). The tags below are SYNTHETIC: the ext host
+// attaches one when relaying a decoded frame to the webview under the shared
+// "buffer-snapshot" message shape, so all four stream kinds can ride one message shape
+// instead of four.
 //
 //   - BUF_BLOCK_TAG_VIEW: SYNTHETIC ext-host-side tag for a decoded VIEW-stream frame
 //     (camera + overlay + scene-sphere), streamed over its own dedicated inherited pipe
@@ -65,37 +30,9 @@
 //     Overlay  OVERLAY_STRIDE bytes
 //     Scene    SCENE_STRIDE bytes
 //
-// The block-tag constants below name the payload layouts each per-owner dedicated
-// stream reuses; each goroutine now streams its own tagged frame over its own dedicated
-// inherited pipe (WIREFOLD_STREAM_FDS) rather than a single shared pipe. Tag 0 is a
-// retired gap (the deleted combined-snapshot layout); BEAD/NODE/EDGE keep values 1/2/3.
-
-/** Block tag naming the self-contained per-tick Bead frame's payload layout. See this
- * file's header comment for its payload layout. */
-export const BUF_BLOCK_TAG_BEAD = 1;
-
-/** Block tag naming the self-contained Node/Interior/Port frame's payload layout
- * (+ Label/PortName bytes). See this file's header comment for its payload layout. */
-export const BUF_BLOCK_TAG_NODE = 2;
-
-/** Block tag naming the self-contained Edge frame's payload layout (+ EdgeLabel bytes).
- * See this file's header comment for its payload layout. */
-export const BUF_BLOCK_TAG_EDGE = 3;
-
-/** Byte width of the Bead frame's own header: [tick:u32][beadCount:u32]. Hand-authored
- * (envelope-level), mirroring BUF_HEADER_SIZE's split from the generated column-layout schema. */
-export const BUF_BEAD_HEADER_SIZE = 8;
-
-/** Byte width of the Node frame's own header:
- * [tick:u32][nodeCount:u32][portCount:u32][labelBytesCount:u32][portNameBytesCount:u32].
- * Hand-authored (envelope-level), mirroring BUF_BEAD_HEADER_SIZE/BUF_HEADER_SIZE's split
- * from the generated column-layout schema. */
-export const BUF_NODE_FRAME_HEADER_SIZE = 20;
-
-/** Byte width of the Edge frame's own header: [tick:u32][edgeCount:u32][edgeLabelBytesCount:u32].
- * Hand-authored (envelope-level), mirroring BUF_NODE_FRAME_HEADER_SIZE/BUF_BEAD_HEADER_SIZE/
- * BUF_HEADER_SIZE's split from the generated column-layout schema. */
-export const BUF_EDGE_FRAME_HEADER_SIZE = 12;
+// The tag values below (4-7) are the only ones that exist; each goroutine streams its own
+// frame over its own dedicated inherited pipe (WIREFOLD_STREAM_FDS) rather than a single
+// shared pipe, and the ext host tags the decoded result on relay to the webview.
 
 /** SYNTHETIC ext-host-side tag for a decoded VIEW-stream frame (camera+overlay+scene),
  * relayed to the webview under the same message shape as the other stream tags. NEVER a wire
@@ -104,7 +41,7 @@ export const BUF_EDGE_FRAME_HEADER_SIZE = 12;
 export const BUF_BLOCK_TAG_VIEW = 4;
 
 /** Byte width of the VIEW stream's own frame header on its dedicated fd: [tick:u32].
- * Hand-authored (envelope-level), mirroring BUF_EDGE_FRAME_HEADER_SIZE/.../BUF_HEADER_SIZE's
+ * Hand-authored (envelope-level), mirroring the other per-stream header-size constants'
  * split from the generated column-layout schema. */
 export const BUF_VIEW_FRAME_HEADER_SIZE = 4;
 

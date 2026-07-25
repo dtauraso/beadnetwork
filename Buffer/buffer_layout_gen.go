@@ -15,13 +15,11 @@ const BufLayoutVersionGenerated = 33
 // BufInteriorSlotsPerNodeGenerated must equal BufInteriorSlotsPerNode in layout.go.
 const BufInteriorSlotsPerNodeGenerated = 4
 
-// BufHeaderSize is the byte width of the SCENE frame's snapshot header. The Bead block
-// (see BufBeadHeaderSize), the Node/Interior/Port blocks + Label/PortName bytes (see
-// BufNodeFrameHeaderSize), and the Edge block + edge-label bytes (see
-// BufEdgeFrameHeaderSize) are their own tagged frames — Buffer/frame_tags.go — so the
-// SCENE header no longer carries their counts. The EVENT block was also RETIRED from
-// this frame (memory/feedback_no_single_writer_bridge.md — each per-owner stream now
-// carries its own trailing EVENTS section instead):
+// BufHeaderSize is the byte width of the retired combined-snapshot frame's header.
+// The combined SCENE/BEAD/NODE/EDGE frame is gone entirely — each goroutine now streams
+// its own per-owner frame (VIEW/EDGE_STREAM/NODE_STREAM/INTERIOR_STREAM — see
+// Buffer/frame_tags.go and memory/feedback_no_single_writer_bridge.md); this constant
+// is a historical layout marker, not consumed by any live decoder:
 // [tick:u32][layoutLinkCount:u32]
 const BufHeaderSize = 8
 

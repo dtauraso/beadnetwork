@@ -145,14 +145,13 @@ export type HostToWebviewMsg =
   // rides the buffer node block (LabelOff/LabelLen into the trailing label section) and is
   // decoded row-keyed via buffer-decode nodeLabel.
   //
-  // tag carries the decoded frame's block-tag payload-layout id (schema/frame-tags.ts
-  // BUF_BLOCK_TAG_BEAD / BUF_BLOCK_TAG_NODE / BUF_BLOCK_TAG_EDGE), or a SYNTHETIC tag the
-  // ext host attaches when relaying a frame decoded off a dedicated fd (never a wire tag
-  // byte there — see frame-tags.ts): BUF_BLOCK_TAG_VIEW (the singleton view fd) or
-  // BUF_BLOCK_TAG_EDGE_STREAM (one of the per-edge fds — row names WHICH edge, since
-  // there are many, unlike view's singleton). main.tsx routes the payload to the right
-  // cell (snapshot-buffer.ts's scene/bead/node/edge/view cells, or the per-edge-row cell
-  // for BUF_BLOCK_TAG_EDGE_STREAM) without re-decoding the buffer.
+  // tag carries a SYNTHETIC tag the ext host attaches when relaying a frame decoded off a
+  // dedicated per-goroutine fd (never a wire tag byte there — see frame-tags.ts):
+  // BUF_BLOCK_TAG_VIEW (the singleton view fd) or BUF_BLOCK_TAG_EDGE_STREAM /
+  // BUF_BLOCK_TAG_NODE_STREAM / BUF_BLOCK_TAG_INTERIOR_STREAM (one of the per-edge/
+  // per-node/per-interior fds — row names WHICH one, since there are many, unlike view's
+  // singleton). main.tsx routes the payload to the right cell (snapshot-buffer.ts's view
+  // cell, or the per-row cell for the stream tags) without re-decoding the buffer.
   | { type: "buffer-snapshot"; buffer: ArrayBuffer; tag: number; row?: number };
 
 export const WEBVIEW_TO_HOST_TYPES: ReadonlySet<WebviewToHostMsg["type"]> = new Set([
