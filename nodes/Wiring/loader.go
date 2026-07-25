@@ -539,7 +539,7 @@ func (b *buildCtx) buildMoveDispatch() {
 	// was the "concurrent map read and map write" fatal fixed by node6-drag-decentralized.md's
 	// per-node ownership). A node missing an entry in b.quantizedOffsets keeps its
 	// nodeMover's zero-value quantOffset, matching the old map's zero-value-on-miss read.
-	md.quantizedLayout = true
+	md.lq.quantizedLayout = true
 	for id, off := range b.quantizedOffsets {
 		if nm, ok := md.mr.nodeMovers[id]; ok {
 			nm.quantOffset = off
@@ -738,7 +738,7 @@ func (b *buildCtx) buildNodes() error {
 					// dispatcher so a later drag (RootMove) can route a local-polar
 					// re-quantize to the OWNING node's own holder — MoveDispatch never
 					// copies or owns LocalPolars itself.
-					b.md.layoutHolders[n.ID] = lh
+					b.md.lq.layoutHolders[n.ID] = lh
 				}
 			}
 		}

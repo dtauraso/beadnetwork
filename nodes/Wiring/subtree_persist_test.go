@@ -71,7 +71,7 @@ func TestIndividualSnap_OnlyDraggedNodePersists(t *testing.T) {
 	defer cancel()
 	md.Start(ctx)
 
-	lhSrc, ok := md.layoutHolders["src"]
+	lhSrc, ok := md.lq.layoutHolders["src"]
 	if !ok {
 		t.Fatal("no LayoutHolder for src")
 	}

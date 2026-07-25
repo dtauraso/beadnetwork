@@ -203,15 +203,16 @@ type MoveDispatch struct {
 	// MoveDispatch's public setSelectionUI/setHoverUI/sendEdgeSelect/resetAbcDrag stay as
 	// thin delegators so the external API is unchanged.
 	ui uiState
-	// quantizedLayout gates the quantized absolute-scene-polar snap (quantized_layout.go)
-	// — every node is a root, measured/derived about the scene center only.
-	quantizedLayout bool
-	// layoutHolders resolves a node id to the *LayoutHolder embedded in that node's
-	// built struct (reflection-attached by buildNodes the same way LocalPolars
-	// itself is attached — see loader.go). This is the ONLY route from the drag
-	// path (RootMove) to each node's own LayoutHolder; MoveDispatch does not own
-	// or copy LocalPolars itself, it just routes the update to the owning node.
-	layoutHolders map[string]*LayoutHolder
+	// lq owns the quantized double-link local-polar move math (quantized_move.go):
+	// quantizedLayout (gates the quantized absolute-scene-polar snap — every node is a
+	// root, measured/derived about the scene center only) and layoutHolders (resolves a
+	// node id to the *LayoutHolder embedded in that node's built struct — the ONLY
+	// route from the drag path (RootMove) to each node's own LayoutHolder; MoveDispatch
+	// does not own or copy LocalPolars itself, it just routes the update to the owning
+	// node). MoveDispatch's public RootMove stays a thin delegator; the several
+	// package-private quantized_move.go methods also stay thin delegators so their
+	// existing in-package call sites (tests, node_move.go, gesture.go) are unchanged.
+	lq layoutQuantizer
 	// msgTap is a TEST-ONLY observability seam: when non-nil, sendMove invokes it with
 	// every (destID, msg) it routes, BEFORE the send. nil in production — production code
 	// never calls SetMsgTap, so msgTap.Load() is always nil there (one atomic load, no
@@ -441,12 +442,12 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 		sort.Strings(edgeOrder)
 	}
 	md := &MoveDispatch{
-		tr:            tr,
-		layoutHolders: map[string]*LayoutHolder{},
+		tr: tr,
 	}
 	md.mr.nodeMovers = map[string]*nodeMover{}
 	md.mr.edgeMovers = map[string]*edgeMover{}
 	md.mr.edgeOut = map[string]*Out{}
+	md.lq.layoutHolders = map[string]*LayoutHolder{}
 	md.ui.ov = defaultOverlayState()
 	// Static partner-center lookup for the seed pass: every node's center is already known
 	// off the load-time geoms map (no goroutine/atomic-snap needed), so this is the SAME
@@ -547,7 +548,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 		nm.neighborSetC = md.neighborSetCRequantize
 		// Go 1.22+ loop semantics give each iteration its own id, so this closure safely
 		// captures THIS iteration's id (no shared-variable capture bug).
-		nm.layoutHolderFn = func() *LayoutHolder { return md.layoutHolders[id] }
+		nm.layoutHolderFn = func() *LayoutHolder { return md.lq.layoutHolders[id] }
 		md.mr.nodeMovers[id] = nm
 	}
 	for edgeID, ep := range edgeEndpoints {
@@ -705,6 +706,26 @@ func (md *MoveDispatch) NodeKind(nodeID string) string {
 		return nm.geom.Kind
 	}
 	return ""
+}
+
+// Quantized double-link local-polar move math (quantized_move.go): thin delegators to
+// md.lq so their existing in-package call sites (tests, node_move.go, gesture.go) are
+// unchanged.
+func (md *MoveDispatch) heldCenters() map[string]vec3 { return md.lq.heldCenters(md) }
+func (md *MoveDispatch) requantizePoleTraced(lh *LayoutHolder, updates map[string]vec3) dir {
+	return md.lq.requantizePoleTraced(lh, updates)
+}
+func (md *MoveDispatch) neighborSetCRequantize(selfID, fromID string, selfCenter, fromCenter vec3, deltaA, deltaB, deltaC int) {
+	md.lq.neighborSetCRequantize(md, selfID, fromID, selfCenter, fromCenter, deltaA, deltaB, deltaC)
+}
+func (md *MoveDispatch) commitNodeMoveLocal(nm *nodeMover, newPos vec3) {
+	md.lq.commitNodeMoveLocal(md, nm, newPos)
+}
+
+// RootMove handles a node-drag under the flat absolute scene-polar layout. Thin
+// delegator to md.lq (quantized_move.go).
+func (md *MoveDispatch) RootMove(nodeID string, target vec3) bool {
+	return md.lq.RootMove(md, nodeID, target)
 }
 
 // Overlay-visibility API (MoveDispatch delegators), the overlayState methods, the

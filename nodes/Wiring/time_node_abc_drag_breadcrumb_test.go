@@ -182,11 +182,11 @@ func TestEveryDragRecipientLogsAbcDragBreadcrumb(t *testing.T) {
 	defer cancel()
 	md.Start(ctx)
 
-	lhT, ok := md.layoutHolders["t"]
+	lhT, ok := md.lq.layoutHolders["t"]
 	if !ok {
 		t.Fatal("no LayoutHolder for t")
 	}
-	lhN, ok := md.layoutHolders["n"]
+	lhN, ok := md.lq.layoutHolders["n"]
 	if !ok {
 		t.Fatal("no LayoutHolder for n")
 	}

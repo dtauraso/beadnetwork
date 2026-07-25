@@ -150,11 +150,11 @@ func TestDragPersistsOnlyDraggedNodeAndRequantizesNeighborsOnDisk(t *testing.T) 
 	defer cancel()
 	md.Start(ctx)
 
-	lhB, ok := md.layoutHolders["B"]
+	lhB, ok := md.lq.layoutHolders["B"]
 	if !ok {
 		t.Fatal("no LayoutHolder for B")
 	}
-	lhC, ok := md.layoutHolders["C"]
+	lhC, ok := md.lq.layoutHolders["C"]
 	if !ok {
 		t.Fatal("no LayoutHolder for C")
 	}

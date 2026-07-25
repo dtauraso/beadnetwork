@@ -457,7 +457,7 @@ func TestRootMoveContinuousPositionLocalPolarRequantize(t *testing.T) {
 	// (b) src's local polar to dst reconstructs the distance to a whole tick of the
 	// LOCAL-POLAR grid (localStepR/localStepTheta/localStepPhi — small, uniform cells,
 	// distinct from the coarser scene-center stepR/stepTheta/stepPhi).
-	lhSrc, ok := md.layoutHolders["src"]
+	lhSrc, ok := md.lq.layoutHolders["src"]
 	if !ok {
 		t.Fatal("no LayoutHolder registered for src")
 	}
@@ -500,7 +500,7 @@ func TestRootMoveContinuousPositionLocalPolarRequantize(t *testing.T) {
 	// "abc-drag" breadcrumb (fired on dst's own goroutine, after dst's own
 	// SetLocalPolar/SetPole write) rather than polling lhDst directly from this
 	// goroutine, which would be a data race against dst's mover goroutine.
-	lhDst, ok := md.layoutHolders["dst"]
+	lhDst, ok := md.lq.layoutHolders["dst"]
 	if !ok {
 		t.Fatal("no LayoutHolder registered for dst")
 	}

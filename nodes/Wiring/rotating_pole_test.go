@@ -134,7 +134,7 @@ func TestRotatingPoleClearsSingularityOnDrag(t *testing.T) {
 	defer cancel()
 	md.Start(ctx)
 
-	lhSrc, ok := md.layoutHolders["src"]
+	lhSrc, ok := md.lq.layoutHolders["src"]
 	if !ok {
 		t.Fatal("no LayoutHolder for src")
 	}
@@ -243,7 +243,7 @@ func TestRotatingPolePersistReload(t *testing.T) {
 	defer cancel()
 	md.Start(ctx)
 
-	lhSrc, ok := md.layoutHolders["src"]
+	lhSrc, ok := md.lq.layoutHolders["src"]
 	if !ok {
 		t.Fatal("no LayoutHolder for src")
 	}
@@ -312,7 +312,7 @@ func TestRotatingPolePersistReload(t *testing.T) {
 
 	// Reload into a fresh MoveDispatch.
 	md2 := loadTreeMD(t, root)
-	lhSrc2, ok := md2.layoutHolders["src"]
+	lhSrc2, ok := md2.lq.layoutHolders["src"]
 	if !ok {
 		t.Fatal("no LayoutHolder for src on reload")
 	}
@@ -368,7 +368,7 @@ func TestComputeLocalPolarsRequantizesStoredBearingAboutResolvedPole(t *testing.
 	mk("edges/e0.json", `{"label":"e0","kind":"data","source":"src","sourceHandle":"Out","target":"dst","targetHandle":"In"}`)
 
 	md := loadTreeMD(t, root)
-	lhSrc, ok := md.layoutHolders["src"]
+	lhSrc, ok := md.lq.layoutHolders["src"]
 	if !ok {
 		t.Fatal("no LayoutHolder for src")
 	}

@@ -170,10 +170,10 @@ type nodeMover struct {
 	// up: every (sender, destination) pair resolves to its OWN channel. nil only in
 	// tests that build a bare nodeMover directly, in which case flushPending is a no-op.
 	resolveDest func(id string) (chan moveMsg, bool)
-	// layoutHolderFn resolves THIS node's own LocalPolar holder (md.layoutHolders[id])
+	// layoutHolderFn resolves THIS node's own LocalPolar holder (md.lq.layoutHolders[id])
 	// at CALL TIME rather than caching the *LayoutHolder at nodeMover construction:
 	// buildMoveDispatch (which constructs nodeMovers) runs BEFORE buildNodes (which is
-	// what actually populates md.layoutHolders[id] on each node's embedded
+	// what actually populates md.lq.layoutHolders[id] on each node's embedded
 	// LayoutHolder), so a value cached at construction would be permanently nil. The
 	// map itself is a read-only directory once the whole load completes (same pattern
 	// as dispatch/edgeIDs) — safe to read from any goroutine after that point. Read
