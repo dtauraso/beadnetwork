@@ -109,7 +109,7 @@ func TestGestureWheelPansOverNodeAndEdgeHit(t *testing.T) {
 		{Kind: "port", PortRow: 0},
 	} {
 		md := newGestureMD(canonicalViewpoint())
-		md.nodeRowTable = []string{"N7"}
+		md.rt.nodeRowTable = []string{"N7"}
 		before := md.vp.pivot
 		ev := rawEvent("wheel", 400, 300)
 		ev.DeltaX = 10
@@ -149,8 +149,8 @@ func TestGestureCtrlWheelZoomsToCursor(t *testing.T) {
 // clears the edge selection, and an empty click clears both.
 func TestGestureClickSelectsEdgeGoOwned(t *testing.T) {
 	md := newGestureMD(canonicalViewpoint())
-	md.edgeRowTable = []string{"e0", "e1"}
-	md.nodeRowTable = []string{"N7"}
+	md.rt.edgeRowTable = []string{"e0", "e1"}
+	md.rt.nodeRowTable = []string{"N7"}
 
 	// First select a node so we can prove edge-select clears it.
 	nd := rawEvent("pointerdown", 400, 300)
@@ -200,7 +200,7 @@ func TestGestureClickSelectsEdgeGoOwned(t *testing.T) {
 // empty space clears it. (No camera change — covered by TestGestureClickNoCameraChange.)
 func TestGestureClickSelectsNodeGoOwned(t *testing.T) {
 	md := newGestureMD(canonicalViewpoint())
-	md.nodeRowTable = []string{"N7"}
+	md.rt.nodeRowTable = []string{"N7"}
 
 	down := rawEvent("pointerdown", 400, 300)
 	down.Hit = rawHit{Kind: "node", NodeRow: 0}
@@ -232,8 +232,8 @@ func TestGestureClickSelectsNodeGoOwned(t *testing.T) {
 // asserts md.sel.hoverNode/hoverPort track the hit.
 func TestGestureHoverTracksNodeAndPort(t *testing.T) {
 	md := newGestureMD(canonicalViewpoint())
-	md.portRowTable = []moveDispatchPortRow{{node: "A", port: "in", isInput: true}}
-	md.nodeRowTable = []string{"N7"}
+	md.rt.portRowTable = []moveDispatchPortRow{{node: "A", port: "in", isInput: true}}
+	md.rt.nodeRowTable = []string{"N7"}
 
 	// Move over node N7's torus ring → hovered node.
 	mv := rawEvent("pointermove", 400, 300)
@@ -272,7 +272,7 @@ func TestGestureHoverTracksNodeAndPort(t *testing.T) {
 // still resolve to a node select on pointer-up. Empty-space two-finger tap preserves selection.
 func TestGestureSecondaryTapSelectsThroughDrift(t *testing.T) {
 	md := newGestureMD(canonicalViewpoint())
-	md.nodeRowTable = []string{"N7"}
+	md.rt.nodeRowTable = []string{"N7"}
 
 	// Two-finger tap ON a node, with drift well past gestureMoveSlopPx between down and up.
 	down := rawEvent("pointerdown", 400, 300)
@@ -357,7 +357,7 @@ func TestGestureConnectedPortRingMove(t *testing.T) {
 	}
 	md := newMoveDispatch(geoms, edges, nil, nil, nil, NewRealClock(), nil)
 	md.vp.viewpoint = canonicalViewpoint()
-	md.portRowTable = []moveDispatchPortRow{{node: "N1", port: "out", isInput: false}}
+	md.rt.portRowTable = []moveDispatchPortRow{{node: "N1", port: "out", isInput: false}}
 
 	// Grab the CONNECTED out-port of N1.
 	down := rawEvent("pointerdown", 400, 300)
@@ -405,7 +405,7 @@ func TestGestureClickNoCameraChange(t *testing.T) {
 func TestGestureSelectModeOffStillHighlights(t *testing.T) {
 	md := newGestureMD(canonicalViewpoint())
 	md.ov.selSpherePolesVisible = false
-	md.nodeRowTable = []string{"A"}
+	md.rt.nodeRowTable = []string{"A"}
 
 	down := rawEvent("pointerdown", 400, 300)
 	down.Hit = rawHit{Kind: "node", NodeRow: 0}
