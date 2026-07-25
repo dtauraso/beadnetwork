@@ -12,9 +12,42 @@ import (
 	"path/filepath"
 	"reflect"
 	"runtime"
+	"strconv"
+	"strings"
 	"testing"
 	"time"
 )
+
+// TestKindsTokenMatchesConstants pins the fingerprint's `kinds=` token to the actual
+// inKind* record-byte constants — the Go mirror of input-layout.test.ts's "kinds= token
+// matches the actual IN_KIND_* constants" test. On the Go side `kinds=save:4,...` is
+// DOCUMENTATION ONLY: parseFPList never reads it (only the eventKinds/hitKinds/updateKinds/
+// overlayFlags tokens), so nothing otherwise ties save:4 to inKindSave=4. Without this,
+// an inKind* value could drift from the documented byte, pass check-input-layout-parity
+// (a Go-string==TS-string compare) and the compiler's duplicate-case check, yet still
+// break the wire (Go encodes the const's value, a peer decodes the fingerprint's).
+func TestKindsTokenMatchesConstants(t *testing.T) {
+	want := map[string]int{
+		"save":        inKindSave,
+		"raw-input":   inKindRawInput,
+		"edit-update": inKindEditUpdate,
+	}
+	got := map[string]int{}
+	for _, entry := range parseFPList(InputLayoutFingerprint, "kinds=") {
+		name, valStr, ok := strings.Cut(entry, ":")
+		if !ok {
+			t.Fatalf("kinds= entry %q is not name:value", entry)
+		}
+		v, err := strconv.Atoi(valStr)
+		if err != nil {
+			t.Fatalf("kinds= entry %q has a non-numeric byte: %v", entry, err)
+		}
+		got[name] = v
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("fingerprint kinds= = %v, want (from inKind* consts) %v — a const drifted from the fingerprint (or vice versa)", got, want)
+	}
+}
 
 func TestDecodeControlRecords(t *testing.T) {
 	cases := []struct {

@@ -1,5 +1,5 @@
 // paced_wire_concurrency_race_test.go — CHECKS BY CODE the ownership invariant the
-// PacedWire doc comment claims: inflight/nextGen/teardownGen are touched by EXACTLY
+// PacedWire doc comment claims: inflight/nextGen are touched by EXACTLY
 // ONE goroutine (the wire's own — driveOneCycle/ReviseInFlightGeometry, folded into
 // edgeMover.run in production), while the SOURCE and DESTINATION goroutines touch
 // only the channel-shaped cross-goroutine surface (Send/RecvTick). No lock guards
