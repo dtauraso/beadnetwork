@@ -14,8 +14,6 @@
 import { TRACE_EVENT_KINDS, BREADCRUMB_LABELS } from "./schema/trace-kinds";
 import { NODE_KIND_NAMES } from "./schema/node-defs";
 import {
-  decodeNodeFrame,
-  decodeEdgeFrame,
   decodeViewFrame,
   nodeLabel,
   portName,
@@ -101,16 +99,13 @@ export type DecodedEventLine =
  * envelope { ts_ms, src:"go", ...fields } — the same envelope the ext host's stdout relay used
  * (minus the `step` ordinal, which the buffer path does not carry).
  *
- * `nodeFrameBuf` is the most-recently cached BUF_BLOCK_TAG_NODE frame and `edgeFrameBuf`
- * the most-recently cached BUF_BLOCK_TAG_EDGE frame (see runCommand.ts's handleNodeFd/
- * handleEdgeFd): the
- * EVENT block's node/port row references (node-geometry, node-bead, recv/send/etc.'s
- * node+port labels) resolve against the Node/Port blocks + Label/PortName bytes, and its
- * edge row references (geometry, select) resolve against the Edge block + EdgeLabel
- * bytes — both now live in their own separate frames rather than riding the scene
- * snapshot `ab`. Passing undefined (no frame cached yet) degrades that identity to ""
- * rather than throwing — the same graceful-empty convention nodeLabel/portName already
- * use for an out-of-range row.
+ * decodeBufferLog's only caller passes just the VIEW frame — the node/port/edge identity
+ * strings it resolves (node-geometry, node-bead, recv/send/etc.'s node+port labels, and
+ * geometry/select's edge label) are unavailable on the VIEW-bucket path (dn/de are always
+ * null here); those kinds now decode through decodeStreamFrameEvents on their own owner's
+ * stream frame instead, where a real DecodedNodeFrame/DecodedEdgeFrame aggregate is
+ * available. Passing null degrades identity to "" rather than throwing — the same
+ * graceful-empty convention nodeLabel/portName already use for an out-of-range row.
  */
 /** camera/overlay/scene views resolved from EITHER source — the SCENE frame's embedded
  *  blocks (fallback, no dedicated view fd) OR the dedicated VIEW frame (see
@@ -129,13 +124,11 @@ interface ViewBlocksOrNull {
 // all (memory/feedback_no_single_writer_bridge.md); genuinely decentralized kinds
 // (NodeGeometry/Geometry/Position/Arrive/NodeBead) arrive on their OWN owner fd instead —
 // see decodeStreamFrameEvents below, called once per node/edge/interior stream frame.
-export function decodeBufferLog(viewFrameBuf: ArrayBuffer, nodeFrameBuf?: ArrayBuffer, edgeFrameBuf?: ArrayBuffer): string {
+export function decodeBufferLog(viewFrameBuf: ArrayBuffer): string {
   const dv = decodeViewFrame(viewFrameBuf);
   if (!dv || dv.eventCount === 0) return "";
-  const dn = nodeFrameBuf ? decodeNodeFrame(nodeFrameBuf) : null;
-  const de = edgeFrameBuf ? decodeEdgeFrame(edgeFrameBuf) : null;
   const vb: ViewBlocksOrNull = { cameraView: dv.cameraView, overlayView: dv.overlayView, sceneView: dv.sceneView };
-  return decodeEventsFromView(dv.eventCount, dv.eventView, dv.eventTextView, dn, de, vb);
+  return decodeEventsFromView(dv.eventCount, dv.eventView, dv.eventTextView, null, null, vb);
 }
 
 function decodeEventsFromView(eventCount: number, eventView: DataView, eventTextView: DataView, dn: DecodedNodeFrame | null, de: DecodedEdgeFrame | null, vb: ViewBlocksOrNull): string {

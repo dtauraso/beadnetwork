@@ -36,12 +36,12 @@ for the full bridge-surface model, not duplicated here.
 
 **Do not restate the kind list here.** The authority is
 `INPUT_LAYOUT_FINGERPRINT` — one string encoding every kind byte, update kind,
-attr, and overlay flag, defined in `nodes/Wiring/input_codec.go` and mirrored in
-`src/schema/input-layout.ts`. `tools/check-input-layout-parity.sh` compares the
-two, so drift fails a check instead of silently outliving a doc paragraph. Read the fingerprint to learn the
-current surface; prose copied into this file cannot fail and so cannot be
-trusted. (Removed kind bytes are preserved as GAPS in `input_codec.go` and never
-renumbered.)
+attr, and overlay flag, defined in `nodes/Wiring/input_codec.go`. The TS side
+(`src/schema/input-layout-gen.ts`) is GENERATED from that Go string by
+`tools/gen-node-defs`, so it cannot drift — there is no second hand-kept copy to compare.
+Read the fingerprint to learn the current surface; prose copied into this file cannot fail
+and so cannot be trusted. (Removed kind bytes are preserved as GAPS in `input_codec.go` and
+never renumbered.)
 
 ## Extension side — what lives where
 

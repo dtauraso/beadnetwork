@@ -6,9 +6,11 @@
 // host writes each record FRAMED as [len:u32-LE][record] to Go's stdin. Go decodes it in
 // nodes/Wiring/input_codec.go into the SAME stdinMsg the dispatch loop consumes.
 //
-// This module is the SINGLE source of the TS-side record layout and is mirrored by the Go
-// codec. The two carry an identical fingerprint (INPUT_LAYOUT_FINGERPRINT below ==
-// InputLayoutFingerprint in input_codec.go), enforced by tools/check-input-layout-parity.sh.
+// The record-layout CONSTANTS (INPUT_LAYOUT_FINGERPRINT, IN_KIND_*, and the enum-ordering
+// arrays) are no longer hand-kept-in-lockstep with input_codec.go: they are GENERATED into
+// ./input-layout-gen.ts from Go's InputLayoutFingerprint string (the single source) and
+// re-exported below, so the two languages cannot drift apart. This module hand-authors only
+// the encode*/decode* codec functions and the Writer/Reader helpers.
 //
 // Numbers are little-endian (matching the content buffer's little-endian encoding). Enum discriminators (event kind, hit kind,
 // update entity kind, update attr, overlay flag) are u8 indices into the shared orderings.
@@ -24,39 +26,47 @@
 // BuildAndRunRunner.lastSnapshot / getLastSnapshot in runCommand.ts). Left as an
 // intentional GAP rather than renumbered, so no other kind's wire value moves.
 
-// INPUT_LAYOUT_FINGERPRINT: v19 kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock updateAttrs=toggle,speed overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays,doubleLinks
-export const INPUT_LAYOUT_FINGERPRINT =
-  "v19 kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock updateAttrs=toggle,speed overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays,doubleLinks";
-
 // Record kind bytes (first byte of every record). Must match input_codec.go.
 // Kinds 1 (resume) and 2 (pause) removed — the play/pause clock gate was deleted
 // end-to-end. Intentional gaps (never renumber a live wire value).
 // Kind 3 (IN_KIND_RESEND) removed — intentional gap, see comment above.
-export const IN_KIND_SAVE = 4;
 // Kind 5 (IN_KIND_FADE_TOGGLE) removed — the fade feature was deleted end-to-end.
-export const IN_KIND_RAW_INPUT = 10;
 // Kind 20 (IN_KIND_EDIT_CREATE) removed — edge creation via edit op was deleted
 // end-to-end. Intentional gap, per house style (never renumber a live wire value).
 // Kind 21 (IN_KIND_EDIT_DELETE) removed — same removal as above.
-export const IN_KIND_EDIT_UPDATE = 22;
-
-// Enum orderings (u8 index → string), shared with input_codec.go.
-export const IN_EVENT_KINDS = ["pointerdown", "pointermove", "pointerup", "wheel", "home"] as const;
-export const IN_HIT_KINDS = ["port", "handhold", "node", "edge", "torus", "empty"] as const;
+//
 // IN_UPDATE_KINDS is the shared edit-update ENTITY vocabulary. It is the 3rd parity source
 // (with messages.ts EditMsg kinds + stdin_reader.go applyUpdate) checked by
-// check-edit-op-parity.sh axis 2 — the sentinels below bound that extraction. overlays is
-// the sole live edit-update entity; camera/node/edge left the wire when their edits became
-// gesture-FSM-in-process (raw-input), and scene became the bare save COMMAND.
-// EDIT_UPDATE_KINDS_START
-export const IN_UPDATE_KINDS = ["overlays", "clock"] as const;
-// EDIT_UPDATE_KINDS_END
+// check-edit-op-parity.sh axis 2 — the EDIT_UPDATE_KINDS_START/_END sentinels bounding that
+// extraction now live in ./input-layout-gen.ts, around the generated array literal. overlays
+// is the sole live edit-update entity; camera/node/edge left the wire when their edits
+// became gesture-FSM-in-process (raw-input), and scene became the bare save COMMAND.
+//
 // IN_UPDATE_ATTRS is the shared update sub-attribute vocabulary, u8 index on the wire.
 // "toggle" is overlays' single-flag toggle. The former "set" full-visibility-snapshot attr
 // was removed (its only caller, the load-time main.tsx push, was deleted; no live TS sender
 // remained). "speed" is clock's playback-speed multiplier (0/1/2 from the slider).
-export const IN_UPDATE_ATTRS = ["toggle", "speed"] as const;
+//
+// All of the above (fingerprint, kind bytes, enum arrays) are GENERATED — see ./input-layout-gen.ts.
+export {
+  INPUT_LAYOUT_FINGERPRINT,
+  IN_KIND_SAVE,
+  IN_KIND_RAW_INPUT,
+  IN_KIND_EDIT_UPDATE,
+  IN_EVENT_KINDS,
+  IN_HIT_KINDS,
+  IN_UPDATE_KINDS,
+  IN_UPDATE_ATTRS,
+} from "./input-layout-gen";
 
+import {
+  IN_KIND_SAVE,
+  IN_KIND_RAW_INPUT,
+  IN_KIND_EDIT_UPDATE,
+  IN_EVENT_KINDS,
+  IN_HIT_KINDS,
+  IN_UPDATE_KINDS,
+} from "./input-layout-gen";
 import type { RawInputEvent, OverlayFlag } from "../messages";
 import { OVERLAY_FLAG_ORDER } from "../messages";
 

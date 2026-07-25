@@ -32,8 +32,10 @@ STDIN_READER="$REPO_ROOT/nodes/Wiring/stdin_reader.go"
 MESSAGES_TS="$REPO_ROOT/tools/topology-vscode/src/messages.ts"
 # The 3rd update-kind parity source moved from handle-message.ts's dispatch switch (removed
 # when the TS→Go bridge became a binary buffer) to the shared IN_UPDATE_KINDS schema, which
-# is the single TS list of edit-update entity kinds the encoders key off.
-HANDLE_MSG="$REPO_ROOT/tools/topology-vscode/src/schema/input-layout.ts"
+# is the single TS list of edit-update entity kinds the encoders key off. IN_UPDATE_KINDS
+# itself is GENERATED (from Go's InputLayoutFingerprint) into input-layout-gen.ts, so that is
+# the file carrying the sentinel-bound literal now, not the hand-authored input-layout.ts.
+HANDLE_MSG="$REPO_ROOT/tools/topology-vscode/src/schema/input-layout-gen.ts"
 # overlay-flags.ts is the HAND-AUTHORED overlay renderer: it reflects each Go-owned overlay
 # column out of the binary content buffer. Its per-flag bit reads (readOverlay*) + its
 # OverlayFlagVals object literal are the TS-side consumer that must stay in sync with the

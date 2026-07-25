@@ -39,11 +39,11 @@ of this file is the only entry point you need.
 2. The generated `node-defs.ts` is the single registry — no separate `registry.ts`
    exists. The schema dir is `tools/topology-vscode/src/schema/`.
 3. The Go node package under `nodes/<Kind>/`.
-4. Run `go run ./tools/gen-kind-imports` to refresh `kinds_generated.go`. That file's blank
-   imports are what make a package's `init()` — and therefore its `Wiring.Register` call —
-   run at all. **Skip this and the kind does not exist in the binary**: it fails at runtime
-   with `unknown type "X"` while its SPEC.md, Go package, and `NODE_DEFS` entry all look
-   correct. Guard: `check-kind-imports.sh`.
+4. Run `go run ./tools/gen-node-defs` (the single generator pipeline; also refreshes
+   `kinds_generated.go`). That file's blank imports are what make a package's `init()` — and
+   therefore its `Wiring.Register` call — run at all. **Skip this and the kind does not exist
+   in the binary**: it fails at runtime with `unknown type "X"` while its SPEC.md, Go package,
+   and `NODE_DEFS` entry all look correct. Guard: `check-generated.sh`.
 
 If a new kind needs a **new column in the content buffer**, add it to the hand-authored
 schema (`Buffer/layout.go`, the `buf:"…"` struct tags) and regenerate in the same commit —

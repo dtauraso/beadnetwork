@@ -9,18 +9,17 @@
 //     NOT a TS-derived centroid over node centers
 
 import { describe, it, expect } from "vitest";
-import { decodeViewFrame, decodeNodeFrame } from "../src/webview/three/buffer-decode";
+import { decodeViewFrame, INTERIOR_SLOTS_PER_NODE, type DecodedNodeFrame } from "../src/webview/three/buffer-decode";
 import {
   decodeNavNodes, sceneSphereFromSnapshot,
 } from "../src/webview/three/buffer-nav";
 import {
-  NODE_STRIDE, INTERIOR_STRIDE, CAMERA_STRIDE, OVERLAY_STRIDE, SCENE_STRIDE,
+  NODE_STRIDE, INTERIOR_STRIDE, PORT_STRIDE, CAMERA_STRIDE, OVERLAY_STRIDE, SCENE_STRIDE,
   NODE_COL_CX, NODE_COL_CY, NODE_COL_CZ, NODE_COL_RADIUS,
   NODE_COL_SPHERE_R, NODE_COL_SELECTED, NODE_COL_LABEL_OFF, NODE_COL_LABEL_LEN,
   SCENE_COL_CX, SCENE_COL_CY, SCENE_COL_CZ, SCENE_COL_RADIUS,
 } from "../src/schema/buffer-layout";
-import { BUF_NODE_FRAME_HEADER_SIZE, BUF_VIEW_FRAME_HEADER_SIZE } from "../src/schema/frame-tags";
-import { INTERIOR_SLOTS_PER_NODE } from "../src/webview/three/buffer-decode";
+import { BUF_VIEW_FRAME_HEADER_SIZE } from "../src/schema/frame-tags";
 
 type NodeFields = {
   cx?: number; cy?: number; cz?: number; radius?: number; sphereR?: number;
@@ -29,39 +28,49 @@ type NodeFields = {
 
 type SceneFields = { cx?: number; cy?: number; cz?: number; radius?: number };
 
-// Build a NODE frame (BUF_BLOCK_TAG_NODE) with `nodeCount` node rows. Labels are
-// concatenated into the trailing label section and each node's LabelOff/LabelLen columns
-// point into it.
-function makeNodeFrame(nodeCount: number, fields: NodeFields[]): ArrayBuffer {
+// Build a DecodedNodeFrame directly (no combined NODE-tag wire frame exists anymore — Go
+// streams per-node NODE_STREAM frames, aggregated into this shape by node-stream-blocks.ts
+// in production). Labels are concatenated into a trailing label-bytes buffer and each
+// node's LabelOff/LabelLen columns point into it, mirroring the aggregator's output.
+function makeNodeFrame(nodeCount: number, fields: NodeFields[]): DecodedNodeFrame {
   const nodeBytes = nodeCount * NODE_STRIDE;
-  const interiorBytes = nodeCount * INTERIOR_SLOTS_PER_NODE * INTERIOR_STRIDE;
+  const interiorCount = nodeCount * INTERIOR_SLOTS_PER_NODE;
+  const interiorBytes = interiorCount * INTERIOR_STRIDE;
   const enc = new TextEncoder();
   const labelChunks = fields.map((f) => enc.encode(f.label ?? ""));
   const labelBytesCount = labelChunks.reduce((n, c) => n + c.length, 0);
-  const total = BUF_NODE_FRAME_HEADER_SIZE + nodeBytes + interiorBytes + labelBytesCount;
-  const buf = new ArrayBuffer(total);
-  const dv = new DataView(buf);
-  dv.setUint32(4, nodeCount, true);        // nodeCount header field
-  dv.setUint32(12, labelBytesCount, true); // labelBytesCount header field
-  const nodeOff = BUF_NODE_FRAME_HEADER_SIZE;
-  const labelSecOff = nodeOff + nodeBytes + interiorBytes;
-  const labelView = new Uint8Array(buf, labelSecOff, labelBytesCount);
+
+  const nodeBuf = new ArrayBuffer(nodeBytes);
+  const nodeView = new DataView(nodeBuf);
+  const labelBytes = new Uint8Array(labelBytesCount);
   let labelCursor = 0;
   fields.forEach((f, row) => {
-    const base = nodeOff + row * NODE_STRIDE;
-    if (f.cx !== undefined) dv.setFloat32(base + NODE_COL_CX, f.cx, true);
-    if (f.cy !== undefined) dv.setFloat32(base + NODE_COL_CY, f.cy, true);
-    if (f.cz !== undefined) dv.setFloat32(base + NODE_COL_CZ, f.cz, true);
-    if (f.radius !== undefined) dv.setFloat32(base + NODE_COL_RADIUS, f.radius, true);
-    if (f.sphereR !== undefined) dv.setFloat32(base + NODE_COL_SPHERE_R, f.sphereR, true);
-    if (f.selected !== undefined) dv.setUint8(base + NODE_COL_SELECTED, f.selected);
+    const base = row * NODE_STRIDE;
+    if (f.cx !== undefined) nodeView.setFloat32(base + NODE_COL_CX, f.cx, true);
+    if (f.cy !== undefined) nodeView.setFloat32(base + NODE_COL_CY, f.cy, true);
+    if (f.cz !== undefined) nodeView.setFloat32(base + NODE_COL_CZ, f.cz, true);
+    if (f.radius !== undefined) nodeView.setFloat32(base + NODE_COL_RADIUS, f.radius, true);
+    if (f.sphereR !== undefined) nodeView.setFloat32(base + NODE_COL_SPHERE_R, f.sphereR, true);
+    if (f.selected !== undefined) nodeView.setUint8(base + NODE_COL_SELECTED, f.selected);
     const chunk = labelChunks[row]!;
-    dv.setUint32(base + NODE_COL_LABEL_OFF, labelCursor, true);
-    dv.setUint32(base + NODE_COL_LABEL_LEN, chunk.length, true);
-    labelView.set(chunk, labelCursor);
+    nodeView.setUint32(base + NODE_COL_LABEL_OFF, labelCursor, true);
+    nodeView.setUint32(base + NODE_COL_LABEL_LEN, chunk.length, true);
+    labelBytes.set(chunk, labelCursor);
     labelCursor += chunk.length;
   });
-  return buf;
+
+  return {
+    tick: 0,
+    nodeCount,
+    nodeView,
+    interiorCount,
+    interiorView: new DataView(new ArrayBuffer(interiorBytes)),
+    portCount: 0,
+    portView: new DataView(new ArrayBuffer(0 * PORT_STRIDE)),
+    labelBytesCount,
+    labelBytes,
+    portNameBytes: new Uint8Array(0),
+  };
 }
 
 // Build a VIEW-stream frame (camera+overlay+scene) with the Scene block filled — the live
@@ -84,11 +93,10 @@ function makeSceneSnapshot(scene?: SceneFields): ArrayBuffer {
 
 describe("decodeNavNodes — row identity + buffer-sourced label", () => {
   it("maps buffer node row i to NavNode i with its geometry, selection, and label", () => {
-    const buf = makeNodeFrame(2, [
+    const decoded = makeNodeFrame(2, [
       { cx: 1, cy: 2, cz: 3, radius: 10, sphereR: 40, selected: 0, label: "Alpha" },
       { cx: -5, cy: 6, cz: 7, radius: 12, sphereR: 0, selected: 1, label: "β-node" },
     ]);
-    const decoded = decodeNodeFrame(buf)!;
     const nav = decodeNavNodes(decoded);
 
     expect(nav).toHaveLength(2);
@@ -109,8 +117,7 @@ describe("decodeNavNodes — row identity + buffer-sourced label", () => {
   });
 
   it("decodes an empty label as the empty string", () => {
-    const buf = makeNodeFrame(1, [{ cx: 0, cy: 0, cz: 0, radius: 1, label: "" }]);
-    const decoded = decodeNodeFrame(buf)!;
+    const decoded = makeNodeFrame(1, [{ cx: 0, cy: 0, cz: 0, radius: 1, label: "" }]);
     const nav = decodeNavNodes(decoded);
     expect(nav[0]!.label).toBe("");
   });

@@ -11,8 +11,7 @@ set -euo pipefail
 #   check-doc-citations.sh      (cited-path resolution)
 #   check-no-nul-bytes.sh       (literal 0x00 scan)
 #   check-send-rule-parity.sh   (nodes/Wiring/*.go send-rule scan)
-#   check-generated.sh          (asserts each generated file is tracked)
-#   check-kind-imports.sh       (asserts the generated import file is tracked)
+#   check-generated.sh          (asserts each generated file is tracked, incl. kinds_generated.go)
 #
 # so a brand-new file gets ZERO coverage from any of them until it is tracked.
 # That is backwards: new code is the most likely to have a problem and the
