@@ -373,7 +373,7 @@ func (pw *PacedWire) stepAll(tick int64) {
 			emit, pos, final := pw.advanceBead(b, nowTick)
 			if emit {
 				pw.pending = append(pw.pending, pendingWireEvent{
-					kind: T.KindPosition, value: pos.val,
+					kind: T.KindEdgeBead, value: pos.val,
 					x: pos.x, y: pos.y, z: pos.z, t: pos.t, gen: pos.gen,
 				})
 			}

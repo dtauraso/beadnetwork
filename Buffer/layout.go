@@ -54,7 +54,7 @@ const BufInteriorSlotsPerNode = 4
 // The generator computes byte offsets and stride from buf: tags.
 
 // bufLayoutBead defines one row of the beads column block.
-// One row per live in-flight bead. Matched from KindPosition trace events.
+// One row per live in-flight bead. Matched from KindEdgeBead trace events.
 type bufLayoutBead struct {
 	X     float32 `buf:"f32"` // world x position
 	Y     float32 `buf:"f32"` // world y position
