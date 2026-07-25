@@ -82,7 +82,6 @@ type placeRequest struct {
 //
 // Every field here is touched by EXACTLY ONE goroutine: this wire's own (folded
 // into edgeMover.run via driveOneCycle — see the PacedWire doc comment below).
-// There is no lock; ownership replaces locking.
 type inflightBead struct {
 	val           int
 	placementTick float64     // this wire's own tick reading when placed (fractional after a geometry rebase)
@@ -124,16 +123,15 @@ func (pw *PacedWire) ticksToCross(arc float64) float64 {
 //   - outCh is the wire's OUT-CHANNEL: the destination node's own goroutine calls
 //     RecvTick/Recv, a non-blocking buffered-channel receive.
 //   - inflight/nextGen/pulseSpeed are owned EXCLUSIVELY by the wire's
-//     own goroutine (driveOneCycle, called every cycle from edgeMover.run) — no
-//     lock guards them; there is exactly one writer and one reader (the same
-//     goroutine). The no-mutex rule here is enforced by tools/check-no-network-locks.sh.
+//     own goroutine (driveOneCycle, called every cycle from edgeMover.run) — exactly
+//     one writer and one reader (the same goroutine).
 type PacedWire struct {
 	inCh  chan placeRequest
 	outCh chan deliveredBead
 
 	// Owned exclusively by this wire's own goroutine (driveOneCycle and its
 	// helpers, and ReviseInFlightGeometry — both called only from edgeMover.run,
-	// which IS this wire's goroutine). No mu.
+	// which IS this wire's goroutine).
 	inflight []inflightBead
 	// nextGen mints a unique id for each placed bead (the bead's emitted identity).
 	nextGen    uint64

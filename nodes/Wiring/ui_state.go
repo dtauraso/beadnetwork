@@ -66,8 +66,8 @@ type uiState struct {
 	// each change to the owning mover's own dedicated channel (moveMsgKindSelect/Hover/
 	// Latched/AbcReset — see setSelectionUI/setHoverUI/resetAbcDrag). Each mover stores its
 	// OWN selected/hovered/latchedSel/gotDragMsg/dragDelta*/kindID fields (nodeMover) or
-	// selected field (edgeMover) and writes them into its own stream frame — no shared map,
-	// no mutex, no atomic. tr.Select/tr.Hover/tr.AbcDrag/tr.AbcDragReset still fire
+	// selected field (edgeMover) and writes them into its own stream frame — no shared map.
+	// tr.Select/tr.Hover/tr.AbcDrag/tr.AbcDragReset still fire
 	// alongside this, but ONLY for the -trace/.probe EVENT LOG (the central accumulator
 	// that used to also feed a fallback packer was deleted
 	// entirely — memory/feedback_no_single_writer_bridge.md's final step; WIREFOLD_STREAM_FDS is now

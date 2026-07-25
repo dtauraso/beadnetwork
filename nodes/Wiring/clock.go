@@ -92,13 +92,9 @@ type Clock interface {
 // a condition variable — pacing loops call SleepCycle (wall time.After) and
 // re-check Tick() themselves.
 type RealClock struct {
-	// No mutex here on purpose (the no-lock rule is enforced by
-	// tools/check-no-network-locks.sh): a RealClock is held by exactly ONE goroutine —
-	// the only thing that reads or writes its state — so nothing races it. Deleting mu is
-	// also what makes RealClock legal to COPY: `sync.Mutex` is a `go vet` copylocks
-	// violation, so with mu gone `c2 := *c1` is a plain value copy — and that copy is how a
-	// goroutine gets ITS OWN independent clock, inheriting origin/accScaled/speed by value
-	// (a later SetSpeed on one copy is correctly invisible to the other).
+	// RealClock is copied by VALUE: `c2 := *c1` is how a goroutine gets ITS OWN
+	// independent clock, inheriting origin/accScaled/speed by value (a later SetSpeed on
+	// one copy is correctly invisible to the other).
 	// speed is the current playback multiplier (>= 0). Default 1.
 	speed float64
 	// accScaled is scaled elapsed accumulated across all PRIOR speed segments, up
