@@ -90,6 +90,21 @@ const (
 	// (gotDragMsg/dragDeltaA/B/C) at the start of a new drag. Broadcast to every node
 	// mover from resetAbcDrag.
 	moveMsgKindAbcReset = "abcReset"
+	// moveMsgKindNeighborCenter is the PUSH delivery of a moved node's fresh world
+	// center to one of its direct neighbors, replacing the old cross-goroutine
+	// `other.snap.Load().c` read the neighbor's aimed-port partnerCenter lookup used to
+	// perform. Sent from applyCenter (the sole write site of a node's own center)
+	// immediately after that node updates its own position, to EVERY node in its own
+	// neighborIn key set (one hop only — the receiver never forwards this). The
+	// receiver stores the pushed center in its OWN partnerCenters map (nodeMover.handle)
+	// and re-emits its own geometry so its aimed ports pick up the fresh partner
+	// center — same value, same timing (the FIFO per-destination retry queue delivers
+	// this before the existing nil-Center re-emit broadcastToEdgesAndPartners sends
+	// right after, so the re-emit always sees the just-pushed center), just delivered
+	// by message instead of a shared atomic read. Reuses the existing SenderID/
+	// FromCenter fields (same shape moveMsgKindNeighborSetC already carries: sender id
+	// + sender's fresh center).
+	moveMsgKindNeighborCenter = "neighborCenter"
 )
 
 // centerSnap is an immutable snapshot of a node's position published by the nodeMover
@@ -578,20 +593,28 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 		}
 	}
 	// Wire each nodeMover's aimed-port lookup: for (port,isInput) on nodeID, find its one
-	// edge (edgeEndpoints) and read the partner's CURRENT center off the partner
-	// nodeMover's atomic snap (md.mr.nodeMovers is a read-only map after this point — only the
-	// individual *nodeMover.snap is read cross-goroutine, via the existing atomic pattern).
+	// edge (edgeEndpoints) and read the partner's CURRENT center off THIS node's OWN
+	// partnerCenters map (owned, written only by this node's own goroutine — see
+	// nm.partnerCenters' doc comment). This closure captures THIS iteration's nm (Go
+	// 1.22+ per-iteration loop vars), never another mover's fields — the cross-goroutine
+	// atomic snap read (other.snap.Load().c) is gone; the value now arrives by a
+	// moveMsgKindNeighborCenter push (applyCenter) instead.
 	for id, nm := range md.mr.nodeMovers {
+		ownNM := nm
 		nm.partnerCenter = buildPartnerCenterFn(id, edgeEndpoints, func(otherID string) vec3 {
-			other, ok := md.mr.nodeMovers[otherID]
-			if !ok {
-				return vec3{}
-			}
-			if s := other.snap.Load(); s != nil {
-				return s.c
-			}
-			return vec3{}
+			return ownNM.partnerCenters[otherID]
 		})
+		// Seed partnerCenters at construction (single-threaded setup, before md.Start —
+		// no mover goroutine is running yet, so reading a neighbor's geom directly here
+		// is safe) with the SAME value the old snap seed used (newNodeMover seeds snap
+		// from nodeWorldPos(geom)), so the first emit reproduces today's center exactly.
+		// A node's neighbor set is nm.neighborIn's key set (populated above from
+		// edgeEndpoints — one dedicated channel per adjacent node, both directions).
+		for neighborID := range nm.neighborIn {
+			if other, ok := md.mr.nodeMovers[neighborID]; ok {
+				nm.partnerCenters[neighborID] = nodeWorldPos(other.geom)
+			}
+		}
 	}
 	// Give every nodeMover the ids of its OWN incident edges, so a lock-driven move can
 	// notify its edges via sendMove (resolveDest's per-pair channel lookup) — no cached

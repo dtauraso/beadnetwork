@@ -136,6 +136,19 @@ type nodeMover struct {
 	// b.edgeEndpoints + the OTHER nodeMover's atomic snap — a dynamic, always-current lookup
 	// with no shared mutable state. nil only in tests that build a bare nodeMover directly.
 	partnerCenter partnerCenterFn
+	// partnerCenters is THIS node's OWN copy of every direct neighbor's last-known
+	// world center — the delivery-mechanism replacement for the old cross-goroutine
+	// `other.snap.Load().c` read: partnerCenter's closure (above) now reads this map
+	// instead of reaching into another mover's atomic snap. Written ONLY by this
+	// node's own goroutine: seeded once at construction (newMoveDispatch, single-
+	// threaded setup) from each neighbor's load-time geom, then kept current by the
+	// moveMsgKindNeighborCenter handler in handle() below, fed by every direct
+	// neighbor's own applyCenter push. Never read or written by any other goroutine —
+	// the atomic snap (nm.snap) remains the cross-goroutine-safe publication point for
+	// every OTHER reader (stdin reader, the gesture/quantize oracle); this map exists
+	// solely to serve THIS node's own partnerCenter lookups without touching that
+	// atomic.
+	partnerCenters map[string]vec3
 	// quantOffset is THIS node's own quantized polar offset (iTheta,iPhi,iR + step
 	// constants) about the scene center — the per-node replacement for the formerly
 	// shared md.quantizedOffsets map, which one mover goroutine's read could race
@@ -267,7 +280,8 @@ func newNodeMover(id string, geom nodeGeom, tr *T.Trace, clockSrc Clock) *nodeMo
 	nm := &nodeMover{
 		id: id, geom: geom,
 		extIn: make(chan moveMsg, 8), neighborIn: map[string]chan moveMsg{}, tr: tr,
-		clockSrc: clockSrc, clk: NewRealClock(),
+		partnerCenters: map[string]vec3{},
+		clockSrc:       clockSrc, clk: NewRealClock(),
 	}
 	// Seed the atomic snapshot from the initial geometry (even when !HasPos, in which case
 	// nodeWorldPos falls back to the origin) so readers — including another node's aimed-port
@@ -372,6 +386,23 @@ func (m *nodeMover) handle(msg moveMsg) {
 		m.dragDeltaA, m.dragDeltaB, m.dragDeltaC = 0, 0, 0
 		return
 	}
+	if msg.Kind == moveMsgKindNeighborCenter {
+		// Delivery-mechanism push (see applyCenter/partnerCenters' doc comments): a
+		// direct neighbor's OWN center just changed. Store it in THIS node's owned
+		// partnerCenters map (write, own goroutine only) and re-emit THIS node's own
+		// geometry so its aimed ports pick up the fresh partner center — same value,
+		// same effect as the old cross-goroutine snap read, just message-delivered.
+		// ONE HOP ONLY: this node's own center did NOT change, so it must never push
+		// a NeighborCenter of its own onward from here (no cascade past this point).
+		if m.partnerCenters == nil {
+			m.partnerCenters = map[string]vec3{}
+		}
+		m.partnerCenters[msg.SenderID] = msg.FromCenter
+		if m.tr != nil {
+			m.emitGeometry()
+		}
+		return
+	}
 	if msg.Kind == moveMsgKindNeighborSetC {
 		// Neighbor edge re-quantize (receiver-computes, one hop, no forward): SenderID
 		// (the dragged node) moved to msg.FromCenter; THIS node stays put and re-quantizes
@@ -415,6 +446,19 @@ func (m *nodeMover) applyCenter(center vec3, reach float64) {
 	setNodeWorld(&m.geom, center)
 	m.geom.ReachR = reach
 	m.snap.Store(&centerSnap{c: center, p: m.geom.ScenePolar, reach: reach})
+	// Push this fresh center to every direct neighbor (nm.neighborIn's key set — one
+	// hop, no cascade) so each neighbor's OWN partnerCenters map picks it up via
+	// moveMsgKindNeighborCenter (handle, below) — the delivery-mechanism replacement
+	// for the old cross-goroutine atomic snap read. Routed through m.sendMove (this
+	// node's own retry queue), same as every other fan-out this file makes, so a
+	// momentarily-full neighbor inbox is retried, never dropped or blocking. Sent
+	// BEFORE this same commit's broadcastToEdgesAndPartners nil-Center re-emit (called
+	// right after applyCenter by every live caller), so per-destination FIFO delivers
+	// this push first and the re-emit always sees the just-pushed center.
+	for neighborID := range m.neighborIn {
+		m.sendMove(neighborID, moveMsg{Kind: moveMsgKindNeighborCenter, NodeID: neighborID,
+			SenderID: m.id, FromCenter: center})
+	}
 	if m.tr != nil {
 		m.emitGeometry()
 	}
