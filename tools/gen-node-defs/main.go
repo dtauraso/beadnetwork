@@ -268,6 +268,16 @@ func main() {
 	}
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d blocks)\n", bufLayoutTSPath, len(bufSchema.blocks))
 
+	frameTagsGoPath := filepath.Join(repoRoot, "Buffer", "frame_tags.go")
+	frameTagsHeader, frameTagConsts, err := parseFrameTags(frameTagsGoPath)
+	if err != nil {
+		fatalf("parse frame tags: %v", err)
+	}
+	frameTagsTSPath := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "schema", "frame-tags.ts")
+	if err := writeFrameTags(frameTagsTSPath, frameTagsHeader, frameTagConsts); err != nil {
+		fatalf("write %s: %v", frameTagsTSPath, err)
+	}
+	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d constants)\n", frameTagsTSPath, len(frameTagConsts))
 }
 
 // findRepoRoot walks up from dir until it finds a directory containing "nodes/".

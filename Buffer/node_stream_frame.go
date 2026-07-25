@@ -16,12 +16,8 @@ package Buffer
 
 import "encoding/binary"
 
-// BufNodeStreamLayoutLinkStride is the byte width of ONE layout-link row within a node
-// stream frame: [DstNodeRow:i32][EdgeRow:i32]. Narrower than the combined LayoutLink
-// block's BufLayoutLinkStride (12 bytes, SrcNodeRow+DstNodeRow+EdgeRow) because on a
-// per-node stream the source IS this node — its own row is implicit (the fd position /
-// the aggregator's row index), so only the dst endpoint + resolved edge row travel.
-const BufNodeStreamLayoutLinkStride = 8
+// BufNodeStreamLayoutLinkStride now lives in Buffer/frame_tags.go (envelope constants,
+// generated into frame-tags.ts alongside the other frame envelope sizes).
 
 // BuildNodeStreamFrame packs one node's combined per-fd frame payload (no outer tag byte
 // — the fd position already identifies which node this is):
@@ -70,7 +66,7 @@ func BuildNodeStreamFrame(
 	}
 	layoutLinkCount := len(dstNodeRows)
 
-	size := 20 + BufNodeStride + len(labelBytes) + portCount*BufPortStride + len(portNameBytes) +
+	size := BufNodeStreamFrameHeaderSize + BufNodeStride + len(labelBytes) + portCount*BufPortStride + len(portNameBytes) +
 		layoutLinkCount*BufNodeStreamLayoutLinkStride
 	buf := make([]byte, size)
 	off := 0
@@ -119,7 +115,7 @@ func BuildNodeStreamFrame(
 // block. present/value/ox/oy/oz are parallel slices, same length, same slot order.
 func BuildInteriorStreamFrame(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []StreamEvent) []byte {
 	n := len(present)
-	buf := make([]byte, 4+n*BufInteriorStride)
+	buf := make([]byte, BufInteriorStreamFrameHeaderSize+n*BufInteriorStride)
 	binary.LittleEndian.PutUint32(buf[0:], tick)
 	interiorBuf := buf[4:]
 	for i := 0; i < n; i++ {

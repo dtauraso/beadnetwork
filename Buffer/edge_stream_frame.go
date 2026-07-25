@@ -32,7 +32,7 @@ import "encoding/binary"
 func BuildEdgeStreamFrame(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, beadVal []int32, beadX, beadY, beadZ []float32, events []StreamEvent) []byte {
 	labelBytes := []byte(label)
 	beadCount := len(beadVal)
-	size := 4 + BufEdgeStride + len(labelBytes) + 4 + beadCount*BufBeadStride
+	size := BufEdgeStreamFrameHeaderSize + BufEdgeStride + len(labelBytes) + 4 + beadCount*BufBeadStride
 	buf := make([]byte, size)
 	off := 0
 	binary.LittleEndian.PutUint32(buf[off:], tick)
