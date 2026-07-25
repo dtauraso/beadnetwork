@@ -142,8 +142,8 @@ type PacedWire struct {
 	nextGen    uint64
 	pulseSpeed float64
 
-	Target       string   // destination node id — authoritative slot identity
-	TargetHandle string   // destination input-port name — authoritative slot identity
+	Target       string   // destination node id — the wire's destination routing key
+	TargetHandle string   // destination input-port name — the wire's destination routing key
 	Trace        *T.Trace // injected by loader; used for breadcrumb diagnostics only
 
 	// snap is an atomically-published, READ-ONLY snapshot of every in-flight
