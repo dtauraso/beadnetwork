@@ -656,8 +656,8 @@ func (b *buildCtx) buildNodes() error {
 		// list carries every clock-owning goroutine across the whole build.
 		pb.speedSinks = &b.speedSinks
 		// md gives injectClosures's interior-bead Emit* closures access to this node's
-		// OWN dedicated interior fd (md.interiorOuts, keyed by node id) + the injected
-		// frame builder (md.buildInteriorFrame) — the SECOND emitting goroutine per node
+		// OWN dedicated interior fd (md.sw.interiorOuts, keyed by node id) + the injected
+		// frame builder (md.sw.buildInteriorFrame) — the SECOND emitting goroutine per node
 		// (memory/feedback_no_single_writer_bridge.md). nil until SetNodeStreams runs
 		// (main.go, after LoadTopology returns); the Emit* closures nil-check both before
 		// writing and no-op until then.

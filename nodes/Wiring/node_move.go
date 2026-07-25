@@ -28,9 +28,6 @@ package Wiring
 
 import (
 	"context"
-	"fmt"
-	"io"
-	"os"
 	"sort"
 	"sync"
 	"sync/atomic"
@@ -213,40 +210,12 @@ type MoveDispatch struct {
 	// the same way vp/ov/gest are, so a bare test-constructed MoveDispatch only has to
 	// reason about one zero-value sub-struct instead of six loose nilable fields.
 	persist persisters
-	// interiorOuts holds ONE dedicated per-node interior-bead fd, keyed by node id — the
-	// SECOND emitting goroutine per node (its own Update loop, not its nodeMover) writes
-	// here (memory/feedback_no_single_writer_bridge.md). Populated ONCE by
-	// SetNodeStreams, BEFORE any node's Update goroutine launches (mirrors
-	// SetEdgeStreams' "wire before launch" ordering) — read-only afterward, so a node's
-	// own Update-loop closures (builders.go's injectClosures) can look it up by name with
-	// no lock. nil map entries / a nil map itself (no WIREFOLD_STREAM_FDS "interior"
-	// entry) mean the interior frame is simply never written for that node — tr.NodeBead
-	// is a cheap no-op on the live path (neither its sink nor its onEvent hook is wired
-	// in production).
-	interiorOuts map[string]io.Writer
-	// buildInteriorFrame packs one node's fixed-slot interior frame bytes
-	// (Buffer.BuildInteriorStreamFrame), injected here (rather than importing Buffer) so
-	// this package stays Buffer-independent, matching portRowFor/buildFrame's existing
-	// interface-injection pattern on edgeMover.
-	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []RowEvent) []byte
-	// --- the dedicated VIEW stream (memory/feedback_no_single_writer_bridge.md,
-	// memory/feedback_no_single_writer_bridge.md Step C) --- see view_stream.go.
-	//
-	// viewOut, when non-nil, is the VIEW stream's OWN dedicated fd (see SetViewStream /
-	// Buffer/stream_fds.go's StreamKindView). Nil (the default — no WIREFOLD_STREAM_FDS
-	// "view" entry, e.g. headless tests) means emitViewFrame is a no-op: nothing here
-	// ever writes, and camera/overlay/scene are simply never emitted. Written ONLY by
-	// the gesture/stdin-reader
-	// goroutine (the sole caller of every MoveDispatch method that can change camera/
-	// overlay/scene/selection/hover) — no lock.
-	viewOut io.Writer
-	// viewBuildFrame packs this goroutine's own VIEW frame (Buffer.BuildViewStreamFrame),
-	// injected via SetViewStream so this package stays Buffer-independent, mirroring
-	// buildInteriorFrame/buildFrame's existing interface-injection pattern.
-	viewBuildFrame ViewFrameBuilder
-	// viewTick is a purely local frame-sequence counter for the VIEW stream (not shared
-	// with any other stream's tick) — written only by the gesture/stdin-reader goroutine.
-	viewTick uint32
+	// sw owns the fd-wiring for the per-node interior stream and the dedicated VIEW
+	// stream (stream_wiring.go). MoveDispatch's public SetEdgeStreams/SetNodeStreams
+	// methods stay as thin delegators so the external API is unchanged; view_stream.go's
+	// emitViewFrame reads md.sw.viewOut/viewBuildFrame/viewTick directly (it also reads
+	// md.vp/md.ov/md.sceneSphere/md.abcDragCount, which are NOT part of this extraction).
+	sw streamWiring
 	// abcDragCh is the non-blocking, message-passing bridge from an abc-drag RECIPIENT's
 	// own nodeMover goroutine (quantized_move.go's neighborSetCRequantize, potentially many
 	// different goroutines) to the ONE gesture/stdin-reader goroutine that owns
@@ -423,18 +392,7 @@ func (md *MoveDispatch) SetEdgeStreams(
 	nodeRowFor func(id string) (int32, bool),
 	buildFrame func(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, beadVal []int32, beadX, beadY, beadZ []float32, events []RowEvent) []byte,
 ) {
-	for row, seed := range md.gs.edgeSeeds {
-		em, ok := md.edgeMovers[seed.Label]
-		if !ok {
-			continue
-		}
-		fd := baseFd + row
-		em.streamOut = os.NewFile(uintptr(fd), fmt.Sprintf("edge-fd%d", fd))
-		em.edgeRow = int32(row)
-		em.portRowFor = portRowFor
-		em.nodeRowFor = nodeRowFor
-		em.buildFrame = buildFrame
-	}
+	md.sw.setEdgeStreams(md.gs.edgeSeeds, md.edgeMovers, baseFd, portRowFor, nodeRowFor, buildFrame)
 }
 
 // SetNodeStreams wires every nodeMover to ITS OWN dedicated node-fd (geometry+ports+
@@ -460,28 +418,7 @@ func (md *MoveDispatch) SetNodeStreams(
 	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []RowEvent) []byte,
 	kindIDFor func(kind string) uint8,
 ) {
-	md.interiorOuts = map[string]io.Writer{}
-	md.buildInteriorFrame = buildInteriorFrame
-	for row, seed := range md.gs.nodeSeeds {
-		nm, ok := md.nodeMovers[seed.ID]
-		if !ok {
-			continue
-		}
-		nFd := nodeBase + row
-		nm.streamOut = os.NewFile(uintptr(nFd), fmt.Sprintf("node-fd%d", nFd))
-		nm.nodeRow = int32(row)
-		// kindID is static per node (never changes after load) — resolved once here,
-		// directly onto the mover's own field, not via a per-emit lookup func.
-		if kindIDFor != nil {
-			nm.kindID = kindIDFor(seed.Kind)
-		}
-		nm.nodeRowFor = nodeRowFor
-		nm.edgeRowForPair = edgeRowForPair
-		nm.buildFrame = buildFrame
-
-		iFd := interiorBase + row
-		md.interiorOuts[seed.ID] = os.NewFile(uintptr(iFd), fmt.Sprintf("interior-fd%d", iFd))
-	}
+	md.sw.setNodeStreams(md.gs.nodeSeeds, md.nodeMovers, nodeBase, interiorBase, nodeRowFor, edgeRowForPair, buildFrame, buildInteriorFrame, kindIDFor)
 }
 
 // NodeGeomSeed is one node's load-time seed geometry, exported in spec order and consumed

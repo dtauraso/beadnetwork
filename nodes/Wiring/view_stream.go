@@ -45,8 +45,8 @@ type ViewFrameBuilder func(tick uint32,
 // (Buffer.BuildViewStreamFrame, injected from main.go). Call once at startup, before any
 // gesture/edit reaches RunStdinReader, when WIREFOLD_STREAM_FDS carries a "view" entry.
 func (md *MoveDispatch) SetViewStream(out io.Writer, buildFrame ViewFrameBuilder) {
-	md.viewOut = out
-	md.viewBuildFrame = buildFrame
+	md.sw.viewOut = out
+	md.sw.viewBuildFrame = buildFrame
 	md.abcDragCh = make(chan struct{}, 64)
 }
 
@@ -110,13 +110,13 @@ func (md *MoveDispatch) EmitBreadcrumb(ev RowEvent) {
 // abc-drag/overlay-toggle) — resolved to buffer rows by the caller, mirroring
 // owner_events.go's pattern for every other per-owner stream.
 func (md *MoveDispatch) emitViewFrame(events []RowEvent) {
-	if md.viewBuildFrame == nil {
+	if md.sw.viewBuildFrame == nil {
 		return
 	}
-	md.viewTick++
+	md.sw.viewTick++
 	v := md.vp.viewpoint
 	sc := md.sceneSphere
-	frame := md.viewBuildFrame(md.viewTick,
+	frame := md.sw.viewBuildFrame(md.sw.viewTick,
 		float32(v.pivot.X), float32(v.pivot.Y), float32(v.pivot.Z), float32(v.r),
 		float32(v.pos.Theta), float32(v.pos.Phi), float32(v.up.Theta), float32(v.up.Phi),
 		boolU8(md.ov.sceneToriVisible), boolU8(md.ov.scenePolesVisible), boolU8(md.ov.nodePolesVisible),
@@ -126,13 +126,13 @@ func (md *MoveDispatch) emitViewFrame(events []RowEvent) {
 		float32(sc.Center.X), float32(sc.Center.Y), float32(sc.Center.Z), float32(sc.Radius),
 		events,
 	)
-	if md.viewOut == nil {
+	if md.sw.viewOut == nil {
 		return
 	}
 	var hdr [4]byte
 	binary.LittleEndian.PutUint32(hdr[:], uint32(len(frame)))
 	// Fire-and-forget, same reasoning as every other stream's frame write in this codebase:
 	// no delivery guarantee on this channel, errors ignored.
-	_, _ = md.viewOut.Write(hdr[:])
-	_, _ = md.viewOut.Write(frame)
+	_, _ = md.sw.viewOut.Write(hdr[:])
+	_, _ = md.sw.viewOut.Write(frame)
 }
