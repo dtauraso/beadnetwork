@@ -70,10 +70,10 @@ func (md *MoveDispatch) commitDragStart(g *gestureState, ev rawInputMsg, tr *T.T
 	// Decentralized (Step C, memory/feedback_no_single_writer_bridge.md): this same goroutine also
 	// writes its own VIEW frame directly, carrying this one-time drag-start event.
 	md.emitViewFrame([]wire.RowEvent{{Kind: T.KindAbcDragReset, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}})
-	// Re-scope MoveDispatch's OWN published recipient set the same way (count is
-	// a cumulative total-events affirmation and is intentionally left alone — only
-	// the NAME SET is drag-scoped, mirroring the old central accumulator's
-	// KindAbcDragReset handling of its abcDragged/gotDragMsg).
+	// Re-scope MoveDispatch's OWN published recipient set the same way, AND zero
+	// ui.abcDragCount: the "drag received ×{count}" counter is per-drag, mirroring
+	// the old central accumulator's KindAbcDragReset handling of its
+	// abcDragged/gotDragMsg — both the NAME SET and the count are drag-scoped.
 	md.resetAbcDrag()
 	// Arm the dragged node's OWN drag-anchor snapshot (moveMsgKindDragStart, see
 	// its doc comment in node_move.go) at this same slop-crossing edge — the ONE

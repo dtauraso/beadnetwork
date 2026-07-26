@@ -9,10 +9,11 @@ import { useAbcDragCount, useAbcDragRows } from "./overlay-flags";
 //
 // All read-only from the content buffer (AbcDragCount Overlay column + the Node
 // block's per-row GotDragMsg flag and DragDeltaA/B/C columns), via the buffer-reflect
-// hooks in overlay-flags.ts. Go-owned and drag-scoped: Go clears the set at drag start
-// (KindAbcDragReset) and emits the cleared state, so an empty list is meaningful and
-// must render. The count alone is NOT enough to drive this — the drag-start clear does
-// not move the count, which is why the rows come through their own hook.
+// hooks in overlay-flags.ts. Go-owned and drag-scoped: Go clears the set AND zeroes
+// the count at drag start (KindAbcDragReset → resetAbcDrag) and emits the cleared
+// state, so an empty list (and a zeroed count) is meaningful and must render. The
+// count alone is still not enough to drive the per-recipient rows — the rows come
+// through their own hook.
 //
 // Node names live ONLY on the per-recipient lines, never duplicated into the header:
 // the header is the log's name line, the rows are the data.
