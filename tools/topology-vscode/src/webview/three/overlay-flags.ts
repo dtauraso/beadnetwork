@@ -197,11 +197,13 @@ export function useAbcDragRows(): AbcDragRow[] {
 }
 
 /** One current-drag delta-FORWARD recipient: its display name, the FORWARDER's display
- *  name (resolved from ForwardFromRow, the buffer row of the direct drag-recipient that
- *  forwarded this — see nodes/Wiring/quantized_move.go neighborSetCRequantize's
- *  forward step), and the forwarded delta triple (dA,dB,dC — the SAME triple the
- *  forwarder itself received from the originally-dragged node; this is a one-hop
- *  observability relay, never re-forwarded further). */
+ *  name (resolved from ForwardFromRow, the buffer row of whichever neighbor's own hop
+ *  reached this node FIRST this drag — see nodes/Wiring/node_mover.go's
+ *  forwardDeltaOnce), and the forwarded delta triple (dA,dB,dC — the SAME triple that
+ *  originated at the dragged node and is relayed unmodified). Every node forwards
+ *  the delta it first picks up to its OTHER neighbors exactly once per drag
+ *  (forwardedThisDrag), so this triple spreads across the whole reachable graph via
+ *  independent concurrent one-hop relays, not just past the direct drag-recipient. */
 export interface DeltaForwardRow {
   name: string;
   forwarderName: string;

@@ -3,15 +3,20 @@ import { useDeltaForwardRows } from "./overlay-flags";
 
 // DeltaForwardLabel — the in-editor "delta forwarded" log, right of AbcDragLabel
 // (portals into #delta-forward-mount, html.ts, which sits to the right of
-// #abc-drag-mount in the toolbar's drag-log-row). Reflects the ONE-HOP
-// delta-forward observability feature: a direct drag-recipient (e.g. node 5)
-// forwards the SAME delta triple it received to each of its OTHER neighbors
-// (moveMsgKindDeltaForward, nodes/Wiring/quantized_move.go
-// neighborSetCRequantize's forward step) — never re-forwarded past that one hop.
+// #abc-drag-mount in the toolbar's drag-log-row). Reflects the delta-forward
+// full-graph propagation feature: every node relays the delta triple it FIRST
+// picks up (from the dragged node itself, or from a neighbor that already
+// forwarded) to its OTHER neighbors EXACTLY ONCE per drag
+// (moveMsgKindDeltaForward, nodes/Wiring/node_mover.go's forwardDeltaOnce,
+// guarded by forwardedThisDrag) — so the triple spreads across the whole
+// reachable graph via independent concurrent single hops, terminating on a
+// cycle because each node relays at most once.
 //
-// Grouped by FORWARDER (the direct drag-recipient), one line per forwarder listing
-// every node it forwarded to and the shared delta triple, e.g.:
-//   5 → 7, 8 : (dA, dB, dC)
+// Grouped by FORWARDER (whichever node's own hop reached a given recipient
+// first), one line per forwarder listing every node it forwarded to and the
+// shared delta triple, e.g.:
+//   5 → 2, 8 : (dA, dB, dC)
+//   2 → 1, 6 : (dA, dB, dC)
 //
 // All read-only from the content buffer (Node block's per-row GotForwardMsg/
 // ForwardDeltaA-C/ForwardFromRow columns), via useDeltaForwardRows (overlay-flags.ts).

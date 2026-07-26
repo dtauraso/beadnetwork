@@ -314,30 +314,18 @@ func (lq *layoutQuantizer) neighborSetCRequantize(md *MoveDispatch, selfID, from
 		}
 	}
 
-	// ONE-HOP delta-forward (observability only, no cascade): selfID is the DIRECT
-	// drag-recipient — forward the SAME delta triple it just received from fromID to
-	// every OTHER neighbor it shares an edge with (every neighbor except fromID). Neighbor
-	// set built the same way requantizeLocalPolars builds it (md.mr.edgeMovers scan for
-	// selfID). Sent via selfID's OWN retry queue (nm.sendMove, same fire-and-forget
-	// mechanism neighborSetC itself uses) — never blocking, never a shared channel. The
-	// recipient's handler (moveMsgKindDeltaForward, node_mover.go) records state only and
-	// never re-forwards, which is what keeps this at exactly one hop.
+	// Delta-forward, once per drag (observability only — no re-quantize, no move):
+	// selfID is a direct drag-recipient, so it forwards the SAME delta triple it just
+	// received from fromID to every OTHER neighbor (every neighbor except fromID) — its
+	// OWN single hop, guarded by forwardedThisDrag so a node already forwarded this drag
+	// (e.g. by a fresh RootMove tick re-sending neighborSetC) is a no-op here. Every
+	// forward recipient in turn does its OWN guarded hop (handle's
+	// moveMsgKindDeltaForward case) — independent, concurrent single hops that together
+	// spread the triple across the whole reachable graph, terminating on any cycle
+	// because each node relays at most once (see nodeMover.forwardDeltaOnce's doc
+	// comment).
 	if nm, ok := md.mr.nodeMovers[selfID]; ok {
-		for _, em := range md.mr.edgeMovers {
-			var other string
-			if em.srcID == selfID {
-				other = em.dstID
-			} else if em.dstID == selfID {
-				other = em.srcID
-			} else {
-				continue
-			}
-			if other == fromID {
-				continue
-			}
-			nm.sendMove(other, moveMsg{Kind: moveMsgKindDeltaForward, NodeID: other, SenderID: selfID,
-				DeltaA: deltaA, DeltaB: deltaB, DeltaC: deltaC})
-		}
+		nm.forwardDeltaOnce(md, fromID, int32(deltaA), int32(deltaB), int32(deltaC))
 	}
 }
 
