@@ -121,19 +121,30 @@ func (md *MoveDispatch) HandleRawInput(ev rawInputMsg, slotReg SlotRegistry, tr 
 	g := &md.ui.gest
 	g.fov = ev.Fov
 	g.rect = gestureRect{left: ev.RectLeft, top: ev.RectTop, width: ev.RectWidth, height: ev.RectHeight}
-	switch ev.Kind {
-	case "pointerdown":
+	if h := rawInputHandlers[ev.Kind]; h != nil {
+		h(md, ev, slotReg, tr)
+	}
+}
+
+// rawInputHandlers is the flat dispatch table for HandleRawInput: raw-input kind →
+// handler. An unknown kind is a no-op, matching the switch's absent default.
+var rawInputHandlers = map[string]func(md *MoveDispatch, ev rawInputMsg, slotReg SlotRegistry, tr *T.Trace){
+	"pointerdown": func(md *MoveDispatch, ev rawInputMsg, slotReg SlotRegistry, tr *T.Trace) {
 		md.gestPointerDown(ev, tr)
-	case "pointermove":
+	},
+	"pointermove": func(md *MoveDispatch, ev rawInputMsg, slotReg SlotRegistry, tr *T.Trace) {
 		md.updateHover(ev, tr)
 		md.gestPointerMove(ev, tr)
-	case "pointerup":
+	},
+	"pointerup": func(md *MoveDispatch, ev rawInputMsg, slotReg SlotRegistry, tr *T.Trace) {
 		md.gestPointerUp(ev, slotReg, tr)
-	case "wheel":
+	},
+	"wheel": func(md *MoveDispatch, ev rawInputMsg, slotReg SlotRegistry, tr *T.Trace) {
 		md.gestWheel(ev, tr)
-	case "home":
+	},
+	"home": func(md *MoveDispatch, ev rawInputMsg, slotReg SlotRegistry, tr *T.Trace) {
 		md.gestHome(ev, tr)
-	}
+	},
 }
 
 // gestHome handles a "home" (fit-to-content) command: Go frames ALL nodes from its OWN held
