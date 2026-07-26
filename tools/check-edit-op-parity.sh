@@ -73,9 +73,13 @@ between() { # start end file
 # Double-quoted literal values from a stream.
 quoted() { grep -aoE '"[^"]+"' | tr -d '"' | sort -u; }
 
-# Top-level Go `case "..."` labels: exactly one leading tab (nested cases have two
-# or more, so they are excluded). BSD grep lacks -P, so match with awk (\t = tab).
-toplevel_case() { awk '/^\tcase "/'; }
+# Top-level Go `case "..."` labels OR top-level dispatch-table string keys (`"foo": ...,`):
+# exactly one leading tab (nested cases/keys have two or more, so they are excluded).
+# BSD grep lacks -P, so match with awk (\t = tab). The two alternatives let this extractor
+# survive either a switch or a map[string]func(...) dispatch table at the fenced level —
+# applyEdit/applyUpdate in stdin_reader.go moved from switch to table form; this keeps the
+# same fences discoverable either way.
+toplevel_case() { awk '/^\tcase "/ || /^\t"[^"]+":/'; }
 
 # Refuse a vacuous pass: if a sentinel-bounded extractor returns an EMPTY set, a
 # sentinel pair was deleted/renamed on that side and comm would compare empty-to-empty

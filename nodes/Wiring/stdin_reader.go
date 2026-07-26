@@ -344,60 +344,93 @@ var overlayFlagTraceKind = map[string]string{
 // stays live for delivery/movers (md.Bind), but the reader no longer indexes it here.
 //
 // Unknown ops/kinds/attrs are ignored (forward-compat).
+// EDIT_OPS_START
+var editOps = map[string]func(stdinMsg, *MoveDispatch, *T.Trace, []chan float64){
+	"update": applyUpdate,
+}
+
+// EDIT_OPS_END
+
 func applyEdit(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
-	// EDIT_OPS_START
-	switch msg.Op {
-	case "update":
-		applyUpdate(msg, md, tr, speedSinks)
+	if h, ok := editOps[msg.Op]; ok {
+		h(msg, md, tr, speedSinks)
 	}
-	// EDIT_OPS_END
 }
 
 // applyUpdate routes an op=="update" edit to the entity named by msg.Kind, setting the
 // requested attribute. Live entities: overlays (toggle one flag) and clock (set the
 // playback-speed multiplier — Go-owned state, the slider just signals the value).
-// Unknown kinds/attrs are ignored (forward-compat).
+// Unknown kinds/attrs are ignored (forward-compat). Dispatch is a NESTED table: the
+// top-level kind→handler table below routes to a per-kind handler that owns its own
+// attr-level table (applyUpdateClock / applyUpdateOverlays), so each kind can keep
+// kind-specific behavior that runs regardless of which attr matched (e.g. overlays'
+// unconditional persist-on-change) without distorting the attr dispatch itself.
+// EDIT_UPDATE_KINDS_START
+var updateKindHandlers = map[string]func(stdinMsg, *MoveDispatch, *T.Trace, []chan float64){
+	"clock":    applyUpdateClock,
+	"overlays": applyUpdateOverlays,
+}
+
+// EDIT_UPDATE_KINDS_END
+
 func applyUpdate(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
-	// EDIT_UPDATE_KINDS_START
-	switch msg.Kind {
-	case "clock":
-		switch msg.Attr {
-		case "speed":
-			// The playback multiplier (0/1/2 from the slider). SetSpeed left the Clock
-			// INTERFACE in the per-goroutine-clock demolition (item 4): nothing outside a goroutine's own
-			// copy may mutate it anymore, since a copy is owned by exactly one goroutine.
-			// Delivery (per-goroutine-clock.md "Delivery"): broadcast the new speed to
-			// EVERY clock-owning goroutine's own channel (collected once, at load,
-			// before any goroutine spawned — see LoadTopology's speedSinks return
-			// value). This RunStdinReader goroutine is the sole writer of any of these
-			// channels; SendSpeedNonBlocking never blocks on a
-			// receiver that is asleep or never reads (latest-wins coalescing).
-			for _, ch := range speedSinks {
-				wire.SendSpeedNonBlocking(ch, float64(msg.Num))
-			}
-		}
-	case "overlays":
-		if md == nil {
-			return
-		}
-		switch msg.Attr {
-		case "toggle":
-			// Flip the named flag — Go owns the state; TS just signals the flip.
-			if fn, ok := overlayToggles[msg.Flag]; ok {
-				fn(md, tr)
-				// Decentralized (Step C, memory/feedback_no_single_writer_bridge.md): this goroutine (the sole
-				// caller of every overlay Toggle*) also writes its own VIEW frame directly,
-				// carrying the one flag that just changed — matches the ONE tr.X(bool) event
-				// the toggle already logged.
-				if kind, ok := overlayFlagTraceKind[msg.Flag]; ok {
-					md.emitViewFrame([]wire.RowEvent{{Kind: kind, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}})
-				}
-			}
-		}
-		// Persist ON CHANGE (mirrors camera): schedule a debounced write of the new
-		// overlay snapshot so toggles survive a reload without an explicit save. No-op until
-		// EnableEditPersist arms the writer (nil-receiver / empty-treeRoot guard in schedule).
-		md.persist.overlays.schedule(md.ui.ov)
+	if h, ok := updateKindHandlers[msg.Kind]; ok {
+		h(msg, md, tr, speedSinks)
 	}
-	// EDIT_UPDATE_KINDS_END
+}
+
+// clockAttrHandlers is the attr-level table for kind=="clock".
+var clockAttrHandlers = map[string]func(msg stdinMsg, speedSinks []chan float64){
+	"speed": func(msg stdinMsg, speedSinks []chan float64) {
+		// The playback multiplier (0/1/2 from the slider). SetSpeed left the Clock
+		// INTERFACE in the per-goroutine-clock demolition (item 4): nothing outside a goroutine's own
+		// copy may mutate it anymore, since a copy is owned by exactly one goroutine.
+		// Delivery (per-goroutine-clock.md "Delivery"): broadcast the new speed to
+		// EVERY clock-owning goroutine's own channel (collected once, at load,
+		// before any goroutine spawned — see LoadTopology's speedSinks return
+		// value). This RunStdinReader goroutine is the sole writer of any of these
+		// channels; SendSpeedNonBlocking never blocks on a
+		// receiver that is asleep or never reads (latest-wins coalescing).
+		for _, ch := range speedSinks {
+			wire.SendSpeedNonBlocking(ch, float64(msg.Num))
+		}
+	},
+}
+
+func applyUpdateClock(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
+	if h, ok := clockAttrHandlers[msg.Attr]; ok {
+		h(msg, speedSinks)
+	}
+}
+
+// overlayAttrHandlers is the attr-level table for kind=="overlays".
+var overlayAttrHandlers = map[string]func(msg stdinMsg, md *MoveDispatch, tr *T.Trace){
+	"toggle": func(msg stdinMsg, md *MoveDispatch, tr *T.Trace) {
+		// Flip the named flag — Go owns the state; TS just signals the flip.
+		if fn, ok := overlayToggles[msg.Flag]; ok {
+			fn(md, tr)
+			// Decentralized (Step C, memory/feedback_no_single_writer_bridge.md): this goroutine (the sole
+			// caller of every overlay Toggle*) also writes its own VIEW frame directly,
+			// carrying the one flag that just changed — matches the ONE tr.X(bool) event
+			// the toggle already logged.
+			if kind, ok := overlayFlagTraceKind[msg.Flag]; ok {
+				md.emitViewFrame([]wire.RowEvent{{Kind: kind, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}})
+			}
+		}
+	},
+}
+
+func applyUpdateOverlays(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
+	if md == nil {
+		return
+	}
+	if h, ok := overlayAttrHandlers[msg.Attr]; ok {
+		h(msg, md, tr)
+	}
+	// Persist ON CHANGE (mirrors camera): schedule a debounced write of the new
+	// overlay snapshot so toggles survive a reload without an explicit save. No-op until
+	// EnableEditPersist arms the writer (nil-receiver / empty-treeRoot guard in schedule).
+	// Runs regardless of which (or whether an) attr matched, matching the original
+	// switch's post-inner-switch placement.
+	md.persist.overlays.schedule(md.ui.ov)
 }
