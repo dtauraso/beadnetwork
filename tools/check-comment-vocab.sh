@@ -4,7 +4,7 @@
 #
 # WHY THIS EXISTS (audit-integrate-into-repo-systems): the priors-fit audit found stale
 # "fan-in is safe" comments in paced_wire.go and ports.go that CONTRADICT MODEL.md (fan-in
-# is rejected at parse — see tools/check-no-fan-in.sh and loader.go validateNoFanIn). The
+# is rejected at parse — see tools/check-no-fan-in.sh and topo_spec.go validateNoFanIn). The
 # existing tracker prose that flagged them had itself drifted (cited ports.go:173, actual
 # :223), which is exactly why a line-pointer in a doc is the wrong tool and a grep guard is
 # the right one: prose rots, `grep | exit 1` cannot.
