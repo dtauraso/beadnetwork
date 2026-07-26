@@ -23,6 +23,18 @@ import (
 	T "github.com/dtauraso/wirefold/Trace"
 )
 
+// eventSink is the seam between a port (transport — moving values between nodes) and the
+// buffer reporting it announces recv/send/breadcrumb events to. A port holds a
+// func() eventSink and calls writeEvents/nodeRowOf on the result; it never names the
+// concrete *interiorStream. interiorStream implements this, but the port cannot see that —
+// which is what lets the transport primitive be lifted out of the reporting machinery.
+// The injected getter returns a TRUE nil interface (not a typed-nil) when the node has no
+// interior stream, so the callers' `if s == nil` guards keep working (see asEventSinkGetter).
+type eventSink interface {
+	writeEvents(events []RowEvent)
+	nodeRowOf() int32
+}
+
 // In is a typed input port.
 type In struct {
 	// chan mode
@@ -34,13 +46,14 @@ type In struct {
 	node  string
 	port  string
 	trace *T.Trace
-	// stream is this In's owning node's shared interior-stream getter
-	// (Wiring.newInteriorStreamGetter, injected by wireInPort) — lazily resolves to the
-	// SAME *interiorStream instance every closure/port on this node shares. Recv flushes
-	// its own row-resolved RowEvent onto it (owner_events.go). nil for a bare chan-mode
-	// In built outside reflectBuild (e.g. gatecommon test helpers) — PollRecv's nil
-	// check below skips the flush in that case.
-	stream func() *interiorStream
+	// stream is this In's owning node's shared event sink (the interior-stream getter,
+	// injected by wireInPort as an eventSink adapter over newInteriorStreamGetter) —
+	// lazily resolves to the SAME sink every closure/port on this node shares. Recv flushes
+	// its own row-resolved RowEvent onto it (owner_events.go). The port announces events
+	// through the eventSink seam and never names the concrete interior-stream type. nil for
+	// a bare chan-mode In built outside reflectBuild (e.g. gatecommon test helpers) — the
+	// nil check below skips the flush in that case.
+	stream func() eventSink
 	// portRow is this In's own buffer PORT-ROW index (isInput=true), resolved once at
 	// construction (wireInPort) from pb.md's row table — see wireInPort's doc comment.
 	// -1 when unresolved (no md, or an unwired dead-end port).
@@ -96,7 +109,7 @@ func (i *In) flushRecvEvent(value int) {
 		return
 	}
 	s.writeEvents([]RowEvent{{
-		Kind: T.KindRecv, NodeRow: s.nodeRow, PortRow: i.portRow,
+		Kind: T.KindRecv, NodeRow: s.nodeRowOf(), PortRow: i.portRow,
 		TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Value: int32(value),
 	}})
 }
@@ -142,7 +155,7 @@ func (i *In) Breadcrumb(event, detail string) {
 	}
 	s.writeEvents([]RowEvent{{
 		Kind: T.KindBreadcrumb, Label: label, Debug: 1,
-		NodeRow: s.nodeRow, PortRow: i.portRow,
+		NodeRow: s.nodeRowOf(), PortRow: i.portRow,
 		TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 	}})
 }
@@ -260,11 +273,11 @@ type Out struct {
 	// Rule is the per-edge send policy applied by the source node after a
 	// successful TrySend. Empty string defaults to consumeGated (see Gated).
 	Rule SendRule
-	// stream is this Out's owning node's shared interior-stream getter
-	// (Wiring.newInteriorStreamGetter, injected by wireOutPort/wireOutMultiPort) — see
-	// In.stream's doc comment. nil for a bare chan-mode Out built outside reflectBuild
+	// stream is this Out's owning node's shared event sink (injected by wireOutPort/
+	// wireOutMultiPort as an eventSink adapter) — see In.stream's doc comment and the
+	// eventSink seam. nil for a bare chan-mode Out built outside reflectBuild
 	// (NewOutChanForTest, node unit tests).
-	stream func() *interiorStream
+	stream func() eventSink
 	// portRow is this Out's own buffer PORT-ROW index (isInput=false); targetRow/
 	// targetPortRow are the destination node/port's buffer rows (b.pw.Target/
 	// TargetHandle — static after wiring). All resolved once at construction
@@ -408,7 +421,7 @@ func (o *Out) flushSendEvent(value int, arcLength, simLatencyMs float64) {
 		return
 	}
 	s.writeEvents([]RowEvent{{
-		Kind: T.KindSend, NodeRow: s.nodeRow, PortRow: o.portRow,
+		Kind: T.KindSend, NodeRow: s.nodeRowOf(), PortRow: o.portRow,
 		TargetRow: o.targetRow, TargetPortRow: o.targetPortRow, EdgeRow: -1,
 		Value: int32(value), ArcLength: arcLength, SimLatencyMs: simLatencyMs,
 	}})

@@ -35,6 +35,11 @@ type interiorStream struct {
 	lastOx, lastOy, lastOz []float32
 }
 
+// nodeRowOf reports this stream's stable buffer node-row index, so a port can stamp it
+// onto a recv/send/breadcrumb RowEvent without naming the concrete interiorStream type —
+// see the eventSink seam in ports.go. Called only after a non-nil check, so no nil guard.
+func (s *interiorStream) nodeRowOf() int32 { return s.nodeRow }
+
 // write packs and writes this node's current interior-slot arrays via
 // writeInteriorStreamFrame, advancing its own local tick counter. No-op (including on a
 // nil receiver) when out/buildFrame aren't wired — the fallback path. events carries

@@ -455,6 +455,22 @@ func newInteriorStreamGetter(name string, pb PortBindings) func() *interiorStrea
 	}
 }
 
+// asEventSinkGetter adapts a concrete interior-stream getter into the eventSink getter a
+// port holds, PRESERVING nil: when the underlying getter yields no stream (nil
+// *interiorStream), this returns a TRUE nil interface, not an interface value wrapping a
+// nil pointer — so a port's `if s == nil` guard still fires exactly as it did against the
+// concrete pointer. The emit machinery (injectClosures/emitNodeBeads/emitHeldBead) keeps
+// the concrete getter unchanged; only In/Out ports route through this seam.
+func asEventSinkGetter(g func() *interiorStream) func() eventSink {
+	return func() eventSink {
+		s := g()
+		if s == nil {
+			return nil
+		}
+		return s
+	}
+}
+
 // wirePorts wires every port field (In/Out/Broadcast) discovered by reflectPorts
 // with traced wrappers, resolving each from pb's paced bindings when present and
 // falling back to a dead-end chan/slice otherwise. sourceOuts accumulates every
@@ -498,7 +514,7 @@ func wirePorts(ctx context.Context, v reflect.Value, nodePtr any, name string, p
 func wireInPort(f reflect.Value, portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, getStream func() *interiorStream) {
 	if b := pb.singlePaced[portName]; b.pw != nil {
 		in := NewInPaced(b.pw, ctx, name, portName, tr)
-		in.stream = getStream
+		in.stream = asEventSinkGetter(getStream)
 		in.portRow = -1
 		if pb.md != nil {
 			if r, ok := pb.md.PortRowFor(name, portName, true); ok {
@@ -508,7 +524,7 @@ func wireInPort(f reflect.Value, portName string, ctx context.Context, name stri
 		f.Set(reflect.ValueOf(in))
 	} else {
 		ch := pb.deadEndIn(portName)
-		f.Set(reflect.ValueOf(&In{ch: ch, node: name, port: portName, trace: tr, stream: getStream, portRow: -1}))
+		f.Set(reflect.ValueOf(&In{ch: ch, node: name, port: portName, trace: tr, stream: asEventSinkGetter(getStream), portRow: -1}))
 	}
 }
 
@@ -527,7 +543,7 @@ func wireInPort(f reflect.Value, portName string, ctx context.Context, name stri
 func wireOutPort(f reflect.Value, portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, sourceOuts *[]*Out, getStream func() *interiorStream) {
 	if b := pb.singlePaced[portName]; b.pw != nil {
 		o := NewOutPaced(b.pw, ctx, name, portName, tr, b.rule, b.arc, b.latency, b.seg, b.label)
-		o.stream = getStream
+		o.stream = asEventSinkGetter(getStream)
 		o.portRow, o.targetRow, o.targetPortRow = -1, -1, -1
 		if pb.md != nil {
 			if r, ok := pb.md.PortRowFor(name, portName, false); ok {
@@ -564,7 +580,7 @@ func wireBroadcastPort(f reflect.Value, portName string, ctx context.Context, na
 		outs := make(Broadcast, len(bs))
 		for i, b := range bs {
 			o := NewOutPaced(b.pw, ctx, name, b.handle, tr, b.rule, b.arc, b.latency, b.seg, b.label)
-			o.stream = getStream
+			o.stream = asEventSinkGetter(getStream)
 			o.portRow, o.targetRow, o.targetPortRow = -1, -1, -1
 			if pb.md != nil {
 				if r, ok := pb.md.PortRowFor(name, b.handle, false); ok {
