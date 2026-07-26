@@ -17,6 +17,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -47,6 +48,7 @@ type dataField struct {
 // viewDef holds the SPEC.md ## View section fields.
 type viewDef struct {
 	kind     string
+	kindID   string // raw "kindId" Field/Value cell from SPEC.md's View table; "" if unassigned
 	bg       string
 	border   string
 	text     string
@@ -65,6 +67,7 @@ type kindEntry struct {
 	kind        string // RF/view kind name (camelCase, from SPEC.md)
 	goKind      string // Go/topology kind name (PascalCase, from Wiring.Register)
 	dir         string // node package directory name under nodes/ (import path segment)
+	kindID      uint8  // stable buffer KindId — assigned once, never renumbered by sort order
 	view        viewDef
 	ports       []port
 	dataFields  []dataField
@@ -132,7 +135,7 @@ func main() {
 			fatalf("duplicate kind name %q registered by both %q and %q", goKind, prev, e.Name())
 		}
 		seenGoKind[goKind] = e.Name()
-		view, accentOverrides, edgeKindOverrides, optionalPorts, err := parseSpecMD(pkgDir)
+		view, accentOverrides, edgeKindOverrides, optionalPorts, specPortNames, err := parseSpecMD(pkgDir)
 		if err != nil {
 			// This dir has a Wiring.Register (a real node package), so a missing or
 			// broken SPEC.md View section is a half-landed kind — fail loudly rather
@@ -141,6 +144,18 @@ func main() {
 		}
 		if view.kind == "" {
 			fatalf("kind %q registers a Go runtime but its SPEC.md ## View has an empty view.kind", e.Name())
+		}
+		// Finding C: every Ports-table "Name" must resolve to a real AST-derived port
+		// id. A typo here previously dropped its accent/edgeKind/optional override
+		// silently; now it's a loud generator error.
+		astPortIDs := map[string]bool{}
+		for _, p := range ports {
+			astPortIDs[p.id] = true
+		}
+		for name := range specPortNames {
+			if !astPortIDs[name] {
+				fatalf("kind %q: SPEC.md Ports table Name %q does not match any Go channel-typed port (got: %v)", e.Name(), name, sortedKeys(astPortIDs))
+			}
 		}
 		// Apply accent, edgeKind overrides, and optional flags from SPEC.md Ports table.
 		for i, p := range ports {
@@ -158,7 +173,16 @@ func main() {
 		kinds = append(kinds, kindEntry{kind: view.kind, goKind: goKind, dir: e.Name(), view: view, ports: ports, dataFields: dataFields, defaultData: defaultData})
 	}
 
-	// Sort alphabetically by Go kind name (PascalCase spec kind).
+	// Finding B: KindId is a stable, assigned-once fact per kind (from SPEC.md's
+	// View "kindId" field), NOT a sort-derived index — adding a kind must never
+	// renumber an existing one. Resolve each kind's id, auto-assigning (and
+	// writing back into its SPEC.md) the next free id for any kind that doesn't
+	// have one yet, so a new kind is stable from the moment it's first generated.
+	assignKindIDs(kinds, nodesDir)
+
+	// Sort alphabetically by Go kind name (PascalCase spec kind) for stable,
+	// human-readable emission ORDER only — this sort has no bearing on the id
+	// VALUE, which comes from kindID above.
 	sort.Slice(kinds, func(i, j int) bool {
 		return kinds[i].goKind < kinds[j].goKind
 	})
@@ -325,6 +349,85 @@ func hasRegister(dir string) bool {
 		}
 	}
 	return false
+}
+
+// sortedKeys returns the keys of a string-keyed bool set in sorted order, for
+// deterministic error messages.
+func sortedKeys(m map[string]bool) []string {
+	out := make([]string, 0, len(m))
+	for k := range m {
+		out = append(out, k)
+	}
+	sort.Strings(out)
+	return out
+}
+
+// assignKindIDs resolves each kind's stable buffer KindId from its SPEC.md
+// View "kindId" field, in place on kinds. A kind whose SPEC.md has no kindId
+// yet is auto-assigned max(existing ids)+1 and that assignment is written
+// back into its SPEC.md immediately, so the id is stable from here on —
+// regenerating never reassigns it again. Fails loudly on a duplicate id or
+// an id colliding with/exceeding the KindIDUnknown sentinel (0xFF).
+func assignKindIDs(kinds []kindEntry, nodesDir string) {
+	usedBy := map[uint8]string{} // id -> goKind that claimed it
+	maxID := -1
+	var unassigned []int // indices into kinds needing auto-assignment
+
+	for i := range kinds {
+		raw := strings.TrimSpace(kinds[i].view.kindID)
+		if raw == "" {
+			unassigned = append(unassigned, i)
+			continue
+		}
+		n, err := strconv.Atoi(raw)
+		if err != nil || n < 0 || n > 254 {
+			fatalf("kind %q: SPEC.md kindId %q must be an integer in [0,254]", kinds[i].goKind, raw)
+		}
+		id := uint8(n)
+		if prev, dup := usedBy[id]; dup {
+			fatalf("kind %q and kind %q both claim KindId %d in their SPEC.md — ids must be unique and assigned once", prev, kinds[i].goKind, id)
+		}
+		usedBy[id] = kinds[i].goKind
+		kinds[i].kindID = id
+		if n > maxID {
+			maxID = n
+		}
+	}
+
+	for _, i := range unassigned {
+		maxID++
+		if maxID > 254 {
+			fatalf("kind %q: no free KindId below the KindIDUnknown sentinel (0xFF)", kinds[i].goKind)
+		}
+		id := uint8(maxID)
+		usedBy[id] = kinds[i].goKind
+		kinds[i].kindID = id
+		if err := writeBackKindID(nodesDir, kinds[i].dir, id); err != nil {
+			fatalf("kind %q: auto-assigned KindId %d but failed to write it back into SPEC.md: %v", kinds[i].goKind, id, err)
+		}
+		fmt.Fprintf(os.Stderr, "gen-node-defs: auto-assigned KindId %d to new kind %q (written to nodes/%s/SPEC.md)\n", id, kinds[i].goKind, kinds[i].dir)
+	}
+}
+
+// writeBackKindID inserts a "| kindId | N |" row directly above the existing
+// "| kind | ... |" row in nodes/<dir>/SPEC.md's View table, so a newly
+// auto-assigned id is persisted and stable on the next regeneration.
+func writeBackKindID(nodesDir, dir string, id uint8) error {
+	specPath := filepath.Join(nodesDir, dir, "SPEC.md")
+	data, err := os.ReadFile(specPath)
+	if err != nil {
+		return err
+	}
+	lines := strings.Split(string(data), "\n")
+	for i, l := range lines {
+		trimmed := strings.TrimSpace(l)
+		if strings.HasPrefix(trimmed, "| kind |") || strings.HasPrefix(trimmed, "|kind|") {
+			row := fmt.Sprintf("| kindId | %d |", id)
+			lines = append(lines[:i], append([]string{row}, lines[i:]...)...)
+			return os.WriteFile(specPath, []byte(strings.Join(lines, "\n")), 0644)
+		}
+	}
+	return fmt.Errorf("no '| kind |' row found in View table to anchor kindId insertion")
 }
 
 func fatalf(format string, args ...any) {

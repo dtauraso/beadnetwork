@@ -4,6 +4,7 @@
 
 | Field | Value |
 |-------|-------|
+| kindId | 2 |
 | kind | chainHoldNewSendOld |
 | bg | #fff3e0 |
 | border | #e65100 |

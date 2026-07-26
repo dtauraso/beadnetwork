@@ -195,11 +195,15 @@ func chanDirection(expr ast.Expr) (string, bool) {
 
 // parseSpecMD reads SPEC.md in pkgDir and returns the view definition,
 // a map of port-name → accent override, a map of port-name → edgeKind,
-// and a set of optional port names from the Ports table.
-func parseSpecMD(pkgDir string) (viewDef, map[string]string, map[string]string, map[string]bool, error) {
-	data, err := os.ReadFile(filepath.Join(pkgDir, "SPEC.md"))
-	if err != nil {
-		return viewDef{}, nil, nil, nil, err
+// a set of optional port names from the Ports table, and the set of every
+// "Name" cell that appears in the Ports table (used by callers to validate
+// each one resolves to a real AST-derived port id — a typo previously
+// dropped its override silently instead of failing).
+func parseSpecMD(pkgDir string) (viewDef, map[string]string, map[string]string, map[string]bool, map[string]bool, error) {
+	specPortNames := map[string]bool{}
+	data, readErr := os.ReadFile(filepath.Join(pkgDir, "SPEC.md"))
+	if readErr != nil {
+		return viewDef{}, nil, nil, nil, nil, readErr
 	}
 	lines := strings.Split(string(data), "\n")
 
@@ -278,13 +282,13 @@ func parseSpecMD(pkgDir string) (viewDef, map[string]string, map[string]string, 
 	// Parse View section.
 	viewLines := sectionLines("View")
 	if viewLines == nil {
-		return viewDef{}, nil, nil, nil, fmt.Errorf("no View section")
+		return viewDef{}, nil, nil, nil, nil, fmt.Errorf("no View section")
 	}
 	headers, rows := parseTable(viewLines)
 	fieldIdx := indexOf(headers, "Field")
 	valueIdx := indexOf(headers, "Value")
 	if fieldIdx == -1 || valueIdx == -1 {
-		return viewDef{}, nil, nil, nil, fmt.Errorf("view table missing Field/Value columns")
+		return viewDef{}, nil, nil, nil, nil, fmt.Errorf("view table missing Field/Value columns")
 	}
 	vmap := map[string]string{}
 	for _, row := range rows {
@@ -294,6 +298,7 @@ func parseSpecMD(pkgDir string) (viewDef, map[string]string, map[string]string, 
 	}
 	view := viewDef{
 		kind:     vmap["kind"],
+		kindID:   vmap["kindId"],
 		bg:       vmap["bg"],
 		border:   vmap["border"],
 		text:     vmap["text"],
@@ -325,6 +330,10 @@ func parseSpecMD(pkgDir string) (viewDef, map[string]string, map[string]string, 
 			if name == "" {
 				continue
 			}
+			// Record every Ports-table Name, even if it sets no override column,
+			// so callers can validate it resolves to a real AST-derived port id
+			// (a typo'd Name here previously dropped its override silently).
+			specPortNames[name] = true
 			if accentIdx != -1 && accentIdx < len(row) && row[accentIdx] != "" {
 				accentOverrides[name] = row[accentIdx]
 			}
@@ -337,7 +346,7 @@ func parseSpecMD(pkgDir string) (viewDef, map[string]string, map[string]string, 
 		}
 	}
 
-	return view, accentOverrides, edgeKindOverrides, optionalPorts, nil
+	return view, accentOverrides, edgeKindOverrides, optionalPorts, specPortNames, nil
 }
 
 // parsePortsFromSpec reads nodes/<Kind>/SPEC.md and returns ports derived from

@@ -4,6 +4,7 @@
 
 | Field | Value |
 |-------|-------|
+| kindId | 0 |
 | kind | hold |
 | bg | #f3e5f5 |
 | border | #6a1b9a |

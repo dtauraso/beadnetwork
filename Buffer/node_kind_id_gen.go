@@ -7,9 +7,10 @@ package Buffer
 // KindIDUnknown is the sentinel KindId value when a node's kind is not in kindIDMap.
 const KindIDUnknown uint8 = 0xFF
 
-// kindIDMap maps a node's Go kind name (PascalCase) to its 0-based index
-// in the alphabetically-sorted NODE_DEFS_ARRAY emitted by the same generator.
-// Index i here ↔ NODE_DEFS_ARRAY[i] on the TS side.
+// kindIDMap maps a node's Go kind name (PascalCase) to its stable buffer KindId,
+// assigned once per kind in nodes/<Kind>/SPEC.md and never renumbered by sort
+// order. Id i here ↔ NODE_DEFS_ARRAY[i] on the TS side (gaps left by a removed
+// kind get an undefined placeholder there, not a shift).
 var kindIDMap = map[string]uint8{
 	"Hold":                      0,
 	"HoldFlip":                  1,
@@ -28,4 +29,16 @@ func NodeKindID(kind string) uint8 {
 		return id
 	}
 	return KindIDUnknown
+}
+
+// KnownKinds returns every Go kind name present in kindIDMap. IDs are stable
+// and assigned once (see nodes/<Kind>/SPEC.md kindId), so — unlike the id
+// space itself — this set is NOT guaranteed contiguous or dense; a removed
+// kind just leaves its id unused.
+func KnownKinds() []string {
+	out := make([]string, 0, len(kindIDMap))
+	for k := range kindIDMap {
+		out = append(out, k)
+	}
+	return out
 }

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"go/format"
 	"os"
+	"sort"
 )
 
 // writeNodeDims emits nodes/Wiring/node_dims_gen.go: a kind → render width/height
@@ -53,10 +54,11 @@ func writeNodeDims(outPath string, kinds []kindEntry) error {
 	return os.WriteFile(outPath, formatted, 0644)
 }
 
-// writeNodeKindID emits Buffer/node_kind_id_gen.go: a kind → uint8 index map so
+// writeNodeKindID emits Buffer/node_kind_id_gen.go: a kind → uint8 id map so
 // each node's own emit path can populate the KindId column in the buffer node block.
-// The index is 0-based and follows the same alphabetical Go-kind sort order as
-// NODE_DEFS_ARRAY in node-defs.ts, guaranteeing Go and TS use the same numbering.
+// The id is the STABLE, assigned-once value from each kind's SPEC.md "kindId" field
+// (see assignKindIDs in main.go) — NOT a sort-derived index, so adding a kind never
+// renumbers an existing one. NODE_DEFS_ARRAY in node-defs.ts is indexed by this same id.
 func writeNodeKindID(outPath string, kinds []kindEntry) error {
 	var buf bytes.Buffer
 	w := bufio.NewWriter(&buf)
@@ -70,12 +72,17 @@ func writeNodeKindID(outPath string, kinds []kindEntry) error {
 	fmt.Fprintln(w, `// KindIDUnknown is the sentinel KindId value when a node's kind is not in kindIDMap.`)
 	fmt.Fprintln(w, `const KindIDUnknown uint8 = 0xFF`)
 	fmt.Fprintln(w)
-	fmt.Fprintln(w, `// kindIDMap maps a node's Go kind name (PascalCase) to its 0-based index`)
-	fmt.Fprintln(w, `// in the alphabetically-sorted NODE_DEFS_ARRAY emitted by the same generator.`)
-	fmt.Fprintln(w, `// Index i here ↔ NODE_DEFS_ARRAY[i] on the TS side.`)
+	fmt.Fprintln(w, `// kindIDMap maps a node's Go kind name (PascalCase) to its stable buffer KindId,`)
+	fmt.Fprintln(w, `// assigned once per kind in nodes/<Kind>/SPEC.md and never renumbered by sort`)
+	fmt.Fprintln(w, `// order. Id i here ↔ NODE_DEFS_ARRAY[i] on the TS side (gaps left by a removed`)
+	fmt.Fprintln(w, `// kind get an undefined placeholder there, not a shift).`)
 	fmt.Fprintln(w, `var kindIDMap = map[string]uint8{`)
-	for i, e := range kinds {
-		fmt.Fprintf(w, "\t%q: %d,\n", e.goKind, i)
+	// Emit in ascending id order for a stable, readable diff independent of the
+	// alphabetical goKind emission order used elsewhere.
+	byID := append([]kindEntry(nil), kinds...)
+	sort.Slice(byID, func(i, j int) bool { return byID[i].kindID < byID[j].kindID })
+	for _, e := range byID {
+		fmt.Fprintf(w, "\t%q: %d,\n", e.goKind, e.kindID)
 	}
 	fmt.Fprintln(w, `}`)
 	fmt.Fprintln(w)
@@ -86,6 +93,18 @@ func writeNodeKindID(outPath string, kinds []kindEntry) error {
 	fmt.Fprintln(w, `		return id`)
 	fmt.Fprintln(w, `	}`)
 	fmt.Fprintln(w, `	return KindIDUnknown`)
+	fmt.Fprintln(w, `}`)
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, `// KnownKinds returns every Go kind name present in kindIDMap. IDs are stable`)
+	fmt.Fprintln(w, `// and assigned once (see nodes/<Kind>/SPEC.md kindId), so — unlike the id`)
+	fmt.Fprintln(w, `// space itself — this set is NOT guaranteed contiguous or dense; a removed`)
+	fmt.Fprintln(w, `// kind just leaves its id unused.`)
+	fmt.Fprintln(w, `func KnownKinds() []string {`)
+	fmt.Fprintln(w, `	out := make([]string, 0, len(kindIDMap))`)
+	fmt.Fprintln(w, `	for k := range kindIDMap {`)
+	fmt.Fprintln(w, `		out = append(out, k)`)
+	fmt.Fprintln(w, `	}`)
+	fmt.Fprintln(w, `	return out`)
 	fmt.Fprintln(w, `}`)
 
 	w.Flush()

@@ -35,6 +35,7 @@ state is updated.
 
 | Field | Value |
 |-------|-------|
+| kindId | <stable buffer KindId, e.g. 0> |
 | kind | <rfType> |
 | bg | #rrggbb |
 | border | #rrggbb |
@@ -66,6 +67,16 @@ For channels the loader allocates but does not wire to any edge — e.g., Input 
 ### Non-channel fields
 
 Struct fields populated from `topology.json` at load time (not wires). Examples: `HeldValue` on `HoldNewSendOld`, `Name` / `Id` on most kinds. Trivial fields like `Id`/`Name` are implicit and need not be listed; only list fields with substantive load-time semantics.
+
+### kindId
+
+The kind's stable buffer `KindId` (the numeric value stored in the buffer's node
+KindId column). Assigned once, the first time a kind is generated, and never
+renumbered afterward — adding a new kind must not change any existing kind's id.
+Leave it blank on a brand-new kind's first generation: `tools/gen-node-defs`
+auto-assigns `max(existing ids) + 1` and writes it back into this file, so it's
+stable from then on. Do not hand-edit an existing kind's `kindId` — that would
+change the buffer's numeric encoding for every node of that kind.
 
 ### Firing rule
 

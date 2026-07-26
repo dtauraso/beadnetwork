@@ -43,13 +43,15 @@ func writeNodeDefs(outPath string, kinds []kindEntry) error {
 	fmt.Fprintln(w, `]);`)
 	fmt.Fprintln(w)
 	// Pre-build the def strings so we can reuse them for both NODE_DEFS and NODE_DEFS_ARRAY.
+	// NODE_DEFS itself is keyed by goKind name, so it stays in the alphabetical `kinds` order.
 	type kindDef struct {
 		goKind string
+		kindID uint8
 		def    string
 	}
 	defs := make([]kindDef, len(kinds))
 	for i, e := range kinds {
-		defs[i] = kindDef{goKind: e.goKind, def: buildDef(e.view, e.ports)}
+		defs[i] = kindDef{goKind: e.goKind, kindID: e.kindID, def: buildDef(e.view, e.ports)}
 	}
 	fmt.Fprintln(w, `export const NODE_DEFS: Record<string, NodeDef> = {`)
 	for _, kd := range defs {
@@ -57,23 +59,51 @@ func writeNodeDefs(outPath string, kinds []kindEntry) error {
 	}
 	fmt.Fprint(w, `};`, "\n")
 	fmt.Fprintln(w)
-	// NODE_DEFS_ARRAY: entries in the same alphabetical Go-kind order as NODE_DEFS,
-	// matching the KindId index produced by Go's kindIDMap (Buffer/node_kind_id_gen.go).
-	// Index i here ↔ KindId i in the buffer node block. Emitting literals directly
-	// (not NODE_DEFS[key]) so tsc with noUncheckedIndexedAccess can't widen to NodeDef|undefined.
-	fmt.Fprintf(w, "export const NODE_DEFS_ARRAY: readonly NodeDef[] = [\n")
+	// NODE_DEFS_ARRAY is indexed by the stable buffer KindId (see assignKindIDs in
+	// main.go), NOT by alphabetical position — a removed kind can leave a gap, which
+	// is emitted here as `undefined` so NODE_DEFS_ARRAY[id] still resolves correctly
+	// for every OTHER id (TS consumers already tolerate undefined via `def?.x ?? default`).
+	// Emitting literals directly (not NODE_DEFS[key]) so tsc with noUncheckedIndexedAccess
+	// can't widen to NodeDef|undefined for the populated slots.
+	maxID := -1
+	byID := map[uint8]kindDef{}
 	for _, kd := range defs {
-		fmt.Fprintf(w, "  %s,\n", kd.def)
+		byID[kd.kindID] = kd
+		if int(kd.kindID) > maxID {
+			maxID = int(kd.kindID)
+		}
+	}
+	hasGap := len(byID) <= maxID // fewer entries than slots means at least one gap
+	arrayType := "readonly NodeDef[]"
+	namesType := "readonly string[]"
+	if hasGap {
+		// Only widen the declared element type when a gap actually exists, so the
+		// dense (no-gap) case emits the exact same type annotation as before.
+		arrayType = "readonly (NodeDef | undefined)[]"
+		namesType = "readonly (string | undefined)[]"
+	}
+	fmt.Fprintf(w, "export const NODE_DEFS_ARRAY: %s = [\n", arrayType)
+	for id := 0; id <= maxID; id++ {
+		if kd, ok := byID[uint8(id)]; ok {
+			fmt.Fprintf(w, "  %s,\n", kd.def)
+		} else {
+			fmt.Fprintf(w, "  undefined, // gap left by a removed kind (KindId %d)\n", id)
+		}
 	}
 	fmt.Fprintln(w, `];`)
 	fmt.Fprintln(w)
-	// NODE_KIND_NAMES: the PascalCase Go kind name for each KindId index, same alphabetical
-	// order as NODE_DEFS_ARRAY (index i ↔ buffer KindId i). Used by the ext-host buffer-decoded
-	// .probe logger to reconstruct a node-geometry event's `nodeKind` string from the numeric
-	// KindId column, so no kind string is streamed per node.
-	fmt.Fprintf(w, "export const NODE_KIND_NAMES: readonly string[] = [\n")
-	for _, kd := range defs {
-		fmt.Fprintf(w, "  %q,\n", kd.goKind)
+	// NODE_KIND_NAMES: the PascalCase Go kind name for each KindId index, same
+	// indexing as NODE_DEFS_ARRAY (index i ↔ buffer KindId i, gaps → undefined).
+	// Used by the ext-host buffer-decoded .probe logger to reconstruct a
+	// node-geometry event's `nodeKind` string from the numeric KindId column, so
+	// no kind string is streamed per node.
+	fmt.Fprintf(w, "export const NODE_KIND_NAMES: %s = [\n", namesType)
+	for id := 0; id <= maxID; id++ {
+		if kd, ok := byID[uint8(id)]; ok {
+			fmt.Fprintf(w, "  %q,\n", kd.goKind)
+		} else {
+			fmt.Fprintf(w, "  undefined, // gap left by a removed kind (KindId %d)\n", id)
+		}
 	}
 	fmt.Fprintln(w, `];`)
 

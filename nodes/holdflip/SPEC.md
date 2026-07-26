@@ -4,6 +4,7 @@
 
 | Field | Value |
 |-------|-------|
+| kindId | 1 |
 | kind | holdFlip |
 | bg | #eceff1 |
 | border | #263238 |
