@@ -40,11 +40,17 @@ import (
 // InputLayoutFingerprint pins the binary input-record layout. It is the SINGLE source: the
 // TS-side INPUT_LAYOUT_FINGERPRINT in input-layout-gen.ts is GENERATED from this string
 // (tools/gen-node-defs/input_layout.go), so it always matches by construction — regenerate
-// (npm run gen:node-defs) after bumping this whenever any record kind, field, or enum
-// ordering changes.
+// (npm run gen:node-defs) after changing any record kind, field, or enum ordering.
 //
-// INPUT_LAYOUT_FINGERPRINT: v20 kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock updateAttrs=toggle,speed overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays,doubleLinks
-const InputLayoutFingerprint = "v20 kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock updateAttrs=toggle,speed overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays,doubleLinks"
+// No leading version token: it was a hand-bumped marker nothing parsed (parseFPList reads
+// the kinds=/eventKinds=/… tokens, never a version), and record FIELDS aren't listed here
+// anyway — so a field-layout change (e.g. removing a hit field) wouldn't move this string.
+// The real Go↔TS byte-alignment guard is TestInputFixtureCrossLanguage, which drives a
+// record through both encoders and diffs the fields; do not re-add a version pretending to
+// be a checked invariant.
+//
+// INPUT_LAYOUT_FINGERPRINT: kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock updateAttrs=toggle,speed overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays,doubleLinks
+const InputLayoutFingerprint = "kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock updateAttrs=toggle,speed overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays,doubleLinks"
 
 // Record kind bytes (first byte of every record).
 const (
