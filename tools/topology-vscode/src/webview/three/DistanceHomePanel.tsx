@@ -1,3 +1,4 @@
+import type React from "react";
 import { createPortal } from "react-dom";
 import { postGoRecord } from "../vscode-api";
 import { encodeDistanceGroupAdjust } from "../../schema/input-layout";
@@ -37,15 +38,16 @@ export function DistanceHomePanel() {
   };
 
   return createPortal(
-    <span className="distance-home-panel">
+    <div style={panelStyle}>
       {GROUPS.map(({ index, label }) => {
         const v = valueFor(index);
         return (
-          <span className="distance-home-row" key={label}>
-            <span className="distance-home-label">{label}</span>
-            <span className="distance-home-value">{v === undefined ? "—" : Math.round(v)}</span>
+          <div style={rowStyle} key={label}>
+            <span style={labelStyle}>{label}</span>
+            <span style={valueStyle}>{v === undefined ? "—" : Math.round(v)}</span>
             <button
               type="button"
+              style={btnStyle}
               aria-label={`${label} distance up`}
               onClick={() => adjust(index, "up")}
             >
@@ -53,15 +55,57 @@ export function DistanceHomePanel() {
             </button>
             <button
               type="button"
+              style={btnStyle}
               aria-label={`${label} distance down`}
               onClick={() => adjust(index, "down")}
             >
               ▼
             </button>
-          </span>
+          </div>
         );
       })}
-    </span>,
+    </div>,
     mount,
   );
 }
+
+// Styling mirrors the camera HomeButton (camera-ui.tsx): a dark rounded pill,
+// 11px monospace, #ddd — but laid out as a VERTICAL LIST (one group per row)
+// instead of wrapping inline text.
+const panelStyle: React.CSSProperties = {
+  display: "inline-flex",
+  flexDirection: "column",
+  gap: 2,
+  background: "rgba(0,0,0,0.55)",
+  borderRadius: 6,
+  padding: "3px 7px",
+  color: "#ddd",
+  fontSize: 11,
+  fontFamily: "monospace",
+  userSelect: "none",
+  verticalAlign: "top",
+};
+
+const rowStyle: React.CSSProperties = {
+  display: "flex",
+  flexDirection: "row",
+  alignItems: "center",
+  gap: 4,
+  whiteSpace: "nowrap",
+};
+
+const labelStyle: React.CSSProperties = { flex: 1, minWidth: 40 };
+
+const valueStyle: React.CSSProperties = { minWidth: 34, textAlign: "right" };
+
+const btnStyle: React.CSSProperties = {
+  background: "rgba(255,255,255,0.12)",
+  border: "none",
+  borderRadius: 4,
+  color: "#ddd",
+  fontSize: 11,
+  fontFamily: "monospace",
+  lineHeight: 1,
+  padding: "2px 5px",
+  cursor: "pointer",
+};
