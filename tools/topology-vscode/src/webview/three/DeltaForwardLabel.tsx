@@ -42,9 +42,10 @@ export function DeltaForwardLabel() {
 
   return createPortal(
     <span className="delta-forward-label">
-      <span className="delta-forward-label-header">
-        delta forwarded{draggedName ? ` (dragged ${draggedName})` : ""}
-      </span>
+      {draggedName ? (
+        <span className="delta-forward-label-dragged">dragged {draggedName}</span>
+      ) : null}
+      <span className="delta-forward-label-header">delta forwarded</span>
       {[...byForwarder.entries()].map(([forwarderName, entry]) => (
         <span className="delta-forward-label-row" key={forwarderName}>
           {forwarderName} → {entry.names.join(", ")} : ({entry.dA}, {entry.dB}, {entry.dC})
