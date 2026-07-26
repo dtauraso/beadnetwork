@@ -69,6 +69,11 @@ readonly DEAD_COMMENT_TOKENS=(
   "useCameraStore"
   "CameraFromStore"
   "pump.ts"
+  # audit round (2026-07-25): port_geometry.go claimed to be a "Go mirror" of TS
+  # geometry-helpers.ts, but the TS port-geometry functions were removed when Go took
+  # over geometry — there is no counterpart to mirror. Ban the specific false claim
+  # (not bare "geometry-helpers.ts", which is a real screen-coord file still referenced).
+  "Go mirror of the port-to-port segment geometry"
 )
 
 fail=0

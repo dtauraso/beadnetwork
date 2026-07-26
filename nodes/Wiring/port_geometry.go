@@ -1,11 +1,17 @@
-// port_geometry.go — Go mirror of the port-to-port segment geometry in
-// tools/topology-vscode/src/webview/three/geometry-helpers.ts.
+// port_geometry.go — Go-OWNED port-to-port segment geometry.
+//
+// Go owns geometry in this architecture: it computes each node/port world position
+// and streams the result into the content buffer; the TS webview renders from that
+// buffer and computes no geometry of its own (guard: check-ts-computes-no-geometry.sh).
+// This file is NOT a mirror of a TS counterpart — the former TS port-geometry helpers
+// were removed when Go took over, and geometry-helpers.ts now holds only screen-coord
+// conversion (ndcToPixel/pixelToNDC) for input picking, nothing this file reproduces.
 //
 // Go must compute a pulse's travel budget from the SAME segment the
 // bead is drawn on: a straight line from the source OUTPUT port's sphere-surface
-// point to the target INPUT port's sphere-surface point. This file reproduces
-// nodeWorldPos, nodeRadius, portDir and portWorldPos so arcLengthBetweenPorts
-// (loader.go / stdin_reader.go) returns the chord length.
+// point to the target INPUT port's sphere-surface point. nodeWorldPos, nodeRadius,
+// portDir and portWorldPos here feed arcLengthBetweenPorts
+// (loader.go / stdin_reader.go), which returns the chord length.
 //
 // Inputs the geometry needs, per node:
 //   - kind        → width/height via kindDims (generated from SPEC.md View)
