@@ -204,8 +204,9 @@ func TestCameraStrideIsPackedSize(t *testing.T) {
 }
 
 func TestOverlayStrideIsPackedSize(t *testing.T) {
-	// Overlay block: 8×u8 + 1×i32 = 12 (8 overlay flags + DragNodeRow)
-	want := 8*1 + 1*4
+	// Overlay block: 8×u8 + 1×i32 + 3×f32 = 24 (8 overlay flags + DragNodeRow +
+	// the "distance home button" panel's 3 GroupLen* columns)
+	want := 8*1 + 1*4 + 3*4
 	if BufOverlayStride != want {
 		t.Errorf("BufOverlayStride = %d, want %d (packed size)", BufOverlayStride, want)
 	}

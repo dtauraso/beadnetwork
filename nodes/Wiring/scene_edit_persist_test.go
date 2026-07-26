@@ -32,6 +32,7 @@ func TestLoadOverlaysEmitsDefaultsWhenNoPersistedKeys(t *testing.T) {
 		camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
 		sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis, doubleLinks uint8,
 		dragNodeRow int32,
+		groupLenTime, groupLenInput, groupLenGate float32,
 		sceneCX, sceneCY, sceneCZ, sceneRadius float32,
 		events []wire.RowEvent,
 	) []byte {

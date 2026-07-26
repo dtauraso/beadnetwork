@@ -49,8 +49,8 @@ import (
 // record through both encoders and diffs the fields; do not re-add a version pretending to
 // be a checked invariant.
 //
-// INPUT_LAYOUT_FINGERPRINT: kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock updateAttrs=toggle,speed overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays,doubleLinks
-const InputLayoutFingerprint = "kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock updateAttrs=toggle,speed overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays,doubleLinks"
+// INPUT_LAYOUT_FINGERPRINT: kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock,distanceGroup updateAttrs=toggle,speed,length overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays,doubleLinks
+const InputLayoutFingerprint = "kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock,distanceGroup updateAttrs=toggle,speed,length overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays,doubleLinks"
 
 // Record kind bytes (first byte of every record).
 const (
@@ -69,8 +69,9 @@ const (
 // Update attr indices (positional in IN_UPDATE_ATTRS; the order is pinned across both
 // languages by the updateAttrs= token in the fingerprint).
 const (
-	inOverlayAttrToggle = 0 // overlays: flip one flag
-	inClockAttrSpeed    = 1 // clock: set the playback-speed multiplier
+	inOverlayAttrToggle       = 0 // overlays: flip one flag
+	inClockAttrSpeed          = 1 // clock: set the playback-speed multiplier
+	inDistanceGroupAttrLength = 2 // distanceGroup: set the group's target pair length
 )
 
 // Enum orderings (u8 index → string), shared with input-layout-gen.ts. All five orderings
@@ -225,6 +226,27 @@ func decodeInputRecord(rec []byte) (stdinMsg, bool) {
 				return stdinMsg{}, false
 			}
 			return stdinMsg{Type: "edit", Op: "update", Kind: "clock", Attr: "speed", Num: int(speed)}, true
+		case "distanceGroup":
+			if attr != inDistanceGroupAttrLength {
+				return stdinMsg{}, false
+			}
+			// [u8 groupIndex][u8 dirUp] — groupIndex indexes distanceGroupOrder (0/1/2);
+			// dirUp is 1 for the up arrow (×1.1), 0 for down (÷1.1). Flag carries the
+			// direction as a readable string ("up"/"down") rather than adding a second
+			// numeric field to stdinMsg — Num already carries the group index.
+			groupIdx, errG := r.u8()
+			if errG != nil {
+				return stdinMsg{}, false
+			}
+			dirUp, errD := r.u8()
+			if errD != nil {
+				return stdinMsg{}, false
+			}
+			dir := "down"
+			if dirUp != 0 {
+				dir = "up"
+			}
+			return stdinMsg{Type: "edit", Op: "update", Kind: "distanceGroup", Attr: "length", Num: int(groupIdx), Flag: dir}, true
 		}
 		return stdinMsg{}, false
 	}
@@ -323,6 +345,22 @@ func encodeOverlaysToggle(flag string) []byte {
 	w.u8(enumIndex(inUpdateKinds, "overlays"))
 	w.u8(inOverlayAttrToggle)
 	w.u8(enumIndex(inOverlayFlags, flag))
+	return w.b
+}
+
+// encodeDistanceGroupAdjust builds a distanceGroup LENGTH record (test helper):
+// [22][entityKind=distanceGroup][attr=length][u8 groupIndex][u8 dirUp].
+func encodeDistanceGroupAdjust(groupIdx int, dirUp bool) []byte {
+	w := &recWriter{}
+	w.u8(inKindEditUpdate)
+	w.u8(enumIndex(inUpdateKinds, "distanceGroup"))
+	w.u8(inDistanceGroupAttrLength)
+	w.u8(byte(groupIdx))
+	if dirUp {
+		w.u8(1)
+	} else {
+		w.u8(0)
+	}
 	return w.b
 }
 
