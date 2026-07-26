@@ -61,7 +61,7 @@ type MoveDispatch struct {
 	// stream (stream_wiring.go). MoveDispatch's public SetEdgeStreams/SetNodeStreams
 	// methods stay as thin delegators so the external API is unchanged; view_stream.go's
 	// emitViewFrame reads md.sw.viewOut/viewBuildFrame/viewTick directly (it also reads
-	// md.ui.vp/md.ui.ov/md.ui.sceneSphere/md.ui.abcDragCount, which are NOT part of this extraction).
+	// md.ui.vp/md.ui.ov/md.ui.sceneSphere, which are NOT part of this extraction).
 	sw streamWiring
 	// ui owns the camera/overlay/gesture/selection/abc-drag UI state (ui_state.go).
 	// MoveDispatch's public setSelectionUI/setHoverUI/sendEdgeSelect/resetAbcDrag stay as

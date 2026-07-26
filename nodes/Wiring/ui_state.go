@@ -1,6 +1,6 @@
 // ui_state.go — the camera/overlay/gesture/selection/abc-drag UI-state owner split out of
 // MoveDispatch (god-object decomposition), as a pure move (no logic changes): uiState
-// owns sceneSphere/vp/ov/gest/sel/abcDragCh/abcDragCount/latchedNode and the
+// owns sceneSphere/vp/ov/gest/sel/latchedNode and the
 // setSelectionUI/setHoverUI/sendEdgeSelect/resetAbcDrag logic. MoveDispatch's public (and
 // package-private) methods of the same names stay as thin delegators, threading through
 // the few MoveDispatch fields (edgeMovers/nodeMovers/ctx/sendMove) these handlers need
@@ -37,21 +37,6 @@ type uiState struct {
 	// and produces camera (viewpoint) + topology (node-move) changes. Owned by
 	// MoveDispatch; serialized by the single-goroutine stdin reader. Zero value = idle.
 	gest gestureState
-	// abcDragCh is the non-blocking, message-passing bridge from an abc-drag RECIPIENT's
-	// own nodeMover goroutine (quantized_move.go's neighborSetCRequantize, potentially many
-	// different goroutines) to the ONE gesture/stdin-reader goroutine that owns
-	// abcDragCount and writes the VIEW frame. Per MODEL.md's no-shared-state directive:
-	// message-passing, never a shared counter. A full channel just drops that one
-	// count-observability tick (no delivery guarantee, same shape as every other
-	// fire-and-forget bridge in this codebase) rather than blocking the recipient's own
-	// goroutine. nil until SetViewStream runs (no dedicated view stream ⇒ nothing to send
-	// to; nodeMover call sites nil-check before sending).
-	abcDragCh chan struct{}
-	// abcDragCount is this goroutine's OWN plain int (only the
-	// gesture/stdin-reader goroutine ever reads or writes it, via DrainAbcDragChan) — the
-	// VIEW frame's Overlay.AbcDragCount column reads this directly. Per-drag: reset to 0
-	// at the start of each drag via resetAbcDrag (not cumulative for the run's lifetime).
-	abcDragCount uint32
 	// sel groups the CURRENTLY-SELECTED (click-select) and CURRENTLY-HOVERED (pointer hover)
 	// UI-only state (selection_state.go) — pure routing-directory-parked UI state, owned by
 	// Go but not part of the dispatch/persist/camera concerns. Grouped the same way
@@ -155,16 +140,16 @@ func (ui *uiState) setHoverUI(sendMove func(id string, msg moveMsg), node, port 
 }
 
 // resetAbcDrag re-scopes the recipient SET to the drag about to start: MESSAGES every
-// node mover to clear its OWN abc-drag recipient bit (mirrors the old central accumulator's
-// KindAbcDragReset handling), and zeroes ui.abcDragCount so the "drag received ×{count}"
-// counter is per-drag rather than cumulative for the run's lifetime. Called from the
-// gesture goroutine at the pending→dragging transition (gesture.go). The recipient-bit
-// broadcast is not a shared flag: each mover clears its own bit on its own goroutine, no
-// generation counter. The abcDragCount write is a plain field write because this method
-// runs on the same (gesture/stdin-reader) goroutine that owns abcDragCount. nodeMovers/
-// sendMove are threaded through from MoveDispatch (not part of uiState).
+// node mover to clear its OWN abc-drag recipient bit AND its own dragRequantCount
+// (mirrors the old central accumulator's KindAbcDragReset handling; the "drag received
+// ×{count}" counter is now per-recipient state on each node's own stream, summed on the
+// TS side — see overlay-flags.ts readDragReceivedCount — so it is per-drag rather than
+// cumulative for the run's lifetime purely by each recipient's own reset here). Called
+// from the gesture goroutine at the pending→dragging transition (gesture.go). The
+// recipient-bit broadcast is not a shared flag: each mover clears its own bits on its own
+// goroutine, no generation counter. nodeMovers/sendMove are threaded through from
+// MoveDispatch (not part of uiState).
 func (ui *uiState) resetAbcDrag(nodeMovers map[string]*nodeMover, sendMove func(id string, msg moveMsg)) {
-	ui.abcDragCount = 0
 	for id := range nodeMovers {
 		sendMove(id, moveMsg{Kind: moveMsgKindAbcReset, NodeID: id})
 	}

@@ -138,7 +138,6 @@ const (
 	BreadcrumbAbcDrag
 	BreadcrumbWireSendBufferFull
 	BreadcrumbCascadeRoot
-	BreadcrumbPointerDownHit
 )
 
 // BreadcrumbLabels is the single source of truth for the BreadcrumbLabel* enum's
@@ -154,7 +153,6 @@ var BreadcrumbLabels = []string{
 	"abc-drag",
 	"wire-send-buffer-full",
 	"cascade.root",
-	"pointerdown-hit",
 }
 
 // TraceEventKinds is the single source of truth for the closed kind vocabulary.

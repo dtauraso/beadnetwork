@@ -10,7 +10,7 @@
 //
 // Every method below takes md *MoveDispatch explicitly for everything that is NOT part of
 // layoutQuantizer's own two fields (quantizedLayout, layoutHolders) — mr/ui/tr/persist/
-// centerOfNode/sendAbcDragTick/NodeRowFor/sendMove are owned elsewhere. MoveDispatch's
+// centerOfNode/NodeRowFor/sendMove are owned elsewhere. MoveDispatch's
 // public RootMove, and its several package-private methods of the same names as below
 // (heldCenters, heldEdges, broadcastToEdgesAndPartners, requantizePoleTraced,
 // neighborSetCRequantize, commitNodeMoveLocal, requantizeLocalPolars), stay thin
@@ -268,22 +268,16 @@ func (lq *layoutQuantizer) neighborSetCRequantize(md *MoveDispatch, selfID, from
 			fmt.Sprintf("peer=%s peerCenter=(%.3f,%.3f,%.3f) abc=(%d,%d,%d) delta=(%d,%d,%d)",
 				fromID, fromCenter.X, fromCenter.Y, fromCenter.Z, it, ip, ir, deltaA, deltaB, deltaC))
 	}
-	// Decentralized (Step C, memory/feedback_no_single_writer_bridge.md): signal the VIEW-stream owner
-	// goroutine (RunStdinReader) that one more abc-drag occurred, so ITS OWN abcDragCount
-	// and VIEW frame stay current — see view_stream.go's doc comment for why this is
-	// message-passing, not a shared counter.
-	// This runs on selfID's OWN nodeMover goroutine, a DIFFERENT goroutine than the one
-	// that owns abcDragCount, hence the channel rather than a direct write.
-	md.sendAbcDragTick()
-	// selfID's OWN recipient bit: this runs on selfID's OWN nodeMover goroutine
-	// (neighborSetC dispatch, node_mover.go's moveMsgKindNeighborSetC case), so it is
-	// safe to write nm's fields directly — no shared map. This is what
-	// writeStreamFrame (also this goroutine) reads for its own dedicated stream frame.
-	// The RunStdinReader goroutine's own abcDragCount (view_stream.go) is the sole
-	// source of the VIEW frame's AbcDragCount now — no second EVENT-LOG accumulation
-	// needed here.
+	// selfID's OWN recipient bit AND cumulative recipient count: this runs on selfID's
+	// OWN nodeMover goroutine (neighborSetC dispatch, node_mover.go's
+	// moveMsgKindNeighborSetC case), so it is safe to write nm's fields directly — no
+	// shared map, no cross-goroutine channel. This is what writeStreamFrame (also this
+	// goroutine) reads for its own dedicated stream frame; dragRequantCount is the sole
+	// source of the "drag received ×N" count now (summed across node rows on the TS
+	// side) — no central accumulator, so nothing can drop a tick.
 	if nm, ok := md.mr.nodeMovers[selfID]; ok {
 		nm.gotDragMsg = 1
+		nm.dragRequantCount++
 		nm.dragDeltaA, nm.dragDeltaB, nm.dragDeltaC = int32(deltaA), int32(deltaB), int32(deltaC)
 		// Structured buffer counterpart of the "abc-drag" breadcrumb above, riding
 		// THIS node's (selfID's) own dedicated stream — this runs on selfID's own

@@ -22,12 +22,12 @@ import {
   readOverlayLabelsGlobal,
   readOverlayOverlaysVis,
   readOverlayDoubleLinks,
-  readOverlayAbcDragCount,
   readOverlayDragNodeRow,
   readNodeGotDragMsg,
   readNodeDragDeltaA,
   readNodeDragDeltaB,
   readNodeDragDeltaC,
+  readNodeDragRequantCount,
 } from "../../schema/buffer-layout";
 import { nodeLabel } from "./buffer-decode";
 
@@ -88,19 +88,29 @@ export function useOverlayFlags(): OverlayFlagVals | null {
   return useSyncExternalStore(subscribeViewBlocks, readOverlayFlags, readOverlayFlags);
 }
 
-/** Decode the latest snapshot's running time-node abc-drag event count (Overlay block
- *  AbcDragCount column). Read-only affirmation counter — never authored by TS, only
- *  reflects the buffer. Returns 0 if no snapshot / decode failure yet. */
-export function readAbcDragCount(): number {
-  const blocks = getViewBlocks();
-  if (!blocks) return 0;
-  return readOverlayAbcDragCount(blocks.overlayView);
+/** Decode the running time-node abc-drag "received" total by SUMMING each node row's
+ *  OWN cumulative DragRequantCount column (Node block) — the per-recipient count that
+ *  replaced the old central Overlay.AbcDragCount. That central counter lived on a
+ *  cross-goroutine channel (abcDragCh) a fast drag's pointer-input load could starve,
+ *  silently dropping ticks (the node-7-target-only-drag bug); DragRequantCount is state
+ *  on each recipient's OWN reliable node stream, so nothing can be dropped — this just
+ *  sums what's already there. Returns 0 if no node frame decoded yet. */
+export function readDragReceivedCount(): number {
+  const decoded = getNodeFrame();
+  if (!decoded) return 0;
+  let total = 0;
+  for (let row = 0; row < decoded.nodeCount; row++) {
+    total += readNodeDragRequantCount(decoded.nodeView, row);
+  }
+  return total;
 }
 
-/** React hook: re-renders the caller as time.abc-drag events accumulate (Go-owned
- *  counter; affirms the drag-log is happening live). */
-export function useAbcDragCount(): number {
-  return useSyncExternalStore(subscribeViewBlocks, readAbcDragCount, readAbcDragCount);
+/** React hook: re-renders the caller as time.abc-drag events accumulate (Go-owned,
+ *  summed across each recipient's own node-stream count; affirms the drag-log is
+ *  happening live). Subscribes to the NODE stream (DragRequantCount lives in the Node
+ *  block), not the VIEW stream. */
+export function useDragReceivedCount(): number {
+  return useSyncExternalStore(subscribeNodeStreamBlocks, readDragReceivedCount, readDragReceivedCount);
 }
 
 /** Decode the row index of the node currently being dragged (Overlay block

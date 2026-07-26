@@ -6,8 +6,8 @@
 // on its OWN periodic every-cycle emit — no central trigger, no nudge mechanism needed
 // (nodeMover.run's writeStreamFrame call already runs every cycle regardless of geometry
 // change, same as edgeMover.run — see node_mover.go). The abc-drag COUNT is proven via
-// MoveDispatch's own single-goroutine counter (md.ui.abcDragCount, touched only by whichever
-// goroutine calls DrainAbcDragChan) reflected in the VIEW frame.
+// the RECIPIENT's own dragRequantCount field, carried on its own reliable node stream
+// frame — no central accumulator, no cross-goroutine channel to drop a tick.
 
 package Wiring
 
@@ -72,8 +72,8 @@ func lastNodeStreamSelectedHovered(raw []byte) (selected, hovered uint8, ok bool
 }
 
 // lastNodeStreamDragMsg decodes the LAST complete node-stream frame's GotDragMsg/
-// DragDeltaA/B/C fields, mirroring lastNodeStreamSelectedHovered.
-func lastNodeStreamDragMsg(raw []byte) (gotDragMsg uint8, deltaA, deltaB, deltaC int32, ok bool) {
+// DragDeltaA/B/C/DragRequantCount fields, mirroring lastNodeStreamSelectedHovered.
+func lastNodeStreamDragMsg(raw []byte) (gotDragMsg uint8, deltaA, deltaB, deltaC, requantCount int32, ok bool) {
 	off := 0
 	var last []byte
 	for off+4 <= len(raw) {
@@ -87,43 +87,23 @@ func lastNodeStreamDragMsg(raw []byte) (gotDragMsg uint8, deltaA, deltaB, deltaC
 	}
 	const nodeOff = 20
 	if last == nil || len(last) < nodeOff+B.BufNodeStride {
-		return 0, 0, 0, 0, false
+		return 0, 0, 0, 0, 0, false
 	}
 	node := last[nodeOff : nodeOff+B.BufNodeStride]
 	g := node[B.BufNodeColGotDragMsg]
 	dA := int32(binary.LittleEndian.Uint32(node[B.BufNodeColDragDeltaA:]))
 	dB := int32(binary.LittleEndian.Uint32(node[B.BufNodeColDragDeltaB:]))
 	dC := int32(binary.LittleEndian.Uint32(node[B.BufNodeColDragDeltaC:]))
-	return g, dA, dB, dC, true
-}
-
-// lastViewFrameAbcDragCount decodes the LAST complete framed VIEW-stream payload and
-// returns its Overlay block's AbcDragCount. ok=false if no complete frame has arrived.
-func lastViewFrameAbcDragCount(raw []byte) (count uint32, ok bool) {
-	off := 0
-	var last []byte
-	for off+4 <= len(raw) {
-		n := int(binary.LittleEndian.Uint32(raw[off:]))
-		off += 4
-		if off+n > len(raw) {
-			break
-		}
-		last = raw[off : off+n]
-		off += n
-	}
-	countOff := B.BufViewFrameHeaderSize + B.BufCameraStride + B.BufOverlayColAbcDragCount
-	if last == nil || len(last) < countOff+4 {
-		return 0, false
-	}
-	return binary.LittleEndian.Uint32(last[countOff:]), true
+	reqCount := int32(binary.LittleEndian.Uint32(node[B.BufNodeColDragRequantCount:]))
+	return g, dA, dB, dC, reqCount, true
 }
 
 // TestGesturePathPropagatesUIStateToMoverStream drives selection, hover, and abc-drag
 // through the real gesture/quantized-move call sites and asserts (a) the AFFECTED
 // mover's OWN dedicated stream frame shows the new state via its periodic emit (no
-// shared/republished map to poll instead), and (b) the VIEW frame's AbcDragCount
-// (MoveDispatch's OWN plain counter, Step C of memory/feedback_no_single_writer_bridge.md) reflects the
-// abc-drag event.
+// shared/republished map to poll instead), and (b) that SAME node stream's own
+// DragRequantCount column (incremented directly on the recipient's own goroutine,
+// no cross-goroutine channel) reflects the abc-drag event.
 func TestGesturePathPropagatesUIStateToMoverStream(t *testing.T) {
 	root := writeXTN(t) // x --Out--> t (chain), x --Out--> n (data)
 
@@ -141,7 +121,6 @@ func TestGesturePathPropagatesUIStateToMoverStream(t *testing.T) {
 	md.SetViewStream(viewBuf, func(tick uint32,
 		camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
 		sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis, doubleLinks uint8,
-		abcDragCount uint32,
 		dragNodeRow int32,
 		sceneCX, sceneCY, sceneCZ, sceneRadius float32,
 		events []wire.RowEvent,
@@ -150,7 +129,7 @@ func TestGesturePathPropagatesUIStateToMoverStream(t *testing.T) {
 			B.OverlayRow{
 				SceneTori: sceneTori, ScenePoles: scenePoles, NodePoles: nodePoles,
 				SelSpherePoles: selSpherePoles, Handholds: handholds, LabelsGlobal: labelsGlobal,
-				OverlaysVis: overlaysVis, DoubleLinks: doubleLinks, AbcDragCount: abcDragCount,
+				OverlaysVis: overlaysVis, DoubleLinks: doubleLinks,
 				DragNodeRow: dragNodeRow,
 			},
 			sceneCX, sceneCY, sceneCZ, sceneRadius, nil)
@@ -179,15 +158,15 @@ func TestGesturePathPropagatesUIStateToMoverStream(t *testing.T) {
 	bufX := &uiPubLockedBuf{}
 	nm.streamOut = bufX
 	nm.nodeRow = xRow
-	nm.buildFrame = func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows, edgeRows []int32, events []wire.RowEvent) []byte {
-		return B.BuildNodeStreamFrame(tick, nodeRow, cx, cy, cz, radius, sphereR, vrx, vry, vrz, frx, fry, frz, selected, kindID, hovered, latchedSel, gotDragMsg, dragDeltaA, dragDeltaB, dragDeltaC, label, portNames, portDX, portDY, portDZ, portPX, portPY, portPZ, portIsInput, portHovered, dstNodeRows, edgeRows, nil)
+	nm.buildFrame = func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows, edgeRows []int32, events []wire.RowEvent) []byte {
+		return B.BuildNodeStreamFrame(tick, nodeRow, cx, cy, cz, radius, sphereR, vrx, vry, vrz, frx, fry, frz, selected, kindID, hovered, latchedSel, gotDragMsg, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount, label, portNames, portDX, portDY, portDZ, portPX, portPY, portPZ, portIsInput, portHovered, dstNodeRows, edgeRows, nil)
 	}
 
 	bufT := &uiPubLockedBuf{}
 	nmT.streamOut = bufT
 	nmT.nodeRow = tRow
-	nmT.buildFrame = func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows, edgeRows []int32, events []wire.RowEvent) []byte {
-		return B.BuildNodeStreamFrame(tick, nodeRow, cx, cy, cz, radius, sphereR, vrx, vry, vrz, frx, fry, frz, selected, kindID, hovered, latchedSel, gotDragMsg, dragDeltaA, dragDeltaB, dragDeltaC, label, portNames, portDX, portDY, portDZ, portPX, portPY, portPZ, portIsInput, portHovered, dstNodeRows, edgeRows, nil)
+	nmT.buildFrame = func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows, edgeRows []int32, events []wire.RowEvent) []byte {
+		return B.BuildNodeStreamFrame(tick, nodeRow, cx, cy, cz, radius, sphereR, vrx, vry, vrz, frx, fry, frz, selected, kindID, hovered, latchedSel, gotDragMsg, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount, label, portNames, portDX, portDY, portDZ, portPX, portPY, portPZ, portIsInput, portHovered, dstNodeRows, edgeRows, nil)
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -211,40 +190,32 @@ func TestGesturePathPropagatesUIStateToMoverStream(t *testing.T) {
 	// --- Abc-drag: the real recipient path is a moveMsgKindNeighborSetC message routed
 	// to the RECIPIENT's own dedicated channel (mirrors requantizeLocalPolars' fan) —
 	// t's own goroutine runs neighborSetCRequantize, sets its OWN gotDragMsg/dragDelta*
-	// fields, and sends a non-blocking tick on md.ui.abcDragCh (view_stream.go) for the
-	// VIEW-stream owner goroutine to drain. In production that owner is RunStdinReader's
-	// own dispatch loop; this test has none running, so it plays that goroutine's part
-	// directly (DrainAbcDragChan + emitViewFrame), same shape, no cross-goroutine race —
-	// AbcDragCount is only ever touched by whichever goroutine calls DrainAbcDragChan. ---
-	before := md.ui.abcDragCount
+	// AND dragRequantCount fields directly (no cross-goroutine channel, nothing to
+	// drop), and its own periodic emit carries the new count on its own stream. ---
 	md.sendMove("t", moveMsg{
 		Kind: moveMsgKindNeighborSetC, NodeID: "t", SenderID: "x",
 		FromCenter: vec3{X: 1, Y: 2, Z: 3}, DeltaA: 1, DeltaB: 2, DeltaC: 3,
 	})
-	waitForNodeDragMsg(t, bufT, func(got uint8, dA, dB, dC int32) bool {
-		return got == 1 && dA == 1 && dB == 2 && dC == 3
+	waitForNodeDragMsg(t, bufT, func(got uint8, dA, dB, dC, reqCount int32) bool {
+		return got == 1 && dA == 1 && dB == 2 && dC == 3 && reqCount == 1
 	})
-	waitForAbcDragTickDrained(t, md)
-	if md.ui.abcDragCount != before+1 {
-		t.Fatalf("abcDragCount after one abc-drag tick = %d, want %d", md.ui.abcDragCount, before+1)
-	}
-	if count, ok := lastViewFrameAbcDragCount(viewBuf.Bytes()); !ok || count != before+1 {
-		t.Fatalf("view frame AbcDragCount = %v (ok=%v), want %d", count, ok, before+1)
-	}
+
+	// A second abc-drag message to the SAME recipient accumulates (cumulative per drag).
+	md.sendMove("t", moveMsg{
+		Kind: moveMsgKindNeighborSetC, NodeID: "t", SenderID: "x",
+		FromCenter: vec3{X: 4, Y: 5, Z: 6}, DeltaA: 7, DeltaB: 8, DeltaC: 9,
+	})
+	waitForNodeDragMsg(t, bufT, func(got uint8, dA, dB, dC, reqCount int32) bool {
+		return got == 1 && dA == 7 && dB == 8 && dC == 9 && reqCount == 2
+	})
 
 	// --- AbcDragReset (resetAbcDrag) broadcasts moveMsgKindAbcReset to every node
-	// mover, clearing t's OWN recipient bit, AND zeroes md.ui.abcDragCount directly
-	// (same goroutine owns it) — the "drag received ×{count}" counter is per-drag,
-	// not cumulative for the run's lifetime. ---
+	// mover, clearing t's OWN recipient bit AND its own dragRequantCount — the "drag
+	// received ×{count}" counter is per-drag, not cumulative for the run's lifetime. ---
 	md.resetAbcDrag()
-	waitForNodeDragMsg(t, bufT, func(got uint8, dA, dB, dC int32) bool { return got == 0 })
-	md.emitViewFrame(nil)
-	if count, ok := lastViewFrameAbcDragCount(viewBuf.Bytes()); !ok || count != 0 {
-		t.Fatalf("AbcDragCount after resetAbcDrag = %v (ok=%v), want 0 (count is per-drag)", count, ok)
-	}
-	if after, ok := lastViewFrameAbcDragCount(viewBuf.Bytes()); !ok || after != 0 {
-		t.Fatalf("AbcDragCount after resetAbcDrag = %v, want 0 (count is per-drag)", after)
-	}
+	waitForNodeDragMsg(t, bufT, func(got uint8, dA, dB, dC, reqCount int32) bool {
+		return got == 0 && reqCount == 0
+	})
 }
 
 // waitForNodeStream polls buf's captured frames until check(selected, hovered) is true or
@@ -266,37 +237,15 @@ func waitForNodeStream(t *testing.T, buf *uiPubLockedBuf, check func(selected, h
 }
 
 // waitForNodeDragMsg is waitForNodeStream's abc-drag counterpart.
-func waitForNodeDragMsg(t *testing.T, buf *uiPubLockedBuf, check func(gotDragMsg uint8, dA, dB, dC int32) bool) {
+func waitForNodeDragMsg(t *testing.T, buf *uiPubLockedBuf, check func(gotDragMsg uint8, dA, dB, dC, reqCount int32) bool) {
 	t.Helper()
 	deadline := time.Now().Add(2 * time.Second)
 	for {
-		if got, dA, dB, dC, ok := lastNodeStreamDragMsg(buf.Bytes()); ok && check(got, dA, dB, dC) {
+		if got, dA, dB, dC, reqCount, ok := lastNodeStreamDragMsg(buf.Bytes()); ok && check(got, dA, dB, dC, reqCount) {
 			return
 		}
 		if time.Now().After(deadline) {
 			t.Fatalf("node's dedicated stream frame never reflected the expected abc-drag state within deadline")
-		}
-		time.Sleep(2 * time.Millisecond)
-	}
-}
-
-// waitForAbcDragTickDrained polls md.ui.abcDragCh (via DrainAbcDragChan) until at least one
-// tick has been drained (or a bounded deadline elapses), then emits one VIEW frame — the
-// same two-step (drain, then emit) RunStdinReader's own select loop performs in
-// production (stdin_reader.go), played manually here since this test drives the gesture/
-// quantized-move call sites directly with no RunStdinReader goroutine running.
-func waitForAbcDragTickDrained(t *testing.T, md *MoveDispatch) {
-	t.Helper()
-	deadline := time.Now().Add(2 * time.Second)
-	for {
-		if n := md.DrainAbcDragChan(); n > 0 {
-			for ; n > 0; n-- {
-				md.emitViewFrame(nil)
-			}
-			return
-		}
-		if time.Now().After(deadline) {
-			t.Fatalf("abc-drag tick never arrived on md.ui.abcDragCh within deadline")
 		}
 		time.Sleep(2 * time.Millisecond)
 	}
