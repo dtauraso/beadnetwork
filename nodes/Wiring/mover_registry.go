@@ -26,8 +26,8 @@ type moverRegistry struct {
 	// edgeOut: edgeId → source *Out, for read-only access by tests/verifiers.
 	edgeOut map[string]*wire.Out
 	// centerMirror is the DISPATCH goroutine's OWN mirror of every node's last-known
-	// world center — the replacement for the old atomic.Pointer[centerSnap] cross-
-	// goroutine read. Seeded once at construction (newMoveDispatch, single-threaded
+	// world center, kept current by messages from each node's own goroutine.
+	// Seeded once at construction (newMoveDispatch, single-threaded
 	// setup, from each node's load-time geom) so the first framing read has every
 	// center before any push arrives, then kept current by drainCenterMirror pulling
 	// each nodeMover's own centerOut channel. Written and read ONLY from the dispatch/

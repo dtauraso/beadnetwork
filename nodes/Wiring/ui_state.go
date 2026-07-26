@@ -40,8 +40,8 @@ type uiState struct {
 	// abcDragCh is the non-blocking, message-passing bridge from an abc-drag RECIPIENT's
 	// own nodeMover goroutine (quantized_move.go's neighborSetCRequantize, potentially many
 	// different goroutines) to the ONE gesture/stdin-reader goroutine that owns
-	// abcDragCount and writes the VIEW frame. Per MODEL.md/explicit no-atomic directive:
-	// message-passing, never a shared/atomic counter. A full channel just drops that one
+	// abcDragCount and writes the VIEW frame. Per MODEL.md's no-shared-state directive:
+	// message-passing, never a shared counter. A full channel just drops that one
 	// count-observability tick (no delivery guarantee, same shape as every other
 	// fire-and-forget bridge in this codebase) rather than blocking the recipient's own
 	// goroutine. nil until SetViewStream runs (no dedicated view stream ⇒ nothing to send

@@ -26,8 +26,8 @@
 // tolerated: json.Unmarshal into sceneOverlaysFile silently ignores unknown keys, so it is
 // dropped on the next save without needing an explicit migration.
 //
-// The atomic-write plumbing is shared machinery from scene_persist.go (writeJSONAtomic) —
-// this file holds only the overlays-specific shape.
+// The crash-safe (tmp-then-rename) write plumbing is shared machinery from
+// scene_persist.go (writeJSONAtomic) — this file holds only the overlays-specific shape.
 
 package Wiring
 

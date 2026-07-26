@@ -719,9 +719,9 @@ func (b *buildCtx) buildNodes() error {
 		// promoted embedded Wiring.LayoutHolder every kind gets — so the node's
 		// layout goroutine owns it without per-kind wiring. Locate the embedded
 		// *LayoutHolder by reflection (same field-lookup builders.go/loader.go use
-		// elsewhere for port/data injection), then load through its own locked
-		// setter rather than reflecting on the unexported localPolars field
-		// directly, so this initial load goes through the same mutex every other
+		// elsewhere for port/data injection), then load through its own setter
+		// rather than reflecting on the unexported localPolars field directly, so
+		// this initial load goes through the same entry point every other
 		// LocalPolars access does.
 		if v := reflect.ValueOf(nd).Elem(); v.Kind() == reflect.Struct {
 			if lhField := v.FieldByName("LayoutHolder"); lhField.IsValid() && lhField.CanAddr() {

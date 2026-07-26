@@ -116,9 +116,7 @@ func (pw *PacedWire) ticksToCross(arc float64) float64 {
 // struct: a channel in from its source node, a channel out to its destination
 // node. It is NOT a separate goroutine of its own — it is driven by the same
 // per-edge goroutine that already existed to revise in-flight geometry on a
-// node-move (edgeMover.run, node_mover.go), now given ownership of the beads it
-// used to reach across a lock to revise. Goroutine count is therefore
-// unchanged; what changed is who owns the state.
+// node-move (edgeMover.run, node_mover.go), which owns the beads it revises.
 //
 //   - inCh is the wire's IN-CHANNEL: the source node's own goroutine calls Send,
 //     a non-blocking buffered-channel send, and moves on (MODEL.md "Sending" — no

@@ -379,7 +379,7 @@ func (o *Out) CurrentPlacement() (inFlightMs float64, start, end Vec3) {
 
 // placementFrom builds a beadPlacement from an already-loaded geometry snapshot, so
 // a caller can use ONE consistent snapshot for both the placement and the SendWire
-// trace (rather than two independent atomic loads that could straddle a republish).
+// trace (rather than two independent loads that could straddle a republish).
 func (o *Out) placementFrom(g outGeom) beadPlacement {
 	return beadPlacement{
 		InFlightMs: g.SimLatencyMs,

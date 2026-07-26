@@ -261,9 +261,9 @@ func RunStdinReader(ctx context.Context, r io.Reader, slotReg SlotRegistry, md *
 			// CONSTANT built once in newMoveDispatch (node_move.go buildRowTables), not a
 			// per-iteration drain: node/edge/port row order never changes after load (a
 			// new node/edge only ever arrives via a full respawn), so there is nothing to
-			// drain here anymore. Likewise heldCenters/centerOfNode read each mover's own
-			// atomically-published snap directly — there is no accumulated positions map
-			// to drain either.
+			// drain here anymore. Likewise heldCenters/centerOfNode read the dispatch
+			// goroutine's own centerMirror, kept current by message from each mover —
+			// there is no accumulated positions map to drain either.
 			msg, decoded := decodeInputRecord(rec)
 			if !decoded {
 				continue

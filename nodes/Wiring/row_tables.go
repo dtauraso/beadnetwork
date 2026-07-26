@@ -32,12 +32,10 @@ type moveDispatchEdgeEndpoint struct {
 // ONCE here, in newMoveDispatch, from the SAME nodeSeeds/edgeSeeds order the seed loop
 // in main.go streams through tr.NodeGeometry/tr.Geometry — reproducing byte-for-byte
 // the row order the old central accumulator used to discover independently. Built
-// before Start (and never mutated afterward), so — unlike that accumulator's
-// atomic.Pointer tables — a plain
-// slice/map here is already safe for every reader goroutine (gesture, movers) to read
-// concurrently: the write happened-before every goroutine
-// that could read it (Go launches nodeMover/edgeMover goroutines only in Start, which
-// runs after newMoveDispatch returns).
+// before Start (and never mutated afterward), so a plain slice/map here is already
+// safe for every reader goroutine (gesture, movers) to read concurrently: the write
+// happened-before every goroutine that could read it (Go launches nodeMover/edgeMover
+// goroutines only in Start, which runs after newMoveDispatch returns).
 type rowTables struct {
 	// nodeRowTable: node ids in stable row order (== md.nodeSeeds order).
 	nodeRowTable []string

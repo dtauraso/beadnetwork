@@ -42,10 +42,10 @@ type layoutQuantizer struct {
 }
 
 // heldCenters returns a fresh snapshot of every node's current world center, read from
-// each nodeMover's own atomically-published snap (centerOfNode) — safe to call from any
-// goroutine (every live caller runs on the stdin/gesture dispatch loop). There is no
-// separate accumulated positions map to drain: each mover publishes its own snapshot
-// directly.
+// the dispatch goroutine's own centerMirror (centerOfNode), which each nodeMover keeps
+// current by message (drainCenterMirror) — safe to call from the stdin/gesture dispatch
+// goroutine, which is every live caller. There is no separate accumulated positions map
+// to drain.
 func (lq *layoutQuantizer) heldCenters(md *MoveDispatch) map[string]vec3 {
 	out := make(map[string]vec3, len(md.mr.nodeMovers))
 	for id := range md.mr.nodeMovers {
@@ -101,10 +101,11 @@ func (lq *layoutQuantizer) broadcastToEdgesAndPartners(md *MoveDispatch, newCent
 	// Aimed-port re-emit (see doc comment above): find every partner node — the OTHER
 	// end of any edge incident to a moved node — and ask it to re-emit its OWN geometry
 	// with its OWN (unchanged) center, mirroring reemitPortTorusGeometry's "same center"
-	// trick. emitGeometry reads m.partnerCenter at emit time, which reads the moved
-	// partner's own atomically-published snap directly (buildPartnerCenterFn,
-	// node_move.go) — there is no per-node neighborCenters cache to keep fresh, so this
-	// re-emit message carries no partner-center payload, only the bare re-emit signal.
+	// trick. emitGeometry reads m.partnerCenter at emit time, which reads this node's
+	// own partnerCenters map (kept current by the moved partner's neighborCenter
+	// message, buildPartnerCenterFn in node_move.go) — there is no per-node
+	// neighborCenters cache to keep fresh, so this re-emit message carries no
+	// partner-center payload, only the bare re-emit signal.
 	// This does NOT run for torus-locked ports only — it runs for every aimed connected
 	// port unconditionally, even if that breaks a port∈torus lock; that is intended.
 	// partners maps partnerID → the ONE moved node (kept for clarity/observability
@@ -236,8 +237,7 @@ func (lq *layoutQuantizer) requantizePoleTraced(lh *wire.LayoutHolder, updates m
 // edge to selfID (computed once on fromID's goroutine, see requantizeLocalPolars) —
 // pure observability payload carried through to the AbcDrag trace event, never applied
 // to selfID's own position/quantize math. selfCenter is selfID's OWN current center —
-// read by the caller (nodeMover.handle, on selfID's own goroutine, nodeWorldPos(m.geom))
-// rather than by an atomic cross-goroutine snap read.
+// read by the caller (nodeMover.handle, on selfID's own goroutine, nodeWorldPos(m.geom)).
 func (lq *layoutQuantizer) neighborSetCRequantize(md *MoveDispatch, selfID, fromID string, selfCenter, fromCenter vec3, deltaA, deltaB, deltaC int) {
 	lh, ok := lq.layoutHolders[selfID]
 	if !ok {
@@ -270,8 +270,8 @@ func (lq *layoutQuantizer) neighborSetCRequantize(md *MoveDispatch, selfID, from
 	}
 	// Decentralized (Step C, memory/feedback_no_single_writer_bridge.md): signal the VIEW-stream owner
 	// goroutine (RunStdinReader) that one more abc-drag occurred, so ITS OWN abcDragCount
-	// (a plain int, never shared/atomic) and VIEW frame stay current — see
-	// view_stream.go's doc comment for why this is message-passing, not a shared counter.
+	// and VIEW frame stay current — see view_stream.go's doc comment for why this is
+	// message-passing, not a shared counter.
 	// This runs on selfID's OWN nodeMover goroutine, a DIFFERENT goroutine than the one
 	// that owns abcDragCount, hence the channel rather than a direct write.
 	md.sendAbcDragTick()

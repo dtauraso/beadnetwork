@@ -13,15 +13,16 @@ import (
 // partnerCenterFn returns the CURRENT world center of the single partner node connected
 // to (port, isInput) via one edge — the aimed-port model's one input. ok is false for an
 // edgeless port (no partner), which falls back to ring placement. Built once per node by
-// newMoveDispatch (dynamic, atomic-snapshot-backed) or once per node at initial construction
-// (static, straight off the loaded geoms) — see buildPartnerCenterFn.
+// newMoveDispatch (dynamic, backed by this node's own message-updated partnerCenters map)
+// or once per node at initial construction (static, straight off the loaded geoms) — see
+// buildPartnerCenterFn.
 type partnerCenterFn func(port string, isInput bool) (vec3, bool)
 
 // buildPartnerCenterFn returns a partnerCenterFn for nodeID: it scans edgeEndpoints (the
 // static edge-label → source/target/handle map) for the one edge touching (port, isInput) on
 // nodeID and, if found, resolves the partner's current center via centerOf. This is the ONE
 // place the (node,port,isInput) → partner-id lookup lives, shared by the static
-// (construction-time) and dynamic (mover, atomic-snapshot) callers so both agree.
+// (construction-time) and dynamic (mover, message-updated) callers so both agree.
 func buildPartnerCenterFn(nodeID string, edgeEndpoints map[string]EdgeEndpoints, centerOf func(id string) vec3) partnerCenterFn {
 	return func(port string, isInput bool) (vec3, bool) {
 		for _, ep := range edgeEndpoints {

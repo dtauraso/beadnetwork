@@ -20,12 +20,11 @@ package Wiring
 //   - FIRE-AND-FORGET: errors are logged, not returned; it never blocks the gesture.
 //
 // Before this split, camera.json's content lived at scene.json's `cameraPolar` key,
-// shared with the overlays and sphere writers under sceneFileMu. That lock is gone
-// (scene_persist.go); an existing pre-split scene.json still loads — see
-// loadSceneViewpoint's legacy fallback in scene_camera.go.
+// shared with the overlays and sphere writers; an existing pre-split scene.json still
+// loads — see loadSceneViewpoint's legacy fallback in scene_camera.go.
 //
-// The atomic-write plumbing is shared machinery from scene_persist.go (writeJSONAtomic) —
-// this file holds only the camera-specific shape.
+// The crash-safe (tmp-then-rename) write plumbing is shared machinery from
+// scene_persist.go (writeJSONAtomic) — this file holds only the camera-specific shape.
 
 // viewpointPersister writes viewpoint changes to camera.json as they happen. Owned by
 // MoveDispatch (armed after the startup seed).

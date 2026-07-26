@@ -200,9 +200,9 @@ func (m *edgeMover) recomputeGeometry() {
 	arc := edgeArcPolar(m.srcGeom, m.dstGeom, m.srcH, m.dstH)
 	lat := arc / wire.PulseSpeedWuPerMs
 
-	// Publish the new per-edge segment/arc/latency onto the source Out as an immutable
-	// snapshot so the next placement (on the source node goroutine) reads the new
-	// segment via an atomic load — no data race with recomputeGeometry's write here.
+	// Publish the new per-edge segment/arc/latency onto the source Out's buffered-1,
+	// latest-wins channel, so the next placement (on the source node goroutine) reads
+	// the new segment by message — no data race with recomputeGeometry's write here.
 	if m.out != nil {
 		m.out.PublishGeom(arc, lat, seg.Start, seg.End)
 	}
