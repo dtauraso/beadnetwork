@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Fan-in is removed from the model: an input port takes exactly ONE incident edge (multiple
 # sources into one node use DISTINCT input ports — as every production node does, e.g. a
-# gate's FromLeft/FromRight). The loader enforces this at parse (validateNoFanIn, loader.go)
+# gate's FromLeft/FromRight). The loader enforces this at parse (validateNoFanIn, topo_spec.go)
 # so a fan-in topology fails at load. This guard is the STATIC repo-side complement: it
 # fails the build if the committed production topology (topology/edges/*.json) has two edges
 # targeting the same target+targetHandle, so a fan-in diagram can't be committed and only
