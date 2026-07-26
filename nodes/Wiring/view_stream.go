@@ -36,6 +36,7 @@ type ViewFrameBuilder func(tick uint32,
 	camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
 	sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis, doubleLinks uint8,
 	abcDragCount uint32,
+	dragNodeRow int32,
 	sceneCX, sceneCY, sceneCZ, sceneRadius float32,
 	events []wire.RowEvent,
 ) []byte
@@ -117,6 +118,16 @@ func (md *MoveDispatch) emitViewFrame(events []wire.RowEvent) {
 	md.sw.viewTick++
 	v := md.ui.vp.viewpoint
 	sc := md.ui.sceneSphere
+	// dragNodeRow is derived, not stored: the gesture FSM's g.dragNode (nodes/Wiring/
+	// gesture.go) is the single source of truth for "which node is being dragged", and
+	// this goroutine (RunStdinReader's dispatch loop) is the same one that mutates it —
+	// no separate field to keep in sync. "" (idle) resolves to -1.
+	dragNodeRow := int32(-1)
+	if md.ui.gest.dragNode != "" {
+		if r, ok := md.NodeRowFor(md.ui.gest.dragNode); ok {
+			dragNodeRow = r
+		}
+	}
 	frame := md.sw.viewBuildFrame(md.sw.viewTick,
 		float32(v.pivot.X), float32(v.pivot.Y), float32(v.pivot.Z), float32(v.r),
 		float32(v.pos.Theta), float32(v.pos.Phi), float32(v.up.Theta), float32(v.up.Phi),
@@ -124,6 +135,7 @@ func (md *MoveDispatch) emitViewFrame(events []wire.RowEvent) {
 		boolU8(md.ui.ov.selSpherePolesVisible), boolU8(md.ui.ov.handholdsVisible), boolU8(md.ui.ov.labelsGlobalVisible),
 		boolU8(md.ui.ov.overlaysVisible), boolU8(md.ui.ov.doubleLinksVisible),
 		md.ui.abcDragCount,
+		dragNodeRow,
 		float32(sc.Center.X), float32(sc.Center.Y), float32(sc.Center.Z), float32(sc.Radius),
 		events,
 	)

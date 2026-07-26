@@ -276,6 +276,11 @@ type bufLayoutOverlay struct {
 	// gate. Reset to 0 at the start of each drag (resetAbcDrag), so it does
 	// not accumulate across the run's lifetime.
 	AbcDragCount uint32 `buf:"u32"` // count of time.abc-drag events observed, reset per drag
+	// DragNodeRow is the row index (into the Node block) of the node currently
+	// being dragged by the gesture FSM (nodes/Wiring/gesture.go g.dragNode),
+	// or -1 when no drag is in progress. Identity rides row index, not a
+	// name/id sidecar; TS resolves the human name from that row's Label.
+	DragNodeRow int32 `buf:"i32"` // dragged node's row index, -1 = not dragging
 }
 
 // bufLayoutScene defines the scene-sphere column block (always 1 row).
