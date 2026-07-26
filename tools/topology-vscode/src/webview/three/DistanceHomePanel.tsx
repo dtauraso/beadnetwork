@@ -73,6 +73,14 @@ export function DistanceHomePanel() {
 // 11px monospace, #ddd — but laid out as a VERTICAL LIST (one group per row)
 // instead of wrapping inline text.
 const panelStyle: React.CSSProperties = {
+  // Placed directly BELOW the camera HomeButton (camera-ui.tsx: absolute top:44
+  // right:12, inside ThreeView's inset:0 viewport container). Fixed positioning
+  // anchors it under that button regardless of the toolbar mount it portals into.
+  position: "fixed",
+  top: 66,
+  right: 12,
+  zIndex: 20,
+  pointerEvents: "auto",
   display: "inline-flex",
   flexDirection: "column",
   gap: 2,
@@ -83,7 +91,6 @@ const panelStyle: React.CSSProperties = {
   fontSize: 11,
   fontFamily: "monospace",
   userSelect: "none",
-  verticalAlign: "top",
 };
 
 const rowStyle: React.CSSProperties = {
