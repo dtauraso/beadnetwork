@@ -22,9 +22,12 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
 
-FILE="nodes/Wiring/node_move.go"
-if [[ ! -f "$FILE" ]]; then
-  echo "check-movedispatch-composer: MISCONFIGURED — $FILE not found (renamed?); refusing vacuous pass" >&2
+# Locate the file containing the MoveDispatch struct definition by scanning, rather than
+# hardcoding a path — a same-package file split can move the struct without this guard
+# noticing (memory/feedback_guards_hardcoding_single_file_break_on_split.md).
+FILE=$(grep -rl '^type MoveDispatch struct {' nodes/Wiring/*.go | grep -v _test | head -1)
+if [[ -z "${FILE:-}" || ! -f "$FILE" ]]; then
+  echo "check-movedispatch-composer: MISCONFIGURED — could not locate 'type MoveDispatch struct {' under nodes/Wiring/*.go; refusing vacuous pass" >&2
   exit 1
 fi
 
