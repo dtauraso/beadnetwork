@@ -314,18 +314,17 @@ func (lq *layoutQuantizer) neighborSetCRequantize(md *MoveDispatch, selfID, from
 		}
 	}
 
-	// Delta-forward, once per drag (observability only — no re-quantize, no move):
-	// selfID is a direct drag-recipient, so it forwards the SAME delta triple it just
-	// received from fromID to every OTHER neighbor (every neighbor except fromID) — its
-	// OWN single hop, guarded by forwardedThisDrag so a node already forwarded this drag
-	// (e.g. by a fresh RootMove tick re-sending neighborSetC) is a no-op here. Every
-	// forward recipient in turn does its OWN guarded hop (handle's
-	// moveMsgKindDeltaForward case) — independent, concurrent single hops that together
-	// spread the triple across the whole reachable graph, terminating on any cycle
-	// because each node relays at most once (see nodeMover.forwardDeltaOnce's doc
-	// comment).
+	// Delta-forward (observability only — no re-quantize, no move): selfID is a direct
+	// drag-recipient, so it forwards the SAME delta triple it just received from fromID
+	// to every OTHER neighbor (every neighbor except fromID AND any neighbor across a
+	// STATIC dead-end edge — see nodeMover.forwardDelta's doc comment). Every forward
+	// recipient in turn does its OWN hop (handle's moveMsgKindDeltaForward case) —
+	// independent, concurrent hops that together spread the triple across the whole
+	// reachable graph. Because the dead-end set makes the forwarding graph acyclic, this
+	// runs on EVERY move (not just the first this drag), keeping the forwarded log in
+	// sync with the drag as it continues — there is no once-per-drag guard to gate it.
 	if nm, ok := md.mr.nodeMovers[selfID]; ok {
-		nm.forwardDeltaOnce(md, fromID, int32(deltaA), int32(deltaB), int32(deltaC))
+		nm.forwardDelta(md, fromID, int32(deltaA), int32(deltaB), int32(deltaC))
 	}
 }
 

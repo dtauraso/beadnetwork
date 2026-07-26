@@ -80,14 +80,15 @@ const (
 	// forwards the SAME triple to each of its OTHER neighbors (every neighbor except
 	// whichever one it came from), carrying its OWN id as SenderID (the forwarder). The
 	// receiver records GotForwardMsg/ForwardDeltaA-C/ForwardFromRow on its own node
-	// stream frame AND does its OWN one-hop relay in turn (nodeMover.forwardDeltaOnce).
-	// Every node does this AT MOST ONCE PER DRAG (forwardedThisDrag guards it — the
-	// first delta a node sees, whichever path it arrived by, is the one it relays; any
-	// later delta reaching an already-forwarded node updates nothing further) — that
-	// once-per-node guard is what lets independent concurrent single hops spread the
-	// triple across the WHOLE reachable graph while still terminating on a cycle,
-	// instead of looping forever (see neighborSetCRequantize's forward step and
-	// node_mover.go's moveMsgKindDeltaForward case / forwardDeltaOnce). Pure
+	// stream frame (LATEST delta wins, so it stays in sync with a drag that keeps
+	// moving) AND does its OWN relay in turn (nodeMover.forwardDelta), onward to every
+	// neighbor EXCEPT the one it came from and any neighbor across a STATIC dead-end
+	// edge (dead_end_edges.go's computeDeadEndEdges — the non-spanning-tree, cycle-
+	// closing edges computed once at load). That static cut is what makes the
+	// forwarding graph a TREE with no cycles, so there is no runtime visit-tracking or
+	// once-per-drag guard: every move re-floods the whole reachable graph and
+	// terminates naturally at the tree's leaves (see neighborSetCRequantize's forward
+	// step and node_mover.go's moveMsgKindDeltaForward case / forwardDelta). Pure
 	// observability throughout: no re-quantize, no move.
 	moveMsgKindDeltaForward = "deltaForward"
 )

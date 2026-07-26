@@ -1,5 +1,5 @@
 import { createPortal } from "react-dom";
-import { useDeltaForwardRows } from "./overlay-flags";
+import { useDeltaForwardRows, useDraggedNodeName } from "./overlay-flags";
 
 // DeltaForwardLabel — the in-editor "delta forwarded" log, right of AbcDragLabel
 // (portals into #delta-forward-mount, html.ts, which sits to the right of
@@ -23,6 +23,7 @@ import { useDeltaForwardRows } from "./overlay-flags";
 // No local state, no domain authoring — pure reflect, mirroring AbcDragLabel's pattern.
 export function DeltaForwardLabel() {
   const rows = useDeltaForwardRows();
+  const draggedName = useDraggedNodeName();
   const mount = document.getElementById("delta-forward-mount");
   if (!mount) return null;
 
@@ -41,6 +42,9 @@ export function DeltaForwardLabel() {
 
   return createPortal(
     <span className="delta-forward-label">
+      {draggedName ? (
+        <span className="delta-forward-label-dragged">dragged {draggedName}</span>
+      ) : null}
       <span className="delta-forward-label-header">delta forwarded</span>
       {[...byForwarder.entries()].map(([forwarderName, entry]) => (
         <span className="delta-forward-label-row" key={forwarderName}>
