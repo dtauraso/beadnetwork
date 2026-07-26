@@ -270,11 +270,12 @@ type bufLayoutOverlay struct {
 	// only when this is set. NOT the same thing as the LayoutLink block existing: the data
 	// streams every snapshot regardless, this just gates the render.
 	DoubleLinks uint8 `buf:"u8"` // 1 = layout-link overlay visible
-	// AbcDragCount is a running count of time.abc-drag events (time-node
+	// AbcDragCount is a per-drag count of time.abc-drag events (time-node
 	// abc-index polar drag re-quantize) emitted by neighborSetCRequantize.
 	// Read-only affirmation counter for the in-editor overlay label; not a
-	// gate, never decrements.
-	AbcDragCount uint32 `buf:"u32"` // count of time.abc-drag events observed
+	// gate. Reset to 0 at the start of each drag (resetAbcDrag), so it does
+	// not accumulate across the run's lifetime.
+	AbcDragCount uint32 `buf:"u32"` // count of time.abc-drag events observed, reset per drag
 }
 
 // bufLayoutScene defines the scene-sphere column block (always 1 row).

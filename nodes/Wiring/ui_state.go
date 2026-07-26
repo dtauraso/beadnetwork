@@ -49,8 +49,8 @@ type uiState struct {
 	abcDragCh chan struct{}
 	// abcDragCount is this goroutine's OWN plain int (only the
 	// gesture/stdin-reader goroutine ever reads or writes it, via DrainAbcDragChan) — the
-	// VIEW frame's Overlay.AbcDragCount column reads this directly. Cumulative for the
-	// run's lifetime (never reset).
+	// VIEW frame's Overlay.AbcDragCount column reads this directly. Per-drag: reset to 0
+	// at the start of each drag via resetAbcDrag (not cumulative for the run's lifetime).
 	abcDragCount uint32
 	// sel groups the CURRENTLY-SELECTED (click-select) and CURRENTLY-HOVERED (pointer hover)
 	// UI-only state (selection_state.go) — pure routing-directory-parked UI state, owned by
@@ -156,11 +156,15 @@ func (ui *uiState) setHoverUI(sendMove func(id string, msg moveMsg), node, port 
 
 // resetAbcDrag re-scopes the recipient SET to the drag about to start: MESSAGES every
 // node mover to clear its OWN abc-drag recipient bit (mirrors the old central accumulator's
-// KindAbcDragReset handling). Called from the gesture goroutine at the pending→dragging
-// transition (gesture.go). Broadcast, not a shared flag: each mover clears its own bit
-// on its own goroutine, no generation counter. nodeMovers/sendMove are threaded through
-// from MoveDispatch (not part of uiState).
+// KindAbcDragReset handling), and zeroes ui.abcDragCount so the "drag received ×{count}"
+// counter is per-drag rather than cumulative for the run's lifetime. Called from the
+// gesture goroutine at the pending→dragging transition (gesture.go). The recipient-bit
+// broadcast is not a shared flag: each mover clears its own bit on its own goroutine, no
+// generation counter. The abcDragCount write is a plain field write because this method
+// runs on the same (gesture/stdin-reader) goroutine that owns abcDragCount. nodeMovers/
+// sendMove are threaded through from MoveDispatch (not part of uiState).
 func (ui *uiState) resetAbcDrag(nodeMovers map[string]*nodeMover, sendMove func(id string, msg moveMsg)) {
+	ui.abcDragCount = 0
 	for id := range nodeMovers {
 		sendMove(id, moveMsg{Kind: moveMsgKindAbcReset, NodeID: id})
 	}

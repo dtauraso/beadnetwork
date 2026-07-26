@@ -231,17 +231,17 @@ func TestGesturePathPropagatesUIStateToMoverStream(t *testing.T) {
 	}
 
 	// --- AbcDragReset (resetAbcDrag) broadcasts moveMsgKindAbcReset to every node
-	// mover, clearing t's OWN recipient bit — the count (view frame) is left alone
-	// (mirrors the VIEW stream's KindAbcDragReset handling: count is a cumulative
-	// total-events affirmation, not drag-scoped). ---
+	// mover, clearing t's OWN recipient bit, AND zeroes md.ui.abcDragCount directly
+	// (same goroutine owns it) — the "drag received ×{count}" counter is per-drag,
+	// not cumulative for the run's lifetime. ---
 	md.resetAbcDrag()
 	waitForNodeDragMsg(t, bufT, func(got uint8, dA, dB, dC int32) bool { return got == 0 })
 	md.emitViewFrame(nil)
-	if count, ok := lastViewFrameAbcDragCount(viewBuf.Bytes()); !ok || count != before+1 {
-		t.Fatalf("AbcDragCount after resetAbcDrag = %v (ok=%v), want %v (count is not drag-scoped)", count, ok, before+1)
+	if count, ok := lastViewFrameAbcDragCount(viewBuf.Bytes()); !ok || count != 0 {
+		t.Fatalf("AbcDragCount after resetAbcDrag = %v (ok=%v), want 0 (count is per-drag)", count, ok)
 	}
-	if after, ok := lastViewFrameAbcDragCount(viewBuf.Bytes()); !ok || after != before+1 {
-		t.Fatalf("AbcDragCount after resetAbcDrag = %v, want %v (count is not drag-scoped)", after, before+1)
+	if after, ok := lastViewFrameAbcDragCount(viewBuf.Bytes()); !ok || after != 0 {
+		t.Fatalf("AbcDragCount after resetAbcDrag = %v, want 0 (count is per-drag)", after)
 	}
 }
 
