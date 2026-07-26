@@ -264,6 +264,14 @@ type nodeMover struct {
 	// the view-owner goroutine and could drop ticks under a full abcDragCh during a
 	// fast drag; this is state on the node's own reliable stream, so nothing drops it.
 	dragRequantCount int32
+	// gotForwardMsg/forwardDeltaA-C/forwardFromRow mirror gotDragMsg/dragDelta*/-- exactly,
+	// but for the ONE-HOP delta-forward observability message (moveMsgKindDeltaForward):
+	// set only by THIS node's own handle() when it receives a forward (from a direct
+	// drag-recipient neighbor forwarding the ORIGINAL dragged node's delta), never
+	// re-forwarded. Reset alongside gotDragMsg/dragDelta* by moveMsgKindAbcReset.
+	gotForwardMsg                               uint8
+	forwardDeltaA, forwardDeltaB, forwardDeltaC int32
+	forwardFromRow                              int32
 	// hoverPort/hoverIsInput name the specific port currently hovered on this node (""
 	// = whole-node hover, only meaningful when hovered==1). Set alongside hovered by a
 	// moveMsgKindHover message.
@@ -276,7 +284,7 @@ type nodeMover struct {
 	// buildFrame packs this node's combined per-fd frame (node fields + ports + label)
 	// using Buffer's own row-writer columns (Buffer.BuildNodeStreamFrame), injected so
 	// this package needs no Buffer import.
-	buildFrame func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows, edgeRows []int32, events []wire.RowEvent) []byte
+	buildFrame func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount int32, gotForwardMsg uint8, forwardDeltaA, forwardDeltaB, forwardDeltaC, forwardFromRow int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows, edgeRows []int32, events []wire.RowEvent) []byte
 }
 
 func newNodeMover(id string, geom nodeGeom, tr *T.Trace, clockSrc wire.Clock) *nodeMover {
@@ -290,6 +298,7 @@ func newNodeMover(id string, geom nodeGeom, tr *T.Trace, clockSrc wire.Clock) *n
 		partnerCenters: map[string]vec3{},
 		centerOut:      make(chan vec3, 1),
 		clockSrc:       clockSrc, clk: wire.NewRealClock(),
+		forwardFromRow: -1,
 	}
 	// Self-seed centerOut with the initial geometry (even when !HasPos, in which case
 	// nodeWorldPos falls back to the origin) so the dispatch goroutine's first drain
@@ -394,6 +403,9 @@ func (m *nodeMover) handle(msg moveMsg) {
 		m.gotDragMsg = 0
 		m.dragDeltaA, m.dragDeltaB, m.dragDeltaC = 0, 0, 0
 		m.dragRequantCount = 0
+		m.gotForwardMsg = 0
+		m.forwardDeltaA, m.forwardDeltaB, m.forwardDeltaC = 0, 0, 0
+		m.forwardFromRow = -1
 		return
 	}
 	if msg.Kind == moveMsgKindNeighborCenter {
@@ -420,6 +432,24 @@ func (m *nodeMover) handle(msg moveMsg) {
 		// so both the angle and the distance to SenderID change (neighborSetCRequantize).
 		if m.neighborSetC != nil {
 			m.neighborSetC(m.id, msg.SenderID, nodeWorldPos(m.geom), msg.FromCenter, msg.DeltaA, msg.DeltaB, msg.DeltaC)
+		}
+		return
+	}
+	if msg.Kind == moveMsgKindDeltaForward {
+		// ONE-HOP delta-forward observability (see moveMsgKindDeltaForward's doc comment):
+		// record state on THIS node's own stream frame and do NOTHING else — in
+		// particular, never re-forward. msg.SenderID is the FORWARDER (a direct
+		// drag-recipient one hop back), resolved to its buffer node row here.
+		m.gotForwardMsg = 1
+		m.forwardDeltaA, m.forwardDeltaB, m.forwardDeltaC = int32(msg.DeltaA), int32(msg.DeltaB), int32(msg.DeltaC)
+		m.forwardFromRow = -1
+		if m.nodeRowFor != nil {
+			if r, ok := m.nodeRowFor(msg.SenderID); ok {
+				m.forwardFromRow = r
+			}
+		}
+		if m.tr != nil {
+			m.emitGeometry()
 		}
 		return
 	}
@@ -548,6 +578,9 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 	selected, hovered, latchedSel, gotDragMsg, kindID := m.selected, m.hovered, m.latchedSel, m.gotDragMsg, m.kindID
 	dA, dB, dC := m.dragDeltaA, m.dragDeltaB, m.dragDeltaC
 	dReq := m.dragRequantCount
+	gotFwd := m.gotForwardMsg
+	fA, fB, fC := m.forwardDeltaA, m.forwardDeltaB, m.forwardDeltaC
+	fFromRow := m.forwardFromRow
 	// This node's own outbound layout-links (layoutLinkTos, static since load — see its
 	// doc comment): resolve each dst id to its CURRENT buffer node row + the CURRENT bead
 	// edge row connecting the pair (both re-resolved every emit, mirroring the combined
@@ -579,6 +612,7 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 		verticalRingNormalX, verticalRingNormalY, verticalRingNormalZ,
 		flatRingNormalX, flatRingNormalY, flatRingNormalZ,
 		selected, kindID, hovered, latchedSel, gotDragMsg, dA, dB, dC, dReq,
+		gotFwd, fA, fB, fC, fFromRow,
 		label, portNames, portDX, portDY, portDZ, portPX, portPY, portPZ, portIsInput, portHovered,
 		dstNodeRows, edgeRows, events)
 	var hdr [4]byte

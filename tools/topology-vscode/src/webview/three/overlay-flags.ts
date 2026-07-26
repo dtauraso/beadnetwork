@@ -31,6 +31,11 @@ import {
   readNodeDragDeltaB,
   readNodeDragDeltaC,
   readNodeDragRequantCount,
+  readNodeGotForwardMsg,
+  readNodeForwardDeltaA,
+  readNodeForwardDeltaB,
+  readNodeForwardDeltaC,
+  readNodeForwardFromRow,
 } from "../../schema/buffer-layout";
 import { nodeLabel } from "./buffer-decode";
 
@@ -189,6 +194,58 @@ export function readAbcDragRows(): AbcDragRow[] {
  *  arrivals, not scene-frame arrivals. */
 export function useAbcDragRows(): AbcDragRow[] {
   return useSyncExternalStore(subscribeNodeStreamBlocks, readAbcDragRows, readAbcDragRows);
+}
+
+/** One current-drag delta-FORWARD recipient: its display name, the FORWARDER's display
+ *  name (resolved from ForwardFromRow, the buffer row of the direct drag-recipient that
+ *  forwarded this — see nodes/Wiring/quantized_move.go neighborSetCRequantize's
+ *  forward step), and the forwarded delta triple (dA,dB,dC — the SAME triple the
+ *  forwarder itself received from the originally-dragged node; this is a one-hop
+ *  observability relay, never re-forwarded further). */
+export interface DeltaForwardRow {
+  name: string;
+  forwarderName: string;
+  dA: number;
+  dB: number;
+  dC: number;
+}
+
+let cachedForwardRowsKey = "\0";
+let cachedForwardRows: DeltaForwardRow[] = [];
+
+/** Decode the current drag's delta-forward recipient ROWS (name + forwarder name +
+ *  forwarded delta triple) from the Node block's per-row GotForwardMsg flag +
+ *  ForwardDeltaA/B/C + ForwardFromRow columns. Go-owned and drag-scoped (cleared
+ *  alongside GotDragMsg on KindAbcDragReset at drag start). Mirrors readAbcDragRows'
+ *  shape/caching exactly. */
+export function readDeltaForwardRows(): DeltaForwardRow[] {
+  const decoded = getNodeFrame();
+  if (!decoded) return cachedForwardRows;
+  const rows: DeltaForwardRow[] = [];
+  for (let row = 0; row < decoded.nodeCount; row++) {
+    if (!readNodeGotForwardMsg(decoded.nodeView, row)) continue;
+    const fromRow = readNodeForwardFromRow(decoded.nodeView, row);
+    const forwarderName = fromRow >= 0 && fromRow < decoded.nodeCount ? nodeLabel(decoded, fromRow) : "";
+    rows.push({
+      name: nodeLabel(decoded, row),
+      forwarderName,
+      dA: readNodeForwardDeltaA(decoded.nodeView, row),
+      dB: readNodeForwardDeltaB(decoded.nodeView, row),
+      dC: readNodeForwardDeltaC(decoded.nodeView, row),
+    });
+  }
+  const key = rows.map((r) => `${r.name}\0${r.forwarderName}\0${r.dA},${r.dB},${r.dC}`).join("\0");
+  if (key === cachedForwardRowsKey) return cachedForwardRows;
+  cachedForwardRowsKey = key;
+  cachedForwardRows = rows;
+  return cachedForwardRows;
+}
+
+/** React hook: re-renders the caller when the current drag's delta-forward recipient
+ *  rows change — including when cleared to empty at drag start. Same Node-block
+ *  subscription as useAbcDragRows. */
+export function useDeltaForwardRows(): DeltaForwardRow[] {
+  return useSyncExternalStore(subscribeNodeStreamBlocks, readDeltaForwardRows, readDeltaForwardRows);
 }
 
 /** The "distance home button" toolbar panel's 3 group max-pair-lengths, in Go's
