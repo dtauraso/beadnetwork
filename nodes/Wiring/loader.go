@@ -232,6 +232,7 @@ type WireRegistry map[string]*PacedWire
 // never touched by the goroutines that own the receive ends. Most callers
 // (tests that don't drive a speed slider) can discard it.
 func LoadTopology(ctx context.Context, jsonPath string, tr *T.Trace, clk Clock) ([]Node, SlotRegistry, *MoveDispatch, []chan float64, error) {
+	BuildRegistry()
 	spec, err := parseSpec(jsonPath)
 	if err != nil {
 		return nil, nil, nil, nil, err
@@ -257,6 +258,7 @@ func LoadTopology(ctx context.Context, jsonPath string, tr *T.Trace, clk Clock) 
 // tests that only need an in-memory spec delivered to the loader, not genuine
 // file/dir persistence (those keep using LoadTopology against a real path).
 func LoadTopologyFromJSON(ctx context.Context, raw []byte, tr *T.Trace, clk Clock) ([]Node, SlotRegistry, *MoveDispatch, []chan float64, error) {
+	BuildRegistry()
 	var spec topoSpec
 	if err := json.Unmarshal(raw, &spec); err != nil {
 		return nil, nil, nil, nil, fmt.Errorf("LoadTopologyFromJSON: parse: %w", err)

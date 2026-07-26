@@ -687,8 +687,29 @@ type NodeBuilder struct {
 var Registry map[string]NodeBuilder
 
 func init() {
-	// Register needs a non-nil map to write into; kindRegistry is always
-	// empty at this point because package Wiring's init runs before the
-	// importing packages' inits populate it via Register.
 	Registry = make(map[string]NodeBuilder)
+}
+
+// BuildRegistry populates Registry from kindRegistry for any kind not yet built.
+// kindRegistry is filled by Register (registry.go) as each node package's init() runs;
+// building the NodeBuilder (reflectPorts + reflectBuild closure) is deferred to here,
+// the loader's entry point, so Register itself has no dependency on the build
+// pipeline. Idempotent — safe to call on every load. Must run before any code reads
+// Registry (validateSpec, buildFromSpec). Exported so package-main tests (which never
+// call LoadTopology) can force population, e.g. kind_registry_parity_test.go.
+func BuildRegistry() {
+	for kind, e := range kindRegistry {
+		if _, ok := Registry[kind]; ok {
+			continue
+		}
+		e := e // capture for closure
+		sample := e.newNode()
+		ports := reflectPorts(sample)
+		Registry[kind] = NodeBuilder{
+			Ports: ports,
+			Build: func(ctx context.Context, name string, data *NodeData, pb PortBindings, tr *T.Trace, geom nodeGeom, partnerCenter partnerCenterFn) (Node, error) {
+				return reflectBuild(ctx, name, data, pb, e, tr, geom, partnerCenter)
+			},
+		}
+	}
 }

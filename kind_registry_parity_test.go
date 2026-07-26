@@ -28,6 +28,7 @@ import (
 //     called, and the kind silently does not exist in the binary. The ID-set check below
 //     catches that as a hole in the contiguous range.
 func TestRegistryMatchesGeneratedKindTable(t *testing.T) {
+	Wiring.BuildRegistry()
 	if len(Wiring.Registry) == 0 {
 		t.Fatal("Wiring.Registry is empty — no node package registered; " +
 			"kinds_generated.go is missing its blank imports (run: go run ./tools/gen-node-defs)")

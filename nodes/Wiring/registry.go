@@ -3,35 +3,23 @@
 
 package Wiring
 
-import (
-	"context"
-
-	T "github.com/dtauraso/wirefold/Trace"
-)
-
 // kindEntry is one entry in the kind registry.
 type kindEntry struct {
 	// newNode returns a fresh zero-valued pointer to the node struct.
 	newNode func() any
 }
 
-// kindRegistry maps spec kind name → kindEntry.
+// kindRegistry maps spec kind name → kindEntry. Register only records into this map;
+// the loader-facing Registry (NodeBuilder, built via reflectPorts/reflectBuild) is
+// populated lazily at load time by ensureRegistryBuilt (builders.go), not here — this
+// keeps Register free of any dependency on the build pipeline so it can move to the
+// leaf nodes/wire package.
 var kindRegistry = map[string]kindEntry{}
 
-// Register adds kind to kindRegistry and Registry. Panics if kind is already registered.
+// Register adds kind to kindRegistry. Panics if kind is already registered.
 func Register(kind string, newNode func() any) {
 	if _, exists := kindRegistry[kind]; exists {
 		panic("Wiring.Register: kind already registered: " + kind)
 	}
-	e := kindEntry{newNode: newNode}
-	kindRegistry[kind] = e
-	// Also populate the loader-facing Registry immediately.
-	sample := e.newNode()
-	ports := reflectPorts(sample)
-	Registry[kind] = NodeBuilder{
-		Ports: ports,
-		Build: func(ctx context.Context, name string, data *NodeData, pb PortBindings, tr *T.Trace, geom nodeGeom, partnerCenter partnerCenterFn) (Node, error) {
-			return reflectBuild(ctx, name, data, pb, e, tr, geom, partnerCenter)
-		},
-	}
+	kindRegistry[kind] = kindEntry{newNode: newNode}
 }
