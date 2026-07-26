@@ -55,7 +55,13 @@ export const OVERLAY_FLAG_ORDER = OVERLAY_FLAG_NAMES;
 type EditMsg =
   // op="update" — set an attribute on a typed entity (kind discriminator).
   | { type: "edit"; op: "update"; kind: "overlays"; attr: "toggle"; flag: OverlayFlag }
-  | { type: "edit"; op: "update"; kind: "clock"; attr: "speed"; value: number };
+  | { type: "edit"; op: "update"; kind: "clock"; attr: "speed"; value: number }
+  // distanceGroup — the "distance home button" toolbar panel's arrow click. group is
+  // the group's WIRE INDEX (0/1/2, into Go's distanceGroupOrder: time/input/gate — no
+  // group name crosses the wire); dir is which arrow. Go owns the group definitions and
+  // the ×1.1/÷1.1 math (nodes/Wiring/distance_groups.go); this seam carries only which
+  // group + which direction.
+  | { type: "edit"; op: "update"; kind: "distanceGroup"; attr: "length"; group: number; dir: "up" | "down" };
 // EDIT_MSG_END
 
 // RAW INPUT (Phase 6, OFF by default behind USE_RAW_INPUT). A single raw pointer/wheel

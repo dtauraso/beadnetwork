@@ -286,6 +286,16 @@ type bufLayoutOverlay struct {
 	// or -1 when no drag is in progress. Identity rides row index, not a
 	// name/id sidecar; TS resolves the human name from that row's Label.
 	DragNodeRow int32 `buf:"i32"` // dragged node's row index, -1 = not dragging
+	// GroupLenTime/GroupLenInput/GroupLenGate are the "distance home button" toolbar
+	// panel's 3 read-only group max-pair-lengths (nodes/Wiring/distance_groups.go's
+	// distanceGroupOrder: time, input, gate). Computed fresh every VIEW-frame emit from
+	// the live node centers (max over the group's pairs of |center(target)-center(source)|,
+	// mirroring reachRFromPolar's max-over-edges loop) — Go owns the group definitions and
+	// the math; the panel only reflects these 3 numbers and fires an edit-update on an
+	// arrow click. 0 when a group's centers aren't resolvable yet.
+	GroupLenTime  float32 `buf:"f32"` // time-nodes group's current max pair length
+	GroupLenInput float32 `buf:"f32"` // input-node group's current max pair length
+	GroupLenGate  float32 `buf:"f32"` // gate/pulse-nodes group's current max pair length
 }
 
 // bufLayoutScene defines the scene-sphere column block (always 1 row).

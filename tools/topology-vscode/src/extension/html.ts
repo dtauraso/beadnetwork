@@ -53,6 +53,7 @@ export function buildWebviewHtml(
   <div class="toolbar">
     <span id="status" class="clean">saved</span>
     <span id="run-mount"></span>
+    <span id="distance-home-mount"></span>
   </div>
   <div id="rule-eq-mount"></div>
   <div id="abc-drag-mount"></div>

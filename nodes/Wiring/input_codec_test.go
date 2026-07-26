@@ -85,6 +85,24 @@ func TestDecodeEditUpdateOverlaysToggle(t *testing.T) {
 	}
 }
 
+// TestDecodeEditUpdateDistanceGroupLength exercises the "distance home button" panel's
+// wire record: [22][entityKind=distanceGroup][attr=length][u8 groupIndex][u8 dirUp].
+func TestDecodeEditUpdateDistanceGroupLength(t *testing.T) {
+	rec := encodeDistanceGroupAdjust(2, true)
+	want := []byte{inKindEditUpdate, byte(enumIndex(inUpdateKinds, "distanceGroup")), inDistanceGroupAttrLength, 2, 1}
+	if !bytes.Equal(rec, want) {
+		t.Fatalf("distanceGroup length bytes = %v, want %v", rec, want)
+	}
+	msg, ok := decodeInputRecord(rec)
+	if !ok || msg.Type != "edit" || msg.Op != "update" || msg.Kind != "distanceGroup" || msg.Attr != "length" || msg.Num != 2 || msg.Flag != "up" {
+		t.Fatalf("distanceGroup length decode = %+v ok=%v", msg, ok)
+	}
+	msg2, ok2 := decodeInputRecord(encodeDistanceGroupAdjust(0, false))
+	if !ok2 || msg2.Num != 0 || msg2.Flag != "down" {
+		t.Fatalf("distanceGroup length (down) decode = %+v ok=%v", msg2, ok2)
+	}
+}
+
 // TestOverlayFlagOrderMatchesFingerprint guards that the derived flag order equals the
 // fingerprint's overlayFlags list (self-check on parseOverlayFlags).
 func TestOverlayFlagOrderMatchesFingerprint(t *testing.T) {

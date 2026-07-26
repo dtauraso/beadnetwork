@@ -15,9 +15,11 @@
 // MSG_TYPES_DOC_START
 //
 //  1. "edit" — geometry-CRUD. The sole op is update, which sets an ATTRIBUTE on a
-//     typed entity; the live entities are overlays and clock:
+//     typed entity; the live entities are overlays, clock, and distanceGroup:
 //       update overlays attr=toggle: flip one named overlay flag.
 //       update clock attr=speed: set the playback multiplier.
+//       update distanceGroup attr=length: adjust one "distance home button" group's
+//       target pair length (×1.1 up / ÷1.1 down) — see ApplyDistanceGroupTarget.
 //     A create/delete op pair (records 20/21) once added or removed an edge by
 //     destination slot; both were removed end-to-end (no live TS sender, and create's
 //     only trigger tore down a live wire's beads via PacedWire.Restore) — records 20/21
@@ -345,8 +347,9 @@ func applyEdit(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan fl
 // unconditional persist-on-change) without distorting the attr dispatch itself.
 // EDIT_UPDATE_KINDS_START
 var updateKindHandlers = map[string]func(stdinMsg, *MoveDispatch, *T.Trace, []chan float64){
-	"clock":    applyUpdateClock,
-	"overlays": applyUpdateOverlays,
+	"clock":         applyUpdateClock,
+	"overlays":      applyUpdateOverlays,
+	"distanceGroup": applyUpdateDistanceGroup,
 }
 
 // EDIT_UPDATE_KINDS_END
@@ -379,6 +382,22 @@ func applyUpdateClock(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []
 	if h, ok := clockAttrHandlers[msg.Attr]; ok {
 		h(msg, speedSinks)
 	}
+}
+
+// applyUpdateDistanceGroup handles kind=="distanceGroup" attr=="length": one arrow
+// click on the "distance home button" toolbar panel. msg.Num is the group index
+// (0/1/2, into distanceGroupOrder — time/input/gate); msg.Flag is "up" (×1.1) or
+// "down" (÷1.1). Go owns the group definitions and the ×1.1 math (ApplyDistanceGroupTarget,
+// distance_groups.go) — the panel sends only which group and which direction.
+func applyUpdateDistanceGroup(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
+	if md == nil || msg.Attr != "length" {
+		return
+	}
+	dir := -1
+	if msg.Flag == "up" {
+		dir = 1
+	}
+	md.ApplyDistanceGroupTarget(msg.Num, dir)
 }
 
 // overlayAttrHandlers is the attr-level table for kind=="overlays".

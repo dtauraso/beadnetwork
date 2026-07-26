@@ -135,6 +135,7 @@ class ByteWriter {
 // Update attr indices (must match IN_UPDATE_ATTRS ordering).
 const IN_OVERLAY_ATTR_TOGGLE = 0;
 const IN_CLOCK_ATTR_SPEED = 1;
+const IN_DISTANCE_GROUP_ATTR_LENGTH = 2;
 
 // NOTE: there is no encodeSave here. IN_KIND_SAVE stays defined (Go reads it and it is in
 // the INPUT_LAYOUT_FINGERPRINT), but no live TS sender builds that record: `save` has no
@@ -160,6 +161,22 @@ export function encodeClockSpeed(speed: number): ArrayBuffer {
   w.u8(enumIndex(IN_UPDATE_KINDS, "clock"));
   w.u8(IN_CLOCK_ATTR_SPEED);
   w.u8(speed);
+  return w.toArrayBuffer();
+}
+
+/** Build a distanceGroup LENGTH record: [22][entityKind=distanceGroup][attr=length]
+ *  [u8 groupIndex][u8 dirUp]. groupIndex is the group's WIRE INDEX (0/1/2, into Go's
+ *  distanceGroupOrder: time/input/gate — no group name crosses the wire); dirUp is
+ *  1 for the up arrow (Go sets target length = currentMax*1.1), 0 for down (÷1.1). Go
+ *  owns the group definitions and the ×1.1 math (nodes/Wiring/distance_groups.go); this
+ *  just signals which group + which direction. */
+export function encodeDistanceGroupAdjust(groupIndex: number, dir: "up" | "down"): ArrayBuffer {
+  const w = new ByteWriter();
+  w.u8(IN_KIND_EDIT_UPDATE);
+  w.u8(enumIndex(IN_UPDATE_KINDS, "distanceGroup"));
+  w.u8(IN_DISTANCE_GROUP_ATTR_LENGTH);
+  w.u8(groupIndex);
+  w.u8(dir === "up" ? 1 : 0);
   return w.toArrayBuffer();
 }
 
@@ -245,7 +262,8 @@ export type DecodedInput =
   | { kind: "save" }
   | { kind: "raw-input"; event: RawInputEvent }
   | { kind: "edit-update"; entity: "overlays"; attr: "toggle"; flag: OverlayFlag }
-  | { kind: "edit-update"; entity: "clock"; attr: "speed"; value: number };
+  | { kind: "edit-update"; entity: "clock"; attr: "speed"; value: number }
+  | { kind: "edit-update"; entity: "distanceGroup"; attr: "length"; group: number; dir: "up" | "down" };
 
 /** Decode one record body (with kind byte, without the [len] frame). */
 export function decodeInputRecord(record: ArrayBuffer): DecodedInput | undefined {
@@ -299,6 +317,15 @@ export function decodeInputRecord(record: ArrayBuffer): DecodedInput | undefined
         if (attr === IN_CLOCK_ATTR_SPEED) {
           const value = r.u8();
           return { kind: "edit-update", entity: "clock", attr: "speed", value };
+        }
+        return undefined;
+      }
+      if (entityKind === "distanceGroup") {
+        const attr = r.u8();
+        if (attr === IN_DISTANCE_GROUP_ATTR_LENGTH) {
+          const group = r.u8();
+          const dirUp = r.u8();
+          return { kind: "edit-update", entity: "distanceGroup", attr: "length", group, dir: dirUp ? "up" : "down" };
         }
         return undefined;
       }

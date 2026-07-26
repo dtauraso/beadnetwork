@@ -9,6 +9,7 @@ import "./webview.css";
 import { ThreeView } from "./three/ThreeView";
 import { SpeedSlider } from "./three/SpeedSlider";
 import { AbcDragLabel } from "./three/AbcDragLabel";
+import { DistanceHomePanel } from "./three/DistanceHomePanel";
 import { parseHostToWebview } from "../messages";
 import { ErrorBoundary } from "./log/ErrorBoundary";
 import { CrashListeners } from "./log/CrashListeners";
@@ -21,6 +22,7 @@ function Root() {
       <ThreeView />
       <SpeedSlider />
       <AbcDragLabel />
+      <DistanceHomePanel />
     </>
   );
 }
