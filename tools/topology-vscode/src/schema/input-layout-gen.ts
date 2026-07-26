@@ -8,9 +8,9 @@
 // separate TS-side fingerprint to hand-keep in lockstep, so the two languages cannot
 // drift apart on record kinds or enum orderings.
 
-// INPUT_LAYOUT_FINGERPRINT: v19 kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock updateAttrs=toggle,speed overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays,doubleLinks
+// INPUT_LAYOUT_FINGERPRINT: v20 kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock updateAttrs=toggle,speed overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays,doubleLinks
 export const INPUT_LAYOUT_FINGERPRINT =
-  "v19 kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock updateAttrs=toggle,speed overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays,doubleLinks";
+  "v20 kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock updateAttrs=toggle,speed overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays,doubleLinks";
 
 // Record kind bytes (first byte of every record). Must match input_codec.go.
 export const IN_KIND_SAVE = 4;

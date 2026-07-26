@@ -31,12 +31,11 @@ import (
 )
 
 type fixtureHit struct {
-	Kind         string `json:"kind"`
-	IsInput      bool   `json:"isInput"`
-	NodeRow      int    `json:"nodeRow"`
-	PortRow      int    `json:"portRow"`
-	EdgeRow      int    `json:"edgeRow"`
-	HandholdTerm int    `json:"handholdTerm"`
+	Kind    string `json:"kind"`
+	IsInput bool   `json:"isInput"`
+	NodeRow int    `json:"nodeRow"`
+	PortRow int    `json:"portRow"`
+	EdgeRow int    `json:"edgeRow"`
 }
 
 type fixtureEvent struct {
@@ -195,6 +194,5 @@ func TestInputFixtureCrossLanguage(t *testing.T) {
 		check("Hit.NodeRow", ev.Hit.NodeRow, want.Hit.NodeRow)
 		check("Hit.PortRow", ev.Hit.PortRow, want.Hit.PortRow)
 		check("Hit.EdgeRow", ev.Hit.EdgeRow, want.Hit.EdgeRow)
-		check("Hit.HandholdTerm", ev.Hit.HandholdTerm, want.Hit.HandholdTerm)
 	}
 }

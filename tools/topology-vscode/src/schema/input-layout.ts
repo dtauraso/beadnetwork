@@ -187,7 +187,6 @@ export function encodeRawInput(ev: RawInputEvent): ArrayBuffer {
   w.i32(ev.hit.nodeRow);
   w.i32(ev.hit.portRow);
   w.i32(ev.hit.edgeRow);
-  w.i32(ev.hit.handholdTerm);
   return w.toArrayBuffer();
 }
 
@@ -279,7 +278,6 @@ export function decodeInputRecord(record: ArrayBuffer): DecodedInput | undefined
           nodeRow: r.i32(),
           portRow: r.i32(),
           edgeRow: r.i32(),
-          handholdTerm: r.i32(),
         },
       };
       return { kind: "raw-input", event };

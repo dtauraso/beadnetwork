@@ -13,10 +13,11 @@ import {
   type NavNode, decodeNavNodes, sceneSphereFromSnapshot,
 } from "./buffer-nav";
 
-// HANDHOLD_TERM_TAG — userData key stamped on the octant angle handhold meshes and the
-// pole-crossing radius handholds with their term-id (+θ=0, +φ=1, -θ=2, -φ=3, r=4; see
-// nodes/Wiring/gesture.go). Mirrors
-// BUFFER_EDGE_TAG (buffer-scene.tsx) as the pattern for a numeric pick-payload tag.
+// HANDHOLD_TERM_TAG — userData key stamped (value `true`) on the octant angle handhold
+// meshes and the pole-crossing radius handholds to mark them as pickable handholds. This is
+// a PRESENCE marker only — no numeric term crosses the TS→Go bridge (a "polar rule-builder"
+// consumer of a per-handhold term was proposed but never built; Go's handhold-down branch
+// only needs to know a handhold was grabbed, not which one).
 export const HANDHOLD_TERM_TAG = "handholdTerm";
 
 // navSignature — coarse fingerprint of the buffer-derived nav nodes (rounded
@@ -244,21 +245,19 @@ export function PolarFrame({ center, scale, tag, octants }: {
       ))}
       {octants && (<>
         {/* Radius (r) handholds: the six pole-crossing grab-spheres (±arcR on each axis).
-            All pickable and stamped with the r term-id (code 4, unsigned), so grabbing any
-            of them selects the node's RADIUS component for the rule-builder. */}
+            All pickable and stamped as handholds (presence marker only). */}
         {([[arcR, 0, 0], [-arcR, 0, 0], [0, arcR, 0], [0, -arcR, 0], [0, 0, arcR], [0, 0, -arcR]] as [number, number, number][]).map((p, i) => (
-          <mesh key={`hhp-${i}`} position={p} userData={{ [HANDHOLD_TERM_TAG]: 4 }}>
+          <mesh key={`hhp-${i}`} position={p} userData={{ [HANDHOLD_TERM_TAG]: true }}>
             <sphereGeometry args={[hhR, 12, 12]} />
             <meshStandardMaterial color="#cc8844" emissive="#cc8844" emissiveIntensity={0.6} />
           </mesh>
         ))}
-        {/* θ/φ angle handholds: pickable, stamped with their term-id so the rule-builder
-            (nodes/Wiring/gesture.go) can decode which (comp, sign) term was clicked. */}
+        {/* θ/φ angle handholds: pickable, stamped as handholds (presence marker only). */}
         {THETA_CIRCLES.map((t) => (
           <mesh
             key={`th-${t.n}`}
             position={[t.sx * arcHH, t.sy * arcHH, 0]}
-            userData={{ [HANDHOLD_TERM_TAG]: (t.sy < 0 ? 2 : 0) + 0 }}
+            userData={{ [HANDHOLD_TERM_TAG]: true }}
           >
             <sphereGeometry args={[hhR, 12, 12]} />
             <meshStandardMaterial color="#cc8844" emissive="#cc8844" emissiveIntensity={0.6} />
@@ -268,7 +267,7 @@ export function PolarFrame({ center, scale, tag, octants }: {
           <mesh
             key={`ph-${p.n}`}
             position={[p.sx * arcHH, 0, p.sz * arcHH]}
-            userData={{ [HANDHOLD_TERM_TAG]: (p.sz < 0 ? 2 : 0) + 1 }}
+            userData={{ [HANDHOLD_TERM_TAG]: true }}
           >
             <sphereGeometry args={[hhR, 12, 12]} />
             <meshStandardMaterial color="#cc8844" emissive="#cc8844" emissiveIntensity={0.6} />
