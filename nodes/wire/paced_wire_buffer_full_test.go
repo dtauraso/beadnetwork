@@ -3,7 +3,7 @@
 // caller's drive loop exited permanently on it. See CLAUDE.md's debugging
 // section and the DriveOutcome doc comment in ports.go: DriveBufferFull is
 // TRANSIENT and must never stop a drive goroutine.
-package Wiring
+package wire
 
 import (
 	"context"

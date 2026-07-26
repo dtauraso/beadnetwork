@@ -2,11 +2,11 @@ package hold
 
 import (
 	"context"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"testing"
 	"time"
 
 	T "github.com/dtauraso/wirefold/Trace"
-	"github.com/dtauraso/wirefold/nodes/Wiring"
 )
 
 // stepWire continuously StepOnceAts pw on a short wall-clock poll until ctx is
@@ -14,7 +14,7 @@ import (
 // blocking delivery loop). clk is this goroutine's OWN clock copy, which
 // advances on its own, so a placed bead is carried to delivery once its
 // deadline is crossed.
-func stepWire(ctx context.Context, pw *Wiring.PacedWire, clk Wiring.Clock) {
+func stepWire(ctx context.Context, pw *wire.PacedWire, clk wire.Clock) {
 	go func() {
 		for {
 			select {
@@ -39,20 +39,20 @@ func TestHoldFiresAndHoldsOnReceiveLean(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	pw := Wiring.NewPacedWire(latMs*Wiring.PulseSpeedWuPerMs, Wiring.PulseSpeedWuPerMs)
-	clk := Wiring.NewRealClock()
+	pw := wire.NewPacedWire(latMs*wire.PulseSpeedWuPerMs, wire.PulseSpeedWuPerMs)
+	clk := wire.NewRealClock()
 	stepWire(ctx, pw, clk.Copy())
 	// inSrc is a test-only seeding source on pw: PlaceDrivenAt places a bead
 	// (no walker) that the stepWire loop above then drives to delivery,
 	// reusing the production placement API to inject the test's input value.
-	inSrc := Wiring.NewPacedOutNoGeom(pw, ctx, "seed", "Out", tr, Wiring.RuleFireAndForget, 0, 0, "")
+	inSrc := wire.NewPacedOutNoGeom(pw, ctx, "seed", "Out", tr, wire.RuleFireAndForget, 0, 0, "")
 
 	beadCh := make(chan int, 16)
 	fires := 0
 	node := &Node{
 		Fire:         func() { fires++ },
 		Clock:        clk,
-		In:           Wiring.NewInPaced(pw, ctx, "hold", "In", tr),
+		In:           wire.NewInPaced(pw, ctx, "hold", "In", tr, nil, -1),
 		EmitHeldBead: func(v int) { beadCh <- v },
 	}
 

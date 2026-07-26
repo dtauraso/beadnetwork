@@ -1,5 +1,7 @@
 package Wiring
 
+import ()
+
 // persisters groups the six disk persisters MoveDispatch owns (md.persist), each nil until
 // armed by EnableViewpointPersist / EnableEditPersist after the startup seed. Grouping
 // mirrors vp/ov/gest: a bare test-constructed MoveDispatch reasons about one zero-value

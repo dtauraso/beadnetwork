@@ -8,6 +8,7 @@ package Wiring
 import (
 	"context"
 	"encoding/json"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"io"
 	"os"
 	"path/filepath"
@@ -32,7 +33,7 @@ func TestLoadOverlaysEmitsDefaultsWhenNoPersistedKeys(t *testing.T) {
 		sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis, doubleLinks uint8,
 		abcDragCount uint32,
 		sceneCX, sceneCY, sceneCZ, sceneRadius float32,
-		events []RowEvent,
+		events []wire.RowEvent,
 	) []byte {
 		for _, e := range events {
 			kinds = append(kinds, e.Kind)
@@ -73,7 +74,7 @@ func writeTree(t *testing.T) string {
 func loadTreeMD(t *testing.T, root string) *MoveDispatch {
 	t.Helper()
 	tr := T.New()
-	_, _, md, _, err := LoadTopology(context.Background(), root, tr, NewRealClock())
+	_, _, md, _, err := LoadTopology(context.Background(), root, tr, wire.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology: %v", err)
 	}

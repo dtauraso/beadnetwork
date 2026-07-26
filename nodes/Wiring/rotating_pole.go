@@ -30,7 +30,9 @@
 // where a node itself sits.
 package Wiring
 
-import "math"
+import (
+	"math"
+)
 
 // poleKickTheta is BOTH the tiny singular zone around +y and the dodge target. Its point
 // is NOT to well-condition the bearing (near the pole you cannot — the φ-cell width scales
@@ -85,8 +87,8 @@ func localPole(offsets []vec3) dir {
 	var closest vec3
 	found := false
 	for _, o := range offsets {
-		u := o.normalize()
-		if u.length() == 0 {
+		u := o.Normalize()
+		if u.Length() == 0 {
 			continue // degenerate zero offset: no direction, ignore
 		}
 		if !found ||

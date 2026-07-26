@@ -21,6 +21,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"os"
 	"reflect"
 	"sort"
@@ -213,7 +214,7 @@ type topoSpec struct {
 // WireRegistry maps edge label → *PacedWire. Each entry points to the wire owned by
 // the destination port; multiple edges sharing a destination port map to the same *PacedWire.
 // It is an internal build aid (binding source Out → wire); it is not returned.
-type WireRegistry map[string]*PacedWire
+type WireRegistry map[string]*wire.PacedWire
 
 // LoadTopology reads the JSON file at jsonPath and constructs []Node plus a
 // SlotRegistry (keyed by "target.targetHandle" for delivery acks) and a MoveDispatch
@@ -231,7 +232,8 @@ type WireRegistry map[string]*PacedWire
 // this call and read thereafter by exactly one goroutine (stdin_reader's),
 // never touched by the goroutines that own the receive ends. Most callers
 // (tests that don't drive a speed slider) can discard it.
-func LoadTopology(ctx context.Context, jsonPath string, tr *T.Trace, clk Clock) ([]Node, SlotRegistry, *MoveDispatch, []chan float64, error) {
+func LoadTopology(ctx context.Context, jsonPath string, tr *T.Trace, clk wire.Clock) ([]wire.Node, SlotRegistry, *MoveDispatch, []chan float64, error) {
+	BuildRegistry()
 	spec, err := parseSpec(jsonPath)
 	if err != nil {
 		return nil, nil, nil, nil, err
@@ -256,7 +258,8 @@ func LoadTopology(ctx context.Context, jsonPath string, tr *T.Trace, clk Clock) 
 // sphere (loadSceneSphere returns sceneSphere{}, false in that case). Intended for
 // tests that only need an in-memory spec delivered to the loader, not genuine
 // file/dir persistence (those keep using LoadTopology against a real path).
-func LoadTopologyFromJSON(ctx context.Context, raw []byte, tr *T.Trace, clk Clock) ([]Node, SlotRegistry, *MoveDispatch, []chan float64, error) {
+func LoadTopologyFromJSON(ctx context.Context, raw []byte, tr *T.Trace, clk wire.Clock) ([]wire.Node, SlotRegistry, *MoveDispatch, []chan float64, error) {
+	BuildRegistry()
 	var spec topoSpec
 	if err := json.Unmarshal(raw, &spec); err != nil {
 		return nil, nil, nil, nil, fmt.Errorf("LoadTopologyFromJSON: parse: %w", err)
@@ -332,7 +335,7 @@ type buildCtx struct {
 	ctx      context.Context
 	spec     topoSpec
 	tr       *T.Trace
-	clk      Clock
+	clk      wire.Clock
 	sphere   sceneSphere
 	hasScene bool
 
@@ -352,7 +355,7 @@ type buildCtx struct {
 	// quantized layout so it reads the composed (authoritative) centers, and
 	// injected into each built node's LocalPolars field (buildNodes) — additive,
 	// does not feed back into position (quantizedOffsets stays authoritative).
-	localPolars map[string][]LocalPolar
+	localPolars map[string][]wire.LocalPolar
 
 	// localPoles is the per-node measurement pole (rotating_pole.go localPole result)
 	// that localPolars[id]'s entries were quantized about — either the stored
@@ -363,7 +366,7 @@ type buildCtx struct {
 	localPoles map[string]dir
 
 	// Phase 4: per-destination-port wire allocation + per-edge geometry.
-	destWire      map[string]*PacedWire
+	destWire      map[string]*wire.PacedWire
 	edgeWire      WireRegistry
 	edgeEndpoints map[string]EdgeEndpoints
 	edgeArc       map[string]float64
@@ -390,14 +393,14 @@ type buildCtx struct {
 	outboundHandle map[string]map[string][]string
 
 	// Phase 8: built nodes + the paced-Out sink.
-	outSink map[string]*Out
-	nodes   []Node
+	outSink map[string]*wire.Out
+	nodes   []wire.Node
 }
 
 // buildFromSpec constructs nodes, wires, and the MoveDispatch from an already-parsed
 // and validated topoSpec. It orchestrates the phase helpers below in the same order
 // the original monolithic function performed them; behavior is unchanged.
-func buildFromSpec(ctx context.Context, spec topoSpec, tr *T.Trace, clk Clock, sphere sceneSphere, hasScene bool) ([]Node, SlotRegistry, *MoveDispatch, []chan float64, error) {
+func buildFromSpec(ctx context.Context, spec topoSpec, tr *T.Trace, clk wire.Clock, sphere sceneSphere, hasScene bool) ([]wire.Node, SlotRegistry, *MoveDispatch, []chan float64, error) {
 	b := &buildCtx{ctx: ctx, spec: spec, tr: tr, clk: clk, sphere: sphere, hasScene: hasScene}
 
 	b.computeNodeGeometry()
@@ -456,7 +459,7 @@ func (b *buildCtx) computeNodeGeometry() {
 //
 // All keyed by edge label; consumed by buildNodes when binding the source Out.
 func (b *buildCtx) allocateWires() {
-	destWire := map[string]*PacedWire{}
+	destWire := map[string]*wire.PacedWire{}
 	edgeWire := WireRegistry{}
 	edgeEndpoints := map[string]EdgeEndpoints{}
 	edgeArc := map[string]float64{}
@@ -471,7 +474,7 @@ func (b *buildCtx) allocateWires() {
 		srcG, tgtG := b.nodeGeoms[e.Source], b.nodeGeoms[e.Target]
 		seg := edgeSegment(srcG, tgtG, e.SourceHandle, e.TargetHandle)
 		arcLength := edgeArcPolar(srcG, tgtG, e.SourceHandle, e.TargetHandle)
-		simLatencyMs := arcLength / PulseSpeedWuPerMs
+		simLatencyMs := arcLength / wire.PulseSpeedWuPerMs
 		edgeArc[e.Label] = arcLength
 		edgeLatency[e.Label] = simLatencyMs
 		edgeSegments[e.Label] = seg
@@ -482,7 +485,7 @@ func (b *buildCtx) allocateWires() {
 		if _, exists := destWire[destKey]; exists {
 			panic("allocateWires: two edges target " + destKey + " — validateNoFanIn should have rejected this fan-in at parse")
 		}
-		pw := NewPacedWire(arcLength, PulseSpeedWuPerTick)
+		pw := wire.NewPacedWire(arcLength, wire.PulseSpeedWuPerTick)
 		pw.Target = e.Target
 		pw.TargetHandle = e.TargetHandle
 		pw.Trace = b.tr
@@ -627,16 +630,16 @@ func (b *buildCtx) buildEdgeMaps() {
 // given node id and output port name (sourceHandle). The rule lives on the
 // SOURCE NODE's data.sendRules map, keyed by output port name. Ports not
 // listed default to consumeGated.
-func nodeSendRule(n specNode, port string) SendRule {
+func nodeSendRule(n specNode, port string) wire.SendRule {
 	if n.Data == nil || n.Data.SendRules == nil {
-		return RuleConsumeGated
+		return wire.RuleConsumeGated
 	}
 	// ParseSendRule returns RuleConsumeGated for "" AND on error (unrecognised
 	// value), so the fallback is already baked into its return value; the
 	// error is deliberately ignored here (validate.go rejects bad values
 	// before we reach here, so this is defence-in-depth only, and nodeSendRule's
 	// callers aren't set up to handle a propagated error).
-	rule, _ := ParseSendRule(n.Data.SendRules[port])
+	rule, _ := wire.ParseSendRule(n.Data.SendRules[port])
 	return rule
 }
 
@@ -644,8 +647,8 @@ func nodeSendRule(n specNode, port string) SendRule {
 // earlier phases. outSink collects every paced source Out keyed by "node.handle"
 // so node-move can update per-edge travel-time on the Out.
 func (b *buildCtx) buildNodes() error {
-	outSink := map[string]*Out{}
-	nodes := make([]Node, 0, len(b.spec.Nodes))
+	outSink := map[string]*wire.Out{}
+	nodes := make([]wire.Node, 0, len(b.spec.Nodes))
 	for _, n := range b.spec.Nodes {
 		bind := Registry[n.Type]
 		pb := newPortBindings()
@@ -722,7 +725,7 @@ func (b *buildCtx) buildNodes() error {
 		// LocalPolars access does.
 		if v := reflect.ValueOf(nd).Elem(); v.Kind() == reflect.Struct {
 			if lhField := v.FieldByName("LayoutHolder"); lhField.IsValid() && lhField.CanAddr() {
-				if lh, ok := lhField.Addr().Interface().(*LayoutHolder); ok {
+				if lh, ok := lhField.Addr().Interface().(*wire.LayoutHolder); ok {
 					if lps, ok := b.localPolars[n.ID]; ok {
 						lh.LoadLocalPolars(lps)
 					}

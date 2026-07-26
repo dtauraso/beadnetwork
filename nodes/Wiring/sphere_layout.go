@@ -3,6 +3,8 @@
 
 package Wiring
 
+import ()
+
 // sphereEdge is a DIRECTED connection: Source outputs to Target.
 type sphereEdge struct {
 	Source string

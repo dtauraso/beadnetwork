@@ -2,8 +2,8 @@ package pulse
 
 import (
 	"context"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring"
 	"github.com/dtauraso/wirefold/nodes/gatecommon"
 )
 
@@ -26,7 +26,7 @@ import (
 //
 // held is owned by the MAIN loop; each drive goroutine gets its OWN channel
 // (Out1HeldCh/Out2HeldCh) that the main loop sends the latest held value on
-// (Wiring.SendLatestNonBlocking) whenever it changes — the same
+// (wire.SendLatestNonBlocking) whenever it changes — the same
 // per-goroutine-channel shape as SpeedCh/Out1SpeedCh/Out2SpeedCh below, and
 // for the same reason: two DriveHeld goroutines sharing one channel would
 // steal values from each other.
@@ -34,7 +34,7 @@ import (
 // The output is NOT precondition-gated: Pulse self-emits noValue from the start
 // (like the Input bootstrap), it is not inert until fed.
 type Node struct {
-	Wiring.LayoutHolder
+	wire.LayoutHolder
 	Fire         func()
 	EmitGeometry func()
 	// EmitHeldBead, injected by Wiring.reflectBuild, streams the held value as a
@@ -43,11 +43,11 @@ type Node struct {
 	EmitHeldBead func(held int)
 	// Clock is this node's OWN clock storage, seeded by Wiring.reflectBuild
 	// directly from the loader's origin (bare-field injection by exact type
-	// Wiring.Clock — see input.Node.Clock; ports no longer hand out a clock,
+	// wire.Clock — see input.Node.Clock; ports no longer hand out a clock,
 	// per-goroutine-clock.md API demolition item 1). Update() Copies it once
 	// for its own loop, and passes the ORIGIN (not that copy) to each DRIVE
 	// goroutine below, which Copies independently at ITS OWN start.
-	Clock Wiring.Clock
+	Clock wire.Clock
 	// SpeedCh delivers a speed change to the MAIN loop's own clock copy;
 	// Out1SpeedCh/Out2SpeedCh do the same for each DriveHeld goroutine's OWN
 	// independent copy (per-goroutine-clock.md "Delivery") — three separate
@@ -58,24 +58,24 @@ type Node struct {
 	SpeedCh     <-chan float64
 	Out1SpeedCh <-chan float64
 	Out2SpeedCh <-chan float64
-	FromInput   *Wiring.In
-	Out         *Wiring.Out
+	FromInput   *wire.In
+	Out         *wire.Out
 	// Out2 is an optional SECOND continuous output driving the same held value, so a
 	// Pulse can fan to two destinations (e.g. node 6 → node 5 via Out and → node 11
 	// via Out2). Optional: when unwired (Wired()==false, e.g. node 7) its drive
 	// goroutine is skipped, so single-output Pulse nodes are unaffected.
-	Out2 *Wiring.Out
+	Out2 *wire.Out
 }
 
 // driveOutput runs a continuous-drive goroutine on out, always emitting the
 // current value of held. Delegates to gatecommon.DriveHeld (shared with
 // HoldFlip's identical-shaped drive goroutine) with an identity transform.
-func driveOutput(ctx context.Context, out *Wiring.Out, heldCh <-chan int64, clk Wiring.Clock, speedCh <-chan float64) {
+func driveOutput(ctx context.Context, out *wire.Out, heldCh <-chan int64, clk wire.Clock, speedCh <-chan float64) {
 	gatecommon.DriveHeld(ctx, out, heldCh, func(h int64) int { return int(h) }, clk, speedCh)
 }
 
 func (g *Node) Update(ctx context.Context) {
-	Wiring.TryEmit(g.EmitGeometry)
+	wire.TryEmit(g.EmitGeometry)
 
 	// held is owned by this main loop; cur is the main loop's OWN local copy
 	// (mirrors the seed the atomic used to carry — gatecommon.NoValue).
@@ -117,8 +117,8 @@ func (g *Node) Update(ctx context.Context) {
 			g.EmitHeldBead(v) // show the new interior bead IMMEDIATELY
 		}
 		cur = int64(v)
-		Wiring.SendLatestNonBlocking(out1HeldCh, cur)
-		Wiring.SendLatestNonBlocking(out2HeldCh, cur)
+		wire.SendLatestNonBlocking(out1HeldCh, cur)
+		wire.SendLatestNonBlocking(out2HeldCh, cur)
 	}
 
 	// Copy taken ONCE at this goroutine's start (Update IS the goroutine); each
@@ -132,7 +132,7 @@ func (g *Node) Update(ctx context.Context) {
 			return
 		}
 		consume()
-		Wiring.ApplySpeedNonBlocking(clk, g.SpeedCh)
+		wire.ApplySpeedNonBlocking(clk, g.SpeedCh)
 		if err := clk.SleepCycle(ctx); err != nil {
 			return
 		}
@@ -140,5 +140,5 @@ func (g *Node) Update(ctx context.Context) {
 }
 
 func init() {
-	Wiring.Register("Pulse", func() any { return &Node{} })
+	wire.Register("Pulse", func() any { return &Node{} })
 }

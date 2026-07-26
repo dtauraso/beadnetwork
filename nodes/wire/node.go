@@ -4,7 +4,7 @@
 // The runner (main.RunTest) launches each node in its own goroutine,
 // wraps it with defer wg.Done(), and passes a cancellable context.
 
-package Wiring
+package wire
 
 import "context"
 

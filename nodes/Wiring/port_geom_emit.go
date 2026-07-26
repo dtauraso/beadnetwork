@@ -51,8 +51,8 @@ func aimedPortPosDir(g nodeGeom, partnerCenter partnerCenterFn) func(name string
 		}
 		pos := portWorldPosAimed(g, name, isInput, pc, hasPartner)
 		if hasPartner {
-			if dirVec := pc.sub(nodeWorldPos(g)); dirVec.length() >= portDegenerateEps {
-				return pos, dirVec.normalize()
+			if dirVec := pc.Sub(nodeWorldPos(g)); dirVec.Length() >= portDegenerateEps {
+				return pos, dirVec.Normalize()
 			}
 		}
 		dir, _ := portDir(g, name, isInput)

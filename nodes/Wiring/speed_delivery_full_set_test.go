@@ -6,6 +6,7 @@ package Wiring_test
 
 import (
 	"context"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"os"
 	"path/filepath"
 	"testing"
@@ -89,7 +90,7 @@ func TestSpeedSinksCoverEveryClockOwningGoroutine(t *testing.T) {
 	defer cancel()
 	tr := T.New()
 
-	_, _, _, speedSinks, err := W.LoadTopology(ctx, path, tr, W.NewRealClock())
+	_, _, _, speedSinks, err := W.LoadTopology(ctx, path, tr, wire.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology: %v", err)
 	}
@@ -103,7 +104,7 @@ func TestSpeedSinksCoverEveryClockOwningGoroutine(t *testing.T) {
 	done := make(chan struct{})
 	go func() {
 		for _, ch := range speedSinks {
-			W.SendSpeedNonBlocking(ch, 2)
+			wire.SendSpeedNonBlocking(ch, 2)
 		}
 		close(done)
 	}()

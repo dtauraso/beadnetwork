@@ -81,7 +81,7 @@ func measureScalars(centers map[string]vec3, ids map[string]bool, sceneCenter ve
 		}
 		carried := prior[id] // zero value if absent — constants default to unset
 		t, p_, r := carried.effectiveSteps()
-		p := cart2polar(pos.sub(sceneCenter))
+		p := cart2polar(pos.Sub(sceneCenter))
 		result[id] = quantizedOffset{
 			iTheta: int(math.Round(p.Theta / t)),
 			iPhi:   int(math.Round(p.Phi / p_)),
@@ -127,7 +127,7 @@ func deriveCenters(scalars map[string]quantizedOffset, sceneCenter vec3) map[str
 	derived := make(map[string]vec3, len(scalars))
 	for id, o := range scalars {
 		t, p, r := o.effectiveSteps()
-		derived[id] = sceneCenter.add(polar2cart(polar{
+		derived[id] = sceneCenter.Add(polar2cart(polar{
 			R:     float64(o.iR) * r,
 			Theta: float64(o.iTheta) * t,
 			Phi:   float64(o.iPhi) * p,

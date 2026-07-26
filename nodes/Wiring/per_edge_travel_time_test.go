@@ -10,6 +10,7 @@ package Wiring
 
 import (
 	"context"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"os"
 	"path/filepath"
 	"testing"
@@ -22,9 +23,9 @@ import (
 // edge) — the port name is the struct field name (collectPorts, builders.go). This is the
 // distinct-ports replacement for fan-in: two edges into two SEPARATE ports, never one.
 type perEdgeSink struct {
-	LayoutHolder
-	InNear *In
-	InFar  *In
+	wire.LayoutHolder
+	InNear *wire.In
+	InFar  *wire.In
 }
 
 func (n *perEdgeSink) Update(ctx context.Context) {
@@ -32,7 +33,7 @@ func (n *perEdgeSink) Update(ctx context.Context) {
 }
 
 func init() {
-	Register("PerEdgeSink", func() any { return &perEdgeSink{} })
+	wire.Register("PerEdgeSink", func() any { return &perEdgeSink{} })
 }
 
 func TestPerEdgeTravelTimeDistinctPorts(t *testing.T) {
@@ -59,7 +60,7 @@ func TestPerEdgeTravelTimeDistinctPorts(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	_, _, nmr, _, err := LoadTopology(ctx, path, T.New(), NewRealClock())
+	_, _, nmr, _, err := LoadTopology(ctx, path, T.New(), wire.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology: %v", err)
 	}
@@ -122,7 +123,7 @@ func TestFanInRejectedAtLoad(t *testing.T) {
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	if _, _, _, _, err := LoadTopology(ctx, path, T.New(), NewRealClock()); err == nil {
+	if _, _, _, _, err := LoadTopology(ctx, path, T.New(), wire.NewRealClock()); err == nil {
 		t.Fatalf("LoadTopology accepted a fan-in topology (two edges into sink.In); want a fan-in rejection error")
 	}
 }

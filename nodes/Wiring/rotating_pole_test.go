@@ -4,6 +4,7 @@ package Wiring
 
 import (
 	"context"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"math"
 	"os"
 	"testing"
@@ -142,7 +143,7 @@ func TestRotatingPoleClearsSingularityOnDrag(t *testing.T) {
 	if !ok {
 		t.Fatal("no center for src")
 	}
-	var lpBefore LocalPolar
+	var lpBefore wire.LocalPolar
 	for _, lp := range lhSrc.LocalPolarsSnapshot() {
 		if lp.To == "dst" {
 			lpBefore = lp
@@ -162,7 +163,7 @@ func TestRotatingPoleClearsSingularityOnDrag(t *testing.T) {
 	// threshold).
 	home := dir{Theta: 0, Phi: 0}
 	near := fromAxisFrame(home, 0.5*math.Pi/180, 0)
-	target := srcCenter.add(polar2cart(polar{R: 50, Theta: near.Theta, Phi: near.Phi}))
+	target := srcCenter.Add(polar2cart(polar{R: 50, Theta: near.Theta, Phi: near.Phi}))
 
 	if !md.RootMove("dst", target) {
 		t.Fatal("RootMove(dst) returned false")
@@ -173,7 +174,7 @@ func TestRotatingPoleClearsSingularityOnDrag(t *testing.T) {
 	if !ok {
 		t.Fatal("no center for dst after drag")
 	}
-	offVec := dstCenter.sub(srcCenter)
+	offVec := dstCenter.Sub(srcCenter)
 	offDir, _ := dirFromOffset(offVec)
 	pole := localPole([]vec3{offVec})
 	if pole == home {
@@ -192,7 +193,7 @@ func TestRotatingPoleClearsSingularityOnDrag(t *testing.T) {
 	// Wait for src's own "abc-drag" breadcrumb (see the sync-point comment above)
 	// before reading its LocalPolar entry to dst.
 	waitForAbcDrag(t, &dbg, "src")
-	var got LocalPolar
+	var got wire.LocalPolar
 	for _, lp := range lhSrc.LocalPolarsSnapshot() {
 		if lp.To == "dst" {
 			got = lp
@@ -207,16 +208,16 @@ func TestRotatingPoleClearsSingularityOnDrag(t *testing.T) {
 	if !ok {
 		t.Fatal("no center for src after drag")
 	}
-	if d := srcCenterAfter.sub(srcCenter).length(); d > 1e-9 {
+	if d := srcCenterAfter.Sub(srcCenter).Length(); d > 1e-9 {
 		t.Fatalf("src must stay put on a dst drag: before=%+v after=%+v (moved by %g)", srcCenter, srcCenterAfter, d)
 	}
 
 	// src's requantized local polar to dst must match a fresh quantization of the live
 	// offset (dst_newcenter - src_center) about src's own pole.
-	offsetAfter := dstCenter.sub(srcCenterAfter)
+	offsetAfter := dstCenter.Sub(srcCenterAfter)
 	dAfter, rAfter := dirFromOffset(offsetAfter)
 	cAfter, psiAfter := azimuthFrom(lhSrc.Pole(), dAfter)
-	st, sp, sr := got.effectiveSteps()
+	st, sp, sr := got.EffectiveSteps()
 	wantTheta := int(math.Round(cAfter / st))
 	wantPhi := int(math.Round(psiAfter / sp))
 	wantR := int(math.Round(rAfter / sr))
@@ -248,7 +249,7 @@ func TestRotatingPolePersistReload(t *testing.T) {
 		t.Fatal("no LayoutHolder for src")
 	}
 	srcCenter, _ := md.centerOfNode("src")
-	var preDrag LocalPolar
+	var preDrag wire.LocalPolar
 	for _, lp := range lhSrc.LocalPolarsSnapshot() {
 		if lp.To == "dst" {
 			preDrag = lp
@@ -265,7 +266,7 @@ func TestRotatingPolePersistReload(t *testing.T) {
 
 	home := dir{Theta: 0, Phi: 0}
 	near := fromAxisFrame(home, 5*math.Pi/180, 0)
-	target := srcCenter.add(polar2cart(polar{R: 50, Theta: near.Theta, Phi: near.Phi}))
+	target := srcCenter.Add(polar2cart(polar{R: 50, Theta: near.Theta, Phi: near.Phi}))
 	if !md.RootMove("dst", target) {
 		t.Fatal("RootMove(dst) returned false")
 	}
@@ -278,7 +279,7 @@ func TestRotatingPolePersistReload(t *testing.T) {
 	// "abc-drag" breadcrumb before reading, so the persisted value is not a stale
 	// pre-drag one.
 	waitForAbcDrag(t, &dbg, "src")
-	var before *LocalPolar
+	var before *wire.LocalPolar
 	for _, lp := range lhSrc.LocalPolarsSnapshot() {
 		if lp.To == "dst" {
 			cp := lp
@@ -316,7 +317,7 @@ func TestRotatingPolePersistReload(t *testing.T) {
 	if !ok {
 		t.Fatal("no LayoutHolder for src on reload")
 	}
-	var after *LocalPolar
+	var after *wire.LocalPolar
 	for _, lp := range lhSrc2.LocalPolarsSnapshot() {
 		if lp.To == "dst" {
 			cp := lp
@@ -380,14 +381,14 @@ func TestComputeLocalPolarsRequantizesStoredBearingAboutResolvedPole(t *testing.
 	if !ok {
 		t.Fatal("no center for dst")
 	}
-	liveOff := dstCenter.sub(srcCenter)
+	liveOff := dstCenter.Sub(srcCenter)
 	liveDir, _ := dirFromOffset(liveOff)
 	pole := localPole([]vec3{liveOff})
 	if pole != (dir{Theta: 0, Phi: 0}) {
 		t.Fatalf("test setup bug: expected src's resolved pole to stay home (offset far from the +y singularity), got %+v", pole)
 	}
 
-	var got *LocalPolar
+	var got *wire.LocalPolar
 	for _, lp := range lhSrc.LocalPolarsSnapshot() {
 		if lp.To == "dst" {
 			cp := lp
@@ -403,7 +404,7 @@ func TestComputeLocalPolarsRequantizesStoredBearingAboutResolvedPole(t *testing.
 	if got.QuantITheta != 20 || got.QuantIPhi != 170 {
 		t.Fatalf("stored index was not preserved verbatim across load (home pole in, home pole out is an exact round-trip): got %+v want QuantITheta=20 QuantIPhi=170", got)
 	}
-	st, sp, _ := got.effectiveSteps()
+	st, sp, _ := got.EffectiveSteps()
 	gotDir := fromAxisFrame(pole, float64(got.QuantITheta)*st, float64(got.QuantIPhi)*sp)
 	if d := angularDistance(gotDir, liveDir); d < 60*testDeg {
 		t.Fatalf("reloaded bearing tracked the LIVE dst offset instead of the STORED stale index: got %+v, angularDistance to live=%v (want large — this is the old live-cartesian re-derive bug)", gotDir, d)

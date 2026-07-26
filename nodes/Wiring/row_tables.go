@@ -6,6 +6,8 @@
 
 package Wiring
 
+import ()
+
 // moveDispatchPortRow is one row of the port-row table — the (node, port) identity a
 // numeric buffer PORT-ROW index resolves to. Mirrors Buffer.PortRowEntry's shape (kept
 // as a local type so this package stays Buffer-independent).

@@ -2,10 +2,9 @@ package gatecommon
 
 import (
 	"context"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"testing"
 	"time"
-
-	"github.com/dtauraso/wirefold/nodes/Wiring"
 )
 
 // TestDriveHeldChanModePlacesMultipleValues is the red-proof for the
@@ -17,7 +16,7 @@ import (
 // across multiple cycles.
 func TestDriveHeldChanModePlacesMultipleValues(t *testing.T) {
 	ch := make(chan int, 8)
-	out := Wiring.NewOutChanForTest(ch, "n1", "out", nil)
+	out := wire.NewOutChanForTest(ch, "n1", "out", nil)
 
 	heldCh := make(chan int64, 1)
 	heldCh <- 7

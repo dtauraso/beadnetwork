@@ -1,6 +1,7 @@
 package Wiring
 
 import (
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"io"
 	"testing"
 
@@ -15,7 +16,7 @@ import (
 //       OrbitLocked call, nil again after another SetViewpoint.
 
 // countCameraEvents counts KindCamera RowEvents.
-func countCameraEvents(events []RowEvent) int {
+func countCameraEvents(events []wire.RowEvent) int {
 	n := 0
 	for _, e := range events {
 		if e.Kind == T.KindCamera {
@@ -28,13 +29,13 @@ func countCameraEvents(events []RowEvent) int {
 // captureViewFrameKinds wires md's VIEW stream to a builder that appends every
 // RowEvent kind it's handed to *kinds, mirroring what the real buffer builder does
 // (Decentralized, Step C, memory/feedback_no_single_writer_bridge.md) without needing a real fd.
-func captureViewFrameKinds(md *MoveDispatch, kinds *[]RowEvent) {
+func captureViewFrameKinds(md *MoveDispatch, kinds *[]wire.RowEvent) {
 	md.SetViewStream(io.Discard, func(tick uint32,
 		camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
 		sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis, doubleLinks uint8,
 		abcDragCount uint32,
 		sceneCX, sceneCY, sceneCZ, sceneRadius float32,
-		events []RowEvent,
+		events []wire.RowEvent,
 	) []byte {
 		*kinds = append(*kinds, events...)
 		return nil
@@ -44,7 +45,7 @@ func captureViewFrameKinds(md *MoveDispatch, kinds *[]RowEvent) {
 func TestOrbitLockedViewpointEmitsCamera(t *testing.T) {
 	tr := T.New()
 	md := &MoveDispatch{}
-	var events []RowEvent
+	var events []wire.RowEvent
 	captureViewFrameKinds(md, &events)
 
 	// Seed a known camera state.

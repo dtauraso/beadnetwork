@@ -1,6 +1,7 @@
 package Wiring
 
 import (
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"math"
 	"sort"
 )
@@ -143,7 +144,7 @@ func (b *buildCtx) computeLocalPolars() {
 		}
 	}
 
-	result := map[string][]LocalPolar{}
+	result := map[string][]wire.LocalPolar{}
 	poles := map[string]dir{}
 	for _, n := range b.spec.Nodes {
 		nbrs := neighbors[n.ID]
@@ -161,7 +162,7 @@ func (b *buildCtx) computeLocalPolars() {
 		// localStepTheta/localStepPhi/localStepR) — NOT the scene-center triple's
 		// coarser stepTheta/stepPhi/stepR (the point of the double-link model: every
 		// distance lands on a whole tick of a small grid).
-		t, p, r := LocalPolar{}.effectiveSteps()
+		t, p, r := wire.LocalPolar{}.EffectiveSteps()
 
 		// The measurement pole is a pure function of live geometry (rotating_pole.go
 		// localPole) — resolved from EVERY neighbor's CURRENT world offset. A STORED pole
@@ -178,7 +179,7 @@ func (b *buildCtx) computeLocalPolars() {
 			if hasOwn {
 				for _, mid := range ids {
 					if mCenter, ok := b.centers[mid]; ok {
-						offsetVecs = append(offsetVecs, mCenter.sub(ownCenter))
+						offsetVecs = append(offsetVecs, mCenter.Sub(ownCenter))
 					}
 				}
 			}
@@ -186,11 +187,11 @@ func (b *buildCtx) computeLocalPolars() {
 		}
 		poles[n.ID] = finalPole
 
-		list := make([]LocalPolar, 0, len(ids))
+		list := make([]wire.LocalPolar, 0, len(ids))
 		for _, mid := range ids {
 			if sm, ok := stored[n.ID]; ok {
 				if lp, ok2 := sm[mid]; ok2 {
-					entry := LocalPolar{
+					entry := wire.LocalPolar{
 						To: mid, QuantITheta: lp.QuantITheta, QuantIPhi: lp.QuantIPhi, QuantIR: lp.QuantIR,
 						StepTheta: lp.StepTheta, StepPhi: lp.StepPhi, StepR: lp.StepR,
 					}
@@ -210,7 +211,7 @@ func (b *buildCtx) computeLocalPolars() {
 					// QuantIR/step constants are preserved exactly (QuantIR carries the
 					// equal-radii shared-c contract and must not be recomputed).
 					oldPole := storedPole[n.ID]
-					et, ep, _ := entry.effectiveSteps()
+					et, ep, _ := entry.EffectiveSteps()
 					d := fromAxisFrame(oldPole, float64(lp.QuantITheta)*et, float64(lp.QuantIPhi)*ep)
 					c, psi := azimuthFrom(finalPole, d)
 					entry.QuantITheta = int(math.Round(c / et))
@@ -221,12 +222,12 @@ func (b *buildCtx) computeLocalPolars() {
 			}
 			mCenter, ok := b.centers[mid]
 			if !hasOwn || !ok {
-				list = append(list, LocalPolar{To: mid}) // centerless → zero offset, nothing to measure
+				list = append(list, wire.LocalPolar{To: mid}) // centerless → zero offset, nothing to measure
 				continue
 			}
-			d, radius := dirFromOffset(mCenter.sub(ownCenter))
+			d, radius := dirFromOffset(mCenter.Sub(ownCenter))
 			c, psi := azimuthFrom(finalPole, d)
-			list = append(list, LocalPolar{
+			list = append(list, wire.LocalPolar{
 				To:          mid,
 				QuantITheta: int(math.Round(c / t)),
 				QuantIPhi:   int(math.Round(psi / p)),

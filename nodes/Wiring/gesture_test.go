@@ -1,6 +1,7 @@
 package Wiring
 
 import (
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"math"
 	"testing"
 )
@@ -18,7 +19,7 @@ func newGestureMD(v viewpoint) *MoveDispatch {
 
 // canonical "+Z camera looking at origin, up +Y, r=100" viewpoint.
 func canonicalViewpoint() viewpoint {
-	return viewpoint{pivot: vec3{0, 0, 0}, r: 100, pos: dir{Theta: math.Pi / 2, Phi: math.Pi / 2}, up: dir{0, 0}}
+	return viewpoint{pivot: vec3{X: 0, Y: 0, Z: 0}, r: 100, pos: dir{Theta: math.Pi / 2, Phi: math.Pi / 2}, up: dir{Theta: 0, Phi: 0}}
 }
 
 func rawEvent(kind string, x, y float64) rawInputMsg {
@@ -42,7 +43,7 @@ func TestGestureEmptyDragOrbits(t *testing.T) {
 	}
 	// Orbit pivot is the content ahead (focusAhead). Empty centers → a point on the view axis a
 	// fixed distance ahead: eye=(0,0,100), forward=(0,0,-1), focusMin=10 → (0,0,90).
-	if !vecClose(md.ui.gest.rotPivot, vec3{0, 0, 90}, 1e-9) {
+	if !vecClose(md.ui.gest.rotPivot, vec3{X: 0, Y: 0, Z: 90}, 1e-9) {
 		t.Fatalf("rotPivot=%v want focus-ahead (0,0,90)", md.ui.gest.rotPivot)
 	}
 
@@ -52,7 +53,7 @@ func TestGestureEmptyDragOrbits(t *testing.T) {
 	if md.ui.gest.phase != gestRotating {
 		t.Fatalf("after slop-cross move: phase=%v want rotating", md.ui.gest.phase)
 	}
-	if !vecClose(md.ui.vp.pivot, vec3{0, 0, 90}, 1e-9) {
+	if !vecClose(md.ui.vp.pivot, vec3{X: 0, Y: 0, Z: 90}, 1e-9) {
 		t.Fatalf("seed pivot=%v want focus-ahead (0,0,90)", md.ui.vp.pivot)
 	}
 	if math.Abs(md.ui.vp.r-10) > 1e-9 {
@@ -347,15 +348,15 @@ func TestGestureHandholdOrbits(t *testing.T) {
 // Dragging a CONNECTED port along its ring dispatches a ring-anchor update to the node
 // mover's inbox (the same moveMsgKindAnchor the op=update kind=node attr=anchor path sends).
 func TestGestureConnectedPortRingMove(t *testing.T) {
-	center := vec3{0, 0, 0}
+	center := vec3{X: 0, Y: 0, Z: 0}
 	geoms := map[string]nodeGeom{
 		"N1": {nodeIdentity: nodeIdentity{Kind: "Input"}, HasPos: true, ScenePolar: cart2polar(center), Inputs: []portGeom{{Name: "in"}}, Outputs: []portGeom{{Name: "out"}}},
-		"N2": {nodeIdentity: nodeIdentity{Kind: "Input"}, HasPos: true, ScenePolar: cart2polar(vec3{50, 0, 0}), Inputs: []portGeom{{Name: "in"}}},
+		"N2": {nodeIdentity: nodeIdentity{Kind: "Input"}, HasPos: true, ScenePolar: cart2polar(vec3{X: 50, Y: 0, Z: 0}), Inputs: []portGeom{{Name: "in"}}},
 	}
 	edges := map[string]EdgeEndpoints{
 		"e1": {Source: "N1", Target: "N2", SourceHandle: "out", TargetHandle: "in"},
 	}
-	md := newMoveDispatch(geoms, edges, nil, nil, nil, NewRealClock(), nil)
+	md := newMoveDispatch(geoms, edges, nil, nil, nil, wire.NewRealClock(), nil)
 	md.ui.vp.viewpoint = canonicalViewpoint()
 	md.rt.portRowTable = []moveDispatchPortRow{{node: "N1", port: "out", isInput: false}}
 

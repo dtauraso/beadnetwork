@@ -28,7 +28,7 @@ func refPortWorldPos(kind string, center vec3, ports []portGeom, name string, _ 
 	}
 	R := nodeRadius(kind)
 	dir := ringAnchorDir(R, anchorIdx)
-	return vec3{center.X + dir.X*R, center.Y + dir.Y*R, center.Z + dir.Z*R}
+	return vec3{X: center.X + dir.X*R, Y: center.Y + dir.Y*R, Z: center.Z + dir.Z*R}
 }
 
 // refChordLength is the reference chord-distance formula (straight-segment model):
@@ -135,17 +135,17 @@ func TestArcLengthBetweenPortsCases(t *testing.T) {
 // CurveParamMinArcLength.
 func TestChordLength(t *testing.T) {
 	// 3-4-5 right triangle.
-	got := chordLength(vec3{0, 0, 0}, vec3{3, 4, 0})
+	got := chordLength(vec3{X: 0, Y: 0, Z: 0}, vec3{X: 3, Y: 4, Z: 0})
 	if !almostEqual(got, 5, 1e-9) {
 		t.Fatalf("chordLength 3-4-5 = %v, want 5", got)
 	}
 	// 3-D diagonal: sqrt(1+4+4) = 3.
-	got = chordLength(vec3{0, 0, 0}, vec3{1, 2, 2})
+	got = chordLength(vec3{X: 0, Y: 0, Z: 0}, vec3{X: 1, Y: 2, Z: 2})
 	if !almostEqual(got, 3, 1e-9) {
 		t.Fatalf("chordLength 3D = %v, want 3", got)
 	}
 	// Floor for co-located points.
-	if g := chordLength(vec3{5, 5, 5}, vec3{5, 5, 5}); g != CurveParamMinArcLength {
+	if g := chordLength(vec3{X: 5, Y: 5, Z: 5}, vec3{X: 5, Y: 5, Z: 5}); g != CurveParamMinArcLength {
 		t.Fatalf("chordLength co-located = %v, want floor %v", g, CurveParamMinArcLength)
 	}
 }
@@ -167,13 +167,13 @@ func TestPortRadiusPerPort(t *testing.T) {
 	dir := ringAnchorDir(nodeRadius(g.Kind), 0)
 
 	gotSmall := portWorldPos(g, "InSmall", true)
-	wantSmall := center.add(dir.scale(r1))
+	wantSmall := center.Add(dir.Scale(r1))
 	if math.Abs(gotSmall.X-wantSmall.X) > 1e-9 || math.Abs(gotSmall.Y-wantSmall.Y) > 1e-9 || math.Abs(gotSmall.Z-wantSmall.Z) > 1e-9 {
 		t.Fatalf("portWorldPos(InSmall) = %v, want %v (r=%v)", gotSmall, wantSmall, r1)
 	}
 
 	gotBig := portWorldPos(g, "InBig", true)
-	wantBig := center.add(dir.scale(r2))
+	wantBig := center.Add(dir.Scale(r2))
 	if math.Abs(gotBig.X-wantBig.X) > 1e-9 || math.Abs(gotBig.Y-wantBig.Y) > 1e-9 || math.Abs(gotBig.Z-wantBig.Z) > 1e-9 {
 		t.Fatalf("portWorldPos(InBig) = %v, want %v (r=%v)", gotBig, wantBig, r2)
 	}
@@ -232,7 +232,7 @@ func TestPortAnchorIdRingPath(t *testing.T) {
 
 	// World pos == center + dir*nodeRadius
 	center := nodeWorldPos(g)
-	wantPos := center.add(want.scale(R))
+	wantPos := center.Add(want.Scale(R))
 	gotPos := portWorldPos(g, "In", true)
 	if math.Abs(gotPos.X-wantPos.X) > 1e-9 || math.Abs(gotPos.Y-wantPos.Y) > 1e-9 || math.Abs(gotPos.Z-wantPos.Z) > 1e-9 {
 		t.Fatalf("portWorldPos(In) = %v, want %v", gotPos, wantPos)

@@ -2,7 +2,7 @@
 
 ## Model — read first
 
-Before changing anything in the **Go network** (`nodes/`, `nodes/Wiring/paced_wire.go`,
+Before changing anything in the **Go network** (`nodes/`, `nodes/wire/paced_wire.go`,
 `nodes/Wiring/loader.go`, `nodes/Wiring/builders.go`) or the **content buffer**
 (`Buffer/`, the render tree under `tools/topology-vscode/src/webview/three/`),
 read [MODEL.md](MODEL.md). It pins the model. Do not propose multi-step

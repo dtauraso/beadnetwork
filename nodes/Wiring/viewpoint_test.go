@@ -9,7 +9,7 @@ import (
 // eye is a test-only oracle for the camera world position: pivot + r along pos.
 // (Production Go never does this polar→Cartesian step; the renderer does, at its edge.)
 func (v viewpoint) eye() vec3 {
-	return v.pivot.add(polar2cart(polar{R: v.r, Theta: v.pos.Theta, Phi: v.pos.Phi}))
+	return v.pivot.Add(polar2cart(polar{R: v.r, Theta: v.pos.Theta, Phi: v.pos.Phi}))
 }
 
 func randViewpoint(rng *rand.Rand) viewpoint {
@@ -76,15 +76,15 @@ func TestViewpointZoomClamps(t *testing.T) {
 }
 
 func TestViewpointPanMovesPivotAndEye(t *testing.T) {
-	v := viewpoint{pivot: vec3{1, 2, 3}, r: 50, pos: dir{Theta: 1, Phi: 0.5}, up: dir{Theta: 0, Phi: 0}}
+	v := viewpoint{pivot: vec3{X: 1, Y: 2, Z: 3}, r: 50, pos: dir{Theta: 1, Phi: 0.5}, up: dir{Theta: 0, Phi: 0}}
 	eye0 := v.eye()
-	delta := vec3{10, -5, 2}
+	delta := vec3{X: 10, Y: -5, Z: 2}
 	v.pan(delta)
-	if v.pivot != (vec3{11, -3, 5}) {
+	if v.pivot != (vec3{X: 11, Y: -3, Z: 5}) {
 		t.Fatalf("pan pivot = %v want {11 -3 5}", v.pivot)
 	}
 	// Camera rides with the pivot: eye shifts by the same delta.
-	if got := v.eye().sub(eye0); got.sub(delta).length() > 1e-9 {
+	if got := v.eye().Sub(eye0); got.Sub(delta).Length() > 1e-9 {
 		t.Fatalf("pan eye shift = %v want %v", got, delta)
 	}
 }

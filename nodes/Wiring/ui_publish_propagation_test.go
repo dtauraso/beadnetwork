@@ -15,6 +15,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"sync"
 	"testing"
 	"time"
@@ -128,7 +129,7 @@ func TestGesturePathPropagatesUIStateToMoverStream(t *testing.T) {
 
 	tr := T.NewWithSinkHook(nil, nil)
 
-	_, _, md, _, err := LoadTopology(context.Background(), root, tr, NewRealClock())
+	_, _, md, _, err := LoadTopology(context.Background(), root, tr, wire.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology: %v", err)
 	}
@@ -142,7 +143,7 @@ func TestGesturePathPropagatesUIStateToMoverStream(t *testing.T) {
 		sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis, doubleLinks uint8,
 		abcDragCount uint32,
 		sceneCX, sceneCY, sceneCZ, sceneRadius float32,
-		events []RowEvent,
+		events []wire.RowEvent,
 	) []byte {
 		return B.BuildViewStreamFrame(tick, camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi,
 			B.OverlayRow{
@@ -176,14 +177,14 @@ func TestGesturePathPropagatesUIStateToMoverStream(t *testing.T) {
 	bufX := &uiPubLockedBuf{}
 	nm.streamOut = bufX
 	nm.nodeRow = xRow
-	nm.buildFrame = func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows, edgeRows []int32, events []RowEvent) []byte {
+	nm.buildFrame = func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows, edgeRows []int32, events []wire.RowEvent) []byte {
 		return B.BuildNodeStreamFrame(tick, nodeRow, cx, cy, cz, radius, sphereR, vrx, vry, vrz, frx, fry, frz, selected, kindID, hovered, latchedSel, gotDragMsg, dragDeltaA, dragDeltaB, dragDeltaC, label, portNames, portDX, portDY, portDZ, portPX, portPY, portPZ, portIsInput, portHovered, dstNodeRows, edgeRows, nil)
 	}
 
 	bufT := &uiPubLockedBuf{}
 	nmT.streamOut = bufT
 	nmT.nodeRow = tRow
-	nmT.buildFrame = func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows, edgeRows []int32, events []RowEvent) []byte {
+	nmT.buildFrame = func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows, edgeRows []int32, events []wire.RowEvent) []byte {
 		return B.BuildNodeStreamFrame(tick, nodeRow, cx, cy, cz, radius, sphereR, vrx, vry, vrz, frx, fry, frz, selected, kindID, hovered, latchedSel, gotDragMsg, dragDeltaA, dragDeltaB, dragDeltaC, label, portNames, portDX, portDY, portDZ, portPX, portPY, portPZ, portIsInput, portHovered, dstNodeRows, edgeRows, nil)
 	}
 

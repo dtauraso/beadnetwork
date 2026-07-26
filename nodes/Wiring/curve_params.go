@@ -11,7 +11,9 @@
 
 package Wiring
 
-import "math"
+import (
+	wire "github.com/dtauraso/wirefold/nodes/wire"
+)
 
 // CurveParamPulseSpeedWuPerMs is the uniform pulse speed in world-units per
 // millisecond.  Both Go (simLatencyMs) and TS visual layer (travel
@@ -38,41 +40,18 @@ const edgeLengthCellWu = 0.1
 // (Math.min(width, height) / 4); port endpoints sit on this sphere surface.
 const CurveParamNodeRadiusDivisor = 4
 
-// vec3 is a minimal 3-D vector used by port-geometry math.
-type vec3 struct{ X, Y, Z float64 }
+// vec3 aliases wire.Vec3 — the vector type and its methods (Sub/Add/Scale/
+// Length/Normalize/Dot/Cross) live in nodes/wire/geometry.go now; Wiring keeps
+// this name so the many existing call sites read the same.
+type vec3 = wire.Vec3
 
-// wireSegment is one edge's straight-line segment from the source OUT-port world
-// position to the dest IN-port world position. It is per-edge geometry threaded
-// from the loader onto the source Out so each placed bead carries the segment it
-// is drawn on. P(t) = Start + t*(End-Start).
-type wireSegment struct{ Start, End vec3 }
-
-func (a vec3) sub(b vec3) vec3 { return vec3{a.X - b.X, a.Y - b.Y, a.Z - b.Z} }
-func (a vec3) add(b vec3) vec3 { return vec3{a.X + b.X, a.Y + b.Y, a.Z + b.Z} }
-func (a vec3) scale(s float64) vec3 {
-	return vec3{a.X * s, a.Y * s, a.Z * s}
-}
-func (a vec3) length() float64 {
-	return math.Sqrt(a.X*a.X + a.Y*a.Y + a.Z*a.Z)
-}
-func (a vec3) normalize() vec3 {
-	l := a.length()
-	if l == 0 {
-		return vec3{}
-	}
-	return vec3{a.X / l, a.Y / l, a.Z / l}
-}
-
-// lerp linearly interpolates between a and b at parameter t.
-// P(t) = a + t*(b-a). Used by the position stream to evaluate a bead's position.
-func lerp(a, b vec3, t float64) vec3 {
-	return a.add(b.sub(a).scale(t))
-}
+// wireSegment aliases wire.WireSegment — see nodes/wire/geometry.go.
+type wireSegment = wire.WireSegment
 
 // chordLength returns the straight-line distance |b - a|, floored at
 // CurveParamMinArcLength. This is the arc length of a straight-segment edge.
 func chordLength(a, b vec3) float64 {
-	l := b.sub(a).length()
+	l := b.Sub(a).Length()
 	if l < CurveParamMinArcLength {
 		return CurveParamMinArcLength
 	}

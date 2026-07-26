@@ -24,6 +24,7 @@ package Wiring
 
 import (
 	T "github.com/dtauraso/wirefold/Trace"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
 type sceneSphereJSON struct {
@@ -114,7 +115,7 @@ func (md *MoveDispatch) LoadSceneSphere(topologyPath string) {
 	// own VIEW frame directly, carrying this one-time scene-sphere event. SceneSphere
 	// decodes entirely from the VIEW frame's own Scene block (buffer-log.ts's
 	// decodeEventLine "scene-sphere" case) — no row identity to resolve.
-	md.emitViewFrame([]RowEvent{{Kind: T.KindSceneSphere, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}})
+	md.emitViewFrame([]wire.RowEvent{{Kind: T.KindSceneSphere, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}})
 }
 
 // sceneSpherePersister writes the scene sphere to view/sphere.json, mirroring

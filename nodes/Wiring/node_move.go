@@ -28,6 +28,7 @@ package Wiring
 
 import (
 	"context"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"sort"
 	"sync"
 
@@ -343,7 +344,7 @@ func (md *MoveDispatch) SetEdgeStreams(
 	baseFd int,
 	portRowFor func(node, port string, isInput bool) (int32, bool),
 	nodeRowFor func(id string) (int32, bool),
-	buildFrame func(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, beadVal []int32, beadX, beadY, beadZ []float32, events []RowEvent) []byte,
+	buildFrame func(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, beadVal []int32, beadX, beadY, beadZ []float32, events []wire.RowEvent) []byte,
 ) {
 	md.sw.setEdgeStreams(md.gs.edgeSeeds, md.mr.edgeMovers, baseFd, portRowFor, nodeRowFor, buildFrame)
 }
@@ -367,8 +368,8 @@ func (md *MoveDispatch) SetNodeStreams(
 	nodeBase, interiorBase int,
 	nodeRowFor func(id string) (int32, bool),
 	edgeRowForPair func(a, b string) (int32, bool),
-	buildFrame func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows, edgeRows []int32, events []RowEvent) []byte,
-	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []RowEvent) []byte,
+	buildFrame func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows, edgeRows []int32, events []wire.RowEvent) []byte,
+	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte,
 	kindIDFor func(kind string) uint8,
 ) {
 	md.sw.setNodeStreams(md.gs.nodeSeeds, md.mr.nodeMovers, nodeBase, interiorBase, nodeRowFor, edgeRowForPair, buildFrame, buildInteriorFrame, kindIDFor)
@@ -432,7 +433,7 @@ func (md *MoveDispatch) EdgeSeeds() []EdgeGeomSeed { return md.gs.edgeSeedsFn() 
 // appended here.
 // nil in test call sites that construct a MoveDispatch directly with no
 // loader — those edgeMovers then simply have no speed channel to poll.
-func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEndpoints, tr *T.Trace, nodeOrder, edgeOrder []string, clk Clock, speedSinks *[]chan float64) *MoveDispatch {
+func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEndpoints, tr *T.Trace, nodeOrder, edgeOrder []string, clk wire.Clock, speedSinks *[]chan float64) *MoveDispatch {
 	// nil order (test call sites that don't care about seed order) falls back to sorted
 	// map keys — still deterministic, just not necessarily spec order.
 	if nodeOrder == nil {
@@ -454,9 +455,9 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 	}
 	md.mr.nodeMovers = map[string]*nodeMover{}
 	md.mr.edgeMovers = map[string]*edgeMover{}
-	md.mr.edgeOut = map[string]*Out{}
+	md.mr.edgeOut = map[string]*wire.Out{}
 	md.mr.centerMirror = map[string]vec3{}
-	md.lq.layoutHolders = map[string]*LayoutHolder{}
+	md.lq.layoutHolders = map[string]*wire.LayoutHolder{}
 	md.ui.ov = defaultOverlayState()
 	// Static partner-center lookup for the seed pass: every node's center is already known
 	// off the load-time geoms map (no goroutine/atomic-snap needed), so this is the SAME
@@ -558,7 +559,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 		nm.neighborSetC = md.neighborSetCRequantize
 		// Go 1.22+ loop semantics give each iteration its own id, so this closure safely
 		// captures THIS iteration's id (no shared-variable capture bug).
-		nm.layoutHolderFn = func() *LayoutHolder { return md.lq.layoutHolders[id] }
+		nm.layoutHolderFn = func() *wire.LayoutHolder { return md.lq.layoutHolders[id] }
 		md.mr.nodeMovers[id] = nm
 		// Seed the dispatch goroutine's center mirror from the same load-time geom
 		// (single-threaded setup, before md.Start — no mover goroutine is running yet)
@@ -632,7 +633,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 
 // Bind wires the per-edge source Outs and dest wires into each edgeMover. Thin delegator
 // to md.mr (mover_registry.go).
-func (md *MoveDispatch) Bind(outSink map[string]*Out, slotReg SlotRegistry) {
+func (md *MoveDispatch) Bind(outSink map[string]*wire.Out, slotReg SlotRegistry) {
 	md.mr.bind(outSink, slotReg)
 }
 
@@ -646,7 +647,7 @@ func (md *MoveDispatch) Start(ctx context.Context) *sync.WaitGroup {
 
 // EdgeOut returns the source *Out bound to the given edge label, or nil if unknown.
 // Thin delegator to md.mr (mover_registry.go).
-func (md *MoveDispatch) EdgeOut(edgeID string) *Out {
+func (md *MoveDispatch) EdgeOut(edgeID string) *wire.Out {
 	return md.mr.edgeOutFor(edgeID)
 }
 
@@ -736,7 +737,7 @@ func (md *MoveDispatch) NodeKind(nodeID string) string {
 // md.lq so their existing in-package call sites (tests, node_move.go, gesture.go) are
 // unchanged.
 func (md *MoveDispatch) heldCenters() map[string]vec3 { return md.lq.heldCenters(md) }
-func (md *MoveDispatch) requantizePoleTraced(lh *LayoutHolder, updates map[string]vec3) dir {
+func (md *MoveDispatch) requantizePoleTraced(lh *wire.LayoutHolder, updates map[string]vec3) dir {
 	return md.lq.requantizePoleTraced(lh, updates)
 }
 func (md *MoveDispatch) neighborSetCRequantize(selfID, fromID string, selfCenter, fromCenter vec3, deltaA, deltaB, deltaC int) {

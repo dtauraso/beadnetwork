@@ -12,6 +12,7 @@ package Wiring
 
 import (
 	"fmt"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"strings"
 )
 
@@ -129,7 +130,7 @@ func validateSpec(spec *topoSpec) error {
 			continue
 		}
 		for port, raw := range n.Data.SendRules {
-			if _, err := ParseSendRule(raw); err != nil {
+			if _, err := wire.ParseSendRule(raw); err != nil {
 				errs = append(errs, fmt.Sprintf("node %q port %q: %v", n.ID, port, err))
 			}
 		}

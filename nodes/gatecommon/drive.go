@@ -2,9 +2,8 @@ package gatecommon
 
 import (
 	"context"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"time"
-
-	"github.com/dtauraso/wirefold/nodes/Wiring"
 )
 
 // DriveHeld runs a continuous-drive goroutine on out, repeatedly emitting
@@ -19,7 +18,7 @@ import (
 //
 // heldCh is a buffered-1, latest-wins channel (same shape as speedCh below):
 // the caller's main loop OWNS held and sends it non-blocking via
-// Wiring.SendLatestNonBlocking whenever it changes; this goroutine is the
+// wire.SendLatestNonBlocking whenever it changes; this goroutine is the
 // sole reader. cur is seeded to gatecommon.NoValue (the same seed the caller's
 // main loop stores into held before spawning this goroutine) and only
 // changes when heldCh actually delivers a value — this preserves the old
@@ -84,16 +83,16 @@ import (
 // call — passing the same channel to two DriveHeld goroutines would starve
 // whichever one loses a given receive. nil is fine (chan mode, or a caller
 // with no speed channel to give): ApplySpeedNonBlocking is then a no-op.
-func DriveHeld(ctx context.Context, out *Wiring.Out, heldCh <-chan int64, transform func(int64) int, clk Wiring.Clock, speedCh <-chan float64) {
+func DriveHeld(ctx context.Context, out *wire.Out, heldCh <-chan int64, transform func(int64) int, clk wire.Clock, speedCh <-chan float64) {
 	go func() {
 		paced := out.Paced()
 		cur := int64(NoValue)
-		var c Wiring.Clock
+		var c wire.Clock
 		sleep := func(ctx context.Context) error {
 			select {
 			case <-ctx.Done():
 				return ctx.Err()
-			case <-time.After(Wiring.MsPerTick * time.Millisecond):
+			case <-time.After(wire.MsPerTick * time.Millisecond):
 				return nil
 			}
 		}
@@ -113,7 +112,7 @@ func DriveHeld(ctx context.Context, out *Wiring.Out, heldCh <-chan int64, transf
 			// (this comment block's own note above it): DriveHeld's only blocking
 			// point is sleep, so that is where the check goes.
 			sleep = func(ctx context.Context) error {
-				Wiring.ApplySpeedNonBlocking(c, speedCh)
+				wire.ApplySpeedNonBlocking(c, speedCh)
 				return c.SleepCycle(ctx)
 			}
 			tick = c.Tick
@@ -144,7 +143,7 @@ func DriveHeld(ctx context.Context, out *Wiring.Out, heldCh <-chan int64, transf
 			place := !paced
 			if paced {
 				if latMs := out.Geom().SimLatencyMs; latMs > 0 {
-					k := int64(latMs/Wiring.MsPerTick + 0.999999)
+					k := int64(latMs/wire.MsPerTick + 0.999999)
 					if k < 1 {
 						k = 1
 					}

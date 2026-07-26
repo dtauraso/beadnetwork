@@ -2,18 +2,18 @@ package input
 
 import (
 	"context"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"testing"
 	"time"
 
 	T "github.com/dtauraso/wirefold/Trace"
-	"github.com/dtauraso/wirefold/nodes/Wiring"
 )
 
 // stepWire continuously DriveOneCycles pw on a short wall-clock poll until ctx
 // is cancelled, matching the production per-cycle drive path a wire's own
 // goroutine (edgeMover.run) would otherwise supply. clk is this goroutine's OWN
 // clock copy; callers must not share it with another goroutine.
-func stepWire(ctx context.Context, pw *Wiring.PacedWire, clk Wiring.Clock) {
+func stepWire(ctx context.Context, pw *wire.PacedWire, clk wire.Clock) {
 	go func() {
 		for {
 			select {
@@ -40,8 +40,8 @@ func TestEmitsInitValuesLean(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	pw := Wiring.NewPacedWire(latMs*Wiring.PulseSpeedWuPerMs, Wiring.PulseSpeedWuPerMs)
-	clk := Wiring.NewRealClock()
+	pw := wire.NewPacedWire(latMs*wire.PulseSpeedWuPerMs, wire.PulseSpeedWuPerMs)
+	clk := wire.NewRealClock()
 	// Production drives this output wire via its edge's own goroutine
 	// (edgeMover.run); this bare-wire unit test has no edgeMover, so it must
 	// supply the same per-cycle drive itself.
@@ -51,10 +51,10 @@ func TestEmitsInitValuesLean(t *testing.T) {
 		Fire:  func() {},
 		Init:  []int{10, 20, 30},
 		Clock: clk,
-		ToHoldNewSendOld: Wiring.NewPacedOutNoGeom(pw, ctx, "in", "ToHoldNewSendOld", tr,
-			Wiring.RuleFireAndForget, latMs*Wiring.PulseSpeedWuPerMs, latMs, ""),
+		ToHoldNewSendOld: wire.NewPacedOutNoGeom(pw, ctx, "in", "ToHoldNewSendOld", tr,
+			wire.RuleFireAndForget, latMs*wire.PulseSpeedWuPerMs, latMs, ""),
 	}
-	obs := Wiring.NewInPaced(pw, ctx, "obs", "In", tr)
+	obs := wire.NewInPaced(pw, ctx, "obs", "In", tr, nil, -1)
 
 	done := make(chan struct{})
 	go func() { node.Update(ctx); close(done) }()

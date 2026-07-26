@@ -32,11 +32,11 @@ func dot(a, b vec3) float64 { return a.X*b.X + a.Y*b.Y + a.Z*b.Z }
 
 // rodrigues rotates v by angle (right-hand) about unit axis k.
 func rodrigues(v, k vec3, angle float64) vec3 {
-	k = k.normalize()
+	k = k.Normalize()
 	cosA, sinA := math.Cos(angle), math.Sin(angle)
-	return v.scale(cosA).
-		add(cross(k, v).scale(sinA)).
-		add(k.scale(dot(k, v) * (1 - cosA)))
+	return v.Scale(cosA).
+		Add(cross(k, v).Scale(sinA)).
+		Add(k.Scale(dot(k, v) * (1 - cosA)))
 }
 
 // ---------------------------------------------------------------------------

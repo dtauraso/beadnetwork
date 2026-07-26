@@ -2,11 +2,11 @@ package windowandinhibitleftgate
 
 import (
 	"context"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"testing"
 	"time"
 
 	T "github.com/dtauraso/wirefold/Trace"
-	"github.com/dtauraso/wirefold/nodes/Wiring"
 	"github.com/dtauraso/wirefold/nodes/gatecommon"
 )
 
@@ -15,7 +15,7 @@ import (
 // goroutine (edgeMover.run) would otherwise supply. Needed for every wire here
 // (both inputs and ToPassed): this bare-wire unit test has no edgeMover of its
 // own. clk is this goroutine's OWN clock copy; callers must not share it with another goroutine.
-func stepWire(ctx context.Context, pw *Wiring.PacedWire, clk Wiring.Clock) {
+func stepWire(ctx context.Context, pw *wire.PacedWire, clk wire.Clock) {
 	go func() {
 		for {
 			select {
@@ -44,32 +44,32 @@ func runGate(t *testing.T, left, right int) int {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	clk := Wiring.NewRealClock()
+	clk := wire.NewRealClock()
 
-	leftPw := Wiring.NewPacedWire(latMs*Wiring.PulseSpeedWuPerMs, Wiring.PulseSpeedWuPerMs)
+	leftPw := wire.NewPacedWire(latMs*wire.PulseSpeedWuPerMs, wire.PulseSpeedWuPerMs)
 	stepWire(ctx, leftPw, clk.Copy())
 
-	rightPw := Wiring.NewPacedWire(latMs*Wiring.PulseSpeedWuPerMs, Wiring.PulseSpeedWuPerMs)
+	rightPw := wire.NewPacedWire(latMs*wire.PulseSpeedWuPerMs, wire.PulseSpeedWuPerMs)
 	stepWire(ctx, rightPw, clk.Copy())
 
 	// leftSrc/rightSrc are test-only seeding sources: PlaceDrivenAt places a
 	// bead (no walker) that the stepWire loops above then drive to delivery,
 	// reusing the production placement API to inject the test's input values.
-	leftSrc := Wiring.NewPacedOutNoGeom(leftPw, ctx, "seed", "Out", tr, Wiring.RuleFireAndForget, 0, 0, "")
-	rightSrc := Wiring.NewPacedOutNoGeom(rightPw, ctx, "seed", "Out", tr, Wiring.RuleFireAndForget, 0, 0, "")
+	leftSrc := wire.NewPacedOutNoGeom(leftPw, ctx, "seed", "Out", tr, wire.RuleFireAndForget, 0, 0, "")
+	rightSrc := wire.NewPacedOutNoGeom(rightPw, ctx, "seed", "Out", tr, wire.RuleFireAndForget, 0, 0, "")
 
-	outPw := Wiring.NewPacedWire(latMs*Wiring.PulseSpeedWuPerMs, Wiring.PulseSpeedWuPerMs)
+	outPw := wire.NewPacedWire(latMs*wire.PulseSpeedWuPerMs, wire.PulseSpeedWuPerMs)
 	stepWire(ctx, outPw, clk.Copy())
 
 	node := &Node{GateNode: gatecommon.GateNode{
 		Fire:      func() {},
 		Clock:     clk,
-		FromLeft:  Wiring.NewInPaced(leftPw, ctx, "ilg", "FromLeft", tr),
-		FromRight: Wiring.NewInPaced(rightPw, ctx, "ilg", "FromRight", tr),
-		ToPassed: Wiring.NewPacedOutNoGeom(outPw, ctx, "ilg", "ToPassed", tr,
-			Wiring.RuleFireAndForget, latMs*Wiring.PulseSpeedWuPerMs, latMs, ""),
+		FromLeft:  wire.NewInPaced(leftPw, ctx, "ilg", "FromLeft", tr, nil, -1),
+		FromRight: wire.NewInPaced(rightPw, ctx, "ilg", "FromRight", tr, nil, -1),
+		ToPassed: wire.NewPacedOutNoGeom(outPw, ctx, "ilg", "ToPassed", tr,
+			wire.RuleFireAndForget, latMs*wire.PulseSpeedWuPerMs, latMs, ""),
 	}}
-	observer := Wiring.NewInPaced(outPw, ctx, "obs", "In", tr)
+	observer := wire.NewInPaced(outPw, ctx, "obs", "In", tr, nil, -1)
 
 	done := make(chan struct{})
 	go func() { node.Update(ctx); close(done) }()

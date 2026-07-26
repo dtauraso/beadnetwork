@@ -55,7 +55,7 @@ func TestSetMsgTapObservesNeighborSetC(t *testing.T) {
 	if !ok {
 		t.Fatal("no center for dst")
 	}
-	target := dstBefore.add(vec3{X: 60, Y: 25, Z: -15})
+	target := dstBefore.Add(vec3{X: 60, Y: 25, Z: -15})
 	if !md.RootMove("dst", target) {
 		t.Fatal("RootMove(dst) returned false")
 	}

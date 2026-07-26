@@ -21,6 +21,7 @@ package Wiring
 
 import (
 	"fmt"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"math"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -37,7 +38,7 @@ type layoutQuantizer struct {
 	// is attached — see loader.go). This is the ONLY route from the drag path
 	// (RootMove) to each node's own LayoutHolder; MoveDispatch does not own or copy
 	// LocalPolars itself, it just routes the update to the owning node.
-	layoutHolders map[string]*LayoutHolder
+	layoutHolders map[string]*wire.LayoutHolder
 }
 
 // heldCenters returns a fresh snapshot of every node's current world center, read from
@@ -164,11 +165,11 @@ func (lq *layoutQuantizer) broadcastToEdgesAndPartners(md *MoveDispatch, newCent
 // re-expressed indices are byte-identical to what's already stored (fromAxisFrame then
 // azimuthFrom about the SAME pole is an exact round-trip): the write is skipped, a true
 // no-op, not a reproject that happens to land on the same numbers.
-func (lq *layoutQuantizer) requantizePoleTraced(lh *LayoutHolder, updates map[string]vec3) dir {
+func (lq *layoutQuantizer) requantizePoleTraced(lh *wire.LayoutHolder, updates map[string]vec3) dir {
 	existing := lh.LocalPolarsSnapshot()
 	oldPole := lh.Pole()
 
-	existingByID := make(map[string]LocalPolar, len(existing))
+	existingByID := make(map[string]wire.LocalPolar, len(existing))
 	for _, lp := range existing {
 		existingByID[lp.To] = lp
 	}
@@ -187,7 +188,7 @@ func (lq *layoutQuantizer) requantizePoleTraced(lh *LayoutHolder, updates map[st
 		if _, fresh := updates[lp.To]; fresh {
 			continue
 		}
-		t, p, _ := lp.effectiveSteps()
+		t, p, _ := lp.EffectiveSteps()
 		dirs[lp.To] = fromAxisFrame(oldPole, float64(lp.QuantITheta)*t, float64(lp.QuantIPhi)*p)
 	}
 
@@ -198,7 +199,7 @@ func (lq *layoutQuantizer) requantizePoleTraced(lh *LayoutHolder, updates map[st
 	newPole := localPole(dirVecs)
 
 	for id, d := range dirs {
-		t, p, rStep := lh.localPolarSteps(id)
+		t, p, rStep := lh.LocalPolarSteps(id)
 		c, psi := azimuthFrom(newPole, d)
 		iTheta := int(math.Round(c / t))
 		iPhi := int(math.Round(psi / p))
@@ -246,7 +247,7 @@ func (lq *layoutQuantizer) neighborSetCRequantize(md *MoveDispatch, selfID, from
 	// center. fromID is the ONLY fresh update, so requantizePoleTraced re-derives selfID's
 	// edge to fromID (theta, phi AND r, about selfID's rotating pole) at the cart<->polar
 	// boundary, while every OTHER neighbor of selfID is carried forward as index x step.
-	lq.requantizePoleTraced(lh, map[string]vec3{fromID: fromCenter.sub(selfCenter)})
+	lq.requantizePoleTraced(lh, map[string]vec3{fromID: fromCenter.Sub(selfCenter)})
 
 	// EVERY node that receives an abc change from a dragged peer logs its response so the
 	// drag propagation is observable (probe-merge.sh --debug -> .probe/go-debug.jsonl) and
@@ -303,7 +304,7 @@ func (lq *layoutQuantizer) neighborSetCRequantize(md *MoveDispatch, selfID, from
 			if r, ok := md.NodeRowFor(fromID); ok {
 				targetRow = r
 			}
-			nm.writeStreamFrame([]RowEvent{{
+			nm.writeStreamFrame([]wire.RowEvent{{
 				Kind: T.KindBreadcrumb, Label: T.BreadcrumbAbcDrag, Debug: 1,
 				NodeRow: nm.nodeRow, PortRow: -1, TargetRow: targetRow, TargetPortRow: -1, EdgeRow: int32(ip), Slot: int32(ir),
 				Value: int32(it), X: float64(deltaA), Y: float64(deltaB), Z: float64(deltaC),
@@ -355,14 +356,14 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeMover, 
 			neighborID = em.dstID
 		}
 		if c, ok := nm.partnerCenters[neighborID]; ok {
-			polars[neighborID] = cart2polar(c.sub(md.ui.sceneSphere.Center))
+			polars[neighborID] = cart2polar(c.Sub(md.ui.sceneSphere.Center))
 		}
 	}
 	// Single cart2polar boundary conversion for this drag target — newPos is mouse-
 	// derived cartesian (gesture.go ray/plane unproject); everything downstream
 	// (reach, measureScalar, the persist schedule) reuses this one polar value rather
 	// than re-deriving it from newPos.
-	nodePolar := cart2polar(newPos.sub(md.ui.sceneSphere.Center))
+	nodePolar := cart2polar(newPos.Sub(md.ui.sceneSphere.Center))
 	polars[nodeID] = nodePolar
 	reach := reachRFromPolar(polars, edges)
 
@@ -455,7 +456,7 @@ func (lq *layoutQuantizer) requantizeLocalPolars(md *MoveDispatch, nm *nodeMover
 	if md.persist.quantOffset != nil {
 		root = md.persist.quantOffset.root
 	}
-	writePersist := func(id string, holder *LayoutHolder) {
+	writePersist := func(id string, holder *wire.LayoutHolder) {
 		if root == "" {
 			return
 		}
@@ -476,7 +477,7 @@ func (lq *layoutQuantizer) requantizeLocalPolars(md *MoveDispatch, nm *nodeMover
 		if !ok {
 			continue
 		}
-		updatesX[m] = cM.sub(newPos)
+		updatesX[m] = cM.Sub(newPos)
 	}
 	if len(updatesX) == 0 {
 		return
@@ -527,7 +528,7 @@ func (lq *layoutQuantizer) requantizeLocalPolars(md *MoveDispatch, nm *nodeMover
 	// cycle of the sender's own clock-paced run loop, instead of a drop. Unconditional
 	// for every neighbor — there is no rule/gate/anchor cascade left to defer to.
 	enqueue := nm.sendMove
-	lpByTo := map[string]LocalPolar{}
+	lpByTo := map[string]wire.LocalPolar{}
 	for _, lp := range lhX.LocalPolarsSnapshot() {
 		lpByTo[lp.To] = lp
 	}

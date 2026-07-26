@@ -13,6 +13,7 @@ package Wiring
 // md for the function to read.
 
 import (
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"reflect"
 	"testing"
 )
@@ -24,10 +25,10 @@ import (
 // not a reproject that happens to land on the same numbers.
 func TestRequantizePoleTracedNoOpWhenPoleUnchanged(t *testing.T) {
 	md := &MoveDispatch{}
-	lh := &LayoutHolder{}
+	lh := &wire.LayoutHolder{}
 
-	offA := offsetFromDir(dir{Theta: 1.0, Phi: 0.3}).scale(30)
-	offB := offsetFromDir(dir{Theta: 1.4, Phi: -1.9}).scale(50)
+	offA := offsetFromDir(dir{Theta: 1.0, Phi: 0.3}).Scale(30)
+	offB := offsetFromDir(dir{Theta: 1.4, Phi: -1.9}).Scale(50)
 
 	md.requantizePoleTraced(lh, map[string]vec3{"a": offA, "b": offB})
 	before := lh.LocalPolarsSnapshot()
@@ -57,12 +58,12 @@ func TestRequantizePoleTracedNoOpWhenPoleUnchanged(t *testing.T) {
 // stored-index model exists to guarantee.
 func TestRequantizePoleTracedPreservesWorldDirectionOnPoleTilt(t *testing.T) {
 	md := &MoveDispatch{}
-	lh := &LayoutHolder{}
+	lh := &wire.LayoutHolder{}
 
 	dirA := dir{Theta: 1.1, Phi: 0.4}  // well away from +y
 	dirB := dir{Theta: 1.3, Phi: -2.2} // well away from +y
-	offA := offsetFromDir(dirA).scale(40)
-	offB := offsetFromDir(dirB).scale(60)
+	offA := offsetFromDir(dirA).Scale(40)
+	offB := offsetFromDir(dirB).Scale(60)
 
 	md.requantizePoleTraced(lh, map[string]vec3{"a": offA, "b": offB})
 	if lh.Pole() != (dir{Theta: 0, Phi: 0}) {
@@ -72,7 +73,7 @@ func TestRequantizePoleTracedPreservesWorldDirectionOnPoleTilt(t *testing.T) {
 	// A fresh third neighbor whose direction is INSIDE the singular zone around +y
 	// forces the pole to kick off home by its fixed increment.
 	dirC := dir{Theta: poleKickTheta / 2, Phi: 0}
-	offC := offsetFromDir(dirC).scale(20)
+	offC := offsetFromDir(dirC).Scale(20)
 
 	newPole := md.requantizePoleTraced(lh, map[string]vec3{"c": offC})
 	if newPole == (dir{Theta: 0, Phi: 0}) {
@@ -82,7 +83,7 @@ func TestRequantizePoleTracedPreservesWorldDirectionOnPoleTilt(t *testing.T) {
 		t.Fatalf("returned pole %+v was not the one persisted on the holder (%+v)", newPole, lh.Pole())
 	}
 
-	byID := map[string]LocalPolar{}
+	byID := map[string]wire.LocalPolar{}
 	for _, lp := range lh.LocalPolarsSnapshot() {
 		byID[lp.To] = lp
 	}
@@ -92,7 +93,7 @@ func TestRequantizePoleTracedPreservesWorldDirectionOnPoleTilt(t *testing.T) {
 		if !ok {
 			t.Fatalf("no local polar entry for %q after pole tilt", id)
 		}
-		t_, p_, _ := lp.effectiveSteps()
+		t_, p_, _ := lp.EffectiveSteps()
 		gotDir := fromAxisFrame(newPole, float64(lp.QuantITheta)*t_, float64(lp.QuantIPhi)*p_)
 		if d := angularDistance(gotDir, wantDir); d > t_+p_ {
 			t.Fatalf("%q's world direction was not preserved across the pole tilt: got %+v want %+v (angularDistance=%v, allowed<=%v)",

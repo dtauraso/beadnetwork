@@ -40,7 +40,7 @@ func polar2cart(p polar) vec3 {
 // At the origin (r=0) θ and φ are 0. On the +y/-y axis (st=0) φ is 0 since
 // azimuth is undefined there.
 func cart2polar(v vec3) polar {
-	r := v.length()
+	r := v.Length()
 	if r == 0 {
 		return polar{}
 	}

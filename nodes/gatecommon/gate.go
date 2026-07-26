@@ -6,6 +6,7 @@ package gatecommon
 
 import (
 	"context"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"time"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring"
@@ -36,7 +37,7 @@ const NoValue = Wiring.NoValue
 // GateNode holds all the fields shared between the two gate node kinds.
 // Each kind embeds GateNode so its init/Update can delegate here.
 type GateNode struct {
-	Wiring.LayoutHolder
+	wire.LayoutHolder
 	Fire           func()
 	EmitGeometry   func()
 	EmitInputBeads func(left, right int)
@@ -52,13 +53,13 @@ type GateNode struct {
 	Tick func() int64
 	// Clock is this node's OWN clock storage, seeded by reflectBuild from the
 	// loader's origin (builders.go injectClosures, bare-field injection matched by
-	// exact type Wiring.Clock — see input.Node.Clock for the model this mirrors).
+	// exact type wire.Clock — see input.Node.Clock for the model this mirrors).
 	// RunGate Copies it exactly ONCE at its own goroutine's start; ports no
 	// longer carry or hand out a clock (API demolition item 1), so this is the
 	// only path in.
 	// nil on a test build with no loader — RunGate falls back to Tick/wall-clock
 	// sleep in that case, exactly as before.
-	Clock Wiring.Clock
+	Clock wire.Clock
 	// SpeedCh delivers a speed change to RunGate's own clock copy
 	// (per-goroutine-clock.md "Delivery"), seeded by Wiring.reflectBuild
 	// (injectSpeedChans). nil on a test build with no loader / chan mode.
@@ -67,16 +68,16 @@ type GateNode struct {
 	HasLeft   bool
 	Right     int
 	HasRight  bool
-	FromLeft  *Wiring.In
-	FromRight *Wiring.In
-	ToPassed  *Wiring.Out
+	FromLeft  *wire.In
+	FromRight *wire.In
+	ToPassed  *wire.Out
 }
 
 // windowTicks is the fixed coincidence window as a tick count (WindowMs / MsPerTick).
-const windowTicks = int64(WindowMs / Wiring.MsPerTick)
+const windowTicks = int64(WindowMs / wire.MsPerTick)
 
 // fireDwellTicks is FireDwellMs converted to a tick count.
-const fireDwellTicks = int64(FireDwellMs / Wiring.MsPerTick)
+const fireDwellTicks = int64(FireDwellMs / wire.MsPerTick)
 
 // gateWindow holds the window/dwell timing state for one RunGate loop instance.
 // It is local to a single call (not part of GateNode) since it is pure loop-scoped
@@ -90,7 +91,7 @@ type gateWindow struct {
 
 // drainLatestReal consumes ALL queued beads on a side and returns the most-recent
 // REAL value (discarding NoValue placeholders). got=false when nothing real was queued.
-func drainLatestReal(in *Wiring.In) (int, bool) {
+func drainLatestReal(in *wire.In) (int, bool) {
 	v, got := NoValue, false
 	for {
 		nv, ok := in.PollRecv()
@@ -232,7 +233,7 @@ func tryFireOnDwell(g *GateNode, w *gateWindow, now func() int64) bool {
 // using the same MsPerTick conversion as defaultTick/defaultPark below, so both
 // wall-clock fallbacks agree on what a "tick" means.
 func tickDuration(ticks int64) time.Duration {
-	return time.Duration(ticks) * Wiring.MsPerTick * time.Millisecond
+	return time.Duration(ticks) * wire.MsPerTick * time.Millisecond
 }
 
 // defaultTick returns a wall-clock-derived tick function for use when GateNode.Tick
@@ -285,7 +286,7 @@ func RunGate(ctx context.Context, g *GateNode, invertLeft bool) {
 		// has (per-goroutine-clock.md "Delivery" — DriveHeld's sibling note
 		// applies equally here: RunGate's only blocking point is this sleep).
 		sleep = func(ctx context.Context) error {
-			Wiring.ApplySpeedNonBlocking(clk, g.SpeedCh)
+			wire.ApplySpeedNonBlocking(clk, g.SpeedCh)
 			return clk.SleepCycle(ctx)
 		}
 	} else if g.Tick != nil {

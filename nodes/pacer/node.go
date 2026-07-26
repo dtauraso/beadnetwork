@@ -2,6 +2,7 @@ package pacer
 
 import (
 	"context"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring"
 )
@@ -13,27 +14,27 @@ import (
 const noValue = Wiring.NoValue
 
 type Node struct {
-	Wiring.LayoutHolder
+	wire.LayoutHolder
 	Fire         func()
 	EmitGeometry func()
 	EmitHeldBead func(held int)
 	Held         int `wire:"data.state"`
 	// Clock is this node's OWN clock storage, seeded by Wiring.reflectBuild
 	// directly from the loader's origin (bare-field injection by exact type
-	// Wiring.Clock — see input.Node.Clock; ports no longer hand out a clock,
+	// wire.Clock — see input.Node.Clock; ports no longer hand out a clock,
 	// per-goroutine-clock.md API demolition item 1). Update() Copies it exactly
 	// once at its own start.
-	Clock Wiring.Clock
+	Clock wire.Clock
 	// SpeedCh delivers a speed change to THIS goroutine's own clk copy
 	// (per-goroutine-clock.md "Delivery"), seeded by Wiring.reflectBuild
 	// (injectSpeedChans). nil on a test build with no loader.
 	SpeedCh     <-chan float64
-	FromInput   *Wiring.In
-	FeedbackOut *Wiring.Out
+	FromInput   *wire.In
+	FeedbackOut *wire.Out
 }
 
 func (p *Node) Update(ctx context.Context) {
-	Wiring.TryEmit(p.EmitGeometry)
+	wire.TryEmit(p.EmitGeometry)
 
 	held := noValue
 	if p.EmitHeldBead != nil {
@@ -50,7 +51,7 @@ func (p *Node) Update(ctx context.Context) {
 		default:
 		}
 
-		Wiring.ApplySpeedNonBlocking(clk, p.SpeedCh)
+		wire.ApplySpeedNonBlocking(clk, p.SpeedCh)
 		if err := clk.SleepCycle(ctx); err != nil {
 			return
 		}
@@ -83,5 +84,5 @@ func (p *Node) Update(ctx context.Context) {
 func init() {
 	// Held defaults to the empty sentinel, not the int zero-value (0 is a real
 	// held value). See holdnewsendold for the seed rationale.
-	Wiring.Register("Pacer", func() any { return &Node{Held: noValue} })
+	wire.Register("Pacer", func() any { return &Node{Held: noValue} })
 }

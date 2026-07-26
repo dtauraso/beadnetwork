@@ -10,6 +10,7 @@ package Wiring
 
 import (
 	"context"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"sync"
 )
 
@@ -23,7 +24,7 @@ type moverRegistry struct {
 	nodeMovers map[string]*nodeMover
 	edgeMovers map[string]*edgeMover
 	// edgeOut: edgeId → source *Out, for read-only access by tests/verifiers.
-	edgeOut map[string]*Out
+	edgeOut map[string]*wire.Out
 	// centerMirror is the DISPATCH goroutine's OWN mirror of every node's last-known
 	// world center — the replacement for the old atomic.Pointer[centerSnap] cross-
 	// goroutine read. Seeded once at construction (newMoveDispatch, single-threaded
@@ -38,7 +39,7 @@ type moverRegistry struct {
 // bind wires the per-edge source Outs (keyed "source.sourceHandle" in outSink) and dest
 // wires (slotReg, keyed "target.targetHandle") into each edgeMover. Call once after node
 // construction.
-func (mr *moverRegistry) bind(outSink map[string]*Out, slotReg SlotRegistry) {
+func (mr *moverRegistry) bind(outSink map[string]*wire.Out, slotReg SlotRegistry) {
 	for edgeID, em := range mr.edgeMovers {
 		if o, ok := outSink[em.srcID+"."+em.srcH]; ok {
 			em.out = o
@@ -85,7 +86,7 @@ func (mr *moverRegistry) start(ctx context.Context) *sync.WaitGroup {
 // edgeOutFor returns the source *Out bound to the given edge label, or nil if unknown.
 // Read-only accessor for out-of-package verifiers (the headless cascade reads an
 // edge's per-edge in-flight time from the loaded geometry).
-func (mr *moverRegistry) edgeOutFor(edgeID string) *Out {
+func (mr *moverRegistry) edgeOutFor(edgeID string) *wire.Out {
 	return mr.edgeOut[edgeID]
 }
 

@@ -2,12 +2,12 @@
 set -euo pipefail
 
 # Static duplicate-kind check: every production node package registers its kind name with a
-# Wiring.Register("<Kind>", ...) call in its node.go init(). Two packages registering the
-# SAME kind name is caught today only at RUNTIME — registry.go's Register panics
-# ("Wiring.Register: kind already registered: X") when the second init() runs, i.e. at
-# process startup, not at build. This guard moves that shape check earlier: it fails the
-# build if any kind literal appears in more than one production node.go, so a collision is a
-# red check instead of a startup crash.
+# wire.Register("<Kind>", ...) call in its node.go init() (nodes/wire/registry.go — moved
+# out of nodes/Wiring by task/wiring-decompose). Two packages registering the SAME kind name
+# is caught today only at RUNTIME — wire.Register panics ("wire.Register: kind already
+# registered: X") when the second init() runs, i.e. at process startup, not at build. This
+# guard moves that shape check earlier: it fails the build if any kind literal appears in
+# more than one production node.go, so a collision is a red check instead of a startup crash.
 #
 # Scope is deliberately the PRODUCTION registrations (nodes/<kind>/node.go). Test files
 # register their own throwaway kinds and are a separate namespace exercised by `go test`
@@ -27,9 +27,10 @@ if [ ${#node_files[@]} -eq 0 ]; then
   exit 0
 fi
 
-# Pull the kind literal out of every `Wiring.Register("<Kind>", ...)` call across the
-# production node.go files, then report any name that occurs more than once.
-dups=$(grep -hoE 'Wiring\.Register\("[^"]+"' "${node_files[@]}" \
+# Pull the kind literal out of every `wire.Register("<Kind>", ...)` call (or the
+# pre-task/wiring-decompose `Wiring.Register(...)`) across the production node.go files,
+# then report any name that occurs more than once.
+dups=$(grep -hoE '(wire|Wiring)\.Register\("[^"]+"' "${node_files[@]}" \
   | sed -E 's/.*Register\("([^"]+)"/\1/' \
   | sort | uniq -d || true)
 

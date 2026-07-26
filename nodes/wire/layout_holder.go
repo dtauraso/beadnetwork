@@ -11,7 +11,7 @@
 // gatecommon.GateNode for the two gate kinds) so loader.go can locate it by
 // reflection (the same field-lookup used for port/data injection) and load the
 // computed list through LoadLocalPolars.
-package Wiring
+package wire
 
 import (
 	"math"
@@ -28,6 +28,15 @@ const (
 	localStepTheta = math.Pi / 180 // 1 degree
 	localStepPhi   = math.Pi / 180 // 1 degree
 	localStepR     = 2.0           // world units
+)
+
+// DefaultLocalStepTheta/Phi/R are the exported mirrors of localStepTheta/Phi/R, for
+// callers in another package (drag_persist_e2e_test.go in nodes/Wiring) that need to
+// assert against the exact default local-polar grid constants.
+const (
+	DefaultLocalStepTheta = localStepTheta
+	DefaultLocalStepPhi   = localStepPhi
+	DefaultLocalStepR     = localStepR
 )
 
 // LocalPolar is one node's local-polar offset to a neighbor it shares a domain
@@ -51,7 +60,7 @@ type LocalPolar struct {
 // effectiveSteps mirrors quantizedOffset.effectiveSteps: this local polar's own
 // step constants, falling back to the SMALL local-polar defaults (NOT the scene
 // triple's coarser stepTheta/stepPhi/stepR) for any unset component.
-func (lp LocalPolar) effectiveSteps() (t, p, r float64) {
+func (lp LocalPolar) EffectiveSteps() (t, p, r float64) {
 	t, p, r = lp.StepTheta, lp.StepPhi, lp.StepR
 	if t == 0 {
 		t = localStepTheta
@@ -86,7 +95,19 @@ type LayoutHolder struct {
 	// without re-deriving from live cartesian — see requantizePoleTraced's doc comment
 	// in node_move.go for why this must be carried rather than recomputed from scratch
 	// against an assumed home pole.
-	pole dir
+	pole Pole
+}
+
+// Pole is a direction on the unit sphere (pole = +y): θ = angle from +y (0=up,
+// π=down), φ = azimuth around +y (0=+x, increasing toward +z). Structurally
+// identical to nodes/Wiring's spherical.go `dir` (same shape, deliberately
+// duplicated rather than shared — wire must not import Wiring, since Wiring
+// already imports wire). Wiring converts at the LayoutHolder.Pole()/SetPole()
+// call sites via a direct struct conversion (dir(lh.Pole()) / wire.Pole(d)),
+// valid because the two types have identical underlying structure.
+type Pole struct {
+	Theta float64
+	Phi   float64
 }
 
 // localPolarSteps returns the effective step constants of this node's CURRENT
@@ -97,10 +118,16 @@ type LayoutHolder struct {
 func (lh *LayoutHolder) localPolarSteps(to string) (t, p, r float64) {
 	for _, lp := range lh.localPolars {
 		if lp.To == to {
-			return lp.effectiveSteps()
+			return lp.EffectiveSteps()
 		}
 	}
-	return LocalPolar{}.effectiveSteps()
+	return LocalPolar{}.EffectiveSteps()
+}
+
+// LocalPolarSteps is localPolarSteps' exported entry point for callers in another
+// package (quantized_move.go's requantizePoleTraced in nodes/Wiring).
+func (lh *LayoutHolder) LocalPolarSteps(to string) (t, p, r float64) {
+	return lh.localPolarSteps(to)
 }
 
 // LoadLocalPolars replaces this node's entire local-polar list. Used
@@ -142,13 +169,13 @@ func (lh *LayoutHolder) LocalPolarsSnapshot() []LocalPolar {
 
 // Pole returns the measurement pole this node's current LocalPolars entries were last
 // quantized about (world +y, dir{0,0}, if never set — the home pole default).
-func (lh *LayoutHolder) Pole() dir {
+func (lh *LayoutHolder) Pole() Pole {
 	return lh.pole
 }
 
 // SetPole records the measurement pole the CURRENT LocalPolars entries were quantized
 // about, so a later requantize (or a reload) can reconstruct an unchanged neighbor's
 // direction from its stored indices without re-measuring live cartesian geometry.
-func (lh *LayoutHolder) SetPole(p dir) {
+func (lh *LayoutHolder) SetPole(p Pole) {
 	lh.pole = p
 }

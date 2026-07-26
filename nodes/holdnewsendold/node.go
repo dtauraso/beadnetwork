@@ -2,29 +2,29 @@ package holdnewsendold
 
 import (
 	"context"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring"
 	"github.com/dtauraso/wirefold/nodes/gatecommon"
 )
 
 type Node struct {
-	Wiring.LayoutHolder
+	wire.LayoutHolder
 	Fire         func()
 	EmitGeometry func()
 	EmitHeldBead func(held int)
 	Held         int `wire:"data.state"`
 	// Clock is this node's OWN clock storage, seeded by Wiring.reflectBuild
 	// directly from the loader's origin (bare-field injection by exact type
-	// Wiring.Clock — see input.Node.Clock; ports no longer hand out a clock,
+	// wire.Clock — see input.Node.Clock; ports no longer hand out a clock,
 	// per-goroutine-clock.md API demolition item 1). Update() Copies it exactly
 	// once at its own start.
-	Clock Wiring.Clock
+	Clock wire.Clock
 	// SpeedCh delivers a speed change to THIS goroutine's own clk copy
 	// (per-goroutine-clock.md "Delivery"), seeded by Wiring.reflectBuild
 	// (injectSpeedChans). nil on a test build with no loader.
 	SpeedCh                    <-chan float64
-	FromPrevHoldNewSendOldNode *Wiring.In
-	ToNext                     Wiring.Broadcast
+	FromPrevHoldNewSendOldNode *wire.In
+	ToNext                     wire.Broadcast
 }
 
 // placeHeld appends the ToNext broadcast beads (held value) to items WITHOUT driving
@@ -33,7 +33,7 @@ type Node struct {
 // nothing on ToNext. Only the SEND is suppressed; Held still updates to the received
 // value in the caller. Delivery is timed by each wire's own goroutine, so the whole
 // broadcast animates concurrently with no further driving from this node.
-func placeHeld(outs Wiring.Broadcast, held int, items []Wiring.DriveItem) []Wiring.DriveItem {
+func placeHeld(outs wire.Broadcast, held int, items []wire.DriveItem) []wire.DriveItem {
 	if held == gatecommon.NoValue {
 		return items
 	}
@@ -41,7 +41,7 @@ func placeHeld(outs Wiring.Broadcast, held int, items []Wiring.DriveItem) []Wiri
 }
 
 func (in *Node) Update(ctx context.Context) {
-	Wiring.TryEmit(in.EmitGeometry)
+	wire.TryEmit(in.EmitGeometry)
 
 	// -1 is the sentinel meaning "no value seen yet"; real values are non-negative
 	// indices, so gatecommon.NoValue never collides with a legitimate Init index.
@@ -80,7 +80,7 @@ func (in *Node) Update(ctx context.Context) {
 		default:
 		}
 
-		Wiring.ApplySpeedNonBlocking(clk, in.SpeedCh)
+		wire.ApplySpeedNonBlocking(clk, in.SpeedCh)
 		if err := clk.SleepCycle(ctx); err != nil {
 			return
 		}
@@ -114,7 +114,7 @@ func (in *Node) Update(ctx context.Context) {
 				// Place the ToNext broadcast beads WITHOUT walkers. prevHeld is
 				// the OLD held value (captured before updating in.Held) so the
 				// ordering is explicit.
-				var items []Wiring.DriveItem
+				var items []wire.DriveItem
 				prevHeld := in.Held
 				items = placeHeld(in.ToNext, prevHeld, items)
 				in.Held = value
@@ -133,7 +133,7 @@ func (in *Node) Update(ctx context.Context) {
 						continue
 					}
 					anyLive = true
-					if t := in.ToNext[i].Geom().SimLatencyMs / Wiring.MsPerTick; t > maxTicks {
+					if t := in.ToNext[i].Geom().SimLatencyMs / wire.MsPerTick; t > maxTicks {
 						maxTicks = t
 					}
 				}
@@ -157,5 +157,5 @@ func init() {
 	// legitimate held value (a real bead), so an unset seed must be empty
 	// (NoValue) rather than a phantom 0. The data.state seed overrides this
 	// only when the spec authors a real starting value.
-	Wiring.Register("HoldNewSendOld", func() any { return &Node{Held: gatecommon.NoValue} })
+	wire.Register("HoldNewSendOld", func() any { return &Node{Held: gatecommon.NoValue} })
 }

@@ -32,7 +32,7 @@ func TestGestureAnglesToWorldOffsetMatchesPolar2Cart(t *testing.T) {
 
 // worldDirToAngles: hand oracle. dir +Z → theta=acos(0)=π/2, phi=atan2(1,0)=π/2.
 func TestGestureWorldDirToAngles(t *testing.T) {
-	d := worldDirToAngles(vec3{0, 0, 1})
+	d := worldDirToAngles(vec3{X: 0, Y: 0, Z: 1})
 	if math.Abs(d.Theta-math.Pi/2) > 1e-12 || math.Abs(d.Phi-math.Pi/2) > 1e-12 {
 		t.Fatalf("+Z → %v want {π/2, π/2}", d)
 	}
@@ -50,13 +50,13 @@ func TestGestureBasisOracle(t *testing.T) {
 	pos := dir{Theta: math.Pi / 2, Phi: math.Pi / 2} // +Z
 	up := dir{Theta: 0, Phi: 0}                      // +Y
 	b := basisFromViewpoint(pos, up)
-	if !vecClose(b.pole, vec3{0, 0, 1}, 1e-12) {
+	if !vecClose(b.pole, vec3{X: 0, Y: 0, Z: 1}, 1e-12) {
 		t.Fatalf("pole=%v want +Z", b.pole)
 	}
-	if !vecClose(b.refX, vec3{1, 0, 0}, 1e-12) {
+	if !vecClose(b.refX, vec3{X: 1, Y: 0, Z: 0}, 1e-12) {
 		t.Fatalf("refX=%v want +X", b.refX)
 	}
-	if !vecClose(b.refY, vec3{0, 1, 0}, 1e-12) {
+	if !vecClose(b.refY, vec3{X: 0, Y: 1, Z: 0}, 1e-12) {
 		t.Fatalf("refY=%v want +Y", b.refY)
 	}
 }
@@ -64,37 +64,37 @@ func TestGestureBasisOracle(t *testing.T) {
 // basisFromViewpoint must be orthonormal (right-handed) for random viewpoints — the
 // property the TS cameraFrame relies on (quaternion basis).
 func TestGestureBasisOrthonormal(t *testing.T) {
-	poses := []dir{{0.3, 0.7}, {1.9, -2.1}, {math.Pi / 2, 0}, {2.4, 1.1}}
-	ups := []dir{{1.1, 0.2}, {0.4, 2.9}, {0, 0}, {1.5, -1.2}}
+	poses := []dir{{Theta: 0.3, Phi: 0.7}, {Theta: 1.9, Phi: -2.1}, {Theta: math.Pi / 2, Phi: 0}, {Theta: 2.4, Phi: 1.1}}
+	ups := []dir{{Theta: 1.1, Phi: 0.2}, {Theta: 0.4, Phi: 2.9}, {Theta: 0, Phi: 0}, {Theta: 1.5, Phi: -1.2}}
 	for i := range poses {
 		b := basisFromViewpoint(poses[i], ups[i])
 		for _, v := range []vec3{b.refX, b.refY, b.pole} {
-			if math.Abs(v.length()-1) > 1e-9 {
-				t.Fatalf("basis vector not unit: %v (|v|=%v)", v, v.length())
+			if math.Abs(v.Length()-1) > 1e-9 {
+				t.Fatalf("basis vector not unit: %v (|v|=%v)", v, v.Length())
 			}
 		}
-		if math.Abs(b.refX.dot(b.pole)) > 1e-9 || math.Abs(b.refX.dot(b.refY)) > 1e-9 || math.Abs(b.refY.dot(b.pole)) > 1e-9 {
+		if math.Abs(b.refX.Dot(b.pole)) > 1e-9 || math.Abs(b.refX.Dot(b.refY)) > 1e-9 || math.Abs(b.refY.Dot(b.pole)) > 1e-9 {
 			t.Fatalf("basis not orthogonal: %+v", b)
 		}
 		// refY == pole × refX (right-handed)
-		if !vecClose(b.refY, b.pole.cross(b.refX), 1e-9) {
-			t.Fatalf("not right-handed: refY=%v pole×refX=%v", b.refY, b.pole.cross(b.refX))
+		if !vecClose(b.refY, b.pole.Cross(b.refX), 1e-9) {
+			t.Fatalf("not right-handed: refY=%v pole×refX=%v", b.refY, b.pole.Cross(b.refX))
 		}
 	}
 }
 
 // screenToPolar + toWorldDir hand oracles in the canonical (+X,+Y,+Z) frame.
 func TestGestureScreenToWorldOracle(t *testing.T) {
-	b := camBasis{refX: vec3{1, 0, 0}, refY: vec3{0, 1, 0}, pole: vec3{0, 0, 1}}
+	b := camBasis{refX: vec3{X: 1, Y: 0, Z: 0}, refY: vec3{X: 0, Y: 1, Z: 0}, pole: vec3{X: 0, Y: 0, Z: 1}}
 	// cursor exactly at center → pole direction (+Z, toward camera).
 	center := toWorldDir(b, screenToPolar(0, 0, 100))
-	if !vecClose(center, vec3{0, 0, 1}, 1e-12) {
+	if !vecClose(center, vec3{X: 0, Y: 0, Z: 1}, 1e-12) {
 		t.Fatalf("center cursor → %v want +Z", center)
 	}
 	// cursor one scale-unit to the RIGHT: dx=scale, dy=0 → phi=1, theta=atan2(0,1)=0 →
 	// equator=+X, dir=(sin1, 0, cos1).
 	right := toWorldDir(b, screenToPolar(100, 0, 100))
-	want := vec3{math.Sin(1), 0, math.Cos(1)}
+	want := vec3{X: math.Sin(1), Y: 0, Z: math.Cos(1)}
 	if !vecClose(right, want, 1e-12) {
 		t.Fatalf("right cursor → %v want %v", right, want)
 	}
@@ -102,7 +102,7 @@ func TestGestureScreenToWorldOracle(t *testing.T) {
 	// passes (y - cy). A point ABOVE center has dyFromCenter<0. theta=atan2(-(-1),0)=π/2 →
 	// equator=+Y, dir=(0, sin1, cos1).
 	up := toWorldDir(b, screenToPolar(0, -100, 100))
-	wantUp := vec3{0, math.Sin(1), math.Cos(1)}
+	wantUp := vec3{X: 0, Y: math.Sin(1), Z: math.Cos(1)}
 	if !vecClose(up, wantUp, 1e-12) {
 		t.Fatalf("up cursor → %v want %v", up, wantUp)
 	}
@@ -110,13 +110,13 @@ func TestGestureScreenToWorldOracle(t *testing.T) {
 
 // planeSlide hand oracle: refX=+X, refY=+Y; (r=2, angle=0, wpp=3) → (6,0,0).
 func TestGesturePlaneSlideOracle(t *testing.T) {
-	b := camBasis{refX: vec3{1, 0, 0}, refY: vec3{0, 1, 0}, pole: vec3{0, 0, 1}}
+	b := camBasis{refX: vec3{X: 1, Y: 0, Z: 0}, refY: vec3{X: 0, Y: 1, Z: 0}, pole: vec3{X: 0, Y: 0, Z: 1}}
 	got := planeSlide(b, 2, 0, 3)
-	if !vecClose(got, vec3{6, 0, 0}, 1e-12) {
+	if !vecClose(got, vec3{X: 6, Y: 0, Z: 0}, 1e-12) {
 		t.Fatalf("planeSlide=%v want (6,0,0)", got)
 	}
 	got = planeSlide(b, 2, math.Pi/2, 3)
-	if !vecClose(got, vec3{0, 6, 0}, 1e-9) {
+	if !vecClose(got, vec3{X: 0, Y: 6, Z: 0}, 1e-9) {
 		t.Fatalf("planeSlide(π/2)=%v want (0,6,0)", got)
 	}
 }
@@ -130,8 +130,8 @@ func TestGestureDeltaToPolar(t *testing.T) {
 
 // contentSphereOf hand oracle: centers (0,0,0),(10,0,0) → center (5,0,0), radius 5*1.1=5.5.
 func TestGestureContentSphereOracle(t *testing.T) {
-	c, r := contentSphereOf(map[string]vec3{"a": {0, 0, 0}, "b": {10, 0, 0}})
-	if !vecClose(c, vec3{5, 0, 0}, 1e-12) || math.Abs(r-5.5) > 1e-12 {
+	c, r := contentSphereOf(map[string]vec3{"a": {X: 0, Y: 0, Z: 0}, "b": {X: 10, Y: 0, Z: 0}})
+	if !vecClose(c, vec3{X: 5, Y: 0, Z: 0}, 1e-12) || math.Abs(r-5.5) > 1e-12 {
 		t.Fatalf("contentSphere=%v r=%v want (5,0,0) 5.5", c, r)
 	}
 	c, r = contentSphereOf(nil)
@@ -143,23 +143,23 @@ func TestGestureContentSphereOracle(t *testing.T) {
 // regionFocus hand oracle: empty centers → eye + forward*FOCUS_MIN. Camera at +Z, r=100:
 // eye=(0,0,100), forward=-pole=(0,0,-1) → focus=(0,0,90).
 func TestGestureRegionFocusEmpty(t *testing.T) {
-	v := viewpoint{pivot: vec3{0, 0, 0}, r: 100, pos: dir{Theta: math.Pi / 2, Phi: math.Pi / 2}, up: dir{0, 0}}
+	v := viewpoint{pivot: vec3{X: 0, Y: 0, Z: 0}, r: 100, pos: dir{Theta: math.Pi / 2, Phi: math.Pi / 2}, up: dir{Theta: 0, Phi: 0}}
 	f := regionFocus(v, nil)
-	if !vecClose(f, vec3{0, 0, 90}, 1e-9) {
+	if !vecClose(f, vec3{X: 0, Y: 0, Z: 90}, 1e-9) {
 		t.Fatalf("regionFocus(empty)=%v want (0,0,90)", f)
 	}
 }
 
 // projectNDC hand oracle: point at origin, camera at +Z looking at origin → NDC (0,0), inFront.
 func TestGestureProjectNDCOracle(t *testing.T) {
-	v := viewpoint{pivot: vec3{0, 0, 0}, r: 100, pos: dir{Theta: math.Pi / 2, Phi: math.Pi / 2}, up: dir{0, 0}}
+	v := viewpoint{pivot: vec3{X: 0, Y: 0, Z: 0}, r: 100, pos: dir{Theta: math.Pi / 2, Phi: math.Pi / 2}, up: dir{Theta: 0, Phi: 0}}
 	b := basisFromViewpoint(v.pos, v.up)
-	nx, ny, inFront := projectNDC(vec3{0, 0, 0}, eyeOf(v), b, 50, 800.0/600.0)
+	nx, ny, inFront := projectNDC(vec3{X: 0, Y: 0, Z: 0}, eyeOf(v), b, 50, 800.0/600.0)
 	if !inFront || math.Abs(nx) > 1e-9 || math.Abs(ny) > 1e-9 {
 		t.Fatalf("projectNDC(origin)=(%v,%v,inFront=%v) want (0,0,true)", nx, ny, inFront)
 	}
 	// A point behind the camera (further +Z than the eye) is not in front.
-	_, _, inFront2 := projectNDC(vec3{0, 0, 200}, eyeOf(v), b, 50, 800.0/600.0)
+	_, _, inFront2 := projectNDC(vec3{X: 0, Y: 0, Z: 200}, eyeOf(v), b, 50, 800.0/600.0)
 	if inFront2 {
 		t.Fatalf("point behind camera reported inFront")
 	}

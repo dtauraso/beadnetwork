@@ -166,13 +166,18 @@ func parseEmbeddedPorts(nodesDir, pkgDir string, visited map[string]bool) ([]por
 	return ports, nil
 }
 
-// chanDirection returns ("in", true) for *Wiring.In, ("out", true) for *Wiring.Out
-// or Wiring.Broadcast, and ("", false) for anything else.
+// chanDirection returns ("in", true) for *Wiring.In/*wire.In, ("out", true) for
+// *Wiring.Out/*wire.Out, ("outMulti", true) for Wiring.Broadcast/wire.Broadcast, and
+// ("", false) for anything else. Both package idents are recognized: In/Out/Broadcast
+// moved from nodes/Wiring to the leaf nodes/wire package (task/wiring-decompose), but
+// this parser has to keep parsing pre-move source shapes too (older SPEC.md fixtures,
+// generator tests).
 func chanDirection(expr ast.Expr) (string, bool) {
-	// *Wiring.In or *Wiring.Out — pointer to selector
+	isWirePkg := func(pkg *ast.Ident) bool { return pkg.Name == "Wiring" || pkg.Name == "wire" }
+	// *Wiring.In / *wire.In or *Wiring.Out / *wire.Out — pointer to selector
 	if star, ok := expr.(*ast.StarExpr); ok {
 		if sel, ok := star.X.(*ast.SelectorExpr); ok {
-			if pkg, ok := sel.X.(*ast.Ident); ok && pkg.Name == "Wiring" {
+			if pkg, ok := sel.X.(*ast.Ident); ok && isWirePkg(pkg) {
 				switch sel.Sel.Name {
 				case "In":
 					return "in", true
@@ -183,10 +188,11 @@ func chanDirection(expr ast.Expr) (string, bool) {
 		}
 		return "", false
 	}
-	// Wiring.Broadcast — bare selector (type alias, no pointer): a broadcast output port
-	// (one logical output emitting the same value onto N independent wires).
+	// Wiring.Broadcast / wire.Broadcast — bare selector (type alias, no pointer): a
+	// broadcast output port (one logical output emitting the same value onto N
+	// independent wires).
 	if sel, ok := expr.(*ast.SelectorExpr); ok {
-		if pkg, ok := sel.X.(*ast.Ident); ok && pkg.Name == "Wiring" && sel.Sel.Name == "Broadcast" {
+		if pkg, ok := sel.X.(*ast.Ident); ok && isWirePkg(pkg) && sel.Sel.Name == "Broadcast" {
 			return "outMulti", true
 		}
 	}
@@ -516,12 +522,14 @@ func goTypeExprStr(expr ast.Expr) (string, bool) {
 // digit) would produce invalid TS; validate it at parse time and fail loudly.
 var goIdentRE = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
 
-// parseGoKindName extracts the first string argument to Wiring.Register in pkgDir.
+// parseGoKindName extracts the first string argument to Register (nodes/wire's
+// wire.Register, or the pre-task/wiring-decompose Wiring.Register) in pkgDir.
 func parseGoKindName(pkgDir string) (string, error) {
 	entries, err := os.ReadDir(pkgDir)
 	if err != nil {
 		return "", err
 	}
+	markers := []string{`wire.Register("`, `Wiring.Register("`}
 	for _, entry := range entries {
 		name := entry.Name()
 		if entry.IsDir() || !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") {
@@ -532,21 +540,22 @@ func parseGoKindName(pkgDir string) (string, error) {
 			continue
 		}
 		s := string(data)
-		const marker = `Wiring.Register("`
-		_, rest, ok := strings.Cut(s, marker)
-		if !ok {
-			continue
+		for _, marker := range markers {
+			_, rest, ok := strings.Cut(s, marker)
+			if !ok {
+				continue
+			}
+			name2, _, ok2 := strings.Cut(rest, `"`)
+			if !ok2 {
+				continue
+			}
+			if !goIdentRE.MatchString(name2) {
+				fatalf("kind name %q from %s in %s is not a legal identifier (must match [A-Za-z_][A-Za-z0-9_]*); it is emitted as an unquoted TS object key", name2, marker, pkgDir)
+			}
+			return name2, nil
 		}
-		name2, _, ok2 := strings.Cut(rest, `"`)
-		if !ok2 {
-			continue
-		}
-		if !goIdentRE.MatchString(name2) {
-			fatalf("kind name %q from Wiring.Register in %s is not a legal identifier (must match [A-Za-z_][A-Za-z0-9_]*); it is emitted as an unquoted TS object key", name2, pkgDir)
-		}
-		return name2, nil
 	}
-	return "", fmt.Errorf("Wiring.Register not found in %s", pkgDir)
+	return "", fmt.Errorf("wire.Register/Wiring.Register not found in %s", pkgDir)
 }
 
 // parseDataFieldsFromAST reads all .go files in pkgDir and returns data fields

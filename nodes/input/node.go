@@ -2,12 +2,11 @@ package input
 
 import (
 	"context"
-
-	"github.com/dtauraso/wirefold/nodes/Wiring"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
 type Node struct {
-	Wiring.LayoutHolder
+	wire.LayoutHolder
 	Fire         func()
 	EmitGeometry func()
 	// EmitNodeBeads streams the live interior buffer (2x2 grid) as node-bead
@@ -29,25 +28,25 @@ type Node struct {
 	// main loop). nil on test builds without injection — the caller then falls
 	// back to the instant refill. beads is the OLD backup contents that become the
 	// new working row.
-	EmitRefillSlide func(clk Wiring.Clock, speedCh <-chan float64, beads []int)
+	EmitRefillSlide func(clk wire.Clock, speedCh <-chan float64, beads []int)
 	// Clock is this node's OWN clock storage, seeded by Wiring.reflectBuild
 	// directly from the loader's origin (not derived from any specific wired
 	// output port — deriving it from ToHoldNewSendOld/ToExcitatory/ToPacer was
 	// fragile: whichever port happened to be wired first controlled pacing, and
 	// per-goroutine-clock.md's API demolition removed port-derived clocks
 	// entirely anyway). reflectBuild injects by matching struct fields typed
-	// exactly `Wiring.Clock` (builders.go reflectBuild) — a bare field like this
+	// exactly `wire.Clock` (builders.go reflectBuild) — a bare field like this
 	// is an unguarded nil-interface trap on any construction path reflectBuild
 	// doesn't reach (a type rename that silently drops the injection, or a test
 	// building &Node{} directly): an unguarded `clk.Tick()` panics with no
 	// recover over the node goroutine, taking down every other node and the
-	// buffer stream with it. Defaulted to Wiring.NewRealClock() by the Register
+	// buffer stream with it. Defaulted to wire.NewRealClock() by the Register
 	// factory below so it is NEVER nil even before reflectBuild runs (or on a
 	// test build with no loader); clock() re-guards on every read as a second
 	// line of defense in case some future construction path bypasses the
 	// factory. Production reflectBuild always overwrites this with the real
 	// origin clock.
-	Clock Wiring.Clock
+	Clock wire.Clock
 	// SpeedCh delivers a speed change to THIS goroutine's own clk copy
 	// (per-goroutine-clock.md "Delivery"), seeded by Wiring.reflectBuild
 	// (injectSpeedChans) with a fresh buffered-1 channel. nil on a test build
@@ -55,25 +54,25 @@ type Node struct {
 	SpeedCh          <-chan float64
 	Init             []int `wire:"data.init"`
 	Repeat           bool  `wire:"data.repeat"`
-	ToHoldNewSendOld *Wiring.Out
+	ToHoldNewSendOld *wire.Out
 	// ToExcitatory fans the emitted value out to a Pulse node (sample-and-hold). It is
 	// optional: when unwired (Wired()==false) the emit is skipped so existing
 	// topologies without a Pulse are unaffected.
-	ToExcitatory *Wiring.Out
+	ToExcitatory *wire.Out
 	// ToPacer fans the emitted value out to a Pacer node (sample-and-hold,
 	// change-step feedback). Optional: when unwired (Wired()==false) the emit
 	// is skipped so existing topologies without a Pacer are unaffected.
-	ToPacer    *Wiring.Out
-	FeedbackIn *Wiring.In
+	ToPacer    *wire.Out
+	FeedbackIn *wire.In
 }
 
 // clock returns n.Clock, guarded against nil (belt-and-suspenders: the
 // Register factory below already seeds a real default, but this is the single
 // read path every call site goes through so no future construction path can
 // reintroduce the bare-nil panic hazard described on the Clock field).
-func (n *Node) clock() Wiring.Clock {
+func (n *Node) clock() wire.Clock {
 	if n.Clock == nil {
-		return Wiring.NewRealClock()
+		return wire.NewRealClock()
 	}
 	return n.Clock
 }
@@ -130,7 +129,7 @@ func popEnd(working, backup *[]int, init []int) int {
 //
 //	s == 1 -> POP the end (the "change the bead" action); refill on empty.
 //	s == 0 -> hold: do nothing, keep sending the same last bead next loop.
-func (n *Node) updateFeedbackRing(ctx context.Context, working, backup *[]int, init []int, emitBeads func(), clk Wiring.Clock) {
+func (n *Node) updateFeedbackRing(ctx context.Context, working, backup *[]int, init []int, emitBeads func(), clk wire.Clock) {
 	// clk is this goroutine's own copy, taken once by the caller (Update) at
 	// startup. Do not re-derive from n.clock() here; that would be a second,
 	// independent copy from the same shared source, defeating "one copy per
@@ -178,7 +177,7 @@ func (n *Node) updateFeedbackRing(ctx context.Context, working, backup *[]int, i
 		// broadcast wire's own goroutine advances its in-flight beads; this node
 		// is never parked across the traversal and no longer steps the wires
 		// itself.
-		Wiring.ApplySpeedNonBlocking(clk, n.SpeedCh)
+		wire.ApplySpeedNonBlocking(clk, n.SpeedCh)
 		if err := clk.SleepCycle(ctx); err != nil {
 			return
 		}
@@ -213,7 +212,7 @@ func (n *Node) updateFeedbackRing(ctx context.Context, working, backup *[]int, i
 }
 
 func (n *Node) Update(ctx context.Context) {
-	Wiring.TryEmit(n.EmitGeometry)
+	wire.TryEmit(n.EmitGeometry)
 	if len(n.Init) == 0 {
 		return
 	}
@@ -283,7 +282,7 @@ func (n *Node) Update(ctx context.Context) {
 			emitted++
 		}
 
-		Wiring.ApplySpeedNonBlocking(clk, n.SpeedCh)
+		wire.ApplySpeedNonBlocking(clk, n.SpeedCh)
 		if err := clk.SleepCycle(ctx); err != nil {
 			return
 		}
@@ -296,7 +295,7 @@ func (n *Node) Update(ctx context.Context) {
 // so it freezes on pause with Tick(). Recomputed live so a drag that changes the
 // edge length re-paces emission.
 func inputCadenceTicks(n *Node) int64 {
-	c := int64(n.ToHoldNewSendOld.Geom().ArcLength / Wiring.PulseSpeedWuPerTick)
+	c := int64(n.ToHoldNewSendOld.Geom().ArcLength / wire.PulseSpeedWuPerTick)
 	if c < 1 {
 		return 1
 	}
@@ -307,5 +306,5 @@ func init() {
 	// Seed Clock to a real, live-ticking default (never nil) at construction, so
 	// it is safe even before reflectBuild's field-type injection runs (or on a
 	// test build that registers/builds this kind with no loader at all).
-	Wiring.Register("Input", func() any { return &Node{Clock: Wiring.NewRealClock()} })
+	wire.Register("Input", func() any { return &Node{Clock: wire.NewRealClock()} })
 }

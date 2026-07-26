@@ -57,5 +57,5 @@ func (v *viewpoint) zoom(factor float64) {
 // pan slides the orbit pivot by a world delta; the camera rides along (position is pivot
 // plus the radial offset). The delta is a world vector computed at the renderer edge.
 func (v *viewpoint) pan(delta vec3) {
-	v.pivot = v.pivot.add(delta)
+	v.pivot = v.pivot.Add(delta)
 }

@@ -2,17 +2,17 @@ package holdflip
 
 import (
 	"context"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"testing"
 	"time"
 
 	T "github.com/dtauraso/wirefold/Trace"
-	"github.com/dtauraso/wirefold/nodes/Wiring"
 )
 
 // stepWire continuously StepOnceAts pw on a short wall-clock poll until ctx is
 // cancelled, matching the production per-cycle StepOnceAt delivery path. clk is
 // this goroutine's OWN clock copy; callers must not share it with another goroutine.
-func stepWire(ctx context.Context, pw *Wiring.PacedWire, clk Wiring.Clock) {
+func stepWire(ctx context.Context, pw *wire.PacedWire, clk wire.Clock) {
 	go func() {
 		for {
 			select {
@@ -36,15 +36,15 @@ func TestFlipRoundTripLean(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	inPw := Wiring.NewPacedWire(latMs*Wiring.PulseSpeedWuPerMs, Wiring.PulseSpeedWuPerMs)
-	clk := Wiring.NewRealClock()
+	inPw := wire.NewPacedWire(latMs*wire.PulseSpeedWuPerMs, wire.PulseSpeedWuPerMs)
+	clk := wire.NewRealClock()
 	stepWire(ctx, inPw, clk.Copy())
 	// inSrc is a test-only seeding source on inPw: PlaceDrivenAt places a bead
 	// (no walker) that the stepWire loop above then drives to delivery,
 	// reusing the production placement API to inject the test's input value.
-	inSrc := Wiring.NewPacedOutNoGeom(inPw, ctx, "seed", "Out", tr, Wiring.RuleFireAndForget, 0, 0, "")
+	inSrc := wire.NewPacedOutNoGeom(inPw, ctx, "seed", "Out", tr, wire.RuleFireAndForget, 0, 0, "")
 
-	outPw := Wiring.NewPacedWire(latMs*Wiring.PulseSpeedWuPerMs, Wiring.PulseSpeedWuPerMs)
+	outPw := wire.NewPacedWire(latMs*wire.PulseSpeedWuPerMs, wire.PulseSpeedWuPerMs)
 	// Production drives this output wire via its edge's own goroutine
 	// (edgeMover.run); this bare-wire unit test has no edgeMover, so it must
 	// supply the same per-cycle drive itself.
@@ -53,11 +53,11 @@ func TestFlipRoundTripLean(t *testing.T) {
 	node := &Node{
 		Fire:  func() {},
 		Clock: clk,
-		In:    Wiring.NewInPaced(inPw, ctx, "hf", "In", tr),
-		Out: Wiring.NewPacedOutNoGeom(outPw, ctx, "hf", "Out", tr,
-			Wiring.RuleFireAndForget, latMs*Wiring.PulseSpeedWuPerMs, latMs, ""),
+		In:    wire.NewInPaced(inPw, ctx, "hf", "In", tr, nil, -1),
+		Out: wire.NewPacedOutNoGeom(outPw, ctx, "hf", "Out", tr,
+			wire.RuleFireAndForget, latMs*wire.PulseSpeedWuPerMs, latMs, ""),
 	}
-	observer := Wiring.NewInPaced(outPw, ctx, "obs", "In", tr)
+	observer := wire.NewInPaced(outPw, ctx, "obs", "In", tr, nil, -1)
 
 	done := make(chan struct{})
 	go func() { node.Update(ctx); close(done) }()

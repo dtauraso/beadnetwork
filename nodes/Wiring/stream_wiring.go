@@ -13,6 +13,7 @@ package Wiring
 
 import (
 	"fmt"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"io"
 	"os"
 )
@@ -35,7 +36,7 @@ type streamWiring struct {
 	// (Buffer.BuildInteriorStreamFrame), injected here (rather than importing Buffer) so
 	// this package stays Buffer-independent, matching portRowFor/buildFrame's existing
 	// interface-injection pattern on edgeMover.
-	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []RowEvent) []byte
+	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte
 	// --- the dedicated VIEW stream (memory/feedback_no_single_writer_bridge.md,
 	// memory/feedback_no_single_writer_bridge.md Step C) --- see view_stream.go.
 	//
@@ -70,7 +71,7 @@ func (sw *streamWiring) setEdgeStreams(
 	baseFd int,
 	portRowFor func(node, port string, isInput bool) (int32, bool),
 	nodeRowFor func(id string) (int32, bool),
-	buildFrame func(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, beadVal []int32, beadX, beadY, beadZ []float32, events []RowEvent) []byte,
+	buildFrame func(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, beadVal []int32, beadX, beadY, beadZ []float32, events []wire.RowEvent) []byte,
 ) {
 	for row, seed := range edgeSeeds {
 		em, ok := edgeMovers[seed.Label]
@@ -105,8 +106,8 @@ func (sw *streamWiring) setNodeStreams(
 	nodeBase, interiorBase int,
 	nodeRowFor func(id string) (int32, bool),
 	edgeRowForPair func(a, b string) (int32, bool),
-	buildFrame func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows, edgeRows []int32, events []RowEvent) []byte,
-	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []RowEvent) []byte,
+	buildFrame func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows, edgeRows []int32, events []wire.RowEvent) []byte,
+	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte,
 	kindIDFor func(kind string) uint8,
 ) {
 	sw.interiorOuts = map[string]io.Writer{}

@@ -1,6 +1,7 @@
 package Wiring
 
 import (
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"math"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -243,7 +244,7 @@ func (md *MoveDispatch) beginSphereRotation(ev rawInputMsg) {
 	// reached by dragging one on-screen content-sphere radius, at every zoom level. Without the
 	// anchor, pi/2 required dragging nearly the full screen height and felt unreachable.
 	_, csRadius := contentSphereOf(md.heldCenters())
-	pivotDist := eye.sub(pivot).length()
+	pivotDist := eye.Sub(pivot).Length()
 	fovRad := ev.Fov * math.Pi / 180
 	rpx := (g.rect.height / 2) / math.Tan(fovRad/2)
 	if pivotDist > 0 {
@@ -279,7 +280,7 @@ func (md *MoveDispatch) gestPointerMove(ev rawInputMsg, tr *T.Trace) {
 			// and drops recipients whose mark lands after the next move's reset.
 			// Decentralized (Step C, memory/feedback_no_single_writer_bridge.md): this same goroutine also
 			// writes its own VIEW frame directly, carrying this one-time drag-start event.
-			md.emitViewFrame([]RowEvent{{Kind: T.KindAbcDragReset, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}})
+			md.emitViewFrame([]wire.RowEvent{{Kind: T.KindAbcDragReset, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}})
 			// Re-scope MoveDispatch's OWN published recipient set the same way (count is
 			// a cumulative total-events affirmation and is intentionally left alone — only
 			// the NAME SET is drag-scoped, mirroring the old central accumulator's
@@ -368,8 +369,8 @@ func (md *MoveDispatch) updateHover(ev rawInputMsg, tr *T.Trace) {
 func (md *MoveDispatch) seedOrbitPivot(pivot vec3) {
 	vp := md.ui.vp.viewpoint
 	eye := eyeOf(vp)
-	r := eye.sub(pivot).length()
-	pos := worldDirToAngles(eye.sub(pivot))
+	r := eye.Sub(pivot).Length()
+	pos := worldDirToAngles(eye.Sub(pivot))
 	md.SetViewpoint(pivot, r, pos, vp.up)
 }
 
@@ -434,7 +435,7 @@ func (md *MoveDispatch) pointerOnRingPlane(ev rawInputMsg, planeZ float64) (vec3
 		return vec3{}, false
 	}
 	t := (planeZ - eye.Z) / dir.Z
-	hit := eye.add(dir.scale(t))
+	hit := eye.Add(dir.Scale(t))
 	if math.IsNaN(hit.X) || math.IsInf(hit.X, 0) {
 		return vec3{}, false
 	}
@@ -452,13 +453,13 @@ func (md *MoveDispatch) applyNodeDragTarget(ev rawInputMsg) bool {
 	basis := basisFromViewpoint(vp.pos, vp.up)
 	nx, ny := g.pixelToNDC(ev.X, ev.Y)
 	dir := rayDirThroughNDC(nx, ny, basis, ev.Fov, g.rect.aspect())
-	forward := basis.pole.scale(-1) // camera looks along -pole
-	denom := dir.dot(forward)
+	forward := basis.pole.Scale(-1) // camera looks along -pole
+	denom := dir.Dot(forward)
 	if denom == 0 {
 		return false
 	}
-	t := g.dragStartCenter.sub(eye).dot(forward) / denom
-	hit := eye.add(dir.scale(t))
+	t := g.dragStartCenter.Sub(eye).Dot(forward) / denom
+	hit := eye.Add(dir.Scale(t))
 	if math.IsNaN(hit.X) || math.IsInf(hit.X, 0) {
 		return false
 	}
@@ -511,7 +512,7 @@ func (md *MoveDispatch) setHover(node, port string, isInput bool, tr *T.Trace) {
 	if isInput {
 		value = 1
 	}
-	md.emitViewFrame([]RowEvent{{Kind: T.KindHover, NodeRow: nodeRow, PortRow: portRow, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Value: value}})
+	md.emitViewFrame([]wire.RowEvent{{Kind: T.KindHover, NodeRow: nodeRow, PortRow: portRow, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Value: value}})
 }
 
 // applySelect sets the Go-owned selection from a click hit and emits it. Selection is
@@ -566,7 +567,7 @@ func (md *MoveDispatch) emitSelectViewFrame(node string) {
 			nodeRow = r
 		}
 	}
-	md.emitViewFrame([]RowEvent{{Kind: T.KindSelect, NodeRow: nodeRow, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}})
+	md.emitViewFrame([]wire.RowEvent{{Kind: T.KindSelect, NodeRow: nodeRow, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}})
 }
 
 // nodeFromHit resolves a node hit to its node id. A node hit carries only a numeric buffer
@@ -621,11 +622,11 @@ func (md *MoveDispatch) gestWheel(ev rawInputMsg, tr *T.Trace) {
 				target = c
 			}
 		}
-		toTarget := target.sub(eye)
-		distP := toTarget.length()
-		rayDir := anglesToWorldOffset(1, vp.pos.Theta, vp.pos.Phi).scale(-1) // forward, if AT the node
+		toTarget := target.Sub(eye)
+		distP := toTarget.Length()
+		rayDir := anglesToWorldOffset(1, vp.pos.Theta, vp.pos.Phi).Scale(-1) // forward, if AT the node
 		if distP > 1e-9 {
-			rayDir = toTarget.scale(1 / distP)
+			rayDir = toTarget.Scale(1 / distP)
 		}
 		// Move the eye ALONG the cursor→node ray. amt>0 = toward the node (zoom in). The step is a
 		// fraction of the remaining distance (fast approach when far), FLOORED at a scene-scaled
@@ -636,7 +637,7 @@ func (md *MoveDispatch) gestWheel(ev rawInputMsg, tr *T.Trace) {
 		if minStep := vp.r * (gestureZoomBase - 1); math.Abs(step) < minStep {
 			step = math.Copysign(minStep, amt)
 		}
-		md.PanViewpoint(rayDir.scale(step), tr)
+		md.PanViewpoint(rayDir.Scale(step), tr)
 		return
 	}
 

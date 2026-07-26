@@ -18,19 +18,8 @@ import "math"
 // viewpoint.zoom / viewpoint.pan.
 
 // ---------------------------------------------------------------------------
-// vec3 dot / cross (the only Cartesian rotation-basis ops; kept beside their use)
-// ---------------------------------------------------------------------------
-
-func (a vec3) dot(b vec3) float64 { return a.X*b.X + a.Y*b.Y + a.Z*b.Z }
-
-func (a vec3) cross(b vec3) vec3 {
-	return vec3{
-		X: a.Y*b.Z - a.Z*b.Y,
-		Y: a.Z*b.X - a.X*b.Z,
-		Z: a.X*b.Y - a.Y*b.X,
-	}
-}
-
+// vec3 dot / cross moved to wire.Vec3.Dot/Cross (nodes/wire/geometry.go) — vec3
+// here is an alias of wire.Vec3, so Wiring calls the exported methods directly.
 // ---------------------------------------------------------------------------
 // angle ↔ world direction (mirrors viewpoint-bridge.ts)
 // ---------------------------------------------------------------------------
@@ -52,7 +41,7 @@ func anglesToWorldOffset(r, theta, phi float64) vec3 {
 //
 //	theta = acos(clamp(d.y, -1, 1)); phi = atan2(d.z, d.x)   (d = normalize(v))
 func worldDirToAngles(v vec3) dir {
-	d := v.normalize()
+	d := v.Normalize()
 	return dir{
 		Theta: math.Acos(clamp(d.Y, -1, 1)),
 		Phi:   math.Atan2(d.Z, d.X),
@@ -79,15 +68,15 @@ type camBasis struct {
 
 func basisFromViewpoint(pos, up dir) camBasis {
 	pole := anglesToWorldOffset(1, pos.Theta, pos.Phi) // unit
-	upWorld := anglesToWorldOffset(1, up.Theta, up.Phi).normalize()
-	refX := upWorld.cross(pole).normalize()
-	refY := pole.cross(refX)
+	upWorld := anglesToWorldOffset(1, up.Theta, up.Phi).Normalize()
+	refX := upWorld.Cross(pole).Normalize()
+	refY := pole.Cross(refX)
 	return camBasis{refX: refX, refY: refY, pole: pole}
 }
 
 // eyeOf is the camera world position for a viewpoint: pivot + r * posWorld.
 func eyeOf(v viewpoint) vec3 {
-	return v.pivot.add(anglesToWorldOffset(v.r, v.pos.Theta, v.pos.Phi))
+	return v.pivot.Add(anglesToWorldOffset(v.r, v.pos.Theta, v.pos.Phi))
 }
 
 // ---------------------------------------------------------------------------
@@ -110,23 +99,23 @@ func screenToPolar(dxFromCenter, dyFromCenter, scale float64) polarDir {
 	}
 }
 
-// toWorldDir mirrors polar.ts toWorld with center=C and radius=1, then .sub(C): it returns
-// the UNIT world direction (pole*cos(phi) + equatorDir*sin(phi)) — the .sub(C).normalize()
+// toWorldDir mirrors polar.ts toWorld with center=C and radius=1, then .Sub(C): it returns
+// the UNIT world direction (pole*cos(phi) + equatorDir*sin(phi)) — the .Sub(C).Normalize()
 // in the TS orbit path just recovers this direction, since radius is 1.
 //
 //	equatorDir = refX*cos(theta) + refY*sin(theta)
 //	dir        = pole*cos(phi) + equatorDir*sin(phi)
 func toWorldDir(b camBasis, q polarDir) vec3 {
 	s := math.Sin(q.phi)
-	equator := b.refX.scale(math.Cos(q.theta)).add(b.refY.scale(math.Sin(q.theta)))
-	return b.pole.scale(math.Cos(q.phi)).add(equator.scale(s))
+	equator := b.refX.Scale(math.Cos(q.theta)).Add(b.refY.Scale(math.Sin(q.theta)))
+	return b.pole.Scale(math.Cos(q.phi)).Add(equator.Scale(s))
 }
 
 // planeSlide mirrors polar.ts planeSlide: a polar in-screen-plane slide (r, angle) → a world
 // translation along the camera's right/up basis, scaled by worldPerPixel.
 func planeSlide(b camBasis, r, angle, worldPerPixel float64) vec3 {
-	return b.refX.scale(r * math.Cos(angle) * worldPerPixel).
-		add(b.refY.scale(r * math.Sin(angle) * worldPerPixel))
+	return b.refX.Scale(r * math.Cos(angle) * worldPerPixel).
+		Add(b.refY.Scale(r * math.Sin(angle) * worldPerPixel))
 }
 
 // deltaToPolar mirrors polar.ts deltaToPolar: (dx,dy) → (r, angle).
@@ -173,30 +162,30 @@ const rotSmoothAlpha = 0.35
 // ahead when there is no node in front.
 func focusAhead(v viewpoint, centers map[string]vec3) vec3 {
 	eye := eyeOf(v)
-	forward := anglesToWorldOffset(1, v.pos.Theta, v.pos.Phi).scale(-1) // -pole, unit
+	forward := anglesToWorldOffset(1, v.pos.Theta, v.pos.Phi).Scale(-1) // -pole, unit
 	bestCos := -2.0
 	depth := 0.0
 	found := false
 	for _, p := range centers {
-		d := p.sub(eye)
-		dl := d.length()
+		d := p.Sub(eye)
+		dl := d.Length()
 		if dl < 1e-9 {
 			continue
 		}
-		cosAng := forward.dot(d) / dl
+		cosAng := forward.Dot(d) / dl
 		if cosAng <= 0 { // behind the camera
 			continue
 		}
 		if cosAng > bestCos { // more centered on the view axis
 			bestCos = cosAng
-			depth = forward.dot(d)
+			depth = forward.Dot(d)
 			found = true
 		}
 	}
 	if !found {
-		return eye.add(forward.scale(gestureFocusMin))
+		return eye.Add(forward.Scale(gestureFocusMin))
 	}
-	return eye.add(forward.scale(math.Max(depth, gestureFocusMin)))
+	return eye.Add(forward.Scale(math.Max(depth, gestureFocusMin)))
 }
 
 // contentSphereOf mirrors geometry-helpers.ts contentSphere over the given node centers:
@@ -215,10 +204,10 @@ func contentSphereOf(centers map[string]vec3) (center vec3, radius float64) {
 		min.Y, max.Y = math.Min(min.Y, p.Y), math.Max(max.Y, p.Y)
 		min.Z, max.Z = math.Min(min.Z, p.Z), math.Max(max.Z, p.Z)
 	}
-	center = min.add(max).scale(0.5)
+	center = min.Add(max).Scale(0.5)
 	r := 0.0
 	for _, p := range centers {
-		r = math.Max(r, p.sub(center).length())
+		r = math.Max(r, p.Sub(center).Length())
 	}
 	return center, math.Max(r*1.1, 1)
 }
@@ -229,7 +218,7 @@ func contentSphereOf(centers map[string]vec3) (center vec3, radius float64) {
 // to eye + forward*FOCUS_MIN when there are no finite node depths.
 func regionFocus(v viewpoint, centers map[string]vec3) vec3 {
 	eye := eyeOf(v)
-	forward := anglesToWorldOffset(1, v.pos.Theta, v.pos.Phi).scale(-1) // -pole, unit
+	forward := anglesToWorldOffset(1, v.pos.Theta, v.pos.Phi).Scale(-1) // -pole, unit
 	// Pivot on the view axis at the depth of the NEAREST node (smallest forward-depth), not the
 	// whole-scene depth MIDPOINT. The midpoint sat between the near node you zoomed into and the
 	// far ones, so rotate/pan operated around a distant point and swung/overshot from up close.
@@ -238,16 +227,16 @@ func regionFocus(v viewpoint, centers map[string]vec3) vec3 {
 	// there are no nodes.
 	zNear := math.Inf(1)
 	for _, p := range centers {
-		depth := forward.dot(p.sub(eye))
+		depth := forward.Dot(p.Sub(eye))
 		if math.IsNaN(depth) || math.IsInf(depth, 0) {
 			continue
 		}
 		zNear = math.Min(zNear, depth)
 	}
 	if math.IsInf(zNear, 1) {
-		return eye.add(forward.scale(gestureFocusMin))
+		return eye.Add(forward.Scale(gestureFocusMin))
 	}
-	return eye.add(forward.scale(math.Max(zNear, gestureFocusMin)))
+	return eye.Add(forward.Scale(math.Max(zNear, gestureFocusMin)))
 }
 
 // ---------------------------------------------------------------------------
@@ -308,10 +297,10 @@ func homeFitPose(centers map[string]vec3, radius map[string]float64, fovDeg, asp
 // (basis b, eye, fov degrees, aspect = rectWidth/rectHeight). inFront is false when p is on
 // or behind the camera plane (three.js ndc.z > 1 skip).
 func projectNDC(p, eye vec3, b camBasis, fovDeg, aspect float64) (ndcX, ndcY float64, inFront bool) {
-	rel := p.sub(eye)
-	cx := rel.dot(b.refX)
-	cy := rel.dot(b.refY)
-	cz := rel.dot(b.pole) // +Z toward camera; a point in front has cz < 0
+	rel := p.Sub(eye)
+	cx := rel.Dot(b.refX)
+	cy := rel.Dot(b.refY)
+	cz := rel.Dot(b.pole) // +Z toward camera; a point in front has cz < 0
 	if cz >= 0 {
 		return 0, 0, false
 	}
@@ -326,8 +315,8 @@ func projectNDC(p, eye vec3, b camBasis, fovDeg, aspect float64) (ndcX, ndcY flo
 // ny*tanHalf, -1), rotated into world by the basis (pole is +Z, so -1 along Z faces forward).
 func rayDirThroughNDC(nx, ny float64, b camBasis, fovDeg, aspect float64) vec3 {
 	tanHalf := math.Tan((fovDeg * math.Pi / 180) / 2)
-	camDir := b.refX.scale(nx * tanHalf * aspect).
-		add(b.refY.scale(ny * tanHalf)).
-		add(b.pole.scale(-1))
-	return camDir.normalize()
+	camDir := b.refX.Scale(nx * tanHalf * aspect).
+		Add(b.refY.Scale(ny * tanHalf)).
+		Add(b.pole.Scale(-1))
+	return camDir.Normalize()
 }

@@ -2,13 +2,13 @@ package gatecommon
 
 import (
 	"context"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"strings"
 	"sync"
 	"testing"
 	"time"
 
 	T "github.com/dtauraso/wirefold/Trace"
-	"github.com/dtauraso/wirefold/nodes/Wiring"
 )
 
 // syncBuffer is a concurrency-safe io.Writer, since Trace.Breadcrumb writes
@@ -52,25 +52,25 @@ func TestGateWithUnwiredOutputStillObeysSpeed(t *testing.T) {
 	tr := T.NewWithSink(&dbg)
 
 	const latMs = 10.0
-	leftPw := Wiring.NewPacedWire(latMs*Wiring.PulseSpeedWuPerMs, Wiring.PulseSpeedWuPerMs)
-	rightPw := Wiring.NewPacedWire(latMs*Wiring.PulseSpeedWuPerMs, Wiring.PulseSpeedWuPerMs)
+	leftPw := wire.NewPacedWire(latMs*wire.PulseSpeedWuPerMs, wire.PulseSpeedWuPerMs)
+	rightPw := wire.NewPacedWire(latMs*wire.PulseSpeedWuPerMs, wire.PulseSpeedWuPerMs)
 
-	clk := Wiring.NewRealClock()
+	clk := wire.NewRealClock()
 	go stepPacedWire(ctx, leftPw, clk.Copy())
 	go stepPacedWire(ctx, rightPw, clk.Copy())
 
-	leftSrc := Wiring.NewPacedOutNoGeom(leftPw, ctx, "seed", "Out", tr, Wiring.RuleFireAndForget, 0, 0, "")
+	leftSrc := wire.NewPacedOutNoGeom(leftPw, ctx, "seed", "Out", tr, wire.RuleFireAndForget, 0, 0, "")
 
 	speedCh := make(chan float64, 1)
 	g := &GateNode{
 		Fire:      func() {},
 		Clock:     clk,
 		SpeedCh:   speedCh,
-		FromLeft:  Wiring.NewInPaced(leftPw, ctx, "g9", "FromLeft", tr),
-		FromRight: Wiring.NewInPaced(rightPw, ctx, "g9", "FromRight", tr),
+		FromLeft:  wire.NewInPaced(leftPw, ctx, "g9", "FromLeft", tr, nil, -1),
+		FromRight: wire.NewInPaced(rightPw, ctx, "g9", "FromRight", tr, nil, -1),
 		// ToPassed is a chan-mode Out (nil PacedWire) — Paced() reports false,
 		// matching node 9/10's unwired output in the shipped topology.
-		ToPassed: Wiring.NewOutChanForTest(make(chan int, 1), "g9", "ToPassed", tr),
+		ToPassed: wire.NewOutChanForTest(make(chan int, 1), "g9", "ToPassed", tr),
 	}
 
 	done := make(chan struct{})
@@ -116,7 +116,7 @@ func TestGateWithUnwiredOutputStillObeysSpeed(t *testing.T) {
 // stepPacedWire mirrors windowandinhibitleftgate's firing_rule_lean_test.go
 // stepWire helper: continuously StepOnceAts pw on a short wall-clock poll,
 // matching the production per-cycle StepOnceAt delivery path.
-func stepPacedWire(ctx context.Context, pw *Wiring.PacedWire, clk Wiring.Clock) {
+func stepPacedWire(ctx context.Context, pw *wire.PacedWire, clk wire.Clock) {
 	for {
 		select {
 		case <-ctx.Done():

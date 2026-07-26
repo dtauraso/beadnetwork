@@ -25,12 +25,12 @@ package Wiring
 // length), the direction is undefined; we fall back to +Y so the result is still
 // on the surface.
 func projectToSphere(center vec3, R float64, neighborPos vec3) vec3 {
-	d := neighborPos.sub(center)
-	l := d.length()
+	d := neighborPos.Sub(center)
+	l := d.Length()
 	if l == 0 {
 		return vec3{X: center.X, Y: center.Y + R, Z: center.Z}
 	}
-	return center.add(d.scale(R / l))
+	return center.Add(d.Scale(R / l))
 }
 
 // diameterStepAngle returns the angular step (radians) on a sphere of radius R

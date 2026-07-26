@@ -22,6 +22,7 @@ package Wiring
 import (
 	"context"
 	"fmt"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"reflect"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -56,7 +57,7 @@ type PortBindings struct {
 	// outSink, when non-nil, collects every paced *Out built for this node keyed
 	// by "node.handle" so the loader can index Outs by edge for node-move
 	// travel-time updates. Render/run paths leave it nil.
-	outSink map[string]*Out
+	outSink map[string]*wire.Out
 	// clock is the loader's ORIGIN clock, read only by reflectBuild's injectClosures
 	// (never by a port): it seeds a node's bare `Clock Wiring.Clock` field and the
 	// `Tick func() int64` closure at construction. Per per-goroutine-clock.md API
@@ -65,7 +66,7 @@ type PortBindings struct {
 	// Test builds without a loader leave this nil, and such nodes' Clock/Tick
 	// fields simply stay unset (their own zero-value fallback, e.g. gatecommon's
 	// defaultTick/defaultSleep).
-	clock Clock
+	clock wire.Clock
 	// speedSinks accumulates the SEND end of every speed channel created for
 	// this node during construction (one per clock-owning goroutine the node
 	// spawns — see injectSpeedChans). It points at the loader's build-wide slice
@@ -90,8 +91,8 @@ type PortBindings struct {
 // send rule and own geometry (SetSinglePacedRule). The zero value (pw == nil)
 // means "no paced binding — fall back to a dead-end chan".
 type singleBinding struct {
-	pw      *PacedWire
-	rule    SendRule
+	pw      *wire.PacedWire
+	rule    wire.SendRule
 	arc     float64
 	latency float64
 	seg     wireSegment
@@ -102,9 +103,9 @@ type singleBinding struct {
 // the concrete source handle (e.g. "ToNext0"), per-edge send rule, and that
 // edge's own travel-time / segment / TS label.
 type broadcastBinding struct {
-	pw      *PacedWire
+	pw      *wire.PacedWire
 	handle  string
-	rule    SendRule
+	rule    wire.SendRule
 	arc     float64
 	latency float64
 	seg     wireSegment
@@ -118,7 +119,7 @@ func newPortBindings() PortBindings {
 	}
 }
 
-func (pb *PortBindings) SetSinglePaced(name string, pw *PacedWire) {
+func (pb *PortBindings) SetSinglePaced(name string, pw *wire.PacedWire) {
 	pb.singlePaced[name] = singleBinding{pw: pw}
 }
 
@@ -126,7 +127,7 @@ func (pb *PortBindings) SetSinglePaced(name string, pw *PacedWire) {
 // that edge's own travel-time (arc length / sim latency), its straight-segment
 // endpoints (so the bead's position stream evaluates the exact drawn segment), and
 // the TS edge id (label) so the node's EmitGeometry closure can stream the segment.
-func (pb *PortBindings) SetSinglePacedRule(name string, pw *PacedWire, rule SendRule, arcLength, simLatencyMs float64, seg wireSegment, label string) {
+func (pb *PortBindings) SetSinglePacedRule(name string, pw *wire.PacedWire, rule wire.SendRule, arcLength, simLatencyMs float64, seg wireSegment, label string) {
 	pb.singlePaced[name] = singleBinding{pw: pw, rule: rule, arc: arcLength, latency: simLatencyMs, seg: seg, label: label}
 }
 
@@ -134,7 +135,7 @@ func (pb *PortBindings) SetSinglePacedRule(name string, pw *PacedWire, rule Send
 // source handle (e.g. "ToNext0"), the per-edge send rule, that edge's own
 // travel-time (arc length / sim latency), its straight-segment endpoints, and
 // the TS edge id (label) so the node's EmitGeometry closure can stream the segment.
-func (pb *PortBindings) AppendBroadcastWithHandle(name, handle string, pw *PacedWire, rule SendRule, arcLength, simLatencyMs float64, seg wireSegment, label string) {
+func (pb *PortBindings) AppendBroadcastWithHandle(name, handle string, pw *wire.PacedWire, rule wire.SendRule, arcLength, simLatencyMs float64, seg wireSegment, label string) {
 	pb.broadcastPaced[name] = append(pb.broadcastPaced[name], broadcastBinding{
 		pw: pw, handle: handle, rule: rule, arc: arcLength, latency: simLatencyMs, seg: seg, label: label,
 	})
@@ -160,14 +161,14 @@ func (pb *PortBindings) deadEndOutSlice(name string) []chan<- int {
 }
 
 var (
-	tInPtr              = reflect.TypeFor[*In]()
-	tOutPtr             = reflect.TypeFor[*Out]()
-	tBroadcast          = reflect.TypeFor[Broadcast]()
+	tInPtr              = reflect.TypeFor[*wire.In]()
+	tOutPtr             = reflect.TypeFor[*wire.Out]()
+	tBroadcast          = reflect.TypeFor[wire.Broadcast]()
 	tFireFunc           = reflect.TypeFor[func()]()
 	tEmitBeadsFunc      = reflect.TypeFor[func(working, backup []int)]()
 	tEmitHeldFunc       = reflect.TypeFor[func(held int)]()
 	tEmitInputBeadsFunc = reflect.TypeFor[func(left, right int)]()
-	tRefillSlideFunc    = reflect.TypeFor[func(clk Clock, speedCh <-chan float64, beads []int)]()
+	tRefillSlideFunc    = reflect.TypeFor[func(clk wire.Clock, speedCh <-chan float64, beads []int)]()
 	tTickFunc           = reflect.TypeFor[func() int64]()
 )
 
@@ -233,8 +234,8 @@ func injectFunc(v reflect.Value, name string, want reflect.Type, fn any) bool {
 //     fields set from pb's resolved bindings.
 //   - populateData: wire:"data.<key>" / wire:"data.state" tag-driven data
 //     population.
-func reflectBuild(ctx context.Context, name string, data *NodeData, pb PortBindings, e kindEntry, tr *T.Trace, geom nodeGeom, partnerCenter partnerCenterFn) (Node, error) {
-	nodePtr := e.newNode()
+func reflectBuild(ctx context.Context, name string, data *NodeData, pb PortBindings, newNode func() any, tr *T.Trace, geom nodeGeom, partnerCenter partnerCenterFn) (wire.Node, error) {
+	nodePtr := newNode()
 	v := reflect.ValueOf(nodePtr).Elem()
 
 	// getStream is THIS node's one shared interior-stream getter (lazy-cache-once — see
@@ -243,12 +244,12 @@ func reflectBuild(ctx context.Context, name string, data *NodeData, pb PortBindi
 	// instance (and share its cached bead-slot snapshot).
 	getStream := newInteriorStreamGetter(name, pb)
 
-	var sourceOuts []*Out
+	var sourceOuts []*wire.Out
 	injectClosures(ctx, v, name, pb, tr, geom, &sourceOuts, partnerCenter, getStream)
 	wirePorts(ctx, v, nodePtr, name, pb, tr, &sourceOuts, getStream)
 	populateData(v, nodePtr, data)
 
-	node, ok := nodePtr.(Node)
+	node, ok := nodePtr.(wire.Node)
 	if !ok {
 		return nil, fmt.Errorf("reflectBuild: %T does not implement Node", nodePtr)
 	}
@@ -265,7 +266,7 @@ func reflectBuild(ctx context.Context, name string, data *NodeData, pb PortBindi
 // sourceOuts is owned by the caller (reflectBuild) and shared with wirePorts,
 // which appends to it as it resolves each Out/Broadcast binding; the EmitGeometry
 // closure reads through the same pointer so it sees the completed slice.
-func injectClosures(ctx context.Context, v reflect.Value, name string, pb PortBindings, tr *T.Trace, geom nodeGeom, sourceOuts *[]*Out, partnerCenter partnerCenterFn, getStream func() *interiorStream) {
+func injectClosures(ctx context.Context, v reflect.Value, name string, pb PortBindings, tr *T.Trace, geom nodeGeom, sourceOuts *[]*wire.Out, partnerCenter partnerCenterFn, getStream func() *interiorStream) {
 	// Inject Fire closure if the struct has a `Fire func()` field. The closure
 	// captures the node name so the node calls n.Fire() with no arguments and
 	// cannot mis-name itself in the trace. The RowEvent flush below lands this Fire
@@ -277,7 +278,7 @@ func injectClosures(ctx context.Context, v reflect.Value, name string, pb PortBi
 	// interior fd (test builds without a loader).
 	injectFunc(v, "Fire", tFireFunc, func() {
 		if s := getStream(); s != nil {
-			s.writeEvents([]RowEvent{{
+			s.WriteEvents([]wire.RowEvent{{
 				Kind: T.KindFire, NodeRow: s.nodeRow,
 				PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1,
 			}})
@@ -335,7 +336,7 @@ func injectClosures(ctx context.Context, v reflect.Value, name string, pb PortBi
 	// slide runs its OWN blocking SleepCycle loop separate from the caller's main
 	// loop, so it must poll ApplySpeedNonBlocking itself each cycle or a speed
 	// change sent mid-slide sits unapplied until the slide finishes.
-	injectFunc(v, "EmitRefillSlide", tRefillSlideFunc, func(clk Clock, speedCh <-chan float64, beads []int) {
+	injectFunc(v, "EmitRefillSlide", tRefillSlideFunc, func(clk wire.Clock, speedCh <-chan float64, beads []int) {
 		emitRefillSlide(ctx, tr, name, clk, speedCh, beads)
 	})
 
@@ -356,7 +357,7 @@ func injectClosures(ctx context.Context, v reflect.Value, name string, pb PortBi
 		// is never reached through a port. Only fields typed exactly Wiring.Clock
 		// (e.g. input.Node.Clock, gatecommon.GateNode.Clock) receive this; other
 		// nodes are unaffected.
-		tClockType := reflect.TypeFor[Clock]()
+		tClockType := reflect.TypeFor[wire.Clock]()
 		injectFunc(v, "Clock", tClockType, clk)
 	}
 
@@ -455,6 +456,22 @@ func newInteriorStreamGetter(name string, pb PortBindings) func() *interiorStrea
 	}
 }
 
+// asEventSinkGetter adapts a concrete interior-stream getter into the eventSink getter a
+// port holds, PRESERVING nil: when the underlying getter yields no stream (nil
+// *interiorStream), this returns a TRUE nil interface, not an interface value wrapping a
+// nil pointer — so a port's `if s == nil` guard still fires exactly as it did against the
+// concrete pointer. The emit machinery (injectClosures/emitNodeBeads/emitHeldBead) keeps
+// the concrete getter unchanged; only In/Out ports route through this seam.
+func asEventSinkGetter(g func() *interiorStream) func() wire.EventSink {
+	return func() wire.EventSink {
+		s := g()
+		if s == nil {
+			return nil
+		}
+		return s
+	}
+}
+
 // wirePorts wires every port field (In/Out/Broadcast) discovered by reflectPorts
 // with traced wrappers, resolving each from pb's paced bindings when present and
 // falling back to a dead-end chan/slice otherwise. sourceOuts accumulates every
@@ -463,7 +480,7 @@ func newInteriorStreamGetter(name string, pb PortBindings) func() *interiorStrea
 // getStream is this node's shared interior-stream getter (newInteriorStreamGetter),
 // threaded through so Recv/Send can flush their own RowEvent onto the same frame
 // Fire/EmitNodeBeads use.
-func wirePorts(ctx context.Context, v reflect.Value, nodePtr any, name string, pb PortBindings, tr *T.Trace, sourceOuts *[]*Out, getStream func() *interiorStream) {
+func wirePorts(ctx context.Context, v reflect.Value, nodePtr any, name string, pb PortBindings, tr *T.Trace, sourceOuts *[]*wire.Out, getStream func() *interiorStream) {
 	ports := reflectPorts(nodePtr)
 	for _, port := range ports {
 		f := v.FieldByName(port.Name)
@@ -497,18 +514,18 @@ func wirePorts(ctx context.Context, v reflect.Value, nodePtr any, name string, p
 // Update goroutine, to flush a KindRecv RowEvent (owner_events.go).
 func wireInPort(f reflect.Value, portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, getStream func() *interiorStream) {
 	if b := pb.singlePaced[portName]; b.pw != nil {
-		in := NewInPaced(b.pw, ctx, name, portName, tr)
-		in.stream = getStream
-		in.portRow = -1
+		portRow := int32(-1)
 		if pb.md != nil {
 			if r, ok := pb.md.PortRowFor(name, portName, true); ok {
-				in.portRow = r
+				portRow = r
 			}
 		}
+		in := wire.NewInPaced(b.pw, ctx, name, portName, tr, asEventSinkGetter(getStream), portRow)
 		f.Set(reflect.ValueOf(in))
 	} else {
 		ch := pb.deadEndIn(portName)
-		f.Set(reflect.ValueOf(&In{ch: ch, node: name, port: portName, trace: tr, stream: getStream, portRow: -1}))
+		in := wire.NewInChan(ch, name, portName, tr, asEventSinkGetter(getStream))
+		f.Set(reflect.ValueOf(in))
 	}
 }
 
@@ -524,24 +541,23 @@ func wireInPort(f reflect.Value, portName string, ctx context.Context, name stri
 // change after wiring), so resolving it once at construction and reading it later on
 // this node's own Update goroutine (Out.PlaceDrivenAt/placeDrivenNoWalker) matches
 // edgeMover's existing static-field-resolved-once discipline (edgeRow).
-func wireOutPort(f reflect.Value, portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, sourceOuts *[]*Out, getStream func() *interiorStream) {
+func wireOutPort(f reflect.Value, portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, sourceOuts *[]*wire.Out, getStream func() *interiorStream) {
 	if b := pb.singlePaced[portName]; b.pw != nil {
-		o := NewOutPaced(b.pw, ctx, name, portName, tr, b.rule, b.arc, b.latency, b.seg, b.label)
-		o.stream = getStream
-		o.portRow, o.targetRow, o.targetPortRow = -1, -1, -1
+		portRow, targetRow, targetPortRow := int32(-1), int32(-1), int32(-1)
 		if pb.md != nil {
 			if r, ok := pb.md.PortRowFor(name, portName, false); ok {
-				o.portRow = r
+				portRow = r
 			}
 			if b.pw.Target != "" {
 				if r, ok := pb.md.NodeRowFor(b.pw.Target); ok {
-					o.targetRow = r
+					targetRow = r
 				}
 				if r, ok := pb.md.PortRowFor(b.pw.Target, b.pw.TargetHandle, true); ok {
-					o.targetPortRow = r
+					targetPortRow = r
 				}
 			}
 		}
+		o := wire.NewOutPaced(b.pw, ctx, name, portName, tr, b.rule, b.arc, b.latency, b.seg, b.label, asEventSinkGetter(getStream), portRow, targetRow, targetPortRow)
 		*sourceOuts = append(*sourceOuts, o)
 		if pb.outSink != nil {
 			pb.outSink[name+"."+portName] = o
@@ -549,7 +565,7 @@ func wireOutPort(f reflect.Value, portName string, ctx context.Context, name str
 		f.Set(reflect.ValueOf(o))
 	} else {
 		ch := pb.deadEndOut(portName)
-		f.Set(reflect.ValueOf(&Out{ch: ch, node: name, port: portName, trace: tr}))
+		f.Set(reflect.ValueOf(wire.NewOutChanForTest(ch, name, portName, tr)))
 	}
 }
 
@@ -559,26 +575,25 @@ func wireOutPort(f reflect.Value, portName string, ctx context.Context, name str
 // resolved paced Out is appended to sourceOuts and (when pb.outSink is
 // non-nil) recorded under "node.handle". Row resolution mirrors wireOutPort's,
 // per fan-out element.
-func wireBroadcastPort(f reflect.Value, portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, sourceOuts *[]*Out, getStream func() *interiorStream) {
+func wireBroadcastPort(f reflect.Value, portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, sourceOuts *[]*wire.Out, getStream func() *interiorStream) {
 	if bs := pb.broadcastPaced[portName]; len(bs) > 0 {
-		outs := make(Broadcast, len(bs))
+		outs := make(wire.Broadcast, len(bs))
 		for i, b := range bs {
-			o := NewOutPaced(b.pw, ctx, name, b.handle, tr, b.rule, b.arc, b.latency, b.seg, b.label)
-			o.stream = getStream
-			o.portRow, o.targetRow, o.targetPortRow = -1, -1, -1
+			portRow, targetRow, targetPortRow := int32(-1), int32(-1), int32(-1)
 			if pb.md != nil {
 				if r, ok := pb.md.PortRowFor(name, b.handle, false); ok {
-					o.portRow = r
+					portRow = r
 				}
 				if b.pw.Target != "" {
 					if r, ok := pb.md.NodeRowFor(b.pw.Target); ok {
-						o.targetRow = r
+						targetRow = r
 					}
 					if r, ok := pb.md.PortRowFor(b.pw.Target, b.pw.TargetHandle, true); ok {
-						o.targetPortRow = r
+						targetPortRow = r
 					}
 				}
 			}
+			o := wire.NewOutPaced(b.pw, ctx, name, b.handle, tr, b.rule, b.arc, b.latency, b.seg, b.label, asEventSinkGetter(getStream), portRow, targetRow, targetPortRow)
 			outs[i] = o
 			*sourceOuts = append(*sourceOuts, o)
 			if pb.outSink != nil {
@@ -588,9 +603,9 @@ func wireBroadcastPort(f reflect.Value, portName string, ctx context.Context, na
 		f.Set(reflect.ValueOf(outs))
 	} else {
 		chs := pb.deadEndOutSlice(portName)
-		outs := make(Broadcast, len(chs))
+		outs := make(wire.Broadcast, len(chs))
 		for i, c := range chs {
-			outs[i] = &Out{ch: c, node: name, port: portName, trace: tr}
+			outs[i] = wire.NewOutChanForTest(c, name, portName, tr)
 		}
 		f.Set(reflect.ValueOf(outs))
 	}
@@ -663,7 +678,7 @@ const (
 // Ports is derived lazily from reflection; Build delegates to reflectBuild.
 type NodeBuilder struct {
 	Ports []PortSpec
-	Build func(ctx context.Context, name string, data *NodeData, pb PortBindings, tr *T.Trace, geom nodeGeom, partnerCenter partnerCenterFn) (Node, error)
+	Build func(ctx context.Context, name string, data *NodeData, pb PortBindings, tr *T.Trace, geom nodeGeom, partnerCenter partnerCenterFn) (wire.Node, error)
 }
 
 // Registry is the loader-facing map, populated one kind at a time by
@@ -671,8 +686,30 @@ type NodeBuilder struct {
 var Registry map[string]NodeBuilder
 
 func init() {
-	// Register needs a non-nil map to write into; kindRegistry is always
-	// empty at this point because package Wiring's init runs before the
-	// importing packages' inits populate it via Register.
 	Registry = make(map[string]NodeBuilder)
+}
+
+// BuildRegistry populates Registry from KindRegistry for any kind not yet
+// built. KindRegistry is filled by wire.Register as each node package's
+// init() runs; building the NodeBuilder (reflectPorts + reflectBuild closure) is
+// deferred to here, the loader's entry point, so wire.Register itself has no
+// dependency on the build pipeline. Idempotent — safe to call on every load. Must
+// run before any code reads Registry (validateSpec, buildFromSpec). Exported so
+// package-main tests (which never call LoadTopology) can force population, e.g.
+// kind_registry_parity_test.go.
+func BuildRegistry() {
+	for kind, newNode := range wire.KindRegistry {
+		if _, ok := Registry[kind]; ok {
+			continue
+		}
+		newNode := newNode // capture for closure
+		sample := newNode()
+		ports := reflectPorts(sample)
+		Registry[kind] = NodeBuilder{
+			Ports: ports,
+			Build: func(ctx context.Context, name string, data *NodeData, pb PortBindings, tr *T.Trace, geom nodeGeom, partnerCenter partnerCenterFn) (wire.Node, error) {
+				return reflectBuild(ctx, name, data, pb, newNode, tr, geom, partnerCenter)
+			},
+		}
+	}
 }

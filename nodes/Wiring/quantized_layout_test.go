@@ -33,8 +33,8 @@ func TestMeasureScalarsRoundTrips(t *testing.T) {
 func TestMeasureScalarsMeasuresEveryNodeAboutSceneCenter(t *testing.T) {
 	sceneCenter := vec3{X: 10, Y: 20, Z: 30}
 	centers := map[string]vec3{
-		"a": sceneCenter.add(vec3{X: 40, Y: 0, Z: 0}),
-		"b": sceneCenter.add(vec3{X: 0, Y: 0, Z: 60}),
+		"a": sceneCenter.Add(vec3{X: 40, Y: 0, Z: 0}),
+		"b": sceneCenter.Add(vec3{X: 0, Y: 0, Z: 60}),
 	}
 	ids := map[string]bool{"a": true, "b": true}
 	offs := measureScalars(centers, ids, sceneCenter, nil)
@@ -48,10 +48,10 @@ func TestMeasureScalarsMeasuresEveryNodeAboutSceneCenter(t *testing.T) {
 	// Re-derive: each node's center comes straight back from the scene center, with no
 	// dependency on the other node's offset.
 	derived := deriveCenters(offs, sceneCenter)
-	if d := derived["a"].sub(centers["a"]).length(); d > 1e-6 {
+	if d := derived["a"].Sub(centers["a"]).Length(); d > 1e-6 {
 		t.Fatalf("a: derived center drifted by %v", d)
 	}
-	if d := derived["b"].sub(centers["b"]).length(); d > 1e-6 {
+	if d := derived["b"].Sub(centers["b"]).Length(); d > 1e-6 {
 		t.Fatalf("b: derived center drifted by %v", d)
 	}
 }

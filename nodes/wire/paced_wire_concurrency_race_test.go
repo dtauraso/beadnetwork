@@ -12,7 +12,7 @@
 // channel surface (Send/RecvTick) from other goroutines, concurrently with the
 // owning goroutine driving cycles AND revising geometry on itself, is race-free
 // with NO mutex at all.
-package Wiring
+package wire
 
 import (
 	"context"
@@ -50,7 +50,7 @@ func TestPacedWireOwnershipUnderRace(t *testing.T) {
 		for time.Now().Before(deadline) {
 			i++
 			pw.DriveOneCycle(ctx, clk.Tick())
-			pw.ReviseInFlightGeometry(clk.Tick(), 4+i*0.01, wireSegment{Start: vec3{}, End: vec3{X: 1 + i*0.001}})
+			pw.ReviseInFlightGeometry(clk.Tick(), 4+i*0.01, WireSegment{Start: Vec3{}, End: Vec3{X: 1 + i*0.001}})
 			time.Sleep(time.Millisecond)
 		}
 	}()
@@ -63,7 +63,7 @@ func TestPacedWireOwnershipUnderRace(t *testing.T) {
 		val := 0
 		for time.Now().Before(deadline) {
 			val++
-			pw.Send(val, beadPlacement{InFlightMs: 4, Start: vec3{}, End: vec3{X: 1}, Node: "src", Port: "Out"})
+			pw.Send(val, beadPlacement{InFlightMs: 4, Start: Vec3{}, End: Vec3{X: 1}, Node: "src", Port: "Out"})
 		}
 	}()
 

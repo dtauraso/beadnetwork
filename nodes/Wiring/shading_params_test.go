@@ -1,6 +1,8 @@
 package Wiring
 
-import "testing"
+import (
+	"testing"
+)
 
 // Phase 4 verifier (docs/go-authoritative-clock/index.html, Verify row "4 ·
 // Shading": "go test — shading params emitted"). Go owns the shading PARAMETER

@@ -9,6 +9,7 @@ package Wiring
 
 import (
 	"context"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"os"
 	"path/filepath"
 	"testing"
@@ -40,7 +41,7 @@ func loadDragAnchorTopo(t *testing.T) (context.Context, context.CancelFunc, *Mov
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	tr := T.New()
-	_, _, md, _, err := LoadTopology(ctx, path, tr, NewRealClock())
+	_, _, md, _, err := LoadTopology(ctx, path, tr, wire.NewRealClock())
 	if err != nil {
 		cancel()
 		t.Fatalf("LoadTopology: %v", err)
@@ -192,7 +193,7 @@ func TestDragAnchorRearmsOnNewDrag(t *testing.T) {
 // waitForLocalPolarIR blocks until lh's LocalPolar entry for "to" reports the wanted
 // QuantIR, or fails the test on timeout. Used to make setup moves deterministic before
 // a test's tracked drag begins (the mover applies moves on its own goroutine).
-func waitForLocalPolarIR(t *testing.T, lh *LayoutHolder, to string, want int) {
+func waitForLocalPolarIR(t *testing.T, lh *wire.LayoutHolder, to string, want int) {
 	t.Helper()
 	deadline := time.Now().Add(2 * time.Second)
 	for {

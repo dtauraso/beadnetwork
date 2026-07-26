@@ -23,6 +23,8 @@
 
 package Wiring
 
+import ()
+
 // --- Node body: glass (MeshPhysicalMaterial) parameters -------------------
 // The node sphere is rendered as transmissive glass. These mirror the
 // meshPhysicalMaterial props on GraphNode in scene-content.tsx exactly.

@@ -17,8 +17,8 @@ func TestToNodeGeomScenePolar(t *testing.T) {
 	if !g.HasPos {
 		t.Fatalf("scene polar present: HasPos=false, want true")
 	}
-	want := sceneCenter.add(polar2cart(polar{R: r, Theta: th, Phi: ph}))
-	if nodeWorldPos(g).sub(want).length() > 1e-9 {
+	want := sceneCenter.Add(polar2cart(polar{R: r, Theta: th, Phi: ph}))
+	if nodeWorldPos(g).Sub(want).Length() > 1e-9 {
 		t.Fatalf("world=%v want %v", nodeWorldPos(g), want)
 	}
 
