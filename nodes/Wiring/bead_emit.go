@@ -44,7 +44,7 @@ func emitNodeBeads(tr *T.Trace, nodeName string, working, backup []int, stream *
 				v = slice[col]
 			}
 			events = append(events, wire.RowEvent{
-				Kind: T.KindNodeBead, NodeRow: nodeRow, Slot: int32(row*2 + col), Value: int32(v),
+				Kind: T.KindNodeBead, NodeRow: nodeRow, Slot: int32(row*cols + col), Value: int32(v),
 				PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1,
 				X: p.X, Y: p.Y, Z: p.Z,
 			})
