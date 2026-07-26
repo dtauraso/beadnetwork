@@ -226,7 +226,9 @@ export function OverlaysControl() {
       <div
         style={{
           position: "absolute",
-          top: 76,
+          // Stacked below the distance-home panel (DistanceHomePanel, fixed top:66,
+          // ~55px tall) which itself sits below the fit/home button (top:44).
+          top: 128,
           right: 12,
           zIndex: 20,
           pointerEvents: "auto",
@@ -273,7 +275,7 @@ export function OverlaysControl() {
         <div
           style={{
             position: "absolute",
-            top: 104,
+            top: 156,
             right: 12,
             zIndex: 21,
             pointerEvents: "auto",
