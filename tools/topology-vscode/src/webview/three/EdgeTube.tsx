@@ -37,7 +37,7 @@ import {
   SHADING_PARAM_LAYOUT_LINK_EMISSIVE_INTENSITY,
 } from "../../schema/shading-params";
 import {
-  readLayoutLinkSrcNodeRow, readLayoutLinkDstNodeRow, readLayoutLinkEdgeRow,
+  readLayoutLinkSrcNodeRow, readLayoutLinkDstNodeRow,
   readNodeCX, readNodeCY, readNodeCZ,
   readPortPX, readPortPY, readPortPZ,
   readOverlayOverlaysVis, readOverlayCascadeLinks,
@@ -197,20 +197,17 @@ const EdgeTube = forwardRef<EdgeHandle, { dimmed: boolean; row: number; selected
   },
 );
 
-// One layout-link pair's cyan bidirectional overlay: thin tube (radius 1.0) + an
-// outward-pointing arrowhead at each end. Mirrors the pre-removal DoubleEdgeOverlay. The
-// segment endpoints are the connecting bead edge's own port-anchored SX..EZ (Edge block,
-// resolved via this pair's LayoutLink EdgeRow) — the same points the bead wire itself uses,
-// so the overlay terminates at the PORTS, not the node centers, and stays attached under a
-// drag (the Edge block is re-emitted on every node/port move). `viaEdge=false` means this
-// pair had no bead edge to ride along (LayoutLink EdgeRow === -1); the caller falls back to
-// node centers, and this is rendered visibly dimmer so a center-anchored fallback segment
-// never looks identical to a real port-anchored one.
+// One cascade-link pair's cyan bidirectional overlay: thin tube (radius 1.0) + an
+// outward-pointing arrowhead at each end. Mirrors the pre-removal DoubleEdgeOverlay. This
+// is its OWN edge between the two NODES' CENTERS (Node block CX/CY/CZ, re-streamed on
+// every move) — it does NOT reference or ride along any bead edge, so it can never be
+// coupled to (or dimmed/tinted by) the bead edge's own selection/opacity state. One
+// uniform color/opacity for every cascade link, always.
 //
 // Same timing contract as EdgeTube: the segment is pushed imperatively (update), not a prop,
-// so a link overlay tracks its dragged endpoints on the same frame as the ports it rides.
-const LayoutLinkOverlay = forwardRef<EdgeHandle, { viaEdge: boolean }>(
-  function LayoutLinkOverlay({ viaEdge }, ref) {
+// so a link overlay tracks its dragged endpoints on the same frame as the nodes it connects.
+const LayoutLinkOverlay = forwardRef<EdgeHandle, object>(
+  function LayoutLinkOverlay(_props, ref) {
     const lineMeshRef = useRef<THREE.Mesh>(null);
     const arrowStartRef = useRef<THREE.Mesh>(null);
     const arrowEndRef = useRef<THREE.Mesh>(null);
@@ -274,8 +271,6 @@ const LayoutLinkOverlay = forwardRef<EdgeHandle, { viaEdge: boolean }>(
             color={SHADING_PARAM_LAYOUT_LINK_COLOR}
             emissive={LAYOUT_LINK_EMISSIVE_COLOR}
             emissiveIntensity={SHADING_PARAM_LAYOUT_LINK_EMISSIVE_INTENSITY}
-            transparent={!viaEdge}
-            opacity={viaEdge ? 1 : 0.35}
           />
         </mesh>
         {coneMesh(arrowStartRef)}
@@ -293,17 +288,14 @@ export function EdgeTubes({ capacity, layoutLinkCapacity }: { capacity: number; 
   // selection change (which moves no endpoint) toggles the halo without touching the tubes.
   const [selRow, setSelRow] = useState(-1);
   const [showCascade, setShowCascade] = useState(false);
-  // Mounted layout-link slot count + each slot's viaEdge flag (line color/opacity). Both are
-  // low-frequency (a link gains/loses its bead edge, or the overlay toggles) — not per-frame.
+  // Mounted layout-link slot count — low-frequency (a link is added/removed, or the
+  // overlay toggles) — not per-frame.
   const [linkCount, setLinkCount] = useState(0);
-  const [linkViaEdge, setLinkViaEdge] = useState<boolean[]>([]);
 
   // Imperative handles to every mounted slot — this is the per-frame coordinate channel that
   // replaces the old setSegs/setLinkSegs state (see the timing contract at the top of file).
   const edgeHandles = useRef<(EdgeHandle | null)[]>([]);
   const linkHandles = useRef<(EdgeHandle | null)[]>([]);
-  // Scratch reused each frame so viaEdge comparison allocates nothing on the steady path.
-  const linkViaScratch = useRef<boolean[]>([]);
 
   useFrame(() => {
     const blocks = getViewBlocks();
@@ -353,45 +345,29 @@ export function EdgeTubes({ capacity, layoutLinkCapacity }: { capacity: number; 
     }
     if (sel !== selRow) setSelRow(sel);
 
-    // Layout-link overlay: Go-streamed pairs (LayoutLink block). Each pair's endpoints are the
-    // connecting bead edge's own port-anchored SX..EZ (Edge block, row = this pair's EdgeRow) —
-    // the same points the bead wire uses, so the overlay terminates at the ports and stays
-    // attached as a node is dragged. Fallback (EdgeRow === -1): the two nodes' CENTERS from the
-    // Node block — an honest degradation, rendered dimmer (viaEdge=false).
+    // Cascade-link overlay: Go-streamed pairs (LayoutLink block, sourced from each node's
+    // OWN cascade-edges.json — see node_mover.go's cascadeEdges doc comment). This is its
+    // OWN edge between the two NODES' CENTERS — it never references or rides along a bead
+    // edge, so it can never be coupled to (or dimmed/tinted by) the bead edge's own
+    // selection/opacity state.
     // Both overlay flags (0/1 columns) must be set. Coerce each side explicitly with `> 0`.
     const cascade = readOverlayOverlaysVis(overlayView) > 0 && readOverlayCascadeLinks(overlayView) > 0;
     if (cascade !== showCascade) setShowCascade(cascade);
 
-    // Clamp with the layout-link's OWN capacity, never the edge `capacity`: layout links come
-    // from LocalPolars (not the Edge block), so layoutLinkCount is independent of edgeCount and
-    // can exceed edgeCap — clamping by edgeCap silently dropped links.
+    // Clamp with the layout-link's OWN capacity, never the edge `capacity`: cascade links
+    // are independent of edgeCount — clamping by edgeCap silently dropped links.
     const linkN = Math.min(layoutLinkCount, layoutLinkCapacity);
     if (linkN !== linkCount) setLinkCount(linkN);
 
-    const via = linkViaScratch.current;
-    via.length = linkN;
     for (let i = 0; i < linkN; i++) {
-      const edgeRow = readLayoutLinkEdgeRow(layoutLinkView, i);
-      let seg: EdgeSeg;
-      if (edgeRow >= 0 && edgeRow < bufEdgeCount) {
-        const [sx, sy, sz] = portEndpoint(srcPortRowAt(edgeRow));
-        const [ex, ey, ez] = portEndpoint(dstPortRowAt(edgeRow));
-        seg = { sx, sy, sz, ex, ey, ez };
-        via[i] = true;
-      } else {
-        const srcRow = readLayoutLinkSrcNodeRow(layoutLinkView, i);
-        const dstRow = readLayoutLinkDstNodeRow(layoutLinkView, i);
-        seg = {
-          sx: readNodeCX(nodeView, srcRow), sy: readNodeCY(nodeView, srcRow), sz: readNodeCZ(nodeView, srcRow),
-          ex: readNodeCX(nodeView, dstRow), ey: readNodeCY(nodeView, dstRow), ez: readNodeCZ(nodeView, dstRow),
-        };
-        via[i] = false;
-      }
+      const srcRow = readLayoutLinkSrcNodeRow(layoutLinkView, i);
+      const dstRow = readLayoutLinkDstNodeRow(layoutLinkView, i);
+      const seg: EdgeSeg = {
+        sx: readNodeCX(nodeView, srcRow), sy: readNodeCY(nodeView, srcRow), sz: readNodeCZ(nodeView, srcRow),
+        ex: readNodeCX(nodeView, dstRow), ey: readNodeCY(nodeView, dstRow), ez: readNodeCZ(nodeView, dstRow),
+      };
       linkHandles.current[i]?.update(seg);
     }
-    // viaEdge drives per-slot material — a prop, so commit it only when the vector changes.
-    const viaChanged = linkViaEdge.length !== linkN || via.some((v, i) => v !== linkViaEdge[i]);
-    if (viaChanged) setLinkViaEdge(via.slice(0, linkN));
   });
 
   return (
@@ -409,7 +385,6 @@ export function EdgeTubes({ capacity, layoutLinkCapacity }: { capacity: number; 
         <LayoutLinkOverlay
           key={`layout-link-row-${i}`}
           ref={(h) => { linkHandles.current[i] = h; }}
-          viaEdge={!!linkViaEdge[i]}
         />
       ))}
     </>

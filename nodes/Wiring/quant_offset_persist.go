@@ -145,3 +145,16 @@ func WriteLocalPolars(root, id string, lps []wire.LocalPolar, pole dir) error {
 		LocalPolars: out, LocalPoleTheta: pole.Theta, LocalPolePhi: pole.Phi,
 	})
 }
+
+// cascadeEdgesFileJSON is the shape of nodes/<id>/cascade-edges.json: a plain hand-authored
+// list of this node's cascade-neighbor ids (specNode.CascadeEdges doc comment). There is
+// no writer in this codebase — these are seed files, authored directly, not produced by any
+// runtime persist path (unlike local-polars.json/position.json above).
+type cascadeEdgesFileJSON struct {
+	CascadeEdges []string `json:"cascadeEdges"`
+}
+
+// cascadeEdgesFilePath is <root>/nodes/<id>/cascade-edges.json.
+func cascadeEdgesFilePath(root, id string) string {
+	return filepath.Join(root, "nodes", id, "cascade-edges.json")
+}

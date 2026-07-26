@@ -93,7 +93,7 @@ func (sw *streamWiring) setEdgeStreams(
 // own dedicated interior-fd — the two emitting goroutines per node (memory/
 // feedback_no_single_writer_bridge.md). nodeBase/interiorBase are the two fd ranges' base
 // fds; row is the STABLE node-seed order (nodeSeeds, the same spec order the Node block
-// uses). nodeRowFor/edgeRowForPair/buildFrame/buildInteriorFrame are injected funcs (not
+// uses). nodeRowFor/buildFrame/buildInteriorFrame are injected funcs (not
 // a Buffer import), matching setEdgeStreams' existing pattern. Selection/hover/abc-drag/
 // kind are NOT injected lookups: each nodeMover owns its OWN selected/hovered/
 // latchedSel/gotDragMsg/dragDelta*/kindID fields, set via moveMsgKindSelect/Hover/
@@ -105,8 +105,7 @@ func (sw *streamWiring) setNodeStreams(
 	nodeMovers map[string]*nodeMover,
 	nodeBase, interiorBase int,
 	nodeRowFor func(id string) (int32, bool),
-	edgeRowForPair func(a, b string) (int32, bool),
-	buildFrame func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount int32, gotForwardMsg uint8, forwardDeltaA, forwardDeltaB, forwardDeltaC, forwardFromRow int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows, edgeRows []int32, events []wire.RowEvent) []byte,
+	buildFrame func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount int32, gotForwardMsg uint8, forwardDeltaA, forwardDeltaB, forwardDeltaC, forwardFromRow int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows []int32, events []wire.RowEvent) []byte,
 	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte,
 	kindIDFor func(kind string) uint8,
 ) {
@@ -126,7 +125,6 @@ func (sw *streamWiring) setNodeStreams(
 			nm.kindID = kindIDFor(seed.Kind)
 		}
 		nm.nodeRowFor = nodeRowFor
-		nm.edgeRowForPair = edgeRowForPair
 		nm.buildFrame = buildFrame
 
 		iFd := interiorBase + row

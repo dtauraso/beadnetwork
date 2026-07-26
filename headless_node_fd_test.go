@@ -39,7 +39,8 @@ func TestHeadlessNodeFdDedicatedStream(t *testing.T) {
 		// Combined frame layout (Buffer.BuildNodeStreamFrame): [tick:u32][portCount:u32]
 		// [labelLen:u32][portNameBytesCount:u32][layoutLinkCount:u32] + Node row + label
 		// bytes + Port rows + port-name bytes + LayoutLink rows
-		// ([DstNodeRow:i32][EdgeRow:i32] each, BufNodeStreamLayoutLinkStride bytes).
+		// ([DstNodeRow:i32] each, BufNodeStreamLayoutLinkStride bytes — no edge-row column;
+		// the cascade-link overlay draws node-center to node-center, never along a bead edge).
 		const hdrSize = 20
 		if len(frame) < hdrSize+B.BufNodeStride {
 			t.Fatalf("node row %d: frame too short (%d bytes) to hold header+Node row", row, len(frame))
@@ -84,33 +85,27 @@ func TestHeadlessNodeFdDedicatedStream(t *testing.T) {
 			}
 		}
 		// Every LayoutLink row's DstNodeRow must be a valid, DIFFERENT node row (never
-		// this node's own row — a node is never its own layout-link partner). EdgeRow is
-		// either -1 (no bead edge connects the pair — the node-centers overlay fallback)
-		// or a non-negative resolved edge row; either is valid, so only the sign is
-		// checked here (its exact value is cross-checked against the Edge block by the
-		// TS-side EdgeTube/node-stream-blocks tests, not this Go-side frame-shape test).
+		// this node's own row — a node is never its own layout-link partner). No EdgeRow
+		// column to check: the cascade-link overlay draws between the two nodes' CENTERS
+		// (Node block), never along a bead edge.
 		for l := 0; l < int(layoutLinkCount); l++ {
 			rowOff := layoutLinksOff + l*B.BufNodeStreamLayoutLinkStride
 			dstNodeRow := int32(readU32(frame, rowOff))
-			edgeRow := int32(readU32(frame, rowOff+4))
 			if dstNodeRow < 0 || int(dstNodeRow) >= len(nodeFrames) {
 				t.Fatalf("node row %d: layout-link %d DstNodeRow=%d out of range [0,%d)", row, l, dstNodeRow, len(nodeFrames))
 			}
 			if int(dstNodeRow) == row {
 				t.Fatalf("node row %d: layout-link %d DstNodeRow equals its own row (self-link)", row, l)
 			}
-			if edgeRow < -1 {
-				t.Fatalf("node row %d: layout-link %d EdgeRow=%d invalid (must be -1 or >= 0)", row, l, edgeRow)
-			}
 		}
 		totalLayoutLinks += int(layoutLinkCount)
 	}
-	// This topology's local-polars data (topology/nodes/*/local-polars.json) declares real
-	// cascade-link pairs — the per-node streams must actually carry SOME layout-links, not
-	// silently zero every row (a real regression: e.g. layoutLinkTos never wired, or every
-	// dst id failing to resolve a node row).
+	// This topology's cascade-edges data (topology/nodes/*/cascade-edges.json) declares
+	// real cascade-link pairs — the per-node streams must actually carry SOME
+	// layout-links, not silently zero every row (a real regression: e.g. cascadeEdges
+	// never wired, or every dst id failing to resolve a node row).
 	if totalLayoutLinks == 0 {
-		t.Fatalf("no node row streamed any layout-link — expected this topology's local-polars pairs to appear on their source node's own fd")
+		t.Fatalf("no node row streamed any layout-link — expected this topology's cascade-edges pairs to appear on their source node's own fd")
 	}
 
 	for row, frame := range interiorFrames {

@@ -1,32 +1,34 @@
 package Wiring
 
-// delta_forward_test.go — proves the CASCADE-LINK delta-forward model
-// (cascade_links.go's computeCascadeLinks, nodeMover.forwardDelta,
-// moveMsgKindDeltaForward): the forwarding graph is every edge MINUS a few
-// cycle-closing links (the cascade-link set), so "forward to my cascade-link neighbors,
-// excluding the sender, concurrently" is loop-free BY CONSTRUCTION — there is no runtime
-// visit-tracking or once-per-drag guard — every node relays on EVERY move it receives,
-// never crossing a non-cascade link, and the forwarded log stays in sync with the drag
-// as it continues to move (instead of freezing at the first delta, as the old
-// forwardedThisDrag guard did).
+// delta_forward_test.go — proves the STORED cascade-edges delta-forward model
+// (nodes/<id>/cascade-edges.json, specNode.CascadeEdges, nodeMover.cascadeEdges,
+// nodeMover.forwardDelta, moveMsgKindDeltaForward): each node's cascade-neighbor list is
+// hand-authored/persisted FILE DATA, not derived from the domain-edge/local-polar
+// adjacency at load. "Forward to my stored cascade-edge neighbors, excluding the sender,
+// concurrently" is loop-free BY CONSTRUCTION because the seeded set already omits the
+// two cycle-closing links (6-9, 8-10) — there is no runtime visit-tracking or
+// once-per-drag guard — every node relays on EVERY move it receives, never crossing a
+// non-cascade link, and the forwarded log stays in sync with the drag as it continues to
+// move (instead of freezing at the first delta, as the old forwardedThisDrag guard did).
 //
 // Real repo topology (topology/) adjacency (edges/*.json):
 //
 //	1: 2,3   2: 1,5,6   3: 1,9   5: 2,7,8   6: 2,9,10   7: 5   8: 5,10   9: 3,6   10: 6,8
 //
-// The deterministic spanning-tree walk (BFS from the lexicographically-smallest node id
-// "1", visiting each node's neighbors in sorted id order) yields the cascade-link set
-// 1-2, 1-3, 2-5, 2-6, 3-9, 5-7, 5-8, 6-10 — leaving exactly two non-cascade (cycle-closing)
-// links: 6-9 and 8-10. TestCascadeLinkSetIsDeterministic pins this explicitly.
+// The seeded nodes/<id>/cascade-edges.json files carry every edge except 6-9 and 8-10:
+// 1-2, 1-3, 2-5, 2-6, 3-9, 5-7, 5-8, 6-10. TestCascadeEdgesLoadedFromStoredFiles pins this
+// explicitly.
 //
 // Dragging leaf node 7 makes 5 the sole direct recipient (gotDragMsg); every other node
 // (1,2,3,6,8,9,10) must end up with gotForwardMsg==1 carrying the SAME delta triple 5
-// received, via the cascade-link set (never crossing 6-9 or 8-10).
+// received, via the stored cascade-edges graph (never crossing 6-9 or 8-10).
 import (
 	"context"
 	"encoding/binary"
 	"path/filepath"
+	"reflect"
 	"runtime"
+	"sort"
 	"sync"
 	"testing"
 	"time"
@@ -46,11 +48,25 @@ func repoRootForDeltaForwardTest(t *testing.T) string {
 	return filepath.Join(filepath.Dir(thisFile), "..", "..")
 }
 
-// TestCascadeLinkSetIsDeterministic pins the exact cascade-link set the deterministic
-// BFS walk yields for the real repo topology: every edge except {6-9, 8-10}. If the
-// topology or the walk's tie-break rule ever changes, this test documents and enforces
-// the expected result rather than letting it silently drift.
-func TestCascadeLinkSetIsDeterministic(t *testing.T) {
+// isCascadeLinkForTest reports whether b is in a's STORED cascade-edges list (or vice
+// versa) — the test-side replacement for the removed computed isCascadeLink, reading
+// directly off the loaded nodeMover field since this file lives in the same package.
+func isCascadeLinkForTest(md *MoveDispatch, a, b string) bool {
+	if nm, ok := md.mr.nodeMovers[a]; ok {
+		for _, to := range nm.cascadeEdges {
+			if to == b {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// TestCascadeEdgesLoadedFromStoredFiles pins the exact per-node cascade-edges the real
+// topology's nodes/<id>/cascade-edges.json seed files carry: every edge except {6-9,
+// 8-10}. If the topology or the seeded files ever change, this test documents and
+// enforces the expected result rather than letting it silently drift.
+func TestCascadeEdgesLoadedFromStoredFiles(t *testing.T) {
 	root := filepath.Join(repoRootForDeltaForwardTest(t), "topology")
 	tr := T.NewWithSinkHook(nil, nil)
 	_, _, md, _, err := LoadTopology(context.Background(), root, tr, wire.NewRealClock())
@@ -58,25 +74,37 @@ func TestCascadeLinkSetIsDeterministic(t *testing.T) {
 		t.Fatalf("LoadTopology(production topology): %v", err)
 	}
 
-	// Every real edge except 6-9 and 8-10 must be a cascade link.
-	cascadeEdges := []struct{ a, b string }{
-		{"1", "2"}, {"1", "3"}, {"2", "5"}, {"2", "6"}, {"3", "9"}, {"5", "7"}, {"5", "8"}, {"6", "10"},
+	want := map[string][]string{
+		"1":  {"2", "3"},
+		"2":  {"1", "5", "6"},
+		"3":  {"1", "9"},
+		"5":  {"2", "7", "8"},
+		"6":  {"2", "10"},
+		"7":  {"5"},
+		"8":  {"5"},
+		"9":  {"3"},
+		"10": {"6"},
 	}
-	for _, e := range cascadeEdges {
-		if !md.isCascadeLink(e.a, e.b) {
-			t.Errorf("expected %s-%s to be a cascade link, was not", e.a, e.b)
+	for id, wantEdges := range want {
+		nm, ok := md.mr.nodeMovers[id]
+		if !ok {
+			t.Fatalf("no nodeMover for %q", id)
+		}
+		got := append([]string(nil), nm.cascadeEdges...)
+		sort.Strings(got)
+		wantSorted := append([]string(nil), wantEdges...)
+		sort.Strings(wantSorted)
+		if !reflect.DeepEqual(got, wantSorted) {
+			t.Errorf("node %q cascadeEdges = %v, want %v", id, got, wantSorted)
 		}
 	}
-	if got := len(md.cascadeLinks); got != len(cascadeEdges) {
-		t.Errorf("cascade-link set size = %d, want %d (set = %v)", got, len(cascadeEdges), md.cascadeLinks)
-	}
-	// 6-9 and 8-10 must NOT be cascade links.
+	// 6-9 and 8-10 must NOT be cascade links in either direction.
 	wantNonCascade := []struct{ a, b string }{
-		{"6", "9"},
-		{"8", "10"},
+		{"6", "9"}, {"9", "6"},
+		{"8", "10"}, {"10", "8"},
 	}
 	for _, e := range wantNonCascade {
-		if md.isCascadeLink(e.a, e.b) {
+		if isCascadeLinkForTest(md, e.a, e.b) {
 			t.Errorf("expected %s-%s to NOT be a cascade link, was marked cascade", e.a, e.b)
 		}
 	}
@@ -155,7 +183,7 @@ func TestDeltaForwardPropagatesAcrossWholeGraphAndStaysInSync(t *testing.T) {
 
 	// Tap every mover's own outbound sends: record every moveMsgKindDeltaForward
 	// (sender -> dest) pair, across the whole test, so we can assert NONE of them cross
-	// a dead-end edge (6-9 or 8-10).
+	// a non-cascade link (6-9 or 8-10).
 	var mu sync.Mutex
 	var forwardSends []struct{ from, to string }
 	md.SetMsgTap(func(destID string, msg moveMsg) {
@@ -197,8 +225,8 @@ func TestDeltaForwardPropagatesAcrossWholeGraphAndStaysInSync(t *testing.T) {
 
 	// Every OTHER node in the connected graph (1,2,3,6,8,9,10 — everyone but the dragged
 	// leaf 7) must end up with gotForwardMsg==1 carrying the SAME delta triple, proving
-	// full-graph propagation via the tree (reachability survives cutting the two
-	// dead-end edges).
+	// full-graph propagation via the stored cascade-edges graph (reachability survives the two
+	// omitted non-cascade links).
 	reached := []string{"1", "2", "3", "6", "8", "9", "10"}
 	for _, id := range reached {
 		waitForNodeForwardMsg(t, bufs[id], func(got uint8, dA, dB, dC, _ int32) bool {
@@ -268,7 +296,7 @@ func TestDeltaForwardPropagatesAcrossWholeGraphAndStaysInSync(t *testing.T) {
 		t.Fatal("no moveMsgKindDeltaForward sends observed at all")
 	}
 	for _, s := range sendsSnapshot {
-		if !md.isCascadeLink(s.from, s.to) {
+		if !isCascadeLinkForTest(md, s.from, s.to) {
 			t.Errorf("delta-forward crossed a non-cascade link %s -> %s, should never happen", s.from, s.to)
 		}
 	}

@@ -36,10 +36,12 @@ import "encoding/binary"
 //	           port-name bytes)
 //	PortName   portNameBytesCount bytes (this node's own ports' name bytes, concatenated in
 //	           the same order as the Port rows above)
-//	LayoutLink layoutLinkCount × BufNodeStreamLayoutLinkStride bytes — the LAYOUT
-//	           cascade-link pairs for which THIS node is the SOURCE (see
-//	           nodes/Wiring/node_mover.go's layoutLinkTos doc comment): each row is
-//	           [DstNodeRow:i32][EdgeRow:i32], dstNodeRows/edgeRows parallel slices.
+//	LayoutLink layoutLinkCount × BufNodeStreamLayoutLinkStride bytes — the cascade-link
+//	           pairs for which THIS node is the lexicographically-smaller endpoint (see
+//	           nodes/Wiring/node_mover.go's cascadeEdges doc comment): each row is
+//	           [DstNodeRow:i32], dstNodeRows a single parallel slice. The overlay draws
+//	           between the two nodes' CENTERS (Node block), never a bead edge — no
+//	           edge-row travels here.
 func BuildNodeStreamFrame(
 	tick uint32, nodeRow int32,
 	cx, cy, cz, radius, sphereR float32,
@@ -52,7 +54,7 @@ func BuildNodeStreamFrame(
 	portNames []string,
 	portDX, portDY, portDZ, portPX, portPY, portPZ []float32,
 	portIsInput, portHovered []uint8,
-	dstNodeRows, edgeRows []int32,
+	dstNodeRows []int32,
 	events []StreamEvent,
 ) []byte {
 	labelBytes := []byte(label)
@@ -105,7 +107,6 @@ func BuildNodeStreamFrame(
 	for i := 0; i < layoutLinkCount; i++ {
 		rowOff := off + i*BufNodeStreamLayoutLinkStride
 		binary.LittleEndian.PutUint32(buf[rowOff:], uint32(dstNodeRows[i]))
-		binary.LittleEndian.PutUint32(buf[rowOff+4:], uint32(edgeRows[i]))
 	}
 
 	return append(buf, BuildEventsSection(events)...)

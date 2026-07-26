@@ -100,15 +100,6 @@ type MoveDispatch struct {
 	// public Lookup*/…RowFor methods below are thin delegators to it so the external
 	// API is unchanged.
 	rt rowTables
-
-	// cascadeLinks is the static, write-once cascade-link set (cascade_links.go),
-	// computed ONCE here in newMoveDispatch from the load-time edge endpoints: the
-	// full node adjacency MINUS the cycle-closing edges. Delta-forward
-	// (nodeMover.forwardDelta) only ever crosses a cascade link — that is what makes
-	// plain "forward to my neighbors, one hop, excluding the sender" loop-free by
-	// construction, with no runtime visit-tracking/once-per-drag guard. Read-only
-	// after construction; see isCascadeLink.
-	cascadeLinks map[string]bool
 }
 
 // newMoveDispatch builds the registry from per-node geometry and per-edge endpoints.
@@ -151,9 +142,6 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 	md.mr.edgeOut = map[string]*wire.Out{}
 	md.mr.centerMirror = map[string]vec3{}
 	md.lq.layoutHolders = map[string]*wire.LayoutHolder{}
-	// Static cascade-link set (see its doc comment) — computed once, deterministically,
-	// from the same edgeEndpoints every mover/channel wiring below is built from.
-	md.cascadeLinks = computeCascadeLinks(edgeEndpoints)
 	md.ui.ov = defaultOverlayState()
 	// Static partner-center lookup for the seed pass: every node's center is already known
 	// off the load-time geoms map, so this is the SAME buildPartnerCenterFn the dynamic
