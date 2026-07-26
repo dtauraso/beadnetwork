@@ -134,11 +134,7 @@ type rawHit struct {
 	// this row → node id via its own node-row table (nodeFromHit); no node id crosses the
 	// bridge.
 	NodeRow int
-	// HandholdTerm is the term-id for a handhold hit (+θ=0, +φ=1, -θ=2, -φ=3; see
-	// NavGuides.tsx HANDHOLD_TERM_TAG); -1 (or absent) when not a handhold hit. Decoded into
-	// (comp, sign) by the gesture FSM's rule-builder (gesture.go).
-	HandholdTerm int
-	IsInput      bool
+	IsInput bool
 }
 
 // SlotRegistry maps "targetNodeId.targetHandle" → *PacedWire.

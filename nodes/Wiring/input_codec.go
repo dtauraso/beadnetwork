@@ -43,8 +43,8 @@ import (
 // (npm run gen:node-defs) after bumping this whenever any record kind, field, or enum
 // ordering changes.
 //
-// INPUT_LAYOUT_FINGERPRINT: v19 kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock updateAttrs=toggle,speed overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays,doubleLinks
-const InputLayoutFingerprint = "v19 kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock updateAttrs=toggle,speed overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays,doubleLinks"
+// INPUT_LAYOUT_FINGERPRINT: v20 kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock updateAttrs=toggle,speed overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays,doubleLinks
+const InputLayoutFingerprint = "v20 kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock updateAttrs=toggle,speed overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays,doubleLinks"
 
 // Record kind bytes (first byte of every record).
 const (
@@ -277,7 +277,6 @@ func decodeRawInput(r *recReader) (rawInputMsg, bool) {
 	ev.Hit.NodeRow = i()
 	ev.Hit.PortRow = i()
 	ev.Hit.EdgeRow = i()
-	ev.Hit.HandholdTerm = i()
 	if e != nil || ev.Kind == "" || ev.Hit.Kind == "" {
 		return ev, false
 	}
@@ -345,7 +344,6 @@ func encodeRawInput(ev rawInputMsg) []byte {
 	w.i32(int32(ev.Hit.NodeRow))
 	w.i32(int32(ev.Hit.PortRow))
 	w.i32(int32(ev.Hit.EdgeRow))
-	w.i32(int32(ev.Hit.HandholdTerm))
 	return w.b
 }
 
