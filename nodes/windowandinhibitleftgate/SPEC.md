@@ -4,6 +4,7 @@
 
 | Field | Value |
 |-------|-------|
+| kindId | 6 |
 | kind | windowAndInhibitLeftGate |
 | bg | #fce4ec |
 | border | #880e4f |

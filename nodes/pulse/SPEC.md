@@ -4,6 +4,7 @@
 
 | Field | Value |
 |-------|-------|
+| kindId | 5 |
 | kind | pulse |
 | bg | #e1f5fe |
 | border | #01579b |

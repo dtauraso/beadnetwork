@@ -4,6 +4,7 @@
 
 | Field | Value |
 |-------|-------|
+| kindId | 3 |
 | kind | input |
 | bg | #e0e0e0 |
 | border | #666 |

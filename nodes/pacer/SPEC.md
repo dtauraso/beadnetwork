@@ -4,6 +4,7 @@
 
 | Field | Value |
 |-------|-------|
+| kindId | 4 |
 | kind | pacer |
 | bg | #e8f5e9 |
 | border | #2e7d32 |

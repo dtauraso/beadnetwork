@@ -345,13 +345,16 @@ func TestWriteNodeDims_EmitsPerKindDimensionsWithDefaults(t *testing.T) {
 	}
 }
 
-func TestWriteNodeKindID_IndexMatchesInputOrder(t *testing.T) {
+func TestWriteNodeKindID_UsesStoredKindID(t *testing.T) {
 	dir := t.TempDir()
 	outPath := filepath.Join(dir, "node_kind_id_gen.go")
+	// Deliberately out of alphabetical order and with a non-contiguous id (5) to
+	// prove the emitted id comes from the stored kindID field, not sort position
+	// or input order (finding B: ids are stable, assigned-once facts).
 	kinds := []kindEntry{
-		{goKind: "Alpha"},
-		{goKind: "Beta"},
-		{goKind: "Gamma"},
+		{goKind: "Gamma", kindID: 5},
+		{goKind: "Alpha", kindID: 0},
+		{goKind: "Beta", kindID: 2},
 	}
 	if err := writeNodeKindID(outPath, kinds); err != nil {
 		t.Fatalf("writeNodeKindID: %v", err)
@@ -363,17 +366,17 @@ func TestWriteNodeKindID_IndexMatchesInputOrder(t *testing.T) {
 	out := string(data)
 	// gofmt column-aligns the map literal, so match key and value on
 	// separate substrings rather than an exact adjacent string.
-	for i, e := range kinds {
+	for _, e := range kinds {
 		keyWant := `"` + e.goKind + `":`
 		if !strings.Contains(out, keyWant) {
 			t.Errorf("output missing key %q:\n%s", keyWant, out)
 			continue
 		}
-		valWant := itoa(i) + ",\n"
+		valWant := itoa(int(e.kindID)) + ",\n"
 		lineStart := strings.Index(out, keyWant)
 		line := out[lineStart : lineStart+len(keyWant)+20]
 		if !strings.Contains(line, valWant) {
-			t.Errorf("kind %q: line %q does not contain index %d (index must equal input order, which callers guarantee is alphabetical)", e.goKind, line, i)
+			t.Errorf("kind %q: line %q does not contain its stored kindID %d", e.goKind, line, e.kindID)
 		}
 	}
 }
@@ -530,7 +533,7 @@ func TestParseSpecMD_ParsesViewAndPortsTables(t *testing.T) {
 | in1 | in | #abcdef | value | yes |
 `
 	writeFile(t, dir, "SPEC.md", spec)
-	view, accent, edgeKind, optional, err := parseSpecMD(dir)
+	view, accent, edgeKind, optional, _, err := parseSpecMD(dir)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -551,7 +554,7 @@ func TestParseSpecMD_ParsesViewAndPortsTables(t *testing.T) {
 func TestParseSpecMD_MissingViewSectionIsError(t *testing.T) {
 	dir := t.TempDir()
 	writeFile(t, dir, "SPEC.md", "# Fake\n\nNo view section here.\n")
-	if _, _, _, _, err := parseSpecMD(dir); err == nil {
+	if _, _, _, _, _, err := parseSpecMD(dir); err == nil {
 		t.Fatal("want error when ## View section is missing, got nil")
 	}
 }

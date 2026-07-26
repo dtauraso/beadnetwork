@@ -51,14 +51,32 @@ func TestRegistryMatchesGeneratedKindTable(t *testing.T) {
 		seen[id] = kind
 	}
 
-	// IDs are a 0-based contiguous index over the generated table. If every table entry
-	// is registered, the IDs collected above are exactly 0..len(Registry)-1. A hole means
-	// a kind exists in the table but never registered — the stale-kinds_generated.go case.
-	for want := 0; want < len(Wiring.Registry); want++ {
-		if _, ok := seen[uint8(want)]; !ok {
-			t.Errorf("no registered kind has KindID %d — a kind is in the generated table but "+
-				"never registered.\n  Its package is probably missing from kinds_generated.go "+
-				"(run: go run ./tools/gen-node-defs).", want)
+	// IDs are STABLE and assigned once per kind (nodes/<Kind>/SPEC.md's "kindId" field) —
+	// NOT a contiguous 0..N-1 index, so a gap left by a removed kind is legal and must
+	// not be flagged. What must still hold (the actual purpose of this test, preserved
+	// from the old contiguity check) is that the set of REGISTERED kinds and the set of
+	// kinds in the GENERATED table are exactly equal: every table entry corresponds to a
+	// registered kind, catching a stale kinds_generated.go (a kind in the table whose
+	// package's blank import is missing, so its init() never ran and it never registered).
+	registeredNames := map[string]bool{}
+	for kind := range Wiring.Registry {
+		registeredNames[kind] = true
+	}
+	tableNames := map[string]bool{}
+	for _, kind := range B.KnownKinds() {
+		tableNames[kind] = true
+	}
+	for kind := range tableNames {
+		if !registeredNames[kind] {
+			t.Errorf("kind %q is in the generated kind table but never registered.\n"+
+				"  Its package is probably missing from kinds_generated.go "+
+				"(run: go run ./tools/gen-node-defs).", kind)
+		}
+	}
+	for kind := range registeredNames {
+		if !tableNames[kind] {
+			t.Errorf("kind %q is registered but not in the generated kind table "+
+				"(run: cd tools/topology-vscode && npm run gen:node-defs).", kind)
 		}
 	}
 }
