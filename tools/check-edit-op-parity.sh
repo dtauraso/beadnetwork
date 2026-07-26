@@ -149,8 +149,11 @@ TS_FLAGS=$(between OVERLAY_FLAGS_START OVERLAY_FLAGS_END "$MESSAGES_TS" | quoted
 assert_nonempty "$TS_FLAGS" "axis3 messages.ts overlay flags"
 # Per-flag buffer reads: the distinct readOverlay* function names used in overlay-flags.ts.
 RENDER_READS=$(grep -aoE 'readOverlay[A-Za-z]+\(v\)' "$OVERLAY_FLAGS_TS" | sort -u)
-# OverlayFlagVals object keys: property lines inside the `cachedVals = { … };` literal.
-RENDER_KEYS=$(awk '/cachedVals = \{/{p=1;next} p&&/^[[:space:]]*};/{p=0} p&&/^[[:space:]]*[a-zA-Z_]+:/{print}' "$OVERLAY_FLAGS_TS" | grep -aoE '^[[:space:]]*[a-zA-Z_]+:' | sort -u)
+# OverlayFlagVals object keys: property lines inside the `… : OverlayFlagVals = { … };`
+# literal. Keyed off the OverlayFlagVals TYPE annotation (stable), not the assigned var name
+# (which changed from `cachedVals` to a `next` local when the bit-packing cache became a
+# value-equality cache) — so a variable rename can't blind this extraction.
+RENDER_KEYS=$(awk '/OverlayFlagVals = \{/{p=1;next} p&&/^[[:space:]]*};/{p=0} p&&/^[[:space:]]*[a-zA-Z_]+:/{print}' "$OVERLAY_FLAGS_TS" | grep -aoE '^[[:space:]]*[a-zA-Z_]+:' | sort -u)
 assert_nonempty "$RENDER_READS" "axis3 overlay-flags.ts readOverlay* reads"
 assert_nonempty "$RENDER_KEYS" "axis3 overlay-flags.ts OverlayFlagVals keys"
 N_FLAGS=$(printf '%s\n' "$TS_FLAGS" | grep -c .)
