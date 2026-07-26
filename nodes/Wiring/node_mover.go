@@ -107,9 +107,8 @@ type nodeMover struct {
 	// fail). There is no separate per-node "Update()" writer goroutine — that was the
 	// retired SLICE 3 architecture.
 	// centerOut is this node's OWN dedicated one-slot delivery channel to the
-	// DISPATCH goroutine's owned center mirror (moverRegistry.centerMirror) — the
-	// message-delivered replacement for the old atomic.Pointer[centerSnap] snap. A
-	// size-1 buffered channel written with LATEST-WINS semantics (applyCenter drains
+	// DISPATCH goroutine's owned center mirror (moverRegistry.centerMirror).
+	// A size-1 buffered channel written with LATEST-WINS semantics (applyCenter drains
 	// any stale unread value before sending the fresh one, never blocking): only the
 	// newest pushed center matters to a framing read, so an unread stale value is
 	// simply overwritten rather than queued. Only this node's own goroutine
@@ -138,21 +137,17 @@ type nodeMover struct {
 	// partnerCenter resolves, per (port,isInput) on this node, the CURRENT world center of
 	// the single partner node connected via one edge (aimed-port model, port_geometry.go
 	// portWorldPosAimed / builders.go partnerCenterFn). Wired by newMoveDispatch from
-	// b.edgeEndpoints + the OTHER nodeMover's atomic snap — a dynamic, always-current lookup
-	// with no shared mutable state. nil only in tests that build a bare nodeMover directly.
+	// b.edgeEndpoints + the OTHER nodeMover's own partnerCenters map — a dynamic,
+	// always-current lookup with no shared mutable state. nil only in tests that build
+	// a bare nodeMover directly.
 	partnerCenter partnerCenterFn
 	// partnerCenters is THIS node's OWN copy of every direct neighbor's last-known
-	// world center — the delivery-mechanism replacement for the old cross-goroutine
-	// `other.snap.Load().c` read: partnerCenter's closure (above) now reads this map
-	// instead of reaching into another mover's atomic snap. Written ONLY by this
-	// node's own goroutine: seeded once at construction (newMoveDispatch, single-
+	// world center; partnerCenter's closure (above) reads this map. Written ONLY by
+	// this node's own goroutine: seeded once at construction (newMoveDispatch, single-
 	// threaded setup) from each neighbor's load-time geom, then kept current by the
 	// moveMsgKindNeighborCenter handler in handle() below, fed by every direct
 	// neighbor's own applyCenter push. Never read or written by any other goroutine —
-	// the atomic snap (nm.snap) remains the cross-goroutine-safe publication point for
-	// every OTHER reader (stdin reader, the gesture/quantize oracle); this map exists
-	// solely to serve THIS node's own partnerCenter lookups without touching that
-	// atomic.
+	// this map exists solely to serve THIS node's own partnerCenter lookups.
 	partnerCenters map[string]vec3
 	// quantOffset is THIS node's own quantized polar offset (iTheta,iPhi,iR + step
 	// constants) about the scene center — the per-node replacement for the formerly
@@ -183,8 +178,8 @@ type nodeMover struct {
 	// tap is a TEST-ONLY observability seam: when non-nil, THIS mover's own enqueueFor
 	// closure invokes it with every (destID, msg) it routes, before appending to
 	// pending. nil in production — production code never calls MoveDispatch.SetMsgTap,
-	// so this stays nil and every enqueueFor call skips it with one plain nil check, no
-	// atomic, no lock. Owned entirely by this mover: set once before Start (by
+	// so this stays nil and every enqueueFor call skips it with one plain nil check.
+	// Owned entirely by this mover: set once before Start (by
 	// SetMsgTap, which runs on the setup goroutine before any mover goroutine is
 	// launched — happens-before every later read) and read only by this mover's own
 	// enqueueFor closure, which only ever runs on this mover's own goroutine. It is pure
@@ -291,8 +286,7 @@ func newNodeMover(id string, geom nodeGeom, tr *T.Trace, clockSrc wire.Clock) *n
 	}
 	// Self-seed centerOut with the initial geometry (even when !HasPos, in which case
 	// nodeWorldPos falls back to the origin) so the dispatch goroutine's first drain
-	// always finds a valid center — decentralized, same as the old atomic snap's
-	// construction-time seed, and covers every construction path (not just
+	// always finds a valid center — covers every construction path (not just
 	// newMoveDispatch's loop, which additionally seeds moverRegistry.centerMirror
 	// directly before any mover goroutine runs).
 	nm.centerOut <- nodeWorldPos(geom)
@@ -467,8 +461,7 @@ func (m *nodeMover) applyCenter(center vec3, reach float64) {
 	}
 	// Push this fresh center to every direct neighbor (nm.neighborIn's key set — one
 	// hop, no cascade) so each neighbor's OWN partnerCenters map picks it up via
-	// moveMsgKindNeighborCenter (handle, below) — the delivery-mechanism replacement
-	// for the old cross-goroutine atomic snap read. Routed through m.sendMove (this
+	// moveMsgKindNeighborCenter (handle, below). Routed through m.sendMove (this
 	// node's own retry queue), same as every other fan-out this file makes, so a
 	// momentarily-full neighbor inbox is retried, never dropped or blocking. Sent
 	// BEFORE this same commit's broadcastToEdgesAndPartners nil-Center re-emit (called
@@ -484,8 +477,9 @@ func (m *nodeMover) applyCenter(center vec3, reach float64) {
 }
 
 // emitGeometry re-emits this node's authoritative geometry. A CONNECTED port marker is
-// AIMED at its partner's current center (m.partnerCenter, atomic-snapshot-backed); an
-// edgeless port falls back to its own polar-torus ring-anchor placement (portWorldPos).
+// AIMED at its partner's current center (m.partnerCenter, backed by this node's own
+// message-updated partnerCenters map); an edgeless port falls back to its own
+// polar-torus ring-anchor placement (portWorldPos).
 // This method, applyCenter, and setPortAnchorId (via handle) all run on
 // nodeMover's own inbox-drain goroutine only (see the doc comment on nodeMover.geom),
 // so a plain field read here can never race a concurrent writer.

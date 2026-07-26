@@ -49,6 +49,13 @@ readonly DEAD_COMMENT_TOKENS=(
   "fd-3 Node block"
   "fd3 binary side"
   "fd3 snapshot"
+  # atomic/lock comment audit (2026-07-25): nodes/Buffer have zero live atomics/mutexes
+  # (check-no-network-locks.sh); these tokens named a shared-state mechanism that never
+  # existed post-refactor or was deleted, and their reappearance re-teaches the wrong
+  # model (memory/feedback_no_atomics_are_defects.md).
+  "atomically-published"
+  "atomic-snapshot-backed"
+  "the atomic held"
 )
 
 fail=0

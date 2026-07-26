@@ -92,19 +92,17 @@ const (
 	// mover from resetAbcDrag.
 	moveMsgKindAbcReset = "abcReset"
 	// moveMsgKindNeighborCenter is the PUSH delivery of a moved node's fresh world
-	// center to one of its direct neighbors, replacing the old cross-goroutine
-	// `other.snap.Load().c` read the neighbor's aimed-port partnerCenter lookup used to
-	// perform. Sent from applyCenter (the sole write site of a node's own center)
+	// center to one of its direct neighbors, the neighbor's aimed-port partnerCenter
+	// lookup source. Sent from applyCenter (the sole write site of a node's own center)
 	// immediately after that node updates its own position, to EVERY node in its own
 	// neighborIn key set (one hop only — the receiver never forwards this). The
 	// receiver stores the pushed center in its OWN partnerCenters map (nodeMover.handle)
 	// and re-emits its own geometry so its aimed ports pick up the fresh partner
 	// center — same value, same timing (the FIFO per-destination retry queue delivers
 	// this before the existing nil-Center re-emit broadcastToEdgesAndPartners sends
-	// right after, so the re-emit always sees the just-pushed center), just delivered
-	// by message instead of a shared atomic read. Reuses the existing SenderID/
-	// FromCenter fields (same shape moveMsgKindNeighborSetC already carries: sender id
-	// + sender's fresh center).
+	// right after, so the re-emit always sees the just-pushed center). Reuses the
+	// existing SenderID/FromCenter fields (same shape moveMsgKindNeighborSetC already
+	// carries: sender id + sender's fresh center).
 	moveMsgKindNeighborCenter = "neighborCenter"
 )
 
@@ -120,7 +118,7 @@ const (
 //
 // testDone is the one exception and it is NOT a production mechanism: it exists only so
 // a test can block until an async mover has handled a message before asserting (see
-// node_move_test.go's `deliver`). It is needed because an edgeMover publishes no atomic
+// node_move_test.go's `deliver`). It is needed because an edgeMover publishes no
 // snapshot a test could safely poll. Production ALWAYS leaves it nil — if you find
 // yourself setting it outside a _test.go file, you are reintroducing the ack the model
 // forbids; make the receiver's own goroutine do the work instead.
@@ -317,9 +315,9 @@ func (md *MoveDispatch) PortRowFor(node, port string, isInput bool) (int32, bool
 
 // SetMsgTap installs (or clears, with nil) the test-only message-trace hook, on md.tapToInstall
 // AND on every already-constructed nodeMover's own nm.tap field. MUST be called before
-// Start (a setup-goroutine write to each mover's plain field — no atomic needed — is
-// safe only because it happens-before the mover goroutines are launched; there is no
-// concurrent access once Start has run). Test-only — production code never calls this.
+// Start (a setup-goroutine write to each mover's plain field is safe only because it
+// happens-before the mover goroutines are launched; there is no concurrent access once
+// Start has run). Test-only — production code never calls this.
 func (md *MoveDispatch) SetMsgTap(tap func(destID string, msg moveMsg)) {
 	md.tapToInstall = tap
 	for _, nm := range md.mr.nodeMovers {
@@ -460,10 +458,10 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 	md.lq.layoutHolders = map[string]*wire.LayoutHolder{}
 	md.ui.ov = defaultOverlayState()
 	// Static partner-center lookup for the seed pass: every node's center is already known
-	// off the load-time geoms map (no goroutine/atomic-snap needed), so this is the SAME
-	// buildPartnerCenterFn the dynamic movers use below, just closed over geoms directly
-	// instead of md.mr.nodeMovers' atomic snaps. Kept per-node (not shared) to match
-	// buildPartnerCenterFn's (nodeID, edgeEndpoints, centerOf) shape.
+	// off the load-time geoms map, so this is the SAME buildPartnerCenterFn the dynamic
+	// movers use below, just closed over geoms directly instead of each mover's own
+	// partnerCenters map. Kept per-node (not shared) to match buildPartnerCenterFn's
+	// (nodeID, edgeEndpoints, centerOf) shape.
 	seedPartnerCenter := func(nodeID string) partnerCenterFn {
 		return buildPartnerCenterFn(nodeID, edgeEndpoints, func(otherID string) vec3 {
 			if g, ok := geoms[otherID]; ok {
@@ -594,9 +592,8 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 	// edge (edgeEndpoints) and read the partner's CURRENT center off THIS node's OWN
 	// partnerCenters map (owned, written only by this node's own goroutine — see
 	// nm.partnerCenters' doc comment). This closure captures THIS iteration's nm (Go
-	// 1.22+ per-iteration loop vars), never another mover's fields — the cross-goroutine
-	// atomic snap read (other.snap.Load().c) is gone; the value now arrives by a
-	// moveMsgKindNeighborCenter push (applyCenter) instead.
+	// 1.22+ per-iteration loop vars), never another mover's fields — the value arrives
+	// by a moveMsgKindNeighborCenter push (applyCenter).
 	for id, nm := range md.mr.nodeMovers {
 		ownNM := nm
 		nm.partnerCenter = buildPartnerCenterFn(id, edgeEndpoints, func(otherID string) vec3 {

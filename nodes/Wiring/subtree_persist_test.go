@@ -21,9 +21,9 @@ func pollDragConverged(t *testing.T, md *MoveDispatch, nodeID string, target vec
 	const eps = 1e-6
 	deadline := time.Now().Add(2 * time.Second)
 	for {
-		// centerOfNode reads each nodeMover's own atomically-published snap directly —
-		// no separate drain step needed (production's RunStdinReader doesn't drain one
-		// either; movers publish their own snapshots).
+		// centerOfNode drains each nodeMover's centerOut channel into the dispatch's own
+		// centerMirror (drainCenterMirror) and reads that — same path production's
+		// RunStdinReader uses.
 		c, ok := md.centerOfNode(nodeID)
 		if ok && math.Abs(c.X-target.X) <= eps && math.Abs(c.Y-target.Y) <= eps && math.Abs(c.Z-target.Z) <= eps {
 			return

@@ -21,9 +21,8 @@ import (
 // wire.SendLatestNonBlocking whenever it changes; this goroutine is the
 // sole reader. cur is seeded to gatecommon.NoValue (the same seed the caller's
 // main loop stores into held before spawning this goroutine) and only
-// changes when heldCh actually delivers a value — this preserves the old
-// atomic.Load() behavior exactly, since the main loop's pre-spawn seed and
-// this goroutine's local seed start equal.
+// changes when heldCh actually delivers a value — the main loop's pre-spawn
+// seed and this goroutine's local seed start equal.
 //
 // The wire's own goroutine advances in-flight beads every cycle (one
 // position-step per tick, never jumping); this goroutine only PLACES a new

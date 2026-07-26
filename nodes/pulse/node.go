@@ -78,7 +78,7 @@ func (g *Node) Update(ctx context.Context) {
 	wire.TryEmit(g.EmitGeometry)
 
 	// held is owned by this main loop; cur is the main loop's OWN local copy
-	// (mirrors the seed the atomic used to carry — gatecommon.NoValue).
+	// (seeded to gatecommon.NoValue, same as held).
 	var cur int64 = gatecommon.NoValue
 	if g.EmitHeldBead != nil {
 		g.EmitHeldBead(gatecommon.NoValue) // startup: empty interior
