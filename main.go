@@ -146,6 +146,7 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 				camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
 				sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis, doubleLinks uint8,
 				abcDragCount uint32,
+				dragNodeRow int32,
 				sceneCX, sceneCY, sceneCZ, sceneRadius float32,
 				events []wire.RowEvent,
 			) []byte {
@@ -155,6 +156,7 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 						SceneTori: sceneTori, ScenePoles: scenePoles, NodePoles: nodePoles,
 						SelSpherePoles: selSpherePoles, Handholds: handholds, LabelsGlobal: labelsGlobal,
 						OverlaysVis: overlaysVis, DoubleLinks: doubleLinks, AbcDragCount: abcDragCount,
+						DragNodeRow: dragNodeRow,
 					},
 					sceneCX, sceneCY, sceneCZ, sceneRadius,
 					toStreamEvents(events))

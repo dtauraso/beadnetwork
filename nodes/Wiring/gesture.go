@@ -289,7 +289,15 @@ func (md *MoveDispatch) gestPointerUp(ev rawInputMsg, slotReg SlotRegistry, tr *
 		// buffer snapshot marks the node's Selected column.
 		md.applySelect(ev, tr)
 	}
+	wasDragging := g.phase == gestDragging
 	g.reset(&md.ui.vp.viewpoint)
+	if wasDragging {
+		// The drag just ended: g.dragNode is now "" (cleared by reset above), so the
+		// Overlay block's DragNodeRow column must go back to -1 promptly rather than
+		// waiting for the next unrelated view-frame emit. Mirrors commitDragStart's own
+		// emitViewFrame call at drag START.
+		md.emitViewFrame(nil)
+	}
 }
 
 // reset clears the gesture FSM back to idle at the end of every gesture (pointer-up).

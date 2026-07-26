@@ -1,25 +1,26 @@
 import { createPortal } from "react-dom";
-import { useAbcDragCount, useAbcDragRows } from "./overlay-flags";
+import { useAbcDragCount, useAbcDragRows, useDraggedNodeName } from "./overlay-flags";
 
-// AbcDragLabel — the in-editor "drag received" log. A header line carrying a live
-// count of abc-drag events, then ONE LINE PER RECIPIENT: that node's name and the
-// delta triple (dA,dB,dC) it received. The delta is the DRAGGED node's own
-// quantized-triple change, computed once at the drag and carried on the neighborSetC
-// message — a recipient reports the delta it was handed, it does not apply it.
+// AbcDragLabel — the in-editor "drag received" log. A header carrying the DRAGGED
+// node's own name (when a drag is in progress) plus a live count of abc-drag events,
+// then ONE LINE PER RECIPIENT: that node's name and the delta triple (dA,dB,dC) it
+// received. The delta is the DRAGGED node's own quantized-triple change, computed
+// once at the drag and carried on the neighborSetC message — a recipient reports the
+// delta it was handed, it does not apply it.
 //
-// All read-only from the content buffer (AbcDragCount Overlay column + the Node
-// block's per-row GotDragMsg flag and DragDeltaA/B/C columns), via the buffer-reflect
-// hooks in overlay-flags.ts. Go-owned and drag-scoped: Go clears the set AND zeroes
-// the count at drag start (KindAbcDragReset → resetAbcDrag) and emits the cleared
-// state, so an empty list (and a zeroed count) is meaningful and must render. The
-// count alone is still not enough to drive the per-recipient rows — the rows come
-// through their own hook.
+// All read-only from the content buffer (Overlay block's DragNodeRow + AbcDragCount
+// columns, plus the Node block's per-row Label section and GotDragMsg/DragDeltaA/B/C
+// columns), via the buffer-reflect hooks in overlay-flags.ts. Go owns dragged-node
+// identity as the gesture FSM's g.dragNode (nodes/Wiring/gesture.go); DragNodeRow
+// carries its ROW INDEX, and the name is resolved from that row's own Label — there
+// is no name/id sidecar. Go-owned and drag-scoped: Go clears the recipient set AND
+// zeroes the count at drag start (KindAbcDragReset → resetAbcDrag) and emits the
+// cleared state, so an empty list (and a zeroed count) is meaningful and must render.
 //
-// Node names live ONLY on the per-recipient lines, never duplicated into the header:
-// the header is the log's name line, the rows are the data.
 // No local state, no domain authoring. Mirrors SpeedSlider's portal-into-toolbar-mount
 // pattern, just reading instead of writing.
 export function AbcDragLabel() {
+  const draggedName = useDraggedNodeName();
   const count = useAbcDragCount();
   const rows = useAbcDragRows();
   const mount = document.getElementById("abc-drag-mount");
@@ -27,6 +28,9 @@ export function AbcDragLabel() {
 
   return createPortal(
     <span className="abc-drag-label">
+      {draggedName && (
+        <span className="abc-drag-label-header">dragging {draggedName}</span>
+      )}
       <span className="abc-drag-label-header">drag received ×{count}</span>
       {rows.map((r) => (
         <span className="abc-drag-label-row" key={r.name}>

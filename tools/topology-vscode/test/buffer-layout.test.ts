@@ -274,8 +274,8 @@ describe("buffer-layout — Camera block", () => {
 
 describe("buffer-layout — Overlay block", () => {
   it("stride equals packed field sizes", () => {
-    // 8×u8 + 1×u32 = 12 (8 overlay flags + AbcDragCount)
-    expect(OVERLAY_STRIDE).toBe(12);
+    // 8×u8 + 1×u32 + 1×i32 = 16 (8 overlay flags + AbcDragCount + DragNodeRow)
+    expect(OVERLAY_STRIDE).toBe(16);
   });
 
   it("column offsets are 0..7", () => {
