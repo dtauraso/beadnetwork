@@ -198,8 +198,17 @@ func (md *MoveDispatch) gestPointerDown(ev rawInputMsg, tr *T.Trace) {
 	g.portMoveNode = ""
 	g.handholdDown = false
 
-	switch ev.Hit.Kind {
-	case "port":
+	if h, ok := hitClassifiers[ev.Hit.Kind]; ok {
+		h(md, g, ev)
+	}
+}
+
+// hitClassifiers is gestPointerDown's dispatch table, keyed by the raycast hit kind. The
+// switch it replaces was TERMINAL in gestPointerDown (nothing ran after it), so each case's
+// `return` becomes a `return` from the handler func here — behavior-equivalent because
+// nothing downstream of the switch depended on falling through to it.
+var hitClassifiers = map[string]func(md *MoveDispatch, g *gestureState, ev rawInputMsg){
+	"port": func(md *MoveDispatch, g *gestureState, ev rawInputMsg) {
 		node, port, isInput, ok := md.portFromHit(ev.Hit)
 		if !ok {
 			return
@@ -217,22 +226,25 @@ func (md *MoveDispatch) gestPointerDown(ev rawInputMsg, tr *T.Trace) {
 			return
 		}
 		g.wireNode, g.wirePort, g.wireInput = node, port, isInput
-	case "handhold":
+	},
+	"handhold": func(md *MoveDispatch, g *gestureState, ev rawInputMsg) {
 		// Handhold grab → axis-locked (constrained) orbit. Freeze the sphere rotation frame
 		// now (mirrors interaction-handlers.ts: beginSphereRotation on a handhold hit).
 		g.handholdDown = true
 		md.beginSphereRotation(ev)
-	case "node":
+	},
+	"node": func(md *MoveDispatch, g *gestureState, ev rawInputMsg) {
 		if node, ok := md.nodeFromHit(ev.Hit); ok {
 			if c, ok := md.centerOfNode(node); ok {
 				g.dragNode = node
 				g.dragStartCenter = c
 			}
 		}
-	case "empty":
+	},
+	"empty": func(md *MoveDispatch, g *gestureState, ev rawInputMsg) {
 		g.emptyDown = true
 		md.beginSphereRotation(ev)
-	}
+	},
 }
 
 func (md *MoveDispatch) gestPointerMove(ev rawInputMsg, tr *T.Trace) {
