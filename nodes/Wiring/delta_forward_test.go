@@ -1,25 +1,27 @@
 package Wiring
 
-// delta_forward_test.go — proves the STATIC dead-end-edge delta-forward model
-// (dead_end_edges.go's computeDeadEndEdges, nodeMover.forwardDelta,
-// moveMsgKindDeltaForward): the forwarding graph is a spanning TREE (every edge minus the
-// static dead-end/cycle-closing edges), so there is no runtime visit-tracking or
-// once-per-drag guard — every node relays on EVERY move it receives, never crossing a
-// dead-end edge, and the forwarded log stays in sync with the drag as it continues to
-// move (instead of freezing at the first delta, as the old forwardedThisDrag guard did).
+// delta_forward_test.go — proves the CASCADE-LINK delta-forward model
+// (cascade_links.go's computeCascadeLinks, nodeMover.forwardDelta,
+// moveMsgKindDeltaForward): the forwarding graph is every edge MINUS a few
+// cycle-closing links (the cascade-link set), so "forward to my cascade-link neighbors,
+// excluding the sender, concurrently" is loop-free BY CONSTRUCTION — there is no runtime
+// visit-tracking or once-per-drag guard — every node relays on EVERY move it receives,
+// never crossing a non-cascade link, and the forwarded log stays in sync with the drag
+// as it continues to move (instead of freezing at the first delta, as the old
+// forwardedThisDrag guard did).
 //
 // Real repo topology (topology/) adjacency (edges/*.json):
 //
 //	1: 2,3   2: 1,5,6   3: 1,9   5: 2,7,8   6: 2,9,10   7: 5   8: 5,10   9: 3,6   10: 6,8
 //
 // The deterministic spanning-tree walk (BFS from the lexicographically-smallest node id
-// "1", visiting each node's neighbors in sorted id order) yields the tree edges
-// 1-2, 1-3, 2-5, 2-6, 3-9, 5-7, 5-8, 6-10 — leaving exactly two dead-end (cycle-closing)
-// edges: 6-9 and 8-10. TestDeadEndEdgeSetIsDeterministic pins this explicitly.
+// "1", visiting each node's neighbors in sorted id order) yields the cascade-link set
+// 1-2, 1-3, 2-5, 2-6, 3-9, 5-7, 5-8, 6-10 — leaving exactly two non-cascade (cycle-closing)
+// links: 6-9 and 8-10. TestCascadeLinkSetIsDeterministic pins this explicitly.
 //
 // Dragging leaf node 7 makes 5 the sole direct recipient (gotDragMsg); every other node
 // (1,2,3,6,8,9,10) must end up with gotForwardMsg==1 carrying the SAME delta triple 5
-// received, via the tree (never crossing 6-9 or 8-10).
+// received, via the cascade-link set (never crossing 6-9 or 8-10).
 import (
 	"context"
 	"encoding/binary"
@@ -44,11 +46,11 @@ func repoRootForDeltaForwardTest(t *testing.T) string {
 	return filepath.Join(filepath.Dir(thisFile), "..", "..")
 }
 
-// TestDeadEndEdgeSetIsDeterministic pins the exact dead-end (non-spanning-tree) edge set
-// the deterministic BFS walk yields for the real repo topology: {6-9, 8-10}. If the
+// TestCascadeLinkSetIsDeterministic pins the exact cascade-link set the deterministic
+// BFS walk yields for the real repo topology: every edge except {6-9, 8-10}. If the
 // topology or the walk's tie-break rule ever changes, this test documents and enforces
 // the expected result rather than letting it silently drift.
-func TestDeadEndEdgeSetIsDeterministic(t *testing.T) {
+func TestCascadeLinkSetIsDeterministic(t *testing.T) {
 	root := filepath.Join(repoRootForDeltaForwardTest(t), "topology")
 	tr := T.NewWithSinkHook(nil, nil)
 	_, _, md, _, err := LoadTopology(context.Background(), root, tr, wire.NewRealClock())
@@ -56,25 +58,26 @@ func TestDeadEndEdgeSetIsDeterministic(t *testing.T) {
 		t.Fatalf("LoadTopology(production topology): %v", err)
 	}
 
-	wantDeadEnds := []struct{ a, b string }{
+	// Every real edge except 6-9 and 8-10 must be a cascade link.
+	cascadeEdges := []struct{ a, b string }{
+		{"1", "2"}, {"1", "3"}, {"2", "5"}, {"2", "6"}, {"3", "9"}, {"5", "7"}, {"5", "8"}, {"6", "10"},
+	}
+	for _, e := range cascadeEdges {
+		if !md.isCascadeLink(e.a, e.b) {
+			t.Errorf("expected %s-%s to be a cascade link, was not", e.a, e.b)
+		}
+	}
+	if got := len(md.cascadeLinks); got != len(cascadeEdges) {
+		t.Errorf("cascade-link set size = %d, want %d (set = %v)", got, len(cascadeEdges), md.cascadeLinks)
+	}
+	// 6-9 and 8-10 must NOT be cascade links.
+	wantNonCascade := []struct{ a, b string }{
 		{"6", "9"},
 		{"8", "10"},
 	}
-	for _, de := range wantDeadEnds {
-		if !md.isDeadEndEdge(de.a, de.b) {
-			t.Errorf("expected %s-%s to be a dead-end edge, was not", de.a, de.b)
-		}
-	}
-	if got := len(md.deadEndEdges); got != len(wantDeadEnds) {
-		t.Errorf("dead-end edge set size = %d, want %d (set = %v)", got, len(wantDeadEnds), md.deadEndEdges)
-	}
-	// Every OTHER real edge must NOT be a dead-end.
-	treeEdges := []struct{ a, b string }{
-		{"1", "2"}, {"1", "3"}, {"2", "5"}, {"2", "6"}, {"3", "9"}, {"5", "7"}, {"5", "8"}, {"6", "10"},
-	}
-	for _, e := range treeEdges {
-		if md.isDeadEndEdge(e.a, e.b) {
-			t.Errorf("expected %s-%s to be a TREE edge, was marked dead-end", e.a, e.b)
+	for _, e := range wantNonCascade {
+		if md.isCascadeLink(e.a, e.b) {
+			t.Errorf("expected %s-%s to NOT be a cascade link, was marked cascade", e.a, e.b)
 		}
 	}
 }
@@ -254,7 +257,7 @@ func TestDeltaForwardPropagatesAcrossWholeGraphAndStaysInSync(t *testing.T) {
 	}
 
 	// Assert the forward wave settles (no more sends drift the state) and that NONE of
-	// the recorded forward sends ever crossed a dead-end edge (6-9 or 8-10, in either
+	// the recorded forward sends ever crossed a non-cascade link (6-9 or 8-10, in either
 	// direction).
 	time.Sleep(50 * time.Millisecond)
 	mu.Lock()
@@ -265,8 +268,8 @@ func TestDeltaForwardPropagatesAcrossWholeGraphAndStaysInSync(t *testing.T) {
 		t.Fatal("no moveMsgKindDeltaForward sends observed at all")
 	}
 	for _, s := range sendsSnapshot {
-		if md.isDeadEndEdge(s.from, s.to) {
-			t.Errorf("delta-forward crossed dead-end edge %s -> %s, should never happen", s.from, s.to)
+		if !md.isCascadeLink(s.from, s.to) {
+			t.Errorf("delta-forward crossed a non-cascade link %s -> %s, should never happen", s.from, s.to)
 		}
 	}
 

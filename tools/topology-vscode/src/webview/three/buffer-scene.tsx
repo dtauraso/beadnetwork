@@ -45,7 +45,7 @@ const INITIAL_BEAD_CAP  = 64;
 const INITIAL_NODE_CAP  = 32;
 const INITIAL_EDGE_CAP  = 32; // edge positions buffer: N edges × 2 endpoints × 3 floats
 const INITIAL_PORT_CAP  = 64; // port spheres: one per node port (input + output), grows as needed
-const INITIAL_LAYOUTLINK_CAP = 32; // layout double-link overlay pairs — from LocalPolars, NOT the Edge block, so its count is independent of edgeCount and needs its OWN cap
+const INITIAL_LAYOUTLINK_CAP = 32; // layout cascade-link overlay pairs — from LocalPolars filtered to the cascade-link set, NOT the Edge block, so its count is independent of edgeCount and needs its OWN cap
 
 // ── BufferScene ───────────────────────────────────────────────────────────────
 // Capacity manager: checks the latest snapshot each frame and grows per-block

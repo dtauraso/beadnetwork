@@ -33,7 +33,7 @@ import {
   readCameraPosTheta, readCameraPosPhi, readCameraUpTheta, readCameraUpPhi,
   readOverlaySceneTori, readOverlayScenePoles, readOverlayNodePoles,
   readOverlaySelSpherePoles, readOverlayHandholds, readOverlayLabelsGlobal,
-  readOverlayOverlaysVis, readOverlayDoubleLinks,
+  readOverlayOverlaysVis, readOverlayCascadeLinks,
   readPortPX, readPortPY, readPortPZ,
   readEventKind, readEventNodeRow, readEventPortRow, readEventTargetRow, readEventTargetPortRow,
   readEventEdgeRow, readEventSlot, readEventValue, readEventBead,
@@ -71,7 +71,7 @@ export type DecodedEventLine =
   | { step: number; kind: "handholds"; visible: boolean }
   | { step: number; kind: "labels-global"; visible: boolean }
   | { step: number; kind: "overlays-vis"; visible: boolean }
-  | { step: number; kind: "double-links"; visible: boolean }
+  | { step: number; kind: "cascade-links"; visible: boolean }
   // Layout-link pair, from LocalPolars — NOT the Edge block (see Buffer/layout.go LayoutLink).
   | { step: number; kind: "layout-link"; node: string; target: string }
   // Go-owned click-selection: the currently-selected node id (node="" clears it).
@@ -170,14 +170,14 @@ function overlayFlag(vb: ViewBlocksOrNull, kind: string): number {
     case "handholds": return readOverlayHandholds(v);
     case "labels-global": return readOverlayLabelsGlobal(v);
     case "overlays-vis": return readOverlayOverlaysVis(v);
-    case "double-links": return readOverlayDoubleLinks(v);
+    case "cascade-links": return readOverlayCascadeLinks(v);
     default: return 0;
   }
 }
 
 const OVERLAY_KINDS = new Set([
   "scene-tori", "scene-poles", "node-poles", "sel-sphere-poles",
-  "handholds", "labels-global", "overlays-vis", "double-links",
+  "handholds", "labels-global", "overlays-vis", "cascade-links",
 ]);
 
 function decodeEventLine(ev: DataView, eventTextView: DataView, dn: DecodedNodeFrame | null, de: DecodedEdgeFrame | null, vb: ViewBlocksOrNull, i: number): Line | null {

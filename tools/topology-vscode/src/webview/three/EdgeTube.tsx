@@ -40,7 +40,7 @@ import {
   readLayoutLinkSrcNodeRow, readLayoutLinkDstNodeRow, readLayoutLinkEdgeRow,
   readNodeCX, readNodeCY, readNodeCZ,
   readPortPX, readPortPY, readPortPZ,
-  readOverlayOverlaysVis, readOverlayDoubleLinks,
+  readOverlayOverlaysVis, readOverlayCascadeLinks,
 } from "../../schema/buffer-layout";
 import { BUFFER_EDGE_TAG, DIRECTION_ZERO_EPS } from "./buffer-scene-shared";
 
@@ -292,7 +292,7 @@ export function EdgeTubes({ capacity, layoutLinkCapacity }: { capacity: number; 
   // The Go-selected edge's buffer row (-1 = none). Tracked separately from geometry so a
   // selection change (which moves no endpoint) toggles the halo without touching the tubes.
   const [selRow, setSelRow] = useState(-1);
-  const [showDouble, setShowDouble] = useState(false);
+  const [showCascade, setShowCascade] = useState(false);
   // Mounted layout-link slot count + each slot's viaEdge flag (line color/opacity). Both are
   // low-frequency (a link gains/loses its bead edge, or the overlay toggles) — not per-frame.
   const [linkCount, setLinkCount] = useState(0);
@@ -359,8 +359,8 @@ export function EdgeTubes({ capacity, layoutLinkCapacity }: { capacity: number; 
     // attached as a node is dragged. Fallback (EdgeRow === -1): the two nodes' CENTERS from the
     // Node block — an honest degradation, rendered dimmer (viaEdge=false).
     // Both overlay flags (0/1 columns) must be set. Coerce each side explicitly with `> 0`.
-    const dbl = readOverlayOverlaysVis(overlayView) > 0 && readOverlayDoubleLinks(overlayView) > 0;
-    if (dbl !== showDouble) setShowDouble(dbl);
+    const cascade = readOverlayOverlaysVis(overlayView) > 0 && readOverlayCascadeLinks(overlayView) > 0;
+    if (cascade !== showCascade) setShowCascade(cascade);
 
     // Clamp with the layout-link's OWN capacity, never the edge `capacity`: layout links come
     // from LocalPolars (not the Edge block), so layoutLinkCount is independent of edgeCount and
@@ -400,12 +400,12 @@ export function EdgeTubes({ capacity, layoutLinkCapacity }: { capacity: number; 
         <EdgeTube
           key={`edge-row-${i}`}
           ref={(h) => { edgeHandles.current[i] = h; }}
-          dimmed={showDouble}
+          dimmed={showCascade}
           row={i}
           selected={i === selRow}
         />
       ))}
-      {showDouble && Array.from({ length: linkCount }, (_, i) => (
+      {showCascade && Array.from({ length: linkCount }, (_, i) => (
         <LayoutLinkOverlay
           key={`layout-link-row-${i}`}
           ref={(h) => { linkHandles.current[i] = h; }}

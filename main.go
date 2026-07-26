@@ -145,7 +145,7 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 		md.SetViewStream(viewFile,
 			func(tick uint32,
 				camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
-				sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis, doubleLinks uint8,
+				sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis, cascadeLinks uint8,
 				dragNodeRow int32,
 				groupLenTime, groupLenInput, groupLenGate float32,
 				sceneCX, sceneCY, sceneCZ, sceneRadius float32,
@@ -156,7 +156,7 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 					B.OverlayRow{
 						SceneTori: sceneTori, ScenePoles: scenePoles, NodePoles: nodePoles,
 						SelSpherePoles: selSpherePoles, Handholds: handholds, LabelsGlobal: labelsGlobal,
-						OverlaysVis: overlaysVis, DoubleLinks: doubleLinks,
+						OverlaysVis: overlaysVis, CascadeLinks: cascadeLinks,
 						DragNodeRow:  dragNodeRow,
 						GroupLenTime: groupLenTime, GroupLenInput: groupLenInput, GroupLenGate: groupLenGate,
 					},

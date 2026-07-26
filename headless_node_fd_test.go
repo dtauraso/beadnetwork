@@ -106,7 +106,7 @@ func TestHeadlessNodeFdDedicatedStream(t *testing.T) {
 		totalLayoutLinks += int(layoutLinkCount)
 	}
 	// This topology's local-polars data (topology/nodes/*/local-polars.json) declares real
-	// double-link pairs — the per-node streams must actually carry SOME layout-links, not
+	// cascade-link pairs — the per-node streams must actually carry SOME layout-links, not
 	// silently zero every row (a real regression: e.g. layoutLinkTos never wired, or every
 	// dst id failing to resolve a node row).
 	if totalLayoutLinks == 0 {

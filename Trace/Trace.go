@@ -84,13 +84,14 @@ const (
 	KindLabelsGlobal = "labels-global"
 	// KindOverlaysVis carries the master overlays visibility state.
 	KindOverlaysVis = "overlays-vis"
-	// KindDoubleLinks carries the double-link (layout-link) overlay visibility state.
+	// KindCascadeLinks carries the cascade-link (layout-link) overlay visibility state.
 	// Default OFF (unlike the other overlay flags).
-	KindDoubleLinks = "double-links"
-	// KindLayoutLink carries one double-linked node PAIR from the LAYOUT model
-	// (nodes/Wiring/layout_holder.go LocalPolars) — NOT the bead-edge graph. Streamed
-	// once per pair at load (deduplicated so each unordered pair streams exactly once),
-	// keyed by Node (one endpoint) and Target (the other).
+	KindCascadeLinks = "cascade-links"
+	// KindLayoutLink carries one cascade-linked node PAIR from the LAYOUT model
+	// (nodes/Wiring/layout_holder.go LocalPolars, filtered to the cascade-link set —
+	// see nodes/Wiring/cascade_links.go) — NOT the bead-edge graph. Streamed once per
+	// pair at load (deduplicated so each unordered pair streams exactly once), keyed by
+	// Node (one endpoint) and Target (the other).
 	KindLayoutLink = "layout-link"
 	// KindSelect carries the CURRENTLY-SELECTED node id (click-select), or an edge label
 	// on Edge with Node empty (edge selection — selection is single + exclusive across
@@ -161,7 +162,7 @@ var BreadcrumbLabels = []string{
 // numeric id for the wire encoding. There is no tsc exhaustiveness check derived from
 // it — adding a kind here does not force a TS branch anywhere; it only extends the
 // lookup table.
-var TraceEventKinds = []string{KindRecv, KindFire, KindSend, KindEdgeBead, KindGeometry, KindNodeGeometry, KindArrive, KindNodeBead, KindCamera, KindSceneTori, KindScenePoles, KindNodePoles, KindSelSpherePoles, KindHandholds, KindLabelsGlobal, KindOverlaysVis, KindDoubleLinks, KindLayoutLink, KindSelect, KindHover, KindSceneSphere, KindAbcDrag, KindAbcDragReset, KindBreadcrumb}
+var TraceEventKinds = []string{KindRecv, KindFire, KindSend, KindEdgeBead, KindGeometry, KindNodeGeometry, KindArrive, KindNodeBead, KindCamera, KindSceneTori, KindScenePoles, KindNodePoles, KindSelSpherePoles, KindHandholds, KindLabelsGlobal, KindOverlaysVis, KindCascadeLinks, KindLayoutLink, KindSelect, KindHover, KindSceneSphere, KindAbcDrag, KindAbcDragReset, KindBreadcrumb}
 
 // PortGeom is one port's authoritative world geometry: its name, whether it is an
 // input, its sphere-surface world position (PX/PY/PZ), and the unit direction from node

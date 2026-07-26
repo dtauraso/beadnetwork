@@ -77,19 +77,19 @@ const (
 	// ORIGINALLY-dragged node's own quantized-triple change) — either as the direct
 	// drag-recipient (moveMsgKindNeighborSetC from the dragged node) or as a forward
 	// recipient (a moveMsgKindDeltaForward from a neighbor that already relayed it) —
-	// forwards the SAME triple to each of its OTHER neighbors (every neighbor except
-	// whichever one it came from), carrying its OWN id as SenderID (the forwarder). The
-	// receiver records GotForwardMsg/ForwardDeltaA-C/ForwardFromRow on its own node
-	// stream frame (LATEST delta wins, so it stays in sync with a drag that keeps
-	// moving) AND does its OWN relay in turn (nodeMover.forwardDelta), onward to every
-	// neighbor EXCEPT the one it came from and any neighbor across a STATIC dead-end
-	// edge (dead_end_edges.go's computeDeadEndEdges — the non-spanning-tree, cycle-
-	// closing edges computed once at load). That static cut is what makes the
-	// forwarding graph a TREE with no cycles, so there is no runtime visit-tracking or
-	// once-per-drag guard: every move re-floods the whole reachable graph and
-	// terminates naturally at the tree's leaves (see neighborSetCRequantize's forward
-	// step and node_mover.go's moveMsgKindDeltaForward case / forwardDelta). Pure
-	// observability throughout: no re-quantize, no move.
+	// forwards the SAME triple to each of its CASCADE-LINK neighbors (every cascade-link
+	// neighbor except whichever one it came from), carrying its OWN id as SenderID (the
+	// forwarder). The receiver records GotForwardMsg/ForwardDeltaA-C/ForwardFromRow on
+	// its own node stream frame (LATEST delta wins, so it stays in sync with a drag that
+	// keeps moving) AND does its OWN relay in turn (nodeMover.forwardDelta), onward to
+	// every cascade-link neighbor except the one it came from. The cascade-link set
+	// (cascade_links.go's computeCascadeLinks — the full node adjacency minus the
+	// cycle-closing edges, computed once at load) is what makes plain "forward to my
+	// cascade-link neighbors, excluding the sender, concurrently" loop-free BY
+	// CONSTRUCTION: there is no runtime visit-tracking or once-per-drag guard — every
+	// move re-floods the whole reachable graph and terminates naturally (see
+	// neighborSetCRequantize's forward step and node_mover.go's moveMsgKindDeltaForward
+	// case / forwardDelta). Pure observability throughout: no re-quantize, no move.
 	moveMsgKindDeltaForward = "deltaForward"
 )
 

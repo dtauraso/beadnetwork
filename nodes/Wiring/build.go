@@ -242,10 +242,14 @@ func (b *buildCtx) buildMoveDispatch() {
 		}
 	}
 	// Seed each node's OWN layoutLinkTos (nodeMover.layoutLinkTos doc comment) from
-	// b.localPolars — the SAME LAYOUT model + de-dup rule (alphabetically-first id is the
-	// source) emitLayoutLinks uses for the combined LayoutLink block, so the per-node
-	// stream carries exactly the same pairs, split by source node instead of merged. Sort
-	// ids for determinism, matching emitLayoutLinks' own sort.
+	// b.localPolars FILTERED to the CASCADE-LINK set (md.isCascadeLink,
+	// cascade_links.go) — the rendered "cascade links" overlay draws the full node
+	// adjacency MINUS the cycle-closing links, not every adjacency. The underlying
+	// LOCAL-POLAR MODEL (b.localPolars, layout_holder.go) is untouched — it keeps every
+	// adjacency for the drag/re-quantize substance; only which pairs get emitted for the
+	// overlay changes here. Same de-dup rule (alphabetically-first id is the source) and
+	// sort as emitLayoutLinks uses for the combined LayoutLink block, so the per-node
+	// stream carries exactly the same pairs, split by source node instead of merged.
 	ids := make([]string, 0, len(b.localPolars))
 	for id := range b.localPolars {
 		ids = append(ids, id)
@@ -257,7 +261,7 @@ func (b *buildCtx) buildMoveDispatch() {
 			continue
 		}
 		for _, lp := range b.localPolars[id] {
-			if id < lp.To {
+			if id < lp.To && md.isCascadeLink(id, lp.To) {
 				nm.layoutLinkTos = append(nm.layoutLinkTos, lp.To)
 			}
 		}

@@ -235,7 +235,7 @@ type nodeMover struct {
 	// writes so a port row can be resolved back to (nodeRow, portIndex) on the TS side
 	// without a shared port table.
 	nodeRow int32
-	// layoutLinkTos holds the dst node ids of every LAYOUT double-link pair for which THIS
+	// layoutLinkTos holds the dst node ids of every LAYOUT cascade-link pair for which THIS
 	// node is the SOURCE (alphabetically-first id — mirrors loader.go's emitLayoutLinks
 	// de-dup rule, so each unordered pair streams from exactly one node's own fd, never
 	// both). Sourced from LocalPolars (b.localPolars, the same LAYOUT model
@@ -477,12 +477,12 @@ func (m *nodeMover) handle(msg moveMsg) {
 // forwardDelta runs THIS node's own delta-forward hop: relay the triple it just picked up
 // — whether from the dragged node itself (neighborSetCRequantize, exceptID = the dragged
 // node) or from a neighbor that already forwarded (handle's moveMsgKindDeltaForward case,
-// exceptID = that neighbor) — to every OTHER node it shares an edge with, EXCLUDING any
-// neighbor across a STATIC dead-end edge (md.isDeadEndEdge, dead_end_edges.go). The
-// dead-end set is exactly the non-spanning-tree (cycle-closing) edges computed once at
-// load, so the forwarding graph (every edge minus dead-ends, minus the sender) is
-// acyclic: propagation flows outward from the dragged node and terminates at the tree's
-// leaves with NO visit-tracking, no generation, no once-per-drag guard — every move
+// exceptID = that neighbor) — to every OTHER node it shares a CASCADE LINK with
+// (md.isCascadeLink, cascade_links.go), EXCLUDING the sender. The cascade-link set is the
+// full node adjacency minus the cycle-closing edges, computed once at load, so plain
+// "forward to my cascade-link neighbors, excluding the sender, concurrently" is loop-free
+// BY CONSTRUCTION: propagation flows outward from the dragged node and terminates
+// naturally with NO visit-tracking, no generation, no once-per-drag guard — every move
 // (not just the first) re-floods freely, which is what keeps the forwarded log in sync
 // with the drag as it continues (see gotForwardMsg's doc comment). Neighbor set built the
 // same way requantizeLocalPolars does (scan md.mr.edgeMovers for edges incident to
@@ -503,7 +503,7 @@ func (m *nodeMover) forwardDelta(md *MoveDispatch, exceptID string, dA, dB, dC i
 		if other == exceptID {
 			continue
 		}
-		if md.isDeadEndEdge(m.id, other) {
+		if !md.isCascadeLink(m.id, other) {
 			continue
 		}
 		m.sendMove(other, moveMsg{Kind: moveMsgKindDeltaForward, NodeID: other, SenderID: m.id,

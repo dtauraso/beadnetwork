@@ -37,7 +37,7 @@ import "encoding/binary"
 //	PortName   portNameBytesCount bytes (this node's own ports' name bytes, concatenated in
 //	           the same order as the Port rows above)
 //	LayoutLink layoutLinkCount × BufNodeStreamLayoutLinkStride bytes — the LAYOUT
-//	           double-link pairs for which THIS node is the SOURCE (see
+//	           cascade-link pairs for which THIS node is the SOURCE (see
 //	           nodes/Wiring/node_mover.go's layoutLinkTos doc comment): each row is
 //	           [DstNodeRow:i32][EdgeRow:i32], dstNodeRows/edgeRows parallel slices.
 func BuildNodeStreamFrame(

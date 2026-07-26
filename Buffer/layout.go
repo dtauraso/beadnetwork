@@ -200,9 +200,10 @@ type bufLayoutEdge struct {
 	EdgeLabelLen uint32 `buf:"u32"` // edge-label UTF-8 byte length
 }
 
-// bufLayoutLayoutLink defines one row of the LAYOUT-link column block: the double-link
-// LAYOUT relationship (nodes/Wiring/layout_holder.go LocalPolars — each node's stored polar
-// OFFSET to a neighbor it is double-linked to), NOT the bead-edge graph. The PAIR is
+// bufLayoutLayoutLink defines one row of the LAYOUT-link column block: the cascade-link
+// LAYOUT relationship (nodes/Wiring/layout_holder.go LocalPolars, filtered to the
+// cascade-link set — nodes/Wiring/cascade_links.go — each node's stored polar OFFSET to a
+// neighbor it is cascade-linked to), NOT the bead-edge graph. The PAIR is
 // streamed once at load (deduplicated by the emitter — nodes/Wiring/loader.go
 // emitLayoutLinks), from the same computeLocalPolars data that seeds
 // LayoutHolder.LoadLocalPolars — so this block can never silently drift into "just
@@ -294,11 +295,11 @@ type bufLayoutOverlay struct {
 	Handholds      uint8 `buf:"u8"` // 1 = rotation grab-sphere handholds visible
 	LabelsGlobal   uint8 `buf:"u8"` // 1 = all node labels visible
 	OverlaysVis    uint8 `buf:"u8"` // 1 = master overlays toggle on
-	// DoubleLinks mirrors the LAYOUT-link overlay's own visibility (default OFF, unlike the
+	// CascadeLinks mirrors the LAYOUT-link overlay's own visibility (default OFF, unlike the
 	// other flags which default on) — the cyan second-tube overlay reads the LayoutLink block
 	// only when this is set. NOT the same thing as the LayoutLink block existing: the data
 	// streams every snapshot regardless, this just gates the render.
-	DoubleLinks uint8 `buf:"u8"` // 1 = layout-link overlay visible
+	CascadeLinks uint8 `buf:"u8"` // 1 = layout-link (cascade-link) overlay visible
 	// DragNodeRow is the row index (into the Node block) of the node currently
 	// being dragged by the gesture FSM (nodes/Wiring/gesture.go g.dragNode),
 	// or -1 when no drag is in progress. Identity rides row index, not a

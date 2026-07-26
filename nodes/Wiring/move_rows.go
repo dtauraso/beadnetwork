@@ -29,7 +29,7 @@ func (md *MoveDispatch) LookupEdgeRow(row int) (label string, ok bool) {
 	return md.rt.lookupEdgeRow(row)
 }
 
-// LayoutLinkPairs returns every LAYOUT double-link pair (id, to), one per unordered pair
+// LayoutLinkPairs returns every LAYOUT cascade-link pair (id, to), one per unordered pair
 // (id is always the alphabetically-first side — mirrors loader.go's emitLayoutLinks own
 // de-dup rule), by walking each nodeMover's own layoutLinkTos (seeded once at load,
 // static since — see its doc comment in node_mover.go). This is the SAME set
