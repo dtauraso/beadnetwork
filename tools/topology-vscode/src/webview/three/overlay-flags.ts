@@ -40,39 +40,44 @@ export type OverlayFlagVals = Record<OverlayFlag, boolean>;
 
 // Cache so getSnapshot returns a STABLE object identity while the flags are unchanged
 // (useSyncExternalStore compares by identity; a fresh object every 60fps snapshot would
-// re-render every frame). We recompute the bit-set each call — cheap — and only mint a
-// new OverlayFlagVals when a flag actually flips.
-let cachedBits = -1;
+// re-render every frame). We recompute the flags each call — cheap — and only mint a
+// new OverlayFlagVals when a flag actually flips, detected by VALUE equality.
 let cachedVals: OverlayFlagVals | null = null;
 
+function overlayFlagsEqual(a: OverlayFlagVals, b: OverlayFlagVals): boolean {
+  return (
+    a.tori === b.tori &&
+    a.scenePoles === b.scenePoles &&
+    a.nodePoles === b.nodePoles &&
+    a.selSpherePoles === b.selSpherePoles &&
+    a.handholds === b.handholds &&
+    a.labelsGlobal === b.labelsGlobal &&
+    a.overlays === b.overlays &&
+    a.doubleLinks === b.doubleLinks
+  );
+}
+
 /** Decode the latest snapshot's Overlay row into store-polarity booleans, or null if no
- *  snapshot / decode failure. Stable identity while unchanged. */
+ *  snapshot / decode failure. Stable identity while unchanged. Each flag is read ONCE into
+ *  its named field (no bit-packing intermediary), and change is detected by value equality —
+ *  so there is a single ordering (the field assignments), not three parallel ones. */
 export function readOverlayFlags(): OverlayFlagVals | null {
   const blocks = getViewBlocks();
   if (!blocks) return cachedVals;
   const v = blocks.overlayView;
-  const bits =
-    (readOverlaySceneTori(v) ? 1 << 0 : 0) |
-    (readOverlayScenePoles(v) ? 1 << 1 : 0) |
-    (readOverlayNodePoles(v) ? 1 << 2 : 0) |
-    (readOverlaySelSpherePoles(v) ? 1 << 3 : 0) |
-    (readOverlayHandholds(v) ? 1 << 4 : 0) |
-    (readOverlayLabelsGlobal(v) ? 1 << 5 : 0) |
-    (readOverlayOverlaysVis(v) ? 1 << 6 : 0) |
-    (readOverlayDoubleLinks(v) ? 1 << 7 : 0);
-  if (bits === cachedBits && cachedVals) return cachedVals;
-  cachedBits = bits;
-  cachedVals = {
-    tori: !!(bits & (1 << 0)),
-    scenePoles: !!(bits & (1 << 1)),
-    nodePoles: !!(bits & (1 << 2)),
-    selSpherePoles: !!(bits & (1 << 3)),
-    handholds: !!(bits & (1 << 4)),
-    // hidden-sense: buffer stores VISIBLE, store field is *Hidden → invert.
-    labelsGlobal: !(bits & (1 << 5)),
-    overlays: !!(bits & (1 << 6)),
-    doubleLinks: !!(bits & (1 << 7)),
+  const next: OverlayFlagVals = {
+    tori: !!readOverlaySceneTori(v),
+    scenePoles: !!readOverlayScenePoles(v),
+    nodePoles: !!readOverlayNodePoles(v),
+    selSpherePoles: !!readOverlaySelSpherePoles(v),
+    handholds: !!readOverlayHandholds(v),
+    // hidden-sense: buffer stores VISIBLE, store field is *Hidden → invert this one.
+    labelsGlobal: !readOverlayLabelsGlobal(v),
+    overlays: !!readOverlayOverlaysVis(v),
+    doubleLinks: !!readOverlayDoubleLinks(v),
   };
+  if (cachedVals && overlayFlagsEqual(cachedVals, next)) return cachedVals;
+  cachedVals = next;
   return cachedVals;
 }
 
