@@ -13,6 +13,7 @@ package Wiring
 import (
 	"context"
 	"encoding/json"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"math"
 	"os"
 	"path/filepath"
@@ -140,7 +141,7 @@ func persistedLocalPolarTo(t *testing.T, m map[string]json.RawMessage, to string
 //  3. B's and C's persisted LocalPolar to A changed in theta/phi AND r (re-quantized
 //     from live geometry, not held).
 //  4. No degenerate step (StepR) was written for any node — it must be one of the two
-//     known sane grid constants (localStepR for a per-node local-polar entry, stepR for
+//     known sane grid constants (wire.DefaultLocalStepR for a per-node local-polar entry, stepR for
 //     the scene-level quantized cache), never a near-zero value.
 func TestDragPersistsOnlyDraggedNodeAndRequantizesNeighborsOnDisk(t *testing.T) {
 	root := writeStar3(t)
@@ -168,7 +169,7 @@ func TestDragPersistsOnlyDraggedNodeAndRequantizesNeighborsOnDisk(t *testing.T) 
 		centerBefore[id] = c
 	}
 
-	var lpBBefore, lpCBefore LocalPolar
+	var lpBBefore, lpCBefore wire.LocalPolar
 	for _, lp := range lhB.LocalPolarsSnapshot() {
 		if lp.To == "A" {
 			lpBBefore = lp
@@ -271,7 +272,7 @@ func TestDragPersistsOnlyDraggedNodeAndRequantizesNeighborsOnDisk(t *testing.T) 
 	// way requantizePoleTraced does at the cart<->polar boundary (same recipe this
 	// package's neighbor_setc_test.go / subtree_persist_test.go already use in-memory;
 	// here read back from the PERSISTED bytes).
-	checkNeighbor := func(id string, meta map[string]json.RawMessage, lh *LayoutHolder, before LocalPolar) {
+	checkNeighbor := func(id string, meta map[string]json.RawMessage, lh *wire.LayoutHolder, before wire.LocalPolar) {
 		t.Helper()
 		qTheta, qPhi, qR, stTheta, stPhi, stR, found := persistedLocalPolarTo(t, meta, "A")
 		if !found {
@@ -296,9 +297,9 @@ func TestDragPersistsOnlyDraggedNodeAndRequantizesNeighborsOnDisk(t *testing.T) 
 		}
 		offset := aCenter.sub(selfCenter)
 		d, r := dirFromOffset(offset)
-		pole := lh.Pole()
+		pole := dir(lh.Pole())
 		c, psi := azimuthFrom(pole, d)
-		st, sp, sr := lh.localPolarSteps("A")
+		st, sp, sr := lh.LocalPolarSteps("A")
 		wantTheta := int(math.Round(c / st))
 		wantPhi := int(math.Round(psi / sp))
 		wantR := int(math.Round(r / sr))
@@ -308,15 +309,15 @@ func TestDragPersistsOnlyDraggedNodeAndRequantizesNeighborsOnDisk(t *testing.T) 
 		}
 
 		// (d) No degenerate step got written — StepR must be the sane local-polar grid
-		// constant (localStepR), never a near-zero value like 1e-06. Checking equality to
-		// localStepR (a known-positive constant) already subsumes any "is it near zero"
+		// constant (wire.DefaultLocalStepR), never a near-zero value like 1e-06. Checking equality to
+		// wire.DefaultLocalStepR (a known-positive constant) already subsumes any "is it near zero"
 		// check, so there is no separate degenerate-threshold branch here.
-		if stR != localStepR {
-			t.Fatalf("(d) %s's persisted local-polar StepR should be the sane grid constant localStepR=%g, got %g", id, localStepR, stR)
+		if stR != wire.DefaultLocalStepR {
+			t.Fatalf("(d) %s's persisted local-polar StepR should be the sane grid constant wire.DefaultLocalStepR=%g, got %g", id, wire.DefaultLocalStepR, stR)
 		}
-		if stTheta != localStepTheta || stPhi != localStepPhi {
+		if stTheta != wire.DefaultLocalStepTheta || stPhi != wire.DefaultLocalStepPhi {
 			t.Fatalf("(d) %s's persisted local-polar StepTheta/StepPhi should be the sane grid constants (%g,%g), got (%g,%g)",
-				id, localStepTheta, localStepPhi, stTheta, stPhi)
+				id, wire.DefaultLocalStepTheta, wire.DefaultLocalStepPhi, stTheta, stPhi)
 		}
 	}
 	checkNeighbor("B", metaB, lhB, lpBBefore)

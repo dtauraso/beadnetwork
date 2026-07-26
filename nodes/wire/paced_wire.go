@@ -1,4 +1,4 @@
-package Wiring
+package wire
 
 import (
 	"context"
@@ -25,12 +25,16 @@ type deliveredBead struct {
 	deliverTick int64
 }
 
-// PulseSpeedWuPerMs aliases CurveParamPulseSpeedWuPerMs. It is retained as the
-// fixed world-units-per-MILLISECOND conversion for the SimLatencyMs REPORTING
-// path (the ms value emitted on the send trace); it is NOT the clock's unit.
-// The canonical value lives in curve_params.go so the codegen tool can export it
-// to TS.
-const PulseSpeedWuPerMs = CurveParamPulseSpeedWuPerMs
+// PulseSpeedWuPerMs is the fixed world-units-per-MILLISECOND conversion for the
+// SimLatencyMs REPORTING path (the ms value emitted on the send trace); it is NOT
+// the clock's unit. This is an intentional duplicate of the literal value in
+// nodes/Wiring/curve_params.go's CurveParamPulseSpeedWuPerMs — that copy is the
+// single source of truth gen-node-defs reads (by literal AST value) to emit TS,
+// and it cannot be an alias of this one because wire must not import Wiring
+// (that would be a package cycle: Wiring already imports wire). Keep the two
+// literals in sync by hand; a mismatch would only affect SimLatencyMs
+// reporting/pacing math, not correctness of delivery.
+const PulseSpeedWuPerMs = 0.04
 
 // PulseSpeedWuPerTick is the uniform pulse speed reinterpreted in world-units per
 // TICK (MODEL.md: pulseSpeed is world-units-per-tick). It is the ms speed scaled
@@ -52,7 +56,7 @@ type beadPlacement struct {
 	// (source OUT-port world pos, dest IN-port world pos). Node/Port are the SOURCE
 	// node id + output port — the position trace key, matching the send event so the
 	// renderer routes by source+sourceHandle (fan-out).
-	Start, End vec3
+	Start, End Vec3
 	Node, Port string
 }
 
@@ -85,7 +89,7 @@ type inflightBead struct {
 	val           int
 	placementTick float64     // this wire's own tick reading when placed (fractional after a geometry rebase)
 	arc           float64     // current arc length of this bead's edge (world units)
-	seg           wireSegment // current straight-segment endpoints of this bead's edge
+	seg           WireSegment // current straight-segment endpoints of this bead's edge
 	node          string      // source node id — the position/cancel routing key
 	port          string      // source output port — the position/cancel routing key
 	streams       bool        // whether this bead carries position-stream context
@@ -175,6 +179,12 @@ func (pw *PacedWire) drainBreadcrumbEvents() []RowEvent {
 	}
 }
 
+// DrainBreadcrumbEvents is drainBreadcrumbEvents' exported entry point for callers in
+// another package (edgeMover.writeStreamFrame in nodes/Wiring).
+func (pw *PacedWire) DrainBreadcrumbEvents() []RowEvent {
+	return pw.drainBreadcrumbEvents()
+}
+
 // pendingWireEvent is one raw Position/Arrive tuple recorded by stepAll, awaiting
 // row-resolution + packing by edgeMover.writeStreamFrame (drainPendingEvents).
 type pendingWireEvent struct {
@@ -192,6 +202,31 @@ func (pw *PacedWire) drainPendingEvents() []pendingWireEvent {
 	}
 	out := pw.pending
 	pw.pending = nil
+	return out
+}
+
+// PendingWireEvent is pendingWireEvent's exported mirror, returned by
+// DrainPendingEvents for callers in another package (edgeMover.writeStreamFrame in
+// nodes/Wiring) that need to row-resolve and pack these events but cannot name the
+// unexported pendingWireEvent type.
+type PendingWireEvent struct {
+	Kind       string
+	Value      int
+	X, Y, Z, T float64
+	Gen        uint64
+}
+
+// DrainPendingEvents is drainPendingEvents' exported entry point, converting each
+// internal pendingWireEvent to the exported PendingWireEvent shape.
+func (pw *PacedWire) DrainPendingEvents() []PendingWireEvent {
+	internal := pw.drainPendingEvents()
+	if internal == nil {
+		return nil
+	}
+	out := make([]PendingWireEvent, len(internal))
+	for i, pe := range internal {
+		out[i] = PendingWireEvent{Kind: pe.kind, Value: pe.value, X: pe.x, Y: pe.y, Z: pe.z, T: pe.t, Gen: pe.gen}
+	}
 	return out
 }
 
@@ -343,7 +378,7 @@ func (pw *PacedWire) drainPlacements(tick int64) {
 				// the FIXED ms→wu conversion (msToArcWu), so it is independent of the
 				// clock's tick speed.
 				arc:     req.bp.InFlightMs * msToArcWu,
-				seg:     wireSegment{Start: req.bp.Start, End: req.bp.End},
+				seg:     WireSegment{Start: req.bp.Start, End: req.bp.End},
 				node:    req.bp.Node,
 				port:    req.bp.Port,
 				streams: req.bp.streams(),
@@ -459,7 +494,7 @@ func (pw *PacedWire) LiveBeadRows(tick int64) []LiveBeadRow {
 // tick is that goroutine's own clock reading, taken once per call. There is no
 // second clock copy involved anymore, so the two-copy skew the old
 // caller-pinned-tick contract had to tolerate cannot arise here.
-func (pw *PacedWire) ReviseInFlightGeometry(tick int64, newArc float64, newSeg wireSegment) {
+func (pw *PacedWire) ReviseInFlightGeometry(tick int64, newArc float64, newSeg WireSegment) {
 	if len(pw.inflight) == 0 {
 		return
 	}

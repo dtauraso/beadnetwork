@@ -330,21 +330,29 @@ func findRepoRoot(dir string) string {
 	}
 }
 
-// hasRegister reports whether any .go file in dir contains "Wiring.Register(".
+// hasRegister reports whether any .go file in dir contains "wire.Register(" (or the
+// pre-task/wiring-decompose "Wiring.Register(").
 func hasRegister(dir string) bool {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return false
 	}
 	for _, e := range entries {
-		if e.IsDir() || !strings.HasSuffix(e.Name(), ".go") {
+		// PRODUCTION files only, matching parseGoKindName's scope: nodes/Wiring's own
+		// tests call wire.Register to register throwaway fixture kinds (aimed_ports_test.go
+		// etc.) — counting those would wrongly mark nodes/Wiring itself as a registered
+		// node kind now that those calls are package-qualified (wire.Register, not the old
+		// bare unqualified Register()).
+		if e.IsDir() || !strings.HasSuffix(e.Name(), ".go") || strings.HasSuffix(e.Name(), "_test.go") {
 			continue
 		}
 		data, err := os.ReadFile(filepath.Join(dir, e.Name()))
 		if err != nil {
 			continue
 		}
-		if bytes.Contains(data, []byte("Wiring.Register(")) {
+		// Register moved from nodes/Wiring to the leaf nodes/wire package
+		// (task/wiring-decompose); node packages now call wire.Register.
+		if bytes.Contains(data, []byte("Wiring.Register(")) || bytes.Contains(data, []byte("wire.Register(")) {
 			return true
 		}
 	}

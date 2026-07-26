@@ -1,6 +1,7 @@
 package Wiring
 
 import (
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"math"
 	"testing"
 )
@@ -355,7 +356,7 @@ func TestGestureConnectedPortRingMove(t *testing.T) {
 	edges := map[string]EdgeEndpoints{
 		"e1": {Source: "N1", Target: "N2", SourceHandle: "out", TargetHandle: "in"},
 	}
-	md := newMoveDispatch(geoms, edges, nil, nil, nil, NewRealClock(), nil)
+	md := newMoveDispatch(geoms, edges, nil, nil, nil, wire.NewRealClock(), nil)
 	md.ui.vp.viewpoint = canonicalViewpoint()
 	md.rt.portRowTable = []moveDispatchPortRow{{node: "N1", port: "out", isInput: false}}
 

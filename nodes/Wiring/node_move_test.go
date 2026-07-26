@@ -11,6 +11,7 @@ package Wiring
 
 import (
 	"context"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"io"
 	"math"
 	"os"
@@ -67,7 +68,7 @@ func TestDecentralizedNodeMove(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	tr := T.New()
-	clk := NewRealClock()
+	clk := wire.NewRealClock()
 	_, slotReg, md, _, err := LoadTopology(ctx, path, tr, clk)
 	if err != nil {
 		t.Fatalf("LoadTopology: %v", err)
@@ -76,17 +77,17 @@ func TestDecentralizedNodeMove(t *testing.T) {
 	// stream frames directly (bypassing the fd/os.NewFile machinery SetNodeStreams/
 	// SetEdgeStreams use in production) so this test can observe their own row-resolved
 	// RowEvents on move, mirroring the retired central Trace event assertions below.
-	var nodeEvents, edgeEvents []RowEvent
+	var nodeEvents, edgeEvents []wire.RowEvent
 	var nodeMu, edgeMu sync.Mutex
 	md.mr.nodeMovers["src"].streamOut = io.Discard
-	md.mr.nodeMovers["src"].buildFrame = func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows, edgeRows []int32, events []RowEvent) []byte {
+	md.mr.nodeMovers["src"].buildFrame = func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows, edgeRows []int32, events []wire.RowEvent) []byte {
 		nodeMu.Lock()
 		nodeEvents = append(nodeEvents, events...)
 		nodeMu.Unlock()
 		return nil
 	}
 	md.mr.edgeMovers["e0"].streamOut = io.Discard
-	md.mr.edgeMovers["e0"].buildFrame = func(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, beadVal []int32, beadX, beadY, beadZ []float32, events []RowEvent) []byte {
+	md.mr.edgeMovers["e0"].buildFrame = func(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, beadVal []int32, beadX, beadY, beadZ []float32, events []wire.RowEvent) []byte {
 		edgeMu.Lock()
 		edgeEvents = append(edgeEvents, events...)
 		edgeMu.Unlock()
@@ -103,9 +104,10 @@ func TestDecentralizedNodeMove(t *testing.T) {
 	// Place a bead on the wire so the move must revise it in flight. md.Start above
 	// already launched this wire's own goroutine (edgeMover.run), which self-drives
 	// the wire on its own clock copy — no manual driving needed from the test.
-	seg0 := wireSegment{Start: out.Geom().Start, End: out.Geom().End}
-	bp := beadPlacement{InFlightMs: out.Geom().SimLatencyMs, Start: seg0.Start, End: seg0.End, Node: "src", Port: "Out"}
-	if pw.Send(7, bp) != SendPlaced {
+	// out already carries this edge's load-time geometry (Geom()); PlaceDrivenAt uses it
+	// to build the same beadPlacement pw.Send used to receive directly, without this test
+	// needing to name wire's unexported beadPlacement/wireSegment types.
+	if item := out.PlaceDrivenAt(7); !item.Live() {
 		t.Fatal("Send rejected on fresh wire")
 	}
 	// Give the wire's own goroutine a moment to drain the send into its inflight
@@ -137,8 +139,8 @@ func TestDecentralizedNodeMove(t *testing.T) {
 	wantArc := edgeArcPolar(srcGeom, dstGeom, "Out", "In")
 
 	// Edge mover wrote the new segment/arc onto the source Out.
-	if !approxEq(out.Geom().ArcLength, wantArc) || !approxEq(out.Geom().SimLatencyMs, wantArc/PulseSpeedWuPerMs) {
-		t.Fatalf("Out arc/lat = %v/%v, want %v/%v", out.Geom().ArcLength, out.Geom().SimLatencyMs, wantArc, wantArc/PulseSpeedWuPerMs)
+	if !approxEq(out.Geom().ArcLength, wantArc) || !approxEq(out.Geom().SimLatencyMs, wantArc/wire.PulseSpeedWuPerMs) {
+		t.Fatalf("Out arc/lat = %v/%v, want %v/%v", out.Geom().ArcLength, out.Geom().SimLatencyMs, wantArc, wantArc/wire.PulseSpeedWuPerMs)
 	}
 	if !approxEq(out.Geom().End.X, wantSeg.End.X) || !approxEq(out.Geom().Start.X, wantSeg.Start.X) {
 		t.Fatalf("Out segment = %+v..%+v, want %+v..%+v", out.Geom().Start, out.Geom().End, wantSeg.Start, wantSeg.End)
@@ -207,7 +209,7 @@ func TestNodeGeometryLabelSidecar(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	tr := T.New()
-	_, _, md, _, err := LoadTopology(ctx, path, tr, NewRealClock())
+	_, _, md, _, err := LoadTopology(ctx, path, tr, wire.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology: %v", err)
 	}
@@ -267,7 +269,7 @@ func TestMoverCenterRace(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	tr := T.New()
-	_, _, md, _, err := LoadTopology(ctx, path, tr, NewRealClock())
+	_, _, md, _, err := LoadTopology(ctx, path, tr, wire.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology: %v", err)
 	}
@@ -320,7 +322,7 @@ func TestOutGeomRace(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	tr := T.New()
-	_, _, md, _, err := LoadTopology(ctx, path, tr, NewRealClock())
+	_, _, md, _, err := LoadTopology(ctx, path, tr, wire.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology: %v", err)
 	}
@@ -348,10 +350,10 @@ func TestOutGeomRace(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		for i := 0; i < iters; i++ {
-			bp := out.placement()
-			_ = bp.InFlightMs
-			_ = bp.Start
-			_ = bp.End
+			inFlightMs, start, end := out.CurrentPlacement()
+			_ = inFlightMs
+			_ = start
+			_ = end
 		}
 	}()
 	wg.Wait()
@@ -386,7 +388,7 @@ func TestRootMoveContinuousPositionLocalPolarRequantize(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	tr := T.New()
-	_, _, md, _, err := LoadTopology(ctx, path, tr, NewRealClock())
+	_, _, md, _, err := LoadTopology(ctx, path, tr, wire.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology: %v", err)
 	}
@@ -439,13 +441,13 @@ func TestRootMoveContinuousPositionLocalPolarRequantize(t *testing.T) {
 		t.Fatal("centerOfNode(dst) missing")
 	}
 	wantPol := cart2polar(dstCenter.sub(target))
-	tStep, pStep, rStep := LocalPolar{}.effectiveSteps()
-	if tStep != localStepTheta || pStep != localStepPhi || rStep != localStepR {
-		t.Fatalf("local-polar default steps = (%v,%v,%v), want (%v,%v,%v)", tStep, pStep, rStep, localStepTheta, localStepPhi, localStepR)
+	tStep, pStep, rStep := wire.LocalPolar{}.EffectiveSteps()
+	if tStep != wire.DefaultLocalStepTheta || pStep != wire.DefaultLocalStepPhi || rStep != wire.DefaultLocalStepR {
+		t.Fatalf("local-polar default steps = (%v,%v,%v), want (%v,%v,%v)", tStep, pStep, rStep, wire.DefaultLocalStepTheta, wire.DefaultLocalStepPhi, wire.DefaultLocalStepR)
 	}
 	wantIR := math.Round(wantPol.R / rStep)
 
-	var found *LocalPolar
+	var found *wire.LocalPolar
 	for _, lp := range lhSrc.LocalPolarsSnapshot() {
 		if lp.To == "dst" {
 			cp := lp
@@ -480,7 +482,7 @@ func TestRootMoveContinuousPositionLocalPolarRequantize(t *testing.T) {
 	wantPolBack := cart2polar(target.sub(dstCenter))
 	wantIRBack := math.Round(wantPolBack.R / rStep)
 
-	var foundBack *LocalPolar
+	var foundBack *wire.LocalPolar
 	for _, lp := range lhDst.LocalPolarsSnapshot() {
 		if lp.To == "src" {
 			cp := lp

@@ -14,6 +14,7 @@ package Wiring
 
 import (
 	"fmt"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"math"
 	"reflect"
 	"testing"
@@ -35,7 +36,7 @@ const testDeg = math.Pi / 180
 // (D2). Asserts the reconstructed direction is close to D1 and far from D2.
 func TestRequantizeUsesStoredIndicesNotLiveCartesian(t *testing.T) {
 	md := &MoveDispatch{}
-	lh := &LayoutHolder{}
+	lh := &wire.LayoutHolder{}
 
 	dirStored := dir{Theta: 70 * testDeg, Phi: 40 * testDeg} // D1 — what "far"'s indices will encode
 	dirLive := dir{Theta: 70 * testDeg, Phi: 130 * testDeg}  // D2 — deliberately inconsistent live cartesian
@@ -45,7 +46,7 @@ func TestRequantizeUsesStoredIndicesNotLiveCartesian(t *testing.T) {
 
 	offFar := offsetFromDir(dirStored).scale(40)
 	md.requantizePoleTraced(lh, map[string]vec3{"far": offFar})
-	if lh.Pole() != (dir{Theta: 0, Phi: 0}) {
+	if dir(lh.Pole()) != (dir{Theta: 0, Phi: 0}) {
 		t.Fatalf("pole should still be home before any offender enters: got %+v", lh.Pole())
 	}
 
@@ -62,7 +63,7 @@ func TestRequantizeUsesStoredIndicesNotLiveCartesian(t *testing.T) {
 		t.Fatalf("expected the pole to tilt off home once a neighbor entered the singular zone")
 	}
 
-	var farEntry *LocalPolar
+	var farEntry *wire.LocalPolar
 	for _, lp := range lh.LocalPolarsSnapshot() {
 		if lp.To == "far" {
 			cp := lp
@@ -72,7 +73,7 @@ func TestRequantizeUsesStoredIndicesNotLiveCartesian(t *testing.T) {
 	if farEntry == nil {
 		t.Fatal("no local polar entry for far after pole tilt")
 	}
-	tt, pp, _ := farEntry.effectiveSteps()
+	tt, pp, _ := farEntry.EffectiveSteps()
 	gotDir := fromAxisFrame(newPole, float64(farEntry.QuantITheta)*tt, float64(farEntry.QuantIPhi)*pp)
 
 	dStored := angularDistance(gotDir, dirStored)
@@ -99,11 +100,11 @@ func TestRequantizeUsesStoredIndicesNotLiveCartesian(t *testing.T) {
 // never a live-cartesian re-derivation that would track the disagreeing live angle.
 func TestRequantizeIndexTimesStepIsAuthoritative(t *testing.T) {
 	md := &MoveDispatch{}
-	lh := &LayoutHolder{}
+	lh := &wire.LayoutHolder{}
 
 	stepTheta := 1 * testDeg
 	stepPhi := 1 * testDeg
-	want := LocalPolar{
+	want := wire.LocalPolar{
 		To: "farB", QuantITheta: 17, QuantIPhi: -5, QuantIR: 3,
 		StepTheta: stepTheta, StepPhi: stepPhi, StepR: 2,
 	}
@@ -158,14 +159,14 @@ func TestPersistedPoleDrivesReloadWorldPositions(t *testing.T) {
 	// using a deliberately tiny step for "far" so subsequent quantization rounding is
 	// negligible next to the (much larger) pole-tilt divergence this test pins.
 	md := &MoveDispatch{}
-	lh := &LayoutHolder{}
+	lh := &wire.LayoutHolder{}
 	tinyStep := 0.001 * testDeg
 	lh.SetLocalPolar("far", 0, 0, 0, tinyStep, tinyStep, 1)
 
 	dirFar := dir{Theta: 60 * testDeg, Phi: 30 * testDeg}
 	offFar := offsetFromDir(dirFar).scale(40)
 	md.requantizePoleTraced(lh, map[string]vec3{"far": offFar})
-	if lh.Pole() != (dir{Theta: 0, Phi: 0}) {
+	if dir(lh.Pole()) != (dir{Theta: 0, Phi: 0}) {
 		t.Fatalf("pole should still be home before the offender enters: got %+v", lh.Pole())
 	}
 
@@ -176,7 +177,7 @@ func TestPersistedPoleDrivesReloadWorldPositions(t *testing.T) {
 		t.Fatalf("expected the pole to tilt off home")
 	}
 
-	var farEntry *LocalPolar
+	var farEntry *wire.LocalPolar
 	for _, lp := range lh.LocalPolarsSnapshot() {
 		if lp.To == "far" {
 			cp := lp
@@ -205,7 +206,7 @@ func TestPersistedPoleDrivesReloadWorldPositions(t *testing.T) {
 	mk("nodes/far/outputs/Out.json", `{"name":"Out"}`)
 	mk("edges/e0.json", `{"label":"e0","kind":"data","source":"far","sourceHandle":"Out","target":"self","targetHandle":"In"}`)
 
-	if err := WriteLocalPolars(root, "self", []LocalPolar{*farEntry}, tiltedPole); err != nil {
+	if err := WriteLocalPolars(root, "self", []wire.LocalPolar{*farEntry}, tiltedPole); err != nil {
 		t.Fatalf("WriteLocalPolars: %v", err)
 	}
 
@@ -215,11 +216,11 @@ func TestPersistedPoleDrivesReloadWorldPositions(t *testing.T) {
 		t.Fatal("no LayoutHolder for self on reload")
 	}
 
-	if d := angularDistance(lhSelf.Pole(), tiltedPole); d > 1e-6 {
+	if d := angularDistance(dir(lhSelf.Pole()), tiltedPole); d > 1e-6 {
 		t.Fatalf("reload did not honor the persisted pole verbatim: got %+v want %+v (angularDistance=%v)", lhSelf.Pole(), tiltedPole, d)
 	}
 
-	var farAfter *LocalPolar
+	var farAfter *wire.LocalPolar
 	for _, lp := range lhSelf.LocalPolarsSnapshot() {
 		if lp.To == "far" {
 			cp := lp
@@ -229,7 +230,7 @@ func TestPersistedPoleDrivesReloadWorldPositions(t *testing.T) {
 	if farAfter == nil {
 		t.Fatal("reloaded self has no local polar entry for far")
 	}
-	tt, pp, _ := farAfter.effectiveSteps()
+	tt, pp, _ := farAfter.EffectiveSteps()
 	// Reconstruct under the INDEPENDENTLY KNOWN correct tiltedPole (not lhSelf.Pole(),
 	// which would tautologically round-trip regardless of which pole the loader
 	// actually quantized about) — this is what exposes a wrong (e.g. home-fallback)

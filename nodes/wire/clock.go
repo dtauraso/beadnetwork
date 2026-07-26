@@ -28,7 +28,7 @@
 // end-to-end), so the tick advances monotonically with wall time for the life of
 // the process.
 
-package Wiring
+package wire
 
 import (
 	"context"
@@ -43,6 +43,10 @@ const MsPerTick = 16
 
 // tickPeriod is MsPerTick as a Duration (the wall span of one running tick).
 const tickPeriod = MsPerTick * time.Millisecond
+
+// TickPeriod is tickPeriod's exported mirror, for callers in another package
+// (speed_delivery_test.go in nodes/Wiring) that need the wall span of one tick.
+const TickPeriod = tickPeriod
 
 // Clock is the one human-speed clock the network reads. Tick() returns the
 // current integer tick, advancing at the current playback speed.

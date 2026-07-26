@@ -17,6 +17,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"regexp"
 	"strconv"
 	"strings"
@@ -239,7 +240,7 @@ func TestEveryDragRecipientLogsAbcDragBreadcrumb(t *testing.T) {
 		time.Sleep(time.Millisecond)
 	}
 
-	var lpTAfter, lpNAfter LocalPolar
+	var lpTAfter, lpNAfter wire.LocalPolar
 	for _, lp := range lhT.LocalPolarsSnapshot() {
 		if lp.To == "x" {
 			lpTAfter = lp
@@ -264,7 +265,7 @@ func TestEveryDragRecipientLogsAbcDragBreadcrumb(t *testing.T) {
 		}
 	}
 
-	checkOne := func(who string, got []breadcrumbLine, lp LocalPolar) {
+	checkOne := func(who string, got []breadcrumbLine, lp wire.LocalPolar) {
 		t.Helper()
 		// If the abc-drag Breadcrumb/AbcDrag call were re-gated to a specific NodeKind (or
 		// deleted outright), one of the two recipients would emit zero lines here and this

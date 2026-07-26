@@ -9,6 +9,7 @@ package Wiring
 
 import (
 	"context"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"os"
 	"path/filepath"
 	"testing"
@@ -40,7 +41,7 @@ func TestMoveDispatchRowTablesMatchSeedOrder(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	tr := T.New()
-	clk := NewRealClock()
+	clk := wire.NewRealClock()
 	_, _, md, _, err := LoadTopology(ctx, path, tr, clk)
 	if err != nil {
 		t.Fatalf("LoadTopology: %v", err)

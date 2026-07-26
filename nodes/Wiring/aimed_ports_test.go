@@ -1,14 +1,17 @@
 package Wiring
 
-import "context"
+import (
+	"context"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
+)
 
 // aimedSrc / aimedSink / aimedPacer are minimal node kinds used as fixtures by other tests
 // (the lock cascade). The aimed-port registry itself is gone (edges run node-to-node), and
 // position writes route through nodeMover's own goroutine (node_move.go), so these are just
 // plain kinds now — no layout plumbing to drain.
 type aimedSrc struct {
-	Out        *Out
-	FeedbackIn *In
+	Out        *wire.Out
+	FeedbackIn *wire.In
 }
 
 func (n *aimedSrc) Update(ctx context.Context) {
@@ -16,7 +19,7 @@ func (n *aimedSrc) Update(ctx context.Context) {
 }
 
 type aimedSink struct {
-	In *In
+	In *wire.In
 }
 
 func (n *aimedSink) Update(ctx context.Context) {
@@ -24,8 +27,8 @@ func (n *aimedSink) Update(ctx context.Context) {
 }
 
 type aimedPacer struct {
-	FromSrc  *In
-	Feedback *Out
+	FromSrc  *wire.In
+	Feedback *wire.Out
 }
 
 func (n *aimedPacer) Update(ctx context.Context) {
@@ -33,7 +36,7 @@ func (n *aimedPacer) Update(ctx context.Context) {
 }
 
 func init() {
-	Register("AimedSrc", func() any { return &aimedSrc{} })
-	Register("AimedSink", func() any { return &aimedSink{} })
-	Register("AimedPacer", func() any { return &aimedPacer{} })
+	wire.Register("AimedSrc", func() any { return &aimedSrc{} })
+	wire.Register("AimedSink", func() any { return &aimedSink{} })
+	wire.Register("AimedPacer", func() any { return &aimedPacer{} })
 }

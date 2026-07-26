@@ -1,6 +1,7 @@
 package Wiring
 
 import (
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"math"
 	"testing"
 )
@@ -22,7 +23,7 @@ func homeMD(v viewpoint, centers map[string]vec3) *MoveDispatch {
 	for id, c := range centers {
 		g := nodeGeom{nodeIdentity: nodeIdentity{Kind: "Hold"}}
 		setNodeWorld(&g, c)
-		md.mr.nodeMovers[id] = newNodeMover(id, g, nil, NewRealClock())
+		md.mr.nodeMovers[id] = newNodeMover(id, g, nil, wire.NewRealClock())
 	}
 	return md
 }

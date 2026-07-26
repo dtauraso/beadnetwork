@@ -7,6 +7,7 @@ package Wiring
 
 import (
 	"encoding/binary"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"io"
 )
 
@@ -16,7 +17,7 @@ import (
 // nil-safe (a zero-value *interiorStream is fine — write is a no-op when out is nil).
 type interiorStream struct {
 	out        io.Writer
-	buildFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []RowEvent) []byte
+	buildFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte
 	tick       uint32
 	// nodeRow is this node's stable buffer NODE-ROW index, resolved once at
 	// construction (buildInteriorStream) — carried on every NodeBead/Fire/Recv/Send
@@ -38,7 +39,10 @@ type interiorStream struct {
 // nodeRowOf reports this stream's stable buffer node-row index, so a port can stamp it
 // onto a recv/send/breadcrumb RowEvent without naming the concrete interiorStream type —
 // see the eventSink seam in ports.go. Called only after a non-nil check, so no nil guard.
-func (s *interiorStream) nodeRowOf() int32 { return s.nodeRow }
+// NodeRowOf and WriteEvents are exported (unlike the rest of interiorStream) solely so
+// this type satisfies wire.EventSink from another package — Go requires an interface's
+// methods be exported to be implementable outside the interface's own package.
+func (s *interiorStream) NodeRowOf() int32 { return s.nodeRow }
 
 // write packs and writes this node's current interior-slot arrays via
 // writeInteriorStreamFrame, advancing its own local tick counter. No-op (including on a
@@ -47,7 +51,7 @@ func (s *interiorStream) nodeRowOf() int32 { return s.nodeRow }
 // function invocation (emitNodeBeads/emitHeldBead/emitInputBeads) that built them.
 // Caches the passed bead-slot arrays (see lastPresent's doc comment) so a later
 // writeEvents call has a valid snapshot to reuse.
-func (s *interiorStream) write(present []uint8, value []int32, ox, oy, oz []float32, events []RowEvent) {
+func (s *interiorStream) write(present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) {
 	if s == nil {
 		return
 	}
@@ -62,7 +66,7 @@ func (s *interiorStream) write(present []uint8, value []int32, ox, oy, oz []floa
 // (lastPresent's doc comment) and carries only the caller's new row-resolved
 // RowEvents (Fire/Recv/Send — see owner_events.go). No-op on a nil receiver, same as
 // write.
-func (s *interiorStream) writeEvents(events []RowEvent) {
+func (s *interiorStream) WriteEvents(events []wire.RowEvent) {
 	if s == nil {
 		return
 	}
@@ -88,7 +92,7 @@ func boolU8(b bool) uint8 {
 // buildFrame is nil (no WIREFOLD_STREAM_FDS "interior" entry). tick is a local
 // monotonically-increasing counter (informational only — freshness, not correctness; the
 // Interior columns themselves carry the authoritative state).
-func writeInteriorStreamFrame(out io.Writer, buildFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []RowEvent) []byte, tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []RowEvent) {
+func writeInteriorStreamFrame(out io.Writer, buildFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte, tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) {
 	if out == nil || buildFrame == nil {
 		return
 	}

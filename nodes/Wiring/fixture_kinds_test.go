@@ -5,13 +5,16 @@
 
 package Wiring
 
-import "context"
+import (
+	"context"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
+)
 
 // srcNode is a minimal source kind with one paced Out. Position writes route through
 // nodeMover's own goroutine (node_move.go), so no layout plumbing is needed here.
 type srcNode struct {
-	LayoutHolder
-	Out *Out
+	wire.LayoutHolder
+	Out *wire.Out
 }
 
 func (n *srcNode) Update(ctx context.Context) {
@@ -20,8 +23,8 @@ func (n *srcNode) Update(ctx context.Context) {
 
 // sinkNode is a minimal sink kind with one paced In.
 type sinkNode struct {
-	LayoutHolder
-	In *In
+	wire.LayoutHolder
+	In *wire.In
 }
 
 func (n *sinkNode) Update(ctx context.Context) {
@@ -29,6 +32,6 @@ func (n *sinkNode) Update(ctx context.Context) {
 }
 
 func init() {
-	Register("SrcNode", func() any { return &srcNode{} })
-	Register("SinkNode", func() any { return &sinkNode{} })
+	wire.Register("SrcNode", func() any { return &srcNode{} })
+	wire.Register("SinkNode", func() any { return &sinkNode{} })
 }

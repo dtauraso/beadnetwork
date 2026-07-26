@@ -13,13 +13,19 @@
 // mid-flight, all against ONE clock copy — the recovered fraction t must match
 // the true elapsed-fraction EXACTLY (to float rounding), not merely within the
 // old accepted skew band, because the skew source no longer exists.
-package Wiring
+package wire
 
 import (
 	"context"
+	"math"
 	"testing"
 	"time"
 )
+
+// approxEq is a local copy of nodes/Wiring's wire_test_helpers_test.go helper of the
+// same name — trivial enough to duplicate rather than export test-only helpers across
+// the package boundary.
+func approxEq(a, b float64) bool { return math.Abs(a-b) < 1e-9 }
 
 func TestReviseInFlightGeometryNoSkewWithSingleClockCopy(t *testing.T) {
 	const crossTicks = 40.0
@@ -32,7 +38,7 @@ func TestReviseInFlightGeometryNoSkewWithSingleClockCopy(t *testing.T) {
 
 	// Place via the production path (Send + DriveOneCycle): the WIRE's own
 	// clock reading stamps placementTick.
-	if pw.Send(0, beadPlacement{InFlightMs: inFlightMs, Start: vec3{}, End: vec3{X: 1}}) != SendPlaced {
+	if pw.Send(0, beadPlacement{InFlightMs: inFlightMs, Start: Vec3{}, End: Vec3{X: 1}}) != SendPlaced {
 		t.Fatalf("Send failed")
 	}
 	placementTick := clk.Tick()
@@ -47,7 +53,7 @@ func TestReviseInFlightGeometryNoSkewWithSingleClockCopy(t *testing.T) {
 	nowTick := clk.Tick()
 	trueT := (float64(nowTick) - float64(placementTick)) / crossTicks
 
-	newSeg := wireSegment{Start: vec3{}, End: vec3{X: 1}}
+	newSeg := WireSegment{Start: Vec3{}, End: Vec3{X: 1}}
 	pw.ReviseInFlightGeometry(nowTick, arc, newSeg)
 
 	// No concurrent driver here: this test calls DriveOneCycle inline on its own
@@ -86,7 +92,7 @@ func TestReviseInFlightGeometryRevisesInFlightSegment(t *testing.T) {
 	inFlightMs := crossTicks * MsPerTick
 
 	ctx := context.Background()
-	startSeg := wireSegment{Start: vec3{}, End: vec3{X: 1}}
+	startSeg := WireSegment{Start: Vec3{}, End: Vec3{X: 1}}
 
 	if pw.Send(0, beadPlacement{InFlightMs: inFlightMs, Start: startSeg.Start, End: startSeg.End}) != SendPlaced {
 		t.Fatalf("Send failed")
@@ -97,7 +103,7 @@ func TestReviseInFlightGeometryRevisesInFlightSegment(t *testing.T) {
 		t.Fatalf("expected 1 in-flight bead after DriveOneCycle, got %d", len(pw.inflight))
 	}
 
-	newSeg := wireSegment{Start: vec3{X: 2}, End: vec3{X: 3}}
+	newSeg := WireSegment{Start: Vec3{X: 2}, End: Vec3{X: 3}}
 	pw.ReviseInFlightGeometry(0, arc, newSeg)
 
 	if len(pw.inflight) != 1 {

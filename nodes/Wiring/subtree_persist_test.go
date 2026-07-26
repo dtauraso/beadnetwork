@@ -3,6 +3,7 @@ package Wiring
 import (
 	"context"
 	"encoding/json"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"math"
 	"os"
 	"testing"
@@ -75,7 +76,7 @@ func TestIndividualSnap_OnlyDraggedNodePersists(t *testing.T) {
 	if !ok {
 		t.Fatal("no LayoutHolder for src")
 	}
-	var lpBefore LocalPolar
+	var lpBefore wire.LocalPolar
 	for _, lp := range lhSrc.LocalPolarsSnapshot() {
 		if lp.To == "dst" {
 			lpBefore = lp
@@ -107,7 +108,7 @@ func TestIndividualSnap_OnlyDraggedNodePersists(t *testing.T) {
 	// (QuantITheta/QuantIPhi/QuantIR) to dst fresh from the live offset. Wait for src's
 	// own "abc-drag" breadcrumb (see the sync-point comment above) before reading.
 	waitForAbcDrag(t, &dbg, "src")
-	var lpAfter LocalPolar
+	var lpAfter wire.LocalPolar
 	for _, lp := range lhSrc.LocalPolarsSnapshot() {
 		if lp.To == "dst" {
 			lpAfter = lp
@@ -134,8 +135,8 @@ func TestIndividualSnap_OnlyDraggedNodePersists(t *testing.T) {
 	}
 	offset := dstCenter.sub(srcCenter)
 	dd, rr := dirFromOffset(offset)
-	cc, psi := azimuthFrom(lhSrc.Pole(), dd)
-	st, sp, sr := lpAfter.effectiveSteps()
+	cc, psi := azimuthFrom(dir(lhSrc.Pole()), dd)
+	st, sp, sr := lpAfter.EffectiveSteps()
 	wantTheta := int(math.Round(cc / st))
 	wantPhi := int(math.Round(psi / sp))
 	wantR := int(math.Round(rr / sr))

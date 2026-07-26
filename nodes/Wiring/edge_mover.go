@@ -9,6 +9,7 @@ package Wiring
 import (
 	"context"
 	"encoding/binary"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"io"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -25,8 +26,8 @@ type edgeMover struct {
 	dstH    string
 	srcGeom nodeGeom
 	dstGeom nodeGeom
-	out     *Out       // source Out for this edge (per-edge segment/arc/latency)
-	dest    *PacedWire // dest wire (in-flight revision + latency aggregate)
+	out     *wire.Out       // source Out for this edge (per-edge segment/arc/latency)
+	dest    *wire.PacedWire // dest wire (in-flight revision + latency aggregate)
 	// extIn is this edge's dedicated channel for EXTERNAL entries (gesture.go's
 	// applyRingAnchor anchor mail-sort). srcIn/dstIn are this edge's two dedicated
 	// channels FROM its two endpoint nodes' own goroutines — srcIn written only by
@@ -39,7 +40,7 @@ type edgeMover struct {
 	tr    *T.Trace
 	// clockSrc is the Clock this edgeMover's own goroutine (run) Copies from
 	// EXACTLY ONCE at its own start, into clk below. Not read again afterward.
-	clockSrc Clock
+	clockSrc wire.Clock
 	// clk is this edgeMover's OWN clock copy, set once by run() at goroutine
 	// start. Only this goroutine (handle, called from run's loop) ever reads
 	// it. Defaults to a fresh, real, live-ticking
@@ -48,7 +49,7 @@ type edgeMover struct {
 	// per-goroutine-clock.md's API demolition deleted the old inert/zero-Tick
 	// placeholder (item 3), so the only non-nil default left is a genuine
 	// clock, not a fake stand-in.
-	clk Clock
+	clk wire.Clock
 	// speedCh delivers a speed change to THIS edgeMover's own clk copy
 	// (per-goroutine-clock.md "Delivery"). Set once, at construction
 	// (newMoveDispatch), from the loader's build-wide speed-sink accumulator;
@@ -89,10 +90,10 @@ type edgeMover struct {
 	// injected so this package needs no Buffer import. events carries this goroutine's
 	// OWN row-resolved events recorded since the last flush (memory/
 	// feedback_no_single_writer_bridge.md).
-	buildFrame func(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, beadVal []int32, beadX, beadY, beadZ []float32, events []RowEvent) []byte
+	buildFrame func(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, beadVal []int32, beadX, beadY, beadZ []float32, events []wire.RowEvent) []byte
 }
 
-func newEdgeMover(ep EdgeEndpoints, edgeID string, srcGeom, dstGeom nodeGeom, tr *T.Trace, clockSrc Clock) *edgeMover {
+func newEdgeMover(ep EdgeEndpoints, edgeID string, srcGeom, dstGeom nodeGeom, tr *T.Trace, clockSrc wire.Clock) *edgeMover {
 	// clk defaults to a fresh RealClock (its own independent origin — fine here:
 	// this default is only ever read by a test calling handle() directly, never by
 	// production, where run() always overwrites it below with clockSrc.Copy() before
@@ -112,7 +113,7 @@ func newEdgeMover(ep EdgeEndpoints, edgeID string, srcGeom, dstGeom nodeGeom, tr
 		dstIn:    make(chan moveMsg, 8),
 		tr:       tr,
 		clockSrc: clockSrc,
-		clk:      NewRealClock(),
+		clk:      wire.NewRealClock(),
 		edgeRow:  -1,
 	}
 }
@@ -197,19 +198,19 @@ func (m *edgeMover) handle(msg moveMsg) {
 func (m *edgeMover) recomputeGeometry() {
 	seg := edgeSegment(m.srcGeom, m.dstGeom, m.srcH, m.dstH)
 	arc := edgeArcPolar(m.srcGeom, m.dstGeom, m.srcH, m.dstH)
-	lat := arc / PulseSpeedWuPerMs
+	lat := arc / wire.PulseSpeedWuPerMs
 
 	// Publish the new per-edge segment/arc/latency onto the source Out as an immutable
 	// snapshot so the next placement (on the source node goroutine) reads the new
 	// segment via an atomic load — no data race with recomputeGeometry's write here.
 	if m.out != nil {
-		m.out.publishGeom(outGeom{ArcLength: arc, SimLatencyMs: lat, Start: seg.Start, End: seg.End})
+		m.out.PublishGeom(arc, lat, wire.Vec3{X: seg.Start.X, Y: seg.Start.Y, Z: seg.Start.Z}, wire.Vec3{X: seg.End.X, Y: seg.End.Y, Z: seg.End.Z})
 	}
 	// Re-derive an in-flight bead on this edge from the new arc + segment (no-op if
 	// none in flight); this runs on the SAME goroutine that owns the dest wire's
 	// bead state (this is that wire's own goroutine — see edgeMover.run).
 	if m.dest != nil {
-		m.dest.ReviseInFlightGeometry(m.clk.Tick(), arc, seg)
+		m.dest.ReviseInFlightGeometry(m.clk.Tick(), arc, toWireSegment(seg))
 	}
 	// Emit this edge's own segment so the renderer redraws the wire from Go's endpoints.
 	// Geometry rides THIS edgeMover's own dedicated stream (fully decentralized — it never
@@ -218,7 +219,7 @@ func (m *edgeMover) recomputeGeometry() {
 	// Dedicated per-edge stream (see streamOut's doc comment): write this edge's own combined frame immediately on a
 	// geometry change, in addition to the tick-driven write in run()'s loop. Carries
 	// this edgeMover's own row-resolved Geometry event (owner_events.go).
-	m.writeStreamFrame(m.clk.Tick(), []RowEvent{{
+	m.writeStreamFrame(m.clk.Tick(), []wire.RowEvent{{
 		Kind: T.KindGeometry, EdgeRow: m.edgeRow,
 		NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1,
 	}})
@@ -231,7 +232,7 @@ func (m *edgeMover) recomputeGeometry() {
 // (recomputeGeometry and run's per-cycle loop), reading m.dest's
 // live bead state via LiveBeadRows (same single-goroutine-ownership contract PacedWire's
 // other methods rely on).
-func (m *edgeMover) writeStreamFrame(tick int64, events []RowEvent) {
+func (m *edgeMover) writeStreamFrame(tick int64, events []wire.RowEvent) {
 	if m.streamOut == nil || m.buildFrame == nil {
 		return
 	}
@@ -269,19 +270,19 @@ func (m *edgeMover) writeStreamFrame(tick int64, events []RowEvent) {
 				nodeRow = r
 			}
 		}
-		for _, pe := range m.dest.drainPendingEvents() {
-			events = append(events, RowEvent{
-				Kind: pe.kind, NodeRow: nodeRow, PortRow: srcRow,
+		for _, pe := range m.dest.DrainPendingEvents() {
+			events = append(events, wire.RowEvent{
+				Kind: pe.Kind, NodeRow: nodeRow, PortRow: srcRow,
 				TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
-				Value: int32(pe.value), Bead: pe.gen,
-				X: pe.x, Y: pe.y, Z: pe.z, F: pe.t,
+				Value: int32(pe.Value), Bead: pe.Gen,
+				X: pe.X, Y: pe.Y, Z: pe.Z, F: pe.T,
 			})
 		}
 		// This wire's own "wire-send-buffer-full" breadcrumbs, buffered on
 		// breadcrumbCh from the source node's goroutine (PacedWire.Send) and
 		// resolved to rows here, on this edgeMover's own goroutine — mirrors
-		// drainPendingEvents just above.
-		for _, ev := range m.dest.drainBreadcrumbEvents() {
+		// DrainPendingEvents just above.
+		for _, ev := range m.dest.DrainBreadcrumbEvents() {
 			ev.NodeRow = nodeRow
 			ev.PortRow = srcRow
 			ev.TargetRow = dstRow
@@ -336,7 +337,7 @@ func (m *edgeMover) run(ctx context.Context) {
 			case sp := <-m.speedCh:
 				// Delivery (per-goroutine-clock.md): apply directly to this
 				// goroutine's own clk copy — nothing else reaches it.
-				if rc, ok := m.clk.(*RealClock); ok {
+				if rc, ok := m.clk.(*wire.RealClock); ok {
 					rc.SetSpeed(sp)
 				}
 			case msg := <-m.extIn:

@@ -30,7 +30,9 @@
 // where a node itself sits.
 package Wiring
 
-import "math"
+import (
+	"math"
+)
 
 // poleKickTheta is BOTH the tiny singular zone around +y and the dodge target. Its point
 // is NOT to well-condition the bearing (near the pole you cannot — the φ-cell width scales

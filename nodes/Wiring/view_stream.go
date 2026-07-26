@@ -21,6 +21,7 @@ package Wiring
 
 import (
 	"encoding/binary"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"io"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -36,7 +37,7 @@ type ViewFrameBuilder func(tick uint32,
 	sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis, doubleLinks uint8,
 	abcDragCount uint32,
 	sceneCX, sceneCY, sceneCZ, sceneRadius float32,
-	events []RowEvent,
+	events []wire.RowEvent,
 ) []byte
 
 // SetViewStream installs the VIEW stream's write side: out is the dedicated view fd (nil =
@@ -87,7 +88,7 @@ func (md *MoveDispatch) DrainAbcDragChan() int {
 // resolves nodeRow/targetRow via md.NodeRowFor) can call it directly after wiring
 // SetViewStream, mirroring the Seed* idiom Step A used for NodeGeometry/Geometry.
 func (md *MoveDispatch) EmitLayoutLinkViewEvent(nodeRow, targetRow int32) {
-	md.emitViewFrame([]RowEvent{{Kind: T.KindLayoutLink, NodeRow: nodeRow, PortRow: -1, TargetRow: targetRow, TargetPortRow: -1, EdgeRow: -1}})
+	md.emitViewFrame([]wire.RowEvent{{Kind: T.KindLayoutLink, NodeRow: nodeRow, PortRow: -1, TargetRow: targetRow, TargetPortRow: -1, EdgeRow: -1}})
 }
 
 // EmitBreadcrumb writes ev as a structured Breadcrumb event on the VIEW stream (Kind/
@@ -97,10 +98,10 @@ func (md *MoveDispatch) EmitLayoutLinkViewEvent(nodeRow, targetRow int32) {
 // overlay pole-toggle breadcrumbs, which run on RunStdinReader's own dispatch goroutine
 // — the SAME goroutine that owns the VIEW stream). No-op (via emitViewFrame) when the
 // VIEW stream isn't wired.
-func (md *MoveDispatch) EmitBreadcrumb(ev RowEvent) {
+func (md *MoveDispatch) EmitBreadcrumb(ev wire.RowEvent) {
 	ev.Kind = T.KindBreadcrumb
 	ev.Debug = 1
-	md.emitViewFrame([]RowEvent{ev})
+	md.emitViewFrame([]wire.RowEvent{ev})
 }
 
 // emitViewFrame packs and writes the current camera/overlay/scene-sphere state as this
@@ -109,7 +110,7 @@ func (md *MoveDispatch) EmitBreadcrumb(ev RowEvent) {
 // whatever this call's OWN state change should log (camera/select/hover/scene-sphere/
 // abc-drag/overlay-toggle) — resolved to buffer rows by the caller, mirroring
 // owner_events.go's pattern for every other per-owner stream.
-func (md *MoveDispatch) emitViewFrame(events []RowEvent) {
+func (md *MoveDispatch) emitViewFrame(events []wire.RowEvent) {
 	if md.sw.viewBuildFrame == nil {
 		return
 	}

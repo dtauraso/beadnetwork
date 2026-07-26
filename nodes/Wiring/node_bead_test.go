@@ -1,6 +1,7 @@
 package Wiring
 
 import (
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"io"
 	"math"
 	"testing"
@@ -16,13 +17,13 @@ type nodeBeadSnapshot struct {
 	present    []uint8
 	value      []int32
 	ox, oy, oz []float32
-	events     []RowEvent
+	events     []wire.RowEvent
 }
 
 func captureInteriorSnapshot(snap *nodeBeadSnapshot) *interiorStream {
 	return &interiorStream{
 		out: io.Discard,
-		buildFrame: func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, evs []RowEvent) []byte {
+		buildFrame: func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, evs []wire.RowEvent) []byte {
 			snap.present, snap.value = present, value
 			snap.ox, snap.oy, snap.oz = ox, oy, oz
 			snap.events = evs
@@ -49,7 +50,7 @@ func TestEmitNodeBeadsPositions(t *testing.T) {
 
 	// Slot index == row*2+col: 0=(0,0) 1=(0,1) 2=(1,0) 3=(1,1). Position asserted from
 	// the RowEvent's float64 X/Y/Z (not the ox/oy/oz float32 arrays, which are lossy).
-	byslot := map[int32]RowEvent{}
+	byslot := map[int32]wire.RowEvent{}
 	for _, e := range snap.events {
 		byslot[e.Slot] = e
 	}

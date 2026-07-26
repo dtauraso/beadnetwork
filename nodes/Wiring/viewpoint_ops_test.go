@@ -1,6 +1,7 @@
 package Wiring
 
 import (
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"testing"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -55,7 +56,7 @@ func TestOrbitViewpointEmitsMovedPos(t *testing.T) {
 func TestMoveDispatchViewpointDelegatorsEmit(t *testing.T) {
 	tr := T.New()
 	md := &MoveDispatch{}
-	var events []RowEvent
+	var events []wire.RowEvent
 	captureViewFrameKinds(md, &events)
 	md.SetViewpoint(vec3{}, 100, dir{Theta: 1.0}, dir{Theta: 1.5708})
 

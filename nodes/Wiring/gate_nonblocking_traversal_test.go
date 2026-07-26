@@ -9,6 +9,7 @@ package Wiring_test
 
 import (
 	"context"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"os"
 	"path/filepath"
 	"testing"
@@ -59,7 +60,7 @@ func TestGateFireAndOutputTraversal(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	nodes, _, nmr, _, err := W.LoadTopology(ctx, path, tr, W.NewRealClock())
+	nodes, _, nmr, _, err := W.LoadTopology(ctx, path, tr, wire.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology: %v", err)
 	}

@@ -51,6 +51,7 @@ import (
 	"context"
 	"encoding/binary"
 	"fmt"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"io"
 	"os"
 
@@ -144,7 +145,7 @@ type rawHit struct {
 // It is the stable, slot-keyed identity for the wire owned by each destination port,
 // consumed by md.Bind to seed edgeMovers (the create/delete edit ops that once indexed
 // it were removed end-to-end).
-type SlotRegistry map[string]*PacedWire
+type SlotRegistry map[string]*wire.PacedWire
 
 // RunStdinReader reads FRAMED BINARY records from r, dispatching geometry-CRUD "edit"
 // messages and the bare save command. RunStdinReader itself returns
@@ -248,7 +249,7 @@ func RunStdinReader(ctx context.Context, r io.Reader, slotReg SlotRegistry, md *
 			// the view frame once per drained tick, so the .probe log's abc-drag COUNT
 			// still matches one event per recipient (buffer-log-equivalence.test.ts).
 			for n := md.DrainAbcDragChan(); n > 0; n-- {
-				md.emitViewFrame([]RowEvent{{Kind: T.KindAbcDrag, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}})
+				md.emitViewFrame([]wire.RowEvent{{Kind: T.KindAbcDrag, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}})
 			}
 		case rec, ok := <-recCh:
 			if !ok {
@@ -372,7 +373,7 @@ func applyUpdate(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan 
 			// channels; SendSpeedNonBlocking never blocks on a
 			// receiver that is asleep or never reads (latest-wins coalescing).
 			for _, ch := range speedSinks {
-				SendSpeedNonBlocking(ch, float64(msg.Num))
+				wire.SendSpeedNonBlocking(ch, float64(msg.Num))
 			}
 		}
 	case "overlays":
@@ -389,7 +390,7 @@ func applyUpdate(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan 
 				// carrying the one flag that just changed — matches the ONE tr.X(bool) event
 				// the toggle already logged.
 				if kind, ok := overlayFlagTraceKind[msg.Flag]; ok {
-					md.emitViewFrame([]RowEvent{{Kind: kind, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}})
+					md.emitViewFrame([]wire.RowEvent{{Kind: kind, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}})
 				}
 			}
 		}

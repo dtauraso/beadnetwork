@@ -11,6 +11,7 @@
 package Wiring_test
 
 import (
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"os"
 	"sync"
 
@@ -21,10 +22,10 @@ import (
 // per-node/per-edge dedicated stream frames.
 type rowEventLog struct {
 	mu     sync.Mutex
-	events []W.RowEvent
+	events []wire.RowEvent
 }
 
-func (l *rowEventLog) record(events []W.RowEvent) {
+func (l *rowEventLog) record(events []wire.RowEvent) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	l.events = append(l.events, events...)
@@ -32,10 +33,10 @@ func (l *rowEventLog) record(events []W.RowEvent) {
 
 // snapshot returns a copy of every RowEvent recorded so far. Safe to call concurrently
 // with record (the owning node/edge goroutines) at any time.
-func (l *rowEventLog) snapshot() []W.RowEvent {
+func (l *rowEventLog) snapshot() []wire.RowEvent {
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	out := make([]W.RowEvent, len(l.events))
+	out := make([]wire.RowEvent, len(l.events))
 	copy(out, l.events)
 	return out
 }
@@ -54,11 +55,11 @@ func wireLiveRowEvents(md *W.MoveDispatch) *rowEventLog {
 	interiorBase := int(interiorW.Fd())
 	md.SetNodeStreams(nodeBase, interiorBase,
 		md.NodeRowFor, md.EdgeRowForPair,
-		func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows, edgeRows []int32, events []W.RowEvent) []byte {
+		func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows, edgeRows []int32, events []wire.RowEvent) []byte {
 			log.record(events)
 			return nil
 		},
-		func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []W.RowEvent) []byte {
+		func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte {
 			log.record(events)
 			return nil
 		},

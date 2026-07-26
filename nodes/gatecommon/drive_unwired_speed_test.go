@@ -2,10 +2,9 @@ package gatecommon
 
 import (
 	"context"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"testing"
 	"time"
-
-	"github.com/dtauraso/wirefold/nodes/Wiring"
 )
 
 // TestDriveHeldChanModeStillObeysSpeed is the regression proof for the
@@ -20,11 +19,11 @@ import (
 // of out.Paced(): a real *RealClock + speedCh is handed to a chan-mode
 // (unpaced) DriveHeld goroutine, a speed value is sent, and the test asserts
 // speedCh gets DRAINED — which can only happen if DriveHeld's own loop is
-// calling Wiring.ApplySpeedNonBlocking(c, speedCh) every cycle, i.e. the clock
+// calling wire.ApplySpeedNonBlocking(c, speedCh) every cycle, i.e. the clock
 // path was taken even though out.Paced() == false.
 func TestDriveHeldChanModeStillObeysSpeed(t *testing.T) {
 	ch := make(chan int, 8)
-	out := Wiring.NewOutChanForTest(ch, "n1", "out", nil)
+	out := wire.NewOutChanForTest(ch, "n1", "out", nil)
 
 	heldCh := make(chan int64, 1)
 	heldCh <- 7
@@ -32,7 +31,7 @@ func TestDriveHeldChanModeStillObeysSpeed(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	clk := Wiring.NewRealClock()
+	clk := wire.NewRealClock()
 	speedCh := make(chan float64, 1)
 
 	// Chan mode: out.Paced() == false. Before the fix, DriveHeld would never

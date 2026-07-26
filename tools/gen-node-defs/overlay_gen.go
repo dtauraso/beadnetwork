@@ -142,6 +142,7 @@ func writeOverlayGen(outPath string, flags []overlayFlag) error {
 	fmt.Fprintln(w, "\t\"fmt\"")
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, "\tT \"github.com/dtauraso/wirefold/Trace\"")
+	fmt.Fprintln(w, "\twire \"github.com/dtauraso/wirefold/nodes/wire\"")
 	fmt.Fprintln(w, `)`)
 	fmt.Fprintln(w)
 
@@ -226,7 +227,7 @@ func writeOverlayGen(outPath string, flags []overlayFlag) error {
 			// column since it names which pole-flag fired, not a typed row ref.
 			fmt.Fprintf(w, "func (md *MoveDispatch) Toggle%s(tr *T.Trace) {\n", f.method)
 			fmt.Fprintf(w, "\tmd.ui.ov.Toggle%s(tr)\n", f.method)
-			fmt.Fprintf(w, "\tmd.EmitBreadcrumb(RowEvent{Label: T.BreadcrumbPoleToggleGo, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1, Value: int32(boolU8(md.ui.ov.%s)), Text: %q})\n", f.field, f.breadcrumb)
+			fmt.Fprintf(w, "\tmd.EmitBreadcrumb(wire.RowEvent{Label: T.BreadcrumbPoleToggleGo, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1, Value: int32(boolU8(md.ui.ov.%s)), Text: %q})\n", f.field, f.breadcrumb)
 			fmt.Fprintln(w, `}`)
 		} else {
 			fmt.Fprintf(w, "func (md *MoveDispatch) Toggle%s(tr *T.Trace) { md.ui.ov.Toggle%s(tr) }\n", f.method, f.method)

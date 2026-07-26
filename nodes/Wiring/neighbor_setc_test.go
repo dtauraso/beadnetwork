@@ -10,6 +10,7 @@ package Wiring
 
 import (
 	"context"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"math"
 	"testing"
 	"time"
@@ -38,7 +39,7 @@ func TestNeighborSetCRequantizesEdgeNeighborStaysPut(t *testing.T) {
 		t.Fatal("no center for src")
 	}
 
-	var lpBefore LocalPolar
+	var lpBefore wire.LocalPolar
 	for _, lp := range lhSrc.LocalPolarsSnapshot() {
 		if lp.To == "dst" {
 			lpBefore = lp
@@ -75,7 +76,7 @@ func TestNeighborSetCRequantizesEdgeNeighborStaysPut(t *testing.T) {
 	// write, on src's own goroutine — see the sync-point comment above) before reading
 	// its LocalPolar entry to dst.
 	waitForAbcDrag(t, &dbg, "src")
-	var lpAfter LocalPolar
+	var lpAfter wire.LocalPolar
 	for _, lp := range lhSrc.LocalPolarsSnapshot() {
 		if lp.To == "dst" {
 			lpAfter = lp
@@ -101,11 +102,11 @@ func TestNeighborSetCRequantizesEdgeNeighborStaysPut(t *testing.T) {
 	if !ok {
 		t.Fatal("no center for dst after drag")
 	}
-	pole := lhSrc.Pole()
+	pole := dir(lhSrc.Pole())
 	offset := dstCenterAfter.sub(srcCenterAfter)
 	d, r := dirFromOffset(offset)
 	c, psi := azimuthFrom(pole, d)
-	st, sp, sr := lhSrc.localPolarSteps("dst")
+	st, sp, sr := lhSrc.LocalPolarSteps("dst")
 	wantTheta := int(math.Round(c / st))
 	wantPhi := int(math.Round(psi / sp))
 	wantR := int(math.Round(r / sr))
@@ -149,7 +150,7 @@ func TestNeighborSetCDeltaIsDraggedNodesOwnTripleChange(t *testing.T) {
 	if !ok {
 		t.Fatal("no LayoutHolder for dst")
 	}
-	var dstToSrcBefore LocalPolar
+	var dstToSrcBefore wire.LocalPolar
 	for _, lp := range lhDst.LocalPolarsSnapshot() {
 		if lp.To == "src" {
 			dstToSrcBefore = lp
@@ -183,7 +184,7 @@ func TestNeighborSetCDeltaIsDraggedNodesOwnTripleChange(t *testing.T) {
 		t.Fatalf("expected exactly one abc-drag (== one moveMsgKindNeighborSetC) delivered to src; got %d: %+v", len(got), got)
 	}
 
-	var dstToSrcAfter LocalPolar
+	var dstToSrcAfter wire.LocalPolar
 	for _, lp := range lhDst.LocalPolarsSnapshot() {
 		if lp.To == "src" {
 			dstToSrcAfter = lp

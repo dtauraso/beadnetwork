@@ -10,6 +10,7 @@ package Wiring
 
 import (
 	"context"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"testing"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -56,7 +57,7 @@ func TestPreSplitTopologyRoundTrips(t *testing.T) {
 
 	// ---- Load 1: read the pre-split format. ----
 	tr := T.New()
-	_, _, md, _, err := LoadTopology(context.Background(), root, tr, NewRealClock())
+	_, _, md, _, err := LoadTopology(context.Background(), root, tr, wire.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology (pre-split): %v", err)
 	}
@@ -114,7 +115,7 @@ func TestPreSplitTopologyRoundTrips(t *testing.T) {
 
 	// ---- Load 2: a completely fresh MoveDispatch over the now-partially-migrated tree. ----
 	tr2 := T.New()
-	_, _, md2, _, err := LoadTopology(context.Background(), root, tr2, NewRealClock())
+	_, _, md2, _, err := LoadTopology(context.Background(), root, tr2, wire.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology (reload): %v", err)
 	}

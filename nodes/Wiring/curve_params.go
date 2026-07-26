@@ -11,7 +11,9 @@
 
 package Wiring
 
-import "math"
+import (
+	"math"
+)
 
 // CurveParamPulseSpeedWuPerMs is the uniform pulse speed in world-units per
 // millisecond.  Both Go (simLatencyMs) and TS visual layer (travel
@@ -61,12 +63,6 @@ func (a vec3) normalize() vec3 {
 		return vec3{}
 	}
 	return vec3{a.X / l, a.Y / l, a.Z / l}
-}
-
-// lerp linearly interpolates between a and b at parameter t.
-// P(t) = a + t*(b-a). Used by the position stream to evaluate a bead's position.
-func lerp(a, b vec3, t float64) vec3 {
-	return a.add(b.sub(a).scale(t))
 }
 
 // chordLength returns the straight-line distance |b - a|, floored at

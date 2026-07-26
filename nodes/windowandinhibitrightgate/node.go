@@ -2,8 +2,8 @@ package windowandinhibitrightgate
 
 import (
 	"context"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring"
 	"github.com/dtauraso/wirefold/nodes/gatecommon"
 )
 
@@ -22,5 +22,5 @@ func (g *Node) Update(ctx context.Context) {
 }
 
 func init() {
-	Wiring.Register("WindowAndInhibitRightGate", func() any { return &Node{} })
+	wire.Register("WindowAndInhibitRightGate", func() any { return &Node{} })
 }

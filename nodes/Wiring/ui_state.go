@@ -8,7 +8,9 @@
 
 package Wiring
 
-import "context"
+import (
+	"context"
+)
 
 // uiState groups the CURRENTLY-SELECTED (click-select) and CURRENTLY-HOVERED (pointer
 // hover) UI-only state (selection_state.go), the polar camera viewpoint (viewpoint_state.go),

@@ -15,6 +15,7 @@ import (
 	"context"
 	"encoding/binary"
 	"fmt"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"io"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -71,12 +72,12 @@ type nodeMover struct {
 	// clk below — the same pattern edgeMover.run and DriveHeld already use, so the
 	// mover is no longer the odd one out pacing on a bare wall-clock timer. Not read
 	// again after that copy.
-	clockSrc Clock
+	clockSrc wire.Clock
 	// clk is this nodeMover's OWN clock copy, set once by run() at goroutine start.
 	// Only this goroutine ever reads it. Defaults to a fresh, real, live-ticking
 	// RealClock (see newNodeMover) so a test that never launches run() (e.g. a bare
 	// nodeMover literal driving flushPending directly) never dereferences a nil Clock.
-	clk Clock
+	clk wire.Clock
 	// speedCh delivers a speed change to THIS nodeMover's own clk copy
 	// (per-goroutine-clock.md "Delivery"), polled via ApplySpeedNonBlocking every
 	// cycle of run's loop. Set once, at construction (newMoveDispatch), from the
@@ -206,7 +207,7 @@ type nodeMover struct {
 	// as dispatch/edgeIDs) — safe to read from any goroutine after that point. Read
 	// here only by armDragAnchor, which runs exclusively on this node's own goroutine
 	// (moveMsgKindDragStart, dispatched via handle).
-	layoutHolderFn func() *LayoutHolder
+	layoutHolderFn func() *wire.LayoutHolder
 	// dragAnchorByTo, dragAnchorArmed: THIS node's drag-anchor snapshot (see
 	// moveMsgKindDragStart's doc comment) — the per-neighbor LocalPolar triples as of
 	// the start of the CURRENT drag. Written only by armDragAnchor (moveMsgKindDragStart
@@ -215,7 +216,7 @@ type nodeMover struct {
 	// both run on this node's own goroutine. Cleared (dragAnchorArmed=false) by
 	// armDragAnchor so a NEW drag on the same node always re-arms rather than reusing a
 	// stale anchor from a previous drag.
-	dragAnchorByTo  map[string]LocalPolar
+	dragAnchorByTo  map[string]wire.LocalPolar
 	dragAnchorArmed bool
 
 	// --- dedicated per-node stream (memory/feedback_no_single_writer_bridge.md) ---
@@ -273,10 +274,10 @@ type nodeMover struct {
 	// buildFrame packs this node's combined per-fd frame (node fields + ports + label)
 	// using Buffer's own row-writer columns (Buffer.BuildNodeStreamFrame), injected so
 	// this package needs no Buffer import.
-	buildFrame func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows, edgeRows []int32, events []RowEvent) []byte
+	buildFrame func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows, edgeRows []int32, events []wire.RowEvent) []byte
 }
 
-func newNodeMover(id string, geom nodeGeom, tr *T.Trace, clockSrc Clock) *nodeMover {
+func newNodeMover(id string, geom nodeGeom, tr *T.Trace, clockSrc wire.Clock) *nodeMover {
 	// clk defaults to a fresh RealClock (its own independent origin — fine here: this
 	// default is only ever read by a test that never launches run() as a goroutine;
 	// production always overwrites it below with clockSrc.Copy() before the goroutine
@@ -286,7 +287,7 @@ func newNodeMover(id string, geom nodeGeom, tr *T.Trace, clockSrc Clock) *nodeMo
 		extIn: make(chan moveMsg, 8), neighborIn: map[string]chan moveMsg{}, tr: tr,
 		partnerCenters: map[string]vec3{},
 		centerOut:      make(chan vec3, 1),
-		clockSrc:       clockSrc, clk: NewRealClock(),
+		clockSrc:       clockSrc, clk: wire.NewRealClock(),
 	}
 	// Self-seed centerOut with the initial geometry (even when !HasPos, in which case
 	// nodeWorldPos falls back to the origin) so the dispatch goroutine's first drain
@@ -348,7 +349,7 @@ func (m *nodeMover) handle(msg moveMsg) {
 			// stream frame (emitGeometry's own next emit already fires from
 			// commitLocal above, so this rides as a distinct events-only-shaped
 			// write here rather than waiting on that one).
-			m.writeStreamFrame([]RowEvent{{
+			m.writeStreamFrame([]wire.RowEvent{{
 				Kind: T.KindBreadcrumb, Label: T.BreadcrumbCascadeRoot, Debug: 1,
 				NodeRow: m.nodeRow, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 				X: newPos.X, Y: newPos.Y, Z: newPos.Z,
@@ -431,7 +432,7 @@ func (m *nodeMover) handle(msg moveMsg) {
 // only on this node's own goroutine (moveMsgKindDragStart handler). See
 // moveMsgKindDragStart's doc comment for why this fires exactly once per drag.
 func (m *nodeMover) armDragAnchor() {
-	byTo := map[string]LocalPolar{}
+	byTo := map[string]wire.LocalPolar{}
 	if m.layoutHolderFn != nil {
 		if lh := m.layoutHolderFn(); lh != nil {
 			for _, lp := range lh.LocalPolarsSnapshot() {
@@ -497,7 +498,7 @@ func (m *nodeMover) emitGeometry() {
 	// nodeMover is the sole owner of its node's geometry, so it resolves its own
 	// NodeRow at the call site (owner_events.go) rather than routing through a
 	// shared accumulator.
-	m.writeStreamFrame([]RowEvent{{
+	m.writeStreamFrame([]wire.RowEvent{{
 		Kind: T.KindNodeGeometry, NodeRow: m.nodeRow,
 		PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1,
 	}})
@@ -510,7 +511,7 @@ func (m *nodeMover) emitGeometry() {
 // own goroutine (emitGeometry and run's per-cycle loop), reading
 // m.geom. events carries whatever this call's caller wants riding this frame's trailing
 // EVENTS section (nil from run()'s plain tick-driven write).
-func (m *nodeMover) writeStreamFrame(events []RowEvent) {
+func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 	if m.streamOut == nil || m.buildFrame == nil {
 		return
 	}
@@ -653,7 +654,7 @@ func (m *nodeMover) run(ctx context.Context) {
 		m.emitGeometry()
 	}
 	for {
-		ApplySpeedNonBlocking(m.clk, m.speedCh)
+		wire.ApplySpeedNonBlocking(m.clk, m.speedCh)
 		// Drain every dedicated inbound channel non-blockingly, repeating until a
 		// full pass yields nothing — this is the "drain to empty, don't throttle a
 		// backlog" half of the shape.

@@ -6,6 +6,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"os"
 	"os/signal"
 	"sync"
@@ -22,7 +23,7 @@ import (
 // Buffer.StreamEvent (numeric kind, via Buffer.KindID) for packing into that SAME
 // goroutine's own frame's trailing EVENTS section (memory/feedback_no_single_writer_bridge.md).
 // Pure value conversion — no shared state, safe to call from any owner goroutine.
-func toStreamEvents(events []W.RowEvent) []B.StreamEvent {
+func toStreamEvents(events []wire.RowEvent) []B.StreamEvent {
 	if len(events) == 0 {
 		return nil
 	}
@@ -58,7 +59,7 @@ func toStreamEvents(events []W.RowEvent) []B.StreamEvent {
 // clk is the single monotonic clock every wire reads to time its own delivery
 // (MODEL.md). Both callers (Run, RunTest) pass a real clock; it is always non-nil.
 // The clock is free-running (no play/pause gate).
-func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath string, clk W.Clock) {
+func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath string, clk wire.Clock) {
 	// The VIEW stream (camera+overlay+scene, one singleton row) — per-owner buffer rows
 	// (memory/feedback_no_single_writer_bridge.md, memory/feedback_no_single_writer_bridge.md): WIREFOLD_STREAM_FDS
 	// is now MANDATORY (the old central accumulator + fallback packer were deleted along
@@ -99,7 +100,7 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 		// selected bit, set via a moveMsgKindSelect message the gesture goroutine sends
 		// on select/deselect (MoveDispatch.sendEdgeSelect).
 		md.SetEdgeStreams(edgeBase, md.PortRowFor, md.NodeRowFor,
-			func(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, beadVal []int32, beadX, beadY, beadZ []float32, events []W.RowEvent) []byte {
+			func(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, beadVal []int32, beadX, beadY, beadZ []float32, events []wire.RowEvent) []byte {
 				return B.BuildEdgeStreamFrame(tick, srcPortRow, dstPortRow, selected, label, beadVal, beadX, beadY, beadZ, toStreamEvents(events))
 			})
 	}
@@ -120,13 +121,13 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 			// index (Buffer.NodeKindID) — injected so Wiring stays Buffer-independent.
 			md.SetNodeStreams(nodeBase, interiorBase,
 				md.NodeRowFor, md.EdgeRowForPair,
-				func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows, edgeRows []int32, events []W.RowEvent) []byte {
+				func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows, edgeRows []int32, events []wire.RowEvent) []byte {
 					return B.BuildNodeStreamFrame(tick, nodeRow, cx, cy, cz, radius, sphereR, vrx, vry, vrz, frx, fry, frz,
 						selected, kindID, hovered, latchedSel, gotDragMsg, dragDeltaA, dragDeltaB, dragDeltaC,
 						label, portNames, portDX, portDY, portDZ, portPX, portPY, portPZ, portIsInput, portHovered,
 						dstNodeRows, edgeRows, toStreamEvents(events))
 				},
-				func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []W.RowEvent) []byte {
+				func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte {
 					return B.BuildInteriorStreamFrame(tick, present, value, ox, oy, oz, toStreamEvents(events))
 				},
 				B.NodeKindID)
@@ -146,7 +147,7 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 				sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis, doubleLinks uint8,
 				abcDragCount uint32,
 				sceneCX, sceneCY, sceneCZ, sceneRadius float32,
-				events []W.RowEvent,
+				events []wire.RowEvent,
 			) []byte {
 				return B.BuildViewStreamFrame(tick,
 					camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi,
@@ -184,7 +185,7 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 	// per-node/edge/interior goroutine exists). topologyPath is genuinely free-form
 	// (a filesystem path), so it rides the sanctioned Text column; nodes count is
 	// the typed Value column.
-	md.EmitBreadcrumb(W.RowEvent{
+	md.EmitBreadcrumb(wire.RowEvent{
 		Label: T.BreadcrumbTopologyLoaded, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 		Value: int32(len(nodes)), Text: topologyPath,
 	})
@@ -199,7 +200,7 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 		// Structured buffer counterpart, VIEW stream (same reasoning as
 		// topology-loaded above). Value=NodeSeeds count, X=nodes count — both
 		// small typed ints, no free-form text needed.
-		md.EmitBreadcrumb(W.RowEvent{
+		md.EmitBreadcrumb(wire.RowEvent{
 			Label: T.BreadcrumbRowSeedCountMismatch, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 			Value: int32(len(md.NodeSeeds())), X: float64(len(nodes)),
 		})
@@ -300,7 +301,7 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 func Run(topologyPath string) {
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 	defer cancel()
-	runTopology(ctx, cancel, topologyPath, W.NewRealClock())
+	runTopology(ctx, cancel, topologyPath, wire.NewRealClock())
 }
 
 // RunTest wires the topology and lets it run for dur before cancelling, using a
@@ -308,7 +309,7 @@ func Run(topologyPath string) {
 func RunTest(dur time.Duration, topologyPath string) {
 	ctx, cancel := context.WithTimeout(context.Background(), dur)
 	defer cancel()
-	runTopology(ctx, cancel, topologyPath, W.NewRealClock())
+	runTopology(ctx, cancel, topologyPath, wire.NewRealClock())
 }
 
 func main() {

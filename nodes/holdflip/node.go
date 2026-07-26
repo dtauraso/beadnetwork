@@ -2,8 +2,8 @@ package holdflip
 
 import (
 	"context"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring"
 	"github.com/dtauraso/wirefold/nodes/gatecommon"
 )
 
@@ -25,10 +25,10 @@ import (
 //
 // held is owned by the MAIN loop; the drive goroutine gets its own channel
 // (DriveHeldCh) that the main loop sends the latest held value on
-// (Wiring.SendLatestNonBlocking) whenever it changes — the same
+// (wire.SendLatestNonBlocking) whenever it changes — the same
 // per-goroutine-channel shape as DriveSpeedCh below.
 type Node struct {
-	Wiring.LayoutHolder
+	wire.LayoutHolder
 	Fire         func()
 	EmitGeometry func()
 	// EmitHeldBead, injected by Wiring.reflectBuild, streams the held INPUT value
@@ -38,11 +38,11 @@ type Node struct {
 	EmitHeldBead func(held int)
 	// Clock is this node's OWN clock storage, seeded by Wiring.reflectBuild
 	// directly from the loader's origin (bare-field injection by exact type
-	// Wiring.Clock — see input.Node.Clock; ports no longer hand out a clock,
+	// wire.Clock — see input.Node.Clock; ports no longer hand out a clock,
 	// per-goroutine-clock.md API demolition item 1). Update() Copies it once for
 	// its own loop, and passes the ORIGIN (not that copy) to the DRIVE goroutine
 	// below, which Copies independently at ITS OWN start.
-	Clock Wiring.Clock
+	Clock wire.Clock
 	// SpeedCh delivers a speed change to the MAIN loop's own clock copy;
 	// DriveSpeedCh does the same for the DRIVE goroutine's OWN independent
 	// copy (per-goroutine-clock.md "Delivery") — two separate clock-owning
@@ -51,12 +51,12 @@ type Node struct {
 	// loader.
 	SpeedCh      <-chan float64
 	DriveSpeedCh <-chan float64
-	In           *Wiring.In
-	Out          *Wiring.Out
+	In           *wire.In
+	Out          *wire.Out
 }
 
 func (g *Node) Update(ctx context.Context) {
-	Wiring.TryEmit(g.EmitGeometry)
+	wire.TryEmit(g.EmitGeometry)
 
 	// held is owned by this main loop; heldCh delivers it to the drive
 	// goroutine (buffered-1, latest-wins).
@@ -105,7 +105,7 @@ func (g *Node) Update(ctx context.Context) {
 			g.Fire()
 		}
 		newHeld := int64(v)
-		Wiring.SendLatestNonBlocking(heldCh, newHeld)
+		wire.SendLatestNonBlocking(heldCh, newHeld)
 		if newHeld != lastDisplayed && g.EmitHeldBead != nil {
 			g.EmitHeldBead(v)
 		}
@@ -123,7 +123,7 @@ func (g *Node) Update(ctx context.Context) {
 			return
 		}
 		consume()
-		Wiring.ApplySpeedNonBlocking(clk, g.SpeedCh)
+		wire.ApplySpeedNonBlocking(clk, g.SpeedCh)
 		if err := clk.SleepCycle(ctx); err != nil {
 			return
 		}
@@ -131,5 +131,5 @@ func (g *Node) Update(ctx context.Context) {
 }
 
 func init() {
-	Wiring.Register("HoldFlip", func() any { return &Node{} })
+	wire.Register("HoldFlip", func() any { return &Node{} })
 }

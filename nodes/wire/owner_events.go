@@ -10,7 +10,7 @@
 // Buffer.KindID resolves Kind to its numeric EVENT-block id at PACK time (in main.go's injected
 // closures, which import Buffer); Kind stays a string here so this package keeps its existing
 // Buffer-independence (see PortRowResolver/EdgeRowResolver's doc comments).
-package Wiring
+package wire
 
 // RowEvent is one fully row-resolved event, ready for this goroutine's own frame's trailing
 // EVENTS section. -1 sentinels an unresolved/absent row reference, matching the buffer's

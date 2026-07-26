@@ -28,6 +28,7 @@ package Wiring
 
 import (
 	"fmt"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"path/filepath"
 )
 
@@ -128,13 +129,13 @@ func localPolarsFilePath(root, id string) string {
 // neighbor's direction from its stored indices about the OLD pole, so a reload that dropped
 // the pole would reconstruct against the WRONG (assumed-home) pole for any node whose pole
 // had tilted — see node_move.go requantizePoleTraced's doc comment.
-func WriteLocalPolars(root, id string, lps []LocalPolar, pole dir) error {
+func WriteLocalPolars(root, id string, lps []wire.LocalPolar, pole dir) error {
 	if !safeTreePathComponent(id) {
 		return fmt.Errorf("unsafe node id %q", id)
 	}
 	out := make([]localPolarJSON, 0, len(lps))
 	for _, lp := range lps {
-		t, p, r := lp.effectiveSteps()
+		t, p, r := lp.EffectiveSteps()
 		out = append(out, localPolarJSON{
 			To: lp.To, QuantITheta: lp.QuantITheta, QuantIPhi: lp.QuantIPhi, QuantIR: lp.QuantIR,
 			StepTheta: t, StepPhi: p, StepR: r,

@@ -8,6 +8,7 @@ package Wiring_test
 
 import (
 	"context"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"testing"
 	"time"
 
@@ -40,7 +41,7 @@ func TestInputToHoldNewSendOldTraversal(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	nodes, _, nmr, _, err := W.LoadTopologyFromJSON(ctx, []byte(topo), tr, W.NewRealClock())
+	nodes, _, nmr, _, err := W.LoadTopologyFromJSON(ctx, []byte(topo), tr, wire.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopologyFromJSON: %v", err)
 	}

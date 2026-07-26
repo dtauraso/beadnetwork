@@ -8,6 +8,7 @@ package Wiring
 
 import (
 	"context"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -33,7 +34,7 @@ func emitNodeBeads(tr *T.Trace, nodeName string, working, backup []int, stream *
 	if stream != nil {
 		nodeRow = stream.nodeRow
 	}
-	var events []RowEvent
+	var events []wire.RowEvent
 	emitRow := func(row int, slice []int) {
 		for col := 0; col < cols; col++ {
 			p := interiorSlotOffset(row, col)
@@ -42,7 +43,7 @@ func emitNodeBeads(tr *T.Trace, nodeName string, working, backup []int, stream *
 			if has {
 				v = slice[col]
 			}
-			events = append(events, RowEvent{
+			events = append(events, wire.RowEvent{
 				Kind: T.KindNodeBead, NodeRow: nodeRow, Slot: int32(row*2 + col), Value: int32(v),
 				PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1,
 				X: p.X, Y: p.Y, Z: p.Z,
@@ -84,7 +85,7 @@ func emitHeldBead(tr *T.Trace, nodeName string, held int, stream *interiorStream
 	if stream != nil {
 		nodeRow = stream.nodeRow
 	}
-	events := []RowEvent{{
+	events := []wire.RowEvent{{
 		Kind: T.KindNodeBead, NodeRow: nodeRow, Slot: 0, Value: int32(v),
 		PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1,
 	}}
@@ -115,7 +116,7 @@ func emitInputBeads(tr *T.Trace, nodeName string, left, right int, stream *inter
 	if stream != nil {
 		nodeRow = stream.nodeRow
 	}
-	events := []RowEvent{
+	events := []wire.RowEvent{
 		{Kind: T.KindNodeBead, NodeRow: nodeRow, Slot: 0, Value: int32(vL), PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, X: -s},
 		{Kind: T.KindNodeBead, NodeRow: nodeRow, Slot: 1, Value: int32(vR), PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, X: s},
 	}
@@ -152,7 +153,7 @@ func emitInputBeads(tr *T.Trace, nodeName string, left, right int, stream *inter
 // the caller's own loop resumes and drains it one cycle later — the in-node
 // animation would run at the OLD speed for its entire duration regardless of
 // the slider (the bug this fixes).
-func emitRefillSlide(ctx context.Context, tr *T.Trace, nodeName string, clk Clock, speedCh <-chan float64, beads []int) {
+func emitRefillSlide(ctx context.Context, tr *T.Trace, nodeName string, clk wire.Clock, speedCh <-chan float64, beads []int) {
 	if clk == nil || len(beads) == 0 {
 		return
 	}
@@ -161,7 +162,7 @@ func emitRefillSlide(ctx context.Context, tr *T.Trace, nodeName string, clk Cloc
 	rowPitch := row0Y - row1Y // downward translation distance (local y, positive)
 	// Slide runs at the base pulse speed — the same constant speed as the wire
 	// beads; the clock is still pause-aware. Duration is a tick count.
-	durationTicks := rowPitch / PulseSpeedWuPerTick
+	durationTicks := rowPitch / wire.PulseSpeedWuPerTick
 
 	start := clk.Tick()
 	emitFrame := func(t float64) {
@@ -179,7 +180,7 @@ func emitRefillSlide(ctx context.Context, tr *T.Trace, nodeName string, clk Cloc
 
 	emitFrame(0) // initial frame: beads at the top, top row cleared
 	for {
-		ApplySpeedNonBlocking(clk, speedCh)
+		wire.ApplySpeedNonBlocking(clk, speedCh)
 		if err := clk.SleepCycle(ctx); err != nil {
 			return
 		}

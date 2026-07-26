@@ -11,6 +11,7 @@ package Wiring
 import (
 	"bytes"
 	"context"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"strings"
 	"sync"
 	"testing"
@@ -47,7 +48,7 @@ func loadTreeMDWithDebugSink(t *testing.T, root string, dbg *lockedWriter) *Move
 	t.Helper()
 	tr := T.New()
 	tr.SetSink(dbg)
-	_, _, md, _, err := LoadTopology(context.Background(), root, tr, NewRealClock())
+	_, _, md, _, err := LoadTopology(context.Background(), root, tr, wire.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology: %v", err)
 	}

@@ -12,6 +12,7 @@ package Wiring
 
 import (
 	T "github.com/dtauraso/wirefold/Trace"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
 // viewpointState carries the camera viewpoint and its emit/navigation methods.
@@ -83,8 +84,8 @@ func (md *MoveDispatch) SetViewpoint(pivot vec3, r float64, pos, up dir) {
 // cameraViewEvent is the single Camera event every camera-changing delegator below hands
 // to emitViewFrame. Camera decodes entirely from the VIEW frame's own Camera block (see
 // buffer-log.ts's decodeEventLine "camera" case) — no row identity to resolve.
-func cameraViewEvent() []RowEvent {
-	return []RowEvent{{Kind: T.KindCamera, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}}
+func cameraViewEvent() []wire.RowEvent {
+	return []wire.RowEvent{{Kind: T.KindCamera, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}}
 }
 
 func (md *MoveDispatch) EmitViewpoint(tr *T.Trace) {
