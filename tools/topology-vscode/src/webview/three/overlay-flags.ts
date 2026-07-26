@@ -88,31 +88,6 @@ export function useOverlayFlags(): OverlayFlagVals | null {
   return useSyncExternalStore(subscribeViewBlocks, readOverlayFlags, readOverlayFlags);
 }
 
-/** Decode the running time-node abc-drag "received" total by SUMMING each node row's
- *  OWN cumulative DragRequantCount column (Node block) — the per-recipient count that
- *  replaced the old central Overlay.AbcDragCount. That central counter lived on a
- *  cross-goroutine channel (abcDragCh) a fast drag's pointer-input load could starve,
- *  silently dropping ticks (the node-7-target-only-drag bug); DragRequantCount is state
- *  on each recipient's OWN reliable node stream, so nothing can be dropped — this just
- *  sums what's already there. Returns 0 if no node frame decoded yet. */
-export function readDragReceivedCount(): number {
-  const decoded = getNodeFrame();
-  if (!decoded) return 0;
-  let total = 0;
-  for (let row = 0; row < decoded.nodeCount; row++) {
-    total += readNodeDragRequantCount(decoded.nodeView, row);
-  }
-  return total;
-}
-
-/** React hook: re-renders the caller as time.abc-drag events accumulate (Go-owned,
- *  summed across each recipient's own node-stream count; affirms the drag-log is
- *  happening live). Subscribes to the NODE stream (DragRequantCount lives in the Node
- *  block), not the VIEW stream. */
-export function useDragReceivedCount(): number {
-  return useSyncExternalStore(subscribeNodeStreamBlocks, readDragReceivedCount, readDragReceivedCount);
-}
-
 /** Decode the row index of the node currently being dragged (Overlay block
  *  DragNodeRow column, Go's gesture FSM g.dragNode resolved via NodeRowFor), or -1
  *  when idle. Returns -1 if no snapshot / decode failure yet. */
@@ -159,11 +134,17 @@ export function useDraggedNodeName(): string {
   return useSyncExternalStore(subscribeDraggedNodeName, readDraggedNodeName, readDraggedNodeName);
 }
 
-/** One current-drag recipient: its display name plus the DRAGGED node's own
- *  quantized-triple delta (dA,dB,dC) that rode the message this recipient received
- *  (Node block DragDeltaA/B/C columns). */
+/** One current-drag recipient: its display name, its OWN cumulative
+ *  DragRequantCount (Node block) — the per-recipient count that replaced the old
+ *  central Overlay.AbcDragCount (that central counter lived on a cross-goroutine
+ *  channel, abcDragCh, a fast drag's pointer-input load could starve, silently
+ *  dropping ticks; DragRequantCount is state on each recipient's OWN reliable node
+ *  stream, so nothing can be dropped) — plus the DRAGGED node's own quantized-triple
+ *  delta (dA,dB,dC) that rode the message this recipient received (Node block
+ *  DragDeltaA/B/C columns). */
 export interface AbcDragRow {
   name: string;
+  count: number;
   dA: number;
   dB: number;
   dC: number;
@@ -186,12 +167,13 @@ export function readAbcDragRows(): AbcDragRow[] {
     if (!readNodeGotDragMsg(decoded.nodeView, row)) continue;
     rows.push({
       name: nodeLabel(decoded, row),
+      count: readNodeDragRequantCount(decoded.nodeView, row),
       dA: readNodeDragDeltaA(decoded.nodeView, row),
       dB: readNodeDragDeltaB(decoded.nodeView, row),
       dC: readNodeDragDeltaC(decoded.nodeView, row),
     });
   }
-  const key = rows.map((r) => `${r.name}\0${r.dA},${r.dB},${r.dC}`).join("\0");
+  const key = rows.map((r) => `${r.name}\0${r.count}\0${r.dA},${r.dB},${r.dC}`).join("\0");
   if (key === cachedRowsKey) return cachedRows;
   cachedRowsKey = key;
   cachedRows = rows;

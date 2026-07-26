@@ -85,13 +85,15 @@ func (md *MoveDispatch) emitViewFrame(events []wire.RowEvent) {
 	md.sw.viewTick++
 	v := md.ui.vp.viewpoint
 	sc := md.ui.sceneSphere
-	// dragNodeRow is derived, not stored: the gesture FSM's g.dragNode (nodes/Wiring/
-	// gesture.go) is the single source of truth for "which node is being dragged", and
-	// this goroutine (RunStdinReader's dispatch loop) is the same one that mutates it —
-	// no separate field to keep in sync. "" (idle) resolves to -1.
+	// dragNodeRow is derived from uiState.lastDraggedNode, NOT the live gest.dragNode:
+	// the in-editor "dragging <name>" label must persist across pointerup (show the
+	// LAST-dragged node until a different one is dragged), and lastDraggedNode is the
+	// latch that holds that value (see its doc comment, ui_state.go) — it is set at
+	// the same commitDragStart edge that sets gest.dragNode, but is never cleared back
+	// to "" when the drag ends. "" (nothing ever dragged) resolves to -1.
 	dragNodeRow := int32(-1)
-	if md.ui.gest.dragNode != "" {
-		if r, ok := md.NodeRowFor(md.ui.gest.dragNode); ok {
+	if md.ui.lastDraggedNode != "" {
+		if r, ok := md.NodeRowFor(md.ui.lastDraggedNode); ok {
 			dragNodeRow = r
 		}
 	}

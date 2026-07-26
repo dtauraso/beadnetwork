@@ -69,6 +69,12 @@ func (md *MoveDispatch) commitDragStart(g *gestureState, ev rawInputMsg, tr *T.T
 	// and drops recipients whose mark lands after the next move's reset.
 	// Decentralized (Step C, memory/feedback_no_single_writer_bridge.md): this same goroutine also
 	// writes its own VIEW frame directly, carrying this one-time drag-start event.
+	// Latch this drag's node as the "last dragged" for the in-editor label, which must
+	// persist past this drag's own pointerup (see uiState.lastDraggedNode's doc
+	// comment). Set BEFORE the emitViewFrame call below, so that call's own
+	// dragNodeRow derivation (which reads lastDraggedNode) already reflects this
+	// drag, not the previous one.
+	md.ui.lastDraggedNode = g.dragNode
 	md.emitViewFrame([]wire.RowEvent{{Kind: T.KindAbcDragReset, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}})
 	// Re-scope every recipient's OWN published state the same way, AND zero each
 	// node's own dragRequantCount: the "drag received ×{count}" counter is per-drag,
