@@ -21,6 +21,10 @@ func TestDispatchTableKeysMatchFingerprint(t *testing.T) {
 		{"updateKindHandlers", mapKeys(updateKindHandlers), "inUpdateKinds", inUpdateKinds},
 		{"clockAttrHandlers", mapKeys(clockAttrHandlers), "inUpdateAttrs", inUpdateAttrs},
 		{"overlayAttrHandlers", mapKeys(overlayAttrHandlers), "inUpdateAttrs", inUpdateAttrs},
+		// overlayFlagTraceKind maps each overlay flag NAME → its trace kind. The values are
+		// compile-checked (T.Kind* consts), but the string keys can drift from the flag list;
+		// guard them here (a key absent from inOverlayFlags is a typo'd/stale flag name).
+		{"overlayFlagTraceKind", mapKeys(overlayFlagTraceKind), "inOverlayFlags", inOverlayFlags},
 	}
 
 	for _, c := range checks {
