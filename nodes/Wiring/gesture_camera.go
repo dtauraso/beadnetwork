@@ -49,11 +49,11 @@ func worldDirToAngles(v vec3) dir {
 }
 
 // ---------------------------------------------------------------------------
-// camera basis (mirrors CameraFromStore.tsx lookAt + polar.ts cameraFrame)
+// camera basis (mirrors BufferCamera.tsx lookAt + polar.ts cameraFrame)
 // ---------------------------------------------------------------------------
 
 // camBasis is the three.js camera screen basis, reconstructed from the polar viewpoint
-// (pos = pivot→camera dir; up = up-hint). It reproduces exactly what CameraFromStore.tsx
+// (pos = pivot→camera dir; up = up-hint). It reproduces exactly what BufferCamera.tsx
 // builds (cam.up = up; cam.lookAt(pivot)) and what polar.ts cameraFrame then reads off the
 // quaternion:
 //

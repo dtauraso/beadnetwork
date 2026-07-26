@@ -63,6 +63,12 @@ readonly DEAD_COMMENT_TOKENS=(
   # stale-audit round (2026-07-25): the leaf extraction moved Register from
   # Wiring to nodes/wire — "Wiring.Register" is a ghost symbol.
   "Wiring.Register"
+  # stale-audit round (2026-07-25): pump.ts was deleted and no TS camera store exists
+  # (MODEL.md: TS holds no domain state); these named a render path that no longer
+  # exists. Bare "pump" is intentionally NOT guarded — too generic/false-positive-prone.
+  "useCameraStore"
+  "CameraFromStore"
+  "pump.ts"
 )
 
 fail=0

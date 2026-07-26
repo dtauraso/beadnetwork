@@ -2,9 +2,8 @@
 // and drives the three.js camera (position / up / lookAt) from it. Split out of
 // buffer-scene.tsx: pure buffer→camera render, no state authority.
 //
-// The polar→cartesian mapping is IDENTICAL to CameraFromStore's (anglesToWorldOffset in
-// viewpoint-bridge), so a given Go camera state produces the same three.js pose on
-// either path:
+// The polar→cartesian mapping uses the shared anglesToWorldOffset helper (viewpoint-bridge),
+// so a given Go camera state always produces the same three.js pose:
 //   pivot   = (PX, PY, PZ)
 //   position = pivot + anglesToWorldOffset(R, PosTheta, PosPhi)
 //   up      = anglesToWorldOffset(1, UpTheta, UpPhi).normalize()
@@ -41,7 +40,7 @@ export function BufferCamera({ cameraRef }: {
     // Guard the uninitialized camera row: Go emits a real viewpoint on load (SeedInitialViewpoint
     // reads the saved pose from view/scene.json, or a non-degenerate default), but node-geometry
     // snapshots can land first, with the camera row still all zeros. r <= 0 means "no viewpoint
-    // yet" — skip, mirroring CameraFromStore's `!polar`.
+    // yet" — skip.
     if (!(r > 0)) return;
 
     const pivot = pivotRef.current;

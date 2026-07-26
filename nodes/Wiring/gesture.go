@@ -149,11 +149,12 @@ var rawInputHandlers = map[string]func(md *MoveDispatch, ev rawInputMsg, slotReg
 
 // gestHome handles a "home" (fit-to-content) command: Go frames ALL nodes from its OWN held
 // geometry with the SAME fit math the TS HomeButton used (homeFitPose), then installs the
-// result via SetViewpoint + EmitViewpoint — the exact path a gesture uses, so it streams out
-// (pump → useCameraStore → CameraFromStore) and persists on the polar save path. TS sent no
-// pose, only render context (fov + aspect). Because the FSM's own viewpoint now IS the framed
-// pose, the next orbit/pan/zoom builds on it (no snap-back). Does nothing when there are no
-// nodes, mirroring HomeButton's early return.
+// result via SetViewpoint + EmitViewpoint — the exact path a gesture uses. The FSM's own
+// viewpoint IS the framed pose; EmitViewpoint streams it out on this goroutine's own
+// per-owner VIEW frame (the buffer VIEW stream) and it persists on the polar save path. TS
+// sent no pose, only render context (fov + aspect). Because the FSM's own viewpoint now IS
+// the framed pose, the next orbit/pan/zoom builds on it (no snap-back). Does nothing when
+// there are no nodes, mirroring HomeButton's early return.
 func (md *MoveDispatch) gestHome(ev rawInputMsg, tr *T.Trace) {
 	centers := md.heldCenters()
 	radius := make(map[string]float64, len(centers))
