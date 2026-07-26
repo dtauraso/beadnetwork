@@ -67,10 +67,10 @@ const (
 	inClockAttrSpeed    = 1 // clock: set the playback-speed multiplier
 )
 
-// Enum orderings (u8 index → string), shared with input-layout-gen.ts. Every one is DERIVED
-// from its token in the fingerprint, so a Go-side ordering CANNOT drift from the pinned
-// layout: there is no second array to reorder. The chain that keeps both languages in
-// lockstep, per enum:
+// Enum orderings (u8 index → string), shared with input-layout-gen.ts. All five orderings
+// (eventKinds/hitKinds/updateKinds/updateAttrs/overlayFlags) are DERIVED from their token in
+// the fingerprint, so a Go-side ordering CANNOT drift from the pinned layout: there is no
+// second array to reorder. The chain that keeps both languages in lockstep, per enum:
 //
 //	Go fingerprint (the source)  →[parseFPList, here]→  Go array
 //	   Go fingerprint  →[tools/gen-node-defs/input_layout.go parses the same string]→  TS array
@@ -79,11 +79,6 @@ const (
 // hand-authored copy on either side to fall out of sync. These orderings are WIRE INDICES (a u8
 // index is all that crosses the bridge), so an unchecked reorder is a silent
 // mis-dispatch — a raycast hit on a node decoding as an edge — with nothing to fail.
-// overlayFlags derived this way already; the other three were hand-synced literals whose
-// ends of the chain dangled. The TS array is now GENERATED straight from this same Go
-// fingerprint string (tools/gen-node-defs/input_layout.go) — the TS side can no longer
-// diverge because there is no second hand-authored copy of it (the former fingerprint-diff
-// guard was retired as redundant).
 var (
 	inEventKinds   = parseFPList(InputLayoutFingerprint, "eventKinds=")
 	inHitKinds     = parseFPList(InputLayoutFingerprint, "hitKinds=")

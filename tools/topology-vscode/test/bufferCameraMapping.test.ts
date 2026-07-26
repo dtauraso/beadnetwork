@@ -1,10 +1,10 @@
 // Unit test for the buffer-driven camera mapping (BufferCamera in buffer-scene.tsx).
 //
 // BufferCamera reads the snapshot's single Camera row and derives the three.js camera
-// pose via the SAME polar→cartesian helper CameraFromStore uses (anglesToWorldOffset).
+// pose via the shared polar→cartesian helper anglesToWorldOffset (viewpoint-bridge).
 // This test builds a snapshot with known camera columns, decodes it, and asserts the
 // derived position/up match the expected polar→cartesian result — proving the buffer
-// path reproduces the store path's pose for identical Go camera state.
+// path reproduces the correct pose for a given Go camera state.
 
 import { describe, it, expect } from "vitest";
 import * as THREE from "three";
@@ -21,7 +21,7 @@ import {
 // Local copy of viewpoint-bridge.ts's anglesToWorldOffset. Kept inline (not imported)
 // because viewpoint-bridge pulls in the VS Code api at module load, which is absent under
 // the node test env. This MUST stay identical to the real helper — the whole point is that
-// BufferCamera and CameraFromStore share that exact formula.
+// this test independently verifies the exact formula BufferCamera imports and uses.
 function anglesToWorldOffset(r: number, theta: number, phi: number): THREE.Vector3 {
   const sinTheta = Math.sin(theta);
   return new THREE.Vector3(
