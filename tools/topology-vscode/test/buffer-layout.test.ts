@@ -115,8 +115,9 @@ describe("buffer-layout — Node block", () => {
     //   + 1×u8 (kindId) + 2×u32 (label off/len)
     //   + 1×u8 (hovered) + 1×u8 (latchedSel) + 1×u8 (gotDragMsg)
     //   + 3×i32 (dragDeltaA/B/C) + 1×i32 (dragRequantCount)
-    //   = (5+6)×4 + 1 + 1 + 8 + 1 + 1 + 1 + 12 + 4 = 73
-    expect(NODE_STRIDE).toBe(73);
+    //   + 1×u8 (gotForwardMsg) + 4×i32 (forwardDeltaA/B/C + forwardFromRow)
+    //   = (5+6)×4 + 1 + 1 + 8 + 1 + 1 + 1 + 12 + 4 + 1 + 16 = 90
+    expect(NODE_STRIDE).toBe(90);
   });
 
   it("read helpers decode known bytes correctly", () => {
@@ -314,7 +315,7 @@ describe("buffer-layout — Overlay block", () => {
 
 describe("buffer-layout — meta", () => {
   it("schema version is 33", () => {
-    expect(BUF_LAYOUT_VERSION).toBe(33);
+    expect(BUF_LAYOUT_VERSION).toBe(34);
   });
 
   it("header size is 8 bytes (2×u32: tick + layoutLinkCount; no beadCount/nodeCount/portCount/labelBytesCount/portNameBytesCount/edgeCount/edgeLabelBytesCount/eventCount — beads, the node-owner-group blocks, the Edge block, and events are their own tagged/per-owner frames)", () => {

@@ -46,6 +46,8 @@ func BuildNodeStreamFrame(
 	vrx, vry, vrz, frx, fry, frz float32,
 	selected, kindID, hovered, latchedSel, gotDragMsg uint8,
 	dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount int32,
+	gotForwardMsg uint8,
+	forwardDeltaA, forwardDeltaB, forwardDeltaC, forwardFromRow int32,
 	label string,
 	portNames []string,
 	portDX, portDY, portDZ, portPX, portPY, portPZ []float32,
@@ -83,7 +85,8 @@ func BuildNodeStreamFrame(
 
 	SetNodeRow(buf[off:off+BufNodeStride], 0, cx, cy, cz, radius, sphereR, vrx, vry, vrz, frx, fry, frz,
 		selected, kindID, 0, uint32(len(labelBytes)), hovered, latchedSel, gotDragMsg,
-		dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount)
+		dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount,
+		gotForwardMsg, forwardDeltaA, forwardDeltaB, forwardDeltaC, forwardFromRow)
 	off += BufNodeStride
 
 	copy(buf[off:off+len(labelBytes)], labelBytes)

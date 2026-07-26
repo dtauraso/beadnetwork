@@ -164,6 +164,13 @@ type nodeMover struct {
 	// neighbor's holder AND world position are written only by that neighbor's OWN
 	// goroutine. nil in tests that build a bare nodeMover directly.
 	neighborSetC func(selfID, fromID string, selfCenter, fromCenter vec3, deltaA, deltaB, deltaC int)
+	// forwardOnce runs THIS node's own once-per-drag delta-forward hop
+	// (nodeMover.forwardDeltaOnce), bound to a closure over md at construction — same
+	// injected-closure shape as commitLocal/neighborSetC above, so handle() can call it
+	// without holding an md pointer directly. nil in tests that build a bare nodeMover
+	// directly (forwardDeltaOnce itself is also callable directly there, with an explicit
+	// md, when a test needs that).
+	forwardOnce func(exceptID string, dA, dB, dC int32)
 	// pending is THIS node's own outbound retry queue: sendMove appends here and attempts an immediate
 	// non-blocking send; an item that can't be delivered right now (the target's
 	// inbox is momentarily full) stays here and is retried — before any newer item to
@@ -264,6 +271,24 @@ type nodeMover struct {
 	// the view-owner goroutine and could drop ticks under a full abcDragCh during a
 	// fast drag; this is state on the node's own reliable stream, so nothing drops it.
 	dragRequantCount int32
+	// gotForwardMsg/forwardDeltaA-C/forwardFromRow mirror gotDragMsg/dragDelta*/-- exactly,
+	// but for the delta-forward observability message (moveMsgKindDeltaForward): set only
+	// by THIS node's own handle() when it FIRST receives a forward (from a direct
+	// drag-recipient neighbor, or from another forwarding neighbor — see
+	// forwardedThisDrag). Reset alongside gotDragMsg/dragDelta* by moveMsgKindAbcReset.
+	gotForwardMsg                               uint8
+	forwardDeltaA, forwardDeltaB, forwardDeltaC int32
+	forwardFromRow                              int32
+	// forwardedThisDrag guards this node's OWN single forward hop: a node forwards the
+	// delta triple it picks up AT MOST ONCE per drag — on the FIRST delta it receives,
+	// whether that's the direct neighborSetC from the dragged node itself
+	// (neighborSetCRequantize's forwardDeltaOnce call) or a moveMsgKindDeltaForward from a
+	// neighbor that already forwarded (handle's moveMsgKindDeltaForward case). This is
+	// what turns "one hop per node" into full graph propagation (every node relays once,
+	// independently and concurrently) while still terminating on a cycle: once a node has
+	// forwarded this drag, forwardDeltaOnce is a no-op for it. Reset to false by
+	// moveMsgKindAbcReset, same drag-scoping as gotDragMsg/gotForwardMsg.
+	forwardedThisDrag bool
 	// hoverPort/hoverIsInput name the specific port currently hovered on this node (""
 	// = whole-node hover, only meaningful when hovered==1). Set alongside hovered by a
 	// moveMsgKindHover message.
@@ -276,7 +301,7 @@ type nodeMover struct {
 	// buildFrame packs this node's combined per-fd frame (node fields + ports + label)
 	// using Buffer's own row-writer columns (Buffer.BuildNodeStreamFrame), injected so
 	// this package needs no Buffer import.
-	buildFrame func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows, edgeRows []int32, events []wire.RowEvent) []byte
+	buildFrame func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount int32, gotForwardMsg uint8, forwardDeltaA, forwardDeltaB, forwardDeltaC, forwardFromRow int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows, edgeRows []int32, events []wire.RowEvent) []byte
 }
 
 func newNodeMover(id string, geom nodeGeom, tr *T.Trace, clockSrc wire.Clock) *nodeMover {
@@ -290,6 +315,7 @@ func newNodeMover(id string, geom nodeGeom, tr *T.Trace, clockSrc wire.Clock) *n
 		partnerCenters: map[string]vec3{},
 		centerOut:      make(chan vec3, 1),
 		clockSrc:       clockSrc, clk: wire.NewRealClock(),
+		forwardFromRow: -1,
 	}
 	// Self-seed centerOut with the initial geometry (even when !HasPos, in which case
 	// nodeWorldPos falls back to the origin) so the dispatch goroutine's first drain
@@ -394,6 +420,10 @@ func (m *nodeMover) handle(msg moveMsg) {
 		m.gotDragMsg = 0
 		m.dragDeltaA, m.dragDeltaB, m.dragDeltaC = 0, 0, 0
 		m.dragRequantCount = 0
+		m.gotForwardMsg = 0
+		m.forwardDeltaA, m.forwardDeltaB, m.forwardDeltaC = 0, 0, 0
+		m.forwardFromRow = -1
+		m.forwardedThisDrag = false
 		return
 	}
 	if msg.Kind == moveMsgKindNeighborCenter {
@@ -423,9 +453,72 @@ func (m *nodeMover) handle(msg moveMsg) {
 		}
 		return
 	}
+	if msg.Kind == moveMsgKindDeltaForward {
+		// Delta-forward observability (see moveMsgKindDeltaForward's doc comment): record
+		// state from the FIRST forward this node sees this drag — msg.SenderID is the
+		// neighbor that forwarded to it, resolved to its buffer node row here — then do
+		// THIS node's OWN once-per-drag forward hop (forwardOnce/forwardDeltaOnce),
+		// relaying the same triple onward to every neighbor except the one it came from.
+		// forwardedThisDrag (checked inside forwardDeltaOnce) is what makes both the log
+		// state and the relay a "first delta wins, do it once" op — later deltas reaching
+		// an already-forwarded node update neither.
+		if !m.forwardedThisDrag {
+			m.gotForwardMsg = 1
+			m.forwardDeltaA, m.forwardDeltaB, m.forwardDeltaC = int32(msg.DeltaA), int32(msg.DeltaB), int32(msg.DeltaC)
+			m.forwardFromRow = -1
+			if m.nodeRowFor != nil {
+				if r, ok := m.nodeRowFor(msg.SenderID); ok {
+					m.forwardFromRow = r
+				}
+			}
+		}
+		if m.forwardOnce != nil {
+			m.forwardOnce(msg.SenderID, int32(msg.DeltaA), int32(msg.DeltaB), int32(msg.DeltaC))
+		}
+		if m.tr != nil {
+			m.emitGeometry()
+		}
+		return
+	}
 	if m.tr != nil {
 		m.emitGeometry()
 	}
+}
+
+// forwardDeltaOnce runs THIS node's own delta-forward hop, guarded to AT MOST ONCE per
+// drag by m.forwardedThisDrag: a node forwards the triple it first picks up — whether
+// from the dragged node itself (neighborSetCRequantize, exceptID = the dragged node) or
+// from a neighbor that already forwarded (handle's moveMsgKindDeltaForward case,
+// exceptID = that neighbor) — to every OTHER node it shares an edge with, then marks
+// itself done for this drag. This is what turns "one hop per node" into full graph
+// propagation: every reachable node relays exactly once, independently and
+// concurrently, and the once-per-drag guard is what terminates it on a cycle (a second
+// delta reaching an already-forwarded node is recorded — see gotForwardMsg — but does
+// not re-trigger a hop). Neighbor set built the same way requantizeLocalPolars does
+// (scan md.mr.edgeMovers for edges incident to m.id). Sent via m's OWN retry queue
+// (m.sendMove, the same fire-and-forget mechanism every other fan-out in this file
+// uses) — never blocking. Called only from m's own goroutine (handle, and
+// neighborSetCRequantize which already runs on selfID's own goroutine).
+func (m *nodeMover) forwardDeltaOnce(md *MoveDispatch, exceptID string, dA, dB, dC int32) {
+	if m.forwardedThisDrag {
+		return
+	}
+	for _, em := range md.mr.edgeMovers {
+		var other string
+		if em.srcID == m.id {
+			other = em.dstID
+		} else if em.dstID == m.id {
+			other = em.srcID
+		} else {
+			continue
+		}
+		if other == exceptID {
+			continue
+		}
+		m.sendMove(other, moveMsg{Kind: moveMsgKindDeltaForward, NodeID: other, SenderID: m.id,
+			DeltaA: int(dA), DeltaB: int(dB), DeltaC: int(dC)})
+	}
+	m.forwardedThisDrag = true
 }
 
 // armDragAnchor (re-)arms this node's drag-anchor snapshot from its CURRENT
@@ -548,6 +641,9 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 	selected, hovered, latchedSel, gotDragMsg, kindID := m.selected, m.hovered, m.latchedSel, m.gotDragMsg, m.kindID
 	dA, dB, dC := m.dragDeltaA, m.dragDeltaB, m.dragDeltaC
 	dReq := m.dragRequantCount
+	gotFwd := m.gotForwardMsg
+	fA, fB, fC := m.forwardDeltaA, m.forwardDeltaB, m.forwardDeltaC
+	fFromRow := m.forwardFromRow
 	// This node's own outbound layout-links (layoutLinkTos, static since load — see its
 	// doc comment): resolve each dst id to its CURRENT buffer node row + the CURRENT bead
 	// edge row connecting the pair (both re-resolved every emit, mirroring the combined
@@ -579,6 +675,7 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 		verticalRingNormalX, verticalRingNormalY, verticalRingNormalZ,
 		flatRingNormalX, flatRingNormalY, flatRingNormalZ,
 		selected, kindID, hovered, latchedSel, gotDragMsg, dA, dB, dC, dReq,
+		gotFwd, fA, fB, fC, fFromRow,
 		label, portNames, portDX, portDY, portDZ, portPX, portPY, portPZ, portIsInput, portHovered,
 		dstNodeRows, edgeRows, events)
 	var hdr [4]byte

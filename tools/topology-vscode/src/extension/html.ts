@@ -56,7 +56,10 @@ export function buildWebviewHtml(
     <span id="distance-home-mount"></span>
   </div>
   <div id="rule-eq-mount"></div>
-  <div id="abc-drag-mount"></div>
+  <div class="drag-log-row">
+    <div id="abc-drag-mount"></div>
+    <div id="delta-forward-mount"></div>
+  </div>
   <div id="app"></div>
   <script nonce="${nonce}" src="${scriptUri.toString()}"></script>
 </body>

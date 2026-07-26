@@ -21,7 +21,7 @@
 package Buffer
 
 // BufLayoutVersion is the schema version. Bump when any column changes.
-const BufLayoutVersion = 33
+const BufLayoutVersion = 34
 
 // BufInteriorSlotsPerNode is the fixed number of interior grid slots reserved per
 // node in the Interior block (a 2x2 held/interior-bead grid: slot = row*2 + col).
@@ -137,6 +137,24 @@ type bufLayoutNode struct {
 	// can drop it. The editor's "drag received ×N" total sums this column across all
 	// node rows (TS-side; see overlay-flags.ts readDragReceivedCount).
 	DragRequantCount int32 `buf:"i32"` // this node's own cumulative recipient count, this drag
+	// GotForwardMsg/ForwardDeltaA-C/ForwardFromRow mirror GotDragMsg/DragDeltaA-C exactly,
+	// but for the delta-forward full-graph-propagation observability feature
+	// (nodes/Wiring/node_mover.go's forwardDeltaOnce): every node that picks up a delta
+	// triple — as the direct drag-recipient (neighborSetCRequantize) or as a forward
+	// recipient (moveMsgKindDeltaForward) — records it here on the FIRST delta it sees
+	// this drag, then relays the SAME triple onward to its own OTHER neighbors exactly
+	// once (forwardedThisDrag guards it — a later delta reaching an already-forwarded
+	// node does not update these columns again). DRAG-SCOPED like GotDragMsg: cleared to
+	// 0/-1 in the same moveMsgKindAbcReset handler (nodes/Wiring/node_mover.go) that
+	// resets GotDragMsg/DragDeltaA-C.
+	GotForwardMsg uint8 `buf:"u8"`  // 1 = this node has received a delta-forward message, this drag
+	ForwardDeltaA int32 `buf:"i32"` // forwarded theta-index delta (the ORIGINAL dragged node's own delta)
+	ForwardDeltaB int32 `buf:"i32"` // forwarded phi-index delta
+	ForwardDeltaC int32 `buf:"i32"` // forwarded r-index delta
+	// ForwardFromRow is the buffer ROW index of whichever neighbor's own hop reached this
+	// node FIRST this drag, -1 when none (reset state). Resolved via
+	// MoveDispatch.NodeRowFor at the forward-recipient's handler.
+	ForwardFromRow int32 `buf:"i32"` // forwarder's buffer node row, -1 = none
 }
 
 // bufLayoutInterior defines one row of the interior-bead column block.

@@ -313,6 +313,20 @@ func (lq *layoutQuantizer) neighborSetCRequantize(md *MoveDispatch, selfID, from
 			}
 		}
 	}
+
+	// Delta-forward, once per drag (observability only — no re-quantize, no move):
+	// selfID is a direct drag-recipient, so it forwards the SAME delta triple it just
+	// received from fromID to every OTHER neighbor (every neighbor except fromID) — its
+	// OWN single hop, guarded by forwardedThisDrag so a node already forwarded this drag
+	// (e.g. by a fresh RootMove tick re-sending neighborSetC) is a no-op here. Every
+	// forward recipient in turn does its OWN guarded hop (handle's
+	// moveMsgKindDeltaForward case) — independent, concurrent single hops that together
+	// spread the triple across the whole reachable graph, terminating on any cycle
+	// because each node relays at most once (see nodeMover.forwardDeltaOnce's doc
+	// comment).
+	if nm, ok := md.mr.nodeMovers[selfID]; ok {
+		nm.forwardDeltaOnce(md, fromID, int32(deltaA), int32(deltaB), int32(deltaC))
+	}
 }
 
 // commitNodeMoveLocal is the OWNER-GOROUTINE single-node commit path

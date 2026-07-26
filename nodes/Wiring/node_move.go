@@ -241,6 +241,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 		ownMover := nm
 		nm.commitLocal = func(_ string, newPos vec3) { md.commitNodeMoveLocal(ownMover, newPos) }
 		nm.neighborSetC = md.neighborSetCRequantize
+		nm.forwardOnce = func(exceptID string, dA, dB, dC int32) { ownMover.forwardDeltaOnce(md, exceptID, dA, dB, dC) }
 		// Go 1.22+ loop semantics give each iteration its own id, so this closure safely
 		// captures THIS iteration's id (no shared-variable capture bug).
 		nm.layoutHolderFn = func() *wire.LayoutHolder { return md.lq.layoutHolders[id] }

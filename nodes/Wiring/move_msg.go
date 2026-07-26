@@ -72,6 +72,24 @@ const (
 	// existing SenderID/FromCenter fields (same shape moveMsgKindNeighborSetC already
 	// carries: sender id + sender's fresh center).
 	moveMsgKindNeighborCenter = "neighborCenter"
+	// moveMsgKindDeltaForward is the delta-forward full-graph-propagation observability
+	// message: a node selfID that just picked up a delta triple (DeltaA/B/C, the
+	// ORIGINALLY-dragged node's own quantized-triple change) — either as the direct
+	// drag-recipient (moveMsgKindNeighborSetC from the dragged node) or as a forward
+	// recipient (a moveMsgKindDeltaForward from a neighbor that already relayed it) —
+	// forwards the SAME triple to each of its OTHER neighbors (every neighbor except
+	// whichever one it came from), carrying its OWN id as SenderID (the forwarder). The
+	// receiver records GotForwardMsg/ForwardDeltaA-C/ForwardFromRow on its own node
+	// stream frame AND does its OWN one-hop relay in turn (nodeMover.forwardDeltaOnce).
+	// Every node does this AT MOST ONCE PER DRAG (forwardedThisDrag guards it — the
+	// first delta a node sees, whichever path it arrived by, is the one it relays; any
+	// later delta reaching an already-forwarded node updates nothing further) — that
+	// once-per-node guard is what lets independent concurrent single hops spread the
+	// triple across the WHOLE reachable graph while still terminating on a cycle,
+	// instead of looping forever (see neighborSetCRequantize's forward step and
+	// node_mover.go's moveMsgKindDeltaForward case / forwardDeltaOnce). Pure
+	// observability throughout: no re-quantize, no move.
+	moveMsgKindDeltaForward = "deltaForward"
 )
 
 // moveMsg is one entry routed to one of a mover's own dedicated channels (there is no
@@ -118,13 +136,15 @@ type moveMsg struct {
 	// SenderID at the new distance (see neighborSetCReposition) — receiver-computes.
 	FromCenter vec3
 	// SenderID (Kind == "neighborSetC"): the id of the mover whose fresh FromCenter
-	// the receiver repositions itself relative to.
+	// the receiver repositions itself relative to. (Kind == "deltaForward"): the id of
+	// the FORWARDER (the direct drag-recipient one hop back), not the originally-dragged
+	// node — the forward recipient resolves this to ForwardFromRow via NodeRowFor.
 	SenderID string
 	// SnapC (Kind == "neighborSetC"): the new quantized edge length (whole ticks of
 	// the receiver's own step constant) to write onto the receiver's own LocalPolar
 	// record to SenderID.
 	SnapC int
-	// DeltaA/DeltaB/DeltaC (Kind == "neighborSetC"): the DRAGGED node's (SenderID's)
+	// DeltaA/DeltaB/DeltaC (Kind == "neighborSetC" or "deltaForward"): the DRAGGED node's
 	// own quantized-triple change (newTriple - oldTriple, integer indices) for ITS edge
 	// to this receiver, computed ONCE on SenderID's own goroutine in
 	// requantizeLocalPolars. Pure observability payload — the receiver reports it on the
