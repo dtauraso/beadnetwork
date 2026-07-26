@@ -4,6 +4,7 @@ import (
 	"math"
 
 	T "github.com/dtauraso/wirefold/Trace"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
 // gesture.go — the GESTURE STATE MACHINE. It consumes RAW pointer/wheel input (forwarded
@@ -188,6 +189,28 @@ func (g *gestureState) pixelToNDC(x, y float64) (nx, ny float64) {
 
 func (md *MoveDispatch) gestPointerDown(ev rawInputMsg, tr *T.Trace) {
 	g := &md.ui.gest
+	// TEMP DIAG (task/fix-drag-count-target-node): log what hit-kind a pointerdown
+	// resolves to, on the VIEW stream (EmitBreadcrumb → go.jsonl), NOT tr.Breadcrumb
+	// (which lands in the stale go-debug.jsonl sink). Value encodes the kind:
+	// 0=other/empty, 1=port, 2=node, 3=edge, 4=handhold. NodeRow/PortRow/EdgeRow carry
+	// the raw hit rows so we can see exactly what a click on node 7's body resolved to.
+	kindCode := int32(0)
+	switch ev.Hit.Kind {
+	case "port":
+		kindCode = 1
+	case "node":
+		kindCode = 2
+	case "edge":
+		kindCode = 3
+	case "handhold":
+		kindCode = 4
+	}
+	md.EmitBreadcrumb(wire.RowEvent{
+		Label:   T.BreadcrumbPointerDownHit,
+		NodeRow: int32(ev.Hit.NodeRow), PortRow: int32(ev.Hit.PortRow), EdgeRow: int32(ev.Hit.EdgeRow),
+		TargetRow: -1, TargetPortRow: -1, Slot: -1,
+		Value: kindCode,
+	})
 	g.downX, g.downY = ev.X, ev.Y
 	g.prevX, g.prevY = ev.X, ev.Y
 	g.button = ev.Button
