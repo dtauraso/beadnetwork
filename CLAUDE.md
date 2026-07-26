@@ -41,7 +41,8 @@ of this file is the only entry point you need.
 3. The Go node package under `nodes/<Kind>/`.
 4. Run `go run ./tools/gen-node-defs` (the single generator pipeline; also refreshes
    `kinds_generated.go`). That file's blank imports are what make a package's `init()` — and
-   therefore its `Wiring.Register` call — run at all. **Skip this and the kind does not exist
+   therefore its `wire.Register` call — run at all (Register records the kind; the
+   loader-facing `Wiring.Registry` is built at load time by `BuildRegistry()`). **Skip this and the kind does not exist
    in the binary**: it fails at runtime with `unknown type "X"` while its SPEC.md, Go package,
    and `NODE_DEFS` entry all look correct. Guard: `check-generated.sh`.
 

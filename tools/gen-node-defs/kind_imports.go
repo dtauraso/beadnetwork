@@ -9,9 +9,9 @@ import (
 )
 
 // writeKindImports writes kinds_generated.go at the repo root: blank imports for every node
-// package that registers a kind, so its init() (and therefore its Wiring.Register call) runs.
+// package that registers a kind, so its init() (and therefore its wire.Register call) runs.
 // Folded in from the former standalone tools/gen-kind-imports generator — a package reaches
-// Wiring.Register ONLY via this file's blank import; a missing import means the kind fails at
+// wire.Register ONLY via this file's blank import; a missing import means the kind fails at
 // runtime with `unknown type "X"`. The import list is sorted by directory name (the import
 // path segment), independent of the goKind sort used elsewhere.
 func writeKindImports(outPath string, kinds []kindEntry) error {

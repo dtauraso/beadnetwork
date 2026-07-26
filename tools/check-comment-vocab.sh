@@ -56,6 +56,13 @@ readonly DEAD_COMMENT_TOKENS=(
   "atomically-published"
   "atomic-snapshot-backed"
   "the atomic held"
+  # stale-audit round (2026-07-25): KindId doc drift — it was renumbered to a
+  # STABLE per-kind id (SPEC.md kindId) and is never a sort-order index; this
+  # phrase re-teaches the old (wrong) model.
+  "alphabetically-sorted"
+  # stale-audit round (2026-07-25): the leaf extraction moved Register from
+  # Wiring to nodes/wire — "Wiring.Register" is a ghost symbol.
+  "Wiring.Register"
 )
 
 fail=0
