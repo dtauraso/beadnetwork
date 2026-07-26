@@ -88,6 +88,7 @@ var (
 	inEventKinds   = parseFPList(InputLayoutFingerprint, "eventKinds=")
 	inHitKinds     = parseFPList(InputLayoutFingerprint, "hitKinds=")
 	inUpdateKinds  = parseFPList(InputLayoutFingerprint, "updateKinds=")
+	inUpdateAttrs  = parseFPList(InputLayoutFingerprint, "updateAttrs=")
 	inOverlayFlags = parseFPList(InputLayoutFingerprint, "overlayFlags=")
 )
 
@@ -104,6 +105,7 @@ func init() {
 		{"eventKinds=", inEventKinds},
 		{"hitKinds=", inHitKinds},
 		{"updateKinds=", inUpdateKinds},
+		{"updateAttrs=", inUpdateAttrs},
 		{"overlayFlags=", inOverlayFlags},
 	} {
 		if len(e.list) == 0 {
