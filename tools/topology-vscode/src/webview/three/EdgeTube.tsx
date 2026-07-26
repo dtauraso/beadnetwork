@@ -38,7 +38,7 @@ import {
 } from "../../schema/shading-params";
 import {
   readLayoutLinkSrcNodeRow, readLayoutLinkDstNodeRow,
-  readNodeCX, readNodeCY, readNodeCZ,
+  readNodeCX, readNodeCY, readNodeCZ, readNodeRadius,
   readPortPX, readPortPY, readPortPZ,
   readOverlayOverlaysVis, readOverlayCascadeLinks,
 } from "../../schema/buffer-layout";
@@ -362,9 +362,19 @@ export function EdgeTubes({ capacity, layoutLinkCapacity }: { capacity: number; 
     for (let i = 0; i < linkN; i++) {
       const srcRow = readLayoutLinkSrcNodeRow(layoutLinkView, i);
       const dstRow = readLayoutLinkDstNodeRow(layoutLinkView, i);
+      // Center-to-center would drive the tube THROUGH each node sphere; pull each
+      // endpoint back to its node's SURFACE by offsetting inward along the link
+      // direction by that node's radius, so cascade links terminate at the bodies
+      // (not their centers) and don't pile up/darken inside the nodes.
+      const scx = readNodeCX(nodeView, srcRow), scy = readNodeCY(nodeView, srcRow), scz = readNodeCZ(nodeView, srcRow);
+      const dcx = readNodeCX(nodeView, dstRow), dcy = readNodeCY(nodeView, dstRow), dcz = readNodeCZ(nodeView, dstRow);
+      const rSrc = readNodeRadius(nodeView, srcRow), rDst = readNodeRadius(nodeView, dstRow);
+      let ux = dcx - scx, uy = dcy - scy, uz = dcz - scz;
+      const len = Math.hypot(ux, uy, uz);
+      if (len > 1e-6) { ux /= len; uy /= len; uz /= len; } else { ux = uy = uz = 0; }
       const seg: EdgeSeg = {
-        sx: readNodeCX(nodeView, srcRow), sy: readNodeCY(nodeView, srcRow), sz: readNodeCZ(nodeView, srcRow),
-        ex: readNodeCX(nodeView, dstRow), ey: readNodeCY(nodeView, dstRow), ez: readNodeCZ(nodeView, dstRow),
+        sx: scx + ux * rSrc, sy: scy + uy * rSrc, sz: scz + uz * rSrc,
+        ex: dcx - ux * rDst, ey: dcy - uy * rDst, ez: dcz - uz * rDst,
       };
       linkHandles.current[i]?.update(seg);
     }
