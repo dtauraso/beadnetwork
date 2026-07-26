@@ -1,7 +1,6 @@
 package Wiring
 
 import (
-	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"math"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -237,74 +236,17 @@ func (md *MoveDispatch) gestPointerMove(ev rawInputMsg, tr *T.Trace) {
 	// A secondary (two-finger) press never becomes a drag/rotate — it is a tap-select, so
 	// it stays gestPending through any finger drift and resolves on pointer-up.
 	if g.phase == gestPending && dist > gestureMoveSlopPx && !g.secondary {
-		switch {
-		case g.wireNode != "":
-			g.phase = gestWiring
-		case g.portMoveNode != "":
-			g.phase = gestPortMove
-		case g.dragNode != "":
-			g.phase = gestDragging
-			// Re-scope the in-editor drag-log to THIS drag. This is the ONE place a drag
-			// begins (the slop-crossing pending→dragging transition), so it fires exactly
-			// once per drag. It must NOT live in RootMove: that runs on every pointer-move
-			// event of the drag, so resetting there interleaves with the neighborSetC fan's
-			// AbcDrag marks (which land asynchronously on each recipient's own goroutine)
-			// and drops recipients whose mark lands after the next move's reset.
-			// Decentralized (Step C, memory/feedback_no_single_writer_bridge.md): this same goroutine also
-			// writes its own VIEW frame directly, carrying this one-time drag-start event.
-			md.emitViewFrame([]wire.RowEvent{{Kind: T.KindAbcDragReset, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}})
-			// Re-scope MoveDispatch's OWN published recipient set the same way (count is
-			// a cumulative total-events affirmation and is intentionally left alone — only
-			// the NAME SET is drag-scoped, mirroring the old central accumulator's
-			// KindAbcDragReset handling of its abcDragged/gotDragMsg).
-			md.resetAbcDrag()
-			// Arm the dragged node's OWN drag-anchor snapshot (moveMsgKindDragStart, see
-			// its doc comment in node_move.go) at this same slop-crossing edge — the ONE
-			// place a drag begins — so the in-editor delta log reads the drag's running
-			// total from this exact start point instead of a per-move-event (0,0,0).
-			// Blocking send (md.sendMove, not lossy): this must not be dropped, same as
-			// the drag/center kinds it rides alongside.
-			md.sendMove(g.dragNode, moveMsg{Kind: moveMsgKindDragStart, NodeID: g.dragNode})
-		case g.handholdDown:
-			// Handhold-constrained orbit: seed prevX/prevY from the GRAB point (downX/downY),
-			// not the slop-crossing point, so the first locked arc is grab→first-move (mirrors
-			// interaction-handlers.ts). Seed the viewpoint about the frozen pivot, then lock.
-			g.prevX, g.prevY = g.downX, g.downY
-			g.smoothX, g.smoothY = g.downX, g.downY
-			g.phase = gestHandhold
-			md.seedOrbitPivot(g.rotPivot)
-		case g.emptyDown:
-			g.prevX, g.prevY = ev.X, ev.Y
-			g.smoothX, g.smoothY = ev.X, ev.Y
-			g.phase = gestRotating
-			// Seed the viewpoint so the orbit pivot is the frozen region-focus (mirrors the
-			// TS sendViewpointSet at rotation start). pos/up/r recompute about the new pivot.
-			md.seedOrbitPivot(g.rotPivot)
+		for _, edge := range commitEdges {
+			if edge.guard(g) {
+				edge.action(md, g, ev, tr)
+				g.phase = edge.to
+				break
+			}
 		}
 	}
 
-	switch g.phase {
-	case gestDragging:
-		if md.applyNodeDragTarget(ev) {
-			g.prevX, g.prevY = ev.X, ev.Y
-		}
-	case gestRotating:
-		g.smoothX += rotSmoothAlpha * (ev.X - g.smoothX)
-		g.smoothY += rotSmoothAlpha * (ev.Y - g.smoothY)
-		smoothEv := ev
-		smoothEv.X, smoothEv.Y = g.smoothX, g.smoothY
-		md.applyOrbit(smoothEv, tr)
-		g.prevX, g.prevY = g.smoothX, g.smoothY
-	case gestHandhold:
-		g.smoothX += rotSmoothAlpha * (ev.X - g.smoothX)
-		g.smoothY += rotSmoothAlpha * (ev.Y - g.smoothY)
-		smoothEv := ev
-		smoothEv.X, smoothEv.Y = g.smoothX, g.smoothY
-		md.applyOrbitLocked(smoothEv, tr)
-		g.prevX, g.prevY = g.smoothX, g.smoothY
-	case gestPortMove:
-		md.applyPortMove(ev)
-		g.prevX, g.prevY = ev.X, ev.Y
+	if apply, ok := applyAction[g.phase]; ok {
+		apply(md, g, ev, tr)
 	}
 }
 
