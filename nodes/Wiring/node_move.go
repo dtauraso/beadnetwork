@@ -100,6 +100,14 @@ type MoveDispatch struct {
 	// public Lookup*/…RowFor methods below are thin delegators to it so the external
 	// API is unchanged.
 	rt rowTables
+
+	// deadEndEdges is the static, write-once dead-end (non-spanning-tree) edge set
+	// (dead_end_edges.go), computed ONCE here in newMoveDispatch from the load-time
+	// edge endpoints. Delta-forward (nodeMover.forwardDelta) never crosses one of
+	// these edges — that is what makes the forwarding graph a tree with no cycles,
+	// so no runtime visit-tracking/once-per-drag guard is needed. Read-only after
+	// construction; see isDeadEndEdge.
+	deadEndEdges map[string]bool
 }
 
 // newMoveDispatch builds the registry from per-node geometry and per-edge endpoints.
@@ -142,6 +150,9 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 	md.mr.edgeOut = map[string]*wire.Out{}
 	md.mr.centerMirror = map[string]vec3{}
 	md.lq.layoutHolders = map[string]*wire.LayoutHolder{}
+	// Static dead-end edge set (see its doc comment) — computed once, deterministically,
+	// from the same edgeEndpoints every mover/channel wiring below is built from.
+	md.deadEndEdges = computeDeadEndEdges(edgeEndpoints)
 	md.ui.ov = defaultOverlayState()
 	// Static partner-center lookup for the seed pass: every node's center is already known
 	// off the load-time geoms map, so this is the SAME buildPartnerCenterFn the dynamic
@@ -241,7 +252,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 		ownMover := nm
 		nm.commitLocal = func(_ string, newPos vec3) { md.commitNodeMoveLocal(ownMover, newPos) }
 		nm.neighborSetC = md.neighborSetCRequantize
-		nm.forwardOnce = func(exceptID string, dA, dB, dC int32) { ownMover.forwardDeltaOnce(md, exceptID, dA, dB, dC) }
+		nm.forwardOnce = func(exceptID string, dA, dB, dC int32) { ownMover.forwardDelta(md, exceptID, dA, dB, dC) }
 		// Go 1.22+ loop semantics give each iteration its own id, so this closure safely
 		// captures THIS iteration's id (no shared-variable capture bug).
 		nm.layoutHolderFn = func() *wire.LayoutHolder { return md.lq.layoutHolders[id] }

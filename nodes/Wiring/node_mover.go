@@ -164,12 +164,13 @@ type nodeMover struct {
 	// neighbor's holder AND world position are written only by that neighbor's OWN
 	// goroutine. nil in tests that build a bare nodeMover directly.
 	neighborSetC func(selfID, fromID string, selfCenter, fromCenter vec3, deltaA, deltaB, deltaC int)
-	// forwardOnce runs THIS node's own once-per-drag delta-forward hop
-	// (nodeMover.forwardDeltaOnce), bound to a closure over md at construction — same
-	// injected-closure shape as commitLocal/neighborSetC above, so handle() can call it
-	// without holding an md pointer directly. nil in tests that build a bare nodeMover
-	// directly (forwardDeltaOnce itself is also callable directly there, with an explicit
-	// md, when a test needs that).
+	// forwardOnce runs THIS node's own delta-forward hop (nodeMover.forwardDelta — the
+	// name predates the static dead-end-tree rework and is kept for call-site stability),
+	// bound to a closure over md at construction — same injected-closure shape as
+	// commitLocal/neighborSetC above, so handle() can call it without holding an md
+	// pointer directly. nil in tests that build a bare nodeMover directly (forwardDelta
+	// itself is also callable directly there, with an explicit md, when a test needs
+	// that).
 	forwardOnce func(exceptID string, dA, dB, dC int32)
 	// pending is THIS node's own outbound retry queue: sendMove appends here and attempts an immediate
 	// non-blocking send; an item that can't be delivered right now (the target's
@@ -279,16 +280,6 @@ type nodeMover struct {
 	gotForwardMsg                               uint8
 	forwardDeltaA, forwardDeltaB, forwardDeltaC int32
 	forwardFromRow                              int32
-	// forwardedThisDrag guards this node's OWN single forward hop: a node forwards the
-	// delta triple it picks up AT MOST ONCE per drag — on the FIRST delta it receives,
-	// whether that's the direct neighborSetC from the dragged node itself
-	// (neighborSetCRequantize's forwardDeltaOnce call) or a moveMsgKindDeltaForward from a
-	// neighbor that already forwarded (handle's moveMsgKindDeltaForward case). This is
-	// what turns "one hop per node" into full graph propagation (every node relays once,
-	// independently and concurrently) while still terminating on a cycle: once a node has
-	// forwarded this drag, forwardDeltaOnce is a no-op for it. Reset to false by
-	// moveMsgKindAbcReset, same drag-scoping as gotDragMsg/gotForwardMsg.
-	forwardedThisDrag bool
 	// hoverPort/hoverIsInput name the specific port currently hovered on this node (""
 	// = whole-node hover, only meaningful when hovered==1). Set alongside hovered by a
 	// moveMsgKindHover message.
@@ -423,7 +414,6 @@ func (m *nodeMover) handle(msg moveMsg) {
 		m.gotForwardMsg = 0
 		m.forwardDeltaA, m.forwardDeltaB, m.forwardDeltaC = 0, 0, 0
 		m.forwardFromRow = -1
-		m.forwardedThisDrag = false
 		return
 	}
 	if msg.Kind == moveMsgKindNeighborCenter {
@@ -455,21 +445,20 @@ func (m *nodeMover) handle(msg moveMsg) {
 	}
 	if msg.Kind == moveMsgKindDeltaForward {
 		// Delta-forward observability (see moveMsgKindDeltaForward's doc comment): record
-		// state from the FIRST forward this node sees this drag — msg.SenderID is the
-		// neighbor that forwarded to it, resolved to its buffer node row here — then do
-		// THIS node's OWN once-per-drag forward hop (forwardOnce/forwardDeltaOnce),
-		// relaying the same triple onward to every neighbor except the one it came from.
-		// forwardedThisDrag (checked inside forwardDeltaOnce) is what makes both the log
-		// state and the relay a "first delta wins, do it once" op — later deltas reaching
-		// an already-forwarded node update neither.
-		if !m.forwardedThisDrag {
-			m.gotForwardMsg = 1
-			m.forwardDeltaA, m.forwardDeltaB, m.forwardDeltaC = int32(msg.DeltaA), int32(msg.DeltaB), int32(msg.DeltaC)
-			m.forwardFromRow = -1
-			if m.nodeRowFor != nil {
-				if r, ok := m.nodeRowFor(msg.SenderID); ok {
-					m.forwardFromRow = r
-				}
+		// state from EVERY forward this node receives — msg.SenderID is the neighbor that
+		// forwarded to it, resolved to its buffer node row here — LATEST WINS, so this
+		// stays in sync with a drag that keeps moving (mirrors gotDragMsg/dragDelta*).
+		// Then relay onward via forwardOnce/forwardDelta, which never crosses a dead-end
+		// edge and never re-sends to the sender it came from (node_mover.go's
+		// forwardDelta) — since the forwarding graph (spanning tree minus dead-ends) has
+		// no cycles, there is no visit-tracking/once-per-drag guard needed: every move
+		// re-floods freely and terminates at the tree's leaves.
+		m.gotForwardMsg = 1
+		m.forwardDeltaA, m.forwardDeltaB, m.forwardDeltaC = int32(msg.DeltaA), int32(msg.DeltaB), int32(msg.DeltaC)
+		m.forwardFromRow = -1
+		if m.nodeRowFor != nil {
+			if r, ok := m.nodeRowFor(msg.SenderID); ok {
+				m.forwardFromRow = r
 			}
 		}
 		if m.forwardOnce != nil {
@@ -485,24 +474,23 @@ func (m *nodeMover) handle(msg moveMsg) {
 	}
 }
 
-// forwardDeltaOnce runs THIS node's own delta-forward hop, guarded to AT MOST ONCE per
-// drag by m.forwardedThisDrag: a node forwards the triple it first picks up — whether
-// from the dragged node itself (neighborSetCRequantize, exceptID = the dragged node) or
-// from a neighbor that already forwarded (handle's moveMsgKindDeltaForward case,
-// exceptID = that neighbor) — to every OTHER node it shares an edge with, then marks
-// itself done for this drag. This is what turns "one hop per node" into full graph
-// propagation: every reachable node relays exactly once, independently and
-// concurrently, and the once-per-drag guard is what terminates it on a cycle (a second
-// delta reaching an already-forwarded node is recorded — see gotForwardMsg — but does
-// not re-trigger a hop). Neighbor set built the same way requantizeLocalPolars does
-// (scan md.mr.edgeMovers for edges incident to m.id). Sent via m's OWN retry queue
-// (m.sendMove, the same fire-and-forget mechanism every other fan-out in this file
-// uses) — never blocking. Called only from m's own goroutine (handle, and
-// neighborSetCRequantize which already runs on selfID's own goroutine).
-func (m *nodeMover) forwardDeltaOnce(md *MoveDispatch, exceptID string, dA, dB, dC int32) {
-	if m.forwardedThisDrag {
-		return
-	}
+// forwardDelta runs THIS node's own delta-forward hop: relay the triple it just picked up
+// — whether from the dragged node itself (neighborSetCRequantize, exceptID = the dragged
+// node) or from a neighbor that already forwarded (handle's moveMsgKindDeltaForward case,
+// exceptID = that neighbor) — to every OTHER node it shares an edge with, EXCLUDING any
+// neighbor across a STATIC dead-end edge (md.isDeadEndEdge, dead_end_edges.go). The
+// dead-end set is exactly the non-spanning-tree (cycle-closing) edges computed once at
+// load, so the forwarding graph (every edge minus dead-ends, minus the sender) is
+// acyclic: propagation flows outward from the dragged node and terminates at the tree's
+// leaves with NO visit-tracking, no generation, no once-per-drag guard — every move
+// (not just the first) re-floods freely, which is what keeps the forwarded log in sync
+// with the drag as it continues (see gotForwardMsg's doc comment). Neighbor set built the
+// same way requantizeLocalPolars does (scan md.mr.edgeMovers for edges incident to
+// m.id). Sent via m's OWN retry queue (m.sendMove, the same fire-and-forget mechanism
+// every other fan-out in this file uses) — never blocking. Called only from m's own
+// goroutine (handle, and neighborSetCRequantize which already runs on selfID's own
+// goroutine).
+func (m *nodeMover) forwardDelta(md *MoveDispatch, exceptID string, dA, dB, dC int32) {
 	for _, em := range md.mr.edgeMovers {
 		var other string
 		if em.srcID == m.id {
@@ -515,10 +503,12 @@ func (m *nodeMover) forwardDeltaOnce(md *MoveDispatch, exceptID string, dA, dB, 
 		if other == exceptID {
 			continue
 		}
+		if md.isDeadEndEdge(m.id, other) {
+			continue
+		}
 		m.sendMove(other, moveMsg{Kind: moveMsgKindDeltaForward, NodeID: other, SenderID: m.id,
 			DeltaA: int(dA), DeltaB: int(dB), DeltaC: int(dC)})
 	}
-	m.forwardedThisDrag = true
 }
 
 // armDragAnchor (re-)arms this node's drag-anchor snapshot from its CURRENT
