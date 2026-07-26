@@ -131,6 +131,14 @@ func (md *MoveDispatch) ApplyDistanceGroupTarget(groupIdx, dir int) bool {
 			waitForCenterSettle(md, p.Target, newPos)
 		}
 	}
+	// The 3 GroupLen* Overlay columns are recomputed from live centers ONLY inside
+	// emitViewFrame (view_stream.go). RootMove emits NODE frames (the moved geometry),
+	// not the VIEW frame, so without this the panel's displayed lengths never refresh
+	// after a button press. This runs on the stdin/dispatch goroutine — the VIEW-stream
+	// owner — so emitting here is safe, and the centers have settled above.
+	if moved {
+		md.emitViewFrame(nil)
+	}
 	return moved
 }
 
