@@ -65,6 +65,15 @@ type uiState struct {
 	// is left untouched — NOT cleared — on a deselect). Mutated only by the gesture
 	// goroutine (setSelectionUI), which also messages the affected movers.
 	latchedNode string
+	// lastDraggedNode is the id of the most recently DRAG-STARTED node, and (unlike
+	// gest.dragNode) it is NEVER cleared back to "" when a drag ends — it only moves
+	// when a NEW drag starts. This is what the in-editor "dragging <name>" line reads
+	// (via emitViewFrame's dragNodeRow derivation) so that line persists across
+	// pointerup instead of vanishing, showing the LAST-dragged node until a different
+	// one is dragged. Mutated only by the gesture goroutine, at the same slop-crossing
+	// pending→dragging commit edge that sets gest.dragNode (commitDragStart,
+	// gesture_graph.go).
+	lastDraggedNode string
 }
 
 // sendEdgeSelect routes a select/deselect message to one edge's OWN dedicated extIn
