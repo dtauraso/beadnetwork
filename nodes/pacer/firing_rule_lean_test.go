@@ -54,11 +54,11 @@ func TestPacerChangeStepFeedbackLean(t *testing.T) {
 	node := &Node{
 		Fire:      func() {},
 		Clock:     clk,
-		FromInput: wire.NewInPaced(inPw, ctx, "pacer", "FromInput", tr),
+		FromInput: wire.NewInPaced(inPw, ctx, "pacer", "FromInput", tr, nil, -1),
 		FeedbackOut: wire.NewPacedOutNoGeom(outPw, ctx, "pacer", "FeedbackOut", tr,
 			wire.RuleFireAndForget, latMs*wire.PulseSpeedWuPerMs, latMs, ""),
 	}
-	observer := wire.NewInPaced(outPw, ctx, "obs", "In", tr)
+	observer := wire.NewInPaced(outPw, ctx, "obs", "In", tr, nil, -1)
 
 	done := make(chan struct{})
 	go func() { node.Update(ctx); close(done) }()

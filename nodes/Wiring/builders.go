@@ -514,19 +514,17 @@ func wirePorts(ctx context.Context, v reflect.Value, nodePtr any, name string, p
 // Update goroutine, to flush a KindRecv RowEvent (owner_events.go).
 func wireInPort(f reflect.Value, portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, getStream func() *interiorStream) {
 	if b := pb.singlePaced[portName]; b.pw != nil {
-		in := wire.NewInPaced(b.pw, ctx, name, portName, tr)
-		in.SetStream(asEventSinkGetter(getStream))
-		in.SetPortRow(-1)
+		portRow := int32(-1)
 		if pb.md != nil {
 			if r, ok := pb.md.PortRowFor(name, portName, true); ok {
-				in.SetPortRow(r)
+				portRow = r
 			}
 		}
+		in := wire.NewInPaced(b.pw, ctx, name, portName, tr, asEventSinkGetter(getStream), portRow)
 		f.Set(reflect.ValueOf(in))
 	} else {
 		ch := pb.deadEndIn(portName)
-		in := wire.NewInChan(ch, name, portName, tr)
-		in.SetStream(asEventSinkGetter(getStream))
+		in := wire.NewInChan(ch, name, portName, tr, asEventSinkGetter(getStream))
 		f.Set(reflect.ValueOf(in))
 	}
 }
@@ -545,8 +543,6 @@ func wireInPort(f reflect.Value, portName string, ctx context.Context, name stri
 // edgeMover's existing static-field-resolved-once discipline (edgeRow).
 func wireOutPort(f reflect.Value, portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, sourceOuts *[]*wire.Out, getStream func() *interiorStream) {
 	if b := pb.singlePaced[portName]; b.pw != nil {
-		o := wire.NewOutPaced(b.pw, ctx, name, portName, tr, b.rule, b.arc, b.latency, b.seg, b.label)
-		o.SetStream(asEventSinkGetter(getStream))
 		portRow, targetRow, targetPortRow := int32(-1), int32(-1), int32(-1)
 		if pb.md != nil {
 			if r, ok := pb.md.PortRowFor(name, portName, false); ok {
@@ -561,7 +557,7 @@ func wireOutPort(f reflect.Value, portName string, ctx context.Context, name str
 				}
 			}
 		}
-		o.SetRowRefs(portRow, targetRow, targetPortRow)
+		o := wire.NewOutPaced(b.pw, ctx, name, portName, tr, b.rule, b.arc, b.latency, b.seg, b.label, asEventSinkGetter(getStream), portRow, targetRow, targetPortRow)
 		*sourceOuts = append(*sourceOuts, o)
 		if pb.outSink != nil {
 			pb.outSink[name+"."+portName] = o
@@ -583,8 +579,6 @@ func wireBroadcastPort(f reflect.Value, portName string, ctx context.Context, na
 	if bs := pb.broadcastPaced[portName]; len(bs) > 0 {
 		outs := make(wire.Broadcast, len(bs))
 		for i, b := range bs {
-			o := wire.NewOutPaced(b.pw, ctx, name, b.handle, tr, b.rule, b.arc, b.latency, b.seg, b.label)
-			o.SetStream(asEventSinkGetter(getStream))
 			portRow, targetRow, targetPortRow := int32(-1), int32(-1), int32(-1)
 			if pb.md != nil {
 				if r, ok := pb.md.PortRowFor(name, b.handle, false); ok {
@@ -599,7 +593,7 @@ func wireBroadcastPort(f reflect.Value, portName string, ctx context.Context, na
 					}
 				}
 			}
-			o.SetRowRefs(portRow, targetRow, targetPortRow)
+			o := wire.NewOutPaced(b.pw, ctx, name, b.handle, tr, b.rule, b.arc, b.latency, b.seg, b.label, asEventSinkGetter(getStream), portRow, targetRow, targetPortRow)
 			outs[i] = o
 			*sourceOuts = append(*sourceOuts, o)
 			if pb.outSink != nil {

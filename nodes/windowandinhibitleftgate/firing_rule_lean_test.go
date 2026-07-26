@@ -64,12 +64,12 @@ func runGate(t *testing.T, left, right int) int {
 	node := &Node{GateNode: gatecommon.GateNode{
 		Fire:      func() {},
 		Clock:     clk,
-		FromLeft:  wire.NewInPaced(leftPw, ctx, "ilg", "FromLeft", tr),
-		FromRight: wire.NewInPaced(rightPw, ctx, "ilg", "FromRight", tr),
+		FromLeft:  wire.NewInPaced(leftPw, ctx, "ilg", "FromLeft", tr, nil, -1),
+		FromRight: wire.NewInPaced(rightPw, ctx, "ilg", "FromRight", tr, nil, -1),
 		ToPassed: wire.NewPacedOutNoGeom(outPw, ctx, "ilg", "ToPassed", tr,
 			wire.RuleFireAndForget, latMs*wire.PulseSpeedWuPerMs, latMs, ""),
 	}}
-	observer := wire.NewInPaced(outPw, ctx, "obs", "In", tr)
+	observer := wire.NewInPaced(outPw, ctx, "obs", "In", tr, nil, -1)
 
 	done := make(chan struct{})
 	go func() { node.Update(ctx); close(done) }()

@@ -58,7 +58,7 @@ func TestFireOnReceiveLean(t *testing.T) {
 		Fire:                       func() {},
 		Clock:                      clk,
 		Held:                       99, // seed a non-zero prior value to forward
-		FromPrevHoldNewSendOldNode: wire.NewInPaced(inPw, ctx, "in", "FromPrevHoldNewSendOldNode", tr),
+		FromPrevHoldNewSendOldNode: wire.NewInPaced(inPw, ctx, "in", "FromPrevHoldNewSendOldNode", tr, nil, -1),
 		ToNext: wire.Broadcast{
 			wire.NewPacedOutNoGeom(outPw0, ctx, "in", "ToNext0", tr,
 				wire.RuleFireAndForget, latMs*wire.PulseSpeedWuPerMs, latMs, ""),
@@ -66,8 +66,8 @@ func TestFireOnReceiveLean(t *testing.T) {
 				wire.RuleFireAndForget, latMs*wire.PulseSpeedWuPerMs, latMs, ""),
 		},
 	}
-	obs0 := wire.NewInPaced(outPw0, ctx, "obs0", "In", tr)
-	obs1 := wire.NewInPaced(outPw1, ctx, "obs1", "In", tr)
+	obs0 := wire.NewInPaced(outPw0, ctx, "obs0", "In", tr, nil, -1)
+	obs1 := wire.NewInPaced(outPw1, ctx, "obs1", "In", tr, nil, -1)
 
 	done := make(chan struct{})
 	go func() { node.Update(ctx); close(done) }()

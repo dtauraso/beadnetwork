@@ -114,23 +114,15 @@ func (i *In) flushRecvEvent(value int) {
 	}})
 }
 
-// NewInChan builds a dead-end chan-mode In (no PacedWire) with no event-sink
-// wiring — the unwired fallback the loader's builder machinery (a separate
-// package from wire) uses when a port has no paced binding. SetStream/
-// SetPortRow attach the loader's row/stream wiring afterward, mirroring how
-// NewOutChanForTest is later customized by SetStream/SetRowRefs.
-func NewInChan(ch <-chan int, node, port string, tr *T.Trace) *In {
-	return &In{ch: ch, node: node, port: port, trace: tr, portRow: -1}
+// NewInChan builds a dead-end chan-mode In (no PacedWire) for a port with no
+// paced binding — the unwired fallback the loader's builder machinery (a
+// separate package from wire) uses. stream is this In's owning node's shared
+// event-sink getter, set at construction since the field is unexported and
+// the loader/builders live in a different package (nil for bare chan-mode
+// Ins built outside reflectBuild, e.g. gatecommon test helpers).
+func NewInChan(ch <-chan int, node, port string, tr *T.Trace, stream func() EventSink) *In {
+	return &In{ch: ch, node: node, port: port, trace: tr, portRow: -1, stream: stream}
 }
-
-// SetStream wires this In's shared event-sink getter (owner_events.go),
-// injected by the builder machinery after construction, since the field is
-// unexported and the loader/builders live in a different package.
-func (i *In) SetStream(g func() EventSink) { i.stream = g }
-
-// SetPortRow sets this In's own buffer PORT-ROW index, resolved by the
-// loader's row tables once, after construction.
-func (i *In) SetPortRow(r int32) { i.portRow = r }
 
 // Wired reports whether this In port is bound to a real edge (paced-wire
 // mode). Returns false for a nil In or a dead-end chan port (unwired).
@@ -603,8 +595,15 @@ func (outs Broadcast) PlaceDrivenAllAt(v int, dst []DriveItem) []DriveItem {
 // port nor the wire behind it holds a clock (per-goroutine-clock.md API demolition
 // item 1: port accessors are gone) — a node's own Clock field is what its goroutine
 // Copies from at startup.
-func NewInPaced(pw *PacedWire, ctx context.Context, node, port string, tr *T.Trace) *In {
-	return &In{pw: pw, ctx: ctx, node: node, port: port, trace: tr}
+//
+// stream is this In's owning node's shared event-sink getter (nil for the many
+// lean per-node tests across nodes/<Kind> that build an In directly without a
+// loader — those never flush a RowEvent, matching the prior default). portRow
+// is this In's own buffer PORT-ROW index (isInput=true); -1 when unresolved
+// (no md, or an unwired dead-end port) — see wireInPort's doc comment for how
+// the loader resolves it.
+func NewInPaced(pw *PacedWire, ctx context.Context, node, port string, tr *T.Trace, stream func() EventSink, portRow int32) *In {
+	return &In{pw: pw, ctx: ctx, node: node, port: port, trace: tr, stream: stream, portRow: portRow}
 }
 
 // NewPacedOutNoGeom builds a paced Out with a zero wire segment. This is the
@@ -614,7 +613,7 @@ func NewInPaced(pw *PacedWire, ctx context.Context, node, port string, tr *T.Tra
 // traces carry no geometry. Production paced Outs are built by the loader/builders
 // with real segments, not through this.
 func NewPacedOutNoGeom(pw *PacedWire, ctx context.Context, node, port string, tr *T.Trace, rule SendRule, arcLength, simLatencyMs float64, edgeLabel string) *Out {
-	return NewOutPaced(pw, ctx, node, port, tr, rule, arcLength, simLatencyMs, WireSegment{}, edgeLabel)
+	return NewOutPaced(pw, ctx, node, port, tr, rule, arcLength, simLatencyMs, WireSegment{}, edgeLabel, nil, -1, -1, -1)
 }
 
 // NewOutChanForTest builds a chan-mode Out for tests outside the Wiring
@@ -626,21 +625,14 @@ func NewOutChanForTest(ch chan<- int, node, port string, tr *T.Trace) *Out {
 	return &Out{ch: ch, node: node, port: port, trace: tr}
 }
 
-// SetStream wires this Out's shared event-sink getter (owner_events.go),
-// injected by the builder machinery after construction, since the field is
-// unexported and the loader/builders live in a different package.
-func (o *Out) SetStream(g func() EventSink) { o.stream = g }
-
-// SetRowRefs sets this Out's own buffer PORT-ROW plus its destination's
-// TargetRow/TargetPortRow, resolved by the loader's row tables once, after
-// construction (mirrors wireOutPort/wireBroadcastPort's original inline
-// field-set, now behind an exported setter since Out crossed into its own
-// package).
-func (o *Out) SetRowRefs(portRow, targetRow, targetPortRow int32) {
-	o.portRow, o.targetRow, o.targetPortRow = portRow, targetRow, targetPortRow
-}
-
-func NewOutPaced(pw *PacedWire, ctx context.Context, node, port string, tr *T.Trace, rule SendRule, arcLength, simLatencyMs float64, seg WireSegment, edgeLabel string) *Out {
+// NewOutPaced builds a paced Out. stream is this Out's owning node's shared
+// event-sink getter (nil for the many lean per-node tests, via
+// NewPacedOutNoGeom, that build an Out directly without a loader). portRow is
+// this Out's own buffer PORT-ROW index (isInput=false); targetRow/
+// targetPortRow are the destination node/port's buffer rows. All three are
+// -1 when unresolved — see wireOutPort/wireBroadcastPort's doc comments for
+// how the loader resolves them.
+func NewOutPaced(pw *PacedWire, ctx context.Context, node, port string, tr *T.Trace, rule SendRule, arcLength, simLatencyMs float64, seg WireSegment, edgeLabel string, stream func() EventSink, portRow, targetRow, targetPortRow int32) *Out {
 	if rule == "" {
 		rule = RuleConsumeGated
 	}
@@ -656,6 +648,7 @@ func NewOutPaced(pw *PacedWire, ctx context.Context, node, port string, tr *T.Tr
 		pw: pw, ctx: ctx, node: node, port: port, trace: tr, Rule: rule, EdgeLabel: edgeLabel,
 		geomSend: make(chan outGeom, 1),
 		sendCur:  fileGeom,
+		stream:   stream, portRow: portRow, targetRow: targetRow, targetPortRow: targetPortRow,
 	}
 	return o
 }

@@ -66,8 +66,8 @@ func TestGateWithUnwiredOutputStillObeysSpeed(t *testing.T) {
 		Fire:      func() {},
 		Clock:     clk,
 		SpeedCh:   speedCh,
-		FromLeft:  wire.NewInPaced(leftPw, ctx, "g9", "FromLeft", tr),
-		FromRight: wire.NewInPaced(rightPw, ctx, "g9", "FromRight", tr),
+		FromLeft:  wire.NewInPaced(leftPw, ctx, "g9", "FromLeft", tr, nil, -1),
+		FromRight: wire.NewInPaced(rightPw, ctx, "g9", "FromRight", tr, nil, -1),
 		// ToPassed is a chan-mode Out (nil PacedWire) — Paced() reports false,
 		// matching node 9/10's unwired output in the shipped topology.
 		ToPassed: wire.NewOutChanForTest(make(chan int, 1), "g9", "ToPassed", tr),

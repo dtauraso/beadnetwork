@@ -52,7 +52,7 @@ func TestHoldFiresAndHoldsOnReceiveLean(t *testing.T) {
 	node := &Node{
 		Fire:         func() { fires++ },
 		Clock:        clk,
-		In:           wire.NewInPaced(pw, ctx, "hold", "In", tr),
+		In:           wire.NewInPaced(pw, ctx, "hold", "In", tr, nil, -1),
 		EmitHeldBead: func(v int) { beadCh <- v },
 	}
 

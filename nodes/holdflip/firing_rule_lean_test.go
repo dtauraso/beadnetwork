@@ -53,11 +53,11 @@ func TestFlipRoundTripLean(t *testing.T) {
 	node := &Node{
 		Fire:  func() {},
 		Clock: clk,
-		In:    wire.NewInPaced(inPw, ctx, "hf", "In", tr),
+		In:    wire.NewInPaced(inPw, ctx, "hf", "In", tr, nil, -1),
 		Out: wire.NewPacedOutNoGeom(outPw, ctx, "hf", "Out", tr,
 			wire.RuleFireAndForget, latMs*wire.PulseSpeedWuPerMs, latMs, ""),
 	}
-	observer := wire.NewInPaced(outPw, ctx, "obs", "In", tr)
+	observer := wire.NewInPaced(outPw, ctx, "obs", "In", tr, nil, -1)
 
 	done := make(chan struct{})
 	go func() { node.Update(ctx); close(done) }()

@@ -55,12 +55,12 @@ func TestPulseDrivesHeldValueLean(t *testing.T) {
 	node := &Node{
 		Fire:      func() {},
 		Clock:     clk,
-		FromInput: wire.NewInPaced(inPw, ctx, "pulse", "FromInput", tr),
+		FromInput: wire.NewInPaced(inPw, ctx, "pulse", "FromInput", tr, nil, -1),
 		Out: wire.NewPacedOutNoGeom(outPw, ctx, "pulse", "Out", tr,
 			wire.RuleFireAndForget, latMs*wire.PulseSpeedWuPerMs, latMs, ""),
 		EmitHeldBead: func(v int) { beadCh <- v },
 	}
-	observer := wire.NewInPaced(outPw, ctx, "obs", "In", tr)
+	observer := wire.NewInPaced(outPw, ctx, "obs", "In", tr, nil, -1)
 
 	done := make(chan struct{})
 	go func() { node.Update(ctx); close(done) }()
