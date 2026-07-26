@@ -21,8 +21,8 @@ import "encoding/binary"
 //
 //	[tick:u32]
 //	Camera  BufCameraStride bytes  (SAME SetCameraRow column writer buildViewFrame uses)
-//	Overlay BufOverlayStride bytes (SAME SetOverlayRow column writer; overlay carries
-//	        AbcDragCount too — see OverlayRow's doc comment)
+//	Overlay BufOverlayStride bytes (SAME SetOverlayRow column writer — see OverlayRow's
+//	        doc comment)
 //	Scene   BufSceneStride bytes   (SAME SetSceneRow column writer)
 //	EVENTS section (BuildEventsSection)
 func BuildViewStreamFrame(tick uint32,

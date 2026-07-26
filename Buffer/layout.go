@@ -126,6 +126,17 @@ type bufLayoutNode struct {
 	DragDeltaA int32 `buf:"i32"` // dragged node's own theta-index delta, this drag
 	DragDeltaB int32 `buf:"i32"` // dragged node's own phi-index delta, this drag
 	DragDeltaC int32 `buf:"i32"` // dragged node's own r-index delta, this drag
+	// DragRequantCount is Go-owned and DRAG-SCOPED, mirroring GotDragMsg/DragDeltaA-C
+	// exactly: a per-RECIPIENT cumulative count of time.abc-drag re-quantize messages
+	// THIS node has received during the CURRENT drag (incremented on the recipient's
+	// own nodeMover goroutine by quantized_move.go's neighborSetCRequantize, alongside
+	// GotDragMsg, and cleared to 0 at the start of each new drag via a
+	// moveMsgKindAbcReset broadcast). Replaces the old central Overlay.AbcDragCount,
+	// which summed ticks on a cross-goroutine channel that could drop them under
+	// pointer-input load; this is state on the node's own reliable stream, so nothing
+	// can drop it. The editor's "drag received ×N" total sums this column across all
+	// node rows (TS-side; see overlay-flags.ts readDragReceivedCount).
+	DragRequantCount int32 `buf:"i32"` // this node's own cumulative recipient count, this drag
 }
 
 // bufLayoutInterior defines one row of the interior-bead column block.
@@ -270,12 +281,6 @@ type bufLayoutOverlay struct {
 	// only when this is set. NOT the same thing as the LayoutLink block existing: the data
 	// streams every snapshot regardless, this just gates the render.
 	DoubleLinks uint8 `buf:"u8"` // 1 = layout-link overlay visible
-	// AbcDragCount is a per-drag count of time.abc-drag events (time-node
-	// abc-index polar drag re-quantize) emitted by neighborSetCRequantize.
-	// Read-only affirmation counter for the in-editor overlay label; not a
-	// gate. Reset to 0 at the start of each drag (resetAbcDrag), so it does
-	// not accumulate across the run's lifetime.
-	AbcDragCount uint32 `buf:"u32"` // count of time.abc-drag events observed, reset per drag
 	// DragNodeRow is the row index (into the Node block) of the node currently
 	// being dragged by the gesture FSM (nodes/Wiring/gesture.go g.dragNode),
 	// or -1 when no drag is in progress. Identity rides row index, not a

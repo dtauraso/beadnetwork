@@ -5,7 +5,7 @@
 // local tick counter). MoveDispatch's public SetEdgeStreams/SetNodeStreams methods stay
 // as thin delegators so the external API is unchanged. view_stream.go's emitViewFrame
 // reads md.sw.viewOut/viewBuildFrame/viewTick directly — it ALSO reads
-// md.ui.vp/md.ui.ov/md.ui.sceneSphere/md.ui.abcDragCount, which are owned elsewhere and are NOT part
+// md.ui.vp/md.ui.ov/md.ui.sceneSphere, which are owned elsewhere and are NOT part
 // of this extraction, so emitViewFrame itself stays a MoveDispatch method rather than
 // moving here.
 
@@ -106,7 +106,7 @@ func (sw *streamWiring) setNodeStreams(
 	nodeBase, interiorBase int,
 	nodeRowFor func(id string) (int32, bool),
 	edgeRowForPair func(a, b string) (int32, bool),
-	buildFrame func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows, edgeRows []int32, events []wire.RowEvent) []byte,
+	buildFrame func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows, edgeRows []int32, events []wire.RowEvent) []byte,
 	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte,
 	kindIDFor func(kind string) uint8,
 ) {

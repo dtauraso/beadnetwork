@@ -8,14 +8,13 @@
 // Buffer.BuildViewStreamFrame) and write it to the
 // dedicated view fd whenever it changes.
 //
-// AbcDragCount is the one exception: it is INCREMENTED by a DIFFERENT goroutine (an
-// abc-drag recipient's own nodeMover, quantized_move.go's neighborSetCRequantize) than the
-// one that WRITES the view frame. Per MODEL.md's message-passing directive,
-// a recipient sends on abcDragCh (non-blocking — a full channel
-// just drops that one count-observability tick, same "no delivery guarantee" shape as
-// every other cross-goroutine bridge here), and RunStdinReader's own select loop drains it,
-// incrementing its OWN plain int (abcDragCount, touched by no other goroutine) and
-// re-emitting the view frame.
+// The abc-drag "drag received ×N" count no longer lives here: it used to be a single
+// counter INCREMENTED by a different goroutine (an abc-drag recipient's own nodeMover,
+// quantized_move.go's neighborSetCRequantize) than the one that writes the view frame,
+// bridged by a bounded channel (abcDragCh) that a fast drag's pointer-input load could
+// starve, silently dropping ticks. It is now per-recipient state (nodeMover's own
+// dragRequantCount field, Buffer.Node's DragRequantCount column) carried on each
+// recipient's OWN reliable node stream frame — nothing to drop, no central consumer.
 
 package Wiring
 
@@ -35,7 +34,6 @@ import (
 type ViewFrameBuilder func(tick uint32,
 	camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
 	sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis, doubleLinks uint8,
-	abcDragCount uint32,
 	dragNodeRow int32,
 	sceneCX, sceneCY, sceneCZ, sceneRadius float32,
 	events []wire.RowEvent,
@@ -49,37 +47,6 @@ type ViewFrameBuilder func(tick uint32,
 func (md *MoveDispatch) SetViewStream(out io.Writer, buildFrame ViewFrameBuilder) {
 	md.sw.viewOut = out
 	md.sw.viewBuildFrame = buildFrame
-	md.ui.abcDragCh = make(chan struct{}, 64)
-}
-
-// sendAbcDragTick is called by an abc-drag RECIPIENT's own nodeMover goroutine
-// (quantized_move.go's neighborSetCRequantize) to signal the view-owner goroutine that one
-// more abc-drag occurred. Non-blocking (a nil channel — SetViewStream never ran — or a full
-// one just drops this tick; see abcDragCh's doc comment). Never touches abcDragCount
-// directly: only DrainAbcDragChan (the view-owner goroutine) does that.
-func (md *MoveDispatch) sendAbcDragTick() {
-	select {
-	case md.ui.abcDragCh <- struct{}{}:
-	default:
-	}
-}
-
-// DrainAbcDragChan drains every pending abc-drag tick non-blockingly, incrementing
-// abcDragCount once per tick (this goroutine's OWN plain int: only
-// RunStdinReader's single dispatch goroutine ever touches it) and reporting how many were
-// drained (0 = nothing pending, or no dedicated view stream — the caller's cue to skip the
-// re-emit). Call from RunStdinReader's own select loop whenever it wakes on abcDragCh.
-func (md *MoveDispatch) DrainAbcDragChan() int {
-	n := 0
-	for {
-		select {
-		case <-md.ui.abcDragCh:
-			md.ui.abcDragCount++
-			n++
-		default:
-			return n
-		}
-	}
 }
 
 // EmitLayoutLinkViewEvent writes one LayoutLink event onto this goroutine's own VIEW
@@ -134,7 +101,6 @@ func (md *MoveDispatch) emitViewFrame(events []wire.RowEvent) {
 		boolU8(md.ui.ov.sceneToriVisible), boolU8(md.ui.ov.scenePolesVisible), boolU8(md.ui.ov.nodePolesVisible),
 		boolU8(md.ui.ov.selSpherePolesVisible), boolU8(md.ui.ov.handholdsVisible), boolU8(md.ui.ov.labelsGlobalVisible),
 		boolU8(md.ui.ov.overlaysVisible), boolU8(md.ui.ov.doubleLinksVisible),
-		md.ui.abcDragCount,
 		dragNodeRow,
 		float32(sc.Center.X), float32(sc.Center.Y), float32(sc.Center.Z), float32(sc.Radius),
 		events,

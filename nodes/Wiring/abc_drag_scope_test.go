@@ -66,8 +66,8 @@ func wireNodeStream(t *testing.T, md *MoveDispatch, id string) *uiPubLockedBuf {
 	buf := &uiPubLockedBuf{}
 	nm.streamOut = buf
 	nm.nodeRow = row
-	nm.buildFrame = func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows, edgeRows []int32, events []wire.RowEvent) []byte {
-		return B.BuildNodeStreamFrame(tick, nodeRow, cx, cy, cz, radius, sphereR, vrx, vry, vrz, frx, fry, frz, selected, kindID, hovered, latchedSel, gotDragMsg, dragDeltaA, dragDeltaB, dragDeltaC, label, portNames, portDX, portDY, portDZ, portPX, portPY, portPZ, portIsInput, portHovered, dstNodeRows, edgeRows, nil)
+	nm.buildFrame = func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows, edgeRows []int32, events []wire.RowEvent) []byte {
+		return B.BuildNodeStreamFrame(tick, nodeRow, cx, cy, cz, radius, sphereR, vrx, vry, vrz, frx, fry, frz, selected, kindID, hovered, latchedSel, gotDragMsg, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount, label, portNames, portDX, portDY, portDZ, portPX, portPY, portPZ, portIsInput, portHovered, dstNodeRows, edgeRows, nil)
 	}
 	return buf
 }
@@ -112,8 +112,8 @@ func TestAbcDragLogIsScopedToCurrentDrag(t *testing.T) {
 
 	// t and n (x's neighbors) should both show gotDragMsg=1 before dragging y, so the
 	// stale-recipient regression has something to leak.
-	waitForNodeDragMsg(t, bufT, func(got uint8, _, _, _ int32) bool { return got == 1 })
-	waitForNodeDragMsg(t, bufN, func(got uint8, _, _, _ int32) bool { return got == 1 })
+	waitForNodeDragMsg(t, bufT, func(got uint8, _, _, _, _ int32) bool { return got == 1 })
+	waitForNodeDragMsg(t, bufN, func(got uint8, _, _, _, _ int32) bool { return got == 1 })
 
 	// Drag y — a node fully disjoint from x/t/n — after x's drag has settled.
 	yBefore, ok := md.centerOfNode("y")
@@ -131,11 +131,11 @@ func TestAbcDragLogIsScopedToCurrentDrag(t *testing.T) {
 	// touched by y's drag, and cleared by the resetAbcDrag broadcast before it — must have
 	// gone back to 0. If the reset were missing, t and n would still show gotDragMsg=1
 	// from x's earlier drag.
-	waitForNodeDragMsg(t, bufZ, func(got uint8, _, _, _ int32) bool { return got == 1 })
+	waitForNodeDragMsg(t, bufZ, func(got uint8, _, _, _, _ int32) bool { return got == 1 })
 	deadline := time.Now().Add(2 * time.Second)
 	for {
-		gotT, _, _, _, okT := lastNodeStreamDragMsg(bufT.Bytes())
-		gotN, _, _, _, okN := lastNodeStreamDragMsg(bufN.Bytes())
+		gotT, _, _, _, _, okT := lastNodeStreamDragMsg(bufT.Bytes())
+		gotN, _, _, _, _, okN := lastNodeStreamDragMsg(bufN.Bytes())
 		if okT && okN && gotT == 0 && gotN == 0 {
 			return
 		}

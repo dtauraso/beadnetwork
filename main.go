@@ -121,9 +121,9 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 			// index (Buffer.NodeKindID) — injected so Wiring stays Buffer-independent.
 			md.SetNodeStreams(nodeBase, interiorBase,
 				md.NodeRowFor, md.EdgeRowForPair,
-				func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows, edgeRows []int32, events []wire.RowEvent) []byte {
+				func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows, edgeRows []int32, events []wire.RowEvent) []byte {
 					return B.BuildNodeStreamFrame(tick, nodeRow, cx, cy, cz, radius, sphereR, vrx, vry, vrz, frx, fry, frz,
-						selected, kindID, hovered, latchedSel, gotDragMsg, dragDeltaA, dragDeltaB, dragDeltaC,
+						selected, kindID, hovered, latchedSel, gotDragMsg, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount,
 						label, portNames, portDX, portDY, portDZ, portPX, portPY, portPZ, portIsInput, portHovered,
 						dstNodeRows, edgeRows, toStreamEvents(events))
 				},
@@ -145,7 +145,6 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 			func(tick uint32,
 				camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
 				sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis, doubleLinks uint8,
-				abcDragCount uint32,
 				dragNodeRow int32,
 				sceneCX, sceneCY, sceneCZ, sceneRadius float32,
 				events []wire.RowEvent,
@@ -155,7 +154,7 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 					B.OverlayRow{
 						SceneTori: sceneTori, ScenePoles: scenePoles, NodePoles: nodePoles,
 						SelSpherePoles: selSpherePoles, Handholds: handholds, LabelsGlobal: labelsGlobal,
-						OverlaysVis: overlaysVis, DoubleLinks: doubleLinks, AbcDragCount: abcDragCount,
+						OverlaysVis: overlaysVis, DoubleLinks: doubleLinks,
 						DragNodeRow: dragNodeRow,
 					},
 					sceneCX, sceneCY, sceneCZ, sceneRadius,

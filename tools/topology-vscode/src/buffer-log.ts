@@ -79,7 +79,8 @@ export type DecodedEventLine =
   | { step: number; kind: "hover"; node: string; port?: string; value?: number }
   // abc-drag: no dedicated payload, falls through decodeEventLine's default {node,port,value}
   // shape — same as recv/hover. The routed counterpart of the "time.abc-drag" breadcrumb;
-  // the buffer's Overlay.AbcDragCount column is what the in-editor label actually reads.
+  // the in-editor label sums each recipient's own Node-block DragRequantCount column
+  // (see overlay-flags.ts readDragReceivedCount), not a central Overlay counter.
   | { step: number; kind: "abc-drag"; node: string; port?: string; value?: number }
   // DEBUG BREADCRUMB channel (task/breadcrumbs-binary-buffer): a structured buffer
   // EVENT row rather than a free-form JSON stdout line. label names which of the 9
