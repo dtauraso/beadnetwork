@@ -4,9 +4,10 @@
 #
 # WHY THIS EXISTS (audit-integrate-into-repo-systems): the blast-radius audit found that
 # node packages are singly-owned and DO NOT import each other today — every kind depends
-# only on the shared spine (nodes/Wiring, nodes/gatecommon). That is a leanness win worth
-# locking: a cross-kind import would couple two kinds so a change to one must load the other,
-# widening blast radius. This guard keeps the property true for free (zero AI tokens).
+# only on the shared spine (nodes/Wiring, nodes/gatecommon, nodes/wire). That is a leanness
+# win worth locking: a cross-kind import would couple two kinds so a change to one must load
+# the other, widening blast radius. This guard keeps the property true for free (zero AI
+# tokens).
 #
 # Ported from the Uncle-Bob raid keeper: dependency-checker's rule MODEL
 # (~/Downloads/unclebob-repos/dependency-checker + empire-2025/dependency-checker.edn) —
@@ -14,9 +15,10 @@
 # and does not run on Go; this is the portable rule model expressed as a native Go-repo guard.
 #
 # The rule (allowed-dependencies): every package under nodes/<Kind>/ may import ONLY
-#   nodes/Wiring, nodes/gatecommon   (plus stdlib / external — not our concern here)
-# and NEVER a sibling nodes/<OtherKind>/. Wiring and gatecommon are the shared spine and are
-# exempt (they are depended-UPON, not kinds).
+#   nodes/Wiring, nodes/gatecommon, nodes/wire   (plus stdlib / external — not our concern here)
+# and NEVER a sibling nodes/<OtherKind>/. Wiring, gatecommon, and wire (the node-facing leaf
+# extracted from Wiring by task/wiring-decompose — clock/ports/PacedWire/LayoutHolder/
+# RowEvent/Register) are the shared spine and are exempt (they are depended-UPON, not kinds).
 #
 # Exit 0 clean (empty), exit 1 with a report — matches scripts/stop-checks.sh guard-loop
 # contract (auto-discovered via tools/check-*.sh glob).
@@ -35,7 +37,7 @@ fi
 MODULE="github.com/dtauraso/wirefold"
 
 # Shared spine: allowed as an import target from any kind, and not itself a "kind".
-is_spine() { [ "$1" = "Wiring" ] || [ "$1" = "gatecommon" ]; }
+is_spine() { [ "$1" = "Wiring" ] || [ "$1" = "gatecommon" ] || [ "$1" = "wire" ]; }
 
 fail=0
 for dir in "$NODES_DIR"/*/; do

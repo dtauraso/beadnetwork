@@ -2,24 +2,31 @@
 set -euo pipefail
 
 # Verifies that the SendRule string constants declared anywhere in the
-# nodes/Wiring/ Go package match the SEND_RULES array in
+# nodes/Wiring/ or nodes/wire/ Go packages match the SEND_RULES array in
 # tools/topology-vscode/src/schema/types.ts.
 # Both sides are hand-maintained; this guard fails on any divergence.
 # Exit 0 if clean; exit 1 with a report if they diverge.
 #
-# NOTE: SendRule consts are not confined to one file (ports.go today) — a
-# future file split (e.g. ports_extra.go) could add a const elsewhere in the
-# same package. Scrape ALL tracked .go files under nodes/Wiring/, not one
-# hardcoded filename, so the guard can't go blind on a split.
+# NOTE: SendRule consts are not confined to one file or even one package
+# (ports.go moved from nodes/Wiring to nodes/wire under task/wiring-decompose,
+# and a future file split, e.g. ports_extra.go, could add a const elsewhere in
+# either package). Scrape ALL tracked .go files under BOTH nodes/Wiring/ and
+# nodes/wire/, not one hardcoded filename/dir, so the guard can't go blind on
+# a split or a package move.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 WIRING_DIR="$REPO_ROOT/nodes/Wiring"
+WIRE_DIR="$REPO_ROOT/nodes/wire"
 TYPES_TS="$REPO_ROOT/tools/topology-vscode/src/schema/types.ts"
 
 if [[ ! -d "$WIRING_DIR" ]]; then
   echo "send-rule-parity: MISCONFIGURED — dir not found: $WIRING_DIR" >&2
+  exit 1
+fi
+if [[ ! -d "$WIRE_DIR" ]]; then
+  echo "send-rule-parity: MISCONFIGURED — dir not found: $WIRE_DIR" >&2
   exit 1
 fi
 if [[ ! -f "$TYPES_TS" ]]; then
@@ -27,11 +34,11 @@ if [[ ! -f "$TYPES_TS" ]]; then
   exit 1
 fi
 
-# Extract SendRule const values from every tracked .go file in nodes/Wiring/:
-#   lines of the form:  RuleFoo SendRule = "someValue"
+# Extract SendRule const values from every tracked .go file in nodes/Wiring/ and
+# nodes/wire/: lines of the form:  RuleFoo SendRule = "someValue"
 rules_from_go() {
   local go_files
-  go_files=$(cd "$REPO_ROOT" && git ls-files 'nodes/Wiring/*.go')
+  go_files=$(cd "$REPO_ROOT" && git ls-files 'nodes/Wiring/*.go' 'nodes/wire/*.go')
   [[ -z "$go_files" ]] && return
   ( cd "$REPO_ROOT" && grep -haE 'SendRule[[:space:]]*=[[:space:]]*"[^"]+"' $go_files ) \
     | grep -o '"[^"]*"' \
@@ -66,7 +73,7 @@ assert_nonempty() { # value label
     exit 1
   fi
 }
-assert_nonempty "$GO_RULES" "SendRule consts (ports.go)"
+assert_nonempty "$GO_RULES" "SendRule consts (nodes/wire/ports.go)"
 assert_nonempty "$TS_RULES" "SEND_RULES array (types.ts)"
 
 MISSING=$(comm -23 <(echo "$GO_RULES") <(echo "$TS_RULES"))
