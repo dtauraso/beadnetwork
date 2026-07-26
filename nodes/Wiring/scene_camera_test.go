@@ -35,7 +35,7 @@ func basisNonDegenerate(t *testing.T, pos, up dir) {
 		if math.IsNaN(v.X) || math.IsNaN(v.Y) || math.IsNaN(v.Z) {
 			t.Fatalf("basis vector has NaN (degenerate): %v", v)
 		}
-		if l := v.length(); math.Abs(l-1) > 1e-6 {
+		if l := v.Length(); math.Abs(l-1) > 1e-6 {
 			t.Fatalf("basis vector not unit length: %v (len %v)", v, l)
 		}
 	}
@@ -57,7 +57,7 @@ func TestLoadSceneViewpointMatchesCameraPolar(t *testing.T) {
 	if !ok {
 		t.Fatalf("loadSceneViewpoint: ok=false for a valid cameraPolar")
 	}
-	if !vecClose(pivot, vec3{10, 20, 30}, 1e-9) {
+	if !vecClose(pivot, vec3{X: 10, Y: 20, Z: 30}, 1e-9) {
 		t.Fatalf("pivot=%v want (10,20,30)", pivot)
 	}
 	if math.Abs(r-250) > 1e-9 {
@@ -74,15 +74,15 @@ func TestLoadSceneViewpointMatchesCameraPolar(t *testing.T) {
 	// pivot within a valid basis (the exact thing the old zero-value viewpoint broke).
 	md := &MoveDispatch{}
 	SeedInitialViewpoint(dir, md, nil)
-	if !vecClose(md.ui.vp.pivot, vec3{10, 20, 30}, 1e-9) || math.Abs(md.ui.vp.r-250) > 1e-9 {
+	if !vecClose(md.ui.vp.pivot, vec3{X: 10, Y: 20, Z: 30}, 1e-9) || math.Abs(md.ui.vp.r-250) > 1e-9 {
 		t.Fatalf("SeedInitialViewpoint did not install the loaded pose: %+v", md.ui.vp.viewpoint)
 	}
 	basisNonDegenerate(t, md.ui.vp.pos, md.ui.vp.up)
 
 	before := md.ui.vp.pivot
 	md.PanViewpoint(vec3{X: 5, Y: -7, Z: 2}, nil)
-	if !vecClose(md.ui.vp.pivot, before.add(vec3{5, -7, 2}), 1e-9) {
-		t.Fatalf("pan pivot=%v want %v", md.ui.vp.pivot, before.add(vec3{5, -7, 2}))
+	if !vecClose(md.ui.vp.pivot, before.Add(vec3{X: 5, Y: -7, Z: 2}), 1e-9) {
+		t.Fatalf("pan pivot=%v want %v", md.ui.vp.pivot, before.Add(vec3{X: 5, Y: -7, Z: 2}))
 	}
 }
 
@@ -97,7 +97,7 @@ func TestSeedInitialViewpointAbsentFileUsesDefault(t *testing.T) {
 	SeedInitialViewpoint(dir, md, nil)
 
 	// Default: pivot=origin, r=defaultViewpointR, pos=+Z (square-on), up=+Y.
-	if !vecClose(md.ui.vp.pivot, vec3{0, 0, 0}, 1e-9) {
+	if !vecClose(md.ui.vp.pivot, vec3{X: 0, Y: 0, Z: 0}, 1e-9) {
 		t.Fatalf("default pivot=%v want origin", md.ui.vp.pivot)
 	}
 	if math.Abs(md.ui.vp.r-defaultViewpointR) > 1e-9 {
@@ -106,15 +106,15 @@ func TestSeedInitialViewpointAbsentFileUsesDefault(t *testing.T) {
 	// pos +Z, up +Y → non-degenerate basis, and pan works.
 	basisNonDegenerate(t, md.ui.vp.pos, md.ui.vp.up)
 	posW := anglesToWorldOffset(1, md.ui.vp.pos.Theta, md.ui.vp.pos.Phi)
-	if !vecClose(posW, vec3{0, 0, 1}, 1e-9) {
+	if !vecClose(posW, vec3{X: 0, Y: 0, Z: 1}, 1e-9) {
 		t.Fatalf("default pos world=%v want +Z", posW)
 	}
 	upW := anglesToWorldOffset(1, md.ui.vp.up.Theta, md.ui.vp.up.Phi)
-	if !vecClose(upW, vec3{0, 1, 0}, 1e-9) {
+	if !vecClose(upW, vec3{X: 0, Y: 1, Z: 0}, 1e-9) {
 		t.Fatalf("default up world=%v want +Y", upW)
 	}
 	md.PanViewpoint(vec3{X: 1, Y: 2, Z: 3}, nil)
-	if !vecClose(md.ui.vp.pivot, vec3{1, 2, 3}, 1e-9) {
+	if !vecClose(md.ui.vp.pivot, vec3{X: 1, Y: 2, Z: 3}, 1e-9) {
 		t.Fatalf("default pan pivot=%v want (1,2,3)", md.ui.vp.pivot)
 	}
 }

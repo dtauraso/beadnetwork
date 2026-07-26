@@ -204,13 +204,13 @@ func (m *edgeMover) recomputeGeometry() {
 	// snapshot so the next placement (on the source node goroutine) reads the new
 	// segment via an atomic load — no data race with recomputeGeometry's write here.
 	if m.out != nil {
-		m.out.PublishGeom(arc, lat, wire.Vec3{X: seg.Start.X, Y: seg.Start.Y, Z: seg.Start.Z}, wire.Vec3{X: seg.End.X, Y: seg.End.Y, Z: seg.End.Z})
+		m.out.PublishGeom(arc, lat, seg.Start, seg.End)
 	}
 	// Re-derive an in-flight bead on this edge from the new arc + segment (no-op if
 	// none in flight); this runs on the SAME goroutine that owns the dest wire's
 	// bead state (this is that wire's own goroutine — see edgeMover.run).
 	if m.dest != nil {
-		m.dest.ReviseInFlightGeometry(m.clk.Tick(), arc, toWireSegment(seg))
+		m.dest.ReviseInFlightGeometry(m.clk.Tick(), arc, seg)
 	}
 	// Emit this edge's own segment so the renderer redraws the wire from Go's endpoints.
 	// Geometry rides THIS edgeMover's own dedicated stream (fully decentralized — it never

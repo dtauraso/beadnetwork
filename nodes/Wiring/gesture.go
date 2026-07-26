@@ -244,7 +244,7 @@ func (md *MoveDispatch) beginSphereRotation(ev rawInputMsg) {
 	// reached by dragging one on-screen content-sphere radius, at every zoom level. Without the
 	// anchor, pi/2 required dragging nearly the full screen height and felt unreachable.
 	_, csRadius := contentSphereOf(md.heldCenters())
-	pivotDist := eye.sub(pivot).length()
+	pivotDist := eye.Sub(pivot).Length()
 	fovRad := ev.Fov * math.Pi / 180
 	rpx := (g.rect.height / 2) / math.Tan(fovRad/2)
 	if pivotDist > 0 {
@@ -369,8 +369,8 @@ func (md *MoveDispatch) updateHover(ev rawInputMsg, tr *T.Trace) {
 func (md *MoveDispatch) seedOrbitPivot(pivot vec3) {
 	vp := md.ui.vp.viewpoint
 	eye := eyeOf(vp)
-	r := eye.sub(pivot).length()
-	pos := worldDirToAngles(eye.sub(pivot))
+	r := eye.Sub(pivot).Length()
+	pos := worldDirToAngles(eye.Sub(pivot))
 	md.SetViewpoint(pivot, r, pos, vp.up)
 }
 
@@ -435,7 +435,7 @@ func (md *MoveDispatch) pointerOnRingPlane(ev rawInputMsg, planeZ float64) (vec3
 		return vec3{}, false
 	}
 	t := (planeZ - eye.Z) / dir.Z
-	hit := eye.add(dir.scale(t))
+	hit := eye.Add(dir.Scale(t))
 	if math.IsNaN(hit.X) || math.IsInf(hit.X, 0) {
 		return vec3{}, false
 	}
@@ -453,13 +453,13 @@ func (md *MoveDispatch) applyNodeDragTarget(ev rawInputMsg) bool {
 	basis := basisFromViewpoint(vp.pos, vp.up)
 	nx, ny := g.pixelToNDC(ev.X, ev.Y)
 	dir := rayDirThroughNDC(nx, ny, basis, ev.Fov, g.rect.aspect())
-	forward := basis.pole.scale(-1) // camera looks along -pole
-	denom := dir.dot(forward)
+	forward := basis.pole.Scale(-1) // camera looks along -pole
+	denom := dir.Dot(forward)
 	if denom == 0 {
 		return false
 	}
-	t := g.dragStartCenter.sub(eye).dot(forward) / denom
-	hit := eye.add(dir.scale(t))
+	t := g.dragStartCenter.Sub(eye).Dot(forward) / denom
+	hit := eye.Add(dir.Scale(t))
 	if math.IsNaN(hit.X) || math.IsInf(hit.X, 0) {
 		return false
 	}
@@ -622,11 +622,11 @@ func (md *MoveDispatch) gestWheel(ev rawInputMsg, tr *T.Trace) {
 				target = c
 			}
 		}
-		toTarget := target.sub(eye)
-		distP := toTarget.length()
-		rayDir := anglesToWorldOffset(1, vp.pos.Theta, vp.pos.Phi).scale(-1) // forward, if AT the node
+		toTarget := target.Sub(eye)
+		distP := toTarget.Length()
+		rayDir := anglesToWorldOffset(1, vp.pos.Theta, vp.pos.Phi).Scale(-1) // forward, if AT the node
 		if distP > 1e-9 {
-			rayDir = toTarget.scale(1 / distP)
+			rayDir = toTarget.Scale(1 / distP)
 		}
 		// Move the eye ALONG the cursor→node ray. amt>0 = toward the node (zoom in). The step is a
 		// fraction of the remaining distance (fast approach when far), FLOORED at a scene-scaled
@@ -637,7 +637,7 @@ func (md *MoveDispatch) gestWheel(ev rawInputMsg, tr *T.Trace) {
 		if minStep := vp.r * (gestureZoomBase - 1); math.Abs(step) < minStep {
 			step = math.Copysign(minStep, amt)
 		}
-		md.PanViewpoint(rayDir.scale(step), tr)
+		md.PanViewpoint(rayDir.Scale(step), tr)
 		return
 	}
 

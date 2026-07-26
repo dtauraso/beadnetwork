@@ -101,7 +101,7 @@ func TestAbcDragLogIsScopedToCurrentDrag(t *testing.T) {
 	if !ok {
 		t.Fatal("no center for x")
 	}
-	xTarget := xBefore.add(vec3{X: 55, Y: -20, Z: 30})
+	xTarget := xBefore.Add(vec3{X: 55, Y: -20, Z: 30})
 	// Stand in for the gesture FSM's pending→dragging transition, which is the real
 	// drag-start edge that broadcasts this reset (RootMove itself no longer does).
 	md.resetAbcDrag()
@@ -120,7 +120,7 @@ func TestAbcDragLogIsScopedToCurrentDrag(t *testing.T) {
 	if !ok {
 		t.Fatal("no center for y")
 	}
-	yTarget := yBefore.add(vec3{X: -25, Y: 40, Z: -10})
+	yTarget := yBefore.Add(vec3{X: -25, Y: 40, Z: -10})
 	md.resetAbcDrag()
 	if !md.RootMove("y", yTarget) {
 		t.Fatal("RootMove(y) returned false")

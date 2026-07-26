@@ -64,7 +64,7 @@ func TestNodeKindConcurrentWithApplyCenterUnderRace(t *testing.T) {
 		i := 0
 		for time.Now().Before(deadline) {
 			i++
-			target := srcCenter.add(vec3{X: float64(i%7) - 3, Y: float64(i%5) - 2, Z: float64(i%3) - 1})
+			target := srcCenter.Add(vec3{X: float64(i%7) - 3, Y: float64(i%5) - 2, Z: float64(i%3) - 1})
 			md.RootMove("src", target)
 		}
 	}()

@@ -196,7 +196,7 @@ func TestEveryDragRecipientLogsAbcDragBreadcrumb(t *testing.T) {
 	if !ok {
 		t.Fatal("no center for x")
 	}
-	target := xBefore.add(vec3{X: 55, Y: -20, Z: 30})
+	target := xBefore.Add(vec3{X: 55, Y: -20, Z: 30})
 	if !md.RootMove("x", target) {
 		t.Fatal("RootMove(x) returned false")
 	}

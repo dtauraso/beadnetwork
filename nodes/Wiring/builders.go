@@ -545,7 +545,7 @@ func wireInPort(f reflect.Value, portName string, ctx context.Context, name stri
 // edgeMover's existing static-field-resolved-once discipline (edgeRow).
 func wireOutPort(f reflect.Value, portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, sourceOuts *[]*wire.Out, getStream func() *interiorStream) {
 	if b := pb.singlePaced[portName]; b.pw != nil {
-		o := wire.NewOutPaced(b.pw, ctx, name, portName, tr, b.rule, b.arc, b.latency, toWireSegment(b.seg), b.label)
+		o := wire.NewOutPaced(b.pw, ctx, name, portName, tr, b.rule, b.arc, b.latency, b.seg, b.label)
 		o.SetStream(asEventSinkGetter(getStream))
 		portRow, targetRow, targetPortRow := int32(-1), int32(-1), int32(-1)
 		if pb.md != nil {
@@ -583,7 +583,7 @@ func wireBroadcastPort(f reflect.Value, portName string, ctx context.Context, na
 	if bs := pb.broadcastPaced[portName]; len(bs) > 0 {
 		outs := make(wire.Broadcast, len(bs))
 		for i, b := range bs {
-			o := wire.NewOutPaced(b.pw, ctx, name, b.handle, tr, b.rule, b.arc, b.latency, toWireSegment(b.seg), b.label)
+			o := wire.NewOutPaced(b.pw, ctx, name, b.handle, tr, b.rule, b.arc, b.latency, b.seg, b.label)
 			o.SetStream(asEventSinkGetter(getStream))
 			portRow, targetRow, targetPortRow := int32(-1), int32(-1), int32(-1)
 			if pb.md != nil {
@@ -614,19 +614,6 @@ func wireBroadcastPort(f reflect.Value, portName string, ctx context.Context, na
 			outs[i] = wire.NewOutChanForTest(c, name, portName, tr)
 		}
 		f.Set(reflect.ValueOf(outs))
-	}
-}
-
-// toWireSegment converts Wiring's own local wireSegment (curve_params.go's vec3-based
-// geometry, used pervasively for scene/layout math) into wire.WireSegment, the
-// structurally-identical type wire.NewOutPaced expects. wire cannot import Wiring's
-// vec3/wireSegment (that would be a package cycle), so this is the one conversion
-// point where a computed edge segment crosses from Wiring's geometry into the wire
-// package's port/wire primitives.
-func toWireSegment(s wireSegment) wire.WireSegment {
-	return wire.WireSegment{
-		Start: wire.Vec3{X: s.Start.X, Y: s.Start.Y, Z: s.Start.Z},
-		End:   wire.Vec3{X: s.End.X, Y: s.End.Y, Z: s.End.Z},
 	}
 }
 

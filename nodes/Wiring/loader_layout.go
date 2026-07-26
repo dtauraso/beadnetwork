@@ -179,7 +179,7 @@ func (b *buildCtx) computeLocalPolars() {
 			if hasOwn {
 				for _, mid := range ids {
 					if mCenter, ok := b.centers[mid]; ok {
-						offsetVecs = append(offsetVecs, mCenter.sub(ownCenter))
+						offsetVecs = append(offsetVecs, mCenter.Sub(ownCenter))
 					}
 				}
 			}
@@ -225,7 +225,7 @@ func (b *buildCtx) computeLocalPolars() {
 				list = append(list, wire.LocalPolar{To: mid}) // centerless → zero offset, nothing to measure
 				continue
 			}
-			d, radius := dirFromOffset(mCenter.sub(ownCenter))
+			d, radius := dirFromOffset(mCenter.Sub(ownCenter))
 			c, psi := azimuthFrom(finalPole, d)
 			list = append(list, wire.LocalPolar{
 				To:          mid,

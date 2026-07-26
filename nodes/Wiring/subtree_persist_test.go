@@ -123,7 +123,7 @@ func TestIndividualSnap_OnlyDraggedNodePersists(t *testing.T) {
 	if !ok {
 		t.Fatal("no center for src after drag")
 	}
-	if d := srcCenter.sub(srcCenterBefore).length(); d > 1e-9 {
+	if d := srcCenter.Sub(srcCenterBefore).Length(); d > 1e-9 {
 		t.Fatalf("src must stay put on a dst drag: before=%+v after=%+v (moved by %g)", srcCenterBefore, srcCenter, d)
 	}
 
@@ -133,9 +133,9 @@ func TestIndividualSnap_OnlyDraggedNodePersists(t *testing.T) {
 	if !ok {
 		t.Fatal("no center for dst after drag")
 	}
-	offset := dstCenter.sub(srcCenter)
+	offset := dstCenter.Sub(srcCenter)
 	dd, rr := dirFromOffset(offset)
-	cc, psi := azimuthFrom(dir(lhSrc.Pole()), dd)
+	cc, psi := azimuthFrom(lhSrc.Pole(), dd)
 	st, sp, sr := lpAfter.EffectiveSteps()
 	wantTheta := int(math.Round(cc / st))
 	wantPhi := int(math.Round(psi / sp))
@@ -191,8 +191,8 @@ func TestIndividualSnap_OnlyDraggedNodePersists(t *testing.T) {
 	if err := json.Unmarshal(srcA["scenePolarPhi"], &gotP.Phi); err != nil {
 		t.Fatalf("unmarshal src scenePolarPhi: %v", err)
 	}
-	gotCenter := md.ui.sceneSphere.Center.add(polar2cart(gotP))
-	if d := gotCenter.sub(srcCenterBefore).length(); d > 1e-6 {
+	gotCenter := md.ui.sceneSphere.Center.Add(polar2cart(gotP))
+	if d := gotCenter.Sub(srcCenterBefore).Length(); d > 1e-6 {
 		t.Fatalf("src's persisted scenePolar should still match its pre-drag (unmoved) world center: persisted=%+v pre-drag=%+v", gotCenter, srcCenterBefore)
 	}
 }
@@ -225,7 +225,7 @@ func TestDragPositionRoundTripsExactly(t *testing.T) {
 		t.Fatal("dst missing after reload")
 	}
 	const eps = 1e-6
-	if d := got.sub(target).length(); d > eps {
+	if d := got.Sub(target).Length(); d > eps {
 		t.Fatalf("dst did not round-trip: dragged to %+v, reloaded at %+v (off by %g)", target, got, d)
 	}
 }

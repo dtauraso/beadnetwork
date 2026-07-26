@@ -80,8 +80,8 @@ func TestPreSplitTopologyRoundTrips(t *testing.T) {
 	// is the check that catches exactly that regression (see the deliberate-failure drill
 	// this test's author ran while writing it: removing the legacy-field copy in
 	// loader_tree.go turns this into a false pass at md.ui.sceneSphere.Center).
-	wantSrcCenter := md.ui.sceneSphere.Center.add(polar2cart(polar{R: 37.4165738677, Theta: 1.00685368543, Phi: 1.2490457724}))
-	if d := srcCenterBefore.sub(wantSrcCenter).length(); d > 1e-6 {
+	wantSrcCenter := md.ui.sceneSphere.Center.Add(polar2cart(polar{R: 37.4165738677, Theta: 1.00685368543, Phi: 1.2490457724}))
+	if d := srcCenterBefore.Sub(wantSrcCenter).Length(); d > 1e-6 {
 		t.Fatalf("src's pre-split legacy meta.json position did not load: got=%+v want=%+v (off by %g)", srcCenterBefore, wantSrcCenter, d)
 	}
 	dstCenterBefore, ok := md.centerOfNode("dst")
@@ -101,7 +101,7 @@ func TestPreSplitTopologyRoundTrips(t *testing.T) {
 	}
 
 	// ---- Drag src; the quant-offset persister writes synchronously. ----
-	target := srcCenterBefore.add(vec3{X: 40, Y: -25, Z: 10})
+	target := srcCenterBefore.Add(vec3{X: 40, Y: -25, Z: 10})
 	if !md.RootMove("src", target) {
 		t.Fatal("RootMove(src) returned false")
 	}
@@ -124,14 +124,14 @@ func TestPreSplitTopologyRoundTrips(t *testing.T) {
 	if !ok {
 		t.Fatal("no center for src after reload")
 	}
-	if d := srcCenterAfter.sub(target).length(); d > 1e-6 {
+	if d := srcCenterAfter.Sub(target).Length(); d > 1e-6 {
 		t.Fatalf("src did not round-trip to the drag target: got=%+v want=%+v (off by %g)", srcCenterAfter, target, d)
 	}
 	dstCenterAfter, ok := md2.centerOfNode("dst")
 	if !ok {
 		t.Fatal("no center for dst after reload")
 	}
-	if d := dstCenterAfter.sub(dstCenterBefore).length(); d > 1e-6 {
+	if d := dstCenterAfter.Sub(dstCenterBefore).Length(); d > 1e-6 {
 		t.Fatalf("dst (never dragged) must round-trip unchanged: before=%+v after=%+v", dstCenterBefore, dstCenterAfter)
 	}
 

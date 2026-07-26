@@ -66,7 +66,7 @@ func TestNeighborSetCRequantizesEdgeNeighborStaysPut(t *testing.T) {
 	if !ok {
 		t.Fatal("no center for dst")
 	}
-	target := dstBefore.add(vec3{X: 60, Y: 25, Z: -15})
+	target := dstBefore.Add(vec3{X: 60, Y: 25, Z: -15})
 	if !md.RootMove("dst", target) {
 		t.Fatal("RootMove(dst) returned false")
 	}
@@ -90,7 +90,7 @@ func TestNeighborSetCRequantizesEdgeNeighborStaysPut(t *testing.T) {
 		t.Fatal("no center for src after drag")
 	}
 	const eps = 1e-9
-	if d := srcCenterAfter.sub(srcCenterBefore).length(); d > eps {
+	if d := srcCenterAfter.Sub(srcCenterBefore).Length(); d > eps {
 		t.Fatalf("(1) src must stay put on a dst drag: before=%+v after=%+v (moved by %g)", srcCenterBefore, srcCenterAfter, d)
 	}
 
@@ -102,8 +102,8 @@ func TestNeighborSetCRequantizesEdgeNeighborStaysPut(t *testing.T) {
 	if !ok {
 		t.Fatal("no center for dst after drag")
 	}
-	pole := dir(lhSrc.Pole())
-	offset := dstCenterAfter.sub(srcCenterAfter)
+	pole := lhSrc.Pole()
+	offset := dstCenterAfter.Sub(srcCenterAfter)
 	d, r := dirFromOffset(offset)
 	c, psi := azimuthFrom(pole, d)
 	st, sp, sr := lhSrc.LocalPolarSteps("dst")
@@ -172,7 +172,7 @@ func TestNeighborSetCDeltaIsDraggedNodesOwnTripleChange(t *testing.T) {
 	if !ok {
 		t.Fatal("no center for dst")
 	}
-	target := dstBefore.add(vec3{X: 60, Y: 25, Z: -15})
+	target := dstBefore.Add(vec3{X: 60, Y: 25, Z: -15})
 	if !md.RootMove("dst", target) {
 		t.Fatal("RootMove(dst) returned false")
 	}

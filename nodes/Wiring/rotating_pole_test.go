@@ -163,7 +163,7 @@ func TestRotatingPoleClearsSingularityOnDrag(t *testing.T) {
 	// threshold).
 	home := dir{Theta: 0, Phi: 0}
 	near := fromAxisFrame(home, 0.5*math.Pi/180, 0)
-	target := srcCenter.add(polar2cart(polar{R: 50, Theta: near.Theta, Phi: near.Phi}))
+	target := srcCenter.Add(polar2cart(polar{R: 50, Theta: near.Theta, Phi: near.Phi}))
 
 	if !md.RootMove("dst", target) {
 		t.Fatal("RootMove(dst) returned false")
@@ -174,7 +174,7 @@ func TestRotatingPoleClearsSingularityOnDrag(t *testing.T) {
 	if !ok {
 		t.Fatal("no center for dst after drag")
 	}
-	offVec := dstCenter.sub(srcCenter)
+	offVec := dstCenter.Sub(srcCenter)
 	offDir, _ := dirFromOffset(offVec)
 	pole := localPole([]vec3{offVec})
 	if pole == home {
@@ -208,15 +208,15 @@ func TestRotatingPoleClearsSingularityOnDrag(t *testing.T) {
 	if !ok {
 		t.Fatal("no center for src after drag")
 	}
-	if d := srcCenterAfter.sub(srcCenter).length(); d > 1e-9 {
+	if d := srcCenterAfter.Sub(srcCenter).Length(); d > 1e-9 {
 		t.Fatalf("src must stay put on a dst drag: before=%+v after=%+v (moved by %g)", srcCenter, srcCenterAfter, d)
 	}
 
 	// src's requantized local polar to dst must match a fresh quantization of the live
 	// offset (dst_newcenter - src_center) about src's own pole.
-	offsetAfter := dstCenter.sub(srcCenterAfter)
+	offsetAfter := dstCenter.Sub(srcCenterAfter)
 	dAfter, rAfter := dirFromOffset(offsetAfter)
-	cAfter, psiAfter := azimuthFrom(dir(lhSrc.Pole()), dAfter)
+	cAfter, psiAfter := azimuthFrom(lhSrc.Pole(), dAfter)
 	st, sp, sr := got.EffectiveSteps()
 	wantTheta := int(math.Round(cAfter / st))
 	wantPhi := int(math.Round(psiAfter / sp))
@@ -266,7 +266,7 @@ func TestRotatingPolePersistReload(t *testing.T) {
 
 	home := dir{Theta: 0, Phi: 0}
 	near := fromAxisFrame(home, 5*math.Pi/180, 0)
-	target := srcCenter.add(polar2cart(polar{R: 50, Theta: near.Theta, Phi: near.Phi}))
+	target := srcCenter.Add(polar2cart(polar{R: 50, Theta: near.Theta, Phi: near.Phi}))
 	if !md.RootMove("dst", target) {
 		t.Fatal("RootMove(dst) returned false")
 	}
@@ -381,7 +381,7 @@ func TestComputeLocalPolarsRequantizesStoredBearingAboutResolvedPole(t *testing.
 	if !ok {
 		t.Fatal("no center for dst")
 	}
-	liveOff := dstCenter.sub(srcCenter)
+	liveOff := dstCenter.Sub(srcCenter)
 	liveDir, _ := dirFromOffset(liveOff)
 	pole := localPole([]vec3{liveOff})
 	if pole != (dir{Theta: 0, Phi: 0}) {

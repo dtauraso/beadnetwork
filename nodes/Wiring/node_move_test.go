@@ -440,7 +440,7 @@ func TestRootMoveContinuousPositionLocalPolarRequantize(t *testing.T) {
 	if !ok {
 		t.Fatal("centerOfNode(dst) missing")
 	}
-	wantPol := cart2polar(dstCenter.sub(target))
+	wantPol := cart2polar(dstCenter.Sub(target))
 	tStep, pStep, rStep := wire.LocalPolar{}.EffectiveSteps()
 	if tStep != wire.DefaultLocalStepTheta || pStep != wire.DefaultLocalStepPhi || rStep != wire.DefaultLocalStepR {
 		t.Fatalf("local-polar default steps = (%v,%v,%v), want (%v,%v,%v)", tStep, pStep, rStep, wire.DefaultLocalStepTheta, wire.DefaultLocalStepPhi, wire.DefaultLocalStepR)
@@ -479,7 +479,7 @@ func TestRootMoveContinuousPositionLocalPolarRequantize(t *testing.T) {
 	if !ok {
 		t.Fatal("no LayoutHolder registered for dst")
 	}
-	wantPolBack := cart2polar(target.sub(dstCenter))
+	wantPolBack := cart2polar(target.Sub(dstCenter))
 	wantIRBack := math.Round(wantPolBack.R / rStep)
 
 	var foundBack *wire.LocalPolar

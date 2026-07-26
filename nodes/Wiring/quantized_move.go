@@ -167,7 +167,7 @@ func (lq *layoutQuantizer) broadcastToEdgesAndPartners(md *MoveDispatch, newCent
 // no-op, not a reproject that happens to land on the same numbers.
 func (lq *layoutQuantizer) requantizePoleTraced(lh *wire.LayoutHolder, updates map[string]vec3) dir {
 	existing := lh.LocalPolarsSnapshot()
-	oldPole := dir(lh.Pole())
+	oldPole := lh.Pole()
 
 	existingByID := make(map[string]wire.LocalPolar, len(existing))
 	for _, lp := range existing {
@@ -219,7 +219,7 @@ func (lq *layoutQuantizer) requantizePoleTraced(lh *wire.LayoutHolder, updates m
 		}
 		lh.SetLocalPolar(id, iTheta, iPhi, iR, t, p, rStep)
 	}
-	lh.SetPole(wire.Pole(newPole))
+	lh.SetPole(newPole)
 	return newPole
 }
 
@@ -247,7 +247,7 @@ func (lq *layoutQuantizer) neighborSetCRequantize(md *MoveDispatch, selfID, from
 	// center. fromID is the ONLY fresh update, so requantizePoleTraced re-derives selfID's
 	// edge to fromID (theta, phi AND r, about selfID's rotating pole) at the cart<->polar
 	// boundary, while every OTHER neighbor of selfID is carried forward as index x step.
-	lq.requantizePoleTraced(lh, map[string]vec3{fromID: fromCenter.sub(selfCenter)})
+	lq.requantizePoleTraced(lh, map[string]vec3{fromID: fromCenter.Sub(selfCenter)})
 
 	// EVERY node that receives an abc change from a dragged peer logs its response so the
 	// drag propagation is observable (probe-merge.sh --debug -> .probe/go-debug.jsonl) and
@@ -314,7 +314,7 @@ func (lq *layoutQuantizer) neighborSetCRequantize(md *MoveDispatch, selfID, from
 
 	if md.persist.quantOffset != nil {
 		if root := md.persist.quantOffset.root; root != "" {
-			if err := WriteLocalPolars(root, selfID, lh.LocalPolarsSnapshot(), dir(lh.Pole())); err != nil {
+			if err := WriteLocalPolars(root, selfID, lh.LocalPolarsSnapshot(), lh.Pole()); err != nil {
 				logPersistErr("local_polar_persist", selfID, err)
 			}
 		}
@@ -356,14 +356,14 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeMover, 
 			neighborID = em.dstID
 		}
 		if c, ok := nm.partnerCenters[neighborID]; ok {
-			polars[neighborID] = cart2polar(c.sub(md.ui.sceneSphere.Center))
+			polars[neighborID] = cart2polar(c.Sub(md.ui.sceneSphere.Center))
 		}
 	}
 	// Single cart2polar boundary conversion for this drag target — newPos is mouse-
 	// derived cartesian (gesture.go ray/plane unproject); everything downstream
 	// (reach, measureScalar, the persist schedule) reuses this one polar value rather
 	// than re-deriving it from newPos.
-	nodePolar := cart2polar(newPos.sub(md.ui.sceneSphere.Center))
+	nodePolar := cart2polar(newPos.Sub(md.ui.sceneSphere.Center))
 	polars[nodeID] = nodePolar
 	reach := reachRFromPolar(polars, edges)
 
@@ -460,7 +460,7 @@ func (lq *layoutQuantizer) requantizeLocalPolars(md *MoveDispatch, nm *nodeMover
 		if root == "" {
 			return
 		}
-		if err := WriteLocalPolars(root, id, holder.LocalPolarsSnapshot(), dir(holder.Pole())); err != nil {
+		if err := WriteLocalPolars(root, id, holder.LocalPolarsSnapshot(), holder.Pole()); err != nil {
 			logPersistErr("local_polar_persist", id, err)
 		}
 	}
@@ -477,7 +477,7 @@ func (lq *layoutQuantizer) requantizeLocalPolars(md *MoveDispatch, nm *nodeMover
 		if !ok {
 			continue
 		}
-		updatesX[m] = cM.sub(newPos)
+		updatesX[m] = cM.Sub(newPos)
 	}
 	if len(updatesX) == 0 {
 		return

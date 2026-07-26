@@ -44,9 +44,9 @@ func TestRequantizeUsesStoredIndicesNotLiveCartesian(t *testing.T) {
 		t.Fatalf("test setup bug: D1/D2 must be well separated, got %v", angularDistance(dirStored, dirLive))
 	}
 
-	offFar := offsetFromDir(dirStored).scale(40)
+	offFar := offsetFromDir(dirStored).Scale(40)
 	md.requantizePoleTraced(lh, map[string]vec3{"far": offFar})
-	if dir(lh.Pole()) != (dir{Theta: 0, Phi: 0}) {
+	if lh.Pole() != (dir{Theta: 0, Phi: 0}) {
 		t.Fatalf("pole should still be home before any offender enters: got %+v", lh.Pole())
 	}
 
@@ -57,7 +57,7 @@ func TestRequantizeUsesStoredIndicesNotLiveCartesian(t *testing.T) {
 	// in both models, since the tilt is driven solely by the max-Y ("closest to +y")
 	// offset, and D1/D2 share the same Y-component (cos(70°)) regardless of bearing.
 	dirNear := dir{Theta: poleKickTheta / 2, Phi: 0}
-	offNear := offsetFromDir(dirNear).scale(20)
+	offNear := offsetFromDir(dirNear).Scale(20)
 	newPole := md.requantizePoleTraced(lh, map[string]vec3{"near": offNear})
 	if newPole == (dir{Theta: 0, Phi: 0}) {
 		t.Fatalf("expected the pole to tilt off home once a neighbor entered the singular zone")
@@ -164,14 +164,14 @@ func TestPersistedPoleDrivesReloadWorldPositions(t *testing.T) {
 	lh.SetLocalPolar("far", 0, 0, 0, tinyStep, tinyStep, 1)
 
 	dirFar := dir{Theta: 60 * testDeg, Phi: 30 * testDeg}
-	offFar := offsetFromDir(dirFar).scale(40)
+	offFar := offsetFromDir(dirFar).Scale(40)
 	md.requantizePoleTraced(lh, map[string]vec3{"far": offFar})
-	if dir(lh.Pole()) != (dir{Theta: 0, Phi: 0}) {
+	if lh.Pole() != (dir{Theta: 0, Phi: 0}) {
 		t.Fatalf("pole should still be home before the offender enters: got %+v", lh.Pole())
 	}
 
 	dirNear := dir{Theta: poleKickTheta / 2, Phi: 0}
-	offNear := offsetFromDir(dirNear).scale(20)
+	offNear := offsetFromDir(dirNear).Scale(20)
 	tiltedPole := md.requantizePoleTraced(lh, map[string]vec3{"near": offNear})
 	if tiltedPole == (dir{Theta: 0, Phi: 0}) {
 		t.Fatalf("expected the pole to tilt off home")
@@ -216,7 +216,7 @@ func TestPersistedPoleDrivesReloadWorldPositions(t *testing.T) {
 		t.Fatal("no LayoutHolder for self on reload")
 	}
 
-	if d := angularDistance(dir(lhSelf.Pole()), tiltedPole); d > 1e-6 {
+	if d := angularDistance(lhSelf.Pole(), tiltedPole); d > 1e-6 {
 		t.Fatalf("reload did not honor the persisted pole verbatim: got %+v want %+v (angularDistance=%v)", lhSelf.Pole(), tiltedPole, d)
 	}
 

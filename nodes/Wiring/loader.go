@@ -735,7 +735,7 @@ func (b *buildCtx) buildNodes() error {
 					// reconstructs unchanged neighbors against the SAME pole, not an
 					// assumed home pole.
 					if pole, ok := b.localPoles[n.ID]; ok {
-						lh.SetPole(wire.Pole(pole))
+						lh.SetPole(pole)
 					}
 					// Register this node's embedded *Wiring.LayoutHolder with the move
 					// dispatcher so a later drag (RootMove) can route a local-polar

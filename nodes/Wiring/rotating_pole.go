@@ -87,8 +87,8 @@ func localPole(offsets []vec3) dir {
 	var closest vec3
 	found := false
 	for _, o := range offsets {
-		u := o.normalize()
-		if u.length() == 0 {
+		u := o.Normalize()
+		if u.Length() == 0 {
 			continue // degenerate zero offset: no direction, ignore
 		}
 		if !found ||

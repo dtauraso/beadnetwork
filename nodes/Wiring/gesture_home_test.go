@@ -30,7 +30,7 @@ func homeMD(v viewpoint, centers map[string]vec3) *MoveDispatch {
 
 func TestGestureHomeComputesFitPoseFromGeometry(t *testing.T) {
 	// A deliberately stale/off pose: the pre-home viewpoint the FSM would otherwise reuse.
-	stale := viewpoint{pivot: vec3{500, 500, 500}, r: 999, pos: dir{Theta: 0.3, Phi: 0.7}, up: dir{Theta: 0.1, Phi: 0.2}}
+	stale := viewpoint{pivot: vec3{X: 500, Y: 500, Z: 500}, r: 999, pos: dir{Theta: 0.3, Phi: 0.7}, up: dir{Theta: 0.1, Phi: 0.2}}
 	centers := map[string]vec3{
 		"a": {X: -30, Y: 0, Z: 0},
 		"b": {X: 30, Y: 0, Z: 0},
@@ -50,7 +50,7 @@ func TestGestureHomeComputesFitPoseFromGeometry(t *testing.T) {
 	wantDist := fitDistanceGo(fov, aspect, sizeX, sizeY) + sizeZ/2
 	wantR := wantDist * 1.2
 
-	if !vecClose(md.ui.vp.pivot, vec3{0, 0, 0}, 1e-9) {
+	if !vecClose(md.ui.vp.pivot, vec3{X: 0, Y: 0, Z: 0}, 1e-9) {
 		t.Fatalf("home pivot=%v want content center (0,0,0)", md.ui.vp.pivot)
 	}
 	if math.Abs(md.ui.vp.r-wantR) > 1e-9 {
@@ -58,7 +58,7 @@ func TestGestureHomeComputesFitPoseFromGeometry(t *testing.T) {
 	}
 	// Square-on: camera along +z, up +y — eye = pivot + r·(+z).
 	eye := eyeOf(md.ui.vp.viewpoint)
-	if !vecClose(eye, vec3{0, 0, wantR}, 1e-6) {
+	if !vecClose(eye, vec3{X: 0, Y: 0, Z: wantR}, 1e-6) {
 		t.Fatalf("home eye=%v want (0,0,%v) (square-on +z)", eye, wantR)
 	}
 	if math.Abs(md.ui.vp.pos.Theta-math.Pi/2) > 1e-9 || math.Abs(md.ui.vp.pos.Phi-math.Pi/2) > 1e-9 {
@@ -75,7 +75,7 @@ func TestGestureHomeComputesFitPoseFromGeometry(t *testing.T) {
 // locks the home-fit radius to the pre-branch so an unsized node is not cut off at the frame
 // edge.
 func TestGestureHomeFramesUnknownKindAtRenderRadius(t *testing.T) {
-	stale := viewpoint{pivot: vec3{500, 500, 500}, r: 999, pos: dir{Theta: 0.3, Phi: 0.7}, up: dir{Theta: 0.1, Phi: 0.2}}
+	stale := viewpoint{pivot: vec3{X: 500, Y: 500, Z: 500}, r: 999, pos: dir{Theta: 0.3, Phi: 0.7}, up: dir{Theta: 0.1, Phi: 0.2}}
 	// A single node of an unknown kind at the origin. homeMD seeds kind "Hold"; override
 	// the mover's kind to an unrecognized one so nodeBodyRadius takes the (110,60) fallback.
 	centers := map[string]vec3{"x": {X: 0, Y: 0, Z: 0}}
@@ -102,7 +102,7 @@ func TestGestureHomeFramesUnknownKindAtRenderRadius(t *testing.T) {
 // HOME radius — it does NOT reset to the pre-home (stale) pose. This is the anti-snap-back
 // invariant: the FSM's own pose is the seed for the next gesture.
 func TestGestureHomeThenOrbitBuildsOnHomePose(t *testing.T) {
-	stale := viewpoint{pivot: vec3{500, 500, 500}, r: 999, pos: dir{Theta: 0.3, Phi: 0.7}, up: dir{Theta: 0.1, Phi: 0.2}}
+	stale := viewpoint{pivot: vec3{X: 500, Y: 500, Z: 500}, r: 999, pos: dir{Theta: 0.3, Phi: 0.7}, up: dir{Theta: 0.1, Phi: 0.2}}
 	centers := map[string]vec3{
 		"a": {X: -30, Y: 0, Z: 0},
 		"b": {X: 30, Y: 0, Z: 0},

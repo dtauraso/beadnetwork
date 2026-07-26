@@ -162,7 +162,7 @@ func nodeWorldPos(g nodeGeom) vec3 {
 	if !g.HasPos {
 		return vec3{}
 	}
-	return g.SceneCenter.add(polar2cart(g.ScenePolar))
+	return g.SceneCenter.Add(polar2cart(g.ScenePolar))
 }
 
 // setNodeWorld updates a node's polar source of truth from a world center at an INPUT
@@ -170,7 +170,7 @@ func nodeWorldPos(g nodeGeom) vec3 {
 // representation stays polar: ScenePolar = cart2polar(world − SceneCenter). Cartesian
 // enters only here and at nodeWorldPos — never as a stored cartesian center.
 func setNodeWorld(g *nodeGeom, world vec3) {
-	g.ScenePolar = cart2polar(world.sub(g.SceneCenter))
+	g.ScenePolar = cart2polar(world.Sub(g.SceneCenter))
 	g.HasPos = true
 }
 
@@ -215,8 +215,8 @@ func ringAnchorDir(R float64, i int) vec3 {
 func snapToRingAnchorIndex(kind string, dir vec3) int {
 	R := nodeRadius(kind)
 	N := ringAnchorCount(R)
-	nd := dir.normalize()
-	if nd.length() == 0 {
+	nd := dir.Normalize()
+	if nd.Length() == 0 {
 		return 0
 	}
 	best := -1
@@ -326,7 +326,7 @@ func portWorldPos(g nodeGeom, portName string, isInput bool) vec3 {
 	if _, ok := portDir(g, portName, isInput); !ok {
 		return center
 	}
-	return center.add(polar2cart(portRingPolar(g, portName, isInput)))
+	return center.Add(polar2cart(portRingPolar(g, portName, isInput)))
 }
 
 // portDegenerateEps is the minimum partner-direction length below which an aimed port
@@ -348,11 +348,11 @@ func portWorldPosAimed(self nodeGeom, portName string, isInput bool, partnerCent
 		return portWorldPos(self, portName, isInput)
 	}
 	center := nodeWorldPos(self)
-	dir := partnerCenter.sub(center)
-	if dir.length() < portDegenerateEps {
+	dir := partnerCenter.Sub(center)
+	if dir.Length() < portDegenerateEps {
 		return portWorldPos(self, portName, isInput)
 	}
-	return center.add(dir.normalize().scale(portRadiusByName(self, portName, isInput)))
+	return center.Add(dir.Normalize().Scale(portRadiusByName(self, portName, isInput)))
 }
 
 // edgeSegment is the straight world segment the renderer draws for an edge: the source node's

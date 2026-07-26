@@ -53,7 +53,7 @@ func TestReadPortsParsesPortR(t *testing.T) {
 	g := nodeGeom{nodeIdentity: nodeIdentity{Kind: "HoldFlip"}, Inputs: geom}
 	center := nodeWorldPos(g)
 	dir0 := ringAnchorDir(nodeRadius(g.Kind), 0)
-	want := center.add(dir0.scale(33.5))
+	want := center.Add(dir0.Scale(33.5))
 	got := portWorldPos(g, "In", true)
 	if got != want {
 		t.Fatalf("portWorldPos = %v, want %v (portR=33.5 authoritative)", got, want)

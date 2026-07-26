@@ -100,7 +100,7 @@ func persistedScenePolarCenter(t *testing.T, m map[string]json.RawMessage, scene
 			t.Fatalf("unmarshal %s: %v", key, err)
 		}
 	}
-	return sceneCenter.add(polar2cart(p))
+	return sceneCenter.Add(polar2cart(p))
 }
 
 // persistedLocalPolarTo reads a persisted meta.json's localPolars entry to a given
@@ -200,7 +200,7 @@ func TestDragPersistsOnlyDraggedNodeAndRequantizesNeighborsOnDisk(t *testing.T) 
 	// changes the neighbor indices for BOTH B and C (a purely radial move along an
 	// existing bearing would leave theta/phi unchanged for that one neighbor and not
 	// exercise the "angle also changes" half of the model).
-	target := centerBefore["A"].add(vec3{X: 90, Y: -70, Z: 55})
+	target := centerBefore["A"].Add(vec3{X: 90, Y: -70, Z: 55})
 	if !md.RootMove("A", target) {
 		t.Fatal("RootMove(A) returned false")
 	}
@@ -235,7 +235,7 @@ func TestDragPersistsOnlyDraggedNodeAndRequantizesNeighborsOnDisk(t *testing.T) 
 		if !ok {
 			t.Fatalf("no center for %s after drag", id)
 		}
-		if d := c.sub(centerBefore[id]).length(); d > 1e-9 {
+		if d := c.Sub(centerBefore[id]).Length(); d > 1e-9 {
 			t.Fatalf("%s must stay put on an A drag: before=%+v after=%+v (moved by %g)", id, centerBefore[id], c, d)
 		}
 	}
@@ -253,17 +253,17 @@ func TestDragPersistsOnlyDraggedNodeAndRequantizesNeighborsOnDisk(t *testing.T) 
 
 	// (a) A's own persisted scenePolar/center changed to the drag target.
 	gotA := persistedScenePolarCenter(t, metaA, md.ui.sceneSphere.Center)
-	if d := gotA.sub(target).length(); d > 1e-6 {
+	if d := gotA.Sub(target).Length(); d > 1e-6 {
 		t.Fatalf("(a) A's persisted center should equal the drag target: persisted=%+v target=%+v (off by %g)", gotA, target, d)
 	}
 
 	// (b) B's and C's persisted scenePolar/center are UNCHANGED.
 	gotB := persistedScenePolarCenter(t, metaB, md.ui.sceneSphere.Center)
-	if d := gotB.sub(centerBefore["B"]).length(); d > 1e-6 {
+	if d := gotB.Sub(centerBefore["B"]).Length(); d > 1e-6 {
 		t.Fatalf("(b) B's persisted center must stay put on an A drag: pre-drag=%+v persisted=%+v (off by %g)", centerBefore["B"], gotB, d)
 	}
 	gotC := persistedScenePolarCenter(t, metaC, md.ui.sceneSphere.Center)
-	if d := gotC.sub(centerBefore["C"]).length(); d > 1e-6 {
+	if d := gotC.Sub(centerBefore["C"]).Length(); d > 1e-6 {
 		t.Fatalf("(b) C's persisted center must stay put on an A drag: pre-drag=%+v persisted=%+v (off by %g)", centerBefore["C"], gotC, d)
 	}
 
@@ -295,9 +295,9 @@ func TestDragPersistsOnlyDraggedNodeAndRequantizesNeighborsOnDisk(t *testing.T) 
 		if !ok {
 			t.Fatal("no center for A to recompute expected quantization")
 		}
-		offset := aCenter.sub(selfCenter)
+		offset := aCenter.Sub(selfCenter)
 		d, r := dirFromOffset(offset)
-		pole := dir(lh.Pole())
+		pole := lh.Pole()
 		c, psi := azimuthFrom(pole, d)
 		st, sp, sr := lh.LocalPolarSteps("A")
 		wantTheta := int(math.Round(c / st))
@@ -349,21 +349,21 @@ func TestDragPersistsOnlyDraggedNodeAndRequantizesNeighborsOnDisk(t *testing.T) 
 	if !ok {
 		t.Fatal("A missing after reload")
 	}
-	if d := gotA2.sub(target).length(); d > 1e-6 {
+	if d := gotA2.Sub(target).Length(); d > 1e-6 {
 		t.Fatalf("reload: A did not round-trip to the drag target: got=%+v want=%+v", gotA2, target)
 	}
 	gotB2, ok := md2.centerOfNode("B")
 	if !ok {
 		t.Fatal("B missing after reload")
 	}
-	if d := gotB2.sub(centerBefore["B"]).length(); d > 1e-6 {
+	if d := gotB2.Sub(centerBefore["B"]).Length(); d > 1e-6 {
 		t.Fatalf("reload: B should still be at its pre-drag center: got=%+v want=%+v", gotB2, centerBefore["B"])
 	}
 	gotC2, ok := md2.centerOfNode("C")
 	if !ok {
 		t.Fatal("C missing after reload")
 	}
-	if d := gotC2.sub(centerBefore["C"]).length(); d > 1e-6 {
+	if d := gotC2.Sub(centerBefore["C"]).Length(); d > 1e-6 {
 		t.Fatalf("reload: C should still be at its pre-drag center: got=%+v want=%+v", gotC2, centerBefore["C"])
 	}
 }

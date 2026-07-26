@@ -1,6 +1,10 @@
 package Wiring
 
-import "math"
+import (
+	"math"
+
+	wire "github.com/dtauraso/wirefold/nodes/wire"
+)
 
 // spherical.go — spherical (angle-only) primitives for the polar VIEWPOINT model.
 //
@@ -13,11 +17,11 @@ import "math"
 // Pole convention matches polar.go: θ = angle from +y (0=up, π=down), φ = azimuth around
 // +y (0 = +x, increasing toward +z).
 
-// dir is a direction on the unit sphere (pole = +y).
-type dir struct {
-	Theta float64 // angle from +y, 0..π
-	Phi   float64 // azimuth around +y, -π..π
-}
+// dir aliases wire.Pole (nodes/wire/layout_holder.go) — a direction on the unit
+// sphere (pole = +y): Theta = angle from +y (0..π), Phi = azimuth around +y
+// (-π..π). Wiring keeps this shorter local name; LayoutHolder.Pole()/SetPole()
+// call sites no longer need a conversion since the types are identical.
+type dir = wire.Pole
 
 // rot is a rotation: a right-hand turn by Angle about the Axis direction.
 type rot struct {

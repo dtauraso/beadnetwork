@@ -8,15 +8,15 @@ import (
 // roundTrip cart→polar→cart must return the original vector within epsilon.
 func TestPolarCartRoundTrip(t *testing.T) {
 	cases := []vec3{
-		{1, 0, 0},   // +x (equator, φ=0)
-		{0, 1, 0},   // +y (north pole)
-		{0, -1, 0},  // -y (south pole)
-		{0, 0, 1},   // +z (equator, φ=π/2)
-		{0, 0, -1},  // -z
-		{-1, 0, 0},  // -x
-		{3, 4, 12},  // arbitrary, length 13
-		{-5, 2, -7}, // arbitrary negative octant
-		{0, 0, 0},   // origin
+		{X: 1, Y: 0, Z: 0},   // +x (equator, φ=0)
+		{X: 0, Y: 1, Z: 0},   // +y (north pole)
+		{X: 0, Y: -1, Z: 0},  // -y (south pole)
+		{X: 0, Y: 0, Z: 1},   // +z (equator, φ=π/2)
+		{X: 0, Y: 0, Z: -1},  // -z
+		{X: -1, Y: 0, Z: 0},  // -x
+		{X: 3, Y: 4, Z: 12},  // arbitrary, length 13
+		{X: -5, Y: 2, Z: -7}, // arbitrary negative octant
+		{X: 0, Y: 0, Z: 0},   // origin
 	}
 	const eps = 1e-9
 	for _, v := range cases {
