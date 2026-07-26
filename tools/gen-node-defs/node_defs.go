@@ -35,7 +35,7 @@ func writeNodeDefs(outPath string, kinds []kindEntry) error {
 	fmt.Fprintln(w)
 	// Emit RUNTIME_IMPLEMENTED_KINDS from goKind names.
 	fmt.Fprintln(w, `// PascalCase Go kind names that have a Go runtime.`)
-	fmt.Fprintln(w, `// Single source of truth — derived from Wiring.Register calls.`)
+	fmt.Fprintln(w, `// Single source of truth — derived from wire.Register calls.`)
 	fmt.Fprintf(w, "export const RUNTIME_IMPLEMENTED_KINDS: ReadonlySet<string> = new Set([\n")
 	for _, e := range kinds {
 		fmt.Fprintf(w, "  %q,\n", e.goKind)

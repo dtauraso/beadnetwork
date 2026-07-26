@@ -137,7 +137,7 @@ func main() {
 		seenGoKind[goKind] = e.Name()
 		view, accentOverrides, edgeKindOverrides, optionalPorts, specPortNames, err := parseSpecMD(pkgDir)
 		if err != nil {
-			// This dir has a Wiring.Register (a real node package), so a missing or
+			// This dir has a wire.Register call (a real node package), so a missing or
 			// broken SPEC.md View section is a half-landed kind — fail loudly rather
 			// than silently dropping the kind from all generated files.
 			fatalf("kind %q registers a Go runtime but its SPEC.md View section is missing/broken: %v", e.Name(), err)
@@ -188,7 +188,7 @@ func main() {
 	})
 
 	// kinds_generated.go — blank imports that make each node package's init() (and thus
-	// its Wiring.Register) run. Folded in from the former standalone tools/gen-kind-imports
+	// its wire.Register call) run. Folded in from the former standalone tools/gen-kind-imports
 	// so ONE registration scan feeds every kind-derived output; a separate binary could
 	// silently diverge from this one (audit finding). check-generated.sh guards it via the
 	// "wrote" line below, so no dedicated guard is needed.
@@ -331,7 +331,7 @@ func findRepoRoot(dir string) string {
 }
 
 // hasRegister reports whether any .go file in dir contains "wire.Register(" (or the
-// pre-task/wiring-decompose "Wiring.Register(").
+// pre-decompose monolithic Wiring package's "Register(").
 func hasRegister(dir string) bool {
 	entries, err := os.ReadDir(dir)
 	if err != nil {

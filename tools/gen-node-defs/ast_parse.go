@@ -523,7 +523,7 @@ func goTypeExprStr(expr ast.Expr) (string, bool) {
 var goIdentRE = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
 
 // parseGoKindName extracts the first string argument to Register (nodes/wire's
-// wire.Register, or the pre-task/wiring-decompose Wiring.Register) in pkgDir.
+// wire.Register, or the pre-decompose monolithic Wiring package's Register) in pkgDir.
 func parseGoKindName(pkgDir string) (string, error) {
 	entries, err := os.ReadDir(pkgDir)
 	if err != nil {
