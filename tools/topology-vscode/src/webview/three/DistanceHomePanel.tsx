@@ -5,7 +5,9 @@ import { encodeDistanceGroupAdjust } from "../../schema/input-layout";
 import { useDistanceGroupLens } from "./overlay-flags";
 
 // DistanceHomePanel — the "distance home button" toolbar panel: 3 named groups of
-// node-pair distances (time / input / gate — Go's distanceGroupOrder,
+// node-pair distances (time / input / select — Go's distanceGroupOrder,
+// whose third group is still keyed "gate" internally; only the visible label
+// reads "select" to match the renamed Select* gate structs —
 // nodes/Wiring/distance_groups.go), each showing its CURRENT max pair length
 // (read-only reflect of the Overlay block's GroupLenTime/GroupLenInput/GroupLenGate
 // columns) with an up/down arrow. Clicking an arrow fire-and-forgets an
@@ -18,7 +20,7 @@ import { useDistanceGroupLens } from "./overlay-flags";
 const GROUPS: { index: number; label: string }[] = [
   { index: 0, label: "time" },
   { index: 1, label: "input" },
-  { index: 2, label: "gate" },
+  { index: 2, label: "select" },
 ];
 
 export function DistanceHomePanel() {
