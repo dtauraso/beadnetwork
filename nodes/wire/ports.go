@@ -510,7 +510,7 @@ type DriveItem struct {
 // paced wire (i.e. PlaceDriven succeeded in paced-wire mode) — outcome ==
 // DrivePlaced. False for a nil Out, chan mode, a momentary buffer-full, or a
 // failed placement. Callers that need ONLY "did this become a real, time-able
-// in-flight bead" (e.g. holdnewsendold's processing-window length) check
+// in-flight bead" (e.g. Time's processing-window length) check
 // this; callers that need "should I stop, the wire is gone" must check
 // Failed() instead — Live() alone cannot distinguish chan-mode success,
 // buffer-full, or true failure.

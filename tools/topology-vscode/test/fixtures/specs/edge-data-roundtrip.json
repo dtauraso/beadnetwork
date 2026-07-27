@@ -11,12 +11,12 @@
     },
     {
       "id": "i0",
-      "type": "HoldNewSendOld"
+      "type": "Time"
     }
   ],
   "edges": [
     {
-      "id": "inToHoldNewSendOld",
+      "id": "inToTime",
       "source": "in0",
       "sourceHandle": "ToOut",
       "target": "readGate",
@@ -27,9 +27,9 @@
     {
       "id": "readGateToI0",
       "source": "readGate",
-      "sourceHandle": "ToHoldNewSendOld",
+      "sourceHandle": "ToTime",
       "target": "i0",
-      "targetHandle": "FromPrevHoldNewSendOldNode",
+      "targetHandle": "FromPrevTimeNode",
       "kind": "chain",
       "data": { "delay": 2, "init": [1] }
     }

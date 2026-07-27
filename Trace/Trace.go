@@ -105,7 +105,7 @@ const (
 	// world anchor every node's scene polar is measured about. Established ONCE at load
 	// and never moves.
 	KindSceneSphere = "scene-sphere"
-	// KindAbcDrag marks one time-node (HoldNewSendOld) abc-drag re-quantize event — the
+	// KindAbcDrag marks one time-node (Time) abc-drag re-quantize event — the
 	// routed counterpart to the "time.abc-drag" debug breadcrumb emitted alongside it
 	// (nodes/Wiring/node_move.go neighborSetCRequantize).
 	KindAbcDrag = "abc-drag"

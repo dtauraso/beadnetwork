@@ -18,7 +18,7 @@ func writeLoaderTreeFixture(t *testing.T) string {
 	root := t.TempDir()
 	writeTreeFile(t, root, "nodes/n1/meta.json", `{"id":"n1","type":"Input"}`)
 	writeTreeFile(t, root, "nodes/n1/outputs/Out.json", `{"name":"Out"}`)
-	writeTreeFile(t, root, "nodes/n2/meta.json", `{"id":"n2","type":"HoldNewSendOld"}`)
+	writeTreeFile(t, root, "nodes/n2/meta.json", `{"id":"n2","type":"Time"}`)
 	writeTreeFile(t, root, "nodes/n2/inputs/FromPrev.json", `{"name":"FromPrev"}`)
 	writeTreeFile(t, root, "nodes/n2/outputs/ToNext.json", `{"name":"ToNext"}`)
 	writeTreeFile(t, root, "nodes/n3/meta.json", `{"id":"n3","type":"TimeEnd"}`)
@@ -98,8 +98,8 @@ func TestLoadTreeRoundTrip(t *testing.T) {
 	if !ok {
 		t.Fatal("node \"n2\" not found")
 	}
-	if n2.Type != "HoldNewSendOld" {
-		t.Errorf("node \"n2\" type: got %q, want \"HoldNewSendOld\"", n2.Type)
+	if n2.Type != "Time" {
+		t.Errorf("node \"n2\" type: got %q, want \"Time\"", n2.Type)
 	}
 
 	n3, ok := nodeByID["n3"]

@@ -28,7 +28,7 @@ import (
 // position-step per tick, never jumping); this goroutine only PLACES a new
 // bead once per this edge's OWN tick-count period, `K = ticksToCross =
 // SimLatencyMs/MsPerTick` (same formula and ceil-rounding convention as
-// holdnewsendold/node.go's ToNext processing window) — one placement per
+// Time/node.go's ToNext processing window) — one placement per
 // full crossing, so a wire carries roughly one resident bead rather than one
 // per tick. Per MODEL.md §Sending this is still legal: K is read from the
 // edge's own GEOMETRY (a static formula over arc length/pulse speed), never

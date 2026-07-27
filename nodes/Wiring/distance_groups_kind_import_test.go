@@ -7,7 +7,7 @@
 // compiles both the internal and external test files of a directory into ONE binary, so
 // this kind's init()-time wire.Register call is visible to distance_groups_test.go's
 // (package Wiring) LoadTopology calls too. Every other kind the production topology
-// needs (Input, HoldNewSendOld, Pulse, Hold, WindowAndInhibitLeftGate) is already
+// needs (Input, Time, Pulse, Hold, WindowAndInhibitLeftGate) is already
 // registered by other _test.go files in this same test binary.
 package Wiring_test
 

@@ -6,7 +6,7 @@ import (
 )
 
 // populate_data_held_seed_test.go — locks in: a `data.state` seed (e.g. Held on
-// HoldNewSendOld/Hold/Pacer) is OPTIONAL. When the spec omits the key, populateData
+// Time/Hold/Pacer) is OPTIONAL. When the spec omits the key, populateData
 // must leave the constructor's default untouched (the empty sentinel, NoValue = -1
 // for held-bearing kinds) rather than overwriting it with Go's int zero-value 0 —
 // 0 is a legitimate held bead value, so defaulting to 0 would emit a phantom bead.

@@ -14,7 +14,7 @@ func TestNodeKindIDRoundTrip(t *testing.T) {
 	want := map[string]uint8{
 		"TimeEnd":                   0,
 		"HoldFlip":                  1,
-		"HoldNewSendOld":            2,
+		"Time":                      2,
 		"Input":                     3,
 		"Pacer":                     4,
 		"Pulse":                     5,

@@ -13,7 +13,7 @@ interface NodeMeta {
   [key: string]: unknown;
 }
 
-// Only STATEFUL nodes carry a data.json (e.g. Input, Hold, HoldNewSendOld, Pacer);
+// Only STATEFUL nodes carry a data.json (e.g. Input, Hold, Time, Pacer);
 // stateless kinds (HoldFlip, WindowAndInhibitRightGate, Pulse) have none. Skip the latter
 // rather than asserting every node has a data.json — absence is correct, not a failure.
 const nodes = readdirSync(TREE_NODES_DIR)

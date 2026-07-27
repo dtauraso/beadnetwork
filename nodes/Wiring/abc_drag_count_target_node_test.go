@@ -24,11 +24,11 @@ func writeFT(t *testing.T) string {
 	t.Helper()
 	root := t.TempDir()
 	mk := func(rel, body string) { writeTreeFile(t, root, rel, body) }
-	// f = HoldNewSendOld (has an unwired FromPrevHoldNewSendOldNode input port — an
+	// f = Time (has an unwired FromPrevTimeNode input port — an
 	// unfed required input is inert, not rejected, per
 	// memory/feedback_enforce_required_inputs.md), t = SinkNode, single edge f->t.
-	mk("nodes/f/meta.json", `{"id":"f","type":"HoldNewSendOld","data":{"state":{"held":0}},"r":100,"scenePolarR":90,"scenePolarTheta":0.9,"scenePolarPhi":-2.1}`)
-	mk("nodes/f/inputs/FromPrevHoldNewSendOldNode.json", `{"name":"FromPrevHoldNewSendOldNode"}`)
+	mk("nodes/f/meta.json", `{"id":"f","type":"Time","data":{"state":{"held":0}},"r":100,"scenePolarR":90,"scenePolarTheta":0.9,"scenePolarPhi":-2.1}`)
+	mk("nodes/f/inputs/FromPrevTimeNode.json", `{"name":"FromPrevTimeNode"}`)
 	mk("nodes/f/outputs/ToNext.json", `{"name":"ToNext"}`)
 	mk("nodes/t/meta.json", `{"id":"t","type":"SinkNode","r":100,"scenePolarR":90,"scenePolarTheta":2.0,"scenePolarPhi":0.4}`)
 	mk("nodes/t/inputs/In.json", `{"name":"In"}`)

@@ -21,7 +21,7 @@ function makeNodeView(kindId: number): DataView {
 const EXPECTED_ORDER = [
   "TimeEnd",
   "HoldFlip",
-  "HoldNewSendOld",
+  "Time",
   "Input",
   "Pacer",
   "Pulse",

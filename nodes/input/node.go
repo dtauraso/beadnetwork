@@ -31,7 +31,7 @@ type Node struct {
 	EmitRefillSlide func(clk wire.Clock, speedCh <-chan float64, beads []int)
 	// Clock is this node's OWN clock storage, seeded by Wiring.reflectBuild
 	// directly from the loader's origin (not derived from any specific wired
-	// output port — deriving it from ToHoldNewSendOld/ToExcitatory/ToPacer was
+	// output port — deriving it from ToTime/ToExcitatory/ToPacer was
 	// fragile: whichever port happened to be wired first controlled pacing, and
 	// per-goroutine-clock.md's API demolition removed port-derived clocks
 	// entirely anyway). reflectBuild injects by matching struct fields typed
@@ -51,10 +51,10 @@ type Node struct {
 	// (per-goroutine-clock.md "Delivery"), seeded by Wiring.reflectBuild
 	// (injectSpeedChans) with a fresh buffered-1 channel. nil on a test build
 	// with no loader — ApplySpeedNonBlocking is then always a no-op.
-	SpeedCh          <-chan float64
-	Init             []int `wire:"data.init"`
-	Repeat           bool  `wire:"data.repeat"`
-	ToHoldNewSendOld *wire.Out
+	SpeedCh <-chan float64
+	Init    []int `wire:"data.init"`
+	Repeat  bool  `wire:"data.repeat"`
+	ToTime  *wire.Out
 	// ToExcitatory fans the emitted value out to a Pulse node (sample-and-hold). It is
 	// optional: when unwired (Wired()==false) the emit is skipped so existing
 	// topologies without a Pulse are unaffected.
@@ -88,7 +88,7 @@ func (n *Node) clock() wire.Clock {
 // tries again. Delivery is timed by each wire's own goroutine — this node no
 // longer pins or steps a tick.
 func (n *Node) broadcastPlace(v int) bool {
-	if n.ToHoldNewSendOld.Wired() && n.ToHoldNewSendOld.PlaceDrivenAt(v).Failed() {
+	if n.ToTime.Wired() && n.ToTime.PlaceDrivenAt(v).Failed() {
 		return false
 	}
 	if n.ToExcitatory.Wired() && n.ToExcitatory.PlaceDrivenAt(v).Failed() {
@@ -162,7 +162,7 @@ func (n *Node) updateFeedbackRing(ctx context.Context, working, backup *[]int, i
 			// PEEK the end (do NOT reslice) and SEND. Buffer unchanged. Node 1
 			// places the same bead on every wired output the same cycle
 			// (broadcastPlace — preserves concurrent broadcast) so node 2
-			// (ToHoldNewSendOld) and node 6 (ToExcitatory) traverse in lockstep.
+			// (ToTime) and node 6 (ToExcitatory) traverse in lockstep.
 			v := (*working)[len(*working)-1]
 			if n.Fire != nil {
 				n.Fire()
@@ -184,7 +184,7 @@ func (n *Node) updateFeedbackRing(ctx context.Context, working, backup *[]int, i
 
 		s, ok := n.FeedbackIn.PollRecv()
 		if !ok {
-			// HoldNewSendOld's step has not arrived yet — keep cycling (drains
+			// Time's step has not arrived yet — keep cycling (drains
 			// Layout again next pass). Still awaiting.
 			continue
 		}
@@ -295,7 +295,7 @@ func (n *Node) Update(ctx context.Context) {
 // so it freezes on pause with Tick(). Recomputed live so a drag that changes the
 // edge length re-paces emission.
 func inputCadenceTicks(n *Node) int64 {
-	c := int64(n.ToHoldNewSendOld.Geom().ArcLength / wire.PulseSpeedWuPerTick)
+	c := int64(n.ToTime.Geom().ArcLength / wire.PulseSpeedWuPerTick)
 	if c < 1 {
 		return 1
 	}
