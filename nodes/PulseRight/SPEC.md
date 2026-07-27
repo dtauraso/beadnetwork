@@ -7,13 +7,13 @@
 | kindId | 9 |
 | kind | pulseRight |
 | bg | #e1f5fe |
-| border | #3949ab |
+| border | #002171 |
 | text | #01579b |
-| accent | #3949ab |
+| accent | #002171 |
 | minWidth | 90 |
 | shape | rect |
 | fill | #e1f5fe |
-| stroke | #3949ab |
+| stroke | #002171 |
 | width | 90 |
 | height | 60 |
 

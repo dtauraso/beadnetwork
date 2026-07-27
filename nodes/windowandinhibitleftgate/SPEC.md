@@ -7,13 +7,13 @@
 | kindId | 6 |
 | kind | windowAndInhibitLeftGate |
 | bg | #fce4ec |
-| border | #880e4f |
+| border | #f06292 |
 | text | #880e4f |
-| accent | #880e4f |
+| accent | #f06292 |
 | minWidth | 110 |
 | shape | rect |
 | fill | #fce4ec |
-| stroke | #880e4f |
+| stroke | #f06292 |
 | width | 80 |
 | height | 60 |
 
