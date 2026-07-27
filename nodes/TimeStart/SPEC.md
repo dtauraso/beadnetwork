@@ -7,14 +7,14 @@
 | kindId | 10 |
 | kind | chainTimeStart |
 | bg | #fff3e0 |
-| border | #e65100 |
+| border | #ffc400 |
 | text | #bf360c |
-| accent | #e65100 |
+| accent | #ffc400 |
 | minWidth | 90 |
 | displays | held |
 | shape | rect |
 | fill | #fff3e0 |
-| stroke | #e65100 |
+| stroke | #ffc400 |
 | width | 90 |
 | height | 60 |
 
