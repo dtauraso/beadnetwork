@@ -441,6 +441,15 @@ func (m *nodeMover) handle(msg moveMsg) {
 		return
 	}
 	if msg.Kind == moveMsgKindDeltaForward {
+		// TimeEnd is the terminal node of a time chain: the cascade stops there on
+		// purpose. Ignore the forward entirely — do not record it (gotForwardMsg stays
+		// whatever it was, never set here) and do not relay it onward via forwardOnce.
+		// Checked by KIND STRING (m.geom.Kind), not m.kindID: TimeEnd's Buffer.NodeKindID
+		// is 0, which collides with the zero-value default of an unset kindID, so a
+		// numeric check would misfire on every not-yet-initialized mover.
+		if m.geom.Kind == "TimeEnd" {
+			return
+		}
 		// Delta-forward observability (see moveMsgKindDeltaForward's doc comment): record
 		// state from EVERY forward this node receives — msg.SenderID is the neighbor that
 		// forwarded to it, resolved to its buffer node row here — LATEST WINS, so this
