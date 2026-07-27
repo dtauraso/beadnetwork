@@ -57,6 +57,9 @@ const ARROWHEAD_RADIUS = 3;
 export const EDGE_HALO_RADIUS = 5;
 export const EDGE_HALO_COLOR = "#ff5a00";
 export const EDGE_HALO_SELECTED_OPACITY = 0.6;
+// Arrowhead cone dims for the cascade-link overlay (the pre-branch sizes).
+const DL_ARROWHEAD_LENGTH = 7;
+const DL_ARROWHEAD_RADIUS = 3.5;
 
 const TUBE_EMISSIVE_COLOR = new THREE.Color(SHADING_PARAM_TUBE_EMISSIVE);
 const LAYOUT_LINK_EMISSIVE_COLOR = new THREE.Color(SHADING_PARAM_LAYOUT_LINK_EMISSIVE);
@@ -206,6 +209,8 @@ const EdgeTube = forwardRef<EdgeHandle, { dimmed: boolean; row: number; selected
 const LayoutLinkOverlay = forwardRef<EdgeHandle, object>(
   function LayoutLinkOverlay(_props, ref) {
     const lineMeshRef = useRef<THREE.Mesh>(null);
+    const arrowStartRef = useRef<THREE.Mesh>(null);
+    const arrowEndRef = useRef<THREE.Mesh>(null);
     const lastSeg = useRef<EdgeSeg | null>(null);
     const geoRef = useRef<THREE.TubeGeometry | null>(null);
 
@@ -217,25 +222,61 @@ const LayoutLinkOverlay = forwardRef<EdgeHandle, object>(
         const start = new THREE.Vector3(seg.sx, seg.sy, seg.sz);
         const end = new THREE.Vector3(seg.ex, seg.ey, seg.ez);
         const curve = new THREE.LineCurve3(start, end);
-        // Thicker than a bead wire (radius 2.5) so the cascade edge reads clearly as a
-        // solid tube on its own — cascade links are undirected, so no arrowheads.
-        const lineGeo = new THREE.TubeGeometry(curve, 1, 2.5, 8, false);
+        // Pre-branch cascade-link sizes: thin tube (radius 1.0) + an arrowhead at each end.
+        const lineGeo = new THREE.TubeGeometry(curve, 1, 1.0, 6, false);
         if (geoRef.current) geoRef.current.dispose();
         geoRef.current = lineGeo;
         if (lineMeshRef.current) lineMeshRef.current.geometry = lineGeo;
+
+        const dir = end.clone().sub(start);
+        const as = arrowStartRef.current;
+        const ae = arrowEndRef.current;
+        if (dir.length() >= DIRECTION_ZERO_EPS) {
+          const dirNorm = dir.clone().normalize();
+          if (as) {
+            const { center, q } = buildArrow(start, dirNorm.clone().negate(), DL_ARROWHEAD_LENGTH);
+            as.position.set(center.x, center.y, center.z);
+            as.quaternion.set(q.x, q.y, q.z, q.w);
+            as.visible = true;
+          }
+          if (ae) {
+            const { center, q } = buildArrow(end, dirNorm, DL_ARROWHEAD_LENGTH);
+            ae.position.set(center.x, center.y, center.z);
+            ae.quaternion.set(q.x, q.y, q.z, q.w);
+            ae.visible = true;
+          }
+        } else {
+          if (as) as.visible = false;
+          if (ae) ae.visible = false;
+        }
       },
     }), []);
 
     useEffect(() => () => { if (geoRef.current) geoRef.current.dispose(); }, []);
 
-    return (
-      <mesh ref={lineMeshRef} raycast={() => null} frustumCulled={false}>
+    const coneMesh = (r: React.Ref<THREE.Mesh>) => (
+      <mesh ref={r} raycast={() => null} frustumCulled={false} visible={false}>
+        <coneGeometry args={[DL_ARROWHEAD_RADIUS, DL_ARROWHEAD_LENGTH, 16]} />
         <meshStandardMaterial
           color={SHADING_PARAM_LAYOUT_LINK_COLOR}
           emissive={LAYOUT_LINK_EMISSIVE_COLOR}
           emissiveIntensity={SHADING_PARAM_LAYOUT_LINK_EMISSIVE_INTENSITY}
         />
       </mesh>
+    );
+
+    return (
+      <>
+        <mesh ref={lineMeshRef} raycast={() => null} frustumCulled={false}>
+          <meshStandardMaterial
+            color={SHADING_PARAM_LAYOUT_LINK_COLOR}
+            emissive={LAYOUT_LINK_EMISSIVE_COLOR}
+            emissiveIntensity={SHADING_PARAM_LAYOUT_LINK_EMISSIVE_INTENSITY}
+          />
+        </mesh>
+        {coneMesh(arrowStartRef)}
+        {coneMesh(arrowEndRef)}
+      </>
     );
   },
 );
