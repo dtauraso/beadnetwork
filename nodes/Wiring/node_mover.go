@@ -473,6 +473,14 @@ func (m *nodeMover) handle(msg moveMsg) {
 		if m.selfKind == "TimeStart" && m.cascadeKinds[msg.SenderID] == "Input" {
 			return
 		}
+		// A Pulse IGNORES a delta triple arriving from a TimeStart-kind cascade neighbor:
+		// no record, no relay. Same shape as the TimeStart<-Input stop above, gated on the
+		// SENDER's kind. Note this is the Pulse kind only (node 5) — PulseLeft and
+		// PulseRight are separate kinds with their own rules below. From every OTHER sender
+		// kind a Pulse keeps the plain flood-to-all-cascade-neighbors-except-sender.
+		if m.selfKind == "Pulse" && m.cascadeKinds[msg.SenderID] == "TimeStart" {
+			return
+		}
 		// A PulseLeft ATTENDS to a delta triple only when it arrives from an Input or a
 		// SelectRight cascade neighbor (SelectRight is the Go type of the
 		// "WindowAndInhibitLeftGate" kind — nodes/windowandinhibitleftgate/node.go — so the
