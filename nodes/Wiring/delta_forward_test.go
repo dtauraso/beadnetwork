@@ -6,22 +6,22 @@ package Wiring
 // hand-authored/persisted FILE DATA, not derived from the domain-edge/local-polar
 // adjacency at load. "Forward to my stored cascade-edge neighbors, excluding the sender,
 // concurrently" is loop-free BY CONSTRUCTION because the seeded set already omits the
-// two cycle-closing links (6-9, 8-10) — there is no runtime visit-tracking or
+// two cycle-closing links (5-8, 7-9) — there is no runtime visit-tracking or
 // once-per-drag guard — every node relays on EVERY move it receives, never crossing a
 // non-cascade link, and the forwarded log stays in sync with the drag as it continues to
 // move (instead of freezing at the first delta, as the old forwardedThisDrag guard did).
 //
 // Real repo topology (topology/) adjacency (edges/*.json):
 //
-//	1: 2,3   2: 1,5,6   3: 1,9   5: 2,7,8   6: 2,9,10   7: 5   8: 5,10   9: 3,6   10: 6,8
+//	1: 2,3   2: 1,4,5   3: 1,8   4: 2,6,7   5: 2,8,9   6: 4   7: 4,9   8: 3,5   9: 5,7
 //
-// The seeded nodes/<id>/cascade-edges.json files carry every edge except 6-9 and 8-10:
-// 1-2, 1-3, 2-5, 2-6, 3-9, 5-7, 5-8, 6-10. TestCascadeEdgesLoadedFromStoredFiles pins this
+// The seeded nodes/<id>/cascade-edges.json files carry every edge except 5-8 and 7-9:
+// 1-2, 1-3, 2-4, 2-5, 3-8, 4-6, 4-7, 5-9. TestCascadeEdgesLoadedFromStoredFiles pins this
 // explicitly.
 //
-// Dragging leaf node 7 makes 5 the sole direct recipient (gotDragMsg); every other node
-// (1,2,3,6,8,9,10) must end up with gotForwardMsg==1 carrying the SAME delta triple 5
-// received, via the stored cascade-edges graph (never crossing 6-9 or 8-10).
+// Dragging leaf node 6 makes 4 the sole direct recipient (gotDragMsg); every other node
+// (1,2,3,5,7,8,9) must end up with gotForwardMsg==1 carrying the SAME delta triple 4
+// received, via the stored cascade-edges graph (never crossing 5-8 or 7-9).
 import (
 	"context"
 	"encoding/binary"
@@ -63,8 +63,8 @@ func isCascadeLinkForTest(md *MoveDispatch, a, b string) bool {
 }
 
 // TestCascadeEdgesLoadedFromStoredFiles pins the exact per-node cascade-edges the real
-// topology's nodes/<id>/cascade-edges.json seed files carry: every edge except {6-9,
-// 8-10}. If the topology or the seeded files ever change, this test documents and
+// topology's nodes/<id>/cascade-edges.json seed files carry: every edge except {5-8,
+// 7-9}. If the topology or the seeded files ever change, this test documents and
 // enforces the expected result rather than letting it silently drift.
 func TestCascadeEdgesLoadedFromStoredFiles(t *testing.T) {
 	root := filepath.Join(repoRootForDeltaForwardTest(t), "topology")
@@ -75,15 +75,15 @@ func TestCascadeEdgesLoadedFromStoredFiles(t *testing.T) {
 	}
 
 	want := map[string][]string{
-		"1":  {"2", "3"},
-		"2":  {"1", "5", "6"},
-		"3":  {"1", "9"},
-		"5":  {"2", "7", "8"},
-		"6":  {"2", "10"},
-		"7":  {"5"},
-		"8":  {"5"},
-		"9":  {"3"},
-		"10": {"6"},
+		"1": {"2", "3"},
+		"2": {"1", "4", "5"},
+		"3": {"1", "8"},
+		"4": {"2", "6", "7"},
+		"5": {"2", "9"},
+		"6": {"4"},
+		"7": {"4"},
+		"8": {"3"},
+		"9": {"5"},
 	}
 	for id, wantEdges := range want {
 		nm, ok := md.mr.nodeMovers[id]
@@ -98,10 +98,10 @@ func TestCascadeEdgesLoadedFromStoredFiles(t *testing.T) {
 			t.Errorf("node %q cascadeEdges = %v, want %v", id, got, wantSorted)
 		}
 	}
-	// 6-9 and 8-10 must NOT be cascade links in either direction.
+	// 5-8 and 7-9 must NOT be cascade links in either direction.
 	wantNonCascade := []struct{ a, b string }{
-		{"6", "9"}, {"9", "6"},
-		{"8", "10"}, {"10", "8"},
+		{"5", "8"}, {"8", "5"},
+		{"7", "9"}, {"9", "7"},
 	}
 	for _, e := range wantNonCascade {
 		if isCascadeLinkForTest(md, e.a, e.b) {
@@ -162,7 +162,7 @@ func TestDeltaForwardPropagatesAcrossWholeGraphAndStaysInSync(t *testing.T) {
 	}
 	// No EnableEditPersist: this test must not write to the real on-disk topology.
 
-	allButDragged := []string{"1", "2", "3", "5", "6", "8", "9", "10"}
+	allButDragged := []string{"1", "2", "3", "4", "5", "7", "8", "9"}
 	bufs := map[string]*uiPubLockedBuf{}
 	for _, id := range allButDragged {
 		bufs[id] = wireNodeStream(t, md, id)
@@ -183,7 +183,7 @@ func TestDeltaForwardPropagatesAcrossWholeGraphAndStaysInSync(t *testing.T) {
 
 	// Tap every mover's own outbound sends: record every moveMsgKindDeltaForward
 	// (sender -> dest) pair, across the whole test, so we can assert NONE of them cross
-	// a non-cascade link (6-9 or 8-10).
+	// a non-cascade link (5-8 or 7-9).
 	var mu sync.Mutex
 	var forwardSends []struct{ from, to string }
 	md.SetMsgTap(func(destID string, msg moveMsg) {
@@ -199,23 +199,23 @@ func TestDeltaForwardPropagatesAcrossWholeGraphAndStaysInSync(t *testing.T) {
 	defer cancel()
 	md.Start(ctx)
 
-	sevenBefore, ok := md.centerOfNode("7")
+	sevenBefore, ok := md.centerOfNode("6")
 	if !ok {
-		t.Fatal("no center for 7")
+		t.Fatal("no center for 6")
 	}
 	firstTarget := sevenBefore.Add(vec3{X: 45, Y: -30, Z: 20})
 
 	md.resetAbcDrag()
-	if !md.RootMove("7", firstTarget) {
-		t.Fatal("RootMove(7) returned false")
+	if !md.RootMove("6", firstTarget) {
+		t.Fatal("RootMove(6) returned false")
 	}
-	pollDragConverged(t, md, "7", firstTarget)
+	pollDragConverged(t, md, "6", firstTarget)
 
-	// 5 (7's only neighbor) is the sole direct drag-recipient: gotDragMsg==1, with SOME
+	// 4 (6's only neighbor) is the sole direct drag-recipient: gotDragMsg==1, with SOME
 	// delta triple — recorded so every forward-recipient below can be checked against
 	// the SAME triple (forwardDelta relays it unmodified).
 	var firstDA, firstDB, firstDC int32
-	waitForNodeDragMsg(t, bufs["5"], func(got uint8, dA, dB, dC, _ int32) bool {
+	waitForNodeDragMsg(t, bufs["4"], func(got uint8, dA, dB, dC, _ int32) bool {
 		if got != 1 {
 			return false
 		}
@@ -223,11 +223,11 @@ func TestDeltaForwardPropagatesAcrossWholeGraphAndStaysInSync(t *testing.T) {
 		return true
 	})
 
-	// Every OTHER node in the connected graph (1,2,3,6,8,9,10 — everyone but the dragged
-	// leaf 7) must end up with gotForwardMsg==1 carrying the SAME delta triple, proving
+	// Every OTHER node in the connected graph (1,2,3,5,7,8,9 — everyone but the dragged
+	// leaf 6) must end up with gotForwardMsg==1 carrying the SAME delta triple, proving
 	// full-graph propagation via the stored cascade-edges graph (reachability survives the two
 	// omitted non-cascade links).
-	reached := []string{"1", "2", "3", "6", "8", "9", "10"}
+	reached := []string{"1", "2", "3", "5", "7", "8", "9"}
 	for _, id := range reached {
 		waitForNodeForwardMsg(t, bufs[id], func(got uint8, dA, dB, dC, _ int32) bool {
 			return got == 1 && dA == firstDA && dB == firstDB && dC == firstDC
@@ -240,17 +240,17 @@ func TestDeltaForwardPropagatesAcrossWholeGraphAndStaysInSync(t *testing.T) {
 	// triples at the first pointer-move). No resetAbcDrag/dragStart here: this is a
 	// continuation of the SAME drag, mirroring a real further pointer-move mid-drag.
 	secondTarget := firstTarget.Add(vec3{X: 60, Y: 25, Z: -35})
-	if !md.RootMove("7", secondTarget) {
-		t.Fatal("RootMove(7) (second move) returned false")
+	if !md.RootMove("6", secondTarget) {
+		t.Fatal("RootMove(6) (second move) returned false")
 	}
-	pollDragConverged(t, md, "7", secondTarget)
+	pollDragConverged(t, md, "6", secondTarget)
 
-	// Wait for 5's OWN drag-received triple (gotDragMsg side, authoritative for what
+	// Wait for 4's OWN drag-received triple (gotDragMsg side, authoritative for what
 	// changed) to reflect the SECOND move — i.e. differ from the first move's triple.
 	var secondDA, secondDB, secondDC int32
 	deadline := time.Now().Add(2 * time.Second)
 	for {
-		raw := bufs["5"].Bytes()
+		raw := bufs["4"].Bytes()
 		off := 0
 		var last []byte
 		for off+4 <= len(raw) {
@@ -273,7 +273,7 @@ func TestDeltaForwardPropagatesAcrossWholeGraphAndStaysInSync(t *testing.T) {
 			}
 		}
 		if time.Now().After(deadline) {
-			t.Fatal("timed out waiting for second-move drag-received triple on 5 to differ from the first")
+			t.Fatal("timed out waiting for second-move drag-received triple on 4 to differ from the first")
 		}
 		time.Sleep(2 * time.Millisecond)
 	}
@@ -285,7 +285,7 @@ func TestDeltaForwardPropagatesAcrossWholeGraphAndStaysInSync(t *testing.T) {
 	}
 
 	// Assert the forward wave settles (no more sends drift the state) and that NONE of
-	// the recorded forward sends ever crossed a non-cascade link (6-9 or 8-10, in either
+	// the recorded forward sends ever crossed a non-cascade link (5-8 or 7-9, in either
 	// direction).
 	time.Sleep(50 * time.Millisecond)
 	mu.Lock()
@@ -301,11 +301,11 @@ func TestDeltaForwardPropagatesAcrossWholeGraphAndStaysInSync(t *testing.T) {
 		}
 	}
 
-	// dragged node 7 itself never sends a delta-forward (it's the drag origin, driven
+	// dragged node 6 itself never sends a delta-forward (it's the drag origin, driven
 	// via moveMsgKindDrag/neighborSetC, not moveMsgKindDeltaForward).
 	for _, s := range sendsSnapshot {
-		if s.from == "7" {
-			t.Fatalf("dragged node 7 sent a delta-forward message to %s, want none", s.to)
+		if s.from == "6" {
+			t.Fatalf("dragged node 6 sent a delta-forward message to %s, want none", s.to)
 		}
 	}
 }

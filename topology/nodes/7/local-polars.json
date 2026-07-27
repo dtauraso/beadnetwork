@@ -1,1 +1,1 @@
-{"localPolars":[{"to":"5","quantITheta":113,"quantIPhi":-12,"quantIR":30,"stepTheta":0.017453292519943295,"stepPhi":0.017453292519943295,"stepR":2}],"localPoleTheta":0,"localPolePhi":0}
+{"localPolars": [{"to": "9", "quantITheta": 40, "quantIPhi": 38, "quantIR": 41, "stepTheta": 0.017453292519943295, "stepPhi": 0.017453292519943295, "stepR": 2}, {"to": "4", "quantITheta": 90, "quantIPhi": 60, "quantIR": 45, "stepTheta": 0.017453292519943295, "stepPhi": 0.017453292519943295, "stepR": 2}], "localPoleTheta": 0, "localPolePhi": 0}

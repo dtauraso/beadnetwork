@@ -78,7 +78,7 @@ func pairLength(t *testing.T, md *MoveDispatch, source, target string) float64 {
 }
 
 // TestDistanceGroupUpMovesEveryPairToTargetLength drives group index 0 ("time":
-// (2,6),(2,5),(5,8),(5,7)) up: currentMax*1.1 is the new target length L, and every
+// (2,5),(2,4),(4,7),(4,6)) up: currentMax*1.1 is the new target length L, and every
 // pair's TARGET node must end up at distance L from its (unmoved) SOURCE — asserted
 // directly off the live centers RootMove's own commit path updates.
 func TestDistanceGroupUpMovesEveryPairToTargetLength(t *testing.T) {
@@ -132,11 +132,11 @@ func TestDistanceGroupDownHalvesTowardCurrentMax(t *testing.T) {
 
 // TestDistanceGroupGateLastWriteWinsForSharedTargets documents and asserts the
 // accepted last-write-wins behavior for the gate group's two SHARED target nodes:
-// node 9 is the target of both (3,9) and (6,9); node 10 of both (6,10) and (8,10).
+// node 8 is the target of both (3,8) and (5,8); node 9 of both (5,9) and (7,9).
 // The group's flat pair list is applied IN ORDER with no tree/graph solver and no
 // averaging — the LAST pair touching a shared target wins, so after an up click node
-// 9 ends at distance L from node 6 (not node 3), and node 10 ends at distance L from
-// node 8 (not node 6). This is the agreed model (CLAUDE.md GO-LAYER MODEL), not a bug.
+// 8 ends at distance L from node 5 (not node 3), and node 9 ends at distance L from
+// node 7 (not node 5). This is the agreed model (CLAUDE.md GO-LAYER MODEL), not a bug.
 func TestDistanceGroupGateLastWriteWinsForSharedTargets(t *testing.T) {
 	md := loadProductionTopologyForDistanceGroups(t)
 
@@ -145,8 +145,8 @@ func TestDistanceGroupGateLastWriteWinsForSharedTargets(t *testing.T) {
 	if len(pairs) != 4 {
 		t.Fatalf("gate group pair count = %d, want 4", len(pairs))
 	}
-	// Sanity-check the exact flat order the model specifies: (3,9),(6,9),(6,10),(8,10).
-	want := []distancePair{{"3", "9"}, {"6", "9"}, {"6", "10"}, {"8", "10"}}
+	// Sanity-check the exact flat order the model specifies: (3,8),(5,8),(5,9),(7,9).
+	want := []distancePair{{"3", "8"}, {"5", "8"}, {"5", "9"}, {"7", "9"}}
 	for i, p := range want {
 		if pairs[i] != p {
 			t.Fatalf("gate group pair[%d] = %+v, want %+v", i, pairs[i], p)
@@ -164,12 +164,12 @@ func TestDistanceGroupGateLastWriteWinsForSharedTargets(t *testing.T) {
 	}
 
 	const tol = 1e-3
-	// Node 9's FINAL length is measured against its LAST pair's source, (6,9) — not
-	// (3,9), which was applied first and then overwritten by node 9's own second
+	// Node 8's FINAL length is measured against its LAST pair's source, (5,8) — not
+	// (3,8), which was applied first and then overwritten by node 8's own second
 	// RootMove call.
-	waitForPairLength(t, md, "6", "9", wantL, tol)
-	// Node 10's FINAL length is measured against its LAST pair's source, (8,10).
-	waitForPairLength(t, md, "8", "10", wantL, tol)
+	waitForPairLength(t, md, "5", "8", wantL, tol)
+	// Node 9's FINAL length is measured against its LAST pair's source, (7,9).
+	waitForPairLength(t, md, "7", "9", wantL, tol)
 }
 
 // TestDistanceGroupOutOfRangeIndexIsNoOp guards ApplyDistanceGroupTarget's bounds
