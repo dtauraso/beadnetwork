@@ -63,9 +63,9 @@ func writeSceneOverlays(overlaysPath string, ov overlayState) error {
 	setVisible("handholdsVisible", ov.handholdsVisible)
 	setVisible("overlaysActive", ov.overlaysVisible)
 	setHidden("labelsGlobalHidden", ov.labelsGlobalVisible)
-	// doubleLinksVisible is visible-sense with a FALSE default — write `true` only when on.
-	if ov.doubleLinksVisible {
-		obj["doubleLinksVisible"] = json.RawMessage("true")
+	// cascadeLinksVisible is visible-sense with a FALSE default — write `true` only when on.
+	if ov.cascadeLinksVisible {
+		obj["cascadeLinksVisible"] = json.RawMessage("true")
 	}
 	return writeJSONAtomic(overlaysPath, obj)
 }
@@ -99,7 +99,7 @@ type sceneOverlaysFile struct {
 	HandholdsVisible      *bool `json:"handholdsVisible"`
 	OverlaysActive        *bool `json:"overlaysActive"`
 	LabelsGlobalHidden    *bool `json:"labelsGlobalHidden"`
-	DoubleLinksVisible    *bool `json:"doubleLinksVisible"`
+	CascadeLinksVisible   *bool `json:"cascadeLinksVisible"`
 }
 
 // loadSceneOverlays reads the persisted overlay-visibility snapshot, applying the same key
@@ -147,8 +147,8 @@ func loadSceneOverlays(overlaysPath, legacyScenePath string) (overlayState, bool
 		ov.labelsGlobalVisible = !*sf.LabelsGlobalHidden
 		found = true
 	}
-	if sf.DoubleLinksVisible != nil {
-		ov.doubleLinksVisible = *sf.DoubleLinksVisible
+	if sf.CascadeLinksVisible != nil {
+		ov.cascadeLinksVisible = *sf.CascadeLinksVisible
 		found = true
 	}
 	return ov, found
@@ -179,6 +179,6 @@ func (md *MoveDispatch) LoadOverlays(topologyPath string, tr *T.Trace) {
 		{Kind: T.KindHandholds, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
 		{Kind: T.KindLabelsGlobal, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
 		{Kind: T.KindOverlaysVis, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
-		{Kind: T.KindDoubleLinks, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
+		{Kind: T.KindCascadeLinks, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
 	})
 }

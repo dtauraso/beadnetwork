@@ -106,13 +106,14 @@ export const BUF_BLOCK_TAG_INTERIOR_STREAM = 7;
 export const BUF_NODE_STREAM_FRAME_HEADER_SIZE = 20;
 
 /**
- * BufNodeStreamLayoutLinkStride is the byte width of ONE layout-link row within a node
- * stream frame: [DstNodeRow:i32][EdgeRow:i32]. Narrower than the combined LayoutLink
- * block's BufLayoutLinkStride (12 bytes, SrcNodeRow+DstNodeRow+EdgeRow) because on a
+ * BufNodeStreamLayoutLinkStride is the byte width of ONE layout-link (cascade-link
+ * overlay) row within a node stream frame: [DstNodeRow:i32]. Narrower than the combined
+ * LayoutLink block's BufLayoutLinkStride (8 bytes, SrcNodeRow+DstNodeRow) because on a
  * per-node stream the source IS this node — its own row is implicit (the fd position /
- * the aggregator's row index), so only the dst endpoint + resolved edge row travel.
+ * the aggregator's row index), so only the dst endpoint travels. No edge-row column: the
+ * cascade-link overlay draws between the two nodes' CENTERS, never along a bead edge.
  */
-export const NODE_STREAM_LAYOUT_LINK_STRIDE = 8;
+export const NODE_STREAM_LAYOUT_LINK_STRIDE = 4;
 
 /**
  * BufInteriorStreamFrameHeaderSize is the byte width of the leading header on one node's

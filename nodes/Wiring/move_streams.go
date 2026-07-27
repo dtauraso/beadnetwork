@@ -50,7 +50,7 @@ func (md *MoveDispatch) SetEdgeStreams(
 // interior-fd — the two emitting goroutines per node (memory/feedback_no_single_writer_bridge.md).
 // nodeBase/interiorBase are the two fd ranges' base fds; row is the STABLE node-seed
 // order (md.gs.nodeSeeds, the same spec order the Node block uses — see
-// main.go's md.NodeSeeds() seed loop). nodeRowFor/edgeRowForPair/buildFrame/
+// main.go's md.NodeSeeds() seed loop). nodeRowFor/buildFrame/
 // buildInteriorFrame are injected funcs (not a Buffer import), matching SetEdgeStreams'
 // existing pattern. Selection/hover/abc-drag/kind are NOT injected lookups: each nodeMover
 // owns its OWN selected/hovered/latchedSel/gotDragMsg/dragDelta*/kindID fields, set via
@@ -62,12 +62,11 @@ func (md *MoveDispatch) SetEdgeStreams(
 func (md *MoveDispatch) SetNodeStreams(
 	nodeBase, interiorBase int,
 	nodeRowFor func(id string) (int32, bool),
-	edgeRowForPair func(a, b string) (int32, bool),
-	buildFrame func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount int32, gotForwardMsg uint8, forwardDeltaA, forwardDeltaB, forwardDeltaC, forwardFromRow int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows, edgeRows []int32, events []wire.RowEvent) []byte,
+	buildFrame func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount int32, gotForwardMsg uint8, forwardDeltaA, forwardDeltaB, forwardDeltaC, forwardFromRow int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows []int32, events []wire.RowEvent) []byte,
 	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte,
 	kindIDFor func(kind string) uint8,
 ) {
-	md.sw.setNodeStreams(md.gs.nodeSeeds, md.mr.nodeMovers, nodeBase, interiorBase, nodeRowFor, edgeRowForPair, buildFrame, buildInteriorFrame, kindIDFor)
+	md.sw.setNodeStreams(md.gs.nodeSeeds, md.mr.nodeMovers, nodeBase, interiorBase, nodeRowFor, buildFrame, buildInteriorFrame, kindIDFor)
 }
 
 // NodeGeomSeed is one node's load-time seed geometry, exported in spec order and consumed

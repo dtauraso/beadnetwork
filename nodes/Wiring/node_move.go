@@ -67,7 +67,7 @@ type MoveDispatch struct {
 	// MoveDispatch's public setSelectionUI/setHoverUI/sendEdgeSelect/resetAbcDrag stay as
 	// thin delegators so the external API is unchanged.
 	ui uiState
-	// lq owns the quantized double-link local-polar move math (quantized_move.go):
+	// lq owns the quantized cascade-link local-polar move math (quantized_move.go):
 	// quantizedLayout (gates the quantized absolute-scene-polar snap — every node is a
 	// root, measured/derived about the scene center only) and layoutHolders (resolves a
 	// node id to the *LayoutHolder embedded in that node's built struct — the ONLY
@@ -100,14 +100,6 @@ type MoveDispatch struct {
 	// public Lookup*/…RowFor methods below are thin delegators to it so the external
 	// API is unchanged.
 	rt rowTables
-
-	// deadEndEdges is the static, write-once dead-end (non-spanning-tree) edge set
-	// (dead_end_edges.go), computed ONCE here in newMoveDispatch from the load-time
-	// edge endpoints. Delta-forward (nodeMover.forwardDelta) never crosses one of
-	// these edges — that is what makes the forwarding graph a tree with no cycles,
-	// so no runtime visit-tracking/once-per-drag guard is needed. Read-only after
-	// construction; see isDeadEndEdge.
-	deadEndEdges map[string]bool
 }
 
 // newMoveDispatch builds the registry from per-node geometry and per-edge endpoints.
@@ -150,9 +142,6 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 	md.mr.edgeOut = map[string]*wire.Out{}
 	md.mr.centerMirror = map[string]vec3{}
 	md.lq.layoutHolders = map[string]*wire.LayoutHolder{}
-	// Static dead-end edge set (see its doc comment) — computed once, deterministically,
-	// from the same edgeEndpoints every mover/channel wiring below is built from.
-	md.deadEndEdges = computeDeadEndEdges(edgeEndpoints)
 	md.ui.ov = defaultOverlayState()
 	// Static partner-center lookup for the seed pass: every node's center is already known
 	// off the load-time geoms map, so this is the SAME buildPartnerCenterFn the dynamic
@@ -428,7 +417,7 @@ func (md *MoveDispatch) NodeKind(nodeID string) string {
 	return ""
 }
 
-// Quantized double-link local-polar move math (quantized_move.go): thin delegators to
+// Quantized cascade-link local-polar move math (quantized_move.go): thin delegators to
 // md.lq so their existing in-package call sites (tests, node_move.go, gesture.go) are
 // unchanged.
 func (md *MoveDispatch) heldCenters() map[string]vec3 { return md.lq.heldCenters(md) }

@@ -200,33 +200,20 @@ type bufLayoutEdge struct {
 	EdgeLabelLen uint32 `buf:"u32"` // edge-label UTF-8 byte length
 }
 
-// bufLayoutLayoutLink defines one row of the LAYOUT-link column block: the double-link
-// LAYOUT relationship (nodes/Wiring/layout_holder.go LocalPolars — each node's stored polar
-// OFFSET to a neighbor it is double-linked to), NOT the bead-edge graph. The PAIR is
-// streamed once at load (deduplicated by the emitter — nodes/Wiring/loader.go
-// emitLayoutLinks), from the same computeLocalPolars data that seeds
-// LayoutHolder.LoadLocalPolars — so this block can never silently drift into "just
-// re-drawing the Edge block" even on a topology where the layout-link pairs and the
-// bead-edge pairs diverge.
+// bufLayoutLayoutLink defines one row of the LAYOUT-link column block: the cascade-link
+// relationship (nodes/<id>/cascade-edges.json, a STORED per-node list — see
+// nodes/Wiring/node_mover.go's cascadeEdges doc comment), NOT the bead-edge graph and NOT
+// derived from LocalPolars/domain-edge adjacency. The PAIR is streamed once at load
+// (deduplicated: only the lexicographically-smaller endpoint emits it).
 //
 // SrcNodeRow/DstNodeRow are the buffer NODE-ROW indices (resolved against the Node block —
-// see nodeRowIndex). EdgeRow is Go-resolved EVERY snapshot (buildSnapshot, not load-once) to
-// the buffer EDGE-ROW index of the bead edge connecting this same pair (either direction), or
-// -1 when no such edge exists. The renderer draws the overlay segment along THAT edge's
-// SrcPortRow/DstPortRow (bufLayoutEdge), reading the endpoint from the Port block those rows
-// reference — the same port-anchored endpoints the bead wire itself uses — instead of
-// duplicating endpoint geometry here. Recomputing EdgeRow's resolution every snapshot (not
-// once at load) is what keeps the overlay attached to the ports as a node is dragged: the
-// Edge block is re-emitted on every node/port move, and the overlay rides along.
-//
-// Fallback (EdgeRow == -1, no bead edge for this layout-link pair): the renderer falls back
-// to the two nodes' CX/CY/CZ from the Node block. This is an honest degradation, not a
-// silent one — the renderer must not let a center-anchored fallback segment look identical
-// to a port-anchored one (dashed/dimmed or otherwise visually distinguished).
+// see nodeRowIndex). The overlay is its OWN edge between the two NODES' CENTERS
+// (CX/CY/CZ, re-streamed on every move) — it does NOT reference any bead-edge row, so it
+// can never be coupled to (or dimmed/tinted by) the bead edge's own selection/opacity
+// state. No EdgeRow column.
 type bufLayoutLayoutLink struct {
-	SrcNodeRow int32 `buf:"i32"` // one endpoint's buffer node-row index
+	SrcNodeRow int32 `buf:"i32"` // one endpoint's buffer node-row index (lexicographically smaller)
 	DstNodeRow int32 `buf:"i32"` // the other endpoint's buffer node-row index
-	EdgeRow    int32 `buf:"i32"` // matching bead-edge's buffer edge-row index; -1 = no edge (fallback to node centers)
 }
 
 // bufLayoutPort defines one row of the ports column block.
@@ -294,11 +281,11 @@ type bufLayoutOverlay struct {
 	Handholds      uint8 `buf:"u8"` // 1 = rotation grab-sphere handholds visible
 	LabelsGlobal   uint8 `buf:"u8"` // 1 = all node labels visible
 	OverlaysVis    uint8 `buf:"u8"` // 1 = master overlays toggle on
-	// DoubleLinks mirrors the LAYOUT-link overlay's own visibility (default OFF, unlike the
+	// CascadeLinks mirrors the LAYOUT-link overlay's own visibility (default OFF, unlike the
 	// other flags which default on) — the cyan second-tube overlay reads the LayoutLink block
 	// only when this is set. NOT the same thing as the LayoutLink block existing: the data
 	// streams every snapshot regardless, this just gates the render.
-	DoubleLinks uint8 `buf:"u8"` // 1 = layout-link overlay visible
+	CascadeLinks uint8 `buf:"u8"` // 1 = layout-link (cascade-link) overlay visible
 	// DragNodeRow is the row index (into the Node block) of the node currently
 	// being dragged by the gesture FSM (nodes/Wiring/gesture.go g.dragNode),
 	// or -1 when no drag is in progress. Identity rides row index, not a

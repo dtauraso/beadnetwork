@@ -63,6 +63,13 @@ type specNode struct {
 	// cart↔polar boundary, unchanged by this).
 	LocalPoleTheta *float64 `json:"localPoleTheta,omitempty"`
 	LocalPolePhi   *float64 `json:"localPolePhi,omitempty"`
+	// CascadeEdges is this node's STORED list of cascade-neighbor ids (nodes/<id>/
+	// cascade-edges.json, loader_tree.go) — the sole source of truth for delta-forward
+	// propagation (nodeMover.forwardDelta) and the cascade-link overlay's rendered pairs.
+	// NOT derived from LocalPolars/the domain-edge adjacency at load (the computed
+	// cascade_links.go machinery was removed) — hand-authored/persisted data. Absent file
+	// → nil (empty list), matching every other per-node optional-file convention here.
+	CascadeEdges []string `json:"cascadeEdges,omitempty"`
 	// Gate marks this node as a two-neighbor GATE node (node_move.go): on a direct
 	// drag it solves its own equal-radii landing position against its two domain
 	// neighbors (derived from LocalPolars, in the same order), commits, and

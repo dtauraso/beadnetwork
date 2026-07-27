@@ -287,9 +287,10 @@ export function edgeLabel(decoded: DecodedEdgeFrame, row: number): string {
  *  [tick:u32][portCount:u32][labelLen:u32][portNameBytesCount:u32][layoutLinkCount:u32] +
  *  this node's own single NODE_STRIDE row (index 0) + its own inline label bytes + its own
  *  Port rows (each row's NodeRow column already the global node row) + its own inline
- *  port-name bytes + its own outbound LAYOUT-link rows (this node is always the SOURCE —
- *  see node_mover.go's layoutLinkTos doc comment; each row is
- *  [DstNodeRow:i32][EdgeRow:i32], NODE_STREAM_LAYOUT_LINK_STRIDE bytes). */
+ *  port-name bytes + its own outbound cascade-link rows (this node is always the
+ *  lexicographically-smaller endpoint — see node_mover.go's cascadeEdges doc comment;
+ *  each row is [DstNodeRow:i32], NODE_STREAM_LAYOUT_LINK_STRIDE bytes — no edge-row: the
+ *  overlay draws node-center to node-center, never along a bead edge). */
 export interface DecodedNodeStreamFrame {
   tick: number;
   /** DataView over this node's single Node row; byteLength = NODE_STRIDE. */
@@ -304,8 +305,8 @@ export interface DecodedNodeStreamFrame {
   portNameBytes: Uint8Array;
   layoutLinkCount: number;
   /** DataView over this node's own outbound LayoutLink rows; byteLength = layoutLinkCount
-   *  × NODE_STREAM_LAYOUT_LINK_STRIDE. Read with readNodeStreamLayoutLinkDstNodeRow /
-   *  readNodeStreamLayoutLinkEdgeRow below — this node's own row is the SrcNodeRow. */
+   *  × NODE_STREAM_LAYOUT_LINK_STRIDE. Read with readNodeStreamLayoutLinkDstNodeRow
+   *  below — this node's own row is the SrcNodeRow. */
   layoutLinkView: DataView;
   /** This node's own trailing EVENTS section (.probe log only; see decodeTrailingEvents). */
   eventCount: number;
@@ -316,11 +317,6 @@ export interface DecodedNodeStreamFrame {
 /** Reads DstNodeRow (i32) from row `row` of a node stream frame's LayoutLink section. */
 export function readNodeStreamLayoutLinkDstNodeRow(view: DataView, row: number): number {
   return view.getInt32(row * NODE_STREAM_LAYOUT_LINK_STRIDE, true);
-}
-
-/** Reads EdgeRow (i32) from row `row` of a node stream frame's LayoutLink section. */
-export function readNodeStreamLayoutLinkEdgeRow(view: DataView, row: number): number {
-  return view.getInt32(row * NODE_STREAM_LAYOUT_LINK_STRIDE + 4, true);
 }
 
 // Per-node-row memo (keyed by row), mirroring decodeEdgeStreamFrame's per-row memo.

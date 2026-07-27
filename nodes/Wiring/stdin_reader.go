@@ -306,7 +306,7 @@ var overlayFlagTraceKind = map[string]string{
 	"handholds":      T.KindHandholds,
 	"labelsGlobal":   T.KindLabelsGlobal,
 	"overlays":       T.KindOverlaysVis,
-	"doubleLinks":    T.KindDoubleLinks,
+	"cascadeLinks":   T.KindCascadeLinks,
 }
 
 // applyEdit dispatches one geometry-CRUD edit by its op. The sole op is update

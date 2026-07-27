@@ -131,6 +131,13 @@ func loadTree(root string) (topoSpec, error) {
 			sn.LocalPoleTheta, sn.LocalPolePhi = &pt, &pp
 		}
 
+		// cascade-edges.json — this node's STORED cascade-neighbor id list (specNode.
+		// CascadeEdges doc comment). Missing file → empty list, not an error (readJSONBestEffort's
+		// standard missing-file default).
+		var cef cascadeEdgesFileJSON
+		readJSONBestEffort(cascadeEdgesFilePath(root, nodeID), &cef)
+		sn.CascadeEdges = cef.CascadeEdges
+
 		// data.json — optional
 		dataPath := filepath.Join(nodeDir, "data.json")
 		if raw, err := os.ReadFile(dataPath); err == nil {

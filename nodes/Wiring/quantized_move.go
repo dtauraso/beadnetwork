@@ -1,4 +1,4 @@
-// quantized_move.go — the quantized double-link local-polar move math, owned by
+// quantized_move.go — the quantized cascade-link local-polar move math, owned by
 // layoutQuantizer (god-object decomposition): pure move, no logic changes. Held-state
 // snapshots (heldCenters/heldEdges), the broadcast to edges/partners on a re-propagated
 // center, pole requantizing, the one-hop neighborSetC propagation, the owner-goroutine
@@ -27,7 +27,7 @@ import (
 	T "github.com/dtauraso/wirefold/Trace"
 )
 
-// layoutQuantizer owns the quantized double-link local-polar move math. See
+// layoutQuantizer owns the quantized cascade-link local-polar move math. See
 // MoveDispatch.lq's doc comment (node_move.go) for what it owns and why.
 type layoutQuantizer struct {
 	// quantizedLayout gates the quantized absolute-scene-polar snap — every node is a
@@ -316,13 +316,13 @@ func (lq *layoutQuantizer) neighborSetCRequantize(md *MoveDispatch, selfID, from
 
 	// Delta-forward (observability only — no re-quantize, no move): selfID is a direct
 	// drag-recipient, so it forwards the SAME delta triple it just received from fromID
-	// to every OTHER neighbor (every neighbor except fromID AND any neighbor across a
-	// STATIC dead-end edge — see nodeMover.forwardDelta's doc comment). Every forward
-	// recipient in turn does its OWN hop (handle's moveMsgKindDeltaForward case) —
-	// independent, concurrent hops that together spread the triple across the whole
-	// reachable graph. Because the dead-end set makes the forwarding graph acyclic, this
-	// runs on EVERY move (not just the first this drag), keeping the forwarded log in
-	// sync with the drag as it continues — there is no once-per-drag guard to gate it.
+	// to every OTHER cascade-link neighbor (every cascade-link neighbor except fromID —
+	// see nodeMover.forwardDelta's doc comment). Every forward recipient in turn does
+	// its OWN hop (handle's moveMsgKindDeltaForward case) — independent, concurrent hops
+	// that together spread the triple across the whole reachable graph. Because the
+	// cascade-link set is loop-free by construction, this runs on EVERY move (not just
+	// the first this drag), keeping the forwarded log in sync with the drag as it
+	// continues — there is no once-per-drag guard to gate it.
 	if nm, ok := md.mr.nodeMovers[selfID]; ok {
 		nm.forwardDelta(md, fromID, int32(deltaA), int32(deltaB), int32(deltaC))
 	}
@@ -337,7 +337,7 @@ func (lq *layoutQuantizer) neighborSetCRequantize(md *MoveDispatch, selfID, from
 // centers to incident edges/partners, persists the per-node quantized-offset
 // (nodeMover.quantOffset — never a shared map, so no other mover goroutine's commit
 // can race this write even for a different node id), and requantizes nodeID's
-// local-polar double-links against its (unmoved) neighbors.
+// local-polar cascade-links against its (unmoved) neighbors.
 func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeMover, newPos vec3) {
 	nodeID := nm.id
 	edges := lq.heldEdges(md)
@@ -392,7 +392,7 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeMover, 
 // is positioned independently about the scene sphere center — there is no reference/
 // parent concept, so dragging moves ONLY the dragged node (no cascade). The dragged
 // node's new world position is the drag target itself — CONTINUOUS, not snapped to any
-// grid (double-link local-polar model: the node's position is free; only each
+// grid (cascade-link local-polar model: the node's position is free; only each
 // neighbor's DISTANCE to it is quantized, each on that neighbor's own small grid — see
 // requantizeLocalPolars).
 //
@@ -424,7 +424,7 @@ func (lq *layoutQuantizer) RootMove(md *MoveDispatch, nodeID string, target vec3
 	return true
 }
 
-// requantizeLocalPolars implements the double-link local-polar model on a drag: the
+// requantizeLocalPolars implements the cascade-link local-polar model on a drag: the
 // dragged node X's new position gives each of its domain neighbors M a NEW distance to
 // it. That distance is quantized to a whole tick on THAT neighbor's own small grid
 // (layout_holder.go localStepTheta/localStepPhi/localStepR, or M's stored per-neighbor

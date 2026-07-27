@@ -29,22 +29,23 @@ func (md *MoveDispatch) LookupEdgeRow(row int) (label string, ok bool) {
 	return md.rt.lookupEdgeRow(row)
 }
 
-// LayoutLinkPairs returns every LAYOUT double-link pair (id, to), one per unordered pair
-// (id is always the alphabetically-first side — mirrors loader.go's emitLayoutLinks own
-// de-dup rule), by walking each nodeMover's own layoutLinkTos (seeded once at load,
-// static since — see its doc comment in node_mover.go). This is the SAME set
-// emitLayoutLinks streams via tr.LayoutLink for the old central accumulator's LayoutLink BLOCK
-// (still the sole source of that block; unaffected by this method), reconstructed here
-// so main.go can ALSO emit each pair once as a view-owner VIEW-frame event (Step C,
-// memory/feedback_no_single_writer_bridge.md — LayoutLink is load-time-once, like SceneSphere, so it has no
-// live per-goroutine owner to decentralize onto; this seed-once emission is its
-// decentralized counterpart). Order is not guaranteed to match emitLayoutLinks' — the
-// .probe log is a multiset of events, per memory/feedback_no_single_writer_bridge.md's own doc comment.
+// LayoutLinkPairs returns every cascade-link pair (id, to), one per unordered pair (id is
+// always the lexicographically-smaller side — mirrors nodeMover.emitGeometry's own de-dup
+// rule), by walking each nodeMover's own cascadeEdges (loaded once at construction from
+// nodes/<id>/cascade-edges.json — see its doc comment in node_mover.go). This is used so
+// main.go can ALSO emit each pair once as a view-owner VIEW-frame event (Step C,
+// memory/feedback_no_single_writer_bridge.md — the cascade-link overlay pairs are
+// load-time-once, like SceneSphere, so they have no live per-goroutine owner to
+// decentralize onto; this seed-once emission is its decentralized counterpart). Order is
+// not guaranteed — the .probe log is a multiset of events, per
+// memory/feedback_no_single_writer_bridge.md's own doc comment.
 func (md *MoveDispatch) LayoutLinkPairs() [][2]string {
 	var out [][2]string
 	for id, nm := range md.mr.nodeMovers {
-		for _, to := range nm.layoutLinkTos {
-			out = append(out, [2]string{id, to})
+		for _, to := range nm.cascadeEdges {
+			if id < to {
+				out = append(out, [2]string{id, to})
+			}
 		}
 	}
 	return out
@@ -52,9 +53,9 @@ func (md *MoveDispatch) LayoutLinkPairs() [][2]string {
 
 // EdgeRowForPair resolves the buffer edge-row index of the bead edge connecting node ids
 // a/b (in either direction) via the edge-endpoint table built at load — safe to call from
-// any goroutine (the table is read-only after construction). Used by a dedicated nodeMover
-// goroutine to resolve its own layout-link's edge row for its per-node stream frame.
-// ok=false when no such edge exists.
+// any goroutine (the table is read-only after construction). General-purpose accessor; no
+// longer used by the cascade-link overlay (which draws node-center to node-center, not
+// along a bead edge). ok=false when no such edge exists.
 func (md *MoveDispatch) EdgeRowForPair(a, b string) (int32, bool) {
 	return md.rt.edgeRowForPair(a, b)
 }

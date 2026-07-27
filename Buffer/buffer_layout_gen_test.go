@@ -162,7 +162,7 @@ func TestSetOverlayRow(t *testing.T) {
 		Handholds:      1,
 		LabelsGlobal:   0,
 		OverlaysVis:    0,
-		DoubleLinks:    1,
+		CascadeLinks:   1,
 	})
 
 	assertU8At(t, buf, BufOverlayColSceneTori, 1, "SceneTori")
@@ -172,7 +172,7 @@ func TestSetOverlayRow(t *testing.T) {
 	assertU8At(t, buf, BufOverlayColHandholds, 1, "Handholds")
 	assertU8At(t, buf, BufOverlayColLabelsGlobal, 0, "LabelsGlobal")
 	assertU8At(t, buf, BufOverlayColOverlaysVis, 0, "OverlaysVis")
-	assertU8At(t, buf, BufOverlayColDoubleLinks, 1, "DoubleLinks")
+	assertU8At(t, buf, BufOverlayColCascadeLinks, 1, "CascadeLinks")
 }
 
 func TestBeadStrideIsPackedSize(t *testing.T) {

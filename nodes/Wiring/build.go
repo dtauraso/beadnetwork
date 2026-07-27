@@ -13,7 +13,6 @@ import (
 	"fmt"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"reflect"
-	"sort"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -241,26 +240,20 @@ func (b *buildCtx) buildMoveDispatch() {
 			nm.quantOffset = off
 		}
 	}
-	// Seed each node's OWN layoutLinkTos (nodeMover.layoutLinkTos doc comment) from
-	// b.localPolars — the SAME LAYOUT model + de-dup rule (alphabetically-first id is the
-	// source) emitLayoutLinks uses for the combined LayoutLink block, so the per-node
-	// stream carries exactly the same pairs, split by source node instead of merged. Sort
-	// ids for determinism, matching emitLayoutLinks' own sort.
-	ids := make([]string, 0, len(b.localPolars))
-	for id := range b.localPolars {
-		ids = append(ids, id)
-	}
-	sort.Strings(ids)
-	for _, id := range ids {
-		nm, ok := md.mr.nodeMovers[id]
+	// Seed each node's OWN cascadeEdges (nodeMover.cascadeEdges doc comment) from the
+	// STORED per-node cascade-edges.json file (specNode.CascadeEdges, loader_tree.go) —
+	// this is now the SOLE source of truth for both delta-forward propagation
+	// (nodeMover.forwardDelta) and the cascade-link overlay's rendered pairs. It is
+	// hand-authored/persisted data, not derived from the local-polar adjacency at load
+	// (the computed cascade_links.go machinery was removed). Absent file → empty list
+	// (readJSONBestEffort's missing-file default), matching every other per-node
+	// optional-file convention in this loader.
+	for _, n := range b.spec.Nodes {
+		nm, ok := md.mr.nodeMovers[n.ID]
 		if !ok {
 			continue
 		}
-		for _, lp := range b.localPolars[id] {
-			if id < lp.To {
-				nm.layoutLinkTos = append(nm.layoutLinkTos, lp.To)
-			}
-		}
+		nm.cascadeEdges = n.CascadeEdges
 	}
 	b.md = md
 }

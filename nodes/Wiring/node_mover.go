@@ -235,24 +235,21 @@ type nodeMover struct {
 	// writes so a port row can be resolved back to (nodeRow, portIndex) on the TS side
 	// without a shared port table.
 	nodeRow int32
-	// layoutLinkTos holds the dst node ids of every LAYOUT double-link pair for which THIS
-	// node is the SOURCE (alphabetically-first id — mirrors loader.go's emitLayoutLinks
-	// de-dup rule, so each unordered pair streams from exactly one node's own fd, never
-	// both). Sourced from LocalPolars (b.localPolars, the same LAYOUT model
-	// computeLocalPolars/emitLayoutLinks use), set ONCE at construction (buildMoveDispatch)
-	// since layout-link pairs are static after load — no per-cycle recompute. nil when
-	// this node has no outbound layout-link pair (or in bare test construction).
-	layoutLinkTos []string
+	// cascadeEdges holds this node's STORED cascade-neighbor ids (nodes/<id>/
+	// cascade-edges.json, specNode.CascadeEdges), set ONCE at construction (build.go's
+	// buildMoveDispatch) from the loaded file — hand-authored/persisted data, not derived
+	// from the domain-edge/local-polar adjacency. This is the SOLE source of truth for
+	// both delta-forward propagation (forwardDelta, below: relay to every id in this list
+	// except the sender) and the cascade-link overlay's rendered pairs (emitGeometry
+	// below draws one tube per entry where m.id is the lexicographically-smaller endpoint,
+	// so an undirected pair streams from exactly one side's own fd, never both). nil when
+	// this node has no cascade-edges.json entries (or in bare test construction).
+	cascadeEdges []string
 	// nodeRowFor resolves a node id to its buffer NODE-ROW index (mirroring the old
 	// central accumulator's NodeRowFor), injected via MoveDispatch.SetNodeStreams so this
-	// package stays Buffer-independent. Used only to resolve this node's own
-	// layoutLinkTos dst rows.
+	// package stays Buffer-independent. Used to resolve this node's own cascadeEdges dst
+	// rows for the overlay's node-stream emission.
 	nodeRowFor func(id string) (int32, bool)
-	// edgeRowForPair resolves the buffer EDGE-ROW index of the bead edge connecting two
-	// node ids (mirroring the old central accumulator's EdgeRowForPair), injected the same
-	// way as nodeRowFor. -1/false when no bead edge connects the pair (the node-centers
-	// fallback the overlay already handles for the combined block).
-	edgeRowForPair func(a, b string) (int32, bool)
 	// --- own selection/hover/abc-drag UI state (per-owner, no shared/republished map) ---
 	//
 	// This node's OWN current selected/hovered/latchedSel/gotDragMsg/dragDelta* bits —
@@ -292,7 +289,7 @@ type nodeMover struct {
 	// buildFrame packs this node's combined per-fd frame (node fields + ports + label)
 	// using Buffer's own row-writer columns (Buffer.BuildNodeStreamFrame), injected so
 	// this package needs no Buffer import.
-	buildFrame func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount int32, gotForwardMsg uint8, forwardDeltaA, forwardDeltaB, forwardDeltaC, forwardFromRow int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows, edgeRows []int32, events []wire.RowEvent) []byte
+	buildFrame func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount int32, gotForwardMsg uint8, forwardDeltaA, forwardDeltaB, forwardDeltaC, forwardFromRow int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows []int32, events []wire.RowEvent) []byte
 }
 
 func newNodeMover(id string, geom nodeGeom, tr *T.Trace, clockSrc wire.Clock) *nodeMover {
@@ -477,33 +474,21 @@ func (m *nodeMover) handle(msg moveMsg) {
 // forwardDelta runs THIS node's own delta-forward hop: relay the triple it just picked up
 // — whether from the dragged node itself (neighborSetCRequantize, exceptID = the dragged
 // node) or from a neighbor that already forwarded (handle's moveMsgKindDeltaForward case,
-// exceptID = that neighbor) — to every OTHER node it shares an edge with, EXCLUDING any
-// neighbor across a STATIC dead-end edge (md.isDeadEndEdge, dead_end_edges.go). The
-// dead-end set is exactly the non-spanning-tree (cycle-closing) edges computed once at
-// load, so the forwarding graph (every edge minus dead-ends, minus the sender) is
-// acyclic: propagation flows outward from the dragged node and terminates at the tree's
-// leaves with NO visit-tracking, no generation, no once-per-drag guard — every move
+// exceptID = that neighbor) — to every id in m.cascadeEdges (this node's STORED
+// cascade-neighbor list, nodes/<id>/cascade-edges.json — see the field's doc comment),
+// EXCLUDING the sender. cascadeEdges is hand-authored/persisted data (the full node
+// adjacency minus the cycle-closing links, seeded once outside this codebase), so plain
+// "forward to my cascade-edge neighbors, excluding the sender, concurrently" is loop-free
+// BY CONSTRUCTION: propagation flows outward from the dragged node and terminates
+// naturally with NO visit-tracking, no generation, no once-per-drag guard — every move
 // (not just the first) re-floods freely, which is what keeps the forwarded log in sync
-// with the drag as it continues (see gotForwardMsg's doc comment). Neighbor set built the
-// same way requantizeLocalPolars does (scan md.mr.edgeMovers for edges incident to
-// m.id). Sent via m's OWN retry queue (m.sendMove, the same fire-and-forget mechanism
-// every other fan-out in this file uses) — never blocking. Called only from m's own
-// goroutine (handle, and neighborSetCRequantize which already runs on selfID's own
-// goroutine).
+// with the drag as it continues (see gotForwardMsg's doc comment). Sent via m's OWN retry
+// queue (m.sendMove, the same fire-and-forget mechanism every other fan-out in this file
+// uses) — never blocking. Called only from m's own goroutine (handle, and
+// neighborSetCRequantize which already runs on selfID's own goroutine).
 func (m *nodeMover) forwardDelta(md *MoveDispatch, exceptID string, dA, dB, dC int32) {
-	for _, em := range md.mr.edgeMovers {
-		var other string
-		if em.srcID == m.id {
-			other = em.dstID
-		} else if em.dstID == m.id {
-			other = em.srcID
-		} else {
-			continue
-		}
+	for _, other := range m.cascadeEdges {
 		if other == exceptID {
-			continue
-		}
-		if md.isDeadEndEdge(m.id, other) {
 			continue
 		}
 		m.sendMove(other, moveMsg{Kind: moveMsgKindDeltaForward, NodeID: other, SenderID: m.id,
@@ -634,29 +619,27 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 	gotFwd := m.gotForwardMsg
 	fA, fB, fC := m.forwardDeltaA, m.forwardDeltaB, m.forwardDeltaC
 	fFromRow := m.forwardFromRow
-	// This node's own outbound layout-links (layoutLinkTos, static since load — see its
-	// doc comment): resolve each dst id to its CURRENT buffer node row + the CURRENT bead
-	// edge row connecting the pair (both re-resolved every emit, mirroring the combined
-	// block's edgeRowForPair re-resolve every emit). A dst id that hasn't
-	// registered a node row yet is skipped (mirrors resolvableLayoutLinks' endpoint
-	// filter) rather than packed with a -1 dst row.
-	var dstNodeRows, edgeRows []int32
-	if len(m.layoutLinkTos) > 0 && m.nodeRowFor != nil {
-		dstNodeRows = make([]int32, 0, len(m.layoutLinkTos))
-		edgeRows = make([]int32, 0, len(m.layoutLinkTos))
-		for _, to := range m.layoutLinkTos {
+	// This node's own outbound cascade-link overlay pairs (cascadeEdges, static since
+	// load — see its doc comment): each entry where THIS node is the lexicographically
+	// SMALLER endpoint streams from here (so an undirected pair emits from exactly one
+	// side's own fd, never both), resolved to its CURRENT buffer node row (re-resolved
+	// every emit — a node's row is stable, but resolving fresh costs nothing and matches
+	// the rest of this emit). No edge-row resolution: the cascade-link overlay draws
+	// between the two NODES' CENTERS directly, not along any bead edge (see EdgeTube.tsx's
+	// LayoutLinkOverlay). A dst id that hasn't registered a node row yet is skipped rather
+	// than packed with a -1 dst row.
+	var dstNodeRows []int32
+	if len(m.cascadeEdges) > 0 && m.nodeRowFor != nil {
+		dstNodeRows = make([]int32, 0, len(m.cascadeEdges))
+		for _, to := range m.cascadeEdges {
+			if m.id >= to {
+				continue
+			}
 			dstRow, ok := m.nodeRowFor(to)
 			if !ok {
 				continue
 			}
-			edgeRow := int32(-1)
-			if m.edgeRowForPair != nil {
-				if r, ok := m.edgeRowForPair(m.id, to); ok {
-					edgeRow = r
-				}
-			}
 			dstNodeRows = append(dstNodeRows, dstRow)
-			edgeRows = append(edgeRows, edgeRow)
 		}
 	}
 	frame := m.buildFrame(uint32(m.clk.Tick()), m.nodeRow,
@@ -667,7 +650,7 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 		selected, kindID, hovered, latchedSel, gotDragMsg, dA, dB, dC, dReq,
 		gotFwd, fA, fB, fC, fFromRow,
 		label, portNames, portDX, portDY, portDZ, portPX, portPY, portPZ, portIsInput, portHovered,
-		dstNodeRows, edgeRows, events)
+		dstNodeRows, events)
 	var hdr [4]byte
 	binary.LittleEndian.PutUint32(hdr[:], uint32(len(frame)))
 	// Fire-and-forget, same reasoning throughout this bridge: no delivery
