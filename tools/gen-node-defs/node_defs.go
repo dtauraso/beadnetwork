@@ -23,7 +23,6 @@ func writeNodeDefs(outPath string, kinds []kindEntry) error {
 	fmt.Fprintln(w, `  text: string;`)
 	fmt.Fprintln(w, `  minWidth?: number;`)
 	fmt.Fprintln(w, `  // NodeTypeDef-compatible fields for schema/adapter consumers.`)
-	fmt.Fprintln(w, `  role?: string;`)
 	fmt.Fprintln(w, `  shape?: string;`)
 	fmt.Fprintln(w, `  fill?: string;`)
 	fmt.Fprintln(w, `  stroke?: string;`)
@@ -121,9 +120,6 @@ func buildDef(v viewDef, ports []port) string {
 	fields = append(fields, fmt.Sprintf(`text: "%s"`, v.text))
 	if v.minWidth != "" {
 		fields = append(fields, fmt.Sprintf(`minWidth: %s`, v.minWidth))
-	}
-	if v.role != "" {
-		fields = append(fields, fmt.Sprintf(`role: "%s"`, v.role))
 	}
 	if v.shape != "" {
 		fields = append(fields, fmt.Sprintf(`shape: "%s"`, v.shape))

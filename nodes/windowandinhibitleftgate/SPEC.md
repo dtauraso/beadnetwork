@@ -11,8 +11,6 @@
 | text | #880e4f |
 | accent | #880e4f |
 | minWidth | 110 |
-| defaultLabel | windowAndInhibitLeftGate |
-| role | window-and-inhibit-left-gate |
 | shape | rect |
 | fill | #fce4ec |
 | stroke | #880e4f |

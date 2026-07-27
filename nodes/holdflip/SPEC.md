@@ -11,8 +11,6 @@
 | text | #263238 |
 | accent | #263238 |
 | minWidth | 36 |
-| defaultLabel | holdFlip |
-| role | hold-flip |
 | shape | rect |
 | fill | #eceff1 |
 | stroke | #263238 |

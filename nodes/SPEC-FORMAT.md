@@ -41,7 +41,6 @@ state is updated.
 | border | #rrggbb |
 | text | #rrggbb |
 | minWidth | 90 |
-| role | <kind-lowercased> |
 | shape | rect |
 | fill | #rrggbb |
 | stroke | #rrggbb |
@@ -108,7 +107,6 @@ The `## View` section is required for any kind that has a TSX render. It drives 
 | border | #3fb950 |
 | text | #c9d1d9 |
 | minWidth | 90 |
-| role | input |
 | shape | rect |
 | fill | #1a1f2e |
 | stroke | #3fb950 |
@@ -124,7 +122,7 @@ The `## View` section is required for any kind that has a TSX render. It drives 
   check, but do not rely on its value meaning anything downstream.
 - `bg`, `border`, `text` — required hex colors.
 - `minWidth` — optional integer pixel width.
-- `role`, `shape`, `fill`, `stroke`, `width`, `height` — optional `NodeTypeDef`-compatible
+- `shape`, `fill`, `stroke`, `width`, `height` — optional `NodeTypeDef`-compatible
   fields consumed by schema/adapter code; `width`/`height` also drive the generated Go
   `nodes/Wiring/node_dims_gen.go` (used for port-to-port arc length), falling back to
   110×60 if omitted.

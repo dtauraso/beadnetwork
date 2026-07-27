@@ -11,8 +11,6 @@
 | text | #1a1a1a |
 | accent | #3fb950 |
 | minWidth | 90 |
-| defaultLabel | input |
-| role | input |
 | shape | rect |
 | fill | #e0e0e0 |
 | stroke | #666 |

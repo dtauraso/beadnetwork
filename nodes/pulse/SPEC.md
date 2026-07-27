@@ -11,8 +11,6 @@
 | text | #01579b |
 | accent | #01579b |
 | minWidth | 90 |
-| defaultLabel | pulse |
-| role | pulse |
 | shape | rect |
 | fill | #e1f5fe |
 | stroke | #01579b |
