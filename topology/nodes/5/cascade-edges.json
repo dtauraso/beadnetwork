@@ -1,1 +1,1 @@
-{"cascadeEdges": ["2", "9"]}
+{"cascadeEdges": ["2", "9"], "cascadeKinds": {"2": "TimeStart", "9": "WindowAndInhibitRightGate"}}

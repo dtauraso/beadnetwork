@@ -245,6 +245,18 @@ type nodeMover struct {
 	// so an undirected pair streams from exactly one side's own fd, never both). nil when
 	// this node has no cascade-edges.json entries (or in bare test construction).
 	cascadeEdges []string
+	// selfKind is this node's own kind name (specNode.Type), set ONCE at construction
+	// (build.go's buildMoveDispatch) alongside cascadeEdges/cascadeKinds. Used by
+	// forwardDelta's kind-selective rule (TimeStart relaying a Pulse-origin delta routes
+	// only to Time-kind cascade neighbors). Empty in bare test construction.
+	selfKind string
+	// cascadeKinds maps each cascadeEdges neighbor id → that neighbor's kind name,
+	// loaded once from this node's OWN cascade-edges.json (specNode.CascadeKinds,
+	// loader_tree.go) at construction (build.go's buildMoveDispatch) — never touched
+	// again. Indexing a nil/missing entry is safe (returns ""), so no init needed. This
+	// is the sole source forwardDelta consults to tell a Pulse-kind sender from any
+	// other kind, without a central id->kind table.
+	cascadeKinds map[string]string
 	// nodeRowFor resolves a node id to its buffer NODE-ROW index (mirroring the old
 	// central accumulator's NodeRowFor), injected via MoveDispatch.SetNodeStreams so this
 	// package stays Buffer-independent. Used to resolve this node's own cascadeEdges dst
@@ -495,9 +507,19 @@ func (m *nodeMover) handle(msg moveMsg) {
 // queue (m.sendMove, the same fire-and-forget mechanism every other fan-out in this file
 // uses) — never blocking. Called only from m's own goroutine (handle, and
 // neighborSetCRequantize which already runs on selfID's own goroutine).
+//
+// Kind-selective exception (spec: Pulse -> TimeStart -> Time): a TimeStart node relaying
+// a delta triple that arrived FROM a Pulse-kind cascade neighbor (exceptID's kind, read
+// from m's own cascadeKinds) forwards ONLY to its Time-kind cascade neighbors, not the
+// full flood. Every other node kind, and every other sender kind, keeps the plain
+// flood-to-all-cascade-neighbors-except-sender behavior.
 func (m *nodeMover) forwardDelta(md *MoveDispatch, exceptID string, dA, dB, dC int32) {
+	selectiveToTime := m.selfKind == "TimeStart" && m.cascadeKinds[exceptID] == "Pulse"
 	for _, other := range m.cascadeEdges {
 		if other == exceptID {
+			continue
+		}
+		if selectiveToTime && m.cascadeKinds[other] != "Time" {
 			continue
 		}
 		m.sendMove(other, moveMsg{Kind: moveMsgKindDeltaForward, NodeID: other, SenderID: m.id,
