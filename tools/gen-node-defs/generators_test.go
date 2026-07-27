@@ -409,7 +409,7 @@ func TestWriteNodeDefs_EveryKindPortAndFieldRoundTrips(t *testing.T) {
 			goKind: "Alpha",
 			view: viewDef{
 				bg: "#111111", border: "#222222", text: "#333333",
-				role: "source", shape: "box", fill: "#444444", stroke: "#555555",
+				shape: "box", fill: "#444444", stroke: "#555555",
 				width: "100", height: "50",
 			},
 			ports: []port{
@@ -435,8 +435,8 @@ func TestWriteNodeDefs_EveryKindPortAndFieldRoundTrips(t *testing.T) {
 	if !strings.Contains(out, `Alpha: { bg: "#111111"`) {
 		t.Errorf("NODE_DEFS missing Alpha entry with bg field:\n%s", out)
 	}
-	if !strings.Contains(out, `role: "source"`) || !strings.Contains(out, `shape: "box"`) {
-		t.Errorf("NODE_DEFS Alpha missing role/shape fields:\n%s", out)
+	if !strings.Contains(out, `shape: "box"`) {
+		t.Errorf("NODE_DEFS Alpha missing shape field:\n%s", out)
 	}
 	// Input port present in inputs[], output port present in outputs[] with isMulti true.
 	if !strings.Contains(out, `inputs: [{ name: "in1", kind: "chain" }]`) {
@@ -524,7 +524,6 @@ func TestParseSpecMD_ParsesViewAndPortsTables(t *testing.T) {
 |---|---|
 | bg | #123456 |
 | border | #654321 |
-| role | source |
 
 ## Ports
 
@@ -537,8 +536,8 @@ func TestParseSpecMD_ParsesViewAndPortsTables(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if view.bg != "#123456" || view.border != "#654321" || view.role != "source" {
-		t.Errorf("view = %+v, want bg/border/role from table", view)
+	if view.bg != "#123456" || view.border != "#654321" {
+		t.Errorf("view = %+v, want bg/border from table", view)
 	}
 	if accent["in1"] != "#abcdef" {
 		t.Errorf("accent[in1] = %q, want #abcdef", accent["in1"])

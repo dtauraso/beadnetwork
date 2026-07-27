@@ -54,7 +54,6 @@ type viewDef struct {
 	text     string
 	minWidth string
 	// NodeTypeDef-compatible fields (used by schema/node-types consumers).
-	role   string
 	shape  string
 	fill   string
 	stroke string

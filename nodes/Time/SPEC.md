@@ -12,8 +12,6 @@
 | accent | #e65100 |
 | minWidth | 90 |
 | displays | held |
-| defaultLabel | chainTime |
-| role | time |
 | shape | rect |
 | fill | #fff3e0 |
 | stroke | #e65100 |

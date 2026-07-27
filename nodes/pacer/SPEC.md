@@ -12,8 +12,6 @@
 | accent | #2e7d32 |
 | minWidth | 60 |
 | displays | held |
-| defaultLabel | Pacer |
-| role | pacer |
 | shape | rect |
 | fill | #e8f5e9 |
 | stroke | #2e7d32 |

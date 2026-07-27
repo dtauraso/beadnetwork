@@ -12,8 +12,6 @@
 | accent | #6a1b9a |
 | minWidth | 60 |
 | displays | held |
-| defaultLabel | TimeEnd |
-| role | timeEnd |
 | shape | rect |
 | fill | #f3e5f5 |
 | stroke | #6a1b9a |
