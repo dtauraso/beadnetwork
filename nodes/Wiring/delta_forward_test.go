@@ -309,3 +309,70 @@ func TestDeltaForwardPropagatesAcrossWholeGraphAndStaysInSync(t *testing.T) {
 		}
 	}
 }
+
+// TestTimeEndIgnoresDeltaForwardCascade proves TimeEnd nodes (the terminal node of a time
+// chain) IGNORE a cascaded delta-forward triple: no gotForwardMsg record and no relay
+// onward. Node 6 is TimeEnd (see nodes/TimeEnd/node.go, wire.Register("TimeEnd")) and is a
+// degree-1 leaf off node 4 (4: 2,6,7 per the adjacency table above), so ignoring changes
+// nothing about reachability for anyone else -- 6 never relayed to a third node anyway.
+//
+// Dragging node "1" floods the cascade graph (1-2, 2-4, 4-6, 4-7, ...) so node 4 receives
+// a delta-forward and forwards it to BOTH 6 and 7. Node 7 (a plain leaf, NOT TimeEnd) must
+// end up with gotForwardMsg==1; node 6 (TimeEnd) must stay at gotForwardMsg==0 forever --
+// proving the gate in node_mover.go's moveMsgKindDeltaForward handler (checked via
+// m.geom.Kind == "TimeEnd", not the numeric kindID) actually suppresses both the record
+// and the relay.
+func TestTimeEndIgnoresDeltaForwardCascade(t *testing.T) {
+	root := filepath.Join(repoRootForDeltaForwardTest(t), "topology")
+	tr := T.NewWithSinkHook(nil, nil)
+
+	_, _, md, _, err := LoadTopology(context.Background(), root, tr, wire.NewRealClock())
+	if err != nil {
+		t.Fatalf("LoadTopology(production topology): %v", err)
+	}
+
+	if got := md.NodeKind("6"); got != "TimeEnd" {
+		t.Fatalf("node 6 kind = %q, want TimeEnd (test assumes 6 is the TimeEnd leaf off 4)", got)
+	}
+
+	ids := []string{"1", "2", "4", "6", "7"}
+	bufs := map[string]*uiPubLockedBuf{}
+	for _, id := range ids {
+		bufs[id] = wireNodeStream(t, md, id)
+		if nm, ok := md.mr.nodeMovers[id]; ok {
+			nm.nodeRowFor = md.NodeRowFor
+			ownMover := nm
+			nm.forwardOnce = func(exceptID string, dA, dB, dC int32) {
+				ownMover.forwardDelta(md, exceptID, dA, dB, dC)
+			}
+		}
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	md.Start(ctx)
+
+	before, ok := md.centerOfNode("1")
+	if !ok {
+		t.Fatal("no center for 1")
+	}
+	target := before.Add(vec3{X: 45, Y: -30, Z: 20})
+
+	md.resetAbcDrag()
+	if !md.RootMove("1", target) {
+		t.Fatal("RootMove(1) returned false")
+	}
+	pollDragConverged(t, md, "1", target)
+
+	// Node 7 (plain leaf off 4, NOT TimeEnd) must receive and record the forward.
+	waitForNodeForwardMsg(t, bufs["7"], func(got uint8, _, _, _, _ int32) bool {
+		return got == 1
+	})
+
+	// Node 6 (TimeEnd) must NEVER record the forward, even after giving the cascade
+	// plenty of time to reach and be ignored by it.
+	time.Sleep(100 * time.Millisecond)
+	if got, _, _, _, _, ok := lastNodeStreamForwardMsg(bufs["6"].Bytes()); ok && got != 0 {
+		t.Fatalf("TimeEnd node 6 recorded gotForwardMsg=%d, want 0 (cascade must be ignored)", got)
+	}
+}
