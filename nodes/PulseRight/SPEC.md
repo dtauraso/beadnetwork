@@ -6,13 +6,13 @@
 |-------|-------|
 | kindId | 9 |
 | kind | pulseRight |
-| bg | #81d4fa |
+| bg | #e1f5fe |
 | border | #0288d1 |
 | text | #01579b |
 | accent | #0288d1 |
 | minWidth | 90 |
 | shape | rect |
-| fill | #81d4fa |
+| fill | #e1f5fe |
 | stroke | #0288d1 |
 | width | 90 |
 | height | 60 |
