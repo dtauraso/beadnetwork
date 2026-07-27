@@ -103,10 +103,10 @@ func runGate(t *testing.T, left, right int) int {
 	return -1
 }
 
-// TestWindowAndInhibitRightGateFiresLean covers WindowAndInhibitRightGate's
-// core contract on the one real clock: the gate is left AND (NOT right). It
-// fires 1 (not inhibited) when left=1, right=0, and fires 0 (inhibited by
-// right=1) when left=1, right=1. This is a deterministic real-state-outcome
+// TestWindowAndInhibitRightGateFiresLean covers SelectLeft's core contract on
+// the one real clock: it accepts the RAW 10 pattern directly (FromLeft==1 AND
+// FromRight==0), no inversion. It fires 1 for (1,0) and 0 for every other
+// pattern (00, 01, 11). This is a deterministic real-state-outcome
 // assertion (fires with a specific value, driven purely by the inputs)
 // rather than a timing-boundary assertion; verified reliable at -count=5.
 //
@@ -116,10 +116,19 @@ func runGate(t *testing.T, left, right int) int {
 // one-clock/sleep-only model, so per the no-coarsened-tests rule it is left
 // untested here rather than covered with a weaker/flaky substitute.
 func TestWindowAndInhibitRightGateFiresLean(t *testing.T) {
+	// Accepts the raw 10 pattern DIRECTLY (FromLeft==1 AND FromRight==0), no inversion.
 	if got := runGate(t, 1, 0); got != 1 {
-		t.Fatalf("not inhibited (left=1,right=0): got %d, want 1", got)
+		t.Fatalf("accept (left=1,right=0): got %d, want 1", got)
 	}
 	if got := runGate(t, 1, 1); got != 0 {
-		t.Fatalf("inhibited (left=1,right=1): got %d, want 0", got)
+		t.Fatalf("reject (left=1,right=1): got %d, want 0", got)
+	}
+	if got := runGate(t, 0, 0); got != 0 {
+		t.Fatalf("reject (left=0,right=0): got %d, want 0", got)
+	}
+	// A raw 0 on the left must NOT accept, and a raw 0 on the right is required —
+	// so 01 rejects. Confirms no inversion is applied to either input.
+	if got := runGate(t, 0, 1); got != 0 {
+		t.Fatalf("reject (left=0,right=1): got %d, want 0", got)
 	}
 }
