@@ -223,15 +223,29 @@ func TestDeltaForwardPropagatesAcrossWholeGraphAndStaysInSync(t *testing.T) {
 		return true
 	})
 
-	// Every OTHER node in the connected graph (1,2,3,5,7,8,9 — everyone but the dragged
-	// leaf 6) must end up with gotForwardMsg==1 carrying the SAME delta triple, proving
-	// full-graph propagation via the stored cascade-edges graph (reachability survives the two
-	// omitted non-cascade links).
-	reached := []string{"1", "2", "3", "5", "7", "8", "9"}
+	// Directed reachability from a TIME-SIDE drag (node 6 is TimeEnd, off Time node 4):
+	// the delta reaches 4's other neighbors 2 (TimeStart) and 7 (PulseRight); TimeStart
+	// routes a Time-origin delta ONLY to its Pulse neighbor 5 (forwardDelta's from-Time
+	// -> Pulse rule), which relays on to 9. The Input-cluster {1,3,8} is NOT reached: it
+	// hangs off the graph solely through TimeStart's Input neighbor 1, and TimeStart never
+	// routes to Input — so a time-side drag cannot cross into it. (This is the directed
+	// router replacing the old whole-graph flood; {1,3,8}'s non-reach is asserted below.)
+	reached := []string{"2", "5", "7", "9"}
 	for _, id := range reached {
 		waitForNodeForwardMsg(t, bufs[id], func(got uint8, dA, dB, dC, _ int32) bool {
 			return got == 1 && dA == firstDA && dB == firstDB && dC == firstDC
 		})
+	}
+
+	// {1,3,8} (the Input-cluster hanging off TimeStart's Input neighbor 1) must NEVER be
+	// reached from this time-side drag: TimeStart routes a Time-origin delta only to its
+	// Pulse neighbor, never to Input, so the cluster is unreachable. Give the cascade time
+	// to settle past the reached-node confirmations above, then assert each stayed at 0.
+	time.Sleep(100 * time.Millisecond)
+	for _, id := range []string{"1", "3", "8"} {
+		if got, _, _, _, _, ok := lastNodeStreamForwardMsg(bufs[id].Bytes()); ok && got != 0 {
+			t.Errorf("Input-cluster node %s recorded gotForwardMsg=%d, want 0 (unreachable from a time-side drag through TimeStart)", id, got)
+		}
 	}
 
 	// IN-SYNC REQUIREMENT: move the SAME drag further so 7's delta triple to 5 changes,

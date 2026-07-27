@@ -519,18 +519,33 @@ func (m *nodeMover) handle(msg moveMsg) {
 // uses) — never blocking. Called only from m's own goroutine (handle, and
 // neighborSetCRequantize which already runs on selfID's own goroutine).
 //
-// Kind-selective exception (spec: Pulse -> TimeStart -> Time): a TimeStart node relaying
-// a delta triple that arrived FROM a Pulse-kind cascade neighbor (exceptID's kind, read
-// from m's own cascadeKinds) forwards ONLY to its Time-kind cascade neighbors, not the
-// full flood. Every other node kind, and every other sender kind, keeps the plain
-// flood-to-all-cascade-neighbors-except-sender behavior.
+// Kind-directed routing (TimeStart only): a TimeStart node relays a delta triple to a
+// single target KIND chosen by the SENDER's kind (both read from m's own cascadeKinds,
+// stored in cascade-edges.json), instead of the full flood:
+//
+//	from Pulse -> Time     (Pulse -> TimeStart -> Time)
+//	from Time  -> Pulse    (Time  -> TimeStart -> Pulse)
+//	from Input -> ignored entirely, upstream in the moveMsgKindDeltaForward handler
+//	             (never reaches forwardDelta)
+//
+// Every OTHER node kind (and a TimeStart relaying a delta from any other sender kind)
+// keeps the plain flood-to-all-cascade-neighbors-except-sender behavior — targetKind == ""
+// means no restriction.
 func (m *nodeMover) forwardDelta(md *MoveDispatch, exceptID string, dA, dB, dC int32) {
-	selectiveToTime := m.selfKind == "TimeStart" && m.cascadeKinds[exceptID] == "Pulse"
+	targetKind := ""
+	if m.selfKind == "TimeStart" {
+		switch m.cascadeKinds[exceptID] {
+		case "Pulse":
+			targetKind = "Time"
+		case "Time":
+			targetKind = "Pulse"
+		}
+	}
 	for _, other := range m.cascadeEdges {
 		if other == exceptID {
 			continue
 		}
-		if selectiveToTime && m.cascadeKinds[other] != "Time" {
+		if targetKind != "" && m.cascadeKinds[other] != targetKind {
 			continue
 		}
 		m.sendMove(other, moveMsg{Kind: moveMsgKindDeltaForward, NodeID: other, SenderID: m.id,
