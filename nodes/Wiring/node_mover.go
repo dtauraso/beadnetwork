@@ -462,6 +462,17 @@ func (m *nodeMover) handle(msg moveMsg) {
 		if m.geom.Kind == "TimeEnd" {
 			return
 		}
+		// A TimeStart IGNORES a delta triple arriving from an Input-kind cascade neighbor
+		// (spec: "if the TimeStart gets the delta triple from an input node it ignores the
+		// input"). Same shape as the TimeEnd stop above — no record, no relay — but gated on
+		// the SENDER's kind (m.cascadeKinds[msg.SenderID], stored in cascade-edges.json)
+		// rather than this node's own kind. This is what stops the cycle-return leak: a
+		// delta that loops back to a TimeStart from the Input side (e.g. 5->8->3->1->2) dies
+		// here instead of re-flooding, while the direct Pulse->TimeStart->Time forward
+		// (handled in forwardDelta) is untouched.
+		if m.selfKind == "TimeStart" && m.cascadeKinds[msg.SenderID] == "Input" {
+			return
+		}
 		// Delta-forward observability (see moveMsgKindDeltaForward's doc comment): record
 		// state from EVERY forward this node receives — msg.SenderID is the neighbor that
 		// forwarded to it, resolved to its buffer node row here — LATEST WINS, so this
