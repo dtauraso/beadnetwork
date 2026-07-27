@@ -61,7 +61,7 @@ func runGate(t *testing.T, left, right int) int {
 	outPw := wire.NewPacedWire(latMs*wire.PulseSpeedWuPerMs, wire.PulseSpeedWuPerMs)
 	stepWire(ctx, outPw, clk.Copy())
 
-	node := &Node{GateNode: gatecommon.GateNode{
+	node := &SelectRight{GateNode: gatecommon.GateNode{
 		Fire:      func() {},
 		Clock:     clk,
 		FromLeft:  wire.NewInPaced(leftPw, ctx, "ilg", "FromLeft", tr, nil, -1),
