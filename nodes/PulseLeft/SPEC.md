@@ -32,8 +32,23 @@ continuously, even before any input arrives. When a value arrives on FromInput,
 the held value is updated and subsequent outputs emit the new value. The output
 is not precondition-gated — PulseLeft self-emits -1 from the start.
 
-A clone of the Pulse kind (nodes/pulse), split out for node 3's future
-divergence — behavior is currently identical to Pulse.
+A clone of the Pulse kind (nodes/pulse), split out for node 3's divergence —
+the firing rule is still identical to Pulse; the divergence so far is the
+layout-cascade rule below.
+
+## Cascade delta rule
+
+Layout-side only (`nodes/Wiring/node_mover.go`), independent of the firing rule:
+
+- PulseLeft ATTENDS to a delta triple only when it arrives from an **Input** or a
+  **SelectRight** (kind string `WindowAndInhibitLeftGate`) cascade neighbor. A
+  delta from any other sender kind is dropped outright — not recorded, not relayed.
+- PulseLeft NEVER cascades the delta triple onward, from any sender, and not even
+  when it is the direct recipient of a drag. It is a cascade **terminus**, so an
+  attended delta ends here; attending only records the observability state.
+
+Node 3's cascade neighbors are exactly `{1: Input, 8: WindowAndInhibitLeftGate}`,
+so the whitelist is a forward-looking guard against an other-kind neighbor.
 
 ## Runtime status
 

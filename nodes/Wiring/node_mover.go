@@ -473,6 +473,23 @@ func (m *nodeMover) handle(msg moveMsg) {
 		if m.selfKind == "TimeStart" && m.cascadeKinds[msg.SenderID] == "Input" {
 			return
 		}
+		// A PulseLeft ATTENDS to a delta triple only when it arrives from an Input or a
+		// SelectRight cascade neighbor (SelectRight is the Go type of the
+		// "WindowAndInhibitLeftGate" kind — nodes/windowandinhibitleftgate/node.go — so the
+		// kind string stored in cascade-edges.json is that one). From any other sender kind
+		// the delta is dropped outright: no record, no relay, same shape as the TimeEnd and
+		// TimeStart-from-Input stops above. Node 3's cascade neighbors are exactly
+		// {1: Input, 8: WindowAndInhibitLeftGate} today, so this is a forward-looking guard
+		// against an other-kind neighbor. Note PulseLeft never relays either way — see
+		// forwardDelta — so an attended delta ends at this node; attending is purely the
+		// observability record (gotForwardMsg/forwardDelta*) below.
+		if m.selfKind == "PulseLeft" {
+			switch m.cascadeKinds[msg.SenderID] {
+			case "Input", "WindowAndInhibitLeftGate":
+			default:
+				return
+			}
+		}
 		// Delta-forward observability (see moveMsgKindDeltaForward's doc comment): record
 		// state from EVERY forward this node receives — msg.SenderID is the neighbor that
 		// forwarded to it, resolved to its buffer node row here — LATEST WINS, so this
@@ -528,10 +545,24 @@ func (m *nodeMover) handle(msg moveMsg) {
 //	from Input -> ignored entirely, upstream in the moveMsgKindDeltaForward handler
 //	             (never reaches forwardDelta)
 //
+// A PulseLeft never relays at all (cascade terminus, see the guard at the top of the body);
+// it only RECORDS a delta, and only one attended from an Input or SelectRight
+// ("WindowAndInhibitLeftGate") sender — that whitelist lives in the
+// moveMsgKindDeltaForward handler.
+//
 // Every OTHER node kind (and a TimeStart relaying a delta from any other sender kind)
 // keeps the plain flood-to-all-cascade-neighbors-except-sender behavior — targetKind == ""
 // means no restriction.
 func (m *nodeMover) forwardDelta(md *MoveDispatch, exceptID string, dA, dB, dC int32) {
+	// PulseLeft is a cascade TERMINUS: it never relays a delta triple onward, whether the
+	// triple came from a neighbor's forward (handle's moveMsgKindDeltaForward case, already
+	// whitelisted to Input/SelectRight senders there) or from being a direct drag recipient
+	// (neighborSetCRequantize). Same no-relay shape as TimeEnd, but expressed here rather
+	// than in the handler because PulseLeft still RECORDS an attended forward — only the
+	// onward hop is suppressed.
+	if m.selfKind == "PulseLeft" {
+		return
+	}
 	targetKind := ""
 	if m.selfKind == "TimeStart" {
 		// TimeStart pays attention to a delta ONLY when it arrives from a Pulse, Time, or
