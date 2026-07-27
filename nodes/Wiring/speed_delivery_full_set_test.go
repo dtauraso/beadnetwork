@@ -16,6 +16,7 @@ import (
 	_ "github.com/dtauraso/wirefold/nodes/PulseRight"
 	_ "github.com/dtauraso/wirefold/nodes/Time"
 	_ "github.com/dtauraso/wirefold/nodes/TimeEnd"
+	_ "github.com/dtauraso/wirefold/nodes/TimeStart"
 	W "github.com/dtauraso/wirefold/nodes/Wiring"
 	_ "github.com/dtauraso/wirefold/nodes/holdflip"
 	_ "github.com/dtauraso/wirefold/nodes/input"
