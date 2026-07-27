@@ -254,6 +254,8 @@ func (b *buildCtx) buildMoveDispatch() {
 			continue
 		}
 		nm.cascadeEdges = n.CascadeEdges
+		nm.selfKind = n.Type
+		nm.cascadeKinds = n.CascadeKinds
 	}
 	b.md = md
 }

@@ -147,11 +147,14 @@ func WriteLocalPolars(root, id string, lps []wire.LocalPolar, pole dir) error {
 }
 
 // cascadeEdgesFileJSON is the shape of nodes/<id>/cascade-edges.json: a plain hand-authored
-// list of this node's cascade-neighbor ids (specNode.CascadeEdges doc comment). There is
-// no writer in this codebase — these are seed files, authored directly, not produced by any
-// runtime persist path (unlike local-polars.json/position.json above).
+// list of this node's cascade-neighbor ids (specNode.CascadeEdges doc comment), plus
+// cascadeKinds — the same neighbors' kind names, stored ALONGSIDE the ids so each node's
+// cascade channels carry the peer kind directly from persisted data (no central id→kind
+// assignment at load). There is no writer in this codebase — these are seed files, authored
+// directly, not produced by any runtime persist path (unlike local-polars.json/position.json above).
 type cascadeEdgesFileJSON struct {
-	CascadeEdges []string `json:"cascadeEdges"`
+	CascadeEdges []string          `json:"cascadeEdges"`
+	CascadeKinds map[string]string `json:"cascadeKinds,omitempty"`
 }
 
 // cascadeEdgesFilePath is <root>/nodes/<id>/cascade-edges.json.

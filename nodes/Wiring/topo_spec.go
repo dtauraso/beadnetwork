@@ -70,6 +70,11 @@ type specNode struct {
 	// cascade_links.go machinery was removed) — hand-authored/persisted data. Absent file
 	// → nil (empty list), matching every other per-node optional-file convention here.
 	CascadeEdges []string `json:"cascadeEdges,omitempty"`
+	// CascadeKinds maps each CascadeEdges neighbor id → that neighbor's kind name, stored
+	// in the same cascade-edges.json file so a node's cascade channels carry the peer kind
+	// directly (no central id→kind lookup at load). Consumed by nodeMover.forwardDelta for
+	// kind-selective delta routing (see that method). Absent → nil.
+	CascadeKinds map[string]string `json:"cascadeKinds,omitempty"`
 	// Gate marks this node as a two-neighbor GATE node (node_move.go): on a direct
 	// drag it solves its own equal-radii landing position against its two domain
 	// neighbors (derived from LocalPolars, in the same order), commits, and

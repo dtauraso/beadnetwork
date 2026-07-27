@@ -137,6 +137,7 @@ func loadTree(root string) (topoSpec, error) {
 		var cef cascadeEdgesFileJSON
 		readJSONBestEffort(cascadeEdgesFilePath(root, nodeID), &cef)
 		sn.CascadeEdges = cef.CascadeEdges
+		sn.CascadeKinds = cef.CascadeKinds
 
 		// data.json — optional
 		dataPath := filepath.Join(nodeDir, "data.json")

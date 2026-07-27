@@ -245,6 +245,18 @@ type nodeMover struct {
 	// so an undirected pair streams from exactly one side's own fd, never both). nil when
 	// this node has no cascade-edges.json entries (or in bare test construction).
 	cascadeEdges []string
+	// selfKind is this node's own kind name (specNode.Type), set ONCE at construction
+	// (build.go's buildMoveDispatch) alongside cascadeEdges/cascadeKinds. Used by
+	// forwardDelta's kind-selective rule (TimeStart relaying a Pulse-origin delta routes
+	// only to Time-kind cascade neighbors). Empty in bare test construction.
+	selfKind string
+	// cascadeKinds maps each cascadeEdges neighbor id → that neighbor's kind name,
+	// loaded once from this node's OWN cascade-edges.json (specNode.CascadeKinds,
+	// loader_tree.go) at construction (build.go's buildMoveDispatch) — never touched
+	// again. Indexing a nil/missing entry is safe (returns ""), so no init needed. This
+	// is the sole source forwardDelta consults to tell a Pulse-kind sender from any
+	// other kind, without a central id->kind table.
+	cascadeKinds map[string]string
 	// nodeRowFor resolves a node id to its buffer NODE-ROW index (mirroring the old
 	// central accumulator's NodeRowFor), injected via MoveDispatch.SetNodeStreams so this
 	// package stays Buffer-independent. Used to resolve this node's own cascadeEdges dst
@@ -450,6 +462,17 @@ func (m *nodeMover) handle(msg moveMsg) {
 		if m.geom.Kind == "TimeEnd" {
 			return
 		}
+		// A TimeStart IGNORES a delta triple arriving from an Input-kind cascade neighbor
+		// (spec: "if the TimeStart gets the delta triple from an input node it ignores the
+		// input"). Same shape as the TimeEnd stop above — no record, no relay — but gated on
+		// the SENDER's kind (m.cascadeKinds[msg.SenderID], stored in cascade-edges.json)
+		// rather than this node's own kind. This is what stops the cycle-return leak: a
+		// delta that loops back to a TimeStart from the Input side (e.g. 5->8->3->1->2) dies
+		// here instead of re-flooding, while the direct Pulse->TimeStart->Time forward
+		// (handled in forwardDelta) is untouched.
+		if m.selfKind == "TimeStart" && m.cascadeKinds[msg.SenderID] == "Input" {
+			return
+		}
 		// Delta-forward observability (see moveMsgKindDeltaForward's doc comment): record
 		// state from EVERY forward this node receives — msg.SenderID is the neighbor that
 		// forwarded to it, resolved to its buffer node row here — LATEST WINS, so this
@@ -495,9 +518,45 @@ func (m *nodeMover) handle(msg moveMsg) {
 // queue (m.sendMove, the same fire-and-forget mechanism every other fan-out in this file
 // uses) — never blocking. Called only from m's own goroutine (handle, and
 // neighborSetCRequantize which already runs on selfID's own goroutine).
+//
+// Kind-directed routing (TimeStart only): a TimeStart node relays a delta triple to a
+// single target KIND chosen by the SENDER's kind (both read from m's own cascadeKinds,
+// stored in cascade-edges.json), instead of the full flood:
+//
+//	from Pulse -> Time     (Pulse -> TimeStart -> Time)
+//	from Time  -> Pulse    (Time  -> TimeStart -> Pulse)
+//	from Input -> ignored entirely, upstream in the moveMsgKindDeltaForward handler
+//	             (never reaches forwardDelta)
+//
+// Every OTHER node kind (and a TimeStart relaying a delta from any other sender kind)
+// keeps the plain flood-to-all-cascade-neighbors-except-sender behavior — targetKind == ""
+// means no restriction.
 func (m *nodeMover) forwardDelta(md *MoveDispatch, exceptID string, dA, dB, dC int32) {
+	targetKind := ""
+	if m.selfKind == "TimeStart" {
+		// TimeStart pays attention to a delta ONLY when it arrives from a Pulse, Time, or
+		// Input neighbor; from any other kind it drops the delta entirely (return). Pulse
+		// and Time route to a single opposite target kind; Input has no targetKind
+		// restriction here (its relay is already dropped upstream in the
+		// moveMsgKindDeltaForward handler — this reached-via-neighborSetC path keeps the
+		// plain fan). Node 2's cascade neighbors are all Pulse/Time/Input today, so the
+		// default drop is a forward-looking guard against an other-kind neighbor.
+		switch m.cascadeKinds[exceptID] {
+		case "Pulse":
+			targetKind = "Time"
+		case "Time":
+			targetKind = "Pulse"
+		case "Input":
+			// no restriction (see above)
+		default:
+			return
+		}
+	}
 	for _, other := range m.cascadeEdges {
 		if other == exceptID {
+			continue
+		}
+		if targetKind != "" && m.cascadeKinds[other] != targetKind {
 			continue
 		}
 		m.sendMove(other, moveMsg{Kind: moveMsgKindDeltaForward, NodeID: other, SenderID: m.id,
