@@ -7,32 +7,26 @@ import (
 	"github.com/dtauraso/wirefold/nodes/gatecommon"
 )
 
-// Pulse is a sample-and-hold pulse. It HOLDS one int value (the thing it is
-// outputting), initialized to noValue, and drives that held value out continuously.
-// Even before any input arrives it emits noValue. When an input value arrives on
-// FromInput, it UPDATES the held value; subsequent outputs emit the new value.
-//
-// Two goroutines split the two concerns so the held value (and its interior
-// bead) updates when input arrives, with no one-output-drive lag:
-//   - The MAIN loop runs one activity cycle per human clock tick: it does a
-//     non-blocking input check (PollRecv), and on a new value emits the new
-//     held-bead and stores the new held, then sleeps one human clock cycle
+// Pulse is the "Pulse" kind (registered as "Pulse" below — the name lives here in
+// the comment, describing what its functions do). Its functions: it is a
+// sample-and-hold that HOLDS one int value (initialized to noValue) and drives it
+// out continuously.
+//   - The MAIN loop (Update) runs one activity cycle per human clock tick: a
+//     non-blocking input check (PollRecv) on FromInput, and on a new value it
+//     calls EmitHeldBead and stores the new held, then sleeps one cycle
 //     (clk.SleepCycle) — parking the CPU instead of spinning while idle.
-//   - A DRIVE goroutine continuously pulses the CURRENT held value to the
-//     output via gatecommon.DriveHeld (PlaceDriven + per-cycle StepOnce,
-//     sleeping one cycle between steps), so this goroutine self-paces at the
-//     wire rate and re-reads held each pulse — when held changes the next
-//     pulse carries the new value.
+//   - A DRIVE goroutine continuously pulses the CURRENT held value to the output
+//     via gatecommon.DriveHeld (PlaceDriven + per-cycle StepOnce, sleeping one
+//     cycle between steps), self-pacing at the wire rate and re-reading held each
+//     pulse — when held changes the next pulse carries the new value.
+//   - EmitGeometry publishes this node's geometry.
 //
 // held is owned by the MAIN loop; each drive goroutine gets its OWN channel
-// (Out1HeldCh/Out2HeldCh) that the main loop sends the latest held value on
-// (wire.SendLatestNonBlocking) whenever it changes — the same
-// per-goroutine-channel shape as SpeedCh/Out1SpeedCh/Out2SpeedCh below, and
-// for the same reason: two DriveHeld goroutines sharing one channel would
-// steal values from each other.
-//
-// The output is NOT precondition-gated: Pulse self-emits noValue from the start
-// (like the Input bootstrap), it is not inert until fed.
+// (Out1HeldCh/Out2HeldCh) the main loop sends the latest held value on
+// (wire.SendLatestNonBlocking) whenever it changes — the same per-goroutine-channel
+// shape as SpeedCh/Out1SpeedCh/Out2SpeedCh below, so two DriveHeld goroutines never
+// steal values from each other. The output is NOT precondition-gated: it self-emits
+// noValue from the start (like the Input bootstrap), never inert until fed.
 type Pulse struct {
 	wire.LayoutHolder
 	Fire         func()
