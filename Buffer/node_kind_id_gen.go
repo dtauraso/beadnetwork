@@ -20,6 +20,8 @@ var kindIDMap = map[string]uint8{
 	"Pulse":                     5,
 	"WindowAndInhibitLeftGate":  6,
 	"WindowAndInhibitRightGate": 7,
+	"PulseLeft":                 8,
+	"PulseRight":                9,
 }
 
 // NodeKindID returns the buffer KindId for a node's Go kind string.
