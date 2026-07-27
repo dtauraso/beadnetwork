@@ -12,7 +12,7 @@ const KindIDUnknown uint8 = 0xFF
 // order. Id i here ↔ NODE_DEFS_ARRAY[i] on the TS side (gaps left by a removed
 // kind get an undefined placeholder there, not a shift).
 var kindIDMap = map[string]uint8{
-	"Hold":                      0,
+	"TimeEnd":                   0,
 	"HoldFlip":                  1,
 	"HoldNewSendOld":            2,
 	"Input":                     3,

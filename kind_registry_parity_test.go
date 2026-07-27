@@ -19,8 +19,8 @@ import (
 // It closes two gaps that nothing else covered:
 //
 //  1. A typo'd Register string for a kind that no topology/ fixture instantiates.
-//     Integration tests catch a typo in Hold ("unknown type") only because the fixture
-//     uses Hold. HoldFlip and Pacer are registered but absent from topology/, so a typo
+//     Integration tests catch a typo in TimeEnd ("unknown type") only because the fixture
+//     uses TimeEnd. HoldFlip and Pacer are registered but absent from topology/, so a typo
 //     in either was previously silent.
 //
 //  2. A stale kinds_generated.go. A node package reaches the registry ONLY through that

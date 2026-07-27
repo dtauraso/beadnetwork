@@ -1,19 +1,19 @@
-# HoldNode
+# TimeEndNode
 
 ## View
 
 | Field | Value |
 |-------|-------|
 | kindId | 0 |
-| kind | hold |
+| kind | timeEnd |
 | bg | #f3e5f5 |
 | border | #6a1b9a |
 | text | #4a148c |
 | accent | #6a1b9a |
 | minWidth | 60 |
 | displays | held |
-| defaultLabel | Hold |
-| role | hold |
+| defaultLabel | TimeEnd |
+| role | timeEnd |
 | shape | rect |
 | fill | #f3e5f5 |
 | stroke | #6a1b9a |
@@ -38,7 +38,7 @@ On each value received on In:
 1. Fire.
 2. Update Held to the received value and emit the held bead.
 
-The Hold is a terminal node: it holds the last received value and displays it; it has no output ports and sends nothing downstream.
+TimeEnd is a terminal node: it holds the last received value and displays it; it has no output ports and sends nothing downstream.
 
 ## Runtime status
 

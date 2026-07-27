@@ -13,7 +13,7 @@ import (
 // md.ui.vp held a stale pose and the first gesture reset to it. Here the FSM's own pose becomes
 // the framed pose, so a subsequent orbit builds on it.
 
-// homeMD builds a MoveDispatch whose nodeMovers carry the given centers, all of kind Hold
+// homeMD builds a MoveDispatch whose nodeMovers carry the given centers, all of kind TimeEnd
 // (Width==Height==60 → body radius 60/CurveParamNodeRadiusDivisor). Each center is seeded
 // via a real nodeMover's atomic snap (newNodeMover + setNodeWorld) so heldCenters() observes
 // it, mirroring a live post-layout dispatch after nodeMovers are constructed.
@@ -21,7 +21,7 @@ func homeMD(v viewpoint, centers map[string]vec3) *MoveDispatch {
 	md := &MoveDispatch{mr: moverRegistry{nodeMovers: map[string]*nodeMover{}, edgeMovers: map[string]*edgeMover{}}}
 	md.ui.vp.viewpoint = v
 	for id, c := range centers {
-		g := nodeGeom{nodeIdentity: nodeIdentity{Kind: "Hold"}}
+		g := nodeGeom{nodeIdentity: nodeIdentity{Kind: "TimeEnd"}}
 		setNodeWorld(&g, c)
 		md.mr.nodeMovers[id] = newNodeMover(id, g, nil, wire.NewRealClock())
 	}
@@ -76,7 +76,7 @@ func TestGestureHomeComputesFitPoseFromGeometry(t *testing.T) {
 // edge.
 func TestGestureHomeFramesUnknownKindAtRenderRadius(t *testing.T) {
 	stale := viewpoint{pivot: vec3{X: 500, Y: 500, Z: 500}, r: 999, pos: dir{Theta: 0.3, Phi: 0.7}, up: dir{Theta: 0.1, Phi: 0.2}}
-	// A single node of an unknown kind at the origin. homeMD seeds kind "Hold"; override
+	// A single node of an unknown kind at the origin. homeMD seeds kind "TimeEnd"; override
 	// the mover's kind to an unrecognized one so nodeBodyRadius takes the (110,60) fallback.
 	centers := map[string]vec3{"x": {X: 0, Y: 0, Z: 0}}
 	md := homeMD(stale, centers)

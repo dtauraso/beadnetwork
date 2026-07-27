@@ -3,7 +3,7 @@
 package main
 
 import (
-	_ "github.com/dtauraso/wirefold/nodes/hold"
+	_ "github.com/dtauraso/wirefold/nodes/TimeEnd"
 	_ "github.com/dtauraso/wirefold/nodes/holdflip"
 	_ "github.com/dtauraso/wirefold/nodes/holdnewsendold"
 	_ "github.com/dtauraso/wirefold/nodes/input"

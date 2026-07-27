@@ -17,7 +17,7 @@
 // Copies it once at its own goroutine's start, independent of whether any port is
 // wired. The nil-clock hazard this test guards moved from the port to that field;
 // see the Clock assertion below.
-package hold
+package timeend
 
 import (
 	"context"
@@ -32,10 +32,10 @@ import (
 )
 
 func TestUnfedRequiredPortLoadsAndStaysInert(t *testing.T) {
-	// A Hold with its required In port declared but NO edge feeding it. validateSpec
+	// A TimeEnd with its required In port declared but NO edge feeding it. validateSpec
 	// accepts this by design; the editor no longer flags it either, so it is silent.
 	const topo = `{
-	  "nodes": [{"id":"h","type":"Hold","data":{"state":{"held":-1}},"inputs":[{"name":"In"}]}],
+	  "nodes": [{"id":"h","type":"TimeEnd","data":{"state":{"held":-1}},"inputs":[{"name":"In"}]}],
 	  "edges": []
 	}`
 
@@ -62,7 +62,7 @@ func TestUnfedRequiredPortLoadsAndStaysInert(t *testing.T) {
 	// entirely (port accessors go away) — the node's OWN Clock field, seeded by
 	// reflectBuild from the loader's origin, is what Update() Copies at its own
 	// start instead, whether or not the In it also holds is wired.
-	if got := nodes[0].(*Node).Clock; got == nil {
+	if got := nodes[0].(*TimeEnd).Clock; got == nil {
 		t.Fatal("Node.Clock was nil for an unfed-port node — every pacing loop Copies it and calls SleepCycle unguarded")
 	}
 

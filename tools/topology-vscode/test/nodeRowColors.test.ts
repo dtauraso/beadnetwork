@@ -15,10 +15,11 @@ function makeNodeView(kindId: number): DataView {
   return dv;
 }
 
-// NODE_DEFS_ARRAY must match the alphabetical Go-kind order produced by kindIDMap
-// in Buffer/node_kind_id_gen.go. Index i here <-> KindId i in the buffer node block.
+// NODE_DEFS_ARRAY is indexed by the stable buffer KindId assigned once per kind
+// in Buffer/node_kind_id_gen.go's kindIDMap (never renumbered by sort order).
+// Index i here <-> KindId i in the buffer node block.
 const EXPECTED_ORDER = [
-  "Hold",
+  "TimeEnd",
   "HoldFlip",
   "HoldNewSendOld",
   "Input",
@@ -33,7 +34,7 @@ describe("NODE_DEFS_ARRAY order parity with Go kindIDMap", () => {
     expect(NODE_DEFS_ARRAY.length).toBe(8);
   });
 
-  it("entries are in alphabetical Go-kind order matching kindIDMap", () => {
+  it("entries are in stable-KindId order matching kindIDMap", () => {
     for (let i = 0; i < EXPECTED_ORDER.length; i++) {
       const kind = EXPECTED_ORDER[i];
       expect(NODE_DEFS_ARRAY[i]).toEqual(NODE_DEFS[kind]);
@@ -42,7 +43,7 @@ describe("NODE_DEFS_ARRAY order parity with Go kindIDMap", () => {
 });
 
 describe("readNodeKindId decodes buffer KindId byte", () => {
-  it("reads kindId 0 (Hold) from buffer", () => {
+  it("reads kindId 0 (TimeEnd) from buffer", () => {
     expect(readNodeKindId(makeNodeView(0), 0)).toBe(0);
   });
 
@@ -62,10 +63,10 @@ describe("KindId to fill/stroke color mapping", () => {
     return { fill: def?.fill ?? "#ffffff", stroke: def?.stroke ?? "#888888" };
   }
 
-  it("kindId=0 (Hold) produces Hold fill/stroke", () => {
+  it("kindId=0 (TimeEnd) produces TimeEnd fill/stroke", () => {
     const { fill, stroke } = colorsForKindId(readNodeKindId(makeNodeView(0), 0));
-    expect(fill).toBe(NODE_DEFS.Hold.fill);
-    expect(stroke).toBe(NODE_DEFS.Hold.stroke);
+    expect(fill).toBe(NODE_DEFS.TimeEnd.fill);
+    expect(stroke).toBe(NODE_DEFS.TimeEnd.stroke);
   });
 
   it("kindId=5 (Pulse) produces Pulse fill/stroke", () => {

@@ -12,8 +12,8 @@ import (
 	"testing"
 
 	T "github.com/dtauraso/wirefold/Trace"
+	_ "github.com/dtauraso/wirefold/nodes/TimeEnd"
 	W "github.com/dtauraso/wirefold/nodes/Wiring"
-	_ "github.com/dtauraso/wirefold/nodes/hold"
 	_ "github.com/dtauraso/wirefold/nodes/holdflip"
 	_ "github.com/dtauraso/wirefold/nodes/holdnewsendold"
 	_ "github.com/dtauraso/wirefold/nodes/input"
@@ -37,7 +37,7 @@ const speedFullSetTopo = `{
      "outputs":[{"name":"ToHoldNewSendOld"}]},
     {"id":"hnso","type":"HoldNewSendOld","data":{"state":{"held":-1}},
      "inputs":[{"name":"FromPrevHoldNewSendOldNode"}]},
-    {"id":"holdSink","type":"Hold","data":{"state":{"held":-1}},
+    {"id":"holdSink","type":"TimeEnd","data":{"state":{"held":-1}},
      "inputs":[{"name":"In"}]},
     {"id":"pacer","type":"Pacer","data":{"state":{"held":-1}},
      "inputs":[{"name":"FromInput"}], "outputs":[{"name":"FeedbackOut"}]},
@@ -57,7 +57,7 @@ const speedFullSetTopo = `{
 // goroutine kind (see the field-name lists in builders.go's speedChanFieldNames and
 // node_move.go's per-edge speedSinks append):
 //
-//	Input(1) + HoldNewSendOld(1) + Hold(1) + Pacer(1)  = 4   (one SpeedCh each)
+//	Input(1) + HoldNewSendOld(1) + TimeEnd(1) + Pacer(1)  = 4   (one SpeedCh each)
 //	HoldFlip: SpeedCh + DriveSpeedCh                    = 2   (main loop + 1 drive goroutine)
 //	WindowAndInhibitLeftGate (gatecommon.RunGate)       = 1   (SpeedCh)
 //	Pulse: SpeedCh + Out1SpeedCh + Out2SpeedCh          = 3   (main loop + 2 drive goroutines)
