@@ -10,7 +10,7 @@ import (
 // zero-vector guard (→ 0) and a between-anchors direction (snaps to the nearer slot).
 
 func TestSnapToRingAnchorIndexRoundTrips(t *testing.T) {
-	kind := "Hold" // 60x60 → nodeRadius 15 → ringAnchorCount 9 slots
+	kind := "TimeEnd" // 60x60 → nodeRadius 15 → ringAnchorCount 9 slots
 	R := nodeRadius(kind)
 	N := ringAnchorCount(R)
 	if N < 2 {
@@ -26,7 +26,7 @@ func TestSnapToRingAnchorIndexRoundTrips(t *testing.T) {
 
 // TestSnapToRingAnchorIndexZeroVector: the zero vector returns the safe default 0.
 func TestSnapToRingAnchorIndexZeroVector(t *testing.T) {
-	if got := snapToRingAnchorIndex("Hold", vec3{}); got != 0 {
+	if got := snapToRingAnchorIndex("TimeEnd", vec3{}); got != 0 {
 		t.Fatalf("zero-vector snap: got %d, want 0", got)
 	}
 }
@@ -34,7 +34,7 @@ func TestSnapToRingAnchorIndexZeroVector(t *testing.T) {
 // TestSnapToRingAnchorIndexBetweenAnchors: a direction placed slightly past anchor 0
 // toward anchor 1 still snaps to the nearest of the two (0 when biased toward 0).
 func TestSnapToRingAnchorIndexNearest(t *testing.T) {
-	kind := "Hold"
+	kind := "TimeEnd"
 	R := nodeRadius(kind)
 	d0 := ringAnchorDir(R, 0)
 	d1 := ringAnchorDir(R, 1)

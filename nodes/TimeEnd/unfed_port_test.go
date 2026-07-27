@@ -17,7 +17,7 @@
 // Copies it once at its own goroutine's start, independent of whether any port is
 // wired. The nil-clock hazard this test guards moved from the port to that field;
 // see the Clock assertion below.
-package hold
+package timeend
 
 import (
 	"context"
@@ -32,10 +32,10 @@ import (
 )
 
 func TestUnfedRequiredPortLoadsAndStaysInert(t *testing.T) {
-	// A Hold with its required In port declared but NO edge feeding it. validateSpec
+	// A TimeEnd with its required In port declared but NO edge feeding it. validateSpec
 	// accepts this by design; the editor no longer flags it either, so it is silent.
 	const topo = `{
-	  "nodes": [{"id":"h","type":"Hold","data":{"state":{"held":-1}},"inputs":[{"name":"In"}]}],
+	  "nodes": [{"id":"h","type":"TimeEnd","data":{"state":{"held":-1}},"inputs":[{"name":"In"}]}],
 	  "edges": []
 	}`
 

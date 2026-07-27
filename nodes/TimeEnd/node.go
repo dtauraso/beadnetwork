@@ -1,4 +1,4 @@
-package hold
+package timeend
 
 import (
 	"context"
@@ -13,8 +13,7 @@ import (
 // same constant).
 const noValue = Wiring.NoValue
 
-// TimeEnd is the terminal "Hold" kind (registered as "Hold" below — this is
-// where the descriptive name now lives, not the struct identifier). Its
+// TimeEnd is the terminal "TimeEnd" kind (registered as "TimeEnd" below). Its
 // functions: Update runs the node goroutine — it receives a value on the single
 // input, calls Fire, holds the value in Held, and calls EmitHeldBead to re-emit
 // the held bead when the value changes; EmitGeometry publishes its geometry. It
@@ -77,5 +76,5 @@ func (h *TimeEnd) Update(ctx context.Context) {
 func init() {
 	// Held defaults to the empty sentinel, not the int zero-value (0 is a real
 	// held value). See holdnewsendold for the seed rationale.
-	wire.Register("Hold", func() any { return &TimeEnd{Held: noValue} })
+	wire.Register("TimeEnd", func() any { return &TimeEnd{Held: noValue} })
 }

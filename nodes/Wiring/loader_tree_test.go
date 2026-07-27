@@ -21,7 +21,7 @@ func writeLoaderTreeFixture(t *testing.T) string {
 	writeTreeFile(t, root, "nodes/n2/meta.json", `{"id":"n2","type":"HoldNewSendOld"}`)
 	writeTreeFile(t, root, "nodes/n2/inputs/FromPrev.json", `{"name":"FromPrev"}`)
 	writeTreeFile(t, root, "nodes/n2/outputs/ToNext.json", `{"name":"ToNext"}`)
-	writeTreeFile(t, root, "nodes/n3/meta.json", `{"id":"n3","type":"Hold"}`)
+	writeTreeFile(t, root, "nodes/n3/meta.json", `{"id":"n3","type":"TimeEnd"}`)
 	writeTreeFile(t, root, "nodes/n3/inputs/FromInput.json", `{"name":"FromInput"}`)
 	writeTreeFile(t, root, "edges/n1Ton2.json", `{"label":"n1Ton2","kind":"data","source":"n1","sourceHandle":"Out","target":"n2","targetHandle":"FromPrev"}`)
 	writeTreeFile(t, root, "edges/n2Ton3.json", `{"label":"n2Ton3","kind":"data","source":"n2","sourceHandle":"ToNext","target":"n3","targetHandle":"FromInput"}`)
@@ -106,8 +106,8 @@ func TestLoadTreeRoundTrip(t *testing.T) {
 	if !ok {
 		t.Fatal("node \"n3\" not found")
 	}
-	if n3.Type != "Hold" {
-		t.Errorf("node \"n3\" type: got %q, want \"Hold\"", n3.Type)
+	if n3.Type != "TimeEnd" {
+		t.Errorf("node \"n3\" type: got %q, want \"TimeEnd\"", n3.Type)
 	}
 
 	edgeByLabel := map[string]specEdge{}

@@ -16,17 +16,17 @@ import (
 	"time"
 
 	T "github.com/dtauraso/wirefold/Trace"
+	_ "github.com/dtauraso/wirefold/nodes/TimeEnd"
 	W "github.com/dtauraso/wirefold/nodes/Wiring"
-	_ "github.com/dtauraso/wirefold/nodes/hold"
 	_ "github.com/dtauraso/wirefold/nodes/input"
 	_ "github.com/dtauraso/wirefold/nodes/windowandinhibitleftgate"
 )
 
 // TestGateFireAndOutputTraversal wires two Input nodes into a
 // WindowAndInhibitLeftGate (FromLeft, FromRight) and the gate's ToPassed into
-// a Hold node's In. left=0, right=1 → the gate NOTs left (¬0=1), ANDs with
+// a TimeEnd node's In. left=0, right=1 → the gate NOTs left (¬0=1), ANDs with
 // right (1) → fires 1. Asserts the fire happens and the resulting bead is
-// delivered to the Hold node's input — end to end through the real paced
+// delivered to the TimeEnd node's input — end to end through the real paced
 // wire — proving the gate's own goroutine (RunGate) is never parked across
 // the output traversal: it must still be alive to service its per-cycle
 // StepOnce loop for the delivery to complete.
@@ -40,7 +40,7 @@ func TestGateFireAndOutputTraversal(t *testing.T) {
 	    {"id":"gate","type":"WindowAndInhibitLeftGate","data":{},
 	     "inputs":[{"name":"FromLeft"},{"name":"FromRight"}],
 	     "outputs":[{"name":"ToPassed"}]},
-	    {"id":"dst","type":"Hold","data":{"state":{"held":-1}},
+	    {"id":"dst","type":"TimeEnd","data":{"state":{"held":-1}},
 	     "inputs":[{"name":"In"}]}
 	  ],
 	  "edges": [
