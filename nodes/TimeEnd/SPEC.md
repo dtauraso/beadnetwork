@@ -7,14 +7,14 @@
 | kindId | 0 |
 | kind | timeEnd |
 | bg | #fff3e0 |
-| border | #d50000 |
+| border | #7f0000 |
 | text | #bf360c |
-| accent | #d50000 |
+| accent | #7f0000 |
 | minWidth | 60 |
 | displays | held |
 | shape | rect |
 | fill | #fff3e0 |
-| stroke | #d50000 |
+| stroke | #7f0000 |
 | width | 60 |
 | height | 60 |
 
