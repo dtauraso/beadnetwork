@@ -51,7 +51,7 @@ func TestEmitsInitValuesLean(t *testing.T) {
 		Fire:  func() {},
 		Init:  []int{10, 20, 30},
 		Clock: clk,
-		ToHoldNewSendOld: wire.NewPacedOutNoGeom(pw, ctx, "in", "ToHoldNewSendOld", tr,
+		ToTime: wire.NewPacedOutNoGeom(pw, ctx, "in", "ToTime", tr,
 			wire.RuleFireAndForget, latMs*wire.PulseSpeedWuPerMs, latMs, ""),
 	}
 	obs := wire.NewInPaced(pw, ctx, "obs", "In", tr, nil, -1)

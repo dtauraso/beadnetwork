@@ -1,10 +1,10 @@
-package holdnewsendold
+package time
 
 import (
 	"context"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"testing"
-	"time"
+	stdtime "time"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -21,12 +21,12 @@ func stepWire(ctx context.Context, pw *wire.PacedWire, clk wire.Clock) {
 			default:
 			}
 			pw.DriveOneCycle(ctx, clk.Tick())
-			time.Sleep(time.Millisecond)
+			stdtime.Sleep(stdtime.Millisecond)
 		}
 	}()
 }
 
-// TestFireOnReceiveLean covers holdnewsendold's core fire-on-receive
+// TestFireOnReceiveLean covers time's core fire-on-receive
 // contract on the one real clock: on receive it fires and forwards the
 // PRIOR held value (starts at Held's zero value) to every ToNext broadcast
 // entry, then stores the new value in Held.
@@ -54,11 +54,11 @@ func TestFireOnReceiveLean(t *testing.T) {
 	stepWire(ctx, outPw0, clk.Copy())
 	stepWire(ctx, outPw1, clk.Copy())
 
-	node := &Node{
-		Fire:                       func() {},
-		Clock:                      clk,
-		Held:                       99, // seed a non-zero prior value to forward
-		FromPrevHoldNewSendOldNode: wire.NewInPaced(inPw, ctx, "in", "FromPrevHoldNewSendOldNode", tr, nil, -1),
+	node := &Time{
+		Fire:             func() {},
+		Clock:            clk,
+		Held:             99, // seed a non-zero prior value to forward
+		FromPrevTimeNode: wire.NewInPaced(inPw, ctx, "in", "FromPrevTimeNode", tr, nil, -1),
 		ToNext: wire.Broadcast{
 			wire.NewPacedOutNoGeom(outPw0, ctx, "in", "ToNext0", tr,
 				wire.RuleFireAndForget, latMs*wire.PulseSpeedWuPerMs, latMs, ""),
@@ -78,15 +78,15 @@ func TestFireOnReceiveLean(t *testing.T) {
 
 	waitFor := func(obs *wire.In, want int) {
 		t.Helper()
-		deadline := time.Now().Add(3 * time.Second)
-		for time.Now().Before(deadline) {
+		deadline := stdtime.Now().Add(3 * stdtime.Second)
+		for stdtime.Now().Before(deadline) {
 			if v, ok := obs.PollRecv(); ok {
 				if v != want {
 					t.Fatalf("expected %d, got %d", want, v)
 				}
 				return
 			}
-			time.Sleep(time.Millisecond)
+			stdtime.Sleep(stdtime.Millisecond)
 		}
 		t.Fatalf("timeout waiting for value %d", want)
 	}
@@ -97,7 +97,7 @@ func TestFireOnReceiveLean(t *testing.T) {
 	cancel()
 	select {
 	case <-done:
-	case <-time.After(2 * time.Second):
+	case <-stdtime.After(2 * stdtime.Second):
 		t.Fatal("node.Update did not exit after cancel")
 	}
 

@@ -58,7 +58,7 @@ func emitNodeBeads(tr *T.Trace, nodeName string, working, backup []int, stream *
 	stream.write(present, value, ox, oy, oz, events)
 }
 
-// emitHeldBead streams the HoldNewSendOld node's interior as a SINGLE centered
+// emitHeldBead streams the Time node's interior as a SINGLE centered
 // bead (row 0, col 0) at the node center (offset 0,0,0). The bead is PRESENT when
 // NoValue is the sentinel meaning "no value yet" / "no real bead". Real values
 // are non-negative indices so NoValue (-1) never collides with a legitimate
@@ -74,7 +74,7 @@ const NoValue = -1
 // EmitHeldBead closure only when the held value changes.
 func emitHeldBead(tr *T.Trace, nodeName string, held int, stream *interiorStream) {
 	has := held != NoValue
-	// Only slot (0,0) is meaningful for a HoldNewSendOld node; the remaining 3 fixed
+	// Only slot (0,0) is meaningful for a Time node; the remaining 3 fixed
 	// slots stay absent, matching the fd-3 Interior block's convention for this kind
 	// (writeInteriorBlock reads n.interior[slot], and only slot 0 was ever set here).
 	v := 0

@@ -13,7 +13,7 @@ import (
 )
 
 // speedChanFieldNames lists every field name a node kind may declare to receive
-// a speed-delivery channel. Most kinds (input/hold/holdnewsendold/pacer,
+// a speed-delivery channel. Most kinds (input/hold/Time/pacer,
 // gatecommon.GateNode) run exactly one clock-owning goroutine and declare only
 // SpeedCh. Pulse/HoldFlip split into a main loop plus one-or-two
 // gatecommon.DriveHeld goroutines (one per driven Out) — each is an

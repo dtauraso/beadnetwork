@@ -21,7 +21,7 @@ These rarely change; skim once per session and apply throughout.
 
 Each entry can drift; if it conflicts with current code, update or remove the memory rather than acting on it.
 
-- [project_node_color_vocab.md](project_node_color_vocab.md) — David's node-kind nicknames: "time nodes" = HoldNewSendOld, "and nodes" = WindowAndInhibit*Gate
+- [project_node_color_vocab.md](project_node_color_vocab.md) — David's node-kind nicknames: "time nodes" = Time (renamed from HoldNewSendOld), "and nodes" = WindowAndInhibit*Gate
 - [project_two_goroutine_node_split.md](project_two_goroutine_node_split.md) — STALE: described LayoutPort.run, since removed; node-move is now decentralized nodeMover goroutines (see project_lock_propagation_decentralized.md); LayoutHolder.UpdateLayout is a vestigial no-op
 
 - [project_go_visual_vocabulary.md](project_go_visual_vocabulary.md) — Go visual vocabulary is chan→wire + per-node running indicator (with reloop); goroutine and select are not separate visual primitives

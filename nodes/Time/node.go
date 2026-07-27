@@ -1,4 +1,4 @@
-package holdnewsendold
+package time
 
 import (
 	"context"
@@ -7,7 +7,13 @@ import (
 	"github.com/dtauraso/wirefold/nodes/gatecommon"
 )
 
-type Node struct {
+// Time holds the most recently received bead and, on the NEXT receive, sends
+// out the value it held from the PREVIOUS receive (a one-step "hold new, send
+// old" delay) — a pure forwarder paced on its own clock. It broadcasts the
+// held value concurrently to every ToNext output, waits out that broadcast's
+// own traversal-tick budget as a processing window (never parking across a
+// traversal), and only then admits the next input.
+type Time struct {
 	wire.LayoutHolder
 	Fire         func()
 	EmitGeometry func()
@@ -22,9 +28,9 @@ type Node struct {
 	// SpeedCh delivers a speed change to THIS goroutine's own clk copy
 	// (per-goroutine-clock.md "Delivery"), seeded by Wiring.reflectBuild
 	// (injectSpeedChans). nil on a test build with no loader.
-	SpeedCh                    <-chan float64
-	FromPrevHoldNewSendOldNode *wire.In
-	ToNext                     wire.Broadcast
+	SpeedCh          <-chan float64
+	FromPrevTimeNode *wire.In
+	ToNext           wire.Broadcast
 }
 
 // placeHeld appends the ToNext broadcast beads (held value) to items WITHOUT driving
@@ -40,7 +46,7 @@ func placeHeld(outs wire.Broadcast, held int, items []wire.DriveItem) []wire.Dri
 	return outs.PlaceDrivenAllAt(held, items)
 }
 
-func (in *Node) Update(ctx context.Context) {
+func (in *Time) Update(ctx context.Context) {
 	wire.TryEmit(in.EmitGeometry)
 
 	// -1 is the sentinel meaning "no value seen yet"; real values are non-negative
@@ -90,12 +96,12 @@ func (in *Node) Update(ctx context.Context) {
 			// input port this cycle (same-color and different-color are both
 			// consumed silently; neither is processed).
 			for {
-				if _, ok := in.FromPrevHoldNewSendOldNode.PollRecv(); !ok {
+				if _, ok := in.FromPrevTimeNode.PollRecv(); !ok {
 					break
 				}
 			}
 		} else {
-			value, ok := in.FromPrevHoldNewSendOldNode.PollRecv()
+			value, ok := in.FromPrevTimeNode.PollRecv()
 			if ok {
 				if in.Fire != nil {
 					in.Fire()
@@ -157,5 +163,5 @@ func init() {
 	// legitimate held value (a real bead), so an unset seed must be empty
 	// (NoValue) rather than a phantom 0. The data.state seed overrides this
 	// only when the spec authors a real starting value.
-	wire.Register("HoldNewSendOld", func() any { return &Node{Held: gatecommon.NoValue} })
+	wire.Register("Time", func() any { return &Time{Held: gatecommon.NoValue} })
 }

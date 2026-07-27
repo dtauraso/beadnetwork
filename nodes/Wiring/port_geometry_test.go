@@ -90,12 +90,12 @@ func TestArcLengthBetweenPortsCases(t *testing.T) {
 		},
 		{
 			name: "nonzero-z-both",
-			src: nodeGeom{nodeIdentity: nodeIdentity{Kind: "HoldNewSendOld"}, HasPos: true, ScenePolar: cart2polar(c111),
+			src: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Time"}, HasPos: true, ScenePolar: cart2polar(c111),
 				Outputs: []portGeom{{Name: "ToNext0", AnchorId: &anchorId1}}},
 			srcH: "ToNext0",
-			tgt: nodeGeom{nodeIdentity: nodeIdentity{Kind: "HoldNewSendOld"}, HasPos: true, ScenePolar: cart2polar(c11n1),
-				Inputs: []portGeom{{Name: "FromPrevHoldNewSendOldNode", AnchorId: &anchorId1}}},
-			tgtH: "FromPrevHoldNewSendOldNode",
+			tgt: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Time"}, HasPos: true, ScenePolar: cart2polar(c11n1),
+				Inputs: []portGeom{{Name: "FromPrevTimeNode", AnchorId: &anchorId1}}},
+			tgtH: "FromPrevTimeNode",
 		},
 		{
 			name: "anchorid0-and-anchorid2-with-z",

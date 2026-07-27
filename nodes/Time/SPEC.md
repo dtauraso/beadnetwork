@@ -1,19 +1,19 @@
-# HoldNewSendOldNode
+# TimeNode
 
 ## View
 
 | Field | Value |
 |-------|-------|
 | kindId | 2 |
-| kind | chainHoldNewSendOld |
+| kind | chainTime |
 | bg | #fff3e0 |
 | border | #e65100 |
 | text | #bf360c |
 | accent | #e65100 |
 | minWidth | 90 |
 | displays | held |
-| defaultLabel | chainHoldNewSendOld |
-| role | holdnewsendold |
+| defaultLabel | chainTime |
+| role | time |
 | shape | rect |
 | fill | #fff3e0 |
 | stroke | #e65100 |
@@ -30,17 +30,17 @@
 
 | Name | Direction | EdgeKind | Notes |
 |------|-----------|----------|-------|
-| FromPrevHoldNewSendOldNode | in | chain | receives value from upstream chain holdnewsendold |
+| FromPrevTimeNode | in | chain | receives value from upstream chain Time node |
 | ToNext | out | chain | broadcast to downstream nodes (multi-output) |
 
 ## Firing rule
 
-On each value received from FromPrevHoldNewSendOldNode:
+On each value received from FromPrevTimeNode:
 1. Fire.
 2. Broadcast the current Held value concurrently on all ToNext outputs.
 3. Update Held to value.
 
-The HoldNewSendOld is a pure forwarder: it holds the last value and re-emits it on the next fire (feedback now lives on the Pacer kind, not here).
+Time is a pure forwarder: it holds the last value and re-emits it on the next fire (feedback now lives on the Pacer kind, not here).
 
 The node parks if any ToNext output wire is still occupied (bead in flight or unconsumed), to prevent drops when output transit time exceeds the input rate.
 

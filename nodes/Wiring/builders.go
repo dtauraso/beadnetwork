@@ -182,7 +182,7 @@ func injectClosures(ctx context.Context, v reflect.Value, name string, pb PortBi
 	})
 
 	// Inject EmitHeldBead closure if the struct has an `EmitHeldBead func(held int)`
-	// field (HoldNewSendOld's interior held-value bead): a SINGLE centered node-bead
+	// field (Time's interior held-value bead): a SINGLE centered node-bead
 	// (slot 0,0 at offset 0,0,0) colored by the held value; held == -1 →
 	// present=false (empty interior).
 	injectFunc(v, "EmitHeldBead", tEmitHeldFunc, func(held int) {

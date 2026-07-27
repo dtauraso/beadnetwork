@@ -1,5 +1,5 @@
 // nonblocking_traversal_test.go — proves beads still traverse correctly
-// through a real node goroutine (Input -> HoldNewSendOld) after the node
+// through a real node goroutine (Input -> Time) after the node
 // receive/send loops were converted to non-blocking polling
 // (task/non-blocking-update). Drives real node goroutines via the loader,
 // not mocks. External test package so it can import the concrete node kinds
@@ -13,27 +13,27 @@ import (
 	"time"
 
 	T "github.com/dtauraso/wirefold/Trace"
+	_ "github.com/dtauraso/wirefold/nodes/Time"
 	W "github.com/dtauraso/wirefold/nodes/Wiring"
-	_ "github.com/dtauraso/wirefold/nodes/holdnewsendold"
 	_ "github.com/dtauraso/wirefold/nodes/input"
 )
 
-// TestInputToHoldNewSendOldTraversal drives a real Input node (init=[1,0],
-// repeat=false) wired to a real HoldNewSendOld node and asserts the bead
+// TestInputToTimeTraversal drives a real Input node (init=[1,0],
+// repeat=false) wired to a real Time node and asserts the bead
 // values are received in order on the destination port. This exercises both
-// the converted non-blocking RECEIVE loop (holdnewsendold reads
-// FromPrevHoldNewSendOldNode via PollRecv) and confirms the wire's own
+// the converted non-blocking RECEIVE loop (Time reads
+// FromPrevTimeNode via PollRecv) and confirms the wire's own
 // PacedWire delivery pacing is unchanged.
-func TestInputToHoldNewSendOldTraversal(t *testing.T) {
+func TestInputToTimeTraversal(t *testing.T) {
 	const topo = `{
 	  "nodes": [
 	    {"id":"src","type":"Input","data":{"init":[1,0],"repeat":false},
-	     "outputs":[{"name":"ToHoldNewSendOld"}]},
-	    {"id":"dst","type":"HoldNewSendOld","data":{"state":{"held":-1}},
-	     "inputs":[{"name":"FromPrevHoldNewSendOldNode"}]}
+	     "outputs":[{"name":"ToTime"}]},
+	    {"id":"dst","type":"Time","data":{"state":{"held":-1}},
+	     "inputs":[{"name":"FromPrevTimeNode"}]}
 	  ],
 	  "edges": [
-	    {"label":"e1","kind":"data","source":"src","sourceHandle":"ToHoldNewSendOld","target":"dst","targetHandle":"FromPrevHoldNewSendOldNode"}
+	    {"label":"e1","kind":"data","source":"src","sourceHandle":"ToTime","target":"dst","targetHandle":"FromPrevTimeNode"}
 	  ]
 	}`
 
@@ -58,7 +58,7 @@ func TestInputToHoldNewSendOldTraversal(t *testing.T) {
 	}
 
 	// Wait for both bead values (1 then 0, per popEnd end-pop order) to be
-	// received on dst.FromPrevHoldNewSendOldNode.
+	// received on dst.FromPrevTimeNode.
 	deadline := time.After(5 * time.Second)
 	var got []int
 	poll := time.NewTicker(10 * time.Millisecond)

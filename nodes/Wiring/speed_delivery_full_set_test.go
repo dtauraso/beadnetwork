@@ -12,10 +12,10 @@ import (
 	"testing"
 
 	T "github.com/dtauraso/wirefold/Trace"
+	_ "github.com/dtauraso/wirefold/nodes/Time"
 	_ "github.com/dtauraso/wirefold/nodes/TimeEnd"
 	W "github.com/dtauraso/wirefold/nodes/Wiring"
 	_ "github.com/dtauraso/wirefold/nodes/holdflip"
-	_ "github.com/dtauraso/wirefold/nodes/holdnewsendold"
 	_ "github.com/dtauraso/wirefold/nodes/input"
 	_ "github.com/dtauraso/wirefold/nodes/pacer"
 	_ "github.com/dtauraso/wirefold/nodes/pulse"
@@ -23,7 +23,7 @@ import (
 )
 
 // speedFullSetTopo has exactly one node of every kind that owns a clock copy
-// (grep-discovered set: input, holdnewsendold, hold, pacer, holdflip,
+// (grep-discovered set: input, Time, hold, pacer, holdflip,
 // gatecommon.RunGate via WindowAndInhibitLeftGate, pulse) plus exactly ONE edge (so
 // exactly one edgeMover exists too). Downstream wiring beyond that single edge is
 // deliberately left absent — injectSpeedChans (builders.go) creates a node's speed
@@ -34,9 +34,9 @@ import (
 const speedFullSetTopo = `{
   "nodes": [
     {"id":"src","type":"Input","data":{"init":[0],"repeat":false},
-     "outputs":[{"name":"ToHoldNewSendOld"}]},
-    {"id":"hnso","type":"HoldNewSendOld","data":{"state":{"held":-1}},
-     "inputs":[{"name":"FromPrevHoldNewSendOldNode"}]},
+     "outputs":[{"name":"ToTime"}]},
+    {"id":"hnso","type":"Time","data":{"state":{"held":-1}},
+     "inputs":[{"name":"FromPrevTimeNode"}]},
     {"id":"holdSink","type":"TimeEnd","data":{"state":{"held":-1}},
      "inputs":[{"name":"In"}]},
     {"id":"pacer","type":"Pacer","data":{"state":{"held":-1}},
@@ -49,7 +49,7 @@ const speedFullSetTopo = `{
     {"id":"pulse","type":"Pulse","data":{}}
   ],
   "edges": [
-    {"label":"e0","kind":"data","source":"src","sourceHandle":"ToHoldNewSendOld","target":"hnso","targetHandle":"FromPrevHoldNewSendOldNode"}
+    {"label":"e0","kind":"data","source":"src","sourceHandle":"ToTime","target":"hnso","targetHandle":"FromPrevTimeNode"}
   ]
 }`
 
@@ -57,7 +57,7 @@ const speedFullSetTopo = `{
 // goroutine kind (see the field-name lists in builders.go's speedChanFieldNames and
 // node_move.go's per-edge speedSinks append):
 //
-//	Input(1) + HoldNewSendOld(1) + TimeEnd(1) + Pacer(1)  = 4   (one SpeedCh each)
+//	Input(1) + Time(1) + TimeEnd(1) + Pacer(1)  = 4   (one SpeedCh each)
 //	HoldFlip: SpeedCh + DriveSpeedCh                    = 2   (main loop + 1 drive goroutine)
 //	WindowAndInhibitLeftGate (gatecommon.RunGate)       = 1   (SpeedCh)
 //	Pulse: SpeedCh + Out1SpeedCh + Out2SpeedCh          = 3   (main loop + 2 drive goroutines)

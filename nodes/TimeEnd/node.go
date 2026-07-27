@@ -75,6 +75,6 @@ func (h *TimeEnd) Update(ctx context.Context) {
 
 func init() {
 	// Held defaults to the empty sentinel, not the int zero-value (0 is a real
-	// held value). See holdnewsendold for the seed rationale.
+	// held value). See Time for the seed rationale.
 	wire.Register("TimeEnd", func() any { return &TimeEnd{Held: noValue} })
 }

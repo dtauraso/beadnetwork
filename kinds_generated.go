@@ -3,9 +3,9 @@
 package main
 
 import (
+	_ "github.com/dtauraso/wirefold/nodes/Time"
 	_ "github.com/dtauraso/wirefold/nodes/TimeEnd"
 	_ "github.com/dtauraso/wirefold/nodes/holdflip"
-	_ "github.com/dtauraso/wirefold/nodes/holdnewsendold"
 	_ "github.com/dtauraso/wirefold/nodes/input"
 	_ "github.com/dtauraso/wirefold/nodes/pacer"
 	_ "github.com/dtauraso/wirefold/nodes/pulse"

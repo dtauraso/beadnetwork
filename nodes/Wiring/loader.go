@@ -16,7 +16,7 @@
 //     destination port maps 1:1 to a wire and a single incident edge.
 //   - SlotRegistry maps "target.targetHandle" → wire for create/delete ops.
 //   - Input nodes: data.init values pre-seeded via pw.Send in a goroutine.
-//   - HoldNewSendOld: data.state["held"] → Held via wire:"data.state" tag.
+//   - Time: data.state["held"] → Held via wire:"data.state" tag.
 //   - Slice output ports (ToEdge): all outbound wires appended in spec order.
 //   - Output ports with no outbound edge: dead-end chan int (buf 1).
 
