@@ -387,7 +387,7 @@ export function EdgeTubes({ capacity, layoutLinkCapacity }: { capacity: number; 
         <EdgeTube
           key={`edge-row-${i}`}
           ref={(h) => { edgeHandles.current[i] = h; }}
-          dimmed={false}
+          dimmed={showCascade}
           row={i}
           selected={i === selRow}
         />
