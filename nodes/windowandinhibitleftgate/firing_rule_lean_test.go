@@ -104,11 +104,15 @@ func runGate(t *testing.T, left, right int) int {
 }
 
 // TestWindowAndInhibitLeftGateFiresLean covers WindowAndInhibitLeftGate's core
-// contract on the one real clock: the gate is (NOT left) AND right. It fires
-// 1 (not inhibited) when left=0, right=1, and fires 0 (inhibited by left=1)
-// when left=1, right=1. This is a deterministic real-state-outcome assertion
-// (fires with a specific value, driven purely by the inputs) rather than a
-// timing-boundary assertion; verified reliable at -count=5.
+// contract on the one real clock: SelectRight accepts the raw "01" pattern
+// directly — FromLeft==0 AND FromRight==1 — with no inversion/NOT gates. It
+// fires 1 only for (left=0, right=1); every other raw combination (0,0),
+// (1,0), (1,1) fires 0. In particular a raw 1 on the left must NOT be
+// accepted (confirms no inversion is applied — the old model would have
+// scored (1,1) as fired via NOT-left-then-AND, this one does not). This is a
+// deterministic real-state-outcome assertion (fires with a specific value,
+// driven purely by the inputs) rather than a timing-boundary assertion;
+// verified reliable at -count=5.
 //
 // gatecommon's exact tick-boundary window-clear/pause-freeze behavior (the
 // deleted FakeClock+AdvanceTicks tests TestPauseFreezesWindowAndDwell,
@@ -117,9 +121,15 @@ func runGate(t *testing.T, left, right int) int {
 // untested here rather than covered with a weaker/flaky substitute.
 func TestWindowAndInhibitLeftGateFiresLean(t *testing.T) {
 	if got := runGate(t, 0, 1); got != 1 {
-		t.Fatalf("not inhibited (left=0,right=1): got %d, want 1", got)
+		t.Fatalf("accepts 01 (left=0,right=1): got %d, want 1", got)
+	}
+	if got := runGate(t, 0, 0); got != 0 {
+		t.Fatalf("rejects 00 (left=0,right=0): got %d, want 0", got)
+	}
+	if got := runGate(t, 1, 0); got != 0 {
+		t.Fatalf("rejects 10 (left=1,right=0): got %d, want 0", got)
 	}
 	if got := runGate(t, 1, 1); got != 0 {
-		t.Fatalf("inhibited (left=1,right=1): got %d, want 0", got)
+		t.Fatalf("rejects 11 (left=1,right=1) — a raw 1 on the left must NOT be accepted: got %d, want 0", got)
 	}
 }

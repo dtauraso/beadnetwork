@@ -174,6 +174,38 @@ func captureRight(g *GateNode, invertLeft bool) bool {
 	return false
 }
 
+// captureRawLeft drains FromLeft and stores the raw value with NO inversion.
+// Returns true when the held state changed and inputs should be re-emitted.
+// Used by RunGateAccept (direct pattern-match acceptance, no NOT gates).
+func captureRawLeft(g *GateNode) bool {
+	v, got := drainLatestReal(g.FromLeft)
+	if !got {
+		return false
+	}
+	if !g.HasLeft || g.Left != v {
+		g.Left = v
+		g.HasLeft = true
+		return true
+	}
+	return false
+}
+
+// captureRawRight drains FromRight and stores the raw value with NO inversion.
+// Returns true when the held state changed and inputs should be re-emitted.
+// Used by RunGateAccept (direct pattern-match acceptance, no NOT gates).
+func captureRawRight(g *GateNode) bool {
+	v, got := drainLatestReal(g.FromRight)
+	if !got {
+		return false
+	}
+	if !g.HasRight || g.Right != v {
+		g.Right = v
+		g.HasRight = true
+		return true
+	}
+	return false
+}
+
 // openWindowIfNeeded opens the coincidence window on the first input to arrive.
 func openWindowIfNeeded(g *GateNode, w *gateWindow, now func() int64) {
 	if (g.HasLeft || g.HasRight) && !w.t0Set {
@@ -187,10 +219,10 @@ func openWindowIfNeeded(g *GateNode, w *gateWindow, now func() int64) {
 }
 
 // tryFireOnDwell handles the both-inputs-held case: it starts the fire-dwell timer
-// on first entry, and once the dwell has elapsed, fires the AND result and resets
+// on first entry, and once the dwell has elapsed, fires the fireResult and resets
 // the held/window/dwell state. Returns true if it fired (caller should `continue`
 // its loop iteration without also running the window-timeout check).
-func tryFireOnDwell(g *GateNode, w *gateWindow, now func() int64) bool {
+func tryFireOnDwell(g *GateNode, w *gateWindow, now func() int64, fireResult func(*GateNode) int) bool {
 	if !(g.HasLeft && g.HasRight) {
 		return false
 	}
@@ -208,12 +240,7 @@ func tryFireOnDwell(g *GateNode, w *gateWindow, now func() int64) bool {
 	if now()-w.dwellStart < fireDwellTicks {
 		return false
 	}
-	// AND gate over the stored values (each side already applied its inversion on
-	// capture); fires 1 iff Left==1 AND Right==1.
-	result := 0
-	if g.Left == 1 && g.Right == 1 {
-		result = 1
-	}
+	result := fireResult(g)
 	if g.Fire != nil {
 		g.Fire()
 	}
@@ -257,10 +284,13 @@ func defaultSleep() func(ctx context.Context) error {
 	}
 }
 
-// RunGate runs the shared window-and-inhibit gate loop.
-// invertLeft=true  → the LEFT input is NOT-inverted on capture  (WindowAndInhibitLeftGate).
-// invertLeft=false → the RIGHT input is NOT-inverted on capture (WindowAndInhibitRightGate).
-func RunGate(ctx context.Context, g *GateNode, invertLeft bool) {
+// runGateLoop is the shared window/dwell/clock loop body used by both RunGate
+// (invert + AND-11) and RunGateAccept (raw capture + direct pattern match). The
+// ONLY things that vary between callers are how each side is captured (inversion
+// or not) and what result the dwell fires — everything else (window-open,
+// window-timeout clear, dwell timing, breadcrumbs, clock/speed handling) is
+// identical and lives here exactly once.
+func runGateLoop(ctx context.Context, g *GateNode, captureLeftFn, captureRightFn func(*GateNode) bool, fireResult func(*GateNode) int) {
 	if g.EmitGeometry != nil {
 		g.EmitGeometry()
 	}
@@ -313,16 +343,16 @@ func RunGate(ctx context.Context, g *GateNode, invertLeft bool) {
 		// Each side tracks the MOST-RECENT real bead: drain to the latest value
 		// (discarding NoValue placeholders) and update the slot even if already
 		// held. NoValue never fills a slot.
-		if captureLeft(g, invertLeft) {
+		if captureLeftFn(g) {
 			emitInputs(g)
 		}
-		if captureRight(g, invertLeft) {
+		if captureRightFn(g) {
 			emitInputs(g)
 		}
 
 		openWindowIfNeeded(g, &w, now)
 
-		fired := tryFireOnDwell(g, &w, now)
+		fired := tryFireOnDwell(g, &w, now, fireResult)
 
 		// A partial combination has been open longer than W → clear it. Only
 		// time out while still waiting for the second input; once both are held
@@ -333,4 +363,39 @@ func RunGate(ctx context.Context, g *GateNode, invertLeft bool) {
 			emitInputs(g)
 		}
 	}
+}
+
+// RunGate runs the shared window-and-inhibit gate loop.
+// invertLeft=true  → the LEFT input is NOT-inverted on capture  (WindowAndInhibitLeftGate).
+// invertLeft=false → the RIGHT input is NOT-inverted on capture (WindowAndInhibitRightGate).
+// Fires 1 iff the STORED (post-inversion) values are Left==1 AND Right==1.
+func RunGate(ctx context.Context, g *GateNode, invertLeft bool) {
+	runGateLoop(ctx, g,
+		func(g *GateNode) bool { return captureLeft(g, invertLeft) },
+		func(g *GateNode) bool { return captureRight(g, invertLeft) },
+		func(g *GateNode) int {
+			if g.Left == 1 && g.Right == 1 {
+				return 1
+			}
+			return 0
+		},
+	)
+}
+
+// RunGateAccept runs the shared window-and-inhibit gate loop with NO inversion on
+// capture (raw FromLeft/FromRight values are stored as-is — no NOT gates) and
+// fires 1 iff the raw stored values DIRECTLY match the given pattern
+// (Left==expectLeft && Right==expectRight). This expresses an acceptance pattern
+// (e.g. "01") without going through an invert-then-AND-11 detour.
+func RunGateAccept(ctx context.Context, g *GateNode, expectLeft, expectRight int) {
+	runGateLoop(ctx, g,
+		captureRawLeft,
+		captureRawRight,
+		func(g *GateNode) int {
+			if g.Left == expectLeft && g.Right == expectRight {
+				return 1
+			}
+			return 0
+		},
+	)
 }
