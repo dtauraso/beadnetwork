@@ -13,10 +13,13 @@ import (
 // same constant).
 const noValue = Wiring.NoValue
 
-// Node is a terminal "Hold" kind: it receives a value on its single input,
-// holds/displays it, and produces NO output. On each received value it fires,
-// updates Held, and re-emits the held bead when the value changes.
-type Node struct {
+// TimeEnd is the terminal "Hold" kind (registered as "Hold" below — this is
+// where the descriptive name now lives, not the struct identifier). Its
+// functions: Update runs the node goroutine — it receives a value on the single
+// input, calls Fire, holds the value in Held, and calls EmitHeldBead to re-emit
+// the held bead when the value changes; EmitGeometry publishes its geometry. It
+// produces NO output — it is the end of a time chain.
+type TimeEnd struct {
 	wire.LayoutHolder
 	Fire         func()
 	EmitGeometry func()
@@ -35,7 +38,7 @@ type Node struct {
 	In      *wire.In
 }
 
-func (h *Node) Update(ctx context.Context) {
+func (h *TimeEnd) Update(ctx context.Context) {
 	wire.TryEmit(h.EmitGeometry)
 
 	held := noValue
@@ -74,5 +77,5 @@ func (h *Node) Update(ctx context.Context) {
 func init() {
 	// Held defaults to the empty sentinel, not the int zero-value (0 is a real
 	// held value). See holdnewsendold for the seed rationale.
-	wire.Register("Hold", func() any { return &Node{Held: noValue} })
+	wire.Register("Hold", func() any { return &TimeEnd{Held: noValue} })
 }

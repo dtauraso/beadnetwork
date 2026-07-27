@@ -62,7 +62,7 @@ func TestUnfedRequiredPortLoadsAndStaysInert(t *testing.T) {
 	// entirely (port accessors go away) — the node's OWN Clock field, seeded by
 	// reflectBuild from the loader's origin, is what Update() Copies at its own
 	// start instead, whether or not the In it also holds is wired.
-	if got := nodes[0].(*Node).Clock; got == nil {
+	if got := nodes[0].(*TimeEnd).Clock; got == nil {
 		t.Fatal("Node.Clock was nil for an unfed-port node — every pacing loop Copies it and calls SleepCycle unguarded")
 	}
 
