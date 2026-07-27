@@ -12,6 +12,8 @@ import (
 	"testing"
 
 	T "github.com/dtauraso/wirefold/Trace"
+	_ "github.com/dtauraso/wirefold/nodes/PulseLeft"
+	_ "github.com/dtauraso/wirefold/nodes/PulseRight"
 	_ "github.com/dtauraso/wirefold/nodes/Time"
 	_ "github.com/dtauraso/wirefold/nodes/TimeEnd"
 	W "github.com/dtauraso/wirefold/nodes/Wiring"

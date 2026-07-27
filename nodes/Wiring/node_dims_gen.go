@@ -14,6 +14,8 @@ var kindDims = map[string]kindDim{
 	"Input":                     {Width: 80, Height: 60},
 	"Pacer":                     {Width: 60, Height: 60},
 	"Pulse":                     {Width: 90, Height: 60},
+	"PulseLeft":                 {Width: 90, Height: 60},
+	"PulseRight":                {Width: 90, Height: 60},
 	"Time":                      {Width: 90, Height: 60},
 	"TimeEnd":                   {Width: 60, Height: 60},
 	"WindowAndInhibitLeftGate":  {Width: 80, Height: 60},

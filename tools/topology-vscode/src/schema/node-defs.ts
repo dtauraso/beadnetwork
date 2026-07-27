@@ -22,6 +22,8 @@ export const RUNTIME_IMPLEMENTED_KINDS: ReadonlySet<string> = new Set([
   "Input",
   "Pacer",
   "Pulse",
+  "PulseLeft",
+  "PulseRight",
   "Time",
   "TimeEnd",
   "WindowAndInhibitLeftGate",
@@ -33,6 +35,8 @@ export const NODE_DEFS: Record<string, NodeDef> = {
   Input: { bg: "#e0e0e0", border: "#666", text: "#1a1a1a", minWidth: 90, shape: "rect", fill: "#e0e0e0", stroke: "#666", width: 80, height: 60, inputs: [{ name: "FeedbackIn", kind: "chain" }], outputs: [{ name: "ToTime", kind: "chain" }, { name: "ToExcitatory", kind: "chain" }, { name: "ToPacer", kind: "chain" }] },
   Pacer: { bg: "#e8f5e9", border: "#2e7d32", text: "#1b5e20", minWidth: 60, shape: "rect", fill: "#e8f5e9", stroke: "#2e7d32", width: 60, height: 60, inputs: [{ name: "FromInput", kind: "chain" }], outputs: [{ name: "FeedbackOut", kind: "chain" }] },
   Pulse: { bg: "#e1f5fe", border: "#01579b", text: "#01579b", minWidth: 90, shape: "rect", fill: "#e1f5fe", stroke: "#01579b", width: 90, height: 60, inputs: [{ name: "FromInput", kind: "chain" }], outputs: [{ name: "Out", kind: "chain" }, { name: "Out2", kind: "chain" }] },
+  PulseLeft: { bg: "#e1f5fe", border: "#01579b", text: "#01579b", minWidth: 90, shape: "rect", fill: "#e1f5fe", stroke: "#01579b", width: 90, height: 60, inputs: [{ name: "FromInput", kind: "chain" }], outputs: [{ name: "Out", kind: "chain" }, { name: "Out2", kind: "chain" }] },
+  PulseRight: { bg: "#e1f5fe", border: "#01579b", text: "#01579b", minWidth: 90, shape: "rect", fill: "#e1f5fe", stroke: "#01579b", width: 90, height: 60, inputs: [{ name: "FromInput", kind: "chain" }], outputs: [{ name: "Out", kind: "chain" }, { name: "Out2", kind: "chain" }] },
   Time: { bg: "#fff3e0", border: "#e65100", text: "#bf360c", minWidth: 90, shape: "rect", fill: "#fff3e0", stroke: "#e65100", width: 90, height: 60, inputs: [{ name: "FromPrevTimeNode", kind: "chain" }], outputs: [{ name: "ToNext", kind: "chain", isMulti: true }] },
   TimeEnd: { bg: "#f3e5f5", border: "#6a1b9a", text: "#4a148c", minWidth: 60, shape: "rect", fill: "#f3e5f5", stroke: "#6a1b9a", width: 60, height: 60, inputs: [{ name: "In", kind: "chain" }] },
   WindowAndInhibitLeftGate: { bg: "#fce4ec", border: "#880e4f", text: "#880e4f", minWidth: 110, shape: "rect", fill: "#fce4ec", stroke: "#880e4f", width: 80, height: 60, inputs: [{ name: "FromLeft", kind: "chain" }, { name: "FromRight", kind: "chain" }], outputs: [{ name: "ToPassed", kind: "chain" }] },
@@ -48,6 +52,8 @@ export const NODE_DEFS_ARRAY: readonly NodeDef[] = [
   { bg: "#e1f5fe", border: "#01579b", text: "#01579b", minWidth: 90, shape: "rect", fill: "#e1f5fe", stroke: "#01579b", width: 90, height: 60, inputs: [{ name: "FromInput", kind: "chain" }], outputs: [{ name: "Out", kind: "chain" }, { name: "Out2", kind: "chain" }] },
   { bg: "#fce4ec", border: "#880e4f", text: "#880e4f", minWidth: 110, shape: "rect", fill: "#fce4ec", stroke: "#880e4f", width: 80, height: 60, inputs: [{ name: "FromLeft", kind: "chain" }, { name: "FromRight", kind: "chain" }], outputs: [{ name: "ToPassed", kind: "chain" }] },
   { bg: "#fce4ec", border: "#880e4f", text: "#880e4f", minWidth: 110, shape: "rect", fill: "#fce4ec", stroke: "#880e4f", width: 80, height: 60, inputs: [{ name: "FromLeft", kind: "chain" }, { name: "FromRight", kind: "chain" }], outputs: [{ name: "ToPassed", kind: "chain" }] },
+  { bg: "#e1f5fe", border: "#01579b", text: "#01579b", minWidth: 90, shape: "rect", fill: "#e1f5fe", stroke: "#01579b", width: 90, height: 60, inputs: [{ name: "FromInput", kind: "chain" }], outputs: [{ name: "Out", kind: "chain" }, { name: "Out2", kind: "chain" }] },
+  { bg: "#e1f5fe", border: "#01579b", text: "#01579b", minWidth: 90, shape: "rect", fill: "#e1f5fe", stroke: "#01579b", width: 90, height: 60, inputs: [{ name: "FromInput", kind: "chain" }], outputs: [{ name: "Out", kind: "chain" }, { name: "Out2", kind: "chain" }] },
 ];
 
 export const NODE_KIND_NAMES: readonly string[] = [
@@ -59,4 +65,6 @@ export const NODE_KIND_NAMES: readonly string[] = [
   "Pulse",
   "WindowAndInhibitLeftGate",
   "WindowAndInhibitRightGate",
+  "PulseLeft",
+  "PulseRight",
 ];
