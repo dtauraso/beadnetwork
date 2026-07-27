@@ -6,14 +6,14 @@
 |-------|-------|
 | kindId | 8 |
 | kind | pulseLeft |
-| bg | #e1f5fe |
-| border | #01579b |
+| bg | #b3e5fc |
+| border | #0277bd |
 | text | #01579b |
-| accent | #01579b |
+| accent | #0277bd |
 | minWidth | 90 |
 | shape | rect |
-| fill | #e1f5fe |
-| stroke | #01579b |
+| fill | #b3e5fc |
+| stroke | #0277bd |
 | width | 90 |
 | height | 60 |
 

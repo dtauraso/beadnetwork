@@ -6,15 +6,15 @@
 |-------|-------|
 | kindId | 0 |
 | kind | timeEnd |
-| bg | #f3e5f5 |
-| border | #6a1b9a |
-| text | #4a148c |
-| accent | #6a1b9a |
+| bg | #ffccbc |
+| border | #bf360c |
+| text | #870000 |
+| accent | #bf360c |
 | minWidth | 60 |
 | displays | held |
 | shape | rect |
-| fill | #f3e5f5 |
-| stroke | #6a1b9a |
+| fill | #ffccbc |
+| stroke | #bf360c |
 | width | 60 |
 | height | 60 |
 
