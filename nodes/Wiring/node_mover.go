@@ -534,11 +534,22 @@ func (m *nodeMover) handle(msg moveMsg) {
 func (m *nodeMover) forwardDelta(md *MoveDispatch, exceptID string, dA, dB, dC int32) {
 	targetKind := ""
 	if m.selfKind == "TimeStart" {
+		// TimeStart pays attention to a delta ONLY when it arrives from a Pulse, Time, or
+		// Input neighbor; from any other kind it drops the delta entirely (return). Pulse
+		// and Time route to a single opposite target kind; Input has no targetKind
+		// restriction here (its relay is already dropped upstream in the
+		// moveMsgKindDeltaForward handler — this reached-via-neighborSetC path keeps the
+		// plain fan). Node 2's cascade neighbors are all Pulse/Time/Input today, so the
+		// default drop is a forward-looking guard against an other-kind neighbor.
 		switch m.cascadeKinds[exceptID] {
 		case "Pulse":
 			targetKind = "Time"
 		case "Time":
 			targetKind = "Pulse"
+		case "Input":
+			// no restriction (see above)
+		default:
+			return
 		}
 	}
 	for _, other := range m.cascadeEdges {
