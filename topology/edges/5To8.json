@@ -1,1 +1,1 @@
-{"source": "5", "sourceHandle": "ToNext1", "target": "8", "targetHandle": "FromInput", "kind": "chain", "label": "5To8"}
+{"source": "5", "sourceHandle": "Out2", "target": "8", "targetHandle": "FromRight", "kind": "chain", "label": "5To8"}

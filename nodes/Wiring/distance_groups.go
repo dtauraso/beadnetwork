@@ -7,8 +7,8 @@
 // where currentMax is the max over the group's pairs of |center(target)-center(source)|
 // (mirrors reachRFromPolar's max-over-edges loop, quantized_move.go). Then EVERY pair in
 // the group is repositioned so its length becomes L, in FLAT LIST ORDER — a target node
-// that appears in two pairs (gate group: 9 is the target of both (3,9) and (6,9); 10 of
-// both (6,10) and (8,10)) ends at the LAST pair's placement. This is intended and
+// that appears in two pairs (gate group: 8 is the target of both (3,8) and (5,8); 9 of
+// both (5,9) and (7,9)) ends at the LAST pair's placement. This is intended and
 // accepted (per the agreed model): there is no tree/graph solver, no averaging, no
 // equal-radii resolve for a shared target.
 //
@@ -36,9 +36,9 @@ var distanceGroupOrder = []string{"time", "input", "gate"}
 // first": Go owns the group definitions and the math; TS holds no domain state). These
 // 10 pairs are exactly the 10 bead edges in topology/edges/*.json.
 var distanceGroups = map[string][]distancePair{
-	"time":  {{Source: "2", Target: "6"}, {Source: "2", Target: "5"}, {Source: "5", Target: "8"}, {Source: "5", Target: "7"}},
+	"time":  {{Source: "2", Target: "5"}, {Source: "2", Target: "4"}, {Source: "4", Target: "7"}, {Source: "4", Target: "6"}},
 	"input": {{Source: "1", Target: "3"}, {Source: "1", Target: "2"}},
-	"gate":  {{Source: "3", Target: "9"}, {Source: "6", Target: "9"}, {Source: "6", Target: "10"}, {Source: "8", Target: "10"}},
+	"gate":  {{Source: "3", Target: "8"}, {Source: "5", Target: "8"}, {Source: "5", Target: "9"}, {Source: "7", Target: "9"}},
 }
 
 // distanceGroupMax computes a group's CURRENT max pair length (max over the group's
