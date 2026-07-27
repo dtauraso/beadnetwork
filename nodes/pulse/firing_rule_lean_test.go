@@ -52,7 +52,7 @@ func TestPulseDrivesHeldValueLean(t *testing.T) {
 	stepWire(ctx, outPw, clk.Copy())
 
 	beadCh := make(chan int, 16)
-	node := &Node{
+	node := &Pulse{
 		Fire:      func() {},
 		Clock:     clk,
 		FromInput: wire.NewInPaced(inPw, ctx, "pulse", "FromInput", tr, nil, -1),

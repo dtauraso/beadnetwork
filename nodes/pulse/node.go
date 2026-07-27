@@ -7,7 +7,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/gatecommon"
 )
 
-// Node is a sample-and-hold pulse. It HOLDS one int value (the thing it is
+// Pulse is a sample-and-hold pulse. It HOLDS one int value (the thing it is
 // outputting), initialized to noValue, and drives that held value out continuously.
 // Even before any input arrives it emits noValue. When an input value arrives on
 // FromInput, it UPDATES the held value; subsequent outputs emit the new value.
@@ -33,7 +33,7 @@ import (
 //
 // The output is NOT precondition-gated: Pulse self-emits noValue from the start
 // (like the Input bootstrap), it is not inert until fed.
-type Node struct {
+type Pulse struct {
 	wire.LayoutHolder
 	Fire         func()
 	EmitGeometry func()
@@ -74,7 +74,7 @@ func driveOutput(ctx context.Context, out *wire.Out, heldCh <-chan int64, clk wi
 	gatecommon.DriveHeld(ctx, out, heldCh, func(h int64) int { return int(h) }, clk, speedCh)
 }
 
-func (g *Node) Update(ctx context.Context) {
+func (g *Pulse) Update(ctx context.Context) {
 	wire.TryEmit(g.EmitGeometry)
 
 	// held is owned by this main loop; cur is the main loop's OWN local copy
@@ -140,5 +140,5 @@ func (g *Node) Update(ctx context.Context) {
 }
 
 func init() {
-	wire.Register("Pulse", func() any { return &Node{} })
+	wire.Register("Pulse", func() any { return &Pulse{} })
 }
