@@ -237,6 +237,10 @@ func (pw *PacedWire) flushDroppedBreadcrumbs() {
 // drainBreadcrumbEvents returns every breadcrumb RowEvent buffered on breadcrumbCh
 // since the last call (non-blocking drain). Safe to call only from this wire's own
 // goroutine (edgeMover.writeStreamFrame), same contract as drainPendingEvents.
+//
+// Drain-until-empty, transitively bounded by breadcrumbCh's declared capacity (4) —
+// no iteration cap; see drainPlacements's doc comment (this file) for the full
+// reasoning shared by every drain-until-empty loop in this repo.
 func (pw *PacedWire) drainBreadcrumbEvents() []RowEvent {
 	if pw.breadcrumbCh == nil {
 		return nil
@@ -505,6 +509,28 @@ func (pw *PacedWire) DriveOneCycle(ctx context.Context, tick int64) {
 // and appends each as a fresh in-flight bead, stamping placementTick from tick —
 // THIS wire's own clock reading, taken once by the caller (driveOneCycle) per
 // cycle. Called only by this wire's own goroutine.
+//
+// DRAIN-UNTIL-EMPTY, NOT AN ITERATION CAP (bounds-plan.md Step 3, "the drain
+// loops"). This is the canonical instance of a shape repeated at several
+// other sites in this repo (nodes/wire/paced_wire.go's drainBreadcrumbEvents,
+// nodes/gatecommon/gate.go's drainLatestReal, nodes/TimeStart/node.go and
+// nodes/Time/node.go's mid-window observe loop, nodes/Wiring/edge_mover.go's
+// and node_mover.go's per-cycle inbox drains — each of those points back
+// here instead of repeating this paragraph). The reasoning that justifies
+// EVERY one of them, and why none gets an arbitrary cap:
+//
+//  1. Each loop terminates the moment its channel reports empty (the
+//     `default:` branch) — it never blocks waiting for more.
+//  2. Every producer feeding one of these channels is itself bounded by a
+//     DECLARED channel capacity (wireChanBufferSize here; moverInboxDepth
+//     for the mover inboxes) — so no matter how busy the producer has been,
+//     one drain call can pull at most that many items before hitting empty.
+//     The loop is therefore transitively bounded by a number that already
+//     has its own name elsewhere, not unbounded in practice.
+//  3. Adding an iteration cap on top would not remove any risk — it would
+//     ADD a new failure mode: a capped drain leaves items stranded in the
+//     channel for a full extra cycle, which is worse than draining all of
+//     them now. There is no capacity problem here to solve with a cap.
 func (pw *PacedWire) drainPlacements(tick int64) {
 	for {
 		select {

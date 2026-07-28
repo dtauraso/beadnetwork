@@ -10,6 +10,7 @@ package Wiring
 
 import (
 	"context"
+	"fmt"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"sync"
 )
@@ -37,6 +38,18 @@ import (
 // this constant is the "declared" half of the rule; the "asserted" half belongs to
 // that queue, not to this capacity.
 const moverInboxDepth = 8
+
+// maxPendingSends is the declared upper bound on len(nm.pending) between
+// flushPending calls (bounds-plan.md Step 3, "nm.pending"). GENEROUS ceiling,
+// not a tight derivation, same honesty as maxPendingEvents/maxInflightBeads in
+// nodes/wire/paced_wire.go: nm.pending's own drain rate isn't a function of
+// moverInboxDepth (flushPending only ever attempts ONE real send per blocked
+// destination per cycle — every later item to that same destination is
+// retained WITHOUT an attempt, to preserve FIFO — so a bigger peer inbox
+// would not drain this queue any faster). Reusing moverInboxDepth twice-over
+// (its square) is a way to get a value definitely too large to reach under
+// ordinary drag traffic, not a claim that this is the tightest possible bound.
+const maxPendingSends = moverInboxDepth * moverInboxDepth
 
 // moverRegistry is the pure registry that owns every mover and wires their dedicated
 // channels together — there is no shared dispatch map; nodeMovers/edgeMovers themselves
@@ -194,5 +207,25 @@ func (mr *moverRegistry) enqueueFor(nm *nodeMover) func(id string, msg moveMsg) 
 		}
 		nm.pending = append(nm.pending, pendingSend{destID: id, msg: msg})
 		nm.flushPending()
+		if len(nm.pending) > maxPendingSends {
+			// Named causes, checked against flushPending's actual behaviour (not
+			// guessed): an item whose destID doesn't resolve is DROPPED, not
+			// retained (flushPending's `!ok` branch), so an unresolvable
+			// destination can never grow this queue — it is deliberately not
+			// named below. What CAN: (1) a peer whose own goroutine has
+			// stopped draining its inbox entirely (wedged or dead) — every
+			// later item to that same destination piles up behind it,
+			// unattempted, to preserve FIFO; (2) this node enqueueing to a
+			// live-but-slower peer faster, cycle over cycle, than that peer's
+			// own goroutine drains its inbox — flushPending retries only ONE
+			// send per blocked destination per cycle, so a persistent
+			// per-cycle surplus accumulates even without a dead peer.
+			panic(fmt.Sprintf(
+				"nodeMover(%s): pending exceeded %d retry-queued sends; either a "+
+					"destination's own goroutine has stopped draining its inbox "+
+					"(wedged or dead), or this node is enqueueing to a peer faster "+
+					"than that peer drains, cycle over cycle",
+				nm.id, maxPendingSends))
+		}
 	}
 }

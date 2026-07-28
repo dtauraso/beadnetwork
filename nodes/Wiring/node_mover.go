@@ -898,6 +898,11 @@ func (m *nodeMover) run(ctx context.Context) {
 		// Drain every dedicated inbound channel non-blockingly, repeating until a
 		// full pass yields nothing — this is the "drain to empty, don't throttle a
 		// backlog" half of the shape.
+		//
+		// Drain-until-empty, transitively bounded by each channel's own declared
+		// capacity (moverInboxDepth) -- no iteration cap; see
+		// nodes/wire/paced_wire.go's drainPlacements doc comment for the full
+		// reasoning shared by every drain-until-empty loop in this repo.
 		for {
 			progressed := false
 			select {

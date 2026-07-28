@@ -346,6 +346,11 @@ func (m *edgeMover) run(ctx context.Context) {
 		// the wire-drive step below even with nothing queued. Three dedicated channels,
 		// not one shared inbox: extIn (external gesture entries), srcIn (this edge's
 		// source node's own goroutine), dstIn (this edge's target node's own goroutine).
+		//
+		// Drain-until-empty, transitively bounded by each channel's own declared
+		// capacity (moverInboxDepth) -- no iteration cap; see
+		// nodes/wire/paced_wire.go's drainPlacements doc comment for the full
+		// reasoning shared by every drain-until-empty loop in this repo.
 	drain:
 		for {
 			select {
