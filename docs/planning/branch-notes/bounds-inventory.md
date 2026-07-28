@@ -37,11 +37,30 @@ So the two conditions are independent: beads keep appending while nothing drains
 `pw.pending` then grows monotonically for the life of the process, unbounded, silently —
 pure memory growth with no counter and no error.
 
-It is **latent, not active today**: with 10 edges the per-edge streams are wired, so the
-drain runs. It triggers when `streamOut == nil` while beads still carry node names —
-notably the `edgeCount > MAX_EDGE_STREAMS` path (see finding 2), a fallback launch, or a
-long headless run. Worth confirming against a headless run before fixing, since that is
-the cheapest place to observe it.
+**CONFIRMED empirically**, 2026-07-28, with a single-goroutine controlled contrast —
+same setup, `writeStreamFrame` called every cycle exactly as `edgeMover.run` does, one
+variable:
+
+| `streamOut` / `buildFrame` | `len(pending)` after 40 deliveries |
+|---|---|
+| **nil** | **40 — nothing drained** |
+| wired (stub writer + stub buildFrame) | **0 — drained every cycle** |
+
+A separate check confirmed growth is linear in drive cycles (50 deliveries → 50 queued),
+and that a manual `DrainPendingEvents()` recovers exactly those events, so nothing else
+is consuming them. `DrainPendingEvents` has **exactly one production caller** repo-wide.
+
+**Wider than first thought.** `newEdgeMover` (`edge_mover.go:96-119`) never sets
+`streamOut`/`buildFrame`; only `setEdgeStreams` (`stream_wiring.go`) does, and only when
+`WIREFOLD_STREAM_FDS` names a per-edge fd for that edge's seed row. So the nil case is
+not just the `edgeCount > MAX_EDGE_STREAMS` path — it is **any run without that env var,
+including every headless test run**. It stays latent in the live editor, where the
+streams are wired for all 10 edges.
+
+The repro tests were temporary and are not kept: a test asserting the buggy behaviour
+would have to be inverted by the fix. When the fix lands, the contrast above is the
+shape to make permanent — assert `pending` drains (or never accumulates) with the stream
+unwired.
 
 **2. The one place with a declared maximum responds to exceeding it by silently
 disabling the feature.**
