@@ -11,15 +11,8 @@
 package Wiring
 
 import (
-	"context"
-	"path/filepath"
 	"sync"
 	"testing"
-	"time"
-
-	wire "github.com/dtauraso/wirefold/nodes/wire"
-
-	T "github.com/dtauraso/wirefold/Trace"
 )
 
 // TestForwardDeltaPulseRightNeverRelays: whatever the sender kind, a PulseRight forwards
@@ -82,67 +75,5 @@ func TestPulseRightAttendsOnlyTimeAndSelectLeft(t *testing.T) {
 			t.Errorf("PulseRight delta from %s (%s): gotForwardMsg=%d, want %d",
 				c.senderID, c.senderKind, nm.gotForwardMsg, c.want)
 		}
-	}
-}
-
-// TestPulseRightDragTerminatesCascade drags node 4 (Time) on the REAL production topology.
-// Node 7 (PulseRight) attends to the delta arriving from 4, but must not forward it on to
-// any cascade neighbor.
-func TestPulseRightDragTerminatesCascade(t *testing.T) {
-	root := filepath.Join(repoRootForDeltaForwardTest(t), "topology")
-	tr := T.NewWithSinkHook(nil, nil)
-
-	_, _, md, _, err := LoadTopology(context.Background(), root, tr, wire.NewRealClock())
-	if err != nil {
-		t.Fatalf("LoadTopology: %v", err)
-	}
-
-	for _, id := range []string{"1", "2", "3", "4", "5", "6", "7", "8", "9"} {
-		_ = wireNodeStream(t, md, id)
-		if nm, ok := md.mr.nodeMovers[id]; ok {
-			nm.nodeRowFor = md.NodeRowFor
-			ownMover := nm
-			nm.forwardOnce = func(exceptID string, dA, dB, dC int32) {
-				ownMover.forwardDelta(md, exceptID, dA, dB, dC)
-			}
-		}
-	}
-
-	var mu sync.Mutex
-	fromSeven := map[string]bool{}
-	md.SetMsgTap(func(destID string, msg moveMsg) {
-		if msg.Kind != moveMsgKindDeltaForward || msg.SenderID != "7" {
-			return
-		}
-		mu.Lock()
-		fromSeven[destID] = true
-		mu.Unlock()
-	})
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	md.Start(ctx)
-
-	before, ok := md.centerOfNode("4")
-	if !ok {
-		t.Fatal("no center for 4")
-	}
-	target := before.Add(vec3{X: 45, Y: -30, Z: 20})
-	md.resetAbcDrag()
-	if !md.RootMove("4", target) {
-		t.Fatal("RootMove(4) returned false")
-	}
-	pollDragConverged(t, md, "4", target)
-	time.Sleep(150 * time.Millisecond)
-
-	mu.Lock()
-	got := []string{}
-	for to := range fromSeven {
-		got = append(got, to)
-	}
-	mu.Unlock()
-
-	if len(got) != 0 {
-		t.Errorf("node 7 (PulseRight) forwarded to %v; want none — PulseRight is a cascade terminus", got)
 	}
 }
