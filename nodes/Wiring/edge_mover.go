@@ -9,6 +9,7 @@ package Wiring
 import (
 	"context"
 	"encoding/binary"
+	"fmt"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"io"
 
@@ -235,6 +236,22 @@ func (m *edgeMover) recomputeGeometry() {
 func (m *edgeMover) writeStreamFrame(tick int64, events []wire.RowEvent) {
 	if m.streamOut == nil || m.buildFrame == nil {
 		return
+	}
+	// INVARIANT: same per-goroutine bridge rule the nodeMover twin asserts, but the
+	// ownership column is EDGEROW here, not NodeRow — do not copy that condition over.
+	// This mover's own event sets EdgeRow: m.edgeRow with NodeRow deliberately -1
+	// (recomputeGeometry above), while the events appended BELOW from DrainPendingEvents/
+	// DrainBreadcrumbEvents carry NodeRow as a REFERENCE to the source node with
+	// EdgeRow: -1. So NodeRow says nothing about ownership on an edge stream, and only
+	// the CALLER-SUPPLIED slice is checkable — hence this runs before those appends.
+	// -1 is allowed: it is the "no claim" sentinel, not another edge's row. What this
+	// forbids is one edge carrying a DIFFERENT edge's row out on its own stream.
+	for _, e := range events {
+		if e.EdgeRow != -1 && e.EdgeRow != m.edgeRow {
+			panic(fmt.Sprintf(
+				"edgeMover.writeStreamFrame: edge %q (row %d) is carrying a %s event for edge row %d on its OWN dedicated stream — EdgeRow is the ownership claim on an edge stream (NodeRow is a reference to the source node)",
+				m.edgeID, m.edgeRow, e.Kind, e.EdgeRow))
+		}
 	}
 	var srcRow, dstRow int32 = -1, -1
 	if m.portRowFor != nil {
