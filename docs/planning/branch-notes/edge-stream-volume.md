@@ -54,6 +54,39 @@ channel SPARSE, "a debug tool for control events, not a per-tick firehose". The 
 stream is not a breadcrumb channel, but the `.probe` decode of it is subject to the same
 rule.
 
+## The rate is NOT a constant — it scales with beads in flight (2026-07-28)
+
+The 734 KB/s headline above does not reproduce. Measured against
+`.probe/go-edge.jsonl` from a later session (8.9 MB, 47,977 lines, 118 s span):
+
+| | this session | the 734 KB/s session |
+|---|---|---|
+| lines/sec | 405 | ~4000 (implied) |
+| rate | **75 KB/s** | 734 KB/s |
+| implied beads in flight | ~8 | ~73 |
+
+Same code, 10x apart. So 258 MB/hr is a **saturated-ring** figure, not a baseline, and
+any fix's payoff is proportional to bead count rather than flat.
+
+**The cadence is healthy; bead LIFETIME is the multiplier.** Per-sample interval measured
+on a single bead (gen 2853): 997 samples over 20217 ms = **20.3 ms/sample**, i.e. ~50 Hz,
+matching the "~16 ms" that `Trace/Trace.go:38-41` documents. Nothing is emitting faster
+than intended. What makes the volume large is that the bead is in flight for **20
+seconds** — it runs `f=0` → `f=1` → `arrive`, so one bead is ~1000 log lines on its own,
+not a handful. Volume is therefore
+
+```
+beads_in_flight  x  50 lines/sec  x  ~186 bytes/line
+```
+
+and `edge-bead` is 99% of the file (47,496 of 47,977 lines; the remainder are `arrive`),
+so there is no second contributor hiding in the stream.
+
+This does not change the conclusion below — the bytes still feed no consumer — but it
+does mean "per-tick firehose" overstates it. The tick rate is reasonable and a renderer
+genuinely would need a position each frame. The waste is the duplicate copy, not the
+cadence.
+
 ## Answers (2026-07-28)
 
 All four questions resolved by reading the code. **The rate is log-only overhead, not
