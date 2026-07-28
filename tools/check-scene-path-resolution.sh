@@ -55,20 +55,36 @@ report() {
   HITS=$((HITS + 1))
 }
 
-# Find all IsDir() calls in Wiring Go files, excluding:
-#   - scene_paths.go (the authoritative resolver)
-#   - lines with the exemption marker
-#   - test files (tests may use os.Stat for fixture checks)
+# Collect the eligible file list ONCE (excluding test files and the resolver itself), and
+# reuse it for all three passes below, instead of walking $WIRING_DIR three separate times
+# plus spawning `basename`/`grep` once PER FILE PER PASS (121 files x 3 passes = ~370 greps
+# for this alone). `${f##*/}` replaces `basename "$f"` inline — same result, no process.
+eligible_files=()
 while IFS= read -r file; do
   [[ "$file" == *"_test.go" ]] && continue
-  [[ "$(basename "$file")" == "scene_paths.go" ]] && continue
-
-  while IFS= read -r line; do
-    # Strip the marker-exempt lines.
-    [[ "$line" == *"// path-resolution-ok:"* ]] && continue
-    report "hand-rolled-IsDir: $file: $line"
-  done < <(grep -n "IsDir()" "$file" 2>/dev/null || true)
+  [[ "${file##*/}" == "scene_paths.go" ]] && continue
+  eligible_files+=("$file")
 done < <(find "$WIRING_DIR" -maxdepth 1 -name "*.go" -not -path "*/node_modules/*")
+
+# One `grep -n` across the WHOLE eligible file list for all three patterns at once (IsDir(),
+# the three resolver-call names, and filepath.Join() ) — grep prefixes each hit with
+# "file:line:" when given multiple files, so each pass below re-parses that prefix and
+# classifies the hit by which pattern matched, applying that pass's own exemptions exactly
+# as the original per-pass loop did.
+all_hits=""
+if [[ ${#eligible_files[@]} -gt 0 ]]; then
+  all_hits="$(grep -nE 'IsDir\(\)|sceneTreeRoot\(|sceneJSONPath\(|sceneCameraPath\(|filepath\.Join\(' \
+    "${eligible_files[@]}" 2>/dev/null || true)"
+fi
+
+# Pass 1 — hand-rolled IsDir(), excluding lines carrying the exemption marker.
+while IFS= read -r hit; do
+  [[ -z "$hit" ]] && continue
+  file="${hit%%:*}"; rest="${hit#*:}"; lineno="${rest%%:*}"; content="${rest#*:}"
+  [[ "$content" == *"IsDir()"* ]] || continue
+  [[ "$content" == *"// path-resolution-ok:"* ]] && continue
+  report "hand-rolled-IsDir: $file: $lineno:$content"
+done <<< "$all_hits"
 
 if [[ $HITS -ne 0 ]]; then
   echo ""
@@ -85,12 +101,13 @@ fi
 # outside tests, proving the resolver is load-bearing, not dead code the IsDir scan
 # vacuously credits.
 CALL_SITES=0
-while IFS= read -r file; do
-  [[ "$file" == *"_test.go" ]] && continue
-  [[ "$(basename "$file")" == "scene_paths.go" ]] && continue
-  n=$(grep -cE "sceneTreeRoot\(|sceneJSONPath\(|sceneCameraPath\(" "$file" 2>/dev/null || true)
-  CALL_SITES=$((CALL_SITES + n))
-done < <(find "$WIRING_DIR" -maxdepth 1 -name "*.go" -not -path "*/node_modules/*")
+while IFS= read -r hit; do
+  [[ -z "$hit" ]] && continue
+  content="${hit#*:*:}"
+  case "$content" in
+    *sceneTreeRoot\(*|*sceneJSONPath\(*|*sceneCameraPath\(*) CALL_SITES=$((CALL_SITES + 1)) ;;
+  esac
+done <<< "$all_hits"
 
 if [[ "$CALL_SITES" -eq 0 ]]; then
   echo "check-scene-path-resolution: MISCONFIGURED — zero call sites of sceneTreeRoot()/sceneJSONPath()/sceneCameraPath() found outside scene_paths.go." >&2
@@ -104,16 +121,15 @@ fi
 # unrepresentable, just spelled without IsDir: no os.Stat, no IsDir, straight Join — passes
 # the scan above clean while silently breaking the file-form topologyPath case.
 JOIN_HITS=0
-while IFS= read -r file; do
-  [[ "$file" == *"_test.go" ]] && continue
-  [[ "$(basename "$file")" == "scene_paths.go" ]] && continue
-  while IFS= read -r line; do
-    if [[ "$line" == *'"view"'* && "$line" == *'"scene.json"'* ]]; then
-      printf 'hand-rolled-join: %s: %s\n' "$file" "$line"
-      JOIN_HITS=$((JOIN_HITS + 1))
-    fi
-  done < <(grep -n "filepath.Join(" "$file" 2>/dev/null || true)
-done < <(find "$WIRING_DIR" -maxdepth 1 -name "*.go" -not -path "*/node_modules/*")
+while IFS= read -r hit; do
+  [[ -z "$hit" ]] && continue
+  file="${hit%%:*}"; rest="${hit#*:}"; lineno="${rest%%:*}"; content="${rest#*:}"
+  [[ "$content" == *"filepath.Join("* ]] || continue
+  if [[ "$content" == *'"view"'* && "$content" == *'"scene.json"'* ]]; then
+    printf 'hand-rolled-join: %s: %s:%s\n' "$file" "$lineno" "$content"
+    JOIN_HITS=$((JOIN_HITS + 1))
+  fi
+done <<< "$all_hits"
 
 if [[ "$JOIN_HITS" -ne 0 ]]; then
   echo ""
