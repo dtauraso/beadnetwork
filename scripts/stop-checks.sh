@@ -253,12 +253,68 @@ if [ ${#guards[@]} -eq 0 ]; then
   exit 1
 fi
 
+# The guards are ~96% of this script's wall time (5.86s of 6.14s measured), they are 48
+# independent read-only checks, and they used to run one at a time. Now they run
+# CONCURRENTLY, which bounds the suite at its slowest single guard instead of the sum.
+#
+# ONE guard must not run concurrently with the others: check-generated.sh RUNS the
+# generator (`npm run gen:node-defs`, its line 27), which WRITES the generated files into
+# the working tree. Any guard reading those files while it rewrites them could see a
+# half-written file and fail at random — a flaky guard suite is worse than a slow one. So
+# it runs FIRST, alone, and the rest fan out only after it has finished.
+#
+# Output is collected per guard and replayed in sorted order, so a failure report reads
+# identically to the serial version regardless of which guard finished first.
+GUARD_SERIAL="check-generated"
+JOBS=$(sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 4)
+
+guard_selected=()
 for chk_path in "${guards[@]}"; do
   chk=$(basename "$chk_path" .sh)
-  case "$chk" in
-    *) if echo "$chk" | grep -qE "^($GUARD_EXCLUDE)$"; then continue; fi ;;
-  esac
-  if ! chk_out=$(bash "$chk_path" 2>&1); then
+  if echo "$chk" | grep -qE "^($GUARD_EXCLUDE)$"; then continue; fi
+  guard_selected+=("$chk_path")
+done
+
+GDIR=$(mktemp -d)
+trap 'rm -rf "$GDIR"' EXIT
+
+run_one_guard() {
+  # $1 = path. Writes <name>.out and <name>.rc so the collector can report deterministically.
+  local gp="$1" gn go grc
+  gn=$(basename "$gp" .sh)
+  go=$(bash "$gp" 2>&1); grc=$?
+  printf '%s' "$go" > "$GDIR/$gn.out"
+  printf '%s' "$grc" > "$GDIR/$gn.rc"
+}
+export -f run_one_guard 2>/dev/null || true
+
+# 1. the tree-mutating guard, alone
+for chk_path in "${guard_selected[@]}"; do
+  chk=$(basename "$chk_path" .sh)
+  [ "$chk" = "$GUARD_SERIAL" ] || continue
+  run_one_guard "$chk_path"
+done
+
+# 2. everything else, concurrently. `xargs -P` rather than backgrounding in batches of
+# $JOBS: a batch only advances when its SLOWEST member finishes, so with one 2s guard and
+# 47 fast ones the batch containing it idles 7 cores for 2s. xargs keeps every slot busy —
+# measured 3.98s (batched) vs 2.66s (streaming) on the same tree.
+# bash 3.2 (macOS) has no `wait -n`, which is the other way to do this.
+printf '%s\n' "${guard_selected[@]}" \
+  | grep -v "/${GUARD_SERIAL}\.sh$" \
+  | GDIR="$GDIR" xargs -P "$JOBS" -I@ bash -c '
+      gp="@"; gn=$(basename "$gp" .sh)
+      go=$(bash "$gp" 2>&1); grc=$?
+      printf "%s" "$go" > "$GDIR/$gn.out"
+      printf "%s" "$grc" > "$GDIR/$gn.rc"
+    ' 
+
+# 3. collect in sorted order — same report the serial loop produced
+for chk_path in "${guard_selected[@]}"; do
+  chk=$(basename "$chk_path" .sh)
+  grc=$(cat "$GDIR/$chk.rc" 2>/dev/null || echo 1)
+  if [ "$grc" != "0" ]; then
+    chk_out=$(cat "$GDIR/$chk.out" 2>/dev/null || echo "(no output captured)")
     out+="$chk failed:\n$chk_out\n\n"
     fail=1
   fi
