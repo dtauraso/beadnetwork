@@ -473,6 +473,14 @@ func (m *nodeMover) handle(msg moveMsg) {
 		if m.selfKind == "TimeStart" && m.cascadeKinds[msg.SenderID] == "Input" {
 			return
 		}
+		// A Pulse IGNORES a delta triple arriving from a TimeStart-kind cascade neighbor:
+		// no record, no relay. Same shape as the TimeStart<-Input stop above, gated on the
+		// SENDER's kind. Note this is the Pulse kind only (node 5) — PulseLeft and
+		// PulseRight are separate kinds with their own rules below. From every OTHER sender
+		// kind a Pulse keeps the plain flood-to-all-cascade-neighbors-except-sender.
+		if m.selfKind == "Pulse" && m.cascadeKinds[msg.SenderID] == "TimeStart" {
+			return
+		}
 		// A PulseLeft ATTENDS to a delta triple only when it arrives from an Input or a
 		// SelectRight cascade neighbor (SelectRight is the Go type of the
 		// "WindowAndInhibitLeftGate" kind — nodes/windowandinhibitleftgate/node.go — so the
@@ -577,6 +585,31 @@ func (m *nodeMover) forwardDelta(md *MoveDispatch, exceptID string, dA, dB, dC i
 		return
 	}
 	targetKind := ""
+	// A Pulse routes a GATE-origin delta straight across to the opposite gate kind:
+	// SelectRight -> SelectLeft and SelectLeft -> SelectRight. The kind strings cross over
+	// relative to the Go type names, so read them off this table rather than the name:
+	//
+	//	SelectRight = "WindowAndInhibitLeftGate"  (node 8)
+	//	SelectLeft  = "WindowAndInhibitRightGate" (node 9)
+	//
+	// A TimeStart-origin delta never reaches here (dropped in the moveMsgKindDeltaForward
+	// handler). Any OTHER sender kind leaves targetKind empty and keeps the plain flood.
+	// The switch is TOTAL: a Pulse's three neighbor kinds are TimeStart (dropped upstream)
+	// and the two gates, so any OTHER sender kind is not a real case in the graph and is
+	// DROPPED rather than flooded. Same stance TimeStart takes. This matters because a
+	// missing cascade-edges.json entry reads as kind "" — with a flood fallback that data
+	// gap silently became surprise fan-out (a drag of node 8 reaching node 2 through 5,
+	// because 8's kind was absent from node 5's file); with the drop it stays inert.
+	if m.selfKind == "Pulse" {
+		switch m.cascadeKinds[exceptID] {
+		case "WindowAndInhibitLeftGate": // from SelectRight
+			targetKind = "WindowAndInhibitRightGate" // -> to SelectLeft
+		case "WindowAndInhibitRightGate": // from SelectLeft
+			targetKind = "WindowAndInhibitLeftGate" // -> to SelectRight
+		default:
+			return
+		}
+	}
 	if m.selfKind == "TimeStart" {
 		// TimeStart pays attention to a delta ONLY when it arrives from a Pulse, Time, or
 		// Input neighbor; from any other kind it drops the delta entirely (return). Pulse
