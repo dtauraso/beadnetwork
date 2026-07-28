@@ -2,6 +2,7 @@ package wire
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -228,6 +229,47 @@ type pendingWireEvent struct {
 	gen        uint64
 }
 
+// maxPendingEvents is the declared upper bound on len(pw.pending) between drains.
+// With a stream consumer wired (StreamsActive), pending is drained EVERY cycle by
+// edgeMover.writeStreamFrame -> DrainPendingEvents (the same goroutine, back to
+// back with the append side — see pending's own doc comment above), so its true
+// maximum is one cycle's production. Exceeding that does not mean "busy"; with
+// the drain running, it can only mean the drain has stopped running — the exact
+// bug this branch's inventory found and 93d2e9b6 fixed (streamOut nil left
+// pending accumulating forever with nothing ever calling DrainPendingEvents).
+//
+// The number itself is a GENEROUS ceiling, not a tight derivation, and that
+// caveat is deliberate: pw.inflight (the source of every pending append) has no
+// declared maximum of its own yet (bounds-plan.md Step 3), so "one cycle's
+// production" cannot be proven exactly today. wireChanBufferSize already
+// ceilings how many beads can ever be outstanding on this wire via inCh, so
+// reusing it here gives a value that is definitely wrong to reach rather than
+// one derived airtight from a bounded inflight.
+const maxPendingEvents = wireChanBufferSize
+
+// appendPending appends ev to pw.pending and asserts the result has not
+// exceeded maxPendingEvents. It is the ONLY way pending is ever appended to
+// (stepAll's KindEdgeBead append and emitArrive's KindArrive append both call
+// this instead of appending directly) so the bound is checked at every mutation
+// site, not just some.
+//
+// Panics rather than dropping or growing further: this is an INVARIANT check on
+// this wire's own goroutine, not a capacity policy (bounds-plan.md Step 1) —
+// dropping would hide a broken drain (the exact failure this bound exists to
+// catch), and backpressure would couple this wire's pacing to its owner's frame
+// rate. Reaching this bound is a code bug, never ordinary traffic, the same
+// "can only break via a code bug" shape as wire.Register's and build.go's
+// panics (grep panic( in this package/nodes/Wiring for the convention).
+func (pw *PacedWire) appendPending(ev pendingWireEvent) {
+	pw.pending = append(pw.pending, ev)
+	if len(pw.pending) > maxPendingEvents {
+		panic(fmt.Sprintf(
+			"paced_wire: pending exceeded %d events on wire -> %s.%s; the per-cycle drain "+
+				"(edgeMover.writeStreamFrame -> DrainPendingEvents) is not running",
+			maxPendingEvents, pw.Target, pw.TargetHandle))
+	}
+}
+
 // drainPendingEvents returns every pendingWireEvent recorded since the last call and
 // clears the buffer. Safe to call only from this wire's own goroutine.
 func (pw *PacedWire) drainPendingEvents() []pendingWireEvent {
@@ -441,7 +483,7 @@ func (pw *PacedWire) stepAll(tick int64) {
 			}
 			emit, pos, final := pw.advanceBead(b, nowTick)
 			if emit && edgeBeadTraceEnabled && pw.StreamsActive {
-				pw.pending = append(pw.pending, pendingWireEvent{
+				pw.appendPending(pendingWireEvent{
 					kind: T.KindEdgeBead, value: pos.val,
 					x: pos.x, y: pos.y, z: pos.z, t: pos.t, gen: pos.gen,
 				})
@@ -579,7 +621,7 @@ type posEmitArgs struct {
 // this wire's own goroutine (stepAll) right after the outCh handoff succeeds.
 func (pw *PacedWire) emitArrive(ai arriveInfo) {
 	if ai.emit && pw.StreamsActive {
-		pw.pending = append(pw.pending, pendingWireEvent{kind: T.KindArrive, value: ai.value, gen: ai.gen})
+		pw.appendPending(pendingWireEvent{kind: T.KindArrive, value: ai.value, gen: ai.gen})
 	}
 }
 
