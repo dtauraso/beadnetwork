@@ -12,7 +12,7 @@ import * as fs from "fs/promises";
 import * as fsSync from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import { PROBE_DIR, PROBE_FILES } from "../probe-files";
+import { PROBE_DIR, PROBE_FILES, isProbeTraceEnabled } from "../probe-files";
 
 const ERROR_LABELS = new Set([
   "window-error", "unhandled-rejection", "render-error",
@@ -43,6 +43,11 @@ export async function appendWebviewLog(
     pendingTsErrors = pendingTsErrors.then(() => doAppend(entry, documentUri, PROBE_FILES.tsErrors));
     return pendingTsErrors;
   } else {
+    // ts.jsonl is a high-volume trace log (webview logging is gated the same as the four
+    // Go per-owner trace logs) — opt-in via isProbeTraceEnabled(), default off.
+    if (!isProbeTraceEnabled()) {
+      return;
+    }
     pendingTs = pendingTs.then(() => doAppend(entry, documentUri, PROBE_FILES.ts));
     return pendingTs;
   }

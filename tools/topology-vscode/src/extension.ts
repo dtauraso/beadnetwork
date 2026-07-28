@@ -6,7 +6,7 @@ import { buildBinary } from "./goBuild";
 import type { HostToWebviewMsg } from "./messages";
 import { buildWebviewHtml } from "./extension/html";
 import { handleMessage } from "./extension/handle-message";
-import { PROBE_FILES } from "./probe-files";
+import { PROBE_FILES, PROBE_TRACE_FILES, isProbeTraceEnabled } from "./probe-files";
 
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
@@ -21,10 +21,15 @@ function resetProbeLogs(repoRoot: string): void {
   try {
     const probeDir = path.join(repoRoot, ".probe");
     fs.mkdirSync(probeDir, { recursive: true });
-    // Iterate the canonical registry (not a hand-typed list) so a newly-added
-    // probe file is reset automatically — the omission that let go-debug.jsonl
-    // accumulate across sessions cannot recur.
+    const traceEnabled = isProbeTraceEnabled();
+    // Iterate the canonical registry (not a hand-typed list) so a newly-added probe file is
+    // reset automatically — the omission that let go-debug.jsonl accumulate across sessions
+    // cannot recur. Trace files (PROBE_TRACE_FILES) are skipped when tracing is off: an
+    // empty go-edge.jsonl reads as "tracing ran and produced nothing" instead of "tracing is
+    // off", the wrong signal for someone debugging with the setting disabled.
+    const traceNames: readonly string[] = PROBE_TRACE_FILES;
     for (const name of Object.values(PROBE_FILES)) {
+      if (!traceEnabled && traceNames.includes(name)) continue;
       fs.writeFileSync(path.join(probeDir, name), "");
     }
   } catch {

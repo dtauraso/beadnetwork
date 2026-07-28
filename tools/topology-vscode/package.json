@@ -27,6 +27,16 @@
           "group": "navigation"
         }
       ]
+    },
+    "configuration": {
+      "title": "Topology Editor",
+      "properties": {
+        "wirefold.probe.trace": {
+          "type": "boolean",
+          "default": false,
+          "description": "Write the high-volume per-owner .probe/ trace logs (go.jsonl, go-node.jsonl, go-edge.jsonl, go-interior.jsonl, ts.jsonl). Off by default because these can grow to gigabytes in a long session. Error logs (go-errors.jsonl, ts-errors.jsonl, handler-error-last.json) are always written regardless of this setting."
+        }
+      }
     }
   },
   "scripts": {

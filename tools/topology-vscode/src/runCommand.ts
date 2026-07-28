@@ -5,7 +5,7 @@ import * as path from "path";
 import type { HostToWebviewMsg } from "./messages";
 import { buildBinary, maxGoMtime, killOrphanedSims } from "./goBuild";
 import { frameRecord } from "./schema/input-layout";
-import { PROBE_DIR, PROBE_FILES } from "./probe-files";
+import { PROBE_DIR, PROBE_FILES, PROBE_TRACE_FILES, isProbeTraceEnabled } from "./probe-files";
 import { decodeBufferLog, decodeStreamFrameEvents } from "./buffer-log";
 import { decodeNodeStreamFrame, decodeEdgeStreamFrame, decodeInteriorStreamFrame } from "./webview/three/buffer-decode";
 import { BUF_BLOCK_TAG_VIEW, BUF_BLOCK_TAG_EDGE_STREAM, BUF_BLOCK_TAG_NODE_STREAM, BUF_BLOCK_TAG_INTERIOR_STREAM } from "./schema/frame-tags";
@@ -120,12 +120,16 @@ function appendGoError(goErrorsFile: string | undefined, message: string): void 
 /** The probe-path set derived once per run() from the workspace folder — see
  *  probePathsFor. */
 interface ProbePaths {
-  probeFile: string;
-  probeNodeFile: string;
-  probeEdgeFile: string;
-  probeInteriorFile: string;
+  // Trace logs: undefined when wirefold.probe.trace is off (the default). All the write
+  // sites already guard with `if (this.probeFile)` etc., so leaving these undefined makes
+  // them no-ops with no new branching at the call sites.
+  probeFile: string | undefined;
+  probeNodeFile: string | undefined;
+  probeEdgeFile: string | undefined;
+  probeInteriorFile: string | undefined;
+  tsFile: string | undefined;
+  // Error logs: always written regardless of the setting.
   goErrorsFile: string;
-  tsFile: string;
   tsErrorsFile: string;
 }
 
@@ -160,16 +164,24 @@ function rotateProbeLog(p: string): void {
 function probePathsFor(folder: vscode.WorkspaceFolder): ProbePaths {
   const probeDir = path.join(folder.uri.fsPath, PROBE_DIR);
   fs.mkdirSync(probeDir, { recursive: true });
-  for (const name of Object.values(PROBE_FILES)) {
-    rotateProbeLog(path.join(probeDir, name));
+  const traceEnabled = isProbeTraceEnabled();
+  // Errors always rotate. Trace files rotate only when the setting is on — when off, no
+  // path is armed for them below, so nothing ever writes/rotates them (see ProbePaths).
+  rotateProbeLog(path.join(probeDir, PROBE_FILES.goErrors));
+  rotateProbeLog(path.join(probeDir, PROBE_FILES.tsErrors));
+  rotateProbeLog(path.join(probeDir, PROBE_FILES.handlerErrorLast));
+  if (traceEnabled) {
+    for (const name of PROBE_TRACE_FILES) {
+      rotateProbeLog(path.join(probeDir, name));
+    }
   }
   return {
-    probeFile: path.join(probeDir, PROBE_FILES.go),
-    probeNodeFile: path.join(probeDir, PROBE_FILES.goNode),
-    probeEdgeFile: path.join(probeDir, PROBE_FILES.goEdge),
-    probeInteriorFile: path.join(probeDir, PROBE_FILES.goInterior),
+    probeFile: traceEnabled ? path.join(probeDir, PROBE_FILES.go) : undefined,
+    probeNodeFile: traceEnabled ? path.join(probeDir, PROBE_FILES.goNode) : undefined,
+    probeEdgeFile: traceEnabled ? path.join(probeDir, PROBE_FILES.goEdge) : undefined,
+    probeInteriorFile: traceEnabled ? path.join(probeDir, PROBE_FILES.goInterior) : undefined,
+    tsFile: traceEnabled ? path.join(probeDir, PROBE_FILES.ts) : undefined,
     goErrorsFile: path.join(probeDir, PROBE_FILES.goErrors),
-    tsFile: path.join(probeDir, PROBE_FILES.ts),
     tsErrorsFile: path.join(probeDir, PROBE_FILES.tsErrors),
   };
 }
