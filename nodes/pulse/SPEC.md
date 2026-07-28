@@ -43,11 +43,12 @@ Layout-side only (`nodes/Wiring/node_mover.go`), independent of the firing rule:
 
   | From sender kind | Go type | Routed to | Go type |
   |---|---|---|---|
-  | `WindowAndInhibitLeftGate` | SelectRight | `WindowAndInhibitRightGate` | SelectLeft |
-  | `WindowAndInhibitRightGate` | SelectLeft | `WindowAndInhibitLeftGate` | SelectRight |
+  | `SelectRight` | SelectRight | `SelectLeft` | SelectLeft |
+  | `SelectLeft` | SelectLeft | `SelectRight` | SelectRight |
 
-  Note the kind strings cross over relative to the Go type names — read the table,
-  not the name.
+  Both gates' kind strings now match their Go type names (historically SelectRight's
+  kind string lagged behind an old verbose "Window And Inhibit Left Gate" spelling
+  while its Go type had already been renamed; that crossover is gone).
 - From every other sender kind it keeps the plain flood to all cascade neighbors
   except the sender.
 
@@ -55,8 +56,8 @@ This is the `Pulse` kind only (node 5). `PulseLeft` (node 3) and `PulseRight` (n
 are separate kinds and are both termini with their own sender whitelists — see their
 SPECs.
 
-Node 5's cascade neighbors are `{2: TimeStart, 9: WindowAndInhibitRightGate,
-8: WindowAndInhibitLeftGate}` — the `5-8` double link is restored, which is what lets a
+Node 5's cascade neighbors are `{2: TimeStart, 9: SelectLeft,
+8: SelectRight}` — the `5-8` double link is restored, which is what lets a
 Pulse classify node 8 as SelectRight at all.
 
 ## Runtime status

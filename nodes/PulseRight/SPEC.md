@@ -43,13 +43,13 @@ The exact mirror of PulseLeft's rule (`nodes/PulseLeft/SPEC.md`), with the
 whitelist naming the other side's kinds:
 
 - PulseRight ATTENDS to a delta triple only when it arrives from a **Time** or a
-  **SelectLeft** (kind string `WindowAndInhibitRightGate`) cascade neighbor. A
+  **SelectLeft** (kind string `SelectLeft`) cascade neighbor. A
   delta from any other sender kind is dropped outright — not recorded, not relayed.
 - PulseRight NEVER cascades the delta triple onward, from any sender, and not even
   when it is the direct recipient of a drag. It is a cascade **terminus**, so an
   attended delta ends here; attending only records the observability state.
 
-Node 7's cascade neighbors are `{4: Time, 9: WindowAndInhibitRightGate}` — the `7-9`
+Node 7's cascade neighbors are `{4: Time, 9: SelectLeft}` — the `7-9`
 double link is restored, and this terminus is what made restoring it safe: it cuts
 the otherwise self-sustaining `2-4-7-9-5` cascade cycle. (Its mirror, PulseLeft at
 node 3, cuts `5-8-3-1-2` the same way.) Cascade adjacency now equals domain

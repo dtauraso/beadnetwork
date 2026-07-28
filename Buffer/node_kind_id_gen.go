@@ -12,17 +12,17 @@ const KindIDUnknown uint8 = 0xFF
 // order. Id i here ↔ NODE_DEFS_ARRAY[i] on the TS side (gaps left by a removed
 // kind get an undefined placeholder there, not a shift).
 var kindIDMap = map[string]uint8{
-	"TimeEnd":                   0,
-	"HoldFlip":                  1,
-	"Time":                      2,
-	"Input":                     3,
-	"Pacer":                     4,
-	"Pulse":                     5,
-	"WindowAndInhibitLeftGate":  6,
-	"WindowAndInhibitRightGate": 7,
-	"PulseLeft":                 8,
-	"PulseRight":                9,
-	"TimeStart":                 10,
+	"TimeEnd":     0,
+	"HoldFlip":    1,
+	"Time":        2,
+	"Input":       3,
+	"Pacer":       4,
+	"Pulse":       5,
+	"SelectRight": 6,
+	"SelectLeft":  7,
+	"PulseLeft":   8,
+	"PulseRight":  9,
+	"TimeStart":   10,
 }
 
 // NodeKindID returns the buffer KindId for a node's Go kind string.

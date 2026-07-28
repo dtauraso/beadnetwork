@@ -22,12 +22,12 @@ import (
 	_ "github.com/dtauraso/wirefold/nodes/input"
 	_ "github.com/dtauraso/wirefold/nodes/pacer"
 	_ "github.com/dtauraso/wirefold/nodes/pulse"
-	_ "github.com/dtauraso/wirefold/nodes/windowandinhibitleftgate"
+	_ "github.com/dtauraso/wirefold/nodes/selectright"
 )
 
 // speedFullSetTopo has exactly one node of every kind that owns a clock copy
 // (grep-discovered set: input, Time, hold, pacer, holdflip,
-// gatecommon.RunGate via WindowAndInhibitLeftGate, pulse) plus exactly ONE edge (so
+// gatecommon.RunGate via SelectRight, pulse) plus exactly ONE edge (so
 // exactly one edgeMover exists too). Downstream wiring beyond that single edge is
 // deliberately left absent — injectSpeedChans (builders.go) creates a node's speed
 // channel(s) unconditionally at construction, never gated on whether its OUTPUT
@@ -48,7 +48,7 @@ const speedFullSetTopo = `{
      "inputs":[{"name":"FromInput"}], "outputs":[{"name":"FeedbackOut"}]},
     {"id":"holdflip","type":"HoldFlip","data":{},
      "inputs":[{"name":"In"}], "outputs":[{"name":"Out"}]},
-    {"id":"gate","type":"WindowAndInhibitLeftGate","data":{},
+    {"id":"gate","type":"SelectRight","data":{},
      "inputs":[{"name":"FromLeft"},{"name":"FromRight"}],
      "outputs":[{"name":"ToPassed"}]},
     {"id":"pulse","type":"Pulse","data":{}}
@@ -64,7 +64,7 @@ const speedFullSetTopo = `{
 //
 //	Input(1) + Time(1) + TimeEnd(1) + Pacer(1)  = 4   (one SpeedCh each)
 //	HoldFlip: SpeedCh + DriveSpeedCh                    = 2   (main loop + 1 drive goroutine)
-//	WindowAndInhibitLeftGate (gatecommon.RunGate)       = 1   (SpeedCh)
+//	SelectRight (gatecommon.RunGate)       = 1   (SpeedCh)
 //	Pulse: SpeedCh + Out1SpeedCh + Out2SpeedCh          = 3   (main loop + 2 drive goroutines)
 //	edgeMover, one per edge (exactly 1 edge above)      = 1   (its own PacedWire is
 //	                                                            driven on ITS clock copy —

@@ -1,11 +1,11 @@
-# WindowAndInhibitRightGateNode
+# SelectLeftNode
 
 ## View
 
 | Field | Value |
 |-------|-------|
 | kindId | 7 |
-| kind | windowAndInhibitRightGate |
+| kind | selectLeft |
 | bg | #fce4ec |
 | border | #880e4f |
 | text | #880e4f |
