@@ -99,6 +99,52 @@ Fixes, not bounds. They are on this branch only because the sweep found them:
   disabling all dedicated streams with no message — quietest signal, loudest consequence,
   and the same path that used to strand the `pending` leak.
 
+## Status: Steps 1-4 complete
+
+| Step | Landed | What |
+|---|---|---|
+| 1 | `352ed798` | `maxPendingEvents` + panic; `appendPending` the single choke point |
+| 2 | `0ce147bc` | `moverInboxDepth` names six literals (declared only — see the correction above) |
+| 4 | `0a04c3c6` | `MAX_FRAME_BYTES` + parity guard; stream-cap overflow made loud |
+| 3a | `2475daa5` | `maxInflightBeads` + panic; inflight reset on empty; breadcrumb drops counted and reported |
+| 3b | `d6342f5c` | `maxPendingSends` + panic; drain loops justified, not capped |
+
+Three things worth carrying forward:
+
+**A diagnostic that names the wrong cause is worse than a vague one.** The first
+`maxInflightBeads` message blamed a destination that stopped draining `outCh`. True, but
+a source placing faster than the wire can carry reaches the same bound, and that message
+would send a reader hunting a consumer that is working fine. Both bounds' messages now
+name every cause that actually applies — and `maxPendingSends`'s test asserts it does
+*not* name unresolvable destinations, since those items are dropped rather than retained
+and listing them would waste the reader's time.
+
+**Panic is not the answer everywhere, and the dividing line is who caused it.**
+`maxPendingEvents`/`maxInflightBeads`/`maxPendingSends` panic because reaching them means
+a code bug. `moverInboxDepth` is deliberately unasserted because filling an inbox is the
+designed backpressure. `MAX_EDGE_STREAMS` overflow reports loudly but does not crash,
+because it is reached by legitimate input — a big topology — not by a bug.
+
+**Every one of the three ceilings is generous, not tight.** Each doc comment says so. They
+catch "something is definitely wrong", not "this is the exact maximum". Tightening them
+would need the measurement work the inventory called dynamic.
+
+## Remaining
+
+- **`waitForCenterSettle`** (`distance_groups.go:147-156`) — deliberately untouched. It is
+  already bounded, by time rather than iterations, so it is not a missing-bound case. Its
+  defect is returning **silently** on timeout with no signal it never settled — the same
+  shape as the Step 4 silent-disable bugs, and it deserves its own decision (return a bool
+  the caller acts on, or breadcrumb the timeout) rather than being folded in here.
+- **`check-test-integrity`'s escape hatch is branch-wide, not commit-scoped.** Its line 58
+  greps every commit message in `base..HEAD` for `[allow-test-weakening]`, so the two
+  markers this branch already carries have disabled that guard for the rest of the branch.
+  Both uses were legitimate — `recover()` asserting a panic, which its regex cannot
+  distinguish from `recover()` hiding a failure — but the effect is that a genuine
+  weakening later on this branch would pass unnoticed. Worth narrowing (marker names the
+  file, or must appear in the same commit as the weakening); not done here because it is a
+  change to a guard, not to a bound.
+
 ## Scope note
 
 **Step 3 is where the cost is** — roughly four separate design conversations, each
