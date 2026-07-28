@@ -133,9 +133,36 @@ interface ProbePaths {
  *  the runner — returns a plain object rather than writing `this.*` fields, so a caller can
  *  use goErrorsFile to report a build failure BEFORE deciding whether to arm the runner's
  *  own fields (see run()). */
+/** Rotates one probe log: `<f>` -> `<f>.prev` (overwriting any older .prev), leaving no
+ *  `<f>` so the run's first appendFileSync starts it fresh.
+ *
+ *  Why rotate rather than truncate: the probe writers are append-only and nothing ever
+ *  reset them, so `.probe/` grew without bound across every run AND every reload-window
+ *  (measured at 1.2 GB, 1.1 GB of it go-edge.jsonl). But plain truncate-on-start would
+ *  destroy the log of the run you just did — which is the exact moment you want it, since
+ *  the first move on an editor hang is to read go-errors.jsonl
+ *  (memory/feedback_runner_errors_probe_first). One generation keeps that evidence alive
+ *  across a single reload while bounding growth at two runs.
+ *
+ *  Best-effort: a rotation failure must never stop a run from starting, so errors are
+ *  swallowed. The worst case is the old behavior (this run appends to the existing file).
+ *  tools/probe-merge.sh reads the live files and is unaffected. */
+function rotateProbeLog(p: string): void {
+  try {
+    if (!fs.existsSync(p)) return;
+    fs.rmSync(`${p}.prev`, { force: true });
+    fs.renameSync(p, `${p}.prev`);
+  } catch {
+    /* best effort — never block a run on log rotation */
+  }
+}
+
 function probePathsFor(folder: vscode.WorkspaceFolder): ProbePaths {
   const probeDir = path.join(folder.uri.fsPath, PROBE_DIR);
   fs.mkdirSync(probeDir, { recursive: true });
+  for (const name of Object.values(PROBE_FILES)) {
+    rotateProbeLog(path.join(probeDir, name));
+  }
   return {
     probeFile: path.join(probeDir, PROBE_FILES.go),
     probeNodeFile: path.join(probeDir, PROBE_FILES.goNode),
