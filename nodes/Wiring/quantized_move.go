@@ -319,10 +319,12 @@ func (lq *layoutQuantizer) neighborSetCRequantize(md *MoveDispatch, selfID, from
 	// to every OTHER cascade-link neighbor (every cascade-link neighbor except fromID —
 	// see nodeMover.forwardDelta's doc comment). Every forward recipient in turn does
 	// its OWN hop (handle's moveMsgKindDeltaForward case) — independent, concurrent hops
-	// that together spread the triple across the whole reachable graph. Because the
-	// cascade-link set is loop-free by construction, this runs on EVERY move (not just
-	// the first this drag), keeping the forwarded log in sync with the drag as it
-	// continues — there is no once-per-drag guard to gate it.
+	// that together spread the triple across whatever the per-kind relay rules make
+	// reachable. The stored cascade-link set is NOT loop-free by construction (it now
+	// includes both cycle-closing links); termination comes from those rules — see
+	// nodeMover.forwardDelta. This still runs on EVERY move (not just the first this
+	// drag), keeping the forwarded log in sync with the drag as it continues — there is
+	// no once-per-drag guard to gate it.
 	if nm, ok := md.mr.nodeMovers[selfID]; ok {
 		nm.forwardDelta(md, fromID, int32(deltaA), int32(deltaB), int32(deltaC))
 	}

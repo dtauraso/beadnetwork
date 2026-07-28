@@ -55,8 +55,9 @@ This is the `Pulse` kind only (node 5). `PulseLeft` (node 3) and `PulseRight` (n
 are separate kinds and are both termini with their own sender whitelists — see their
 SPECs.
 
-Node 5's cascade neighbors are `{2: TimeStart, 9: WindowAndInhibitRightGate}`, plus
-`{8: WindowAndInhibitLeftGate}` once the `5-8` double link is restored.
+Node 5's cascade neighbors are `{2: TimeStart, 9: WindowAndInhibitRightGate,
+8: WindowAndInhibitLeftGate}` — the `5-8` double link is restored, which is what lets a
+Pulse classify node 8 as SelectRight at all.
 
 ## Runtime status
 
