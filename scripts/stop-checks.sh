@@ -141,18 +141,24 @@ if [ -n "$go_changed" ]; then
     out+="go build failed:\n$go_out\n\n"
     fail=1
   fi
-  # go test -race — fast/cached here, so run it on the same gate as go build
-  # (Go changed / branch ahead of origin/main). This was the one verify step
-  # living outside the suite.
+  # go test — runs on the same gate as go build (Go changed / branch ahead of
+  # origin/main). This was the one verify step living outside the suite.
   #
-  # -race is NOT optional here. This model is per-node mover goroutines, per-edge
-  # edgeMover goroutines, PacedWire goroutines, atomic center snapshots, and a
-  # Trace drain goroutine — the exact shape the race detector exists for, and the
-  # exact shape nothing else in this suite can check. The persistence tests, which
-  # spin up the real network and drive drags, are the ideal race workload; running
-  # them WITHOUT -race was leaving the best detector we have switched off.
-  # Measured cost on this repo: 4.9s -> 6.3s uncached. Cheap for what it covers.
-  if ! gotest_out=$(go test -race ./... 2>&1); then
+  # -race was REMOVED (2026-07-28). Its original justification named "atomic center
+  # snapshots" as the shared memory worth detecting races on. That code is gone:
+  # check-no-network-locks.sh now enforces ZERO atomics and ZERO mutexes across
+  # nodes/ Buffer/ Trace/ with an empty ALLOWED_ATOMIC set and a rot-check, so the
+  # shared-memory bug class -race detects is structurally unrepresentable here —
+  # per-mover ownership, dedicated per-pair channels, no shared state.
+  #
+  # The cost had also drifted 13x from what the original decision was priced on:
+  # the comment claimed "4.9s -> 6.3s uncached"; measured 2026-07-28 it was 82s of
+  # a ~112s suite, i.e. 73% of every Stop-hook run to check a bug class a guard
+  # already makes impossible.
+  #
+  # If shared state is ever deliberately reintroduced, check-no-network-locks.sh
+  # fails first — restore -race here in the same commit that allowlists the atomic.
+  if ! gotest_out=$(go test ./... 2>&1); then
     out+="go test failed:\n$gotest_out\n\n"
     fail=1
   fi
