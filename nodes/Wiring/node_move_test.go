@@ -51,8 +51,8 @@ func TestDecentralizedNodeMove(t *testing.T) {
 	// Initial positions are scene polar about the origin: src (100,0,0), dst (0,0,0).
 	const topo = `{
 	  "nodes": [
-	    {"id":"src","type":"SrcNode","scenePolarR":100,"scenePolarTheta":1.5707963267948966,"scenePolarPhi":0,"outputs":[{"name":"Out"}]},
-	    {"id":"dst","type":"SinkNode","scenePolarR":0,"scenePolarTheta":0,"scenePolarPhi":0,"inputs":[{"name":"In"}]}
+	    {"id":"src","type":"SrcNode","scenePolarR":100,"scenePolarTheta":1.5707963267948966,"scenePolarPhi":0,"outputs":[{"name":"Out"}],"cascadeEdges":["dst"],"cascadeKinds":{"dst":"SinkNode"}},
+	    {"id":"dst","type":"SinkNode","scenePolarR":0,"scenePolarTheta":0,"scenePolarPhi":0,"inputs":[{"name":"In"}],"cascadeEdges":["src"],"cascadeKinds":{"src":"SrcNode"}}
 	  ],
 	  "edges": [
 	    {"label":"e0","kind":"data","source":"src","sourceHandle":"Out","target":"dst","targetHandle":"In"}
@@ -188,8 +188,8 @@ func TestNodeGeometryLabelSidecar(t *testing.T) {
 	// "src" carries an explicit human label; "dst" omits data.label → label falls back to id.
 	const topo = `{
 	  "nodes": [
-	    {"id":"src","type":"SrcNode","data":{"label":"Source Node"},"outputs":[{"name":"Out"}]},
-	    {"id":"dst","type":"SinkNode","inputs":[{"name":"In"}]}
+	    {"id":"src","type":"SrcNode","data":{"label":"Source Node"},"outputs":[{"name":"Out"}],"cascadeEdges":["dst"],"cascadeKinds":{"dst":"SinkNode"}},
+	    {"id":"dst","type":"SinkNode","inputs":[{"name":"In"}],"cascadeEdges":["src"],"cascadeKinds":{"src":"SrcNode"}}
 	  ],
 	  "edges": [
 	    {"label":"e0","kind":"data","source":"src","sourceHandle":"Out","target":"dst","targetHandle":"In"}
@@ -248,8 +248,8 @@ func TestNodeGeometryLabelSidecar(t *testing.T) {
 func TestMoverCenterRace(t *testing.T) {
 	const topo = `{
 	  "nodes": [
-	    {"id":"src","type":"SrcNode","outputs":[{"name":"Out"}]},
-	    {"id":"dst","type":"SinkNode","inputs":[{"name":"In"}]}
+	    {"id":"src","type":"SrcNode","outputs":[{"name":"Out"}],"cascadeEdges":["dst"],"cascadeKinds":{"dst":"SinkNode"}},
+	    {"id":"dst","type":"SinkNode","inputs":[{"name":"In"}],"cascadeEdges":["src"],"cascadeKinds":{"src":"SrcNode"}}
 	  ],
 	  "edges": [
 	    {"label":"e0","kind":"data","source":"src","sourceHandle":"Out","target":"dst","targetHandle":"In"}
@@ -301,8 +301,8 @@ func TestMoverCenterRace(t *testing.T) {
 func TestOutGeomRace(t *testing.T) {
 	const topo = `{
 	  "nodes": [
-	    {"id":"src","type":"SrcNode","outputs":[{"name":"Out"}]},
-	    {"id":"dst","type":"SinkNode","inputs":[{"name":"In"}]}
+	    {"id":"src","type":"SrcNode","outputs":[{"name":"Out"}],"cascadeEdges":["dst"],"cascadeKinds":{"dst":"SinkNode"}},
+	    {"id":"dst","type":"SinkNode","inputs":[{"name":"In"}],"cascadeEdges":["src"],"cascadeKinds":{"src":"SrcNode"}}
 	  ],
 	  "edges": [
 	    {"label":"e0","kind":"data","source":"src","sourceHandle":"Out","target":"dst","targetHandle":"In"}
@@ -367,8 +367,8 @@ func TestOutGeomRace(t *testing.T) {
 func TestRootMoveContinuousPositionLocalPolarRequantize(t *testing.T) {
 	const topo = `{
 	  "nodes": [
-	    {"id":"src","type":"SrcNode","outputs":[{"name":"Out"}]},
-	    {"id":"dst","type":"SinkNode","inputs":[{"name":"In"}]}
+	    {"id":"src","type":"SrcNode","outputs":[{"name":"Out"}],"cascadeEdges":["dst"],"cascadeKinds":{"dst":"SinkNode"}},
+	    {"id":"dst","type":"SinkNode","inputs":[{"name":"In"}],"cascadeEdges":["src"],"cascadeKinds":{"src":"SrcNode"}}
 	  ],
 	  "edges": [
 	    {"label":"e0","kind":"data","source":"src","sourceHandle":"Out","target":"dst","targetHandle":"In"}

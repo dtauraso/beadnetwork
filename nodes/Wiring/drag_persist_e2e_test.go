@@ -44,6 +44,8 @@ func writeStar3(t *testing.T) string {
 	// the kind, not that a handle is used by at most one edge.
 	mk("edges/eAB.json", `{"label":"eAB","kind":"data","source":"A","sourceHandle":"Out","target":"B","targetHandle":"In"}`)
 	mk("edges/eAC.json", `{"label":"eAC","kind":"data","source":"A","sourceHandle":"Out","target":"C","targetHandle":"In"}`)
+	writeCascadeEdgesFromEdges(t, root, map[string]string{"A": "SrcNode", "B": "SinkNode", "C": "SinkNode"},
+		[][2]string{{"A", "B"}, {"A", "C"}})
 	return root
 }
 

@@ -541,7 +541,22 @@ func (lq *layoutQuantizer) requantizeLocalPolars(md *MoveDispatch, nm *nodeMover
 	for _, lp := range lhX.LocalPolarsSnapshot() {
 		lpByTo[lp.To] = lp
 	}
-	for m := range updatesX {
+	// The recipient set is THIS node's own stored cascadeEdges (nodes/<id>/
+	// cascade-edges.json), NOT the domain-neighbor set updatesX was built from. There is
+	// no behavior change: parseSpec's validateCascadeEdges now REQUIRES cascade adjacency
+	// to equal domain adjacency, so the two sets are provably identical at load. The point
+	// is removing the SECOND source of truth for "who is my neighbor" — the drag fan and
+	// the delta-forward fan (forwardDelta) now read the same stored list, so they cannot
+	// drift apart. They did drift, and it was a real bug: dragging node 8 reached node 5
+	// over the domain edge 5-8 while node 5's cascade-edges.json had no entry for 8, so
+	// forwardDelta read the sender's kind as "" and the Pulse gate-routing rule fell
+	// through to a flood.
+	//
+	// X still re-quantizes its OWN triple to every domain neighbor above
+	// (requantizePoleTraced takes updatesX unchanged); only the outbound assignment is
+	// scoped here. A cascade neighbor X did not re-quantize toward on this commit has no
+	// lpByTo entry and is skipped.
+	for _, m := range nm.cascadeEdges {
 		newLP, ok := lpByTo[m]
 		if !ok {
 			continue
