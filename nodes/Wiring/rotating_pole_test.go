@@ -136,7 +136,11 @@ func TestRotatingPolePersistReload(t *testing.T) {
 	md.EnableEditPersist(root)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	md.Start(ctx)
+	wg := md.Start(ctx)
+	// Registered AFTER t.TempDir(), so t.Cleanup LIFO runs it BEFORE the
+	// dir RemoveAll: cancel() only SIGNALS, and a goroutine still closing
+	// its stream fds races the cleanup ("bad file descriptor").
+	t.Cleanup(func() { cancel(); wg.Wait() })
 
 	lhSrc, ok := md.lq.layoutHolders["src"]
 	if !ok {
