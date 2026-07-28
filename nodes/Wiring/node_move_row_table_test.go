@@ -25,8 +25,8 @@ func TestMoveDispatchRowTablesMatchSeedOrder(t *testing.T) {
 	// flattened port-row table's per-node port ordering.
 	const topo = `{
 	  "nodes": [
-	    {"id":"z-node","type":"AimedSrc","scenePolarR":0,"scenePolarTheta":0,"scenePolarPhi":0},
-	    {"id":"a-node","type":"AimedSink","scenePolarR":50,"scenePolarTheta":1.5707963267948966,"scenePolarPhi":0},
+	    {"id":"z-node","type":"AimedSrc","scenePolarR":0,"scenePolarTheta":0,"scenePolarPhi":0,"cascadeEdges":["a-node"],"cascadeKinds":{"a-node":"AimedSink"}},
+	    {"id":"a-node","type":"AimedSink","scenePolarR":50,"scenePolarTheta":1.5707963267948966,"scenePolarPhi":0,"cascadeEdges":["z-node"],"cascadeKinds":{"z-node":"AimedSrc"}},
 	    {"id":"m-node","type":"AimedSink","scenePolarR":50,"scenePolarTheta":1.5707963267948966,"scenePolarPhi":3.14159}
 	  ],
 	  "edges": [

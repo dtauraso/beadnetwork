@@ -319,10 +319,12 @@ func (lq *layoutQuantizer) neighborSetCRequantize(md *MoveDispatch, selfID, from
 	// to every OTHER cascade-link neighbor (every cascade-link neighbor except fromID —
 	// see nodeMover.forwardDelta's doc comment). Every forward recipient in turn does
 	// its OWN hop (handle's moveMsgKindDeltaForward case) — independent, concurrent hops
-	// that together spread the triple across the whole reachable graph. Because the
-	// cascade-link set is loop-free by construction, this runs on EVERY move (not just
-	// the first this drag), keeping the forwarded log in sync with the drag as it
-	// continues — there is no once-per-drag guard to gate it.
+	// that together spread the triple across whatever the per-kind relay rules make
+	// reachable. The stored cascade-link set is NOT loop-free by construction (it now
+	// includes both cycle-closing links); termination comes from those rules — see
+	// nodeMover.forwardDelta. This still runs on EVERY move (not just the first this
+	// drag), keeping the forwarded log in sync with the drag as it continues — there is
+	// no once-per-drag guard to gate it.
 	if nm, ok := md.mr.nodeMovers[selfID]; ok {
 		nm.forwardDelta(md, fromID, int32(deltaA), int32(deltaB), int32(deltaC))
 	}
@@ -539,7 +541,22 @@ func (lq *layoutQuantizer) requantizeLocalPolars(md *MoveDispatch, nm *nodeMover
 	for _, lp := range lhX.LocalPolarsSnapshot() {
 		lpByTo[lp.To] = lp
 	}
-	for m := range updatesX {
+	// The recipient set is THIS node's own stored cascadeEdges (nodes/<id>/
+	// cascade-edges.json), NOT the domain-neighbor set updatesX was built from. There is
+	// no behavior change: parseSpec's validateCascadeEdges now REQUIRES cascade adjacency
+	// to equal domain adjacency, so the two sets are provably identical at load. The point
+	// is removing the SECOND source of truth for "who is my neighbor" — the drag fan and
+	// the delta-forward fan (forwardDelta) now read the same stored list, so they cannot
+	// drift apart. They did drift, and it was a real bug: dragging node 8 reached node 5
+	// over the domain edge 5-8 while node 5's cascade-edges.json had no entry for 8, so
+	// forwardDelta read the sender's kind as "" and the Pulse gate-routing rule fell
+	// through to a flood.
+	//
+	// X still re-quantizes its OWN triple to every domain neighbor above
+	// (requantizePoleTraced takes updatesX unchanged); only the outbound assignment is
+	// scoped here. A cascade neighbor X did not re-quantize toward on this commit has no
+	// lpByTo entry and is skipped.
+	for _, m := range nm.cascadeEdges {
 		newLP, ok := lpByTo[m]
 		if !ok {
 			continue

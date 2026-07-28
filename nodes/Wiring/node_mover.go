@@ -502,7 +502,7 @@ func (m *nodeMover) handle(msg moveMsg) {
 		// to a delta triple only from a Time or a SelectLeft ("WindowAndInhibitRightGate" —
 		// nodes/windowandinhibitrightgate/node.go) cascade neighbor, and (see forwardDelta)
 		// never relays. Node 7's cascade neighbors are {4: Time} today, plus
-		// {9: WindowAndInhibitRightGate} once the 7-9 double link is restored.
+		// {9: WindowAndInhibitRightGate} (the 7-9 double link is restored).
 		if m.selfKind == "PulseRight" {
 			switch m.cascadeKinds[msg.SenderID] {
 			case "Time", "WindowAndInhibitRightGate":
@@ -545,13 +545,17 @@ func (m *nodeMover) handle(msg moveMsg) {
 // node) or from a neighbor that already forwarded (handle's moveMsgKindDeltaForward case,
 // exceptID = that neighbor) — to every id in m.cascadeEdges (this node's STORED
 // cascade-neighbor list, nodes/<id>/cascade-edges.json — see the field's doc comment),
-// EXCLUDING the sender. cascadeEdges is hand-authored/persisted data (the full node
-// adjacency minus the cycle-closing links, seeded once outside this codebase), so plain
-// "forward to my cascade-edge neighbors, excluding the sender, concurrently" is loop-free
-// BY CONSTRUCTION: propagation flows outward from the dragged node and terminates
-// naturally with NO visit-tracking, no generation, no once-per-drag guard — every move
-// (not just the first) re-floods freely, which is what keeps the forwarded log in sync
-// with the drag as it continues (see gotForwardMsg's doc comment). Sent via m's OWN retry
+// EXCLUDING the sender. cascadeEdges is hand-authored/persisted data seeded once outside
+// this codebase, and it now carries the FULL node adjacency INCLUDING both cycle-closing
+// links (5-8, 7-9) — so this is NOT loop-free by construction, as it was when the stored
+// set was a spanning tree. Termination comes from the PER-KIND rules below and in the
+// moveMsgKindDeltaForward handler: PulseLeft/PulseRight relay to nobody, TimeStart and
+// Pulse route by sender kind, TimeEnd stops. There is still NO visit-tracking, no
+// generation, no once-per-drag guard — every move (not just the first) re-propagates
+// freely, which is what keeps the forwarded log in sync with the drag as it continues
+// (see gotForwardMsg's doc comment). Measured: 1-6 forwards per single-node drag; the
+// same edge set with no per-kind rules ran at a steady ~300 forwards/sec indefinitely.
+// Sent via m's OWN retry
 // queue (m.sendMove, the same fire-and-forget mechanism every other fan-out in this file
 // uses) — never blocking. Called only from m's own goroutine (handle, and
 // neighborSetCRequantize which already runs on selfID's own goroutine).
