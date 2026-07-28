@@ -1,5 +1,5 @@
 // Package gatecommon holds the shared constants and gate-loop body used by
-// WindowAndInhibitLeftGate and WindowAndInhibitRightGate. Each of those node
+// SelectRight and SelectLeft. Each of those node
 // packages is its own package (primitive landing rule) but delegates its
 // Update body here, parameterised by which side is NOT-inverted on capture.
 package gatecommon
@@ -366,8 +366,8 @@ func runGateLoop(ctx context.Context, g *GateNode, captureLeftFn, captureRightFn
 }
 
 // RunGate runs the shared window-and-inhibit gate loop.
-// invertLeft=true  → the LEFT input is NOT-inverted on capture  (WindowAndInhibitLeftGate).
-// invertLeft=false → the RIGHT input is NOT-inverted on capture (WindowAndInhibitRightGate).
+// invertLeft=true  → the LEFT input is NOT-inverted on capture  (SelectRight).
+// invertLeft=false → the RIGHT input is NOT-inverted on capture (SelectLeft).
 // Fires 1 iff the STORED (post-inversion) values are Left==1 AND Right==1.
 func RunGate(ctx context.Context, g *GateNode, invertLeft bool) {
 	runGateLoop(ctx, g,

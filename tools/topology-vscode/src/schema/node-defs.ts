@@ -24,11 +24,11 @@ export const RUNTIME_IMPLEMENTED_KINDS: ReadonlySet<string> = new Set([
   "Pulse",
   "PulseLeft",
   "PulseRight",
+  "SelectLeft",
+  "SelectRight",
   "Time",
   "TimeEnd",
   "TimeStart",
-  "WindowAndInhibitLeftGate",
-  "WindowAndInhibitRightGate",
 ]);
 
 export const NODE_DEFS: Record<string, NodeDef> = {
@@ -38,11 +38,11 @@ export const NODE_DEFS: Record<string, NodeDef> = {
   Pulse: { bg: "#e1f5fe", border: "#2196f3", text: "#01579b", minWidth: 90, shape: "rect", fill: "#e1f5fe", stroke: "#2196f3", width: 90, height: 60, inputs: [{ name: "FromInput", kind: "chain" }], outputs: [{ name: "Out", kind: "chain" }, { name: "Out2", kind: "chain" }] },
   PulseLeft: { bg: "#e1f5fe", border: "#90caf9", text: "#01579b", minWidth: 90, shape: "rect", fill: "#e1f5fe", stroke: "#90caf9", width: 90, height: 60, inputs: [{ name: "FromInput", kind: "chain" }], outputs: [{ name: "Out", kind: "chain" }, { name: "Out2", kind: "chain" }] },
   PulseRight: { bg: "#e1f5fe", border: "#01579b", text: "#01579b", minWidth: 90, shape: "rect", fill: "#e1f5fe", stroke: "#01579b", width: 90, height: 60, inputs: [{ name: "FromInput", kind: "chain" }], outputs: [{ name: "Out", kind: "chain" }, { name: "Out2", kind: "chain" }] },
+  SelectLeft: { bg: "#fce4ec", border: "#880e4f", text: "#880e4f", minWidth: 110, shape: "rect", fill: "#fce4ec", stroke: "#880e4f", width: 80, height: 60, inputs: [{ name: "FromLeft", kind: "chain" }, { name: "FromRight", kind: "chain" }], outputs: [{ name: "ToPassed", kind: "chain" }] },
+  SelectRight: { bg: "#fce4ec", border: "#f06292", text: "#880e4f", minWidth: 110, shape: "rect", fill: "#fce4ec", stroke: "#f06292", width: 80, height: 60, inputs: [{ name: "FromLeft", kind: "chain" }, { name: "FromRight", kind: "chain" }], outputs: [{ name: "ToPassed", kind: "chain" }] },
   Time: { bg: "#fff3e0", border: "#e65100", text: "#bf360c", minWidth: 90, shape: "rect", fill: "#fff3e0", stroke: "#e65100", width: 90, height: 60, inputs: [{ name: "FromPrevTimeNode", kind: "chain" }], outputs: [{ name: "ToNext", kind: "chain", isMulti: true }] },
   TimeEnd: { bg: "#fff3e0", border: "#7f0000", text: "#bf360c", minWidth: 60, shape: "rect", fill: "#fff3e0", stroke: "#7f0000", width: 60, height: 60, inputs: [{ name: "In", kind: "chain" }] },
   TimeStart: { bg: "#fff3e0", border: "#ffc400", text: "#bf360c", minWidth: 90, shape: "rect", fill: "#fff3e0", stroke: "#ffc400", width: 90, height: 60, inputs: [{ name: "FromPrevTimeNode", kind: "chain" }], outputs: [{ name: "ToNext", kind: "chain", isMulti: true }] },
-  WindowAndInhibitLeftGate: { bg: "#fce4ec", border: "#f06292", text: "#880e4f", minWidth: 110, shape: "rect", fill: "#fce4ec", stroke: "#f06292", width: 80, height: 60, inputs: [{ name: "FromLeft", kind: "chain" }, { name: "FromRight", kind: "chain" }], outputs: [{ name: "ToPassed", kind: "chain" }] },
-  WindowAndInhibitRightGate: { bg: "#fce4ec", border: "#880e4f", text: "#880e4f", minWidth: 110, shape: "rect", fill: "#fce4ec", stroke: "#880e4f", width: 80, height: 60, inputs: [{ name: "FromLeft", kind: "chain" }, { name: "FromRight", kind: "chain" }], outputs: [{ name: "ToPassed", kind: "chain" }] },
 };
 
 export const NODE_DEFS_ARRAY: readonly NodeDef[] = [
@@ -66,8 +66,8 @@ export const NODE_KIND_NAMES: readonly string[] = [
   "Input",
   "Pacer",
   "Pulse",
-  "WindowAndInhibitLeftGate",
-  "WindowAndInhibitRightGate",
+  "SelectRight",
+  "SelectLeft",
   "PulseLeft",
   "PulseRight",
   "TimeStart",

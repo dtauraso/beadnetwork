@@ -32,7 +32,7 @@ func (s *syncBuffer) String() string {
 
 // TestGateWithUnwiredOutputStillObeysSpeed reproduces the reported bug: a gate
 // whose ToPassed output has NO live wire (Paced()==false — exactly node 9/10's
-// WindowAndInhibit*Gate in the shipped topology, whose ToPassed has no
+// SelectLeft/SelectRight in the shipped topology, whose ToPassed has no
 // consuming edge) must still measure its window/dwell timing — and therefore
 // its interior-bead present/absent flicker — off a SPEED-AWARE clock, not the
 // loader's origin clock (which nothing ever applies a speed change to; see
@@ -113,7 +113,7 @@ func TestGateWithUnwiredOutputStillObeysSpeed(t *testing.T) {
 	}
 }
 
-// stepPacedWire mirrors windowandinhibitleftgate's firing_rule_lean_test.go
+// stepPacedWire mirrors selectright's firing_rule_lean_test.go
 // stepWire helper: continuously StepOnceAts pw on a short wall-clock poll,
 // matching the production per-cycle StepOnceAt delivery path.
 func stepPacedWire(ctx context.Context, pw *wire.PacedWire, clk wire.Clock) {

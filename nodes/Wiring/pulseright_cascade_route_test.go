@@ -3,7 +3,7 @@
 //
 // PulseRight (node 7) is a cascade TERMINUS with a sender whitelist:
 //   - it ATTENDS to a delta triple only from a Time or SelectLeft
-//     ("WindowAndInhibitRightGate") cascade neighbor — any other sender kind is dropped
+//     ("SelectLeft") cascade neighbor — any other sender kind is dropped
 //     outright in the moveMsgKindDeltaForward handler (no record, no relay);
 //   - it NEVER relays a triple onward, from any sender and even as a direct drag
 //     recipient (the guard at the top of forwardDelta).
@@ -27,7 +27,7 @@ func TestForwardDeltaPulseRightNeverRelays(t *testing.T) {
 			id:           "7",
 			selfKind:     "PulseRight",
 			cascadeEdges: []string{"4", "9"},
-			cascadeKinds: map[string]string{"4": "Time", "9": "WindowAndInhibitRightGate"},
+			cascadeKinds: map[string]string{"4": "Time", "9": "SelectLeft"},
 			sendMove: func(id string, msg moveMsg) {
 				mu.Lock()
 				got = append(got, id)
@@ -46,7 +46,7 @@ func TestForwardDeltaPulseRightNeverRelays(t *testing.T) {
 }
 
 // TestPulseRightAttendsOnlyTimeAndSelectLeft exercises the handler-level whitelist: a
-// forward from Time or WindowAndInhibitRightGate is recorded (gotForwardMsg==1); one from
+// forward from Time or SelectLeft is recorded (gotForwardMsg==1); one from
 // any other kind leaves this node's forward state untouched.
 func TestPulseRightAttendsOnlyTimeAndSelectLeft(t *testing.T) {
 	cases := []struct {
@@ -55,17 +55,17 @@ func TestPulseRightAttendsOnlyTimeAndSelectLeft(t *testing.T) {
 		want       uint8
 	}{
 		{"4", "Time", 1},
-		{"9", "WindowAndInhibitRightGate", 1},
+		{"9", "SelectLeft", 1},
 		{"1", "Input", 0},
-		{"8", "WindowAndInhibitLeftGate", 0},
+		{"8", "SelectRight", 0},
 	}
 	for _, c := range cases {
 		nm := &nodeMover{
 			id:           "7",
 			selfKind:     "PulseRight",
 			cascadeEdges: []string{"4", "9"},
-			cascadeKinds: map[string]string{"4": "Time", "9": "WindowAndInhibitRightGate",
-				"1": "Input", "8": "WindowAndInhibitLeftGate"},
+			cascadeKinds: map[string]string{"4": "Time", "9": "SelectLeft",
+				"1": "Input", "8": "SelectRight"},
 			sendMove: func(id string, msg moveMsg) {},
 		}
 		nm.handle(moveMsg{Kind: moveMsgKindDeltaForward, NodeID: "7", SenderID: c.senderID,

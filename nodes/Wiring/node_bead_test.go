@@ -140,12 +140,12 @@ func TestInteriorBeadsInsideSphere(t *testing.T) {
 	}
 }
 
-// TestInputBeadsInsideSphere asserts the two WindowAndInhibitRightGate side beads (at
+// TestInputBeadsInsideSphere asserts the two SelectLeft side beads (at
 // ±interiorSlot on x, vertically centered) keep their torus reach inside the
-// node sphere: |offset| + interiorTorusOuterR ≤ nodeRadius("WindowAndInhibitRightGate").
+// node sphere: |offset| + interiorTorusOuterR ≤ nodeRadius("SelectLeft").
 func TestInputBeadsInsideSphere(t *testing.T) {
 	rt := interiorTorusOuterR
-	r := nodeRadius("WindowAndInhibitRightGate")
+	r := nodeRadius("SelectLeft")
 	for _, x := range []float64{-interiorSlot, interiorSlot} {
 		dist := math.Abs(x)
 		reach := dist + rt

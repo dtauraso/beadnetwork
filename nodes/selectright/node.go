@@ -1,4 +1,4 @@
-package windowandinhibitleftgate
+package selectright
 
 import (
 	"context"
@@ -7,8 +7,8 @@ import (
 	"github.com/dtauraso/wirefold/nodes/gatecommon"
 )
 
-// SelectRight is the "WindowAndInhibitLeftGate" kind (registered as
-// "WindowAndInhibitLeftGate" below — the name lives here in the comment,
+// SelectRight is the "SelectRight" kind (registered as
+// "SelectRight" below — the name lives here in the comment,
 // describing what its functions do). Its functions: Update runs the shared gate
 // loop (gatecommon.RunGateAccept), which accepts the raw 01 pattern —
 // FromLeft==0 AND FromRight==1 — directly, no inversion/NOT gates. Inputs are
@@ -26,5 +26,5 @@ func (g *SelectRight) Update(ctx context.Context) {
 }
 
 func init() {
-	wire.Register("WindowAndInhibitLeftGate", func() any { return &SelectRight{} })
+	wire.Register("SelectRight", func() any { return &SelectRight{} })
 }

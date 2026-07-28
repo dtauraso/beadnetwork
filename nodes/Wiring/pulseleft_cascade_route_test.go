@@ -1,9 +1,9 @@
 // pulseleft_cascade_route_test.go — PulseLeft's cascade delta rules.
 //
 // PulseLeft (node 3) is a cascade TERMINUS with a sender whitelist:
-//   - it ATTENDS to a delta triple only from an Input or SelectRight
-//     ("WindowAndInhibitLeftGate") cascade neighbor — any other sender kind is dropped
-//     outright in the moveMsgKindDeltaForward handler (no record, no relay);
+//   - it ATTENDS to a delta triple only from an Input or SelectRight cascade
+//     neighbor — any other sender kind is dropped outright in the
+//     moveMsgKindDeltaForward handler (no record, no relay);
 //   - it NEVER relays a triple onward, from any sender and even as a direct drag
 //     recipient (the guard at the top of forwardDelta).
 
@@ -25,7 +25,7 @@ func TestForwardDeltaPulseLeftNeverRelays(t *testing.T) {
 			id:           "3",
 			selfKind:     "PulseLeft",
 			cascadeEdges: []string{"1", "8"},
-			cascadeKinds: map[string]string{"1": "Input", "8": "WindowAndInhibitLeftGate"},
+			cascadeKinds: map[string]string{"1": "Input", "8": "SelectRight"},
 			sendMove: func(id string, msg moveMsg) {
 				mu.Lock()
 				got = append(got, id)
@@ -44,7 +44,7 @@ func TestForwardDeltaPulseLeftNeverRelays(t *testing.T) {
 }
 
 // TestPulseLeftAttendsOnlyInputAndSelectRight exercises the handler-level whitelist: a
-// forward from Input or WindowAndInhibitLeftGate is recorded (gotForwardMsg==1); one from
+// forward from Input or SelectRight is recorded (gotForwardMsg==1); one from
 // any other kind leaves this node's forward state untouched.
 func TestPulseLeftAttendsOnlyInputAndSelectRight(t *testing.T) {
 	cases := []struct {
@@ -53,7 +53,7 @@ func TestPulseLeftAttendsOnlyInputAndSelectRight(t *testing.T) {
 		want       uint8
 	}{
 		{"1", "Input", 1},
-		{"8", "WindowAndInhibitLeftGate", 1},
+		{"8", "SelectRight", 1},
 		{"4", "Time", 0},
 		{"5", "Pulse", 0},
 	}
@@ -62,7 +62,7 @@ func TestPulseLeftAttendsOnlyInputAndSelectRight(t *testing.T) {
 			id:           "3",
 			selfKind:     "PulseLeft",
 			cascadeEdges: []string{"1", "8"},
-			cascadeKinds: map[string]string{"1": "Input", "8": "WindowAndInhibitLeftGate", "4": "Time", "5": "Pulse"},
+			cascadeKinds: map[string]string{"1": "Input", "8": "SelectRight", "4": "Time", "5": "Pulse"},
 			sendMove:     func(id string, msg moveMsg) {},
 		}
 		nm.handle(moveMsg{Kind: moveMsgKindDeltaForward, NodeID: "3", SenderID: c.senderID,

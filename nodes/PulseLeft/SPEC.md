@@ -41,13 +41,14 @@ layout-cascade rule below.
 Layout-side only (`nodes/Wiring/node_mover.go`), independent of the firing rule:
 
 - PulseLeft ATTENDS to a delta triple only when it arrives from an **Input** or a
-  **SelectRight** (kind string `WindowAndInhibitLeftGate`) cascade neighbor. A
-  delta from any other sender kind is dropped outright — not recorded, not relayed.
+  **SelectRight** cascade neighbor (SelectRight's kind string now matches its Go type
+  name). A delta from any other sender kind is dropped outright — not recorded, not
+  relayed.
 - PulseLeft NEVER cascades the delta triple onward, from any sender, and not even
   when it is the direct recipient of a drag. It is a cascade **terminus**, so an
   attended delta ends here; attending only records the observability state.
 
-Node 3's cascade neighbors are exactly `{1: Input, 8: WindowAndInhibitLeftGate}`,
+Node 3's cascade neighbors are exactly `{1: Input, 8: SelectRight}`,
 so the whitelist is a forward-looking guard against an other-kind neighbor.
 
 ## Runtime status

@@ -1,4 +1,4 @@
-package windowandinhibitrightgate
+package selectleft
 
 import (
 	"context"
@@ -7,8 +7,8 @@ import (
 	"github.com/dtauraso/wirefold/nodes/gatecommon"
 )
 
-// SelectLeft is the "WindowAndInhibitRightGate" kind (registered as
-// "WindowAndInhibitRightGate" below — the name lives here in the comment,
+// SelectLeft is the "SelectLeft" kind (registered as
+// "SelectLeft" below — the name lives here in the comment,
 // describing what its functions do). Its functions: Update runs the shared gate
 // loop (gatecommon.RunGateAccept), which collects both inputs in the coincidence
 // window and accepts the raw 10 pattern — FromLeft==1 AND FromRight==0 — DIRECTLY,
@@ -25,5 +25,5 @@ func (g *SelectLeft) Update(ctx context.Context) {
 }
 
 func init() {
-	wire.Register("WindowAndInhibitRightGate", func() any { return &SelectLeft{} })
+	wire.Register("SelectLeft", func() any { return &SelectLeft{} })
 }

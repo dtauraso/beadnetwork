@@ -12,14 +12,14 @@ func TestNodeKindIDRoundTrip(t *testing.T) {
 	// Verify the index produced by NodeKindID matches the known alphabetical order
 	// (NODE_DEFS_ARRAY order in node-defs.ts).
 	want := map[string]uint8{
-		"TimeEnd":                   0,
-		"HoldFlip":                  1,
-		"Time":                      2,
-		"Input":                     3,
-		"Pacer":                     4,
-		"Pulse":                     5,
-		"WindowAndInhibitLeftGate":  6,
-		"WindowAndInhibitRightGate": 7,
+		"TimeEnd":     0,
+		"HoldFlip":    1,
+		"Time":        2,
+		"Input":       3,
+		"Pacer":       4,
+		"Pulse":       5,
+		"SelectRight": 6,
+		"SelectLeft":  7,
 	}
 	for kind, wantID := range want {
 		if got := NodeKindID(kind); got != wantID {

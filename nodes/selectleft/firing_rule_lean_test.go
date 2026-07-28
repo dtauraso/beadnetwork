@@ -1,4 +1,4 @@
-package windowandinhibitleftgate
+package selectleft
 
 import (
 	"context"
@@ -29,7 +29,7 @@ func stepWire(ctx context.Context, pw *wire.PacedWire, clk wire.Clock) {
 	}()
 }
 
-// runGate wires one WindowAndInhibitLeftGate instance on a real clock, feeds
+// runGate wires one SelectLeft instance on a real clock, feeds
 // left/right, and waits for the AND result on the observer. Both inputs are
 // delivered together (inFlightMs=0), so the window never has to clear; the
 // fired VALUE returned is a pure function of (left, right), not of how long
@@ -61,12 +61,12 @@ func runGate(t *testing.T, left, right int) int {
 	outPw := wire.NewPacedWire(latMs*wire.PulseSpeedWuPerMs, wire.PulseSpeedWuPerMs)
 	stepWire(ctx, outPw, clk.Copy())
 
-	node := &SelectRight{GateNode: gatecommon.GateNode{
+	node := &SelectLeft{GateNode: gatecommon.GateNode{
 		Fire:      func() {},
 		Clock:     clk,
-		FromLeft:  wire.NewInPaced(leftPw, ctx, "ilg", "FromLeft", tr, nil, -1),
-		FromRight: wire.NewInPaced(rightPw, ctx, "ilg", "FromRight", tr, nil, -1),
-		ToPassed: wire.NewPacedOutNoGeom(outPw, ctx, "ilg", "ToPassed", tr,
+		FromLeft:  wire.NewInPaced(leftPw, ctx, "irg", "FromLeft", tr, nil, -1),
+		FromRight: wire.NewInPaced(rightPw, ctx, "irg", "FromRight", tr, nil, -1),
+		ToPassed: wire.NewPacedOutNoGeom(outPw, ctx, "irg", "ToPassed", tr,
 			wire.RuleFireAndForget, latMs*wire.PulseSpeedWuPerMs, latMs, ""),
 	}}
 	observer := wire.NewInPaced(outPw, ctx, "obs", "In", tr, nil, -1)
@@ -103,33 +103,32 @@ func runGate(t *testing.T, left, right int) int {
 	return -1
 }
 
-// TestWindowAndInhibitLeftGateFiresLean covers WindowAndInhibitLeftGate's core
-// contract on the one real clock: SelectRight accepts the raw "01" pattern
-// directly — FromLeft==0 AND FromRight==1 — with no inversion/NOT gates. It
-// fires 1 only for (left=0, right=1); every other raw combination (0,0),
-// (1,0), (1,1) fires 0. In particular a raw 1 on the left must NOT be
-// accepted (confirms no inversion is applied — the old model would have
-// scored (1,1) as fired via NOT-left-then-AND, this one does not). This is a
-// deterministic real-state-outcome assertion (fires with a specific value,
-// driven purely by the inputs) rather than a timing-boundary assertion;
-// verified reliable at -count=5.
+// TestSelectLeftFiresLean covers SelectLeft's core contract on
+// the one real clock: it accepts the RAW 10 pattern directly (FromLeft==1 AND
+// FromRight==0), no inversion. It fires 1 for (1,0) and 0 for every other
+// pattern (00, 01, 11). This is a deterministic real-state-outcome
+// assertion (fires with a specific value, driven purely by the inputs)
+// rather than a timing-boundary assertion; verified reliable at -count=5.
 //
 // gatecommon's exact tick-boundary window-clear/pause-freeze behavior (the
 // deleted FakeClock+AdvanceTicks tests TestPauseFreezesWindowAndDwell,
 // TestWindowClear) has NO deterministic real-clock equivalent under the
 // one-clock/sleep-only model, so per the no-coarsened-tests rule it is left
 // untested here rather than covered with a weaker/flaky substitute.
-func TestWindowAndInhibitLeftGateFiresLean(t *testing.T) {
-	if got := runGate(t, 0, 1); got != 1 {
-		t.Fatalf("accepts 01 (left=0,right=1): got %d, want 1", got)
-	}
-	if got := runGate(t, 0, 0); got != 0 {
-		t.Fatalf("rejects 00 (left=0,right=0): got %d, want 0", got)
-	}
-	if got := runGate(t, 1, 0); got != 0 {
-		t.Fatalf("rejects 10 (left=1,right=0): got %d, want 0", got)
+func TestSelectLeftFiresLean(t *testing.T) {
+	// Accepts the raw 10 pattern DIRECTLY (FromLeft==1 AND FromRight==0), no inversion.
+	if got := runGate(t, 1, 0); got != 1 {
+		t.Fatalf("accept (left=1,right=0): got %d, want 1", got)
 	}
 	if got := runGate(t, 1, 1); got != 0 {
-		t.Fatalf("rejects 11 (left=1,right=1) — a raw 1 on the left must NOT be accepted: got %d, want 0", got)
+		t.Fatalf("reject (left=1,right=1): got %d, want 0", got)
+	}
+	if got := runGate(t, 0, 0); got != 0 {
+		t.Fatalf("reject (left=0,right=0): got %d, want 0", got)
+	}
+	// A raw 0 on the left must NOT accept, and a raw 0 on the right is required —
+	// so 01 rejects. Confirms no inversion is applied to either input.
+	if got := runGate(t, 0, 1); got != 0 {
+		t.Fatalf("reject (left=0,right=1): got %d, want 0", got)
 	}
 }

@@ -482,30 +482,29 @@ func (m *nodeMover) handle(msg moveMsg) {
 			return
 		}
 		// A PulseLeft ATTENDS to a delta triple only when it arrives from an Input or a
-		// SelectRight cascade neighbor (SelectRight is the Go type of the
-		// "WindowAndInhibitLeftGate" kind — nodes/windowandinhibitleftgate/node.go — so the
-		// kind string stored in cascade-edges.json is that one). From any other sender kind
-		// the delta is dropped outright: no record, no relay, same shape as the TimeEnd and
-		// TimeStart-from-Input stops above. Node 3's cascade neighbors are exactly
-		// {1: Input, 8: WindowAndInhibitLeftGate} today, so this is a forward-looking guard
+		// SelectRight cascade neighbor (SelectRight is both the Go type and the registered
+		// kind string of nodes/selectright/node.go — the two now agree). From any other
+		// sender kind the delta is dropped outright: no record, no relay, same shape as the
+		// TimeEnd and TimeStart-from-Input stops above. Node 3's cascade neighbors are
+		// exactly {1: Input, 8: SelectRight} today, so this is a forward-looking guard
 		// against an other-kind neighbor. Note PulseLeft never relays either way — see
 		// forwardDelta — so an attended delta ends at this node; attending is purely the
 		// observability record (gotForwardMsg/forwardDelta*) below.
 		if m.selfKind == "PulseLeft" {
 			switch m.cascadeKinds[msg.SenderID] {
-			case "Input", "WindowAndInhibitLeftGate":
+			case "Input", "SelectRight":
 			default:
 				return
 			}
 		}
 		// PulseRight is PulseLeft's mirror: same two rules, different whitelist. It attends
-		// to a delta triple only from a Time or a SelectLeft ("WindowAndInhibitRightGate" —
-		// nodes/windowandinhibitrightgate/node.go) cascade neighbor, and (see forwardDelta)
+		// to a delta triple only from a Time or a SelectLeft ("SelectLeft" —
+		// nodes/selectleft/node.go) cascade neighbor, and (see forwardDelta)
 		// never relays. Node 7's cascade neighbors are {4: Time} today, plus
-		// {9: WindowAndInhibitRightGate} (the 7-9 double link is restored).
+		// {9: SelectLeft} (the 7-9 double link is restored).
 		if m.selfKind == "PulseRight" {
 			switch m.cascadeKinds[msg.SenderID] {
-			case "Time", "WindowAndInhibitRightGate":
+			case "Time", "SelectLeft":
 			default:
 				return
 			}
@@ -571,9 +570,9 @@ func (m *nodeMover) handle(msg moveMsg) {
 //
 // A PulseLeft and a PulseRight never relay at all (cascade termini, see the guard at the
 // top of the body); each only RECORDS a delta, and only one attended from a whitelisted
-// sender kind — PulseLeft from Input or SelectRight ("WindowAndInhibitLeftGate"),
-// PulseRight from Time or SelectLeft ("WindowAndInhibitRightGate"). Both whitelists live
-// in the moveMsgKindDeltaForward handler.
+// sender kind — PulseLeft from Input or SelectRight, PulseRight from Time or SelectLeft.
+// Both gates' kind strings now match their Go type names. Both whitelists live in the
+// moveMsgKindDeltaForward handler.
 //
 // Every OTHER node kind (and a TimeStart relaying a delta from any other sender kind)
 // keeps the plain flood-to-all-cascade-neighbors-except-sender behavior — targetKind == ""
@@ -590,11 +589,12 @@ func (m *nodeMover) forwardDelta(md *MoveDispatch, exceptID string, dA, dB, dC i
 	}
 	targetKind := ""
 	// A Pulse routes a GATE-origin delta straight across to the opposite gate kind:
-	// SelectRight -> SelectLeft and SelectLeft -> SelectRight. The kind strings cross over
-	// relative to the Go type names, so read them off this table rather than the name:
-	//
-	//	SelectRight = "WindowAndInhibitLeftGate"  (node 8)
-	//	SelectLeft  = "WindowAndInhibitRightGate" (node 9)
+	// SelectRight -> SelectLeft and SelectLeft -> SelectRight. Both gates' kind strings
+	// now match their Go type names (SelectRight = "SelectRight" (node 8), SelectLeft =
+	// "SelectLeft" (node 9)) — historically SelectRight's kind string lagged behind an
+	// old verbose "Window And Inhibit Left Gate" spelling while its Go type was already
+	// renamed, which is why a lookup table used to exist here to disambiguate; that
+	// crossover is gone now, kept as a plain switch below.
 	//
 	// A TimeStart-origin delta never reaches here (dropped in the moveMsgKindDeltaForward
 	// handler). Any OTHER sender kind leaves targetKind empty and keeps the plain flood.
@@ -606,10 +606,10 @@ func (m *nodeMover) forwardDelta(md *MoveDispatch, exceptID string, dA, dB, dC i
 	// because 8's kind was absent from node 5's file); with the drop it stays inert.
 	if m.selfKind == "Pulse" {
 		switch m.cascadeKinds[exceptID] {
-		case "WindowAndInhibitLeftGate": // from SelectRight
-			targetKind = "WindowAndInhibitRightGate" // -> to SelectLeft
-		case "WindowAndInhibitRightGate": // from SelectLeft
-			targetKind = "WindowAndInhibitLeftGate" // -> to SelectRight
+		case "SelectRight":
+			targetKind = "SelectLeft"
+		case "SelectLeft":
+			targetKind = "SelectRight"
 		default:
 			return
 		}

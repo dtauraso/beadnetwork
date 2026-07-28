@@ -23,8 +23,8 @@ func TestPulseIgnoresTimeStartOriginDelta(t *testing.T) {
 		id:           "5",
 		selfKind:     "Pulse",
 		cascadeEdges: []string{"2", "9", "8"},
-		cascadeKinds: map[string]string{"2": "TimeStart", "9": "WindowAndInhibitRightGate",
-			"8": "WindowAndInhibitLeftGate"},
+		cascadeKinds: map[string]string{"2": "TimeStart", "9": "SelectLeft",
+			"8": "SelectRight"},
 		sendMove: func(id string, msg moveMsg) {
 			mu.Lock()
 			got = append(got, id)
@@ -49,8 +49,8 @@ func TestPulseIgnoresTimeStartOriginDelta(t *testing.T) {
 }
 
 // TestPulseRoutesGateOriginToOppositeGate: a gate-origin delta goes straight across to
-// the OPPOSITE gate kind and nowhere else — SelectRight ("WindowAndInhibitLeftGate",
-// node 8) -> SelectLeft ("WindowAndInhibitRightGate", node 9) and back. In particular it
+// the OPPOSITE gate kind and nowhere else — SelectRight (node 8) ->
+// SelectLeft (node 9) and back. In particular it
 // is not also flooded to the TimeStart neighbor 2.
 func TestPulseRoutesGateOriginToOppositeGate(t *testing.T) {
 	cases := []struct {
@@ -68,8 +68,8 @@ func TestPulseRoutesGateOriginToOppositeGate(t *testing.T) {
 			id:           "5",
 			selfKind:     "Pulse",
 			cascadeEdges: []string{"2", "9", "8"},
-			cascadeKinds: map[string]string{"2": "TimeStart", "9": "WindowAndInhibitRightGate",
-				"8": "WindowAndInhibitLeftGate"},
+			cascadeKinds: map[string]string{"2": "TimeStart", "9": "SelectLeft",
+				"8": "SelectRight"},
 			sendMove: func(id string, msg moveMsg) {
 				mu.Lock()
 				got = append(got, id)
@@ -99,7 +99,7 @@ func TestPulseDropsUnknownSenderKind(t *testing.T) {
 			id:           "5",
 			selfKind:     "Pulse",
 			cascadeEdges: []string{"2", "9"},
-			cascadeKinds: map[string]string{"2": "TimeStart", "9": "WindowAndInhibitRightGate"},
+			cascadeKinds: map[string]string{"2": "TimeStart", "9": "SelectLeft"},
 			sendMove: func(id string, msg moveMsg) {
 				mu.Lock()
 				got = append(got, id)
@@ -127,8 +127,8 @@ func TestPulseAttendsGateOrigin(t *testing.T) {
 		id:           "5",
 		selfKind:     "Pulse",
 		cascadeEdges: []string{"2", "9", "8"},
-		cascadeKinds: map[string]string{"2": "TimeStart", "9": "WindowAndInhibitRightGate",
-			"8": "WindowAndInhibitLeftGate"},
+		cascadeKinds: map[string]string{"2": "TimeStart", "9": "SelectLeft",
+			"8": "SelectRight"},
 		sendMove: func(id string, msg moveMsg) {
 			mu.Lock()
 			got = append(got, id)
@@ -164,7 +164,7 @@ func TestPulseLeftRightUnaffectedByPulseRule(t *testing.T) {
 			id:           "x",
 			selfKind:     kind,
 			cascadeEdges: []string{"2", "9"},
-			cascadeKinds: map[string]string{"2": "TimeStart", "9": "WindowAndInhibitRightGate"},
+			cascadeKinds: map[string]string{"2": "TimeStart", "9": "SelectLeft"},
 			sendMove: func(id string, msg moveMsg) {
 				mu.Lock()
 				got = append(got, id)

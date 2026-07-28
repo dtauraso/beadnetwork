@@ -73,7 +73,7 @@ func TestForwardDeltaTimeStartIgnoresNonPTIOrigin(t *testing.T) {
 		id:           "ts",
 		selfKind:     "TimeStart",
 		cascadeEdges: []string{"4", "5", "8"},
-		cascadeKinds: map[string]string{"4": "Time", "5": "Pulse", "8": "WindowAndInhibitLeftGate"},
+		cascadeKinds: map[string]string{"4": "Time", "5": "Pulse", "8": "SelectRight"},
 		sendMove: func(id string, msg moveMsg) {
 			mu.Lock()
 			got = append(got, id)
