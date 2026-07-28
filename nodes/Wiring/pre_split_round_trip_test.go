@@ -85,7 +85,19 @@ func TestPreSplitTopologyRoundTrips(t *testing.T) {
 	// is the check that catches exactly that regression (see the deliberate-failure drill
 	// this test's author ran while writing it: removing the legacy-field copy in
 	// loader_tree.go turns this into a false pass at md.ui.sceneSphere.Center).
-	wantSrcCenter := md.ui.sceneSphere.Center.Add(polar2cart(polar{R: 37.4165738677, Theta: 1.00685368543, Phi: 1.2490457724}))
+	// The expected offset is a LITERAL cartesian triple, not polar2cart(...) of the
+	// fixture's polar numbers. A mutation audit showed the old form could not fail under a
+	// SYMMETRIC change to the conversion pair: swapping Theta<->Phi (or negating Z) in BOTH
+	// polar2cart and cart2polar passed 3/3, because the expected value was computed with
+	// the same mutated function the code under test uses. An oracle derived from the code
+	// under test only proves self-consistency.
+	//
+	// (37.4165738677, 1.00685368543, 1.2490457724) is exactly (10, 20, 30) under the
+	// pole=+y convention in polar.go — computed externally, so a convention change to the
+	// conversion pair now breaks this assertion instead of cancelling out. That matters for
+	// the PERSISTED format specifically: live rendering would stay self-consistent under a
+	// symmetric swap, but every existing topology/ file on disk would be reinterpreted.
+	wantSrcCenter := md.ui.sceneSphere.Center.Add(vec3{X: 10, Y: 20, Z: 30})
 	if d := srcCenterBefore.Sub(wantSrcCenter).Length(); d > 1e-6 {
 		t.Fatalf("src's pre-split legacy meta.json position did not load: got=%+v want=%+v (off by %g)", srcCenterBefore, wantSrcCenter, d)
 	}
