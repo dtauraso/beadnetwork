@@ -130,6 +130,92 @@ else
   fi
 fi
 
+# --- StreamsActive (nodes/wire/paced_wire.go's PacedWire field, added to gate
+# pending-event accumulation on whether a real per-edge stream consumer is
+# wired — see PacedWire.StreamsActive's doc comment and
+# docs/planning/branch-notes/bounds-inventory.md) --- same shape as above:
+# this flag exists ONLY to gate the KindEdgeBead append (alongside
+# edgeBeadTraceEnabled) and the KindArrive append in emitArrive. It must NEVER
+# spread to gate a breadcrumb append, same failure mode (silence) as above.
+IDENT2="StreamsActive"
+
+files2=()
+while IFS= read -r f; do
+  [ -n "$f" ] && files2+=("$f")
+done < <(grep -rl "$IDENT2" --include="*.go" nodes Buffer Trace 2>/dev/null | grep -v '_test\.go$' || true)
+
+if [ ${#files2[@]} -eq 0 ]; then
+  echo "check-breadcrumb-not-gated: FAIL — $IDENT2 not found anywhere; the gate itself" >&2
+  echo "appears to have been deleted or renamed. If intentional, delete/update this guard" >&2
+  echo "in the same commit; otherwise the pending-accumulation gate has silently vanished." >&2
+  exit 1
+fi
+
+all_hits2=()
+while IFS= read -r line; do
+  [ -n "$line" ] && all_hits2+=("$line")
+done < <(grep -Hn "$IDENT2" "${files2[@]}" 2>/dev/null || true)
+
+guard_hits2=()
+for h in "${all_hits2[@]}"; do
+  content="${h#*:}"
+  content="${content#*:}"
+  trimmed="$(echo "$content" | sed -e 's/^[[:space:]]*//')"
+  case "$trimmed" in
+    //*) continue ;;
+  esac
+  case "$content" in
+    *"if "*"$IDENT2"*|*"$IDENT2"*"&&"*|*"&&"*"$IDENT2"*|*"$IDENT2"*"||"*|*"||"*"$IDENT2"*)
+      guard_hits2+=("$h") ;;
+  esac
+done
+
+# Expect exactly TWO guarding uses today: the KindEdgeBead append in stepAll
+# (alongside edgeBeadTraceEnabled) and the KindArrive append in emitArrive.
+if [ ${#guard_hits2[@]} -ne 2 ]; then
+  fail=1
+  report+="Expected exactly TWO guarding uses of $IDENT2 (stepAll's KindEdgeBead append and"$'\n'
+  report+="emitArrive's KindArrive append); found ${#guard_hits2[@]}:"$'\n'
+  for h in "${guard_hits2[@]:-}"; do
+    [ -n "$h" ] && report+="  $h"$'\n'
+  done
+  report+=$'\n'
+  report+="$IDENT2 exists ONLY to suppress pending-event accumulation when no stream"$'\n'
+  report+="consumer is wired (see PacedWire.StreamsActive's doc comment). Debug breadcrumbs"$'\n'
+  report+="(T.KindBreadcrumb, breadcrumbCh, drainBreadcrumbEvents) must NEVER be gated by it —"$'\n'
+  report+="reproduces the same silent-swallow regression class as edgeBeadTraceEnabled would."$'\n'
+else
+  for h in "${guard_hits2[@]}"; do
+    content_lc="$(echo "$h" | tr '[:upper:]' '[:lower:]')"
+    if echo "$content_lc" | grep -qi "breadcrumb"; then
+      fail=1
+      report+="A guarding use of $IDENT2 mentions breadcrumb — this flag must never gate"$'\n'
+      report+="breadcrumb emission:"$'\n'
+      report+="  $h"$'\n'
+    fi
+  done
+  # Each guarding use must sit next to the specific bulk-kind it guards
+  # (KindEdgeBead or KindArrive), not something unrelated (most dangerously a
+  # bare drainBreadcrumbEvents/breadcrumbCh call).
+  for h in "${guard_hits2[@]}"; do
+    gfile="${h%%:*}"
+    rest="${h#*:}"
+    glineno="${rest%%:*}"
+    window_end=$((glineno + 3))
+    window="$(sed -n "${glineno},${window_end}p" "$gfile")"
+    if ! echo "$window" | grep -qE "KindEdgeBead|KindArrive"; then
+      fail=1
+      report+="A guarding use of $IDENT2 is not tied to KindEdgeBead or KindArrive:"$'\n'
+      report+="  $h"$'\n'
+      report+=$'\n'
+      report+="This flag exists only to gate those two bulk-event appends — a guard use that"$'\n'
+      report+="does not sit next to either means it has spread to a different emit site,"$'\n'
+      report+="most dangerously a breadcrumb one (see"$'\n'
+      report+="memory/feedback_make_bug_class_unrepresentable.md)."$'\n'
+    fi
+  done
+fi
+
 if [ $fail -ne 0 ]; then
   echo "check-breadcrumb-not-gated: FAIL" >&2
   printf '%s' "$report" >&2

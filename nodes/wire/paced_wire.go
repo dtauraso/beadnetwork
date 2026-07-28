@@ -157,6 +157,27 @@ type PacedWire struct {
 	TargetHandle string   // destination input-port name — the wire's destination routing key
 	Trace        *T.Trace // injected by loader; used for breadcrumb diagnostics only
 
+	// StreamsActive reports whether a real consumer is wired for this edge's
+	// pending-event buffer (Buffer/stream_fds.go's per-edge fd, via
+	// streamWiring.setEdgeStreams — see edgeMover.streamOut). Set EXACTLY ONCE,
+	// directly on this exported field, at wiring time BEFORE this edge's mover
+	// goroutine launches (the same "wire before launch, read-only afterward"
+	// ordering documented on streamWiring.interiorOuts and move_streams.go —
+	// stream_wiring.go:28), and never written again afterward — so, like Trace
+	// above, it needs no lock/atomic (memory/feedback_no_atomics_are_defects.md).
+	// Default false (bare test construction, or a real edge with no fd entry in
+	// WIREFOLD_STREAM_FDS): pending MUST NOT accumulate with nothing to ever
+	// drain it — see emitArrive and stepAll's KindEdgeBead append, both gated on
+	// this field. This is deliberately NOT beadPlacement.streams() (bp.Node !=
+	// "") — that reports whether ONE PLACEMENT carries position-stream
+	// geometry, a per-bead property completely independent of whether any
+	// stream consumer exists for this wire at all; conflating the two was the
+	// root cause of the confirmed unbounded-pending-growth bug documented in
+	// docs/planning/branch-notes/bounds-inventory.md (streamOut nil -> 40
+	// deliveries left all 40 queued forever with nothing ever calling
+	// DrainPendingEvents).
+	StreamsActive bool
+
 	// pending buffers this wire's OWN Position/Arrive events since the last drain
 	// (memory/feedback_no_single_writer_bridge.md): appended only by stepAll (this
 	// wire's own goroutine, via edgeMover.run's DriveOneCycle call) and drained only by
@@ -419,7 +440,7 @@ func (pw *PacedWire) stepAll(tick int64) {
 				continue
 			}
 			emit, pos, final := pw.advanceBead(b, nowTick)
-			if emit && edgeBeadTraceEnabled {
+			if emit && edgeBeadTraceEnabled && pw.StreamsActive {
 				pw.pending = append(pw.pending, pendingWireEvent{
 					kind: T.KindEdgeBead, value: pos.val,
 					x: pos.x, y: pos.y, z: pos.z, t: pos.t, gen: pos.gen,
@@ -557,7 +578,7 @@ type posEmitArgs struct {
 // emitArrive sends the traversal-complete trace for a delivered bead. Called by
 // this wire's own goroutine (stepAll) right after the outCh handoff succeeds.
 func (pw *PacedWire) emitArrive(ai arriveInfo) {
-	if ai.emit {
+	if ai.emit && pw.StreamsActive {
 		pw.pending = append(pw.pending, pendingWireEvent{kind: T.KindArrive, value: ai.value, gen: ai.gen})
 	}
 }
