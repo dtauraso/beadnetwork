@@ -14,7 +14,10 @@
 // pattern), so the injected build funcs it holds can only close over plain Go values.
 package Buffer
 
-import "encoding/binary"
+import (
+	"encoding/binary"
+	"fmt"
+)
 
 // BufNodeStreamLayoutLinkStride now lives in Buffer/frame_tags.go (envelope constants,
 // generated into frame-tags.ts alongside the other frame envelope sizes).
@@ -59,6 +62,24 @@ func BuildNodeStreamFrame(
 ) []byte {
 	labelBytes := []byte(label)
 	portCount := len(portNames)
+	// INVARIANT: the port slices are PARALLEL — one entry per port, same order. The doc
+	// comment says so and the loop below indexes all nine at i without checking, so a
+	// short slice is either an opaque "index out of range" naming no port and no node, or
+	// (for a LONG slice) silently dropped columns nobody notices. Named here instead.
+	for _, s := range []struct {
+		name string
+		n    int
+	}{
+		{"portDX", len(portDX)}, {"portDY", len(portDY)}, {"portDZ", len(portDZ)},
+		{"portPX", len(portPX)}, {"portPY", len(portPY)}, {"portPZ", len(portPZ)},
+		{"portIsInput", len(portIsInput)}, {"portHovered", len(portHovered)},
+	} {
+		if s.n != portCount {
+			panic(fmt.Sprintf(
+				"BuildNodeStreamFrame: node row %d has %d port names but %s has %d entries — the port slices are parallel, one entry per port",
+				nodeRow, portCount, s.name, s.n))
+		}
+	}
 	portNameBytes := make([]byte, 0, portCount*8)
 	portNameOffs := make([]uint32, portCount)
 	portNameLens := make([]uint32, portCount)
@@ -107,6 +128,22 @@ func BuildNodeStreamFrame(
 	for i := 0; i < layoutLinkCount; i++ {
 		rowOff := off + i*BufNodeStreamLayoutLinkStride
 		binary.LittleEndian.PutUint32(buf[rowOff:], uint32(dstNodeRows[i]))
+	}
+	off += layoutLinkCount * BufNodeStreamLayoutLinkStride
+
+	// INVARIANT: the walk that WRITES the frame ends exactly where the `size` formula that
+	// ALLOCATED it says it should. This is the runtime half of buffer-layout parity —
+	// check-buffer-layout-parity.sh compares the two GENERATED files' fingerprints and
+	// check-generated.sh catches a stale regen, but neither reads this function, so adding
+	// or reordering a SECTION here without updating `size` (or the reverse) is caught by
+	// nothing. The failure mode is a frame with trailing zero bytes or a truncated tail,
+	// which the TS decoder reads as real columns — a wrong scene that still renders.
+	// (Column-level drift inside a row is a different question, covered by the generated
+	// setters; this pins the section walk.)
+	if off != size {
+		panic(fmt.Sprintf(
+			"BuildNodeStreamFrame: packed %d bytes for node row %d but allocated %d — the section walk and the size formula disagree; a section was added, reordered, or resized in one of the two and not the other",
+			off, nodeRow, size))
 	}
 
 	return append(buf, BuildEventsSection(events)...)
