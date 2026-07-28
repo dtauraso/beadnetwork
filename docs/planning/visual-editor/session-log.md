@@ -345,3 +345,43 @@ consumed-and-dropped, now silently — consistent with the no-back-pressure node
 **Outcome:** merged to `main` (fast-forward), then hygiene/trims via PR #5. Both bridges binary,
 no JSON anywhere, no sidecar, logs from the buffer. Verified live in the editor across the whole
 feature set; persistence proven on-disk.
+
+## 2026-07-28 — Reload gap: extension activation exonerated, respawn still slow
+
+Measured with `tools/reload-gap.sh` because the friction was ambiguous: opening the
+extension felt back to normal, but "Developer: Reload Window" did not.
+
+The extension-host log splits those two things cleanly, and they disagree:
+
+```
+01:10:13.937  host 99435 started
+01:10:14.102  Eager extensions activated   <- 165ms, healthy
+01:10:20.050  host 99435 exiting with code 0
+01:10:23.942  host 99617 started           <- 3.9s dead gap
+```
+
+Across five starts in that window, activation was **150–310ms** (healthy) while the
+exit→start gap was **3.9s / 4.9s / 4.4s** against a **1.8s** baseline. So the cost is
+entirely VS Code process respawn — nothing of ours runs in that window. Activation was
+never the cause, and this is now a second, independent confirmation that the earlier
+.probe-log-size / file-watcher theory is dead (watcherExclude and per-run log rotation
+had already landed and did not move the number).
+
+**A VS Code relaunch does NOT fix it.** The window measured above belongs to a VS Code
+launched 12 minutes earlier (log session `20260728T010956`), and it was already at 4s.
+That kills the "accumulated editor/session state" half of the standing suspicion in
+`reload-gap.sh`'s header comment; the remaining suspects are machine-level:
+
+- uptime **44 days**
+- swap **2.83 GB of 4 GB** used
+- load average **2.46 / 2.83 / 3.23**
+
+**Next test: a full macOS restart**, then re-run `tools/reload-gap.sh`. If the gap
+returns to ~1.8s, the regression was host memory/process pressure and there is nothing
+to fix in this repo — the script's baseline note should be amended to say so.
+
+**Baseline caveat — why this entry exists.** Of the 12 VS Code log sessions on disk,
+only one still carries any exthost start/exit lines; the healthy-period logs have been
+pruned. The 1.8s figure now survives *only* as a comment in `tools/reload-gap.sh`, so
+there is no longer a log to diff against. These numbers are recorded here as the
+pre-reboot half of the comparison.
