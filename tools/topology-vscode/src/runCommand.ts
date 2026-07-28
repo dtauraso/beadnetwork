@@ -130,9 +130,10 @@ interface ProbePaths {
   probeNodeFile: string;
   probeEdgeFile: string;
   probeInteriorFile: string;
-  tsFile: string;
   goErrorsFile: string;
-  tsErrorsFile: string;
+  // NOTE: ts.jsonl / ts-errors.jsonl are deliberately absent. The runner never writes
+  // them — extension/webview-log.ts is the sole writer and resolves its own paths from
+  // the webview's workspace folder. Fields for them were armed here and read by nobody.
 }
 
 /** Computes (and ensures on disk) the probe-directory file paths for one run. Pure w.r.t.
@@ -180,9 +181,7 @@ function probePathsFor(folder: vscode.WorkspaceFolder): ProbePaths {
     probeNodeFile: path.join(probeDir, PROBE_FILES.goNode),
     probeEdgeFile: path.join(probeDir, PROBE_FILES.goEdge),
     probeInteriorFile: path.join(probeDir, PROBE_FILES.goInterior),
-    tsFile: path.join(probeDir, PROBE_FILES.ts),
     goErrorsFile: path.join(probeDir, PROBE_FILES.goErrors),
-    tsErrorsFile: path.join(probeDir, PROBE_FILES.tsErrors),
   };
 }
 
@@ -348,8 +347,6 @@ export class BuildAndRunRunner {
   private probeEdgeFile: string | undefined;
   private probeInteriorFile: string | undefined;
   private goErrorsFile: string | undefined;
-  private tsFile: string | undefined;
-  private tsErrorsFile: string | undefined;
   // Read once per run() from wirefold.probe.trace. Gates only which DECODED LINES are
   // appended to the four Go trace files at handleViewFd/handleEdgeFd/handleNodeFd/
   // handleInteriorFd — breadcrumb rows (kind==="breadcrumb") are appended regardless (see
@@ -446,8 +443,6 @@ export class BuildAndRunRunner {
     this.probeEdgeFile = probePaths.probeEdgeFile;
     this.probeInteriorFile = probePaths.probeInteriorFile;
     this.goErrorsFile = probePaths.goErrorsFile;
-    this.tsFile = probePaths.tsFile;
-    this.tsErrorsFile = probePaths.tsErrorsFile;
     this.probeTrace = isProbeTraceEnabled();
     if (killed > 0) {
       this.channel.appendLine(`[cleanup] killed ${killed} orphaned sim process(es)`);

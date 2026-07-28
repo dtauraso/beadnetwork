@@ -421,3 +421,55 @@ records that log is allowed to omit. `exthost.log` is written *by* the process b
 measured, so the fastest-dying instances are exactly the ones it cannot record — the
 observer is blind to one end of the very distribution it exists to measure.
 `main.log` is written by the supervising process and has no such gap.
+
+## 2026-07-28 — .probe trace logs were unconditional; gated behind a setting
+
+**Observation:** `.probe/go-edge.jsonl` reached 1.1 GB in a long session, ~30x every other
+log combined.
+
+**What it turned out to be.** There was no gate of any kind: `probePathsFor` mkdir'd
+`.probe/` and armed all seven paths on every run, and every stream handler appended
+unconditionally. No setting, no env var, no debug flag — diagnostic instrumentation that
+shipped permanently on. Compounding it, opening the topology panel spawns Go immediately
+(`extension.ts:184`) with no duration bound, so an editor left open writes hundreds of MB
+with nobody watching. The volume was never a cost of *driving* the editor.
+
+**Two corrections to the original framing**, both from measuring rather than reasoning:
+
+1. *The rate is not a constant.* The 734 KB/s headline did not reproduce — a later
+   session measured 405 lines/sec = 75 KB/s, 10x lower, same code. Volume is
+   `beads_in_flight x 50/sec x ~186 bytes`, so 258 MB/hr is a saturated-ring figure.
+2. *The cadence was never the problem.* One bead sampled at 20.3 ms (~50 Hz), matching
+   the ~16 ms `Trace/Trace.go` documents. The multiplier is bead LIFETIME: a bead is in
+   flight ~20 s, so it alone produces ~1000 lines. "Per-tick firehose" overstated it.
+
+**The decisive finding** was that nothing consumes these events. Grepping `webview/` for
+`edge-bead` returns zero hits; the renderer reads the frame's Bead block via
+`edgeStream.beads(row)` (`BeadInstances.tsx:42`). The event duplicates x/y/z/value at 67
+bytes against the Bead block's 16, adding only `gen` and fractional `t`, and its sole path
+is `appendFileSync` to the log. So this did NOT violate "Go only emits a frame when
+something changes" — a bead in flight really does change every frame. What was
+unjustified was the second, larger copy that only a log file read.
+
+**Outcome:** `wirefold.probe.trace`, default off, gating the five trace logs; error logs
+always on. Verified live: 4+ minutes of running sim, zero bytes written, and `.probe/`
+showing only the three error files rotated — which also proved the new code was the code
+running, since the old path rotated all eight.
+
+**The near-miss worth remembering.** The first version of the gate silently broke the
+documented Go debugging channel. Breadcrumbs are not a separate file — since the
+binary-buffer move they ride the per-owner streams as `kind=="breadcrumb"`, and
+`probe-merge.sh --debug` greps them out of the exact four files the setting turned off. A
+breadcrumb would have fired and produced nothing, with no error, so the natural conclusion
+would have been "my breadcrumb is broken" rather than "the gate ate it". Fixed by making
+breadcrumb rows unconditional and gating only the non-breadcrumb bulk; confirmed live with
+47 real breadcrumbs surfacing through `--debug` while tracing is off.
+
+Generalizable: before gating a channel by volume, enumerate what else rides it. The
+firehose and the debug channel shared a file, and the cheap fix would have taken both.
+
+**Declined:** removing the Go-side `KindEdgeBead` emission (proposed, then withdrawn —
+~27 KB/s of discarded pipe traffic at typical bead counts, and `gen`/`t` are exactly what
+you want when you *do* opt into the trace). Also declined: defaulting the sim to off. Go
+streams the whole scene and TS holds no domain state (guarded), so no Go process means an
+empty viewport, not a static graph.
