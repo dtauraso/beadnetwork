@@ -16,6 +16,31 @@ flakes become deterministic failures: same input, same result, every run.
 This is the TigerBeetle VOPR idea (deterministic simulation, replay a failure exactly)
 at the granularity Go gives us for free.
 
+## Doctrine constraint — read this before converting anything
+
+`CLAUDE.md` § "Testing shape" and `docs/testing-shape.md` prohibit testing that two or
+more goroutines communicate properly — not delivery, not ordering, not
+absence-of-deadlock, not absence-of-race. That correctness is guaranteed **by
+construction** (per-mover ownership, dedicated per-pair channels, no locks/atomics).
+`task/remove-multigoroutine-tests` deleted tests of exactly that shape.
+
+synctest's *headline* use case is the prohibited one. **This branch is not that.** The
+value being claimed here is narrower and compatible:
+
+- **The fake clock.** A test of what *one* goroutine decided, emitted, or persisted can
+  still be timing-sensitive — simtime anchoring, pulse speed, pacing decisions. Those
+  currently depend on a real clock. The bubble's fake clock makes them exact without
+  asserting anything about inter-goroutine communication.
+- **Scheduler determinism as a stability property, not a subject.** Where a
+  single-owner assertion happens to run while other goroutines exist, the bubble stops
+  the *scheduler* from being the variable. The assertion stays "what this one goroutine
+  did."
+
+What this branch must **not** produce: a test whose subject is delivery, ordering, or
+deadlock-freedom between movers. If a conversion starts to need that, the answer is to
+delete the test, not to stabilize it. Read `docs/testing-shape.md` (decision procedure
+and named anti-patterns) before adding or converting anything.
+
 ## Why this branch is worth doing first
 
 The other two open branches (`task/runtime-invariant-assertions`,
@@ -36,13 +61,15 @@ need the bump. Resolve in favor of the higher version.
 
 ## What to convert, in order
 
-Start with the tests covering invariants that are *already known to be timing-sensitive*
-— these are where the payoff is, and the memory files name them:
+Target only invariants that are **timing-sensitive AND single-owner**. Filter every
+candidate through the doctrine constraint above before touching it:
 
-- `memory/feedback_paced_tryrecv_blocks.md` — paced `TryRecv` blocking behavior
-- `memory/feedback_per_emit_simtime_anchoring.md` — per-emit simtime anchoring
-- `memory/project_two_goroutine_node_split.md` — the two-goroutine-per-node split
-- `memory/feedback_uniform_pulse_speed.md` — uniform pulse speed
+| Memory entry | Subject | Verdict |
+|---|---|---|
+| `feedback_per_emit_simtime_anchoring.md` | what one goroutine anchored its emit to | **good fit** — clock-sensitive, single owner |
+| `feedback_uniform_pulse_speed.md` | speed value used by one mover | **good fit** — clock-sensitive, single owner |
+| `feedback_paced_tryrecv_blocks.md` | pacing decision vs. channel handoff | **check carefully** — fine if the assertion is what the paced goroutine *decided*; prohibited once it becomes "the send arrived" |
+| `project_two_goroutine_node_split.md` | two goroutines per node coordinating | **likely prohibited** — if the subject is the two halves communicating, delete rather than stabilize |
 
 The candidate test files at the repo root:
 
