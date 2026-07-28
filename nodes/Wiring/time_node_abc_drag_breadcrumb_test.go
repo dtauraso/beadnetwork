@@ -1,23 +1,16 @@
 package Wiring
 
-// time_node_abc_drag_breadcrumb_test.go — proves the "abc-drag" breadcrumb added to
-// neighborSetCRequantize (node_move.go) fires for EVERY direct neighbor that receives a
-// moveMsgKindNeighborSetC when a node is dragged — not just Time ("time") nodes.
-// This guards against:
-//   - if the abc-drag Breadcrumb/AbcDrag call were re-gated to a specific NodeKind (e.g.
-//     `md.NodeKind(selfID) == "Time"`), the non-time neighbor "n" would emit
-//     nothing and assertion (b) below (which requires exactly one line for n) would fail.
-//   - if the Breadcrumb call itself were deleted, both "t" and "n" would receive their
-//     moveMsgKindNeighborSetC exactly as before (behavior is unchanged — this is
-//     observability only) but the debug sink would capture zero "abc-drag" lines, so
-//     assertions (a) and (b) below would both fail.
+// time_node_abc_drag_breadcrumb_test.go — shared test-only plumbing for the "abc-drag"
+// breadcrumb neighborSetCRequantize (node_move.go) logs for every direct neighbor that
+// receives a moveMsgKindNeighborSetC when a node is dragged: syncBuffer (a race-free debug
+// sink), parseBreadcrumbLines/breadcrumbLine (decode), and waitForAbcDrag/abcDragDeltasFor
+// (poll on the breadcrumb as the happens-before sync point before reading a recipient's own
+// LayoutHolder). Used by neighbor_setc_test.go, rotating_pole_test.go, node_move_test.go,
+// drag_persist_e2e_test.go, and subtree_persist_test.go.
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
-	"fmt"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"regexp"
 	"strconv"
 	"strings"
@@ -48,28 +41,6 @@ func (s *syncBuffer) String() string {
 	return s.buf.String()
 }
 
-// writeXTN lays down a 3-node topology: "x" (SrcNode, the node that will be dragged),
-// "t" (a real Time node — a "time node") and "n" (SinkNode, a plain non-time
-// node) — both t and n are direct neighbors of x via one edge each, so dragging x sends
-// BOTH a moveMsgKindNeighborSetC. Both are positive cases now: every drag-message
-// recipient must log an abc-drag breadcrumb, regardless of kind.
-func writeXTN(t *testing.T) string {
-	t.Helper()
-	root := t.TempDir()
-	mk := func(rel, body string) { writeTreeFile(t, root, rel, body) }
-	mk("nodes/x/meta.json", `{"id":"x","type":"SrcNode","r":100,"scenePolarR":40,"scenePolarTheta":1.0,"scenePolarPhi":1.2}`)
-	mk("nodes/x/outputs/Out.json", `{"name":"Out"}`)
-	mk("nodes/t/meta.json", `{"id":"t","type":"Time","data":{"state":{"held":0}},"r":100,"scenePolarR":90,"scenePolarTheta":0.9,"scenePolarPhi":-2.1}`)
-	mk("nodes/t/inputs/FromPrevTimeNode.json", `{"name":"FromPrevTimeNode"}`)
-	mk("nodes/n/meta.json", `{"id":"n","type":"SinkNode","r":100,"scenePolarR":90,"scenePolarTheta":2.0,"scenePolarPhi":0.4}`)
-	mk("nodes/n/inputs/In.json", `{"name":"In"}`)
-	mk("edges/eXT.json", `{"label":"eXT","kind":"chain","source":"x","sourceHandle":"Out","target":"t","targetHandle":"FromPrevTimeNode"}`)
-	mk("edges/eXN.json", `{"label":"eXN","kind":"data","source":"x","sourceHandle":"Out","target":"n","targetHandle":"In"}`)
-	writeCascadeEdgesFromEdges(t, root, map[string]string{"x": "SrcNode", "t": "Time", "n": "SinkNode"},
-		[][2]string{{"x", "t"}, {"x", "n"}})
-	return root
-}
-
 // breadcrumbLine is the decoded shape of one {"kind":"breadcrumb",...} JSONL line.
 type breadcrumbLine struct {
 	Kind  string `json:"kind"`
@@ -89,28 +60,15 @@ type breadcrumbLine struct {
 // TestEveryDragRecipientLogsAbcDragBreadcrumb below for the full argument.
 func waitForAbcDrag(t *testing.T, dbg *syncBuffer, node string) {
 	t.Helper()
-	waitForAbcDragCount(t, dbg, node, 1)
-}
-
-// waitForAbcDragCount blocks until at least want "abc-drag" breadcrumbs naming node
-// have appeared in dbg. Used by tests that drag the same node's neighbor more than
-// once and need to distinguish "the Nth requantize landed" from a stale breadcrumb
-// left over from an earlier drag in the same test.
-func waitForAbcDragCount(t *testing.T, dbg *syncBuffer, node string, want int) {
-	t.Helper()
 	deadline := time.Now().Add(2 * time.Second)
 	for {
-		n := 0
 		for _, b := range parseBreadcrumbLines(t, dbg.String()) {
 			if b.Label == "abc-drag" && b.Node == node {
-				n++
+				return
 			}
 		}
-		if n >= want {
-			return
-		}
 		if time.Now().After(deadline) {
-			t.Fatalf("timed out waiting for %d abc-drag breadcrumb(s) for node %q, got %d", want, node, n)
+			t.Fatalf("timed out waiting for an abc-drag breadcrumb for node %q", node)
 		}
 		time.Sleep(time.Millisecond)
 	}
@@ -167,134 +125,4 @@ func parseBreadcrumbLines(t *testing.T, raw string) []breadcrumbLine {
 		out = append(out, b)
 	}
 	return out
-}
-
-// TestEveryDragRecipientLogsAbcDragBreadcrumb drags x and asserts that EVERY direct
-// neighbor that receives a moveMsgKindNeighborSetC — both the time node t (Time)
-// and the non-time node n (SinkNode) — emits exactly one "abc-drag" breadcrumb matching
-// its freshly re-quantized abc, keyed node=<recipient> port=x.
-func TestEveryDragRecipientLogsAbcDragBreadcrumb(t *testing.T) {
-	root := writeXTN(t)
-	md := loadTreeMD(t, root)
-	md.EnableEditPersist(root)
-
-	var dbg syncBuffer
-	md.tr.SetSink(&dbg)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	md.Start(ctx)
-
-	lhT, ok := md.lq.layoutHolders["t"]
-	if !ok {
-		t.Fatal("no LayoutHolder for t")
-	}
-	lhN, ok := md.lq.layoutHolders["n"]
-	if !ok {
-		t.Fatal("no LayoutHolder for n")
-	}
-
-	xBefore, ok := md.centerOfNode("x")
-	if !ok {
-		t.Fatal("no center for x")
-	}
-	target := xBefore.Add(vec3{X: 55, Y: -20, Z: 30})
-	if !md.RootMove("x", target) {
-		t.Fatal("RootMove(x) returned false")
-	}
-	pollDragConverged(t, md, "x", target)
-	// Wait for BOTH recipients' "abc-drag" breadcrumb lines to land in the debug sink
-	// before reading their LayoutHolders. neighborSetCRequantize writes the local
-	// polar (SetLocalPolar) and THEN logs the breadcrumb, in that order, in the SAME
-	// call on the recipient's own goroutine — so once both lines are visible here,
-	// each recipient's LocalPolarsSnapshot is guaranteed to already reflect that same
-	// write. t/n each already carry a local-polar entry to "x" from LOAD time (the
-	// initial layout), so polling for the entry's mere EXISTENCE (as this test used
-	// to) can be satisfied by that stale seed value before the drag's
-	// moveMsgKindNeighborSetC has even been delivered — now that each nodeMover
-	// drains its inbox non-blockingly and paces on its own clock cycle instead of
-	// waking instantly on receive, that race is no longer masked by near-instant
-	// in-process delivery. Anchoring on the breadcrumb (the causally-later event)
-	// instead of "entry exists" removes the race rather than papering over it with a
-	// longer fixed sleep.
-	deadline := time.Now().Add(2 * time.Second)
-	var lines []breadcrumbLine
-	for {
-		lines = parseBreadcrumbLines(t, dbg.String())
-		haveT, haveN := false, false
-		for _, b := range lines {
-			if b.Label != "abc-drag" {
-				continue
-			}
-			if b.Node == "t" {
-				haveT = true
-			}
-			if b.Node == "n" {
-				haveN = true
-			}
-		}
-		if haveT && haveN {
-			break
-		}
-		if time.Now().After(deadline) {
-			t.Fatal("t's and/or n's abc-drag breadcrumb never appeared")
-		}
-		time.Sleep(time.Millisecond)
-	}
-
-	var lpTAfter, lpNAfter wire.LocalPolar
-	for _, lp := range lhT.LocalPolarsSnapshot() {
-		if lp.To == "x" {
-			lpTAfter = lp
-		}
-	}
-	for _, lp := range lhN.LocalPolarsSnapshot() {
-		if lp.To == "x" {
-			lpNAfter = lp
-		}
-	}
-
-	var tLines, nLines []breadcrumbLine
-	for _, b := range lines {
-		if b.Label != "abc-drag" {
-			continue
-		}
-		switch b.Node {
-		case "t":
-			tLines = append(tLines, b)
-		case "n":
-			nLines = append(nLines, b)
-		}
-	}
-
-	checkOne := func(who string, got []breadcrumbLine, lp wire.LocalPolar) {
-		t.Helper()
-		// If the abc-drag Breadcrumb/AbcDrag call were re-gated to a specific NodeKind (or
-		// deleted outright), one of the two recipients would emit zero lines here and this
-		// assertion would fail.
-		if len(got) != 1 {
-			t.Fatalf("expected exactly one abc-drag breadcrumb for %s; got %d: %+v", who, len(got), got)
-		}
-		b := got[0]
-		if b.Kind != "breadcrumb" {
-			t.Fatalf("%s: expected kind=breadcrumb, got %q", who, b.Kind)
-		}
-		if b.Node != who || b.Port != "x" {
-			t.Fatalf("%s: expected node=%s port=x, got node=%q port=%q", who, who, b.Node, b.Port)
-		}
-		if !strings.Contains(b.Value, "peer=x") {
-			t.Fatalf("%s: value must name the peer: %q", who, b.Value)
-		}
-		wantAbc := fmt.Sprintf("abc=(%d,%d,%d)", lp.QuantITheta, lp.QuantIPhi, lp.QuantIR)
-		if !strings.Contains(b.Value, wantAbc) {
-			t.Fatalf("%s: value abc triple must match freshly re-quantized LocalPolar to x: want substring %q, got %q", who, wantAbc, b.Value)
-		}
-	}
-
-	// (a) t (Time, a "time node") must emit its abc-drag breadcrumb.
-	checkOne("t", tLines, lpTAfter)
-	// (b) n (SinkNode, NOT a time node) must ALSO emit its abc-drag breadcrumb — the old
-	// kind gate is gone; every drag-message recipient is logged.
-	checkOne("n", nLines, lpNAfter)
-
 }

@@ -140,6 +140,23 @@ docs, and the auto-memory dir, costing tokens and time.
 - **`ls`**: prefer a specific subdir over wide listings; pipe to `head` if you only need a sample.
 - Planning docs (`docs/planning/visual-editor/`, `memory/`) contain domain vocabulary — grep them only when the question is about *planning state*, not when looking for code.
 
+## Testing shape — read before writing a test
+
+A test asserts what **one goroutine itself** decided, emitted, or persisted. Do **not**
+test that two or more goroutines communicate properly — not delivery, not ordering, not
+absence-of-deadlock, not absence-of-race. That correctness is guaranteed BY CONSTRUCTION
+here (per-mover ownership, dedicated per-pair channels, no locks/atomics — guard:
+`tools/check-no-network-locks.sh`, empty allowlist), so such a test asserts what the
+structure already gives you and exercises Go's runtime instead of this codebase.
+
+The one exception is **persistence**: bytes on disk through a real reload
+(`memory/feedback_headless_repro_verifies_persistence`).
+
+Full doctrine — the dividing line, why absence assertions can't be polled, the industry
+patterns and which actually transfer, a decision procedure, and named anti-patterns — is
+in [docs/testing-shape.md](docs/testing-shape.md). Read it before adding a test that needs
+more than one goroutine running.
+
 ## Workflow
 
 - **Commit and push freely on task branches.** Per-commit sign-off is no longer required (relaxed post-v0; editing or reverting committed code is cheap). Sign-off IS still required for: merging a task branch into `main`, force-pushes, branch deletion, dependency removal, and any other destructive or shared-state action called out in the system prompt's "Executing actions with care" section.

@@ -70,7 +70,11 @@ func TestIndividualSnap_OnlyDraggedNodePersists(t *testing.T) {
 	// something drains dst's inbox.
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	md.Start(ctx)
+	wg := md.Start(ctx)
+	// Registered AFTER t.TempDir(), so t.Cleanup LIFO runs it BEFORE the
+	// dir RemoveAll: cancel() only SIGNALS, and a goroutine still closing
+	// its stream fds races the cleanup ("bad file descriptor").
+	t.Cleanup(func() { cancel(); wg.Wait() })
 
 	lhSrc, ok := md.lq.layoutHolders["src"]
 	if !ok {
@@ -209,7 +213,11 @@ func TestDragPositionRoundTripsExactly(t *testing.T) {
 	// so something drains dst's inbox (node6-drag-decentralized.md, generalized).
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	md.Start(ctx)
+	wg := md.Start(ctx)
+	// Registered AFTER t.TempDir(), so t.Cleanup LIFO runs it BEFORE the
+	// dir RemoveAll: cancel() only SIGNALS, and a goroutine still closing
+	// its stream fds races the cleanup ("bad file descriptor").
+	t.Cleanup(func() { cancel(); wg.Wait() })
 
 	target := vec3{X: 63.7, Y: -21.3, Z: 44.9}
 	if !md.RootMove("dst", target) {

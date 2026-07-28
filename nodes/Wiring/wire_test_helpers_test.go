@@ -2,7 +2,6 @@ package Wiring
 
 import (
 	"encoding/json"
-	"math"
 	"os"
 	"path/filepath"
 	"sort"
@@ -76,6 +75,3 @@ func writeCascadeEdgesFromEdges(t *testing.T, root string, nodeKinds map[string]
 // abcDragDeltasFor): a fixed sleep alone can silently pass for the wrong reason under
 // load.
 const cascadeSettle = 20 * time.Millisecond
-
-// approxEq is the float tolerance used by geometry/position wire tests.
-func approxEq(a, b float64) bool { return math.Abs(a-b) < 1e-9 }

@@ -10,15 +10,8 @@
 package Wiring
 
 import (
-	"context"
-	"path/filepath"
 	"sync"
 	"testing"
-	"time"
-
-	wire "github.com/dtauraso/wirefold/nodes/wire"
-
-	T "github.com/dtauraso/wirefold/Trace"
 )
 
 // TestForwardDeltaPulseLeftNeverRelays: whatever the sender kind, a PulseLeft forwards to
@@ -79,68 +72,5 @@ func TestPulseLeftAttendsOnlyInputAndSelectRight(t *testing.T) {
 			t.Errorf("PulseLeft delta from %s (%s): gotForwardMsg=%d, want %d",
 				c.senderID, c.senderKind, nm.gotForwardMsg, c.want)
 		}
-	}
-}
-
-// TestPulseLeftDragTerminatesCascade drags node 5 (Pulse) on the REAL production topology.
-// The delta reaches node 3 (PulseLeft) from node 8 (WindowAndInhibitLeftGate = SelectRight)
-// along 5->8->3, which node 3 attends to — but node 3 must not forward it on to node 1
-// (Input), which is what used to close the cascade cycle 5->8->3->1->2.
-func TestPulseLeftDragTerminatesCascade(t *testing.T) {
-	root := filepath.Join(repoRootForDeltaForwardTest(t), "topology")
-	tr := T.NewWithSinkHook(nil, nil)
-
-	_, _, md, _, err := LoadTopology(context.Background(), root, tr, wire.NewRealClock())
-	if err != nil {
-		t.Fatalf("LoadTopology: %v", err)
-	}
-
-	for _, id := range []string{"1", "2", "3", "4", "5", "6", "7", "8", "9"} {
-		_ = wireNodeStream(t, md, id)
-		if nm, ok := md.mr.nodeMovers[id]; ok {
-			nm.nodeRowFor = md.NodeRowFor
-			ownMover := nm
-			nm.forwardOnce = func(exceptID string, dA, dB, dC int32) {
-				ownMover.forwardDelta(md, exceptID, dA, dB, dC)
-			}
-		}
-	}
-
-	var mu sync.Mutex
-	fromThree := map[string]bool{}
-	md.SetMsgTap(func(destID string, msg moveMsg) {
-		if msg.Kind != moveMsgKindDeltaForward || msg.SenderID != "3" {
-			return
-		}
-		mu.Lock()
-		fromThree[destID] = true
-		mu.Unlock()
-	})
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	md.Start(ctx)
-
-	before, ok := md.centerOfNode("5")
-	if !ok {
-		t.Fatal("no center for 5")
-	}
-	target := before.Add(vec3{X: 45, Y: -30, Z: 20})
-	md.resetAbcDrag()
-	if !md.RootMove("5", target) {
-		t.Fatal("RootMove(5) returned false")
-	}
-	pollDragConverged(t, md, "5", target)
-	time.Sleep(150 * time.Millisecond)
-
-	mu.Lock()
-	got := []string{}
-	for to := range fromThree {
-		got = append(got, to)
-	}
-	mu.Unlock()
-
-	if len(got) != 0 {
-		t.Errorf("node 3 (PulseLeft) forwarded to %v; want none — PulseLeft is a cascade terminus", got)
 	}
 }
