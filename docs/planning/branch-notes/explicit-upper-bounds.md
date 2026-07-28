@@ -16,18 +16,26 @@ ate memory" — no location, no cause, a session to bisect. A declared bound fai
 
 ## Why this repo needs it
 
-There is already direct evidence of the failure mode, measured on
-`task/edge-stream-volume` (`docs/planning/branch-notes/edge-stream-volume.md`):
+There is already direct evidence of the failure mode. It was measured and closed on
+`task/edge-stream-volume`, now merged (`6784aafe`) — that branch's note was branch-local
+and stripped at merge, so **the durable record is the 2026-07-28 entry in
+[session-log.md](../visual-editor/session-log.md)**, not the file this note used to cite.
 
-| Log | Size after one idle session |
-|---|---|
-| `.probe/go-edge.jsonl` | **1.1 GB** |
-| `.probe/go-interior.jsonl` | 34 MB |
-| `.probe/ts.jsonl` | 1.8 MB |
+`.probe/go-edge.jsonl` reached **1.1 GB** in one session against 34 MB for the next
+largest log — ~30x everything else combined, discovered by noticing disk usage rather
+than by any check firing. That is the shape this branch exists to prevent.
 
-734 KB/s, ~258 MB/hour, from idle playback with no interaction. The edge stream is ~30×
-everything else combined. That is unbounded growth in production, discovered by noticing
-disk usage rather than by a check firing.
+Two numbers from the original framing were wrong, and the corrections matter here because
+they change what a bound would have to be:
+
+- **The rate is not a constant.** The headline 734 KB/s (~258 MB/hr) did not reproduce; a
+  later session measured 75 KB/s from the same code. Volume is
+  `beads_in_flight x 50/sec x ~186 bytes`, so the high figure was a saturated ring. **A
+  fixed byte/sec ceiling would therefore be the wrong bound** — the quantity that varies
+  is beads in flight, not the rate.
+- **The cadence was never the problem.** Sampling ran at 20.3 ms (~50 Hz), matching the
+  documented ~16 ms. The multiplier is bead *lifetime*: ~20 s in flight, so one bead
+  alone produces ~1000 rows.
 
 The existing responses are **external**: `tools/run-bounded.sh` wraps a run to cap it
 from outside, and the log-flood lesson is recorded doctrine. This branch moves the bound
