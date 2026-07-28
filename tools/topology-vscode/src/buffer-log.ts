@@ -125,19 +125,28 @@ interface ViewBlocksOrNull {
 // all (memory/feedback_no_single_writer_bridge.md); genuinely decentralized kinds
 // (NodeGeometry/Geometry/Position/Arrive/NodeBead) arrive on their OWN owner fd instead —
 // see decodeStreamFrameEvents below, called once per node/edge/interior stream frame.
-export function decodeBufferLog(viewFrameBuf: ArrayBuffer): string {
+// breadcrumbsOnly (default false): when true, every non-breadcrumb decoded line is
+// dropped before serialization. This is how the four Go trace files stay the always-on
+// DEBUG BREADCRUMB channel (CLAUDE.md) while wirefold.probe.trace is off — the decode
+// itself is NOT skipped (a breadcrumb row could be anywhere in the frame's EVENTS
+// section), only the appended bytes shrink to breadcrumb rows. Known cost: every frame's
+// events section is still fully decoded even when tracing is off; only the append is
+// cheap. That is the accepted price of keeping the documented debug channel working.
+export function decodeBufferLog(viewFrameBuf: ArrayBuffer, breadcrumbsOnly = false): string {
   const dv = decodeViewFrame(viewFrameBuf);
   if (!dv || dv.eventCount === 0) return "";
   const vb: ViewBlocksOrNull = { cameraView: dv.cameraView, overlayView: dv.overlayView, sceneView: dv.sceneView };
-  return decodeEventsFromView(dv.eventCount, dv.eventView, dv.eventTextView, null, null, vb);
+  return decodeEventsFromView(dv.eventCount, dv.eventView, dv.eventTextView, null, null, vb, breadcrumbsOnly);
 }
 
-function decodeEventsFromView(eventCount: number, eventView: DataView, eventTextView: DataView, dn: DecodedNodeFrame | null, de: DecodedEdgeFrame | null, vb: ViewBlocksOrNull): string {
+function decodeEventsFromView(eventCount: number, eventView: DataView, eventTextView: DataView, dn: DecodedNodeFrame | null, de: DecodedEdgeFrame | null, vb: ViewBlocksOrNull, breadcrumbsOnly: boolean): string {
   const now = Date.now();
   let out = "";
   for (let i = 0; i < eventCount; i++) {
     const line = decodeEventLine(eventView, eventTextView, dn, de, vb, i);
-    if (line) out += JSON.stringify({ ts_ms: now, src: "go", ...line }) + "\n";
+    if (!line) continue;
+    if (breadcrumbsOnly && line.kind !== "breadcrumb") continue;
+    out += JSON.stringify({ ts_ms: now, src: "go", ...line }) + "\n";
   }
   return out;
 }
@@ -149,12 +158,16 @@ function decodeEventsFromView(eventCount: number, eventView: DataView, eventText
 // row resolution is attempted here (that owner goroutine already resolved what it could);
 // node/port/edge identity strings are best-effort (dn/de optional) — the numeric rows the
 // event already carries are always present regardless.
-export function decodeStreamFrameEvents(eventCount: number, eventView: DataView, eventTextView: DataView, dn?: DecodedNodeFrame | null, de?: DecodedEdgeFrame | null): string {
+// breadcrumbsOnly: see decodeBufferLog's doc comment — same contract, same accepted cost
+// (full decode either way; only the append shrinks to breadcrumb rows when tracing is off).
+export function decodeStreamFrameEvents(eventCount: number, eventView: DataView, eventTextView: DataView, dn?: DecodedNodeFrame | null, de?: DecodedEdgeFrame | null, breadcrumbsOnly = false): string {
   const now = Date.now();
   let out = "";
   for (let i = 0; i < eventCount; i++) {
     const line = decodeEventLine(eventView, eventTextView, dn ?? null, de ?? null, { cameraView: null, overlayView: null, sceneView: null }, i);
-    if (line) out += JSON.stringify({ ts_ms: now, src: "go", ...line }) + "\n";
+    if (!line) continue;
+    if (breadcrumbsOnly && line.kind !== "breadcrumb") continue;
+    out += JSON.stringify({ ts_ms: now, src: "go", ...line }) + "\n";
   }
   return out;
 }

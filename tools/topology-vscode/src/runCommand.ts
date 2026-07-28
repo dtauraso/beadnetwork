@@ -5,7 +5,7 @@ import * as path from "path";
 import type { HostToWebviewMsg } from "./messages";
 import { buildBinary, maxGoMtime, killOrphanedSims } from "./goBuild";
 import { frameRecord } from "./schema/input-layout";
-import { PROBE_DIR, PROBE_FILES } from "./probe-files";
+import { PROBE_DIR, PROBE_FILES, PROBE_TRACE_FILES, isProbeTraceEnabled } from "./probe-files";
 import { decodeBufferLog, decodeStreamFrameEvents } from "./buffer-log";
 import { decodeNodeStreamFrame, decodeEdgeStreamFrame, decodeInteriorStreamFrame } from "./webview/three/buffer-decode";
 import { BUF_BLOCK_TAG_VIEW, BUF_BLOCK_TAG_EDGE_STREAM, BUF_BLOCK_TAG_NODE_STREAM, BUF_BLOCK_TAG_INTERIOR_STREAM } from "./schema/frame-tags";
@@ -120,13 +120,20 @@ function appendGoError(goErrorsFile: string | undefined, message: string): void 
 /** The probe-path set derived once per run() from the workspace folder — see
  *  probePathsFor. */
 interface ProbePaths {
+  // All paths are ALWAYS armed, regardless of wirefold.probe.trace: the four Go trace
+  // files (probeFile/probeNodeFile/probeEdgeFile/probeInteriorFile) double as the DEBUG
+  // BREADCRUMB channel's storage (CLAUDE.md's "Debugging the Go layer" — breadcrumb rows
+  // must survive with tracing off), so they must exist and be writable either way. What
+  // the setting gates is which DECODED LINES get appended at each write site — see
+  // handleViewFd/handleEdgeFd/handleNodeFd/handleInteriorFd's probeTrace-gated filtering.
   probeFile: string;
   probeNodeFile: string;
   probeEdgeFile: string;
   probeInteriorFile: string;
   goErrorsFile: string;
-  tsFile: string;
-  tsErrorsFile: string;
+  // NOTE: ts.jsonl / ts-errors.jsonl are deliberately absent. The runner never writes
+  // them — extension/webview-log.ts is the sole writer and resolves its own paths from
+  // the webview's workspace folder. Fields for them were armed here and read by nobody.
 }
 
 /** Computes (and ensures on disk) the probe-directory file paths for one run. Pure w.r.t.
@@ -160,7 +167,13 @@ function rotateProbeLog(p: string): void {
 function probePathsFor(folder: vscode.WorkspaceFolder): ProbePaths {
   const probeDir = path.join(folder.uri.fsPath, PROBE_DIR);
   fs.mkdirSync(probeDir, { recursive: true });
-  for (const name of Object.values(PROBE_FILES)) {
+  // All paths rotate unconditionally: the four Go trace files always receive breadcrumb
+  // rows regardless of wirefold.probe.trace (see ProbePaths), so they are live logs either
+  // way and must rotate like the error logs.
+  rotateProbeLog(path.join(probeDir, PROBE_FILES.goErrors));
+  rotateProbeLog(path.join(probeDir, PROBE_FILES.tsErrors));
+  rotateProbeLog(path.join(probeDir, PROBE_FILES.handlerErrorLast));
+  for (const name of PROBE_TRACE_FILES) {
     rotateProbeLog(path.join(probeDir, name));
   }
   return {
@@ -169,8 +182,6 @@ function probePathsFor(folder: vscode.WorkspaceFolder): ProbePaths {
     probeEdgeFile: path.join(probeDir, PROBE_FILES.goEdge),
     probeInteriorFile: path.join(probeDir, PROBE_FILES.goInterior),
     goErrorsFile: path.join(probeDir, PROBE_FILES.goErrors),
-    tsFile: path.join(probeDir, PROBE_FILES.ts),
-    tsErrorsFile: path.join(probeDir, PROBE_FILES.tsErrors),
   };
 }
 
@@ -336,8 +347,12 @@ export class BuildAndRunRunner {
   private probeEdgeFile: string | undefined;
   private probeInteriorFile: string | undefined;
   private goErrorsFile: string | undefined;
-  private tsFile: string | undefined;
-  private tsErrorsFile: string | undefined;
+  // Read once per run() from wirefold.probe.trace. Gates only which DECODED LINES are
+  // appended to the four Go trace files at handleViewFd/handleEdgeFd/handleNodeFd/
+  // handleInteriorFd — breadcrumb rows (kind==="breadcrumb") are appended regardless (see
+  // decodeStreamFrameEvents/decodeBufferLog's breadcrumbsOnly filtering in buffer-log.ts),
+  // since CLAUDE.md designates them as the always-on Go debug channel.
+  private probeTrace = false;
   // Last VIEW-stream frame (camera+overlay+scene), kept so a REMOUNTED webview (which holds
   // no state) can be handed a full frame instantly on "ready" without round-tripping to Go —
   // see getLastViewFrame(). This is a keyframe cache of Go's own bytes, not authored state.
@@ -428,8 +443,7 @@ export class BuildAndRunRunner {
     this.probeEdgeFile = probePaths.probeEdgeFile;
     this.probeInteriorFile = probePaths.probeInteriorFile;
     this.goErrorsFile = probePaths.goErrorsFile;
-    this.tsFile = probePaths.tsFile;
-    this.tsErrorsFile = probePaths.tsErrorsFile;
+    this.probeTrace = isProbeTraceEnabled();
     if (killed > 0) {
       this.channel.appendLine(`[cleanup] killed ${killed} orphaned sim process(es)`);
     }
@@ -502,6 +516,15 @@ export class BuildAndRunRunner {
         ...process.env,
         WIREFOLD_BUF_OUT_FD: "3",
         WIREFOLD_STREAM_FDS: streamFDsEnv,
+        // Gates whether nodes/wire's stepAll emits the per-tick, per-in-flight-bead
+        // KindEdgeBead trace event at all -- read ONCE by Go at startup (see
+        // nodes/wire/paced_wire.go's edgeBeadTraceEnabled), same shape as
+        // WIREFOLD_STREAM_FDS above. Derived from the SAME isProbeTraceEnabled() that
+        // gates whether the decoded .probe trace lines are WRITTEN on the TS side (see
+        // this.probeTrace above) -- one source of truth for the wirefold.probe.trace
+        // setting. Off by default: with tracing off, Go now stops emitting the event at
+        // the source instead of TS decoding and discarding it every tick.
+        WIREFOLD_EDGE_BEAD_TRACE: this.probeTrace ? "1" : "0",
       },
     });
     // Flush any framed binary records buffered before this spawn (writeStdin queued them).
@@ -602,7 +625,7 @@ export class BuildAndRunRunner {
       // feedback_no_single_writer_bridge.md). Written to its OWN .probe file (go.jsonl) —
       // N separate logs, never merged on write.
       if (this.probeFile) {
-        const lines = decodeBufferLog(ab);
+        const lines = decodeBufferLog(ab, !this.probeTrace);
         if (lines.length > 0) {
           try {
             fs.appendFileSync(this.probeFile, lines, "utf8");
@@ -636,7 +659,7 @@ export class BuildAndRunRunner {
       if (this.probeEdgeFile) {
         const decoded = decodeEdgeStreamFrame(row, ab);
         if (decoded && decoded.eventCount > 0) {
-          const lines = decodeStreamFrameEvents(decoded.eventCount, decoded.eventView, decoded.eventTextView);
+          const lines = decodeStreamFrameEvents(decoded.eventCount, decoded.eventView, decoded.eventTextView, undefined, undefined, !this.probeTrace);
           if (lines.length > 0) {
             try {
               fs.appendFileSync(this.probeEdgeFile, lines, "utf8");
@@ -669,7 +692,7 @@ export class BuildAndRunRunner {
       if (this.probeNodeFile) {
         const decoded = decodeNodeStreamFrame(row, ab);
         if (decoded && decoded.eventCount > 0) {
-          const lines = decodeStreamFrameEvents(decoded.eventCount, decoded.eventView, decoded.eventTextView);
+          const lines = decodeStreamFrameEvents(decoded.eventCount, decoded.eventView, decoded.eventTextView, undefined, undefined, !this.probeTrace);
           if (lines.length > 0) {
             try {
               fs.appendFileSync(this.probeNodeFile, lines, "utf8");
@@ -700,7 +723,7 @@ export class BuildAndRunRunner {
       if (this.probeInteriorFile) {
         const decoded = decodeInteriorStreamFrame(row, ab);
         if (decoded && decoded.eventCount > 0) {
-          const lines = decodeStreamFrameEvents(decoded.eventCount, decoded.eventView, decoded.eventTextView);
+          const lines = decodeStreamFrameEvents(decoded.eventCount, decoded.eventView, decoded.eventTextView, undefined, undefined, !this.probeTrace);
           if (lines.length > 0) {
             try {
               fs.appendFileSync(this.probeInteriorFile, lines, "utf8");

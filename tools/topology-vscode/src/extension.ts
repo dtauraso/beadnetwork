@@ -21,9 +21,12 @@ function resetProbeLogs(repoRoot: string): void {
   try {
     const probeDir = path.join(repoRoot, ".probe");
     fs.mkdirSync(probeDir, { recursive: true });
-    // Iterate the canonical registry (not a hand-typed list) so a newly-added
-    // probe file is reset automatically — the omission that let go-debug.jsonl
-    // accumulate across sessions cannot recur.
+    // Iterate the canonical registry (not a hand-typed list) so a newly-added probe file is
+    // reset automatically — the omission that let go-debug.jsonl accumulate across sessions
+    // cannot recur. ALL files reset unconditionally, including the four Go trace files:
+    // they always receive DEBUG BREADCRUMB rows regardless of wirefold.probe.trace (see
+    // buffer-log.ts's breadcrumbsOnly filtering), so they are live logs either way and must
+    // reset like every other probe file.
     for (const name of Object.values(PROBE_FILES)) {
       fs.writeFileSync(path.join(probeDir, name), "");
     }

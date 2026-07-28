@@ -21,6 +21,15 @@ set -euo pipefail
 #                                 + debug=true)
 #   probe-merge.sh --ts         — ts.jsonl + ts-errors.jsonl sorted
 #
+# The wirefold.probe.trace VS Code setting (default OFF) gates the bulk, non-breadcrumb
+# rows in go.jsonl/go-node.jsonl/go-edge.jsonl/go-interior.jsonl/ts.jsonl (the per-tick
+# firehose). With it off, --go/--ts will read mostly-empty files; --debug and --errors
+# are UNAFFECTED — breadcrumb rows and the *-errors.jsonl/handler-error-last.json files
+# are always written regardless of the setting. The highest-volume kind, edge-bead, is
+# gated at the Go SOURCE too (nodes/wire/paced_wire.go's edgeBeadTraceEnabled, set once
+# at startup from WIREFOLD_EDGE_BEAD_TRACE, derived from this same setting) — with
+# tracing off, Go never emits the event at all rather than TS decoding+discarding it.
+#
 # Missing files are treated as empty; requires jq.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
