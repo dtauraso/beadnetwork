@@ -73,6 +73,38 @@ correct behavior trains the reflex to disable it.
 4. `bash scripts/verify.sh` clean.
 5. Commit alone, mapping the assertion to the doctrine it encodes in the message.
 
+## Landed
+
+| Site | Invariant | Ownership column |
+|---|---|---|
+| `nodeMover.writeStreamFrame` | a mover carries only its own node's events | `NodeRow` |
+| `edgeMover.writeStreamFrame` | an edge carries only its own edge's rows | `EdgeRow` (**not** NodeRow) |
+| `BuildNodeStreamFrame` | port slices parallel; walk == size | — |
+| `BuildEdgeStreamFrame` | bead slices parallel; walk == size | — |
+| `BuildInteriorStreamFrame` | slot slices parallel | — |
+
+Each was made to fail once under the real binary before being believed.
+
+## Disposed — checked, deliberately NOT asserted
+
+Recorded so these are not re-attempted. Both were candidates in the parent note; checking
+the code first is what disqualified them, which is the process working.
+
+**simtime monotonic per node — already structural, no assertion added.**
+`RealClock.Tick()` is `accScaled + since(lastChange)×speed`, floored. `time.Since` is
+monotonic, `speed` is clamped non-negative in `SetSpeed`, and `SetSpeed` banks the elapsed
+of the segment that just ended before changing slope. Tick therefore cannot decrease by
+construction, and `nodes/wire/clock_realclock_test.go` / `clock_speed_test.go` already pin
+it exactly (they became equalities under synctest). An assertion here would restate the
+arithmetic, not catch anything.
+
+**edge endpoints match the channel name — not assertable, nothing parses the name.**
+CLAUDE.md calls the channel-naming convention load-bearing, and it is *for humans reading
+code*. But a repo-wide grep finds no runtime site that parses a channel name back into
+endpoint ids — the name is never read as data. There is nothing to compare against, so
+there is no assertion to write. If this is ever to be enforced, the name has to first
+become something the loader parses, which is a design change, not an assertion.
+
 ## After the first one
 
 Re-evaluate rather than batch. The parent doc's remaining candidates each need the same
