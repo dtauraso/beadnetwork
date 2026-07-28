@@ -20,8 +20,8 @@ import (
 
 const dragAnchorTopo = `{
   "nodes": [
-    {"id":"src","type":"SrcNode","outputs":[{"name":"Out"}]},
-    {"id":"dst","type":"SinkNode","inputs":[{"name":"In"}]}
+    {"id":"src","type":"SrcNode","outputs":[{"name":"Out"}],"cascadeEdges":["dst"],"cascadeKinds":{"dst":"SinkNode"}},
+    {"id":"dst","type":"SinkNode","inputs":[{"name":"In"}],"cascadeEdges":["src"],"cascadeKinds":{"src":"SrcNode"}}
   ],
   "edges": [
     {"label":"e0","kind":"data","source":"src","sourceHandle":"Out","target":"dst","targetHandle":"In"}

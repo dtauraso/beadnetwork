@@ -65,6 +65,8 @@ func writeXTN(t *testing.T) string {
 	mk("nodes/n/inputs/In.json", `{"name":"In"}`)
 	mk("edges/eXT.json", `{"label":"eXT","kind":"chain","source":"x","sourceHandle":"Out","target":"t","targetHandle":"FromPrevTimeNode"}`)
 	mk("edges/eXN.json", `{"label":"eXN","kind":"data","source":"x","sourceHandle":"Out","target":"n","targetHandle":"In"}`)
+	writeCascadeEdgesFromEdges(t, root, map[string]string{"x": "SrcNode", "t": "Time", "n": "SinkNode"},
+		[][2]string{{"x", "t"}, {"x", "n"}})
 	return root
 }
 

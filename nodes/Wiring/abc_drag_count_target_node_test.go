@@ -33,6 +33,7 @@ func writeFT(t *testing.T) string {
 	mk("nodes/t/meta.json", `{"id":"t","type":"SinkNode","r":100,"scenePolarR":90,"scenePolarTheta":2.0,"scenePolarPhi":0.4}`)
 	mk("nodes/t/inputs/In.json", `{"name":"In"}`)
 	mk("edges/eFT.json", `{"label":"eFT","kind":"chain","source":"f","sourceHandle":"ToNext","target":"t","targetHandle":"In"}`)
+	writeCascadeEdgesFromEdges(t, root, map[string]string{"f": "Time", "t": "SinkNode"}, [][2]string{{"f", "t"}})
 	return root
 }
 

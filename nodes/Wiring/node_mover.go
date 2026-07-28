@@ -473,6 +473,14 @@ func (m *nodeMover) handle(msg moveMsg) {
 		if m.selfKind == "TimeStart" && m.cascadeKinds[msg.SenderID] == "Input" {
 			return
 		}
+		// A Pulse IGNORES a delta triple arriving from a TimeStart-kind cascade neighbor:
+		// no record, no relay. Same shape as the TimeStart<-Input stop above, gated on the
+		// SENDER's kind. Note this is the Pulse kind only (node 5) — PulseLeft and
+		// PulseRight are separate kinds with their own rules below. From every OTHER sender
+		// kind a Pulse keeps the plain flood-to-all-cascade-neighbors-except-sender.
+		if m.selfKind == "Pulse" && m.cascadeKinds[msg.SenderID] == "TimeStart" {
+			return
+		}
 		// A PulseLeft ATTENDS to a delta triple only when it arrives from an Input or a
 		// SelectRight cascade neighbor (SelectRight is the Go type of the
 		// "WindowAndInhibitLeftGate" kind — nodes/windowandinhibitleftgate/node.go — so the
@@ -494,7 +502,7 @@ func (m *nodeMover) handle(msg moveMsg) {
 		// to a delta triple only from a Time or a SelectLeft ("WindowAndInhibitRightGate" —
 		// nodes/windowandinhibitrightgate/node.go) cascade neighbor, and (see forwardDelta)
 		// never relays. Node 7's cascade neighbors are {4: Time} today, plus
-		// {9: WindowAndInhibitRightGate} once the 7-9 double link is restored.
+		// {9: WindowAndInhibitRightGate} (the 7-9 double link is restored).
 		if m.selfKind == "PulseRight" {
 			switch m.cascadeKinds[msg.SenderID] {
 			case "Time", "WindowAndInhibitRightGate":
@@ -537,13 +545,17 @@ func (m *nodeMover) handle(msg moveMsg) {
 // node) or from a neighbor that already forwarded (handle's moveMsgKindDeltaForward case,
 // exceptID = that neighbor) — to every id in m.cascadeEdges (this node's STORED
 // cascade-neighbor list, nodes/<id>/cascade-edges.json — see the field's doc comment),
-// EXCLUDING the sender. cascadeEdges is hand-authored/persisted data (the full node
-// adjacency minus the cycle-closing links, seeded once outside this codebase), so plain
-// "forward to my cascade-edge neighbors, excluding the sender, concurrently" is loop-free
-// BY CONSTRUCTION: propagation flows outward from the dragged node and terminates
-// naturally with NO visit-tracking, no generation, no once-per-drag guard — every move
-// (not just the first) re-floods freely, which is what keeps the forwarded log in sync
-// with the drag as it continues (see gotForwardMsg's doc comment). Sent via m's OWN retry
+// EXCLUDING the sender. cascadeEdges is hand-authored/persisted data seeded once outside
+// this codebase, and it now carries the FULL node adjacency INCLUDING both cycle-closing
+// links (5-8, 7-9) — so this is NOT loop-free by construction, as it was when the stored
+// set was a spanning tree. Termination comes from the PER-KIND rules below and in the
+// moveMsgKindDeltaForward handler: PulseLeft/PulseRight relay to nobody, TimeStart and
+// Pulse route by sender kind, TimeEnd stops. There is still NO visit-tracking, no
+// generation, no once-per-drag guard — every move (not just the first) re-propagates
+// freely, which is what keeps the forwarded log in sync with the drag as it continues
+// (see gotForwardMsg's doc comment). Measured: 1-6 forwards per single-node drag; the
+// same edge set with no per-kind rules ran at a steady ~300 forwards/sec indefinitely.
+// Sent via m's OWN retry
 // queue (m.sendMove, the same fire-and-forget mechanism every other fan-out in this file
 // uses) — never blocking. Called only from m's own goroutine (handle, and
 // neighborSetCRequantize which already runs on selfID's own goroutine).
@@ -577,6 +589,31 @@ func (m *nodeMover) forwardDelta(md *MoveDispatch, exceptID string, dA, dB, dC i
 		return
 	}
 	targetKind := ""
+	// A Pulse routes a GATE-origin delta straight across to the opposite gate kind:
+	// SelectRight -> SelectLeft and SelectLeft -> SelectRight. The kind strings cross over
+	// relative to the Go type names, so read them off this table rather than the name:
+	//
+	//	SelectRight = "WindowAndInhibitLeftGate"  (node 8)
+	//	SelectLeft  = "WindowAndInhibitRightGate" (node 9)
+	//
+	// A TimeStart-origin delta never reaches here (dropped in the moveMsgKindDeltaForward
+	// handler). Any OTHER sender kind leaves targetKind empty and keeps the plain flood.
+	// The switch is TOTAL: a Pulse's three neighbor kinds are TimeStart (dropped upstream)
+	// and the two gates, so any OTHER sender kind is not a real case in the graph and is
+	// DROPPED rather than flooded. Same stance TimeStart takes. This matters because a
+	// missing cascade-edges.json entry reads as kind "" — with a flood fallback that data
+	// gap silently became surprise fan-out (a drag of node 8 reaching node 2 through 5,
+	// because 8's kind was absent from node 5's file); with the drop it stays inert.
+	if m.selfKind == "Pulse" {
+		switch m.cascadeKinds[exceptID] {
+		case "WindowAndInhibitLeftGate": // from SelectRight
+			targetKind = "WindowAndInhibitRightGate" // -> to SelectLeft
+		case "WindowAndInhibitRightGate": // from SelectLeft
+			targetKind = "WindowAndInhibitLeftGate" // -> to SelectRight
+		default:
+			return
+		}
+	}
 	if m.selfKind == "TimeStart" {
 		// TimeStart pays attention to a delta ONLY when it arrives from a Pulse, Time, or
 		// Input neighbor; from any other kind it drops the delta entirely (return). Pulse

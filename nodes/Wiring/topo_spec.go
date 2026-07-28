@@ -227,7 +227,85 @@ func parseSpec(path string) (topoSpec, error) {
 	if err := validateNoFanIn(spec); err != nil {
 		return topoSpec{}, fmt.Errorf("LoadTopology: %s: %w", path, err)
 	}
+	// Cascade adjacency is MANDATORY, not optional (see validateCascadeEdges): a missing
+	// or partial cascade-edges.json must fail the load loudly rather than silently
+	// degrade a node to "no cascade neighbors".
+	if err := validateCascadeEdges(spec); err != nil {
+		return topoSpec{}, fmt.Errorf("LoadTopology: %s: %w", path, err)
+	}
 	return spec, nil
+}
+
+// validateCascadeEdges requires every node to carry a complete cascade-edges.json whose
+// neighbor set EQUALS that node's domain (edge) adjacency, with a CascadeKinds entry for
+// each neighbor matching that node's actual Type.
+//
+// Cascade adjacency USED to be optional (absent file → empty list). That silent default
+// caused two real defects, both of the same shape — missing data producing wrong
+// behavior with no error:
+//
+//   - A drag of node 8 reached node 5 over the DOMAIN edge 5-8 while node 5's
+//     cascade-edges.json had no entry for 8, so forwardDelta read the sender's kind as ""
+//     and the Pulse gate-routing rule fell through to a flood.
+//   - Scoping the neighborSetC drag fan to cascadeEdges silently disabled neighbor
+//     re-quantize entirely for any topology whose nodes had no cascade file.
+//
+// Requiring the data is what lets those two fans read ONE adjacency instead of two that
+// can drift.
+//
+// The rule is EQUALITY with the domain adjacency, deliberately NOT merely "non-empty".
+// An earlier draft of this check required non-empty, which made an ISOLATED node (a
+// fixture node with no edges at all) unexpressible and pushed callers into naming the
+// node as its own cascade neighbor — a self-loop forwardDelta would turn into a node
+// sending to itself. Equality makes the isolated case fall out correctly (no edges ⇒ no
+// cascade neighbors) and rejects self-loops outright.
+func validateCascadeEdges(spec topoSpec) error {
+	kindByID := make(map[string]string, len(spec.Nodes))
+	for _, n := range spec.Nodes {
+		kindByID[n.ID] = n.Type
+	}
+	domain := map[string]map[string]bool{}
+	link := func(a, b string) {
+		if _, ok := domain[a]; !ok {
+			domain[a] = map[string]bool{}
+		}
+		domain[a][b] = true
+	}
+	for _, e := range spec.Edges {
+		link(e.Source, e.Target)
+		link(e.Target, e.Source)
+	}
+	for _, n := range spec.Nodes {
+		want := domain[n.ID]
+		got := map[string]bool{}
+		for _, to := range n.CascadeEdges {
+			if to == n.ID {
+				return fmt.Errorf("node %q lists ITSELF in cascadeEdges: a cascade self-loop would make forwardDelta send to its own node", n.ID)
+			}
+			if _, ok := kindByID[to]; !ok {
+				return fmt.Errorf("node %q cascadeEdges names unknown node %q", n.ID, to)
+			}
+			got[to] = true
+		}
+		for to := range want {
+			if !got[to] {
+				return fmt.Errorf("node %q is edge-adjacent to %q but does not list it in cascadeEdges: cascade adjacency must equal domain adjacency (see nodes/%s/cascade-edges.json)", n.ID, to, n.ID)
+			}
+		}
+		for to := range got {
+			if !want[to] {
+				return fmt.Errorf("node %q lists cascade neighbor %q it shares no edge with: cascade adjacency must equal domain adjacency", n.ID, to)
+			}
+			gotKind, ok := n.CascadeKinds[to]
+			if !ok {
+				return fmt.Errorf("node %q cascade-edges.json lists neighbor %q with no cascadeKinds entry", n.ID, to)
+			}
+			if gotKind != kindByID[to] {
+				return fmt.Errorf("node %q cascadeKinds[%q] = %q, but node %q is kind %q", n.ID, to, gotKind, to, kindByID[to])
+			}
+		}
+	}
+	return nil
 }
 
 // readSpec loads the raw topoSpec from either a directory tree or a single JSON file,

@@ -49,10 +49,11 @@ whitelist naming the other side's kinds:
   when it is the direct recipient of a drag. It is a cascade **terminus**, so an
   attended delta ends here; attending only records the observability state.
 
-Node 7's cascade neighbors are `{4: Time}` today, plus
-`{9: WindowAndInhibitRightGate}` once the `7-9` double link is restored — this
-terminus is what makes restoring that link safe (it cuts the otherwise
-self-sustaining `2-4-7-9-5` cascade cycle).
+Node 7's cascade neighbors are `{4: Time, 9: WindowAndInhibitRightGate}` — the `7-9`
+double link is restored, and this terminus is what made restoring it safe: it cuts
+the otherwise self-sustaining `2-4-7-9-5` cascade cycle. (Its mirror, PulseLeft at
+node 3, cuts `5-8-3-1-2` the same way.) Cascade adjacency now equals domain
+adjacency, so termination is a property of these per-kind rules, not of the edge set.
 
 ## Runtime status
 

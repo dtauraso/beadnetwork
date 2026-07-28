@@ -42,9 +42,9 @@ func TestPerEdgeTravelTimeDistinctPorts(t *testing.T) {
 	// (long edge). Positions are set via "center" messages after load (sphere-chain deliver).
 	const topo = `{
 	  "nodes": [
-	    {"id":"srcNear","type":"SrcNode","outputs":[{"name":"Out"}]},
-	    {"id":"srcFar","type":"SrcNode","outputs":[{"name":"Out"}]},
-	    {"id":"sink","type":"PerEdgeSink","inputs":[{"name":"InNear"},{"name":"InFar"}]}
+	    {"id":"srcNear","type":"SrcNode","outputs":[{"name":"Out"}],"cascadeEdges":["sink"],"cascadeKinds":{"sink":"PerEdgeSink"}},
+	    {"id":"srcFar","type":"SrcNode","outputs":[{"name":"Out"}],"cascadeEdges":["sink"],"cascadeKinds":{"sink":"PerEdgeSink"}},
+	    {"id":"sink","type":"PerEdgeSink","inputs":[{"name":"InNear"},{"name":"InFar"}],"cascadeEdges":["srcNear","srcFar"],"cascadeKinds":{"srcNear":"SrcNode","srcFar":"SrcNode"}}
 	  ],
 	  "edges": [
 	    {"label":"eNear","kind":"data","source":"srcNear","sourceHandle":"Out","target":"sink","targetHandle":"InNear"},

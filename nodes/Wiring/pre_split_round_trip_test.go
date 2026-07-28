@@ -37,6 +37,7 @@ func writePreSplitStar2(t *testing.T) string {
 		`"scenePolarR":87.7496438739,"scenePolarTheta":0.96453035788,"scenePolarPhi":-2.15879893034}`)
 	mk("nodes/dst/inputs/In.json", `{"name":"In"}`)
 	mk("edges/e0.json", `{"label":"e0","kind":"data","source":"src","sourceHandle":"Out","target":"dst","targetHandle":"In"}`)
+	writeCascadeEdgesFromEdges(t, root, map[string]string{"src": "SrcNode", "dst": "SinkNode"}, [][2]string{{"src", "dst"}})
 	// The single legacy scene.json — camera + one overlay flag + the scene sphere all
 	// sharing one document, the exact pre-split shape.
 	mk("view/scene.json", `{`+

@@ -47,6 +47,14 @@ func writeXTNY(t *testing.T) string {
 	mk("edges/eYZ.json", `{"label":"eYZ","kind":"data","source":"y","sourceHandle":"Out","target":"z","targetHandle":"In"}`)
 	mk("nodes/iso/meta.json", `{"id":"iso","type":"SrcNode","r":100,"scenePolarR":50,"scenePolarTheta":2.5,"scenePolarPhi":1.0}`)
 	mk("nodes/iso/outputs/Out.json", `{"name":"Out"}`)
+	writeCascadeEdgesFromEdges(t, root, map[string]string{"y": "SrcNode", "z": "SinkNode"},
+		[][2]string{{"y", "z"}})
+	// iso is deliberately DISJOINT from every other node (no domain edge at all), so
+	// writeCascadeEdgesFromEdges would t.Fatalf on it (no domain neighbor to derive
+	// cascade adjacency from). Cascade adjacency is nonetheless mandatory to load, so
+	// give it a self-referencing cascade entry rather than inventing a domain edge to
+	// some other node that isn't actually there.
+	mk("nodes/iso/cascade-edges.json", `{}`)
 	return root
 }
 
