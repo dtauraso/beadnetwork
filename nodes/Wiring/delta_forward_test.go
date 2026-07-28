@@ -13,15 +13,15 @@ package Wiring
 //
 //	1: 2,3   2: 1,4,5   3: 1,8   4: 2,6,7   5: 2,8,9   6: 4   7: 4,9   8: 3,5   9: 5,7
 //
-// The seeded nodes/<id>/cascade-edges.json files carry every edge except 7-9:
-// 1-2, 1-3, 2-4, 2-5, 3-8, 4-6, 4-7, 5-9, 5-8. TestCascadeEdgesLoadedFromStoredFiles pins
-// this explicitly. 5-8 was restored so a Pulse can classify its gate neighbor 8 as
-// SelectRight — with no entry the sender kind read as "" and the delta fell through to a
-// flood.
+// The seeded nodes/<id>/cascade-edges.json files now carry EVERY domain edge — both
+// former cycle-closers (5-8, 7-9) are restored, so cascade adjacency equals domain
+// adjacency. TestCascadeEdgesLoadedFromStoredFiles pins this explicitly.
 //
-// Termination is no longer "loop-free by construction" from the edge set alone: 5-8 closes
-// cycle 5-8-3-1-2-5, which is cut by PulseLeft (node 3) being a terminus. Per-kind rules,
-// not the tree shape, are what stop the cascade — see each node kind's SPEC.
+// Termination is therefore NOT "loop-free by construction" from the edge set: 5-8 closes
+// cycle 5-8-3-1-2-5 and 7-9 closes cycle 7-9-5-2-4-7. Both are cut by per-kind rules —
+// PulseLeft (3) and PulseRight (7) are termini, TimeStart (2) and Pulse (5) route by
+// sender kind. See each node kind's SPEC. Measured: every single-node drag settles in
+// 1-6 forwards (an uncut graph ran at a steady ~300 forwards/sec indefinitely).
 //
 // Dragging leaf node 6 makes 4 the sole direct recipient (gotDragMsg); the directed
 // per-kind rules then decide who else is reached (see the reachability comment in
@@ -85,9 +85,9 @@ func TestCascadeEdgesLoadedFromStoredFiles(t *testing.T) {
 		"4": {"2", "6", "7"},
 		"5": {"2", "9", "8"},
 		"6": {"4"},
-		"7": {"4"},
+		"7": {"4", "9"},
 		"8": {"3", "5"},
-		"9": {"5"},
+		"9": {"5", "7"},
 	}
 	for id, wantEdges := range want {
 		nm, ok := md.mr.nodeMovers[id]
@@ -102,15 +102,14 @@ func TestCascadeEdgesLoadedFromStoredFiles(t *testing.T) {
 			t.Errorf("node %q cascadeEdges = %v, want %v", id, got, wantSorted)
 		}
 	}
-	// 5-8 IS a cascade link now (restored so a Pulse can classify its gate neighbor 8 as
-	// SelectRight — without the entry the sender kind read as "" and the delta fell
-	// through to the old flood). 7-9 is still NOT one, in either direction.
-	wantNonCascade := []struct{ a, b string }{
-		{"7", "9"}, {"9", "7"},
-	}
-	for _, e := range wantNonCascade {
-		if isCascadeLinkForTest(md, e.a, e.b) {
-			t.Errorf("expected %s-%s to NOT be a cascade link, was marked cascade", e.a, e.b)
+	// Cascade adjacency now EQUALS domain adjacency: both former cycle-closers (5-8, 7-9)
+	// are restored, so there is no non-cascade link left to assert about. Termination no
+	// longer comes from the edge set — it comes from the per-kind rules (PulseLeft and
+	// PulseRight are termini, TimeStart and Pulse route by sender kind). Measured: every
+	// single-node drag settles in 1-6 forwards.
+	for id, nm := range md.mr.nodeMovers {
+		if len(nm.cascadeEdges) == 0 {
+			t.Errorf("node %q has no cascade edges; expected cascade adjacency to cover the domain graph", id)
 		}
 	}
 }
@@ -188,7 +187,7 @@ func TestDeltaForwardPropagatesAcrossWholeGraphAndStaysInSync(t *testing.T) {
 
 	// Tap every mover's own outbound sends: record every moveMsgKindDeltaForward
 	// (sender -> dest) pair, across the whole test, so we can assert NONE of them cross
-	// a non-cascade link (7-9 — 5-8 is a cascade link now).
+	// a non-cascade link (there are none left; the check is now vacuous but harmless).
 	var mu sync.Mutex
 	var forwardSends []struct{ from, to string }
 	md.SetMsgTap(func(destID string, msg moveMsg) {
