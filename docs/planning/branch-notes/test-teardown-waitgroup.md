@@ -49,10 +49,16 @@ Fix order is code-first (CLAUDE.md drift checklist #6): a guard, not more prose.
 earlier attempt at this was a session-log entry on a branch, which is prose and was
 lost when the branch went.
 
-## Why these 8 tests stay
+## Scope shrank
 
-See `decentralized-test-shape.md` in this directory. Short version: none of them
-assert bead delivery. The two tests that did were deleted (merged `359a84df`).
+The multi-goroutine test removal took most of the affected fixtures with it:
+`Start(ctx)` sites went 33 -> 5, all five being the persistence tests. So this is now a
+five-site change, and `check-start-waitgroup-used.sh` would guard a nearly-empty
+surface. Decide whether it is still worth building — the flake it chased may already be
+gone with the tests that caused it.
+
+Doctrine behind that removal now lives permanently in `docs/testing-shape.md` (moved out
+of this branch so it survives merge), and is summarized in CLAUDE.md.
 
 ## Loose thread
 
