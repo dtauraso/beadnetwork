@@ -385,3 +385,39 @@ only one still carries any exthost start/exit lines; the healthy-period logs hav
 pruned. The 1.8s figure now survives *only* as a comment in `tools/reload-gap.sh`, so
 there is no longer a log to diff against. These numbers are recorded here as the
 pre-reboot half of the comparison.
+
+## 2026-07-28 — Reboot fixed the reload gap; the measurement itself was wrong
+
+Ran the restart the previous entry called for. Reload is now perceptibly instant
+("less than half a second each time" across three reloads), and the gap is back to
+baseline:
+
+```
+2529 exiting 01:22:16.268 -> 2677 started 01:22:17.906   1.6s
+2739 exited  01:22:20.938 -> 2765 started 01:22:22.672   1.7s
+```
+
+against 3.9 / 4.9 / 4.4s pre-reboot on the same machine. Swap went **2.83 GB of 4 GB
+→ 0.00 MB**. So the regression was host memory/process pressure, exactly as the
+pre-reboot entry's remaining suspect list predicted, and there is nothing to fix in
+this repo. `tools/reload-gap.sh`'s header now says reboot the machine, and explicitly
+records that a VS Code quit+relaunch was measured and does NOT fix it.
+
+**The script was over-reporting, and that is the durable lesson.** A short-lived
+extension host can exit before flushing anything, leaving *no* `started` and *no*
+`exiting` line in `exthost.log` — absent from the file entirely, not merely partial.
+Pid 2739 lived 01:22:19→01:22:20 and appears only in `main.log`. The old pairing
+(exthost's own `exiting` → next `started`) therefore spanned the invisible host and
+printed **3.5s** for what were two ~1.7s reloads: two reloads reported as one slow
+one. Fixed by taking exits from the session's `main.log`, which logs an
+`exited with code` line for *every* pid, and pairing each `started` with the latest
+exit before it. A gap over 60s is a window that sat closed, not a respawn, and is
+dropped. The pre-reboot 3.9/4.9/4.4s figures are unchanged under the new pairing, so
+the regression itself was real — but the measurement could have inflated it, and for
+one row it did.
+
+Worth noting the failure shape: a diagnostic tool that reads a log has to know which
+records that log is allowed to omit. `exthost.log` is written *by* the process being
+measured, so the fastest-dying instances are exactly the ones it cannot record — the
+observer is blind to one end of the very distribution it exists to measure.
+`main.log` is written by the supervising process and has no such gap.
