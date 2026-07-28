@@ -276,4 +276,4 @@ Visual editor reached v0. New work is friction-driven, not phase-driven (the old
 
 ## Language / runtime
 
-Go 1.23.0 — `github.com/dtauraso/wirefold`
+Go 1.25.0 — `github.com/dtauraso/wirefold`
