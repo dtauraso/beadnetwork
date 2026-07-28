@@ -57,7 +57,10 @@ func TestLocalPoleHomeWhenClear(t *testing.T) {
 // home, and the offender's colatitude about the new pole no longer sits at the old
 // (pre-dodge) value — it has moved (dodged away), never re-deriving a variable angle.
 func TestLocalPoleDodgesInsideZone(t *testing.T) {
-	closestDir := dir{Theta: 0.005, Phi: 0.9} // well inside the 1-degree zone (~0.29°)
+	closestDir := dir{Theta: poleKickTheta * 0.9, Phi: 0.9} // inside the zone, but near its EDGE — see the
+	// note on TestPoleTiltIncreasesAngularDistance: a colatitude far inside the zone cannot
+	// distinguish a tilt AWAY from the offender from a tilt TOWARD it, because a fixed-magnitude
+	// kick in the wrong direction still overshoots the offender and lands farther away.
 	closest := offsetFromDir(closestDir)
 	offsets := []vec3{closest, offsetFromDir(dir{Theta: 1.0, Phi: -2.0})}
 	pole := localPole(offsets)
@@ -110,7 +113,7 @@ func TestLocalPoleFixedMagnitudeAcrossZone(t *testing.T) {
 // than its colatitude about home — i.e. the offset dodges away, never toward, the pole.
 func TestPoleTiltIncreasesAngularDistance(t *testing.T) {
 	home := dir{Theta: 0, Phi: 0}
-	oDir := dir{Theta: 0.005, Phi: 0.4} // inside poleKickTheta (~0.29°)
+	oDir := dir{Theta: poleKickTheta * 0.9, Phi: 0.4} // inside the zone, near its EDGE (see note above)
 	cHome := angularDistance(home, oDir)
 	newPole := localPole([]vec3{offsetFromDir(oDir)})
 	newC := angularDistance(newPole, oDir)
