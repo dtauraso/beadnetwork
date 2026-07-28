@@ -53,21 +53,44 @@ if [[ ${#readers[@]} -eq 0 ]]; then
   exit 1
 fi
 
+# Build the production-consumer reference corpus ONCE instead of one full recursive `grep
+# -r` of src/ PER reader (was 97 readers x a whole-tree walk = quadratic). File exclusions
+# (the generated definition file, /test/, *.test.ts) are applied here, at corpus-build time,
+# not filtered out of results afterward — same effect, same files excluded.
+#
+# The corpus is a set of WHOLE-WORD tokens ([A-Za-z0-9_]+ runs), not raw file text: `\b$fn\b`
+# on file contents only matches $fn as a complete identifier, never as a substring of a
+# longer one. Extracting maximal identifier-character runs and doing exact-set membership on
+# THAT reproduces exactly that word-boundary semantics — a naive `grep -F` of the corpus text
+# would let a reader whose name is a substring of a longer identifier false-match and hide a
+# genuinely dead column, which is the bug this guard exists to catch.
+prod_files=()
+while IFS= read -r f; do prod_files+=("$f"); done < <(
+  find "$SRC" -type f \( -name '*.ts' -o -name '*.tsx' \) \
+    -not -path '*/schema/buffer-layout.ts' \
+    -not -path '*/test/*' \
+    -not -name '*.test.ts' 2>/dev/null
+)
+
+CORPUS="$(mktemp)"
+trap 'rm -f "$CORPUS"' EXIT
+if [[ ${#prod_files[@]} -gt 0 ]]; then
+  grep -ohE '[A-Za-z0-9_]+' "${prod_files[@]}" 2>/dev/null | sort -u > "$CORPUS"
+else
+  : > "$CORPUS"
+fi
+
 fail=0
 for fn in "${readers[@]}"; do
-  # References anywhere in src/ EXCEPT the generated definition file and test files.
-  refs=$(grep -rlE "\\b$fn\\b" "$SRC" --include="*.ts" --include="*.tsx" 2>/dev/null \
-    | grep -v "schema/buffer-layout.ts" \
-    | grep -vE "/test/|\.test\.ts" \
-    | wc -l | tr -d ' ' || true)
-  if [[ "$refs" -eq 0 ]]; then
-    if is_allowed "$fn"; then
-      continue
-    fi
-    echo "DEAD BUFFER COLUMN: $fn has no production consumer — the column is packed + decoded but used by nothing."
-    echo "  Fix: consume it, remove the column from Buffer/layout.go (regenerate), or (if intentionally staged) add it to ALLOWED_DEAD with a reason."
-    fail=1
+  if grep -qxF "$fn" "$CORPUS"; then
+    continue
   fi
+  if is_allowed "$fn"; then
+    continue
+  fi
+  echo "DEAD BUFFER COLUMN: $fn has no production consumer — the column is packed + decoded but used by nothing."
+  echo "  Fix: consume it, remove the column from Buffer/layout.go (regenerate), or (if intentionally staged) add it to ALLOWED_DEAD with a reason."
+  fail=1
 done
 
 # Guard the allowlist against rot: an entry that is no longer dead (now consumed, or the
@@ -80,9 +103,7 @@ for a in "${ALLOWED_DEAD[@]+"${ALLOWED_DEAD[@]}"}"; do   # empty-array-safe unde
     fail=1
     continue
   fi
-  refs=$(grep -rlE "\\b$a\\b" "$SRC" --include="*.ts" --include="*.tsx" 2>/dev/null \
-    | grep -v "schema/buffer-layout.ts" | grep -vE "/test/|\.test\.ts" | wc -l | tr -d ' ' || true)
-  if [[ "$refs" -ne 0 ]]; then
+  if grep -qxF "$a" "$CORPUS"; then
     echo "STALE ALLOWLIST: '$a' now HAS a production consumer — remove it from ALLOWED_DEAD (no longer dead)."
     fail=1
   fi

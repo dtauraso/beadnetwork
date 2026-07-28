@@ -21,17 +21,22 @@ cd "$REPO_ROOT"
 
 # Filenames whose EXISTENCE is a banned synced-state cache. Case-insensitive basename match.
 # Kept narrow and explicit to avoid false positives (session-log.md is NOT here).
-banned_regex='^(handoff|session-handoff|session_state|continuation-prompt|continuation_prompt|next-session|handoff-notes)\.md$'
-
+#
+# Expressed directly as a single `find -iname` alternation (one process for the whole tree)
+# rather than a shell loop spawning `basename` per file. Every alternative from the old
+# `banned_regex` must appear here verbatim — dropping one would silently stop banning that
+# filename. `-iname` gives the same case-insensitive match as the old `shopt -s nocasematch`.
 hits="$(find . \
   -type d \( -name node_modules -o -name .git -o -name out -o -name handoff-archive \) -prune -o \
-  -type f -print 2>/dev/null \
-  | while IFS= read -r p; do
-      b="$(basename "$p")"
-      shopt -s nocasematch
-      if [[ "$b" =~ $banned_regex ]]; then echo "$p"; fi
-      shopt -u nocasematch
-    done)"
+  -type f \( \
+       -iname 'handoff.md' \
+    -o -iname 'session-handoff.md' \
+    -o -iname 'session_state.md' \
+    -o -iname 'continuation-prompt.md' \
+    -o -iname 'continuation_prompt.md' \
+    -o -iname 'next-session.md' \
+    -o -iname 'handoff-notes.md' \
+  \) -print 2>/dev/null)"
 
 if [[ -n "$hits" ]]; then
   echo "STATE CACHE FORBIDDEN: a synced live-state snapshot file exists (CLAUDE.md bans handoff/continuation caches):"

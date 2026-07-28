@@ -37,43 +37,88 @@ if [[ ${#files[@]} -eq 0 ]]; then
   exit 1
 fi
 
-fail=0
-for f in "${files[@]}"; do
-  base="$(basename "$f")"
-  # 1) frontmatter fence on line 1
-  if [[ "$(head -1 "$f")" != "---" ]]; then
-    echo "MEMORY HYGIENE: $base has no YAML frontmatter (first line is not '---') — raw content is not a memory."
-    fail=1; continue
-  fi
-  # Extract the frontmatter block (between the first two --- fences).
-  fm="$(awk 'NR==1{next} /^---[[:space:]]*$/{exit} {print}' "$f")"
-  # 2) name + description present and non-empty
-  for key in name description; do
-    if ! printf '%s\n' "$fm" | grep -qE "^${key}:[[:space:]]*\S"; then
-      echo "MEMORY HYGIENE: $base frontmatter is missing a non-empty '${key}:'."
-      fail=1
-    fi
-  done
-  # 3) a valid type (nested under metadata: or top-level), value in the allowed set
-  tval="$(printf '%s\n' "$fm" | grep -E "^[[:space:]]*type:[[:space:]]*" | head -1 | sed -E 's/^[[:space:]]*type:[[:space:]]*//' | tr -d '[:space:]')"
-  if [[ -z "$tval" ]]; then
-    echo "MEMORY HYGIENE: $base has no 'type:' in frontmatter (need one of user|feedback|project|reference)."
-    fail=1
-  elif ! allowed_type "$tval"; then
-    echo "MEMORY HYGIENE: $base has type '$tval' — not one of user|feedback|project|reference."
-    fail=1
-  fi
-  # 4) non-empty body after the closing fence
-  body="$(awk 'f{print} /^---[[:space:]]*$/{c++} c==2{f=1}' "$f" | grep -c .)"
-  if [[ "$body" -eq 0 ]]; then
-    echo "MEMORY HYGIENE: $base has empty body after frontmatter — a memory needs content."
-    fail=1
-  fi
-  # 5) indexed in MEMORY.md (by filename)
-  if ! grep -qF "$base" "$INDEX"; then
-    echo "MEMORY HYGIENE: $base is not referenced in $INDEX — unindexed memory is invisible to the session."
-    fail=1
-  fi
-done
+# All five checks in ONE python3 pass over ALL files, instead of ~8 process spawns
+# (basename/head/awk/grep×3/tr) PER file (~67 files ≈ 500 processes). Each check below is
+# a line-for-line port of the shell/awk/grep/sed it replaces — same regexes, same fence
+# semantics, same "first match wins" for type — so a file that failed before fails the
+# same way now. One unreadable file is caught and reported per-file rather than aborting
+# the batch, mirroring the old per-file `[[ -f ]]`/redirection guards.
+python3 -c "
+import re, sys
 
-exit $fail
+files = sys.argv[1:-1]
+index_path = sys.argv[-1]
+with open(index_path, 'r', errors='replace') as fh:
+    index_content = fh.read()
+
+fence_re = re.compile(r'^---[ \t]*\$')
+name_re = re.compile(r'^name:[ \t]*\S')
+desc_re = re.compile(r'^description:[ \t]*\S')
+type_re = re.compile(r'^[ \t]*type:[ \t]*(.*)\$')
+allowed = {'user', 'feedback', 'project', 'reference'}
+
+fail = 0
+for path in files:
+    base = path.rsplit('/', 1)[-1]
+    try:
+        with open(path, 'r', errors='replace') as fh:
+            lines = fh.read().splitlines()
+    except Exception as e:
+        print(f'MEMORY HYGIENE: {base} could not be read: {e}')
+        fail = 1
+        continue
+
+    # 1) frontmatter fence on line 1
+    if not lines or not fence_re.match(lines[0]):
+        print(f\"MEMORY HYGIENE: {base} has no YAML frontmatter (first line is not '---') — raw content is not a memory.\")
+        fail = 1
+        continue
+
+    # Extract the frontmatter block (between the first two --- fences), same as the old
+    # 'NR==1{next} /^---\$/{exit} {print}' awk: lines after line 1, up to (excluding) the
+    # next fence line, stopping at the first one found.
+    fence_idx = None
+    for i in range(1, len(lines)):
+        if fence_re.match(lines[i]):
+            fence_idx = i
+            break
+    fm_lines = lines[1:fence_idx] if fence_idx is not None else lines[1:]
+    body_lines = lines[fence_idx + 1:] if fence_idx is not None else []
+
+    # 2) name + description present and non-empty
+    if not any(name_re.match(l) for l in fm_lines):
+        print(f\"MEMORY HYGIENE: {base} frontmatter is missing a non-empty 'name:'.\")
+        fail = 1
+    if not any(desc_re.match(l) for l in fm_lines):
+        print(f\"MEMORY HYGIENE: {base} frontmatter is missing a non-empty 'description:'.\")
+        fail = 1
+
+    # 3) a valid type (nested under metadata: or top-level — leading whitespace allowed on
+    # purpose, so 'metadata:\n  type: x' and a top-level 'type: x' both match), value in
+    # the allowed set. First match wins, same as the old 'head -1'.
+    tval = ''
+    for l in fm_lines:
+        m = type_re.match(l)
+        if m:
+            tval = re.sub(r'\s+', '', m.group(1))
+            break
+    if not tval:
+        print(f'MEMORY HYGIENE: {base} has no \'type:\' in frontmatter (need one of user|feedback|project|reference).')
+        fail = 1
+    elif tval not in allowed:
+        print(f\"MEMORY HYGIENE: {base} has type '{tval}' — not one of user|feedback|project|reference.\")
+        fail = 1
+
+    # 4) non-empty body after the closing fence
+    if not any(l.strip() for l in body_lines):
+        print(f'MEMORY HYGIENE: {base} has empty body after frontmatter — a memory needs content.')
+        fail = 1
+
+    # 5) indexed in MEMORY.md (by filename)
+    if base not in index_content:
+        print(f'MEMORY HYGIENE: {base} is not referenced in {index_path} — unindexed memory is invisible to the session.')
+        fail = 1
+
+sys.exit(fail)
+" "${files[@]}" "$INDEX"
+exit $?

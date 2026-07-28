@@ -86,6 +86,15 @@ done
 # then unescape `\"`. Line numbers come from locating the doc mention afterwards — an
 # approximate line beats a precise miss.
 : > "$TMP/cites.txt"
+
+# Pre-filter once for the whole tree instead of spawning `grep -qE`/`grep -nE|head|cut`
+# per candidate file: `git grep -nE` already gives us, in one process, both "does this file
+# mention the docs at all" AND "what's the first matching line" for every file that does.
+# The per-file exclusions below are still applied to this pre-computed list, not dropped.
+: > "$TMP/mentions.txt"
+git grep -nE '(CLAUDE|MODEL)\.md' -- '*.go' '*.ts' '*.tsx' '*.sh' '*.py' '*.md' '*.html' \
+  > "$TMP/mentions.txt" 2>/dev/null || true
+
 while IFS= read -r path; do
   case "$path" in
     docs/planning/*) continue ;;
@@ -94,10 +103,8 @@ while IFS= read -r path; do
   if [[ "$path" == *.html ]] && grep -qiE '<meta[[:space:]]+name="doc-status"[[:space:]]+content="historical"' "$path" 2>/dev/null; then
     continue
   fi
-  # Cheap pre-filter: skip files that never mention the docs at all.
-  grep -qE '(CLAUDE|MODEL)\.md' "$path" 2>/dev/null || continue
 
-  approx_line=$(grep -nE '(CLAUDE|MODEL)\.md' "$path" 2>/dev/null | head -1 | cut -d: -f1)
+  approx_line=$(awk -F: -v p="$path" '$1==p{print $2; exit}' "$TMP/mentions.txt")
   : "${approx_line:=1}"
 
   # Strip LEADING comment markers per line before joining. Without this, joining a shell
@@ -148,7 +155,7 @@ while IFS= read -r path; do
         quoted="${hit#*\"}"; quoted="${quoted%\"}"
         printf '%s\t%s\t%s\t%s\n' "$path" "$approx_line" "$doc" "$quoted" >> "$TMP/cites.txt"
       done || true
-done < <(git ls-files '*.go' '*.ts' '*.tsx' '*.sh' '*.py' '*.md' '*.html' 2>/dev/null || true)
+done < <(cut -d: -f1 "$TMP/mentions.txt" | sort -u || true)
 
 if [[ ! -s "$TMP/cites.txt" ]]; then
   # Zero citations repo-wide is implausible given CLAUDE.md/MODEL.md are the doctrine docs;
