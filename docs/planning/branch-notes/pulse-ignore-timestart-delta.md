@@ -23,13 +23,35 @@ branch: task/pulse-ignore-timestart-delta
 
 Any other sender kind keeps the plain flood to all cascade neighbors except the sender.
 
-## Not fully live until the double link is restored
+3. **Drop an unrecognized sender kind.** The Pulse switch is TOTAL. Rules 1 and 2
+   cover every kind node 5 actually neighbours, so anything else is not a real case
+   and relays to nobody — the stance TimeStart already takes.
 
-Node 5's cascade neighbors today are `{2: TimeStart, 9: WindowAndInhibitRightGate}` —
-node 8 is NOT among them. So the SelectLeft->SelectRight half of rule 2 currently
-resolves to a target that is not a cascade neighbor and reaches nobody. Both halves
-only take effect once `5-8` is restored (`task/cascade-double-links`). The unit tests
-construct the neighbor set with 8 present, so the rule is pinned either way.
+## Why rule 3 exists: a data gap became surprise fan-out
+
+Observed live: dragging node 8 made node 5 forward to node 2, which rule 2 forbids.
+
+Cause: `5-8` is a DOMAIN edge, so `requantizeLocalPolars` (which fans `neighborSetC`
+over domain neighbours) delivered the drag straight to 5 — but `5-8` was NOT in node
+5's `cascade-edges.json`, so `cascadeKinds["8"]` read `""`. The sender was never
+classified as SelectRight, rule 2 did not fire, and the delta fell through to the
+old plain-flood default, reaching 2 and 9.
+
+So BOTH halves of rule 2 were dead, not just the SelectLeft->SelectRight half: the
+lookup that failed was the SENDER's, not the target's.
+
+Two fixes, both applied:
+
+- Restored the `5-8` double link in `cascade-edges.json` (nodes 5 and 8), so 5 can
+  classify 8 as SelectRight.
+- Closed the switch (rule 3), so a future missing entry goes inert instead of
+  flooding.
+
+Measured after: dragging node 8 produces exactly ONE delta-forward, `5 -> 9`.
+
+Restoring `5-8` reinstates cycle `5-8-3-1-2-5`, which is cut by PulseLeft (node 3)
+being a terminus. `7-9` is still not a cascade link — that half remains on
+`task/cascade-double-links`.
 
 ## Scope
 

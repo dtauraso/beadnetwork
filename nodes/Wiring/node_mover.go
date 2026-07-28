@@ -594,12 +594,20 @@ func (m *nodeMover) forwardDelta(md *MoveDispatch, exceptID string, dA, dB, dC i
 	//
 	// A TimeStart-origin delta never reaches here (dropped in the moveMsgKindDeltaForward
 	// handler). Any OTHER sender kind leaves targetKind empty and keeps the plain flood.
+	// The switch is TOTAL: a Pulse's three neighbor kinds are TimeStart (dropped upstream)
+	// and the two gates, so any OTHER sender kind is not a real case in the graph and is
+	// DROPPED rather than flooded. Same stance TimeStart takes. This matters because a
+	// missing cascade-edges.json entry reads as kind "" — with a flood fallback that data
+	// gap silently became surprise fan-out (a drag of node 8 reaching node 2 through 5,
+	// because 8's kind was absent from node 5's file); with the drop it stays inert.
 	if m.selfKind == "Pulse" {
 		switch m.cascadeKinds[exceptID] {
 		case "WindowAndInhibitLeftGate": // from SelectRight
 			targetKind = "WindowAndInhibitRightGate" // -> to SelectLeft
 		case "WindowAndInhibitRightGate": // from SelectLeft
 			targetKind = "WindowAndInhibitLeftGate" // -> to SelectRight
+		default:
+			return
 		}
 	}
 	if m.selfKind == "TimeStart" {

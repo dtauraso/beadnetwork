@@ -87,10 +87,39 @@ func TestPulseRoutesGateOriginToOppositeGate(t *testing.T) {
 	}
 }
 
-// TestPulseFloodsNonTimeStartOrigin: the ignore rule is scoped to TimeStart senders —
-// a delta from a gate neighbor is recorded AND relayed. (Routing target is pinned by
+// TestPulseDropsUnknownSenderKind: the Pulse switch is TOTAL — a sender whose kind is
+// not one of the three real cases relays to nobody. The empty-string case is the one
+// that actually occurred: a cascade-edges.json missing an entry for the sender reads as
+// kind "", and under the old flood fallback that turned a data gap into surprise fan-out.
+func TestPulseDropsUnknownSenderKind(t *testing.T) {
+	for _, sender := range []string{"8", "42"} { // "8" absent from cascadeKinds => kind ""
+		var mu sync.Mutex
+		var got []string
+		nm := &nodeMover{
+			id:           "5",
+			selfKind:     "Pulse",
+			cascadeEdges: []string{"2", "9"},
+			cascadeKinds: map[string]string{"2": "TimeStart", "9": "WindowAndInhibitRightGate"},
+			sendMove: func(id string, msg moveMsg) {
+				mu.Lock()
+				got = append(got, id)
+				mu.Unlock()
+			},
+		}
+		nm.forwardDelta(nil, sender, 1, 2, 3)
+		mu.Lock()
+		if len(got) != 0 {
+			t.Errorf("Pulse delta from %q (kind %q): relayed to %v, want none (unknown kind drops)",
+				sender, nm.cascadeKinds[sender], got)
+		}
+		mu.Unlock()
+	}
+}
+
+// TestPulseAttendsGateOrigin: the ignore rule is scoped to TimeStart senders — a delta
+// from a gate neighbor is recorded AND relayed. (Routing target is pinned by
 // TestPulseRoutesGateOriginToOppositeGate above; this one pins that it is ATTENDED.)
-func TestPulseFloodsNonTimeStartOrigin(t *testing.T) {
+func TestPulseAttendsGateOrigin(t *testing.T) {
 	var mu sync.Mutex
 	var got []string
 

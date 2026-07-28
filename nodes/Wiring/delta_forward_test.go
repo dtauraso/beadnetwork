@@ -4,24 +4,28 @@ package Wiring
 // (nodes/<id>/cascade-edges.json, specNode.CascadeEdges, nodeMover.cascadeEdges,
 // nodeMover.forwardDelta, moveMsgKindDeltaForward): each node's cascade-neighbor list is
 // hand-authored/persisted FILE DATA, not derived from the domain-edge/local-polar
-// adjacency at load. "Forward to my stored cascade-edge neighbors, excluding the sender,
-// concurrently" is loop-free BY CONSTRUCTION because the seeded set already omits the
-// two cycle-closing links (5-8, 7-9) — there is no runtime visit-tracking or
-// once-per-drag guard — every node relays on EVERY move it receives, never crossing a
-// non-cascade link, and the forwarded log stays in sync with the drag as it continues to
-// move (instead of freezing at the first delta, as the old forwardedThisDrag guard did).
+// adjacency at load. A node relays to its stored cascade neighbors excluding the sender,
+// on EVERY move it receives, so the forwarded log stays in sync with the drag as it
+// continues to move (instead of freezing at the first delta, as the old forwardedThisDrag
+// guard did).
 //
 // Real repo topology (topology/) adjacency (edges/*.json):
 //
 //	1: 2,3   2: 1,4,5   3: 1,8   4: 2,6,7   5: 2,8,9   6: 4   7: 4,9   8: 3,5   9: 5,7
 //
-// The seeded nodes/<id>/cascade-edges.json files carry every edge except 5-8 and 7-9:
-// 1-2, 1-3, 2-4, 2-5, 3-8, 4-6, 4-7, 5-9. TestCascadeEdgesLoadedFromStoredFiles pins this
-// explicitly.
+// The seeded nodes/<id>/cascade-edges.json files carry every edge except 7-9:
+// 1-2, 1-3, 2-4, 2-5, 3-8, 4-6, 4-7, 5-9, 5-8. TestCascadeEdgesLoadedFromStoredFiles pins
+// this explicitly. 5-8 was restored so a Pulse can classify its gate neighbor 8 as
+// SelectRight — with no entry the sender kind read as "" and the delta fell through to a
+// flood.
 //
-// Dragging leaf node 6 makes 4 the sole direct recipient (gotDragMsg); every other node
-// (1,2,3,5,7,8,9) must end up with gotForwardMsg==1 carrying the SAME delta triple 4
-// received, via the stored cascade-edges graph (never crossing 5-8 or 7-9).
+// Termination is no longer "loop-free by construction" from the edge set alone: 5-8 closes
+// cycle 5-8-3-1-2-5, which is cut by PulseLeft (node 3) being a terminus. Per-kind rules,
+// not the tree shape, are what stop the cascade — see each node kind's SPEC.
+//
+// Dragging leaf node 6 makes 4 the sole direct recipient (gotDragMsg); the directed
+// per-kind rules then decide who else is reached (see the reachability comment in
+// TestDeltaForwardPropagatesAcrossWholeGraphAndStaysInSync).
 import (
 	"context"
 	"encoding/binary"
@@ -79,10 +83,10 @@ func TestCascadeEdgesLoadedFromStoredFiles(t *testing.T) {
 		"2": {"1", "4", "5"},
 		"3": {"1", "8"},
 		"4": {"2", "6", "7"},
-		"5": {"2", "9"},
+		"5": {"2", "9", "8"},
 		"6": {"4"},
 		"7": {"4"},
-		"8": {"3"},
+		"8": {"3", "5"},
 		"9": {"5"},
 	}
 	for id, wantEdges := range want {
@@ -98,9 +102,10 @@ func TestCascadeEdgesLoadedFromStoredFiles(t *testing.T) {
 			t.Errorf("node %q cascadeEdges = %v, want %v", id, got, wantSorted)
 		}
 	}
-	// 5-8 and 7-9 must NOT be cascade links in either direction.
+	// 5-8 IS a cascade link now (restored so a Pulse can classify its gate neighbor 8 as
+	// SelectRight — without the entry the sender kind read as "" and the delta fell
+	// through to the old flood). 7-9 is still NOT one, in either direction.
 	wantNonCascade := []struct{ a, b string }{
-		{"5", "8"}, {"8", "5"},
 		{"7", "9"}, {"9", "7"},
 	}
 	for _, e := range wantNonCascade {
@@ -183,7 +188,7 @@ func TestDeltaForwardPropagatesAcrossWholeGraphAndStaysInSync(t *testing.T) {
 
 	// Tap every mover's own outbound sends: record every moveMsgKindDeltaForward
 	// (sender -> dest) pair, across the whole test, so we can assert NONE of them cross
-	// a non-cascade link (5-8 or 7-9).
+	// a non-cascade link (7-9 — 5-8 is a cascade link now).
 	var mu sync.Mutex
 	var forwardSends []struct{ from, to string }
 	md.SetMsgTap(func(destID string, msg moveMsg) {
