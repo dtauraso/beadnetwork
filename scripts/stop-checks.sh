@@ -84,6 +84,26 @@ if [ -z "$ROOT" ]; then
   exit 1
 fi
 
+# node_modules for a worktree: SHARE the main checkout's rather than installing a second
+# copy. `git worktree add` gives you tracked files only, so a fresh worktree has no
+# node_modules — and the TS steps plus TestInputFixtureFreshness (which shells out to node
+# to regenerate the fixture) then fail there for a reason that has nothing to do with the
+# branch's changes. Installing per worktree works but duplicates ~136M each.
+#
+# A symlink is right here because every worktree shares one package.json/lockfile lineage
+# and one platform, so the resolved dependency set is the same tree npm would have built.
+# Idempotent: only created when the worktree lacks one and the main checkout has one. If a
+# branch ever does change dependencies, delete the link and install in that worktree — the
+# link is a convenience, not a constraint.
+if [ -n "$repo_common" ]; then
+  MAIN_ROOT="$(dirname "$repo_common")"
+  wt_modules="$ROOT/tools/topology-vscode/node_modules"
+  main_modules="$MAIN_ROOT/tools/topology-vscode/node_modules"
+  if [ "$ROOT" != "$MAIN_ROOT" ] && [ ! -e "$wt_modules" ] && [ -d "$main_modules" ]; then
+    ln -s "$main_modules" "$wt_modules" 2>/dev/null || true
+  fi
+fi
+
 cd "$ROOT" || {
   echo "stop-checks: MISCONFIGURED — cannot cd to repo root '$ROOT'." >&2
   exit 1
