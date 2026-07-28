@@ -32,8 +32,27 @@ continuously, even before any input arrives. When a value arrives on FromInput,
 the held value is updated and subsequent outputs emit the new value. The output
 is not precondition-gated — PulseRight self-emits -1 from the start.
 
-A clone of the Pulse kind (nodes/pulse), split out for node 7's future
-divergence — behavior is currently identical to Pulse.
+A clone of the Pulse kind (nodes/pulse), split out for node 7's divergence —
+the firing rule is still identical to Pulse; the divergence so far is the
+layout-cascade rule below.
+
+## Cascade delta rule
+
+Layout-side only (`nodes/Wiring/node_mover.go`), independent of the firing rule.
+The exact mirror of PulseLeft's rule (`nodes/PulseLeft/SPEC.md`), with the
+whitelist naming the other side's kinds:
+
+- PulseRight ATTENDS to a delta triple only when it arrives from a **Time** or a
+  **SelectLeft** (kind string `WindowAndInhibitRightGate`) cascade neighbor. A
+  delta from any other sender kind is dropped outright — not recorded, not relayed.
+- PulseRight NEVER cascades the delta triple onward, from any sender, and not even
+  when it is the direct recipient of a drag. It is a cascade **terminus**, so an
+  attended delta ends here; attending only records the observability state.
+
+Node 7's cascade neighbors are `{4: Time}` today, plus
+`{9: WindowAndInhibitRightGate}` once the `7-9` double link is restored — this
+terminus is what makes restoring that link safe (it cuts the otherwise
+self-sustaining `2-4-7-9-5` cascade cycle).
 
 ## Runtime status
 
