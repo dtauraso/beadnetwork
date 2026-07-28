@@ -22,4 +22,11 @@ work out of the box. The `-errors.jsonl` files and `handler-error-last.json` are
 always written. `--debug` and `--errors` are therefore unaffected by the setting;
 `--go`/`--ts` read near-empty files until it's turned on.
 
+The highest-volume kind, `edge-bead` (`KindEdgeBead`), is gated at the Go SOURCE, not
+just the TS write: `nodes/wire/paced_wire.go`'s `stepAll` only appends it when a
+package-level `edgeBeadTraceEnabled` bool is true, read once at startup from
+`WIREFOLD_EDGE_BEAD_TRACE`, which the ext host sets from the same `isProbeTraceEnabled()`
+at spawn. With tracing off, Go stops emitting the per-tick-per-bead event entirely
+instead of TS decoding and discarding it every tick.
+
 **Freshness caveat (the trap).** These files are written by the LIVE editor run and can be minutes stale — check the last `ts_ms` against now before concluding anything. Several diagnoses were derailed by reading a stale log that did not contain the live failure.

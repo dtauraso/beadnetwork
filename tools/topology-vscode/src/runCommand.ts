@@ -516,6 +516,15 @@ export class BuildAndRunRunner {
         ...process.env,
         WIREFOLD_BUF_OUT_FD: "3",
         WIREFOLD_STREAM_FDS: streamFDsEnv,
+        // Gates whether nodes/wire's stepAll emits the per-tick, per-in-flight-bead
+        // KindEdgeBead trace event at all -- read ONCE by Go at startup (see
+        // nodes/wire/paced_wire.go's edgeBeadTraceEnabled), same shape as
+        // WIREFOLD_STREAM_FDS above. Derived from the SAME isProbeTraceEnabled() that
+        // gates whether the decoded .probe trace lines are WRITTEN on the TS side (see
+        // this.probeTrace above) -- one source of truth for the wirefold.probe.trace
+        // setting. Off by default: with tracing off, Go now stops emitting the event at
+        // the source instead of TS decoding and discarding it every tick.
+        WIREFOLD_EDGE_BEAD_TRACE: this.probeTrace ? "1" : "0",
       },
     });
     // Flush any framed binary records buffered before this spawn (writeStdin queued them).

@@ -2,9 +2,24 @@ package wire
 
 import (
 	"context"
+	"os"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
+
+// edgeBeadTraceEnabled gates whether stepAll appends a T.KindEdgeBead pendingWireEvent
+// for every in-flight bead every tick. It is read ONCE at process startup from the
+// WIREFOLD_EDGE_BEAD_TRACE env var (same "one env var, read once before any wire
+// goroutine exists" shape as Buffer/stream_fds.go's WIREFOLD_STREAM_FDS) -- never
+// re-read per tick, so this package-level bool is race-free by construction (written
+// once at init, before any PacedWire goroutine starts; see
+// memory/feedback_no_atomics_are_defects.md). Default (env var absent/unset/anything
+// but "1") is OFF: KindEdgeBead is a high-volume per-tick-per-bead event whose sole
+// consumer is the opt-in .probe trace log (wirefold.probe.trace, default false) --
+// LiveBeadRow / the Bead-block buffer path that actually RENDERS beads does not read
+// this flag and is unaffected. KindBreadcrumb and KindArrive are NOT gated by this
+// flag and always emit.
+var edgeBeadTraceEnabled = os.Getenv("WIREFOLD_EDGE_BEAD_TRACE") == "1"
 
 // wireChanBufferSize bounds PacedWire's in-channel (source -> wire) and out-channel
 // (wire -> destination). Generously sized so the SOURCE's send (Send) and the WIRE's
@@ -404,7 +419,7 @@ func (pw *PacedWire) stepAll(tick int64) {
 				continue
 			}
 			emit, pos, final := pw.advanceBead(b, nowTick)
-			if emit {
+			if emit && edgeBeadTraceEnabled {
 				pw.pending = append(pw.pending, pendingWireEvent{
 					kind: T.KindEdgeBead, value: pos.val,
 					x: pos.x, y: pos.y, z: pos.z, t: pos.t, gen: pos.gen,
