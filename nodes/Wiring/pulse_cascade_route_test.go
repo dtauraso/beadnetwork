@@ -48,8 +48,48 @@ func TestPulseIgnoresTimeStartOriginDelta(t *testing.T) {
 	}
 }
 
+// TestPulseRoutesGateOriginToOppositeGate: a gate-origin delta goes straight across to
+// the OPPOSITE gate kind and nowhere else — SelectRight ("WindowAndInhibitLeftGate",
+// node 8) -> SelectLeft ("WindowAndInhibitRightGate", node 9) and back. In particular it
+// is not also flooded to the TimeStart neighbor 2.
+func TestPulseRoutesGateOriginToOppositeGate(t *testing.T) {
+	cases := []struct {
+		name           string
+		fromID, wantTo string
+	}{
+		{"SelectRight->SelectLeft", "8", "9"},
+		{"SelectLeft->SelectRight", "9", "8"},
+	}
+	for _, c := range cases {
+		var mu sync.Mutex
+		var got []string
+
+		nm := &nodeMover{
+			id:           "5",
+			selfKind:     "Pulse",
+			cascadeEdges: []string{"2", "9", "8"},
+			cascadeKinds: map[string]string{"2": "TimeStart", "9": "WindowAndInhibitRightGate",
+				"8": "WindowAndInhibitLeftGate"},
+			sendMove: func(id string, msg moveMsg) {
+				mu.Lock()
+				got = append(got, id)
+				mu.Unlock()
+			},
+		}
+
+		nm.forwardDelta(nil, c.fromID, 1, 2, 3)
+
+		mu.Lock()
+		if len(got) != 1 || got[0] != c.wantTo {
+			t.Errorf("Pulse %s: relayed to %v, want [%s] only", c.name, got, c.wantTo)
+		}
+		mu.Unlock()
+	}
+}
+
 // TestPulseFloodsNonTimeStartOrigin: the ignore rule is scoped to TimeStart senders —
-// a delta from a gate neighbor is recorded AND flooded to the other cascade neighbors.
+// a delta from a gate neighbor is recorded AND relayed. (Routing target is pinned by
+// TestPulseRoutesGateOriginToOppositeGate above; this one pins that it is ATTENDED.)
 func TestPulseFloodsNonTimeStartOrigin(t *testing.T) {
 	var mu sync.Mutex
 	var got []string
@@ -79,8 +119,8 @@ func TestPulseFloodsNonTimeStartOrigin(t *testing.T) {
 		t.Errorf("Pulse delta from 9 (gate): gotForwardMsg=%d, want 1 (attended)", nm.gotForwardMsg)
 	}
 	sort.Strings(got)
-	if len(got) != 2 || got[0] != "2" || got[1] != "8" {
-		t.Errorf("Pulse delta from 9 (gate): relayed to %v, want [2 8]", got)
+	if len(got) != 1 || got[0] != "8" {
+		t.Errorf("Pulse delta from 9 (SelectLeft): relayed to %v, want [8] (the opposite gate)", got)
 	}
 }
 

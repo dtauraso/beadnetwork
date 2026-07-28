@@ -38,6 +38,16 @@ Layout-side only (`nodes/Wiring/node_mover.go`), independent of the firing rule:
 
 - A Pulse **IGNORES** a delta triple arriving from a **TimeStart** cascade neighbor —
   no record, no relay. Same shape as the TimeStart←Input stop.
+- A Pulse **ROUTES** a gate-origin delta straight across to the opposite gate kind,
+  and nowhere else:
+
+  | From sender kind | Go type | Routed to | Go type |
+  |---|---|---|---|
+  | `WindowAndInhibitLeftGate` | SelectRight | `WindowAndInhibitRightGate` | SelectLeft |
+  | `WindowAndInhibitRightGate` | SelectLeft | `WindowAndInhibitLeftGate` | SelectRight |
+
+  Note the kind strings cross over relative to the Go type names — read the table,
+  not the name.
 - From every other sender kind it keeps the plain flood to all cascade neighbors
   except the sender.
 

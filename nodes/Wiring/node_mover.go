@@ -585,6 +585,23 @@ func (m *nodeMover) forwardDelta(md *MoveDispatch, exceptID string, dA, dB, dC i
 		return
 	}
 	targetKind := ""
+	// A Pulse routes a GATE-origin delta straight across to the opposite gate kind:
+	// SelectRight -> SelectLeft and SelectLeft -> SelectRight. The kind strings cross over
+	// relative to the Go type names, so read them off this table rather than the name:
+	//
+	//	SelectRight = "WindowAndInhibitLeftGate"  (node 8)
+	//	SelectLeft  = "WindowAndInhibitRightGate" (node 9)
+	//
+	// A TimeStart-origin delta never reaches here (dropped in the moveMsgKindDeltaForward
+	// handler). Any OTHER sender kind leaves targetKind empty and keeps the plain flood.
+	if m.selfKind == "Pulse" {
+		switch m.cascadeKinds[exceptID] {
+		case "WindowAndInhibitLeftGate": // from SelectRight
+			targetKind = "WindowAndInhibitRightGate" // -> to SelectLeft
+		case "WindowAndInhibitRightGate": // from SelectLeft
+			targetKind = "WindowAndInhibitLeftGate" // -> to SelectRight
+		}
+	}
 	if m.selfKind == "TimeStart" {
 		// TimeStart pays attention to a delta ONLY when it arrives from a Pulse, Time, or
 		// Input neighbor; from any other kind it drops the delta entirely (return). Pulse
