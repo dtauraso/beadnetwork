@@ -62,3 +62,4 @@ printf '\033[1m%s\033[0m created from %s\n' "$BRANCH" "$BASE"
 [ -n "$DESC" ] || printf '  no description set — tools/next.sh will show this branch unlabelled.\n  set one: git -C %s config branch.%s.description "..."\n' "$WT" "$BRANCH"
 printf '\n  cd %s/%s\n\n' "$MAIN_ROOT" "$WT"
 printf 'when it is done: verify, merge to main, then\n  git worktree remove %s && git branch -d %s\n' "$WT" "$BRANCH"
+printf '  (add --force to worktree remove if this branch installed its own node_modules —\n   untracked files block a plain remove, and that copy should not outlive the worktree)\n'

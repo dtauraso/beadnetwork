@@ -90,17 +90,30 @@ fi
 # to regenerate the fixture) then fail there for a reason that has nothing to do with the
 # branch's changes. Installing per worktree works but duplicates ~136M each.
 #
-# A symlink is right here because every worktree shares one package.json/lockfile lineage
-# and one platform, so the resolved dependency set is the same tree npm would have built.
-# Idempotent: only created when the worktree lacks one and the main checkout has one. If a
-# branch ever does change dependencies, delete the link and install in that worktree — the
-# link is a convenience, not a constraint.
+# Sharing is only SAFE while the branch has not changed dependencies. The shared tree is
+# writable through the link, so `npm install` in a worktree whose package-lock.json differs
+# would silently rewrite the main checkout's node_modules — and every concurrent session
+# would start building against another branch's dependency set without being told. That is
+# the same class of bug as a shared working tree: invisible to whoever it hurts.
+#
+# So: link when this worktree's package-lock.json is byte-identical to the main checkout's,
+# and refuse to link when it differs, telling the author to install locally instead. A
+# worktree with its own node_modules costs ~136M and is removed with the worktree
+# (`git worktree remove --force`, since node_modules is untracked).
 if [ -n "$repo_common" ]; then
   MAIN_ROOT="$(dirname "$repo_common")"
   wt_modules="$ROOT/tools/topology-vscode/node_modules"
   main_modules="$MAIN_ROOT/tools/topology-vscode/node_modules"
   if [ "$ROOT" != "$MAIN_ROOT" ] && [ ! -e "$wt_modules" ] && [ -d "$main_modules" ]; then
-    ln -s "$main_modules" "$wt_modules" 2>/dev/null || true
+    wt_lock="$ROOT/tools/topology-vscode/package-lock.json"
+    main_lock="$MAIN_ROOT/tools/topology-vscode/package-lock.json"
+    if [ -f "$wt_lock" ] && [ -f "$main_lock" ] && cmp -s "$wt_lock" "$main_lock"; then
+      ln -s "$main_modules" "$wt_modules" 2>/dev/null || true
+    else
+      emit_block "this worktree's package-lock.json differs from the main checkout's, so its node_modules must NOT be shared — installing through a symlink would rewrite every other session's dependencies. Run:
+  (cd '$ROOT/tools/topology-vscode' && npm install)
+It is removed with the worktree (git worktree remove --force)."
+    fi
   fi
 fi
 
