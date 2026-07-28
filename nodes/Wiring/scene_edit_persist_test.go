@@ -69,6 +69,7 @@ func writeTree(t *testing.T) string {
 	mk("nodes/dst/meta.json", `{"id":"dst","type":"SinkNode","r":100,"scenePolarR":87.7496438739,"scenePolarTheta":0.96453035788,"scenePolarPhi":-2.15879893034}`)
 	mk("nodes/dst/inputs/In.json", `{"name":"In"}`)
 	mk("edges/e0.json", `{"label":"e0","kind":"data","source":"src","sourceHandle":"Out","target":"dst","targetHandle":"In"}`)
+	writeCascadeEdgesFromEdges(t, root, map[string]string{"src": "SrcNode", "dst": "SinkNode"}, [][2]string{{"src", "dst"}})
 	return root
 }
 

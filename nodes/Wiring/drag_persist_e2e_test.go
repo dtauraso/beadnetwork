@@ -44,6 +44,8 @@ func writeStar3(t *testing.T) string {
 	// the kind, not that a handle is used by at most one edge.
 	mk("edges/eAB.json", `{"label":"eAB","kind":"data","source":"A","sourceHandle":"Out","target":"B","targetHandle":"In"}`)
 	mk("edges/eAC.json", `{"label":"eAC","kind":"data","source":"A","sourceHandle":"Out","target":"C","targetHandle":"In"}`)
+	writeCascadeEdgesFromEdges(t, root, map[string]string{"A": "SrcNode", "B": "SinkNode", "C": "SinkNode"},
+		[][2]string{{"A", "B"}, {"A", "C"}})
 	return root
 }
 
@@ -149,7 +151,11 @@ func TestDragPersistsOnlyDraggedNodeAndRequantizesNeighborsOnDisk(t *testing.T) 
 	md.EnableEditPersist(root)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	md.Start(ctx)
+	wg := md.Start(ctx)
+	// Registered AFTER t.TempDir(), so t.Cleanup LIFO runs it BEFORE the
+	// dir RemoveAll: cancel() only SIGNALS, and a goroutine still closing
+	// its stream fds races the cleanup ("bad file descriptor").
+	t.Cleanup(func() { cancel(); wg.Wait() })
 
 	lhB, ok := md.lq.layoutHolders["B"]
 	if !ok {

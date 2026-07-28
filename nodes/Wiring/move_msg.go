@@ -82,14 +82,16 @@ const (
 	// forwarder). The receiver records GotForwardMsg/ForwardDeltaA-C/ForwardFromRow on
 	// its own node stream frame (LATEST delta wins, so it stays in sync with a drag that
 	// keeps moving) AND does its OWN relay in turn (nodeMover.forwardDelta), onward to
-	// every cascade-link neighbor except the one it came from. The cascade-link set
-	// (cascade_links.go's computeCascadeLinks — the full node adjacency minus the
-	// cycle-closing edges, computed once at load) is what makes plain "forward to my
-	// cascade-link neighbors, excluding the sender, concurrently" loop-free BY
-	// CONSTRUCTION: there is no runtime visit-tracking or once-per-drag guard — every
-	// move re-floods the whole reachable graph and terminates naturally (see
-	// neighborSetCRequantize's forward step and node_mover.go's moveMsgKindDeltaForward
-	// case / forwardDelta). Pure observability throughout: no re-quantize, no move.
+	// every cascade-link neighbor the relay rule selects. The cascade-link set is STORED
+	// per-node file data (nodes/<id>/cascade-edges.json, read at load by loader_tree.go)
+	// and now covers the FULL node adjacency, cycle-closing links included — so it is NOT
+	// loop-free by construction. What makes propagation terminate is the PER-KIND relay
+	// rules in forwardDelta and the moveMsgKindDeltaForward handler: PulseLeft and
+	// PulseRight are termini, TimeStart and Pulse route by sender kind, TimeEnd stops.
+	// There is still no runtime visit-tracking and no once-per-drag guard — every move
+	// re-propagates freely and terminates on those rules (measured: 1-6 forwards per
+	// single-node drag). See neighborSetCRequantize's forward step and node_mover.go's
+	// forwardDelta. Pure observability throughout: no re-quantize, no move.
 	moveMsgKindDeltaForward = "deltaForward"
 )
 

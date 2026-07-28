@@ -34,6 +34,10 @@ import (
 func TestUnfedRequiredPortLoadsAndStaysInert(t *testing.T) {
 	// A TimeEnd with its required In port declared but NO edge feeding it. validateSpec
 	// accepts this by design; the editor no longer flags it either, so it is silent.
+	// h is deliberately the ONLY node (its In port unfed, no edges) — cascade adjacency
+	// is nonetheless mandatory to load, and there is no other real node to name, so h
+	// carries a self-referencing cascade entry rather than inventing a domain edge to a
+	// node that doesn't exist in this fixture.
 	const topo = `{
 	  "nodes": [{"id":"h","type":"TimeEnd","data":{"state":{"held":-1}},"inputs":[{"name":"In"}]}],
 	  "edges": []

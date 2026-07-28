@@ -1,1 +1,1 @@
-{"cascadeEdges": ["3"], "cascadeKinds": {"3": "PulseLeft"}}
+{"cascadeEdges": ["3", "5"], "cascadeKinds": {"3": "PulseLeft", "5": "Pulse"}}

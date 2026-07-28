@@ -37,6 +37,7 @@ func writePreSplitStar2(t *testing.T) string {
 		`"scenePolarR":87.7496438739,"scenePolarTheta":0.96453035788,"scenePolarPhi":-2.15879893034}`)
 	mk("nodes/dst/inputs/In.json", `{"name":"In"}`)
 	mk("edges/e0.json", `{"label":"e0","kind":"data","source":"src","sourceHandle":"Out","target":"dst","targetHandle":"In"}`)
+	writeCascadeEdgesFromEdges(t, root, map[string]string{"src": "SrcNode", "dst": "SinkNode"}, [][2]string{{"src", "dst"}})
 	// The single legacy scene.json — camera + one overlay flag + the scene sphere all
 	// sharing one document, the exact pre-split shape.
 	mk("view/scene.json", `{`+
@@ -68,7 +69,11 @@ func TestPreSplitTopologyRoundTrips(t *testing.T) {
 	md.EnableEditPersist(root)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	md.Start(ctx)
+	wg := md.Start(ctx)
+	// Registered AFTER t.TempDir(), so t.Cleanup LIFO runs it BEFORE the
+	// dir RemoveAll: cancel() only SIGNALS, and a goroutine still closing
+	// its stream fds races the cleanup ("bad file descriptor").
+	t.Cleanup(func() { cancel(); wg.Wait() })
 
 	srcCenterBefore, ok := md.centerOfNode("src")
 	if !ok {
