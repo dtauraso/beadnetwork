@@ -22,7 +22,10 @@
 // interface-injection pattern, keeping Wiring Buffer-independent).
 package Buffer
 
-import "encoding/binary"
+import (
+	"encoding/binary"
+	"fmt"
+)
 
 // BuildEdgeStreamFrame packs one edge's combined per-fd frame payload (see this file's
 // header comment for the byte layout). beadVal/beadX/beadY/beadZ are parallel slices
@@ -32,6 +35,18 @@ import "encoding/binary"
 func BuildEdgeStreamFrame(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, beadVal []int32, beadX, beadY, beadZ []float32, events []StreamEvent) []byte {
 	labelBytes := []byte(label)
 	beadCount := len(beadVal)
+	// INVARIANT: the bead slices are parallel, one entry per in-flight bead (same shape as
+	// BuildNodeStreamFrame's port slices — see the reasoning there).
+	for _, s := range []struct {
+		name string
+		n    int
+	}{{"beadX", len(beadX)}, {"beadY", len(beadY)}, {"beadZ", len(beadZ)}} {
+		if s.n != beadCount {
+			panic(fmt.Sprintf(
+				"BuildEdgeStreamFrame: edge %q has %d bead values but %s has %d entries — the bead slices are parallel, one entry per bead",
+				label, beadCount, s.name, s.n))
+		}
+	}
 	size := BufEdgeStreamFrameHeaderSize + BufEdgeStride + len(labelBytes) + 4 + beadCount*BufBeadStride
 	buf := make([]byte, size)
 	off := 0
@@ -48,6 +63,14 @@ func BuildEdgeStreamFrame(tick uint32, srcPortRow, dstPortRow int32, selected ui
 	beadBuf := buf[off:]
 	for i := 0; i < beadCount; i++ {
 		SetBeadRow(beadBuf, i, beadX[i], beadY[i], beadZ[i], beadVal[i])
+	}
+	off += beadCount * BufBeadStride
+	// INVARIANT: walk ends where the size formula says — the runtime half of buffer-layout
+	// parity, same as BuildNodeStreamFrame's (see the full reasoning there).
+	if off != size {
+		panic(fmt.Sprintf(
+			"BuildEdgeStreamFrame: packed %d bytes for edge %q but allocated %d — the section walk and the size formula disagree",
+			off, label, size))
 	}
 	return append(buf, BuildEventsSection(events)...)
 }

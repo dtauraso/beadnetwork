@@ -156,6 +156,20 @@ func BuildNodeStreamFrame(
 // block. present/value/ox/oy/oz are parallel slices, same length, same slot order.
 func BuildInteriorStreamFrame(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []StreamEvent) []byte {
 	n := len(present)
+	// INVARIANT: present/value/ox/oy/oz are parallel, same length, same slot order — the
+	// doc comment above says exactly that, and the loop below indexes all five at i. Same
+	// reasoning as BuildNodeStreamFrame's port slices: unchecked, a short slice is an
+	// opaque index panic and a long one is silently truncated.
+	for _, s := range []struct {
+		name string
+		n    int
+	}{{"value", len(value)}, {"ox", len(ox)}, {"oy", len(oy)}, {"oz", len(oz)}} {
+		if s.n != n {
+			panic(fmt.Sprintf(
+				"BuildInteriorStreamFrame: %d present slots but %s has %d entries — the interior slot slices are parallel, one entry per slot",
+				n, s.name, s.n))
+		}
+	}
 	buf := make([]byte, BufInteriorStreamFrameHeaderSize+n*BufInteriorStride)
 	binary.LittleEndian.PutUint32(buf[0:], tick)
 	interiorBuf := buf[4:]
