@@ -10,9 +10,46 @@ package Wiring
 
 import (
 	"context"
+	"fmt"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"sync"
 )
+
+// moverInboxDepth is the declared capacity of every per-mover moveMsg inbox: an
+// edgeMover's extIn/srcIn/dstIn (edge_mover.go), a nodeMover's extIn
+// (node_mover.go), and each directed neighborIn (node_move.go). Previously the same
+// bare 8 repeated at six construction sites — the largest group of magic numbers in
+// the network.
+//
+// WHY THIS NUMBER, honestly: it is a chosen depth, NOT derived. What IS derivable
+// from the topology is the COUNT of these channels (one triple per edge, one extIn
+// per node, two directed neighborIn per edge — 10/9/20 for the shipped graph), and
+// the loader already fixes that by construction. The DEPTH is a queue for a burst of
+// move messages during a drag, so it is bounded by gesture rate, not by anything in
+// the spec files (docs/planning/visual-editor/session-log.md classifies it DYNAMIC for exactly this reason).
+// 8 is "a few frames of drag messages"; it has held in practice and no measurement
+// yet contradicts it.
+//
+// Deliberately NOT asserted, unlike maxPendingEvents. Filling one of these inboxes is
+// not a bug: the sender keeps the message in its own pending queue and retries, which
+// is the designed backpressure. The thing that actually grows unbounded when an inbox
+// stays full is that retry queue (nodeMover.pending), and choosing ITS bound and
+// at-the-bound behaviour is docs/planning/visual-editor/session-log.md Step 3 — a decision, not a rename. Naming
+// this constant is the "declared" half of the rule; the "asserted" half belongs to
+// that queue, not to this capacity.
+const moverInboxDepth = 8
+
+// maxPendingSends is the declared upper bound on len(nm.pending) between
+// flushPending calls (docs/planning/visual-editor/session-log.md Step 3, "nm.pending"). GENEROUS ceiling,
+// not a tight derivation, same honesty as maxPendingEvents/maxInflightBeads in
+// nodes/wire/paced_wire.go: nm.pending's own drain rate isn't a function of
+// moverInboxDepth (flushPending only ever attempts ONE real send per blocked
+// destination per cycle — every later item to that same destination is
+// retained WITHOUT an attempt, to preserve FIFO — so a bigger peer inbox
+// would not drain this queue any faster). Reusing moverInboxDepth twice-over
+// (its square) is a way to get a value definitely too large to reach under
+// ordinary drag traffic, not a claim that this is the tightest possible bound.
+const maxPendingSends = moverInboxDepth * moverInboxDepth
 
 // moverRegistry is the pure registry that owns every mover and wires their dedicated
 // channels together — there is no shared dispatch map; nodeMovers/edgeMovers themselves
@@ -170,5 +207,25 @@ func (mr *moverRegistry) enqueueFor(nm *nodeMover) func(id string, msg moveMsg) 
 		}
 		nm.pending = append(nm.pending, pendingSend{destID: id, msg: msg})
 		nm.flushPending()
+		if len(nm.pending) > maxPendingSends {
+			// Named causes, checked against flushPending's actual behaviour (not
+			// guessed): an item whose destID doesn't resolve is DROPPED, not
+			// retained (flushPending's `!ok` branch), so an unresolvable
+			// destination can never grow this queue — it is deliberately not
+			// named below. What CAN: (1) a peer whose own goroutine has
+			// stopped draining its inbox entirely (wedged or dead) — every
+			// later item to that same destination piles up behind it,
+			// unattempted, to preserve FIFO; (2) this node enqueueing to a
+			// live-but-slower peer faster, cycle over cycle, than that peer's
+			// own goroutine drains its inbox — flushPending retries only ONE
+			// send per blocked destination per cycle, so a persistent
+			// per-cycle surplus accumulates even without a dead peer.
+			panic(fmt.Sprintf(
+				"nodeMover(%s): pending exceeded %d retry-queued sends; either a "+
+					"destination's own goroutine has stopped draining its inbox "+
+					"(wedged or dead), or this node is enqueueing to a peer faster "+
+					"than that peer drains, cycle over cycle",
+				nm.id, maxPendingSends))
+		}
 	}
 }

@@ -91,6 +91,10 @@ type gateWindow struct {
 
 // drainLatestReal consumes ALL queued beads on a side and returns the most-recent
 // REAL value (discarding NoValue placeholders). got=false when nothing real was queued.
+//
+// Drain-until-empty, transitively bounded by this In's own wire's declared channel
+// capacity — no iteration cap; see nodes/wire/paced_wire.go's drainPlacements doc
+// comment for the full reasoning shared by every drain-until-empty loop in this repo.
 func drainLatestReal(in *wire.In) (int, bool) {
 	v, got := NoValue, false
 	for {

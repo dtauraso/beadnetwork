@@ -473,3 +473,60 @@ firehose and the debug channel shared a file, and the cheap fix would have taken
 you want when you *do* opt into the trace). Also declined: defaulting the sim to off. Go
 streams the whole scene and TS holds no domain state (guarded), so no Go process means an
 empty viewport, not a static graph.
+
+## 2026-07-28 — Explicit upper bounds: one real leak, four ceilings, two silent failures
+
+Follow-on from the 1.1 GB edge-stream case above, which is what motivated the sweep.
+
+**A real unbounded leak, found by inventory and confirmed before fixing.**
+`PacedWire.pending` grew forever whenever no per-edge stream was wired. `emitArrive`
+appended per arrival gated on `beadPlacement.streams()` = `bp.Node != ""` — a property of
+the placement's *geometry*, saying nothing about whether anyone would ever read the
+events — while the only drain sat behind `writeStreamFrame`'s early return for a nil
+`streamOut`. The two conditions are independent, so appends continued while nothing
+drained. Measured contrast: stream unwired, 40 deliveries left all 40 queued; wired, zero.
+Wider than first thought — `newEdgeMover` never sets those fields, so it covered **every
+headless run**, not just the >256-edge path.
+
+Fixed by gating production on a consumer existing (`StreamsActive`, set once at wiring
+time before launch), **not** by draining unconditionally. Draining would have kept
+building an event per arrival and discarding it — the same produce-for-nobody pattern
+removed from the edge-bead path that morning — and would have left "who consumes this?"
+hidden, which is what caused the bug.
+
+**Ceilings added**, each with its at-the-bound decision written down rather than applied
+as a policy: `maxPendingEvents`, `maxInflightBeads`, `maxPendingSends` (all panic),
+`moverInboxDepth` (named but deliberately *not* asserted), `MAX_FRAME_BYTES` (+ a parity
+guard against Go's `maxFrameBytes`).
+
+Three lessons the work itself taught:
+
+- **A diagnostic that names the wrong cause is worse than a vague one.** The first
+  `maxInflightBeads` message blamed a destination that stopped draining `outCh`. True, but
+  a *source outpacing the wire* reaches the same bound — that message would send a reader
+  hunting a consumer that is working fine. Both messages now name every cause that
+  applies, and `maxPendingSends`'s test asserts it does *not* name unresolvable
+  destinations, since those are dropped rather than retained.
+- **Panic is not the answer everywhere; the dividing line is who caused it.** The three
+  queue ceilings panic because reaching them means a code bug. Filling a mover inbox is
+  the *designed* backpressure, so it is unasserted. `MAX_EDGE_STREAMS` overflow reports
+  loudly without crashing, because a large topology is legitimate input.
+- **"Derive it from topology" is right for counts and wrong for depths.** The mover
+  inboxes' *count* is structural (one triple per edge); their *depth* is a gesture-rate
+  queue and is not in any saved file. The plan promised a derivation it could not deliver,
+  and the constant now says outright that 8 is chosen.
+
+**Two silent failures fixed, and one left deliberately.** `splitFrames` read `frameLen`
+off the wire with no maximum while Go enforced one on the same protocol — a bound present
+on only one side of a two-sided protocol, now guarded against re-diverging. The
+`MAX_EDGE_STREAMS` overflow silently set the stream count to 0, disabling all dedicated
+streams with no message; the clamp stays, the silence does not. Left alone:
+`waitForCenterSettle` returns silently on a 200 ms timeout with no signal it never
+settled — bounded by time, so not a missing-bound case; its defect deserves its own
+decision.
+
+**Guard note worth remembering:** `check-test-integrity`'s `[allow-test-weakening]` marker
+is **branch-wide, not commit-scoped** — it greps every commit message in `base..HEAD`. Two
+legitimate uses (both `recover()` asserting a panic, which its regex cannot distinguish
+from `recover()` hiding a failure) disabled that guard for the rest of the branch. Worth
+narrowing so the escape hatch closes behind itself.

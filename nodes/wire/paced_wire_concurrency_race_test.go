@@ -16,6 +16,7 @@ package wire
 
 import (
 	"context"
+	"math"
 	"sync"
 	"testing"
 	"time"
@@ -50,13 +51,29 @@ func TestPacedWireOwnershipUnderRace(t *testing.T) {
 		for time.Now().Before(deadline) {
 			i++
 			pw.DriveOneCycle(ctx, clk.Tick())
-			pw.ReviseInFlightGeometry(clk.Tick(), 4+i*0.01, WireSegment{Start: Vec3{}, End: Vec3{X: 1 + i*0.001}})
+			// Vary geometry (to exercise the race-detector on a live revise)
+			// WITHOUT letting arc grow unboundedly: an ever-increasing arc would
+			// push every in-flight bead's delivery deadline further into the
+			// future every single cycle, so beads could never reach it and
+			// inflight would accumulate without bound by this test's own
+			// construction -- unrelated to any real bug, but exactly the shape
+			// maxInflightBeads (paced_wire.go) now catches. math.Mod bounds the
+			// variation to a small, repeating range instead.
+			j := math.Mod(i, 50)
+			pw.ReviseInFlightGeometry(clk.Tick(), 4+j*0.01, WireSegment{Start: Vec3{}, End: Vec3{X: 1 + j*0.001}})
 			time.Sleep(time.Millisecond)
 		}
 	}()
 
 	// Source goroutine: only ever calls Send — never touches wire-owned state
-	// directly, exactly as Out.placeDrivenNoWalker does.
+	// directly, exactly as Out.placeDrivenNoWalker does. A brief per-send sleep
+	// keeps this within the model's own stated assumption (wireChanBufferSize's
+	// doc comment: "a node fires at most a handful of times between two
+	// wire-drive cycles") -- an unthrottled tight loop would enqueue far faster
+	// than any wire can ever drain/deliver by construction (each bead takes
+	// ~100 ticks to cross at this arc/pulseSpeed), which is a real design bug
+	// were it production traffic, not something maxInflightBeads should paper
+	// over by being sized larger.
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
@@ -64,6 +81,7 @@ func TestPacedWireOwnershipUnderRace(t *testing.T) {
 		for time.Now().Before(deadline) {
 			val++
 			pw.Send(val, beadPlacement{InFlightMs: 4, Start: Vec3{}, End: Vec3{X: 1}, Node: "src", Port: "Out"})
+			time.Sleep(time.Millisecond)
 		}
 	}()
 

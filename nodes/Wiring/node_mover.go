@@ -311,7 +311,7 @@ func newNodeMover(id string, geom nodeGeom, tr *T.Trace, clockSrc wire.Clock) *n
 	// does anything else), matching newEdgeMover's same default for the same reason.
 	nm := &nodeMover{
 		id: id, geom: geom,
-		extIn: make(chan moveMsg, 8), neighborIn: map[string]chan moveMsg{}, tr: tr,
+		extIn: make(chan moveMsg, moverInboxDepth), neighborIn: map[string]chan moveMsg{}, tr: tr,
 		partnerCenters: map[string]vec3{},
 		centerOut:      make(chan vec3, 1),
 		clockSrc:       clockSrc, clk: wire.NewRealClock(),
@@ -898,6 +898,11 @@ func (m *nodeMover) run(ctx context.Context) {
 		// Drain every dedicated inbound channel non-blockingly, repeating until a
 		// full pass yields nothing — this is the "drain to empty, don't throttle a
 		// backlog" half of the shape.
+		//
+		// Drain-until-empty, transitively bounded by each channel's own declared
+		// capacity (moverInboxDepth) -- no iteration cap; see
+		// nodes/wire/paced_wire.go's drainPlacements doc comment for the full
+		// reasoning shared by every drain-until-empty loop in this repo.
 		for {
 			progressed := false
 			select {

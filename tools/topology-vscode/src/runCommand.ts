@@ -202,6 +202,16 @@ export function splitJsonlLines(buf: string, chunk: string): { lines: string[]; 
   return { lines, rest };
 }
 
+// MAX_FRAME_BYTES bounds a single framed-binary record read off ANY dedicated stream fd
+// (view/edge/node/interior). MUST match Go's `maxFrameBytes` in nodes/Wiring/stdin_reader.go
+// — this is the SAME [len:u32-LE][payload] protocol, just read in the opposite direction
+// (Go emits, TS decodes here), and a corrupt/hostile length must be rejected the same way
+// on both ends or a bound that only fires going one way is not a bound on the protocol at
+// all. Parity is enforced by tools/check-frame-bytes-parity.sh. Without this bound, a
+// corrupt length makes splitFrames' carried-over `rest` grow forever waiting for bytes that
+// will never complete the frame — unbounded memory, silently.
+export const MAX_FRAME_BYTES = 1 << 20;
+
 // splitFrames is the pure length-prefix framing step shared by every dedicated stream fd
 // (view/edge/node/interior): given the carried-over partial Buffer and a freshly-arrived
 // binary chunk, it returns every COMPLETE frame payload (as an ArrayBuffer, ready to
@@ -211,11 +221,21 @@ export function splitJsonlLines(buf: string, chunk: string): { lines: string[]; 
 // one chunk all come out; a trailing partial (len header not yet complete, or payload bytes
 // not yet complete) is buffered. Each handleXFd method owns dispatch; this owns only the
 // framing.
-export function splitFrames(buf: Buffer, chunk: Buffer): { frames: ArrayBuffer[]; rest: Buffer } {
+//
+// A decoded length exceeding MAX_FRAME_BYTES is reported via `error` (mirroring Go's
+// stdin_reader.go: log and stop, never throw across an event-emitter callback where it
+// would be swallowed) and framing STOPS immediately — `rest` is returned as whatever bytes
+// preceded the bad header, and no further bytes from `chunk` are scanned. The caller
+// (handleXFd) is responsible for ceasing to feed that fd's chunks into splitFrames again;
+// see the `deadStreams` field.
+export function splitFrames(buf: Buffer, chunk: Buffer): { frames: ArrayBuffer[]; rest: Buffer; error?: string } {
   let rest = buf.length > 0 ? Buffer.concat([buf, chunk]) : chunk;
   const frames: ArrayBuffer[] = [];
   while (rest.length >= 4) {
     const frameLen = rest.readUInt32LE(0);
+    if (frameLen > MAX_FRAME_BYTES) {
+      return { frames, rest, error: `bad frame length ${frameLen} (max ${MAX_FRAME_BYTES}); stopping stream` };
+    }
     const needed = 4 + frameLen;
     if (rest.length < needed) break;
     // Slice out the payload and copy into a standalone ArrayBuffer (detached from
@@ -383,6 +403,14 @@ export class BuildAndRunRunner {
   // Current spawn's node-fd count. Recomputed at every run() call from the topology spec.
   private nodeCount = 0;
 
+  // deadStreams marks per-fd streams that splitFrames reported a bad (over-MAX_FRAME_BYTES)
+  // frame length on. Keyed "view" / "edge:<row>" / "node:<row>" / "interior:<row>". Once a
+  // stream is dead its handleXFd short-circuits and never calls splitFrames again for it —
+  // mirroring Go's stdin_reader.go, which logs and stops that reader goroutine rather than
+  // trying to resynchronize on a corrupt length. Reset on every spawn (see freshStreamState's
+  // call site in run()) since it's this-process's-bytes state, exactly like the *Bufs fields.
+  private deadStreams: Set<string> = new Set();
+
   private topologyPath: string | undefined;
 
   constructor(
@@ -456,18 +484,36 @@ export class BuildAndRunRunner {
     // dedicated per-edge streams entirely — see MAX_EDGE_STREAMS's doc comment.
     const edgeCountRaw = countEdges(this.topologyPath ?? path.join(repoRoot, "topology"));
     this.edgeCount = edgeCountRaw > MAX_EDGE_STREAMS ? 0 : edgeCountRaw;
+    if (edgeCountRaw > MAX_EDGE_STREAMS) {
+      // Capacity limit reached by legitimate input (a large topology), not a code bug — a
+      // panic/throw here would be wrong. But silently zeroing edgeCount disables ALL
+      // dedicated per-edge streams with no signal, which is the quietest possible failure
+      // for the loudest consequence (this is the same path that used to strand the
+      // `pending` leak, fixed in 93d2e9b6). Report it loudly through the same error
+      // channel as every other operational problem in this file.
+      const msg = `edge count ${edgeCountRaw} exceeds MAX_EDGE_STREAMS (${MAX_EDGE_STREAMS}); disabling ALL dedicated per-edge streams for this run`;
+      this.channel.appendLine(`\n[${msg}]`);
+      appendGoError(probePaths.goErrorsFile, msg);
+    }
     // Size the dedicated per-node NODE + INTERIOR fd ranges the same way, right after the
     // edge range (nodeBase = EDGE_BASE_FD + edgeCount, interiorBase = nodeBase + nodeCount —
     // see NODE_BASE_FD's doc comment). Clamped to MAX_NODE_STREAMS; 0 omits the dedicated
     // per-node NODE/INTERIOR/Port streams entirely.
     const nodeCountRaw = countNodes(this.topologyPath ?? path.join(repoRoot, "topology"));
     this.nodeCount = nodeCountRaw > MAX_NODE_STREAMS ? 0 : nodeCountRaw;
+    if (nodeCountRaw > MAX_NODE_STREAMS) {
+      // Same reasoning as the edge-count case above.
+      const msg = `node count ${nodeCountRaw} exceeds MAX_NODE_STREAMS (${MAX_NODE_STREAMS}); disabling ALL dedicated per-node NODE/INTERIOR streams for this run`;
+      this.channel.appendLine(`\n[${msg}]`);
+      appendGoError(probePaths.goErrorsFile, msg);
+    }
     const nodeBaseFd = EDGE_BASE_FD + this.edgeCount;
     const interiorBaseFd = nodeBaseFd + this.nodeCount;
     // Fresh parse state for this spawn: a prior process's leftover partial frame must
     // never prefix this one's stream (see freshStreamState). This is the single reset
     // point every restart path funnels through, including the looping respawn.
     this.stream = freshStreamState(this.edgeCount, this.nodeCount);
+    this.deadStreams.clear();
     // Also drop the cached keyframes: they belong to the PRIOR process. Without this,
     // a webview remounting in the window between "ready" and the new process's first
     // frame would be replayed the previous process's frames via getLastViewFrame()/
@@ -617,8 +663,15 @@ export class BuildAndRunRunner {
   // "buffer-snapshot" message shape, tagged BUF_BLOCK_TAG_VIEW (a synthetic ext-host-side
   // tag, never a wire byte).
   private handleViewFd(chunk: Buffer) {
-    const { frames, rest } = splitFrames(this.stream.viewBuf, chunk);
+    if (this.deadStreams.has("view")) return;
+    const { frames, rest, error } = splitFrames(this.stream.viewBuf, chunk);
     this.stream.viewBuf = rest;
+    if (error) {
+      this.deadStreams.add("view");
+      const msg = `handleViewFd: ${error}`;
+      this.channel?.appendLine(`\n[${msg}]`);
+      appendGoError(this.goErrorsFile, msg);
+    }
     for (const ab of frames) {
       // Decode this frame's OWN trailing EVENTS section (camera/overlay/scene events —
       // every other trace kind is decentralized to its own owner fd; memory/
@@ -649,9 +702,17 @@ export class BuildAndRunRunner {
   // (synthetic, never a wire byte) PLUS `row` so the webview routes it to the right
   // per-edge cell (there are many edge streams, unlike view's singleton).
   private handleEdgeFd(row: number, chunk: Buffer) {
+    const key = `edge:${row}`;
+    if (this.deadStreams.has(key)) return;
     const carry = this.stream.edgeBufs[row] ?? Buffer.alloc(0);
-    const { frames, rest } = splitFrames(carry, chunk);
+    const { frames, rest, error } = splitFrames(carry, chunk);
     this.stream.edgeBufs[row] = rest;
+    if (error) {
+      this.deadStreams.add(key);
+      const msg = `handleEdgeFd(row=${row}): ${error}`;
+      this.channel?.appendLine(`\n[${msg}]`);
+      appendGoError(this.goErrorsFile, msg);
+    }
     for (const ab of frames) {
       // Decode this edge's OWN trailing EVENTS section (Geometry/Position/Arrive — this
       // goroutine's own row-resolved events; memory/feedback_no_single_writer_bridge.md).
@@ -682,9 +743,17 @@ export class BuildAndRunRunner {
   // the SAME "buffer-snapshot" shape, tagged BUF_BLOCK_TAG_NODE_STREAM (synthetic, never a
   // wire byte) PLUS `row` so the webview routes it to the right per-node cell.
   private handleNodeFd(row: number, chunk: Buffer) {
+    const key = `node:${row}`;
+    if (this.deadStreams.has(key)) return;
     const carry = this.stream.nodeBufs[row] ?? Buffer.alloc(0);
-    const { frames, rest } = splitFrames(carry, chunk);
+    const { frames, rest, error } = splitFrames(carry, chunk);
     this.stream.nodeBufs[row] = rest;
+    if (error) {
+      this.deadStreams.add(key);
+      const msg = `handleNodeFd(row=${row}): ${error}`;
+      this.channel?.appendLine(`\n[${msg}]`);
+      appendGoError(this.goErrorsFile, msg);
+    }
     for (const ab of frames) {
       // Decode this node's OWN trailing EVENTS section (NodeGeometry — this nodeMover
       // goroutine's own row-resolved event; memory/feedback_no_single_writer_bridge.md).
@@ -713,9 +782,17 @@ export class BuildAndRunRunner {
   // its nodeMover), same framing/relay shape as handleNodeFd, tagged
   // BUF_BLOCK_TAG_INTERIOR_STREAM.
   private handleInteriorFd(row: number, chunk: Buffer) {
+    const key = `interior:${row}`;
+    if (this.deadStreams.has(key)) return;
     const carry = this.stream.interiorBufs[row] ?? Buffer.alloc(0);
-    const { frames, rest } = splitFrames(carry, chunk);
+    const { frames, rest, error } = splitFrames(carry, chunk);
     this.stream.interiorBufs[row] = rest;
+    if (error) {
+      this.deadStreams.add(key);
+      const msg = `handleInteriorFd(row=${row}): ${error}`;
+      this.channel?.appendLine(`\n[${msg}]`);
+      appendGoError(this.goErrorsFile, msg);
+    }
     for (const ab of frames) {
       // Decode this node's OWN trailing EVENTS section (NodeBead — this node's own
       // Update-loop goroutine's row-resolved events; memory/feedback_no_single_writer_bridge.md).

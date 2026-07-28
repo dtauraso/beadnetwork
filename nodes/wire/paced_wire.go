@@ -2,6 +2,7 @@ package wire
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -157,6 +158,27 @@ type PacedWire struct {
 	TargetHandle string   // destination input-port name — the wire's destination routing key
 	Trace        *T.Trace // injected by loader; used for breadcrumb diagnostics only
 
+	// StreamsActive reports whether a real consumer is wired for this edge's
+	// pending-event buffer (Buffer/stream_fds.go's per-edge fd, via
+	// streamWiring.setEdgeStreams — see edgeMover.streamOut). Set EXACTLY ONCE,
+	// directly on this exported field, at wiring time BEFORE this edge's mover
+	// goroutine launches (the same "wire before launch, read-only afterward"
+	// ordering documented on streamWiring.interiorOuts and move_streams.go —
+	// stream_wiring.go:28), and never written again afterward — so, like Trace
+	// above, it needs no lock/atomic (memory/feedback_no_atomics_are_defects.md).
+	// Default false (bare test construction, or a real edge with no fd entry in
+	// WIREFOLD_STREAM_FDS): pending MUST NOT accumulate with nothing to ever
+	// drain it — see emitArrive and stepAll's KindEdgeBead append, both gated on
+	// this field. This is deliberately NOT beadPlacement.streams() (bp.Node !=
+	// "") — that reports whether ONE PLACEMENT carries position-stream
+	// geometry, a per-bead property completely independent of whether any
+	// stream consumer exists for this wire at all; conflating the two was the
+	// root cause of the confirmed unbounded-pending-growth bug documented in
+	// docs/planning/visual-editor/session-log.md (streamOut nil -> 40
+	// deliveries left all 40 queued forever with nothing ever calling
+	// DrainPendingEvents).
+	StreamsActive bool
+
 	// pending buffers this wire's OWN Position/Arrive events since the last drain
 	// (memory/feedback_no_single_writer_bridge.md): appended only by stepAll (this
 	// wire's own goroutine, via edgeMover.run's DriveOneCycle call) and drained only by
@@ -172,11 +194,53 @@ type PacedWire struct {
 	// same "no delivery guarantee, may drop a diagnostic" shape as abcDragCh
 	// (view_stream.go) — this should never fire under realistic load anyway.
 	breadcrumbCh chan RowEvent
+
+	// droppedBreadcrumbs counts breadcrumbCh sends Send's non-blocking send
+	// dropped (channel full) since the last flushDroppedBreadcrumbs report.
+	// breadcrumbCh has exactly one producer call site (Send, called only from
+	// this wire's fixed SOURCE node's own goroutine — nodes/wire/ports.go's
+	// one call site), so this field is owned EXCLUSIVELY by that same source
+	// goroutine, never touched by this wire's own goroutine — a different,
+	// but equally single-owner, contract than pending/inflight above
+	// (memory/feedback_no_atomics_are_defects.md). The cap-4 breadcrumbCh is
+	// the tightest queue in the system and drops are non-blocking by design
+	// (breadcrumbs must never backpressure the network); this counter exists
+	// so a drop is reported once room reappears instead of vanishing silently
+	// — see flushDroppedBreadcrumbs.
+	droppedBreadcrumbs int
+}
+
+// flushDroppedBreadcrumbs reports (as a T.KindBreadcrumb row, Label
+// BreadcrumbWireBreadcrumbsDropped, Value = the dropped count) and clears any
+// breadcrumbCh drops recorded since the last flush, IF breadcrumbCh currently
+// has room. Called at the top of every Send call — the same single
+// caller/owner as droppedBreadcrumbs itself (this wire's fixed SOURCE node's
+// own goroutine) — so a run of drops is eventually surfaced instead of lost
+// for good. Non-blocking: if breadcrumbCh is still full, the count is left
+// untouched and retried on the next Send call. A cheap no-op when nothing has
+// been dropped (the overwhelming common case).
+func (pw *PacedWire) flushDroppedBreadcrumbs() {
+	if pw.breadcrumbCh == nil || pw.droppedBreadcrumbs == 0 {
+		return
+	}
+	select {
+	case pw.breadcrumbCh <- RowEvent{
+		Kind: T.KindBreadcrumb, Label: T.BreadcrumbWireBreadcrumbsDropped, Debug: 1,
+		NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
+		Value: int32(pw.droppedBreadcrumbs),
+	}:
+		pw.droppedBreadcrumbs = 0
+	default:
+	}
 }
 
 // drainBreadcrumbEvents returns every breadcrumb RowEvent buffered on breadcrumbCh
 // since the last call (non-blocking drain). Safe to call only from this wire's own
 // goroutine (edgeMover.writeStreamFrame), same contract as drainPendingEvents.
+//
+// Drain-until-empty, transitively bounded by breadcrumbCh's declared capacity (4) —
+// no iteration cap; see drainPlacements's doc comment (this file) for the full
+// reasoning shared by every drain-until-empty loop in this repo.
 func (pw *PacedWire) drainBreadcrumbEvents() []RowEvent {
 	if pw.breadcrumbCh == nil {
 		return nil
@@ -205,6 +269,65 @@ type pendingWireEvent struct {
 	value      int
 	x, y, z, t float64
 	gen        uint64
+}
+
+// maxPendingEvents is the declared upper bound on len(pw.pending) between drains.
+// With a stream consumer wired (StreamsActive), pending is drained EVERY cycle by
+// edgeMover.writeStreamFrame -> DrainPendingEvents (the same goroutine, back to
+// back with the append side — see pending's own doc comment above), so its true
+// maximum is one cycle's production. Exceeding that does not mean "busy"; with
+// the drain running, it can only mean the drain has stopped running — the exact
+// bug this branch's inventory found and 93d2e9b6 fixed (streamOut nil left
+// pending accumulating forever with nothing ever calling DrainPendingEvents).
+//
+// The number itself is a GENEROUS ceiling, not a tight derivation, and that
+// caveat is deliberate: pw.inflight (the source of every pending append) has no
+// declared maximum of its own yet (docs/planning/visual-editor/session-log.md Step 3), so "one cycle's
+// production" cannot be proven exactly today. wireChanBufferSize already
+// ceilings how many beads can ever be outstanding on this wire via inCh, so
+// reusing it here gives a value that is definitely wrong to reach rather than
+// one derived airtight from a bounded inflight.
+const maxPendingEvents = wireChanBufferSize
+
+// maxInflightBeads is the declared upper bound on len(pw.inflight) between
+// FIFO-head deliveries (docs/planning/visual-editor/session-log.md Step 3, "inflight"). stepAll delivers
+// ONLY from the FIFO head (i==0) onto outCh; if the destination has stopped
+// draining outCh, the head cannot hand off and nothing behind it can either
+// (stepAll's own doc comment), so inflight can only grow while the stall
+// persists. In this model every node goroutine always drains its inputs
+// (MODEL.md), so a destination that has permanently stopped draining is a
+// BUG — a stalled or dead destination goroutine — never legitimate
+// backpressure; there is no "the destination is just slow" case to
+// distinguish from "the destination is gone".
+//
+// Like maxPendingEvents, this is a GENEROUS ceiling, not a tight derivation,
+// and honestly so: placements can only enter inflight via drainPlacements
+// draining inCh, and wireChanBufferSize already ceilings how many can ever
+// be outstanding there, so reusing it here gives a value definitely wrong to
+// reach rather than one derived airtight from a bounded steady-state depth.
+const maxInflightBeads = wireChanBufferSize
+
+// appendPending appends ev to pw.pending and asserts the result has not
+// exceeded maxPendingEvents. It is the ONLY way pending is ever appended to
+// (stepAll's KindEdgeBead append and emitArrive's KindArrive append both call
+// this instead of appending directly) so the bound is checked at every mutation
+// site, not just some.
+//
+// Panics rather than dropping or growing further: this is an INVARIANT check on
+// this wire's own goroutine, not a capacity policy (docs/planning/visual-editor/session-log.md Step 1) —
+// dropping would hide a broken drain (the exact failure this bound exists to
+// catch), and backpressure would couple this wire's pacing to its owner's frame
+// rate. Reaching this bound is a code bug, never ordinary traffic, the same
+// "can only break via a code bug" shape as wire.Register's and build.go's
+// panics (grep panic( in this package/nodes/Wiring for the convention).
+func (pw *PacedWire) appendPending(ev pendingWireEvent) {
+	pw.pending = append(pw.pending, ev)
+	if len(pw.pending) > maxPendingEvents {
+		panic(fmt.Sprintf(
+			"paced_wire: pending exceeded %d events on wire -> %s.%s; the per-cycle drain "+
+				"(edgeMover.writeStreamFrame -> DrainPendingEvents) is not running",
+			maxPendingEvents, pw.Target, pw.TargetHandle))
+	}
 }
 
 // drainPendingEvents returns every pendingWireEvent recorded since the last call and
@@ -305,6 +428,10 @@ const (
 // should never fire; it is a control-event signal, not a per-tick firehose) —
 // see CLAUDE.md's debug-breadcrumb section.
 func (pw *PacedWire) Send(v int, bp beadPlacement) SendOutcome {
+	// Report any breadcrumb drops from a PREVIOUS call before doing anything
+	// else this call — see flushDroppedBreadcrumbs' doc comment. A no-op when
+	// nothing has been dropped.
+	pw.flushDroppedBreadcrumbs()
 	select {
 	case pw.inCh <- placeRequest{val: v, bp: bp}:
 		return SendPlaced
@@ -317,7 +444,9 @@ func (pw *PacedWire) Send(v int, bp beadPlacement) SendOutcome {
 		// goroutine (edgeMover.writeStreamFrame's drainBreadcrumbEvents call) — never
 		// blocks the source node, and drops the diagnostic (not the bead itself,
 		// which was never dropped either — SendBufferFull is transient/retryable) if
-		// breadcrumbCh is already full.
+		// breadcrumbCh is already full. A dropped diagnostic is not silent: it is
+		// counted (droppedBreadcrumbs) and reported once room reappears (the next
+		// Send call's flushDroppedBreadcrumbs, above).
 		if pw.breadcrumbCh != nil {
 			select {
 			case pw.breadcrumbCh <- RowEvent{
@@ -326,6 +455,7 @@ func (pw *PacedWire) Send(v int, bp beadPlacement) SendOutcome {
 				Value: int32(v),
 			}:
 			default:
+				pw.droppedBreadcrumbs++
 			}
 		}
 		return SendBufferFull
@@ -379,6 +509,28 @@ func (pw *PacedWire) DriveOneCycle(ctx context.Context, tick int64) {
 // and appends each as a fresh in-flight bead, stamping placementTick from tick —
 // THIS wire's own clock reading, taken once by the caller (driveOneCycle) per
 // cycle. Called only by this wire's own goroutine.
+//
+// DRAIN-UNTIL-EMPTY, NOT AN ITERATION CAP (docs/planning/visual-editor/session-log.md Step 3, "the drain
+// loops"). This is the canonical instance of a shape repeated at several
+// other sites in this repo (nodes/wire/paced_wire.go's drainBreadcrumbEvents,
+// nodes/gatecommon/gate.go's drainLatestReal, nodes/TimeStart/node.go and
+// nodes/Time/node.go's mid-window observe loop, nodes/Wiring/edge_mover.go's
+// and node_mover.go's per-cycle inbox drains — each of those points back
+// here instead of repeating this paragraph). The reasoning that justifies
+// EVERY one of them, and why none gets an arbitrary cap:
+//
+//  1. Each loop terminates the moment its channel reports empty (the
+//     `default:` branch) — it never blocks waiting for more.
+//  2. Every producer feeding one of these channels is itself bounded by a
+//     DECLARED channel capacity (wireChanBufferSize here; moverInboxDepth
+//     for the mover inboxes) — so no matter how busy the producer has been,
+//     one drain call can pull at most that many items before hitting empty.
+//     The loop is therefore transitively bounded by a number that already
+//     has its own name elsewhere, not unbounded in practice.
+//  3. Adding an iteration cap on top would not remove any risk — it would
+//     ADD a new failure mode: a capped drain leaves items stranded in the
+//     channel for a full extra cycle, which is worse than draining all of
+//     them now. There is no capacity problem here to solve with a cap.
 func (pw *PacedWire) drainPlacements(tick int64) {
 	for {
 		select {
@@ -397,6 +549,14 @@ func (pw *PacedWire) drainPlacements(tick int64) {
 				streams: req.bp.streams(),
 				gen:     pw.nextGen,
 			})
+			if len(pw.inflight) > maxInflightBeads {
+				panic(fmt.Sprintf(
+					"paced_wire: inflight exceeded %d beads on wire -> %s.%s; beads are being "+
+						"placed faster than they cross and deliver. Two causes reach this: the "+
+						"destination stopped draining outCh (FIFO-head delivery stalled), or the "+
+						"source is placing faster than this wire can carry",
+					maxInflightBeads, pw.Target, pw.TargetHandle))
+			}
 		default:
 			return
 		}
@@ -419,8 +579,8 @@ func (pw *PacedWire) stepAll(tick int64) {
 				continue
 			}
 			emit, pos, final := pw.advanceBead(b, nowTick)
-			if emit && edgeBeadTraceEnabled {
-				pw.pending = append(pw.pending, pendingWireEvent{
+			if emit && edgeBeadTraceEnabled && pw.StreamsActive {
+				pw.appendPending(pendingWireEvent{
 					kind: T.KindEdgeBead, value: pos.val,
 					x: pos.x, y: pos.y, z: pos.z, t: pos.t, gen: pos.gen,
 				})
@@ -440,6 +600,17 @@ func (pw *PacedWire) stepAll(tick int64) {
 		case pw.outCh <- deliveredBead{val: b.val, deliverTick: tick}:
 			pw.emitArrive(arriveInfo{emit: b.streams, node: b.node, port: b.port, value: b.val, gen: b.gen})
 			pw.inflight = pw.inflight[1:]
+			if len(pw.inflight) == 0 {
+				// inflight[1:] never re-slices the backing array; it only shrinks
+				// the header while the array keeps growing with every
+				// drainPlacements append. Once the slice is fully drained, drop
+				// the reference so the (potentially large) backing array can be
+				// collected instead of an append later reusing (and growing
+				// further) a nil-length slice that still points at it. No
+				// mid-slice compaction is attempted -- this is the one point
+				// where a reset is free, because the slice is already empty.
+				pw.inflight = nil
+			}
 			// Do not advance i: the slice shifted, so index 0 is now the next bead.
 		default:
 			// Destination hasn't drained outCh yet; retry the handoff next cycle.
@@ -557,8 +728,8 @@ type posEmitArgs struct {
 // emitArrive sends the traversal-complete trace for a delivered bead. Called by
 // this wire's own goroutine (stepAll) right after the outCh handoff succeeds.
 func (pw *PacedWire) emitArrive(ai arriveInfo) {
-	if ai.emit {
-		pw.pending = append(pw.pending, pendingWireEvent{kind: T.KindArrive, value: ai.value, gen: ai.gen})
+	if ai.emit && pw.StreamsActive {
+		pw.appendPending(pendingWireEvent{kind: T.KindArrive, value: ai.value, gen: ai.gen})
 	}
 }
 

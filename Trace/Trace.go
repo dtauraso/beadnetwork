@@ -119,7 +119,7 @@ const (
 	// EVENT row instead of a free-form JSON
 	// stdout line. It rides the EMITTING goroutine's own per-owner stream (node/edge/
 	// interior/VIEW) — main.go's own breadcrumbs (no per-node stream) ride the VIEW
-	// stream. Label (a BreadcrumbLabel* index below) names which of the 9 breadcrumb
+	// stream. Label (a BreadcrumbLabel* index below) names which of the 10 breadcrumb
 	// sites emitted it; the row's other columns (Value/X/Y/Z/NodeRow/PortRow/
 	// TargetRow/TargetPortRow) are REUSED per label, with Label/TextOff/TextLen (the
 	// bufLayoutEvent.Debug flag is always 1 on this Kind) as the two dedicated
@@ -127,7 +127,7 @@ const (
 	KindBreadcrumb = "breadcrumb"
 )
 
-// BreadcrumbLabel* enumerate the 9 breadcrumb call sites (Buffer/layout.go's
+// BreadcrumbLabel* enumerate the 10 breadcrumb call sites (Buffer/layout.go's
 // bufLayoutEvent.Label column, Kind==KindBreadcrumb rows only). Order is the wire id —
 // append only; do not reorder or delete a label without a migration. BreadcrumbLabels
 // is the string lookup gen-node-defs mirrors into TS for the .probe decode/log.
@@ -141,6 +141,12 @@ const (
 	BreadcrumbAbcDrag
 	BreadcrumbWireSendBufferFull
 	BreadcrumbCascadeRoot
+	// BreadcrumbWireBreadcrumbsDropped reports how many KindBreadcrumb rows
+	// PacedWire.Send's non-blocking breadcrumbCh send silently dropped since
+	// the last report (breadcrumbCh's own doc comment, paced_wire.go) — Value
+	// carries the dropped count. Emitted once room reappears on breadcrumbCh,
+	// so the diagnostic channel's own lossiness is never itself silent.
+	BreadcrumbWireBreadcrumbsDropped
 )
 
 // BreadcrumbLabels is the single source of truth for the BreadcrumbLabel* enum's
@@ -156,6 +162,7 @@ var BreadcrumbLabels = []string{
 	"abc-drag",
 	"wire-send-buffer-full",
 	"cascade.root",
+	"wire-breadcrumbs-dropped",
 }
 
 // TraceEventKinds is the single source of truth for the closed kind vocabulary.

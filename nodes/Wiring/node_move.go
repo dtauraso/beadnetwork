@@ -267,10 +267,10 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 		if srcNM, ok := md.mr.nodeMovers[ep.Source]; ok {
 			if dstNM, ok := md.mr.nodeMovers[ep.Target]; ok {
 				if _, exists := dstNM.neighborIn[ep.Source]; !exists {
-					dstNM.neighborIn[ep.Source] = make(chan moveMsg, 8)
+					dstNM.neighborIn[ep.Source] = make(chan moveMsg, moverInboxDepth)
 				}
 				if _, exists := srcNM.neighborIn[ep.Target]; !exists {
-					srcNM.neighborIn[ep.Target] = make(chan moveMsg, 8)
+					srcNM.neighborIn[ep.Target] = make(chan moveMsg, moverInboxDepth)
 				}
 			}
 		}

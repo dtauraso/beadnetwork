@@ -95,6 +95,11 @@ func (in *Time) Update(ctx context.Context) {
 			// Mid-window observe: drain and discard every bead delivered on the
 			// input port this cycle (same-color and different-color are both
 			// consumed silently; neither is processed).
+			//
+			// Drain-until-empty, transitively bounded by this wire's declared
+			// channel capacity -- no iteration cap; see nodes/wire/paced_wire.go's
+			// drainPlacements doc comment for the full reasoning shared by every
+			// drain-until-empty loop in this repo.
 			for {
 				if _, ok := in.FromPrevTimeNode.PollRecv(); !ok {
 					break
