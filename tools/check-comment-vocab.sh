@@ -77,13 +77,25 @@ readonly DEAD_COMMENT_TOKENS=(
 )
 
 fail=0
+
+# One whole-repo walk for ALL tokens at once (-f reads patterns from a file/process-sub),
+# instead of one walk per token — same -F fixed-string, -n line-number, --include/
+# --exclude-dir semantics as the old per-token grep. The self-exclusion and
+# comment-line-only post-filters are still applied, just once to the combined output
+# rather than once per token, so the meaning is unchanged.
+all_hits="$(grep -rnIF --include="*.go" --include="*.ts" --include="*.tsx" \
+    --exclude-dir={node_modules,out,.git,handoff-archive,memory} \
+    -f <(printf '%s\n' "${DEAD_COMMENT_TOKENS[@]}") -- . 2>/dev/null \
+    | grep -vF "tools/check-comment-vocab.sh" \
+    | grep -E ':[[:space:]]*(//|\*|#)' || true)"
+
 for token in "${DEAD_COMMENT_TOKENS[@]}"; do
-  # -F fixed string, -n line numbers; restrict to lines that look like comments (// or *).
-  hits="$(grep -rnIF --include="*.go" --include="*.ts" --include="*.tsx" \
-      --exclude-dir={node_modules,out,.git,handoff-archive,memory} \
-      -- "$token" . 2>/dev/null \
-      | grep -vF "tools/check-comment-vocab.sh" \
-      | grep -E ':[[:space:]]*(//|\*|#)' || true)"
+  # Attribute hits back to this specific token in-memory (no repo re-walk). Match against the
+  # CONTENT field only (strip the "path:line:" prefix first) so a token substring that happens
+  # to appear in a path/line-number wouldn't misattribute a hit to the wrong token.
+  hits="$(printf '%s\n' "$all_hits" | awk -F: -v t="$token" '
+    { content = $0; sub(/^[^:]*:[0-9]*:/, "", content); if (index(content, t) > 0) print }
+  ' || true)"
   if [ -n "$hits" ]; then
     echo "RETIRED COMMENT VOCAB: '$token' — remove or reword; it contradicts the current model:"
     printf '%s\n' "$hits"

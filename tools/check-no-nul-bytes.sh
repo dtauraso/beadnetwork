@@ -36,27 +36,38 @@ report() {
   HITS=$((HITS + 1))
 }
 
-while IFS= read -r f; do
-  [[ -z "$f" ]] && continue
-  [[ -f "$f" ]] || continue
-  # Byte-scan via python3 rather than grep: grep implementations differ wildly
-  # across platforms in how -P/-U/-a/-o interact with a literal NUL byte
-  # (verified: ugrep on macOS silently matched the whole line instead of just
-  # the NUL when asked for $'\x00'). A direct byte scan has no such ambiguity.
-  hit=$(python3 -c "
-import sys
-data = open(sys.argv[1], 'rb').read()
-idx = data.find(b'\\x00')
-if idx == -1:
-    sys.exit(0)
-line_no = data.count(b'\\n', 0, idx) + 1
-print(f'{idx}:{line_no}')
-" "$f" 2>/dev/null || true)
+# Byte-scan via a single python3 process rather than one-per-file: grep implementations
+# differ wildly across platforms in how -P/-U/-a/-o interact with a literal NUL byte
+# (verified: ugrep on macOS silently matched the whole line instead of just the NUL when
+# asked for $'\x00'). A direct byte scan has no such ambiguity. Paths come in on stdin so
+# we pay python's ~19ms interpreter startup once for the whole tree, not once per file.
+# Each path is scanned in its own try/except so one unreadable/vanished file (mirrors the
+# old `2>/dev/null || true` swallow) can't abort the batch and silently truncate the scan.
+while IFS= read -r hit; do
   [[ -z "$hit" ]] && continue
-  byte_off="${hit%%:*}"
-  line_no="${hit##*:}"
+  f="${hit%%:*}"
+  rest="${hit#*:}"
+  byte_off="${rest%%:*}"
+  line_no="${rest##*:}"
   report "nul-byte: $f: byte offset $byte_off (line $line_no)"
-done < <(git ls-files | grep -E "$INCLUDE_EXT_RE" || true)
+done < <(git ls-files | grep -E "$INCLUDE_EXT_RE" | python3 -c "
+import sys, os
+
+for path in sys.stdin.read().splitlines():
+    if not path:
+        continue
+    if not os.path.isfile(path):
+        continue
+    try:
+        data = open(path, 'rb').read()
+    except Exception:
+        continue
+    idx = data.find(b'\x00')
+    if idx == -1:
+        continue
+    line_no = data.count(b'\n', 0, idx) + 1
+    print(f'{path}:{idx}:{line_no}')
+" || true)
 
 if [[ $HITS -eq 0 ]]; then
   echo "no-nul-bytes: clean (no literal NUL bytes in tracked source files)"
