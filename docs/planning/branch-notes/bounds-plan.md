@@ -36,15 +36,32 @@ exceeded".
 Per the rule's "Done when", exceed it once deliberately and confirm it fires
 (`memory/feedback_check_the_signal_the_check_emits.md`).
 
-## Step 2 — the structural batch
+## Step 2 — name the mover inbox depth  *(done)*
 
-Every site whose maximum is computable from facts already in the repo: the mover inboxes
-(`8`), `neighborIn`, the per-edge/per-node triples. Bounds are **derived** (≤ edges = 10,
-≤ nodes = 9, ≤ 2×edges = 20 — see the inventory's derivations), not chosen.
+**This step was mis-scoped when written, and the correction is worth keeping.** The
+original text said the mover inboxes' bounds are "derived from topology (≤ edges = 10,
+≤ nodes = 9, ≤ 2×edges = 20)". That conflates two different quantities:
 
-Lands as one commit because deriving is mechanical and low-risk, and it retires the
-largest un-named group in the repo: **every channel capacity in the network except
-`wireChanBufferSize` is currently a bare literal.**
+- The **count** of these channels *is* structural — one `extIn`/`srcIn`/`dstIn` triple
+  per edge, one `extIn` per node, two directed `neighborIn` per edge. But the loader
+  already fixes that by construction; it is not a bound anyone declares.
+- The **depth** — the bare `8` repeated at six construction sites — is a queue for a
+  burst of move messages during a drag. It is bounded by gesture rate, i.e. **DYNAMIC**,
+  exactly as the inventory classified it. It is not derivable from any saved file.
+
+So Step 2 could honestly deliver only the **declared** half of the rule, not the
+asserted half. Delivered: `moverInboxDepth` (`nodes/Wiring/mover_registry.go`), one
+named constant replacing all six literals, documented with why-this-number *and* with
+the admission that it is chosen rather than derived.
+
+**Deliberately not asserted.** Filling one of these inboxes is not a bug — the sender
+retains the message in its own queue and retries, which is the designed backpressure.
+The thing that actually grows unbounded when an inbox stays full is that retry queue,
+`nodeMover.pending`, and choosing its bound and at-the-bound behaviour is Step 3. A
+capacity that is *supposed* to be reached should not panic when reached.
+
+Lesson for the remaining steps: "derive it from topology" is right for counts and wrong
+for depths. Check which one a site is before promising a derivation.
 
 ## Step 3 — the dynamic sites, one decision each
 

@@ -14,6 +14,30 @@ import (
 	"sync"
 )
 
+// moverInboxDepth is the declared capacity of every per-mover moveMsg inbox: an
+// edgeMover's extIn/srcIn/dstIn (edge_mover.go), a nodeMover's extIn
+// (node_mover.go), and each directed neighborIn (node_move.go). Previously the same
+// bare 8 repeated at six construction sites — the largest group of magic numbers in
+// the network.
+//
+// WHY THIS NUMBER, honestly: it is a chosen depth, NOT derived. What IS derivable
+// from the topology is the COUNT of these channels (one triple per edge, one extIn
+// per node, two directed neighborIn per edge — 10/9/20 for the shipped graph), and
+// the loader already fixes that by construction. The DEPTH is a queue for a burst of
+// move messages during a drag, so it is bounded by gesture rate, not by anything in
+// the spec files (bounds-inventory.md classifies it DYNAMIC for exactly this reason).
+// 8 is "a few frames of drag messages"; it has held in practice and no measurement
+// yet contradicts it.
+//
+// Deliberately NOT asserted, unlike maxPendingEvents. Filling one of these inboxes is
+// not a bug: the sender keeps the message in its own pending queue and retries, which
+// is the designed backpressure. The thing that actually grows unbounded when an inbox
+// stays full is that retry queue (nodeMover.pending), and choosing ITS bound and
+// at-the-bound behaviour is bounds-plan.md Step 3 — a decision, not a rename. Naming
+// this constant is the "declared" half of the rule; the "asserted" half belongs to
+// that queue, not to this capacity.
+const moverInboxDepth = 8
+
 // moverRegistry is the pure registry that owns every mover and wires their dedicated
 // channels together — there is no shared dispatch map; nodeMovers/edgeMovers themselves
 // are the directories a mover's resolveDest closure and the external-entry helpers below

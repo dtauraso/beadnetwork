@@ -311,7 +311,7 @@ func newNodeMover(id string, geom nodeGeom, tr *T.Trace, clockSrc wire.Clock) *n
 	// does anything else), matching newEdgeMover's same default for the same reason.
 	nm := &nodeMover{
 		id: id, geom: geom,
-		extIn: make(chan moveMsg, 8), neighborIn: map[string]chan moveMsg{}, tr: tr,
+		extIn: make(chan moveMsg, moverInboxDepth), neighborIn: map[string]chan moveMsg{}, tr: tr,
 		partnerCenters: map[string]vec3{},
 		centerOut:      make(chan vec3, 1),
 		clockSrc:       clockSrc, clk: wire.NewRealClock(),
