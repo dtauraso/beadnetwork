@@ -143,5 +143,5 @@ func validateSpec(spec *topoSpec) error {
 	if len(errs) == 0 {
 		return nil
 	}
-	return fmt.Errorf("LoadTopology: spec validation failed:\n  " + strings.Join(errs, "\n  "))
+	return fmt.Errorf("LoadTopology: spec validation failed:\n  %s", strings.Join(errs, "\n  "))
 }
