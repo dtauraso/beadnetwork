@@ -2,7 +2,7 @@
 # check-breadcrumb-not-gated.sh — forbid the WIREFOLD_EDGE_BEAD_TRACE gate
 # (edgeBeadTraceEnabled, nodes/wire/paced_wire.go) from spreading beyond its one
 # legitimate site: the T.KindEdgeBead append inside stepAll. Debug breadcrumbs
-# (T.KindBreadcrumb, CLAUDE.md's "Debugging the Go layer" channel, read via
+# (T.KindBreadcrumb, the .claude/rules/go-debugging.md channel, read via
 # tools/probe-merge.sh --debug) MUST always emit — gating them, gating
 # drainPendingEvents wholesale, or gating any future bulk kind's emit site behind
 # this flag reproduces the exact regression this guard exists to prevent: a
@@ -104,7 +104,7 @@ if [ ${#guard_hits[@]} -ne 1 ]; then
   report+="gated by this flag — it exists ONLY to bound KindEdgeBead volume. Widening it"$'\n'
   report+="(wrapping drainPendingEvents, a breadcrumb append, or a future kind's emit site)"$'\n'
   report+="reproduces the exact silent-swallow regression this guard exists to prevent — see"$'\n'
-  report+="CLAUDE.md's 'Debugging the Go layer (probe breadcrumbs)' section and"$'\n'
+  report+=".claude/rules/go-debugging.md's 'Debugging the Go layer (probe breadcrumbs)' section and"$'\n'
   report+="memory/feedback_make_bug_class_unrepresentable.md."$'\n'
 else
   # The single guarding use must be tied to KindEdgeBead — check the guard's own line and
