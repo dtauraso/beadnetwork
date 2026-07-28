@@ -56,9 +56,52 @@ fi
 # THIS repo — a drifted shell parked in a scratchpad / tmp after background work — refuse to
 # run and say so plainly, rather than silently compensating. A subdir of the repo is fine
 # (git resolves the same root from anywhere inside); only a cwd OUTSIDE the repo trips this.
-caller_root="$(git -C "$CALLER_CWD" rev-parse --show-toplevel 2>/dev/null || true)"
-if [ "$caller_root" != "$ROOT" ]; then
+#
+# GIT WORKTREES count as inside. `git worktree add` checkouts are legitimate trees of this
+# repo, not scratchpads, and work happens in them — but their --show-toplevel is their OWN
+# path, which never equals the main root, so comparing toplevels blocked every worktree.
+# The discriminator is --git-common-dir: every worktree of a repo shares ONE .git, while an
+# unrelated directory (or none) fails the rev-parse outright.
+#
+# Accepting a worktree obliges us to CHECK it: the caller's tree becomes the tree we cd to
+# and verify. Relaxing the guard alone would run every check against the main root while the
+# caller's work sat on a branch in the worktree — reporting clean for a tree nobody touched,
+# which is worse than blocking. So ROOT is re-pointed at the caller's worktree below.
+repo_common="$(git -C "$SCRIPT_DIR" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || true)"
+caller_common="$(git -C "$CALLER_CWD" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || true)"
+if [ -z "$caller_common" ] || [ -z "$repo_common" ] || [ "$caller_common" != "$repo_common" ]; then
   emit_block "did NOT run — shell cwd is outside the repo: '$CALLER_CWD' (looks like a scratchpad). cd back to the repo root ('$ROOT') and stop again."
+fi
+
+# Same repo — now run against the caller's OWN tree (the main checkout, or the worktree the
+# work is in). Re-pointing ROOT here is what keeps "which tree got checked" honest.
+ROOT="$(git -C "$CALLER_CWD" rev-parse --show-toplevel)" || {
+  echo "stop-checks: MISCONFIGURED — cannot resolve the caller's worktree root from '$CALLER_CWD'." >&2
+  exit 1
+}
+if [ -z "$ROOT" ]; then
+  echo "stop-checks: MISCONFIGURED — caller worktree root resolved to empty; refusing to run checks against the wrong tree." >&2
+  exit 1
+fi
+
+# node_modules for a worktree: SHARE the main checkout's rather than installing a second
+# copy. `git worktree add` gives you tracked files only, so a fresh worktree has no
+# node_modules — and the TS steps plus TestInputFixtureFreshness (which shells out to node
+# to regenerate the fixture) then fail there for a reason that has nothing to do with the
+# branch's changes. Installing per worktree works but duplicates ~136M each.
+#
+# A symlink is right here because every worktree shares one package.json/lockfile lineage
+# and one platform, so the resolved dependency set is the same tree npm would have built.
+# Idempotent: only created when the worktree lacks one and the main checkout has one. If a
+# branch ever does change dependencies, delete the link and install in that worktree — the
+# link is a convenience, not a constraint.
+if [ -n "$repo_common" ]; then
+  MAIN_ROOT="$(dirname "$repo_common")"
+  wt_modules="$ROOT/tools/topology-vscode/node_modules"
+  main_modules="$MAIN_ROOT/tools/topology-vscode/node_modules"
+  if [ "$ROOT" != "$MAIN_ROOT" ] && [ ! -e "$wt_modules" ] && [ -d "$main_modules" ]; then
+    ln -s "$main_modules" "$wt_modules" 2>/dev/null || true
+  fi
 fi
 
 cd "$ROOT" || {

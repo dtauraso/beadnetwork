@@ -56,7 +56,7 @@ Mkfile.old
 dkms.conf
 
 # Node / topology-editor
-node_modules/
+node_modules
 dist/
 .vite/
 tools/topology-vscode/out/
