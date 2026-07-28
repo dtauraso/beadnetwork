@@ -345,3 +345,79 @@ consumed-and-dropped, now silently — consistent with the no-back-pressure node
 **Outcome:** merged to `main` (fast-forward), then hygiene/trims via PR #5. Both bridges binary,
 no JSON anywhere, no sidecar, logs from the buffer. Verified live in the editor across the whole
 feature set; persistence proven on-disk.
+
+## 2026-07-28 — Reload gap: extension activation exonerated, respawn still slow
+
+Measured with `tools/reload-gap.sh` because the friction was ambiguous: opening the
+extension felt back to normal, but "Developer: Reload Window" did not.
+
+The extension-host log splits those two things cleanly, and they disagree:
+
+```
+01:10:13.937  host 99435 started
+01:10:14.102  Eager extensions activated   <- 165ms, healthy
+01:10:20.050  host 99435 exiting with code 0
+01:10:23.942  host 99617 started           <- 3.9s dead gap
+```
+
+Across five starts in that window, activation was **150–310ms** (healthy) while the
+exit→start gap was **3.9s / 4.9s / 4.4s** against a **1.8s** baseline. So the cost is
+entirely VS Code process respawn — nothing of ours runs in that window. Activation was
+never the cause, and this is now a second, independent confirmation that the earlier
+.probe-log-size / file-watcher theory is dead (watcherExclude and per-run log rotation
+had already landed and did not move the number).
+
+**A VS Code relaunch does NOT fix it.** The window measured above belongs to a VS Code
+launched 12 minutes earlier (log session `20260728T010956`), and it was already at 4s.
+That kills the "accumulated editor/session state" half of the standing suspicion in
+`reload-gap.sh`'s header comment; the remaining suspects are machine-level:
+
+- uptime **44 days**
+- swap **2.83 GB of 4 GB** used
+- load average **2.46 / 2.83 / 3.23**
+
+**Next test: a full macOS restart**, then re-run `tools/reload-gap.sh`. If the gap
+returns to ~1.8s, the regression was host memory/process pressure and there is nothing
+to fix in this repo — the script's baseline note should be amended to say so.
+
+**Baseline caveat — why this entry exists.** Of the 12 VS Code log sessions on disk,
+only one still carries any exthost start/exit lines; the healthy-period logs have been
+pruned. The 1.8s figure now survives *only* as a comment in `tools/reload-gap.sh`, so
+there is no longer a log to diff against. These numbers are recorded here as the
+pre-reboot half of the comparison.
+
+## 2026-07-28 — Reboot fixed the reload gap; the measurement itself was wrong
+
+Ran the restart the previous entry called for. Reload is now perceptibly instant
+("less than half a second each time" across three reloads), and the gap is back to
+baseline:
+
+```
+2529 exiting 01:22:16.268 -> 2677 started 01:22:17.906   1.6s
+2739 exited  01:22:20.938 -> 2765 started 01:22:22.672   1.7s
+```
+
+against 3.9 / 4.9 / 4.4s pre-reboot on the same machine. Swap went **2.83 GB of 4 GB
+→ 0.00 MB**. So the regression was host memory/process pressure, exactly as the
+pre-reboot entry's remaining suspect list predicted, and there is nothing to fix in
+this repo. `tools/reload-gap.sh`'s header now says reboot the machine, and explicitly
+records that a VS Code quit+relaunch was measured and does NOT fix it.
+
+**The script was over-reporting, and that is the durable lesson.** A short-lived
+extension host can exit before flushing anything, leaving *no* `started` and *no*
+`exiting` line in `exthost.log` — absent from the file entirely, not merely partial.
+Pid 2739 lived 01:22:19→01:22:20 and appears only in `main.log`. The old pairing
+(exthost's own `exiting` → next `started`) therefore spanned the invisible host and
+printed **3.5s** for what were two ~1.7s reloads: two reloads reported as one slow
+one. Fixed by taking exits from the session's `main.log`, which logs an
+`exited with code` line for *every* pid, and pairing each `started` with the latest
+exit before it. A gap over 60s is a window that sat closed, not a respawn, and is
+dropped. The pre-reboot 3.9/4.9/4.4s figures are unchanged under the new pairing, so
+the regression itself was real — but the measurement could have inflated it, and for
+one row it did.
+
+Worth noting the failure shape: a diagnostic tool that reads a log has to know which
+records that log is allowed to omit. `exthost.log` is written *by* the process being
+measured, so the fastest-dying instances are exactly the ones it cannot record — the
+observer is blind to one end of the very distribution it exists to measure.
+`main.log` is written by the supervising process and has no such gap.
