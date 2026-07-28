@@ -160,16 +160,82 @@ func TestIndividualSnap_OnlyDraggedNodePersists(t *testing.T) {
 	}
 	var dst map[string]json.RawMessage
 	_ = json.Unmarshal(dstRaw, &dst)
-	for _, k := range []string{"scenePolarR", "scenePolarTheta", "scenePolarPhi"} {
+	// These were once PRESENCE checks (`if _, ok := dst[k]; !ok`), which a mutation audit
+	// showed could not fail: `ok` is true for ANY value, so corrupting the written
+	// quantIR by +12345 still passed. A persisted position is only meaningful by VALUE,
+	// so decode and compare — the same standard the src block below already applied.
+	for _, k := range []string{"scenePolarR", "scenePolarTheta", "scenePolarPhi", "quantITheta", "quantIPhi", "quantIR"} {
 		if _, ok := dst[k]; !ok {
 			t.Fatalf("dst %s not persisted (exact position is the source of truth): %s", k, dstRaw)
 		}
 	}
-	if _, ok := dst["quantITheta"]; !ok {
-		t.Fatalf("dst quantITheta cache not persisted: %s", dstRaw)
+	gotDstCenter := persistedScenePolarCenter(t, dst, md.ui.sceneSphere.Center)
+	if d := gotDstCenter.Sub(dstTarget).Length(); d > 1e-6 {
+		t.Fatalf("dst's persisted scenePolar should equal the drag target: persisted=%+v target=%+v (off by %g)", gotDstCenter, dstTarget, d)
 	}
-	if _, ok := dst["quantIR"]; !ok {
-		t.Fatalf("dst quantIR cache not persisted: %s", dstRaw)
+	// The quantized triple is a self-describing CACHE of that same position: it must be a
+	// fresh quantization of what was persisted, not a stale or arbitrary value.
+	var gotQT, gotQP, gotQR int
+	for k, into := range map[string]*int{"quantITheta": &gotQT, "quantIPhi": &gotQP, "quantIR": &gotQR} {
+		if err := json.Unmarshal(dst[k], into); err != nil {
+			t.Fatalf("unmarshal dst %s: %v", k, err)
+		}
+	}
+	// Oracle is deliberately INDEPENDENT of the production quantization formula: index ×
+	// its own persisted step must reconstruct the persisted polar to within one quantum.
+	// Re-running the production quantizer here would be circular — it would agree with
+	// itself no matter what either of them computed.
+	var stepT, stepP, stepR float64
+	for k, into := range map[string]*float64{"stepTheta": &stepT, "stepPhi": &stepP, "stepR": &stepR} {
+		if err := json.Unmarshal(dst[k], into); err != nil {
+			t.Fatalf("unmarshal dst %s: %v", k, err)
+		}
+	}
+	var dstPolar polar
+	for k, into := range map[string]*float64{"scenePolarR": &dstPolar.R, "scenePolarTheta": &dstPolar.Theta, "scenePolarPhi": &dstPolar.Phi} {
+		if err := json.Unmarshal(dst[k], into); err != nil {
+			t.Fatalf("unmarshal dst %s: %v", k, err)
+		}
+	}
+	for _, c := range []struct {
+		name     string
+		idx      int
+		step, of float64
+	}{
+		{"quantITheta", gotQT, stepT, dstPolar.Theta},
+		{"quantIPhi", gotQP, stepP, dstPolar.Phi},
+		{"quantIR", gotQR, stepR, dstPolar.R},
+	} {
+		if c.step <= 0 {
+			t.Fatalf("dst persisted a non-positive step for %s: %g", c.name, c.step)
+		}
+		if d := math.Abs(float64(c.idx)*c.step - c.of); d > c.step {
+			t.Fatalf("dst's persisted %s=%d × step %g = %g, which is %g away from the persisted value %g — the quant cache does not describe the position it is cached against",
+				c.name, c.idx, c.step, float64(c.idx)*c.step, d, c.of)
+		}
+	}
+
+	// src's requantized local polar to dst must be ON DISK, not merely in memory. The
+	// assertion above (lpAfter, from lhSrc.LocalPolarsSnapshot) reads the LIVE
+	// LayoutHolder — the audit confirmed it passes even with WriteLocalPolars persisting
+	// nothing at all, so it says nothing about persistence despite this test's name.
+	var srcLP localPolarsFileJSON
+	if !readJSONIfExists(localPolarsFilePath(root, "src"), &srcLP) {
+		t.Fatalf("src's local-polars.json was never written, so the requantize did not persist")
+	}
+	var diskLP localPolarJSON
+	var foundLP bool
+	for _, lp := range srcLP.LocalPolars {
+		if lp.To == "dst" {
+			diskLP, foundLP = lp, true
+		}
+	}
+	if !foundLP {
+		t.Fatalf("src's local-polars.json has no entry for dst: %+v", srcLP.LocalPolars)
+	}
+	if diskLP.QuantITheta != lpAfter.QuantITheta || diskLP.QuantIPhi != lpAfter.QuantIPhi || diskLP.QuantIR != lpAfter.QuantIR {
+		t.Fatalf("src's PERSISTED local polar to dst should match its requantized live value: disk=(theta=%d,phi=%d,r=%d) live=(theta=%d,phi=%d,r=%d)",
+			diskLP.QuantITheta, diskLP.QuantIPhi, diskLP.QuantIR, lpAfter.QuantITheta, lpAfter.QuantIPhi, lpAfter.QuantIR)
 	}
 
 	// src's persisted position must reflect its UNCHANGED scene-polar position: under the
