@@ -734,6 +734,24 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 	if m.streamOut == nil || m.buildFrame == nil {
 		return
 	}
+	// INVARIANT: a mover carries only its OWN node's events on its OWN dedicated stream.
+	// This is the per-goroutine bridge stated in CLAUDE.md's "Bridge surface" and in
+	// memory/feedback_no_single_writer_bridge.md + memory/feedback_per_goroutine_bridge.md,
+	// and until now it was enforced by prose alone. NodeRow is the ownership column; a
+	// FOREIGN node is referenced through TargetRow (see quantized_move.go's abc-drag
+	// breadcrumb, which sets NodeRow: nm.nodeRow and TargetRow: the other node). Violating
+	// it produces a frame the TS side decodes onto the wrong row — a silently wrong scene
+	// that still renders, which is the expensive failure this panic converts into a cheap
+	// one. Placed AFTER the nil guard on purpose: bare movers built in tests never reach
+	// the pack path, and nodeRow is seeded alongside streamOut (stream_wiring.go), so any
+	// frame that gets here has a real row.
+	for _, e := range events {
+		if e.NodeRow != m.nodeRow {
+			panic(fmt.Sprintf(
+				"nodeMover.writeStreamFrame: node %q (row %d) is carrying a %s event for row %d on its OWN dedicated stream — NodeRow is an ownership claim, not a reference; a foreign node belongs in TargetRow",
+				m.id, m.nodeRow, e.Kind, e.NodeRow))
+		}
+	}
 	center := nodeWorldPos(m.geom)
 	sphereR := effectiveRadius(m.geom)
 	label := m.geom.Label
