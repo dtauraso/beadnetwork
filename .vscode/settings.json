@@ -1,4 +1,18 @@
 {
+    // .probe/ holds the runtime JSONL logs the editor appends to continuously. They are
+    // gitignored, but the FILE WATCHER does not honor .gitignore — without these excludes
+    // VS Code watches (and search-indexes) multi-hundred-MB files that grow during every
+    // run, which is what made "Developer: Reload Window" progressively slower.
+    "files.watcherExclude": {
+        "**/.probe/**": true,
+        "**/.wirefold-cache/**": true
+    },
+    "search.exclude": {
+        "**/.probe": true,
+        "**/.wirefold-cache": true,
+        "**/tools/topology-vscode/out": true
+    },
+
     // "workbench.colorTheme": "Dracula At Night",
     //"terminal.integrated.shell.windows": "C:\\Program Files\\Git\\bin\\bash.exe",
     "terminal.integrated.shell.windows": "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
