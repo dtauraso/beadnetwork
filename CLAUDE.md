@@ -185,6 +185,15 @@ diagnosis; use a breadcrumb. Keep it SPARSE — it is a debug tool for control e
 a per-tick firehose (see the log-flood lesson). It is a cheap no-op when no stream is
 wired (headless tests).
 
+The `wirefold.probe.trace` setting (default **off**) gates the non-breadcrumb bulk of
+these same four files plus `ts.jsonl` — the per-tick firehose (recv/send/edge-bead/
+node-geometry/etc.) that once grew `go-edge.jsonl` past a gigabyte. It does NOT gate
+breadcrumb rows: every write site decodes the full frame regardless and appends
+breadcrumb-only lines when the setting is off, so `tools/probe-merge.sh --debug` and the
+always-on error logs (`go-errors.jsonl`/`ts-errors.jsonl`/`handler-error-last.json`) work
+out of the box on a fresh install with no setting change. Turn the setting on only when
+you need the full per-tick trace, not just breadcrumbs.
+
 ## Planning docs are branch-local
 
 Planning docs (anything under `docs/planning/` except `session-log.md`) are authored on the

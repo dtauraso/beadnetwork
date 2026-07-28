@@ -21,6 +21,12 @@ set -euo pipefail
 #                                 + debug=true)
 #   probe-merge.sh --ts         — ts.jsonl + ts-errors.jsonl sorted
 #
+# The wirefold.probe.trace VS Code setting (default OFF) gates the bulk, non-breadcrumb
+# rows in go.jsonl/go-node.jsonl/go-edge.jsonl/go-interior.jsonl/ts.jsonl (the per-tick
+# firehose). With it off, --go/--ts will read mostly-empty files; --debug and --errors
+# are UNAFFECTED — breadcrumb rows and the *-errors.jsonl/handler-error-last.json files
+# are always written regardless of the setting.
+#
 # Missing files are treated as empty; requires jq.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

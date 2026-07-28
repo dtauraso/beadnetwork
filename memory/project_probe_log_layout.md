@@ -13,4 +13,13 @@ Editor/runtime diagnostics are written to five files under `.probe/` — `go.jso
 
 **Reading across files.** `tools/probe-merge.sh` (no-arg = all by `ts_ms`; `--errors`, `--step N`, `--go`, `--ts`, `--debug`). Retired filenames: `phase4-pump.jsonl`→`go.jsonl`, `webview-log.jsonl`→split.
 
+**Gating (`wirefold.probe.trace`, default off).** The bulk, per-tick trace rows in
+`go.jsonl`/`go-node.jsonl`/`go-edge.jsonl`/`go-interior.jsonl`/`ts.jsonl` only get
+appended when this VS Code setting is on (they once grew `go-edge.jsonl` past a
+gigabyte). Breadcrumb rows (`kind=="breadcrumb"`) are the exception — always appended to
+those same four Go files regardless of the setting, since CLAUDE.md's debug channel must
+work out of the box. The `-errors.jsonl` files and `handler-error-last.json` are also
+always written. `--debug` and `--errors` are therefore unaffected by the setting;
+`--go`/`--ts` read near-empty files until it's turned on.
+
 **Freshness caveat (the trap).** These files are written by the LIVE editor run and can be minutes stale — check the last `ts_ms` against now before concluding anything. Several diagnoses were derailed by reading a stale log that did not contain the live failure.
