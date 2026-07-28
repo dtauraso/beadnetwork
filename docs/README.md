@@ -6,8 +6,8 @@ Entry point for the 30 files under `docs/`. Grouped by topic; one line each.
 in a browser. Read them as text, or use the editor's HTML preview. They are self-contained
 static pages (no external assets).
 
-**Planning docs are branch-local going forward** (CLAUDE.md → "Planning docs are
-branch-local"): new docs under `docs/planning/` carry a `branch:` frontmatter and are
+**Planning docs are branch-local going forward** (`.claude/rules/planning-docs.md` →
+"Planning docs are branch-local"): new docs under `docs/planning/` carry a `branch:` frontmatter and are
 stripped before merge. The existing untagged ones below predate that rule and stay until
 individually judged. `session-log.md` is the one durable exception — it always rides to main.
 

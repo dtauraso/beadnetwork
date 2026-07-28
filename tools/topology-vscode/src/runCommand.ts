@@ -122,7 +122,7 @@ function appendGoError(goErrorsFile: string | undefined, message: string): void 
 interface ProbePaths {
   // All paths are ALWAYS armed, regardless of wirefold.probe.trace: the four Go trace
   // files (probeFile/probeNodeFile/probeEdgeFile/probeInteriorFile) double as the DEBUG
-  // BREADCRUMB channel's storage (CLAUDE.md's "Debugging the Go layer" — breadcrumb rows
+  // BREADCRUMB channel's storage (.claude/rules/go-debugging.md — breadcrumb rows
   // must survive with tracing off), so they must exist and be writable either way. What
   // the setting gates is which DECODED LINES get appended at each write site — see
   // handleViewFd/handleEdgeFd/handleNodeFd/handleInteriorFd's probeTrace-gated filtering.

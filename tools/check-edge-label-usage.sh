@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Guards the CLAUDE.md "Wire props" claim: the edge `label` prop rides the Edge block's
+# Guards the .claude/rules/wire-props.md claim: the edge `label` prop rides the Edge block's
 # EdgeLabelOff/EdgeLabelLen columns SOLELY for the `.probe` buffer-decoded log, and the
 # edge RENDERER (EdgeTube.tsx) reads ONLY SX..EZ/Selected from the Edge block — never the
 # label columns. If a future change wired label into the edge shader, that documented
@@ -36,7 +36,7 @@ hits=$(grep -rnE "$PATTERN" "$THREE_DIR" --include="*.ts" --include="*.tsx" \
 
 if [ -n "$hits" ]; then
   echo "check-edge-label-usage: the edge label columns must be read ONLY by buffer-decode.ts"
-  echo "(the .probe decoder), never by the render tree (CLAUDE.md 'Wire props': label never"
+  echo "(the .probe decoder), never by the render tree (.claude/rules/wire-props.md: label never"
   echo "feeds the render path). Offending references:"
   echo "$hits"
   exit 1

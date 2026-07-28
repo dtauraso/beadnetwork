@@ -20,8 +20,9 @@
 // Kind vocabulary), written directly — one `sink.Write` call per breadcrumb, on the
 // calling goroutine, no channel. A single small write to a pipe is atomic
 // per POSIX PIPE_BUF, so concurrent breadcrumbs from many goroutines never interleave
-// into a fused line; breadcrumbs are short, sparse control-event lines (see CLAUDE.md's
-// "Debugging the Go layer" section), never a per-tick firehose, so this holds in practice.
+// into a fused line; breadcrumbs are short, sparse control-event lines (see
+// .claude/rules/go-debugging.md's "Debugging the Go layer (probe breadcrumbs)" section),
+// never a per-tick firehose, so this holds in practice.
 
 package Trace
 
@@ -113,8 +114,9 @@ const (
 	// the gesture FSM's pending→dragging transition, BEFORE the dragged node's
 	// neighborSetC fan resolves any KindAbcDrag marks for that drag.
 	KindAbcDragReset = "abc-drag-reset"
-	// KindBreadcrumb carries a DEBUG BREADCRUMB (see CLAUDE.md's "Debugging the Go
-	// layer" section) as a structured buffer EVENT row instead of a free-form JSON
+	// KindBreadcrumb carries a DEBUG BREADCRUMB (see .claude/rules/go-debugging.md's
+	// "Debugging the Go layer (probe breadcrumbs)" section) as a structured buffer
+	// EVENT row instead of a free-form JSON
 	// stdout line. It rides the EMITTING goroutine's own per-owner stream (node/edge/
 	// interior/VIEW) — main.go's own breadcrumbs (no per-node stream) ride the VIEW
 	// stream. Label (a BreadcrumbLabel* index below) names which of the 9 breadcrumb
