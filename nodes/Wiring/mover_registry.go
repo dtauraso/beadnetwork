@@ -26,7 +26,7 @@ import (
 // per node, two directed neighborIn per edge — 10/9/20 for the shipped graph), and
 // the loader already fixes that by construction. The DEPTH is a queue for a burst of
 // move messages during a drag, so it is bounded by gesture rate, not by anything in
-// the spec files (bounds-inventory.md classifies it DYNAMIC for exactly this reason).
+// the spec files (docs/planning/visual-editor/session-log.md classifies it DYNAMIC for exactly this reason).
 // 8 is "a few frames of drag messages"; it has held in practice and no measurement
 // yet contradicts it.
 //
@@ -34,13 +34,13 @@ import (
 // not a bug: the sender keeps the message in its own pending queue and retries, which
 // is the designed backpressure. The thing that actually grows unbounded when an inbox
 // stays full is that retry queue (nodeMover.pending), and choosing ITS bound and
-// at-the-bound behaviour is bounds-plan.md Step 3 — a decision, not a rename. Naming
+// at-the-bound behaviour is docs/planning/visual-editor/session-log.md Step 3 — a decision, not a rename. Naming
 // this constant is the "declared" half of the rule; the "asserted" half belongs to
 // that queue, not to this capacity.
 const moverInboxDepth = 8
 
 // maxPendingSends is the declared upper bound on len(nm.pending) between
-// flushPending calls (bounds-plan.md Step 3, "nm.pending"). GENEROUS ceiling,
+// flushPending calls (docs/planning/visual-editor/session-log.md Step 3, "nm.pending"). GENEROUS ceiling,
 // not a tight derivation, same honesty as maxPendingEvents/maxInflightBeads in
 // nodes/wire/paced_wire.go: nm.pending's own drain rate isn't a function of
 // moverInboxDepth (flushPending only ever attempts ONE real send per blocked

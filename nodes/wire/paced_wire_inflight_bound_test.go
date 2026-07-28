@@ -1,6 +1,6 @@
 // paced_wire_inflight_bound_test.go — pins PacedWire.inflight's declared
 // maximum (maxInflightBeads, paced_wire.go) and its fail-loud behavior at the
-// bound (docs/planning/branch-notes/bounds-plan.md Step 3, "inflight"). Per
+// bound (docs/planning/visual-editor/session-log.md Step 3, "inflight"). Per
 // memory/feedback_check_the_signal_the_check_emits.md, the bound must be
 // exceeded once deliberately to confirm it panics and names its own cause —
 // this file does that, then confirms the normal (draining) path never trips

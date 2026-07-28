@@ -133,7 +133,7 @@ fi
 # --- StreamsActive (nodes/wire/paced_wire.go's PacedWire field, added to gate
 # pending-event accumulation on whether a real per-edge stream consumer is
 # wired — see PacedWire.StreamsActive's doc comment and
-# docs/planning/branch-notes/bounds-inventory.md) --- same shape as above:
+# docs/planning/visual-editor/session-log.md) --- same shape as above:
 # this flag exists ONLY to gate the KindEdgeBead append (alongside
 # edgeBeadTraceEnabled) and the KindArrive append in emitArrive. It must NEVER
 # spread to gate a breadcrumb append, same failure mode (silence) as above.

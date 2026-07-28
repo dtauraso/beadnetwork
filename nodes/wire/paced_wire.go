@@ -174,7 +174,7 @@ type PacedWire struct {
 	// geometry, a per-bead property completely independent of whether any
 	// stream consumer exists for this wire at all; conflating the two was the
 	// root cause of the confirmed unbounded-pending-growth bug documented in
-	// docs/planning/branch-notes/bounds-inventory.md (streamOut nil -> 40
+	// docs/planning/visual-editor/session-log.md (streamOut nil -> 40
 	// deliveries left all 40 queued forever with nothing ever calling
 	// DrainPendingEvents).
 	StreamsActive bool
@@ -282,7 +282,7 @@ type pendingWireEvent struct {
 //
 // The number itself is a GENEROUS ceiling, not a tight derivation, and that
 // caveat is deliberate: pw.inflight (the source of every pending append) has no
-// declared maximum of its own yet (bounds-plan.md Step 3), so "one cycle's
+// declared maximum of its own yet (docs/planning/visual-editor/session-log.md Step 3), so "one cycle's
 // production" cannot be proven exactly today. wireChanBufferSize already
 // ceilings how many beads can ever be outstanding on this wire via inCh, so
 // reusing it here gives a value that is definitely wrong to reach rather than
@@ -290,7 +290,7 @@ type pendingWireEvent struct {
 const maxPendingEvents = wireChanBufferSize
 
 // maxInflightBeads is the declared upper bound on len(pw.inflight) between
-// FIFO-head deliveries (bounds-plan.md Step 3, "inflight"). stepAll delivers
+// FIFO-head deliveries (docs/planning/visual-editor/session-log.md Step 3, "inflight"). stepAll delivers
 // ONLY from the FIFO head (i==0) onto outCh; if the destination has stopped
 // draining outCh, the head cannot hand off and nothing behind it can either
 // (stepAll's own doc comment), so inflight can only grow while the stall
@@ -314,7 +314,7 @@ const maxInflightBeads = wireChanBufferSize
 // site, not just some.
 //
 // Panics rather than dropping or growing further: this is an INVARIANT check on
-// this wire's own goroutine, not a capacity policy (bounds-plan.md Step 1) —
+// this wire's own goroutine, not a capacity policy (docs/planning/visual-editor/session-log.md Step 1) —
 // dropping would hide a broken drain (the exact failure this bound exists to
 // catch), and backpressure would couple this wire's pacing to its owner's frame
 // rate. Reaching this bound is a code bug, never ordinary traffic, the same
@@ -510,7 +510,7 @@ func (pw *PacedWire) DriveOneCycle(ctx context.Context, tick int64) {
 // THIS wire's own clock reading, taken once by the caller (driveOneCycle) per
 // cycle. Called only by this wire's own goroutine.
 //
-// DRAIN-UNTIL-EMPTY, NOT AN ITERATION CAP (bounds-plan.md Step 3, "the drain
+// DRAIN-UNTIL-EMPTY, NOT AN ITERATION CAP (docs/planning/visual-editor/session-log.md Step 3, "the drain
 // loops"). This is the canonical instance of a shape repeated at several
 // other sites in this repo (nodes/wire/paced_wire.go's drainBreadcrumbEvents,
 // nodes/gatecommon/gate.go's drainLatestReal, nodes/TimeStart/node.go and

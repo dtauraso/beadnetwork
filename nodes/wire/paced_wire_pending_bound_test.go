@@ -1,6 +1,6 @@
 // paced_wire_pending_bound_test.go — pins PacedWire.pending's declared maximum
 // (maxPendingEvents, paced_wire.go) and its fail-loud behavior at the bound
-// (docs/planning/branch-notes/bounds-plan.md Step 1). Per
+// (docs/planning/visual-editor/session-log.md Step 1). Per
 // memory/feedback_check_the_signal_the_check_emits.md, the bound must be
 // exceeded once deliberately to confirm it panics and names its own cause —
 // this file does that, then confirms the normal drained path never trips it.

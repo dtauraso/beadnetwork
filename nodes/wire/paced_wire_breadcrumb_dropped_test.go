@@ -1,6 +1,6 @@
 // paced_wire_breadcrumb_dropped_test.go — pins that a dropped breadcrumb
 // (breadcrumbCh's cap-4 non-blocking send losing a row, PacedWire.Send) is
-// eventually SURFACED rather than lost for good (bounds-plan.md Step 3,
+// eventually SURFACED rather than lost for good (docs/planning/visual-editor/session-log.md Step 3,
 // "breadcrumbCh"). The cap and the non-blocking send both stay: this test
 // asserts the reporting side-channel (droppedBreadcrumbs/
 // flushDroppedBreadcrumbs), not a change to breadcrumbCh's capacity or

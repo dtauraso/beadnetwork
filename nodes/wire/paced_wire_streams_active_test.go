@@ -1,5 +1,5 @@
 // paced_wire_streams_active_test.go — pins the fix for the confirmed
-// unbounded-pending-growth bug (docs/planning/branch-notes/bounds-inventory.md):
+// unbounded-pending-growth bug (docs/planning/visual-editor/session-log.md):
 // PacedWire.pending must NOT accumulate when no consumer is wired
 // (StreamsActive false, the default), and MUST accumulate + drain when one is
 // (StreamsActive true). This asserts only what this ONE PacedWire goroutine
