@@ -5,10 +5,12 @@
 // are never drawn — and its length is not a count of messages: a chain sits fully populated
 // with nothing traversing it.
 //
-// A chain bead is BEAD 1 IN THE EDGE'S OWN COLOUR: same radius, same two-mesh structure (fill
-// sphere + ring torus), with the fill set to SHADING_PARAM_TUBE_COLOR — the colour the wire
-// tubes use — because the chain IS the edge visual and should read as the same object. Beads sit one DIAMETER apart so they TOUCH — a chain
-// is a solid line of beads, not a dotted one. Both the radius and the spacing come from the
+// A chain bead is BEAD 1 WEARING THE EDGE'S OWN MATERIAL: same radius, same fill-sphere +
+// ring-torus structure, and — for a resting bead — the wire tube's WHOLE material, not just its
+// base colour (color + emissive + emissiveIntensity, the same three props EdgeTube.tsx sets).
+// Copying only the colour left the chain visibly duller than the lines it replaces. The chain IS
+// the edge visual, so it has to read as the same object. Beads sit one DIAMETER apart so they
+// TOUCH — a chain is a solid line of beads, not a dotted one. Both the radius and the spacing come from the
 // same ShadingParamBeadRadius constant (Go-owned, mirrored into TS), so "no gaps" cannot drift
 // into a gap by one side editing its own copy.
 //
