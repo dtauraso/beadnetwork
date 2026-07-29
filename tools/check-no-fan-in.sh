@@ -17,8 +17,21 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 NODES_DIR="$REPO_ROOT/topology/nodes"
 
 if [ ! -d "$NODES_DIR" ]; then
-  # No topology tree in this checkout — nothing to enforce.
-  exit 0
+  echo "check-no-fan-in: MISCONFIGURED — $NODES_DIR not found; refusing a vacuous pass." >&2
+  echo "  This guard exists to catch fan-in in the committed production topology. A real" >&2
+  echo "  incident: this dir moved from topology/edges to topology/nodes/<source>/edges and" >&2
+  echo "  the guard silently passed for several commits scanning a dir that no longer" >&2
+  echo "  existed. If topology/nodes/ legitimately moved again, update NODES_DIR deliberately." >&2
+  exit 1
+fi
+
+edge_count=$(find "$NODES_DIR" -mindepth 3 -maxdepth 3 -path '*/edges/*.json' | wc -l | tr -d ' ')
+if [ "$edge_count" -eq 0 ]; then
+  echo "check-no-fan-in: MISCONFIGURED — 0 edge files found under $NODES_DIR/*/edges/*.json." >&2
+  echo "  The scan must actually see real edges; refusing a vacuous pass. If the committed" >&2
+  echo "  topology legitimately has no edges yet, allowlist that state deliberately instead" >&2
+  echo "  of letting this guard read as clean by accident." >&2
+  exit 1
 fi
 
 report=$(python3 - "$NODES_DIR" <<'PY'

@@ -22,8 +22,13 @@ TS="$REPO_ROOT/tools/topology-vscode/src/messages.ts"
 GO="$REPO_ROOT/nodes/Wiring/overlay_gen.go"
 
 if [ ! -f "$TS" ] || [ ! -f "$GO" ]; then
-  # Partial checkout — nothing to compare, not a failure.
-  exit 0
+  echo "check-overlay-flag-name-parity: MISCONFIGURED — one or both of these are missing:" >&2
+  echo "  $TS" >&2
+  echo "  $GO" >&2
+  echo "  Both are the checked-in generated/source pair this guard exists to compare; a" >&2
+  echo "  missing file is not 'nothing to compare', it means the guard has been silently" >&2
+  echo "  disarmed. Refusing a vacuous pass." >&2
+  exit 1
 fi
 
 # messages.ts: the quoted strings between OVERLAY_FLAGS_START / OVERLAY_FLAGS_END.

@@ -30,8 +30,10 @@ cd "$REPO_ROOT"
 
 NODES_DIR="$REPO_ROOT/nodes"
 if [ ! -d "$NODES_DIR" ]; then
-  # No node packages in this checkout — nothing to enforce.
-  exit 0
+  echo "check-dep-rules: MISCONFIGURED — $NODES_DIR not found; refusing a vacuous pass." >&2
+  echo "  nodes/ holds every node-kind package this guard exists to police; if it is gone," >&2
+  echo "  the invariant it enforces no longer has a home. Update the guard deliberately." >&2
+  exit 1
 fi
 
 MODULE="github.com/dtauraso/wirefold"
