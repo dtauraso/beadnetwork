@@ -144,7 +144,7 @@ export function useDraggedNodeName(): string {
 }
 
 /** The dragged node's cascade relay behavior, as the word Go's Node.CascadeRelay column
- *  encodes (0 = flood, 1 = routed, 2 = terminus — see nodes/Wiring/node_mover.go's
+ *  encodes (0 = fan, 1 = routed, 2 = terminus — see nodes/Wiring/node_mover.go's
  *  cascadeRelayClass, which is where the classification is DECIDED; this only names the
  *  value it streams). "" when nothing is dragged, or when the streamed value is one this
  *  build has no word for — an unnamed number is not rendered as if it were understood. */
@@ -155,7 +155,7 @@ export function readDraggedNodeRelay(): string {
   if (!decoded || row >= decoded.nodeCount) return "";
   switch (readNodeCascadeRelay(decoded.nodeView, row)) {
     case 0:
-      return "flood";
+      return "fan";
     case 1:
       return "routed";
     case 2:

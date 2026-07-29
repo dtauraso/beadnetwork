@@ -535,7 +535,7 @@ func (lq *layoutQuantizer) requantizeLocalPolars(md *MoveDispatch, nm *nodeMover
 	// drift apart. They did drift, and it was a real bug: dragging node 8 reached node 5
 	// over the domain edge 5-8 while node 5's cascade-edges.json had no entry for 8, so
 	// forwardDelta read the sender's kind as "" and the Pulse gate-routing rule fell
-	// through to a flood.
+	// through to a fan.
 	//
 	// X still re-quantizes its OWN triple to every domain neighbor above
 	// (requantizePoleTraced takes updatesX unchanged); only the outbound assignment is

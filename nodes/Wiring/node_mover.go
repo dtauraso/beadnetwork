@@ -532,7 +532,7 @@ func (m *nodeMover) handle(msg moveMsg) {
 		// no record, no relay. Same shape as the TimeStart<-Input stop above, gated on the
 		// SENDER's kind. Note this is the Pulse kind only (node 5) — PulseLeft and
 		// PulseRight are separate kinds with their own rules below. From every OTHER sender
-		// kind a Pulse keeps the plain flood-to-all-cascade-neighbors-except-sender.
+		// kind a Pulse keeps the plain fan-to-all-cascade-neighbors-except-sender.
 		if m.selfKind == "Pulse" && m.cascadeKinds[msg.SenderID] == "TimeStart" {
 			return
 		}
@@ -572,7 +572,7 @@ func (m *nodeMover) handle(msg moveMsg) {
 		// edge and never re-sends to the sender it came from (node_mover.go's
 		// forwardDelta) — since the forwarding graph (spanning tree minus dead-ends) has
 		// no cycles, there is no visit-tracking/once-per-drag guard needed: every move
-		// re-floods freely and terminates at the tree's leaves.
+		// re-fans freely and terminates at the tree's leaves.
 		m.gotForwardMsg = 1
 		m.forwardDeltaA, m.forwardDeltaB, m.forwardDeltaC = int32(msg.DeltaA), int32(msg.DeltaB), int32(msg.DeltaC)
 		m.forwardFromRow = -1
@@ -608,7 +608,9 @@ func (m *nodeMover) handle(msg moveMsg) {
 // generation, no once-per-drag guard — every move (not just the first) re-propagates
 // freely, which is what keeps the forwarded log in sync with the drag as it continues
 // (see gotForwardMsg's doc comment). Measured: 1-6 forwards per single-node drag; the
-// same edge set with no per-kind rules ran at a steady ~300 forwards/sec indefinitely.
+// same edge set with no per-kind rules FLOODED — a steady ~300 forwards/sec, indefinitely.
+// That unbounded run is what "flood" names in this file, and it is the ONLY thing it names;
+// an ordinary bounded relay to every cascade neighbor is a FAN.
 // Sent via m's OWN retry
 // queue (m.sendMove, the same fire-and-forget mechanism every other fan-out in this file
 // uses) — never blocking. Called only from m's own goroutine (handle, and
@@ -616,7 +618,7 @@ func (m *nodeMover) handle(msg moveMsg) {
 //
 // Kind-directed routing (TimeStart only): a TimeStart node relays a delta triple to a
 // single target KIND chosen by the SENDER's kind (both read from m's own cascadeKinds,
-// stored in cascade-edges.json), instead of the full flood:
+// stored in cascade-edges.json), instead of the full fan:
 //
 //	from Pulse -> Time     (Pulse -> TimeStart -> Time)
 //	from Time  -> Pulse    (Time  -> TimeStart -> Pulse)
@@ -630,7 +632,7 @@ func (m *nodeMover) handle(msg moveMsg) {
 // moveMsgKindDeltaForward handler.
 //
 // Every OTHER node kind (and a TimeStart relaying a delta from any other sender kind)
-// keeps the plain flood-to-all-cascade-neighbors-except-sender behavior — targetKind == ""
+// keeps the plain fan-to-all-cascade-neighbors-except-sender behavior — targetKind == ""
 // means no restriction.
 // cascadeRelayClass summarizes, for ONE kind, which branch of forwardDelta (and of the
 // moveMsgKindDeltaForward handler's kind stops) that kind takes when it picks up a delta
@@ -641,7 +643,7 @@ func (m *nodeMover) handle(msg moveMsg) {
 //	               PulseRight stop at the guard atop forwardDelta's body.
 //	routed   (1) — relays to a single target KIND chosen by the SENDER's kind, or drops:
 //	               Pulse (gate crossover) and TimeStart (Pulse<->Time).
-//	flood    (0) — every other kind: relay to every cascade neighbor except the sender.
+//	fan      (0) — every other kind: relay to every cascade neighbor except the sender.
 //
 // This is a pure function of the kind, so it is derived at emit rather than stored — the
 // three cases above are the same three the rules are written in, and keeping them in one
@@ -678,11 +680,11 @@ func (m *nodeMover) forwardDelta(md *MoveDispatch, exceptID string, dA, dB, dC i
 	// crossover is gone now, kept as a plain switch below.
 	//
 	// A TimeStart-origin delta never reaches here (dropped in the moveMsgKindDeltaForward
-	// handler). Any OTHER sender kind leaves targetKind empty and keeps the plain flood.
+	// handler). Any OTHER sender kind leaves targetKind empty and keeps the plain fan.
 	// The switch is TOTAL: a Pulse's three neighbor kinds are TimeStart (dropped upstream)
 	// and the two gates, so any OTHER sender kind is not a real case in the graph and is
-	// DROPPED rather than flooded. Same stance TimeStart takes. This matters because a
-	// missing cascade-edges.json entry reads as kind "" — with a flood fallback that data
+	// DROPPED rather than fanned. Same stance TimeStart takes. This matters because a
+	// missing cascade-edges.json entry reads as kind "" — with a fan fallback that data
 	// gap silently became surprise fan-out (a drag of node 8 reaching node 2 through 5,
 	// because 8's kind was absent from node 5's file); with the drop it stays inert.
 	if m.selfKind == "Pulse" {
