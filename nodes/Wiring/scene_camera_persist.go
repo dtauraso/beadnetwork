@@ -27,9 +27,10 @@ package Wiring
 //     so each write marshals the pose fresh and overwrites the file, no read-modify-write.
 //   - FIRE-AND-FORGET: errors are logged, not returned; it never blocks the gesture.
 //
-// Before this split, camera.json's content lived at scene.json's `cameraPolar` key,
-// shared with the overlays and sphere writers; an existing pre-split scene.json still
-// loads — see loadSceneViewpoint's legacy fallback in scene_camera.go.
+// Before this split, camera.json's content lived at a shared view/scene.json's
+// `cameraPolar` key, alongside the overlays and sphere writers. That shared sidecar and its
+// best-effort read fallback were REMOVED (scene_paths.go's header) — a topology holding
+// only the old sidecar now falls straight to loadSceneViewpoint's defaultViewpoint.
 //
 // The crash-safe (tmp-then-rename) write plumbing is shared machinery from
 // scene_persist.go (writeJSONAtomic) — this file holds only the camera-specific shape.

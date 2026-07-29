@@ -61,12 +61,13 @@ The monolithic single-file form is gone. `readSpec` rejects a non-directory. Nod
 is directory-sorted (alphabetical by id); port order is alphabetical by port name — neither
 is authored order, because a tree has no array.
 
-Unrelated and still live: `sceneCameraPath` reads the pre-split scene sidecar (a single
-`scene.json` under the view dir, holding what is now split across camera/overlays/sphere) as
-a fallback when the split files are absent. No such file exists in this repo, which is why
-it is not listed in the tree above. That is a DIFFERENT legacy from the monolithic topology
-form and is deliberately retained — removing it would drop the camera, overlays and sphere
-of anyone still holding one.
+The pre-split scene sidecar (a single `scene.json` under the view dir, holding what is now
+split across camera/overlays/sphere) and its best-effort read fallback (`sceneCameraPath`/
+`sceneJSONPath`) were REMOVED — no such file existed anywhere in this repo, and nothing
+wrote it once the one-file-per-writer split landed. A topology directory holding only that
+legacy sidecar now loses its camera pose, overlay flags and scene sphere on load (falls back
+to defaults) instead of migrating them forward. That was a DIFFERENT legacy from the
+monolithic topology form covered above.
 
 ## Counts are stored, never re-derived
 

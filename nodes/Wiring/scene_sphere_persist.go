@@ -3,8 +3,8 @@
 // view/sphere.json, mirroring scene_camera_persist.go. sphere.json has exactly one writer
 // (writeSceneSphere), so each write is a fresh whole-file marshal — no read-modify-write, no
 // sceneFileMu (deleted; one-file-per-writer,
-// the one-file-per-writer split). loadSceneSphere tries sphere.json
-// first and falls back to the legacy scene.json's sceneSphere key for a pre-split topology.
+// the one-file-per-writer split). loadSceneSphere reads sphere.json only — the legacy
+// scene.json fallback for a pre-split topology was REMOVED (scene_paths.go's header).
 //
 // OWNER: the view-owner goroutine (RunStdinReader, stdin_reader.go) is the SOLE caller of
 // sceneSpherePersister.flushNow() below — both triggers (LoadSceneSphere's content-fit,
@@ -39,25 +39,11 @@ type sceneSphereJSON struct {
 	Radius *float64    `json:"radius"`
 }
 
-type sceneSphereFile struct {
-	SceneSphere *sceneSphereJSON `json:"sceneSphere"`
-}
-
-// loadSceneSphere reads the persisted scene sphere. It tries sphere.json first and falls
-// back to the legacy scene.json's sceneSphere key (a pre-split topology) when sphere.json is
-// absent/malformed. ok is false when NEITHER yields a complete sphere — callers then
-// content-fit.
+// loadSceneSphere reads the persisted scene sphere from sphere.json. ok is false when it
+// yields no complete sphere — callers then content-fit.
 func loadSceneSphere(topologyPath string) (sceneSphere, bool) {
 	var sj sceneSphereJSON
 	readJSONBestEffort(sphereFilePath(topologyPath), &sj)
-	if sj.Center == nil || sj.Radius == nil {
-		// Legacy fallback: pre-split topology only has scene.json's sceneSphere key.
-		var sf sceneSphereFile
-		readJSONBestEffort(sceneCameraPath(topologyPath), &sf)
-		if sf.SceneSphere != nil {
-			sj = *sf.SceneSphere
-		}
-	}
 	if sj.Center == nil || sj.Radius == nil {
 		return sceneSphere{}, false
 	}
@@ -108,7 +94,7 @@ func (md *MoveDispatch) LoadSceneSphere(topologyPath string) {
 		md.ui.sceneSphere = contentFitSceneSphere(md.loadTimeCenters())
 		// Best-effort: a read-only or absent scene dir must not stop the sim from running.
 		// The in-memory sphere is correct either way; only cross-run stability is at stake.
-		// Path via sceneCameraPath (scene_paths.go) — the authoritative resolver, per
+		// Path via sphereFilePath (scene_paths.go) — the authoritative resolver, per
 		// check-scene-path-resolution.sh; never hand-rolled.
 		if topologyPath != "" {
 			_ = writeSceneSphere(sphereFilePath(topologyPath), md.ui.sceneSphere)

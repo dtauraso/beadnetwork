@@ -18,8 +18,8 @@
 // LOAD side: loadSceneOverlays reads the keys back (inverting the *Hidden polarity) and
 // MoveDispatch.LoadOverlays installs them into md.ui.ov on startup + emits them so the first
 // snapshot reflects the saved state — closing the toggle→reload→still-toggled round trip.
-// It tries overlays.json first and falls back to the legacy scene.json's overlay keys (a
-// pre-split topology) — see loadSceneOverlays.
+// It reads overlays.json only — the legacy scene.json fallback for a pre-split topology was
+// REMOVED (scene_paths.go's header).
 //
 // WHOLE-FILE write (one-file-per-writer, the one-file-per-writer split):
 // overlays.json holds ONLY these flags and has exactly one writer, so each flush marshals the
@@ -109,22 +109,16 @@ type sceneOverlaysFile struct {
 	CascadeLinksVisible   *bool `json:"cascadeLinksVisible"`
 }
 
-// loadSceneOverlays reads the persisted overlay-visibility snapshot, applying the same key
-// names + polarity the writer used (visible-sense keys straight through; the two *Hidden
-// keys inverted back to visible-sense). It tries overlaysPath (overlays.json) first and
-// falls back to legacyScenePath (the old shared scene.json, a pre-split topology) when
-// overlaysPath carries no overlay keys. Starts from defaultOverlayState so any key the
-// writer omitted (because it was at its default) keeps the code default. The bool return is
-// false when NEITHER file yields an overlay key (fresh topology) — the caller then keeps the
-// code defaults.
-func loadSceneOverlays(overlaysPath, legacyScenePath string) (overlayState, bool) {
+// loadSceneOverlays reads the persisted overlay-visibility snapshot from overlaysPath
+// (overlays.json), applying the same key names + polarity the writer used (visible-sense
+// keys straight through; the two *Hidden keys inverted back to visible-sense). Starts from
+// defaultOverlayState so any key the writer omitted (because it was at its default) keeps
+// the code default. The bool return is false when the file yields no overlay key (fresh
+// topology) — the caller then keeps the code defaults.
+func loadSceneOverlays(overlaysPath string) (overlayState, bool) {
 	ov := defaultOverlayState()
 	var sf sceneOverlaysFile
 	readJSONBestEffort(overlaysPath, &sf)
-	if sf == (sceneOverlaysFile{}) {
-		// Legacy fallback: pre-split topology only has scene.json's overlay keys.
-		readJSONBestEffort(legacyScenePath, &sf)
-	}
 	found := false
 	if sf.SceneToriVisible != nil {
 		ov.sceneToriVisible = *sf.SceneToriVisible
@@ -161,16 +155,15 @@ func loadSceneOverlays(overlaysPath, legacyScenePath string) (overlayState, bool
 	return ov, found
 }
 
-// LoadOverlays reads the overlay-visibility state from scene.json (FILE DATA) into md.ui.ov and
-// streams it so the buffer reflects the current overlay state from the first frame. A scene.json
-// with no overlay keys resolves to the code defaults (loadSceneOverlays starts from
-// defaultOverlayState and applies any present keys) — and those defaults are STILL emitted, so
-// the UI shows the default-visible overlays instead of an all-off buffer. Call after LoadTopology
-// (which builds MoveDispatch) and BEFORE EnableEditPersist so this emit does not write the
-// loaded/default state back. topologyPath is passed to sceneCameraPath, which resolves the
-// legacy pre-split view/scene.json sidecar under the tree root.
+// LoadOverlays reads the overlay-visibility state from overlays.json (FILE DATA) into
+// md.ui.ov and streams it so the buffer reflects the current overlay state from the first
+// frame. A file with no overlay keys resolves to the code defaults (loadSceneOverlays
+// starts from defaultOverlayState and applies any present keys) — and those defaults are
+// STILL emitted, so the UI shows the default-visible overlays instead of an all-off buffer.
+// Call after LoadTopology (which builds MoveDispatch) and BEFORE EnableEditPersist so this
+// emit does not write the loaded/default state back.
 func (md *MoveDispatch) LoadOverlays(topologyPath string, tr *T.Trace) {
-	ov, _ := loadSceneOverlays(overlaysFilePath(topologyPath), sceneCameraPath(topologyPath)) // ov = defaults with any persisted keys applied
+	ov, _ := loadSceneOverlays(overlaysFilePath(topologyPath)) // ov = defaults with any persisted keys applied
 	md.ui.ov.SetGuideVisibility(ov)
 	// Decentralized (Step C, memory/feedback_no_single_writer_bridge.md): the gesture/stdin-reader goroutine
 	// (this one) writes its own VIEW frame directly, carrying the 8 one-time overlay-flag

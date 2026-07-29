@@ -118,6 +118,21 @@ readonly DEAD_COMMENT_TOKENS=(
   # rationale comments across nodes/Wiring and every self-constructing kind (e.g. "was
   # previously performed by Wiring.reflectBuild").
   "discovered by reflectPorts"
+  # drop-presplit-scene sweep (2026-07-28): the pre-split shared view/scene.json sidecar
+  # (cameraPolar/overlay-flags/sceneSphere in one document) and its best-effort read
+  # fallback were REMOVED — sceneJSONPath/sceneCameraPath/sceneFile/sceneSphereFile/
+  # sceneOverlaysFile's legacy branch are gone from scene_camera.go/
+  # scene_overlays_persist.go/scene_sphere_persist.go/scene_paths.go. These phrasings
+  # named that fallback in the present tense; their reappearance re-teaches a load path
+  # that no longer exists. Bare "scene.json", "legacy scene.json", and "pre-split" are
+  # intentionally NOT guarded — both remain accurate past-tense narration elsewhere (e.g.
+  # "the pre-split shared view/scene.json sidecar ... was removed").
+  "falls back to the legacy scene.json"
+  "falls back to legacyScenePath"
+  "tries camera.json first and falls back"
+  "tries sphere.json first and falls back"
+  "tries overlays.json first and falls back"
+  "Legacy fallback: pre-split topology only has scene.json"
 )
 
 fail=0
