@@ -1,9 +1,13 @@
 import { createPortal } from "react-dom";
-import { useAbcDragRows, useDraggedNodeName } from "./overlay-flags";
+import { useAbcDragRows, useDraggedNodeName, useDraggedNodeRelay } from "./overlay-flags";
 
 // AbcDragLabel — the in-editor "drag received" log. A header line carrying the
 // LAST-dragged node's own name (persists past pointerup — see DragNodeRow's latch,
-// nodes/Wiring ui_state.go lastDraggedNode), then a "drag received" label, then ONE
+// nodes/Wiring ui_state.go lastDraggedNode) followed by that node's CASCADE RELAY word
+// in parentheses — flood / routed / terminus, the Node block's CascadeRelay column,
+// which says whether a delta triple this node picks up goes on to every cascade
+// neighbor, to one sender-chosen kind, or nowhere (Go decides it: node_mover.go's
+// cascadeRelayClass). Then a "drag received" label, then ONE
 // LINE PER RECIPIENT: that node's name, ITS OWN per-node received count, and the
 // delta triple (dA,dB,dC) it received. The delta is the DRAGGED node's own
 // quantized-triple change, computed once at the drag and carried on the
@@ -27,6 +31,7 @@ import { useAbcDragRows, useDraggedNodeName } from "./overlay-flags";
 // pattern, just reading instead of writing.
 export function AbcDragLabel() {
   const draggedName = useDraggedNodeName();
+  const relay = useDraggedNodeRelay();
   const rows = useAbcDragRows();
   const mount = document.getElementById("abc-drag-mount");
   if (!mount) return null;
@@ -34,7 +39,10 @@ export function AbcDragLabel() {
   return createPortal(
     <span className="abc-drag-label">
       {draggedName && (
-        <span className="abc-drag-label-header">dragging {draggedName}</span>
+        <span className="abc-drag-label-header">
+          dragging {draggedName}
+          {relay && <span className="abc-drag-label-relay"> ({relay})</span>}
+        </span>
       )}
       <span className="abc-drag-label-header">drag received</span>
       {rows.map((r) => (

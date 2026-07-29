@@ -45,6 +45,7 @@ import {
   readNodeDragDeltaA, readNodeDragDeltaB, readNodeDragDeltaC, readNodeDragRequantCount,
   readNodeGotForwardMsg, readNodeForwardDeltaA, readNodeForwardDeltaB, readNodeForwardDeltaC,
   readNodeForwardFromRow,
+  readNodeCascadeRelay,
   readPortNodeRow, readPortDX, readPortDY, readPortDZ, readPortPX, readPortPY, readPortPZ,
   readPortIsInput, readPortHovered, readPortPortNameLen, readPortPortNameOff,
   readEdgeSrcPortRow, readEdgeDstPortRow, readEdgeSelected,
@@ -69,6 +70,7 @@ interface NodeFrameFixture {
   dragDeltaA: number; dragDeltaB: number; dragDeltaC: number; dragRequantCount: number;
   gotForwardMsg: number; forwardDeltaA: number; forwardDeltaB: number; forwardDeltaC: number;
   forwardFromRow: number;
+  cascadeRelay: number;
   label: string;
   ports: PortFixture[];
   layoutLinks: LayoutLinkFixture[];
@@ -182,6 +184,7 @@ describe("stream fixture cross-language decode", () => {
     expect(readNodeForwardDeltaB(nv, 0), "forwardDeltaB").toBe(want.forwardDeltaB);
     expect(readNodeForwardDeltaC(nv, 0), "forwardDeltaC").toBe(want.forwardDeltaC);
     expect(readNodeForwardFromRow(nv, 0), "forwardFromRow").toBe(want.forwardFromRow);
+    expect(readNodeCascadeRelay(nv, 0), "cascadeRelay").toBe(want.cascadeRelay);
 
     for (let i = 0; i < want.ports.length; i++) {
       const p = want.ports[i]!;
