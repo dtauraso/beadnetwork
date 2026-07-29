@@ -6,7 +6,8 @@
 // with nothing traversing it.
 //
 // A chain bead is BEAD 1 IN A PALE CYAN: same radius, same fill-sphere + ring-torus structure,
-// with a resting bead's fill set to ShadingParamChainBeadFill. That is DELIBERATELY not the wire
+// with a resting bead's fill set to ShadingParamChainBeadFill, drawn with an UNLIT material so
+// that constant lands on screen verbatim (see the mesh below). That is DELIBERATELY not the wire
 // tube's colour — see that constant's comment, which records why, because an earlier version
 // matched the tube exactly and the reasoning for it is persuasive enough to be re-applied by
 // mistake. Beads sit one DIAMETER apart so they TOUCH — a chain is a solid line of beads, not a
@@ -103,14 +104,20 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
     <>
       {/* Unlit body: every resting bead is identical, so this mesh needs no
           setColorAt/instanceColor at all — one flat material carries the whole resting chain.
-          No emissive: the fill is a pale cyan, and the tube's blue emissive would drag it back
-          toward the colour it is meant to differ from. */}
+
+          meshBASICmaterial, not meshStandardMaterial, and that is the point rather than an
+          oversight. ShadingParamChainBeadFill is a tone sampled from a RENDERED pixel. A lit
+          material multiplies its base colour by incoming light, so feeding a rendered tone back
+          in as a base shades it a second time: #a7dfe5 came out ~#8daaad, about 0.8x, which is
+          exactly the mismatch this replaced. A basic material ignores lights, so the pixel on
+          screen IS the constant — the only way to hit a sampled value exactly rather than
+          guessing a brighter base to divide back down.
+
+          Cost, stated rather than hidden: an unlit sphere has no shading gradient, so a resting
+          bead reads flat. The black ring still carries its silhouette. */}
       <instancedMesh ref={unlitBodyRef} args={[undefined, undefined, capacity]} frustumCulled={false}>
         <sphereGeometry args={[SHADING_PARAM_BEAD_RADIUS, 16, 16]} />
-        <meshStandardMaterial
-          color={SHADING_PARAM_CHAIN_BEAD_FILL}
-          emissiveIntensity={0}
-        />
+        <meshBasicMaterial color={SHADING_PARAM_CHAIN_BEAD_FILL} />
       </instancedMesh>
       {/* Lit body: flat (non-glowing) 0/1 bead colours via instanceColor, same reasoning as
           NodeInstances — material colour stays white so instanceColor applies verbatim. */}

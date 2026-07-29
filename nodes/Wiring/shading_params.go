@@ -155,9 +155,14 @@ const ShadingParamBeadRingTubeRatio = 0.12
 // does not "fix" it back to the tube colour on the same argument that deleted it.
 //
 // The value is the tone as RENDERED in that screenshot (sampled #a7dfe5), not a node's source
-// fill: a chain bead is a plain meshStandardMaterial, not the glassy transmission material a
-// node body uses, so matching the appearance means matching the rendered tone rather than the
-// input colour that produced it through glass.
+// fill: the node body that tone came from is glassy transmission material, so matching the
+// appearance means matching the rendered tone rather than the input that produced it.
+//
+// Because this is a RENDERED tone, the bead that wears it is drawn with an UNLIT material
+// (ChainBeadInstances.tsx). A lit material would multiply it by incoming light and render it a
+// second time — measured at ~0.8x, which is why an earlier attempt with meshStandardMaterial
+// came out #8daaad against this #a7dfe5. Change this constant and the pixel changes with it;
+// that is only true while the material stays unlit.
 const ShadingParamChainBeadFill = "#a7dfe5"
 
 // ShadingParamBeadColor is the in-flight bead color.
