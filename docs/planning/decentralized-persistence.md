@@ -120,11 +120,22 @@ a larger and cleaner deletion than it first looks — all of it is already dead 
   `scene_paths.go` — the `IsDir()` probing and the `return ""` path.
 - `LoadTopologyFromJSON` (`loader.go:76`), an exported entry point that "builds a topology
   from an in-memory JSON blob, bypassing the tree". **Zero callers** — production or test.
-- `sceneCameraPath`, whose own comment reads "a backwards-compatibility alias for
-  `sceneJSONPath`. All call sites have been migrated."
 
 Verified there is nothing to migrate: no `topology.json` and no second `meta.json` tree
 exists anywhere in the repo, and no test constructs a monolithic topology.
+
+**NOT in this step: `sceneCameraPath`.** Its own comment claims "all call sites have been
+migrated", and that comment is wrong — `scene_camera.go:82`,
+`scene_overlays_persist.go:166` and `scene_sphere_persist.go:49` all still call it. It backs
+a DIFFERENT legacy: the pre-split `view/scene.json`, read best-effort when
+`camera.json`/`overlays.json`/`sphere.json` are absent ("Legacy fallback: pre-split topology
+only has scene.json's cameraPolar key", `scene_camera.go:80`).
+
+Two legacies are in play and must not be conflated: the monolithic TOPOLOGY form (a
+`topology.json` file instead of a tree — this step's target) and the pre-split SCENE file
+(`view/scene.json` — untouched here). No `view/scene.json` exists anywhere in the repo, so
+that fallback is dead data-wise but live code-wise; removing it would drop the camera,
+overlays and sphere of anyone holding an old one on disk. Its own decision, not this one.
 
 ### 2. Move edges under their source node
 
