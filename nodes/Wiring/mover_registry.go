@@ -194,6 +194,27 @@ func (mr *moverRegistry) lengthOfPair(src, dst string) (float64, bool) {
 	return 0, false
 }
 
+// sendEdgeSetLength hands ONE edge its new target length on that edge's own extIn
+// (mirrors sendEdgeSelect). Non-blocking: a full edge inbox means that edge is busy and
+// this press is simply not applied to it, which is the right answer for a user-driven
+// control action — better than parking the dispatch goroutine, which must stay responsive
+// to input. ok reports whether the message was actually accepted, so the caller can say
+// whether the press did anything rather than claiming success it did not verify.
+func (mr *moverRegistry) sendEdgeSetLength(src, dst string, targetLen float64) bool {
+	for _, em := range mr.edgeMovers {
+		if em.srcID != src || em.dstID != dst {
+			continue
+		}
+		select {
+		case em.extIn <- moveMsg{Kind: moveMsgKindSetLength, TargetLen: targetLen}:
+			return true
+		default:
+			return false
+		}
+	}
+	return false
+}
+
 // centerOfNode returns the current world center for a node id by draining the center
 // mirror (drainCenterMirror) and reading mr.centerMirror. Must only be called from the
 // dispatch/gesture goroutine.

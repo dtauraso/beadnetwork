@@ -12,14 +12,13 @@
 // accepted (per the agreed model): there is no tree/graph solver, no averaging, no
 // equal-radii resolve for a shared target.
 //
-// The repositioning itself reuses md.RootMove exactly as the drag tests call it
-// programmatically (abc_drag_count_target_node_test.go) — RootMove already routes the
-// move to the target node's OWN goroutine, commits via commitNodeMoveLocal, and
-// rebroadcasts geometry so incident edges' segments recompute and redraw. This file adds
-// no new position/commit path.
+// This file computes NO positions. It hands each edge a single number — the target length
+// — and the edge, which is the only thing that knows both its endpoints, works out the
+// displacement and sends it to the endpoint that moves. That endpoint applies the delta to
+// itself and commits through the same owner-goroutine commit path a drag uses
+// (commitNodeMoveLocal), so this file still adds no new position/commit path; it simply
+// stopped being the one doing the arithmetic.
 package Wiring
-
-import "time"
 
 // distancePair is one (source, target) bead-edge pair; TARGET is the node that moves.
 type distancePair struct {
@@ -104,13 +103,35 @@ func distanceGroupIdxForPair(src, dst string) int32 {
 }
 
 // ApplyDistanceGroupTarget is the controller for one arrow click: groupIdx indexes
-// distanceGroupOrder (0/1/2, out of range = no-op); dir > 0 is the up arrow (target
-// length L = currentMax*1.1), dir < 0 is down (L = currentMax/1.1). For EACH pair in
-// the group's flat list, IN ORDER, the target node's new world position is
-// center(source) + normalize(center(target)-center(source))*L, applied via
-// md.RootMove(target, newPos) — the same decentralized drag entry every programmatic
-// move test uses. Returns false if the group is unknown, has no resolvable pair, or
-// groupIdx is out of range.
+// distanceGroupOrder (0/1/2, out of range = no-op); dir > 0 is the up arrow (target length
+// L = currentMax*1.1), dir < 0 is down (L = currentMax/1.1). It then hands EVERY edge in
+// the group that one number and returns. Returns false if the group is unknown, has no
+// resolvable length, groupIdx is out of range, or no edge accepted the message.
+//
+// It computes no positions. Previously it walked the pairs IN ORDER, and for each one read
+// center(source) and center(target) off dispatch's mirror, computed
+// center(source) + normalize(center(target)-center(source))*L, and handed that absolute
+// position to RootMove. Three consequences, all of which are gone:
+//
+//   - It had to read two foreign nodes' positions to do the arithmetic, from a mirror
+//     documented as eventually consistent and meant for framing reads.
+//   - Because a later pair's SOURCE could be an earlier pair's TARGET (node 5 is the
+//     target of (2,5) and the source of (5,8)/(5,7)), the loop had to observe each move
+//     land before computing the next — waitForCenterSettle, a 200ms poll that returned
+//     silently on timeout and left the next pair reading a stale center.
+//   - It emitted a VIEW frame at the end, because the panel's lengths were computed inside
+//     that emit. Those columns now ride each edge's own stream (Buffer bufLayoutEdge.Len),
+//     so there is nothing here to refresh.
+//
+// Now: each edge is told its target length and works out its own endpoint displacement
+// from geometry it already owns; the endpoint applies that delta to itself. Pair order
+// stops mattering, because nothing here reads a position that another pair might change.
+//
+// A node shared by two edges in the group (gate: 8 is the target of both (3,8) and (5,8))
+// receives two deltas and applies both, in whatever order they arrive at its own inbox,
+// ending where the second one puts it. That is the same "last pair wins, no solver, no
+// averaging" outcome the ordered loop had, now reached by the owner arbitrating its own
+// mail rather than by dispatch sequencing on its behalf.
 func (md *MoveDispatch) ApplyDistanceGroupTarget(groupIdx, dir int) bool {
 	if groupIdx < 0 || groupIdx >= len(distanceGroupOrder) {
 		return false
@@ -128,69 +149,11 @@ func (md *MoveDispatch) ApplyDistanceGroupTarget(groupIdx, dir int) bool {
 	if dir < 0 {
 		targetLen = currentMax / 1.1
 	}
-	moved := false
+	sent := false
 	for _, p := range pairs {
-		cs, okS := md.centerOfNode(p.Source)
-		ct, okT := md.centerOfNode(p.Target)
-		if !okS || !okT {
-			continue
-		}
-		offset := ct.Sub(cs)
-		if offset.Length() == 0 {
-			continue
-		}
-		newPos := cs.Add(offset.Normalize().Scale(targetLen))
-		if md.RootMove(p.Target, newPos) {
-			moved = true
-			// RootMove is fire-and-forget (a moveMsgKindDrag message to the target's OWN
-			// goroutine — see its doc comment): it returns before the target's commit
-			// lands. A later pair in this SAME group can name this target as its own
-			// SOURCE (e.g. "time"'s node 5: target of (2,5), source of (5,8)/(5,7)), so
-			// the next iteration's center(source) read must observe the settled position,
-			// not a stale pre-move one — settle here, in order, before moving on. Bounded
-			// (never blocks forever); a target whose commit doesn't land within the
-			// deadline just leaves the next pair reading whatever center is currently
-			// live, same as any other cross-goroutine read on this seam.
-			waitForCenterSettle(md, p.Target, newPos)
+		if md.mr.sendEdgeSetLength(p.Source, p.Target, targetLen) {
+			sent = true
 		}
 	}
-	// The 3 GroupLen* Overlay columns are recomputed from live centers ONLY inside
-	// emitViewFrame (view_stream.go). RootMove emits NODE frames (the moved geometry),
-	// not the VIEW frame, so without this the panel's displayed lengths never refresh
-	// after a button press. This runs on the stdin/dispatch goroutine — the VIEW-stream
-	// owner — so emitting here is safe, and the centers have settled above.
-	//
-	// This call CANNOT just be deleted in favour of "the next frame will pick it up." The
-	// VIEW stream is event-driven, unlike NODE/EDGE/INTERIOR (view_stream.go's header) —
-	// with no call here the panel's lengths stay stale until an unrelated hover/select/
-	// camera event happens to emit one.
-	//
-	// It is therefore a REAL CONSTRAINT on making this function asynchronous. The standing
-	// plan is for the dispatch goroutine to stop measuring distances between other
-	// goroutines' nodes — fanning a target length out to each edge, which tells its own two
-	// endpoints how far to move — and that deletes waitForCenterSettle along with the
-	// ordered loop below. But it also means dispatch returns BEFORE anything has moved,
-	// while only dispatch may emit the VIEW frame and these columns are measured from live
-	// centers at emit time. So "emit after the moves land" reintroduces the very
-	// wait-for-other-goroutines this redesign exists to remove, one level up.
-	// Whoever does that work owes an answer here first; the likely one is that an edge
-	// carries its OWN length on its own EDGE frame (already per-owner, already streaming),
-	// so nothing has to measure across goroutines at all.
-	if moved {
-		md.emitViewFrame(nil)
-	}
-	return moved
-}
-
-// waitForCenterSettle polls md.centerOfNode(id) until it matches want (within a small
-// tolerance) or a short deadline passes. See ApplyDistanceGroupTarget's call site.
-func waitForCenterSettle(md *MoveDispatch, id string, want vec3) {
-	const tol = 1e-6
-	deadline := time.Now().Add(200 * time.Millisecond)
-	for time.Now().Before(deadline) {
-		if c, ok := md.centerOfNode(id); ok && c.Sub(want).Length() <= tol {
-			return
-		}
-		time.Sleep(time.Millisecond)
-	}
+	return sent
 }

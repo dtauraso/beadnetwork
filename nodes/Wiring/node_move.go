@@ -264,6 +264,25 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 		if sg, dg := geoms[ep.Source], geoms[ep.Target]; sg.HasPos && dg.HasPos {
 			md.mr.lenMirror[edgeID] = nodeWorldPos(dg).Sub(nodeWorldPos(sg)).Length()
 		}
+		// This edge's two dedicated OUTBOUND channels, one per endpoint — the receiving
+		// end is that node's own edgeIn[edgeID]. Single-threaded setup, before md.Start,
+		// so no goroutine is reading or writing either side yet.
+		if srcNM, ok := md.mr.nodeMovers[ep.Source]; ok {
+			edgeToSource := make(chan moveMsg, moverInboxDepth)
+			if srcNM.edgeIn == nil {
+				srcNM.edgeIn = map[string]chan moveMsg{}
+			}
+			srcNM.edgeIn[edgeID] = edgeToSource
+			em.srcOut = edgeToSource
+		}
+		if dstNM, ok := md.mr.nodeMovers[ep.Target]; ok {
+			edgeToTarget := make(chan moveMsg, moverInboxDepth)
+			if dstNM.edgeIn == nil {
+				dstNM.edgeIn = map[string]chan moveMsg{}
+			}
+			dstNM.edgeIn[edgeID] = edgeToTarget
+			em.dstOut = edgeToTarget
+		}
 		if speedSinks != nil {
 			edgeSpeedCh := make(chan float64, 1)
 			em.speedCh = edgeSpeedCh

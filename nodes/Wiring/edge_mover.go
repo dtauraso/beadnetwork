@@ -59,6 +59,16 @@ type edgeMover struct {
 	// the length from its owner removes the derivation, so nothing computes geometry
 	// from a mirror of somebody else's state.
 	lenOut chan float64
+	// srcOut/dstOut are this edge's two dedicated channels TO its two endpoint nodes'
+	// own goroutines — the outbound counterpart of srcIn/dstIn, and the same "one channel
+	// per direction per pair" rule the rest of the network uses (the edge label keying
+	// them encodes which two nodes are connected). Written only by THIS edgeMover's
+	// goroutine; drained only by the endpoint that owns the far end.
+	//
+	// They exist so an edge can tell an endpoint to move WITHOUT anyone reaching into a
+	// node's state: the edge sends a displacement, the node applies it to itself.
+	srcOut chan moveMsg
+	dstOut chan moveMsg
 	tr     *T.Trace
 	// clockSrc is the Clock this edgeMover's own goroutine (run) Copies from
 	// EXACTLY ONCE at its own start, into clk below. Not read again afterward.
@@ -171,6 +181,10 @@ func (m *edgeMover) handle(msg moveMsg) {
 			return
 		}
 		m.recomputeGeometry()
+		return
+	}
+	if msg.Kind == moveMsgKindSetLength {
+		m.applySetLength(msg.TargetLen)
 		return
 	}
 	if msg.Kind == moveMsgKindCenter {
@@ -457,4 +471,44 @@ func (m *edgeMover) currentLength() float64 {
 		return 0
 	}
 	return nodeWorldPos(m.dstGeom).Sub(nodeWorldPos(m.srcGeom)).Length()
+}
+
+// applySetLength turns "your length is now L" into a displacement for the endpoint that
+// moves, and sends it there. Everything it reads is this edge's OWN state.
+//
+// WHICH END MOVES: the TARGET, matching the distance-group model (distance_groups.go —
+// each pair is (source, target) taken from the bead edge's direction, and the target is
+// the node that moves). The source keeps its position, so it is sent nothing; srcOut
+// exists because the channel pair is the structure, not because both ends always move.
+//
+// The displacement is computed along the CURRENT source→target direction, so the target
+// ends up at distance L from the source along the line they already form. Degenerate
+// cases — either endpoint unpositioned, or the two coincident so there is no direction —
+// send nothing: there is no meaningful direction to move along, and inventing one would
+// place a node somewhere nobody asked for.
+func (m *edgeMover) applySetLength(targetLen float64) {
+	if !m.srcGeom.HasPos || !m.dstGeom.HasPos || targetLen <= 0 {
+		return
+	}
+	src := nodeWorldPos(m.srcGeom)
+	dst := nodeWorldPos(m.dstGeom)
+	offset := dst.Sub(src)
+	cur := offset.Length()
+	if cur == 0 {
+		return
+	}
+	// (L − current) along the unit source→target direction. A DELTA, not a position:
+	// see moveMsgKindMoveDelta for why that distinction is load-bearing here.
+	delta := offset.Normalize().Scale(targetLen - cur)
+	msg := moveMsg{Kind: moveMsgKindMoveDelta, NodeID: m.dstID, SenderID: m.edgeID, MoveDelta: delta}
+	if m.dstOut == nil {
+		return
+	}
+	// Non-blocking: this edge's own run loop must keep draining its inboxes. A full
+	// endpoint inbox means that node is busy and will be told again on the next press —
+	// this is a user-driven control action, not a stream that must not lose a sample.
+	select {
+	case m.dstOut <- msg:
+	default:
+	}
 }
