@@ -153,14 +153,31 @@ regressing — without it, the next central writer is one convenient refactor aw
 ## Explicitly out of scope
 
 **Loading.** A node cannot read its own file before it exists; something must scan the tree
-and decide what to create. That is the node-registry question and belongs with
-`task/decentralize-node-build`, not here. Writing decentralizes cleanly because the owner
-already exists by the time a write happens; reading is the harder half and bundling the two
-would hide which one broke.
+and decide what to create. That is the node-registry question, not this one. Writing
+decentralizes cleanly because the owner already exists by the time a write happens; reading
+is the harder half, and bundling the two would hide which one broke.
 
-## Coordination note
+Note what loading now looks like, since it changed under this plan's feet (see below):
+`RegisterBuilder(kind, ports, build)` takes the port manifest as an explicit `[]PortSpec`
+argument, so a kind's ports are known at registration, before any node is constructed. The
+loader still walks the tree, reads each `meta.json`'s `type`, and looks it up in `Registry`.
+Under the adjacency layout that walk also picks up each node's outgoing edges from
+`nodes/<id>/edges/` instead of a separate `topology/edges/` pass — a change to WHERE the
+loader reads, not to who does the reading.
 
-`task/decentralize-node-build` has concurrent work on it (a `BuildArgs` /
-`RegisterBuilder` seam, `Time` migrated first). That branch changes construction; this plan
-changes persistence. They should not collide, but step 2 touches code adjacent to
-`port_wiring.go` — check that branch before starting.
+## Construction rework — already landed
+
+Construction was decentralized separately and is **merged** (`2ca6f7ce` … `39ae89b4`): every
+kind now constructs itself through a `BuildArgs` seam, and the central reflection pipeline
+(`reflectBuild`, `reflectPorts`) is deleted. This plan was written against the old code, so
+its claims were re-verified against the post-merge tree — `nodePosPersister`,
+`md.persist.overlays`/`md.persist.sphere`, and `scene_paths.go`'s 7 path constructors are
+all still exactly as described. That rework touched construction only; persistence was left
+untouched, which is why this plan survives it unchanged.
+
+One piece of loose drift it left behind, worth folding into step 1 or fixing separately: 21
+comments under `nodes/` still reference `reflectBuild`/`reflectPorts`, neither of which
+exists (e.g. `nodes/selectright/node.go:20`, `nodes/TimeStart/node.go:171`) — despite
+`39ae89b4` being titled "retire the reflectBuild claims the deletion left behind". Adding
+both tokens to `DEAD_COMMENT_TOKENS` in `tools/check-comment-vocab.sh` after fixing them
+prevents a third round.
