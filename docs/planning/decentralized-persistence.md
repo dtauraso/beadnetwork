@@ -222,6 +222,38 @@ numbers, then spawn for real). It needs no file and no writer, but costs a proce
 run and leaves the counts underivable without running a binary. Storing them keeps the
 topology self-describing.
 
+### 7. Sweep the doc drift this plan creates
+
+Every step above changes something a doc or comment asserts. Do this LAST, once the layout
+and ownership have stopped moving — sweeping earlier just means sweeping twice.
+
+The sweep is not "reread the docs". Grep for the specific claims each step falsified:
+
+- **Paths.** `topology/edges/<label>.json` no longer exists. Grep `edges/` across `*.md`,
+  `.claude/rules/*.md`, `*.go` and `*.ts` comments, README, and `docs/planning/`.
+- **The monolithic form.** Grep `monolithic` and `topology.json`. Careful: some uses are
+  unrelated history (`build.go`'s "the original monolithic function" is a past code
+  refactor, not the topology form). Read each; do not blanket-replace.
+- **Deleted symbols.** `LoadTopologyFromJSON`, `nodePosPersister`, and whatever step 3
+  removes. A comment naming a symbol that no longer exists is the exact class
+  `check-doc-symbols.sh` catches — run it, but grep too, since it only sees backticked
+  tokens.
+- **Ownership.** Anything saying `scene_paths.go` is "ONE shared source of truth for
+  topology-path resolution" is false after step 3, including that file's own header.
+- **Counting.** After step 6, anything describing TS as deriving node/edge counts.
+
+Then close the loop the way this repo does: add the retired phrasings to
+`tools/check-comment-vocab.sh`'s `DEAD_COMMENT_TOKENS` so they cannot come back. Ban the
+specific FALSE claim, not the bare token — the same judgement the `fd 3` and
+`reflectBuild`/`reflectPorts` entries already document there, because past-tense narration
+("this used to live at `edges/<label>.json`") is the rationale record and must survive.
+
+Why this is a step and not a footnote: today's session found `reflectBuild`/`reflectPorts`
+still asserted as live in code comments AND in two doctrine files, *after* a commit titled
+"retire the reflectBuild claims the deletion left behind". A partial sweep reads as a
+finished one. Guards catch what they have tokens for, and adding the token is the manual
+step that gets missed.
+
 ## Explicitly out of scope
 
 **Loading.** A node cannot read its own file before it exists; something must scan the tree
