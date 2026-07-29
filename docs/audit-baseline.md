@@ -26,12 +26,22 @@ entry — don't leave it stale.
   `nodes/TimeEnd`, each ~107-112 lines). This boilerplate-per-kind is deliberate — each
   kind's firing rule is tested in isolation per the testing-shape doctrine (one goroutine
   asserts what it itself decided).
-- Structural-similarity tools (e.g. dry4go-style scorers) measure normalized STRUCTURE, not
-  behavior. `nodes/selectleft` vs `nodes/selectright` are mirror-image logic (opposite
-  select direction) and will score close to a perfect similarity match while being
-  deliberately opposite in behavior. **A high structural-similarity score between two node
-  kinds is not evidence of duplicate/redundant behavior** — check what the code actually
-  computes, not just its shape.
+- Do NOT report duplication between node kinds on structural grounds. A structural-similarity
+  score measures normalized SHAPE — identifiers and literals are stripped, which is what lets
+  such a tool find renamed copy-paste, and also what makes it unable to tell "the same fact
+  twice" from "two different facts that look alike". `nodes/selectleft` vs
+  `nodes/selectright` are mirror-image logic (opposite select direction) and score near
+  perfect while being deliberately OPPOSITE in behavior. **A high structural score between
+  two node kinds is not evidence of duplicate behavior.**
+
+  Two further reasons not to act on it here. Each kind's `RegisterBuilder` block states its
+  own ports and injected fields; that repetition is what turned a renamed field from a
+  silently-nil bug into a compile error, and the only genuinely universal lines are
+  `n.Fire = a.Fire()` and `n.SpeedCh = a.SpeedCh()` (counted across all 11 kinds) — hoisting
+  two lines behind a helper would make every kind's interface require reading a second file.
+  And a duplication score can only ever recommend consolidation, never separation, so applied
+  as a verdict it is a centralization ratchet pulling directly against the blast-radius
+  audit. Read shape as a question, never as a finding.
 
 ## 2. Buffer-column lockstep is the intrinsic cost of the agnostic buffer
 
