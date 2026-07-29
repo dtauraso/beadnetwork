@@ -136,6 +136,23 @@ func (md *MoveDispatch) ApplyDistanceGroupTarget(groupIdx, dir int) bool {
 	// not the VIEW frame, so without this the panel's displayed lengths never refresh
 	// after a button press. This runs on the stdin/dispatch goroutine — the VIEW-stream
 	// owner — so emitting here is safe, and the centers have settled above.
+	//
+	// This call CANNOT just be deleted in favour of "the next frame will pick it up." The
+	// VIEW stream is event-driven, unlike NODE/EDGE/INTERIOR (view_stream.go's header) —
+	// with no call here the panel's lengths stay stale until an unrelated hover/select/
+	// camera event happens to emit one.
+	//
+	// It is therefore a REAL CONSTRAINT on making this function asynchronous. The standing
+	// plan is for the dispatch goroutine to stop measuring distances between other
+	// goroutines' nodes — fanning a target length out to each edge, which tells its own two
+	// endpoints how far to move — and that deletes waitForCenterSettle along with the
+	// ordered loop below. But it also means dispatch returns BEFORE anything has moved,
+	// while only dispatch may emit the VIEW frame and these columns are measured from live
+	// centers at emit time. So "emit after the moves land" reintroduces the very
+	// wait-for-other-goroutines this redesign exists to remove, one level up.
+	// Whoever does that work owes an answer here first; the likely one is that an edge
+	// carries its OWN length on its own EDGE frame (already per-owner, already streaming),
+	// so nothing has to measure across goroutines at all.
 	if moved {
 		md.emitViewFrame(nil)
 	}

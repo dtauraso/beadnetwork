@@ -8,6 +8,19 @@
 // Buffer.BuildViewStreamFrame) and write it to the
 // dedicated view fd whenever it changes.
 //
+// VIEW IS EVENT-DRIVEN, AND IT IS THE ODD ONE OUT. Every emitViewFrame call in this
+// package comes from an explicit caller — gesture drag-start, hover, select, scene-sphere,
+// overlay toggle, camera nav, the distance-group button. There is no clock- or tick-driven
+// emit: nothing emits a VIEW frame just because time passed. Contrast the per-owner streams
+// (NODE/EDGE/INTERIOR), where each mover writes its own frame from its own goroutine as its
+// own state changes — those DO keep flowing on their own.
+//
+// The trap: "Go streams the whole scene continuously, so anything derived in a frame will
+// refresh on the next one" is true of the per-owner streams and FALSE here. Anything
+// computed inside emitViewFrame (the Overlay block's GroupLen* columns are the live case)
+// refreshes only when someone calls this. Dropping a call because a later frame will cover
+// it leaves that value stale until the user happens to hover, select, or move the camera.
+//
 // The abc-drag "drag received ×N" count no longer lives here: it used to be a single
 // counter INCREMENTED by a different goroutine (an abc-drag recipient's own nodeMover,
 // quantized_move.go's neighborSetCRequantize) than the one that writes the view frame,
