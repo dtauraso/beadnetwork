@@ -257,6 +257,18 @@ func (b *buildCtx) buildMoveDispatch() {
 		nm.selfKind = n.Type
 		nm.cascadeKinds = n.CascadeKinds
 	}
+	// Seed each node's OWN outgoing-edge targets (nodeMover.outTargets) — the chains it
+	// owns (chain_beads.go). Taken from the spec's edges rather than from cascadeEdges,
+	// because cascade adjacency is UNDIRECTED (it equals domain adjacency in both
+	// directions, validateCascadeEdges) while a chain belongs to exactly one endpoint: the
+	// source, matching where the edge is stored on disk.
+	for _, e := range b.spec.Edges {
+		nm, ok := md.mr.nodeMovers[e.Source]
+		if !ok {
+			continue
+		}
+		nm.outTargets = append(nm.outTargets, e.Target)
+	}
 	b.md = md
 }
 

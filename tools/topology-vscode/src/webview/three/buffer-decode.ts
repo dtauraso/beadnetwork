@@ -11,8 +11,8 @@
 // are no longer decoded directly off a single combined wire frame.
 
 import {
-  BEAD_STRIDE,
   NODE_STRIDE,
+  CHAIN_BEAD_STRIDE,
   INTERIOR_STRIDE,
   INTERIOR_SLOTS_PER_NODE,
   EDGE_STRIDE,
@@ -142,8 +142,8 @@ export interface DecodedEdgeFrame {
 /** Decoded view over ONE edge's dedicated per-fd stream frame (BUF_BLOCK_TAG_EDGE_STREAM —
  *  see frame-tags.ts's BUF_EDGE_STREAM_FRAME_HEADER_SIZE doc comment for the byte layout):
  *  [tick:u32] + one EDGE_STRIDE row (this edge's own SrcPortRow/DstPortRow/Selected) + this
- *  edge's own label bytes (inline, not a shared section) + [beadCount:u32] + beadCount ×
- *  BEAD_STRIDE bead rows (this edge's wire's own live in-flight beads). */
+ *  edge's own label bytes (inline, not a shared section) +
+ *  its trailing EVENTS section. No bead rows: the Bead block is gone with the moving bead. */
 export interface DecodedEdgeStreamFrame {
   tick: number;
   /** DataView over the single Edge row (row 0); byteLength = EDGE_STRIDE. */
@@ -151,9 +151,8 @@ export interface DecodedEdgeStreamFrame {
   /** This edge's own label, decoded straight from its inline bytes (no shared section / no
    *  Off into a foreign frame — unlike the combined Edge block's EdgeLabelOff/Len). */
   label: string;
-  beadCount: number;
-  /** DataView over this edge's own bead rows; byteLength = beadCount × BEAD_STRIDE. */
-  beadView: DataView;
+  // No beadCount/beadView: the Bead block is gone with the moving bead it carried. A
+  // traversal renders as the LIT bead of the source node's own chain — docs/beads-are-the-edge.md.
   /** This edge's own trailing EVENTS section (.probe log only; see decodeTrailingEvents). */
   eventCount: number;
   eventView: DataView;
@@ -193,23 +192,14 @@ function decodeEdgeStreamFrameUncached(buf: ArrayBuffer): DecodedEdgeStreamFrame
   // always 0 on a dedicated per-edge stream (this frame's own label bytes immediately
   // follow the row, no shared section — see Buffer/edge_stream_frame.go).
   const labelLen = readEdgeEdgeLabelLen(edgeView, 0);
-  if (buf.byteLength < off + labelLen + 4) return null;
+  if (buf.byteLength < off + labelLen) return null;
   const labelBytes = new Uint8Array(buf, off, labelLen);
   const label = STR_DECODER.decode(labelBytes);
   off += labelLen;
 
-  const beadCountView = new DataView(buf, off, 4);
-  const beadCount = beadCountView.getUint32(0, true);
-  off += 4;
-
-  const beadBytes = beadCount * BEAD_STRIDE;
-  if (buf.byteLength < off + beadBytes) return null;
-  const beadView = new DataView(buf, off, beadBytes);
-  off += beadBytes;
-
   const { count: eventCount, view: eventView, textView: eventTextView } = decodeTrailingEvents(buf, off);
 
-  return { tick, edgeView, label, beadCount, beadView, eventCount, eventView, eventTextView };
+  return { tick, edgeView, label, eventCount, eventView, eventTextView };
 }
 
 /** Decoded view over a BUF_BLOCK_TAG_VIEW frame (see frame-tags.ts for its byte layout):
@@ -284,7 +274,8 @@ export function edgeLabel(decoded: DecodedEdgeFrame, row: number): string {
 
 /** Decoded view over ONE node's dedicated per-fd NODE-stream frame (BUF_BLOCK_TAG_NODE_STREAM
  *  — see frame-tags.ts's BUF_NODE_STREAM_FRAME_HEADER_SIZE doc comment for the byte layout):
- *  [tick:u32][portCount:u32][labelLen:u32][portNameBytesCount:u32][layoutLinkCount:u32] +
+ *  [tick:u32][portCount:u32][labelLen:u32][portNameBytesCount:u32][layoutLinkCount:u32]
+ *  [chainBeadCount:u32] +
  *  this node's own single NODE_STRIDE row (index 0) + its own inline label bytes + its own
  *  Port rows (each row's NodeRow column already the global node row) + its own inline
  *  port-name bytes + its own outbound cascade-link rows (this node is always the
@@ -308,11 +299,25 @@ export interface DecodedNodeStreamFrame {
    *  × NODE_STREAM_LAYOUT_LINK_STRIDE. Read with readNodeStreamLayoutLinkDstNodeRow
    *  below — this node's own row is the SrcNodeRow. */
   layoutLinkView: DataView;
+  /** Number of this node's own chain-bead rows (docs/beads-are-the-edge.md) — the
+   *  placeholder sequence that is the VISUAL of a traversal along its outgoing edges,
+   *  concatenated across those edges in order. Not a count of anything on a channel: the
+   *  node-to-node channels are the real connection and are never drawn. */
+  chainBeadCount: number;
+  /** DataView over this node's own ChainBead rows; byteLength = chainBeadCount ×
+   *  CHAIN_BEAD_STRIDE. Offsets are NODE-LOCAL — add this node's own center to
+   *  get a world position, the same convention as the Interior block. Go owns the offsets. */
+  chainBeadView: DataView;
   /** This node's own trailing EVENTS section (.probe log only; see decodeTrailingEvents). */
   eventCount: number;
   eventView: DataView;
   eventTextView: DataView;
 }
+
+// No bespoke chain-bead row reader here: a chain-bead row on a node stream is byte-identical
+// to a ChainBead BLOCK row, so the GENERATED readChainBeadOX/OY/OZ read these rows directly. A
+// hand-rolled reader would be a second decoder for the same bytes, and would leave the
+// generated ones with no production consumer (check-no-dead-buffer-column.sh).
 
 /** Reads DstNodeRow (i32) from row `row` of a node stream frame's LayoutLink section. */
 export function readNodeStreamLayoutLinkDstNodeRow(view: DataView, row: number): number {
@@ -346,10 +351,12 @@ function decodeNodeStreamFrameUncached(buf: ArrayBuffer): DecodedNodeStreamFrame
   const labelLen           = hdr.getUint32(8,  true);
   const portNameBytesCount = hdr.getUint32(12, true);
   const layoutLinkCount    = hdr.getUint32(16, true);
+  const chainBeadCount     = hdr.getUint32(20, true);
 
   const portBytes = portCount * PORT_STRIDE;
   const layoutLinkBytes = layoutLinkCount * NODE_STREAM_LAYOUT_LINK_STRIDE;
-  const expectedLen = BUF_NODE_STREAM_FRAME_HEADER_SIZE + NODE_STRIDE + labelLen + portBytes + portNameBytesCount + layoutLinkBytes;
+  const chainBeadBytes = chainBeadCount * CHAIN_BEAD_STRIDE;
+  const expectedLen = BUF_NODE_STREAM_FRAME_HEADER_SIZE + NODE_STRIDE + labelLen + portBytes + portNameBytesCount + layoutLinkBytes + chainBeadBytes;
   if (buf.byteLength < expectedLen) return null;
 
   let off = BUF_NODE_STREAM_FRAME_HEADER_SIZE;
@@ -369,9 +376,12 @@ function decodeNodeStreamFrameUncached(buf: ArrayBuffer): DecodedNodeStreamFrame
   const layoutLinkView = new DataView(buf, off, layoutLinkBytes);
   off += layoutLinkBytes;
 
+  const chainBeadView = new DataView(buf, off, chainBeadBytes);
+  off += chainBeadBytes;
+
   const { count: eventCount, view: eventView, textView: eventTextView } = decodeTrailingEvents(buf, off);
 
-  return { tick, nodeView, label, portCount, portView, portNameBytes, layoutLinkCount, layoutLinkView, eventCount, eventView, eventTextView };
+  return { tick, nodeView, label, portCount, portView, portNameBytes, layoutLinkCount, layoutLinkView, chainBeadCount, chainBeadView, eventCount, eventView, eventTextView };
 }
 
 /** Decoded view over ONE node's dedicated per-fd INTERIOR-stream frame

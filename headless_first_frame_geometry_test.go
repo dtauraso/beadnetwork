@@ -24,7 +24,11 @@ import (
 func nodePortOffsets(nodeFrame []byte) (portOff int, portCount int) {
 	portCount = int(readU32(nodeFrame, 4))
 	labelLen := int(readU32(nodeFrame, 8))
-	const hdrSize = 20
+	// The header width comes from Buffer, never a literal: this parsing duplicates
+	// BuildNodeStreamFrame's layout, and a hardcoded copy silently reads the wrong
+	// offset the moment a header field is added (it did — adding chainBeadCount made
+	// these read the label from inside the Node row and assert on garbage bytes).
+	const hdrSize = B.BufNodeStreamFrameHeaderSize
 	portOff = hdrSize + B.BufNodeStride + labelLen
 	return
 }

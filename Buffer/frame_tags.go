@@ -92,7 +92,8 @@ const BufBlockTagInteriorStream byte = 7
 
 // BufNodeStreamFrameHeaderSize is the byte width of the leading header on one node's
 // combined per-fd frame (Buffer.BuildNodeStreamFrame), before the Node row:
-// [tick:u32][portCount:u32][labelLen:u32][portNameBytesCount:u32][layoutLinkCount:u32].
+// [tick:u32][portCount:u32][labelLen:u32][portNameBytesCount:u32][layoutLinkCount:u32]
+// [chainBeadCount:u32].
 // The rest of that frame's layout: one BufNodeStride row (LabelOff=0 into this frame's own
 // label bytes) + labelLen label bytes + portCount × BufPortStride port rows (each row's
 // NodeRow column already the global node row) + portNameBytesCount port-name bytes +
@@ -100,7 +101,7 @@ const BufBlockTagInteriorStream byte = 7
 // outbound layout-links — see buffer-decode.ts's DecodedNodeStreamFrame doc comment).
 //
 //frametag:ts=BUF_NODE_STREAM_FRAME_HEADER_SIZE
-const BufNodeStreamFrameHeaderSize = 20
+const BufNodeStreamFrameHeaderSize = 24
 
 // BufNodeStreamLayoutLinkStride is the byte width of ONE layout-link (cascade-link
 // overlay) row within a node stream frame: [DstNodeRow:i32]. Narrower than the combined
@@ -111,6 +112,14 @@ const BufNodeStreamFrameHeaderSize = 20
 //
 //frametag:ts=NODE_STREAM_LAYOUT_LINK_STRIDE
 const BufNodeStreamLayoutLinkStride = 4
+
+// NOTE: there is deliberately NO BufNodeStreamChainBeadStride here. A chain-bead row on a
+// node stream is byte-identical to a ChainBead BLOCK row, so BufChainBeadStride (generated
+// from Buffer/layout.go, and CHAIN_BEAD_STRIDE on the TS side) is the single source for both.
+// A second copy existed briefly and immediately went stale when the Lit column was added:
+// the packer allocated 12 bytes per bead and wrote 13, panicking on a slice bound. The
+// LayoutLink stride above is a genuinely DIFFERENT width from its block (no SrcNodeRow on a
+// per-node stream), which is why that one has to exist and this one must not.
 
 // BufInteriorStreamFrameHeaderSize is the byte width of the leading header on one node's
 // INTERIOR per-fd frame (Buffer.BuildInteriorStreamFrame), before the interior rows:

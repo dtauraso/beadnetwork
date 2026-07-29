@@ -25,9 +25,11 @@ and never tells Go when a bead arrived. There is no JSON-trace render path and n
 `pump.ts`; the TS layer is **render + forward only** and holds no domain state (guard:
 `tools/check-no-webview-state.sh`).
 
-The model's real entities live in [MODEL.md](MODEL.md): bead, wire (`PacedWire` — an
-ACTIVE goroutine that owns its own beads, with a channel on each end), node goroutine,
-input port, clock. The active node kinds are the structs under `nodes/<Kind>/`.
+The model's real entities live in [MODEL.md](MODEL.md): bead, wire (`PacedWire` — a
+PASSIVE delay queue holding its own in-flight beads, with a channel on each end, stepped by
+its SOURCE NODE's own goroutine — it is not a goroutine itself), node goroutine, input port,
+clock, and the node-owned chain of placeholder beads that renders a traversal
+([docs/beads-are-the-edge.md](docs/beads-are-the-edge.md)). The active node kinds are the structs under `nodes/<Kind>/`.
 
 **Drift rule:** see MODEL.md's "Drift rule" section for the full statement (guards:
 `tools/check-no-webview-state.sh`, `tools/check-no-await-on-bridge.sh`).

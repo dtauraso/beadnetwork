@@ -13,9 +13,6 @@
 //	         written via the SAME SetEdgeRow column writer buildEdgeFrame uses)
 //	EdgeLabel labelLen bytes (this edge's own label bytes — inline, not a shared section:
 //	         each edge's own stream carries its own label bytes)
-//	[beadCount:u32]
-//	Bead     beadCount × BufBeadStride bytes (SAME SetBeadRow column writer buildBeadFrame
-//	         uses), this edge's wire's own live in-flight beads only
 //
 // Injected into nodes/Wiring's MoveDispatch.SetEdgeStreams as a plain func (not a Buffer
 // import in the Wiring package — mirrors PortRowResolver/EdgeRowResolver's existing
@@ -28,26 +25,17 @@ import (
 )
 
 // BuildEdgeStreamFrame packs one edge's combined per-fd frame payload (see this file's
-// header comment for the byte layout). beadVal/beadX/beadY/beadZ are parallel slices
-// (same length, same order) describing this edge's wire's current live in-flight beads —
-// supplied by the caller (edgeMover, via PacedWire.LiveBeadRows) so this package needs no
-// dependency on nodes/Wiring's bead type.
-func BuildEdgeStreamFrame(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, beadVal []int32, beadX, beadY, beadZ []float32, events []StreamEvent) []byte {
+// header comment for the byte layout).
+//
+// There is NO bead section any more. The transit bead is not drawn: the animation is the LIT
+// bead on the SOURCE NODE's own placeholder chain (docs/beads-are-the-edge.md), which that
+// node computes and streams on its own node frame. Removing it also removed a real race —
+// the bead rows were read via PacedWire.LiveBeadRows from the EDGE goroutine, while the wire
+// is now stepped by its source node's goroutine, so that read no longer satisfied the
+// single-goroutine ownership pw.inflight requires.
+func BuildEdgeStreamFrame(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, events []StreamEvent) []byte {
 	labelBytes := []byte(label)
-	beadCount := len(beadVal)
-	// INVARIANT: the bead slices are parallel, one entry per in-flight bead (same shape as
-	// BuildNodeStreamFrame's port slices — see the reasoning there).
-	for _, s := range []struct {
-		name string
-		n    int
-	}{{"beadX", len(beadX)}, {"beadY", len(beadY)}, {"beadZ", len(beadZ)}} {
-		if s.n != beadCount {
-			panic(fmt.Sprintf(
-				"BuildEdgeStreamFrame: edge %q has %d bead values but %s has %d entries — the bead slices are parallel, one entry per bead",
-				label, beadCount, s.name, s.n))
-		}
-	}
-	size := BufEdgeStreamFrameHeaderSize + BufEdgeStride + len(labelBytes) + 4 + beadCount*BufBeadStride
+	size := BufEdgeStreamFrameHeaderSize + BufEdgeStride + len(labelBytes)
 	buf := make([]byte, size)
 	off := 0
 	binary.LittleEndian.PutUint32(buf[off:], tick)
@@ -58,13 +46,6 @@ func BuildEdgeStreamFrame(tick uint32, srcPortRow, dstPortRow int32, selected ui
 	off += BufEdgeStride
 	copy(buf[off:off+len(labelBytes)], labelBytes)
 	off += len(labelBytes)
-	binary.LittleEndian.PutUint32(buf[off:], uint32(beadCount))
-	off += 4
-	beadBuf := buf[off:]
-	for i := 0; i < beadCount; i++ {
-		SetBeadRow(beadBuf, i, beadX[i], beadY[i], beadZ[i], beadVal[i])
-	}
-	off += beadCount * BufBeadStride
 	// INVARIANT: walk ends where the size formula says — the runtime half of buffer-layout
 	// parity, same as BuildNodeStreamFrame's (see the full reasoning there).
 	if off != size {

@@ -53,15 +53,11 @@ const BufInteriorSlotsPerNode = 4
 // Each struct defines one column block. Fields are packed in declaration order.
 // The generator computes byte offsets and stride from buf: tags.
 
-// bufLayoutBead defines one row of the beads column block.
-// One row per live in-flight bead. Matched from KindEdgeBead trace events.
-type bufLayoutBead struct {
-	X     float32 `buf:"f32"` // world x position
-	Y     float32 `buf:"f32"` // world y position
-	Z     float32 `buf:"f32"` // world z position
-	Value int32   `buf:"i32"` // bead integer value
-}
-
+// The Bead block is GONE. It was one row per live in-flight bead (world X/Y/Z + Value),
+// repacked every tick as the bead moved. Nothing draws a moving bead any more: a traversal
+// is rendered as the LIT bead of a node-owned fixed chain (see bufLayoutChainBead's Lit
+// column and docs/beads-are-the-edge.md), so there is no per-tick position to carry.
+//
 // bufLayoutNode defines one row of the nodes column block.
 // One row per node. Persistent geometry. (Recv/Fire/Send/Arrive/Done events are
 // carried by the EVENT block only — see bufLayoutEvent — not by per-node columns.)
@@ -167,6 +163,38 @@ type bufLayoutNode struct {
 	// rules it summarizes (cascadeRelayClass) precisely so TS does not re-derive it from
 	// KindId and drift when a rule changes.
 	CascadeRelay uint8 `buf:"u8"` // 0 = fan, 1 = routed, 2 = terminus
+}
+
+// bufLayoutChainBead defines one row of the chain-bead column block — the node-owned
+// placeholder sequence that IS the visual of an edge (docs/beads-are-the-edge.md). One row
+// per placeholder bead on one of this node's OUTGOING edges, in that edge's order outward
+// from this node.
+//
+// OX/OY/OZ are NODE-LOCAL, exactly like the Interior block's: the offset from this node's
+// own center, with the renderer adding the center to get the world position. That is not the
+// renderer owning positions (Go owns the offsets); it is what makes moving a node constant
+// time, because the offsets do not change when the node's center does.
+//
+// A chain bead has no absolute position column ON PURPOSE. The old moving bead (bufLayoutBead
+// below) carried recomputed world X/Y/Z every tick; a chain does not move, so there is
+// nothing to recompute.
+//
+// NOTE: no bead position here depends on another bead's position. That is the line separating
+// this from the reverted bead-chain wire (memory/project_wire_is_straight_line_not_chain.md),
+// whose spacing came from neighbour midpoints and therefore followed a drag in O(N²). Each
+// offset is index × spacing along this node's own aim at the target — dependency depth 1.
+type bufLayoutChainBead struct {
+	OX float32 `buf:"f32"` // node-local offset x from this node's center
+	OY float32 `buf:"f32"` // node-local offset y
+	OZ float32 `buf:"f32"` // node-local offset z
+	// Lit is the ANIMATION: 1 marks the bead a traversal has currently reached on this
+	// chain, 0 every other bead. This replaces a bead MOVING along a wire — the chain is
+	// fixed and the lighting is what advances (docs/beads-are-the-edge.md).
+	//
+	// Go owns it: the source node drives its own outgoing wires and reads their in-flight
+	// fractional progress t on its own goroutine, then lights index = t × count. The
+	// renderer only colours what this column says.
+	Lit uint8 `buf:"u8"` // 1 = a traversal has reached this bead
 }
 
 // bufLayoutInterior defines one row of the interior-bead column block.
@@ -375,8 +403,8 @@ type bufLayoutEvent struct {
 // staticcheck. They are schema sources: the generator reads them via AST at
 // codegen time; they are not used at runtime.
 var _ = [...]any{
-	bufLayoutBead{},
 	bufLayoutNode{},
+	bufLayoutChainBead{},
 	bufLayoutInterior{},
 	bufLayoutEdge{},
 	bufLayoutLayoutLink{},

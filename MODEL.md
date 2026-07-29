@@ -9,11 +9,13 @@ frame. Stop, re-read this file, and re-derive from the model.
 ## The network
 
 The network is **nodes and wires**. Each node runs on its own Go
-goroutine, and so does each wire (`PacedWire`): the wire is an ACTIVE
-GOROUTINE with a channel on each end — a channel in from its source
-node, a channel out to its destination node. The wire goroutine owns its
-own beads (`inflight`/`delivered`) and its own geometry; nothing outside
-it locks or reaches into that state. The wire has its OWN goroutine
+goroutine. A wire (`PacedWire`) does NOT: it is a PASSIVE delay queue
+with a channel on each end — a channel in from its source node, a channel
+out to its destination node — stepped by its SOURCE NODE's own goroutine.
+The wire still owns its own beads (`inflight`/`delivered`) and its own
+geometry as data, and exactly one goroutine touches that state: the source
+node's. Nothing else locks or reaches into it. Historically the wire had
+its OWN goroutine
 (`PacedWire.run`, one per wire, launched by `Start`) — not stepped by
 another. The wire's own goroutine is the sole thing that touches `inflight`. **An input port is one wire fed by
 exactly one edge** — fan-in (several edges into one port) is not part of
@@ -35,13 +37,15 @@ the network itself is the nodes-and-wires Go runtime.
 ## What things are
 
 - **Bead.** A value in transit from a source node to a destination node.
-- **Wire (`PacedWire`).** Transport plus visual depiction. An ACTIVE
-  goroutine, not a passive struct: the source node sends a bead over the
-  wire's in-channel to place it, the wire goroutine itself times the
-  traversal on its own clock reading (each goroutine owns its own clock
-  copy — see the Clock bullet below) and, on traversal-complete, sends
-  the bead over its out-channel to the destination. There is one owner
-  of `inflight`/`delivered` and the in-flight geometry: the wire
+- **Wire (`PacedWire`).** Transport. A PASSIVE delay queue, not a
+  goroutine: the source node sends a bead over the wire's in-channel to
+  place it, and that SAME source node times the traversal on its own clock
+  reading (each goroutine owns its own clock copy — see the Clock bullet
+  below) by driving the wire each cycle, then on traversal-complete sends
+  the bead over its out-channel to the destination. The wire is no longer
+  the visual depiction either — the source node's own chain of placeholder
+  beads is (docs/beads-are-the-edge.md). There is one owner
+  of `inflight`/`delivered` and the in-flight geometry: the source node
   goroutine. Because it is the sole owner, `PacedWire.mu` does not exist
   — ownership replaces locking, the same move that removed `RealClock.mu`.
   Do not reintroduce a lock here "for safety"; a second lock on top of
@@ -57,12 +61,12 @@ the network itself is the nodes-and-wires Go runtime.
   `Buffer/layout.go` — which is a live 2x2 interior VISUAL grid position,
   slot = gridRow*2 + gridCol, for where a held bead is drawn inside a node.)
 - **Input port.** One input port is one wire, and the wire's out-channel
-  is the connection between them — the node receives whatever the wire
-  goroutine sends.
+  is the connection between them — the node receives whatever the source
+  node's drive of that wire sends.
 - **Clock (the human-speed clock).** There is exactly one clock: the system monotonic clock, read through a **scale** so it advances in integer **ticks** at human-watchable speed (`tick = ⌊(now − start) / tickPeriod⌋`; the scale is the human-speed / playback-speed knob, `MsPerTick = 16` ⇒ ≈62.5 ticks/sec). All timing is **tick counts**, not wall-clock durations. The model is **sleep-only**: a pacing loop calls `SleepCycle` to wait exactly ONE cycle and re-reads `Tick()`, rather than blocking on a target tick — there is no wait-until-tick-k primitive. The clock is **free-running**: it advances monotonically with wall time and never pauses (there is no play/pause gate). **Everything that animates runs in these ticks:** bead traveling, all in-node animations, and all node/gate processing windows. Per-update tick counts come from formulas, not literals — a bead crossing an edge takes `ticksToCross = arcLength / pulseSpeed` (pulseSpeed in world-units-per-tick, uniform across wires); node processing windows are tick counts. There is no separate render cadence — the tick IS the animation clock.
-  The wire goroutine reads its OWN clock copy and its own tick, exactly
-  like every other goroutine — there is no shared clock to pin a tick
-  against. (A caller-pinned tick parameter existed earlier so several
+  A wire is stepped with its SOURCE NODE's own clock copy and tick reading,
+  exactly like every other per-goroutine clock use — there is no shared
+  clock to pin a tick against. (A caller-pinned tick parameter existed earlier so several
   wires observed the SAME tick instead of each re-reading one shared
   clock; once every goroutine owns its own clock copy, including the
   wire, that reason for pinning is gone.)
@@ -75,16 +79,27 @@ A bead crosses a wire in one direction:
    traversal timed in ticks: `ticksToCross = arcLength / pulseSpeed`. The
    send does not block on the wire and does not wait for the destination
    — see §Sending.
-2. While in flight, the wire goroutine — reading its own clock, its own
-   tick (see the Clock bullet above) — advances the bead one position per
-   tick, keeping it in its own `inflight` set, and packs its position into
-   the content buffer for the renderer.
-3. On traversal-complete, the wire goroutine sends the bead over its
+2. While in flight, the SOURCE NODE — reading its own clock, its own tick
+   (see the Clock bullet above) — advances the bead, keeping it in the
+   wire's `inflight` set. The wire has no goroutine of its own: the source
+   node's mover drives `DriveOneCycle` for each of its outgoing wires
+   (`nodeMover.run`), so a wire is a passive delay queue its source node
+   steps.
+3. On traversal-complete, that same drive sends the bead over the wire's
    out-channel to the destination node.
 4. The destination node receives it and holds it in node-local state.
 
-The wire times its own delivery. There is no TS-driven delivery signal —
-the renderer is told where the bead is, not asked when it has arrived.
+What the RENDERER is told is not a moving position. Each node owns a chain
+of fixed placeholder beads per outgoing edge (`chainBeads`, node-local
+offsets), and the animation is which bead is LIT: the node reads its own
+wires' in-flight fraction `t` — the same `t` step 2 above advances — and
+lights `index = t × count`. The chain is the visual of a traversal; it is
+never a picture of the node-to-node channels, which are the real connection
+and are never drawn. See [docs/beads-are-the-edge.md](docs/beads-are-the-edge.md).
+
+The source node times its own delivery. There is no TS-driven delivery
+signal — the renderer is told which bead is lit, not asked when a bead has
+arrived.
 
 ## Node lifecycle
 
@@ -127,26 +142,33 @@ resolving instantaneously.
   dragged), and a longer or shorter wire still traverses at constant
   world-speed. (Preserving distance instead would let `t` jump as the arc
   length changes.)
-- Go owns the bead's PROGRESS (the fraction `t`, timed in ticks on the human-speed clock)
-  AND the bead's absolute world position — it computes the position from its own
-  live node/port endpoints (moved by the same drag) and packs the result into the
-  content buffer. The editor decodes and draws it (`readBeadX/Y/Z` from
-  `tools/topology-vscode/src/schema/buffer-layout.ts`, consumed by `tools/topology-vscode/src/webview/three/BeadInstances.tsx`); it does not
-  interpolate or own positions.
+- Go owns the bead's PROGRESS (the fraction `t`, timed in ticks on the human-speed clock).
+  It no longer computes or streams an absolute bead position: nothing draws a moving bead.
+  The source node quantises its own `t` onto its own chain and streams which bead is LIT
+  (`readChainBeadLit` from `tools/topology-vscode/src/schema/buffer-layout.ts`, consumed by
+  `tools/topology-vscode/src/webview/three/ChainBeadInstances.tsx`). The editor does not
+  interpolate, does not own positions, and does not decide which bead is lit.
 - Durations are tick counts: bead traversal (`ticksToCross`) and node processing windows.
 ## Driver
 
-**Self-scheduling node AND wire goroutines.** Each node is a goroutine,
-and each wire is ALSO a goroutine — not a passive struct another
-goroutine steps. There is no central walker, and no play/pause gate —
-the clock is free-running and the animation never halts.
+**Self-scheduling node goroutines.** Each node is a goroutine. A WIRE IS
+NOT: it is a passive delay queue, and the goroutine that steps it is its
+own SOURCE NODE's mover (`nodeMover.run` calls `DriveOneCycle` for each of
+its outgoing wires). There is still no central walker and no play/pause
+gate — the clock is free-running and the animation never halts.
 
-Each wire times its OWN delivery on its own reading of the human-speed
-clock: when its `ticksToCross` have elapsed, the wire goroutine sends the
-bead over its out-channel to the destination node, which receives it.
-Delivery is not triggered by the renderer — there is no cross-boundary
-delivery signal. The editor is told where each bead is; it is never
-asked when a bead has arrived.
+Each SOURCE NODE times its own outgoing deliveries on its own reading of
+the human-speed clock: when a bead's `ticksToCross` have elapsed, that
+drive sends it over the wire's out-channel to the destination node, which
+receives it. Delivery is not triggered by the renderer — there is no
+cross-boundary delivery signal. The editor is told which chain bead is lit;
+it is never asked when a bead has arrived.
+
+(This replaced a per-wire goroutine. There was exactly ONE place a wire was
+ever driven — `edgeMover.run` — so the change was that call moving to the
+node, not a new mechanism. Driving it there is also what lets a node read
+its own wires' in-flight fraction to light its own chain without touching
+another goroutine's state.)
 
 There is one tick clock (the human-speed clock) but no lockstep round or
 simultaneity layer: goroutines schedule independently against the shared
@@ -204,7 +226,7 @@ when a bead has arrived. Go owns the clock.
   not this filename. The tree covers: node bodies (`tools/topology-vscode/src/webview/three/NodeInstances.tsx` — sphere
   mesh + ring, keyed off `node.data.fill`/`node.data.stroke` from `NODE_DEFS`),
   ports (`tools/topology-vscode/src/webview/three/PortInstances.tsx`), edge tubes (`tools/topology-vscode/src/webview/three/EdgeTube.tsx`), transit and interior
-  beads (`tools/topology-vscode/src/webview/three/BeadInstances.tsx`, `tools/topology-vscode/src/webview/three/InteriorBeadInstances.tsx`), selection highlight
+  beads (`tools/topology-vscode/src/webview/three/ChainBeadInstances.tsx`, `tools/topology-vscode/src/webview/three/InteriorBeadInstances.tsx`), selection highlight
   (`tools/topology-vscode/src/webview/three/SelectionHighlight.tsx`), and the camera (`tools/topology-vscode/src/webview/three/BufferCamera.tsx` maps the buffer
   Camera row onto the three.js camera). Nothing in this tree owns traversal
   timing, positions, or geometry.

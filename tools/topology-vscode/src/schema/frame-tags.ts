@@ -96,14 +96,15 @@ export const BUF_BLOCK_TAG_INTERIOR_STREAM = 7;
 /**
  * BufNodeStreamFrameHeaderSize is the byte width of the leading header on one node's
  * combined per-fd frame (Buffer.BuildNodeStreamFrame), before the Node row:
- * [tick:u32][portCount:u32][labelLen:u32][portNameBytesCount:u32][layoutLinkCount:u32].
+ * [tick:u32][portCount:u32][labelLen:u32][portNameBytesCount:u32][layoutLinkCount:u32]
+ * [chainBeadCount:u32].
  * The rest of that frame's layout: one BufNodeStride row (LabelOff=0 into this frame's own
  * label bytes) + labelLen label bytes + portCount × BufPortStride port rows (each row's
  * NodeRow column already the global node row) + portNameBytesCount port-name bytes +
  * layoutLinkCount × BufNodeStreamLayoutLinkStride layout-link rows (this node's OWN
  * outbound layout-links — see buffer-decode.ts's DecodedNodeStreamFrame doc comment).
  */
-export const BUF_NODE_STREAM_FRAME_HEADER_SIZE = 20;
+export const BUF_NODE_STREAM_FRAME_HEADER_SIZE = 24;
 
 /**
  * BufNodeStreamLayoutLinkStride is the byte width of ONE layout-link (cascade-link

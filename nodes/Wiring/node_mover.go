@@ -303,6 +303,22 @@ type nodeMover struct {
 	// forwardDelta's kind-selective rule (TimeStart relaying a Pulse-origin delta routes
 	// only to Time-kind cascade neighbors). Empty in bare test construction.
 	selfKind string
+	// outTargets is THIS node's own OUTGOING edge targets (b.spec.Edges where Source ==
+	// this node), seeded once at load beside cascadeEdges (build.go) and never written
+	// again. DIRECTED, unlike cascadeEdges: it is the set of chains this node owns, and
+	// edge ownership is already directed on disk (topology/nodes/<source>/edges/, outgoing
+	// only). Read only by chainBeads on this node's own goroutine.
+	outTargets []string
+	// outWires / outWireTargets are THIS node's own outgoing wires and the target id each
+	// one goes to, parallel slices bound once at load (moverRegistry.bind) and never
+	// written again. This node's own goroutine DRIVES these wires (run, below) — there is
+	// no wire goroutine — and reads their in-flight fractions to light its own chain.
+	//
+	// outWireTargets is separate from outTargets because a spec edge may have no bound
+	// wire (an unresolved handle leaves slotReg without an entry), so the two are not
+	// index-parallel. Lighting matches by target id, not by position.
+	outWires       []*wire.PacedWire
+	outWireTargets []string
 	// cascadeKinds maps each cascadeEdges neighbor id → that neighbor's kind name,
 	// loaded once from this node's OWN cascade-edges.json (specNode.CascadeKinds,
 	// loader_tree.go) at construction (build.go's buildMoveDispatch) — never touched
@@ -354,7 +370,7 @@ type nodeMover struct {
 	// buildFrame packs this node's combined per-fd frame (node fields + ports + label)
 	// using Buffer's own row-writer columns (Buffer.BuildNodeStreamFrame), injected so
 	// this package needs no Buffer import.
-	buildFrame func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount int32, gotForwardMsg uint8, forwardDeltaA, forwardDeltaB, forwardDeltaC, forwardFromRow int32, cascadeRelay uint8, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows []int32, events []wire.RowEvent) []byte
+	buildFrame func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount int32, gotForwardMsg uint8, forwardDeltaA, forwardDeltaB, forwardDeltaC, forwardFromRow int32, cascadeRelay uint8, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows []int32, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, events []wire.RowEvent) []byte
 }
 
 func newNodeMover(id string, geom nodeGeom, tr *T.Trace, clockSrc wire.Clock) *nodeMover {
@@ -892,6 +908,10 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 			dstNodeRows = append(dstNodeRows, dstRow)
 		}
 	}
+	// This node's own placeholder chain beads, node-local (chain_beads.go). Computed here
+	// on this node's own goroutine from its own center + its own partnerCenters map — no
+	// cross-goroutine position read, same as dstNodeRows above.
+	chainOX, chainOY, chainOZ, chainLit := m.chainBeads()
 	frame := m.buildFrame(uint32(m.clk.Tick()), m.nodeRow,
 		float32(center.X), float32(center.Y), float32(center.Z),
 		float32(nodeRadius(m.geom.Kind)), float32(sphereR),
@@ -900,7 +920,7 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 		selected, kindID, hovered, latchedSel, gotDragMsg, dA, dB, dC, dReq,
 		gotFwd, fA, fB, fC, fFromRow, cascadeRelayClass(m.selfKind),
 		label, portNames, portDX, portDY, portDZ, portPX, portPY, portPZ, portIsInput, portHovered,
-		dstNodeRows, events)
+		dstNodeRows, chainOX, chainOY, chainOZ, chainLit, events)
 	var hdr [4]byte
 	binary.LittleEndian.PutUint32(hdr[:], uint32(len(frame)))
 	// Fire-and-forget, same reasoning throughout this bridge: no delivery
@@ -1013,6 +1033,14 @@ func (m *nodeMover) run(ctx context.Context) {
 			if !progressed {
 				break
 			}
+		}
+		// Drive THIS node's own outgoing wires — placement drain, position step, delivery
+		// — on this node's own goroutine and its own clock reading. This is the work
+		// edgeMover.run used to do for the wire; the wire has no goroutine of its own
+		// (docs/beads-are-the-edge.md step 3). Driving it here is also what makes
+		// LiveBeadFractions safe to read below: same goroutine, no shared state.
+		for _, pw := range m.outWires {
+			pw.DriveOneCycle(ctx, m.clk.Tick())
 		}
 		// Retry any pending sends (nm.pending/flushPending) every cycle — a
 		// destination that was full earlier may have drained since.

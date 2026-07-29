@@ -97,7 +97,7 @@ type edgeMover struct {
 	// injected so this package needs no Buffer import. events carries this goroutine's
 	// OWN row-resolved events recorded since the last flush (memory/
 	// feedback_no_single_writer_bridge.md).
-	buildFrame func(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, beadVal []int32, beadX, beadY, beadZ []float32, events []wire.RowEvent) []byte
+	buildFrame func(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, events []wire.RowEvent) []byte
 }
 
 func newEdgeMover(ep EdgeEndpoints, edgeID string, srcGeom, dstGeom nodeGeom, tr *T.Trace, clockSrc wire.Clock) *edgeMover {
@@ -269,20 +269,13 @@ func (m *edgeMover) writeStreamFrame(tick int64, events []wire.RowEvent) {
 		}
 	}
 	selected := m.selected
-	var beadVal []int32
-	var beadX, beadY, beadZ []float32
 	if m.dest != nil {
-		rows := m.dest.LiveBeadRows(tick)
-		beadVal = make([]int32, len(rows))
-		beadX = make([]float32, len(rows))
-		beadY = make([]float32, len(rows))
-		beadZ = make([]float32, len(rows))
-		for i, r := range rows {
-			beadVal[i] = int32(r.Val)
-			beadX[i] = float32(r.X)
-			beadY[i] = float32(r.Y)
-			beadZ[i] = float32(r.Z)
-		}
+		// NO live-bead read here. This runs on the EDGE goroutine, but the wire is now
+		// stepped by its SOURCE NODE's goroutine (nodeMover.run), so reading pw.inflight
+		// from here would break the single-goroutine ownership LiveBeadRows/stepAll depend
+		// on. Nothing needs it either: the transit bead is not drawn any more — the
+		// animation is the LIT bead on the source node's own chain, which that node
+		// computes on its own goroutine (docs/beads-are-the-edge.md).
 		// Drain this wire's own OWN-goroutine-recorded Position/Arrive events, resolved
 		// to rows here (srcRow/nodeRowFor — the SAME resolvers this frame's own edge
 		// columns above just used), and fold them in alongside any caller-supplied
@@ -312,7 +305,7 @@ func (m *edgeMover) writeStreamFrame(tick int64, events []wire.RowEvent) {
 			events = append(events, ev)
 		}
 	}
-	frame := m.buildFrame(uint32(tick), srcRow, dstRow, selected, m.edgeID, beadVal, beadX, beadY, beadZ, events)
+	frame := m.buildFrame(uint32(tick), srcRow, dstRow, selected, m.edgeID, events)
 	var hdr [4]byte
 	binary.LittleEndian.PutUint32(hdr[:], uint32(len(frame)))
 	// Fire-and-forget, same reasoning throughout this bridge: no delivery
@@ -388,10 +381,11 @@ func (m *edgeMover) run(ctx context.Context) {
 			}
 		}
 		if m.dest != nil {
-			m.dest.DriveOneCycle(ctx, m.clk.Tick())
-			// Beads on this wire may have moved even with no geometry change this
-			// cycle — write this edge's dedicated stream frame every cycle (no-op
-			// when streamOut is nil, the fallback path).
+			// The wire is NOT driven here any more: its DriveOneCycle now runs on the
+			// SOURCE NODE's own goroutine (nodeMover.run), which is what "the wire
+			// goroutine is removed" means concretely — docs/beads-are-the-edge.md step 3.
+			// This loop still writes the edge's own stream frame each cycle, because bead
+			// positions may have moved under the node's drive.
 			m.writeStreamFrame(m.clk.Tick(), nil)
 		}
 		if err := m.clk.SleepCycle(ctx); err != nil {

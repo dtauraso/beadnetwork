@@ -631,6 +631,43 @@ type LiveBeadRow struct {
 	Gen     uint64
 }
 
+// LiveBeadFractions returns the FRACTIONAL progress t (0..1) of every in-flight bead on
+// this wire at tick, in FIFO order — the same t advanceBead computes for the moving bead's
+// position, exposed as the scalar it always was.
+//
+// This is what the chain-bead animation needs and ALL it needs (docs/beads-are-the-edge.md):
+// a chain is a fixed sequence, so "where has this traversal got to" is one number per bead
+// in flight, not a recomputed world position. The lit bead is index = t × count.
+//
+// Same single-goroutine contract as LiveBeadRows: safe only from the goroutine that drives
+// this wire. That goroutine is now the SOURCE NODE's own mover (nodeMover.run drives its
+// outgoing wires), which is exactly why the node can light its own chain without reading
+// another goroutine's state.
+func (pw *PacedWire) LiveBeadFractions(tick int64) []float64 {
+	nowTick := float64(tick)
+	out := make([]float64, 0, len(pw.inflight))
+	for i := range pw.inflight {
+		b := &pw.inflight[i]
+		crossTicks := pw.ticksToCross(b.arc)
+		if crossTicks <= 0 {
+			continue
+		}
+		target := nowTick
+		if nowTick >= b.placementTick+crossTicks {
+			target = b.placementTick + crossTicks
+		}
+		t := (target - b.placementTick) / crossTicks
+		if t > 1 {
+			t = 1
+		}
+		if t < 0 {
+			t = 0
+		}
+		out = append(out, t)
+	}
+	return out
+}
+
 // LiveBeadRows returns every in-flight, position-streaming bead's CURRENT world position
 // at tick (this wire's own goroutine's clock reading), in FIFO order. Safe to call ONLY
 // from this wire's own goroutine (reads pw.inflight directly — same single-

@@ -49,17 +49,16 @@ func TestHeadlessEdgeFdDedicatedStream(t *testing.T) {
 		labelLenOff := edgeRowOff + B.BufEdgeStride - 4 // EdgeLabelLen is the last u32 column of the Edge row
 		labelLen := readU32(frame, labelLenOff)
 		labelStart := edgeRowOff + B.BufEdgeStride
-		if labelStart+int(labelLen)+4 > len(frame) {
-			t.Fatalf("edge row %d: label/beadCount overruns frame (labelLen=%d, frameLen=%d)", row, labelLen, len(frame))
+		if labelStart+int(labelLen) > len(frame) {
+			t.Fatalf("edge row %d: label overruns frame (labelLen=%d, frameLen=%d)", row, labelLen, len(frame))
 		}
 		label := string(frame[labelStart : labelStart+int(labelLen)])
 		if label == "" {
 			t.Fatalf("edge row %d: empty inline label", row)
 		}
-		beadCountOff := labelStart + int(labelLen)
-		beadCount := readU32(frame, beadCountOff)
-		if int(beadCount)*B.BufBeadStride+beadCountOff+4 > len(frame) {
-			t.Fatalf("edge row %d: beadCount %d overruns frame", row, beadCount)
-		}
+		// No bead section to walk: the Bead block is gone with the moving bead it carried
+		// (docs/beads-are-the-edge.md). This test still earns its keep — it proves each
+		// edge's own frame reaches its OWN dedicated fd, which is the invariant in
+		// memory/feedback_no_single_writer_bridge.md and is unchanged.
 	}
 }

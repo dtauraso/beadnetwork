@@ -30,6 +30,7 @@ import (
 //	[labelLen:u32]
 //	[portNameBytesCount:u32]
 //	[layoutLinkCount:u32]
+//	[chainBeadCount:u32]
 //	Node       BufNodeStride bytes (SAME SetNodeRow column writer buildNodeFrame uses;
 //	           LabelOff=0 into this frame's own label bytes, NodeRow-local — nodeRow is
 //	           carried separately below for the Port rows' NodeRow column)
@@ -45,6 +46,12 @@ import (
 //	           [DstNodeRow:i32], dstNodeRows a single parallel slice. The overlay draws
 //	           between the two nodes' CENTERS (Node block), never a bead edge — no
 //	           edge-row travels here.
+//	ChainBead  chainBeadCount × BufNodeStreamChainBeadStride bytes — this node's OWN
+//	           placeholder chain beads: NODE-LOCAL offsets + the Lit animation flag
+//	           ([OX,OY,OZ] f32 + [Lit] u8), concatenated
+//	           across all of this node's outgoing edges in that order. The chain is the
+//	           VISUAL of a traversal, never a picture of the node-to-node channels
+//	           (docs/beads-are-the-edge.md); nothing here identifies a channel or a message.
 func BuildNodeStreamFrame(
 	tick uint32, nodeRow int32,
 	cx, cy, cz, radius, sphereR float32,
@@ -59,6 +66,8 @@ func BuildNodeStreamFrame(
 	portDX, portDY, portDZ, portPX, portPY, portPZ []float32,
 	portIsInput, portHovered []uint8,
 	dstNodeRows []int32,
+	chainBeadOX, chainBeadOY, chainBeadOZ []float32,
+	chainBeadLit []uint8,
 	events []StreamEvent,
 ) []byte {
 	labelBytes := []byte(label)
@@ -91,9 +100,23 @@ func BuildNodeStreamFrame(
 		portNameBytes = append(portNameBytes, nb...)
 	}
 	layoutLinkCount := len(dstNodeRows)
+	chainBeadCount := len(chainBeadOX)
+	// INVARIANT: the three chain-bead slices are PARALLEL, one entry per bead, same order —
+	// same reasoning as the port slices above (a short slice is an opaque index panic naming
+	// no node; a long one is silently dropped).
+	for _, s := range []struct {
+		name string
+		n    int
+	}{{"chainBeadOY", len(chainBeadOY)}, {"chainBeadOZ", len(chainBeadOZ)}, {"chainBeadLit", len(chainBeadLit)}} {
+		if s.n != chainBeadCount {
+			panic(fmt.Sprintf(
+				"BuildNodeStreamFrame: node row %d has %d chain-bead OX entries but %s has %d — the chain-bead slices are parallel, one entry per bead",
+				nodeRow, chainBeadCount, s.name, s.n))
+		}
+	}
 
 	size := BufNodeStreamFrameHeaderSize + BufNodeStride + len(labelBytes) + portCount*BufPortStride + len(portNameBytes) +
-		layoutLinkCount*BufNodeStreamLayoutLinkStride
+		layoutLinkCount*BufNodeStreamLayoutLinkStride + chainBeadCount*BufChainBeadStride
 	buf := make([]byte, size)
 	off := 0
 	binary.LittleEndian.PutUint32(buf[off:], tick)
@@ -105,6 +128,8 @@ func BuildNodeStreamFrame(
 	binary.LittleEndian.PutUint32(buf[off:], uint32(len(portNameBytes)))
 	off += 4
 	binary.LittleEndian.PutUint32(buf[off:], uint32(layoutLinkCount))
+	off += 4
+	binary.LittleEndian.PutUint32(buf[off:], uint32(chainBeadCount))
 	off += 4
 
 	SetNodeRow(buf[off:off+BufNodeStride], 0, cx, cy, cz, radius, sphereR, vrx, vry, vrz, frx, fry, frz,
@@ -131,6 +156,12 @@ func BuildNodeStreamFrame(
 		binary.LittleEndian.PutUint32(buf[rowOff:], uint32(dstNodeRows[i]))
 	}
 	off += layoutLinkCount * BufNodeStreamLayoutLinkStride
+
+	for i := 0; i < chainBeadCount; i++ {
+		rowOff := off + i*BufChainBeadStride
+		SetChainBeadRow(buf[rowOff:rowOff+BufChainBeadStride], 0, chainBeadOX[i], chainBeadOY[i], chainBeadOZ[i], chainBeadLit[i])
+	}
+	off += chainBeadCount * BufChainBeadStride
 
 	// INVARIANT: the walk that WRITES the frame ends exactly where the `size` formula that
 	// ALLOCATED it says it should. This is the runtime half of buffer-layout parity —
