@@ -77,6 +77,22 @@ readonly DEAD_COMMENT_TOKENS=(
   # over geometry — there is no counterpart to mirror. Ban the specific false claim
   # (not bare "geometry-helpers.ts", which is a real screen-coord file still referenced).
   "Go mirror of the port-to-port segment geometry"
+  # stale-audit round (2026-07-28): reflectBuild/reflectPorts were DELETED when every kind
+  # moved to Wiring.RegisterBuilder (build_args.go). A comment saying they still do
+  # something re-teaches a runtime reflection pipeline that no longer exists.
+  #
+  # NOTE: bare "reflectBuild" and "reflectPorts" are intentionally NOT guarded — the same
+  # judgement as "fd 3" above. Most surviving mentions are deliberate PAST-TENSE contrast
+  # ("Every assignment below was previously performed by Wiring.reflectBuild... a rename now
+  # fails to compile", nodes/*/node.go init blocks; "This file used to hold the CENTRAL
+  # REFLECTION BUILD PIPELINE", builders.go; "registry.go — RETIRED", wire/registry.go).
+  # That is the rationale record for why kinds construct themselves, and banning the bare
+  # token would delete the answer to "why is it this way". Only PRESENT-TENSE claims that
+  # the mechanism is live are banned, so this list grows one phrasing at a time.
+  "discovered by reflectPorts"
+  "derived by reflectPorts"
+  "filled in by reflectBuild"
+  "injected by reflectBuild"
   # stale-audit round (2026-07-28): WindowAndInhibit*Gate is retired vocabulary; the live
   # kinds are SelectRight/SelectLeft (memory/project_node_color_vocab.md). gate.go's
   # RunGate/RunGateAccept doc comments called it a "window-and-inhibit gate loop", which

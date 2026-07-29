@@ -72,15 +72,20 @@ column-by-column. This is a deliberate, working anti-drift mechanism, not accide
 duplication — do not propose replacing it with something "less duplicated" unless the
 replacement preserves the single-string-equality-check property.
 
-## 5. `wire.KindRegistry` is init-only self-registration, not shared mutable state
+## 5. `Wiring.Registry` is init-only self-registration, not shared mutable state
 
-`nodes/wire/registry.go:11` declares `var KindRegistry = map[string]func() any{}` at
-package level. This looks like a shared mutable map but is not a concurrency hazard: the
-only writer is `wire.Register`, called exactly once per node package from that package's
-own `init()`, and it panics on a duplicate key
-(`nodes/wire/registry.go` — "panics if kind is already registered"). All writes happen
-before `main` runs and before any goroutine starts; after that it is read-only. Do not
-report this as a `sync`-free shared-state violation.
+`Wiring.Registry` is a package-level map. This looks like a shared mutable map but is not a
+concurrency hazard: the only writer is `Wiring.RegisterBuilder`
+(`nodes/Wiring/build_args.go`), called exactly once per node package from that package's own
+`init()`, and it panics on a duplicate key. All writes happen before `main` runs and before
+any goroutine starts; after that it is read-only. Do not report this as a `sync`-free
+shared-state violation.
+
+(Superseded detail, kept because older commits and docs still name it: this used to be
+`wire.KindRegistry` written by `wire.Register`, holding `func() any` constructors that
+returned EMPTY structs for the central reflection pipeline to fill in. Both are gone —
+`nodes/wire/registry.go` is now only a retirement note. The init-only property is unchanged;
+only the writer's name and what it stores changed.)
 
 ## 6. Package-level var maps in `nodes/Wiring` are read-only dispatch tables
 
