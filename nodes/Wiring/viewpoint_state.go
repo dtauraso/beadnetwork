@@ -19,7 +19,7 @@ import (
 type viewpointState struct {
 	viewpoint
 	// persist, when non-nil, is called with the current viewpoint after every EmitViewpoint
-	// so a gesture-driven change is persisted to scene.json. nil until armed by
+	// so a gesture-driven change is persisted to camera.json. nil until armed by
 	// MoveDispatch.EnableViewpointPersist (after the startup seed), so the seed's own emit
 	// does not write. Owned by MoveDispatch; the debounce/write live in the persister.
 	persist func(viewpoint)

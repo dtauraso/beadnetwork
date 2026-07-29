@@ -94,7 +94,7 @@ func (p *overlaysPersister) schedule(ov overlayState) {
 	}
 }
 
-// sceneOverlaysFile is the subset of scene.json the overlay loader reads. Pointer fields
+// sceneOverlaysFile is the on-disk shape of overlays.json the overlay loader reads. Pointer fields
 // distinguish an ABSENT key (keep the code default) from a present false/true — the writer
 // omits any key at its default, so absence must not be read as false. Key names + polarity
 // mirror writeSceneOverlays (setVisible / setHidden) exactly.

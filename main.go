@@ -251,7 +251,7 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 	}
 
 	// Initial camera viewpoint = FILE DATA. Go reads the saved camera from
-	// <topologyPath>/view/scene.json itself and installs it into the gesture-FSM viewpoint,
+	// <topologyPath>/view/camera.json itself and installs it into the gesture-FSM viewpoint,
 	// so the buffer camera columns carry a real, non-degenerate saved pose from the first
 	// frame (pan works immediately). Absent/malformed file → a fixed non-degenerate default.
 	//

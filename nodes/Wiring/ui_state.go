@@ -21,7 +21,7 @@ import (
 // (sceneSphere, vp, ov, gest, sel below) for its own history/reasoning.
 type uiState struct {
 	// sceneSphere is the first-class scene reference every node's SCENE polar is measured
-	// about (polar-model.md, sphere_layout.go). Loaded from scene.json (or defaulted from
+	// about (polar-model.md, sphere_layout.go). Loaded from sphere.json (or defaulted from
 	// the content-fit) at startup; its Center is the one cartesian anchor. Phase 1 stores
 	// it; later phases derive node world from it and move it on pan.
 	sceneSphere sceneSphere
