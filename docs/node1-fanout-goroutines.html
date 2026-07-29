@@ -4,311 +4,283 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-  node1-fanout-goroutines.html — which goroutines run node 1's fan-out (edges 1->2 and
-  1->3), and why the two bead animations start a consistent ONE TICK apart.
+  node1-fanout-goroutines.html — ARCHITECTURE of node 1's fan-out (edges 1->2 and 1->3):
+  which goroutine owns which state, and which dedicated channel or stream crosses between
+  them. Sibling of concurrency-map.html. Standalone: no build step, no external assets.
 
-  Sibling of concurrency-map.html. Standalone: no build step, no external assets, opens
-  straight from disk. Both colour themes come from prefers-color-scheme.
+  This replaced a runtime timing chart of the same subject. The timing view showed one
+  interleaving; the structure is what explains it, and stays true across interleavings.
 
-  The fault it documents is live as of this commit: placementTick is stamped when a wire is
-  DRAINED, not when the node SENDS. That was correct while every wire had its own goroutine;
-  it stopped being correct when the wire goroutine was removed and node 1's own mover took
-  over draining both of its wires. See section 04 for the fix, and nodes/wire/paced_wire.go's
-  placeRequest comment for the stale rationale.
+  The structural point: a wire is passive state with no goroutine, so the SOURCE node's
+  mover steps both wires' inflight. That leaves one piece of state with a split owner —
+  a bead's placementTick is DECIDED by the Input kind goroutine and WRITTEN by the mover,
+  whenever it next drains that wire. Everything else on the page is written by the
+  goroutine that decides it. See the seam section; nodes/wire/paced_wire.go's placeRequest
+  comment still carries the pre-removal rationale for the split.
 -->
-<title>Node 1's goroutines and the one-tick offset</title>
+<title>Node 1 fan-out — architecture</title>
 <style>
   :root {
-    --ink: #0e1518;
-    --paper: #eef2f1;
-    --bg: var(--paper);
-    --fg: var(--ink);
-    --muted: #5d7278;
-    --rule: #c9d4d3;
-    --panel: #ffffff;
-    --panel-2: #e4ebe9;
-    --chan-a: #12867f;
-    --chan-b: #c4562c;
-    --fault: #a8750c;
-    --fault-bg: #f7e9c6;
-    --idle: #d3dcdb;
+    --bg: #eef2f1; --fg: #0e1518; --muted: #5d7278; --rule: #c2cfce;
+    --panel: #ffffff; --panel-2: #e6ecea; --sunken: #dde5e3;
+    --chan-a: #12867f; --chan-b: #c4562c; --fault: #9a6a06; --fault-bg: #f8ecca;
+    --owner: #2f4f57;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #0e1518;
-      --fg: #e3ecea;
-      --muted: #8fa4a8;
-      --rule: #24343a;
-      --panel: #141f23;
-      --panel-2: #1b282d;
-      --chan-a: #49c5bd;
-      --chan-b: #e8845c;
-      --fault: #f4c25a;
-      --fault-bg: #3a2f14;
-      --idle: #223036;
+      --bg: #0e1518; --fg: #e3ecea; --muted: #8fa4a8; --rule: #26363c;
+      --panel: #141f23; --panel-2: #1b282d; --sunken: #0b1114;
+      --chan-a: #49c5bd; --chan-b: #e8845c; --fault: #f4c25a; --fault-bg: #3a2f14;
+      --owner: #9fb8bd;
     }
   }
   :root[data-theme="dark"] {
-    --bg: #0e1518;
-    --fg: #e3ecea;
-    --muted: #8fa4a8;
-    --rule: #24343a;
-    --panel: #141f23;
-    --panel-2: #1b282d;
-    --chan-a: #49c5bd;
-    --chan-b: #e8845c;
-    --fault: #f4c25a;
-    --fault-bg: #3a2f14;
-    --idle: #223036;
+    --bg: #0e1518; --fg: #e3ecea; --muted: #8fa4a8; --rule: #26363c;
+    --panel: #141f23; --panel-2: #1b282d; --sunken: #0b1114;
+    --chan-a: #49c5bd; --chan-b: #e8845c; --fault: #f4c25a; --fault-bg: #3a2f14;
+    --owner: #9fb8bd;
   }
   :root[data-theme="light"] {
-    --bg: #eef2f1;
-    --fg: #0e1518;
-    --muted: #5d7278;
-    --rule: #c9d4d3;
-    --panel: #ffffff;
-    --panel-2: #e4ebe9;
-    --chan-a: #12867f;
-    --chan-b: #c4562c;
-    --fault: #a8750c;
-    --fault-bg: #f7e9c6;
-    --idle: #d3dcdb;
+    --bg: #eef2f1; --fg: #0e1518; --muted: #5d7278; --rule: #c2cfce;
+    --panel: #ffffff; --panel-2: #e6ecea; --sunken: #dde5e3;
+    --chan-a: #12867f; --chan-b: #c4562c; --fault: #9a6a06; --fault-bg: #f8ecca;
+    --owner: #2f4f57;
   }
 
   body {
-    background: var(--bg);
-    color: var(--fg);
-    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-    line-height: 1.6;
-    margin: 0;
-    padding: 3rem 1.5rem 5rem;
+    background: var(--bg); color: var(--fg); margin: 0; padding: 3rem 1.5rem 5rem;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif; line-height: 1.6;
   }
-  .wrap { max-width: 63rem; margin: 0 auto; display: flex; flex-direction: column; gap: 3.25rem; }
-  h1, h2, h3 { text-wrap: balance; margin: 0; line-height: 1.2; }
-  h1 { font-size: clamp(1.6rem, 3.6vw, 2.4rem); letter-spacing: -0.02em; font-weight: 620; }
-  h2 { font-size: 1.15rem; font-weight: 600; }
-  h3 { font-size: 0.95rem; font-weight: 600; }
-  p { margin: 0; max-width: 62ch; }
-  code, .mono, th, td, .tick-no {
-    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
-    font-variant-numeric: tabular-nums;
-  }
-  code { font-size: 0.88em; background: var(--panel-2); padding: 0.1em 0.35em; border-radius: 3px; }
+  .wrap { max-width: 70rem; margin: 0 auto; display: flex; flex-direction: column; gap: 3rem; }
+  h1, h2 { margin: 0; line-height: 1.2; text-wrap: balance; }
+  h1 { font-size: clamp(1.55rem, 3.4vw, 2.25rem); font-weight: 620; letter-spacing: -0.02em; }
+  h2 { font-size: 1.1rem; font-weight: 600; }
+  p { margin: 0; max-width: 64ch; }
+  .lede { color: var(--muted); font-size: 1.03rem; }
   .eyebrow {
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em;
-    color: var(--muted); margin: 0;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.13em; color: var(--muted); margin: 0;
   }
+  code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-variant-numeric: tabular-nums; }
+  code { font-size: 0.87em; background: var(--panel-2); padding: 0.1em 0.34em; border-radius: 3px; }
   section { display: flex; flex-direction: column; gap: 1rem; }
-  .lede { font-size: 1.05rem; color: var(--muted); max-width: 60ch; }
-
-  /* ── ownership table ── */
-  .tbl-scroll { overflow-x: auto; }
-  table { border-collapse: collapse; width: 100%; min-width: 40rem; font-size: 0.85rem; }
-  th, td { text-align: left; padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
-  th { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.09em; color: var(--muted); font-weight: 600; }
-  td.what { font-family: system-ui, sans-serif; color: var(--muted); }
-  .swatch { display: inline-block; width: 0.6rem; height: 0.6rem; border-radius: 50%; margin-right: 0.45rem; vertical-align: baseline; }
-  .sw-a { background: var(--chan-a); }
-  .sw-b { background: var(--chan-b); }
-  .sw-n { background: var(--fg); }
-  .sw-x { background: var(--idle); border: 1px solid var(--rule); }
-  tr.passive td:first-child { color: var(--muted); }
-
-  /* ── timing chart ── */
-  .chart { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 1.25rem; overflow-x: auto; }
-  .grid { min-width: 46rem; display: grid; grid-template-columns: 11rem repeat(4, 1fr); gap: 0; }
-  .grid > * { padding: 0; }
-  .hdr {
-    font-family: ui-monospace, Menlo, monospace; font-size: 0.72rem; color: var(--muted);
-    text-transform: uppercase; letter-spacing: 0.09em; padding-bottom: 0.5rem;
-  }
-  .tick-no {
-    font-size: 0.72rem; color: var(--muted); padding-bottom: 0.5rem;
-    border-left: 1px solid var(--rule); padding-left: 0.5rem;
-  }
-  .rowlab { font-size: 0.78rem; padding: 0.5rem 0.75rem 0.5rem 0; display: flex; align-items: center; gap: 0.4rem; }
-  .cell { border-left: 1px solid var(--rule); padding: 0.5rem; min-height: 2.6rem; display: flex; flex-direction: column; gap: 0.25rem; justify-content: center; }
-  .op {
-    font-family: ui-monospace, Menlo, monospace; font-size: 0.68rem;
-    padding: 0.18rem 0.4rem; border-radius: 3px; white-space: nowrap;
-  }
-  .op-a { background: color-mix(in srgb, var(--chan-a) 20%, transparent); color: var(--chan-a); border: 1px solid color-mix(in srgb, var(--chan-a) 45%, transparent); }
-  .op-b { background: color-mix(in srgb, var(--chan-b) 20%, transparent); color: var(--chan-b); border: 1px solid color-mix(in srgb, var(--chan-b) 45%, transparent); }
-  .op-idle { color: var(--muted); border: 1px dashed var(--rule); }
-  .op-fault { background: var(--fault-bg); color: var(--fault); border: 1px solid color-mix(in srgb, var(--fault) 55%, transparent); font-weight: 600; }
-  .band { grid-column: 1 / -1; border-top: 1px solid var(--rule); }
-  .note { font-size: 0.8rem; color: var(--muted); max-width: 62ch; }
-
-  /* ── the slice callout ── */
-  .fault-box {
-    border: 1px solid color-mix(in srgb, var(--fault) 50%, transparent);
-    background: var(--fault-bg);
-    border-radius: 6px; padding: 1rem 1.15rem;
-    display: flex; flex-direction: column; gap: 0.5rem;
-  }
-  .fault-box .eyebrow { color: var(--fault); }
-  .fault-box p { color: var(--fg); font-size: 0.9rem; }
-
-  ol.seq { margin: 0; padding-left: 1.4rem; display: flex; flex-direction: column; gap: 0.45rem; font-size: 0.88rem; max-width: 62ch; }
-  ol.seq code { font-size: 0.85em; }
-  .legend { display: flex; flex-wrap: wrap; gap: 1.1rem; font-size: 0.78rem; color: var(--muted); }
-  .legend span { display: flex; align-items: center; gap: 0.4rem; }
   hr { border: 0; border-top: 1px solid var(--rule); margin: 0; }
+  .note { font-size: 0.82rem; color: var(--muted); max-width: 64ch; }
+
+  /* ── the map ── */
+  .map-scroll { overflow-x: auto; background: var(--sunken); border: 1px solid var(--rule); border-radius: 8px; padding: 1.5rem; }
+  .map { min-width: 58rem; display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; align-items: start; gap: 0 0.75rem; }
+
+  /* a goroutine = solid box with a corner tag. passive state = dashed. */
+  .g {
+    background: var(--panel); border: 1.5px solid var(--owner); border-radius: 5px;
+    padding: 0.7rem 0.8rem; display: flex; flex-direction: column; gap: 0.45rem;
+    position: relative;
+  }
+  .g + .g { margin-top: 0.75rem; }
+  .g-tag {
+    position: absolute; top: -0.55rem; left: 0.6rem; background: var(--panel);
+    font-family: ui-monospace, Menlo, monospace; font-size: 0.6rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--owner); padding: 0 0.3rem;
+  }
+  .g-name { font-family: ui-monospace, Menlo, monospace; font-size: 0.82rem; font-weight: 600; }
+  .g-owns { font-size: 0.75rem; color: var(--muted); display: flex; flex-direction: column; gap: 0.15rem; }
+  .g-owns b { color: var(--fg); font-weight: 600; font-family: ui-monospace, Menlo, monospace; font-size: 0.94em; }
+
+  .passive {
+    background: transparent; border: 1.5px dashed var(--rule); border-radius: 5px;
+    padding: 0.7rem 0.8rem; display: flex; flex-direction: column; gap: 0.4rem; position: relative;
+  }
+  .passive .g-tag { background: var(--sunken); color: var(--muted); }
+  .wire-a { border-color: color-mix(in srgb, var(--chan-a) 60%, transparent); }
+  .wire-b { border-color: color-mix(in srgb, var(--chan-b) 60%, transparent); }
+  .wire-a .g-name { color: var(--chan-a); }
+  .wire-b .g-name { color: var(--chan-b); }
+  .queue { display: flex; align-items: center; gap: 0.3rem; font-family: ui-monospace, Menlo, monospace; font-size: 0.66rem; color: var(--muted); }
+  .slot { width: 0.85rem; height: 0.85rem; border: 1px solid var(--rule); border-radius: 2px; }
+  .slot.full-a { background: var(--chan-a); border-color: var(--chan-a); }
+  .slot.full-b { background: var(--chan-b); border-color: var(--chan-b); }
+
+  .colhead {
+    font-family: ui-monospace, Menlo, monospace; font-size: 0.66rem; text-transform: uppercase;
+    letter-spacing: 0.11em; color: var(--muted); padding-bottom: 0.9rem;
+  }
+  .arrow { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; padding-top: 2.6rem; }
+  .arrow .lbl { font-family: ui-monospace, Menlo, monospace; font-size: 0.63rem; color: var(--muted); white-space: nowrap; }
+  .arrow .ln { font-size: 1rem; line-height: 1; color: var(--muted); }
+  .a-col { color: var(--chan-a); }
+  .b-col { color: var(--chan-b); }
+  .stack { display: flex; flex-direction: column; }
+  .spacer { height: 1.6rem; }
+
+  /* drive relationship — the thing that changed */
+  .drive {
+    grid-column: 1 / -1; margin-top: 1.1rem; padding: 0.7rem 0.85rem;
+    border: 1.5px solid var(--fault); border-radius: 5px; background: var(--fault-bg);
+    font-size: 0.82rem; display: flex; flex-direction: column; gap: 0.3rem;
+  }
+  .drive b { font-family: ui-monospace, Menlo, monospace; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 1.25rem; font-size: 0.76rem; color: var(--muted); }
+  .legend span { display: flex; align-items: center; gap: 0.45rem; }
+  .key { width: 1.4rem; height: 0.85rem; border-radius: 3px; }
+  .key-g { border: 1.5px solid var(--owner); background: var(--panel); }
+  .key-p { border: 1.5px dashed var(--rule); }
+
+  .tbl-scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; min-width: 42rem; font-size: 0.84rem; }
+  th, td { text-align: left; padding: 0.55rem 0.7rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.09em; color: var(--muted); font-weight: 600; }
+  td.c1 { font-family: ui-monospace, Menlo, monospace; white-space: nowrap; }
+  td.c3 { color: var(--muted); }
 </style>
 </head>
 <body>
 <div class="wrap">
 
-  <header style="display:flex; flex-direction:column; gap:0.75rem;">
-    <p class="eyebrow">wirefold · node 1 fan-out · 1&rarr;2 and 1&rarr;3</p>
-    <h1>Two loops, not one: where the consistent one-tick offset comes from</h1>
-    <p class="lede">Node 1 places both beads in a single cycle. They still start one tick apart, every time, because a bead's start time is stamped when its wire is <em>drained</em> — and a different goroutine does the draining.</p>
+  <header style="display:flex; flex-direction:column; gap:0.7rem;">
+    <p class="eyebrow">wirefold · architecture · node 1 fan-out</p>
+    <h1>Who owns what, and which channels cross between them</h1>
+    <p class="lede">Node 1 fans out to nodes 2 and 3. Every box below is either a goroutine that owns state, or state that has no goroutine of its own. Nothing is shared: each arrow is a dedicated channel or a dedicated stream.</p>
   </header>
 
   <section>
-    <p class="eyebrow">01 · who is running</p>
-    <h2>Six goroutines touch this fan-out. The two wires are not among them.</h2>
-    <p>Since the wire goroutine was removed, a <code>PacedWire</code> is a passive queue. Node 1's own mover steps both of its outgoing wires.</p>
-    <div class="tbl-scroll">
-      <table>
-        <thead>
-          <tr><th>Goroutine</th><th>Cycle work</th><th>Owns</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="mono"><span class="swatch sw-n"></span>node 1 &mdash; Input kind</td>
-            <td class="what"><code>broadcastPlace</code>: <code>Send</code> on ToTime, then <code>Send</code> on ToExcitatory</td>
-            <td class="what">when a bead is emitted</td>
-          </tr>
-          <tr>
-            <td class="mono"><span class="swatch sw-n"></span>node 1 &mdash; nodeMover</td>
-            <td class="what">drain inbox &rarr; drive wire 1&rarr;2 &rarr; drive wire 1&rarr;3 &rarr; write node frame</td>
-            <td class="what">both wires' <code>inflight</code>, both chains' lit bead</td>
-          </tr>
-          <tr class="passive">
-            <td class="mono"><span class="swatch sw-x"></span>PacedWire 1&rarr;2</td>
-            <td class="what">none &mdash; passive queue</td>
-            <td class="what">its own beads, stepped by node 1's mover</td>
-          </tr>
-          <tr class="passive">
-            <td class="mono"><span class="swatch sw-x"></span>PacedWire 1&rarr;3</td>
-            <td class="what">none &mdash; passive queue</td>
-            <td class="what">its own beads, stepped by node 1's mover</td>
-          </tr>
-          <tr>
-            <td class="mono"><span class="swatch sw-a"></span>edgeMover 1&rarr;2</td>
-            <td class="what">anchor messages, write edge frame</td>
-            <td class="what">edge 1&rarr;2's stream (no longer its wire)</td>
-          </tr>
-          <tr>
-            <td class="mono"><span class="swatch sw-b"></span>edgeMover 1&rarr;3</td>
-            <td class="what">anchor messages, write edge frame</td>
-            <td class="what">edge 1&rarr;3's stream (no longer its wire)</td>
-          </tr>
-          <tr>
-            <td class="mono"><span class="swatch sw-a"></span>node 2 &mdash; Time kind</td>
-            <td class="what"><code>PollRecv</code> at delivery</td>
-            <td class="what">the arrived bead</td>
-          </tr>
-          <tr>
-            <td class="mono"><span class="swatch sw-b"></span>node 3 &mdash; PulseLeft kind</td>
-            <td class="what"><code>PollRecv</code> at delivery</td>
-            <td class="what">the arrived bead</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="note">Only the first two matter for the offset. The edge movers write frames; they stopped driving wires when the wire goroutine went away.</p>
-  </section>
+    <div class="map-scroll">
+      <div class="map">
+        <div class="colhead">node 1</div>
+        <div class="colhead"></div>
+        <div class="colhead">wires &mdash; no goroutine</div>
+        <div class="colhead"></div>
+        <div class="colhead">destinations</div>
 
-  <hr>
-
-  <section>
-    <p class="eyebrow">02 · the interleaving</p>
-    <h2>The mover's pass lands between the two sends</h2>
-    <p>Both goroutines sleep exactly one cycle, so their phase offset is stable. The mover walks its wires in a fixed order. Wire 1&rarr;3 is therefore drained <em>just before</em> its bead arrives — the same wire, every cycle.</p>
-
-    <div class="chart">
-      <div class="grid">
-        <div class="hdr">goroutine</div>
-        <div class="tick-no">tick T</div>
-        <div class="tick-no">tick T</div>
-        <div class="tick-no">tick T+1</div>
-        <div class="tick-no">tick T+1</div>
-
-        <div class="rowlab"><span class="swatch sw-n"></span>node 1 &mdash; Input kind</div>
-        <div class="cell"><span class="op op-a">Send &rarr; 1&rarr;2</span></div>
-        <div class="cell"><span class="op op-b">Send &rarr; 1&rarr;3</span></div>
-        <div class="cell"><span class="op op-idle">sleep</span></div>
-        <div class="cell"><span class="op op-idle">sleep</span></div>
-
-        <div class="band"></div>
-
-        <div class="rowlab"><span class="swatch sw-n"></span>node 1 &mdash; nodeMover</div>
-        <div class="cell"><span class="op op-idle">&mdash;</span></div>
-        <div class="cell">
-          <span class="op op-a">drain 1&rarr;2 &rarr; bead A, tick T</span>
-          <span class="op op-fault">drain 1&rarr;3 &rarr; empty</span>
+        <!-- col 1: node 1's two goroutines -->
+        <div class="stack">
+          <div class="g">
+            <span class="g-tag">goroutine</span>
+            <span class="g-name">Input kind &mdash; run</span>
+            <span class="g-owns">
+              <span>decides when a bead is emitted</span>
+              <span>owns <b>Out</b> ports: ToTime, ToExcitatory</span>
+            </span>
+          </div>
+          <div class="g">
+            <span class="g-tag">goroutine</span>
+            <span class="g-name">nodeMover &mdash; run</span>
+            <span class="g-owns">
+              <span>owns <b>center</b>, <b>localPolars</b>, <b>partnerCenters</b></span>
+              <span>owns both chains' <b>ChainBead</b> rows + lit index</span>
+              <span>steps both wires' <b>inflight</b></span>
+            </span>
+          </div>
         </div>
-        <div class="cell"><span class="op op-idle">&mdash;</span></div>
-        <div class="cell"><span class="op op-b">drain 1&rarr;3 &rarr; bead B, tick T+1</span></div>
 
-        <div class="band"></div>
+        <!-- arrows col 1 -> wires -->
+        <div class="stack">
+          <div class="arrow">
+            <span class="lbl a-col">Send &rarr; inCh</span>
+            <span class="ln a-col">&#9654;</span>
+            <span class="lbl b-col">Send &rarr; inCh</span>
+            <span class="ln b-col">&#9654;</span>
+          </div>
+        </div>
 
-        <div class="rowlab"><span class="swatch sw-a"></span>chain 1&rarr;2 lights</div>
-        <div class="cell"><span class="op op-idle">&mdash;</span></div>
-        <div class="cell"><span class="op op-a">bead 0 lit</span></div>
-        <div class="cell"><span class="op op-a">bead 1 lit</span></div>
-        <div class="cell"><span class="op op-a">bead 1 lit</span></div>
+        <!-- col 3: the two passive wires -->
+        <div class="stack">
+          <div class="passive wire-a">
+            <span class="g-tag">passive state</span>
+            <span class="g-name">PacedWire 1&rarr;2</span>
+            <div class="queue"><span>inCh</span><span class="slot full-a"></span><span class="slot"></span><span class="slot"></span></div>
+            <span class="g-owns"><span>holds <b>inflight</b>, <b>delivered</b>, arc geometry</span></span>
+          </div>
+          <div class="passive wire-b">
+            <span class="g-tag">passive state</span>
+            <span class="g-name">PacedWire 1&rarr;3</span>
+            <div class="queue"><span>inCh</span><span class="slot full-b"></span><span class="slot"></span><span class="slot"></span></div>
+            <span class="g-owns"><span>holds <b>inflight</b>, <b>delivered</b>, arc geometry</span></span>
+          </div>
+        </div>
 
-        <div class="band"></div>
+        <!-- arrows wires -> destinations -->
+        <div class="stack">
+          <div class="arrow">
+            <span class="lbl a-col">outCh &rarr; In</span>
+            <span class="ln a-col">&#9654;</span>
+            <span class="lbl b-col">outCh &rarr; In</span>
+            <span class="ln b-col">&#9654;</span>
+          </div>
+        </div>
 
-        <div class="rowlab"><span class="swatch sw-b"></span>chain 1&rarr;3 lights</div>
-        <div class="cell"><span class="op op-idle">&mdash;</span></div>
-        <div class="cell"><span class="op op-idle">nothing lit</span></div>
-        <div class="cell"><span class="op op-idle">&mdash;</span></div>
-        <div class="cell"><span class="op op-b">bead 0 lit</span></div>
+        <!-- col 5: destination goroutines -->
+        <div class="stack">
+          <div class="g">
+            <span class="g-tag">goroutine</span>
+            <span class="g-name">node 2 &mdash; Time kind</span>
+            <span class="g-owns"><span>owns <b>In</b> FromPrevTimeNode, and the bead once received</span></span>
+          </div>
+          <div class="g">
+            <span class="g-tag">goroutine</span>
+            <span class="g-name">node 3 &mdash; PulseLeft kind</span>
+            <span class="g-owns"><span>owns <b>In</b> FromInput, and the bead once received</span></span>
+          </div>
+        </div>
+
+        <div class="drive">
+          <span><b>nodeMover</b> reaches ACROSS this diagram: it steps the <code>inflight</code> of both wires, because a wire has no goroutine to step itself.</span>
+          <span>That is the structural change behind the one-tick offset. The <em>Input kind</em> goroutine decides a bead exists; a <em>different</em> goroutine decides what time it started, when it next drains that wire.</span>
+        </div>
       </div>
     </div>
 
     <div class="legend">
-      <span><span class="swatch sw-a"></span>edge 1&rarr;2 / wire A</span>
-      <span><span class="swatch sw-b"></span>edge 1&rarr;3 / wire B</span>
-      <span><span class="swatch sw-n"></span>node 1's own goroutines</span>
-      <span><span class="swatch sw-x"></span>passive, no goroutine</span>
+      <span><span class="key key-g"></span>goroutine — owns state, single writer</span>
+      <span><span class="key key-p"></span>state with no goroutine of its own</span>
+      <span><span class="ln a-col">&#9654;</span> dedicated channel, one direction</span>
     </div>
-
-    <div class="fault-box">
-      <p class="eyebrow">the slice</p>
-      <p><strong>Wire 1&rarr;3 is drained one instruction too early.</strong> Its bead is already on the way from the Input goroutine, but has not landed on <code>inCh</code> yet, so the drain finds an empty queue and moves on. The bead waits a full cycle and is stamped <code>T+1</code>.</p>
-    </div>
-
-    <ol class="seq">
-      <li><code>broadcastPlace</code> pushes bead A onto wire 1&rarr;2's <code>inCh</code>.</li>
-      <li>The mover's pass begins: it drains 1&rarr;2 and stamps bead A with <code>placementTick = T</code>.</li>
-      <li>It drains 1&rarr;3 &mdash; empty. Bead B is microseconds away, but not there.</li>
-      <li><code>broadcastPlace</code> pushes bead B onto wire 1&rarr;3's <code>inCh</code>.</li>
-      <li>Next cycle, the mover drains 1&rarr;3 and stamps bead B with <code>placementTick = T+1</code>.</li>
-    </ol>
   </section>
 
   <hr>
 
   <section>
-    <p class="eyebrow">03 · why it is the same every time</p>
-    <h2>Nothing here is random</h2>
-    <p>Three things are fixed, so the outcome is fixed. Both loops wait one cycle, so their phase relationship persists rather than drifting. The mover always visits its wires in the same order. And <code>broadcastPlace</code> always sends in the same port order. A race with a stable phase is not a flake — it is a schedule.</p>
-    <p class="note">The wire order itself was fixed at load time, but which wire ended up first depends on map iteration during <code>bind</code>, so which of the two edges lags can differ between runs, while staying constant within one run.</p>
+    <p class="eyebrow">the seam</p>
+    <h2>The decision and the timestamp live in different goroutines</h2>
+    <p>Every other piece of state on this page is written by exactly one goroutine — the one that decides it. A bead's <code>placementTick</code> is the exception: the Input kind decides the bead exists, and the mover stamps its start time whenever it next drains that wire.</p>
+    <div class="tbl-scroll">
+      <table>
+        <thead><tr><th>State</th><th>Decided by</th><th>Written by</th></tr></thead>
+        <tbody>
+          <tr><td class="c1">bead value</td><td class="c1">Input kind</td><td class="c1">Input kind</td></tr>
+          <tr><td class="c1">node center</td><td class="c1">nodeMover</td><td class="c1">nodeMover</td></tr>
+          <tr><td class="c1">chain lit index</td><td class="c1">nodeMover</td><td class="c1">nodeMover</td></tr>
+          <tr><td class="c1">arc / ticksToCross</td><td class="c1">wire geometry</td><td class="c1">nodeMover</td></tr>
+          <tr>
+            <td class="c1" style="color:var(--fault)">bead placementTick</td>
+            <td class="c1">Input kind</td>
+            <td class="c1" style="color:var(--fault)">nodeMover &mdash; split owner</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Two beads from one <code>broadcastPlace</code> should share a start time by construction. They only do if the goroutine that placed them is the one that stamps them. Moving the stamp into <code>Send</code> closes the split — the sender reads its own clock once and both wires carry it.</p>
   </section>
 
   <hr>
 
   <section>
-    <p class="eyebrow">04 · the fix</p>
-    <h2>Stamp the tick where the decision happens</h2>
-    <p>A bead's start time should be when the node <em>sent</em> it, not when a wire was next looked at. Move the stamp into <code>Send</code>, on the sending node's own clock reading, and have <code>drainPlacements</code> use the tick the request carries. Two beads broadcast in one cycle then share a <code>placementTick</code> no matter which wire drains first.</p>
-    <p class="note">The current drain-time stamp was correct while each wire had its own goroutine — the <code>placeRequest</code> comment still cites that reason. Removing the wire goroutine invalidated it and left the stamp behind.</p>
+    <p class="eyebrow">bridge</p>
+    <h2>One goroutine, one stream</h2>
+    <p>Each emitting goroutine owns a dedicated pipe to the editor; nothing funnels through a shared writer. The chain beads travel on <em>node 1's own</em> node-stream frame, not on either edge's — they are node-local offsets from node 1's center.</p>
+    <div class="tbl-scroll">
+      <table>
+        <thead><tr><th>Emitter</th><th>Stream</th><th>Carries</th></tr></thead>
+        <tbody>
+          <tr><td class="c1">node 1 nodeMover</td><td class="c1">node fd</td><td class="c3">Node row, ports, label, <b>ChainBead rows for both chains</b></td></tr>
+          <tr><td class="c1">edgeMover 1&rarr;2</td><td class="c1">edge fd</td><td class="c3">Edge row + label. No beads — the Bead block is gone</td></tr>
+          <tr><td class="c1">edgeMover 1&rarr;3</td><td class="c1">edge fd</td><td class="c3">Edge row + label</td></tr>
+          <tr><td class="c1">node 1 Update</td><td class="c1">interior fd</td><td class="c3">its 4 interior slots</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">The edge movers are still goroutines and still own their streams — that is why removing the wire goroutine did not cost the per-edge streams their owner.</p>
   </section>
 
 </div>
