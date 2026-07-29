@@ -146,9 +146,19 @@ const ShadingParamBeadRadius = 4.0
 // ShadingParamBeadRadius. Same for chain beads as for the 0/1 beads — same structure.
 const ShadingParamBeadRingTubeRatio = 0.12
 
-// (There is no ShadingParamChainBeadFill. An UNLIT chain bead wears the EDGE's own colour —
-// ShadingParamTubeColor below — because the chain IS the edge visual, so a second constant
-// would just be a copy of it free to drift the beads away from the lines they replace.)
+// ShadingParamChainBeadFill is the UNLIT chain bead's fill — a pale cyan, DELIBERATELY not
+// ShadingParamTubeColor below.
+//
+// This constant existed, was deleted on the reasoning that the chain IS the edge visual so a
+// second colour would just be a copy free to drift, and is now back because the divergence is
+// INTENTIONAL: David picked this tone off a screenshot. Recording that here so the next reader
+// does not "fix" it back to the tube colour on the same argument that deleted it.
+//
+// The value is the tone as RENDERED in that screenshot (sampled #a7dfe5), not a node's source
+// fill: a chain bead is a plain meshStandardMaterial, not the glassy transmission material a
+// node body uses, so matching the appearance means matching the rendered tone rather than the
+// input colour that produced it through glass.
+const ShadingParamChainBeadFill = "#a7dfe5"
 
 // ShadingParamBeadColor is the in-flight bead color.
 const ShadingParamBeadColor = "#ffffff"
