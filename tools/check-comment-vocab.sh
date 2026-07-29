@@ -83,14 +83,23 @@ readonly DEAD_COMMENT_TOKENS=(
 
 fail=0
 
-# One whole-repo walk for ALL tokens at once (-f reads patterns from a file/process-sub),
-# instead of one walk per token — same -F fixed-string, -n line-number, --include/
-# --exclude-dir semantics as the old per-token grep. The self-exclusion and
-# comment-line-only post-filters are still applied, just once to the combined output
-# rather than once per token, so the meaning is unchanged.
-all_hits="$(grep -rnIF --include="*.go" --include="*.ts" --include="*.tsx" \
-    --exclude-dir={node_modules,out,.git,handoff-archive,memory} \
-    -f <(printf '%s\n' "${DEAD_COMMENT_TOKENS[@]}") -- . 2>/dev/null \
+# One walk for ALL tokens at once (-f reads patterns from a process-sub), instead of one
+# walk per token. The self-exclusion and comment-line-only post-filters are applied once to
+# the combined output rather than once per token, so the meaning is unchanged.
+#
+# Enumerate via `git ls-files`, NOT `grep -r .`: a recursive scan from the repo root also
+# descends into worktrees/ (tools/new-task.sh puts one full checkout of this repo there per
+# open task). Those are OTHER BRANCHES' files. Retiring a token here would then fail against
+# every sibling worktree that has not merged the rename yet — this guard blocking on code
+# that is not in this tree and is not this branch's to fix. Same reasoning, and the same
+# fix, as check-uniform-pulse-speed.sh: git ls-files lists only THIS worktree's files, so
+# there is no exclusion list to keep in sync as new checkout locations appear.
+#
+# --others --exclude-standard is REQUIRED, not optional: without it this enumerates only
+# TRACKED files, so retired vocabulary in a brand-new not-yet-`git add`ed file passes
+# silently — the guard goes vacuous exactly when it matters most (new code).
+all_hits="$(git ls-files -z --cached --others --exclude-standard '*.go' '*.ts' '*.tsx' \
+    | xargs -0 grep -nIF -f <(printf '%s\n' "${DEAD_COMMENT_TOKENS[@]}") -- 2>/dev/null \
     | grep -vF "tools/check-comment-vocab.sh" \
     | grep -E ':[[:space:]]*(//|\*|#)' || true)"
 
