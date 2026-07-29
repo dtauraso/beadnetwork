@@ -2,6 +2,12 @@
 // view/overlays.json (writer + debounced persister + loader + seed, mirroring
 // scene_camera_persist.go).
 //
+// OWNER: the view-owner goroutine (RunStdinReader, stdin_reader.go) is the SOLE caller of
+// overlaysPersister.schedule() below — both triggers (the bare `save` command and the
+// on-change write) are dispatched from its own message loop. overlays.json is scene-level
+// and genuinely singular, so it stays one file with one named owning goroutine
+// (docs/planning/decentralized-persistence.md "The model") rather than a per-entity split.
+//
 // Go owns the overlay flags (overlay_gen.go's overlayState). Persistence has two triggers:
 // the bare `save` command (stdin_reader.go) and — like camera — an ON-CHANGE synchronous
 // write scheduled whenever an overlays update lands (applyUpdate toggle/set); see
@@ -70,8 +76,9 @@ func writeSceneOverlays(overlaysPath string, ov overlayState) error {
 	return writeJSONAtomic(overlaysPath, obj)
 }
 
-// overlaysPersister writes overlay toggles/sets to overlays.json as they happen. Owned by
-// MoveDispatch (armed by EnableEditPersist). path == "" (tests that never arm) → no-op.
+// overlaysPersister writes overlay toggles/sets to overlays.json as they happen. Armed by
+// EnableEditPersist, then called exclusively by the view-owner goroutine (RunStdinReader)
+// — see the OWNER note above. path == "" (tests that never arm) → no-op.
 type overlaysPersister struct {
 	path string // overlays.json path (overlaysFilePath(topologyPath))
 }

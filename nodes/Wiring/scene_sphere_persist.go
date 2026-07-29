@@ -6,6 +6,13 @@
 // the one-file-per-writer split). loadSceneSphere tries sphere.json
 // first and falls back to the legacy scene.json's sceneSphere key for a pre-split topology.
 //
+// OWNER: the view-owner goroutine (RunStdinReader, stdin_reader.go) is the SOLE caller of
+// sceneSpherePersister.flushNow() below — both triggers (LoadSceneSphere's content-fit,
+// which runs before any other goroutine launches, and the `save` command's handleSaveMsg)
+// run on it. sphere.json is scene-level and genuinely singular, so it stays one file with
+// one named owning goroutine (docs/planning/decentralized-persistence.md "The model")
+// rather than a per-entity split.
+//
 // The Center is the only PERSISTED, AUTHORITATIVE cartesian value — the world anchor every
 // scene polar is measured about. It is NOT the only cartesian value in the system: the
 // camera pose (gesture_camera.go), port anchors (port_geometry.go), bead segments
@@ -123,6 +130,8 @@ func (md *MoveDispatch) LoadSceneSphere(topologyPath string) {
 // "established once and never moves" (MODEL.md) — flushNow is its only writer, called by
 // LoadSceneSphere's content-fit and by the "save" command (handleSaveMsg); there was never a
 // debounced schedule() for it to begin with.
+// Armed by EnableEditPersist, then called exclusively by the view-owner goroutine
+// (RunStdinReader) — see the OWNER note above.
 type sceneSpherePersister struct {
 	path string
 }

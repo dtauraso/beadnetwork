@@ -8,12 +8,20 @@ package Wiring
 // persists the current viewpoint back to that same file, in the EXACT schema
 // loadSceneViewpoint reads, so navigate-then-reload round-trips.
 //
+// OWNER: the view-owner goroutine (RunStdinReader, stdin_reader.go — the single goroutine
+// that reads stdin and dispatches gestures/edits) is the SOLE caller of schedule() below,
+// via EmitViewpoint (viewpoint_state.go), directly or through the gesture FSM (gesture.go).
+// camera.json is scene-level and genuinely singular (there is only ever one camera pose),
+// so — unlike a node's own files, which each node's own mover writes — this stays one file
+// with one named owning goroutine rather than a per-entity split
+// (docs/planning/decentralized-persistence.md "The model").
+//
 // Go owns persistence (MODEL.md): there is no TS→Go camera-save on the new path. The
 // write is:
-//   - SYNCHRONOUS: schedule() writes camera.json immediately, inline on the calling
-//     goroutine (the stdin/gesture goroutine — every gesture path serializes through it, so
-//     there is only ever one writer). No debounce: see scene_persist.go's header comment for
-//     why the prior 250ms coalescing window was removed.
+//   - SYNCHRONOUS: schedule() writes camera.json immediately, inline on the view-owner
+//     goroutine (every gesture path serializes through it, so there is only ever one
+//     writer). No debounce: see scene_persist.go's header comment for why the prior 250ms
+//     coalescing window was removed.
 //   - WHOLE-FILE: camera.json holds ONLY the camera pose (one-file-per-writer,
 //     the one-file-per-writer split) — no other writer touches it,
 //     so each write marshals the pose fresh and overwrites the file, no read-modify-write.
@@ -26,8 +34,9 @@ package Wiring
 // The crash-safe (tmp-then-rename) write plumbing is shared machinery from
 // scene_persist.go (writeJSONAtomic) — this file holds only the camera-specific shape.
 
-// viewpointPersister writes viewpoint changes to camera.json as they happen. Owned by
-// MoveDispatch (armed after the startup seed).
+// viewpointPersister writes viewpoint changes to camera.json as they happen. Armed after
+// the startup seed (EnableViewpointPersist), then called exclusively by the view-owner
+// goroutine (RunStdinReader) — see the OWNER note above.
 type viewpointPersister struct {
 	path string // camera.json path (cameraFilePath(topologyPath))
 }
