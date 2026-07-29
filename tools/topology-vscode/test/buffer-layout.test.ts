@@ -224,7 +224,7 @@ describe("buffer-layout — Edge block", () => {
     // 2×i32 (SrcPortRow/DstPortRow) + 1×u8 (selected) + 2×u32 (edge-label off/len) = 17.
     // No endpoint coordinates — the edge references its two port rows instead of storing
     // a copy (see bufLayoutEdge's doc comment, Buffer/layout.go — the endpoint-tear fix).
-    expect(EDGE_STRIDE).toBe(25);
+    expect(EDGE_STRIDE).toBe(17);
   });
 
   it("read helpers decode known bytes correctly", () => {
@@ -277,11 +277,9 @@ describe("buffer-layout — Camera block", () => {
 
 describe("buffer-layout — Overlay block", () => {
   it("stride equals packed field sizes", () => {
-    // 8×u8 + 1×i32 = 12 (8 overlay flags + DragNodeRow). The "distance home button"
-    // panel's 3 GroupLen* columns were REMOVED from here: they lived on the event-driven
-    // VIEW frame, so they only refreshed when something unrelated emitted one. Each edge
-    // now carries its own Len + GroupIdx on its own per-owner Edge row instead.
-    expect(OVERLAY_STRIDE).toBe(12);
+    // 8×u8 + 1×i32 + 3×f32 = 24 (8 overlay flags + DragNodeRow + the "distance home
+    // button" panel's 3 GroupLen* columns)
+    expect(OVERLAY_STRIDE).toBe(24);
   });
 
   it("column offsets are 0..7", () => {

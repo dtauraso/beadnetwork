@@ -18,18 +18,6 @@ const (
 	// applyCenter). A drag is always a FREE move -- no equal-radii solve, no
 	// self-trigger cascade.
 	moveMsgKindDrag = "drag"
-	// moveMsgKindSetLength is sent to an EDGE (its extIn) by the distance-group
-	// controller: "your length is now TargetLen." The edge is the only thing that knows
-	// both its endpoints, so it — not the sender — works out what that means in
-	// positions. The sender neither reads nor computes any node's position.
-	moveMsgKindSetLength = "setLength"
-	// moveMsgKindMoveDelta is sent to a NODE by one of its incident EDGES: "move yourself
-	// by MoveDelta." A DELTA, never an absolute position, and that is the whole point: an
-	// absolute would encode the sender's belief about where the receiver currently is, and
-	// a stale belief would teleport it. A delta makes no claim about the receiver's
-	// position — the node applies it to whatever it actually has, so the sender only has
-	// to be right about how much to change, never about where the node is.
-	moveMsgKindMoveDelta = "moveDelta"
 	// moveMsgKindNeighborSetC: the plain-neighbor / general edge-length propagation
 	// (requantizeLocalPolars' per-neighbor fan). A dragged node X sends EVERY direct
 	// domain neighbor M this SINGLE ASSIGNMENT -- the new quantized edge length SnapC
@@ -137,11 +125,6 @@ type moveMsg struct {
 	// and re-emits its own geometry. (RootMove is the decentralized node-to-node
 	// message cascade entry; there is no central fan-out step.)
 	Center *vec3
-	// TargetLen (Kind == "setLength"): the length this edge is being asked to become.
-	TargetLen float64
-	// MoveDelta (Kind == "moveDelta"): the world-space displacement the receiving node
-	// should add to its OWN current position. See moveMsgKindMoveDelta.
-	MoveDelta vec3
 	// Centers (Kind == "centers"): batched per-edge re-propagation. Maps node id → new
 	// world center for every moved endpoint of THIS edge in a single frame, so an edge
 	// whose BOTH endpoints moved updates both and recomputes/emits its segment ONCE
