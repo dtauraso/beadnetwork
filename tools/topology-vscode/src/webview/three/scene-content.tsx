@@ -7,7 +7,7 @@
 import React, { useEffect, useRef } from "react";
 import { useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import type { PickOptions } from "./interaction-controls";
+import type { PickRef } from "./pick-types";
 import {
   SHADING_PARAM_SCENE_AMBIENT_INTENSITY,
   SHADING_PARAM_SCENE_DIR_INTENSITY,
@@ -106,15 +106,14 @@ function pickBufferNode(hits: THREE.Intersection[], excludeRow?: string): string
 function RaycasterHelper({
   onPickRequest,
 }: {
-  onPickRequest: React.MutableRefObject<
-    ((ndcX: number, ndcY: number, opts?: PickOptions) => string | null) | null
-  >;
+  onPickRequest: PickRef;
 }) {
   const { camera, scene } = useThree();
   const raycaster = useRef(new THREE.Raycaster());
 
   useEffect(() => {
-    onPickRequest.current = (ndcX: number, ndcY: number, opts?: PickOptions): string | null => {
+    // Params/return are contextually typed by PickRef — PickFn is the one spelling.
+    onPickRequest.current = (ndcX, ndcY, opts) => {
       const ndc = new THREE.Vector2(ndcX, ndcY);
       raycaster.current.setFromCamera(ndc, camera);
       const allHits = raycaster.current.intersectObject(scene, true);
@@ -148,9 +147,7 @@ function RaycasterHelper({
 export function Scene({
   onPickRequest,
 }: {
-  onPickRequest: React.MutableRefObject<
-    ((ndcX: number, ndcY: number, opts?: PickOptions) => string | null) | null
-  >;
+  onPickRequest: PickRef;
 }) {
   return (
     <>

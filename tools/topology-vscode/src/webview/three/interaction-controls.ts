@@ -1,4 +1,4 @@
-// interaction-controls.ts — useInteractionControls hook + PickOptions.
+// interaction-controls.ts — useInteractionControls hook.
 //
 // All interaction is RAW-INPUT forwarding: the pointer/wheel handlers forward the raw event
 // plus the stateless three.js raycast hit to Go's gesture FSM (raw-input.ts) and hold NO
@@ -8,21 +8,7 @@
 import { useCallback } from "react";
 import * as THREE from "three";
 import { sendRawInput, buildPointerRaw, buildWheelRaw } from "./raw-input";
-
-// ---------------------------------------------------------------------------
-// PickOptions (shared with scene-content / raw-input)
-// ---------------------------------------------------------------------------
-
-export interface PickOptions {
-  excludeId?: string;
-  nodesOnly?: boolean;
-  ringOnly?: boolean;
-  portOnly?: boolean;
-  handholdOnly?: boolean;
-  /** Restrict the pick to the buffer edge pick-halos (BUFFER_EDGE_TAG), returning the hit
-   *  edge's buffer EDGE-ROW index as a decimal string. */
-  edgeOnly?: boolean;
-}
+import type { PickRef } from "./pick-types";
 
 // ---------------------------------------------------------------------------
 // useInteractionControls — raw-input forwarding only
@@ -30,7 +16,7 @@ export interface PickOptions {
 
 export function useInteractionControls(
   cameraRef: React.MutableRefObject<THREE.PerspectiveCamera | null>,
-  pickRequest: React.MutableRefObject<((ndcX: number, ndcY: number, opts?: PickOptions) => string | null) | null>,
+  pickRequest: PickRef,
 ) {
   const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     const ev = buildPointerRaw(e, "pointerdown", cameraRef, pickRequest);
