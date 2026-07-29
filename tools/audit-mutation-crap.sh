@@ -61,16 +61,31 @@
 # with `git status --porcelain -uall` after any run; nothing under target/ should
 # ever need staging.
 #
-# SETUP: this script expects local clones at
-#   ~/Downloads/unclebob-repos/crap4go
-#   ~/Downloads/unclebob-repos/mutate4go
-# (each is its own Go module, so it is built to a temp binary rather than `go run`
-# from inside this repo — `go run <path>` fails with "outside main module").
+# SETUP: nothing. Both tools are fetched as Go MODULES at the pinned versions below and
+# cached by the Go module cache, so this needs network only on the first run per version.
+#
+# They used to be built from clones at ~/Downloads/unclebob-repos/. That tied a checked-in
+# script to one machine's Downloads folder — it breaks silently the day that folder is
+# reorganized, and the failure ("source not found") points at the tool rather than at the
+# real cause. A module path is the medium's normal answer; pinning tooling to a downloads
+# directory is the weird choice (CLAUDE.md "Medium vs. substance").
+#
+# Versions are PINNED, not @latest: @latest re-resolves over the network on every run and
+# would silently change what this audit measures between two runs, which is the one thing a
+# measurement tool must not do. Bump deliberately.
+#
+# To work from a local clone instead (offline, or to test an unreleased change), set
+# CRAP4GO_SRC / MUTATE4GO_SRC to its directory — an existing directory takes precedence
+# over the module path.
 
 set -euo pipefail
 
-CRAP4GO_SRC="${CRAP4GO_SRC:-$HOME/Downloads/unclebob-repos/crap4go}"
-MUTATE4GO_SRC="${MUTATE4GO_SRC:-$HOME/Downloads/unclebob-repos/mutate4go}"
+CRAP4GO_MOD="${CRAP4GO_MOD:-github.com/unclebob/crap4go/cmd/crap4go@v0.0.0-20260521190544-bee16dbdadb4}"
+MUTATE4GO_MOD="${MUTATE4GO_MOD:-github.com/unclebob/mutate4go/cmd/mutate4go@v0.0.0-20260523153956-9016c7adafc1}"
+
+# Empty by default — set to a clone directory to override the module path above.
+CRAP4GO_SRC="${CRAP4GO_SRC:-}"
+MUTATE4GO_SRC="${MUTATE4GO_SRC:-}"
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
@@ -106,15 +121,34 @@ EOF
   exit 1
 }
 
+# Resolve a tool to a runnable binary. A local clone wins if one was pointed at; otherwise
+# the pinned module is installed into a temp GOBIN.
+#
+# `go install <mod>@<ver>` rather than `go run`: go run rebuilds and re-links on every
+# invocation, and `mutate` calls the binary once per mutation site. Installing once and
+# exec'ing the result keeps that cost out of the inner loop. Both forms are module-aware and
+# ignore THIS repo's go.mod, so neither can perturb our own dependencies — which is also why
+# the old `go build ./cmd/...` had to cd into the clone ("outside main module").
 build_tool() {
-  local src="$1" name="$2" bin_var="$3"
-  if [ ! -d "$src" ]; then
-    echo "audit-mutation-crap: $name source not found at $src (set ${name^^}_SRC)" >&2
-    exit 1
-  fi
+  local src="$1" mod="$2" name="$3" bin_var="$4"
   local bin
-  bin="$(mktemp -d)/$name"
-  (cd "$src" && go build -o "$bin" "./cmd/$name")
+  if [ -n "$src" ]; then
+    if [ ! -d "$src" ]; then
+      echo "audit-mutation-crap: $name source override is set but is not a directory: $src" >&2
+      exit 1
+    fi
+    bin="$(mktemp -d)/$name"
+    (cd "$src" && go build -o "$bin" "./cmd/$name")
+  else
+    local gobin
+    gobin="$(mktemp -d)"
+    if ! GOBIN="$gobin" go install "$mod" 2>&1; then
+      echo "audit-mutation-crap: could not install $name from $mod" >&2
+      echo "  First run needs network. Offline? Point ${name^^}_SRC at a local clone." >&2
+      exit 1
+    fi
+    bin="$gobin/$name"
+  fi
   printf -v "$bin_var" '%s' "$bin"
 }
 
@@ -122,19 +156,19 @@ cmd="${1:-}"
 case "$cmd" in
   crap)
     shift
-    build_tool "$CRAP4GO_SRC" crap4go CRAP4GO_BIN
+    build_tool "$CRAP4GO_SRC" "$CRAP4GO_MOD" crap4go CRAP4GO_BIN
     exec "$CRAP4GO_BIN" "$@"
     ;;
   mutate-scan)
     shift
     [ $# -ge 1 ] || usage
-    build_tool "$MUTATE4GO_SRC" mutate4go MUTATE4GO_BIN
+    build_tool "$MUTATE4GO_SRC" "$MUTATE4GO_MOD" mutate4go MUTATE4GO_BIN
     exec "$MUTATE4GO_BIN" "$1" --scan
     ;;
   mutate)
     shift
     [ $# -ge 1 ] || usage
-    build_tool "$MUTATE4GO_SRC" mutate4go MUTATE4GO_BIN
+    build_tool "$MUTATE4GO_SRC" "$MUTATE4GO_MOD" mutate4go MUTATE4GO_BIN
     echo "audit-mutation-crap: full run WRITES a manifest footer into $1 on success — see this script's header comment." >&2
     exec "$MUTATE4GO_BIN" "$@"
     ;;
