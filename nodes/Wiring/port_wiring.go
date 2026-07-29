@@ -160,7 +160,14 @@ func wirePorts(ctx context.Context, v reflect.Value, nodePtr any, name string, p
 // own construction — see PortRowFor's doc comment), and stream is this node's shared
 // interior-stream getter: both are read later by In.PollRecv, on this node's own
 // Update goroutine, to flush a KindRecv RowEvent (owner_events.go).
+// wireInPort sets the struct field; newInPort RETURNS the value. The reflection path
+// delegates to the value path so a kind that constructs itself (BuildArgs.In) and a kind
+// still built by reflection get byte-identical wiring from one implementation.
 func wireInPort(f reflect.Value, portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, getStream func() *interiorStream) {
+	f.Set(reflect.ValueOf(newInPort(portName, ctx, name, pb, tr, getStream)))
+}
+
+func newInPort(portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, getStream func() *interiorStream) *wire.In {
 	if b := pb.singlePaced[portName]; b.pw != nil {
 		portRow := int32(-1)
 		if pb.md != nil {
@@ -168,12 +175,10 @@ func wireInPort(f reflect.Value, portName string, ctx context.Context, name stri
 				portRow = r
 			}
 		}
-		in := wire.NewInPaced(b.pw, ctx, name, portName, tr, asEventSinkGetter(getStream), portRow)
-		f.Set(reflect.ValueOf(in))
+		return wire.NewInPaced(b.pw, ctx, name, portName, tr, asEventSinkGetter(getStream), portRow)
 	} else {
 		ch := pb.deadEndIn(portName)
-		in := wire.NewInChan(ch, name, portName, tr, asEventSinkGetter(getStream))
-		f.Set(reflect.ValueOf(in))
+		return wire.NewInChan(ch, name, portName, tr, asEventSinkGetter(getStream))
 	}
 }
 
@@ -190,6 +195,10 @@ func wireInPort(f reflect.Value, portName string, ctx context.Context, name stri
 // this node's own Update goroutine (Out.PlaceDrivenAt/placeDrivenNoWalker) matches
 // edgeMover's existing static-field-resolved-once discipline (edgeRow).
 func wireOutPort(f reflect.Value, portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, sourceOuts *[]*wire.Out, getStream func() *interiorStream) {
+	f.Set(reflect.ValueOf(newOutPort(portName, ctx, name, pb, tr, sourceOuts, getStream)))
+}
+
+func newOutPort(portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, sourceOuts *[]*wire.Out, getStream func() *interiorStream) *wire.Out {
 	if b := pb.singlePaced[portName]; b.pw != nil {
 		portRow, targetRow, targetPortRow := int32(-1), int32(-1), int32(-1)
 		if pb.md != nil {
@@ -210,11 +219,10 @@ func wireOutPort(f reflect.Value, portName string, ctx context.Context, name str
 		if pb.outSink != nil {
 			pb.outSink[name+"."+portName] = o
 		}
-		f.Set(reflect.ValueOf(o))
-	} else {
-		ch := pb.deadEndOut(portName)
-		f.Set(reflect.ValueOf(wire.NewOutChanForTest(ch, name, portName, tr)))
+		return o
 	}
+	ch := pb.deadEndOut(portName)
+	return wire.NewOutChanForTest(ch, name, portName, tr)
 }
 
 // wireBroadcastPort resolves a PortBroadcast field: one paced Out per fan-out
@@ -224,6 +232,10 @@ func wireOutPort(f reflect.Value, portName string, ctx context.Context, name str
 // non-nil) recorded under "node.handle". Row resolution mirrors wireOutPort's,
 // per fan-out element.
 func wireBroadcastPort(f reflect.Value, portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, sourceOuts *[]*wire.Out, getStream func() *interiorStream) {
+	f.Set(reflect.ValueOf(newBroadcastPort(portName, ctx, name, pb, tr, sourceOuts, getStream)))
+}
+
+func newBroadcastPort(portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, sourceOuts *[]*wire.Out, getStream func() *interiorStream) wire.Broadcast {
 	if bs := pb.broadcastPaced[portName]; len(bs) > 0 {
 		outs := make(wire.Broadcast, len(bs))
 		for i, b := range bs {
@@ -248,13 +260,14 @@ func wireBroadcastPort(f reflect.Value, portName string, ctx context.Context, na
 				pb.outSink[name+"."+b.handle] = o
 			}
 		}
-		f.Set(reflect.ValueOf(outs))
-	} else {
+		return outs
+	}
+	{
 		chs := pb.deadEndOutSlice(portName)
 		outs := make(wire.Broadcast, len(chs))
 		for i, c := range chs {
 			outs[i] = wire.NewOutChanForTest(c, name, portName, tr)
 		}
-		f.Set(reflect.ValueOf(outs))
+		return outs
 	}
 }
