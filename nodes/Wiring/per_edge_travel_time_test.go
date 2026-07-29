@@ -6,8 +6,6 @@ package Wiring
 import (
 	"context"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
-	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
@@ -39,14 +37,10 @@ func TestFanInRejectedAtLoad(t *testing.T) {
 	    {"label":"eB","kind":"data","source":"b","sourceHandle":"Out","target":"sink","targetHandle":"In"}
 	  ]
 	}`
-	dir := t.TempDir()
-	path := filepath.Join(dir, "topo.json")
-	if err := os.WriteFile(path, []byte(topo), 0o600); err != nil {
-		t.Fatal(err)
-	}
+	root := writeSpecTree(t, t.TempDir(), topo)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	_, _, _, _, err := LoadTopology(ctx, path, T.New(), wire.NewRealClock())
+	_, _, _, _, err := LoadTopology(ctx, root, T.New(), wire.NewRealClock())
 	if err == nil {
 		t.Fatalf("LoadTopology accepted a fan-in topology (two edges into sink.In); want a fan-in rejection error")
 	}
