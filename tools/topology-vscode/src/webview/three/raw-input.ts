@@ -11,12 +11,9 @@ import * as THREE from "three";
 import { postGoRecord } from "../vscode-api";
 import { encodeRawInput } from "../../schema/input-layout";
 import type { RawInputEvent, RawHit, RawPointerKind } from "../../messages";
-import type { PickOptions } from "./interaction-controls";
+import type { PickRef } from "./pick-types";
 import { pixelToNDC } from "./geometry-helpers";
 
-type PickRef = React.MutableRefObject<
-  ((ndcX: number, ndcY: number, opts?: PickOptions) => string | null) | null
->;
 type CamRef = React.MutableRefObject<THREE.PerspectiveCamera | null>;
 
 /** Fire-and-forget: encode a raw-input event as a BINARY record and place it on the TS→Go

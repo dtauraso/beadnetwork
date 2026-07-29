@@ -9,7 +9,7 @@ import { Canvas } from "@react-three/fiber";
 import * as THREE from "three";
 import { HomeButton, OverlaysControl } from "./camera-ui";
 import { useInteractionControls } from "./interaction-controls";
-import type { PickOptions } from "./interaction-controls";
+import type { PickFn } from "./pick-types";
 import { Scene } from "./scene-content";
 import { BufferScene, BufferLabelProjector } from "./buffer-scene";
 import { ProceduralEnvProvider } from "./scene-env";
@@ -36,7 +36,7 @@ export function ThreeView() {
   const [bufferLabelPositions, setBufferLabelPositions] = useState<BufferLabelPos[]>([]);
 
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
-  const pickRequest = useRef<((ndcX: number, ndcY: number, opts?: PickOptions) => string | null) | null>(null);
+  const pickRequest = useRef<PickFn | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const captureRef = useRef<HTMLDivElement | null>(null);
   const [canvasSize, setCanvasSize] = useState({ w: 800, h: 600 });
