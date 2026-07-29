@@ -4,13 +4,15 @@ branch: task/decentralize-persistence
 
 # Decentralized persistence — each owner writes its own file
 
-Status: plan, not started. Branch `task/decentralize-persistence`.
+Status: all 7 steps landed on `task/decentralize-persistence`. The "observation" section
+below describes the PRE-step state (the problem this plan set out to fix) — it is history,
+not the current tree; see "Order of work" for what each step actually did.
 
 ## The observation
 
 The **data** is already decentralized. The **writers** are not.
 
-Per-entity files exist today:
+Per-entity files existed at the start of this work:
 
 ```
 topology/nodes/<id>/meta.json
@@ -155,6 +157,17 @@ of it.
 
 Move node-path construction into the node mover and edge-path construction into the edge
 mover. `scene_paths.go` keeps only scene-level paths and root resolution.
+
+**Correction (recorded once the step landed):** node-path construction did not, in fact,
+live in `scene_paths.go` — that file has only ever resolved scene-level (`view/*.json`)
+paths. Per-node path helpers (`positionFilePath`, `localPolarsFilePath`,
+`cascadeEdgesFilePath`, port-file paths) were scattered across the individual persister
+files that used them (`quant_offset_persist.go`, `scene_anchor_persist.go`). Step 3 moved
+those helpers out of the persisters and into `node_mover.go`, consolidating them under the
+node mover rather than relocating them from `scene_paths.go`. There was no edge-path
+construction to move: no Go-side writer of `nodes/<source>/edges/<label>.json` exists yet
+(edges are editor-authored; `loader_tree.go` only reads them), so `edge_mover.go` carries
+only a doc note for a future writer.
 
 This step is what makes the rest possible. Until a path can only be built by its owner,
 "the owner writes it" is a convention rather than a property.

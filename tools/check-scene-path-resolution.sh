@@ -105,7 +105,7 @@ done <<< "$all_hits"
 
 if [[ $HITS -ne 0 ]]; then
   echo ""
-  echo "check-scene-path-resolution: $HITS hit(s) — resolve topologyPath via sceneTreeRoot/sceneJSONPath in scene_paths.go, not hand-rolled IsDir. Mark unrelated uses with '// path-resolution-ok:'"
+  echo "check-scene-path-resolution: $HITS hit(s) — resolve topologyPath via sceneJSONPath in scene_paths.go, not hand-rolled IsDir. Mark unrelated uses with '// path-resolution-ok:'"
   exit 1
 fi
 

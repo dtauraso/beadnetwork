@@ -81,8 +81,10 @@ store — the TS layer is render + forward only (guard:
 - **The `topology/` tree** — read directly by the Go loader (`nodes/Wiring/loader.go`,
   `loader_tree.go`) at startup; every field maps to live wiring. Edited through `edit`
   messages. The live form is a directory tree — `nodes/<id>/meta.json`, `data.json`,
-  `inputs/`, `outputs/`, and `edges/*.json`. A monolithic single-file `topology.json`
-  is still accepted as a legacy fallback, but is not what the editor opens.
+  `inputs/`, `outputs/`, and `edges/*.json` (adjacency layout: an edge lives under its
+  source node, `nodes/<source>/edges/<label>.json`, no top-level `edges/` dir). The
+  earlier monolithic single-file `topology.json` form was deleted; the tree is the only
+  supported form.
 - **`<tree-root>/view/scene.json`** — sidecar for camera/view state not affecting
   generated Go. Path computed by `sceneJSONPath` (`nodes/Wiring/scene_paths.go`).
 

@@ -1,6 +1,6 @@
 // loader.go — runtime topology loader entry points.
 //
-// LoadTopology reads topology.json, allocates one PacedWire per destination
+// LoadTopology reads the topology directory tree, allocates one PacedWire per destination
 // port, and returns ([]Node, SlotRegistry, *MoveDispatch).
 // An edge-label-keyed WireRegistry is built internally to bind each source Out to
 // its wire, but it is not returned: no caller consumed the map.
