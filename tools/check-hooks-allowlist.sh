@@ -70,4 +70,43 @@ while IFS= read -r s; do
   fi
 done <<< "$cmds"
 
+# ---------------------------------------------------------------------------
+# GIT hooks — the other place an automated pass can run
+# ---------------------------------------------------------------------------
+# settings.json hooks are Claude's; .githooks/ holds git's. Both are automated passes over
+# work in flight, so both belong to this guard — otherwise adding a git hook would create an
+# enforcement mechanism that the repo's own hook audit cannot see.
+#
+# The failure this catches is SILENCE, not misconfiguration: .git/hooks is not
+# version-controlled and core.hooksPath is per-clone local config, so a tracked hook that
+# git was never pointed at is inert while looking installed. That is worse than no hook —
+# it reads as coverage that does not exist.
+HOOKS_DIR=".githooks"
+readonly EXPECTED_GIT_HOOKS=(
+  "pre-push"   # runs scripts/verify.sh; blocks the push on failure
+)
+
+for h in "${EXPECTED_GIT_HOOKS[@]}"; do
+  if [[ ! -f "$HOOKS_DIR/$h" ]]; then
+    echo "MISSING GIT HOOK: $HOOKS_DIR/$h is expected by this guard but does not exist."
+    echo "  Either restore it or drop it from EXPECTED_GIT_HOOKS in this guard."
+    fail=1
+  elif [[ ! -x "$HOOKS_DIR/$h" ]]; then
+    echo "GIT HOOK NOT EXECUTABLE: $HOOKS_DIR/$h — git silently ignores a non-executable hook."
+    echo "  Fix: chmod +x $HOOKS_DIR/$h"
+    fail=1
+  fi
+done
+
+# The hook only runs if git has been pointed at the tracked directory. Checked with
+# --local so a stray global/system setting cannot satisfy this for a clone that lacks it.
+configured="$(git config --local --get core.hooksPath 2>/dev/null || true)"
+if [[ "$configured" != "$HOOKS_DIR" ]]; then
+  echo "GIT HOOKS NOT INSTALLED: core.hooksPath is '${configured:-<unset>}', expected '$HOOKS_DIR'."
+  echo "  The tracked hooks in $HOOKS_DIR/ are INERT until git is told to use them:"
+  echo "      git config core.hooksPath $HOOKS_DIR"
+  echo "  (per-clone local config, so every fresh clone needs it once)"
+  fail=1
+fi
+
 exit $fail
