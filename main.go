@@ -95,6 +95,33 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 	// (fd = baseFd + edgeRow, edgeRow = the stable seed order — see
 	// MoveDispatch.SetEdgeStreams). No edges (edgeBase absent) leaves every edgeMover's
 	// streamOut at its zero value (nil) — there is nothing to stream.
+	//
+	// REPORT the asymmetry rather than skipping it silently. A graph that loaded N edges
+	// but received no edge fds streams nothing, so the editor draws no edges — and without
+	// this message that is indistinguishable from a broken edge path, sending the reader
+	// through the code (disk layout, bundle freshness, recent merges) when the cause is
+	// operational: a VS Code extension host left running across a change, holding older fd
+	// plumbing. Reopening a file does not restart it; only "Developer: Reload Window" does
+	// (memory/feedback_two_process_editor_reload.md).
+	//
+	// This is the same class runCommand.ts's MAX_EDGE_STREAMS overflow was fixed for in
+	// 93d2e9b6, and its reasoning applies verbatim: silently disabling every dedicated
+	// per-edge stream is "the quietest possible failure for the loudest consequence."
+	// That fix covered the count-too-large case on the TS side; this covers the fds-absent
+	// case on the Go side, which is the one an operator actually hits.
+	//
+	// Not fatal: a deliberate no-fd launch (headless runs, tools with no dedicated pipes)
+	// is legitimate input, exactly like a large topology. Loud, not dead.
+	if _, edgeFDsWired := streamFDs[B.StreamKindEdge]; !edgeFDsWired {
+		if n := len(md.EdgeSeeds()); n > 0 {
+			fmt.Fprintf(os.Stderr,
+				"stream-fd mismatch: topology loaded %d edges but WIREFOLD_STREAM_FDS carries no %q entry; "+
+					"every edgeMover's stream stays nil, so NO EDGES will be drawn. If the editor was open "+
+					"across a rebuild, run \"Developer: Reload Window\" — reopening the file restarts only the "+
+					"webview, not the extension host that allocates these fds.\n",
+				n, B.StreamKindEdge)
+		}
+	}
 	if edgeBase, ok := streamFDs[B.StreamKindEdge]; ok {
 		// Edge selection is no longer an injected lookup: each edgeMover owns its OWN
 		// selected bit, set via a moveMsgKindSelect message the gesture goroutine sends
@@ -111,6 +138,19 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 	// (a node stream with no interior counterpart, or vice versa, would leave one of the
 	// two goroutines with nowhere fresh to write while the other has one — so both are
 	// required together).
+	//
+	// The "both required together" rule above is enforced by a silent skip: one entry
+	// present without the other leaves BOTH streams unwired and says nothing. Same class
+	// as the edge case, and harder to spot because the half that IS wired looks healthy.
+	_, nodeFDsWired := streamFDs[B.StreamKindNode]
+	_, interiorFDsWired := streamFDs[B.StreamKindInterior]
+	if nodeFDsWired != interiorFDsWired {
+		fmt.Fprintf(os.Stderr,
+			"stream-fd mismatch: WIREFOLD_STREAM_FDS carries %q=%t but %q=%t; they are required "+
+				"together, so BOTH per-node streams stay unwired and node geometry/interior beads "+
+				"will not be drawn.\n",
+			B.StreamKindNode, nodeFDsWired, B.StreamKindInterior, interiorFDsWired)
+	}
 	if nodeBase, ok := streamFDs[B.StreamKindNode]; ok {
 		if interiorBase, ok2 := streamFDs[B.StreamKindInterior]; ok2 {
 			// Selection/hover/abc-drag/kind are no longer injected lookups: each
