@@ -71,18 +71,6 @@ type moverRegistry struct {
 	// gesture goroutine (centerOfNode is, after the quantize call sites moved to each
 	// node's own partnerCenters map, called only from that goroutine) — no lock.
 	centerMirror map[string]vec3
-	// lenMirror is the DISPATCH goroutine's OWN mirror of every edge's last-known
-	// length, keyed by edge id and fed by each edgeMover's own lenOut push
-	// (edge_mover.go's publishLength). Written and read ONLY from the dispatch/gesture
-	// goroutine — no lock, exactly like centerMirror.
-	//
-	// It holds values their OWNERS computed, which is the whole point: dispatch used to
-	// derive these lengths itself by subtracting two foreign nodes' mirrored positions
-	// (distanceGroupMax), and an eventually-consistent mirror is a fine input to a
-	// framing read but not to a position computation. Relaying an owner's own
-	// measurement has no such problem — a late value is simply an older length, never a
-	// length between two positions that never coexisted.
-	lenMirror map[string]float64
 }
 
 // bind wires the per-edge source Outs (keyed "source.sourceHandle" in outSink) and dest
@@ -158,61 +146,6 @@ func (mr *moverRegistry) drainCenterMirror() {
 		default:
 		}
 	}
-}
-
-// drainLenMirror drains every edgeMover's lenOut non-blockingly, updating mr.lenMirror
-// with whatever is newest for each edge. Mirrors drainCenterMirror exactly (same
-// latest-wins, same single-reader rule) and is called before every length read.
-// Must only be called from the dispatch/gesture goroutine — it is the sole reader of
-// every edgeMover.lenOut channel.
-func (mr *moverRegistry) drainLenMirror() {
-	if mr.lenMirror == nil {
-		mr.lenMirror = map[string]float64{}
-	}
-	for id, em := range mr.edgeMovers {
-		select {
-		case l := <-em.lenOut:
-			mr.lenMirror[id] = l
-		default:
-		}
-	}
-}
-
-// lengthOfPair returns the current length of the edge connecting src→dst, as measured
-// and published by THAT EDGE's own goroutine. ok is false when no such edge exists or
-// when it has not published a length yet (an endpoint without a real position never
-// publishes — see publishLength), which is the same "unresolved" answer the old
-// two-center subtraction gave when either center was missing.
-func (mr *moverRegistry) lengthOfPair(src, dst string) (float64, bool) {
-	mr.drainLenMirror()
-	for id, em := range mr.edgeMovers {
-		if em.srcID == src && em.dstID == dst {
-			l, ok := mr.lenMirror[id]
-			return l, ok
-		}
-	}
-	return 0, false
-}
-
-// sendEdgeSetLength hands ONE edge its new target length on that edge's own extIn
-// (mirrors sendEdgeSelect). Non-blocking: a full edge inbox means that edge is busy and
-// this press is simply not applied to it, which is the right answer for a user-driven
-// control action — better than parking the dispatch goroutine, which must stay responsive
-// to input. ok reports whether the message was actually accepted, so the caller can say
-// whether the press did anything rather than claiming success it did not verify.
-func (mr *moverRegistry) sendEdgeSetLength(src, dst string, targetLen float64) bool {
-	for _, em := range mr.edgeMovers {
-		if em.srcID != src || em.dstID != dst {
-			continue
-		}
-		select {
-		case em.extIn <- moveMsg{Kind: moveMsgKindSetLength, TargetLen: targetLen}:
-			return true
-		default:
-			return false
-		}
-	}
-	return false
 }
 
 // centerOfNode returns the current world center for a node id by draining the center

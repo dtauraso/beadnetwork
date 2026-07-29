@@ -46,10 +46,7 @@ func TestHeadlessEdgeFdDedicatedStream(t *testing.T) {
 		if dstPortRow < 0 {
 			t.Fatalf("edge row %d: DstPortRow = %d, want >= 0 (a resolvable dest port)", row, dstPortRow)
 		}
-		// Use the GENERATED column offset, never "the last u32 of the row": EdgeLabelLen
-		// stopped being last the moment Len/GroupIdx were appended, and the arithmetic
-		// version silently read GroupIdx as the label length instead of failing loudly.
-		labelLenOff := edgeRowOff + B.BufEdgeColEdgeLabelLen
+		labelLenOff := edgeRowOff + B.BufEdgeStride - 4 // EdgeLabelLen is the last u32 column of the Edge row
 		labelLen := readU32(frame, labelLenOff)
 		labelStart := edgeRowOff + B.BufEdgeStride
 		if labelStart+int(labelLen)+4 > len(frame) {

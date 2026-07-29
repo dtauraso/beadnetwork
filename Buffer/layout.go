@@ -198,25 +198,6 @@ type bufLayoutEdge struct {
 	// Concatenated in the same stable edge-row order as the Edge block.
 	EdgeLabelOff uint32 `buf:"u32"` // byte offset into the edge-label-bytes section
 	EdgeLabelLen uint32 `buf:"u32"` // edge-label UTF-8 byte length
-	// Len is this edge's own current length |dst − src|, measured and published by THIS
-	// edge's own goroutine (nodes/Wiring/edge_mover.go publishLength). It is the one
-	// distance in the system whose owner is unambiguous — an edge is the only thing that
-	// knows both its endpoints — and it rides this per-edge stream rather than the VIEW
-	// frame for a concrete reason: the VIEW stream is EVENT-DRIVEN (nothing emits it
-	// because time passed), while per-owner streams flow on their own whenever their
-	// owner changes. The distance panel's numbers therefore refresh when the edges
-	// actually move, with nobody waiting on anybody.
-	//
-	// This does NOT reintroduce the removed SX..EZ endpoint copy: a length is a scalar
-	// the edge derives from geometry it already owns, not a second copy of a position
-	// another owner is authoritative for, so there is no fresher source for it to lag.
-	Len float32 `buf:"f32"` // this edge's own current length |dst − src|
-	// GroupIdx is this edge's distance-group index (index into nodes/Wiring's
-	// distanceGroupOrder: 0=time, 1=input, 2=gate), or -1 when the edge is in no group.
-	// Group membership is Go-authoritative domain data (distanceGroups); streaming it
-	// read-only is what lets the panel reduce Len per group without TS holding any
-	// membership table of its own.
-	GroupIdx int32 `buf:"i32"` // distance-group index, -1 = not in a group
 }
 
 // bufLayoutLayoutLink defines one row of the LAYOUT-link column block: the cascade-link
@@ -310,6 +291,16 @@ type bufLayoutOverlay struct {
 	// or -1 when no drag is in progress. Identity rides row index, not a
 	// name/id sidecar; TS resolves the human name from that row's Label.
 	DragNodeRow int32 `buf:"i32"` // dragged node's row index, -1 = not dragging
+	// GroupLenTime/GroupLenInput/GroupLenGate are the "distance home button" toolbar
+	// panel's 3 read-only group max-pair-lengths (nodes/Wiring/distance_groups.go's
+	// distanceGroupOrder: time, input, gate). Computed fresh every VIEW-frame emit from
+	// the live node centers (max over the group's pairs of |center(target)-center(source)|,
+	// mirroring reachRFromPolar's max-over-edges loop) — Go owns the group definitions and
+	// the math; the panel only reflects these 3 numbers and fires an edit-update on an
+	// arrow click. 0 when a group's centers aren't resolvable yet.
+	GroupLenTime  float32 `buf:"f32"` // time-nodes group's current max pair length
+	GroupLenInput float32 `buf:"f32"` // input-node group's current max pair length
+	GroupLenGate  float32 `buf:"f32"` // gate/pulse-nodes group's current max pair length
 }
 
 // bufLayoutScene defines the scene-sphere column block (always 1 row).

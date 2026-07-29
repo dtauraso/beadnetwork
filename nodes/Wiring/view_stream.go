@@ -48,6 +48,7 @@ type ViewFrameBuilder func(tick uint32,
 	camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
 	sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis, cascadeLinks uint8,
 	dragNodeRow int32,
+	groupLenTime, groupLenInput, groupLenGate float32,
 	sceneCX, sceneCY, sceneCZ, sceneRadius float32,
 	events []wire.RowEvent,
 ) []byte
@@ -113,6 +114,7 @@ func (md *MoveDispatch) emitViewFrame(events []wire.RowEvent) {
 	// The "distance home button" panel's 3 group max-pair-lengths, recomputed fresh from
 	// live node centers on every VIEW-frame emit (distance_groups.go) — read-only reflect,
 	// Go owns the group definitions and the math.
+	groupLenTime, groupLenInput, groupLenGate := md.DistanceGroupLens()
 	frame := md.sw.viewBuildFrame(md.sw.viewTick,
 		float32(v.pivot.X), float32(v.pivot.Y), float32(v.pivot.Z), float32(v.r),
 		float32(v.pos.Theta), float32(v.pos.Phi), float32(v.up.Theta), float32(v.up.Phi),
@@ -120,6 +122,7 @@ func (md *MoveDispatch) emitViewFrame(events []wire.RowEvent) {
 		boolU8(md.ui.ov.selSpherePolesVisible), boolU8(md.ui.ov.handholdsVisible), boolU8(md.ui.ov.labelsGlobalVisible),
 		boolU8(md.ui.ov.overlaysVisible), boolU8(md.ui.ov.cascadeLinksVisible),
 		dragNodeRow,
+		groupLenTime, groupLenInput, groupLenGate,
 		float32(sc.Center.X), float32(sc.Center.Y), float32(sc.Center.Z), float32(sc.Radius),
 		events,
 	)
