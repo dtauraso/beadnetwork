@@ -4,6 +4,7 @@ import (
 	"context"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring"
 	"github.com/dtauraso/wirefold/nodes/gatecommon"
 )
 
@@ -135,5 +136,27 @@ func (g *PulseRight) Update(ctx context.Context) {
 }
 
 func init() {
-	wire.Register("PulseRight", func() any { return &PulseRight{} })
+	// PulseRight CONSTRUCTS ITSELF. Every assignment below was previously performed by
+	// Wiring.reflectBuild via field-name/type reflection; a rename now fails to compile.
+	Wiring.RegisterBuilder("PulseRight",
+		[]Wiring.PortSpec{
+			{Name: "FromInput", Dir: Wiring.PortIn},
+			{Name: "Out", Dir: Wiring.PortOut},
+			{Name: "Out2", Dir: Wiring.PortOut},
+		},
+		func(a Wiring.BuildArgs) (wire.Node, error) {
+			n := &PulseRight{}
+			n.Fire = a.Fire()
+			n.EmitHeldBead = a.EmitHeldBead()
+			n.Clock = a.Clock()
+			n.SpeedCh = a.SpeedCh()
+			n.Out1SpeedCh = a.SpeedCh()
+			n.Out2SpeedCh = a.SpeedCh()
+			n.FromInput = a.In("FromInput")
+			n.Out = a.Out("Out")
+			n.Out2 = a.Out("Out2")
+			// EmitGeometry stays nil deliberately — nodeMover/edgeMover emit the same
+			// geometry from their own goroutine start (see builders.go's note).
+			return n, nil
+		})
 }

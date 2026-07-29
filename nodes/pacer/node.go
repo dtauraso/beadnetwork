@@ -82,7 +82,27 @@ func (p *Node) Update(ctx context.Context) {
 }
 
 func init() {
-	// Held defaults to the empty sentinel, not the int zero-value (0 is a real
-	// held value). See Time for the seed rationale.
-	wire.Register("Pacer", func() any { return &Node{Held: noValue} })
+	// Pacer CONSTRUCTS ITSELF. Every assignment below was previously performed by
+	// Wiring.reflectBuild via reflection — see Time for the general note.
+	Wiring.RegisterBuilder("Pacer",
+		[]Wiring.PortSpec{
+			{Name: "FromInput", Dir: Wiring.PortIn},
+			{Name: "FeedbackOut", Dir: Wiring.PortOut},
+		},
+		func(a Wiring.BuildArgs) (wire.Node, error) {
+			n := &Node{
+				// Held defaults to the empty sentinel, not the int zero-value (0
+				// is a real held value). See Time for the seed rationale.
+				Held: a.StateSeed("held", noValue),
+			}
+			n.Fire = a.Fire()
+			n.EmitHeldBead = a.EmitHeldBead()
+			n.Clock = a.Clock()
+			n.SpeedCh = a.SpeedCh()
+			n.FromInput = a.In("FromInput")
+			n.FeedbackOut = a.Out("FeedbackOut")
+			// EmitGeometry stays nil deliberately — nodeMover/edgeMover emit the same
+			// geometry from their own goroutine start.
+			return n, nil
+		})
 }

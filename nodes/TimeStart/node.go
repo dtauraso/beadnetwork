@@ -4,6 +4,7 @@ import (
 	"context"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring"
 	"github.com/dtauraso/wirefold/nodes/gatecommon"
 )
 
@@ -166,9 +167,31 @@ func (in *TimeStart) Update(ctx context.Context) {
 }
 
 func init() {
-	// Held defaults to the empty sentinel, not the int zero-value: 0 is a
-	// legitimate held value (a real bead), so an unset seed must be empty
-	// (NoValue) rather than a phantom 0. The data.state seed overrides this
-	// only when the spec authors a real starting value.
-	wire.Register("TimeStart", func() any { return &TimeStart{Held: gatecommon.NoValue} })
+	// TimeStart CONSTRUCTS ITSELF. Every assignment below was previously performed by
+	// Wiring.reflectBuild, which matched this struct's field NAMES and TYPES by
+	// reflection — so renaming a field here used to leave it silently nil rather than
+	// failing to compile. Now it is a compile error.
+	Wiring.RegisterBuilder("TimeStart",
+		[]Wiring.PortSpec{
+			{Name: "FromPrevTimeNode", Dir: Wiring.PortIn},
+			{Name: "ToNext", Dir: Wiring.PortBroadcast},
+		},
+		func(a Wiring.BuildArgs) (wire.Node, error) {
+			n := &TimeStart{
+				// Held defaults to the empty sentinel, not the int zero-value: 0 is a
+				// legitimate held value (a real bead), so an unset seed must be empty
+				// (NoValue) rather than a phantom 0. The data.state seed overrides this
+				// only when the spec authors a real starting value.
+				Held: a.StateSeed("held", gatecommon.NoValue),
+			}
+			n.Fire = a.Fire()
+			n.EmitHeldBead = a.EmitHeldBead()
+			n.Clock = a.Clock()
+			n.SpeedCh = a.SpeedCh()
+			n.FromPrevTimeNode = a.In("FromPrevTimeNode")
+			n.ToNext = a.Broadcast("ToNext")
+			// EmitGeometry stays nil deliberately — nodeMover/edgeMover emit the same
+			// geometry from their own goroutine start (see builders.go's note).
+			return n, nil
+		})
 }

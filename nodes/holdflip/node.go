@@ -4,6 +4,7 @@ import (
 	"context"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring"
 	"github.com/dtauraso/wirefold/nodes/gatecommon"
 )
 
@@ -131,5 +132,30 @@ func (g *Node) Update(ctx context.Context) {
 }
 
 func init() {
-	wire.Register("HoldFlip", func() any { return &Node{} })
+	// HoldFlip CONSTRUCTS ITSELF. Every assignment below was previously performed
+	// by Wiring.reflectBuild via reflection — see Time for the general note.
+	//
+	// Two independent clock-owning goroutines (the MAIN loop and the DRIVE
+	// goroutine inside gatecommon.DriveHeld) need two independent speed
+	// channels, so a.SpeedCh() is called twice — once per channel, each still
+	// exactly once — matching reflectBuild's injectSpeedChans, which allocated
+	// one channel per <-chan float64-typed field.
+	Wiring.RegisterBuilder("HoldFlip",
+		[]Wiring.PortSpec{
+			{Name: "In", Dir: Wiring.PortIn},
+			{Name: "Out", Dir: Wiring.PortOut},
+		},
+		func(a Wiring.BuildArgs) (wire.Node, error) {
+			n := &Node{}
+			n.Fire = a.Fire()
+			n.EmitHeldBead = a.EmitHeldBead()
+			n.Clock = a.Clock()
+			n.SpeedCh = a.SpeedCh()
+			n.DriveSpeedCh = a.SpeedCh()
+			n.In = a.In("In")
+			n.Out = a.Out("Out")
+			// EmitGeometry stays nil deliberately — nodeMover/edgeMover emit the same
+			// geometry from their own goroutine start.
+			return n, nil
+		})
 }

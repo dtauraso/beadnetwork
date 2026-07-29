@@ -4,6 +4,7 @@ import (
 	"context"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring"
 	"github.com/dtauraso/wirefold/nodes/gatecommon"
 )
 
@@ -25,5 +26,30 @@ func (g *SelectLeft) Update(ctx context.Context) {
 }
 
 func init() {
-	wire.Register("SelectLeft", func() any { return &SelectLeft{} })
+	// SelectLeft CONSTRUCTS ITSELF. Every assignment below was previously performed by
+	// Wiring.reflectBuild via reflection over the embedded gatecommon.GateNode fields —
+	// a rename here is now a compile error instead of a silently-nil field.
+	Wiring.RegisterBuilder("SelectLeft",
+		[]Wiring.PortSpec{
+			{Name: "FromLeft", Dir: Wiring.PortIn},
+			{Name: "FromRight", Dir: Wiring.PortIn},
+			{Name: "ToPassed", Dir: Wiring.PortOut},
+		},
+		func(a Wiring.BuildArgs) (wire.Node, error) {
+			n := &SelectLeft{}
+			n.Fire = a.Fire()
+			n.EmitInputBeads = a.EmitInputBeads()
+			n.Tick = a.Tick()
+			n.Clock = a.Clock()
+			n.SpeedCh = a.SpeedCh()
+			n.FromLeft = a.In("FromLeft")
+			n.FromRight = a.In("FromRight")
+			n.ToPassed = a.Out("ToPassed")
+			// EmitGeometry stays nil deliberately — nodeMover/edgeMover emit the same
+			// geometry from their own goroutine start (see builders.go's note).
+			// Left/HasLeft/Right/HasRight are runtime capture state, not injected —
+			// they start at their Go zero-values (0/false) exactly as reflectBuild
+			// left them (no matching tag/type for reflection to populate).
+			return n, nil
+		})
 }

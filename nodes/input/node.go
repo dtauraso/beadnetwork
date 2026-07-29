@@ -3,6 +3,8 @@ package input
 import (
 	"context"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring"
 )
 
 type Node struct {
@@ -303,8 +305,56 @@ func inputCadenceTicks(n *Node) int64 {
 }
 
 func init() {
-	// Seed Clock to a real, live-ticking default (never nil) at construction, so
-	// it is safe even before reflectBuild's field-type injection runs (or on a
-	// test build that registers/builds this kind with no loader at all).
-	wire.Register("Input", func() any { return &Node{Clock: wire.NewRealClock()} })
+	// Input CONSTRUCTS ITSELF. Every assignment below was previously performed by
+	// Wiring.reflectBuild via reflection (matching field NAMES/TYPES, and
+	// wire:"data.*" tags for Init/Repeat) — a renamed field now fails to compile
+	// instead of silently staying nil/zero.
+	Wiring.RegisterBuilder("Input",
+		[]Wiring.PortSpec{
+			{Name: "ToTime", Dir: Wiring.PortOut},
+			{Name: "ToExcitatory", Dir: Wiring.PortOut},
+			{Name: "ToPacer", Dir: Wiring.PortOut},
+			{Name: "FeedbackIn", Dir: Wiring.PortIn},
+		},
+		func(a Wiring.BuildArgs) (wire.Node, error) {
+			n := &Node{
+				// Clock defaults to a real, live-ticking clock (never nil) so this
+				// node is safe even on a construction path with no loader (test
+				// builds): a.Clock() below returns nil in that case (BuildArgs.Clock
+				// doc: "nil on a test build with no loader"), and this default is
+				// what previously came from the Register factory's zero-value seed
+				// (`&Node{Clock: wire.NewRealClock()}`) before reflectBuild ran.
+				Clock: wire.NewRealClock(),
+			}
+			n.Fire = a.Fire()
+			n.EmitNodeBeads = a.EmitNodeBeads()
+			n.EmitRefillSlide = a.EmitRefillSlide()
+			// Only overwrite the constructor default when the loader supplies a
+			// real origin clock (a.Clock() is nil on a no-loader test build) —
+			// reflectBuild's injectClosures only injected Clock when pb.clock !=
+			// nil, leaving the bare-field/zero-value default untouched otherwise.
+			if clk := a.Clock(); clk != nil {
+				n.Clock = clk
+			}
+			n.SpeedCh = a.SpeedCh()
+
+			// Init/Repeat: wire:"data.init" / wire:"data.repeat" in the old
+			// reflection tags. populateData copied slice fields (never aliased)
+			// and left the field untouched when the spec supplied no data block
+			// or a nil Init slice; reproduced explicitly here via a.Data().
+			if data := a.Data(); data != nil {
+				if data.Init != nil {
+					n.Init = append([]int(nil), data.Init...)
+				}
+				n.Repeat = data.Repeat
+			}
+
+			n.ToTime = a.Out("ToTime")
+			n.ToExcitatory = a.Out("ToExcitatory")
+			n.ToPacer = a.Out("ToPacer")
+			n.FeedbackIn = a.In("FeedbackIn")
+			// EmitGeometry stays nil deliberately — nodeMover/edgeMover emit the same
+			// geometry from their own goroutine start.
+			return n, nil
+		})
 }
