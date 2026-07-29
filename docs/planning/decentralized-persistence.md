@@ -196,6 +196,15 @@ when the editor adds or removes a node or an edge — the operation that changes
 knows the delta, so it writes them. TS reads two numbers and stops knowing the layout
 entirely; `countNodes` and `countEdges` both delete.
 
+ONE file, holding both numbers:
+
+```
+topology/counts.json     {"nodes": 9, "edges": 10}
+```
+
+One file, not one per number: a single operation changes both, so splitting them would mean
+two writes for one act with nothing gained. TS reads it once at spawn.
+
 **Nobody re-derives them — not TS, and not Go either.** An earlier draft of this step had Go
 compare the declared counts against a walk of the tree at load. That was the same mistake in
 a different language: it re-derives a fixed number in order to check a fixed number. The
