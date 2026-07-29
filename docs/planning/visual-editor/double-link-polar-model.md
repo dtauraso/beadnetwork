@@ -20,7 +20,7 @@ and the locks chain, so the Cartesian special cases disappear. **There is no sol
 
 Two separate graphs over the same nodes:
 
-- **Data edges** — what you see; carry beads. (`topology/edges/`.)
+- **Data edges** — what you see; carry beads. (`topology/nodes/<id>/edges/` — adjacency list, stored under the source node.)
 - **Movement links** — NOT displayed; declare which nodes must coordinate when one moves.
 
 A **movement link** is a DOUBLE link: bidirectional, symmetric. It holds one polar

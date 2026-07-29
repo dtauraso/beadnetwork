@@ -39,8 +39,9 @@ func TestUnfedRequiredPortLoadsAndStaysInert(t *testing.T) {
 	// carries a self-referencing cascade entry rather than inventing a domain edge to a
 	// node that doesn't exist in this fixture.
 	// Inline directory-tree fixture (this package cannot see Wiring's unexported
-	// _test.go helpers): meta.json + inputs/In.json for the one node, an empty
-	// edges/ dir, and a cascade-edges.json with an empty list (validateCascadeEdges
+	// _test.go helpers): meta.json + inputs/In.json for the one node, no edges/ dir
+	// at all (h has no outgoing edges), and a cascade-edges.json with an empty list
+	// (validateCascadeEdges
 	// requires the file's adjacency to EQUAL domain adjacency — h has no edges, so
 	// an empty cascadeEdges list satisfies that, no self-loop needed).
 	root := t.TempDir()
@@ -57,9 +58,9 @@ func TestUnfedRequiredPortLoadsAndStaysInert(t *testing.T) {
 	writeFile("nodes/h/data.json", `{"state":{"held":-1}}`)
 	writeFile("nodes/h/inputs/In.json", `{"name":"In"}`)
 	writeFile("nodes/h/cascade-edges.json", `{"cascadeEdges":[],"cascadeKinds":{}}`)
-	if err := os.MkdirAll(filepath.Join(root, "edges"), 0o755); err != nil {
-		t.Fatalf("mkdir edges: %v", err)
-	}
+	// No nodes/h/edges/ dir at all: under the adjacency layout, a node with no
+	// outgoing edges simply has no edges/ subdir — loadTree treats a missing dir as
+	// normal, not an error (mirrors inputs/outputs/).
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

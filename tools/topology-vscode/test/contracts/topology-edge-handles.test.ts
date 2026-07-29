@@ -3,7 +3,10 @@
 // The Go loader validates handles at runtime; this test catches drift at
 // `npm test` time so a bad topology fails the CI step, not the runner.
 //
-// Fixture: topology/ tree — edges/*.json and nodes/*/meta.json
+// Fixture: topology/ tree — adjacency layout, nodes/<id>/edges/*.json and
+// nodes/*/meta.json. An edge's source is the node directory it sits under, not a field
+// in the file (dropped as redundant — see nodes/Wiring/topo_spec.go's specEdge doc
+// comment), so this test derives it the same way loadTree does.
 
 import { describe, expect, it } from "vitest";
 import { readFileSync, readdirSync } from "node:fs";
@@ -11,7 +14,6 @@ import { join } from "node:path";
 import { NODE_DEFS } from "../../src/schema/node-defs";
 
 const TREE_NODES_DIR = join(__dirname, "../../../../topology/nodes");
-const TREE_EDGES_DIR = join(__dirname, "../../../../topology/edges");
 
 interface TopoNode {
   id: string;
@@ -32,11 +34,21 @@ const nodes: TopoNode[] = readdirSync(TREE_NODES_DIR).map((idDir) => {
   return { id: meta.id, type: meta.type };
 });
 
-const edges: TopoEdge[] = readdirSync(TREE_EDGES_DIR)
-  .filter((f) => f.endsWith(".json"))
-  .map((f) =>
-    JSON.parse(readFileSync(join(TREE_EDGES_DIR, f), "utf8"))
-  );
+const edges: TopoEdge[] = readdirSync(TREE_NODES_DIR).flatMap((idDir) => {
+  const edgesDir = join(TREE_NODES_DIR, idDir, "edges");
+  let files: string[];
+  try {
+    files = readdirSync(edgesDir);
+  } catch {
+    return []; // no edges/ subdir — this node has no outgoing edges, not an error
+  }
+  return files
+    .filter((f) => f.endsWith(".json"))
+    .map((f) => ({
+      ...JSON.parse(readFileSync(join(edgesDir, f), "utf8")),
+      source: idDir,
+    }));
+});
 
 // Go OutMulti ports are referenced as "<portName><index>" in the tree.
 // If the port carries isMulti:true (from generated metadata), match by base name prefix.

@@ -79,17 +79,25 @@ export function countNodes(topologyPath: string): number {
 // countEdges reads the topology spec's edge count WITHOUT the full Go-side validate/build
 // pipeline — just enough structure to size the pre-spawn stdio pipe array (the ext host
 // must know the fd RANGE before spawning Go, so it cannot ask Go for this). Mirrors
-// nodes/Wiring/loader.go's parseSpec dispatch: a directory tree (one file per
-// `<root>/edges/<label>.json`) or a monolithic topology.json (`{"edges":[...]}`). Returns
-// 0 (⇒ no dedicated edge fds are allocated) on any read/parse failure —
-// a missing/malformed spec is Go's error to report, not this sizing probe's.
+// nodes/Wiring/loader_tree.go's loadTree: a directory tree stores each node's OUTGOING
+// edges under its own `<root>/nodes/<id>/edges/<label>.json` (adjacency list — there is no
+// top-level `<root>/edges/` anymore), or a monolithic topology.json (`{"edges":[...]}`).
+// Sums the edges/ subdir of every node subdir. Returns 0 (⇒ no dedicated edge fds are
+// allocated) on any read/parse failure — a missing/malformed spec is Go's error to report,
+// not this sizing probe's.
 export function countEdges(topologyPath: string): number {
   try {
     const st = fs.statSync(topologyPath);
     if (st.isDirectory()) {
-      const edgesDir = path.join(topologyPath, "edges");
-      if (!fs.existsSync(edgesDir)) return 0;
-      return fs.readdirSync(edgesDir).filter((f) => f.endsWith(".json")).length;
+      const nodesDir = path.join(topologyPath, "nodes");
+      if (!fs.existsSync(nodesDir)) return 0;
+      let count = 0;
+      for (const nodeName of fs.readdirSync(nodesDir)) {
+        const edgesDir = path.join(nodesDir, nodeName, "edges");
+        if (!fs.existsSync(edgesDir)) continue;
+        count += fs.readdirSync(edgesDir).filter((f) => f.endsWith(".json")).length;
+      }
+      return count;
     }
     const raw = fs.readFileSync(topologyPath, "utf8");
     const spec: unknown = JSON.parse(raw);

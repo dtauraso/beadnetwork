@@ -42,8 +42,8 @@ func writeStar3(t *testing.T) string {
 	// fan-IN this package's srcNode/sinkNode kinds already exercise (two edges sharing
 	// one destination "In" port). validate.go only checks the port NAME is declared on
 	// the kind, not that a handle is used by at most one edge.
-	mk("edges/eAB.json", `{"label":"eAB","kind":"data","source":"A","sourceHandle":"Out","target":"B","targetHandle":"In"}`)
-	mk("edges/eAC.json", `{"label":"eAC","kind":"data","source":"A","sourceHandle":"Out","target":"C","targetHandle":"In"}`)
+	mk("nodes/A/edges/eAB.json", `{"label":"eAB","kind":"data","sourceHandle":"Out","target":"B","targetHandle":"In"}`)
+	mk("nodes/A/edges/eAC.json", `{"label":"eAC","kind":"data","sourceHandle":"Out","target":"C","targetHandle":"In"}`)
 	writeCascadeEdgesFromEdges(t, root, map[string]string{"A": "SrcNode", "B": "SinkNode", "C": "SinkNode"},
 		[][2]string{{"A", "B"}, {"A", "C"}})
 	return root

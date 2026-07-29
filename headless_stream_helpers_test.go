@@ -82,17 +82,29 @@ func wantNodeRowOrder(t *testing.T, repoRoot string) []string {
 }
 
 // topologyEdgeCount mirrors runCommand.ts's countEdges for the tree-form topology fixture
-// this repo ships (<repoRoot>/topology/edges/*.json) — one file per edge.
+// this repo ships — the adjacency layout stores each node's OUTGOING edges under
+// <repoRoot>/topology/nodes/<id>/edges/*.json (there is no top-level topology/edges/
+// anymore), so this sums that subdir across every node dir.
 func topologyEdgeCount(t *testing.T, repoRoot string) int {
 	t.Helper()
-	entries, err := os.ReadDir(filepath.Join(repoRoot, "topology", "edges"))
+	nodesDir := filepath.Join(repoRoot, "topology", "nodes")
+	nodeEntries, err := os.ReadDir(nodesDir)
 	if err != nil {
-		t.Fatalf("ReadDir(topology/edges): %v", err)
+		t.Fatalf("ReadDir(topology/nodes): %v", err)
 	}
 	n := 0
-	for _, e := range entries {
-		if !e.IsDir() {
-			n++
+	for _, nodeEntry := range nodeEntries {
+		if !nodeEntry.IsDir() {
+			continue
+		}
+		edgeEntries, err := os.ReadDir(filepath.Join(nodesDir, nodeEntry.Name(), "edges"))
+		if err != nil {
+			continue // no edges/ subdir is normal — a node with no outgoing edges
+		}
+		for _, e := range edgeEntries {
+			if !e.IsDir() {
+				n++
+			}
 		}
 	}
 	return n

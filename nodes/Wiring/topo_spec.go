@@ -192,6 +192,12 @@ type NodeData struct {
 
 // specEdge mirrors the JSON edge shape.
 // Fields tagged wire:"prop,..." are wire props emitted to wire-defs.ts by gen-node-defs.
+//
+// Source is NOT read from the file's own "source" key on disk — under the adjacency
+// layout (topology/nodes/<id>/edges/<label>.json) the source is the directory the file
+// sits in, and loadTree (loader_tree.go) fills Source in from that directory name after
+// unmarshalling. The struct field still carries `json:"source"` so in-memory
+// construction/tests can set it directly; it is simply redundant-and-unused on disk.
 type specEdge struct {
 	Label        string `json:"label"          wire:"prop,required,tsType:string"`
 	Kind         string `json:"kind"`
@@ -323,7 +329,7 @@ func readSpec(path string) (topoSpec, error) {
 		return topoSpec{}, fmt.Errorf("LoadTopology: stat %s: %w", path, err)
 	}
 	if !info.IsDir() { // path-resolution-ok: loader form check, not scene path resolution
-		return topoSpec{}, fmt.Errorf("LoadTopology: %s is a file; a topology is a directory tree (nodes/ + edges/). The monolithic single-file form was removed", path)
+		return topoSpec{}, fmt.Errorf("LoadTopology: %s is a file; a topology is a directory tree (nodes/<id>/{meta,data,inputs,outputs,edges}.json — adjacency layout). The monolithic single-file form was removed", path)
 	}
 	return loadTree(path)
 }

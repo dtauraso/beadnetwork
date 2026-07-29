@@ -12,8 +12,9 @@ import (
 // writeTreeFile writes body to <root>/<rel>, creating any missing parent directories.
 // It is the package's single fixture-file writer for directory-tree topology test
 // fixtures (nodes/<id>/meta.json, nodes/<id>/inputs|outputs/<name>.json,
-// edges/<label>.json); every test that builds an ad hoc tree fixture should call this
-// rather than redeclaring its own local mk(rel, body) closure.
+// nodes/<id>/edges/<label>.json — adjacency layout, edges live under their SOURCE node);
+// every test that builds an ad hoc tree fixture should call this rather than redeclaring
+// its own local mk(rel, body) closure.
 func writeTreeFile(t *testing.T, root, rel, body string) {
 	t.Helper()
 	p := filepath.Join(root, rel)
@@ -30,7 +31,8 @@ func writeTreeFile(t *testing.T, root, rel, body string) {
 // mandatory (parseSpec's validateCascadeEdges) and a fixture that omits it fails to load.
 //
 // nodeKinds maps node id -> that node's Type (matching its meta.json), and edges is the
-// list of (source, target) pairs the fixture wrote under edges/. Cascade adjacency here
+// list of (source, target) pairs the fixture wrote under each source node's edges/.
+// Cascade adjacency here
 // is the full domain adjacency: fixtures exercising the DRAG/re-quantize fan want every
 // domain neighbor reachable, and a fixture that needs a narrower cascade set (to exercise
 // a per-kind relay rule) should write its own files instead of calling this.
@@ -89,7 +91,9 @@ func writeCascadeEdgesFromEdgesAllowIsolated(t *testing.T, root string, nodeKind
 // It writes, per node: nodes/<id>/meta.json (every node-level key the spec carried,
 // minus data/inputs/outputs), nodes/<id>/data.json (when data is present),
 // nodes/<id>/inputs/<name>.json and nodes/<id>/outputs/<name>.json per port; per edge:
-// edges/<label>.json; and, for every node, a nodes/<id>/cascade-edges.json derived from
+// nodes/<source>/edges/<label>.json (adjacency layout — the redundant "source" key is
+// dropped, since loadTree derives it from the containing node directory); and, for every
+// node, a nodes/<id>/cascade-edges.json derived from
 // the spec's own edge list via writeCascadeEdgesFromEdgesAllowIsolated (cascade adjacency
 // is mandatory per validateCascadeEdges — see that function's doc comment — and any
 // cascadeEdges/cascadeKinds the spec literal itself carried are ignored in favor of this
@@ -159,11 +163,13 @@ func writeSpecTree(t *testing.T, root string, specJSON string) string {
 	edgePairs := make([][2]string, 0, len(spec.Edges))
 	for _, e := range spec.Edges {
 		edgePairs = append(edgePairs, [2]string{e.Source, e.Target})
+		src := e.Source
+		e.Source = "" // adjacency layout: the source is the directory, not a field on disk
 		body, err := json.Marshal(e)
 		if err != nil {
 			t.Fatalf("writeSpecTree: marshal edge %q: %v", e.Label, err)
 		}
-		writeTreeFile(t, root, filepath.Join("edges", e.Label+".json"), string(body))
+		writeTreeFile(t, root, filepath.Join("nodes", src, "edges", e.Label+".json"), string(body))
 	}
 
 	writeCascadeEdgesFromEdgesAllowIsolated(t, root, nodeKinds, edgePairs, false)
