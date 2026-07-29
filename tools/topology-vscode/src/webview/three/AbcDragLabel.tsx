@@ -4,7 +4,7 @@ import { useAbcDragRows, useDraggedNodeName, useDraggedNodeRelay } from "./overl
 // AbcDragLabel — the in-editor "drag received" log. A header line carrying the
 // LAST-dragged node's own name (persists past pointerup — see DragNodeRow's latch,
 // nodes/Wiring ui_state.go lastDraggedNode) followed by that node's CASCADE RELAY word
-// in parentheses — flood / routed / terminus, the Node block's CascadeRelay column,
+// in parentheses — fan / routed / terminus, the Node block's CascadeRelay column,
 // which says whether a delta triple this node picks up goes on to every cascade
 // neighbor, to one sender-chosen kind, or nowhere (Go decides it: node_mover.go's
 // cascadeRelayClass). Then a "drag received" label, then ONE

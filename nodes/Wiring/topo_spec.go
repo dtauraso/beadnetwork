@@ -251,7 +251,7 @@ func parseSpec(path string) (topoSpec, error) {
 //
 //   - A drag of node 8 reached node 5 over the DOMAIN edge 5-8 while node 5's
 //     cascade-edges.json had no entry for 8, so forwardDelta read the sender's kind as ""
-//     and the Pulse gate-routing rule fell through to a flood.
+//     and the Pulse gate-routing rule fell through to a fan.
 //   - Scoping the neighborSetC drag fan to cascadeEdges silently disabled neighbor
 //     re-quantize entirely for any topology whose nodes had no cascade file.
 //

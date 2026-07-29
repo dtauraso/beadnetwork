@@ -1,7 +1,7 @@
 // pulse_cascade_route_test.go — the Pulse kind's cascade delta rule.
 //
 // A Pulse (node 5) IGNORES a delta triple arriving from a TimeStart-kind cascade
-// neighbor: no record, no relay. From every other sender kind it keeps the plain flood
+// neighbor: no record, no relay. From every other sender kind it keeps the plain fan
 // to all cascade neighbors except the sender. This is the Pulse kind only — PulseLeft
 // and PulseRight are separate kinds with their own termini rules.
 
@@ -51,7 +51,7 @@ func TestPulseIgnoresTimeStartOriginDelta(t *testing.T) {
 // TestPulseRoutesGateOriginToOppositeGate: a gate-origin delta goes straight across to
 // the OPPOSITE gate kind and nowhere else — SelectRight (node 8) ->
 // SelectLeft (node 9) and back. In particular it
-// is not also flooded to the TimeStart neighbor 2.
+// is not also fanned to the TimeStart neighbor 2.
 func TestPulseRoutesGateOriginToOppositeGate(t *testing.T) {
 	cases := []struct {
 		name           string
@@ -90,7 +90,7 @@ func TestPulseRoutesGateOriginToOppositeGate(t *testing.T) {
 // TestPulseDropsUnknownSenderKind: the Pulse switch is TOTAL — a sender whose kind is
 // not one of the three real cases relays to nobody. The empty-string case is the one
 // that actually occurred: a cascade-edges.json missing an entry for the sender reads as
-// kind "", and under the old flood fallback that turned a data gap into surprise fan-out.
+// kind "", and under the old fan fallback that turned a data gap into surprise fan-out.
 func TestPulseDropsUnknownSenderKind(t *testing.T) {
 	for _, sender := range []string{"8", "42"} { // "8" absent from cascadeKinds => kind ""
 		var mu sync.Mutex

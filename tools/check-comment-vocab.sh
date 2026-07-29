@@ -37,6 +37,18 @@ readonly DEAD_COMMENT_TOKENS=(
   "handleFd3"
   "fd-3 fallback"
   "fd3 fallback"
+  # cascade vocabulary (2026-07-29): "flood" named TWO different things — the ordinary
+  # bounded relay-to-all-cascade-neighbors-except-sender, AND the unbounded run the
+  # per-kind rules exist to stop (~300 forwards/sec indefinitely, forwardDelta's doc).
+  # The collision reached the editor: a drag-log label called a healthy node's fan a
+  # "flood", i.e. reported the pathology as this node's normal setting. "flood" now names
+  # ONLY the unbounded run; the bounded relay is a FAN. Bare "flood" is deliberately NOT
+  # guarded — it must stay usable for the pathology (and for unrelated event-flooding
+  # comments); these are the specific phrases that meant the bounded fan.
+  "flood-to-all"
+  "plain flood"
+  "full flood"
+  "flood fallback"
   # vocab-drift audit round: stale "fd3/fd-3 <live channel>" framings that imply fd 3
   # carries the live render path. The live path is per-goroutine dedicated streams.
   "fd3 side channel"
