@@ -28,21 +28,25 @@ Two tools, two different questions:
 
 crap4go tells you WHERE to spend mutate4go's much higher per-line cost.
 
-## Local tool clones
+## Where the tools come from
 
-Both tools are local clones, each its own Go module (not vendored into this repo):
+Nothing to install. `tools/audit-mutation-crap.sh` fetches both as Go modules at versions
+PINNED in that script, so the only network access is the first run per version:
 
 ```
-~/Downloads/unclebob-repos/crap4go
-~/Downloads/unclebob-repos/mutate4go
+github.com/unclebob/crap4go/cmd/crap4go
+github.com/unclebob/mutate4go/cmd/mutate4go
 ```
 
-Read each clone's own README (and crap4go's bundled `SKILL.md`, mutate4go's bundled
-skill under its own `skills/` directory) for the authoritative flag list before inventing
-invocations — this doc summarizes, it does not replace them. Use
-`tools/audit-mutation-crap.sh`, which builds each tool to a temp binary (they're
-separate modules, so `go run <path>` from inside this repo fails with "outside main
-module").
+Pinned rather than `@latest` because this is a measurement tool: a version that
+re-resolves on every run could silently change what the numbers mean between two runs.
+Bump the pins in the script deliberately.
+
+To work offline, or to test an unreleased change, point `CRAP4GO_SRC` / `MUTATE4GO_SRC`
+at a clone directory — an existing directory wins over the module path.
+
+Each tool's own README (and crap4go's bundled `SKILL.md`) is the authoritative flag list;
+this doc summarizes and does not replace them. Read them before inventing invocations.
 
 ## Workflow
 
