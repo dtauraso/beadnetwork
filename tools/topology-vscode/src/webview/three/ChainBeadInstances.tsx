@@ -5,8 +5,9 @@
 // are never drawn — and its length is not a count of messages: a chain sits fully populated
 // with nothing traversing it.
 //
-// A chain bead is a GREY VERSION OF BEAD 1: same radius, same two-mesh structure (fill sphere
-// + ring torus), only the fill differs. Beads sit one DIAMETER apart so they TOUCH — a chain
+// A chain bead is BEAD 1 IN THE EDGE'S OWN COLOUR: same radius, same two-mesh structure (fill
+// sphere + ring torus), with the fill set to SHADING_PARAM_TUBE_COLOR — the colour the wire
+// tubes use — because the chain IS the edge visual and should read as the same object. Beads sit one DIAMETER apart so they TOUCH — a chain
 // is a solid line of beads, not a dotted one. Both the radius and the spacing come from the
 // same ShadingParamBeadRadius constant (Go-owned, mirrored into TS), so "no gaps" cannot drift
 // into a gap by one side editing its own copy.
@@ -29,7 +30,7 @@ import { beadStyleForValue } from "./bead-style";
 import {
   SHADING_PARAM_BEAD_RADIUS,
   SHADING_PARAM_BEAD_RING_TUBE_RATIO,
-  SHADING_PARAM_CHAIN_BEAD_FILL,
+  SHADING_PARAM_TUBE_COLOR,
 } from "../../schema/shading-params";
 
 // Bead 1's own ring, worn by every chain bead whether lit or not — the ring is not part of the
@@ -59,11 +60,11 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
       ring.setMatrixAt(i, matRef.current);
 
       // The ONE visual difference: an occupied bead wears its traversal's own fill, an empty
-      // one wears the grey. A Lit bead whose value is not 0|1 has no style — that is a Go bug
-      // rather than a colour to invent, so it stays grey instead of painting a fake one
-      // (bead-style.ts's own stance on a non-0/1 value).
+      // one wears the edge colour. A Lit bead whose value is not 0|1 has no style — that is a Go bug
+      // rather than a colour to invent, so it stays edge-coloured instead of painting a fake one
+      // (bead-style.ts's own stance on a non-0/1 value), i.e. it stays edge-coloured.
       const style = lit[i] === 1 ? beadStyleForValue(litValue[i]) : undefined;
-      body.setColorAt(i, colRef.current.set(style ? style.fill : SHADING_PARAM_CHAIN_BEAD_FILL));
+      body.setColorAt(i, colRef.current.set(style ? style.fill : SHADING_PARAM_TUBE_COLOR));
       ring.setColorAt(i, colRef.current.set(RING_COLOR));
     }
     body.count = drawn;

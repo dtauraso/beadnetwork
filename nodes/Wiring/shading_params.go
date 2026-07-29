@@ -146,10 +146,9 @@ const ShadingParamBeadRadius = 4.0
 // ShadingParamBeadRadius. Same for chain beads as for the 0/1 beads — same structure.
 const ShadingParamBeadRingTubeRatio = 0.12
 
-// ShadingParamChainBeadFill is the UNLIT chain bead's fill: bead 1's structure (white fill,
-// black ring) with the fill greyed. A traversal is then a pure FILL colour change to bead 0's
-// or bead 1's own fill — no size change, no ring change, one visual difference.
-const ShadingParamChainBeadFill = "#8a8a8a"
+// (There is no ShadingParamChainBeadFill. An UNLIT chain bead wears the EDGE's own colour —
+// ShadingParamTubeColor below — because the chain IS the edge visual, so a second constant
+// would just be a copy of it free to drift the beads away from the lines they replace.)
 
 // ShadingParamBeadColor is the in-flight bead color.
 const ShadingParamBeadColor = "#ffffff"
