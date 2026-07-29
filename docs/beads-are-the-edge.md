@@ -143,10 +143,14 @@ makes the commit very large.
    `index = t × newCount` and `remaining = (newCount − index) × d`, which is
    `(1−t)·newArc/speed` — the same rule as index arithmetic rather than distance, which is
    the shape `memory/feedback_abc_times_constant_not_rederive.md` asks for.
-5. **What happens to the Bead block?** If beads become node-local offsets plus a lit index,
-   the Bead block's absolute `X/Y/Z` are dead and it collapses toward the Interior block's
-   shape. `check-no-dead-buffer-column.sh` will force that decision rather than let the old
-   columns linger.
+5. **What happens to the Bead block?** Today `bufLayoutBead` (`Buffer/layout.go:56`) is
+   `X/Y/Z` world position + `Value`, **one row per live in-flight bead**, fed from
+   `KindEdgeBead` events and read by `edge-stream-blocks.ts` off the per-edge stream — Go
+   recomputes that absolute position every tick and streams it. Under this model nothing
+   produces it: there is no bead with a moving position, only a fixed chain plus a lit index.
+   So those three columns lose their writer. Whether the block is deleted or becomes the
+   chain's node-local offsets (the Interior block's shape) is open;
+   `check-no-dead-buffer-column.sh` forces the decision rather than letting them linger.
 
 ## MODEL.md is wrong the moment this lands
 
@@ -184,10 +188,20 @@ state. Proposed order, each verified with `bash scripts/stop-checks.sh`:
 Step 1 is the single concrete next step and the only one worth starting before the open
 questions above are answered.
 
-## Risk worth naming
+## The two representations are the design, not a smell
 
-Steps 1 and 2 leave the system with two representations of the same thing (a moving bead and
-a lit sequence) and one of them authoritative. That is a drift shape this repo has been
-bitten by before — `memory/feedback_reflect_dont_create_store.md`, and the whole reason
-`check-no-webview-state.sh` exists. Keep the wire authoritative and the sequence purely
-derived until step 3 flips it in one move; do not let both be true at once.
+An earlier draft of this document called the coexistence of two representations a drift
+risk. That was wrong, and worth recording so it does not get "cleaned up" later by someone
+reading only the code:
+
+- the **visual bead chain** connecting the nodes, and
+- the nodes **connected directly by channels** carrying add/remove-bead messages
+
+are two different things, not two copies of one thing. Neither is derived from the other and
+neither is redundant. The chain never depicts the channel, and the channel traffic is never
+drawn. Any future change that tries to collapse them into one representation — deriving the
+chain from channel traffic, or drawing a message as a bead — is undoing the design.
+
+The one duplication that IS transient is the migration itself: during steps 1-2 a moving
+bead and a lit chain both depict the same traversal. That pair is two copies of one thing,
+and step 3 removes one of them. It says nothing about the chain/channel duality above.
