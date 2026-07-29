@@ -10,7 +10,9 @@ Goal: find "blast radius" hotspots — code that forces an AI to load large swat
 system to change one part safely. This feeds the token-reduction program (target ~5× less
 AI usage per feature: shrink blast radius, fit AI's priors, lock each win with a guard).
 
-Give the subagent this task (grep-first; scope out `node_modules,out,.git,handoff-archive,memory`):
+Give the subagent this task. **First, read `docs/audit-baseline.md`** — it lists findings
+already judged deliberate-and-structural; do not re-report anything in it, only NEW
+deviations from it. Then grep-first; scope out `node_modules,out,.git,handoff-archive,memory`:
 
 1. **Shared mutable state** in the Go layer — `sync.Mutex`, `sync.RWMutex`, `atomic.`,
    package-level `var` written after init, shared maps written by multiple goroutines.
