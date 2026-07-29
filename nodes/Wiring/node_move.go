@@ -141,6 +141,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 	md.mr.edgeMovers = map[string]*edgeMover{}
 	md.mr.edgeOut = map[string]*wire.Out{}
 	md.mr.centerMirror = map[string]vec3{}
+	md.mr.lenMirror = map[string]float64{}
 	md.lq.layoutHolders = map[string]*wire.LayoutHolder{}
 	md.ui.ov = defaultOverlayState()
 	// Static partner-center lookup for the seed pass: every node's center is already known
@@ -254,6 +255,15 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 	}
 	for edgeID, ep := range edgeEndpoints {
 		em := newEdgeMover(ep, edgeID, geoms[ep.Source], geoms[ep.Target], tr, clk)
+		// Seed the dispatch goroutine's LENGTH mirror from the same load-time geoms, for
+		// the same reason the center seed above exists: this is single-threaded setup
+		// before md.Start, no edge goroutine has run yet, and the VIEW stream is
+		// event-driven (view_stream.go) — so a length that only appears once an edge
+		// happens to recompute would leave the distance panel reading 0 until some
+		// unrelated hover/select/camera event emitted the next frame.
+		if sg, dg := geoms[ep.Source], geoms[ep.Target]; sg.HasPos && dg.HasPos {
+			md.mr.lenMirror[edgeID] = nodeWorldPos(dg).Sub(nodeWorldPos(sg)).Length()
+		}
 		if speedSinks != nil {
 			edgeSpeedCh := make(chan float64, 1)
 			em.speedCh = edgeSpeedCh

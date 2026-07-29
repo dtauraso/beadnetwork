@@ -44,7 +44,22 @@ type edgeMover struct {
 	extIn chan moveMsg
 	srcIn chan moveMsg
 	dstIn chan moveMsg
-	tr    *T.Trace
+	// lenOut is this edge's OWN dedicated one-slot latest-wins channel carrying its
+	// current length |dst − src|, pushed by recomputeGeometry. It mirrors
+	// nodeMover.centerOut exactly, and exists for the same reason: an edge is the only
+	// thing that legitimately knows BOTH its endpoints, so it is the only thing that
+	// should be measuring between them.
+	//
+	// Before this, the dispatch goroutine derived every group's lengths itself, reading
+	// two foreign nodes' positions out of moverRegistry.centerMirror and subtracting
+	// (distanceGroupMax). centerMirror documents itself as EVENTUALLY CONSISTENT and
+	// "acceptable for camera/framing reads, which is the only remaining caller class" —
+	// but that caller was not a framing read, it was the input to a position
+	// computation, which is what waitForCenterSettle then had to paper over. Publishing
+	// the length from its owner removes the derivation, so nothing computes geometry
+	// from a mirror of somebody else's state.
+	lenOut chan float64
+	tr     *T.Trace
 	// clockSrc is the Clock this edgeMover's own goroutine (run) Copies from
 	// EXACTLY ONCE at its own start, into clk below. Not read again afterward.
 	clockSrc wire.Clock
@@ -118,6 +133,7 @@ func newEdgeMover(ep EdgeEndpoints, edgeID string, srcGeom, dstGeom nodeGeom, tr
 		extIn:    make(chan moveMsg, moverInboxDepth),
 		srcIn:    make(chan moveMsg, moverInboxDepth),
 		dstIn:    make(chan moveMsg, moverInboxDepth),
+		lenOut:   make(chan float64, 1),
 		tr:       tr,
 		clockSrc: clockSrc,
 		clk:      wire.NewRealClock(),
@@ -203,6 +219,10 @@ func (m *edgeMover) handle(msg moveMsg) {
 // bead (fraction-preserving), update the dest port window aggregate, and emit the new
 // segment so the renderer redraws the wire. Shared by node-move and port-anchor handling.
 func (m *edgeMover) recomputeGeometry() {
+	// Publish this edge's OWN length first (latest-wins, see lenOut's doc comment): both
+	// endpoint geoms are current here, and this is the only goroutine entitled to read
+	// them together.
+	m.publishLength()
 	seg := edgeSegment(m.srcGeom, m.dstGeom, m.srcH, m.dstH)
 	arc := edgeArcPolar(m.srcGeom, m.dstGeom, m.srcH, m.dstH)
 	lat := arc / wire.PulseSpeedWuPerMs
@@ -397,5 +417,31 @@ func (m *edgeMover) run(ctx context.Context) {
 		if err := m.clk.SleepCycle(ctx); err != nil {
 			return
 		}
+	}
+}
+
+// publishLength pushes this edge's current length |dst − src| onto its own one-slot
+// lenOut, draining any unread stale value first so the channel always holds the newest
+// (latest-wins — the same shape as nodeMover.applyCenter's push onto centerOut, and for
+// the same reason: a reader that missed an intermediate length wants the current one,
+// never a queued backlog).
+//
+// A length is only meaningful once BOTH endpoints have a real position; an endpoint
+// without one (HasPos false) makes nodeWorldPos return the zero vector, which would
+// publish a fabricated distance-to-origin. Publish nothing in that case and let the
+// reader report the edge as unresolved, exactly as the old center-pair read did when
+// either center was missing.
+func (m *edgeMover) publishLength() {
+	if !m.srcGeom.HasPos || !m.dstGeom.HasPos {
+		return
+	}
+	l := nodeWorldPos(m.dstGeom).Sub(nodeWorldPos(m.srcGeom)).Length()
+	select {
+	case <-m.lenOut:
+	default:
+	}
+	select {
+	case m.lenOut <- l:
+	default:
 	}
 }

@@ -41,10 +41,22 @@ var distanceGroups = map[string][]distancePair{
 	"gate":  {{Source: "3", Target: "8"}, {Source: "5", Target: "8"}, {Source: "5", Target: "9"}, {Source: "7", Target: "9"}},
 }
 
-// distanceGroupMax computes a group's CURRENT max pair length (max over the group's
-// pairs of |center(target)-center(source)|), reading live centers from md's own
-// centerMirror (md.centerOfNode — the same source RootMove/reachRFromPolar use). ok is
-// false if the group is unknown or none of its pairs' centers are resolvable yet.
+// distanceGroupMax returns a group's CURRENT max pair length, as a REDUCTION over lengths
+// each edge measured and published itself (moverRegistry.lengthOfPair, fed by every
+// edgeMover's own publishLength). ok is false if the group is unknown or none of its pairs
+// has a published length yet.
+//
+// It used to derive each length here, reading both endpoints out of centerMirror and
+// subtracting. That was the wrong owner twice over: dispatch does not own either node's
+// position, and centerMirror is documented as EVENTUALLY CONSISTENT and "acceptable for
+// camera/framing reads, which is the only remaining caller class" — while this caller was
+// not a framing read but the input to a position computation. The gap between those two
+// facts is exactly what waitForCenterSettle was added to paper over.
+//
+// Reducing over owner-published values does not have that problem. A late value is an
+// older LENGTH — a distance those two endpoints really did have — never a distance
+// between two positions that never coexisted, which is what subtracting two independently
+// stale centers can produce.
 func (md *MoveDispatch) distanceGroupMax(group string) (float64, bool) {
 	pairs, ok := distanceGroups[group]
 	if !ok {
@@ -53,12 +65,11 @@ func (md *MoveDispatch) distanceGroupMax(group string) (float64, bool) {
 	max := 0.0
 	any := false
 	for _, p := range pairs {
-		cs, okS := md.centerOfNode(p.Source)
-		ct, okT := md.centerOfNode(p.Target)
-		if !okS || !okT {
+		d, okL := md.mr.lengthOfPair(p.Source, p.Target)
+		if !okL {
 			continue
 		}
-		if d := ct.Sub(cs).Length(); d > max {
+		if d > max {
 			max = d
 		}
 		any = true
