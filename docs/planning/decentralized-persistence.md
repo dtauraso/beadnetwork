@@ -196,17 +196,22 @@ when the editor adds or removes a node or an edge — the operation that changes
 knows the delta, so it writes them. TS reads two numbers and stops knowing the layout
 entirely; `countNodes` and `countEdges` both delete.
 
-**Go asserts them at load.** This is what keeps a stored number from being a cache that rots:
-`loadTree` already walks `nodes/` and each node's `edges/`, so it can compare the declared
-counts against what it actually found and fail loudly on a mismatch, naming both (MODEL.md
-"Assertions"). A topology edited by something that did not finish the job then fails at load
-instead of silently mis-sizing the bridge. That makes the stored number a CHECKSUM with an
-assertion behind it, not a cache TS trusts blindly.
+**Nobody re-derives them — not TS, and not Go either.** An earlier draft of this step had Go
+compare the declared counts against a walk of the tree at load. That was the same mistake in
+a different language: it re-derives a fixed number in order to check a fixed number. The
+count is written once by the operation that changes it, and read. That is the whole design.
 
-Consider the alternative rejected: a `--count` pre-pass (spawn Go once to print the numbers,
-then spawn for real) needs no file and no writer, but costs a process spawn per run and
-leaves the counts underivable without running a binary. Storing them keeps the topology
-self-describing.
+Go's load already iterates `nodes/` and each node's `edges/`, but that is LOADING — reading
+each node's data to build the graph — not counting. Do not add a counting pass alongside it.
+
+The correctness argument is single-writer, not verification: exactly one operation creates or
+deletes a node or edge, and that operation updates the count. Nothing else writes it, so
+there is nothing to reconcile.
+
+Alternative considered and rejected: a `--count` pre-pass (spawn Go once to print the
+numbers, then spawn for real). It needs no file and no writer, but costs a process spawn per
+run and leaves the counts underivable without running a binary. Storing them keeps the
+topology self-describing.
 
 ## Explicitly out of scope
 
