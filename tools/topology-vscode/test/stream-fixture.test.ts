@@ -83,7 +83,6 @@ interface NodeFrameFixture {
 }
 interface EdgeFrameFixture {
   tick: number; srcPortRow: number; dstPortRow: number; selected: number; label: string;
-  beadVal: number[]; beadX: number[]; beadY: number[]; beadZ: number[];
   hex: string;
 }
 interface InteriorFrameFixture {
@@ -238,20 +237,11 @@ describe("stream fixture cross-language decode", () => {
 
     expect(decoded.tick).toBe(want.tick);
     expect(decoded.label).toBe(want.label);
-    expect(decoded.beadCount).toBe(want.beadVal.length);
 
     const ev = decoded.edgeView;
     expect(readEdgeSrcPortRow(ev, 0), "srcPortRow").toBe(want.srcPortRow);
     expect(readEdgeDstPortRow(ev, 0), "dstPortRow").toBe(want.dstPortRow);
     expect(readEdgeSelected(ev, 0), "selected").toBe(want.selected);
-
-    for (let i = 0; i < want.beadVal.length; i++) {
-      const bv = decoded.beadView;
-      expect(bv.getInt32(i * 16 + 12, true), `bead[${i}].value`).toBe(want.beadVal[i]);
-      expectClose(bv.getFloat32(i * 16 + 0, true), want.beadX[i]!, `bead[${i}].x`);
-      expectClose(bv.getFloat32(i * 16 + 4, true), want.beadY[i]!, `bead[${i}].y`);
-      expectClose(bv.getFloat32(i * 16 + 8, true), want.beadZ[i]!, `bead[${i}].z`);
-    }
   });
 
   it("decodeInteriorStreamFrame agrees with the Go-encoded interior fixture", () => {

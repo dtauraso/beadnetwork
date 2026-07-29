@@ -142,12 +142,12 @@ resolving instantaneously.
   dragged), and a longer or shorter wire still traverses at constant
   world-speed. (Preserving distance instead would let `t` jump as the arc
   length changes.)
-- Go owns the bead's PROGRESS (the fraction `t`, timed in ticks on the human-speed clock)
-  AND the bead's absolute world position — it computes the position from its own
-  live node/port endpoints (moved by the same drag) and packs the result into the
-  content buffer. The editor decodes and draws it (`readBeadX/Y/Z` from
-  `tools/topology-vscode/src/schema/buffer-layout.ts`, consumed by `tools/topology-vscode/src/webview/three/BeadInstances.tsx`); it does not
-  interpolate or own positions.
+- Go owns the bead's PROGRESS (the fraction `t`, timed in ticks on the human-speed clock).
+  It no longer computes or streams an absolute bead position: nothing draws a moving bead.
+  The source node quantises its own `t` onto its own chain and streams which bead is LIT
+  (`readChainBeadLit` from `tools/topology-vscode/src/schema/buffer-layout.ts`, consumed by
+  `tools/topology-vscode/src/webview/three/ChainBeadInstances.tsx`). The editor does not
+  interpolate, does not own positions, and does not decide which bead is lit.
 - Durations are tick counts: bead traversal (`ticksToCross`) and node processing windows.
 ## Driver
 
@@ -226,7 +226,7 @@ when a bead has arrived. Go owns the clock.
   not this filename. The tree covers: node bodies (`tools/topology-vscode/src/webview/three/NodeInstances.tsx` — sphere
   mesh + ring, keyed off `node.data.fill`/`node.data.stroke` from `NODE_DEFS`),
   ports (`tools/topology-vscode/src/webview/three/PortInstances.tsx`), edge tubes (`tools/topology-vscode/src/webview/three/EdgeTube.tsx`), transit and interior
-  beads (`tools/topology-vscode/src/webview/three/BeadInstances.tsx`, `tools/topology-vscode/src/webview/three/InteriorBeadInstances.tsx`), selection highlight
+  beads (`tools/topology-vscode/src/webview/three/ChainBeadInstances.tsx`, `tools/topology-vscode/src/webview/three/InteriorBeadInstances.tsx`), selection highlight
   (`tools/topology-vscode/src/webview/three/SelectionHighlight.tsx`), and the camera (`tools/topology-vscode/src/webview/three/BufferCamera.tsx` maps the buffer
   Camera row onto the three.js camera). Nothing in this tree owns traversal
   timing, positions, or geometry.

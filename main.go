@@ -127,8 +127,8 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 		// selected bit, set via a moveMsgKindSelect message the gesture goroutine sends
 		// on select/deselect (MoveDispatch.sendEdgeSelect).
 		md.SetEdgeStreams(edgeBase, md.PortRowFor, md.NodeRowFor,
-			func(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, beadVal []int32, beadX, beadY, beadZ []float32, events []wire.RowEvent) []byte {
-				return B.BuildEdgeStreamFrame(tick, srcPortRow, dstPortRow, selected, label, beadVal, beadX, beadY, beadZ, toStreamEvents(events))
+			func(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, events []wire.RowEvent) []byte {
+				return B.BuildEdgeStreamFrame(tick, srcPortRow, dstPortRow, selected, label, toStreamEvents(events))
 			})
 	}
 	// The two per-node dedicated streams (memory/feedback_no_single_writer_bridge.md):

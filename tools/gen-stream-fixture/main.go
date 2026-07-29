@@ -96,16 +96,12 @@ type nodeFrameFixture struct {
 }
 
 type edgeFrameFixture struct {
-	Tick       uint32    `json:"tick"`
-	SrcPortRow int32     `json:"srcPortRow"`
-	DstPortRow int32     `json:"dstPortRow"`
-	Selected   uint8     `json:"selected"`
-	Label      string    `json:"label"`
-	BeadVal    []int32   `json:"beadVal"`
-	BeadX      []float32 `json:"beadX"`
-	BeadY      []float32 `json:"beadY"`
-	BeadZ      []float32 `json:"beadZ"`
-	Hex        string    `json:"hex"`
+	Tick       uint32 `json:"tick"`
+	SrcPortRow int32  `json:"srcPortRow"`
+	DstPortRow int32  `json:"dstPortRow"`
+	Selected   uint8  `json:"selected"`
+	Label      string `json:"label"`
+	Hex        string `json:"hex"`
 }
 
 type interiorFrameFixture struct {
@@ -205,12 +201,8 @@ func buildNodeFrame() nodeFrameFixture {
 func buildEdgeFrame() edgeFrameFixture {
 	f := edgeFrameFixture{
 		Tick: 8181, SrcPortRow: 12, DstPortRow: 34, Selected: 1, Label: "edgeLabel",
-		BeadVal: []int32{5, -6, 7},
-		BeadX:   []float32{61.5, -62.25, 63.125},
-		BeadY:   []float32{71.5, 72.25, -73.125},
-		BeadZ:   []float32{-81.5, 82.25, 83.125},
 	}
-	raw := Buffer.BuildEdgeStreamFrame(f.Tick, f.SrcPortRow, f.DstPortRow, f.Selected, f.Label, f.BeadVal, f.BeadX, f.BeadY, f.BeadZ, nil)
+	raw := Buffer.BuildEdgeStreamFrame(f.Tick, f.SrcPortRow, f.DstPortRow, f.Selected, f.Label, nil)
 	f.Hex = hex.EncodeToString(raw)
 	return f
 }

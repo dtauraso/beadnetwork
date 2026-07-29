@@ -48,27 +48,6 @@ func assertU8At(t *testing.T, buf []byte, offset int, want uint8, label string) 
 	}
 }
 
-func TestSetBeadRow(t *testing.T) {
-	buf := make([]byte, BufBeadStride*2)
-	// Write row 0.
-	SetBeadRow(buf, 0, 1.5, -2.25, 3.0, -7)
-	// Write row 1 with different values to verify stride independence.
-	SetBeadRow(buf, 1, 10.0, 20.0, 30.0, 99)
-
-	// Row 0 assertions.
-	assertF32At(t, buf, BufBeadColX, 1.5, "row0.X")
-	assertF32At(t, buf, BufBeadColY, -2.25, "row0.Y")
-	assertF32At(t, buf, BufBeadColZ, 3.0, "row0.Z")
-	assertI32At(t, buf, BufBeadColValue, -7, "row0.Value")
-
-	// Row 1 assertions (offset by BufBeadStride).
-	base := BufBeadStride
-	assertF32At(t, buf, base+BufBeadColX, 10.0, "row1.X")
-	assertF32At(t, buf, base+BufBeadColY, 20.0, "row1.Y")
-	assertF32At(t, buf, base+BufBeadColZ, 30.0, "row1.Z")
-	assertI32At(t, buf, base+BufBeadColValue, 99, "row1.Value")
-}
-
 func TestSetNodeRow(t *testing.T) {
 	buf := make([]byte, BufNodeStride)
 	SetNodeRow(buf, 0,
@@ -175,14 +154,6 @@ func TestSetOverlayRow(t *testing.T) {
 	assertU8At(t, buf, BufOverlayColLabelsGlobal, 0, "LabelsGlobal")
 	assertU8At(t, buf, BufOverlayColOverlaysVis, 0, "OverlaysVis")
 	assertU8At(t, buf, BufOverlayColCascadeLinks, 1, "CascadeLinks")
-}
-
-func TestBeadStrideIsPackedSize(t *testing.T) {
-	// Bead block: 3×f32 + i32 = 4×4 = 16
-	want := 3*4 + 4
-	if BufBeadStride != want {
-		t.Errorf("BufBeadStride = %d, want %d (packed size)", BufBeadStride, want)
-	}
 }
 
 func TestNodeStrideIsPackedSize(t *testing.T) {

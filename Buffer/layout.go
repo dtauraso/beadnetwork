@@ -53,15 +53,11 @@ const BufInteriorSlotsPerNode = 4
 // Each struct defines one column block. Fields are packed in declaration order.
 // The generator computes byte offsets and stride from buf: tags.
 
-// bufLayoutBead defines one row of the beads column block.
-// One row per live in-flight bead. Matched from KindEdgeBead trace events.
-type bufLayoutBead struct {
-	X     float32 `buf:"f32"` // world x position
-	Y     float32 `buf:"f32"` // world y position
-	Z     float32 `buf:"f32"` // world z position
-	Value int32   `buf:"i32"` // bead integer value
-}
-
+// The Bead block is GONE. It was one row per live in-flight bead (world X/Y/Z + Value),
+// repacked every tick as the bead moved. Nothing draws a moving bead any more: a traversal
+// is rendered as the LIT bead of a node-owned fixed chain (see bufLayoutChainBead's Lit
+// column and docs/beads-are-the-edge.md), so there is no per-tick position to carry.
+//
 // bufLayoutNode defines one row of the nodes column block.
 // One row per node. Persistent geometry. (Recv/Fire/Send/Arrive/Done events are
 // carried by the EVENT block only — see bufLayoutEvent — not by per-node columns.)
@@ -407,7 +403,6 @@ type bufLayoutEvent struct {
 // staticcheck. They are schema sources: the generator reads them via AST at
 // codegen time; they are not used at runtime.
 var _ = [...]any{
-	bufLayoutBead{},
 	bufLayoutNode{},
 	bufLayoutChainBead{},
 	bufLayoutInterior{},

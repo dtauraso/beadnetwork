@@ -1,12 +1,12 @@
 // edge-stream-blocks.ts — the per-edge dedicated-stream either/or, mirroring
 // view-blocks.ts's role for the VIEW stream (memory/feedback_no_single_writer_bridge.md).
-// EdgeTube.tsx/BeadInstances.tsx read edge geometry/selection and beads through this ONE
+// EdgeTube.tsx reads edge geometry/selection through this ONE
 // accessor rather than each re-implementing the "no per-edge stream frame has arrived yet,
 // so draw nothing this frame" null-check.
 
 import { getLatestEdgeStreamFrames } from "../snapshot-buffer";
 import { decodeEdgeStreamFrame, type DecodedEdgeStreamFrame } from "./buffer-decode";
-import { readEdgeSrcPortRow, readEdgeDstPortRow, readEdgeSelected, readBeadValue, readBeadX, readBeadY, readBeadZ } from "../../schema/buffer-layout";
+import { readEdgeSrcPortRow, readEdgeDstPortRow, readEdgeSelected } from "../../schema/buffer-layout";
 
 export interface EdgeAccessor {
   /** One past the highest edge ROW that has posted at least one dedicated-stream frame —
@@ -19,8 +19,9 @@ export interface EdgeAccessor {
   srcPortRow(row: number): number;
   dstPortRow(row: number): number;
   selected(row: number): boolean;
-  /** This edge row's current live beads (val/x/y/z), or an empty array if unresolved. */
-  beads(row: number): Array<{ val: number; x: number; y: number; z: number }>;
+  // No beads() accessor: the Bead block is gone. A traversal renders as the LIT bead of
+  // the source node's own fixed chain (ChainBeadInstances), not a moving position on the
+  // edge stream — docs/beads-are-the-edge.md.
 }
 
 function decodedFor(frames: ReadonlyMap<number, ArrayBuffer>, row: number): DecodedEdgeStreamFrame | null {
@@ -53,20 +54,6 @@ export function getEdgeStreamAccessor(): EdgeAccessor | null {
     selected(row) {
       const d = decodedFor(frames, row);
       return d ? readEdgeSelected(d.edgeView, 0) > 0 : false;
-    },
-    beads(row) {
-      const d = decodedFor(frames, row);
-      if (!d) return [];
-      const out: Array<{ val: number; x: number; y: number; z: number }> = [];
-      for (let i = 0; i < d.beadCount; i++) {
-        out.push({
-          val: readBeadValue(d.beadView, i),
-          x: readBeadX(d.beadView, i),
-          y: readBeadY(d.beadView, i),
-          z: readBeadZ(d.beadView, i),
-        });
-      }
-      return out;
     },
   };
 }

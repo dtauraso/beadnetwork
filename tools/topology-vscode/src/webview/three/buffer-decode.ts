@@ -11,7 +11,6 @@
 // are no longer decoded directly off a single combined wire frame.
 
 import {
-  BEAD_STRIDE,
   NODE_STRIDE,
   CHAIN_BEAD_STRIDE,
   INTERIOR_STRIDE,
@@ -143,8 +142,8 @@ export interface DecodedEdgeFrame {
 /** Decoded view over ONE edge's dedicated per-fd stream frame (BUF_BLOCK_TAG_EDGE_STREAM —
  *  see frame-tags.ts's BUF_EDGE_STREAM_FRAME_HEADER_SIZE doc comment for the byte layout):
  *  [tick:u32] + one EDGE_STRIDE row (this edge's own SrcPortRow/DstPortRow/Selected) + this
- *  edge's own label bytes (inline, not a shared section) + [beadCount:u32] + beadCount ×
- *  BEAD_STRIDE bead rows (this edge's wire's own live in-flight beads). */
+ *  edge's own label bytes (inline, not a shared section) +
+ *  its trailing EVENTS section. No bead rows: the Bead block is gone with the moving bead. */
 export interface DecodedEdgeStreamFrame {
   tick: number;
   /** DataView over the single Edge row (row 0); byteLength = EDGE_STRIDE. */
@@ -152,9 +151,8 @@ export interface DecodedEdgeStreamFrame {
   /** This edge's own label, decoded straight from its inline bytes (no shared section / no
    *  Off into a foreign frame — unlike the combined Edge block's EdgeLabelOff/Len). */
   label: string;
-  beadCount: number;
-  /** DataView over this edge's own bead rows; byteLength = beadCount × BEAD_STRIDE. */
-  beadView: DataView;
+  // No beadCount/beadView: the Bead block is gone with the moving bead it carried. A
+  // traversal renders as the LIT bead of the source node's own chain — docs/beads-are-the-edge.md.
   /** This edge's own trailing EVENTS section (.probe log only; see decodeTrailingEvents). */
   eventCount: number;
   eventView: DataView;
@@ -194,23 +192,14 @@ function decodeEdgeStreamFrameUncached(buf: ArrayBuffer): DecodedEdgeStreamFrame
   // always 0 on a dedicated per-edge stream (this frame's own label bytes immediately
   // follow the row, no shared section — see Buffer/edge_stream_frame.go).
   const labelLen = readEdgeEdgeLabelLen(edgeView, 0);
-  if (buf.byteLength < off + labelLen + 4) return null;
+  if (buf.byteLength < off + labelLen) return null;
   const labelBytes = new Uint8Array(buf, off, labelLen);
   const label = STR_DECODER.decode(labelBytes);
   off += labelLen;
 
-  const beadCountView = new DataView(buf, off, 4);
-  const beadCount = beadCountView.getUint32(0, true);
-  off += 4;
-
-  const beadBytes = beadCount * BEAD_STRIDE;
-  if (buf.byteLength < off + beadBytes) return null;
-  const beadView = new DataView(buf, off, beadBytes);
-  off += beadBytes;
-
   const { count: eventCount, view: eventView, textView: eventTextView } = decodeTrailingEvents(buf, off);
 
-  return { tick, edgeView, label, beadCount, beadView, eventCount, eventView, eventTextView };
+  return { tick, edgeView, label, eventCount, eventView, eventTextView };
 }
 
 /** Decoded view over a BUF_BLOCK_TAG_VIEW frame (see frame-tags.ts for its byte layout):
