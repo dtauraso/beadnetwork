@@ -67,7 +67,8 @@ This is the largest change since the per-owner buffer split. It is not a renderi
 
 `memory/feedback_no_single_writer_bridge.md` is *one goroutine = one dedicated stream*. The
 per-edge fds exist because an edge is a goroutine. Remove the goroutine and the per-edge
-stream has no owner — its frames have to fold into the two endpoint nodes' own streams.
+stream has no owner — its frames have to fold into the SOURCE node's own stream (the node
+that owns that edge, see open question 1).
 
 That reaches further than the network:
 
@@ -88,11 +89,17 @@ makes the commit very large.
 
 ## Open model questions
 
-1. **Where do the two half-sequences meet?** If each node owns beads out to the midpoint,
-   every edge is two node-local sequences and no shared geometry exists anywhere — cleanest,
-   and it makes "each node is next to the other nodes" literally true. If one node owns the
-   whole run, the far node moving re-aims someone else's beads, which is a worse ownership
-   story. Assume midpoint unless David says otherwise.
+1. ~~Where do the two half-sequences meet?~~ **Settled: there are no halves.** The SOURCE
+   node owns the whole sequence, matching ownership the repo already has — an edge is stored
+   at `topology/nodes/<source>/edges/<label>.json`, outgoing only, and "carries no `source`
+   key: that is the directory it sits in" (`.claude/rules/persistence-ownership.md`). A
+   midpoint split was an invention of this document, and a harmful one: the animation is
+   directional, so splitting it forces the lit index to HAND OFF from one node's sequence to
+   the other's mid-flight — a coordination point in the middle of the one operation that is
+   supposed to be purely local. It would also put two owners on one edge's geometry where
+   the persistence layout deliberately has one. Constant-time movement does not need it:
+   source moves, its whole sequence rides along; target moves, the source re-aims on the
+   one-hop neighbour message it already receives. Same asymmetry the stored edge file has.
 2. **Who advances the lit percentage, and does delivery still work the same?** Today the wire
    times its own delivery and sends the bead over its out-channel when `ticksToCross`
    elapse. With the wire gone, the **source node** times it and sends to the destination over
