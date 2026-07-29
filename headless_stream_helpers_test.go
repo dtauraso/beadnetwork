@@ -81,10 +81,12 @@ func wantNodeRowOrder(t *testing.T, repoRoot string) []string {
 	return ids
 }
 
-// topologyEdgeCount mirrors runCommand.ts's countEdges for the tree-form topology fixture
-// this repo ships — the adjacency layout stores each node's OUTGOING edges under
-// <repoRoot>/topology/nodes/<id>/edges/*.json (there is no top-level topology/edges/
-// anymore), so this sums that subdir across every node dir.
+// topologyEdgeCount walks the tree-form topology fixture this repo ships to size this
+// test's own spawn (runCommand.ts's production path no longer walks the tree for this —
+// it reads the stored topology/counts.json instead, see readCounts in runCommand.ts and
+// docs/planning/decentralized-persistence.md step 6). The adjacency layout stores each
+// node's OUTGOING edges under <repoRoot>/topology/nodes/<id>/edges/*.json (there is no
+// top-level topology/edges/ anymore), so this sums that subdir across every node dir.
 func topologyEdgeCount(t *testing.T, repoRoot string) int {
 	t.Helper()
 	nodesDir := filepath.Join(repoRoot, "topology", "nodes")
