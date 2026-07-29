@@ -12,11 +12,14 @@ package Wiring
 // inline on the stdin/gesture goroutine — see scene_persist.go's header comment for why the
 // prior debounce was removed), READ-MODIFY-WRITE (only `anchorId` is replaced),
 // FIRE-AND-FORGET. root == "" (unarmed / bare-constructed persister) disables it.
+//
+// Path construction (nodePortFilePath) lives in node_mover.go, not here — a port's
+// path belongs to its owning node (docs/planning/decentralized-persistence.md
+// "The model").
 
 import (
 	"encoding/json"
 	"fmt"
-	"path/filepath"
 )
 
 // anchorPersister writes ring-anchor changes to their port file as they happen. Owned by
@@ -42,11 +45,9 @@ func writePortAnchor(root, node, port string, isInput bool, anchorID int) error 
 	if !safeTreePathComponent(node) || !safeTreePathComponent(port) {
 		return fmt.Errorf("unsafe node/port %q/%q", node, port)
 	}
-	dir := "outputs"
-	if isInput {
-		dir = "inputs"
-	}
-	path := filepath.Join(root, "nodes", node, dir, port+".json")
+	// nodePortFilePath (node_mover.go) is the sole path constructor for a port's
+	// geometry file — a node owns its own port paths.
+	path := nodePortFilePath(root, node, port, isInput)
 	return entityReadModifyWrite(path, func(obj map[string]json.RawMessage) {
 		b, _ := json.Marshal(anchorID)
 		obj["anchorId"] = b

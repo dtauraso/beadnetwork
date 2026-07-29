@@ -3,6 +3,10 @@ package Wiring
 // quant_offset_persist.go — the WRITE side of the quantized scalar triple (a,b,c) =
 // (iTheta,iPhi,iR) as file data.
 //
+// Path construction (positionFilePath, localPolarsFilePath, cascadeEdgesFilePath) lives
+// in node_mover.go, not here: those are node paths, and node_mover.go is the node's
+// owning file (docs/planning/decentralized-persistence.md "The model").
+//
 // A node's PERSISTED position is its EXACT scene-polar (r,θ,φ) about the scene center —
 // lossless, so a dragged node reloads at exactly where it was dropped. The quantized
 // scalar triple (quantITheta/quantIPhi/quantIR + steps) rides along as a self-describing
@@ -28,7 +32,6 @@ package Wiring
 import (
 	"fmt"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
-	"path/filepath"
 )
 
 // quantOffsetPersister writes a node's scalar-triple change straight to its
@@ -72,11 +75,6 @@ type positionFileJSON struct {
 	StepR           float64 `json:"stepR"`
 }
 
-// positionFilePath is <root>/nodes/<id>/position.json.
-func positionFilePath(root, id string) string {
-	return filepath.Join(root, "nodes", id, "position.json")
-}
-
 // writeQuantOffset writes the node's EXACT scenePolarR/Theta/Phi (the authoritative,
 // lossless position — see the package doc comment above) PLUS the quantized scalar triple
 // (iTheta,iPhi,iR) as a self-describing cache of the drag-time snap cells, as the WHOLE
@@ -114,11 +112,6 @@ type localPolarsFileJSON struct {
 	LocalPolePhi   float64          `json:"localPolePhi"`
 }
 
-// localPolarsFilePath is <root>/nodes/<id>/local-polars.json.
-func localPolarsFilePath(root, id string) string {
-	return filepath.Join(root, "nodes", id, "local-polars.json")
-}
-
 // WriteLocalPolars sets the node's localPolars list (layout_holder.go LocalPolar, one per
 // domain-edge neighbor, measured with this node as center) AND its measurement pole (the
 // direction lh's CURRENT entries were quantized about — layout_holder.go LayoutHolder.Pole)
@@ -154,9 +147,4 @@ func WriteLocalPolars(root, id string, lps []wire.LocalPolar, pole dir) error {
 type cascadeEdgesFileJSON struct {
 	CascadeEdges []string          `json:"cascadeEdges"`
 	CascadeKinds map[string]string `json:"cascadeKinds,omitempty"`
-}
-
-// cascadeEdgesFilePath is <root>/nodes/<id>/cascade-edges.json.
-func cascadeEdgesFilePath(root, id string) string {
-	return filepath.Join(root, "nodes", id, "cascade-edges.json")
 }
