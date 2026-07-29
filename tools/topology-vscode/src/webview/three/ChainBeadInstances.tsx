@@ -5,12 +5,12 @@
 // are never drawn — and its length is not a count of messages: a chain sits fully populated
 // with nothing traversing it.
 //
-// A chain bead is BEAD 1 WEARING THE EDGE'S OWN MATERIAL: same radius, same fill-sphere +
-// ring-torus structure, and — for a resting bead — the wire tube's WHOLE material, not just its
-// base colour (color + emissive + emissiveIntensity, the same three props EdgeTube.tsx sets).
-// Copying only the colour left the chain visibly duller than the lines it replaces. The chain IS
-// the edge visual, so it has to read as the same object. Beads sit one DIAMETER apart so they
-// TOUCH — a chain is a solid line of beads, not a dotted one. Both the radius and the spacing come from the
+// A chain bead is BEAD 1 IN A PALE CYAN: same radius, same fill-sphere + ring-torus structure,
+// with a resting bead's fill set to ShadingParamChainBeadFill. That is DELIBERATELY not the wire
+// tube's colour — see that constant's comment, which records why, because an earlier version
+// matched the tube exactly and the reasoning for it is persuasive enough to be re-applied by
+// mistake. Beads sit one DIAMETER apart so they TOUCH — a chain is a solid line of beads, not a
+// dotted one. Both the radius and the spacing come from the
 // same ShadingParamBeadRadius constant (Go-owned, mirrored into TS), so "no gaps" cannot drift
 // into a gap by one side editing its own copy.
 //
@@ -32,18 +32,16 @@ import { beadStyleForValue } from "./bead-style";
 import {
   SHADING_PARAM_BEAD_RADIUS,
   SHADING_PARAM_BEAD_RING_TUBE_RATIO,
-  SHADING_PARAM_TUBE_COLOR,
-  SHADING_PARAM_TUBE_EMISSIVE,
-  SHADING_PARAM_TUBE_EMISSIVE_INTENSITY,
+  SHADING_PARAM_CHAIN_BEAD_FILL,
 } from "../../schema/shading-params";
 
 // Bead 1's own ring, worn by every chain bead whether lit or not — the ring is not part of the
 // animation, so it never changes and is read once here.
 const RING_COLOR = beadStyleForValue(1)!.ring;
 
-// The tube's own emissive colour, read once — an unlit bead must match the wire tube exactly
-// (same color/emissive/emissiveIntensity triple as EdgeTube.tsx), not just its base colour.
-const TUBE_EMISSIVE_COLOR = new THREE.Color(SHADING_PARAM_TUBE_EMISSIVE);
+// No tube emissive here any more: an unlit bead is deliberately NOT the tube's colour (see
+// ShadingParamChainBeadFill), and adding the tube's blue emissive on top of a pale cyan base
+// would drag it back toward the blue it is meant to differ from.
 
 export function ChainBeadInstances({ capacity }: { capacity: number }) {
   const unlitBodyRef = useRef<THREE.InstancedMesh>(null);
@@ -103,16 +101,15 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
 
   return (
     <>
-      {/* Unlit body: every bead here is identical (the edge's own colour), so this mesh needs
-          no setColorAt/instanceColor at all — the material alone carries the tube's full
-          color+emissive+emissiveIntensity triple, same three props as EdgeTube.tsx, so a resting
-          chain reads as the same glowing object as the wire it sits on. */}
+      {/* Unlit body: every resting bead is identical, so this mesh needs no
+          setColorAt/instanceColor at all — one flat material carries the whole resting chain.
+          No emissive: the fill is a pale cyan, and the tube's blue emissive would drag it back
+          toward the colour it is meant to differ from. */}
       <instancedMesh ref={unlitBodyRef} args={[undefined, undefined, capacity]} frustumCulled={false}>
         <sphereGeometry args={[SHADING_PARAM_BEAD_RADIUS, 16, 16]} />
         <meshStandardMaterial
-          color={SHADING_PARAM_TUBE_COLOR}
-          emissive={TUBE_EMISSIVE_COLOR}
-          emissiveIntensity={SHADING_PARAM_TUBE_EMISSIVE_INTENSITY}
+          color={SHADING_PARAM_CHAIN_BEAD_FILL}
+          emissiveIntensity={0}
         />
       </instancedMesh>
       {/* Lit body: flat (non-glowing) 0/1 bead colours via instanceColor, same reasoning as
