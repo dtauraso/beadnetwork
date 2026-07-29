@@ -127,8 +127,8 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 		// selected bit, set via a moveMsgKindSelect message the gesture goroutine sends
 		// on select/deselect (MoveDispatch.sendEdgeSelect).
 		md.SetEdgeStreams(edgeBase, md.PortRowFor, md.NodeRowFor,
-			func(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, beadVal []int32, beadX, beadY, beadZ []float32, events []wire.RowEvent) []byte {
-				return B.BuildEdgeStreamFrame(tick, srcPortRow, dstPortRow, selected, label, beadVal, beadX, beadY, beadZ, toStreamEvents(events))
+			func(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, edgeLen float32, groupIdx int32, beadVal []int32, beadX, beadY, beadZ []float32, events []wire.RowEvent) []byte {
+				return B.BuildEdgeStreamFrame(tick, srcPortRow, dstPortRow, selected, label, edgeLen, groupIdx, beadVal, beadX, beadY, beadZ, toStreamEvents(events))
 			})
 	}
 	// The two per-node dedicated streams (memory/feedback_no_single_writer_bridge.md):
@@ -187,7 +187,6 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 				camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
 				sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis, cascadeLinks uint8,
 				dragNodeRow int32,
-				groupLenTime, groupLenInput, groupLenGate float32,
 				sceneCX, sceneCY, sceneCZ, sceneRadius float32,
 				events []wire.RowEvent,
 			) []byte {
@@ -197,8 +196,7 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 						SceneTori: sceneTori, ScenePoles: scenePoles, NodePoles: nodePoles,
 						SelSpherePoles: selSpherePoles, Handholds: handholds, LabelsGlobal: labelsGlobal,
 						OverlaysVis: overlaysVis, CascadeLinks: cascadeLinks,
-						DragNodeRow:  dragNodeRow,
-						GroupLenTime: groupLenTime, GroupLenInput: groupLenInput, GroupLenGate: groupLenGate,
+						DragNodeRow: dragNodeRow,
 					},
 					sceneCX, sceneCY, sceneCZ, sceneRadius,
 					toStreamEvents(events))

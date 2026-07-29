@@ -202,6 +202,11 @@ type nodeMover struct {
 	// neighbor's own applyCenter push. Never read or written by any other goroutine —
 	// this map exists solely to serve THIS node's own partnerCenter lookups.
 	partnerCenters map[string]vec3
+	// edgeIn holds this node's dedicated inbox PER INCIDENT EDGE (keyed by edge id) —
+	// the receiving end of that edgeMover's srcOut/dstOut. One channel per (edge, node)
+	// direction, drained only by this node's own run loop, written only by that one
+	// edge's goroutine. Same shape as neighborIn, for edges instead of neighbours.
+	edgeIn map[string]chan moveMsg
 	// quantOffset is THIS node's own quantized polar offset (iTheta,iPhi,iR + step
 	// constants) about the scene center — the per-node replacement for the formerly
 	// shared md.quantizedOffsets map, which one mover goroutine's read could race
@@ -494,6 +499,17 @@ func (m *nodeMover) handle(msg moveMsg) {
 		m.partnerCenters[msg.SenderID] = msg.FromCenter
 		if m.tr != nil {
 			m.emitGeometry()
+		}
+		return
+	}
+	if msg.Kind == moveMsgKindMoveDelta {
+		// An incident EDGE asked this node to move by a displacement. The node applies it
+		// to its OWN current position and commits through its OWN commit path — the same
+		// one a drag uses — so nothing outside this goroutine ever writes this node's
+		// position. Applying a delta to self is what makes a stale sender harmless: the
+		// edge never asserted where this node was.
+		if m.commitLocal != nil {
+			m.commitLocal(m.id, nodeWorldPos(m.geom).Add(msg.MoveDelta))
 		}
 		return
 	}
@@ -972,6 +988,19 @@ func (m *nodeMover) run(ctx context.Context) {
 			default:
 			}
 			for _, ch := range m.neighborIn {
+				select {
+				case msg := <-ch:
+					m.handle(msg)
+					if msg.testDone != nil {
+						close(msg.testDone)
+					}
+					progressed = true
+				default:
+				}
+			}
+			// Incident edges' own channels, drained exactly like neighbours' — same
+			// non-blocking, drain-until-empty cycle.
+			for _, ch := range m.edgeIn {
 				select {
 				case msg := <-ch:
 					m.handle(msg)

@@ -91,6 +91,8 @@ type edgeFrameFixture struct {
 	DstPortRow int32     `json:"dstPortRow"`
 	Selected   uint8     `json:"selected"`
 	Label      string    `json:"label"`
+	Len        float32   `json:"len"`
+	GroupIdx   int32     `json:"groupIdx"`
 	BeadVal    []int32   `json:"beadVal"`
 	BeadX      []float32 `json:"beadX"`
 	BeadY      []float32 `json:"beadY"`
@@ -182,12 +184,15 @@ func buildNodeFrame() nodeFrameFixture {
 func buildEdgeFrame() edgeFrameFixture {
 	f := edgeFrameFixture{
 		Tick: 8181, SrcPortRow: 12, DstPortRow: 34, Selected: 1, Label: "edgeLabel",
+		// Distinctive, non-default values on purpose: a fixture that left these zero
+		// would encode and decode identically whether or not the columns were wired.
+		Len: 123.5, GroupIdx: 2,
 		BeadVal: []int32{5, -6, 7},
 		BeadX:   []float32{61.5, -62.25, 63.125},
 		BeadY:   []float32{71.5, 72.25, -73.125},
 		BeadZ:   []float32{-81.5, 82.25, 83.125},
 	}
-	raw := Buffer.BuildEdgeStreamFrame(f.Tick, f.SrcPortRow, f.DstPortRow, f.Selected, f.Label, f.BeadVal, f.BeadX, f.BeadY, f.BeadZ, nil)
+	raw := Buffer.BuildEdgeStreamFrame(f.Tick, f.SrcPortRow, f.DstPortRow, f.Selected, f.Label, f.Len, f.GroupIdx, f.BeadVal, f.BeadX, f.BeadY, f.BeadZ, nil)
 	f.Hex = hex.EncodeToString(raw)
 	return f
 }

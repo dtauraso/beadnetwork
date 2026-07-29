@@ -32,7 +32,7 @@ import (
 // (same length, same order) describing this edge's wire's current live in-flight beads —
 // supplied by the caller (edgeMover, via PacedWire.LiveBeadRows) so this package needs no
 // dependency on nodes/Wiring's bead type.
-func BuildEdgeStreamFrame(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, beadVal []int32, beadX, beadY, beadZ []float32, events []StreamEvent) []byte {
+func BuildEdgeStreamFrame(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, edgeLen float32, groupIdx int32, beadVal []int32, beadX, beadY, beadZ []float32, events []StreamEvent) []byte {
 	labelBytes := []byte(label)
 	beadCount := len(beadVal)
 	// INVARIANT: the bead slices are parallel, one entry per in-flight bead (same shape as
@@ -54,7 +54,7 @@ func BuildEdgeStreamFrame(tick uint32, srcPortRow, dstPortRow int32, selected ui
 	off += 4
 	// edgeLabelOff=0: this frame's own label bytes immediately follow the Edge row —
 	// there is no shared EdgeLabel section on a dedicated per-edge stream.
-	SetEdgeRow(buf[off:off+BufEdgeStride], 0, srcPortRow, dstPortRow, selected, 0, uint32(len(labelBytes)))
+	SetEdgeRow(buf[off:off+BufEdgeStride], 0, srcPortRow, dstPortRow, selected, 0, uint32(len(labelBytes)), edgeLen, groupIdx)
 	off += BufEdgeStride
 	copy(buf[off:off+len(labelBytes)], labelBytes)
 	off += len(labelBytes)

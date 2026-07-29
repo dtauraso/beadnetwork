@@ -44,7 +44,32 @@ type edgeMover struct {
 	extIn chan moveMsg
 	srcIn chan moveMsg
 	dstIn chan moveMsg
-	tr    *T.Trace
+	// lenOut is this edge's OWN dedicated one-slot latest-wins channel carrying its
+	// current length |dst − src|, pushed by recomputeGeometry. It mirrors
+	// nodeMover.centerOut exactly, and exists for the same reason: an edge is the only
+	// thing that legitimately knows BOTH its endpoints, so it is the only thing that
+	// should be measuring between them.
+	//
+	// Before this, the dispatch goroutine derived every group's lengths itself, reading
+	// two foreign nodes' positions out of moverRegistry.centerMirror and subtracting
+	// (distanceGroupMax). centerMirror documents itself as EVENTUALLY CONSISTENT and
+	// "acceptable for camera/framing reads, which is the only remaining caller class" —
+	// but that caller was not a framing read, it was the input to a position
+	// computation, which is what waitForCenterSettle then had to paper over. Publishing
+	// the length from its owner removes the derivation, so nothing computes geometry
+	// from a mirror of somebody else's state.
+	lenOut chan float64
+	// srcOut/dstOut are this edge's two dedicated channels TO its two endpoint nodes'
+	// own goroutines — the outbound counterpart of srcIn/dstIn, and the same "one channel
+	// per direction per pair" rule the rest of the network uses (the edge label keying
+	// them encodes which two nodes are connected). Written only by THIS edgeMover's
+	// goroutine; drained only by the endpoint that owns the far end.
+	//
+	// They exist so an edge can tell an endpoint to move WITHOUT anyone reaching into a
+	// node's state: the edge sends a displacement, the node applies it to itself.
+	srcOut chan moveMsg
+	dstOut chan moveMsg
+	tr     *T.Trace
 	// clockSrc is the Clock this edgeMover's own goroutine (run) Copies from
 	// EXACTLY ONCE at its own start, into clk below. Not read again afterward.
 	clockSrc wire.Clock
@@ -97,7 +122,7 @@ type edgeMover struct {
 	// injected so this package needs no Buffer import. events carries this goroutine's
 	// OWN row-resolved events recorded since the last flush (memory/
 	// feedback_no_single_writer_bridge.md).
-	buildFrame func(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, beadVal []int32, beadX, beadY, beadZ []float32, events []wire.RowEvent) []byte
+	buildFrame func(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, edgeLen float32, groupIdx int32, beadVal []int32, beadX, beadY, beadZ []float32, events []wire.RowEvent) []byte
 }
 
 func newEdgeMover(ep EdgeEndpoints, edgeID string, srcGeom, dstGeom nodeGeom, tr *T.Trace, clockSrc wire.Clock) *edgeMover {
@@ -118,6 +143,7 @@ func newEdgeMover(ep EdgeEndpoints, edgeID string, srcGeom, dstGeom nodeGeom, tr
 		extIn:    make(chan moveMsg, moverInboxDepth),
 		srcIn:    make(chan moveMsg, moverInboxDepth),
 		dstIn:    make(chan moveMsg, moverInboxDepth),
+		lenOut:   make(chan float64, 1),
 		tr:       tr,
 		clockSrc: clockSrc,
 		clk:      wire.NewRealClock(),
@@ -155,6 +181,10 @@ func (m *edgeMover) handle(msg moveMsg) {
 			return
 		}
 		m.recomputeGeometry()
+		return
+	}
+	if msg.Kind == moveMsgKindSetLength {
+		m.applySetLength(msg.TargetLen)
 		return
 	}
 	if msg.Kind == moveMsgKindCenter {
@@ -203,6 +233,10 @@ func (m *edgeMover) handle(msg moveMsg) {
 // bead (fraction-preserving), update the dest port window aggregate, and emit the new
 // segment so the renderer redraws the wire. Shared by node-move and port-anchor handling.
 func (m *edgeMover) recomputeGeometry() {
+	// Publish this edge's OWN length first (latest-wins, see lenOut's doc comment): both
+	// endpoint geoms are current here, and this is the only goroutine entitled to read
+	// them together.
+	m.publishLength()
 	seg := edgeSegment(m.srcGeom, m.dstGeom, m.srcH, m.dstH)
 	arc := edgeArcPolar(m.srcGeom, m.dstGeom, m.srcH, m.dstH)
 	lat := arc / wire.PulseSpeedWuPerMs
@@ -312,7 +346,10 @@ func (m *edgeMover) writeStreamFrame(tick int64, events []wire.RowEvent) {
 			events = append(events, ev)
 		}
 	}
-	frame := m.buildFrame(uint32(tick), srcRow, dstRow, selected, m.edgeID, beadVal, beadX, beadY, beadZ, events)
+	// This edge's OWN length and group index ride its OWN frame — the panel's numbers
+	// then refresh whenever this edge moves, with no VIEW-frame emit and nobody waiting
+	// on anybody (Buffer/layout.go's bufLayoutEdge.Len doc comment).
+	frame := m.buildFrame(uint32(tick), srcRow, dstRow, selected, m.edgeID, float32(m.currentLength()), distanceGroupIdxForPair(m.srcID, m.dstID), beadVal, beadX, beadY, beadZ, events)
 	var hdr [4]byte
 	binary.LittleEndian.PutUint32(hdr[:], uint32(len(frame)))
 	// Fire-and-forget, same reasoning throughout this bridge: no delivery
@@ -397,5 +434,81 @@ func (m *edgeMover) run(ctx context.Context) {
 		if err := m.clk.SleepCycle(ctx); err != nil {
 			return
 		}
+	}
+}
+
+// publishLength pushes this edge's current length |dst − src| onto its own one-slot
+// lenOut, draining any unread stale value first so the channel always holds the newest
+// (latest-wins — the same shape as nodeMover.applyCenter's push onto centerOut, and for
+// the same reason: a reader that missed an intermediate length wants the current one,
+// never a queued backlog).
+//
+// A length is only meaningful once BOTH endpoints have a real position; an endpoint
+// without one (HasPos false) makes nodeWorldPos return the zero vector, which would
+// publish a fabricated distance-to-origin. Publish nothing in that case and let the
+// reader report the edge as unresolved, exactly as the old center-pair read did when
+// either center was missing.
+func (m *edgeMover) publishLength() {
+	if !m.srcGeom.HasPos || !m.dstGeom.HasPos {
+		return
+	}
+	l := m.currentLength()
+	select {
+	case <-m.lenOut:
+	default:
+	}
+	select {
+	case m.lenOut <- l:
+	default:
+	}
+}
+
+// currentLength returns this edge's length from its OWN two endpoint geoms — the same
+// value publishLength pushes, factored out so the stream frame and the push cannot
+// disagree. 0 when either endpoint has no real position yet (see publishLength).
+func (m *edgeMover) currentLength() float64 {
+	if !m.srcGeom.HasPos || !m.dstGeom.HasPos {
+		return 0
+	}
+	return nodeWorldPos(m.dstGeom).Sub(nodeWorldPos(m.srcGeom)).Length()
+}
+
+// applySetLength turns "your length is now L" into a displacement for the endpoint that
+// moves, and sends it there. Everything it reads is this edge's OWN state.
+//
+// WHICH END MOVES: the TARGET, matching the distance-group model (distance_groups.go —
+// each pair is (source, target) taken from the bead edge's direction, and the target is
+// the node that moves). The source keeps its position, so it is sent nothing; srcOut
+// exists because the channel pair is the structure, not because both ends always move.
+//
+// The displacement is computed along the CURRENT source→target direction, so the target
+// ends up at distance L from the source along the line they already form. Degenerate
+// cases — either endpoint unpositioned, or the two coincident so there is no direction —
+// send nothing: there is no meaningful direction to move along, and inventing one would
+// place a node somewhere nobody asked for.
+func (m *edgeMover) applySetLength(targetLen float64) {
+	if !m.srcGeom.HasPos || !m.dstGeom.HasPos || targetLen <= 0 {
+		return
+	}
+	src := nodeWorldPos(m.srcGeom)
+	dst := nodeWorldPos(m.dstGeom)
+	offset := dst.Sub(src)
+	cur := offset.Length()
+	if cur == 0 {
+		return
+	}
+	// (L − current) along the unit source→target direction. A DELTA, not a position:
+	// see moveMsgKindMoveDelta for why that distinction is load-bearing here.
+	delta := offset.Normalize().Scale(targetLen - cur)
+	msg := moveMsg{Kind: moveMsgKindMoveDelta, NodeID: m.dstID, SenderID: m.edgeID, MoveDelta: delta}
+	if m.dstOut == nil {
+		return
+	}
+	// Non-blocking: this edge's own run loop must keep draining its inboxes. A full
+	// endpoint inbox means that node is busy and will be told again on the next press —
+	// this is a user-driven control action, not a stream that must not lose a sample.
+	select {
+	case m.dstOut <- msg:
+	default:
 	}
 }
