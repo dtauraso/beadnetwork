@@ -46,6 +46,26 @@ package Wiring
 // than being its own knob: touching beads is the spec, so the step is a diameter.
 const chainBeadSpacing = 2 * ShadingParamBeadRadius
 
+// beadsInSpan is how many touching beads fit in the surface-to-surface span [startAt, endAt],
+// at constant chainBeadSpacing. Both the placement loop and the lit-index quantisation call
+// it, so they cannot disagree about how long the chain is — the bug that would put the lit
+// index past the last bead.
+//
+// CONSEQUENCE worth stating: the span is center distance MINUS both node radii and two bead
+// radii, so it is not exactly proportional to arc length, and the lit bead's world speed
+// therefore varies slightly between pairs of different node KINDS (radius 15 vs radius 9
+// nodes swallow different amounts). memory/feedback_uniform_pulse_speed.md's uniform speed
+// holds for the wire's own ticksToCross, which is unchanged; it is the VISIBLE span that is
+// shortened. The old moving bead ran port-to-port and was shortened the same way, so this is
+// not a new deviation — but it is a real one, and it is not the constant-spacing derivation's
+// doing.
+func beadsInSpan(startAt, endAt float64) int {
+	if endAt < startAt {
+		return 0
+	}
+	return int((endAt-startAt)/chainBeadSpacing) + 1
+}
+
 // chainBeads returns THIS node's own placeholder chain beads as node-local offsets, in
 // outgoing-edge order (m.outTargets), each edge's beads ordered outward from this node.
 //
@@ -85,9 +105,23 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 		}
 		offset := target.Sub(self)
 		length := offset.Length()
-		if length < chainBeadSpacing {
-			// Closer than one spacing: no interior bead position exists. Emitting a single
-			// bead here would put it past the target.
+		// The chain runs between the two node SURFACES, not between their centers. A bead
+		// placed by distance-from-center alone sits INSIDE a node whenever that distance is
+		// under the node's radius — which it was at BOTH ends: the first bead (one spacing =
+		// 8 out) fell inside a radius-15 node, and the count ran to the target's center so
+		// the last beads were inside the target.
+		//
+		// Both radii are already node-local data: this node's own kind, and the target's kind
+		// from m.cascadeKinds (stored per node in cascade-edges.json). Nothing new has to be
+		// fetched or messaged for this.
+		//
+		// A bead's own radius is added at each end too, so the end beads sit TANGENT outside
+		// the spheres rather than half-buried in them.
+		startAt := nodeRadius(m.geom.Kind) + ShadingParamBeadRadius
+		endAt := length - nodeRadius(m.cascadeKinds[to]) - ShadingParamBeadRadius
+		if endAt < startAt {
+			// The two nodes are close enough that no bead fits in the gap between their
+			// surfaces. Emit none rather than beads buried in one node or the other.
 			continue
 		}
 		dir := offset.Normalize()
@@ -108,15 +142,18 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 				continue
 			}
 			for _, p := range m.outWires[i].LiveBeadFractions(tick) {
-				litIdx[int(p.T*float64(int(length/chainBeadSpacing)))] = int32(p.Val)
+				// Quantised onto the beads that actually exist — the surface-to-surface span,
+				// not the center-to-center length, or the lit index would run off the end of
+				// the chain by however many beads the two node radii swallow.
+				litIdx[int(p.T*float64(beadsInSpan(startAt, endAt)))] = int32(p.Val)
 			}
 		}
-		// count = len/spacing, the length-proportional count the constant-spacing argument
-		// above depends on. Beads sit at index × spacing OUTWARD FROM THIS NODE, starting at
-		// index 1 — index 0 would be this node's own center.
-		count := int(length / chainBeadSpacing)
-		for i := 1; i <= count; i++ {
-			p := dir.Scale(float64(i) * chainBeadSpacing)
+		// Length-proportional count, still at constant spacing — the property the uniform-speed
+		// argument above rests on. Index 0 is now the FIRST bead outside this node's surface,
+		// not this node's center.
+		count := beadsInSpan(startAt, endAt)
+		for i := 0; i < count; i++ {
+			p := dir.Scale(startAt + float64(i)*chainBeadSpacing)
 			ox = append(ox, float32(p.X))
 			oy = append(oy, float32(p.Y))
 			oz = append(oz, float32(p.Z))
