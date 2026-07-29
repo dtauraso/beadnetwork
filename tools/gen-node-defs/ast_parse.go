@@ -528,7 +528,11 @@ func parseGoKindName(pkgDir string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	markers := []string{`wire.Register("`, `Wiring.Register("`}
+	// Wiring.RegisterBuilder is the SELF-CONSTRUCTION registration (build_args.go): a kind
+	// that builds itself no longer calls wire.Register at all, and a generator that only
+	// knew the old marker silently dropped it from NODE_DEFS — the editor then loses the
+	// kind while the Go side works fine.
+	markers := []string{`wire.Register("`, `Wiring.Register("`, `Wiring.RegisterBuilder("`}
 	for _, entry := range entries {
 		name := entry.Name()
 		if entry.IsDir() || !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") {

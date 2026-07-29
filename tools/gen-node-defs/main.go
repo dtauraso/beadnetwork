@@ -329,8 +329,10 @@ func findRepoRoot(dir string) string {
 	}
 }
 
-// hasRegister reports whether any .go file in dir contains "wire.Register(" (or the
-// pre-decompose monolithic Wiring package's "Register(").
+// hasRegister reports whether any .go file in dir contains a kind registration:
+// "wire.Register(" (reflection-built kinds), "Wiring.RegisterBuilder(" (kinds that
+// construct themselves — build_args.go), or the pre-decompose monolithic Wiring
+// package's "Register(".
 func hasRegister(dir string) bool {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
@@ -351,7 +353,12 @@ func hasRegister(dir string) bool {
 		}
 		// Register moved from nodes/Wiring to the leaf nodes/wire package
 		// (task/wiring-decompose); node packages now call wire.Register.
-		if bytes.Contains(data, []byte("Wiring.Register(")) || bytes.Contains(data, []byte("wire.Register(")) {
+		// NOTE "Wiring.RegisterBuilder(" is NOT matched by "Wiring.Register(" — that marker
+		// requires the paren immediately after "Register", so it must be listed separately.
+		// Missing it made a self-constructing kind vanish from NODE_DEFS and from
+		// kinds_generated.go while the Go build stayed green.
+		if bytes.Contains(data, []byte("Wiring.RegisterBuilder(")) ||
+			bytes.Contains(data, []byte("Wiring.Register(")) || bytes.Contains(data, []byte("wire.Register(")) {
 			return true
 		}
 	}
