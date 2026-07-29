@@ -72,6 +72,12 @@ beforeEach(() => {
   // ensureBinaryBuilt statSyncs this path; maxGoMtime is mocked to 0 so it's "fresh".
   fs.mkdirSync(path.join(tmpDir, ".wirefold-cache"), { recursive: true });
   fs.writeFileSync(path.join(tmpDir, ".wirefold-cache", "wirefold"), "stub");
+  // run() defaults topologyPath to <repoRoot>/topology and reads counts.json from it
+  // (see runCommand.ts's readCounts) BEFORE spawning — without this file present, run()
+  // now throws and never spawns, which is the correct new behavior but not what these
+  // spawn/respawn lifecycle tests are exercising.
+  fs.mkdirSync(path.join(tmpDir, "topology"), { recursive: true });
+  fs.writeFileSync(path.join(tmpDir, "topology", "counts.json"), JSON.stringify({ nodes: 0, edges: 0 }));
   vscodeStub.workspace.workspaceFolders = [{ uri: { fsPath: tmpDir } }];
   killSpy = vi.spyOn(process, "kill").mockImplementation(() => true);
 });

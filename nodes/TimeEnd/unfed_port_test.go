@@ -38,21 +38,34 @@ func TestUnfedRequiredPortLoadsAndStaysInert(t *testing.T) {
 	// is nonetheless mandatory to load, and there is no other real node to name, so h
 	// carries a self-referencing cascade entry rather than inventing a domain edge to a
 	// node that doesn't exist in this fixture.
-	const topo = `{
-	  "nodes": [{"id":"h","type":"TimeEnd","data":{"state":{"held":-1}},"inputs":[{"name":"In"}]}],
-	  "edges": []
-	}`
-
-	dir := t.TempDir()
-	path := filepath.Join(dir, "topo.json")
-	if err := os.WriteFile(path, []byte(topo), 0o600); err != nil {
-		t.Fatal(err)
+	// Inline directory-tree fixture (this package cannot see Wiring's unexported
+	// _test.go helpers): meta.json + inputs/In.json for the one node, no edges/ dir
+	// at all (h has no outgoing edges), and a cascade-edges.json with an empty list
+	// (validateCascadeEdges
+	// requires the file's adjacency to EQUAL domain adjacency — h has no edges, so
+	// an empty cascadeEdges list satisfies that, no self-loop needed).
+	root := t.TempDir()
+	writeFile := func(rel, body string) {
+		p := filepath.Join(root, rel)
+		if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+			t.Fatalf("mkdir %s: %v", p, err)
+		}
+		if err := os.WriteFile(p, []byte(body), 0o644); err != nil {
+			t.Fatalf("write %s: %v", p, err)
+		}
 	}
+	writeFile("nodes/h/meta.json", `{"id":"h","type":"TimeEnd"}`)
+	writeFile("nodes/h/data.json", `{"state":{"held":-1}}`)
+	writeFile("nodes/h/inputs/In.json", `{"name":"In"}`)
+	writeFile("nodes/h/cascade-edges.json", `{"cascadeEdges":[],"cascadeKinds":{}}`)
+	// No nodes/h/edges/ dir at all: under the adjacency layout, a node with no
+	// outgoing edges simply has no edges/ subdir — loadTree treats a missing dir as
+	// normal, not an error (mirrors inputs/outputs/).
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	nodes, _, _, _, err := Wiring.LoadTopology(ctx, path, T.New(), wire.NewRealClock())
+	nodes, _, _, _, err := Wiring.LoadTopology(ctx, root, T.New(), wire.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology rejected an unfed port, but validate.go promises it loads: %v", err)
 	}

@@ -23,8 +23,8 @@ func writeLoaderTreeFixture(t *testing.T) string {
 	writeTreeFile(t, root, "nodes/n2/outputs/ToNext.json", `{"name":"ToNext"}`)
 	writeTreeFile(t, root, "nodes/n3/meta.json", `{"id":"n3","type":"TimeEnd"}`)
 	writeTreeFile(t, root, "nodes/n3/inputs/FromInput.json", `{"name":"FromInput"}`)
-	writeTreeFile(t, root, "edges/n1Ton2.json", `{"label":"n1Ton2","kind":"data","source":"n1","sourceHandle":"Out","target":"n2","targetHandle":"FromPrev"}`)
-	writeTreeFile(t, root, "edges/n2Ton3.json", `{"label":"n2Ton3","kind":"data","source":"n2","sourceHandle":"ToNext","target":"n3","targetHandle":"FromInput"}`)
+	writeTreeFile(t, root, "nodes/n1/edges/n1Ton2.json", `{"label":"n1Ton2","kind":"data","sourceHandle":"Out","target":"n2","targetHandle":"FromPrev"}`)
+	writeTreeFile(t, root, "nodes/n2/edges/n2Ton3.json", `{"label":"n2Ton3","kind":"data","sourceHandle":"ToNext","target":"n3","targetHandle":"FromInput"}`)
 	return root
 }
 

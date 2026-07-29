@@ -13,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -68,7 +69,7 @@ func writeTree(t *testing.T) string {
 	mk("nodes/src/outputs/Out.json", `{"name":"Out"}`)
 	mk("nodes/dst/meta.json", `{"id":"dst","type":"SinkNode","r":100,"scenePolarR":87.7496438739,"scenePolarTheta":0.96453035788,"scenePolarPhi":-2.15879893034}`)
 	mk("nodes/dst/inputs/In.json", `{"name":"In"}`)
-	mk("edges/e0.json", `{"label":"e0","kind":"data","source":"src","sourceHandle":"Out","target":"dst","targetHandle":"In"}`)
+	mk("nodes/src/edges/e0.json", `{"label":"e0","kind":"data","sourceHandle":"Out","target":"dst","targetHandle":"In"}`)
 	writeCascadeEdgesFromEdges(t, root, map[string]string{"src": "SrcNode", "dst": "SinkNode"}, [][2]string{{"src", "dst"}})
 	return root
 }
@@ -88,28 +89,43 @@ func TestPersistAnchorRoundTrips(t *testing.T) {
 	root := writeTree(t)
 	md := loadTreeMD(t, root)
 	md.EnableEditPersist(root)
+	// The anchor write now happens on "src"'s OWN mover goroutine, as it processes the
+	// moveMsgKindAnchor applyRingAnchor sends (node_mover.go handle → persistPortAnchor)
+	// — Start the movers so something drains that inbox.
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	wg := md.Start(ctx)
+	t.Cleanup(func() { cancel(); wg.Wait() })
 
 	dir := vec3{X: 1, Y: 0, Z: 0}
 	want := snapToRingAnchorIndex(md.NodeKind("src"), dir)
 	md.applyRingAnchor("src", "Out", false, dir)
 
-	spec, err := parseSpec(root)
-	if err != nil {
-		t.Fatalf("parseSpec: %v", err)
-	}
+	// Poll for the port file's anchorId to land (async now — no synchronous write on
+	// applyRingAnchor's own caller goroutine to wait on).
 	var gotAnchor *int
-	for _, n := range spec.Nodes {
-		if n.ID != "src" {
-			continue
+	deadline := time.Now().Add(2 * time.Second)
+	for gotAnchor == nil {
+		spec, err := parseSpec(root)
+		if err != nil {
+			t.Fatalf("parseSpec: %v", err)
 		}
-		for _, p := range n.Outputs {
-			if p.Name == "Out" {
-				gotAnchor = p.AnchorId
+		for _, n := range spec.Nodes {
+			if n.ID != "src" {
+				continue
+			}
+			for _, p := range n.Outputs {
+				if p.Name == "Out" {
+					gotAnchor = p.AnchorId
+				}
 			}
 		}
-	}
-	if gotAnchor == nil {
-		t.Fatalf("anchorId not persisted to port file")
+		if gotAnchor == nil {
+			if time.Now().After(deadline) {
+				t.Fatalf("anchorId not persisted to port file")
+			}
+			time.Sleep(time.Millisecond)
+		}
 	}
 	if *gotAnchor != want {
 		t.Fatalf("reloaded anchorId=%d want %d", *gotAnchor, want)
@@ -186,65 +202,7 @@ func TestOverlaysPersistPreservesCamera(t *testing.T) {
 	}
 }
 
-// TestPersistFileTopologyPathInTree pins BUG 1: the live editor passes the topology.json
-// FILE inside the tree dir (not the dir itself), so os.Stat(topologyPath).IsDir() is false.
-// EnableEditPersist must still resolve the tree root to the file's PARENT dir (which contains
-// nodes/), or posPersist/anchorPersist no-op and node-drag / ring-move never reach disk.
-// This exercises the full EnableEditPersist wiring with a FILE topologyPath + a real tree.
-func TestEnableEditPersistTrueMonolithicNoTree(t *testing.T) {
-	dir := t.TempDir()
-	topoFile := filepath.Join(dir, "topology.json")
-	if err := os.WriteFile(topoFile, []byte("{}"), 0o644); err != nil {
-		t.Fatal(err)
-	}
-	md := &MoveDispatch{ui: uiState{ov: defaultOverlayState()}}
-	md.EnableEditPersist(topoFile)
-	if md.persist.pos.root != "" {
-		t.Fatalf("posPersist.root=%q want empty (no nodes/ subdir → true monolithic)", md.persist.pos.root)
-	}
-	if md.persist.anchor.root != "" {
-		t.Fatalf("anchorPersist.root=%q want empty", md.persist.anchor.root)
-	}
-}
-
-// TestOverlaysPersistMonolithicForm: overlays persist correctly when topologyPath is a
-// monolithic file (not a directory), the form that caused the original treeRoot="" no-op bug.
-// sceneCameraPath resolves to the sibling view/scene.json; EnableEditPersist + LoadOverlays
-// must both land on that same path.
-func TestOverlaysPersistMonolithicForm(t *testing.T) {
-	// Build a tmp directory that looks like a monolithic topology: the "topology file"
-	// is a file inside the dir; view/scene.json is a sibling of that file.
-	dir := t.TempDir()
-	topoFile := dir + "/topology.json"
-	if err := os.WriteFile(topoFile, []byte("{}"), 0644); err != nil {
-		t.Fatal(err)
-	}
-
-	md := &MoveDispatch{ui: uiState{ov: defaultOverlayState()}}
-	md.EnableEditPersist(topoFile) // topologyPath is a FILE, not a dir
-
-	// overlaysPersist.path must be non-empty (the sceneCameraPath sibling).
-	if md.persist.overlays.path == "" {
-		t.Fatal("overlaysPersist.path is empty for monolithic topologyPath — EnableEditPersist bug")
-	}
-
-	// Toggle an overlay and flush.
-	md.ToggleSceneTori(nil) // sceneToriVisible: true -> false
-	md.persist.overlays.schedule(md.ui.ov)
-
-	// Load back via sceneCameraPath.
-	ov, found := loadSceneOverlays(overlaysFilePath(topoFile), sceneCameraPath(topoFile))
-	if !found {
-		t.Fatal("loadSceneOverlays found no overlay keys after flush on monolithic form")
-	}
-	if ov.sceneToriVisible {
-		t.Fatal("sceneToriVisible not persisted on monolithic form")
-	}
-
-	// LoadOverlays must restore into a fresh dispatch.
-	fresh := &MoveDispatch{ui: uiState{ov: defaultOverlayState()}}
-	fresh.LoadOverlays(topoFile, nil)
-	if fresh.ui.ov.sceneToriVisible {
-		t.Fatal("LoadOverlays did not restore sceneToriVisible=false on monolithic form")
-	}
-}
+// TestEnableEditPersistTrueMonolithicNoTree and TestOverlaysPersistMonolithicForm were
+// deleted: they asserted behavior for a monolithic-file topologyPath, a form LoadTopology
+// no longer accepts (topo_spec.go) — topologyPath is always the tree root directory. There
+// is no longer a second form to test against a first.

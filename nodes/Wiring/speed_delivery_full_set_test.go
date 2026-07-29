@@ -7,8 +7,6 @@ package Wiring_test
 import (
 	"context"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
-	"os"
-	"path/filepath"
 	"testing"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -86,16 +84,12 @@ const expectedSpeedSinkCount = 18
 // count by 1) and confirming this assertion goes red; restored afterward (see the
 // task report, not committed here).
 func TestSpeedSinksCoverEveryClockOwningGoroutine(t *testing.T) {
-	dir := t.TempDir()
-	path := filepath.Join(dir, "topo.json")
-	if err := os.WriteFile(path, []byte(speedFullSetTopo), 0o600); err != nil {
-		t.Fatal(err)
-	}
+	root := W.WriteSpecTree(t, t.TempDir(), speedFullSetTopo)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	tr := T.New()
 
-	_, _, _, speedSinks, err := W.LoadTopology(ctx, path, tr, wire.NewRealClock())
+	_, _, _, speedSinks, err := W.LoadTopology(ctx, root, tr, wire.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology: %v", err)
 	}

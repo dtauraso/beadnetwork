@@ -2,27 +2,29 @@ package Wiring
 
 import ()
 
-// persisters groups the six disk persisters MoveDispatch owns (md.persist), each nil until
-// armed by EnableViewpointPersist / EnableEditPersist after the startup seed. Grouping
-// mirrors vp/ov/gest: a bare test-constructed MoveDispatch reasons about one zero-value
-// sub-struct instead of six loose nilable fields. Each persister writes synchronously the
-// moment its value changes (see scene_persist.go's header comment for why the prior debounce
-// was removed) — there is no pending-value/clean-shutdown-flush machinery to maintain.
+// persisters is the view-owner goroutine's (RunStdinReader, stdin_reader.go) OWN state for
+// the three SCENE-LEVEL files it writes — camera.json/overlays.json/sphere.json, each
+// genuinely singular (there is only one camera pose, one overlay-flag set, one scene
+// sphere), so each stays one file with this one goroutine as its named owner
+// (.claude/rules/persistence-ownership.md "The owner writes, and owns the path"), rather than a per-entity split
+// the way node files are. It is NOT a shared bag other goroutines reach into: md.persist's
+// three fields are read/written exclusively from methods this same view-owner goroutine
+// calls (EmitViewpoint, applyUpdate, LoadSceneSphere/handleSaveMsg — see each field's own
+// comment). Node-drag position/local-polars and port-anchor edits are NOT here — those are
+// persisted by each node's OWN mover (nm.persistRoot, quant_offset_persist.go /
+// scene_anchor_persist.go), not by the view-owner goroutine.
+//
+// Each nil until armed by EnableViewpointPersist / EnableEditPersist after the startup
+// seed. Each persister writes synchronously the moment its value changes (see
+// scene_persist.go's header comment for why the prior debounce was removed) — there is no
+// pending-value/clean-shutdown-flush machinery to maintain.
 type persisters struct {
 	// vp is the camera-viewpoint persister (scene_camera_persist.go), armed by
 	// EnableViewpointPersist after the startup seed. nil until armed (old path / tests).
 	vp *viewpointPersister
-	// pos / anchor are the disk persisters for the two FSM-applied edits (node-drag
-	// position, ring-move anchor). Armed by EnableEditPersist after the startup seed; nil
-	// until armed (tests that never arm).
-	pos      *nodePosPersister
-	anchor   *anchorPersister
+	// overlays is the overlay-flags persister (scene_overlays_persist.go), armed by
+	// EnableEditPersist after the startup seed. nil until armed (tests that never arm).
 	overlays *overlaysPersister
-	// quantOffset is the disk persister for a node's scalar triple (iTheta,iPhi,iR) about
-	// the scene center (quant_offset_persist.go) — the sole persisted position source under
-	// the flat polar model. Armed by EnableEditPersist; scheduled from commitNodeMoveLocal
-	// for the dragged node.
-	quantOffset *quantOffsetPersister
 	// sphere is the disk persister for the scene sphere (sphere_layout.go md.ui.sceneSphere),
 	// armed by EnableEditPersist. It is only ever flushed — by LoadSceneSphere on a
 	// content-fit, and by handleSaveMsg — never scheduled on a value-change, because the
@@ -43,22 +45,28 @@ func (md *MoveDispatch) EnableViewpointPersist(topologyPath string) {
 }
 
 // EnableEditPersist arms disk persistence for the FSM-applied topology edits:
-//   - node-drag (RootMove) → the moved node's position in <root>/nodes/<id>/position.json
-//   - ring-move (applyRingAnchor) → the port's anchorId in the port json file
+//   - node-drag (RootMove) → the moved node's own position.json + local-polars.json,
+//     written by that node's OWN mover (nm.persistRoot, set below on every mover — see
+//     quant_offset_persist.go's persistQuantOffset/persistLocalPolars)
+//   - ring-move (applyRingAnchor) → the moved port's own node's OWN mover writes the
+//     port's anchorId back to the port json file (scene_anchor_persist.go's
+//     persistPortAnchor), same nm.persistRoot as above
 //   - overlays (applyUpdate toggle/set) → overlay-visibility keys in view/overlays.json
 //
-// Node-position + anchor persistence needs the per-node/per-port files of the directory-tree
-// form; for a monolithic topology.json (no per-node files) their root is "" and those two
-// persisters no-op. Call AFTER SeedInitialViewpoint so the seed emits do not write the
-// loaded state back.
+// topologyPath is always the tree root directory — LoadTopology rejects anything else
+// (topo_spec.go) — so it is used directly as root for the per-node/per-port persisters.
+// Call AFTER SeedInitialViewpoint so the seed emits do not write the loaded state back.
 func (md *MoveDispatch) EnableEditPersist(topologyPath string) {
-	// sceneTreeRoot handles both the directory form and the file-inside-tree form (and
-	// returns "" for a true monolithic topology with no tree), making the two-form bug
-	// class unrepresentable here. Do not hand-roll os.Stat/IsDir — use sceneTreeRoot.
-	root := sceneTreeRoot(topologyPath)
-	md.persist.pos = &nodePosPersister{root: root}
-	md.persist.anchor = &anchorPersister{root: root}
+	root := topologyPath
 	md.persist.overlays = &overlaysPersister{path: overlaysFilePath(topologyPath)}
 	md.persist.sphere = &sceneSpherePersister{path: sphereFilePath(topologyPath)}
-	md.persist.quantOffset = &quantOffsetPersister{root: root}
+	// Every node's own mover writes its own position.json/local-polars.json/port-anchor
+	// files — set the tree root on each nodeMover directly rather than routing writes
+	// through a shared MoveDispatch-owned persister (docs/planning/decentralized-
+	// persistence.md "The model"). A plain field write on each mover, done here before
+	// any mover goroutine starts (Start runs after EnableEditPersist in every real call
+	// path), so no synchronization is needed.
+	for _, nm := range md.mr.nodeMovers {
+		nm.persistRoot = root
+	}
 }

@@ -2,14 +2,16 @@
 //
 // loadTree reads a topology laid out as a directory tree:
 //
-//	<root>/nodes/<id>/meta.json        — id, type
-//	<root>/nodes/<id>/data.json        — NodeData (optional)
+//	<root>/nodes/<id>/meta.json         — id, type
+//	<root>/nodes/<id>/data.json         — NodeData (optional)
 //	<root>/nodes/<id>/inputs/<name>.json  — specPort
 //	<root>/nodes/<id>/outputs/<name>.json — specPort
-//	<root>/edges/<label>.json          — specEdge
+//	<root>/nodes/<id>/edges/<label>.json  — specEdge, OUTGOING only (adjacency list: the
+//	                                        source is the directory the file sits in, not a
+//	                                        field in the file — see specEdge's doc comment)
 //
-// It returns a topoSpec equivalent to what json.Unmarshal would produce from
-// the monolithic topology.json, enabling LoadTopology to accept either form.
+// It returns a topoSpec in the same shape parseSpec/LoadTopology consume regardless of
+// how the tree was read.
 
 package Wiring
 
@@ -162,29 +164,54 @@ func loadTree(root string) (topoSpec, error) {
 		}
 
 		spec.Nodes = append(spec.Nodes, sn)
-	}
 
-	// ── edges ────────────────────────────────────────────────────────────────
-	edgesDir := filepath.Join(root, "edges")
-	edgeFiles, err := readDirNames(edgesDir)
-	if err != nil {
-		return spec, fmt.Errorf("loadTree: list edges dir %s: %w", edgesDir, err)
-	}
-	sort.Strings(edgeFiles)
-
-	for _, fname := range edgeFiles {
-		if !strings.HasSuffix(fname, ".json") {
-			continue
-		}
-		raw, err := os.ReadFile(filepath.Join(edgesDir, fname))
+		// edges/ — this node's OUTGOING edges (adjacency list). Optional subdir: a node
+		// with no outgoing edges simply has no edges/ subdir, which is normal, not an
+		// error (mirrors inputs/outputs/ above). Order rule: edges appear in outer
+		// node-directory-sorted order (already established by the sort.Strings(nodeDirs)
+		// above), then inner sort.Strings(edgeFiles) within each node's edges/ — i.e.
+		// deterministic by (source id, label) lexical order, not by label alone as the
+		// flat single-dir layout gave before this change.
+		edgesDir := filepath.Join(nodeDir, "edges")
+		edgeFiles, err := readDirNames(edgesDir)
 		if err != nil {
-			return spec, fmt.Errorf("loadTree: read edge file %s: %w", fname, err)
+			if os.IsNotExist(err) {
+				continue
+			}
+			return spec, fmt.Errorf("loadTree: list node %q edges dir %s: %w", nodeID, edgesDir, err)
 		}
-		var e specEdge
-		if err := json.Unmarshal(raw, &e); err != nil {
-			return spec, fmt.Errorf("loadTree: parse edge file %s: %w", fname, err)
+		sort.Strings(edgeFiles)
+
+		for _, fname := range edgeFiles {
+			if !strings.HasSuffix(fname, ".json") {
+				continue
+			}
+			fpath := filepath.Join(edgesDir, fname)
+			raw, err := os.ReadFile(fpath)
+			if err != nil {
+				return spec, fmt.Errorf("loadTree: read edge file %s: %w", fpath, err)
+			}
+			var e specEdge
+			if err := json.Unmarshal(raw, &e); err != nil {
+				return spec, fmt.Errorf("loadTree: parse edge file %s: %w", fpath, err)
+			}
+			// The source is the directory the file sits in, not a field left inside the
+			// file. A stale "source" key that disagrees with nodeID means the file was
+			// moved (or hand-edited) without updating its content — trust the directory,
+			// which is the addressing scheme, and fail loudly rather than silently
+			// accepting a value that could drift from where the file actually lives.
+			if e.Source != "" && e.Source != nodeID {
+				panic(fmt.Sprintf(
+					"loadTree: edge file %s has stale source %q that disagrees with its "+
+						"containing node directory %q — the adjacency layout (topology/nodes/<id>/edges/) "+
+						"derives an edge's source from the directory it is stored under, not from a "+
+						"\"source\" key in the file; whatever wrote/moved this file should have dropped "+
+						"the redundant source key or kept it in sync with the directory",
+					fpath, e.Source, nodeID))
+			}
+			e.Source = nodeID
+			spec.Edges = append(spec.Edges, e)
 		}
-		spec.Edges = append(spec.Edges, e)
 	}
 
 	return spec, nil

@@ -1,6 +1,6 @@
 // loader.go — runtime topology loader entry points.
 //
-// LoadTopology reads topology.json, allocates one PacedWire per destination
+// LoadTopology reads the topology directory tree, allocates one PacedWire per destination
 // port, and returns ([]Node, SlotRegistry, *MoveDispatch).
 // An edge-label-keyed WireRegistry is built internally to bind each source Out to
 // its wire, but it is not returned: no caller consumed the map.
@@ -24,8 +24,6 @@ package Wiring
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -62,28 +60,4 @@ func LoadTopology(ctx context.Context, jsonPath string, tr *T.Trace, clk wire.Cl
 	// has none and nodes fall back to cartesian x/y/z (polar-model.md phase 2b).
 	sphere, hasScene := loadSceneSphere(jsonPath)
 	return buildFromSpec(ctx, spec, tr, clk, sphere, hasScene)
-}
-
-// LoadTopologyFromJSON builds a topology from an in-memory JSON blob, bypassing the
-// file/directory path entirely — no temp file, no filesystem I/O. It mirrors
-// LoadTopology's single-file path exactly (parse → validateNoFanIn → validateSpec →
-// buildFromSpec), except there is no sibling scene.json to load: raw bytes have no
-// associated directory, so hasScene is always false and sphere is the zero value,
-// matching what LoadTopology itself produces for a topology with no persisted scene
-// sphere (loadSceneSphere returns sceneSphere{}, false in that case). Intended for
-// tests that only need an in-memory spec delivered to the loader, not genuine
-// file/dir persistence (those keep using LoadTopology against a real path).
-func LoadTopologyFromJSON(ctx context.Context, raw []byte, tr *T.Trace, clk wire.Clock) ([]wire.Node, SlotRegistry, *MoveDispatch, []chan float64, error) {
-	BuildRegistry()
-	var spec topoSpec
-	if err := json.Unmarshal(raw, &spec); err != nil {
-		return nil, nil, nil, nil, fmt.Errorf("LoadTopologyFromJSON: parse: %w", err)
-	}
-	if err := validateNoFanIn(spec); err != nil {
-		return nil, nil, nil, nil, fmt.Errorf("LoadTopologyFromJSON: %w", err)
-	}
-	if err := validateSpec(&spec); err != nil {
-		return nil, nil, nil, nil, err
-	}
-	return buildFromSpec(ctx, spec, tr, clk, sceneSphere{}, false)
 }

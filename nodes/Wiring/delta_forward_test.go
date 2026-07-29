@@ -9,7 +9,7 @@ package Wiring
 // continues to move (instead of freezing at the first delta, as the old forwardedThisDrag
 // guard did).
 //
-// Real repo topology (topology/) adjacency (edges/*.json):
+// Real repo topology (topology/) adjacency (nodes/<id>/edges/*.json):
 //
 //	1: 2,3   2: 1,4,5   3: 1,8   4: 2,6,7   5: 2,8,9   6: 4   7: 4,9   8: 3,5   9: 5,7
 //

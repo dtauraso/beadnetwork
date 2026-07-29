@@ -24,7 +24,7 @@ const VIEW_FD = 4;
 // Buffer's Edge block row order — see nodes/Wiring's MoveDispatch.SetEdgeStreams). Sits
 // right after the view fd. Layout today: fd 0-2 stdin/stdout/stderr, fd 3 = fd3 (node/
 // interior/port dual-path — see the module doc), fd 4 = view (singleton), fd 5..5+E-1 =
-// one per edge (E = countEdges(topologyPath) below).
+// one per edge (E = readCounts(topologyPath).edges below).
 const EDGE_BASE_FD = 5;
 
 // MAX_EDGE_STREAMS bounds the per-edge fd range: one dedicated pipe PER EDGE (see
@@ -48,58 +48,43 @@ const MAX_EDGE_STREAMS = 256;
 // omits the dedicated per-node NODE/INTERIOR/Port streams entirely.
 const MAX_NODE_STREAMS = 256;
 
-// countNodes reads the topology spec's node count WITHOUT the full Go-side validate/build
-// pipeline — just enough structure to size the pre-spawn stdio pipe array (mirrors
-// countEdges' doc comment and reasoning exactly, substituting the "nodes" directory /
-// spec array). Unlike edges/*.json (one flat file per edge), a directory-tree topology's
-// nodes/ holds one SUBDIRECTORY per node id (nodes/<id>/{data,meta}.json, inputs/, outputs/
-// — see nodes/Wiring/loader.go's parseSpec dispatch and headless_node_row_order_test.go's
-// wantNodeRowOrder, the Go-side counterpart this mirrors), so this counts subdirectories,
-// not `.json`-suffixed entries. Returns 0 (⇒ no dedicated node/interior fds; the fd-3
-// fallback stays active) on any read/parse failure.
-export function countNodes(topologyPath: string): number {
+// readCounts replaces the old countNodes/countEdges tree-walks (see
+// .claude/rules/persistence-ownership.md "Counts are stored, never re-derived"). The ext host must know the fd RANGE
+// before spawning Go, so it cannot ask Go for this — but it also must not WALK the tree to
+// derive it, because that re-implements the on-disk layout in a second language (step 2's
+// near-miss, when countEdges had to be hand-updated in lockstep with a path move). Instead
+// the counts are STORED, at `<topologyPath>/counts.json` = `{"nodes": N, "edges": E}`,
+// written once by whichever operation changes the node/edge set (today: none does — the
+// topology is editor-authored by hand, so this file is hand-maintained alongside it). TS
+// reads two numbers and stops knowing the layout entirely.
+//
+// Unlike the old countNodes/countEdges, which returned 0 on any read/parse failure (a
+// SILENT failure: 0 edges/nodes just meant no dedicated streams got allocated, degrading
+// the bridge invisibly), a missing or malformed counts.json now THROWS. There is no correct
+// fallback count to guess, and guessing 0 is exactly the bug this rewrite removes.
+export function readCounts(topologyPath: string): { nodes: number; edges: number } {
+  const countsPath = path.join(topologyPath, "counts.json");
+  let raw: string;
   try {
-    const st = fs.statSync(topologyPath);
-    if (st.isDirectory()) {
-      const nodesDir = path.join(topologyPath, "nodes");
-      if (!fs.existsSync(nodesDir)) return 0;
-      return fs.readdirSync(nodesDir, { withFileTypes: true }).filter((e) => e.isDirectory()).length;
-    }
-    const raw = fs.readFileSync(topologyPath, "utf8");
-    const spec: unknown = JSON.parse(raw);
-    if (spec && typeof spec === "object" && Array.isArray((spec as { nodes?: unknown }).nodes)) {
-      return (spec as { nodes: unknown[] }).nodes.length;
-    }
-    return 0;
-  } catch {
-    return 0;
+    raw = fs.readFileSync(countsPath, "utf8");
+  } catch (err) {
+    throw new Error(`cannot read ${countsPath}: ${err instanceof Error ? err.message : String(err)}`);
   }
-}
-
-// countEdges reads the topology spec's edge count WITHOUT the full Go-side validate/build
-// pipeline — just enough structure to size the pre-spawn stdio pipe array (the ext host
-// must know the fd RANGE before spawning Go, so it cannot ask Go for this). Mirrors
-// nodes/Wiring/loader.go's parseSpec dispatch: a directory tree (one file per
-// `<root>/edges/<label>.json`) or a monolithic topology.json (`{"edges":[...]}`). Returns
-// 0 (⇒ no dedicated edge fds are allocated) on any read/parse failure —
-// a missing/malformed spec is Go's error to report, not this sizing probe's.
-export function countEdges(topologyPath: string): number {
+  let parsed: unknown;
   try {
-    const st = fs.statSync(topologyPath);
-    if (st.isDirectory()) {
-      const edgesDir = path.join(topologyPath, "edges");
-      if (!fs.existsSync(edgesDir)) return 0;
-      return fs.readdirSync(edgesDir).filter((f) => f.endsWith(".json")).length;
-    }
-    const raw = fs.readFileSync(topologyPath, "utf8");
-    const spec: unknown = JSON.parse(raw);
-    if (spec && typeof spec === "object" && Array.isArray((spec as { edges?: unknown }).edges)) {
-      return (spec as { edges: unknown[] }).edges.length;
-    }
-    return 0;
-  } catch {
-    return 0;
+    parsed = JSON.parse(raw);
+  } catch (err) {
+    throw new Error(`cannot parse ${countsPath}: ${err instanceof Error ? err.message : String(err)}`);
   }
+  const obj = parsed as { nodes?: unknown; edges?: unknown };
+  if (
+    !parsed || typeof parsed !== "object" ||
+    typeof obj.nodes !== "number" || !Number.isInteger(obj.nodes) || obj.nodes < 0 ||
+    typeof obj.edges !== "number" || !Number.isInteger(obj.edges) || obj.edges < 0
+  ) {
+    throw new Error(`${countsPath} must be {"nodes": <non-negative integer>, "edges": <non-negative integer>}, got: ${raw}`);
+  }
+  return { nodes: obj.nodes, edges: obj.edges };
 }
 
 
@@ -478,11 +463,24 @@ export class BuildAndRunRunner {
     this.channel.appendLine("$ " + binPath + " " + topArgs.join(" "));
     this.cancelled = false;
     this.looping = true;
-    // Size the dedicated per-edge fd range from the topology spec BEFORE spawning (the
-    // ext host must know the range up front — see countEdges' doc comment). Clamped to
-    // MAX_EDGE_STREAMS; 0 (spec unreadable, or more edges than the bound) omits the
-    // dedicated per-edge streams entirely — see MAX_EDGE_STREAMS's doc comment.
-    const edgeCountRaw = countEdges(this.topologyPath ?? path.join(repoRoot, "topology"));
+    // Size the dedicated per-edge/per-node fd ranges from the stored counts BEFORE spawning
+    // (the ext host must know the range up front — see readCounts' doc comment). A missing
+    // or malformed counts.json throws; that is a real configuration error, so it is reported
+    // the same way a build failure is (channel + goErrorsFile + abort this run without
+    // spawning), not silently treated as 0.
+    let counts: { nodes: number; edges: number };
+    try {
+      counts = readCounts(this.topologyPath ?? path.join(repoRoot, "topology"));
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      this.channel.appendLine(`\n[counts.json error: ${msg}]`);
+      appendGoError(probePaths.goErrorsFile, msg);
+      this.looping = false;
+      return;
+    }
+    // Clamped to MAX_EDGE_STREAMS; a count above the bound omits the dedicated per-edge
+    // streams entirely — see MAX_EDGE_STREAMS's doc comment.
+    const edgeCountRaw = counts.edges;
     this.edgeCount = edgeCountRaw > MAX_EDGE_STREAMS ? 0 : edgeCountRaw;
     if (edgeCountRaw > MAX_EDGE_STREAMS) {
       // Capacity limit reached by legitimate input (a large topology), not a code bug — a
@@ -499,7 +497,7 @@ export class BuildAndRunRunner {
     // edge range (nodeBase = EDGE_BASE_FD + edgeCount, interiorBase = nodeBase + nodeCount —
     // see NODE_BASE_FD's doc comment). Clamped to MAX_NODE_STREAMS; 0 omits the dedicated
     // per-node NODE/INTERIOR/Port streams entirely.
-    const nodeCountRaw = countNodes(this.topologyPath ?? path.join(repoRoot, "topology"));
+    const nodeCountRaw = counts.nodes;
     this.nodeCount = nodeCountRaw > MAX_NODE_STREAMS ? 0 : nodeCountRaw;
     if (nodeCountRaw > MAX_NODE_STREAMS) {
       // Same reasoning as the edge-count case above.

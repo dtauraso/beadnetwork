@@ -3,8 +3,8 @@
 // and the built []wire.Node themselves. buildFromSpec orchestrates the phase
 // helpers below (all methods on buildCtx) in the same order the original
 // monolithic loader.go function performed them; behavior is unchanged.
-// loader.go's LoadTopology/LoadTopologyFromJSON call buildFromSpec after
-// parsing + validating via topo_spec.go.
+// loader.go's LoadTopology calls buildFromSpec after parsing + validating via
+// topo_spec.go.
 
 package Wiring
 

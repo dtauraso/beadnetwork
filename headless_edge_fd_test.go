@@ -25,7 +25,7 @@ func TestHeadlessEdgeFdDedicatedStream(t *testing.T) {
 	binPath := buildHeadlessBinary(t, repoRoot, "wirefold-headless-edge-fd-test")
 	ds := spawnDedicatedAllStreams(t, binPath, repoRoot)
 	if ds.edgeN == 0 {
-		t.Fatal("topology/edges has 0 edges — test cannot assert per-edge frames without any")
+		t.Fatal("topology/nodes/*/edges has 0 edges — test cannot assert per-edge frames without any")
 	}
 
 	edgeFrames := readLastFrames(t, ds.edgeReads, "edge", 120)

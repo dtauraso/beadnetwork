@@ -1,16 +1,33 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# check-scene-path-resolution.sh — guard: path resolution must live in scene_paths.go.
+# check-scene-path-resolution.sh — guard: PER-OWNER path construction.
 #
-# All four scene persisters (camera, overlays, node-pos, anchor) and their loaders
-# must resolve topologyPath via sceneTreeRoot / sceneJSONPath (scene_paths.go). A persister
-# that hand-rolls os.Stat+IsDir will diverge between the directory-form and the file-form
-# topologyPath — the exact bug that recurred three times in one session.
+# The monolithic-vs-tree topologyPath form this guard originally defended against is gone
+# (.claude/rules/persistence-ownership.md "A topology is a directory tree, always": topologyPath is always the tree root
+# directory now). The invariant this guard enforces has moved on to the CURRENT plan
+# (same doc, "The model" / step 3-5): a path is constructed only by the goroutine that
+# owns the file it names.
 #
-# This guard FAILS if os.Stat( + IsDir() appears in any nodes/Wiring/*.go file OUTSIDE
-# scene_paths.go, UNLESS the line carries a trailing `// path-resolution-ok:` marker
-# (for genuinely-unrelated IsDir uses, e.g. the loader dispatch in loader.go).
+#   - view/*.json (camera, overlays, sphere, the legacy scene.json sidecar) — scene_paths.go
+#     only. Enforced the original way: no hand-rolled os.Stat+IsDir or filepath.Join("view",
+#     "scene.json") outside scene_paths.go (still real — scene_camera.go et al. must call
+#     the shared sceneJSONPath/sceneCameraPath/sceneViewFilePath resolvers, not reimplement
+#     them, so a future scene file split can't silently diverge again).
+#   - nodes/<id>/... (position, local-polars, cascade-edges, inputs/outputs port files) —
+#     node_mover.go only (plus loader_tree.go, which READS these paths to build the graph
+#     at load time — an explicitly out-of-scope concern, see the plan's "Explicitly out of
+#     scope: Loading").
+#   - nodes/<id>/edges/<label>.json — reserved for edge_mover.go once a Go-side writer
+#     exists (today there is none; loader_tree.go's read is the only occurrence, also
+#     exempted as loading).
+#
+# UNLIKE the view-file rule, the node-path rule below matches on the LITERAL "nodes"
+# path segment rather than requiring a shared resolver function — no such function
+# exists (or is wanted) for node paths: node_mover.go's positionFilePath/
+# localPolarsFilePath/cascadeEdgesFilePath/nodePortFilePath ARE the resolvers, called by
+# quant_offset_persist.go / scene_anchor_persist.go, so this guard's job is just "no
+# OTHER file hand-rolls a nodes/ path with its own filepath.Join".
 #
 # Exit 0 when clean.
 
@@ -88,7 +105,7 @@ done <<< "$all_hits"
 
 if [[ $HITS -ne 0 ]]; then
   echo ""
-  echo "check-scene-path-resolution: $HITS hit(s) — resolve topologyPath via sceneTreeRoot/sceneJSONPath in scene_paths.go, not hand-rolled IsDir. Mark unrelated uses with '// path-resolution-ok:'"
+  echo "check-scene-path-resolution: $HITS hit(s) — resolve topologyPath via sceneJSONPath in scene_paths.go, not hand-rolled IsDir. Mark unrelated uses with '// path-resolution-ok:'"
   exit 1
 fi
 
@@ -137,5 +154,38 @@ if [[ "$JOIN_HITS" -ne 0 ]]; then
   exit 1
 fi
 
-echo "check-scene-path-resolution: clean ($GO_FILE_COUNT files scanned; $CALL_SITES resolver call site(s); all IsDir/Join path-resolution lives in scene_paths.go)"
+# POSITIVE ASSERTION #4 — node-path ownership. filepath.Join(...) with a literal "nodes"
+# path segment is allowed only in node_mover.go (the node-path resolvers), edge_mover.go
+# (reserved for a future edges/<label>.json writer), and loader_tree.go (the tree reader —
+# loading is explicitly out of scope for the owner-writes-its-path invariant). Any other
+# file hand-rolling a nodes/ path is exactly the bug class this pass exists to make
+# unrepresentable — a persister reaching around node_mover.go's resolvers to build its own
+# path, which is precisely how positionFilePath/localPolarsFilePath/cascadeEdgesFilePath/
+# nodePortFilePath used to be scattered before step 3.
+NODE_PATH_OWNERS=("node_mover.go" "edge_mover.go" "loader_tree.go")
+is_node_path_owner() {
+  local f="$1"
+  for owner in "${NODE_PATH_OWNERS[@]}"; do
+    [[ "${f##*/}" == "$owner" ]] && return 0
+  done
+  return 1
+}
+NODE_JOIN_HITS=0
+while IFS= read -r hit; do
+  [[ -z "$hit" ]] && continue
+  file="${hit%%:*}"; rest="${hit#*:}"; lineno="${rest%%:*}"; content="${rest#*:}"
+  [[ "$content" == *"filepath.Join("* ]] || continue
+  [[ "$content" == *'"nodes"'* ]] || continue
+  is_node_path_owner "$file" && continue
+  printf 'hand-rolled-node-path: %s: %s:%s\n' "$file" "$lineno" "$content"
+  NODE_JOIN_HITS=$((NODE_JOIN_HITS + 1))
+done <<< "$all_hits"
+
+if [[ "$NODE_JOIN_HITS" -ne 0 ]]; then
+  echo ""
+  echo "check-scene-path-resolution: $NODE_JOIN_HITS hand-rolled nodes/ filepath.Join(...) hit(s) outside node_mover.go/edge_mover.go/loader_tree.go — a node/port path belongs to its owning mover; call node_mover.go's resolvers instead of reconstructing the path."
+  exit 1
+fi
+
+echo "check-scene-path-resolution: clean ($GO_FILE_COUNT files scanned; $CALL_SITES resolver call site(s); all IsDir/Join path-resolution lives in scene_paths.go; node-path construction lives in node_mover.go/edge_mover.go)"
 exit 0

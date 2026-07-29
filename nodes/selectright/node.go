@@ -17,7 +17,8 @@ import (
 // exactly Left==0 && Right==1. This package owns only the struct layout
 // (required for gen-node-defs port discovery) and the init registration;
 // GateNode is embedded so its port fields (FromLeft, FromRight, ToPassed) are
-// promoted and discovered by reflectPorts.
+// promoted and discovered by gen-node-defs' struct-shape scan (ast_parse.go), not by
+// reflection — the runtime reflectPorts this comment used to name is deleted.
 type SelectRight struct {
 	gatecommon.GateNode
 }

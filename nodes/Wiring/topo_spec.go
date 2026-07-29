@@ -2,13 +2,12 @@
 // specEdge, topoSpec, NodeData) and reading/validating a spec into memory
 // (parseSpec, readSpec, validateNoFanIn), plus small per-node/per-edge helpers
 // used at build time (label, toNodeGeom, broadcastBaseName, specPortsToGeom,
-// nodeSendRule). loader.go's LoadTopology/LoadTopologyFromJSON consume this;
+// nodeSendRule). loader.go's LoadTopology consumes this;
 // build.go turns a parsed+validated topoSpec into the running graph.
 
 package Wiring
 
 import (
-	"encoding/json"
 	"fmt"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"os"
@@ -193,6 +192,12 @@ type NodeData struct {
 
 // specEdge mirrors the JSON edge shape.
 // Fields tagged wire:"prop,..." are wire props emitted to wire-defs.ts by gen-node-defs.
+//
+// Source is NOT read from the file's own "source" key on disk — under the adjacency
+// layout (topology/nodes/<id>/edges/<label>.json) the source is the directory the file
+// sits in, and loadTree (loader_tree.go) fills Source in from that directory name after
+// unmarshalling. The struct field still carries `json:"source"` so in-memory
+// construction/tests can set it directly; it is simply redundant-and-unused on disk.
 type specEdge struct {
 	Label        string `json:"label"          wire:"prop,required,tsType:string"`
 	Kind         string `json:"kind"`
@@ -214,8 +219,8 @@ type topoSpec struct {
 type WireRegistry map[string]*wire.PacedWire
 
 // parseSpec reads and parses the topology spec at path — a directory tree
-// (loadTree) or a monolithic topology.json — into a topoSpec, WITHOUT validating
-// or building. LoadTopology validates + builds from the result.
+// (loadTree; readSpec below rejects anything else) — into a topoSpec, WITHOUT
+// validating or building. LoadTopology validates + builds from the result.
 func parseSpec(path string) (topoSpec, error) {
 	spec, err := readSpec(path)
 	if err != nil {
@@ -308,21 +313,25 @@ func validateCascadeEdges(spec topoSpec) error {
 	return nil
 }
 
-// readSpec loads the raw topoSpec from either a directory tree or a single JSON file,
-// without semantic validation (that is parseSpec's job).
+// readSpec loads the raw topoSpec from the tree at path, without semantic validation
+// (that is parseSpec's job).
+// A topology is a DIRECTORY TREE and nothing else. The monolithic single-file form
+// (a topology.json parsed straight into a topoSpec) is gone: two supported shapes meant
+// every persister carried a second code path, and the tree is the form the editor writes,
+// the form on disk, and the only one anything still produced.
+//
+// Fails loudly on a non-directory rather than falling back — a path that used to name a
+// monolithic file would otherwise load as an empty spec and surface much later as a
+// mystery empty scene.
 func readSpec(path string) (topoSpec, error) {
-	if info, err := os.Stat(path); err == nil && info.IsDir() { // path-resolution-ok: loader dispatch, not scene path resolution
-		return loadTree(path)
-	}
-	raw, err := os.ReadFile(path)
+	info, err := os.Stat(path) // path-resolution-ok: loader dispatch, not scene path resolution
 	if err != nil {
-		return topoSpec{}, fmt.Errorf("LoadTopology: read %s: %w", path, err)
+		return topoSpec{}, fmt.Errorf("LoadTopology: stat %s: %w", path, err)
 	}
-	var spec topoSpec
-	if err := json.Unmarshal(raw, &spec); err != nil {
-		return topoSpec{}, fmt.Errorf("LoadTopology: parse %s: %w", path, err)
+	if !info.IsDir() { // path-resolution-ok: loader form check, not scene path resolution
+		return topoSpec{}, fmt.Errorf("LoadTopology: %s is a file; a topology is a directory tree (nodes/<id>/{meta,data,inputs,outputs,edges}.json — adjacency layout). The monolithic single-file form was removed", path)
 	}
-	return spec, nil
+	return loadTree(path)
 }
 
 // validateNoFanIn rejects a topology where two edges target the SAME destination input

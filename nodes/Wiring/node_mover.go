@@ -17,9 +17,51 @@ import (
 	"fmt"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"io"
+	"path/filepath"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
+
+// --- node path construction ---
+//
+// A node owns every path under its own <root>/nodes/<id>/ directory EXCEPT
+// nodes/<id>/edges/ (that subtree belongs to the edgeMover of each edge leaving this
+// node — see edge_mover.go's doc comment and .claude/rules/persistence-ownership.md
+// "The model"). These are the ONLY functions in the package that build those paths;
+// quant_offset_persist.go and scene_anchor_persist.go call them rather than
+// constructing the path themselves. safeTreePathComponent (scene_persist.go) is applied
+// at each call site before use, same as it always was — node ids and port names are
+// spec-authored and must not escape the tree root via ".." or a separator.
+
+// positionFilePath is <root>/nodes/<id>/position.json — a node's exact scene-polar
+// position plus its quantized-scalar-triple cache (quant_offset_persist.go).
+func positionFilePath(root, id string) string {
+	return filepath.Join(root, "nodes", id, "position.json")
+}
+
+// localPolarsFilePath is <root>/nodes/<id>/local-polars.json — a node's persisted
+// local-polar distances to its cascade neighbors plus its measurement pole
+// (quant_offset_persist.go).
+func localPolarsFilePath(root, id string) string {
+	return filepath.Join(root, "nodes", id, "local-polars.json")
+}
+
+// cascadeEdgesFilePath is <root>/nodes/<id>/cascade-edges.json — the node's
+// hand-authored cascade-neighbor list (quant_offset_persist.go's doc comment: this file
+// has no runtime writer today, only a reader, but the path belongs here regardless).
+func cascadeEdgesFilePath(root, id string) string {
+	return filepath.Join(root, "nodes", id, "cascade-edges.json")
+}
+
+// nodePortFilePath is <root>/nodes/<id>/{inputs,outputs}/<port>.json — one port's
+// geometry file (scene_anchor_persist.go's writePortAnchor).
+func nodePortFilePath(root, node, port string, isInput bool) string {
+	dir := "outputs"
+	if isInput {
+		dir = "inputs"
+	}
+	return filepath.Join(root, "nodes", node, dir, port+".json")
+}
 
 // pendingSend is one (destination, message) pair this node's own goroutine tried to
 // deliver, failed (the target's inbox was momentarily full), and is retrying — see
@@ -55,6 +97,17 @@ func setPortAnchorId(g *nodeGeom, port string, isInput bool, anchorId int) bool 
 type nodeMover struct {
 	id   string
 	geom nodeGeom
+	// persistRoot is the tree root this node's mover writes its OWN per-node files
+	// (position.json, local-polars.json — quant_offset_persist.go; port anchor files —
+	// scene_anchor_persist.go) into. Set once, for every nodeMover, by
+	// MoveDispatch.EnableEditPersist after the startup seed (mirrors md.persist's other
+	// armed-after-seed fields). Empty ("") means unarmed — bare test construction, or a
+	// MoveDispatch built without EnableEditPersist — and every persist* method below is a
+	// no-op. This node's own goroutine reads it only from its own persist* methods, so no
+	// synchronization is needed even though every mover shares the same EnableEditPersist
+	// call that sets it (a plain string write before any mover goroutine starts, same
+	// happens-before shape as clockSrc/speedCh below).
+	persistRoot string
 	// extIn is this node's dedicated channel for EXTERNAL entries — the stdin/gesture
 	// goroutine's drag/dragStart/anchor sends (md.sendMove, gesture.go's
 	// applyRingAnchor). Nothing else ever writes here: no other mover shares it.
@@ -333,11 +386,13 @@ func (m *nodeMover) handle(msg moveMsg) {
 	}
 	if msg.Kind == moveMsgKindAnchor {
 		// Per-port anchor update: snap to ring-anchor index, mutate this node's held
-		// port AnchorId, and re-emit node-geometry so the renderer redraws the port.
+		// port AnchorId, persist it to THIS node's own port file, and re-emit
+		// node-geometry so the renderer redraws the port.
 		ok := setPortAnchorId(&m.geom, msg.Port, msg.IsInput, msg.AnchorId)
 		if !ok {
 			return
 		}
+		m.persistPortAnchor(msg.Port, msg.IsInput, msg.AnchorId)
 		if m.tr != nil {
 			m.emitGeometry()
 		}

@@ -34,7 +34,7 @@ var distanceGroupOrder = []string{"time", "input", "gate"}
 
 // distanceGroups is the Go-authoritative group->pairs table (CLAUDE.md "Model — read
 // first": Go owns the group definitions and the math; TS holds no domain state). These
-// 10 pairs are exactly the 10 bead edges in topology/edges/*.json.
+// 10 pairs are exactly the 10 bead edges in topology/nodes/*/edges/*.json.
 var distanceGroups = map[string][]distancePair{
 	"time":  {{Source: "2", Target: "5"}, {Source: "2", Target: "4"}, {Source: "4", Target: "7"}, {Source: "4", Target: "6"}},
 	"input": {{Source: "1", Target: "3"}, {Source: "1", Target: "2"}},

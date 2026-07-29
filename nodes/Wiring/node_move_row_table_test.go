@@ -1,28 +1,32 @@
 // node_move_row_table_test.go — pins that MoveDispatch's row-identity tables (node/edge/
-// port hit-test resolution + the mover-side row lookups) are built ONCE at load, from the
-// SAME stable seed order (md.nodeSeeds/md.edgeSeeds) that the old central accumulator's row
-// order used to be independently discovered in via its first-geometry-event bookkeeping. This is
-// the MoveDispatch-side analogue of Buffer/row_order_test.go: proof that the row tables
-// this package now owns produce the identical row indices for a representative graph.
+// port hit-test resolution + the mover-side row lookups) are built ONCE at load, and that
+// node row order is DETERMINISTIC — specifically, directory-sorted (alphabetical) by node
+// id (loadTree sorts nodeDirs, see its doc comment), NOT the order nodes are declared in
+// the fixture. (The monolithic pre-tree form used to preserve JSON array/"seed" order;
+// the tree form has no such concept — every load walks nodes/ sorted.) This is the
+// MoveDispatch-side analogue of Buffer/row_order_test.go: proof that the row tables this
+// package now owns produce identical, reproducible row indices for a representative graph.
 
 package Wiring
 
 import (
 	"context"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
-	"os"
-	"path/filepath"
 	"testing"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
 
-func TestMoveDispatchRowTablesMatchSeedOrder(t *testing.T) {
-	// Three nodes in JSON SPEC ORDER (z-node, a-node, m-node — deliberately not
-	// alphabetical, proving row order tracks spec order, not a sort), one edge, so both
-	// node and edge row order can be pinned against known seed order, and z-node's two
-	// ports (AimedSrc: Out then FeedbackIn, its struct field order) exercise the
-	// flattened port-row table's per-node port ordering.
+func TestMoveDispatchRowTablesAreAlphabeticalByNodeID(t *testing.T) {
+	// Three nodes are declared z-node, a-node, m-node (in THAT order) — deliberately NOT
+	// alphabetical — so this fixture would fail if row assignment ever reverted to
+	// declaration order, or became nondeterministic: only the alphabetical-by-id rule
+	// makes every assertion below pass. One edge, so both node and edge row order can be
+	// pinned, and z-node's two ports (AimedSrc: FeedbackIn then Out) exercise the
+	// flattened port-row table's per-node port ordering — also alphabetical BY PORT NAME
+	// (loader_tree.go readPorts sorts port filenames, then sorts the parsed []specPort by
+	// Name again), not struct field order; FeedbackIn < Out only coincidentally matches
+	// AimedSrc's field order here.
 	const topo = `{
 	  "nodes": [
 	    {"id":"z-node","type":"AimedSrc","scenePolarR":0,"scenePolarTheta":0,"scenePolarPhi":0,"cascadeEdges":["a-node"],"cascadeKinds":{"a-node":"AimedSink"}},
@@ -33,22 +37,18 @@ func TestMoveDispatchRowTablesMatchSeedOrder(t *testing.T) {
 	    {"label":"e0","kind":"data","source":"z-node","sourceHandle":"Out","target":"a-node","targetHandle":"In"}
 	  ]
 	}`
-	dir := t.TempDir()
-	path := filepath.Join(dir, "topo.json")
-	if err := os.WriteFile(path, []byte(topo), 0o600); err != nil {
-		t.Fatal(err)
-	}
+	root := writeSpecTree(t, t.TempDir(), topo)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	tr := T.New()
 	clk := wire.NewRealClock()
-	_, _, md, _, err := LoadTopology(ctx, path, tr, clk)
+	_, _, md, _, err := LoadTopology(ctx, root, tr, clk)
 	if err != nil {
 		t.Fatalf("LoadTopology: %v", err)
 	}
 
-	// Node rows: spec (directory-sorted) order — z-node, a-node, m-node.
-	wantNodes := []string{"z-node", "a-node", "m-node"}
+	// Node rows: directory-sorted id order — a-node, m-node, z-node.
+	wantNodes := []string{"a-node", "m-node", "z-node"}
 	for row, id := range wantNodes {
 		got, ok := md.LookupNodeRow(row)
 		if !ok || got != id {
@@ -79,19 +79,19 @@ func TestMoveDispatchRowTablesMatchSeedOrder(t *testing.T) {
 		t.Fatalf("EdgeRowForPair(a-node,m-node): want ok=false (no such edge)")
 	}
 
-	// Port rows: flattened node-row order × each node's Ports order — z-node (AimedSrc)'s
-	// FeedbackIn then Out (inputs-before-outputs port ordering, rows 0,1), then a-node's
-	// one In (row 2), then m-node's one In (row 3).
+	// Port rows: flattened node-row order (a-node, m-node, z-node) × each node's Ports
+	// order — a-node's one In (row 0), m-node's one In (row 1), then z-node (AimedSrc)'s
+	// FeedbackIn then Out (inputs-before-outputs port ordering, rows 2,3).
 	wantPorts := []struct {
 		row     int
 		node    string
 		port    string
 		isInput bool
 	}{
-		{0, "z-node", "FeedbackIn", true},
-		{1, "z-node", "Out", false},
-		{2, "a-node", "In", true},
-		{3, "m-node", "In", true},
+		{0, "a-node", "In", true},
+		{1, "m-node", "In", true},
+		{2, "z-node", "FeedbackIn", true},
+		{3, "z-node", "Out", false},
 	}
 	for _, c := range wantPorts {
 		node, port, isInput, ok := md.LookupPortRow(c.row)

@@ -204,7 +204,7 @@ func TestPersistedPoleDrivesReloadWorldPositions(t *testing.T) {
 	// tiltedPole, not under lhSelf.Pole() itself.
 	mk("nodes/far/meta.json", fmt.Sprintf(`{"id":"far","type":"SrcNode","scenePolarR":40,"scenePolarTheta":%v,"scenePolarPhi":%v}`, dirFar.Theta, dirFar.Phi))
 	mk("nodes/far/outputs/Out.json", `{"name":"Out"}`)
-	mk("edges/e0.json", `{"label":"e0","kind":"data","source":"far","sourceHandle":"Out","target":"self","targetHandle":"In"}`)
+	mk("nodes/far/edges/e0.json", `{"label":"e0","kind":"data","sourceHandle":"Out","target":"self","targetHandle":"In"}`)
 	writeCascadeEdgesFromEdges(t, root, map[string]string{"self": "SinkNode", "far": "SrcNode"}, [][2]string{{"self", "far"}})
 
 	if err := WriteLocalPolars(root, "self", []wire.LocalPolar{*farEntry}, tiltedPole); err != nil {

@@ -82,6 +82,26 @@ readonly DEAD_COMMENT_TOKENS=(
   # RunGate/RunGateAccept doc comments called it a "window-and-inhibit gate loop", which
   # re-teaches the old kind name.
   "window-and-inhibit gate loop"
+  # decentralize-persistence sweep (step 7, 2026-07-28): the monolithic single-file
+  # `topology.json` topology form and the top-level `topology/edges/` directory were both
+  # deleted (LoadTopology now rejects a non-directory path; edges live under their source
+  # node, `nodes/<source>/edges/<label>.json`). "reads topology.json" named the deleted
+  # LoadTopology entry point's old doc comment (loader.go) claiming it read a monolithic
+  # file; "topology/edges/" named the deleted top-level edges directory. Bare "topology.json"
+  # and bare "edges/" are intentionally NOT guarded — both remain accurate past-tense
+  # narration elsewhere (e.g. "the deleted monolithic topology.json form",
+  # "nodes/<id>/edges/<label>.json").
+  "reads topology.json"
+  "topology/edges/"
+  # decentralize-persistence sweep (step 7, 2026-07-28): two node-kind comments
+  # (selectright/selectleft) still claimed struct fields are "discovered by reflectPorts"
+  # in the present tense — reflectPorts was deleted with the rest of the reflection build
+  # pipeline (nodes/Wiring/builders.go). Ports are now discovered at codegen time by
+  # gen-node-defs' AST scan, not by runtime reflection. Bare "reflectPorts"/"reflectBuild"
+  # are intentionally NOT guarded — both names are load-bearing in the surviving past-tense
+  # rationale comments across nodes/Wiring and every self-constructing kind (e.g. "was
+  # previously performed by Wiring.reflectBuild").
+  "discovered by reflectPorts"
 )
 
 fail=0

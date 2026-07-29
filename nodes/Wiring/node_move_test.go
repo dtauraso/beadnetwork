@@ -12,8 +12,6 @@ package Wiring
 import (
 	"context"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
-	"os"
-	"path/filepath"
 	"testing"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -41,16 +39,12 @@ func TestNodeGeometryLabelSidecar(t *testing.T) {
 	  }}
 	}`
 
-	dir := t.TempDir()
-	path := filepath.Join(dir, "topo.json")
-	if err := os.WriteFile(path, []byte(topo), 0o600); err != nil {
-		t.Fatal(err)
-	}
+	root := writeSpecTree(t, t.TempDir(), topo)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	tr := T.New()
-	_, _, md, _, err := LoadTopology(ctx, path, tr, wire.NewRealClock())
+	_, _, md, _, err := LoadTopology(ctx, root, tr, wire.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology: %v", err)
 	}

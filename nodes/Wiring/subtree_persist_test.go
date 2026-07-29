@@ -36,14 +36,14 @@ func pollDragConverged(t *testing.T, md *MoveDispatch, nodeID string, target vec
 }
 
 // pollPositionFileWritten waits until <root>/nodes/<id>/position.json exists on disk.
-// quantOffsetPersister.schedule() now writes synchronously (no debounce — see
+// nodeMover.persistQuantOffset now writes synchronously (no debounce — see
 // scene_persist.go's header comment), but pollDragConverged only guarantees the dragged
 // node's CENTER has published (applyCenter's atomic snap store); commitNodeMoveLocal's
-// md.persist.quantOffset.schedule() call runs a few statements LATER on that SAME
-// node-mover goroutine (quantized_move.go commitNodeMoveLocal), so reading disk
-// immediately after convergence can still race ahead of that write landing. Polling the
-// read-back under a deadline (same shape as pollDragConverged) makes the wait for
-// "schedule() has run" observable without reaching into persister internals.
+// nm.persistQuantOffset() call runs a few statements LATER on that SAME node-mover
+// goroutine (quantized_move.go commitNodeMoveLocal), so reading disk immediately after
+// convergence can still race ahead of that write landing. Polling the read-back under a
+// deadline (same shape as pollDragConverged) makes the wait for "the write has run"
+// observable without reaching into mover internals.
 func pollPositionFileWritten(t *testing.T, root, nodeID string) {
 	t.Helper()
 	deadline := time.Now().Add(2 * time.Second)

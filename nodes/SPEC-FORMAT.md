@@ -19,7 +19,7 @@ This document defines what goes in a SPEC and what each section means.
 
 ## Non-channel fields
 
-(Optional. Struct fields populated from `topology.json` `data.*`.)
+(Optional. Struct fields populated from each node's `data.json` `data.*`.)
 
 | Field | Type | Source | Notes |
 |-------|------|--------|-------|
@@ -65,7 +65,7 @@ For channels the loader allocates but does not wire to any edge — e.g., Input 
 
 ### Non-channel fields
 
-Struct fields populated from `topology.json` at load time (not wires). Examples: `HeldValue` on `Time`, `Name` / `Id` on most kinds. Trivial fields like `Id`/`Name` are implicit and need not be listed; only list fields with substantive load-time semantics.
+Struct fields populated from the node's `data.json` at load time (not wires). Examples: `HeldValue` on `Time`, `Name` / `Id` on most kinds. Trivial fields like `Id`/`Name` are implicit and need not be listed; only list fields with substantive load-time semantics.
 
 ### kindId
 
