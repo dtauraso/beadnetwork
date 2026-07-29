@@ -15,9 +15,11 @@ import (
 // window and accepts the raw 10 pattern — FromLeft==1 AND FromRight==0 — DIRECTLY,
 // no inversion/NOT. This package owns only the struct layout (required for
 // gen-node-defs port discovery) and the init registration; GateNode is embedded so
-// its port fields (FromLeft, FromRight, ToPassed) are promoted and discovered by
-// gen-node-defs' struct-shape scan (ast_parse.go), not by reflection — the runtime
-// reflectPorts this comment used to name is deleted.
+// its port fields (FromLeft, FromRight, ToPassed) are promoted, and gen-node-defs'
+// parseEmbeddedPorts follows the embedding to find them at BUILD time. (This was
+// runtime reflectPorts before kinds constructed themselves; the struct still has to
+// carry the fields, but nothing reads them reflectively any more — the ports the
+// loader binds are the ones declared in the RegisterBuilder call below.)
 type SelectLeft struct {
 	gatecommon.GateNode
 }
