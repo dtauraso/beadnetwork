@@ -17,8 +17,7 @@ package Wiring
 // Go owns persistence (MODEL.md): fire-and-forget, SYNCHRONOUS — schedule() writes
 // immediately, inline on the caller's own goroutine (see scene_persist.go's header comment
 // for why the prior debounce was removed) — logs on error, never blocks the gesture. Only
-// the directory-tree form has a per-node position.json to write; root == "" (monolithic
-// topology.json) is a no-op.
+// root == "" (a persister constructed bare, never armed via EnableEditPersist) is a no-op.
 //
 // LEGACY FALLBACK: an existing pre-split topology has these fields inline in meta.json
 // instead of a separate position.json/local-polars.json — loader_tree.go's loadTree reads
@@ -34,7 +33,7 @@ import (
 
 // quantOffsetPersister writes a node's scalar-triple change straight to its
 // position.json as it happens. Owned by MoveDispatch (armed by EnableEditPersist).
-// root == "" disables it (monolithic form / unarmed tests).
+// root == "" disables it (unarmed tests).
 //
 // UNLIKE this package's other four persisters, this one has MULTIPLE writers: every node
 // has its OWN mover goroutine, and commitNodeMoveLocal runs schedule() on that node's own

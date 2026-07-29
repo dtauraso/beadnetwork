@@ -2,7 +2,7 @@
 // specEdge, topoSpec, NodeData) and reading/validating a spec into memory
 // (parseSpec, readSpec, validateNoFanIn), plus small per-node/per-edge helpers
 // used at build time (label, toNodeGeom, broadcastBaseName, specPortsToGeom,
-// nodeSendRule). loader.go's LoadTopology/LoadTopologyFromJSON consume this;
+// nodeSendRule). loader.go's LoadTopology consumes this;
 // build.go turns a parsed+validated topoSpec into the running graph.
 
 package Wiring
@@ -219,8 +219,8 @@ type topoSpec struct {
 type WireRegistry map[string]*wire.PacedWire
 
 // parseSpec reads and parses the topology spec at path — a directory tree
-// (loadTree) or a monolithic topology.json — into a topoSpec, WITHOUT validating
-// or building. LoadTopology validates + builds from the result.
+// (loadTree; readSpec below rejects anything else) — into a topoSpec, WITHOUT
+// validating or building. LoadTopology validates + builds from the result.
 func parseSpec(path string) (topoSpec, error) {
 	spec, err := readSpec(path)
 	if err != nil {
@@ -313,8 +313,8 @@ func validateCascadeEdges(spec topoSpec) error {
 	return nil
 }
 
-// readSpec loads the raw topoSpec from either a directory tree or a single JSON file,
-// without semantic validation (that is parseSpec's job).
+// readSpec loads the raw topoSpec from the tree at path, without semantic validation
+// (that is parseSpec's job).
 // A topology is a DIRECTORY TREE and nothing else. The monolithic single-file form
 // (a topology.json parsed straight into a topoSpec) is gone: two supported shapes meant
 // every persister carried a second code path, and the tree is the form the editor writes,

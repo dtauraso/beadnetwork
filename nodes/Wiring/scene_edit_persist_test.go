@@ -186,65 +186,7 @@ func TestOverlaysPersistPreservesCamera(t *testing.T) {
 	}
 }
 
-// TestPersistFileTopologyPathInTree pins BUG 1: the live editor passes the topology.json
-// FILE inside the tree dir (not the dir itself), so os.Stat(topologyPath).IsDir() is false.
-// EnableEditPersist must still resolve the tree root to the file's PARENT dir (which contains
-// nodes/), or posPersist/anchorPersist no-op and node-drag / ring-move never reach disk.
-// This exercises the full EnableEditPersist wiring with a FILE topologyPath + a real tree.
-func TestEnableEditPersistTrueMonolithicNoTree(t *testing.T) {
-	dir := t.TempDir()
-	topoFile := filepath.Join(dir, "topology.json")
-	if err := os.WriteFile(topoFile, []byte("{}"), 0o644); err != nil {
-		t.Fatal(err)
-	}
-	md := &MoveDispatch{ui: uiState{ov: defaultOverlayState()}}
-	md.EnableEditPersist(topoFile)
-	if md.persist.pos.root != "" {
-		t.Fatalf("posPersist.root=%q want empty (no nodes/ subdir → true monolithic)", md.persist.pos.root)
-	}
-	if md.persist.anchor.root != "" {
-		t.Fatalf("anchorPersist.root=%q want empty", md.persist.anchor.root)
-	}
-}
-
-// TestOverlaysPersistMonolithicForm: overlays persist correctly when topologyPath is a
-// monolithic file (not a directory), the form that caused the original treeRoot="" no-op bug.
-// sceneCameraPath resolves to the sibling view/scene.json; EnableEditPersist + LoadOverlays
-// must both land on that same path.
-func TestOverlaysPersistMonolithicForm(t *testing.T) {
-	// Build a tmp directory that looks like a monolithic topology: the "topology file"
-	// is a file inside the dir; view/scene.json is a sibling of that file.
-	dir := t.TempDir()
-	topoFile := dir + "/topology.json"
-	if err := os.WriteFile(topoFile, []byte("{}"), 0644); err != nil {
-		t.Fatal(err)
-	}
-
-	md := &MoveDispatch{ui: uiState{ov: defaultOverlayState()}}
-	md.EnableEditPersist(topoFile) // topologyPath is a FILE, not a dir
-
-	// overlaysPersist.path must be non-empty (the sceneCameraPath sibling).
-	if md.persist.overlays.path == "" {
-		t.Fatal("overlaysPersist.path is empty for monolithic topologyPath — EnableEditPersist bug")
-	}
-
-	// Toggle an overlay and flush.
-	md.ToggleSceneTori(nil) // sceneToriVisible: true -> false
-	md.persist.overlays.schedule(md.ui.ov)
-
-	// Load back via sceneCameraPath.
-	ov, found := loadSceneOverlays(overlaysFilePath(topoFile), sceneCameraPath(topoFile))
-	if !found {
-		t.Fatal("loadSceneOverlays found no overlay keys after flush on monolithic form")
-	}
-	if ov.sceneToriVisible {
-		t.Fatal("sceneToriVisible not persisted on monolithic form")
-	}
-
-	// LoadOverlays must restore into a fresh dispatch.
-	fresh := &MoveDispatch{ui: uiState{ov: defaultOverlayState()}}
-	fresh.LoadOverlays(topoFile, nil)
-	if fresh.ui.ov.sceneToriVisible {
-		t.Fatal("LoadOverlays did not restore sceneToriVisible=false on monolithic form")
-	}
-}
+// TestEnableEditPersistTrueMonolithicNoTree and TestOverlaysPersistMonolithicForm were
+// deleted: they asserted behavior for a monolithic-file topologyPath, a form LoadTopology
+// no longer accepts (topo_spec.go) — topologyPath is always the tree root directory. There
+// is no longer a second form to test against a first.

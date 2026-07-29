@@ -10,8 +10,8 @@
 //	                                        source is the directory the file sits in, not a
 //	                                        field in the file — see specEdge's doc comment)
 //
-// It returns a topoSpec equivalent to what json.Unmarshal would produce from
-// the monolithic topology.json, enabling LoadTopology to accept either form.
+// It returns a topoSpec in the same shape parseSpec/LoadTopology consume regardless of
+// how the tree was read.
 
 package Wiring
 

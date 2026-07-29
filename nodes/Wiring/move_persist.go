@@ -12,10 +12,9 @@ type persisters struct {
 	// vp is the camera-viewpoint persister (scene_camera_persist.go), armed by
 	// EnableViewpointPersist after the startup seed. nil until armed (old path / tests).
 	vp *viewpointPersister
-	// pos / anchor are the disk persisters for the two FSM-applied edits (node-drag
-	// position, ring-move anchor). Armed by EnableEditPersist after the startup seed; nil
-	// until armed (tests that never arm).
-	pos      *nodePosPersister
+	// anchor is the disk persister for the FSM-applied ring-move edit (port anchorId).
+	// Armed by EnableEditPersist after the startup seed; nil until armed (tests that
+	// never arm). Node-drag position is persisted by quantOffset below.
 	anchor   *anchorPersister
 	overlays *overlaysPersister
 	// quantOffset is the disk persister for a node's scalar triple (iTheta,iPhi,iR) about
@@ -44,19 +43,15 @@ func (md *MoveDispatch) EnableViewpointPersist(topologyPath string) {
 
 // EnableEditPersist arms disk persistence for the FSM-applied topology edits:
 //   - node-drag (RootMove) → the moved node's position in <root>/nodes/<id>/position.json
+//     (quantOffset below)
 //   - ring-move (applyRingAnchor) → the port's anchorId in the port json file
 //   - overlays (applyUpdate toggle/set) → overlay-visibility keys in view/overlays.json
 //
-// Node-position + anchor persistence needs the per-node/per-port files of the directory-tree
-// form; for a monolithic topology.json (no per-node files) their root is "" and those two
-// persisters no-op. Call AFTER SeedInitialViewpoint so the seed emits do not write the
-// loaded state back.
+// topologyPath is always the tree root directory — LoadTopology rejects anything else
+// (topo_spec.go) — so it is used directly as root for the per-node/per-port persisters.
+// Call AFTER SeedInitialViewpoint so the seed emits do not write the loaded state back.
 func (md *MoveDispatch) EnableEditPersist(topologyPath string) {
-	// sceneTreeRoot handles both the directory form and the file-inside-tree form (and
-	// returns "" for a true monolithic topology with no tree), making the two-form bug
-	// class unrepresentable here. Do not hand-roll os.Stat/IsDir — use sceneTreeRoot.
-	root := sceneTreeRoot(topologyPath)
-	md.persist.pos = &nodePosPersister{root: root}
+	root := topologyPath
 	md.persist.anchor = &anchorPersister{root: root}
 	md.persist.overlays = &overlaysPersister{path: overlaysFilePath(topologyPath)}
 	md.persist.sphere = &sceneSpherePersister{path: sphereFilePath(topologyPath)}

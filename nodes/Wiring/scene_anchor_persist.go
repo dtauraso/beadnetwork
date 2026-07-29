@@ -11,7 +11,7 @@ package Wiring
 // Same shape as the node-position persister: SYNCHRONOUS (schedule() writes immediately,
 // inline on the stdin/gesture goroutine — see scene_persist.go's header comment for why the
 // prior debounce was removed), READ-MODIFY-WRITE (only `anchorId` is replaced),
-// FIRE-AND-FORGET. root == "" (monolithic form / tests) disables it.
+// FIRE-AND-FORGET. root == "" (unarmed / bare-constructed persister) disables it.
 
 import (
 	"encoding/json"

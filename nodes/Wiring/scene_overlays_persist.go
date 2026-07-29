@@ -160,8 +160,8 @@ func loadSceneOverlays(overlaysPath, legacyScenePath string) (overlayState, bool
 // defaultOverlayState and applies any present keys) — and those defaults are STILL emitted, so
 // the UI shows the default-visible overlays instead of an all-off buffer. Call after LoadTopology
 // (which builds MoveDispatch) and BEFORE EnableEditPersist so this emit does not write the
-// loaded/default state back. topologyPath is passed to sceneCameraPath, which handles both the
-// directory-tree and monolithic forms.
+// loaded/default state back. topologyPath is passed to sceneCameraPath, which resolves the
+// legacy pre-split view/scene.json sidecar under the tree root.
 func (md *MoveDispatch) LoadOverlays(topologyPath string, tr *T.Trace) {
 	ov, _ := loadSceneOverlays(overlaysFilePath(topologyPath), sceneCameraPath(topologyPath)) // ov = defaults with any persisted keys applied
 	md.ui.ov.SetGuideVisibility(ov)
