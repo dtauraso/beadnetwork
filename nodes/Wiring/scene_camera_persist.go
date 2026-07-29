@@ -14,7 +14,7 @@ package Wiring
 // camera.json is scene-level and genuinely singular (there is only ever one camera pose),
 // so — unlike a node's own files, which each node's own mover writes — this stays one file
 // with one named owning goroutine rather than a per-entity split
-// (docs/planning/decentralized-persistence.md "The model").
+// (.claude/rules/persistence-ownership.md "The owner writes, and owns the path").
 //
 // Go owns persistence (MODEL.md): there is no TS→Go camera-save on the new path. The
 // write is:

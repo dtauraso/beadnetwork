@@ -295,5 +295,5 @@ func (md *MoveDispatch) applyRingAnchor(node, port string, isInput bool, dir vec
 	// The snapped anchor index is persisted by the node's OWN mover, on its own
 	// goroutine, as it processes the moveMsgKindAnchor sent above (node_mover.go
 	// handle's moveMsgKindAnchor case → persistPortAnchor) — not reached into from
-	// here (docs/planning/decentralized-persistence.md "The model").
+	// here (.claude/rules/persistence-ownership.md "The owner writes, and owns the path").
 }

@@ -4,7 +4,7 @@ set -euo pipefail
 # check-persist-write-ownership.sh — guard: PER-OWNER file WRITES (not just path
 # construction — that half is check-scene-path-resolution.sh's job).
 #
-# docs/planning/decentralized-persistence.md "The model": the goroutine that owns a piece
+# .claude/rules/persistence-ownership.md "The owner writes, and owns the path": the goroutine that owns a piece
 # of state writes its own file. Steps 4a-4c moved every write call site onto its owning
 # goroutine (a node's own nodeMover for its own files; the view-owner goroutine,
 # RunStdinReader, for the three scene-level files). This guard is what stops a FUTURE
@@ -18,9 +18,10 @@ set -euo pipefail
 # exempted as shared plumbing every owner calls THROUGH — same exemption shape as
 # scene_paths.go in check-scene-path-resolution.sh.
 #
-# Ownership is matched by PATH PATTERN, not directory (docs/planning/decentralized-
-# persistence.md "The model": after step 2, nodes/<id>/ legitimately holds files owned by
-# TWO different kinds of mover — the node's own, and each outgoing edge's):
+# Ownership is matched by PATH PATTERN, not directory
+# (.claude/rules/persistence-ownership.md "The owner writes, and owns the path": nodes/<id>/
+# legitimately holds files owned by TWO different kinds of mover — the node's own, and each
+# outgoing edge's):
 #
 #   - nodes/<id>/position.json, local-polars.json, {inputs,outputs}/<port>.json
 #     (i.e. everything under nodes/<id>/ EXCEPT edges/) — written only by the node's own

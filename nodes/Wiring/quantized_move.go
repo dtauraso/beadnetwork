@@ -281,7 +281,7 @@ func (lq *layoutQuantizer) neighborSetCRequantize(md *MoveDispatch, selfID, from
 		nm.dragDeltaA, nm.dragDeltaB, nm.dragDeltaC = int32(deltaA), int32(deltaB), int32(deltaC)
 		// selfID's own local-polars.json — this runs on selfID's own nodeMover goroutine
 		// (see the comment block above), so nm persists it directly rather than reaching
-		// through md.persist (docs/planning/decentralized-persistence.md "The model").
+		// through md.persist (.claude/rules/persistence-ownership.md "The owner writes, and owns the path").
 		nm.persistLocalPolars(lh.LocalPolarsSnapshot(), lh.Pole())
 		// Structured buffer counterpart of the "abc-drag" breadcrumb above, riding
 		// THIS node's (selfID's) own dedicated stream — this runs on selfID's own
@@ -494,7 +494,7 @@ func (lq *layoutQuantizer) requantizeLocalPolars(md *MoveDispatch, nm *nodeMover
 	lq.requantizePoleTraced(lhX, updatesX)
 	// X (nm) persists its OWN local-polars.json — this runs on X's own nodeMover
 	// goroutine (requantizeLocalPolars is called from commitNodeMoveLocal, on nm's own
-	// goroutine), so nm writes it directly (docs/planning/decentralized-persistence.md
+	// goroutine), so nm writes it directly (.claude/rules/persistence-ownership.md
 	// "The model").
 	nm.persistLocalPolars(lhX.LocalPolarsSnapshot(), lhX.Pole())
 

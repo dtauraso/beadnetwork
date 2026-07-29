@@ -26,7 +26,7 @@ import (
 //
 // A node owns every path under its own <root>/nodes/<id>/ directory EXCEPT
 // nodes/<id>/edges/ (that subtree belongs to the edgeMover of each edge leaving this
-// node — see edge_mover.go's doc comment and docs/planning/decentralized-persistence.md
+// node — see edge_mover.go's doc comment and .claude/rules/persistence-ownership.md
 // "The model"). These are the ONLY functions in the package that build those paths;
 // quant_offset_persist.go and scene_anchor_persist.go call them rather than
 // constructing the path themselves. safeTreePathComponent (scene_persist.go) is applied

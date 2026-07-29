@@ -49,7 +49,7 @@ const MAX_EDGE_STREAMS = 256;
 const MAX_NODE_STREAMS = 256;
 
 // readCounts replaces the old countNodes/countEdges tree-walks (see
-// docs/planning/decentralized-persistence.md step 6). The ext host must know the fd RANGE
+// .claude/rules/persistence-ownership.md "Counts are stored, never re-derived"). The ext host must know the fd RANGE
 // before spawning Go, so it cannot ask Go for this — but it also must not WALK the tree to
 // derive it, because that re-implements the on-disk layout in a second language (step 2's
 // near-miss, when countEdges had to be hand-updated in lockstep with a path move). Instead

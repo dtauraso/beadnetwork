@@ -6,7 +6,7 @@ import ()
 // the three SCENE-LEVEL files it writes — camera.json/overlays.json/sphere.json, each
 // genuinely singular (there is only one camera pose, one overlay-flag set, one scene
 // sphere), so each stays one file with this one goroutine as its named owner
-// (docs/planning/decentralized-persistence.md "The model"), rather than a per-entity split
+// (.claude/rules/persistence-ownership.md "The owner writes, and owns the path"), rather than a per-entity split
 // the way node files are. It is NOT a shared bag other goroutines reach into: md.persist's
 // three fields are read/written exclusively from methods this same view-owner goroutine
 // calls (EmitViewpoint, applyUpdate, LoadSceneSphere/handleSaveMsg — see each field's own

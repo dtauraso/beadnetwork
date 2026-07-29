@@ -7,7 +7,7 @@
 // Edge-path construction: there is currently NO runtime writer of an edge's own
 // nodes/<source>/edges/<label>.json (it is editor-authored, loader_tree.go only reads
 // it). When a Go-side writer for that file is added, its path construction belongs in
-// THIS file, per docs/planning/decentralized-persistence.md "The model" — an edgeMover
+// THIS file, per .claude/rules/persistence-ownership.md "The owner writes, and owns the path" — an edgeMover
 // owns its own nodes/<source>/edges/<label>.json, never a nodeMover.
 
 package Wiring

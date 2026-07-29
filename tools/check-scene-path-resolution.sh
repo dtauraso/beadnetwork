@@ -4,7 +4,7 @@ set -euo pipefail
 # check-scene-path-resolution.sh — guard: PER-OWNER path construction.
 #
 # The monolithic-vs-tree topologyPath form this guard originally defended against is gone
-# (docs/planning/decentralized-persistence.md step 1: topologyPath is always the tree root
+# (.claude/rules/persistence-ownership.md "A topology is a directory tree, always": topologyPath is always the tree root
 # directory now). The invariant this guard enforces has moved on to the CURRENT plan
 # (same doc, "The model" / step 3-5): a path is constructed only by the goroutine that
 # owns the file it names.

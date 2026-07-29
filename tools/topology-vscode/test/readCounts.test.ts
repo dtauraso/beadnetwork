@@ -1,5 +1,5 @@
 // readCounts.test.ts — replaces countNodes.test.ts/countEdges (untested) now that step 6
-// of docs/planning/decentralized-persistence.md deleted the tree-walking countNodes/
+// of .claude/rules/persistence-ownership.md deleted the tree-walking countNodes/
 // countEdges in favor of a single stored `<topologyPath>/counts.json` read (see
 // runCommand.ts's readCounts doc comment). Unlike the old functions, which returned 0 on
 // any read/parse failure, readCounts THROWS — there is no correct fallback count to guess.

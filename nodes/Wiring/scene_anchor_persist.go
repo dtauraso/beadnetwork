@@ -17,7 +17,7 @@ package Wiring
 // (unarmed) disables it.
 //
 // Path construction (nodePortFilePath) lives in node_mover.go, not here — a port's
-// path belongs to its owning node (docs/planning/decentralized-persistence.md
+// path belongs to its owning node (.claude/rules/persistence-ownership.md
 // "The model").
 
 import (

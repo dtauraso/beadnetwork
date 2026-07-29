@@ -6,7 +6,7 @@
 // overlaysPersister.schedule() below — both triggers (the bare `save` command and the
 // on-change write) are dispatched from its own message loop. overlays.json is scene-level
 // and genuinely singular, so it stays one file with one named owning goroutine
-// (docs/planning/decentralized-persistence.md "The model") rather than a per-entity split.
+// (.claude/rules/persistence-ownership.md "The owner writes, and owns the path") rather than a per-entity split.
 //
 // Go owns the overlay flags (overlay_gen.go's overlayState). Persistence has two triggers:
 // the bare `save` command (stdin_reader.go) and — like camera — an ON-CHANGE synchronous

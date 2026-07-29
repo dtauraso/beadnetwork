@@ -5,7 +5,7 @@ package Wiring
 //
 // Path construction (positionFilePath, localPolarsFilePath, cascadeEdgesFilePath) lives
 // in node_mover.go, not here: those are node paths, and node_mover.go is the node's
-// owning file (docs/planning/decentralized-persistence.md "The model").
+// owning file (.claude/rules/persistence-ownership.md "The owner writes, and owns the path").
 //
 // A node's PERSISTED position is its EXACT scene-polar (r,θ,φ) about the scene center —
 // lossless, so a dragged node reloads at exactly where it was dropped. The quantized
@@ -23,7 +23,7 @@ package Wiring
 // immediately, inline on the caller's own goroutine (see scene_persist.go's header comment
 // for why the prior debounce was removed) — logs on error, never blocks the gesture. Only
 // nm.persistRoot == "" (never armed via EnableEditPersist) is a no-op. The owning goroutine
-// IS the node's own nodeMover (docs/planning/decentralized-persistence.md "The model") —
+// IS the node's own nodeMover (.claude/rules/persistence-ownership.md "The owner writes, and owns the path") —
 // every call site above runs on nm's own goroutine, never routed through MoveDispatch.
 //
 // LEGACY FALLBACK: an existing pre-split topology has these fields inline in meta.json

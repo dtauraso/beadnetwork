@@ -10,7 +10,7 @@
 // sceneSpherePersister.flushNow() below — both triggers (LoadSceneSphere's content-fit,
 // which runs before any other goroutine launches, and the `save` command's handleSaveMsg)
 // run on it. sphere.json is scene-level and genuinely singular, so it stays one file with
-// one named owning goroutine (docs/planning/decentralized-persistence.md "The model")
+// one named owning goroutine (.claude/rules/persistence-ownership.md "The owner writes, and owns the path")
 // rather than a per-entity split.
 //
 // The Center is the only PERSISTED, AUTHORITATIVE cartesian value — the world anchor every
