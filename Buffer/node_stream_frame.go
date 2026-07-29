@@ -47,7 +47,8 @@ import (
 //	           between the two nodes' CENTERS (Node block), never a bead edge — no
 //	           edge-row travels here.
 //	ChainBead  chainBeadCount × BufNodeStreamChainBeadStride bytes — this node's OWN
-//	           placeholder chain beads, NODE-LOCAL offsets ([OX,OY,OZ] f32), concatenated
+//	           placeholder chain beads: NODE-LOCAL offsets + the Lit animation flag
+//	           ([OX,OY,OZ] f32 + [Lit] u8), concatenated
 //	           across all of this node's outgoing edges in that order. The chain is the
 //	           VISUAL of a traversal, never a picture of the node-to-node channels
 //	           (docs/beads-are-the-edge.md); nothing here identifies a channel or a message.
@@ -66,6 +67,7 @@ func BuildNodeStreamFrame(
 	portIsInput, portHovered []uint8,
 	dstNodeRows []int32,
 	chainBeadOX, chainBeadOY, chainBeadOZ []float32,
+	chainBeadLit []uint8,
 	events []StreamEvent,
 ) []byte {
 	labelBytes := []byte(label)
@@ -105,7 +107,7 @@ func BuildNodeStreamFrame(
 	for _, s := range []struct {
 		name string
 		n    int
-	}{{"chainBeadOY", len(chainBeadOY)}, {"chainBeadOZ", len(chainBeadOZ)}} {
+	}{{"chainBeadOY", len(chainBeadOY)}, {"chainBeadOZ", len(chainBeadOZ)}, {"chainBeadLit", len(chainBeadLit)}} {
 		if s.n != chainBeadCount {
 			panic(fmt.Sprintf(
 				"BuildNodeStreamFrame: node row %d has %d chain-bead OX entries but %s has %d — the chain-bead slices are parallel, one entry per bead",
@@ -114,7 +116,7 @@ func BuildNodeStreamFrame(
 	}
 
 	size := BufNodeStreamFrameHeaderSize + BufNodeStride + len(labelBytes) + portCount*BufPortStride + len(portNameBytes) +
-		layoutLinkCount*BufNodeStreamLayoutLinkStride + chainBeadCount*BufNodeStreamChainBeadStride
+		layoutLinkCount*BufNodeStreamLayoutLinkStride + chainBeadCount*BufChainBeadStride
 	buf := make([]byte, size)
 	off := 0
 	binary.LittleEndian.PutUint32(buf[off:], tick)
@@ -156,10 +158,10 @@ func BuildNodeStreamFrame(
 	off += layoutLinkCount * BufNodeStreamLayoutLinkStride
 
 	for i := 0; i < chainBeadCount; i++ {
-		rowOff := off + i*BufNodeStreamChainBeadStride
-		SetChainBeadRow(buf[rowOff:rowOff+BufChainBeadStride], 0, chainBeadOX[i], chainBeadOY[i], chainBeadOZ[i])
+		rowOff := off + i*BufChainBeadStride
+		SetChainBeadRow(buf[rowOff:rowOff+BufChainBeadStride], 0, chainBeadOX[i], chainBeadOY[i], chainBeadOZ[i], chainBeadLit[i])
 	}
-	off += chainBeadCount * BufNodeStreamChainBeadStride
+	off += chainBeadCount * BufChainBeadStride
 
 	// INVARIANT: the walk that WRITES the frame ends exactly where the `size` formula that
 	// ALLOCATED it says it should. This is the runtime half of buffer-layout parity —

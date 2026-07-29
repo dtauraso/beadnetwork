@@ -117,16 +117,6 @@ export const BUF_NODE_STREAM_FRAME_HEADER_SIZE = 24;
 export const NODE_STREAM_LAYOUT_LINK_STRIDE = 4;
 
 /**
- * BufNodeStreamChainBeadStride is the byte width of ONE chain-bead row within a node
- * stream frame: [OX:f32][OY:f32][OZ:f32]. NODE-LOCAL offsets from this node's own center,
- * the same convention the Interior block uses (Buffer/layout.go's OX/OY/OZ: "the renderer
- * adds the node center to get the world position"). Node-local is what makes moving a node
- * constant time — the center changes and the whole chain rides along untouched; only a
- * NEIGHBOUR moving re-aims a chain. See docs/beads-are-the-edge.md.
- */
-export const NODE_STREAM_CHAIN_BEAD_STRIDE = 12;
-
-/**
  * BufInteriorStreamFrameHeaderSize is the byte width of the leading header on one node's
  * INTERIOR per-fd frame (Buffer.BuildInteriorStreamFrame), before the interior rows:
  * [tick:u32]. Followed by a FIXED BufInteriorSlotsPerNode × BufInteriorStride bytes (no

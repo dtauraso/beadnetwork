@@ -13,6 +13,7 @@
 import {
   BEAD_STRIDE,
   NODE_STRIDE,
+  CHAIN_BEAD_STRIDE,
   INTERIOR_STRIDE,
   INTERIOR_SLOTS_PER_NODE,
   EDGE_STRIDE,
@@ -28,7 +29,7 @@ import {
   readEdgeEdgeLabelOff,
   readEdgeEdgeLabelLen,
 } from "../../schema/buffer-layout";
-import { BUF_VIEW_FRAME_HEADER_SIZE, BUF_EDGE_STREAM_FRAME_HEADER_SIZE, BUF_NODE_STREAM_FRAME_HEADER_SIZE, BUF_INTERIOR_STREAM_FRAME_HEADER_SIZE, NODE_STREAM_LAYOUT_LINK_STRIDE, NODE_STREAM_CHAIN_BEAD_STRIDE } from "../../schema/frame-tags";
+import { BUF_VIEW_FRAME_HEADER_SIZE, BUF_EDGE_STREAM_FRAME_HEADER_SIZE, BUF_NODE_STREAM_FRAME_HEADER_SIZE, BUF_INTERIOR_STREAM_FRAME_HEADER_SIZE, NODE_STREAM_LAYOUT_LINK_STRIDE } from "../../schema/frame-tags";
 // Generated (part of BUF_LAYOUT_FINGERPRINT) — re-exported here so existing consumers
 // (buffer-scene.tsx, InteriorBeadInstances.tsx, buffer-log.ts) keep importing it from the
 // decode module rather than reaching into schema/buffer-layout directly.
@@ -315,7 +316,7 @@ export interface DecodedNodeStreamFrame {
    *  node-to-node channels are the real connection and are never drawn. */
   chainBeadCount: number;
   /** DataView over this node's own ChainBead rows; byteLength = chainBeadCount ×
-   *  NODE_STREAM_CHAIN_BEAD_STRIDE. Offsets are NODE-LOCAL — add this node's own center to
+   *  CHAIN_BEAD_STRIDE. Offsets are NODE-LOCAL — add this node's own center to
    *  get a world position, the same convention as the Interior block. Go owns the offsets. */
   chainBeadView: DataView;
   /** This node's own trailing EVENTS section (.probe log only; see decodeTrailingEvents). */
@@ -324,8 +325,8 @@ export interface DecodedNodeStreamFrame {
   eventTextView: DataView;
 }
 
-// No bespoke chain-bead row reader here: NODE_STREAM_CHAIN_BEAD_STRIDE equals the ChainBead
-// block's own stride, so the GENERATED readChainBeadOX/OY/OZ read these rows directly. A
+// No bespoke chain-bead row reader here: a chain-bead row on a node stream is byte-identical
+// to a ChainBead BLOCK row, so the GENERATED readChainBeadOX/OY/OZ read these rows directly. A
 // hand-rolled reader would be a second decoder for the same bytes, and would leave the
 // generated ones with no production consumer (check-no-dead-buffer-column.sh).
 
@@ -365,7 +366,7 @@ function decodeNodeStreamFrameUncached(buf: ArrayBuffer): DecodedNodeStreamFrame
 
   const portBytes = portCount * PORT_STRIDE;
   const layoutLinkBytes = layoutLinkCount * NODE_STREAM_LAYOUT_LINK_STRIDE;
-  const chainBeadBytes = chainBeadCount * NODE_STREAM_CHAIN_BEAD_STRIDE;
+  const chainBeadBytes = chainBeadCount * CHAIN_BEAD_STRIDE;
   const expectedLen = BUF_NODE_STREAM_FRAME_HEADER_SIZE + NODE_STRIDE + labelLen + portBytes + portNameBytesCount + layoutLinkBytes + chainBeadBytes;
   if (buf.byteLength < expectedLen) return null;
 

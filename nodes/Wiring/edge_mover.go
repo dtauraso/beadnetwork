@@ -388,10 +388,11 @@ func (m *edgeMover) run(ctx context.Context) {
 			}
 		}
 		if m.dest != nil {
-			m.dest.DriveOneCycle(ctx, m.clk.Tick())
-			// Beads on this wire may have moved even with no geometry change this
-			// cycle — write this edge's dedicated stream frame every cycle (no-op
-			// when streamOut is nil, the fallback path).
+			// The wire is NOT driven here any more: its DriveOneCycle now runs on the
+			// SOURCE NODE's own goroutine (nodeMover.run), which is what "the wire
+			// goroutine is removed" means concretely — docs/beads-are-the-edge.md step 3.
+			// This loop still writes the edge's own stream frame each cycle, because bead
+			// positions may have moved under the node's drive.
 			m.writeStreamFrame(m.clk.Tick(), nil)
 		}
 		if err := m.clk.SleepCycle(ctx); err != nil {

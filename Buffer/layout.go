@@ -191,6 +191,14 @@ type bufLayoutChainBead struct {
 	OX float32 `buf:"f32"` // node-local offset x from this node's center
 	OY float32 `buf:"f32"` // node-local offset y
 	OZ float32 `buf:"f32"` // node-local offset z
+	// Lit is the ANIMATION: 1 marks the bead a traversal has currently reached on this
+	// chain, 0 every other bead. This replaces a bead MOVING along a wire — the chain is
+	// fixed and the lighting is what advances (docs/beads-are-the-edge.md).
+	//
+	// Go owns it: the source node drives its own outgoing wires and reads their in-flight
+	// fractional progress t on its own goroutine, then lights index = t × count. The
+	// renderer only colours what this column says.
+	Lit uint8 `buf:"u8"` // 1 = a traversal has reached this bead
 }
 
 // bufLayoutInterior defines one row of the interior-bead column block.

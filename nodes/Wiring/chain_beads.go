@@ -57,11 +57,22 @@ const chainBeadSpacing = 12.0
 //
 // A target with no known center, or one sitting on top of this node (zero-length offset, no
 // defined direction), contributes NO beads rather than beads at a made-up direction.
-func (m *nodeMover) chainBeads() (ox, oy, oz []float32) {
+//
+// The returned `lit` slice is parallel to the offsets: 1 on the bead each in-flight
+// traversal has reached, 0 elsewhere. A chain with nothing traversing it is fully populated
+// and entirely unlit — that resting state is normal, not an absence of data.
+func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8) {
 	if len(m.outTargets) == 0 {
-		return nil, nil, nil
+		return nil, nil, nil, nil
 	}
 	self := nodeWorldPos(m.geom)
+	// Read the clock only when there is a wire to ask about — m.clk is nil in tests that
+	// build a bare nodeMover directly (the same convention resolveDest/commitLocal state),
+	// and such a mover has no outWires either, so geometry stays testable without a clock.
+	var tick int64
+	if len(m.outWires) > 0 {
+		tick = m.clk.Tick()
+	}
 	for _, to := range m.outTargets {
 		target, ok := m.partnerCenters[to]
 		if !ok {
@@ -75,6 +86,24 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32) {
 			continue
 		}
 		dir := offset.Normalize()
+		// Which bead this edge's traversals have reached. Read from THIS node's own
+		// outgoing wire for this target, on this node's own goroutine (it is the goroutine
+		// that drives that wire — see nodeMover.outWires), so LiveBeadFractions' single-
+		// goroutine contract holds and no other goroutine's state is touched.
+		//
+		// t is the only thing the animation needs: the chain is fixed, so "where has this
+		// traversal got to" is one number. index = t × count is that number quantised onto
+		// the beads that already exist — arithmetic on an index, not a re-derived position
+		// (memory/feedback_abc_times_constant_not_rederive.md).
+		litIdx := map[int]bool{}
+		for i, target := range m.outWireTargets {
+			if target != to || m.outWires[i] == nil {
+				continue
+			}
+			for _, t := range m.outWires[i].LiveBeadFractions(tick) {
+				litIdx[int(t*float64(int(length/chainBeadSpacing)))] = true
+			}
+		}
 		// count = len/spacing, the length-proportional count the constant-spacing argument
 		// above depends on. Beads sit at index × spacing OUTWARD FROM THIS NODE, starting at
 		// index 1 — index 0 would be this node's own center.
@@ -84,7 +113,12 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32) {
 			ox = append(ox, float32(p.X))
 			oy = append(oy, float32(p.Y))
 			oz = append(oz, float32(p.Z))
+			var l uint8
+			if litIdx[i] {
+				l = 1
+			}
+			lit = append(lit, l)
 		}
 	}
-	return ox, oy, oz
+	return ox, oy, oz, lit
 }

@@ -34,7 +34,7 @@ import {
   PORT_COL_PORT_NAME_OFF, PORT_COL_PORT_NAME_LEN,
   LAYOUT_LINK_STRIDE, LAYOUT_LINK_COL_SRC_NODE_ROW, LAYOUT_LINK_COL_DST_NODE_ROW,
   readNodeCX, readNodeCY, readNodeCZ,
-  readChainBeadOX, readChainBeadOY, readChainBeadOZ,
+  readChainBeadOX, readChainBeadOY, readChainBeadOZ, readChainBeadLit,
 } from "../../schema/buffer-layout";
 
 const STR_ENCODER = new TextEncoder();
@@ -262,6 +262,11 @@ export interface ChainBeadsAgg {
   positions: Float32Array;
   /** Number of beads (positions.length / 3). */
   count: number;
+  /** Per-bead Lit flag, parallel to positions: 1 where a traversal has currently reached.
+   *  Go decides it (the source node reads its own wires' in-flight fraction); this layer
+   *  only colours what the column says. All-zero is the normal resting state of a chain
+   *  with nothing traversing it. */
+  lit: Uint8Array;
 }
 
 let lastChainVersion = -1;
@@ -293,7 +298,9 @@ export function getChainBeads(): ChainBeadsAgg {
     total += decoded.chainBeadCount;
   }
   const positions = new Float32Array(total * 3);
+  const lit = new Uint8Array(total);
   let w = 0;
+  let b = 0;
   for (const decoded of decodedByRow) {
     // This node's own streamed center — the offsets are relative to it (Interior-block
     // convention). One add per bead; no interpolation and no layout decision here.
@@ -304,9 +311,10 @@ export function getChainBeads(): ChainBeadsAgg {
       positions[w++] = cx + readChainBeadOX(decoded.chainBeadView, i);
       positions[w++] = cy + readChainBeadOY(decoded.chainBeadView, i);
       positions[w++] = cz + readChainBeadOZ(decoded.chainBeadView, i);
+      lit[b++] = readChainBeadLit(decoded.chainBeadView, i);
     }
   }
   lastChainVersion = nv;
-  lastChainAgg = { positions, count: total };
+  lastChainAgg = { positions, count: total, lit };
   return lastChainAgg;
 }

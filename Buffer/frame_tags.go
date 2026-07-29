@@ -113,15 +113,13 @@ const BufNodeStreamFrameHeaderSize = 24
 //frametag:ts=NODE_STREAM_LAYOUT_LINK_STRIDE
 const BufNodeStreamLayoutLinkStride = 4
 
-// BufNodeStreamChainBeadStride is the byte width of ONE chain-bead row within a node
-// stream frame: [OX:f32][OY:f32][OZ:f32]. NODE-LOCAL offsets from this node's own center,
-// the same convention the Interior block uses (Buffer/layout.go's OX/OY/OZ: "the renderer
-// adds the node center to get the world position"). Node-local is what makes moving a node
-// constant time — the center changes and the whole chain rides along untouched; only a
-// NEIGHBOUR moving re-aims a chain. See docs/beads-are-the-edge.md.
-//
-//frametag:ts=NODE_STREAM_CHAIN_BEAD_STRIDE
-const BufNodeStreamChainBeadStride = 12
+// NOTE: there is deliberately NO BufNodeStreamChainBeadStride here. A chain-bead row on a
+// node stream is byte-identical to a ChainBead BLOCK row, so BufChainBeadStride (generated
+// from Buffer/layout.go, and CHAIN_BEAD_STRIDE on the TS side) is the single source for both.
+// A second copy existed briefly and immediately went stale when the Lit column was added:
+// the packer allocated 12 bytes per bead and wrote 13, panicking on a slice bound. The
+// LayoutLink stride above is a genuinely DIFFERENT width from its block (no SrcNodeRow on a
+// per-node stream), which is why that one has to exist and this one must not.
 
 // BufInteriorStreamFrameHeaderSize is the byte width of the leading header on one node's
 // INTERIOR per-fd frame (Buffer.BuildInteriorStreamFrame), before the interior rows:

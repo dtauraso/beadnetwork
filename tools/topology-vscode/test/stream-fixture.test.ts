@@ -49,6 +49,7 @@ import {
   readChainBeadOX,
   readChainBeadOY,
   readChainBeadOZ,
+  readChainBeadLit,
   readPortNodeRow, readPortDX, readPortDY, readPortDZ, readPortPX, readPortPY, readPortPZ,
   readPortIsInput, readPortHovered, readPortPortNameLen, readPortPortNameOff,
   readEdgeSrcPortRow, readEdgeDstPortRow, readEdgeSelected,
@@ -74,7 +75,7 @@ interface NodeFrameFixture {
   gotForwardMsg: number; forwardDeltaA: number; forwardDeltaB: number; forwardDeltaC: number;
   forwardFromRow: number;
   cascadeRelay: number;
-  chainBeads: { ox: number; oy: number; oz: number }[];
+  chainBeads: { ox: number; oy: number; oz: number; lit: number }[];
   label: string;
   ports: PortFixture[];
   layoutLinks: LayoutLinkFixture[];
@@ -199,6 +200,7 @@ describe("stream fixture cross-language decode", () => {
       expectClose(readChainBeadOX(decoded.chainBeadView, i), cb.ox, `chainBead[${i}].ox`);
       expectClose(readChainBeadOY(decoded.chainBeadView, i), cb.oy, `chainBead[${i}].oy`);
       expectClose(readChainBeadOZ(decoded.chainBeadView, i), cb.oz, `chainBead[${i}].oz`);
+      expect(readChainBeadLit(decoded.chainBeadView, i), `chainBead[${i}].lit`).toBe(cb.lit);
     }
 
     for (let i = 0; i < want.ports.length; i++) {

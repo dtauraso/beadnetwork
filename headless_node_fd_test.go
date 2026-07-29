@@ -72,7 +72,7 @@ func TestHeadlessNodeFdDedicatedStream(t *testing.T) {
 		portNamesOff := portsOff + int(portCount)*B.BufPortStride
 		layoutLinksOff := portNamesOff + int(portNameBytesCount)
 		chainBeadsOff := layoutLinksOff + int(layoutLinkCount)*B.BufNodeStreamLayoutLinkStride
-		eventsOff := chainBeadsOff + int(chainBeadCount)*B.BufNodeStreamChainBeadStride
+		eventsOff := chainBeadsOff + int(chainBeadCount)*B.BufChainBeadStride
 		if eventsOff+4 > len(frame) {
 			t.Fatalf("node row %d: frame too short (%d bytes) to hold the trailing EVENTS section count", row, len(frame))
 		}
