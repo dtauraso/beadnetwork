@@ -319,7 +319,8 @@ const maxInflightBeads = wireChanBufferSize
 // catch), and backpressure would couple this wire's pacing to its owner's frame
 // rate. Reaching this bound is a code bug, never ordinary traffic, the same
 // "can only break via a code bug" shape as wire.Register's and build.go's
-// panics (grep panic( in this package/nodes/Wiring for the convention).
+// panics. The convention is stated in MODEL.md "Assertions" and enforced by
+// tools/check-panic-message.sh.
 func (pw *PacedWire) appendPending(ev pendingWireEvent) {
 	pw.pending = append(pw.pending, ev)
 	if len(pw.pending) > maxPendingEvents {
