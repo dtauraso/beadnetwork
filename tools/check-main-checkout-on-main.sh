@@ -46,7 +46,11 @@ if [ ! -d "$MAIN_ROOT" ]; then
   exit 0
 fi
 
-BRANCH="$(git -C "$MAIN_ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || echo '?')"
+# GIT_DIR/GIT_WORK_TREE must be UNSET for this query. Git exports them to every hook, and
+# they take precedence over `git -C <path>` — so inside .githooks/pre-push this returned the
+# pushing WORKTREE's branch instead of the main checkout's, and the guard failed a push from
+# any task worktree while wrongly naming the main checkout as the offender.
+BRANCH="$(env -u GIT_DIR -u GIT_WORK_TREE git -C "$MAIN_ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || echo '?')"
 
 if [ "$BRANCH" = "main" ]; then
   exit 0
