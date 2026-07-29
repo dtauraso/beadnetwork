@@ -168,33 +168,45 @@ belong in the **same commit** as the behaviour, not a follow-up:
   geometry edit cannot make it swing.
 - **"Allowed vocabulary"** — "wire" as an active goroutine has to be re-defined or retired.
 
-## Staging
+## Staging — as BUILT
 
-The size argues against one commit, but the bridge invariant argues against a transition
-state. Proposed order, each verified with `bash scripts/stop-checks.sh`:
+Recorded after the fact, because two of the four planned steps were wrong about what was
+required. Each commit verified with `bash scripts/stop-checks.sh --cli`.
 
-1. **Node-local bead offsets, alongside the existing wire.** Add the node-owned sequence and
-   stream it on the node's own frame, with the wire goroutine still running and still
-   authoritative. Nothing renders from it yet. This proves the offsets and the constant-time
-   move in isolation, and is revertible on its own.
-2. **Render the chain; KEEP the moving bead.** (Revised while building — the original
-   wording said "stop rendering the moving bead", which is not possible at this stage.)
-   Lighting the chain requires knowing traversal progress, and that lives in PacedWire and
-   reaches the editor only on the EDGE stream. A node cannot read it without a
-   cross-goroutine read, and letting TS light the nearest chain bead would make the render
-   layer decide which bead a traversal has reached — the domain state the drift rule forbids
-   it to hold. So lighting waits for step 3, when the node owns timing. What step 2 delivers
-   is the chain drawn as visible structure, all beads unlit, with the moving bead still
-   running: enough to judge spacing and whether a chain reads as an edge, with PacedWire
-   intact and one `git revert` away.
-3. **Move delivery timing into the source node; delete the wire goroutine**, the per-edge
-   streams, `Buffer/edge_stream_frame.go`, the Edge/Bead blocks that die with them, and
-   `TestHeadlessEdgeFdDedicatedStream`. Update MODEL.md in this commit.
-4. **Update `counts.json` / fd layout / `runCommand.ts` / headless harness** for the removed
-   edge fds — possibly unavoidable inside step 3 rather than after it.
+1. **Node-local chain-bead offsets, wire untouched.** `ChainBead` block, `chainBeads()`,
+   `outTargets`, packed on each node's own frame, decoded + aggregated TS-side. Nothing
+   rendered. DONE.
+2. **Draw the chain; KEEP the moving bead.** Planned as "stop rendering the moving bead",
+   which was impossible: lighting needs traversal progress, which lived in `PacedWire` and
+   reached the editor only on the EDGE stream. DONE with the moving bead still running.
+3. **The node drives its own wires and lights its own chain.** `edgeMover.run`'s
+   `DriveOneCycle` call moved to `nodeMover.run` — there was exactly ONE place a wire was
+   ever driven, so removing "the wire goroutine" was that call moving, not a rewrite.
+   Driving it there is what let the node read its own wires' in-flight `t`
+   (`LiveBeadFractions`) and light `index = t × count` with no cross-goroutine read.
+   `BeadInstances` left the scene. Then MODEL.md/CLAUDE.md, then the Bead block. DONE.
+4. ~~Fd-layout fallout.~~ **Not needed, and the premise was wrong.** This plan claimed the
+   per-edge streams would lose their owner. They did not: only the wire's DRIVE moved, and
+   `edgeMover` is still a goroutine writing its own stream, so the one-goroutine-one-stream
+   invariant never broke. `counts.json`, `stream_fds.go`, `runCommand.ts` and the headless
+   spawn were untouched. `TestHeadlessEdgeFdDedicatedStream` was NOT deleted — its
+   per-edge-fd assertion is unchanged.
 
-Step 1 is the single concrete next step and the only one worth starting before the open
-questions above are answered.
+### What the plan got wrong, kept for the next reader
+
+- **"Delete `PacedWire`" was overreach.** The model said the wire GOROUTINE goes and its
+  ANIMATION LOGIC moves to the node. Both happened. `PacedWire` survives as what it should
+  be: a passive delay queue its source node steps. 781 lines were not deleted, and did not
+  need to be.
+- **The scariest-sounding consequence never materialised.** "Per-edge streams lose their
+  owner" drove the whole "step 3 is indivisible and very large" framing. It was false.
+- **A duplicated constant bit twice.** `hdrSize = 20` hardcoded in three headless tests, and
+  `BufNodeStreamChainBeadStride = 12` beside a 13-byte row. Both were fixed by DELETING the
+  duplicate in favour of the generated constant, not by updating the copy.
+- **The real hazard was a race, and the plan never mentioned it.** Moving the wire's drive to
+  the node silently invalidated `edgeMover`'s `LiveBeadRows` read. Deleting the undrawn bead
+  path removed it. Nothing in the staging above predicted this; it surfaced only from asking
+  "who owns this state now" while removing dead surface.
 
 ## The two representations are the design, not a smell
 
