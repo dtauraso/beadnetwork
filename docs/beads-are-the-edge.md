@@ -1,19 +1,32 @@
 # Beads are the edge — plan
 
 The edge stops being a thing that owns geometry and timing. A node owns a **sequence of
-placeholder beads** toward each neighbour; the sequence *is* what an edge looks like. The
-wire goroutine is removed and its animation logic moves into the node. Traversal is no
-longer a bead moving along a wire — it is successive placeholder beads **lighting up** at
-their fixed percentages.
+placeholder beads** toward each neighbour. The wire goroutine is removed and its animation
+logic moves into the node. Traversal is no longer a bead moving along a wire — it is
+successive placeholder beads **lighting up** at their fixed percentages.
+
+**The chain is the animation, not the connection.** Two separate things, and conflating them
+is the drift this document has already made once:
+
+- **The channels** are the real connection: direct node-to-node, carrying delivery and the
+  bead add/drop messages that maintain the chain. They are not drawn.
+- **The bead chain** is the animation surface. It is what a value in transit LOOKS like. It
+  is NOT a picture of the channel, and NOT a picture of the messages travelling on it.
+
+So the bead count is not the count of anything on a channel, and an add/drop message is not
+"a bead appearing" in the visual sense — it is chain maintenance that happens to change how
+many placeholders exist. A chain sits there fully populated with nothing traversing it; the
+lighting is the only thing that moves.
 
 Model as stated (three parts, all from David):
 
 1. **Beads replace the edge.** `len(edge) × x%` placeholder beads, arranged so the sequence
    looks like an edge. The bead sequence is part of the node, so each node is "next to" its
    neighbours. Moving a node is constant time.
-2. **Nodes coordinate over the channels they already have.** Node-to-node messages say which
-   node makes another bead and which node adjusts to an x%-farther distance. There is no
-   edge entity mediating it.
+2. **Nodes are connected directly to each other by channels.** Node-to-node messages say
+   which node makes another bead and which node adjusts to an x%-farther distance. There is
+   no edge entity mediating it. These messages maintain the chain; they are not what the
+   chain draws.
 3. **The wire goroutine is removed.** Its animation logic is owned by the node.
 
 ## Why this is not the rejected chain model
