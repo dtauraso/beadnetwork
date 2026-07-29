@@ -11,12 +11,10 @@ package Wiring
 // command the webview used to send (a compute-fit seed): the viewpoint is PERSISTED STATE,
 // so Go loads it from the file.
 //
-// LEGACY FALLBACK: an existing pre-split topology has no camera.json, only the old
-// scene.json with a `cameraPolar` key — loadSceneViewpoint tries camera.json first and
-// falls back to reading that key out of scene.json, so an old topology's saved pose still
-// loads (and the next viewpoint change writes it forward into camera.json).
+// The legacy pre-split scene.json fallback was REMOVED (see scene_paths.go's header) — a
+// topology holding only that old sidecar now falls straight to defaultViewpoint below.
 //
-// If neither file yields a complete pose (a fresh topology), Go falls back to a fixed,
+// If camera.json yields no complete pose (a fresh topology), Go falls back to a fixed,
 // clearly-labelled DEFAULT viewpoint (defaultViewpoint) — a valid non-degenerate basis,
 // NOT a geometry fit. That keeps pan working before the first save without seeding from
 // the scene's node positions.
@@ -59,31 +57,15 @@ type scenePolarCamera struct {
 	Up    *[2]float64 `json:"up"`
 }
 
-// sceneFile is the subset of scene.json Go reads: the persisted polar camera.
-// Other scene fields (camera3d, guide-visibility flags) are ignored here.
-type sceneFile struct {
-	CameraPolar *scenePolarCamera `json:"cameraPolar"`
-}
-
-// loadSceneViewpoint reads the saved polar camera and converts it to the FSM viewpoint
-// tuple (pivot, r, pos, up). It tries camera.json first; when that is absent/malformed it
-// falls back to the legacy scene.json's `cameraPolar` key (a pre-split topology). ok is
-// false when NEITHER yields a complete pose — callers then use defaultViewpoint. The
-// mapping is 1:1 with the TS schema:
+// loadSceneViewpoint reads the saved polar camera from camera.json and converts it to the
+// FSM viewpoint tuple (pivot, r, pos, up). ok is false when camera.json yields no complete
+// pose — callers then use defaultViewpoint. The mapping is 1:1 with the TS schema:
 //
 //	pivot = (pivot[0], pivot[1], pivot[2])   r = r
 //	pos   = {Theta: pos[0], Phi: pos[1]}     up = {Theta: up[0], Phi: up[1]}
 func loadSceneViewpoint(topologyPath string) (pivot vec3, r float64, pos, up dir, ok bool) {
 	var cp scenePolarCamera
 	readJSONBestEffort(cameraFilePath(topologyPath), &cp)
-	if cp.Pivot == nil || cp.R == nil || cp.Pos == nil || cp.Up == nil {
-		// Legacy fallback: pre-split topology only has scene.json's cameraPolar key.
-		var sf sceneFile
-		readJSONBestEffort(sceneCameraPath(topologyPath), &sf)
-		if sf.CameraPolar != nil {
-			cp = *sf.CameraPolar
-		}
-	}
 	// Require every field (matches parsePolarCamera, which drops a partial object).
 	if cp.Pivot == nil || cp.R == nil || cp.Pos == nil || cp.Up == nil {
 		return vec3{}, 0, dir{}, dir{}, false

@@ -1,23 +1,12 @@
 package Wiring
 
 import (
-	"os"
-	"path/filepath"
 	"testing"
 )
 
 // TestSceneSphereRoundTrip: writeSceneSphere then loadSceneSphere returns the same sphere.
-// sphere.json has exactly one writer, so the legacy scene.json (a pre-split topology,
-// pre-seeded with an unrelated cameraPolar key) must be left completely untouched by it.
 func TestSceneSphereRoundTrip(t *testing.T) {
 	dir := t.TempDir()
-	scenePath := sceneCameraPath(dir) // legacy shared file
-	if err := os.MkdirAll(filepath.Dir(scenePath), 0o755); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(scenePath, []byte(`{"cameraPolar":{"r":42}}`), 0o600); err != nil {
-		t.Fatal(err)
-	}
 
 	want := sceneSphere{Center: vec3{X: 10, Y: -20, Z: 30}, Radius: 250}
 	if err := writeSceneSphere(sphereFilePath(dir), want); err != nil {
@@ -29,11 +18,6 @@ func TestSceneSphereRoundTrip(t *testing.T) {
 	}
 	if got != want {
 		t.Fatalf("round-trip: got %+v want %+v", got, want)
-	}
-	// The legacy scene.json is untouched — sphere.json is a different file with one writer.
-	raw, _ := os.ReadFile(scenePath)
-	if string(raw) != `{"cameraPolar":{"r":42}}` {
-		t.Fatalf("writeSceneSphere touched the legacy scene.json: %s", raw)
 	}
 }
 

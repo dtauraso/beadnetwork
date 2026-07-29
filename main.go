@@ -221,15 +221,15 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 	// carries only a numeric buffer row index) resolves back to its identity via
 	// md.LookupNodeRow/LookupEdgeRow/LookupPortRow with no separate resolver wiring.
 	// Initial camera viewpoint = FILE DATA: Go reads the saved camera from
-	// <topologyPath>/view/scene.json and installs it into the gesture-FSM viewpoint.
+	// <topologyPath>/view/camera.json and installs it into the gesture-FSM viewpoint.
 	W.SeedInitialViewpoint(topologyPath, md, tr)
-	// Restore persisted overlay visibility: seed md.ov from scene.json and emit each flag so
-	// the buffer streams the saved overlay state from the first frame. Seed BEFORE
+	// Restore persisted overlay visibility: seed md.ov from overlays.json and emit each flag
+	// so the buffer streams the saved overlay state from the first frame. Seed BEFORE
 	// EnableEditPersist so the seed's own emit does not write the loaded state back.
 	md.LoadOverlays(topologyPath, tr)
 	// Arm the WRITE side AFTER the seeds: from here, every gesture that changes the FSM
 	// viewpoint (orbit/zoom/pan/home) debounces a write of the current pose back to
-	// <topologyPath>/view/scene.json's cameraPolar, so navigate-then-reload round-trips.
+	// <topologyPath>/view/camera.json, so navigate-then-reload round-trips.
 	// Arming after the seed keeps the seed's own emit from persisting the loaded/default pose.
 	md.EnableViewpointPersist(topologyPath)
 	// Arm disk persistence for the FSM-applied edits (node-drag position, ring-move

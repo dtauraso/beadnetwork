@@ -151,7 +151,7 @@ func TestPersistOverlaysRoundTrips(t *testing.T) {
 	md.ToggleLabelsGlobal(nil) // labelsGlobalVisible: true -> false
 	md.persist.overlays.schedule(md.ui.ov)
 
-	ov, found := loadSceneOverlays(overlaysFilePath(root), sceneCameraPath(root))
+	ov, found := loadSceneOverlays(overlaysFilePath(root))
 	if !found {
 		t.Fatalf("loadSceneOverlays found no overlay keys after flush")
 	}
@@ -196,7 +196,7 @@ func TestOverlaysPersistPreservesCamera(t *testing.T) {
 		t.Fatalf("cameraPolar clobbered by overlay write")
 	}
 	// Overlay landed.
-	ov, found := loadSceneOverlays(overlaysFilePath(root), sceneCameraPath(root))
+	ov, found := loadSceneOverlays(overlaysFilePath(root))
 	if !found || ov.sceneToriVisible {
 		t.Fatalf("overlay not persisted alongside camera (found=%v ov=%+v)", found, ov)
 	}

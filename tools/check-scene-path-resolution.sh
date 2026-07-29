@@ -9,11 +9,14 @@ set -euo pipefail
 # (same doc, "The model" / step 3-5): a path is constructed only by the goroutine that
 # owns the file it names.
 #
-#   - view/*.json (camera, overlays, sphere, the legacy scene.json sidecar) — scene_paths.go
-#     only. Enforced the original way: no hand-rolled os.Stat+IsDir or filepath.Join("view",
-#     "scene.json") outside scene_paths.go (still real — scene_camera.go et al. must call
-#     the shared sceneJSONPath/sceneCameraPath/sceneViewFilePath resolvers, not reimplement
-#     them, so a future scene file split can't silently diverge again).
+#   - view/*.json (camera, overlays, sphere) — scene_paths.go only. Enforced the original
+#     way: no hand-rolled os.Stat+IsDir or filepath.Join("view", ...) outside scene_paths.go
+#     (still real — scene_camera.go et al. must call the shared cameraFilePath/
+#     overlaysFilePath/sphereFilePath/sceneViewFilePath resolvers, not reimplement them, so
+#     a future scene file split can't silently diverge again). The pre-split shared
+#     view/scene.json sidecar and its sceneJSONPath/sceneCameraPath resolvers were REMOVED —
+#     no such file exists in this repo's tree and nothing wrote it once the
+#     one-file-per-writer split landed.
 #   - nodes/<id>/... (position, local-polars, cascade-edges, inputs/outputs port files) —
 #     node_mover.go only (plus loader_tree.go, which READS these paths to build the graph
 #     at load time — an explicitly out-of-scope concern, see the plan's "Explicitly out of
@@ -90,7 +93,7 @@ done < <(find "$WIRING_DIR" -maxdepth 1 -name "*.go" -not -path "*/node_modules/
 # as the original per-pass loop did.
 all_hits=""
 if [[ ${#eligible_files[@]} -gt 0 ]]; then
-  all_hits="$(grep -nE 'IsDir\(\)|sceneTreeRoot\(|sceneJSONPath\(|sceneCameraPath\(|filepath\.Join\(' \
+  all_hits="$(grep -nE 'IsDir\(\)|cameraFilePath\(|overlaysFilePath\(|sphereFilePath\(|sceneViewFilePath\(|filepath\.Join\(' \
     "${eligible_files[@]}" 2>/dev/null || true)"
 fi
 
@@ -105,44 +108,44 @@ done <<< "$all_hits"
 
 if [[ $HITS -ne 0 ]]; then
   echo ""
-  echo "check-scene-path-resolution: $HITS hit(s) — resolve topologyPath via sceneJSONPath in scene_paths.go, not hand-rolled IsDir. Mark unrelated uses with '// path-resolution-ok:'"
+  echo "check-scene-path-resolution: $HITS hit(s) — resolve topologyPath via the scene_paths.go resolvers, not hand-rolled IsDir. Mark unrelated uses with '// path-resolution-ok:'"
   exit 1
 fi
 
 # POSITIVE ASSERTION #2 — the IsDir scan above only proves nobody hand-rolls os.Stat+IsDir.
 # It says nothing about whether the resolver functions themselves are actually CALLED
 # anywhere in the package outside their own definition file: a persister could resolve a
-# scene path with a hand-rolled filepath.Join("view", "scene.json") that never touches
-# os.Stat/IsDir at all and this guard would still report clean. Require at least one real
-# call site of sceneTreeRoot(/sceneJSONPath(/sceneCameraPath( outside scene_paths.go and
-# outside tests, proving the resolver is load-bearing, not dead code the IsDir scan
-# vacuously credits.
+# scene path with a hand-rolled filepath.Join("view", ...) that never touches os.Stat/IsDir
+# at all and this guard would still report clean. Require at least one real call site of
+# cameraFilePath(/overlaysFilePath(/sphereFilePath(/sceneViewFilePath( outside
+# scene_paths.go and outside tests, proving the resolvers are load-bearing, not dead code
+# the IsDir scan vacuously credits.
 CALL_SITES=0
 while IFS= read -r hit; do
   [[ -z "$hit" ]] && continue
   content="${hit#*:*:}"
   case "$content" in
-    *sceneTreeRoot\(*|*sceneJSONPath\(*|*sceneCameraPath\(*) CALL_SITES=$((CALL_SITES + 1)) ;;
+    *cameraFilePath\(*|*overlaysFilePath\(*|*sphereFilePath\(*|*sceneViewFilePath\(*) CALL_SITES=$((CALL_SITES + 1)) ;;
   esac
 done <<< "$all_hits"
 
 if [[ "$CALL_SITES" -eq 0 ]]; then
-  echo "check-scene-path-resolution: MISCONFIGURED — zero call sites of sceneTreeRoot()/sceneJSONPath()/sceneCameraPath() found outside scene_paths.go." >&2
-  echo "  The resolver exists but nothing calls it; the IsDir-only scan above would pass vacuously." >&2
+  echo "check-scene-path-resolution: MISCONFIGURED — zero call sites of cameraFilePath()/overlaysFilePath()/sphereFilePath()/sceneViewFilePath() found outside scene_paths.go." >&2
+  echo "  The resolvers exist but nothing calls them; the IsDir-only scan above would pass vacuously." >&2
   exit 1
 fi
 
-# POSITIVE ASSERTION #3 — reject a persister that resolves scene.json by hand-rolling
-# filepath.Join with the literal path segments ("view", "scene.json") instead of calling
-# the shared resolver. This is the exact bug shape the resolver exists to make
-# unrepresentable, just spelled without IsDir: no os.Stat, no IsDir, straight Join — passes
-# the scan above clean while silently breaking the file-form topologyPath case.
+# POSITIVE ASSERTION #3 — reject a persister that resolves a view/*.json path by
+# hand-rolling filepath.Join with the literal "view" path segment instead of calling the
+# shared resolver. This is the exact bug shape the resolver exists to make unrepresentable,
+# just spelled without IsDir: no os.Stat, no IsDir, straight Join — passes the scan above
+# clean while silently breaking the file-form topologyPath case.
 JOIN_HITS=0
 while IFS= read -r hit; do
   [[ -z "$hit" ]] && continue
   file="${hit%%:*}"; rest="${hit#*:}"; lineno="${rest%%:*}"; content="${rest#*:}"
   [[ "$content" == *"filepath.Join("* ]] || continue
-  if [[ "$content" == *'"view"'* && "$content" == *'"scene.json"'* ]]; then
+  if [[ "$content" == *'"view"'* ]]; then
     printf 'hand-rolled-join: %s: %s:%s\n' "$file" "$lineno" "$content"
     JOIN_HITS=$((JOIN_HITS + 1))
   fi
@@ -150,7 +153,7 @@ done <<< "$all_hits"
 
 if [[ "$JOIN_HITS" -ne 0 ]]; then
   echo ""
-  echo "check-scene-path-resolution: $JOIN_HITS hand-rolled filepath.Join(\"view\", \"scene.json\") hit(s) outside scene_paths.go — call sceneJSONPath/sceneCameraPath instead."
+  echo "check-scene-path-resolution: $JOIN_HITS hand-rolled filepath.Join(\"view\", ...) hit(s) outside scene_paths.go — call the shared resolver in scene_paths.go instead."
   exit 1
 fi
 

@@ -9,11 +9,17 @@ import (
 )
 
 // scene_camera_persist_test.go — the WRITE side of camera-viewpoint-as-file-data. These
-// pin: a full FSM→file→loadSceneViewpoint round-trip, the legacy-scene.json fallback (a
-// pre-split topology still loads, and Go's write lands in the NEW camera.json without
-// touching the legacy file), debounce coalescing of a rapid gesture burst, and that
-// camera.json and overlays.json — now separate files, one writer each — never clobber one
-// another.
+// pin: a full FSM→file→loadSceneViewpoint round-trip, debounce coalescing of a rapid
+// gesture burst, and that camera.json and overlays.json — separate files, one writer each
+// — never clobber one another.
+//
+// [allow-test-weakening] TestPersistLoadsLegacySceneJSONThenWritesNewFile was DELETED: it
+// pinned the pre-split view/scene.json fallback (loadSceneViewpoint reading a shared
+// scene.json's cameraPolar key when camera.json is absent), a capability removed along with
+// sceneJSONPath/sceneCameraPath — no such file exists anywhere in this repo's tree and
+// nothing ever wrote it once the one-file-per-writer split landed. Deleting the test is
+// honest: the behavior it asserted no longer exists. A topology directory holding only that
+// legacy sidecar now loses its camera pose on load and falls back to defaultViewpoint.
 
 // vpEqual asserts two FSM viewpoint tuples match within tolerance.
 func vpEqual(t *testing.T, gotPivot vec3, gotR float64, gotPos, gotUp dir, wantPivot vec3, wantR float64, wantPos, wantUp dir) {
@@ -52,59 +58,6 @@ func TestPersistViewpointRoundTrips(t *testing.T) {
 		t.Fatalf("loadSceneViewpoint: ok=false after persist")
 	}
 	vpEqual(t, pivot, r, pos, up, wantPivot, wantR, wantPos, wantUp)
-}
-
-// TestPersistLoadsLegacySceneJSONThenWritesNewFile asserts the legacy-format fallback: a
-// pre-split topology has ONLY the old shared view/scene.json (with a cameraPolar key, plus
-// unrelated fields belonging to the other legacy writers) and no view/camera.json yet.
-// loadSceneViewpoint must still load the saved pose from scene.json. Once Go persists a NEW
-// viewpoint, the write must land in camera.json — the legacy scene.json (and its unrelated
-// fields) must be left completely untouched, because camera.json has exactly one writer and
-// no reason to ever open scene.json.
-func TestPersistLoadsLegacySceneJSONThenWritesNewFile(t *testing.T) {
-	td := t.TempDir()
-	viewDir := filepath.Join(td, "view")
-	if err := os.MkdirAll(viewDir, 0o755); err != nil {
-		t.Fatalf("mkdir view: %v", err)
-	}
-	scenePath := filepath.Join(viewDir, "scene.json")
-	orig := `{
-	  "camera3d": {"position": [1,2,3], "quaternion": [0,0,0,1]},
-	  "labelsGlobalHidden": true,
-	  "sceneToriVisible": false,
-	  "cameraPolar": {"pivot": [0,0,0], "r": 5, "pos": [0,0], "up": [0,0]}
-	}`
-	if err := os.WriteFile(scenePath, []byte(orig), 0o644); err != nil {
-		t.Fatalf("write scene.json: %v", err)
-	}
-
-	// Legacy load: the pre-split pose comes back via the fallback (no camera.json yet).
-	pivot, r, pos, up, ok := loadSceneViewpoint(td)
-	if !ok {
-		t.Fatalf("loadSceneViewpoint: ok=false reading legacy scene.json")
-	}
-	vpEqual(t, pivot, r, pos, up, vec3{}, 5, dir{}, dir{})
-
-	md := &MoveDispatch{}
-	md.EnableViewpointPersist(td)
-	md.SetViewpoint(vec3{X: 7, Y: 8, Z: 9}, 123, dir{Theta: 1, Phi: 2}, dir{Theta: 0.1, Phi: 0.2})
-	md.EmitViewpoint(nil)
-
-	// The legacy scene.json is byte-for-byte untouched — camera.json is a DIFFERENT file.
-	raw, err := os.ReadFile(scenePath)
-	if err != nil {
-		t.Fatalf("read scene.json: %v", err)
-	}
-	if string(raw) != orig {
-		t.Fatalf("legacy scene.json was modified by the camera write:\n got:  %s\n want: %s", raw, orig)
-	}
-
-	// camera.json now carries the new pose (preferred over the legacy fallback).
-	pivot, r, pos, up, ok = loadSceneViewpoint(td)
-	if !ok {
-		t.Fatalf("loadSceneViewpoint: ok=false")
-	}
-	vpEqual(t, pivot, r, pos, up, vec3{X: 7, Y: 8, Z: 9}, 123, dir{Theta: 1, Phi: 2}, dir{Theta: 0.1, Phi: 0.2})
 }
 
 // TestPersistWriteBurstLandsFinalValue schedules many rapid viewpoint changes (a drag

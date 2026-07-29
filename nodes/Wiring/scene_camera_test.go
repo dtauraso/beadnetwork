@@ -8,20 +8,23 @@ import (
 )
 
 // scene_camera_test.go — the initial camera viewpoint is FILE DATA loaded by Go from
-// view/scene.json (SeedInitialViewpoint), not a computed seed. These tests pin the schema
+// view/camera.json (SeedInitialViewpoint), not a computed seed. These tests pin the schema
 // match with TS's persisted cameraPolar, the non-degenerate default fallback, and that a
 // pan on the loaded pose moves the pivot within a valid (non-collapsed) screen basis.
 
-// writeScene writes a scene.json under <dir>/view/ and returns dir (a topology-tree path).
-func writeSceneTree(t *testing.T, body string) string {
+// writeCameraFile writes camera.json under <dir>/view/ and returns dir (a topology-tree
+// path). body is the unwrapped cameraPolar shape ({"pivot":...,"r":...,"pos":...,"up":...})
+// — camera.json holds exactly that shape, not a "cameraPolar"-keyed wrapper (scene_paths.go,
+// scene_camera_persist.go).
+func writeCameraFile(t *testing.T, body string) string {
 	t.Helper()
 	dir := t.TempDir()
 	viewDir := filepath.Join(dir, "view")
 	if err := os.MkdirAll(viewDir, 0o755); err != nil {
 		t.Fatalf("mkdir view: %v", err)
 	}
-	if err := os.WriteFile(filepath.Join(viewDir, "scene.json"), []byte(body), 0o644); err != nil {
-		t.Fatalf("write scene.json: %v", err)
+	if err := os.WriteFile(filepath.Join(viewDir, "camera.json"), []byte(body), 0o644); err != nil {
+		t.Fatalf("write camera.json: %v", err)
 	}
 	return dir
 }
@@ -43,14 +46,11 @@ func basisNonDegenerate(t *testing.T, pos, up dir) {
 
 func TestLoadSceneViewpointMatchesCameraPolar(t *testing.T) {
 	// Exact TS cameraPolar shape (camera-store.ts PolarCamera / serializeSceneState).
-	dir := writeSceneTree(t, `{
-	  "cameraPolar": {
-	    "pivot": [10, 20, 30],
-	    "r": 250,
-	    "pos": [1.1, 2.2],
-	    "up": [0.3, 0.4]
-	  },
-	  "labelsGlobalHidden": true
+	dir := writeCameraFile(t, `{
+	  "pivot": [10, 20, 30],
+	  "r": 250,
+	  "pos": [1.1, 2.2],
+	  "up": [0.3, 0.4]
 	}`)
 
 	pivot, r, pos, up, ok := loadSceneViewpoint(dir)
@@ -87,10 +87,10 @@ func TestLoadSceneViewpointMatchesCameraPolar(t *testing.T) {
 }
 
 func TestSeedInitialViewpointAbsentFileUsesDefault(t *testing.T) {
-	// A fresh topology dir with no view/scene.json → the fixed non-degenerate default.
+	// A fresh topology dir with no view/camera.json → the fixed non-degenerate default.
 	dir := t.TempDir()
 	if _, _, _, _, ok := loadSceneViewpoint(dir); ok {
-		t.Fatalf("loadSceneViewpoint: ok=true for an absent scene.json")
+		t.Fatalf("loadSceneViewpoint: ok=true for an absent camera.json")
 	}
 
 	md := &MoveDispatch{}
@@ -122,7 +122,7 @@ func TestSeedInitialViewpointAbsentFileUsesDefault(t *testing.T) {
 // A malformed / partial cameraPolar is rejected (falls back), matching parsePolarCamera
 // which drops a partial object rather than reading a degenerate pose.
 func TestLoadSceneViewpointRejectsPartial(t *testing.T) {
-	dir := writeSceneTree(t, `{ "cameraPolar": { "pivot": [1,2,3], "r": 100 } }`)
+	dir := writeCameraFile(t, `{ "pivot": [1,2,3], "r": 100 }`)
 	if _, _, _, _, ok := loadSceneViewpoint(dir); ok {
 		t.Fatalf("loadSceneViewpoint: ok=true for a partial cameraPolar (missing pos/up)")
 	}
