@@ -155,6 +155,17 @@ type bufLayoutNode struct {
 	// node FIRST this drag, -1 when none (reset state). Resolved via
 	// MoveDispatch.NodeRowFor at the forward-recipient's handler.
 	ForwardFromRow int32 `buf:"i32"` // forwarder's buffer node row, -1 = none
+	// CascadeRelay is Go-owned and STATIC (a pure function of this node's own kind, set
+	// once at construction like KindId — never drag-scoped): which branch of
+	// nodes/Wiring/node_mover.go's forwardDelta this node's kind takes when it picks up a
+	// delta triple. 0 = FLOOD (relay to every cascade neighbor except the sender),
+	// 1 = ROUTED (relay to a single target kind chosen by the SENDER's kind, or drop —
+	// Pulse and TimeStart), 2 = TERMINUS (never relays onward — TimeEnd, PulseLeft,
+	// PulseRight). Read by the editor's drag log (AbcDragLabel.tsx) to name the DRAGGED
+	// node's relay behavior beside its name. The classification lives in Go beside the
+	// rules it summarizes (cascadeRelayClass) precisely so TS does not re-derive it from
+	// KindId and drift when a rule changes.
+	CascadeRelay uint8 `buf:"u8"` // 0 = flood, 1 = routed, 2 = terminus
 }
 
 // bufLayoutInterior defines one row of the interior-bead column block.

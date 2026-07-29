@@ -36,6 +36,7 @@ import {
   readNodeForwardDeltaB,
   readNodeForwardDeltaC,
   readNodeForwardFromRow,
+  readNodeCascadeRelay,
 } from "../../schema/buffer-layout";
 import { nodeLabel } from "./buffer-decode";
 
@@ -140,6 +141,35 @@ function subscribeDraggedNodeName(fn: () => void): () => void {
  *  start/end, or a node-frame arrival while dragging). Returns "" when idle. */
 export function useDraggedNodeName(): string {
   return useSyncExternalStore(subscribeDraggedNodeName, readDraggedNodeName, readDraggedNodeName);
+}
+
+/** The dragged node's cascade relay behavior, as the word Go's Node.CascadeRelay column
+ *  encodes (0 = flood, 1 = routed, 2 = terminus — see nodes/Wiring/node_mover.go's
+ *  cascadeRelayClass, which is where the classification is DECIDED; this only names the
+ *  value it streams). "" when nothing is dragged, or when the streamed value is one this
+ *  build has no word for — an unnamed number is not rendered as if it were understood. */
+export function readDraggedNodeRelay(): string {
+  const row = readDragNodeRow();
+  if (row < 0) return "";
+  const decoded = getNodeFrame();
+  if (!decoded || row >= decoded.nodeCount) return "";
+  switch (readNodeCascadeRelay(decoded.nodeView, row)) {
+    case 0:
+      return "flood";
+    case 1:
+      return "routed";
+    case 2:
+      return "terminus";
+    default:
+      return "";
+  }
+}
+
+/** React hook: re-renders the caller when the dragged node's relay word changes. Same
+ *  two-stream subscription as useDraggedNodeName — the row comes from the Overlay block
+ *  (VIEW stream), the column from the Node block (node stream). */
+export function useDraggedNodeRelay(): string {
+  return useSyncExternalStore(subscribeDraggedNodeName, readDraggedNodeRelay, readDraggedNodeRelay);
 }
 
 /** One current-drag recipient: its display name, its OWN cumulative

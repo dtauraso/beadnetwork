@@ -79,6 +79,7 @@ type nodeFrameFixture struct {
 	ForwardDeltaB    int32               `json:"forwardDeltaB"`
 	ForwardDeltaC    int32               `json:"forwardDeltaC"`
 	ForwardFromRow   int32               `json:"forwardFromRow"`
+	CascadeRelay     uint8               `json:"cascadeRelay"`
 	Label            string              `json:"label"`
 	Ports            []portFixture       `json:"ports"`
 	LayoutLinks      []layoutLinkFixture `json:"layoutLinks"`
@@ -124,7 +125,7 @@ func buildNodeFrame() nodeFrameFixture {
 		VRX: 21.5, VRY: 22.25, VRZ: 23.125, FRX: 24.0625, FRY: 25.5, FRZ: 26.25,
 		Selected: 1, KindID: 3, Hovered: 1, LatchedSel: 0, GotDragMsg: 1,
 		DragDeltaA: -101, DragDeltaB: 102, DragDeltaC: -103, DragRequantCount: 9,
-		GotForwardMsg: 1, ForwardDeltaA: -201, ForwardDeltaB: 202, ForwardDeltaC: -203, ForwardFromRow: 17,
+		GotForwardMsg: 1, ForwardDeltaA: -201, ForwardDeltaB: 202, ForwardDeltaC: -203, ForwardFromRow: 17, CascadeRelay: 1,
 		Label: "widgetNode",
 		Ports: []portFixture{
 			{NodeRow: 7, DX: 1.5, DY: -2.25, DZ: 3.125, PX: 31.5, PY: -32.25, PZ: 33.125, IsInput: 1, Hovered: 0, NameText: "in"},
@@ -168,6 +169,7 @@ func buildNodeFrame() nodeFrameFixture {
 		f.DragDeltaA, f.DragDeltaB, f.DragDeltaC, f.DragRequantCount,
 		f.GotForwardMsg,
 		f.ForwardDeltaA, f.ForwardDeltaB, f.ForwardDeltaC, f.ForwardFromRow,
+		f.CascadeRelay,
 		f.Label,
 		portNames,
 		portDX, portDY, portDZ, portPX, portPY, portPZ,

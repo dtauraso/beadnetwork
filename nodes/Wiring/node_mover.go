@@ -354,7 +354,7 @@ type nodeMover struct {
 	// buildFrame packs this node's combined per-fd frame (node fields + ports + label)
 	// using Buffer's own row-writer columns (Buffer.BuildNodeStreamFrame), injected so
 	// this package needs no Buffer import.
-	buildFrame func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount int32, gotForwardMsg uint8, forwardDeltaA, forwardDeltaB, forwardDeltaC, forwardFromRow int32, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows []int32, events []wire.RowEvent) []byte
+	buildFrame func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount int32, gotForwardMsg uint8, forwardDeltaA, forwardDeltaB, forwardDeltaC, forwardFromRow int32, cascadeRelay uint8, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows []int32, events []wire.RowEvent) []byte
 }
 
 func newNodeMover(id string, geom nodeGeom, tr *T.Trace, clockSrc wire.Clock) *nodeMover {
@@ -632,6 +632,32 @@ func (m *nodeMover) handle(msg moveMsg) {
 // Every OTHER node kind (and a TimeStart relaying a delta from any other sender kind)
 // keeps the plain flood-to-all-cascade-neighbors-except-sender behavior — targetKind == ""
 // means no restriction.
+// cascadeRelayClass summarizes, for ONE kind, which branch of forwardDelta (and of the
+// moveMsgKindDeltaForward handler's kind stops) that kind takes when it picks up a delta
+// triple. It is the Buffer's Node.CascadeRelay column — the editor's drag log names the
+// DRAGGED node's relay behavior from it (AbcDragLabel.tsx).
+//
+//	terminus (2) — never relays onward: TimeEnd stops in the handler, PulseLeft and
+//	               PulseRight stop at the guard atop forwardDelta's body.
+//	routed   (1) — relays to a single target KIND chosen by the SENDER's kind, or drops:
+//	               Pulse (gate crossover) and TimeStart (Pulse<->Time).
+//	flood    (0) — every other kind: relay to every cascade neighbor except the sender.
+//
+// This is a pure function of the kind, so it is derived at emit rather than stored — the
+// three cases above are the same three the rules are written in, and keeping them in one
+// function next to those rules is what makes a rule change and this summary move together.
+// It is deliberately NOT derived TS-side from KindId: that would be a second copy of the
+// routing rules living where the rules are not.
+func cascadeRelayClass(kind string) uint8 {
+	switch kind {
+	case "TimeEnd", "PulseLeft", "PulseRight":
+		return 2
+	case "Pulse", "TimeStart":
+		return 1
+	}
+	return 0
+}
+
 func (m *nodeMover) forwardDelta(md *MoveDispatch, exceptID string, dA, dB, dC int32) {
 	// PulseLeft and PulseRight are cascade TERMINI: neither relays a delta triple onward,
 	// whether the triple came from a neighbor's forward (handle's moveMsgKindDeltaForward
@@ -870,7 +896,7 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 		verticalRingNormalX, verticalRingNormalY, verticalRingNormalZ,
 		flatRingNormalX, flatRingNormalY, flatRingNormalZ,
 		selected, kindID, hovered, latchedSel, gotDragMsg, dA, dB, dC, dReq,
-		gotFwd, fA, fB, fC, fFromRow,
+		gotFwd, fA, fB, fC, fFromRow, cascadeRelayClass(m.selfKind),
 		label, portNames, portDX, portDY, portDZ, portPX, portPY, portPZ, portIsInput, portHovered,
 		dstNodeRows, events)
 	var hdr [4]byte

@@ -87,6 +87,7 @@ func TestSetNodeRow(t *testing.T) {
 		1,          // gotForwardMsg
 		21, -43, 6, // forwardDeltaA, forwardDeltaB, forwardDeltaC
 		2, // forwardFromRow
+		1, // cascadeRelay (routed)
 	)
 
 	assertF32At(t, buf, BufNodeColCX, 1.0, "CX")
@@ -116,6 +117,7 @@ func TestSetNodeRow(t *testing.T) {
 	assertI32At(t, buf, BufNodeColForwardDeltaB, -43, "ForwardDeltaB")
 	assertI32At(t, buf, BufNodeColForwardDeltaC, 6, "ForwardDeltaC")
 	assertI32At(t, buf, BufNodeColForwardFromRow, 2, "ForwardFromRow")
+	assertU8At(t, buf, BufNodeColCascadeRelay, 1, "CascadeRelay")
 }
 
 func TestSetEdgeRow(t *testing.T) {
@@ -184,9 +186,9 @@ func TestBeadStrideIsPackedSize(t *testing.T) {
 }
 
 func TestNodeStrideIsPackedSize(t *testing.T) {
-	// Node block: 5×f32 + 6×f32 (vr/fr normals) + 1×u8 (selected) + 1×u8 (kindID) + 2×u32 (label off/len) + 1×u8 (hovered) + 1×u8 (latchedSel) + 1×u8 (gotDragMsg) + 3×i32 (dragDelta A/B/C) + 1×i32 (dragRequantCount) + 1×u8 (gotForwardMsg) + 4×i32 (forwardDelta A/B/C + forwardFromRow)
-	//           = (5+6)×4 + 1 + 1 + 8 + 1 + 1 + 1 + 12 + 4 + 1 + 16 = 90
-	want := 5*4 + 6*4 + 1*1 + 1*1 + 2*4 + 1*1 + 1*1 + 1*1 + 3*4 + 1*4 + 1*1 + 4*4
+	// Node block: 5×f32 + 6×f32 (vr/fr normals) + 1×u8 (selected) + 1×u8 (kindID) + 2×u32 (label off/len) + 1×u8 (hovered) + 1×u8 (latchedSel) + 1×u8 (gotDragMsg) + 3×i32 (dragDelta A/B/C) + 1×i32 (dragRequantCount) + 1×u8 (gotForwardMsg) + 4×i32 (forwardDelta A/B/C + forwardFromRow) + 1×u8 (cascadeRelay)
+	//           = (5+6)×4 + 1 + 1 + 8 + 1 + 1 + 1 + 12 + 4 + 1 + 16 + 1 = 91
+	want := 5*4 + 6*4 + 1*1 + 1*1 + 2*4 + 1*1 + 1*1 + 1*1 + 3*4 + 1*4 + 1*1 + 4*4 + 1*1
 	if BufNodeStride != want {
 		t.Errorf("BufNodeStride = %d, want %d (packed size)", BufNodeStride, want)
 	}

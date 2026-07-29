@@ -9,6 +9,7 @@ html, body { margin: 0; padding: 0; height: 100%; background: #fafafa; font-fami
 .rf-anim-overlay { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
 .abc-drag-label { position: fixed; bottom: 8px; right: 280px; padding: 4px 8px; background: #fff; border: 1px solid #ddd; border-radius: 6px; font-size: 11px; color: #555; z-index: 10; pointer-events: none; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; max-width: 260px; }
 .abc-drag-label-header { white-space: nowrap; }
+.abc-drag-label-relay { color: #888; }
 .abc-drag-label-row { white-space: nowrap; }
 .delta-forward-label { position: fixed; bottom: 8px; right: 8px; padding: 4px 8px; background: #fff; border: 1px solid #ddd; border-radius: 6px; font-size: 11px; color: #555; z-index: 10; pointer-events: none; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; max-width: 260px; }
 .delta-forward-label-dragged { white-space: nowrap; }

@@ -116,8 +116,9 @@ describe("buffer-layout — Node block", () => {
     //   + 1×u8 (hovered) + 1×u8 (latchedSel) + 1×u8 (gotDragMsg)
     //   + 3×i32 (dragDeltaA/B/C) + 1×i32 (dragRequantCount)
     //   + 1×u8 (gotForwardMsg) + 4×i32 (forwardDeltaA/B/C + forwardFromRow)
-    //   = (5+6)×4 + 1 + 1 + 8 + 1 + 1 + 1 + 12 + 4 + 1 + 16 = 90
-    expect(NODE_STRIDE).toBe(90);
+    //   + 1×u8 (cascadeRelay)
+    //   = (5+6)×4 + 1 + 1 + 8 + 1 + 1 + 1 + 12 + 4 + 1 + 16 + 1 = 91
+    expect(NODE_STRIDE).toBe(91);
   });
 
   it("read helpers decode known bytes correctly", () => {
