@@ -1,19 +1,12 @@
-// registry.go — self-registration API for node kinds.
-// Each node package calls wire.Register in its own init().
+// registry.go — RETIRED.
+//
+// This file held KindRegistry and Register: each node package's init() handed over an
+// EMPTY struct, which nodes/Wiring's reflectBuild then filled in by reflection. Both are
+// gone. A kind now registers a real constructor for itself with
+// Wiring.RegisterBuilder (nodes/Wiring/build_args.go), so the struct that reaches the
+// loader is already wired and a field the constructor forgets is a compile error.
+//
+// The file is kept as this note rather than deleted outright because "where did
+// wire.Register go?" is the obvious question when reading an older commit or doc.
 
 package wire
-
-// KindRegistry maps spec kind name → constructor. Register (called from each node
-// package's init()) is the only writer. Read by nodes/Wiring's BuildRegistry to
-// build the loader-facing NodeBuilder registry lazily at load time (reflectPorts/
-// reflectBuild live in the build pipeline, not here — this keeps Register free of
-// any dependency on it).
-var KindRegistry = map[string]func() any{}
-
-// Register adds kind to KindRegistry. Panics if kind is already registered.
-func Register(kind string, newNode func() any) {
-	if _, exists := KindRegistry[kind]; exists {
-		panic("wire.Register: kind already registered: " + kind)
-	}
-	KindRegistry[kind] = newNode
-}

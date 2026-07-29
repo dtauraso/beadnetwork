@@ -5,7 +5,6 @@ package Wiring
 
 import (
 	"context"
-	"reflect"
 
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
@@ -25,30 +24,6 @@ import (
 // a given name simply doesn't get one (injectSpeedChans is a no-op per name
 // when the field is absent, same contract as injectFunc).
 var speedChanFieldNames = []string{"SpeedCh", "DriveSpeedCh", "Out1SpeedCh", "Out2SpeedCh"}
-
-// injectSpeedChans creates one fresh buffered-1 speed channel per field name in
-// speedChanFieldNames that the struct pointed to by v actually declares (typed
-// exactly `<-chan float64`), injects its RECEIVE end into that field, and
-// appends its SEND end to *pb.speedSinks — the loader's build-wide accumulator
-// of every goroutine's speed channel, broadcast to on a speed change. A no-op
-// when pb.speedSinks is nil (test builds with no loader): such a node's
-// goroutines simply have no speed channel to poll, exactly like they had no
-// shared clock to receive a speed change on before this plan either.
-func injectSpeedChans(v reflect.Value, pb PortBindings) {
-	if pb.speedSinks == nil {
-		return
-	}
-	tSpeedChan := reflect.TypeFor[<-chan float64]()
-	for _, fname := range speedChanFieldNames {
-		f := v.FieldByName(fname)
-		if !f.IsValid() || !f.CanSet() || f.Type() != tSpeedChan {
-			continue
-		}
-		speedCh := make(chan float64, 1)
-		f.Set(reflect.ValueOf((<-chan float64)(speedCh)))
-		*pb.speedSinks = append(*pb.speedSinks, speedCh)
-	}
-}
 
 // bufInteriorSlotsPerNode is a local copy of Buffer.BufInteriorSlotsPerNode's value
 // (4 — the fixed interior-bead slot count per node), kept here rather than importing
@@ -120,53 +95,6 @@ func asEventSinkGetter(g func() *interiorStream) func() wire.EventSink {
 	}
 }
 
-// wirePorts wires every port field (In/Out/Broadcast) discovered by reflectPorts
-// with traced wrappers, resolving each from pb's paced bindings when present and
-// falling back to a dead-end chan/slice otherwise. sourceOuts accumulates every
-// paced Out built (for EmitGeometry's closure, injected by injectClosures) and
-// pb.outSink (when non-nil) is populated so the loader can index Outs by edge.
-// getStream is this node's shared interior-stream getter (newInteriorStreamGetter),
-// threaded through so Recv/Send can flush their own RowEvent onto the same frame
-// Fire/EmitNodeBeads use.
-func wirePorts(ctx context.Context, v reflect.Value, nodePtr any, name string, pb PortBindings, tr *T.Trace, sourceOuts *[]*wire.Out, getStream func() *interiorStream) {
-	ports := reflectPorts(nodePtr)
-	for _, port := range ports {
-		f := v.FieldByName(port.Name)
-		if !f.IsValid() || !f.CanSet() {
-			continue
-		}
-		switch port.Dir {
-		case PortIn:
-			wireInPort(f, port.Name, ctx, name, pb, tr, getStream)
-		case PortOut:
-			wireOutPort(f, port.Name, ctx, name, pb, tr, sourceOuts, getStream)
-		case PortBroadcast:
-			wireBroadcastPort(f, port.Name, ctx, name, pb, tr, sourceOuts, getStream)
-		}
-	}
-}
-
-// wireInPort resolves a single PortIn field: a paced binding (NewInPaced) when
-// pb has one for this port name, otherwise a dead-end chan wrapper.
-//
-// Neither branch carries a clock (per-goroutine-clock.md API demolition item 1: port
-// accessors are gone) — an unwired In just polls a dead-end channel that never
-// delivers, staying inert by precondition-gating (validate.go) exactly like a wired
-// node whose peer never sends; its owning node paces off its OWN Clock field/Copy(),
-// never off this port.
-//
-// A paced In's portRow (its own buffer PORT-ROW, isInput=true) is resolved once here
-// from pb.md's row table (populated at MoveDispatch construction, before any node's
-// own construction — see PortRowFor's doc comment), and stream is this node's shared
-// interior-stream getter: both are read later by In.PollRecv, on this node's own
-// Update goroutine, to flush a KindRecv RowEvent (owner_events.go).
-// wireInPort sets the struct field; newInPort RETURNS the value. The reflection path
-// delegates to the value path so a kind that constructs itself (BuildArgs.In) and a kind
-// still built by reflection get byte-identical wiring from one implementation.
-func wireInPort(f reflect.Value, portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, getStream func() *interiorStream) {
-	f.Set(reflect.ValueOf(newInPort(portName, ctx, name, pb, tr, getStream)))
-}
-
 func newInPort(portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, getStream func() *interiorStream) *wire.In {
 	if b := pb.singlePaced[portName]; b.pw != nil {
 		portRow := int32(-1)
@@ -180,22 +108,6 @@ func newInPort(portName string, ctx context.Context, name string, pb PortBinding
 		ch := pb.deadEndIn(portName)
 		return wire.NewInChan(ch, name, portName, tr, asEventSinkGetter(getStream))
 	}
-}
-
-// wireOutPort resolves a single PortOut field: a paced binding
-// (NewOutPaced, with the edge's own send rule/arc/latency/segment/label) when pb
-// has one for this port name, otherwise a dead-end chan wrapper. The resolved
-// paced Out is appended to sourceOuts and (when pb.outSink is non-nil) recorded
-// under "node.port" for the loader's node-move travel-time updates.
-//
-// A paced Out's own portRow (isInput=false) plus its destination's targetRow/
-// targetPortRow are resolved once here from pb.md's row tables (same timing as
-// wireInPort's portRow) — the destination is static (b.pw.Target/TargetHandle never
-// change after wiring), so resolving it once at construction and reading it later on
-// this node's own Update goroutine (Out.PlaceDrivenAt/placeDrivenNoWalker) matches
-// edgeMover's existing static-field-resolved-once discipline (edgeRow).
-func wireOutPort(f reflect.Value, portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, sourceOuts *[]*wire.Out, getStream func() *interiorStream) {
-	f.Set(reflect.ValueOf(newOutPort(portName, ctx, name, pb, tr, sourceOuts, getStream)))
 }
 
 func newOutPort(portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, sourceOuts *[]*wire.Out, getStream func() *interiorStream) *wire.Out {
@@ -223,16 +135,6 @@ func newOutPort(portName string, ctx context.Context, name string, pb PortBindin
 	}
 	ch := pb.deadEndOut(portName)
 	return wire.NewOutChanForTest(ch, name, portName, tr)
-}
-
-// wireBroadcastPort resolves a PortBroadcast field: one paced Out per fan-out
-// element recorded in pb.broadcastPaced (each with its own handle/rule/arc/
-// latency/segment/label) when present, otherwise a dead-end chan slice. Each
-// resolved paced Out is appended to sourceOuts and (when pb.outSink is
-// non-nil) recorded under "node.handle". Row resolution mirrors wireOutPort's,
-// per fan-out element.
-func wireBroadcastPort(f reflect.Value, portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, sourceOuts *[]*wire.Out, getStream func() *interiorStream) {
-	f.Set(reflect.ValueOf(newBroadcastPort(portName, ctx, name, pb, tr, sourceOuts, getStream)))
 }
 
 func newBroadcastPort(portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, sourceOuts *[]*wire.Out, getStream func() *interiorStream) wire.Broadcast {

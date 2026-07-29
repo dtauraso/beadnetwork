@@ -35,8 +35,29 @@ func (n *aimedPacer) Update(ctx context.Context) {
 	<-ctx.Done()
 }
 
+// Self-registering, like every production kind — same construction path as the loader.
 func init() {
-	wire.Register("AimedSrc", func() any { return &aimedSrc{} })
-	wire.Register("AimedSink", func() any { return &aimedSink{} })
-	wire.Register("AimedPacer", func() any { return &aimedPacer{} })
+	RegisterBuilder("AimedSrc",
+		[]PortSpec{{Name: "Out", Dir: PortOut}, {Name: "FeedbackIn", Dir: PortIn}},
+		func(a BuildArgs) (wire.Node, error) {
+			n := &aimedSrc{}
+			n.Out = a.Out("Out")
+			n.FeedbackIn = a.In("FeedbackIn")
+			return n, nil
+		})
+	RegisterBuilder("AimedSink",
+		[]PortSpec{{Name: "In", Dir: PortIn}},
+		func(a BuildArgs) (wire.Node, error) {
+			n := &aimedSink{}
+			n.In = a.In("In")
+			return n, nil
+		})
+	RegisterBuilder("AimedPacer",
+		[]PortSpec{{Name: "FromSrc", Dir: PortIn}, {Name: "Feedback", Dir: PortOut}},
+		func(a BuildArgs) (wire.Node, error) {
+			n := &aimedPacer{}
+			n.FromSrc = a.In("FromSrc")
+			n.Feedback = a.Out("Feedback")
+			return n, nil
+		})
 }

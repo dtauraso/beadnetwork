@@ -26,27 +26,18 @@ func init() {
 	Registry = make(map[string]NodeBuilder)
 }
 
-// BuildRegistry populates Registry from KindRegistry for any kind not yet
-// built. KindRegistry is filled by wire.Register as each node package's
-// init() runs; building the NodeBuilder (reflectPorts + reflectBuild closure) is
-// deferred to here, the loader's entry point, so wire.Register itself has no
-// dependency on the build pipeline. Idempotent — safe to call on every load. Must
-// run before any code reads Registry (validateSpec, buildFromSpec). Exported so
-// package-main tests (which never call LoadTopology) can force population, e.g.
-// kind_registry_parity_test.go.
+// BuildRegistry is retained as the loader's explicit "registry is ready" call site, but it
+// no longer BUILDS anything: every kind now registers itself in its own init() via
+// RegisterBuilder (build_args.go), so Registry is fully populated before main runs. It
+// stays because the loader and kind_registry_parity_test call it, and because a kind that
+// forgets to register is better diagnosed here than at the first unknown-type error.
+//
+// It panics on an EMPTY registry: that means no kind package's init() ran at all, which in
+// practice means kinds_generated.go lost its blank imports — the exact failure the
+// primitive landing rule warns about, and one that otherwise surfaces much later as
+// `unknown type "X"`.
 func BuildRegistry() {
-	for kind, newNode := range wire.KindRegistry {
-		if _, ok := Registry[kind]; ok {
-			continue
-		}
-		newNode := newNode // capture for closure
-		sample := newNode()
-		ports := reflectPorts(sample)
-		Registry[kind] = NodeBuilder{
-			Ports: ports,
-			Build: func(ctx context.Context, name string, data *NodeData, pb PortBindings, tr *T.Trace, geom nodeGeom, partnerCenter partnerCenterFn) (wire.Node, error) {
-				return reflectBuild(ctx, name, data, pb, newNode, tr, geom, partnerCenter)
-			},
-		}
+	if len(Registry) == 0 {
+		panic("Wiring.BuildRegistry: no node kinds registered — kinds_generated.go's blank imports are what run each kind's init(); regenerate with `go run ./tools/gen-node-defs`")
 	}
 }

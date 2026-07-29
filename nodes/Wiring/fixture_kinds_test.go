@@ -31,7 +31,21 @@ func (n *sinkNode) Update(ctx context.Context) {
 	<-ctx.Done()
 }
 
+// Fixture kinds self-register exactly like production kinds do (RegisterBuilder), so the
+// tests exercise the SAME construction path the loader uses rather than a parallel one.
 func init() {
-	wire.Register("SrcNode", func() any { return &srcNode{} })
-	wire.Register("SinkNode", func() any { return &sinkNode{} })
+	RegisterBuilder("SrcNode",
+		[]PortSpec{{Name: "Out", Dir: PortOut}},
+		func(a BuildArgs) (wire.Node, error) {
+			n := &srcNode{}
+			n.Out = a.Out("Out")
+			return n, nil
+		})
+	RegisterBuilder("SinkNode",
+		[]PortSpec{{Name: "In", Dir: PortIn}},
+		func(a BuildArgs) (wire.Node, error) {
+			n := &sinkNode{}
+			n.In = a.In("In")
+			return n, nil
+		})
 }
