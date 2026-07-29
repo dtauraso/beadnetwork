@@ -558,7 +558,7 @@ func parseGoKindName(pkgDir string) (string, error) {
 			return name2, nil
 		}
 	}
-	return "", fmt.Errorf("wire.Register/Wiring.Register not found in %s", pkgDir)
+	return "", fmt.Errorf("RegisterBuilder call not found in %s", pkgDir)
 }
 
 // parseDataFieldsFromAST reads all .go files in pkgDir and returns data fields

@@ -563,7 +563,7 @@ func TestParseGoKindName_ExtractsRegisterArgument(t *testing.T) {
 	src := `package fake
 
 func init() {
-	Wiring.Register("Alpha", nil)
+	Wiring.RegisterBuilder("Alpha", nil, nil)
 }
 `
 	writeFile(t, dir, "fake.go", src)

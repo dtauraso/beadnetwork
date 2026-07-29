@@ -11,20 +11,6 @@ import (
 	T "github.com/dtauraso/wirefold/Trace"
 )
 
-// speedChanFieldNames lists every field name a node kind may declare to receive
-// a speed-delivery channel. Most kinds (input/hold/Time/pacer,
-// gatecommon.GateNode) run exactly one clock-owning goroutine and declare only
-// SpeedCh. Pulse/HoldFlip split into a main loop plus one-or-two
-// gatecommon.DriveHeld goroutines (one per driven Out) — each is an
-// INDEPENDENT clock copy, so each needs its OWN channel: sharing one channel
-// across two goroutines would silently starve whichever one loses a given
-// receive, which is exactly the "no goroutine left behind" failure item 3 of
-// per-goroutine-clock.md guards against. DriveSpeedCh/Out1SpeedCh/Out2SpeedCh
-// are those extra per-drive-goroutine channels; a struct that doesn't declare
-// a given name simply doesn't get one (injectSpeedChans is a no-op per name
-// when the field is absent, same contract as injectFunc).
-var speedChanFieldNames = []string{"SpeedCh", "DriveSpeedCh", "Out1SpeedCh", "Out2SpeedCh"}
-
 // bufInteriorSlotsPerNode is a local copy of Buffer.BufInteriorSlotsPerNode's value
 // (4 — the fixed interior-bead slot count per node), kept here rather than importing
 // Buffer (see boolU8's doc comment for the existing precedent of this package
