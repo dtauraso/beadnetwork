@@ -178,6 +178,36 @@ goroutines legitimately write inside `nodes/<id>/`):
 Same shape as `tools/check-no-network-locks.sh`. This is what stops steps 3–4 from silently
 regressing — without it, the next central writer is one convenient refactor away.
 
+### 6. Stop TS counting the tree — store the counts
+
+`tools/topology-vscode/src/runCommand.ts` has `countNodes` and `countEdges`, which walk the
+tree to size the stdio fd array. They exist because the extension host is the process that
+SPAWNS Go, and Node's `spawn()` takes the stdio array up front: with one dedicated pipe per
+emitting goroutine, the pipe count is a function of graph size and must be known before the
+child exists. Go cannot answer, because Go is not running yet.
+
+The cost is that the on-disk layout becomes knowledge held in TWO languages with nothing
+enforcing agreement. Step 2 was exactly that near-miss: the files moved and `countEdges` had
+to move with them, or it would have returned 0, allocated no dedicated edge streams, and
+failed as a bridge problem rather than a test failure.
+
+**The counts are stored, not walked.** They are fixed for a given topology and change only
+when the editor adds or removes a node or an edge — the operation that changes them already
+knows the delta, so it writes them. TS reads two numbers and stops knowing the layout
+entirely; `countNodes` and `countEdges` both delete.
+
+**Go asserts them at load.** This is what keeps a stored number from being a cache that rots:
+`loadTree` already walks `nodes/` and each node's `edges/`, so it can compare the declared
+counts against what it actually found and fail loudly on a mismatch, naming both (MODEL.md
+"Assertions"). A topology edited by something that did not finish the job then fails at load
+instead of silently mis-sizing the bridge. That makes the stored number a CHECKSUM with an
+assertion behind it, not a cache TS trusts blindly.
+
+Consider the alternative rejected: a `--count` pre-pass (spawn Go once to print the numbers,
+then spawn for real) needs no file and no writer, but costs a process spawn per run and
+leaves the counts underivable without running a binary. Storing them keeps the topology
+self-describing.
+
 ## Explicitly out of scope
 
 **Loading.** A node cannot read its own file before it exists; something must scan the tree
