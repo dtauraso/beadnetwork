@@ -173,8 +173,32 @@ fi
 FIRSTLINE=(0)
 while IFS= read -r _l; do FIRSTLINE+=("$_l"); done < "$TMP/filelines.txt"
 
-grep -noE '.{0,110}(CLAUDE|MODEL)\.md'"'"'?s?[[:space:]]+"[^"]{3,}"' "$TMP/norm.txt" \
-  > "$TMP/windows.txt" 2>/dev/null || true
+# Extraction is awk, NOT `grep -oE`, and the context prefix is a substr rather than a
+# regex. MEASURED on this repo's normalized corpus (87 lines, one 47k-char line):
+#
+#   /usr/bin/grep -noE '.{0,110}<citation>'   1.656s   <- 83% of the whole guard
+#   awk, same greedy .{0,110} prefix          0.854s
+#   awk, citation match + substr context      0.019s   <- 87x faster than grep
+#
+# The cost was the GREEDY BOUNDED PREFIX: for every position on a 47k-char line, BSD grep
+# tries up to 110 leading characters. Matching the citation first (anchored on the literal
+# "CLAUDE.md"/"MODEL.md") and then taking the 110 preceding characters by offset does the
+# same job with no backtracking at all.
+#
+# Beware benchmarking this from an interactive shell: `grep` there may be a shell FUNCTION
+# rather than /usr/bin/grep, which is why an earlier round of profiling kept measuring
+# 0.08s for a call that costs 1.65s inside the script. Compare /usr/bin/grep explicitly.
+#
+# Output format is unchanged: "<line-number>:<window>", line number = file (paths.txt).
+awk '{
+  s = $0
+  while (match(s, /(CLAUDE|MODEL)\.md'"'"'?s?[ \t]+"[^"]{3,}"/)) {
+    st = RSTART; ln = RLENGTH
+    pstart = st - 110; if (pstart < 1) pstart = 1
+    print FNR ":" substr(s, pstart, st - pstart + ln)
+    s = substr(s, st + ln)
+  }
+}' "$TMP/norm.txt" > "$TMP/windows.txt" 2>/dev/null || true
 
 while IFS= read -r rec; do
   n="${rec%%:*}"; window="${rec#*:}"
