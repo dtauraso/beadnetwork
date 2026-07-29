@@ -18,6 +18,7 @@ var kindDims = map[string]kindDim{
 	"PulseRight":  {Width: 90, Height: 60},
 	"SelectLeft":  {Width: 80, Height: 60},
 	"SelectRight": {Width: 80, Height: 60},
+	"Time":        {Width: 90, Height: 60},
 	"TimeEnd":     {Width: 60, Height: 60},
 	"TimeStart":   {Width: 90, Height: 60},
 }
