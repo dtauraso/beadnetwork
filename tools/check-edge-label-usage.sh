@@ -18,8 +18,11 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 THREE_DIR="$REPO_ROOT/tools/topology-vscode/src/webview/three"
 
 if [ ! -d "$THREE_DIR" ]; then
-  # Render tree absent (partial checkout) — nothing to guard, not a failure.
-  exit 0
+  echo "check-edge-label-usage: MISCONFIGURED — $THREE_DIR not found; refusing a vacuous pass." >&2
+  echo "  This is the render tree the guard exists to police (EdgeTube.tsx et al.); if it" >&2
+  echo "  moved or was deleted, the invariant it enforces no longer has a home. Update the" >&2
+  echo "  guard deliberately." >&2
+  exit 1
 fi
 
 # The forbidden tokens: the generated label-column readers and the raw column names. A
