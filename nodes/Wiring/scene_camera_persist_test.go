@@ -13,7 +13,8 @@ import (
 // gesture burst, and that camera.json and overlays.json — separate files, one writer each
 // — never clobber one another.
 //
-// [allow-test-weakening] TestPersistLoadsLegacySceneJSONThenWritesNewFile was DELETED: it
+// [allow-test-weakening: nodes/Wiring/scene_camera_persist_test.go]
+// TestPersistLoadsLegacySceneJSONThenWritesNewFile was DELETED: it
 // pinned the pre-split view/scene.json fallback (loadSceneViewpoint reading a shared
 // scene.json's cameraPolar key when camera.json is absent), a capability removed along with
 // sceneJSONPath/sceneCameraPath — no such file exists anywhere in this repo's tree and
