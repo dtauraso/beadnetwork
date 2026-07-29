@@ -19,9 +19,10 @@ import { useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import type * as THREE from "three";
 import { getEdgeStreamAccessor } from "./edge-stream-blocks";
-import { getNodeFrame, getLayoutLinks } from "./node-stream-blocks";
+import { getNodeFrame, getLayoutLinks, getChainBeads } from "./node-stream-blocks";
 import { INTERIOR_SLOTS_PER_NODE } from "./buffer-decode";
 import { BeadInstances } from "./BeadInstances";
+import { ChainBeadInstances } from "./ChainBeadInstances";
 import { NodeInstances } from "./NodeInstances";
 import { PortInstances } from "./PortInstances";
 import { SelectionHighlight, HoverHighlight } from "./SelectionHighlight";
@@ -45,6 +46,7 @@ const INITIAL_BEAD_CAP  = 64;
 const INITIAL_NODE_CAP  = 32;
 const INITIAL_EDGE_CAP  = 32; // edge positions buffer: N edges × 2 endpoints × 3 floats
 const INITIAL_PORT_CAP  = 64; // port spheres: one per node port (input + output), grows as needed
+const INITIAL_CHAINBEAD_CAP = 256; // node-owned placeholder chain beads (docs/beads-are-the-edge.md): count is len/spacing summed over every node's OUTGOING edges, so it is far larger than any other block's and independent of every other cap
 const INITIAL_LAYOUTLINK_CAP = 32; // layout cascade-link overlay pairs — from LocalPolars filtered to the cascade-link set, NOT the Edge block, so its count is independent of edgeCount and needs its OWN cap
 
 // ── BufferScene ───────────────────────────────────────────────────────────────
@@ -60,6 +62,7 @@ export function BufferScene({ cameraRef }: {
   const [edgeCap,  setEdgeCap]  = useState(INITIAL_EDGE_CAP);
   const [portCap,  setPortCap]  = useState(INITIAL_PORT_CAP);
   const [layoutLinkCap, setLayoutLinkCap] = useState(INITIAL_LAYOUTLINK_CAP);
+  const [chainBeadCap, setChainBeadCap] = useState(INITIAL_CHAINBEAD_CAP);
 
   // Capacity-growth guard: runs every frame to detect need for reallocation. EVERY
   // variable-length streamed block must have a row here — a block whose count outgrows a
@@ -74,6 +77,13 @@ export function BufferScene({ cameraRef }: {
     // stream arrival.
     const { layoutLinkCount } = getLayoutLinks();
     grow.push({ count: layoutLinkCount, cap: layoutLinkCap, set: setLayoutLinkCap });
+
+    // Chain beads are aggregated from the per-node dedicated streams too (getChainBeads) —
+    // each node contributes the chains on its OWN outgoing edges. Its own row here, not a
+    // share of beadCap: that cap tracks in-flight transit beads on the edge streams, an
+    // unrelated and much smaller count.
+    const { count: chainBeadCount } = getChainBeads();
+    grow.push({ count: chainBeadCount, cap: chainBeadCap, set: setChainBeadCap });
 
     // Every edge's own dedicated stream frame reports its own geometry+beads
     // (edge-stream-blocks.ts) — grow edgeCap off the edge-row count, and beadCap off the
@@ -106,6 +116,7 @@ export function BufferScene({ cameraRef }: {
     <>
       <BufferCamera cameraRef={cameraRef} />
       <BeadInstances capacity={beadCap} />
+      <ChainBeadInstances capacity={chainBeadCap} />
       <NodeInstances capacity={nodeCap} />
       <PortInstances capacity={portCap} />
       <InteriorBeadInstances capacity={nodeCap * INTERIOR_SLOTS_PER_NODE} />

@@ -177,8 +177,16 @@ state. Proposed order, each verified with `bash scripts/stop-checks.sh`:
    stream it on the node's own frame, with the wire goroutine still running and still
    authoritative. Nothing renders from it yet. This proves the offsets and the constant-time
    move in isolation, and is revertible on its own.
-2. **Render from the sequence; stop rendering the moving bead.** The visual switch. The wire
-   goroutine still runs and still owns delivery timing.
+2. **Render the chain; KEEP the moving bead.** (Revised while building — the original
+   wording said "stop rendering the moving bead", which is not possible at this stage.)
+   Lighting the chain requires knowing traversal progress, and that lives in PacedWire and
+   reaches the editor only on the EDGE stream. A node cannot read it without a
+   cross-goroutine read, and letting TS light the nearest chain bead would make the render
+   layer decide which bead a traversal has reached — the domain state the drift rule forbids
+   it to hold. So lighting waits for step 3, when the node owns timing. What step 2 delivers
+   is the chain drawn as visible structure, all beads unlit, with the moving bead still
+   running: enough to judge spacing and whether a chain reads as an edge, with PacedWire
+   intact and one `git revert` away.
 3. **Move delivery timing into the source node; delete the wire goroutine**, the per-edge
    streams, `Buffer/edge_stream_frame.go`, the Edge/Bead blocks that die with them, and
    `TestHeadlessEdgeFdDedicatedStream`. Update MODEL.md in this commit.
