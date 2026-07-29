@@ -16,14 +16,14 @@ import (
 	"testing"
 )
 
-// TestQuantOffsetScheduleWritesSynchronously proves schedule() writes a position update
-// to disk immediately, with no timer/flush step required.
+// TestQuantOffsetScheduleWritesSynchronously proves persistQuantOffset writes a position
+// update to disk immediately, with no timer/flush step required.
 func TestQuantOffsetScheduleWritesSynchronously(t *testing.T) {
 	root := writeTree(t)
-	p := &quantOffsetPersister{root: root}
+	nm := &nodeMover{id: "src", persistRoot: root}
 
 	newScene := polar{R: 55.5, Theta: 0.4, Phi: -1.1}
-	p.schedule("src", quantizedOffset{iTheta: 3, iPhi: 4, iR: 5}, newScene)
+	nm.persistQuantOffset(quantizedOffset{iTheta: 3, iPhi: 4, iR: 5}, newScene)
 
 	raw, err := os.ReadFile(positionFilePath(root, "src"))
 	if err != nil {
@@ -50,15 +50,19 @@ func TestQuantOffsetScheduleWritesSynchronously(t *testing.T) {
 }
 
 // TestMoveDispatchQuantOffsetScheduleWritesThroughEnableEditPersist exercises the
-// MoveDispatch-owned persister (the path EnableEditPersist wires up) and confirms it
-// reaches disk.
+// node-owned write path (EnableEditPersist sets nm.persistRoot on every mover) and
+// confirms it reaches disk.
 func TestMoveDispatchQuantOffsetScheduleWritesThroughEnableEditPersist(t *testing.T) {
 	root := writeTree(t)
 	md := loadTreeMD(t, root)
 	md.EnableEditPersist(root)
 
+	nm, ok := md.mr.nodeMovers["src"]
+	if !ok {
+		t.Fatal("no nodeMover for src")
+	}
 	newScene := polar{R: 61.0, Theta: 0.2, Phi: 0.9}
-	md.persist.quantOffset.schedule("src", quantizedOffset{iTheta: 1, iPhi: 2, iR: 3}, newScene)
+	nm.persistQuantOffset(quantizedOffset{iTheta: 1, iPhi: 2, iR: 3}, newScene)
 
 	raw, err := os.ReadFile(positionFilePath(root, "src"))
 	if err != nil {
@@ -77,12 +81,11 @@ func TestMoveDispatchQuantOffsetScheduleWritesThroughEnableEditPersist(t *testin
 	}
 }
 
-// TestQuantOffsetScheduleNilSafe confirms a nil-rooted (unarmed) persister does not panic —
-// tests/headless contexts construct a MoveDispatch without EnableEditPersist.
+// TestQuantOffsetScheduleNilSafe confirms an unarmed (empty persistRoot) nodeMover does not
+// panic on a persist call — tests/headless contexts construct a MoveDispatch without
+// EnableEditPersist.
 func TestQuantOffsetScheduleNilSafe(t *testing.T) {
-	var p *quantOffsetPersister
-	p.schedule("x", quantizedOffset{}, polar{}) // must not panic
-
-	p2 := &quantOffsetPersister{}                // root == "" — unarmed
-	p2.schedule("x", quantizedOffset{}, polar{}) // must not panic
+	nm := &nodeMover{id: "x"}                         // persistRoot == "" — unarmed
+	nm.persistQuantOffset(quantizedOffset{}, polar{}) // must not panic
+	nm.persistLocalPolars(nil, dir{})                 // must not panic
 }

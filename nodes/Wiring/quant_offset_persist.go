@@ -11,17 +11,20 @@ package Wiring
 // lossless, so a dragged node reloads at exactly where it was dropped. The quantized
 // scalar triple (quantITheta/quantIPhi/quantIR + steps) rides along as a self-describing
 // cache of the drag-time snap cells, NOT the position source. commitNodeMoveLocal calls
-// schedule() for the dragged node, writing scenePolarR/Theta/Phi + the quant cache to
-// `<root>/nodes/<id>/position.json` — one-file-per-writer: this file has exactly one writer
-// per node id (writeQuantOffset), so each write is a fresh whole-file marshal, no
-// read-modify-write, no entityFileMu (deleted). Static node identity (id/type/r/gate) stays
-// in meta.json, which this persister never touches. WriteLocalPolars below is the OTHER
-// former meta.json writer; it now owns its own file (local-polars.json) for the same reason.
+// nm.persistQuantOffset (below) for the dragged node's OWN nodeMover, writing
+// scenePolarR/Theta/Phi + the quant cache to `<root>/nodes/<id>/position.json` —
+// one-file-per-writer: this file has exactly one writer per node id (writeQuantOffset), so
+// each write is a fresh whole-file marshal, no read-modify-write, no entityFileMu
+// (deleted). Static node identity (id/type/r/gate) stays in meta.json, which this write
+// never touches. persistLocalPolars below is the OTHER former meta.json writer; it now
+// owns its own file (local-polars.json) for the same reason.
 //
-// Go owns persistence (MODEL.md): fire-and-forget, SYNCHRONOUS — schedule() writes
+// Go owns persistence (MODEL.md): fire-and-forget, SYNCHRONOUS — persistQuantOffset writes
 // immediately, inline on the caller's own goroutine (see scene_persist.go's header comment
 // for why the prior debounce was removed) — logs on error, never blocks the gesture. Only
-// root == "" (a persister constructed bare, never armed via EnableEditPersist) is a no-op.
+// nm.persistRoot == "" (never armed via EnableEditPersist) is a no-op. The owning goroutine
+// IS the node's own nodeMover (docs/planning/decentralized-persistence.md "The model") —
+// every call site above runs on nm's own goroutine, never routed through MoveDispatch.
 //
 // LEGACY FALLBACK: an existing pre-split topology has these fields inline in meta.json
 // instead of a separate position.json/local-polars.json — loader_tree.go's loadTree reads
@@ -34,29 +37,24 @@ import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
-// quantOffsetPersister writes a node's scalar-triple change straight to its
-// position.json as it happens. Owned by MoveDispatch (armed by EnableEditPersist).
-// root == "" disables it (unarmed tests).
+// persistQuantOffset writes THIS node's own exact position (scene) plus its quantized
+// triple to its OWN position.json, synchronously, on THIS node's own mover goroutine
+// (commitNodeMoveLocal calls it from nm's own inbox-drain goroutine — see node_move.go).
+// nm.persistRoot == "" (unarmed — bare test construction, or no EnableEditPersist call)
+// makes this a no-op. scene is the authoritative persisted position.
 //
-// UNLIKE this package's other four persisters, this one has MULTIPLE writers: every node
-// has its OWN mover goroutine, and commitNodeMoveLocal runs schedule() on that node's own
-// goroutine — so two different nodes' drags can call schedule() on this SAME
-// quantOffsetPersister struct concurrently. That is safe because they write
-// to DIFFERENT files (position.json is keyed by node id, so no two calls ever race the same
-// os.WriteFile/Rename) and this struct holds no other shared mutable state.
-type quantOffsetPersister struct {
-	root string // tree root; per-node position.json lives at <root>/nodes/<id>/position.json
-}
-
-// schedule writes the given node's exact position (scene) plus its quantized triple to
-// position.json synchronously. scene is the authoritative persisted position.
-func (p *quantOffsetPersister) schedule(id string, off quantizedOffset, scene polar) {
-	if p == nil || p.root == "" {
+// UNLIKE this package's scene-level persisters (camera/overlays/sphere, each with ONE
+// owning goroutine), every node has its OWN mover goroutine, so many different nodes' own
+// persistQuantOffset calls can run concurrently — safe because each writes to a DIFFERENT
+// file (position.json is keyed by node id, so no two calls ever race the same
+// os.WriteFile/Rename) and nm.persistRoot is set once, before any mover goroutine starts,
+// and never written again.
+func (nm *nodeMover) persistQuantOffset(off quantizedOffset, scene polar) {
+	if nm.persistRoot == "" {
 		return
 	}
-	if err := writeQuantOffset(p.root, id, off, scene); err != nil {
-		logPersistErr("quant_offset_persist", id, err)
-		return
+	if err := writeQuantOffset(nm.persistRoot, nm.id, off, scene); err != nil {
+		logPersistErr("quant_offset_persist", nm.id, err)
 	}
 }
 
@@ -121,6 +119,20 @@ type localPolarsFileJSON struct {
 // neighbor's direction from its stored indices about the OLD pole, so a reload that dropped
 // the pole would reconstruct against the WRONG (assumed-home) pole for any node whose pole
 // had tilted — see node_move.go requantizePoleTraced's doc comment.
+// persistLocalPolars writes THIS node's own local-polars.json, synchronously, on THIS
+// node's own mover goroutine (requantizeLocalPolars/neighborSetCRequantize both call it
+// from nm's own goroutine — see quantized_move.go). nm.persistRoot == "" (unarmed) makes
+// this a no-op. Thin wrapper over WriteLocalPolars, which stays a free function since it is
+// also the direct target of package-level persistence tests.
+func (nm *nodeMover) persistLocalPolars(lps []wire.LocalPolar, pole dir) {
+	if nm.persistRoot == "" {
+		return
+	}
+	if err := WriteLocalPolars(nm.persistRoot, nm.id, lps, pole); err != nil {
+		logPersistErr("local_polar_persist", nm.id, err)
+	}
+}
+
 func WriteLocalPolars(root, id string, lps []wire.LocalPolar, pole dir) error {
 	if !safeTreePathComponent(id) {
 		return fmt.Errorf("unsafe node id %q", id)

@@ -97,6 +97,17 @@ func setPortAnchorId(g *nodeGeom, port string, isInput bool, anchorId int) bool 
 type nodeMover struct {
 	id   string
 	geom nodeGeom
+	// persistRoot is the tree root this node's mover writes its OWN per-node files
+	// (position.json, local-polars.json — quant_offset_persist.go; port anchor files —
+	// scene_anchor_persist.go) into. Set once, for every nodeMover, by
+	// MoveDispatch.EnableEditPersist after the startup seed (mirrors md.persist's other
+	// armed-after-seed fields). Empty ("") means unarmed — bare test construction, or a
+	// MoveDispatch built without EnableEditPersist — and every persist* method below is a
+	// no-op. This node's own goroutine reads it only from its own persist* methods, so no
+	// synchronization is needed even though every mover shares the same EnableEditPersist
+	// call that sets it (a plain string write before any mover goroutine starts, same
+	// happens-before shape as clockSrc/speedCh below).
+	persistRoot string
 	// extIn is this node's dedicated channel for EXTERNAL entries — the stdin/gesture
 	// goroutine's drag/dragStart/anchor sends (md.sendMove, gesture.go's
 	// applyRingAnchor). Nothing else ever writes here: no other mover shares it.

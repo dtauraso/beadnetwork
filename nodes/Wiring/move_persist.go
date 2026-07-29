@@ -14,14 +14,10 @@ type persisters struct {
 	vp *viewpointPersister
 	// anchor is the disk persister for the FSM-applied ring-move edit (port anchorId).
 	// Armed by EnableEditPersist after the startup seed; nil until armed (tests that
-	// never arm). Node-drag position is persisted by quantOffset below.
+	// never arm). Node-drag position and local-polars are persisted by each node's OWN
+	// mover (nm.persistRoot, quant_offset_persist.go) — see EnableEditPersist below.
 	anchor   *anchorPersister
 	overlays *overlaysPersister
-	// quantOffset is the disk persister for a node's scalar triple (iTheta,iPhi,iR) about
-	// the scene center (quant_offset_persist.go) — the sole persisted position source under
-	// the flat polar model. Armed by EnableEditPersist; scheduled from commitNodeMoveLocal
-	// for the dragged node.
-	quantOffset *quantOffsetPersister
 	// sphere is the disk persister for the scene sphere (sphere_layout.go md.ui.sceneSphere),
 	// armed by EnableEditPersist. It is only ever flushed — by LoadSceneSphere on a
 	// content-fit, and by handleSaveMsg — never scheduled on a value-change, because the
@@ -42,8 +38,9 @@ func (md *MoveDispatch) EnableViewpointPersist(topologyPath string) {
 }
 
 // EnableEditPersist arms disk persistence for the FSM-applied topology edits:
-//   - node-drag (RootMove) → the moved node's position in <root>/nodes/<id>/position.json
-//     (quantOffset below)
+//   - node-drag (RootMove) → the moved node's own position.json + local-polars.json,
+//     written by that node's OWN mover (nm.persistRoot, set below on every mover — see
+//     quant_offset_persist.go's persistQuantOffset/persistLocalPolars)
 //   - ring-move (applyRingAnchor) → the port's anchorId in the port json file
 //   - overlays (applyUpdate toggle/set) → overlay-visibility keys in view/overlays.json
 //
@@ -55,5 +52,13 @@ func (md *MoveDispatch) EnableEditPersist(topologyPath string) {
 	md.persist.anchor = &anchorPersister{root: root}
 	md.persist.overlays = &overlaysPersister{path: overlaysFilePath(topologyPath)}
 	md.persist.sphere = &sceneSpherePersister{path: sphereFilePath(topologyPath)}
-	md.persist.quantOffset = &quantOffsetPersister{root: root}
+	// Every node's own mover writes its own position.json/local-polars.json — set the
+	// tree root on each nodeMover directly rather than routing writes through a shared
+	// MoveDispatch-owned persister (docs/planning/decentralized-persistence.md "The
+	// model"). A plain field write on each mover, done here before any mover goroutine
+	// starts (Start runs after EnableEditPersist in every real call path), so no
+	// synchronization is needed.
+	for _, nm := range md.mr.nodeMovers {
+		nm.persistRoot = root
+	}
 }

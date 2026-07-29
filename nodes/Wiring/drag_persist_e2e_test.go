@@ -246,7 +246,7 @@ func TestDragPersistsOnlyDraggedNodeAndRequantizesNeighborsOnDisk(t *testing.T) 
 		}
 	}
 
-	// quantOffsetPersister.schedule() writes synchronously now (no debounce), but it runs
+	// nodeMover.persistQuantOffset writes synchronously now (no debounce), but it runs
 	// a few statements after A's center converges (pollDragConverged above), on that same
 	// node-mover goroutine (quantized_move.go commitNodeMoveLocal) — poll the read-back so
 	// this does not race ahead of that write landing (same shape as pollDragConverged).

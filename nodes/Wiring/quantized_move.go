@@ -279,6 +279,10 @@ func (lq *layoutQuantizer) neighborSetCRequantize(md *MoveDispatch, selfID, from
 		nm.gotDragMsg = 1
 		nm.dragRequantCount++
 		nm.dragDeltaA, nm.dragDeltaB, nm.dragDeltaC = int32(deltaA), int32(deltaB), int32(deltaC)
+		// selfID's own local-polars.json — this runs on selfID's own nodeMover goroutine
+		// (see the comment block above), so nm persists it directly rather than reaching
+		// through md.persist (docs/planning/decentralized-persistence.md "The model").
+		nm.persistLocalPolars(lh.LocalPolarsSnapshot(), lh.Pole())
 		// Structured buffer counterpart of the "abc-drag" breadcrumb above, riding
 		// THIS node's (selfID's) own dedicated stream — this runs on selfID's own
 		// nodeMover goroutine, mirroring gotDragMsg/dragDelta* just above. it/ip/ir (selfID's re-quantized abc to
@@ -303,14 +307,6 @@ func (lq *layoutQuantizer) neighborSetCRequantize(md *MoveDispatch, selfID, from
 				NodeRow: nm.nodeRow, PortRow: -1, TargetRow: targetRow, TargetPortRow: -1, EdgeRow: int32(ip), Slot: int32(ir),
 				Value: int32(it), X: float64(deltaA), Y: float64(deltaB), Z: float64(deltaC),
 			}})
-		}
-	}
-
-	if md.persist.quantOffset != nil {
-		if root := md.persist.quantOffset.root; root != "" {
-			if err := WriteLocalPolars(root, selfID, lh.LocalPolarsSnapshot(), lh.Pole()); err != nil {
-				logPersistErr("local_polar_persist", selfID, err)
-			}
 		}
 	}
 
@@ -382,9 +378,7 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeMover, 
 	if lq.quantizedLayout {
 		off := measureScalar(nodePolar, nm.quantOffset)
 		nm.quantOffset = off
-		if md.persist.quantOffset != nil {
-			md.persist.quantOffset.schedule(nodeID, off, nodePolar)
-		}
+		nm.persistQuantOffset(off, nodePolar)
 	}
 
 	lq.requantizeLocalPolars(md, nm, newPos)
@@ -461,19 +455,6 @@ func (lq *layoutQuantizer) requantizeLocalPolars(md *MoveDispatch, nm *nodeMover
 	if len(neighbors) == 0 {
 		return
 	}
-	root := ""
-	if md.persist.quantOffset != nil {
-		root = md.persist.quantOffset.root
-	}
-	writePersist := func(id string, holder *wire.LayoutHolder) {
-		if root == "" {
-			return
-		}
-		if err := WriteLocalPolars(root, id, holder.LocalPolarsSnapshot(), holder.Pole()); err != nil {
-			logPersistErr("local_polar_persist", id, err)
-		}
-	}
-
 	// X's local polars TO every reachable neighbor, resolved about X's rotating local
 	// pole (rotating_pole.go) in ONE pass — the pole must see the WHOLE neighbor set, not
 	// just one at a time, so a kick from one offset is checked against every other. cM is
@@ -511,7 +492,11 @@ func (lq *layoutQuantizer) requantizeLocalPolars(md *MoveDispatch, nm *nodeMover
 	}
 	oldByTo := nm.dragAnchorByTo
 	lq.requantizePoleTraced(lhX, updatesX)
-	writePersist(nodeID, lhX)
+	// X (nm) persists its OWN local-polars.json — this runs on X's own nodeMover
+	// goroutine (requantizeLocalPolars is called from commitNodeMoveLocal, on nm's own
+	// goroutine), so nm writes it directly (docs/planning/decentralized-persistence.md
+	// "The model").
+	nm.persistLocalPolars(lhX.LocalPolarsSnapshot(), lhX.Pole())
 
 	// X tells EVERY direct domain neighbor M its NEW c (the quantized edge radius X just
 	// requantized to M above) as a SINGLE ASSIGNMENT — moveMsgKindNeighborSetC. M keeps
