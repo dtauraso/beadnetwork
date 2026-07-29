@@ -22,7 +22,7 @@ topology/nodes/<id>/outputs/<PortName>.json    port geometry: {name, anchorId, p
 topology/edges/<A>To<B>.json                   {source, sourceHandle, target, targetHandle, kind, label}
 ```
 
-But the code that writes them lives in ~10 `nodes/Wiring/*_persist.go` files, and the
+But the code that writes them lives in 8 `nodes/Wiring/*_persist.go` files, and the
 persisters hang off `MoveDispatch` (`md.persist.overlays`, `md.persist.sphere` —
 `stdin_reader.go:284,288`). The node whose position changed does not write its own file; a
 central object writes on its behalf.
@@ -111,10 +111,20 @@ follower must self-persist, or a respawn reloads stale positions.
 
 ### 1. Delete the monolithic form
 
-Two supported shapes double the cost of every later step, and the tree form has won.
-`nodePosPersister` currently exists *only* so tests can ask which form a `MoveDispatch`
-loaded from — its own comment says it "schedules no writes of its own." Removing the fork
-deletes the struct outright.
+Two supported shapes double the cost of every later step, and the tree form has won. This is
+a larger and cleaner deletion than it first looks — all of it is already dead or vestigial:
+
+- `nodePosPersister` exists *only* so tests can ask which form a `MoveDispatch` loaded from;
+  its own comment says it "schedules no writes of its own."
+- `sceneTreeRoot`'s monolithic branching and `sceneJSONPath`'s true-monolithic fallback in
+  `scene_paths.go` — the `IsDir()` probing and the `return ""` path.
+- `LoadTopologyFromJSON` (`loader.go:76`), an exported entry point that "builds a topology
+  from an in-memory JSON blob, bypassing the tree". **Zero callers** — production or test.
+- `sceneCameraPath`, whose own comment reads "a backwards-compatibility alias for
+  `sceneJSONPath`. All call sites have been migrated."
+
+Verified there is nothing to migrate: no `topology.json` and no second `meta.json` tree
+exists anywhere in the repo, and no test constructs a monolithic topology.
 
 ### 2. Move edges under their source node
 
