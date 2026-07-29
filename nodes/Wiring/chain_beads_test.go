@@ -18,7 +18,7 @@ func TestChainBeadsSpacingAndCount(t *testing.T) {
 			"b": {X: 5 * chainBeadSpacing, Y: 0, Z: 0},
 		},
 	}
-	ox, oy, oz, _ := m.chainBeads()
+	ox, oy, oz, _, _ := m.chainBeads()
 	if len(ox) != 5 {
 		t.Fatalf("count = %d, want 5 (length 5×spacing at constant spacing)", len(ox))
 	}
@@ -44,7 +44,7 @@ func TestChainBeadsShorterThanOneSpacing(t *testing.T) {
 		outTargets:     []string{"b"},
 		partnerCenters: map[string]vec3{"b": {X: chainBeadSpacing * 0.5}},
 	}
-	if ox, _, _, _ := m.chainBeads(); len(ox) != 0 {
+	if ox, _, _, _, _ := m.chainBeads(); len(ox) != 0 {
 		t.Errorf("count = %d, want 0 — a bead at one spacing would sit past the target", len(ox))
 	}
 }
@@ -53,7 +53,7 @@ func TestChainBeadsShorterThanOneSpacing(t *testing.T) {
 // only with what its own partnerCenters map holds, never by reading another goroutine.
 func TestChainBeadsUnknownPartnerContributesNothing(t *testing.T) {
 	m := &nodeMover{id: "a", outTargets: []string{"b"}, partnerCenters: map[string]vec3{}}
-	if ox, _, _, _ := m.chainBeads(); len(ox) != 0 {
+	if ox, _, _, _, _ := m.chainBeads(); len(ox) != 0 {
 		t.Errorf("count = %d, want 0 for an unknown partner center", len(ox))
 	}
 }
@@ -67,7 +67,7 @@ func TestChainBeadsCountIsLengthProportional(t *testing.T) {
 			id: "a", outTargets: []string{"b"},
 			partnerCenters: map[string]vec3{"b": {X: mult * chainBeadSpacing}},
 		}
-		ox, _, _, _ := m.chainBeads()
+		ox, _, _, _, _ := m.chainBeads()
 		return len(ox)
 	}
 	if a, b := count(4), count(8); b != 2*a {

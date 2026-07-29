@@ -370,7 +370,7 @@ type nodeMover struct {
 	// buildFrame packs this node's combined per-fd frame (node fields + ports + label)
 	// using Buffer's own row-writer columns (Buffer.BuildNodeStreamFrame), injected so
 	// this package needs no Buffer import.
-	buildFrame func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount int32, gotForwardMsg uint8, forwardDeltaA, forwardDeltaB, forwardDeltaC, forwardFromRow int32, cascadeRelay uint8, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows []int32, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, events []wire.RowEvent) []byte
+	buildFrame func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount int32, gotForwardMsg uint8, forwardDeltaA, forwardDeltaB, forwardDeltaC, forwardFromRow int32, cascadeRelay uint8, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows []int32, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte
 }
 
 func newNodeMover(id string, geom nodeGeom, tr *T.Trace, clockSrc wire.Clock) *nodeMover {
@@ -911,7 +911,7 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 	// This node's own placeholder chain beads, node-local (chain_beads.go). Computed here
 	// on this node's own goroutine from its own center + its own partnerCenters map — no
 	// cross-goroutine position read, same as dstNodeRows above.
-	chainOX, chainOY, chainOZ, chainLit := m.chainBeads()
+	chainOX, chainOY, chainOZ, chainLit, chainLitVal := m.chainBeads()
 	frame := m.buildFrame(uint32(m.clk.Tick()), m.nodeRow,
 		float32(center.X), float32(center.Y), float32(center.Z),
 		float32(nodeRadius(m.geom.Kind)), float32(sphereR),
@@ -920,7 +920,7 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 		selected, kindID, hovered, latchedSel, gotDragMsg, dA, dB, dC, dReq,
 		gotFwd, fA, fB, fC, fFromRow, cascadeRelayClass(m.selfKind),
 		label, portNames, portDX, portDY, portDZ, portPX, portPY, portPZ, portIsInput, portHovered,
-		dstNodeRows, chainOX, chainOY, chainOZ, chainLit, events)
+		dstNodeRows, chainOX, chainOY, chainOZ, chainLit, chainLitVal, events)
 	var hdr [4]byte
 	binary.LittleEndian.PutUint32(hdr[:], uint32(len(frame)))
 	// Fire-and-forget, same reasoning throughout this bridge: no delivery

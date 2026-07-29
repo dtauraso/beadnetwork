@@ -631,9 +631,17 @@ type LiveBeadRow struct {
 	Gen     uint64
 }
 
-// LiveBeadFractions returns the FRACTIONAL progress t (0..1) of every in-flight bead on
-// this wire at tick, in FIFO order — the same t advanceBead computes for the moving bead's
-// position, exposed as the scalar it always was.
+// LiveBeadProgress is one in-flight bead's fractional progress and its VALUE. The value is
+// what the chain colours with: a lit chain bead takes bead 0's or bead 1's own fill, so
+// "which bead is lit" is not enough information on its own.
+type LiveBeadProgress struct {
+	T   float64 // fractional progress 0..1
+	Val int     // bead value (0|1)
+}
+
+// LiveBeadFractions returns the FRACTIONAL progress t (0..1) and VALUE of every in-flight
+// bead on this wire at tick, in FIFO order — the same t advanceBead computes for the moving
+// bead's position, exposed as the scalar it always was.
 //
 // This is what the chain-bead animation needs and ALL it needs (docs/beads-are-the-edge.md):
 // a chain is a fixed sequence, so "where has this traversal got to" is one number per bead
@@ -643,9 +651,9 @@ type LiveBeadRow struct {
 // this wire. That goroutine is now the SOURCE NODE's own mover (nodeMover.run drives its
 // outgoing wires), which is exactly why the node can light its own chain without reading
 // another goroutine's state.
-func (pw *PacedWire) LiveBeadFractions(tick int64) []float64 {
+func (pw *PacedWire) LiveBeadFractions(tick int64) []LiveBeadProgress {
 	nowTick := float64(tick)
-	out := make([]float64, 0, len(pw.inflight))
+	out := make([]LiveBeadProgress, 0, len(pw.inflight))
 	for i := range pw.inflight {
 		b := &pw.inflight[i]
 		crossTicks := pw.ticksToCross(b.arc)
@@ -663,7 +671,7 @@ func (pw *PacedWire) LiveBeadFractions(tick int64) []float64 {
 		if t < 0 {
 			t = 0
 		}
-		out = append(out, t)
+		out = append(out, LiveBeadProgress{T: t, Val: b.val})
 	}
 	return out
 }

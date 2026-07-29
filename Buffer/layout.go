@@ -195,6 +195,11 @@ type bufLayoutChainBead struct {
 	// fractional progress t on its own goroutine, then lights index = t × count. The
 	// renderer only colours what this column says.
 	Lit uint8 `buf:"u8"` // 1 = a traversal has reached this bead
+	// LitValue is the VALUE (0|1) of the traversal occupying this bead, meaningful only when
+	// Lit==1. The lit bead is drawn in bead 0's or bead 1's own fill, so the renderer needs
+	// the value, not just the fact of being lit — the whole animation is ONE fill-colour
+	// change against the grey resting chain.
+	LitValue int32 `buf:"i32"` // traversing bead's value (0|1); meaningful when Lit==1
 }
 
 // bufLayoutInterior defines one row of the interior-bead column block.
