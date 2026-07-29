@@ -49,7 +49,7 @@ func init() {
 			// EmitGeometry stays nil deliberately — nodeMover/edgeMover emit the same
 			// geometry from their own goroutine start (see builders.go's note).
 			// Left/HasLeft/Right/HasRight are runtime capture state, not injected —
-			// they start at their Go zero-values (0/false) exactly as reflectBuild
+			// they start at their Go zero-values (0/false) exactly as the retired reflection
 			// left them (no matching tag/type for reflection to populate).
 			return n, nil
 		})

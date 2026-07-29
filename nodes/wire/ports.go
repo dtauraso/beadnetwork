@@ -4,7 +4,7 @@
 // TryRecv / TrySend emit the corresponding trace event on success,
 // so a node cannot forget to trace, nor can it mis-type a port name
 // string — the port name lives in the wrapper and is set by
-// reflectBuild from the struct field name.
+// a kind's own builder, which passes the port name explicitly.
 //
 // Two backing modes:
 //   - chan mode (NewIn / NewOut): used by node unit tests. Non-blocking
@@ -51,7 +51,7 @@ type In struct {
 	// lazily resolves to the SAME sink every closure/port on this node shares. Recv flushes
 	// its own row-resolved RowEvent onto it (owner_events.go). The port announces events
 	// through the eventSink seam and never names the concrete interior-stream type. nil for
-	// a bare chan-mode In built outside reflectBuild (e.g. gatecommon test helpers) — the
+	// a bare chan-mode In built outside a kind's builder (e.g. gatecommon test helpers) — the
 	// nil check below skips the flush in that case.
 	stream func() EventSink
 	// portRow is this In's own buffer PORT-ROW index (isInput=true), resolved once at
@@ -99,7 +99,7 @@ func (i *In) PollRecv() (int, bool) {
 
 // flushRecvEvent records this receive as a row-resolved RowEvent on this In's owning
 // node's shared interior-stream frame. No-op when stream is unset (bare chan-mode In
-// built outside reflectBuild) or the node has no dedicated interior fd.
+// built outside a kind's builder) or the node has no dedicated interior fd.
 func (i *In) flushRecvEvent(value int) {
 	if i.stream == nil {
 		return
@@ -119,7 +119,7 @@ func (i *In) flushRecvEvent(value int) {
 // separate package from wire) uses. stream is this In's owning node's shared
 // event-sink getter, set at construction since the field is unexported and
 // the loader/builders live in a different package (nil for bare chan-mode
-// Ins built outside reflectBuild, e.g. gatecommon test helpers).
+// Ins built outside a kind's builder, e.g. gatecommon test helpers).
 func NewInChan(ch <-chan int, node, port string, tr *T.Trace, stream func() EventSink) *In {
 	return &In{ch: ch, node: node, port: port, trace: tr, portRow: -1, stream: stream}
 }
@@ -285,7 +285,7 @@ type Out struct {
 	Rule SendRule
 	// stream is this Out's owning node's shared event sink (injected by wireOutPort/
 	// wireOutMultiPort as an eventSink adapter) — see In.stream's doc comment and the
-	// eventSink seam. nil for a bare chan-mode Out built outside reflectBuild
+	// eventSink seam. nil for a bare chan-mode Out built outside a kind's builder
 	// (NewOutChanForTest, node unit tests).
 	stream func() EventSink
 	// portRow is this Out's own buffer PORT-ROW index (isInput=false); targetRow/
@@ -561,7 +561,7 @@ func (o *Out) PlaceDrivenAt(v int) DriveItem {
 	}
 	// chan mode (tests, or a production dead-end unwired Out): no drive needed, send
 	// now and return DriveSentChan. flushSendEvent no-ops when stream is unset (both
-	// cases: no reflectBuild-injected getter).
+	// cases: no builder-injected getter).
 	if o.ch != nil {
 		select {
 		case o.ch <- v:

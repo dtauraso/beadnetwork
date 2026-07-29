@@ -32,12 +32,12 @@ type Node struct {
 	wire.LayoutHolder
 	Fire         func()
 	EmitGeometry func()
-	// EmitHeldBead, injected by Wiring.reflectBuild, streams the held INPUT value
+	// EmitHeldBead, assigned by this kind's own builder, streams the held INPUT value
 	// as a SINGLE centered interior node-bead (present when held != noValue).
 	// Re-emitted at startup (held = noValue, empty interior) and whenever the held
 	// value changes.
 	EmitHeldBead func(held int)
-	// Clock is this node's OWN clock storage, seeded by Wiring.reflectBuild
+	// Clock is this node's OWN clock storage, assigned by this kind's own builder
 	// directly from the loader's origin (bare-field injection by exact type
 	// wire.Clock — see input.Node.Clock; ports no longer hand out a clock,
 	// per-goroutine-clock.md API demolition item 1). Update() Copies it once for
@@ -48,7 +48,7 @@ type Node struct {
 	// DriveSpeedCh does the same for the DRIVE goroutine's OWN independent
 	// copy (per-goroutine-clock.md "Delivery") — two separate clock-owning
 	// goroutines here need two separate channels. Seeded by
-	// Wiring.reflectBuild (injectSpeedChans); nil on a test build with no
+	// this kind's own builder via a.SpeedCh(); nil on a test build with no
 	// loader.
 	SpeedCh      <-chan float64
 	DriveSpeedCh <-chan float64
@@ -138,7 +138,7 @@ func init() {
 	// Two independent clock-owning goroutines (the MAIN loop and the DRIVE
 	// goroutine inside gatecommon.DriveHeld) need two independent speed
 	// channels, so a.SpeedCh() is called twice — once per channel, each still
-	// exactly once — matching reflectBuild's injectSpeedChans, which allocated
+	// exactly once — matching the retired injectSpeedChans, which allocated
 	// one channel per <-chan float64-typed field.
 	Wiring.RegisterBuilder("HoldFlip",
 		[]Wiring.PortSpec{

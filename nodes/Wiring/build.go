@@ -71,7 +71,7 @@ type buildCtx struct {
 	// speedSinks accumulates the SEND end of every speed channel created for
 	// any clock-owning goroutine across the whole build — edge movers
 	// (buildMoveDispatch, via newMoveDispatch) and per-node goroutines
-	// (buildNodes, via reflectBuild/injectSpeedChans). Returned by
+	// (buildNodes, via each kind's own builder calling a.SpeedCh()). Returned by
 	// buildFromSpec/LoadTopology (per-goroutine-clock.md "Delivery").
 	speedSinks []chan float64
 
@@ -344,7 +344,7 @@ func (b *buildCtx) buildNodes() error {
 				if ok {
 					pb.SetSinglePaced(port.Name, b.destWire[dk])
 				}
-				// If no inbound edge, reflectBuild falls back to dead-end chan.
+				// If no inbound edge, a.In() falls back to a dead-end chan.
 
 			case PortOut:
 				labels := b.outbound[n.ID][port.Name]
@@ -356,7 +356,7 @@ func (b *buildCtx) buildNodes() error {
 					lbl := labels[0]
 					pb.SetSinglePacedRule(port.Name, b.edgeWire[lbl], rule, b.edgeArc[lbl], b.edgeLatency[lbl], b.edgeSegments[lbl], lbl)
 				}
-				// If no outbound edge, reflectBuild falls back to dead-end chan.
+				// If no outbound edge, a.Out() falls back to a dead-end chan.
 
 			case PortBroadcast:
 				labels := b.outbound[n.ID][port.Name]

@@ -34,11 +34,11 @@ type PulseRight struct {
 	wire.LayoutHolder
 	Fire         func()
 	EmitGeometry func()
-	// EmitHeldBead, injected by Wiring.reflectBuild, streams the held value as a
+	// EmitHeldBead, assigned by this kind's own builder, streams the held value as a
 	// SINGLE centered interior node-bead (present when held != noValue). Re-emitted at
 	// startup (held = noValue, empty interior) and whenever the held value changes.
 	EmitHeldBead func(held int)
-	// Clock is this node's OWN clock storage, seeded by Wiring.reflectBuild
+	// Clock is this node's OWN clock storage, assigned by this kind's own builder
 	// directly from the loader's origin (bare-field injection by exact type
 	// wire.Clock — see input.Node.Clock; ports no longer hand out a clock,
 	// per-goroutine-clock.md API demolition item 1). Update() Copies it once
@@ -50,7 +50,7 @@ type PulseRight struct {
 	// independent copy (per-goroutine-clock.md "Delivery") — three separate
 	// clock-owning goroutines here need three separate channels, since sharing
 	// one across goroutines would silently starve whichever one loses a given
-	// receive. Seeded by Wiring.reflectBuild (injectSpeedChans); nil on a test
+	// receive. Assigned by this kind's own builder via a.SpeedCh(); nil on a test
 	// build with no loader.
 	SpeedCh     <-chan float64
 	Out1SpeedCh <-chan float64

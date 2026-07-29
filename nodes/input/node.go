@@ -12,13 +12,13 @@ type Node struct {
 	Fire         func()
 	EmitGeometry func()
 	// EmitNodeBeads streams the live interior buffer (2x2 grid) as node-bead
-	// events — one per present bead. Injected by Wiring.reflectBuild (captures this
-	// node's geometry). Called whenever working/backup change so the emitted set
+	// events — one per present bead. Assigned by this kind's own builder (captures
+	// this node's geometry). Called whenever working/backup change so the emitted set
 	// always reflects the live arrays. Discrete positions only this phase.
 	EmitNodeBeads func(working, backup []int)
 	// EmitRefillSlide runs the clock-paced animated refill: the OLD backup (top
-	// row) slides DOWN into the working (bottom) row at human speed. Injected by
-	// Wiring.reflectBuild; the caller supplies the CLOCK and SPEED CHANNEL at call
+	// row) slides DOWN into the working (bottom) row at human speed. Assigned by this
+	// kind's own builder; the caller supplies the CLOCK and SPEED CHANNEL at call
 	// time (its own already-Copy()'d clock and its own n.SpeedCh — see
 	// updateFeedbackRing's n.EmitRefillSlide(clk, n.SpeedCh, *backup) call), so
 	// this closure captures only this node's id + geometry, never a clock — see
@@ -31,26 +31,23 @@ type Node struct {
 	// back to the instant refill. beads is the OLD backup contents that become the
 	// new working row.
 	EmitRefillSlide func(clk wire.Clock, speedCh <-chan float64, beads []int)
-	// Clock is this node's OWN clock storage, seeded by Wiring.reflectBuild
+	// Clock is this node's OWN clock storage, assigned by this kind's own builder
 	// directly from the loader's origin (not derived from any specific wired
 	// output port — deriving it from ToTime/ToExcitatory/ToPacer was
 	// fragile: whichever port happened to be wired first controlled pacing, and
 	// per-goroutine-clock.md's API demolition removed port-derived clocks
-	// entirely anyway). reflectBuild injects by matching struct fields typed
-	// exactly `wire.Clock` (builders.go reflectBuild) — a bare field like this
-	// is an unguarded nil-interface trap on any construction path reflectBuild
-	// doesn't reach (a type rename that silently drops the injection, or a test
-	// building &Node{} directly): an unguarded `clk.Tick()` panics with no
+	// entirely anyway). A bare interface field like this is an unguarded
+	// nil-interface trap on any construction path that does not set it (a test
+	// building &Node{} directly, say): an unguarded `clk.Tick()` panics with no
 	// recover over the node goroutine, taking down every other node and the
-	// buffer stream with it. Defaulted to wire.NewRealClock() by the Register
-	// factory below so it is NEVER nil even before reflectBuild runs (or on a
-	// test build with no loader); clock() re-guards on every read as a second
-	// line of defense in case some future construction path bypasses the
-	// factory. Production reflectBuild always overwrites this with the real
-	// origin clock.
+	// buffer stream with it. The builder below defaults it to wire.NewRealClock()
+	// so it is NEVER nil even on a test build with no loader, and overwrites it
+	// with the loader's origin clock when there is one; clock() re-guards on
+	// every read as a second line of defense in case some future construction
+	// path bypasses the builder.
 	Clock wire.Clock
 	// SpeedCh delivers a speed change to THIS goroutine's own clk copy
-	// (per-goroutine-clock.md "Delivery"), seeded by Wiring.reflectBuild
+	// (per-goroutine-clock.md "Delivery"), assigned by this kind's own builder
 	// (injectSpeedChans) with a fresh buffered-1 channel. nil on a test build
 	// with no loader — ApplySpeedNonBlocking is then always a no-op.
 	SpeedCh <-chan float64
@@ -323,7 +320,7 @@ func init() {
 				// builds): a.Clock() below returns nil in that case (BuildArgs.Clock
 				// doc: "nil on a test build with no loader"), and this default is
 				// what previously came from the Register factory's zero-value seed
-				// (`&Node{Clock: wire.NewRealClock()}`) before reflectBuild ran.
+				// (`&Node{Clock: wire.NewRealClock()}`) the old registration supplied.
 				Clock: wire.NewRealClock(),
 			}
 			n.Fire = a.Fire()
@@ -331,7 +328,7 @@ func init() {
 			n.EmitRefillSlide = a.EmitRefillSlide()
 			// Only overwrite the constructor default when the loader supplies a
 			// real origin clock (a.Clock() is nil on a no-loader test build) —
-			// reflectBuild's injectClosures only injected Clock when pb.clock !=
+			// the retired injectClosures only injected Clock when pb.clock !=
 			// nil, leaving the bare-field/zero-value default untouched otherwise.
 			if clk := a.Clock(); clk != nil {
 				n.Clock = clk

@@ -66,7 +66,7 @@ import (
 //
 // clk is the ORIGIN clock this goroutine Copies from exactly ONCE at its own start
 // — the caller's own Clock field
-// (e.g. Pulse/HoldFlip's Node.Clock, injected by reflectBuild), not derived from out
+// (e.g. Pulse/HoldFlip's Node.Clock, assigned by its own builder), not derived from out
 // (port accessors are gone: API demolition item 1). nil only on a genuinely
 // clock-less build (unit tests with no loader): DriveHeld then falls back to a
 // raw wall-clock sleep and never applies a speed change, because there is no

@@ -248,7 +248,7 @@ func SendLatestNonBlocking(ch chan int64, v int64) {
 
 // inertClock is GONE (per-goroutine-clock.md API demolition item 3). It existed only
 // because an INJECTED clock could be ABSENT: an unwired In needed a non-nil thing to
-// return from a port accessor, and reflectBuild's type-matched field injection meant a
+// return from a port accessor, and the retired type-matched field injection meant a
 // rename could silently inject nothing, leaving an unguarded clk.Tick() to panic with no
 // recover over the node goroutine. A goroutine that constructs (or Copies) its own clock
 // cannot have a nil one — every clock-holder now gets a real *RealClock, seeded from the

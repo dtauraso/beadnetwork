@@ -51,7 +51,7 @@ type GateNode struct {
 	// timing, and therefore its interior-bead flicker, at a frozen speed
 	// regardless of the slider).
 	Tick func() int64
-	// Clock is this node's OWN clock storage, seeded by reflectBuild from the
+	// Clock is this node's OWN clock storage, assigned by the kind's own builder from the
 	// loader's origin (builders.go injectClosures, bare-field injection matched by
 	// exact type wire.Clock — see input.Node.Clock for the model this mirrors).
 	// RunGate Copies it exactly ONCE at its own goroutine's start; ports no
@@ -61,7 +61,7 @@ type GateNode struct {
 	// sleep in that case, exactly as before.
 	Clock wire.Clock
 	// SpeedCh delivers a speed change to RunGate's own clock copy
-	// (per-goroutine-clock.md "Delivery"), seeded by Wiring.reflectBuild
+	// (per-goroutine-clock.md "Delivery"), assigned by this kind's own builder
 	// (injectSpeedChans). nil on a test build with no loader / chan mode.
 	SpeedCh   <-chan float64
 	Left      int
@@ -302,14 +302,14 @@ func runGateLoop(ctx context.Context, g *GateNode, captureLeftFn, captureRightFn
 	// Copy taken ONCE at this goroutine's start (RunGate IS the goroutine, run
 	// once per gate node). This copy backs both now() and sleep() whenever the loader provided one
 	// (g.Clock != nil). g.Clock is this node's own clock storage (seeded by
-	// reflectBuild from the loader's origin); ports no longer hand out a clock
+	// the kind's own builder from the loader's origin); ports no longer hand out a clock
 	// (API demolition item 1), so this replaces the old g.ToPassed.Clock().Copy().
 	// g.Tick/defaultTick are kept only as the no-loader fallback for now() (unit
 	// tests with no loader), matching prior behavior there. The window/dwell
 	// timing that governs the gate's own interior-bead animation is speed-aware
 	// regardless of whether this gate happens to have a live out-wire in this
 	// topology — a gate with an unconnected ToPassed still owns a real Clock
-	// copy and SpeedCh (seeded unconditionally by reflectBuild whenever a
+	// copy and SpeedCh (requested unconditionally by the kind's builder whenever a
 	// loader is present).
 	var now func() int64
 	sleep := defaultSleep()

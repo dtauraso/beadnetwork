@@ -39,7 +39,7 @@ type PortBindings struct {
 	// by "node.handle" so the loader can index Outs by edge for node-move
 	// travel-time updates. Render/run paths leave it nil.
 	outSink map[string]*wire.Out
-	// clock is the loader's ORIGIN clock, read only by reflectBuild's injectClosures
+	// clock is the loader's ORIGIN clock, read only by BuildArgs.Clock/Tick
 	// (never by a port): it seeds a node's bare `Clock Wiring.Clock` field and the
 	// `Tick func() int64` closure at construction. Per per-goroutine-clock.md API
 	// demolition, ports/wires no longer hold or hand out a clock at all — a node's

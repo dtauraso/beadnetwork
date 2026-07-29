@@ -12,7 +12,7 @@ import (
 )
 
 // NodeBuilder is the public-facing type consumed by the loader.
-// Ports is derived lazily from reflection; Build delegates to reflectBuild.
+// Ports and Build both come from the kind itself, via RegisterBuilder.
 type NodeBuilder struct {
 	Ports []PortSpec
 	Build func(ctx context.Context, name string, data *NodeData, pb PortBindings, tr *T.Trace, geom nodeGeom, partnerCenter partnerCenterFn) (wire.Node, error)

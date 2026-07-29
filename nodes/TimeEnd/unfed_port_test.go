@@ -13,7 +13,7 @@
 // this package wires the input port, which is exactly why the crash went unnoticed.
 //
 // Per-goroutine-clock's API demolition removed In.Clock()/Out.Clock() entirely — a node now
-// carries its OWN Clock field (seeded by reflectBuild from the loader's origin) and
+// carries its OWN Clock field (assigned by its own builder from the loader's origin) and
 // Copies it once at its own goroutine's start, independent of whether any port is
 // wired. The nil-clock hazard this test guards moved from the port to that field;
 // see the Clock assertion below.
@@ -64,7 +64,7 @@ func TestUnfedRequiredPortLoadsAndStaysInert(t *testing.T) {
 	// that makes the bug class unrepresentable rather than merely unobserved.
 	// Per-goroutine-clock.md's API demolition removed In.Clock()/Out.Clock()
 	// entirely (port accessors go away) — the node's OWN Clock field, seeded by
-	// reflectBuild from the loader's origin, is what Update() Copies at its own
+	// its own builder from the loader's origin, is what Update() Copies at its own
 	// start instead, whether or not the In it also holds is wired.
 	if got := nodes[0].(*TimeEnd).Clock; got == nil {
 		t.Fatal("Node.Clock was nil for an unfed-port node — every pacing loop Copies it and calls SleepCycle unguarded")
