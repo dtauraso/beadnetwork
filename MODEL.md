@@ -51,7 +51,11 @@ the network itself is the nodes-and-wires Go runtime.
   see §Sending.
 - **Node goroutine.** Receives beads over its input port's channel,
   holds them in node-local state until its firing rule is satisfied,
-  then fires. There is no slot — node-local held state replaces it.
+  then fires. There is no held-value slot in this model sense — node-local held
+  state replaces it. (This is a different concept from the buffer's `Slot`
+  column — `nodes/wire/owner_events.go`, `Buffer/stream_events.go`,
+  `Buffer/layout.go` — which is a live 2x2 interior VISUAL grid position,
+  slot = gridRow*2 + gridCol, for where a held bead is drawn inside a node.)
 - **Input port.** One input port is one wire, and the wire's out-channel
   is the connection between them — the node receives whatever the wire
   goroutine sends.

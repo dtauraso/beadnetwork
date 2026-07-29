@@ -33,14 +33,14 @@ import (
 // Deliberately NOT asserted, unlike maxPendingEvents. Filling one of these inboxes is
 // not a bug: the sender keeps the message in its own pending queue and retries, which
 // is the designed backpressure. The thing that actually grows unbounded when an inbox
-// stays full is that retry queue (nodeMover.pending), and choosing ITS bound and
-// at-the-bound behaviour is docs/planning/visual-editor/session-log.md Step 3 — a decision, not a rename. Naming
+// stays full is that retry queue (nodeMover.pending) — ITS bound (maxPendingSends,
+// below) IS asserted, and enforced where nm.pending is checked in flushPending. Naming
 // this constant is the "declared" half of the rule; the "asserted" half belongs to
 // that queue, not to this capacity.
 const moverInboxDepth = 8
 
-// maxPendingSends is the declared upper bound on len(nm.pending) between
-// flushPending calls (docs/planning/visual-editor/session-log.md Step 3, "nm.pending"). GENEROUS ceiling,
+// maxPendingSends is the declared, asserted upper bound on len(nm.pending) between
+// flushPending calls (enforced below; see pending_bound_test.go). GENEROUS ceiling,
 // not a tight derivation, same honesty as maxPendingEvents/maxInflightBeads in
 // nodes/wire/paced_wire.go: nm.pending's own drain rate isn't a function of
 // moverInboxDepth (flushPending only ever attempts ONE real send per blocked

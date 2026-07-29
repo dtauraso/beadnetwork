@@ -95,8 +95,16 @@ spec"; the rest are behavioral. Sorted by how much they actually transfer here.
   INVARIANTS under adversarial scheduling and injected faults, across many randomized runs;
   the point is not matching a spec but that a failure replays byte-identically from a seed.
   Fits unusually well here, because the hard precondition is already met — Go owns the one
-  clock. NOT currently possible: `wire.Clock` is an interface but `RealClock` is its only
-  implementation, so every test paces on real wall time.
+  clock. NOW possible for the pieces that only need `time`/`RealClock`: `testing/synctest`
+  (Go 1.25) runs a test inside a bubble with a FAKE clock, where `time.Sleep` advances
+  time exactly with no scheduler jitter, so `RealClock` reads deterministic time and
+  assertions can be equalities instead of wall-clock inequalities with slack (see
+  `nodes/wire/clock_realclock_test.go`, `clock_copy_test.go`, `clock_speed_test.go`,
+  `nodes/Wiring/pending_bound_test.go`). This does not cover every test: pieces pacing on
+  a real goroutine schedule outside a bubble (e.g. a gate loop's own background ticking in
+  `nodes/gatecommon/gate_unwired_speed_test.go`) still sleep on real wall time — that test
+  waits up to 2s for a window to open and then sleeps 3.8s real time to prove a
+  speed-0 gate does NOT advance.
 
 ### Transfers as a framing
 

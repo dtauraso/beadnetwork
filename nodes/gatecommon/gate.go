@@ -369,7 +369,7 @@ func runGateLoop(ctx context.Context, g *GateNode, captureLeftFn, captureRightFn
 	}
 }
 
-// RunGate runs the shared window-and-inhibit gate loop.
+// RunGate runs the shared SelectRight/SelectLeft gate loop.
 // invertLeft=true  → the LEFT input is NOT-inverted on capture  (SelectRight).
 // invertLeft=false → the RIGHT input is NOT-inverted on capture (SelectLeft).
 // Fires 1 iff the STORED (post-inversion) values are Left==1 AND Right==1.
@@ -386,7 +386,7 @@ func RunGate(ctx context.Context, g *GateNode, invertLeft bool) {
 	)
 }
 
-// RunGateAccept runs the shared window-and-inhibit gate loop with NO inversion on
+// RunGateAccept runs the shared SelectRight/SelectLeft gate loop with NO inversion on
 // capture (raw FromLeft/FromRight values are stored as-is — no NOT gates) and
 // fires 1 iff the raw stored values DIRECTLY match the given pattern
 // (Left==expectLeft && Right==expectRight). This expresses an acceptance pattern

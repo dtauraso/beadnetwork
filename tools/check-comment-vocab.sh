@@ -74,6 +74,11 @@ readonly DEAD_COMMENT_TOKENS=(
   # over geometry — there is no counterpart to mirror. Ban the specific false claim
   # (not bare "geometry-helpers.ts", which is a real screen-coord file still referenced).
   "Go mirror of the port-to-port segment geometry"
+  # stale-audit round (2026-07-28): WindowAndInhibit*Gate is retired vocabulary; the live
+  # kinds are SelectRight/SelectLeft (memory/project_node_color_vocab.md). gate.go's
+  # RunGate/RunGateAccept doc comments called it a "window-and-inhibit gate loop", which
+  # re-teaches the old kind name.
+  "window-and-inhibit gate loop"
 )
 
 fail=0
