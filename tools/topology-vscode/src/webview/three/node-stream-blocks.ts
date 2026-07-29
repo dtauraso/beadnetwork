@@ -34,7 +34,7 @@ import {
   PORT_COL_PORT_NAME_OFF, PORT_COL_PORT_NAME_LEN,
   LAYOUT_LINK_STRIDE, LAYOUT_LINK_COL_SRC_NODE_ROW, LAYOUT_LINK_COL_DST_NODE_ROW,
   readNodeCX, readNodeCY, readNodeCZ,
-  readChainBeadOX, readChainBeadOY, readChainBeadOZ, readChainBeadLit,
+  readChainBeadOX, readChainBeadOY, readChainBeadOZ, readChainBeadLit, readChainBeadLitValue,
 } from "../../schema/buffer-layout";
 
 const STR_ENCODER = new TextEncoder();
@@ -267,6 +267,10 @@ export interface ChainBeadsAgg {
    *  only colours what the column says. All-zero is the normal resting state of a chain
    *  with nothing traversing it. */
   lit: Uint8Array;
+  /** Per-bead traversing-bead VALUE (0|1), parallel to positions; meaningful only where lit
+   *  is 1. The lit bead wears bead 0's or bead 1's own fill, so the value travels with the
+   *  flag — the animation is one fill change, and the fill depends on which value arrived. */
+  litValue: Int32Array;
 }
 
 let lastChainVersion = -1;
@@ -299,6 +303,7 @@ export function getChainBeads(): ChainBeadsAgg {
   }
   const positions = new Float32Array(total * 3);
   const lit = new Uint8Array(total);
+  const litValue = new Int32Array(total);
   let w = 0;
   let b = 0;
   for (const decoded of decodedByRow) {
@@ -311,10 +316,11 @@ export function getChainBeads(): ChainBeadsAgg {
       positions[w++] = cx + readChainBeadOX(decoded.chainBeadView, i);
       positions[w++] = cy + readChainBeadOY(decoded.chainBeadView, i);
       positions[w++] = cz + readChainBeadOZ(decoded.chainBeadView, i);
+      litValue[b] = readChainBeadLitValue(decoded.chainBeadView, i);
       lit[b++] = readChainBeadLit(decoded.chainBeadView, i);
     }
   }
   lastChainVersion = nv;
-  lastChainAgg = { positions, count: total, lit };
+  lastChainAgg = { positions, count: total, lit, litValue };
   return lastChainAgg;
 }

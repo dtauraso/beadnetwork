@@ -134,6 +134,23 @@ const ShadingParamTubeEmissiveIntensity = 0.8
 // --- Bead appearance (PulseBead) ------------------------------------------
 // The in-flight bead sphere. Mirrors the meshStandardMaterial on PulseBead.
 
+// ShadingParamBeadRadius is the sphere radius of a bead — the 0/1 beads AND the grey chain
+// beads, which are the same size and structure by design (a chain bead is a grey version of
+// bead 1, not a smaller marker). Mirrored into TS as SHADING_PARAM_BEAD_RADIUS, and read
+// Go-side by chain_beads.go to space the chain at exactly one DIAMETER so adjacent beads
+// TOUCH: a chain is a solid line of beads, not a dotted one, so there is no gap to tune and
+// no second copy of the radius to drift.
+const ShadingParamBeadRadius = 4.0
+
+// ShadingParamBeadRingTubeRatio is a bead ring's torus tube radius as a fraction of
+// ShadingParamBeadRadius. Same for chain beads as for the 0/1 beads — same structure.
+const ShadingParamBeadRingTubeRatio = 0.12
+
+// ShadingParamChainBeadFill is the UNLIT chain bead's fill: bead 1's structure (white fill,
+// black ring) with the fill greyed. A traversal is then a pure FILL colour change to bead 0's
+// or bead 1's own fill — no size change, no ring change, one visual difference.
+const ShadingParamChainBeadFill = "#8a8a8a"
+
 // ShadingParamBeadColor is the in-flight bead color.
 const ShadingParamBeadColor = "#ffffff"
 

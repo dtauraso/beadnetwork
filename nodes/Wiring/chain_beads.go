@@ -26,8 +26,13 @@ package Wiring
 // ~1.5s at N≈40. Every offset here is index × spacing along this node's own aim at the
 // target: dependency depth 1, which that same memory names as the one escape.
 
-// chainBeadSpacing is the CONSTANT world distance between adjacent chain beads. Constant
-// spacing is what makes uniform pulse speed structural rather than computed
+// chainBeadSpacing is the CONSTANT world distance between adjacent chain beads: exactly one
+// bead DIAMETER, so adjacent beads TOUCH and a chain reads as a solid line with no gaps.
+// Derived from ShadingParamBeadRadius (shading_params.go), the same constant the renderer
+// sizes a bead from — so the "no gaps" property cannot drift into a gap by one side changing
+// its own copy of the radius.
+//
+// Constant spacing is also what makes uniform pulse speed structural rather than computed
 // (memory/feedback_uniform_pulse_speed.md): with the count proportional to length
 // (count = len/spacing), a constant dwell per bead gives
 //
@@ -37,9 +42,9 @@ package Wiring
 // arc-length division to do — a long chain simply has more beads, each dwelt on for the same
 // time. See docs/beads-are-the-edge.md open question 4.
 //
-// It is a chosen constant, not derived from anything: it sets how finely a traversal is
-// quantised visually. Stated outright rather than dressed up as a derivation.
-const chainBeadSpacing = 12.0
+// How finely a traversal is quantised visually therefore follows from the bead SIZE rather
+// than being its own knob: touching beads is the spec, so the step is a diameter.
+const chainBeadSpacing = 2 * ShadingParamBeadRadius
 
 // chainBeads returns THIS node's own placeholder chain beads as node-local offsets, in
 // outgoing-edge order (m.outTargets), each edge's beads ordered outward from this node.
@@ -58,12 +63,12 @@ const chainBeadSpacing = 12.0
 // A target with no known center, or one sitting on top of this node (zero-length offset, no
 // defined direction), contributes NO beads rather than beads at a made-up direction.
 //
-// The returned `lit` slice is parallel to the offsets: 1 on the bead each in-flight
-// traversal has reached, 0 elsewhere. A chain with nothing traversing it is fully populated
+// The returned `lit`/`litVal` slices are parallel to the offsets: 1 on the bead each
+// in-flight traversal has reached (with that traversal's bead VALUE alongside), 0 elsewhere. A chain with nothing traversing it is fully populated
 // and entirely unlit — that resting state is normal, not an absence of data.
-func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8) {
+func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []int32) {
 	if len(m.outTargets) == 0 {
-		return nil, nil, nil, nil
+		return nil, nil, nil, nil, nil
 	}
 	self := nodeWorldPos(m.geom)
 	// Read the clock only when there is a wire to ask about — m.clk is nil in tests that
@@ -95,13 +100,15 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8) {
 		// traversal got to" is one number. index = t × count is that number quantised onto
 		// the beads that already exist — arithmetic on an index, not a re-derived position
 		// (memory/feedback_abc_times_constant_not_rederive.md).
-		litIdx := map[int]bool{}
+		// index -> the traversing bead's VALUE. The value travels because the lit bead takes
+		// bead 0's or bead 1's own fill: a bare "is lit" flag could not say which.
+		litIdx := map[int]int32{}
 		for i, target := range m.outWireTargets {
 			if target != to || m.outWires[i] == nil {
 				continue
 			}
-			for _, t := range m.outWires[i].LiveBeadFractions(tick) {
-				litIdx[int(t*float64(int(length/chainBeadSpacing)))] = true
+			for _, p := range m.outWires[i].LiveBeadFractions(tick) {
+				litIdx[int(p.T*float64(int(length/chainBeadSpacing)))] = int32(p.Val)
 			}
 		}
 		// count = len/spacing, the length-proportional count the constant-spacing argument
@@ -113,12 +120,14 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8) {
 			ox = append(ox, float32(p.X))
 			oy = append(oy, float32(p.Y))
 			oz = append(oz, float32(p.Z))
+			v, isLit := litIdx[i]
 			var l uint8
-			if litIdx[i] {
+			if isLit {
 				l = 1
 			}
 			lit = append(lit, l)
+			litVal = append(litVal, v)
 		}
 	}
-	return ox, oy, oz, lit
+	return ox, oy, oz, lit, litVal
 }
