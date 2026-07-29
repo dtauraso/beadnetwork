@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# .githooks/pre-push — run the full verify suite before anything leaves this machine.
+#
+# WHY THIS EXISTS: until now every tools/check-*.sh ran in exactly ONE place — the Claude
+# Stop hook in .claude/settings.json. Anything that commits without that hook firing was
+# unverified: a `git commit` typed at the terminal, a subagent committing on a task branch,
+# or a session that ends some other way. Push is the moment content stops being local and
+# becomes shared, so it is the moment worth gating. Commit stays ungated on purpose —
+# committing is cheap, frequent, and one `git reset --soft HEAD~1` from undone.
+#
+# This is a LOCAL git hook. It is not CI: no remote service, no minutes, works offline.
+#
+# TRACKED, not installed into .git/hooks: a hook living only in .git/hooks is invisible
+# local state that vanishes on a fresh clone and cannot be reviewed. Keeping it here makes
+# it ordinary reviewable code. The cost is that git must be told to look here:
+#
+#   git config core.hooksPath .githooks
+#
+# tools/check-hooks-allowlist.sh FAILS when that config is missing, so an uninstalled hook
+# is loud rather than silently inert — the failure mode that would otherwise make this
+# whole file theatre.
+#
+# Calls verify.sh (--cli mode) rather than stop-checks.sh directly: stop-checks ALWAYS exits
+# 0 by design, signalling failure as JSON on stdout for the Stop-hook protocol. A git hook
+# needs a nonzero exit, which is exactly what --cli was built for.
+#
+# To push past a known-failing suite (rare, deliberate): git push --no-verify
+set -euo pipefail
+
+# Hooks run with cwd at the top of the working tree, but be explicit — a push from a
+# subdirectory or a worktree must check the tree it is actually pushing.
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+echo "pre-push: verifying $REPO_ROOT ..." >&2
+exec bash "$REPO_ROOT/scripts/verify.sh"
