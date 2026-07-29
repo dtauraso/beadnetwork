@@ -68,12 +68,19 @@ become one unit. Deleting `nodes/5/` deletes node 5's edges with it, instead of 
 `edges/2To5.json` dangling as it does today. Reading one directory answers "what is this
 node, and what does it point at?" without consulting a second tree.
 
-**What it costs:** in-edges are not local. Finding what points *at* node 9 means scanning
-every node's `edges/`. That is inherent to an adjacency list, and it is affordable here —
-fan-in is rejected at parse (`validateNoFanIn`), so an input port has at most one incoming
-edge, and load already walks every node directory anyway. Do **not** fix this by also
-recording the edge under the target node: that is the same fact in two places, which is the
-drift this layout exists to remove.
+**What it costs: nothing.** The textbook objection to an adjacency list is that in-edges are
+expensive — but nothing here ever asks for them. Every use of an edge's target is built
+during a SINGLE full pass over all edges (`buildEdgeMaps`' `inbound` map, `loader_layout`'s
+`neighbors`); there is no query of the form "find the edges pointing at node 9". Walking
+every node's `edges/` yields the identical complete edge list in one sweep, and those maps
+get built from it exactly as they are today.
+
+That is a consequence of the model, not luck: each goroutine takes its own state from its
+own place in the tree. Nothing traverses the graph hunting for relationships — an edge
+belongs to its source, and the target learns of it when the source's edge is wired.
+
+Do **not** "fix" a non-problem by also recording the edge under the target node: that is the
+same fact in two places, which is the drift this layout exists to remove.
 
 ## The model
 
