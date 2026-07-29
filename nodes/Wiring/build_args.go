@@ -7,9 +7,9 @@
 // nodes/Time.
 //
 // The cost of that is silence. Nothing checks a field name against what the injector
-// looks for, so renaming `Fire` to `OnFire` does not fail to compile — the field simply
-// stays nil and the node quietly never traces a fire. Same for a mistyped tag, or a port
-// field whose type drifts.
+// looks for, so renaming the `Fire` field to anything else does not fail to compile — it
+// simply stays nil and the node quietly never traces a fire. Same for a mistyped tag, or a
+// port field whose type drifts.
 //
 // With BuildArgs a kind writes plain assignments:
 //

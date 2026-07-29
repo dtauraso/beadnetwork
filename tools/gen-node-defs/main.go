@@ -353,8 +353,8 @@ func hasRegister(dir string) bool {
 		}
 		// Register moved from nodes/Wiring to the leaf nodes/wire package
 		// (task/wiring-decompose); node packages now call wire.Register.
-		// NOTE "Wiring.RegisterBuilder(" is NOT matched by "Wiring.Register(" — that marker
-		// requires the paren immediately after "Register", so it must be listed separately.
+		// The RegisterBuilder marker must be listed SEPARATELY: the older marker ends with
+		// the open paren immediately after Register, which RegisterBuilder does not match.
 		// Missing it made a self-constructing kind vanish from NODE_DEFS and from
 		// kinds_generated.go while the Go build stayed green.
 		if bytes.Contains(data, []byte("Wiring.RegisterBuilder(")) ||
