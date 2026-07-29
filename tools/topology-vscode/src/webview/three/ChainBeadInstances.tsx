@@ -5,10 +5,12 @@
 // are never drawn — and its length is not a count of messages: a chain sits fully populated
 // with nothing traversing it.
 //
-// A chain bead is BEAD 1 IN THE EDGE'S OWN COLOUR: same radius, same two-mesh structure (fill
-// sphere + ring torus), with the fill set to SHADING_PARAM_TUBE_COLOR — the colour the wire
-// tubes use — because the chain IS the edge visual and should read as the same object. Beads sit one DIAMETER apart so they TOUCH — a chain
-// is a solid line of beads, not a dotted one. Both the radius and the spacing come from the
+// A chain bead is BEAD 1 WEARING THE EDGE'S OWN MATERIAL: same radius, same fill-sphere +
+// ring-torus structure, and — for a resting bead — the wire tube's WHOLE material, not just its
+// base colour (color + emissive + emissiveIntensity, the same three props EdgeTube.tsx sets).
+// Copying only the colour left the chain visibly duller than the lines it replaces. The chain IS
+// the edge visual, so it has to read as the same object. Beads sit one DIAMETER apart so they
+// TOUCH — a chain is a solid line of beads, not a dotted one. Both the radius and the spacing come from the
 // same ShadingParamBeadRadius constant (Go-owned, mirrored into TS), so "no gaps" cannot drift
 // into a gap by one side editing its own copy.
 //
@@ -31,22 +33,30 @@ import {
   SHADING_PARAM_BEAD_RADIUS,
   SHADING_PARAM_BEAD_RING_TUBE_RATIO,
   SHADING_PARAM_TUBE_COLOR,
+  SHADING_PARAM_TUBE_EMISSIVE,
+  SHADING_PARAM_TUBE_EMISSIVE_INTENSITY,
 } from "../../schema/shading-params";
 
 // Bead 1's own ring, worn by every chain bead whether lit or not — the ring is not part of the
 // animation, so it never changes and is read once here.
 const RING_COLOR = beadStyleForValue(1)!.ring;
 
+// The tube's own emissive colour, read once — an unlit bead must match the wire tube exactly
+// (same color/emissive/emissiveIntensity triple as EdgeTube.tsx), not just its base colour.
+const TUBE_EMISSIVE_COLOR = new THREE.Color(SHADING_PARAM_TUBE_EMISSIVE);
+
 export function ChainBeadInstances({ capacity }: { capacity: number }) {
-  const bodyRef = useRef<THREE.InstancedMesh>(null);
+  const unlitBodyRef = useRef<THREE.InstancedMesh>(null);
+  const litBodyRef = useRef<THREE.InstancedMesh>(null);
   const ringRef = useRef<THREE.InstancedMesh>(null);
   const matRef = useRef(new THREE.Matrix4());
   const colRef = useRef(new THREE.Color());
 
   useFrame(() => {
-    const body = bodyRef.current;
+    const unlitBody = unlitBodyRef.current;
+    const litBody = litBodyRef.current;
     const ring = ringRef.current;
-    if (!body || !ring) return;
+    if (!unlitBody || !litBody || !ring) return;
 
     const { positions, count, lit, litValue } = getChainBeads();
     // Clamp to the allocated instance count. buffer-scene.tsx's capacity-growth table grows
@@ -54,34 +64,60 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
     // clamp, and it is why this block has its OWN row in that table rather than borrowing
     // another block's cap (the layout-link overlay silently lost links doing that).
     const drawn = Math.min(count, capacity);
+
+    // Emissive is a per-MATERIAL property, not a per-instance one (setColorAt only ever
+    // reaches the base colour), so one instanced mesh cannot hold both a glowing unlit bead
+    // (matching the tube's material exactly) and a flat black/white lit bead. The body is
+    // therefore split into two meshes: unlit beads compact into unlitBody, lit beads (with a
+    // style) compact into litBody. The ring keeps its single mesh — it never glows either way.
+    let unlitCount = 0;
+    let litCount = 0;
     for (let i = 0; i < drawn; i++) {
       matRef.current.makeTranslation(positions[i * 3]!, positions[i * 3 + 1]!, positions[i * 3 + 2]!);
-      body.setMatrixAt(i, matRef.current);
       ring.setMatrixAt(i, matRef.current);
+      ring.setColorAt(i, colRef.current.set(RING_COLOR));
 
       // The ONE visual difference: an occupied bead wears its traversal's own fill, an empty
-      // one wears the edge colour. A Lit bead whose value is not 0|1 has no style — that is a Go bug
-      // rather than a colour to invent, so it stays edge-coloured instead of painting a fake one
-      // (bead-style.ts's own stance on a non-0/1 value), i.e. it stays edge-coloured.
+      // one wears the edge tube's own material. A lit bead whose value is not 0|1 has no
+      // style — that is a Go bug rather than a colour to invent, so it stays edge-coloured
+      // instead of painting a fake one (bead-style.ts's own stance on a non-0/1 value).
       const style = lit[i] === 1 ? beadStyleForValue(litValue[i]) : undefined;
-      body.setColorAt(i, colRef.current.set(style ? style.fill : SHADING_PARAM_TUBE_COLOR));
-      ring.setColorAt(i, colRef.current.set(RING_COLOR));
+      if (style) {
+        litBody.setMatrixAt(litCount, matRef.current);
+        litBody.setColorAt(litCount, colRef.current.set(style.fill));
+        litCount++;
+      } else {
+        unlitBody.setMatrixAt(unlitCount, matRef.current);
+        unlitCount++;
+      }
     }
-    body.count = drawn;
+    unlitBody.count = unlitCount;
+    litBody.count = litCount;
     ring.count = drawn;
-    body.instanceMatrix.needsUpdate = true;
+    unlitBody.instanceMatrix.needsUpdate = true;
+    litBody.instanceMatrix.needsUpdate = true;
     ring.instanceMatrix.needsUpdate = true;
-    if (body.instanceColor) body.instanceColor.needsUpdate = true;
+    if (litBody.instanceColor) litBody.instanceColor.needsUpdate = true;
     if (ring.instanceColor) ring.instanceColor.needsUpdate = true;
   });
 
   return (
     <>
-      {/* Body + ring: the SAME two-mesh structure and the SAME radius as the 0/1 beads, from
-          the shared ShadingParamBead* constants — a chain bead is a recoloured bead, not a
-          different marker. The material colour stays white so instanceColor applies verbatim
-          (same reasoning as NodeInstances). */}
-      <instancedMesh ref={bodyRef} args={[undefined, undefined, capacity]} frustumCulled={false}>
+      {/* Unlit body: every bead here is identical (the edge's own colour), so this mesh needs
+          no setColorAt/instanceColor at all — the material alone carries the tube's full
+          color+emissive+emissiveIntensity triple, same three props as EdgeTube.tsx, so a resting
+          chain reads as the same glowing object as the wire it sits on. */}
+      <instancedMesh ref={unlitBodyRef} args={[undefined, undefined, capacity]} frustumCulled={false}>
+        <sphereGeometry args={[SHADING_PARAM_BEAD_RADIUS, 16, 16]} />
+        <meshStandardMaterial
+          color={SHADING_PARAM_TUBE_COLOR}
+          emissive={TUBE_EMISSIVE_COLOR}
+          emissiveIntensity={SHADING_PARAM_TUBE_EMISSIVE_INTENSITY}
+        />
+      </instancedMesh>
+      {/* Lit body: flat (non-glowing) 0/1 bead colours via instanceColor, same reasoning as
+          NodeInstances — material colour stays white so instanceColor applies verbatim. */}
+      <instancedMesh ref={litBodyRef} args={[undefined, undefined, capacity]} frustumCulled={false}>
         <sphereGeometry args={[SHADING_PARAM_BEAD_RADIUS, 16, 16]} />
         <meshStandardMaterial emissiveIntensity={0} />
       </instancedMesh>
