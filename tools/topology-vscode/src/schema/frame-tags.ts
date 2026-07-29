@@ -96,14 +96,15 @@ export const BUF_BLOCK_TAG_INTERIOR_STREAM = 7;
 /**
  * BufNodeStreamFrameHeaderSize is the byte width of the leading header on one node's
  * combined per-fd frame (Buffer.BuildNodeStreamFrame), before the Node row:
- * [tick:u32][portCount:u32][labelLen:u32][portNameBytesCount:u32][layoutLinkCount:u32].
+ * [tick:u32][portCount:u32][labelLen:u32][portNameBytesCount:u32][layoutLinkCount:u32]
+ * [chainBeadCount:u32].
  * The rest of that frame's layout: one BufNodeStride row (LabelOff=0 into this frame's own
  * label bytes) + labelLen label bytes + portCount × BufPortStride port rows (each row's
  * NodeRow column already the global node row) + portNameBytesCount port-name bytes +
  * layoutLinkCount × BufNodeStreamLayoutLinkStride layout-link rows (this node's OWN
  * outbound layout-links — see buffer-decode.ts's DecodedNodeStreamFrame doc comment).
  */
-export const BUF_NODE_STREAM_FRAME_HEADER_SIZE = 20;
+export const BUF_NODE_STREAM_FRAME_HEADER_SIZE = 24;
 
 /**
  * BufNodeStreamLayoutLinkStride is the byte width of ONE layout-link (cascade-link
@@ -114,6 +115,16 @@ export const BUF_NODE_STREAM_FRAME_HEADER_SIZE = 20;
  * cascade-link overlay draws between the two nodes' CENTERS, never along a bead edge.
  */
 export const NODE_STREAM_LAYOUT_LINK_STRIDE = 4;
+
+/**
+ * BufNodeStreamChainBeadStride is the byte width of ONE chain-bead row within a node
+ * stream frame: [OX:f32][OY:f32][OZ:f32]. NODE-LOCAL offsets from this node's own center,
+ * the same convention the Interior block uses (Buffer/layout.go's OX/OY/OZ: "the renderer
+ * adds the node center to get the world position"). Node-local is what makes moving a node
+ * constant time — the center changes and the whole chain rides along untouched; only a
+ * NEIGHBOUR moving re-aims a chain. See docs/beads-are-the-edge.md.
+ */
+export const NODE_STREAM_CHAIN_BEAD_STRIDE = 12;
 
 /**
  * BufInteriorStreamFrameHeaderSize is the byte width of the leading header on one node's

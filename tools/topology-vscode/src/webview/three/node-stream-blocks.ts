@@ -26,12 +26,15 @@ import {
   decodeNodeStreamFrame, decodeInteriorStreamFrame,
   readNodeStreamLayoutLinkDstNodeRow,
   type DecodedNodeFrame,
+  type DecodedNodeStreamFrame,
 } from "./buffer-decode";
 import {
   NODE_STRIDE, PORT_STRIDE, INTERIOR_STRIDE, INTERIOR_SLOTS_PER_NODE,
   NODE_COL_LABEL_OFF, NODE_COL_LABEL_LEN,
   PORT_COL_PORT_NAME_OFF, PORT_COL_PORT_NAME_LEN,
   LAYOUT_LINK_STRIDE, LAYOUT_LINK_COL_SRC_NODE_ROW, LAYOUT_LINK_COL_DST_NODE_ROW,
+  readNodeCX, readNodeCY, readNodeCZ,
+  readChainBeadOX, readChainBeadOY, readChainBeadOZ,
 } from "../../schema/buffer-layout";
 
 const STR_ENCODER = new TextEncoder();
@@ -244,4 +247,66 @@ function buildAggregate(
     labelBytes: labelBytesOut,
     portNameBytes: portNameBytesOut,
   };
+}
+
+/** One node's placeholder chain beads, resolved to WORLD positions. The buffer carries
+ *  NODE-LOCAL offsets (Go owns them, docs/beads-are-the-edge.md); this adds that node's own
+ *  streamed center, exactly as the Interior block's slots are resolved — one add, no
+ *  interpolation, no layout decision on this side.
+ *
+ *  A chain is the VISUAL of a traversal along this node's outgoing edges. It is NOT a
+ *  picture of the node-to-node channels, and its length is not a count of messages: a chain
+ *  sits fully populated with nothing traversing it. */
+export interface ChainBeadsAgg {
+  /** World-space bead centers, flat [x,y,z, x,y,z, …], every node's chains concatenated. */
+  positions: Float32Array;
+  /** Number of beads (positions.length / 3). */
+  count: number;
+}
+
+let lastChainVersion = -1;
+let lastChainAgg: ChainBeadsAgg | null = null;
+
+/**
+ * getChainBeads aggregates every per-node NODE stream's own chain beads into one
+ * world-space position array. Each node contributes its own chains only — the source node
+ * owns the whole chain for each of its outgoing edges (edges are stored under their source,
+ * .claude/rules/persistence-ownership.md), so no bead is contributed twice and no bead's
+ * position depends on any other bead's.
+ *
+ * Empty until at least one node stream frame has arrived. Cached on the node-frame version,
+ * mirroring getLayoutLinks, so an unchanged scene re-uses the same array identity.
+ */
+export function getChainBeads(): ChainBeadsAgg {
+  const nodeFrames = getLatestNodeStreamFrames();
+  const nv = getNodeStreamVersion();
+  if (lastChainAgg !== null && nv === lastChainVersion) {
+    return lastChainAgg;
+  }
+  // Decode per row, same walk getLayoutLinks does — the frame map holds raw buffers.
+  const decodedByRow: DecodedNodeStreamFrame[] = [];
+  let total = 0;
+  for (const [row, buf] of nodeFrames) {
+    const decoded = decodeNodeStreamFrame(row, buf);
+    if (!decoded) continue;
+    decodedByRow.push(decoded);
+    total += decoded.chainBeadCount;
+  }
+  const positions = new Float32Array(total * 3);
+  let w = 0;
+  for (const decoded of decodedByRow) {
+    // This node's own streamed center — the offsets are relative to it (Interior-block
+    // convention). One add per bead; no interpolation and no layout decision here.
+    const cx = readNodeCX(decoded.nodeView, 0);
+    const cy = readNodeCY(decoded.nodeView, 0);
+    const cz = readNodeCZ(decoded.nodeView, 0);
+    for (let i = 0; i < decoded.chainBeadCount; i++) {
+      positions[w++] = cx + readChainBeadOX(decoded.chainBeadView, i);
+      positions[w++] = cy + readChainBeadOY(decoded.chainBeadView, i);
+      positions[w++] = cz + readChainBeadOZ(decoded.chainBeadView, i);
+    }
+  }
+  lastChainVersion = nv;
+  lastChainAgg = { positions, count: total };
+  return lastChainAgg;
 }

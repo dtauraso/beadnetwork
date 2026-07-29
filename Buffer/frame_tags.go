@@ -92,7 +92,8 @@ const BufBlockTagInteriorStream byte = 7
 
 // BufNodeStreamFrameHeaderSize is the byte width of the leading header on one node's
 // combined per-fd frame (Buffer.BuildNodeStreamFrame), before the Node row:
-// [tick:u32][portCount:u32][labelLen:u32][portNameBytesCount:u32][layoutLinkCount:u32].
+// [tick:u32][portCount:u32][labelLen:u32][portNameBytesCount:u32][layoutLinkCount:u32]
+// [chainBeadCount:u32].
 // The rest of that frame's layout: one BufNodeStride row (LabelOff=0 into this frame's own
 // label bytes) + labelLen label bytes + portCount × BufPortStride port rows (each row's
 // NodeRow column already the global node row) + portNameBytesCount port-name bytes +
@@ -100,7 +101,7 @@ const BufBlockTagInteriorStream byte = 7
 // outbound layout-links — see buffer-decode.ts's DecodedNodeStreamFrame doc comment).
 //
 //frametag:ts=BUF_NODE_STREAM_FRAME_HEADER_SIZE
-const BufNodeStreamFrameHeaderSize = 20
+const BufNodeStreamFrameHeaderSize = 24
 
 // BufNodeStreamLayoutLinkStride is the byte width of ONE layout-link (cascade-link
 // overlay) row within a node stream frame: [DstNodeRow:i32]. Narrower than the combined
@@ -111,6 +112,16 @@ const BufNodeStreamFrameHeaderSize = 20
 //
 //frametag:ts=NODE_STREAM_LAYOUT_LINK_STRIDE
 const BufNodeStreamLayoutLinkStride = 4
+
+// BufNodeStreamChainBeadStride is the byte width of ONE chain-bead row within a node
+// stream frame: [OX:f32][OY:f32][OZ:f32]. NODE-LOCAL offsets from this node's own center,
+// the same convention the Interior block uses (Buffer/layout.go's OX/OY/OZ: "the renderer
+// adds the node center to get the world position"). Node-local is what makes moving a node
+// constant time — the center changes and the whole chain rides along untouched; only a
+// NEIGHBOUR moving re-aims a chain. See docs/beads-are-the-edge.md.
+//
+//frametag:ts=NODE_STREAM_CHAIN_BEAD_STRIDE
+const BufNodeStreamChainBeadStride = 12
 
 // BufInteriorStreamFrameHeaderSize is the byte width of the leading header on one node's
 // INTERIOR per-fd frame (Buffer.BuildInteriorStreamFrame), before the interior rows:

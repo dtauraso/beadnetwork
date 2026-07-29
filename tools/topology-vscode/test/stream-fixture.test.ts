@@ -46,6 +46,9 @@ import {
   readNodeGotForwardMsg, readNodeForwardDeltaA, readNodeForwardDeltaB, readNodeForwardDeltaC,
   readNodeForwardFromRow,
   readNodeCascadeRelay,
+  readChainBeadOX,
+  readChainBeadOY,
+  readChainBeadOZ,
   readPortNodeRow, readPortDX, readPortDY, readPortDZ, readPortPX, readPortPY, readPortPZ,
   readPortIsInput, readPortHovered, readPortPortNameLen, readPortPortNameOff,
   readEdgeSrcPortRow, readEdgeDstPortRow, readEdgeSelected,
@@ -71,6 +74,7 @@ interface NodeFrameFixture {
   gotForwardMsg: number; forwardDeltaA: number; forwardDeltaB: number; forwardDeltaC: number;
   forwardFromRow: number;
   cascadeRelay: number;
+  chainBeads: { ox: number; oy: number; oz: number }[];
   label: string;
   ports: PortFixture[];
   layoutLinks: LayoutLinkFixture[];
@@ -185,6 +189,17 @@ describe("stream fixture cross-language decode", () => {
     expect(readNodeForwardDeltaC(nv, 0), "forwardDeltaC").toBe(want.forwardDeltaC);
     expect(readNodeForwardFromRow(nv, 0), "forwardFromRow").toBe(want.forwardFromRow);
     expect(readNodeCascadeRelay(nv, 0), "cascadeRelay").toBe(want.cascadeRelay);
+
+    // ChainBead section: node-local offsets, read with the GENERATED ChainBead column
+    // readers (the node-stream row stride equals the block's own stride, so there is no
+    // separate decoder for these bytes).
+    expect(decoded.chainBeadCount, "chainBeadCount").toBe(want.chainBeads.length);
+    for (let i = 0; i < want.chainBeads.length; i++) {
+      const cb = want.chainBeads[i]!;
+      expectClose(readChainBeadOX(decoded.chainBeadView, i), cb.ox, `chainBead[${i}].ox`);
+      expectClose(readChainBeadOY(decoded.chainBeadView, i), cb.oy, `chainBead[${i}].oy`);
+      expectClose(readChainBeadOZ(decoded.chainBeadView, i), cb.oz, `chainBead[${i}].oz`);
+    }
 
     for (let i = 0; i < want.ports.length; i++) {
       const p = want.ports[i]!;

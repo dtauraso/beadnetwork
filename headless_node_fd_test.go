@@ -37,11 +37,17 @@ func TestHeadlessNodeFdDedicatedStream(t *testing.T) {
 	totalLayoutLinks := 0
 	for row, frame := range nodeFrames {
 		// Combined frame layout (Buffer.BuildNodeStreamFrame): [tick:u32][portCount:u32]
-		// [labelLen:u32][portNameBytesCount:u32][layoutLinkCount:u32] + Node row + label
-		// bytes + Port rows + port-name bytes + LayoutLink rows
+		// [labelLen:u32][portNameBytesCount:u32][layoutLinkCount:u32][chainBeadCount:u32] +
+		// Node row + label bytes + Port rows + port-name bytes + LayoutLink rows
 		// ([DstNodeRow:i32] each, BufNodeStreamLayoutLinkStride bytes — no edge-row column;
-		// the cascade-link overlay draws node-center to node-center, never along a bead edge).
-		const hdrSize = 20
+		// the cascade-link overlay draws node-center to node-center, never along a bead edge)
+		// + ChainBead rows ([OX,OY,OZ] f32 node-local offsets, this node's own placeholder
+		// chain — docs/beads-are-the-edge.md).
+		// The header width comes from Buffer, never a literal: this parsing duplicates
+		// BuildNodeStreamFrame's layout, and a hardcoded copy silently reads the wrong
+		// offset the moment a header field is added (it did — adding chainBeadCount made
+		// these read the label from inside the Node row and assert on garbage bytes).
+		const hdrSize = B.BufNodeStreamFrameHeaderSize
 		if len(frame) < hdrSize+B.BufNodeStride {
 			t.Fatalf("node row %d: frame too short (%d bytes) to hold header+Node row", row, len(frame))
 		}
@@ -49,6 +55,7 @@ func TestHeadlessNodeFdDedicatedStream(t *testing.T) {
 		labelLen := readU32(frame, 8)
 		portNameBytesCount := readU32(frame, 12)
 		layoutLinkCount := readU32(frame, 16)
+		chainBeadCount := readU32(frame, 20)
 		nodeOff := hdrSize
 		labelOff := nodeOff + B.BufNodeStride
 		if labelOff+int(labelLen) > len(frame) {
@@ -64,7 +71,8 @@ func TestHeadlessNodeFdDedicatedStream(t *testing.T) {
 		portsOff := labelOff + int(labelLen)
 		portNamesOff := portsOff + int(portCount)*B.BufPortStride
 		layoutLinksOff := portNamesOff + int(portNameBytesCount)
-		eventsOff := layoutLinksOff + int(layoutLinkCount)*B.BufNodeStreamLayoutLinkStride
+		chainBeadsOff := layoutLinksOff + int(layoutLinkCount)*B.BufNodeStreamLayoutLinkStride
+		eventsOff := chainBeadsOff + int(chainBeadCount)*B.BufNodeStreamChainBeadStride
 		if eventsOff+4 > len(frame) {
 			t.Fatalf("node row %d: frame too short (%d bytes) to hold the trailing EVENTS section count", row, len(frame))
 		}

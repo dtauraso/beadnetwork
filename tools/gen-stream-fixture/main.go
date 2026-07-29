@@ -47,6 +47,13 @@ type portFixture struct {
 	NameText string  `json:"name"`
 }
 
+// chainBeadFixture is ONE node-local chain-bead offset row (Buffer bufLayoutChainBead).
+type chainBeadFixture struct {
+	OX float32 `json:"ox"`
+	OY float32 `json:"oy"`
+	OZ float32 `json:"oz"`
+}
+
 type layoutLinkFixture struct {
 	DstNodeRow int32 `json:"dstNodeRow"`
 }
@@ -80,6 +87,7 @@ type nodeFrameFixture struct {
 	ForwardDeltaC    int32               `json:"forwardDeltaC"`
 	ForwardFromRow   int32               `json:"forwardFromRow"`
 	CascadeRelay     uint8               `json:"cascadeRelay"`
+	ChainBeads       []chainBeadFixture  `json:"chainBeads"`
 	Label            string              `json:"label"`
 	Ports            []portFixture       `json:"ports"`
 	LayoutLinks      []layoutLinkFixture `json:"layoutLinks"`
@@ -133,6 +141,10 @@ func buildNodeFrame() nodeFrameFixture {
 			{NodeRow: 7, DX: 7.5, DY: 8.25, DZ: 9.125, PX: 51.5, PY: -52.25, PZ: 53.125, IsInput: 0, Hovered: 0, NameText: "ctrl"},
 		},
 		LayoutLinks: []layoutLinkFixture{{DstNodeRow: 2}, {DstNodeRow: 9}},
+		ChainBeads: []chainBeadFixture{
+			{OX: 61.5, OY: -62.25, OZ: 63.125},
+			{OX: -64.5, OY: 65.25, OZ: -66.125},
+		},
 	}
 
 	portNames := make([]string, len(f.Ports))
@@ -160,6 +172,12 @@ func buildNodeFrame() nodeFrameFixture {
 	for i, ll := range f.LayoutLinks {
 		dstNodeRows[i] = ll.DstNodeRow
 	}
+	chainOX := make([]float32, len(f.ChainBeads))
+	chainOY := make([]float32, len(f.ChainBeads))
+	chainOZ := make([]float32, len(f.ChainBeads))
+	for i, cb := range f.ChainBeads {
+		chainOX[i], chainOY[i], chainOZ[i] = cb.OX, cb.OY, cb.OZ
+	}
 
 	raw := Buffer.BuildNodeStreamFrame(
 		f.Tick, f.NodeRow,
@@ -175,6 +193,7 @@ func buildNodeFrame() nodeFrameFixture {
 		portDX, portDY, portDZ, portPX, portPY, portPZ,
 		portIsInput, portHovered,
 		dstNodeRows,
+		chainOX, chainOY, chainOZ,
 		nil,
 	)
 	f.Hex = hex.EncodeToString(raw)
