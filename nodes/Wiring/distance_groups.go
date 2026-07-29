@@ -77,18 +77,30 @@ func (md *MoveDispatch) distanceGroupMax(group string) (float64, bool) {
 	return max, any
 }
 
-// DistanceGroupLens returns the 3 groups' current max pair lengths, in
-// distanceGroupOrder (time, input, gate) — for the VIEW stream's Overlay
-// GroupLenTime/GroupLenInput/GroupLenGate columns (read-only reflect; see
-// view_stream.go's emitViewFrame). A group whose centers aren't resolvable yet reads 0.
-func (md *MoveDispatch) DistanceGroupLens() (timeLen, inputLen, gateLen float32) {
-	vals := make([]float32, len(distanceGroupOrder))
+// DistanceGroupLens was REMOVED. The 3 Overlay GroupLenTime/GroupLenInput/GroupLenGate
+// columns it fed are gone with it: they lived on the VIEW frame, which is EVENT-DRIVEN
+// (view_stream.go), so any value computed there refreshes only when something unrelated
+// happens to emit — untenable once the moves themselves are asynchronous. Each edge now
+// carries its own Len and GroupIdx on its own per-owner stream frame, which flows when
+// that edge moves, and the panel reduces per group from those.
+
+// distanceGroupIdxForPair returns the index into distanceGroupOrder of the group holding
+// the (src,dst) pair, or -1 when the pair is in no group. It is the ONE place the
+// Go-authoritative group table is projected onto an edge, so each edgeMover can stamp its
+// own membership on its own stream frame (Buffer bufLayoutEdge.GroupIdx) without TS ever
+// holding a membership table.
+//
+// Static: distanceGroups is a package-level literal, never mutated, so this is a pure
+// lookup safe to call from any mover's own goroutine.
+func distanceGroupIdxForPair(src, dst string) int32 {
 	for i, g := range distanceGroupOrder {
-		if m, ok := md.distanceGroupMax(g); ok {
-			vals[i] = float32(m)
+		for _, p := range distanceGroups[g] {
+			if p.Source == src && p.Target == dst {
+				return int32(i)
+			}
 		}
 	}
-	return vals[0], vals[1], vals[2]
+	return -1
 }
 
 // ApplyDistanceGroupTarget is the controller for one arrow click: groupIdx indexes

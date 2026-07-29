@@ -12,6 +12,8 @@
 import { useSyncExternalStore } from "react";
 import type { OverlayFlag } from "../../messages";
 import { getNodeFrame, subscribeNodeStreamBlocks } from "./node-stream-blocks";
+import { getEdgeStreamAccessor } from "./edge-stream-blocks";
+import { subscribeEdgeStreamFrame } from "../snapshot-buffer";
 import { getViewBlocks, subscribeViewBlocks } from "./view-blocks";
 import {
   readOverlaySceneTori,
@@ -23,9 +25,6 @@ import {
   readOverlayOverlaysVis,
   readOverlayCascadeLinks,
   readOverlayDragNodeRow,
-  readOverlayGroupLenTime,
-  readOverlayGroupLenInput,
-  readOverlayGroupLenGate,
   readNodeGotDragMsg,
   readNodeDragDeltaA,
   readNodeDragDeltaB,
@@ -251,9 +250,18 @@ export function useDeltaForwardRows(): DeltaForwardRow[] {
 }
 
 /** The "distance home button" toolbar panel's 3 group max-pair-lengths, in Go's
- *  distanceGroupOrder (nodes/Wiring/distance_groups.go): time, input, gate. Read-only
- *  reflect of the Overlay block's GroupLenTime/GroupLenInput/GroupLenGate columns — Go
- *  computes these fresh every VIEW-frame emit; TS holds no group definitions. */
+ *  distanceGroupOrder (nodes/Wiring/distance_groups.go): time, input, gate.
+ *
+ *  Read-only reflect of the EDGE streams, not the VIEW frame. Each edge stamps its OWN
+ *  length and its OWN group index on its OWN per-owner frame (Buffer bufLayoutEdge
+ *  Len/GroupIdx); this reduces max-per-group over them. It used to read three Overlay
+ *  columns Go recomputed on every VIEW-frame emit — but the VIEW stream is EVENT-DRIVEN
+ *  (nothing emits it because time passed), so those numbers only refreshed when something
+ *  unrelated happened to emit a frame. Per-owner streams flow whenever their owner
+ *  changes, which is what makes these numbers correct once the moves are asynchronous.
+ *
+ *  This is a pure reduction over streamed values, recomputed per frame — no group
+ *  membership is held here (Go streams it), and nothing is cached as authority. */
 export interface DistanceGroupLens {
   time: number;
   input: number;
@@ -266,17 +274,28 @@ function distanceGroupLensEqual(a: DistanceGroupLens, b: DistanceGroupLens): boo
   return a.time === b.time && a.input === b.input && a.gate === b.gate;
 }
 
-/** Decode the current 3 group max-pair-lengths, or null if no snapshot yet. Stable
- *  identity while unchanged (useSyncExternalStore compares by identity). */
+/** Decode the current 3 group max-pair-lengths, or null if no edge frame has arrived yet.
+ *  Stable identity while unchanged (useSyncExternalStore compares by identity). */
 export function readDistanceGroupLens(): DistanceGroupLens | null {
-  const blocks = getViewBlocks();
-  if (!blocks) return cachedGroupLens;
-  const overlayView = blocks.overlayView;
-  const next: DistanceGroupLens = {
-    time: readOverlayGroupLenTime(overlayView),
-    input: readOverlayGroupLenInput(overlayView),
-    gate: readOverlayGroupLenGate(overlayView),
-  };
+  const edges = getEdgeStreamAccessor();
+  if (!edges) return cachedGroupLens;
+  // Named accumulators rather than an indexed array: the group index arrives off the
+  // wire, so an out-of-range value must be ignored explicitly rather than indexing with it.
+  let time = 0;
+  let input = 0;
+  let gate = 0;
+  let any = false;
+  for (let row = 0; row < edges.edgeCount; row++) {
+    const l = edges.len(row);
+    switch (edges.groupIdx(row)) {
+      case 0: if (l > time) time = l; any = true; break;
+      case 1: if (l > input) input = l; any = true; break;
+      case 2: if (l > gate) gate = l; any = true; break;
+      default: break; // -1 (no group), or a group this build does not know
+    }
+  }
+  if (!any) return cachedGroupLens;
+  const next: DistanceGroupLens = { time, input, gate };
   if (cachedGroupLens && distanceGroupLensEqual(cachedGroupLens, next)) return cachedGroupLens;
   cachedGroupLens = next;
   return cachedGroupLens;
@@ -284,6 +303,6 @@ export function readDistanceGroupLens(): DistanceGroupLens | null {
 
 /** React hook: re-renders the caller when any of the 3 group max-pair-lengths change. */
 export function useDistanceGroupLens(): DistanceGroupLens | null {
-  return useSyncExternalStore(subscribeViewBlocks, readDistanceGroupLens, readDistanceGroupLens);
+  return useSyncExternalStore(subscribeEdgeStreamFrame, readDistanceGroupLens, readDistanceGroupLens);
 }
 

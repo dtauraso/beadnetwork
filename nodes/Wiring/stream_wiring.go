@@ -71,7 +71,7 @@ func (sw *streamWiring) setEdgeStreams(
 	baseFd int,
 	portRowFor func(node, port string, isInput bool) (int32, bool),
 	nodeRowFor func(id string) (int32, bool),
-	buildFrame func(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, beadVal []int32, beadX, beadY, beadZ []float32, events []wire.RowEvent) []byte,
+	buildFrame func(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, edgeLen float32, groupIdx int32, beadVal []int32, beadX, beadY, beadZ []float32, events []wire.RowEvent) []byte,
 ) {
 	for row, seed := range edgeSeeds {
 		em, ok := edgeMovers[seed.Label]

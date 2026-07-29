@@ -124,8 +124,8 @@ func TestSetEdgeRow(t *testing.T) {
 	// buffer streaming work, memory decision "N per-block buffers, no packer"). The Edge
 	// row now carries SrcPortRow/DstPortRow instead.
 	buf := make([]byte, BufEdgeStride*2)
-	SetEdgeRow(buf, 0, 1, 2, 1, 11, 22)
-	SetEdgeRow(buf, 1, 3, 4, 0, 0, 0)
+	SetEdgeRow(buf, 0, 1, 2, 1, 11, 22, 33.5, 2)
+	SetEdgeRow(buf, 1, 3, 4, 0, 0, 0, 0, -1)
 
 	assertI32At(t, buf, BufEdgeColSrcPortRow, 1, "row0.SrcPortRow")
 	assertI32At(t, buf, BufEdgeColDstPortRow, 2, "row0.DstPortRow")
@@ -194,10 +194,12 @@ func TestNodeStrideIsPackedSize(t *testing.T) {
 
 func TestEdgeStrideIsPackedSize(t *testing.T) {
 	// Edge block: 2×i32 (src/dst port row) + 1×u8 (selected) + 2×u32 (edge-label off/len)
-	// = 17. The 6×f32 SX..EZ endpoint-coordinate columns were REMOVED — edges now
-	// reference node/port geometry (SrcPortRow/DstPortRow) instead of caching endpoint
-	// cartesian coordinates (per-owner buffer streaming work).
-	want := 2*4 + 1 + 2*4
+	// + 1×f32 (Len) + 1×i32 (GroupIdx) = 25. The 6×f32 SX..EZ endpoint-coordinate columns
+	// were REMOVED — edges reference node/port geometry (SrcPortRow/DstPortRow) instead of
+	// caching endpoint cartesian coordinates (per-owner buffer streaming work). Len is not
+	// a return of that copy: it is a scalar the edge DERIVES from geometry it already owns,
+	// with no fresher source to lag behind.
+	want := 2*4 + 1 + 2*4 + 4 + 4
 	if BufEdgeStride != want {
 		t.Errorf("BufEdgeStride = %d, want %d (packed size)", BufEdgeStride, want)
 	}
@@ -212,9 +214,11 @@ func TestCameraStrideIsPackedSize(t *testing.T) {
 }
 
 func TestOverlayStrideIsPackedSize(t *testing.T) {
-	// Overlay block: 8×u8 + 1×i32 + 3×f32 = 24 (8 overlay flags + DragNodeRow +
-	// the "distance home button" panel's 3 GroupLen* columns)
-	want := 8*1 + 1*4 + 3*4
+	// Overlay block: 8×u8 + 1×i32 = 12 (8 overlay flags + DragNodeRow). The "distance home
+	// button" panel's 3 GroupLen* columns moved OFF this block: they rode the VIEW frame,
+	// which is event-driven, so they only refreshed when something unrelated emitted one.
+	// Each edge now carries its own Len + GroupIdx on its own Edge row.
+	want := 8*1 + 1*4
 	if BufOverlayStride != want {
 		t.Errorf("BufOverlayStride = %d, want %d (packed size)", BufOverlayStride, want)
 	}

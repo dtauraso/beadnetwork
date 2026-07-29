@@ -6,9 +6,16 @@
 
 import { getLatestEdgeStreamFrames } from "../snapshot-buffer";
 import { decodeEdgeStreamFrame, type DecodedEdgeStreamFrame } from "./buffer-decode";
-import { readEdgeSrcPortRow, readEdgeDstPortRow, readEdgeSelected, readBeadValue, readBeadX, readBeadY, readBeadZ } from "../../schema/buffer-layout";
+import {
+  readEdgeSrcPortRow, readEdgeDstPortRow, readEdgeSelected, readEdgeLen, readEdgeGroupIdx,
+  readBeadValue, readBeadX, readBeadY, readBeadZ,
+} from "../../schema/buffer-layout";
 
 export interface EdgeAccessor {
+  /** This edge's own current length, measured by its own Go goroutine. */
+  len(row: number): number;
+  /** This edge's distance-group index (Go's distanceGroupOrder), -1 = no group. */
+  groupIdx(row: number): number;
   /** One past the highest edge ROW that has posted at least one dedicated-stream frame —
    *  NOT frames.size (a row can arrive out of order at startup; using the size would
    *  misnumber a sparse row set as a dense 0..size-1 range, corrupting the row identity
@@ -49,6 +56,14 @@ export function getEdgeStreamAccessor(): EdgeAccessor | null {
     dstPortRow(row) {
       const d = decodedFor(frames, row);
       return d ? readEdgeDstPortRow(d.edgeView, 0) : -1;
+    },
+    len(row) {
+      const d = decodedFor(frames, row);
+      return d ? readEdgeLen(d.edgeView, 0) : 0;
+    },
+    groupIdx(row) {
+      const d = decodedFor(frames, row);
+      return d ? readEdgeGroupIdx(d.edgeView, 0) : -1;
     },
     selected(row) {
       const d = decodedFor(frames, row);

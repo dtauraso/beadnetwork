@@ -112,7 +112,7 @@ type edgeMover struct {
 	// injected so this package needs no Buffer import. events carries this goroutine's
 	// OWN row-resolved events recorded since the last flush (memory/
 	// feedback_no_single_writer_bridge.md).
-	buildFrame func(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, beadVal []int32, beadX, beadY, beadZ []float32, events []wire.RowEvent) []byte
+	buildFrame func(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, edgeLen float32, groupIdx int32, beadVal []int32, beadX, beadY, beadZ []float32, events []wire.RowEvent) []byte
 }
 
 func newEdgeMover(ep EdgeEndpoints, edgeID string, srcGeom, dstGeom nodeGeom, tr *T.Trace, clockSrc wire.Clock) *edgeMover {
@@ -332,7 +332,10 @@ func (m *edgeMover) writeStreamFrame(tick int64, events []wire.RowEvent) {
 			events = append(events, ev)
 		}
 	}
-	frame := m.buildFrame(uint32(tick), srcRow, dstRow, selected, m.edgeID, beadVal, beadX, beadY, beadZ, events)
+	// This edge's OWN length and group index ride its OWN frame — the panel's numbers
+	// then refresh whenever this edge moves, with no VIEW-frame emit and nobody waiting
+	// on anybody (Buffer/layout.go's bufLayoutEdge.Len doc comment).
+	frame := m.buildFrame(uint32(tick), srcRow, dstRow, selected, m.edgeID, float32(m.currentLength()), distanceGroupIdxForPair(m.srcID, m.dstID), beadVal, beadX, beadY, beadZ, events)
 	var hdr [4]byte
 	binary.LittleEndian.PutUint32(hdr[:], uint32(len(frame)))
 	// Fire-and-forget, same reasoning throughout this bridge: no delivery
@@ -435,7 +438,7 @@ func (m *edgeMover) publishLength() {
 	if !m.srcGeom.HasPos || !m.dstGeom.HasPos {
 		return
 	}
-	l := nodeWorldPos(m.dstGeom).Sub(nodeWorldPos(m.srcGeom)).Length()
+	l := m.currentLength()
 	select {
 	case <-m.lenOut:
 	default:
@@ -444,4 +447,14 @@ func (m *edgeMover) publishLength() {
 	case m.lenOut <- l:
 	default:
 	}
+}
+
+// currentLength returns this edge's length from its OWN two endpoint geoms — the same
+// value publishLength pushes, factored out so the stream frame and the push cannot
+// disagree. 0 when either endpoint has no real position yet (see publishLength).
+func (m *edgeMover) currentLength() float64 {
+	if !m.srcGeom.HasPos || !m.dstGeom.HasPos {
+		return 0
+	}
+	return nodeWorldPos(m.dstGeom).Sub(nodeWorldPos(m.srcGeom)).Length()
 }
