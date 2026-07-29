@@ -12,6 +12,7 @@ import (
 	"bufio"
 	"context"
 	"encoding/binary"
+	"encoding/json"
 	"io"
 	"math"
 	"os"
@@ -81,35 +82,50 @@ func wantNodeRowOrder(t *testing.T, repoRoot string) []string {
 	return ids
 }
 
-// topologyEdgeCount walks the tree-form topology fixture this repo ships to size this
-// test's own spawn (runCommand.ts's production path no longer walks the tree for this —
-// it reads the stored topology/counts.json instead, see readCounts in runCommand.ts and
-// docs/planning/decentralized-persistence.md step 6). The adjacency layout stores each
-// node's OUTGOING edges under <repoRoot>/topology/nodes/<id>/edges/*.json (there is no
-// top-level topology/edges/ anymore), so this sums that subdir across every node dir.
+// topologyEdgeCount reads the STORED topology/counts.json to size this test's own spawn —
+// the same file, read the same way, as runCommand.ts's readCounts (the production path).
+//
+// It deliberately does NOT walk the tree. These headless tests are the end-to-end proof
+// that per-edge dedicated fd streams are sized correctly, and a harness that re-derives
+// the count by walking cannot prove that: it would pass with a counts.json that disagreed
+// with the tree, which is precisely the failure the stored count can have. Sizing from the
+// same source production sizes from is what makes the assertion mean something — the same
+// reasoning that moved the loader tests onto the real directory form in step 1.
 func topologyEdgeCount(t *testing.T, repoRoot string) int {
 	t.Helper()
-	nodesDir := filepath.Join(repoRoot, "topology", "nodes")
-	nodeEntries, err := os.ReadDir(nodesDir)
+	return topologyCounts(t, repoRoot).Edges
+}
+
+// topologyNodeCount is the node-side companion, read from the same one file.
+func topologyNodeCount(t *testing.T, repoRoot string) int {
+	t.Helper()
+	return topologyCounts(t, repoRoot).Nodes
+}
+
+type storedCounts struct {
+	Nodes int `json:"nodes"`
+	Edges int `json:"edges"`
+}
+
+// topologyCounts reads <repoRoot>/topology/counts.json. Fails the test loudly on a missing,
+// malformed, or negative-count file rather than returning zero: a silent zero here would
+// allocate no dedicated streams and the test would then "pass" against a bridge that never
+// streamed anything (the exact degrade-invisibly behaviour readCounts was changed to stop).
+func topologyCounts(t *testing.T, repoRoot string) storedCounts {
+	t.Helper()
+	p := filepath.Join(repoRoot, "topology", "counts.json")
+	raw, err := os.ReadFile(p)
 	if err != nil {
-		t.Fatalf("ReadDir(topology/nodes): %v", err)
+		t.Fatalf("read %s: %v", p, err)
 	}
-	n := 0
-	for _, nodeEntry := range nodeEntries {
-		if !nodeEntry.IsDir() {
-			continue
-		}
-		edgeEntries, err := os.ReadDir(filepath.Join(nodesDir, nodeEntry.Name(), "edges"))
-		if err != nil {
-			continue // no edges/ subdir is normal — a node with no outgoing edges
-		}
-		for _, e := range edgeEntries {
-			if !e.IsDir() {
-				n++
-			}
-		}
+	var c storedCounts
+	if err := json.Unmarshal(raw, &c); err != nil {
+		t.Fatalf("parse %s: %v", p, err)
 	}
-	return n
+	if c.Nodes < 0 || c.Edges < 0 {
+		t.Fatalf("%s: counts must be non-negative, got %+v", p, c)
+	}
+	return c
 }
 
 // dedicatedStreams holds every dedicated-fd reader from one spawnDedicatedAllStreams call,
@@ -155,6 +171,19 @@ func spawnDedicatedAllStreams(t *testing.T, binPath, repoRoot string) *dedicated
 	nodeIDs := wantNodeRowOrder(t, repoRoot)
 	nodeCount := len(nodeIDs)
 	edgeCount := topologyEdgeCount(t, repoRoot)
+
+	// The committed counts.json must agree with the committed tree. Neither TS nor Go
+	// re-derives this at RUNTIME — that is the whole point of storing it, and a runtime
+	// walk-and-compare was explicitly rejected. But nothing stops the checked-in fixture
+	// drifting from the checked-in tree, and this is the one place that can notice for
+	// free: the spawn already needs the node ids (for row ORDER, which a count cannot
+	// give), so comparing that list's length against the stored number costs nothing and
+	// fails here rather than as a mystery missing stream.
+	if got := topologyNodeCount(t, repoRoot); got != nodeCount {
+		t.Fatalf("topology/counts.json says nodes=%d but topology/nodes/ holds %d (%v) — "+
+			"the stored count and the tree have drifted; whichever operation added or "+
+			"removed a node did not update counts.json", got, nodeCount, nodeIDs)
+	}
 
 	runCtx, runCancel := context.WithTimeout(context.Background(), 20*time.Second)
 	cmd := exec.CommandContext(runCtx, binPath, "-topology", filepath.Join(repoRoot, "topology"))
