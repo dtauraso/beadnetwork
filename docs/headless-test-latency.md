@@ -86,6 +86,12 @@ a genuinely hung child, never the thing that ends a passing test.
 
 ## Steps
 
+Step 0 gates the rest: decide per-test whether it should exist before making it fast (see
+"Assumption: a test may be removed rather than sped up" below).
+
+0. **Triage the five.** Drop `TestHeadlessNodeRowOrderIsDeterministic`'s runs 2-5, keeping
+   its spec-order assertion. Re-measure before touching anything else — that alone is
+   expected to be the single largest win, and it is a deletion, not an optimisation.
 1. **Verify `SetReadDeadline` works on these pipes** before building on it. It is documented
    for pollable descriptors and `os.Pipe` qualifies, but this is the load-bearing assumption
    of the whole change — a five-line scratch program either shows a timeout error on a quiet
@@ -95,12 +101,57 @@ a genuinely hung child, never the thing that ends a passing test.
    "fatal if not even one frame arrived" behaviour — that assertion is load-bearing (it is
    what catches a stream that streams nothing, per the `task/edges-not-visible` work).
 3. **Update the five call sites**, dropping the 120/200/400 counts.
-4. **Re-measure.** Record the new per-test times in this file. Expected: the Go leg drops
+4. **Rename `TestHeadlessFirstFrameHasRealGeometry`** to match what it asserts (settled,
+   not first) — the stale name came from the frame count being removed in step 3.
+5. **Re-measure.** Record the new per-test times in this file. Expected: the Go leg drops
    from ~80s to roughly 15s, but that is a prediction, not a result — replace it with what
    is actually measured.
-5. **Leave `runCtx` at 20s.** It should now never be reached; if a test still takes 20s
+6. **Leave `runCtx` at 20s.** It should now never be reached; if a test still takes 20s
    after this, that is a real hang and the deadline has become a genuine signal instead of
    routine flow control.
+
+## Assumption: a test may be removed rather than sped up
+
+The steps above assume all five tests survive and only get faster. That assumption should
+be tested per-test BEFORE optimising, because making a test that should not exist run
+faster is the more expensive mistake — it locks the test in by making it cheap.
+
+The criterion is `docs/testing-shape.md`'s: a test asserts what **one goroutine itself**
+decided, emitted, or persisted. A test whose cost buys a property the structure already
+guarantees is not slow, it is unnecessary.
+
+**`TestHeadlessNodeRowOrderIsDeterministic` is the clearest candidate.** It spawns the whole
+binary **5 times** (`const runs = 5`, `headless_node_row_order_test.go:48`) — that is where
+its 17.42s comes from, not the frame count alone. It asserts two different things:
+
+1. row order equals spec order — a real assertion about what the loader emitted, and it
+   needs exactly **one** run;
+2. row order is IDENTICAL across the 5 runs — a determinism claim about a
+   directory-sorted id list.
+
+The second is the anti-pattern doctrine names: node row order is directory-sorted
+(`.claude/rules/persistence-ownership.md`, "Node row order is directory-sorted"), and a sort
+is deterministic by construction. Re-running the binary 4 more times to observe that
+`sort` sorted the same way exercises Go's runtime, not this codebase. Dropping runs 2-5
+keeps assertion (1) intact and removes ~14s — more than the idle-timeout change would win
+on this test, and it removes the reason to tune it at all.
+
+**The three per-owner fd tests (view / node / edge) are NOT redundant with each other** even
+though their headers read almost identically. Each proves a different stream kind reaches
+its own dedicated fd, which is the invariant in
+`memory/feedback_no_single_writer_bridge.md`, and no other test drives real fds. Keep all
+three.
+
+**`TestHeadlessFirstFrameHasRealGeometry` has a stale name, not a redundant assertion.** It
+is called "first frame" but its own doc says SETTLED, and it reads 400 frames to take the
+last. The assertion (no degenerate segments, ports seeded) is real and uniquely covered;
+the name should be corrected to match, and that rename belongs in the same commit as the
+`maxFrames` removal, since the count is what made the name wrong.
+
+So the honest expected outcome is a mix: one test loses four spawns, one gets renamed, and
+all five lose their frame counts. Re-measure after each, not once at the end — otherwise a
+removal and a speedup get credited to whichever landed last
+(`memory/feedback_ease_of_fix_is_confounded.md`).
 
 ## What this does not change
 
