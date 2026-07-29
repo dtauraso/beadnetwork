@@ -262,7 +262,10 @@ func (md *MoveDispatch) emitSelectViewFrame(node string) {
 // applyRingAnchor snaps a world-space direction (node center → pointer) to the node's
 // nearest ring-anchor index and mail-sorts a moveMsgKindAnchor to the node's mover AND
 // every incident edge mover — the SAME dispatch the op=update kind=node attr=anchor path
-// uses (applyUpdate). Live-only (no disk persistence), matching the FSM node-drag path.
+// uses (applyUpdate). Disk persistence is NOT done here: the node's own mover persists the
+// snapped index to its own port file, on its own goroutine, when it processes the
+// moveMsgKindAnchor sent below (node_mover.go handle → persistPortAnchor) — this function
+// only routes the message.
 //
 // This sends directly into the targets' dedicated extIn channels, bypassing the
 // enqueueFor/pending-retry split every mover's OWN handler goroutine must use for its
@@ -289,8 +292,8 @@ func (md *MoveDispatch) applyRingAnchor(node, port string, isInput bool, dir vec
 		}
 		em.extIn <- msg
 	}
-	// Persist the snapped anchor index to the port file (debounced, fire-and-forget).
-	if md.persist.anchor != nil {
-		md.persist.anchor.schedule(node, port, isInput, anchorID)
-	}
+	// The snapped anchor index is persisted by the node's OWN mover, on its own
+	// goroutine, as it processes the moveMsgKindAnchor sent above (node_mover.go
+	// handle's moveMsgKindAnchor case → persistPortAnchor) — not reached into from
+	// here (docs/planning/decentralized-persistence.md "The model").
 }

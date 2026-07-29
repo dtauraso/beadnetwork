@@ -13,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -88,28 +89,43 @@ func TestPersistAnchorRoundTrips(t *testing.T) {
 	root := writeTree(t)
 	md := loadTreeMD(t, root)
 	md.EnableEditPersist(root)
+	// The anchor write now happens on "src"'s OWN mover goroutine, as it processes the
+	// moveMsgKindAnchor applyRingAnchor sends (node_mover.go handle → persistPortAnchor)
+	// — Start the movers so something drains that inbox.
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	wg := md.Start(ctx)
+	t.Cleanup(func() { cancel(); wg.Wait() })
 
 	dir := vec3{X: 1, Y: 0, Z: 0}
 	want := snapToRingAnchorIndex(md.NodeKind("src"), dir)
 	md.applyRingAnchor("src", "Out", false, dir)
 
-	spec, err := parseSpec(root)
-	if err != nil {
-		t.Fatalf("parseSpec: %v", err)
-	}
+	// Poll for the port file's anchorId to land (async now — no synchronous write on
+	// applyRingAnchor's own caller goroutine to wait on).
 	var gotAnchor *int
-	for _, n := range spec.Nodes {
-		if n.ID != "src" {
-			continue
+	deadline := time.Now().Add(2 * time.Second)
+	for gotAnchor == nil {
+		spec, err := parseSpec(root)
+		if err != nil {
+			t.Fatalf("parseSpec: %v", err)
 		}
-		for _, p := range n.Outputs {
-			if p.Name == "Out" {
-				gotAnchor = p.AnchorId
+		for _, n := range spec.Nodes {
+			if n.ID != "src" {
+				continue
+			}
+			for _, p := range n.Outputs {
+				if p.Name == "Out" {
+					gotAnchor = p.AnchorId
+				}
 			}
 		}
-	}
-	if gotAnchor == nil {
-		t.Fatalf("anchorId not persisted to port file")
+		if gotAnchor == nil {
+			if time.Now().After(deadline) {
+				t.Fatalf("anchorId not persisted to port file")
+			}
+			time.Sleep(time.Millisecond)
+		}
 	}
 	if *gotAnchor != want {
 		t.Fatalf("reloaded anchorId=%d want %d", *gotAnchor, want)

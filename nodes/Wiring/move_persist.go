@@ -12,11 +12,12 @@ type persisters struct {
 	// vp is the camera-viewpoint persister (scene_camera_persist.go), armed by
 	// EnableViewpointPersist after the startup seed. nil until armed (old path / tests).
 	vp *viewpointPersister
-	// anchor is the disk persister for the FSM-applied ring-move edit (port anchorId).
-	// Armed by EnableEditPersist after the startup seed; nil until armed (tests that
-	// never arm). Node-drag position and local-polars are persisted by each node's OWN
-	// mover (nm.persistRoot, quant_offset_persist.go) — see EnableEditPersist below.
-	anchor   *anchorPersister
+	// Node-drag position/local-polars and port-anchor edits are persisted by each node's
+	// OWN mover (nm.persistRoot, quant_offset_persist.go / scene_anchor_persist.go) — see
+	// EnableEditPersist below. There used to be a shared anchorPersister field here
+	// (armed by EnableEditPersist, reached into from applyRingAnchor); it is gone —
+	// port-anchor writes now happen on the node's own goroutine, exactly like
+	// position.json/local-polars.json.
 	overlays *overlaysPersister
 	// sphere is the disk persister for the scene sphere (sphere_layout.go md.ui.sceneSphere),
 	// armed by EnableEditPersist. It is only ever flushed — by LoadSceneSphere on a
@@ -41,7 +42,9 @@ func (md *MoveDispatch) EnableViewpointPersist(topologyPath string) {
 //   - node-drag (RootMove) → the moved node's own position.json + local-polars.json,
 //     written by that node's OWN mover (nm.persistRoot, set below on every mover — see
 //     quant_offset_persist.go's persistQuantOffset/persistLocalPolars)
-//   - ring-move (applyRingAnchor) → the port's anchorId in the port json file
+//   - ring-move (applyRingAnchor) → the moved port's own node's OWN mover writes the
+//     port's anchorId back to the port json file (scene_anchor_persist.go's
+//     persistPortAnchor), same nm.persistRoot as above
 //   - overlays (applyUpdate toggle/set) → overlay-visibility keys in view/overlays.json
 //
 // topologyPath is always the tree root directory — LoadTopology rejects anything else
@@ -49,15 +52,14 @@ func (md *MoveDispatch) EnableViewpointPersist(topologyPath string) {
 // Call AFTER SeedInitialViewpoint so the seed emits do not write the loaded state back.
 func (md *MoveDispatch) EnableEditPersist(topologyPath string) {
 	root := topologyPath
-	md.persist.anchor = &anchorPersister{root: root}
 	md.persist.overlays = &overlaysPersister{path: overlaysFilePath(topologyPath)}
 	md.persist.sphere = &sceneSpherePersister{path: sphereFilePath(topologyPath)}
-	// Every node's own mover writes its own position.json/local-polars.json — set the
-	// tree root on each nodeMover directly rather than routing writes through a shared
-	// MoveDispatch-owned persister (docs/planning/decentralized-persistence.md "The
-	// model"). A plain field write on each mover, done here before any mover goroutine
-	// starts (Start runs after EnableEditPersist in every real call path), so no
-	// synchronization is needed.
+	// Every node's own mover writes its own position.json/local-polars.json/port-anchor
+	// files — set the tree root on each nodeMover directly rather than routing writes
+	// through a shared MoveDispatch-owned persister (docs/planning/decentralized-
+	// persistence.md "The model"). A plain field write on each mover, done here before
+	// any mover goroutine starts (Start runs after EnableEditPersist in every real call
+	// path), so no synchronization is needed.
 	for _, nm := range md.mr.nodeMovers {
 		nm.persistRoot = root
 	}

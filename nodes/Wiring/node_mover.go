@@ -386,11 +386,13 @@ func (m *nodeMover) handle(msg moveMsg) {
 	}
 	if msg.Kind == moveMsgKindAnchor {
 		// Per-port anchor update: snap to ring-anchor index, mutate this node's held
-		// port AnchorId, and re-emit node-geometry so the renderer redraws the port.
+		// port AnchorId, persist it to THIS node's own port file, and re-emit
+		// node-geometry so the renderer redraws the port.
 		ok := setPortAnchorId(&m.geom, msg.Port, msg.IsInput, msg.AnchorId)
 		if !ok {
 			return
 		}
+		m.persistPortAnchor(msg.Port, msg.IsInput, msg.AnchorId)
 		if m.tr != nil {
 			m.emitGeometry()
 		}

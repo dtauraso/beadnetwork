@@ -5,13 +5,16 @@ package Wiring
 // The read side (loader_tree.go readPorts → specPort.AnchorId) loads each port's ring-anchor
 // index from `<root>/nodes/<id>/{inputs,outputs}/<port>.json`'s `anchorId` field. This file
 // is the mirror: when the gesture FSM commits a ring-move (applyRingAnchor snaps the port to
-// a ring-anchor index), Go persists that index back to the same port file, PRESERVING the
-// other fields (name), so ring-move-then-reload round-trips.
+// a ring-anchor index and routes a moveMsgKindAnchor to the node's own mover), the node's OWN
+// nodeMover persists that index back to the same port file — on its own goroutine, in its
+// handle() (node_mover.go) — PRESERVING the other fields (name), so ring-move-then-reload
+// round-trips.
 //
-// Same shape as the node-position persister: SYNCHRONOUS (schedule() writes immediately,
-// inline on the stdin/gesture goroutine — see scene_persist.go's header comment for why the
-// prior debounce was removed), READ-MODIFY-WRITE (only `anchorId` is replaced),
-// FIRE-AND-FORGET. root == "" (unarmed / bare-constructed persister) disables it.
+// Same shape as the node-position writers: SYNCHRONOUS (persistPortAnchor writes
+// immediately, inline on the node's own mover goroutine as it processes the anchor message —
+// see scene_persist.go's header comment for why the prior debounce was removed),
+// READ-MODIFY-WRITE (only `anchorId` is replaced), FIRE-AND-FORGET. nm.persistRoot == ""
+// (unarmed) disables it.
 //
 // Path construction (nodePortFilePath) lives in node_mover.go, not here — a port's
 // path belongs to its owning node (docs/planning/decentralized-persistence.md
@@ -22,20 +25,16 @@ import (
 	"fmt"
 )
 
-// anchorPersister writes ring-anchor changes to their port file as they happen. Owned by
-// MoveDispatch (armed by EnableEditPersist).
-type anchorPersister struct {
-	root string
-}
-
-// schedule writes the given anchor index to its port file synchronously.
-func (p *anchorPersister) schedule(node, port string, isInput bool, anchorID int) {
-	if p == nil || p.root == "" {
+// persistPortAnchor writes THIS node's own port-anchor change to its port file,
+// synchronously, on THIS node's own mover goroutine (handle's moveMsgKindAnchor case calls
+// it right after mutating m.geom's held AnchorId). nm.persistRoot == "" (unarmed) is a
+// no-op.
+func (nm *nodeMover) persistPortAnchor(port string, isInput bool, anchorID int) {
+	if nm.persistRoot == "" {
 		return
 	}
-	if err := writePortAnchor(p.root, node, port, isInput, anchorID); err != nil {
-		logPersistErr("scene_anchor_persist", node+"/"+port, err)
-		return
+	if err := writePortAnchor(nm.persistRoot, nm.id, port, isInput, anchorID); err != nil {
+		logPersistErr("scene_anchor_persist", nm.id+"/"+port, err)
 	}
 }
 
