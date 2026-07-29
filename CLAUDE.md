@@ -37,7 +37,10 @@ input port, clock. The active node kinds are the structs under `nodes/<Kind>/`.
 **Node kinds:** adding a kind requires four things in the same commit:
 1. An entry in `NODE_DEFS` (`tools/topology-vscode/src/schema/node-defs.ts`, generated).
 2. Nothing else in the schema dir — `node-defs.ts` is the single registry.
-3. The Go node package under `nodes/<Kind>/`.
+3. The Go node package under `nodes/<Kind>/`, with its logic always in `node.go` (never
+   `<Kind>.go`) plus `SPEC.md`. Directory casing is mixed and both are live: PascalCase
+   (`Time`, `TimeEnd`, `TimeStart`, `PulseLeft`, `PulseRight`) and lowercase (`holdflip`,
+   `input`, `pacer`, `pulse`, `selectleft`, `selectright`) — don't infer one from the other.
 4. `go run ./tools/gen-node-defs`. **Skip this and the kind does not exist in the binary** —
    it fails at runtime with `unknown type "X"` while everything else looks correct.
    Guard: `check-generated.sh`.
