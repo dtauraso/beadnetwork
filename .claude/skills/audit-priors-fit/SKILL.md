@@ -10,7 +10,10 @@ Goal: find "priors-fit" problems — idiosyncratic constructs where a concept is
 form an LLM can't predict cheaply, causing generate-then-back-out (thrash). This feeds the
 token-reduction program (target ~5× less AI usage per feature).
 
-Give the subagent this task (read CLAUDE.md + MODEL.md first for the intended model, then
+Give the subagent this task (read CLAUDE.md + MODEL.md first for the intended model, and
+**read `docs/audit-baseline.md`** — it lists findings already judged deliberate-and-structural
+(e.g. node-kind clone families, gap-numbered wire values, fingerprint duplication,
+DeltaA/B/C vocabulary); do not re-report anything in it, only NEW deviations from it. Then
 grep-first; scope out `node_modules,out,.git,handoff-archive,memory`):
 
 1. **Non-idiomatic / surprising constructs** — hand-rolled stdlib things, unusual
