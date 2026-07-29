@@ -118,15 +118,31 @@ makes the commit very large.
    elapse. With the wire gone, the **source node** times it and sends to the destination over
    the node-to-node channel it already has. That is a smaller change than it sounds — the
    timing logic moves, it does not disappear.
-3. **Bead birth/retirement churn.** Count is `f(length)`, so a drag continuously creates and
-   retires beads. The reverted chain model also had "born/retired to hold spacing" — that is
-   not itself why it was rejected, but it is worth measuring the churn rate during a drag
-   before committing to length-proportional counts. A fixed count per edge with variable
-   spacing avoids the churn entirely and should be priced against it.
-4. **Uniform pulse speed.** `memory/feedback_uniform_pulse_speed.md` says speed is uniform
-   across all wires. The lit-percentage advance rate must therefore be derived from arc
-   length (`ticksToCross = arcLength / pulseSpeed`), not be a per-edge constant — otherwise a
-   long edge lights up at the same rate as a short one and world-speed stops being uniform.
+3. ~~Bead birth/retirement churn.~~ **Settled: count IS length-proportional.** A drag
+   changes the count, and those add/drop messages are chain maintenance on the channel — not
+   anything traversing (see the opening distinction). Still worth measuring how often a drag
+   changes the count, but that is a layout cost to observe, not a reason to prefer a fixed
+   count.
+4. ~~Uniform pulse speed.~~ **Settled, and it dissolves rather than resolves.** The dwell at
+   each bead is the same as today's uniform pulse bead takes to cover that distance. Because
+   the count is length-proportional (3), **spacing is constant in world distance**, so a
+   constant dwell per bead IS uniform world speed — there is nothing to derive per edge:
+
+       count = len / s            s = constant spacing
+       dwell = d ticks per bead   one global constant
+       speed = s / d              constant on every edge
+       total = count × d = (len/s) × d = len / speed
+
+   That last line is today's `ticksToCross = arcLength / pulseSpeed` exactly, so this
+   reproduces current timing rather than approximating it, and the per-edge arc-length
+   division disappears. `memory/feedback_uniform_pulse_speed.md` is satisfied structurally
+   instead of by computation.
+
+   The in-flight revision rule survives and gets simpler. MODEL.md preserves fractional
+   progress `t` across a geometry edit and recomputes remaining ticks from the new arc; here
+   `index = t × newCount` and `remaining = (newCount − index) × d`, which is
+   `(1−t)·newArc/speed` — the same rule as index arithmetic rather than distance, which is
+   the shape `memory/feedback_abc_times_constant_not_rederive.md` asks for.
 5. **What happens to the Bead block?** If beads become node-local offsets plus a lit index,
    the Bead block's absolute `X/Y/Z` are dead and it collapses toward the Interior block's
    shape. `check-no-dead-buffer-column.sh` will force that decision rather than let the old
@@ -141,9 +157,11 @@ belong in the **same commit** as the behaviour, not a follow-up:
   steps" becomes false.
 - **"Wire lifecycle"** — describes a lifecycle that no longer has an owner.
 - **"Geometry and time"** — "Go owns the bead's PROGRESS ... AND the bead's absolute world
-  position" becomes progress plus a node-local offset. The in-flight revision rule
-  ("preserves the bead's FRACTIONAL progress `t`") gets *simpler*, not harder: `t` is the
-  only state there is, so a geometry edit cannot make it swing.
+  position" becomes progress plus a node-local offset. `ticksToCross = arcLength /
+  pulseSpeed` is no longer computed per edge: constant spacing × constant dwell yields it
+  identically (open question 4). The in-flight revision rule ("preserves the bead's
+  FRACTIONAL progress `t`") gets *simpler*, not harder: `t` is the only state there is, so a
+  geometry edit cannot make it swing.
 - **"Allowed vocabulary"** — "wire" as an active goroutine has to be re-defined or retired.
 
 ## Staging
