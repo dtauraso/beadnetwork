@@ -30,12 +30,18 @@ package Wiring
 // delocked, purely to preserve the port file's OTHER field (`name`) across a write; it was
 // never actually racing a second writer.
 //
-// Old-format compatibility: existing on-disk view/scene.json and nodes/<id>/meta.json (both
-// pre-split, and view/scene.json is a real untracked file on disk today) are NEVER migrated
-// or deleted by this package. Each domain's loader tries its new file first and falls back
-// to reading the corresponding key out of the legacy file when the new file is absent — see
-// loadSceneViewpoint (scene_camera.go), loadSceneOverlays/loadSceneSphere
-// (scene_overlays_persist.go/scene_sphere_persist.go) and loadTree (loader_tree.go).
+// Old-format compatibility, and it is now ASYMMETRIC — the two halves diverged:
+//
+//   - view/scene.json: GONE. Its fallback was removed (07028170, see scene_paths.go's
+//     header), so loadSceneViewpoint / loadSceneOverlays / loadSceneSphere each read their
+//     own file ONLY and default when it is absent. Nothing reads scene.json; a topology
+//     that still has one on disk is carrying a dead file.
+//   - nodes/<id>/meta.json: LIVE and required. It still owns static node identity, and
+//     position.json / local-polars.json override its legacy position and localPolars/pole
+//     fields when present, falling back to what meta.json carried when they are absent
+//     (loader_tree.go).
+//
+// Neither is migrated or rewritten by this package.
 
 import (
 	"encoding/json"

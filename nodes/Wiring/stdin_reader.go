@@ -27,7 +27,7 @@
 //     produces them in-process from raw-input, so they never cross this seam as an edit op.
 //
 //  2. "save" — Go persists its OWN authoritative scene state (overlay visibility →
-//     scene.json, preserving the Go-owned cameraPolar). Bare command, no payload; the
+//     overlays.json; camera → camera.json). Bare command, no payload; the
 //     editor holds no authoritative scene document.
 //
 //  3. "raw-input" — a raw pointer/wheel event + stateless raycast hit, handed to the

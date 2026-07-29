@@ -38,7 +38,7 @@ export function BufferCamera({ cameraRef }: {
 
     const r = readCameraR(cv);
     // Guard the uninitialized camera row: Go emits a real viewpoint on load (SeedInitialViewpoint
-    // reads the saved pose from view/scene.json, or a non-degenerate default), but node-geometry
+    // reads the saved pose from view/camera.json, or a non-degenerate default), but node-geometry
     // snapshots can land first, with the camera row still all zeros. r <= 0 means "no viewpoint
     // yet" — skip.
     if (!(r > 0)) return;

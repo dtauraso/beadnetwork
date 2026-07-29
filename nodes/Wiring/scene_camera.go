@@ -26,7 +26,7 @@ import (
 )
 
 // SeedInitialViewpoint installs the initial camera viewpoint from FILE DATA. It loads the
-// saved polar camera from `<topologyPath>/view/scene.json` (or the fixed default when the
+// saved polar camera from `<topologyPath>/view/camera.json` (or the fixed default when the
 // file is absent/malformed) and installs it into the gesture-FSM viewpoint via
 // SetViewpoint + EmitViewpoint — the exact path a gesture uses — so the pose streams out to
 // the buffer camera columns. Called on startup only under the new system; the old render

@@ -61,7 +61,7 @@ func writeSceneSphere(sphereJSONPath string, s sceneSphere) error {
 	return writeJSONAtomic(sphereJSONPath, sceneSphereJSON{Center: &center, Radius: &radius})
 }
 
-// LoadSceneSphere installs md.ui.sceneSphere from FILE DATA, or — when scene.json has no
+// LoadSceneSphere installs md.ui.sceneSphere from FILE DATA, or — when sphere.json has no
 // persisted sphere — from a one-time content-fit of the current node centers (so an
 // existing scene gets a sane reference without any authored value). Call after LoadTopology
 // (node centers are loaded) and before the sphere is used to derive positions.
