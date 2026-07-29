@@ -102,10 +102,18 @@ while IFS= read -r hit; do
   [[ -z "$hit" ]] && continue
   file="${hit%%:*}"; rest="${hit#*:}"; lineno="${rest%%:*}"; content="${rest#*:}"
   base="${file##*/}"
-  # Skip the function DEFINITION lines (func writeJSONAtomic(... / func (...)
-  # entityReadModifyWrite(...) — matched only in scene_persist.go, already excluded above,
-  # but a defensive skip here in case a definition is ever duplicated elsewhere).
-  [[ "$content" == *"func "* ]] && continue
+  # Skip the function DEFINITION of a write primitive (defensive only — the real ones live
+  # in scene_persist.go, already excluded above; this catches a definition duplicated
+  # elsewhere).
+  #
+  # Match the DECLARATION specifically, not any line containing "func ". A blanket
+  # func-skip silently ignores every write that shares a line with the keyword — a one-line
+  # helper, and more realistically `go func() { writeJSONAtomic(...) }()`, which is ordinary
+  # Go. Verified: with the blanket skip, a one-line non-owner write passed this guard
+  # cleanly while the identical write spread over three lines was caught.
+  if printf '%s\n' "$content" | grep -qE '^[[:space:]]*func[[:space:]]+(\([^)]*\)[[:space:]]+)?(writeJSONAtomic|entityReadModifyWrite)[[:space:]]*\('; then
+    continue
+  fi
   TOTAL_CALLS=$((TOTAL_CALLS + 1))
 
   if in_list "$base" "${VIEW_OWNERS[@]}"; then
