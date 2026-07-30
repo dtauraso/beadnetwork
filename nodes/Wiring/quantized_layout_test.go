@@ -158,13 +158,15 @@ func TestCommitNodeMoveLocalDrawsQuantizedNotRawTarget(t *testing.T) {
 	if d := got.Sub(target).Length(); d < 1e-6 {
 		t.Fatalf("commitNodeMoveLocal drew the RAW target instead of the quantized lattice point: got=%+v raw-target=%+v", got, target)
 	}
-	// (2) The committed center must equal the LATTICE POINT the same index->position
-	// formula (offsetScenePolar) computes from the fresh quantized offset — the positive
-	// half of the same assertion, pinning WHAT it should be, not just what it shouldn't.
-	p := cart2polar(target.Sub(md.ui.sceneSphere.Center))
-	off := measureScalar(p, nm.quantOffset)
-	want := md.ui.sceneSphere.Center.Add(polar2cart(offsetScenePolar(off)))
+	// (2) The committed center must equal the WALKED point (walkBeadPath, "one bead of
+	// arc in every direction" — docs/bead-lattice.md) — the positive half of the same
+	// assertion, pinning WHAT it should be, not just what it shouldn't. This replaced an
+	// earlier version of this test that compared against offsetScenePolar(measureScalar(...)),
+	// the fixed-1-degree-angular-tick lattice point commitNodeMoveLocal used to draw
+	// before the walk model replaced it (that formula UNDERSHOT a sideways move 7x-18x,
+	// the drag.jump probe finding).
+	want := walkBeadPath(before, target)
 	if d := got.Sub(want).Length(); d > 1e-6 {
-		t.Fatalf("commitNodeMoveLocal's committed center does not match the quantized lattice point: got=%+v want=%+v", got, want)
+		t.Fatalf("commitNodeMoveLocal's committed center does not match the walked lattice point: got=%+v want=%+v", got, want)
 	}
 }

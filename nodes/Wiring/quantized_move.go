@@ -323,6 +323,47 @@ func (lq *layoutQuantizer) neighborSetCRequantize(md *MoveDispatch, selfID, from
 	}
 }
 
+// maxBeadStrides bounds how many one-bead-length steps walkBeadPath may take in a single
+// commit. Needed because the displacement handed in (a fast pointer drag between two
+// ~8ms move ticks, or a programmatic RootMove target) can be arbitrarily far from the
+// node's current committed position, and stepping one bead at a time toward it must not
+// become an unbounded loop. 1024 strides is 1024*BeadStepR =~ 9175 world units — several
+// times this scene's own diameter (nodes sit at r~=28-70, docs/bead-lattice.md) — so no
+// legitimate single commit needs more; if the cap is ever actually hit, the node still
+// makes full, bounded progress toward the target this commit and finishes closing the
+// gap on the next one (the next pointer-move tick, or a repeated call), so raising or
+// lowering this constant only changes how many commits a huge jump takes, never whether
+// the walk terminates or where it ends up.
+const maxBeadStrides = 1024
+
+// walkBeadPath advances from prev toward target in whole BeadStepR-length strides, one
+// polar vector at a time, for as many strides as fit — "each bead is also a polar
+// vector... take the dragging of the node and fit it to a path of the polar vectors...
+// the dragging should be vectors combining" (the model this implements, docs/bead-lattice.md).
+// A step's LENGTH is the invariant and it is identical in EVERY direction by
+// construction (each stride is exactly wire.BeadStepR long), so there is no separate
+// radial/angular grid to reconcile and no direction-dependent shortfall — this replaces
+// the fixed-1-degree angular tick that measured 7x-18x too short against a bead at this
+// graph's radii (the drag.jump probe, docs/bead-lattice.md). Direction is NOT quantized:
+// each stride points wherever the CURRENT remaining displacement points, recomputed
+// fresh every stride rather than fixed from the first, so the walked path curves toward
+// a moving/diagonal target exactly like combining vectors would. A remaining
+// displacement shorter than one full bead commits no further movement at all — the node
+// holds its position rather than sliding part of a bead, which is what makes every
+// observed jump exactly one bead long and never a fraction of one.
+func walkBeadPath(prev, target vec3) vec3 {
+	pos := prev
+	for i := 0; i < maxBeadStrides; i++ {
+		disp := target.Sub(pos)
+		d := disp.Length()
+		if d < wire.BeadStepR {
+			break
+		}
+		pos = pos.Add(disp.Scale(wire.BeadStepR / d))
+	}
+	return pos
+}
+
 // commitNodeMoveLocal is the OWNER-GOROUTINE single-node commit path
 // (generalized to every node): used when the commit
 // originates on nodeID's OWN mover goroutine (its own inbox handler for a
@@ -389,17 +430,30 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeMover, 
 	// (docs/which-lattice-a-node-lives-on.md "Why the drag makes it worst": that split is
 	// exactly what made the node glide continuously while its own chain beads jumped one
 	// bead distance at a time). Under the quantized scene lattice (lq.quantizedLayout),
-	// the quantized triple is computed FIRST — measureScalar/offsetScenePolar, the same
-	// index->position formula deriveCenters uses — and becomes committedPos; the raw
-	// target is discarded rather than drawn. If quantizedLayout is off, keep the historic
-	// behavior: committedPos stays the raw, continuous target, and no offset is measured.
+	// committedPos is now the WALKED position (walkBeadPath, docs/bead-lattice.md's "each
+	// bead is also a polar vector... the dragging should be vectors combining" model):
+	// advance from the node's CURRENT drawn position toward the raw target in whole
+	// BeadStepR-length strides, in whatever direction the drag is heading, and stop
+	// within one bead of the target. This replaced an earlier version that derived
+	// committedPos from a quantized (iTheta,iPhi,iR) triple via offsetScenePolar — that
+	// triple's angular component used a FIXED 1-degree tick, which measured 7x-18x too
+	// short in arc against a bead at this graph's radii (the drag.jump probe): sideways
+	// drag ticks were tiny while radial ticks were a full bead. off/committedPolar below
+	// are now measured back OFF the walked committedPos purely as the position.json
+	// self-describing CACHE (quant_offset_persist.go's doc comment: "the quantized
+	// scalar triple... rides along as a self-describing cache of the drag-time snap
+	// cells, NOT the position source") — nothing downstream reconstructs committedPos
+	// from off, so re-measuring it here can never reintroduce the mismatch; the
+	// authoritative, lossless value is committedPos/committedPolar. If quantizedLayout is
+	// off, keep the historic behavior: committedPos stays the raw, continuous target, and
+	// no offset is measured.
 	committedPos := newPos
 	committedPolar := nodePolar
 	var off quantizedOffset
 	if lq.quantizedLayout {
-		off = measureScalar(nodePolar, nm.quantOffset)
-		committedPolar = offsetScenePolar(off)
-		committedPos = md.ui.sceneSphere.Center.Add(polar2cart(committedPolar))
+		committedPos = walkBeadPath(nodeWorldPos(nm.geom), newPos)
+		committedPolar = cart2polar(committedPos.Sub(md.ui.sceneSphere.Center))
+		off = measureScalar(committedPolar, nm.quantOffset)
 	}
 
 	polars[nodeID] = committedPolar
