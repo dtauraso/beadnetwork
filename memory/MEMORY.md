@@ -6,7 +6,6 @@ These rarely change; skim once per session and apply throughout.
 
 - [user_background.md](user_background.md) — User designs concurrent dataflow systems with circuit-style wiring
 - [feedback_code_self_defends.md](feedback_code_self_defends.md) — Solid code structure preferred over memory entries for preventing AI drift toward industry defaults
-- [feedback_verified_work_lands.md](feedback_verified_work_lands.md) — A branch with EMPTY stop-checks output merges to main immediately, no per-merge sign-off; unmerged work is invisible in the editor
 - [feedback_branch_cleanup.md](feedback_branch_cleanup.md) — Delete task branches locally and on remote once merged into main, without re-asking
 - [feedback_memory_location.md](feedback_memory_location.md) — Save memory files only to repo `memory/`; skip the local Claude memory dir for this project
 - [feedback_check_the_signal_the_check_emits.md](feedback_check_the_signal_the_check_emits.md) — Self-derived: before claiming "verified", make the check fail once; a check that can't fail reads like a passing one. (The stop-checks exit-code fact itself lives in CLAUDE.md's verify recipe.)
