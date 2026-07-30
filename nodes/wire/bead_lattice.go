@@ -7,6 +7,8 @@
 // from independently chosen literals that could drift apart from it.
 package wire
 
+import "math"
+
 // BeadStepCells is the number of node-lattice radial cells (LocalStepR each)
 // a single bead step spans. Fixing it at 4 (rather than re-deriving LocalStepR
 // itself to match a chosen bead radius) is what keeps the bead lattice a
@@ -44,3 +46,19 @@ const BeadTorusOuterR = BeadStepR / 2
 // the value the ONE production PacedWire construction site (loader.go, guarded
 // by tools/check-uniform-pulse-speed.sh) is expected to pass as dwellTicks.
 const DwellTicksPerBead = BeadStepR / PulseSpeedWuPerTick
+
+// SnapQuantIR rounds a node-separation quant index to the nearest multiple of
+// BeadStepCells (4), the bead lattice's coarse-sublattice pitch (docs/bead-lattice.md
+// "The lattice is commensurate with the node lattice"). QuantIR must be stored ONLY
+// through this function — LayoutHolder.SetLocalPolar and LoadLocalPolars, the two
+// write choke points for a LocalPolar entry, both call it — so an off-lattice
+// separation can never be PERSISTED. That is what makes edgeStepCount's count a pure
+// integer subtraction (nodeTorusSteps difference, no division) rather than exact only
+// by luck of what happened to be stored: snapping at the read side instead would let
+// an unsnapped value keep re-entering through every other writer that skipped this
+// call. Nearest, not floor/ceil: this shifts an authored separation by at most half a
+// bead step (4 world units) on first load — the accepted one-time cost of exact double
+// tangency at both ends (docs/bead-lattice.md "The count").
+func SnapQuantIR(quantIR int) int {
+	return int(math.Round(float64(quantIR)/float64(BeadStepCells))) * BeadStepCells
+}

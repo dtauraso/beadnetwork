@@ -260,3 +260,78 @@ func TestEdgeStepCountClampsToMinimumOne(t *testing.T) {
 		t.Fatalf("edgeStepCount(collapsed) = %d, want 1", got)
 	}
 }
+
+// THE REGRESSION GUARD for this commit: exact double tangency, no float tolerance wider
+// than round-trip noise. Before this commit, edgeStepCount measured
+// `round((QuantIR*stepR - nodeTorusOuterR(src) - nodeTorusOuterR(dst)) / BeadStepR)` against
+// an nodeTorusOuterR that was an arbitrary float NOT on the bead lattice
+// (nodeRadius(kind)*(1+ShadingParamNodeRingTubeRatio)), so the division was essentially never
+// exact and the rounding silently absorbed up to half a bead step at the TARGET end — bead 0
+// was always exactly tangent to the source (offset by construction), but the last bead's far
+// edge only APPROXIMATELY met the target's torus. This test pins the far edge to the target's
+// torus to float-round-off tolerance (1e-6, not the 1e-4 "stays outside" tolerance the older
+// tests use, because this is asserting equality, not clearance), across several QuantIR values
+// (already snapped to the bead lattice, matching what LayoutHolder.SetLocalPolar actually
+// stores — see singleNeighborHolder) and several node-kind pairs whose bareNodeRadius values
+// don't share an obvious common factor. Reintroducing a float `gap/BeadStepR` division against
+// an unsnapped nodeTorusOuterR reopens exactly the discrepancy this test would catch: verified
+// by hand during development by temporarily restoring the pre-fix
+// `nodeRadius(kind)*(1+ShadingParamNodeRingTubeRatio)` definition of nodeTorusOuterR and
+// `int(math.Round(gap/wire.BeadStepR))` in edgeStepCount, which failed this test with a
+// last-bead far-edge error up to half of wire.BeadStepR (4.0 world units) — see this commit's
+// message for the exact numbers.
+func TestChainBeadsExactDoubleTangency(t *testing.T) {
+	kindPairs := [][2]string{
+		{"Input", "Time"},
+		{"Time", "Input"},
+		{"Input", "Input"},
+		{"Time", "Time"},
+	}
+	// Every centerGap here must be an exact multiple of wire.DefaultLocalStepR
+	// (singleNeighborHolder's own requirement) and large enough to clear both tori with
+	// room for at least one bead, across the largest kind pair tested.
+	centerGaps := []float64{200, 240, 360, 520, 1000}
+
+	for _, kp := range kindPairs {
+		srcKind, dstKind := kp[0], kp[1]
+		for _, gap := range centerGaps {
+			m := &nodeMover{
+				id:             "a",
+				geom:           nodeGeom{nodeIdentity: nodeIdentity{Kind: srcKind}},
+				outTargets:     []string{"b"},
+				cascadeKinds:   map[string]string{"b": dstKind},
+				layoutHolderFn: singleNeighborHolder("b", gap),
+			}
+			ox, oy, oz, _, _ := m.chainBeads()
+			if len(ox) == 0 {
+				t.Fatalf("%s->%s gap %.0f: no beads emitted", srcKind, dstKind, gap)
+			}
+
+			srcTorus := nodeTorusOuterR(srcKind)
+			dstTorus := nodeTorusOuterR(dstKind)
+
+			// Bead 0's NEAR edge: its offset from center minus its own torus radius must
+			// equal the source's torus radius EXACTLY — this held even before this
+			// commit (it's placement by direct addition, not a derived count), pinned
+			// here so a future change can't break it while "fixing" the far end.
+			d0 := math.Sqrt(float64(ox[0])*float64(ox[0]) + float64(oy[0])*float64(oy[0]) + float64(oz[0])*float64(oz[0]))
+			nearEdge0 := d0 - wire.BeadTorusOuterR
+			if math.Abs(nearEdge0-srcTorus) > 1e-6 {
+				t.Errorf("%s->%s gap %.0f: bead 0 near edge %.9f, want exactly srcTorus %.9f",
+					srcKind, dstKind, gap, nearEdge0, srcTorus)
+			}
+
+			// Last bead's FAR edge: its offset from center plus its own torus radius must
+			// equal the target's torus's NEAR edge (separation - dstTorus) exactly — the
+			// invariant that used to be a rounding coincidence.
+			last := len(ox) - 1
+			dLast := math.Sqrt(float64(ox[last])*float64(ox[last]) + float64(oy[last])*float64(oy[last]) + float64(oz[last])*float64(oz[last]))
+			farEdgeLast := dLast + wire.BeadTorusOuterR
+			wantFarEdge := gap - dstTorus
+			if math.Abs(farEdgeLast-wantFarEdge) > 1e-6 {
+				t.Errorf("%s->%s gap %.0f: last bead (%d) far edge %.9f, want exactly target's near torus edge %.9f (off by %.9f, up to half a bead step %.3f would indicate math.Round is back)",
+					srcKind, dstKind, gap, last, farEdgeLast, wantFarEdge, farEdgeLast-wantFarEdge, wire.BeadStepR/2)
+			}
+		}
+	}
+}

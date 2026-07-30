@@ -144,14 +144,30 @@ func (lh *LayoutHolder) LocalPolarSteps(to string) (t, p, r float64) {
 // exactly once, at load time (loader.go), to attach the freshly-computed list
 // (computeLocalPolars) to the node's own LayoutHolder — the only initial-load
 // writer, distinct from SetLocalPolar's per-neighbor upsert used by drags.
+//
+// Snaps every entry's QuantIR to the bead lattice (SnapQuantIR) before storing —
+// this is a WRITE choke point for QuantIR (the other is SetLocalPolar below), so a
+// separation computed from a live cartesian radius (computeLocalPolars) or carried
+// forward from a pre-bead-lattice save can never be stored off-lattice
+// (docs/bead-lattice.md "The count").
 func (lh *LayoutHolder) LoadLocalPolars(lps []LocalPolar) {
+	for i := range lps {
+		lps[i].QuantIR = SnapQuantIR(lps[i].QuantIR)
+	}
 	lh.localPolars = lps
 }
 
 // SetLocalPolar upserts this node's local-polar entry for the given neighbor
 // (updating in place if present, appending otherwise). The sole in-memory
 // writer of LocalPolars outside load-time construction.
+//
+// quantIR is snapped to the bead lattice (SnapQuantIR) before storing — the other
+// QuantIR write choke point is LoadLocalPolars above; together they mean no caller
+// (requantizePoleTraced, neighborSetCRequantize) can persist an off-lattice
+// separation, whatever radius it happened to measure (docs/bead-lattice.md
+// "The count").
 func (lh *LayoutHolder) SetLocalPolar(to string, quantITheta, quantIPhi, quantIR int, stepTheta, stepPhi, stepR float64) {
+	quantIR = SnapQuantIR(quantIR)
 	for i := range lh.localPolars {
 		if lh.localPolars[i].To == to {
 			lh.localPolars[i].QuantITheta = quantITheta
