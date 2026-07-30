@@ -154,7 +154,9 @@ const ShadingParamBeadRingTubeRatio = 0.12
 // INTENTIONAL: David picked this tone off a screenshot. Recording that here so the next reader
 // does not "fix" it back to the tube colour on the same argument that deleted it.
 //
-// The value is the tone as RENDERED in that screenshot (sampled #a7dfe5), not a node's source
+// The value started as the tone sampled from a screenshot (#a7dfe5) and was then taken down
+// ~8% by eye because that read too bright in place. It is a chosen appearance, not a
+// measurement to be restored. It is NOT a node's source
 // fill: the node body that tone came from is glassy transmission material, so matching the
 // appearance means matching the rendered tone rather than the input that produced it.
 //
@@ -163,7 +165,24 @@ const ShadingParamBeadRingTubeRatio = 0.12
 // second time — measured at ~0.8x, which is why an earlier attempt with meshStandardMaterial
 // came out #8daaad against this #a7dfe5. Change this constant and the pixel changes with it;
 // that is only true while the material stays unlit.
-const ShadingParamChainBeadFill = "#a7dfe5"
+const ShadingParamChainBeadFill = "#9acdd3"
+
+// ShadingParamInteriorBeadFill0 and ShadingParamInteriorBeadFill1 are the fills for a bead
+// HELD INSIDE a node (InteriorBeadInstances.tsx), deliberately kept SEPARATE from
+// bead-style.ts's on-wire 0/1 fills even though they start at the same values. The reason
+// is the same shape as ShadingParamChainBeadFill above: an interior bead is seen THROUGH
+// the node's glassy transmissive meshPhysicalMaterial shell (NodeInstances.tsx), so its
+// pixel is tinted by that shell no matter what material the bead itself uses. A shared
+// constant with the on-wire bead cannot make the two look equal, because the interior one
+// always has one more optical stage (the shell) sitting in front of it. Equality between
+// an interior bead and a wire bead is therefore achieved by AUTHORING these two numbers BY
+// EYE against the rendered shell, not by sharing a material or a constant. They start at
+// the on-wire values (#000000 / #ffffff) so this commit changes only the MATERIAL an
+// interior bead is drawn with (see InteriorBeadInstances.tsx), not its tone — expect these
+// two constants to be tuned away from the on-wire values once the shell's tint is visible
+// against them.
+const ShadingParamInteriorBeadFill0 = "#000000"
+const ShadingParamInteriorBeadFill1 = "#ffffff"
 
 // ShadingParamBeadColor is the in-flight bead color.
 const ShadingParamBeadColor = "#ffffff"

@@ -105,22 +105,34 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
       {/* Unlit body: every resting bead is identical, so this mesh needs no
           setColorAt/instanceColor at all — one flat material carries the whole resting chain.
 
-          EVERY bead mesh in this file is meshBasicMaterial + toneMapped={false}, and that pair
-          is load-bearing: it makes the streamed colour EQUAL the pixel. Two separate stages were
-          each altering these colours before they reached the screen — a lit material multiplies
-          the base by incoming light (#a7dfe5 arrived as ~#8daaad), and the renderer's default
-          ACES tone mapping compresses and desaturates on top of that (which is why bead 1's
-          #ffffff read as grey). Neither stage is wanted here: a bead colour is DATA Go streams,
-          not a surface to be relit.
+          EVERY bead mesh in this file — this one, the lit body below, and the ring — is
+          meshBasicMaterial + toneMapped={false}, and that pair is load-bearing on all of
+          them: it makes the authored fill constant EQUAL the pixel. Two stages would
+          otherwise alter it — a lit material multiplies the base by incoming light (#a7dfe5
+          arrived as ~#8daaad), and the renderer's default ACES tone mapping compresses on top.
+          A bead in transit is authored to an exact value, so it opts out of both, same as a
+          resting bead.
 
-          So do not "improve" these to meshStandardMaterial. The cost is that a bead has no
-          shading gradient and reads flat; its black ring carries the silhouette instead. */}
+          A bead inside a node (InteriorBeadInstances.tsx) matches this one by way of its OWN
+          authored constants (ShadingParamInteriorBeadFill0/1), NOT by sharing this material —
+          an interior bead sits behind the node's glassy transmissive shell, so it needs a
+          separately-tuned constant to look the same on screen, not the same material props.
+          Cost here: no shading gradient, so a resting bead reads flat and its ring carries the
+          silhouette. */}
       <instancedMesh ref={unlitBodyRef} args={[undefined, undefined, capacity]} frustumCulled={false}>
         <sphereGeometry args={[SHADING_PARAM_BEAD_RADIUS, 16, 16]} />
         <meshBasicMaterial color={SHADING_PARAM_CHAIN_BEAD_FILL} toneMapped={false} />
       </instancedMesh>
       {/* Lit body: the 0/1 bead colours via instanceColor — material colour stays white so
-          instanceColor applies verbatim. */}
+          instanceColor applies verbatim.
+
+          meshBasicMaterial + toneMapped={false}, same as every other mesh in this file: the
+          streamed 0/1 colour (bead-style.ts) is an authored constant, so it opts out of
+          lighting and tone mapping to land on screen verbatim. This does NOT need to match
+          InteriorBeadInstances' material — the two look the same by way of SEPARATE authored
+          constants (this file's on-wire fills vs. ShadingParamInteriorBeadFill0/1), because an
+          interior bead sits behind the node's glassy transmissive shell and a wire bead does
+          not; sharing a material could never make them equal on screen. */}
       <instancedMesh ref={litBodyRef} args={[undefined, undefined, capacity]} frustumCulled={false}>
         <sphereGeometry args={[SHADING_PARAM_BEAD_RADIUS, 16, 16]} />
         <meshBasicMaterial toneMapped={false} />
