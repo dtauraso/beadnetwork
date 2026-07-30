@@ -146,9 +146,8 @@ func panDisplacementPolar(pos, up dir, dx, dy, worldPerPixel float64) vec3 {
 // regionFocus)
 // ---------------------------------------------------------------------------
 
-const gestureFocusMin = 10.0  // FOCUS_MIN — keep the regionFocus pivot off the camera
-const gestureMoveSlopPx = 6.0 // MOVE_SLOP_PX — pending → drag/rotate threshold
-const gestureZoomBase = 1.01  // ZOOM_BASE — per-scroll-unit dolly factor
+const gestureFocusMin = 10.0 // FOCUS_MIN — keep the regionFocus pivot off the camera
+const gestureZoomBase = 1.01 // ZOOM_BASE — per-scroll-unit dolly factor
 
 // rotSmoothAlpha is the EMA factor for the averaging ("fat") cursor that drives rotation:
 // LOWER = fatter/blurrier/smoother, HIGHER = snappier/closer to raw. Range (0,1].

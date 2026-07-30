@@ -73,7 +73,7 @@ func TestGestureDragOffCenterPreservesGrabPoint(t *testing.T) {
 		t.Fatal("dragPlaneHit(ev1) reported not-ok; test setup assumption (non-parallel ray) broken")
 	}
 
-	move1 := rawEvent("pointermove", 480, 300) // > gestureMoveSlopPx from (450,300): crosses slop
+	move1 := rawEvent("pointermove", 480, 300) // any displacement from (450,300) commits
 	move1.Hit = nodeHit()
 	md.HandleRawInput(move1, nil, nil)
 	if md.ui.gest.phase != gestDragging {
@@ -114,7 +114,7 @@ func TestGestureDragCenterGrabUnchanged(t *testing.T) {
 	md := dragOffsetMD()
 	nm := md.mr.nodeMovers["n"]
 
-	down := rawEvent("pointerdown", 400+gestureMoveSlopPx+10, 300) // off-center; only its distance to move1 matters for the slop check
+	down := rawEvent("pointerdown", 410, 300) // off-center; only its distance to move1 matters for the slop check
 	down.Hit = nodeHit()
 	md.HandleRawInput(down, nil, nil)
 

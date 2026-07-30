@@ -24,8 +24,9 @@ import (
 //
 // States:
 //   idle      — nothing in progress.
-//   pending   — pointer is down; not yet past the move slop. Resolves to a drag/rotate on
-//               the first move past MOVE_SLOP_PX, or to a click/wire on pointer-up.
+//   pending   — pointer is down; no movement yet. Resolves to a drag/rotate on the first
+//               pixel of actual displacement from the press point, or to a click/wire on
+//               pointer-up with no movement at all.
 //   rotating  — empty-space great-circle orbit about a frozen region-focus pivot.
 //   dragging  — node body drag (world target on a camera-facing plane → RootMove).
 //   handhold  — a handhold grab-sphere is dragged for axis-locked (constrained) orbit.
@@ -234,9 +235,22 @@ func (md *MoveDispatch) gestPointerMove(ev rawInputMsg, tr *T.Trace) {
 	dy := ev.Y - g.downY
 	dist := math.Hypot(dx, dy)
 
+	// Click vs. drag is discriminated by MOVEMENT ITSELF, not a distance threshold: any
+	// actual displacement from the press point commits (dist > 0, not merely "a move event
+	// arrived" — some input stacks emit a move AT the press coordinates, which must not
+	// commit). A prior version gated this on dist > a slop constant (gestureMoveSlopPx,
+	// deleted), which doubled as a click-vs-drag discriminator AND a hidden fix for a
+	// different defect: before the grab-offset fix (commitDragStart's dragGrabOffset), the
+	// node's center would JUMP to the cursor the instant the slop was crossed, so a large
+	// threshold delayed that jump rather than removing it. With the grab offset preserved,
+	// engaging on the very first pixel of movement is smooth, so the threshold now only
+	// costs responsiveness — it can go. Trade-off accepted deliberately: hand tremor during
+	// a click now registers as a sub-pixel drag, which is harmless because node positions
+	// quantize to the bead lattice, so sub-lattice movement usually resolves to no change.
+	//
 	// A secondary (two-finger) press never becomes a drag/rotate — it is a tap-select, so
 	// it stays gestPending through any finger drift and resolves on pointer-up.
-	if g.phase == gestPending && dist > gestureMoveSlopPx && !g.secondary {
+	if g.phase == gestPending && dist > 0 && !g.secondary {
 		for _, edge := range commitEdges {
 			if edge.guard(g) {
 				edge.action(md, g, ev, tr)

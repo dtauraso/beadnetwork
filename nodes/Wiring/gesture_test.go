@@ -264,7 +264,7 @@ func TestGestureSecondaryTapSelectsThroughDrift(t *testing.T) {
 	md := newGestureMD(canonicalViewpoint())
 	md.rt.nodeRowTable = []string{"N7"}
 
-	// Two-finger tap ON a node, with drift well past gestureMoveSlopPx between down and up.
+	// Two-finger tap ON a node, with drift between down and up.
 	down := rawEvent("pointerdown", 400, 300)
 	down.Button = 2
 	down.Hit = rawHit{Kind: "node", NodeRow: 0}
@@ -273,14 +273,14 @@ func TestGestureSecondaryTapSelectsThroughDrift(t *testing.T) {
 		t.Fatalf("after secondary down: secondary=%v phase=%v", md.ui.gest.secondary, md.ui.gest.phase)
 	}
 	// Finger drift past the slop must NOT convert to drag/rotate — it stays a tap-select.
-	drift := rawEvent("pointermove", 400+gestureMoveSlopPx+10, 300)
+	drift := rawEvent("pointermove", 410, 300)
 	drift.Button = 2
 	drift.Hit = rawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(drift, nil, nil)
 	if md.ui.gest.phase != gestPending {
 		t.Fatalf("secondary tap converted out of pending: phase=%v", md.ui.gest.phase)
 	}
-	up := rawEvent("pointerup", 400+gestureMoveSlopPx+10, 300)
+	up := rawEvent("pointerup", 410, 300)
 	up.Button = 2
 	up.Hit = rawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(up, nil, nil)
@@ -292,10 +292,10 @@ func TestGestureSecondaryTapSelectsThroughDrift(t *testing.T) {
 	d2 := rawEvent("pointerdown", 400, 300) // Hit defaults to empty
 	d2.Button = 2
 	md.HandleRawInput(d2, nil, nil)
-	m2 := rawEvent("pointermove", 400+gestureMoveSlopPx+10, 300)
+	m2 := rawEvent("pointermove", 410, 300)
 	m2.Button = 2
 	md.HandleRawInput(m2, nil, nil)
-	u2 := rawEvent("pointerup", 400+gestureMoveSlopPx+10, 300)
+	u2 := rawEvent("pointerup", 410, 300)
 	u2.Button = 2
 	md.HandleRawInput(u2, nil, nil)
 	if md.ui.sel.selected != "" {
@@ -334,20 +334,114 @@ func TestGestureHandholdOrbits(t *testing.T) {
 	}
 }
 
-// A short press-release under the move slop stays in pending and resolves as a click
-// (recognized only); it must NOT change the camera pose.
+// A press-release with NO pointermove in between stays in pending (no move event ever
+// arrives to evaluate the commit guard) and resolves as a click (recognized only); it must
+// NOT change the camera pose.
 func TestGestureClickNoCameraChange(t *testing.T) {
 	md := newGestureMD(canonicalViewpoint())
 	before := md.ui.vp.viewpoint
 	nodeHit := rawEvent("pointerdown", 400, 300)
 	nodeHit.Hit = rawHit{Kind: "empty"}
 	md.HandleRawInput(nodeHit, nil, nil)
-	md.HandleRawInput(rawEvent("pointerup", 402, 301), nil, nil) // <6px → click
+	md.HandleRawInput(rawEvent("pointerup", 402, 301), nil, nil) // no move event → click
 	if md.ui.vp.viewpoint != before {
 		t.Fatalf("click changed camera: %+v != %+v", md.ui.vp.viewpoint, before)
 	}
 	if md.ui.gest.phase != gestIdle {
 		t.Fatalf("after click phase=%v want idle", md.ui.gest.phase)
+	}
+}
+
+// A single pixel of movement past the press point now commits to dragging — the "click vs.
+// drag = click-with-no-movement vs. drag" discriminator has no distance floor. Before this
+// change (dist > gestureMoveSlopPx == 6px), this exact 1px move would have stayed
+// gestPending; this pins that it no longer does.
+func TestGestureOnePixelMoveCommitsToDrag(t *testing.T) {
+	md := dragOffsetMD() // real nodeMover for "n" so the dragNode commit guard's centerOfNode succeeds
+
+	down := rawEvent("pointerdown", 400, 300)
+	down.Hit = rawHit{Kind: "node", NodeRow: 0}
+	md.HandleRawInput(down, nil, nil)
+	if md.ui.gest.phase != gestPending {
+		t.Fatalf("after pointerdown: phase=%v want pending", md.ui.gest.phase)
+	}
+
+	move := rawEvent("pointermove", 401, 300) // 1px displacement, well under the old 6px slop
+	move.Hit = rawHit{Kind: "node", NodeRow: 0}
+	md.HandleRawInput(move, nil, nil)
+	if md.ui.gest.phase != gestDragging {
+		t.Fatalf("after 1px move: phase=%v want dragging (movement itself commits)", md.ui.gest.phase)
+	}
+}
+
+// A pointermove event reporting the SAME coordinates as the press is not movement — some
+// input stacks emit a move at the press point — and must NOT commit. The guard is on actual
+// displacement (dist > 0), not "a move event arrived".
+func TestGestureMoveAtPressPointDoesNotCommit(t *testing.T) {
+	md := newGestureMD(canonicalViewpoint())
+	md.rt.nodeRowTable = []string{"n"}
+
+	down := rawEvent("pointerdown", 400, 300)
+	down.Hit = rawHit{Kind: "node", NodeRow: 0}
+	md.HandleRawInput(down, nil, nil)
+
+	same := rawEvent("pointermove", 400, 300) // identical to the press point → zero displacement
+	same.Hit = rawHit{Kind: "node", NodeRow: 0}
+	md.HandleRawInput(same, nil, nil)
+	if md.ui.gest.phase != gestPending {
+		t.Fatalf("after zero-displacement move: phase=%v want still pending (no movement occurred)", md.ui.gest.phase)
+	}
+}
+
+// press+release with NO move in between still selects (click path intact after the
+// distance-threshold removal — see TestGestureClickNoCameraChange for the camera-pose half
+// of this, and TestGestureSelectModeOffStillHighlights below for a node-target click).
+func TestGesturePressReleaseNoMoveSelects(t *testing.T) {
+	md := newGestureMD(canonicalViewpoint())
+	md.rt.nodeRowTable = []string{"N7"}
+
+	down := rawEvent("pointerdown", 400, 300)
+	down.Hit = rawHit{Kind: "node", NodeRow: 0}
+	md.HandleRawInput(down, nil, nil)
+	up := rawEvent("pointerup", 400, 300)
+	up.Hit = rawHit{Kind: "node", NodeRow: 0}
+	md.HandleRawInput(up, nil, nil)
+
+	if md.ui.sel.selected != "N7" {
+		t.Fatalf("selected=%q want N7 after press+release with no move", md.ui.sel.selected)
+	}
+	if md.ui.gest.phase != gestIdle {
+		t.Fatalf("after click phase=%v want idle", md.ui.gest.phase)
+	}
+}
+
+// A secondary (two-finger) press with movement still stays pending and tap-selects on
+// release — it never converts to a drag/rotate no matter how much it moves, unlike the
+// primary-button case pinned above. Regression guard for the movement-commits-a-drag change:
+// the commit guard is `dist > 0 && !g.secondary`, so the secondary check must still gate it.
+func TestGestureSecondaryMoveStaysPendingAndTapSelects(t *testing.T) {
+	md := newGestureMD(canonicalViewpoint())
+	md.rt.nodeRowTable = []string{"N7"}
+
+	down := rawEvent("pointerdown", 400, 300)
+	down.Button = 2
+	down.Hit = rawHit{Kind: "node", NodeRow: 0}
+	md.HandleRawInput(down, nil, nil)
+
+	move := rawEvent("pointermove", 401, 300) // 1px is enough to commit a PRIMARY press
+	move.Button = 2
+	move.Hit = rawHit{Kind: "node", NodeRow: 0}
+	md.HandleRawInput(move, nil, nil)
+	if md.ui.gest.phase != gestPending {
+		t.Fatalf("secondary press converted out of pending on move: phase=%v", md.ui.gest.phase)
+	}
+
+	up := rawEvent("pointerup", 401, 300)
+	up.Button = 2
+	up.Hit = rawHit{Kind: "node", NodeRow: 0}
+	md.HandleRawInput(up, nil, nil)
+	if md.ui.sel.selected != "N7" {
+		t.Fatalf("selected=%q want N7 after secondary tap-select", md.ui.sel.selected)
 	}
 }
 
