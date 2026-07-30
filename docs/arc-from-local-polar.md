@@ -1,5 +1,16 @@
 # One integer per edge — the arc comes from the stored LocalPolar
 
+**SUPERSEDED by [bead-lattice.md](bead-lattice.md)** ("Supersedes the arc-length model for
+edges"). This doc's own "The decision" below shipped as `task/arc-from-local-polar` — an
+edge's arc becomes `QuantIR × StepR`, one integer, derived from the stored `LocalPolar`
+this file argues for — but bead-lattice.md later replaced the arc-length quantity itself:
+"There is no arc. An edge's length is ONE INTEGER: the number of bead steps between the
+two nodes' tori." `edgeArcPolar`, the function this doc's "Ownership" and "Steps" sections
+are built around, is explicitly DELETED per bead-lattice.md's closing paragraph. Kept as
+history of how the arc-vs-QuantIR gap was first reasoned about and closed, one step short
+of where the model ended up; do not follow the "Steps" section below, it targets removed
+code.
+
 ## The problem
 
 Three independent derivations of the same geometry, and nothing makes them agree.

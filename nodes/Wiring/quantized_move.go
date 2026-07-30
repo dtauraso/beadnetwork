@@ -376,21 +376,6 @@ func walkBeadPath(prev, target vec3) vec3 {
 // local-polar cascade-links against its (unmoved) neighbors.
 func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeMover, newPos vec3) {
 	nodeID := nm.id
-	// PROBE (temporary): does this function run at all on a live drag? The drag.jump
-	// breadcrumb further down never appeared, and every explanation for that assumed
-	// this body executes. Log entry unconditionally, before anything can return early.
-	if nm.tr != nil {
-		q := 0.0
-		if lq.quantizedLayout {
-			q = 1
-		}
-		nm.tr.Breadcrumb("probe.enterCommit", nodeID, "", fmt.Sprintf("quantized=%v", lq.quantizedLayout))
-		nm.writeStreamFrame([]wire.RowEvent{{
-			Kind: T.KindBreadcrumb, Label: T.BreadcrumbProbeEnterCommit, Debug: 1,
-			NodeRow: nm.nodeRow, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
-			X: q,
-		}})
-	}
 	edges := lq.heldEdges(md)
 	// reach[nodeID] only ever needs nodeID's own fresh polar plus its DIRECT
 	// neighbors' polar (reachRFromPolar only accumulates reach for an edge's
@@ -458,36 +443,6 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeMover, 
 
 	polars[nodeID] = committedPolar
 	reach := reachRFromPolar(polars, edges)
-
-	// MEASURE THE JUMP. Reported from the editor: a node's drag step and a bead's step
-	// look like different distances, and two rounds of reasoning from the constants got
-	// it wrong in both directions — first "the node does not jump at all" (it was drawn
-	// at the raw target), then "now it jumps further than a bead". So stop reasoning and
-	// read the number: this logs the ACTUAL world distance between the previously drawn
-	// centre and the one about to be drawn, next to the bead distance it is supposed to
-	// equal, plus the index delta that produced it so a jump of several cells is
-	// distinguishable from one oversized cell.
-	//
-	// Read with tools/probe-merge.sh --debug. Breadcrumbs are not gated by the
-	// probe.trace setting (.claude/rules/go-debugging.md), so this works without
-	// changing any setting — which is the point, since it has to be read from a live
-	// drag in the editor.
-	//
-	// TEMPORARY: delete once the mismatch is understood. It fires once per committed
-	// drag step, which is per pointer-move, so it is not free.
-	if nm.tr != nil {
-		// X = the world distance actually moved, Y = the bead distance it should
-		// equal, Z = the radial index delta. The RowEvent's X/Y/Z are the only
-		// payload that survives to .probe — Breadcrumb's string value does not.
-		prev := nodeWorldPos(nm.geom)
-		jump := committedPos.Sub(prev).Length()
-		nm.tr.Breadcrumb("drag.jump", nodeID, "", fmt.Sprintf("jump=%.3f bead=%.3f", jump, wire.BeadStepR))
-		nm.writeStreamFrame([]wire.RowEvent{{
-			Kind: T.KindBreadcrumb, Label: T.BreadcrumbDragJump, Debug: 1,
-			NodeRow: nm.nodeRow, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
-			X: jump, Y: wire.BeadStepR, Z: float64(off.iR - nm.quantOffset.iR),
-		}})
-	}
 
 	nm.applyCenter(committedPos, reach[nodeID])
 	lq.broadcastToEdgesAndPartners(md, map[string]vec3{nodeID: committedPos}, nm.sendMove)
