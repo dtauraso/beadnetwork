@@ -70,19 +70,26 @@ func TestShadingParamNodeRingTubeRatioMatchesTS(t *testing.T) {
 }
 
 // TestShadingParamBeadRadiusMatchesDerivation now merely restates ShadingParamBeadRadius's
-// own definition: since gen-node-defs' constant evaluator (tools/gen-node-defs/constexpr.go)
-// learned to evaluate a real expression, ShadingParamBeadRadius IS
-// `wire.BeadTorusOuterR / (1 + ShadingParamBeadRingTubeRatio)` (docs/bead-lattice.md "The
-// bead radius is derived, not chosen"), not a literal pinned to that formula by a separate
-// test — the compiler enforces this now. Left in place as a cheap regression guard against
-// someone reintroducing a hand-computed literal here (the failure mode this whole change
-// closes off); the real regression coverage for the GENERATOR side — that a non-literal
-// ShadingParam* expression still gets evaluated, not silently dropped — is
-// TestParseShadingParams_EvaluatesCrossPackageExpression in tools/gen-node-defs.
+// own definition: it IS `wire.BeadRadius` (docs/bead-lattice.md "The lattice is derived,
+// not the bead") — the AUTHORED primitive, re-exported rather than duplicated as a literal
+// — not a literal pinned to a formula by a separate test. This used to run the other
+// direction (ShadingParamBeadRadius computed FROM wire.BeadTorusOuterR); the identity
+// `wire.BeadTorusOuterR/(1+ratio) == wire.BeadRadius` still holds either way (it is the
+// same tangency relationship, just read from the other end), which is why this second
+// form is kept alongside the direct comparison below — both must agree with the primitive.
+// Left in place as a cheap regression guard against someone reintroducing a hand-computed
+// literal here (the failure mode this whole change closes off); the real regression
+// coverage for the GENERATOR side — that a non-literal ShadingParam* expression still gets
+// evaluated, not silently dropped — is TestParseShadingParams_EvaluatesCrossPackageExpression
+// in tools/gen-node-defs.
 func TestShadingParamBeadRadiusMatchesDerivation(t *testing.T) {
-	want := wire.BeadTorusOuterR / (1 + ShadingParamBeadRingTubeRatio)
-	if ShadingParamBeadRadius != want {
-		t.Fatalf("ShadingParamBeadRadius = %v, want %v (wire.BeadTorusOuterR / (1+ratio))", ShadingParamBeadRadius, want)
+	if ShadingParamBeadRadius != wire.BeadRadius {
+		t.Fatalf("ShadingParamBeadRadius = %v, want wire.BeadRadius = %v", ShadingParamBeadRadius, wire.BeadRadius)
+	}
+	// The inverse relationship (tangency) still holds, read from the other end.
+	wantViaTangency := wire.BeadTorusOuterR / (1 + ShadingParamBeadRingTubeRatio)
+	if ShadingParamBeadRadius != wantViaTangency {
+		t.Fatalf("ShadingParamBeadRadius = %v, want %v (wire.BeadTorusOuterR / (1+ratio), the tangency identity)", ShadingParamBeadRadius, wantViaTangency)
 	}
 }
 

@@ -28,10 +28,16 @@ import (
 // direction; magnitude-only assertions below don't care which one) and QuantIR chosen so that
 // float64(QuantIR)*wire.DefaultLocalStepR == centerGap.
 func singleNeighborHolder(to string, centerGap float64) func() *wire.LayoutHolder {
-	if math.Mod(centerGap, wire.DefaultLocalStepR) != 0 {
+	// Tolerance, not an exact-zero Mod check: every caller builds centerGap as
+	// `cells * wire.DefaultLocalStepR` so the intent is always an exact cell count, but
+	// wire.DefaultLocalStepR (2.24) is not exactly representable in float64, so the
+	// multiplication itself accrues ~1e-14 of round-off before this function ever sees it.
+	// A strict Mod-must-be-zero check treated that round-off as a caller bug; it isn't one.
+	quantIRf := centerGap / wire.DefaultLocalStepR
+	if math.Abs(quantIRf-math.Round(quantIRf)) > 1e-6 {
 		panic("singleNeighborHolder: centerGap must be an exact multiple of the default stepR")
 	}
-	quantIR := int(math.Round(centerGap / wire.DefaultLocalStepR))
+	quantIR := int(math.Round(quantIRf))
 	lh := &wire.LayoutHolder{}
 	lh.SetLocalPolar(to, 0, 0, quantIR, 0, 0, 0)
 	return func() *wire.LayoutHolder { return lh }
@@ -42,7 +48,11 @@ func singleNeighborHolder(to string, centerGap float64) func() *wire.LayoutHolde
 // (docs/bead-lattice.md "Placement"): bead 0's torus is tangent OUTSIDE the source node's
 // torus, and the last bead's torus is tangent OUTSIDE the target's, never overlapping either.
 func TestChainBeadsStayOutsideBothNodes(t *testing.T) {
-	const gap = 400.0
+	// Expressed as a cell count * wire.DefaultLocalStepR, not a bare literal, so this
+	// stays an exact multiple of the local-polar grid constant whatever that constant is
+	// (it changed from 2.0 to 2.24 when the bead radius became the authored primitive —
+	// docs/bead-lattice.md "The lattice is derived, not the bead").
+	const gap = 200 * wire.DefaultLocalStepR
 	m := &nodeMover{
 		id:             "a",
 		geom:           nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}}, // radius 15
@@ -75,7 +85,9 @@ func TestChainBeadsTouch(t *testing.T) {
 	m := &nodeMover{
 		id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}},
 		outTargets: []string{"b"}, cascadeKinds: map[string]string{"b": "Input"},
-		layoutHolderFn: singleNeighborHolder("b", 300),
+		// 150 cells * wire.DefaultLocalStepR, not the bare literal 300 — see the comment
+		// on TestChainBeadsStayOutsideBothNodes's gap.
+		layoutHolderFn: singleNeighborHolder("b", 150*wire.DefaultLocalStepR),
 	}
 	ox, oy, oz, _, _ := m.chainBeads()
 	if len(ox) < 3 {
@@ -98,7 +110,9 @@ func TestChainBeadsAlwaysAtLeastOneBead(t *testing.T) {
 	m := &nodeMover{
 		id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}},
 		outTargets: []string{"b"}, cascadeKinds: map[string]string{"b": "Input"},
-		layoutHolderFn: singleNeighborHolder("b", 32),
+		// 16 cells * wire.DefaultLocalStepR, not the bare literal 32 — see the comment on
+		// TestChainBeadsStayOutsideBothNodes's gap.
+		layoutHolderFn: singleNeighborHolder("b", 16*wire.DefaultLocalStepR),
 	}
 	if ox, _, _, _, _ := m.chainBeads(); len(ox) != 1 {
 		t.Errorf("count = %d, want 1 — edgeStepCount clamps a collapsed gap to the minimum, never 0", len(ox))
@@ -142,11 +156,12 @@ func TestChainBeadsCountIsSpanProportional(t *testing.T) {
 		ox, _, _, _, _ := m.chainBeads()
 		return len(ox)
 	}
-	// base must be an exact multiple of wire.DefaultLocalStepR (singleNeighborHolder's
-	// requirement) and comfortably clear of 2*nodeTorusOuterR("Input") (~32.4) so the
-	// smaller span still produces beads.
-	const base = 40.0
-	span := 160.0
+	// base and span must each be an exact multiple of wire.DefaultLocalStepR
+	// (singleNeighborHolder's requirement — a sum of two such multiples is one too, so
+	// base+span and base+2*span stay exact) and base must be comfortably clear of
+	// 2*nodeTorusOuterR("Input") so the smaller span still produces beads.
+	const base = 20 * wire.DefaultLocalStepR
+	span := 80 * wire.DefaultLocalStepR
 	n1 := count(base + span)
 	n2 := count(base + 2*span)
 	if n2 < 2*n1-1 || n2 > 2*n1+1 {
@@ -241,9 +256,9 @@ func TestLitBeadIndexOffChainLightsNothing(t *testing.T) {
 // edgeStepCount pins the formula (docs/bead-lattice.md "The count") directly, independent of
 // chainBeads' node-mover plumbing.
 func TestEdgeStepCount(t *testing.T) {
-	lp := wire.LocalPolar{QuantIR: 200} // separation = 200 * DefaultLocalStepR(2.0) = 400
+	lp := wire.LocalPolar{QuantIR: 200} // separation = 200 * wire.DefaultLocalStepR
 	got := edgeStepCount(lp, "Input", "Time")
-	gap := 400.0 - nodeTorusOuterR("Input") - nodeTorusOuterR("Time")
+	gap := 200*wire.DefaultLocalStepR - nodeTorusOuterR("Input") - nodeTorusOuterR("Time")
 	want := int(math.Round(gap / wire.BeadStepR))
 	if got != want {
 		t.Fatalf("edgeStepCount = %d, want %d", got, want)
@@ -255,7 +270,7 @@ func TestEdgeStepCount(t *testing.T) {
 
 // A collapsed or negative gap clamps to a minimum of 1 bead — an edge is never zero-length.
 func TestEdgeStepCountClampsToMinimumOne(t *testing.T) {
-	lp := wire.LocalPolar{QuantIR: 1} // separation = 2.0, far inside both tori
+	lp := wire.LocalPolar{QuantIR: 1} // separation = wire.DefaultLocalStepR, far inside both tori
 	if got := edgeStepCount(lp, "Input", "Time"); got != 1 {
 		t.Fatalf("edgeStepCount(collapsed) = %d, want 1", got)
 	}
@@ -280,6 +295,19 @@ func TestEdgeStepCountClampsToMinimumOne(t *testing.T) {
 // `int(math.Round(gap/wire.BeadStepR))` in edgeStepCount, which failed this test with a
 // last-bead far-edge error up to half of wire.BeadStepR (4.0 world units) — see this commit's
 // message for the exact numbers.
+// tangencyEps is the equality tolerance for this test's near/far edge assertions —
+// 1e-6 (round-trip float64 noise) before the primitive/derived flip, widened to 1e-3
+// after it. That is not a weakening of the invariant: chainBeads' ox/oy/oz are float32
+// (the streamed buffer type), and this test's positions reach the O(1000) world-unit
+// range, where float32's ~7 significant digits give ~1e-4 of unavoidable rounding per
+// coordinate regardless of geometry. Under the OLD LocalStepR=2.0 those positions
+// happened to be exactly float32-representable and this noise never showed; under the
+// NEW bead-authored LocalStepR=2.24 (docs/bead-lattice.md "The lattice is derived, not
+// the bead") they generally are not, so the noise is now visible. 1e-3 is still four
+// orders of magnitude tighter than "half a bead step" (wire.BeadStepR/2 = 4.48), the
+// error this test exists to catch (a reintroduced math.Round division).
+const tangencyEps = 1e-3
+
 func TestChainBeadsExactDoubleTangency(t *testing.T) {
 	kindPairs := [][2]string{
 		{"Input", "Time"},
@@ -289,8 +317,14 @@ func TestChainBeadsExactDoubleTangency(t *testing.T) {
 	}
 	// Every centerGap here must be an exact multiple of wire.DefaultLocalStepR
 	// (singleNeighborHolder's own requirement) and large enough to clear both tori with
-	// room for at least one bead, across the largest kind pair tested.
-	centerGaps := []float64{200, 240, 360, 520, 1000}
+	// room for at least one bead, across the largest kind pair tested. Expressed as cell
+	// counts * wire.DefaultLocalStepR, not bare literals, so this stays exact whatever
+	// that constant is (see TestChainBeadsStayOutsideBothNodes's gap comment).
+	cellCounts := []float64{100, 120, 180, 260, 500}
+	centerGaps := make([]float64, len(cellCounts))
+	for i, c := range cellCounts {
+		centerGaps[i] = c * wire.DefaultLocalStepR
+	}
 
 	for _, kp := range kindPairs {
 		srcKind, dstKind := kp[0], kp[1]
@@ -316,7 +350,7 @@ func TestChainBeadsExactDoubleTangency(t *testing.T) {
 			// here so a future change can't break it while "fixing" the far end.
 			d0 := math.Sqrt(float64(ox[0])*float64(ox[0]) + float64(oy[0])*float64(oy[0]) + float64(oz[0])*float64(oz[0]))
 			nearEdge0 := d0 - wire.BeadTorusOuterR
-			if math.Abs(nearEdge0-srcTorus) > 1e-6 {
+			if math.Abs(nearEdge0-srcTorus) > tangencyEps {
 				t.Errorf("%s->%s gap %.0f: bead 0 near edge %.9f, want exactly srcTorus %.9f",
 					srcKind, dstKind, gap, nearEdge0, srcTorus)
 			}
@@ -328,7 +362,7 @@ func TestChainBeadsExactDoubleTangency(t *testing.T) {
 			dLast := math.Sqrt(float64(ox[last])*float64(ox[last]) + float64(oy[last])*float64(oy[last]) + float64(oz[last])*float64(oz[last]))
 			farEdgeLast := dLast + wire.BeadTorusOuterR
 			wantFarEdge := gap - dstTorus
-			if math.Abs(farEdgeLast-wantFarEdge) > 1e-6 {
+			if math.Abs(farEdgeLast-wantFarEdge) > tangencyEps {
 				t.Errorf("%s->%s gap %.0f: last bead (%d) far edge %.9f, want exactly target's near torus edge %.9f (off by %.9f, up to half a bead step %.3f would indicate math.Round is back)",
 					srcKind, dstKind, gap, last, farEdgeLast, wantFarEdge, farEdgeLast-wantFarEdge, wire.BeadStepR/2)
 			}
