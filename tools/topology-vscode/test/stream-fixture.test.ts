@@ -51,21 +51,13 @@ import {
   readChainBeadOZ,
   readChainBeadLit,
   readChainBeadLitValue,
-  readPortNodeRow, readPortDX, readPortDY, readPortDZ, readPortPX, readPortPY, readPortPZ,
-  readPortIsInput, readPortHovered, readPortPortNameLen, readPortPortNameOff,
-  readEdgeSrcPortRow, readEdgeDstPortRow, readEdgeSelected,
+  readEdgeSX, readEdgeSY, readEdgeSZ, readEdgeEX, readEdgeEY, readEdgeEZ, readEdgeSelected,
   readInteriorPresent, readInteriorValue, readInteriorOX, readInteriorOY, readInteriorOZ,
 } from "../src/schema/buffer-layout";
-
-const STR_DECODER = new TextDecoder();
 
 const repoRoot = path.resolve(__dirname, "../../..");
 const committedFixturePath = path.join(__dirname, "fixtures", "stream_fixture.json");
 
-interface PortFixture {
-  nodeRow: number; dx: number; dy: number; dz: number; px: number; py: number; pz: number;
-  isInput: number; hovered: number; nameLen: number; name: string;
-}
 interface LayoutLinkFixture { dstNodeRow: number }
 interface NodeFrameFixture {
   tick: number; nodeRow: number;
@@ -78,12 +70,12 @@ interface NodeFrameFixture {
   cascadeRelay: number;
   chainBeads: { ox: number; oy: number; oz: number; lit: number; litValue: number }[];
   label: string;
-  ports: PortFixture[];
   layoutLinks: LayoutLinkFixture[];
   hex: string;
 }
 interface EdgeFrameFixture {
-  tick: number; srcPortRow: number; dstPortRow: number; selected: number; label: string;
+  tick: number; sx: number; sy: number; sz: number; ex: number; ey: number; ez: number;
+  selected: number; label: string;
   hex: string;
 }
 interface InteriorFrameFixture {
@@ -160,7 +152,6 @@ describe("stream fixture cross-language decode", () => {
 
     expect(decoded.tick).toBe(want.tick);
     expect(decoded.label).toBe(want.label);
-    expect(decoded.portCount).toBe(want.ports.length);
     expect(decoded.layoutLinkCount).toBe(want.layoutLinks.length);
 
     const nv = decoded.nodeView;
@@ -204,23 +195,8 @@ describe("stream fixture cross-language decode", () => {
       expect(readChainBeadLitValue(decoded.chainBeadView, i), `chainBead[${i}].litValue`).toBe(cb.litValue);
     }
 
-    for (let i = 0; i < want.ports.length; i++) {
-      const p = want.ports[i]!;
-      const pv = decoded.portView;
-      expect(readPortNodeRow(pv, i), `port[${i}].nodeRow`).toBe(p.nodeRow);
-      expectClose(readPortDX(pv, i), p.dx, `port[${i}].dx`);
-      expectClose(readPortDY(pv, i), p.dy, `port[${i}].dy`);
-      expectClose(readPortDZ(pv, i), p.dz, `port[${i}].dz`);
-      expectClose(readPortPX(pv, i), p.px, `port[${i}].px`);
-      expectClose(readPortPY(pv, i), p.py, `port[${i}].py`);
-      expectClose(readPortPZ(pv, i), p.pz, `port[${i}].pz`);
-      expect(readPortIsInput(pv, i), `port[${i}].isInput`).toBe(p.isInput);
-      expect(readPortHovered(pv, i), `port[${i}].hovered`).toBe(p.hovered);
-      expect(readPortPortNameLen(pv, i), `port[${i}].nameLen`).toBe(p.nameLen);
-      const nameOff = readPortPortNameOff(pv, i);
-      const nameBytes = decoded.portNameBytes.subarray(nameOff, nameOff + p.nameLen);
-      expect(STR_DECODER.decode(nameBytes), `port[${i}].name`).toBe(p.name);
-    }
+    // No port section any more (docs/channels-not-ports.md — a port carries no geometry,
+    // so the fixture and the decoder both have nothing to carry for it).
 
     for (let i = 0; i < want.layoutLinks.length; i++) {
       expect(
@@ -241,8 +217,12 @@ describe("stream fixture cross-language decode", () => {
     expect(decoded.label).toBe(want.label);
 
     const ev = decoded.edgeView;
-    expect(readEdgeSrcPortRow(ev, 0), "srcPortRow").toBe(want.srcPortRow);
-    expect(readEdgeDstPortRow(ev, 0), "dstPortRow").toBe(want.dstPortRow);
+    expectClose(readEdgeSX(ev, 0), want.sx, "sx");
+    expectClose(readEdgeSY(ev, 0), want.sy, "sy");
+    expectClose(readEdgeSZ(ev, 0), want.sz, "sz");
+    expectClose(readEdgeEX(ev, 0), want.ex, "ex");
+    expectClose(readEdgeEY(ev, 0), want.ey, "ey");
+    expectClose(readEdgeEZ(ev, 0), want.ez, "ez");
     expect(readEdgeSelected(ev, 0), "selected").toBe(want.selected);
   });
 

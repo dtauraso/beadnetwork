@@ -1,12 +1,10 @@
 // Unit tests for the per-node dedicated-stream decode + aggregation path
 // (schema/frame-tags.ts's BUF_BLOCK_TAG_NODE_STREAM/BUF_BLOCK_TAG_INTERIOR_STREAM,
 // buffer-decode.ts's decodeNodeStreamFrame/decodeInteriorStreamFrame, and
-// three/node-stream-blocks.ts's getNodeFrame aggregator).
-//
-// Also proves the EdgeTube tear-free resolution: an edge's SrcPortRow/DstPortRow (from
-// the per-edge dedicated stream) resolve against the AGGREGATED per-node Port block's
-// PX/PY/PZ — the same live coordinates NodeInstances/PortInstances read — with no
-// separate "Edge frame's own copy of the endpoint" to go stale.
+// three/node-stream-blocks.ts's getNodeFrame aggregator). No Port section any more
+// (docs/channels-not-ports.md — a port carries no geometry, so there is nothing to
+// decode/aggregate for it); an edge's endpoints ride its own frame's SX..EZ instead
+// (edge-tube-port-resolution.test.ts).
 
 import { describe, it, expect, vi } from "vitest";
 import {
@@ -18,12 +16,9 @@ import {
   NODE_STREAM_LAYOUT_LINK_STRIDE,
 } from "../src/schema/frame-tags";
 import {
-  NODE_STRIDE, PORT_STRIDE, INTERIOR_STRIDE, INTERIOR_SLOTS_PER_NODE,
+  NODE_STRIDE, INTERIOR_STRIDE, INTERIOR_SLOTS_PER_NODE,
   NODE_COL_CX, NODE_COL_CY, NODE_COL_CZ, NODE_COL_RADIUS,
-  PORT_COL_NODE_ROW, PORT_COL_PX, PORT_COL_PY, PORT_COL_PZ,
-  PORT_COL_PORT_NAME_OFF, PORT_COL_PORT_NAME_LEN,
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius,
-  readPortNodeRow, readPortPX, readPortPY, readPortPZ,
   readInteriorPresent, readInteriorValue,
   readLayoutLinkSrcNodeRow, readLayoutLinkDstNodeRow,
 } from "../src/schema/buffer-layout";
@@ -46,33 +41,28 @@ function expectF32(got: number, want: number) {
   expect(got).toBeCloseTo(want, 5);
 }
 
-/** Build one node's BUF_BLOCK_TAG_NODE_STREAM frame: [tick][portCount][labelLen]
- *  [portNameBytesCount][layoutLinkCount] + 1 Node row (LabelOff always 0 here) + label
- *  bytes + portCount Port rows (NodeRow column = nodeRow) + port-name bytes + this node's
- *  own outbound LayoutLink rows ([DstNodeRow] each — no EdgeRow). */
+/** Build one node's BUF_BLOCK_TAG_NODE_STREAM frame: [tick][labelLen][layoutLinkCount]
+ *  [chainBeadCount=0] + 1 Node row (LabelOff always 0 here) + label bytes + this node's
+ *  own outbound LayoutLink rows ([DstNodeRow] each — no EdgeRow). No Port section any
+ *  more (docs/channels-not-ports.md). */
 function makeNodeStreamFrame(opts: {
   nodeRow: number;
   cx: number; cy: number; cz: number; radius: number;
   label: string;
-  ports: Array<{ px: number; py: number; pz: number; name: string }>;
   layoutLinks?: Array<{ dstNodeRow: number }>;
 }): ArrayBuffer {
   const enc = new TextEncoder();
   const labelBytes = enc.encode(opts.label);
-  const portNameChunks = opts.ports.map((p) => enc.encode(p.name));
-  const portNameBytesCount = portNameChunks.reduce((a, c) => a + c.length, 0);
-  const portCount = opts.ports.length;
   const layoutLinks = opts.layoutLinks ?? [];
 
   const total = BUF_NODE_STREAM_FRAME_HEADER_SIZE + NODE_STRIDE + labelBytes.length
-    + portCount * PORT_STRIDE + portNameBytesCount + layoutLinks.length * NODE_STREAM_LAYOUT_LINK_STRIDE;
+    + layoutLinks.length * NODE_STREAM_LAYOUT_LINK_STRIDE;
   const buf = new ArrayBuffer(total);
   const dv = new DataView(buf);
   dv.setUint32(0, 7, true); // tick
-  dv.setUint32(4, portCount, true);
-  dv.setUint32(8, labelBytes.length, true);
-  dv.setUint32(12, portNameBytesCount, true);
-  dv.setUint32(16, layoutLinks.length, true);
+  dv.setUint32(4, labelBytes.length, true);
+  dv.setUint32(8, layoutLinks.length, true);
+  dv.setUint32(12, 0, true); // chainBeadCount = 0
 
   let off = BUF_NODE_STREAM_FRAME_HEADER_SIZE;
   dv.setFloat32(off + NODE_COL_CX, opts.cx, true);
@@ -87,28 +77,6 @@ function makeNodeStreamFrame(opts: {
 
   new Uint8Array(buf, off, labelBytes.length).set(labelBytes);
   off += labelBytes.length;
-
-  let nameCursor = 0;
-  for (let i = 0; i < portCount; i++) {
-    const p = opts.ports[i]!;
-    const nameBytes = portNameChunks[i]!;
-    const rowOff = off + i * PORT_STRIDE;
-    dv.setInt32(rowOff + PORT_COL_NODE_ROW, opts.nodeRow, true);
-    dv.setFloat32(rowOff + PORT_COL_PX, p.px, true);
-    dv.setFloat32(rowOff + PORT_COL_PY, p.py, true);
-    dv.setFloat32(rowOff + PORT_COL_PZ, p.pz, true);
-    dv.setUint32(rowOff + PORT_COL_PORT_NAME_OFF, nameCursor, true);
-    dv.setUint32(rowOff + PORT_COL_PORT_NAME_LEN, nameBytes.length, true);
-    nameCursor += nameBytes.length;
-  }
-  off += portCount * PORT_STRIDE;
-  const portNameSection = new Uint8Array(buf, off, portNameBytesCount);
-  nameCursor = 0;
-  for (const chunk of portNameChunks) {
-    portNameSection.set(chunk, nameCursor);
-    nameCursor += chunk.length;
-  }
-  off += portNameBytesCount;
 
   layoutLinks.forEach((ll, i) => {
     const rowOff = off + i * NODE_STREAM_LAYOUT_LINK_STRIDE;
@@ -132,23 +100,17 @@ function makeInteriorStreamFrame(fill: (dv: DataView, rowOff: (slot: number) => 
 // ── decodeNodeStreamFrame / decodeInteriorStreamFrame ──────────────────────────
 
 describe("decodeNodeStreamFrame", () => {
-  it("decodes one node's geometry, label, and ports", () => {
+  it("decodes one node's geometry and label", () => {
     const buf = makeNodeStreamFrame({
       nodeRow: 5,
       cx: 1, cy: 2, cz: 3, radius: 9,
       label: "widget",
-      ports: [{ px: 10, py: 11, pz: 12, name: "in" }, { px: 20, py: 21, pz: 22, name: "out" }],
     });
     const d = decodeNodeStreamFrame(5, buf)!;
     expect(d).not.toBeNull();
     expect(d.label).toBe("widget");
-    expect(d.portCount).toBe(2);
     expectF32(readNodeCX(d.nodeView, 0), 1);
     expectF32(readNodeRadius(d.nodeView, 0), 9);
-    expect(readPortNodeRow(d.portView, 0)).toBe(5);
-    expectF32(readPortPX(d.portView, 0), 10);
-    expect(readPortNodeRow(d.portView, 1)).toBe(5);
-    expectF32(readPortPX(d.portView, 1), 20);
   });
 
   it("returns null for a truncated buffer", () => {
@@ -158,7 +120,6 @@ describe("decodeNodeStreamFrame", () => {
   it("decodes this node's own outbound layout-links (DstNodeRow only, no SrcNodeRow/EdgeRow — implicit/unused)", () => {
     const buf = makeNodeStreamFrame({
       nodeRow: 3, cx: 0, cy: 0, cz: 0, radius: 1, label: "n3",
-      ports: [],
       layoutLinks: [{ dstNodeRow: 7 }, { dstNodeRow: 9 }],
     });
     const d = decodeNodeStreamFrame(3, buf)!;
@@ -190,16 +151,14 @@ describe("decodeInteriorStreamFrame", () => {
 // ── getNodeFrame: aggregation across two nodes ─────────────────────────────────
 
 describe("getNodeFrame — aggregated dedicated streams", () => {
-  it("aggregates node/port/label across rows, rewriting Label/PortName offsets to point\n" +
-     "     into the aggregated sections (not each node's own inline bytes)", async () => {
+  it("aggregates node/label across rows, rewriting the LabelOff column to point into the\n" +
+     "     aggregated section (not each node's own inline bytes)", async () => {
     const { snapshotBuffer, nodeStreamBlocks } = await freshNodeStreamModules();
     const frame0 = makeNodeStreamFrame({
       nodeRow: 0, cx: 100, cy: 0, cz: 0, radius: 5, label: "alpha",
-      ports: [{ px: 105, py: 0, pz: 0, name: "p0" }],
     });
     const frame1 = makeNodeStreamFrame({
       nodeRow: 1, cx: 200, cy: 0, cz: 0, radius: 6, label: "beta",
-      ports: [{ px: 206, py: 0, pz: 0, name: "p1" }],
     });
     snapshotBuffer.setLatestNodeStreamFrame(0, frame0);
     snapshotBuffer.setLatestNodeStreamFrame(1, frame1);
@@ -211,26 +170,17 @@ describe("getNodeFrame — aggregated dedicated streams", () => {
     expect(agg.nodeCount).toBe(2);
     expectF32(readNodeCX(agg.nodeView, 0), 100);
     expectF32(readNodeCX(agg.nodeView, 1), 200);
-    expect(agg.portCount).toBe(2);
-    // Port row 0 belongs to node row 0; port row 1 to node row 1 (NodeRow carried over
-    // verbatim from each node's own frame, already global — see BuildNodeStreamFrame).
-    expect(readPortNodeRow(agg.portView, 0)).toBe(0);
-    expectF32(readPortPX(agg.portView, 0), 105);
-    expect(readPortNodeRow(agg.portView, 1)).toBe(1);
-    expectF32(readPortPX(agg.portView, 1), 206);
   });
 
   it("treats a node row with no arrived NODE-stream frame as an unresolved zero row", async () => {
     const { snapshotBuffer, nodeStreamBlocks } = await freshNodeStreamModules();
     const frame0 = makeNodeStreamFrame({
       nodeRow: 0, cx: 1, cy: 1, cz: 1, radius: 1, label: "only-zero",
-      ports: [],
     });
     snapshotBuffer.setLatestNodeStreamFrame(0, frame0);
     // Simulate row 2 having arrived (sparse, out of order) but row 1 not yet.
     const frame2 = makeNodeStreamFrame({
       nodeRow: 2, cx: 9, cy: 9, cz: 9, radius: 9, label: "later",
-      ports: [],
     });
     snapshotBuffer.setLatestNodeStreamFrame(2, frame2);
     snapshotBuffer.setLatestInteriorStreamFrame(0, makeInteriorStreamFrame(() => {}));
@@ -260,17 +210,14 @@ describe("getLayoutLinks", () => {
     const { snapshotBuffer, nodeStreamBlocks } = await freshNodeStreamModules();
     const frame0 = makeNodeStreamFrame({
       nodeRow: 0, cx: 0, cy: 0, cz: 0, radius: 1, label: "a",
-      ports: [],
       layoutLinks: [{ dstNodeRow: 1 }],
     });
     const frame1 = makeNodeStreamFrame({
       nodeRow: 1, cx: 0, cy: 0, cz: 0, radius: 1, label: "b",
-      ports: [],
       layoutLinks: [{ dstNodeRow: 2 }],
     });
     const frame2 = makeNodeStreamFrame({
       nodeRow: 2, cx: 0, cy: 0, cz: 0, radius: 1, label: "c",
-      ports: [],
       // no outbound layout-links (b<c and c<? — c is never source in this fixture)
     });
     snapshotBuffer.setLatestNodeStreamFrame(0, frame0);

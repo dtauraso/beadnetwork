@@ -4,16 +4,17 @@
 // Every render-tree consumer reads getNodeFrame() — ONE function returning a
 // DecodedNodeFrame-shaped view aggregated from every node row's own dedicated NODE/INTERIOR
 // stream frame (Buffer.BuildNodeStreamFrame/BuildInteriorStreamFrame — one goroutine's fd
-// each), rewriting only the two offset columns (LabelOff/PortNameOff) that must point into
-// the aggregated label/port-name byte sections instead of each frame's own inline bytes.
+// each), rewriting only the LabelOff column that must point into the aggregated label-bytes
+// section instead of each frame's own inline bytes (no PortNameOff any more —
+// docs/channels-not-ports.md, there is no Port section to aggregate).
 // This IS a byte copy (the source bytes live in N separate ArrayBuffers, one per node/
 // interior fd) — but it happens once per (nodeStreamVersion, interiorStreamVersion) change,
 // not once per render-tree consumer per frame (of which there are ~8), via the module-level
 // memo below.
 //
 // A node row with no NODE-stream frame yet (arrived out of order at startup) is treated as
-// an all-zero row (radius 0 falls back to NODE_SPHERE_RADIUS in the renderers via `|| `,
-// portCount 0) — the same "unresolved" treatment edge-stream-blocks.ts gives a missing row.
+// an all-zero row (radius 0 falls back to NODE_SPHERE_RADIUS in the renderers via `|| `) —
+// the same "unresolved" treatment edge-stream-blocks.ts gives a missing row.
 // A node row with no INTERIOR-stream frame yet is treated as all-Present=0 (no interior
 // beads drawn for that node until its own Update goroutine's first frame arrives).
 //
@@ -29,9 +30,8 @@ import {
   type DecodedNodeStreamFrame,
 } from "./buffer-decode";
 import {
-  NODE_STRIDE, PORT_STRIDE, INTERIOR_STRIDE, INTERIOR_SLOTS_PER_NODE,
+  NODE_STRIDE, INTERIOR_STRIDE, INTERIOR_SLOTS_PER_NODE,
   NODE_COL_LABEL_OFF, NODE_COL_LABEL_LEN,
-  PORT_COL_PORT_NAME_OFF, PORT_COL_PORT_NAME_LEN,
   LAYOUT_LINK_STRIDE, LAYOUT_LINK_COL_SRC_NODE_ROW, LAYOUT_LINK_COL_DST_NODE_ROW,
   readNodeCX, readNodeCY, readNodeCZ,
   readChainBeadOX, readChainBeadOY, readChainBeadOZ, readChainBeadLit, readChainBeadLitValue,
@@ -155,37 +155,27 @@ function buildAggregate(
   const nodeCount = maxRow + 1;
 
   const decodedByRow = new Map<number, ReturnType<typeof decodeNodeStreamFrame>>();
-  let totalPortCount = 0;
   let totalLabelBytes = 0;
-  let totalPortNameBytes = 0;
   for (let row = 0; row < nodeCount; row++) {
     const buf = nodeFrames.get(row);
     const decoded = buf ? decodeNodeStreamFrame(row, buf) : null;
     decodedByRow.set(row, decoded);
     if (decoded) {
-      totalPortCount += decoded.portCount;
       totalLabelBytes += STR_ENCODER.encode(decoded.label).length;
-      totalPortNameBytes += decoded.portNameBytes.byteLength;
     }
   }
 
   const interiorCount = nodeCount * INTERIOR_SLOTS_PER_NODE;
   const nodeBytes = nodeCount * NODE_STRIDE;
   const interiorBytes = interiorCount * INTERIOR_STRIDE;
-  const portBytes = totalPortCount * PORT_STRIDE;
 
   const nodeBuf = new ArrayBuffer(nodeBytes);
   const nodeOut = new DataView(nodeBuf);
   const interiorBuf = new ArrayBuffer(interiorBytes);
   const interiorOut = new Uint8Array(interiorBuf);
-  const portBuf = new ArrayBuffer(portBytes);
-  const portOut = new Uint8Array(portBuf);
   const labelBytesOut = new Uint8Array(totalLabelBytes);
-  const portNameBytesOut = new Uint8Array(totalPortNameBytes);
 
   let labelCursor = 0;
-  let portNameCursor = 0;
-  let portCursor = 0;
 
   for (let row = 0; row < nodeCount; row++) {
     const decoded = decodedByRow.get(row) ?? null;
@@ -200,23 +190,6 @@ function buildAggregate(
       nodeOut.setUint32(row * NODE_STRIDE + NODE_COL_LABEL_LEN, labelEncoded.length, true);
       labelBytesOut.set(labelEncoded, labelCursor);
       labelCursor += labelEncoded.length;
-
-      // Port rows: NodeRow column is already the global node row (BuildNodeStreamFrame
-      // stamps it), so the raw bytes carry over verbatim except PortNameOff, which must
-      // point into the aggregated port-name-bytes section.
-      for (let p = 0; p < decoded.portCount; p++) {
-        const srcOff = p * PORT_STRIDE;
-        const rowBytes = new Uint8Array(decoded.portView.buffer, decoded.portView.byteOffset + srcOff, PORT_STRIDE);
-        portOut.set(rowBytes, portCursor * PORT_STRIDE);
-        const nameOff = decoded.portView.getUint32(srcOff + PORT_COL_PORT_NAME_OFF, true);
-        const nameLen = decoded.portView.getUint32(srcOff + PORT_COL_PORT_NAME_LEN, true);
-        const portOutView = new DataView(portBuf, portCursor * PORT_STRIDE, PORT_STRIDE);
-        portOutView.setUint32(PORT_COL_PORT_NAME_OFF, portNameCursor, true);
-        portOutView.setUint32(PORT_COL_PORT_NAME_LEN, nameLen, true);
-        portNameBytesOut.set(decoded.portNameBytes.subarray(nameOff, nameOff + nameLen), portNameCursor);
-        portNameCursor += nameLen;
-        portCursor++;
-      }
     }
     // A row with no frame yet stays all-zero (nodeRowBytes is already zero-initialized by
     // `new ArrayBuffer`) — the "unresolved" treatment this file's header comment describes.
@@ -241,11 +214,8 @@ function buildAggregate(
     nodeView: nodeOut,
     interiorCount,
     interiorView: new DataView(interiorBuf),
-    portCount: totalPortCount,
-    portView: new DataView(portBuf),
     labelBytesCount: totalLabelBytes,
     labelBytes: labelBytesOut,
-    portNameBytes: portNameBytesOut,
   };
 }
 

@@ -1,19 +1,16 @@
 package Wiring
 
-// scene_edit_persist_test.go — round-trip tests for the two FSM-applied edit persisters:
-// node-drag position (meta.json x/y/z) and ring-move anchor (port json anchorId). Each pins:
-// an FSM edit → the debounced writer persists it to disk preserving sibling fields → a
-// reload reads it back.
+// scene_edit_persist_test.go — round-trip test for the FSM-applied node-drag position
+// edit persister (meta.json x/y/z): an FSM edit → the debounced writer persists it to
+// disk preserving sibling fields → a reload reads it back. The former ring-move anchor
+// persister (port json anchorId) is gone — docs/channels-not-ports.md, a port has no
+// file of its own any more.
 
 import (
 	"context"
-	"encoding/json"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"io"
-	"os"
-	"path/filepath"
 	"testing"
-	"time"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -66,9 +63,7 @@ func writeTree(t *testing.T) string {
 	root := t.TempDir()
 	mk := func(rel, body string) { writeTreeFile(t, root, rel, body) }
 	mk("nodes/src/meta.json", `{"id":"src","type":"SrcNode","r":100,"scenePolarR":37.4165738677,"scenePolarTheta":1.00685368543,"scenePolarPhi":1.2490457724}`)
-	mk("nodes/src/outputs/Out.json", `{"name":"Out"}`)
 	mk("nodes/dst/meta.json", `{"id":"dst","type":"SinkNode","r":100,"scenePolarR":87.7496438739,"scenePolarTheta":0.96453035788,"scenePolarPhi":-2.15879893034}`)
-	mk("nodes/dst/inputs/In.json", `{"name":"In"}`)
 	mk("nodes/src/edges/e0.json", `{"label":"e0","kind":"data","sourceHandle":"Out","target":"dst","targetHandle":"In"}`)
 	writeCascadeEdgesFromEdges(t, root, map[string]string{"src": "SrcNode", "dst": "SinkNode"}, [][2]string{{"src", "dst"}})
 	return root
@@ -82,61 +77,6 @@ func loadTreeMD(t *testing.T, root string) *MoveDispatch {
 		t.Fatalf("LoadTopology: %v", err)
 	}
 	return md
-}
-
-// TestPersistNodePositionRoundTrips: RootMove a node → flush → meta.json x/y/z updated.
-func TestPersistAnchorRoundTrips(t *testing.T) {
-	root := writeTree(t)
-	md := loadTreeMD(t, root)
-	md.EnableEditPersist(root)
-	// The anchor write now happens on "src"'s OWN mover goroutine, as it processes the
-	// moveMsgKindAnchor applyRingAnchor sends (node_mover.go handle → persistPortAnchor)
-	// — Start the movers so something drains that inbox.
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	wg := md.Start(ctx)
-	t.Cleanup(func() { cancel(); wg.Wait() })
-
-	dir := vec3{X: 1, Y: 0, Z: 0}
-	want := snapToRingAnchorIndex(md.NodeKind("src"), dir)
-	md.applyRingAnchor("src", "Out", false, dir)
-
-	// Poll for the port file's anchorId to land (async now — no synchronous write on
-	// applyRingAnchor's own caller goroutine to wait on).
-	var gotAnchor *int
-	deadline := time.Now().Add(2 * time.Second)
-	for gotAnchor == nil {
-		spec, err := parseSpec(root)
-		if err != nil {
-			t.Fatalf("parseSpec: %v", err)
-		}
-		for _, n := range spec.Nodes {
-			if n.ID != "src" {
-				continue
-			}
-			for _, p := range n.Outputs {
-				if p.Name == "Out" {
-					gotAnchor = p.AnchorId
-				}
-			}
-		}
-		if gotAnchor == nil {
-			if time.Now().After(deadline) {
-				t.Fatalf("anchorId not persisted to port file")
-			}
-			time.Sleep(time.Millisecond)
-		}
-	}
-	if *gotAnchor != want {
-		t.Fatalf("reloaded anchorId=%d want %d", *gotAnchor, want)
-	}
-	// Sibling field (name) preserved.
-	raw, _ := os.ReadFile(filepath.Join(root, "nodes", "src", "outputs", "Out.json"))
-	var obj map[string]json.RawMessage
-	_ = json.Unmarshal(raw, &obj)
-	if string(obj["name"]) != `"Out"` {
-		t.Fatalf("name clobbered: %s", obj["name"])
-	}
 }
 
 // TestPersistOverlaysRoundTrips: toggle an overlay flag → debounced flush → scene.json carries

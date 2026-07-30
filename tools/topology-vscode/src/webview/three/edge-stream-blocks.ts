@@ -6,18 +6,21 @@
 
 import { getLatestEdgeStreamFrames } from "../snapshot-buffer";
 import { decodeEdgeStreamFrame, type DecodedEdgeStreamFrame } from "./buffer-decode";
-import { readEdgeSrcPortRow, readEdgeDstPortRow, readEdgeSelected } from "../../schema/buffer-layout";
+import {
+  readEdgeSX, readEdgeSY, readEdgeSZ, readEdgeEX, readEdgeEY, readEdgeEZ,
+  readEdgeSelected,
+} from "../../schema/buffer-layout";
 
 export interface EdgeAccessor {
   /** One past the highest edge ROW that has posted at least one dedicated-stream frame —
    *  NOT frames.size (a row can arrive out of order at startup; using the size would
    *  misnumber a sparse row set as a dense 0..size-1 range, corrupting the row identity
    *  every downstream pick/selection lookup depends on). A row with no frame yet reads as
-   *  "unresolved" (-1 / not selected / no beads), same treatment writeEdgeBlock gives an
-   *  unresolved port. */
+   *  "unresolved" (segment 0,0,0->0,0,0 / not selected). */
   edgeCount: number;
-  srcPortRow(row: number): number;
-  dstPortRow(row: number): number;
+  /** This edge's own SEGMENT — node surface to node surface (docs/channels-not-ports.md).
+   *  No port row to resolve any more: the edge carries its own endpoints directly. */
+  segment(row: number): [number, number, number, number, number, number];
   selected(row: number): boolean;
   // No beads() accessor: the Bead block is gone. A traversal renders as the LIT bead of
   // the source node's own fixed chain (ChainBeadInstances), not a moving position on the
@@ -43,13 +46,13 @@ export function getEdgeStreamAccessor(): EdgeAccessor | null {
   const edgeCount = maxRow + 1;
   return {
     edgeCount,
-    srcPortRow(row) {
+    segment(row) {
       const d = decodedFor(frames, row);
-      return d ? readEdgeSrcPortRow(d.edgeView, 0) : -1;
-    },
-    dstPortRow(row) {
-      const d = decodedFor(frames, row);
-      return d ? readEdgeDstPortRow(d.edgeView, 0) : -1;
+      if (!d) return [0, 0, 0, 0, 0, 0];
+      return [
+        readEdgeSX(d.edgeView, 0), readEdgeSY(d.edgeView, 0), readEdgeSZ(d.edgeView, 0),
+        readEdgeEX(d.edgeView, 0), readEdgeEY(d.edgeView, 0), readEdgeEZ(d.edgeView, 0),
+      ];
     },
     selected(row) {
       const d = decodedFor(frames, row);

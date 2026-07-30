@@ -100,23 +100,26 @@ func TestSetNodeRow(t *testing.T) {
 }
 
 func TestSetEdgeRow(t *testing.T) {
-	// Edge SX..EZ endpoint-coordinate columns were REMOVED: edges now reference their
-	// node/port geometry rather than caching endpoint cartesian coordinates (per-owner
-	// buffer streaming work, memory decision "N per-block buffers, no packer"). The Edge
-	// row now carries SrcPortRow/DstPortRow instead.
+	// Edge SX..EZ are the edge's own SEGMENT endpoints (docs/channels-not-ports.md — a
+	// port has no row/geometry of its own any more, so the edge carries its own
+	// node-surface-to-node-surface segment directly instead of referencing a Port block).
 	buf := make([]byte, BufEdgeStride*2)
-	SetEdgeRow(buf, 0, 1, 2, 1, 11, 22)
-	SetEdgeRow(buf, 1, 3, 4, 0, 0, 0)
+	SetEdgeRow(buf, 0, 1, 2, 3, 4, 5, 6, 1, 11, 22)
+	SetEdgeRow(buf, 1, 7, 8, 9, 10, 11, 12, 0, 0, 0)
 
-	assertI32At(t, buf, BufEdgeColSrcPortRow, 1, "row0.SrcPortRow")
-	assertI32At(t, buf, BufEdgeColDstPortRow, 2, "row0.DstPortRow")
+	assertF32At(t, buf, BufEdgeColSX, 1, "row0.SX")
+	assertF32At(t, buf, BufEdgeColSY, 2, "row0.SY")
+	assertF32At(t, buf, BufEdgeColSZ, 3, "row0.SZ")
+	assertF32At(t, buf, BufEdgeColEX, 4, "row0.EX")
+	assertF32At(t, buf, BufEdgeColEY, 5, "row0.EY")
+	assertF32At(t, buf, BufEdgeColEZ, 6, "row0.EZ")
 	assertU8At(t, buf, BufEdgeColSelected, 1, "row0.Selected")
 	assertU32At(t, buf, BufEdgeColEdgeLabelOff, 11, "row0.EdgeLabelOff")
 	assertU32At(t, buf, BufEdgeColEdgeLabelLen, 22, "row0.EdgeLabelLen")
 
 	base := BufEdgeStride
-	assertI32At(t, buf, base+BufEdgeColSrcPortRow, 3, "row1.SrcPortRow")
-	assertI32At(t, buf, base+BufEdgeColDstPortRow, 4, "row1.DstPortRow")
+	assertF32At(t, buf, base+BufEdgeColSX, 7, "row1.SX")
+	assertF32At(t, buf, base+BufEdgeColEZ, 12, "row1.EZ")
 }
 
 func TestSetCameraRow(t *testing.T) {
@@ -166,11 +169,10 @@ func TestNodeStrideIsPackedSize(t *testing.T) {
 }
 
 func TestEdgeStrideIsPackedSize(t *testing.T) {
-	// Edge block: 2×i32 (src/dst port row) + 1×u8 (selected) + 2×u32 (edge-label off/len)
-	// = 17. The 6×f32 SX..EZ endpoint-coordinate columns were REMOVED — edges now
-	// reference node/port geometry (SrcPortRow/DstPortRow) instead of caching endpoint
-	// cartesian coordinates (per-owner buffer streaming work).
-	want := 2*4 + 1 + 2*4
+	// Edge block: 6×f32 (SX..EZ, the edge's own node-surface-to-node-surface segment —
+	// docs/channels-not-ports.md, there is no port row to reference any more) + 1×u8
+	// (selected) + 2×u32 (edge-label off/len) = 33.
+	want := 6*4 + 1 + 2*4
 	if BufEdgeStride != want {
 		t.Errorf("BufEdgeStride = %d, want %d (packed size)", BufEdgeStride, want)
 	}

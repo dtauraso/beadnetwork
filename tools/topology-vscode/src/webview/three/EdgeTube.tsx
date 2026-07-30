@@ -1,18 +1,20 @@
 // EdgeTube.tsx — real 3D edge render matching the JSON path's SingleEdgeTube,
-// plus the EdgeTubes buffer-poll wrapper.
+// plus the EdgeTubes buffer-poll wrapper. There is no PortInstances any more
+// (docs/channels-not-ports.md — a port is never drawn): an edge's endpoints ride its own
+// dedicated stream frame's SX..EZ columns directly.
 //
 // TIMING CONTRACT (why this file is imperative, not setState-driven):
-// NodeInstances/PortInstances update node/port meshes IMPERATIVELY inside their useFrame
-// (setMatrixAt + instanceMatrix.needsUpdate), so a moved node/port lands on the SAME frame
-// it is decoded. If edge segment coordinates flowed through React state (setSegs ->
-// re-render -> useMemo rebuild), the tube+arrow would land ONE FRAME LATER than the ports
-// they connect. During a drag that differential shows as the destination arrowhead sliding
-// off its port, proportional to drag speed and sign-flipping with lengthen/shorten — a
-// render-side lag, not a data bug (the endpoints themselves are read same-tick off the
-// Node frame's Port block via SrcPortRow/DstPortRow — the endpoint-tear fix below). So
-// per-frame COORDINATES are pushed to each edge slot via an imperative handle
-// (EdgeHandle.update), updated in the same useFrame that reads the node/edge streams —
-// never through state.
+// NodeInstances updates node meshes IMPERATIVELY inside its useFrame (setMatrixAt +
+// instanceMatrix.needsUpdate), so a moved node lands on the SAME frame it is decoded. If
+// edge segment coordinates flowed through React state (setSegs -> re-render -> useMemo
+// rebuild), the tube+arrow would land ONE FRAME LATER than the nodes they connect. During
+// a drag that differential shows as the destination arrowhead sliding off the node,
+// proportional to drag speed and sign-flipping with lengthen/shorten — a render-side lag,
+// not a data bug (the endpoints themselves are read same-tick off the edge's OWN frame's
+// SX..EZ columns — docs/channels-not-ports.md, no port row to resolve through a separate
+// Node frame any more). So per-frame COORDINATES are pushed to each edge slot via an
+// imperative handle (EdgeHandle.update), updated in the same useFrame that reads the
+// node/edge streams — never through state.
 //
 // What DOES stay in useState: the mounted SLOT COUNT, the selected row, and the dim flag.
 // Those change on edge add/remove and user clicks, never per drag-frame, so a one-frame
@@ -39,7 +41,6 @@ import {
 import {
   readLayoutLinkSrcNodeRow, readLayoutLinkDstNodeRow,
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius,
-  readPortPX, readPortPY, readPortPZ,
   readOverlayOverlaysVis, readOverlayCascadeLinks,
 } from "../../schema/buffer-layout";
 import { BUFFER_EDGE_TAG, DIRECTION_ZERO_EPS } from "./buffer-scene-shared";
@@ -307,8 +308,6 @@ export function EdgeTubes({ capacity, layoutLinkCapacity }: { capacity: number; 
     const edgeStream = getEdgeStreamAccessor();
     if (!edgeStream) return;
     const bufEdgeCount = edgeStream.edgeCount;
-    const srcPortRowAt = (row: number) => edgeStream.srcPortRow(row);
-    const dstPortRowAt = (row: number) => edgeStream.dstPortRow(row);
     const selectedAt = (row: number) => edgeStream.selected(row);
     // Layout-link overlay pairs: aggregated from the per-node dedicated streams' own
     // outbound layout-links (see getLayoutLinks' doc comment,
@@ -318,26 +317,18 @@ export function EdgeTubes({ capacity, layoutLinkCapacity }: { capacity: number; 
     // LayoutLink's SrcNodeRow/DstNodeRow resolve against the NODE frame's Node block — both
     // frames are built from the same stable seed-order row tables in the same emit call, so they
     // share the same stable node-row order (see frame_tags.go's BufBlockTagNode comment).
-    const { nodeView, portView } = decodedNode;
-    // The Edge block carries NO endpoint coordinates: SrcPortRow/DstPortRow reference the
-    // NODE frame's Port block, the ONLY place the endpoint's world position lives (node-
-    // owned) — so a fresh Node frame and this SAME-tick Edge frame can never disagree (the
-    // endpoint-tear fix, memory/feedback_no_single_writer_bridge.md option (a)).
-
-    const portEndpoint = (portRow: number): [number, number, number] => {
-      if (portRow < 0) return [0, 0, 0];
-      return [readPortPX(portView, portRow), readPortPY(portView, portRow), readPortPZ(portView, portRow)];
-    };
+    const { nodeView } = decodedNode;
+    // The Edge block carries its own SEGMENT (SX..EZ) directly — node surface to node
+    // surface (docs/channels-not-ports.md). No port row to resolve through a separate Node
+    // frame: this edge's own frame is the endpoint's sole source, so it can never disagree
+    // with a same-tick Node frame the way the old port-row indirection could tear.
 
     const n = Math.min(bufEdgeCount, capacity);
     if (n !== edgeCount) setEdgeCount(n);
 
     let sel = -1;
     for (let i = 0; i < n; i++) {
-      const srcRow = srcPortRowAt(i);
-      const dstRow = dstPortRowAt(i);
-      const [sx, sy, sz] = portEndpoint(srcRow);
-      const [ex, ey, ez] = portEndpoint(dstRow);
+      const [sx, sy, sz, ex, ey, ez] = edgeStream.segment(i);
       if (sel < 0 && selectedAt(i)) sel = i;
       // Push this edge's current endpoints straight to its slot — no state, so it lands this
       // frame. A slot mounted THIS frame (n just grew) has no handle yet; it gets its first

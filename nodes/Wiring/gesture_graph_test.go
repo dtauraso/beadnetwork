@@ -8,8 +8,10 @@ import (
 // gesture_graph_test.go — a CONFORMANCE test over the commit/apply TABLES in
 // gesture_graph.go (not over MoveDispatch behavior — gesture_test.go already covers that).
 // It enumerates every path the table can express from gestPending and asserts the set of
-// recognizable gestures is EXACTLY the 6 named in gesture.go's doc comment: tap-select,
-// node-drag, rotate, handhold-orbit, wire, port-move — no phantom edge, none missing.
+// recognizable gestures is EXACTLY the 4 named in gesture.go's doc comment: tap-select,
+// node-drag, rotate, handhold-orbit — no phantom edge, none missing. wire/port-move were
+// removed with port geometry (docs/channels-not-ports.md): a port is never drawn or
+// hit-testable, so the "port" raycast-hit kind that fed both commit edges can never fire.
 
 // gestureName maps a terminal phase to the human gesture name used in gesture.go's doc
 // comment, so the test output reads the same vocabulary as the source.
@@ -23,10 +25,6 @@ func gestureName(phase gesturePhase) string {
 		return "rotate"
 	case gestHandhold:
 		return "handhold-orbit"
-	case gestWiring:
-		return "wire"
-	case gestPortMove:
-		return "port-move"
 	default:
 		return "UNKNOWN"
 	}
@@ -53,8 +51,8 @@ func allGestures() []string {
 	return names
 }
 
-func TestGestureGraphRecognizesExactlySixGestures(t *testing.T) {
-	want := []string{"handhold-orbit", "node-drag", "port-move", "rotate", "tap-select", "wire"}
+func TestGestureGraphRecognizesExactlyFourGestures(t *testing.T) {
+	want := []string{"handhold-orbit", "node-drag", "rotate", "tap-select"}
 	got := allGestures()
 	if len(got) != len(want) {
 		t.Fatalf("got %d gestures %v, want %d %v", len(got), got, len(want), want)
@@ -67,12 +65,12 @@ func TestGestureGraphRecognizesExactlySixGestures(t *testing.T) {
 }
 
 // TestGestureGraphCommitEdgePrecedence pins the exact precedence order of commitEdges
-// (wireNode, portMoveNode, dragNode, handholdDown, emptyDown) — the same order the old
-// inline switch in gestPointerMove used. A reorder here would silently change which
-// gesture wins when multiple grab-stashes are set (which should never happen in practice,
-// but the table's ORDER is still part of the contract).
+// (dragNode, handholdDown, emptyDown) — the same relative order the old inline switch in
+// gestPointerMove used (minus the removed wireNode/portMoveNode arms). A reorder here
+// would silently change which gesture wins when multiple grab-stashes are set (which
+// should never happen in practice, but the table's ORDER is still part of the contract).
 func TestGestureGraphCommitEdgePrecedence(t *testing.T) {
-	wantOrder := []gesturePhase{gestWiring, gestPortMove, gestDragging, gestHandhold, gestRotating}
+	wantOrder := []gesturePhase{gestDragging, gestHandhold, gestRotating}
 	if len(commitEdges) != len(wantOrder) {
 		t.Fatalf("got %d commit edges, want %d", len(commitEdges), len(wantOrder))
 	}
@@ -85,15 +83,12 @@ func TestGestureGraphCommitEdgePrecedence(t *testing.T) {
 
 // TestGestureGraphApplyActionCoversMoveResolvedPhases asserts applyAction has an entry for
 // exactly the phases a commit edge can resolve to that ALSO need a per-move apply
-// (dragging/rotating/handhold/portMove) — gestWiring intentionally has none (a wiring drag
-// does nothing per-move; it only resets on pointer-up), matching the old switch's implicit
-// default.
+// (dragging/rotating/handhold).
 func TestGestureGraphApplyActionCoversMoveResolvedPhases(t *testing.T) {
 	wantApply := map[gesturePhase]bool{
 		gestDragging: true,
 		gestRotating: true,
 		gestHandhold: true,
-		gestPortMove: true,
 	}
 	if len(applyAction) != len(wantApply) {
 		t.Fatalf("got %d applyAction entries, want %d", len(applyAction), len(wantApply))
@@ -102,8 +97,5 @@ func TestGestureGraphApplyActionCoversMoveResolvedPhases(t *testing.T) {
 		if _, ok := applyAction[phase]; !ok {
 			t.Fatalf("applyAction missing entry for phase %v", phase)
 		}
-	}
-	if _, ok := applyAction[gestWiring]; ok {
-		t.Fatalf("applyAction unexpectedly has an entry for gestWiring")
 	}
 }

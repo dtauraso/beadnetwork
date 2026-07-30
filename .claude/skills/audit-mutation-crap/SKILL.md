@@ -62,9 +62,9 @@ this doc summarizes and does not replace them. Read them before inventing invoca
    itself still covers the whole module unless you also pass `--test-command`.
 
    Confirmed working 2026-07-28: on this repo's `nodes/` the worst-ranked functions
-   were `nodeMover.writeStreamFrame` (CC 17, 4.0% cov, CRAP 272.7) and
-   `edgeMover.writeStreamFrame` (CC 15, 4.9% cov, CRAP 208.7), both in
-   `nodes/Wiring/port_geom_emit.go` — the geometry-streaming path, which makes sense as
+   were `nodeMover.writeStreamFrame` (CC 17, 4.0% cov, CRAP 272.7, `nodes/Wiring/node_mover.go`) and
+   `edgeMover.writeStreamFrame` (CC 15, 4.9% cov, CRAP 208.7, `nodes/Wiring/edge_mover.go`) —
+   the geometry-streaming path, which makes sense as
    an audit target: high branch count, low coverage, and it's the kind of thing
    `docs/testing-shape.md`'s corollary 2 would say not to unit-test directly (it's a
    goroutine's own emission, which IS a legitimate shape per that doc — so mutate4go
@@ -74,7 +74,7 @@ this doc summarizes and does not replace them. Read them before inventing invoca
    count with the read-only structural mode:
 
    ```bash
-   tools/audit-mutation-crap.sh mutate-scan nodes/Wiring/port_geom_emit.go
+   tools/audit-mutation-crap.sh mutate-scan nodes/Wiring/node_mover.go
    ```
 
    `--scan` skips coverage and test execution entirely and writes NOTHING to the
@@ -86,7 +86,7 @@ this doc summarizes and does not replace them. Read them before inventing invoca
    site, so it does not scale past a single file per invocation:
 
    ```bash
-   tools/audit-mutation-crap.sh mutate nodes/Wiring/port_geom_emit.go --max-workers 3
+   tools/audit-mutation-crap.sh mutate nodes/Wiring/node_mover.go --max-workers 3
    ```
 
    Loop per the upstream README's "Recommended Workflow": if a mutation is UNCOVERED,

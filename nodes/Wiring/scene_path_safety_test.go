@@ -1,9 +1,10 @@
 package Wiring
 
 // scene_path_safety_test.go — verifies safeTreePathComponent rejects path-traversal
-// values and that the two write sinks (writeQuantOffset, writePortAnchor) reject
-// unsafe ids/ports rather than escaping the tree root (see quant_offset_persist.go,
-// scene_anchor_persist.go).
+// values and that writeQuantOffset rejects an unsafe id rather than escaping the tree
+// root (see quant_offset_persist.go). The former port-anchor write sink
+// (scene_anchor_persist.go) is gone — docs/channels-not-ports.md, a port has no file
+// of its own any more.
 
 import (
 	"os"
@@ -42,15 +43,5 @@ func TestWriteQuantOffsetRejectsTraversalID(t *testing.T) {
 	}
 	if _, statErr := os.Stat(filepath.Join(root, "..", "..", "evil", "meta.json")); statErr == nil {
 		t.Fatal("traversal write unexpectedly created a file outside the tree root")
-	}
-}
-
-func TestWritePortAnchorRejectsTraversalNames(t *testing.T) {
-	root := t.TempDir()
-	if err := writePortAnchor(root, "../../evil", "port", true, 0); err == nil {
-		t.Fatal("expected error for traversal node name, got nil")
-	}
-	if err := writePortAnchor(root, "node", "../../evil", true, 0); err == nil {
-		t.Fatal("expected error for traversal port name, got nil")
 	}
 }

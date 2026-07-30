@@ -4,11 +4,13 @@
 //
 //	<root>/nodes/<id>/meta.json         — id, type
 //	<root>/nodes/<id>/data.json         — NodeData (optional)
-//	<root>/nodes/<id>/inputs/<name>.json  — specPort
-//	<root>/nodes/<id>/outputs/<name>.json — specPort
 //	<root>/nodes/<id>/edges/<label>.json  — specEdge, OUTGOING only (adjacency list: the
 //	                                        source is the directory the file sits in, not a
 //	                                        field in the file — see specEdge's doc comment)
+//
+// There is no nodes/<id>/inputs/ or outputs/ any more (docs/channels-not-ports.md): a
+// port is a load-time channel-binding ROLE resolved from the kind's registry
+// (PortSpec/a.In()/a.Out()), never a placed entity with its own geometry file.
 //
 // It returns a topoSpec in the same shape parseSpec/LoadTopology consume regardless of
 // how the tree was read.
@@ -23,11 +25,6 @@ import (
 	"sort"
 	"strings"
 )
-
-// jsonPort is a local unmarshal helper for port JSON files (lowercase keys).
-// specPort already has json tags with the same lowercase names, so we reuse
-// specPort directly; this type documents the expected shape.
-// (kept as a comment — see readPort below which unmarshals directly into specPort)
 
 // jsonMeta is the shape of nodes/<id>/meta.json.
 type jsonMeta struct {
@@ -151,23 +148,11 @@ func loadTree(root string) (topoSpec, error) {
 			sn.Data = &nd
 		}
 
-		// inputs/ — optional subdir
-		sn.Inputs, err = readPorts(filepath.Join(nodeDir, "inputs"))
-		if err != nil {
-			return spec, fmt.Errorf("loadTree: node %q inputs: %w", nodeID, err)
-		}
-
-		// outputs/ — optional subdir
-		sn.Outputs, err = readPorts(filepath.Join(nodeDir, "outputs"))
-		if err != nil {
-			return spec, fmt.Errorf("loadTree: node %q outputs: %w", nodeID, err)
-		}
-
 		spec.Nodes = append(spec.Nodes, sn)
 
 		// edges/ — this node's OUTGOING edges (adjacency list). Optional subdir: a node
 		// with no outgoing edges simply has no edges/ subdir, which is normal, not an
-		// error (mirrors inputs/outputs/ above). Order rule: edges appear in outer
+		// error. Order rule: edges appear in outer
 		// node-directory-sorted order (already established by the sort.Strings(nodeDirs)
 		// above), then inner sort.Strings(edgeFiles) within each node's edges/ — i.e.
 		// deterministic by (source id, label) lexical order, not by label alone as the
@@ -215,40 +200,6 @@ func loadTree(root string) (topoSpec, error) {
 	}
 
 	return spec, nil
-}
-
-// readPorts reads all *.json files from dir (which may not exist) and returns
-// the parsed []specPort sorted by slot (nil last) then name.
-func readPorts(dir string) ([]specPort, error) {
-	names, err := readDirNames(dir)
-	if os.IsNotExist(err) {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-	sort.Strings(names)
-
-	var ports []specPort
-	for _, fname := range names {
-		if !strings.HasSuffix(fname, ".json") {
-			continue
-		}
-		raw, err := os.ReadFile(filepath.Join(dir, fname))
-		if err != nil {
-			return nil, err
-		}
-		var p specPort
-		if err := json.Unmarshal(raw, &p); err != nil {
-			return nil, fmt.Errorf("parse %s: %w", fname, err)
-		}
-		ports = append(ports, p)
-	}
-
-	sort.Slice(ports, func(i, j int) bool {
-		return ports[i].Name < ports[j].Name
-	})
-	return ports, nil
 }
 
 // readDirNames returns the names (not full paths) of all entries in dir.

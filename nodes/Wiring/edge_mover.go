@@ -102,14 +102,8 @@ type edgeMover struct {
 	// stream frame records (memory/feedback_no_single_writer_bridge.md). -1 until
 	// SetEdgeStreams runs (bare test construction never sets it).
 	edgeRow int32
-	// portRowFor resolves (node, port, isInput) to its buffer PORT-ROW index — the
-	// SAME resolution buildEdgeFrame's portRowLookup performs, injected here (rather
-	// than importing Buffer) via MoveDispatch.SetEdgeStreams so this package stays
-	// Buffer-independent, matching PortRowResolver/EdgeRowResolver's existing
-	// interface-injection pattern.
-	portRowFor func(node, port string, isInput bool) (int32, bool)
 	// nodeRowFor resolves a node id to its buffer NODE-ROW index (mirroring the old
-	// central accumulator's NodeRowFor), injected the same way as portRowFor. Used to
+	// central accumulator's NodeRowFor), injected via MoveDispatch.SetEdgeStreams. Used to
 	// resolve the SOURCE node's row for this edge's own Geometry/Position/Arrive events.
 	nodeRowFor func(id string) (int32, bool)
 	// selected is this edge's OWN CURRENT click-selected bit — set only by this
@@ -121,7 +115,7 @@ type edgeMover struct {
 	// injected so this package needs no Buffer import. events carries this goroutine's
 	// OWN row-resolved events recorded since the last flush (memory/
 	// feedback_no_single_writer_bridge.md).
-	buildFrame func(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, events []wire.RowEvent) []byte
+	buildFrame func(tick uint32, sx, sy, sz, ex, ey, ez float32, selected uint8, label string, events []wire.RowEvent) []byte
 }
 
 func newEdgeMover(ep EdgeEndpoints, edgeID string, srcGeom, dstGeom nodeGeom, tr *T.Trace, clockSrc wire.Clock) *edgeMover {
@@ -161,25 +155,6 @@ func (m *edgeMover) handle(msg moveMsg) {
 		} else {
 			m.selected = 0
 		}
-		return
-	}
-	if msg.Kind == moveMsgKindAnchor {
-		// A port-anchor change recomputes this edge's segment/arc only if the changed
-		// port is one of THIS edge's endpoints (matching node id, port name, direction).
-		// Source endpoint is an OUTPUT (isInput==false); target endpoint is an INPUT.
-		switch {
-		case msg.NodeID == m.srcID && !msg.IsInput && msg.Port == m.srcH:
-			if !setPortAnchorId(&m.srcGeom, msg.Port, false, msg.AnchorId) {
-				return
-			}
-		case msg.NodeID == m.dstID && msg.IsInput && msg.Port == m.dstH:
-			if !setPortAnchorId(&m.dstGeom, msg.Port, true, msg.AnchorId) {
-				return
-			}
-		default:
-			return
-		}
-		m.recomputeGeometry()
 		return
 	}
 	if msg.Kind == moveMsgKindCenter {
@@ -235,7 +210,7 @@ func (m *edgeMover) handle(msg moveMsg) {
 // derivation are both gone, not replaced by an edge-side re-derivation of the same
 // integer from a different (and potentially disagreeing) measurement.
 func (m *edgeMover) recomputeGeometry() {
-	seg := edgeSegment(m.srcGeom, m.dstGeom, m.srcH, m.dstH)
+	seg := edgeSegment(m.srcGeom, m.dstGeom)
 
 	// Publish the new segment onto the source Out's own buffered-1, latest-wins
 	// channel, so the next placement (on the source node's own goroutine) reads it
@@ -290,15 +265,10 @@ func (m *edgeMover) writeStreamFrame(tick int64, events []wire.RowEvent) {
 				m.edgeID, m.edgeRow, e.Kind, e.EdgeRow))
 		}
 	}
-	var srcRow, dstRow int32 = -1, -1
-	if m.portRowFor != nil {
-		if r, ok := m.portRowFor(m.srcID, m.srcH, false); ok {
-			srcRow = r
-		}
-		if r, ok := m.portRowFor(m.dstID, m.dstH, true); ok {
-			dstRow = r
-		}
-	}
+	// Segment endpoints for this frame's own Edge row (SX..EZ) — no port row to
+	// resolve any more (docs/channels-not-ports.md), so this is a plain re-derive
+	// from the held endpoint geoms, same computation recomputeGeometry uses.
+	seg := edgeSegment(m.srcGeom, m.dstGeom)
 	selected := m.selected
 	if m.dest != nil {
 		// NO live-bead read here. This runs on the EDGE goroutine, but the wire is now
@@ -308,18 +278,22 @@ func (m *edgeMover) writeStreamFrame(tick int64, events []wire.RowEvent) {
 		// animation is the LIT bead on the source node's own chain, which that node
 		// computes on its own goroutine (docs/beads-are-the-edge.md).
 		// Drain this wire's own OWN-goroutine-recorded Position/Arrive events, resolved
-		// to rows here (srcRow/nodeRowFor — the SAME resolvers this frame's own edge
-		// columns above just used), and fold them in alongside any caller-supplied
-		// events (e.g. a Geometry event from recomputeGeometry).
-		nodeRow := int32(-1)
+		// to rows here (nodeRowFor — the SAME resolver this frame's own edge columns
+		// above just used), and fold them in alongside any caller-supplied events (e.g.
+		// a Geometry event from recomputeGeometry). PortRow is -1: there is no port row
+		// left to reference.
+		nodeRow, targetRow := int32(-1), int32(-1)
 		if m.nodeRowFor != nil {
 			if r, ok := m.nodeRowFor(m.srcID); ok {
 				nodeRow = r
 			}
+			if r, ok := m.nodeRowFor(m.dstID); ok {
+				targetRow = r
+			}
 		}
 		for _, pe := range m.dest.DrainPendingEvents() {
 			events = append(events, wire.RowEvent{
-				Kind: pe.Kind, NodeRow: nodeRow, PortRow: srcRow,
+				Kind: pe.Kind, NodeRow: nodeRow, PortRow: -1,
 				TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 				Value: int32(pe.Value), Bead: pe.Gen,
 				X: pe.X, Y: pe.Y, Z: pe.Z, F: pe.T,
@@ -331,12 +305,15 @@ func (m *edgeMover) writeStreamFrame(tick int64, events []wire.RowEvent) {
 		// DrainPendingEvents just above.
 		for _, ev := range m.dest.DrainBreadcrumbEvents() {
 			ev.NodeRow = nodeRow
-			ev.PortRow = srcRow
-			ev.TargetRow = dstRow
+			ev.PortRow = -1
+			ev.TargetRow = targetRow
 			events = append(events, ev)
 		}
 	}
-	frame := m.buildFrame(uint32(tick), srcRow, dstRow, selected, m.edgeID, events)
+	frame := m.buildFrame(uint32(tick),
+		float32(seg.Start.X), float32(seg.Start.Y), float32(seg.Start.Z),
+		float32(seg.End.X), float32(seg.End.Y), float32(seg.End.Z),
+		selected, m.edgeID, events)
 	var hdr [4]byte
 	binary.LittleEndian.PutUint32(hdr[:], uint32(len(frame)))
 	// Fire-and-forget, same reasoning throughout this bridge: no delivery

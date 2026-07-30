@@ -126,9 +126,9 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 		// Edge selection is no longer an injected lookup: each edgeMover owns its OWN
 		// selected bit, set via a moveMsgKindSelect message the gesture goroutine sends
 		// on select/deselect (MoveDispatch.sendEdgeSelect).
-		md.SetEdgeStreams(edgeBase, md.PortRowFor, md.NodeRowFor,
-			func(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, events []wire.RowEvent) []byte {
-				return B.BuildEdgeStreamFrame(tick, srcPortRow, dstPortRow, selected, label, toStreamEvents(events))
+		md.SetEdgeStreams(edgeBase, md.NodeRowFor,
+			func(tick uint32, sx, sy, sz, ex, ey, ez float32, selected uint8, label string, events []wire.RowEvent) []byte {
+				return B.BuildEdgeStreamFrame(tick, sx, sy, sz, ex, ey, ez, selected, label, toStreamEvents(events))
 			})
 	}
 	// The two per-node dedicated streams (memory/feedback_no_single_writer_bridge.md):
@@ -161,12 +161,11 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 			// index (Buffer.NodeKindID) — injected so Wiring stays Buffer-independent.
 			md.SetNodeStreams(nodeBase, interiorBase,
 				md.NodeRowFor,
-				func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount int32, gotForwardMsg uint8, forwardDeltaA, forwardDeltaB, forwardDeltaC, forwardFromRow int32, cascadeRelay uint8, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows []int32, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte {
+				func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount int32, gotForwardMsg uint8, forwardDeltaA, forwardDeltaB, forwardDeltaC, forwardFromRow int32, cascadeRelay uint8, label string, dstNodeRows []int32, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte {
 					return B.BuildNodeStreamFrame(tick, nodeRow, cx, cy, cz, radius, sphereR, vrx, vry, vrz, frx, fry, frz,
 						selected, kindID, hovered, latchedSel, gotDragMsg, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount,
 						gotForwardMsg, forwardDeltaA, forwardDeltaB, forwardDeltaC, forwardFromRow, cascadeRelay,
-						label, portNames, portDX, portDY, portDZ, portPX, portPY, portPZ, portIsInput, portHovered,
-						dstNodeRows, chainBeadOX, chainBeadOY, chainBeadOZ, chainBeadLit, chainBeadLitValue, toStreamEvents(events))
+						label, dstNodeRows, chainBeadOX, chainBeadOY, chainBeadOZ, chainBeadLit, chainBeadLitValue, toStreamEvents(events))
 				},
 				func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte {
 					return B.BuildInteriorStreamFrame(tick, present, value, ox, oy, oz, toStreamEvents(events))

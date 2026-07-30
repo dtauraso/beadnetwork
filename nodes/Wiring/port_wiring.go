@@ -81,15 +81,14 @@ func asEventSinkGetter(g func() *interiorStream) func() wire.EventSink {
 	}
 }
 
+// portRow is always -1 now: a port has no buffer row of its own (docs/channels-not-ports.md
+// — no Port block, no port-row table). Kept as a named sentinel rather than a bare -1
+// literal at each call site below so the reason reads at the call site, not just here.
+const noPortRow = int32(-1)
+
 func newInPort(portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, getStream func() *interiorStream) *wire.In {
 	if b := pb.singlePaced[portName]; b.pw != nil {
-		portRow := int32(-1)
-		if pb.md != nil {
-			if r, ok := pb.md.PortRowFor(name, portName, true); ok {
-				portRow = r
-			}
-		}
-		return wire.NewInPaced(b.pw, ctx, name, portName, tr, asEventSinkGetter(getStream), portRow)
+		return wire.NewInPaced(b.pw, ctx, name, portName, tr, asEventSinkGetter(getStream), noPortRow)
 	} else {
 		ch := pb.deadEndIn(portName)
 		return wire.NewInChan(ch, name, portName, tr, asEventSinkGetter(getStream))
@@ -98,21 +97,13 @@ func newInPort(portName string, ctx context.Context, name string, pb PortBinding
 
 func newOutPort(portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, sourceOuts *[]*wire.Out, getStream func() *interiorStream) *wire.Out {
 	if b := pb.singlePaced[portName]; b.pw != nil {
-		portRow, targetRow, targetPortRow := int32(-1), int32(-1), int32(-1)
-		if pb.md != nil {
-			if r, ok := pb.md.PortRowFor(name, portName, false); ok {
-				portRow = r
-			}
-			if b.pw.Target != "" {
-				if r, ok := pb.md.NodeRowFor(b.pw.Target); ok {
-					targetRow = r
-				}
-				if r, ok := pb.md.PortRowFor(b.pw.Target, b.pw.TargetHandle, true); ok {
-					targetPortRow = r
-				}
+		targetRow := int32(-1)
+		if pb.md != nil && b.pw.Target != "" {
+			if r, ok := pb.md.NodeRowFor(b.pw.Target); ok {
+				targetRow = r
 			}
 		}
-		o := wire.NewOutPaced(b.pw, ctx, name, portName, tr, b.rule, b.steps, b.seg, b.label, asEventSinkGetter(getStream), portRow, targetRow, targetPortRow)
+		o := wire.NewOutPaced(b.pw, ctx, name, portName, tr, b.rule, b.steps, b.seg, b.label, asEventSinkGetter(getStream), noPortRow, targetRow, noPortRow)
 		*sourceOuts = append(*sourceOuts, o)
 		if pb.outSink != nil {
 			pb.outSink[name+"."+portName] = o
@@ -127,21 +118,13 @@ func newBroadcastPort(portName string, ctx context.Context, name string, pb Port
 	if bs := pb.broadcastPaced[portName]; len(bs) > 0 {
 		outs := make(wire.Broadcast, len(bs))
 		for i, b := range bs {
-			portRow, targetRow, targetPortRow := int32(-1), int32(-1), int32(-1)
-			if pb.md != nil {
-				if r, ok := pb.md.PortRowFor(name, b.handle, false); ok {
-					portRow = r
-				}
-				if b.pw.Target != "" {
-					if r, ok := pb.md.NodeRowFor(b.pw.Target); ok {
-						targetRow = r
-					}
-					if r, ok := pb.md.PortRowFor(b.pw.Target, b.pw.TargetHandle, true); ok {
-						targetPortRow = r
-					}
+			targetRow := int32(-1)
+			if pb.md != nil && b.pw.Target != "" {
+				if r, ok := pb.md.NodeRowFor(b.pw.Target); ok {
+					targetRow = r
 				}
 			}
-			o := wire.NewOutPaced(b.pw, ctx, name, b.handle, tr, b.rule, b.steps, b.seg, b.label, asEventSinkGetter(getStream), portRow, targetRow, targetPortRow)
+			o := wire.NewOutPaced(b.pw, ctx, name, b.handle, tr, b.rule, b.steps, b.seg, b.label, asEventSinkGetter(getStream), noPortRow, targetRow, noPortRow)
 			outs[i] = o
 			*sourceOuts = append(*sourceOuts, o)
 			if pb.outSink != nil {

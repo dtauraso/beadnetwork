@@ -53,16 +53,6 @@ func cascadeEdgesFilePath(root, id string) string {
 	return filepath.Join(root, "nodes", id, "cascade-edges.json")
 }
 
-// nodePortFilePath is <root>/nodes/<id>/{inputs,outputs}/<port>.json — one port's
-// geometry file (scene_anchor_persist.go's writePortAnchor).
-func nodePortFilePath(root, node, port string, isInput bool) string {
-	dir := "outputs"
-	if isInput {
-		dir = "inputs"
-	}
-	return filepath.Join(root, "nodes", node, dir, port+".json")
-}
-
 // pendingSend is one (destination, message) pair this node's own goroutine tried to
 // deliver, failed (the target's inbox was momentarily full), and is retrying — see
 // nodeMover.pending's doc comment. There is no separate sender goroutine:
@@ -70,25 +60,6 @@ func nodePortFilePath(root, node, port string, isInput bool) string {
 type pendingSend struct {
 	destID string
 	msg    moveMsg
-}
-
-// setPortAnchorId sets the AnchorId on the named port within the given geom,
-// clearing any free-direction Anchor so AnchorId takes highest priority (matching
-// portDir's resolution order: AnchorId > Anchor > side/slot). Returns true if the
-// port was found and mutated. The geom is mutated in place (its slice elements are
-// addressable). Used by both movers to apply a snapped ring-anchor update.
-func setPortAnchorId(g *nodeGeom, port string, isInput bool, anchorId int) bool {
-	list := g.Outputs
-	if isInput {
-		list = g.Inputs
-	}
-	for i := range list {
-		if list[i].Name == port {
-			list[i].AnchorId = &anchorId
-			return true
-		}
-	}
-	return false
 }
 
 // nodeMover owns one node's geometry. It drains its own dedicated inbound channels
@@ -109,8 +80,8 @@ type nodeMover struct {
 	// happens-before shape as clockSrc/speedCh below).
 	persistRoot string
 	// extIn is this node's dedicated channel for EXTERNAL entries — the stdin/gesture
-	// goroutine's drag/dragStart/anchor sends (md.sendMove, gesture.go's
-	// applyRingAnchor). Nothing else ever writes here: no other mover shares it.
+	// goroutine's drag/dragStart sends (md.sendMove). Nothing else ever writes here: no
+	// other mover shares it.
 	extIn chan moveMsg
 	// neighborIn holds one dedicated inbound channel PER ADJACENT NODE (keyed by that
 	// neighbor's id) — the "two channels, A→B and B→A" topology generalized to this
@@ -140,9 +111,8 @@ type nodeMover struct {
 	// There is no geomMu. m.geom (port_geometry.go) splits into an embedded, write-once
 	// nodeIdentity (Kind/Label/R/SceneCenter — set once at construction in loader.go,
 	// grepped clean of any later write anywhere in this package) and MUTABLE state
-	// (ScenePolar/HasPos/ReachR/Inputs/Outputs-element-AnchorId) written only by
-	// applyCenter and handle's moveMsgKindAnchor case. Every writer AND every reader of
-	// the mutable part — applyCenter, setPortAnchorId (via handle), emitGeometry's
+	// (ScenePolar/HasPos/ReachR) written only by applyCenter. Every writer AND every
+	// reader of the mutable part — applyCenter, emitGeometry's
 	// full-struct copy — runs exclusively on nodeMover's OWN inbox-drain goroutine
 	// (run/handle), so there is never more than one goroutine touching that memory. The
 	// one cross-goroutine reader, MoveDispatch.NodeKind (node_move.go), called from the
@@ -187,20 +157,13 @@ type nodeMover struct {
 	// offset lives on its own mover — see nodeMover.quantOffset). nil in tests that
 	// build a bare nodeMover directly.
 	commitLocal func(id string, newPos vec3)
-	// partnerCenter resolves, per (port,isInput) on this node, the CURRENT world center of
-	// the single partner node connected via one edge (aimed-port model, port_geometry.go
-	// portWorldPosAimed / builders.go partnerCenterFn). Wired by newMoveDispatch from
-	// b.edgeEndpoints + the OTHER nodeMover's own partnerCenters map — a dynamic,
-	// always-current lookup with no shared mutable state. nil only in tests that build
-	// a bare nodeMover directly.
-	partnerCenter partnerCenterFn
-	// partnerCenters is THIS node's OWN copy of every direct neighbor's last-known
-	// world center; partnerCenter's closure (above) reads this map. Written ONLY by
-	// this node's own goroutine: seeded once at construction (newMoveDispatch, single-
-	// threaded setup) from each neighbor's load-time geom, then kept current by the
-	// moveMsgKindNeighborCenter handler in handle() below, fed by every direct
-	// neighbor's own applyCenter push. Never read or written by any other goroutine —
-	// this map exists solely to serve THIS node's own partnerCenter lookups.
+	// partnerCenters is THIS node's OWN copy of every direct neighbor's last-known world
+	// center, read by quantized_move.go's neighbor-move math (neighborSetCReposition et
+	// al.). Written ONLY by this node's own goroutine: seeded once at construction
+	// (newMoveDispatch, single-threaded setup) from each neighbor's load-time geom, then
+	// kept current by the moveMsgKindNeighborCenter handler in handle() below, fed by
+	// every direct neighbor's own applyCenter push. Never read or written by any other
+	// goroutine.
 	partnerCenters map[string]vec3
 	// quantOffset is THIS node's own quantized polar offset (iTheta,iPhi,iR + step
 	// constants) about the scene center — the per-node replacement for the formerly
@@ -386,7 +349,7 @@ type nodeMover struct {
 	// buildFrame packs this node's combined per-fd frame (node fields + ports + label)
 	// using Buffer's own row-writer columns (Buffer.BuildNodeStreamFrame), injected so
 	// this package needs no Buffer import.
-	buildFrame func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount int32, gotForwardMsg uint8, forwardDeltaA, forwardDeltaB, forwardDeltaC, forwardFromRow int32, cascadeRelay uint8, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows []int32, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte
+	buildFrame func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount int32, gotForwardMsg uint8, forwardDeltaA, forwardDeltaB, forwardDeltaC, forwardFromRow int32, cascadeRelay uint8, label string, dstNodeRows []int32, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte
 }
 
 func newNodeMover(id string, geom nodeGeom, tr *T.Trace, clockSrc wire.Clock) *nodeMover {
@@ -416,28 +379,14 @@ func (m *nodeMover) handle(msg moveMsg) {
 	if msg.NodeID != m.id {
 		return
 	}
-	if msg.Kind == moveMsgKindAnchor {
-		// Per-port anchor update: snap to ring-anchor index, mutate this node's held
-		// port AnchorId, persist it to THIS node's own port file, and re-emit
-		// node-geometry so the renderer redraws the port.
-		ok := setPortAnchorId(&m.geom, msg.Port, msg.IsInput, msg.AnchorId)
-		if !ok {
-			return
-		}
-		m.persistPortAnchor(msg.Port, msg.IsInput, msg.AnchorId)
-		if m.tr != nil {
-			m.emitGeometry()
-		}
-		return
-	}
 	if msg.Kind == moveMsgKindCenter {
 		// nodeMover is the SOLE writer of its own position (single-writer by
 		// construction — this is the only path that mutates it). A Center payload is
 		// the flat absolute-scene-polar drag write from fanCenters: apply it via
 		// applyCenter, which also re-emits. A nil Center is fanCenters' PARTNER
-		// re-emit (an aimed-port neighbor whose OWN center is unchanged, only asked
-		// to re-emit so its port direction picks up the moved partner's fresh center
-		// via m.partnerCenter at emit time) — no mutation, just re-emit.
+		// re-emit (a neighbor whose OWN center is unchanged, only asked to re-emit so
+		// any reader of its geometry sees a consistent frame) — no mutation, just
+		// re-emit.
 		if msg.Center != nil {
 			m.applyCenter(*msg.Center, msg.ReachR)
 			return
@@ -816,13 +765,11 @@ func (m *nodeMover) applyCenter(center vec3, reach float64) {
 	}
 }
 
-// emitGeometry re-emits this node's authoritative geometry. A CONNECTED port marker is
-// AIMED at its partner's current center (m.partnerCenter, backed by this node's own
-// message-updated partnerCenters map); an edgeless port falls back to its own
-// polar-torus ring-anchor placement (portWorldPos).
-// This method, applyCenter, and setPortAnchorId (via handle) all run on
-// nodeMover's own inbox-drain goroutine only (see the doc comment on nodeMover.geom),
-// so a plain field read here can never race a concurrent writer.
+// emitGeometry re-emits this node's authoritative geometry (center, radius, ring
+// normals — no port geometry: a port carries none, docs/channels-not-ports.md).
+// This method and applyCenter both run on nodeMover's own inbox-drain goroutine only
+// (see the doc comment on nodeMover.geom), so a plain field read here can never race a
+// concurrent writer.
 func (m *nodeMover) emitGeometry() {
 	// Dedicated per-node stream (see streamOut's doc comment): write this node's own
 	// combined frame immediately on a geometry change, in addition to the tick-driven
@@ -873,28 +820,6 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 	if label == "" {
 		label = m.id
 	}
-	portPosDir := aimedPortPosDir(m.geom, m.partnerCenter)
-	ports := buildPortGeoms(m.geom, portPosDir)
-	portNames := make([]string, len(ports))
-	portDX := make([]float32, len(ports))
-	portDY := make([]float32, len(ports))
-	portDZ := make([]float32, len(ports))
-	portPX := make([]float32, len(ports))
-	portPY := make([]float32, len(ports))
-	portPZ := make([]float32, len(ports))
-	portIsInput := make([]uint8, len(ports))
-	portHovered := make([]uint8, len(ports))
-	for i, p := range ports {
-		portNames[i] = p.Name
-		portDX[i], portDY[i], portDZ[i] = float32(p.DX), float32(p.DY), float32(p.DZ)
-		portPX[i], portPY[i], portPZ[i] = float32(p.PX), float32(p.PY), float32(p.PZ)
-		if p.IsInput {
-			portIsInput[i] = 1
-		}
-		if m.hovered == 1 && m.hoverPort != "" && m.hoverPort == p.Name && m.hoverIsInput == p.IsInput {
-			portHovered[i] = 1
-		}
-	}
 	selected, hovered, latchedSel, gotDragMsg, kindID := m.selected, m.hovered, m.latchedSel, m.gotDragMsg, m.kindID
 	dA, dB, dC := m.dragDeltaA, m.dragDeltaB, m.dragDeltaC
 	dReq := m.dragRequantCount
@@ -935,8 +860,7 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 		flatRingNormalX, flatRingNormalY, flatRingNormalZ,
 		selected, kindID, hovered, latchedSel, gotDragMsg, dA, dB, dC, dReq,
 		gotFwd, fA, fB, fC, fFromRow, cascadeRelayClass(m.selfKind),
-		label, portNames, portDX, portDY, portDZ, portPX, portPY, portPZ, portIsInput, portHovered,
-		dstNodeRows, chainOX, chainOY, chainOZ, chainLit, chainLitVal, events)
+		label, dstNodeRows, chainOX, chainOY, chainOZ, chainLit, chainLitVal, events)
 	var hdr [4]byte
 	binary.LittleEndian.PutUint32(hdr[:], uint32(len(frame)))
 	// Fire-and-forget, same reasoning throughout this bridge: no delivery

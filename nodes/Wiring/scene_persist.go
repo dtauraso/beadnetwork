@@ -96,38 +96,6 @@ func readJSONIfExists(path string, v any) bool {
 	return json.Unmarshal(raw, v) == nil
 }
 
-// readEntityObjRequired reads an existing per-entity JSON file (a port anchor file) as a
-// raw-message map for a read-modify-write. The file MUST already exist (a port is always
-// written before it can be moved), so an error is propagated and logged rather than
-// silently proceeding on a fabricated empty object.
-func readEntityObjRequired(path string) (map[string]json.RawMessage, error) {
-	raw, err := os.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-	obj := map[string]json.RawMessage{}
-	if err := json.Unmarshal(raw, &obj); err != nil {
-		return nil, err
-	}
-	return obj, nil
-}
-
-// entityReadModifyWrite reads a required per-entity JSON file, lets mutate edit it, then
-// atomically writes it back. Used only by the port-anchor writer (writePortAnchor) to
-// preserve a port file's other field (`name`) across an anchor-only write. UNLOCKED: the
-// port-anchor file has exactly one writer (writePortAnchor itself, from the single
-// anchorPersister timer) — it never shared this file with a second writer the way
-// scene.json / meta.json used to, so there is nothing to serialize here. Do not add a
-// second writer of a port file without re-examining this.
-func entityReadModifyWrite(path string, mutate func(obj map[string]json.RawMessage)) error {
-	obj, err := readEntityObjRequired(path)
-	if err != nil {
-		return err
-	}
-	mutate(obj)
-	return writeJSONAtomic(path, obj)
-}
-
 // writeJSONAtomic marshals v and writes it to path via a temp-file-then-rename, creating
 // parent directories first, so a reader never observes a partially-written file.
 func writeJSONAtomic(path string, v any) error {

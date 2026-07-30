@@ -21,7 +21,7 @@
 package Buffer
 
 // BufLayoutVersion is the schema version. Bump when any column changes.
-const BufLayoutVersion = 34
+const BufLayoutVersion = 35
 
 // BufInteriorSlotsPerNode is the fixed number of interior grid slots reserved per
 // node in the Interior block (a 2x2 held/interior-bead grid: slot = row*2 + col).
@@ -66,7 +66,7 @@ type bufLayoutNode struct {
 	CY      float32 `buf:"f32"` // node center y (world)
 	CZ      float32 `buf:"f32"` // node center z (world)
 	Radius  float32 `buf:"f32"` // body/ring sphere radius
-	SphereR float32 `buf:"f32"` // sphere-chain radius (port placement)
+	SphereR float32 `buf:"f32"` // sphere-chain reach radius
 	// VR*/FR* are the node's two great-circle ring-plane normals (vertical vr, flat fr),
 	// the same orientation vectors the pre-branch SphereRing read from nodeGeometryStore.
 	// SphereRing draws two tori at the owner's center oriented by these; they arrive on the
@@ -220,21 +220,27 @@ type bufLayoutInterior struct {
 // bufLayoutEdge defines one row of the edges column block.
 // One row per edge (wire). Matched from KindGeometry trace events.
 //
-// The edge stores NO endpoint coordinates (the removed SX..EZ copy was a duplication
-// artifact — see memory/feedback_no_single_writer_bridge.md): it carries only
-// SrcPortRow/DstPortRow, the flattened buffer PORT-ROW indices (same resolution as
-// LookupPortRow / the Port block, Buffer/node_stream_frame.go's BuildNodeStreamFrame) of
-// the source (OUTPUT)
-// and dest (INPUT) ports this edge connects. The renderer reads the endpoint world
-// position from THOSE port rows (Port block's PX/PY/PZ, node-owned, emitted synchronously
-// with the node's own move) instead of a second, laggier copy on this block — so a fast
-// drag can never composite a fresh Node frame against a stale Edge-block endpoint (the
-// tear this replaces was exactly that: the old SX..EZ lagged a channel-hop behind the
-// node's own port geometry emit).
+// SX..EZ is the edge's own straight SEGMENT (docs/bead-lattice.md "Ownership": the
+// edgeMover publishes the segment only) — NODE SURFACE TO NODE SURFACE along the
+// centre-to-centre line (edgeSegment, nodes/Wiring/port_geometry.go), the same two
+// points chain_beads.go anchors bead 0 and the last bead to. There is no port row to
+// reference any more: a port stopped being a place (docs/channels-not-ports.md), so this
+// column pair is the edge's own emitted endpoints, not an index into a Port block that no
+// longer exists. This DOES reintroduce a second copy of a world position (the node's own
+// center + torus radius, computed once here rather than read live) — the prior port-row
+// indirection existed specifically to dodge that tear, but the tear it was dodging was
+// itself the bug this rewrite removes (a port's PLACE floating apart from the node's own
+// surface): the edgeMover recomputes this segment on every endpoint move
+// (recomputeGeometry), same as it always has, so it is never more than one move-event
+// stale — no different from the Node block's own center staying fresh.
 type bufLayoutEdge struct {
-	SrcPortRow int32 `buf:"i32"` // source (output) port's buffer PORT-ROW index; -1 = unresolved
-	DstPortRow int32 `buf:"i32"` // dest (input) port's buffer PORT-ROW index; -1 = unresolved
-	Selected   uint8 `buf:"u8"`  // persistent: 1 = this edge is the click-selected edge
+	SX       float32 `buf:"f32"` // segment start x (source node surface, world)
+	SY       float32 `buf:"f32"` // segment start y
+	SZ       float32 `buf:"f32"` // segment start z
+	EX       float32 `buf:"f32"` // segment end x (target node surface, world)
+	EY       float32 `buf:"f32"` // segment end y
+	EZ       float32 `buf:"f32"` // segment end z
+	Selected uint8   `buf:"u8"`  // persistent: 1 = this edge is the click-selected edge
 	// EdgeLabelOff/EdgeLabelLen are this edge's slice into the snapshot's trailing EDGE-LABEL
 	// BYTES section (the label-section analogue for edges): EdgeLabelOff is the byte offset,
 	// EdgeLabelLen the UTF-8 byte length. Edge labels are carried ONLY for the .probe buffer-
@@ -261,46 +267,11 @@ type bufLayoutLayoutLink struct {
 	DstNodeRow int32 `buf:"i32"` // the other endpoint's buffer node-row index
 }
 
-// bufLayoutPort defines one row of the ports column block.
-// One row per node port (input or output). The block is self-sizing via a portCount
-// field in the snapshot header (like beadCount/edgeCount), then flattened across all
-// nodes in node-row order: for each node in its buffer row order, that node's ports in
-// node-geometry Ports order. NodeRow is the owning node's buffer node-row index; DX/DY/DZ
-// is the port's unit direction on the node surface (node center → port, the pre-branch
-// portDir); IsInput=1 for an input port, 0 for an output port. PX/PY/PZ is the port's
-// AUTHORITATIVE world position (Go-computed, the same point the connected edge's endpoint
-// uses) — the renderer plots the marker there directly, no client-side recompute. The
-// numeric buffer carries NO port strings: a port HIT is resolved
-// by its port-row index, which Go maps back to its own (node, port) via the Go-side port-row
-// table (LookupPortRow), built in this same flattened row order — so port row i ↔ (node,port) i.
-type bufLayoutPort struct {
-	NodeRow int32   `buf:"i32"` // owning node's buffer node-row index
-	DX      float32 `buf:"f32"` // unit dir x (node center → port)
-	DY      float32 `buf:"f32"` // unit dir y
-	DZ      float32 `buf:"f32"` // unit dir z
-	// PX/PY/PZ are the port's AUTHORITATIVE world position — the same point the
-	// connected edge's endpoint uses (portWorldPosAimed: aimed dir × per-port PortR).
-	// The renderer plots the port marker directly at PX/PY/PZ (no nodeCenter+DIR*radius
-	// recompute on the TS side), so the marker, the edge endpoint, and the node center
-	// are guaranteed polar-colinear by construction.
-	PX      float32 `buf:"f32"` // world x
-	PY      float32 `buf:"f32"` // world y
-	PZ      float32 `buf:"f32"` // world z
-	IsInput uint8   `buf:"u8"`  // 1 = input port, 0 = output port
-	// Hovered is the Go-owned pointer-hover flag for this port: 1 marks the port currently
-	// under the pointer (the gesture FSM tracks it from the raycast port hit and emits
-	// KindHover). The renderer highlights this port (pre-branch isHov style). Persistent-
-	// until-next-move; NOT a transient event flag.
-	Hovered uint8 `buf:"u8"` // 1 = port is pointer-hovered
-	// PortNameOff/PortNameLen are this port's slice into the snapshot's trailing PORT-NAME
-	// BYTES section (the label-section analogue for ports): PortNameOff is the byte offset,
-	// PortNameLen the UTF-8 byte length. Port names are carried ONLY for the .probe buffer-
-	// decoded log (send targetHandle, recv/send/done/hover port, node-geometry port names) —
-	// the render/bridge path still resolves a port hit by row index (LookupPortRow), never by
-	// this string. Concatenated in the same flattened port-row order as the Port block.
-	PortNameOff uint32 `buf:"u32"` // byte offset into the port-name-bytes section
-	PortNameLen uint32 `buf:"u32"` // port-name UTF-8 byte length
-}
+// The Port block is GONE (docs/channels-not-ports.md): a port is a load-time
+// channel-binding ROLE (PortSpec, a.In()/a.Out()), never a place, so it has no ring
+// anchor, no world position, and no buffer row of its own any more. An edge's
+// endpoints now ride the Edge block's own SX..EZ (bufLayoutEdge, above); hover/select
+// address the NODE, not a per-port row.
 
 // bufLayoutCamera defines the camera column block (always 1 row).
 // Matched from KindCamera trace events.
@@ -415,7 +386,6 @@ var _ = [...]any{
 	bufLayoutInterior{},
 	bufLayoutEdge{},
 	bufLayoutLayoutLink{},
-	bufLayoutPort{},
 	bufLayoutCamera{},
 	bufLayoutOverlay{},
 	bufLayoutScene{},

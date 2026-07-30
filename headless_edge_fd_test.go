@@ -32,19 +32,21 @@ func TestHeadlessEdgeFdDedicatedStream(t *testing.T) {
 
 	for row, frame := range edgeFrames {
 		// Combined frame layout (Buffer.BuildEdgeStreamFrame): [tick:u32] + one
-		// BufEdgeStride row (SrcPortRow/DstPortRow/Selected, EdgeLabelOff=0/Len) + label
-		// bytes + [beadCount:u32] + beadCount × BufBeadStride bead rows.
+		// BufEdgeStride row (SX..EZ/Selected, EdgeLabelOff=0/Len) + label bytes. SX..EZ is
+		// the edge's own SEGMENT, node surface to node surface (docs/channels-not-ports.md
+		// — there is no port row to reference any more).
 		if len(frame) < 4+B.BufEdgeStride+4 {
 			t.Fatalf("edge row %d: frame too short (%d bytes) to hold [tick][EdgeRow][beadCount]", row, len(frame))
 		}
 		edgeRowOff := 4
-		srcPortRow := int32(readU32(frame, edgeRowOff+0))
-		dstPortRow := int32(readU32(frame, edgeRowOff+4))
-		if srcPortRow < 0 {
-			t.Fatalf("edge row %d: SrcPortRow = %d, want >= 0 (a resolvable source port)", row, srcPortRow)
-		}
-		if dstPortRow < 0 {
-			t.Fatalf("edge row %d: DstPortRow = %d, want >= 0 (a resolvable dest port)", row, dstPortRow)
+		sx := readF32(frame, edgeRowOff+B.BufEdgeColSX)
+		sy := readF32(frame, edgeRowOff+B.BufEdgeColSY)
+		sz := readF32(frame, edgeRowOff+B.BufEdgeColSZ)
+		ex := readF32(frame, edgeRowOff+B.BufEdgeColEX)
+		ey := readF32(frame, edgeRowOff+B.BufEdgeColEY)
+		ez := readF32(frame, edgeRowOff+B.BufEdgeColEZ)
+		if sx == 0 && sy == 0 && sz == 0 && ex == 0 && ey == 0 && ez == 0 {
+			t.Fatalf("edge row %d: segment is degenerate 0,0,0->0,0,0 — want a resolvable node-surface-to-node-surface segment", row)
 		}
 		labelLenOff := edgeRowOff + B.BufEdgeStride - 4 // EdgeLabelLen is the last u32 column of the Edge row
 		labelLen := readU32(frame, labelLenOff)

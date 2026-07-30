@@ -13,23 +13,13 @@ import (
 	"os"
 )
 
-// specPort mirrors the per-node inputs/outputs entries in topology.json.
-// AnchorId is the only placement field; side/slot/anchor have been removed.
-type specPort struct {
-	Name     string   `json:"name"`
-	AnchorId *int     `json:"anchorId,omitempty"` // optional ring-anchor index (flat array); highest priority
-	PortR    *float64 `json:"portR,omitempty"`    // optional per-port radius (distance from node center); nil → nodeRadius(kind) fallback
-}
-
 // specNode mirrors the JSON node shape.
 type specNode struct {
-	ID      string     `json:"id"`
-	Type    string     `json:"type"`
-	Index   *int       `json:"index,omitempty"`
-	Data    *NodeData  `json:"data,omitempty"`
-	Inputs  []specPort `json:"inputs,omitempty"`
-	Outputs []specPort `json:"outputs,omitempty"`
-	R       *float64   `json:"r,omitempty"` // optional per-node sphere radius for this node's edges (nil → default; see nodeR)
+	ID    string    `json:"id"`
+	Type  string    `json:"type"`
+	Index *int      `json:"index,omitempty"`
+	Data  *NodeData `json:"data,omitempty"`
+	R     *float64  `json:"r,omitempty"` // optional per-node sphere radius for this node's edges (nil → default; see nodeR)
 	// Scene polar (polar-model.md phase 2): the node's position as (r,θ,φ) about the scene
 	// sphere. When present AND a persisted scene sphere exists, world = sceneCenter +
 	// polar2cart(scenePolar) is AUTHORITATIVE over x/y/z (which stay for back-compat).
@@ -109,9 +99,10 @@ func (n specNode) label() string {
 	return n.ID
 }
 
-// toNodeGeom builds the geometry descriptor for arc-length computation,
-// resolving the port lists from the spec node (falling back to the kind's
-// registry ports with default sides when the spec omits inputs/outputs).
+// toNodeGeom builds the geometry descriptor for edge-segment computation. A port
+// contributes no geometry at all (docs/channels-not-ports.md — it is a load-time
+// channel-binding ROLE, resolved by PortSpec/a.In()/a.Out() at build time, never here),
+// so this no longer resolves or falls back to any port list.
 func (n specNode) toNodeGeom(sceneCenter vec3) nodeGeom {
 	// Position is POLAR (polar-frame-rewrite.md). The stored ScenePolar (r,θ,φ about the scene
 	// sphere center) is the ONLY stored position and is adopted directly — there is no cartesian
@@ -122,28 +113,6 @@ func (n specNode) toNodeGeom(sceneCenter vec3) nodeGeom {
 	if n.ScenePolarR != nil && n.ScenePolarTheta != nil && n.ScenePolarPhi != nil {
 		g.ScenePolar = polar{R: *n.ScenePolarR, Theta: *n.ScenePolarTheta, Phi: *n.ScenePolarPhi}
 		g.HasPos = true
-	}
-	g.Inputs = specPortsToGeom(n.Inputs)
-	g.Outputs = specPortsToGeom(n.Outputs)
-	// Fallback to registry ports when the spec omits the lists (keeps geometry
-	// well-defined for hand-written topologies that rely on default placement).
-	if len(g.Inputs) == 0 || len(g.Outputs) == 0 {
-		if bind, ok := Registry[n.Type]; ok {
-			if len(g.Inputs) == 0 {
-				for _, p := range bind.Ports {
-					if p.Dir == PortIn {
-						g.Inputs = append(g.Inputs, portGeom{Name: p.Name})
-					}
-				}
-			}
-			if len(g.Outputs) == 0 {
-				for _, p := range bind.Ports {
-					if p.Dir == PortOut || p.Dir == PortBroadcast {
-						g.Outputs = append(g.Outputs, portGeom{Name: p.Name})
-					}
-				}
-			}
-		}
 	}
 	return g
 }
@@ -166,14 +135,6 @@ func broadcastBaseName(handle, kind string, kindBroadcastPorts map[string]map[st
 		return base, true
 	}
 	return handle, false
-}
-
-func specPortsToGeom(ports []specPort) []portGeom {
-	out := make([]portGeom, 0, len(ports))
-	for _, p := range ports {
-		out = append(out, portGeom(p))
-	}
-	return out
 }
 
 // NodeData mirrors the JSON data block on a node.

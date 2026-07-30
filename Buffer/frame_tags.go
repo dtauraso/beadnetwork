@@ -63,9 +63,8 @@ const BufBlockTagEdgeStream byte = 5
 
 // BufEdgeStreamFrameHeaderSize is the byte width of the leading header on one edge's
 // combined per-fd frame (Buffer.BuildEdgeStreamFrame), before the Edge row: [tick:u32].
-// The rest of that frame's byte layout: one BufEdgeStride row (SrcPortRow/DstPortRow/
-// Selected, EdgeLabelOff=0/Len) + that edge's own label bytes (labelLen, from the row) +
-// [beadCount:u32] + beadCount × BufBeadStride bead rows.
+// The rest of that frame's byte layout: one BufEdgeStride row (SX..EZ/Selected,
+// EdgeLabelOff=0/Len) + that edge's own label bytes (labelLen, from the row).
 //
 //frametag:ts=BUF_EDGE_STREAM_FRAME_HEADER_SIZE
 const BufEdgeStreamFrameHeaderSize = 4
@@ -92,16 +91,16 @@ const BufBlockTagInteriorStream byte = 7
 
 // BufNodeStreamFrameHeaderSize is the byte width of the leading header on one node's
 // combined per-fd frame (Buffer.BuildNodeStreamFrame), before the Node row:
-// [tick:u32][portCount:u32][labelLen:u32][portNameBytesCount:u32][layoutLinkCount:u32]
-// [chainBeadCount:u32].
+// [tick:u32][labelLen:u32][layoutLinkCount:u32][chainBeadCount:u32]. No port section any
+// more (docs/channels-not-ports.md — a port carries no geometry, so there is no portCount/
+// portNameBytesCount to size).
 // The rest of that frame's layout: one BufNodeStride row (LabelOff=0 into this frame's own
-// label bytes) + labelLen label bytes + portCount × BufPortStride port rows (each row's
-// NodeRow column already the global node row) + portNameBytesCount port-name bytes +
-// layoutLinkCount × BufNodeStreamLayoutLinkStride layout-link rows (this node's OWN
-// outbound layout-links — see buffer-decode.ts's DecodedNodeStreamFrame doc comment).
+// label bytes) + labelLen label bytes + layoutLinkCount × BufNodeStreamLayoutLinkStride
+// layout-link rows (this node's OWN outbound layout-links — see buffer-decode.ts's
+// DecodedNodeStreamFrame doc comment) + chainBeadCount chain-bead rows.
 //
 //frametag:ts=BUF_NODE_STREAM_FRAME_HEADER_SIZE
-const BufNodeStreamFrameHeaderSize = 24
+const BufNodeStreamFrameHeaderSize = 16
 
 // BufNodeStreamLayoutLinkStride is the byte width of ONE layout-link (cascade-link
 // overlay) row within a node stream frame: [DstNodeRow:i32]. Narrower than the combined

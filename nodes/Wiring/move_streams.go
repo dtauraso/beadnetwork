@@ -6,8 +6,6 @@ package Wiring
 
 import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
-
-	T "github.com/dtauraso/wirefold/Trace"
 )
 
 // SetMsgTap installs (or clears, with nil) the test-only message-trace hook, on md.tapToInstall
@@ -25,11 +23,10 @@ func (md *MoveDispatch) SetMsgTap(tap func(destID string, msg moveMsg)) {
 // SetEdgeStreams wires every edgeMover to ITS OWN dedicated fd — the per-edge stream
 // (memory/feedback_no_single_writer_bridge.md): fd = baseFd + row, where row is the
 // STABLE edge-seed order (md.gs.edgeSeeds, the same spec order the Edge
-// block uses — see main.go's md.EdgeSeeds() seed loop). portRowFor/buildFrame are
-// injected funcs (not a Buffer import) so this package stays Buffer-independent,
-// matching PortRowResolver/EdgeRowResolver's existing pattern: portRowFor resolves
-// (node,port,isInput) to a buffer PORT-ROW index (mirroring the old central accumulator's PortRowFor), and
-// buildFrame packs the combined per-edge frame bytes (Buffer.BuildEdgeStreamFrame).
+// block uses — see main.go's md.EdgeSeeds() seed loop). buildFrame is an injected func
+// (not a Buffer import) so this package stays Buffer-independent, packing the combined
+// per-edge frame bytes (Buffer.BuildEdgeStreamFrame) straight from the edge's own SEGMENT
+// endpoints (docs/channels-not-ports.md — there is no port row to resolve any more).
 // Edge selection is NOT injected: each edgeMover owns its OWN selected bit, set via a
 // moveMsgKindSelect message on its extIn (md.sendEdgeSelect), not a lookup. Call once at
 // startup after LoadTopology, before Start — mirrors SetPortRowResolver/
@@ -37,11 +34,10 @@ func (md *MoveDispatch) SetMsgTap(tap func(destID string, msg moveMsg)) {
 // not happen) is skipped rather than panicking.
 func (md *MoveDispatch) SetEdgeStreams(
 	baseFd int,
-	portRowFor func(node, port string, isInput bool) (int32, bool),
 	nodeRowFor func(id string) (int32, bool),
-	buildFrame func(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, events []wire.RowEvent) []byte,
+	buildFrame func(tick uint32, sx, sy, sz, ex, ey, ez float32, selected uint8, label string, events []wire.RowEvent) []byte,
 ) {
-	md.sw.setEdgeStreams(md.gs.edgeSeeds, md.mr.edgeMovers, baseFd, portRowFor, nodeRowFor, buildFrame)
+	md.sw.setEdgeStreams(md.gs.edgeSeeds, md.mr.edgeMovers, baseFd, nodeRowFor, buildFrame)
 }
 
 // SetNodeStreams wires every nodeMover to ITS OWN dedicated node-fd (geometry+ports+
@@ -62,7 +58,7 @@ func (md *MoveDispatch) SetEdgeStreams(
 func (md *MoveDispatch) SetNodeStreams(
 	nodeBase, interiorBase int,
 	nodeRowFor func(id string) (int32, bool),
-	buildFrame func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount int32, gotForwardMsg uint8, forwardDeltaA, forwardDeltaB, forwardDeltaC, forwardFromRow int32, cascadeRelay uint8, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows []int32, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte,
+	buildFrame func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount int32, gotForwardMsg uint8, forwardDeltaA, forwardDeltaB, forwardDeltaC, forwardFromRow int32, cascadeRelay uint8, label string, dstNodeRows []int32, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte,
 	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte,
 	kindIDFor func(kind string) uint8,
 ) {
@@ -71,30 +67,20 @@ func (md *MoveDispatch) SetNodeStreams(
 
 // NodeGeomSeed is one node's load-time seed geometry, exported in spec order and consumed
 // by main.go's pre-launch tr.NodeGeometry loop (see the row-seeding comment in main.go).
-// Ports are the SAME aimed-vs-static port geometry (buildPortGeoms/aimedPortPosDir,
-// builders.go) the node's own live emit later produces — computed here from the same
-// load-time geoms map, since every node's center is already known at load (buildPartnerCenterFn
-// resolves partner centers straight off geoms, no goroutine needed). main.go copies these
-// fields into the tr.NodeGeometry call (which additionally resolves the numeric KindID,
-// since that table lives in Buffer).
+// No port geometry rides here any more (docs/channels-not-ports.md — a port carries none).
 type NodeGeomSeed struct {
 	ID, Label, Kind              string
 	CX, CY, CZ, Radius, SphereR  float64
-	Ports                        []T.PortGeom
 	VRX, VRY, VRZ, FRX, FRY, FRZ float64
 }
 
 // EdgeGeomSeed is one edge's load-time topology AND its real segment endpoints — the same
-// edgeSegment(srcGeom, dstGeom, srcH, dstH) computation the edge's own live recomputeGeometry
+// edgeSegment(srcGeom, dstGeom) computation the edge's own live recomputeGeometry
 // (node_move.go) uses, evaluated here against the load-time geoms so the seed row is never a
 // degenerate 0,0,0→0,0,0 segment.
 type EdgeGeomSeed struct {
 	Label, SrcNode, DstNode string
-	// SrcPort/DstPort are the edge's source (output) and dest (input) port NAMES —
-	// the edgeMover's own dedicated stream frame resolves these to buffer PORT-ROW
-	// indices (see Trace.Geometry).
-	SrcPort, DstPort       string
-	SX, SY, SZ, EX, EY, EZ float64
+	SX, SY, SZ, EX, EY, EZ  float64
 }
 
 // NodeSeeds returns every node's load-time seed geometry in SPEC ORDER (see

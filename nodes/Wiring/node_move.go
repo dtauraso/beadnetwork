@@ -143,19 +143,6 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 	md.mr.centerMirror = map[string]vec3{}
 	md.lq.layoutHolders = map[string]*wire.LayoutHolder{}
 	md.ui.ov = defaultOverlayState()
-	// Static partner-center lookup for the seed pass: every node's center is already known
-	// off the load-time geoms map, so this is the SAME buildPartnerCenterFn the dynamic
-	// movers use below, just closed over geoms directly instead of each mover's own
-	// partnerCenters map. Kept per-node (not shared) to match buildPartnerCenterFn's
-	// (nodeID, edgeEndpoints, centerOf) shape.
-	seedPartnerCenter := func(nodeID string) partnerCenterFn {
-		return buildPartnerCenterFn(nodeID, edgeEndpoints, func(otherID string) vec3 {
-			if g, ok := geoms[otherID]; ok {
-				return nodeWorldPos(g)
-			}
-			return vec3{}
-		})
-	}
 	md.gs.nodeSeeds = make([]NodeGeomSeed, 0, len(nodeOrder))
 	for _, id := range nodeOrder {
 		g, ok := geoms[id]
@@ -171,13 +158,11 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 			c := nodeWorldPos(g)
 			cx, cy, cz = c.X, c.Y, c.Z
 		}
-		ports := buildPortGeoms(g, aimedPortPosDir(g, seedPartnerCenter(id)))
 		md.gs.nodeSeeds = append(md.gs.nodeSeeds, NodeGeomSeed{
 			ID: id, Label: label, Kind: g.Kind,
 			CX: cx, CY: cy, CZ: cz,
 			Radius: nodeRadius(g.Kind), SphereR: effectiveRadius(g),
-			Ports: ports,
-			VRX:   verticalRingNormalX, VRY: verticalRingNormalY, VRZ: verticalRingNormalZ,
+			VRX: verticalRingNormalX, VRY: verticalRingNormalY, VRZ: verticalRingNormalZ,
 			FRX: flatRingNormalX, FRY: flatRingNormalY, FRZ: flatRingNormalZ,
 		})
 	}
@@ -193,14 +178,13 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 		var sx, sy, sz, ex, ey, ez float64
 		if srcG, ok := geoms[ep.Source]; ok {
 			if dstG, ok := geoms[ep.Target]; ok {
-				seg := edgeSegment(srcG, dstG, ep.SourceHandle, ep.TargetHandle)
+				seg := edgeSegment(srcG, dstG)
 				sx, sy, sz = seg.Start.X, seg.Start.Y, seg.Start.Z
 				ex, ey, ez = seg.End.X, seg.End.Y, seg.End.Z
 			}
 		}
 		md.gs.edgeSeeds = append(md.gs.edgeSeeds, EdgeGeomSeed{
 			Label: label, SrcNode: ep.Source, DstNode: ep.Target,
-			SrcPort: ep.SourceHandle, DstPort: ep.TargetHandle,
 			SX: sx, SY: sy, SZ: sz, EX: ex, EY: ey, EZ: ez,
 		})
 	}
@@ -275,17 +259,12 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 			}
 		}
 	}
-	// Wire each nodeMover's aimed-port lookup: for (port,isInput) on nodeID, find its one
-	// edge (edgeEndpoints) and read the partner's CURRENT center off THIS node's OWN
-	// partnerCenters map (owned, written only by this node's own goroutine — see
-	// nm.partnerCenters' doc comment). This closure captures THIS iteration's nm (Go
-	// 1.22+ per-iteration loop vars), never another mover's fields — the value arrives
-	// by a moveMsgKindNeighborCenter push (applyCenter).
-	for id, nm := range md.mr.nodeMovers {
-		ownNM := nm
-		nm.partnerCenter = buildPartnerCenterFn(id, edgeEndpoints, func(otherID string) vec3 {
-			return ownNM.partnerCenters[otherID]
-		})
+	// Seed every nodeMover's own partnerCenters map: quantized_move.go's neighbor-move
+	// math (neighborSetCReposition et al.) reads a direct neighbor's CURRENT world center
+	// off THIS node's OWN partnerCenters map (owned, written only by this node's own
+	// goroutine), kept current thereafter by each neighbor's own moveMsgKindNeighborCenter
+	// push (applyCenter) — one hop, no cascade.
+	for _, nm := range md.mr.nodeMovers {
 		// Seed partnerCenters at construction (single-threaded setup, before md.Start —
 		// no mover goroutine is running yet, so reading a neighbor's geom directly here
 		// is safe) with the SAME value the old snap seed used (newNodeMover seeds snap

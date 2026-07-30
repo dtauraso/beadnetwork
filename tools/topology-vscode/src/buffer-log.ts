@@ -16,7 +16,6 @@ import { NODE_KIND_NAMES } from "./schema/node-defs";
 import {
   decodeViewFrame,
   nodeLabel,
-  portName,
   edgeLabel,
   INTERIOR_SLOTS_PER_NODE,
   type DecodedNodeFrame,
@@ -27,14 +26,12 @@ import {
   readNodeVRX, readNodeVRY, readNodeVRZ, readNodeFRX, readNodeFRY, readNodeFRZ,
   readNodeKindId,
   readInteriorPresent, readInteriorValue, readInteriorOX, readInteriorOY, readInteriorOZ,
-  readEdgeSrcPortRow, readEdgeDstPortRow,
-  readPortNodeRow, readPortDX, readPortDY, readPortDZ, readPortIsInput,
+  readEdgeSX, readEdgeSY, readEdgeSZ, readEdgeEX, readEdgeEY, readEdgeEZ,
   readCameraPX, readCameraPY, readCameraPZ, readCameraR,
   readCameraPosTheta, readCameraPosPhi, readCameraUpTheta, readCameraUpPhi,
   readOverlaySceneTori, readOverlayScenePoles, readOverlayNodePoles,
   readOverlaySelSpherePoles, readOverlayHandholds, readOverlayLabelsGlobal,
   readOverlayOverlaysVis, readOverlayCascadeLinks,
-  readPortPX, readPortPY, readPortPZ,
   readEventKind, readEventNodeRow, readEventPortRow, readEventTargetRow, readEventTargetPortRow,
   readEventEdgeRow, readEventSlot, readEventValue, readEventBead,
   readEventBeadSteps, readEventSimLatencyMs, readEventX, readEventY, readEventZ, readEventF,
@@ -205,7 +202,9 @@ function decodeEventLine(ev: DataView, eventTextView: DataView, dn: DecodedNodeF
   const value = readEventValue(ev, i);
   const bead = readEventBead(ev, i);
   const node = dn && nodeRow >= 0 ? nodeLabel(dn, nodeRow) : "";
-  const port = dn ? portName(dn, portRow) : "";
+  // port is always "" now: a port has no name/row on the buffer any more
+  // (docs/channels-not-ports.md). portRow still rides the event as a sentinel (-1).
+  const port = "";
 
   if (kind === "breadcrumb") {
     // DEBUG BREADCRUMB channel (task/breadcrumbs-binary-buffer): a structured EVENT
@@ -245,8 +244,7 @@ function decodeEventLine(ev: DataView, eventTextView: DataView, dn: DecodedNodeF
         const l: Line = { kind, node, port, value, beadSteps, simLatencyMs: lat };
         const t = dn && targetRow >= 0 ? nodeLabel(dn, targetRow) : "";
         if (t) l.target = t;
-        const th = dn ? portName(dn, targetPortRow) : "";
-        if (th) l.targetHandle = th;
+        // No targetHandle any more: a port has no name on the buffer (docs/channels-not-ports.md).
         return l;
       }
       return { kind, node, port, value };
@@ -263,15 +261,12 @@ function decodeEventLine(ev: DataView, eventTextView: DataView, dn: DecodedNodeF
     }
     case "geometry": {
       const edge = de ? edgeLabel(de, edgeRow) : "";
-      // The Edge block carries NO endpoint coordinates — SrcPortRow/DstPortRow reference the
-      // NODE frame's Port block, the ONLY place the endpoint's world position lives (see
-      // bufLayoutEdge's doc comment, Buffer/layout.go).
+      // The Edge block carries its own SEGMENT (SX..EZ) directly — node surface to node
+      // surface (docs/channels-not-ports.md), not a reference through a port row.
       let sx = 0, sy = 0, sz = 0, ex = 0, ey = 0, ez = 0;
-      if (de && dn && edgeRow >= 0 && edgeRow < de.edgeCount) {
-        const srcRow = readEdgeSrcPortRow(de.edgeView, edgeRow);
-        const dstRow = readEdgeDstPortRow(de.edgeView, edgeRow);
-        if (srcRow >= 0) { sx = readPortPX(dn.portView, srcRow); sy = readPortPY(dn.portView, srcRow); sz = readPortPZ(dn.portView, srcRow); }
-        if (dstRow >= 0) { ex = readPortPX(dn.portView, dstRow); ey = readPortPY(dn.portView, dstRow); ez = readPortPZ(dn.portView, dstRow); }
+      if (de && edgeRow >= 0 && edgeRow < de.edgeCount) {
+        sx = readEdgeSX(de.edgeView, edgeRow); sy = readEdgeSY(de.edgeView, edgeRow); sz = readEdgeSZ(de.edgeView, edgeRow);
+        ex = readEdgeEX(de.edgeView, edgeRow); ey = readEdgeEY(de.edgeView, edgeRow); ez = readEdgeEZ(de.edgeView, edgeRow);
       }
       return { kind, edge, sx, sy, sz, ex, ey, ez };
     }
@@ -322,24 +317,15 @@ function nodeGeometryLine(dn: DecodedNodeFrame, nodeRow: number, node: string): 
   // A node-geometry event riding the VIEW bucket resolves its node columns against the
   // last cached per-node stream frame, which can be a STALE generation with fewer rows than the
   // topology — reading nodeRow past nodeView would throw. Degrade to the label-only line
-  // (same graceful-empty contract as nodeLabel/portName), never crash the .probe logger.
+  // (same graceful-empty contract as nodeLabel), never crash the .probe logger.
   if (nodeRow < 0 || nodeRow >= dn.nodeCount) return { kind: "node-geometry", node };
   const n = dn.nodeView;
   const cx = readNodeCX(n, nodeRow), cy = readNodeCY(n, nodeRow), cz = readNodeCZ(n, nodeRow);
   const radius = readNodeRadius(n, nodeRow);
   const sphereR = readNodeSphereR(n, nodeRow);
   const kindId = readNodeKindId(n, nodeRow);
-  const ports: Line[] = [];
-  for (let pr = 0; pr < dn.portCount; pr++) {
-    if (readPortNodeRow(dn.portView, pr) !== nodeRow) continue;
-    const dx = readPortDX(dn.portView, pr), dy = readPortDY(dn.portView, pr), dz = readPortDZ(dn.portView, pr);
-    ports.push({
-      name: portName(dn, pr),
-      isInput: readPortIsInput(dn.portView, pr) === 1,
-      px: readPortPX(dn.portView, pr), py: readPortPY(dn.portView, pr), pz: readPortPZ(dn.portView, pr),
-      dx, dy, dz,
-    });
-  }
+  // No `ports` array any more (docs/channels-not-ports.md): a port carries no geometry,
+  // so there is nothing to report per node beyond its own fields below.
   const l: Line = { kind: "node-geometry", node };
   if (node) l.label = node;
   if (kindId !== UNKNOWN_KIND_ID && NODE_KIND_NAMES[kindId] !== undefined) l.nodeKind = NODE_KIND_NAMES[kindId];
@@ -347,6 +333,5 @@ function nodeGeometryLine(dn: DecodedNodeFrame, nodeRow: number, node: string): 
   if (sphereR !== 0) l.sphereR = sphereR;
   l.vrx = readNodeVRX(n, nodeRow); l.vry = readNodeVRY(n, nodeRow); l.vrz = readNodeVRZ(n, nodeRow);
   l.frx = readNodeFRX(n, nodeRow); l.fry = readNodeFRY(n, nodeRow); l.frz = readNodeFRZ(n, nodeRow);
-  l.ports = ports;
   return l;
 }

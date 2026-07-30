@@ -29,13 +29,6 @@ import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
-// portGeom is one port's layout descriptor: its name and optional ring-anchor index.
-type portGeom struct {
-	Name     string
-	AnchorId *int     // optional index into the flat ring-anchor array; nil → ring slot 0
-	PortR    *float64 // optional per-port radius (distance from node center); nil → nodeRadius(kind) fallback (see portRadiusByName)
-}
-
 // nodeIdentity is the WRITE-ONCE-AT-CONSTRUCTION part of a node's geometry: set by the
 // loader (loader.go) when the nodeGeom is built and never written again by any handler
 // (applyCenter, setPortAnchorId, emitGeometry — grepped clean of writes to these fields).
@@ -79,11 +72,6 @@ type nodeGeom struct {
 	// "show the sphere" ring reaches every surface node even when a child was placed by a
 	// different parent. 0 when the node has no outgoing edges (childless).
 	ReachR float64
-	// Inputs/Outputs: slice HEADERS are set once at construction (loader.go) and never
-	// reassigned; individual elements' AnchorId ARE mutated in place (setPortAnchorId) —
-	// so these are mutable state, not identity, even though the header never moves.
-	Inputs  []portGeom
-	Outputs []portGeom
 }
 
 // defaultNodeR is the default starting sphere radius (world units) used for a
@@ -185,6 +173,16 @@ func nodeRadius(kind string) float64 {
 	return nodeTorusOuterR(kind) / (1 + ShadingParamNodeRingTubeRatio)
 }
 
+// effectiveRadius returns the node's REACH radius (max distance to a surface child),
+// falling back to nodeR for childless nodes (ReachR == 0) so the value stays sane. Used
+// by nodeMover.writeStreamFrame (sphereR) and the load-time node-seed build (node_move.go).
+func effectiveRadius(g nodeGeom) float64 {
+	if g.ReachR > 0 {
+		return g.ReachR
+	}
+	return nodeR(g)
+}
+
 // nodeWorldPos derives a node's world center from its polar source of truth:
 // SceneCenter + polar2cart(ScenePolar). This is the ONE polar→cartesian conversion for a
 // node center; it happens only here, at the geometry/display boundary. A node with no
@@ -205,195 +203,31 @@ func setNodeWorld(g *nodeGeom, world vec3) {
 	g.HasPos = true
 }
 
-// Ring-anchor geometry constants. These are Go-local until the TS side adopts them.
-// d = anchor diameter, p = padding between anchors along the circumference.
-const (
-	ringAnchorDiameter = 8.0 // port anchor circle diameter (pixels)
-	ringAnchorPadding  = 2.0 // gap between adjacent anchors along the ring
-)
-
-// ringAnchorCount returns the number of evenly-spaced anchors that fit around a
-// node's ring given radius R: N = floor(2*pi*R / (d+p)), minimum 1.
-func ringAnchorCount(R float64) int {
-	pitch := ringAnchorDiameter + ringAnchorPadding
-	n := int(2 * math.Pi * R / pitch)
-	return max(n, 1)
-}
-
-// ringAnchorPolar returns anchor index i's position (unit radius) on a node's
-// EQUATORIAL ring — the polar-torus a port rides: theta held at pi/2 (the
-// equator), phi swept evenly across N anchors. This is the polar-native
-// definition of the ring; ringAnchorDir derives the cartesian direction from it
-// only at the boundary. i is taken mod N so out-of-range indices wrap safely.
-func ringAnchorPolar(R float64, i int) polar {
-	N := ringAnchorCount(R)
-	i = ((i % N) + N) % N // safe mod
-	phi := float64(i) * 2 * math.Pi / float64(N)
-	return polar{R: 1, Theta: math.Pi / 2, Phi: phi}
-}
-
-// ringAnchorDir returns the unit direction for anchor index i in a ring of N
-// evenly-spaced slots around a node of radius R, derived from ringAnchorPolar
-// (the node's equatorial ring — theta=pi/2, phi swept) via polar2cart.
-func ringAnchorDir(R float64, i int) vec3 {
-	return polar2cart(ringAnchorPolar(R, i))
-}
-
-// snapToRingAnchorIndex returns the ring-anchor index (0..N-1) whose direction
-// best matches the given direction vector for a node of the given kind. The
-// winning index i maximises dot(normalize(dir), ringAnchorDir(R, i)). If dir is
-// the zero vector, 0 is returned as a safe default.
-func snapToRingAnchorIndex(kind string, dir vec3) int {
-	R := nodeRadius(kind)
-	N := ringAnchorCount(R)
-	nd := dir.Normalize()
-	if nd.Length() == 0 {
-		return 0
+// edgeSegment is the straight world segment the renderer draws for an edge: NODE SURFACE
+// TO NODE SURFACE along the centre-to-centre line (docs/channels-not-ports.md — a port is
+// a load-time channel-binding ROLE now, never a place, so it contributes no geometry to
+// this segment at all). start = the source node's center, moved out to its own
+// nodeTorusOuterR toward the target; end = the target's center, moved out to ITS
+// nodeTorusOuterR toward the source. These are the SAME two surface points
+// chain_beads.go anchors bead 0 and the last bead to (docs/bead-lattice.md "Placement":
+// "Bead 0's torus is tangent to the source node's torus... bead N-1's torus is tangent to
+// the target node's torus, EXACTLY") — this is deliberate, not incidental: the edge
+// segment and the bead chain must measure between the identical two points, which is
+// exactly the invariant the old port-radius offset broke (the chain measured node-torus
+// to node-torus while the port sat proud of/inside that surface, so the first and last
+// bead were off by the port's own radius while interior spacing stayed correct).
+func edgeSegment(src, tgt nodeGeom) wireSegment {
+	srcCenter := nodeWorldPos(src)
+	tgtCenter := nodeWorldPos(tgt)
+	dir := tgtCenter.Sub(srcCenter)
+	if dir.Length() < 1e-9 {
+		// Degenerate (coincident centers, e.g. a not-yet-positioned node): fall back to the
+		// bare centers rather than dividing by a near-zero length.
+		return wireSegment{Start: srcCenter, End: tgtCenter}
 	}
-	best := -1
-	bestDot := -2.0
-	for i := range N {
-		d := ringAnchorDir(R, i)
-		dot := nd.X*d.X + nd.Y*d.Y + nd.Z*d.Z
-		if dot > bestDot {
-			bestDot = dot
-			best = i
-		}
-	}
-	if best < 0 {
-		return 0
-	}
-	return best
-}
-
-// portDir mirrors portDir() in geometry-helpers.ts: the unit direction (in the
-// y-up frame, z=0) from node center toward the named port, derived from
-// side + slot/auto-spacing. Returns (zeroVec, false) if the port is not found.
-func portDir(g nodeGeom, portName string, isInput bool) (vec3, bool) {
-	list := g.Outputs
-	if isInput {
-		list = g.Inputs
-	}
-	idx := -1
-	for i, p := range list {
-		if p.Name == portName {
-			idx = i
-			break
-		}
-	}
-	if idx < 0 {
-		return vec3{}, false
-	}
-	port := list[idx]
-
-	// AnchorId: index into the flat ring-anchor array. nil → ring slot 0 as default.
-	anchorIdx := 0
-	if port.AnchorId != nil {
-		anchorIdx = *port.AnchorId
-	}
-	R := nodeRadius(g.Kind)
-	return ringAnchorDir(R, anchorIdx), true
-}
-
-// portRadiusByName returns the per-port radius (distance from node center at
-// which this port is drawn and its edge attaches) for the named port on g.
-// This is the AUTHORITATIVE port-placement radius: it returns the port's own
-// stored PortR when set. The nodeRadius(kind) formula (min(w,h)/4) is used ONLY
-// as a fallback for ports that have no stored PortR — e.g. registry-default
-// ports synthesized in specNode.toNodeGeom for hand-written/partial specs that
-// omit inputs/outputs. This is the one remaining call site of that formula for
-// port placement; every materialized port file carries its own portR.
-func portRadiusByName(g nodeGeom, portName string, isInput bool) float64 {
-	list := g.Outputs
-	if isInput {
-		list = g.Inputs
-	}
-	for _, p := range list {
-		if p.Name == portName {
-			if p.PortR != nil {
-				return *p.PortR
-			}
-			break
-		}
-	}
-	return nodeRadius(g.Kind)
-}
-
-// portRingPolar returns a port's LOCAL polar offset about its own node: the
-// equatorial ring position (theta = pi/2) at the port's ring-anchor azimuth
-// (phi, from AnchorId), at the port's OWN radius r_i (portRadiusByName — never
-// overridden). This is the polar-torus a port rides: a ring at theta=pi/2,
-// radius r_i, swept in phi. Placement is independent of any torus lock — a
-// lock is movement-only and changes nothing here.
-func portRingPolar(g nodeGeom, portName string, isInput bool) polar {
-	list := g.Outputs
-	if isInput {
-		list = g.Inputs
-	}
-	anchorIdx := 0
-	for _, p := range list {
-		if p.Name == portName {
-			if p.AnchorId != nil {
-				anchorIdx = *p.AnchorId
-			}
-			break
-		}
-	}
-	p := ringAnchorPolar(nodeRadius(g.Kind), anchorIdx)
-	p.R = portRadiusByName(g, portName, isInput)
-	return p
-}
-
-// portWorldPos returns the port's world position: the node's world center plus
-// its local polar ring offset (portRingPolar), converted to cartesian at this
-// one GPU boundary. Falls back to the node center when the port is
-// unnamed/unknown. This is the authoritative port placement (Go owns
-// geometry); the TS renderer plots from Go's streamed segments.
-func portWorldPos(g nodeGeom, portName string, isInput bool) vec3 {
-	center := nodeWorldPos(g)
-	if portName == "" {
-		return center
-	}
-	if _, ok := portDir(g, portName, isInput); !ok {
-		return center
-	}
-	return center.Add(polar2cart(portRingPolar(g, portName, isInput)))
-}
-
-// portDegenerateEps is the minimum partner-direction length below which an aimed port
-// falls back to its ring-anchor placement: the partner center coincides with (or is
-// indistinguishable from) self, so there is no well-defined aim direction.
-const portDegenerateEps = 1e-9
-
-// portWorldPosAimed returns a port's world position under the AIMED model
-// (port→edge→port colinearity): a CONNECTED port (hasPartner==true) sits on its own
-// node's sphere surface, in the direction of its single partner node's CENTER —
-// `nodeWorldPos(self) + r_i * normalize(partnerCenter - nodeWorldPos(self))`. An
-// edgeless port (hasPartner==false), or a partner center that is degenerate (≈ self,
-// no well-defined direction), falls back to the existing ring-anchor placement
-// (portWorldPos). partnerCenter is a CARTESIAN world point supplied by the caller —
-// the one cartesian subtraction this function performs is a fresh, per-call display-
-// boundary computation (never a stored offset; see aimed_ports.go).
-func portWorldPosAimed(self nodeGeom, portName string, isInput bool, partnerCenter vec3, hasPartner bool) vec3 {
-	if !hasPartner {
-		return portWorldPos(self, portName, isInput)
-	}
-	center := nodeWorldPos(self)
-	dir := partnerCenter.Sub(center)
-	if dir.Length() < portDegenerateEps {
-		return portWorldPos(self, portName, isInput)
-	}
-	return center.Add(dir.Normalize().Scale(portRadiusByName(self, portName, isInput)))
-}
-
-// edgeSegment is the straight world segment the renderer draws for an edge: the source node's
-// OUTPUT port to the target node's INPUT port. Both ports are AIMED at each other's node center
-// (portWorldPosAimed), so both ports plus both centers are colinear — the edge is radial (same
-// θ,φ) at each end by construction. This is the GPU boundary: nodeWorldPos/portWorldPosAimed are
-// the polar→cartesian conversions, done here because WebGL needs cartesian line endpoints.
-func edgeSegment(src, tgt nodeGeom, srcPort, dstPort string) wireSegment {
-	start := portWorldPosAimed(src, srcPort, false, nodeWorldPos(tgt), true)
-	end := portWorldPosAimed(tgt, dstPort, true, nodeWorldPos(src), true)
+	unit := dir.Normalize()
+	start := srcCenter.Add(unit.Scale(nodeTorusOuterR(src.Kind)))
+	end := tgtCenter.Sub(unit.Scale(nodeTorusOuterR(tgt.Kind)))
 	return wireSegment{Start: start, End: end}
 }
 

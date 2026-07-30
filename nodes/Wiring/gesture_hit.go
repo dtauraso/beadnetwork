@@ -26,32 +26,3 @@ func (md *MoveDispatch) edgeFromHit(h rawHit) (label string, ok bool) {
 	}
 	return "", false
 }
-
-// portConnected reports whether the named port has at least one incident edge. It scans the
-// edge movers' endpoints (the held topology) — the FSM's own state, not a fact carried on
-// the wire from TS.
-func (md *MoveDispatch) portConnected(node, port string, isInput bool) bool {
-	for _, em := range md.mr.edgeMovers {
-		if isInput {
-			if em.dstID == node && em.dstH == port {
-				return true
-			}
-		} else {
-			if em.srcID == node && em.srcH == port {
-				return true
-			}
-		}
-	}
-	return false
-}
-
-// portFromHit resolves a port hit to its (node, port, isInput) identity. A port hit
-// carries only a numeric buffer PORT-ROW index (no name string); Go maps it back through
-// its own port-row table (built at load — see buildRowTables), since Go owns the topology
-// and wrote the Port block in that same row order.
-func (md *MoveDispatch) portFromHit(h rawHit) (node, port string, isInput, ok bool) {
-	if h.PortRow >= 0 {
-		return md.LookupPortRow(h.PortRow)
-	}
-	return "", "", false, false
-}

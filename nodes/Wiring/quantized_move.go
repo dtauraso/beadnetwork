@@ -98,16 +98,14 @@ func (lq *layoutQuantizer) broadcastToEdgesAndPartners(md *MoveDispatch, newCent
 		enqueue(edgeID, moveMsg{Kind: moveMsgKindCenters, Centers: eps})
 	}
 
-	// Aimed-port re-emit (see doc comment above): find every partner node — the OTHER
-	// end of any edge incident to a moved node — and ask it to re-emit its OWN geometry
-	// with its OWN (unchanged) center, mirroring reemitPortTorusGeometry's "same center"
-	// trick. emitGeometry reads m.partnerCenter at emit time, which reads this node's
-	// own partnerCenters map (kept current by the moved partner's neighborCenter
-	// message, buildPartnerCenterFn in node_move.go) — there is no per-node
-	// neighborCenters cache to keep fresh, so this re-emit message carries no
-	// partner-center payload, only the bare re-emit signal.
-	// This does NOT run for torus-locked ports only — it runs for every aimed connected
-	// port unconditionally, even if that breaks a port∈torus lock; that is intended.
+	// Partner re-emit: find every partner node — the OTHER end of any edge incident to a
+	// moved node — and ask it to re-emit its OWN geometry with its OWN (unchanged)
+	// center. Node geometry no longer depends on a connected partner's position at all
+	// (a port carries no geometry, docs/channels-not-ports.md — this used to be how an
+	// AIMED port picked up its moved partner's fresh center; that aiming is gone), but
+	// the re-emit stays: it is what keeps a downstream watcher's view of this partner
+	// current on the SAME cadence a moved node's own re-emit fires, without adding a
+	// second, separately-timed signal.
 	// partners maps partnerID → the ONE moved node (kept for clarity/observability
 	// parity with the prior shape; movedID itself is otherwise unused now that the
 	// re-emit carries no cache payload).
@@ -132,9 +130,8 @@ func (lq *layoutQuantizer) broadcastToEdgesAndPartners(md *MoveDispatch, newCent
 		// re-emit, not a position write for partnerID itself — a non-nil Center here
 		// would be read by nodeMover.handle as "this is YOUR OWN new center" and
 		// wrongly move partnerID. nodeMover.handle's nil-Center branch re-emits from
-		// the mover's own live geom (reading movedID's fresh center live off its own
-		// snap via m.partnerCenter at emit time), so it can never race or clobber a
-		// pending position write. Per-target FIFO order (each sender's own retry queue
+		// the mover's own live geom, so it can never race or clobber a pending position
+		// write. Per-target FIFO order (each sender's own retry queue
 		// drains in append order onto that target's one directed channel) preserves
 		// ordering now that delivery goes through the sender's own
 		// nm.pending/flushPending instead of a shared outbox.

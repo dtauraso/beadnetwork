@@ -162,10 +162,11 @@ func (b *buildCtx) allocateWires() {
 	edgeSegments := map[string]wireSegment{}
 	for _, e := range b.spec.Edges {
 		destKey := e.Target + "." + e.TargetHandle
-		// Segment: node-to-node cartesian (polar-frame-rewrite.md option A), the GPU
-		// boundary the renderer draws from (edgeSegment).
+		// Segment: node SURFACE to node surface (docs/channels-not-ports.md), the GPU
+		// boundary the renderer draws from (edgeSegment) — no port name feeds this any
+		// more, a port contributes no geometry.
 		srcG, tgtG := b.nodeGeoms[e.Source], b.nodeGeoms[e.Target]
-		seg := edgeSegment(srcG, tgtG, e.SourceHandle, e.TargetHandle)
+		seg := edgeSegment(srcG, tgtG)
 		// Steps: the SOURCE node's own stored LocalPolar to the target, run through
 		// edgeStepCount (docs/bead-lattice.md "The count") — the SAME function and the
 		// SAME LocalPolar entry the source node's own chainBeads pass (chain_beads.go)
@@ -409,14 +410,7 @@ func (b *buildCtx) buildNodes() error {
 			}
 		}
 
-		// Reuse the exact partnerCenter lookup already installed on this node's mover
-		// (buildMoveDispatch runs before buildNodes) so the INITIAL geometry emit and every
-		// later re-emit compute a connected port's aim identically.
-		var pc partnerCenterFn
-		if nm, ok := b.md.mr.nodeMovers[n.ID]; ok {
-			pc = nm.partnerCenter
-		}
-		nd, err := bind.Build(b.ctx, n.ID, n.Data, pb, b.tr, b.nodeGeoms[n.ID], pc)
+		nd, err := bind.Build(b.ctx, n.ID, n.Data, pb, b.tr, b.nodeGeoms[n.ID])
 		if err != nil {
 			return fmt.Errorf("LoadTopology: build node %q: %w", n.ID, err)
 		}

@@ -47,13 +47,12 @@ import (
 // keeps the construction rules (dead-end fallbacks, row resolution, stream sharing) in one
 // place even though the CHOICE of what to build now belongs to the kind.
 type BuildArgs struct {
-	ctx           context.Context
-	name          string
-	data          *NodeData
-	pb            PortBindings
-	tr            *T.Trace
-	geom          nodeGeom
-	partnerCenter partnerCenterFn
+	ctx  context.Context
+	name string
+	data *NodeData
+	pb   PortBindings
+	tr   *T.Trace
+	geom nodeGeom
 
 	// sourceOuts collects every Out this node resolves. reflectBuild shared one slice
 	// between its closure injection and its port wiring; the same slice is threaded here
@@ -192,11 +191,11 @@ func RegisterBuilder(kind string, ports []PortSpec, build func(BuildArgs) (wire.
 	}
 	Registry[kind] = NodeBuilder{
 		Ports: ports,
-		Build: func(ctx context.Context, name string, data *NodeData, pb PortBindings, tr *T.Trace, geom nodeGeom, partnerCenter partnerCenterFn) (wire.Node, error) {
+		Build: func(ctx context.Context, name string, data *NodeData, pb PortBindings, tr *T.Trace, geom nodeGeom) (wire.Node, error) {
 			var sourceOuts []*wire.Out
 			return build(BuildArgs{
 				ctx: ctx, name: name, data: data, pb: pb, tr: tr,
-				geom: geom, partnerCenter: partnerCenter,
+				geom:       geom,
 				sourceOuts: &sourceOuts,
 				getStream:  newInteriorStreamGetter(name, pb),
 			})
