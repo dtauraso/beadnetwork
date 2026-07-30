@@ -147,6 +147,16 @@ const (
 	// carries the dropped count. Emitted once room reappears on breadcrumbCh,
 	// so the diagnostic channel's own lossiness is never itself silent.
 	BreadcrumbWireBreadcrumbsDropped
+	// TEMPORARY instrumentation (task/log-the-chain-distances) — see chain_beads.go/
+	// quantized_move.go/node_mover.go call sites. Testing the "gap or overlap on an
+	// incoming chain after a drag" symptom: is the length used for the chain's LAYOUT
+	// (a quantized/rounded local-polar QuantIR) consistent with the length the chain's
+	// endpoint is actually being judged against (a live, unrounded cartesian distance
+	// to the target's torus surface)? These three labels exist to answer that with
+	// numbers, not to fix anything. Remove once the symptom is diagnosed.
+	BreadcrumbChainDragStride
+	BreadcrumbChainEndDist
+	BreadcrumbChainEndInputs
 )
 
 // BreadcrumbLabels is the single source of truth for the BreadcrumbLabel* enum's
@@ -163,6 +173,10 @@ var BreadcrumbLabels = []string{
 	"wire-send-buffer-full",
 	"cascade.root",
 	"wire-breadcrumbs-dropped",
+	// TEMPORARY (task/log-the-chain-distances) — see the enum's doc comment above.
+	"chain-drag-stride",
+	"chain-end-dist",
+	"chain-end-inputs",
 }
 
 // TraceEventKinds is the single source of truth for the closed kind vocabulary.

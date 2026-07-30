@@ -238,6 +238,17 @@ type nodeMover struct {
 	dragAnchorByTo  map[string]wire.LocalPolar
 	dragAnchorArmed bool
 
+	// chainProbeDirty is TEMPORARY instrumentation (task/log-the-chain-distances): set
+	// true by this node's own goroutine whenever ITS committed geometry just changed
+	// as part of a drag commit — either because this node is the dragged node itself
+	// (moveMsgKindDrag) or because it just re-quantized its OWN local polar to a
+	// dragged peer (neighborSetCRequantize, "the incoming chain owned by a
+	// neighbour" case the symptom names). chainBeads() checks it once per call and
+	// clears it, so the B/C breadcrumbs below fire at most once per committed drag
+	// step per affected node, never per-tick. Remove this field with the rest of the
+	// probe once the gap/overlap symptom is diagnosed.
+	chainProbeDirty bool
+
 	// --- dedicated per-node stream (memory/feedback_no_single_writer_bridge.md) ---
 	// streamOut, when non-nil, is THIS node's OWN dedicated fd (see
 	// MoveDispatch.SetNodeStreams / Buffer/stream_fds.go's StreamKindNode). Nil (the
@@ -403,6 +414,15 @@ func (m *nodeMover) handle(msg moveMsg) {
 		// always a FREE move now -- there is no equal-radii solve and no self-trigger
 		// cascade to run.
 		newPos := msg.Target
+		// TEMPORARY (task/log-the-chain-distances) — item A: the drag stride actually
+		// APPLIED, captured as prevPos (this node's committed position before
+		// commitLocal/walkBeadPath run) so the post-commit displacement can be
+		// compared against wire.BeadStepR below. commitLocal is what calls
+		// walkBeadPath (quantized_move.go's commitNodeMoveLocal); it does not return
+		// the stride count, so it is re-derived here from total displacement, which
+		// walkBeadPath's own doc comment guarantees is an exact whole multiple of
+		// BeadStepR (it only ever takes full-length strides, never a partial one).
+		prevPos := nodeWorldPos(m.geom)
 		if m.commitLocal != nil {
 			m.commitLocal(m.id, newPos)
 		}
@@ -417,7 +437,34 @@ func (m *nodeMover) handle(msg moveMsg) {
 				NodeRow: m.nodeRow, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 				X: newPos.X, Y: newPos.Y, Z: newPos.Z,
 			}})
+
+			// TEMPORARY (task/log-the-chain-distances) item A: total stride length
+			// (should be an exact whole multiple of wire.BeadStepR — a fraction here
+			// would itself be a bug, distinct from the gap/overlap symptom) and the
+			// resulting COMMITTED position, plus how many BeadStepR-strides that
+			// length divides into. X/Y/Z carry len/strides/BeadStepR so the three can
+			// be read together; the committed position rides a second event so this
+			// stays within the "columns reused per Kind" convention rather than
+			// overloading one row with six numbers.
+			actualPos := nodeWorldPos(m.geom)
+			strideLen := actualPos.Sub(prevPos).Length()
+			strides := 0.0
+			if wire.BeadStepR > 0 {
+				strides = strideLen / wire.BeadStepR
+			}
+			m.tr.Breadcrumb("chain-drag-stride", m.id, "",
+				fmt.Sprintf("strideLen=%.6f strides=%.6f beadStepR=%.6f pos=(%.4f,%.4f,%.4f)",
+					strideLen, strides, wire.BeadStepR, actualPos.X, actualPos.Y, actualPos.Z))
+			m.writeStreamFrame([]wire.RowEvent{{
+				Kind: T.KindBreadcrumb, Label: T.BreadcrumbChainDragStride, Debug: 1,
+				NodeRow: m.nodeRow, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
+				X: strideLen, Y: strides, Z: wire.BeadStepR,
+			}})
 		}
+		// This node's own committed geometry just changed (it is the dragged node) —
+		// arm the chain-end probe so chainBeads' next call logs B/C for every edge
+		// THIS node owns (its own outgoing chains). TEMPORARY, see field doc comment.
+		m.chainProbeDirty = true
 		return
 	}
 	if msg.Kind == moveMsgKindDragStart {
