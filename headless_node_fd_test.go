@@ -36,13 +36,14 @@ func TestHeadlessNodeFdDedicatedStream(t *testing.T) {
 
 	totalLayoutLinks := 0
 	for row, frame := range nodeFrames {
-		// Combined frame layout (Buffer.BuildNodeStreamFrame): [tick:u32][portCount:u32]
-		// [labelLen:u32][portNameBytesCount:u32][layoutLinkCount:u32][chainBeadCount:u32] +
-		// Node row + label bytes + Port rows + port-name bytes + LayoutLink rows
-		// ([DstNodeRow:i32] each, BufNodeStreamLayoutLinkStride bytes — no edge-row column;
-		// the cascade-link overlay draws node-center to node-center, never along a bead edge)
-		// + ChainBead rows ([OX,OY,OZ] f32 node-local offsets, this node's own placeholder
-		// chain — docs/beads-are-the-edge.md).
+		// Combined frame layout (Buffer.BuildNodeStreamFrame): [tick:u32][labelLen:u32]
+		// [layoutLinkCount:u32][chainBeadCount:u32] + Node row + label bytes + LayoutLink
+		// rows ([DstNodeRow:i32] each, BufNodeStreamLayoutLinkStride bytes — no edge-row
+		// column; the cascade-link overlay draws node-center to node-center, never along a
+		// bead edge) + ChainBead rows ([OX,OY,OZ] f32 node-local offsets, this node's own
+		// placeholder chain — docs/beads-are-the-edge.md). No Port section any more
+		// (docs/channels-not-ports.md — a port carries no geometry, so there is no
+		// portCount/portNameBytesCount header field or Port-row section to size/skip).
 		// The header width comes from Buffer, never a literal: this parsing duplicates
 		// BuildNodeStreamFrame's layout, and a hardcoded copy silently reads the wrong
 		// offset the moment a header field is added (it did — adding chainBeadCount made
@@ -51,11 +52,9 @@ func TestHeadlessNodeFdDedicatedStream(t *testing.T) {
 		if len(frame) < hdrSize+B.BufNodeStride {
 			t.Fatalf("node row %d: frame too short (%d bytes) to hold header+Node row", row, len(frame))
 		}
-		portCount := readU32(frame, 4)
-		labelLen := readU32(frame, 8)
-		portNameBytesCount := readU32(frame, 12)
-		layoutLinkCount := readU32(frame, 16)
-		chainBeadCount := readU32(frame, 20)
+		labelLen := readU32(frame, 4)
+		layoutLinkCount := readU32(frame, 8)
+		chainBeadCount := readU32(frame, 12)
 		nodeOff := hdrSize
 		labelOff := nodeOff + B.BufNodeStride
 		if labelOff+int(labelLen) > len(frame) {
@@ -68,9 +67,7 @@ func TestHeadlessNodeFdDedicatedStream(t *testing.T) {
 		if row < len(wantLabels) && label != wantLabels[row] {
 			t.Fatalf("node row %d: label = %q, want %q (falls back to node id)", row, label, wantLabels[row])
 		}
-		portsOff := labelOff + int(labelLen)
-		portNamesOff := portsOff + int(portCount)*B.BufPortStride
-		layoutLinksOff := portNamesOff + int(portNameBytesCount)
+		layoutLinksOff := labelOff + int(labelLen)
 		chainBeadsOff := layoutLinksOff + int(layoutLinkCount)*B.BufNodeStreamLayoutLinkStride
 		eventsOff := chainBeadsOff + int(chainBeadCount)*B.BufChainBeadStride
 		if eventsOff+4 > len(frame) {
@@ -81,16 +78,6 @@ func TestHeadlessNodeFdDedicatedStream(t *testing.T) {
 		if wantLen != len(frame) {
 			t.Fatalf("node row %d: frame length %d does not match computed layout end %d",
 				row, len(frame), wantLen)
-		}
-		// Every Port row's NodeRow column must equal this frame's own node row (the
-		// tear-free cross-stream contract: EdgeTube resolves a port row to (nodeRow,
-		// portIndex) and looks up coordinates in THIS node's own cell).
-		for p := 0; p < int(portCount); p++ {
-			portRowOff := portsOff + p*B.BufPortStride
-			gotNodeRow := int32(readU32(frame, portRowOff))
-			if int(gotNodeRow) != row {
-				t.Fatalf("node row %d: port %d's NodeRow column = %d, want %d", row, p, gotNodeRow, row)
-			}
 		}
 		// Every LayoutLink row's DstNodeRow must be a valid, DIFFERENT node row (never
 		// this node's own row — a node is never its own layout-link partner). No EdgeRow

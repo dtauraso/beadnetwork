@@ -12,29 +12,16 @@ import {
   SHADING_PARAM_SCENE_AMBIENT_INTENSITY,
   SHADING_PARAM_SCENE_DIR_INTENSITY,
 } from "../../schema/shading-params";
-import { BUFFER_NODE_TAG, BUFFER_PORT_TAG, BUFFER_EDGE_TAG, BUFFER_RING_TAG } from "./buffer-scene";
+import { BUFFER_NODE_TAG, BUFFER_EDGE_TAG, BUFFER_RING_TAG } from "./buffer-scene";
 import { HANDHOLD_TERM_TAG } from "./NavGuides";
 
 // ---------------------------------------------------------------------------
-// Buffer-backed pick helpers. Nodes/ports/edges are InstancedMesh / halo meshes
+// Buffer-backed pick helpers. Nodes/edges are InstancedMesh / halo meshes
 // rendered by buffer-scene.tsx in buffer-row order; the pick resolves the hit to a numeric
-// buffer ROW (node / port / edge), forwarded to Go — Go resolves the row back to its entity.
+// buffer ROW (node / edge), forwarded to Go — Go resolves the row back to its entity. There
+// is no PORT pick any more (docs/channels-not-ports.md — a port is never drawn or
+// hit-testable).
 // ---------------------------------------------------------------------------
-
-/**
- * PORT pick: buffer-rendered ports are an InstancedMesh (buffer-scene.tsx PortInstances)
- * tagged with BUFFER_PORT_TAG, where instanceId IS the buffer PORT-ROW index. Returns that
- * row as a decimal STRING so classifyHit can forward the numeric row to Go — which resolves
- * it back to a (node, port).
- */
-function pickBufferPort(hits: THREE.Intersection[]): string | null {
-  for (const hit of hits) {
-    if ((hit.object as THREE.Mesh).userData?.[BUFFER_PORT_TAG] !== true) continue;
-    if (hit.instanceId === undefined) continue;
-    return String(hit.instanceId);
-  }
-  return null;
-}
 
 /**
  * EDGE pick: buffer-rendered edges each carry a wide pick-halo mesh (buffer-scene.tsx EdgeTube)
@@ -123,12 +110,11 @@ function RaycasterHelper({
           : allHits.filter((h) => (h.object as THREE.Mesh).isMesh);
       if (hits.length === 0) return null;
 
-      // Nodes are the buffer InstancedMesh; ports/edges/rings are buffer meshes carrying
+      // Nodes are the buffer InstancedMesh; edges/rings are buffer meshes carrying
       // their row index. Handholds (NavGuides.tsx octant θ/φ angle grips) carry a term-id;
       // default/nodesOnly resolve the nearest buffer NODE (body mesh); ringOnly resolves the
-      // nearest buffer border RING (torus, `port ∈ torus` lock capture).
+      // nearest buffer border RING (torus).
       if (opts?.handholdOnly) return pickBufferHandhold(hits);
-      if (opts?.portOnly) return pickBufferPort(hits);
       if (opts?.edgeOnly) return pickBufferEdge(hits);
       if (opts?.ringOnly) return pickBufferRing(hits);
       return pickBufferNode(hits, opts?.nodesOnly ? opts.excludeId : undefined);

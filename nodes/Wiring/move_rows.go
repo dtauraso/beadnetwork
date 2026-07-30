@@ -6,7 +6,7 @@ package Wiring
 
 // LookupNodeRow resolves a numeric buffer NODE-ROW index to its node id via the row table
 // built at load. ok=false for an out-of-range row. This is the node analogue of
-// LookupPortRow/LookupEdgeRow: a numeric node-row hit (the node InstancedMesh instanceId
+// LookupEdgeRow: a numeric node-row hit (the node InstancedMesh instanceId
 // == its buffer node row) resolves back to the node id here in Go, so the numeric buffer
 // carries no node id strings and the webview forwards only the row.
 func (md *MoveDispatch) LookupNodeRow(row int) (nodeID string, ok bool) {
@@ -58,20 +58,4 @@ func (md *MoveDispatch) LayoutLinkPairs() [][2]string {
 // along a bead edge). ok=false when no such edge exists.
 func (md *MoveDispatch) EdgeRowForPair(a, b string) (int32, bool) {
 	return md.rt.edgeRowForPair(a, b)
-}
-
-// LookupPortRow resolves a numeric buffer PORT-ROW index to its (node, port, isInput)
-// identity via the port-row table built at load. ok=false for an out-of-range row. This is
-// the row→(node,port) resolution the gesture FSM uses for wiring/handhold — the numeric
-// buffer carries no port strings.
-func (md *MoveDispatch) LookupPortRow(row int) (node, port string, isInput, ok bool) {
-	return md.rt.lookupPortRow(row)
-}
-
-// PortRowFor resolves (node, port, isInput) to its buffer PORT-ROW index via the port-row
-// table built at load — the REVERSE of LookupPortRow. Used by a dedicated edgeMover
-// goroutine to resolve its own SrcPortRow/DstPortRow for its per-edge stream frame.
-// ok=false when no port matches.
-func (md *MoveDispatch) PortRowFor(node, port string, isInput bool) (int32, bool) {
-	return md.rt.portRowFor(node, port, isInput)
 }

@@ -10,10 +10,12 @@
 // GPU attribute arrays imperatively via useFrame. No domain state flows out.
 //
 // The actual per-block renderers live in sibling files (BeadInstances, NodeInstances,
-// PortInstances, SelectionHighlight/HoverHighlight, SphereRings, InteriorBeadInstances,
+// SelectionHighlight/HoverHighlight, SphereRings, InteriorBeadInstances,
 // EdgeTube, BufferCamera, BufferLabelProjector) — this file is just the capacity-manager
 // orchestrator that mounts them, plus the shared pick-tag re-exports scene-content.tsx and
-// ThreeView.tsx still import from here.
+// ThreeView.tsx still import from here. There is no PortInstances any more
+// (docs/channels-not-ports.md): a port is a load-time channel-binding ROLE, never drawn or
+// hit-testable.
 
 import { useState } from "react";
 import { useFrame } from "@react-three/fiber";
@@ -26,7 +28,6 @@ import { INTERIOR_SLOTS_PER_NODE } from "./buffer-decode";
 // docs/beads-are-the-edge.md). Two representations of one traversal would drift.
 import { ChainBeadInstances } from "./ChainBeadInstances";
 import { NodeInstances } from "./NodeInstances";
-import { PortInstances } from "./PortInstances";
 import { SelectionHighlight, HoverHighlight } from "./SelectionHighlight";
 import { SphereRings } from "./SphereRings";
 import { InteriorBeadInstances } from "./InteriorBeadInstances";
@@ -37,7 +38,6 @@ import { BufferLabelProjector } from "./BufferLabelProjector";
 export type { BufferLabelPos } from "./buffer-scene-shared";
 export {
   BUFFER_NODE_TAG,
-  BUFFER_PORT_TAG,
   BUFFER_RING_TAG,
   BUFFER_EDGE_TAG,
 } from "./buffer-scene-shared";
@@ -46,7 +46,6 @@ export { BufferLabelProjector };
 // ── Sizing constants ──────────────────────────────────────────────────────────
 const INITIAL_NODE_CAP  = 32;
 const INITIAL_EDGE_CAP  = 32; // edge positions buffer: N edges × 2 endpoints × 3 floats
-const INITIAL_PORT_CAP  = 64; // port spheres: one per node port (input + output), grows as needed
 const INITIAL_CHAINBEAD_CAP = 256; // node-owned placeholder chain beads (docs/beads-are-the-edge.md): count is len/spacing summed over every node's OUTGOING edges, so it is far larger than any other block's and independent of every other cap
 const INITIAL_LAYOUTLINK_CAP = 32; // layout cascade-link overlay pairs — from LocalPolars filtered to the cascade-link set, NOT the Edge block, so its count is independent of edgeCount and needs its OWN cap
 
@@ -60,7 +59,6 @@ export function BufferScene({ cameraRef }: {
 } = {}) {
   const [nodeCap,  setNodeCap]  = useState(INITIAL_NODE_CAP);
   const [edgeCap,  setEdgeCap]  = useState(INITIAL_EDGE_CAP);
-  const [portCap,  setPortCap]  = useState(INITIAL_PORT_CAP);
   const [layoutLinkCap, setLayoutLinkCap] = useState(INITIAL_LAYOUTLINK_CAP);
   const [chainBeadCap, setChainBeadCap] = useState(INITIAL_CHAINBEAD_CAP);
 
@@ -96,15 +94,12 @@ export function BufferScene({ cameraRef }: {
       // half), but it drives no draw.
     }
 
-    // Node/Interior/Port + Label/PortName bytes are aggregated from every node row's own
-    // dedicated stream frame (node-stream-blocks.ts) — grow nodeCap/portCap off that
-    // aggregate's counts, independent of edge/bead stream arrival.
+    // Node/Interior + Label bytes are aggregated from every node row's own dedicated
+    // stream frame (node-stream-blocks.ts) — grow nodeCap off that aggregate's count,
+    // independent of edge/bead stream arrival.
     const decodedNode = getNodeFrame();
     if (decodedNode) {
-      grow.push(
-        { count: decodedNode.nodeCount, cap: nodeCap, set: setNodeCap },
-        { count: decodedNode.portCount, cap: portCap, set: setPortCap },
-      );
+      grow.push({ count: decodedNode.nodeCount, cap: nodeCap, set: setNodeCap });
     }
 
     for (const g of grow) {
@@ -117,7 +112,6 @@ export function BufferScene({ cameraRef }: {
       <BufferCamera cameraRef={cameraRef} />
       <ChainBeadInstances capacity={chainBeadCap} />
       <NodeInstances capacity={nodeCap} />
-      <PortInstances capacity={portCap} />
       <InteriorBeadInstances capacity={nodeCap * INTERIOR_SLOTS_PER_NODE} />
       <SelectionHighlight />
       <HoverHighlight />

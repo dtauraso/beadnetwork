@@ -9,7 +9,7 @@
 // position already identifies the stream, so there is nothing left to discriminate):
 //
 //	[tick:u32]
-//	Edge     BufEdgeStride bytes (SrcPortRow/DstPortRow/Selected + EdgeLabelOff=0/Len,
+//	Edge     BufEdgeStride bytes (SX..EZ/Selected + EdgeLabelOff=0/Len,
 //	         written via the SAME SetEdgeRow column writer buildEdgeFrame uses)
 //	EdgeLabel labelLen bytes (this edge's own label bytes — inline, not a shared section:
 //	         each edge's own stream carries its own label bytes)
@@ -33,7 +33,7 @@ import (
 // the bead rows were read via PacedWire.LiveBeadRows from the EDGE goroutine, while the wire
 // is now stepped by its source node's goroutine, so that read no longer satisfied the
 // single-goroutine ownership pw.inflight requires.
-func BuildEdgeStreamFrame(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, events []StreamEvent) []byte {
+func BuildEdgeStreamFrame(tick uint32, sx, sy, sz, ex, ey, ez float32, selected uint8, label string, events []StreamEvent) []byte {
 	labelBytes := []byte(label)
 	size := BufEdgeStreamFrameHeaderSize + BufEdgeStride + len(labelBytes)
 	buf := make([]byte, size)
@@ -42,7 +42,7 @@ func BuildEdgeStreamFrame(tick uint32, srcPortRow, dstPortRow int32, selected ui
 	off += 4
 	// edgeLabelOff=0: this frame's own label bytes immediately follow the Edge row —
 	// there is no shared EdgeLabel section on a dedicated per-edge stream.
-	SetEdgeRow(buf[off:off+BufEdgeStride], 0, srcPortRow, dstPortRow, selected, 0, uint32(len(labelBytes)))
+	SetEdgeRow(buf[off:off+BufEdgeStride], 0, sx, sy, sz, ex, ey, ez, selected, 0, uint32(len(labelBytes)))
 	off += BufEdgeStride
 	copy(buf[off:off+len(labelBytes)], labelBytes)
 	off += len(labelBytes)

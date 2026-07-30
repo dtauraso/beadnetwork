@@ -28,17 +28,17 @@ import (
 //               the first move past MOVE_SLOP_PX, or to a click/wire on pointer-up.
 //   rotating  — empty-space great-circle orbit about a frozen region-focus pivot.
 //   dragging  — node body drag (world target on a camera-facing plane → RootMove).
-//   wiring    — an unconnected port is being dragged toward another port to wire an edge.
-//   portMove  — a CONNECTED port is being dragged along its node's ring (ring-anchor snap).
 //   handhold  — a handhold grab-sphere is dragged for axis-locked (constrained) orbit.
 //
 // Phase 7 closed the interaction gaps: click-select is Go-owned (md.ui.sel.selected +
-// KindSelect trace → buffer Selected column); handhold-constrained orbit and
-// connected-port ring-move are ported here formula-faithfully from
-// interaction-handlers.ts. Wire-drop no longer creates an edge — the create/delete edit
-// ops were removed end-to-end (no live sender ever emitted them; the only trigger was
-// this drop path, which unconditionally tore down live in-flight beads via
-// PacedWire.Restore()). A wiring drag now simply resets on pointer-up.
+// KindSelect trace → buffer Selected column); handhold-constrained orbit is ported here
+// formula-faithfully from interaction-handlers.ts. gestWiring and gestPortMove (an
+// unconnected/connected port drag) were removed with port geometry
+// (docs/channels-not-ports.md): a port is a load-time channel-binding ROLE only, never
+// drawn or hit-testable, so the "port" raycast-hit kind that fed both phases can never
+// fire. They were already dead in effect before this deletion — wire-drop created no edge
+// (the create/delete edit ops were removed end-to-end) and port-move only snapped a
+// ring-anchor index that no longer exists.
 
 type gesturePhase int
 
@@ -47,8 +47,6 @@ const (
 	gestPending
 	gestRotating
 	gestDragging
-	gestWiring
-	gestPortMove
 	gestHandhold
 )
 
@@ -78,17 +76,6 @@ type gestureState struct {
 	// node-drag target
 	dragNode        string
 	dragStartCenter vec3
-
-	// wiring source port (unconnected port grabbed at pointer-down)
-	wireNode  string
-	wirePort  string
-	wireInput bool
-
-	// connected-port ring-move (portMove): the grabbed port + its node's center at grab.
-	portMoveNode   string
-	portMovePort   string
-	portMoveInput  bool
-	portMoveCenter vec3
 
 	// handhold-constrained orbit gate (set at pointer-down on a handhold hit).
 	handholdDown bool
@@ -195,8 +182,6 @@ func (md *MoveDispatch) gestPointerDown(ev rawInputMsg, tr *T.Trace) {
 	g.phase = gestPending
 	g.emptyDown = false
 	g.dragNode = ""
-	g.wireNode = ""
-	g.portMoveNode = ""
 	g.handholdDown = false
 
 	if h, ok := hitClassifiers[ev.Hit.Kind]; ok {
@@ -209,25 +194,6 @@ func (md *MoveDispatch) gestPointerDown(ev rawInputMsg, tr *T.Trace) {
 // `return` becomes a `return` from the handler func here — behavior-equivalent because
 // nothing downstream of the switch depended on falling through to it.
 var hitClassifiers = map[string]func(md *MoveDispatch, g *gestureState, ev rawInputMsg){
-	"port": func(md *MoveDispatch, g *gestureState, ev rawInputMsg) {
-		node, port, isInput, ok := md.portFromHit(ev.Hit)
-		if !ok {
-			return
-		}
-		if md.portConnected(node, port, isInput) {
-			// Connected port → ring-move along the node's ring. Freeze the node center
-			// (the ring plane is z = center.z) at grab, mirroring portMoveRef.nodeCenter.
-			// (A plain click without crossing the drag slop still resolves via the
-			// gestPending fallthrough on pointer-up, so this doesn't block select-mode
-			// `port ∈ torus` authoring — only an actual drag reaches gestPortMove.)
-			if c, ok := md.centerOfNode(node); ok {
-				g.portMoveNode, g.portMovePort, g.portMoveInput = node, port, isInput
-				g.portMoveCenter = c
-			}
-			return
-		}
-		g.wireNode, g.wirePort, g.wireInput = node, port, isInput
-	},
 	"handhold": func(md *MoveDispatch, g *gestureState, ev rawInputMsg) {
 		// Handhold grab → axis-locked (constrained) orbit. Freeze the sphere rotation frame
 		// now (mirrors interaction-handlers.ts: beginSphereRotation on a handhold hit).
@@ -277,8 +243,6 @@ func (md *MoveDispatch) gestPointerMove(ev rawInputMsg, tr *T.Trace) {
 func (md *MoveDispatch) gestPointerUp(ev rawInputMsg, slotReg SlotRegistry, tr *T.Trace) {
 	g := &md.ui.gest
 	switch {
-	case g.phase == gestPortMove:
-		md.applyPortMove(ev) // final ring-anchor flush
 	case g.phase == gestDragging:
 		md.applyNodeDragTarget(ev) // final target flush
 	case g.phase == gestHandhold, g.phase == gestRotating:
@@ -304,7 +268,7 @@ func (md *MoveDispatch) gestPointerUp(ev rawInputMsg, slotReg SlotRegistry, tr *
 // It also clears vp.lockedAxis (the handhold-constrained-orbit rotation axis frozen at
 // gesture start — see viewpoint.lockedAxis's doc comment) so that field's own "nil
 // between gestures" doc is actually true: lockedAxis is gesture-scoped state, exactly
-// like dragNode/wireNode/portMoveNode above, it just happens to live on viewpoint
+// like dragNode above, it just happens to live on viewpoint
 // instead of gestureState (frozen once per handhold gesture in orbit's lazy-init path).
 // Today it is always overwritten before use anyway (every new gesture reseeds it via
 // SetViewpoint/seedOrbitPivot before orbit ever reads it), so this had no live bug —
@@ -314,8 +278,6 @@ func (g *gestureState) reset(vp *viewpoint) {
 	g.phase = gestIdle
 	g.emptyDown = false
 	g.dragNode = ""
-	g.wireNode = ""
-	g.portMoveNode = ""
 	g.handholdDown = false
 	g.secondary = false
 	vp.lockedAxis = nil

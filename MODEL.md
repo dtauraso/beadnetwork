@@ -60,9 +60,13 @@ the network itself is the nodes-and-wires Go runtime.
   column — `nodes/wire/owner_events.go`, `Buffer/stream_events.go`,
   `Buffer/layout.go` — which is a live 2x2 interior VISUAL grid position,
   slot = gridRow*2 + gridCol, for where a held bead is drawn inside a node.)
-- **Input port.** One input port is one wire, and the wire's out-channel
-  is the connection between them — the node receives whatever the source
-  node's drive of that wire sends.
+- **Input port.** A ROLE, not a place (`docs/channels-not-ports.md`): declared by the
+  node kind as a `Wiring.PortSpec` and bound to a channel at LOAD time
+  (`a.In(...)`), never drawn and never hit-testable. One input port is one wire,
+  and the wire's out-channel is the connection between them — the node receives
+  whatever the source node's drive of that wire sends. Ports carry no geometry of their
+  own; an edge attaches at its two nodes' SURFACES (`docs/bead-lattice.md`), not at a
+  port position.
 - **Clock (the human-speed clock).** There is exactly one clock: the system monotonic clock, read through a **scale** so it advances in integer **ticks** at human-watchable speed (`tick = ⌊(now − start) / tickPeriod⌋`; the scale is the human-speed / playback-speed knob, `MsPerTick = 16` ⇒ ≈62.5 ticks/sec). All timing is **tick counts**, not wall-clock durations. The model is **sleep-only**: a pacing loop calls `SleepCycle` to wait exactly ONE cycle and re-reads `Tick()`, rather than blocking on a target tick — there is no wait-until-tick-k primitive. The clock is **free-running**: it advances monotonically with wall time and never pauses (there is no play/pause gate). **Everything that animates runs in these ticks:** bead traveling, all in-node animations, and all node/gate processing windows. Per-update tick counts come from formulas, not literals — a bead crossing an edge takes `ticksToCross = steps * DwellTicksPerBead` (steps the edge's own bead-step count, `DwellTicksPerBead` a uniform constant per bead-lattice step across all wires — [docs/bead-lattice.md](docs/bead-lattice.md)); node processing windows are tick counts. There is no separate render cadence — the tick IS the animation clock.
   A wire is stepped with its SOURCE NODE's own clock copy and tick reading,
   exactly like every other per-goroutine clock use — there is no shared
@@ -114,8 +118,9 @@ arrived.
 - A destination node receives beads over its input port's channel and
   holds them in node-local state.
 - When the node's firing rule is satisfied, it fires.
-- **One edge per input port.** An input port is one wire, fed by EXACTLY
-  ONE edge — fan-in (several edges into one port) is not part of the model.
+- **One edge per input port.** An input port is a channel-binding ROLE (see above,
+  `docs/channels-not-ports.md`), one wire, fed by EXACTLY ONE edge — fan-in (several
+  edges into one port) is not part of the model.
   A node that needs several sources uses DISTINCT input ports, each its own
   wire (e.g. a gate's separate left/right ports). Multiple beads may still
   be in flight on one wire at once — its single source emitting repeatedly —
@@ -235,8 +240,9 @@ when a bead has arrived. Go owns the clock.
   assembles the per-concern components that draw ALL geometry from it. It is a
   small file; the drawing lives in its siblings under `three/`. Grep the symbol,
   not this filename. The tree covers: node bodies (`tools/topology-vscode/src/webview/three/NodeInstances.tsx` — sphere
-  mesh + ring, keyed off `node.data.fill`/`node.data.stroke` from `NODE_DEFS`),
-  ports (`tools/topology-vscode/src/webview/three/PortInstances.tsx`), edge tubes (`tools/topology-vscode/src/webview/three/EdgeTube.tsx`), transit and interior
+  mesh + ring, keyed off `node.data.fill`/`node.data.stroke` from `NODE_DEFS`; no port
+  geometry — a port is a load-time channel-binding ROLE, never drawn, `docs/channels-not-ports.md`),
+  edge tubes (`tools/topology-vscode/src/webview/three/EdgeTube.tsx`), transit and interior
   beads (`tools/topology-vscode/src/webview/three/ChainBeadInstances.tsx`, `tools/topology-vscode/src/webview/three/InteriorBeadInstances.tsx`), selection highlight
   (`tools/topology-vscode/src/webview/three/SelectionHighlight.tsx`), and the camera (`tools/topology-vscode/src/webview/three/BufferCamera.tsx` maps the buffer
   Camera row onto the three.js camera). Nothing in this tree owns traversal

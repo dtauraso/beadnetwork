@@ -33,20 +33,6 @@ import (
 	"github.com/dtauraso/wirefold/Buffer"
 )
 
-type portFixture struct {
-	NodeRow  int32   `json:"nodeRow"`
-	DX       float32 `json:"dx"`
-	DY       float32 `json:"dy"`
-	DZ       float32 `json:"dz"`
-	PX       float32 `json:"px"`
-	PY       float32 `json:"py"`
-	PZ       float32 `json:"pz"`
-	IsInput  uint8   `json:"isInput"`
-	Hovered  uint8   `json:"hovered"`
-	NameLen  uint32  `json:"nameLen"`
-	NameText string  `json:"name"`
-}
-
 // chainBeadFixture is ONE node-local chain-bead offset row (Buffer bufLayoutChainBead).
 type chainBeadFixture struct {
 	OX       float32 `json:"ox"`
@@ -91,18 +77,21 @@ type nodeFrameFixture struct {
 	CascadeRelay     uint8               `json:"cascadeRelay"`
 	ChainBeads       []chainBeadFixture  `json:"chainBeads"`
 	Label            string              `json:"label"`
-	Ports            []portFixture       `json:"ports"`
 	LayoutLinks      []layoutLinkFixture `json:"layoutLinks"`
 	Hex              string              `json:"hex"`
 }
 
 type edgeFrameFixture struct {
-	Tick       uint32 `json:"tick"`
-	SrcPortRow int32  `json:"srcPortRow"`
-	DstPortRow int32  `json:"dstPortRow"`
-	Selected   uint8  `json:"selected"`
-	Label      string `json:"label"`
-	Hex        string `json:"hex"`
+	Tick     uint32  `json:"tick"`
+	SX       float32 `json:"sx"`
+	SY       float32 `json:"sy"`
+	SZ       float32 `json:"sz"`
+	EX       float32 `json:"ex"`
+	EY       float32 `json:"ey"`
+	EZ       float32 `json:"ez"`
+	Selected uint8   `json:"selected"`
+	Label    string  `json:"label"`
+	Hex      string  `json:"hex"`
 }
 
 type interiorFrameFixture struct {
@@ -132,12 +121,7 @@ func buildNodeFrame() nodeFrameFixture {
 		Selected: 1, KindID: 3, Hovered: 1, LatchedSel: 0, GotDragMsg: 1,
 		DragDeltaA: -101, DragDeltaB: 102, DragDeltaC: -103, DragRequantCount: 9,
 		GotForwardMsg: 1, ForwardDeltaA: -201, ForwardDeltaB: 202, ForwardDeltaC: -203, ForwardFromRow: 17, CascadeRelay: 1,
-		Label: "widgetNode",
-		Ports: []portFixture{
-			{NodeRow: 7, DX: 1.5, DY: -2.25, DZ: 3.125, PX: 31.5, PY: -32.25, PZ: 33.125, IsInput: 1, Hovered: 0, NameText: "in"},
-			{NodeRow: 7, DX: -4.5, DY: 5.25, DZ: -6.125, PX: 41.5, PY: 42.25, PZ: -43.125, IsInput: 0, Hovered: 1, NameText: "out"},
-			{NodeRow: 7, DX: 7.5, DY: 8.25, DZ: 9.125, PX: 51.5, PY: -52.25, PZ: 53.125, IsInput: 0, Hovered: 0, NameText: "ctrl"},
-		},
+		Label:       "widgetNode",
 		LayoutLinks: []layoutLinkFixture{{DstNodeRow: 2}, {DstNodeRow: 9}},
 		ChainBeads: []chainBeadFixture{
 			{OX: 61.5, OY: -62.25, OZ: 63.125, Lit: 1, LitValue: 1},
@@ -145,27 +129,6 @@ func buildNodeFrame() nodeFrameFixture {
 		},
 	}
 
-	portNames := make([]string, len(f.Ports))
-	portDX := make([]float32, len(f.Ports))
-	portDY := make([]float32, len(f.Ports))
-	portDZ := make([]float32, len(f.Ports))
-	portPX := make([]float32, len(f.Ports))
-	portPY := make([]float32, len(f.Ports))
-	portPZ := make([]float32, len(f.Ports))
-	portIsInput := make([]uint8, len(f.Ports))
-	portHovered := make([]uint8, len(f.Ports))
-	for i, p := range f.Ports {
-		f.Ports[i].NameLen = uint32(len(p.NameText))
-		portNames[i] = p.NameText
-		portDX[i] = p.DX
-		portDY[i] = p.DY
-		portDZ[i] = p.DZ
-		portPX[i] = p.PX
-		portPY[i] = p.PY
-		portPZ[i] = p.PZ
-		portIsInput[i] = p.IsInput
-		portHovered[i] = p.Hovered
-	}
 	dstNodeRows := make([]int32, len(f.LayoutLinks))
 	for i, ll := range f.LayoutLinks {
 		dstNodeRows[i] = ll.DstNodeRow
@@ -189,9 +152,6 @@ func buildNodeFrame() nodeFrameFixture {
 		f.ForwardDeltaA, f.ForwardDeltaB, f.ForwardDeltaC, f.ForwardFromRow,
 		f.CascadeRelay,
 		f.Label,
-		portNames,
-		portDX, portDY, portDZ, portPX, portPY, portPZ,
-		portIsInput, portHovered,
 		dstNodeRows,
 		chainOX, chainOY, chainOZ, chainLit, chainLitVal,
 		nil,
@@ -202,9 +162,10 @@ func buildNodeFrame() nodeFrameFixture {
 
 func buildEdgeFrame() edgeFrameFixture {
 	f := edgeFrameFixture{
-		Tick: 8181, SrcPortRow: 12, DstPortRow: 34, Selected: 1, Label: "edgeLabel",
+		Tick: 8181, SX: 12.5, SY: -13.25, SZ: 14.125, EX: 34.5, EY: -35.25, EZ: 36.125,
+		Selected: 1, Label: "edgeLabel",
 	}
-	raw := Buffer.BuildEdgeStreamFrame(f.Tick, f.SrcPortRow, f.DstPortRow, f.Selected, f.Label, nil)
+	raw := Buffer.BuildEdgeStreamFrame(f.Tick, f.SX, f.SY, f.SZ, f.EX, f.EY, f.EZ, f.Selected, f.Label, nil)
 	f.Hex = hex.EncodeToString(raw)
 	return f
 }

@@ -45,19 +45,14 @@ func (md *MoveDispatch) beginSphereRotation(ev rawInputMsg) {
 
 // updateHover resolves the entity under the pointer from the raycast hit and, WHEN IT
 // CHANGES, records it as the Go-owned hover and emits KindHover so the buffer snapshot marks
-// the node's / port's Hovered column. Hover is node+port only (edges do not hover on the
-// pre-branch path). Deduping on the (node, port, isInput) triple keeps a still pointer and a
-// same-entity drag from re-emitting a snapshot each pointer-move (no new flood — Go already
-// emits per raw-input; a hover only fires on a genuine target change). An empty / edge / other
-// hit clears hover.
+// the node's Hovered column. Hover is node-only now — a port is a load-time channel-binding
+// ROLE (docs/channels-not-ports.md), never drawn or raycast-hit, so the old "port" hit branch
+// is gone. Deduping on the node keeps a still pointer and a same-entity drag from re-emitting
+// a snapshot each pointer-move (no new flood — Go already emits per raw-input; a hover only
+// fires on a genuine target change). An empty / edge / other hit clears hover.
 func (md *MoveDispatch) updateHover(ev rawInputMsg, tr *T.Trace) {
-	var node, port string
-	var isInput bool
+	var node string
 	switch ev.Hit.Kind {
-	case "port":
-		if n, p, in, ok := md.portFromHit(ev.Hit); ok {
-			node, port, isInput = n, p, in
-		}
 	case "torus":
 		// The concentric hover ring emphasizes the TORUS handle, so it lights only when the
 		// cursor is actually on the ring — NOT on the node body. A plain "node"-body hit
@@ -67,7 +62,7 @@ func (md *MoveDispatch) updateHover(ev rawInputMsg, tr *T.Trace) {
 			node = n
 		}
 	}
-	md.setHover(node, port, isInput, tr)
+	md.setHover(node, "", false, tr)
 }
 
 // seedOrbitPivot installs the frozen pivot as the viewpoint pivot (mirrors the TS
@@ -108,45 +103,6 @@ func (md *MoveDispatch) applyOrbitLocked(ev rawInputMsg, tr *T.Trace) {
 	prevDir := toWorldDir(basis, prev)
 	currDir := toWorldDir(basis, curr)
 	md.OrbitLockedViewpoint(worldDirToAngles(currDir), worldDirToAngles(prevDir), tr)
-}
-
-// applyPortMove mirrors the "port-move" branch of interaction-handlers.ts handlePointerMove:
-// project the pointer ray onto the horizontal plane (normal +z) at the node's ring height
-// (z = center.z), take the in-plane direction from center to the hit (z zeroed, matching
-// pointerRingAnchor), and apply it as a ring-anchor update via the existing anchor path.
-func (md *MoveDispatch) applyPortMove(ev rawInputMsg) {
-	g := &md.ui.gest
-	hit, ok := md.pointerOnRingPlane(ev, g.portMoveCenter.Z)
-	if !ok {
-		return
-	}
-	dx := hit.X - g.portMoveCenter.X
-	dy := hit.Y - g.portMoveCenter.Y
-	if dx == 0 && dy == 0 {
-		return
-	}
-	md.applyRingAnchor(g.portMoveNode, g.portMovePort, g.portMoveInput, vec3{X: dx, Y: dy, Z: 0})
-}
-
-// pointerOnRingPlane intersects the pointer ray with the horizontal plane (normal +z) at
-// world height planeZ, mirroring interaction-handlers.ts unprojectToPlane. Returns
-// (hit, false) if the ray is parallel to the plane or the result is non-finite.
-func (md *MoveDispatch) pointerOnRingPlane(ev rawInputMsg, planeZ float64) (vec3, bool) {
-	g := &md.ui.gest
-	vp := md.ui.vp.viewpoint
-	eye := eyeOf(vp)
-	basis := basisFromViewpoint(vp.pos, vp.up)
-	nx, ny := g.pixelToNDC(ev.X, ev.Y)
-	dir := rayDirThroughNDC(nx, ny, basis, ev.Fov, g.rect.aspect())
-	if dir.Z == 0 {
-		return vec3{}, false
-	}
-	t := (planeZ - eye.Z) / dir.Z
-	hit := eye.Add(dir.Scale(t))
-	if math.IsNaN(hit.X) || math.IsInf(hit.X, 0) {
-		return vec3{}, false
-	}
-	return hit, true
 }
 
 // applyNodeDragTarget mirrors the "dragging" branch: unproject the pointer onto a
@@ -191,12 +147,9 @@ func (md *MoveDispatch) setHover(node, port string, isInput bool, tr *T.Trace) {
 	if r, ok := md.NodeRowFor(node); ok {
 		nodeRow = r
 	}
+	// portRow is always -1: a port has no buffer row of its own any more
+	// (docs/channels-not-ports.md — hover addresses the node, not a port).
 	portRow := int32(-1)
-	if port != "" {
-		if r, ok := md.PortRowFor(node, port, isInput); ok {
-			portRow = r
-		}
-	}
 	value := int32(0)
 	if isInput {
 		value = 1
@@ -232,13 +185,8 @@ func (md *MoveDispatch) applySelect(ev rawInputMsg, tr *T.Trace) {
 	}
 
 	var node string
-	switch ev.Hit.Kind {
-	case "node":
+	if ev.Hit.Kind == "node" {
 		if n, ok := md.nodeFromHit(ev.Hit); ok {
-			node = n
-		}
-	case "port":
-		if n, _, _, ok := md.portFromHit(ev.Hit); ok {
 			node = n
 		}
 	}
@@ -257,43 +205,4 @@ func (md *MoveDispatch) emitSelectViewFrame(node string) {
 		}
 	}
 	md.emitViewFrame([]wire.RowEvent{{Kind: T.KindSelect, NodeRow: nodeRow, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}})
-}
-
-// applyRingAnchor snaps a world-space direction (node center → pointer) to the node's
-// nearest ring-anchor index and mail-sorts a moveMsgKindAnchor to the node's mover AND
-// every incident edge mover — the SAME dispatch the op=update kind=node attr=anchor path
-// uses (applyUpdate). Disk persistence is NOT done here: the node's own mover persists the
-// snapped index to its own port file, on its own goroutine, when it processes the
-// moveMsgKindAnchor sent below (node_mover.go handle → persistPortAnchor) — this function
-// only routes the message.
-//
-// This sends directly into the targets' dedicated extIn channels, bypassing the
-// enqueueFor/pending-retry split every mover's OWN handler goroutine must use for its
-// sends. That split exists to
-// prevent two mutually-adjacent MOVER goroutines from deadlocking each other — both
-// mid-handle, each blocked sending into the other's full channel, while neither is
-// draining its own (draining only resumes after handle returns). applyRingAnchor runs on
-// the stdin/gesture goroutine, not on any mover's own handler: it is never itself the
-// target of one of these sends, so it cannot be a link in that cycle — a block here can
-// only ever be "wait for the target's own run loop to read", never "wait for a goroutine
-// that is itself waiting on us". That is a real, structural reason this exemption holds,
-// not just "it hasn't happened yet".
-func (md *MoveDispatch) applyRingAnchor(node, port string, isInput bool, dir vec3) {
-	anchorID := snapToRingAnchorIndex(md.NodeKind(node), dir)
-	msg := moveMsg{Kind: moveMsgKindAnchor, NodeID: node, Port: port, IsInput: isInput, AnchorId: anchorID}
-	if nm, ok := md.mr.nodeMovers[node]; ok {
-		nm.extIn <- msg
-	}
-	for _, em := range md.mr.edgeMovers {
-		incident := (isInput && em.dstID == node && em.dstH == port) ||
-			(!isInput && em.srcID == node && em.srcH == port)
-		if !incident {
-			continue
-		}
-		em.extIn <- msg
-	}
-	// The snapped anchor index is persisted by the node's OWN mover, on its own
-	// goroutine, as it processes the moveMsgKindAnchor sent above (node_mover.go
-	// handle's moveMsgKindAnchor case → persistPortAnchor) — not reached into from
-	// here (.claude/rules/persistence-ownership.md "The owner writes, and owns the path").
 }

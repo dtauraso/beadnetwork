@@ -27,11 +27,12 @@ export function sendRawInput(event: RawInputEvent): void {
  *  row back to its entity via its own row tables. Topology facts (connected?) are NOT decided
  *  here — Go's FSM owns those. */
 function classifyHit(pickRequest: PickRef, ndcX: number, ndcY: number): { kind: RawHit["kind"]; isInput: boolean; nodeRow: number; portRow: number; edgeRow: number } {
-  // A port hit carries ONLY its numeric buffer PORT-ROW index (pickBufferPort returns the row
-  // as a string). Go resolves the row → (node, port, isInput) via its own port-row table, so
-  // isInput is irrelevant here. Priority: port, then edge, then handhold, then node.
-  const portStr = pickRequest.current?.(ndcX, ndcY, { portOnly: true }) ?? null;
-  if (portStr !== null) return { kind: "port", isInput: false, nodeRow: -1, portRow: Number(portStr), edgeRow: -1 };
+  // There is no port pick any more (docs/channels-not-ports.md): a port is a load-time
+  // channel-binding ROLE, never drawn or hit-testable, so "port" is not a hit kind this
+  // classifier can produce. portRow always rides the wire as -1 (RawHit still carries the
+  // field — see its own doc comment for why the wire shape didn't need to shrink here).
+  // Priority: edge, then handhold, then torus, then node.
+  //
   // An edge hit carries ONLY its numeric buffer EDGE-ROW index (pickBufferEdge returns the row
   // as a string). Go resolves the row → its edge via its own edge-row table.
   const edgeStr = pickRequest.current?.(ndcX, ndcY, { edgeOnly: true }) ?? null;

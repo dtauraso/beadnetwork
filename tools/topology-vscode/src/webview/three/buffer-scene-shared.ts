@@ -1,5 +1,5 @@
 // buffer-scene-shared.ts — constants, types, and the nodeRowColors helper shared by the
-// buffer-scene.tsx sub-components (BeadInstances, NodeInstances, PortInstances,
+// buffer-scene.tsx sub-components (BeadInstances, NodeInstances,
 // SelectionHighlight/HoverHighlight, SphereRings, InteriorBeadInstances, EdgeTube,
 // BufferLabelProjector). Split out of buffer-scene.tsx so those sibling files have a single
 // source of truth for the pick-tags, sizing/epsilon constants, and hover/highlight colors
@@ -17,16 +17,12 @@ export interface BufferLabelPos { row: number; label: string; px: number; py: nu
 // hit and resolves hit.instanceId → node id via the buffer-nav id table, since the
 // buffer-rendered nodes carry no per-node userData.nodeId the old raycast path relies on.
 export const BUFFER_NODE_TAG = "bufferNode";
-// userData tag marking the PortInstances InstancedMesh as the pickable PORT target under the
-// On a hit, RaycasterHelper (scene-content.tsx) reads intersection.instanceId —
-// which IS the buffer PORT-ROW index (PortInstances draws ports in buffer row order) — and
-// forwards that numeric row to Go, which resolves it back to a (node, port). No port-name
-// string is rendered or sent.
-export const BUFFER_PORT_TAG = "bufferPort";
+// There is no PORT pick tag any more (docs/channels-not-ports.md): a port is a load-time
+// channel-binding ROLE, never drawn or hit-testable, so there is no InstancedMesh for a
+// raycast to hit and no buffer PORT-ROW to resolve.
 // userData tag marking the NodeInstances border-ring InstancedMesh as the pickable TORUS
-// target (a `port ∈ torus` lock is captured by picking a port then this ring). Instance i
-// IS the node row (same loop that draws the body mesh), so a hit's instanceId resolves to
-// the owning node id exactly like BUFFER_NODE_TAG.
+// target. Instance i IS the node row (same loop that draws the body mesh), so a hit's
+// instanceId resolves to the owning node id exactly like BUFFER_NODE_TAG.
 export const BUFFER_RING_TAG = "bufferRing";
 // userData key marking a per-edge wide pick-halo mesh (EdgeTube.tsx) as the pickable
 // EDGE target. Unlike the node/port tags (a boolean, resolved via the
@@ -38,8 +34,6 @@ export const BUFFER_EDGE_TAG = "bufferEdgeRow";
 
 // ── Sizing constants shared across sub-components ──────────────────────────────
 export const NODE_SPHERE_RADIUS = 12;
-// Port hit-sphere radius (world units): the small grabbable ball drawn at each port.
-export const PORT_SPHERE_R = 4;
 // Border-ring tube thickness as a fraction of the node radius (mirrors GraphNode's
 // resting torusThick = r * 0.08).
 export const NODE_RING_TUBE_RATIO = 0.08;
@@ -53,12 +47,11 @@ export const NODE_RING_TUBE_RATIO = 0.08;
 // node" bug). Matched to NODE_RING_TUBE_RATIO so the band IS the torus.
 export const RING_PICK_TUBE_RATIO = NODE_RING_TUBE_RATIO;
 // Pointer-hover highlight (pre-branch scene-graph.tsx): the hovered node's border ring turns
-// #aaddff and thickens to r*0.14 (HOVER_RING_TUBE_RATIO); a hovered port sphere turns #aaddff
-// and grows to 1.3× (PortSphere isHov). Go OWNS hover (the Hovered columns); this is render-only.
+// #aaddff and thickens to r*0.14 (HOVER_RING_TUBE_RATIO). Go OWNS hover (the Hovered
+// column); this is render-only. There is no port hover any more (docs/channels-not-ports.md
+// — a port is never drawn or hit-testable).
 export const HOVER_COLOR = "#aaddff";
 export const HOVER_RING_TUBE_RATIO = 0.14;
-export const PORT_HOVER_COLOR = HOVER_COLOR;
-export const PORT_HOVER_SCALE = 1.3;
 
 // ── Epsilon constants (named by use, not reconciled — distinct purposes) ──────
 // Below this squared-length, a ring-plane normal vector is treated as degenerate/unset

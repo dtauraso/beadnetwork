@@ -1,7 +1,6 @@
 package Wiring
 
 import (
-	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"math"
 	"testing"
 )
@@ -227,13 +226,11 @@ func TestGestureClickSelectsNodeGoOwned(t *testing.T) {
 
 // Hover is Go-owned: a pointer-move over a node's TORUS ring records it as the hovered node
 // (the concentric hover ring emphasizes the ring handle, so it lights only on a torus hit, not
-// a body hit); a move over a port records the hovered port (clearing the node hover); a move
-// over empty space — or over the node BODY — clears hover. The FSM dedupes on the
-// (node,port,isInput) triple so a still/same-target move does not re-emit. Drives moves and
-// asserts md.ui.sel.hoverNode/hoverPort track the hit.
-func TestGestureHoverTracksNodeAndPort(t *testing.T) {
+// a body hit); a move over empty space — or over the node BODY — clears hover. There is no
+// port hover any more (docs/channels-not-ports.md — a port is never drawn or hit-testable).
+// Drives moves and asserts md.ui.sel.hoverNode tracks the hit.
+func TestGestureHoverTracksNode(t *testing.T) {
 	md := newGestureMD(canonicalViewpoint())
-	md.rt.portRowTable = []moveDispatchPortRow{{node: "A", port: "in", isInput: true}}
 	md.rt.nodeRowTable = []string{"N7"}
 
 	// Move over node N7's torus ring → hovered node.
@@ -250,14 +247,6 @@ func TestGestureHoverTracksNodeAndPort(t *testing.T) {
 	md.HandleRawInput(bodyMv, nil, nil)
 	if md.ui.sel.hoverNode != "" || md.ui.sel.hoverPort != "" {
 		t.Fatalf("body hover: hoverNode=%q hoverPort=%q want '',''", md.ui.sel.hoverNode, md.ui.sel.hoverPort)
-	}
-
-	// Move onto a port (row 0 = A.in) → hovered port, node hover cleared.
-	pv := rawEvent("pointermove", 410, 300)
-	pv.Hit = rawHit{Kind: "port", PortRow: 0}
-	md.HandleRawInput(pv, nil, nil)
-	if md.ui.sel.hoverPort != "in" || md.ui.sel.hoverNode != "A" || !md.ui.sel.hoverInput {
-		t.Fatalf("port hover: hoverNode=%q hoverPort=%q input=%v want A,in,true", md.ui.sel.hoverNode, md.ui.sel.hoverPort, md.ui.sel.hoverInput)
 	}
 
 	// Move over empty space → hover cleared.
@@ -342,44 +331,6 @@ func TestGestureHandholdOrbits(t *testing.T) {
 	md.HandleRawInput(rawEvent("pointerup", 520, 360), nil, nil)
 	if md.ui.gest.phase != gestIdle {
 		t.Fatalf("after handhold up phase=%v want idle", md.ui.gest.phase)
-	}
-}
-
-// Dragging a CONNECTED port along its ring dispatches a ring-anchor update to the node
-// mover's inbox (the same moveMsgKindAnchor the op=update kind=node attr=anchor path sends).
-func TestGestureConnectedPortRingMove(t *testing.T) {
-	center := vec3{X: 0, Y: 0, Z: 0}
-	geoms := map[string]nodeGeom{
-		"N1": {nodeIdentity: nodeIdentity{Kind: "Input"}, HasPos: true, ScenePolar: cart2polar(center), Inputs: []portGeom{{Name: "in"}}, Outputs: []portGeom{{Name: "out"}}},
-		"N2": {nodeIdentity: nodeIdentity{Kind: "Input"}, HasPos: true, ScenePolar: cart2polar(vec3{X: 50, Y: 0, Z: 0}), Inputs: []portGeom{{Name: "in"}}},
-	}
-	edges := map[string]EdgeEndpoints{
-		"e1": {Source: "N1", Target: "N2", SourceHandle: "out", TargetHandle: "in"},
-	}
-	md := newMoveDispatch(geoms, edges, nil, nil, nil, wire.NewRealClock(), nil)
-	md.ui.vp.viewpoint = canonicalViewpoint()
-	md.rt.portRowTable = []moveDispatchPortRow{{node: "N1", port: "out", isInput: false}}
-
-	// Grab the CONNECTED out-port of N1.
-	down := rawEvent("pointerdown", 400, 300)
-	down.Hit = rawHit{Kind: "port", PortRow: 0, IsInput: false}
-	md.HandleRawInput(down, nil, nil)
-	if md.ui.gest.portMoveNode != "N1" {
-		t.Fatalf("connected-port down: portMoveNode=%q want N1 (phase=%v)", md.ui.gest.portMoveNode, md.ui.gest.phase)
-	}
-	// Drag past slop, off-center so the ring direction is nonzero.
-	md.HandleRawInput(rawEvent("pointermove", 520, 300), nil, nil)
-	if md.ui.gest.phase != gestPortMove {
-		t.Fatalf("phase=%v want portMove", md.ui.gest.phase)
-	}
-	// The N1 mover's extIn channel (buffered) must have received an anchor update.
-	select {
-	case msg := <-md.mr.nodeMovers["N1"].extIn:
-		if msg.Kind != moveMsgKindAnchor || msg.NodeID != "N1" || msg.Port != "out" || msg.IsInput {
-			t.Fatalf("anchor msg mismatch: %+v", msg)
-		}
-	default:
-		t.Fatalf("no anchor message dispatched to N1 mover")
 	}
 }
 

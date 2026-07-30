@@ -60,7 +60,7 @@ type streamWiring struct {
 // setEdgeStreams wires every edgeMover in edgeMovers to ITS OWN dedicated fd — the
 // per-edge stream (memory/feedback_no_single_writer_bridge.md): fd = baseFd + row, where
 // row is the STABLE edge-seed order (edgeSeeds, the same spec order the Edge block uses).
-// portRowFor/buildFrame are injected funcs (not a Buffer import) so this package stays
+// buildFrame is an injected func (not a Buffer import) so this package stays
 // Buffer-independent. Edge selection is NOT injected: each edgeMover owns its OWN
 // selected bit, set via a moveMsgKindSelect message on its extIn (md.sendEdgeSelect), not
 // a lookup. A missing edgeMover for a seed row (should not happen) is skipped rather than
@@ -69,9 +69,8 @@ func (sw *streamWiring) setEdgeStreams(
 	edgeSeeds []EdgeGeomSeed,
 	edgeMovers map[string]*edgeMover,
 	baseFd int,
-	portRowFor func(node, port string, isInput bool) (int32, bool),
 	nodeRowFor func(id string) (int32, bool),
-	buildFrame func(tick uint32, srcPortRow, dstPortRow int32, selected uint8, label string, events []wire.RowEvent) []byte,
+	buildFrame func(tick uint32, sx, sy, sz, ex, ey, ez float32, selected uint8, label string, events []wire.RowEvent) []byte,
 ) {
 	for row, seed := range edgeSeeds {
 		em, ok := edgeMovers[seed.Label]
@@ -81,7 +80,6 @@ func (sw *streamWiring) setEdgeStreams(
 		fd := baseFd + row
 		em.streamOut = os.NewFile(uintptr(fd), fmt.Sprintf("edge-fd%d", fd))
 		em.edgeRow = int32(row)
-		em.portRowFor = portRowFor
 		em.nodeRowFor = nodeRowFor
 		em.buildFrame = buildFrame
 		// This edge now has a real consumer wired: let its PacedWire accumulate
@@ -112,7 +110,7 @@ func (sw *streamWiring) setNodeStreams(
 	nodeMovers map[string]*nodeMover,
 	nodeBase, interiorBase int,
 	nodeRowFor func(id string) (int32, bool),
-	buildFrame func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount int32, gotForwardMsg uint8, forwardDeltaA, forwardDeltaB, forwardDeltaC, forwardFromRow int32, cascadeRelay uint8, label string, portNames []string, portDX, portDY, portDZ, portPX, portPY, portPZ []float32, portIsInput, portHovered []uint8, dstNodeRows []int32, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte,
+	buildFrame func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount int32, gotForwardMsg uint8, forwardDeltaA, forwardDeltaB, forwardDeltaC, forwardFromRow int32, cascadeRelay uint8, label string, dstNodeRows []int32, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte,
 	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte,
 	kindIDFor func(kind string) uint8,
 ) {

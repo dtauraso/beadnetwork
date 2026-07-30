@@ -1,63 +1,25 @@
 package Wiring
 
 import (
-	"os"
-	"path/filepath"
-	"runtime"
 	"testing"
 )
 
 // writeLoaderTreeFixture lays down a small, self-contained directory-tree topology
 // (independent of the production topology/ dir) that exercises the loadTree shapes
-// TestLoadTreeRoundTrip asserts on: a node with only an output port, a node with both
-// input and output ports, distinct source/target handles per edge, and one edge label
-// that is deliberately NEVER written to the fixture (so an absence assertion on it is a
-// genuine proof, not a tautology about a string nobody could produce).
+// TestLoadTreeRoundTrip asserts on: distinct source/target handles per edge, and one
+// edge label that is deliberately NEVER written to the fixture (so an absence assertion
+// on it is a genuine proof, not a tautology about a string nobody could produce). There
+// are no port files any more (docs/channels-not-ports.md — a port is a load-time
+// channel-binding ROLE, resolved from the kind's registry, never a placed file on disk).
 func writeLoaderTreeFixture(t *testing.T) string {
 	t.Helper()
 	root := t.TempDir()
 	writeTreeFile(t, root, "nodes/n1/meta.json", `{"id":"n1","type":"Input"}`)
-	writeTreeFile(t, root, "nodes/n1/outputs/Out.json", `{"name":"Out"}`)
 	writeTreeFile(t, root, "nodes/n2/meta.json", `{"id":"n2","type":"Time"}`)
-	writeTreeFile(t, root, "nodes/n2/inputs/FromPrev.json", `{"name":"FromPrev"}`)
-	writeTreeFile(t, root, "nodes/n2/outputs/ToNext.json", `{"name":"ToNext"}`)
 	writeTreeFile(t, root, "nodes/n3/meta.json", `{"id":"n3","type":"TimeEnd"}`)
-	writeTreeFile(t, root, "nodes/n3/inputs/FromInput.json", `{"name":"FromInput"}`)
 	writeTreeFile(t, root, "nodes/n1/edges/n1Ton2.json", `{"label":"n1Ton2","kind":"data","sourceHandle":"Out","target":"n2","targetHandle":"FromPrev"}`)
 	writeTreeFile(t, root, "nodes/n2/edges/n2Ton3.json", `{"label":"n2Ton3","kind":"data","sourceHandle":"ToNext","target":"n3","targetHandle":"FromInput"}`)
 	return root
-}
-
-// TestReadPortsParsesPortR verifies that a port file's optional "portR" field is
-// parsed into specPort.PortR and, via specPortsToGeom → portGeom, drives
-// portWorldPos placement (the materialized on-disk value is authoritative).
-func TestReadPortsParsesPortR(t *testing.T) {
-	dir := t.TempDir()
-	portFile := filepath.Join(dir, "In.json")
-	if err := os.WriteFile(portFile, []byte(`{"name":"In","anchorId":0,"portR":33.5}`), 0o644); err != nil {
-		t.Fatalf("write port file: %v", err)
-	}
-
-	ports, err := readPorts(dir)
-	if err != nil {
-		t.Fatalf("readPorts: %v", err)
-	}
-	if len(ports) != 1 {
-		t.Fatalf("expected 1 port, got %d", len(ports))
-	}
-	if ports[0].PortR == nil || *ports[0].PortR != 33.5 {
-		t.Fatalf("PortR = %v, want 33.5", ports[0].PortR)
-	}
-
-	geom := specPortsToGeom(ports)
-	g := nodeGeom{nodeIdentity: nodeIdentity{Kind: "HoldFlip"}, Inputs: geom}
-	center := nodeWorldPos(g)
-	dir0 := ringAnchorDir(nodeRadius(g.Kind), 0)
-	want := center.Add(dir0.Scale(33.5))
-	got := portWorldPos(g, "In", true)
-	if got != want {
-		t.Fatalf("portWorldPos = %v, want %v (portR=33.5 authoritative)", got, want)
-	}
 }
 
 // TestLoadTreeRoundTrip drives loadTree against a small, self-contained fixture (NOT
@@ -148,27 +110,5 @@ func TestLoadTreeRoundTrip(t *testing.T) {
 	// of a string that no code path could ever produce again).
 	if _, ok := edgeByLabel["n1Ton3"]; ok {
 		t.Error("edge \"n1Ton3\" was never written to the fixture and should not exist")
-	}
-}
-
-// TestProductionTopologyIsWellFormed asserts the one loadTree invariant that survives
-// any legitimate edit to the live production topology/ dir (the visual editor's save
-// target): every node declares at least one input or output port. Unlike
-// TestLoadTreeRoundTrip's fixture-based assertions, this one is NOT pinned to exact
-// node/edge counts or specific ids, so it does not need updating when the topology
-// changes shape.
-func TestProductionTopologyIsWellFormed(t *testing.T) {
-	_, thisFile, _, _ := runtime.Caller(0)
-	repoRoot := filepath.Join(filepath.Dir(thisFile), "..", "..")
-
-	spec, err := loadTree(filepath.Join(repoRoot, "topology"))
-	if err != nil {
-		t.Fatalf("loadTree: %v", err)
-	}
-
-	for _, n := range spec.Nodes {
-		if len(n.Inputs) == 0 && len(n.Outputs) == 0 {
-			t.Errorf("node %q has no input or output ports", n.ID)
-		}
 	}
 }

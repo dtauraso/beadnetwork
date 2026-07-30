@@ -29,15 +29,16 @@ import (
 )
 
 // nodeStreamRowID decodes ONE dedicated NODE-stream frame's own inline Label bytes (see
-// Buffer.BuildNodeStreamFrame's header: [tick,portCount,labelLen,portNameBytesCount,
-// layoutLinkCount] = 5×u32, then the Node row, then this frame's own label bytes inline).
+// Buffer.BuildNodeStreamFrame's header: [tick,labelLen,layoutLinkCount,chainBeadCount] =
+// 4×u32, then the Node row, then this frame's own label bytes inline — no port section any
+// more, docs/channels-not-ports.md).
 func nodeStreamRowID(frame []byte) string {
 	// The header width comes from Buffer, never a literal: this parsing duplicates
 	// BuildNodeStreamFrame's layout, and a hardcoded copy silently reads the wrong
 	// offset the moment a header field is added (it did — adding chainBeadCount made
 	// these read the label from inside the Node row and assert on garbage bytes).
 	const hdrSize = B.BufNodeStreamFrameHeaderSize
-	labelLen := int(readU32(frame, 8))
+	labelLen := int(readU32(frame, 4))
 	labelOff := hdrSize + B.BufNodeStride
 	return string(frame[labelOff : labelOff+labelLen])
 }

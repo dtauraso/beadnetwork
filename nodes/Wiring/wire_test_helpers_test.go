@@ -143,21 +143,6 @@ func writeSpecTree(t *testing.T, root string, specJSON string) string {
 			}
 			writeTreeFile(t, root, filepath.Join("nodes", n.ID, "data.json"), string(dataBody))
 		}
-
-		for _, p := range n.Inputs {
-			body, err := json.Marshal(p)
-			if err != nil {
-				t.Fatalf("writeSpecTree: marshal input %q.%q: %v", n.ID, p.Name, err)
-			}
-			writeTreeFile(t, root, filepath.Join("nodes", n.ID, "inputs", p.Name+".json"), string(body))
-		}
-		for _, p := range n.Outputs {
-			body, err := json.Marshal(p)
-			if err != nil {
-				t.Fatalf("writeSpecTree: marshal output %q.%q: %v", n.ID, p.Name, err)
-			}
-			writeTreeFile(t, root, filepath.Join("nodes", n.ID, "outputs", p.Name+".json"), string(body))
-		}
 	}
 
 	edgePairs := make([][2]string, 0, len(spec.Edges))

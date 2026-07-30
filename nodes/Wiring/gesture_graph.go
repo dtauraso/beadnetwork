@@ -27,18 +27,12 @@ type gestureEdge struct {
 }
 
 // commitEdges is the SAME precedence order as the old commit switch in gestPointerMove:
-// wireNode, portMoveNode, dragNode, handholdDown, emptyDown.
+// dragNode, handholdDown, emptyDown. wireNode/portMoveNode arms (gestWiring/gestPortMove)
+// were removed with port geometry (docs/channels-not-ports.md): a port is no longer drawn
+// or hit-testable, so the "port" raycast-hit kind that fed both arms can never fire — they
+// were dead code even before this deletion (wire-drop already created no edge; portMove's
+// only effect was a ring-anchor snap that no longer exists).
 var commitEdges = []gestureEdge{
-	{
-		guard:  func(g *gestureState) bool { return g.wireNode != "" },
-		action: func(md *MoveDispatch, g *gestureState, ev rawInputMsg, tr *T.Trace) {},
-		to:     gestWiring,
-	},
-	{
-		guard:  func(g *gestureState) bool { return g.portMoveNode != "" },
-		action: func(md *MoveDispatch, g *gestureState, ev rawInputMsg, tr *T.Trace) {},
-		to:     gestPortMove,
-	},
 	{
 		guard:  func(g *gestureState) bool { return g.dragNode != "" },
 		action: (*MoveDispatch).commitDragStart,
@@ -117,8 +111,7 @@ func (md *MoveDispatch) commitRotateStart(g *gestureState, ev rawInputMsg, tr *T
 
 // applyAction is the Block 2 per-phase apply table, copied verbatim (per-case body) from the
 // old `switch g.phase` in gestPointerMove. A phase with no entry does nothing, matching the
-// old switch's implicit default (gestIdle, gestPending, gestWiring all fell through to
-// nothing).
+// old switch's implicit default (gestIdle, gestPending fell through to nothing).
 var applyAction = map[gesturePhase]func(md *MoveDispatch, g *gestureState, ev rawInputMsg, tr *T.Trace){
 	gestDragging: func(md *MoveDispatch, g *gestureState, ev rawInputMsg, tr *T.Trace) {
 		if md.applyNodeDragTarget(ev) {
@@ -140,9 +133,5 @@ var applyAction = map[gesturePhase]func(md *MoveDispatch, g *gestureState, ev ra
 		smoothEv.X, smoothEv.Y = g.smoothX, g.smoothY
 		md.applyOrbitLocked(smoothEv, tr)
 		g.prevX, g.prevY = g.smoothX, g.smoothY
-	},
-	gestPortMove: func(md *MoveDispatch, g *gestureState, ev rawInputMsg, tr *T.Trace) {
-		md.applyPortMove(ev)
-		g.prevX, g.prevY = ev.X, ev.Y
 	},
 }

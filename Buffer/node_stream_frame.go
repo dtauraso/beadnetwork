@@ -26,20 +26,12 @@ import (
 // — the fd position already identifies which node this is):
 //
 //	[tick:u32]
-//	[portCount:u32]
 //	[labelLen:u32]
-//	[portNameBytesCount:u32]
 //	[layoutLinkCount:u32]
 //	[chainBeadCount:u32]
 //	Node       BufNodeStride bytes (SAME SetNodeRow column writer buildNodeFrame uses;
-//	           LabelOff=0 into this frame's own label bytes, NodeRow-local — nodeRow is
-//	           carried separately below for the Port rows' NodeRow column)
+//	           LabelOff=0 into this frame's own label bytes, NodeRow-local)
 //	Label      labelLen bytes (this node's own label bytes — inline, not a shared section)
-//	Port       portCount × BufPortStride bytes (SAME SetPortRow column writer buildNodeFrame
-//	           uses; every row's NodeRow = nodeRow, PortNameOff/Len into this frame's own
-//	           port-name bytes)
-//	PortName   portNameBytesCount bytes (this node's own ports' name bytes, concatenated in
-//	           the same order as the Port rows above)
 //	LayoutLink layoutLinkCount × BufNodeStreamLayoutLinkStride bytes — the cascade-link
 //	           pairs for which THIS node is the lexicographically-smaller endpoint (see
 //	           nodes/Wiring/node_mover.go's cascadeEdges doc comment): each row is
@@ -52,6 +44,10 @@ import (
 //	           across all of this node's outgoing edges in that order. The chain is the
 //	           VISUAL of a traversal, never a picture of the node-to-node channels
 //	           (docs/beads-are-the-edge.md); nothing here identifies a channel or a message.
+//
+// The Port block/section is GONE (docs/channels-not-ports.md): a port is a load-time
+// channel-binding ROLE, never a place, so it has no row here any more. An edge's own
+// endpoints ride the Edge block's SX..EZ instead (Buffer/edge_stream_frame.go).
 func BuildNodeStreamFrame(
 	tick uint32, nodeRow int32,
 	cx, cy, cz, radius, sphereR float32,
@@ -62,9 +58,6 @@ func BuildNodeStreamFrame(
 	forwardDeltaA, forwardDeltaB, forwardDeltaC, forwardFromRow int32,
 	cascadeRelay uint8,
 	label string,
-	portNames []string,
-	portDX, portDY, portDZ, portPX, portPY, portPZ []float32,
-	portIsInput, portHovered []uint8,
 	dstNodeRows []int32,
 	chainBeadOX, chainBeadOY, chainBeadOZ []float32,
 	chainBeadLit []uint8,
@@ -72,39 +65,10 @@ func BuildNodeStreamFrame(
 	events []StreamEvent,
 ) []byte {
 	labelBytes := []byte(label)
-	portCount := len(portNames)
-	// INVARIANT: the port slices are PARALLEL — one entry per port, same order. The doc
-	// comment says so and the loop below indexes all nine at i without checking, so a
-	// short slice is either an opaque "index out of range" naming no port and no node, or
-	// (for a LONG slice) silently dropped columns nobody notices. Named here instead.
-	for _, s := range []struct {
-		name string
-		n    int
-	}{
-		{"portDX", len(portDX)}, {"portDY", len(portDY)}, {"portDZ", len(portDZ)},
-		{"portPX", len(portPX)}, {"portPY", len(portPY)}, {"portPZ", len(portPZ)},
-		{"portIsInput", len(portIsInput)}, {"portHovered", len(portHovered)},
-	} {
-		if s.n != portCount {
-			panic(fmt.Sprintf(
-				"BuildNodeStreamFrame: node row %d has %d port names but %s has %d entries — the port slices are parallel, one entry per port",
-				nodeRow, portCount, s.name, s.n))
-		}
-	}
-	portNameBytes := make([]byte, 0, portCount*8)
-	portNameOffs := make([]uint32, portCount)
-	portNameLens := make([]uint32, portCount)
-	for i, n := range portNames {
-		portNameOffs[i] = uint32(len(portNameBytes))
-		nb := []byte(n)
-		portNameLens[i] = uint32(len(nb))
-		portNameBytes = append(portNameBytes, nb...)
-	}
 	layoutLinkCount := len(dstNodeRows)
 	chainBeadCount := len(chainBeadOX)
 	// INVARIANT: the three chain-bead slices are PARALLEL, one entry per bead, same order —
-	// same reasoning as the port slices above (a short slice is an opaque index panic naming
-	// no node; a long one is silently dropped).
+	// a short slice is an opaque index panic naming no node; a long one is silently dropped.
 	for _, s := range []struct {
 		name string
 		n    int
@@ -116,17 +80,13 @@ func BuildNodeStreamFrame(
 		}
 	}
 
-	size := BufNodeStreamFrameHeaderSize + BufNodeStride + len(labelBytes) + portCount*BufPortStride + len(portNameBytes) +
+	size := BufNodeStreamFrameHeaderSize + BufNodeStride + len(labelBytes) +
 		layoutLinkCount*BufNodeStreamLayoutLinkStride + chainBeadCount*BufChainBeadStride
 	buf := make([]byte, size)
 	off := 0
 	binary.LittleEndian.PutUint32(buf[off:], tick)
 	off += 4
-	binary.LittleEndian.PutUint32(buf[off:], uint32(portCount))
-	off += 4
 	binary.LittleEndian.PutUint32(buf[off:], uint32(len(labelBytes)))
-	off += 4
-	binary.LittleEndian.PutUint32(buf[off:], uint32(len(portNameBytes)))
 	off += 4
 	binary.LittleEndian.PutUint32(buf[off:], uint32(layoutLinkCount))
 	off += 4
@@ -141,16 +101,6 @@ func BuildNodeStreamFrame(
 
 	copy(buf[off:off+len(labelBytes)], labelBytes)
 	off += len(labelBytes)
-
-	portBuf := buf[off : off+portCount*BufPortStride]
-	for i := range portNames {
-		SetPortRow(portBuf, i, nodeRow, portDX[i], portDY[i], portDZ[i], portPX[i], portPY[i], portPZ[i],
-			portIsInput[i], portHovered[i], portNameOffs[i], portNameLens[i])
-	}
-	off += portCount * BufPortStride
-
-	copy(buf[off:off+len(portNameBytes)], portNameBytes)
-	off += len(portNameBytes)
 
 	for i := 0; i < layoutLinkCount; i++ {
 		rowOff := off + i*BufNodeStreamLayoutLinkStride
