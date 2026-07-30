@@ -48,8 +48,8 @@ func TestShadingParamsFloat(t *testing.T) {
 		// Scene lights.
 		{"SceneAmbientIntensity", ShadingParamSceneAmbientIntensity, 0.6},
 		{"SceneDirIntensity", ShadingParamSceneDirIntensity, 0.8},
-		// Wire tube + bead.
-		{"TubeEmissiveIntensity", ShadingParamTubeEmissiveIntensity, 0.8},
+		// Bead (the wire tube's shading params are gone with the drawn tube line —
+		// docs/beads-are-the-edge.md).
 		{"BeadEmissiveIntensity", ShadingParamBeadEmissiveIntensity, 2.5},
 	}
 	for _, c := range cases {
@@ -102,8 +102,6 @@ func TestShadingParamsColor(t *testing.T) {
 		{"EnvAmbientColor", ShadingParamEnvAmbientColor, "#ffffff"},
 		{"EnvKeyColor", ShadingParamEnvKeyColor, "#ffeedd"},
 		{"EnvRimColor", ShadingParamEnvRimColor, "#aabbff"},
-		{"TubeColor", ShadingParamTubeColor, "#5599cc"},
-		{"TubeEmissive", ShadingParamTubeEmissive, "#2255aa"},
 		{"BeadColor", ShadingParamBeadColor, "#ffffff"},
 		{"BeadEmissive", ShadingParamBeadEmissive, "#ffffff"},
 	}

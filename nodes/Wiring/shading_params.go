@@ -120,19 +120,6 @@ const ShadingParamSceneAmbientIntensity = 0.6
 // ShadingParamSceneDirIntensity is the scene directional-light intensity.
 const ShadingParamSceneDirIntensity = 0.8
 
-// --- Wire tube appearance (SingleEdgeTube) --------------------------------
-// The always-lit base tube material. Mirrors the meshStandardMaterial on the
-// base tube in SingleEdgeTube.
-
-// ShadingParamTubeColor is the wire-tube base color.
-const ShadingParamTubeColor = "#5599cc"
-
-// ShadingParamTubeEmissive is the wire-tube emissive color.
-const ShadingParamTubeEmissive = "#2255aa"
-
-// ShadingParamTubeEmissiveIntensity is the wire-tube emissive intensity.
-const ShadingParamTubeEmissiveIntensity = 0.8
-
 // --- Node ring: torus outer radius (docs/bead-lattice.md) -----------------
 // The node's border ring (above) is a torus, not a bare sphere; its OUTER radius —
 // nodeRadius(kind) * (1 + this ratio) — is now LOAD-BEARING GEOMETRY, not decoration:
@@ -174,8 +161,10 @@ const ShadingParamBeadRadius = wire.BeadRadius
 // and nodes/wire cannot import nodes/Wiring (Wiring imports wire; the reverse would cycle).
 const ShadingParamBeadRingTubeRatio = wire.BeadRingTubeRatio
 
-// ShadingParamChainBeadFill is the UNLIT chain bead's fill — a pale cyan, DELIBERATELY not
-// ShadingParamTubeColor below.
+// ShadingParamChainBeadFill is the UNLIT chain bead's fill — a pale cyan, DELIBERATELY its own
+// tone rather than reusing another material's color (the wire-tube color it used to be
+// deliberately distinct from, ShadingParamTubeColor, is gone along with the drawn tube line —
+// docs/beads-are-the-edge.md).
 //
 // This constant existed, was deleted on the reasoning that the chain IS the edge visual so a
 // second colour would just be a copy free to drift, and is now back because the divergence is
