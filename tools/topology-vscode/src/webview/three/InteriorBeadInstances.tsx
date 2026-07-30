@@ -88,16 +88,38 @@ export function InteriorBeadInstances({ capacity }: { capacity: number }) {
           Both meshes are meshBasicMaterial + toneMapped={false}: an interior bead's fill is
           an AUTHORED constant (ShadingParamInteriorBeadFill0/1 via interiorBeadStyleForValue),
           so it opts out of lighting and out of the renderer's ACES tone mapping so that
-          constant lands on screen verbatim. The node's glassy transmissive shell in front of
-          it (NodeInstances.tsx) still tints the pixel — that tint is exactly what the
-          authored constant is chosen to compensate for, by eye, against the rendered shell. */}
-      <instancedMesh ref={bodyRef} args={[undefined, undefined, capacity]} frustumCulled={false}>
+          constant lands on screen verbatim.
+
+          DRAW-ORDER FIX (glass must not tint the bead behind it): three.js draws the opaque
+          group first, then the transparent group in `renderOrder` order. The node body in
+          NodeInstances.tsx is meshPhysicalMaterial with transparent + opacity=
+          SHADING_PARAM_NODE_OPACITY + depthWrite={false} (its renderOrder is unset, i.e. the
+          default 0), which puts it in the transparent group. These bead meshes used to be
+          plain meshBasicMaterial with no `transparent` flag, which put them in the OPAQUE
+          group — drawn first — so the node shell (transparent, drawn after) alpha-blended ON
+          TOP of an already-drawn bead and dimmed/tinted its authored color. An interior bead
+          read dimmer than the identical bead sitting out on a wire for exactly this reason.
+          Putting these meshes in the transparent group too (transparent + opacity={1} — NOT
+          to make them see-through, opacity=1 is fully opaque, purely so they sort into that
+          group) with a renderOrder ABOVE the node shell's means the beads are drawn AFTER
+          the shell, so the bead's own authored pixel is the final pixel; the shell still
+          blends normally everywhere it isn't covering a bead. depthWrite stays at its
+          default (true) so these meshes still occlude each other and other opaque geometry
+          correctly.
+
+          KNOWN COST — do not "fix" this without re-reading the above: because the node
+          shell doesn't write depth, and these beads now draw in the transparent pass ordered
+          by renderOrder rather than by depth, when two nodes overlap on screen a bead
+          belonging to the FARTHER node can draw over the glass of a NEARER node. This is a
+          chosen tradeoff (interior-bead color fidelity over correct occlusion in that rare
+          overlap case), not an oversight. */}
+      <instancedMesh ref={bodyRef} args={[undefined, undefined, capacity]} renderOrder={1} frustumCulled={false}>
         <sphereGeometry args={[1, 16, 16]} />
-        <meshBasicMaterial toneMapped={false} />
+        <meshBasicMaterial toneMapped={false} transparent opacity={1} />
       </instancedMesh>
-      <instancedMesh ref={ringRef} args={[undefined, undefined, capacity]} frustumCulled={false}>
+      <instancedMesh ref={ringRef} args={[undefined, undefined, capacity]} renderOrder={1} frustumCulled={false}>
         <torusGeometry args={[1, INTERIOR_RING_TUBE_RATIO, 8, 24]} />
-        <meshBasicMaterial toneMapped={false} />
+        <meshBasicMaterial toneMapped={false} transparent opacity={1} />
       </instancedMesh>
     </>
   );
