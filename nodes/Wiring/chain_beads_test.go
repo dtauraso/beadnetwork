@@ -112,3 +112,62 @@ func TestChainBeadsCountIsSpanProportional(t *testing.T) {
 		t.Errorf("count(span %.0f) = %d, count(span %.0f) = %d; want roughly double", span, n1, 2*span, n2)
 	}
 }
+
+// litBeadIndex is the arithmetic that broke: two beads placed in ONE emission appeared a
+// permanent bead apart because the lit index came from fractional progress rather than distance
+// covered. Node 1's two edges differ by 1.9% in length (259.208 vs 254.334 measured), so their
+// t climbed at different rates while both chains held the same number of beads.
+//
+// This is the invariant that failure violated: at the same DISTANCE covered, two edges of
+// DIFFERENT length must light the same bead index.
+func TestLitBeadIndexStepsByDistanceNotFraction(t *testing.T) {
+	startAt := nodeRadius("Input") + ShadingParamBeadRadius
+	longLen, shortLen := 259.208, 254.334
+	longEnd := longLen - nodeRadius("TimeStart") - ShadingParamBeadRadius
+	shortEnd := shortLen - nodeRadius("PulseLeft") - ShadingParamBeadRadius
+
+	// Walk the same covered distance on both edges, expressed as each edge's own t.
+	for covered := startAt; covered <= startAt+15*chainBeadSpacing; covered += chainBeadSpacing / 4 {
+		gotLong, okLong := litBeadIndex(covered/longLen, longLen, startAt, longEnd)
+		gotShort, okShort := litBeadIndex(covered/shortLen, shortLen, startAt, shortEnd)
+		if !okLong || !okShort {
+			continue
+		}
+		if gotLong != gotShort {
+			t.Fatalf("covered %.2f: long edge lit bead %d, short edge lit bead %d — same distance must light the same index",
+				covered, gotLong, gotShort)
+		}
+	}
+}
+
+// One bead index per chainBeadSpacing of travel — the constant dwell the design rests on. If
+// this drifts, the lit bead is no longer moving at the uniform pulse speed.
+func TestLitBeadIndexAdvancesOncePerSpacing(t *testing.T) {
+	const length = 400.0
+	startAt := nodeRadius("Input") + ShadingParamBeadRadius
+	endAt := length - nodeRadius("Input") - ShadingParamBeadRadius
+	for i := 0; i < 10; i++ {
+		covered := startAt + float64(i)*chainBeadSpacing
+		got, ok := litBeadIndex(covered/length, length, startAt, endAt)
+		if !ok {
+			t.Fatalf("bead %d: covered %.2f reported off-chain", i, covered)
+		}
+		if got != i {
+			t.Errorf("covered %.2f (bead %d's own position) lit index %d, want %d", covered, i, got, i)
+		}
+	}
+}
+
+// A bead short of the first chain bead, or past the last, lights nothing rather than clamping
+// onto an end bead — otherwise the first and last beads would appear stuck lit.
+func TestLitBeadIndexOffChainLightsNothing(t *testing.T) {
+	const length = 400.0
+	startAt := nodeRadius("Input") + ShadingParamBeadRadius
+	endAt := length - nodeRadius("Input") - ShadingParamBeadRadius
+	if _, ok := litBeadIndex(0, length, startAt, endAt); ok {
+		t.Error("t=0 (still at the node center) lit a bead; want nothing lit")
+	}
+	if _, ok := litBeadIndex(1, length, startAt, endAt); ok {
+		t.Error("t=1 (arrived at the target center) lit a bead; want nothing lit")
+	}
+}
