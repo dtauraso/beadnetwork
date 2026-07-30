@@ -119,7 +119,7 @@ const (
 	// EVENT row instead of a free-form JSON
 	// stdout line. It rides the EMITTING goroutine's own per-owner stream (node/edge/
 	// interior/VIEW) — main.go's own breadcrumbs (no per-node stream) ride the VIEW
-	// stream. Label (a BreadcrumbLabel* index below) names which of the 10 breadcrumb
+	// stream. Label (a BreadcrumbLabel* index below) names which of the 13 breadcrumb
 	// sites emitted it; the row's other columns (Value/X/Y/Z/NodeRow/PortRow/
 	// TargetRow/TargetPortRow) are REUSED per label, with Label/TextOff/TextLen (the
 	// bufLayoutEvent.Debug flag is always 1 on this Kind) as the two dedicated
@@ -127,7 +127,7 @@ const (
 	KindBreadcrumb = "breadcrumb"
 )
 
-// BreadcrumbLabel* enumerate the 10 breadcrumb call sites (Buffer/layout.go's
+// BreadcrumbLabel* enumerate the 13 breadcrumb call sites (Buffer/layout.go's
 // bufLayoutEvent.Label column, Kind==KindBreadcrumb rows only). Order is the wire id —
 // append only; do not reorder or delete a label without a migration. BreadcrumbLabels
 // is the string lookup gen-node-defs mirrors into TS for the .probe decode/log.
@@ -147,6 +147,18 @@ const (
 	// carries the dropped count. Emitted once room reappears on breadcrumbCh,
 	// so the diagnostic channel's own lossiness is never itself silent.
 	BreadcrumbWireBreadcrumbsDropped
+	// BreadcrumbProbeEnterCommit/BreadcrumbDragJump/BreadcrumbProbeCommitLocal are a
+	// temporary drag-debugging trio (nodes/Wiring/quantized_move.go,
+	// nodes/Wiring/node_mover.go) added and then read as evidence a code path never
+	// ran, when in fact the calls fired fine and the labels were simply never
+	// registered here — an unregistered label was DROPPED SILENTLY by
+	// nodes/wire/ports.go's breadcrumbLabelFor, so its absence in the logs looked
+	// identical to the path not executing (memory/feedback_check_the_signal_the_check_emits).
+	// Registered here so the probe trio is actually observable; keep or delete the
+	// three call sites independently of this registration.
+	BreadcrumbProbeEnterCommit
+	BreadcrumbDragJump
+	BreadcrumbProbeCommitLocal
 )
 
 // BreadcrumbLabels is the single source of truth for the BreadcrumbLabel* enum's
@@ -163,6 +175,9 @@ var BreadcrumbLabels = []string{
 	"wire-send-buffer-full",
 	"cascade.root",
 	"wire-breadcrumbs-dropped",
+	"probe.enterCommit",
+	"drag.jump",
+	"probe.commitLocal",
 }
 
 // TraceEventKinds is the single source of truth for the closed kind vocabulary.

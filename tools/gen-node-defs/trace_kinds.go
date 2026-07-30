@@ -71,7 +71,7 @@ func parseTraceKinds(traceDir string) ([]string, error) {
 
 // parseBreadcrumbLabels scans EVERY non-test *.go file under traceDir for the
 // `BreadcrumbLabels = []string{...}` var and returns its string literals in order —
-// the mirror of parseTraceKinds for the 9-value BreadcrumbLabel* enum
+// the mirror of parseTraceKinds for the 13-value BreadcrumbLabel* enum
 // (Buffer/layout.go's bufLayoutEvent.Label column, Kind==KindBreadcrumb rows only).
 func parseBreadcrumbLabels(traceDir string) ([]string, error) {
 	entries, err := os.ReadDir(traceDir)
