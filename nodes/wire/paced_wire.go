@@ -655,6 +655,13 @@ type LiveBeadRow struct {
 type LiveBeadProgress struct {
 	T   float64 // fractional progress 0..1
 	Val int     // bead value (0|1)
+	// Arc is the bead's OWN arc length — the geometry its t was computed against
+	// (ticksToCross = arc/pulseSpeed). The caller needs it to recover DISTANCE covered as
+	// t*Arc, which equals elapsed*pulseSpeed on every edge whatever its length. Deriving
+	// distance from any other length instead — a node-center separation, say — scales it by
+	// (that length / Arc), a ratio that differs per edge, and two beads placed together then
+	// advance at different rates.
+	Arc float64 // arc length t was computed against, in world units
 }
 
 // LiveBeadFractions returns the FRACTIONAL progress t (0..1) and VALUE of every in-flight
@@ -689,7 +696,7 @@ func (pw *PacedWire) LiveBeadFractions(tick int64) []LiveBeadProgress {
 		if t < 0 {
 			t = 0
 		}
-		out = append(out, LiveBeadProgress{T: t, Val: b.val})
+		out = append(out, LiveBeadProgress{T: t, Val: b.val, Arc: b.arc})
 	}
 	return out
 }
