@@ -1,6 +1,10 @@
 package Wiring
 
-import "math"
+import (
+	"math"
+
+	wire "github.com/dtauraso/wirefold/nodes/wire"
+)
 
 // chain_beads.go — the node-owned placeholder bead chain that IS the visual of an edge.
 // Design and staging: docs/beads-are-the-edge.md.
@@ -123,28 +127,43 @@ func litBeadIndex(t, arc float64) (int, bool) {
 // chainBeads returns THIS node's own placeholder chain beads as node-local offsets, in
 // outgoing-edge order (m.outTargets), each edge's beads ordered outward from this node.
 //
-// Reads only state this node owns: its own center (m.geom) and its own partnerCenters map —
-// each neighbour's last-known center, "written ONLY by this node's own goroutine" and kept
-// current by that neighbour's own applyCenter push (nodeMover.partnerCenters' doc comment).
-// There is no cross-goroutine read of another node's live position here, which is why this
-// can run on the emit path.
+// Reads only state this node owns: its own kind/radius and its own stored LOCAL POLAR to
+// each neighbour (m.layoutHolderFn().LocalPolarsSnapshot() — the same accessor
+// neighborSetCRequantize/armDragAnchor use), never another goroutine's live position. There
+// is no cross-goroutine read here, which is why this can run on the emit path.
+//
+// NO SQRT ANYWHERE in this path (guard: tools/check-no-sqrt-in-chain-beads.sh). A neighbour's
+// distance and direction come from this node's OWN stored abc-indices (QuantITheta/
+// QuantIPhi/QuantIR) × step constants — index arithmetic, per
+// memory/feedback_abc_times_constant_not_rederive.md — not from a cartesian offset's vector
+// length or its normalized direction (each internally a sqrt). The only trig is the one
+// cartesian↔polar boundary
+// conversion per bead (polar2cart), matching the "abc × constant, trig only at the boundary"
+// model the demo (docs/demos/polar-drag-3d.html) exists to enforce.
 //
 // Offsets are NODE-LOCAL on purpose: this node moving does not change a single one of them,
 // so a move costs one center write instead of degree × N bead positions. Only a NEIGHBOUR
 // moving re-aims a chain, and that arrives as the one-hop center message that already
-// exists. That is the whole constant-time claim.
+// exists (which is what keeps this node's own LocalPolar to that neighbour current). That is
+// the whole constant-time claim.
 //
-// A target with no known center, or one sitting on top of this node (zero-length offset, no
-// defined direction), contributes NO beads rather than beads at a made-up direction.
+// A target with no stored local polar (never linked, or this node has no LayoutHolder — bare
+// movers built directly in tests without one) contributes NO beads rather than beads at a
+// made-up direction.
 //
 // The returned `lit`/`litVal` slices are parallel to the offsets: 1 on the bead each
 // in-flight traversal has reached (with that traversal's bead VALUE alongside), 0 elsewhere. A chain with nothing traversing it is fully populated
 // and entirely unlit — that resting state is normal, not an absence of data.
 func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []int32) {
-	if len(m.outTargets) == 0 {
+	if len(m.outTargets) == 0 || m.layoutHolderFn == nil {
 		return nil, nil, nil, nil, nil
 	}
-	self := nodeWorldPos(m.geom)
+	lh := m.layoutHolderFn()
+	if lh == nil {
+		return nil, nil, nil, nil, nil
+	}
+	localPolars := lh.LocalPolarsSnapshot()
+	pole := dir(lh.Pole())
 	// Read the clock only when there is a wire to ask about — m.clk is nil in tests that
 	// build a bare nodeMover directly (the same convention resolveDest/commitLocal state),
 	// and such a mover has no outWires either, so geometry stays testable without a clock.
@@ -152,14 +171,28 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 	if len(m.outWires) > 0 {
 		tick = m.clk.Tick()
 	}
+	selfR := nodeRadius(m.geom.Kind)
 	for _, to := range m.outTargets {
-		target, ok := m.partnerCenters[to]
-		if !ok {
+		var lp wire.LocalPolar
+		found := false
+		for _, cand := range localPolars {
+			if cand.To == to {
+				lp = cand
+				found = true
+				break
+			}
+		}
+		if !found {
 			continue
 		}
-		offset := target.Sub(self)
-		length := offset.Length()
-		selfR := nodeRadius(m.geom.Kind)
+		stepTheta, stepPhi, stepR := lp.EffectiveSteps()
+		// Direction: this node's own stored bearing to the neighbour, re-expressed from its
+		// abc-indices about this node's own measurement pole — the same fromAxisFrame call
+		// quantized_move.go's requantizePoleTraced and loader_layout.go's reload path use to
+		// reconstruct an unchanged neighbour's world direction. No cartesian offset is read.
+		ndir := fromAxisFrame(pole, float64(lp.QuantITheta)*stepTheta, float64(lp.QuantIPhi)*stepPhi)
+		// Neighbour distance: abc-index × step constant. Multiplication only, no sqrt.
+		neighborDist := float64(lp.QuantIR) * stepR
 
 		// arc is the ONE length both the layout below and the lighting above must agree
 		// on — divergence between them is exactly what caused the unreachable-tail bug
@@ -178,9 +211,10 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 		// published (early startup) and bare nodeMovers built directly in tests have no
 		// Out at all (outWireOuts is nil then). In both cases fall back to the local
 		// surface-to-surface estimate — all node-local data (this node's own kind, the
-		// target's kind from cascadeKinds, and the center distance already computed
-		// above) — so a chain still lays out before geometry exists or under test. The
-		// published arc wins whenever it is available and nonzero.
+		// target's kind from cascadeKinds, and the neighbour distance already computed
+		// above, itself index arithmetic with no sqrt) — so a chain still lays out
+		// before geometry exists or under test. The published arc wins whenever it is
+		// available and nonzero.
 		arc := 0.0
 		for i, wt := range m.outWireTargets {
 			if wt != to || i >= len(m.outWireOuts) || m.outWireOuts[i] == nil {
@@ -192,7 +226,7 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 			}
 		}
 		if arc <= 0 {
-			arc = length - selfR - nodeRadius(m.cascadeKinds[to])
+			arc = neighborDist - selfR - nodeRadius(m.cascadeKinds[to])
 		}
 		count := beadCount(arc)
 		if count == 0 {
@@ -201,7 +235,6 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 			// nonpositive. Emit none rather than beads buried in one node or the other.
 			continue
 		}
-		dir := offset.Normalize()
 		// Which bead this edge's traversals have reached. Read from THIS node's own
 		// outgoing wire for this target, on this node's own goroutine (it is the goroutine
 		// that drives that wire — see nodeMover.outWires), so LiveBeadFractions' single-
@@ -238,7 +271,11 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 		// not out of a separate startAt/endAt clamp.
 		for i := 0; i < count; i++ {
 			d := selfR + chainBeadSpacing/2 + float64(i)*chainBeadSpacing
-			p := dir.Scale(d)
+			// One trig conversion per bead, at the cartesian↔polar boundary — no sqrt: R
+			// varies per bead by index arithmetic (d above), Theta/Phi are this
+			// neighbour's own fixed bearing (ndir), reused unchanged for every bead on
+			// this edge.
+			p := polar2cart(polar{R: d, Theta: ndir.Theta, Phi: ndir.Phi})
 			ox = append(ox, float32(p.X))
 			oy = append(oy, float32(p.Y))
 			oz = append(oz, float32(p.Z))

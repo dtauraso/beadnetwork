@@ -3,15 +3,18 @@ package Wiring
 import (
 	"math"
 	"testing"
+
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
-// chainBeads is a pure function of ONE node's own state — its center, its own kind, its own
-// cascadeKinds and its own partnerCenters map, all written only by that node's goroutine — so
-// these are plain tables, no second goroutine (docs/testing-shape.md).
+// chainBeads is a pure function of ONE node's own state — its own kind, its own
+// cascadeKinds, and its own stored LocalPolar list (m.layoutHolderFn) — all written only by
+// that node's goroutine — so these are plain tables, no second goroutine
+// (docs/testing-shape.md).
 //
 // None of these tests wire up outWireOuts, so chainBeads always takes the FALLBACK arc
-// (length - selfRadius - targetRadius, the local surface-to-surface estimate) — see
-// chainBeads' arc-source doc comment. That fallback is exactly what makes these plain
+// (neighborDist - selfRadius - targetRadius, the local surface-to-surface estimate — see
+// chainBeads' arc-source doc comment). That fallback is exactly what makes these plain
 // single-node tables: no *wire.Out, no clock-driven geometry, nothing beyond this node's own
 // fields.
 //
@@ -19,6 +22,26 @@ import (
 // back to (110, 60), i.e. radius 15. The original tests left kinds unset and asserted on
 // distance from the node CENTER, which is exactly why they passed while beads rendered inside
 // the nodes.
+//
+// A neighbour's position is supplied the same way the production code reads it: as a stored
+// LocalPolar (QuantITheta/QuantIPhi/QuantIR, default step constants) on a bare *wire.LayoutHolder,
+// handed back through layoutHolderFn — never as a cartesian partnerCenters offset. Distance is
+// therefore an EXACT index multiple of the default stepR (2.0 world units,
+// nodes/wire/layout_holder.go), so every "centerGap" below is chosen to be even.
+
+// singleNeighborHolder builds a bare LayoutHolder holding exactly one LocalPolar entry — this
+// node's stored bearing/distance to `to` — at QuantITheta=QuantIPhi=0 (an arbitrary but fixed
+// direction; magnitude-only assertions below don't care which one) and QuantIR chosen so that
+// float64(QuantIR)*wire.DefaultLocalStepR == centerGap.
+func singleNeighborHolder(to string, centerGap float64) func() *wire.LayoutHolder {
+	if math.Mod(centerGap, wire.DefaultLocalStepR) != 0 {
+		panic("singleNeighborHolder: centerGap must be an exact multiple of the default stepR")
+	}
+	quantIR := int(math.Round(centerGap / wire.DefaultLocalStepR))
+	lh := &wire.LayoutHolder{}
+	lh.SetLocalPolar(to, 0, 0, quantIR, 0, 0, 0)
+	return func() *wire.LayoutHolder { return lh }
+}
 
 // The invariant the original tests missed, and the bug that shipped: a bead must never sit
 // inside either node's sphere. Beads were placed by distance from the source center starting at
@@ -31,7 +54,7 @@ func TestChainBeadsStayOutsideBothNodes(t *testing.T) {
 		geom:           nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}}, // radius 15
 		outTargets:     []string{"b"},
 		cascadeKinds:   map[string]string{"b": "Time"}, // radius 9
-		partnerCenters: map[string]vec3{"b": {X: gap}},
+		layoutHolderFn: singleNeighborHolder("b", gap),
 	}
 	ox, oy, oz, _, _ := m.chainBeads()
 	if len(ox) == 0 {
@@ -61,7 +84,7 @@ func TestChainBeadsTouch(t *testing.T) {
 	m := &nodeMover{
 		id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}},
 		outTargets: []string{"b"}, cascadeKinds: map[string]string{"b": "Input"},
-		partnerCenters: map[string]vec3{"b": {X: 300}},
+		layoutHolderFn: singleNeighborHolder("b", 300),
 	}
 	ox, oy, oz, _, _ := m.chainBeads()
 	if len(ox) < 3 {
@@ -84,19 +107,33 @@ func TestChainBeadsNoneWhenSurfacesTooClose(t *testing.T) {
 	m := &nodeMover{
 		id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}},
 		outTargets: []string{"b"}, cascadeKinds: map[string]string{"b": "Input"},
-		partnerCenters: map[string]vec3{"b": {X: 32}},
+		layoutHolderFn: singleNeighborHolder("b", 32),
 	}
 	if ox, _, _, _, _ := m.chainBeads(); len(ox) != 0 {
 		t.Errorf("count = %d, want 0 — no bead fits between the two surfaces", len(ox))
 	}
 }
 
-// A target whose center this node has never been told contributes nothing — the node aims only
-// with what its own partnerCenters map holds, never by reading another goroutine.
+// A target this node has no stored local polar to contributes nothing — the node aims only
+// with what its own LayoutHolder holds, never by reading another goroutine.
 func TestChainBeadsUnknownPartnerContributesNothing(t *testing.T) {
-	m := &nodeMover{id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}}, outTargets: []string{"b"}, partnerCenters: map[string]vec3{}}
+	lh := &wire.LayoutHolder{}
+	m := &nodeMover{
+		id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}}, outTargets: []string{"b"},
+		layoutHolderFn: func() *wire.LayoutHolder { return lh },
+	}
 	if ox, _, _, _, _ := m.chainBeads(); len(ox) != 0 {
-		t.Errorf("count = %d, want 0 for an unknown partner center", len(ox))
+		t.Errorf("count = %d, want 0 for an unknown partner", len(ox))
+	}
+}
+
+// No LayoutHolder at all (layoutHolderFn nil, or returning nil) contributes nothing rather
+// than panicking — the same "no cross-goroutine read, no made-up direction" contract as an
+// unknown partner.
+func TestChainBeadsNoLayoutHolderContributesNothing(t *testing.T) {
+	m := &nodeMover{id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}}, outTargets: []string{"b"}}
+	if ox, _, _, _, _ := m.chainBeads(); len(ox) != 0 {
+		t.Errorf("count = %d, want 0 with no layoutHolderFn", len(ox))
 	}
 }
 
@@ -109,7 +146,7 @@ func TestChainBeadsCountIsSpanProportional(t *testing.T) {
 		m := &nodeMover{
 			id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}},
 			outTargets: []string{"b"}, cascadeKinds: map[string]string{"b": "Input"},
-			partnerCenters: map[string]vec3{"b": {X: centerGap}},
+			layoutHolderFn: singleNeighborHolder("b", centerGap),
 		}
 		ox, _, _, _, _ := m.chainBeads()
 		return len(ox)
