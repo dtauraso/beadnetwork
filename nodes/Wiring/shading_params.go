@@ -181,8 +181,11 @@ const ShadingParamChainBeadFill = "#9acdd3"
 // interior bead is drawn with (see InteriorBeadInstances.tsx), not its tone — expect these
 // two constants to be tuned away from the on-wire values once the shell's tint is visible
 // against them.
-const ShadingParamInteriorBeadFill0 = "#000000"
-const ShadingParamInteriorBeadFill1 = "#ffffff"
+// PROBE: deliberately absurd values, committed only to answer one question — "does
+// InteriorBeadInstances render at all in the live editor?" MUST be reverted to
+// #000000/#ffffff before this branch merges.
+const ShadingParamInteriorBeadFill0 = "#ff00ff"
+const ShadingParamInteriorBeadFill1 = "#ff8800"
 
 // ShadingParamBeadColor is the in-flight bead color.
 const ShadingParamBeadColor = "#ffffff"
