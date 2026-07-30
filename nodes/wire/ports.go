@@ -199,6 +199,14 @@ func breadcrumbLabelFor(event string) (uint8, bool) {
 		return T.BreadcrumbWireSendBufferFull, true
 	case "cascade.root":
 		return T.BreadcrumbCascadeRoot, true
+	// TEMPORARY (task/log-the-chain-distances) — see Trace.go's BreadcrumbChain* doc
+	// comment. Remove once the gap/overlap symptom is diagnosed.
+	case "chain-drag-stride":
+		return T.BreadcrumbChainDragStride, true
+	case "chain-end-dist":
+		return T.BreadcrumbChainEndDist, true
+	case "chain-end-inputs":
+		return T.BreadcrumbChainEndInputs, true
 	default:
 		return 0, false
 	}

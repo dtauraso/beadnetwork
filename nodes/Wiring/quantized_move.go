@@ -246,6 +246,20 @@ func (lq *layoutQuantizer) neighborSetCRequantize(md *MoveDispatch, selfID, from
 	// boundary, while every OTHER neighbor of selfID is carried forward as index x step.
 	lq.requantizePoleTraced(lh, map[string]vec3{fromID: fromCenter.Sub(selfCenter)})
 
+	// TEMPORARY (task/log-the-chain-distances): selfID just re-quantized its OWN local
+	// polar to the dragged peer fromID — if selfID also OWNS an outgoing chain to
+	// fromID, that chain is exactly the "incoming chain owned by a neighbour, aimed at
+	// the dragged node" the symptom names. Arm the probe so selfID's own next
+	// chainBeads() call logs B/C for it. Set HERE, before the "abc-drag" breadcrumb
+	// below, on purpose: a test/observer that syncs on "abc-drag" (the established
+	// happens-before pattern, time_node_abc_drag_breadcrumb_test.go) must already see
+	// this flag set once that breadcrumb is observed — setting it after would leave a
+	// window where the sync point fires before the probe is armed. See
+	// node_mover.go's chainProbeDirty doc comment.
+	if nm, ok := md.mr.nodeMovers[selfID]; ok {
+		nm.chainProbeDirty = true
+	}
+
 	// EVERY node that receives an abc change from a dragged peer logs its response so the
 	// drag propagation is observable (probe-merge.sh --debug -> .probe/go-debug.jsonl) and
 	// the in-editor overlay log can list all recipients — NOT gated to time nodes: any node
