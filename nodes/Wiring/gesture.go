@@ -76,6 +76,17 @@ type gestureState struct {
 	// node-drag target
 	dragNode        string
 	dragStartCenter vec3
+	// dragGrabOffset is dragStartCenter minus the plane-hit at the drag-start commit
+	// event — the vector from where the pointer actually grabbed the node to the
+	// node's center, captured ONCE at drag start (commitDragStart) and reapplied on
+	// every subsequent move (applyNodeDragTarget). Per-drag state belongs at the FSM
+	// drag-start edge, not inside the move path: computing this offset per-move would
+	// measure it against the node's ALREADY-MOVED center each event and cancel itself
+	// out (memory/project_rootmove_is_per_pointer_move.md — RootMove runs on every
+	// pointer-move, not once per drag; two prior bugs came from forgetting that).
+	// Zero (its default) degrades to today's centre-on-cursor behavior, which is the
+	// right fallback when the drag-start ray is parallel to the drag plane.
+	dragGrabOffset vec3
 
 	// handhold-constrained orbit gate (set at pointer-down on a handhold hit).
 	handholdDown bool
@@ -278,6 +289,7 @@ func (g *gestureState) reset(vp *viewpoint) {
 	g.phase = gestIdle
 	g.emptyDown = false
 	g.dragNode = ""
+	g.dragGrabOffset = vec3{}
 	g.handholdDown = false
 	g.secondary = false
 	vp.lockedAxis = nil

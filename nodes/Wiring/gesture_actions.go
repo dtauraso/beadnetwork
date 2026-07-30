@@ -105,11 +105,12 @@ func (md *MoveDispatch) applyOrbitLocked(ev rawInputMsg, tr *T.Trace) {
 	md.OrbitLockedViewpoint(worldDirToAngles(currDir), worldDirToAngles(prevDir), tr)
 }
 
-// applyNodeDragTarget mirrors the "dragging" branch: unproject the pointer onto a
-// camera-facing plane through the node's start center, giving a free world target, then
-// RootMove the node (Go snaps it to the parent sphere). Returns false if the ray is parallel
-// to the plane.
-func (md *MoveDispatch) applyNodeDragTarget(ev rawInputMsg) bool {
+// dragPlaneHit unprojects ev's pointer onto the camera-facing plane through
+// g.dragStartCenter, returning the world-space hit. Shared by commitDragStart (which uses
+// it ONCE to capture g.dragGrabOffset) and applyNodeDragTarget (which uses it every move) so
+// both project against the exact same plane instead of two copies that can drift apart.
+// Returns ok=false when the ray is parallel to the plane or the hit is non-finite.
+func (md *MoveDispatch) dragPlaneHit(ev rawInputMsg) (hit vec3, ok bool) {
 	g := &md.ui.gest
 	vp := md.ui.vp.viewpoint
 	eye := eyeOf(vp)
@@ -119,14 +120,30 @@ func (md *MoveDispatch) applyNodeDragTarget(ev rawInputMsg) bool {
 	forward := basis.pole.Scale(-1) // camera looks along -pole
 	denom := dir.Dot(forward)
 	if denom == 0 {
-		return false
+		return vec3{}, false
 	}
 	t := g.dragStartCenter.Sub(eye).Dot(forward) / denom
-	hit := eye.Add(dir.Scale(t))
+	hit = eye.Add(dir.Scale(t))
 	if math.IsNaN(hit.X) || math.IsInf(hit.X, 0) {
+		return vec3{}, false
+	}
+	return hit, true
+}
+
+// applyNodeDragTarget mirrors the "dragging" branch: unproject the pointer onto a
+// camera-facing plane through the node's start center, giving a free world target, then
+// RootMove the node to that target PLUS the grab offset captured once at drag start (Go
+// snaps it to the parent sphere). Adding the offset here — instead of moving the node's
+// center straight to the hit — is what keeps the point you grabbed under the cursor instead
+// of the node teleporting so its center lands there. Returns false if the ray is parallel
+// to the plane.
+func (md *MoveDispatch) applyNodeDragTarget(ev rawInputMsg) bool {
+	g := &md.ui.gest
+	hit, ok := md.dragPlaneHit(ev)
+	if !ok {
 		return false
 	}
-	md.RootMove(g.dragNode, hit)
+	md.RootMove(g.dragNode, hit.Add(g.dragGrabOffset))
 	return true
 }
 
