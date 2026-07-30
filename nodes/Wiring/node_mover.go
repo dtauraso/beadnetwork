@@ -403,6 +403,18 @@ func (m *nodeMover) handle(msg moveMsg) {
 		// always a FREE move now -- there is no equal-radii solve and no self-trigger
 		// cascade to run.
 		newPos := msg.Target
+		// PROBE (temporary): 122 cascade.root breadcrumbs landed with zero drag.jump
+		// breadcrumbs from inside commitNodeMoveLocal. cascade.root logs whether or not
+		// commitLocal fires, so that combination is only possible if the commit path is
+		// not being entered — this records which of the two it is rather than guessing a
+		// third time.
+		if m.tr != nil {
+			bound := "nil"
+			if m.commitLocal != nil {
+				bound = "bound"
+			}
+			m.tr.Breadcrumb("probe.commitLocal", m.id, "", bound)
+		}
 		if m.commitLocal != nil {
 			m.commitLocal(m.id, newPos)
 		}
