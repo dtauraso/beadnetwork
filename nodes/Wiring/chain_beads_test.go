@@ -113,29 +113,34 @@ func TestChainBeadsCountIsSpanProportional(t *testing.T) {
 	}
 }
 
-// litBeadIndex is the arithmetic that broke: two beads placed in ONE emission appeared a
-// permanent bead apart because the lit index came from fractional progress rather than distance
-// covered. Node 1's two edges differ by 1.9% in length (259.208 vs 254.334 measured), so their
-// t climbed at different rates while both chains held the same number of beads.
+// The invariant two versions of litBeadIndex violated: two beads placed in ONE emission travel at
+// the same world speed, so after the same ELAPSED time they must light the same bead index —
+// whatever their edges' lengths. Node 1's edges differ 1.9% (259.208 vs 254.334 measured) and
+// both chains hold 28 beads, so a rate error shows up as one bead permanently ahead.
 //
-// This is the invariant that failure violated: at the same DISTANCE covered, two edges of
-// DIFFERENT length must light the same bead index.
-func TestLitBeadIndexStepsByDistanceNotFraction(t *testing.T) {
+// Driving this by elapsed time rather than by a chosen distance is the point: it is what the
+// screen shows, and it is what caught t*centerDistance, where the per-edge (center/arc) ratio
+// reintroduced the offset that t*beadCount had.
+func TestLitBeadIndexSameElapsedLightsSameBead(t *testing.T) {
 	startAt := nodeRadius("Input") + ShadingParamBeadRadius
-	longLen, shortLen := 259.208, 254.334
-	longEnd := longLen - nodeRadius("TimeStart") - ShadingParamBeadRadius
-	shortEnd := shortLen - nodeRadius("PulseLeft") - ShadingParamBeadRadius
+	// Arcs are port-to-port and are NOT the center separations; give them a different ratio to
+	// each other than the centers have, so a version that multiplies by the wrong length fails.
+	longArc, shortArc := 259.208, 254.334
+	longCenters, shortCenters := 251.0, 249.5
+	longEnd := longCenters - nodeRadius("TimeStart") - ShadingParamBeadRadius
+	shortEnd := shortCenters - nodeRadius("PulseLeft") - ShadingParamBeadRadius
 
-	// Walk the same covered distance on both edges, expressed as each edge's own t.
-	for covered := startAt; covered <= startAt+15*chainBeadSpacing; covered += chainBeadSpacing / 4 {
-		gotLong, okLong := litBeadIndex(covered/longLen, longLen, startAt, longEnd)
-		gotShort, okShort := litBeadIndex(covered/shortLen, shortLen, startAt, shortEnd)
+	const pulseSpeed = 1.7 // any positive speed: it is shared by every wire
+	for elapsed := 0.0; elapsed < 120; elapsed += 0.25 {
+		covered := elapsed * pulseSpeed
+		gotLong, okLong := litBeadIndex(covered/longArc, longArc, startAt, longEnd)
+		gotShort, okShort := litBeadIndex(covered/shortArc, shortArc, startAt, shortEnd)
 		if !okLong || !okShort {
 			continue
 		}
 		if gotLong != gotShort {
-			t.Fatalf("covered %.2f: long edge lit bead %d, short edge lit bead %d — same distance must light the same index",
-				covered, gotLong, gotShort)
+			t.Fatalf("elapsed %.2f (covered %.2f): long edge lit bead %d, short edge lit bead %d — equal elapsed must light the same index",
+				elapsed, covered, gotLong, gotShort)
 		}
 	}
 }
