@@ -142,24 +142,35 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 	// The "both required together" rule above is enforced by a silent skip: one entry
 	// present without the other leaves BOTH streams unwired and says nothing. Same class
 	// as the edge case, and harder to spot because the half that IS wired looks healthy.
+	// "drive" joins "node"/"interior" as a THIRD entry now required in lockstep: it is
+	// the per-gatecommon.DriveHeld-goroutine fd (Buffer.StreamKindDrive,
+	// docs/interior-stream-framing.md's fix) — a node with a DriveHeld drive goroutine
+	// needs it exactly as much as it needs "interior", or that goroutine falls back to
+	// writing nothing (a quieter failure than the pre-fix framing desync, but still a
+	// silent one) rather than sharing the node's own interior fd (the original bug).
 	_, nodeFDsWired := streamFDs[B.StreamKindNode]
 	_, interiorFDsWired := streamFDs[B.StreamKindInterior]
-	if nodeFDsWired != interiorFDsWired {
+	_, driveFDsWired := streamFDs[B.StreamKindDrive]
+	if nodeFDsWired != interiorFDsWired || nodeFDsWired != driveFDsWired {
 		fmt.Fprintf(os.Stderr,
-			"stream-fd mismatch: WIREFOLD_STREAM_FDS carries %q=%t but %q=%t; they are required "+
-				"together, so BOTH per-node streams stay unwired and node geometry/interior beads "+
-				"will not be drawn.\n",
-			B.StreamKindNode, nodeFDsWired, B.StreamKindInterior, interiorFDsWired)
+			"stream-fd mismatch: WIREFOLD_STREAM_FDS carries %q=%t, %q=%t, %q=%t; all three are "+
+				"required together, so ALL THREE per-node streams stay unwired and node geometry/"+
+				"interior beads/drive-goroutine sends will not be drawn.\n",
+			B.StreamKindNode, nodeFDsWired, B.StreamKindInterior, interiorFDsWired, B.StreamKindDrive, driveFDsWired)
 	}
 	if nodeBase, ok := streamFDs[B.StreamKindNode]; ok {
 		if interiorBase, ok2 := streamFDs[B.StreamKindInterior]; ok2 {
+			driveBase, driveWired := streamFDs[B.StreamKindDrive]
+			if !driveWired {
+				driveBase = 0
+			}
 			// Selection/hover/abc-drag/kind are no longer injected lookups: each
 			// nodeMover owns its OWN selected/hovered/latchedSel/gotDragMsg/dragDelta*
 			// bits, set via moveMsgKindSelect/Hover/Latched/AbcReset messages the gesture
 			// goroutine sends (or, for kindID, resolved once here at construction).
 			// kindIDFor resolves a node's static load-time kind string to its NODE_DEFS
 			// index (Buffer.NodeKindID) — injected so Wiring stays Buffer-independent.
-			md.SetNodeStreams(nodeBase, interiorBase,
+			md.SetNodeStreams(nodeBase, interiorBase, driveBase, driveWired,
 				md.NodeRowFor,
 				func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount int32, gotForwardMsg uint8, forwardDeltaA, forwardDeltaB, forwardDeltaC, forwardFromRow int32, cascadeRelay uint8, label string, dstNodeRows []int32, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte {
 					return B.BuildNodeStreamFrame(tick, nodeRow, cx, cy, cz, radius, sphereR, vrx, vry, vrz, frx, fry, frz,

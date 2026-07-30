@@ -48,6 +48,15 @@ const MAX_EDGE_STREAMS = 256;
 // omits the dedicated per-node NODE/INTERIOR/Port streams entirely.
 const MAX_NODE_STREAMS = 256;
 
+// DRIVE_SLOTS_PER_NODE mirrors Buffer.DriveSlotsPerNode (Go) — the fixed number of
+// dedicated "drive" fds allocated per node row, one per gatecommon.DriveHeld goroutine a
+// node kind may spawn (docs/interior-stream-framing.md's fix: each such goroutine gets
+// its OWN fd instead of sharing the node's "interior" fd with its Update-loop goroutine).
+// Kept as a separate mirrored constant rather than a generated one, matching
+// MAX_EDGE_STREAMS/MAX_NODE_STREAMS's existing "small bound, hand-kept in parity" shape —
+// raise both sides together if a node kind ever needs a third DriveHeld output.
+const DRIVE_SLOTS_PER_NODE = 2;
+
 // readCounts replaces the old countNodes/countEdges tree-walks (see
 // .claude/rules/persistence-ownership.md "Counts are stored, never re-derived"). The ext host must know the fd RANGE
 // before spawning Go, so it cannot ask Go for this — but it also must not WALK the tree to
@@ -311,6 +320,15 @@ interface StreamParseState {
   // as edgeBufs — one per dedicated node/interior pipe.
   nodeBufs: Buffer[];
   interiorBufs: Buffer[];
+  // Partial-frame carry-over PER DRIVE fd (index = node row, inner index = drive slot,
+  // 0..DRIVE_SLOTS_PER_NODE-1) — one per dedicated per-DriveHeld-goroutine pipe (see
+  // DRIVE_SLOTS_PER_NODE's doc comment). Kept SEPARATE from interiorBufs even though
+  // handleDriveFd feeds the same decode/cache/relay path as handleInteriorFd: each drive
+  // fd is its OWN pipe with its OWN chunk boundaries, and merging two physically distinct
+  // byte streams into one carry buffer would reintroduce the exact framing desync this
+  // whole per-goroutine-fd change exists to remove, just moved from Go's write side to
+  // this file's read side.
+  driveBufs: Buffer[][];
 }
 
 // freshStreamState mints empty parse state for a newly spawned process. run() calls it
@@ -328,6 +346,7 @@ function freshStreamState(edgeCount: number, nodeCount: number): StreamParseStat
     edgeBufs: Array.from({ length: edgeCount }, () => Buffer.alloc(0)),
     nodeBufs: Array.from({ length: nodeCount }, () => Buffer.alloc(0)),
     interiorBufs: Array.from({ length: nodeCount }, () => Buffer.alloc(0)),
+    driveBufs: Array.from({ length: nodeCount }, () => Array.from({ length: DRIVE_SLOTS_PER_NODE }, () => Buffer.alloc(0))),
   };
 }
 
@@ -528,6 +547,14 @@ export class BuildAndRunRunner {
     }
     const nodeBaseFd = EDGE_BASE_FD + this.edgeCount;
     const interiorBaseFd = nodeBaseFd + this.nodeCount;
+    // driveBaseFd sits right after the interior range: nodeCount * DRIVE_SLOTS_PER_NODE
+    // dedicated fds, one PER (node row, drive slot) — see DRIVE_SLOTS_PER_NODE's doc
+    // comment and Buffer/stream_fds.go's StreamKindDrive. Required in lockstep with
+    // "node"/"interior" (see the streamFDsEnvParts push below and main.go's matching
+    // three-way check) — Go falls back to a loud stderr message and unwired streams
+    // rather than a startup panic if this ever drifts from what Go expects (never a
+    // crash-loop; see the panic-avoidance note on that fallback in main.go).
+    const driveBaseFd = interiorBaseFd + this.nodeCount;
     // Fresh parse state for this spawn: a prior process's leftover partial frame must
     // never prefix this one's stream (see freshStreamState). This is the single reset
     // point every restart path funnels through, including the looping respawn.
@@ -557,20 +584,25 @@ export class BuildAndRunRunner {
     // are one dedicated pipe PER NODE (the "node" stream — geometry + ports + label); the
     // FOLLOWING nodeCount indices are one dedicated pipe PER NODE again (the "interior"
     // stream — that node's own interior beads, a SEPARATE goroutine's fd — see
-    // NODE_BASE_FD's doc comment). Any of these ranges is omitted (and its kind left out
-    // of WIREFOLD_STREAM_FDS) when its count is 0 (e.g. a topology with no edges) — Go
-    // simply never streams that kind. "pipe" opens a readable pipe at each index; the
-    // existing stdin(0)/stdout(1)/stderr(2) are unchanged.
+    // NODE_BASE_FD's doc comment). The FOLLOWING nodeCount*DRIVE_SLOTS_PER_NODE indices
+    // are one dedicated pipe PER (NODE, DRIVE SLOT) — the "drive" stream, one per
+    // gatecommon.DriveHeld goroutine a node kind may spawn (docs/interior-stream-
+    // framing.md's fix; see driveBaseFd's doc comment). Any of these ranges is omitted
+    // (and its kind left out of WIREFOLD_STREAM_FDS) when its count is 0 (e.g. a topology
+    // with no edges) — Go simply never streams that kind. "pipe" opens a readable pipe at
+    // each index; the existing stdin(0)/stdout(1)/stderr(2) are unchanged.
     const stdio: Array<"pipe"> = ["pipe", "pipe", "pipe", "pipe", "pipe"];
     for (let i = 0; i < this.edgeCount; i++) stdio.push("pipe");
     for (let i = 0; i < this.nodeCount; i++) stdio.push("pipe");
     for (let i = 0; i < this.nodeCount; i++) stdio.push("pipe");
+    for (let i = 0; i < this.nodeCount * DRIVE_SLOTS_PER_NODE; i++) stdio.push("pipe");
     const streamFDsEnvParts = [`view:${VIEW_FD}`];
     if (this.edgeCount > 0) streamFDsEnvParts.push(`edge:${EDGE_BASE_FD}`);
-    // Go's stream_fds.go / main.go only wires the per-node node+interior streams when
-    // BOTH "node" and "interior" env entries resolve — always emit them together.
+    // Go's stream_fds.go / main.go only wires the per-node node+interior+drive streams
+    // when "node", "interior", AND "drive" env entries ALL resolve — always emit all
+    // three together (main.go's three-way check treats a partial set the same as none).
     if (this.nodeCount > 0) {
-      streamFDsEnvParts.push(`node:${nodeBaseFd}`, `interior:${interiorBaseFd}`);
+      streamFDsEnvParts.push(`node:${nodeBaseFd}`, `interior:${interiorBaseFd}`, `drive:${driveBaseFd}`);
     }
     const streamFDsEnv = streamFDsEnvParts.join(",");
     this.proc = cp.spawn(binPath, [...topArgs], {
@@ -628,6 +660,19 @@ export class BuildAndRunRunner {
       const interiorFd = (this.proc.stdio as (NodeJS.ReadableStream | null)[])[interiorFdIdx];
       if (interiorFd) {
         interiorFd.on("data", (d: Buffer) => this.handleInteriorFd(row, d));
+      }
+      // Per-drive dedicated pipes: driveBaseFd + row*DRIVE_SLOTS_PER_NODE + slot, one PER
+      // (node row, drive slot) — see driveBaseFd's doc comment. Each is its OWN pipe
+      // (handleDriveFd keeps its carry buffer and dead-stream key separate per slot; see
+      // driveBufs' doc comment) but decodes/relays through the SAME per-node interior
+      // state as handleInteriorFd, since a drive-slot frame IS an interior-shaped frame
+      // for this node row (Buffer.StreamKindDrive's doc comment).
+      for (let slot = 0; slot < DRIVE_SLOTS_PER_NODE; slot++) {
+        const driveFdIdx = driveBaseFd + row * DRIVE_SLOTS_PER_NODE + slot;
+        const driveFd = (this.proc.stdio as (NodeJS.ReadableStream | null)[])[driveFdIdx];
+        if (driveFd) {
+          driveFd.on("data", (d: Buffer) => this.handleDriveFd(row, slot, d));
+        }
       }
     }
     this.proc.stderr?.on("data", (d: Buffer) => {
@@ -808,7 +853,10 @@ export class BuildAndRunRunner {
   // handleInteriorFd parses ONE dedicated per-node INTERIOR stream pipe (fd =
   // interiorBaseFd + row) — that node's OWN Update goroutine (a SEPARATE goroutine from
   // its nodeMover), same framing/relay shape as handleNodeFd, tagged
-  // BUF_BLOCK_TAG_INTERIOR_STREAM.
+  // BUF_BLOCK_TAG_INTERIOR_STREAM. Delegates decode/cache/relay to
+  // processInteriorLikeFrames, shared with handleDriveFd — see that method's doc comment
+  // for why the CARRY BUFFER and dead-stream key stay separate per fd even though the
+  // decoded output lands in the same place.
   private handleInteriorFd(row: number, chunk: Buffer) {
     const key = `interior:${row}`;
     if (this.deadStreams.has(key)) return;
@@ -821,6 +869,44 @@ export class BuildAndRunRunner {
       this.channel?.appendLine(`\n[${msg}]`);
       appendGoError(this.goErrorsFile, msg);
     }
+    this.processInteriorLikeFrames(row, frames);
+  }
+
+  // handleDriveFd parses ONE dedicated per-(node row, drive slot) DRIVE stream pipe (fd =
+  // driveBaseFd + row*DRIVE_SLOTS_PER_NODE + slot) — one gatecommon.DriveHeld goroutine's
+  // OWN fd (docs/interior-stream-framing.md's fix: this goroutine used to share the
+  // node's INTERIOR fd with its Update-loop goroutine, desyncing the frame reader — see
+  // that doc for the mechanism). Its OWN carry buffer and dead-stream key
+  // (`drive:{row}:{slot}`) are kept separate per (row, slot) — see driveBufs' doc
+  // comment: merging two physically distinct pipes' partial-frame state would reintroduce
+  // the exact desync this fd split exists to remove, just on the read side instead of the
+  // write side. The DECODED frames, though, are a drive-slot frame is an interior-shaped
+  // frame for this node row (Buffer.StreamKindDrive's doc comment) — so once split and
+  // reassembled, they're handed to the SAME processInteriorLikeFrames as
+  // handleInteriorFd: same probe file, same lastInteriorFrames cache (last writer wins,
+  // matching this node's own single most-recent bead-state snapshot regardless of which
+  // goroutine produced it), same BUF_BLOCK_TAG_INTERIOR_STREAM tag to the webview.
+  private handleDriveFd(row: number, slot: number, chunk: Buffer) {
+    const key = `drive:${row}:${slot}`;
+    if (this.deadStreams.has(key)) return;
+    const carry = this.stream.driveBufs[row]?.[slot] ?? Buffer.alloc(0);
+    const { frames, rest, error } = splitFrames(carry, chunk);
+    if (!this.stream.driveBufs[row]) this.stream.driveBufs[row] = [];
+    this.stream.driveBufs[row][slot] = rest;
+    if (error) {
+      this.deadStreams.add(key);
+      const msg = `handleDriveFd(row=${row}, slot=${slot}): ${error}`;
+      this.channel?.appendLine(`\n[${msg}]`);
+      appendGoError(this.goErrorsFile, msg);
+    }
+    this.processInteriorLikeFrames(row, frames);
+  }
+
+  // processInteriorLikeFrames is the shared decode/probe-log/cache/relay tail of
+  // handleInteriorFd and handleDriveFd, once each has independently reassembled its OWN
+  // fd's frames (see handleDriveFd's doc comment for why reassembly itself is NOT
+  // shared). Unchanged from handleInteriorFd's prior inline body.
+  private processInteriorLikeFrames(row: number, frames: ArrayBuffer[]) {
     for (const ab of frames) {
       // Decode this node's OWN trailing EVENTS section (NodeBead — this node's own
       // Update-loop goroutine's row-resolved events; memory/feedback_no_single_writer_bridge.md).

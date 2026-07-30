@@ -138,6 +138,13 @@ type dedicatedStreams struct {
 	edgeReads     []*os.File
 	nodeReads     []*os.File
 	interiorReads []*os.File
+	// driveReads holds nodeCount*driveSlotsPerNode dedicated per-(node,slot) DRIVE fds,
+	// row-major (index = row*driveSlotsPerNode+slot) — the per-gatecommon.DriveHeld-
+	// goroutine fd (Buffer.StreamKindDrive; docs/interior-stream-framing.md's fix).
+	// Wired unconditionally alongside node/interior (main.go requires all three
+	// together — a spawn missing "drive" leaves node/interior UNWIRED too, not just
+	// drive, so this is not optional plumbing for these tests).
+	driveReads []*os.File
 
 	stdinWrite *os.File
 	cmd        *exec.Cmd
@@ -243,12 +250,28 @@ func spawnDedicatedAllStreams(t *testing.T, binPath, repoRoot string) *dedicated
 		interiorReads = append(interiorReads, ir)
 	}
 
+	// driveSlotsPerNode mirrors Buffer.DriveSlotsPerNode (2) — see driveReads' doc
+	// comment. main.go requires "drive" present exactly when "node"/"interior" are, so
+	// this headless harness must wire it too or the node/interior fds it just built
+	// above go unwired as well.
+	const driveSlotsPerNode = 2
+	driveBase := interiorBase + nodeCount
+	driveReads := make([]*os.File, 0, nodeCount*driveSlotsPerNode)
+	for i := 0; i < nodeCount*driveSlotsPerNode; i++ {
+		dr, dw, err := os.Pipe()
+		if err != nil {
+			t.Fatalf("Pipe (drive %d): %v", i, err)
+		}
+		cmd.ExtraFiles = append(cmd.ExtraFiles, dw) // fd driveBase+i
+		driveReads = append(driveReads, dr)
+	}
+
 	streamFDsEnv := "view:4"
 	if edgeCount > 0 {
 		streamFDsEnv += ",edge:" + itoa(edgeBase)
 	}
 	if nodeCount > 0 {
-		streamFDsEnv += ",node:" + itoa(nodeBase) + ",interior:" + itoa(interiorBase)
+		streamFDsEnv += ",node:" + itoa(nodeBase) + ",interior:" + itoa(interiorBase) + ",drive:" + itoa(driveBase)
 	}
 	cmd.Env = append(os.Environ(), "WIREFOLD_STREAM_FDS="+streamFDsEnv)
 
@@ -264,6 +287,7 @@ func spawnDedicatedAllStreams(t *testing.T, binPath, repoRoot string) *dedicated
 	ds := &dedicatedStreams{
 		nodeIDs: nodeIDs, edgeN: edgeCount,
 		viewRead: viewRead, edgeReads: edgeReads, nodeReads: nodeReads, interiorReads: interiorReads,
+		driveReads: driveReads,
 		stdinWrite: stdinWrite, cmd: cmd,
 	}
 	t.Cleanup(func() {
@@ -277,6 +301,9 @@ func spawnDedicatedAllStreams(t *testing.T, binPath, repoRoot string) *dedicated
 			_ = r.Close()
 		}
 		for _, r := range ds.interiorReads {
+			_ = r.Close()
+		}
+		for _, r := range ds.driveReads {
 			_ = r.Close()
 		}
 		if ds.cmd.Process != nil {

@@ -65,6 +65,51 @@ func newInteriorStreamGetter(name string, pb PortBindings) func() *interiorStrea
 	}
 }
 
+// newDriveStreamGetter is newInteriorStreamGetter's counterpart for a gatecommon.DriveHeld
+// drive goroutine's OWN dedicated stream (Buffer.StreamKindDrive; docs/interior-stream-
+// framing.md) — the fix for the framing desync that getter's doc comment describes:
+// a DriveHeld goroutine used to record its Send events through the SAME *interiorStream
+// the node's own Update goroutine writes, which is exactly the two-goroutines-one-fd
+// violation that corrupted framing. This getter instead resolves pb.md.sw.driveOuts[name]
+// [slot] — a DIFFERENT fd, dedicated to this one drive slot — so the Out a caller builds
+// via BuildArgs.DriveOut never shares a stream instance with the node's own getStream.
+// Lazy-cache-once for the SAME reason newInteriorStreamGetter is: pb.md.sw.driveOuts is
+// only populated by main.go after LoadTopology returns, and the first real call is always
+// made from this node's own Update goroutine (the goroutine that then spawns the
+// DriveHeld goroutine using the *wire.Out this getter feeds — no data race, since the
+// getter itself never runs concurrently: it lazily builds once before DriveHeld's own
+// goroutine exists, then only returns the already-built pointer thereafter).
+func newDriveStreamGetter(name string, slot int, pb PortBindings) func() *interiorStream {
+	var built bool
+	var stream *interiorStream
+	return func() *interiorStream {
+		if built {
+			return stream
+		}
+		built = true
+		if pb.md == nil || pb.md.sw.driveOuts == nil {
+			return nil
+		}
+		slots, ok := pb.md.sw.driveOuts[name]
+		if !ok || slot < 0 || slot >= len(slots) || slots[slot] == nil || pb.md.sw.buildInteriorFrame == nil {
+			return nil
+		}
+		nodeRow := int32(-1)
+		if r, ok := pb.md.NodeRowFor(name); ok {
+			nodeRow = r
+		}
+		absent := make([]uint8, bufInteriorSlotsPerNode)
+		zeroI := make([]int32, bufInteriorSlotsPerNode)
+		zeroF := make([]float32, bufInteriorSlotsPerNode)
+		stream = &interiorStream{
+			out: slots[slot], buildFrame: pb.md.sw.buildInteriorFrame, nodeRow: nodeRow,
+			lastPresent: absent, lastValue: zeroI,
+			lastOx: zeroF, lastOy: append([]float32{}, zeroF...), lastOz: append([]float32{}, zeroF...),
+		}
+		return stream
+	}
+}
+
 // asEventSinkGetter adapts a concrete interior-stream getter into the eventSink getter a
 // port holds, PRESERVING nil: when the underlying getter yields no stream (nil
 // *interiorStream), this returns a TRUE nil interface, not an interface value wrapping a

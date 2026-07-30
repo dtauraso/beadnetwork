@@ -86,6 +86,25 @@ func (a BuildArgs) Broadcast(portName string) wire.Broadcast {
 	return newBroadcastPort(portName, a.ctx, a.name, a.pb, a.tr, a.sourceOuts, a.getStream)
 }
 
+// DriveOut resolves an output port that will be DRIVEN by its own gatecommon.DriveHeld
+// goroutine (a SEPARATE goroutine from this node's own Update loop — Pulse/PulseLeft/
+// PulseRight/holdflip's shape), instead of Out(). It routes the port's eventSink through
+// a DEDICATED per-(node, slot) drive stream (newDriveStreamGetter, Buffer.StreamKindDrive)
+// rather than this node's shared getStream — the fix for the framing desync documented in
+// docs/interior-stream-framing.md: two goroutines (this node's Update loop and its
+// DriveHeld goroutine) must never write the same *interiorStream/fd. slot distinguishes
+// multiple DriveHeld outputs on ONE node (Pulse's Out=slot 0, OutFanout=slot 1 — see
+// Buffer.DriveSlotsPerNode's doc comment for the current max) and must be a DIFFERENT
+// value for each such call on the same node; passing the same slot to two driven outputs
+// on one node would make them share a stream, reintroducing this exact bug. A plain
+// (non-DriveHeld) Out — only ever written from this node's own Update goroutine — should
+// keep using Out(), not DriveOut(): its writes already satisfy the single-writer
+// invariant via the shared getStream, and giving it a drive slot would burn an fd for no
+// reason.
+func (a BuildArgs) DriveOut(portName string, slot int) *wire.Out {
+	return newOutPort(portName, a.ctx, a.name, a.pb, a.tr, a.sourceOuts, newDriveStreamGetter(a.name, slot, a.pb))
+}
+
 // Fire returns this node's fire-trace closure. The node name is captured, so a node
 // cannot mis-name itself in the trace. The event lands on this node's OWN interior
 // stream; nil-safe when the node has no dedicated interior fd (test builds).

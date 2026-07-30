@@ -55,14 +55,18 @@ func (md *MoveDispatch) SetEdgeStreams(
 // perform on every emit). Call once at startup after LoadTopology, before Start — mirrors
 // SetEdgeStreams' call site in main.go. A missing nodeMover for a seed row (should not
 // happen) is skipped rather than panicking.
+// driveBase/driveWired add the per-DriveHeld-goroutine "drive" fd range (see
+// setNodeStreams' own doc comment and Buffer.StreamKindDrive) — driveWired false leaves
+// every node's driveOuts slots nil (no dedicated fd, fallback no-op writes).
 func (md *MoveDispatch) SetNodeStreams(
-	nodeBase, interiorBase int,
+	nodeBase, interiorBase, driveBase int,
+	driveWired bool,
 	nodeRowFor func(id string) (int32, bool),
 	buildFrame func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount int32, gotForwardMsg uint8, forwardDeltaA, forwardDeltaB, forwardDeltaC, forwardFromRow int32, cascadeRelay uint8, label string, dstNodeRows []int32, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte,
 	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte,
 	kindIDFor func(kind string) uint8,
 ) {
-	md.sw.setNodeStreams(md.gs.nodeSeeds, md.mr.nodeMovers, nodeBase, interiorBase, nodeRowFor, buildFrame, buildInteriorFrame, kindIDFor)
+	md.sw.setNodeStreams(md.gs.nodeSeeds, md.mr.nodeMovers, nodeBase, interiorBase, driveBase, driveWired, nodeRowFor, buildFrame, buildInteriorFrame, kindIDFor)
 }
 
 // NodeGeomSeed is one node's load-time seed geometry, exported in spec order and consumed
