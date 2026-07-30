@@ -78,9 +78,11 @@ type moverRegistry struct {
 // construction.
 func (mr *moverRegistry) bind(outSink map[string]*wire.Out, slotReg SlotRegistry) {
 	for edgeID, em := range mr.edgeMovers {
-		if o, ok := outSink[em.srcID+"."+em.srcH]; ok {
-			em.out = o
-			mr.edgeOut[edgeID] = o
+		var o *wire.Out
+		if oo, ok := outSink[em.srcID+"."+em.srcH]; ok {
+			o = oo
+			em.out = oo
+			mr.edgeOut[edgeID] = oo
 		}
 		if pw, ok := slotReg[em.dstID+"."+em.dstH]; ok {
 			em.dest = pw
@@ -94,6 +96,11 @@ func (mr *moverRegistry) bind(outSink map[string]*wire.Out, slotReg SlotRegistry
 			if srcNM, ok := mr.nodeMovers[em.srcID]; ok {
 				srcNM.outWires = append(srcNM.outWires, pw)
 				srcNM.outWireTargets = append(srcNM.outWireTargets, em.dstID)
+				// Parallel to outWires: the source *Out this edge publishes its arc
+				// length through (chainBeads reads it as the ONE authoritative arc —
+				// see outWireOuts' doc comment). o may be nil if this edge's source
+				// handle wasn't found in outSink; chainBeads falls back locally then.
+				srcNM.outWireOuts = append(srcNM.outWireOuts, o)
 			}
 		}
 	}

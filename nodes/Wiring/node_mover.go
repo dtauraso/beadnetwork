@@ -319,6 +319,15 @@ type nodeMover struct {
 	// index-parallel. Lighting matches by target id, not by position.
 	outWires       []*wire.PacedWire
 	outWireTargets []string
+	// outWireOuts is the *wire.Out for each entry in outWires (parallel, same index),
+	// bound alongside it in moverRegistry.bind. It is this node's ONE source of the
+	// authoritative arc length for that edge (Out.Geom().ArcLength, published by
+	// PublishGeom) — chainBeads reads it instead of re-deriving a length locally, so the
+	// chain's layout and the lit index cannot read two different arcs (that divergence is
+	// what caused the unreachable-tail bug: see docs/beads-are-the-edge.md and
+	// chain_beads.go). nil entries and a zero ArcLength (not yet published) are both
+	// valid — chainBeads falls back to a local surface-to-surface estimate then.
+	outWireOuts []*wire.Out
 	// cascadeKinds maps each cascadeEdges neighbor id → that neighbor's kind name,
 	// loaded once from this node's OWN cascade-edges.json (specNode.CascadeKinds,
 	// loader_tree.go) at construction (build.go's buildMoveDispatch) — never touched

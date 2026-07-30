@@ -9,6 +9,12 @@ import (
 // cascadeKinds and its own partnerCenters map, all written only by that node's goroutine — so
 // these are plain tables, no second goroutine (docs/testing-shape.md).
 //
+// None of these tests wire up outWireOuts, so chainBeads always takes the FALLBACK arc
+// (length - selfRadius - targetRadius, the local surface-to-surface estimate) — see
+// chainBeads' arc-source doc comment. That fallback is exactly what makes these plain
+// single-node tables: no *wire.Out, no clock-driven geometry, nothing beyond this node's own
+// fields.
+//
 // Every case sets BOTH kinds explicitly. An unset kind is NOT neutral: kindWidthHeight falls
 // back to (110, 60), i.e. radius 15. The original tests left kinds unset and asserted on
 // distance from the node CENTER, which is exactly why they passed while beads rendered inside
@@ -36,7 +42,10 @@ func TestChainBeadsStayOutsideBothNodes(t *testing.T) {
 	for i := range ox {
 		d := math.Sqrt(float64(ox[i]*ox[i] + oy[i]*oy[i] + oz[i]*oz[i]))
 		// Tangent-outside at each end: a bead's OWN radius clears the surface too, so no bead
-		// is even half-buried.
+		// is even half-buried. (gap=400 with radii 15/9 gives arc=376, an exact multiple of
+		// chainBeadSpacing=8, so the last bead lands exactly tangent rather than merely
+		// "somewhere clear" — floor(arc/spacing) guarantees count*spacing <= arc always, see
+		// beadCount's doc comment.)
 		if d < srcClear-1e-4 {
 			t.Errorf("bead %d at %.3f from center is inside the SOURCE node (needs >= %.3f)", i, d, srcClear)
 		}
@@ -68,8 +77,9 @@ func TestChainBeadsTouch(t *testing.T) {
 	}
 }
 
-// Two nodes whose SURFACES are closer than one bead contribute NO beads, rather than beads
-// buried in one node or the other. Centers 32 apart with two radius-15 nodes leaves 2 units.
+// Two nodes whose SURFACES are closer than one bead diameter contribute NO beads, rather than
+// a bead that can't fully fit in the gap. Centers 32 apart with two radius-15 nodes leaves an
+// arc of 2, well under chainBeadSpacing (8).
 func TestChainBeadsNoneWhenSurfacesTooClose(t *testing.T) {
 	m := &nodeMover{
 		id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}},
@@ -90,10 +100,10 @@ func TestChainBeadsUnknownPartnerContributesNothing(t *testing.T) {
 	}
 }
 
-// Count is proportional to the SPAN between the surfaces — not to the center distance, which is
-// what the previous version asserted and what let the buried-bead bug through. Double the span,
-// double the beads (±1 for the floor), which is what makes a constant per-bead dwell a constant
-// visible speed.
+// Count is proportional to the ARC (the surface-to-surface span in the fallback case) — not to
+// the center distance, which is what the previous version asserted and what let the
+// buried-bead bug through. Double the span, double the beads (±1 for the floor), which is what
+// makes a constant per-bead dwell a constant visible speed.
 func TestChainBeadsCountIsSpanProportional(t *testing.T) {
 	count := func(centerGap float64) int {
 		m := &nodeMover{
@@ -113,6 +123,43 @@ func TestChainBeadsCountIsSpanProportional(t *testing.T) {
 	}
 }
 
+// THE REGRESSION TEST for the reported bug: every bead index must be reachable as traversal
+// progress t sweeps the whole edge. The bug was two coordinate systems — lighting quantised
+// distance against the wire's PORT-TO-PORT arc while the chain was laid out to a longer
+// center-distance-minus-radii span — so the tail of the chain (here: the last 1-2 beads) could
+// never be lit, however far t climbed. Sweeping d from 0 to arc and demanding the union of hit
+// indices is exactly {0, ..., count-1} makes that failure mode fail loudly instead of shipping
+// silently: an unreachable index leaves a gap in the observed set.
+func TestChainBeadsEveryIndexIsReachable(t *testing.T) {
+	const arc = 224.0 // matches the measured node-1 1->3 arc from the bug report
+	count := beadCount(arc)
+	if count == 0 {
+		t.Fatal("test arc produced zero beads; pick a larger arc")
+	}
+	seen := make(map[int]bool, count)
+	const steps = 100000
+	for i := 0; i <= steps; i++ {
+		d := arc * float64(i) / float64(steps)
+		t := d / arc
+		if t >= 1 {
+			t = math.Nextafter(1, 0) // sweep right up to, but not touching, t=1
+		}
+		idx, ok := litBeadIndex(t, arc)
+		if !ok {
+			continue
+		}
+		seen[idx] = true
+	}
+	for i := 0; i < count; i++ {
+		if !seen[i] {
+			t.Errorf("bead index %d of %d was never reached while sweeping t in [0,1) — unreachable tail bead", i, count)
+		}
+	}
+	if len(seen) != count {
+		t.Errorf("saw %d distinct indices, want exactly %d (0..count-1)", len(seen), count)
+	}
+}
+
 // The invariant two versions of litBeadIndex violated: two beads placed in ONE emission travel at
 // the same world speed, so after the same ELAPSED time they must light the same bead index —
 // whatever their edges' lengths. Node 1's edges differ 1.9% (259.208 vs 254.334 measured) and
@@ -122,19 +169,15 @@ func TestChainBeadsCountIsSpanProportional(t *testing.T) {
 // screen shows, and it is what caught t*centerDistance, where the per-edge (center/arc) ratio
 // reintroduced the offset that t*beadCount had.
 func TestLitBeadIndexSameElapsedLightsSameBead(t *testing.T) {
-	startAt := nodeRadius("Input") + ShadingParamBeadRadius
 	// Arcs are port-to-port and are NOT the center separations; give them a different ratio to
 	// each other than the centers have, so a version that multiplies by the wrong length fails.
 	longArc, shortArc := 259.208, 254.334
-	longCenters, shortCenters := 251.0, 249.5
-	longEnd := longCenters - nodeRadius("TimeStart") - ShadingParamBeadRadius
-	shortEnd := shortCenters - nodeRadius("PulseLeft") - ShadingParamBeadRadius
 
 	const pulseSpeed = 1.7 // any positive speed: it is shared by every wire
 	for elapsed := 0.0; elapsed < 120; elapsed += 0.25 {
 		covered := elapsed * pulseSpeed
-		gotLong, okLong := litBeadIndex(covered/longArc, longArc, startAt, longEnd)
-		gotShort, okShort := litBeadIndex(covered/shortArc, shortArc, startAt, shortEnd)
+		gotLong, okLong := litBeadIndex(covered/longArc, longArc)
+		gotShort, okShort := litBeadIndex(covered/shortArc, shortArc)
 		if !okLong || !okShort {
 			continue
 		}
@@ -148,12 +191,11 @@ func TestLitBeadIndexSameElapsedLightsSameBead(t *testing.T) {
 // One bead index per chainBeadSpacing of travel — the constant dwell the design rests on. If
 // this drifts, the lit bead is no longer moving at the uniform pulse speed.
 func TestLitBeadIndexAdvancesOncePerSpacing(t *testing.T) {
-	const length = 400.0
-	startAt := nodeRadius("Input") + ShadingParamBeadRadius
-	endAt := length - nodeRadius("Input") - ShadingParamBeadRadius
-	for i := 0; i < 10; i++ {
-		covered := startAt + float64(i)*chainBeadSpacing
-		got, ok := litBeadIndex(covered/length, length, startAt, endAt)
+	const arc = 400.0
+	count := beadCount(arc)
+	for i := 0; i < count; i++ {
+		covered := float64(i) * chainBeadSpacing
+		got, ok := litBeadIndex(covered/arc, arc)
 		if !ok {
 			t.Fatalf("bead %d: covered %.2f reported off-chain", i, covered)
 		}
@@ -163,16 +205,13 @@ func TestLitBeadIndexAdvancesOncePerSpacing(t *testing.T) {
 	}
 }
 
-// A bead short of the first chain bead, or past the last, lights nothing rather than clamping
-// onto an end bead — otherwise the first and last beads would appear stuck lit.
+// t outside [0,1) — before departure, or having arrived — lights nothing.
 func TestLitBeadIndexOffChainLightsNothing(t *testing.T) {
-	const length = 400.0
-	startAt := nodeRadius("Input") + ShadingParamBeadRadius
-	endAt := length - nodeRadius("Input") - ShadingParamBeadRadius
-	if _, ok := litBeadIndex(0, length, startAt, endAt); ok {
-		t.Error("t=0 (still at the node center) lit a bead; want nothing lit")
+	const arc = 400.0
+	if _, ok := litBeadIndex(-0.01, arc); ok {
+		t.Error("t<0 (not yet departed) lit a bead; want nothing lit")
 	}
-	if _, ok := litBeadIndex(1, length, startAt, endAt); ok {
-		t.Error("t=1 (arrived at the target center) lit a bead; want nothing lit")
+	if _, ok := litBeadIndex(1, arc); ok {
+		t.Error("t=1 (arrived at the target) lit a bead; want nothing lit")
 	}
 }

@@ -48,63 +48,74 @@ import "math"
 // than being its own knob: touching beads is the spec, so the step is a diameter.
 const chainBeadSpacing = 2 * ShadingParamBeadRadius
 
-// beadsInSpan is how many touching beads fit in the surface-to-surface span [startAt, endAt],
-// at constant chainBeadSpacing. Both the placement loop and the lit-index quantisation call
-// it, so they cannot disagree about how long the chain is — the bug that would put the lit
-// index past the last bead.
+// beadCount is how many touching beads fit along an arc of the given length, at constant
+// chainBeadSpacing. Both the placement loop and the lit-index quantisation work in this ONE
+// coordinate — distance travelled d along the arc, d in [0, arc] — so they cannot disagree
+// about how long the chain is. That disagreement (arc-length lighting against a
+// center-distance-minus-radii layout) was the bug: the tail of the chain sat past the
+// largest distance litBeadIndex could ever produce, so the last 1-2 beads of every edge were
+// never reachable. See docs/beads-are-the-edge.md and the arc-source doc comment on
+// chainBeads below.
 //
-// CONSEQUENCE worth stating: the span is center distance MINUS both node radii and two bead
-// radii, so it is not exactly proportional to arc length, and the lit bead's world speed
-// therefore varies slightly between pairs of different node KINDS (radius 15 vs radius 9
-// nodes swallow different amounts). memory/feedback_uniform_pulse_speed.md's uniform speed
-// holds for the wire's own ticksToCross, which is unchanged; it is the VISIBLE span that is
-// shortened. The old moving bead ran port-to-port and was shortened the same way, so this is
-// not a new deviation — but it is a real one, and it is not the constant-spacing derivation's
-// doing.
-func beadsInSpan(startAt, endAt float64) int {
-	if endAt < startAt {
+// count = floor(arc / spacing): the number of FULL spacing-wide intervals that fit inside
+// [0, arc]. FLOOR, not ceil — this is what keeps the last bead from ever overshooting past
+// the target's surface (see chainBeads' offset comment): with count*spacing <= arc always
+// true by construction, the last bead's far edge (at selfR + count*spacing) never passes
+// the target surface (at selfR + arc), landing exactly tangent when arc is an exact multiple
+// of spacing and strictly outside otherwise. A ceil-rounded count was tried and rejected: for
+// an arc that is not an exact multiple, ceil admits a final PARTIAL interval whose bead can
+// overshoot the target surface by up to a full spacing (nearly one whole bead diameter) —
+// the very "buried in the target" defect this design exists to rule out.
+//
+// Every index in [0, count-1) is still reachable by some d < arc — litBeadIndex's floor over
+// [0, count*spacing) covers all of them before d ever reaches the (< one spacing) leftover
+// tail beyond count*spacing; that tail floors to `count` and is clamped onto the last bead
+// (index count-1), which is why litBeadIndex clamps rather than reporting !ok there. No bead
+// is ever unreachable, and the FIRST bead is always reachable at d=0. See
+// docs/beads-are-the-edge.md and the arc-source doc comment on chainBeads below.
+func beadCount(arc float64) int {
+	if arc <= 0 {
 		return 0
 	}
-	return int((endAt-startAt)/chainBeadSpacing) + 1
+	return int(arc / chainBeadSpacing)
 }
 
-// litBeadIndex maps a bead's progress onto the index of the chain bead it currently occupies,
-// for a chain spanning [startAt, endAt]. ok is false when the bead is not over the chain (before
-// the first bead or past the last), in which case nothing is lit.
+// litBeadIndex maps a bead's progress t (elapsed/ticksToCross, this edge's OWN t) onto the
+// index of the chain bead it currently occupies, for a chain of the given arc. ok is false
+// only when t is outside [0, 1) — off the edge entirely — never because the geometry ran out
+// of beads: an index at or past beadCount(arc) is clamped onto the last bead rather than
+// reported off-chain (see beadCount's doc comment for why that tail exists).
 //
-// It converts to DISTANCE COVERED first, and the length it multiplies by must be the bead's OWN
-// ARC — the geometry its t was computed against. Then
+// arc must be the SAME arc beadCount/chainBeads used to lay the chain out — two different
+// lengths for layout vs. lighting is exactly the drift that caused the unreachable-tail bug
+// this replaces (docs/beads-are-the-edge.md).
 //
 //	t*arc = (elapsed/ticksToCross)*arc = elapsed*pulseSpeed
 //
 // which is the same for every edge, so each index lasts exactly chainBeadSpacing/pulseSpeed
-// ticks everywhere. That is the constant dwell docs/beads-are-the-edge.md rests on: two beads
-// placed in one emission advance bead-for-bead whatever the edge lengths, and a longer edge
-// simply has further to go.
+// ticks everywhere — the constant dwell docs/beads-are-the-edge.md rests on.
 //
-// Two versions of this were wrong in the same way, each with a length that was not the arc:
-//
-//   - int(t * beadCount) — t climbs faster on a shorter edge, so equal counts stepped at
-//     unequal rates. Node 1's edges differ 1.9% in length while BOTH chains hold 28 beads.
-//   - t * centerDistance — off by (centerDistance/arc), which differs per edge because the arc
-//     is port-to-port geometry and the center separation is not.
-//
-// Both read on screen as one bead permanently ahead of the other.
-//
-// FLOOR, not round. The lit bead is the last one the traversal has reached, which is what floor
-// means; round would instead light the NEAREST, and that ties exactly halfway between two beads.
-// A tie is not academic here: the two edges reach the same distance via different t values, so
-// float error decides the tie differently per edge and the two chains disagree by a bead at every
-// midpoint. A test asserts the two edges agree at equal distance and it caught exactly that.
-func litBeadIndex(t, arc, startAt, endAt float64) (int, bool) {
-	// epsilon: t*length is a float round-trip (t was itself elapsed/ticksToCross), so a bead
-	// sitting EXACTLY on bead i's position can land a hair under it and floor to i-1. A bead's
-	// own position is a reachable value, not an edge case, so nudge before flooring. 1e-9 against
-	// a spacing of 8 world units is far below anything visible and far above float noise.
-	const eps = 1e-9
-	idx := int(math.Floor((t*arc - startAt + eps) / chainBeadSpacing))
-	if idx < 0 || idx >= beadsInSpan(startAt, endAt) {
+// FLOOR, not round. The lit bead is the last one the traversal has reached, which is what
+// floor means; round would instead light the NEAREST, and that ties exactly halfway between
+// two beads — not academic here, since two edges reach the same distance via different t
+// values and float error would decide the tie differently per edge
+// (TestLitBeadIndexSameElapsedLightsSameBead pins this).
+func litBeadIndex(t, arc float64) (int, bool) {
+	if t < 0 || t >= 1 || arc <= 0 {
 		return 0, false
+	}
+	// epsilon: t*arc is a float round-trip (t was itself elapsed/ticksToCross), so a bead
+	// sitting EXACTLY on bead i's position can land a hair under it and floor to i-1. A
+	// bead's own position is a reachable value, not an edge case, so nudge before flooring.
+	// 1e-9 against a spacing of 8 world units is far below anything visible and far above
+	// float noise.
+	const eps = 1e-9
+	idx := int(math.Floor((t*arc + eps) / chainBeadSpacing))
+	if idx < 0 {
+		return 0, false
+	}
+	if n := beadCount(arc); idx >= n {
+		idx = n - 1
 	}
 	return idx, true
 }
@@ -148,23 +159,46 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 		}
 		offset := target.Sub(self)
 		length := offset.Length()
-		// The chain runs between the two node SURFACES, not between their centers. A bead
-		// placed by distance-from-center alone sits INSIDE a node whenever that distance is
-		// under the node's radius — which it was at BOTH ends: the first bead (one spacing =
-		// 8 out) fell inside a radius-15 node, and the count ran to the target's center so
-		// the last beads were inside the target.
+		selfR := nodeRadius(m.geom.Kind)
+
+		// arc is the ONE length both the layout below and the lighting above must agree
+		// on — divergence between them is exactly what caused the unreachable-tail bug
+		// (docs/beads-are-the-edge.md): litBeadIndex used to multiply t by the wire's
+		// PUBLISHED port-to-port ArcLength while the chain was laid out to a DIFFERENT,
+		// center-distance-minus-radii length, so the chain's tail sat past the largest
+		// distance the lit index could ever reach.
 		//
-		// Both radii are already node-local data: this node's own kind, and the target's kind
-		// from m.cascadeKinds (stored per node in cascade-edges.json). Nothing new has to be
-		// fetched or messaged for this.
+		// Preferred source: this edge's own *wire.Out, bound alongside outWires in
+		// moverRegistry.bind (outWireOuts, node_mover.go) — its Geom().ArcLength is the
+		// authoritative port-to-port arc PublishGeom sets from the loaded/edited
+		// geometry, the same value the wire's own t = elapsed/ticksToCross was computed
+		// against.
 		//
-		// A bead's own radius is added at each end too, so the end beads sit TANGENT outside
-		// the spheres rather than half-buried in them.
-		startAt := nodeRadius(m.geom.Kind) + ShadingParamBeadRadius
-		endAt := length - nodeRadius(m.cascadeKinds[to]) - ShadingParamBeadRadius
-		if endAt < startAt {
-			// The two nodes are close enough that no bead fits in the gap between their
-			// surfaces. Emit none rather than beads buried in one node or the other.
+		// Fallback (required, not optional): ArcLength is 0 before geometry is
+		// published (early startup) and bare nodeMovers built directly in tests have no
+		// Out at all (outWireOuts is nil then). In both cases fall back to the local
+		// surface-to-surface estimate — all node-local data (this node's own kind, the
+		// target's kind from cascadeKinds, and the center distance already computed
+		// above) — so a chain still lays out before geometry exists or under test. The
+		// published arc wins whenever it is available and nonzero.
+		arc := 0.0
+		for i, wt := range m.outWireTargets {
+			if wt != to || i >= len(m.outWireOuts) || m.outWireOuts[i] == nil {
+				continue
+			}
+			if a := m.outWireOuts[i].Geom().ArcLength; a > 0 {
+				arc = a
+				break
+			}
+		}
+		if arc <= 0 {
+			arc = length - selfR - nodeRadius(m.cascadeKinds[to])
+		}
+		count := beadCount(arc)
+		if count == 0 {
+			// Either the estimate collapsed to <=0 (nodes close enough that no bead
+			// fits in the surface-to-surface gap) or the published arc is somehow
+			// nonpositive. Emit none rather than beads buried in one node or the other.
 			continue
 		}
 		dir := offset.Normalize()
@@ -173,50 +207,38 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 		// that drives that wire — see nodeMover.outWires), so LiveBeadFractions' single-
 		// goroutine contract holds and no other goroutine's state is touched.
 		//
-		// t is the only thing the animation needs: the chain is fixed, so "where has this
-		// traversal got to" is one number. index = t × count is that number quantised onto
-		// the beads that already exist — arithmetic on an index, not a re-derived position
-		// (memory/feedback_abc_times_constant_not_rederive.md).
 		// index -> the traversing bead's VALUE. The value travels because the lit bead takes
 		// bead 0's or bead 1's own fill: a bare "is lit" flag could not say which.
 		litIdx := map[int]int32{}
-		for i, target := range m.outWireTargets {
-			if target != to || m.outWires[i] == nil {
+		for i, wt := range m.outWireTargets {
+			if wt != to || m.outWires[i] == nil {
 				continue
 			}
 			for _, p := range m.outWires[i].LiveBeadFractions(tick) {
-				// Quantised onto the beads that actually exist — the surface-to-surface span,
-				// not the center-to-center length, or the lit index would run off the end of
-				// the chain by however many beads the two node radii swallow.
-				// From DISTANCE COVERED, not from the fraction. p.T is elapsed /
-				// ticksToCross, and ticksToCross = arcLength / pulseSpeed, so t climbs
-				// FASTER on a shorter edge. Quantising t onto the bead count therefore
-				// steps two chains at different rates: node 1's edges measure 259.2 and
-				// 254.3, a 1.9% difference, which drifts the two lit indices apart by up
-				// to half a bead and reads as a permanent one-bead offset between the two
-				// animations. Both chains have the same bead count, so the count was never
-				// the problem — the RATE was.
-				//
-				// p.T*length is world distance from this node's center; subtracting startAt
-				// and dividing by the spacing gives the bead index. Each index then lasts
-				// exactly spacing/pulseSpeed ticks on EVERY edge, which is the constant
-				// dwell the design rests on (docs/beads-are-the-edge.md): two beads placed
-				// in one emission advance bead-for-bead regardless of edge length, and a
-				// longer edge simply has further to go.
-				//
-				// p.Arc, NOT this edge's center separation: only the bead's own arc turns t
-				// back into the distance it has actually covered.
-				if idx, ok := litBeadIndex(p.T, p.Arc, startAt, endAt); ok {
+				// p.Arc is this bead's OWN arc — the geometry its t was computed
+				// against — and must be the same value as `arc` above (both come from
+				// the same Out.Geom().ArcLength once published); passed straight to
+				// litBeadIndex rather than re-deriving, so lighting and layout can never
+				// read two different lengths again.
+				if idx, ok := litBeadIndex(p.T, p.Arc); ok {
 					litIdx[idx] = int32(p.Val)
 				}
 			}
 		}
-		// Length-proportional count, still at constant spacing — the property the uniform-speed
-		// argument above rests on. Index 0 is now the FIRST bead outside this node's surface,
-		// not this node's center.
-		count := beadsInSpan(startAt, endAt)
+		// One coordinate: distance travelled d along the arc. Bead i occupies
+		// [i*spacing, (i+1)*spacing), so its drawn offset from this node's centre is the
+		// CENTRE of that interval, measured out from this node's own surface:
+		// selfR + spacing/2 + i*spacing. chainBeadSpacing/2 == ShadingParamBeadRadius (a
+		// bead's own radius), so bead 0's near edge lands exactly tangent outside this
+		// node's surface, and — because count = floor(arc/spacing) keeps count*spacing <=
+		// arc always (beadCount's doc comment) — the last bead's far edge (selfR +
+		// count*spacing) never passes the target's surface (selfR + arc), landing exactly
+		// tangent inside it when arc is an exact multiple of spacing and strictly clear of
+		// it otherwise. "Beads never inside a node" therefore falls out of this geometry,
+		// not out of a separate startAt/endAt clamp.
 		for i := 0; i < count; i++ {
-			p := dir.Scale(startAt + float64(i)*chainBeadSpacing)
+			d := selfR + chainBeadSpacing/2 + float64(i)*chainBeadSpacing
+			p := dir.Scale(d)
 			ox = append(ox, float32(p.X))
 			oy = append(oy, float32(p.Y))
 			oz = append(oz, float32(p.Z))
