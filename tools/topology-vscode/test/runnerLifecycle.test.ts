@@ -262,3 +262,62 @@ describe("respawn / looping", () => {
   });
 
 });
+
+describe("restart() — hot-restart on .go change", () => {
+  it("does nothing and returns false when no sim is live (requirement 1: no side-effect spawn)", () => {
+    const r = newRunner();
+    expect(r.isRunning()).toBe(false);
+    expect(r.restart()).toBe(false);
+    expect(spawnMock).not.toHaveBeenCalled();
+  });
+
+  it("returns true, tears down the live proc, and respawns exactly once it closes", () => {
+    const r = newRunner();
+    r.run();
+    expect(spawnMock).toHaveBeenCalledTimes(1);
+
+    expect(r.restart()).toBe(true);
+    // The teardown is async (SIGTERM must land) — no second spawn until close fires.
+    expect(spawnMock).toHaveBeenCalledTimes(1);
+
+    spawned[0].emit("close", null); // as a real SIGTERM-killed process would report
+    expect(spawnMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("respawns against the SAME topologyPath the live run was started with (requirement 2)", () => {
+    const r = newRunner();
+    // run() reads counts.json from a nested "sub" dir here, proving the second spawn reused
+    // the SAME path rather than falling back to <repoRoot>/topology.
+    const subTopology = path.join(tmpDir, "sub-topology");
+    fs.mkdirSync(subTopology, { recursive: true });
+    fs.writeFileSync(path.join(subTopology, "counts.json"), JSON.stringify({ nodes: 0, edges: 0 }));
+    r.run(subTopology);
+    expect(spawnMock).toHaveBeenCalledTimes(1);
+    expect(spawnMock.mock.calls[0][1]).toEqual(["-topology", subTopology]);
+
+    r.restart();
+    spawned[0].emit("close", null);
+    expect(spawnMock).toHaveBeenCalledTimes(2);
+    expect(spawnMock.mock.calls[1][1]).toEqual(["-topology", subTopology]);
+  });
+
+  it("clears the cached last-view-frame across a restart so a remount can't replay pre-restart bytes (requirement 6)", () => {
+    function framed(bytes: number[]): Buffer {
+      const out = Buffer.alloc(4 + bytes.length);
+      out.writeUInt32LE(bytes.length, 0);
+      Buffer.from(bytes).copy(out, 4);
+      return out;
+    }
+    const r = newRunner();
+    r.run();
+    const onData = (spawned[0].stdio[4]!.on as ReturnType<typeof vi.fn>).mock.calls.find(
+      (c) => c[0] === "data",
+    )![1] as (d: Buffer) => void;
+    onData(framed([7, 7, 7]));
+    expect(r.getLastViewFrame()).toBeDefined();
+
+    r.restart();
+    spawned[0].emit("close", null); // teardown → respawn, which clears the cache
+    expect(r.getLastViewFrame()).toBeUndefined();
+  });
+});

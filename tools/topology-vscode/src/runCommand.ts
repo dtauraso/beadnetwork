@@ -398,6 +398,15 @@ export class BuildAndRunRunner {
 
   private topologyPath: string | undefined;
 
+  // Set by restart(), consumed by the close handler's cancelled branch. cancel() alone
+  // just stops the sim — it never respawns (that is the whole point of the cancelled/
+  // looping split above). restart() needs a respawn to follow ITS OWN cancel, but the
+  // close event is async (SIGTERM takes a beat to land), so the "please run() again once
+  // this process is actually gone" intent has to survive from restart()'s call to the
+  // close handler that fires later. A boolean is enough: restart() only ever needs to run
+  // against this.topologyPath (never a different one), so there's nothing else to carry.
+  private restartPending = false;
+
   constructor(
     private readonly onSnapshot?: (msg: HostToWebviewMsg & { type: "buffer-snapshot" }) => void,
   ) {}
@@ -621,6 +630,15 @@ export class BuildAndRunRunner {
       this.cancelled = false;
       if (cancelled) {
         this.channel!.appendLine("\n[cancelled]");
+        if (this.restartPending) {
+          // The respawn restart() asked for — funnels through the SAME run() every other
+          // spawn path uses (freshStreamState reset, cache clear, orphan reap), rather than
+          // a second spawn path that would have to duplicate all of it. run() with no
+          // argument reuses this.topologyPath, which restart() never touched — same
+          // topology the live run was started with.
+          this.restartPending = false;
+          this.run();
+        }
       } else if (looping) {
         // Natural exit while looping — respawn immediately.
         this.channel!.appendLine(code === 0 ? "\n[ok — restarting]" : `\n[exit ${code} — restarting]`);
@@ -833,6 +851,27 @@ export class BuildAndRunRunner {
 
   isRunning(): boolean {
     return this.proc !== undefined;
+  }
+
+  /**
+   * restart() re-spawns Go against the SAME topologyPath the live run was started with,
+   * for the hot-restart-on-.go-change feature (extension.ts's goWatcher). Returns false
+   * and does nothing if no sim is live — a caller must not spawn one as a side effect of
+   * editing a file (requirement 1 of that feature); starting a fresh sim is run()'s job,
+   * not restart()'s.
+   *
+   * Deliberately funnels through cancel() + the close handler's run() call (see
+   * restartPending) rather than introducing a second stop/spawn path: cancel() is already
+   * the one place that tears a live proc down cleanly (process-group SIGTERM, pendingStdin
+   * drop), and run() is already "the single reset point every restart path funnels
+   * through" (see its freshStreamState comment) — this reuses both instead of duplicating
+   * either.
+   */
+  restart(): boolean {
+    if (!this.proc) return false;
+    this.restartPending = true;
+    this.cancel();
+    return true;
   }
 
   /** The most recent VIEW-stream frame (camera+overlay+scene), or undefined if none has
