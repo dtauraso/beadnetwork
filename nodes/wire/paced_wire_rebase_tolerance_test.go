@@ -35,7 +35,7 @@ func TestReviseInFlightGeometryRevisesInFlightSegment(t *testing.T) {
 	ctx := context.Background()
 	startSeg := WireSegment{Start: Vec3{}, End: Vec3{X: 1}}
 
-	if pw.Send(0, beadPlacement{InFlightMs: inFlightMs, Start: startSeg.Start, End: startSeg.End}) != SendPlaced {
+	if pw.Send(0, beadPlacement{InFlightMs: inFlightMs, Start: startSeg.Start, End: startSeg.End}, 0) != SendPlaced {
 		t.Fatalf("Send failed")
 	}
 	// Drain the placement into pw.inflight (the wire's own per-cycle drive).

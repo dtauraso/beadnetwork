@@ -69,7 +69,7 @@ func TestHoldFiresAndHoldsOnReceiveLean(t *testing.T) {
 		t.Fatal("timeout waiting for startup bead")
 	}
 
-	if !inSrc.PlaceDrivenAt(7).Live() {
+	if !inSrc.PlaceDrivenAt(7, clk.Tick()).Live() {
 		t.Fatal("PlaceDrivenAt returned false")
 	}
 

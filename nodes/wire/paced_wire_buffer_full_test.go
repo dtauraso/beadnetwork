@@ -30,7 +30,7 @@ func TestSendBufferFullIsNotTerminal(t *testing.T) {
 
 	// The wire is now full and NOT being drained (no DriveOneCycle call): Send
 	// must report SendBufferFull, not SendPlaced.
-	if got := pw.Send(999, beadPlacement{}); got != SendBufferFull {
+	if got := pw.Send(999, beadPlacement{}, 0); got != SendBufferFull {
 		t.Fatalf("Send on a full, undrained inCh = %v, want SendBufferFull", got)
 	}
 
@@ -40,7 +40,7 @@ func TestSendBufferFullIsNotTerminal(t *testing.T) {
 	pw.DriveOneCycle(ctx, 1)
 
 	// Send must now succeed: buffer-full was transient, not a one-way failure.
-	if got := pw.Send(1000, beadPlacement{}); got != SendPlaced {
+	if got := pw.Send(1000, beadPlacement{}, 1); got != SendPlaced {
 		t.Fatalf("Send after drain = %v, want SendPlaced (buffer-full must be recoverable, not terminal)", got)
 	}
 }
@@ -68,7 +68,7 @@ func TestDriveItemBufferFullDoesNotKillDriveLoop(t *testing.T) {
 		}
 	}
 
-	di := out.PlaceDrivenAt(42)
+	di := out.PlaceDrivenAt(42, 0)
 
 	if !di.BufferFull() {
 		t.Fatalf("DriveItem.BufferFull() = false on a full, undrained wire; want true")
@@ -93,7 +93,7 @@ func TestDriveItemBufferFullDoesNotKillDriveLoop(t *testing.T) {
 	// — the drive loop resumes placing beads after the transient condition
 	// clears, exactly as it must in production.
 	pw.DriveOneCycle(ctx, 1)
-	di2 := out.PlaceDrivenAt(43)
+	di2 := out.PlaceDrivenAt(43, 1)
 	if !di2.Live() {
 		t.Fatalf("PlaceDrivenAt after drain = %+v, want Live() true (drive loop must resume placing)", di2)
 	}

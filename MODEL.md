@@ -66,10 +66,17 @@ the network itself is the nodes-and-wires Go runtime.
 - **Clock (the human-speed clock).** There is exactly one clock: the system monotonic clock, read through a **scale** so it advances in integer **ticks** at human-watchable speed (`tick = ⌊(now − start) / tickPeriod⌋`; the scale is the human-speed / playback-speed knob, `MsPerTick = 16` ⇒ ≈62.5 ticks/sec). All timing is **tick counts**, not wall-clock durations. The model is **sleep-only**: a pacing loop calls `SleepCycle` to wait exactly ONE cycle and re-reads `Tick()`, rather than blocking on a target tick — there is no wait-until-tick-k primitive. The clock is **free-running**: it advances monotonically with wall time and never pauses (there is no play/pause gate). **Everything that animates runs in these ticks:** bead traveling, all in-node animations, and all node/gate processing windows. Per-update tick counts come from formulas, not literals — a bead crossing an edge takes `ticksToCross = arcLength / pulseSpeed` (pulseSpeed in world-units-per-tick, uniform across wires); node processing windows are tick counts. There is no separate render cadence — the tick IS the animation clock.
   A wire is stepped with its SOURCE NODE's own clock copy and tick reading,
   exactly like every other per-goroutine clock use — there is no shared
-  clock to pin a tick against. (A caller-pinned tick parameter existed earlier so several
-  wires observed the SAME tick instead of each re-reading one shared
-  clock; once every goroutine owns its own clock copy, including the
-  wire, that reason for pinning is gone.)
+  clock to pin a tick against. But a bead's **placement tick** (when it
+  started crossing) is a DIFFERENT reading than the step tick that later
+  advances it: placement is decided by the **emitting** goroutine, at the
+  moment it calls `Send`, from its own clock, once per emission — not
+  re-derived later by whichever goroutine happens to drain the wire's
+  in-channel. This is what lets several beads placed in one emission (a
+  broadcast fan-out) provably share one placement tick: reading a fresh
+  clock value per wire in the drain pass can straddle a tick boundary
+  between two beads placed microseconds apart, splitting one emission
+  across two ticks (the observed bug this fixed). Read once, stamp
+  everywhere, in the same call.
 
 ## Wire lifecycle
 

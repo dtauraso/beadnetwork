@@ -82,14 +82,23 @@ func (bp beadPlacement) streams() bool {
 	return bp.Node != ""
 }
 
-// placeRequest is what Send hands across the wire's in-channel: a bead value plus
-// the placement geometry it should be timed/drawn against. The WIRE's own
-// goroutine (driveOneCycle/drainPlacements) stamps placementTick from ITS OWN
-// clock reading when it drains this off inCh — the source node's tick plays no
-// part (MODEL.md: "The wire goroutine reads its OWN clock copy and its own tick").
+// placeRequest is what Send hands across the wire's in-channel: a bead value,
+// the placement geometry it should be timed/drawn against, and the tick to
+// stamp it with. The SENDING node's own goroutine reads its own clock ONCE per
+// emission and stamps placementTick here (MODEL.md's Clock bullet: "placement
+// is decided by the emitting goroutine, at the moment it calls Send, from its
+// own clock, once per emission — not re-derived later by whichever goroutine
+// happens to drain the wire's in-channel"). The wire itself is a passive
+// struct with no goroutine of its own — it is drained by its source node's
+// mover (node_mover.go) — so it is no longer the reader. Moving the read to
+// the sender is what lets several beads placed in the same emission (e.g. a
+// broadcast fan-out) provably share one placementTick: reading a fresh clock
+// value per wire in the drain pass could straddle a tick boundary, splitting
+// one emission across two ticks.
 type placeRequest struct {
-	val int
-	bp  beadPlacement
+	val           int
+	bp            beadPlacement
+	placementTick int64
 }
 
 // inflightBead is one bead traversing the wire. Each bead carries its own
@@ -419,7 +428,7 @@ const (
 )
 
 // Send enqueues one bead placement onto this wire's IN-CHANNEL from the SOURCE
-// node's own goroutine (Out.placeDrivenNoWalkerAt). Non-blocking by construction:
+// node's own goroutine (Out.placeDrivenNoWalker). Non-blocking by construction:
 // the buffered channel means this call always succeeds immediately under any
 // realistic load, so the source never waits on the wire or the destination
 // (MODEL.md "Sending" — no back-pressure, ever). Returns SendBufferFull only if
@@ -428,13 +437,16 @@ const (
 // ever drain), never ordinary traffic. Emits ONE breadcrumb per occurrence (this
 // should never fire; it is a control-event signal, not a per-tick firehose) —
 // see CLAUDE.md's debug-breadcrumb section.
-func (pw *PacedWire) Send(v int, bp beadPlacement) SendOutcome {
+//
+// tick is the SENDER's own clock reading for this placement (read ONCE by the
+// caller, not by the wire — see placeRequest's doc comment).
+func (pw *PacedWire) Send(v int, bp beadPlacement, tick int64) SendOutcome {
 	// Report any breadcrumb drops from a PREVIOUS call before doing anything
 	// else this call — see flushDroppedBreadcrumbs' doc comment. A no-op when
 	// nothing has been dropped.
 	pw.flushDroppedBreadcrumbs()
 	select {
-	case pw.inCh <- placeRequest{val: v, bp: bp}:
+	case pw.inCh <- placeRequest{val: v, bp: bp, placementTick: tick}:
 		return SendPlaced
 	default:
 		if pw.Trace != nil {
@@ -484,32 +496,38 @@ func (pw *PacedWire) Recv() (int, bool) {
 	return v, ok
 }
 
-// DriveOneCycle is this wire's own single per-cycle unit of work: drain newly
-// Send-ed beads off inCh (stamping their placementTick from THIS call's tick —
-// the wire's own clock reading), advance every in-flight bead due at tick by one
-// position-step (emitting Position traces), and hand off any bead that has
-// reached its delivery deadline onto outCh (non-blocking — a destination that
-// hasn't drained yet simply leaves the bead retried next cycle, still at the
-// FIFO head).
+// DriveOneCycle is this wire's single per-cycle unit of work: drain newly
+// Send-ed beads off inCh (stamping their placementTick from req.placementTick
+// — the SENDING node's own clock reading, taken once at Send time, not read
+// here), advance every in-flight bead due at tick by one position-step
+// (emitting Position traces), and hand off any bead that has reached its
+// delivery deadline onto outCh (non-blocking — a destination that hasn't
+// drained yet simply leaves the bead retried next cycle, still at the FIFO
+// head).
 //
-// In production this is called ONLY by edgeMover.run (node_mover.go), once per
-// cycle, on that goroutine's OWN clock tick — the wire's goroutine IS the edge's
-// goroutine (MODEL.md "The network"). It is exported so tests that build a bare
-// PacedWire directly (no full loader topology, hence no edgeMover to drive it)
-// can spawn their own driving goroutine that mimics production's per-cycle drive,
-// exactly as StepOnceAt's callers used to.
+// In production this is called ONLY by the source node's own mover
+// (nodeMover.run, node_mover.go), once per cycle for each of that node's
+// outWires — the wire has no goroutine of its own; it is a passive struct
+// stepped by whichever goroutine drains it. tick here paces stepAll's
+// position-advance (the DRAINING side's own clock), which is a different
+// concern from placementTick (the SENDING side's clock) above. It is exported
+// so tests that build a bare PacedWire directly (no full loader topology,
+// hence no nodeMover to drive it) can spawn their own driving goroutine that
+// mimics production's per-cycle drive, exactly as StepOnceAt's callers used to.
 func (pw *PacedWire) DriveOneCycle(ctx context.Context, tick int64) {
 	if ctx.Err() != nil {
 		return
 	}
-	pw.drainPlacements(tick)
+	pw.drainPlacements()
 	pw.stepAll(tick)
 }
 
 // drainPlacements pops every placement currently queued on inCh (non-blocking)
-// and appends each as a fresh in-flight bead, stamping placementTick from tick —
-// THIS wire's own clock reading, taken once by the caller (driveOneCycle) per
-// cycle. Called only by this wire's own goroutine.
+// and appends each as a fresh in-flight bead, stamping placementTick from
+// req.placementTick — the SENDING node's own clock reading, taken once by
+// Send's caller at emission time (placeRequest's doc comment), not by this
+// drain. Called only by the wire's driver (its source node's mover — see the
+// PacedWire doc comment above; the wire itself has no goroutine).
 //
 // DRAIN-UNTIL-EMPTY, NOT AN ITERATION CAP (docs/planning/visual-editor/session-log.md Step 3, "the drain
 // loops"). This is the canonical instance of a shape repeated at several
@@ -532,14 +550,14 @@ func (pw *PacedWire) DriveOneCycle(ctx context.Context, tick int64) {
 //     ADD a new failure mode: a capped drain leaves items stranded in the
 //     channel for a full extra cycle, which is worse than draining all of
 //     them now. There is no capacity problem here to solve with a cap.
-func (pw *PacedWire) drainPlacements(tick int64) {
+func (pw *PacedWire) drainPlacements() {
 	for {
 		select {
 		case req := <-pw.inCh:
 			pw.nextGen++
 			pw.inflight = append(pw.inflight, inflightBead{
 				val:           req.val,
-				placementTick: float64(tick),
+				placementTick: float64(req.placementTick),
 				// arc (world units) is reconstructed from the reported ms latency via
 				// the FIXED ms→wu conversion (msToArcWu), so it is independent of the
 				// clock's tick speed.

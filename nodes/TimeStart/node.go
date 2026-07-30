@@ -40,13 +40,15 @@ type TimeStart struct {
 // them, returning the extended set. Invariant: gatecommon.NoValue (the empty-Held
 // sentinel) is never sent on an output channel — a fire whose Held is NoValue places
 // nothing on ToNext. Only the SEND is suppressed; Held still updates to the received
-// value in the caller. Delivery is timed by each wire's own goroutine, so the whole
-// broadcast animates concurrently with no further driving from this node.
-func placeHeld(outs wire.Broadcast, held int, items []wire.DriveItem) []wire.DriveItem {
+// value in the caller. tick is this goroutine's own clock reading, read ONCE by the
+// caller and stamped as every placed bead's placementTick, so the whole broadcast
+// provably starts on one tick even though each wire then advances/delivers its own
+// bead independently (concurrent traversal, shared start).
+func placeHeld(outs wire.Broadcast, held int, items []wire.DriveItem, tick int64) []wire.DriveItem {
 	if held == gatecommon.NoValue {
 		return items
 	}
-	return outs.PlaceDrivenAllAt(held, items)
+	return outs.PlaceDrivenAllAt(held, items, tick)
 }
 
 func (in *TimeStart) Update(ctx context.Context) {
@@ -128,9 +130,14 @@ func (in *TimeStart) Update(ctx context.Context) {
 				// Place the ToNext broadcast beads WITHOUT walkers. prevHeld is
 				// the OLD held value (captured before updating in.Held) so the
 				// ordering is explicit.
+				// placeTick is this goroutine's own clock reading, read ONCE before
+				// placing so every ToNext bead of this emission shares it (placeHeld's
+				// doc comment) and the processing-window deadline below is computed
+				// from the same reading the beads were actually stamped with.
+				placeTick := clk.Tick()
 				var items []wire.DriveItem
 				prevHeld := in.Held
-				items = placeHeld(in.ToNext, prevHeld, items)
+				items = placeHeld(in.ToNext, prevHeld, items, placeTick)
 				in.Held = value
 
 				// No live bead placed (suppressed sentinel broadcast) ⇒ no real
@@ -139,7 +146,6 @@ func (in *TimeStart) Update(ctx context.Context) {
 				// (arcLength/pulseSpeed, ms-latency / MsPerTick) counted from
 				// this placement tick — a formula over the node's own outputs,
 				// not a query of wire state.
-				placeTick := clk.Tick()
 				var maxTicks float64
 				anyLive := false
 				for i, di := range items {

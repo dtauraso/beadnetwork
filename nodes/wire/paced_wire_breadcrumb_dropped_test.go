@@ -41,7 +41,7 @@ func TestBreadcrumbDropsAreCountedAndReported(t *testing.T) {
 	// every call after the 4th SendBufferFull breadcrumb should drop.
 	const sends = 10
 	for i := range sends {
-		if got := pw.Send(i, beadPlacement{}); got != SendBufferFull {
+		if got := pw.Send(i, beadPlacement{}, 0); got != SendBufferFull {
 			t.Fatalf("Send(%d) on a full, undrained inCh = %v, want SendBufferFull", i, got)
 		}
 	}
@@ -63,7 +63,7 @@ func TestBreadcrumbDropsAreCountedAndReported(t *testing.T) {
 
 	// The NEXT Send call must report the drop before doing anything else
 	// (flushDroppedBreadcrumbs, called at Send's top).
-	if got := pw.Send(sends, beadPlacement{}); got != SendBufferFull {
+	if got := pw.Send(sends, beadPlacement{}, 0); got != SendBufferFull {
 		t.Fatalf("Send = %v, want SendBufferFull", got)
 	}
 

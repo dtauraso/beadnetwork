@@ -79,19 +79,19 @@ func TestPacerChangeStepFeedbackLean(t *testing.T) {
 	}
 
 	// First value ever seen -> step=1 (change from noValue).
-	if !inSrc.PlaceDrivenAt(5).Live() {
+	if !inSrc.PlaceDrivenAt(5, clk.Tick()).Live() {
 		t.Fatal("PlaceDrivenAt returned false")
 	}
 	waitFor(1)
 
 	// Same value again -> step=0.
-	if !inSrc.PlaceDrivenAt(5).Live() {
+	if !inSrc.PlaceDrivenAt(5, clk.Tick()).Live() {
 		t.Fatal("PlaceDrivenAt returned false")
 	}
 	waitFor(0)
 
 	// Different value -> step=1.
-	if !inSrc.PlaceDrivenAt(6).Live() {
+	if !inSrc.PlaceDrivenAt(6, clk.Tick()).Live() {
 		t.Fatal("PlaceDrivenAt returned false")
 	}
 	waitFor(1)

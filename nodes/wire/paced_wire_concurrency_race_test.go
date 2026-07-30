@@ -77,10 +77,15 @@ func TestPacedWireOwnershipUnderRace(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+		// This goroutine's OWN clock copy — Send now reads the SENDER's clock
+		// once per emission and stamps it as placementTick (placeRequest's doc
+		// comment), so this source role needs a clock of its own rather than
+		// sharing the wire-driving goroutine's clk above.
+		srcClk := NewRealClock()
 		val := 0
 		for time.Now().Before(deadline) {
 			val++
-			pw.Send(val, beadPlacement{InFlightMs: 4, Start: Vec3{}, End: Vec3{X: 1}, Node: "src", Port: "Out"})
+			pw.Send(val, beadPlacement{InFlightMs: 4, Start: Vec3{}, End: Vec3{X: 1}, Node: "src", Port: "Out"}, srcClk.Tick())
 			time.Sleep(time.Millisecond)
 		}
 	}()

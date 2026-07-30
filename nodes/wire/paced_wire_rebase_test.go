@@ -35,7 +35,7 @@ func TestReviseInFlightGeometryPreservesFractionAcrossArcChange(t *testing.T) {
 	newArc := newCrossTicks * PulseSpeedWuPerTick
 
 	// Place via the production path (Send + DriveOneCycle), stamped at tick 0.
-	if pw.Send(0, beadPlacement{InFlightMs: oldCrossTicks * MsPerTick, Start: Vec3{}, End: Vec3{X: 1}}) != SendPlaced {
+	if pw.Send(0, beadPlacement{InFlightMs: oldCrossTicks * MsPerTick, Start: Vec3{}, End: Vec3{X: 1}}, placedAt) != SendPlaced {
 		t.Fatalf("Send failed")
 	}
 	pw.DriveOneCycle(context.Background(), placedAt)

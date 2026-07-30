@@ -97,9 +97,10 @@ func DriveHeld(ctx context.Context, out *wire.Out, heldCh <-chan int64, transfor
 		}
 		// tick returns the current tick off this goroutine's own clock copy
 		// whenever one exists (clk != nil), or 0 on a genuinely clock-less build
-		// (unit tests with no loader). Used only to pace placement against K
-		// below; the wire itself now stamps its own placementTick when it drains
-		// the send, independent of this reading. This must NOT be gated on
+		// (unit tests with no loader). Used to pace placement against K below AND
+		// (as of the sender-stamps-placement-tick change) as the placementTick
+		// this goroutine itself stamps on each bead it places — the wire no
+		// longer reads its own clock at drain time. This must NOT be gated on
 		// `paced` — an Out with no wire but a real clock copy still has to stay
 		// speed-aware (see the doc comment above).
 		tick := func() int64 { return 0 }
@@ -151,7 +152,12 @@ func DriveHeld(ctx context.Context, out *wire.Out, heldCh <-chan int64, transfor
 				// else: geometry not yet known — don't place this cycle.
 			}
 			if place {
-				di := out.PlaceDrivenAt(transform(cur))
+				// placeTick is this goroutine's own clock reading, read ONCE for
+				// this placement (not re-read below) — stamped as the bead's
+				// placementTick and reused for the pacing bookkeeping so both
+				// agree on when this send actually happened.
+				placeTick := tick()
+				di := out.PlaceDrivenAt(transform(cur), placeTick)
 				if di.Failed() {
 					return
 				}
@@ -160,7 +166,7 @@ func DriveHeld(ctx context.Context, out *wire.Out, heldCh <-chan int64, transfor
 				// lastPlaceTick; retry the placement next cycle instead of
 				// silently losing this drive goroutine forever.
 				if !di.BufferFull() && paced {
-					lastPlaceTick = tick()
+					lastPlaceTick = placeTick
 				}
 			}
 

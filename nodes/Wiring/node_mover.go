@@ -1039,8 +1039,13 @@ func (m *nodeMover) run(ctx context.Context) {
 		// edgeMover.run used to do for the wire; the wire has no goroutine of its own
 		// (docs/beads-are-the-edge.md step 3). Driving it here is also what makes
 		// LiveBeadFractions safe to read below: same goroutine, no shared state.
+		//
+		// Read the clock ONCE for this whole pass, not once per wire: a per-wire read
+		// can straddle a tick boundary mid-loop, splitting one emission's beads across
+		// two ticks even though they were placed microseconds apart.
+		outTick := m.clk.Tick()
 		for _, pw := range m.outWires {
-			pw.DriveOneCycle(ctx, m.clk.Tick())
+			pw.DriveOneCycle(ctx, outTick)
 		}
 		// Retry any pending sends (nm.pending/flushPending) every cycle — a
 		// destination that was full earlier may have drained since.

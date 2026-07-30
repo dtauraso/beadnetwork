@@ -253,10 +253,12 @@ func tryFireOnDwell(g *GateNode, w *gateWindow, now func() int64, fireResult fun
 	w.t0Set = false
 	w.dwellSet = false
 	emitInputs(g)
-	// Place the fire result without walking it to delivery. The wire's own
-	// goroutine times its traversal — the gate goroutine is never parked
-	// across the output traversal.
-	g.ToPassed.PlaceDrivenAt(result)
+	// Place the fire result without walking it to delivery. The wire's driver
+	// (its source node's mover) times its traversal — the gate goroutine is
+	// never parked across the output traversal. now() is this goroutine's own
+	// clock (injected by the caller, gate.go's Update loop) — read once here
+	// and stamped as this bead's placementTick.
+	g.ToPassed.PlaceDrivenAt(result, now())
 	return true
 }
 
