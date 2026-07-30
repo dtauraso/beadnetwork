@@ -4,14 +4,25 @@
 #
 # WHY THIS EXISTS (drift-checklist item #4 — "hidden repair loop"): the checklist asks "does
 # a second pass silently rewrite the answer before delivery?" A repo guard can't observe the
-# runtime, but every automated pass over a turn is a hook declared in settings.json. Today
-# all of them are non-mutating checks/reminders (stop-checks, delegate reminders, screenshot/
-# foreground-sim/bash-approval/open-html guards) — none transform output. This guard pins
-# that set: a NEW hook command that isn't on the allowlist fails the build, forcing a human
-# to look at it and confirm it is a check, not a silent output-rewriter, before allowlisting.
+# runtime, but every automated pass over a turn is a hook declared in settings.json. This
+# guard pins the set: a NEW hook command that isn't on the allowlist fails the build, forcing
+# a human to look at it and classify it before allowlisting.
 #
-# When you legitimately add a hook: add its script basename below WITH a one-word note that
-# it is check/reminder-only (never a rewriter). That review IS the point of the guard.
+# WHAT IS ACTUALLY BANNED is rewriting OUTPUT — a second pass that repairs the answer on its
+# way to the reader, so a problem looks solved instead of being surfaced. The reader cannot
+# tell the difference between "went right" and "went wrong and got patched", which is what
+# makes it drift rather than automation.
+#
+# Rewriting INPUT is a different act and is ALLOWED, under one condition: the hook must
+# DISCLOSE the change (PreToolUse `additionalContext` naming what it altered and why), so the
+# rewrite lands in the transcript instead of behind it. A disclosed input-rewrite adds
+# information; a silent output-rewrite removes it. This distinction was added deliberately
+# when git-runs-in-the-worktree.sh landed — the alternative was a deny-only hook that spent a
+# round trip telling the caller to re-issue a command the hook could already fix.
+#
+# When you legitimately add a hook: add its script basename below WITH a one-word note
+# classifying it — check/reminder, or disclosed input-rewrite. Never an output-rewriter.
+# That classification IS the point of the guard.
 #
 # Exit 0 clean, exit 1 with a report — auto-discovered by scripts/stop-checks.sh via the
 # tools/check-*.sh glob.
@@ -27,7 +38,8 @@ if [[ ! -f "$SETTINGS" ]]; then
   exit 1
 fi
 
-# Known hook scripts — each verified check/reminder-only (no output rewriting).
+# Known hook scripts — each verified to rewrite no OUTPUT. An input-rewriter is marked as
+# such and must disclose its change (see the doctrine note above).
 readonly ALLOWED=(
   "stop-checks.sh"              # Stop: runs the guard suite, blocks on failure
   "delegate-reminder-hook.py"  # UserPromptSubmit: prints a delegation nudge
@@ -36,6 +48,10 @@ readonly ALLOWED=(
   "bash-approve-guard.sh"      # PreToolUse(Bash): bash approval gate
   "check-no-foreground-sim.sh" # PreToolUse(Bash): blocks foreground sim runs
   "block-open-html-hook.py"    # PreToolUse(Bash): blocks opening html
+  "git-runs-in-the-worktree.sh" # PreToolUse(Bash): DISCLOSED INPUT-REWRITE — prefixes a
+                                # tree-less mutating git command with a cd to the task
+                                # worktree, and says so; denies when >1 worktree makes the
+                                # target ambiguous. Rewrites no output.
 )
 is_allowed() { local s="$1"; for a in "${ALLOWED[@]}"; do [[ "$s" == "$a" ]] && return 0; done; return 1; }
 
@@ -65,7 +81,8 @@ while IFS= read -r s; do
   [[ -z "$s" ]] && continue
   if ! is_allowed "$s"; then
     echo "UNKNOWN HOOK: '$s' is declared in $SETTINGS but not on the allowlist."
-    echo "  Confirm it is a CHECK/REMINDER (never rewrites output), then add it to ALLOWED in this guard."
+    echo "  Classify it first — check/reminder, or DISCLOSED input-rewrite (it states what it"
+    echo "  changed and why). An OUTPUT-rewriter is never allowed. Then add it to ALLOWED here."
     fail=1
   fi
 done <<< "$cmds"
