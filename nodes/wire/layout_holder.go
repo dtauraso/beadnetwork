@@ -27,13 +27,21 @@ import (
 const (
 	localStepTheta = math.Pi / 180 // 1 degree
 	localStepPhi   = math.Pi / 180 // 1 degree
-	// LocalStepR is exported (unlike its theta/phi siblings) because
-	// docs/bead-lattice.md's bead lattice is defined AS a multiple of it
-	// (BeadStepR = BeadStepCells * LocalStepR, bead_lattice.go): the bead
-	// lattice must stay a commensurate sublattice of the node lattice, so a
-	// change to this constant has to be visible to the file that derives from
-	// it rather than duplicated as a second literal that could drift.
-	LocalStepR = 2.0 // world units
+	// LocalStepR is exported (unlike its theta/phi siblings) because it is now
+	// DERIVED from the bead lattice rather than the other way around
+	// (docs/bead-lattice.md "The lattice is commensurate with the node
+	// lattice"): BeadStepR (bead_lattice.go) is fixed by the AUTHORED bead
+	// radius via tangency, and this node-lattice cell is BeadStepR spread over
+	// BeadStepCells (4) of them, so the bead lattice stays a commensurate
+	// sublattice of the node lattice by construction. This used to be the
+	// primitive (2.0, hand-picked) with BeadStepR computed FROM it; that
+	// direction was rejected because it forced the bead's visible size to be
+	// whatever fell out of 2.0, landing 11% smaller than the bead size David
+	// had actually chosen. Flipping which side is primitive changes this
+	// constant from 2.0 to 8.96/4 = 2.24 — every stored quantIR cell now
+	// measures 12% more, expanding the whole graph on load; that expansion is
+	// the accepted, agreed cost, not something to compensate for here.
+	LocalStepR = BeadStepR / BeadStepCells // world units; = 8.96 / 4 = 2.24
 	// localStepR is kept as a same-package alias so every other call site in
 	// this file (localPolarSteps/EffectiveSteps, both pre-dating the bead
 	// lattice) does not need touching just to read the new exported name.
