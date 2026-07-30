@@ -1,5 +1,7 @@
 package Wiring
 
+import "math"
+
 // chain_beads.go — the node-owned placeholder bead chain that IS the visual of an edge.
 // Design and staging: docs/beads-are-the-edge.md.
 //
@@ -64,6 +66,41 @@ func beadsInSpan(startAt, endAt float64) int {
 		return 0
 	}
 	return int((endAt-startAt)/chainBeadSpacing) + 1
+}
+
+// litBeadIndex maps a bead's fractional progress t along an edge of the given center-to-center
+// length onto the index of the chain bead it currently occupies, for a chain spanning
+// [startAt, endAt]. ok is false when the bead is not over the chain (before the first bead or
+// past the last), in which case nothing is lit.
+//
+// It converts t to DISTANCE first, and that is the whole point. t is elapsed/ticksToCross and
+// ticksToCross = arcLength/pulseSpeed, so t climbs faster on a shorter edge. Quantising t
+// straight onto the bead count steps two chains at different rates — node 1's two edges differ
+// by 1.9% in length, which drifted their lit indices apart by up to half a bead and read as a
+// permanent one-bead offset between the two animations. Both chains had the SAME bead count, so
+// the count was never the problem; the rate was.
+//
+// Working in distance makes each index last exactly chainBeadSpacing/pulseSpeed ticks on every
+// edge — the constant dwell docs/beads-are-the-edge.md rests on. Two beads placed in one
+// emission then advance bead-for-bead whatever the edge lengths, and a longer edge just has
+// further to go.
+//
+// FLOOR, not round. The lit bead is the last one the traversal has reached, which is what floor
+// means; round would instead light the NEAREST, and that ties exactly halfway between two beads.
+// A tie is not academic here: the two edges reach the same distance via different t values, so
+// float error decides the tie differently per edge and the two chains disagree by a bead at every
+// midpoint. A test asserts the two edges agree at equal distance and it caught exactly that.
+func litBeadIndex(t, length, startAt, endAt float64) (int, bool) {
+	// epsilon: t*length is a float round-trip (t was itself elapsed/ticksToCross), so a bead
+	// sitting EXACTLY on bead i's position can land a hair under it and floor to i-1. A bead's
+	// own position is a reachable value, not an edge case, so nudge before flooring. 1e-9 against
+	// a spacing of 8 world units is far below anything visible and far above float noise.
+	const eps = 1e-9
+	idx := int(math.Floor((t*length - startAt + eps) / chainBeadSpacing))
+	if idx < 0 || idx >= beadsInSpan(startAt, endAt) {
+		return 0, false
+	}
+	return idx, true
 }
 
 // chainBeads returns THIS node's own placeholder chain beads as node-local offsets, in
@@ -145,7 +182,25 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 				// Quantised onto the beads that actually exist — the surface-to-surface span,
 				// not the center-to-center length, or the lit index would run off the end of
 				// the chain by however many beads the two node radii swallow.
-				litIdx[int(p.T*float64(beadsInSpan(startAt, endAt)))] = int32(p.Val)
+				// From DISTANCE COVERED, not from the fraction. p.T is elapsed /
+				// ticksToCross, and ticksToCross = arcLength / pulseSpeed, so t climbs
+				// FASTER on a shorter edge. Quantising t onto the bead count therefore
+				// steps two chains at different rates: node 1's edges measure 259.2 and
+				// 254.3, a 1.9% difference, which drifts the two lit indices apart by up
+				// to half a bead and reads as a permanent one-bead offset between the two
+				// animations. Both chains have the same bead count, so the count was never
+				// the problem — the RATE was.
+				//
+				// p.T*length is world distance from this node's center; subtracting startAt
+				// and dividing by the spacing gives the bead index. Each index then lasts
+				// exactly spacing/pulseSpeed ticks on EVERY edge, which is the constant
+				// dwell the design rests on (docs/beads-are-the-edge.md): two beads placed
+				// in one emission advance bead-for-bead regardless of edge length, and a
+				// longer edge simply has further to go.
+				//
+				if idx, ok := litBeadIndex(p.T, length, startAt, endAt); ok {
+					litIdx[idx] = int32(p.Val)
+				}
 			}
 		}
 		// Length-proportional count, still at constant spacing — the property the uniform-speed
