@@ -14,7 +14,6 @@
 package wire
 
 import (
-	"fmt"
 	"math"
 )
 
@@ -163,25 +162,32 @@ func (lh *LayoutHolder) LocalPolarSteps(to string) (t, p, r float64) {
 // longer exists, bead_lattice.go), so a loaded separation has nothing to snap
 // to but itself.
 //
-// Fails LOUDLY on a stored StepR that disagrees with LocalStepR, the one THIS
-// bug actually was: an on-disk entry (topology/nodes/<id>/local-polars.json)
-// used to carry its own "stepR" and PLACEMENT trusted it verbatim
-// (LocalPolar.EffectiveSteps), while the edge-length COUNT was computed
-// against a different, hardcoded assumption of what the lattice step was — so
-// a stale stored constant silently overrode the lattice with nothing to
-// notice the two had drifted apart. A LocalPolar with StepR unset (0) still
-// falls back to LocalStepR via EffectiveSteps and is fine; a LocalPolar whose
-// StepR is EXPLICITLY set to something else is exactly the shape of the bug
-// that shipped, so it panics here instead of loading quietly.
-// TestLoadLocalPolarsRejectsDisagreeingStepR pins this.
+// NORMALIZES a stored StepR that disagrees with LocalStepR, rather than trusting
+// it. That disagreement is the bug this whole model closed: an on-disk entry
+// (topology/nodes/<id>/local-polars.json, and the legacy copy inside meta.json)
+// carried its own "stepR", PLACEMENT trusted it verbatim via EffectiveSteps, and
+// the edge-length COUNT measured against the lattice instead — so a stale stored
+// constant silently overrode the lattice and the beads ran into the node.
+// StepR unset (0) already falls back to LocalStepR and needs nothing.
+//
+// It PANICKED here first, and that was wrong in a way worth recording. The
+// process is respawned on exit by the editor's runner, so a panic at load is not
+// a loud failure — it is a CRASH LOOP: panic, respawn, panic, at whatever rate
+// the runner retries, which reached the live editor as an unreadable flicker
+// with no scene at all. "Fail loudly" has to mean something the operator can
+// read; a message that scrolls past hundreds of times a second is quieter than
+// no message. And the correct value is not in doubt — the lattice IS the
+// authority — so there is nothing here for a human to decide.
+//
+// Normalizing also SELF-HEALS the tree: the node's own mover rewrites its
+// local-polars.json from this in-memory state, so a stale file is corrected on
+// the next write instead of needing a migration pass that a running editor can
+// overwrite from memory before it lands (which is exactly what happened to the
+// first migration).
 func (lh *LayoutHolder) LoadLocalPolars(lps []LocalPolar) {
-	for _, lp := range lps {
-		if lp.StepR != 0 && math.Abs(lp.StepR-LocalStepR) > 1e-9 {
-			panic(fmt.Sprintf(
-				"LoadLocalPolars: local polar to %q stored stepR=%v, want wire.LocalStepR=%v — "+
-					"a per-entry step that disagrees with the lattice is the bead-penetration bug "+
-					"this rejects (docs/bead-lattice.md); migrate the stored value instead of loading it",
-				lp.To, lp.StepR, LocalStepR))
+	for i := range lps {
+		if lps[i].StepR != 0 && math.Abs(lps[i].StepR-LocalStepR) > 1e-9 {
+			lps[i].StepR = LocalStepR
 		}
 	}
 	lh.localPolars = lps
