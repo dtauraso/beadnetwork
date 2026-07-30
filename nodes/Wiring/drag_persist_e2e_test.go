@@ -207,6 +207,10 @@ func TestDragPersistsOnlyDraggedNodeAndRequantizesNeighborsOnDisk(t *testing.T) 
 	// existing bearing would leave theta/phi unchanged for that one neighbor and not
 	// exercise the "angle also changes" half of the model).
 	target := centerBefore["A"].Add(vec3{X: 90, Y: -70, Z: 55})
+	// wantA is the point the drag actually COMMITS to — the scene-lattice-snapped
+	// target, not the raw one (docs/which-lattice-a-node-lives-on.md; commitNodeMoveLocal
+	// now draws/persists the quantized position, never the continuous raw target).
+	wantA := quantizedDragTarget(md, "A", target)
 	if !md.RootMove("A", target) {
 		t.Fatal("RootMove(A) returned false")
 	}
@@ -257,10 +261,11 @@ func TestDragPersistsOnlyDraggedNodeAndRequantizesNeighborsOnDisk(t *testing.T) 
 	metaB := persistedMeta(t, root, "B")
 	metaC := persistedMeta(t, root, "C")
 
-	// (a) A's own persisted scenePolar/center changed to the drag target.
+	// (a) A's own persisted scenePolar/center changed to the QUANTIZED drag target — the
+	// lattice point the commit snapped to, not the raw continuous target.
 	gotA := persistedScenePolarCenter(t, metaA, md.ui.sceneSphere.Center)
-	if d := gotA.Sub(target).Length(); d > 1e-6 {
-		t.Fatalf("(a) A's persisted center should equal the drag target: persisted=%+v target=%+v (off by %g)", gotA, target, d)
+	if d := gotA.Sub(wantA).Length(); d > 1e-6 {
+		t.Fatalf("(a) A's persisted center should equal the quantized drag target: persisted=%+v want=%+v raw-target=%+v (off by %g)", gotA, wantA, target, d)
 	}
 
 	// (b) B's and C's persisted scenePolar/center are UNCHANGED.
@@ -358,8 +363,8 @@ func TestDragPersistsOnlyDraggedNodeAndRequantizesNeighborsOnDisk(t *testing.T) 
 	if !ok {
 		t.Fatal("A missing after reload")
 	}
-	if d := gotA2.Sub(target).Length(); d > 1e-6 {
-		t.Fatalf("reload: A did not round-trip to the drag target: got=%+v want=%+v", gotA2, target)
+	if d := gotA2.Sub(wantA).Length(); d > 1e-6 {
+		t.Fatalf("reload: A did not round-trip to the quantized drag target: got=%+v want=%+v raw-target=%+v", gotA2, wantA, target)
 	}
 	gotB2, ok := md2.centerOfNode("B")
 	if !ok {
