@@ -172,7 +172,11 @@ func (i *In) Breadcrumb(event, detail string) {
 
 // breadcrumbLabelFor maps a free-form Breadcrumb event string to its
 // T.BreadcrumbLabel* index for the structured buffer path. Only the closed set of
-// 9 known breadcrumb sites resolve; an unrecognized string returns ok=false.
+// 13 known breadcrumb sites resolve; an unrecognized string returns ok=false — and
+// check-breadcrumb-label-registered.sh fails the build if any Breadcrumb() call site's
+// literal label is missing from this switch/T.BreadcrumbLabels, so a new label can no
+// longer be silently dropped end to end the way probe.enterCommit/drag.jump/
+// probe.commitLocal were (memory/feedback_check_the_signal_the_check_emits).
 func breadcrumbLabelFor(event string) (uint8, bool) {
 	switch event {
 	case "topology-loaded":
@@ -193,6 +197,12 @@ func breadcrumbLabelFor(event string) (uint8, bool) {
 		return T.BreadcrumbWireSendBufferFull, true
 	case "cascade.root":
 		return T.BreadcrumbCascadeRoot, true
+	case "probe.enterCommit":
+		return T.BreadcrumbProbeEnterCommit, true
+	case "drag.jump":
+		return T.BreadcrumbDragJump, true
+	case "probe.commitLocal":
+		return T.BreadcrumbProbeCommitLocal, true
 	default:
 		return 0, false
 	}
