@@ -84,17 +84,23 @@ function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode
   );
 
 
-  // Hot-reload of the webview bundle (dev-loop).
-  const bundleWatcher =
-    context.extensionMode === vscode.ExtensionMode.Development
-      ? vscode.workspace.createFileSystemWatcher(
-          new vscode.RelativePattern(
-            vscode.Uri.file(path.join(context.extensionPath, "out")),
-            "webview.js",
-          ),
-        )
-      : undefined;
-  if (bundleWatcher) {
+  // Hot-reload of the webview bundle. Armed in every extension mode, not just
+  // Development: gating it on extensionMode was self-defeating. In a real
+  // install out/webview.js never changes, so an always-armed watcher costs one
+  // idle inotify handle and fires never; but the case that actually matters —
+  // a developer rebuilding the bundle while the editor tab is open, INCLUDING
+  // against an installed extension rather than an F5 dev host — is precisely
+  // what the gate suppressed, forcing a manual tab reload. This is safe
+  // because the webview holds no domain state (render-and-forward-only seam,
+  // guard: check-no-webview-state.sh): Go re-streams and main.tsx re-posts
+  // "ready" on remount, so a refreshed tab re-learns everything.
+  const bundleWatcher = vscode.workspace.createFileSystemWatcher(
+    new vscode.RelativePattern(
+      vscode.Uri.file(path.join(context.extensionPath, "out")),
+      "webview.js",
+    ),
+  );
+  {
     console.log("[topology] bundleWatcher armed for", path.join(context.extensionPath, "out", "webview.js"));
     let pending: NodeJS.Timeout | undefined;
     const reload = (kind: string) => () => {
@@ -107,8 +113,6 @@ function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode
     };
     bundleWatcher.onDidChange(reload("change"));
     bundleWatcher.onDidCreate(reload("create"));
-  } else {
-    console.log("[topology] bundleWatcher NOT armed — extensionMode:", context.extensionMode);
   }
 
   // Eager Go-binary watcher: rebuild the prebuilt binary the moment a .go file
