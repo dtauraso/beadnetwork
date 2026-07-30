@@ -97,10 +97,19 @@ func writeInteriorStreamFrame(out io.Writer, buildFrame func(tick uint32, presen
 		return
 	}
 	frame := buildFrame(tick, present, value, ox, oy, oz, events)
-	var hdr [4]byte
-	binary.LittleEndian.PutUint32(hdr[:], uint32(len(frame)))
+	// ONE Write call carrying [len:u32][payload] together, not two. The real fix for the
+	// framing desync (docs/interior-stream-framing.md) is giving every emitting goroutine
+	// its own fd (this file's out is now single-writer by construction — see
+	// Buffer.StreamKindDrive), but a single os.File.Write per frame is cheap insurance on
+	// top of that: even a single writer can, in principle, be interrupted between two
+	// separate Write() calls (a short write, a signal) and desync itself, and one Write
+	// closes that class entirely for the cost of one extra byte-slice allocation per
+	// frame (append, not a fixed scratch buffer, since frame's own backing array is
+	// buildFrame's and must not be mutated in place here).
+	buf := make([]byte, 4+len(frame))
+	binary.LittleEndian.PutUint32(buf[:4], uint32(len(frame)))
+	copy(buf[4:], frame)
 	// Fire-and-forget, same reasoning throughout this bridge: no delivery
 	// guarantee on this channel, errors ignored.
-	_, _ = out.Write(hdr[:])
-	_, _ = out.Write(frame)
+	_, _ = out.Write(buf)
 }

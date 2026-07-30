@@ -157,8 +157,13 @@ func init() {
 			n.Out1SpeedCh = a.SpeedCh()
 			n.OutFanoutSpeedCh = a.SpeedCh()
 			n.In = a.In("In")
-			n.Out = a.Out("Out")
-			n.OutFanout = a.Out("OutFanout")
+			// DriveOut, not Out: both Out and OutFanout are driven by their OWN
+			// gatecommon.DriveHeld goroutine below (driveOutput calls), a SEPARATE
+			// goroutine from this node's own Update loop — see DriveOut's doc
+			// comment and docs/interior-stream-framing.md. Distinct slots (0, 1):
+			// two DriveHeld goroutines on one node must never share a stream.
+			n.Out = a.DriveOut("Out", 0)
+			n.OutFanout = a.DriveOut("OutFanout", 1)
 			// EmitGeometry stays nil deliberately — nodeMover/edgeMover emit the same
 			// geometry from their own goroutine start (see builders.go's note).
 			return n, nil

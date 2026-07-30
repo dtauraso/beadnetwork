@@ -68,6 +68,35 @@ const StreamKindNode = "node"
 // beads change (Buffer.BuildInteriorStreamFrame) to fd = baseFd["interior"] + nodeRow.
 const StreamKindInterior = "interior"
 
+// DriveSlotsPerNode is the fixed number of dedicated DRIVE fds allocated per node row
+// (see StreamKindDrive below) — 2, matching the current maximum number of
+// gatecommon.DriveHeld goroutines any one node kind spawns (Pulse: Out + OutFanout;
+// every other DriveHeld-driving kind — PulseLeft, PulseRight, holdflip — spawns only
+// one). Allocated unconditionally per node row, same as StreamKindNode/StreamKindInterior
+// today (regardless of whether that row's kind actually uses DriveHeld) — this mirrors
+// the existing "one dedicated fd per node row, kind-agnostic" allocation shape rather
+// than introducing a second, kind-dependent counting scheme. Slots beyond a kind's own
+// DriveHeld count are simply never written (nil-safe, like every other unused stream) —
+// see nodes/Wiring/port_wiring.go's newDriveStreamGetter and CLAUDE.md's node-kind
+// landing rule: a THIRD DriveHeld call on one node's own output is not currently
+// possible without a code change, and this constant would need raising alongside it.
+const DriveSlotsPerNode = 2
+
+// StreamKindDrive is the per-DriveHeld-goroutine stream kind — the FIX for the framing
+// desync documented in docs/interior-stream-framing.md: gatecommon.DriveHeld spawns its
+// OWN goroutine per driven Out, independent of the node's own Update goroutine, and that
+// goroutine used to share the node's StreamKindInterior fd — two goroutines writing one
+// pipe with no lock between a frame's two Write() calls, which desyncs the reader (see
+// that doc for the full mechanism). Per this file's header contract ("one dedicated
+// inherited-stdio pipe per emitting goroutine"), each DriveHeld goroutine now gets its
+// OWN fd: one dedicated fd PER (NODE ROW, DRIVE SLOT), fd = baseFd["drive"] +
+// nodeRow*DriveSlotsPerNode + slot. Frames on this fd are the SAME shape as
+// StreamKindInterior (Buffer.BuildInteriorStreamFrame) — a DriveHeld goroutine only ever
+// records Send events via wire.Out.PlaceDrivenAt, and the reader treats a drive-slot
+// frame identically to an interior frame for the same node row (last-writer-wins on the
+// decoded snapshot; see runCommand.ts's handleInteriorFd/handleDriveFd).
+const StreamKindDrive = "drive"
+
 // StreamFDs is the parsed WIREFOLD_STREAM_FDS env var: kind name -> base fd number.
 type StreamFDs map[string]int
 

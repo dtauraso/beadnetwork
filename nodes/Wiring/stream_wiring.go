@@ -20,6 +20,12 @@ import (
 
 // streamWiring owns the fd directories the two dedicated-per-goroutine emitting streams
 // (interior, view) need — see MoveDispatch.sw's doc comment.
+// driveSlotsPerNode is a local copy of Buffer.DriveSlotsPerNode's value (2), kept here
+// rather than importing Buffer — same precedent as port_wiring.go's bufInteriorSlotsPerNode
+// (this package stays Buffer-independent; buildFrame/buildInteriorFrame are injected
+// funcs for the same reason).
+const driveSlotsPerNode = 2
+
 type streamWiring struct {
 	// interiorOuts holds ONE dedicated per-node interior-bead fd, keyed by node id — the
 	// SECOND emitting goroutine per node (its own Update loop, not its nodeMover) writes
@@ -37,6 +43,14 @@ type streamWiring struct {
 	// this package stays Buffer-independent, matching portRowFor/buildFrame's existing
 	// interface-injection pattern on edgeMover.
 	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte
+	// driveOuts holds DriveSlotsPerNode dedicated per-node DRIVE fds, keyed by node id —
+	// one PER gatecommon.DriveHeld goroutine that node spawns (Buffer.StreamKindDrive;
+	// docs/interior-stream-framing.md). Populated ONCE by setNodeStreams alongside
+	// interiorOuts, BEFORE any node's Update/DriveHeld goroutines launch. A nil slot
+	// entry (no WIREFOLD_STREAM_FDS "drive" entry, or a kind that doesn't use that slot)
+	// means writes through it are simply never made — nil-safe, same fallback shape as
+	// interiorOuts.
+	driveOuts map[string][driveSlotsPerNode]io.Writer
 	// --- the dedicated VIEW stream (memory/feedback_no_single_writer_bridge.md,
 	// memory/feedback_no_single_writer_bridge.md Step C) --- see view_stream.go.
 	//
@@ -96,10 +110,17 @@ func (sw *streamWiring) setEdgeStreams(
 // (geometry+ports+label), AND wires sw.interiorOuts + sw.buildInteriorFrame — every
 // node's own Update-loop closures (builders.go's injectClosures) look these up for its
 // own dedicated interior-fd — the two emitting goroutines per node (memory/
-// feedback_no_single_writer_bridge.md). nodeBase/interiorBase are the two fd ranges' base
-// fds; row is the STABLE node-seed order (nodeSeeds, the same spec order the Node block
-// uses). nodeRowFor/buildFrame/buildInteriorFrame are injected funcs (not
-// a Buffer import), matching setEdgeStreams' existing pattern. Selection/hover/abc-drag/
+// feedback_no_single_writer_bridge.md). It ALSO wires sw.driveOuts, one dedicated fd PER
+// (node row, drive slot) for each gatecommon.DriveHeld goroutine that node spawns (a
+// THIRD-and-beyond kind of emitting goroutine per node — docs/interior-stream-framing.md,
+// Buffer.StreamKindDrive), when driveWired is true; driveBase is then the drive fd
+// range's base fd. driveWired false leaves sw.driveOuts populated with nil-slot entries
+// only (see the loop body) — main.go requires "drive" present exactly when "node"/
+// "interior" are, so this parameter is a defense against a caller that doesn't. nodeBase/
+// interiorBase are the other two fd ranges' base fds; row is the STABLE node-seed order
+// (nodeSeeds, the same spec order the Node block uses). nodeRowFor/buildFrame/
+// buildInteriorFrame are injected funcs (not a Buffer import), matching setEdgeStreams'
+// existing pattern. Selection/hover/abc-drag/
 // kind are NOT injected lookups: each nodeMover owns its OWN selected/hovered/
 // latchedSel/gotDragMsg/dragDelta*/kindID fields, set via moveMsgKindSelect/Hover/
 // Latched/AbcReset messages (or, for kindID, once here at construction — a node's kind
@@ -109,6 +130,7 @@ func (sw *streamWiring) setNodeStreams(
 	nodeSeeds []NodeGeomSeed,
 	nodeMovers map[string]*nodeMover,
 	nodeBase, interiorBase int,
+	driveBase int, driveWired bool,
 	nodeRowFor func(id string) (int32, bool),
 	buildFrame func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount int32, gotForwardMsg uint8, forwardDeltaA, forwardDeltaB, forwardDeltaC, forwardFromRow int32, cascadeRelay uint8, label string, dstNodeRows []int32, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte,
 	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte,
@@ -116,6 +138,11 @@ func (sw *streamWiring) setNodeStreams(
 ) {
 	sw.interiorOuts = map[string]io.Writer{}
 	sw.buildInteriorFrame = buildInteriorFrame
+	// driveOuts is populated regardless of driveBase (0 when WIREFOLD_STREAM_FDS carries
+	// no "drive" entry): its slots then simply stay nil (io.Writer zero value), matching
+	// interiorOuts' own "populate the map, leave entries nil when the fd is absent"
+	// shape rather than leaving the whole map nil.
+	sw.driveOuts = map[string][driveSlotsPerNode]io.Writer{}
 	for row, seed := range nodeSeeds {
 		nm, ok := nodeMovers[seed.ID]
 		if !ok {
@@ -134,5 +161,19 @@ func (sw *streamWiring) setNodeStreams(
 
 		iFd := interiorBase + row
 		sw.interiorOuts[seed.ID] = os.NewFile(uintptr(iFd), fmt.Sprintf("interior-fd%d", iFd))
+
+		// One dedicated DRIVE fd per (node row, slot) — see Buffer.StreamKindDrive's
+		// doc comment for why this exists and driveBase's absence handling (driveBase==0
+		// only when the caller passed no "drive" WIREFOLD_STREAM_FDS entry; main.go
+		// requires "node"/"interior"/"drive" present together, so in production either
+		// all three resolve or none do).
+		if driveWired {
+			var slots [driveSlotsPerNode]io.Writer
+			for slot := 0; slot < driveSlotsPerNode; slot++ {
+				dFd := driveBase + row*driveSlotsPerNode + slot
+				slots[slot] = os.NewFile(uintptr(dFd), fmt.Sprintf("drive-fd%d", dFd))
+			}
+			sw.driveOuts[seed.ID] = slots
+		}
 	}
 }
