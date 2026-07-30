@@ -287,28 +287,73 @@ func spawnDedicatedAllStreams(t *testing.T, binPath, repoRoot string) *dedicated
 	return ds
 }
 
-// readLastFrames reads up to maxFrames from each of reads (bounded, non-blocking-in-effect
-// since production keeps emitting on a change/tick cadence) and returns the LAST complete
-// frame seen per row — the current, settled state, not the very first (possibly still-
-// degenerate) one.
-func readLastFrames(t *testing.T, reads []*os.File, kind string, maxFrames int) map[int][]byte {
+// settleWindow bounds how long readLastFrames spends per row before taking whatever frame
+// arrived last. See docs/headless-test-latency.md.
+//
+// The original plan here was a per-frame IDLE timeout (reset the read deadline after every
+// frame; stop once a read times out, i.e. the stream went quiet). That works for VIEW,
+// which really is event-driven and goes quiet almost immediately. It does NOT work for
+// NODE/EDGE/INTERIOR: probing the real binary showed those goroutines call
+// writeStreamFrame every clock cycle UNCONDITIONALLY (nodeMover.run's "write this node's
+// dedicated stream frame every cycle... mirroring edgeMover.run's same every-cycle
+// writeStreamFrame call"), at roughly a 17ms cadence, and edge frames additionally carry
+// live in-flight bead position data that changes every single frame for as long as any
+// bead is on the wire (this repo's topology has a self-feeding ring, so that is forever in
+// a headless run with no pointer input). Neither stream ever goes idle, so a per-frame
+// idle timeout degenerates back to "wait for the child to die at the 20s deadline" — the
+// exact problem being fixed.
+//
+// So this is a single WALL-CLOCK BUDGET per row, not idle-since-last-frame: the deadline is
+// set ONCE before the loop starts and is not renewed on each read. Node/edge/interior
+// streams settle their STRUCTURAL fields (ports, ids, geometry) within the first couple of
+// frames (confirmed by probing: node payload minus its tick prefix is byte-identical from
+// frame 2 onward) — the bead noise that keeps arriving after that on edge streams is
+// exactly what these tests don't assert on, so taking "whatever's last inside the budget"
+// is the settled value they need. VIEW, which may emit nothing at all after its startup
+// frame, is bounded by the same budget instead of running until 20s.
+const settleWindow = 250 * time.Millisecond
+
+// readLastFrames reads frames from each of reads and returns the LAST complete frame seen
+// per row — the current, settled state, not the very first (possibly still-degenerate) one.
+//
+// The FIRST frame per row is read with NO deadline (this call already relies on the
+// caller's runCtx as the hang backstop, same as before this change): under a loaded test
+// machine — e.g. this whole package running alongside every other package's `go test`, each
+// spawning its own `go build` — the time from Start() to the child's first write can exceed
+// a short fixed budget for reasons that have nothing to do with the stream itself (process
+// scheduling, disk, compiler contention), and a fixed budget was observed to flake there.
+// Only ONCE a row's stream has actually started producing does the settleWindow budget
+// start, and it bounds how much longer this reads for a row that has begun (a stream that
+// never starts is still caught below — "fatal if not even one frame arrived" — via runCtx,
+// exactly like the maxFrames version this replaced).
+//
+// A read timeout (os.ErrDeadlineExceeded) after the first frame is the expected, successful
+// end condition — see settleWindow's doc comment for why this is a wall-clock budget, not
+// per-frame idle-since-last. Any OTHER read error after the first frame ends the row the
+// same way (treated as end-of-stream, keeping the last frame seen).
+func readLastFrames(t *testing.T, reads []*os.File, kind string) map[int][]byte {
 	t.Helper()
 	out := make(map[int][]byte, len(reads))
 	for row, f := range reads {
 		r := bufio.NewReader(f)
-		var last []byte
-		for i := 0; i < maxFrames; i++ {
+		if err := f.SetReadDeadline(time.Time{}); err != nil {
+			t.Fatalf("SetReadDeadline (clear, %s row %d): %v", kind, row, err)
+		}
+		first, err := readOneRawFrame(r)
+		if err != nil {
+			t.Fatalf("readOneRawFrame (%s row %d), frame 0: %v", kind, row, err)
+		}
+		last := first
+
+		if err := f.SetReadDeadline(time.Now().Add(settleWindow)); err != nil {
+			t.Fatalf("SetReadDeadline (%s row %d): %v", kind, row, err)
+		}
+		for {
 			buf, err := readOneRawFrame(r)
 			if err != nil {
-				if i == 0 {
-					t.Fatalf("readOneRawFrame (%s row %d), frame %d: %v", kind, row, i, err)
-				}
-				break
+				break // os.ErrDeadlineExceeded (expected) or any other end-of-stream error
 			}
 			last = buf
-		}
-		if last == nil {
-			t.Fatalf("no frame seen on %s row %d's dedicated fd", kind, row)
 		}
 		out[row] = last
 	}
