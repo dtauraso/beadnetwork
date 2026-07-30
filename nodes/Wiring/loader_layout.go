@@ -84,6 +84,15 @@ func (b *buildCtx) computeQuantizedLayout() {
 		}
 		offsets[n.ID] = prior[n.ID] // centerless → default to the scene center, keep any stored constants
 	}
+	// NORMALIZE every offset's per-axis step constants against the CURRENT scene lattice
+	// (quantized_layout.go stepTheta/stepPhi/stepR) before anything downstream reads
+	// iTheta/iPhi/iR — a single choke point covering every branch above (stored triple,
+	// measured fallback, prior-only fallback), rather than three separate call sites that
+	// could drift. See normalizeOffset's doc comment for why this must run at every load,
+	// not just as a one-time file migration.
+	for id, o := range offsets {
+		offsets[id] = normalizeOffset(o)
+	}
 	b.quantizedOffsets = offsets
 
 	// Reconstruct world centers from the quantized triple ONLY for nodes without an exact

@@ -1,6 +1,7 @@
 package Wiring
 
 import (
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"math"
 )
 
@@ -14,14 +15,33 @@ import (
 // step constants (quantizedOffset.cTheta/cPhi/cR == 0). Offsets are always integer
 // multiples of a node's EFFECTIVE constants (its own, or these defaults):
 // offset = (iTheta*cTheta, iPhi*cPhi, iR*cR).
+//
+// This used to be a SEPARATE, coarser lattice (15°/20.0) than the local-polar lattice a
+// node's own chain beads are laid out from (layout_holder.go, 1°/8.96) — the finding in
+// docs/which-lattice-a-node-lives-on.md: a node could not sit exactly on both, so its
+// drawn position (this file) glided continuously while its beads jumped one bead distance
+// at a time, and the two visibly slid against each other during a drag. Collapsing onto
+// the SAME lattice (below) is the fix: a node's absolute position now moves by the same
+// bead-distance/1-degree tick its neighbor distances already did.
 const (
-	stepTheta = math.Pi / 12
-	stepPhi   = math.Pi / 12
-	// stepR must be smaller than the typical node-to-parent spacing, else every node
-	// rounds to iR=0 and collapses onto its parent. Node spacing here is ~80 units, so
-	// defaultNodeR (200) collapsed the graph; 20 keeps nodes distinct and makes a drag
-	// cross an r-cell responsively. Tunable.
-	stepR = 20.0
+	// stepTheta/stepPhi match the local-polar lattice's own angular cell exactly
+	// (layout_holder.go localStepTheta/localStepPhi) rather than an independently
+	// hand-picked value (was π/12 = 15°) — so a node's absolute bearing and its
+	// per-neighbor bearing tick together. An angle is NOT an exact bead distance at
+	// every radius (arc = r*Δθ, so a fixed angle spans a different world distance at a
+	// different r) — this is an accepted APPROXIMATION, not exact tangency the way
+	// stepR is below: at the radii this graph occupies (~60-250 world units), 1° is
+	// roughly 1-4.4 world units, the same order as a bead (8.96). A radius-dependent
+	// step was rejected: it would make one stored angular index mean a different
+	// angle at a different radius, which is worse than this approximation.
+	stepTheta = math.Pi / 180
+	stepPhi   = math.Pi / 180
+	// stepR is now literally wire.BeadStepR (8.96) — one bead distance — not an
+	// independently hand-picked value (was 20.0, chosen only to keep nodes distinct
+	// at the ~80-unit spacing this graph happened to have). Derived, not copied as a
+	// literal: bead_lattice.go owns the authored primitive (BeadRadius) this falls
+	// out of, and this constant must move with it, never drift from a second copy.
+	stepR = wire.BeadStepR
 )
 
 // quantizedOffset is a node's quantized polar offset (iTheta,iPhi,iR) about the ONE
@@ -114,24 +134,60 @@ func measureScalar(p polar, prior quantizedOffset) quantizedOffset {
 	}
 }
 
+// offsetScenePolar is the index->position arithmetic half of the flat-polar FORWARD
+// computation, factored out so a caller that needs the POLAR (not yet a cartesian world
+// point) — commitNodeMoveLocal, to draw the quantized position it just measured — can
+// reuse the exact same formula deriveCenters uses, rather than a second copy of
+// (iR*cR, iTheta*cTheta, iPhi*cPhi) that could drift from this one:
+//
+//	offsetScenePolar(o) = {R: iR*cR, Theta: iTheta*cTheta, Phi: iPhi*cPhi}
+//
+// using o's OWN effective step constants (o.effectiveSteps()), falling back to the
+// global defaults for any unset component.
+func offsetScenePolar(o quantizedOffset) polar {
+	t, p, r := o.effectiveSteps()
+	return polar{R: float64(o.iR) * r, Theta: float64(o.iTheta) * t, Phi: float64(o.iPhi) * p}
+}
+
 // deriveCenters is the flat-polar FORWARD computation: given each node's scalar triple
 // (scalars, from measureScalars or loaded meta.json quantI*), compute every node's world
 // center directly about the ONE scene center — every node is independent (no reference/
-// parent to resolve first):
-//
-//	derived[id] = sceneCenter + polar2cart({R: iR*cR, Theta: iTheta*cTheta, Phi: iPhi*cPhi})
-//
-// using each node's OWN effective step constants (o.effectiveSteps()), falling back to
-// the global defaults for any unset component.
+// parent to resolve first): derived[id] = sceneCenter + polar2cart(offsetScenePolar(o)).
 func deriveCenters(scalars map[string]quantizedOffset, sceneCenter vec3) map[string]vec3 {
 	derived := make(map[string]vec3, len(scalars))
 	for id, o := range scalars {
-		t, p, r := o.effectiveSteps()
-		derived[id] = sceneCenter.Add(polar2cart(polar{
-			R:     float64(o.iR) * r,
-			Theta: float64(o.iTheta) * t,
-			Phi:   float64(o.iPhi) * p,
-		}))
+		derived[id] = sceneCenter.Add(polar2cart(offsetScenePolar(o)))
 	}
 	return derived
+}
+
+// normalizeOffset converts a quantized offset loaded with STALE per-axis step constants
+// (from an older, coarser scene lattice — docs/which-lattice-a-node-lives-on.md) to the
+// CURRENT step constants, preserving each axis's world distance/angle exactly the way
+// LayoutHolder.LoadLocalPolars does for the local-polar lattice: new index = round(old
+// index * old step / new step), and the step is rewritten ALONGSIDE the index, never left
+// disagreeing with it (the two are one value — an index times its own step — and rewriting
+// only one multiplies the represented distance by the wrong factor). A step of 0 already
+// falls back to the current default via effectiveSteps and needs no conversion.
+//
+// This MUST run at every load, not just as a one-time file migration: each node's own
+// mover rewrites its position.json from in-memory state on its next commit
+// (persistQuantOffset), so a stale on-disk value a migration pass corrected would be put
+// straight back by a running editor — the exact failure LoadLocalPolars' doc comment
+// records happening to the local-polar migration this mirrors. Normalizing at load instead
+// self-heals: the next persist writes the current, correct step forward.
+func normalizeOffset(o quantizedOffset) quantizedOffset {
+	if o.cTheta != 0 && math.Abs(o.cTheta-stepTheta) > 1e-9 {
+		o.iTheta = int(math.Round(float64(o.iTheta) * o.cTheta / stepTheta))
+		o.cTheta = stepTheta
+	}
+	if o.cPhi != 0 && math.Abs(o.cPhi-stepPhi) > 1e-9 {
+		o.iPhi = int(math.Round(float64(o.iPhi) * o.cPhi / stepPhi))
+		o.cPhi = stepPhi
+	}
+	if o.cR != 0 && math.Abs(o.cR-stepR) > 1e-9 {
+		o.iR = int(math.Round(float64(o.iR) * o.cR / stepR))
+		o.cR = stepR
+	}
+	return o
 }

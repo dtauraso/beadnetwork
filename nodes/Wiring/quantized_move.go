@@ -366,28 +366,51 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeMover, 
 	// (reach, measureScalar, the persist schedule) reuses this one polar value rather
 	// than re-deriving it from newPos.
 	nodePolar := cart2polar(newPos.Sub(md.ui.sceneSphere.Center))
-	polars[nodeID] = nodePolar
-	reach := reachRFromPolar(polars, edges)
 
-	nm.applyCenter(newPos, reach[nodeID])
-	lq.broadcastToEdgesAndPartners(md, map[string]vec3{nodeID: newPos}, nm.sendMove)
-
+	// committedPos/committedPolar are what gets DRAWN (applyCenter), FANNED
+	// (broadcastToEdgesAndPartners), PERSISTED (persistQuantOffset), and re-quantized
+	// against by every neighbor (requantizeLocalPolars) for this commit — ONE position,
+	// not the raw drag target for some of those and a quantized point for others
+	// (docs/which-lattice-a-node-lives-on.md "Why the drag makes it worst": that split is
+	// exactly what made the node glide continuously while its own chain beads jumped one
+	// bead distance at a time). Under the quantized scene lattice (lq.quantizedLayout),
+	// the quantized triple is computed FIRST — measureScalar/offsetScenePolar, the same
+	// index->position formula deriveCenters uses — and becomes committedPos; the raw
+	// target is discarded rather than drawn. If quantizedLayout is off, keep the historic
+	// behavior: committedPos stays the raw, continuous target, and no offset is measured.
+	committedPos := newPos
+	committedPolar := nodePolar
+	var off quantizedOffset
 	if lq.quantizedLayout {
-		off := measureScalar(nodePolar, nm.quantOffset)
-		nm.quantOffset = off
-		nm.persistQuantOffset(off, nodePolar)
+		off = measureScalar(nodePolar, nm.quantOffset)
+		committedPolar = offsetScenePolar(off)
+		committedPos = md.ui.sceneSphere.Center.Add(polar2cart(committedPolar))
 	}
 
-	lq.requantizeLocalPolars(md, nm, newPos)
+	polars[nodeID] = committedPolar
+	reach := reachRFromPolar(polars, edges)
+
+	nm.applyCenter(committedPos, reach[nodeID])
+	lq.broadcastToEdgesAndPartners(md, map[string]vec3{nodeID: committedPos}, nm.sendMove)
+
+	if lq.quantizedLayout {
+		nm.quantOffset = off
+		nm.persistQuantOffset(off, committedPolar)
+	}
+
+	lq.requantizeLocalPolars(md, nm, committedPos)
 }
 
 // RootMove handles a node-drag under the flat absolute scene-polar layout: every node
 // is positioned independently about the scene sphere center — there is no reference/
 // parent concept, so dragging moves ONLY the dragged node (no cascade). The dragged
-// node's new world position is the drag target itself — CONTINUOUS, not snapped to any
-// grid (cascade-link local-polar model: the node's position is free; only each
-// neighbor's DISTANCE to it is quantized, each on that neighbor's own small grid — see
-// requantizeLocalPolars).
+// node's COMMITTED world position (commitNodeMoveLocal) is the drag target SNAPPED to
+// the scene lattice — no longer continuous: the scene lattice and the local-polar
+// lattice beads are laid out from are now the SAME lattice (quantized_layout.go
+// stepTheta/stepPhi/stepR == the local-polar defaults, docs/which-lattice-a-node-lives-on.md),
+// so a node moves exactly one bead distance per commit, the same distance its own chain
+// beads move — each neighbor's DISTANCE to it is quantized separately, each on that
+// neighbor's own small grid (see requantizeLocalPolars), independently of this snap.
 //
 // RootMove is the decentralized drag entry, widened to EVERY node (the generalization
 // that came with the quantizedOffsets data-race fix): dragging any node does not commit

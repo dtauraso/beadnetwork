@@ -10,8 +10,30 @@ import (
 	"time"
 )
 
-// pollDragConverged waits until the named node's committed center matches target — a
-// drag now always runs asynchronously on the node's OWN mover goroutine (moveMsgKindDrag,
+// quantizedDragTarget returns the position a drag to target actually COMMITS to under
+// the scene lattice (commitNodeMoveLocal's measureScalar->offsetScenePolar snap) — the
+// raw target unchanged when quantizedLayout is off. Test callers that assert convergence
+// (pollDragConverged) must poll for THIS point, not the raw target, now that a committed
+// drag is snapped rather than continuous (docs/which-lattice-a-node-lives-on.md). Reads
+// nm.quantOffset only for its STEP constants (cTheta/cPhi/cR) — these do not change across
+// a drag for any node in this package's fixtures — so calling this before the drag commits
+// is stable regardless of timing.
+func quantizedDragTarget(md *MoveDispatch, nodeID string, target vec3) vec3 {
+	if !md.lq.quantizedLayout {
+		return target
+	}
+	nm, ok := md.mr.nodeMovers[nodeID]
+	if !ok {
+		return target
+	}
+	p := cart2polar(target.Sub(md.ui.sceneSphere.Center))
+	off := measureScalar(p, nm.quantOffset)
+	return md.ui.sceneSphere.Center.Add(polar2cart(offsetScenePolar(off)))
+}
+
+// pollDragConverged waits until the named node's committed center matches the point a
+// drag to target actually commits to (quantizedDragTarget) — a drag now always runs
+// asynchronously on the node's OWN mover goroutine (moveMsgKindDrag,
 // node6-drag-decentralized.md generalized to every node), so RootMove returning true only
 // means the message was ENQUEUED, not that commitLocal (and its quantOffsetPersist.schedule
 // call) has run yet. Tests that read persisted state right after RootMove must wait for
@@ -19,17 +41,18 @@ import (
 func pollDragConverged(t *testing.T, md *MoveDispatch, nodeID string, target vec3) {
 	t.Helper()
 	const eps = 1e-6
+	want := quantizedDragTarget(md, nodeID, target)
 	deadline := time.Now().Add(2 * time.Second)
 	for {
 		// centerOfNode drains each nodeMover's centerOut channel into the dispatch's own
 		// centerMirror (drainCenterMirror) and reads that — same path production's
 		// RunStdinReader uses.
 		c, ok := md.centerOfNode(nodeID)
-		if ok && math.Abs(c.X-target.X) <= eps && math.Abs(c.Y-target.Y) <= eps && math.Abs(c.Z-target.Z) <= eps {
+		if ok && math.Abs(c.X-want.X) <= eps && math.Abs(c.Y-want.Y) <= eps && math.Abs(c.Z-want.Z) <= eps {
 			return
 		}
 		if time.Now().After(deadline) {
-			t.Fatalf("node %s drag never converged to target %+v", nodeID, target)
+			t.Fatalf("node %s drag never converged to quantized target %+v (raw target %+v)", nodeID, want, target)
 		}
 		time.Sleep(time.Millisecond)
 	}
@@ -101,6 +124,7 @@ func TestIndividualSnap_OnlyDraggedNodePersists(t *testing.T) {
 	md.tr.SetSink(&dbg)
 
 	dstTarget := vec3{X: 60, Y: 20, Z: -10}
+	dstWant := quantizedDragTarget(md, "dst", dstTarget)
 	if !md.RootMove("dst", dstTarget) {
 		t.Fatal("RootMove(dst) returned false")
 	}
@@ -173,8 +197,8 @@ func TestIndividualSnap_OnlyDraggedNodePersists(t *testing.T) {
 		}
 	}
 	gotDstCenter := persistedScenePolarCenter(t, dst, md.ui.sceneSphere.Center)
-	if d := gotDstCenter.Sub(dstTarget).Length(); d > 1e-6 {
-		t.Fatalf("dst's persisted scenePolar should equal the drag target: persisted=%+v target=%+v (off by %g)", gotDstCenter, dstTarget, d)
+	if d := gotDstCenter.Sub(dstWant).Length(); d > 1e-6 {
+		t.Fatalf("dst's persisted scenePolar should equal the quantized drag target: persisted=%+v want=%+v raw-target=%+v (off by %g)", gotDstCenter, dstWant, dstTarget, d)
 	}
 	// The quantized triple is a self-describing CACHE of that same position: it must be a
 	// fresh quantization of what was persisted, not a stale or arbitrary value.
@@ -271,9 +295,14 @@ func TestIndividualSnap_OnlyDraggedNodePersists(t *testing.T) {
 }
 
 // TestDragPositionRoundTripsExactly: dragging a node to an arbitrary continuous target,
-// persisting, and RELOADING from disk must place the node at EXACTLY that target — the
-// exact scene-polar position is the lossless source of truth (not the coarse quantized
-// triple, which would round the drag away).
+// persisting, and RELOADING from disk must place the node at EXACTLY the point the drag
+// COMMITTED to — the scene-lattice-snapped point (quantizedDragTarget), now that a
+// commit draws/persists the quantized position rather than the raw continuous target
+// (docs/which-lattice-a-node-lives-on.md). The exact scene-polar position persisted
+// (scenePolarR/Theta/Phi) is still the LOSSLESS round-trip source of truth for THAT
+// committed point — it is not re-rounded a second time on reload, which is what this
+// test still guards: a reload must not drift further away from the committed point,
+// only the drag itself is allowed to snap.
 func TestDragPositionRoundTripsExactly(t *testing.T) {
 	root := writeTree(t)
 	md := loadTreeMD(t, root)
@@ -289,6 +318,7 @@ func TestDragPositionRoundTripsExactly(t *testing.T) {
 	t.Cleanup(func() { cancel(); wg.Wait() })
 
 	target := vec3{X: 63.7, Y: -21.3, Z: 44.9}
+	want := quantizedDragTarget(md, "dst", target)
 	if !md.RootMove("dst", target) {
 		t.Fatal("RootMove(dst) returned false")
 	}
@@ -302,7 +332,7 @@ func TestDragPositionRoundTripsExactly(t *testing.T) {
 		t.Fatal("dst missing after reload")
 	}
 	const eps = 1e-6
-	if d := got.Sub(target).Length(); d > eps {
-		t.Fatalf("dst did not round-trip: dragged to %+v, reloaded at %+v (off by %g)", target, got, d)
+	if d := got.Sub(want).Length(); d > eps {
+		t.Fatalf("dst did not round-trip: dragged to %+v (committed to %+v), reloaded at %+v (off by %g)", target, want, got, d)
 	}
 }
