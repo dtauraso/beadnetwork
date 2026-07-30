@@ -14,6 +14,7 @@
 package wire
 
 import (
+	"fmt"
 	"math"
 )
 
@@ -28,20 +29,25 @@ const (
 	localStepTheta = math.Pi / 180 // 1 degree
 	localStepPhi   = math.Pi / 180 // 1 degree
 	// LocalStepR is exported (unlike its theta/phi siblings) because it is now
-	// DERIVED from the bead lattice rather than the other way around
-	// (docs/bead-lattice.md "The lattice is commensurate with the node
-	// lattice"): BeadStepR (bead_lattice.go) is fixed by the AUTHORED bead
-	// radius via tangency, and this node-lattice cell is BeadStepR spread over
-	// BeadStepCells (4) of them, so the bead lattice stays a commensurate
-	// sublattice of the node lattice by construction. This used to be the
-	// primitive (2.0, hand-picked) with BeadStepR computed FROM it; that
-	// direction was rejected because it forced the bead's visible size to be
-	// whatever fell out of 2.0, landing 11% smaller than the bead size David
-	// had actually chosen. Flipping which side is primitive changes this
-	// constant from 2.0 to 8.96/4 = 2.24 — every stored quantIR cell now
-	// measures 12% more, expanding the whole graph on load; that expansion is
-	// the accepted, agreed cost, not something to compensate for here.
-	LocalStepR = BeadStepR / BeadStepCells // world units; = 8.96 / 4 = 2.24
+	// the BEAD lattice's own step — a node moves exactly ONE BEAD DISTANCE per
+	// lattice tick, not a fraction of one. This used to be a SEPARATE, finer
+	// lattice (2.0, hand-picked, with BeadStepCells=4 bead-lattice cells
+	// nested inside each bead step) so a drag had sub-bead resolution; that
+	// two-lattice design is what caused the placement bug this collapse fixes
+	// (bead_lattice.go's BeadStepCells doc comment) — PLACEMENT read each
+	// entry's own stored per-entry stepR (which drifted to 2.0, a leftover of
+	// the old finer lattice) while the COUNT divided by the definition of
+	// BeadStepCells (4) against the now-different LocalStepR (2.24), so the
+	// two disagreed by 12% and surplus beads ran into the target node. With
+	// one lattice there is nothing left to nest: LocalStepR IS BeadStepR, so
+	// a node-lattice cell and a bead step are the same distance by
+	// construction, not by two constants staying in sync. Every stored
+	// quantIR keeps its cell-COUNT meaning, but each cell now measures the
+	// bead lattice's own 8.96 (not the old finer 2.24), so the whole graph
+	// expands versus what was on screen under the disagreeing pair — see
+	// docs/bead-lattice.md for why that expansion is accepted, not
+	// compensated for.
+	LocalStepR = BeadStepR // world units; = 8.96 — one bead distance
 	// localStepR is kept as a same-package alias so every other call site in
 	// this file (localPolarSteps/EffectiveSteps, both pre-dating the bead
 	// lattice) does not need touching just to read the new exported name.
@@ -153,14 +159,30 @@ func (lh *LayoutHolder) LocalPolarSteps(to string) (t, p, r float64) {
 // (computeLocalPolars) to the node's own LayoutHolder — the only initial-load
 // writer, distinct from SetLocalPolar's per-neighbor upsert used by drags.
 //
-// Snaps every entry's QuantIR to the bead lattice (SnapQuantIR) before storing —
-// this is a WRITE choke point for QuantIR (the other is SetLocalPolar below), so a
-// separation computed from a live cartesian radius (computeLocalPolars) or carried
-// forward from a pre-bead-lattice save can never be stored off-lattice
-// (docs/bead-lattice.md "The count").
+// QuantIR is stored verbatim — there is only one lattice now (SnapQuantIR no
+// longer exists, bead_lattice.go), so a loaded separation has nothing to snap
+// to but itself.
+//
+// Fails LOUDLY on a stored StepR that disagrees with LocalStepR, the one THIS
+// bug actually was: an on-disk entry (topology/nodes/<id>/local-polars.json)
+// used to carry its own "stepR" and PLACEMENT trusted it verbatim
+// (LocalPolar.EffectiveSteps), while the edge-length COUNT was computed
+// against a different, hardcoded assumption of what the lattice step was — so
+// a stale stored constant silently overrode the lattice with nothing to
+// notice the two had drifted apart. A LocalPolar with StepR unset (0) still
+// falls back to LocalStepR via EffectiveSteps and is fine; a LocalPolar whose
+// StepR is EXPLICITLY set to something else is exactly the shape of the bug
+// that shipped, so it panics here instead of loading quietly.
+// TestLoadLocalPolarsRejectsDisagreeingStepR pins this.
 func (lh *LayoutHolder) LoadLocalPolars(lps []LocalPolar) {
-	for i := range lps {
-		lps[i].QuantIR = SnapQuantIR(lps[i].QuantIR)
+	for _, lp := range lps {
+		if lp.StepR != 0 && math.Abs(lp.StepR-LocalStepR) > 1e-9 {
+			panic(fmt.Sprintf(
+				"LoadLocalPolars: local polar to %q stored stepR=%v, want wire.LocalStepR=%v — "+
+					"a per-entry step that disagrees with the lattice is the bead-penetration bug "+
+					"this rejects (docs/bead-lattice.md); migrate the stored value instead of loading it",
+				lp.To, lp.StepR, LocalStepR))
+		}
 	}
 	lh.localPolars = lps
 }
@@ -169,13 +191,11 @@ func (lh *LayoutHolder) LoadLocalPolars(lps []LocalPolar) {
 // (updating in place if present, appending otherwise). The sole in-memory
 // writer of LocalPolars outside load-time construction.
 //
-// quantIR is snapped to the bead lattice (SnapQuantIR) before storing — the other
-// QuantIR write choke point is LoadLocalPolars above; together they mean no caller
-// (requantizePoleTraced, neighborSetCRequantize) can persist an off-lattice
-// separation, whatever radius it happened to measure (docs/bead-lattice.md
-// "The count").
+// quantIR is stored verbatim — there is only one lattice now (SnapQuantIR no
+// longer exists, bead_lattice.go), so a live re-quantize (requantizePoleTraced,
+// neighborSetCRequantize) already measures directly in bead-step-sized cells
+// and has nothing left to snap to.
 func (lh *LayoutHolder) SetLocalPolar(to string, quantITheta, quantIPhi, quantIR int, stepTheta, stepPhi, stepR float64) {
-	quantIR = SnapQuantIR(quantIR)
 	for i := range lh.localPolars {
 		if lh.localPolars[i].To == to {
 			lh.localPolars[i].QuantITheta = quantITheta

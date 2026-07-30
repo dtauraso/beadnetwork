@@ -308,10 +308,10 @@ func TestDragPersistsOnlyDraggedNodeAndRequantizesNeighborsOnDisk(t *testing.T) 
 		st, sp, sr := lh.LocalPolarSteps("A")
 		wantTheta := int(math.Round(c / st))
 		wantPhi := int(math.Round(psi / sp))
-		// QuantIR is snapped to the bead lattice (wire.SnapQuantIR) at every write
-		// (LayoutHolder.SetLocalPolar/LoadLocalPolars — docs/bead-lattice.md "The count"),
-		// so the persisted value is the SNAPPED fresh quantization, not the raw one.
-		wantR := wire.SnapQuantIR(int(math.Round(r / sr)))
+		// QuantIR is stored verbatim (SnapQuantIR no longer exists — there is one
+		// lattice now, bead_lattice.go), so the persisted value is exactly the raw
+		// fresh quantization.
+		wantR := int(math.Round(r / sr))
 		if qTheta != wantTheta || qPhi != wantPhi || qR != wantR {
 			t.Fatalf("(c) %s's persisted local polar to A should match a fresh quantization of the live offset: got=(theta=%d,phi=%d,r=%d) want=(theta=%d,phi=%d,r=%d)",
 				id, qTheta, qPhi, qR, wantTheta, wantPhi, wantR)

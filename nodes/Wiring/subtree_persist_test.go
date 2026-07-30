@@ -143,14 +143,10 @@ func TestIndividualSnap_OnlyDraggedNodePersists(t *testing.T) {
 	st, sp, sr := lpAfter.EffectiveSteps()
 	wantTheta := int(math.Round(cc / st))
 	wantPhi := int(math.Round(psi / sp))
-	// QuantIR is snapped to the bead lattice at every write (wire.SnapQuantIR, called from
-	// SetLocalPolar) — the raw round(rr/sr) is not itself the stored value, so this must
-	// snap too or a raw round landing on the wrong side of a bead-step boundary would
-	// mismatch by 1. Previously invisible at the old LocalStepR=2.0 (this fixture's numbers
-	// happened not to straddle a boundary); the flip to the bead-authored LocalStepR=2.24
-	// (docs/bead-lattice.md "The lattice is derived, not the bead") moved the boundary and
-	// exposed the missing snap.
-	wantR := wire.SnapQuantIR(int(math.Round(rr / sr)))
+	// QuantIR is stored verbatim (SnapQuantIR no longer exists — there is one
+	// lattice now, bead_lattice.go's BeadStepCells doc comment), so the raw
+	// round(rr/sr) IS the stored value, with nothing left to snap.
+	wantR := int(math.Round(rr / sr))
 	if lpAfter.QuantITheta != wantTheta || lpAfter.QuantIPhi != wantPhi || lpAfter.QuantIR != wantR {
 		t.Fatalf("src's requantized local polar to dst should match a fresh quantization of the live offset: got=(theta=%d,phi=%d,r=%d) want=(theta=%d,phi=%d,r=%d)",
 			lpAfter.QuantITheta, lpAfter.QuantIPhi, lpAfter.QuantIR, wantTheta, wantPhi, wantR)

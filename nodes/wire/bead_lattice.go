@@ -7,8 +7,6 @@
 // not from independently chosen literals that could drift apart from it.
 package wire
 
-import "math"
-
 // BeadRadius is the bead's own visible sphere radius — the AUTHORED primitive
 // this whole file derives from. It used to be the other way around: the node
 // lattice's LocalStepR was the primitive and the bead radius fell out of it by
@@ -46,19 +44,21 @@ const BeadTorusOuterR = BeadRadius * (1 + BeadRingTubeRatio)
 // by tangency at twice a bead's own torus outer radius: 2 * 4.48 = 8.96.
 const BeadStepR = 2 * BeadTorusOuterR
 
-// BeadStepCells is the number of node-lattice radial cells (LocalStepR each,
-// layout_holder.go) a single bead step spans. Fixing this at 4 — rather than
-// letting the node lattice's cell be authored independently of the bead step —
-// is what keeps the bead lattice a commensurate SUBLATTICE of the node lattice:
-// node separations keep their authored quantIR meaning, still counted in
-// LocalStepR-sized cells, and exact double tangency only requires a separation
-// to land on a multiple of 4 cells rather than on every cell. That property is
-// UNCHANGED by the primitive/derived flip above — BeadStepCells never moved;
-// only which of BeadStepR/LocalStepR is now the primitive and which is derived
-// swapped (LocalStepR = BeadStepR / BeadStepCells, layout_holder.go).
-// docs/bead-lattice.md "The lattice is commensurate with the node lattice"
-// records this history in full.
-const BeadStepCells = 4
+// BeadStepCells does not exist. It used to be the ratio between TWO lattices —
+// the node lattice's own small LocalStepR cell, and the coarser bead lattice a
+// fixed number of those cells (4) was said to span. That ratio was a
+// mismeasurement: BeadStepCells was fixed at 4 while the STORED per-node
+// stepR (topology/nodes/*/local-polars.json, "stepR": 2) disagreed with what
+// LocalStepR actually computed to (2.24) — placement read the stored 2, the
+// edge-length count divided by the assumed 4, and the two lattices did not
+// nest, so the count over-budgeted and surplus chain beads ran into the
+// target node (docs/bead-lattice.md). The fix collapses the two lattices into
+// ONE: LocalStepR is now simply BeadStepR (below) — a node moves exactly one
+// bead distance per lattice tick — so there is no second, coarser lattice
+// left to express a cell-count between, and the constant that named that
+// relationship has nothing to name. There is no replacement constant here —
+// deleting it is the point: the bug was two lattices that could disagree, and
+// the fix is having only one, not renaming the ratio.
 
 // DwellTicksPerBead is the constant tick dwell every bead spends per lattice
 // step, at the one uniform pulse speed (PulseSpeedWuPerTick, above in this
@@ -70,19 +70,9 @@ const BeadStepCells = 4
 // by tools/check-uniform-pulse-speed.sh) is expected to pass as dwellTicks.
 const DwellTicksPerBead = BeadStepR / PulseSpeedWuPerTick
 
-// SnapQuantIR rounds a node-separation quant index to the nearest multiple of
-// BeadStepCells (4), the bead lattice's coarse-sublattice pitch (docs/bead-lattice.md
-// "The lattice is commensurate with the node lattice"). QuantIR must be stored ONLY
-// through this function — LayoutHolder.SetLocalPolar and LoadLocalPolars, the two
-// write choke points for a LocalPolar entry, both call it — so an off-lattice
-// separation can never be PERSISTED. That is what makes edgeStepCount's count a pure
-// integer subtraction (nodeTorusSteps difference, no division) rather than exact only
-// by luck of what happened to be stored: snapping at the read side instead would let
-// an unsnapped value keep re-entering through every other writer that skipped this
-// call. Nearest, not floor/ceil: this shifts an authored separation by at most half a
-// bead step (2*LocalStepR world units — 4.0 when LocalStepR was 2.0, 4.48 now that it
-// is derived as BeadStepR/BeadStepCells = 2.24) on first load — the accepted one-time cost of exact double
-// tangency at both ends (docs/bead-lattice.md "The count").
-func SnapQuantIR(quantIR int) int {
-	return int(math.Round(float64(quantIR)/float64(BeadStepCells))) * BeadStepCells
-}
+// SnapQuantIR does not exist. It used to round a stored quantIR to the nearest
+// multiple of BeadStepCells so the node lattice stayed a commensurate SUBLATTICE
+// of the bead lattice. With BeadStepCells gone (comment above) there is exactly
+// one lattice, so the only multiple left to snap to is 1 — an identity
+// operation, which is not a snap. Its two write choke points
+// (LayoutHolder.SetLocalPolar/LoadLocalPolars) now store quantIR verbatim.
