@@ -28,12 +28,12 @@
 
 | Name | Direction | EdgeKind | Notes |
 |------|-----------|----------|-------|
-| FromPrevTimeNode | in | chain | receives value from upstream chain Time node |
+| In | in | chain | sole input: the value that, on the NEXT receive, triggers a broadcast of the value held from the PREVIOUS receive |
 | ToNext | out | chain | broadcast to downstream nodes (multi-output) |
 
 ## Firing rule
 
-On each value received from FromPrevTimeNode:
+On each value received from In:
 1. Fire.
 2. Broadcast the current Held value concurrently on all ToNext outputs.
 3. Update Held to value.

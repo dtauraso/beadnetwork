@@ -55,10 +55,10 @@ func TestFireOnReceiveLean(t *testing.T) {
 	stepWire(ctx, outPw1, clk.Copy())
 
 	node := &Time{
-		Fire:             func() {},
-		Clock:            clk,
-		Held:             99, // seed a non-zero prior value to forward
-		FromPrevTimeNode: wire.NewInPaced(inPw, ctx, "in", "FromPrevTimeNode", tr, nil, -1),
+		Fire:  func() {},
+		Clock: clk,
+		Held:  99, // seed a non-zero prior value to forward
+		In:    wire.NewInPaced(inPw, ctx, "in", "In", tr, nil, -1),
 		ToNext: wire.Broadcast{
 			wire.NewPacedOutNoGeom(outPw0, ctx, "in", "ToNext0", tr,
 				wire.RuleFireAndForget, int(latMs), ""),

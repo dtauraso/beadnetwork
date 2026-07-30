@@ -20,7 +20,7 @@
       "source": "in0",
       "sourceHandle": "ToOut",
       "target": "readGate",
-      "targetHandle": "FromInput",
+      "targetHandle": "In",
       "kind": "chain",
       "data": { "slots": 1 }
     },
@@ -29,7 +29,7 @@
       "source": "readGate",
       "sourceHandle": "ToTime",
       "target": "i0",
-      "targetHandle": "FromPrevTimeNode",
+      "targetHandle": "In",
       "kind": "chain",
       "data": { "delay": 2, "init": [1] }
     }

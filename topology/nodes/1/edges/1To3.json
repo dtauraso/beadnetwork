@@ -1,1 +1,1 @@
-{"sourceHandle": "ToExcitatory", "target": "3", "targetHandle": "FromInput", "kind": "chain", "label": "1To3"}
+{"sourceHandle": "ToExcitatory", "target": "3", "targetHandle": "In", "kind": "chain", "label": "1To3"}

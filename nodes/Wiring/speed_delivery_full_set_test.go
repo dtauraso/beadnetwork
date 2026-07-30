@@ -31,19 +31,19 @@ import (
 // channel(s) unconditionally at construction, never gated on whether its OUTPUT
 // ports end up wired, so the channel COUNT below does not depend on it. Pulse is
 // left with no inputs/outputs wired for the same reason: its SpeedCh/Out1SpeedCh/
-// Out2SpeedCh are all created unconditionally at construction.
+// OutFanoutSpeedCh are all created unconditionally at construction.
 const speedFullSetTopo = `{
   "nodes": [
     {"id":"src","type":"Input","data":{"init":[0],"repeat":false},
-     "outputs":[{"name":"ToTime"}],
+     "outputs":[{"name":"Primary"}],
      "cascadeEdges":["hnso"],"cascadeKinds":{"hnso":"Time"}},
     {"id":"hnso","type":"Time","data":{"state":{"held":-1}},
-     "inputs":[{"name":"FromPrevTimeNode"}],
+     "inputs":[{"name":"In"}],
      "cascadeEdges":["src"],"cascadeKinds":{"src":"Input"}},
     {"id":"holdSink","type":"TimeEnd","data":{"state":{"held":-1}},
      "inputs":[{"name":"In"}]},
     {"id":"pacer","type":"Pacer","data":{"state":{"held":-1}},
-     "inputs":[{"name":"FromInput"}], "outputs":[{"name":"FeedbackOut"}]},
+     "inputs":[{"name":"In"}], "outputs":[{"name":"FeedbackOut"}]},
     {"id":"holdflip","type":"HoldFlip","data":{},
      "inputs":[{"name":"In"}], "outputs":[{"name":"Out"}]},
     {"id":"gate","type":"SelectRight","data":{},
@@ -52,7 +52,7 @@ const speedFullSetTopo = `{
     {"id":"pulse","type":"Pulse","data":{}}
   ],
   "edges": [
-    {"label":"e0","kind":"data","source":"src","sourceHandle":"ToTime","target":"hnso","targetHandle":"FromPrevTimeNode"}
+    {"label":"e0","kind":"data","source":"src","sourceHandle":"Primary","target":"hnso","targetHandle":"In"}
   ]
 }`
 
@@ -63,7 +63,7 @@ const speedFullSetTopo = `{
 //	Input(1) + Time(1) + TimeEnd(1) + Pacer(1)  = 4   (one SpeedCh each)
 //	HoldFlip: SpeedCh + DriveSpeedCh                    = 2   (main loop + 1 drive goroutine)
 //	SelectRight (gatecommon.RunGate)       = 1   (SpeedCh)
-//	Pulse: SpeedCh + Out1SpeedCh + Out2SpeedCh          = 3   (main loop + 2 drive goroutines)
+//	Pulse: SpeedCh + Out1SpeedCh + OutFanoutSpeedCh     = 3   (main loop + 2 drive goroutines)
 //	edgeMover, one per edge (exactly 1 edge above)      = 1   (its own PacedWire is
 //	                                                            driven on ITS clock copy —
 //	                                                            DriveOneCycle inside

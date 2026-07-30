@@ -29,7 +29,7 @@ func stepWire(ctx context.Context, pw *wire.PacedWire, clk wire.Clock) {
 // TestPulseLeftDrivesHeldValueLean covers pulse's core contract on the one real
 // clock: sample-and-hold. It continuously drives its held value to Out
 // (starting with the noValue sentinel), and updates the held value (with an
-// immediate interior-bead update) whenever a new value arrives on FromInput.
+// immediate interior-bead update) whenever a new value arrives on In.
 func TestPulseLeftDrivesHeldValueLean(t *testing.T) {
 	const latMs = 10.0
 	tr := T.New()
@@ -53,9 +53,9 @@ func TestPulseLeftDrivesHeldValueLean(t *testing.T) {
 
 	beadCh := make(chan int, 16)
 	node := &PulseLeft{
-		Fire:      func() {},
-		Clock:     clk,
-		FromInput: wire.NewInPaced(inPw, ctx, "pulse", "FromInput", tr, nil, -1),
+		Fire:  func() {},
+		Clock: clk,
+		In:    wire.NewInPaced(inPw, ctx, "pulse", "In", tr, nil, -1),
 		Out: wire.NewPacedOutNoGeom(outPw, ctx, "pulse", "Out", tr,
 			wire.RuleFireAndForget, int(latMs), ""),
 		EmitHeldBead: func(v int) { beadCh <- v },

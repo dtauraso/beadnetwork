@@ -28,8 +28,12 @@ type Node struct {
 	// SpeedCh delivers a speed change to THIS goroutine's own clk copy
 	// (per-goroutine-clock.md "Delivery"), assigned by this kind's own builder
 	// (injectSpeedChans). nil on a test build with no loader.
-	SpeedCh     <-chan float64
-	FromInput   *wire.In
+	SpeedCh <-chan float64
+	// In is the sole input: the value this node samples to compute a change-step
+	// (rule 4 — with exactly one input, there is nothing to distinguish it from).
+	// Was "FromInput", a kind-leak name naming the "input" kind; the sender does
+	// not have to be an Input node.
+	In          *wire.In
 	FeedbackOut *wire.Out
 }
 
@@ -56,7 +60,7 @@ func (p *Node) Update(ctx context.Context) {
 			return
 		}
 
-		if value, ok := p.FromInput.PollRecv(); ok {
+		if value, ok := p.In.PollRecv(); ok {
 			if p.Fire != nil {
 				p.Fire()
 			}
@@ -86,7 +90,7 @@ func init() {
 	// Wiring.reflectBuild via reflection — see Time for the general note.
 	Wiring.RegisterBuilder("Pacer",
 		[]Wiring.PortSpec{
-			{Name: "FromInput", Dir: Wiring.PortIn},
+			{Name: "In", Dir: Wiring.PortIn},
 			{Name: "FeedbackOut", Dir: Wiring.PortOut},
 		},
 		func(a Wiring.BuildArgs) (wire.Node, error) {
@@ -99,7 +103,7 @@ func init() {
 			n.EmitHeldBead = a.EmitHeldBead()
 			n.Clock = a.Clock()
 			n.SpeedCh = a.SpeedCh()
-			n.FromInput = a.In("FromInput")
+			n.In = a.In("In")
 			n.FeedbackOut = a.Out("FeedbackOut")
 			// EmitGeometry stays nil deliberately — nodeMover/edgeMover emit the same
 			// geometry from their own goroutine start.

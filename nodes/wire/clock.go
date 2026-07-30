@@ -227,7 +227,7 @@ func SendSpeedNonBlocking(ch chan float64, speed float64) {
 // asleep. ch must be a channel this call's caller alone sends on (the node's
 // own main-loop goroutine, which owns the held value); sending from two
 // goroutines onto the same ch would race the drain-then-send pair below. A
-// node driving two outputs off one held value (e.g. Pulse's Out/Out2) must
+// node driving two outputs off one held value (e.g. Pulse's Out/OutFanout) must
 // pass a DIFFERENT channel per DriveHeld goroutine and call this once per
 // channel — passing the same channel to two DriveHeld goroutines would starve
 // whichever one loses a given receive (exactly the speedCh rationale above).

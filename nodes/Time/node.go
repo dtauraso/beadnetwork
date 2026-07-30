@@ -29,9 +29,14 @@ type Time struct {
 	// SpeedCh delivers a speed change to THIS goroutine's own clk copy
 	// (per-goroutine-clock.md "Delivery"), assigned by this kind's own builder
 	// (injectSpeedChans). nil on a test build with no loader.
-	SpeedCh          <-chan float64
-	FromPrevTimeNode *wire.In
-	ToNext           wire.Broadcast
+	SpeedCh <-chan float64
+	// In is the sole input: the value that, on the NEXT receive, triggers this
+	// node to broadcast the value it held from the PREVIOUS receive (rule 4 — with
+	// exactly one input, there is nothing to distinguish it from). Was
+	// "FromPrevTimeNode", a kind-leak name — the sender does not have to be a
+	// Time/TimeStart kind, and free rewiring to any other source is the point.
+	In     *wire.In
+	ToNext wire.Broadcast
 }
 
 // placeHeld appends the ToNext broadcast beads (held value) to items WITHOUT driving
@@ -105,12 +110,12 @@ func (in *Time) Update(ctx context.Context) {
 			// drainPlacements doc comment for the full reasoning shared by every
 			// drain-until-empty loop in this repo.
 			for {
-				if _, ok := in.FromPrevTimeNode.PollRecv(); !ok {
+				if _, ok := in.In.PollRecv(); !ok {
 					break
 				}
 			}
 		} else {
-			value, ok := in.FromPrevTimeNode.PollRecv()
+			value, ok := in.In.PollRecv()
 			if ok {
 				if in.Fire != nil {
 					in.Fire()
@@ -182,7 +187,7 @@ func init() {
 	// interface its own statement.
 	Wiring.RegisterBuilder("Time",
 		[]Wiring.PortSpec{
-			{Name: "FromPrevTimeNode", Dir: Wiring.PortIn},
+			{Name: "In", Dir: Wiring.PortIn},
 			{Name: "ToNext", Dir: Wiring.PortBroadcast},
 		},
 		func(a Wiring.BuildArgs) (wire.Node, error) {
@@ -197,7 +202,7 @@ func init() {
 			n.EmitHeldBead = a.EmitHeldBead()
 			n.Clock = a.Clock()
 			n.SpeedCh = a.SpeedCh()
-			n.FromPrevTimeNode = a.In("FromPrevTimeNode")
+			n.In = a.In("In")
 			n.ToNext = a.Broadcast("ToNext")
 			// EmitGeometry stays nil deliberately — nodeMover/edgeMover emit the same
 			// geometry from their own goroutine start (see builders.go's note).
