@@ -214,7 +214,7 @@ func TestDragPersistsOnlyDraggedNodeAndRequantizesNeighborsOnDisk(t *testing.T) 
 	if !md.RootMove("A", target) {
 		t.Fatal("RootMove(A) returned false")
 	}
-	pollDragConverged(t, md, "A", target)
+	pollDragConverged(t, md, "A", wantA)
 
 	// Wait for BOTH B's and C's own "abc-drag" breadcrumbs before reading their
 	// LocalPolar entries to A.

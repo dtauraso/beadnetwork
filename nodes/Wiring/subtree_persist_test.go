@@ -11,37 +11,46 @@ import (
 )
 
 // quantizedDragTarget returns the position a drag to target actually COMMITS to under
-// the scene lattice (commitNodeMoveLocal's measureScalar->offsetScenePolar snap) — the
-// raw target unchanged when quantizedLayout is off. Test callers that assert convergence
-// (pollDragConverged) must poll for THIS point, not the raw target, now that a committed
-// drag is snapped rather than continuous (docs/which-lattice-a-node-lives-on.md). Reads
-// nm.quantOffset only for its STEP constants (cTheta/cPhi/cR) — these do not change across
-// a drag for any node in this package's fixtures — so calling this before the drag commits
-// is stable regardless of timing.
+// the scene lattice — walkBeadPath from the node's CURRENT (pre-drag) center toward
+// target, in whole bead-length strides (quantized_move.go's "one bead of arc in every
+// direction" model, docs/bead-lattice.md) — the raw target unchanged when quantizedLayout
+// is off. Test callers that assert convergence (pollDragConverged) must poll for THIS
+// point, not the raw target, now that a committed drag is snapped rather than continuous
+// (docs/which-lattice-a-node-lives-on.md). MUST be called BEFORE the drag commits (reads
+// the node's pre-drag center as the walk's starting point) — this replaced an earlier
+// version that derived the target from a fixed-1-degree-angular-tick quantized triple
+// (measureScalar/offsetScenePolar), independent of the node's current position; the walk
+// model is NOT independent of it, so this function is no longer stable to call after the
+// drag has already moved the node.
 func quantizedDragTarget(md *MoveDispatch, nodeID string, target vec3) vec3 {
 	if !md.lq.quantizedLayout {
 		return target
 	}
-	nm, ok := md.mr.nodeMovers[nodeID]
+	prev, ok := md.centerOfNode(nodeID)
 	if !ok {
 		return target
 	}
-	p := cart2polar(target.Sub(md.ui.sceneSphere.Center))
-	off := measureScalar(p, nm.quantOffset)
-	return md.ui.sceneSphere.Center.Add(polar2cart(offsetScenePolar(off)))
+	return walkBeadPath(prev, target)
 }
 
 // pollDragConverged waits until the named node's committed center matches the point a
-// drag to target actually commits to (quantizedDragTarget) — a drag now always runs
-// asynchronously on the node's OWN mover goroutine (moveMsgKindDrag,
+// drag to target actually commits to (want, from quantizedDragTarget) — a drag now
+// always runs asynchronously on the node's OWN mover goroutine (moveMsgKindDrag,
 // node6-drag-decentralized.md generalized to every node), so RootMove returning true only
 // means the message was ENQUEUED, not that commitLocal (and its quantOffsetPersist.schedule
 // call) has run yet. Tests that read persisted state right after RootMove must wait for
 // this convergence first, exactly as the node_move_test.go cascade tests already do.
-func pollDragConverged(t *testing.T, md *MoveDispatch, nodeID string, target vec3) {
+//
+// want MUST be computed by the CALLER, via quantizedDragTarget, BEFORE calling RootMove
+// — not recomputed here. quantizedDragTarget now walks from the node's CURRENT (pre-drag)
+// center (walkBeadPath), so calling it AFTER RootMove has already been issued races the
+// dragged node's own mover goroutine: if the commit has landed by the time this function
+// reads the center, "current" is already the POST-drag position, and a fresh
+// quantizedDragTarget call would walk another stride past the point this poll is
+// actually waiting for. Passing want in avoids that race entirely.
+func pollDragConverged(t *testing.T, md *MoveDispatch, nodeID string, want vec3) {
 	t.Helper()
 	const eps = 1e-6
-	want := quantizedDragTarget(md, nodeID, target)
 	deadline := time.Now().Add(2 * time.Second)
 	for {
 		// centerOfNode drains each nodeMover's centerOut channel into the dispatch's own
@@ -52,7 +61,7 @@ func pollDragConverged(t *testing.T, md *MoveDispatch, nodeID string, target vec
 			return
 		}
 		if time.Now().After(deadline) {
-			t.Fatalf("node %s drag never converged to quantized target %+v (raw target %+v)", nodeID, want, target)
+			t.Fatalf("node %s drag never converged to quantized target %+v", nodeID, want)
 		}
 		time.Sleep(time.Millisecond)
 	}
@@ -128,7 +137,7 @@ func TestIndividualSnap_OnlyDraggedNodePersists(t *testing.T) {
 	if !md.RootMove("dst", dstTarget) {
 		t.Fatal("RootMove(dst) returned false")
 	}
-	pollDragConverged(t, md, "dst", dstTarget)
+	pollDragConverged(t, md, "dst", dstWant)
 
 	// src is dst's plain (role-free) direct neighbor: per the single-assignment set-c
 	// REQUANTIZE model (node_move.go moveMsgKindNeighborSetC / neighborSetCRequantize),
@@ -322,7 +331,7 @@ func TestDragPositionRoundTripsExactly(t *testing.T) {
 	if !md.RootMove("dst", target) {
 		t.Fatal("RootMove(dst) returned false")
 	}
-	pollDragConverged(t, md, "dst", target)
+	pollDragConverged(t, md, "dst", want)
 	pollPositionFileWritten(t, root, "dst")
 
 	// Reload from disk into a fresh MoveDispatch and read dst's center back.
