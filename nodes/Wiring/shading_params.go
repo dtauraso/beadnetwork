@@ -154,7 +154,9 @@ const ShadingParamBeadRingTubeRatio = 0.12
 // INTENTIONAL: David picked this tone off a screenshot. Recording that here so the next reader
 // does not "fix" it back to the tube colour on the same argument that deleted it.
 //
-// The value is the tone as RENDERED in that screenshot (sampled #a7dfe5), not a node's source
+// The value started as the tone sampled from a screenshot (#a7dfe5) and was then taken down
+// ~8% by eye because that read too bright in place. It is a chosen appearance, not a
+// measurement to be restored. It is NOT a node's source
 // fill: the node body that tone came from is glassy transmission material, so matching the
 // appearance means matching the rendered tone rather than the input that produced it.
 //
@@ -163,7 +165,7 @@ const ShadingParamBeadRingTubeRatio = 0.12
 // second time — measured at ~0.8x, which is why an earlier attempt with meshStandardMaterial
 // came out #8daaad against this #a7dfe5. Change this constant and the pixel changes with it;
 // that is only true while the material stays unlit.
-const ShadingParamChainBeadFill = "#a7dfe5"
+const ShadingParamChainBeadFill = "#9acdd3"
 
 // ShadingParamBeadColor is the in-flight bead color.
 const ShadingParamBeadColor = "#ffffff"
