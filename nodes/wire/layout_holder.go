@@ -184,11 +184,20 @@ func (lh *LayoutHolder) LocalPolarSteps(to string) (t, p, r float64) {
 // the next write instead of needing a migration pass that a running editor can
 // overwrite from memory before it lands (which is exactly what happened to the
 // first migration).
+// The conversion moves QuantIR WITH the step, because the two are one value: a
+// distance of QuantIR*StepR. Rewriting only the step multiplies that distance by
+// LocalStepR/StepR — a stale 2.0 became 8.96 and every separation jumped 4.5x,
+// putting ~128 beads on an edge sized for 25. Normalizing half a pair is worse
+// than not normalizing at all, because the stale value was at least
+// self-consistent.
 func (lh *LayoutHolder) LoadLocalPolars(lps []LocalPolar) {
 	for i := range lps {
-		if lps[i].StepR != 0 && math.Abs(lps[i].StepR-LocalStepR) > 1e-9 {
-			lps[i].StepR = LocalStepR
+		stale := lps[i].StepR
+		if stale == 0 || math.Abs(stale-LocalStepR) <= 1e-9 {
+			continue
 		}
+		lps[i].QuantIR = int(math.Round(float64(lps[i].QuantIR) * stale / LocalStepR))
+		lps[i].StepR = LocalStepR
 	}
 	lh.localPolars = lps
 }
