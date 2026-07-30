@@ -233,15 +233,20 @@ func edgeSegment(src, tgt nodeGeom) wireSegment {
 
 // nodeTorusSteps is a node's torus-outer extent expressed as a whole number of bead
 // steps — the integer edgeStepCount subtracts from an edge's separation
-// (docs/bead-lattice.md "The count"). CEIL, not round: rounding could snap the
-// extent SMALLER than the node's true unsnapped body, and a bead's tangent point
-// would then land inside the node rather than merely off by a fraction — the exact
-// bug class this file removes, reintroduced at the node's own boundary instead of
-// the edge's. Ceiling only ever grows the node, never shrinks it past its own
-// surface.
+// (docs/bead-lattice.md "The count"). ROUND, not ceil: this used to ceil, on the
+// reasoning that rounding down could snap the extent smaller than the node's true
+// unsnapped body and let a bead's tangent point land inside it. That reasoning was
+// wrong — there IS no unsnapped body left to protect. nodeRadius (below) is DERIVED
+// from nodeTorusOuterR, which is derived from THIS value, so the node's drawn
+// sphere/ring always follows the snapped extent, never the raw width/height number;
+// nothing is ever measured against the unsnapped `unsnapped` local below except this
+// one snap. Ceil therefore did nothing but inflate every node (a ~46.5-world-unit
+// unsnapped radius snapped to 6 bead distances, 53.8, instead of the nearer 5,
+// 44.8) with no corresponding safety, which fails the "node sizes must not grow"
+// requirement. Round keeps the node closest to its authored width/height size.
 func nodeTorusSteps(kind string) int {
 	unsnapped := bareNodeRadius(kind) * (1 + ShadingParamNodeRingTubeRatio)
-	return int(math.Ceil(unsnapped / wire.BeadStepR))
+	return int(math.Round(unsnapped / wire.BeadStepR))
 }
 
 // nodeTorusOuterR is a node's TORUS OUTER radius, SNAPPED to a whole number of bead

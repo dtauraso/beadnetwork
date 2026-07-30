@@ -38,26 +38,23 @@ import (
 // (the SOURCE node's own stored LocalPolar to the target — index arithmetic, no sqrt) plus
 // both nodes' kinds:
 //
-//	N = QuantIR/BeadStepCells - nodeTorusSteps(srcKind) - nodeTorusSteps(dstKind), minimum 1
+//	N = QuantIR - nodeTorusSteps(srcKind) - nodeTorusSteps(dstKind), minimum 1
 //
-// PURE INTEGER SUBTRACTION — no division by a float step, no math.Round. That used to read
+// PURE INTEGER SUBTRACTION — no division anywhere, not even by a fixed cell count. That used
+// to divide QuantIR by a per-bead cell-count constant (4) before subtracting, assuming the node
+// lattice's cell was a quarter of a bead step. It was not: the STORED per-entry stepR
+// (topology/nodes/<id>/local-polars.json) was 2.0, left over from an earlier, finer lattice,
+// while LocalStepR (layout_holder.go) had since become 2.24 — placement read the stored 2.0,
+// this division assumed 4 * 2.24, and the two lattices did not nest, so the count
+// over-budgeted by ~12% and the surplus beads ran past the target node's tori. The fix
+// collapses the two lattices into ONE (LocalStepR now equals BeadStepR — bead_lattice.go's
+// BeadStepCells doc comment): QuantIR is already counted in bead-step-sized cells because
+// there is no other cell for it to be counted in, so N is exactly QuantIR minus the two
+// nodes' own torus extents in the same units, with nothing left to divide.
 //
-//	gap = QuantIR*stepR - nodeTorusOuterR(srcKind) - nodeTorusOuterR(dstKind)
-//	N   = round(gap / BeadStepR)
-//
-// which could be off by up to half a bead step: nodeTorusOuterR was `nodeRadius(kind) *
-// (1+ShadingParamNodeRingTubeRatio)`, an arbitrary float NOT on the bead lattice, so gap was
-// never an exact multiple of BeadStepR and round() silently absorbed the remainder — the
-// promised tangency at the target end was a rounding coincidence, not a guarantee. The fix
-// was not to snap QuantIR alone (that still leaves nodeTorusOuterR off-lattice and the
-// division still inexact); it is to make EVERY term here an integer count of bead steps, so
-// there is nothing left to round: QuantIR is snapped to a multiple of BeadStepCells at every
-// write (wire.SnapQuantIR, called from LayoutHolder.SetLocalPolar/LoadLocalPolars — never
-// here, a value that can be stored unsnapped is the bug re-entering by another door), and
-// nodeTorusOuterR is snapped to a whole number of bead steps (nodeTorusSteps, port_geometry.go)
-// rather than measured from width/height. QuantIR/BeadStepCells is therefore always an exact
-// integer bead-step count, and N is plain integer subtraction — the off-by-a-fraction bug
-// class is unrepresentable, not merely tuned away (memory/feedback_make_bug_class_unrepresentable.md).
+// nodeTorusOuterR is still snapped to a whole number of bead steps (nodeTorusSteps,
+// port_geometry.go) rather than measured from width/height, so the subtraction's second and
+// third terms are exact integers too — no term here can reintroduce a fraction.
 //
 // This is a pure function of state a node already owns, called from TWO places that must
 // never disagree: chainBeads below (this node's own goroutine, every cycle, for LAYOUT) and
@@ -66,7 +63,7 @@ import (
 // two different lengths (the exact divergence docs/bead-lattice.md replaces the old
 // arc-length model to close off).
 func edgeStepCount(lp wire.LocalPolar, srcKind, dstKind string) int {
-	n := lp.QuantIR/wire.BeadStepCells - nodeTorusSteps(srcKind) - nodeTorusSteps(dstKind)
+	n := lp.QuantIR - nodeTorusSteps(srcKind) - nodeTorusSteps(dstKind)
 	if n < 1 {
 		return 1
 	}

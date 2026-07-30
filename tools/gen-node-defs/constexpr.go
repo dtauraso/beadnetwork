@@ -78,9 +78,8 @@ func newConstEnv(fset *token.FileSet, repoRoot string) (*constEnv, error) {
 
 // loadPkgConsts parses every non-test .go file directly in dir and returns a
 // name -> constDecl map of its top-level const declarations. Cached per dir
-// since a package's consts are often chased more than once (e.g. BeadStepR
-// depends on BeadStepCells and LocalStepR, both looked up while resolving
-// BeadTorusOuterR).
+// since a package's consts are often chased more than once (e.g. LocalStepR
+// depends on BeadStepR, both looked up while resolving BeadTorusOuterR).
 func (env *constEnv) loadPkgConsts(dir string) (map[string]constDecl, error) {
 	if cached, ok := env.pkgsByDir[dir]; ok {
 		return cached, nil

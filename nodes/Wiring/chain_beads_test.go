@@ -110,9 +110,12 @@ func TestChainBeadsAlwaysAtLeastOneBead(t *testing.T) {
 	m := &nodeMover{
 		id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}},
 		outTargets: []string{"b"}, cascadeKinds: map[string]string{"b": "Input"},
-		// 16 cells * wire.DefaultLocalStepR, not the bare literal 32 — see the comment on
-		// TestChainBeadsStayOutsideBothNodes's gap.
-		layoutHolderFn: singleNeighborHolder("b", 16*wire.DefaultLocalStepR),
+		// 3 cells * wire.DefaultLocalStepR, not the bare literal 6 — see the comment on
+		// TestChainBeadsStayOutsideBothNodes's gap. QuantIR IS the bead-step count now
+		// (edgeStepCount no longer divides by a cell-per-step constant — bead_lattice.go's
+		// BeadStepCells doc comment), so 3 steps minus both "Input" nodes' own
+		// nodeTorusSteps (2 each) collapses well below the minimum.
+		layoutHolderFn: singleNeighborHolder("b", 3*wire.DefaultLocalStepR),
 	}
 	if ox, _, _, _, _ := m.chainBeads(); len(ox) != 1 {
 		t.Errorf("count = %d, want 1 — edgeStepCount clamps a collapsed gap to the minimum, never 0", len(ox))
@@ -158,14 +161,18 @@ func TestChainBeadsCountIsSpanProportional(t *testing.T) {
 	}
 	// base and span must each be an exact multiple of wire.DefaultLocalStepR
 	// (singleNeighborHolder's requirement — a sum of two such multiples is one too, so
-	// base+span and base+2*span stay exact) and base must be comfortably clear of
-	// 2*nodeTorusOuterR("Input") so the smaller span still produces beads.
-	const base = 20 * wire.DefaultLocalStepR
+	// base+span and base+2*span stay exact). base is chosen so it exactly cancels the
+	// two nodeTorusSteps("Input") subtractions (2 each, 4 total, edgeStepCount): with
+	// QuantIR itself the bead-step count (no per-step division anymore — bead_lattice.go's
+	// BeadStepCells doc comment), count(base+span) = base+span-4 = span when base=4, and
+	// count(base+2*span) = 2*span exactly — an exact double, not merely "roughly", because
+	// there is nothing left to round.
+	const base = 4 * wire.DefaultLocalStepR
 	span := 80 * wire.DefaultLocalStepR
 	n1 := count(base + span)
 	n2 := count(base + 2*span)
-	if n2 < 2*n1-1 || n2 > 2*n1+1 {
-		t.Errorf("count(span %.0f) = %d, count(span %.0f) = %d; want roughly double", span, n1, 2*span, n2)
+	if n2 != 2*n1 {
+		t.Errorf("count(span %.0f) = %d, count(span %.0f) = %d; want exactly double", span, n1, 2*span, n2)
 	}
 }
 
@@ -254,12 +261,13 @@ func TestLitBeadIndexOffChainLightsNothing(t *testing.T) {
 }
 
 // edgeStepCount pins the formula (docs/bead-lattice.md "The count") directly, independent of
-// chainBeads' node-mover plumbing.
+// chainBeads' node-mover plumbing. QuantIR is now itself a count of bead steps (there is one
+// lattice, not two — bead_lattice.go's BeadStepCells doc comment), so this is plain integer
+// subtraction with nothing to round.
 func TestEdgeStepCount(t *testing.T) {
-	lp := wire.LocalPolar{QuantIR: 200} // separation = 200 * wire.DefaultLocalStepR
+	lp := wire.LocalPolar{QuantIR: 200}
 	got := edgeStepCount(lp, "Input", "Time")
-	gap := 200*wire.DefaultLocalStepR - nodeTorusOuterR("Input") - nodeTorusOuterR("Time")
-	want := int(math.Round(gap / wire.BeadStepR))
+	want := 200 - nodeTorusSteps("Input") - nodeTorusSteps("Time")
 	if got != want {
 		t.Fatalf("edgeStepCount = %d, want %d", got, want)
 	}
@@ -270,7 +278,7 @@ func TestEdgeStepCount(t *testing.T) {
 
 // A collapsed or negative gap clamps to a minimum of 1 bead — an edge is never zero-length.
 func TestEdgeStepCountClampsToMinimumOne(t *testing.T) {
-	lp := wire.LocalPolar{QuantIR: 1} // separation = wire.DefaultLocalStepR, far inside both tori
+	lp := wire.LocalPolar{QuantIR: 1} // 1 bead step of separation, far inside both tori
 	if got := edgeStepCount(lp, "Input", "Time"); got != 1 {
 		t.Fatalf("edgeStepCount(collapsed) = %d, want 1", got)
 	}

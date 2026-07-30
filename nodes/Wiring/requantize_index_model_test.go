@@ -161,7 +161,13 @@ func TestPersistedPoleDrivesReloadWorldPositions(t *testing.T) {
 	md := &MoveDispatch{}
 	lh := &wire.LayoutHolder{}
 	tinyStep := 0.001 * testDeg
-	lh.SetLocalPolar("far", 0, 0, 0, tinyStep, tinyStep, 1)
+	// Radial step is wire.LocalStepR (the real lattice step), not an arbitrary literal —
+	// this entry round-trips through a real reload later in this test (WriteLocalPolars ->
+	// LoadTopology -> LayoutHolder.LoadLocalPolars), which now REJECTS a stored stepR that
+	// disagrees with the lattice (docs/bead-lattice.md). This test's own assertion is about
+	// theta/phi pole reconstruction, not radial quantization, so the exact value doesn't
+	// matter to it as long as it agrees with the lattice.
+	lh.SetLocalPolar("far", 0, 0, 0, tinyStep, tinyStep, wire.LocalStepR)
 
 	dirFar := dir{Theta: 60 * testDeg, Phi: 30 * testDeg}
 	offFar := offsetFromDir(dirFar).Scale(40)
