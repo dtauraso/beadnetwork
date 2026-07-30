@@ -15,7 +15,7 @@
 //
 //	n := &Time{}
 //	n.Fire = a.Fire()
-//	n.FromPrevTimeNode = a.In("FromPrevTimeNode")
+//	n.In = a.In("In")
 //
 // and a rename is a compile error. Nothing here is new BEHAVIOUR — every method below
 // returns exactly what reflectBuild's corresponding injection produced; the difference is

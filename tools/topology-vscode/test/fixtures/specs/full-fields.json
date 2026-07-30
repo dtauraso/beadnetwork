@@ -21,7 +21,7 @@
       "source": "in0",
       "sourceHandle": "ToOut",
       "target": "i0",
-      "targetHandle": "FromPrevTimeNode",
+      "targetHandle": "In",
       "kind": "chain",
       "label": "inToI0",
       "valueLabel": "v",

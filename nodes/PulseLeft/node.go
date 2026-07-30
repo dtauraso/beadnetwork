@@ -15,7 +15,7 @@ import (
 // sample-and-hold that HOLDS one int value (initialized to noValue) and drives it
 // out continuously.
 //   - The MAIN loop (Update) runs one activity cycle per human clock tick: a
-//     non-blocking input check (PollRecv) on FromInput, and on a new value it
+//     non-blocking input check (PollRecv) on In, and on a new value it
 //     calls EmitHeldBead and stores the new held, then sleeps one cycle
 //     (clk.SleepCycle) — parking the CPU instead of spinning while idle.
 //   - A DRIVE goroutine continuously pulses the CURRENT held value to the output
@@ -24,12 +24,12 @@ import (
 //     pulse — when held changes the next pulse carries the new value.
 //   - EmitGeometry publishes this node's geometry.
 //
-// held is owned by the MAIN loop; each drive goroutine gets its OWN channel
-// (Out1HeldCh/Out2HeldCh) the main loop sends the latest held value on
+// held is owned by the MAIN loop; the drive goroutine gets its OWN channel
+// (Out1HeldCh) the main loop sends the latest held value on
 // (wire.SendLatestNonBlocking) whenever it changes — the same per-goroutine-channel
-// shape as SpeedCh/Out1SpeedCh/Out2SpeedCh below, so two DriveHeld goroutines never
-// steal values from each other. The output is NOT precondition-gated: it self-emits
-// noValue from the start (like the Input bootstrap), never inert until fed.
+// shape as SpeedCh/Out1SpeedCh below. The output is NOT precondition-gated: it
+// self-emits noValue from the start (like the Input bootstrap), never inert
+// until fed.
 type PulseLeft struct {
 	wire.LayoutHolder
 	Fire         func()
@@ -46,21 +46,18 @@ type PulseLeft struct {
 	// goroutine below, which Copies independently at ITS OWN start.
 	Clock wire.Clock
 	// SpeedCh delivers a speed change to the MAIN loop's own clock copy;
-	// Out1SpeedCh/Out2SpeedCh do the same for each DriveHeld goroutine's OWN
-	// independent copy (per-goroutine-clock.md "Delivery") — three separate
-	// clock-owning goroutines here need three separate channels, since sharing
-	// one across goroutines would silently starve whichever one loses a given
-	// receive. Assigned by this kind's own builder via a.SpeedCh(); nil on a test
-	// build with no loader.
+	// Out1SpeedCh does the same for the DriveHeld goroutine's OWN independent
+	// copy (per-goroutine-clock.md "Delivery") — two separate clock-owning
+	// goroutines here need two separate channels, since sharing one across
+	// goroutines would silently starve whichever one loses a given receive.
+	// Assigned by this kind's own builder via a.SpeedCh(); nil on a test build
+	// with no loader.
 	SpeedCh     <-chan float64
 	Out1SpeedCh <-chan float64
-	Out2SpeedCh <-chan float64
-	FromInput   *wire.In
-	Out         *wire.Out
-	// Out2 is an optional SECOND continuous output driving the same held value, so a
-	// PulseLeft can fan to two destinations. Optional: when unwired (Wired()==false)
-	// its drive goroutine is skipped, so single-output PulseLeft nodes are unaffected.
-	Out2 *wire.Out
+	// In is the sole input: a sampled value that updates the held value (rule 4 —
+	// with exactly one input, there is nothing to distinguish it from).
+	In  *wire.In
+	Out *wire.Out
 }
 
 // driveOutput runs a continuous-drive goroutine on out, always emitting the
@@ -80,21 +77,14 @@ func (g *PulseLeft) Update(ctx context.Context) {
 		g.EmitHeldBead(gatecommon.NoValue) // startup: empty interior
 	}
 
-	// Each drive goroutine gets its OWN buffered-1, latest-wins channel — a
-	// single channel cannot serve two receivers without one stealing values
-	// from the other (see the doc comment on Out1SpeedCh/Out2SpeedCh).
+	// The drive goroutine gets its OWN buffered-1, latest-wins channel (see the
+	// doc comment on Out1SpeedCh).
 	out1HeldCh := make(chan int64, 1)
-	out2HeldCh := make(chan int64, 1)
 
 	// DRIVE goroutine: continuously pulse the current held value to Out. g.Clock is
 	// the ORIGIN clock; DriveHeld Copies it independently at its own goroutine's start
 	// — never hand a copy to a second goroutine.
 	driveOutput(ctx, g.Out, out1HeldCh, g.Clock, g.Out1SpeedCh)
-
-	// Optional SECOND drive goroutine for Out2.
-	if g.Out2 != nil && g.Out2.Wired() {
-		driveOutput(ctx, g.Out2, out2HeldCh, g.Clock, g.Out2SpeedCh)
-	}
 
 	// MAIN loop frame: do activities (non-blocking input check + update held),
 	// then sleep one human clock cycle, repeat. The drive goroutine picks up the
@@ -102,7 +92,7 @@ func (g *PulseLeft) Update(ctx context.Context) {
 	// keeps the loop off the CPU 99% of the time instead of spinning millions of
 	// times per human tick while there is nothing to receive.
 	consume := func() {
-		v, ok := g.FromInput.PollRecv()
+		v, ok := g.In.PollRecv()
 		if !ok {
 			return
 		}
@@ -114,7 +104,6 @@ func (g *PulseLeft) Update(ctx context.Context) {
 		}
 		cur = int64(v)
 		wire.SendLatestNonBlocking(out1HeldCh, cur)
-		wire.SendLatestNonBlocking(out2HeldCh, cur)
 	}
 
 	// Copy taken ONCE at this goroutine's start (Update IS the goroutine); each
@@ -140,9 +129,8 @@ func init() {
 	// Wiring.reflectBuild via field-name/type reflection; a rename now fails to compile.
 	Wiring.RegisterBuilder("PulseLeft",
 		[]Wiring.PortSpec{
-			{Name: "FromInput", Dir: Wiring.PortIn},
+			{Name: "In", Dir: Wiring.PortIn},
 			{Name: "Out", Dir: Wiring.PortOut},
-			{Name: "Out2", Dir: Wiring.PortOut},
 		},
 		func(a Wiring.BuildArgs) (wire.Node, error) {
 			n := &PulseLeft{}
@@ -151,10 +139,8 @@ func init() {
 			n.Clock = a.Clock()
 			n.SpeedCh = a.SpeedCh()
 			n.Out1SpeedCh = a.SpeedCh()
-			n.Out2SpeedCh = a.SpeedCh()
-			n.FromInput = a.In("FromInput")
+			n.In = a.In("In")
 			n.Out = a.Out("Out")
-			n.Out2 = a.Out("Out2")
 			// EmitGeometry stays nil deliberately — nodeMover/edgeMover emit the same
 			// geometry from their own goroutine start (see builders.go's note).
 			return n, nil

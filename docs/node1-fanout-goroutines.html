@@ -160,7 +160,7 @@
             <span class="g-name">Input kind &mdash; run</span>
             <span class="g-owns">
               <span>decides when a bead is emitted</span>
-              <span>owns <b>Out</b> ports: ToTime, ToExcitatory</span>
+              <span>owns <b>Out</b> ports: OutCadence, ToExcitatory</span>
             </span>
           </div>
           <div class="g">
@@ -215,12 +215,12 @@
           <div class="g">
             <span class="g-tag">goroutine</span>
             <span class="g-name">node 2 &mdash; Time kind</span>
-            <span class="g-owns"><span>owns <b>In</b> FromPrevTimeNode, and the bead once received</span></span>
+            <span class="g-owns"><span>owns <b>In</b>, and the bead once received</span></span>
           </div>
           <div class="g">
             <span class="g-tag">goroutine</span>
             <span class="g-name">node 3 &mdash; PulseLeft kind</span>
-            <span class="g-owns"><span>owns <b>In</b> FromInput, and the bead once received</span></span>
+            <span class="g-owns"><span>owns <b>In</b>, and the bead once received</span></span>
           </div>
         </div>
 

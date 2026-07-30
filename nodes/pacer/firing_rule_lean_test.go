@@ -52,9 +52,9 @@ func TestPacerChangeStepFeedbackLean(t *testing.T) {
 	stepWire(ctx, outPw, clk.Copy())
 
 	node := &Node{
-		Fire:      func() {},
-		Clock:     clk,
-		FromInput: wire.NewInPaced(inPw, ctx, "pacer", "FromInput", tr, nil, -1),
+		Fire:  func() {},
+		Clock: clk,
+		In:    wire.NewInPaced(inPw, ctx, "pacer", "In", tr, nil, -1),
 		FeedbackOut: wire.NewPacedOutNoGeom(outPw, ctx, "pacer", "FeedbackOut", tr,
 			wire.RuleFireAndForget, int(latMs), ""),
 	}
