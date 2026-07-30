@@ -28,6 +28,14 @@ func TestLoadLocalPolarsNormalizesDisagreeingStepR(t *testing.T) {
 		t.Fatalf("stale stepR=2 loaded as %v, want it normalized to LocalStepR=%v — a per-entry step that disagrees with the lattice is the bead-penetration bug",
 			got[0].StepR, LocalStepR)
 	}
+	// The DISTANCE the entry meant must survive. QuantIR and StepR are one value
+	// (QuantIR*StepR); converting the step alone multiplied every separation by
+	// LocalStepR/StepR — 4.5x for a stale 2.0 — which is how a 25-bead edge got 128.
+	const wantIR = 2 // round(10 * 2 / 8.96)
+	if got[0].QuantIR != wantIR {
+		t.Fatalf("QuantIR=%d after normalizing stepR 2 -> %v, want %d: the stored distance was %v world units and is now %v — normalizing half the pair changes the geometry",
+			got[0].QuantIR, LocalStepR, wantIR, 10*2.0, float64(got[0].QuantIR)*LocalStepR)
+	}
 }
 
 // TestLoadLocalPolarsLeavesAgreeingOrUnsetStepR is the companion negative case: a stored
