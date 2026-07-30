@@ -167,6 +167,23 @@ const ShadingParamBeadRingTubeRatio = 0.12
 // that is only true while the material stays unlit.
 const ShadingParamChainBeadFill = "#9acdd3"
 
+// ShadingParamInteriorBeadFill0 and ShadingParamInteriorBeadFill1 are the fills for a bead
+// HELD INSIDE a node (InteriorBeadInstances.tsx), deliberately kept SEPARATE from
+// bead-style.ts's on-wire 0/1 fills even though they start at the same values. The reason
+// is the same shape as ShadingParamChainBeadFill above: an interior bead is seen THROUGH
+// the node's glassy transmissive meshPhysicalMaterial shell (NodeInstances.tsx), so its
+// pixel is tinted by that shell no matter what material the bead itself uses. A shared
+// constant with the on-wire bead cannot make the two look equal, because the interior one
+// always has one more optical stage (the shell) sitting in front of it. Equality between
+// an interior bead and a wire bead is therefore achieved by AUTHORING these two numbers BY
+// EYE against the rendered shell, not by sharing a material or a constant. They start at
+// the on-wire values (#000000 / #ffffff) so this commit changes only the MATERIAL an
+// interior bead is drawn with (see InteriorBeadInstances.tsx), not its tone — expect these
+// two constants to be tuned away from the on-wire values once the shell's tint is visible
+// against them.
+const ShadingParamInteriorBeadFill0 = "#000000"
+const ShadingParamInteriorBeadFill1 = "#ffffff"
+
 // ShadingParamBeadColor is the in-flight bead color.
 const ShadingParamBeadColor = "#ffffff"
 

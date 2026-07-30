@@ -7,7 +7,7 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { getNodeFrame } from "./node-stream-blocks";
 import { INTERIOR_SLOTS_PER_NODE } from "./buffer-decode";
-import { beadStyleForValue } from "./bead-style";
+import { interiorBeadStyleForValue } from "./bead-style";
 import {
   readNodeCX, readNodeCY, readNodeCZ,
   readInteriorPresent, readInteriorValue, readInteriorOX, readInteriorOY, readInteriorOZ,
@@ -23,9 +23,11 @@ const INTERIOR_RING_TUBE_RATIO = 0.12;
 // nodeRow*slots + slot); a slot draws only when Present=1 AND its value has a bead-style
 // (0|1). World position = the node's buffer center + the Go-owned NODE-LOCAL slot offset
 // (OX/OY/OZ) — the buffer path has no node group to inherit, so we add the center here (the
-// JSON path composes it via the scene graph). Color is value-driven via bead-style.ts (fill
-// sphere + ring torus), the same source the JSON interior/edge beads use, so they cannot
-// visually diverge.
+// JSON path composes it via the scene graph). Color is value-driven via
+// interiorBeadStyleForValue (bead-style.ts, fill sphere + ring torus) — a registry SEPARATE
+// from the on-wire beadStyleForValue, because an interior bead renders THROUGH the node's
+// glassy transmissive shell (NodeInstances.tsx), which tints it; equality with a wire bead
+// is achieved by authoring these constants against that tint, not by sharing a material.
 export function InteriorBeadInstances({ capacity }: { capacity: number }) {
   const bodyRef = useRef<THREE.InstancedMesh>(null);
   const ringRef = useRef<THREE.InstancedMesh>(null);
@@ -54,7 +56,7 @@ export function InteriorBeadInstances({ capacity }: { capacity: number }) {
       for (let s = 0; s < INTERIOR_SLOTS_PER_NODE && slot < capacity; s++) {
         const row = i * INTERIOR_SLOTS_PER_NODE + s;
         if (!readInteriorPresent(interiorView, row)) continue;
-        const style = beadStyleForValue(readInteriorValue(interiorView, row));
+        const style = interiorBeadStyleForValue(readInteriorValue(interiorView, row));
         if (!style) continue; // non-0/1 value → hide (never paint a fallback)
         // World = node center + Go-owned node-local slot offset.
         posRef.current.set(
@@ -81,14 +83,21 @@ export function InteriorBeadInstances({ capacity }: { capacity: number }) {
   return (
     <>
       {/* Unit-radius geometry scaled per-instance to INTERIOR_BEAD_R; color is
-          value-driven via setColorAt (fill sphere + ring torus). */}
+          value-driven via setColorAt (fill sphere + ring torus).
+
+          Both meshes are meshBasicMaterial + toneMapped={false}: an interior bead's fill is
+          an AUTHORED constant (ShadingParamInteriorBeadFill0/1 via interiorBeadStyleForValue),
+          so it opts out of lighting and out of the renderer's ACES tone mapping so that
+          constant lands on screen verbatim. The node's glassy transmissive shell in front of
+          it (NodeInstances.tsx) still tints the pixel — that tint is exactly what the
+          authored constant is chosen to compensate for, by eye, against the rendered shell. */}
       <instancedMesh ref={bodyRef} args={[undefined, undefined, capacity]} frustumCulled={false}>
         <sphereGeometry args={[1, 16, 16]} />
-        <meshStandardMaterial />
+        <meshBasicMaterial toneMapped={false} />
       </instancedMesh>
       <instancedMesh ref={ringRef} args={[undefined, undefined, capacity]} frustumCulled={false}>
         <torusGeometry args={[1, INTERIOR_RING_TUBE_RATIO, 8, 24]} />
-        <meshStandardMaterial />
+        <meshBasicMaterial toneMapped={false} />
       </instancedMesh>
     </>
   );
