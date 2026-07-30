@@ -264,7 +264,7 @@ func main() {
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d overlay flags)\n", overlayGenGoPath, len(overlayFlags))
 
 	shadingParamsGoPath := filepath.Join(repoRoot, "nodes", "Wiring", "shading_params.go")
-	shadingParams, err := parseShadingParams(shadingParamsGoPath)
+	shadingParams, err := parseShadingParams(repoRoot, shadingParamsGoPath)
 	if err != nil {
 		fatalf("parse shading params: %v", err)
 	}

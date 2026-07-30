@@ -7,9 +7,12 @@ import (
 	"bytes"
 	"fmt"
 	"go/ast"
+	"go/constant"
 	"go/parser"
 	"go/token"
 	"os"
+	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -127,12 +130,25 @@ type shadingParam struct {
 // const declarations whose names start with "ShadingParam". Mirrors
 // parseCurveParams but records string-ness so writeShadingParams can quote
 // color literals correctly.
-func parseShadingParams(goPath string) ([]shadingParam, error) {
+//
+// Unlike parseCurveParams, a ShadingParam* value need not be a bare literal:
+// docs/bead-lattice.md wants ShadingParamBeadRadius written as the actual
+// derivation (`wire.BeadTorusOuterR / (1 + ShadingParamBeadRingTubeRatio)`)
+// rather than a hand-computed literal that is a second copy of the same fact.
+// A plain *ast.BasicLit is still handled with the old direct text extraction
+// (byte-identical output for every param that stays a literal); anything else
+// is evaluated via constEnv, which resolves identifiers — including ones
+// qualified into another package — against real Go constant arithmetic
+// (go/constant), so the emitted value is exactly what the Go compiler would
+// compute, not a re-derivation that could itself drift from the formula.
+func parseShadingParams(repoRoot, goPath string) ([]shadingParam, error) {
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, goPath, nil, 0)
 	if err != nil {
 		return nil, err
 	}
+	dir := filepath.Dir(goPath)
+	var env *constEnv // built lazily: only a non-literal value expression needs it (and its go.mod read)
 	var params []shadingParam
 	for _, decl := range f.Decls {
 		genDecl, ok := decl.(*ast.GenDecl)
@@ -151,17 +167,27 @@ func parseShadingParams(goPath string) ([]shadingParam, error) {
 				if i >= len(vs.Values) {
 					continue
 				}
-				lit, ok := vs.Values[i].(*ast.BasicLit)
-				if !ok {
+				tsName := camelToScreamingSnake(name.Name)
+				if lit, ok := vs.Values[i].(*ast.BasicLit); ok {
+					raw := lit.Value
+					isStr := lit.Kind == token.STRING
+					if isStr {
+						raw = strings.Trim(raw, `"`)
+					}
+					params = append(params, shadingParam{tsName: tsName, value: raw, isStr: isStr})
 					continue
 				}
-				raw := lit.Value
-				isStr := lit.Kind == token.STRING
-				if isStr {
-					raw = strings.Trim(raw, `"`)
+				if env == nil {
+					env, err = newConstEnv(fset, repoRoot)
+					if err != nil {
+						return nil, err
+					}
 				}
-				tsName := camelToScreamingSnake(name.Name)
-				params = append(params, shadingParam{tsName: tsName, value: raw, isStr: isStr})
+				val, err := env.eval(dir, f, vs.Values[i])
+				if err != nil {
+					return nil, fmt.Errorf("evaluate %s: %w", name.Name, err)
+				}
+				params = append(params, shadingParam{tsName: tsName, value: constValueString(val), isStr: false})
 			}
 		}
 	}
@@ -169,6 +195,21 @@ func parseShadingParams(goPath string) ([]shadingParam, error) {
 		return nil, fmt.Errorf("no ShadingParam* constants found in %s", goPath)
 	}
 	return params, nil
+}
+
+// constValueString renders an evaluated go/constant.Value as the literal Go
+// (and TS, since both use plain decimal syntax for a float) would print it —
+// the shortest decimal that round-trips to the same float64, matching
+// strconv.FormatFloat(f, 'g', -1, 64). Untyped constant arithmetic in
+// go/constant stays exact (arbitrary-precision rational) until this
+// conversion, so this is the one and only place precision can be lost, and
+// it loses exactly as much as assigning the constant to a Go float64 would.
+func constValueString(v constant.Value) string {
+	if v.Kind() == constant.Int {
+		return v.ExactString()
+	}
+	f, _ := constant.Float64Val(v)
+	return strconv.FormatFloat(f, 'g', -1, 64)
 }
 
 // writeShadingParams emits shading-params.ts from the parsed shadingParam slice.

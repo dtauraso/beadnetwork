@@ -23,7 +23,9 @@
 
 package Wiring
 
-import ()
+import (
+	wire "github.com/dtauraso/wirefold/nodes/wire"
+)
 
 // --- Node body: glass (MeshPhysicalMaterial) parameters -------------------
 // The node sphere is rendered as transmissive glass. These mirror the
@@ -161,13 +163,16 @@ const ShadingParamNodeRingTubeRatio = 0.08
 // therefore a CONSEQUENCE of the lattice it sits on, not an independent knob free to drift
 // away from the spacing — the exact bug class docs/bead-lattice.md exists to close off.
 //
-// Written as a LITERAL, not a `wire.BeadTorusOuterR / (1 + ratio)` expression: gen-node-defs'
-// parseShadingParams only recognizes a plain `*ast.BasicLit` value on a ShadingParam* const
-// (see its doc comment / TestParseShadingParams_ExtractsPrefixedConstsOnly) — a binary
-// expression would silently vanish from the generated TS mirror rather than fail loudly. A
-// test (TestShadingParamBeadRadiusMatchesDerivation) pins this literal to the same arithmetic
-// so the two cannot drift apart unnoticed.
-const ShadingParamBeadRadius = 3.5714285714285716
+// Written as the actual expression, not a hand-computed literal: gen-node-defs'
+// parseShadingParams (tools/gen-node-defs/params.go) evaluates a non-literal ShadingParam*
+// value with a small constant-expression evaluator (tools/gen-node-defs/constexpr.go) built
+// on go/constant, which resolves wire.BeadTorusOuterR (and everything IT depends on —
+// BeadStepR, BeadStepCells, LocalStepR, all in package wire) with exact untyped-constant
+// arithmetic, the same semantics the Go compiler itself uses. A literal here would be a
+// second copy of 4.0/1.12 free to drift the moment wire.BeadStepR or
+// ShadingParamBeadRingTubeRatio changes; this expression cannot drift because there is only
+// one copy of the fact. = 4.0 / 1.12 = 3.5714285714285716.
+const ShadingParamBeadRadius = wire.BeadTorusOuterR / (1 + ShadingParamBeadRingTubeRatio)
 
 // ShadingParamBeadRingTubeRatio is a bead ring's torus tube radius as a fraction of
 // ShadingParamBeadRadius. Same for chain beads as for the 0/1 beads — same structure.

@@ -69,11 +69,16 @@ func TestShadingParamNodeRingTubeRatioMatchesTS(t *testing.T) {
 	}
 }
 
-// TestShadingParamBeadRadiusMatchesDerivation pins ShadingParamBeadRadius's literal to
-// the tangency arithmetic it must equal (docs/bead-lattice.md "The bead radius is
-// derived, not chosen") — written as a LITERAL constant (see its own doc comment for
-// why: gen-node-defs' shading-param parser only accepts a plain BasicLit), so this test
-// is what actually enforces the derivation instead of the compiler.
+// TestShadingParamBeadRadiusMatchesDerivation now merely restates ShadingParamBeadRadius's
+// own definition: since gen-node-defs' constant evaluator (tools/gen-node-defs/constexpr.go)
+// learned to evaluate a real expression, ShadingParamBeadRadius IS
+// `wire.BeadTorusOuterR / (1 + ShadingParamBeadRingTubeRatio)` (docs/bead-lattice.md "The
+// bead radius is derived, not chosen"), not a literal pinned to that formula by a separate
+// test — the compiler enforces this now. Left in place as a cheap regression guard against
+// someone reintroducing a hand-computed literal here (the failure mode this whole change
+// closes off); the real regression coverage for the GENERATOR side — that a non-literal
+// ShadingParam* expression still gets evaluated, not silently dropped — is
+// TestParseShadingParams_EvaluatesCrossPackageExpression in tools/gen-node-defs.
 func TestShadingParamBeadRadiusMatchesDerivation(t *testing.T) {
 	want := wire.BeadTorusOuterR / (1 + ShadingParamBeadRingTubeRatio)
 	if ShadingParamBeadRadius != want {
