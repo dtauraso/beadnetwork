@@ -390,6 +390,32 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeMover, 
 	polars[nodeID] = committedPolar
 	reach := reachRFromPolar(polars, edges)
 
+	// MEASURE THE JUMP. Reported from the editor: a node's drag step and a bead's step
+	// look like different distances, and two rounds of reasoning from the constants got
+	// it wrong in both directions — first "the node does not jump at all" (it was drawn
+	// at the raw target), then "now it jumps further than a bead". So stop reasoning and
+	// read the number: this logs the ACTUAL world distance between the previously drawn
+	// centre and the one about to be drawn, next to the bead distance it is supposed to
+	// equal, plus the index delta that produced it so a jump of several cells is
+	// distinguishable from one oversized cell.
+	//
+	// Read with tools/probe-merge.sh --debug. Breadcrumbs are not gated by the
+	// probe.trace setting (.claude/rules/go-debugging.md), so this works without
+	// changing any setting — which is the point, since it has to be read from a live
+	// drag in the editor.
+	//
+	// TEMPORARY: delete once the mismatch is understood. It fires once per committed
+	// drag step, which is per pointer-move, so it is not free.
+	if nm.tr != nil {
+		prev := nodeWorldPos(nm.geom)
+		jump := committedPos.Sub(prev).Length()
+		nm.tr.Breadcrumb("drag.jump", nodeID, "", fmt.Sprintf(
+			"jump=%.3f bead=%.3f stepR=%.3f dIR=%d dITheta=%d dIPhi=%d r=%.1f",
+			jump, wire.BeadStepR, stepR,
+			off.iR-nm.quantOffset.iR, off.iTheta-nm.quantOffset.iTheta, off.iPhi-nm.quantOffset.iPhi,
+			committedPolar.R))
+	}
+
 	nm.applyCenter(committedPos, reach[nodeID])
 	lq.broadcastToEdgesAndPartners(md, map[string]vec3{nodeID: committedPos}, nm.sendMove)
 
