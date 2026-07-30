@@ -48,6 +48,11 @@
           {
             "type": "command",
             "command": "python3 \"$CLAUDE_PROJECT_DIR\"/scripts/block-open-html-hook.py"
+          },
+          {
+            "type": "command",
+            "if": "Bash(git *)",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/tools/hooks/git-runs-in-the-worktree.sh\""
           }
         ]
       }
