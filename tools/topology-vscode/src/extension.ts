@@ -199,5 +199,6 @@ function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode
 
   // Spawn Go immediately; the render path is buffer-only (buffer-snapshot on
   // fd3) so there is nothing else to send on "ready".
-  runner.run(topologyPath);
+  // The one USER-started spawn, so the only one that reveals the output panel.
+  runner.run(topologyPath, { reveal: true });
 }
