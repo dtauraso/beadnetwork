@@ -19,7 +19,12 @@ type RowEvent struct {
 	Kind                                                             string
 	NodeRow, PortRow, TargetRow, TargetPortRow, EdgeRow, Slot, Value int32
 	Bead                                                             uint64
-	ArcLength, SimLatencyMs, X, Y, Z, F                              float64
+	// BeadSteps is a send event's edge bead-step count (docs/bead-lattice.md "The
+	// count") — was ArcLength before the bead lattice replaced the arc-length
+	// model. SimLatencyMs is still a REPORTED diagnostic derived from it
+	// (steps*DwellTicksPerBead*MsPerTick), not an independently measured value.
+	BeadSteps                float64
+	SimLatencyMs, X, Y, Z, F float64
 	// Label/Debug/Text carry a DEBUG BREADCRUMB (Kind == T.KindBreadcrumb) payload:
 	// Label is a T.BreadcrumbLabel* index, Debug is always 1 on a breadcrumb row, and
 	// Text is the sanctioned single free-form remainder string (packed into the

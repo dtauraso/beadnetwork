@@ -371,21 +371,23 @@ type bufLayoutScene struct {
 // tables + string sections, so no id/port/edge strings are duplicated per event.
 // Sentinel: row/index fields are -1 when the event does not carry that reference.
 type bufLayoutEvent struct {
-	Kind          uint8   `buf:"u8"`  // index into TRACE_EVENT_KINDS
-	NodeRow       int32   `buf:"i32"` // emitting node's buffer row (-1 = none)
-	PortRow       int32   `buf:"i32"` // port's buffer row (-1 = none)
-	TargetRow     int32   `buf:"i32"` // target node's buffer row (send; -1 = none)
-	TargetPortRow int32   `buf:"i32"` // target handle's port row (send; -1 = none)
-	EdgeRow       int32   `buf:"i32"` // edge's buffer row (geometry/select-edge; -1 = none)
-	Slot          int32   `buf:"i32"` // node-bead interior slot = row*2+col (-1 = none)
-	Value         int32   `buf:"i32"` // event value (recv/send/position/status/select mode/…)
-	Bead          uint32  `buf:"u32"` // per-wire bead id (wire-bead events; 0 = none)
-	ArcLength     float32 `buf:"f32"` // send: wire arc length
-	SimLatencyMs  float32 `buf:"f32"` // send: wire traversal latency (ms)
-	X             float32 `buf:"f32"` // position/status world/marker x
-	Y             float32 `buf:"f32"` // position/status world/marker y
-	Z             float32 `buf:"f32"` // position/status world/marker z
-	F             float32 `buf:"f32"` // position: fractional progress t
+	Kind          uint8  `buf:"u8"`  // index into TRACE_EVENT_KINDS
+	NodeRow       int32  `buf:"i32"` // emitting node's buffer row (-1 = none)
+	PortRow       int32  `buf:"i32"` // port's buffer row (-1 = none)
+	TargetRow     int32  `buf:"i32"` // target node's buffer row (send; -1 = none)
+	TargetPortRow int32  `buf:"i32"` // target handle's port row (send; -1 = none)
+	EdgeRow       int32  `buf:"i32"` // edge's buffer row (geometry/select-edge; -1 = none)
+	Slot          int32  `buf:"i32"` // node-bead interior slot = row*2+col (-1 = none)
+	Value         int32  `buf:"i32"` // event value (recv/send/position/status/select mode/…)
+	Bead          uint32 `buf:"u32"` // per-wire bead id (wire-bead events; 0 = none)
+	// BeadSteps is a send event's edge bead-step count (docs/bead-lattice.md "The
+	// count") — was ArcLength before the bead lattice replaced the arc-length model.
+	BeadSteps    float32 `buf:"f32"` // send: edge bead-step count
+	SimLatencyMs float32 `buf:"f32"` // send: wire traversal latency (ms), derived from BeadSteps
+	X            float32 `buf:"f32"` // position/status world/marker x
+	Y            float32 `buf:"f32"` // position/status world/marker y
+	Z            float32 `buf:"f32"` // position/status world/marker z
+	F            float32 `buf:"f32"` // position: fractional progress t
 	// Label is the Breadcrumb sub-label enum (T.BreadcrumbLabels index) — only
 	// meaningful when Kind == KindBreadcrumb; 0 otherwise (also a valid label id,
 	// but other-kind rows never read Label). See Trace.go's BreadcrumbLabel* consts.

@@ -42,8 +42,12 @@ func TestGestureHomeComputesFitPoseFromGeometry(t *testing.T) {
 
 	md.HandleRawInput(ev, nil, nil)
 
-	// Expected fit pose: bbox over centers ± body radius (min(60,60)/divisor).
-	rad := 60.0 / CurveParamNodeRadiusDivisor
+	// Expected fit pose: bbox over centers ± body radius. nodeRadius(kind) is now the
+	// bead-lattice-SNAPPED value (port_geometry.go's nodeTorusOuterR/nodeTorusSteps,
+	// docs/bead-lattice.md "The count"), not the raw min(60,60)/divisor formula, so this
+	// must call the same function the production home-fit path calls rather than
+	// re-deriving the pre-snap number.
+	rad := nodeRadius("TimeEnd")
 	sizeX := (30 + rad) - (-30 - rad) // 60 + 2*rad
 	sizeY := (0 + rad) - (0 - rad)    // 2*rad
 	sizeZ := (0 + rad) - (0 - rad)    // 2*rad
@@ -71,9 +75,8 @@ func TestGestureHomeComputesFitPoseFromGeometry(t *testing.T) {
 
 // An unknown-kind node must be framed at the SAME body radius the pre-branch used
 // (geometry-helpers.ts nodeRadius → the streamed radius the buffer renders), i.e. the
-// (110,60) default → min(110,60)/CurveParamNodeRadiusDivisor, NOT a zero-size point. This
-// locks the home-fit radius to the pre-branch so an unsized node is not cut off at the frame
-// edge.
+// (110,60) default → nodeRadius's fallback, NOT a zero-size point. This locks the
+// home-fit radius to the pre-branch so an unsized node is not cut off at the frame edge.
 func TestGestureHomeFramesUnknownKindAtRenderRadius(t *testing.T) {
 	stale := viewpoint{pivot: vec3{X: 500, Y: 500, Z: 500}, r: 999, pos: dir{Theta: 0.3, Phi: 0.7}, up: dir{Theta: 0.1, Phi: 0.2}}
 	// A single node of an unknown kind at the origin. homeMD seeds kind "TimeEnd"; override
@@ -85,8 +88,11 @@ func TestGestureHomeFramesUnknownKindAtRenderRadius(t *testing.T) {
 	const fov, aspect = 50.0, 800.0 / 600.0
 	md.HandleRawInput(rawInputMsg{Kind: "home", Fov: fov, RectWidth: aspect, RectHeight: 1}, nil, nil)
 
-	// Expected: bbox is ±renderRadius on every axis (single node at origin).
-	renderRadius := 60.0 / float64(CurveParamNodeRadiusDivisor) // min(110,60)/4 = 15
+	// Expected: bbox is ±renderRadius on every axis (single node at origin). nodeRadius
+	// is now the bead-lattice-SNAPPED value (docs/bead-lattice.md "The count"), not the
+	// raw min(110,60)/divisor formula, so this calls the same function the production
+	// home-fit path calls.
+	renderRadius := nodeRadius("NotAKind")
 	if renderRadius <= 0 {
 		t.Fatalf("render radius must be positive, got %v", renderRadius)
 	}

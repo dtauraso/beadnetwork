@@ -299,7 +299,7 @@ const (
 	if err := os.WriteFile(path, []byte(src), 0644); err != nil {
 		t.Fatal(err)
 	}
-	params, err := parseShadingParams(path)
+	params, err := parseShadingParams(dir, path)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -311,6 +311,62 @@ const (
 	}
 	if params[1].tsName != "SHADING_PARAM_INTENSITY" || params[1].value != "1.25" || params[1].isStr {
 		t.Errorf("params[1] = %+v, want name SHADING_PARAM_INTENSITY, value 1.25, isStr=false", params[1])
+	}
+}
+
+// TestParseShadingParams_EvaluatesCrossPackageExpression is the regression guard for the
+// actual bug this change closes: a ShadingParam* const written as an EXPRESSION —
+// including one that references a const in another package, the exact shape
+// ShadingParamBeadRadius uses for wire.BeadTorusOuterR — must still show up in the
+// generated TS mirror with the correct evaluated value. Before constexpr.go, parseShadingParams
+// only recognized a plain *ast.BasicLit and silently DROPPED anything else (see the git
+// history of ShadingParamBeadRadius, which was written as a hand-computed literal for
+// exactly this reason); this test fails loudly the same way a real regression would — the
+// derived const would vanish from params, not merely mismatch — if that ever comes back.
+func TestParseShadingParams_EvaluatesCrossPackageExpression(t *testing.T) {
+	root := t.TempDir()
+	if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module example.com/fixture\n\ngo 1.25.0\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	otherDir := filepath.Join(root, "other")
+	if err := os.Mkdir(otherDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	otherSrc := `package other
+
+const Base = 8.0
+`
+	if err := os.WriteFile(filepath.Join(otherDir, "other.go"), []byte(otherSrc), 0644); err != nil {
+		t.Fatal(err)
+	}
+	consumerDir := filepath.Join(root, "consumer")
+	if err := os.Mkdir(consumerDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	consumerSrc := `package consumer
+
+import (
+	other "example.com/fixture/other"
+)
+
+const ShadingParamRatio = 0.12
+
+const ShadingParamDerived = other.Base / (1 + ShadingParamRatio)
+`
+	path := filepath.Join(consumerDir, "shading_params.go")
+	if err := os.WriteFile(path, []byte(consumerSrc), 0644); err != nil {
+		t.Fatal(err)
+	}
+	params, err := parseShadingParams(root, path)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(params) != 2 {
+		t.Fatalf("want 2 params (Ratio literal + Derived expression), got %d: %+v", len(params), params)
+	}
+	want := "7.142857142857143" // 8.0 / 1.12, formatted the way strconv.FormatFloat(f, 'g', -1, 64) does
+	if params[1].tsName != "SHADING_PARAM_DERIVED" || params[1].value != want || params[1].isStr {
+		t.Errorf("params[1] = %+v, want name SHADING_PARAM_DERIVED, value %s, isStr=false", params[1], want)
 	}
 }
 

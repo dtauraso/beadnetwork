@@ -40,7 +40,7 @@ func TestEmitsInitValuesLean(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	pw := wire.NewPacedWire(latMs*wire.PulseSpeedWuPerMs, wire.PulseSpeedWuPerMs)
+	pw := wire.NewPacedWire(int(latMs), 1.0)
 	clk := wire.NewRealClock()
 	// Production drives this output wire via its edge's own goroutine
 	// (edgeMover.run); this bare-wire unit test has no edgeMover, so it must
@@ -52,7 +52,7 @@ func TestEmitsInitValuesLean(t *testing.T) {
 		Init:  []int{10, 20, 30},
 		Clock: clk,
 		ToTime: wire.NewPacedOutNoGeom(pw, ctx, "in", "ToTime", tr,
-			wire.RuleFireAndForget, latMs*wire.PulseSpeedWuPerMs, latMs, ""),
+			wire.RuleFireAndForget, int(latMs), ""),
 	}
 	obs := wire.NewInPaced(pw, ctx, "obs", "In", tr, nil, -1)
 

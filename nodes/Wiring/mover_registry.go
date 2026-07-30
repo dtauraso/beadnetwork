@@ -96,11 +96,20 @@ func (mr *moverRegistry) bind(outSink map[string]*wire.Out, slotReg SlotRegistry
 			if srcNM, ok := mr.nodeMovers[em.srcID]; ok {
 				srcNM.outWires = append(srcNM.outWires, pw)
 				srcNM.outWireTargets = append(srcNM.outWireTargets, em.dstID)
-				// Parallel to outWires: the source *Out this edge publishes its arc
-				// length through (chainBeads reads it as the ONE authoritative arc —
-				// see outWireOuts' doc comment). o may be nil if this edge's source
-				// handle wasn't found in outSink; chainBeads falls back locally then.
+				// Parallel to outWires: the source *Out this edge's step count is
+				// PUBLISHED through (chainBeads calls PublishSteps on it — see
+				// outWireOuts' doc comment). o may be nil if this edge's source handle
+				// wasn't found in outSink; chainBeads then just skips publishing for
+				// this edge (it still lays the chain out — the step count is computed
+				// locally either way, see edgeStepCount).
 				srcNM.outWireOuts = append(srcNM.outWireOuts, o)
+				// Parallel to outWires/outWireOuts: this edge's OWN edgeMover.stepsIn
+				// channel (edge_mover.go's doc comment) — the second delivery
+				// chainBeads makes alongside PublishSteps, so the edgeMover's own
+				// goroutine (which cannot read the Out directly — see stepsIn's doc
+				// comment) can revise an in-flight bead's remaining travel against the
+				// same freshly computed count.
+				srcNM.outStepsIn = append(srcNM.outStepsIn, em.stepsIn)
 			}
 		}
 	}

@@ -2,6 +2,8 @@ package Wiring
 
 import (
 	"testing"
+
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
 // Phase 4 verifier (docs/go-authoritative-clock/index.html, Verify row "4 ·
@@ -54,6 +56,33 @@ func TestShadingParamsFloat(t *testing.T) {
 		if c.got != c.want {
 			t.Errorf("ShadingParam%s = %v, want %v", c.name, c.got, c.want)
 		}
+	}
+}
+
+// TestShadingParamNodeRingTubeRatioMatchesTS pins the Go mirror of the TS
+// NODE_RING_TUBE_RATIO (buffer-scene-shared.ts) — see ShadingParamNodeRingTubeRatio's
+// doc comment for why this now has to stay in sync (the node's torus outer radius is
+// load-bearing chain-bead-tangency geometry, not decoration).
+func TestShadingParamNodeRingTubeRatioMatchesTS(t *testing.T) {
+	if ShadingParamNodeRingTubeRatio != 0.08 {
+		t.Fatalf("ShadingParamNodeRingTubeRatio = %v, want 0.08 (TS NODE_RING_TUBE_RATIO)", ShadingParamNodeRingTubeRatio)
+	}
+}
+
+// TestShadingParamBeadRadiusMatchesDerivation now merely restates ShadingParamBeadRadius's
+// own definition: since gen-node-defs' constant evaluator (tools/gen-node-defs/constexpr.go)
+// learned to evaluate a real expression, ShadingParamBeadRadius IS
+// `wire.BeadTorusOuterR / (1 + ShadingParamBeadRingTubeRatio)` (docs/bead-lattice.md "The
+// bead radius is derived, not chosen"), not a literal pinned to that formula by a separate
+// test — the compiler enforces this now. Left in place as a cheap regression guard against
+// someone reintroducing a hand-computed literal here (the failure mode this whole change
+// closes off); the real regression coverage for the GENERATOR side — that a non-literal
+// ShadingParam* expression still gets evaluated, not silently dropped — is
+// TestParseShadingParams_EvaluatesCrossPackageExpression in tools/gen-node-defs.
+func TestShadingParamBeadRadiusMatchesDerivation(t *testing.T) {
+	want := wire.BeadTorusOuterR / (1 + ShadingParamBeadRingTubeRatio)
+	if ShadingParamBeadRadius != want {
+		t.Fatalf("ShadingParamBeadRadius = %v, want %v (wire.BeadTorusOuterR / (1+ratio))", ShadingParamBeadRadius, want)
 	}
 }
 

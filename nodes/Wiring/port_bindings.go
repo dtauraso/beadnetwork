@@ -72,25 +72,23 @@ type PortBindings struct {
 // send rule and own geometry (SetSinglePacedRule). The zero value (pw == nil)
 // means "no paced binding — fall back to a dead-end chan".
 type singleBinding struct {
-	pw      *wire.PacedWire
-	rule    wire.SendRule
-	arc     float64
-	latency float64
-	seg     wireSegment
-	label   string
+	pw    *wire.PacedWire
+	rule  wire.SendRule
+	steps int
+	seg   wireSegment
+	label string
 }
 
 // broadcastBinding is one fan-out element of an Broadcast port: its shared dest wire,
 // the concrete source handle (e.g. "ToNext0"), per-edge send rule, and that
-// edge's own travel-time / segment / TS label.
+// edge's own bead-step count / segment / TS label.
 type broadcastBinding struct {
-	pw      *wire.PacedWire
-	handle  string
-	rule    wire.SendRule
-	arc     float64
-	latency float64
-	seg     wireSegment
-	label   string
+	pw     *wire.PacedWire
+	handle string
+	rule   wire.SendRule
+	steps  int
+	seg    wireSegment
+	label  string
 }
 
 func newPortBindings() PortBindings {
@@ -105,20 +103,21 @@ func (pb *PortBindings) SetSinglePaced(name string, pw *wire.PacedWire) {
 }
 
 // SetSinglePacedRule binds a single paced output with its per-edge send rule,
-// that edge's own travel-time (arc length / sim latency), its straight-segment
-// endpoints (so the bead's position stream evaluates the exact drawn segment), and
-// the TS edge id (label) so the node's EmitGeometry closure can stream the segment.
-func (pb *PortBindings) SetSinglePacedRule(name string, pw *wire.PacedWire, rule wire.SendRule, arcLength, simLatencyMs float64, seg wireSegment, label string) {
-	pb.singlePaced[name] = singleBinding{pw: pw, rule: rule, arc: arcLength, latency: simLatencyMs, seg: seg, label: label}
+// that edge's own bead-step count (docs/bead-lattice.md "The count"), its
+// straight-segment endpoints (so the bead's position stream evaluates the exact
+// drawn segment), and the TS edge id (label) so the node's EmitGeometry closure
+// can stream the segment.
+func (pb *PortBindings) SetSinglePacedRule(name string, pw *wire.PacedWire, rule wire.SendRule, steps int, seg wireSegment, label string) {
+	pb.singlePaced[name] = singleBinding{pw: pw, rule: rule, steps: steps, seg: seg, label: label}
 }
 
 // AppendBroadcastWithHandle is like AppendMultiPaced but records the exact
 // source handle (e.g. "ToNext0"), the per-edge send rule, that edge's own
-// travel-time (arc length / sim latency), its straight-segment endpoints, and
-// the TS edge id (label) so the node's EmitGeometry closure can stream the segment.
-func (pb *PortBindings) AppendBroadcastWithHandle(name, handle string, pw *wire.PacedWire, rule wire.SendRule, arcLength, simLatencyMs float64, seg wireSegment, label string) {
+// bead-step count, its straight-segment endpoints, and the TS edge id (label)
+// so the node's EmitGeometry closure can stream the segment.
+func (pb *PortBindings) AppendBroadcastWithHandle(name, handle string, pw *wire.PacedWire, rule wire.SendRule, steps int, seg wireSegment, label string) {
 	pb.broadcastPaced[name] = append(pb.broadcastPaced[name], broadcastBinding{
-		pw: pw, handle: handle, rule: rule, arc: arcLength, latency: simLatencyMs, seg: seg, label: label,
+		pw: pw, handle: handle, rule: rule, steps: steps, seg: seg, label: label,
 	})
 }
 

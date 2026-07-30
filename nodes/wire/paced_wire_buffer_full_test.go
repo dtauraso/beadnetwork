@@ -16,7 +16,7 @@ import (
 // the buffer and confirms Send succeeds again — proving buffer-full is a
 // recoverable, transient condition rather than a one-way failure.
 func TestSendBufferFullIsNotTerminal(t *testing.T) {
-	pw := NewPacedWire(0, PulseSpeedWuPerMs)
+	pw := NewPacedWire(0, 1.0)
 
 	// Fill inCh to its full buffered capacity directly (bypassing Send, since
 	// Send itself is what we are about to test at the boundary).
@@ -54,9 +54,9 @@ func TestSendBufferFullIsNotTerminal(t *testing.T) {
 // pins the compiler-enforced distinction: BufferFull() must be false for
 // Failed() to ever report buffer-full as terminal, and it is not.
 func TestDriveItemBufferFullDoesNotKillDriveLoop(t *testing.T) {
-	pw := NewPacedWire(0, PulseSpeedWuPerMs)
+	pw := NewPacedWire(0, 1.0)
 	ctx := context.Background()
-	out := NewPacedOutNoGeom(pw, ctx, "src", "Out", nil, RuleFireAndForget, 1, 1, "")
+	out := NewPacedOutNoGeom(pw, ctx, "src", "Out", nil, RuleFireAndForget, 1, "")
 
 	// Fill inCh directly so the next PlaceDrivenAt call is forced through the
 	// SendBufferFull path.

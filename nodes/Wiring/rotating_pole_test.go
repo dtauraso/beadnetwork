@@ -259,11 +259,14 @@ func TestComputeLocalPolarsRequantizesStoredBearingAboutResolvedPole(t *testing.
 	// that is deliberately bogus/stale relative to src↔dst's live geometry — so this
 	// test can distinguish "reconstructed from the stored index" (must reload
 	// unchanged) from "re-derived from the live offset" (would reload as something
-	// close to dst's live direction instead). quantIR must survive untouched. The
-	// stored "role" key is retained ONLY for on-disk compatibility with old meta.json
-	// files (unconsumed field, JSON decode silently ignores it — LocalPolar has no
-	// Role field).
-	mk("nodes/src/meta.json", `{"id":"src","type":"SrcNode","r":100,"scenePolarR":37.4165738677,"scenePolarTheta":1.00685368543,"scenePolarPhi":1.2490457724,"localPolars":[{"to":"dst","role":"source","quantITheta":20,"quantIPhi":170,"quantIR":42}]}`)
+	// close to dst's live direction instead). quantIR must survive untouched — chosen
+	// as 44 (an exact multiple of wire.BeadStepCells) so LoadLocalPolars' bead-lattice
+	// snap (wire.SnapQuantIR, docs/bead-lattice.md "The count") is a no-op here and
+	// doesn't get conflated with this test's actual assertion (verbatim reconstruction,
+	// not re-derivation from live geometry). The stored "role" key is retained ONLY
+	// for on-disk compatibility with old meta.json files (unconsumed field, JSON
+	// decode silently ignores it — LocalPolar has no Role field).
+	mk("nodes/src/meta.json", `{"id":"src","type":"SrcNode","r":100,"scenePolarR":37.4165738677,"scenePolarTheta":1.00685368543,"scenePolarPhi":1.2490457724,"localPolars":[{"to":"dst","role":"source","quantITheta":20,"quantIPhi":170,"quantIR":44}]}`)
 	mk("nodes/src/outputs/Out.json", `{"name":"Out"}`)
 	mk("nodes/dst/meta.json", `{"id":"dst","type":"SinkNode","r":100,"scenePolarR":87.7496438739,"scenePolarTheta":0.96453035788,"scenePolarPhi":-2.15879893034}`)
 	mk("nodes/dst/inputs/In.json", `{"name":"In"}`)
@@ -300,8 +303,8 @@ func TestComputeLocalPolarsRequantizesStoredBearingAboutResolvedPole(t *testing.
 	if got == nil {
 		t.Fatal("src has no local polar entry for dst after load")
 	}
-	if got.QuantIR != 42 {
-		t.Fatalf("QuantIR not preserved: got %d want 42", got.QuantIR)
+	if got.QuantIR != 44 {
+		t.Fatalf("QuantIR not preserved: got %d want 44", got.QuantIR)
 	}
 	if got.QuantITheta != 20 || got.QuantIPhi != 170 {
 		t.Fatalf("stored index was not preserved verbatim across load (home pole in, home pole out is an exact round-trip): got %+v want QuantITheta=20 QuantIPhi=170", got)

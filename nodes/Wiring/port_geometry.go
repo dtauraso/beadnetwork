@@ -23,7 +23,11 @@
 
 package Wiring
 
-import "math"
+import (
+	"math"
+
+	wire "github.com/dtauraso/wirefold/nodes/wire"
+)
 
 // portGeom is one port's layout descriptor: its name and optional ring-anchor index.
 type portGeom struct {
@@ -152,12 +156,33 @@ func kindWidthHeight(kind string) (float64, float64) {
 	return 110, 60
 }
 
-// nodeRadius mirrors nodeRadius() in geometry-helpers.ts:
-//
-//	min(width, height) / CurveParamNodeRadiusDivisor
-func nodeRadius(kind string) float64 {
+// bareNodeRadius is the UNSNAPPED sphere radius from a kind's width/height —
+// min(width, height) / CurveParamNodeRadiusDivisor, mirroring nodeRadius() in
+// geometry-helpers.ts. It exists ONLY as the basis nodeTorusSteps snaps to the bead
+// lattice below; nothing else may call it. Every other reader of "this kind's
+// radius" must go through nodeRadius (which is the SNAPPED value, derived from
+// nodeTorusOuterR) — a second, unsnapped copy of the radius reaching a renderer or
+// a placement calculation is exactly the half-bead-step drift docs/bead-lattice.md
+// exists to remove, so this helper is deliberately unexported and single-purpose.
+func bareNodeRadius(kind string) float64 {
 	w, h := kindWidthHeight(kind)
 	return min(w, h) / float64(CurveParamNodeRadiusDivisor)
+}
+
+// nodeRadius is a node's SPHERE radius — the streamed/drawn radius, and the basis
+// for ring-anchor placement (ringAnchorCount, portRingPolar, snapToRingAnchorIndex).
+// It is DERIVED from the snapped torus extent (nodeTorusOuterR), by inverting the
+// ring's tube-fraction scale, rather than computed independently from
+// width/height: the TS renderer draws the border ring as a unit torus scaled by
+// this exact value with tube thickness ShadingParamNodeRingTubeRatio
+// (NodeInstances.tsx), so ring-outer-radius = nodeRadius(kind) *
+// (1+ShadingParamNodeRingTubeRatio) = nodeTorusOuterR(kind) by construction — the
+// drawn ring and the bead-tangent point can never disagree, because both trace back
+// to the one snapped integer nodeTorusSteps. Nodes change size by up to one bead
+// step versus the pre-snap width/height formula; that is the intended cost of
+// making the tangency exact (docs/bead-lattice.md "Placement").
+func nodeRadius(kind string) float64 {
+	return nodeTorusOuterR(kind) / (1 + ShadingParamNodeRingTubeRatio)
 }
 
 // nodeWorldPos derives a node's world center from its polar source of truth:
@@ -372,35 +397,25 @@ func edgeSegment(src, tgt nodeGeom, srcPort, dstPort string) wireSegment {
 	return wireSegment{Start: start, End: end}
 }
 
-// edgeArcPolar is the pulse's travel budget for an edge: the distance between the two AIMED
-// port positions, computed ENTIRELY IN POLAR from each node's stored ScenePolar.
-//
-// Both ports are aimed at the other node's center, so the two ports and the two centers are
-// COLINEAR by construction (see portWorldPosAimed). That makes the port-to-port distance pure
-// arithmetic: the center-to-center distance less each port's own radius. No cartesian is
-// involved, so there is nothing to convert back.
-//
-// This deliberately does NOT go through edgeSegment. Doing so would build cartesian endpoints
-// out of ScenePolar (nodeWorldPos = SceneCenter + polar2cart) and then cart2polar them straight
-// back — a polar→cartesian→polar round trip that re-derives a quantity both nodes already hold,
-// and whose Acos(v.Y/r)/Atan2(v.Z,v.X) degenerates for a node sitting near the scene pole.
-//
-// The radius subtracted is portRadiusByName, not nodeRadius(kind): portWorldPosAimed places the
-// port at exactly that radius, and a materialized port may carry a PortR that differs from the
-// node default (portRadiusByName falls back to nodeRadius when PortR is nil).
-func edgeArcPolar(src, tgt nodeGeom, srcPort, dstPort string) float64 {
-	raw := polarDist(src.ScenePolar, tgt.ScenePolar) -
-		portRadiusByName(src, srcPort, false) -
-		portRadiusByName(tgt, dstPort, true)
-	// Overlapping nodes can drive the subtraction negative; a negative arc would poison
-	// ticksToCross. The CurveParamMinArcLength floor below is the real guard, this only
-	// keeps the quantize step well-defined.
-	if raw < 0 {
-		raw = 0
-	}
-	quantized := math.Round(raw/edgeLengthCellWu) * edgeLengthCellWu
-	if quantized < CurveParamMinArcLength {
-		return CurveParamMinArcLength
-	}
-	return quantized
+// nodeTorusSteps is a node's torus-outer extent expressed as a whole number of bead
+// steps — the integer edgeStepCount subtracts from an edge's separation
+// (docs/bead-lattice.md "The count"). CEIL, not round: rounding could snap the
+// extent SMALLER than the node's true unsnapped body, and a bead's tangent point
+// would then land inside the node rather than merely off by a fraction — the exact
+// bug class this file removes, reintroduced at the node's own boundary instead of
+// the edge's. Ceiling only ever grows the node, never shrinks it past its own
+// surface.
+func nodeTorusSteps(kind string) int {
+	unsnapped := bareNodeRadius(kind) * (1 + ShadingParamNodeRingTubeRatio)
+	return int(math.Ceil(unsnapped / wire.BeadStepR))
+}
+
+// nodeTorusOuterR is a node's TORUS OUTER radius, SNAPPED to a whole number of bead
+// steps (nodeTorusSteps) — its true visual/geometric extent, not the unsnapped
+// width/height formula (docs/bead-lattice.md "Placement"). nodeRadius (above) is
+// DERIVED from this value, so the node's drawn sphere/ring and the bead-tangent
+// point at nodeTorusOuterR(kind) can never disagree: there is one snapped number,
+// not a snapped one for beads and an independently-rounded one for the renderer.
+func nodeTorusOuterR(kind string) float64 {
+	return float64(nodeTorusSteps(kind)) * wire.BeadStepR
 }

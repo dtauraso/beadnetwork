@@ -37,7 +37,7 @@ import {
   readPortPX, readPortPY, readPortPZ,
   readEventKind, readEventNodeRow, readEventPortRow, readEventTargetRow, readEventTargetPortRow,
   readEventEdgeRow, readEventSlot, readEventValue, readEventBead,
-  readEventArcLength, readEventSimLatencyMs, readEventX, readEventY, readEventZ, readEventF,
+  readEventBeadSteps, readEventSimLatencyMs, readEventX, readEventY, readEventZ, readEventF,
   readEventLabel, readEventDebug, readEventTextOff, readEventTextLen,
   readSceneCX, readSceneCY, readSceneCZ, readSceneRadius,
   UNKNOWN_KIND_ID,
@@ -56,7 +56,7 @@ const EVENT_TEXT_DECODER = new TextDecoder();
 // returns the looser `Line`).
 export type DecodedEventLine =
   | { step: number; kind: "recv" | "fire"; node: string; port?: string; value?: number }
-  | { step: number; kind: "send"; node: string; port?: string; value?: number; arcLength?: number; simLatencyMs?: number; target?: string; targetHandle?: string }
+  | { step: number; kind: "send"; node: string; port?: string; value?: number; beadSteps?: number; simLatencyMs?: number; target?: string; targetHandle?: string }
   | { step: number; kind: "edge-bead"; node: string; port: string; value?: number; x: number; y: number; z: number; f: number; bead?: number }
   | { step: number; kind: "geometry"; edge: string; sx: number; sy: number; sz: number; ex: number; ey: number; ez: number }
   | { step: number; kind: "arrive"; node: string; port: string; value?: number; bead?: number }
@@ -239,10 +239,10 @@ function decodeEventLine(ev: DataView, eventTextView: DataView, dn: DecodedNodeF
     case "fire":
       return { kind, node };
     case "send": {
-      const arc = readEventArcLength(ev, i);
+      const beadSteps = readEventBeadSteps(ev, i);
       const lat = readEventSimLatencyMs(ev, i);
-      if (arc !== 0 || lat !== 0) {
-        const l: Line = { kind, node, port, value, arcLength: arc, simLatencyMs: lat };
+      if (beadSteps !== 0 || lat !== 0) {
+        const l: Line = { kind, node, port, value, beadSteps, simLatencyMs: lat };
         const t = dn && targetRow >= 0 ? nodeLabel(dn, targetRow) : "";
         if (t) l.target = t;
         const th = dn ? portName(dn, targetPortRow) : "";

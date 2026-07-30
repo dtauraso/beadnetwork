@@ -320,14 +320,21 @@ type nodeMover struct {
 	outWires       []*wire.PacedWire
 	outWireTargets []string
 	// outWireOuts is the *wire.Out for each entry in outWires (parallel, same index),
-	// bound alongside it in moverRegistry.bind. It is this node's ONE source of the
-	// authoritative arc length for that edge (Out.Geom().ArcLength, published by
-	// PublishGeom) — chainBeads reads it instead of re-deriving a length locally, so the
-	// chain's layout and the lit index cannot read two different arcs (that divergence is
-	// what caused the unreachable-tail bug: see docs/beads-are-the-edge.md and
-	// chain_beads.go). nil entries and a zero ArcLength (not yet published) are both
-	// valid — chainBeads falls back to a local surface-to-surface estimate then.
+	// bound alongside it in moverRegistry.bind. This node's own chainBeads (this node
+	// IS the count owner, docs/bead-lattice.md "Ownership") calls PublishSteps on each
+	// entry every pass, so the wire's own timing budget always reads the same integer
+	// the chain was just laid out on. nil when this edge's source handle wasn't found
+	// in outSink (chainBeads then just skips the publish for that edge).
 	outWireOuts []*wire.Out
+	// outStepsIn is outWireOuts' sibling: each entry's edgeMover.stepsIn channel
+	// (edge_mover.go's doc comment), parallel to outWires/outWireOuts by index.
+	// chainBeads sends the same freshly computed step count here as it publishes to
+	// outWireOuts, so the edgeMover's own goroutine — which cannot read the Out's
+	// Geom() cache directly without racing its one owning goroutine — can revise an
+	// in-flight bead's remaining travel (ReviseInFlightGeometry) against the current
+	// count too. nil entries are skipped by sendStepsNonBlocking (a nil channel's send
+	// case is simply never selected).
+	outStepsIn []chan int
 	// cascadeKinds maps each cascadeEdges neighbor id → that neighbor's kind name,
 	// loaded once from this node's OWN cascade-edges.json (specNode.CascadeKinds,
 	// loader_tree.go) at construction (build.go's buildMoveDispatch) — never touched

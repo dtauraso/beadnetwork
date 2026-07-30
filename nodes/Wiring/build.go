@@ -61,9 +61,14 @@ type buildCtx struct {
 	destWire      map[string]*wire.PacedWire
 	edgeWire      WireRegistry
 	edgeEndpoints map[string]EdgeEndpoints
-	edgeArc       map[string]float64
-	edgeLatency   map[string]float64
-	edgeSegments  map[string]wireSegment
+	// edgeSteps is each edge's own bead-step count (docs/bead-lattice.md "The
+	// count") — its INITIAL published value, computed once at load time from the
+	// source node's own b.localPolars entry to the target. The source node's own
+	// goroutine recomputes and republishes this same integer every cycle once
+	// running (chain_beads.go's chainBeads); this load-time value is what the
+	// wire's dwell and the first-frame chain layout start from before that.
+	edgeSteps    map[string]int
+	edgeSegments map[string]wireSegment
 
 	// Phase 5: the MoveDispatch.
 	md *MoveDispatch
@@ -139,13 +144,12 @@ func (b *buildCtx) computeNodeGeometry() {
 // computeQuantizedLayout makes the quantized flat absolute scene-polar layout
 // (quantized_layout.go) AUTHORITATIVE for every node's world center. It resolves each
 // allocateWires allocates one *PacedWire per destination port (one edge per port —
-// fan-in is rejected at parse) and
-// computes each edge's own travel-time (arc length / sim latency) and
-// straight-segment endpoints.
+// fan-in is rejected at parse) and computes each edge's own INITIAL bead-step count
+// (docs/bead-lattice.md "The count") and straight-segment endpoints.
 //   - destWire: "destNode.destPort" → *PacedWire (owned by the destination).
 //   - edgeWire: edge label → *PacedWire (same pointer; for stdin_reader lookup).
 //   - edgeEndpoints: edge label → source/target node IDs + handles (for NodeMoveRegistry).
-//   - edgeArc / edgeLatency: each edge's OWN travel-time (per-edge geometry).
+//   - edgeSteps: each edge's OWN bead-step count (per-edge geometry).
 //   - edgeSegments: each edge's straight-segment endpoints (Start/End) so the
 //     bead's position stream evaluates P(t)=Start+t*(End-Start).
 //
@@ -154,21 +158,36 @@ func (b *buildCtx) allocateWires() {
 	destWire := map[string]*wire.PacedWire{}
 	edgeWire := WireRegistry{}
 	edgeEndpoints := map[string]EdgeEndpoints{}
-	edgeArc := map[string]float64{}
-	edgeLatency := map[string]float64{}
+	edgeSteps := map[string]int{}
 	edgeSegments := map[string]wireSegment{}
 	for _, e := range b.spec.Edges {
 		destKey := e.Target + "." + e.TargetHandle
-		// Per-edge segment + arc, node-to-node (polar-frame-rewrite.md option A). The arc
-		// (pulse travel budget) is the polar law-of-cosines distance between the two node
-		// positions (edgeArcPolar) — pure polar. The segment is the world node-to-node line
-		// for the renderer (edgeSegment), the GPU-boundary cartesian.
+		// Segment: node-to-node cartesian (polar-frame-rewrite.md option A), the GPU
+		// boundary the renderer draws from (edgeSegment).
 		srcG, tgtG := b.nodeGeoms[e.Source], b.nodeGeoms[e.Target]
 		seg := edgeSegment(srcG, tgtG, e.SourceHandle, e.TargetHandle)
-		arcLength := edgeArcPolar(srcG, tgtG, e.SourceHandle, e.TargetHandle)
-		simLatencyMs := arcLength / wire.PulseSpeedWuPerMs
-		edgeArc[e.Label] = arcLength
-		edgeLatency[e.Label] = simLatencyMs
+		// Steps: the SOURCE node's own stored LocalPolar to the target, run through
+		// edgeStepCount (docs/bead-lattice.md "The count") — the SAME function and the
+		// SAME LocalPolar entry the source node's own chainBeads pass (chain_beads.go)
+		// will keep recomputing once running, so this load-time value and that first
+		// live pass can never disagree. computeLocalPolars (b.localPolars) runs before
+		// this phase and gives every domain-edge pair a LocalPolar entry on both
+		// endpoints, so a lookup miss here is a build-invariant violation, not a
+		// legitimate absence to fall back from.
+		steps := 1
+		found := false
+		for _, lp := range b.localPolars[e.Source] {
+			if lp.To == e.Target {
+				steps = edgeStepCount(lp, srcG.Kind, tgtG.Kind)
+				found = true
+				break
+			}
+		}
+		if !found {
+			panic("allocateWires: no LocalPolar from " + e.Source + " to " + e.Target +
+				" — computeLocalPolars should have populated one for every domain edge")
+		}
+		edgeSteps[e.Label] = steps
 		edgeSegments[e.Label] = seg
 		// One wire per destination input port, and — since fan-in is removed
 		// (validateNoFanIn) — exactly one edge per port, so this is strictly one wire per
@@ -177,7 +196,11 @@ func (b *buildCtx) allocateWires() {
 		if _, exists := destWire[destKey]; exists {
 			panic("allocateWires: two edges target " + destKey + " — validateNoFanIn should have rejected this fan-in at parse")
 		}
-		pw := wire.NewPacedWire(arcLength, wire.PulseSpeedWuPerTick)
+		// wire.DwellTicksPerBead is the ONE canonical dwell-per-step constant
+		// (docs/bead-lattice.md "Timing" — uniform pulse speed is now structural,
+		// not a length divided by a speed); guarded as the sole non-test
+		// NewPacedWire call site by tools/check-uniform-pulse-speed.sh.
+		pw := wire.NewPacedWire(steps, wire.DwellTicksPerBead)
 		pw.Target = e.Target
 		pw.TargetHandle = e.TargetHandle
 		pw.Trace = b.tr
@@ -191,8 +214,7 @@ func (b *buildCtx) allocateWires() {
 	b.destWire = destWire
 	b.edgeWire = edgeWire
 	b.edgeEndpoints = edgeEndpoints
-	b.edgeArc = edgeArc
-	b.edgeLatency = edgeLatency
+	b.edgeSteps = edgeSteps
 	b.edgeSegments = edgeSegments
 }
 
@@ -366,7 +388,7 @@ func (b *buildCtx) buildNodes() error {
 					// Send rule is node-owned, keyed by this output port name.
 					rule := nodeSendRule(n, port.Name)
 					lbl := labels[0]
-					pb.SetSinglePacedRule(port.Name, b.edgeWire[lbl], rule, b.edgeArc[lbl], b.edgeLatency[lbl], b.edgeSegments[lbl], lbl)
+					pb.SetSinglePacedRule(port.Name, b.edgeWire[lbl], rule, b.edgeSteps[lbl], b.edgeSegments[lbl], lbl)
 				}
 				// If no outbound edge, a.Out() falls back to a dead-end chan.
 
@@ -381,7 +403,7 @@ func (b *buildCtx) buildNodes() error {
 					// Per-port (per fan-out element): the rule is keyed by the
 					// concrete output port name (sourceHandle, e.g. "ToNext0").
 					rule := nodeSendRule(n, handle)
-					pb.AppendBroadcastWithHandle(port.Name, handle, b.edgeWire[lbl], rule, b.edgeArc[lbl], b.edgeLatency[lbl], b.edgeSegments[lbl], lbl)
+					pb.AppendBroadcastWithHandle(port.Name, handle, b.edgeWire[lbl], rule, b.edgeSteps[lbl], b.edgeSegments[lbl], lbl)
 				}
 				// If no outbound edges, builder falls back to a dead-end slice.
 			}

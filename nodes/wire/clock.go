@@ -5,20 +5,21 @@
 // speed (`tick = ⌊(systemNow − start) × scale⌋`). All timing in the network is
 // tick counts, never wall-clock durations: goroutines pace themselves with
 // SleepCycle, which blocks for exactly one clock cycle. A bead crossing an edge
-// takes `ticksToCross = arcLength / pulseSpeed` ticks (pulseSpeed in
-// world-units-per-tick); node
+// takes `ticksToCross = steps * DwellTicksPerBead` ticks (steps: the edge's own
+// bead-step count, docs/bead-lattice.md "The count"; DwellTicksPerBead: the one
+// uniform per-step dwell, bead_lattice.go); node
 // processing windows are tick counts. There is no separate render cadence — the
 // tick IS the animation clock.
 //
-// SCALE arithmetic (behavior-preserving vs. the retired wall-clock model):
-// the old model sampled bead positions every 16 ms and crossed an edge in
-// arcLength/pulseSpeedWuPerMs wall-ms. We pick one tick ≈ one old 16 ms sample:
+// SCALE arithmetic (behavior-preserving vs. the retired wall-clock model, and
+// vs. the later retired arc-length model — docs/bead-lattice.md superseded both):
+// the original model sampled bead positions every 16 ms. We pick one tick ≈ one
+// old 16 ms sample:
 //
 //	MsPerTick = 16   ⇒   scale = 1 tick / 16 ms = 62.5 ticks/sec.
 //
 // So a bead visits ~the same number of positions in ~the same wall time, and
-// pause/resume look identical. (pulseSpeed's world-units-per-tick reinterpret
-// lives in paced_wire.go: PulseSpeedWuPerTick = PulseSpeedWuPerMs × MsPerTick.)
+// pause/resume look identical.
 //
 // The model is sleep-only: pacing loops call SleepCycle to wait exactly one
 // clock cycle rather than blocking on a target tick. RealClock is the single

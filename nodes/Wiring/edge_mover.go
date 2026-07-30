@@ -23,7 +23,8 @@ import (
 )
 
 // edgeMover owns one edge. It holds both endpoint geometries and recomputes its own
-// segment/arc on an endpoint move (the edge label, which keys its channels below,
+// SEGMENT (never a length — docs/bead-lattice.md "Ownership": the step count is the
+// SOURCE NODE's) on an endpoint move (the edge label, which keys its channels below,
 // encodes the two connected nodes).
 type edgeMover struct {
 	edgeID  string
@@ -33,8 +34,8 @@ type edgeMover struct {
 	dstH    string
 	srcGeom nodeGeom
 	dstGeom nodeGeom
-	out     *wire.Out       // source Out for this edge (per-edge segment/arc/latency)
-	dest    *wire.PacedWire // dest wire (in-flight revision + latency aggregate)
+	out     *wire.Out       // source Out for this edge (this edgeMover publishes the SEGMENT onto it)
+	dest    *wire.PacedWire // dest wire (in-flight bead revision)
 	// extIn is this edge's dedicated channel for EXTERNAL entries (gesture.go's
 	// applyRingAnchor anchor mail-sort). srcIn/dstIn are this edge's two dedicated
 	// channels FROM its two endpoint nodes' own goroutines — srcIn written only by
@@ -44,6 +45,29 @@ type edgeMover struct {
 	extIn chan moveMsg
 	srcIn chan moveMsg
 	dstIn chan moveMsg
+	// stepsIn is a buffered-1, latest-wins channel carrying this edge's freshly
+	// computed bead-step count (docs/bead-lattice.md "The count") FROM the SOURCE
+	// node's own goroutine (nodeMover.chainBeads, node_mover.go/chain_beads.go —
+	// the count owner) TO this edgeMover's own goroutine. Needed because
+	// recomputeGeometry (below) calls ReviseInFlightGeometry, which needs the
+	// CURRENT step count to re-derive an in-flight bead's remaining travel — but
+	// this edgeMover cannot read the source Out's Geom() itself (that cache,
+	// o.sendCur, is owned exclusively by the ONE goroutine that places beads on
+	// it, per ports.go's Geom() doc comment; a second reader would race it). A
+	// dedicated delivery channel, drained non-blockingly every cycle into `steps`
+	// below, is the same "producer sends, one consumer owns its copy" shape
+	// speedCh already uses (per-goroutine-clock.md "Delivery") — not a lock, not
+	// a shared field. Bound once per edge at construction (mover_registry.go's
+	// bind, paired with nodeMover.outStepsIn); nil in bare test construction.
+	stepsIn chan int
+	// steps is this edgeMover's OWN cached copy of the latest step count drained
+	// from stepsIn (run's per-cycle drain, below) — owned and mutated exclusively
+	// by this edgeMover's own goroutine. Read by recomputeGeometry to pass to
+	// ReviseInFlightGeometry. Zero until the source node's first chainBeads pass
+	// publishes a value (this edge then has no in-flight beads to revise yet, so
+	// a zero read here is harmless — ReviseInFlightGeometry no-ops when
+	// len(inflight)==0).
+	steps int
 	tr    *T.Trace
 	// clockSrc is the Clock this edgeMover's own goroutine (run) Copies from
 	// EXACTLY ONCE at its own start, into clk below. Not read again afterward.
@@ -118,6 +142,7 @@ func newEdgeMover(ep EdgeEndpoints, edgeID string, srcGeom, dstGeom nodeGeom, tr
 		extIn:    make(chan moveMsg, moverInboxDepth),
 		srcIn:    make(chan moveMsg, moverInboxDepth),
 		dstIn:    make(chan moveMsg, moverInboxDepth),
+		stepsIn:  make(chan int, 1),
 		tr:       tr,
 		clockSrc: clockSrc,
 		clk:      wire.NewRealClock(),
@@ -198,26 +223,32 @@ func (m *edgeMover) handle(msg moveMsg) {
 	_ = msg
 }
 
-// recomputeGeometry re-derives this edge's segment/arc/latency from its held endpoint
-// geoms+handles and propagates them: write onto the source Out, revise any in-flight
-// bead (fraction-preserving), update the dest port window aggregate, and emit the new
-// segment so the renderer redraws the wire. Shared by node-move and port-anchor handling.
+// recomputeGeometry re-derives this edge's SEGMENT ONLY from its held endpoint
+// geoms+handles and propagates it: publish onto the source Out, revise any in-flight
+// bead's remaining travel (fraction-preserving, against this edgeMover's own cached
+// step count — see stepsIn's doc comment), and emit the new segment so the renderer
+// redraws the wire. Shared by node-move and port-anchor handling.
+//
+// NO LENGTH IS COMPUTED HERE (docs/bead-lattice.md "Ownership"): the step count is
+// the SOURCE NODE's, published separately (chain_beads.go's PublishSteps + this
+// edge's stepsIn) — the old edgeArcPolar call and its lat := arc/PulseSpeedWuPerMs
+// derivation are both gone, not replaced by an edge-side re-derivation of the same
+// integer from a different (and potentially disagreeing) measurement.
 func (m *edgeMover) recomputeGeometry() {
 	seg := edgeSegment(m.srcGeom, m.dstGeom, m.srcH, m.dstH)
-	arc := edgeArcPolar(m.srcGeom, m.dstGeom, m.srcH, m.dstH)
-	lat := arc / wire.PulseSpeedWuPerMs
 
-	// Publish the new per-edge segment/arc/latency onto the source Out's buffered-1,
-	// latest-wins channel, so the next placement (on the source node goroutine) reads
-	// the new segment by message — no data race with recomputeGeometry's write here.
+	// Publish the new segment onto the source Out's own buffered-1, latest-wins
+	// channel, so the next placement (on the source node's own goroutine) reads it
+	// by message — no data race with recomputeGeometry's write here.
 	if m.out != nil {
-		m.out.PublishGeom(arc, lat, seg.Start, seg.End)
+		m.out.PublishSegment(seg.Start, seg.End)
 	}
-	// Re-derive an in-flight bead on this edge from the new arc + segment (no-op if
-	// none in flight); this runs on the SAME goroutine that owns the dest wire's
-	// bead state (this is that wire's own goroutine — see edgeMover.run).
+	// Re-derive an in-flight bead on this edge from the new segment + this edgeMover's
+	// own cached step count (no-op if none in flight); this runs on the SAME goroutine
+	// that owns the dest wire's bead state (this is that wire's own goroutine — see
+	// edgeMover.run).
 	if m.dest != nil {
-		m.dest.ReviseInFlightGeometry(m.clk.Tick(), arc, seg)
+		m.dest.ReviseInFlightGeometry(m.clk.Tick(), m.steps, seg)
 	}
 	// Emit this edge's own segment so the renderer redraws the wire from Go's endpoints.
 	// Geometry rides THIS edgeMover's own dedicated stream (fully decentralized — it never
@@ -361,6 +392,12 @@ func (m *edgeMover) run(ctx context.Context) {
 				if rc, ok := m.clk.(*wire.RealClock); ok {
 					rc.SetSpeed(sp)
 				}
+			case steps := <-m.stepsIn:
+				// Delivery (stepsIn's doc comment): fold the source node's freshest
+				// published step count into this edgeMover's own cached copy. A bare
+				// value update, not a geometry recompute — the next recomputeGeometry
+				// (on a move) or ReviseInFlightGeometry call reads m.steps fresh.
+				m.steps = steps
 			case msg := <-m.extIn:
 				m.handle(msg)
 				if msg.testDone != nil {

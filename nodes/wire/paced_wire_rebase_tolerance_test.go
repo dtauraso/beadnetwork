@@ -27,15 +27,14 @@ func approxEq(a, b float64) bool { return math.Abs(a-b) < 1e-9 }
 // race-free, exactly like TestReviseInFlightGeometryNoSkewWithSingleClockCopy
 // above.
 func TestReviseInFlightGeometryRevisesInFlightSegment(t *testing.T) {
-	const crossTicks = 40.0
-	pw := NewPacedWire(0, PulseSpeedWuPerTick)
-	arc := crossTicks * PulseSpeedWuPerTick
-	inFlightMs := crossTicks * MsPerTick
+	const crossTicks = 40 // == steps, at dwell 1.0 (see NewPacedWire below).
+	pw := NewPacedWire(0, 1.0)
+	steps := crossTicks
 
 	ctx := context.Background()
 	startSeg := WireSegment{Start: Vec3{}, End: Vec3{X: 1}}
 
-	if pw.Send(0, beadPlacement{InFlightMs: inFlightMs, Start: startSeg.Start, End: startSeg.End}, 0) != SendPlaced {
+	if pw.Send(0, beadPlacement{Steps: steps, Start: startSeg.Start, End: startSeg.End}, 0) != SendPlaced {
 		t.Fatalf("Send failed")
 	}
 	// Drain the placement into pw.inflight (the wire's own per-cycle drive).
@@ -45,7 +44,7 @@ func TestReviseInFlightGeometryRevisesInFlightSegment(t *testing.T) {
 	}
 
 	newSeg := WireSegment{Start: Vec3{X: 2}, End: Vec3{X: 3}}
-	pw.ReviseInFlightGeometry(0, arc, newSeg)
+	pw.ReviseInFlightGeometry(0, steps, newSeg)
 
 	if len(pw.inflight) != 1 {
 		t.Fatalf("expected 1 in-flight bead after revision, got %d", len(pw.inflight))

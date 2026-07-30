@@ -1,5 +1,14 @@
 # Beads are the edge — plan
 
+**Superseded on the LENGTH model:** every `arcLength`/chord-distance formula this document
+describes below (item 4's `count = len / s`, `ticksToCross = arcLength / pulseSpeed`, and the
+in-flight revision rule's `newArc`) is historical — the arc-length model it plans is gone.
+[docs/bead-lattice.md](bead-lattice.md) is now the length model: an edge's length is ONE
+INTEGER (the bead-step count between two nodes' tori), computed from index arithmetic on the
+source node's own stored `LocalPolar`, no arc, no sqrt, no chord. This document's staging
+narrative, the chain/lighting split, and the ownership decisions below it are still current;
+only the "how long is an edge" formula changed.
+
 The edge stops being a thing that owns geometry and timing. A node owns a **sequence of
 placeholder beads** toward each neighbour. The wire goroutine is removed and its animation
 logic moves into the node. Traversal is no longer a bead moving along a wire — it is

@@ -37,15 +37,15 @@ func TestPacerChangeStepFeedbackLean(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	inPw := wire.NewPacedWire(latMs*wire.PulseSpeedWuPerMs, wire.PulseSpeedWuPerMs)
+	inPw := wire.NewPacedWire(int(latMs), 1.0)
 	clk := wire.NewRealClock()
 	stepWire(ctx, inPw, clk.Copy())
 	// inSrc is a test-only seeding source on inPw: PlaceDrivenAt places a bead
 	// (no walker) that the stepWire loop above then drives to delivery,
 	// reusing the production placement API to inject the test's input value.
-	inSrc := wire.NewPacedOutNoGeom(inPw, ctx, "seed", "Out", tr, wire.RuleFireAndForget, 0, 0, "")
+	inSrc := wire.NewPacedOutNoGeom(inPw, ctx, "seed", "Out", tr, wire.RuleFireAndForget, 0, "")
 
-	outPw := wire.NewPacedWire(latMs*wire.PulseSpeedWuPerMs, wire.PulseSpeedWuPerMs)
+	outPw := wire.NewPacedWire(int(latMs), 1.0)
 	// Production drives this output wire via its edge's own goroutine
 	// (edgeMover.run); this bare-wire unit test has no edgeMover, so it must
 	// supply the same per-cycle drive itself.
@@ -56,7 +56,7 @@ func TestPacerChangeStepFeedbackLean(t *testing.T) {
 		Clock:     clk,
 		FromInput: wire.NewInPaced(inPw, ctx, "pacer", "FromInput", tr, nil, -1),
 		FeedbackOut: wire.NewPacedOutNoGeom(outPw, ctx, "pacer", "FeedbackOut", tr,
-			wire.RuleFireAndForget, latMs*wire.PulseSpeedWuPerMs, latMs, ""),
+			wire.RuleFireAndForget, int(latMs), ""),
 	}
 	observer := wire.NewInPaced(outPw, ctx, "obs", "In", tr, nil, -1)
 

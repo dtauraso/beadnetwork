@@ -23,7 +23,7 @@ import (
 // off and inflight can only grow. This asserts drainPlacements panics exactly
 // at maxInflightBeads+1, naming its own cause.
 func TestInflightBoundPanicsWhenDestinationStalls(t *testing.T) {
-	pw := NewPacedWire(1, PulseSpeedWuPerMs)
+	pw := NewPacedWire(1, 1.0)
 
 	defer func() {
 		r := recover()
@@ -61,7 +61,7 @@ func TestInflightBoundPanicsWhenDestinationStalls(t *testing.T) {
 	// draining outCh" shape the bound exists to catch.
 	for i := range maxInflightBeads + 1 {
 		select {
-		case pw.inCh <- placeRequest{val: i, bp: beadPlacement{InFlightMs: 1}, placementTick: 0}:
+		case pw.inCh <- placeRequest{val: i, bp: beadPlacement{Steps: 1}, placementTick: 0}:
 		default:
 			t.Fatalf("inCh reported full before reaching maxInflightBeads (at %d); "+
 				"wireChanBufferSize must be >= maxInflightBeads+1 for this test to exercise "+
@@ -77,11 +77,11 @@ func TestInflightBoundPanicsWhenDestinationStalls(t *testing.T) {
 // cycle by Recv) and asserts it never panics and inflight stays small,
 // confirming the bound does not false-fire on ordinary traffic.
 func TestInflightBoundNeverTripsWithNormalDelivery(t *testing.T) {
-	pw := NewPacedWire(1, PulseSpeedWuPerMs)
+	pw := NewPacedWire(1, 1.0)
 	ctx := context.Background()
 
 	for tick := int64(0); tick < 500; tick++ {
-		if got := pw.Send(int(tick), beadPlacement{InFlightMs: 1}, tick); got != SendPlaced {
+		if got := pw.Send(int(tick), beadPlacement{Steps: 1}, tick); got != SendPlaced {
 			t.Fatalf("tick %d: Send = %v, want SendPlaced", tick, got)
 		}
 		pw.DriveOneCycle(ctx, tick)
@@ -103,10 +103,10 @@ func TestInflightBoundNeverTripsWithNormalDelivery(t *testing.T) {
 // the backing array, so a bare re-slice would leave the array referenced
 // (and still growable) forever even at zero length.
 func TestInflightResetsToNilWhenDrained(t *testing.T) {
-	pw := NewPacedWire(0, PulseSpeedWuPerMs)
+	pw := NewPacedWire(0, 1.0)
 	ctx := context.Background()
 
-	if got := pw.Send(1, beadPlacement{InFlightMs: 0}, 1); got != SendPlaced {
+	if got := pw.Send(1, beadPlacement{Steps: 0}, 1); got != SendPlaced {
 		t.Fatalf("Send = %v, want SendPlaced", got)
 	}
 	// Send stamps placementTick from the tick passed here (1), and stepAll

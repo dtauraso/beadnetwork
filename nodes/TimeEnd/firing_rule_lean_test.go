@@ -39,13 +39,13 @@ func TestHoldFiresAndHoldsOnReceiveLean(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	pw := wire.NewPacedWire(latMs*wire.PulseSpeedWuPerMs, wire.PulseSpeedWuPerMs)
+	pw := wire.NewPacedWire(int(latMs), 1.0)
 	clk := wire.NewRealClock()
 	stepWire(ctx, pw, clk.Copy())
 	// inSrc is a test-only seeding source on pw: PlaceDrivenAt places a bead
 	// (no walker) that the stepWire loop above then drives to delivery,
 	// reusing the production placement API to inject the test's input value.
-	inSrc := wire.NewPacedOutNoGeom(pw, ctx, "seed", "Out", tr, wire.RuleFireAndForget, 0, 0, "")
+	inSrc := wire.NewPacedOutNoGeom(pw, ctx, "seed", "Out", tr, wire.RuleFireAndForget, 0, "")
 
 	beadCh := make(chan int, 16)
 	fires := 0
