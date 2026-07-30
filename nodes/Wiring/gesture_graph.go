@@ -55,6 +55,16 @@ var commitEdges = []gestureEdge{
 // which the driver now performs from the edge's `to`). Side-effect order preserved exactly:
 // emitViewFrame(KindAbcDragReset) → resetAbcDrag() → sendMove(DragStart).
 func (md *MoveDispatch) commitDragStart(g *gestureState, ev rawInputMsg, tr *T.Trace) {
+	// Capture the grab offset ONCE, at this exact slop-crossing commit event: the vector
+	// from where the pointer's ray actually hits the drag plane to the node's center. Every
+	// later move (applyNodeDragTarget) adds this same offset back so the grabbed point
+	// stays under the cursor instead of the node's center jumping to it. Must happen here,
+	// not inside the move path — see dragGrabOffset's doc comment in gesture.go. A parallel
+	// ray (ok==false) leaves the offset at its zero value, degrading to centre-on-cursor
+	// rather than breaking the drag.
+	if hit, ok := md.dragPlaneHit(ev); ok {
+		g.dragGrabOffset = g.dragStartCenter.Sub(hit)
+	}
 	// Re-scope the in-editor drag-log to THIS drag. This is the ONE place a drag
 	// begins (the slop-crossing pending→dragging transition), so it fires exactly
 	// once per drag. It must NOT live in RootMove: that runs on every pointer-move
