@@ -4,6 +4,7 @@ import * as vscode from "vscode";
 import { BuildAndRunRunner } from "./runCommand";
 import { buildBinary } from "./goBuild";
 import { shouldRestartAfterBuild, TrailingDebouncer } from "./hotRestart";
+import { hashBundle, isHostReloadEnabled, shouldReloadHost } from "./hostReload";
 import type { HostToWebviewMsg } from "./messages";
 import { buildWebviewHtml } from "./extension/html";
 import { handleMessage } from "./extension/handle-message";
@@ -15,6 +16,85 @@ export function activate(context: vscode.ExtensionContext) {
       openTopologyEditor(context, uri);
     }),
   );
+  armHostReloadWatcher(context);
+}
+
+// armHostReloadWatcher watches the BUILT extension-host bundle (out/extension.js — the
+// esbuild `extension` output, see esbuild.mjs's outfile; distinct from out/webview.js,
+// which bundleWatcher below already handles per-panel) and self-reloads the window when
+// it changes. This closes the last of the editor's three refresh paths: webview bundle
+// rebuilt -> tab refreshes itself (bundleWatcher), Go rebuilt -> live sim hot-restarts
+// (goWatcher/runner.restart()), and now extension-host rebuilt -> window reloads itself.
+// Without this a rebuilt host runs stale code until "Developer: Reload Window" is run by
+// hand, which produces WRONG DEBUGGING: Go can emit something the stale host's fd
+// allocation or message handling doesn't know about, and the symptom is silence —
+// indistinguishable from "the code never ran" (memory/feedback_two_process_editor_reload.md).
+//
+// Deliberately armed once in activate(), not per-panel like bundleWatcher/goWatcher: the
+// host bundle is a property of the WHOLE extension process, not of any one editor tab, so
+// one watcher for the extension's lifetime is the right scope (and avoids N watchers/N
+// reload commands if the user has multiple topology tabs open).
+function armHostReloadWatcher(context: vscode.ExtensionContext): void {
+  const hostBundlePath = path.join(context.extensionPath, "out", "extension.js");
+  const hostChannel = vscode.window.createOutputChannel("topology host-reload");
+  context.subscriptions.push(hostChannel);
+  // Baseline: the hash of the bundle THIS instance actually loaded. Captured once, here,
+  // never rewritten except by a fresh activate() after a real reload — see
+  // shouldReloadHost's doc comment for why that makes a self-triggered loop impossible.
+  let loadedHash: string | undefined;
+  try {
+    loadedHash = hashBundle(fs.readFileSync(hostBundlePath));
+  } catch {
+    // Bundle unreadable at activation (shouldn't happen once the extension is running
+    // from it, but a race with a build is possible) — shouldReloadHost treats undefined
+    // as "no baseline, never reload" rather than guessing.
+  }
+  const hostWatcher = vscode.workspace.createFileSystemWatcher(
+    new vscode.RelativePattern(
+      vscode.Uri.file(path.join(context.extensionPath, "out")),
+      "extension.js",
+    ),
+  );
+  context.subscriptions.push(hostWatcher);
+  const debouncer = new TrailingDebouncer(250);
+  context.subscriptions.push({ dispose: () => debouncer.dispose() });
+  // reloading latches once a reload has been requested, so a second debounced firing in
+  // the window before "workbench.action.reloadWindow" actually tears the process down
+  // (VS Code takes a beat) can't queue a second reload command.
+  let reloading = false;
+  const maybeReload = () => {
+    debouncer.schedule(() => {
+      if (reloading) return;
+      // Read at point of use (not cached) so toggling the setting takes effect without
+      // itself needing a reload — see isHostReloadEnabled's doc comment.
+      if (!isHostReloadEnabled()) return;
+      let newHash: string;
+      try {
+        newHash = hashBundle(fs.readFileSync(hostBundlePath));
+      } catch {
+        return; // Build in progress / file mid-write — the next fs event will retry.
+      }
+      if (!shouldReloadHost(loadedHash, newHash)) return;
+      // NOTE (requirement 5): there is no cheap "a gesture is in flight" signal
+      // reachable from the extension host to defer this against. Pointer/drag state
+      // lives entirely in Go's gesture FSM (nodes/Wiring/gesture.go), reached only via
+      // fire-and-forget raw-input on Go's stdin (CLAUDE.md's bridge surface) — the host
+      // never learns whether a drag is mid-flight, so there is nothing here to poll or
+      // wait on. Documented as a known rough edge rather than inventing a signal that
+      // doesn't exist: a reload during an active drag is possible and will feel abrupt.
+      reloading = true;
+      hostChannel.appendLine("[topology] extension host bundle changed — reloading window");
+      vscode.window.setStatusBarMessage(
+        "Topology: extension updated, reloading window…",
+        3000,
+      );
+      // Fire-and-forget: reloadWindow tears this process down: there is nothing
+      // meaningful to await from the code that is about to stop existing.
+      void vscode.commands.executeCommand("workbench.action.reloadWindow");
+    });
+  };
+  hostWatcher.onDidChange(maybeReload);
+  hostWatcher.onDidCreate(maybeReload);
 }
 
 // Truncate probe logs on each editor open so each session's trace is clean (cross-session accumulation was misleading).

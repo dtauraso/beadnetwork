@@ -26,11 +26,16 @@ export const window = {
 
 export const workspace: {
   workspaceFolders: Array<{ uri: { fsPath: string } }> | undefined;
-  getConfiguration: (section?: string) => { get<T>(key: string): T | undefined };
+  getConfiguration: (section?: string) => { get<T>(key: string, defaultValue?: T): T | undefined };
 } = {
   workspaceFolders: undefined,
-  // Minimal config stub: returns undefined for every key (so newSystem defaults to off).
-  getConfiguration: () => ({ get: <T>(_key: string): T | undefined => undefined }),
+  // Minimal config stub: no setting is ever actually configured, so it always falls
+  // through to the CALLER's defaultValue argument — same as real vscode.WorkspaceConfiguration
+  // when a key is unset. Returning a hardcoded `undefined` here (the prior behaviour) was
+  // wrong for any caller relying on a non-undefined default (e.g. wirefold.reloadOnHostBuild's
+  // default-true), and happened to read as correct only for callers whose default was
+  // itself falsy (wirefold.probe.trace's default-false).
+  getConfiguration: () => ({ get: <T>(_key: string, defaultValue?: T): T | undefined => defaultValue }),
 };
 
 export const Uri = {

@@ -35,6 +35,11 @@
           "type": "boolean",
           "default": false,
           "description": "Write the high-volume per-owner .probe/ trace logs (go.jsonl, go-node.jsonl, go-edge.jsonl, go-interior.jsonl, ts.jsonl). Off by default because these can grow to gigabytes in a long session. Error logs (go-errors.jsonl, ts-errors.jsonl, handler-error-last.json) are always written regardless of this setting."
+        },
+        "wirefold.reloadOnHostBuild": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically run 'Developer: Reload Window' when the built extension-host bundle (out/extension.js) changes, so a rebuilt extension host is never running stale code silently. On by default. Disable if you want to control the reload yourself."
         }
       }
     }
