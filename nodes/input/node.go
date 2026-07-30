@@ -33,8 +33,8 @@ type Node struct {
 	EmitRefillSlide func(clk wire.Clock, speedCh <-chan float64, beads []int)
 	// Clock is this node's OWN clock storage, assigned by this kind's own builder
 	// directly from the loader's origin (not derived from any specific wired
-	// output port — deriving it from Primary/ToExcitatory/ToFeedbackSource was
-	// fragile: whichever port happened to be wired first controlled pacing, and
+	// output port — deriving it from OutCadence/ToExcitatory was fragile:
+	// whichever port happened to be wired first controlled pacing, and
 	// per-goroutine-clock.md's API demolition removed port-derived clocks
 	// entirely anyway). A bare interface field like this is an unguarded
 	// nil-interface trap on any construction path that does not set it (a test
@@ -53,24 +53,21 @@ type Node struct {
 	SpeedCh <-chan float64
 	Init    []int `wire:"data.init"`
 	Repeat  bool  `wire:"data.repeat"`
-	// Primary is the required broadcast output: the emitted value's forward path,
-	// and the edge whose crossing time SETS this node's own emission cadence
-	// (inputCadenceTicks reads Primary.Geom() unconditionally, unlike the two
-	// optional fan-outs below). Was "ToTime", a kind-leak name — the destination
-	// does not have to be a Time/TimeStart kind.
-	Primary *wire.Out
-	// ToExcitatory fans the emitted value out to a Pulse node (sample-and-hold). It is
-	// optional: when unwired (Wired()==false) the emit is skipped so existing
-	// topologies without a Pulse are unaffected.
+	// OutCadence is a broadcast output like the other two below (n.broadcastPlace
+	// gates all three identically on Wired() — none is more "required" than the
+	// others; an earlier version of this comment claimed Primary/OutCadence was
+	// required and the other two optional, which was FALSE). What sets it apart is
+	// narrower: inputCadenceTicks reads OutCadence.Geom() UNCONDITIONALLY (no
+	// Wired() check), so this is the one output whose edge length sets this node's
+	// own emission cadence — hence the name. Was "ToTime", then "Primary", both
+	// kind-leak/false-hierarchy names — the destination does not have to be a
+	// Time/TimeStart kind, and this port is not privileged over the other two.
+	OutCadence *wire.Out
+	// ToExcitatory fans the emitted value out to whatever node samples and holds it
+	// (sample-and-hold). It is optional: when unwired (Wired()==false) the emit is
+	// skipped so existing topologies without that partner are unaffected.
 	ToExcitatory *wire.Out
-	// ToFeedbackSource fans the emitted value out to the node that computes the
-	// step this node reads back on FeedbackIn (sample-and-hold, change-step
-	// feedback). Optional: when unwired (Wired()==false) the emit is skipped so
-	// existing topologies without a feedback partner are unaffected. Was
-	// "ToPacer", a kind-leak name — the destination does not have to be a Pacer
-	// kind, only something that returns a step on FeedbackIn.
-	ToFeedbackSource *wire.Out
-	FeedbackIn       *wire.In
+	FeedbackIn   *wire.In
 }
 
 // clock returns n.Clock, guarded against nil (belt-and-suspenders: the
@@ -93,17 +90,15 @@ func (n *Node) clock() wire.Clock {
 // this node's goroutine; that bead is simply dropped from this cycle's
 // broadcast (a breadcrumb was already emitted by PacedWire.Send) and the next
 // Fire cycle tries again. tick is THIS goroutine's own clock reading, read
-// ONCE by the caller and stamped identically on all three placements below —
-// that single shared reading is what makes node 2 (Primary) and node 6
-// (ToExcitatory) traverse in lockstep, not a per-Out clock read here.
+// ONCE by the caller and stamped identically on both placements below — that
+// single shared reading is what makes whatever is wired to OutCadence and
+// whatever is wired to ToExcitatory traverse in lockstep, not a per-Out
+// clock read here.
 func (n *Node) broadcastPlace(v int, tick int64) bool {
-	if n.Primary.Wired() && n.Primary.PlaceDrivenAt(v, tick).Failed() {
+	if n.OutCadence.Wired() && n.OutCadence.PlaceDrivenAt(v, tick).Failed() {
 		return false
 	}
 	if n.ToExcitatory.Wired() && n.ToExcitatory.PlaceDrivenAt(v, tick).Failed() {
-		return false
-	}
-	if n.ToFeedbackSource.Wired() && n.ToFeedbackSource.PlaceDrivenAt(v, tick).Failed() {
 		return false
 	}
 	return true
@@ -168,10 +163,11 @@ func (n *Node) updateFeedbackRing(ctx context.Context, working, backup *[]int, i
 				emitBeads()
 			}
 
-			// PEEK the end (do NOT reslice) and SEND. Buffer unchanged. Node 1
+			// PEEK the end (do NOT reslice) and SEND. Buffer unchanged. Input
 			// places the same bead on every wired output the same cycle
-			// (broadcastPlace — preserves concurrent broadcast) so node 2
-			// (Primary) and node 6 (ToExcitatory) traverse in lockstep.
+			// (broadcastPlace — preserves concurrent broadcast) so whatever is
+			// wired to OutCadence and whatever is wired to ToExcitatory
+			// traverse in lockstep.
 			v := (*working)[len(*working)-1]
 			if n.Fire != nil {
 				n.Fire()
@@ -299,12 +295,12 @@ func (n *Node) Update(ctx context.Context) {
 }
 
 // inputCadenceTicks is Input's fire cadence in clock ticks: the CROSSING TIME of
-// the primary broadcast edge, Steps * DwellTicksPerBead (= ticksToCross,
+// the OutCadence edge, Steps * DwellTicksPerBead (= ticksToCross,
 // docs/bead-lattice.md "Timing"), so exactly one bead crosses the edge per
 // cadence — no overlap. Measured in ticks, so it freezes on pause with Tick().
 // Recomputed live so a drag that changes the edge's step count re-paces emission.
 func inputCadenceTicks(n *Node) int64 {
-	c := int64(float64(n.Primary.Geom().Steps) * wire.DwellTicksPerBead)
+	c := int64(float64(n.OutCadence.Geom().Steps) * wire.DwellTicksPerBead)
 	if c < 1 {
 		return 1
 	}
@@ -318,9 +314,8 @@ func init() {
 	// instead of silently staying nil/zero.
 	Wiring.RegisterBuilder("Input",
 		[]Wiring.PortSpec{
-			{Name: "Primary", Dir: Wiring.PortOut},
+			{Name: "OutCadence", Dir: Wiring.PortOut},
 			{Name: "ToExcitatory", Dir: Wiring.PortOut},
-			{Name: "ToFeedbackSource", Dir: Wiring.PortOut},
 			{Name: "FeedbackIn", Dir: Wiring.PortIn},
 		},
 		func(a Wiring.BuildArgs) (wire.Node, error) {
@@ -356,9 +351,8 @@ func init() {
 				n.Repeat = data.Repeat
 			}
 
-			n.Primary = a.Out("Primary")
+			n.OutCadence = a.Out("OutCadence")
 			n.ToExcitatory = a.Out("ToExcitatory")
-			n.ToFeedbackSource = a.Out("ToFeedbackSource")
 			n.FeedbackIn = a.In("FeedbackIn")
 			// EmitGeometry stays nil deliberately — nodeMover/edgeMover emit the same
 			// geometry from their own goroutine start.
