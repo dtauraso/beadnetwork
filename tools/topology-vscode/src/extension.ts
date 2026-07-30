@@ -3,6 +3,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { BuildAndRunRunner } from "./runCommand";
 import { buildBinary } from "./goBuild";
+import { shouldRestartAfterBuild, TrailingDebouncer } from "./hotRestart";
 import type { HostToWebviewMsg } from "./messages";
 import { buildWebviewHtml } from "./extension/html";
 import { handleMessage } from "./extension/handle-message";
@@ -115,12 +116,13 @@ function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode
     bundleWatcher.onDidCreate(reload("create"));
   }
 
-  // Eager Go-binary watcher: rebuild the prebuilt binary the moment a .go file
-  // is saved so launches stay instant (the lazy ensureBinaryBuilt in runner.run()
-  // remains the safety net for missed events). Does NOT hot-restart a running sim
-  // on .go change — it only keeps the binary fresh; the next start/restart picks
-  // it up. (Hot-restart of a live sim on .go change is a possible future
-  // enhancement, intentionally not implemented here.)
+  // Eager Go-binary watcher: rebuild the prebuilt binary the moment a .go file is saved so
+  // launches stay instant (the lazy ensureBinaryBuilt in runner.run() remains the safety
+  // net for missed events). If a sim is LIVE when a rebuild SUCCEEDS, it also hot-restarts
+  // that sim (runner.restart(), which is a no-op — requirement 1 — if nothing is running)
+  // so the new geometry/behaviour is on screen with no window reload and no user action.
+  // Debounced (TrailingDebouncer) so one save, or a multi-file edit/checkout touching
+  // hundreds of .go files, produces at most one rebuild and one restart, not one per event.
   const repoRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
   let goWatcher: vscode.FileSystemWatcher | undefined;
   if (repoRoot) {
@@ -130,14 +132,20 @@ function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode
     goWatcher = vscode.workspace.createFileSystemWatcher(
       new vscode.RelativePattern(repoRoot, "**/*.go"),
     );
-    let pending: NodeJS.Timeout | undefined;
+    const debouncer = new TrailingDebouncer(250);
     const rebuild = () => {
-      if (pending) clearTimeout(pending);
-      pending = setTimeout(() => {
+      debouncer.schedule(() => {
         const res = buildBinary(repoRoot, binPath);
-        if (res.ok) {
-          if (!res.busy) goChannel.appendLine("[go] rebuilt wirefold");
-        } else {
+        if (shouldRestartAfterBuild(res)) {
+          goChannel.appendLine("[go] rebuilt wirefold");
+          // Only restarts a LIVE sim (runner.restart() no-ops otherwise — requirement 1);
+          // reuses the topology path the live run was already started with (runner owns
+          // that, restart() never takes one — requirement 2). Told to the user here so a
+          // sim that silently changes under someone mid-drag isn't confusing (requirement 7).
+          if (runner.restart()) {
+            goChannel.appendLine("[go] hot-restarting sim");
+          }
+        } else if (!res.ok) {
           goChannel.appendLine(`[go] build error: ${res.error}`);
           try {
             fs.mkdirSync(path.dirname(goErrorsFile), { recursive: true });
@@ -148,16 +156,24 @@ function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode
             );
           } catch { /* swallow */ }
         }
-      }, 250);
+        // else: res.ok && res.busy — coalesced against another in-flight build (see
+        // shouldRestartAfterBuild's doc comment: this caller did not cause a build, so
+        // its result says nothing about whether THIS edit's changes are in the binary
+        // yet). Nothing to report; skip the restart rather than restart against a binary
+        // that might still be one edit stale.
+      });
     };
     goWatcher.onDidChange(rebuild);
     goWatcher.onDidCreate(rebuild);
     goWatcher.onDidDelete(rebuild);
-    // goWatcher/goChannel track THIS panel's lifetime, so the panel is their single
-    // disposal owner (onDidDispose below). Deliberately NOT pushed into
+    // goWatcher/goChannel/debouncer track THIS panel's lifetime, so the panel is their
+    // single disposal owner (onDidDispose below). Deliberately NOT pushed into
     // context.subscriptions — mirrors the bundleWatcher single-owner contract and
     // avoids a double-dispose across the two owners.
-    panel.onDidDispose(() => goChannel.dispose());
+    panel.onDidDispose(() => {
+      debouncer.dispose();
+      goChannel.dispose();
+    });
   }
 
   context.subscriptions.push(runner);
