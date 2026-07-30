@@ -39,7 +39,7 @@ func toStreamEvents(events []wire.RowEvent) []B.StreamEvent {
 			Slot:          e.Slot,
 			Value:         e.Value,
 			Bead:          uint32(e.Bead),
-			ArcLength:     float32(e.ArcLength),
+			BeadSteps:     float32(e.BeadSteps),
 			SimLatencyMs:  float32(e.SimLatencyMs),
 			X:             float32(e.X),
 			Y:             float32(e.Y),

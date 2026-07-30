@@ -20,11 +20,11 @@ import (
 // sequence left every delivery queued forever (streamOut nil -> 40
 // deliveries left all 40 queued, per the brief's measured repro).
 func TestPendingStaysEmptyWithNoStreamConsumer(t *testing.T) {
-	pw := NewPacedWire(1, PulseSpeedWuPerMs)
+	pw := NewPacedWire(1, 1.0)
 	ctx := context.Background()
 
 	for i := range 40 {
-		if got := pw.Send(i, beadPlacement{InFlightMs: 1, Node: "src", Port: "out"}, 0); got != SendPlaced {
+		if got := pw.Send(i, beadPlacement{Steps: 1, Node: "src", Port: "out"}, 0); got != SendPlaced {
 			t.Fatalf("Send(%d) = %v, want SendPlaced", i, got)
 		}
 	}
@@ -51,11 +51,11 @@ func TestPendingStaysEmptyWithNoStreamConsumer(t *testing.T) {
 // them — confirming the gate only suppresses accumulation, not delivery
 // tracing, once a real consumer exists.
 func TestPendingAccumulatesAndDrainsWithStreamConsumer(t *testing.T) {
-	pw := NewPacedWire(1, PulseSpeedWuPerMs)
+	pw := NewPacedWire(1, 1.0)
 	pw.StreamsActive = true
 	ctx := context.Background()
 
-	if got := pw.Send(1, beadPlacement{InFlightMs: 1, Node: "src", Port: "out"}, 0); got != SendPlaced {
+	if got := pw.Send(1, beadPlacement{Steps: 1, Node: "src", Port: "out"}, 0); got != SendPlaced {
 		t.Fatalf("Send = %v, want SendPlaced", got)
 	}
 

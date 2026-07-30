@@ -25,17 +25,21 @@ import (
 // TestReviseInFlightGeometryPreservesFractionAcrossArcChange: a bead 25% across a
 // 40-tick edge stays 25% across after the edge doubles to 80 ticks.
 func TestReviseInFlightGeometryPreservesFractionAcrossArcChange(t *testing.T) {
-	const oldCrossTicks = 40.0
-	const newCrossTicks = 80.0 // the edge DOUBLES — this is what the old test never did.
+	const oldCrossTicks = 40 // == steps, at dwell 1.0 (see NewPacedWire below).
+	const newCrossTicks = 80 // the edge DOUBLES — this is what the old test never did.
 	const placedAt = 0
 	const nowTick = 10 // 10 of 40 ticks elapsed ⇒ the bead is 25% across.
 	const wantFraction = 0.25
 
-	pw := NewPacedWire(0, PulseSpeedWuPerTick)
-	newArc := newCrossTicks * PulseSpeedWuPerTick
+	// dwell 1.0 makes ticksToCross == steps exactly, the same lean-test
+	// convention NewPacedWire's own doc comment describes — so this test can
+	// express the edge's length directly as a step count instead of first
+	// converting through a chosen speed.
+	pw := NewPacedWire(0, 1.0)
+	newSteps := newCrossTicks
 
 	// Place via the production path (Send + DriveOneCycle), stamped at tick 0.
-	if pw.Send(0, beadPlacement{InFlightMs: oldCrossTicks * MsPerTick, Start: Vec3{}, End: Vec3{X: 1}}, placedAt) != SendPlaced {
+	if pw.Send(0, beadPlacement{Steps: oldCrossTicks, Start: Vec3{}, End: Vec3{X: 1}}, placedAt) != SendPlaced {
 		t.Fatalf("Send failed")
 	}
 	pw.DriveOneCycle(context.Background(), placedAt)
@@ -45,14 +49,14 @@ func TestReviseInFlightGeometryPreservesFractionAcrossArcChange(t *testing.T) {
 
 	// Everything runs on the TEST goroutine — no background driver — so reading
 	// pw.inflight directly is same-goroutine and race-free.
-	pw.ReviseInFlightGeometry(nowTick, newArc, WireSegment{Start: Vec3{}, End: Vec3{X: 2}})
+	pw.ReviseInFlightGeometry(nowTick, newSteps, WireSegment{Start: Vec3{}, End: Vec3{X: 2}})
 
 	if len(pw.inflight) != 1 {
 		t.Fatalf("expected 1 in-flight bead after revision, got %d", len(pw.inflight))
 	}
 	b := pw.inflight[0]
-	if b.arc != newArc {
-		t.Fatalf("arc not updated: got %v, want %v", b.arc, newArc)
+	if b.steps != newSteps {
+		t.Fatalf("steps not updated: got %v, want %v", b.steps, newSteps)
 	}
 
 	// The fraction is now measured against the NEW crossing time. Preserving 25% over

@@ -2,6 +2,8 @@ package Wiring
 
 import (
 	"testing"
+
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
 // Phase 4 verifier (docs/go-authoritative-clock/index.html, Verify row "4 ·
@@ -54,6 +56,28 @@ func TestShadingParamsFloat(t *testing.T) {
 		if c.got != c.want {
 			t.Errorf("ShadingParam%s = %v, want %v", c.name, c.got, c.want)
 		}
+	}
+}
+
+// TestShadingParamNodeRingTubeRatioMatchesTS pins the Go mirror of the TS
+// NODE_RING_TUBE_RATIO (buffer-scene-shared.ts) — see ShadingParamNodeRingTubeRatio's
+// doc comment for why this now has to stay in sync (the node's torus outer radius is
+// load-bearing chain-bead-tangency geometry, not decoration).
+func TestShadingParamNodeRingTubeRatioMatchesTS(t *testing.T) {
+	if ShadingParamNodeRingTubeRatio != 0.08 {
+		t.Fatalf("ShadingParamNodeRingTubeRatio = %v, want 0.08 (TS NODE_RING_TUBE_RATIO)", ShadingParamNodeRingTubeRatio)
+	}
+}
+
+// TestShadingParamBeadRadiusMatchesDerivation pins ShadingParamBeadRadius's literal to
+// the tangency arithmetic it must equal (docs/bead-lattice.md "The bead radius is
+// derived, not chosen") — written as a LITERAL constant (see its own doc comment for
+// why: gen-node-defs' shading-param parser only accepts a plain BasicLit), so this test
+// is what actually enforces the derivation instead of the compiler.
+func TestShadingParamBeadRadiusMatchesDerivation(t *testing.T) {
+	want := wire.BeadTorusOuterR / (1 + ShadingParamBeadRingTubeRatio)
+	if ShadingParamBeadRadius != want {
+		t.Fatalf("ShadingParamBeadRadius = %v, want %v (wire.BeadTorusOuterR / (1+ratio))", ShadingParamBeadRadius, want)
 	}
 }
 

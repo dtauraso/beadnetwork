@@ -112,7 +112,7 @@ func newOutPort(portName string, ctx context.Context, name string, pb PortBindin
 				}
 			}
 		}
-		o := wire.NewOutPaced(b.pw, ctx, name, portName, tr, b.rule, b.arc, b.latency, b.seg, b.label, asEventSinkGetter(getStream), portRow, targetRow, targetPortRow)
+		o := wire.NewOutPaced(b.pw, ctx, name, portName, tr, b.rule, b.steps, b.seg, b.label, asEventSinkGetter(getStream), portRow, targetRow, targetPortRow)
 		*sourceOuts = append(*sourceOuts, o)
 		if pb.outSink != nil {
 			pb.outSink[name+"."+portName] = o
@@ -141,7 +141,7 @@ func newBroadcastPort(portName string, ctx context.Context, name string, pb Port
 					}
 				}
 			}
-			o := wire.NewOutPaced(b.pw, ctx, name, b.handle, tr, b.rule, b.arc, b.latency, b.seg, b.label, asEventSinkGetter(getStream), portRow, targetRow, targetPortRow)
+			o := wire.NewOutPaced(b.pw, ctx, name, b.handle, tr, b.rule, b.steps, b.seg, b.label, asEventSinkGetter(getStream), portRow, targetRow, targetPortRow)
 			outs[i] = o
 			*sourceOuts = append(*sourceOuts, o)
 			if pb.outSink != nil {

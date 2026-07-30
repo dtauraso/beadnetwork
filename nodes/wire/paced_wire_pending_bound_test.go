@@ -21,7 +21,7 @@ import (
 // drain not running) and asserts appendPending panics exactly at
 // maxPendingEvents+1, naming its own cause.
 func TestPendingBoundPanicsWhenDrainStops(t *testing.T) {
-	pw := NewPacedWire(1, PulseSpeedWuPerMs)
+	pw := NewPacedWire(1, 1.0)
 	pw.StreamsActive = true
 
 	defer func() {
@@ -57,12 +57,12 @@ func TestPendingBoundPanicsWhenDrainStops(t *testing.T) {
 // and pending never approaches the bound, confirming the bound does not
 // false-fire on ordinary traffic.
 func TestPendingBoundNeverTripsWithNormalDrain(t *testing.T) {
-	pw := NewPacedWire(1, PulseSpeedWuPerMs)
+	pw := NewPacedWire(1, 1.0)
 	pw.StreamsActive = true
 	ctx := context.Background()
 
 	for i := range 50 {
-		if got := pw.Send(i, beadPlacement{InFlightMs: 1, Node: "src", Port: "out"}, 0); got != SendPlaced {
+		if got := pw.Send(i, beadPlacement{Steps: 1, Node: "src", Port: "out"}, 0); got != SendPlaced {
 			t.Fatalf("Send(%d) = %v, want SendPlaced", i, got)
 		}
 	}

@@ -63,7 +63,7 @@ the network itself is the nodes-and-wires Go runtime.
 - **Input port.** One input port is one wire, and the wire's out-channel
   is the connection between them — the node receives whatever the source
   node's drive of that wire sends.
-- **Clock (the human-speed clock).** There is exactly one clock: the system monotonic clock, read through a **scale** so it advances in integer **ticks** at human-watchable speed (`tick = ⌊(now − start) / tickPeriod⌋`; the scale is the human-speed / playback-speed knob, `MsPerTick = 16` ⇒ ≈62.5 ticks/sec). All timing is **tick counts**, not wall-clock durations. The model is **sleep-only**: a pacing loop calls `SleepCycle` to wait exactly ONE cycle and re-reads `Tick()`, rather than blocking on a target tick — there is no wait-until-tick-k primitive. The clock is **free-running**: it advances monotonically with wall time and never pauses (there is no play/pause gate). **Everything that animates runs in these ticks:** bead traveling, all in-node animations, and all node/gate processing windows. Per-update tick counts come from formulas, not literals — a bead crossing an edge takes `ticksToCross = arcLength / pulseSpeed` (pulseSpeed in world-units-per-tick, uniform across wires); node processing windows are tick counts. There is no separate render cadence — the tick IS the animation clock.
+- **Clock (the human-speed clock).** There is exactly one clock: the system monotonic clock, read through a **scale** so it advances in integer **ticks** at human-watchable speed (`tick = ⌊(now − start) / tickPeriod⌋`; the scale is the human-speed / playback-speed knob, `MsPerTick = 16` ⇒ ≈62.5 ticks/sec). All timing is **tick counts**, not wall-clock durations. The model is **sleep-only**: a pacing loop calls `SleepCycle` to wait exactly ONE cycle and re-reads `Tick()`, rather than blocking on a target tick — there is no wait-until-tick-k primitive. The clock is **free-running**: it advances monotonically with wall time and never pauses (there is no play/pause gate). **Everything that animates runs in these ticks:** bead traveling, all in-node animations, and all node/gate processing windows. Per-update tick counts come from formulas, not literals — a bead crossing an edge takes `ticksToCross = steps * DwellTicksPerBead` (steps the edge's own bead-step count, `DwellTicksPerBead` a uniform constant per bead-lattice step across all wires — [docs/bead-lattice.md](docs/bead-lattice.md)); node processing windows are tick counts. There is no separate render cadence — the tick IS the animation clock.
   A wire is stepped with its SOURCE NODE's own clock copy and tick reading,
   exactly like every other per-goroutine clock use — there is no shared
   clock to pin a tick against. But a bead's **placement tick** (when it
@@ -83,7 +83,8 @@ the network itself is the nodes-and-wires Go runtime.
 A bead crosses a wire in one direction:
 
 1. The source node sends the bead over the wire's in-channel with its
-   traversal timed in ticks: `ticksToCross = arcLength / pulseSpeed`. The
+   traversal timed in ticks: `ticksToCross = steps * DwellTicksPerBead`
+   (steps the edge's own bead-step count — [docs/bead-lattice.md](docs/bead-lattice.md)). The
    send does not block on the wire and does not wait for the destination
    — see §Sending.
 2. While in flight, the SOURCE NODE — reading its own clock, its own tick
@@ -138,17 +139,20 @@ resolving instantaneously.
 ## Geometry and time
 
 - Wire geometry sets traversal in ticks:
-  `ticksToCross = arcLength / pulseSpeed`. Geometry has no other effect.
+  `ticksToCross = steps * DwellTicksPerBead` (steps: docs/bead-lattice.md "The
+  count", computed by the SOURCE NODE from its own stored `LocalPolar` to the
+  target — one integer, not an arc length divided by a speed). Geometry has
+  no other effect on timing.
 - A geometry edit re-derives traversal time. While a bead is in flight,
   the in-flight revision PRESERVES the bead's FRACTIONAL progress `t` (its
   proportion along the wire) — NOT the absolute distance covered. On the
   edit the bead stays at the same fraction `t`, and the remaining ticks are
-  recomputed from the NEW arc length at the uniform pulse speed:
-  `remainingTicks = (1−t)·newArc/pulseSpeed`. So the bead rides smoothly at the
-  same proportion as the wire reshapes (no t-swing race as a node is
-  dragged), and a longer or shorter wire still traverses at constant
-  world-speed. (Preserving distance instead would let `t` jump as the arc
-  length changes.)
+  recomputed from the NEW step count at the uniform per-step dwell:
+  `remainingTicks = (1−t)·newSteps·DwellTicksPerBead`. So the bead rides
+  smoothly at the same proportion as the wire reshapes (no t-swing race as a
+  node is dragged), and a longer or shorter wire still traverses at constant
+  world-speed. (Preserving distance instead would let `t` jump as the step
+  count changes.)
 - Go owns the bead's PROGRESS (the fraction `t`, timed in ticks on the human-speed clock).
   It no longer computes or streams an absolute bead position: nothing draws a moving bead.
   The source node quantises its own `t` onto its own chain and streams which bead is LIT

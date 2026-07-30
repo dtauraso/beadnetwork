@@ -46,19 +46,19 @@ func runGate(t *testing.T, left, right int) int {
 
 	clk := wire.NewRealClock()
 
-	leftPw := wire.NewPacedWire(latMs*wire.PulseSpeedWuPerMs, wire.PulseSpeedWuPerMs)
+	leftPw := wire.NewPacedWire(int(latMs), 1.0)
 	stepWire(ctx, leftPw, clk.Copy())
 
-	rightPw := wire.NewPacedWire(latMs*wire.PulseSpeedWuPerMs, wire.PulseSpeedWuPerMs)
+	rightPw := wire.NewPacedWire(int(latMs), 1.0)
 	stepWire(ctx, rightPw, clk.Copy())
 
 	// leftSrc/rightSrc are test-only seeding sources: PlaceDrivenAt places a
 	// bead (no walker) that the stepWire loops above then drive to delivery,
 	// reusing the production placement API to inject the test's input values.
-	leftSrc := wire.NewPacedOutNoGeom(leftPw, ctx, "seed", "Out", tr, wire.RuleFireAndForget, 0, 0, "")
-	rightSrc := wire.NewPacedOutNoGeom(rightPw, ctx, "seed", "Out", tr, wire.RuleFireAndForget, 0, 0, "")
+	leftSrc := wire.NewPacedOutNoGeom(leftPw, ctx, "seed", "Out", tr, wire.RuleFireAndForget, 0, "")
+	rightSrc := wire.NewPacedOutNoGeom(rightPw, ctx, "seed", "Out", tr, wire.RuleFireAndForget, 0, "")
 
-	outPw := wire.NewPacedWire(latMs*wire.PulseSpeedWuPerMs, wire.PulseSpeedWuPerMs)
+	outPw := wire.NewPacedWire(int(latMs), 1.0)
 	stepWire(ctx, outPw, clk.Copy())
 
 	node := &SelectRight{GateNode: gatecommon.GateNode{
@@ -67,7 +67,7 @@ func runGate(t *testing.T, left, right int) int {
 		FromLeft:  wire.NewInPaced(leftPw, ctx, "ilg", "FromLeft", tr, nil, -1),
 		FromRight: wire.NewInPaced(rightPw, ctx, "ilg", "FromRight", tr, nil, -1),
 		ToPassed: wire.NewPacedOutNoGeom(outPw, ctx, "ilg", "ToPassed", tr,
-			wire.RuleFireAndForget, latMs*wire.PulseSpeedWuPerMs, latMs, ""),
+			wire.RuleFireAndForget, int(latMs), ""),
 	}}
 	observer := wire.NewInPaced(outPw, ctx, "obs", "In", tr, nil, -1)
 

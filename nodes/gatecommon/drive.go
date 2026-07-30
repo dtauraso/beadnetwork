@@ -27,20 +27,20 @@ import (
 // The wire's own goroutine advances in-flight beads every cycle (one
 // position-step per tick, never jumping); this goroutine only PLACES a new
 // bead once per this edge's OWN tick-count period, `K = ticksToCross =
-// SimLatencyMs/MsPerTick` (same formula and ceil-rounding convention as
-// Time/node.go's ToNext processing window) — one placement per
+// Steps*DwellTicksPerBead` (docs/bead-lattice.md "Timing"; same ceil-rounding
+// convention as Time/node.go's ToNext processing window) — one placement per
 // full crossing, so a wire carries roughly one resident bead rather than one
 // per tick. Per MODEL.md §Sending this is still legal: K is read from the
-// edge's own GEOMETRY (a static formula over arc length/pulse speed), never
-// from the wire's occupancy — DriveHeld never asks the wire "are you busy?".
-// Geom() is re-read fresh every iteration (not cached at startup) because a
-// drag can change the edge's length, and K must track it.
+// edge's own GEOMETRY (a static formula over the edge's own bead-step count),
+// never from the wire's occupancy — DriveHeld never asks the wire "are you
+// busy?". Geom() is re-read fresh every iteration (not cached at startup)
+// because a drag can change the edge's length, and K must track it.
 //
-// K is clamped to at least 1 tick. If SimLatencyMs is not yet known (zero —
-// a real paced Out's geometry is seeded at construction from the loader's
-// arc/latency, so this only happens transiently before that seed) DriveHeld
-// does not place until it is; it still steps the wire every cycle, so
-// nothing else stalls waiting on it.
+// K is clamped to at least 1 tick. If Steps is not yet known (zero — a real
+// paced Out's geometry is seeded at construction from the loader's own
+// bead-step count, so this only happens transiently before that seed)
+// DriveHeld does not place until it is; it still steps the wire every cycle,
+// so nothing else stalls waiting on it.
 //
 // Stops when ctx is cancelled or a placement fails (wire torn down).
 //
@@ -142,8 +142,8 @@ func DriveHeld(ctx context.Context, out *wire.Out, heldCh <-chan int64, transfor
 			// send, synchronous chan semantics).
 			place := !paced
 			if paced {
-				if latMs := out.Geom().SimLatencyMs; latMs > 0 {
-					k := int64(latMs/wire.MsPerTick + 0.999999)
+				if steps := out.Geom().Steps; steps > 0 {
+					k := int64(float64(steps)*wire.DwellTicksPerBead + 0.999999)
 					if k < 1 {
 						k = 1
 					}

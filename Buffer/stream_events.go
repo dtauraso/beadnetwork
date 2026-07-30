@@ -19,7 +19,11 @@ type StreamEvent struct {
 	Kind                                                             uint8
 	NodeRow, PortRow, TargetRow, TargetPortRow, EdgeRow, Slot, Value int32
 	Bead                                                             uint32
-	ArcLength, SimLatencyMs, X, Y, Z, F                              float32
+	// BeadSteps is a send event's edge bead-step count (docs/bead-lattice.md "The
+	// count") — was ArcLength before the bead lattice replaced the arc-length
+	// model.
+	BeadSteps                float32
+	SimLatencyMs, X, Y, Z, F float32
 	// Label/Debug/Text mirror Wiring.RowEvent's breadcrumb fields (Kind ==
 	// KindBreadcrumb only). Text is packed by BuildEventsSection into this frame's
 	// own trailing event-text-bytes section, immediately after the fixed-stride
@@ -73,7 +77,7 @@ func BuildEventsSection(events []StreamEvent) []byte {
 		tb := textBytes[i]
 		SetEventRow(rows, i,
 			e.Kind, e.NodeRow, e.PortRow, e.TargetRow, e.TargetPortRow, e.EdgeRow,
-			e.Slot, e.Value, e.Bead, e.ArcLength, e.SimLatencyMs, e.X, e.Y, e.Z, e.F,
+			e.Slot, e.Value, e.Bead, e.BeadSteps, e.SimLatencyMs, e.X, e.Y, e.Z, e.F,
 			e.Label, e.Debug, textOff, uint32(len(tb)))
 		copy(buf[off:], tb)
 		off += len(tb)

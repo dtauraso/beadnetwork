@@ -372,35 +372,12 @@ func edgeSegment(src, tgt nodeGeom, srcPort, dstPort string) wireSegment {
 	return wireSegment{Start: start, End: end}
 }
 
-// edgeArcPolar is the pulse's travel budget for an edge: the distance between the two AIMED
-// port positions, computed ENTIRELY IN POLAR from each node's stored ScenePolar.
-//
-// Both ports are aimed at the other node's center, so the two ports and the two centers are
-// COLINEAR by construction (see portWorldPosAimed). That makes the port-to-port distance pure
-// arithmetic: the center-to-center distance less each port's own radius. No cartesian is
-// involved, so there is nothing to convert back.
-//
-// This deliberately does NOT go through edgeSegment. Doing so would build cartesian endpoints
-// out of ScenePolar (nodeWorldPos = SceneCenter + polar2cart) and then cart2polar them straight
-// back — a polar→cartesian→polar round trip that re-derives a quantity both nodes already hold,
-// and whose Acos(v.Y/r)/Atan2(v.Z,v.X) degenerates for a node sitting near the scene pole.
-//
-// The radius subtracted is portRadiusByName, not nodeRadius(kind): portWorldPosAimed places the
-// port at exactly that radius, and a materialized port may carry a PortR that differs from the
-// node default (portRadiusByName falls back to nodeRadius when PortR is nil).
-func edgeArcPolar(src, tgt nodeGeom, srcPort, dstPort string) float64 {
-	raw := polarDist(src.ScenePolar, tgt.ScenePolar) -
-		portRadiusByName(src, srcPort, false) -
-		portRadiusByName(tgt, dstPort, true)
-	// Overlapping nodes can drive the subtraction negative; a negative arc would poison
-	// ticksToCross. The CurveParamMinArcLength floor below is the real guard, this only
-	// keeps the quantize step well-defined.
-	if raw < 0 {
-		raw = 0
-	}
-	quantized := math.Round(raw/edgeLengthCellWu) * edgeLengthCellWu
-	if quantized < CurveParamMinArcLength {
-		return CurveParamMinArcLength
-	}
-	return quantized
+// nodeTorusOuterR is a node's TORUS OUTER radius — its true visual/geometric extent,
+// not its bare sphere radius (docs/bead-lattice.md "Placement"). The node's border
+// ring is drawn as a torus of tube-fraction ShadingParamNodeRingTubeRatio around the
+// node sphere; the first chain bead on every outgoing edge sits tangent to THIS
+// radius, not nodeRadius(kind), so a bead touches the ring the renderer actually
+// draws rather than floating outside it or burying into the node body.
+func nodeTorusOuterR(kind string) float64 {
+	return nodeRadius(kind) * (1 + ShadingParamNodeRingTubeRatio)
 }

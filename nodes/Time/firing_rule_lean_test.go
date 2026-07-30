@@ -37,16 +37,16 @@ func TestFireOnReceiveLean(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	inPw := wire.NewPacedWire(latMs*wire.PulseSpeedWuPerMs, wire.PulseSpeedWuPerMs)
+	inPw := wire.NewPacedWire(int(latMs), 1.0)
 	clk := wire.NewRealClock()
 	stepWire(ctx, inPw, clk.Copy())
 	// inSrc is a test-only seeding source on inPw: PlaceDrivenAt places a bead
 	// (no walker) that the stepWire loop above then drives to delivery,
 	// reusing the production placement API to inject the test's input value.
-	inSrc := wire.NewPacedOutNoGeom(inPw, ctx, "seed", "Out", tr, wire.RuleFireAndForget, 0, 0, "")
+	inSrc := wire.NewPacedOutNoGeom(inPw, ctx, "seed", "Out", tr, wire.RuleFireAndForget, 0, "")
 
-	outPw0 := wire.NewPacedWire(latMs*wire.PulseSpeedWuPerMs, wire.PulseSpeedWuPerMs)
-	outPw1 := wire.NewPacedWire(latMs*wire.PulseSpeedWuPerMs, wire.PulseSpeedWuPerMs)
+	outPw0 := wire.NewPacedWire(int(latMs), 1.0)
+	outPw1 := wire.NewPacedWire(int(latMs), 1.0)
 	// Production drives these output wires via each edge's own goroutine
 	// (edgeMover.run); this bare-wire unit test has no edgeMover, so it must
 	// supply the same per-cycle drive itself, exactly as it already does for
@@ -61,9 +61,9 @@ func TestFireOnReceiveLean(t *testing.T) {
 		FromPrevTimeNode: wire.NewInPaced(inPw, ctx, "in", "FromPrevTimeNode", tr, nil, -1),
 		ToNext: wire.Broadcast{
 			wire.NewPacedOutNoGeom(outPw0, ctx, "in", "ToNext0", tr,
-				wire.RuleFireAndForget, latMs*wire.PulseSpeedWuPerMs, latMs, ""),
+				wire.RuleFireAndForget, int(latMs), ""),
 			wire.NewPacedOutNoGeom(outPw1, ctx, "in", "ToNext1", tr,
-				wire.RuleFireAndForget, latMs*wire.PulseSpeedWuPerMs, latMs, ""),
+				wire.RuleFireAndForget, int(latMs), ""),
 		},
 	}
 	obs0 := wire.NewInPaced(outPw0, ctx, "obs0", "In", tr, nil, -1)

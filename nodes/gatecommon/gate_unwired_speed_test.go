@@ -52,14 +52,14 @@ func TestGateWithUnwiredOutputStillObeysSpeed(t *testing.T) {
 	tr := T.NewWithSink(&dbg)
 
 	const latMs = 10.0
-	leftPw := wire.NewPacedWire(latMs*wire.PulseSpeedWuPerMs, wire.PulseSpeedWuPerMs)
-	rightPw := wire.NewPacedWire(latMs*wire.PulseSpeedWuPerMs, wire.PulseSpeedWuPerMs)
+	leftPw := wire.NewPacedWire(int(latMs), 1.0)
+	rightPw := wire.NewPacedWire(int(latMs), 1.0)
 
 	clk := wire.NewRealClock()
 	go stepPacedWire(ctx, leftPw, clk.Copy())
 	go stepPacedWire(ctx, rightPw, clk.Copy())
 
-	leftSrc := wire.NewPacedOutNoGeom(leftPw, ctx, "seed", "Out", tr, wire.RuleFireAndForget, 0, 0, "")
+	leftSrc := wire.NewPacedOutNoGeom(leftPw, ctx, "seed", "Out", tr, wire.RuleFireAndForget, 0, "")
 
 	speedCh := make(chan float64, 1)
 	g := &GateNode{

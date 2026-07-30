@@ -60,14 +60,18 @@ const PulseSpeedWuPerMs = 0.04
 // same number of positions in the same wall time.
 const PulseSpeedWuPerTick = PulseSpeedWuPerMs * MsPerTick
 
-// beadPlacement bundles everything one placement needs. The in-flight time times
-// delivery; the segment endpoints + source identity drive the per-frame position
+// beadPlacement bundles everything one placement needs. Steps times delivery
+// (docs/bead-lattice.md "Timing" — ticksToCross = steps * dwell, no length to
+// divide); the segment endpoints + source identity drive the per-frame position
 // stream. Geometry travels WITH the bead, never stored on the shared wire, so
 // each in-flight bead evaluates the exact segment it is drawn on.
 // The zero value (empty segment + identity) means "no position stream" — unit
-// tests that only exercise delivery pass just InFlightMs.
+// tests that only exercise delivery pass just Steps.
 type beadPlacement struct {
-	InFlightMs float64
+	// Steps is this placement's bead-step count (docs/bead-lattice.md "The
+	// count") — copied straight from the sending Out's own Geom().Steps at Send
+	// time, so the wire never re-derives it from anything else.
+	Steps int
 	// Position-stream context. Start/End are this edge's straight-segment endpoints
 	// (source OUT-port world pos, dest IN-port world pos). Node/Port are the SOURCE
 	// node id + output port — the position trace key, matching the send event so the
@@ -103,7 +107,7 @@ type placeRequest struct {
 
 // inflightBead is one bead traversing the wire. Each bead carries its own
 // geometry so a mid-flight geometry edit (node-move) re-derives the remaining
-// travel from the NEW arc while preserving the bead's FRACTIONAL progress t.
+// travel from the NEW step count while preserving the bead's FRACTIONAL progress t.
 // Distance is NOT stored: fractional progress t = (clock.Tick() − placementTick)
 // / ticksToCross is a pure function of the wire's own single clock reading
 // (MODEL.md "Geometry and time").
@@ -113,7 +117,7 @@ type placeRequest struct {
 type inflightBead struct {
 	val           int
 	placementTick float64     // this wire's own tick reading when placed (fractional after a geometry rebase)
-	arc           float64     // current arc length of this bead's edge (world units)
+	steps         int         // current bead-step length of this bead's edge (docs/bead-lattice.md)
 	seg           WireSegment // current straight-segment endpoints of this bead's edge
 	node          string      // source node id — the position/cancel routing key
 	port          string      // source output port — the position/cancel routing key
@@ -127,14 +131,17 @@ type inflightBead struct {
 	finalPending bool
 }
 
-// ticksToCross returns the tick count for a bead of the given arc length to cross
-// at the uniform pulse speed: arcLength / PulseSpeedWuPerTick (MODEL.md). Fractional;
-// the driver delivers on the first integer tick at or past placementTick + this.
-func (pw *PacedWire) ticksToCross(arc float64) float64 {
-	if pw.pulseSpeed <= 0 {
+// ticksToCross returns the tick count for a bead of the given STEP count to
+// cross, at this wire's own dwell-per-bead: steps * dwell (docs/bead-lattice.md
+// "Timing" — a longer edge is simply more beads, dwell is a constant, so there
+// is no per-edge division left the way arcLength/pulseSpeed used to require).
+// Fractional; the driver delivers on the first integer tick at or past
+// placementTick + this.
+func (pw *PacedWire) ticksToCross(steps int) float64 {
+	if pw.dwell <= 0 {
 		return 0
 	}
-	return arc / pw.pulseSpeed
+	return float64(steps) * pw.dwell
 }
 
 // PacedWire is an ACTIVE GOROUTINE (MODEL.md "The network"), not a passive
@@ -148,7 +155,7 @@ func (pw *PacedWire) ticksToCross(arc float64) float64 {
 //     back-pressure, ever).
 //   - outCh is the wire's OUT-CHANNEL: the destination node's own goroutine calls
 //     RecvTick/Recv, a non-blocking buffered-channel receive.
-//   - inflight/nextGen/pulseSpeed are owned EXCLUSIVELY by the wire's
+//   - inflight/nextGen/dwell are owned EXCLUSIVELY by the wire's
 //     own goroutine (driveOneCycle, called every cycle from edgeMover.run) — exactly
 //     one writer and one reader (the same goroutine).
 type PacedWire struct {
@@ -160,8 +167,12 @@ type PacedWire struct {
 	// which IS this wire's goroutine).
 	inflight []inflightBead
 	// nextGen mints a unique id for each placed bead (the bead's emitted identity).
-	nextGen    uint64
-	pulseSpeed float64
+	nextGen uint64
+	// dwell is this wire's own ticks-per-bead-step (docs/bead-lattice.md
+	// "Timing"): ticksToCross(steps) = steps * dwell. Same TEST-affordance role
+	// the retired pulseSpeed field had (see NewPacedWire's doc comment) — the
+	// one production call site passes DwellTicksPerBead.
+	dwell float64
 
 	Target       string   // destination node id — the wire's destination routing key
 	TargetHandle string   // destination input-port name — the wire's destination routing key
@@ -376,34 +387,31 @@ func (pw *PacedWire) DrainPendingEvents() []PendingWireEvent {
 	return out
 }
 
-// NewPacedWire creates an empty PacedWire with its in/out channels ready. arcLength
-// is the straight-line distance between source and target (world units); pulseSpeed
-// is in world-units per TICK (use PulseSpeedWuPerTick).
+// NewPacedWire creates an empty PacedWire with its in/out channels ready. steps
+// is UNUSED by this constructor (the bead-step count lives per-bead, on each
+// placement, not on the wire itself) — it survives as a parameter only so a
+// call site reads as self-documenting length-then-speed, the same shape
+// arcLength/pulseSpeed had (arcLength was equally unused there). dwellTicks is
+// this wire's own ticks-per-bead-step (use DwellTicksPerBead in production).
 //
 // PULSE SPEED IS UNIFORM ACROSS ALL WIRES — per-wire speed is rejected doctrine, and the
-// TS layer cannot even express it (no speed prop in WireProps). The pulseSpeed PARAMETER
-// survives only as a TEST affordance: the lean per-node tests pass PulseSpeedWuPerMs so
-// that ticksToCross falls out as latMs. What keeps production uniform is that there is
-// exactly ONE non-test call site (loader.go), passing PulseSpeedWuPerTick.
+// TS layer cannot even express it (no speed prop in WireProps). The dwellTicks PARAMETER
+// survives only as a TEST affordance: the lean per-node tests pass 1.0 with steps set to
+// the desired latMs so that ticksToCross falls out as latMs. What keeps production uniform
+// is that there is exactly ONE non-test call site (loader.go), passing DwellTicksPerBead.
 //
 // That one-call-site invariant is enforced by tools/check-uniform-pulse-speed.sh. Do not
 // add a second production caller: it converts "uniform" from structural to conventional.
 // If production ever needs to build a wire elsewhere, drop this parameter instead and let
-// the tests express arc as ticks*PulseSpeedWuPerTick.
-func NewPacedWire(arcLength float64, pulseSpeed float64) *PacedWire {
+// the tests express ticksToCross directly as steps*DwellTicksPerBead.
+func NewPacedWire(steps int, dwellTicks float64) *PacedWire {
 	return &PacedWire{
-		pulseSpeed:   pulseSpeed,
+		dwell:        dwellTicks,
 		inCh:         make(chan placeRequest, wireChanBufferSize),
 		outCh:        make(chan deliveredBead, wireChanBufferSize),
 		breadcrumbCh: make(chan RowEvent, 4),
 	}
 }
-
-// msToArcWu names the ms→world-units conversion used to reconstruct a bead's
-// travelled arc from a reported InFlightMs latency (Send below).
-// It is PulseSpeedWuPerMs under a name that documents what the multiplication
-// means at that call site, without changing the value.
-const msToArcWu = PulseSpeedWuPerMs
 
 // SendOutcome distinguishes WHY Send did not place a bead, so a caller cannot
 // accidentally treat "buffer momentarily full" (transient — never exit on this)
@@ -558,10 +566,13 @@ func (pw *PacedWire) drainPlacements() {
 			pw.inflight = append(pw.inflight, inflightBead{
 				val:           req.val,
 				placementTick: float64(req.placementTick),
-				// arc (world units) is reconstructed from the reported ms latency via
-				// the FIXED ms→wu conversion (msToArcWu), so it is independent of the
-				// clock's tick speed.
-				arc:     req.bp.InFlightMs * msToArcWu,
+				// steps travels straight from the placement (beadPlacement.Steps,
+				// copied from the sending Out's own Geom().Steps) — there is no
+				// length to reconstruct here, unlike the retired arc/ms model,
+				// because the sender already carries the bead-step count as an
+				// integer all the way from PublishGeom (docs/bead-lattice.md
+				// "The count").
+				steps:   req.bp.Steps,
 				seg:     WireSegment{Start: req.bp.Start, End: req.bp.End},
 				node:    req.bp.Node,
 				port:    req.bp.Port,
@@ -655,13 +666,12 @@ type LiveBeadRow struct {
 type LiveBeadProgress struct {
 	T   float64 // fractional progress 0..1
 	Val int     // bead value (0|1)
-	// Arc is the bead's OWN arc length — the geometry its t was computed against
-	// (ticksToCross = arc/pulseSpeed). The caller needs it to recover DISTANCE covered as
-	// t*Arc, which equals elapsed*pulseSpeed on every edge whatever its length. Deriving
-	// distance from any other length instead — a node-center separation, say — scales it by
-	// (that length / Arc), a ratio that differs per edge, and two beads placed together then
-	// advance at different rates.
-	Arc float64 // arc length t was computed against, in world units
+	// Steps is the bead's OWN step count — the geometry its t was computed
+	// against (ticksToCross = steps*dwell). The caller recovers WHICH BEAD is
+	// lit as floor(t*Steps) — no length multiplication anywhere
+	// (docs/bead-lattice.md "Timing"): layout laid the chain out on this same
+	// integer, so lighting and layout read the same N and cannot disagree.
+	Steps int
 }
 
 // LiveBeadFractions returns the FRACTIONAL progress t (0..1) and VALUE of every in-flight
@@ -681,7 +691,7 @@ func (pw *PacedWire) LiveBeadFractions(tick int64) []LiveBeadProgress {
 	out := make([]LiveBeadProgress, 0, len(pw.inflight))
 	for i := range pw.inflight {
 		b := &pw.inflight[i]
-		crossTicks := pw.ticksToCross(b.arc)
+		crossTicks := pw.ticksToCross(b.steps)
 		if crossTicks <= 0 {
 			continue
 		}
@@ -696,7 +706,7 @@ func (pw *PacedWire) LiveBeadFractions(tick int64) []LiveBeadProgress {
 		if t < 0 {
 			t = 0
 		}
-		out = append(out, LiveBeadProgress{T: t, Val: b.val, Arc: b.arc})
+		out = append(out, LiveBeadProgress{T: t, Val: b.val, Steps: b.steps})
 	}
 	return out
 }
@@ -714,7 +724,7 @@ func (pw *PacedWire) LiveBeadRows(tick int64) []LiveBeadRow {
 		if !b.streams {
 			continue
 		}
-		crossTicks := pw.ticksToCross(b.arc)
+		crossTicks := pw.ticksToCross(b.steps)
 		target := nowTick
 		if crossTicks > 0 && nowTick >= b.placementTick+crossTicks {
 			target = b.placementTick + crossTicks
@@ -739,9 +749,9 @@ func (pw *PacedWire) LiveBeadRows(tick int64) []LiveBeadRow {
 // geometry edit (node-move) changed the edge (MODEL.md "Geometry and time"). It
 // preserves each bead's FRACTIONAL progress t (its proportion along the wire), NOT
 // the absolute distance covered: each bead stays at the same fraction t and the
-// remaining time is recomputed from the NEW arc so UNIFORM PULSE SPEED holds —
-// remaining = (1−t)·newArc/pulseSpeed. driveOneCycle re-reads each bead's live
-// arc/seg every cycle, so the new geometry takes effect without any relaunch.
+// remaining time is recomputed from the NEW step count so UNIFORM PULSE SPEED holds —
+// remaining = (1−t)·newSteps·dwell. driveOneCycle re-reads each bead's live
+// steps/seg every cycle, so the new geometry takes effect without any relaunch.
 // No-op when no bead is in flight.
 //
 // Called only by this wire's own goroutine (edgeMover.recomputeGeometry, itself
@@ -749,7 +759,7 @@ func (pw *PacedWire) LiveBeadRows(tick int64) []LiveBeadRow {
 // tick is that goroutine's own clock reading, taken once per call. There is no
 // second clock copy involved anymore, so the two-copy skew the old
 // caller-pinned-tick contract had to tolerate cannot arise here.
-func (pw *PacedWire) ReviseInFlightGeometry(tick int64, newArc float64, newSeg WireSegment) {
+func (pw *PacedWire) ReviseInFlightGeometry(tick int64, newSteps int, newSeg WireSegment) {
 	if len(pw.inflight) == 0 {
 		return
 	}
@@ -757,9 +767,10 @@ func (pw *PacedWire) ReviseInFlightGeometry(tick int64, newArc float64, newSeg W
 	for i := range pw.inflight {
 		b := &pw.inflight[i]
 		t := 0.0
-		if b.arc > 0 && pw.pulseSpeed > 0 {
+		oldCross := pw.ticksToCross(b.steps)
+		if oldCross > 0 {
 			// elapsed ticks / old ticksToCross = fraction covered.
-			t = (nowTick - b.placementTick) / (b.arc / pw.pulseSpeed)
+			t = (nowTick - b.placementTick) / oldCross
 			if t < 0 {
 				t = 0
 			}
@@ -767,14 +778,14 @@ func (pw *PacedWire) ReviseInFlightGeometry(tick int64, newArc float64, newSeg W
 				t = 1
 			}
 		}
-		b.arc = newArc
+		b.steps = newSteps
 		b.seg = newSeg
 		// Rebase placementTick so elapsed-since-placement maps to the same fraction t
-		// on the NEW arc: remainingTicks = (1−t)·newArc/pulseSpeed, so the covered part
-		// is t·newArc/pulseSpeed ticks ⇒ placementTick' = nowTick − t·(newArc/pulseSpeed).
-		if pw.pulseSpeed > 0 {
-			b.placementTick = nowTick - t*(newArc/pw.pulseSpeed)
-		}
+		// on the NEW step count: remainingTicks = (1−t)·newSteps·dwell, so the covered
+		// part is t·newSteps·dwell ticks ⇒ placementTick' = nowTick − t·(newSteps·dwell).
+		// ticksToCross is 0 when dwell<=0, so this rebase is safe (a no-op shift)
+		// even on a wire with no dwell configured; no separate guard needed.
+		b.placementTick = nowTick - t*pw.ticksToCross(newSteps)
 	}
 }
 
@@ -816,11 +827,11 @@ func (pw *PacedWire) emitArrive(ai arriveInfo) {
 func (pw *PacedWire) advanceBead(b *inflightBead, nowTick float64) (emit bool, pos posEmitArgs, final bool) {
 	tr := pw.Trace
 
-	arc := b.arc
+	steps := b.steps
 	seg := b.seg
 	placementTick := b.placementTick
-	stream := b.streams && tr != nil && arc > 0
-	crossTicks := pw.ticksToCross(arc)
+	stream := b.streams && tr != nil && steps > 0
+	crossTicks := pw.ticksToCross(steps)
 
 	deadline := placementTick + crossTicks
 
@@ -831,8 +842,8 @@ func (pw *PacedWire) advanceBead(b *inflightBead, nowTick float64) (emit bool, p
 	}
 
 	if stream {
-		// fractional progress t = elapsed ticks / ticksToCross (== distance
-		// covered / arc, since both scale by the uniform pulse speed).
+		// fractional progress t = elapsed ticks / ticksToCross (== steps
+		// covered / steps, since both scale by the uniform per-bead dwell).
 		t := 0.0
 		if crossTicks > 0 {
 			t = (target - placementTick) / crossTicks

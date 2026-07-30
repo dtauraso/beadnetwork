@@ -31,7 +31,7 @@ import (
 // ownership split breaks down (e.g. a future change lets a non-owning goroutine
 // touch pw.inflight directly).
 func TestPacedWireOwnershipUnderRace(t *testing.T) {
-	pw := NewPacedWire(0, PulseSpeedWuPerMs)
+	pw := NewPacedWire(0, 1.0)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -52,15 +52,15 @@ func TestPacedWireOwnershipUnderRace(t *testing.T) {
 			i++
 			pw.DriveOneCycle(ctx, clk.Tick())
 			// Vary geometry (to exercise the race-detector on a live revise)
-			// WITHOUT letting arc grow unboundedly: an ever-increasing arc would
-			// push every in-flight bead's delivery deadline further into the
-			// future every single cycle, so beads could never reach it and
-			// inflight would accumulate without bound by this test's own
-			// construction -- unrelated to any real bug, but exactly the shape
-			// maxInflightBeads (paced_wire.go) now catches. math.Mod bounds the
-			// variation to a small, repeating range instead.
-			j := math.Mod(i, 50)
-			pw.ReviseInFlightGeometry(clk.Tick(), 4+j*0.01, WireSegment{Start: Vec3{}, End: Vec3{X: 1 + j*0.001}})
+			// WITHOUT letting steps grow unboundedly: an ever-increasing step
+			// count would push every in-flight bead's delivery deadline
+			// further into the future every single cycle, so beads could
+			// never reach it and inflight would accumulate without bound by
+			// this test's own construction -- unrelated to any real bug, but
+			// exactly the shape maxInflightBeads (paced_wire.go) now catches.
+			// math.Mod bounds the variation to a small, repeating range instead.
+			j := int(math.Mod(i, 50))
+			pw.ReviseInFlightGeometry(clk.Tick(), 4+j, WireSegment{Start: Vec3{}, End: Vec3{X: 1 + float64(j)*0.001}})
 			time.Sleep(time.Millisecond)
 		}
 	}()
@@ -85,7 +85,7 @@ func TestPacedWireOwnershipUnderRace(t *testing.T) {
 		val := 0
 		for time.Now().Before(deadline) {
 			val++
-			pw.Send(val, beadPlacement{InFlightMs: 4, Start: Vec3{}, End: Vec3{X: 1}, Node: "src", Port: "Out"}, srcClk.Tick())
+			pw.Send(val, beadPlacement{Steps: 4, Start: Vec3{}, End: Vec3{X: 1}, Node: "src", Port: "Out"}, srcClk.Tick())
 			time.Sleep(time.Millisecond)
 		}
 	}()

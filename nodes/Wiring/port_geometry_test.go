@@ -31,19 +31,6 @@ func refPortWorldPos(kind string, center vec3, ports []portGeom, name string, _ 
 	return vec3{X: center.X + dir.X*R, Y: center.Y + dir.Y*R, Z: center.Z + dir.Z*R}
 }
 
-// refChordLength is the reference chord-distance formula (straight-segment model):
-// Euclidean distance between two 3-D points, floored at CurveParamMinArcLength.
-func refChordLength(p0, p2 vec3) float64 {
-	dx := p2.X - p0.X
-	dy := p2.Y - p0.Y
-	dz := p2.Z - p0.Z
-	l := math.Sqrt(dx*dx + dy*dy + dz*dz)
-	if l < CurveParamMinArcLength {
-		return CurveParamMinArcLength
-	}
-	return l
-}
-
 func almostEqual(a, b, eps float64) bool { return math.Abs(a-b) <= eps }
 
 func TestPortWorldPosMirrorsReference(t *testing.T) {
@@ -65,88 +52,14 @@ func TestPortWorldPosMirrorsReference(t *testing.T) {
 	}
 }
 
-func TestArcLengthBetweenPortsCases(t *testing.T) {
-	anchorId0, anchorId1, anchorId2 := 0, 1, 2
-	c01 := vec3{X: 0, Y: 46.5425, Z: 0}
-	c11 := vec3{X: 46.5425, Y: 46.5425, Z: 0}
-	c111 := vec3{X: 46.5425, Y: 46.5425, Z: 46.5425}
-	c11n1 := vec3{X: 46.5425, Y: 46.5425, Z: -46.5425}
-	c201 := vec3{X: 93.085, Y: 0, Z: 46.5425}
-	cases := []struct {
-		name string
-		src  nodeGeom
-		srcH string
-		tgt  nodeGeom
-		tgtH string
-	}{
-		{
-			name: "input-to-holdflip-2d",
-			src: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}, HasPos: true, ScenePolar: cart2polar(c01),
-				Outputs: []portGeom{{Name: "ToHoldFlip", AnchorId: &anchorId1}}},
-			srcH: "ToHoldFlip",
-			tgt: nodeGeom{nodeIdentity: nodeIdentity{Kind: "HoldFlip"}, HasPos: true, ScenePolar: cart2polar(c11),
-				Inputs: []portGeom{{Name: "In", AnchorId: &anchorId1}}},
-			tgtH: "In",
-		},
-		{
-			name: "nonzero-z-both",
-			src: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Time"}, HasPos: true, ScenePolar: cart2polar(c111),
-				Outputs: []portGeom{{Name: "ToNext0", AnchorId: &anchorId1}}},
-			srcH: "ToNext0",
-			tgt: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Time"}, HasPos: true, ScenePolar: cart2polar(c11n1),
-				Inputs: []portGeom{{Name: "FromPrevTimeNode", AnchorId: &anchorId1}}},
-			tgtH: "FromPrevTimeNode",
-		},
-		{
-			name: "anchorid0-and-anchorid2-with-z",
-			src: nodeGeom{nodeIdentity: nodeIdentity{Kind: "SelectLeft"}, HasPos: true, ScenePolar: cart2polar(c11),
-				Outputs: []portGeom{{Name: "ToPassed", AnchorId: &anchorId0}}},
-			srcH: "ToPassed",
-			tgt: nodeGeom{nodeIdentity: nodeIdentity{Kind: "SelectLeft"}, HasPos: true, ScenePolar: cart2polar(c201),
-				Inputs: []portGeom{{Name: "FromRight", AnchorId: &anchorId2}}},
-			tgtH: "FromRight",
-		},
-	}
-	for _, c := range cases {
-		t.Run(c.name, func(t *testing.T) {
-			// Aimed-port model (task/polar-torus-port-edges): the arc is the polar
-			// law-of-cosines distance between the two AIMED port positions — each port
-			// aims at its partner node's center, equal to the chord between the two
-			// aimed port world points.
-			got := edgeArcPolar(c.src, c.tgt, c.srcH, c.tgtH)
-			srcPort := portWorldPosAimed(c.src, c.srcH, false, nodeWorldPos(c.tgt), true)
-			tgtPort := portWorldPosAimed(c.tgt, c.tgtH, true, nodeWorldPos(c.src), true)
-			rawWant := refChordLength(srcPort, tgtPort)
-			want := math.Round(rawWant/edgeLengthCellWu) * edgeLengthCellWu
-			if want < CurveParamMinArcLength {
-				want = CurveParamMinArcLength
-			}
-			// edgeArcPolar quantizes its return to edgeLengthCellWu so that
-			// equal-nominal edges are bit-identical; assert exact equality to
-			// the quantized reference, not the raw chord.
-			if got != want {
-				t.Fatalf("edgeArcPolar = %v, want quantized chord %v (raw %v)", got, want, rawWant)
-			}
-		})
-	}
-}
-
-// TestChordLength verifies chordLength returns the Euclidean distance floored at
-// CurveParamMinArcLength.
-func TestChordLength(t *testing.T) {
-	// 3-4-5 right triangle.
-	got := chordLength(vec3{X: 0, Y: 0, Z: 0}, vec3{X: 3, Y: 4, Z: 0})
-	if !almostEqual(got, 5, 1e-9) {
-		t.Fatalf("chordLength 3-4-5 = %v, want 5", got)
-	}
-	// 3-D diagonal: sqrt(1+4+4) = 3.
-	got = chordLength(vec3{X: 0, Y: 0, Z: 0}, vec3{X: 1, Y: 2, Z: 2})
-	if !almostEqual(got, 3, 1e-9) {
-		t.Fatalf("chordLength 3D = %v, want 3", got)
-	}
-	// Floor for co-located points.
-	if g := chordLength(vec3{X: 5, Y: 5, Z: 5}, vec3{X: 5, Y: 5, Z: 5}); g != CurveParamMinArcLength {
-		t.Fatalf("chordLength co-located = %v, want floor %v", g, CurveParamMinArcLength)
+// TestNodeTorusOuterR verifies nodeTorusOuterR = nodeRadius(kind) * (1 + ratio),
+// the formula chain_beads.go's tangent placement depends on (docs/bead-lattice.md).
+func TestNodeTorusOuterR(t *testing.T) {
+	for _, kind := range []string{"Input", "Time"} {
+		want := nodeRadius(kind) * (1 + ShadingParamNodeRingTubeRatio)
+		if got := nodeTorusOuterR(kind); got != want {
+			t.Fatalf("nodeTorusOuterR(%q) = %v, want %v", kind, got, want)
+		}
 	}
 }
 

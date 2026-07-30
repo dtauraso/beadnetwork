@@ -22,19 +22,6 @@ import (
 // Matches PULSE_SPEED_WU_PER_MS in the generated curve-params.ts.
 const CurveParamPulseSpeedWuPerMs = 0.04
 
-// CurveParamMinArcLength is the minimum arc length in world units.
-// Prevents zero-duration pulses when two nodes are co-located.
-const CurveParamMinArcLength = 1.0
-
-// edgeLengthCellWu is the quantization cell (in world units) applied to
-// every edge's arc length at its single computation choke point
-// (edgeArcPolar). Two edges whose raw, float-noisy arc lengths fall in the
-// same cell collapse to the identical rounded float, so edges the user
-// positioned to be equal read as bit-identical (length, simLatencyMs,
-// ticksToCross) instead of differing in trailing digits. Tunable; must be
-// > 0.
-const edgeLengthCellWu = 0.1
-
 // CurveParamNodeRadiusDivisor is the divisor applied to min(width,height)
 // to obtain the node sphere radius.  Matches nodeRadius in geometry-helpers.ts
 // (Math.min(width, height) / 4); port endpoints sit on this sphere surface.
@@ -47,13 +34,3 @@ type vec3 = wire.Vec3
 
 // wireSegment aliases wire.WireSegment — see nodes/wire/geometry.go.
 type wireSegment = wire.WireSegment
-
-// chordLength returns the straight-line distance |b - a|, floored at
-// CurveParamMinArcLength. This is the arc length of a straight-segment edge.
-func chordLength(a, b vec3) float64 {
-	l := b.Sub(a).Length()
-	if l < CurveParamMinArcLength {
-		return CurveParamMinArcLength
-	}
-	return l
-}

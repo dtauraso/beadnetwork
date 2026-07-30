@@ -1,0 +1,103 @@
+# The bead lattice — an edge is one integer
+
+Supersedes the arc-length model for edges. Companion to
+[beads-are-the-edge.md](beads-are-the-edge.md), which describes the chain; this file
+describes the LENGTH.
+
+## The model
+
+A bead is a polar entity of the same kind as a node. It has its own local polar setup —
+the same mechanism nodes use — and an invisible sphere whose radius is its TORUS OUTER
+radius, not its bare sphere radius. Placement is tangency: the torus of a bead touches the
+torus of whatever comes before it, and the target node is just another item on the last
+bead's surface, its torus tangent in exactly the same way.
+
+There is no arc. An edge's length is ONE INTEGER: the number of bead steps between the two
+nodes' tori. Everything derives from it.
+
+## The lattice is commensurate with the node lattice
+
+A bead step is FOUR node-lattice radial cells:
+
+	BeadStepCells = 4
+	BeadStepR     = BeadStepCells * LocalStepR = 4 * 2.0 = 8.0
+
+So the bead lattice is a coarse SUBLATTICE of the node lattice. This is what lets both
+ends be tangent without moving anything: node separations keep their authored `quantIR`
+meaning (still counted in 2.0-unit cells), and exact double tangency only requires the
+separation to land on a multiple of 4 cells rather than on every cell. An earlier draft
+made `LocalStepR` itself 8.96 to match a torus-touching bead of radius 4.0; that would
+have re-interpreted every stored `quantIR` against a coarser step and shifted every
+authored position on load. Rejected for that reason.
+
+## The bead radius is derived, not chosen
+
+Tangency fixes the bead's extent from the step:
+
+	BeadTorusOuterR        = BeadStepR / 2 = 4.0
+	ShadingParamBeadRadius = BeadTorusOuterR / (1 + ShadingParamBeadRingTubeRatio)
+	                       = 4.0 / 1.12 = 3.5714...
+
+The visible bead therefore SHRINKS ~11% from the old hand-picked 4.0. That is the point:
+a bead's size is a consequence of the lattice it sits on, not an independent knob that can
+drift away from the spacing.
+
+## Placement
+
+Along the source node's own stored bearing to the target, bead `i` sits at
+
+	srcTorusOuterR + BeadTorusOuterR + i * BeadStepR
+
+where `srcTorusOuterR = nodeRadius(kind) * (1 + ShadingParamNodeRingTubeRatio)`. Bead 0's
+torus is tangent to the source node's torus; bead `i`'s torus is tangent to bead `i-1`'s;
+bead `N-1`'s torus is tangent to the target node's torus. "Beads are never inside a node"
+falls out of the tangency, with no clamp.
+
+## The count
+
+Computed by the SOURCE NODE, from state it already owns — its stored `LocalPolar` to the
+target and the target's kind from `cascadeKinds`:
+
+	separation = QuantIR * stepR                       (index arithmetic, no sqrt)
+	gap        = separation - srcTorusOuterR - dstTorusOuterR
+	N          = round(gap / BeadStepR)                 minimum 1
+
+`edgeArcPolar` — `polarDist`'s sqrt over two scene polars, minus port radii, rounded to
+`edgeLengthCellWu` — is DELETED. It was a second, independently-measured length that could
+disagree with the lattice the beads were laid out on; that disagreement is the bug class
+this model removes.
+
+## Timing
+
+Uniform pulse speed becomes structural rather than computed. Dwell per bead is a constant,
+so a longer edge is simply more beads:
+
+	ticksToCross = N * DwellTicksPerBead
+
+which is numerically what `arcLength / pulseSpeed` used to give, with no per-edge division
+and no length to divide. Lighting reads the same integer:
+
+	litBeadIndex(t, N) = floor(t * N)
+
+No length is multiplied anywhere, so layout and lighting cannot read two different values —
+they read the same `N`.
+
+## Ownership
+
+- The SOURCE NODE computes `N` and publishes it onto its own `*wire.Out`. It owns the
+  `LocalPolar` the beads are laid out from, it owns the chain, and it owns the edge file
+  (`topology/nodes/<source>/edges/<label>.json`).
+- The `edgeMover` publishes the SEGMENT (start/end) only. It no longer computes any length.
+
+## Consequences to keep in mind
+
+- `PacedWire` stores `steps int`, not an arc float. Its per-instance dwell stays a TEST
+  affordance exactly as the per-instance `pulseSpeed` was: production passes the one
+  constant (guard: `tools/check-uniform-pulse-speed.sh`), lean tests pass
+  `NewPacedWire(latMs, 1.0)` so `ticksToCross == latMs` and their tick expectations are
+  unchanged.
+- The buffer's Event block carries `BeadSteps` where it carried `ArcLength`. Fingerprint
+  bump in `Buffer/buffer_layout_gen.go` and its TS mirror.
+- `ShadingParamNodeRingTubeRatio` is a new Go mirror of the TS-side `NODE_RING_TUBE_RATIO`
+  (0.08), needed because the node's torus outer radius is now load-bearing geometry rather
+  than decoration.

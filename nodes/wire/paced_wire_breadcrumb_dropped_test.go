@@ -23,7 +23,7 @@ import (
 // draining breadcrumbCh in between — then drains breadcrumbCh once and
 // confirms a "dropped N" breadcrumb reports the exact count of rows lost.
 func TestBreadcrumbDropsAreCountedAndReported(t *testing.T) {
-	pw := NewPacedWire(0, PulseSpeedWuPerMs)
+	pw := NewPacedWire(0, 1.0)
 
 	// Fill inCh to capacity directly so every subsequent Send call is forced
 	// through the SendBufferFull -> breadcrumbCh-send path.

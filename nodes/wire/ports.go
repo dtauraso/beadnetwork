@@ -229,26 +229,42 @@ func ParseSendRule(s string) (SendRule, error) {
 	}
 }
 
-// outGeom is an immutable snapshot of an Out's per-edge geometry, published by the
-// owning edgeMover goroutine (recomputeGeometry) and delivered to each reader
-// goroutine over its OWN buffered-1, latest-wins channel (geomSend
-// below) — never a shared field read by more than one goroutine. This mirrors
-// per-goroutine-clock.md's speedCh Delivery pattern (SendSpeedNonBlocking /
-// ApplySpeedNonBlocking): the producer sends, each consumer owns its own copy.
+// outGeom is an immutable snapshot of an Out's per-edge geometry: this edge's
+// bead-step count plus its drawn straight-segment endpoints. It is assembled from
+// TWO INDEPENDENT publishers, per docs/bead-lattice.md "Ownership" — the source
+// node owns the count, the edgeMover owns the segment — delivered to the ONE
+// reading goroutine (the node's own Update goroutine, via Geom() below) over two
+// SEPARATE buffered-1, latest-wins channels (geomSendSteps/geomSendSeg), never a
+// shared field either publisher writes directly. This mirrors
+// per-goroutine-clock.md's speedCh Delivery pattern (SendSpeedNonBlocking/
+// ApplySpeedNonBlocking): each producer sends, the one consumer owns its own copy.
 //
-//   - ArcLength / SimLatencyMs: this edge's own travel-time, computed from this
-//     edge's port-to-port geometry (chord length of this specific segment). SendWire
-//     logs these so each bead animates at its own speed even when multiple edges fan
-//     into one destination port.
+//   - Steps: this edge's own bead-step count (docs/bead-lattice.md "The count"),
+//     computed by the SOURCE NODE from its own stored LocalPolar to the target —
+//     ONE integer, not a chord length divided by a speed. Published by
+//     PublishSteps, called only from the source node's own goroutine (its
+//     chainBeads pass, nodes/Wiring/chain_beads.go) — the SAME pass that lays the
+//     chain out on this integer, so layout and the wire's own timing budget can
+//     never read two different lengths. SendWire logs it so each bead animates for
+//     its own edge's step count even when multiple edges fan into one destination
+//     port.
 //   - Start/End: this edge's straight-segment endpoints (source OUT-port world pos,
-//     dest IN-port world pos) in the SAME 3-D frame the renderer draws. They travel
-//     WITH each placed bead (beadPlacement) so the wire's position stream evaluates
-//     P(t)=Start+t*(End-Start) on this edge, because the shared dest
-//     wire never stores per-edge geometry.
+//     dest IN-port world pos) in the SAME 3-D frame the renderer draws. Published
+//     by PublishSegment, called only from the edgeMover's own goroutine
+//     (recomputeGeometry, nodes/Wiring/edge_mover.go) on a node move/port-anchor
+//     change. They travel WITH each placed bead (beadPlacement) so the wire's
+//     position stream evaluates P(t)=Start+t*(End-Start) on this edge, because the
+//     shared dest wire never stores per-edge geometry.
+//
+// TWO PUBLISHERS ON ONE Out IS WHY THIS SPLIT EXISTS AT ALL: a single combined
+// PublishGeom(steps, start, end) call would force one of the two goroutines to
+// either supply a value it does not own (a race-inviting guess) or block on the
+// other's latest value (a lock this repo forbids — memory/feedback_no_atomics_are_defects.md).
+// Two independent non-blocking channels let each publisher write only what it
+// owns, whenever it has a fresh value, with no coordination between them.
 type outGeom struct {
-	ArcLength    float64
-	SimLatencyMs float64
-	Start, End   Vec3
+	Steps      int
+	Start, End Vec3
 }
 
 // Out is a typed output port.
@@ -262,20 +278,24 @@ type Out struct {
 	node  string
 	port  string
 	trace *T.Trace
-	// geomSend is a buffered-1, latest-wins channel fed the fresh outGeom snapshot
-	// by publishGeom on every LIVE update (edgeMover.recomputeGeometry on a drag
-	// tick). The load-time file geometry is NOT sent through it — sendCur is
-	// initialized to it directly in NewOutPaced. geomSend is drained every cycle,
-	// via Geom() below, by whichever ONE goroutine actually places beads on this
-	// Out — the node's own Update goroutine for most kinds, or the dedicated
-	// DriveHeld goroutine for Pulse/HoldFlip (see gatecommon/drive.go). Exactly one
-	// goroutine ever calls PlaceDrivenAt/placement on a given Out, so exactly one
-	// goroutine ever drains geomSend. sendCur is the owned local cache for geomSend,
-	// mutated only by that one goroutine inside Geom(). A nil channel (chan-mode
-	// test Outs, which never publish) is safe: a non-blocking receive on a nil
-	// channel simply never fires.
-	geomSend chan outGeom
-	sendCur  outGeom
+	// geomSendSteps/geomSendSeg are the two INDEPENDENT buffered-1, latest-wins
+	// channels outGeom's doc comment describes: geomSendSteps fed by PublishSteps
+	// (the source node's own goroutine, docs/bead-lattice.md's step count owner),
+	// geomSendSeg fed by PublishSegment (the edgeMover's own goroutine, the
+	// segment owner). The load-time file geometry for BOTH is NOT sent through
+	// either channel — sendCur is initialized to it directly in NewOutPaced. Both
+	// are drained every cycle, via Geom() below, by whichever ONE goroutine
+	// actually places beads on this Out — the node's own Update goroutine for most
+	// kinds, or the dedicated DriveHeld goroutine for Pulse/HoldFlip (see
+	// gatecommon/drive.go). Exactly one goroutine ever calls PlaceDrivenAt/
+	// placement on a given Out, so exactly one goroutine ever drains either
+	// channel. sendCur is the owned local cache for both, mutated only by that one
+	// goroutine inside Geom(). A nil channel (chan-mode test Outs, which never
+	// publish) is safe: a non-blocking receive on a nil channel simply never
+	// fires.
+	geomSendSteps chan int
+	geomSendSeg   chan WireSegment
+	sendCur       outGeom
 	// EdgeLabel is the TS edge id for this output port's wire. Set by the loader
 	// so the node's EmitGeometry closure can stream the authoritative curve via
 	// tr.Geometry(EdgeLabel, Start..End) on startup.
@@ -296,58 +316,76 @@ type Out struct {
 }
 
 // Geom returns the current per-edge geometry snapshot as seen by THIS Out's one
-// sending goroutine: it non-blockingly drains any newer value off geomSend into
-// the goroutine-owned sendCur cache, then returns sendCur. Must only be called
-// from the single goroutine that places beads on this Out (see the geomSend
-// doc comment above) — calling it from two goroutines would race sendCur.
-// Returns the zero outGeom when nothing has ever been published (chan-mode
-// test Outs never publish, and o.geomSend is nil).
+// sending goroutine: it non-blockingly drains any newer value off EACH of
+// geomSendSteps/geomSendSeg into the goroutine-owned sendCur cache, then returns
+// sendCur. Must only be called from the single goroutine that places beads on
+// this Out (see the geomSendSteps/geomSendSeg doc comment above) — calling it
+// from two goroutines would race sendCur. Returns the zero outGeom when nothing
+// has ever been published (chan-mode test Outs never publish, and both channels
+// are nil).
 func (o *Out) Geom() outGeom {
 	if o == nil {
 		return outGeom{}
 	}
-	drainGeomNonBlocking(o.geomSend, &o.sendCur)
+	drainStepsNonBlocking(o.geomSendSteps, &o.sendCur.Steps)
+	drainSegNonBlocking(o.geomSendSeg, &o.sendCur.Start, &o.sendCur.End)
 	return o.sendCur
 }
 
-// publishGeom hands a fresh per-edge geometry snapshot to geomSend's reader,
+// publishSteps hands a fresh bead-step count to geomSendSteps' reader,
 // latest-wins (dropping any undrained stale value first). Called only on the
-// owning goroutine (edgeMover.recomputeGeometry) for LIVE updates; the load-time
-// file geometry is set directly on sendCur in NewOutPaced, not published here.
-// geomSend is nil on a chan-mode Out (test-only, never published to);
-// sendGeomNonBlocking on a nil channel is a silent no-op, matching Geom()'s
-// "never published" zero-value return.
-func (o *Out) publishGeom(g outGeom) {
-	sendGeomNonBlocking(o.geomSend, g)
+// SOURCE NODE's own goroutine (chainBeads, nodes/Wiring/chain_beads.go) —
+// docs/bead-lattice.md "Ownership": the source node owns the count, never the
+// edgeMover. The load-time file steps is set directly on sendCur in
+// NewOutPaced, not published here. geomSendSteps is nil on a chan-mode Out
+// (test-only, never published to); sendIntNonBlocking on a nil channel is a
+// silent no-op, matching Geom()'s "never published" zero-value return.
+func (o *Out) publishSteps(steps int) {
+	sendIntNonBlocking(o.geomSendSteps, steps)
 }
 
-// PublishGeom is publishGeom's exported entry point for callers in another package
-// (edgeMover.recomputeGeometry in nodes/Wiring) that need to publish a live per-edge
-// geometry update without naming the unexported outGeom type.
-func (o *Out) PublishGeom(arcLength, simLatencyMs float64, start, end Vec3) {
-	o.publishGeom(outGeom{ArcLength: arcLength, SimLatencyMs: simLatencyMs, Start: start, End: end})
+// PublishSteps is publishSteps' exported entry point for callers in another
+// package (nodeMover.chainBeads in nodes/Wiring) that need to publish a live
+// bead-step count without naming the unexported field it lands on.
+func (o *Out) PublishSteps(steps int) {
+	o.publishSteps(steps)
 }
 
-// drainGeomNonBlocking folds the latest pending value off ch (if any) into
+// publishSegment hands a fresh straight-segment (source OUT-port world pos, dest
+// IN-port world pos) to geomSendSeg's reader, latest-wins. Called only on the
+// EDGEMOVER's own goroutine (recomputeGeometry, nodes/Wiring/edge_mover.go) —
+// docs/bead-lattice.md "Ownership": the edgeMover owns the segment, never the
+// step count. The load-time file segment is set directly on sendCur in
+// NewOutPaced, not published here.
+func (o *Out) publishSegment(start, end Vec3) {
+	sendSegNonBlocking(o.geomSendSeg, WireSegment{Start: start, End: end})
+}
+
+// PublishSegment is publishSegment's exported entry point for callers in another
+// package (edgeMover.recomputeGeometry in nodes/Wiring).
+func (o *Out) PublishSegment(start, end Vec3) {
+	o.publishSegment(start, end)
+}
+
+// drainStepsNonBlocking folds the latest pending value off ch (if any) into
 // *cur, without blocking. A nil ch (chan-mode Out, or an unpublished port)
 // simply never selects the receive case, leaving *cur at its zero value.
-func drainGeomNonBlocking(ch chan outGeom, cur *outGeom) {
+func drainStepsNonBlocking(ch chan int, cur *int) {
 	select {
-	case g := <-ch:
-		*cur = g
+	case v := <-ch:
+		*cur = v
 	default:
 	}
 }
 
-// sendGeomNonBlocking delivers g to ch, latest-wins: if the buffer already
-// holds an undrained stale value (the reader hasn't woken to drain it since
-// the last publish), that stale value is dropped and replaced — mirrors
+// sendIntNonBlocking delivers v to ch, latest-wins: if the buffer already holds
+// an undrained stale value, that stale value is dropped and replaced — mirrors
 // SendSpeedNonBlocking (clock.go) for the same reason (absolute state, not an
 // event stream). A nil ch (chan-mode Out) makes every case here select
 // `default`, so this is a silent no-op.
-func sendGeomNonBlocking(ch chan outGeom, g outGeom) {
+func sendIntNonBlocking(ch chan int, v int) {
 	select {
-	case ch <- g:
+	case ch <- v:
 		return
 	default:
 	}
@@ -356,7 +394,33 @@ func sendGeomNonBlocking(ch chan outGeom, g outGeom) {
 	default:
 	}
 	select {
-	case ch <- g:
+	case ch <- v:
+	default:
+	}
+}
+
+// drainSegNonBlocking is drainStepsNonBlocking's WireSegment counterpart.
+func drainSegNonBlocking(ch chan WireSegment, start, end *Vec3) {
+	select {
+	case seg := <-ch:
+		*start, *end = seg.Start, seg.End
+	default:
+	}
+}
+
+// sendSegNonBlocking is sendIntNonBlocking's WireSegment counterpart.
+func sendSegNonBlocking(ch chan WireSegment, seg WireSegment) {
+	select {
+	case ch <- seg:
+		return
+	default:
+	}
+	select {
+	case <-ch:
+	default:
+	}
+	select {
+	case ch <- seg:
 	default:
 	}
 }
@@ -372,9 +436,9 @@ func (o *Out) placement() beadPlacement {
 // package (a concurrency-race test in nodes/Wiring) that need to read the currently
 // published per-edge geometry fields without naming the unexported beadPlacement type
 // and without placing a bead (unlike PlaceDrivenAt, this has no side effect).
-func (o *Out) CurrentPlacement() (inFlightMs float64, start, end Vec3) {
+func (o *Out) CurrentPlacement() (steps int, start, end Vec3) {
 	bp := o.placement()
-	return bp.InFlightMs, bp.Start, bp.End
+	return bp.Steps, bp.Start, bp.End
 }
 
 // placementFrom builds a beadPlacement from an already-loaded geometry snapshot, so
@@ -382,11 +446,11 @@ func (o *Out) CurrentPlacement() (inFlightMs float64, start, end Vec3) {
 // trace (rather than two independent loads that could straddle a republish).
 func (o *Out) placementFrom(g outGeom) beadPlacement {
 	return beadPlacement{
-		InFlightMs: g.SimLatencyMs,
-		Start:      g.Start,
-		End:        g.End,
-		Node:       o.node,
-		Port:       o.port,
+		Steps: g.Steps,
+		Start: g.Start,
+		End:   g.End,
+		Node:  o.node,
+		Port:  o.port,
 	}
 }
 
@@ -427,7 +491,7 @@ func (o *Out) placeDrivenNoWalker(v int, tick int64) SendOutcome {
 	if outcome != SendPlaced {
 		return outcome
 	}
-	o.flushSendEvent(v, g.ArcLength, g.SimLatencyMs)
+	o.flushSendEvent(v, g.Steps)
 	return SendPlaced
 }
 
@@ -437,7 +501,13 @@ func (o *Out) placeDrivenNoWalker(v int, tick int64) SendOutcome {
 // (the SAME goroutine driving the send) is the sole owner, so it resolves its own
 // NodeRow/PortRow/TargetRow/TargetPortRow at the call site (owner_events.go). No-op
 // when stream is unset (bare chan-mode Out) or the node has no dedicated interior fd.
-func (o *Out) flushSendEvent(value int, arcLength, simLatencyMs float64) {
+//
+// flushSendEvent records this send as a row-resolved RowEvent on this Out's owning
+// node's shared interior-stream frame. BeadSteps carries the bead-lattice length
+// directly (docs/bead-lattice.md "The count") — no chord/arc to derive it from
+// anymore. SimLatencyMs stays a REPORTED diagnostic derived from steps
+// (steps*DwellTicksPerBead*MsPerTick), not an independently measured value.
+func (o *Out) flushSendEvent(value int, steps int) {
 	if o.stream == nil {
 		return
 	}
@@ -448,7 +518,9 @@ func (o *Out) flushSendEvent(value int, arcLength, simLatencyMs float64) {
 	s.WriteEvents([]RowEvent{{
 		Kind: T.KindSend, NodeRow: s.NodeRowOf(), PortRow: o.portRow,
 		TargetRow: o.targetRow, TargetPortRow: o.targetPortRow, EdgeRow: -1,
-		Value: int32(value), ArcLength: arcLength, SimLatencyMs: simLatencyMs,
+		Value:        int32(value),
+		BeadSteps:    float64(steps),
+		SimLatencyMs: float64(steps) * DwellTicksPerBead * MsPerTick,
 	}})
 }
 
@@ -568,7 +640,7 @@ func (o *Out) PlaceDrivenAt(v int, tick int64) DriveItem {
 	if o.ch != nil {
 		select {
 		case o.ch <- v:
-			o.flushSendEvent(v, 0, 0)
+			o.flushSendEvent(v, 0)
 		default:
 		}
 		return DriveItem{outcome: DriveSentChan}
@@ -621,8 +693,8 @@ func NewInPaced(pw *PacedWire, ctx context.Context, node, port string, tr *T.Tra
 // RealClock. Only bead timing is exercised; the zero segment means position
 // traces carry no geometry. Production paced Outs are built by the loader/builders
 // with real segments, not through this.
-func NewPacedOutNoGeom(pw *PacedWire, ctx context.Context, node, port string, tr *T.Trace, rule SendRule, arcLength, simLatencyMs float64, edgeLabel string) *Out {
-	return NewOutPaced(pw, ctx, node, port, tr, rule, arcLength, simLatencyMs, WireSegment{}, edgeLabel, nil, -1, -1, -1)
+func NewPacedOutNoGeom(pw *PacedWire, ctx context.Context, node, port string, tr *T.Trace, rule SendRule, steps int, edgeLabel string) *Out {
+	return NewOutPaced(pw, ctx, node, port, tr, rule, steps, WireSegment{}, edgeLabel, nil, -1, -1, -1)
 }
 
 // NewOutChanForTest builds a chan-mode Out for tests outside the Wiring
@@ -641,23 +713,24 @@ func NewOutChanForTest(ch chan<- int, node, port string, tr *T.Trace) *Out {
 // targetPortRow are the destination node/port's buffer rows. All three are
 // -1 when unresolved — see wireOutPort/wireBroadcastPort's doc comments for
 // how the loader resolves them.
-func NewOutPaced(pw *PacedWire, ctx context.Context, node, port string, tr *T.Trace, rule SendRule, arcLength, simLatencyMs float64, seg WireSegment, edgeLabel string, stream func() EventSink, portRow, targetRow, targetPortRow int32) *Out {
+func NewOutPaced(pw *PacedWire, ctx context.Context, node, port string, tr *T.Trace, rule SendRule, steps int, seg WireSegment, edgeLabel string, stream func() EventSink, portRow, targetRow, targetPortRow int32) *Out {
 	if rule == "" {
 		rule = RuleConsumeGated
 	}
 	// The initial geometry is the LOAD-TIME geometry the loader derived from the
-	// topology file (arcLength/simLatencyMs/seg) — not a synthetic seed. Initialize
+	// topology file (steps/seg) — not a synthetic seed. Initialize
 	// the reader's owned cache to it directly, before the reader goroutine starts
 	// (happens-before), so the first placement reads valid file geometry with no
 	// channel bootstrap. geomSend then carries ONLY live edgeMover updates (drags);
 	// until the first one arrives, a non-blocking drain finds it empty and leaves the
 	// cache at this file value.
-	fileGeom := outGeom{ArcLength: arcLength, SimLatencyMs: simLatencyMs, Start: seg.Start, End: seg.End}
+	fileGeom := outGeom{Steps: steps, Start: seg.Start, End: seg.End}
 	o := &Out{
 		pw: pw, ctx: ctx, node: node, port: port, trace: tr, Rule: rule, EdgeLabel: edgeLabel,
-		geomSend: make(chan outGeom, 1),
-		sendCur:  fileGeom,
-		stream:   stream, portRow: portRow, targetRow: targetRow, targetPortRow: targetPortRow,
+		geomSendSteps: make(chan int, 1),
+		geomSendSeg:   make(chan WireSegment, 1),
+		sendCur:       fileGeom,
+		stream:        stream, portRow: portRow, targetRow: targetRow, targetPortRow: targetPortRow,
 	}
 	return o
 }

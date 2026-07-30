@@ -27,7 +27,17 @@ import (
 const (
 	localStepTheta = math.Pi / 180 // 1 degree
 	localStepPhi   = math.Pi / 180 // 1 degree
-	localStepR     = 2.0           // world units
+	// LocalStepR is exported (unlike its theta/phi siblings) because
+	// docs/bead-lattice.md's bead lattice is defined AS a multiple of it
+	// (BeadStepR = BeadStepCells * LocalStepR, bead_lattice.go): the bead
+	// lattice must stay a commensurate sublattice of the node lattice, so a
+	// change to this constant has to be visible to the file that derives from
+	// it rather than duplicated as a second literal that could drift.
+	LocalStepR = 2.0 // world units
+	// localStepR is kept as a same-package alias so every other call site in
+	// this file (localPolarSteps/EffectiveSteps, both pre-dating the bead
+	// lattice) does not need touching just to read the new exported name.
+	localStepR = LocalStepR
 )
 
 // DefaultLocalStepTheta/Phi/R are the exported mirrors of localStepTheta/Phi/R, for

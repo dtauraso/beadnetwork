@@ -31,7 +31,7 @@ func TestBreadcrumbEmitsWithEdgeBeadTraceOff(t *testing.T) {
 			"run without that env var set")
 	}
 
-	pw := NewPacedWire(0, PulseSpeedWuPerMs)
+	pw := NewPacedWire(0, 1.0)
 
 	for i := range wireChanBufferSize {
 		select {

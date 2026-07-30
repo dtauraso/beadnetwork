@@ -131,16 +131,43 @@ const ShadingParamTubeEmissive = "#2255aa"
 // ShadingParamTubeEmissiveIntensity is the wire-tube emissive intensity.
 const ShadingParamTubeEmissiveIntensity = 0.8
 
+// --- Node ring: torus outer radius (docs/bead-lattice.md) -----------------
+// The node's border ring (above) is a torus, not a bare sphere; its OUTER radius —
+// nodeRadius(kind) * (1 + this ratio) — is now LOAD-BEARING GEOMETRY, not decoration:
+// the first chain bead on every edge is placed tangent to it (chain_beads.go), so a
+// wrong ratio here would bury the first bead in the node or float it off the surface.
+// Mirrors NODE_RING_TUBE_RATIO in
+// tools/topology-vscode/src/webview/three/buffer-scene-shared.ts (the TS constant the
+// renderer builds the SAME torus from) — kept as a literal duplicate, like every other
+// ShadingParam*, because gen-node-defs generates the TS mirror FROM this file, not the
+// other way around.
+const ShadingParamNodeRingTubeRatio = 0.08
+
 // --- Bead appearance (PulseBead) ------------------------------------------
 // The in-flight bead sphere. Mirrors the meshStandardMaterial on PulseBead.
 
 // ShadingParamBeadRadius is the sphere radius of a bead — the 0/1 beads AND the grey chain
 // beads, which are the same size and structure by design (a chain bead is a grey version of
 // bead 1, not a smaller marker). Mirrored into TS as SHADING_PARAM_BEAD_RADIUS, and read
-// Go-side by chain_beads.go to space the chain at exactly one DIAMETER so adjacent beads
-// TOUCH: a chain is a solid line of beads, not a dotted one, so there is no gap to tune and
-// no second copy of the radius to drift.
-const ShadingParamBeadRadius = 4.0
+// Go-side by chain_beads.go to space the chain at exactly one bead STEP (wire.BeadStepR) so
+// adjacent beads TOUCH: a chain is a solid line of beads, not a dotted one.
+//
+// DERIVED, not chosen (docs/bead-lattice.md "The bead radius is derived, not chosen"): a
+// bead's true extent is its TORUS OUTER radius, wire.BeadTorusOuterR — fixed by tangency to
+// half the bead-lattice step (8.0/2 = 4.0), a Go-only geometry constant that predates and does
+// not depend on this file. The VISIBLE sphere radius is the inverse of the torus-outer
+// formula every other ring in this file uses (outer = r*(1+ratio)): r = outer/(1+ratio) =
+// 4.0/1.12 = 3.5714285714285716, down from the old hand-picked 4.0. A bead's size is
+// therefore a CONSEQUENCE of the lattice it sits on, not an independent knob free to drift
+// away from the spacing — the exact bug class docs/bead-lattice.md exists to close off.
+//
+// Written as a LITERAL, not a `wire.BeadTorusOuterR / (1 + ratio)` expression: gen-node-defs'
+// parseShadingParams only recognizes a plain `*ast.BasicLit` value on a ShadingParam* const
+// (see its doc comment / TestParseShadingParams_ExtractsPrefixedConstsOnly) — a binary
+// expression would silently vanish from the generated TS mirror rather than fail loudly. A
+// test (TestShadingParamBeadRadiusMatchesDerivation) pins this literal to the same arithmetic
+// so the two cannot drift apart unnoticed.
+const ShadingParamBeadRadius = 3.5714285714285716
 
 // ShadingParamBeadRingTubeRatio is a bead ring's torus tube radius as a fraction of
 // ShadingParamBeadRadius. Same for chain beads as for the 0/1 beads — same structure.

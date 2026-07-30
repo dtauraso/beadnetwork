@@ -5,9 +5,9 @@ set -euo pipefail
 #
 # Doctrine: pulse speed is uniform across all wires; per-wire `speed` is rejected.
 # The TS layer already cannot express it (no speed prop in wire-defs.ts WireProps).
-# On the Go side, PacedWire keeps a per-instance pulseSpeed field — but that field is a
-# TEST affordance: the lean per-node tests construct wires in ms units
-# (NewPacedWire(latMs*PulseSpeedWuPerMs, PulseSpeedWuPerMs)) so ticksToCross == latMs.
+# On the Go side, PacedWire keeps a per-instance dwell field — but that field is a
+# TEST affordance: the lean per-node tests construct wires with an arbitrary steps
+# count and dwellTicks=1.0 (NewPacedWire(latMs, 1.0)) so ticksToCross == latMs.
 #
 # What actually keeps production uniform is that there is exactly ONE non-test
 # NewPacedWire call site, and it passes the one canonical constant. That is a real
@@ -15,19 +15,25 @@ set -euo pipefail
 #
 # This guard asserts:
 #   1. exactly ONE non-test NewPacedWire(...) call site exists, and
-#   2. it passes PulseSpeedWuPerTick as the speed argument.
+#   2. it passes DwellTicksPerBead as the dwell argument.
+#
+# DwellTicksPerBead (nodes/wire/bead_lattice.go), not PulseSpeedWuPerTick: the bead lattice
+# (docs/bead-lattice.md "Timing") made "uniform pulse speed" a constant DWELL PER BEAD-STEP
+# rather than a world-units-per-tick speed divided into a chord length — there is no arc left
+# to divide by a speed, only an integer step count times a constant per-step dwell.
 #
 # A second production call site is the drift this catches: it is the moment "uniform" stops
 # being structural and becomes a convention two places have to agree on. If you need one,
-# the fix is not to add it — it is to remove the speed parameter from the production
-# constructor entirely (and migrate the tests to express arcs as ticks*PulseSpeedWuPerTick).
+# the fix is not to add it — it is to remove the dwell parameter from the production
+# constructor entirely (and migrate the tests to express ticksToCross as
+# steps*DwellTicksPerBead).
 #
 # Exit 0 if clean; exit 1 with a report otherwise.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-CANONICAL_SPEED="PulseSpeedWuPerTick"
+CANONICAL_SPEED="DwellTicksPerBead"
 
 cd "$REPO_ROOT"
 
@@ -80,9 +86,10 @@ if ! printf '%s' "$CALLS" | grep -q "$CANONICAL_SPEED"; then
   echo "uniform-pulse-speed: the production call site does not pass $CANONICAL_SPEED:"
   printf '%s\n' "$CALLS" | sed 's/^/  /'
   echo ""
-  echo "  pulseSpeed is world-units-per-TICK (MODEL.md). PulseSpeedWuPerMs is the REPORTING"
-  echo "  unit for SimLatencyMs and is NOT the clock's unit — passing it here would silently"
-  echo "  run every bead at 16x the intended speed."
+  echo "  DwellTicksPerBead (docs/bead-lattice.md) is ticks per bead-step. A different"
+  echo "  constant here (e.g. a raw PulseSpeedWuPerMs/PulseSpeedWuPerTick) would silently"
+  echo "  desync this wire's timing from the bead-step count the source node's chain is"
+  echo "  laid out on."
   HITS=$((HITS + 1))
 fi
 
