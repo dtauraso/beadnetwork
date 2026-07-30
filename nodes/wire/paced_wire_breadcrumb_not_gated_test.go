@@ -41,7 +41,7 @@ func TestBreadcrumbEmitsWithEdgeBeadTraceOff(t *testing.T) {
 		}
 	}
 
-	if got := pw.Send(1, beadPlacement{}); got != SendBufferFull {
+	if got := pw.Send(1, beadPlacement{}, 0); got != SendBufferFull {
 		t.Fatalf("Send on a full, undrained inCh = %v, want SendBufferFull", got)
 	}
 

@@ -82,10 +82,10 @@ func runGate(t *testing.T, left, right int) int {
 		}
 	}()
 
-	if !leftSrc.PlaceDrivenAt(left).Live() {
+	if !leftSrc.PlaceDrivenAt(left, clk.Tick()).Live() {
 		t.Fatal("PlaceDrivenAt(left) returned false")
 	}
-	if !rightSrc.PlaceDrivenAt(right).Live() {
+	if !rightSrc.PlaceDrivenAt(right, clk.Tick()).Live() {
 		t.Fatal("PlaceDrivenAt(right) returned false")
 	}
 

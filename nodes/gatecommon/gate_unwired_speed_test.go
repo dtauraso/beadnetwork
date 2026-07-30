@@ -88,7 +88,7 @@ func TestGateWithUnwiredOutputStillObeysSpeed(t *testing.T) {
 	// gets a chance to start advancing on a not-yet-scaled clock.
 	speedCh <- 0
 
-	if !leftSrc.PlaceDrivenAt(1).Live() {
+	if !leftSrc.PlaceDrivenAt(1, clk.Tick()).Live() {
 		t.Fatal("PlaceDrivenAt(left) returned false")
 	}
 

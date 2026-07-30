@@ -72,7 +72,7 @@ func TestFireOnReceiveLean(t *testing.T) {
 	done := make(chan struct{})
 	go func() { node.Update(ctx); close(done) }()
 
-	if !inSrc.PlaceDrivenAt(7).Live() {
+	if !inSrc.PlaceDrivenAt(7, clk.Tick()).Live() {
 		t.Fatal("PlaceDrivenAt returned false")
 	}
 

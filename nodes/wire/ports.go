@@ -415,16 +415,15 @@ func (o *Out) Gated() bool {
 
 // placeDrivenNoWalker sends one bead placement onto the paced wire's in-channel
 // (PacedWire.Send — non-blocking, never waits on the wire or the destination) and
-// flushes this send as a RowEvent at placement time. The wire's own goroutine stamps the
-// placement tick from its own clock when it drains the send; the source no longer
-// pins one (MODEL.md: "The wire goroutine reads its OWN clock copy and its own
-// tick"). Caller must have already checked o.pw != nil. Returns the wire's
-// SendOutcome verbatim so the caller (PlaceDrivenAt) can distinguish a transient
-// buffer-full from a genuinely terminal condition instead of collapsing both to
-// one bool.
-func (o *Out) placeDrivenNoWalker(v int) SendOutcome {
+// flushes this send as a RowEvent at placement time. tick is the CALLER's own
+// clock reading (read once, at the emission site — see placeRequest's doc
+// comment for why the wire itself no longer stamps this). Caller must have
+// already checked o.pw != nil. Returns the wire's SendOutcome verbatim so the
+// caller (PlaceDrivenAt) can distinguish a transient buffer-full from a
+// genuinely terminal condition instead of collapsing both to one bool.
+func (o *Out) placeDrivenNoWalker(v int, tick int64) SendOutcome {
 	g := o.Geom()
-	outcome := o.pw.Send(v, o.placementFrom(g))
+	outcome := o.pw.Send(v, o.placementFrom(g), tick)
 	if outcome != SendPlaced {
 		return outcome
 	}
@@ -541,18 +540,22 @@ func (di DriveItem) BufferFull() bool {
 }
 
 // PlaceDrivenAt places one bead on this Out WITHOUT spawning a walker, emits
-// the SendWire trace, and returns a DriveItem reporting the outcome. Delivery is
-// timed by the wire's own goroutine (PacedWire, driven by edgeMover.run), not by
-// the caller. In chan mode (tests) it sends immediately on the raw channel and
-// returns DriveSentChan, so unit tests keep their synchronous chan semantics. A
+// the SendWire trace, and returns a DriveItem reporting the outcome. tick is
+// the CALLING goroutine's own clock reading, read once by the caller and
+// stamped as this bead's placementTick — the wire itself no longer decides
+// when a bead started (placeRequest's doc comment). Delivery timing (the
+// bead's later position-advance) is still done by the wire's driver (the
+// source node's mover — node_mover.go), not the caller. In chan mode (tests)
+// it sends immediately on the raw channel and returns DriveSentChan, so unit
+// tests keep their synchronous chan semantics (tick is unused in this path). A
 // nil Out returns DriveFailed. A momentarily-full paced wire returns
 // DriveBufferFull, never DriveFailed — see the DriveOutcome doc comment.
-func (o *Out) PlaceDrivenAt(v int) DriveItem {
+func (o *Out) PlaceDrivenAt(v int, tick int64) DriveItem {
 	if o == nil {
 		return DriveItem{outcome: DriveFailed}
 	}
 	if o.pw != nil {
-		switch o.placeDrivenNoWalker(v) {
+		switch o.placeDrivenNoWalker(v, tick) {
 		case SendPlaced:
 			return DriveItem{outcome: DrivePlaced}
 		default: // SendBufferFull
@@ -578,15 +581,21 @@ func (o *Out) PlaceDrivenAt(v int) DriveItem {
 type Broadcast []*Out
 
 // PlaceDrivenAllAt places value v (no walker) on EVERY Out in the set, emitting
-// the SendWire trace for each and appending a DriveItem per Out to dst. Delivery
-// is timed by each wire's own goroutine, so the whole broadcast animates
+// the SendWire trace for each and appending a DriveItem per Out to dst. tick is
+// the CALLER's own clock reading, read ONCE and passed to every Out in the
+// set — that single shared reading is what guarantees every bead of this one
+// broadcast emission shares the same placementTick (the bug this replaced: an
+// earlier version let each wire's own drain pass stamp its own tick, so a
+// broadcast could straddle a tick boundary between two of its beads). Once
+// placed, each wire's own driver (its source node's mover) advances and
+// delivers its bead independently, so the traversal still animates
 // concurrently. Chan-mode Outs send immediately and contribute inert items.
-func (outs Broadcast) PlaceDrivenAllAt(v int, dst []DriveItem) []DriveItem {
+func (outs Broadcast) PlaceDrivenAllAt(v int, dst []DriveItem, tick int64) []DriveItem {
 	for _, o := range outs {
 		if o == nil {
 			continue
 		}
-		dst = append(dst, o.PlaceDrivenAt(v))
+		dst = append(dst, o.PlaceDrivenAt(v, tick))
 	}
 	return dst
 }

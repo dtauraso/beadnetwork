@@ -75,7 +75,7 @@ func TestPulseDrivesHeldValueLean(t *testing.T) {
 		t.Fatal("timeout waiting for startup bead")
 	}
 
-	if !inSrc.PlaceDrivenAt(5).Live() {
+	if !inSrc.PlaceDrivenAt(5, clk.Tick()).Live() {
 		t.Fatal("PlaceDrivenAt returned false")
 	}
 

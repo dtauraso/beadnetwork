@@ -24,7 +24,7 @@ func TestPendingStaysEmptyWithNoStreamConsumer(t *testing.T) {
 	ctx := context.Background()
 
 	for i := range 40 {
-		if got := pw.Send(i, beadPlacement{InFlightMs: 1, Node: "src", Port: "out"}); got != SendPlaced {
+		if got := pw.Send(i, beadPlacement{InFlightMs: 1, Node: "src", Port: "out"}, 0); got != SendPlaced {
 			t.Fatalf("Send(%d) = %v, want SendPlaced", i, got)
 		}
 	}
@@ -55,7 +55,7 @@ func TestPendingAccumulatesAndDrainsWithStreamConsumer(t *testing.T) {
 	pw.StreamsActive = true
 	ctx := context.Background()
 
-	if got := pw.Send(1, beadPlacement{InFlightMs: 1, Node: "src", Port: "out"}); got != SendPlaced {
+	if got := pw.Send(1, beadPlacement{InFlightMs: 1, Node: "src", Port: "out"}, 0); got != SendPlaced {
 		t.Fatalf("Send = %v, want SendPlaced", got)
 	}
 

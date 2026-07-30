@@ -74,12 +74,12 @@ func TestFlipRoundTripLean(t *testing.T) {
 		t.Fatalf("timeout waiting for flipped value %d", want)
 	}
 
-	if !inSrc.PlaceDrivenAt(0).Live() {
+	if !inSrc.PlaceDrivenAt(0, clk.Tick()).Live() {
 		t.Fatal("PlaceDrivenAt returned false")
 	}
 	expectFlip(1) // 1-0 = 1
 
-	if !inSrc.PlaceDrivenAt(1).Live() {
+	if !inSrc.PlaceDrivenAt(1, clk.Tick()).Live() {
 		t.Fatal("PlaceDrivenAt returned false")
 	}
 	expectFlip(0) // 1-1 = 0

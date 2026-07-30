@@ -80,20 +80,22 @@ func (n *Node) clock() wire.Clock {
 // concurrent broadcast) without driving them. Returns false only on a
 // structural, TERMINAL failure (DriveItem.Failed() — a nil Out), mirroring
 // EmitOneDriven's false-return-stops-the-goroutine convention. A momentarily
-// full paced-wire buffer (DriveItem.BufferFull()) is TRANSIENT — the wire's
-// own goroutine drains it every cycle — so it must NOT stop this node's
-// goroutine; that bead is simply dropped from this cycle's broadcast (a
-// breadcrumb was already emitted by PacedWire.Send) and the next Fire cycle
-// tries again. Delivery is timed by each wire's own goroutine — this node no
-// longer pins or steps a tick.
-func (n *Node) broadcastPlace(v int) bool {
-	if n.ToTime.Wired() && n.ToTime.PlaceDrivenAt(v).Failed() {
+// full paced-wire buffer (DriveItem.BufferFull()) is TRANSIENT — the wire's own
+// driver (its source node's mover) drains it every cycle — so it must NOT stop
+// this node's goroutine; that bead is simply dropped from this cycle's
+// broadcast (a breadcrumb was already emitted by PacedWire.Send) and the next
+// Fire cycle tries again. tick is THIS goroutine's own clock reading, read
+// ONCE by the caller and stamped identically on all three placements below —
+// that single shared reading is what makes node 2 (ToTime) and node 6
+// (ToExcitatory) traverse in lockstep, not a per-Out clock read here.
+func (n *Node) broadcastPlace(v int, tick int64) bool {
+	if n.ToTime.Wired() && n.ToTime.PlaceDrivenAt(v, tick).Failed() {
 		return false
 	}
-	if n.ToExcitatory.Wired() && n.ToExcitatory.PlaceDrivenAt(v).Failed() {
+	if n.ToExcitatory.Wired() && n.ToExcitatory.PlaceDrivenAt(v, tick).Failed() {
 		return false
 	}
-	if n.ToPacer.Wired() && n.ToPacer.PlaceDrivenAt(v).Failed() {
+	if n.ToPacer.Wired() && n.ToPacer.PlaceDrivenAt(v, tick).Failed() {
 		return false
 	}
 	return true
@@ -166,7 +168,7 @@ func (n *Node) updateFeedbackRing(ctx context.Context, working, backup *[]int, i
 			if n.Fire != nil {
 				n.Fire()
 			}
-			if !n.broadcastPlace(v) {
+			if !n.broadcastPlace(v, clk.Tick()) {
 				return
 			}
 			awaiting = true
@@ -274,7 +276,7 @@ func (n *Node) Update(ctx context.Context) {
 			}
 			v := popEnd(&working, &backup, init)
 			emitBeads() // array changed (pop, maybe refill) → restream interior
-			if !n.broadcastPlace(v) {
+			if !n.broadcastPlace(v, now) {
 				return
 			}
 			lastFireTick = now

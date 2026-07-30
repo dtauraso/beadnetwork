@@ -76,7 +76,7 @@ func (p *Node) Update(ctx context.Context) {
 			}
 			p.Held = value
 
-			p.FeedbackOut.PlaceDrivenAt(step)
+			p.FeedbackOut.PlaceDrivenAt(step, clk.Tick())
 		}
 	}
 }

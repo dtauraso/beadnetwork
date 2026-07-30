@@ -61,13 +61,13 @@ func TestInflightBoundPanicsWhenDestinationStalls(t *testing.T) {
 	// draining outCh" shape the bound exists to catch.
 	for i := range maxInflightBeads + 1 {
 		select {
-		case pw.inCh <- placeRequest{val: i, bp: beadPlacement{InFlightMs: 1}}:
+		case pw.inCh <- placeRequest{val: i, bp: beadPlacement{InFlightMs: 1}, placementTick: 0}:
 		default:
 			t.Fatalf("inCh reported full before reaching maxInflightBeads (at %d); "+
 				"wireChanBufferSize must be >= maxInflightBeads+1 for this test to exercise "+
 				"the inflight bound rather than the inCh bound", i)
 		}
-		pw.drainPlacements(0)
+		pw.drainPlacements()
 	}
 	t.Fatalf("unreachable: drainPlacements should have panicked by iteration %d", maxInflightBeads)
 }
@@ -81,7 +81,7 @@ func TestInflightBoundNeverTripsWithNormalDelivery(t *testing.T) {
 	ctx := context.Background()
 
 	for tick := int64(0); tick < 500; tick++ {
-		if got := pw.Send(int(tick), beadPlacement{InFlightMs: 1}); got != SendPlaced {
+		if got := pw.Send(int(tick), beadPlacement{InFlightMs: 1}, tick); got != SendPlaced {
 			t.Fatalf("tick %d: Send = %v, want SendPlaced", tick, got)
 		}
 		pw.DriveOneCycle(ctx, tick)
@@ -106,11 +106,11 @@ func TestInflightResetsToNilWhenDrained(t *testing.T) {
 	pw := NewPacedWire(0, PulseSpeedWuPerMs)
 	ctx := context.Background()
 
-	if got := pw.Send(1, beadPlacement{InFlightMs: 0}); got != SendPlaced {
+	if got := pw.Send(1, beadPlacement{InFlightMs: 0}, 1); got != SendPlaced {
 		t.Fatalf("Send = %v, want SendPlaced", got)
 	}
-	// drainPlacements stamps placementTick from THIS cycle's tick, and stepAll
-	// (same DriveOneCycle call) only advances a bead once nowTick > its own
+	// Send stamps placementTick from the tick passed here (1), and stepAll
+	// (via DriveOneCycle) only advances a bead once nowTick > its own
 	// placementTick — so placement and delivery need two distinct ticks.
 	pw.DriveOneCycle(ctx, 1)
 	pw.DriveOneCycle(ctx, 2)
