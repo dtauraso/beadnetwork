@@ -8,22 +8,30 @@ import { getLatestEdgeStreamFrames } from "../snapshot-buffer";
 import { decodeEdgeStreamFrame, type DecodedEdgeStreamFrame } from "./buffer-decode";
 import {
   readEdgeSX, readEdgeSY, readEdgeSZ, readEdgeEX, readEdgeEY, readEdgeEZ,
-  readEdgeSelected,
 } from "../../schema/buffer-layout";
 
 export interface EdgeAccessor {
   /** One past the highest edge ROW that has posted at least one dedicated-stream frame —
    *  NOT frames.size (a row can arrive out of order at startup; using the size would
    *  misnumber a sparse row set as a dense 0..size-1 range, corrupting the row identity
-   *  every downstream pick/selection lookup depends on). A row with no frame yet reads as
-   *  "unresolved" (segment 0,0,0->0,0,0 / not selected). */
+   *  every downstream lookup depends on). A row with no frame yet reads as "unresolved"
+   *  (segment 0,0,0->0,0,0). */
   edgeCount: number;
   /** This edge's own SEGMENT — node surface to node surface (docs/channels-not-ports.md).
-   *  No port row to resolve any more: the edge carries its own endpoints directly. */
+   *  No port row to resolve any more: the edge carries its own endpoints directly. Still
+   *  read for stream-capacity growth (buffer-scene.tsx) and the .probe debug decoder
+   *  (buffer-log.ts) — NOT for rendering: the edge's own drawn line/pick halo is REMOVED,
+   *  the source node's bead chain is the edge's visual now (docs/beads-are-the-edge.md). */
   segment(row: number): [number, number, number, number, number, number];
-  selected(row: number): boolean;
-  // No beads() accessor: the Bead block is gone. A traversal renders as the LIT bead of
-  // the source node's own fixed chain (ChainBeadInstances), not a moving position on the
+  // No selected() accessor: the Edge block's Selected column had exactly one caller (the
+  // now-deleted pick halo, EdgeTube.tsx) and is now genuinely unreachable from the UI — the
+  // pick target that ever tagged a hit with a buffer edge row is gone, so Go can never
+  // receive an edge-select raw-input hit either (raw-input.ts's `edgeOnly` pick,
+  // scene-content.tsx's pickBufferEdge). Left AS DATA (not deleted from Buffer/layout.go —
+  // that is a bridge/schema change, a separate decision) — see
+  // tools/check-no-dead-buffer-column.sh's ALLOWED_DEAD entry for readEdgeSelected.
+  // No beads() accessor either: the Bead block is gone. A traversal renders as the LIT bead
+  // of the source node's own fixed chain (ChainBeadInstances), not a moving position on the
   // edge stream — docs/beads-are-the-edge.md.
 }
 
@@ -53,10 +61,6 @@ export function getEdgeStreamAccessor(): EdgeAccessor | null {
         readEdgeSX(d.edgeView, 0), readEdgeSY(d.edgeView, 0), readEdgeSZ(d.edgeView, 0),
         readEdgeEX(d.edgeView, 0), readEdgeEY(d.edgeView, 0), readEdgeEZ(d.edgeView, 0),
       ];
-    },
-    selected(row) {
-      const d = decodedFor(frames, row);
-      return d ? readEdgeSelected(d.edgeView, 0) > 0 : false;
     },
   };
 }

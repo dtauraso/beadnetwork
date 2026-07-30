@@ -1,26 +1,38 @@
-// EdgeTube.tsx — real 3D edge render matching the JSON path's SingleEdgeTube,
-// plus the EdgeTubes buffer-poll wrapper. There is no PortInstances any more
-// (docs/channels-not-ports.md — a port is never drawn): an edge's endpoints ride its own
-// dedicated stream frame's SX..EZ columns directly.
+// EdgeTube.tsx — the cascade-link overlay, plus the EdgeTubes buffer-poll wrapper. The
+// edge's own drawn LINE (the tube + arrowhead + pick/selection halo that used to trace every
+// edge's segment, matching the JSON path's SingleEdgeTube) is REMOVED COMPLETELY, not
+// replaced by a smaller stand-in: the source node's own chain of placeholder beads is the
+// edge's visual now (docs/beads-are-the-edge.md, MODEL.md's wire-lifecycle section), so a
+// separately-drawn line — visible or an invisible pick halo — duplicated that depiction.
+// Consequence, recorded rather than silently patched over: an edge can no longer be
+// raycast-picked or shown as Go-selected, because the only mesh that ever carried
+// userData[BUFFER_EDGE_TAG] was this file's now-deleted halo. `raw-input.ts`'s `edgeOnly`
+// pick and `scene-content.tsx`'s `pickBufferEdge` are consequently unreachable (nothing ever
+// tags a hit), and `EdgeAccessor.selected`/`readEdgeSelected`/the Edge block's `Selected`
+// column are dead on the TS side — left in place rather than torn out (a buffer-schema
+// change is a bigger, separate decision; `readEdgeSelected` is listed in
+// `tools/check-no-dead-buffer-column.sh`'s ALLOWED_DEAD with this same note). The Edge
+// block's SEGMENT (SX..EZ) stays very much alive: `edge-stream-blocks.ts`'s `segment()` and
+// `edgeCount` are still read for stream-capacity growth (`buffer-scene.tsx`) and by the
+// `.probe` debug decoder (`buffer-log.ts`) — nothing about removing the RENDERED tube
+// touches that. The cascade-link overlay (`LayoutLinkOverlay`, `EdgeTubes`'s `showCascade`
+// branch) is a DIFFERENT feature — its own edge between two NODE CENTERS, never riding a
+// bead edge — and is untouched. There is no PortInstances any more
+// (docs/channels-not-ports.md — a port is never drawn).
 //
 // TIMING CONTRACT (why this file is imperative, not setState-driven):
 // NodeInstances updates node meshes IMPERATIVELY inside its useFrame (setMatrixAt +
-// instanceMatrix.needsUpdate), so a moved node lands on the SAME frame it is decoded. If
-// edge segment coordinates flowed through React state (setSegs -> re-render -> useMemo
-// rebuild), the tube+arrow would land ONE FRAME LATER than the nodes they connect. During
-// a drag that differential shows as the destination arrowhead sliding off the node,
-// proportional to drag speed and sign-flipping with lengthen/shorten — a render-side lag,
-// not a data bug (the endpoints themselves are read same-tick off the edge's OWN frame's
-// SX..EZ columns — docs/channels-not-ports.md, no port row to resolve through a separate
-// Node frame any more). So per-frame COORDINATES are pushed to each edge slot via an
-// imperative handle (EdgeHandle.update), updated in the same useFrame that reads the
-// node/edge streams — never through state.
+// instanceMatrix.needsUpdate), so a moved node lands on the SAME frame it is decoded. If the
+// cascade-link overlay's segment coordinates flowed through React state (setSegs ->
+// re-render -> useMemo rebuild), it would land ONE FRAME LATER than the nodes it connects —
+// a render-side lag, not a data bug. So per-frame COORDINATES are pushed to each overlay
+// slot via an imperative handle (EdgeHandle.update), updated in the same useFrame that reads
+// the node/edge streams — never through state.
 //
-// What DOES stay in useState: the mounted SLOT COUNT, the selected row, and the dim flag.
-// Those change on edge add/remove and user clicks, never per drag-frame, so a one-frame
-// commit latency on them is imperceptible and is not the lag this contract exists to kill.
-// Holding them is buffer reflection (count/selection/flags Go owns), not domain authority —
-// no segment geometry is cached in state (check-no-webview-state).
+// What DOES stay in useState: the mounted cascade-link SLOT COUNT and the dim flag. Those
+// change on link add/remove and the overlay toggle, never per drag-frame, so a one-frame
+// commit latency on them is imperceptible. Holding them is buffer reflection (count/flags Go
+// owns), not domain authority — no segment geometry is cached in state (check-no-webview-state).
 
 import React, {
   useRef, useState, useEffect, forwardRef, useImperativeHandle,
@@ -28,12 +40,8 @@ import React, {
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { getViewBlocks } from "./view-blocks";
-import { getEdgeStreamAccessor } from "./edge-stream-blocks";
 import { getNodeFrame, getLayoutLinks } from "./node-stream-blocks";
 import {
-  SHADING_PARAM_TUBE_COLOR,
-  SHADING_PARAM_TUBE_EMISSIVE,
-  SHADING_PARAM_TUBE_EMISSIVE_INTENSITY,
   SHADING_PARAM_LAYOUT_LINK_COLOR,
   SHADING_PARAM_LAYOUT_LINK_EMISSIVE,
   SHADING_PARAM_LAYOUT_LINK_EMISSIVE_INTENSITY,
@@ -43,33 +51,20 @@ import {
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius,
   readOverlayOverlaysVis, readOverlayCascadeLinks,
 } from "../../schema/buffer-layout";
-import { BUFFER_EDGE_TAG, DIRECTION_ZERO_EPS } from "./buffer-scene-shared";
+import { DIRECTION_ZERO_EPS } from "./buffer-scene-shared";
 
-// Arrowhead cone dims for the core tube — mirror scene-graph.tsx.
-const ARROWHEAD_LENGTH = 6;
-const ARROWHEAD_RADIUS = 3;
-// Edge selection/pick halo radius (world units) — the pre-branch SingleEdgeTube halo
-// (TubeGeometry(curve,1,5,6)). This wide concentric tube is ALWAYS mounted per edge as the
-// raycast pick target (opacity 0 when unselected but still hittable) and painted orange
-// (#ff5a00, opacity 0.6) on the Go-selected edge.
-// Exported so other buffer-driven overlays (e.g. SelectedEquationGuides) that draw the
-// SAME selected-edge halo look can share this single source of truth instead of keeping
-// a duplicate local copy.
-export const EDGE_HALO_RADIUS = 5;
-export const EDGE_HALO_COLOR = "#ff5a00";
-export const EDGE_HALO_SELECTED_OPACITY = 0.6;
-// Arrowhead cone dims for the cascade-link overlay (the pre-branch sizes).
+// Arrowhead cone dims for the cascade-link overlay (the pre-branch sizes) — the only
+// arrowhead left in this file once the per-edge tube/arrow/halo is gone.
 const DL_ARROWHEAD_LENGTH = 7;
 const DL_ARROWHEAD_RADIUS = 3.5;
 
-const TUBE_EMISSIVE_COLOR = new THREE.Color(SHADING_PARAM_TUBE_EMISSIVE);
 const LAYOUT_LINK_EMISSIVE_COLOR = new THREE.Color(SHADING_PARAM_LAYOUT_LINK_EMISSIVE);
 
 interface EdgeSeg { sx: number; sy: number; sz: number; ex: number; ey: number; ez: number; }
 
 // Imperative per-slot handle: the parent pushes this slot's current segment every frame,
-// bypassing React state so the tube/arrow land the same frame the ports do (see the timing
-// contract at the top of this file).
+// bypassing React state so the cascade-link overlay lands the same frame as the nodes it
+// connects (see the timing contract at the top of this file).
 interface EdgeHandle { update(seg: EdgeSeg): void }
 
 function sameSeg(a: EdgeSeg, b: EdgeSeg): boolean {
@@ -80,7 +75,7 @@ function sameSeg(a: EdgeSeg, b: EdgeSeg): boolean {
 /**
  * Builds an arrow descriptor: a cone whose apex sits at `apex`, pointing in `dir`
  * (normalized, toward the apex). ConeGeometry apex is at +Y; we rotate +Y onto `dir`.
- * center places the cone so its apex lands at `apex`. Mirrors scene-graph.tsx buildArrow.
+ * center places the cone so its apex lands at `apex`.
  */
 function buildArrow(apex: THREE.Vector3, dir: THREE.Vector3, height: number): {
   center: THREE.Vector3; q: THREE.Quaternion;
@@ -89,114 +84,6 @@ function buildArrow(apex: THREE.Vector3, dir: THREE.Vector3, height: number): {
   const center = apex.clone().addScaledVector(dir, -height / 2);
   return { center, q };
 }
-
-// One edge's core tube (radius 1.5) + destination arrowhead, mirroring SingleEdgeTube.
-// `row` is this edge's buffer EDGE-ROW index — stamped on the wide halo's
-// userData[BUFFER_EDGE_TAG] as the pickable edge target (mirrors the pre-branch
-// SingleEdgeTube halo, which doubled as the pick tube). `selected` paints that halo orange
-// (opacity 0.6) when Go marks this edge selected; otherwise the halo stays opacity 0 but
-// remains raycast-hittable. `dimmed` (the layout-link overlay is on) drops opacity to 0.25,
-// same as the pre-removal DoubleEdgeOverlay dim.
-//
-// The SEGMENT is NOT a prop: the parent pushes it every frame via the imperative handle
-// (update), which rebuilds the tube/halo TubeGeometry in place and re-transforms the arrow
-// mesh, all synchronously inside the parent's useFrame. That is what keeps the edge on the
-// same frame as its ports (timing contract, top of file). Only the low-frequency props
-// (dimmed/row/selected) flow through React.
-const EdgeTube = forwardRef<EdgeHandle, { dimmed: boolean; row: number; selected: boolean }>(
-  function EdgeTube({ dimmed, row, selected }, ref) {
-    const tubeTransparent = dimmed;
-    const tubeOpacity = dimmed ? 0.25 : 1;
-    const matKey = dimmed ? "dimmed" : "solid";
-
-    const tubeMeshRef = useRef<THREE.Mesh>(null);
-    const haloMeshRef = useRef<THREE.Mesh>(null);
-    const arrowMeshRef = useRef<THREE.Mesh>(null);
-    const lastSeg = useRef<EdgeSeg | null>(null);
-    // The two TubeGeometries this slot currently owns, so update() can dispose the previous
-    // pair before replacing them (R3F does not auto-dispose an imperatively-assigned geometry).
-    const geoRef = useRef<{ tube: THREE.TubeGeometry; halo: THREE.TubeGeometry } | null>(null);
-
-    useImperativeHandle(ref, () => ({
-      update(seg: EdgeSeg) {
-        // Skip the rebuild when this slot's endpoints did not move — same gate the old
-        // sameSegs check gave, now per-slot. Selection/dim are props, handled by React.
-        if (lastSeg.current && sameSeg(lastSeg.current, seg)) return;
-        lastSeg.current = seg;
-
-        const start = new THREE.Vector3(seg.sx, seg.sy, seg.sz);
-        const end = new THREE.Vector3(seg.ex, seg.ey, seg.ez);
-        const curve = new THREE.LineCurve3(start, end);
-        const tubeGeo = new THREE.TubeGeometry(curve, 1, 1.5, 6, false);
-        // Wide concentric halo on the same segment — the pre-branch pick radius (5).
-        const haloGeo = new THREE.TubeGeometry(curve, 1, EDGE_HALO_RADIUS, 6, false);
-        if (geoRef.current) { geoRef.current.tube.dispose(); geoRef.current.halo.dispose(); }
-        geoRef.current = { tube: tubeGeo, halo: haloGeo };
-        if (tubeMeshRef.current) tubeMeshRef.current.geometry = tubeGeo;
-        if (haloMeshRef.current) haloMeshRef.current.geometry = haloGeo;
-
-        const arrow = arrowMeshRef.current;
-        if (arrow) {
-          const dir = end.clone().sub(start);
-          if (dir.length() >= DIRECTION_ZERO_EPS) {
-            dir.normalize();
-            const { center, q } = buildArrow(end, dir, ARROWHEAD_LENGTH);
-            arrow.position.set(center.x, center.y, center.z);
-            arrow.quaternion.set(q.x, q.y, q.z, q.w);
-            arrow.visible = true;
-          } else {
-            arrow.visible = false;
-          }
-        }
-      },
-    }), []);
-
-    // Dispose this slot's geometries on unmount (the last pair update() assigned).
-    useEffect(() => () => {
-      if (geoRef.current) { geoRef.current.tube.dispose(); geoRef.current.halo.dispose(); }
-    }, []);
-
-    return (
-      <>
-        <mesh ref={tubeMeshRef} raycast={() => null} frustumCulled={false}>
-          <meshStandardMaterial
-            key={matKey}
-            color={SHADING_PARAM_TUBE_COLOR}
-            emissive={TUBE_EMISSIVE_COLOR}
-            emissiveIntensity={SHADING_PARAM_TUBE_EMISSIVE_INTENSITY}
-            transparent={tubeTransparent}
-            opacity={tubeOpacity}
-          />
-        </mesh>
-        {/* Selection halo doubles as the wide pick target (pre-branch SingleEdgeTube). Always
-            mounted so the raycaster can hit anywhere within the halo radius; painted only when
-            selected (opacity 0 otherwise — an opacity-0 mesh is still raycast-hittable). */}
-        <mesh ref={haloMeshRef} userData={{ [BUFFER_EDGE_TAG]: row }} frustumCulled={false}>
-          <meshBasicMaterial
-            color={EDGE_HALO_COLOR}
-            transparent
-            opacity={selected ? EDGE_HALO_SELECTED_OPACITY : 0}
-            side={THREE.DoubleSide}
-            depthWrite={false}
-          />
-        </mesh>
-        {/* Arrow transform is pushed imperatively by update(); starts hidden until the first
-            update populates its position/quaternion (avoids a one-frame arrow at the origin). */}
-        <mesh ref={arrowMeshRef} raycast={() => null} frustumCulled={false} visible={false}>
-          <coneGeometry args={[ARROWHEAD_RADIUS, ARROWHEAD_LENGTH, 16]} />
-          <meshStandardMaterial
-            key={matKey}
-            color={SHADING_PARAM_TUBE_COLOR}
-            emissive={TUBE_EMISSIVE_COLOR}
-            emissiveIntensity={SHADING_PARAM_TUBE_EMISSIVE_INTENSITY}
-            transparent={tubeTransparent}
-            opacity={tubeOpacity}
-          />
-        </mesh>
-      </>
-    );
-  },
-);
 
 // One cascade-link pair's cyan bidirectional overlay: thin tube (radius 1.0) + an
 // outward-pointing arrowhead at each end. Mirrors the pre-removal DoubleEdgeOverlay. This
@@ -282,33 +169,24 @@ const LayoutLinkOverlay = forwardRef<EdgeHandle, object>(
   },
 );
 
-export function EdgeTubes({ capacity, layoutLinkCapacity }: { capacity: number; layoutLinkCapacity: number }) {
-  // Number of edge slots to MOUNT (not their coordinates). Changes only when edges are
-  // added/removed — never during a drag — so its one-frame commit latency is invisible.
-  const [edgeCount, setEdgeCount] = useState(0);
-  // The Go-selected edge's buffer row (-1 = none). Tracked separately from geometry so a
-  // selection change (which moves no endpoint) toggles the halo without touching the tubes.
-  const [selRow, setSelRow] = useState(-1);
+// No `capacity` (edge-slot count) parameter any more: it sized the now-deleted per-edge tube
+// pool. `buffer-scene.tsx`'s own edge-stream-capacity growth bookkeeping is unrelated to
+// rendering (it still reads `getEdgeStreamAccessor().edgeCount` for segment/label decode
+// capacity) and needs no matching edit.
+export function EdgeTubes({ layoutLinkCapacity }: { layoutLinkCapacity: number }) {
   const [showCascade, setShowCascade] = useState(false);
   // Mounted layout-link slot count — low-frequency (a link is added/removed, or the
   // overlay toggles) — not per-frame.
   const [linkCount, setLinkCount] = useState(0);
 
-  // Imperative handles to every mounted slot — this is the per-frame coordinate channel that
-  // replaces the old setSegs/setLinkSegs state (see the timing contract at the top of file).
-  const edgeHandles = useRef<(EdgeHandle | null)[]>([]);
+  // Imperative handles to every mounted cascade-link slot — this is the per-frame coordinate
+  // channel that replaces the old setLinkSegs state (see the timing contract at top of file).
   const linkHandles = useRef<(EdgeHandle | null)[]>([]);
 
   useFrame(() => {
     const blocks = getViewBlocks();
     const decodedNode = getNodeFrame();
     if (!decodedNode || !blocks) return;
-    // Every edge's own dedicated stream frame is this edge data's ONLY source (memory/
-    // feedback_no_single_writer_bridge.md) — null means no frame has arrived yet.
-    const edgeStream = getEdgeStreamAccessor();
-    if (!edgeStream) return;
-    const bufEdgeCount = edgeStream.edgeCount;
-    const selectedAt = (row: number) => edgeStream.selected(row);
     // Layout-link overlay pairs: aggregated from the per-node dedicated streams' own
     // outbound layout-links (see getLayoutLinks' doc comment,
     // memory/feedback_no_single_writer_bridge.md).
@@ -318,24 +196,6 @@ export function EdgeTubes({ capacity, layoutLinkCapacity }: { capacity: number; 
     // frames are built from the same stable seed-order row tables in the same emit call, so they
     // share the same stable node-row order (see frame_tags.go's BufBlockTagNode comment).
     const { nodeView } = decodedNode;
-    // The Edge block carries its own SEGMENT (SX..EZ) directly — node surface to node
-    // surface (docs/channels-not-ports.md). No port row to resolve through a separate Node
-    // frame: this edge's own frame is the endpoint's sole source, so it can never disagree
-    // with a same-tick Node frame the way the old port-row indirection could tear.
-
-    const n = Math.min(bufEdgeCount, capacity);
-    if (n !== edgeCount) setEdgeCount(n);
-
-    let sel = -1;
-    for (let i = 0; i < n; i++) {
-      const [sx, sy, sz, ex, ey, ez] = edgeStream.segment(i);
-      if (sel < 0 && selectedAt(i)) sel = i;
-      // Push this edge's current endpoints straight to its slot — no state, so it lands this
-      // frame. A slot mounted THIS frame (n just grew) has no handle yet; it gets its first
-      // push next frame, an imperceptible one-frame delay on edge APPEARANCE, never on a move.
-      edgeHandles.current[i]?.update({ sx, sy, sz, ex, ey, ez });
-    }
-    if (sel !== selRow) setSelRow(sel);
 
     // Cascade-link overlay: Go-streamed pairs (LayoutLink block, sourced from each node's
     // OWN cascade-edges.json — see node_mover.go's cascadeEdges doc comment). This is its
@@ -346,8 +206,8 @@ export function EdgeTubes({ capacity, layoutLinkCapacity }: { capacity: number; 
     const cascade = readOverlayOverlaysVis(overlayView) > 0 && readOverlayCascadeLinks(overlayView) > 0;
     if (cascade !== showCascade) setShowCascade(cascade);
 
-    // Clamp with the layout-link's OWN capacity, never the edge `capacity`: cascade links
-    // are independent of edgeCount — clamping by edgeCap silently dropped links.
+    // Clamp with the layout-link's OWN capacity — cascade links are independent of the
+    // (now-deleted) per-edge tube pool.
     const linkN = Math.min(layoutLinkCount, layoutLinkCapacity);
     if (linkN !== linkCount) setLinkCount(linkN);
 
@@ -374,15 +234,6 @@ export function EdgeTubes({ capacity, layoutLinkCapacity }: { capacity: number; 
 
   return (
     <>
-      {Array.from({ length: edgeCount }, (_, i) => (
-        <EdgeTube
-          key={`edge-row-${i}`}
-          ref={(h) => { edgeHandles.current[i] = h; }}
-          dimmed={showCascade}
-          row={i}
-          selected={i === selRow}
-        />
-      ))}
       {showCascade && Array.from({ length: linkCount }, (_, i) => (
         <LayoutLinkOverlay
           key={`layout-link-row-${i}`}

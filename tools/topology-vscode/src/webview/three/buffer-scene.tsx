@@ -20,7 +20,6 @@
 import { useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import type * as THREE from "three";
-import { getEdgeStreamAccessor } from "./edge-stream-blocks";
 import { getNodeFrame, getLayoutLinks, getChainBeads } from "./node-stream-blocks";
 import { INTERIOR_SLOTS_PER_NODE } from "./buffer-decode";
 // BeadInstances (the single MOVING transit bead per wire) is gone: the animation is now the
@@ -45,7 +44,6 @@ export { BufferLabelProjector };
 
 // ── Sizing constants ──────────────────────────────────────────────────────────
 const INITIAL_NODE_CAP  = 32;
-const INITIAL_EDGE_CAP  = 32; // edge positions buffer: N edges × 2 endpoints × 3 floats
 const INITIAL_CHAINBEAD_CAP = 256; // node-owned placeholder chain beads (docs/beads-are-the-edge.md): count is len/spacing summed over every node's OUTGOING edges, so it is far larger than any other block's and independent of every other cap
 const INITIAL_LAYOUTLINK_CAP = 32; // layout cascade-link overlay pairs — from LocalPolars filtered to the cascade-link set, NOT the Edge block, so its count is independent of edgeCount and needs its OWN cap
 
@@ -58,7 +56,6 @@ export function BufferScene({ cameraRef }: {
   cameraRef?: React.MutableRefObject<THREE.PerspectiveCamera | null>;
 } = {}) {
   const [nodeCap,  setNodeCap]  = useState(INITIAL_NODE_CAP);
-  const [edgeCap,  setEdgeCap]  = useState(INITIAL_EDGE_CAP);
   const [layoutLinkCap, setLayoutLinkCap] = useState(INITIAL_LAYOUTLINK_CAP);
   const [chainBeadCap, setChainBeadCap] = useState(INITIAL_CHAINBEAD_CAP);
 
@@ -83,16 +80,11 @@ export function BufferScene({ cameraRef }: {
     const { count: chainBeadCount } = getChainBeads();
     grow.push({ count: chainBeadCount, cap: chainBeadCap, set: setChainBeadCap });
 
-    // Every edge's own dedicated stream frame reports its own geometry+beads
-    // (edge-stream-blocks.ts) — grow edgeCap off the edge-row count, and beadCap off the
-    // total bead count summed across every edge row.
-    const edgeStream = getEdgeStreamAccessor();
-    if (edgeStream) {
-      grow.push({ count: edgeStream.edgeCount, cap: edgeCap, set: setEdgeCap });
-      // No beadCap row any more: nothing renders the per-edge transit beads. The Bead block
-      // still travels on the edge stream until the wire itself goes (step 3's remaining
-      // half), but it drives no draw.
-    }
+    // No edgeCap/beadCap row any more: nothing renders per-edge geometry or the per-edge
+    // transit beads. Each edge's own dedicated stream frame is still read directly by row
+    // (edge-stream-blocks.ts, for segment/label decode and the .probe debug log) — that read
+    // is un-capacitied (a Map keyed by row), not an instanced-mesh pool sized ahead of time,
+    // so there is nothing here to grow.
 
     // Node/Interior + Label bytes are aggregated from every node row's own dedicated
     // stream frame (node-stream-blocks.ts) — grow nodeCap off that aggregate's count,
@@ -116,7 +108,7 @@ export function BufferScene({ cameraRef }: {
       <SelectionHighlight />
       <HoverHighlight />
       <SphereRings />
-      <EdgeTubes     capacity={edgeCap} layoutLinkCapacity={layoutLinkCap} />
+      <EdgeTubes     layoutLinkCapacity={layoutLinkCap} />
     </>
   );
 }
