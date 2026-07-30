@@ -335,6 +335,12 @@ func (lq *layoutQuantizer) neighborSetCRequantize(md *MoveDispatch, selfID, from
 // local-polar cascade-links against its (unmoved) neighbors.
 func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeMover, newPos vec3) {
 	nodeID := nm.id
+	// PROBE (temporary): does this function run at all on a live drag? The drag.jump
+	// breadcrumb further down never appeared, and every explanation for that assumed
+	// this body executes. Log entry unconditionally, before anything can return early.
+	if nm.tr != nil {
+		nm.tr.Breadcrumb("probe.enterCommit", nodeID, "", fmt.Sprintf("quantized=%v", lq.quantizedLayout))
+	}
 	edges := lq.heldEdges(md)
 	// reach[nodeID] only ever needs nodeID's own fresh polar plus its DIRECT
 	// neighbors' polar (reachRFromPolar only accumulates reach for an edge's
