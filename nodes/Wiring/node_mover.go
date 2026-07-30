@@ -409,11 +409,21 @@ func (m *nodeMover) handle(msg moveMsg) {
 		// not being entered — this records which of the two it is rather than guessing a
 		// third time.
 		if m.tr != nil {
-			bound := "nil"
+			// Trace.Breadcrumb alone writes to Trace's own sink, which is NOT what
+			// fills .probe — those logs are decoded from the buffer path, so a probe
+			// must ALSO ride a stream RowEvent to be readable. Three rounds of
+			// debugging were lost to probes that only did the first half and whose
+			// silence looked like "the code never ran".
+			bound := 0.0
 			if m.commitLocal != nil {
-				bound = "bound"
+				bound = 1
 			}
-			m.tr.Breadcrumb("probe.commitLocal", m.id, "", bound)
+			m.tr.Breadcrumb("probe.commitLocal", m.id, "", fmt.Sprintf("bound=%v", bound == 1))
+			m.writeStreamFrame([]wire.RowEvent{{
+				Kind: T.KindBreadcrumb, Label: T.BreadcrumbProbeCommitLocal, Debug: 1,
+				NodeRow: m.nodeRow, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
+				X: bound,
+			}})
 		}
 		if m.commitLocal != nil {
 			m.commitLocal(m.id, newPos)

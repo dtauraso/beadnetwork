@@ -339,7 +339,16 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeMover, 
 	// breadcrumb further down never appeared, and every explanation for that assumed
 	// this body executes. Log entry unconditionally, before anything can return early.
 	if nm.tr != nil {
+		q := 0.0
+		if lq.quantizedLayout {
+			q = 1
+		}
 		nm.tr.Breadcrumb("probe.enterCommit", nodeID, "", fmt.Sprintf("quantized=%v", lq.quantizedLayout))
+		nm.writeStreamFrame([]wire.RowEvent{{
+			Kind: T.KindBreadcrumb, Label: T.BreadcrumbProbeEnterCommit, Debug: 1,
+			NodeRow: nm.nodeRow, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
+			X: q,
+		}})
 	}
 	edges := lq.heldEdges(md)
 	// reach[nodeID] only ever needs nodeID's own fresh polar plus its DIRECT
@@ -413,13 +422,17 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeMover, 
 	// TEMPORARY: delete once the mismatch is understood. It fires once per committed
 	// drag step, which is per pointer-move, so it is not free.
 	if nm.tr != nil {
+		// X = the world distance actually moved, Y = the bead distance it should
+		// equal, Z = the radial index delta. The RowEvent's X/Y/Z are the only
+		// payload that survives to .probe — Breadcrumb's string value does not.
 		prev := nodeWorldPos(nm.geom)
 		jump := committedPos.Sub(prev).Length()
-		nm.tr.Breadcrumb("drag.jump", nodeID, "", fmt.Sprintf(
-			"jump=%.3f bead=%.3f stepR=%.3f dIR=%d dITheta=%d dIPhi=%d r=%.1f",
-			jump, wire.BeadStepR, stepR,
-			off.iR-nm.quantOffset.iR, off.iTheta-nm.quantOffset.iTheta, off.iPhi-nm.quantOffset.iPhi,
-			committedPolar.R))
+		nm.tr.Breadcrumb("drag.jump", nodeID, "", fmt.Sprintf("jump=%.3f bead=%.3f", jump, wire.BeadStepR))
+		nm.writeStreamFrame([]wire.RowEvent{{
+			Kind: T.KindBreadcrumb, Label: T.BreadcrumbDragJump, Debug: 1,
+			NodeRow: nm.nodeRow, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
+			X: jump, Y: wire.BeadStepR, Z: float64(off.iR - nm.quantOffset.iR),
+		}})
 	}
 
 	nm.applyCenter(committedPos, reach[nodeID])
