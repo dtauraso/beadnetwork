@@ -28,7 +28,7 @@ func TestHeadlessEdgeFdDedicatedStream(t *testing.T) {
 		t.Fatal("topology/nodes/*/edges has 0 edges — test cannot assert per-edge frames without any")
 	}
 
-	edgeFrames := readLastFrames(t, ds.edgeReads, "edge", 120)
+	edgeFrames := readLastFrames(t, ds.edgeReads, "edge")
 
 	for row, frame := range edgeFrames {
 		// Combined frame layout (Buffer.BuildEdgeStreamFrame): [tick:u32] + one

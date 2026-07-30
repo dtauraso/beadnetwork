@@ -28,7 +28,7 @@ func TestHeadlessViewFdDedicatedStream(t *testing.T) {
 	binPath := buildHeadlessBinary(t, repoRoot, "wirefold-headless-view-fd-test")
 	ds := spawnDedicatedAllStreams(t, binPath, repoRoot)
 
-	viewFrames := readLastFrames(t, []*os.File{ds.viewRead}, "view", 200)
+	viewFrames := readLastFrames(t, []*os.File{ds.viewRead}, "view")
 	viewFrame := viewFrames[0]
 
 	fixedLen := B.BufViewFrameHeaderSize + B.BufCameraStride + B.BufOverlayStride + B.BufSceneStride

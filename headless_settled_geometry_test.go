@@ -1,4 +1,4 @@
-// headless_first_frame_geometry_test.go — drives the REAL compiled binary headlessly
+// headless_settled_geometry_test.go — drives the REAL compiled binary headlessly
 // against the real topology/ dir and asserts that the SETTLED per-owner NODE and EDGE
 // stream frames already have REAL geometry in every row: every edge's segment is
 // non-degenerate (start != end, not the 0,0,0->0,0,0 placeholder a bare address-only seed
@@ -44,11 +44,11 @@ func portWorldPos(nodeFrame []byte, portOff, portIndex int) (x, y, z float32, ok
 		readF32(nodeFrame, base+B.BufPortColPZ), true
 }
 
-// TestHeadlessFirstFrameHasRealGeometry asserts that the settled per-owner node/edge
+// TestHeadlessSettledFramesHaveRealGeometry asserts that the settled per-owner node/edge
 // stream frames already have non-degenerate edge segments and populated node port lists —
 // proving the row-seed carries the diagram's REAL state, not an empty/placeholder row
 // waiting on a later per-node emit.
-func TestHeadlessFirstFrameHasRealGeometry(t *testing.T) {
+func TestHeadlessSettledFramesHaveRealGeometry(t *testing.T) {
 	repoRoot, err := os.Getwd()
 	if err != nil {
 		t.Fatalf("Getwd: %v", err)
@@ -59,8 +59,8 @@ func TestHeadlessFirstFrameHasRealGeometry(t *testing.T) {
 		t.Fatal("topology/ is expected to have edges; test cannot assert non-degeneracy without any")
 	}
 
-	nodeFrames := readLastFrames(t, ds.nodeReads, "node", 400)
-	edgeFrames := readLastFrames(t, ds.edgeReads, "edge", 400)
+	nodeFrames := readLastFrames(t, ds.nodeReads, "node")
+	edgeFrames := readLastFrames(t, ds.edgeReads, "edge")
 
 	if len(nodeFrames) != len(ds.nodeIDs) {
 		t.Fatalf("nodeFrames count %d != topology dir count %d", len(nodeFrames), len(ds.nodeIDs))

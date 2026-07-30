@@ -28,8 +28,8 @@ func TestHeadlessNodeFdDedicatedStream(t *testing.T) {
 	binPath := buildHeadlessBinary(t, repoRoot, "wirefold-headless-node-fd-test")
 	ds := spawnDedicatedAllStreams(t, binPath, repoRoot)
 
-	nodeFrames := readLastFrames(t, ds.nodeReads, "node", 120)
-	interiorFrames := readLastFrames(t, ds.interiorReads, "interior", 120)
+	nodeFrames := readLastFrames(t, ds.nodeReads, "node")
+	interiorFrames := readLastFrames(t, ds.interiorReads, "interior")
 
 	wantLabels := wantNodeRowOrder(t, repoRoot)
 	sort.Strings(wantLabels) // wantNodeRowOrder already returns sorted spec order

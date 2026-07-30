@@ -1,8 +1,6 @@
-# Headless test latency — why the Go leg costs ~68s, and the fix
+# Headless test latency — why the Go leg cost ~68s, and the fix
 
-Five headless tests account for ~68 of the ~80 seconds `scripts/stop-checks.sh` spends on
-the Go leg. Every Go commit pays it, and so does every `git push` (the pre-push hook runs
-`scripts/verify.sh`). Measured with `go test -count=1 -v .`:
+**Status: fixed.** Original cost, measured with `go test -count=1 -v .`:
 
 ```
 TestHeadlessViewFdDedicatedStream        20.26s
@@ -13,6 +11,23 @@ TestHeadlessEdgeFdDedicatedStream         2.45s
                                          ------
                                         ~68.6s   (package total 68.9s)
 ```
+
+After the fix (same command, same five tests, one renamed — see "Step 0" and "Step 4"
+below):
+
+```
+TestHeadlessNodeFdDedicatedStream           4.79s
+TestHeadlessSettledFramesHaveRealGeometry   5.02s
+TestHeadlessNodeRowOrderMatchesSpecOrder    2.50s
+TestHeadlessEdgeFdDedicatedStream           2.76s
+TestHeadlessViewFdDedicatedStream           0.51s
+                                            -----
+                                           ~15.6s   (package total 15.7-15.8s across 3 runs)
+```
+
+~69s → ~15.7s. That matches this doc's original ~15s prediction, but the mechanism that
+got there is NOT the one predicted — see "The idle-timeout premise was wrong for three of
+the five streams" below, which the original plan did not anticipate.
 
 Every other package in the repo together is under 25s, and most are under 2s.
 
@@ -84,31 +99,108 @@ almost immediately.
 This also lets the 20s `runCtx` deadline go back to being what it should be: a backstop for
 a genuinely hung child, never the thing that ends a passing test.
 
-## Steps
+## The idle-timeout premise was wrong for three of the five streams — what actually shipped
 
-Step 0 gates the rest: decide per-test whether it should exist before making it fast (see
+The plan above (per-frame idle timeout: reset the read deadline after every frame, stop on
+the first timeout) was implemented and measured exactly as written. Result: VIEW dropped to
+~0.7s, but NODE, EDGE, and NODE-ROW-ORDER (which reads NODE) all landed back at the 20.2xs
+cap — no better than the `maxFrames` version, and EDGE regressed from 2.45s to 20.26s.
+
+The cause: NODE/EDGE/INTERIOR do not go idle, ever, in a headless run. Probing the real
+binary (reading raw frames and diffing them) showed `nodeMover.run` calls
+`writeStreamFrame` **every clock cycle unconditionally** — not on change — at roughly a
+17ms cadence, forever, and `edgeMover` does the same plus every edge frame carries its
+wire's live in-flight bead positions, which change every single frame for as long as a bead
+is on the wire. This repo's topology has a self-feeding ring (`memory/feedback_edge_seed_
+required_for_rings.md`), so in a headless run with no pointer input that is *forever*. A
+per-frame idle timeout on a stream that never goes idle degenerates back to exactly the
+problem being fixed: wait for the child to die at the 20s `runCtx` deadline.
+
+What the probe also showed: NODE payload (frame bytes minus the tick prefix) is
+byte-**identical** from the second frame onward — the structural state (ports, geometry,
+ids) these tests actually assert on settles almost immediately; only the tick counter and,
+on EDGE, the moving bead position keep changing after that, and none of these tests read
+bead position.
+
+**The shipped fix is a wall-clock BUDGET per row, not idle-since-last-frame**, and that
+budget only STARTS after a row's first frame arrives. `readLastFrames` reads each row's
+first frame with NO deadline at all, then sets one `SetReadDeadline` at `now + settleWindow`
+(250ms, not renewed per read) and keeps whatever frame arrived last when that expires.
+
+The "no deadline on the first frame" part was itself a second correction, found the same
+way as the first: measured, not assumed. A version that put the 250ms deadline around the
+first frame too passed standalone but failed under `scripts/stop-checks.sh`, which runs
+every package's `go build`+`go test` concurrently — under that load, the time from the
+child process's `Start()` to its first write occasionally exceeded 250ms for reasons that
+have nothing to do with the stream (scheduling/compiler contention), and the "fatal if not
+even one frame arrived" guard (correctly) fired. Un-deadlining the first read fixes that:
+it relies on the same backstop the old `maxFrames` version always relied on for a genuinely
+silent stream — the caller's 20s `runCtx` — and only starts the fixed 250ms budget once a
+row has proven it is actually producing.
+
+This still uses the same `SetReadDeadline`/`os.ErrDeadlineExceeded` mechanism proven in
+Step 1, still fatals if the first frame never arrives (now via the undeadlined read plus
+`runCtx`, rather than a budgeted read), and still bounds every row that DID start to a
+fixed, small post-startup cost regardless of whether that stream's production goroutine
+ever actually falls silent. VIEW (which may go genuinely quiet after its first frame) and
+NODE/EDGE/INTERIOR (which never do) both cost about the same now: startup time plus one
+`settleWindow` per row, not `maxFrames ÷ rate` and not "however long until the child is
+killed."
+
+This is the "the idle interval is a knob... if it proves flaky, find a definite
+end-of-settling signal" case named in this doc's own Risk section below — the failure
+showed up as a flake under concurrent-package load (`stop-checks.sh`) rather than in
+isolation, and was fixed before landing, not after; `settleWindow` remains a knob worth
+staying suspicious of if it flakes again.
+
+## Steps (done — this section is now a record, not a plan)
+
+Step 0 gated the rest: decide per-test whether it should exist before making it fast (see
 "Assumption: a test may be removed rather than sped up" below).
 
-0. **Triage the five.** Drop `TestHeadlessNodeRowOrderIsDeterministic`'s runs 2-5, keeping
-   its spec-order assertion. Re-measure before touching anything else — that alone is
-   expected to be the single largest win, and it is a deletion, not an optimisation.
-1. **Verify `SetReadDeadline` works on these pipes** before building on it. It is documented
-   for pollable descriptors and `os.Pipe` qualifies, but this is the load-bearing assumption
-   of the whole change — a five-line scratch program either shows a timeout error on a quiet
-   pipe or it does not. If it does not, fall back to a reader goroutine with a
-   `select` on `time.After`, which costs one goroutine per row and no API assumption.
-2. **Change `readLastFrames`** to take an idle timeout instead of `maxFrames`, keeping the
-   "fatal if not even one frame arrived" behaviour — that assertion is load-bearing (it is
-   what catches a stream that streams nothing, per the `task/edges-not-visible` work).
-3. **Update the five call sites**, dropping the 120/200/400 counts.
-4. **Rename `TestHeadlessFirstFrameHasRealGeometry`** to match what it asserts (settled,
-   not first) — the stale name came from the frame count being removed in step 3.
-5. **Re-measure.** Record the new per-test times in this file. Expected: the Go leg drops
-   from ~80s to roughly 15s, but that is a prediction, not a result — replace it with what
-   is actually measured.
-6. **Leave `runCtx` at 20s.** It should now never be reached; if a test still takes 20s
-   after this, that is a real hang and the deadline has become a genuine signal instead of
-   routine flow control.
+0. **Triage the five.** Dropped `TestHeadlessNodeRowOrderIsDeterministic`'s runs 2-5,
+   keeping its spec-order assertion (renamed to `TestHeadlessNodeRowOrderMatchesSpecOrder`
+   since it no longer tests determinism across runs). Measured before touching anything
+   else: 17.42s → 3.86s standalone.
+1. **Verified `SetReadDeadline` works on these pipes** with a throwaway scratch program
+   (`os.Pipe`, `SetReadDeadline(+250ms)`, blocking `Read` on the quiet end): it returned
+   after ~251ms with `errors.Is(err, os.ErrDeadlineExceeded) == true` (note: the raw error
+   value is `"i/o timeout"`, not `== os.ErrDeadlineExceeded` by identity — `errors.Is` is
+   required). The documented API path was used; the goroutine+`select` fallback was not
+   needed.
+2. **Changed `readLastFrames`** — but not to a per-frame idle timeout as originally
+   written, and not in one pass. See "The idle-timeout premise was wrong for three of the
+   five streams" above for the first correction (per-frame idle-reset → per-row
+   `settleWindow` budget: NODE/EDGE never go idle, so idle-since-last-frame degenerated
+   back to waiting for the child to die). A second correction followed once run under
+   `scripts/stop-checks.sh`'s concurrent-package load: budgeting the FIRST frame too made
+   the test flake there (child startup, not stream behaviour, occasionally ate the whole
+   250ms). Shipped: the first frame per row is read with no deadline at all (same backstop
+   the old `maxFrames` version always had — the caller's 20s `runCtx`); `settleWindow` only
+   starts once a row has proven it is producing.
+3. **Updated the five call sites**, dropping the 120/200/400 counts.
+4. **Renamed `TestHeadlessFirstFrameHasRealGeometry`** → `TestHeadlessSettledFramesHaveRealGeometry`
+   (file: `headless_first_frame_geometry_test.go` → `headless_settled_geometry_test.go`) to
+   match what it asserts (settled, not first).
+5. **Re-measured**, standalone runs, consistent within run-to-run system noise:
+   ```
+   TestHeadlessNodeFdDedicatedStream           4.8-5.0s
+   TestHeadlessSettledFramesHaveRealGeometry   5.0-5.2s
+   TestHeadlessNodeRowOrderMatchesSpecOrder    2.5-2.7s
+   TestHeadlessEdgeFdDedicatedStream           2.7-2.9s
+   TestHeadlessViewFdDedicatedStream           0.5-0.7s
+                                               ------
+   package total                              ~15.7-16.6s
+   ```
+   Also verified clean (not just green) under the actual `scripts/stop-checks.sh` full run,
+   where every package's tests execute concurrently — this is what caught the second
+   correction above; a standalone `go test -count=1 -v .` pass alone did not.
+   The ~80s→~15s prediction held, but only after correcting the mechanism twice (see
+   above) —
+   the first honest measurement of the plan AS WRITTEN was a near-total miss (only VIEW
+   improved).
+6. **Left `runCtx` at 20s.** No test in this package reaches it anymore; if one does in the
+   future, that is a real hang, not routine flow control.
 
 ## Assumption: a test may be removed rather than sped up
 
