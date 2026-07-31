@@ -162,13 +162,17 @@ func (lh *LayoutHolder) LocalPolarSteps(to string) (t, p, r float64) {
 // longer exists, bead_lattice.go), so a loaded separation has nothing to snap
 // to but itself.
 //
-// NORMALIZES a stored StepR that disagrees with LocalStepR, rather than trusting
-// it. That disagreement is the bug this whole model closed: an on-disk entry
-// (topology/nodes/<id>/local-polars.json, and the legacy copy inside meta.json)
-// carried its own "stepR", PLACEMENT trusted it verbatim via EffectiveSteps, and
-// the edge-length COUNT measured against the lattice instead — so a stale stored
-// constant silently overrode the lattice and the beads ran into the node.
-// StepR unset (0) already falls back to LocalStepR and needs nothing.
+// NORMALIZES a stored StepR (and, the same way, StepTheta/StepPhi) that disagrees
+// with the current default, rather than trusting it. That disagreement is the bug
+// this whole model closed: an on-disk entry (topology/nodes/<id>/local-polars.json,
+// and the legacy copy inside meta.json) carried its own "stepR"/"stepTheta"/
+// "stepPhi", PLACEMENT trusted it verbatim via EffectiveSteps, and the edge-length
+// COUNT (for StepR) or the chain's aim bearing (for StepTheta/StepPhi) measured
+// against the lattice instead — so a stale stored constant silently overrode the
+// lattice, beads ran into the node, and a stale angular step could only aim a
+// bead chain in its own coarse increments, snapping between sides of the true
+// line instead of converging on it. Any of the three unset (0) already falls back
+// to the current default and needs nothing.
 //
 // It PANICKED here first, and that was wrong in a way worth recording. The
 // process is respawned on exit by the editor's runner, so a panic at load is not
@@ -192,12 +196,18 @@ func (lh *LayoutHolder) LocalPolarSteps(to string) (t, p, r float64) {
 // self-consistent.
 func (lh *LayoutHolder) LoadLocalPolars(lps []LocalPolar) {
 	for i := range lps {
-		stale := lps[i].StepR
-		if stale == 0 || math.Abs(stale-LocalStepR) <= 1e-9 {
-			continue
+		if stale := lps[i].StepTheta; stale != 0 && math.Abs(stale-localStepTheta) > 1e-9 {
+			lps[i].QuantITheta = int(math.Round(float64(lps[i].QuantITheta) * stale / localStepTheta))
+			lps[i].StepTheta = localStepTheta
 		}
-		lps[i].QuantIR = int(math.Round(float64(lps[i].QuantIR) * stale / LocalStepR))
-		lps[i].StepR = LocalStepR
+		if stale := lps[i].StepPhi; stale != 0 && math.Abs(stale-localStepPhi) > 1e-9 {
+			lps[i].QuantIPhi = int(math.Round(float64(lps[i].QuantIPhi) * stale / localStepPhi))
+			lps[i].StepPhi = localStepPhi
+		}
+		if stale := lps[i].StepR; stale != 0 && math.Abs(stale-LocalStepR) > 1e-9 {
+			lps[i].QuantIR = int(math.Round(float64(lps[i].QuantIR) * stale / LocalStepR))
+			lps[i].StepR = LocalStepR
+		}
 	}
 	lh.localPolars = lps
 }
