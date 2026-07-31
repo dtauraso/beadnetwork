@@ -127,7 +127,7 @@ const (
 	KindBreadcrumb = "breadcrumb"
 )
 
-// BreadcrumbLabel* enumerate the 10 breadcrumb call sites (Buffer/layout.go's
+// BreadcrumbLabel* enumerate the breadcrumb call sites (Buffer/layout.go's
 // bufLayoutEvent.Label column, Kind==KindBreadcrumb rows only). Order is the wire id —
 // append only; do not reorder or delete a label without a migration. BreadcrumbLabels
 // is the string lookup gen-node-defs mirrors into TS for the .probe decode/log.
@@ -159,6 +159,12 @@ const (
 	// nodeMover.handle's moveMsgKindNeighborSetC case — records that a neighbor-setC
 	// (edge re-quantize) message arrived (sender id).
 	BreadcrumbNeighborSetCRecv
+	// BreadcrumbBeadCellNone: fired in quantized_move.go's commitNodeMoveLocal when the
+	// bead-cell solver (bead_cell_solve.go) finds NO admissible candidate for the
+	// dragged node's current neighbour configuration — the node holds its position
+	// instead of moving, and this breadcrumb is what makes that observable rather than
+	// silent (see MODEL.md's node-positions section and the task that added this solver).
+	BreadcrumbBeadCellNone
 )
 
 // BreadcrumbLabels is the single source of truth for the BreadcrumbLabel* enum's
@@ -178,6 +184,7 @@ var BreadcrumbLabels = []string{
 	"chain-aim",
 	"neighbor-center-recv",
 	"neighbor-setc-recv",
+	"bead-cell-none",
 }
 
 // TraceEventKinds is the single source of truth for the closed kind vocabulary.

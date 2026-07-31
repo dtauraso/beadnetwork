@@ -10,27 +10,43 @@ import (
 	"time"
 )
 
-// quantizedDragTarget returns the position a drag to target actually COMMITS to under
-// the scene lattice — walkBeadPath from the node's CURRENT (pre-drag) center toward
-// target, in whole bead-length strides (quantized_move.go's "one bead of arc in every
-// direction" model, docs/bead-lattice.md) — the raw target unchanged when quantizedLayout
-// is off. Test callers that assert convergence (pollDragConverged) must poll for THIS
-// point, not the raw target, now that a committed drag is snapped rather than continuous
-// (docs/which-lattice-a-node-lives-on.md). MUST be called BEFORE the drag commits (reads
-// the node's pre-drag center as the walk's starting point) — this replaced an earlier
-// version that derived the target from a fixed-1-degree-angular-tick quantized triple
-// (measureScalar/offsetScenePolar), independent of the node's current position; the walk
-// model is NOT independent of it, so this function is no longer stable to call after the
-// drag has already moved the node.
+// quantizedDragTarget returns the position a drag to target actually COMMITS to under the
+// scene lattice — the bead-CELL snap (bead_cell_solve.go, MODEL.md's "a node lives in N
+// lattices, one per neighbour"): the admissible candidate nearest target, enumerated from
+// the node's CURRENT per-neighbour live K (±1 on each) — the raw target unchanged when
+// quantizedLayout is off. Test callers that assert convergence (pollDragConverged) must
+// poll for THIS point, not the raw target, now that a committed drag is snapped rather
+// than continuous (docs/which-lattice-a-node-lives-on.md). MUST be called BEFORE the drag
+// commits (reads the node's pre-drag center and its neighbours' pre-drag centers as the
+// solve's starting configuration) — mirrors commitNodeMoveLocal's own
+// dragNeighborConstraints + solveBeadCells call exactly, so this is not an independent
+// oracle of the FORMULA, only of the CALL, matching the shape quantizedDragTarget has
+// always had (walkBeadPath's replacement).
 func quantizedDragTarget(md *MoveDispatch, nodeID string, target vec3) vec3 {
 	if !md.lq.quantizedLayout {
+		return target
+	}
+	nm, ok := md.mr.nodeMovers[nodeID]
+	if !ok {
 		return target
 	}
 	prev, ok := md.centerOfNode(nodeID)
 	if !ok {
 		return target
 	}
-	return walkBeadPath(prev, target)
+	neighbors := dragNeighborConstraints(md, nm, prev)
+	cands := solveBeadCells(neighbors, target)
+	if len(cands) == 0 {
+		return prev
+	}
+	best := cands[0]
+	bestD := best.Sub(target).Length()
+	for _, c := range cands[1:] {
+		if d := c.Sub(target).Length(); d < bestD {
+			best, bestD = c, d
+		}
+	}
+	return best
 }
 
 // pollDragConverged waits until the named node's committed center matches the point a
