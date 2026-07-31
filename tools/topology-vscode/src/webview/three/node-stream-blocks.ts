@@ -34,7 +34,7 @@ import {
   NODE_COL_LABEL_OFF, NODE_COL_LABEL_LEN,
   LAYOUT_LINK_STRIDE, LAYOUT_LINK_COL_SRC_NODE_ROW, LAYOUT_LINK_COL_DST_NODE_ROW,
   readNodeCX, readNodeCY, readNodeCZ,
-  readChainBeadOX, readChainBeadOY, readChainBeadOZ, readChainBeadLit, readChainBeadLitValue,
+  readChainBeadOX, readChainBeadOY, readChainBeadOZ, readChainBeadLit, readChainBeadLitValue, readChainBeadRadius,
 } from "../../schema/buffer-layout";
 
 const STR_ENCODER = new TextEncoder();
@@ -241,6 +241,11 @@ export interface ChainBeadsAgg {
    *  is 1. The lit bead wears bead 0's or bead 1's own fill, so the value travels with the
    *  flag — the animation is one fill change, and the fill depends on which value arrived. */
   litValue: Int32Array;
+  /** Per-bead SPHERE radius, parallel to positions. Beads on different edges are sized
+   *  differently on purpose — each edge picks the one size that makes every bead on its
+   *  own straight chain touch its neighbour exactly (nodes/Wiring/chain_beads.go) — so
+   *  this can no longer be assumed to be the shared SHADING_PARAM_BEAD_RADIUS constant. */
+  radius: Float32Array;
 }
 
 let lastChainVersion = -1;
@@ -274,6 +279,7 @@ export function getChainBeads(): ChainBeadsAgg {
   const positions = new Float32Array(total * 3);
   const lit = new Uint8Array(total);
   const litValue = new Int32Array(total);
+  const radius = new Float32Array(total);
   let w = 0;
   let b = 0;
   for (const decoded of decodedByRow) {
@@ -287,10 +293,11 @@ export function getChainBeads(): ChainBeadsAgg {
       positions[w++] = cy + readChainBeadOY(decoded.chainBeadView, i);
       positions[w++] = cz + readChainBeadOZ(decoded.chainBeadView, i);
       litValue[b] = readChainBeadLitValue(decoded.chainBeadView, i);
+      radius[b] = readChainBeadRadius(decoded.chainBeadView, i);
       lit[b++] = readChainBeadLit(decoded.chainBeadView, i);
     }
   }
   lastChainVersion = nv;
-  lastChainAgg = { positions, count: total, lit, litValue };
+  lastChainAgg = { positions, count: total, lit, litValue, radius };
   return lastChainAgg;
 }

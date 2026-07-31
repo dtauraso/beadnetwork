@@ -60,7 +60,7 @@ func TestChainBeadsStayOutsideBothNodes(t *testing.T) {
 		cascadeKinds:   map[string]string{"b": "Time"}, // radius 9
 		layoutHolderFn: singleNeighborHolder("b", gap),
 	}
-	ox, oy, oz, _, _ := m.chainBeads()
+	ox, oy, oz, _, _, _ := m.chainBeads()
 	if len(ox) == 0 {
 		t.Fatal("no beads emitted for a 400-unit gap")
 	}
@@ -89,7 +89,7 @@ func TestChainBeadsTouch(t *testing.T) {
 		// on TestChainBeadsStayOutsideBothNodes's gap.
 		layoutHolderFn: singleNeighborHolder("b", 150*wire.DefaultLocalStepR),
 	}
-	ox, oy, oz, _, _ := m.chainBeads()
+	ox, oy, oz, _, _, _ := m.chainBeads()
 	if len(ox) < 3 {
 		t.Fatalf("want several beads to compare spacing, got %d", len(ox))
 	}
@@ -117,7 +117,7 @@ func TestChainBeadsAlwaysAtLeastOneBead(t *testing.T) {
 		// nodeTorusSteps (2 each) collapses well below the minimum.
 		layoutHolderFn: singleNeighborHolder("b", 3*wire.DefaultLocalStepR),
 	}
-	if ox, _, _, _, _ := m.chainBeads(); len(ox) != 1 {
+	if ox, _, _, _, _, _ := m.chainBeads(); len(ox) != 1 {
 		t.Errorf("count = %d, want 1 — edgeStepCount clamps a collapsed gap to the minimum, never 0", len(ox))
 	}
 }
@@ -130,7 +130,7 @@ func TestChainBeadsUnknownPartnerContributesNothing(t *testing.T) {
 		id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}}, outTargets: []string{"b"},
 		layoutHolderFn: func() *wire.LayoutHolder { return lh },
 	}
-	if ox, _, _, _, _ := m.chainBeads(); len(ox) != 0 {
+	if ox, _, _, _, _, _ := m.chainBeads(); len(ox) != 0 {
 		t.Errorf("count = %d, want 0 for an unknown partner", len(ox))
 	}
 }
@@ -140,7 +140,7 @@ func TestChainBeadsUnknownPartnerContributesNothing(t *testing.T) {
 // unknown partner.
 func TestChainBeadsNoLayoutHolderContributesNothing(t *testing.T) {
 	m := &nodeMover{id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}}, outTargets: []string{"b"}}
-	if ox, _, _, _, _ := m.chainBeads(); len(ox) != 0 {
+	if ox, _, _, _, _, _ := m.chainBeads(); len(ox) != 0 {
 		t.Errorf("count = %d, want 0 with no layoutHolderFn", len(ox))
 	}
 }
@@ -156,7 +156,7 @@ func TestChainBeadsCountIsSpanProportional(t *testing.T) {
 			outTargets: []string{"b"}, cascadeKinds: map[string]string{"b": "Input"},
 			layoutHolderFn: singleNeighborHolder("b", centerGap),
 		}
-		ox, _, _, _, _ := m.chainBeads()
+		ox, _, _, _, _, _ := m.chainBeads()
 		return len(ox)
 	}
 	// base and span must each be an exact multiple of wire.DefaultLocalStepR
@@ -344,7 +344,7 @@ func TestChainBeadsExactDoubleTangency(t *testing.T) {
 				cascadeKinds:   map[string]string{"b": dstKind},
 				layoutHolderFn: singleNeighborHolder("b", gap),
 			}
-			ox, oy, oz, _, _ := m.chainBeads()
+			ox, oy, oz, _, _, _ := m.chainBeads()
 			if len(ox) == 0 {
 				t.Fatalf("%s->%s gap %.0f: no beads emitted", srcKind, dstKind, gap)
 			}
@@ -415,10 +415,19 @@ func centerGapNotOnLattice(srcKind, dstKind string, quantIRForCount int, actualG
 	}
 }
 
+// beadOuterRFromSphereR converts a returned bead SPHERE radius back to its OUTER radius
+// (the ring included) — the inverse of chainBeads' own sphereR = beadOuterR /
+// (1 + wire.BeadRingTubeRatio).
+func beadOuterRFromSphereR(sphereR float32) float64 {
+	return float64(sphereR) * (1 + wire.BeadRingTubeRatio)
+}
+
 // chainNearFarEdges reads bead 0's near edge and the last bead's far edge (both as a
 // distance from the origin — this file's fixtures always leave selfCenter at the
-// origin) from chainBeads' returned offsets.
-func chainNearFarEdges(t *testing.T, ox, oy, oz []float32) (near, far float64) {
+// origin) from chainBeads' returned offsets. Each edge's beads are now sized per edge
+// (radius), so the outer radius used to convert a centre distance into a surface edge is
+// read from the RETURNED radius column, not the fixed wire.BeadTorusOuterR constant.
+func chainNearFarEdges(t *testing.T, ox, oy, oz, radius []float32) (near, far float64) {
 	t.Helper()
 	if len(ox) == 0 {
 		t.Fatal("no beads emitted")
@@ -426,7 +435,7 @@ func chainNearFarEdges(t *testing.T, ox, oy, oz []float32) (near, far float64) {
 	d0 := math.Sqrt(float64(ox[0])*float64(ox[0]) + float64(oy[0])*float64(oy[0]) + float64(oz[0])*float64(oz[0]))
 	last := len(ox) - 1
 	dLast := math.Sqrt(float64(ox[last])*float64(ox[last]) + float64(oy[last])*float64(oy[last]) + float64(oz[last])*float64(oz[last]))
-	return d0 - wire.BeadTorusOuterR, dLast + wire.BeadTorusOuterR
+	return d0 - beadOuterRFromSphereR(radius[0]), dLast + beadOuterRFromSphereR(radius[last])
 }
 
 // THE FIX's regression test: for a range of separations that are deliberately NOT whole
@@ -444,11 +453,11 @@ func TestChainBeadsTangentToLiveGapNotOnLattice(t *testing.T) {
 	for _, frac := range fractions {
 		actualGap := (float64(count) + frac) * wire.BeadStepR
 		m := centerGapNotOnLattice("Input", "Time", quantIRForCount, actualGap)
-		ox, oy, oz, _, _ := m.chainBeads()
+		ox, oy, oz, _, _, radius := m.chainBeads()
 		if got := len(ox); got != count {
 			t.Fatalf("frac %.2f: bead count = %d, want edgeStepCount's %d", frac, got, count)
 		}
-		near, far := chainNearFarEdges(t, ox, oy, oz)
+		near, far := chainNearFarEdges(t, ox, oy, oz, radius)
 		srcTorus := nodeTorusOuterR("Input")
 		wantFar := srcTorus + actualGap
 		if math.Abs(near-srcTorus) > tangencyEps {
@@ -469,7 +478,7 @@ func TestChainBeadsSpanFixKeepsCountFromEdgeStepCount(t *testing.T) {
 	// A gap deliberately off the lattice by a third of a bead step.
 	actualGap := (float64(count) + 0.33) * wire.BeadStepR
 	m := centerGapNotOnLattice("Input", "Time", quantIRForCount, actualGap)
-	ox, _, _, _, _ := m.chainBeads()
+	ox, _, _, _, _, _ := m.chainBeads()
 	want := edgeStepCount(wire.LocalPolar{QuantIR: quantIRForCount}, "Input", "Time")
 	if want != count {
 		t.Fatalf("test fixture: edgeStepCount = %d, want %d", want, count)
@@ -479,29 +488,31 @@ func TestChainBeadsSpanFixKeepsCountFromEdgeStepCount(t *testing.T) {
 	}
 }
 
-// Spacing stays within a stated bound of BeadStepR: the residue this fix absorbs is at
-// most half a bead spread over (count-1) gaps (spacing = (gap-2*BeadTorusOuterR)/(N-1),
-// and gap itself is within half a bead of count*BeadStepR by construction below), so the
-// per-gap deviation from BeadStepR is bounded by (BeadStepR/2)/(count-1). A wildly wrong
-// spacing formula (e.g. a stray extra factor, or forgetting the -1) blows well past this
-// bound and fails here rather than merely "looking odd" on screen.
-func TestChainBeadsSpacingBoundedByHalfBeadResidue(t *testing.T) {
+// Per-edge bead SIZE, not stretched spacing, absorbs the lattice-vs-live-gap residue: for
+// any gap (on or off the BeadStepR lattice), consecutive bead centres are EXACTLY
+// 2*beadOuterR apart — beadOuterR = gap/(2*count) — and that same beadOuterR is what the
+// returned radius column encodes (radius = beadOuterR/(1+BeadRingTubeRatio)). So spacing
+// has NO residual deviation left to bound, unlike the earlier stretched-spacing model this
+// test used to pin: a wildly wrong spacing formula (a stray factor, or spacing not tracking
+// the per-edge radius) fails this to float-round-off tolerance, not merely "looking odd" on
+// screen.
+func TestChainBeadsSpacingExactlyTwiceBeadOuterR(t *testing.T) {
 	const count = 20
 	quantIRForCount := count + nodeTorusSteps("Input") + nodeTorusSteps("Input")
-	bound := (wire.BeadStepR / 2) / float64(count-1)
 	for _, residueFrac := range []float64{-0.5, -0.2, 0, 0.2, 0.5} {
 		actualGap := (float64(count) + residueFrac) * wire.BeadStepR
 		m := centerGapNotOnLattice("Input", "Input", quantIRForCount, actualGap)
-		ox, oy, oz, _, _ := m.chainBeads()
+		ox, oy, oz, _, _, radius := m.chainBeads()
 		if len(ox) != count {
 			t.Fatalf("residue %.2f: bead count = %d, want %d", residueFrac, len(ox), count)
 		}
 		for i := 1; i < len(ox); i++ {
 			dx, dy, dz := float64(ox[i])-float64(ox[i-1]), float64(oy[i])-float64(oy[i-1]), float64(oz[i])-float64(oz[i-1])
 			spacing := math.Sqrt(dx*dx + dy*dy + dz*dz)
-			if math.Abs(spacing-wire.BeadStepR) > bound+tangencyEps {
-				t.Errorf("residue %.2f: bead %d..%d spacing %.6f, BeadStepR %.6f, deviation %.6f exceeds bound %.6f",
-					residueFrac, i-1, i, spacing, wire.BeadStepR, spacing-wire.BeadStepR, bound)
+			wantSpacing := 2 * beadOuterRFromSphereR(radius[i])
+			if math.Abs(spacing-wantSpacing) > tangencyEps {
+				t.Errorf("residue %.2f: bead %d..%d spacing %.6f, want exactly 2*beadOuterR %.6f (beads touch on a straight chain)",
+					residueFrac, i-1, i, spacing, wantSpacing)
 			}
 		}
 	}
@@ -572,7 +583,7 @@ func TestChainBeadsLastBeadOnTargetTorusOffAxis(t *testing.T) {
 	srcTorus := nodeTorusOuterR("Input")
 	dstTorus := nodeTorusOuterR("Time")
 
-	ox, oy, oz, _, _ := m.chainBeads()
+	ox, oy, oz, _, _, radius := m.chainBeads()
 	if len(ox) != count {
 		t.Fatalf("bead count = %d, want edgeStepCount's %d", len(ox), count)
 	}
@@ -580,7 +591,7 @@ func TestChainBeadsLastBeadOnTargetTorusOffAxis(t *testing.T) {
 	// Bead 0's near edge, from the origin (this node's own live centre) — unaffected by
 	// bearing, so this pins the length end of the invariant only.
 	d0 := math.Sqrt(float64(ox[0])*float64(ox[0]) + float64(oy[0])*float64(oy[0]) + float64(oz[0])*float64(oz[0]))
-	if got, want := d0-wire.BeadTorusOuterR, srcTorus; math.Abs(got-want) > tangencyEps {
+	if got, want := d0-beadOuterRFromSphereR(radius[0]), srcTorus; math.Abs(got-want) > tangencyEps {
 		t.Errorf("bead 0 near edge %.9f, want exactly source torus %.9f", got, want)
 	}
 
@@ -591,7 +602,7 @@ func TestChainBeadsLastBeadOnTargetTorusOffAxis(t *testing.T) {
 	dy := float64(oy[last]) - targetCenter.Y
 	dz := float64(oz[last]) - targetCenter.Z
 	distToTarget := math.Sqrt(dx*dx + dy*dy + dz*dz)
-	wantDist := dstTorus + wire.BeadTorusOuterR
+	wantDist := dstTorus + beadOuterRFromSphereR(radius[last])
 	if math.Abs(distToTarget-wantDist) > tangencyEps {
 		t.Errorf("last bead (%d) to target centre = %.9f, want exactly targetTorusR+BeadTorusOuterR = %.9f (off by %.9f)",
 			last, distToTarget, wantDist, distToTarget-wantDist)

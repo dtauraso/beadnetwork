@@ -172,13 +172,18 @@ func litBeadIndex(t float64, steps int) (int, bool) {
 // The returned `lit`/`litVal` slices are parallel to the offsets: 1 on the bead each
 // in-flight traversal has reached (with that traversal's bead VALUE alongside), 0 elsewhere. A chain with nothing traversing it is fully populated
 // and entirely unlit — that resting state is normal, not an absence of data.
-func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []int32) {
+//
+// The returned `radius` slice is also parallel to the offsets: each bead's own SPHERE
+// radius (see the per-edge sizing derivation below `beadOuterR`/`sphereR`) — beads on
+// different edges are different sizes on purpose, so this cannot be the shared constant
+// wire.BeadRadius the way it used to be.
+func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []int32, radius []float32) {
 	if len(m.outTargets) == 0 || m.layoutHolderFn == nil {
-		return nil, nil, nil, nil, nil
+		return nil, nil, nil, nil, nil, nil
 	}
 	lh := m.layoutHolderFn()
 	if lh == nil {
-		return nil, nil, nil, nil, nil
+		return nil, nil, nil, nil, nil, nil
 	}
 	localPolars := lh.LocalPolarsSnapshot()
 	pole := dir(lh.Pole())
@@ -274,88 +279,90 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 			}
 		}
 		// spacing is the center-to-center distance between consecutive beads on THIS
-		// edge. It defaults to the lattice's exact BeadStepR (the pre-fix behavior,
-		// used as a fallback when this node has no live center for `to` yet — e.g. a
+		// edge, and beadOuterR is this edge's own bead OUTER radius — both default to
+		// the lattice's fixed constants (wire.BeadStepR / wire.BeadTorusOuterR), used
+		// as a fallback when this node has no live center for `to` yet — e.g. a
 		// neighbour that has never pushed an applyCenter, or a bare test nodeMover
-		// with no partnerCenters at all) but is normally REPLACED below by the value
-		// that makes both chain ends exactly tangent to the real gap.
+		// with no partnerCenters at all — but are normally REPLACED below by the
+		// per-edge values that make every bead on this chain touch its neighbour
+		// EXACTLY, ends included, with the chain staying a straight line.
 		//
-		// THE FIX (the reported defect: "a half bead gap from the last edge bead to
-		// the target node"). count comes from edgeStepCount, which rounds the SOURCE
-		// node's stored, quantized LocalPolar distance to an integer step count
-		// (QuantIR) — that rounding is exact by construction of the lattice, but the
-		// two nodes' LIVE cartesian positions (what the renderer actually draws them
-		// at, nodeWorldPos) are continuous and only coincidentally land on a whole
-		// multiple of BeadStepR. count*BeadStepR is therefore off from the real
-		// surface-to-surface distance by up to half a bead — the residue QuantIR's
-		// rounding leaves behind — and that residue showed up on screen as a gap (or
-		// overlap) between the last bead and the target's torus.
+		// PER-EDGE BEAD SIZE (the fix; supersedes an earlier "stretch spacing to
+		// absorb the residue" attempt that is no longer here). count comes from
+		// edgeStepCount, which rounds the SOURCE node's stored, quantized LocalPolar
+		// distance to an integer step count (QuantIR) — that rounding is exact by
+		// construction of the lattice, but the two nodes' LIVE cartesian positions
+		// (what the renderer actually draws them at, nodeWorldPos) are continuous and
+		// only coincidentally land on a whole multiple of BeadStepR. So
+		// count*BeadStepR (or any FIXED bead size at all) is off from the real
+		// surface-to-surface gap by up to half a bead. Stretching `spacing` to absorb
+		// that residue (the earlier approach) kept the two ends tangent but left every
+		// INTERIOR bead not-quite-touching its neighbour — visibly gappy on short
+		// edges. Node positions cannot be snapped to fix this either: a node with 3+
+		// neighbours is over-constrained, each edge would want a different snap. The
+		// one remaining free parameter is bead SIZE, and it is free PER EDGE — no
+		// other edge shares this one's beads, so sizing this edge's beads to its own
+		// gap costs nothing elsewhere.
 		//
-		// Fix: read the ACTUAL gap from this node's own live center and its live copy
-		// of the neighbour's center (m.partnerCenters[to], kept current by every
-		// applyCenter push — see its doc comment; this is the SAME nodeWorldPos value
-		// the renderer streams for both ends, not the stored LocalPolar), and solve
-		// for the one spacing that makes bead 0's near edge sit at this node's torus
-		// AND bead count-1's far edge sit at the target's torus, EXACTLY:
+		// Read the ACTUAL gap from this node's own live center and its live copy of
+		// the neighbour's center (m.partnerCenters[to], kept current by every
+		// applyCenter push — the SAME nodeWorldPos value the renderer streams for both
+		// ends, not the stored LocalPolar), then size beads so `count` of them exactly
+		// tile it, touching:
 		//
-		//	near edge of bead 0  = selfTorusR + BeadTorusOuterR - BeadTorusOuterR
-		//	                     = selfTorusR                                  (always, any spacing)
-		//	far edge of bead N-1 = selfTorusR + 2*BeadTorusOuterR + (N-1)*spacing
-		//	                     want = selfTorusR + gap
-		//	=>  spacing = (gap - 2*BeadTorusOuterR) / (N-1)
+		//	beadOuterR = gap / (2*count)             // one bead's outer radius
+		//	spacing    = 2*beadOuterR                  // adjacent beads touch exactly
+		//	d(i)       = selfTorusR + beadOuterR + i*spacing,  i in [0, count)
 		//
-		// Note this is NOT simply gap/count (a natural first guess) — plugging
-		// gap/count into the far-edge equation above only cancels to `gap` when
-		// spacing already equals BeadStepR, i.e. only in the case that has no
-		// residue to fix. The (N-1)-in-the-denominator form is the one that actually
-		// solves both constraints at once, for any gap.
+		//	near edge of bead 0     = selfTorusR + beadOuterR - beadOuterR = selfTorusR
+		//	far edge of bead N-1    = selfTorusR + beadOuterR + (N-1)*spacing + beadOuterR
+		//	                        = selfTorusR + 2*beadOuterR*N = selfTorusR + gap
 		//
-		// GIVES UP: adjacent bead tori no longer touch EXACTLY — interior spacing is
-		// off from BeadStepR by the same residue, spread over (count-1) gaps, so each
-		// gap is off by roughly (half a bead)/(count-1): ~2% per gap on a 25-bead
-		// edge, ~10% on a 5-bead edge (visible on the shorter edge, not on the long
-		// one). Considered and rejected for this pass: bending the chain onto an arc
-		// whose N equal chords span the real distance, keeping every torus touching
-		// exactly — the upgrade if this residual spacing shows on screen.
+		// which is exact tangency at BOTH ends for ANY count, including count==1 (a
+		// single bead just becomes exactly the gap's diameter) — so the old `count > 1`
+		// guard around the live-gap solve is gone; every count uses this branch
+		// whenever a live partner center is available.
 		//
-		// count==1 has no second bead to solve the far-edge constraint against
-		// (spacing has no effect on a single-bead loop, i ranges over {0} only), so it
-		// keeps the near-edge/BeadStepR fallback above; a lone bead cannot satisfy
-		// tangency at both ends unless its fixed diameter happens to equal the gap.
+		// The bead's own onscreen SPHERE radius (what the renderer scales the
+		// instance to) is smaller than beadOuterR by the ring's proportion of the
+		// whole bead, the same ratio wire.BeadRadius/wire.BeadTorusOuterR encodes for
+		// the fixed-size fallback: sphereR = beadOuterR / (1 + wire.BeadRingTubeRatio).
 		//
-		// useLiveAim tracks whether spacing (above) AND direction (below) both came from
-		// the ONE live measurement (edgeSurfaceGapAndDir) or both fell back to the stored
-		// lattice (BeadStepR spacing, ndir bearing) — they must move together, never one
-		// live and the other stored, or the chain regresses to exactly the bug this fix
-		// closes (a length that agrees with the renderer next to a bearing that doesn't).
+		// useLiveAim tracks whether spacing/beadOuterR/sphereR (above) AND direction
+		// (below) both came from the ONE live measurement (edgeSurfaceGapAndDir) or
+		// both fell back to the stored lattice (BeadStepR/BeadTorusOuterR/BeadRadius
+		// spacing/size, ndir bearing) — they must move together, never one live and
+		// the other stored, or the chain regresses to exactly the bug this fix closes
+		// (a length that agrees with the renderer next to a bearing that doesn't).
 		spacing := wire.BeadStepR
+		beadOuterR := wire.BeadTorusOuterR
+		sphereR := wire.BeadRadius
 		liveDir := vec3{}
 		useLiveAim := false
-		if count > 1 {
-			if targetCenter, ok := m.partnerCenters[to]; ok {
-				targetTorusR := nodeTorusOuterR(m.cascadeKinds[to])
-				gap, dirVec, dirOK := edgeSurfaceGapAndDir(selfCenter, targetCenter, selfTorusR, targetTorusR)
-				if dirOK {
-					s := (gap - 2*wire.BeadTorusOuterR) / float64(count-1)
-					if s < 0 {
-						// A gap smaller than two bead diameters (extreme close nodes):
-						// clamp rather than go negative and fold beads back past this
-						// node's own centre. Exact far-edge tangency is not achievable
-						// in this degenerate case either way.
-						s = 0
-					}
-					spacing = s
-					liveDir = dirVec
-					useLiveAim = true
+		if targetCenter, ok := m.partnerCenters[to]; ok {
+			targetTorusR := nodeTorusOuterR(m.cascadeKinds[to])
+			gap, dirVec, dirOK := edgeSurfaceGapAndDir(selfCenter, targetCenter, selfTorusR, targetTorusR)
+			if dirOK {
+				bOuter := gap / (2 * float64(count))
+				if bOuter < 0 {
+					// A degenerate/negative gap (overlapping nodes): clamp rather
+					// than fold beads back past this node's own centre. Exact
+					// tangency is not achievable in this degenerate case either way.
+					bOuter = 0
 				}
+				beadOuterR = bOuter
+				spacing = 2 * bOuter
+				sphereR = bOuter / (1 + wire.BeadRingTubeRatio)
+				liveDir = dirVec
+				useLiveAim = true
 			}
 		}
 		// One coordinate: bead index i. Offset from this node's centre is
-		// selfTorusR + BeadTorusOuterR + i*spacing (docs/bead-lattice.md "Placement",
-		// spacing derivation above). "Beads never inside a node" falls out of this
-		// tangency, with no clamp.
+		// selfTorusR + beadOuterR + i*spacing (docs/bead-lattice.md "Placement",
+		// derivation above). "Beads never inside a node" falls out of this tangency,
+		// with no clamp.
 		for i := 0; i < count; i++ {
-			d := selfTorusR + wire.BeadTorusOuterR + float64(i)*spacing
+			d := selfTorusR + beadOuterR + float64(i)*spacing
 			var p vec3
 			if useLiveAim {
 				// liveDir is ALREADY a unit cartesian direction (edgeSurfaceGapAndDir's
@@ -386,7 +393,8 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 			}
 			lit = append(lit, l)
 			litVal = append(litVal, v)
+			radius = append(radius, float32(sphereR))
 		}
 	}
-	return ox, oy, oz, lit, litVal
+	return ox, oy, oz, lit, litVal, radius
 }

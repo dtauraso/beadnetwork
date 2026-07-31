@@ -21,7 +21,7 @@
 package Buffer
 
 // BufLayoutVersion is the schema version. Bump when any column changes.
-const BufLayoutVersion = 35
+const BufLayoutVersion = 36
 
 // BufInteriorSlotsPerNode is the fixed number of interior grid slots reserved per
 // node in the Interior block (a 2x2 held/interior-bead grid: slot = row*2 + col).
@@ -200,6 +200,11 @@ type bufLayoutChainBead struct {
 	// the value, not just the fact of being lit — the whole animation is ONE fill-colour
 	// change against the grey resting chain.
 	LitValue int32 `buf:"i32"` // traversing bead's value (0|1); meaningful when Lit==1
+	// Radius is this bead's own SPHERE radius (not the outer/ring radius). Beads on
+	// different edges differ: each edge picks the one size that makes its own beads touch
+	// their neighbours exactly on a STRAIGHT chain (nodes/Wiring/chain_beads.go), so this
+	// can no longer be a fixed constant shared by every bead the way BeadRadius once was.
+	Radius float32 `buf:"f32"` // per-edge bead sphere radius
 }
 
 // bufLayoutInterior defines one row of the interior-bead column block.
