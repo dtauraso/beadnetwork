@@ -74,7 +74,19 @@ func TestHeadlessNodeFdDedicatedStream(t *testing.T) {
 			t.Fatalf("node row %d: frame too short (%d bytes) to hold the trailing EVENTS section count", row, len(frame))
 		}
 		eventCount := readU32(frame, eventsOff)
-		wantLen := eventsOff + 4 + int(eventCount)*B.BufEventStride
+		eventRowsOff := eventsOff + 4
+		// Fixed-stride event rows are followed by a trailing event-text-bytes section
+		// (Buffer.BuildEventsSection) sized by the SUM of every event's own TextLen
+		// (BufEventColTextLen) — a breadcrumb-kind event's free-form Text (Wiring's
+		// chain-aim/neighbor-*-recv diagnostics, task/log-node4-chain-aim, are the
+		// first node-stream events to carry a non-empty one) is variable length, so
+		// the frame end is NOT eventRowsOff + count*stride alone.
+		textBytesTotal := 0
+		for e := 0; e < int(eventCount); e++ {
+			rowOff := eventRowsOff + e*B.BufEventStride
+			textBytesTotal += int(readU32(frame, rowOff+B.BufEventColTextLen))
+		}
+		wantLen := eventRowsOff + int(eventCount)*B.BufEventStride + textBytesTotal
 		if wantLen != len(frame) {
 			t.Fatalf("node row %d: frame length %d does not match computed layout end %d",
 				row, len(frame), wantLen)

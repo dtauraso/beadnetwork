@@ -199,6 +199,12 @@ func breadcrumbLabelFor(event string) (uint8, bool) {
 		return T.BreadcrumbWireSendBufferFull, true
 	case "cascade.root":
 		return T.BreadcrumbCascadeRoot, true
+	case "chain-aim":
+		return T.BreadcrumbChainAim, true
+	case "neighbor-center-recv":
+		return T.BreadcrumbNeighborCenterRecv, true
+	case "neighbor-setc-recv":
+		return T.BreadcrumbNeighborSetCRecv, true
 	default:
 		return 0, false
 	}

@@ -147,6 +147,18 @@ const (
 	// carries the dropped count. Emitted once room reappears on breadcrumbCh,
 	// so the diagnostic channel's own lossiness is never itself silent.
 	BreadcrumbWireBreadcrumbsDropped
+	// BreadcrumbChainAim: diagnostic-only (task/log-node4-chain-aim), one per outgoing
+	// target per chainBeads() call — see chain_beads.go's tr.Breadcrumb("chain-aim", ...)
+	// call site for the exact fields packed into Text.
+	BreadcrumbChainAim
+	// BreadcrumbNeighborCenterRecv: diagnostic-only (task/log-node4-chain-aim), fired in
+	// nodeMover.handle's moveMsgKindNeighborCenter case — records that a neighbor-center
+	// push arrived (sender id + pushed center).
+	BreadcrumbNeighborCenterRecv
+	// BreadcrumbNeighborSetCRecv: diagnostic-only (task/log-node4-chain-aim), fired in
+	// nodeMover.handle's moveMsgKindNeighborSetC case — records that a neighbor-setC
+	// (edge re-quantize) message arrived (sender id).
+	BreadcrumbNeighborSetCRecv
 )
 
 // BreadcrumbLabels is the single source of truth for the BreadcrumbLabel* enum's
@@ -163,6 +175,9 @@ var BreadcrumbLabels = []string{
 	"wire-send-buffer-full",
 	"cascade.root",
 	"wire-breadcrumbs-dropped",
+	"chain-aim",
+	"neighbor-center-recv",
+	"neighbor-setc-recv",
 }
 
 // TraceEventKinds is the single source of truth for the closed kind vocabulary.
