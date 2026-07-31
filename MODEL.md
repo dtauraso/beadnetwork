@@ -342,20 +342,59 @@ and none is a source of truth.
 - **Panel-authored locks must be structurally incapable of a position blow-up.** If one
   happens, the implementation is wrong (an offset was reconstructed from a moving reference),
   not the locks.
-- **Bead cells (drag placement).** A node lives in N lattices, one per neighbour it has an
-  edge with. For neighbour j with centre C_j, the admissible node centres are the
-  concentric spheres `dist(node, C_j) == K_j * wire.BeadStepR`, K_j a positive integer —
-  the node's centre must satisfy this for EVERY neighbour simultaneously, so it sits at an
-  INTERSECTION of all N sphere families. Moving from K_j to K_j±1 adds or removes exactly
-  one bead on that edge. A drag does not set the position directly: it enumerates the
-  admissible cells reachable from the node's CURRENT configuration (current K_j per
-  neighbour, ±1 on each — neighbouring cells, not a global search), solves each candidate's
-  intersection point(s) (`nodes/Wiring/bead_cell_solve.go`), and moves to whichever
-  candidate lands nearest the mouse-derived target; with no admissible candidate the node
-  holds its position (observable via the `bead-cell-none` breadcrumb, never silent). Bead
-  count on an edge falls out of this placement as one integer subtraction
-  (`nodes/Wiring/chain_beads.go`'s `edgeStepCount`), with both chain ends tangent exactly
-  and one uniform global bead size — see `docs/bead-lattice.md`.
+- **Moving a node is CRUD on the edge beads that touch it (drag placement).** N chains
+  connect to a node; you move the node by removing links from those chains or adding links
+  to them — that is the whole mechanism. There is no solver, no constraint system, no
+  enumeration across neighbours: each touching bead decides for itself
+  (`nodes/Wiring/bead_crud.go`'s `beadCrudDecide`, wired in `commitNodeMoveLocal`,
+  `nodes/Wiring/quantized_move.go`).
+
+  The drag gives the node's own polar vector `v` (its previous position to its
+  destination). Each touching bead has its own **source point** — the previous bead's
+  centre along its chain, or the chain origin on the neighbour's torus surface when it is
+  the only bead (`nodes/Wiring/quantized_move.go`'s `dragTouchingBeads`) — NEVER the
+  touching bead's own centre; using the centre instead is wrong by one bead. The **third
+  polar vector** runs from the bead's source point to the node's destination point.
+  Compare its length to one bead length (`wire.BeadStepR`):
+
+  - too small → that bead is **removed**, and the bead before it becomes the touching bead.
+  - too large → a bead is **added** (subject to the angle gate below), and it becomes the
+    new touching bead.
+  - exactly one bead length → nothing changes.
+
+  **The angle gate applies to ADD only, never to REMOVE.** The angle between `v` and the
+  edge-bead vector (source → the touching bead's own centre): > 90 degrees blocks the add
+  (the node did not move far enough AWAY from the bead to open a gap beyond it — an obtuse
+  angle means the drag is heading back across the bead); ≤ 90 degrees admits it, subject to
+  the `|third|` test above. A removal is decided by `|third|` alone.
+
+  **There is no selection and no summation, and the node's new centre comes from the BEAD
+  OPERATION, never from `v`.** Every touching bead performs the same judgement against the
+  same `v`, but `v` (the drag) supplies only the third-vector test and the angle gate above
+  — it never sets the node's new position or its direction of travel
+  (`nodes/Wiring/bead_crud.go`'s `beadCrudImpliedCentre`, resolved across every touching
+  bead by `resolveBeadCrudMove`):
+
+  - **REMOVE** → the node's new centre IS the removed bead's own former centre exactly — it
+    takes that bead's place.
+  - **ADD** → a new bead is inserted one bead length closer to the node than the old
+    touching bead (the "next chain position"); the node's new centre is one bead length
+    BEYOND that new bead, away from the neighbour, along the SAME chain axis (never the raw
+    drag direction).
+  - every touching bead's verdict is "none" → the node does not move; with no touching beads
+    at all (a free node with no incident edges) the raw target is used directly.
+
+  One drag event can remove beads from some edges and add them to others at once, each
+  independently implying its own new node centre. If two or more touching beads imply
+  DIFFERENT centres for the same event, that is a genuine conflict — never resolved by
+  averaging, by picking whichever is nearest the cursor, or by falling back to the drag
+  target (all three are explicitly rejected). The node holds its position and the conflict
+  is made observable (a breadcrumb naming every disagreeing verdict), not silently resolved.
+
+  Bead count on an edge falls out of the resulting geometry as one integer subtraction
+  (`nodes/Wiring/chain_beads.go`'s `edgeStepCount`), with the near end tangent to the node's
+  own torus by construction of the placement formula and one uniform global bead size — see
+  `docs/bead-lattice.md`.
 
 ## Assertions
 

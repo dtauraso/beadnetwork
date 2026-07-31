@@ -165,9 +165,22 @@ func TestRotatingPolePersistReload(t *testing.T) {
 	var dbg syncBuffer
 	md.tr.SetSink(&dbg)
 
-	home := dir{Theta: 0, Phi: 0}
-	near := fromAxisFrame(home, 5*math.Pi/180, 0)
-	target := srcCenter.Add(polar2cart(polar{R: 50, Theta: near.Theta, Phi: near.Phi}))
+	// The angle gate (bead_crud.go, PLAN.md) only admits a bead-count change when the
+	// drag heads AWAY from the touching bead's source — build the target as dst's own
+	// live outward bearing away from src (so the gate admits the move) plus a small
+	// perpendicular kick (so the bearing itself also moves, exercising the pole tilt this
+	// test is about).
+	dstBefore, ok := md.centerOfNode("dst")
+	if !ok {
+		t.Fatal("no center for dst before drag")
+	}
+	outward := dstBefore.Sub(srcCenter).Normalize()
+	perp := outward.Cross(vec3{X: 0, Y: 1, Z: 0})
+	if perp.Length() < 1e-6 {
+		perp = outward.Cross(vec3{X: 1, Y: 0, Z: 0})
+	}
+	perp = perp.Normalize()
+	target := dstBefore.Add(outward.Scale(40)).Add(perp.Scale(10))
 	// want must be computed BEFORE RootMove — see quantizedDragTarget/pollDragConverged's
 	// doc comments (walkBeadPath's starting point is the node's CURRENT, pre-drag center).
 	want := quantizedDragTarget(md, "dst", target)
@@ -190,7 +203,11 @@ func TestRotatingPolePersistReload(t *testing.T) {
 			before = &cp
 		}
 	}
-	if before == nil || before.QuantIR == preDrag.QuantIR {
+	// Under bead CRUD (bead_crud.go), a drag moves the node by exactly one bead length
+	// toward the raw target, in whatever direction that is — which axis (bearing or
+	// radius) absorbs the change is not pinned, only that SOME axis of src's stored
+	// local polar to dst picked up the requantize.
+	if before == nil || (before.QuantITheta == preDrag.QuantITheta && before.QuantIPhi == preDrag.QuantIPhi && before.QuantIR == preDrag.QuantIR) {
 		t.Fatalf("src's local polar to dst never picked up the new set-c: before=%+v preDrag=%+v", before, preDrag)
 	}
 	// waitForAbcDrag only proves the "abc-drag" breadcrumb has logged; neighborSetCRequantize

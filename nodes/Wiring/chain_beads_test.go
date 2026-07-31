@@ -79,9 +79,9 @@ func TestChainBeadsStayOutsideBothNodes(t *testing.T) {
 
 // Beads TOUCH: adjacent centers are exactly one bead-lattice STEP apart
 // (wire.BeadStepR), so a chain is a solid line with no gaps. Spacing is the single
-// UNIFORM lattice constant now (no per-edge sizing — MODEL.md "a node lives in N
-// lattices, one per neighbour" guarantees the gap is already an exact multiple of
-// wire.BeadStepR, so there is no residue for a per-edge size to absorb).
+// UNIFORM lattice constant now (no per-edge sizing — this fixture's neighbor is placed at
+// an exact multiple of wire.BeadStepR, so there is no residue for a per-edge size to
+// absorb; MODEL.md "Moving a node is CRUD on the edge beads that touch it").
 func TestChainBeadsTouch(t *testing.T) {
 	m := &nodeMover{
 		id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}},
@@ -289,9 +289,9 @@ func TestEdgeStepCountClampsToMinimumOne(t *testing.T) {
 // edgeStepCount rounds a NEAR-integer distance to the nearest bead step rather than
 // truncating or requiring exactness — the round() exists so a node mid-way through
 // placement (a live distance a hair off an exact multiple, from float accumulation) never
-// silently drops into the wrong bucket. A validly bead-cell-placed node (bead_cell_solve.go)
-// never actually exercises the rounding in practice, but the function must still behave
-// sanely on the inputs it can receive.
+// silently drops into the wrong bucket. A node whose live distance happens to land on the
+// bead lattice never actually exercises the rounding in practice, but the function must
+// still behave sanely on the inputs it can receive.
 func TestEdgeStepCountRoundsNearIntegerDistance(t *testing.T) {
 	exact := 50 * wire.BeadStepR
 	nudged := exact + 1e-6
@@ -309,10 +309,9 @@ func TestEdgeStepCountRoundsNearIntegerDistance(t *testing.T) {
 // was always exactly tangent to the source (offset by construction), but the last bead's far
 // edge only APPROXIMATELY met the target's torus. This test pins the far edge to the target's
 // torus to float-round-off tolerance (1e-3, chainBeads' streamed float32 offsets — see
-// tangencyEps's own comment), across several distance values already snapped to the bead
-// lattice (matching what bead_cell_solve.go's node placement now guarantees — see
-// singleNeighborHolder) and several node-kind pairs whose bareNodeRadius values don't share
-// an obvious common factor.
+// tangencyEps's own comment), across several distance values this fixture deliberately
+// snaps onto the bead lattice (singleNeighborHolder) and several node-kind pairs whose
+// bareNodeRadius values don't share an obvious common factor.
 const tangencyEps = 1e-3
 
 func TestChainBeadsExactDoubleTangency(t *testing.T) {
@@ -387,9 +386,9 @@ func TestChainBeadsExactDoubleTangency(t *testing.T) {
 // (QuantITheta=0, straight along the pole), the live center sits off to the side in the
 // X/Z plane at colatitude ~53.13 degrees (a 3-4-5 triangle's angle, chosen only because
 // it is not a whole degree and not a special angle, so no accidental alignment). The live
-// center is placed at EXACTLY count*BeadStepR + both tori (on-lattice, matching what
-// bead_cell_solve.go's placement now guarantees) so the far-edge tangency assertion below
-// has no residue to tolerate beyond float round-off.
+// center is placed at EXACTLY count*BeadStepR + both tori (on-lattice, by this fixture's
+// own construction) so the far-edge tangency assertion below has no residue to tolerate
+// beyond float round-off.
 func offAxisFixture(srcKind, dstKind string, count int) *nodeMover {
 	lh := &wire.LayoutHolder{}
 	// Stored bearing: straight along the pole (colatitude 0). Deliberately NOT the live

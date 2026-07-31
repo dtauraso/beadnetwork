@@ -266,14 +266,12 @@ func nodeTorusOuterR(kind string) float64 {
 // call use, so this reads the identical value the renderer draws the node at — not the
 // SOURCE node's stored, quantized LocalPolar (lp.QuantIR*StepR and its QuantITheta/
 // QuantIPhi bearing), which is an integer-step APPROXIMATION of both this distance and
-// this direction (1-degree angular cells). Under the bead-cell model
-// (nodes/Wiring/bead_cell_solve.go) a validly-placed node's live distance IS already an
-// exact integer multiple of wire.BeadStepR for every neighbour, so this measurement and
-// the stored approximation should agree — but chain_beads.go still reads the LIVE value
-// (edgeStepCount's `dist`) rather than the stored one, so a bearing residue (a chain aimed
-// up to half a degree off, from the 1-degree stored cell) can never reappear independent of
-// the length: distance and direction are returned from the SAME Length()/Sub() call, so a
-// caller cannot read a length from one measurement and a bearing from another.
+// this direction (1-degree angular cells), which can drift from the live geometry between
+// drags. chain_beads.go reads the LIVE value (edgeStepCount's `dist`) rather than the
+// stored one, so a bearing residue (a chain aimed up to half a degree off, from the
+// 1-degree stored cell) can never reappear independent of the length: distance and
+// direction are returned from the SAME Length()/Sub() call, so a caller cannot read a
+// length from one measurement and a bearing from another.
 //
 // ok is false only when the centers are degenerate (coincident, e.g. a
 // not-yet-positioned node with HasPos false) — direction is undefined at zero

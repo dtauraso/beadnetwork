@@ -13,13 +13,12 @@
 // mistake. Beads sit one DIAMETER apart so they TOUCH — a chain is a solid line of beads, not a
 // dotted one.
 //
-// RADIUS IS UNIFORM, NOT PER EDGE (nodes/Wiring/bead_cell_solve.go, MODEL.md "a node lives in
-// N lattices, one per neighbour"): a node's placement guarantees every incident edge's
-// center-to-center distance is an exact integer multiple of wire.BeadStepR, so the single
-// fixed SHADING_PARAM_BEAD_RADIUS already makes every chain's beads touch their neighbours
-// exactly — there is no residue for a per-edge size to absorb (a per-edge Radius column,
-// commit d50fab83, existed for exactly that residue and was removed with it). Every mesh below
-// is authored directly at SHADING_PARAM_BEAD_RADIUS with no per-instance scale.
+// RADIUS IS UNIFORM, NOT PER EDGE (nodes/Wiring/bead_crud.go, MODEL.md "Moving a node is
+// CRUD on the edge beads that touch it"): the single fixed SHADING_PARAM_BEAD_RADIUS makes
+// every chain's beads touch their own neighbours on the chain exactly — there is no residue
+// for a per-edge size to absorb (a per-edge Radius column, commit d50fab83, existed for
+// exactly that residue and was removed with it). Every mesh below is authored directly at
+// SHADING_PARAM_BEAD_RADIUS with no per-instance scale.
 //
 // The animation is exactly ONE visual difference: the occupied bead's FILL becomes bead 0's or
 // bead 1's own fill (bead-style.ts). No size change, no ring change, nothing appears or
