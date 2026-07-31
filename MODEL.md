@@ -342,6 +342,20 @@ and none is a source of truth.
 - **Panel-authored locks must be structurally incapable of a position blow-up.** If one
   happens, the implementation is wrong (an offset was reconstructed from a moving reference),
   not the locks.
+- **Bead cells (drag placement).** A node lives in N lattices, one per neighbour it has an
+  edge with. For neighbour j with centre C_j, the admissible node centres are the
+  concentric spheres `dist(node, C_j) == K_j * wire.BeadStepR`, K_j a positive integer —
+  the node's centre must satisfy this for EVERY neighbour simultaneously, so it sits at an
+  INTERSECTION of all N sphere families. Moving from K_j to K_j±1 adds or removes exactly
+  one bead on that edge. A drag does not set the position directly: it enumerates the
+  admissible cells reachable from the node's CURRENT configuration (current K_j per
+  neighbour, ±1 on each — neighbouring cells, not a global search), solves each candidate's
+  intersection point(s) (`nodes/Wiring/bead_cell_solve.go`), and moves to whichever
+  candidate lands nearest the mouse-derived target; with no admissible candidate the node
+  holds its position (observable via the `bead-cell-none` breadcrumb, never silent). Bead
+  count on an edge falls out of this placement as one integer subtraction
+  (`nodes/Wiring/chain_beads.go`'s `edgeStepCount`), with both chain ends tangent exactly
+  and one uniform global bead size — see `docs/bead-lattice.md`.
 
 ## Assertions
 

@@ -323,37 +323,37 @@ func (lq *layoutQuantizer) neighborSetCRequantize(md *MoveDispatch, selfID, from
 	}
 }
 
-// walkBeadPath advances from prev toward target in whole BeadStepR-length strides, one
-// polar vector at a time, for as many strides as fit — "each bead is also a polar
-// vector... take the dragging of the node and fit it to a path of the polar vectors...
-// the dragging should be vectors combining" (the model this implements, docs/bead-lattice.md).
-// A step's LENGTH is the invariant and it is identical in EVERY direction by
-// construction (each stride is exactly wire.BeadStepR long), so there is no separate
-// radial/angular grid to reconcile and no direction-dependent shortfall — this replaces
-// the fixed-1-degree angular tick that measured 7x-18x too short against a bead at this
-// graph's radii (the drag.jump probe, docs/bead-lattice.md). Direction is NOT quantized:
-// each stride points wherever the CURRENT remaining displacement points, recomputed
-// fresh every stride rather than fixed from the first, so the walked path curves toward
-// a moving/diagonal target exactly like combining vectors would. A remaining
-// displacement shorter than one full bead commits no further movement at all — the node
-// holds its position rather than sliding part of a bead, which is what makes every
-// observed jump exactly one bead long and never a fraction of one.
-func walkBeadPath(prev, target vec3) vec3 {
-	// EXACTLY ONE stride per commit, never a run of them. A commit is one pointer-move
-	// event, and the node must move at most one bead distance per move — a loop that
-	// consumed the whole displacement let a single fast pointer-move jump the node
-	// several beads at once, which read as the node lurching rather than stepping. A
-	// remaining displacement is not lost: the next pointer-move sees it and takes the
-	// next stride, so the node walks toward the cursor one bead at a time.
-	//
-	// Below one bead the node does not move AT ALL rather than sliding a fraction —
-	// that is what makes every observed move exactly one bead.
-	disp := target.Sub(prev)
-	d := disp.Length()
-	if d < wire.BeadStepR {
-		return prev
+// dragNeighborConstraints reads the LIVE bead-cell configuration a node currently sits
+// in, one constraint per direct neighbour: that neighbour's own current world centre (nm's
+// own partnerCenters — the same live-copy map chainBeads/requantizeLocalPolars already
+// read) and the CURRENT integer K = round(dist(prevCenter, neighborCenter)/BeadStepR) —
+// the live measured distance, never a possibly-stale stored cache (mirrors edgeStepCount's
+// "K comes from the live distance" model, chain_beads.go). A neighbour with no live centre
+// yet (never pushed an applyCenter) contributes no constraint, same convention chainBeads
+// uses for a target with no live partner center.
+func dragNeighborConstraints(md *MoveDispatch, nm *nodeMover, prev vec3) []beadCellNeighbor {
+	nodeID := nm.id
+	out := make([]beadCellNeighbor, 0, len(nm.edgeIDs))
+	for _, edgeID := range nm.edgeIDs {
+		em, ok := md.mr.edgeMovers[edgeID]
+		if !ok {
+			continue
+		}
+		neighborID := em.srcID
+		if neighborID == nodeID {
+			neighborID = em.dstID
+		}
+		c, ok := nm.partnerCenters[neighborID]
+		if !ok {
+			continue
+		}
+		k := int(math.Round(prev.Sub(c).Length() / wire.BeadStepR))
+		if k < 1 {
+			k = 1
+		}
+		out = append(out, beadCellNeighbor{Center: c, K: k})
 	}
-	return prev.Add(disp.Scale(wire.BeadStepR / d))
+	return out
 }
 
 // commitNodeMoveLocal is the OWNER-GOROUTINE single-node commit path
@@ -407,28 +407,51 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeMover, 
 	// (docs/which-lattice-a-node-lives-on.md "Why the drag makes it worst": that split is
 	// exactly what made the node glide continuously while its own chain beads jumped one
 	// bead distance at a time). Under the quantized scene lattice (lq.quantizedLayout),
-	// committedPos is now the WALKED position (walkBeadPath, docs/bead-lattice.md's "each
-	// bead is also a polar vector... the dragging should be vectors combining" model):
-	// advance from the node's CURRENT drawn position toward the raw target in whole
-	// BeadStepR-length strides, in whatever direction the drag is heading, and stop
-	// within one bead of the target. This replaced an earlier version that derived
-	// committedPos from a quantized (iTheta,iPhi,iR) triple via offsetScenePolar — that
-	// triple's angular component used a FIXED 1-degree tick, which measured 7x-18x too
-	// short in arc against a bead at this graph's radii (the drag.jump probe): sideways
-	// drag ticks were tiny while radial ticks were a full bead. off/committedPolar below
-	// are now measured back OFF the walked committedPos purely as the position.json
+	// committedPos is now a BEAD-CELL SNAP (bead_cell_solve.go, MODEL.md's "a node lives
+	// in N lattices, one per neighbour"): the node's admissible centres are the
+	// intersection of one concentric-sphere family per neighbour
+	// (dist(node,neighbor)==K*BeadStepR for a positive integer K), so the drag does not
+	// just pick a direction and stride — it enumerates the admissible cells reachable
+	// from the node's CURRENT per-neighbour K (±1 on each) and moves to whichever
+	// candidate lands nearest the raw mouse target. mouse movement selects WHICH
+	// intersected cell the node moves to, not the position directly. This replaced
+	// walkBeadPath, a single-sphere "one bead toward the cursor" stride that only ever
+	// satisfied ONE neighbour's lattice at a time and left every other neighbour's
+	// distance un-quantized — landing the node off every lattice but the one it walked
+	// against, the very bug this model exists to close. off/committedPolar below are
+	// still measured back OFF the snapped committedPos purely as the position.json
 	// self-describing CACHE (quant_offset_persist.go's doc comment: "the quantized
 	// scalar triple... rides along as a self-describing cache of the drag-time snap
 	// cells, NOT the position source") — nothing downstream reconstructs committedPos
 	// from off, so re-measuring it here can never reintroduce the mismatch; the
 	// authoritative, lossless value is committedPos/committedPolar. If quantizedLayout is
 	// off, keep the historic behavior: committedPos stays the raw, continuous target, and
-	// no offset is measured.
+	// no offset is measured. If NO admissible bead cell exists for the node's current
+	// neighbour configuration (a genuinely degenerate neighbour set), the node holds its
+	// CURRENT position — observable via the "bead-cell-none" breadcrumb below, never
+	// silent.
 	committedPos := newPos
 	committedPolar := nodePolar
 	var off quantizedOffset
 	if lq.quantizedLayout {
-		committedPos = walkBeadPath(nodeWorldPos(nm.geom), newPos)
+		prevPos := nodeWorldPos(nm.geom)
+		neighbors := dragNeighborConstraints(md, nm, prevPos)
+		cands := solveBeadCells(neighbors, newPos)
+		if len(cands) == 0 {
+			committedPos = prevPos
+			if md.tr != nil {
+				md.tr.Breadcrumb("bead-cell-none", nodeID, "",
+					fmt.Sprintf("no admissible bead cell for %d neighbour(s); holding position", len(neighbors)))
+			}
+		} else {
+			committedPos = cands[0]
+			bestD := committedPos.Sub(newPos).Length()
+			for _, c := range cands[1:] {
+				if d := c.Sub(newPos).Length(); d < bestD {
+					committedPos, bestD = c, d
+				}
+			}
+		}
 		committedPolar = cart2polar(committedPos.Sub(md.ui.sceneSphere.Center))
 		off = measureScalar(committedPolar, nm.quantOffset)
 	}

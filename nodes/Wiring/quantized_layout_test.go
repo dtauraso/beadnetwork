@@ -146,6 +146,12 @@ func TestCommitNodeMoveLocalDrawsQuantizedNotRawTarget(t *testing.T) {
 	// multiple of the 1-degree stepTheta/stepPhi.
 	target := before.Add(vec3{X: 37.1, Y: -5.3, Z: 12.9})
 
+	// Computed BEFORE the commit — quantizedDragTarget reads the node's (and its
+	// neighbours') CURRENT centers as the solve's starting configuration, so calling it
+	// after commitNodeMoveLocal has already moved dst would race its own answer (see
+	// quantizedDragTarget's doc comment in subtree_persist_test.go).
+	want := quantizedDragTarget(md, "dst", target)
+
 	md.lq.commitNodeMoveLocal(md, nm, target)
 
 	got, ok := md.centerOfNode("dst")
@@ -158,15 +164,37 @@ func TestCommitNodeMoveLocalDrawsQuantizedNotRawTarget(t *testing.T) {
 	if d := got.Sub(target).Length(); d < 1e-6 {
 		t.Fatalf("commitNodeMoveLocal drew the RAW target instead of the quantized lattice point: got=%+v raw-target=%+v", got, target)
 	}
-	// (2) The committed center must equal the WALKED point (walkBeadPath, "one bead of
-	// arc in every direction" — docs/bead-lattice.md) — the positive half of the same
-	// assertion, pinning WHAT it should be, not just what it shouldn't. This replaced an
-	// earlier version of this test that compared against offsetScenePolar(measureScalar(...)),
-	// the fixed-1-degree-angular-tick lattice point commitNodeMoveLocal used to draw
-	// before the walk model replaced it (that formula UNDERSHOT a sideways move 7x-18x,
-	// the drag.jump probe finding).
-	want := walkBeadPath(before, target)
+	// (2) The committed center must equal the bead-CELL snap (bead_cell_solve.go,
+	// MODEL.md's "a node lives in N lattices, one per neighbour") — the positive half of
+	// the same assertion, pinning WHAT it should be, not just what it shouldn't. This
+	// replaced an earlier version that compared against walkBeadPath, a single-sphere
+	// stride that only satisfied ONE neighbour's lattice; quantizedDragTarget
+	// (subtree_persist_test.go) is the shared oracle for the replacement (`want` computed
+	// above, BEFORE the commit).
 	if d := got.Sub(want).Length(); d > 1e-6 {
-		t.Fatalf("commitNodeMoveLocal's committed center does not match the walked lattice point: got=%+v want=%+v", got, want)
+		t.Fatalf("commitNodeMoveLocal's committed center does not match the bead-cell snap: got=%+v want=%+v", got, want)
+	}
+	// (3) Every neighbour distance from the committed center is an integer multiple of
+	// wire.BeadStepR, within float tolerance — the actual invariant the whole model
+	// exists to guarantee (as opposed to (2) above, which only pins parity with the
+	// oracle formula).
+	for _, edgeID := range nm.edgeIDs {
+		em, ok := md.mr.edgeMovers[edgeID]
+		if !ok {
+			continue
+		}
+		neighborID := em.srcID
+		if neighborID == "dst" {
+			neighborID = em.dstID
+		}
+		nc, ok := md.centerOfNode(neighborID)
+		if !ok {
+			continue
+		}
+		dist := got.Sub(nc).Length()
+		ratio := dist / wire.BeadStepR
+		if d := math.Abs(ratio - math.Round(ratio)); d > 1e-6 {
+			t.Fatalf("dst's committed center is not an integer number of BeadStepR from neighbour %s: dist=%v ratio=%v", neighborID, dist, ratio)
+		}
 	}
 }

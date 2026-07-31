@@ -172,7 +172,7 @@ func (i *In) Breadcrumb(event, detail string) {
 
 // breadcrumbLabelFor maps a free-form Breadcrumb event string to its
 // T.BreadcrumbLabel* index for the structured buffer path. Only the closed set of
-// 10 known breadcrumb sites resolve; an unrecognized string returns ok=false — and
+// known breadcrumb sites resolve; an unrecognized string returns ok=false — and
 // check-breadcrumb-label-registered.sh fails the build if any Breadcrumb() call site's
 // literal label is missing from this switch/T.BreadcrumbLabels, so a new label can no
 // longer be silently dropped end to end the way probe.enterCommit/drag.jump/
@@ -205,6 +205,8 @@ func breadcrumbLabelFor(event string) (uint8, bool) {
 		return T.BreadcrumbNeighborCenterRecv, true
 	case "neighbor-setc-recv":
 		return T.BreadcrumbNeighborSetCRecv, true
+	case "bead-cell-none":
+		return T.BreadcrumbBeadCellNone, true
 	default:
 		return 0, false
 	}
