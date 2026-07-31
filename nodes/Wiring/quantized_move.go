@@ -323,19 +323,6 @@ func (lq *layoutQuantizer) neighborSetCRequantize(md *MoveDispatch, selfID, from
 	}
 }
 
-// maxBeadStrides bounds how many one-bead-length steps walkBeadPath may take in a single
-// commit. Needed because the displacement handed in (a fast pointer drag between two
-// ~8ms move ticks, or a programmatic RootMove target) can be arbitrarily far from the
-// node's current committed position, and stepping one bead at a time toward it must not
-// become an unbounded loop. 1024 strides is 1024*BeadStepR =~ 9175 world units — several
-// times this scene's own diameter (nodes sit at r~=28-70, docs/bead-lattice.md) — so no
-// legitimate single commit needs more; if the cap is ever actually hit, the node still
-// makes full, bounded progress toward the target this commit and finishes closing the
-// gap on the next one (the next pointer-move tick, or a repeated call), so raising or
-// lowering this constant only changes how many commits a huge jump takes, never whether
-// the walk terminates or where it ends up.
-const maxBeadStrides = 1024
-
 // walkBeadPath advances from prev toward target in whole BeadStepR-length strides, one
 // polar vector at a time, for as many strides as fit — "each bead is also a polar
 // vector... take the dragging of the node and fit it to a path of the polar vectors...
@@ -352,16 +339,21 @@ const maxBeadStrides = 1024
 // holds its position rather than sliding part of a bead, which is what makes every
 // observed jump exactly one bead long and never a fraction of one.
 func walkBeadPath(prev, target vec3) vec3 {
-	pos := prev
-	for i := 0; i < maxBeadStrides; i++ {
-		disp := target.Sub(pos)
-		d := disp.Length()
-		if d < wire.BeadStepR {
-			break
-		}
-		pos = pos.Add(disp.Scale(wire.BeadStepR / d))
+	// EXACTLY ONE stride per commit, never a run of them. A commit is one pointer-move
+	// event, and the node must move at most one bead distance per move — a loop that
+	// consumed the whole displacement let a single fast pointer-move jump the node
+	// several beads at once, which read as the node lurching rather than stepping. A
+	// remaining displacement is not lost: the next pointer-move sees it and takes the
+	// next stride, so the node walks toward the cursor one bead at a time.
+	//
+	// Below one bead the node does not move AT ALL rather than sliding a fraction —
+	// that is what makes every observed move exactly one bead.
+	disp := target.Sub(prev)
+	d := disp.Length()
+	if d < wire.BeadStepR {
+		return prev
 	}
-	return pos
+	return prev.Add(disp.Scale(wire.BeadStepR / d))
 }
 
 // commitNodeMoveLocal is the OWNER-GOROUTINE single-node commit path

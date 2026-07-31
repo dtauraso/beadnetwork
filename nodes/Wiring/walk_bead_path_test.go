@@ -13,7 +13,7 @@ import (
 // function, no goroutines, asserting what IT decided given an input.
 
 // approxEqual gives strides room for float accumulation error (repeated Add/Scale over
-// up to maxBeadStrides iterations) without hiding a real defect — 1e-6 is many orders
+// a single stride) without hiding a real defect — 1e-6 is many orders
 // below a single bead length (8.96).
 func approxEqual(t *testing.T, got, want float64, msg string) {
 	t.Helper()
@@ -39,26 +39,22 @@ func TestWalkBeadPath_HalfBeadAway_DoesNotMove(t *testing.T) {
 	}
 }
 
-func TestWalkBeadPath_FiveBeadsAway_MovesExactlyFiveAndNoFurther(t *testing.T) {
+func TestWalkBeadPath_FarTargetMovesExactlyOneBead(t *testing.T) {
 	prev := vec3{X: 0, Y: 0, Z: 0}
-	// 5.4 beads away rather than exactly 5.0: an exact multiple sits ON the <BeadStepR
-	// stop threshold, where float accumulation error over 5 Add/Scale strides can tip
-	// the last stride's remaining-distance check either way (observed: landed one
-	// stride short on this machine) — this is a float-precision artifact of the TEST's
-	// target choice, not of walkBeadPath's stopping rule, so the target is chosen with
-	// headroom instead of chasing epsilons in the assertion.
-	target := vec3{X: 5.4 * wire.BeadStepR, Y: 0, Z: 0}
+	// A commit is ONE pointer-move event and the node moves at most one bead per move,
+	// so a target five beads away moves it ONE bead toward the target — not five. The
+	// remainder is not lost: the next pointer-move takes the next stride. This replaces
+	// an assertion that the walk consumed the WHOLE displacement in a single call, which
+	// is what let a fast drag lurch several beads at once instead of stepping.
+	target := vec3{X: 5 * wire.BeadStepR, Y: 0, Z: 0}
 	got := walkBeadPath(prev, target)
-	approxEqual(t, got.Sub(prev).Length(), 5*wire.BeadStepR, "distance moved")
-	approxEqual(t, got.X, 5*wire.BeadStepR, "landed X")
+	approxEqual(t, got.Sub(prev).Length(), wire.BeadStepR, "one stride per commit, however far the target")
+	approxEqual(t, got.X, wire.BeadStepR, "the stride is along the target direction")
 
-	// Walking again from the already-5-beads-away position toward the SAME target must
-	// not move it further: the remaining 0.4-bead gap is below one bead, so the walk
-	// holds rather than sliding partway.
+	// Stepping again advances exactly one more bead, so repeated moves walk toward the
+	// target rather than the first one jumping the whole way.
 	got2 := walkBeadPath(got, target)
-	if got2 != got {
-		t.Fatalf("expected the walk to stop once within one bead of target; moved again to %+v", got2)
-	}
+	approxEqual(t, got2.X, 2*wire.BeadStepR, "a second commit takes a second stride")
 }
 
 // TestWalkBeadPath_UniformStepLengthEveryDirection is the direction test: the whole
@@ -90,17 +86,6 @@ func TestWalkBeadPath_UniformStepLengthEveryDirection(t *testing.T) {
 		got := walkBeadPath(prev, target)
 		approxEqual(t, got.Sub(prev).Length(), wire.BeadStepR, name)
 	}
-}
-
-// TestWalkBeadPath_CapsStrides proves the bound: a target far beyond maxBeadStrides
-// bead-lengths away still returns (does not hang), and the returned position is at most
-// maxBeadStrides beads from prev, never past it.
-func TestWalkBeadPath_CapsStrides(t *testing.T) {
-	prev := vec3{X: 0, Y: 0, Z: 0}
-	target := vec3{X: (maxBeadStrides + 500) * wire.BeadStepR, Y: 0, Z: 0}
-	got := walkBeadPath(prev, target)
-	moved := got.Sub(prev).Length()
-	approxEqual(t, moved, float64(maxBeadStrides)*wire.BeadStepR, "capped distance moved")
 }
 
 // TestWalkBeadPath_FixedAngularTickFails is the proof-of-failure this task requires: it
