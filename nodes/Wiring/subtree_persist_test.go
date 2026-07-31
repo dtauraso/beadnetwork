@@ -11,26 +11,28 @@ import (
 )
 
 // quantizedDragTarget returns the position a drag to target actually COMMITS to under
-// the scene lattice — walkBeadPath from the node's CURRENT (pre-drag) center toward
-// target, in whole bead-length strides (quantized_move.go's "one bead of arc in every
-// direction" model, docs/bead-lattice.md) — the raw target unchanged when quantizedLayout
-// is off. Test callers that assert convergence (pollDragConverged) must poll for THIS
-// point, not the raw target, now that a committed drag is snapped rather than continuous
-// (docs/which-lattice-a-node-lives-on.md). MUST be called BEFORE the drag commits (reads
-// the node's pre-drag center as the walk's starting point) — this replaced an earlier
-// version that derived the target from a fixed-1-degree-angular-tick quantized triple
-// (measureScalar/offsetScenePolar), independent of the node's current position; the walk
-// model is NOT independent of it, so this function is no longer stable to call after the
-// drag has already moved the node.
+// the scene lattice — the nearest UNION-model candidate cell (quantized_move.go's
+// chooseDragCandidate: nearest cell across every usable neighbour's own adjacent-cell
+// set, docs/bead-lattice.md) — the raw target unchanged when quantizedLayout is off, or
+// when nodeID has no usable neighbour constraint (chooseDragCandidate's ok=false
+// free-move fallback, mirrored here). Test callers that assert convergence
+// (pollDragConverged) must poll for THIS point, not the raw target, now that a committed
+// drag is snapped rather than continuous (docs/which-lattice-a-node-lives-on.md). MUST be
+// called BEFORE the drag commits — it reads the node's PRE-drag LocalPolar/partnerCenters
+// state (chooseDragCandidate's own inputs), so calling it after the drag has already
+// landed would read the post-drag state instead.
 func quantizedDragTarget(md *MoveDispatch, nodeID string, target vec3) vec3 {
 	if !md.lq.quantizedLayout {
 		return target
 	}
-	prev, ok := md.centerOfNode(nodeID)
+	nm, ok := md.mr.nodeMovers[nodeID]
 	if !ok {
 		return target
 	}
-	return walkBeadPath(prev, target)
+	if cand, ok := md.lq.chooseDragCandidate(nm, target); ok {
+		return cand
+	}
+	return target
 }
 
 // pollDragConverged waits until the named node's committed center matches the point a
@@ -42,12 +44,13 @@ func quantizedDragTarget(md *MoveDispatch, nodeID string, target vec3) vec3 {
 // this convergence first, exactly as the node_move_test.go cascade tests already do.
 //
 // want MUST be computed by the CALLER, via quantizedDragTarget, BEFORE calling RootMove
-// — not recomputed here. quantizedDragTarget now walks from the node's CURRENT (pre-drag)
-// center (walkBeadPath), so calling it AFTER RootMove has already been issued races the
-// dragged node's own mover goroutine: if the commit has landed by the time this function
-// reads the center, "current" is already the POST-drag position, and a fresh
-// quantizedDragTarget call would walk another stride past the point this poll is
-// actually waiting for. Passing want in avoids that race entirely.
+// — not recomputed here. quantizedDragTarget now reads the node's CURRENT (pre-drag)
+// LocalPolar/partnerCenters state (chooseDragCandidate), so calling it AFTER RootMove has
+// already been issued races the dragged node's own mover goroutine: if the commit has
+// landed by the time this function reads the center, "current" is already the POST-drag
+// position, and a fresh quantizedDragTarget call would choose a cell relative to the
+// WRONG (already-moved) state, past the point this poll is actually waiting for. Passing
+// want in avoids that race entirely.
 func pollDragConverged(t *testing.T, md *MoveDispatch, nodeID string, want vec3) {
 	t.Helper()
 	const eps = 1e-6

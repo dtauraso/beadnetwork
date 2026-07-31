@@ -44,7 +44,14 @@ func TestRequantizeUsesStoredIndicesNotLiveCartesian(t *testing.T) {
 		t.Fatalf("test setup bug: D1/D2 must be well separated, got %v", angularDistance(dirStored, dirLive))
 	}
 
-	offFar := offsetFromDir(dirStored).Scale(40)
+	// Scale (400, not a small test-only 40) matters now that the angular step is
+	// r-DEPENDENT (wire.AngularStepsForR): one bead of arc at r=40 would be ~12.8° here
+	// (8.96/40 rad), and half that step alone would already exceed storedBound below —
+	// not a quantization BUG, just too coarse a radius for this test's tolerance. r=400
+	// keeps one bead of arc under 1.3°, comfortably inside storedBound, the same way a
+	// production node's actual radius (~28-70 world units... though even those are
+	// coarser than 400) keeps its own quantization fine enough to be usable.
+	offFar := offsetFromDir(dirStored).Scale(400)
 	md.requantizePoleTraced(lh, map[string]vec3{"far": offFar})
 	if lh.Pole() != (dir{Theta: 0, Phi: 0}) {
 		t.Fatalf("pole should still be home before any offender enters: got %+v", lh.Pole())
@@ -57,7 +64,7 @@ func TestRequantizeUsesStoredIndicesNotLiveCartesian(t *testing.T) {
 	// in both models, since the tilt is driven solely by the max-Y ("closest to +y")
 	// offset, and D1/D2 share the same Y-component (cos(70°)) regardless of bearing.
 	dirNear := dir{Theta: poleKickTheta / 2, Phi: 0}
-	offNear := offsetFromDir(dirNear).Scale(20)
+	offNear := offsetFromDir(dirNear).Scale(200)
 	newPole := md.requantizePoleTraced(lh, map[string]vec3{"near": offNear})
 	if newPole == (dir{Theta: 0, Phi: 0}) {
 		t.Fatalf("expected the pole to tilt off home once a neighbor entered the singular zone")
@@ -151,33 +158,29 @@ func TestRequantizeIndexTimesStepIsAuthoritative(t *testing.T) {
 // whatever lhSelf.Pole() reports) and compares to far's true live direction: if the
 // loader quantized "far"'s bearing about the wrong (home) pole, this reconstruction
 // diverges by roughly the fixed pole increment; if it honored the persisted tiltedPole,
-// it recovers far's true direction almost exactly (a tiny per-neighbor step constant
-// keeps quantization rounding negligible next to that divergence).
+// it recovers far's true direction almost exactly (a large enough radius keeps the
+// r-DEPENDENT angular quantization step, wire.AngularStepsForR, negligible next to that
+// divergence).
 func TestPersistedPoleDrivesReloadWorldPositions(t *testing.T) {
 	// Compute the tilted pole and far's stored index against it purely with the
-	// in-package quantizer (mirrors TestRequantizePoleTracedPreservesWorldDirectionOnPoleTilt),
-	// using a deliberately tiny step for "far" so subsequent quantization rounding is
-	// negligible next to the (much larger) pole-tilt divergence this test pins.
+	// in-package quantizer (mirrors TestRequantizePoleTracedPreservesWorldDirectionOnPoleTilt).
 	md := &MoveDispatch{}
 	lh := &wire.LayoutHolder{}
-	tinyStep := 0.001 * testDeg
-	// Radial step is wire.LocalStepR (the real lattice step), not an arbitrary literal —
-	// this entry round-trips through a real reload later in this test (WriteLocalPolars ->
-	// LoadTopology -> LayoutHolder.LoadLocalPolars), which now REJECTS a stored stepR that
-	// disagrees with the lattice (docs/bead-lattice.md). This test's own assertion is about
-	// theta/phi pole reconstruction, not radial quantization, so the exact value doesn't
-	// matter to it as long as it agrees with the lattice.
-	lh.SetLocalPolar("far", 0, 0, 0, tinyStep, tinyStep, wire.LocalStepR)
-
+	// farScale is deliberately LARGE (not a small test-only 40): the angular step is now
+	// r-DEPENDENT (one bead of arc, wire.AngularStepsForR) rather than a fixed literal a
+	// test could hand-pick as "tiny" — at r=20000 one bead of arc is ~0.026°, comfortably
+	// under this test's 0.1° bound, the same reasoning
+	// TestRequantizeUsesStoredIndicesNotLiveCartesian's radius bump above uses.
+	const farScale = 20000.0
 	dirFar := dir{Theta: 60 * testDeg, Phi: 30 * testDeg}
-	offFar := offsetFromDir(dirFar).Scale(40)
+	offFar := offsetFromDir(dirFar).Scale(farScale)
 	md.requantizePoleTraced(lh, map[string]vec3{"far": offFar})
 	if lh.Pole() != (dir{Theta: 0, Phi: 0}) {
 		t.Fatalf("pole should still be home before the offender enters: got %+v", lh.Pole())
 	}
 
 	dirNear := dir{Theta: poleKickTheta / 2, Phi: 0}
-	offNear := offsetFromDir(dirNear).Scale(20)
+	offNear := offsetFromDir(dirNear).Scale(farScale / 2)
 	tiltedPole := md.requantizePoleTraced(lh, map[string]vec3{"near": offNear})
 	if tiltedPole == (dir{Theta: 0, Phi: 0}) {
 		t.Fatalf("expected the pole to tilt off home")
@@ -201,14 +204,14 @@ func TestPersistedPoleDrivesReloadWorldPositions(t *testing.T) {
 	mk := func(rel, body string) { writeTreeFile(t, root, rel, body) }
 	mk("nodes/self/meta.json", `{"id":"self","type":"SinkNode","scenePolarR":0,"scenePolarTheta":0,"scenePolarPhi":0}`)
 	mk("nodes/self/inputs/In.json", `{"name":"In"}`)
-	// "far" gets a REAL position, at exactly dirFar/40 from self (self sits at the
+	// "far" gets a REAL position, at exactly dirFar/farScale from self (self sits at the
 	// origin) — its center IS resolvable at reload, so computeLocalPolars re-derives
 	// its bearing from this live offset about whichever pole the loader resolves
 	// (loader.go's `if mCenter, ok3 := b.centers[mid]` branch fires). That re-derive
 	// is internally consistent regardless of which pole was used — the test below
 	// exposes a wrong pole by reconstructing under the INDEPENDENTLY known-correct
 	// tiltedPole, not under lhSelf.Pole() itself.
-	mk("nodes/far/meta.json", fmt.Sprintf(`{"id":"far","type":"SrcNode","scenePolarR":40,"scenePolarTheta":%v,"scenePolarPhi":%v}`, dirFar.Theta, dirFar.Phi))
+	mk("nodes/far/meta.json", fmt.Sprintf(`{"id":"far","type":"SrcNode","scenePolarR":%v,"scenePolarTheta":%v,"scenePolarPhi":%v}`, farScale, dirFar.Theta, dirFar.Phi))
 	mk("nodes/far/outputs/Out.json", `{"name":"Out"}`)
 	mk("nodes/far/edges/e0.json", `{"label":"e0","kind":"data","sourceHandle":"Out","target":"self","targetHandle":"In"}`)
 	writeCascadeEdgesFromEdges(t, root, map[string]string{"self": "SinkNode", "far": "SrcNode"}, [][2]string{{"self", "far"}})
