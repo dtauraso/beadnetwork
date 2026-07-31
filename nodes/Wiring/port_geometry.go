@@ -259,28 +259,43 @@ func nodeTorusOuterR(kind string) float64 {
 	return float64(nodeTorusSteps(kind)) * wire.BeadStepR
 }
 
-// edgeSurfaceGap returns the ACTUAL surface-to-surface distance between two nodes'
-// tori, from their live cartesian world centers — the exact gap chain_beads.go's
-// chainBeads spans (see its "the last bead's far edge lands exactly on the target's
-// torus surface" placement). selfCenter/targetCenter must be nodeWorldPos of each
-// node, the SAME function edgeSegment (above) and every emitGeometry call use, so
-// this reads the identical value the renderer draws the node at — not the SOURCE
-// node's stored, quantized LocalPolar (lp.QuantIR*StepR), which is an integer-step
-// APPROXIMATION of this distance and is exactly the value whose rounding residue
-// produced the half-bead gap this function exists to close (docs/bead-lattice.md;
-// the residue is bounded by half a bead because QuantIR is round(distance/step)).
+// edgeSurfaceGapAndDir returns the ACTUAL surface-to-surface distance BETWEEN two nodes'
+// tori AND the live unit direction from selfCenter toward targetCenter, from their live
+// cartesian world centers — ONE measurement of the edge, not two. selfCenter/targetCenter
+// must be nodeWorldPos of each node, the SAME function edgeSegment (above) and every
+// emitGeometry call use, so this reads the identical value the renderer draws the node
+// at — not the SOURCE node's stored, quantized LocalPolar (lp.QuantIR*StepR and its
+// QuantITheta/QuantIPhi bearing), which is an integer-step APPROXIMATION of both this
+// distance and this direction (1-degree angular cells) and is exactly the pair of values
+// whose rounding residue produced the reported gap: first the LENGTH residue
+// (docs/bead-lattice.md, closed by this function's gap return), then, once that agreed,
+// the remaining BEARING residue — a chain aimed by the stored cell can point up to half a
+// degree away from where the neighbour actually is, so it lands beside the target's
+// surface instead of on it. Returning gap and direction from the SAME Length()/Sub() call
+// makes that impossible: chainBeads cannot read a length from one measurement and a
+// bearing from another, because there is only one measurement here.
 //
-// This one Length() call is deliberately NOT in chain_beads.go: that file is
+// ok is false only when the centers are degenerate (coincident, e.g. a
+// not-yet-positioned node with HasPos false) — direction is undefined at zero
+// separation, and the caller falls back to the stored quantized bearing rather than
+// dividing by a near-zero length.
+//
+// This one Length()/Normalize() pair is deliberately NOT in chain_beads.go: that file is
 // guarded against math.Sqrt/Vec3.Length/Normalize
 // (tools/check-no-sqrt-in-chain-beads.sh, "index arithmetic, trig only at the
 // polar2cart boundary" — memory/feedback_abc_times_constant_not_rederive.md).
-// chainBeads calls this helper and receives only the resulting scalar gap; the
-// sqrt itself lives here, in the file that already computes edgeSegment the same
-// way.
-func edgeSurfaceGap(selfCenter, targetCenter vec3, selfTorusR, targetTorusR float64) float64 {
-	gap := targetCenter.Sub(selfCenter).Length() - selfTorusR - targetTorusR
+// chainBeads calls this helper and receives only the resulting scalar gap and unit
+// vector; the sqrt itself lives here, in the file that already computes edgeSegment the
+// same way.
+func edgeSurfaceGapAndDir(selfCenter, targetCenter vec3, selfTorusR, targetTorusR float64) (gap float64, unitDir vec3, ok bool) {
+	delta := targetCenter.Sub(selfCenter)
+	length := delta.Length()
+	if length < 1e-9 {
+		return 0, vec3{}, false
+	}
+	gap = length - selfTorusR - targetTorusR
 	if gap < 0 {
 		gap = 0
 	}
-	return gap
+	return gap, delta.Normalize(), true
 }

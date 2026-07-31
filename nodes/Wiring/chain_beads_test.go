@@ -506,3 +506,94 @@ func TestChainBeadsSpacingBoundedByHalfBeadResidue(t *testing.T) {
 		}
 	}
 }
+
+// --- "the chain aims where the node is" (docs/bead-lattice.md residue, DIRECTION fix) ---
+//
+// The tests above never trip the bearing defect either: centerGapNotOnLattice always
+// places the live target along the SAME direction its stored LocalPolar bearing already
+// implies (QuantITheta=QuantIPhi=0), so a chain aimed by the stale stored cell would still
+// land in the right place by coincidence. offAxisFixture below deliberately puts the
+// STORED bearing and the LIVE bearing ~53 degrees apart, so a chain aimed by the stored
+// cell instead of the live measurement cannot pass by accident.
+
+// offAxisFixture builds a *nodeMover for one edge "a"->"b" whose STORED LocalPolar bearing
+// (QuantITheta/QuantIPhi, an exact 1-degree-cell direction) and whose LIVE partnerCenters
+// direction are deliberately DIFFERENT directions — the stored bearing points along +Y
+// (QuantITheta=0, straight along the pole), the live center sits off to the side in the
+// X/Z plane at colatitude ~53.13 degrees (a 3-4-5 triangle's angle, chosen only because
+// it is not a whole degree and not a special angle, so no accidental alignment). A chain
+// aimed by the stored cell instead of the live measurement lands roughly `actualGap`
+// world units away from the target's actual surface point — the reported "about a third"
+// of the ORIGINAL (pre both fixes) gap, at this fixture's separations on the order of a
+// world unit, not a rounding-noise fraction of one.
+func offAxisFixture(srcKind, dstKind string, quantIRForCount int, actualGap float64) *nodeMover {
+	lh := &wire.LayoutHolder{}
+	// Stored bearing: straight along the pole (colatitude 0). Deliberately NOT the live
+	// direction below, so any code path that still reads QuantITheta/QuantIPhi for
+	// PLACEMENT (rather than only as edgeStepCount's length input) aims the chain roughly
+	// 53 degrees away from where the fixture's live center actually is.
+	lh.SetLocalPolar("b", 0, 0, quantIRForCount, 0, 0, 0)
+	selfTorus := nodeTorusOuterR(srcKind)
+	dstTorus := nodeTorusOuterR(dstKind)
+	dist := selfTorus + actualGap + dstTorus
+	// Live direction: (3,0,4)/5 — a unit vector well off the stored pole direction, with
+	// no sqrt needed to state exactly (a 3-4-5 triangle), scaled to the exact required
+	// center-to-center distance.
+	targetCenter := vec3{X: dist * 0.6, Y: 0, Z: dist * 0.8}
+	return &nodeMover{
+		id:             "a",
+		geom:           nodeGeom{nodeIdentity: nodeIdentity{Kind: srcKind}}, // HasPos false -> center at origin
+		outTargets:     []string{"b"},
+		cascadeKinds:   map[string]string{"b": dstKind},
+		layoutHolderFn: func() *wire.LayoutHolder { return lh },
+		partnerCenters: map[string]vec3{"b": targetCenter},
+	}
+}
+
+// THE FIX's regression test for BEARING (the length-only fix's TestChainBeadsTangentToLiveGapNotOnLattice
+// counterpart): the last bead's centre must sit at the exact 3D distance
+// targetTorusR+BeadTorusOuterR from the TARGET's own live centre — not merely at the right
+// distance from the origin along SOME axis, which is exactly the assertion a purely
+// along-axis check would pass even while the chain points the wrong way (this fixture's
+// stored bearing and live bearing are ~53 degrees apart, so an along-axis-only check
+// against the WRONG axis would still read as "tangent"). The first bead's near edge from
+// the origin (this node's own centre) is checked the same way the other tests do, since
+// that end is unaffected by direction (bead 0 sits at the fixed radial distance
+// selfTorusR+BeadTorusOuterR from THIS node regardless of which way the chain points).
+func TestChainBeadsLastBeadOnTargetTorusOffAxis(t *testing.T) {
+	const count = 12
+	quantIRForCount := count + nodeTorusSteps("Input") + nodeTorusSteps("Time")
+	// A gap deliberately off the 1-degree-cell lattice too, so this test also exercises
+	// the length fix at the same time as the bearing fix — the two residues are
+	// independent and both must be closed.
+	actualGap := (float64(count) + 0.41) * wire.BeadStepR
+	m := offAxisFixture("Input", "Time", quantIRForCount, actualGap)
+	targetCenter := m.partnerCenters["b"]
+	srcTorus := nodeTorusOuterR("Input")
+	dstTorus := nodeTorusOuterR("Time")
+
+	ox, oy, oz, _, _ := m.chainBeads()
+	if len(ox) != count {
+		t.Fatalf("bead count = %d, want edgeStepCount's %d", len(ox), count)
+	}
+
+	// Bead 0's near edge, from the origin (this node's own live centre) — unaffected by
+	// bearing, so this pins the length end of the invariant only.
+	d0 := math.Sqrt(float64(ox[0])*float64(ox[0]) + float64(oy[0])*float64(oy[0]) + float64(oz[0])*float64(oz[0]))
+	if got, want := d0-wire.BeadTorusOuterR, srcTorus; math.Abs(got-want) > tangencyEps {
+		t.Errorf("bead 0 near edge %.9f, want exactly source torus %.9f", got, want)
+	}
+
+	// Last bead's far edge, measured as a full 3D distance TO THE TARGET'S OWN CENTRE
+	// (not the origin, not a single axis) — the assertion that catches a lateral miss.
+	last := len(ox) - 1
+	dx := float64(ox[last]) - targetCenter.X
+	dy := float64(oy[last]) - targetCenter.Y
+	dz := float64(oz[last]) - targetCenter.Z
+	distToTarget := math.Sqrt(dx*dx + dy*dy + dz*dz)
+	wantDist := dstTorus + wire.BeadTorusOuterR
+	if math.Abs(distToTarget-wantDist) > tangencyEps {
+		t.Errorf("last bead (%d) to target centre = %.9f, want exactly targetTorusR+BeadTorusOuterR = %.9f (off by %.9f)",
+			last, distToTarget, wantDist, distToTarget-wantDist)
+	}
+}
