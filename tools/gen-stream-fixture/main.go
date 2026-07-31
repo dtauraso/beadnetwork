@@ -40,6 +40,7 @@ type chainBeadFixture struct {
 	OZ       float32 `json:"oz"`
 	Lit      uint8   `json:"lit"`
 	LitValue int32   `json:"litValue"`
+	Radius   float32 `json:"radius"`
 }
 
 type layoutLinkFixture struct {
@@ -124,7 +125,7 @@ func buildNodeFrame() nodeFrameFixture {
 		Label:       "widgetNode",
 		LayoutLinks: []layoutLinkFixture{{DstNodeRow: 2}, {DstNodeRow: 9}},
 		ChainBeads: []chainBeadFixture{
-			{OX: 61.5, OY: -62.25, OZ: 63.125, Lit: 1, LitValue: 1},
+			{OX: 61.5, OY: -62.25, OZ: 63.125, Lit: 1, LitValue: 1, Radius: 4.0},
 			{OX: -64.5, OY: 65.25, OZ: -66.125},
 		},
 	}
@@ -138,8 +139,9 @@ func buildNodeFrame() nodeFrameFixture {
 	chainOZ := make([]float32, len(f.ChainBeads))
 	chainLit := make([]uint8, len(f.ChainBeads))
 	chainLitVal := make([]int32, len(f.ChainBeads))
+	chainRadius := make([]float32, len(f.ChainBeads))
 	for i, cb := range f.ChainBeads {
-		chainOX[i], chainOY[i], chainOZ[i], chainLit[i], chainLitVal[i] = cb.OX, cb.OY, cb.OZ, cb.Lit, cb.LitValue
+		chainOX[i], chainOY[i], chainOZ[i], chainLit[i], chainLitVal[i], chainRadius[i] = cb.OX, cb.OY, cb.OZ, cb.Lit, cb.LitValue, cb.Radius
 	}
 
 	raw := Buffer.BuildNodeStreamFrame(
@@ -154,6 +156,7 @@ func buildNodeFrame() nodeFrameFixture {
 		f.Label,
 		dstNodeRows,
 		chainOX, chainOY, chainOZ, chainLit, chainLitVal,
+		chainRadius,
 		nil,
 	)
 	f.Hex = hex.EncodeToString(raw)
