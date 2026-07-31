@@ -1,10 +1,8 @@
 package Wiring
 
 import (
-	"fmt"
 	"math"
 
-	T "github.com/dtauraso/wirefold/Trace"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
@@ -219,71 +217,6 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 		// timing cannot disagree.
 		count := edgeStepCount(lp, m.geom.Kind, m.cascadeKinds[to])
 
-		// TEMPORARY (task/log-the-chain-distances) — items B and C. Fires at most once
-		// per committed drag step per affected edge (chainProbeDirty is armed by
-		// handle()'s moveMsgKindDrag branch for THIS node's own outgoing chains, and by
-		// neighborSetCRequantize for a neighbour's chain aimed at a dragged peer — see
-		// node_mover.go's chainProbeDirty doc comment), not per tick.
-		if m.chainProbeDirty && m.tr != nil {
-			dstKind := m.cascadeKinds[to]
-			srcCenter := nodeWorldPos(m.geom)
-			// B: the three numbers that must agree. chainEndFarEdge is where this
-			// edge's chain ACTUALLY ends (source centre -> last bead's far edge,
-			// mirroring the placement formula below: selfTorusR + count*BeadStepR,
-			// since 2*BeadTorusOuterR == BeadStepR). targetSurfaceDist is where it
-			// SHOULD end (source centre -> target's live torus surface, measured from
-			// partnerCenters — the actual committed cartesian position, NOT the
-			// quantized/rounded QuantIR this edge's length was computed from). diff is
-			// the gap (positive) or overlap (negative) between the two.
-			if targetCenter, ok := m.partnerCenters[to]; ok {
-				// dirFromOffset's second return (r) is the SAME sqrt-based magnitude
-				// requantizePoleTraced already computes at the cart<->polar boundary
-				// for this exact offset (quantized_move.go) — reused here rather than
-				// a second cartesian-magnitude call, which check-no-sqrt-in-chain-beads
-				// bans in THIS file (diagnostic-only, not placement, but that guard is
-				// file-scoped, not call-scoped, so the one unavoidable sqrt is routed
-				// through the helper that already owns it, defined outside this file).
-				_, liveCenterDist := dirFromOffset(targetCenter.Sub(srcCenter))
-				targetSurfaceDist := liveCenterDist - nodeTorusOuterR(dstKind)
-				chainEndFarEdge := selfTorusR + float64(count)*wire.BeadStepR
-				diff := targetSurfaceDist - chainEndFarEdge
-				targetRow := int32(-1)
-				if m.nodeRowFor != nil {
-					if r, ok := m.nodeRowFor(to); ok {
-						targetRow = r
-					}
-				}
-				m.tr.Breadcrumb("chain-end-dist", m.id, to,
-					fmt.Sprintf("chainEndFarEdge=%.6f targetSurfaceDist=%.6f diff=%.6f liveCenterDist=%.6f",
-						chainEndFarEdge, targetSurfaceDist, diff, liveCenterDist))
-				m.writeStreamFrame([]wire.RowEvent{{
-					Kind: T.KindBreadcrumb, Label: T.BreadcrumbChainEndDist, Debug: 1,
-					NodeRow: m.nodeRow, PortRow: -1, TargetRow: targetRow, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
-					X: chainEndFarEdge, Y: targetSurfaceDist, Z: diff,
-				}})
-			}
-			// C: the inputs to the count, so a wrong INPUT (not just a wrong output)
-			// is visible directly. stepTheta/stepPhi already read above via
-			// lp.EffectiveSteps(); rStep is the third return, the effective step
-			// QuantIR is understood to be counted in.
-			_, _, rStep := lp.EffectiveSteps()
-			m.tr.Breadcrumb("chain-end-inputs", m.id, to,
-				fmt.Sprintf("quantIR=%d rStep=%.6f srcTorusSteps=%d dstTorusSteps=%d count=%d",
-					lp.QuantIR, rStep, nodeTorusSteps(m.geom.Kind), nodeTorusSteps(dstKind), count))
-			targetRow := int32(-1)
-			if m.nodeRowFor != nil {
-				if r, ok := m.nodeRowFor(to); ok {
-					targetRow = r
-				}
-			}
-			m.writeStreamFrame([]wire.RowEvent{{
-				Kind: T.KindBreadcrumb, Label: T.BreadcrumbChainEndInputs, Debug: 1,
-				NodeRow: m.nodeRow, PortRow: -1, TargetRow: targetRow, TargetPortRow: -1,
-				EdgeRow: int32(nodeTorusSteps(m.geom.Kind)), Slot: int32(nodeTorusSteps(dstKind)),
-				Value: int32(count), X: float64(lp.QuantIR), Y: rStep,
-			}})
-		}
-
 		// Publish this edge's freshly computed step count onto its own *wire.Out
 		// (docs/bead-lattice.md "Ownership") and onto its edgeMover's stepsIn (so a live
 		// in-flight bead's remaining travel — edgeMover.recomputeGeometry's
@@ -349,8 +282,5 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 			litVal = append(litVal, v)
 		}
 	}
-	// TEMPORARY (task/log-the-chain-distances): one-shot per commit — see
-	// chainProbeDirty's doc comment (node_mover.go).
-	m.chainProbeDirty = false
 	return ox, oy, oz, lit, litVal
 }
