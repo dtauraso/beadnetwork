@@ -60,7 +60,7 @@ func TestChainBeadsStayOutsideBothNodes(t *testing.T) {
 		cascadeKinds:   map[string]string{"b": "Time"}, // radius 9
 		layoutHolderFn: singleNeighborHolder("b", gap),
 	}
-	ox, oy, oz, _, _, _ := m.chainBeads()
+	ox, oy, oz, _, _, _, _ := m.chainBeads()
 	if len(ox) == 0 {
 		t.Fatal("no beads emitted for a 400-unit gap")
 	}
@@ -89,7 +89,7 @@ func TestChainBeadsTouch(t *testing.T) {
 		// on TestChainBeadsStayOutsideBothNodes's gap.
 		layoutHolderFn: singleNeighborHolder("b", 150*wire.DefaultLocalStepR),
 	}
-	ox, oy, oz, _, _, _ := m.chainBeads()
+	ox, oy, oz, _, _, _, _ := m.chainBeads()
 	if len(ox) < 3 {
 		t.Fatalf("want several beads to compare spacing, got %d", len(ox))
 	}
@@ -117,7 +117,7 @@ func TestChainBeadsAlwaysAtLeastOneBead(t *testing.T) {
 		// nodeTorusSteps (2 each) collapses well below the minimum.
 		layoutHolderFn: singleNeighborHolder("b", 3*wire.DefaultLocalStepR),
 	}
-	if ox, _, _, _, _, _ := m.chainBeads(); len(ox) != 1 {
+	if ox, _, _, _, _, _, _ := m.chainBeads(); len(ox) != 1 {
 		t.Errorf("count = %d, want 1 — edgeStepCount clamps a collapsed gap to the minimum, never 0", len(ox))
 	}
 }
@@ -130,7 +130,7 @@ func TestChainBeadsUnknownPartnerContributesNothing(t *testing.T) {
 		id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}}, outTargets: []string{"b"},
 		layoutHolderFn: func() *wire.LayoutHolder { return lh },
 	}
-	if ox, _, _, _, _, _ := m.chainBeads(); len(ox) != 0 {
+	if ox, _, _, _, _, _, _ := m.chainBeads(); len(ox) != 0 {
 		t.Errorf("count = %d, want 0 for an unknown partner", len(ox))
 	}
 }
@@ -140,7 +140,7 @@ func TestChainBeadsUnknownPartnerContributesNothing(t *testing.T) {
 // unknown partner.
 func TestChainBeadsNoLayoutHolderContributesNothing(t *testing.T) {
 	m := &nodeMover{id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}}, outTargets: []string{"b"}}
-	if ox, _, _, _, _, _ := m.chainBeads(); len(ox) != 0 {
+	if ox, _, _, _, _, _, _ := m.chainBeads(); len(ox) != 0 {
 		t.Errorf("count = %d, want 0 with no layoutHolderFn", len(ox))
 	}
 }
@@ -156,7 +156,7 @@ func TestChainBeadsCountIsSpanProportional(t *testing.T) {
 			outTargets: []string{"b"}, cascadeKinds: map[string]string{"b": "Input"},
 			layoutHolderFn: singleNeighborHolder("b", centerGap),
 		}
-		ox, _, _, _, _, _ := m.chainBeads()
+		ox, _, _, _, _, _, _ := m.chainBeads()
 		return len(ox)
 	}
 	// base and span must each be an exact multiple of wire.DefaultLocalStepR
@@ -344,7 +344,7 @@ func TestChainBeadsExactDoubleTangency(t *testing.T) {
 				cascadeKinds:   map[string]string{"b": dstKind},
 				layoutHolderFn: singleNeighborHolder("b", gap),
 			}
-			ox, oy, oz, _, _, _ := m.chainBeads()
+			ox, oy, oz, _, _, _, _ := m.chainBeads()
 			if len(ox) == 0 {
 				t.Fatalf("%s->%s gap %.0f: no beads emitted", srcKind, dstKind, gap)
 			}
@@ -453,7 +453,7 @@ func TestChainBeadsTangentToLiveGapNotOnLattice(t *testing.T) {
 	for _, frac := range fractions {
 		actualGap := (float64(count) + frac) * wire.BeadStepR
 		m := centerGapNotOnLattice("Input", "Time", quantIRForCount, actualGap)
-		ox, oy, oz, _, _, radius := m.chainBeads()
+		ox, oy, oz, _, _, radius, _ := m.chainBeads()
 		if got := len(ox); got != count {
 			t.Fatalf("frac %.2f: bead count = %d, want edgeStepCount's %d", frac, got, count)
 		}
@@ -478,7 +478,7 @@ func TestChainBeadsSpanFixKeepsCountFromEdgeStepCount(t *testing.T) {
 	// A gap deliberately off the lattice by a third of a bead step.
 	actualGap := (float64(count) + 0.33) * wire.BeadStepR
 	m := centerGapNotOnLattice("Input", "Time", quantIRForCount, actualGap)
-	ox, _, _, _, _, _ := m.chainBeads()
+	ox, _, _, _, _, _, _ := m.chainBeads()
 	want := edgeStepCount(wire.LocalPolar{QuantIR: quantIRForCount}, "Input", "Time")
 	if want != count {
 		t.Fatalf("test fixture: edgeStepCount = %d, want %d", want, count)
@@ -502,7 +502,7 @@ func TestChainBeadsSpacingExactlyTwiceBeadOuterR(t *testing.T) {
 	for _, residueFrac := range []float64{-0.5, -0.2, 0, 0.2, 0.5} {
 		actualGap := (float64(count) + residueFrac) * wire.BeadStepR
 		m := centerGapNotOnLattice("Input", "Input", quantIRForCount, actualGap)
-		ox, oy, oz, _, _, radius := m.chainBeads()
+		ox, oy, oz, _, _, radius, _ := m.chainBeads()
 		if len(ox) != count {
 			t.Fatalf("residue %.2f: bead count = %d, want %d", residueFrac, len(ox), count)
 		}
@@ -583,7 +583,7 @@ func TestChainBeadsLastBeadOnTargetTorusOffAxis(t *testing.T) {
 	srcTorus := nodeTorusOuterR("Input")
 	dstTorus := nodeTorusOuterR("Time")
 
-	ox, oy, oz, _, _, radius := m.chainBeads()
+	ox, oy, oz, _, _, radius, _ := m.chainBeads()
 	if len(ox) != count {
 		t.Fatalf("bead count = %d, want edgeStepCount's %d", len(ox), count)
 	}

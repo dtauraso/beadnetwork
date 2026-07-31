@@ -1,8 +1,10 @@
 package Wiring
 
 import (
+	"fmt"
 	"math"
 
+	T "github.com/dtauraso/wirefold/Trace"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
@@ -177,13 +179,19 @@ func litBeadIndex(t float64, steps int) (int, bool) {
 // radius (see the per-edge sizing derivation below `beadOuterR`/`sphereR`) — beads on
 // different edges are different sizes on purpose, so this cannot be the shared constant
 // wire.BeadRadius the way it used to be.
-func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []int32, radius []float32) {
+// breadcrumbs (the final return value) is DIAGNOSTIC ONLY (task/log-node4-chain-aim): one
+// "chain-aim" event per outgoing target, built here but appended to the CALLER's own
+// writeStreamFrame events slice rather than sent via a nested m.writeStreamFrame call —
+// writeStreamFrame itself invokes chainBeads to build its frame's chain-bead columns, so a
+// second writeStreamFrame call from inside here would recurse (and, before this fix, did:
+// chainBeads -> writeStreamFrame -> chainBeads -> ... stack overflow).
+func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []int32, radius []float32, breadcrumbs []wire.RowEvent) {
 	if len(m.outTargets) == 0 || m.layoutHolderFn == nil {
-		return nil, nil, nil, nil, nil, nil
+		return nil, nil, nil, nil, nil, nil, nil
 	}
 	lh := m.layoutHolderFn()
 	if lh == nil {
-		return nil, nil, nil, nil, nil, nil
+		return nil, nil, nil, nil, nil, nil, nil
 	}
 	localPolars := lh.LocalPolarsSnapshot()
 	pole := dir(lh.Pole())
@@ -339,9 +347,11 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 		sphereR := wire.BeadRadius
 		liveDir := vec3{}
 		useLiveAim := false
+		gap := 0.0
 		if targetCenter, ok := m.partnerCenters[to]; ok {
 			targetTorusR := nodeTorusOuterR(m.cascadeKinds[to])
-			gap, dirVec, dirOK := edgeSurfaceGapAndDir(selfCenter, targetCenter, selfTorusR, targetTorusR)
+			gapVal, dirVec, dirOK := edgeSurfaceGapAndDir(selfCenter, targetCenter, selfTorusR, targetTorusR)
+			gap = gapVal
 			if dirOK {
 				bOuter := gap / (2 * float64(count))
 				if bOuter < 0 {
@@ -356,6 +366,44 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 				liveDir = dirVec
 				useLiveAim = true
 			}
+		}
+		// DIAGNOSTIC ONLY (task/log-node4-chain-aim): one breadcrumb per outgoing target
+		// per chainBeads() call, comparing the live aim against the stored quantized
+		// bearing side by side even when live aim won, so a drag-time trace can show
+		// whether the two ever disagree while useLiveAim is true. Gated on m.tr != nil
+		// exactly like emitGeometry's own breadcrumb calls elsewhere in this package —
+		// cheap no-op with no stream wired (headless tests, bare movers).
+		if m.tr != nil {
+			_, partnerOK := m.partnerCenters[to]
+			targetRow := int32(-1)
+			if m.nodeRowFor != nil {
+				if r, ok := m.nodeRowFor(to); ok {
+					targetRow = r
+				}
+			}
+			// liveDir is ALREADY a unit vector (edgeSurfaceGapAndDir already normalized
+			// it), so its own theta/phi come from math.Acos/math.Atan2 directly on the
+			// unit components — no second vector-length or re-normalize call, which
+			// tools/check-no-sqrt-in-chain-beads.sh bans in this file (trig itself is
+			// allowed, only the sqrt-fingerprinted helpers are not).
+			liveTheta, livePhi := 0.0, 0.0
+			if useLiveAim {
+				liveTheta = math.Acos(clamp(liveDir.Y, -1, 1))
+				livePhi = math.Atan2(liveDir.Z, liveDir.X)
+			}
+			value := fmt.Sprintf(
+				"to=%s useLiveAim=%v partnerCenterOK=%v count=%d gap=%.4f beadOuterR=%.4f "+
+					"liveDir=(theta=%.4f,phi=%.4f) storedDir=(theta=%.4f,phi=%.4f) "+
+					"quantITheta=%d quantIPhi=%d quantIR=%d stepTheta=%.6f stepPhi=%.6f",
+				to, useLiveAim, partnerOK, count, gap, beadOuterR,
+				liveTheta, livePhi, ndir.Theta, ndir.Phi,
+				lp.QuantITheta, lp.QuantIPhi, lp.QuantIR, stepTheta, stepPhi)
+			m.tr.Breadcrumb("chain-aim", m.id, to, value)
+			breadcrumbs = append(breadcrumbs, wire.RowEvent{
+				Kind: T.KindBreadcrumb, Label: T.BreadcrumbChainAim, Debug: 1,
+				NodeRow: m.nodeRow, PortRow: -1, TargetRow: targetRow, TargetPortRow: -1,
+				EdgeRow: -1, Slot: -1, Text: value,
+			})
 		}
 		// One coordinate: bead index i. Offset from this node's centre is
 		// selfTorusR + beadOuterR + i*spacing (docs/bead-lattice.md "Placement",
@@ -396,5 +444,5 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 			radius = append(radius, float32(sphereR))
 		}
 	}
-	return ox, oy, oz, lit, litVal, radius
+	return ox, oy, oz, lit, litVal, radius, breadcrumbs
 }

@@ -474,6 +474,22 @@ func (m *nodeMover) handle(msg moveMsg) {
 		}
 		m.partnerCenters[msg.SenderID] = msg.FromCenter
 		if m.tr != nil {
+			// DIAGNOSTIC ONLY (task/log-node4-chain-aim): records that this node's own
+			// goroutine received a neighbor-center push, and from whom, so a drag-time
+			// trace can show whether/when it arrives relative to this node's own emits.
+			value := fmt.Sprintf("sender=%s center=(%.4f,%.4f,%.4f)", msg.SenderID, msg.FromCenter.X, msg.FromCenter.Y, msg.FromCenter.Z)
+			m.tr.Breadcrumb("neighbor-center-recv", m.id, msg.SenderID, value)
+			senderRow := int32(-1)
+			if m.nodeRowFor != nil {
+				if r, ok := m.nodeRowFor(msg.SenderID); ok {
+					senderRow = r
+				}
+			}
+			m.writeStreamFrame([]wire.RowEvent{{
+				Kind: T.KindBreadcrumb, Label: T.BreadcrumbNeighborCenterRecv, Debug: 1,
+				NodeRow: m.nodeRow, PortRow: -1, TargetRow: senderRow, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
+				Text: value,
+			}})
 			m.emitGeometry()
 		}
 		return
@@ -483,6 +499,23 @@ func (m *nodeMover) handle(msg moveMsg) {
 		// (the dragged node) moved to msg.FromCenter; THIS node stays put and re-quantizes
 		// its OWN edge to SenderID from the live offset — theta, phi AND r all fresh —
 		// so both the angle and the distance to SenderID change (neighborSetCRequantize).
+		if m.tr != nil {
+			// DIAGNOSTIC ONLY (task/log-node4-chain-aim): records that this node's own
+			// goroutine received a neighbor-setC (edge re-quantize) message and from whom.
+			senderRow := int32(-1)
+			if m.nodeRowFor != nil {
+				if r, ok := m.nodeRowFor(msg.SenderID); ok {
+					senderRow = r
+				}
+			}
+			value := fmt.Sprintf("sender=%s", msg.SenderID)
+			m.tr.Breadcrumb("neighbor-setc-recv", m.id, msg.SenderID, value)
+			m.writeStreamFrame([]wire.RowEvent{{
+				Kind: T.KindBreadcrumb, Label: T.BreadcrumbNeighborSetCRecv, Debug: 1,
+				NodeRow: m.nodeRow, PortRow: -1, TargetRow: senderRow, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
+				Text: value,
+			}})
+		}
 		if m.neighborSetC != nil {
 			m.neighborSetC(m.id, msg.SenderID, nodeWorldPos(m.geom), msg.FromCenter, msg.DeltaA, msg.DeltaB, msg.DeltaC)
 		}
@@ -852,7 +885,14 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 	// This node's own placeholder chain beads, node-local (chain_beads.go). Computed here
 	// on this node's own goroutine from its own center + its own partnerCenters map — no
 	// cross-goroutine position read, same as dstNodeRows above.
-	chainOX, chainOY, chainOZ, chainLit, chainLitVal, chainRadius := m.chainBeads()
+	chainOX, chainOY, chainOZ, chainLit, chainLitVal, chainRadius, chainBreadcrumbs := m.chainBeads()
+	if len(chainBreadcrumbs) > 0 {
+		// DIAGNOSTIC ONLY (task/log-node4-chain-aim): chainBeads' own "chain-aim" events,
+		// appended here rather than sent via a nested writeStreamFrame call from inside
+		// chainBeads (which would recurse back into chainBeads — see that function's doc
+		// comment on its breadcrumbs return value).
+		events = append(events, chainBreadcrumbs...)
+	}
 	frame := m.buildFrame(uint32(m.clk.Tick()), m.nodeRow,
 		float32(center.X), float32(center.Y), float32(center.Z),
 		float32(nodeRadius(m.geom.Kind)), float32(sphereR),
