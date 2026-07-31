@@ -21,7 +21,7 @@
 package Buffer
 
 // BufLayoutVersion is the schema version. Bump when any column changes.
-const BufLayoutVersion = 36
+const BufLayoutVersion = 37
 
 // BufInteriorSlotsPerNode is the fixed number of interior grid slots reserved per
 // node in the Interior block (a 2x2 held/interior-bead grid: slot = row*2 + col).
@@ -200,11 +200,13 @@ type bufLayoutChainBead struct {
 	// the value, not just the fact of being lit — the whole animation is ONE fill-colour
 	// change against the grey resting chain.
 	LitValue int32 `buf:"i32"` // traversing bead's value (0|1); meaningful when Lit==1
-	// Radius is this bead's own SPHERE radius (not the outer/ring radius). Beads on
-	// different edges differ: each edge picks the one size that makes its own beads touch
-	// their neighbours exactly on a STRAIGHT chain (nodes/Wiring/chain_beads.go), so this
-	// can no longer be a fixed constant shared by every bead the way BeadRadius once was.
-	Radius float32 `buf:"f32"` // per-edge bead sphere radius
+	// There is no per-bead Radius column. Under the bead-cell model (MODEL.md "a node
+	// lives in N lattices, one per neighbour", nodes/Wiring/bead_cell_solve.go) a node's
+	// placement guarantees every incident edge's center-to-center distance is an exact
+	// integer multiple of wire.BeadStepR, so the single global wire.BeadRadius/
+	// wire.BeadStepR lattice constants already make every chain's beads touch their
+	// neighbours exactly — a per-edge radius (added in commit d50fab83, removed here) is
+	// unnecessary and was removed along with the residue it existed to absorb.
 }
 
 // bufLayoutInterior defines one row of the interior-bead column block.

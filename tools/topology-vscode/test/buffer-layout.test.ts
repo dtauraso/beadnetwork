@@ -263,8 +263,8 @@ describe("buffer-layout — Overlay block", () => {
 // ─ Meta ───────────────────────────────────────────────────────────────────────
 
 describe("buffer-layout — meta", () => {
-  it("schema version is 36", () => {
-    expect(BUF_LAYOUT_VERSION).toBe(36);
+  it("schema version is 37", () => {
+    expect(BUF_LAYOUT_VERSION).toBe(37);
   });
 
   it("header size is 8 bytes (2×u32: tick + layoutLinkCount; no beadCount/nodeCount/portCount/labelBytesCount/portNameBytesCount/edgeCount/edgeLabelBytesCount/eventCount — beads, the node-owner-group blocks, the Edge block, and events are their own tagged/per-owner frames)", () => {

@@ -259,43 +259,39 @@ func nodeTorusOuterR(kind string) float64 {
 	return float64(nodeTorusSteps(kind)) * wire.BeadStepR
 }
 
-// edgeSurfaceGapAndDir returns the ACTUAL surface-to-surface distance BETWEEN two nodes'
-// tori AND the live unit direction from selfCenter toward targetCenter, from their live
-// cartesian world centers — ONE measurement of the edge, not two. selfCenter/targetCenter
-// must be nodeWorldPos of each node, the SAME function edgeSegment (above) and every
-// emitGeometry call use, so this reads the identical value the renderer draws the node
-// at — not the SOURCE node's stored, quantized LocalPolar (lp.QuantIR*StepR and its
-// QuantITheta/QuantIPhi bearing), which is an integer-step APPROXIMATION of both this
-// distance and this direction (1-degree angular cells) and is exactly the pair of values
-// whose rounding residue produced the reported gap: first the LENGTH residue
-// (docs/bead-lattice.md, closed by this function's gap return), then, once that agreed,
-// the remaining BEARING residue — a chain aimed by the stored cell can point up to half a
-// degree away from where the neighbour actually is, so it lands beside the target's
-// surface instead of on it. Returning gap and direction from the SAME Length()/Sub() call
-// makes that impossible: chainBeads cannot read a length from one measurement and a
-// bearing from another, because there is only one measurement here.
+// edgeCenterDistAndDir returns the LIVE center-to-center distance BETWEEN two nodes AND
+// the live unit direction from selfCenter toward targetCenter, from their live cartesian
+// world centers — ONE measurement of the edge, not two. selfCenter/targetCenter must be
+// nodeWorldPos of each node, the SAME function edgeSegment (above) and every emitGeometry
+// call use, so this reads the identical value the renderer draws the node at — not the
+// SOURCE node's stored, quantized LocalPolar (lp.QuantIR*StepR and its QuantITheta/
+// QuantIPhi bearing), which is an integer-step APPROXIMATION of both this distance and
+// this direction (1-degree angular cells). Under the bead-cell model
+// (nodes/Wiring/bead_cell_solve.go) a validly-placed node's live distance IS already an
+// exact integer multiple of wire.BeadStepR for every neighbour, so this measurement and
+// the stored approximation should agree — but chain_beads.go still reads the LIVE value
+// (edgeStepCount's `dist`) rather than the stored one, so a bearing residue (a chain aimed
+// up to half a degree off, from the 1-degree stored cell) can never reappear independent of
+// the length: distance and direction are returned from the SAME Length()/Sub() call, so a
+// caller cannot read a length from one measurement and a bearing from another.
 //
 // ok is false only when the centers are degenerate (coincident, e.g. a
 // not-yet-positioned node with HasPos false) — direction is undefined at zero
-// separation, and the caller falls back to the stored quantized bearing rather than
-// dividing by a near-zero length.
+// separation, and the caller falls back to the stored quantized bearing/distance rather
+// than dividing by a near-zero length.
 //
 // This one Length()/Normalize() pair is deliberately NOT in chain_beads.go: that file is
 // guarded against math.Sqrt/Vec3.Length/Normalize
 // (tools/check-no-sqrt-in-chain-beads.sh, "index arithmetic, trig only at the
 // polar2cart boundary" — memory/feedback_abc_times_constant_not_rederive.md).
-// chainBeads calls this helper and receives only the resulting scalar gap and unit
+// chainBeads calls this helper and receives only the resulting scalar distance and unit
 // vector; the sqrt itself lives here, in the file that already computes edgeSegment the
 // same way.
-func edgeSurfaceGapAndDir(selfCenter, targetCenter vec3, selfTorusR, targetTorusR float64) (gap float64, unitDir vec3, ok bool) {
+func edgeCenterDistAndDir(selfCenter, targetCenter vec3) (dist float64, unitDir vec3, ok bool) {
 	delta := targetCenter.Sub(selfCenter)
 	length := delta.Length()
 	if length < 1e-9 {
 		return 0, vec3{}, false
 	}
-	gap = length - selfTorusR - targetTorusR
-	if gap < 0 {
-		gap = 0
-	}
-	return gap, delta.Normalize(), true
+	return length, delta.Normalize(), true
 }

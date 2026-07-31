@@ -62,7 +62,6 @@ func BuildNodeStreamFrame(
 	chainBeadOX, chainBeadOY, chainBeadOZ []float32,
 	chainBeadLit []uint8,
 	chainBeadLitValue []int32,
-	chainBeadRadius []float32,
 	events []StreamEvent,
 ) []byte {
 	labelBytes := []byte(label)
@@ -73,7 +72,7 @@ func BuildNodeStreamFrame(
 	for _, s := range []struct {
 		name string
 		n    int
-	}{{"chainBeadOY", len(chainBeadOY)}, {"chainBeadOZ", len(chainBeadOZ)}, {"chainBeadLit", len(chainBeadLit)}, {"chainBeadLitValue", len(chainBeadLitValue)}, {"chainBeadRadius", len(chainBeadRadius)}} {
+	}{{"chainBeadOY", len(chainBeadOY)}, {"chainBeadOZ", len(chainBeadOZ)}, {"chainBeadLit", len(chainBeadLit)}, {"chainBeadLitValue", len(chainBeadLitValue)}} {
 		if s.n != chainBeadCount {
 			panic(fmt.Sprintf(
 				"BuildNodeStreamFrame: node row %d has %d chain-bead OX entries but %s has %d — the chain-bead slices are parallel, one entry per bead",
@@ -111,7 +110,7 @@ func BuildNodeStreamFrame(
 
 	for i := 0; i < chainBeadCount; i++ {
 		rowOff := off + i*BufChainBeadStride
-		SetChainBeadRow(buf[rowOff:rowOff+BufChainBeadStride], 0, chainBeadOX[i], chainBeadOY[i], chainBeadOZ[i], chainBeadLit[i], chainBeadLitValue[i], chainBeadRadius[i])
+		SetChainBeadRow(buf[rowOff:rowOff+BufChainBeadStride], 0, chainBeadOX[i], chainBeadOY[i], chainBeadOZ[i], chainBeadLit[i], chainBeadLitValue[i])
 	}
 	off += chainBeadCount * BufChainBeadStride
 

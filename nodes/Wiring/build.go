@@ -167,19 +167,19 @@ func (b *buildCtx) allocateWires() {
 		// more, a port contributes no geometry.
 		srcG, tgtG := b.nodeGeoms[e.Source], b.nodeGeoms[e.Target]
 		seg := edgeSegment(srcG, tgtG)
-		// Steps: the SOURCE node's own stored LocalPolar to the target, run through
+		// Steps: the LIVE center-to-center distance between the two nodes, run through
 		// edgeStepCount (docs/bead-lattice.md "The count") — the SAME function and the
-		// SAME LocalPolar entry the source node's own chainBeads pass (chain_beads.go)
+		// SAME kind of distance the source node's own chainBeads pass (chain_beads.go)
 		// will keep recomputing once running, so this load-time value and that first
 		// live pass can never disagree. computeLocalPolars (b.localPolars) runs before
 		// this phase and gives every domain-edge pair a LocalPolar entry on both
 		// endpoints, so a lookup miss here is a build-invariant violation, not a
-		// legitimate absence to fall back from.
-		steps := 1
+		// legitimate absence to fall back from — the LocalPolar entry itself is still
+		// required as that existence check, even though its QuantIR is no longer what
+		// feeds the step count.
 		found := false
 		for _, lp := range b.localPolars[e.Source] {
 			if lp.To == e.Target {
-				steps = edgeStepCount(lp, srcG.Kind, tgtG.Kind)
 				found = true
 				break
 			}
@@ -188,6 +188,8 @@ func (b *buildCtx) allocateWires() {
 			panic("allocateWires: no LocalPolar from " + e.Source + " to " + e.Target +
 				" — computeLocalPolars should have populated one for every domain edge")
 		}
+		dist := nodeWorldPos(srcG).Sub(nodeWorldPos(tgtG)).Length()
+		steps := edgeStepCount(dist, srcG.Kind, tgtG.Kind)
 		edgeSteps[e.Label] = steps
 		edgeSegments[e.Label] = seg
 		// One wire per destination input port, and — since fan-in is removed

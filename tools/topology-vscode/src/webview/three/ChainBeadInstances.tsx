@@ -13,14 +13,13 @@
 // mistake. Beads sit one DIAMETER apart so they TOUCH — a chain is a solid line of beads, not a
 // dotted one.
 //
-// RADIUS IS PER EDGE, NOT SHARED (nodes/Wiring/chain_beads.go): every edge picks the one bead
-// size that makes its own beads touch their neighbours exactly on a STRAIGHT chain — a fixed
-// node's live cartesian gap is not, in general, a whole multiple of the bead lattice's fixed
-// step, and stretching spacing to absorb that residue (an earlier attempt) left interior beads
-// visibly not-quite-touching. So the meshes below are authored at SHADING_PARAM_BEAD_RADIUS and
-// each instance is SCALED by its own streamed radius / SHADING_PARAM_BEAD_RADIUS — spacing (Go
-// side) and this scale both derive from the SAME per-edge beadOuterR, so "no gaps" still cannot
-// drift into a gap by one side editing its own copy.
+// RADIUS IS UNIFORM, NOT PER EDGE (nodes/Wiring/bead_cell_solve.go, MODEL.md "a node lives in
+// N lattices, one per neighbour"): a node's placement guarantees every incident edge's
+// center-to-center distance is an exact integer multiple of wire.BeadStepR, so the single
+// fixed SHADING_PARAM_BEAD_RADIUS already makes every chain's beads touch their neighbours
+// exactly — there is no residue for a per-edge size to absorb (a per-edge Radius column,
+// commit d50fab83, existed for exactly that residue and was removed with it). Every mesh below
+// is authored directly at SHADING_PARAM_BEAD_RADIUS with no per-instance scale.
 //
 // The animation is exactly ONE visual difference: the occupied bead's FILL becomes bead 0's or
 // bead 1's own fill (bead-style.ts). No size change, no ring change, nothing appears or
@@ -64,7 +63,7 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
     const ring = ringRef.current;
     if (!unlitBody || !litBody || !ring) return;
 
-    const { positions, count, lit, litValue, radius } = getChainBeads();
+    const { positions, count, lit, litValue } = getChainBeads();
     // Clamp to the allocated instance count. buffer-scene.tsx's capacity-growth table grows
     // chainBeadCap off this same count, so a clamp lasts one frame at most — but it is still a
     // clamp, and it is why this block has its OWN row in that table rather than borrowing
@@ -79,13 +78,9 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
     let unlitCount = 0;
     let litCount = 0;
     for (let i = 0; i < drawn; i++) {
-      // Per-edge bead SIZE (nodes/Wiring/chain_beads.go): every mesh here is authored at
-      // SHADING_PARAM_BEAD_RADIUS geometry, so this bead's own streamed radius becomes a
-      // per-instance uniform SCALE — sphere body, lit body, and ring all get the SAME
-      // factor, so the ring stays on the sphere's surface rather than drifting off it.
-      const s = radius[i]! / SHADING_PARAM_BEAD_RADIUS;
-      matRef.current.makeScale(s, s, s);
-      matRef.current.setPosition(positions[i * 3]!, positions[i * 3 + 1]!, positions[i * 3 + 2]!);
+      // Uniform bead size (see this file's header comment): no per-instance scale — every
+      // bead is authored directly at SHADING_PARAM_BEAD_RADIUS geometry.
+      matRef.current.makeTranslation(positions[i * 3]!, positions[i * 3 + 1]!, positions[i * 3 + 2]!);
       ring.setMatrixAt(i, matRef.current);
       ring.setColorAt(i, colRef.current.set(RING_COLOR));
 
