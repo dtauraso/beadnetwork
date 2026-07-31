@@ -90,6 +90,36 @@ func pollPositionFileWritten(t *testing.T, root, nodeID string) {
 	}
 }
 
+// pollLocalPolarsFileWritten waits until <root>/nodes/<id>/local-polars.json exists on
+// disk. Sibling of pollPositionFileWritten above, and it exists because the in-memory
+// sync point CANNOT cover the disk write.
+//
+// neighborSetCRequantize emits its "abc-drag" breadcrumb BEFORE it calls
+// persistLocalPolars (quantized_move.go — the breadcrumb sits about eighteen lines above
+// the persist), so waitForAbcDrag establishes happens-before for the LayoutHolder read
+// and nothing more. Borrowing it for a DISK assertion, as this test used to, reads the
+// file in the window between the breadcrumb and the write: it passed almost always and
+// failed under load with "local-polars.json was never written". Verified by widening that
+// window with a temporary sleep before the persist — without this poll the test fails
+// with exactly that message, with it the test passes.
+//
+// Polling rather than moving the breadcrumb after the persist: production ordering should
+// not be rearranged to serve a test, and every other waiter on that breadcrumb would then
+// be blocked behind disk I/O it does not care about.
+func pollLocalPolarsFileWritten(t *testing.T, root, nodeID string) {
+	t.Helper()
+	deadline := time.Now().Add(2 * time.Second)
+	for {
+		if readJSONIfExists(localPolarsFilePath(root, nodeID), &localPolarsFileJSON{}) {
+			return
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("drag never wrote local-polars.json for %s, so the requantize did not persist", nodeID)
+		}
+		time.Sleep(time.Millisecond)
+	}
+}
+
 // Individual snapping: dragging a node moves and persists ONLY that node (its grid-snapped
 // scalar triple, quantITheta/quantIPhi/quantIR — the sole persisted position source under
 // the plain-polar model), leaving every other node untouched — no subtree cascade.
@@ -255,6 +285,7 @@ func TestIndividualSnap_OnlyDraggedNodePersists(t *testing.T) {
 	// assertion above (lpAfter, from lhSrc.LocalPolarsSnapshot) reads the LIVE
 	// LayoutHolder — the audit confirmed it passes even with WriteLocalPolars persisting
 	// nothing at all, so it says nothing about persistence despite this test's name.
+	pollLocalPolarsFileWritten(t, root, "src")
 	var srcLP localPolarsFileJSON
 	if !readJSONIfExists(localPolarsFilePath(root, "src"), &srcLP) {
 		t.Fatalf("src's local-polars.json was never written, so the requantize did not persist")
