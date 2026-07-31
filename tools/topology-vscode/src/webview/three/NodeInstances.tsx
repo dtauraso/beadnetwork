@@ -29,6 +29,7 @@ import {
   BUFFER_NODE_TAG, BUFFER_RING_TAG, NODE_SPHERE_RADIUS,
   NODE_RING_TUBE_RATIO, RING_PICK_TUBE_RATIO, nodeRowColors,
 } from "./buffer-scene-shared";
+import { computeNodeDepthOrder, setNodeDrawOrder } from "./node-depth-order";
 
 export function NodeInstances({ capacity }: { capacity: number }) {
   const envTex = useContext(EnvTexContext);
@@ -41,7 +42,7 @@ export function NodeInstances({ capacity }: { capacity: number }) {
   const sclRef  = useRef(new THREE.Vector3());
   const colRef  = useRef(new THREE.Color());
 
-  useFrame(() => {
+  useFrame(({ camera }) => {
     const body = bodyRef.current;
     const ring = ringRef.current;
     const ringPick = ringPickRef.current;
@@ -62,27 +63,44 @@ export function NodeInstances({ capacity }: { capacity: number }) {
 
     const n = Math.min(nodeCount, capacity);
     const q = quatRef.current; // identity (no per-node rotation)
-    for (let i = 0; i < n; i++) {
-      const r = readNodeRadius(nodeView, i) || NODE_SPHERE_RADIUS;
+    // Depth-sort node rows back-to-front against the live camera THIS frame, in the SAME
+    // useFrame that writes the instance matrices — that's what keeps a moved node's new
+    // position and its new draw order landing on the same frame (the TIMING CONTRACT this
+    // file's imperative useFrame update exists for). order[slot] = nodeRow; writing
+    // instance `slot` with row `row`'s transform means the nearest node is written
+    // (and drawn) LAST, so it wins the pixel under depthWrite=false (node-depth-order.ts).
+    const order = computeNodeDepthOrder(
+      n,
+      (row) => readNodeCX(nodeView, row),
+      (row) => readNodeCY(nodeView, row),
+      (row) => readNodeCZ(nodeView, row),
+      camera.position.x, camera.position.y, camera.position.z,
+    );
+    setNodeDrawOrder(order);
+    for (let slot = 0; slot < n; slot++) {
+      const row = order[slot]!;
+      const r = readNodeRadius(nodeView, row) || NODE_SPHERE_RADIUS;
       posRef.current.set(
-        readNodeCX(nodeView, i),
-        readNodeCY(nodeView, i),
-        readNodeCZ(nodeView, i),
+        readNodeCX(nodeView, row),
+        readNodeCY(nodeView, row),
+        readNodeCZ(nodeView, row),
       );
       // Body: unit sphere scaled to the node radius.
       sclRef.current.setScalar(r);
       matRef.current.compose(posRef.current, q, sclRef.current);
-      body.setMatrixAt(i, matRef.current);
+      body.setMatrixAt(slot, matRef.current);
       // Ring: unit torus (major radius 1) scaled to the node radius; tube thickness
       // is baked into the geometry as a fraction of that radius (NODE_RING_TUBE_RATIO).
-      ring.setMatrixAt(i, matRef.current);
+      // Written at the SAME drawSlot as the body above, so the ring never separates from
+      // its node's body once the draw order departs from row order.
+      ring.setMatrixAt(slot, matRef.current);
       // Invisible pick-proxy: identical transform to the visible ring, just a thicker
-      // raycast target (see RING_PICK_TUBE_RATIO comment).
-      ringPick.setMatrixAt(i, matRef.current);
+      // raycast target (see RING_PICK_TUBE_RATIO comment). Same drawSlot for the same reason.
+      ringPick.setMatrixAt(slot, matRef.current);
 
-      const { fill, stroke } = nodeRowColors(nodeView, i);
-      body.setColorAt(i, colRef.current.set(fill));
-      ring.setColorAt(i, colRef.current.set(stroke));
+      const { fill, stroke } = nodeRowColors(nodeView, row);
+      body.setColorAt(slot, colRef.current.set(fill));
+      ring.setColorAt(slot, colRef.current.set(stroke));
     }
     body.count = n;
     ring.count = n;
