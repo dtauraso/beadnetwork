@@ -205,8 +205,14 @@ func TestDragPersistsOnlyDraggedNodeAndRequantizesNeighborsOnDisk(t *testing.T) 
 	// Drag A far enough, off both leaves' prior bearings, that quantization actually
 	// changes the neighbor indices for BOTH B and C (a purely radial move along an
 	// existing bearing would leave theta/phi unchanged for that one neighbor and not
-	// exercise the "angle also changes" half of the model).
-	target := centerBefore["A"].Add(vec3{X: 90, Y: -70, Z: 55})
+	// exercise the "angle also changes" half of the model). The angle gate (bead_crud.go,
+	// PLAN.md) only admits a bead-count change when the drag heads AWAY from a touching
+	// bead's source, so the drag direction is built from BOTH leaves' own outward
+	// bearings from A (summed, not picked — every touching bead judges the SAME single
+	// drag vector) so it admits the add on both edges at once.
+	outwardB := centerBefore["B"].Sub(centerBefore["A"]).Normalize()
+	outwardC := centerBefore["C"].Sub(centerBefore["A"]).Normalize()
+	target := centerBefore["A"].Add(outwardB.Add(outwardC).Normalize().Scale(30))
 	// wantA is the point the drag actually COMMITS to — the scene-lattice-snapped
 	// target, not the raw one (docs/which-lattice-a-node-lives-on.md; commitNodeMoveLocal
 	// now draws/persists the quantized position, never the continuous raw target).
@@ -289,12 +295,13 @@ func TestDragPersistsOnlyDraggedNodeAndRequantizesNeighborsOnDisk(t *testing.T) 
 		if !found {
 			t.Fatalf("%s's persisted meta.json has no localPolars entry for A: keys=%v", id, meta)
 		}
-		if qTheta == before.QuantITheta && qPhi == before.QuantIPhi {
-			t.Fatalf("(c) %s's persisted local polar to A should have changed in theta/phi: before=(%d,%d) persisted=(%d,%d)",
-				id, before.QuantITheta, before.QuantIPhi, qTheta, qPhi)
-		}
-		if qR == before.QuantIR {
-			t.Fatalf("(c) %s's persisted local polar to A should have changed in r: before=%d persisted=%d", id, before.QuantIR, qR)
+		// Under bead CRUD (bead_crud.go), A moves by exactly one bead length toward the
+		// raw target, in whatever direction that is — which axis (bearing or radius)
+		// absorbs the change for a given neighbour is not pinned, only that SOME axis of
+		// that neighbour's stored local polar to A picked up the requantize.
+		if qTheta == before.QuantITheta && qPhi == before.QuantIPhi && qR == before.QuantIR {
+			t.Fatalf("(c) %s's persisted local polar to A should have changed: before=(theta=%d,phi=%d,r=%d) persisted=(theta=%d,phi=%d,r=%d)",
+				id, before.QuantITheta, before.QuantIPhi, before.QuantIR, qTheta, qPhi, qR)
 		}
 		// Recompute the expected fresh quantization from live post-drag geometry and
 		// compare, exactly as neighbor_setc_test.go's in-memory assertion (2) does.

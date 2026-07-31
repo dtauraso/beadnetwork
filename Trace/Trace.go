@@ -159,20 +159,6 @@ const (
 	// nodeMover.handle's moveMsgKindNeighborSetC case — records that a neighbor-setC
 	// (edge re-quantize) message arrived (sender id).
 	BreadcrumbNeighborSetCRecv
-	// BreadcrumbBeadCellNone: fired in quantized_move.go's commitNodeMoveLocal when the
-	// bead-cell solver (bead_cell_solve.go) finds NO admissible candidate for the
-	// dragged node's current neighbour configuration — the node holds its position
-	// instead of moving, and this breadcrumb is what makes that observable rather than
-	// silent (see MODEL.md's node-positions section and the task that added this solver).
-	BreadcrumbBeadCellNone
-	// BreadcrumbBeadCellChoice: diagnostic-only (task/log-bead-cell-choice), fired in
-	// quantized_move.go's commitNodeMoveLocal on EVERY bead-cell solver invocation (not
-	// just the empty-candidate case BreadcrumbBeadCellNone covers) — records the node's
-	// current center, the mouse-derived target, the candidate count, the chosen
-	// candidate's center/distance-from-current, its per-neighbour delta/K combo, and
-	// each neighbour's id+current K, so a live drag trace can show WHICH candidate the
-	// solver picked and why a multi-neighbour node's first move can look like a jump.
-	BreadcrumbBeadCellChoice
 )
 
 // BreadcrumbLabels is the single source of truth for the BreadcrumbLabel* enum's
@@ -192,8 +178,6 @@ var BreadcrumbLabels = []string{
 	"chain-aim",
 	"neighbor-center-recv",
 	"neighbor-setc-recv",
-	"bead-cell-none",
-	"bead-cell-choice",
 }
 
 // TraceEventKinds is the single source of truth for the closed kind vocabulary.

@@ -11,17 +11,19 @@ import (
 )
 
 // quantizedDragTarget returns the position a drag to target actually COMMITS to under the
-// scene lattice — the bead-CELL snap (bead_cell_solve.go, MODEL.md's "a node lives in N
-// lattices, one per neighbour"): the admissible candidate nearest target, enumerated from
-// the node's CURRENT per-neighbour live K (±1 on each) — the raw target unchanged when
-// quantizedLayout is off. Test callers that assert convergence (pollDragConverged) must
-// poll for THIS point, not the raw target, now that a committed drag is snapped rather
-// than continuous (docs/which-lattice-a-node-lives-on.md). MUST be called BEFORE the drag
-// commits (reads the node's pre-drag center and its neighbours' pre-drag centers as the
-// solve's starting configuration) — mirrors commitNodeMoveLocal's own
-// dragNeighborConstraints + solveBeadCells call exactly, so this is not an independent
-// oracle of the FORMULA, only of the CALL, matching the shape quantizedDragTarget has
-// always had (walkBeadPath's replacement).
+// scene lattice — bead CRUD (bead_crud.go, PLAN.md "moving a node is CRUD on the edge
+// beads touching it"): every touching bead (dragTouchingBeads) judges the SAME raw target
+// independently (beadCrudDecide); if any verdict is not "none" the node moves exactly one
+// bead length toward target, otherwise it holds (or, with no touching beads at all, the
+// raw target is used directly) — the raw target unchanged when quantizedLayout is off.
+// Test callers that assert convergence (pollDragConverged) must poll for THIS point, not
+// the raw target, now that a committed drag is quantized rather than continuous
+// (docs/which-lattice-a-node-lives-on.md). MUST be called BEFORE the drag commits (reads
+// the node's pre-drag center and its neighbours' pre-drag centers as the judging
+// configuration) — mirrors commitNodeMoveLocal's own dragTouchingBeads + beadCrudDecide
+// call exactly, so this is not an independent oracle of the FORMULA, only of the CALL,
+// matching the shape quantizedDragTarget has always had (walkBeadPath's replacement, then
+// the bead-cell solver's).
 func quantizedDragTarget(md *MoveDispatch, nodeID string, target vec3) vec3 {
 	if !md.lq.quantizedLayout {
 		return target
@@ -34,19 +36,25 @@ func quantizedDragTarget(md *MoveDispatch, nodeID string, target vec3) vec3 {
 	if !ok {
 		return target
 	}
-	neighbors := dragNeighborConstraints(md, nm, prev)
-	cands := solveBeadCells(neighbors, target)
-	if len(cands) == 0 {
-		return prev
+	beads := dragTouchingBeads(md, nm, prev)
+	if len(beads) == 0 {
+		return target
 	}
-	best := cands[0]
-	bestD := best.Sub(target).Length()
-	for _, c := range cands[1:] {
-		if d := c.Sub(target).Length(); d < bestD {
-			best, bestD = c, d
+	dragVector := target.Sub(prev)
+	changed := false
+	for _, b := range beads {
+		if verdict, _ := beadCrudDecide(b.Source, b.Centre, target, dragVector, wire.BeadStepR); verdict != beadCrudNone {
+			changed = true
 		}
 	}
-	return best
+	if !changed {
+		return prev
+	}
+	delta := target.Sub(prev)
+	if dl := delta.Length(); dl > 1e-9 {
+		return prev.Add(delta.Normalize().Scale(wire.BeadStepR))
+	}
+	return prev
 }
 
 // pollDragConverged waits until the named node's committed center matches the point a
@@ -178,7 +186,15 @@ func TestIndividualSnap_OnlyDraggedNodePersists(t *testing.T) {
 	var dbg syncBuffer
 	md.tr.SetSink(&dbg)
 
-	dstTarget := vec3{X: 60, Y: 20, Z: -10}
+	// The angle gate (bead_crud.go, PLAN.md) only admits a bead-count change when the
+	// drag heads AWAY from the touching bead's source, so the target is placed further
+	// out along dst's own live bearing away from its one neighbour, src.
+	dstBefore, ok := md.centerOfNode("dst")
+	if !ok {
+		t.Fatal("no center for dst before drag")
+	}
+	dstOutward := dstBefore.Sub(srcCenterBefore).Normalize()
+	dstTarget := dstBefore.Add(dstOutward.Scale(30))
 	dstWant := quantizedDragTarget(md, "dst", dstTarget)
 	if !md.RootMove("dst", dstTarget) {
 		t.Fatal("RootMove(dst) returned false")
@@ -197,7 +213,11 @@ func TestIndividualSnap_OnlyDraggedNodePersists(t *testing.T) {
 			lpAfter = lp
 		}
 	}
-	if lpAfter.QuantIR == lpBefore.QuantIR {
+	// Under bead CRUD (bead_crud.go), a drag moves the node by exactly one bead length
+	// toward the raw target, in whatever direction that is — which axis (bearing or
+	// radius) absorbs the change is not pinned, only that SOME axis of src's stored
+	// local polar to dst picked up the requantize.
+	if lpAfter.QuantITheta == lpBefore.QuantITheta && lpAfter.QuantIPhi == lpBefore.QuantIPhi && lpAfter.QuantIR == lpBefore.QuantIR {
 		t.Fatalf("src's local polar to dst never picked up the requantize: before=%+v after=%+v", lpBefore, lpAfter)
 	}
 

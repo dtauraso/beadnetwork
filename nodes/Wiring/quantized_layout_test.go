@@ -141,10 +141,17 @@ func TestCommitNodeMoveLocalDrawsQuantizedNotRawTarget(t *testing.T) {
 	if !ok {
 		t.Fatal("no center for dst")
 	}
-	// Off-lattice by construction: stepR is 8.96, so +37.1 world units along X is not an
-	// exact multiple of it, and the raw target's polar angle is likewise not an exact
-	// multiple of the 1-degree stepTheta/stepPhi.
-	target := before.Add(vec3{X: 37.1, Y: -5.3, Z: 12.9})
+	srcCenter, ok := md.centerOfNode("src")
+	if !ok {
+		t.Fatal("no center for src")
+	}
+	// The angle gate (bead_crud.go, PLAN.md) only admits an ADD when the drag heads
+	// AWAY from the touching bead's source, not merely far from "before" in some
+	// arbitrary direction — so the target is placed further out along dst's own live
+	// bearing away from its one neighbour, src, moved by a distance deliberately off the
+	// lattice (stepR is 8.96, so +30 world units is not an exact multiple of it).
+	outward := before.Sub(srcCenter).Normalize()
+	target := before.Add(outward.Scale(30))
 
 	// Computed BEFORE the commit — quantizedDragTarget reads the node's (and its
 	// neighbours') CURRENT centers as the solve's starting configuration, so calling it
@@ -164,37 +171,25 @@ func TestCommitNodeMoveLocalDrawsQuantizedNotRawTarget(t *testing.T) {
 	if d := got.Sub(target).Length(); d < 1e-6 {
 		t.Fatalf("commitNodeMoveLocal drew the RAW target instead of the quantized lattice point: got=%+v raw-target=%+v", got, target)
 	}
-	// (2) The committed center must equal the bead-CELL snap (bead_cell_solve.go,
-	// MODEL.md's "a node lives in N lattices, one per neighbour") — the positive half of
-	// the same assertion, pinning WHAT it should be, not just what it shouldn't. This
-	// replaced an earlier version that compared against walkBeadPath, a single-sphere
-	// stride that only satisfied ONE neighbour's lattice; quantizedDragTarget
+	// (2) The committed center must equal the bead-CRUD oracle (bead_crud.go, PLAN.md
+	// "moving a node is CRUD on the edge beads touching it") — the positive half of the
+	// same assertion, pinning WHAT it should be, not just what it shouldn't. This
+	// replaced an earlier version that compared against a global bead-cell solver
+	// (rejected, PLAN.md "Why the previous attempts were wrong"); quantizedDragTarget
 	// (subtree_persist_test.go) is the shared oracle for the replacement (`want` computed
 	// above, BEFORE the commit).
 	if d := got.Sub(want).Length(); d > 1e-6 {
-		t.Fatalf("commitNodeMoveLocal's committed center does not match the bead-cell snap: got=%+v want=%+v", got, want)
+		t.Fatalf("commitNodeMoveLocal's committed center does not match the bead-crud oracle: got=%+v want=%+v", got, want)
 	}
-	// (3) Every neighbour distance from the committed center is an integer multiple of
-	// wire.BeadStepR, within float tolerance — the actual invariant the whole model
-	// exists to guarantee (as opposed to (2) above, which only pins parity with the
-	// oracle formula).
-	for _, edgeID := range nm.edgeIDs {
-		em, ok := md.mr.edgeMovers[edgeID]
-		if !ok {
-			continue
-		}
-		neighborID := em.srcID
-		if neighborID == "dst" {
-			neighborID = em.dstID
-		}
-		nc, ok := md.centerOfNode(neighborID)
-		if !ok {
-			continue
-		}
-		dist := got.Sub(nc).Length()
-		ratio := dist / wire.BeadStepR
-		if d := math.Abs(ratio - math.Round(ratio)); d > 1e-6 {
-			t.Fatalf("dst's committed center is not an integer number of BeadStepR from neighbour %s: dist=%v ratio=%v", neighborID, dist, ratio)
-		}
+	// (3) Consistency (PLAN.md): the node always moves a bead's distance, never further —
+	// the committed center is never more than one wire.BeadStepR away from where it
+	// started, and (since this drag target is deliberately off-lattice and far from
+	// "dst"'s pre-drag position) it must have moved SOME distance rather than holding.
+	moved := got.Sub(before).Length()
+	if moved < 1e-9 {
+		t.Fatalf("dst never moved on a drag whose target is far off its pre-drag position: before=%+v got=%+v", before, got)
+	}
+	if moved > wire.BeadStepR+1e-6 {
+		t.Fatalf("dst moved more than one bead length in a single commit: moved=%v beadStepR=%v", moved, wire.BeadStepR)
 	}
 }
