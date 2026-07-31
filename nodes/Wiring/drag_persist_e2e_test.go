@@ -140,8 +140,10 @@ func persistedLocalPolarTo(t *testing.T, m map[string]json.RawMessage, to string
 //
 //  1. A's own persisted scenePolar/center changed to the drag target.
 //  2. B's and C's persisted scenePolar/center are UNCHANGED (neighbors stay put).
-//  3. B's and C's persisted LocalPolar to A changed in theta/phi AND r (re-quantized
-//     from live geometry, not held).
+//  3. B's and C's persisted LocalPolar to A always matches a FRESH quantization of live
+//     geometry (re-quantized, never held) — not necessarily CHANGED from before, since
+//     the union drag-cell model moves A by exactly one bead in only ONE neighbour's own
+//     frame per RootMove call (see checkNeighbor's doc comment below).
 //  4. No degenerate step (StepR) was written for any node — it must be one of the two
 //     known sane grid constants (wire.DefaultLocalStepR for a per-node local-polar entry, stepR for
 //     the scene-level quantized cache), never a near-zero value.
@@ -202,11 +204,14 @@ func TestDragPersistsOnlyDraggedNodeAndRequantizesNeighborsOnDisk(t *testing.T) 
 	var dbg syncBuffer
 	md.tr.SetSink(&dbg)
 
-	// Drag A far enough, off both leaves' prior bearings, that quantization actually
-	// changes the neighbor indices for BOTH B and C (a purely radial move along an
-	// existing bearing would leave theta/phi unchanged for that one neighbor and not
-	// exercise the "angle also changes" half of the model).
-	target := centerBefore["A"].Add(vec3{X: 90, Y: -70, Z: 55})
+	// Drag A off both leaves' prior bearings. Under the UNION drag-cell model
+	// (quantized_move.go's dragCandidateCells) a single RootMove call moves A by exactly
+	// ONE bead-index-step in whichever usable neighbour's frame produced the nearest
+	// candidate — never a multi-bead walk toward a far target — so this raw displacement
+	// is deliberately not large; it only needs to be off-axis enough that the nearest
+	// candidate is plausibly an angular (not purely radial) one for the generating
+	// neighbour. See checkNeighbor below for what is and isn't guaranteed for B and C.
+	target := centerBefore["A"].Add(vec3{X: 5, Y: -3, Z: 2}.Scale(wire.BeadStepR))
 	// wantA is the point the drag actually COMMITS to — the scene-lattice-snapped
 	// target, not the raw one (docs/which-lattice-a-node-lives-on.md; commitNodeMoveLocal
 	// now draws/persists the quantized position, never the continuous raw target).
@@ -278,24 +283,29 @@ func TestDragPersistsOnlyDraggedNodeAndRequantizesNeighborsOnDisk(t *testing.T) 
 		t.Fatalf("(b) C's persisted center must stay put on an A drag: pre-drag=%+v persisted=%+v (off by %g)", centerBefore["C"], gotC, d)
 	}
 
-	// (c) B's and C's persisted LocalPolar to A changed in theta/phi AND r — re-quantized
-	// from the live post-drag geometry, matching a fresh quantization computed the same
-	// way requantizePoleTraced does at the cart<->polar boundary (same recipe this
-	// package's neighbor_setc_test.go / subtree_persist_test.go already use in-memory;
-	// here read back from the PERSISTED bytes).
+	// (c) B's and C's persisted LocalPolar to A must match a FRESH quantization of the
+	// live post-drag geometry — re-quantized, never held stale — computed the same way
+	// requantizePoleTraced does at the cart<->polar boundary (same recipe this package's
+	// neighbor_setc_test.go / subtree_persist_test.go already use in-memory; here read
+	// back from the PERSISTED bytes).
+	//
+	// UNCHANGED VALUES ARE NOT AN ERROR here, deliberately, unlike the older walkBeadPath
+	// model this replaced: under the union drag-cell model a single RootMove moves A by
+	// exactly ONE bead-index-step in whichever neighbour's frame produced the nearest
+	// candidate (dragCandidateCells' doc comment), so ONLY that generating neighbour is
+	// guaranteed a change at all — see TestTangencyAfterDrag_LastBeadExactlyReachesTargetSurface
+	// (drag_cell_test.go) for the exactness that neighbour gets. The OTHER neighbour's
+	// distance/bearing to A may quantize to the SAME index it already had (a move that
+	// happens to land within the same rounding cell for a neighbour it wasn't generated
+	// from) — that is accepted and expected, not a regression, which is why this check
+	// only pins "matches a fresh quantization", not "changed from before".
 	checkNeighbor := func(id string, meta map[string]json.RawMessage, lh *wire.LayoutHolder, before wire.LocalPolar) {
 		t.Helper()
 		qTheta, qPhi, qR, stTheta, stPhi, stR, found := persistedLocalPolarTo(t, meta, "A")
 		if !found {
 			t.Fatalf("%s's persisted meta.json has no localPolars entry for A: keys=%v", id, meta)
 		}
-		if qTheta == before.QuantITheta && qPhi == before.QuantIPhi {
-			t.Fatalf("(c) %s's persisted local polar to A should have changed in theta/phi: before=(%d,%d) persisted=(%d,%d)",
-				id, before.QuantITheta, before.QuantIPhi, qTheta, qPhi)
-		}
-		if qR == before.QuantIR {
-			t.Fatalf("(c) %s's persisted local polar to A should have changed in r: before=%d persisted=%d", id, before.QuantIR, qR)
-		}
+		_ = before // kept as a parameter for checkNeighbor's call-site symmetry; no longer compared
 		// Recompute the expected fresh quantization from live post-drag geometry and
 		// compare, exactly as neighbor_setc_test.go's in-memory assertion (2) does.
 		selfCenter, ok := md.centerOfNode(id)
@@ -329,9 +339,18 @@ func TestDragPersistsOnlyDraggedNodeAndRequantizesNeighborsOnDisk(t *testing.T) 
 		if stR != wire.DefaultLocalStepR {
 			t.Fatalf("(d) %s's persisted local-polar StepR should be the sane grid constant wire.DefaultLocalStepR=%g, got %g", id, wire.DefaultLocalStepR, stR)
 		}
-		if stTheta != wire.DefaultLocalStepTheta || stPhi != wire.DefaultLocalStepPhi {
-			t.Fatalf("(d) %s's persisted local-polar StepTheta/StepPhi should be the sane grid constants (%g,%g), got (%g,%g)",
-				id, wire.DefaultLocalStepTheta, wire.DefaultLocalStepPhi, stTheta, stPhi)
+		// StepTheta/StepPhi are no longer a fixed literal (wire.DefaultLocalStepTheta/Phi)
+		// — they're r-DEPENDENT (wire.AngularStepsForR, layout_holder.go), one bead of ARC
+		// at THIS entry's own radius, so the sane-value check recomputes the SAME oracle
+		// from the fresh (raw, unrounded) radius/colatitude — r/c, already computed above
+		// via dirFromOffset/azimuthFrom — rather than comparing to the old fixed constant.
+		// Using the RAW r/c (not wantR*sr, which re-rounds through the index first) keeps
+		// this oracle from disagreeing with production over nothing but that rounding.
+		wantStepTheta, _ := wire.AngularStepsForR(r, 0)
+		_, wantStepPhi := wire.AngularStepsForR(r, c)
+		if stTheta != wantStepTheta || stPhi != wantStepPhi {
+			t.Fatalf("(d) %s's persisted local-polar StepTheta/StepPhi should be the r-derived grid constants (%g,%g), got (%g,%g)",
+				id, wantStepTheta, wantStepPhi, stTheta, stPhi)
 		}
 	}
 	checkNeighbor("B", metaB, lhB, lpBBefore)
