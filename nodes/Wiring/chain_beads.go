@@ -190,6 +190,11 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 		tick = m.clk.Tick()
 	}
 	selfTorusR := nodeTorusOuterR(m.geom.Kind)
+	// selfCenter is THIS node's own live world center, read the same way
+	// emitGeometry/edgeSegment do (nodeWorldPos(m.geom)) — this node's own goroutine
+	// is the sole writer of m.geom (applyCenter), so this is a same-goroutine read of
+	// state already owned here, not a second cross-goroutine touch.
+	selfCenter := nodeWorldPos(m.geom)
 	for _, to := range m.outTargets {
 		var lp wire.LocalPolar
 		found := false
@@ -258,13 +263,77 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 				}
 			}
 		}
-		// One coordinate: bead index i. Bead i's torus is tangent to bead i-1's (bead 0's
-		// tangent to this node's own torus, bead count-1's tangent to the target's) —
-		// docs/bead-lattice.md "Placement": offset from this node's centre is
-		// selfTorusR + BeadTorusOuterR + i*BeadStepR. "Beads never inside a node" falls out
-		// of this tangency, with no clamp.
+		// spacing is the center-to-center distance between consecutive beads on THIS
+		// edge. It defaults to the lattice's exact BeadStepR (the pre-fix behavior,
+		// used as a fallback when this node has no live center for `to` yet — e.g. a
+		// neighbour that has never pushed an applyCenter, or a bare test nodeMover
+		// with no partnerCenters at all) but is normally REPLACED below by the value
+		// that makes both chain ends exactly tangent to the real gap.
+		//
+		// THE FIX (the reported defect: "a half bead gap from the last edge bead to
+		// the target node"). count comes from edgeStepCount, which rounds the SOURCE
+		// node's stored, quantized LocalPolar distance to an integer step count
+		// (QuantIR) — that rounding is exact by construction of the lattice, but the
+		// two nodes' LIVE cartesian positions (what the renderer actually draws them
+		// at, nodeWorldPos) are continuous and only coincidentally land on a whole
+		// multiple of BeadStepR. count*BeadStepR is therefore off from the real
+		// surface-to-surface distance by up to half a bead — the residue QuantIR's
+		// rounding leaves behind — and that residue showed up on screen as a gap (or
+		// overlap) between the last bead and the target's torus.
+		//
+		// Fix: read the ACTUAL gap from this node's own live center and its live copy
+		// of the neighbour's center (m.partnerCenters[to], kept current by every
+		// applyCenter push — see its doc comment; this is the SAME nodeWorldPos value
+		// the renderer streams for both ends, not the stored LocalPolar), and solve
+		// for the one spacing that makes bead 0's near edge sit at this node's torus
+		// AND bead count-1's far edge sit at the target's torus, EXACTLY:
+		//
+		//	near edge of bead 0  = selfTorusR + BeadTorusOuterR - BeadTorusOuterR
+		//	                     = selfTorusR                                  (always, any spacing)
+		//	far edge of bead N-1 = selfTorusR + 2*BeadTorusOuterR + (N-1)*spacing
+		//	                     want = selfTorusR + gap
+		//	=>  spacing = (gap - 2*BeadTorusOuterR) / (N-1)
+		//
+		// Note this is NOT simply gap/count (a natural first guess) — plugging
+		// gap/count into the far-edge equation above only cancels to `gap` when
+		// spacing already equals BeadStepR, i.e. only in the case that has no
+		// residue to fix. The (N-1)-in-the-denominator form is the one that actually
+		// solves both constraints at once, for any gap.
+		//
+		// GIVES UP: adjacent bead tori no longer touch EXACTLY — interior spacing is
+		// off from BeadStepR by the same residue, spread over (count-1) gaps, so each
+		// gap is off by roughly (half a bead)/(count-1): ~2% per gap on a 25-bead
+		// edge, ~10% on a 5-bead edge (visible on the shorter edge, not on the long
+		// one). Considered and rejected for this pass: bending the chain onto an arc
+		// whose N equal chords span the real distance, keeping every torus touching
+		// exactly — the upgrade if this residual spacing shows on screen.
+		//
+		// count==1 has no second bead to solve the far-edge constraint against
+		// (spacing has no effect on a single-bead loop, i ranges over {0} only), so it
+		// keeps the near-edge/BeadStepR fallback above; a lone bead cannot satisfy
+		// tangency at both ends unless its fixed diameter happens to equal the gap.
+		spacing := wire.BeadStepR
+		if count > 1 {
+			if targetCenter, ok := m.partnerCenters[to]; ok {
+				targetTorusR := nodeTorusOuterR(m.cascadeKinds[to])
+				gap := edgeSurfaceGap(selfCenter, targetCenter, selfTorusR, targetTorusR)
+				s := (gap - 2*wire.BeadTorusOuterR) / float64(count-1)
+				if s < 0 {
+					// A gap smaller than two bead diameters (extreme close nodes):
+					// clamp rather than go negative and fold beads back past this
+					// node's own centre. Exact far-edge tangency is not achievable
+					// in this degenerate case either way.
+					s = 0
+				}
+				spacing = s
+			}
+		}
+		// One coordinate: bead index i. Offset from this node's centre is
+		// selfTorusR + BeadTorusOuterR + i*spacing (docs/bead-lattice.md "Placement",
+		// spacing derivation above). "Beads never inside a node" falls out of this
+		// tangency, with no clamp.
 		for i := 0; i < count; i++ {
-			d := selfTorusR + wire.BeadTorusOuterR + float64(i)*wire.BeadStepR
+			d := selfTorusR + wire.BeadTorusOuterR + float64(i)*spacing
 			// One trig conversion per bead, at the cartesian↔polar boundary — no sqrt: R
 			// varies per bead by index arithmetic (d above), Theta/Phi are this
 			// neighbour's own fixed bearing (ndir), reused unchanged for every bead on

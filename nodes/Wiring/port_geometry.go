@@ -258,3 +258,29 @@ func nodeTorusSteps(kind string) int {
 func nodeTorusOuterR(kind string) float64 {
 	return float64(nodeTorusSteps(kind)) * wire.BeadStepR
 }
+
+// edgeSurfaceGap returns the ACTUAL surface-to-surface distance between two nodes'
+// tori, from their live cartesian world centers — the exact gap chain_beads.go's
+// chainBeads spans (see its "the last bead's far edge lands exactly on the target's
+// torus surface" placement). selfCenter/targetCenter must be nodeWorldPos of each
+// node, the SAME function edgeSegment (above) and every emitGeometry call use, so
+// this reads the identical value the renderer draws the node at — not the SOURCE
+// node's stored, quantized LocalPolar (lp.QuantIR*StepR), which is an integer-step
+// APPROXIMATION of this distance and is exactly the value whose rounding residue
+// produced the half-bead gap this function exists to close (docs/bead-lattice.md;
+// the residue is bounded by half a bead because QuantIR is round(distance/step)).
+//
+// This one Length() call is deliberately NOT in chain_beads.go: that file is
+// guarded against math.Sqrt/Vec3.Length/Normalize
+// (tools/check-no-sqrt-in-chain-beads.sh, "index arithmetic, trig only at the
+// polar2cart boundary" — memory/feedback_abc_times_constant_not_rederive.md).
+// chainBeads calls this helper and receives only the resulting scalar gap; the
+// sqrt itself lives here, in the file that already computes edgeSegment the same
+// way.
+func edgeSurfaceGap(selfCenter, targetCenter vec3, selfTorusR, targetTorusR float64) float64 {
+	gap := targetCenter.Sub(selfCenter).Length() - selfTorusR - targetTorusR
+	if gap < 0 {
+		gap = 0
+	}
+	return gap
+}

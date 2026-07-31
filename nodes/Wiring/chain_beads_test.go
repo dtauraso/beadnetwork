@@ -377,3 +377,132 @@ func TestChainBeadsExactDoubleTangency(t *testing.T) {
 		}
 	}
 }
+
+// --- "the chain spans the gap" (docs/bead-lattice.md residue, live-position fix) ---
+//
+// The tests above (TestChainBeadsExactDoubleTangency et al.) never trip the defect
+// because singleNeighborHolder always builds a centerGap that is an EXACT multiple of
+// the local-polar lattice, so count*BeadStepR already lands exactly on the real
+// separation and there is no rounding residue to absorb. The reported bug only shows up
+// when the two nodes' LIVE cartesian positions do NOT sit on a whole multiple of
+// BeadStepR — which is the normal case once a node has been dragged — so these tests
+// drive the gap through m.partnerCenters (the live cartesian map chainBeads now reads)
+// instead, deliberately choosing separations that are NOT commensurate with BeadStepR.
+
+// centerGapNotOnLattice builds a *nodeMover set up to test one edge "a"->"b" with an
+// arbitrary bead COUNT (still read from the stored, quantized LocalPolar, exactly as
+// edgeStepCount always has) and an ARBITRARY, independently-chosen actual surface gap
+// (delivered via m.partnerCenters, the live-cartesian map applyCenter keeps current).
+// selfCenter is left at the origin (m.geom.HasPos is false, so nodeWorldPos(m.geom)
+// returns the zero vector) and the target is placed straight out along +X at exactly
+// selfTorusR + actualGap + targetTorusR, so the surface-to-surface distance
+// edgeSurfaceGap computes is exactly actualGap by construction.
+func centerGapNotOnLattice(srcKind, dstKind string, quantIRForCount int, actualGap float64) *nodeMover {
+	lh := &wire.LayoutHolder{}
+	// The stored LocalPolar only needs to produce a bead COUNT here — its QuantIR is
+	// deliberately unrelated to actualGap, which is the whole point: count and real
+	// distance no longer have to agree on the same integer.
+	lh.SetLocalPolar("b", 0, 0, quantIRForCount, 0, 0, 0)
+	selfTorus := nodeTorusOuterR(srcKind)
+	dstTorus := nodeTorusOuterR(dstKind)
+	return &nodeMover{
+		id:             "a",
+		geom:           nodeGeom{nodeIdentity: nodeIdentity{Kind: srcKind}}, // HasPos false -> center at origin
+		outTargets:     []string{"b"},
+		cascadeKinds:   map[string]string{"b": dstKind},
+		layoutHolderFn: func() *wire.LayoutHolder { return lh },
+		partnerCenters: map[string]vec3{"b": {X: selfTorus + actualGap + dstTorus}},
+	}
+}
+
+// chainNearFarEdges reads bead 0's near edge and the last bead's far edge (both as a
+// distance from the origin — this file's fixtures always leave selfCenter at the
+// origin) from chainBeads' returned offsets.
+func chainNearFarEdges(t *testing.T, ox, oy, oz []float32) (near, far float64) {
+	t.Helper()
+	if len(ox) == 0 {
+		t.Fatal("no beads emitted")
+	}
+	d0 := math.Sqrt(float64(ox[0])*float64(ox[0]) + float64(oy[0])*float64(oy[0]) + float64(oz[0])*float64(oz[0]))
+	last := len(ox) - 1
+	dLast := math.Sqrt(float64(ox[last])*float64(ox[last]) + float64(oy[last])*float64(oy[last]) + float64(oz[last])*float64(oz[last]))
+	return d0 - wire.BeadTorusOuterR, dLast + wire.BeadTorusOuterR
+}
+
+// THE FIX's regression test: for a range of separations that are deliberately NOT whole
+// multiples of BeadStepR, both ends stay exactly tangent — bead 0's near edge to the
+// source's torus, the last bead's far edge to the target's torus (live-position values,
+// not the quantized LocalPolar) — to float tolerance.
+func TestChainBeadsTangentToLiveGapNotOnLattice(t *testing.T) {
+	// Fractions of BeadStepR chosen to avoid landing back on a whole multiple by
+	// coincidence (0.5 would be the exact rounding tie the bug report describes; the
+	// others cover the rest of the residue range).
+	fractions := []float64{0.05, 0.5, 0.9, 0.33, 0.71}
+	const count = 12 // an arbitrary, but multi-bead (count>1), step count
+	quantIRForCount := count + nodeTorusSteps("Input") + nodeTorusSteps("Time")
+
+	for _, frac := range fractions {
+		actualGap := (float64(count) + frac) * wire.BeadStepR
+		m := centerGapNotOnLattice("Input", "Time", quantIRForCount, actualGap)
+		ox, oy, oz, _, _ := m.chainBeads()
+		if got := len(ox); got != count {
+			t.Fatalf("frac %.2f: bead count = %d, want edgeStepCount's %d", frac, got, count)
+		}
+		near, far := chainNearFarEdges(t, ox, oy, oz)
+		srcTorus := nodeTorusOuterR("Input")
+		wantFar := srcTorus + actualGap
+		if math.Abs(near-srcTorus) > tangencyEps {
+			t.Errorf("frac %.2f: bead 0 near edge %.9f, want exactly source torus %.9f", frac, near, srcTorus)
+		}
+		if math.Abs(far-wantFar) > tangencyEps {
+			t.Errorf("frac %.2f: last bead far edge %.9f, want exactly the target's torus surface %.9f (off by %.9f)",
+				frac, far, wantFar, far-wantFar)
+		}
+	}
+}
+
+// count still follows edgeStepCount exactly — spanning the real gap changes SPACING
+// only, never how many beads there are.
+func TestChainBeadsSpanFixKeepsCountFromEdgeStepCount(t *testing.T) {
+	const count = 9
+	quantIRForCount := count + nodeTorusSteps("Input") + nodeTorusSteps("Time")
+	// A gap deliberately off the lattice by a third of a bead step.
+	actualGap := (float64(count) + 0.33) * wire.BeadStepR
+	m := centerGapNotOnLattice("Input", "Time", quantIRForCount, actualGap)
+	ox, _, _, _, _ := m.chainBeads()
+	want := edgeStepCount(wire.LocalPolar{QuantIR: quantIRForCount}, "Input", "Time")
+	if want != count {
+		t.Fatalf("test fixture: edgeStepCount = %d, want %d", want, count)
+	}
+	if len(ox) != want {
+		t.Errorf("bead count = %d, want edgeStepCount's %d", len(ox), want)
+	}
+}
+
+// Spacing stays within a stated bound of BeadStepR: the residue this fix absorbs is at
+// most half a bead spread over (count-1) gaps (spacing = (gap-2*BeadTorusOuterR)/(N-1),
+// and gap itself is within half a bead of count*BeadStepR by construction below), so the
+// per-gap deviation from BeadStepR is bounded by (BeadStepR/2)/(count-1). A wildly wrong
+// spacing formula (e.g. a stray extra factor, or forgetting the -1) blows well past this
+// bound and fails here rather than merely "looking odd" on screen.
+func TestChainBeadsSpacingBoundedByHalfBeadResidue(t *testing.T) {
+	const count = 20
+	quantIRForCount := count + nodeTorusSteps("Input") + nodeTorusSteps("Input")
+	bound := (wire.BeadStepR / 2) / float64(count-1)
+	for _, residueFrac := range []float64{-0.5, -0.2, 0, 0.2, 0.5} {
+		actualGap := (float64(count) + residueFrac) * wire.BeadStepR
+		m := centerGapNotOnLattice("Input", "Input", quantIRForCount, actualGap)
+		ox, oy, oz, _, _ := m.chainBeads()
+		if len(ox) != count {
+			t.Fatalf("residue %.2f: bead count = %d, want %d", residueFrac, len(ox), count)
+		}
+		for i := 1; i < len(ox); i++ {
+			dx, dy, dz := float64(ox[i])-float64(ox[i-1]), float64(oy[i])-float64(oy[i-1]), float64(oz[i])-float64(oz[i-1])
+			spacing := math.Sqrt(dx*dx + dy*dy + dz*dz)
+			if math.Abs(spacing-wire.BeadStepR) > bound+tangencyEps {
+				t.Errorf("residue %.2f: bead %d..%d spacing %.6f, BeadStepR %.6f, deviation %.6f exceeds bound %.6f",
+					residueFrac, i-1, i, spacing, wire.BeadStepR, spacing-wire.BeadStepR, bound)
+			}
+		}
+	}
+}
