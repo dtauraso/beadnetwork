@@ -329,21 +329,9 @@ func TestDragPersistsOnlyDraggedNodeAndRequantizesNeighborsOnDisk(t *testing.T) 
 		if stR != wire.DefaultLocalStepR {
 			t.Fatalf("(d) %s's persisted local-polar StepR should be the sane grid constant wire.DefaultLocalStepR=%g, got %g", id, wire.DefaultLocalStepR, stR)
 		}
-		// StepTheta/StepPhi are no longer a fixed literal (wire.DefaultLocalStepTheta/Phi)
-		// — they're r-DEPENDENT (wire.AngularStepsForR, layout_holder.go), one bead of
-		// ARC at THIS entry's own radius, so the sane-value check recomputes the SAME
-		// oracle from the fresh radius (wantR*sr, already computed above) rather than
-		// comparing to the old fixed constant.
-		// r (the RAW, unrounded live radius, already computed above via dirFromOffset) is
-		// what production derives the step from — wantR*sr would re-round through the
-		// index first, which changes the input to AngularStepsForR by up to half a
-		// radial cell and makes this oracle disagree with production over nothing but
-		// that rounding. Same reasoning for c (the RAW, unrounded colatitude) below.
-		wantStepTheta, _ := wire.AngularStepsForR(r, 0)
-		_, wantStepPhi := wire.AngularStepsForR(r, c)
-		if stTheta != wantStepTheta || stPhi != wantStepPhi {
-			t.Fatalf("(d) %s's persisted local-polar StepTheta/StepPhi should be the r-derived grid constants (%g,%g), got (%g,%g)",
-				id, wantStepTheta, wantStepPhi, stTheta, stPhi)
+		if stTheta != wire.DefaultLocalStepTheta || stPhi != wire.DefaultLocalStepPhi {
+			t.Fatalf("(d) %s's persisted local-polar StepTheta/StepPhi should be the sane grid constants (%g,%g), got (%g,%g)",
+				id, wire.DefaultLocalStepTheta, wire.DefaultLocalStepPhi, stTheta, stPhi)
 		}
 	}
 	checkNeighbor("B", metaB, lhB, lpBBefore)

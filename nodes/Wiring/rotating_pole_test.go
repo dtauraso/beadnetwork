@@ -169,7 +169,7 @@ func TestRotatingPolePersistReload(t *testing.T) {
 	near := fromAxisFrame(home, 5*math.Pi/180, 0)
 	target := srcCenter.Add(polar2cart(polar{R: 50, Theta: near.Theta, Phi: near.Phi}))
 	// want must be computed BEFORE RootMove — see quantizedDragTarget/pollDragConverged's
-	// doc comments (chooseDragCandidate reads the node's CURRENT, pre-drag cell frame).
+	// doc comments (walkBeadPath's starting point is the node's CURRENT, pre-drag center).
 	want := quantizedDragTarget(md, "dst", target)
 	if !md.RootMove("dst", target) {
 		t.Fatal("RootMove(dst) returned false")

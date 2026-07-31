@@ -145,14 +145,6 @@ func TestCommitNodeMoveLocalDrawsQuantizedNotRawTarget(t *testing.T) {
 	// exact multiple of it, and the raw target's polar angle is likewise not an exact
 	// multiple of the 1-degree stepTheta/stepPhi.
 	target := before.Add(vec3{X: 37.1, Y: -5.3, Z: 12.9})
-	// Read BEFORE commitNodeMoveLocal runs — chooseDragCandidate reads nm's CURRENT
-	// (pre-drag) LocalPolars/partnerCenters, the same state the commit itself reads;
-	// calling it after would read the POST-drag cell frame (subtree_persist_test.go's
-	// quantizedDragTarget doc comment explains the same ordering requirement).
-	want, wantOK := md.lq.chooseDragCandidate(nm, target)
-	if !wantOK {
-		t.Fatal("chooseDragCandidate found no candidate cells for dst")
-	}
 
 	md.lq.commitNodeMoveLocal(md, nm, target)
 
@@ -166,17 +158,15 @@ func TestCommitNodeMoveLocalDrawsQuantizedNotRawTarget(t *testing.T) {
 	if d := got.Sub(target).Length(); d < 1e-6 {
 		t.Fatalf("commitNodeMoveLocal drew the RAW target instead of the quantized lattice point: got=%+v raw-target=%+v", got, target)
 	}
-	// (2) The committed center must equal the NEAREST CELL (chooseDragCandidate, "each
-	// end bead from each neighbor should have a range of polar motion... like cells" —
-	// docs/bead-lattice.md) — the positive half of the same assertion, pinning WHAT it
-	// should be, not just what it shouldn't. This replaced an earlier version of this
-	// test that compared against offsetScenePolar(measureScalar(...)), the
-	// fixed-1-degree-angular-tick lattice point commitNodeMoveLocal used to draw before
-	// the cell model replaced it (that formula UNDERSHOT a sideways move 7x-18x, the
-	// drag.jump probe finding), and a version after that which compared against
-	// walkBeadPath (a top-down cartesian stride toward the target, since replaced by the
-	// bottom-up per-neighbour cell enumeration this test now pins).
+	// (2) The committed center must equal the WALKED point (walkBeadPath, "one bead of
+	// arc in every direction" — docs/bead-lattice.md) — the positive half of the same
+	// assertion, pinning WHAT it should be, not just what it shouldn't. This replaced an
+	// earlier version of this test that compared against offsetScenePolar(measureScalar(...)),
+	// the fixed-1-degree-angular-tick lattice point commitNodeMoveLocal used to draw
+	// before the walk model replaced it (that formula UNDERSHOT a sideways move 7x-18x,
+	// the drag.jump probe finding).
+	want := walkBeadPath(before, target)
 	if d := got.Sub(want).Length(); d > 1e-6 {
-		t.Fatalf("commitNodeMoveLocal's committed center does not match the nearest cell: got=%+v want=%+v", got, want)
+		t.Fatalf("commitNodeMoveLocal's committed center does not match the walked lattice point: got=%+v want=%+v", got, want)
 	}
 }

@@ -414,18 +414,14 @@ func (m *nodeMover) handle(msg moveMsg) {
 		// always a FREE move now -- there is no equal-radii solve and no self-trigger
 		// cascade to run.
 		newPos := msg.Target
-		// TEMPORARY (task/log-the-chain-distances) -- item A: the drag stride actually
+		// TEMPORARY (task/log-the-chain-distances) — item A: the drag stride actually
 		// APPLIED, captured as prevPos (this node's committed position before
-		// commitLocal/chooseDragCandidate run) so the post-commit displacement can be
+		// commitLocal/walkBeadPath run) so the post-commit displacement can be
 		// compared against wire.BeadStepR below. commitLocal is what calls
-		// chooseDragCandidate (quantized_move.go's commitNodeMoveLocal); it does not
-		// return the stride count, so it is re-derived here from total displacement.
-		// Under the cell model a single commit moves the node either NOT AT ALL (the
-		// nearest cell was "stay put") or by exactly one radial/angular lattice STEP --
-		// one bead of ARC for the angular case, a hair short of one bead of CHORD (the
-		// straight-line distance this measures), so `strides` below reads a hair under
-		// 1.0 for an angular move rather than exactly 1.0; that gap is geometry (arc vs.
-		// chord over a small angle), not a bug.
+		// walkBeadPath (quantized_move.go's commitNodeMoveLocal); it does not return
+		// the stride count, so it is re-derived here from total displacement, which
+		// walkBeadPath's own doc comment guarantees is an exact whole multiple of
+		// BeadStepR (it only ever takes full-length strides, never a partial one).
 		prevPos := nodeWorldPos(m.geom)
 		if m.commitLocal != nil {
 			m.commitLocal(m.id, newPos)

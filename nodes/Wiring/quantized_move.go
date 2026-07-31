@@ -140,109 +140,6 @@ func (lq *layoutQuantizer) broadcastToEdgesAndPartners(md *MoveDispatch, newCent
 	}
 }
 
-// dragCellDeltas is the fixed set of INDEX-SPACE offsets a drag may choose between: the
-// current cell, one whole bead radially in or out, and one whole cell each way on the two
-// angular axes. Not diagonal-combined (e.g. no {+1,+1,0}) — each candidate changes exactly
-// ONE axis by exactly one step, so every candidate the enumeration produces is EXACTLY one
-// bead away from the current cell (docs/bead-lattice.md's "each bead is also a polar
-// vector" model, now expressed as index deltas instead of a cartesian stride). {0,0,0} is
-// "stay put" and is what gets chosen whenever the pointer is nearest the node's own current
-// position — CLAUDE.md/the task spec: a drag that doesn't clear its own cell must not move
-// the node at all.
-var dragCellDeltas = [...][3]int{
-	{0, 0, 0},
-	{-1, 0, 0}, {1, 0, 0},
-	{0, -1, 0}, {0, 1, 0},
-	{0, 0, -1}, {0, 0, 1},
-}
-
-// dragCandidateCells enumerates nodeID's legal drag-target CELLS in ONE neighbour's frame —
-// "each end bead from each neighbor should have a range of polar motion... like cells" (the
-// task's own model). The neighbour is CHOSEN, not solved for every neighbour at once
-// (multi-neighbour reconciliation is explicitly future work): the lexicographically SMALLEST
-// neighbour id in nodeID's own LocalPolars list, a deterministic rule that needs no
-// additional state and never depends on map/slice iteration order.
-//
-// Each candidate is built from dragCellDeltas as INDEX DELTAS on the node's CURRENT stored
-// LocalPolar entry to that neighbour — never a cartesian offset (that top-down cartesian
-// solve, walkBeadPath, is exactly what this replaces). A candidate's WORLD position is only
-// derived at the very end, via the same cart<->polar boundary conversion
-// (fromAxisFrame + polar2cart) every other local-polar reconstruction in this file uses. The
-// node's stored entry to a neighbour encodes "neighbour minus node" (requantizeLocalPolars:
-// `updatesX[m] = cM.Sub(newPos)`), so a candidate's node position is the neighbour's OWN
-// (unmoved) live centre minus that reconstructed offset.
-//
-// ok is false when nodeID has no LayoutHolder, no LocalPolars entry at all (an isolated node,
-// or one whose only neighbours have never been quantized), or the chosen neighbour's live
-// centre isn't known yet — there is then no frame to build cells in, and the caller's defined
-// fallback is "the node does not move" (no neighbour, no legal cell to be nearest to).
-func (lq *layoutQuantizer) dragCandidateCells(nm *nodeMover) (cells []vec3, ok bool) {
-	lh, okH := lq.layoutHolders[nm.id]
-	if !okH {
-		return nil, false
-	}
-	localPolars := lh.LocalPolarsSnapshot()
-	if len(localPolars) == 0 {
-		return nil, false
-	}
-	chosen := localPolars[0]
-	for _, lp := range localPolars[1:] {
-		if lp.To < chosen.To {
-			chosen = lp
-		}
-	}
-	neighborPos, okP := nm.partnerCenters[chosen.To]
-	if !okP {
-		return nil, false
-	}
-	pole := dir(lh.Pole())
-	stepTheta, stepPhi, stepR := chosen.EffectiveSteps()
-	cells = make([]vec3, 0, len(dragCellDeltas))
-	for _, d := range dragCellDeltas {
-		iR := chosen.QuantIR + d[2]
-		if iR < 1 {
-			continue // no cell inside the neighbour's own torus
-		}
-		if d == [3]int{0, 0, 0} {
-			// The exact CURRENT drawn position, not a re-derived reconstruction of it — a
-			// trig round-trip through fromAxisFrame/polar2cart can differ from the live
-			// position by float noise, and "stay put" must mean BYTE-IDENTICAL, not merely
-			// close, so a stationary drag can never be mistaken for a sub-epsilon move.
-			cells = append(cells, nodeWorldPos(nm.geom))
-			continue
-		}
-		iTheta := chosen.QuantITheta + d[0]
-		iPhi := chosen.QuantIPhi + d[1]
-		ndir := fromAxisFrame(pole, float64(iTheta)*stepTheta, float64(iPhi)*stepPhi)
-		off := polar2cart(polar{R: float64(iR) * stepR, Theta: ndir.Theta, Phi: ndir.Phi})
-		cells = append(cells, neighborPos.Sub(off))
-	}
-	return cells, len(cells) > 0
-}
-
-// chooseDragCandidate picks the cell (dragCandidateCells) nearest the pointer's cartesian
-// target — the legitimate cart<->polar boundary entry for a drag (applyNodeDragTarget,
-// gesture_actions.go). Comparison is by SQUARED distance (Dot with itself) so no sqrt is
-// needed just to rank candidates; the actual chosen position is one of dragCandidateCells'
-// exact outputs, never a computed midpoint or a rounded blend of them. Factored out of
-// commitNodeMoveLocal so tests can predict the exact commit point (quantizedDragTarget,
-// subtree_persist_test.go) without duplicating the selection rule.
-func (lq *layoutQuantizer) chooseDragCandidate(nm *nodeMover, target vec3) (vec3, bool) {
-	cells, ok := lq.dragCandidateCells(nm)
-	if !ok {
-		return vec3{}, false
-	}
-	best := cells[0]
-	bestD := best.Sub(target).Dot(best.Sub(target))
-	for _, c := range cells[1:] {
-		diff := c.Sub(target)
-		if d := diff.Dot(diff); d < bestD {
-			best, bestD = c, d
-		}
-	}
-	return best, true
-}
-
 // requantizePoleTraced is the SINGLE site every LOCAL-polar write routes through once a
 // node's LayoutHolder exists (this file's several call sites). `updates` carries the FRESH
 // offset (vec3, THIS node — nodeID — as origin) for each neighbor whose distance/direction
@@ -300,35 +197,13 @@ func (lq *layoutQuantizer) requantizePoleTraced(lh *wire.LayoutHolder, updates m
 	newPole := localPole(dirVecs)
 
 	for id, d := range dirs {
-		old, hadEntry := existingByID[id]
-		_, fresh := updates[id]
-
-		// UNCHANGED entries (not fresh, already on lh): trust the stored step exactly as
-		// before — old.EffectiveSteps() is a plain field read (layout_holder.go's doc
-		// comment on EffectiveSteps), never a recompute, so an unchanged neighbor's
-		// re-expressed indices stay byte-identical to what's already stored and the
-		// "true no-op" skip below actually fires. FRESH entries (this id's distance/
-		// direction just changed) have no trustworthy stored step to read — the step
-		// itself may be describing a now-stale radius (or may not exist at all, for a
-		// brand-new neighbor) — so it is DERIVED fresh from freshRadius[id], the live
-		// radius this same write's iR is about to be measured against
-		// (AngularStepsForR, layout_holder.go): never a step describing last cycle's
-		// distance applied to this cycle's angle, the "index left alone, step silently
-		// swapped" bug class LoadLocalPolars' doc comment names for the radial case.
+		t, p, rStep := lh.LocalPolarSteps(id)
 		c, psi := azimuthFrom(newPole, d)
-		var t, p, rStep float64
-		if fresh {
-			rStep = old.StepR
-			if rStep == 0 {
-				rStep = wire.DefaultLocalStepR
-			}
-			t, _ = wire.AngularStepsForR(freshRadius[id], 0)
-			_, p = wire.AngularStepsForR(freshRadius[id], c)
-		} else {
-			t, p, rStep = old.EffectiveSteps()
-		}
 		iTheta := int(math.Round(c / t))
 		iPhi := int(math.Round(psi / p))
+
+		old, hadEntry := existingByID[id]
+		_, fresh := updates[id]
 
 		iR := old.QuantIR
 		if fresh || !hadEntry {
@@ -462,6 +337,47 @@ func (lq *layoutQuantizer) neighborSetCRequantize(md *MoveDispatch, selfID, from
 	}
 }
 
+// maxBeadStrides bounds how many one-bead-length steps walkBeadPath may take in a single
+// commit. Needed because the displacement handed in (a fast pointer drag between two
+// ~8ms move ticks, or a programmatic RootMove target) can be arbitrarily far from the
+// node's current committed position, and stepping one bead at a time toward it must not
+// become an unbounded loop. 1024 strides is 1024*BeadStepR =~ 9175 world units — several
+// times this scene's own diameter (nodes sit at r~=28-70, docs/bead-lattice.md) — so no
+// legitimate single commit needs more; if the cap is ever actually hit, the node still
+// makes full, bounded progress toward the target this commit and finishes closing the
+// gap on the next one (the next pointer-move tick, or a repeated call), so raising or
+// lowering this constant only changes how many commits a huge jump takes, never whether
+// the walk terminates or where it ends up.
+const maxBeadStrides = 1024
+
+// walkBeadPath advances from prev toward target in whole BeadStepR-length strides, one
+// polar vector at a time, for as many strides as fit — "each bead is also a polar
+// vector... take the dragging of the node and fit it to a path of the polar vectors...
+// the dragging should be vectors combining" (the model this implements, docs/bead-lattice.md).
+// A step's LENGTH is the invariant and it is identical in EVERY direction by
+// construction (each stride is exactly wire.BeadStepR long), so there is no separate
+// radial/angular grid to reconcile and no direction-dependent shortfall — this replaces
+// the fixed-1-degree angular tick that measured 7x-18x too short against a bead at this
+// graph's radii (the drag.jump probe, docs/bead-lattice.md). Direction is NOT quantized:
+// each stride points wherever the CURRENT remaining displacement points, recomputed
+// fresh every stride rather than fixed from the first, so the walked path curves toward
+// a moving/diagonal target exactly like combining vectors would. A remaining
+// displacement shorter than one full bead commits no further movement at all — the node
+// holds its position rather than sliding part of a bead, which is what makes every
+// observed jump exactly one bead long and never a fraction of one.
+func walkBeadPath(prev, target vec3) vec3 {
+	pos := prev
+	for i := 0; i < maxBeadStrides; i++ {
+		disp := target.Sub(pos)
+		d := disp.Length()
+		if d < wire.BeadStepR {
+			break
+		}
+		pos = pos.Add(disp.Scale(wire.BeadStepR / d))
+	}
+	return pos
+}
+
 // commitNodeMoveLocal is the OWNER-GOROUTINE single-node commit path
 // (generalized to every node): used when the commit
 // originates on nodeID's OWN mover goroutine (its own inbox handler for a
@@ -513,32 +429,28 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeMover, 
 	// (docs/which-lattice-a-node-lives-on.md "Why the drag makes it worst": that split is
 	// exactly what made the node glide continuously while its own chain beads jumped one
 	// bead distance at a time). Under the quantized scene lattice (lq.quantizedLayout),
-	// committedPos is now the NEAREST CELL (chooseDragCandidate): one neighbour's stored
-	// LocalPolar entry defines a small set of legal cells one bead-index-step away in
-	// every direction (dragCandidateCells), and the cell nearest the raw pointer target
-	// is chosen — never a cartesian stride toward the target (that top-down solve,
-	// walkBeadPath, is what this replaced: "each end bead from each neighbor should have
-	// a range of polar motion where possible drag points a node can be dragged to like
-	// cells... there should not need to be a top down cartesian solution", the task's own
-	// model). A node with no neighbour frame to build cells in (isolated, or no
-	// LocalPolars yet) does not move — there is no legal cell to be nearest to.
-	// off/committedPolar below are measured back OFF committedPos purely as the
-	// position.json self-describing CACHE (quant_offset_persist.go's doc comment: "the
-	// quantized scalar triple... rides along as a self-describing cache of the drag-time
-	// snap cells, NOT the position source") — nothing downstream reconstructs
-	// committedPos from off, so re-measuring it here can never reintroduce a mismatch;
-	// the authoritative, lossless value is committedPos/committedPolar. If
-	// quantizedLayout is off, keep the historic behavior: committedPos stays the raw,
-	// continuous target, and no offset is measured.
+	// committedPos is now the WALKED position (walkBeadPath, docs/bead-lattice.md's "each
+	// bead is also a polar vector... the dragging should be vectors combining" model):
+	// advance from the node's CURRENT drawn position toward the raw target in whole
+	// BeadStepR-length strides, in whatever direction the drag is heading, and stop
+	// within one bead of the target. This replaced an earlier version that derived
+	// committedPos from a quantized (iTheta,iPhi,iR) triple via offsetScenePolar — that
+	// triple's angular component used a FIXED 1-degree tick, which measured 7x-18x too
+	// short in arc against a bead at this graph's radii (the drag.jump probe): sideways
+	// drag ticks were tiny while radial ticks were a full bead. off/committedPolar below
+	// are now measured back OFF the walked committedPos purely as the position.json
+	// self-describing CACHE (quant_offset_persist.go's doc comment: "the quantized
+	// scalar triple... rides along as a self-describing cache of the drag-time snap
+	// cells, NOT the position source") — nothing downstream reconstructs committedPos
+	// from off, so re-measuring it here can never reintroduce the mismatch; the
+	// authoritative, lossless value is committedPos/committedPolar. If quantizedLayout is
+	// off, keep the historic behavior: committedPos stays the raw, continuous target, and
+	// no offset is measured.
 	committedPos := newPos
 	committedPolar := nodePolar
 	var off quantizedOffset
 	if lq.quantizedLayout {
-		if cand, ok := lq.chooseDragCandidate(nm, newPos); ok {
-			committedPos = cand
-		} else {
-			committedPos = nodeWorldPos(nm.geom)
-		}
+		committedPos = walkBeadPath(nodeWorldPos(nm.geom), newPos)
 		committedPolar = cart2polar(committedPos.Sub(md.ui.sceneSphere.Center))
 		off = measureScalar(committedPolar, nm.quantOffset)
 	}
