@@ -76,28 +76,3 @@ const DwellTicksPerBead = BeadStepR / PulseSpeedWuPerTick
 // one lattice, so the only multiple left to snap to is 1 — an identity
 // operation, which is not a snap. Its two write choke points
 // (LayoutHolder.SetLocalPolar/LoadLocalPolars) now store quantIR verbatim.
-
-// BeadVector is a bead-lattice displacement: a quantized bearing (Dir — same shape as
-// Pole, colatitude+azimuth about some pole already in force) and a magnitude that is a
-// WHOLE COUNT of bead steps (N), never a float distance. The two fields are kept
-// deliberately SEPARATE rather than folded into one cartesian vector: a bead's legal
-// motion is always "this many whole bead-steps along this stored bearing", and a single
-// vec3 would let direction and magnitude be read back out independently via
-// Length()/Normalize() — exactly the cartesian shortcut
-// (nodes/Wiring/quantized_move.go's now-deleted walkBeadPath, and the reverted
-// single-neighbour cell attempt before it) that let a drag silently become a
-// normalize-and-scale cartesian stride instead of index arithmetic on the lattice. With
-// Dir and N as separate fields there is no field to normalize or measure a length from —
-// the cartesian shortcut is structurally unavailable, not merely avoided by convention.
-type BeadVector struct {
-	Dir Pole
-	N   int
-}
-
-// Length is this vector's magnitude in world units: N whole BeadStepR hops — pure
-// multiplication (index × constant, memory/feedback_abc_times_constant_not_rederive.md),
-// never a measured-then-rounded cartesian distance. The one caller-needed method: nothing
-// else in nodes/Wiring's drag-candidate math reads a BeadVector's components any other way.
-func (bv BeadVector) Length() float64 {
-	return float64(bv.N) * BeadStepR
-}

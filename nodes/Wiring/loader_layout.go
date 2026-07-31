@@ -167,19 +167,11 @@ func (b *buildCtx) computeLocalPolars() {
 		sort.Strings(ids) // deterministic order
 
 		ownCenter, hasOwn := b.centers[n.ID]
-		// Local-polar RADIAL quantization uses its own small, uniform cell
-		// (layout_holder.go LocalStepR) — NOT the scene-center triple's coarser stepR
-		// (the point of the double-link model: every distance lands on a whole tick of
-		// a small grid). The angular pair is NOT taken from this same fallback — it is
-		// r-DEPENDENT (wire.AngularStepsForR, "one bead of arc"), so it is derived
-		// per-neighbor below, at that neighbor's own measured radius, exactly like
-		// requantizePoleTraced's `fresh` branch and LoadLocalPolars' angular re-derive
-		// already do. Using the FIXED small-angle default here (as an earlier version
-		// of this function did) left every freshly-measured entry one bead-of-arc off
-		// from what a live drag would compute for the same offset — invisible until the
-		// intersection-cell drag model (quantized_move.go) needed a freshly-loaded
-		// node's stored bearing to reconstruct EXACTLY, not just approximately.
-		_, _, r := wire.LocalPolar{}.EffectiveSteps()
+		// Local-polar quantization uses its OWN small, uniform cells (layout_holder.go
+		// localStepTheta/localStepPhi/localStepR) — NOT the scene-center triple's
+		// coarser stepTheta/stepPhi/stepR (the point of the double-link model: every
+		// distance lands on a whole tick of a small grid).
+		t, p, r := wire.LocalPolar{}.EffectiveSteps()
 
 		// The measurement pole is a pure function of live geometry (rotating_pole.go
 		// localPole) — resolved from EVERY neighbor's CURRENT world offset. A STORED pole
@@ -244,16 +236,11 @@ func (b *buildCtx) computeLocalPolars() {
 			}
 			d, radius := dirFromOffset(mCenter.Sub(ownCenter))
 			c, psi := azimuthFrom(finalPole, d)
-			t, _ := wire.AngularStepsForR(radius, 0)
-			_, p := wire.AngularStepsForR(radius, c)
 			list = append(list, wire.LocalPolar{
 				To:          mid,
 				QuantITheta: int(math.Round(c / t)),
 				QuantIPhi:   int(math.Round(psi / p)),
 				QuantIR:     int(math.Round(radius / r)),
-				StepTheta:   t,
-				StepPhi:     p,
-				StepR:       r,
 			})
 		}
 		result[n.ID] = list
