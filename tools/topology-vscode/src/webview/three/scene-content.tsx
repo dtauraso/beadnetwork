@@ -14,6 +14,7 @@ import {
 } from "../../schema/shading-params";
 import { BUFFER_NODE_TAG, BUFFER_EDGE_TAG, BUFFER_RING_TAG } from "./buffer-scene";
 import { HANDHOLD_TERM_TAG } from "./NavGuides";
+import { resolveNodeDrawSlot } from "./node-depth-order";
 
 // ---------------------------------------------------------------------------
 // Buffer-backed pick helpers. Nodes/edges are InstancedMesh / halo meshes
@@ -55,31 +56,37 @@ function pickBufferHandhold(hits: THREE.Intersection[]): string | null {
 
 /**
  * RING (torus) pick: buffer-rendered node border rings are an InstancedMesh
- * (buffer-scene.tsx NodeInstances ringRef) tagged with BUFFER_RING_TAG, where instanceId IS
- * the buffer NODE-ROW index (rings are drawn in the same per-node loop as the body mesh).
- * Returns that row as a decimal STRING so classifyHit can forward it to Go as a `torus` hit —
- * Go resolves it back to the owning node id.
+ * (buffer-scene.tsx NodeInstances ringRef) tagged with BUFFER_RING_TAG. instanceId is a DRAW
+ * SLOT, not the buffer NODE-ROW index directly — NodeInstances depth-sorts nodes back-to-front
+ * against the camera each frame (node-depth-order.ts) so instances draw in that order rather
+ * than row order, so instanceId must be resolved back to its node row through the SAME
+ * permutation NodeInstances published this frame before returning it. Returns that row as a
+ * decimal STRING so classifyHit can forward it to Go as a `torus` hit — Go resolves it back to
+ * the owning node id.
  */
 function pickBufferRing(hits: THREE.Intersection[]): string | null {
   for (const hit of hits) {
     if ((hit.object as THREE.Mesh).userData?.[BUFFER_RING_TAG] !== true) continue;
     if (hit.instanceId === undefined) continue;
-    return String(hit.instanceId);
+    return String(resolveNodeDrawSlot(hit.instanceId));
   }
   return null;
 }
 
 /**
  * NODE pick: buffer-rendered nodes are an InstancedMesh (buffer-scene.tsx NodeInstances)
- * tagged with BUFFER_NODE_TAG, where instanceId IS the buffer NODE-ROW index. Returns that row
- * as a decimal STRING so classifyHit can forward the numeric row to Go — which resolves it back
- * to its node id. excludeRow (decimal string) skips a specific row (nodesOnly re-pick).
+ * tagged with BUFFER_NODE_TAG. instanceId is a DRAW SLOT, not the buffer NODE-ROW index
+ * directly (see pickBufferRing's comment — NodeInstances depth-sorts instances back-to-front
+ * against the camera every frame, node-depth-order.ts); resolveNodeDrawSlot turns it back into
+ * the node row through that same per-frame permutation. Returns the row as a decimal STRING so
+ * classifyHit can forward the numeric row to Go — which resolves it back to its node id.
+ * excludeRow (decimal string) skips a specific row (nodesOnly re-pick).
  */
 function pickBufferNode(hits: THREE.Intersection[], excludeRow?: string): string | null {
   for (const hit of hits) {
     if ((hit.object as THREE.Mesh).userData?.[BUFFER_NODE_TAG] !== true) continue;
     if (hit.instanceId === undefined) continue;
-    const row = String(hit.instanceId);
+    const row = String(resolveNodeDrawSlot(hit.instanceId));
     if (excludeRow && row === excludeRow) continue;
     return row;
   }
