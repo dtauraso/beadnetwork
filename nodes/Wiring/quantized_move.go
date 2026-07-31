@@ -23,6 +23,7 @@ import (
 	"fmt"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"math"
+	"strings"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -356,6 +357,31 @@ func dragNeighborConstraints(md *MoveDispatch, nm *nodeMover, prev vec3) []beadC
 	return out
 }
 
+// dragNeighborIDs is diagnostic-only (task/log-bead-cell-choice): mirrors
+// dragNeighborConstraints' own loop/filter/order exactly so its returned slice pairs
+// index-for-index with dragNeighborConstraints' []beadCellNeighbor (which carries no id
+// of its own) — used only by commitNodeMoveLocal's "bead-cell-choice" breadcrumb below to
+// name each neighbour. Not used by the solver itself.
+func dragNeighborIDs(md *MoveDispatch, nm *nodeMover) []string {
+	nodeID := nm.id
+	out := make([]string, 0, len(nm.edgeIDs))
+	for _, edgeID := range nm.edgeIDs {
+		em, ok := md.mr.edgeMovers[edgeID]
+		if !ok {
+			continue
+		}
+		neighborID := em.srcID
+		if neighborID == nodeID {
+			neighborID = em.dstID
+		}
+		if _, ok := nm.partnerCenters[neighborID]; !ok {
+			continue
+		}
+		out = append(out, neighborID)
+	}
+	return out
+}
+
 // commitNodeMoveLocal is the OWNER-GOROUTINE single-node commit path
 // (generalized to every node): used when the commit
 // originates on nodeID's OWN mover goroutine (its own inbox handler for a
@@ -441,7 +467,8 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeMover, 
 			committedPos = prevPos
 			if md.tr != nil {
 				md.tr.Breadcrumb("bead-cell-none", nodeID, "",
-					fmt.Sprintf("no admissible bead cell for %d neighbour(s); holding position", len(neighbors)))
+					fmt.Sprintf("no admissible bead cell for %d neighbour(s) target=(%.4f,%.4f,%.4f); holding position",
+						len(neighbors), newPos.X, newPos.Y, newPos.Z))
 			}
 		} else {
 			committedPos = cands[0]
@@ -451,6 +478,41 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeMover, 
 					committedPos, bestD = c, d
 				}
 			}
+		}
+		// DIAGNOSTIC ONLY (task/log-bead-cell-choice): one breadcrumb per solver
+		// invocation (every pointer-move commit, not just the empty-candidate case above)
+		// — the SYMPTOM under investigation is a visible jump at the START of a drag for a
+		// 3-neighbour node (4, 2) that a 1-neighbour node (6) does not show; this records
+		// everything needed to see WHICH candidate the solver picked and how far it is
+		// from the node's pre-move center, so a live trace of the first few pointer-move
+		// commits after mouse-down can be read back and compared. Gated on md.tr != nil
+		// exactly like the "bead-cell-none" site above; emitted from the CALL SITE, not
+		// from inside the pure solver (bead_cell_solve.go stays side-effect-free).
+		if md.tr != nil {
+			ids := dragNeighborIDs(md, nm)
+			neighborParts := make([]string, 0, len(neighbors))
+			for i, nb := range neighbors {
+				id := "?"
+				if i < len(ids) {
+					id = ids[i]
+				}
+				newK := int(math.Round(committedPos.Sub(nb.Center).Length() / wire.BeadStepR))
+				neighborParts = append(neighborParts,
+					fmt.Sprintf("%s:K=%d->%d(d%+d)", id, nb.K, newK, newK-nb.K))
+			}
+			var chosen vec3
+			jump := 0.0
+			if len(cands) > 0 {
+				chosen = committedPos
+				jump = committedPos.Sub(prevPos).Length()
+			}
+			value := fmt.Sprintf(
+				"node=%s prev=(%.4f,%.4f,%.4f) target=(%.4f,%.4f,%.4f) candCount=%d "+
+					"chosen=(%.4f,%.4f,%.4f) jumpFromPrev=%.6f neighbours=[%s]",
+				nodeID, prevPos.X, prevPos.Y, prevPos.Z, newPos.X, newPos.Y, newPos.Z,
+				len(cands), chosen.X, chosen.Y, chosen.Z, jump,
+				strings.Join(neighborParts, " "))
+			md.tr.Breadcrumb("bead-cell-choice", nodeID, "", value)
 		}
 		committedPolar = cart2polar(committedPos.Sub(md.ui.sceneSphere.Center))
 		off = measureScalar(committedPolar, nm.quantOffset)
