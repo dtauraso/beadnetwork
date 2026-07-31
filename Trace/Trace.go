@@ -165,6 +165,14 @@ const (
 	// instead of moving, and this breadcrumb is what makes that observable rather than
 	// silent (see MODEL.md's node-positions section and the task that added this solver).
 	BreadcrumbBeadCellNone
+	// BreadcrumbBeadCellChoice: diagnostic-only (task/log-bead-cell-choice), fired in
+	// quantized_move.go's commitNodeMoveLocal on EVERY bead-cell solver invocation (not
+	// just the empty-candidate case BreadcrumbBeadCellNone covers) — records the node's
+	// current center, the mouse-derived target, the candidate count, the chosen
+	// candidate's center/distance-from-current, its per-neighbour delta/K combo, and
+	// each neighbour's id+current K, so a live drag trace can show WHICH candidate the
+	// solver picked and why a multi-neighbour node's first move can look like a jump.
+	BreadcrumbBeadCellChoice
 )
 
 // BreadcrumbLabels is the single source of truth for the BreadcrumbLabel* enum's
@@ -185,6 +193,7 @@ var BreadcrumbLabels = []string{
 	"neighbor-center-recv",
 	"neighbor-setc-recv",
 	"bead-cell-none",
+	"bead-cell-choice",
 }
 
 // TraceEventKinds is the single source of truth for the closed kind vocabulary.
