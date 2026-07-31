@@ -525,8 +525,27 @@ streams with no message; the clamp stays, the silence does not. Left alone:
 settled — bounded by time, so not a missing-bound case; its defect deserves its own
 decision.
 
+**That decision, 2026-07-31: `waitForCenterSettle` STAYS AS IS.** It is not open work; do
+not re-surface it. The removal was costed and declined. It could be deleted by measuring
+every pair's centers ONCE up front and computing all target positions from that snapshot
+(the wait exists only because `ApplyDistanceGroupTarget` re-reads centers mid-loop at
+`distance_groups.go:110-111`, so a pair aims from a node an earlier pair just moved — in
+"time", node 4 is the target of 2→4 and the source of 4→7/4→6). But that changes two
+user-visible behaviours for one silent-timeout signal: chained pairs in "time"/"select"
+stop compounding down the chain on a ▲/▼ click, and the distance panel's number would have
+to come from the length dispatch REQUESTED rather than one it measures back, because
+`emitViewFrame` (line 156) reads live centers and would then run before the movers commit.
+Not worth it. The real deletion still rides with the standing redesign documented at line
+145 — an edge carrying its own length on its own EDGE frame — which removes the ordered
+loop and the wait together, and answers the VIEW-frame constraint properly.
+
 **Guard note worth remembering:** `check-test-integrity`'s `[allow-test-weakening]` marker
 is **branch-wide, not commit-scoped** — it greps every commit message in `base..HEAD`. Two
 legitimate uses (both `recover()` asserting a panic, which its regex cannot distinguish
 from `recover()` hiding a failure) disabled that guard for the rest of the branch. Worth
 narrowing so the escape hatch closes behind itself.
+
+**DONE — `9c886227` "Scope the test-weakening escape hatch to the files it names"
+(2026-07-28), on main.** The marker now exempts only the paths it lists; a path-less
+`[allow-test-weakening]` is a hard failure, and so is one naming a file the branch never
+changed (a typo'd path read identically to a granted exemption). Nothing open here.
