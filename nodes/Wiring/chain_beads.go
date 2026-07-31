@@ -42,11 +42,12 @@ import (
 //	K = round(dist / wire.BeadStepR)
 //	N = K - nodeTorusSteps(srcKind) - nodeTorusSteps(dstKind), minimum 1
 //
-// Under the bead-cell model (MODEL.md "a node lives in N lattices, one per neighbour",
-// bead_cell_solve.go) a node's placement GUARANTEES dist is already an exact integer
-// multiple of BeadStepR for every neighbour simultaneously — the round() above is a no-op
-// on a validly-placed node, not a fudge; it exists only so a caller mid-way through
-// placing beads never divides a near-integer by float noise into the wrong bucket.
+// Under bead CRUD (MODEL.md "Moving a node is CRUD on the edge beads that touch it",
+// bead_crud.go) a node's placement does NOT guarantee dist lands on an exact integer
+// multiple of BeadStepR for every neighbour simultaneously (that guarantee belonged to the
+// rejected global bead-cell solver) — round() here is the real discretizer, not a no-op:
+// it is what turns a live, generally off-lattice distance into the whole bead-step count
+// this edge actually renders.
 //
 // PURE INTEGER SUBTRACTION once K is known — no division anywhere else, not even by a
 // fixed cell count. That used to divide the STORED QuantIR cache by a per-bead cell-count
@@ -182,12 +183,10 @@ func litBeadIndex(t float64, steps int) (int, bool) {
 // Bead SIZE is the single, uniform lattice constant wire.BeadRadius everywhere — every
 // bead on every edge is the same size (memory/feedback_uniform_pulse_speed.md's sibling
 // rule for size: no per-edge knob). There is no per-bead radius column any more: under
-// the bead-cell model (MODEL.md "a node lives in N lattices, one per neighbour",
-// bead_cell_solve.go) a node's placement GUARANTEES every incident edge's center-to-center
-// distance is an exact integer multiple of wire.BeadStepR, so count*wire.BeadStepR
-// (uniform spacing, uniform size) already lands bead 0's near edge on this node's own
-// torus and bead count-1's far edge exactly on the target's torus — there is no residue
-// left for a per-edge size or a stretched spacing to absorb (see the removed
+// bead CRUD (MODEL.md "Moving a node is CRUD on the edge beads that touch it",
+// bead_crud.go) count*wire.BeadStepR (uniform spacing, uniform size) always lands bead 0's
+// near edge on this node's own torus by construction of the placement formula below — no
+// per-edge size or stretched spacing is needed for that (see the removed
 // "per-edge-bead-scale"/"stretch spacing" history below `spacing`'s declaration).
 //
 // breadcrumbs (the final return value) is DIAGNOSTIC ONLY (task/log-node4-chain-aim): one
@@ -329,14 +328,15 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 		// disagree with the two nodes' LIVE cartesian gap by up to half a bead, leaving a
 		// residue somewhere for spacing or size to absorb.
 		//
-		// Under the bead-cell model (MODEL.md "a node lives in N lattices, one per
-		// neighbour", bead_cell_solve.go) there is no residue to absorb: a node's
-		// placement GUARANTEES dist(node, neighbor) == K*BeadStepR for every neighbour
-		// simultaneously, so count (edgeStepCount, itself now read from that same live
-		// distance) times the fixed wire.BeadStepR lands bead 0's near edge exactly on
-		// this node's own torus and bead count-1's far edge exactly on the target's torus,
-		// for every count including count==1 — the arc-bending upgrade once floated for a
-		// residual mismatch is likewise moot; there is no mismatch left to bend around.
+		// Under bead CRUD (MODEL.md "Moving a node is CRUD on the edge beads that touch
+		// it", bead_crud.go) bead 0's near edge is exactly on this node's own torus by
+		// construction of the placement formula below, for every count including
+		// count==1, regardless of whether dist(node, neighbor) happens to land on an
+		// exact multiple of BeadStepR — that global guarantee belonged to the rejected
+		// bead-cell solver and is not one this model makes. count (edgeStepCount, read
+		// from the same live distance) times the fixed wire.BeadStepR is what fixes the
+		// FAR edge's residue against the neighbour's torus instead; it is bounded by
+		// round(), never bent into an arc.
 		//
 		// useLiveAim/liveDir (computed above, alongside dist) exist for DIRECTION: this
 		// node's live copy of the neighbour's center gives an exact bearing, used in

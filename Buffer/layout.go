@@ -200,13 +200,12 @@ type bufLayoutChainBead struct {
 	// the value, not just the fact of being lit — the whole animation is ONE fill-colour
 	// change against the grey resting chain.
 	LitValue int32 `buf:"i32"` // traversing bead's value (0|1); meaningful when Lit==1
-	// There is no per-bead Radius column. Under the bead-cell model (MODEL.md "a node
-	// lives in N lattices, one per neighbour", nodes/Wiring/bead_cell_solve.go) a node's
-	// placement guarantees every incident edge's center-to-center distance is an exact
-	// integer multiple of wire.BeadStepR, so the single global wire.BeadRadius/
-	// wire.BeadStepR lattice constants already make every chain's beads touch their
-	// neighbours exactly — a per-edge radius (added in commit d50fab83, removed here) is
-	// unnecessary and was removed along with the residue it existed to absorb.
+	// There is no per-bead Radius column. Under bead CRUD (MODEL.md "Moving a node is
+	// CRUD on the edge beads that touch it", nodes/Wiring/bead_crud.go) the single global
+	// wire.BeadRadius/wire.BeadStepR lattice constants already make every chain's beads
+	// touch their own neighbours on the chain exactly — a per-edge radius (added in
+	// commit d50fab83, removed here) is unnecessary and was removed along with the
+	// residue it existed to absorb.
 }
 
 // bufLayoutInterior defines one row of the interior-bead column block.

@@ -354,9 +354,8 @@ and none is a source of truth.
   centre along its chain, or the chain origin on the neighbour's torus surface when it is
   the only bead (`nodes/Wiring/quantized_move.go`'s `dragTouchingBeads`) — NEVER the
   touching bead's own centre; using the centre instead is wrong by one bead. The **third
-  polar vector** runs from the bead's source point to the node's destination point:
-  `third = nodeDestination - beadSourcePoint`. Compare `|third|` to one bead length
-  (`wire.BeadStepR`):
+  polar vector** runs from the bead's source point to the node's destination point.
+  Compare its length to one bead length (`wire.BeadStepR`):
 
   - too small → that bead is **removed**, and the bead before it becomes the touching bead.
   - too large → a bead is **added** (subject to the angle gate below), and it becomes the
