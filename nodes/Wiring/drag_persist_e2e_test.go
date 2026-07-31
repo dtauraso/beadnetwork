@@ -31,12 +31,16 @@ func writeStar3(t *testing.T) string {
 	mk := func(rel, body string) { writeTreeFile(t, root, rel, body) }
 	// Scene-polar (r, theta, phi) triples — arbitrary but distinct, spread the three
 	// nodes apart so a drag on A demonstrably changes the quantized bearing to both
-	// leaves, not just their distance.
-	mk("nodes/A/meta.json", `{"id":"A","type":"SrcNode","r":100,"scenePolarR":150,"scenePolarTheta":1.2,"scenePolarPhi":0.3}`)
+	// leaves, not just their distance. Radii are deliberately CLOSE (bead CRUD bounds a
+	// single commit to at most one bead operation's worth of Cartesian movement,
+	// bead_crud.go — nowhere near these three nodes' separation at the old, much larger
+	// radii) so that one bounded move is still a large enough FRACTION of the A-B/A-C
+	// distance to cross a quantization cell on both leaves at once.
+	mk("nodes/A/meta.json", `{"id":"A","type":"SrcNode","r":100,"scenePolarR":30,"scenePolarTheta":1.2,"scenePolarPhi":0.3}`)
 	mk("nodes/A/outputs/Out.json", `{"name":"Out"}`)
-	mk("nodes/B/meta.json", `{"id":"B","type":"SinkNode","r":100,"scenePolarR":100,"scenePolarTheta":1.0,"scenePolarPhi":1.2}`)
+	mk("nodes/B/meta.json", `{"id":"B","type":"SinkNode","r":100,"scenePolarR":25,"scenePolarTheta":1.0,"scenePolarPhi":1.2}`)
 	mk("nodes/B/inputs/In.json", `{"name":"In"}`)
-	mk("nodes/C/meta.json", `{"id":"C","type":"SinkNode","r":100,"scenePolarR":90,"scenePolarTheta":0.9,"scenePolarPhi":-1.0}`)
+	mk("nodes/C/meta.json", `{"id":"C","type":"SinkNode","r":100,"scenePolarR":22,"scenePolarTheta":0.9,"scenePolarPhi":-1.0}`)
 	mk("nodes/C/inputs/In.json", `{"name":"In"}`)
 	// Both edges share A's single "Out" output port — a fan-OUT, symmetric with the
 	// fan-IN this package's srcNode/sinkNode kinds already exercise (two edges sharing
@@ -205,14 +209,24 @@ func TestDragPersistsOnlyDraggedNodeAndRequantizesNeighborsOnDisk(t *testing.T) 
 	// Drag A far enough, off both leaves' prior bearings, that quantization actually
 	// changes the neighbor indices for BOTH B and C (a purely radial move along an
 	// existing bearing would leave theta/phi unchanged for that one neighbor and not
-	// exercise the "angle also changes" half of the model). The angle gate (bead_crud.go,
-	// PLAN.md) only admits a bead-count change when the drag heads AWAY from a touching
-	// bead's source, so the drag direction is built from BOTH leaves' own outward
-	// bearings from A (summed, not picked — every touching bead judges the SAME single
-	// drag vector) so it admits the add on both edges at once.
+	// exercise the "angle also changes" half of the model). Under bead CRUD (bead_crud.go,
+	// PLAN.md), A's committed position is driven by EXACTLY ONE touching bead's own verdict
+	// per event (resolveBeadCrudMove refuses to move at all if two touching beads imply
+	// different centres — a genuine conflict, never resolved by picking or averaging); this
+	// fixture's B and C are only ~66 degrees apart, so a direction admitting BOTH edges'
+	// angle gates at once is exactly the conflict case. The direction below is built from
+	// the component of B's own outward bearing ORTHOGONAL to C's, tilted slightly further
+	// away from C, so the angle gate admits B's edge (near-aligned) and blocks C's (pushed
+	// past 90 degrees) — ONE clean verdict (a REMOVE on B's touching bead, so A moves the
+	// full "takes the bead's place" distance, not just the smaller ADD offset), and the
+	// resulting move is still off both leaves' prior bearings (neither purely radial to B
+	// nor to C), so both B's and C's re-quantized local polar to A changes in theta, phi,
+	// AND r.
 	outwardB := centerBefore["B"].Sub(centerBefore["A"]).Normalize()
 	outwardC := centerBefore["C"].Sub(centerBefore["A"]).Normalize()
-	target := centerBefore["A"].Add(outwardB.Add(outwardC).Normalize().Scale(30))
+	bOrthToC := outwardB.Sub(outwardC.Scale(outwardB.Dot(outwardC)))
+	dragDir := bOrthToC.Sub(outwardC.Scale(0.1)).Normalize()
+	target := centerBefore["A"].Add(dragDir.Scale(15))
 	// wantA is the point the drag actually COMMITS to — the scene-lattice-snapped
 	// target, not the raw one (docs/which-lattice-a-node-lives-on.md; commitNodeMoveLocal
 	// now draws/persists the quantized position, never the continuous raw target).
@@ -295,13 +309,12 @@ func TestDragPersistsOnlyDraggedNodeAndRequantizesNeighborsOnDisk(t *testing.T) 
 		if !found {
 			t.Fatalf("%s's persisted meta.json has no localPolars entry for A: keys=%v", id, meta)
 		}
-		// Under bead CRUD (bead_crud.go), A moves by exactly one bead length toward the
-		// raw target, in whatever direction that is — which axis (bearing or radius)
-		// absorbs the change for a given neighbour is not pinned, only that SOME axis of
-		// that neighbour's stored local polar to A picked up the requantize.
-		if qTheta == before.QuantITheta && qPhi == before.QuantIPhi && qR == before.QuantIR {
-			t.Fatalf("(c) %s's persisted local polar to A should have changed: before=(theta=%d,phi=%d,r=%d) persisted=(theta=%d,phi=%d,r=%d)",
-				id, before.QuantITheta, before.QuantIPhi, before.QuantIR, qTheta, qPhi, qR)
+		if qTheta == before.QuantITheta && qPhi == before.QuantIPhi {
+			t.Fatalf("(c) %s's persisted local polar to A should have changed in theta/phi: before=(%d,%d) persisted=(%d,%d)",
+				id, before.QuantITheta, before.QuantIPhi, qTheta, qPhi)
+		}
+		if qR == before.QuantIR {
+			t.Fatalf("(c) %s's persisted local polar to A should have changed in r: before=%d persisted=%d", id, before.QuantIR, qR)
 		}
 		// Recompute the expected fresh quantization from live post-drag geometry and
 		// compare, exactly as neighbor_setc_test.go's in-memory assertion (2) does.

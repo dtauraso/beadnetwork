@@ -368,13 +368,28 @@ and none is a source of truth.
   angle means the drag is heading back across the bead); ≤ 90 degrees admits it, subject to
   the `|third|` test above. A removal is decided by `|third|` alone.
 
-  **There is no selection and no summation.** Every touching bead performs the same
-  judgement against the same `v`; per-bead verdicts are never combined into a displacement.
-  If at least one touching bead's verdict is not "none", the node moves exactly ONE bead
-  length toward its destination — never further, and never the raw drag target itself; with
-  no touching beads at all (a free node with no incident edges) the raw target is used
-  directly. One drag event can therefore remove beads from some edges and add them to
-  others at once, with nothing solved and nothing added together.
+  **There is no selection and no summation, and the node's new centre comes from the BEAD
+  OPERATION, never from `v`.** Every touching bead performs the same judgement against the
+  same `v`, but `v` (the drag) supplies only the third-vector test and the angle gate above
+  — it never sets the node's new position or its direction of travel
+  (`nodes/Wiring/bead_crud.go`'s `beadCrudImpliedCentre`, resolved across every touching
+  bead by `resolveBeadCrudMove`):
+
+  - **REMOVE** → the node's new centre IS the removed bead's own former centre exactly — it
+    takes that bead's place.
+  - **ADD** → a new bead is inserted one bead length closer to the node than the old
+    touching bead (the "next chain position"); the node's new centre is one bead length
+    BEYOND that new bead, away from the neighbour, along the SAME chain axis (never the raw
+    drag direction).
+  - every touching bead's verdict is "none" → the node does not move; with no touching beads
+    at all (a free node with no incident edges) the raw target is used directly.
+
+  One drag event can remove beads from some edges and add them to others at once, each
+  independently implying its own new node centre. If two or more touching beads imply
+  DIFFERENT centres for the same event, that is a genuine conflict — never resolved by
+  averaging, by picking whichever is nearest the cursor, or by falling back to the drag
+  target (all three are explicitly rejected). The node holds its position and the conflict
+  is made observable (a breadcrumb naming every disagreeing verdict), not silently resolved.
 
   Bead count on an edge falls out of the resulting geometry as one integer subtraction
   (`nodes/Wiring/chain_beads.go`'s `edgeStepCount`), with the near end tangent to the node's

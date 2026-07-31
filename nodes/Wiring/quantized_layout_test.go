@@ -181,15 +181,172 @@ func TestCommitNodeMoveLocalDrawsQuantizedNotRawTarget(t *testing.T) {
 	if d := got.Sub(want).Length(); d > 1e-6 {
 		t.Fatalf("commitNodeMoveLocal's committed center does not match the bead-crud oracle: got=%+v want=%+v", got, want)
 	}
-	// (3) Consistency (PLAN.md): the node always moves a bead's distance, never further —
-	// the committed center is never more than one wire.BeadStepR away from where it
-	// started, and (since this drag target is deliberately off-lattice and far from
+	// (3) Consistency (PLAN.md): the node moves because of ONE bead operation (add or
+	// remove) on ONE touching bead, never a value derived from the raw drag's own
+	// magnitude — so (since this drag target is deliberately off-lattice and far from
 	// "dst"'s pre-drag position) it must have moved SOME distance rather than holding.
+	// The Cartesian SIZE of that move is whatever the winning verdict's own geometry
+	// implies (beadCrudImpliedCentre) — a REMOVE lands exactly on the removed bead's own
+	// centre and an ADD one bead length beyond the newly added bead, along that edge's
+	// own axis; neither is pinned to wire.BeadStepR itself (a REMOVE's distance from
+	// prevPos is nodeTorusOuterR+wire.BeadTorusOuterR, which can exceed BeadStepR for a
+	// node kind with a large torus). TestCommitNodeMoveLocalRemoveTakesBeadsPlace and
+	// TestCommitNodeMoveLocalAddMovesOneBeadBeyondNewBead pin the exact magnitude/axis for
+	// each verdict directly.
 	moved := got.Sub(before).Length()
 	if moved < 1e-9 {
 		t.Fatalf("dst never moved on a drag whose target is far off its pre-drag position: before=%+v got=%+v", before, got)
 	}
-	if moved > wire.BeadStepR+1e-6 {
-		t.Fatalf("dst moved more than one bead length in a single commit: moved=%v beadStepR=%v", moved, wire.BeadStepR)
+}
+
+// TestCommitNodeMoveLocalNeverMovesTowardMouseTarget is the test PLAN.md required and the
+// prior build's test suite did not catch: "A test must fail if the node's centre is ever
+// set from the mouse target." It does NOT lean on quantizedDragTarget (the shared oracle
+// commitNodeMoveLocal and quantizedDragTarget both call through resolveBeadCrudMove) —
+// that would only prove production agrees with the oracle, not that the oracle itself is
+// right. Instead it hand-computes the WRONG answer directly (the deleted-then-rebuilt
+// walkBeadPath formula: prevPos moved one wire.BeadStepR toward the raw target) and
+// asserts the real commit does NOT match it, for both a REMOVE-triggering drag and an
+// ADD-triggering drag on the same single-neighbour fixture.
+func TestCommitNodeMoveLocalNeverMovesTowardMouseTarget(t *testing.T) {
+	cursorFollow := func(prevPos, target vec3) vec3 {
+		delta := target.Sub(prevPos)
+		if delta.Length() < 1e-9 {
+			return prevPos
+		}
+		return prevPos.Add(delta.Normalize().Scale(wire.BeadStepR))
+	}
+
+	t.Run("remove", func(t *testing.T) {
+		root := writeTree(t)
+		md := loadTreeMD(t, root)
+		nm := md.mr.nodeMovers["dst"]
+		before, ok := md.centerOfNode("dst")
+		if !ok {
+			t.Fatal("no center for dst")
+		}
+		beads := dragTouchingBeads(md, nm, before)
+		if len(beads) == 0 {
+			t.Fatal("dst has no touching beads to judge")
+		}
+		// Land exactly on the touching bead's own SOURCE point: |third| == 0, well under
+		// one bead length, so its verdict is beadCrudRemove.
+		target := beads[0].Source
+		wrong := cursorFollow(before, target)
+
+		md.lq.commitNodeMoveLocal(md, nm, target)
+		got, ok := md.centerOfNode("dst")
+		if !ok {
+			t.Fatal("no center for dst after commit")
+		}
+		if d := got.Sub(wrong).Length(); d < 1e-6 {
+			t.Fatalf("commitNodeMoveLocal moved toward the mouse target (the old walkBeadPath formula), not from the bead operation: got=%+v cursor-follow=%+v", got, wrong)
+		}
+	})
+
+	t.Run("add", func(t *testing.T) {
+		root := writeTree(t)
+		md := loadTreeMD(t, root)
+		nm := md.mr.nodeMovers["dst"]
+		before, ok := md.centerOfNode("dst")
+		if !ok {
+			t.Fatal("no center for dst")
+		}
+		srcCenter, ok := md.centerOfNode("src")
+		if !ok {
+			t.Fatal("no center for src")
+		}
+		outward := before.Sub(srcCenter).Normalize()
+		// Far enough outward, aligned with the touching bead's own axis, that the angle
+		// gate admits an ADD.
+		target := before.Add(outward.Scale(40))
+		wrong := cursorFollow(before, target)
+
+		md.lq.commitNodeMoveLocal(md, nm, target)
+		got, ok := md.centerOfNode("dst")
+		if !ok {
+			t.Fatal("no center for dst after commit")
+		}
+		if d := got.Sub(wrong).Length(); d < 1e-6 {
+			t.Fatalf("commitNodeMoveLocal moved toward the mouse target (the old walkBeadPath formula), not from the bead operation: got=%+v cursor-follow=%+v", got, wrong)
+		}
+	})
+}
+
+// TestCommitNodeMoveLocalRemoveTakesBeadsPlace pins PLAN.md's REMOVE rule positively: "bead
+// removed -> the node moves to take that bead's place." The node's new centre must equal
+// the removed bead's own former centre EXACTLY — not a value derived from the drag target,
+// not one bead length, not any other distance.
+func TestCommitNodeMoveLocalRemoveTakesBeadsPlace(t *testing.T) {
+	root := writeTree(t)
+	md := loadTreeMD(t, root)
+	nm := md.mr.nodeMovers["dst"]
+	before, ok := md.centerOfNode("dst")
+	if !ok {
+		t.Fatal("no center for dst")
+	}
+	beads := dragTouchingBeads(md, nm, before)
+	if len(beads) != 1 {
+		t.Fatalf("fixture assumption: dst has exactly one touching bead, got %d", len(beads))
+	}
+	removedBeadCentre := beads[0].Centre
+	target := beads[0].Source // |third| == 0 < one bead length -> beadCrudRemove
+
+	verdict, _ := beadCrudDecide(beads[0].Source, beads[0].Centre, target, target.Sub(before), wire.BeadStepR)
+	if verdict != beadCrudRemove {
+		t.Fatalf("fixture assumption: this drag should verdict beadCrudRemove, got %v", verdict)
+	}
+
+	md.lq.commitNodeMoveLocal(md, nm, target)
+	got, ok := md.centerOfNode("dst")
+	if !ok {
+		t.Fatal("no center for dst after commit")
+	}
+	if d := got.Sub(removedBeadCentre).Length(); d > 1e-6 {
+		t.Fatalf("dst's new centre should be exactly the removed bead's former centre: got=%+v want=%+v (off by %g)", got, removedBeadCentre, d)
+	}
+}
+
+// TestCommitNodeMoveLocalAddMovesOneBeadBeyondNewBead pins PLAN.md's ADD rule positively:
+// a bead is added at the next chain position, and the node's new centre is one bead length
+// beyond it, along the chain's own axis — never toward the raw drag target.
+func TestCommitNodeMoveLocalAddMovesOneBeadBeyondNewBead(t *testing.T) {
+	root := writeTree(t)
+	md := loadTreeMD(t, root)
+	nm := md.mr.nodeMovers["dst"]
+	before, ok := md.centerOfNode("dst")
+	if !ok {
+		t.Fatal("no center for dst")
+	}
+	srcCenter, ok := md.centerOfNode("src")
+	if !ok {
+		t.Fatal("no center for src")
+	}
+	beads := dragTouchingBeads(md, nm, before)
+	if len(beads) != 1 {
+		t.Fatalf("fixture assumption: dst has exactly one touching bead, got %d", len(beads))
+	}
+	outward := before.Sub(srcCenter).Normalize()
+	target := before.Add(outward.Scale(40))
+
+	dragVector := target.Sub(before)
+	verdict, _ := beadCrudDecide(beads[0].Source, beads[0].Centre, target, dragVector, wire.BeadStepR)
+	if verdict != beadCrudAdd {
+		t.Fatalf("fixture assumption: this drag should verdict beadCrudAdd, got %v", verdict)
+	}
+	// Hand-computed expected centre, independent of beadCrudImpliedCentre's own
+	// implementation: the new bead sits one bead length CLOSER to the node than the old
+	// touching bead (along the chain axis), and the node's new centre is one bead length
+	// further BEYOND that new bead, away from the neighbour.
+	newBeadCentre := beads[0].Centre.Sub(beads[0].AimDir.Scale(wire.BeadStepR))
+	wantNodeCentre := newBeadCentre.Sub(beads[0].AimDir.Scale(wire.BeadStepR))
+
+	md.lq.commitNodeMoveLocal(md, nm, target)
+	got, ok := md.centerOfNode("dst")
+	if !ok {
+		t.Fatal("no center for dst after commit")
+	}
+	if d := got.Sub(wantNodeCentre).Length(); d > 1e-6 {
+		t.Fatalf("dst's new centre should be one bead length beyond the newly added bead, along the chain axis: got=%+v want=%+v (off by %g)", got, wantNodeCentre, d)
 	}
 }

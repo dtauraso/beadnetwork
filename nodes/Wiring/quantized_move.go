@@ -23,6 +23,7 @@ import (
 	"fmt"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"math"
+	"strings"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -324,11 +325,15 @@ func (lq *layoutQuantizer) neighborSetCRequantize(md *MoveDispatch, selfID, from
 }
 
 // touchingBead is the per-neighbour geometry commitNodeMoveLocal hands to beadCrudDecide:
-// the touching bead's own SOURCE point and its own CURRENT centre (see dragTouchingBeads).
+// the touching bead's own SOURCE point, its own CURRENT centre, and the chain's own AXIS
+// (AimDir, the live unit direction from nm toward the neighbour) — see dragTouchingBeads.
+// AimDir is what the node's post-CRUD position is computed along (beadCrudImpliedCentre);
+// it is never the raw drag direction.
 type touchingBead struct {
 	NeighborID string
 	Source     vec3
 	Centre     vec3
+	AimDir     vec3
 }
 
 // dragTouchingBeads reads, for EVERY direct neighbour of the dragged node nm, the ONE bead
@@ -399,7 +404,7 @@ func dragTouchingBeads(md *MoveDispatch, nm *nodeMover, prevPos vec3) []touching
 				beadSource = neighborCenter.Sub(aimDir.Scale(nodeTorusOuterR(neighborKind)))
 			}
 		}
-		out = append(out, touchingBead{NeighborID: neighborID, Source: beadSource, Centre: beadCentre})
+		out = append(out, touchingBead{NeighborID: neighborID, Source: beadSource, Centre: beadCentre, AimDir: aimDir})
 	}
 	return out
 }
@@ -458,16 +463,17 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeMover, 
 	// moving the node is now CRUD on the edge beads that touch it (PLAN.md, bead_crud.go)
 	// instead of solving a joint lattice-intersection: EVERY touching bead
 	// (dragTouchingBeads) judges the SAME raw mouse target independently
-	// (beadCrudDecide) — no solver, no enumeration across neighbours, no selection of
-	// one edge over another, and no summing of per-edge results into a displacement. If
-	// at least one touching bead's verdict is not "none" (its edge's bead count would
-	// change), the node moves exactly ONE bead length toward the raw target — never
-	// further, and never the raw target itself (PLAN.md "the node moves the bead's
-	// distance ... NOT the drag destination point"); if every touching bead's verdict is
-	// "none" (or the node has no touching beads at all, a free node with no incident
-	// edges), the raw drag target is used directly, matching the free-node behaviour the
-	// old solver's N==0 branch had. off/committedPolar below are still measured back OFF
-	// committedPos purely as the position.json self-describing CACHE
+	// (resolveBeadCrudMove/beadCrudDecide) — no solver, no enumeration across neighbours,
+	// no selection of one edge over another, and no summing of per-edge results into a
+	// displacement. The node's new centre comes from the BEAD OPERATION
+	// (beadCrudImpliedCentre), along that edge's own chain axis — NEVER from the raw drag
+	// target, which supplies nodeDestination for the third-vector test and the angle gate
+	// only (PLAN.md "the node moves the bead's distance ... NOT the drag destination
+	// point"). If every touching bead's verdict is "none" (or the node has no touching
+	// beads at all, a free node with no incident edges), the raw drag target is used
+	// directly for a free node, matching the old solver's N==0 branch; with incident edges
+	// and every verdict "none", the node holds prevPos. off/committedPolar below are still
+	// measured back OFF committedPos purely as the position.json self-describing CACHE
 	// (quant_offset_persist.go's doc comment: "the quantized scalar triple... rides along
 	// as a self-describing cache of the drag-time snap cells, NOT the position source")
 	// — nothing downstream reconstructs committedPos from off. If quantizedLayout is off,
@@ -482,22 +488,23 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeMover, 
 		if len(beads) == 0 {
 			committedPos = newPos
 		} else {
-			dragVector := newPos.Sub(prevPos)
-			changed := false
-			for _, b := range beads {
-				if verdict, _ := beadCrudDecide(b.Source, b.Centre, newPos, dragVector, wire.BeadStepR); verdict != beadCrudNone {
-					changed = true
+			var results []beadCrudResult
+			var conflict bool
+			committedPos, results, conflict = resolveBeadCrudMove(beads, prevPos, newPos, wire.BeadStepR)
+			// A conflict is a REAL finding about the model, not an error to paper over
+			// (PLAN.md forbids averaging, nearest-to-cursor, and falling back to the drag
+			// target): more than one touching bead implied a DIFFERENT single node centre
+			// for the same event. The node holds its position and this is made observable
+			// rather than silently resolved — see resolveBeadCrudMove's doc comment.
+			if conflict && md.tr != nil {
+				parts := make([]string, 0, len(results))
+				for _, r := range results {
+					parts = append(parts, fmt.Sprintf("%s:verdict=%d implied=(%.4f,%.4f,%.4f)",
+						r.NeighborID, int(r.Verdict), r.Implied.X, r.Implied.Y, r.Implied.Z))
 				}
-			}
-			if !changed {
-				committedPos = prevPos
-			} else {
-				delta := newPos.Sub(prevPos)
-				if dl := delta.Length(); dl > 1e-9 {
-					committedPos = prevPos.Add(delta.Normalize().Scale(wire.BeadStepR))
-				} else {
-					committedPos = prevPos
-				}
+				md.tr.Breadcrumb("chain-aim", nodeID, "",
+					fmt.Sprintf("bead-crud CONFLICT: touching beads imply different node centres, holding position; %s",
+						strings.Join(parts, " ")))
 			}
 		}
 		committedPolar = cart2polar(committedPos.Sub(md.ui.sceneSphere.Center))
