@@ -13,6 +13,7 @@ package Wiring
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"math"
 	"os"
@@ -21,22 +22,58 @@ import (
 	"time"
 )
 
+// star3Bearing is the shared B-A-C bearing writeStar3 places its two leaves on
+// (duplicated here, rather than returned from writeStar3, so the fixture keeps its
+// existing "just a root path" signature) — the drag below moves A further along this
+// SAME line so a legal intersecting cell exists (see writeStar3's doc comment).
+var star3Bearing = func() vec3 {
+	b := vec3{X: 2, Y: -3, Z: 1}
+	return b.Scale(1 / b.Length())
+}()
+
 // writeStar3 lays down a minimal directory-tree topology with THREE nodes — a hub "A"
 // and two leaves "B" and "C", each with one edge to A — so a drag on A exercises TWO
 // independent neighbor requantizations at once (not just the one this package's other
 // fixture, writeTree's 2-node src/dst, can exercise).
+//
+// B and C are placed COLINEAR with A, on opposite sides, at whole-bead-step distances
+// along one shared bearing — deliberately, not an arbitrary spread. Under the
+// intersection-cell drag model (quantized_move.go's dragCandidateCells: "a legal cell
+// must be a whole bead count from EVERY neighbour simultaneously, not just one"), a hub
+// with TWO neighbours in a generic (non-colinear) arrangement has NO legal cell but
+// stay-put — any single index delta relative to one neighbour's frame essentially never
+// also lands a whole bead count from the other. Colinear placement is what makes a real,
+// non-trivial drag exist to test at all: moving A further along the SAME B-A-C line
+// changes its distance to both by whole bead counts at once (docs/bead-lattice.md).
 func writeStar3(t *testing.T) string {
 	t.Helper()
 	root := t.TempDir()
 	mk := func(rel, body string) { writeTreeFile(t, root, rel, body) }
-	// Scene-polar (r, theta, phi) triples — arbitrary but distinct, spread the three
-	// nodes apart so a drag on A demonstrably changes the quantized bearing to both
-	// leaves, not just their distance.
-	mk("nodes/A/meta.json", `{"id":"A","type":"SrcNode","r":100,"scenePolarR":150,"scenePolarTheta":1.2,"scenePolarPhi":0.3}`)
+
+	aPolar := polar{R: 150, Theta: 1.2, Phi: 0.3}
+	aPos := polar2cart(aPolar)
+	// bearing is an arbitrary, non-axis-aligned unit direction — B and C sit on this
+	// same line through A, one bead-count each way (distinct counts so their PRE-drag
+	// distances to A are also distinguishable in the assertions below). Their
+	// positions are the raw continuous cartesian points on that line — computeLocalPolars
+	// (loader_layout.go) then measures and QUANTIZES A's own bearing to each of them
+	// independently, same as any real authored scene; each measurement rounds to its
+	// own nearest angular cell, so B and C land a small (sub-world-unit) distance off
+	// the mathematically exact line once quantized — this is exactly the realistic
+	// noise floor quantized_move.go's beadStepTol is sized to tolerate (see its own
+	// doc comment for the numbers).
+	bearing := vec3{X: 2, Y: -3, Z: 1}
+	bearing = bearing.Scale(1 / bearing.Length())
+	bPos := aPos.Sub(bearing.Scale(40 * wire.BeadStepR))
+	cPos := aPos.Add(bearing.Scale(55 * wire.BeadStepR))
+	bPolar := cart2polar(bPos)
+	cPolar := cart2polar(cPos)
+
+	mk("nodes/A/meta.json", fmt.Sprintf(`{"id":"A","type":"SrcNode","r":100,"scenePolarR":%v,"scenePolarTheta":%v,"scenePolarPhi":%v}`, aPolar.R, aPolar.Theta, aPolar.Phi))
 	mk("nodes/A/outputs/Out.json", `{"name":"Out"}`)
-	mk("nodes/B/meta.json", `{"id":"B","type":"SinkNode","r":100,"scenePolarR":100,"scenePolarTheta":1.0,"scenePolarPhi":1.2}`)
+	mk("nodes/B/meta.json", fmt.Sprintf(`{"id":"B","type":"SinkNode","r":100,"scenePolarR":%v,"scenePolarTheta":%v,"scenePolarPhi":%v}`, bPolar.R, bPolar.Theta, bPolar.Phi))
 	mk("nodes/B/inputs/In.json", `{"name":"In"}`)
-	mk("nodes/C/meta.json", `{"id":"C","type":"SinkNode","r":100,"scenePolarR":90,"scenePolarTheta":0.9,"scenePolarPhi":-1.0}`)
+	mk("nodes/C/meta.json", fmt.Sprintf(`{"id":"C","type":"SinkNode","r":100,"scenePolarR":%v,"scenePolarTheta":%v,"scenePolarPhi":%v}`, cPolar.R, cPolar.Theta, cPolar.Phi))
 	mk("nodes/C/inputs/In.json", `{"name":"In"}`)
 	// Both edges share A's single "Out" output port — a fan-OUT, symmetric with the
 	// fan-IN this package's srcNode/sinkNode kinds already exercise (two edges sharing
@@ -140,8 +177,9 @@ func persistedLocalPolarTo(t *testing.T, m map[string]json.RawMessage, to string
 //
 //  1. A's own persisted scenePolar/center changed to the drag target.
 //  2. B's and C's persisted scenePolar/center are UNCHANGED (neighbors stay put).
-//  3. B's and C's persisted LocalPolar to A changed in theta/phi AND r (re-quantized
-//     from live geometry, not held).
+//  3. B's and C's persisted LocalPolar to A changed in r (re-quantized from live
+//     geometry, not held); theta/phi are unchanged, since A's drag stays on the shared
+//     B-A-C line writeStar3 places its leaves on (see that fixture's doc comment).
 //  4. No degenerate step (StepR) was written for any node — it must be one of the two
 //     known sane grid constants (wire.DefaultLocalStepR for a per-node local-polar entry, stepR for
 //     the scene-level quantized cache), never a near-zero value.
@@ -202,11 +240,15 @@ func TestDragPersistsOnlyDraggedNodeAndRequantizesNeighborsOnDisk(t *testing.T) 
 	var dbg syncBuffer
 	md.tr.SetSink(&dbg)
 
-	// Drag A far enough, off both leaves' prior bearings, that quantization actually
-	// changes the neighbor indices for BOTH B and C (a purely radial move along an
-	// existing bearing would leave theta/phi unchanged for that one neighbor and not
-	// exercise the "angle also changes" half of the model).
-	target := centerBefore["A"].Add(vec3{X: 90, Y: -70, Z: 55})
+	// Drag A further along the SAME B-A-C line writeStar3 placed its leaves on — under
+	// the intersection-cell model this is what makes a legal (non-stay-put) cell exist
+	// for a two-neighbour hub at all (dragCandidateCells' doc comment): moving A off
+	// that line would need a candidate that is simultaneously a whole bead count from
+	// BOTH B and C in a generic (non-colinear) configuration, which essentially never
+	// survives. This move changes A's RADIAL distance to both B and C (their
+	// theta/phi bearing to A is unchanged, since A stays on the same line) — see (c)
+	// below for what's asserted about each.
+	target := centerBefore["A"].Add(star3Bearing.Scale(5 * wire.BeadStepR))
 	// wantA is the point the drag actually COMMITS to — the scene-lattice-snapped
 	// target, not the raw one (docs/which-lattice-a-node-lives-on.md; commitNodeMoveLocal
 	// now draws/persists the quantized position, never the continuous raw target).
@@ -278,20 +320,18 @@ func TestDragPersistsOnlyDraggedNodeAndRequantizesNeighborsOnDisk(t *testing.T) 
 		t.Fatalf("(b) C's persisted center must stay put on an A drag: pre-drag=%+v persisted=%+v (off by %g)", centerBefore["C"], gotC, d)
 	}
 
-	// (c) B's and C's persisted LocalPolar to A changed in theta/phi AND r — re-quantized
-	// from the live post-drag geometry, matching a fresh quantization computed the same
-	// way requantizePoleTraced does at the cart<->polar boundary (same recipe this
+	// (c) B's and C's persisted LocalPolar to A changed in r — re-quantized from the
+	// live post-drag geometry, matching a fresh quantization computed the same way
+	// requantizePoleTraced does at the cart<->polar boundary (same recipe this
 	// package's neighbor_setc_test.go / subtree_persist_test.go already use in-memory;
-	// here read back from the PERSISTED bytes).
+	// here read back from the PERSISTED bytes). theta/phi are DELIBERATELY unchanged —
+	// A moved along the same B-A-C line (writeStar3's doc comment), so each leaf's
+	// bearing to A is identical before and after; only the distance changed.
 	checkNeighbor := func(id string, meta map[string]json.RawMessage, lh *wire.LayoutHolder, before wire.LocalPolar) {
 		t.Helper()
 		qTheta, qPhi, qR, stTheta, stPhi, stR, found := persistedLocalPolarTo(t, meta, "A")
 		if !found {
 			t.Fatalf("%s's persisted meta.json has no localPolars entry for A: keys=%v", id, meta)
-		}
-		if qTheta == before.QuantITheta && qPhi == before.QuantIPhi {
-			t.Fatalf("(c) %s's persisted local polar to A should have changed in theta/phi: before=(%d,%d) persisted=(%d,%d)",
-				id, before.QuantITheta, before.QuantIPhi, qTheta, qPhi)
 		}
 		if qR == before.QuantIR {
 			t.Fatalf("(c) %s's persisted local polar to A should have changed in r: before=%d persisted=%d", id, before.QuantIR, qR)
@@ -329,9 +369,21 @@ func TestDragPersistsOnlyDraggedNodeAndRequantizesNeighborsOnDisk(t *testing.T) 
 		if stR != wire.DefaultLocalStepR {
 			t.Fatalf("(d) %s's persisted local-polar StepR should be the sane grid constant wire.DefaultLocalStepR=%g, got %g", id, wire.DefaultLocalStepR, stR)
 		}
-		if stTheta != wire.DefaultLocalStepTheta || stPhi != wire.DefaultLocalStepPhi {
-			t.Fatalf("(d) %s's persisted local-polar StepTheta/StepPhi should be the sane grid constants (%g,%g), got (%g,%g)",
-				id, wire.DefaultLocalStepTheta, wire.DefaultLocalStepPhi, stTheta, stPhi)
+		// StepTheta/StepPhi are no longer a fixed literal (wire.DefaultLocalStepTheta/Phi)
+		// — they're r-DEPENDENT (wire.AngularStepsForR, layout_holder.go), one bead of
+		// ARC at THIS entry's own radius, so the sane-value check recomputes the SAME
+		// oracle from the fresh radius (wantR*sr, already computed above) rather than
+		// comparing to the old fixed constant.
+		// r (the RAW, unrounded live radius, already computed above via dirFromOffset) is
+		// what production derives the step from — wantR*sr would re-round through the
+		// index first, which changes the input to AngularStepsForR by up to half a
+		// radial cell and makes this oracle disagree with production over nothing but
+		// that rounding. Same reasoning for c (the RAW, unrounded colatitude) below.
+		wantStepTheta, _ := wire.AngularStepsForR(r, 0)
+		_, wantStepPhi := wire.AngularStepsForR(r, c)
+		if stTheta != wantStepTheta || stPhi != wantStepPhi {
+			t.Fatalf("(d) %s's persisted local-polar StepTheta/StepPhi should be the r-derived grid constants (%g,%g), got (%g,%g)",
+				id, wantStepTheta, wantStepPhi, stTheta, stPhi)
 		}
 	}
 	checkNeighbor("B", metaB, lhB, lpBBefore)

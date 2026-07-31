@@ -146,6 +146,10 @@ func TestCommitNodeMoveLocalDrawsQuantizedNotRawTarget(t *testing.T) {
 	// multiple of the 1-degree stepTheta/stepPhi.
 	target := before.Add(vec3{X: 37.1, Y: -5.3, Z: 12.9})
 
+	// Captured BEFORE the commit — chooseDragCandidate reads the node's pre-drag
+	// LocalPolar/partnerCenters state, which commitNodeMoveLocal is about to change.
+	want, wantOk := md.lq.chooseDragCandidate(nm, target)
+
 	md.lq.commitNodeMoveLocal(md, nm, target)
 
 	got, ok := md.centerOfNode("dst")
@@ -158,15 +162,18 @@ func TestCommitNodeMoveLocalDrawsQuantizedNotRawTarget(t *testing.T) {
 	if d := got.Sub(target).Length(); d < 1e-6 {
 		t.Fatalf("commitNodeMoveLocal drew the RAW target instead of the quantized lattice point: got=%+v raw-target=%+v", got, target)
 	}
-	// (2) The committed center must equal the WALKED point (walkBeadPath, "one bead of
-	// arc in every direction" — docs/bead-lattice.md) — the positive half of the same
-	// assertion, pinning WHAT it should be, not just what it shouldn't. This replaced an
-	// earlier version of this test that compared against offsetScenePolar(measureScalar(...)),
-	// the fixed-1-degree-angular-tick lattice point commitNodeMoveLocal used to draw
-	// before the walk model replaced it (that formula UNDERSHOT a sideways move 7x-18x,
-	// the drag.jump probe finding).
-	want := walkBeadPath(before, target)
+	// (2) The committed center must equal the nearest SURVIVING INTERSECTION CELL
+	// (chooseDragCandidate, "a legal cell must be a whole bead count from EVERY
+	// neighbour" — docs/bead-lattice.md) — the positive half of the same assertion,
+	// pinning WHAT it should be, not just what it shouldn't. This replaced an earlier
+	// version of this test that compared against walkBeadPath's cartesian-stride walk,
+	// which itself replaced an even earlier fixed-1-degree-angular-tick lattice point
+	// (offsetScenePolar(measureScalar(...))) that UNDERSHOT a sideways move 7x-18x (the
+	// drag.jump probe finding).
+	if !wantOk {
+		t.Fatal("test assumes dst has a usable neighbour constraint (chooseDragCandidate ok=true)")
+	}
 	if d := got.Sub(want).Length(); d > 1e-6 {
-		t.Fatalf("commitNodeMoveLocal's committed center does not match the walked lattice point: got=%+v want=%+v", got, want)
+		t.Fatalf("commitNodeMoveLocal's committed center does not match the chosen intersection cell: got=%+v want=%+v", got, want)
 	}
 }
