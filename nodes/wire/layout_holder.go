@@ -80,9 +80,57 @@ type LocalPolar struct {
 	StepR     float64
 }
 
-// effectiveSteps mirrors quantizedOffset.effectiveSteps: this local polar's own
-// step constants, falling back to the SMALL local-polar defaults (NOT the scene
-// triple's coarser stepTheta/stepPhi/stepR) for any unset component.
+// AngularStepsForR derives the bead-lattice's angular cell spacing (radians) at radius r and
+// colatitude theta, so that ONE index step covers exactly ONE BEAD OF ARC — never a fixed
+// literal angle (memory/feedback_abc_times_constant_not_rederive.md's "abc × constant, trig
+// only at the boundary" model, applied here to what the constant itself IS, not just how it's
+// used). A fixed 1-degree tick (the old localStepTheta/localStepPhi, still the DEGENERATE-CASE
+// fallback below) measured 0.48-1.35 world units of arc against this graph's actual radii — a
+// small fraction of one bead's own 8.96-world-unit step (docs/bead-lattice.md's drag.jump probe
+// finding) — so cells were not spaced one bead apart in the angular directions at all. That
+// mismatch is what this replaces.
+//
+// theta-step: moving along colatitude at fixed r sweeps an arc of a GREAT circle,
+// arc = r*dtheta, so dtheta = BeadStepR/r.
+// phi-step: moving along azimuth at fixed (r,theta) sweeps a SMALLER circle of latitude
+// (radius r*sin(theta), not r), so arc = r*sin(theta)*dphi, dphi = BeadStepR/(r*sin(theta)).
+//
+// r<=0 (a node measured at its own local pole's origin — never a real drag target, but still a
+// value a candidate-cell enumeration can ask about) and sin(theta)<=0 (ON the pole axis, where
+// a line of latitude degenerates to a single point and no phi step has a well-defined arc
+// length) both fall back to the small hand-picked constants (localStepTheta/localStepPhi) — an
+// arbitrary but harmless placeholder, since neither degenerate configuration is a real cell a
+// node could occupy.
+func AngularStepsForR(r, theta float64) (stepTheta, stepPhi float64) {
+	const eps = 1e-9
+	if r <= eps {
+		return localStepTheta, localStepPhi
+	}
+	stepTheta = BeadStepR / r
+	s := math.Sin(theta)
+	if s < 0 {
+		s = -s
+	}
+	if s <= eps {
+		stepPhi = stepTheta
+	} else {
+		stepPhi = BeadStepR / (r * s)
+	}
+	return
+}
+
+// EffectiveSteps returns this local polar's OWN effective step constants, falling back to
+// the SMALL local-polar defaults (NOT the scene triple's coarser stepTheta/stepPhi/stepR)
+// for any unset component — same contract as before. StepTheta/StepPhi are NO LONGER
+// independently-chosen literals (the fallback constants are now only a degenerate-case
+// placeholder, AngularStepsForR's own doc comment) — they are DERIVED from this entry's own
+// radius via AngularStepsForR at the two WRITE choke points (requantizePoleTraced's `fresh`
+// branch, LoadLocalPolars), so a stored StepTheta/StepPhi is already "one bead of arc" for
+// this entry's own QuantIR by the time anything reads it. This method stays a plain FIELD
+// READ (not a recompute) on purpose: an UNCHANGED entry's step must be read back byte-
+// identical to what was written, or the "true no-op" skip in requantizePoleTraced (comparing
+// old step to freshly-derived step) spuriously fires on every call — recomputing here would
+// make the step wobble by float rounding even though nothing about this entry changed.
 func (lp LocalPolar) EffectiveSteps() (t, p, r float64) {
 	t, p, r = lp.StepTheta, lp.StepPhi, lp.StepR
 	if t == 0 {
@@ -190,14 +238,69 @@ func (lh *LayoutHolder) LocalPolarSteps(to string) (t, p, r float64) {
 // putting ~128 beads on an edge sized for 25. Normalizing half a pair is worse
 // than not normalizing at all, because the stale value was at least
 // self-consistent.
+//
+// The SAME discipline applies to the angular pair now that StepTheta/StepPhi are
+// r-DEPENDENT (AngularStepsForR, above) rather than a fixed literal: every on-disk entry
+// still carries whatever step was in force when it was written (most commonly the old fixed
+// 1-degree tick, before this file existed) — trusting that stored step while EffectiveSteps
+// now computes a DIFFERENT one for the same radius would silently re-scale every stored
+// angular index the moment it's read, the exact "index left alone, step swapped" bug the
+// radial conversion above already guards against. So the ANGLE each index represents
+// (index * ITS OWN stored, or defaulted, step) is treated as the invariant: recovered once
+// under the OLD step, then RE-DERIVED into a new index under the CURRENT (radius-dependent,
+// post-normalization) step, so the represented angle survives a lattice-constant change
+// unchanged, only its cell-count representation does. Order matters: radius is normalized
+// FIRST (QuantIR above), then the angular re-derive runs against that already-current radius,
+// so the angular step it computes is the one that will actually describe this entry going
+// forward — not one about to be invalidated by the R fix a statement later.
 func (lh *LayoutHolder) LoadLocalPolars(lps []LocalPolar) {
 	for i := range lps {
-		stale := lps[i].StepR
-		if stale == 0 || math.Abs(stale-LocalStepR) <= 1e-9 {
-			continue
+		// --- Radial: unchanged from before this file grew an angular pair. Unset (0,
+		// "no opinion, use the default") or already-agreeing needs no correction — the
+		// SAME guard TestLoadLocalPolarsLeavesAgreeingOrUnsetStepR pins.
+		staleR := lps[i].StepR
+		if staleR != 0 && math.Abs(staleR-LocalStepR) > 1e-9 {
+			lps[i].QuantIR = int(math.Round(float64(lps[i].QuantIR) * staleR / LocalStepR))
+			lps[i].StepR = LocalStepR
 		}
-		lps[i].QuantIR = int(math.Round(float64(lps[i].QuantIR) * stale / LocalStepR))
-		lps[i].StepR = LocalStepR
+
+		// --- Angular: now r-DEPENDENT (AngularStepsForR) rather than a fixed literal, so
+		// this needs its OWN disagreement check independent of the radial one above —
+		// EVERY existing on-disk local-polars.json already agrees on StepR (it was
+		// always written as LocalStepR/BeadStepR) but still carries the OLD fixed
+		// 1-degree StepTheta/StepPhi from before this file existed, so the radial guard
+		// alone would never touch it. Unset (0) is left alone (same "no opinion, use the
+		// default" contract as R); a nonzero stored step that already matches what the
+		// CURRENT radius derives needs no correction either (mirrors the radial "already
+		// agreeing" case) — only a genuinely stale nonzero step triggers the same
+		// index-and-step-move-together re-derive the radial block above uses: the ANGLE
+		// (index * its own stale step) is the invariant, recovered once and re-indexed
+		// under the current (possibly just-normalized) radius.
+		effR := lps[i].StepR
+		if effR == 0 {
+			effR = localStepR
+		}
+		radius := float64(lps[i].QuantIR) * effR
+		wantStepTheta, _ := AngularStepsForR(radius, 0)
+		staleTheta := lps[i].StepTheta
+		if staleTheta != 0 && math.Abs(staleTheta-wantStepTheta) > 1e-9 {
+			theta := float64(lps[i].QuantITheta) * staleTheta
+			stalePhi := lps[i].StepPhi
+			if stalePhi == 0 {
+				_, stalePhi = AngularStepsForR(radius, theta)
+			}
+			phi := float64(lps[i].QuantIPhi) * stalePhi
+
+			newITheta := int(math.Round(theta / wantStepTheta))
+			newTheta := float64(newITheta) * wantStepTheta
+			_, wantStepPhi := AngularStepsForR(radius, newTheta)
+			newIPhi := int(math.Round(phi / wantStepPhi))
+
+			lps[i].QuantITheta = newITheta
+			lps[i].QuantIPhi = newIPhi
+			lps[i].StepTheta = wantStepTheta
+			lps[i].StepPhi = wantStepPhi
+		}
 	}
 	lh.localPolars = lps
 }
