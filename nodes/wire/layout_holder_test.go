@@ -1,6 +1,9 @@
 package wire
 
-import "testing"
+import (
+	"math"
+	"testing"
+)
 
 // TestLoadLocalPolarsNormalizesDisagreeingStepR pins what LoadLocalPolars does with a
 // stored StepR that disagrees with LocalStepR: it OVERWRITES it with the lattice's own
@@ -58,5 +61,114 @@ func TestLoadLocalPolarsLeavesAgreeingOrUnsetStepR(t *testing.T) {
 	}
 	if got[1].StepR != 0 {
 		t.Fatalf("unset stepR filled in as %v, want it left at 0 so EffectiveSteps still supplies the default", got[1].StepR)
+	}
+}
+
+// TestLoadLocalPolarsNormalizesDisagreeingAngularSteps is StepR's companion for the two
+// angular axes: a stale StepTheta/StepPhi that disagrees with the current
+// localStepTheta/localStepPhi default must be normalized the same way — index and step
+// rescaled TOGETHER so the represented ANGLE survives, not just the step constant
+// overwritten in place (which would silently rescale every stored bearing).
+func TestLoadLocalPolarsNormalizesDisagreeingAngularSteps(t *testing.T) {
+	lh := &LayoutHolder{}
+	const staleTheta = 0.3 // stale, coarser than the current 1-degree default
+	const stalePhi = 0.34  // observed on disk: nodes 3/5/8's ~19.5deg stepPhi
+	lh.LoadLocalPolars([]LocalPolar{
+		{To: "neighbor", QuantITheta: 7, StepTheta: staleTheta, QuantIPhi: 4, StepPhi: stalePhi},
+	})
+	got := lh.LocalPolarsSnapshot()
+	if len(got) != 1 {
+		t.Fatalf("want 1 loaded entry, got %d", len(got))
+	}
+	if got[0].StepTheta != localStepTheta {
+		t.Fatalf("stale stepTheta=%v loaded as %v, want normalized to localStepTheta=%v", staleTheta, got[0].StepTheta, localStepTheta)
+	}
+	if got[0].StepPhi != localStepPhi {
+		t.Fatalf("stale stepPhi=%v loaded as %v, want normalized to localStepPhi=%v", stalePhi, got[0].StepPhi, localStepPhi)
+	}
+	wantITheta := int(math.Round(7 * staleTheta / localStepTheta))
+	if got[0].QuantITheta != wantITheta {
+		t.Fatalf("QuantITheta=%d after normalizing stepTheta %v -> %v, want %d: the stored bearing was %v rad and is now %v rad — rewriting only the step changes the represented angle",
+			got[0].QuantITheta, staleTheta, localStepTheta, wantITheta, 7*staleTheta, float64(got[0].QuantITheta)*localStepTheta)
+	}
+	wantIPhi := int(math.Round(4 * stalePhi / localStepPhi))
+	if got[0].QuantIPhi != wantIPhi {
+		t.Fatalf("QuantIPhi=%d after normalizing stepPhi %v -> %v, want %d", got[0].QuantIPhi, stalePhi, localStepPhi, wantIPhi)
+	}
+}
+
+// TestLoadLocalPolarsLeavesAgreeingOrUnsetAngularSteps is the angular-axis negative case,
+// mirroring TestLoadLocalPolarsLeavesAgreeingOrUnsetStepR: an already-agreeing or unset (0)
+// StepTheta/StepPhi must pass through untouched, since 0 carries the "no opinion, use the
+// default" meaning EffectiveSteps depends on.
+func TestLoadLocalPolarsLeavesAgreeingOrUnsetAngularSteps(t *testing.T) {
+	lh := &LayoutHolder{}
+	lh.LoadLocalPolars([]LocalPolar{
+		{To: "a", QuantITheta: 5, StepTheta: localStepTheta, QuantIPhi: 5, StepPhi: localStepPhi},
+		{To: "b", QuantITheta: 5, QuantIPhi: 5}, // StepTheta/StepPhi unset
+	})
+	got := lh.LocalPolarsSnapshot()
+	if len(got) != 2 {
+		t.Fatalf("want 2 loaded entries, got %d", len(got))
+	}
+	if got[0].StepTheta != localStepTheta || got[0].StepPhi != localStepPhi {
+		t.Fatalf("agreeing angular steps changed: theta=%v phi=%v, want %v/%v", got[0].StepTheta, got[0].StepPhi, localStepTheta, localStepPhi)
+	}
+	if got[0].QuantITheta != 5 || got[0].QuantIPhi != 5 {
+		t.Fatalf("agreeing entry's indices changed: theta=%d phi=%d, want 5/5", got[0].QuantITheta, got[0].QuantIPhi)
+	}
+	if got[1].StepTheta != 0 || got[1].StepPhi != 0 {
+		t.Fatalf("unset angular steps filled in: theta=%v phi=%v, want left at 0 so EffectiveSteps still supplies the default", got[1].StepTheta, got[1].StepPhi)
+	}
+}
+
+// TestLoadLocalPolarsRealDivergenceStepTheta reproduces the exact live-data divergence
+// found in topology/nodes/4/local-polars.json's entry for neighbor 6: stepTheta 0.11111
+// (6.37deg, stale) with quantITheta 13 — while node 6's reciprocal entry for 4 already sits
+// on the current default (0.017453, 1deg). LoadLocalPolars must rescale node 4's stale
+// entry onto the SAME 0.017453 lattice with the bearing preserved, which is what lets both
+// ends land on one shared step constant (see the two-end-agreement test below).
+func TestLoadLocalPolarsRealDivergenceStepTheta(t *testing.T) {
+	lh := &LayoutHolder{}
+	const staleTheta = 0.11111
+	const quantITheta = 13
+	lh.LoadLocalPolars([]LocalPolar{
+		{To: "6", QuantITheta: quantITheta, StepTheta: staleTheta},
+	})
+	got := lh.LocalPolarsSnapshot()
+	if got[0].StepTheta != localStepTheta {
+		t.Fatalf("node 4's live-data stepTheta=%v normalized to %v, want the current default %v", staleTheta, got[0].StepTheta, localStepTheta)
+	}
+	wantITheta := int(math.Round(quantITheta * staleTheta / localStepTheta))
+	if got[0].QuantITheta != wantITheta {
+		t.Fatalf("QuantITheta=%d after normalizing the live 4->6 stepTheta, want %d (bearing %v rad preserved, now %v rad)",
+			got[0].QuantITheta, wantITheta, quantITheta*staleTheta, float64(got[0].QuantITheta)*localStepTheta)
+	}
+}
+
+// TestLoadLocalPolarsBothEndsOfEdgeAgreeAfterNormalize is the invariant this whole change
+// exists for and that had NO coverage before it: the same physical edge, loaded from two
+// separate on-disk records that disagreed on their stored step (the live 4<->6 divergence —
+// node 4's entry at 0.11111, node 6's reciprocal entry already at 0.017453), must end up on
+// the SAME step constant after LoadLocalPolars runs on each node's own holder. Two
+// independently-normalized entries landing on different constants would mean the two ends
+// of one edge still disagree on what angle a tick represents — exactly the bug that let the
+// chain snap between sides of the true line.
+func TestLoadLocalPolarsBothEndsOfEdgeAgreeAfterNormalize(t *testing.T) {
+	node4 := &LayoutHolder{}
+	node4.LoadLocalPolars([]LocalPolar{
+		{To: "6", QuantITheta: 13, StepTheta: 0.11111},
+	})
+	node6 := &LayoutHolder{}
+	node6.LoadLocalPolars([]LocalPolar{
+		{To: "4", QuantITheta: 9, StepTheta: 0.017453},
+	})
+	got4 := node4.LocalPolarsSnapshot()
+	got6 := node6.LocalPolarsSnapshot()
+	if got4[0].StepTheta != got6[0].StepTheta {
+		t.Fatalf("both ends of edge 4<->6 must share one step constant after normalize: node4=%v node6=%v", got4[0].StepTheta, got6[0].StepTheta)
+	}
+	if got4[0].StepTheta != localStepTheta {
+		t.Fatalf("normalized shared step=%v, want the current default localStepTheta=%v", got4[0].StepTheta, localStepTheta)
 	}
 }

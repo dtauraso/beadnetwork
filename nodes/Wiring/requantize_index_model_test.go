@@ -155,19 +155,24 @@ func TestRequantizeIndexTimesStepIsAuthoritative(t *testing.T) {
 // keeps quantization rounding negligible next to that divergence).
 func TestPersistedPoleDrivesReloadWorldPositions(t *testing.T) {
 	// Compute the tilted pole and far's stored index against it purely with the
-	// in-package quantizer (mirrors TestRequantizePoleTracedPreservesWorldDirectionOnPoleTilt),
-	// using a deliberately tiny step for "far" so subsequent quantization rounding is
-	// negligible next to the (much larger) pole-tilt divergence this test pins.
+	// in-package quantizer (mirrors TestRequantizePoleTracedPreservesWorldDirectionOnPoleTilt).
+	// "far"'s step is the real default lattice step (wire.DefaultLocalStepTheta/Phi), not
+	// an artificially fine one: LoadLocalPolars now normalizes a disagreeing stored
+	// stepTheta/stepPhi to that default on every reload (this file's own fix, mirroring
+	// the pre-existing stepR normalization below), so a fine step here would be silently
+	// coarsened back to the default anyway — round-tripping through the real reload path
+	// this test exercises (WriteLocalPolars -> LoadTopology -> LayoutHolder.LoadLocalPolars)
+	// with the default step in the first place keeps the test measuring pole-honoring, not
+	// step normalization.
 	md := &MoveDispatch{}
 	lh := &wire.LayoutHolder{}
-	tinyStep := 0.001 * testDeg
 	// Radial step is wire.LocalStepR (the real lattice step), not an arbitrary literal —
 	// this entry round-trips through a real reload later in this test (WriteLocalPolars ->
 	// LoadTopology -> LayoutHolder.LoadLocalPolars), which now REJECTS a stored stepR that
 	// disagrees with the lattice (docs/bead-lattice.md). This test's own assertion is about
 	// theta/phi pole reconstruction, not radial quantization, so the exact value doesn't
 	// matter to it as long as it agrees with the lattice.
-	lh.SetLocalPolar("far", 0, 0, 0, tinyStep, tinyStep, wire.LocalStepR)
+	lh.SetLocalPolar("far", 0, 0, 0, wire.DefaultLocalStepTheta, wire.DefaultLocalStepPhi, wire.LocalStepR)
 
 	dirFar := dir{Theta: 60 * testDeg, Phi: 30 * testDeg}
 	offFar := offsetFromDir(dirFar).Scale(40)
@@ -243,7 +248,12 @@ func TestPersistedPoleDrivesReloadWorldPositions(t *testing.T) {
 	// actually quantized about) — this is what exposes a wrong (e.g. home-fallback)
 	// pole having been used at quantize time.
 	gotDir := fromAxisFrame(tiltedPole, float64(farAfter.QuantITheta)*tt, float64(farAfter.QuantIPhi)*pp)
-	const bound = 0.1 * testDeg
+	// bound must clear the rounding noise the default 1-degree lattice step itself
+	// introduces (worst case half a tick on each of theta/phi, well under poleKickTheta =
+	// 1 degree) while staying well below poleKickTheta, the fixed pole-tilt increment a
+	// wrong (e.g. home-fallback) pole would actually diverge by — so this still
+	// discriminates a real wrong-pole bug from ordinary lattice rounding.
+	const bound = 0.6 * testDeg
 	if d := angularDistance(gotDir, dirFar); d > bound {
 		t.Fatalf("far's reloaded bearing, reconstructed under the KNOWN correct tiltedPole, did not recover far's true direction: got %+v want %+v (angularDistance=%v, allowed<=%v) — the loader quantized far's bearing about the WRONG pole (it did not honor the persisted tiltedPole)", gotDir, dirFar, d, bound)
 	}
