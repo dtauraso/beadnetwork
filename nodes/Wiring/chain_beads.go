@@ -208,10 +208,20 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 		if !found {
 			continue
 		}
-		// Direction: this node's own stored bearing to the neighbour, re-expressed from its
-		// abc-indices about this node's own measurement pole — the same fromAxisFrame call
-		// quantized_move.go's requantizePoleTraced and loader_layout.go's reload path use to
-		// reconstruct an unchanged neighbour's world direction. No cartesian offset is read.
+		// Direction fallback ONLY: this node's own stored, QUANTIZED bearing to the
+		// neighbour, re-expressed from its abc-indices about this node's own measurement
+		// pole — the same fromAxisFrame call quantized_move.go's requantizePoleTraced and
+		// loader_layout.go's reload path use to reconstruct an unchanged neighbour's world
+		// direction. Used below ONLY when this node has no live cartesian copy of the
+		// neighbour's center yet (m.partnerCenters miss — never linked, or a bare test
+		// mover with no pushes) and cannot measure the real bearing; the stored indices are
+		// 1-degree angular cells (localStepTheta/Phi, layout_holder.go), so this can point
+		// up to half a degree away from where the neighbour actually sits — that residue is
+		// the "chain lands beside the target's surface" defect the live measurement below
+		// exists to close. QuantITheta/QuantIPhi are still the authoritative RECORDED
+		// position (reload reconstruction, requantize read them) — only this CHAIN, a
+		// picture of where things are RIGHT NOW, stops reading them once a live center is
+		// available; the stored indices themselves are untouched.
 		stepTheta, stepPhi, _ := lp.EffectiveSteps()
 		ndir := fromAxisFrame(pole, float64(lp.QuantITheta)*stepTheta, float64(lp.QuantIPhi)*stepPhi)
 
@@ -312,20 +322,32 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 		// (spacing has no effect on a single-bead loop, i ranges over {0} only), so it
 		// keeps the near-edge/BeadStepR fallback above; a lone bead cannot satisfy
 		// tangency at both ends unless its fixed diameter happens to equal the gap.
+		//
+		// useLiveAim tracks whether spacing (above) AND direction (below) both came from
+		// the ONE live measurement (edgeSurfaceGapAndDir) or both fell back to the stored
+		// lattice (BeadStepR spacing, ndir bearing) — they must move together, never one
+		// live and the other stored, or the chain regresses to exactly the bug this fix
+		// closes (a length that agrees with the renderer next to a bearing that doesn't).
 		spacing := wire.BeadStepR
+		liveDir := vec3{}
+		useLiveAim := false
 		if count > 1 {
 			if targetCenter, ok := m.partnerCenters[to]; ok {
 				targetTorusR := nodeTorusOuterR(m.cascadeKinds[to])
-				gap := edgeSurfaceGap(selfCenter, targetCenter, selfTorusR, targetTorusR)
-				s := (gap - 2*wire.BeadTorusOuterR) / float64(count-1)
-				if s < 0 {
-					// A gap smaller than two bead diameters (extreme close nodes):
-					// clamp rather than go negative and fold beads back past this
-					// node's own centre. Exact far-edge tangency is not achievable
-					// in this degenerate case either way.
-					s = 0
+				gap, dirVec, dirOK := edgeSurfaceGapAndDir(selfCenter, targetCenter, selfTorusR, targetTorusR)
+				if dirOK {
+					s := (gap - 2*wire.BeadTorusOuterR) / float64(count-1)
+					if s < 0 {
+						// A gap smaller than two bead diameters (extreme close nodes):
+						// clamp rather than go negative and fold beads back past this
+						// node's own centre. Exact far-edge tangency is not achievable
+						// in this degenerate case either way.
+						s = 0
+					}
+					spacing = s
+					liveDir = dirVec
+					useLiveAim = true
 				}
-				spacing = s
 			}
 		}
 		// One coordinate: bead index i. Offset from this node's centre is
@@ -334,11 +356,26 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 		// tangency, with no clamp.
 		for i := 0; i < count; i++ {
 			d := selfTorusR + wire.BeadTorusOuterR + float64(i)*spacing
-			// One trig conversion per bead, at the cartesian↔polar boundary — no sqrt: R
-			// varies per bead by index arithmetic (d above), Theta/Phi are this
-			// neighbour's own fixed bearing (ndir), reused unchanged for every bead on
-			// this edge.
-			p := polar2cart(polar{R: d, Theta: ndir.Theta, Phi: ndir.Phi})
+			var p vec3
+			if useLiveAim {
+				// liveDir is ALREADY a unit cartesian direction (edgeSurfaceGapAndDir's
+				// one Normalize() call) — scaling it by d places the bead directly, with
+				// no cartesian->polar->cartesian round trip that would exist only to
+				// look like the fallback below. That round trip is what the fallback
+				// still needs (ndir only carries an angle, not a vector), but here the
+				// live measurement already IS a vector, so converting it to polar and
+				// back would just reintroduce float error for no reason.
+				p = liveDir.Scale(d)
+			} else {
+				// Fallback: no live center for `to` yet, so the only direction available
+				// is the stored quantized bearing (ndir) — an angle, not a vector — and
+				// polar2cart is the one legitimate cartesian<->polar boundary conversion
+				// (tools/check-no-sqrt-in-chain-beads.sh) to turn it into a placeable
+				// offset. R varies per bead by index arithmetic (d above); Theta/Phi are
+				// this neighbour's own fixed bearing, reused unchanged for every bead on
+				// this edge.
+				p = polar2cart(polar{R: d, Theta: ndir.Theta, Phi: ndir.Phi})
+			}
 			ox = append(ox, float32(p.X))
 			oy = append(oy, float32(p.Y))
 			oz = append(oz, float32(p.Z))
