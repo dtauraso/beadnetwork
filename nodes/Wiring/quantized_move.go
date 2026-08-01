@@ -23,6 +23,7 @@ import (
 	"fmt"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"math"
+	"strings"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -505,6 +506,49 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeMover, 
 		}
 		committedPolar = cart2polar(committedPos.Sub(md.ui.sceneSphere.Center))
 		off = measureScalar(committedPolar, nm.quantOffset)
+
+		// DIAGNOSTIC ONLY (task/log-node2-bead-crud): one breadcrumb per pointer-move
+		// commit — node 2 (neighbours 1, 4, 5) can barely be dragged; long drags produce
+		// no movement, and beads that should be ADDED to push it the right way are not
+		// being added. This packs the whole event PLUS every touching bead's own CRUD
+		// arithmetic (why it returned none/add/remove) so the actual numbers, not a
+		// theory, explain it. Gated on nm.tr != nil exactly like the neighbor-center-recv/
+		// neighbor-setc-recv breadcrumb sites above (node_mover.go) — cheap no-op with no
+		// stream wired (headless tests, bare movers).
+		if nm.tr != nil {
+			dragVector := newPos.Sub(prevPos)
+			parts := make([]string, 0, len(beads))
+			for _, b := range beads {
+				diag := beadCrudDiagnose(b.NeighborID, b.Source, b.Centre, b.AimDir, prevPos, newPos, dragVector, wire.BeadStepR)
+				verdictStr := "none"
+				switch diag.Verdict {
+				case beadCrudAdd:
+					verdictStr = "add"
+				case beadCrudRemove:
+					verdictStr = "remove"
+				}
+				impliedStr := "none"
+				if diag.ImpliedOK {
+					impliedStr = fmt.Sprintf("(%.4f,%.4f,%.4f)", diag.Implied.X, diag.Implied.Y, diag.Implied.Z)
+				}
+				parts = append(parts, fmt.Sprintf(
+					"[nbr=%s third=%.4f beadLen=%.4f verdict=%s cosA=%.4f gateBlocked=%v srcDist=%.4f implied=%s]",
+					diag.NeighborID, diag.ThirdLen, diag.BeadLen, verdictStr, diag.CosAngle, diag.GateBlocked, diag.SourceDist, impliedStr))
+			}
+			dragLen := dragVector.Length()
+			committedDelta := committedPos.Sub(prevPos).Length()
+			value := fmt.Sprintf(
+				"node=%s prevPos=(%.4f,%.4f,%.4f) dest=(%.4f,%.4f,%.4f) dragLen=%.4f committed=(%.4f,%.4f,%.4f) committedDelta=%.4f moved=%v beads=%s",
+				nodeID, prevPos.X, prevPos.Y, prevPos.Z, newPos.X, newPos.Y, newPos.Z, dragLen,
+				committedPos.X, committedPos.Y, committedPos.Z, committedDelta, committedDelta > 1e-9,
+				strings.Join(parts, " "))
+			nm.tr.Breadcrumb("bead-crud", nodeID, "", value)
+			nm.writeStreamFrame([]wire.RowEvent{{
+				Kind: T.KindBreadcrumb, Label: T.BreadcrumbBeadCrud, Debug: 1,
+				NodeRow: nm.nodeRow, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
+				Text: value,
+			}})
+		}
 	}
 
 	polars[nodeID] = committedPolar

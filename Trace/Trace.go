@@ -159,6 +159,10 @@ const (
 	// nodeMover.handle's moveMsgKindNeighborSetC case — records that a neighbor-setC
 	// (edge re-quantize) message arrived (sender id).
 	BreadcrumbNeighborSetCRecv
+	// BreadcrumbBeadCrud: diagnostic-only (task/log-node2-bead-crud), one per commitNodeMoveLocal
+	// call — the dragged node's own event plus every touching bead's full CRUD arithmetic
+	// (why each returned none/add/remove), packed into Text by quantized_move.go.
+	BreadcrumbBeadCrud
 )
 
 // BreadcrumbLabels is the single source of truth for the BreadcrumbLabel* enum's
@@ -178,6 +182,7 @@ var BreadcrumbLabels = []string{
 	"chain-aim",
 	"neighbor-center-recv",
 	"neighbor-setc-recv",
+	"bead-crud",
 }
 
 // TraceEventKinds is the single source of truth for the closed kind vocabulary.

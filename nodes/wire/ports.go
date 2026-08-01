@@ -205,6 +205,8 @@ func breadcrumbLabelFor(event string) (uint8, bool) {
 		return T.BreadcrumbNeighborCenterRecv, true
 	case "neighbor-setc-recv":
 		return T.BreadcrumbNeighborSetCRecv, true
+	case "bead-crud":
+		return T.BreadcrumbBeadCrud, true
 	default:
 		return 0, false
 	}

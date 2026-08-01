@@ -1,5 +1,7 @@
 package Wiring
 
+import "math"
+
 // bead_crud.go — the per-bead CRUD decision (PLAN.md "moving a node is CRUD on the edge
 // beads touching it"). Moving a node is decided independently, per touching bead, from
 // that bead's own SOURCE point and the node's DESTINATION point — no solver, no
@@ -107,6 +109,67 @@ func beadCrudImpliedCentre(verdict beadCrudVerdict, beadCentre, aimDir vec3, bea
 	default:
 		return vec3{}, false
 	}
+}
+
+// beadCrudDiag is ONE touching bead's full CRUD arithmetic, captured for observability
+// only (task/log-node2-bead-crud breadcrumb) — commitNodeMoveLocal's "bead-crud"
+// breadcrumb packs one of these per touching bead so a drag-time trace can show WHY a
+// bead returned "none" instead of just that it did. Mirrors beadCrudDecide's own
+// arithmetic exactly (never a second, drifting copy of the verdict logic) but also keeps
+// the intermediate values beadCrudDecide discards: the angle-gate cosine and whether the
+// gate is what blocked an otherwise-qualifying add, and the touching bead's own source
+// distance from the node's previous position.
+type beadCrudDiag struct {
+	NeighborID  string
+	ThirdLen    float64 // |nodeDestination - beadSource|
+	BeadLen     float64
+	Verdict     beadCrudVerdict
+	CosAngle    float64 // angle-gate cosine; NaN when the gate was never evaluated (verdict != add-candidate-by-length)
+	GateBlocked bool    // true iff |third|>beadLen but the angle gate turned it into "none"
+	SourceDist  float64 // |beadSource - prevPos|
+	Implied     vec3
+	ImpliedOK   bool
+}
+
+// beadCrudDiagnose judges ONE touching bead exactly like beadCrudDecide, but also returns
+// the intermediate angle-gate arithmetic for breadcrumb observability. DIAGNOSTIC ONLY —
+// no caller depends on this for placement/movement; beadCrudDecide remains the sole
+// production judge.
+func beadCrudDiagnose(neighborID string, beadSource, beadCentre, aimDir, prevPos, nodeDestination, dragVector vec3, beadLen float64) beadCrudDiag {
+	third := nodeDestination.Sub(beadSource)
+	tl := third.Length()
+	d := beadCrudDiag{
+		NeighborID: neighborID,
+		ThirdLen:   tl,
+		BeadLen:    beadLen,
+		CosAngle:   math.NaN(),
+		SourceDist: beadSource.Sub(prevPos).Length(),
+	}
+	switch {
+	case tl < beadLen:
+		d.Verdict = beadCrudRemove
+	case tl > beadLen:
+		beadVec := beadCentre.Sub(beadSource)
+		bl, dl := beadVec.Length(), dragVector.Length()
+		if bl < 1e-12 || dl < 1e-12 {
+			d.Verdict = beadCrudNone
+		} else {
+			cosA := beadVec.Dot(dragVector) / (bl * dl)
+			d.CosAngle = cosA
+			if cosA < 0 {
+				d.Verdict = beadCrudNone
+				d.GateBlocked = true
+			} else {
+				d.Verdict = beadCrudAdd
+			}
+		}
+	default:
+		d.Verdict = beadCrudNone
+	}
+	if implied, ok := beadCrudImpliedCentre(d.Verdict, beadCentre, aimDir, beadLen); ok {
+		d.Implied, d.ImpliedOK = implied, true
+	}
+	return d
 }
 
 // beadCrudResult is one touching bead's non-"none" verdict and the node centre it implies
