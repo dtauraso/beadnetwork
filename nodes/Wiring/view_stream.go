@@ -46,7 +46,7 @@ import (
 // last write.
 type ViewFrameBuilder func(tick uint32,
 	camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
-	sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis, cascadeLinks uint8,
+	sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis, cascadeLinks, polarVectors uint8,
 	dragNodeRow int32,
 	groupLenTime, groupLenInput, groupLenGate float32,
 	sceneCX, sceneCY, sceneCZ, sceneRadius float32,
@@ -120,7 +120,7 @@ func (md *MoveDispatch) emitViewFrame(events []wire.RowEvent) {
 		float32(v.pos.Theta), float32(v.pos.Phi), float32(v.up.Theta), float32(v.up.Phi),
 		boolU8(md.ui.ov.sceneToriVisible), boolU8(md.ui.ov.scenePolesVisible), boolU8(md.ui.ov.nodePolesVisible),
 		boolU8(md.ui.ov.selSpherePolesVisible), boolU8(md.ui.ov.handholdsVisible), boolU8(md.ui.ov.labelsGlobalVisible),
-		boolU8(md.ui.ov.overlaysVisible), boolU8(md.ui.ov.cascadeLinksVisible),
+		boolU8(md.ui.ov.overlaysVisible), boolU8(md.ui.ov.cascadeLinksVisible), boolU8(md.ui.ov.polarVectorsVisible),
 		dragNodeRow,
 		groupLenTime, groupLenInput, groupLenGate,
 		float32(sc.Center.X), float32(sc.Center.Y), float32(sc.Center.Z), float32(sc.Radius),

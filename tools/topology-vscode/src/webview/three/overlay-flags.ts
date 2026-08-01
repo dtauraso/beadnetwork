@@ -22,6 +22,7 @@ import {
   readOverlayLabelsGlobal,
   readOverlayOverlaysVis,
   readOverlayCascadeLinks,
+  readOverlayPolarVectors,
   readOverlayDragNodeRow,
   readOverlayGroupLenTime,
   readOverlayGroupLenInput,
@@ -52,7 +53,8 @@ function overlayFlagsEqual(a: OverlayFlagVals, b: OverlayFlagVals): boolean {
     a.handholds === b.handholds &&
     a.labelsGlobal === b.labelsGlobal &&
     a.overlays === b.overlays &&
-    a.cascadeLinks === b.cascadeLinks
+    a.cascadeLinks === b.cascadeLinks &&
+    a.polarVectors === b.polarVectors
   );
 }
 
@@ -74,6 +76,7 @@ export function readOverlayFlags(): OverlayFlagVals | null {
     labelsGlobal: !readOverlayLabelsGlobal(v),
     overlays: !!readOverlayOverlaysVis(v),
     cascadeLinks: !!readOverlayCascadeLinks(v),
+    polarVectors: !!readOverlayPolarVectors(v),
   };
   if (cachedVals && overlayFlagsEqual(cachedVals, next)) return cachedVals;
   cachedVals = next;

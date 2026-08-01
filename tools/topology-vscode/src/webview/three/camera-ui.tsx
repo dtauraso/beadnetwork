@@ -50,7 +50,7 @@ function useToggleVal(cfg: ToggleCfg): boolean {
 }
 
 // ---------------------------------------------------------------------------
-// Config table for the 9 toggle buttons
+// Config table for the 10 toggle buttons
 // ---------------------------------------------------------------------------
 
 const guidelinesCfg: ToggleCfg = {
@@ -126,6 +126,19 @@ const cascadeLinksCfg: ToggleCfg = {
   payload: (v) => ({ flag: "cascadeLinks", was: v }),
 };
 
+// polarVectorsCfg has no `default` — its Go-owned default (off) is not asserted here; see
+// useToggleVal's fallback and ToggleCfg.default's doc above. One toggle, three effects
+// together (fade nodes, fade the traversal animation, emphasise the two polar vectors —
+// PolarVectors.tsx, NodeInstances.tsx, ChainBeadInstances.tsx): deliberately NOT split into
+// separate settings.
+const polarVectorsCfg: ToggleCfg = {
+  flag: "polarVectors",
+  active: (v) => v,
+  label: "➜ polar vectors",
+  title: (a) => (a ? "Hide polar-vector emphasis" : "Show polar-vector emphasis"),
+  payload: (v) => ({ flag: "polarVectors", was: v }),
+};
+
 // ---------------------------------------------------------------------------
 // Grouped overlay rows for the popover
 // ---------------------------------------------------------------------------
@@ -137,6 +150,7 @@ const OVERLAY_GROUPS: OverlayGroup[] = [
   { heading: "POLES",  cfgs: [scenePolesCfg, nodePolesCfg, selSpherePolesCfg] },
   { heading: "LABELS", cfgs: [globalLabelsCfg] },
   { heading: "EDGES",  cfgs: [cascadeLinksCfg] },
+  { heading: "VECTORS", cfgs: [polarVectorsCfg] },
 ];
 
 /** A single row inside the popover: square checkbox + label, fires the row's op on click.
