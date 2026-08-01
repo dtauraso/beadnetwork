@@ -22,6 +22,9 @@ import json
 import re
 import sys
 
+sys.path.insert(0, __file__.rsplit("/", 1)[0])
+from delegate_counter import reset  # noqa: E402
+
 PATTERN = re.compile(
     r"\b(audit|sweep|refactor|rename|grep|scan)\b|find all|search the|check all|go through",
     re.IGNORECASE,
@@ -41,6 +44,13 @@ try:
     data = json.load(sys.stdin)
 except Exception:
     sys.exit(0)
+
+# A new instruction is a TASK BOUNDARY: force-delegate's lookup budget is per
+# instruction, not per session, so lookups spent answering the LAST question
+# don't count against this one. Unconditional -- it fires whether or not the
+# prompt looks executor-shaped below, because the boundary is the prompt itself,
+# not what the prompt says. See force-delegate-hook.py's header for why.
+reset(data.get("session_id", "default"))
 
 prompt = data.get("prompt", "")
 if PATTERN.search(prompt):
