@@ -11,6 +11,11 @@
 // processing windows are tick counts. There is no separate render cadence — the
 // tick IS the animation clock.
 //
+// SleepCycle no longer blocks on a per-caller time.After: it receives from a dedicated
+// channel subscribed against the process's ONE TickBroadcaster goroutine (below), which
+// is the only thing that ever waits on wall time. Every pacing loop still calls
+// SleepCycle exactly the same way; only what it blocks on changed.
+//
 // SCALE arithmetic (behavior-preserving vs. the retired wall-clock model, and
 // vs. the later retired arc-length model — docs/bead-lattice.md superseded both):
 // the original model sampled bead positions every 16 ms. We pick one tick ≈ one
@@ -33,6 +38,7 @@ package wire
 
 import (
 	"context"
+	"sync"
 	"time"
 )
 
@@ -108,10 +114,23 @@ type RealClock struct {
 	// lastChange is the wall instant the current speed segment began (construction
 	// or the last SetSpeed).
 	lastChange time.Time
+	// tickCh is THIS clock's own dedicated pulse channel, subscribed from the
+	// single process-wide TickBroadcaster goroutine (see below) the FIRST time
+	// SleepCycle is called on this value (lazily — see SleepCycle) and reused on
+	// every later call by the same value. It is buffered-1 and receive-only:
+	// SleepCycle blocks on it instead of on time.After, so the wall-clock wait
+	// lives in exactly one goroutine (the broadcaster) for the whole process, not
+	// one per clock-holder. Copy() does NOT inherit this field (each goroutine
+	// that takes its own copy gets its own fresh subscription, lazily, the first
+	// time IT calls SleepCycle) — see the field's zero value being fine to copy.
+	tickCh <-chan struct{}
 }
 
 // NewRealClock returns a started RealClock at speed 1, anchored at the current
-// monotonic instant.
+// monotonic instant. It does NOT subscribe to the tick broadcaster yet — that
+// happens lazily, on the first SleepCycle call (see tickCh/SleepCycle) — so a
+// clock used only for Tick()/SetSpeed (e.g. under testing/synctest, where no
+// real goroutine should be started) never touches the process-wide broadcaster.
 func NewRealClock() *RealClock {
 	return &RealClock{speed: 1, lastChange: time.Now()}
 }
@@ -150,15 +169,36 @@ func (c *RealClock) SetSpeed(speed float64) {
 // now that mu is gone — see the field comment above), inheriting the current
 // speed/accScaled/lastChange by value. The caller goroutine owns the result
 // from here on; nothing is shared with c or any other copy taken from it.
+// tickCh is deliberately left at its zero value (nil) on the copy: the copy
+// gets its own fresh broadcaster subscription lazily, the first time ITS
+// SleepCycle is called (see SleepCycle) — inheriting the origin's subscription
+// by value would hand two goroutines the same channel, which is exactly the
+// sharing this type otherwise avoids.
 func (c *RealClock) Copy() Clock {
 	cp := *c
+	cp.tickCh = nil
 	return &cp
 }
 
-// SleepCycle blocks for one WALL tickPeriod, or until ctx is done.
+// SleepCycle blocks until the next tick pulse arrives on this clock's OWN
+// dedicated channel (see tickCh), or until ctx is done. It no longer waits on
+// wall time itself — the single TickBroadcaster goroutine (below) is the only
+// thing in the process that does that; every SleepCycle caller just receives.
+// The subscription is taken lazily, on this value's first SleepCycle call —
+// exactly once per clock value, since only the value's owning goroutine ever
+// calls SleepCycle on it (per-goroutine-clock.md) — so a clock that never
+// paces (e.g. one only read via Tick()/SetSpeed under testing/synctest) never
+// starts the process-wide broadcaster goroutine at all.
+// This select carries no default case on purpose: with one it would be
+// non-blocking and a caller looping around it would spin a core; without one
+// the runtime parks the goroutine on both channels' wait queues at zero CPU
+// until one of them has something.
 func (c *RealClock) SleepCycle(ctx context.Context) error {
+	if c.tickCh == nil {
+		c.tickCh = globalTickBroadcaster().Subscribe()
+	}
 	select {
-	case <-time.After(tickPeriod):
+	case <-c.tickCh:
 		return nil
 	case <-ctx.Done():
 		return ctx.Err()
@@ -167,6 +207,95 @@ func (c *RealClock) SleepCycle(ctx context.Context) error {
 
 // Compile-time assertion that RealClock satisfies Clock.
 var _ Clock = (*RealClock)(nil)
+
+// TickBroadcaster is the ONE thing in the process that waits on wall time. Its
+// single goroutine (run) owns a time.Ticker and, on every fire, pushes a pulse
+// to every subscriber's own dedicated channel — non-blockingly, so a slow
+// subscriber never stalls the broadcaster or any other subscriber. Every other
+// goroutine in the network (movers, node loops, DriveHeld, gate loops) blocks
+// on RECEIVE from its own subscription instead of sleeping — see clock.go's
+// package doc and PLAN.md "No sleeping".
+type TickBroadcaster struct {
+	// register is how a new subscriber hands the broadcaster its channel to add
+	// to the fan-out set. Unbuffered: the broadcaster's run loop is always
+	// selecting on it (or the ticker), so a send here never blocks past one
+	// broadcaster loop iteration.
+	register chan chan struct{}
+}
+
+// startTickBroadcaster starts the broadcaster's one goroutine and returns a
+// handle new subscribers register against. It runs for the life of the
+// process — there is exactly one of these (see globalTickBroadcaster), no
+// per-goroutine tickers anywhere else.
+func startTickBroadcaster() *TickBroadcaster {
+	tb := &TickBroadcaster{register: make(chan chan struct{})}
+	go tb.run()
+	return tb
+}
+
+// run is the ONE goroutine in the process that ever calls time.NewTicker (or
+// blocks on it). It owns the fan-out subscriber list — nothing else reads or
+// writes subs, so it needs no lock.
+func (tb *TickBroadcaster) run() {
+	ticker := time.NewTicker(tickPeriod)
+	defer ticker.Stop()
+	var subs []chan struct{}
+	for {
+		select {
+		case ch := <-tb.register:
+			subs = append(subs, ch)
+		case <-ticker.C:
+			for _, ch := range subs {
+				// Non-blocking, coalescing send: a subscriber that has not yet
+				// drained the previous pulse just sees "at least one tick has
+				// fired since I last checked" rather than backing up a queue —
+				// the same latest-wins shape as SendSpeedNonBlocking/
+				// SendLatestNonBlocking elsewhere in this file.
+				select {
+				case ch <- struct{}{}:
+				default:
+				}
+			}
+		}
+	}
+}
+
+// Subscribe returns a fresh, dedicated buffered-1 channel that receives a
+// pulse once per wall tick from this broadcaster. Call once per goroutine (or
+// once per Clock value, which is the same thing under per-goroutine-clock.md);
+// the returned channel is owned by the caller from then on and must not be
+// shared with a second goroutine.
+func (tb *TickBroadcaster) Subscribe() <-chan struct{} {
+	pulseCh := make(chan struct{}, 1) // chan-name-ok: internal broadcaster->subscriber pulse, not a node-to-node wire
+	tb.register <- pulseCh
+	return pulseCh
+}
+
+var (
+	tickBroadcasterOnce sync.Once
+	tickBroadcasterInst *TickBroadcaster
+)
+
+// globalTickBroadcaster lazily starts (sync.Once — coordinates goroutine
+// startup, not shared mutable state, so it stays inside check-no-network-locks'
+// allowance for sync.Once) the process-wide single clock goroutine on first
+// use and returns it thereafter. Every RealClock (NewRealClock and Copy)
+// subscribes against this one instance, so however many clock-holders the
+// process has, exactly one goroutine ever waits on wall time.
+func globalTickBroadcaster() *TickBroadcaster {
+	tickBroadcasterOnce.Do(func() {
+		tickBroadcasterInst = startTickBroadcaster()
+	})
+	return tickBroadcasterInst
+}
+
+// NewTickChan returns a fresh dedicated tick-pulse channel from the global
+// broadcaster, for callers that pace themselves without going through a full
+// Clock (e.g. gatecommon's no-loader wall-clock fallbacks). Call once per
+// goroutine, same rule as Subscribe.
+func NewTickChan() <-chan struct{} {
+	return globalTickBroadcaster().Subscribe()
+}
 
 // ApplySpeedNonBlocking is the delivery half of per-goroutine-clock.md
 // "Delivery": every paced loop grows exactly this one poll, folded into its
