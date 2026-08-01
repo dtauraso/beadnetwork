@@ -27,9 +27,8 @@
 # something else, or a rename of the flag to widen its reach, both show up as
 # an extra grep hit or a hit with no KindEdgeBead on/near the line).
 #
-# Scope: production (non-test) Go, excluding tools/ codegen and the stray
-# worktrees/ checkout dirs (which mirror the same source and would double every
-# hit). Comments are NOT stripped, so a comment that merely mentions the
+# Scope: production (non-test) Go, excluding tools/ codegen. Comments are NOT
+# stripped, so a comment that merely mentions the
 # identifier (e.g. this file's own header, or paced_wire.go's doc comment)
 # still counts as an "occurrence" toward the total-count budget — see the
 # EXPECTED_TOTAL note below for why that is fine.
@@ -44,7 +43,7 @@ cd "$REPO_ROOT"
 
 IDENT="edgeBeadTraceEnabled"
 
-# All non-test .go files outside worktrees/, referencing the identifier at all
+# All non-test .go files under nodes/Buffer/Trace, referencing the identifier at all
 # (declaration, doc comments mentioning it, and code uses alike). Portable read
 # — macOS bash 3.2 has no mapfile (see check-no-dead-buffer-column.sh).
 files=()

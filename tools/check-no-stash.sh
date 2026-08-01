@@ -3,13 +3,12 @@ set -euo pipefail
 
 # check-no-stash.sh — fail when the stash stack is non-empty.
 #
-# The stash stack is REPO-GLOBAL, not per-worktree: `git stash list` returns the same
-# entries from every worktree of this clone (verified — 4 entries visible identically from
-# the main checkout and from a task worktree). With several sessions working concurrently
-# that makes it shared mutable state of the worst kind:
+# The stash stack is REPO-GLOBAL: `git stash list` returns the same entries no matter
+# which branch is checked out. With several sessions working concurrently in this one
+# checkout, that makes it shared mutable state of the worst kind:
 #
 #   - `stash@{0}` means whatever the LAST session to push happened to save, so a `git stash
-#     pop` in one worktree can restore another session's unrelated edits into your tree.
+#     pop` from one session can restore another session's unrelated edits into your tree.
 #   - An entry is invisible in `git log`, `git status` of the branch it came from, and
 #     `tools/next.sh` — so work parked there is work nobody can find.
 #   - `git rebase --autostash` uses the SAME stack, so a rebase silently participates.
@@ -41,8 +40,8 @@ n="$(printf '%s\n' "$entries" | wc -l | tr -d ' ')"
   printf 'check-no-stash: %s stash entr%s on the repo-global stack:\n\n' "$n" "$([ "$n" = 1 ] && echo y || echo ies)"
   printf '%s\n' "$entries" | sed 's/^/  /'
   printf '\n'
-  printf 'The stash stack is shared by EVERY worktree of this clone, so these are visible\n'
-  printf 'and poppable from any concurrent session — stash@{0} is whoever pushed last.\n'
+  printf 'The stash stack is shared by every concurrent session in this checkout, so these\n'
+  printf 'are visible and poppable from any of them — stash@{0} is whoever pushed last.\n'
   printf '\n'
   printf 'Move each one onto a branch (non-destructive), then drop it:\n'
   printf '  git stash branch wip-<name> stash@{0}\n'
