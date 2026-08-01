@@ -24,6 +24,7 @@ import { type ViewBlocks } from "./view-blocks";
 import {
   readNodeCX, readNodeCY, readNodeCZ,
   readNodeRadius, readNodeSphereR, readNodeSelected, readNodeLatchedSel,
+  readNodePoleTheta, readNodePolePhi,
   readSceneCX, readSceneCY, readSceneCZ, readSceneRadius,
 } from "../../schema/buffer-layout";
 
@@ -42,9 +43,27 @@ export interface NavNode {
   /** Go-owned: 1 marks the LAST node that was click-selected, persisting through a
    *  deselect (see LatchedSel in Buffer/layout.go; set by that node's own nodeMover). */
   latchedSel: boolean;
+  /** Go-owned: the direction this node's own local polar frame is poled at, as a UNIT
+   *  vector in world space. Go streams it as the angle pair PoleTheta/PolePhi (its own
+   *  scene-polar direction reversed, so the frame points back at the scene centre — see
+   *  Buffer/layout.go and nodes/Wiring/polar.go inwardPole); this is the one place the
+   *  conversion out of the polar vocabulary happens, at the renderer edge. (0,1,0) = world
+   *  +y, an unrotated frame. Read-only reflection: nothing here derives or stores a pole. */
+  pole: THREE.Vector3;
 }
 
 // ── Pure decode ───────────────────────────────────────────────────────────────
+
+/**
+ * The one cartesian conversion of a streamed pole angle pair, at the renderer edge (the
+ * model keeps poles as angles — Buffer/layout.go PoleTheta/PolePhi). Same convention as
+ * Go's polar2cart: θ measured from world +y, φ the azimuth around +y from +x toward +z.
+ * Unit length — a pole is a direction, so no radius takes part.
+ */
+function poleVec(theta: number, phi: number): THREE.Vector3 {
+  const st = Math.sin(theta);
+  return new THREE.Vector3(st * Math.cos(phi), Math.cos(theta), st * Math.sin(phi));
+}
 
 /**
  * Decode the buffer's node block into NavNode records. NavNode i is buffer node row i (the
@@ -70,6 +89,7 @@ export function decodeNavNodes(decoded: DecodedNodeFrame): NavNode[] {
       sphereR: sphereR || undefined,
       selected: readNodeSelected(nodeView, i) !== 0,
       latchedSel: readNodeLatchedSel(nodeView, i) !== 0,
+      pole: poleVec(readNodePoleTheta(nodeView, i), readNodePolePhi(nodeView, i)),
     });
   }
   return out;

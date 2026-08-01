@@ -301,7 +301,7 @@ type nodeMover struct {
 	// buildFrame packs this node's combined per-fd frame (node fields + ports + label)
 	// using Buffer's own row-writer columns (Buffer.BuildNodeStreamFrame), injected so
 	// this package needs no Buffer import.
-	buildFrame func(tick uint32, nodeRow int32, nodeID int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel uint8, label string, dstNodeRows []int32, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte
+	buildFrame func(tick uint32, nodeRow int32, nodeID int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, poleTheta, polePhi float32, selected, kindID, hovered, latchedSel uint8, label string, dstNodeRows []int32, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte
 }
 
 func newNodeMover(id string, geom nodeGeom, tr *T.Trace, clockSrc wire.Clock) *nodeMover {
@@ -543,6 +543,14 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 	}
 	center := nodeWorldPos(m.geom)
 	sphereR := effectiveRadius(m.geom)
+	// This node's own local-frame pole: its own scene-polar direction reversed, so the frame
+	// points back at the scene centre (Buffer/layout.go PoleTheta/PolePhi). Derived here from
+	// m.geom.ScenePolar — this node's own coordinate, on this node's own goroutine, no
+	// neighbour read. Before HasPos there is no direction yet, so the frame stays world +y.
+	var poleTheta, polePhi float64
+	if m.geom.HasPos {
+		poleTheta, polePhi = inwardPole(m.geom.ScenePolar)
+	}
 	label := m.geom.Label
 	if label == "" {
 		label = m.id
@@ -590,6 +598,7 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 		float32(nodeRadius(m.geom.Kind)), float32(sphereR),
 		verticalRingNormalX, verticalRingNormalY, verticalRingNormalZ,
 		flatRingNormalX, flatRingNormalY, flatRingNormalZ,
+		float32(poleTheta), float32(polePhi),
 		selected, kindID, hovered, latchedSel,
 		label, dstNodeRows, chainOX, chainOY, chainOZ, chainLit, chainLitVal, events)
 	var hdr [4]byte

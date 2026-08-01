@@ -36,6 +36,23 @@ func polar2cart(p polar) vec3 {
 	}
 }
 
+// inwardPole returns the direction a node's OWN local polar frame is poled at: its own
+// scene-polar direction reversed, so the frame's +y points back at the scene centre. That
+// is the antipode of (θ,φ) on the unit sphere, which is exact angle arithmetic — θ measured
+// from +y flips to π−θ, and the azimuth turns half a revolution — with no cartesian round
+// trip and no radius involved (a pole is a direction; r is dropped on purpose).
+//
+// A node AT the scene centre has no direction to reverse — r=0 carries θ=φ=0 as a
+// placeholder (cart2polar's r=0 case), and reversing that placeholder would aim the frame
+// straight down for a reason that isn't geometric. So r=0 returns world +y (0,0): the
+// unrotated frame, same as a node whose position hasn't been established yet.
+func inwardPole(p polar) (theta, phi float64) {
+	if p.R == 0 {
+		return 0, 0
+	}
+	return math.Pi - p.Theta, wrapPi(p.Phi + math.Pi)
+}
+
 // cart2polar converts an origin-relative Cartesian vec3 to polar (pole = +y).
 // At the origin (r=0) θ and φ are 0. On the +y/-y axis (st=0) φ is 0 since
 // azimuth is undefined there.

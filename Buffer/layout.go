@@ -82,13 +82,25 @@ type bufLayoutNode struct {
 	// the same orientation vectors the pre-branch SphereRing read from nodeGeometryStore.
 	// SphereRing draws two tori at the owner's center oriented by these; they arrive on the
 	// node-geometry trace event (Trace VRX.., FRX..).
-	VRX      float32 `buf:"f32"` // vertical ring-plane normal x
-	VRY      float32 `buf:"f32"` // vertical ring-plane normal y
-	VRZ      float32 `buf:"f32"` // vertical ring-plane normal z
-	FRX      float32 `buf:"f32"` // flat (equatorial) ring-plane normal x
-	FRY      float32 `buf:"f32"` // flat ring-plane normal y
-	FRZ      float32 `buf:"f32"` // flat ring-plane normal z
-	Selected uint8   `buf:"u8"`  // persistent: 1 = this node is the click-selected node
+	VRX float32 `buf:"f32"` // vertical ring-plane normal x
+	VRY float32 `buf:"f32"` // vertical ring-plane normal y
+	VRZ float32 `buf:"f32"` // vertical ring-plane normal z
+	FRX float32 `buf:"f32"` // flat (equatorial) ring-plane normal x
+	FRY float32 `buf:"f32"` // flat ring-plane normal y
+	FRZ float32 `buf:"f32"` // flat ring-plane normal z
+	// PoleTheta/PolePhi are the direction this node's OWN local polar frame is poled at,
+	// as an angle pair in the scene frame (same convention as everywhere else: θ = angle
+	// from world +y, 0..π; φ = azimuth around +y, -π..π). It is the node's own scene-polar
+	// direction REVERSED — the node's frame points back at the scene centre — derived by
+	// that node's own mover from its own ScenePolar as (π−θ, φ+π), pure angle arithmetic on
+	// a coordinate it already owns (nodes/Wiring/polar.go inwardPole). Angles, not a unit
+	// vector like VR*/FR* above: those are fixed cartesian constants, this is the node's
+	// polar coordinate and stays in the polar vocabulary until the renderer edge, where
+	// NavGuides converts once to orient the frame. (0,0) = world +y, the value a node
+	// without a position yet carries.
+	PoleTheta float32 `buf:"f32"` // this node's local-frame pole: θ from world +y (radians)
+	PolePhi   float32 `buf:"f32"` // this node's local-frame pole: φ azimuth around +y (radians)
+	Selected  uint8   `buf:"u8"`  // persistent: 1 = this node is the click-selected node
 	// KindId is the node's kind as a STABLE id, assigned once per kind in
 	// nodes/<Kind>/SPEC.md (| kindId | N |) and never renumbered (the generator emits
 	// kindIDMap/NODE_DEFS_ARRAY keyed by it; a removed kind leaves an undefined gap, not
