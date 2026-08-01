@@ -288,26 +288,12 @@ func handleSaveMsg(md *MoveDispatch) {
 	md.persist.sphere.flushNow(md.ui.sceneSphere)
 }
 
-// overlayToggles (the FLAG name → MoveDispatch flip-method table) is GENERATED into
-// overlay_gen.go from OVERLAY_FLAG_NAMES. Parity guarded by check-edit-op-parity.sh via
-// the OVERLAY_TOGGLES sentinels in overlay_gen.go.
-
-// overlayFlagTraceKind maps the wire FLAG name (same keys as overlayToggles) to its
-// Trace.Kind* string, so applyUpdate's toggle case can hand emitViewFrame the ONE event
-// that flag's toggle logged (matching the per-toggle tr.X(bool) call).
-// Hand-authored (overlay_gen.go is GENERATED and does not carry Trace kinds) — kept in
-// sync with overlayToggles by check-edit-op-parity.sh's OVERLAY_TOGGLES sentinels, which
-// already assert this exact flag-name set.
-var overlayFlagTraceKind = map[string]string{
-	"tori":           T.KindSceneTori,
-	"scenePoles":     T.KindScenePoles,
-	"nodePoles":      T.KindNodePoles,
-	"selSpherePoles": T.KindSelSpherePoles,
-	"handholds":      T.KindHandholds,
-	"labelsGlobal":   T.KindLabelsGlobal,
-	"overlays":       T.KindOverlaysVis,
-	"cascadeLinks":   T.KindCascadeLinks,
-}
+// overlayToggles (the FLAG name → MoveDispatch flip-method table) and
+// overlayFlagTraceKind (the FLAG name → Trace.Kind* string, so applyUpdate's toggle case
+// can hand emitViewFrame the ONE event that flag's toggle logged) are both GENERATED into
+// overlay_gen.go from the SAME OVERLAY_FLAG_NAMES source, so they cannot drift apart by
+// flag-name set — a flag missing its Trace kind constant fails the Go build rather than
+// silently omitting the emit. See tools/gen-node-defs/overlay_gen.go's writeOverlayGen.
 
 // applyEdit dispatches one geometry-CRUD edit by its op. The sole op is update
 // (matched by value so it stays invisible to the message-kind-parity guard, which

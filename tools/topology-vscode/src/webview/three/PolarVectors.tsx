@@ -30,7 +30,8 @@ import { getViewBlocks } from "./view-blocks";
 import { getNodeFrame } from "./node-stream-blocks";
 import { getEdgeStreamAccessor } from "./edge-stream-blocks";
 import { sceneSphereFromSnapshot } from "./buffer-nav";
-import { readOverlayPolarVectors, readNodeCX, readNodeCY, readNodeCZ } from "../../schema/buffer-layout";
+import { readNodeCX, readNodeCY, readNodeCZ } from "../../schema/buffer-layout";
+import { polarVectorsGated } from "./overlay-flags";
 import {
   SHADING_PARAM_POLAR_VECTOR_COLOR,
   SHADING_PARAM_POLAR_VECTOR_EMISSIVE_INTENSITY,
@@ -146,7 +147,7 @@ export function PolarVectors() {
     const decodedNode = getNodeFrame();
     if (!blocks || !decodedNode) { if (visible) setVisible(false); return; }
 
-    const on = readOverlayPolarVectors(blocks.overlayView) !== 0;
+    const on = polarVectorsGated(blocks.overlayView);
     if (on !== visible) setVisible(on);
     if (!on) return;
 

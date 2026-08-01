@@ -134,3 +134,25 @@ var overlayToggles = map[string]func(*MoveDispatch, *T.Trace){
 }
 
 // OVERLAY_TOGGLES_END
+
+// overlayFlagTraceKind maps the wire FLAG name (same keys as overlayToggles) to its
+// Trace.Kind* string, so applyUpdate's toggle case can hand emitViewFrame the ONE event
+// that flag's toggle logged (matching the per-toggle tr.X(bool) call).
+// Referencing T.Kind<Method> by name means a flag missing its Trace kind constant is a
+// Go compile error here, not a silent no-op — see writeOverlayGen in
+// tools/gen-node-defs/overlay_gen.go.
+//
+// OVERLAY_TRACE_KINDS_START
+var overlayFlagTraceKind = map[string]string{
+	"tori":           T.KindSceneTori,
+	"scenePoles":     T.KindScenePoles,
+	"nodePoles":      T.KindNodePoles,
+	"selSpherePoles": T.KindSelSpherePoles,
+	"handholds":      T.KindHandholds,
+	"labelsGlobal":   T.KindLabelsGlobal,
+	"overlays":       T.KindOverlaysVis,
+	"cascadeLinks":   T.KindCascadeLinks,
+	"polarVectors":   T.KindPolarVectors,
+}
+
+// OVERLAY_TRACE_KINDS_END

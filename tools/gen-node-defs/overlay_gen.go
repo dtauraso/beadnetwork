@@ -253,6 +253,30 @@ func writeOverlayGen(outPath string, flags []overlayFlag) error {
 	fmt.Fprintln(w, `// OVERLAY_TOGGLES_END`)
 	fmt.Fprintln(w)
 
+	// overlayFlagTraceKind map: the wire FLAG name -> its Trace.Kind* string, so
+	// applyUpdate's toggle case can hand emitViewFrame the ONE event that flag's
+	// toggle logged. Derived from the SAME flags slice as overlayToggles above (one
+	// source, OVERLAY_FLAG_NAMES), referencing the T.Kind<Method> constant by name —
+	// if a flag's Trace kind constant does not exist, this fails LOUDLY as a Go
+	// compile error ("undefined: T.KindFoo") the moment the generated file is built,
+	// so a new overlay flag cannot ship silently without its Trace kind.
+	fmt.Fprintln(w, `// overlayFlagTraceKind maps the wire FLAG name (same keys as overlayToggles) to its`)
+	fmt.Fprintln(w, `// Trace.Kind* string, so applyUpdate's toggle case can hand emitViewFrame the ONE event`)
+	fmt.Fprintln(w, `// that flag's toggle logged (matching the per-toggle tr.X(bool) call).`)
+	fmt.Fprintln(w, `// Referencing T.Kind<Method> by name means a flag missing its Trace kind constant is a`)
+	fmt.Fprintln(w, `// Go compile error here, not a silent no-op — see writeOverlayGen in`)
+	fmt.Fprintln(w, `// tools/gen-node-defs/overlay_gen.go.`)
+	fmt.Fprintln(w, `//`)
+	fmt.Fprintln(w, `// OVERLAY_TRACE_KINDS_START`)
+	fmt.Fprintln(w, `var overlayFlagTraceKind = map[string]string{`)
+	for _, f := range flags {
+		fmt.Fprintf(w, "\t%q: T.Kind%s,\n", f.flag, f.method)
+	}
+	fmt.Fprintln(w, `}`)
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, `// OVERLAY_TRACE_KINDS_END`)
+	fmt.Fprintln(w)
+
 	w.Flush()
 	formatted, err := format.Source(buf.Bytes())
 	if err != nil {

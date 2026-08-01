@@ -35,8 +35,9 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { getChainBeads } from "./node-stream-blocks";
 import { getViewBlocks } from "./view-blocks";
-import { readOverlayPolarVectors } from "../../schema/buffer-layout";
 import { beadStyleForValue } from "./bead-style";
+import { createTransparentEdgeTrigger, applyTransparentEdgeTriggered } from "./material-transparent-edge-trigger";
+import { polarVectorsGated } from "./overlay-flags";
 import {
   SHADING_PARAM_BEAD_RADIUS,
   SHADING_PARAM_BEAD_RING_TUBE_RATIO,
@@ -63,6 +64,9 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
   const unlitMatRef = useRef<THREE.MeshBasicMaterial>(null);
   const litMatRef = useRef<THREE.MeshBasicMaterial>(null);
   const ringMatRef = useRef<THREE.MeshBasicMaterial>(null);
+  const unlitTransparentTrigger = useRef(createTransparentEdgeTrigger());
+  const litTransparentTrigger = useRef(createTransparentEdgeTrigger());
+  const ringTransparentTrigger = useRef(createTransparentEdgeTrigger());
   const matRef = useRef(new THREE.Matrix4());
   const colRef = useRef(new THREE.Color());
 
@@ -73,11 +77,20 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
     if (!unlitBody || !litBody || !ring) return;
 
     const blocks = getViewBlocks();
-    const polarVectorsOn = !!blocks && readOverlayPolarVectors(blocks.overlayView) !== 0;
+    const polarVectorsOn = !!blocks && polarVectorsGated(blocks.overlayView);
     const fadeMult = polarVectorsOn ? SHADING_PARAM_POLAR_VECTOR_FADE_OPACITY_MULT : 1;
-    if (unlitMatRef.current) { unlitMatRef.current.transparent = polarVectorsOn; unlitMatRef.current.opacity = fadeMult; }
-    if (litMatRef.current) { litMatRef.current.transparent = polarVectorsOn; litMatRef.current.opacity = fadeMult; }
-    if (ringMatRef.current) { ringMatRef.current.transparent = polarVectorsOn; ringMatRef.current.opacity = fadeMult; }
+    if (unlitMatRef.current) {
+      applyTransparentEdgeTriggered(unlitTransparentTrigger.current, unlitMatRef.current, polarVectorsOn);
+      unlitMatRef.current.opacity = fadeMult;
+    }
+    if (litMatRef.current) {
+      applyTransparentEdgeTriggered(litTransparentTrigger.current, litMatRef.current, polarVectorsOn);
+      litMatRef.current.opacity = fadeMult;
+    }
+    if (ringMatRef.current) {
+      applyTransparentEdgeTriggered(ringTransparentTrigger.current, ringMatRef.current, polarVectorsOn);
+      ringMatRef.current.opacity = fadeMult;
+    }
 
     const { positions, count, lit, litValue } = getChainBeads();
     // Clamp to the allocated instance count. buffer-scene.tsx's capacity-growth table grows
