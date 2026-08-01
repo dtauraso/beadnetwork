@@ -1,0 +1,102 @@
+package Wiring
+
+// overlay_toggle_emit_test.go — regression for the bug where ticking an overlay
+// checkbox in the editor flipped the Go-side flag but never told the webview:
+// applyUpdate's overlays/toggle handler looked up overlayFlagTraceKind for the
+// Trace.Kind* to hand emitViewFrame, and that hand-authored map was missing
+// "polarVectors" — the flag flipped in Go and nothing rendered. The flip alone
+// (TestOverlayToggleFlips in overlay_gen_test.go) is not sufficient coverage; this
+// asserts the EMIT that flip is supposed to trigger.
+
+import (
+	"io"
+	"testing"
+
+	wire "github.com/dtauraso/wirefold/nodes/wire"
+
+	T "github.com/dtauraso/wirefold/Trace"
+)
+
+// TestApplyUpdateOverlayToggleEmitsViewFrame drives applyUpdate exactly as
+// RunStdinReader's dispatch loop does for a top-level edit/update message with
+// kind=="overlays" attr=="toggle", and asserts a VIEW frame carrying the flag's
+// Trace kind was emitted — not just that the underlying bool flipped.
+func TestApplyUpdateOverlayToggleEmitsViewFrame(t *testing.T) {
+	for flag, wantKind := range overlayFlagTraceKind {
+		flag, wantKind := flag, wantKind
+		t.Run(flag, func(t *testing.T) {
+			md := &MoveDispatch{ui: uiState{ov: defaultOverlayState()}}
+			var kinds []string
+			md.SetViewStream(io.Discard, func(tick uint32,
+				camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
+				sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis, cascadeLinks, polarVectors uint8,
+				dragNodeRow int32,
+				groupLenTime, groupLenInput, groupLenGate float32,
+				sceneCX, sceneCY, sceneCZ, sceneRadius float32,
+				events []wire.RowEvent,
+			) []byte {
+				for _, e := range events {
+					kinds = append(kinds, e.Kind)
+				}
+				return nil
+			})
+
+			tr := T.New()
+			tr.SetSink(io.Discard)
+			msg := stdinMsg{Type: "edit", Op: "update", Kind: "overlays", Attr: "toggle", Flag: flag}
+			applyUpdate(msg, md, tr, nil)
+
+			seen := false
+			for _, k := range kinds {
+				if k == wantKind {
+					seen = true
+					break
+				}
+			}
+			if !seen {
+				t.Fatalf("toggling overlay flag %q: no VIEW frame carried Trace kind %q (emitted: %v)", flag, wantKind, kinds)
+			}
+		})
+	}
+}
+
+// TestApplyUpdatePolarVectorsToggleEmitsViewFrame pins the exact regression
+// reported live: the "VECTORS" overlay checkbox toggled the flag in Go and emitted
+// nothing to the webview because overlayFlagTraceKind (formerly hand-authored) was
+// missing "polarVectors".
+func TestApplyUpdatePolarVectorsToggleEmitsViewFrame(t *testing.T) {
+	md := &MoveDispatch{ui: uiState{ov: defaultOverlayState()}}
+	var kinds []string
+	md.SetViewStream(io.Discard, func(tick uint32,
+		camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
+		sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis, cascadeLinks, polarVectors uint8,
+		dragNodeRow int32,
+		groupLenTime, groupLenInput, groupLenGate float32,
+		sceneCX, sceneCY, sceneCZ, sceneRadius float32,
+		events []wire.RowEvent,
+	) []byte {
+		for _, e := range events {
+			kinds = append(kinds, e.Kind)
+		}
+		return nil
+	})
+
+	tr := T.New()
+	tr.SetSink(io.Discard)
+	msg := stdinMsg{Type: "edit", Op: "update", Kind: "overlays", Attr: "toggle", Flag: "polarVectors"}
+	applyUpdate(msg, md, tr, nil)
+
+	if !md.ui.ov.polarVectorsVisible {
+		t.Fatalf("polarVectorsVisible did not flip false->true")
+	}
+	seen := false
+	for _, k := range kinds {
+		if k == T.KindPolarVectors {
+			seen = true
+			break
+		}
+	}
+	if !seen {
+		t.Fatalf("polarVectors toggle emitted no VIEW frame carrying %q (emitted: %v)", T.KindPolarVectors, kinds)
+	}
+}
