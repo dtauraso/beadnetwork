@@ -405,7 +405,16 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 		// CURRENTLY-HELD position — non-blocking (broadcastAndRead's own doc comment: a
 		// position may be one broadcast stale, by design). chainBeads computes no
 		// position itself past this point.
-		xf := wire.BeadGeometryIn{Center: selfCenter, Aim: aim}
+		// Center is the ZERO VECTOR on purpose: the chain-bead buffer columns are
+		// NODE-LOCAL OFFSETS from this node's centre (Buffer/layout.go's bufLayoutChainBead
+		// — "node-local offset x from this node's center"), and the renderer adds the node
+		// centre back when it draws. Passing selfCenter here made each bead resolve to an
+		// ABSOLUTE world position, which the renderer then offset by the node centre a
+		// SECOND time — every bead landed roughly twice its node's distance from the origin,
+		// off screen, so nodes drew and edge beads vanished entirely. The bead still owns
+		// its own position; that position is expressed in its node's frame, which is the
+		// frame the buffer speaks.
+		xf := wire.BeadGeometryIn{Center: wire.Vec3{}, Aim: aim}
 		ea := m.ensureBeadEdgeActors(to, count, selfTorusR, xf)
 		positions := ea.broadcastAndRead(xf)
 		for i, p := range positions {
