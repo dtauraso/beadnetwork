@@ -21,10 +21,23 @@ import (
 // RunStdinReader's dispatch loop does for a top-level edit/update message with
 // kind=="overlays" attr=="toggle", and asserts a VIEW frame carrying the flag's
 // Trace kind was emitted — not just that the underlying bool flipped.
+//
+// The flag list iterated here MUST be authoritative and independent of the map
+// under test. overlayFlagTraceKind is what this test is checking, so iterating
+// its own keys can never notice a MISSING entry — deleting a key just produces
+// one fewer subtest, and the loop reports green. overlayToggles is generated
+// from the same upstream OVERLAY_FLAG_NAMES source and is the toggle-dispatch
+// table itself (a flag reachable here is a flag a live checkbox can send), so
+// it is the correct authoritative set to drive from.
 func TestApplyUpdateOverlayToggleEmitsViewFrame(t *testing.T) {
-	for flag, wantKind := range overlayFlagTraceKind {
-		flag, wantKind := flag, wantKind
+	for flag := range overlayToggles {
+		flag := flag
 		t.Run(flag, func(t *testing.T) {
+			wantKind, ok := overlayFlagTraceKind[flag]
+			if !ok {
+				t.Fatalf("overlay flag %q is in overlayToggles (a live checkbox can send it) but has no entry in overlayFlagTraceKind — its toggle flips the flag and emits nothing to the webview", flag)
+			}
+
 			md := &MoveDispatch{ui: uiState{ov: defaultOverlayState()}}
 			var kinds []string
 			md.SetViewStream(io.Discard, func(tick uint32,
