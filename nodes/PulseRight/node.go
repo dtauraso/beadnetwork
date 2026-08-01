@@ -56,13 +56,13 @@ type PulseRight struct {
 	// In is the sole input: a sampled value that updates the held value (rule 4 —
 	// with exactly one input, there is nothing to distinguish it from).
 	In  *wire.In
-	Out *wire.Out
+	Out Wiring.DrivenOut
 }
 
 // driveOutput runs a continuous-drive goroutine on out, always emitting the
 // current value of held. Delegates to gatecommon.DriveHeld (shared with
 // HoldFlip's identical-shaped drive goroutine) with an identity transform.
-func driveOutput(ctx context.Context, out *wire.Out, heldCh <-chan int64, clk wire.Clock, speedCh <-chan float64) {
+func driveOutput(ctx context.Context, out Wiring.DrivenOut, heldCh <-chan int64, clk wire.Clock, speedCh <-chan float64) {
 	gatecommon.DriveHeld(ctx, out, heldCh, func(h int64) int { return int(h) }, clk, speedCh)
 }
 

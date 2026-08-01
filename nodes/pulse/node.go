@@ -55,7 +55,7 @@ type Pulse struct {
 	// In is the sole input: a sampled value that updates the held value (rule 4 —
 	// with exactly one input, there is nothing to distinguish it from).
 	In  *wire.In
-	Out *wire.Out
+	Out Wiring.DrivenOut
 	// OutFanout is an optional SECOND continuous output driving the same held value, so a
 	// Pulse can fan to two destinations (e.g. node 6 → node 5 via Out and → node 11
 	// via OutFanout). Optional: when unwired (Wired()==false, e.g. node 7) its drive
@@ -63,13 +63,13 @@ type Pulse struct {
 	// job, not "Out2" — a number says nothing about what distinguishes it from Out
 	// (nothing does, functionally; only Out is driven unconditionally while this one
 	// is optional — see Update).
-	OutFanout *wire.Out
+	OutFanout Wiring.DrivenOut
 }
 
 // driveOutput runs a continuous-drive goroutine on out, always emitting the
 // current value of held. Delegates to gatecommon.DriveHeld (shared with
 // HoldFlip's identical-shaped drive goroutine) with an identity transform.
-func driveOutput(ctx context.Context, out *wire.Out, heldCh <-chan int64, clk wire.Clock, speedCh <-chan float64) {
+func driveOutput(ctx context.Context, out Wiring.DrivenOut, heldCh <-chan int64, clk wire.Clock, speedCh <-chan float64) {
 	gatecommon.DriveHeld(ctx, out, heldCh, func(h int64) int { return int(h) }, clk, speedCh)
 }
 
@@ -95,7 +95,7 @@ func (g *Pulse) Update(ctx context.Context) {
 	driveOutput(ctx, g.Out, out1HeldCh, g.Clock, g.Out1SpeedCh)
 
 	// Optional SECOND drive goroutine for OutFanout.
-	if g.OutFanout != nil && g.OutFanout.Wired() {
+	if g.OutFanout.Wired() {
 		driveOutput(ctx, g.OutFanout, outFanoutHeldCh, g.Clock, g.OutFanoutSpeedCh)
 	}
 

@@ -167,11 +167,15 @@ func parseEmbeddedPorts(nodesDir, pkgDir string, visited map[string]bool) ([]por
 }
 
 // chanDirection returns ("in", true) for *Wiring.In/*wire.In, ("out", true) for
-// *Wiring.Out/*wire.Out, ("outMulti", true) for Wiring.Broadcast/wire.Broadcast, and
-// ("", false) for anything else. Both package idents are recognized: In/Out/Broadcast
-// moved from nodes/Wiring to the leaf nodes/wire package (task/wiring-decompose), but
-// this parser has to keep parsing pre-move source shapes too (older SPEC.md fixtures,
-// generator tests).
+// *Wiring.Out/*wire.Out/Wiring.DrivenOut, ("outMulti", true) for
+// Wiring.Broadcast/wire.Broadcast, and ("", false) for anything else. Both package idents
+// are recognized: In/Out/Broadcast moved from nodes/Wiring to the leaf nodes/wire package
+// (task/wiring-decompose), but this parser has to keep parsing pre-move source shapes too
+// (older SPEC.md fixtures, generator tests). Wiring.DrivenOut (nodes/Wiring/driven_out.go)
+// is a bare (non-pointer) selector, like Broadcast — a node kind's DriveHeld-driven output
+// port (BuildArgs.DriveOut) still counts as an "out" port for SPEC.md/NODE_DEFS purposes;
+// it is a different WRITE-SIDE ownership shape (docs/interior-stream-framing.md), not a
+// different port direction.
 func chanDirection(expr ast.Expr) (string, bool) {
 	isWirePkg := func(pkg *ast.Ident) bool { return pkg.Name == "Wiring" || pkg.Name == "wire" }
 	// *Wiring.In / *wire.In or *Wiring.Out / *wire.Out — pointer to selector
@@ -194,6 +198,11 @@ func chanDirection(expr ast.Expr) (string, bool) {
 	if sel, ok := expr.(*ast.SelectorExpr); ok {
 		if pkg, ok := sel.X.(*ast.Ident); ok && isWirePkg(pkg) && sel.Sel.Name == "Broadcast" {
 			return "outMulti", true
+		}
+		// Wiring.DrivenOut — same bare-selector shape, "nodes/Wiring" only (it is
+		// defined there, not in nodes/wire): a DriveHeld-driven single output port.
+		if pkg, ok := sel.X.(*ast.Ident); ok && pkg.Name == "Wiring" && sel.Sel.Name == "DrivenOut" {
+			return "out", true
 		}
 	}
 	return "", false

@@ -17,7 +17,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
-	"io"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -89,14 +88,16 @@ type edgeMover struct {
 	speedCh chan float64
 
 	// --- dedicated per-edge stream (memory/feedback_no_single_writer_bridge.md) ---
-	// streamOut, when non-nil, is THIS edge's OWN dedicated fd (see
-	// MoveDispatch.SetEdgeStreams / Buffer/stream_fds.go's StreamKindEdge). Nil (the
-	// default — no WIREFOLD_STREAM_FDS "edge" entry, e.g. headless tests) means
-	// writeStreamFrame is a no-op: this edge's geometry+beads are simply never written
-	// to a per-edge stream. Written ONLY by this edgeMover's own
-	// goroutine (run/recomputeGeometry), mirroring every other single-
-	// writer-per-goroutine field in this struct.
-	streamOut io.Writer
+	// streamOut, when Ok(), is THIS edge's OWN dedicated fd (see
+	// MoveDispatch.SetEdgeStreams / Buffer/stream_fds.go's StreamKindEdge). A dead
+	// claimedStream (the default — no WIREFOLD_STREAM_FDS "edge" entry, e.g. headless
+	// tests, OR a rejected second claim — see stream_claim.go) means writeStreamFrame is
+	// a no-op: this edge's geometry+beads are simply never written to a per-edge stream.
+	// claimedStream's unexported field + unexported constructor (newClaimedStream,
+	// called only from setEdgeStreams) make a SECOND claim on this edge's fd
+	// structurally rejected, not just written ONLY by this edgeMover's own goroutine
+	// (run/recomputeGeometry) by convention.
+	streamOut claimedStream
 	// edgeRow is this edge's stable buffer EDGE-ROW index (the seed order — see
 	// MoveDispatch.SetEdgeStreams), carried on every Geometry event this edge's own
 	// stream frame records (memory/feedback_no_single_writer_bridge.md). -1 until
@@ -246,7 +247,7 @@ func (m *edgeMover) recomputeGeometry() {
 // live bead state via LiveBeadRows (same single-goroutine-ownership contract PacedWire's
 // other methods rely on).
 func (m *edgeMover) writeStreamFrame(tick int64, events []wire.RowEvent) {
-	if m.streamOut == nil || m.buildFrame == nil {
+	if !m.streamOut.Ok() || m.buildFrame == nil {
 		return
 	}
 	// INVARIANT: same per-goroutine bridge rule the nodeMover twin asserts, but the

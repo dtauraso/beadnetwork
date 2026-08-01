@@ -2,6 +2,7 @@ package pulseleft
 
 import (
 	"context"
+	"github.com/dtauraso/wirefold/nodes/Wiring"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"testing"
 	"time"
@@ -56,8 +57,8 @@ func TestPulseLeftDrivesHeldValueLean(t *testing.T) {
 		Fire:  func() {},
 		Clock: clk,
 		In:    wire.NewInPaced(inPw, ctx, "pulse", "In", tr, nil, -1),
-		Out: wire.NewPacedOutNoGeom(outPw, ctx, "pulse", "Out", tr,
-			wire.RuleFireAndForget, int(latMs), ""),
+		Out: Wiring.NewDrivenOutForTest(wire.NewPacedOutNoGeom(outPw, ctx, "pulse", "Out", tr,
+			wire.RuleFireAndForget, int(latMs), "")),
 		EmitHeldBead: func(v int) { beadCh <- v },
 	}
 	observer := wire.NewInPaced(outPw, ctx, "obs", "In", tr, nil, -1)

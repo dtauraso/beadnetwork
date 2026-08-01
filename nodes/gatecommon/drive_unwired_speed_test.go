@@ -2,6 +2,7 @@ package gatecommon
 
 import (
 	"context"
+	"github.com/dtauraso/wirefold/nodes/Wiring"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"testing"
 	"time"
@@ -36,7 +37,7 @@ func TestDriveHeldChanModeStillObeysSpeed(t *testing.T) {
 
 	// Chan mode: out.Paced() == false. Before the fix, DriveHeld would never
 	// touch clk/speedCh at all in this mode.
-	DriveHeld(ctx, out, heldCh, func(v int64) int { return int(v) }, clk, speedCh)
+	DriveHeld(ctx, Wiring.NewDrivenOutForTest(out), heldCh, func(v int64) int { return int(v) }, clk, speedCh)
 
 	// Drain a couple of placements first to confirm the loop is alive and
 	// unaffected (chan mode still places every cycle regardless of speed).

@@ -16,7 +16,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
-	"io"
 	"path/filepath"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -212,13 +211,16 @@ type nodeMover struct {
 	beadChains map[string]*edgeBeadChain
 
 	// --- dedicated per-node stream (memory/feedback_no_single_writer_bridge.md) ---
-	// streamOut, when non-nil, is THIS node's OWN dedicated fd (see
-	// MoveDispatch.SetNodeStreams / Buffer/stream_fds.go's StreamKindNode). Nil (the
-	// default — no WIREFOLD_STREAM_FDS "node" entry, e.g. headless tests) means
-	// writeStreamFrame is a no-op: this node's geometry+ports+label are simply never
-	// written to a per-node stream. Written ONLY by this
-	// nodeMover's own goroutine (emitGeometry/run).
-	streamOut io.Writer
+	// streamOut, when Ok(), is THIS node's OWN dedicated fd (see
+	// MoveDispatch.SetNodeStreams / Buffer/stream_fds.go's StreamKindNode). A dead
+	// claimedStream (the default — no WIREFOLD_STREAM_FDS "node" entry, e.g. headless
+	// tests, OR a rejected second claim — see stream_claim.go) means writeStreamFrame is
+	// a no-op: this node's geometry+ports+label are simply never written to a per-node
+	// stream. claimedStream's unexported field + unexported constructor
+	// (newClaimedStream, called only from setNodeStreams) make a SECOND claim on this
+	// node's fd structurally rejected, not just written ONLY by this nodeMover's own
+	// goroutine (emitGeometry/run) by convention.
+	streamOut claimedStream
 	// nodeRow is this node's stable buffer NODE-ROW index (the seed order — see
 	// MoveDispatch.SetNodeStreams), carried on every Port row this node's stream frame
 	// writes so a port row can be resolved back to (nodeRow, portIndex) on the TS side
@@ -518,7 +520,7 @@ func (m *nodeMover) emitGeometry() {
 // m.geom. events carries whatever this call's caller wants riding this frame's trailing
 // EVENTS section (nil from run()'s plain tick-driven write).
 func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
-	if m.streamOut == nil || m.buildFrame == nil {
+	if !m.streamOut.Ok() || m.buildFrame == nil {
 		return
 	}
 	// INVARIANT: a mover carries only its OWN node's events on its OWN dedicated stream.

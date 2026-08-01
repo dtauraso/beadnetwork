@@ -52,7 +52,7 @@ type Node struct {
 	SpeedCh      <-chan float64
 	DriveSpeedCh <-chan float64
 	In           *wire.In
-	Out          *wire.Out
+	Out          Wiring.DrivenOut
 }
 
 func (g *Node) Update(ctx context.Context) {

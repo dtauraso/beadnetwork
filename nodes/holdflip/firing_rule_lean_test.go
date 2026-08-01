@@ -2,6 +2,7 @@ package holdflip
 
 import (
 	"context"
+	"github.com/dtauraso/wirefold/nodes/Wiring"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"testing"
 	"time"
@@ -54,8 +55,8 @@ func TestFlipRoundTripLean(t *testing.T) {
 		Fire:  func() {},
 		Clock: clk,
 		In:    wire.NewInPaced(inPw, ctx, "hf", "In", tr, nil, -1),
-		Out: wire.NewPacedOutNoGeom(outPw, ctx, "hf", "Out", tr,
-			wire.RuleFireAndForget, int(latMs), ""),
+		Out: Wiring.NewDrivenOutForTest(wire.NewPacedOutNoGeom(outPw, ctx, "hf", "Out", tr,
+			wire.RuleFireAndForget, int(latMs), "")),
 	}
 	observer := wire.NewInPaced(outPw, ctx, "obs", "In", tr, nil, -1)
 

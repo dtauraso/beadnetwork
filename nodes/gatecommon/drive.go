@@ -2,6 +2,7 @@ package gatecommon
 
 import (
 	"context"
+	"github.com/dtauraso/wirefold/nodes/Wiring"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
@@ -14,6 +15,13 @@ import (
 // (e.g. identity for Pulse, "1-h with NoValue passthrough" for HoldFlip);
 // draining heldCh each cycle means when the main loop sends a new held value,
 // the next pulse carries it.
+//
+// out is a Wiring.DrivenOut, not a bare *wire.Out, ON PURPOSE (nodes/Wiring/driven_out.go):
+// this is the STRUCTURAL fix for the framing desync documented in
+// docs/interior-stream-framing.md — a plain a.Out(...) result (written by this node's own
+// Update-loop goroutine) cannot be passed here at all, because only BuildArgs.DriveOut can
+// construct a DrivenOut (routed through its own dedicated per-(node,slot) drive-stream fd).
+// Passing the wrong one is a `go build` failure, not a live-editor desync.
 //
 // heldCh is a buffered-1, latest-wins channel (same shape as speedCh below):
 // the caller's main loop OWNS held and sends it non-blocking via
@@ -81,7 +89,7 @@ import (
 // call — passing the same channel to two DriveHeld goroutines would starve
 // whichever one loses a given receive. nil is fine (chan mode, or a caller
 // with no speed channel to give): ApplySpeedNonBlocking is then a no-op.
-func DriveHeld(ctx context.Context, out *wire.Out, heldCh <-chan int64, transform func(int64) int, clk wire.Clock, speedCh <-chan float64) {
+func DriveHeld(ctx context.Context, out Wiring.DrivenOut, heldCh <-chan int64, transform func(int64) int, clk wire.Clock, speedCh <-chan float64) {
 	go func() {
 		paced := out.Paced()
 		cur := int64(NoValue)
@@ -145,7 +153,7 @@ func DriveHeld(ctx context.Context, out *wire.Out, heldCh <-chan int64, transfor
 			// send, synchronous chan semantics).
 			place := !paced
 			if paced {
-				if steps := out.Geom().Steps; steps > 0 {
+				if steps := out.Steps(); steps > 0 {
 					k := int64(float64(steps)*wire.DwellTicksPerBead + 0.999999)
 					if k < 1 {
 						k = 1

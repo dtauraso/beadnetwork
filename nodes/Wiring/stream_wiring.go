@@ -54,14 +54,14 @@ type streamWiring struct {
 	// --- the dedicated VIEW stream (memory/feedback_no_single_writer_bridge.md,
 	// memory/feedback_no_single_writer_bridge.md Step C) --- see view_stream.go.
 	//
-	// viewOut, when non-nil, is the VIEW stream's OWN dedicated fd (see SetViewStream /
-	// Buffer/stream_fds.go's StreamKindView). Nil (the default — no WIREFOLD_STREAM_FDS
-	// "view" entry, e.g. headless tests) means emitViewFrame is a no-op: nothing here
-	// ever writes, and camera/overlay/scene are simply never emitted. Written ONLY by
-	// the gesture/stdin-reader
-	// goroutine (the sole caller of every MoveDispatch method that can change camera/
-	// overlay/scene/selection/hover).
-	viewOut io.Writer
+	// viewOut, when Ok(), is the VIEW stream's OWN dedicated fd (see SetViewStream /
+	// Buffer/stream_fds.go's StreamKindView). A dead claimedStream (the default — no
+	// WIREFOLD_STREAM_FDS "view" entry, e.g. headless tests, OR a rejected second
+	// SetViewStream claim — see stream_claim.go) means emitViewFrame is a no-op: nothing
+	// here ever writes, and camera/overlay/scene are simply never emitted. Written ONLY
+	// by the gesture/stdin-reader goroutine (the sole caller of every MoveDispatch
+	// method that can change camera/overlay/scene/selection/hover).
+	viewOut claimedStream
 	// viewBuildFrame packs this goroutine's own VIEW frame (Buffer.BuildViewStreamFrame),
 	// injected via SetViewStream so this package stays Buffer-independent, mirroring
 	// buildInteriorFrame/buildFrame's existing interface-injection pattern.
@@ -69,6 +69,21 @@ type streamWiring struct {
 	// viewTick is a purely local frame-sequence counter for the VIEW stream (not shared
 	// with any other stream's tick) — written only by the gesture/stdin-reader goroutine.
 	viewTick uint32
+
+	// claims is the wiring-time claim registry backing every claimedStream this struct
+	// hands out (streamOut on each nodeMover/edgeMover, viewOut here) — see
+	// stream_claim.go's header comment. Lazily allocated (newStreamClaims) by whichever
+	// of setEdgeStreams/setNodeStreams/SetViewStream runs first, so a bare streamWiring
+	// zero value (test construction that never wires any stream) never allocates it.
+	claims streamClaims
+}
+
+// ensureClaims lazily allocates sw.claims on first use — see its doc comment.
+func (sw *streamWiring) ensureClaims() streamClaims {
+	if sw.claims == nil {
+		sw.claims = newStreamClaims()
+	}
+	return sw.claims
 }
 
 // setEdgeStreams wires every edgeMover in edgeMovers to ITS OWN dedicated fd — the
@@ -92,7 +107,8 @@ func (sw *streamWiring) setEdgeStreams(
 			continue
 		}
 		fd := baseFd + row
-		em.streamOut = os.NewFile(uintptr(fd), fmt.Sprintf("edge-fd%d", fd))
+		rawOut := os.NewFile(uintptr(fd), fmt.Sprintf("edge-fd%d", fd))
+		em.streamOut = newClaimedStream(sw.ensureClaims(), "edge", seed.Label, rawOut)
 		em.edgeRow = int32(row)
 		em.nodeRowFor = nodeRowFor
 		em.buildFrame = buildFrame
@@ -150,7 +166,8 @@ func (sw *streamWiring) setNodeStreams(
 		}
 		row := seed.Row
 		nFd := nodeBase + row
-		nm.streamOut = os.NewFile(uintptr(nFd), fmt.Sprintf("node-fd%d", nFd))
+		rawNodeOut := os.NewFile(uintptr(nFd), fmt.Sprintf("node-fd%d", nFd))
+		nm.streamOut = newClaimedStream(sw.ensureClaims(), "node", seed.ID, rawNodeOut)
 		nm.nodeRow = int32(row)
 		// kindID is static per node (never changes after load) — resolved once here,
 		// directly onto the mover's own field, not via a per-emit lookup func.

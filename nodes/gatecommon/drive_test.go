@@ -2,6 +2,7 @@ package gatecommon
 
 import (
 	"context"
+	"github.com/dtauraso/wirefold/nodes/Wiring"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"testing"
 	"time"
@@ -25,7 +26,7 @@ func TestDriveHeldChanModePlacesMultipleValues(t *testing.T) {
 	defer cancel()
 
 	// Chan mode (out.Paced() == false): DriveHeld never touches clk/speedCh, so nil is safe.
-	DriveHeld(ctx, out, heldCh, func(v int64) int { return int(v) }, nil, nil)
+	DriveHeld(ctx, Wiring.NewDrivenOutForTest(out), heldCh, func(v int64) int { return int(v) }, nil, nil)
 
 	received := 0
 	deadline := time.After(2 * time.Second)

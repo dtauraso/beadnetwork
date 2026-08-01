@@ -32,6 +32,8 @@ package Wiring
 
 import (
 	"context"
+	"fmt"
+	"os"
 
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
@@ -62,6 +64,17 @@ type BuildArgs struct {
 	// every closure and port that records an event for this node lands on the SAME
 	// *interiorStream instance and shares its cached bead-slot snapshot.
 	getStream func() *interiorStream
+	// driveSlotClaims tracks, for THIS node's ONE build call, which drive slot each
+	// DriveOut(portName, slot) call has already claimed (slot -> claiming port name).
+	// Allocated once per node in RegisterBuilder's wrapper and never shared across
+	// nodes, so this is plain single-threaded bookkeeping during LoadTopology's build
+	// phase (before any node/DriveHeld goroutine exists) — no lock needed. A second
+	// DriveOut call naming a slot already in this map is the wiring-time failure
+	// requirement 1 asks for: it does not construct a second DrivenOut wrapping the
+	// SAME underlying drive fd (which would silently reintroduce a two-goroutine-one-fd
+	// desync the moment both driven Outs got handed to two DriveHeld goroutines) — see
+	// DriveOut below.
+	driveSlotClaims map[int]string
 }
 
 // Name is this node's spec id.
@@ -101,8 +114,29 @@ func (a BuildArgs) Broadcast(portName string) wire.Broadcast {
 // keep using Out(), not DriveOut(): its writes already satisfy the single-writer
 // invariant via the shared getStream, and giving it a drive slot would burn an fd for no
 // reason.
-func (a BuildArgs) DriveOut(portName string, slot int) *wire.Out {
-	return newOutPort(portName, a.ctx, a.name, a.pb, a.tr, a.sourceOuts, newDriveStreamGetter(a.name, slot, a.pb))
+func (a BuildArgs) DriveOut(portName string, slot int) DrivenOut {
+	if a.driveSlotClaims != nil {
+		if prior, claimed := a.driveSlotClaims[slot]; claimed {
+			// Wiring-time failure, reported not panicked (main.go's own stream-fd-
+			// mismatch posture — see its "stream-fd mismatch" Fprintf calls): this runs
+			// during LoadTopology's single-threaded build phase, before this node's
+			// Update or DriveHeld goroutines exist, so there is no crash-loop risk and
+			// nothing to unwind. The SECOND claimant gets a dead DrivenOut (zero value:
+			// nil-safe Wired/Paced/Steps/PlaceDrivenAt all degrade to "not driving"),
+			// same fallback shape as every other absent-stream case in this file.
+			fmt.Fprintf(os.Stderr,
+				"drive-stream collision: node %q slot %d already claimed by port %q; port %q "+
+					"cannot also claim it — a DriveHeld goroutine for %q would share %q's dedicated "+
+					"fd, which is exactly the two-goroutines-one-fd desync docs/interior-stream-"+
+					"framing.md documents. %q's driven output stays unwired (drives nothing) instead. "+
+					"Give it its own slot (Buffer.DriveSlotsPerNode).\n",
+				a.name, slot, prior, portName, portName, prior, portName)
+			return DrivenOut{}
+		}
+		a.driveSlotClaims[slot] = portName
+	}
+	out := newOutPort(portName, a.ctx, a.name, a.pb, a.tr, a.sourceOuts, newDriveStreamGetter(a.name, slot, a.pb))
+	return newDrivenOut(out)
 }
 
 // Fire returns this node's fire-trace closure. The node name is captured, so a node
@@ -214,9 +248,10 @@ func RegisterBuilder(kind string, ports []PortSpec, build func(BuildArgs) (wire.
 			var sourceOuts []*wire.Out
 			return build(BuildArgs{
 				ctx: ctx, name: name, data: data, pb: pb, tr: tr,
-				geom:       geom,
-				sourceOuts: &sourceOuts,
-				getStream:  newInteriorStreamGetter(name, pb),
+				geom:            geom,
+				sourceOuts:      &sourceOuts,
+				getStream:       newInteriorStreamGetter(name, pb),
+				driveSlotClaims: map[int]string{},
 			})
 		},
 	}

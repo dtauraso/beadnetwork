@@ -220,11 +220,21 @@ own backing array can't be mutated in place, since callers may still hold it).
   `*interiorStream` instances (and different underlying `io.Writer`s) for the same node.
   Confirmed to fail against a deliberately-reintroduced pre-fix arrangement (patched
   `newDriveStreamGetter` to alias `newInteriorStreamGetter`) and pass against the real fix.
-- `tools/check-driveheld-uses-driveout.sh` is a guard expressing the SAME invariant at the
-  source-text level: every `nodes/<Kind>/node.go` that calls `gatecommon.DriveHeld` must
-  also call `a.DriveOut(...)`, and must not resolve `"Out"`/`"OutFanout"` via bare
-  `a.Out(...)`. Confirmed to fail when `nodes/holdflip/node.go` is patched back to `a.Out("Out")`
-  and pass on the real tree.
+- **`tools/check-driveheld-uses-driveout.sh` REMOVED (2026-08), superseded by a compile-time
+  fix.** It used to express the SAME invariant at the source-text level — every
+  `nodes/<Kind>/node.go` that calls `gatecommon.DriveHeld` must also call `a.DriveOut(...)`,
+  and must not resolve `"Out"`/`"OutFanout"` via bare `a.Out(...)` — by grepping for the
+  mistake after the fact. `nodes/Wiring/driven_out.go`'s `Wiring.DrivenOut` now makes that
+  mistake **unrepresentable**: `gatecommon.DriveHeld`'s signature accepts ONLY
+  `Wiring.DrivenOut`, never a bare `*wire.Out`, and the only way to construct one is the
+  unexported `newDrivenOut` constructor, called from exactly one place
+  (`BuildArgs.DriveOut`). `Wiring.DrivenOut`'s only field is unexported, so no package
+  outside `nodes/Wiring` can construct one via a struct literal — patching a kind back to
+  `n.Out = a.Out("Out")` (with `Out` typed `Wiring.DrivenOut`) is now a `go build` failure,
+  confirmed by reverting `nodes/holdflip/node.go` to that exact patch. The shell guard's
+  grep-the-source-text check is strictly weaker than a compile error the mistake can no
+  longer even type-check its way past, so it was deleted rather than kept alongside the
+  structural fix.
 - `TestHeadlessInteriorFdSustainedFraming` (the existing sustained-framing test) now passes
   cleanly against the real spawned binary — it previously would have hit this bug under
   enough load; the interior fd it reads now carries ONLY the node's own Update-loop

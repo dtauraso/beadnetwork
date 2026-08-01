@@ -59,7 +59,10 @@ type ViewFrameBuilder func(tick uint32,
 // (Buffer.BuildViewStreamFrame, injected from main.go). Call once at startup, before any
 // gesture/edit reaches RunStdinReader, when WIREFOLD_STREAM_FDS carries a "view" entry.
 func (md *MoveDispatch) SetViewStream(out io.Writer, buildFrame ViewFrameBuilder) {
-	md.sw.viewOut = out
+	// "view" is a singleton stream (StreamKindView's doc comment) — its claim key is the
+	// empty string; a second SetViewStream call is rejected the same way a second
+	// setNodeStreams/setEdgeStreams claim on one row is (stream_claim.go).
+	md.sw.viewOut = newClaimedStream(md.sw.ensureClaims(), "view", "", out)
 	md.sw.viewBuildFrame = buildFrame
 }
 
@@ -126,7 +129,7 @@ func (md *MoveDispatch) emitViewFrame(events []wire.RowEvent) {
 		float32(sc.Center.X), float32(sc.Center.Y), float32(sc.Center.Z), float32(sc.Radius),
 		events,
 	)
-	if md.sw.viewOut == nil {
+	if !md.sw.viewOut.Ok() {
 		return
 	}
 	var hdr [4]byte
