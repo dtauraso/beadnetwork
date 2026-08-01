@@ -11,16 +11,28 @@ import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
-// bead_chain_test.go — the production integration's own tests, distinct from
-// nodes/wire's primitive-level tests (bead_actor_test.go). These exercise
-// nodeMover.reconcileBeadChain/startBeadDrag/endBeadDrag directly, which is the real
-// production call site chainBeads uses when m.beadTickFn is set (see beadTickFn's own
-// doc comment on why chainBeads itself stays untouched/synchronous when it is nil).
+// bead_chain_test.go — the production integration's own tests for the bead-actor bridge
+// (bead_actor_bridge.go), distinct from nodes/wire's primitive-level tests
+// (bead_actor_test.go). These exercise nodeMover.ensureBeadEdgeActors/broadcastAndRead/
+// startAllBeadDrags/endAllBeadDrags directly — the real call sites chain_beads.go's
+// chainBeads uses, and the ones handle()'s moveMsgKindDragStart/moveMsgKindDragEnd cases
+// drive. PLAN.md "THE REPLACEMENT IS NOT DONE UNTIL THE OLD PATH IS DELETED" is enforced
+// in SOURCE by tools/check-bead-position-not-central.sh; these tests are the BEHAVIOURAL
+// half — a replacement and a mirror render identically, so the source guard is what tells
+// them apart, but goroutine lifetime and read-back correctness still need behavioural
+// coverage of their own.
+//
+// broadcastAndRead is NON-BLOCKING by design (its own doc comment in
+// bead_actor_bridge.go): a returned position may be one broadcast (or more, under a fast
+// drag) stale, and that staleness is deliberate — the node's own goroutine never waits on
+// a bead's reply. TestBroadcastAndReadNeverBlocksOnUnresponsiveBead below is the
+// regression test for the earlier, WRONG shape (blocking on an exact generation match
+// against a lossy latest-wins channel), which could hang forever.
 
 // beadRunGoroutineCount counts live goroutines currently inside wire.(*Bead).run, via the
 // same goroutine-profile technique bead_actor_test.go's TestIdleBeadIsBlockedNotRunnable
-// already uses — the sanctioned way to observe another goroutine's existence without
-// touching its owned state.
+// uses — the sanctioned way to observe another goroutine's existence without touching its
+// owned state from a second goroutine.
 func beadRunGoroutineCount(t *testing.T) int {
 	t.Helper()
 	var buf bytes.Buffer
@@ -37,19 +49,19 @@ func beadRunGoroutineCount(t *testing.T) int {
 	return count
 }
 
-// TestBeadGoroutineLifetimeFollowsChainLength: growing a chain via reconcileBeadChain
+var zeroXF = wire.BeadGeometryIn{}
+
+// TestBeadGoroutineLifetimeFollowsChainLength: growing a chain via ensureBeadEdgeActors
 // starts one goroutine per added bead; shrinking it back down closes each removed bead's
 // own stop channel, and every removed bead's goroutine actually exits — no leak per
-// removed bead. This is the test CLAUDE.md's task called for explicitly: goroutine count
-// returns to baseline after a drag that removes beads (bead_crud.go's own count, recomputed
-// live by chain_beads.go's edgeStepCount, shrinking as two nodes move together).
+// removed bead. Bead CRUD adds/removes AT THE CHAIN END (MODEL.md), which
+// ensureBeadEdgeActors implements directly.
 func TestBeadGoroutineLifetimeFollowsChainLength(t *testing.T) {
-	m := &nodeMover{id: "a", beadTickFn: wire.NewTickChan}
-	offsetAt := func(i int) float64 { return float64(i) }
+	m := &nodeMover{id: "a"}
 
 	baseline := beadRunGoroutineCount(t)
 
-	m.reconcileBeadChain("b", 10, offsetAt, wire.Vec3{X: 1})
+	m.ensureBeadEdgeActors("b", 10, 0, zeroXF)
 	runtime.Gosched()
 	time.Sleep(20 * time.Millisecond)
 	grown := beadRunGoroutineCount(t)
@@ -57,11 +69,7 @@ func TestBeadGoroutineLifetimeFollowsChainLength(t *testing.T) {
 		t.Fatalf("after growing to 10 beads: got %d Bead.run goroutines (baseline %d), want %d", grown, baseline, baseline+10)
 	}
 
-	m.reconcileBeadChain("b", 3, offsetAt, wire.Vec3{X: 1})
-	// Closing a bead's stop channel wakes it out of its select and it returns
-	// immediately — give the scheduler a moment to actually retire those goroutines
-	// before re-counting (same shape as TestIdleBeadIsBlockedNotRunnable's own settle
-	// wait).
+	m.ensureBeadEdgeActors("b", 3, 0, zeroXF)
 	deadline := time.Now().Add(500 * time.Millisecond)
 	var shrunk int
 	for {
@@ -76,8 +84,7 @@ func TestBeadGoroutineLifetimeFollowsChainLength(t *testing.T) {
 		t.Fatalf("after shrinking to 3 beads: got %d Bead.run goroutines (baseline %d), want %d — a removed bead's goroutine leaked", shrunk, baseline, baseline+3)
 	}
 
-	// Back to zero on this edge: every bead this test started is gone.
-	m.reconcileBeadChain("b", 0, offsetAt, wire.Vec3{X: 1})
+	m.ensureBeadEdgeActors("b", 0, 0, zeroXF)
 	deadline = time.Now().Add(500 * time.Millisecond)
 	var final int
 	for {
@@ -93,77 +100,142 @@ func TestBeadGoroutineLifetimeFollowsChainLength(t *testing.T) {
 	}
 }
 
-// TestReconcileBeadChainBroadcastsOnAimChangeOnly: a second reconcile call at the SAME
-// count and the SAME aim must not re-broadcast (PLAN.md "idle costs nothing" — an
-// unchanged chain issues no fresh geometry generation), while a changed aim does.
-// Observed indirectly: an unchanged reconcile must not invalidate an already-valid
-// snapshot's position (it would, if it re-broadcast a value the bead's own goroutine had
-// not yet had a chance to apply — since a fresh broadcast always starts a bead back at a
-// stale cached position until its own goroutine services the new generation).
-func TestReconcileBeadChainAppliesPosition(t *testing.T) {
-	m := &nodeMover{id: "a", beadTickFn: wire.NewTickChan}
-	offsetAt := func(i int) float64 { return 10 }
-	c := m.reconcileBeadChain("b", 1, offsetAt, wire.Vec3{X: 1})
-	defer close(c.stops[0])
+// TestEnsureBeadEdgeActorsSeedsValidInitialPosition: a freshly created bead's position is
+// correct from CONSTRUCTION, before its own goroutine has ever serviced a broadcast (or
+// even been scheduled) — PLAN.md "a first frame never has nothing to read". Read via the
+// group's own cache (ea.last), the same non-blocking path broadcastAndRead uses, with no
+// broadcast issued at all.
+func TestEnsureBeadEdgeActorsSeedsValidInitialPosition(t *testing.T) {
+	m := &nodeMover{id: "a"}
+	xf := wire.BeadGeometryIn{Center: wire.Vec3{X: 100}, Aim: wire.Vec3{Z: 1}}
+	ea := m.ensureBeadEdgeActors("b", 1, 0, xf)
+	defer close(ea.stops[0])
 
-	deadline := time.Now().Add(500 * time.Millisecond)
-	for {
-		c = m.reconcileBeadChain("b", 1, offsetAt, wire.Vec3{X: 1})
-		if len(c.valid) == 1 && c.valid[0] {
-			break
-		}
-		if time.Now().After(deadline) {
-			t.Fatal("bead never reported a valid snapshot")
-		}
-		time.Sleep(2 * time.Millisecond)
-	}
-	got := c.last[0].Position
-	want := wire.Vec3{X: 10}
-	if got != want {
-		t.Fatalf("bead position = %+v, want %+v (offsetR=10 along aim X=1)", got, want)
+	want := wire.Vec3{X: 100, Z: wire.BeadTorusOuterR}
+	if ea.last[0].Position != want {
+		t.Fatalf("seeded position = %+v, want %+v (offsetR=BeadTorusOuterR along aim Z=1, from Center X=100)", ea.last[0].Position, want)
 	}
 }
 
-// TestStartEndBeadDragTogglesEveryChain: startBeadDrag/endBeadDrag reach EVERY one of this
-// node's own outgoing-edge chains with one StartDrag/EndDrag call each — not a per-bead
-// send loop — mirroring the primitive-level TestWakeSetsEveryAffectedBead but through the
-// production entry points handle() drives (moveMsgKindDragStart/moveMsgKindDragEnd).
+// TestBroadcastAndReadAppliesPosition: chainBeads' entire read path — one
+// BroadcastGeometry hop, then a non-blocking read-back per bead — must eventually return
+// each bead's OWN resulting position, computed by that bead's own goroutine
+// (Bead.applyTransform), never derived here. The read itself never blocks (see
+// TestBroadcastAndReadNeverBlocksOnUnresponsiveBead), so this test polls
+// broadcastAndRead — a legitimate TEST-side retry of a non-blocking call, not the
+// production code waiting on a bead.
+func TestBroadcastAndReadAppliesPosition(t *testing.T) {
+	m := &nodeMover{id: "a"}
+	xf1 := wire.BeadGeometryIn{Center: wire.Vec3{Y: 5}, Aim: wire.Vec3{Y: 1}}
+	ea := m.ensureBeadEdgeActors("b", 1, 0, zeroXF)
+	defer close(ea.stops[0])
+
+	want := wire.Vec3{Y: 5 + wire.BeadTorusOuterR}
+	deadline := time.Now().Add(500 * time.Millisecond)
+	var got wire.Vec3
+	for {
+		positions := ea.broadcastAndRead(xf1)
+		if len(positions) != 1 {
+			t.Fatalf("broadcastAndRead returned %d positions, want 1", len(positions))
+		}
+		got = positions[0]
+		if got == want || time.Now().After(deadline) {
+			break
+		}
+		time.Sleep(2 * time.Millisecond)
+	}
+	if got != want {
+		t.Fatalf("bead position after broadcast = %+v, want %+v (offsetR=BeadTorusOuterR along aim Y=1, from Center Y=5)", got, want)
+	}
+}
+
+// TestBroadcastAndReadNeverBlocksOnUnresponsiveBead is the regression test for the
+// defect this file replaces: a prior version blocked in a loop until a bead's observe
+// channel produced an EXACT generation match, which could hang forever against a
+// buffered-1 LATEST-WINS channel (a bead that has moved on to a later generation, or
+// whose goroutine simply hasn't run yet, never satisfies an exact match, and there is no
+// timeout on a bare channel receive).
+//
+// This bead's goroutine is deliberately NEVER STARTED, so its observe channel will NEVER
+// produce a value — the strongest possible stand-in for "this bead will not answer
+// within this call, whether it is behind, ahead, or simply not scheduled yet".
+// broadcastAndRead must still return immediately, using the seeded/cached position,
+// rather than waiting for a reply that will never come.
+func TestBroadcastAndReadNeverBlocksOnUnresponsiveBead(t *testing.T) {
+	group := wire.NewBeadWakeGroup()
+	geom, wake, settle := group.Current()
+	stop := make(chan struct{})
+	defer close(stop)
+	b := wire.NewBead(1.0, geom, wake, settle, make(chan struct{}), stop)
+	obs := b.WithObserve()
+	seed := b.SeedGeometry(wire.BeadGeometryIn{Center: wire.Vec3{}, Aim: wire.Vec3{X: 1}})
+	// b.Start() is deliberately NOT called.
+
+	ea := &beadEdgeActors{
+		group: group,
+		beads: []*wire.Bead{b},
+		obs:   []<-chan wire.BeadSnapshot{obs},
+		stops: []chan struct{}{stop},
+		last:  []wire.BeadSnapshot{seed},
+	}
+
+	done := make(chan []wire.Vec3, 1)
+	go func() {
+		done <- ea.broadcastAndRead(wire.BeadGeometryIn{Center: wire.Vec3{Y: 99}, Aim: wire.Vec3{X: 1}})
+	}()
+	select {
+	case positions := <-done:
+		if positions[0] != seed.Position {
+			t.Fatalf("expected the cached seeded position %+v from an unresponsive bead, got %+v", seed.Position, positions[0])
+		}
+	case <-time.After(200 * time.Millisecond):
+		t.Fatal("broadcastAndRead blocked on an unresponsive bead — the read path must never block on a bead's own goroutine (PLAN.md: one broadcast hop, no per-bead round trip)")
+	}
+}
+
+// TestStartEndBeadDragTogglesEveryChain: startAllBeadDrags/endAllBeadDrags reach EVERY
+// one of this node's own outgoing-edge chains with one StartDrag/EndDrag call each per
+// chain (not a per-bead send loop) — the production entry points handle() drives from
+// moveMsgKindDragStart/moveMsgKindDragEnd.
 func TestStartEndBeadDragTogglesEveryChain(t *testing.T) {
-	m := &nodeMover{id: "a", beadTickFn: wire.NewTickChan}
-	offsetAt := func(i int) float64 { return float64(i) }
-	cB := m.reconcileBeadChain("b", 2, offsetAt, wire.Vec3{X: 1})
-	cC := m.reconcileBeadChain("c", 2, offsetAt, wire.Vec3{Y: 1})
+	m := &nodeMover{id: "a"}
+	eaB := m.ensureBeadEdgeActors("b", 2, 0, zeroXF)
+	eaC := m.ensureBeadEdgeActors("c", 2, 0, zeroXF)
 	defer func() {
-		for _, s := range cB.stops {
+		for _, s := range eaB.stops {
 			close(s)
 		}
-		for _, s := range cC.stops {
+		for _, s := range eaC.stops {
 			close(s)
 		}
 	}()
 
-	m.startBeadDrag()
-	waitAllDragging(t, cB, true)
-	waitAllDragging(t, cC, true)
+	m.startAllBeadDrags()
+	waitAllDragging(t, eaB, true)
+	waitAllDragging(t, eaC, true)
 
-	m.endBeadDrag()
-	waitAllDragging(t, cB, false)
-	waitAllDragging(t, cC, false)
+	m.endAllBeadDrags()
+	waitAllDragging(t, eaB, false)
+	waitAllDragging(t, eaC, false)
 }
 
-func waitAllDragging(t *testing.T, c *edgeBeadChain, want bool) {
+func waitAllDragging(t *testing.T, ea *beadEdgeActors, want bool) {
 	t.Helper()
+	last := make([]wire.BeadSnapshot, len(ea.obs))
+	valid := make([]bool, len(ea.obs))
 	deadline := time.Now().Add(500 * time.Millisecond)
 	for {
-		allMatch := true
-		for i := range c.snaps {
+		for i, obs := range ea.obs {
 			select {
-			case s := <-c.snaps[i]:
-				c.last[i] = s
-				c.valid[i] = true
+			case s := <-obs:
+				last[i] = s
+				valid[i] = true
 			default:
 			}
-			if !c.valid[i] || c.last[i].Dragging != want {
+		}
+		allMatch := true
+		for i := range last {
+			if !valid[i] || last[i].Dragging != want {
 				allMatch = false
 			}
 		}

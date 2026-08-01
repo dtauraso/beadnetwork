@@ -44,15 +44,12 @@ const (
 	// later than the true drag start) or, worse, STALE from a prior drag if this were the
 	// second+ drag on the same node — so this must never be dropped, same as drag/center.
 	moveMsgKindDragStart = "dragStart"
-	// moveMsgKindDragEnd is dragStart's mirror: sent to the dragged node X's own extIn
-	// when the gesture FSM's drag concludes (gesture.go's gestPointerUp, on EVERY path a
-	// drag can end by — a clean pointer-up after moves, or a pointer-up with no move in
-	// between — there is no separate "abandoned" branch, matching
-	// BeadWakeGroup.EndDrag's own doc comment). X's own goroutine (handle) responds by
-	// calling EndDrag on every one of its own outgoing edges' bead-actor chains
-	// (nodeMover.endBeadDrag, bead_chain.go) — clearing every bead's dragging flag with
-	// one close per edge, never a per-bead send-loop. Without this kind, "done dragging"
-	// would have no sender and a woken bead's mode flag could never clear.
+	// moveMsgKindDragEnd is the mirror of moveMsgKindDragStart, sent once per drag
+	// gesture at drag END (gesture.go's gestPointerUp, which captures g.dragNode
+	// BEFORE reset() clears it) so the dragged node's own bead-actor groups
+	// (chain_beads.go/bead_actor_bridge.go) settle every bead they woke — PLAN.md
+	// "'done dragging' is not optional": every drag must end on this path, including
+	// one abandoned mid-gesture, so a bead is never left parked on machine time.
 	moveMsgKindDragEnd = "dragEnd"
 	// moveMsgKindSelect (nodeMover) / edge-select (edgeMover, same kind) is the
 	// gesture goroutine's message telling ONE node/edge to turn its OWN selected bit
