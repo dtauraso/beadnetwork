@@ -172,3 +172,15 @@ export function useDistanceGroupLens(): DistanceGroupLens | null {
   return useSyncExternalStore(subscribeViewBlocks, readDistanceGroupLens, readDistanceGroupLens);
 }
 
+/** Gate the polarVectors overlay on BOTH the master `overlaysVisible` flag and its own
+ *  `polarVectors` flag — the same shape as EdgeTube.tsx's `cascade` gate
+ *  (`readOverlayOverlaysVis(overlayView) > 0 && readOverlayCascadeLinks(overlayView) > 0`).
+ *  Without this, turning off ONLY the master flag left the polar-vector fade/vectors
+ *  active because those three call sites (NodeInstances.tsx, ChainBeadInstances.tsx,
+ *  PolarVectors.tsx) each read `readOverlayPolarVectors` alone. Extracted here so the
+ *  three sites can't drift apart again, and so the boolean logic is unit-testable
+ *  without a WebGL context. */
+export function polarVectorsGated(overlayView: DataView): boolean {
+  return readOverlayOverlaysVis(overlayView) > 0 && readOverlayPolarVectors(overlayView) > 0;
+}
+

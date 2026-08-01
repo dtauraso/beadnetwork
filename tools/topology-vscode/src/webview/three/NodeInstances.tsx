@@ -23,7 +23,7 @@ import {
 } from "../../schema/shading-params";
 import {
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius,
-  readOverlaySelSpherePoles, readOverlayPolarVectors,
+  readOverlaySelSpherePoles,
 } from "../../schema/buffer-layout";
 import { SHADING_PARAM_POLAR_VECTOR_FADE_OPACITY_MULT } from "../../schema/shading-params";
 import {
@@ -32,6 +32,7 @@ import {
 } from "./buffer-scene-shared";
 import { computeNodeDepthOrder, setNodeDrawOrder } from "./node-depth-order";
 import { createTransparentEdgeTrigger, applyTransparentEdgeTriggered } from "./material-transparent-edge-trigger";
+import { polarVectorsGated } from "./overlay-flags";
 
 export function NodeInstances({ capacity }: { capacity: number }) {
   const envTex = useContext(EnvTexContext);
@@ -72,7 +73,7 @@ export function NodeInstances({ capacity }: { capacity: number }) {
     // polarVectors overlay: fade the node body/ring so the emphasised polar vectors
     // (PolarVectors.tsx) read as the foreground. One multiplier, applied to both meshes,
     // so "fade the nodes" reads as one consistent effect.
-    const polarVectorsOn = readOverlayPolarVectors(overlayView) !== 0;
+    const polarVectorsOn = polarVectorsGated(overlayView);
     const fadeMult = polarVectorsOn ? SHADING_PARAM_POLAR_VECTOR_FADE_OPACITY_MULT : 1;
     if (bodyMatRef.current) bodyMatRef.current.opacity = SHADING_PARAM_NODE_OPACITY * fadeMult;
     if (ringMatRef.current) ringMatRef.current.opacity = fadeMult;

@@ -35,9 +35,9 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { getChainBeads } from "./node-stream-blocks";
 import { getViewBlocks } from "./view-blocks";
-import { readOverlayPolarVectors } from "../../schema/buffer-layout";
 import { beadStyleForValue } from "./bead-style";
 import { createTransparentEdgeTrigger, applyTransparentEdgeTriggered } from "./material-transparent-edge-trigger";
+import { polarVectorsGated } from "./overlay-flags";
 import {
   SHADING_PARAM_BEAD_RADIUS,
   SHADING_PARAM_BEAD_RING_TUBE_RATIO,
@@ -77,7 +77,7 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
     if (!unlitBody || !litBody || !ring) return;
 
     const blocks = getViewBlocks();
-    const polarVectorsOn = !!blocks && readOverlayPolarVectors(blocks.overlayView) !== 0;
+    const polarVectorsOn = !!blocks && polarVectorsGated(blocks.overlayView);
     const fadeMult = polarVectorsOn ? SHADING_PARAM_POLAR_VECTOR_FADE_OPACITY_MULT : 1;
     if (unlitMatRef.current) {
       applyTransparentEdgeTriggered(unlitTransparentTrigger.current, unlitMatRef.current, polarVectorsOn);
