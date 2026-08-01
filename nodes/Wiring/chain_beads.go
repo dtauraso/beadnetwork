@@ -402,9 +402,12 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 		// Bead CRUD (MODEL.md "moving a node is CRUD on the edge beads that touch it"):
 		// grow/shrink this edge's own bead-actor goroutines to `count`, then hand them
 		// this edge's live transform in ONE broadcast hop and read back each bead's OWN
-		// resulting position — chainBeads computes no position itself past this point.
-		ea := m.ensureBeadEdgeActors(to, count, selfTorusR)
-		positions := ea.broadcastAndRead(wire.BeadGeometryIn{Center: selfCenter, Aim: aim})
+		// CURRENTLY-HELD position — non-blocking (broadcastAndRead's own doc comment: a
+		// position may be one broadcast stale, by design). chainBeads computes no
+		// position itself past this point.
+		xf := wire.BeadGeometryIn{Center: selfCenter, Aim: aim}
+		ea := m.ensureBeadEdgeActors(to, count, selfTorusR, xf)
+		positions := ea.broadcastAndRead(xf)
 		for i, p := range positions {
 			ox = append(ox, float32(p.X))
 			oy = append(oy, float32(p.Y))

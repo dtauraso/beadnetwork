@@ -200,6 +200,19 @@ func NewBead(offsetR float64, geom, wake, settle *BroadcastChain, tickCh <-chan 
 	}
 }
 
+// SeedGeometry applies xf directly to this bead's own geometry state and returns the
+// resulting snapshot — NOT a channel operation, and safe only because it is called
+// BEFORE Start(): there is no goroutine running yet to race it, so a plain field write
+// is exactly as safe as any other single-threaded setup step. It exists so a freshly
+// constructed bead's position is valid from construction (PLAN.md: "a first frame never
+// has nothing to read") — without it, a bead started with a still-unfired geometry chain
+// would read as the zero Vec3 until its first broadcast is serviced.
+func (b *Bead) SeedGeometry(xf BeadGeometryIn) BeadSnapshot {
+	b.geomState.applyTransform(xf, b.offsetR)
+	b.geomGen++
+	return BeadSnapshot{Position: b.geomState.position, Dragging: b.dragging, Lit: b.anim.lit, LitVal: b.anim.litVal, GeomGen: b.geomGen}
+}
+
 // (There is deliberately no Position()/Dragging() getter on Bead: any read from a second
 // goroutine of state owned by this one must go through observe/BeadSnapshot — a plain
 // getter would silently reintroduce the cross-goroutine shared-read this type exists to

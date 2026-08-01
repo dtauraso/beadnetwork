@@ -13,7 +13,7 @@ import wire "github.com/dtauraso/wirefold/nodes/wire"
 // (center, aim) into N cartesian points. That step now happens inside each bead's own
 // goroutine (Bead.applyTransform, bead_actor.go), reached over ONE broadcast hop
 // (BeadWakeGroup.BroadcastGeometry) regardless of N, and chainBeads only ever READS the
-// result back — never derives it.
+// result back — never derives it, and never WAITS for it either (see broadcastAndRead).
 //
 // beadEdgeActors is THIS node's own live bead-actor group for ONE outgoing edge, keyed
 // by target id in nodeMover.beadEdges. Owned and touched exclusively by this node's own
@@ -24,12 +24,12 @@ type beadEdgeActors struct {
 	beads []*wire.Bead
 	obs   []<-chan wire.BeadSnapshot
 	stops []chan struct{}
-	// geomGen mirrors the count of BroadcastGeometry calls this group has issued so
-	// far; broadcastAndRead bumps it once per call and blocks each bead's own observe
-	// channel until that bead reports the SAME generation, which is race-free against
-	// that bead's other channel sets (mode, tick) racing the same buffered-1 observe
-	// slot — see Bead.geomGen's doc comment.
-	geomGen int
+	// last is this group's own CACHE of each bead's most recently observed snapshot —
+	// the node's own copy, updated by a non-blocking drain in broadcastAndRead, never by
+	// blocking on a bead. Seeded at bead construction (SeedGeometry) so index i is always
+	// a valid position, even before that bead's own goroutine has served its first
+	// broadcast.
+	last []wire.BeadSnapshot
 }
 
 // ensureBeadEdgeActors returns this node's bead-actor group for target `to`, first
@@ -41,7 +41,11 @@ type beadEdgeActors struct {
 // formula chainBeads used to apply directly: selfTorusR + wire.BeadTorusOuterR +
 // i*wire.BeadStepR (docs/bead-lattice.md "Placement") — only the AIM a bead is asked to
 // apply that fixed offset against ever changes, via later geometry broadcasts.
-func (m *nodeMover) ensureBeadEdgeActors(to string, count int, selfTorusR float64) *beadEdgeActors {
+//
+// xf is this edge's CURRENT transform, used only to seed a newly created bead's initial
+// position (Bead.SeedGeometry, called before Start()) so it has something valid to report
+// before it has ever serviced a live broadcast — it is not otherwise consulted here.
+func (m *nodeMover) ensureBeadEdgeActors(to string, count int, selfTorusR float64, xf wire.BeadGeometryIn) *beadEdgeActors {
 	if m.beadEdges == nil {
 		m.beadEdges = map[string]*beadEdgeActors{}
 	}
@@ -58,10 +62,12 @@ func (m *nodeMover) ensureBeadEdgeActors(to string, count int, selfTorusR float6
 		stop := make(chan struct{})
 		b := wire.NewBead(offsetR, geom, wake, settle, tickCh, stop)
 		obs := b.WithObserve()
+		snap := b.SeedGeometry(xf)
 		b.Start()
 		ea.beads = append(ea.beads, b)
 		ea.obs = append(ea.obs, obs)
 		ea.stops = append(ea.stops, stop)
+		ea.last = append(ea.last, snap)
 	}
 	for len(ea.beads) > count {
 		last := len(ea.beads) - 1
@@ -69,6 +75,7 @@ func (m *nodeMover) ensureBeadEdgeActors(to string, count int, selfTorusR float6
 		ea.beads = ea.beads[:last]
 		ea.obs = ea.obs[:last]
 		ea.stops = ea.stops[:last]
+		ea.last = ea.last[:last]
 	}
 	return ea
 }
@@ -96,23 +103,38 @@ func (m *nodeMover) endAllBeadDrags() {
 	}
 }
 
-// broadcastAndRead delivers this edge's live transform to every bead in ea in ONE hop
-// (a single BroadcastGeometry call, i.e. one close — not a loop of N sends) and then
-// reads back each bead's own resulting position, in order. This IS chainBeads' entire
-// position path now: it derives nothing itself, it only broadcasts the input and reads
-// each bead's own output.
+// broadcastAndRead delivers this edge's live transform to every bead in ea in ONE hop (a
+// single BroadcastGeometry call, i.e. one close — not a loop of N sends) and then reads
+// back each bead's own CURRENTLY-HELD snapshot, non-blocking.
+//
+// This does NOT wait for that broadcast to be applied. Every read here is a `select` with
+// `default:` against that bead's own observe channel: if the bead has already pushed a
+// fresher snapshot, take it and cache it in ea.last; if not — because its goroutine hasn't
+// been scheduled yet, or is mid-tick, or is behind on a run of broadcasts issued faster
+// than it drains (a fast drag can easily issue several BroadcastGeometry calls between two
+// scheduler slices of one bead) — keep the PREVIOUSLY cached value in ea.last and move on.
+// There is no generation match, no loop, no blocking receive anywhere in this function: a
+// bead that is arbitrarily far behind still returns instantly, with a slightly stale
+// position, rather than making this node's own goroutine wait on it.
+//
+// A returned position may therefore be up to one broadcast (or a few, under a fast drag)
+// stale. THAT IS CORRECT under this model, not a bug being tolerated: the bead owns its
+// position and this node's goroutine reads what it currently is, exactly like reading any
+// other bead-owned state (Lit/LitVal already work this way) — it does not stop and
+// interrogate the bead for a synchronous answer. The staleness is bounded by one tick of
+// scheduler latency (microseconds) and self-heals on the very next call, which reads
+// whatever the bead has caught up to by then; nothing accumulates, because ea.last is
+// always overwritten with the newest available value, never advanced by waiting.
 func (ea *beadEdgeActors) broadcastAndRead(xf wire.BeadGeometryIn) []wire.Vec3 {
 	ea.group.BroadcastGeometry(xf)
-	ea.geomGen++
 	positions := make([]wire.Vec3, len(ea.beads))
 	for i, obs := range ea.obs {
-		for {
-			snap := <-obs
-			if snap.GeomGen == ea.geomGen {
-				positions[i] = snap.Position
-				break
-			}
+		select {
+		case snap := <-obs:
+			ea.last[i] = snap
+		default:
 		}
+		positions[i] = ea.last[i].Position
 	}
 	return positions
 }

@@ -3,10 +3,15 @@ set -euo pipefail
 
 # check-bead-position-not-central.sh — guard that a chain bead's POSITION is derived by
 # the bead's OWN goroutine (nodes/wire/bead_actor.go), never recomputed centrally in
-# nodes/Wiring/chain_beads.go. PLAN.md "two clocks per bead, three channel sets" / "THE
+# nodes/Wiring/chain_beads.go, and never fetched by making this node's own goroutine
+# BLOCK on a bead's reply. PLAN.md "two clocks per bead, three channel sets" / "THE
 # REPLACEMENT IS NOT DONE UNTIL THE OLD PATH IS DELETED" names four hard requirements;
 # this asserts the three that are source-shape (the fourth, this guard, asserts itself by
-# existing and running):
+# existing and running) plus the read-path-must-not-block property called out after this
+# guard first landed (a version of it blocked in a loop for an exact geometry-generation
+# match against a lossy latest-wins channel — sound as source-shape per requirements 1-3,
+# but a possible-forever-hang and a violation of PLAN.md's "one broadcast hop, not a
+# round trip per bead"):
 #
 #   1. offsetAt does not exist in chain_beads.go, and no per-index offset function is
 #      passed into the bead layer.
@@ -15,6 +20,10 @@ set -euo pipefail
 #      via Scale/polar2cart — that step is now inside nodes/wire/bead_actor.go
 #      (Bead.applyTransform), reached only through ensureBeadEdgeActors/broadcastAndRead
 #      (nodes/Wiring/bead_actor_bridge.go).
+#   4. broadcastAndRead's own body contains no BLOCKING receive on a bead's observe
+#      channel — every read of it must be inside a `select` with a `default:` case
+#      (non-blocking, "take whatever is cached, keep the last value otherwise"). A bare
+#      `x := <-obs` (outside a `case`) is exactly the shape that can hang forever.
 #
 # A previous attempt (commit 100955e0, reverted) satisfied every behavioural test while
 # keeping the central computation as a "fallback" the actor's output merely mirrored — no
@@ -78,8 +87,36 @@ if [ "$apply_writes" != "1" ]; then
   fail=1
 fi
 
+# Requirement 4: broadcastAndRead's own body must contain no BLOCKING receive on a
+# bead's observe channel. Scope the check to broadcastAndRead's own function body (not
+# the whole file — a `select`-guarded, non-blocking `case snap := <-obs:` line is fine
+# and expected) by extracting the text between its signature and the next top-level
+# `func` (or EOF).
+body=$(awk '/^func \(ea \*beadEdgeActors\) broadcastAndRead\(/{flag=1; next} /^func /{if (flag) exit} flag' "$BRIDGE_FILE")
+if [ -z "$body" ]; then
+  echo "✗ bead-position-not-central: could not locate broadcastAndRead's function body in $BRIDGE_FILE — guard is stale relative to the source it checks." >&2
+  exit 1
+fi
+# A bare receive is a line assigning from <-obs (or <-ea.obs[...]) that is NOT a `case`
+# line (a `select`'s non-blocking case reads "case x := <-obs:", which starts with
+# "case" and is exactly what's required — only a receive OUTSIDE a case is banned).
+bare_recv=$(printf '%s\n' "$body" | grep -nE '^\s*[A-Za-z_][A-Za-z0-9_]*\s*:?=\s*<-\s*obs\b' | grep -vE '^\s*[0-9]+:\s*case\b' || true)
+if [ -n "$bare_recv" ]; then
+  echo "✗ broadcastAndRead contains a BLOCKING receive on a bead's observe channel (not inside a non-blocking select/default) — this is the possible-forever-hang defect: an exact-generation (or any) match against a lossy latest-wins channel is unsound. Every read here must be a \`select\` with \`default:\`." >&2
+  printf '%s\n' "$bare_recv" >&2
+  fail=1
+fi
+if ! printf '%s\n' "$body" | grep -q 'default:'; then
+  echo "✗ broadcastAndRead no longer has a \`default:\` case on its bead read — without it the receive blocks (PLAN.md requirement 4 / the possible-hang defect)." >&2
+  fail=1
+fi
+if printf '%s\n' "$body" | grep -qE '\.GeomGen\s*=='; then
+  echo "✗ broadcastAndRead still matches on an exact GeomGen generation — that is the unsound shape against a lossy latest-wins channel (a bead ahead of, or simply not yet caught up to, the expected generation never satisfies an exact match). Take whatever is currently cached instead." >&2
+  fail=1
+fi
+
 if [ "$fail" != "0" ]; then
   exit 1
 fi
 
-echo "✓ bead position stays actor-owned: no offsetAt, no central Scale/polar2cart in chain_beads.go, chainBeads reads through broadcastAndRead, and Bead.applyTransform is the sole position writer."
+echo "✓ bead position stays actor-owned: no offsetAt, no central Scale/polar2cart in chain_beads.go, chainBeads reads through broadcastAndRead, broadcastAndRead never blocks on a bead, and Bead.applyTransform is the sole position writer."

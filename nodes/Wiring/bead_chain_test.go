@@ -21,6 +21,13 @@ import (
 // half — a replacement and a mirror render identically, so the source guard is what tells
 // them apart, but goroutine lifetime and read-back correctness still need behavioural
 // coverage of their own.
+//
+// broadcastAndRead is NON-BLOCKING by design (its own doc comment in
+// bead_actor_bridge.go): a returned position may be one broadcast (or more, under a fast
+// drag) stale, and that staleness is deliberate — the node's own goroutine never waits on
+// a bead's reply. TestBroadcastAndReadNeverBlocksOnUnresponsiveBead below is the
+// regression test for the earlier, WRONG shape (blocking on an exact generation match
+// against a lossy latest-wins channel), which could hang forever.
 
 // beadRunGoroutineCount counts live goroutines currently inside wire.(*Bead).run, via the
 // same goroutine-profile technique bead_actor_test.go's TestIdleBeadIsBlockedNotRunnable
@@ -42,6 +49,8 @@ func beadRunGoroutineCount(t *testing.T) int {
 	return count
 }
 
+var zeroXF = wire.BeadGeometryIn{}
+
 // TestBeadGoroutineLifetimeFollowsChainLength: growing a chain via ensureBeadEdgeActors
 // starts one goroutine per added bead; shrinking it back down closes each removed bead's
 // own stop channel, and every removed bead's goroutine actually exits — no leak per
@@ -52,7 +61,7 @@ func TestBeadGoroutineLifetimeFollowsChainLength(t *testing.T) {
 
 	baseline := beadRunGoroutineCount(t)
 
-	m.ensureBeadEdgeActors("b", 10, 0)
+	m.ensureBeadEdgeActors("b", 10, 0, zeroXF)
 	runtime.Gosched()
 	time.Sleep(20 * time.Millisecond)
 	grown := beadRunGoroutineCount(t)
@@ -60,7 +69,7 @@ func TestBeadGoroutineLifetimeFollowsChainLength(t *testing.T) {
 		t.Fatalf("after growing to 10 beads: got %d Bead.run goroutines (baseline %d), want %d", grown, baseline, baseline+10)
 	}
 
-	m.ensureBeadEdgeActors("b", 3, 0)
+	m.ensureBeadEdgeActors("b", 3, 0, zeroXF)
 	deadline := time.Now().Add(500 * time.Millisecond)
 	var shrunk int
 	for {
@@ -75,7 +84,7 @@ func TestBeadGoroutineLifetimeFollowsChainLength(t *testing.T) {
 		t.Fatalf("after shrinking to 3 beads: got %d Bead.run goroutines (baseline %d), want %d — a removed bead's goroutine leaked", shrunk, baseline, baseline+3)
 	}
 
-	m.ensureBeadEdgeActors("b", 0, 0)
+	m.ensureBeadEdgeActors("b", 0, 0, zeroXF)
 	deadline = time.Now().Add(500 * time.Millisecond)
 	var final int
 	for {
@@ -91,33 +100,96 @@ func TestBeadGoroutineLifetimeFollowsChainLength(t *testing.T) {
 	}
 }
 
-// TestBroadcastAndReadAppliesPosition: chainBeads' entire read path — one
-// BroadcastGeometry hop, then a read-back per bead — must return each bead's OWN
-// resulting position, computed by that bead's own goroutine (Bead.applyTransform), never
-// derived here. offsetR for bead 0 at selfTorusR=0 is exactly wire.BeadTorusOuterR (the
-// same fixed formula ensureBeadEdgeActors bakes into every bead at construction), so
-// Center{}+Aim{X:1}*offsetR is a value only the bead itself could have produced.
-func TestBroadcastAndReadAppliesPosition(t *testing.T) {
+// TestEnsureBeadEdgeActorsSeedsValidInitialPosition: a freshly created bead's position is
+// correct from CONSTRUCTION, before its own goroutine has ever serviced a broadcast (or
+// even been scheduled) — PLAN.md "a first frame never has nothing to read". Read via the
+// group's own cache (ea.last), the same non-blocking path broadcastAndRead uses, with no
+// broadcast issued at all.
+func TestEnsureBeadEdgeActorsSeedsValidInitialPosition(t *testing.T) {
 	m := &nodeMover{id: "a"}
-	ea := m.ensureBeadEdgeActors("b", 1, 0)
+	xf := wire.BeadGeometryIn{Center: wire.Vec3{X: 100}, Aim: wire.Vec3{Z: 1}}
+	ea := m.ensureBeadEdgeActors("b", 1, 0, xf)
 	defer close(ea.stops[0])
 
-	positions := ea.broadcastAndRead(wire.BeadGeometryIn{Center: wire.Vec3{}, Aim: wire.Vec3{X: 1}})
-	if len(positions) != 1 {
-		t.Fatalf("broadcastAndRead returned %d positions, want 1", len(positions))
+	want := wire.Vec3{X: 100, Z: wire.BeadTorusOuterR}
+	if ea.last[0].Position != want {
+		t.Fatalf("seeded position = %+v, want %+v (offsetR=BeadTorusOuterR along aim Z=1, from Center X=100)", ea.last[0].Position, want)
 	}
-	want := wire.Vec3{X: wire.BeadTorusOuterR}
-	if positions[0] != want {
-		t.Fatalf("bead position = %+v, want %+v (offsetR=BeadTorusOuterR along aim X=1)", positions[0], want)
+}
+
+// TestBroadcastAndReadAppliesPosition: chainBeads' entire read path — one
+// BroadcastGeometry hop, then a non-blocking read-back per bead — must eventually return
+// each bead's OWN resulting position, computed by that bead's own goroutine
+// (Bead.applyTransform), never derived here. The read itself never blocks (see
+// TestBroadcastAndReadNeverBlocksOnUnresponsiveBead), so this test polls
+// broadcastAndRead — a legitimate TEST-side retry of a non-blocking call, not the
+// production code waiting on a bead.
+func TestBroadcastAndReadAppliesPosition(t *testing.T) {
+	m := &nodeMover{id: "a"}
+	xf1 := wire.BeadGeometryIn{Center: wire.Vec3{Y: 5}, Aim: wire.Vec3{Y: 1}}
+	ea := m.ensureBeadEdgeActors("b", 1, 0, zeroXF)
+	defer close(ea.stops[0])
+
+	want := wire.Vec3{Y: 5 + wire.BeadTorusOuterR}
+	deadline := time.Now().Add(500 * time.Millisecond)
+	var got wire.Vec3
+	for {
+		positions := ea.broadcastAndRead(xf1)
+		if len(positions) != 1 {
+			t.Fatalf("broadcastAndRead returned %d positions, want 1", len(positions))
+		}
+		got = positions[0]
+		if got == want || time.Now().After(deadline) {
+			break
+		}
+		time.Sleep(2 * time.Millisecond)
+	}
+	if got != want {
+		t.Fatalf("bead position after broadcast = %+v, want %+v (offsetR=BeadTorusOuterR along aim Y=1, from Center Y=5)", got, want)
+	}
+}
+
+// TestBroadcastAndReadNeverBlocksOnUnresponsiveBead is the regression test for the
+// defect this file replaces: a prior version blocked in a loop until a bead's observe
+// channel produced an EXACT generation match, which could hang forever against a
+// buffered-1 LATEST-WINS channel (a bead that has moved on to a later generation, or
+// whose goroutine simply hasn't run yet, never satisfies an exact match, and there is no
+// timeout on a bare channel receive).
+//
+// This bead's goroutine is deliberately NEVER STARTED, so its observe channel will NEVER
+// produce a value — the strongest possible stand-in for "this bead will not answer
+// within this call, whether it is behind, ahead, or simply not scheduled yet".
+// broadcastAndRead must still return immediately, using the seeded/cached position,
+// rather than waiting for a reply that will never come.
+func TestBroadcastAndReadNeverBlocksOnUnresponsiveBead(t *testing.T) {
+	group := wire.NewBeadWakeGroup()
+	geom, wake, settle := group.Current()
+	stop := make(chan struct{})
+	defer close(stop)
+	b := wire.NewBead(1.0, geom, wake, settle, make(chan struct{}), stop)
+	obs := b.WithObserve()
+	seed := b.SeedGeometry(wire.BeadGeometryIn{Center: wire.Vec3{}, Aim: wire.Vec3{X: 1}})
+	// b.Start() is deliberately NOT called.
+
+	ea := &beadEdgeActors{
+		group: group,
+		beads: []*wire.Bead{b},
+		obs:   []<-chan wire.BeadSnapshot{obs},
+		stops: []chan struct{}{stop},
+		last:  []wire.BeadSnapshot{seed},
 	}
 
-	// A second broadcast with a different aim must also be read back correctly — this
-	// is the "no fallback, no stale mirror" property: every call re-derives from the
-	// bead's own current state, never from a cached value chainBeads computed itself.
-	positions2 := ea.broadcastAndRead(wire.BeadGeometryIn{Center: wire.Vec3{Y: 5}, Aim: wire.Vec3{Y: 1}})
-	want2 := wire.Vec3{Y: 5 + wire.BeadTorusOuterR}
-	if positions2[0] != want2 {
-		t.Fatalf("bead position after second broadcast = %+v, want %+v", positions2[0], want2)
+	done := make(chan []wire.Vec3, 1)
+	go func() {
+		done <- ea.broadcastAndRead(wire.BeadGeometryIn{Center: wire.Vec3{Y: 99}, Aim: wire.Vec3{X: 1}})
+	}()
+	select {
+	case positions := <-done:
+		if positions[0] != seed.Position {
+			t.Fatalf("expected the cached seeded position %+v from an unresponsive bead, got %+v", seed.Position, positions[0])
+		}
+	case <-time.After(200 * time.Millisecond):
+		t.Fatal("broadcastAndRead blocked on an unresponsive bead — the read path must never block on a bead's own goroutine (PLAN.md: one broadcast hop, no per-bead round trip)")
 	}
 }
 
@@ -127,8 +199,8 @@ func TestBroadcastAndReadAppliesPosition(t *testing.T) {
 // moveMsgKindDragStart/moveMsgKindDragEnd.
 func TestStartEndBeadDragTogglesEveryChain(t *testing.T) {
 	m := &nodeMover{id: "a"}
-	eaB := m.ensureBeadEdgeActors("b", 2, 0)
-	eaC := m.ensureBeadEdgeActors("c", 2, 0)
+	eaB := m.ensureBeadEdgeActors("b", 2, 0, zeroXF)
+	eaC := m.ensureBeadEdgeActors("c", 2, 0, zeroXF)
 	defer func() {
 		for _, s := range eaB.stops {
 			close(s)
