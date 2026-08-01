@@ -41,7 +41,6 @@ completion is defined by SOURCE, and these are hard requirements, not preference
 If any of 1-4 cannot be met, STOP and report which and why. Do not ship a layer beside the
 old code and describe the fallback as a safety property.
 
-
 ## The model
 
 A bead is driven by **two clocks at once**, over **separate sets of channels**:

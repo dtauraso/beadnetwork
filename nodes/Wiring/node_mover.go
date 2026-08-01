@@ -238,20 +238,6 @@ type nodeMover struct {
 	dragAnchorByTo  map[string]wire.LocalPolar
 	dragAnchorArmed bool
 
-	// --- chain bead actors (bead_chain.go, PLAN.md "two clocks per bead") ---
-	// beadTickFn, when non-nil, is this node's production hook for a fresh dedicated
-	// human-clock subscription (wire.NewTickChan) handed to each newly-started chain
-	// bead goroutine. nil in every bare-literal test nodeMover (chain_beads_test.go and
-	// friends) — that absence is what keeps chainBeads a pure, synchronous function with
-	// no live TickBroadcaster goroutine in those tests; set once, in newNodeMover, for
-	// every production node.
-	beadTickFn func() <-chan struct{}
-	// beadChains holds this node's own live per-outgoing-edge bead-actor chain, keyed by
-	// target id. Written and read ONLY by this node's own goroutine (chainBeads, called
-	// from writeStreamFrame/run — never a second goroutine). nil until the first
-	// production reconcile (see reconcileBeadChain).
-	beadChains map[string]*edgeBeadChain
-
 	// --- dedicated per-node stream (memory/feedback_no_single_writer_bridge.md) ---
 	// streamOut, when non-nil, is THIS node's OWN dedicated fd (see
 	// MoveDispatch.SetNodeStreams / Buffer/stream_fds.go's StreamKindNode). Nil (the
@@ -385,11 +371,6 @@ func newNodeMover(id string, geom nodeGeom, tr *T.Trace, clockSrc wire.Clock) *n
 	// newMoveDispatch's loop, which additionally seeds moverRegistry.centerMirror
 	// directly before any mover goroutine runs).
 	nm.centerOut <- nodeWorldPos(geom)
-	// Production-only hook: arms the bead-actor path in chainBeads/reconcileBeadChain
-	// (bead_chain.go). Bare `&nodeMover{...}` test literals never call newNodeMover, so
-	// beadTickFn stays nil there and chainBeads' pure-function tests never touch a live
-	// TickBroadcaster goroutine — see beadTickFn's own doc comment.
-	nm.beadTickFn = wire.NewTickChan
 	return nm
 }
 
@@ -441,15 +422,6 @@ func (m *nodeMover) handle(msg moveMsg) {
 	}
 	if msg.Kind == moveMsgKindDragStart {
 		m.armDragAnchor()
-		m.startBeadDrag()
-		return
-	}
-	if msg.Kind == moveMsgKindDragEnd {
-		// "done dragging" is not optional (PLAN.md): sent from gesture.go's
-		// gestPointerUp on EVERY path a drag can end by (including one abandoned
-		// without a clean pointer-move first — see moveMsgKindDragEnd's own doc
-		// comment), so no chain bead this node woke is ever left on machine time.
-		m.endBeadDrag()
 		return
 	}
 	if msg.Kind == moveMsgKindSelect {
