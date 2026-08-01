@@ -56,7 +56,7 @@ fi
 
 # Call-site labels: every `.Breadcrumb("literal"` across production (non-test, non-tools)
 # Go source. Scoped the same way check-breadcrumb-not-gated.sh scopes its identifier scan
-# (nodes/Buffer/Trace, excluding _test.go and the worktrees/ mirror dirs) — call sites live
+# (nodes/Buffer/Trace, excluding _test.go) — call sites live
 # under nodes/ today, but Buffer/Trace are included in case one lands there later.
 call_site_hits() {
   grep -rnoE '\.Breadcrumb\("[^"]*"' --include="*.go" nodes Buffer Trace 2>/dev/null \

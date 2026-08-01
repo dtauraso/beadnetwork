@@ -26,16 +26,14 @@ cd "$REPO_ROOT"
 # rather than a shell loop spawning `basename` per file. Every alternative from the old
 # `banned_regex` must appear here verbatim — dropping one would silently stop banning that
 # filename. `-iname` gives the same case-insensitive match as the old `shopt -s nocasematch`.
-# worktrees/ is pruned for BOTH reasons: tools/new-task.sh puts one full checkout of this
-# repo there per open task, so without it this walks the whole source tree once per open
-# task (cost scaling with in-flight work, not with this tree), and a hit there would be
-# another branch's file, which this branch cannot fix.
+# .claude/worktrees/ is pruned: those are nested agent scratch checkouts (gitignored), so a
+# hit there would be another agent's transient file, not this branch's to fix.
 #
 # Pruned rather than enumerated with `git ls-files --others --exclude-standard`, unlike
 # check-comment-vocab.sh: that flag pair hides GITIGNORED files, and a handoff cache someone
 # added to .gitignore is exactly the case this guard has to catch.
 hits="$(find . \
-  -type d \( -name node_modules -o -name .git -o -name out -o -name handoff-archive -o -name worktrees \) -prune -o \
+  -type d \( -name node_modules -o -name .git -o -name out -o -name handoff-archive -o -path './.claude/worktrees' \) -prune -o \
   -type f \( \
        -iname 'handoff.md' \
     -o -iname 'session-handoff.md' \

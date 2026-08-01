@@ -7,7 +7,7 @@ the backpressure-ceiling investigation doc, which lives branch-local on
 
 This is a coordination note, not a spec — re-check each branch's own doc before starting, and
 confirm no concurrent session is on a branch before touching it (these were spun up together
-and branches have flipped under an active worktree).
+and the checked-out branch has flipped mid-session before).
 
 ## Order
 

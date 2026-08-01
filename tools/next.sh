@@ -44,7 +44,7 @@ echo
 
 bold "next steps"
 echo "  - start a change: tools/new-task.sh <short-kebab-name> \"one-line description\""
-echo "    (makes the branch AND its worktree — never git checkout -b in this tree)"
+echo "    (makes the branch and checks it out — plain branches in this one checkout)"
 echo "  - read memory/MEMORY.md (durable rules + project state)"
 echo "  - read MODEL.md before any Go-network / pump change"
 echo "  - friction log: docs/planning/visual-editor/session-log.md"

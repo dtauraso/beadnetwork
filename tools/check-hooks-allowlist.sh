@@ -16,9 +16,7 @@
 # Rewriting INPUT is a different act and is ALLOWED, under one condition: the hook must
 # DISCLOSE the change (PreToolUse `additionalContext` naming what it altered and why), so the
 # rewrite lands in the transcript instead of behind it. A disclosed input-rewrite adds
-# information; a silent output-rewrite removes it. This distinction was added deliberately
-# when git-runs-in-the-worktree.sh landed — the alternative was a deny-only hook that spent a
-# round trip telling the caller to re-issue a command the hook could already fix.
+# information; a silent output-rewrite removes it.
 #
 # When you legitimately add a hook: add its script basename below WITH a one-word note
 # classifying it — check/reminder, or disclosed input-rewrite. Never an output-rewriter.
@@ -48,10 +46,6 @@ readonly ALLOWED=(
   "bash-approve-guard.sh"      # PreToolUse(Bash): bash approval gate
   "check-no-foreground-sim.sh" # PreToolUse(Bash): blocks foreground sim runs
   "block-open-html-hook.py"    # PreToolUse(Bash): blocks opening html
-  "git-runs-in-the-worktree.sh" # PreToolUse(Bash): DISCLOSED INPUT-REWRITE — prefixes a
-                                # tree-less mutating git command with a cd to the task
-                                # worktree, and says so; denies when >1 worktree makes the
-                                # target ambiguous. Rewrites no output.
 )
 is_allowed() { local s="$1"; for a in "${ALLOWED[@]}"; do [[ "$s" == "$a" ]] && return 0; done; return 1; }
 

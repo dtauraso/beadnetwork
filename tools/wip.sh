@@ -3,10 +3,9 @@ set -euo pipefail
 
 # wip.sh — park work in progress as a commit on YOUR branch, instead of `git stash`.
 #
-# The stash stack is repo-global (see tools/check-no-stash.sh): every worktree of this
-# clone sees and can pop the same entries, so with concurrent sessions it is shared mutable
-# state. A commit is not — it belongs to the branch you are on, which belongs to your
-# worktree alone.
+# The stash stack is repo-global (see tools/check-no-stash.sh): every concurrent session
+# in this one checkout sees and can pop the same entries, so it is shared mutable state.
+# A commit is not — it belongs to the branch you are on.
 #
 #   tools/wip.sh ["message"]     commit everything (tracked + untracked) as a WIP commit
 #   tools/wip.sh --undo          undo the last WIP commit, restoring it to the working tree
