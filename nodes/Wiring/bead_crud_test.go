@@ -207,9 +207,73 @@ func TestResolveBeadCrudMoveThreeNeighborsDisagreeStillMoves(t *testing.T) {
 	for _, r := range results {
 		if r.Implied == committed {
 			matched = true
+			break
 		}
 	}
 	if !matched {
 		t.Fatalf("committed %+v does not match any per-bead implied centre in results %+v", committed, results)
+	}
+}
+
+// TestResolveBeadCrudMovePicksNearestDestinationNotSmallestLeverArm pins the exact bug
+// report: a node with several neighbours drifted to whichever edge had the SMALLEST
+// displacement from prevPos, regardless of which direction the user dragged (measured for
+// node 2: edge 1 = 9.52 bead-steps, edge 4 = 12.05, edge 5 = 5.51 — the node always drifted
+// toward edge 5, the smallest lever arm, no matter which way the drag went). The fix ranks
+// candidates by distance to nodeDestination instead, so dragging toward each neighbour in
+// turn selects a DIFFERENT edge's candidate.
+func TestResolveBeadCrudMovePicksNearestDestinationNotSmallestLeverArm(t *testing.T) {
+	const beadLen = 20.0 // large enough that every source below is within reach of every destination used
+	prevPos := vec3{X: 0, Y: 0, Z: 0}
+
+	// Three touching beads on three different chain axes, sources near the origin so every
+	// destination used below judges REMOVE on all three independently (REMOVE's implied
+	// centre is the bead's own current centre exactly) — same construction as the
+	// three-neighbours-disagree test above, but with the exact displacement magnitudes from
+	// the bug report (9.52 / 12.05 / 5.51) so the "always picks the smallest lever arm" bug
+	// would visibly reproduce here if it regressed.
+	beads := []touchingBead{
+		{NeighborID: "edge1", Source: vec3{X: 1, Y: 0, Z: 0}, Centre: vec3{X: 9.52, Y: 0, Z: 0}, AimDir: vec3{X: 1, Y: 0, Z: 0}},
+		{NeighborID: "edge4", Source: vec3{X: 0, Y: 1, Z: 0}, Centre: vec3{X: 0, Y: 12.05, Z: 0}, AimDir: vec3{X: 0, Y: 1, Z: 0}},
+		{NeighborID: "edge5", Source: vec3{X: 0, Y: 0, Z: 1}, Centre: vec3{X: 0, Y: 0, Z: 5.51}, AimDir: vec3{X: 0, Y: 0, Z: 1}},
+	}
+
+	cases := []struct {
+		name        string
+		destination vec3
+		wantEdge    string
+	}{
+		{"drag toward edge1", vec3{X: 5, Y: 0, Z: 0}, "edge1"},
+		{"drag toward edge4", vec3{X: 0, Y: 5, Z: 0}, "edge4"},
+		{"drag toward edge5", vec3{X: 0, Y: 0, Z: 5}, "edge5"},
+	}
+
+	seen := map[string]bool{}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			committed, results := resolveBeadCrudMove(beads, prevPos, c.destination, beadLen)
+			if len(results) != 3 {
+				t.Fatalf("expected all three touching beads to reach a non-none verdict, got %d: %+v", len(results), results)
+			}
+			var gotEdge string
+			for _, r := range results {
+				if r.Implied == committed {
+					gotEdge = r.NeighborID
+				}
+			}
+			if gotEdge != c.wantEdge {
+				t.Fatalf("destination=%+v: committed edge = %q, want %q (nearest implied centre to the destination) — committed=%+v",
+					c.destination, gotEdge, c.wantEdge, committed)
+			}
+			seen[gotEdge] = true
+		})
+	}
+
+	// Every one of the three cases must have selected a DIFFERENT edge — this is exactly
+	// the property the bug's "always drifts toward edge5" report violated: if every case
+	// above picked the same edge (regardless of which is reported "wanted"), the direction
+	// of the drag would be having no effect, which is the defect this test exists to catch.
+	if len(seen) != 3 {
+		t.Fatalf("expected all three drag directions to pick distinct edges, got %d distinct: %v", len(seen), seen)
 	}
 }
