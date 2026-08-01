@@ -1,5 +1,10 @@
 // bead_wake_group.go — the endpoint-node side of the bead broadcast model (PLAN.md "Each
-// node on either end of an edge owns a wakeup channel to all of that edge's beads"). A
+// node on either end of an edge owns a wakeup channel to all of that edge's beads").
+//
+// STATUS: NO PRODUCTION CALL SITE yet — see bead_actor.go's file header. No node in the
+// running editor constructs a BeadWakeGroup today.
+//
+// A
 // BeadWakeGroup is owned by ONE node goroutine, for ONE outgoing edge's chain of Beads; it
 // holds the CURRENT generation of each of the three BroadcastChains (geometry, wake,
 // settle) and is the only thing that ever calls Advance on them — a single-writer

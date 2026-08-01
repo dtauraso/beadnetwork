@@ -1,6 +1,6 @@
 ---
 name: project_wire_is_straight_line_not_chain
-description: The original bead-item chain model's O(N²) drag lag (~1.5s at N≈40) was human-clock gating + momentum-free midpoint relaxation, NOT "a chain of beads" per se — a corrected chain-bead-as-goroutine model (nodes/wire/bead_actor.go) was later built successfully on body-force geometry + broadcast wake.
+description: The original bead-item chain model's O(N²) drag lag (~1.5s at N≈40) was human-clock gating + momentum-free midpoint relaxation, NOT "a chain of beads" per se. A corrected primitive (nodes/wire/bead_actor.go, body-force geometry + broadcast wake) is built and tested in isolation but as of task/two-clock-beads has NO production call site — the live chain-bead render path is still chainBeads()'s unchanged per-frame computation.
 metadata:
   type: project
 ---
@@ -14,7 +14,7 @@ Wires render as straight `wireSegment` / `lerp` lines drawn by `PacedWire` + `Si
 
 **The escape from cause 2 is a body force, not "no chain": give each bead the node's live transform directly (dependency depth 1, one broadcast hop) instead of averaging with a neighbour.** The escape from cause 1 is: geometry must never be gated on the human clock — a bead that is a goroutine can run its position update on machine time and its animation on human time simultaneously, over disjoint state, because position and animation have separate writers.
 
-**Both causes are now fixed, not just diagnosed:** `nodes/wire/bead_actor.go`'s `Bead` is a chain (render/placeholder) bead as its own goroutine — one `select` with no `default:`, geometry/animation/mode as three structurally distinct channel sets, position computed once per broadcast (`BroadcastChain`, a single close reaching every bead in the group at once) directly from the node's transform, never from a neighbour bead's position. `TestOneHopNotN`/`TestNoDiffusion`/`TestFrameBudgetN1000` (`nodes/wire/bead_actor_test.go`) are the tests that would have caught the original defect. See MODEL.md's "Chain (render/placeholder) bead" bullet.
+**A primitive that fixes both causes has been BUILT and TESTED IN ISOLATION, but is NOT YET WIRED IN.** `nodes/wire/bead_actor.go`'s `Bead` is a chain (render/placeholder) bead as its own goroutine — one `select` with no `default:`, geometry/animation/mode as three structurally distinct channel sets, position computed once per broadcast (`BroadcastChain`, a single close reaching every bead in the group at once) directly from the node's transform, never from a neighbour bead's position. `TestOneHopNotN`/`TestNoDiffusion`/`TestFrameBudgetN1000` (`nodes/wire/bead_actor_test.go`) are the tests that would have caught the original defect, and they pass against the primitive directly — but `chainBeads()` (`nodes/Wiring/chain_beads.go`), the function that actually feeds the live buffer, does not call any of it yet. No editor behaviour has changed. See MODEL.md's "Chain (render/placeholder) bead" bullet, which states the same not-yet-integrated status.
 
 **Key distinction David drew, unchanged:** neighbor-to-neighbor messaging (local, bounded fan-out — it's CSP/actors) is NOT the thing to avoid; GLOBAL scope (one place knowing all nodes, or all-to-all) is. A body-force broadcast from ONE node to ITS OWN chain's beads is local, bounded fan-out, not global scope.
 

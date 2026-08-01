@@ -44,8 +44,22 @@ mistake to avoid (chain_beads.go's own header comment makes the same split):
   a goroutine — see the Wire bullet below, unchanged by the chain-bead goroutine model.
 - **Chain (render/placeholder) bead.** The node-owned visual entity that IS a traversal's
   picture (`docs/beads-are-the-edge.md`) — one per node-local offset along an outgoing
-  edge's aim. **This bead is a GOROUTINE** (`nodes/wire/bead_actor.go`'s `Bead`), driven by
-  TWO clocks over THREE structurally distinct channel sets:
+  edge's aim. **Today this bead is still what it always was: a value computed fresh, per
+  frame, by `chainBeads()` (`nodes/Wiring/chain_beads.go`) — a slice entry, not a
+  goroutine, unchanged by anything below.**
+  A separate, validated PRIMITIVE for making it a goroutine exists
+  (`nodes/wire/bead_actor.go`'s `Bead`, `bead_wake_group.go`'s `BeadWakeGroup`) and is
+  covered by its own test suite (`nodes/wire/bead_actor_test.go`), but it has **NO
+  production call site** — `chainBeads()` does not construct a `Bead`, and no drag path
+  calls `BeadWakeGroup.StartDrag`/`BroadcastGeometry`/`EndDrag`. Do not read the paragraphs
+  below as a description of the running editor; they describe the primitive PLAN.md
+  specified, staged for a future integration pass that replaces `chainBeads()`'s per-frame
+  computation with these goroutines end to end (gesture-FSM drag start/end, bead CRUD add/
+  remove following goroutine lifetime, and the buffer emission reading bead-computed
+  positions). If you are looking at this file to understand what the live geometry path
+  DOES, the answer is: `chainBeads()`, exactly as it always has, and none of this. The
+  primitive, once it has a call site, is driven by TWO clocks over THREE structurally
+  distinct channel sets:
   - **Geometry** (machine time): a `BroadcastChain` carrying the owning node's live
     transform, broadcast to every bead on that edge in ONE close (`BeadWakeGroup.
     BroadcastGeometry`) — a body force, dependency depth 1: each bead computes its own
@@ -74,10 +88,12 @@ mistake to avoid (chain_beads.go's own header comment makes the same split):
   it exists so a person can watch a bead cross a wire, and geometry must never run on it —
   one propagation hop per tick would make even linear traversal visibly slow.)
 
-  This is additive to the transport model below, not a replacement of it: PacedWire's
-  in-flight value beads remain the passive delay queue MODEL.md always described; the chain
-  bead is what renders a traversal, and it is now the one entity in this codebase that is
-  BOTH a goroutine AND owns local per-drag mode state.
+  Once wired in, this is additive to the transport model below, not a replacement of it:
+  PacedWire's in-flight value beads remain the passive delay queue MODEL.md always
+  described; the chain bead is what renders a traversal, and the primitive above is what it
+  would become once a call site exists — the one entity in this codebase that is BOTH a
+  goroutine AND owns local per-drag mode state. Until that call site lands, this paragraph
+  is a spec, not a fact about the running program — see the note at the top of this bullet.
 
 - **Wire (`PacedWire`).** Transport. A PASSIVE delay queue, not a
   goroutine: the source node sends a bead over the wire's in-channel to
