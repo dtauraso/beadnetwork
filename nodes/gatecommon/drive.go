@@ -3,7 +3,6 @@ package gatecommon
 import (
 	"context"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
-	"time"
 )
 
 // DriveHeld runs a continuous-drive goroutine on out, repeatedly emitting
@@ -87,11 +86,15 @@ func DriveHeld(ctx context.Context, out *wire.Out, heldCh <-chan int64, transfor
 		paced := out.Paced()
 		cur := int64(NoValue)
 		var c wire.Clock
+		// No-loader fallback: a dedicated tick-pulse channel subscribed ONCE here
+		// against the process's one TickBroadcaster (nodes/wire/clock.go), so this
+		// goroutine blocks on receive instead of on its own time.After.
+		tickCh := wire.NewTickChan()
 		sleep := func(ctx context.Context) error {
 			select {
 			case <-ctx.Done():
 				return ctx.Err()
-			case <-time.After(wire.MsPerTick * time.Millisecond):
+			case <-tickCh:
 				return nil
 			}
 		}

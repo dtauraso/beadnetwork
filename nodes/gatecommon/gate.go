@@ -278,13 +278,17 @@ func defaultTick() func() int64 {
 
 // defaultSleep returns a wall-clock sleep function for use when the gate's
 // output has no shared clock (unit tests with no loader): one PollIntervalTicks
-// worth of wall-clock time, ctx-aware.
+// worth of wall-clock time (== one tick, since PollIntervalTicks == 1), ctx-aware.
+// It receives from a dedicated tick-pulse channel subscribed ONCE here (against
+// the process's one TickBroadcaster, nodes/wire/clock.go) rather than blocking
+// on time.After — no goroutine outside the broadcaster waits on wall time.
 func defaultSleep() func(ctx context.Context) error {
+	tickCh := wire.NewTickChan()
 	return func(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		case <-time.After(tickDuration(PollIntervalTicks)):
+		case <-tickCh:
 			return nil
 		}
 	}
