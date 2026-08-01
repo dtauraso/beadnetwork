@@ -47,18 +47,16 @@ SELF="$(basename "$0")"
 BANNED_SYMBOLS='\bLocalPolar\b|\bLayoutHolder\b|\bSetLocalPolar\(|\bLocalPolarsSnapshot\(|\bLoadLocalPolars\(|\brequantizeLocalPolars\(|\brequantizePoleTraced\(|\bneighborSetCRequantize\('
 
 hits=$(
-  grep -rn --include='*.go' -E '.' nodes/ Buffer/ 2>/dev/null \
+  find nodes Buffer -name '*.go' -print0 2>/dev/null \
+    | xargs -0 awk '
+        {
+          line = $0
+          idx = index(line, "//")
+          if (idx > 0) line = substr(line, 1, idx - 1)
+          print FILENAME ":" FNR ":" line
+        }
+      ' \
     | grep -v "/${SELF}:" \
-    | sed -E 's#^([^:]+:[0-9]+:).*$#\1 __SPLIT__ &#' \
-    | while IFS= read -r line; do
-        path_line="${line%% __SPLIT__*}"
-        rest="${line#*__SPLIT__ }"
-        code="${rest#*:}"
-        code="${code#*:}"
-        # Drop a trailing // comment and skip lines that are ENTIRELY comment.
-        code_nocomment="${code%%//*}"
-        printf '%s:%s\n' "$path_line" "$code_nocomment"
-      done \
     | grep -E "$BANNED_SYMBOLS" || true
 )
 
