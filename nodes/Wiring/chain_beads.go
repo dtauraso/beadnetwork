@@ -303,6 +303,14 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 		//
 		// index -> the traversing bead's VALUE. The value travels because the lit bead takes
 		// bead 0's or bead 1's own fill: a bare "is lit" flag could not say which.
+		//
+		// This map is the input to a single animation-broadcast call (bead_actor_bridge.go's
+		// broadcastAndRead) that hands it to every bead on this edge in ONE hop — chainBeads
+		// still computes it (edge-owned traversal progress, litBeadIndex), but no longer
+		// decides which BEAD displays it: each bead reads its own key out of this map inside
+		// its own goroutine, and the output row below reads Lit/LitVal back from each bead's
+		// own snapshot, never from this map directly (PLAN.md: a woken bead does exactly two
+		// things, move and send its own colour).
 		litIdx := map[int]int32{}
 		for i, wt := range m.outWireTargets {
 			if wt != to || m.outWires[i] == nil {
@@ -416,18 +424,20 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 		// frame the buffer speaks.
 		xf := wire.BeadGeometryIn{Center: wire.Vec3{}, Aim: aim}
 		ea := m.ensureBeadEdgeActors(to, count, selfTorusR, xf)
-		positions := ea.broadcastAndRead(xf)
-		for i, p := range positions {
-			ox = append(ox, float32(p.X))
-			oy = append(oy, float32(p.Y))
-			oz = append(oz, float32(p.Z))
-			v, isLit := litIdx[i]
+		// snaps carries both POSITION and COLOUR back from each bead's own goroutine —
+		// chainBeads reads both, decides neither (GAP 2: colour is bead-owned, same as
+		// position now). litIdx above is only the INPUT this call broadcasts to the beads.
+		snaps := ea.broadcastAndRead(xf, count, litIdx, m.dragging)
+		for _, s := range snaps {
+			ox = append(ox, float32(s.Position.X))
+			oy = append(oy, float32(s.Position.Y))
+			oz = append(oz, float32(s.Position.Z))
 			var l uint8
-			if isLit {
+			if s.Lit {
 				l = 1
 			}
 			lit = append(lit, l)
-			litVal = append(litVal, v)
+			litVal = append(litVal, s.LitVal)
 		}
 	}
 	return ox, oy, oz, lit, litVal, breadcrumbs

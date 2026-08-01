@@ -61,6 +61,20 @@ type BeadGeometryIn struct {
 	Aim    Vec3 // unit direction from Center toward the edge's far node
 }
 
+// BeadAnimIn is the payload a node broadcasts to every bead on its edges each time the
+// edge's lit set changes: which bead indices are currently lit and, for each, the VALUE
+// the traversal reaching it carries. A single value broadcast in ONE hop (never a per-bead
+// loop) — each bead looks up its OWN index in the map to decide its own lit/value, the same
+// "one hop, bead computes its own state" shape BeadGeometryIn/applyTransform already use
+// for position. This is what routes "which bead is lit" OFF chainBeads and onto the bead
+// itself (PLAN.md: a woken bead does exactly two things, move and send its own colour) —
+// chainBeads keeps computing litBeadIndex per in-flight traversal (that is edge-owned
+// progress data, not a bead's own state) but hands the result to the beads instead of
+// writing it into the output row itself.
+type BeadAnimIn struct {
+	LitVals map[int]int32
+}
+
 // beadGeometryState is the bead's POSITION — written from exactly one place: Bead.run's
 // geometry-broadcast case, via applyTransform. Nothing else touches it (not the mode case,
 // not the tick case), which is the "disjoint writers" test PLAN.md asks for made a
@@ -85,11 +99,14 @@ type beadAnimationState struct {
 	litVal int32
 }
 
-// tick applies one human-clock pulse's worth of animation update. The actual traversal-lit
-// rule (which index is lit, docs/beads-are-the-edge.md) is owned by the node's
-// chainBeads/litBeadIndex computation (nodes/Wiring/chain_beads.go) today; lit/val here are
-// simply the latest values this bead was told to display — the point under test is that
-// this write happens ONLY on a tick pulse, never on a geometry or mode event.
+// tick applies one animation update — either a human-clock pulse (test/primitive use, see
+// bead_actor_test.go) or a real animation broadcast from the owning node (applyAnim below,
+// production use). The actual traversal-lit rule (which index is lit,
+// docs/beads-are-the-edge.md) is owned by the node's chainBeads/litBeadIndex computation
+// (nodes/Wiring/chain_beads.go), which decides the VALUES fed in here — but no longer
+// decides this bead's own Lit/LitVal directly; this bead does, from what it is told. The
+// point under test is that this write happens ONLY from the animation channel set (tick or
+// animIn), never from a geometry or mode event.
 func (a *beadAnimationState) tick(lit bool, val int32) {
 	a.lit = lit
 	a.litVal = val
@@ -106,6 +123,7 @@ func (a *beadAnimationState) tick(lit bool, val int32) {
 type BroadcastChain struct {
 	Fire  chan struct{}
 	Value BeadGeometryIn // meaningful only for geometry-generation chains; zero otherwise
+	Anim  BeadAnimIn     // meaningful only for animation-generation chains; zero otherwise
 	Next  *BroadcastChain
 }
 
@@ -134,17 +152,26 @@ func (c *BroadcastChain) AdvanceWithValue(v BeadGeometryIn) *BroadcastChain {
 	return c.Advance()
 }
 
+// AdvanceWithAnim is AdvanceWithValue's sibling for the animation broadcast: stamps a
+// BeadAnimIn payload (this edge's live lit set) into the CURRENT link before firing.
+func (c *BroadcastChain) AdvanceWithAnim(v BeadAnimIn) *BroadcastChain {
+	c.Anim = v
+	return c.Advance()
+}
+
 // Bead is a placeholder chain bead, now a goroutine. offsetR is fixed at construction
 // (index*wire.BeadStepR along the owning node's aim) and never changes — only the AIM the
 // offset is applied against changes, via geometry broadcasts, which is what makes a node
 // move reposition every bead in one hop instead of by neighbour-following.
 type Bead struct {
 	offsetR float64
+	index   int // this bead's own fixed position in its edge's chain (docs/bead-lattice.md); set once at construction, used only to read its own key out of a broadcast BeadAnimIn.LitVals
 
 	geom   *BroadcastChain // current geometry generation this bead is waiting on
 	tickCh <-chan struct{} // this bead's own subscription to the human clock
 	wake   *BroadcastChain // current "dragging" generation this bead is waiting on
 	settle *BroadcastChain // current "done dragging" generation this bead is waiting on
+	animIn *BroadcastChain // current animation generation this bead is waiting on (BeadAnimIn — the edge's live lit set); nil-safe: a nil animIn is never selected on (see run's guard)
 	stop   <-chan struct{} // closed to tear the goroutine down (tests/edge teardown)
 
 	// local state — owned and mutated ONLY by this Bead's own goroutine (run). Nothing
@@ -185,16 +212,20 @@ type BeadSnapshot struct {
 	GeomGen  int
 }
 
-// NewBead constructs a bead bound to its owning node's channel sets. geom/wake/settle are
-// the CURRENT generation of each of the node's three BroadcastChains (BeadWakeGroup owns
-// all three); tickCh is this bead's own dedicated human-clock subscription (the same
-// per-goroutine-clock convention RealClock.tickCh already uses in this package).
-func NewBead(offsetR float64, geom, wake, settle *BroadcastChain, tickCh <-chan struct{}, stop <-chan struct{}) *Bead {
+// NewBead constructs a bead bound to its owning node's channel sets. geom/wake/settle/animIn
+// are the CURRENT generation of each of the node's four BroadcastChains (BeadWakeGroup owns
+// all four); tickCh is this bead's own dedicated human-clock subscription (the same
+// per-goroutine-clock convention RealClock.tickCh already uses in this package). index is
+// this bead's own fixed position in its edge's chain, used only to read its own key out of
+// a broadcast BeadAnimIn.LitVals.
+func NewBead(offsetR float64, index int, geom, wake, settle, animIn *BroadcastChain, tickCh <-chan struct{}, stop <-chan struct{}) *Bead {
 	return &Bead{
 		offsetR: offsetR,
+		index:   index,
 		geom:    geom,
 		wake:    wake,
 		settle:  settle,
+		animIn:  animIn,
 		tickCh:  tickCh,
 		stop:    stop,
 	}
@@ -280,9 +311,21 @@ func (b *Bead) run() {
 			b.settle = b.settle.Next
 			b.pushObserve()
 		case <-b.tickCh:
-			// Animation/tick channel: the ONLY writer of b.anim. Human-clock pulse; a
+			// Animation/tick channel: a writer of b.anim, alongside animIn below (both are
+			// on the animation channel SET, disjoint from geom/wake/settle — PLAN.md's
+			// table has one clock per set, not one channel per set). Human-clock pulse; a
 			// resting (non-dragging) bead spends nearly all its life parked here.
 			b.anim.tick(!b.anim.lit, b.anim.litVal)
+			b.pushObserve()
+		case <-b.animIn.Fire:
+			// Animation channel: this bead's own colour, told to it by the owning node
+			// (chainBeads, nodes/Wiring/chain_beads.go) rather than decided there — the
+			// node still computes the traversal's progress (litBeadIndex), but which BEAD
+			// displays it is this bead's own read of its own index against the broadcast
+			// lit set (one hop, no per-bead loop — same shape as geometry's applyTransform).
+			val, litHere := b.animIn.Anim.LitVals[b.index]
+			b.anim.tick(litHere, val)
+			b.animIn = b.animIn.Next
 			b.pushObserve()
 		case <-b.stop:
 			return

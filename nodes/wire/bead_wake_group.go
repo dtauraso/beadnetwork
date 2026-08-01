@@ -21,23 +21,25 @@ type BeadWakeGroup struct {
 	geom   *BroadcastChain
 	wake   *BroadcastChain
 	settle *BroadcastChain
+	anim   *BroadcastChain
 }
 
-// NewBeadWakeGroup returns a group with all three chains freshly armed (unfired), ready for
+// NewBeadWakeGroup returns a group with all four chains freshly armed (unfired), ready for
 // beads to be constructed against via Current() and for the owning node to drive via
-// BroadcastGeometry/StartDrag/EndDrag.
+// BroadcastGeometry/StartDrag/EndDrag/BroadcastAnim.
 func NewBeadWakeGroup() *BeadWakeGroup {
 	return &BeadWakeGroup{
 		geom:   NewBroadcastChain(),
 		wake:   NewBroadcastChain(),
 		settle: NewBroadcastChain(),
+		anim:   NewBroadcastChain(),
 	}
 }
 
 // Current returns the group's live generation of each chain, for constructing a Bead that
 // starts out waiting on exactly what every other bead on this edge is waiting on.
-func (g *BeadWakeGroup) Current() (geom, wake, settle *BroadcastChain) {
-	return g.geom, g.wake, g.settle
+func (g *BeadWakeGroup) Current() (geom, wake, settle, anim *BroadcastChain) {
+	return g.geom, g.wake, g.settle, g.anim
 }
 
 // BroadcastGeometry delivers this node's fresh transform to every bead in this group in ONE
@@ -47,6 +49,14 @@ func (g *BeadWakeGroup) Current() (geom, wake, settle *BroadcastChain) {
 // not here.
 func (g *BeadWakeGroup) BroadcastGeometry(xf BeadGeometryIn) {
 	g.geom = g.geom.AdvanceWithValue(xf)
+}
+
+// BroadcastAnim delivers this edge's fresh lit set to every bead in this group in ONE hop —
+// BroadcastGeometry's sibling for colour instead of position (PLAN.md: a woken bead does
+// exactly two things, move and send its own colour). Each bead reads its own index out of
+// v.LitVals to decide its own Lit/LitVal; this call never loops over beads.
+func (g *BeadWakeGroup) BroadcastAnim(v BeadAnimIn) {
+	g.anim = g.anim.AdvanceWithAnim(v)
 }
 
 // StartDrag wakes every bead in this group — sets each one's mode flag to dragging — with a
