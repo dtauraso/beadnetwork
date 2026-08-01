@@ -8,6 +8,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { Canvas } from "@react-three/fiber";
 import * as THREE from "three";
 import { HomeButton, OverlaysControl } from "./camera-ui";
+import { DistanceHomePanel } from "./DistanceHomePanel";
 import { useInteractionControls } from "./interaction-controls";
 import type { PickFn } from "./pick-types";
 import { Scene } from "./scene-content";
@@ -157,6 +158,7 @@ export function ThreeView() {
 
       {/* Widgets — fixed corner, pointerEvents auto */}
       <HomeButton cameraRef={cameraRef} aspect={canvasSize.w / canvasSize.h} />
+      <DistanceHomePanel />
       <OverlaysControl />
     </div>
   );

@@ -240,8 +240,10 @@ export function OverlaysControl() {
       <div
         style={{
           position: "absolute",
-          // Stacked below the distance-home panel (DistanceHomePanel, fixed top:66,
-          // ~55px tall) which itself sits below the fit/home button (top:44).
+          // Stacked below the distance-home panel (DistanceHomePanel, absolute top:66,
+          // ~55px tall) which itself sits below the fit/home button (top:44). All three
+          // share this same containing block (ThreeView's containerRef, absolute inset:0)
+          // and the same `position: absolute` scheme, so they anchor/scroll together.
           top: 128,
           right: 12,
           zIndex: 20,
