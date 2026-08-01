@@ -1,16 +1,14 @@
-// bead_actor.go — the render (CHAIN) bead as its own goroutine, per PLAN.md
-// "two clocks per bead, three channel sets" (docs/beads-are-the-edge.md names this same
-// entity: the node-owned placeholder chain that IS the visual of an edge).
+// bead_actor.go — the render (CHAIN) bead as its own goroutine, per MODEL.md's "Chain
+// (render/placeholder) bead" bullet (docs/beads-are-the-edge.md names this same entity:
+// the node-owned placeholder chain that IS the visual of an edge).
 //
-// STATUS: this is a PRIMITIVE, validated by its own tests (bead_actor_test.go) but with NO
-// PRODUCTION CALL SITE yet. `nodes/Wiring/chain_beads.go`'s chainBeads() — the function
-// that actually feeds the live content buffer — does not construct a Bead or a
-// BeadWakeGroup; it still computes chain-bead positions the way it always has, per frame,
-// as plain slice entries. Nothing in the running editor uses this file yet. See MODEL.md's
-// "Chain (render/placeholder) bead" bullet, which states the same status, and
-// memory/project_wire_is_straight_line_not_chain.md for why the integration was deferred
-// rather than rushed. Do not read the rest of this comment as a description of live
-// behaviour — it describes what this primitive DOES, in isolation, today.
+// This is the PRIMITIVE, validated by its own tests (bead_actor_test.go); its production
+// call site is `nodes/Wiring/bead_chain.go`'s reconcileBeadChain/startBeadDrag/endBeadDrag,
+// driven from chainBeads() (nodes/Wiring/chain_beads.go) and the gesture FSM's drag
+// start/end (nodes/Wiring/node_mover.go's handle, gesture.go's gestPointerUp). See
+// MODEL.md's "Chain (render/placeholder) bead" bullet for the live-behaviour summary and
+// its "Known boundary" note, and memory/project_wire_is_straight_line_not_chain.md for why
+// this replaces the O(N²) reverted chain model instead of repeating it.
 //
 // This is a
 // DIFFERENT bead from PacedWire's in-flight VALUE beads (paced_wire.go) — that bead is a

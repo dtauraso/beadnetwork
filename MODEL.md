@@ -44,36 +44,46 @@ mistake to avoid (chain_beads.go's own header comment makes the same split):
   a goroutine — see the Wire bullet below, unchanged by the chain-bead goroutine model.
 - **Chain (render/placeholder) bead.** The node-owned visual entity that IS a traversal's
   picture (`docs/beads-are-the-edge.md`) — one per node-local offset along an outgoing
-  edge's aim. **Today this bead is still what it always was: a value computed fresh, per
-  frame, by `chainBeads()` (`nodes/Wiring/chain_beads.go`) — a slice entry, not a
-  goroutine, unchanged by anything below.**
-  A separate, validated PRIMITIVE for making it a goroutine exists
-  (`nodes/wire/bead_actor.go`'s `Bead`, `bead_wake_group.go`'s `BeadWakeGroup`) and is
-  covered by its own test suite (`nodes/wire/bead_actor_test.go`), but it has **NO
-  production call site** — `chainBeads()` does not construct a `Bead`, and no drag path
-  calls `BeadWakeGroup.StartDrag`/`BroadcastGeometry`/`EndDrag`. Do not read the paragraphs
-  below as a description of the running editor; they describe the primitive PLAN.md
-  specified, staged for a future integration pass that replaces `chainBeads()`'s per-frame
-  computation with these goroutines end to end (gesture-FSM drag start/end, bead CRUD add/
-  remove following goroutine lifetime, and the buffer emission reading bead-computed
-  positions). If you are looking at this file to understand what the live geometry path
-  DOES, the answer is: `chainBeads()`, exactly as it always has, and none of this. The
-  primitive, once it has a call site, is driven by TWO clocks over THREE structurally
-  distinct channel sets:
-  - **Geometry** (machine time): a `BroadcastChain` carrying the owning node's live
-    transform, broadcast to every bead on that edge in ONE close (`BeadWakeGroup.
-    BroadcastGeometry`) — a body force, dependency depth 1: each bead computes its own
-    position directly from the broadcast and its own fixed offset, never from a neighbour
-    bead's position (memory/project_wire_is_straight_line_not_chain.md's O(N²) defect was
-    momentum-free midpoint averaging plus human-clock gating, not "a chain of beads" per
-    se — see that memory file's corrected framing).
+  edge's aim. **This bead is a goroutine**, per (`nodes/wire/bead_actor.go`'s `Bead`,
+  `bead_wake_group.go`'s `BeadWakeGroup`), with a real production call site:
+  `nodes/Wiring/bead_chain.go`'s `reconcileBeadChain`/`startBeadDrag`/`endBeadDrag`, driven
+  from `chainBeads()` (`nodes/Wiring/chain_beads.go`) and from `handle()`'s
+  `moveMsgKindDragStart`/`moveMsgKindDragEnd` cases (`nodes/Wiring/node_mover.go`,
+  `move_msg.go`). `chainBeads()` itself stays a pure, synchronous function of this node's
+  own state (its own kind/radius and its own stored `LocalPolar`s) — the bead-actor path is
+  entered only when the node's own `beadTickFn` is set (production's `newNodeMover`; nil in
+  every bare-literal test `nodeMover`, which is what keeps `chainBeads`' own test suite pure
+  and free of any live `TickBroadcaster` side effect). This bead is driven by TWO clocks
+  over THREE structurally distinct channel sets:
+  - **Geometry** (machine time): a `BroadcastChain` carrying the owning node's live aim
+    direction (broadcast in NODE-LOCAL terms — a unit vector, no absolute center — so a
+    bead's own resolved position IS the node-local offset the buffer has always carried),
+    broadcast to every bead on that edge in ONE close (`BeadWakeGroup.BroadcastGeometry`,
+    called by `reconcileBeadChain` only when the aim or the bead count actually changed) —
+    a body force, dependency depth 1: each bead computes its own position directly from the
+    broadcast and its own fixed offset, never from a neighbour bead's position
+    (memory/project_wire_is_straight_line_not_chain.md's O(N²) defect was momentum-free
+    midpoint averaging plus human-clock gating, not "a chain of beads" per se — see that
+    memory file's corrected framing).
   - **Animation/tick** (human time, `MsPerTick`): a pulse from the process's one
     `TickBroadcaster` (clock.go) advancing lit/carried-value state.
   - **Mode**: two more `BroadcastChain`s — wake (sets the ONE local `dragging` flag) and
     settle (clears it) — each advanced by a SINGLE close from the owning node
-    (`BeadWakeGroup.StartDrag`/`EndDrag`), once per drag gesture, never per pointer event.
-    Position and animation are disjoint state (one writer each), so the two clocks never
-    coordinate and the bead is never in both modes.
+    (`BeadWakeGroup.StartDrag`/`EndDrag`), once per drag gesture (the gesture FSM's
+    `gestPointerDown`→`gestDragging` edge sends `moveMsgKindDragStart`;
+    `gestPointerUp`, on every path a drag ends by, sends the mirroring
+    `moveMsgKindDragEnd`), never per pointer event. Position and animation are disjoint
+    state (one writer each), so the two clocks never coordinate and the bead is never in
+    both modes.
+
+  Bead-goroutine lifetime follows chain length: `reconcileBeadChain` grows a chain by
+  starting one goroutine per added bead (at the chain end, matching bead CRUD's own
+  convention, `bead_crud.go`) and shrinks it by closing each removed bead's OWN dedicated
+  stop channel, which the removed bead's `run` loop observes and returns from immediately —
+  no goroutine outlives its bead (`nodes/Wiring/bead_chain_test.go`'s
+  `TestBeadGoroutineLifetimeFollowsChainLength` asserts the live count returns to baseline
+  after a grow-then-shrink). `tools/check-bead-actor-has-call-site.sh` fails the build if
+  this primitive ever loses its last production reference.
 
   The bead's own goroutine is ONE `select` over all three channel sets, with **no
   `default:` case** — parked at zero CPU when idle, never spinning
@@ -88,12 +98,24 @@ mistake to avoid (chain_beads.go's own header comment makes the same split):
   it exists so a person can watch a bead cross a wire, and geometry must never run on it —
   one propagation hop per tick would make even linear traversal visibly slow.)
 
-  Once wired in, this is additive to the transport model below, not a replacement of it:
-  PacedWire's in-flight value beads remain the passive delay queue MODEL.md always
-  described; the chain bead is what renders a traversal, and the primitive above is what it
-  would become once a call site exists — the one entity in this codebase that is BOTH a
-  goroutine AND owns local per-drag mode state. Until that call site lands, this paragraph
-  is a spec, not a fact about the running program — see the note at the top of this bullet.
+  This is additive to the transport model below, not a replacement of it: `PacedWire`'s
+  in-flight value beads remain the passive delay queue MODEL.md always described; the chain
+  bead is what renders a traversal — the one entity in this codebase that is BOTH a
+  goroutine AND owns local per-drag mode state.
+
+  **Known boundary:** the bead-actor path is driven by the SOURCE node's own drag (the node
+  that owns the chain, per "an edge is stored under its source node" above) —
+  `startBeadDrag`/`endBeadDrag` fire only when `g.dragNode` is that source node. Dragging
+  the TARGET end of an edge still repositions that edge's beads with no visible lag (every
+  `chainBeads()` call recomputes from the live `partnerCenters` push the target's own
+  `applyCenter` already sends on every commit — unchanged, pre-existing machinery), but it
+  does so through `chainBeads`' own inline placement math for that edge on that call rather
+  than through the target also toggling that chain's `BeadWakeGroup` mode flags. The
+  `BeadWakeGroup`/`Bead` primitive itself supports either endpoint waking the SAME beads
+  (`nodes/wire/bead_actor_test.go`'s `TestEitherEndpointCanWakeSource`/
+  `TestEitherEndpointCanWakeTarget`); wiring the TARGET's own drag lifecycle through to the
+  SOURCE's chain (so target-drags also toggle the mode flag, not just geometry) is future
+  work, not yet done.
 
 - **Wire (`PacedWire`).** Transport. A PASSIVE delay queue, not a
   goroutine: the source node sends a bead over the wire's in-channel to
