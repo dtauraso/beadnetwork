@@ -1,8 +1,10 @@
-// bead_wake_group.go — the endpoint-node side of the bead broadcast model (PLAN.md "Each
-// node on either end of an edge owns a wakeup channel to all of that edge's beads").
+// bead_wake_group.go — the endpoint-node side of the bead broadcast model ("Each node on
+// either end of an edge owns a wakeup channel to all of that edge's beads").
 //
-// STATUS: NO PRODUCTION CALL SITE yet — see bead_actor.go's file header. No node in the
-// running editor constructs a BeadWakeGroup today.
+// Production call site: nodes/Wiring/bead_chain.go's reconcileBeadChain (constructs one
+// BeadWakeGroup per outgoing edge, via nodeMover.beadChains) and startBeadDrag/endBeadDrag
+// (StartDrag/EndDrag, from the gesture FSM's drag start/end). See bead_actor.go's file
+// header and MODEL.md's "Chain (render/placeholder) bead" bullet.
 //
 // A
 // BeadWakeGroup is owned by ONE node goroutine, for ONE outgoing edge's chain of Beads; it
