@@ -45,11 +45,6 @@ type jsonMeta struct {
 	StepTheta *float64 `json:"stepTheta,omitempty"`
 	StepPhi   *float64 `json:"stepPhi,omitempty"`
 	StepR     *float64 `json:"stepR,omitempty"`
-	// LocalPolars — see specNode's field doc (loader.go).
-	LocalPolars []specLocalPolar `json:"localPolars,omitempty"`
-	// LocalPoleTheta/LocalPolePhi — see specNode's field doc (loader.go).
-	LocalPoleTheta *float64 `json:"localPoleTheta,omitempty"`
-	LocalPolePhi   *float64 `json:"localPolePhi,omitempty"`
 	// Gate — see specNode's field doc (loader.go). UNCONSUMED since the
 	// rule/gate/anchor cascade was deleted (2026-07-18): round-tripped to/from
 	// meta.json only, no code path reads it for behavior.
@@ -73,7 +68,7 @@ func loadTree(root string) (topoSpec, error) {
 		nodeDir := filepath.Join(nodesDir, nodeID)
 
 		// meta.json — required. Still owns static node identity (id/type/r/gate) and, for a
-		// PRE-SPLIT topology, also the position/local-polars fields inline (legacy shape).
+		// PRE-SPLIT topology, also the position fields inline (legacy shape).
 		metaPath := filepath.Join(nodeDir, "meta.json")
 		metaRaw, err := os.ReadFile(metaPath)
 		if err != nil {
@@ -97,9 +92,6 @@ func loadTree(root string) (topoSpec, error) {
 			StepTheta:       meta.StepTheta,
 			StepPhi:         meta.StepPhi,
 			StepR:           meta.StepR,
-			LocalPolars:     meta.LocalPolars,
-			LocalPoleTheta:  meta.LocalPoleTheta,
-			LocalPolePhi:    meta.LocalPolePhi,
 			Gate:            meta.Gate,
 		}
 
@@ -114,20 +106,6 @@ func loadTree(root string) (topoSpec, error) {
 			sn.ScenePolarR, sn.ScenePolarTheta, sn.ScenePolarPhi = &r, &th, &ph
 			sn.QuantITheta, sn.QuantIPhi, sn.QuantIR = &qt, &qp, &qr
 			sn.StepTheta, sn.StepPhi, sn.StepR = &st, &sp, &sr
-		}
-
-		// local-polars.json — the POST-SPLIT local-polars writer's file (quant_offset_persist.go
-		// WriteLocalPolars). Present → overrides meta.json's legacy localPolars/pole fields.
-		var lpf localPolarsFileJSON
-		readJSONBestEffort(localPolarsFilePath(root, nodeID), &lpf)
-		if lpf.LocalPolars != nil {
-			lps := make([]specLocalPolar, 0, len(lpf.LocalPolars))
-			for _, lp := range lpf.LocalPolars {
-				lps = append(lps, specLocalPolar(lp))
-			}
-			sn.LocalPolars = lps
-			pt, pp := lpf.LocalPoleTheta, lpf.LocalPolePhi
-			sn.LocalPoleTheta, sn.LocalPolePhi = &pt, &pp
 		}
 
 		// cascade-edges.json — this node's STORED cascade-neighbor id list (specNode.

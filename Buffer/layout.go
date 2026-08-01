@@ -21,7 +21,7 @@
 package Buffer
 
 // BufLayoutVersion is the schema version. Bump when any column changes.
-const BufLayoutVersion = 37
+const BufLayoutVersion = 38
 
 // BufInteriorSlotsPerNode is the fixed number of interior grid slots reserved per
 // node in the Interior block (a 2x2 held/interior-bead grid: slot = row*2 + col).
@@ -105,64 +105,6 @@ type bufLayoutNode struct {
 	// `latchedSel` React state in NavGuides.tsx (that was a second, TS-invented selection
 	// concept unreachable from Go); the render path now just reads this column.
 	LatchedSel uint8 `buf:"u8"` // 1 = this is the last-selected node (persists through deselect)
-	// GotDragMsg is Go-owned and DRAG-SCOPED: 1 marks a node that has received a
-	// time.abc-drag message during the CURRENT drag (set on the recipient's own
-	// nodeMover goroutine by quantized_move.go's neighborSetCRequantize, and cleared
-	// at the start of each new drag via a moveMsgKindAbcReset broadcast). This is the recipient SET
-	// the AbcDragLabel overlay lists by name — it replaces the old single-recipient
-	// Overlay.LastAbcDragNodeRow column.
-	GotDragMsg uint8 `buf:"u8"` // 1 = this node has received at least one time.abc-drag message
-	// DragDeltaA/B/C carry the DRAGGED node's OWN quantized-triple change (newTriple -
-	// oldTriple, integer indices) that THIS node received on the CURRENT drag's
-	// neighborSetC message (see Trace.Event.DeltaA/B/C, nodes/Wiring/node_move.go
-	// requantizeLocalPolars). DRAG-SCOPED like GotDragMsg: set from KindAbcDrag's
-	// Event.DeltaA/B/C, cleared to 0 on KindAbcDragReset. Zero for a node that has not
-	// (yet, this drag) received a message, and legitimately zero for a node whose
-	// delta happened to be (0,0,0) — GotDragMsg is what distinguishes the two.
-	DragDeltaA int32 `buf:"i32"` // dragged node's own theta-index delta, this drag
-	DragDeltaB int32 `buf:"i32"` // dragged node's own phi-index delta, this drag
-	DragDeltaC int32 `buf:"i32"` // dragged node's own r-index delta, this drag
-	// DragRequantCount is Go-owned and DRAG-SCOPED, mirroring GotDragMsg/DragDeltaA-C
-	// exactly: a per-RECIPIENT cumulative count of time.abc-drag re-quantize messages
-	// THIS node has received during the CURRENT drag (incremented on the recipient's
-	// own nodeMover goroutine by quantized_move.go's neighborSetCRequantize, alongside
-	// GotDragMsg, and cleared to 0 at the start of each new drag via a
-	// moveMsgKindAbcReset broadcast). Replaces the old central Overlay.AbcDragCount,
-	// which summed ticks on a cross-goroutine channel that could drop them under
-	// pointer-input load; this is state on the node's own reliable stream, so nothing
-	// can drop it. The editor's "drag received ×N" total sums this column across all
-	// node rows (TS-side; see overlay-flags.ts readDragReceivedCount).
-	DragRequantCount int32 `buf:"i32"` // this node's own cumulative recipient count, this drag
-	// GotForwardMsg/ForwardDeltaA-C/ForwardFromRow mirror GotDragMsg/DragDeltaA-C exactly,
-	// but for the delta-forward full-graph-propagation observability feature
-	// (nodes/Wiring/node_mover.go's forwardDeltaOnce): every node that picks up a delta
-	// triple — as the direct drag-recipient (neighborSetCRequantize) or as a forward
-	// recipient (moveMsgKindDeltaForward) — records it here on the FIRST delta it sees
-	// this drag, then relays the SAME triple onward to its own OTHER neighbors exactly
-	// once (forwardedThisDrag guards it — a later delta reaching an already-forwarded
-	// node does not update these columns again). DRAG-SCOPED like GotDragMsg: cleared to
-	// 0/-1 in the same moveMsgKindAbcReset handler (nodes/Wiring/node_mover.go) that
-	// resets GotDragMsg/DragDeltaA-C.
-	GotForwardMsg uint8 `buf:"u8"`  // 1 = this node has received a delta-forward message, this drag
-	ForwardDeltaA int32 `buf:"i32"` // forwarded theta-index delta (the ORIGINAL dragged node's own delta)
-	ForwardDeltaB int32 `buf:"i32"` // forwarded phi-index delta
-	ForwardDeltaC int32 `buf:"i32"` // forwarded r-index delta
-	// ForwardFromRow is the buffer ROW index of whichever neighbor's own hop reached this
-	// node FIRST this drag, -1 when none (reset state). Resolved via
-	// MoveDispatch.NodeRowFor at the forward-recipient's handler.
-	ForwardFromRow int32 `buf:"i32"` // forwarder's buffer node row, -1 = none
-	// CascadeRelay is Go-owned and STATIC (a pure function of this node's own kind, set
-	// once at construction like KindId — never drag-scoped): which branch of
-	// nodes/Wiring/node_mover.go's forwardDelta this node's kind takes when it picks up a
-	// delta triple. 0 = FAN (relay to every cascade neighbor except the sender),
-	// 1 = ROUTED (relay to a single target kind chosen by the SENDER's kind, or drop —
-	// Pulse and TimeStart), 2 = TERMINUS (never relays onward — TimeEnd, PulseLeft,
-	// PulseRight). FAN, not "flood": every one of these three is bounded, and "flood" is
-	// reserved for the unbounded run the per-kind rules exist to stop (forwardDelta's doc). Read by the editor's drag log (AbcDragLabel.tsx) to name the DRAGGED
-	// node's relay behavior beside its name. The classification lives in Go beside the
-	// rules it summarizes (cascadeRelayClass) precisely so TS does not re-derive it from
-	// KindId and drift when a rule changes.
-	CascadeRelay uint8 `buf:"u8"` // 0 = fan, 1 = routed, 2 = terminus
 }
 
 // bufLayoutChainBead defines one row of the chain-bead column block — the node-owned

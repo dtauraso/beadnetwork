@@ -8,39 +8,26 @@ import (
 )
 
 // chainBeads is a pure function of ONE node's own state — its own kind, its own
-// cascadeKinds, and its own stored LocalPolar list (m.layoutHolderFn) — all written only by
-// that node's goroutine — so these are plain tables, no second goroutine
-// (docs/testing-shape.md).
+// cascadeKinds, and its own live copy of the neighbour's world center
+// (m.partnerCenters) — all written only by that node's goroutine — so these are plain
+// tables, no second goroutine (docs/testing-shape.md).
 //
 // Every case sets BOTH kinds explicitly. An unset kind is NOT neutral: kindWidthHeight falls
 // back to (110, 60), i.e. radius 15. The original tests left kinds unset and asserted on
 // distance from the node CENTER, which is exactly why they passed while beads rendered inside
 // the nodes.
 //
-// A neighbour's position is supplied the same way the production code reads it: as a stored
-// LocalPolar (QuantITheta/QuantIPhi/QuantIR, default step constants) on a bare *wire.LayoutHolder,
-// handed back through layoutHolderFn — never as a cartesian partnerCenters offset. Distance is
-// therefore an EXACT index multiple of the default stepR (== wire.BeadStepR now — layout_holder.go
-// LocalStepR's doc comment), so every "centerGap" below is chosen to be even.
+// A neighbour's position is supplied the same way production reads it now: a live cartesian
+// center in m.partnerCenters, placed straight along +Y at the given center-to-center
+// distance (an arbitrary but fixed direction; magnitude-only assertions below don't care
+// which one). MODEL.md "the polar model": there is no stored node-node bearing any more
+// (wire.LocalPolar deleted) — a node's aim to an edge's first bead is measured live.
 
-// singleNeighborHolder builds a bare LayoutHolder holding exactly one LocalPolar entry — this
-// node's stored bearing/distance to `to` — at QuantITheta=QuantIPhi=0 (an arbitrary but fixed
-// direction; magnitude-only assertions below don't care which one) and QuantIR chosen so that
-// float64(QuantIR)*wire.DefaultLocalStepR == centerGap.
-func singleNeighborHolder(to string, centerGap float64) func() *wire.LayoutHolder {
-	// Tolerance, not an exact-zero Mod check: every caller builds centerGap as
-	// `cells * wire.DefaultLocalStepR` so the intent is always an exact cell count, but
-	// wire.DefaultLocalStepR (8.96) is not exactly representable in float64, so the
-	// multiplication itself accrues ~1e-14 of round-off before this function ever sees it.
-	// A strict Mod-must-be-zero check treated that round-off as a caller bug; it isn't one.
-	quantIRf := centerGap / wire.DefaultLocalStepR
-	if math.Abs(quantIRf-math.Round(quantIRf)) > 1e-6 {
-		panic("singleNeighborHolder: centerGap must be an exact multiple of the default stepR")
-	}
-	quantIR := int(math.Round(quantIRf))
-	lh := &wire.LayoutHolder{}
-	lh.SetLocalPolar(to, 0, 0, quantIR, 0, 0, 0)
-	return func() *wire.LayoutHolder { return lh }
+// singleNeighborCenter builds a partnerCenters map with exactly one entry — `to` placed
+// centerGap world units along +Y from the origin (this node's own center, since a bare
+// nodeMover literal has HasPos false).
+func singleNeighborCenter(to string, centerGap float64) map[string]vec3 {
+	return map[string]vec3{to: {X: 0, Y: centerGap, Z: 0}}
 }
 
 // The invariant the original tests missed, and the bug that shipped: a bead must never sit
@@ -48,15 +35,15 @@ func singleNeighborHolder(to string, centerGap float64) func() *wire.LayoutHolde
 // (docs/bead-lattice.md "Placement"): bead 0's torus is tangent OUTSIDE the source node's
 // torus, and the last bead's torus is tangent OUTSIDE the target's, never overlapping either.
 func TestChainBeadsStayOutsideBothNodes(t *testing.T) {
-	// Expressed as a cell count * wire.DefaultLocalStepR, not a bare literal, so this
+	// Expressed as a cell count * wire.BeadStepR, not a bare literal, so this
 	// stays an exact multiple of the local-polar grid constant whatever that constant is.
-	const gap = 200 * wire.DefaultLocalStepR
+	const gap = 200 * wire.BeadStepR
 	m := &nodeMover{
 		id:             "a",
 		geom:           nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}}, // radius 15
 		outTargets:     []string{"b"},
 		cascadeKinds:   map[string]string{"b": "Time"}, // radius 9
-		layoutHolderFn: singleNeighborHolder("b", gap),
+		partnerCenters: singleNeighborCenter("b", gap),
 	}
 	ox, oy, oz, _, _, _ := m.chainBeads()
 	if len(ox) == 0 {
@@ -86,9 +73,9 @@ func TestChainBeadsTouch(t *testing.T) {
 	m := &nodeMover{
 		id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}},
 		outTargets: []string{"b"}, cascadeKinds: map[string]string{"b": "Input"},
-		// 150 cells * wire.DefaultLocalStepR, not the bare literal 300 — see the comment
+		// 150 cells * wire.BeadStepR, not the bare literal 300 — see the comment
 		// on TestChainBeadsStayOutsideBothNodes's gap.
-		layoutHolderFn: singleNeighborHolder("b", 150*wire.DefaultLocalStepR),
+		partnerCenters: singleNeighborCenter("b", 150*wire.BeadStepR),
 	}
 	ox, oy, oz, _, _, _ := m.chainBeads()
 	if len(ox) < 3 {
@@ -111,38 +98,27 @@ func TestChainBeadsAlwaysAtLeastOneBead(t *testing.T) {
 	m := &nodeMover{
 		id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}},
 		outTargets: []string{"b"}, cascadeKinds: map[string]string{"b": "Input"},
-		// 3 cells * wire.DefaultLocalStepR, not the bare literal 6 — see the comment on
+		// 3 cells * wire.BeadStepR, not the bare literal 6 — see the comment on
 		// TestChainBeadsStayOutsideBothNodes's gap. QuantIR IS the bead-step count now
 		// (edgeStepCount no longer divides by a cell-per-step constant — bead_lattice.go's
 		// BeadStepCells doc comment), so 3 steps minus both "Input" nodes' own
 		// nodeTorusSteps (2 each) collapses well below the minimum.
-		layoutHolderFn: singleNeighborHolder("b", 3*wire.DefaultLocalStepR),
+		partnerCenters: singleNeighborCenter("b", 3*wire.BeadStepR),
 	}
 	if ox, _, _, _, _, _ := m.chainBeads(); len(ox) != 1 {
 		t.Errorf("count = %d, want 1 — edgeStepCount clamps a collapsed gap to the minimum, never 0", len(ox))
 	}
 }
 
-// A target this node has no stored local polar to contributes nothing — the node aims only
-// with what its own LayoutHolder holds, never by reading another goroutine.
+// A target this node has no live partner center for contributes nothing — the node aims
+// only with its own live m.partnerCenters, never a stored bearing or a made-up direction
+// (MODEL.md "the polar model": no node-node stored coordinate).
 func TestChainBeadsUnknownPartnerContributesNothing(t *testing.T) {
-	lh := &wire.LayoutHolder{}
 	m := &nodeMover{
 		id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}}, outTargets: []string{"b"},
-		layoutHolderFn: func() *wire.LayoutHolder { return lh },
 	}
 	if ox, _, _, _, _, _ := m.chainBeads(); len(ox) != 0 {
 		t.Errorf("count = %d, want 0 for an unknown partner", len(ox))
-	}
-}
-
-// No LayoutHolder at all (layoutHolderFn nil, or returning nil) contributes nothing rather
-// than panicking — the same "no cross-goroutine read, no made-up direction" contract as an
-// unknown partner.
-func TestChainBeadsNoLayoutHolderContributesNothing(t *testing.T) {
-	m := &nodeMover{id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}}, outTargets: []string{"b"}}
-	if ox, _, _, _, _, _ := m.chainBeads(); len(ox) != 0 {
-		t.Errorf("count = %d, want 0 with no layoutHolderFn", len(ox))
 	}
 }
 
@@ -155,12 +131,12 @@ func TestChainBeadsCountIsSpanProportional(t *testing.T) {
 		m := &nodeMover{
 			id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}},
 			outTargets: []string{"b"}, cascadeKinds: map[string]string{"b": "Input"},
-			layoutHolderFn: singleNeighborHolder("b", centerGap),
+			partnerCenters: singleNeighborCenter("b", centerGap),
 		}
 		ox, _, _, _, _, _ := m.chainBeads()
 		return len(ox)
 	}
-	// base and span must each be an exact multiple of wire.DefaultLocalStepR
+	// base and span must each be an exact multiple of wire.BeadStepR
 	// (singleNeighborHolder's requirement — a sum of two such multiples is one too, so
 	// base+span and base+2*span stay exact). base is chosen so it exactly cancels the
 	// two nodeTorusSteps("Input") subtractions (2 each, 4 total, edgeStepCount): with
@@ -168,8 +144,8 @@ func TestChainBeadsCountIsSpanProportional(t *testing.T) {
 	// BeadStepCells doc comment), count(base+span) = base+span-4 = span when base=4, and
 	// count(base+2*span) = 2*span exactly — an exact double, not merely "roughly", because
 	// there is nothing left to round.
-	const base = 4 * wire.DefaultLocalStepR
-	span := 80 * wire.DefaultLocalStepR
+	const base = 4 * wire.BeadStepR
+	span := 80 * wire.BeadStepR
 	n1 := count(base + span)
 	n2 := count(base + 2*span)
 	if n2 != 2*n1 {
@@ -321,13 +297,13 @@ func TestChainBeadsExactDoubleTangency(t *testing.T) {
 		{"Input", "Input"},
 		{"Time", "Time"},
 	}
-	// Every centerGap here must be an exact multiple of wire.DefaultLocalStepR
+	// Every centerGap here must be an exact multiple of wire.BeadStepR
 	// (singleNeighborHolder's own requirement) and large enough to clear both tori with
 	// room for at least one bead, across the largest kind pair tested.
 	cellCounts := []float64{100, 120, 180, 260, 500}
 	centerGaps := make([]float64, len(cellCounts))
 	for i, c := range cellCounts {
-		centerGaps[i] = c * wire.DefaultLocalStepR
+		centerGaps[i] = c * wire.BeadStepR
 	}
 
 	for _, kp := range kindPairs {
@@ -338,7 +314,7 @@ func TestChainBeadsExactDoubleTangency(t *testing.T) {
 				geom:           nodeGeom{nodeIdentity: nodeIdentity{Kind: srcKind}},
 				outTargets:     []string{"b"},
 				cascadeKinds:   map[string]string{"b": dstKind},
-				layoutHolderFn: singleNeighborHolder("b", gap),
+				partnerCenters: singleNeighborCenter("b", gap),
 			}
 			ox, oy, oz, _, _, _ := m.chainBeads()
 			if len(ox) == 0 {
@@ -373,35 +349,27 @@ func TestChainBeadsExactDoubleTangency(t *testing.T) {
 	}
 }
 
-// --- direction still aims at the LIVE partner center, independent of spacing/size ---
+// --- direction aims at the LIVE partner center, independent of spacing/size ---
 //
-// offAxisFixture below deliberately puts the STORED bearing and the LIVE bearing ~53
-// degrees apart, so a chain aimed by the stale stored cell instead of the live measurement
-// cannot pass by accident. Spacing/size stay the fixed uniform lattice constants regardless
-// (no per-edge sizing any more) — this test is purely about DIRECTION.
+// offAxisFixture places the live partner center off any coordinate axis, so a chain
+// placed along the wrong axis (or a made-up direction) cannot pass this test by accident.
+// Spacing/size stay the fixed uniform lattice constants regardless (no per-edge sizing
+// any more) — this test is purely about DIRECTION. There is no stored bearing any more to
+// diverge from (MODEL.md "the polar model": no node-node stored coordinate) — the aim is
+// ALWAYS this live measurement.
 
-// offAxisFixture builds a *nodeMover for one edge "a"->"b" whose STORED LocalPolar bearing
-// (QuantITheta/QuantIPhi, an exact 1-degree-cell direction) and whose LIVE partnerCenters
-// direction are deliberately DIFFERENT directions — the stored bearing points along +Y
-// (QuantITheta=0, straight along the pole), the live center sits off to the side in the
-// X/Z plane at colatitude ~53.13 degrees (a 3-4-5 triangle's angle, chosen only because
-// it is not a whole degree and not a special angle, so no accidental alignment). The live
-// center is placed at EXACTLY count*BeadStepR + both tori (on-lattice, by this fixture's
-// own construction) so the far-edge tangency assertion below has no residue to tolerate
-// beyond float round-off.
+// offAxisFixture builds a *nodeMover for one edge "a"->"b" whose LIVE partnerCenters
+// direction sits off to the side in the X/Z plane at colatitude ~53.13 degrees (a 3-4-5
+// triangle's angle, chosen only because it is not a whole degree and not a special angle,
+// so no accidental alignment). The live center is placed at EXACTLY count*BeadStepR + both
+// tori (on-lattice, by this fixture's own construction) so the far-edge tangency assertion
+// below has no residue to tolerate beyond float round-off.
 func offAxisFixture(srcKind, dstKind string, count int) *nodeMover {
-	lh := &wire.LayoutHolder{}
-	// Stored bearing: straight along the pole (colatitude 0). Deliberately NOT the live
-	// direction below, so any code path that still reads QuantITheta/QuantIPhi for
-	// PLACEMENT (rather than only as edgeStepCount's length input) aims the chain roughly
-	// 53 degrees away from where the fixture's live center actually is.
-	quantIRForCount := count + nodeTorusSteps(srcKind) + nodeTorusSteps(dstKind)
-	lh.SetLocalPolar("b", 0, 0, quantIRForCount, 0, 0, 0)
 	selfTorus := nodeTorusOuterR(srcKind)
 	dstTorus := nodeTorusOuterR(dstKind)
 	dist := selfTorus + float64(count)*wire.BeadStepR + dstTorus
-	// Live direction: (3,0,4)/5 — a unit vector well off the stored pole direction, with
-	// no sqrt needed to state exactly (a 3-4-5 triangle), scaled to the exact required
+	// Live direction: (3,0,4)/5 — a unit vector off any coordinate axis, with no sqrt
+	// needed to state exactly (a 3-4-5 triangle), scaled to the exact required
 	// center-to-center distance.
 	targetCenter := vec3{X: dist * 0.6, Y: 0, Z: dist * 0.8}
 	return &nodeMover{
@@ -409,7 +377,6 @@ func offAxisFixture(srcKind, dstKind string, count int) *nodeMover {
 		geom:           nodeGeom{nodeIdentity: nodeIdentity{Kind: srcKind}}, // HasPos false -> center at origin
 		outTargets:     []string{"b"},
 		cascadeKinds:   map[string]string{"b": dstKind},
-		layoutHolderFn: func() *wire.LayoutHolder { return lh },
 		partnerCenters: map[string]vec3{"b": targetCenter},
 	}
 }

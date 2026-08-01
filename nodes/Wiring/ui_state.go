@@ -1,7 +1,7 @@
 // ui_state.go — the camera/overlay/gesture/selection/abc-drag UI-state owner split out of
 // MoveDispatch (god-object decomposition), as a pure move (no logic changes): uiState
 // owns sceneSphere/vp/ov/gest/sel/latchedNode and the
-// setSelectionUI/setHoverUI/sendEdgeSelect/resetAbcDrag logic. MoveDispatch's public (and
+// setSelectionUI/setHoverUI/sendEdgeSelect logic. MoveDispatchs public (and
 // package-private) methods of the same names stay as thin delegators, threading through
 // the few MoveDispatch fields (edgeMovers/nodeMovers/ctx/sendMove) these handlers need
 // but that are NOT part of this extraction.
@@ -51,12 +51,11 @@ type uiState struct {
 	// MoveDispatch goroutine tracks its OWN local record of the current selection/hover/
 	// latched node below (single-owner, mutated only here), and MESSAGES
 	// each change to the owning mover's own dedicated channel (moveMsgKindSelect/Hover/
-	// Latched/AbcReset — see setSelectionUI/setHoverUI/resetAbcDrag). Each mover stores its
-	// OWN selected/hovered/latchedSel/gotDragMsg/dragDelta*/kindID fields (nodeMover) or
+	// Latched — see setSelectionUI/setHoverUI). Each mover stores its
+	// OWN selected/hovered/latchedSel/kindID fields (nodeMover) or
 	// selected field (edgeMover) and writes them into its own stream frame — no shared map.
-	// tr.Select/tr.Hover/tr.AbcDrag/tr.AbcDragReset still fire
-	// alongside this, but ONLY for the -trace/.probe EVENT LOG (the central accumulator
-	// that used to also feed a fallback packer was deleted
+	// tr.Select/tr.Hover still fire alongside this, but ONLY for the -trace/.probe EVENT
+	// LOG (the central accumulator that used to also feed a fallback packer was deleted
 	// entirely — memory/feedback_no_single_writer_bridge.md's final step; WIREFOLD_STREAM_FDS is now
 	// mandatory, there is no fallback left).
 	//
@@ -145,21 +144,5 @@ func (ui *uiState) setHoverUI(sendMove func(id string, msg moveMsg), node, port 
 	}
 	if node != "" {
 		sendMove(node, moveMsg{Kind: moveMsgKindHover, NodeID: node, Bool: true, Port: port, IsInput: isInput})
-	}
-}
-
-// resetAbcDrag re-scopes the recipient SET to the drag about to start: MESSAGES every
-// node mover to clear its OWN abc-drag recipient bit AND its own dragRequantCount
-// (mirrors the old central accumulator's KindAbcDragReset handling; the "drag received
-// ×{count}" counter is now per-recipient state on each node's own stream, summed on the
-// TS side — see overlay-flags.ts readDragReceivedCount — so it is per-drag rather than
-// cumulative for the run's lifetime purely by each recipient's own reset here). Called
-// from the gesture goroutine at the pending→dragging transition (gesture.go). The
-// recipient-bit broadcast is not a shared flag: each mover clears its own bits on its own
-// goroutine, no generation counter. nodeMovers/sendMove are threaded through from
-// MoveDispatch (not part of uiState).
-func (ui *uiState) resetAbcDrag(nodeMovers map[string]*nodeMover, sendMove func(id string, msg moveMsg)) {
-	for id := range nodeMovers {
-		sendMove(id, moveMsg{Kind: moveMsgKindAbcReset, NodeID: id})
 	}
 }

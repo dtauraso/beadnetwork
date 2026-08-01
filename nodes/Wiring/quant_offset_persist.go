@@ -16,8 +16,9 @@ package Wiring
 // one-file-per-writer: this file has exactly one writer per node id (writeQuantOffset), so
 // each write is a fresh whole-file marshal, no read-modify-write, no entityFileMu
 // (deleted). Static node identity (id/type/r/gate) stays in meta.json, which this write
-// never touches. persistLocalPolars below is the OTHER former meta.json writer; it now
-// owns its own file (local-polars.json) for the same reason.
+// never touches. There is no local-polars.json any more — a node has no stored record of a
+// NEIGHBOUR's coordinate (MODEL.md "the polar model"); local-polars.json and its
+// reader/writer were deleted with the LocalPolar type.
 //
 // Go owns persistence (MODEL.md): fire-and-forget, SYNCHRONOUS — persistQuantOffset writes
 // immediately, inline on the caller's own goroutine (see scene_persist.go's header comment
@@ -34,7 +35,6 @@ package Wiring
 
 import (
 	"fmt"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
 // persistQuantOffset writes THIS node's own exact position (scene) plus its quantized
@@ -88,65 +88,6 @@ func writeQuantOffset(root, id string, off quantizedOffset, scene polar) error {
 		ScenePolarR: scene.R, ScenePolarTheta: scene.Theta, ScenePolarPhi: scene.Phi,
 		QuantITheta: off.iTheta, QuantIPhi: off.iPhi, QuantIR: off.iR,
 		StepTheta: t, StepPhi: p, StepR: r,
-	})
-}
-
-// localPolarJSON mirrors one entry of a node's persisted localPolars list (also the shape
-// of loader.go's specLocalPolar / loader_tree.go's legacy jsonMeta.LocalPolars entries).
-type localPolarJSON struct {
-	To          string  `json:"to"`
-	QuantITheta int     `json:"quantITheta"`
-	QuantIPhi   int     `json:"quantIPhi"`
-	QuantIR     int     `json:"quantIR"`
-	StepTheta   float64 `json:"stepTheta"`
-	StepPhi     float64 `json:"stepPhi"`
-	StepR       float64 `json:"stepR"`
-}
-
-// localPolarsFileJSON is the shape of nodes/<id>/local-polars.json.
-type localPolarsFileJSON struct {
-	LocalPolars    []localPolarJSON `json:"localPolars"`
-	LocalPoleTheta float64          `json:"localPoleTheta"`
-	LocalPolePhi   float64          `json:"localPolePhi"`
-}
-
-// WriteLocalPolars sets the node's localPolars list (layout_holder.go LocalPolar, one per
-// domain-edge neighbor, measured with this node as center) AND its measurement pole (the
-// direction lh's CURRENT entries were quantized about — layout_holder.go LayoutHolder.Pole)
-// as the WHOLE content of <root>/nodes/<id>/local-polars.json — the sole writer of that
-// file, so each write is a fresh marshal (no read-modify-write). The pole must be persisted
-// (not just the indices it produced): requantizePoleTraced reconstructs an unchanged
-// neighbor's direction from its stored indices about the OLD pole, so a reload that dropped
-// the pole would reconstruct against the WRONG (assumed-home) pole for any node whose pole
-// had tilted — see node_move.go requantizePoleTraced's doc comment.
-// persistLocalPolars writes THIS node's own local-polars.json, synchronously, on THIS
-// node's own mover goroutine (requantizeLocalPolars/neighborSetCRequantize both call it
-// from nm's own goroutine — see quantized_move.go). nm.persistRoot == "" (unarmed) makes
-// this a no-op. Thin wrapper over WriteLocalPolars, which stays a free function since it is
-// also the direct target of package-level persistence tests.
-func (nm *nodeMover) persistLocalPolars(lps []wire.LocalPolar, pole dir) {
-	if nm.persistRoot == "" {
-		return
-	}
-	if err := WriteLocalPolars(nm.persistRoot, nm.id, lps, pole); err != nil {
-		logPersistErr("local_polar_persist", nm.id, err)
-	}
-}
-
-func WriteLocalPolars(root, id string, lps []wire.LocalPolar, pole dir) error {
-	if !safeTreePathComponent(id) {
-		return fmt.Errorf("unsafe node id %q", id)
-	}
-	out := make([]localPolarJSON, 0, len(lps))
-	for _, lp := range lps {
-		t, p, r := lp.EffectiveSteps()
-		out = append(out, localPolarJSON{
-			To: lp.To, QuantITheta: lp.QuantITheta, QuantIPhi: lp.QuantIPhi, QuantIR: lp.QuantIR,
-			StepTheta: t, StepPhi: p, StepR: r,
-		})
-	}
-	return writeJSONAtomic(localPolarsFilePath(root, id), localPolarsFileJSON{
-		LocalPolars: out, LocalPoleTheta: pole.Theta, LocalPolePhi: pole.Phi,
 	})
 }
 

@@ -108,16 +108,15 @@ confirms no assignment to these identifiers outside their `var` statement. These
 read-only dispatch tables, not shared mutable state; do not flag them alongside genuine
 `sync.Mutex`/`atomic.`-style hazards.
 
-## 7. DeltaA/B/C is established project vocabulary, not r/theta/phi hiding drift
+## 7. DeltaA/B/C (HISTORICAL — the local-polar model this described is deleted)
 
-`AbcDragLabel.tsx` (`tools/topology-vscode/src/webview/three/AbcDragLabel.tsx`) and an
-`abc-drag` trace kind (`tools/topology-vscode/src/schema/trace-kinds.ts`) are real,
-in-use vocabulary. A/B/C are **index deltas** (abc-index × step-constant — see
-`memory/feedback_abc_times_constant_not_rederive.md`); r/theta/phi are the continuous
-polar coordinates the layout ultimately resolves to. These are two different concepts at
-two different layers, not a naming inconsistency where one is quietly standing in for the
-other. Do not report DeltaA/DeltaB/DeltaC naming as drift or as an attempt to obscure
-r/theta/phi.
+This section described `AbcDragLabel.tsx`'s drag-delta-forward overlay, an
+`abc-drag` trace kind, and the local-polar model's DeltaA/B/C vocabulary
+(abc-index × step-constant — `memory/feedback_abc_times_constant_not_rederive.md`). That
+whole model — `wire.LocalPolar`, `requantizeLocalPolars`, `neighborSetC`,
+`AbcDragLabel.tsx`/`DeltaForwardLabel.tsx`, and the delta-forward cascade — was deleted
+(MODEL.md "the polar model": a node has one polar coordinate about the scene centre only,
+no stored coordinate for a neighbour). Kept as history, not current vocabulary.
 
 ## What still counts as a NEW finding
 

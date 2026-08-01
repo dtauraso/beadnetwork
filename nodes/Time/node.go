@@ -15,7 +15,6 @@ import (
 // own traversal-tick budget as a processing window (never parking across a
 // traversal), and only then admits the next input.
 type Time struct {
-	wire.LayoutHolder
 	Fire         func()
 	EmitGeometry func()
 	EmitHeldBead func(held int)

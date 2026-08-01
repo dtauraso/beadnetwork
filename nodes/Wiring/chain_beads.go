@@ -150,31 +150,30 @@ func litBeadIndex(t float64, steps int) (int, bool) {
 // lays the chain out on that integer, so the wire's own timing budget and this chain's
 // layout can never disagree.
 //
-// Reads only state this node owns: its own kind/radius and its own stored LOCAL POLAR to
-// each neighbour (m.layoutHolderFn().LocalPolarsSnapshot() — the same accessor
-// neighborSetCRequantize/armDragAnchor use), never another goroutine's live position. There
-// is no cross-goroutine read here, which is why this can run on the emit path.
+// Reads only state this node owns: its own kind/radius and its own live copy of each
+// neighbour's world center (m.partnerCenters — pushed by that neighbour's own
+// applyCenter), never reaching into another goroutine's state directly. There is no
+// cross-goroutine read here, which is why this can run on the emit path.
 //
-// NO SQRT ANYWHERE in this path (guard: tools/check-no-sqrt-in-chain-beads.sh). A neighbour's
-// distance and direction come from this node's OWN stored abc-indices (QuantITheta/
-// QuantIPhi/QuantIR) × step constants — index arithmetic, per
-// memory/feedback_abc_times_constant_not_rederive.md — not from a cartesian offset's vector
-// length or its normalized direction (each internally a sqrt). The only trig is the one
-// cartesian↔polar boundary
-// conversion per bead (polar2cart), matching the "abc × constant, trig only at the boundary"
-// model the demo (docs/demos/polar-drag-3d.html) exists to enforce. edgeStepCount's integer
-// subtraction is plain arithmetic, not sqrt, so publishing the count alongside layout does
-// not reintroduce one.
+// NO SQRT ANYWHERE in this path except the ONE edgeCenterDistAndDir call per target (guard:
+// tools/check-no-sqrt-in-chain-beads.sh) — a neighbour's distance and direction come from
+// this single live measurement, reused for both layout and the published step count, never
+// re-measured a second time per bead. The only OTHER trig is a boundary conversion, matching
+// the "trig only at the boundary" model the demo (docs/demos/polar-drag-3d.html) exists to
+// enforce. edgeStepCount's integer subtraction is plain arithmetic, not sqrt, so publishing
+// the count alongside layout does not reintroduce one.
 //
 // Offsets are NODE-LOCAL on purpose: this node moving does not change a single one of them,
 // so a move costs one center write instead of degree × N bead positions. Only a NEIGHBOUR
 // moving re-aims a chain, and that arrives as the one-hop center message that already
-// exists (which is what keeps this node's own LocalPolar to that neighbour current). That is
+// exists (moveMsgKindNeighborCenter, which is what keeps m.partnerCenters current). That is
 // the whole constant-time claim.
 //
-// A target with no stored local polar (never linked, or this node has no LayoutHolder — bare
-// movers built directly in tests without one) contributes NO beads rather than beads at a
-// made-up direction.
+// A target with no live partner center yet (never linked, or a bare test mover with no
+// pushes) contributes NO beads rather than beads at a made-up direction. There is no
+// node-node stored bearing to fall back to — MODEL.md's "the polar model": a node's ONE
+// polar coordinate is about the scene centre only; a NEIGHBOUR's position is never stored
+// as a second coordinate on this node.
 //
 // The returned `lit`/`litVal` slices are parallel to the offsets: 1 on the bead each
 // in-flight traversal has reached (with that traversal's bead VALUE alongside), 0 elsewhere. A chain with nothing traversing it is fully populated
@@ -196,15 +195,9 @@ func litBeadIndex(t float64, steps int) (int, bool) {
 // second writeStreamFrame call from inside here would recurse (and, before this fix, did:
 // chainBeads -> writeStreamFrame -> chainBeads -> ... stack overflow).
 func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []int32, breadcrumbs []wire.RowEvent) {
-	if len(m.outTargets) == 0 || m.layoutHolderFn == nil {
+	if len(m.outTargets) == 0 {
 		return nil, nil, nil, nil, nil, nil
 	}
-	lh := m.layoutHolderFn()
-	if lh == nil {
-		return nil, nil, nil, nil, nil, nil
-	}
-	localPolars := lh.LocalPolarsSnapshot()
-	pole := dir(lh.Pole())
 	// Read the clock only when there is a wire to ask about — m.clk is nil in tests that
 	// build a bare nodeMover directly (the same convention resolveDest/commitLocal state),
 	// and such a mover has no outWires either, so geometry stays testable without a clock.
@@ -219,61 +212,37 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 	// state already owned here, not a second cross-goroutine touch.
 	selfCenter := nodeWorldPos(m.geom)
 	for _, to := range m.outTargets {
-		var lp wire.LocalPolar
-		found := false
-		for _, cand := range localPolars {
-			if cand.To == to {
-				lp = cand
-				found = true
-				break
-			}
-		}
-		if !found {
+		// MODEL.md "the polar model": a node has ONE polar vector PER EDGE, pointing to
+		// that edge's starting bead — measured live from this node's own center and its
+		// neighbour's own center (m.partnerCenters, pushed by that neighbour's own
+		// applyCenter — seeded synchronously for every domain neighbour at construction,
+		// node_move.go, so this is populated before this node's own goroutine ever runs).
+		// There is NO stored node-node bearing record here any more (wire.LocalPolar and
+		// its requantize machinery are deleted): a target with no live partner center yet
+		// (never linked, or a bare test mover with no pushes) contributes no beads, exactly
+		// like the old "no LocalPolar entry" skip.
+		targetCenter, haveTargetCenter := m.partnerCenters[to]
+		if !haveTargetCenter {
 			continue
 		}
-		// Direction fallback ONLY: this node's own stored, QUANTIZED bearing to the
-		// neighbour, re-expressed from its abc-indices about this node's own measurement
-		// pole — the same fromAxisFrame call quantized_move.go's requantizePoleTraced and
-		// loader_layout.go's reload path use to reconstruct an unchanged neighbour's world
-		// direction. Used below ONLY when this node has no live cartesian copy of the
-		// neighbour's center yet (m.partnerCenters miss — never linked, or a bare test
-		// mover with no pushes) and cannot measure the real bearing; the stored indices are
-		// 1-degree angular cells (localStepTheta/Phi, layout_holder.go), so this can point
-		// up to half a degree away from where the neighbour actually sits — that residue is
-		// the "chain lands beside the target's surface" defect the live measurement below
-		// exists to close. QuantITheta/QuantIPhi are still the authoritative RECORDED
-		// position (reload reconstruction, requantize read them) — only this CHAIN, a
-		// picture of where things are RIGHT NOW, stops reading them once a live center is
-		// available; the stored indices themselves are untouched.
-		stepTheta, stepPhi, stepR := lp.EffectiveSteps()
-		ndir := fromAxisFrame(pole, float64(lp.QuantITheta)*stepTheta, float64(lp.QuantIPhi)*stepPhi)
 
 		// The ONE authoritative length: docs/bead-lattice.md's edgeStepCount, computed
-		// from the LIVE center-to-center distance when this node has a live copy of the
-		// neighbour's center (m.partnerCenters), falling back to the stored quantized R
-		// (index * step) only when no live center exists yet -- same convention the ndir
-		// bearing fallback above uses. dist and liveDir/useLiveAim (the DIRECTION,
-		// consumed further down) come from the SAME edgeCenterDistAndDir call — one
-		// measurement of the edge, not two (that function's own doc comment) — computed
-		// once here rather than re-measured at the direction site below. Both the
-		// placement loop below and this edge's wire (via PublishSteps/outStepsIn just
-		// after) read this SAME integer, so layout and timing cannot disagree.
+		// from the LIVE center-to-center distance — the model has no stored fallback any
+		// more (wire.LocalPolar deleted): a target with no live measurement was already
+		// skipped above via haveTargetCenter. dist and liveDir (the DIRECTION, consumed
+		// further down) come from the SAME edgeCenterDistAndDir call — one measurement of
+		// the edge, not two (that function's own doc comment). Both the placement loop
+		// below and this edge's wire (via PublishSteps/outStepsIn just after) read this
+		// SAME integer, so layout and timing cannot disagree.
 		//
 		// edgeCenterDistAndDir's one sqrt-based vector-length/normalize pair is
 		// deliberately NOT inlined here: this file is guarded against a cartesian sqrt
-		// (tools/check-no-sqrt-in-chain-beads.sh) so bead placement stays index
-		// arithmetic on the local polar lattice; the sqrt itself lives in
-		// port_geometry.go, which already computes edgeSegment the same way.
-		targetCenter, haveTargetCenter := m.partnerCenters[to]
-		dist := float64(lp.QuantIR) * stepR
-		liveDir := vec3{}
-		useLiveAim := false
-		if haveTargetCenter {
-			if d, dir, ok := edgeCenterDistAndDir(selfCenter, targetCenter); ok {
-				dist = d
-				liveDir = dir
-				useLiveAim = true
-			}
+		// (tools/check-no-sqrt-in-chain-beads.sh) so bead placement stays a direct read of
+		// the live measurement; the sqrt itself lives in port_geometry.go, which already
+		// computes edgeSegment the same way.
+		dist, liveDir, ok := edgeCenterDistAndDir(selfCenter, targetCenter)
+		if !ok {
+			continue
 		}
 		count := edgeStepCount(dist, m.geom.Kind, m.cascadeKinds[to])
 
@@ -338,22 +307,16 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 		// FAR edge's residue against the neighbour's torus instead; it is bounded by
 		// round(), never bent into an arc.
 		//
-		// useLiveAim/liveDir (computed above, alongside dist) exist for DIRECTION: this
-		// node's live copy of the neighbour's center gives an exact bearing, used in
-		// preference to the stored quantized bearing (ndir) when available — the same
-		// fallback convention ndir's own doc comment above describes. Direction and
-		// spacing/size are independent now (unlike before this change, where they had to
-		// move together or the chain would regress to a length/bearing mismatch):
-		// spacing and size are always the fixed constants, only the AIM varies.
+		// liveDir (computed above, alongside dist) is the ONLY aim now: the node's own
+		// live measurement to its neighbour, no stored fallback bearing (wire.LocalPolar
+		// deleted). Direction and spacing/size are independent: spacing and size are
+		// always the fixed constants, only the AIM varies.
 		//
 		// DIAGNOSTIC ONLY (task/log-node4-chain-aim): one breadcrumb per outgoing target
-		// per chainBeads() call, comparing the live aim against the stored quantized
-		// bearing side by side even when live aim won, so a drag-time trace can show
-		// whether the two ever disagree while useLiveAim is true. Gated on m.tr != nil
-		// exactly like emitGeometry's own breadcrumb calls elsewhere in this package —
-		// cheap no-op with no stream wired (headless tests, bare movers).
+		// per chainBeads() call. Gated on m.tr != nil exactly like emitGeometry's own
+		// breadcrumb calls elsewhere in this package — cheap no-op with no stream wired
+		// (headless tests, bare movers).
 		if m.tr != nil {
-			_, partnerOK := m.partnerCenters[to]
 			targetRow := int32(-1)
 			if m.nodeRowFor != nil {
 				if r, ok := m.nodeRowFor(to); ok {
@@ -365,18 +328,11 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 			// vector-length or re-normalize call, which tools/check-no-sqrt-in-chain-beads.sh
 			// bans in this file (trig itself is allowed, only the sqrt-fingerprinted
 			// helpers are not).
-			liveTheta, livePhi := 0.0, 0.0
-			if useLiveAim {
-				liveTheta = math.Acos(clamp(liveDir.Y, -1, 1))
-				livePhi = math.Atan2(liveDir.Z, liveDir.X)
-			}
+			liveTheta := math.Acos(clamp(liveDir.Y, -1, 1))
+			livePhi := math.Atan2(liveDir.Z, liveDir.X)
 			value := fmt.Sprintf(
-				"to=%s useLiveAim=%v partnerCenterOK=%v count=%d K=%d "+
-					"liveDir=(theta=%.4f,phi=%.4f) storedDir=(theta=%.4f,phi=%.4f) "+
-					"quantITheta=%d quantIPhi=%d quantIR=%d stepTheta=%.6f stepPhi=%.6f",
-				to, useLiveAim, partnerOK, count, int(math.Round(dist/wire.BeadStepR)),
-				liveTheta, livePhi, ndir.Theta, ndir.Phi,
-				lp.QuantITheta, lp.QuantIPhi, lp.QuantIR, stepTheta, stepPhi)
+				"to=%s count=%d K=%d liveDir=(theta=%.4f,phi=%.4f)",
+				to, count, int(math.Round(dist/wire.BeadStepR)), liveTheta, livePhi)
 			m.tr.Breadcrumb("chain-aim", m.id, to, value)
 			breadcrumbs = append(breadcrumbs, wire.RowEvent{
 				Kind: T.KindBreadcrumb, Label: T.BreadcrumbChainAim, Debug: 1,
@@ -391,15 +347,13 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 		offsetAt := func(i int) float64 {
 			return selfTorusR + wire.BeadTorusOuterR + float64(i)*wire.BeadStepR
 		}
-		// aimUnit is the SAME direction the fallback/live branches below use, just
-		// carried as a plain unit vector rather than re-derived per bead: this is what
+		// aimUnit is the live direction, carried as a plain unit vector: this is what
 		// gets broadcast to this edge's bead-actor chain (reconcileBeadChain,
 		// bead_chain.go), which resolves each bead's own position from it directly (one
-		// hop, dependency depth 1 — no neighbour read).
+		// hop, dependency depth 1 — no neighbour read). Bead 0's resolved position IS
+		// this node's own "node -> first bead" polar vector (MODEL.md): owned by that
+		// bead's own goroutine, never a second stored copy here.
 		aimUnit := liveDir
-		if !useLiveAim {
-			aimUnit = polar2cart(polar{R: 1, Theta: ndir.Theta, Phi: ndir.Phi})
-		}
 		// Production call site for the bead-actor primitive (nodes/wire/bead_actor.go,
 		// bead_wake_group.go): nil in every bare-literal test nodeMover, so this stays a
 		// no-op there and chainBeads keeps its pure, synchronous, deterministic contract
@@ -418,26 +372,9 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 				// than recomputing the identical value here.
 				p = actorChain.last[i].Position
 			} else {
-				d := offsetAt(i)
-				if useLiveAim {
-					// liveDir is ALREADY a unit cartesian direction — scaling it by d
-					// places the bead directly, with no cartesian->polar->cartesian
-					// round trip that would exist only to look like the fallback below.
-					// That round trip is what the fallback still needs (ndir only
-					// carries an angle, not a vector), but here the live measurement
-					// already IS a vector, so converting it to polar and back would just
-					// reintroduce float error for no reason.
-					p = liveDir.Scale(d)
-				} else {
-					// Fallback: no live center for `to` yet, so the only direction
-					// available is the stored quantized bearing (ndir) — an angle, not a
-					// vector — and polar2cart is the one legitimate cartesian<->polar
-					// boundary conversion (tools/check-no-sqrt-in-chain-beads.sh) to turn
-					// it into a placeable offset. R varies per bead by index arithmetic
-					// (d above); Theta/Phi are this neighbour's own fixed bearing,
-					// reused unchanged for every bead on this edge.
-					p = polar2cart(polar{R: d, Theta: ndir.Theta, Phi: ndir.Phi})
-				}
+				// liveDir is ALREADY a unit cartesian direction — scaling it by d places
+				// the bead directly, with no cartesian->polar->cartesian round trip.
+				p = liveDir.Scale(offsetAt(i))
 			}
 			ox = append(ox, float32(p.X))
 			oy = append(oy, float32(p.Y))

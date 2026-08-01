@@ -14,9 +14,6 @@ import {
   NODE_COL_SELECTED,
   NODE_COL_KIND_ID,
   NODE_COL_LABEL_OFF, NODE_COL_LABEL_LEN, NODE_COL_HOVERED,
-  NODE_COL_GOT_DRAG_MSG,
-  NODE_COL_DRAG_DELTA_A, NODE_COL_DRAG_DELTA_B, NODE_COL_DRAG_DELTA_C,
-  NODE_COL_DRAG_REQUANT_COUNT,
   NODE_STRIDE,
   NODE_COL_VRX, NODE_COL_VRY, NODE_COL_VRZ, NODE_COL_FRX, NODE_COL_FRY, NODE_COL_FRZ,
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius, readNodeSphereR,
@@ -24,9 +21,6 @@ import {
   readNodeSelected,
   readNodeKindId,
   readNodeLabelOff, readNodeLabelLen, readNodeHovered,
-  readNodeGotDragMsg,
-  readNodeDragDeltaA, readNodeDragDeltaB, readNodeDragDeltaC,
-  readNodeDragRequantCount,
   // Interior
   INTERIOR_COL_PRESENT, INTERIOR_COL_VALUE, INTERIOR_COL_OX, INTERIOR_COL_OY, INTERIOR_COL_OZ,
   INTERIOR_STRIDE,
@@ -70,12 +64,9 @@ describe("buffer-layout — Node block", () => {
   it("stride equals packed field sizes", () => {
     // 5×f32 + 6×f32 (vr/fr normals) + 1×u8 (selected)
     //   + 1×u8 (kindId) + 2×u32 (label off/len)
-    //   + 1×u8 (hovered) + 1×u8 (latchedSel) + 1×u8 (gotDragMsg)
-    //   + 3×i32 (dragDeltaA/B/C) + 1×i32 (dragRequantCount)
-    //   + 1×u8 (gotForwardMsg) + 4×i32 (forwardDeltaA/B/C + forwardFromRow)
-    //   + 1×u8 (cascadeRelay)
-    //   = (5+6)×4 + 1 + 1 + 8 + 1 + 1 + 1 + 12 + 4 + 1 + 16 + 1 = 91
-    expect(NODE_STRIDE).toBe(91);
+    //   + 1×u8 (hovered) + 1×u8 (latchedSel)
+    //   = (5+6)×4 + 1 + 1 + 8 + 1 + 1 = 56
+    expect(NODE_STRIDE).toBe(56);
   });
 
   it("read helpers decode known bytes correctly", () => {
@@ -98,11 +89,6 @@ describe("buffer-layout — Node block", () => {
     dv.setUint32(NODE_COL_LABEL_OFF, 7, true);
     dv.setUint32(NODE_COL_LABEL_LEN, 4, true);
     dv.setUint8(NODE_COL_HOVERED, 1);
-    dv.setUint8(NODE_COL_GOT_DRAG_MSG, 1);
-    dv.setInt32(NODE_COL_DRAG_DELTA_A, 12, true);
-    dv.setInt32(NODE_COL_DRAG_DELTA_B, -34, true);
-    dv.setInt32(NODE_COL_DRAG_DELTA_C, 5, true);
-    dv.setInt32(NODE_COL_DRAG_REQUANT_COUNT, 9, true);
 
     expectF32(readNodeCX(dv, 0), 1.0);
     expectF32(readNodeCY(dv, 0), 2.0);
@@ -120,11 +106,6 @@ describe("buffer-layout — Node block", () => {
     expect(readNodeLabelOff(dv, 0)).toBe(7);
     expect(readNodeLabelLen(dv, 0)).toBe(4);
     expect(readNodeHovered(dv, 0)).toBe(1);
-    expect(readNodeGotDragMsg(dv, 0)).toBe(1);
-    expect(readNodeDragDeltaA(dv, 0)).toBe(12);
-    expect(readNodeDragDeltaB(dv, 0)).toBe(-34);
-    expect(readNodeDragDeltaC(dv, 0)).toBe(5);
-    expect(readNodeDragRequantCount(dv, 0)).toBe(9);
   });
 });
 
@@ -263,8 +244,8 @@ describe("buffer-layout — Overlay block", () => {
 // ─ Meta ───────────────────────────────────────────────────────────────────────
 
 describe("buffer-layout — meta", () => {
-  it("schema version is 37", () => {
-    expect(BUF_LAYOUT_VERSION).toBe(37);
+  it("schema version is 38", () => {
+    expect(BUF_LAYOUT_VERSION).toBe(38);
   });
 
   it("header size is 8 bytes (2×u32: tick + layoutLinkCount; no beadCount/nodeCount/portCount/labelBytesCount/portNameBytesCount/edgeCount/edgeLabelBytesCount/eventCount — beads, the node-owner-group blocks, the Edge block, and events are their own tagged/per-owner frames)", () => {

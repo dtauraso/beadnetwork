@@ -87,5 +87,4 @@ func TestMoveDispatchQuantOffsetScheduleWritesThroughEnableEditPersist(t *testin
 func TestQuantOffsetScheduleNilSafe(t *testing.T) {
 	nm := &nodeMover{id: "x"}                         // persistRoot == "" — unarmed
 	nm.persistQuantOffset(quantizedOffset{}, polar{}) // must not panic
-	nm.persistLocalPolars(nil, dir{})                 // must not panic
 }

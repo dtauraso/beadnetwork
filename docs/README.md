@@ -24,7 +24,6 @@ The mutex-removal work: each `sync.Mutex`/`Cond` replaced by single-owner state.
 | [outbox-architecture.html](outbox-architecture.html) | `outbox.mu` resolved — per-direction channels replaced the shared move queue. |
 | [trace-mutex-architecture.html](trace-mutex-architecture.html) | `Trace.mu` resolved — events ride each owner's own stream. |
 | [debounced-persister-architecture.html](debounced-persister-architecture.html) | `debouncedPersister.mu` resolved — inline per-caller writes, no shared timer. |
-| [layout-holder-architecture.html](layout-holder-architecture.html) | `LayoutHolder.mu` resolved — every caller runs on the owning node's goroutine. |
 | [scene-persist-architecture.html](scene-persist-architecture.html) | `scene_persist` — the last unexamined locks; per-writer file ownership. |
 
 ## Investigations

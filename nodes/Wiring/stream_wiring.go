@@ -120,19 +120,19 @@ func (sw *streamWiring) setEdgeStreams(
 // interiorBase are the other two fd ranges' base fds; row is the STABLE node-seed order
 // (nodeSeeds, the same spec order the Node block uses). nodeRowFor/buildFrame/
 // buildInteriorFrame are injected funcs (not a Buffer import), matching setEdgeStreams'
-// existing pattern. Selection/hover/abc-drag/
+// existing pattern. Selection/hover/
 // kind are NOT injected lookups: each nodeMover owns its OWN selected/hovered/
-// latchedSel/gotDragMsg/dragDelta*/kindID fields, set via moveMsgKindSelect/Hover/
-// Latched/AbcReset messages (or, for kindID, once here at construction — a node's kind
-// never changes after load, so there is no lookup to perform on every emit). A missing
-// nodeMover for a seed row (should not happen) is skipped rather than panicking.
+// latchedSel/kindID fields, set via moveMsgKindSelect/Hover/Latched messages (or, for
+// kindID, once here at construction — a node's kind never changes after load, so there
+// is no lookup to perform on every emit). A missing nodeMover for a seed row (should not
+// happen) is skipped rather than panicking.
 func (sw *streamWiring) setNodeStreams(
 	nodeSeeds []NodeGeomSeed,
 	nodeMovers map[string]*nodeMover,
 	nodeBase, interiorBase int,
 	driveBase int, driveWired bool,
 	nodeRowFor func(id string) (int32, bool),
-	buildFrame func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount int32, gotForwardMsg uint8, forwardDeltaA, forwardDeltaB, forwardDeltaC, forwardFromRow int32, cascadeRelay uint8, label string, dstNodeRows []int32, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte,
+	buildFrame func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel uint8, label string, dstNodeRows []int32, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte,
 	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte,
 	kindIDFor func(kind string) uint8,
 ) {

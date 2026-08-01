@@ -22,15 +22,6 @@ func assertF32At(t *testing.T, buf []byte, offset int, want float32, label strin
 	}
 }
 
-// assertI32At asserts that buf[offset:offset+4] equals the LE encoding of want.
-func assertI32At(t *testing.T, buf []byte, offset int, want int32, label string) {
-	t.Helper()
-	got := int32(binary.LittleEndian.Uint32(buf[offset:]))
-	if got != want {
-		t.Errorf("%s: got %v, want %v (at byte offset %d)", label, got, want, offset)
-	}
-}
-
 // assertU32At asserts that buf[offset:offset+4] equals the LE encoding of want.
 func assertU32At(t *testing.T, buf []byte, offset int, want uint32, label string) {
 	t.Helper()
@@ -58,15 +49,8 @@ func TestSetNodeRow(t *testing.T) {
 		1,    // selected
 		3,    // kindID (Input = index 3 in NODE_DEFS_ARRAY)
 		7, 4, // labelOff, labelLen
-		1,          // hovered
-		1,          // latchedSel
-		1,          // gotDragMsg
-		12, -34, 5, // dragDeltaA, dragDeltaB, dragDeltaC
-		9,          // dragRequantCount
-		1,          // gotForwardMsg
-		21, -43, 6, // forwardDeltaA, forwardDeltaB, forwardDeltaC
-		2, // forwardFromRow
-		1, // cascadeRelay (routed)
+		1, // hovered
+		1, // latchedSel
 	)
 
 	assertF32At(t, buf, BufNodeColCX, 1.0, "CX")
@@ -86,17 +70,6 @@ func TestSetNodeRow(t *testing.T) {
 	assertU32At(t, buf, BufNodeColLabelLen, 4, "LabelLen")
 	assertU8At(t, buf, BufNodeColHovered, 1, "Hovered")
 	assertU8At(t, buf, BufNodeColLatchedSel, 1, "LatchedSel")
-	assertU8At(t, buf, BufNodeColGotDragMsg, 1, "GotDragMsg")
-	assertI32At(t, buf, BufNodeColDragDeltaA, 12, "DragDeltaA")
-	assertI32At(t, buf, BufNodeColDragDeltaB, -34, "DragDeltaB")
-	assertI32At(t, buf, BufNodeColDragDeltaC, 5, "DragDeltaC")
-	assertI32At(t, buf, BufNodeColDragRequantCount, 9, "DragRequantCount")
-	assertU8At(t, buf, BufNodeColGotForwardMsg, 1, "GotForwardMsg")
-	assertI32At(t, buf, BufNodeColForwardDeltaA, 21, "ForwardDeltaA")
-	assertI32At(t, buf, BufNodeColForwardDeltaB, -43, "ForwardDeltaB")
-	assertI32At(t, buf, BufNodeColForwardDeltaC, 6, "ForwardDeltaC")
-	assertI32At(t, buf, BufNodeColForwardFromRow, 2, "ForwardFromRow")
-	assertU8At(t, buf, BufNodeColCascadeRelay, 1, "CascadeRelay")
 }
 
 func TestSetEdgeRow(t *testing.T) {
@@ -160,9 +133,9 @@ func TestSetOverlayRow(t *testing.T) {
 }
 
 func TestNodeStrideIsPackedSize(t *testing.T) {
-	// Node block: 5×f32 + 6×f32 (vr/fr normals) + 1×u8 (selected) + 1×u8 (kindID) + 2×u32 (label off/len) + 1×u8 (hovered) + 1×u8 (latchedSel) + 1×u8 (gotDragMsg) + 3×i32 (dragDelta A/B/C) + 1×i32 (dragRequantCount) + 1×u8 (gotForwardMsg) + 4×i32 (forwardDelta A/B/C + forwardFromRow) + 1×u8 (cascadeRelay)
-	//           = (5+6)×4 + 1 + 1 + 8 + 1 + 1 + 1 + 12 + 4 + 1 + 16 + 1 = 91
-	want := 5*4 + 6*4 + 1*1 + 1*1 + 2*4 + 1*1 + 1*1 + 1*1 + 3*4 + 1*4 + 1*1 + 4*4 + 1*1
+	// Node block: 5×f32 + 6×f32 (vr/fr normals) + 1×u8 (selected) + 1×u8 (kindID) + 2×u32 (label off/len) + 1×u8 (hovered) + 1×u8 (latchedSel)
+	//           = (5+6)×4 + 1 + 1 + 8 + 1 + 1 = 56
+	want := 5*4 + 6*4 + 1*1 + 1*1 + 2*4 + 1*1 + 1*1
 	if BufNodeStride != want {
 		t.Errorf("BufNodeStride = %d, want %d (packed size)", BufNodeStride, want)
 	}

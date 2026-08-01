@@ -13,7 +13,6 @@ import (
 // srcNode is a minimal source kind with one paced Out. Position writes route through
 // nodeMover's own goroutine (node_move.go), so no layout plumbing is needed here.
 type srcNode struct {
-	wire.LayoutHolder
 	Out *wire.Out
 }
 
@@ -23,7 +22,6 @@ func (n *srcNode) Update(ctx context.Context) {
 
 // sinkNode is a minimal sink kind with one paced In.
 type sinkNode struct {
-	wire.LayoutHolder
 	In *wire.In
 }
 
