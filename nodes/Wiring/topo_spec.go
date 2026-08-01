@@ -140,6 +140,12 @@ type specEdge struct {
 type topoSpec struct {
 	Nodes []specNode `json:"nodes"`
 	Edges []specEdge `json:"edges"`
+	// RowCount is the buffer's row space: rows 0..RowCount-1, where row = id-1 (node identity
+	// IS the row index, no id sidecar — see loader_tree.go's loadTree). It is the LARGEST node
+	// id found in the tree, not len(Nodes): a deleted node leaves a gap row rather than
+	// shifting later rows down. len(Nodes) <= RowCount always; equal only when the id space is
+	// dense with no gaps.
+	RowCount int
 }
 
 // WireRegistry maps edge label → *PacedWire. Each entry points to the wire owned by

@@ -18,7 +18,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"sort"
+	"strconv"
 	"testing"
 	"time"
 )
@@ -62,24 +62,45 @@ func readOneRawFrame(r *bufio.Reader) ([]byte, error) {
 	return buf, nil
 }
 
-// wantNodeRowOrder is the expected spec order for the repo's real topology/nodes dir:
-// lexicographic directory-name sort, per nodes/Wiring/loader_tree.go readDirNames +
-// sort.Strings. Recomputed from the actual directory listing (not hardcoded) so this test
-// does not silently go stale if a node is added/removed from topology/.
-func wantNodeRowOrder(t *testing.T, repoRoot string) []string {
+// nodeRowLabels returns, in ROW order (row = id-1 — loader_tree.go's loadTree parses each
+// node directory name to an int and places it at that row directly; there is no ordering
+// step left to recompute), the label each row's node is expected to stream. Under the
+// current model this is simply the directory name itself: none of this repo's committed
+// fixture nodes set data.label, so specNode.label()'s id fallback applies to every one.
+// Recomputed from the actual directory listing (not hardcoded) so this test does not
+// silently go stale if a node is added/removed from topology/. A gap row (no directory
+// parses to that id) is left as "" — this repo's committed topology has no gaps, so every
+// slot below RowCount is filled, but a caller must still treat "" as "no expectation for
+// this row" rather than a real label.
+func nodeRowLabels(t *testing.T, repoRoot string) []string {
 	t.Helper()
 	entries, err := os.ReadDir(filepath.Join(repoRoot, "topology", "nodes"))
 	if err != nil {
 		t.Fatalf("ReadDir topology/nodes: %v", err)
 	}
-	ids := make([]string, 0, len(entries))
+	ids := make([]int, 0, len(entries))
+	rowCount := 0
 	for _, e := range entries {
-		if e.IsDir() {
-			ids = append(ids, e.Name())
+		if !e.IsDir() {
+			continue
+		}
+		n, err := strconv.Atoi(e.Name())
+		if err != nil {
+			t.Fatalf("topology/nodes/%s: not a numeric node directory name: %v", e.Name(), err)
+		}
+		if n < 1 {
+			t.Fatalf("topology/nodes/%s: node ids are 1-based, got %d", e.Name(), n)
+		}
+		ids = append(ids, n)
+		if n > rowCount {
+			rowCount = n
 		}
 	}
-	sort.Strings(ids)
-	return ids
+	rows := make([]string, rowCount)
+	for _, n := range ids {
+		rows[n-1] = strconv.Itoa(n)
+	}
+	return rows
 }
 
 // topologyEdgeCount reads the STORED topology/counts.json to size this test's own spawn —
@@ -94,12 +115,6 @@ func wantNodeRowOrder(t *testing.T, repoRoot string) []string {
 func topologyEdgeCount(t *testing.T, repoRoot string) int {
 	t.Helper()
 	return topologyCounts(t, repoRoot).Edges
-}
-
-// topologyNodeCount is the node-side companion, read from the same one file.
-func topologyNodeCount(t *testing.T, repoRoot string) int {
-	t.Helper()
-	return topologyCounts(t, repoRoot).Nodes
 }
 
 type storedCounts struct {
@@ -175,22 +190,13 @@ func buildHeadlessBinary(t *testing.T, repoRoot, name string) string {
 // shutdown.
 func spawnDedicatedAllStreams(t *testing.T, binPath, repoRoot string) *dedicatedStreams {
 	t.Helper()
-	nodeIDs := wantNodeRowOrder(t, repoRoot)
+	// nodeIDs is indexed by ROW (row = id-1): nodeIDs[row] holds that row's node id (its
+	// label, by the id-fallback — see nodeRowLabels), or "" for a gap row. len(nodeIDs) ==
+	// RowCount (the largest node id in the tree), which is what counts.json's "nodes" field
+	// now means too — the buffer's row space, not a live-node count.
+	nodeIDs := nodeRowLabels(t, repoRoot)
 	nodeCount := len(nodeIDs)
 	edgeCount := topologyEdgeCount(t, repoRoot)
-
-	// The committed counts.json must agree with the committed tree. Neither TS nor Go
-	// re-derives this at RUNTIME — that is the whole point of storing it, and a runtime
-	// walk-and-compare was explicitly rejected. But nothing stops the checked-in fixture
-	// drifting from the checked-in tree, and this is the one place that can notice for
-	// free: the spawn already needs the node ids (for row ORDER, which a count cannot
-	// give), so comparing that list's length against the stored number costs nothing and
-	// fails here rather than as a mystery missing stream.
-	if got := topologyNodeCount(t, repoRoot); got != nodeCount {
-		t.Fatalf("topology/counts.json says nodes=%d but topology/nodes/ holds %d (%v) — "+
-			"the stored count and the tree have drifted; whichever operation added or "+
-			"removed a node did not update counts.json", got, nodeCount, nodeIDs)
-	}
 
 	runCtx, runCancel := context.WithTimeout(context.Background(), 20*time.Second)
 	cmd := exec.CommandContext(runCtx, binPath, "-topology", filepath.Join(repoRoot, "topology"))

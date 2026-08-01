@@ -133,15 +133,15 @@ func TestCommitNodeMoveLocalDrawsQuantizedNotRawTarget(t *testing.T) {
 	if !md.lq.quantizedLayout {
 		t.Fatal("test assumes quantizedLayout is on by default")
 	}
-	nm, ok := md.mr.nodeMovers["dst"]
+	nm, ok := md.mr.nodeMovers["2"]
 	if !ok {
 		t.Fatal("no nodeMover for dst")
 	}
-	before, ok := md.centerOfNode("dst")
+	before, ok := md.centerOfNode("2")
 	if !ok {
 		t.Fatal("no center for dst")
 	}
-	srcCenter, ok := md.centerOfNode("src")
+	srcCenter, ok := md.centerOfNode("1")
 	if !ok {
 		t.Fatal("no center for src")
 	}
@@ -157,11 +157,11 @@ func TestCommitNodeMoveLocalDrawsQuantizedNotRawTarget(t *testing.T) {
 	// neighbours') CURRENT centers as the solve's starting configuration, so calling it
 	// after commitNodeMoveLocal has already moved dst would race its own answer (see
 	// quantizedDragTarget's doc comment in subtree_persist_test.go).
-	want := quantizedDragTarget(md, "dst", target)
+	want := quantizedDragTarget(md, "2", target)
 
 	md.lq.commitNodeMoveLocal(md, nm, target)
 
-	got, ok := md.centerOfNode("dst")
+	got, ok := md.centerOfNode("2")
 	if !ok {
 		t.Fatal("no center for dst after commit")
 	}
@@ -184,7 +184,7 @@ func TestCommitNodeMoveLocalDrawsQuantizedNotRawTarget(t *testing.T) {
 	// (3) Consistency (PLAN.md): the node moves because of ONE bead operation (add or
 	// remove) on ONE touching bead, never a value derived from the raw drag's own
 	// magnitude — so (since this drag target is deliberately off-lattice and far from
-	// "dst"'s pre-drag position) it must have moved SOME distance rather than holding.
+	// "2"'s pre-drag position) it must have moved SOME distance rather than holding.
 	// The Cartesian SIZE of that move is whatever the winning verdict's own geometry
 	// implies (beadCrudImpliedCentre) — a REMOVE lands exactly on the removed bead's own
 	// centre and an ADD one bead length beyond the newly added bead, along that edge's
@@ -220,8 +220,8 @@ func TestCommitNodeMoveLocalNeverMovesTowardMouseTarget(t *testing.T) {
 	t.Run("remove", func(t *testing.T) {
 		root := writeTree(t)
 		md := loadTreeMD(t, root)
-		nm := md.mr.nodeMovers["dst"]
-		before, ok := md.centerOfNode("dst")
+		nm := md.mr.nodeMovers["2"]
+		before, ok := md.centerOfNode("2")
 		if !ok {
 			t.Fatal("no center for dst")
 		}
@@ -235,7 +235,7 @@ func TestCommitNodeMoveLocalNeverMovesTowardMouseTarget(t *testing.T) {
 		wrong := cursorFollow(before, target)
 
 		md.lq.commitNodeMoveLocal(md, nm, target)
-		got, ok := md.centerOfNode("dst")
+		got, ok := md.centerOfNode("2")
 		if !ok {
 			t.Fatal("no center for dst after commit")
 		}
@@ -247,12 +247,12 @@ func TestCommitNodeMoveLocalNeverMovesTowardMouseTarget(t *testing.T) {
 	t.Run("add", func(t *testing.T) {
 		root := writeTree(t)
 		md := loadTreeMD(t, root)
-		nm := md.mr.nodeMovers["dst"]
-		before, ok := md.centerOfNode("dst")
+		nm := md.mr.nodeMovers["2"]
+		before, ok := md.centerOfNode("2")
 		if !ok {
 			t.Fatal("no center for dst")
 		}
-		srcCenter, ok := md.centerOfNode("src")
+		srcCenter, ok := md.centerOfNode("1")
 		if !ok {
 			t.Fatal("no center for src")
 		}
@@ -263,7 +263,7 @@ func TestCommitNodeMoveLocalNeverMovesTowardMouseTarget(t *testing.T) {
 		wrong := cursorFollow(before, target)
 
 		md.lq.commitNodeMoveLocal(md, nm, target)
-		got, ok := md.centerOfNode("dst")
+		got, ok := md.centerOfNode("2")
 		if !ok {
 			t.Fatal("no center for dst after commit")
 		}
@@ -280,8 +280,8 @@ func TestCommitNodeMoveLocalNeverMovesTowardMouseTarget(t *testing.T) {
 func TestCommitNodeMoveLocalRemoveTakesBeadsPlace(t *testing.T) {
 	root := writeTree(t)
 	md := loadTreeMD(t, root)
-	nm := md.mr.nodeMovers["dst"]
-	before, ok := md.centerOfNode("dst")
+	nm := md.mr.nodeMovers["2"]
+	before, ok := md.centerOfNode("2")
 	if !ok {
 		t.Fatal("no center for dst")
 	}
@@ -298,7 +298,7 @@ func TestCommitNodeMoveLocalRemoveTakesBeadsPlace(t *testing.T) {
 	}
 
 	md.lq.commitNodeMoveLocal(md, nm, target)
-	got, ok := md.centerOfNode("dst")
+	got, ok := md.centerOfNode("2")
 	if !ok {
 		t.Fatal("no center for dst after commit")
 	}
@@ -313,12 +313,12 @@ func TestCommitNodeMoveLocalRemoveTakesBeadsPlace(t *testing.T) {
 func TestCommitNodeMoveLocalAddMovesOneBeadBeyondNewBead(t *testing.T) {
 	root := writeTree(t)
 	md := loadTreeMD(t, root)
-	nm := md.mr.nodeMovers["dst"]
-	before, ok := md.centerOfNode("dst")
+	nm := md.mr.nodeMovers["2"]
+	before, ok := md.centerOfNode("2")
 	if !ok {
 		t.Fatal("no center for dst")
 	}
-	srcCenter, ok := md.centerOfNode("src")
+	srcCenter, ok := md.centerOfNode("1")
 	if !ok {
 		t.Fatal("no center for src")
 	}
@@ -342,7 +342,7 @@ func TestCommitNodeMoveLocalAddMovesOneBeadBeyondNewBead(t *testing.T) {
 	wantNodeCentre := newBeadCentre.Sub(beads[0].AimDir.Scale(wire.BeadStepR))
 
 	md.lq.commitNodeMoveLocal(md, nm, target)
-	got, ok := md.centerOfNode("dst")
+	got, ok := md.centerOfNode("2")
 	if !ok {
 		t.Fatal("no center for dst after commit")
 	}

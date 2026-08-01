@@ -62,10 +62,10 @@ func writeTree(t *testing.T) string {
 	t.Helper()
 	root := t.TempDir()
 	mk := func(rel, body string) { writeTreeFile(t, root, rel, body) }
-	mk("nodes/src/meta.json", `{"id":"src","type":"SrcNode","r":100,"scenePolarR":37.4165738677,"scenePolarTheta":1.00685368543,"scenePolarPhi":1.2490457724}`)
-	mk("nodes/dst/meta.json", `{"id":"dst","type":"SinkNode","r":100,"scenePolarR":87.7496438739,"scenePolarTheta":0.96453035788,"scenePolarPhi":-2.15879893034}`)
-	mk("nodes/src/edges/e0.json", `{"label":"e0","kind":"data","sourceHandle":"Out","target":"dst","targetHandle":"In"}`)
-	writeCascadeEdgesFromEdges(t, root, map[string]string{"src": "SrcNode", "dst": "SinkNode"}, [][2]string{{"src", "dst"}})
+	mk("nodes/1/meta.json", `{"id":"1","type":"SrcNode","r":100,"scenePolarR":37.4165738677,"scenePolarTheta":1.00685368543,"scenePolarPhi":1.2490457724}`)
+	mk("nodes/2/meta.json", `{"id":"2","type":"SinkNode","r":100,"scenePolarR":87.7496438739,"scenePolarTheta":0.96453035788,"scenePolarPhi":-2.15879893034}`)
+	mk("nodes/1/edges/e0.json", `{"label":"e0","kind":"data","sourceHandle":"Out","target":"2","targetHandle":"In"}`)
+	writeCascadeEdgesFromEdges(t, root, map[string]string{"1": "SrcNode", "2": "SinkNode"}, [][2]string{{"1", "2"}})
 	return root
 }
 

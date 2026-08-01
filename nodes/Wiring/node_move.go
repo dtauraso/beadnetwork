@@ -30,6 +30,7 @@ import (
 	"context"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"sort"
+	"strconv"
 	"sync"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -115,7 +116,10 @@ type MoveDispatch struct {
 // appended here.
 // nil in test call sites that construct a MoveDispatch directly with no
 // loader — those edgeMovers then simply have no speed channel to poll.
-func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEndpoints, tr *T.Trace, nodeOrder, edgeOrder []string, clk wire.Clock, speedSinks *[]chan float64) *MoveDispatch {
+// rowCount is the buffer's node-row space (topoSpec.RowCount — the largest node id found,
+// not the node count): rows 0..rowCount-1, ROW ID = NODE ID - 1. 0 (test call sites that
+// don't pass one) falls back to the number of resolved seeds, i.e. no gaps.
+func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEndpoints, tr *T.Trace, nodeOrder, edgeOrder []string, clk wire.Clock, speedSinks *[]chan float64, rowCount int) *MoveDispatch {
 	// nil order (test call sites that don't care about seed order) falls back to sorted
 	// map keys — still deterministic, just not necessarily spec order.
 	if nodeOrder == nil {
@@ -141,7 +145,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 	md.mr.centerMirror = map[string]vec3{}
 	md.ui.ov = defaultOverlayState()
 	md.gs.nodeSeeds = make([]NodeGeomSeed, 0, len(nodeOrder))
-	for _, id := range nodeOrder {
+	for i, id := range nodeOrder {
 		g, ok := geoms[id]
 		if !ok {
 			continue
@@ -155,12 +159,21 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 			c := nodeWorldPos(g)
 			cx, cy, cz = c.X, c.Y, c.Z
 		}
+		// ROW ID = NODE ID - 1 — declared by the id, not by position in nodeOrder. Falls
+		// back to positional index only for a non-numeric id, which real (loadTree-built)
+		// specs never produce (loud load-time error there); this keeps synthetic-id unit
+		// tests that construct a MoveDispatch directly working unchanged.
+		row := i
+		if n, err := strconv.Atoi(id); err == nil {
+			row = n - 1
+		}
 		md.gs.nodeSeeds = append(md.gs.nodeSeeds, NodeGeomSeed{
 			ID: id, Label: label, Kind: g.Kind,
 			CX: cx, CY: cy, CZ: cz,
 			Radius: nodeRadius(g.Kind), SphereR: effectiveRadius(g),
 			VRX: verticalRingNormalX, VRY: verticalRingNormalY, VRZ: verticalRingNormalZ,
 			FRX: flatRingNormalX, FRY: flatRingNormalY, FRZ: flatRingNormalZ,
+			Row: row,
 		})
 	}
 	md.gs.edgeSeeds = make([]EdgeGeomSeed, 0, len(edgeOrder))
@@ -279,10 +292,10 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 			}
 		}
 	}
-	// Row-identity tables: built ONCE here, from nodeSeeds/edgeSeeds (already in stable
-	// spec order above) — see buildRowTables' doc comment for why this is a load-time
-	// constant, not a discovery log.
-	md.rt.buildRowTables(md.gs.nodeSeeds, md.gs.edgeSeeds)
+	// Row-identity tables: built ONCE here, from nodeSeeds/edgeSeeds (each node seed already
+	// carries its own absolute Row = id-1) — see buildRowTables' doc comment for why this is
+	// a load-time constant, not a discovery log.
+	md.rt.buildRowTables(md.gs.nodeSeeds, md.gs.edgeSeeds, rowCount)
 	return md
 }
 

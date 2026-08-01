@@ -34,25 +34,25 @@ import (
 // OutFanoutSpeedCh are all created unconditionally at construction.
 const speedFullSetTopo = `{
   "nodes": [
-    {"id":"src","type":"Input","data":{"init":[0],"repeat":false},
+    {"id":"1","type":"Input","data":{"init":[0],"repeat":false},
      "outputs":[{"name":"OutCadence"}],
-     "cascadeEdges":["hnso"],"cascadeKinds":{"hnso":"Time"}},
-    {"id":"hnso","type":"Time","data":{"state":{"held":-1}},
+     "cascadeEdges":["2"],"cascadeKinds":{"2":"Time"}},
+    {"id":"2","type":"Time","data":{"state":{"held":-1}},
      "inputs":[{"name":"In"}],
-     "cascadeEdges":["src"],"cascadeKinds":{"src":"Input"}},
-    {"id":"holdSink","type":"TimeEnd","data":{"state":{"held":-1}},
+     "cascadeEdges":["1"],"cascadeKinds":{"1":"Input"}},
+    {"id":"3","type":"TimeEnd","data":{"state":{"held":-1}},
      "inputs":[{"name":"In"}]},
-    {"id":"pacer","type":"Pacer","data":{"state":{"held":-1}},
+    {"id":"4","type":"Pacer","data":{"state":{"held":-1}},
      "inputs":[{"name":"In"}], "outputs":[{"name":"FeedbackOut"}]},
-    {"id":"holdflip","type":"HoldFlip","data":{},
+    {"id":"5","type":"HoldFlip","data":{},
      "inputs":[{"name":"In"}], "outputs":[{"name":"Out"}]},
-    {"id":"gate","type":"SelectRight","data":{},
+    {"id":"6","type":"SelectRight","data":{},
      "inputs":[{"name":"FromLeft"},{"name":"FromRight"}],
      "outputs":[{"name":"ToPassed"}]},
-    {"id":"pulse","type":"Pulse","data":{}}
+    {"id":"7","type":"Pulse","data":{}}
   ],
   "edges": [
-    {"label":"e0","kind":"data","source":"src","sourceHandle":"OutCadence","target":"hnso","targetHandle":"In"}
+    {"label":"e0","kind":"data","source":"1","sourceHandle":"OutCadence","target":"2","targetHandle":"In"}
   ]
 }`
 

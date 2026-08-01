@@ -20,12 +20,12 @@ import (
 // update to disk immediately, with no timer/flush step required.
 func TestQuantOffsetScheduleWritesSynchronously(t *testing.T) {
 	root := writeTree(t)
-	nm := &nodeMover{id: "src", persistRoot: root}
+	nm := &nodeMover{id: "1", persistRoot: root}
 
 	newScene := polar{R: 55.5, Theta: 0.4, Phi: -1.1}
 	nm.persistQuantOffset(quantizedOffset{iTheta: 3, iPhi: 4, iR: 5}, newScene)
 
-	raw, err := os.ReadFile(positionFilePath(root, "src"))
+	raw, err := os.ReadFile(positionFilePath(root, "1"))
 	if err != nil {
 		t.Fatalf("read position.json: %v", err)
 	}
@@ -57,14 +57,14 @@ func TestMoveDispatchQuantOffsetScheduleWritesThroughEnableEditPersist(t *testin
 	md := loadTreeMD(t, root)
 	md.EnableEditPersist(root)
 
-	nm, ok := md.mr.nodeMovers["src"]
+	nm, ok := md.mr.nodeMovers["1"]
 	if !ok {
 		t.Fatal("no nodeMover for src")
 	}
 	newScene := polar{R: 61.0, Theta: 0.2, Phi: 0.9}
 	nm.persistQuantOffset(quantizedOffset{iTheta: 1, iPhi: 2, iR: 3}, newScene)
 
-	raw, err := os.ReadFile(positionFilePath(root, "src"))
+	raw, err := os.ReadFile(positionFilePath(root, "1"))
 	if err != nil {
 		t.Fatalf("read position.json: %v", err)
 	}

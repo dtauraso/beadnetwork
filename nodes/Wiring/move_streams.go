@@ -76,6 +76,11 @@ type NodeGeomSeed struct {
 	ID, Label, Kind              string
 	CX, CY, CZ, Radius, SphereR  float64
 	VRX, VRY, VRZ, FRX, FRY, FRZ float64
+	// Row is this node's buffer ROW INDEX: id-1 (ROW ID = NODE ID - 1 — the row is declared
+	// by the id, never derived by sorting/position in this slice). Two nodes are never at
+	// the same Row (loadTree rejects a duplicate id); a gap in the id space is simply a row
+	// no seed claims, not a shift of later rows.
+	Row int
 }
 
 // EdgeGeomSeed is one edge's load-time topology AND its real segment endpoints — the same

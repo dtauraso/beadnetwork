@@ -11,7 +11,6 @@ package main
 
 import (
 	"os"
-	"sort"
 	"testing"
 
 	B "github.com/dtauraso/wirefold/Buffer"
@@ -31,8 +30,7 @@ func TestHeadlessNodeFdDedicatedStream(t *testing.T) {
 	nodeFrames := readLastFrames(t, ds.nodeReads, "node")
 	interiorFrames := readLastFrames(t, ds.interiorReads, "interior")
 
-	wantLabels := wantNodeRowOrder(t, repoRoot)
-	sort.Strings(wantLabels) // wantNodeRowOrder already returns sorted spec order
+	wantLabels := nodeRowLabels(t, repoRoot) // row i holds node (i+1)'s label ("" for a gap row)
 
 	totalLayoutLinks := 0
 	for row, frame := range nodeFrames {
@@ -64,7 +62,7 @@ func TestHeadlessNodeFdDedicatedStream(t *testing.T) {
 		if label == "" {
 			t.Fatalf("node row %d: empty inline label", row)
 		}
-		if row < len(wantLabels) && label != wantLabels[row] {
+		if row < len(wantLabels) && wantLabels[row] != "" && label != wantLabels[row] {
 			t.Fatalf("node row %d: label = %q, want %q (falls back to node id)", row, label, wantLabels[row])
 		}
 		layoutLinksOff := labelOff + int(labelLen)

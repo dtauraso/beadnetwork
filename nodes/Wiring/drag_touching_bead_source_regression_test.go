@@ -15,8 +15,8 @@ package Wiring
 //     a gap and ADD) scored an obtuse angle and was blocked, while dragging TOWARD it wrongly
 //     admitted an ADD.
 //
-// writeTree's two nodes give one of each case for free: "src" is the edge's SOURCE
-// (nm.outTargets/em.srcID == "src" — the branch that was broken) and "dst" is the edge's
+// writeTree's two nodes give one of each case for free: "1" is the edge's SOURCE
+// (nm.outTargets/em.srcID == "1" — the branch that was broken) and "2" is the edge's
 // TARGET (the branch that was always correct) — every assertion below runs against BOTH, so
 // a regression on either side is caught.
 
@@ -25,7 +25,7 @@ import (
 	"testing"
 )
 
-// touchingBeadFor returns writeTree's single touching bead for nodeID ("src" or "dst") and
+// touchingBeadFor returns writeTree's single touching bead for nodeID ("1" or "2") and
 // nodeID's own live centre, using the SAME dragTouchingBeads call production drives.
 func touchingBeadFor(t *testing.T, md *MoveDispatch, nodeID string) (touchingBead, vec3) {
 	t.Helper()
@@ -44,14 +44,14 @@ func touchingBeadFor(t *testing.T, md *MoveDispatch, nodeID string) (touchingBea
 // TestTouchingBeadSourceIsOneBeadLengthFromCentre asserts the touching bead's own SOURCE
 // point sits ONE BEAD LENGTH (wire.BeadStepR) from the touching bead's own CENTRE — not
 // nodeTorusOuterR(selfKind) (~5 bead lengths), which is what the broken isSource branch
-// produced. writeTree's single edge puts "src" only ever on the source-side branch and
-// "dst" only ever on the target-side branch, so this exercises both.
+// produced. writeTree's single edge puts "1" only ever on the source-side branch and
+// "2" only ever on the target-side branch, so this exercises both.
 func TestTouchingBeadSourceIsOneBeadLengthFromCentre(t *testing.T) {
 	root := writeTree(t)
 	md := loadTreeMD(t, root)
 
 	const eps = 1e-6
-	for _, id := range []string{"src", "dst"} {
+	for _, id := range []string{"1", "2"} {
 		bead, _ := touchingBeadFor(t, md, id)
 		got := bead.Centre.Sub(bead.Source).Length()
 		if diff := got - wire.BeadStepR; diff > eps || diff < -eps {
@@ -79,7 +79,7 @@ func TestThirdAtRestIsOneBeadLengthNotSelfTorusR(t *testing.T) {
 	md := loadTreeMD(t, root)
 
 	const eps = 1e-6
-	for _, id := range []string{"src", "dst"} {
+	for _, id := range []string{"1", "2"} {
 		bead, _ := touchingBeadFor(t, md, id)
 		third := bead.Centre.Sub(bead.Source)
 		got := third.Length()
@@ -102,7 +102,7 @@ func TestAngleGateAdmitsAddAwayAndBlocksAddToward(t *testing.T) {
 	root := writeTree(t)
 	md := loadTreeMD(t, root)
 
-	for _, id := range []string{"src", "dst"} {
+	for _, id := range []string{"1", "2"} {
 		bead, prevPos := touchingBeadFor(t, md, id)
 
 		// dragVector = nodeDestination - prevPos, per beadCrudDecide's contract

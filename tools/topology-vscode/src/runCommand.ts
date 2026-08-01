@@ -35,9 +35,12 @@ const EDGE_BASE_FD = 5;
 const MAX_EDGE_STREAMS = 256;
 
 // NODE_BASE_FD / INTERIOR_BASE_FD: the base fds for the "node" and "interior" stream
-// kinds — one dedicated fd PER NODE ROW each, fd = base + nodeRow (nodeRow = that node's
-// stable seed-order row, matching Buffer's Node block row order — see nodes/Wiring's
-// MoveDispatch.SetNodeStreams / SetInteriorStreams and main.go). Sit right after the edge
+// kinds — one dedicated fd PER NODE ROW each, fd = base + nodeRow. ROW ID = NODE ID - 1
+// (nodeRow is that node's own id minus one, not a position in a seed list — no ordering
+// step decides it; see nodes/Wiring's MoveDispatch.SetNodeStreams / SetInteriorStreams and
+// main.go), so this range must be sized by the LARGEST node id in the tree (counts.json's
+// "nodes" field — see readCounts' doc comment), not by how many node directories exist: a
+// gap left by a deleted node still needs its row's fd allocated. Sit right after the edge
 // range, computed PER-SPAWN (not module-level constants) since they depend on edgeCount:
 // nodeBase = EDGE_BASE_FD + edgeCount, interiorBase = nodeBase + nodeCount. Go's
 // stream_fds.go requires BOTH "node" and "interior" WIREFOLD_STREAM_FDS entries present
@@ -66,6 +69,12 @@ const DRIVE_SLOTS_PER_NODE = 2;
 // written once by whichever operation changes the node/edge set (today: none does — the
 // topology is editor-authored by hand, so this file is hand-maintained alongside it). TS
 // reads two numbers and stops knowing the layout entirely.
+//
+// `nodes` means the ROW COUNT (the largest node id in the tree, ROW ID = NODE ID - 1 —
+// nodes/Wiring's `topoSpec.RowCount`), NOT how many node directories exist. A deleted node
+// leaves a gap row rather than shrinking the row space, and that gap row still needs its
+// own dedicated node/interior/drive fds allocated, so sizing this from a live-node count
+// would under-allocate. `edges` has no id space to gap and stays a plain count.
 //
 // Unlike the old countNodes/countEdges, which returned 0 on any read/parse failure (a
 // SILENT failure: 0 edges/nodes just meant no dedicated streams got allocated, degrading

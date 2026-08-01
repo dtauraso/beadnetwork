@@ -38,13 +38,24 @@ type rowTables struct {
 	edgeEndpointRowTable []moveDispatchEdgeEndpoint
 }
 
-// buildRowTables constructs the row-identity tables from md.nodeSeeds/md.edgeSeeds
-// (already in stable spec order at this point in newMoveDispatch). Called once, before
-// any mover goroutine exists.
-func (rt *rowTables) buildRowTables(nodeSeeds []NodeGeomSeed, edgeSeeds []EdgeGeomSeed) {
-	rt.nodeRowTable = make([]string, len(nodeSeeds))
-	for i, sd := range nodeSeeds {
-		rt.nodeRowTable[i] = sd.ID
+// buildRowTables constructs the row-identity tables from md.nodeSeeds/md.edgeSeeds. Called
+// once, before any mover goroutine exists.
+//
+// rowCount sizes the NODE row table (topoSpec.RowCount — the largest node id found, not the
+// node count): rows 0..rowCount-1. Each seed places itself at its OWN seed.Row (id-1), not
+// at its position in nodeSeeds — a gap in the id space is a row no seed ever writes, so it
+// stays the empty string ("") rather than a later seed sliding up to fill it. 0 (only test
+// call sites that pass no rowCount) falls back to len(nodeSeeds), i.e. no gaps.
+func (rt *rowTables) buildRowTables(nodeSeeds []NodeGeomSeed, edgeSeeds []EdgeGeomSeed, rowCount int) {
+	if rowCount == 0 {
+		rowCount = len(nodeSeeds)
+	}
+	rt.nodeRowTable = make([]string, rowCount)
+	for _, sd := range nodeSeeds {
+		if sd.Row < 0 || sd.Row >= rowCount {
+			continue
+		}
+		rt.nodeRowTable[sd.Row] = sd.ID
 	}
 	rt.edgeRowTable = make([]string, len(edgeSeeds))
 	rt.edgeEndpointRowTable = make([]moveDispatchEdgeEndpoint, len(edgeSeeds))
@@ -55,9 +66,11 @@ func (rt *rowTables) buildRowTables(nodeSeeds []NodeGeomSeed, edgeSeeds []EdgeGe
 }
 
 // lookupNodeRow resolves a numeric buffer NODE-ROW index to its node id via the row table
-// built at load. ok=false for an out-of-range row.
+// built at load. ok=false for an out-of-range row OR an in-range but EMPTY row — a gap left
+// by a deleted node id (GAPS ARE LEGAL: they never shift later rows), which is exactly as
+// unresolvable as out-of-range from a caller's point of view.
 func (rt *rowTables) lookupNodeRow(row int) (nodeID string, ok bool) {
-	if row < 0 || row >= len(rt.nodeRowTable) {
+	if row < 0 || row >= len(rt.nodeRowTable) || rt.nodeRowTable[row] == "" {
 		return "", false
 	}
 	return rt.nodeRowTable[row], true

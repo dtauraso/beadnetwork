@@ -143,11 +143,12 @@ func (sw *streamWiring) setNodeStreams(
 	// interiorOuts' own "populate the map, leave entries nil when the fd is absent"
 	// shape rather than leaving the whole map nil.
 	sw.driveOuts = map[string][driveSlotsPerNode]io.Writer{}
-	for row, seed := range nodeSeeds {
+	for _, seed := range nodeSeeds {
 		nm, ok := nodeMovers[seed.ID]
 		if !ok {
 			continue
 		}
+		row := seed.Row
 		nFd := nodeBase + row
 		nm.streamOut = os.NewFile(uintptr(nFd), fmt.Sprintf("node-fd%d", nFd))
 		nm.nodeRow = int32(row)

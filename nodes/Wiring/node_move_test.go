@@ -24,18 +24,18 @@ import (
 // sidecars. Read directly off each nodeMover's held geom — the same fields
 // writeStreamFrame reads — rather than through the retired central Trace event path.
 func TestNodeGeometryLabelSidecar(t *testing.T) {
-	// "src" carries an explicit human label; "dst" omits data.label → label falls back to id.
+	// "1" carries an explicit human label; "2" omits data.label → label falls back to id.
 	const topo = `{
 	  "nodes": [
-	    {"id":"src","type":"SrcNode","data":{"label":"Source Node"},"outputs":[{"name":"Out"}],"cascadeEdges":["dst"],"cascadeKinds":{"dst":"SinkNode"}},
-	    {"id":"dst","type":"SinkNode","inputs":[{"name":"In"}],"cascadeEdges":["src"],"cascadeKinds":{"src":"SrcNode"}}
+	    {"id":"1","type":"SrcNode","data":{"label":"Source Node"},"outputs":[{"name":"Out"}],"cascadeEdges":["2"],"cascadeKinds":{"2":"SinkNode"}},
+	    {"id":"2","type":"SinkNode","inputs":[{"name":"In"}],"cascadeEdges":["1"],"cascadeKinds":{"1":"SrcNode"}}
 	  ],
 	  "edges": [
-	    {"label":"e0","kind":"data","source":"src","sourceHandle":"Out","target":"dst","targetHandle":"In"}
+	    {"label":"e0","kind":"data","source":"1","sourceHandle":"Out","target":"2","targetHandle":"In"}
 	  ],
 	  "view": {"nodes": {
-	    "src": {"x": 100, "y": 0, "z": 0},
-	    "dst": {"x": 0,   "y": 0, "z": 0}
+	    "1": {"x": 100, "y": 0, "z": 0},
+	    "2": {"x": 0,   "y": 0, "z": 0}
 	  }}
 	}`
 
@@ -49,11 +49,11 @@ func TestNodeGeometryLabelSidecar(t *testing.T) {
 		t.Fatalf("LoadTopology: %v", err)
 	}
 
-	// Expected label per node id: explicit data.label for src, id fallback for dst.
-	wantLabel := map[string]string{"src": "Source Node", "dst": "dst"}
+	// Expected label per node id: explicit data.label for "1", id fallback for "2".
+	wantLabel := map[string]string{"1": "Source Node", "2": "2"}
 	// Expected Go kind per node id: the node's `type` field, carried for the
 	// new-system kind→color sidecar (row-keyed).
-	wantKind := map[string]string{"src": "SrcNode", "dst": "SinkNode"}
+	wantKind := map[string]string{"1": "SrcNode", "2": "SinkNode"}
 
 	seen := map[string]bool{}
 	for _, nm := range md.mr.nodeMovers {

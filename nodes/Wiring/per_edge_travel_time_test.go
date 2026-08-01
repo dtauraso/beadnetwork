@@ -28,13 +28,13 @@ import (
 func TestFanInRejectedAtLoad(t *testing.T) {
 	const topo = `{
 	  "nodes": [
-	    {"id":"a","type":"SrcNode","outputs":[{"name":"Out"}],"cascadeEdges":["sink"],"cascadeKinds":{"sink":"SinkNode"}},
-	    {"id":"b","type":"SrcNode","outputs":[{"name":"Out"}],"cascadeEdges":["sink"],"cascadeKinds":{"sink":"SinkNode"}},
-	    {"id":"sink","type":"SinkNode","inputs":[{"name":"In"}],"cascadeEdges":["a","b"],"cascadeKinds":{"a":"SrcNode","b":"SrcNode"}}
+	    {"id":"1","type":"SrcNode","outputs":[{"name":"Out"}],"cascadeEdges":["3"],"cascadeKinds":{"3":"SinkNode"}},
+	    {"id":"2","type":"SrcNode","outputs":[{"name":"Out"}],"cascadeEdges":["3"],"cascadeKinds":{"3":"SinkNode"}},
+	    {"id":"3","type":"SinkNode","inputs":[{"name":"In"}],"cascadeEdges":["1","2"],"cascadeKinds":{"1":"SrcNode","2":"SrcNode"}}
 	  ],
 	  "edges": [
-	    {"label":"eA","kind":"data","source":"a","sourceHandle":"Out","target":"sink","targetHandle":"In"},
-	    {"label":"eB","kind":"data","source":"b","sourceHandle":"Out","target":"sink","targetHandle":"In"}
+	    {"label":"eA","kind":"data","source":"1","sourceHandle":"Out","target":"3","targetHandle":"In"},
+	    {"label":"eB","kind":"data","source":"2","sourceHandle":"Out","target":"3","targetHandle":"In"}
 	  ]
 	}`
 	root := writeSpecTree(t, t.TempDir(), topo)

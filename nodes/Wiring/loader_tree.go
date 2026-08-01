@@ -23,6 +23,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -62,7 +63,34 @@ func loadTree(root string) (topoSpec, error) {
 	if err != nil {
 		return spec, fmt.Errorf("loadTree: list nodes dir %s: %w", nodesDir, err)
 	}
-	sort.Strings(nodeDirs)
+	// ROW ID = NODE ID - 1 (declared by the directory name, never derived by sorting). Node
+	// ids ARE numbers — they only appear as strings because they are directory names — and
+	// node identity IS the buffer row index (no id sidecar): a row is decided by parsing the
+	// directory name, not by where it falls after a sort. A directory name that isn't a
+	// number, an id below 1 (ids are 1-based), or a duplicate parsed id is a load error, loud
+	// and naming the offending directory — never a silent fallback. The row space itself
+	// (spec.RowCount) is sized by the LARGEST id found, not by the node count: a deleted node
+	// leaves its row empty rather than collapsing later rows upward — that collapse is
+	// precisely the silent renaming this model removes. There is no ordering left to assert:
+	// loop order below only affects the order edges are appended to spec.Edges, which carries
+	// no row semantics of its own.
+	seenIDs := make(map[int]string, len(nodeDirs))
+	for _, name := range nodeDirs {
+		n, err := strconv.Atoi(name)
+		if err != nil {
+			return spec, fmt.Errorf("loadTree: node directory %q is not a numeric id: %w", name, err)
+		}
+		if n < 1 {
+			return spec, fmt.Errorf("loadTree: node directory %q has id %d, but node ids are 1-based (must be >= 1)", name, n)
+		}
+		if prev, dup := seenIDs[n]; dup {
+			return spec, fmt.Errorf("loadTree: node directories %q and %q both parse to id %d — duplicate node id", prev, name, n)
+		}
+		seenIDs[n] = name
+		if n > spec.RowCount {
+			spec.RowCount = n
+		}
+	}
 
 	for _, nodeID := range nodeDirs {
 		nodeDir := filepath.Join(nodesDir, nodeID)
@@ -130,11 +158,11 @@ func loadTree(root string) (topoSpec, error) {
 
 		// edges/ — this node's OUTGOING edges (adjacency list). Optional subdir: a node
 		// with no outgoing edges simply has no edges/ subdir, which is normal, not an
-		// error. Order rule: edges appear in outer
-		// node-directory-sorted order (already established by the sort.Strings(nodeDirs)
-		// above), then inner sort.Strings(edgeFiles) within each node's edges/ — i.e.
-		// deterministic by (source id, label) lexical order, not by label alone as the
-		// flat single-dir layout gave before this change.
+		// error. Order rule: edges appear in outer node-directory-numeric-sorted order
+		// (already established above), then inner sort.Strings(edgeFiles) within each
+		// node's edges/. Unlike node ids, edge-file names are LABELS, not numbers — a
+		// plain lexicographic string sort is correct here and must stay that way; do not
+		// "fix" this the same way node ids were fixed.
 		edgesDir := filepath.Join(nodeDir, "edges")
 		edgeFiles, err := readDirNames(edgesDir)
 		if err != nil {

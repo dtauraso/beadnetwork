@@ -208,7 +208,7 @@ func (b *buildCtx) buildMoveDispatch() {
 	for i, e := range b.spec.Edges {
 		edgeOrder[i] = e.Label
 	}
-	md := newMoveDispatch(b.nodeGeoms, b.edgeEndpoints, b.tr, nodeOrder, edgeOrder, b.clk, &b.speedSinks)
+	md := newMoveDispatch(b.nodeGeoms, b.edgeEndpoints, b.tr, nodeOrder, edgeOrder, b.clk, &b.speedSinks, b.spec.RowCount)
 	if b.hasScene {
 		// Persisted scene sphere: install it now so md.ui.sceneSphere is consistent straight out
 		// of LoadTopology (a fresh/legacy scene has none — main.go's LoadSceneSphere then
