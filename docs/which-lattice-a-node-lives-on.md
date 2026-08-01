@@ -18,7 +18,7 @@ Drag a node and its own chain of beads slides against it instead of moving with 
 | | radial step | angular step | governs |
 |---|---|---|---|
 | **Scene** (`nodes/Wiring/quantized_layout.go`) | **20.0** | π/12 = **15°** | a node's ABSOLUTE position about the scene centre |
-| **Local polar** (`nodes/wire/layout_holder.go`) | **8.96** | **1°** | a node's distance and bearing to each NEIGHBOUR — what `chain_beads.go` lays beads out from |
+| **Local polar** (was `nodes/wire/layout_holder.go`, deleted with the whole local-polar model — MODEL.md "the polar model") | **8.96** | **1°** | a node's distance and bearing to each NEIGHBOUR — what `chain_beads.go` lays beads out from |
 
 20 is not a multiple of 8.96 (it is 2.23×), so a node cannot sit exactly on both at once.
 "One lattice", as [bead-lattice.md](bead-lattice.md) describes it, was only ever true of the

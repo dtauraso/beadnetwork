@@ -165,17 +165,16 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 				driveBase = 0
 			}
 			// Selection/hover/abc-drag/kind are no longer injected lookups: each
-			// nodeMover owns its OWN selected/hovered/latchedSel/gotDragMsg/dragDelta*
-			// bits, set via moveMsgKindSelect/Hover/Latched/AbcReset messages the gesture
-			// goroutine sends (or, for kindID, resolved once here at construction).
+			// nodeMover owns its OWN selected/hovered/latchedSel bits, set via
+			// moveMsgKindSelect/Hover/Latched messages the gesture goroutine sends (or,
+			// for kindID, resolved once here at construction).
 			// kindIDFor resolves a node's static load-time kind string to its NODE_DEFS
 			// index (Buffer.NodeKindID) — injected so Wiring stays Buffer-independent.
 			md.SetNodeStreams(nodeBase, interiorBase, driveBase, driveWired,
 				md.NodeRowFor,
-				func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount int32, gotForwardMsg uint8, forwardDeltaA, forwardDeltaB, forwardDeltaC, forwardFromRow int32, cascadeRelay uint8, label string, dstNodeRows []int32, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte {
+				func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel uint8, label string, dstNodeRows []int32, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte {
 					return B.BuildNodeStreamFrame(tick, nodeRow, cx, cy, cz, radius, sphereR, vrx, vry, vrz, frx, fry, frz,
-						selected, kindID, hovered, latchedSel, gotDragMsg, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount,
-						gotForwardMsg, forwardDeltaA, forwardDeltaB, forwardDeltaC, forwardFromRow, cascadeRelay,
+						selected, kindID, hovered, latchedSel,
 						label, dstNodeRows, chainBeadOX, chainBeadOY, chainBeadOZ, chainBeadLit, chainBeadLitValue, toStreamEvents(events))
 				},
 				func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte {

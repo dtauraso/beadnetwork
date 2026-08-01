@@ -12,7 +12,6 @@ import (
 	"context"
 	"fmt"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
-	"reflect"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -40,22 +39,6 @@ type buildCtx struct {
 	// COMPOSED (authoritative) centers, not the raw loaded ones. Every node is a root
 	// measured about the scene center — no reference/parent concept.
 	quantizedOffsets map[string]quantizedOffset
-
-	// Phase 1c: double-link LOCAL POLAR data (layout_holder.go) — every domain
-	// double-link (bidirectional edge pair) gives each endpoint its own local
-	// polar to the other, measured with ITSELF as center. Computed AFTER the
-	// quantized layout so it reads the composed (authoritative) centers, and
-	// injected into each built node's LocalPolars field (buildNodes) — additive,
-	// does not feed back into position (quantizedOffsets stays authoritative).
-	localPolars map[string][]wire.LocalPolar
-
-	// localPoles is the per-node measurement pole (rotating_pole.go localPole result)
-	// that localPolars[id]'s entries were quantized about — either the stored
-	// (specNode.LocalPoleTheta/Phi) value carried forward, or freshly computed from live
-	// composed centers when no stored pole exists. Attached to each node's LayoutHolder
-	// (buildNodes, via LayoutHolder.SetPole) so a later drag's requantizePoleTraced
-	// reconstructs unchanged neighbors against the SAME pole this load quantized about.
-	localPoles map[string]dir
 
 	// Phase 4: per-destination-port wire allocation + per-edge geometry.
 	destWire      map[string]*wire.PacedWire
@@ -102,7 +85,6 @@ func buildFromSpec(ctx context.Context, spec topoSpec, tr *T.Trace, clk wire.Clo
 
 	b.computeNodeGeometry()
 	b.computeQuantizedLayout()
-	b.computeLocalPolars()
 	b.computeReachRadii()
 	b.allocateWires()
 	b.buildMoveDispatch()
@@ -171,23 +153,7 @@ func (b *buildCtx) allocateWires() {
 		// edgeStepCount (docs/bead-lattice.md "The count") — the SAME function and the
 		// SAME kind of distance the source node's own chainBeads pass (chain_beads.go)
 		// will keep recomputing once running, so this load-time value and that first
-		// live pass can never disagree. computeLocalPolars (b.localPolars) runs before
-		// this phase and gives every domain-edge pair a LocalPolar entry on both
-		// endpoints, so a lookup miss here is a build-invariant violation, not a
-		// legitimate absence to fall back from — the LocalPolar entry itself is still
-		// required as that existence check, even though its QuantIR is no longer what
-		// feeds the step count.
-		found := false
-		for _, lp := range b.localPolars[e.Source] {
-			if lp.To == e.Target {
-				found = true
-				break
-			}
-		}
-		if !found {
-			panic("allocateWires: no LocalPolar from " + e.Source + " to " + e.Target +
-				" — computeLocalPolars should have populated one for every domain edge")
-		}
+		// live pass can never disagree.
 		dist := nodeWorldPos(srcG).Sub(nodeWorldPos(tgtG)).Length()
 		steps := edgeStepCount(dist, srcG.Kind, tgtG.Kind)
 		edgeSteps[e.Label] = steps
@@ -415,36 +381,6 @@ func (b *buildCtx) buildNodes() error {
 		nd, err := bind.Build(b.ctx, n.ID, n.Data, pb, b.tr, b.nodeGeoms[n.ID])
 		if err != nil {
 			return fmt.Errorf("LoadTopology: build node %q: %w", n.ID, err)
-		}
-		// Attach this node's computed LocalPolars list (layout_holder.go) via the
-		// promoted embedded Wiring.LayoutHolder every kind gets — so the node's
-		// layout goroutine owns it without per-kind wiring. Locate the embedded
-		// *LayoutHolder by reflection (same field-lookup builders.go/loader.go use
-		// elsewhere for port/data injection), then load through its own setter
-		// rather than reflecting on the unexported localPolars field directly, so
-		// this initial load goes through the same entry point every other
-		// LocalPolars access does.
-		if v := reflect.ValueOf(nd).Elem(); v.Kind() == reflect.Struct {
-			if lhField := v.FieldByName("LayoutHolder"); lhField.IsValid() && lhField.CanAddr() {
-				if lh, ok := lhField.Addr().Interface().(*wire.LayoutHolder); ok {
-					if lps, ok := b.localPolars[n.ID]; ok {
-						lh.LoadLocalPolars(lps)
-					}
-					// Attach the measurement pole this load quantized LocalPolars about
-					// (computeLocalPolars: stored pole honored verbatim, else resolved
-					// fresh from live geometry) so a LATER drag's requantizePoleTraced
-					// reconstructs unchanged neighbors against the SAME pole, not an
-					// assumed home pole.
-					if pole, ok := b.localPoles[n.ID]; ok {
-						lh.SetPole(pole)
-					}
-					// Register this node's embedded *Wiring.LayoutHolder with the move
-					// dispatcher so a later drag (RootMove) can route a local-polar
-					// re-quantize to the OWNING node's own holder — MoveDispatch never
-					// copies or owns LocalPolars itself.
-					b.md.lq.layoutHolders[n.ID] = lh
-				}
-			}
 		}
 		nodes = append(nodes, nd)
 	}

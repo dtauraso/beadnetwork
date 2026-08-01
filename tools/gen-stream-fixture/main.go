@@ -47,38 +47,27 @@ type layoutLinkFixture struct {
 }
 
 type nodeFrameFixture struct {
-	Tick             uint32              `json:"tick"`
-	NodeRow          int32               `json:"nodeRow"`
-	CX               float32             `json:"cx"`
-	CY               float32             `json:"cy"`
-	CZ               float32             `json:"cz"`
-	Radius           float32             `json:"radius"`
-	SphereR          float32             `json:"sphereR"`
-	VRX              float32             `json:"vrx"`
-	VRY              float32             `json:"vry"`
-	VRZ              float32             `json:"vrz"`
-	FRX              float32             `json:"frx"`
-	FRY              float32             `json:"fry"`
-	FRZ              float32             `json:"frz"`
-	Selected         uint8               `json:"selected"`
-	KindID           uint8               `json:"kindId"`
-	Hovered          uint8               `json:"hovered"`
-	LatchedSel       uint8               `json:"latchedSel"`
-	GotDragMsg       uint8               `json:"gotDragMsg"`
-	DragDeltaA       int32               `json:"dragDeltaA"`
-	DragDeltaB       int32               `json:"dragDeltaB"`
-	DragDeltaC       int32               `json:"dragDeltaC"`
-	DragRequantCount int32               `json:"dragRequantCount"`
-	GotForwardMsg    uint8               `json:"gotForwardMsg"`
-	ForwardDeltaA    int32               `json:"forwardDeltaA"`
-	ForwardDeltaB    int32               `json:"forwardDeltaB"`
-	ForwardDeltaC    int32               `json:"forwardDeltaC"`
-	ForwardFromRow   int32               `json:"forwardFromRow"`
-	CascadeRelay     uint8               `json:"cascadeRelay"`
-	ChainBeads       []chainBeadFixture  `json:"chainBeads"`
-	Label            string              `json:"label"`
-	LayoutLinks      []layoutLinkFixture `json:"layoutLinks"`
-	Hex              string              `json:"hex"`
+	Tick        uint32              `json:"tick"`
+	NodeRow     int32               `json:"nodeRow"`
+	CX          float32             `json:"cx"`
+	CY          float32             `json:"cy"`
+	CZ          float32             `json:"cz"`
+	Radius      float32             `json:"radius"`
+	SphereR     float32             `json:"sphereR"`
+	VRX         float32             `json:"vrx"`
+	VRY         float32             `json:"vry"`
+	VRZ         float32             `json:"vrz"`
+	FRX         float32             `json:"frx"`
+	FRY         float32             `json:"fry"`
+	FRZ         float32             `json:"frz"`
+	Selected    uint8               `json:"selected"`
+	KindID      uint8               `json:"kindId"`
+	Hovered     uint8               `json:"hovered"`
+	LatchedSel  uint8               `json:"latchedSel"`
+	ChainBeads  []chainBeadFixture  `json:"chainBeads"`
+	Label       string              `json:"label"`
+	LayoutLinks []layoutLinkFixture `json:"layoutLinks"`
+	Hex         string              `json:"hex"`
 }
 
 type edgeFrameFixture struct {
@@ -118,9 +107,7 @@ func buildNodeFrame() nodeFrameFixture {
 		Tick: 4242, NodeRow: 7,
 		CX: 11.5, CY: -12.25, CZ: 13.125, Radius: 14.0625, SphereR: 200.5,
 		VRX: 21.5, VRY: 22.25, VRZ: 23.125, FRX: 24.0625, FRY: 25.5, FRZ: 26.25,
-		Selected: 1, KindID: 3, Hovered: 1, LatchedSel: 0, GotDragMsg: 1,
-		DragDeltaA: -101, DragDeltaB: 102, DragDeltaC: -103, DragRequantCount: 9,
-		GotForwardMsg: 1, ForwardDeltaA: -201, ForwardDeltaB: 202, ForwardDeltaC: -203, ForwardFromRow: 17, CascadeRelay: 1,
+		Selected: 1, KindID: 3, Hovered: 1, LatchedSel: 0,
 		Label:       "widgetNode",
 		LayoutLinks: []layoutLinkFixture{{DstNodeRow: 2}, {DstNodeRow: 9}},
 		ChainBeads: []chainBeadFixture{
@@ -146,11 +133,7 @@ func buildNodeFrame() nodeFrameFixture {
 		f.Tick, f.NodeRow,
 		f.CX, f.CY, f.CZ, f.Radius, f.SphereR,
 		f.VRX, f.VRY, f.VRZ, f.FRX, f.FRY, f.FRZ,
-		f.Selected, f.KindID, f.Hovered, f.LatchedSel, f.GotDragMsg,
-		f.DragDeltaA, f.DragDeltaB, f.DragDeltaC, f.DragRequantCount,
-		f.GotForwardMsg,
-		f.ForwardDeltaA, f.ForwardDeltaB, f.ForwardDeltaC, f.ForwardFromRow,
-		f.CascadeRelay,
+		f.Selected, f.KindID, f.Hovered, f.LatchedSel,
 		f.Label,
 		dstNodeRows,
 		chainOX, chainOY, chainOZ, chainLit, chainLitVal,

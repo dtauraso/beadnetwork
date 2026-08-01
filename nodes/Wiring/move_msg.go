@@ -18,31 +18,10 @@ const (
 	// applyCenter). A drag is always a FREE move -- no equal-radii solve, no
 	// self-trigger cascade.
 	moveMsgKindDrag = "drag"
-	// moveMsgKindNeighborSetC: the plain-neighbor / general edge-length propagation
-	// (requantizeLocalPolars' per-neighbor fan). A dragged node X sends EVERY direct
-	// domain neighbor M this SINGLE ASSIGNMENT -- the new quantized edge length SnapC
-	// (X's own freshly-requantized c to M) and X's fresh FromCenter. M does NOT
-	// re-derive its stored bearing to X: it KEEPS its own persisted
-	// QuantITheta/QuantIPhi to SenderID exactly as stored, writes ONLY the new c onto
-	// that record, and repositions itself at
-	// FromCenter - dir(storedTheta,storedPhi about M's own pole)*newR -- sliding along
-	// its existing viewing direction to the new distance, X held fixed. One hop only: M
-	// never forwards this to its own neighbors, and this never runs any further cascade
-	// (see neighborSetCReposition).
-	moveMsgKindNeighborSetC = "neighborSetC"
-	// moveMsgKindDragStart arms the dragged node X's OWN drag-anchor snapshot: X's
-	// per-neighbor LocalPolar triples AT DRAG START, captured once on X's own goroutine
-	// (nodeMover.handle), so every subsequent requantizeLocalPolars call during the same
-	// drag reports current-minus-ANCHOR (the drag's running total) instead of
-	// current-minus-previous-move-event (which is almost always 0 — RootMove runs on
-	// every ~8ms pointer-move, far finer than one quantize step). Sent from gesture.go's
-	// gestPending->gestDragging transition (the one place a drag begins), the same edge
-	// that already emits tr.AbcDragReset() — see that call site's comment for why it
-	// must not live in RootMove. Sent via the BLOCKING md.sendMove: a dropped drag-start
-	// would silently leave X's anchor either unset (falling back to the
-	// lazy-arm-on-first-commit path below, which is still correct but anchors one commit
-	// later than the true drag start) or, worse, STALE from a prior drag if this were the
-	// second+ drag on the same node — so this must never be dropped, same as drag/center.
+	// moveMsgKindDragStart arms the dragged node X's OWN bead-actor wake
+	// (nodeMover.startBeadDrag, bead_chain.go) — sent from gesture.go's
+	// gestPending->gestDragging transition (the one place a drag begins). Sent via the
+	// BLOCKING md.sendMove: this must never be dropped, same as drag/center.
 	moveMsgKindDragStart = "dragStart"
 	// moveMsgKindDragEnd is dragStart's mirror: sent to the dragged node X's own extIn
 	// when the gesture FSM's drag concludes (gesture.go's gestPointerUp, on EVERY path a
@@ -65,10 +44,6 @@ const (
 	// moveMsgKindLatched tells a node to turn its OWN latchedSel bit on or off (Bool).
 	// See setSelectionUI's doc comment.
 	moveMsgKindLatched = "latched"
-	// moveMsgKindAbcReset tells a node to clear its OWN abc-drag recipient bit
-	// (gotDragMsg/dragDeltaA/B/C) at the start of a new drag. Broadcast to every node
-	// mover from resetAbcDrag.
-	moveMsgKindAbcReset = "abcReset"
 	// moveMsgKindNeighborCenter is the PUSH delivery of a moved node's fresh world
 	// center to one of its direct neighbors, the neighbor's aimed-port partnerCenter
 	// lookup source. Sent from applyCenter (the sole write site of a node's own center)
@@ -79,30 +54,8 @@ const (
 	// center — same value, same timing (the FIFO per-destination retry queue delivers
 	// this before the existing nil-Center re-emit broadcastToEdgesAndPartners sends
 	// right after, so the re-emit always sees the just-pushed center). Reuses the
-	// existing SenderID/FromCenter fields (same shape moveMsgKindNeighborSetC already
-	// carries: sender id + sender's fresh center).
+	// existing SenderID/FromCenter fields.
 	moveMsgKindNeighborCenter = "neighborCenter"
-	// moveMsgKindDeltaForward is the delta-forward full-graph-propagation observability
-	// message: a node selfID that just picked up a delta triple (DeltaA/B/C, the
-	// ORIGINALLY-dragged node's own quantized-triple change) — either as the direct
-	// drag-recipient (moveMsgKindNeighborSetC from the dragged node) or as a forward
-	// recipient (a moveMsgKindDeltaForward from a neighbor that already relayed it) —
-	// forwards the SAME triple to each of its CASCADE-LINK neighbors (every cascade-link
-	// neighbor except whichever one it came from), carrying its OWN id as SenderID (the
-	// forwarder). The receiver records GotForwardMsg/ForwardDeltaA-C/ForwardFromRow on
-	// its own node stream frame (LATEST delta wins, so it stays in sync with a drag that
-	// keeps moving) AND does its OWN relay in turn (nodeMover.forwardDelta), onward to
-	// every cascade-link neighbor the relay rule selects. The cascade-link set is STORED
-	// per-node file data (nodes/<id>/cascade-edges.json, read at load by loader_tree.go)
-	// and now covers the FULL node adjacency, cycle-closing links included — so it is NOT
-	// loop-free by construction. What makes propagation terminate is the PER-KIND relay
-	// rules in forwardDelta and the moveMsgKindDeltaForward handler: PulseLeft and
-	// PulseRight are termini, TimeStart and Pulse route by sender kind, TimeEnd stops.
-	// There is still no runtime visit-tracking and no once-per-drag guard — every move
-	// re-propagates freely and terminates on those rules (measured: 1-6 forwards per
-	// single-node drag). See neighborSetCRequantize's forward step and node_mover.go's
-	// forwardDelta. Pure observability throughout: no re-quantize, no move.
-	moveMsgKindDeltaForward = "deltaForward"
 )
 
 // moveMsg is one entry routed to one of a mover's own dedicated channels (there is no
@@ -144,27 +97,12 @@ type moveMsg struct {
 	// distance to a surface child under the new centers). The nodeMover writes it onto its
 	// held geom so the re-emitted node-geometry streams the correct sphereR during a drag.
 	ReachR float64
-	// FromCenter (Kind == "neighborSetC"): the SENDER's (SenderID's) fresh committed
-	// world center. The receiver repositions itself along its OWN stored bearing to
-	// SenderID at the new distance (see neighborSetCReposition) — receiver-computes.
+	// FromCenter (Kind == "neighborCenter"): the SENDER's (SenderID's) fresh committed
+	// world center, pushed one hop to every direct neighbor's partnerCenters map.
 	FromCenter vec3
-	// SenderID (Kind == "neighborSetC"): the id of the mover whose fresh FromCenter
-	// the receiver repositions itself relative to. (Kind == "deltaForward"): the id of
-	// the FORWARDER (the direct drag-recipient one hop back), not the originally-dragged
-	// node — the forward recipient resolves this to ForwardFromRow via NodeRowFor.
+	// SenderID (Kind == "neighborCenter"): the id of the mover whose fresh FromCenter
+	// this is.
 	SenderID string
-	// SnapC (Kind == "neighborSetC"): the new quantized edge length (whole ticks of
-	// the receiver's own step constant) to write onto the receiver's own LocalPolar
-	// record to SenderID.
-	SnapC int
-	// DeltaA/DeltaB/DeltaC (Kind == "neighborSetC" or "deltaForward"): the DRAGGED node's
-	// own quantized-triple change (newTriple - oldTriple, integer indices) for ITS edge
-	// to this receiver, computed ONCE on SenderID's own goroutine in
-	// requantizeLocalPolars. Pure observability payload — the receiver reports it on the
-	// in-editor drag-log; it never applies it or recomputes its own position from it
-	// (that stays exactly the receiver-computes reposition already in place). Zero if
-	// SenderID had no prior stored triple to this receiver to subtract from.
-	DeltaA, DeltaB, DeltaC int
 	// Target (Kind == "drag"): the raw drag target world position for NodeID's
 	// owner-goroutine commit. Every node is a free move, so this is committed as-is.
 	Target vec3

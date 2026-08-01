@@ -40,53 +40,21 @@ type specNode struct {
 	StepTheta *float64 `json:"stepTheta,omitempty"`
 	StepPhi   *float64 `json:"stepPhi,omitempty"`
 	StepR     *float64 `json:"stepR,omitempty"`
-	// LocalPolars is this node's list of per-neighbor local polars (layout_holder.go
-	// LocalPolar) — one per domain double-link this node is an endpoint of, measured
-	// with ITSELF as center. Absent (nil) → computed fresh at load (computeLocalPolars).
-	LocalPolars []specLocalPolar `json:"localPolars,omitempty"`
-	// LocalPoleTheta/LocalPolePhi is the measurement pole (rotating_pole.go localPole
-	// result) that LocalPolars' stored indices were last quantized about
-	// (memory/feedback_abc_times_constant_not_rederive.md: carry the stored pole forward
-	// rather than re-deriving it). Both absent → no stored pole; computeLocalPolars falls
-	// back to recomputing the pole fresh from live composed centers (the load-time
-	// cart↔polar boundary, unchanged by this).
-	LocalPoleTheta *float64 `json:"localPoleTheta,omitempty"`
-	LocalPolePhi   *float64 `json:"localPolePhi,omitempty"`
 	// CascadeEdges is this node's STORED list of cascade-neighbor ids (nodes/<id>/
-	// cascade-edges.json, loader_tree.go) — the sole source of truth for delta-forward
-	// propagation (nodeMover.forwardDelta) and the cascade-link overlay's rendered pairs.
-	// NOT derived from LocalPolars/the domain-edge adjacency at load (the computed
-	// cascade_links.go machinery was removed) — hand-authored/persisted data. Absent file
-	// → nil (empty list), matching every other per-node optional-file convention here.
+	// cascade-edges.json, loader_tree.go) — the cascade-link overlay's rendered pairs.
+	// Hand-authored/persisted data. Absent file → nil (empty list), matching every other
+	// per-node optional-file convention here.
 	CascadeEdges []string `json:"cascadeEdges,omitempty"`
 	// CascadeKinds maps each CascadeEdges neighbor id → that neighbor's kind name, stored
-	// in the same cascade-edges.json file so a node's cascade channels carry the peer kind
-	// directly (no central id→kind lookup at load). Consumed by nodeMover.forwardDelta for
-	// kind-selective delta routing (see that method). Absent → nil.
+	// in the same cascade-edges.json file. Absent → nil.
 	CascadeKinds map[string]string `json:"cascadeKinds,omitempty"`
-	// Gate marks this node as a two-neighbor GATE node (node_move.go): on a direct
-	// drag it solves its own equal-radii landing position against its two domain
-	// neighbors (derived from LocalPolars, in the same order), commits, and
-	// self-triggers its own edge-c equalize. NOT derivable from degree (other
-	// 2-link nodes exist that are plain leaves) — authored in the spec.
+	// Gate marks this node as a two-neighbor GATE node (node_move.go).
 	//
 	// UNCONSUMED since the rule/gate/anchor cascade was deleted (2026-07-18): still
 	// read/written for meta.json round-trip only (loader_tree.go copies it into
 	// jsonMeta.Gate and back), but no code path branches on it. Do not assume it
 	// drives behavior; grep call sites before relying on it again.
 	Gate bool `json:"gate,omitempty"`
-}
-
-// specLocalPolar mirrors one entry of a node's persisted localPolars list
-// (loader_tree.go jsonMeta.LocalPolars carries the same shape).
-type specLocalPolar struct {
-	To          string  `json:"to"`
-	QuantITheta int     `json:"quantITheta"`
-	QuantIPhi   int     `json:"quantIPhi"`
-	QuantIR     int     `json:"quantIR"`
-	StepTheta   float64 `json:"stepTheta,omitempty"`
-	StepPhi     float64 `json:"stepPhi,omitempty"`
-	StepR       float64 `json:"stepR,omitempty"`
 }
 
 // label returns the node's human label: data.label when present and non-empty,

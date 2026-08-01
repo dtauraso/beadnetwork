@@ -97,9 +97,9 @@
     <p class="eyebrow">wirefold · concurrency · RESOLVED</p>
     <h1>debouncedPersister.mu — a deleted lock, recorded</h1>
     <p class="sub">Every lock in this repo has now been deleted — <code>sceneFileMu</code> and
-    <code>entityFileMu</code> are both gone; <code>LayoutHolder.mu</code> was deleted too
-    (one owner goroutine per node, no lock needed), see
-    <code>docs/layout-holder-architecture.html</code> for that removal; and
+    <code>entityFileMu</code> are both gone; LayoutHolder.mu was deleted too
+    (one owner goroutine per node, no lock needed) — LayoutHolder itself was later deleted
+    entirely along with the local-polar model it held (MODEL.md "the polar model"); and
     <code>Trace.mu</code>, once thought to be the one lock that had to stay because it guarded
     an accumulator that cannot be copied, was deleted too — that claim was true but was never
     what the lock actually guarded in production (see

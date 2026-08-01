@@ -41,11 +41,7 @@ import {
 import {
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius, readNodeSphereR,
   readNodeVRX, readNodeVRY, readNodeVRZ, readNodeFRX, readNodeFRY, readNodeFRZ,
-  readNodeSelected, readNodeKindId, readNodeHovered, readNodeLatchedSel, readNodeGotDragMsg,
-  readNodeDragDeltaA, readNodeDragDeltaB, readNodeDragDeltaC, readNodeDragRequantCount,
-  readNodeGotForwardMsg, readNodeForwardDeltaA, readNodeForwardDeltaB, readNodeForwardDeltaC,
-  readNodeForwardFromRow,
-  readNodeCascadeRelay,
+  readNodeSelected, readNodeKindId, readNodeHovered, readNodeLatchedSel,
   readChainBeadOX,
   readChainBeadOY,
   readChainBeadOZ,
@@ -63,11 +59,7 @@ interface NodeFrameFixture {
   tick: number; nodeRow: number;
   cx: number; cy: number; cz: number; radius: number; sphereR: number;
   vrx: number; vry: number; vrz: number; frx: number; fry: number; frz: number;
-  selected: number; kindId: number; hovered: number; latchedSel: number; gotDragMsg: number;
-  dragDeltaA: number; dragDeltaB: number; dragDeltaC: number; dragRequantCount: number;
-  gotForwardMsg: number; forwardDeltaA: number; forwardDeltaB: number; forwardDeltaC: number;
-  forwardFromRow: number;
-  cascadeRelay: number;
+  selected: number; kindId: number; hovered: number; latchedSel: number;
   chainBeads: { ox: number; oy: number; oz: number; lit: number; litValue: number }[];
   label: string;
   layoutLinks: LayoutLinkFixture[];
@@ -170,17 +162,6 @@ describe("stream fixture cross-language decode", () => {
     expect(readNodeKindId(nv, 0), "kindId").toBe(want.kindId);
     expect(readNodeHovered(nv, 0), "hovered").toBe(want.hovered);
     expect(readNodeLatchedSel(nv, 0), "latchedSel").toBe(want.latchedSel);
-    expect(readNodeGotDragMsg(nv, 0), "gotDragMsg").toBe(want.gotDragMsg);
-    expect(readNodeDragDeltaA(nv, 0), "dragDeltaA").toBe(want.dragDeltaA);
-    expect(readNodeDragDeltaB(nv, 0), "dragDeltaB").toBe(want.dragDeltaB);
-    expect(readNodeDragDeltaC(nv, 0), "dragDeltaC").toBe(want.dragDeltaC);
-    expect(readNodeDragRequantCount(nv, 0), "dragRequantCount").toBe(want.dragRequantCount);
-    expect(readNodeGotForwardMsg(nv, 0), "gotForwardMsg").toBe(want.gotForwardMsg);
-    expect(readNodeForwardDeltaA(nv, 0), "forwardDeltaA").toBe(want.forwardDeltaA);
-    expect(readNodeForwardDeltaB(nv, 0), "forwardDeltaB").toBe(want.forwardDeltaB);
-    expect(readNodeForwardDeltaC(nv, 0), "forwardDeltaC").toBe(want.forwardDeltaC);
-    expect(readNodeForwardFromRow(nv, 0), "forwardFromRow").toBe(want.forwardFromRow);
-    expect(readNodeCascadeRelay(nv, 0), "cascadeRelay").toBe(want.cascadeRelay);
 
     // ChainBead section: node-local offsets, read with the GENERATED ChainBead column
     // readers (the node-stream row stride equals the block's own stride, so there is no

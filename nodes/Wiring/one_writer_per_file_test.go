@@ -1,13 +1,14 @@
 package Wiring
 
 // one_writer_per_file_test.go — pins fact #2 of the one-file-per-goroutine split
-//: each of the five NEW files this
-// split introduced (camera.json, overlays.json, sphere.json, position.json,
-// local-polars.json) has its ON-DISK NAME literal spelled out in exactly ONE place in
-// production (non-test) source — the single path-building function for that file
-// (cameraFilePath / overlaysFilePath / sphereFilePath / positionFilePath /
-// localPolarsFilePath). Every writer, loader and persister-arming call site reaches the file
-// only through that one function; nothing else is allowed to spell the filename itself. A
+//: each of the four NEW files this
+// split introduced (camera.json, overlays.json, sphere.json, position.json) has its
+// ON-DISK NAME literal spelled out in exactly ONE place in production (non-test) source —
+// the single path-building function for that file (cameraFilePath / overlaysFilePath /
+// sphereFilePath / positionFilePath). Every writer, loader and persister-arming call site
+// reaches the file only through that one function; nothing else is allowed to spell the
+// filename itself. There is no local-polars.json any more — a node has no stored record
+// of a NEIGHBOUR's coordinate (MODEL.md "the polar model"). A
 // second writer appearing later — the exact way sceneFileMu and entityFileMus were born in
 // the first place — would need to either reuse the existing path helper (in which case grep
 // for its call sites, not this test, is the tripwire) or hand-roll the filename again, which
@@ -54,7 +55,6 @@ func TestEachSplitFileNameIsSpelledExactlyOnce(t *testing.T) {
 		`"overlays.json"`,
 		`"sphere.json"`,
 		`"position.json"`,
-		`"local-polars.json"`,
 	}
 	for _, name := range names {
 		got := countLiteralOccurrences(t, name)

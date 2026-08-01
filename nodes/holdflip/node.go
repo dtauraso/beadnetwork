@@ -29,7 +29,6 @@ import (
 // (wire.SendLatestNonBlocking) whenever it changes — the same
 // per-goroutine-channel shape as DriveSpeedCh below.
 type Node struct {
-	wire.LayoutHolder
 	Fire         func()
 	EmitGeometry func()
 	// EmitHeldBead, assigned by this kind's own builder, streams the held INPUT value

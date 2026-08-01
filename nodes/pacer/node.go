@@ -14,7 +14,6 @@ import (
 const noValue = Wiring.NoValue
 
 type Node struct {
-	wire.LayoutHolder
 	Fire         func()
 	EmitGeometry func()
 	EmitHeldBead func(held int)

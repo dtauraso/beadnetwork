@@ -31,7 +31,6 @@ import (
 // self-emits noValue from the start (like the Input bootstrap), never inert
 // until fed.
 type PulseRight struct {
-	wire.LayoutHolder
 	Fire         func()
 	EmitGeometry func()
 	// EmitHeldBead, assigned by this kind's own builder, streams the held value as a

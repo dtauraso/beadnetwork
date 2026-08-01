@@ -64,18 +64,16 @@ type MoveDispatch struct {
 	// md.ui.vp/md.ui.ov/md.ui.sceneSphere, which are NOT part of this extraction).
 	sw streamWiring
 	// ui owns the camera/overlay/gesture/selection/abc-drag UI state (ui_state.go).
-	// MoveDispatch's public setSelectionUI/setHoverUI/sendEdgeSelect/resetAbcDrag stay as
+	// MoveDispatchs public setSelectionUI/setHoverUI/sendEdgeSelect stay as
 	// thin delegators so the external API is unchanged.
 	ui uiState
-	// lq owns the quantized cascade-link local-polar move math (quantized_move.go):
-	// quantizedLayout (gates the quantized absolute-scene-polar snap — every node is a
-	// root, measured/derived about the scene center only) and layoutHolders (resolves a
-	// node id to the *LayoutHolder embedded in that node's built struct — the ONLY
-	// route from the drag path (RootMove) to each node's own LayoutHolder; MoveDispatch
-	// does not own or copy LocalPolars itself, it just routes the update to the owning
-	// node). MoveDispatch's public RootMove stays a thin delegator; the several
-	// package-private quantized_move.go methods also stay thin delegators so their
-	// existing in-package call sites (tests, node_move.go, gesture.go) are unchanged.
+	// lq owns the quantized scene-polar move math (quantized_move.go): quantizedLayout
+	// gates the quantized absolute-scene-polar snap — every node is a root,
+	// measured/derived about the scene center only, with no per-neighbour stored
+	// coordinate (MODEL.md "the polar model"). MoveDispatch's public RootMove stays a
+	// thin delegator; the several package-private quantized_move.go methods also stay
+	// thin delegators so their existing in-package call sites (tests, node_move.go,
+	// gesture.go) are unchanged.
 	lq layoutQuantizer
 	// tapToInstall is a TEST-ONLY observability seam: when SetMsgTap is called (before
 	// Start), this is stashed here so any nodeMover constructed AFTER that call (there
@@ -141,7 +139,6 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 	md.mr.edgeMovers = map[string]*edgeMover{}
 	md.mr.edgeOut = map[string]*wire.Out{}
 	md.mr.centerMirror = map[string]vec3{}
-	md.lq.layoutHolders = map[string]*wire.LayoutHolder{}
 	md.ui.ov = defaultOverlayState()
 	md.gs.nodeSeeds = make([]NodeGeomSeed, 0, len(nodeOrder))
 	for _, id := range nodeOrder {
@@ -224,11 +221,6 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 		nm.centerOf = md.centerOfNode
 		ownMover := nm
 		nm.commitLocal = func(_ string, newPos vec3) { md.commitNodeMoveLocal(ownMover, newPos) }
-		nm.neighborSetC = md.neighborSetCRequantize
-		nm.forwardOnce = func(exceptID string, dA, dB, dC int32) { ownMover.forwardDelta(md, exceptID, dA, dB, dC) }
-		// Go 1.22+ loop semantics give each iteration its own id, so this closure safely
-		// captures THIS iteration's id (no shared-variable capture bug).
-		nm.layoutHolderFn = func() *wire.LayoutHolder { return md.lq.layoutHolders[id] }
 		md.mr.nodeMovers[id] = nm
 		// Seed the dispatch goroutine's center mirror from the same load-time geom
 		// (single-threaded setup, before md.Start — no mover goroutine is running yet)
@@ -334,25 +326,6 @@ func (md *MoveDispatch) enqueueFor(nm *nodeMover) func(id string, msg moveMsg) {
 	return md.mr.enqueueFor(nm)
 }
 
-// NOTE (neighborSetC drop history): moveMsgKindNeighborSetC (requantizeLocalPolars'
-// per-neighbor fan, quantized_move.go) used to route through a non-blocking
-// sendMoveLossy — "receiver is mid-cascade and will self-requantize on its own next
-// commit, so a full-inbox drop is safe" was the reasoning, and blocking was avoided to
-// dodge a mutual-adjacency deadlock (two nodes each trying to set-c the other while
-// both inboxes are full and neither is draining). Measuring it under the SAME
-// concurrent mutually-adjacent drag flood TestMutuallyAdjacentDragFloodNoDeadlock
-// drives (TestNeighborSetCDropReachability) showed sendMoveLossy dropping ~98% of
-// NeighborSetC sends (9417/9600 in one run) — the drop path was not a rare backstop,
-// it was silently discarding almost every message. NeighborSetC is now routed through
-// the SENDING node's own retry queue (nm.sendMove in requantizeLocalPolars,
-// see nodeMover.pending), the same decoupling every other per-commit fan in this file
-// already uses (fanEdgesAndPartners) — it gets the same deadlock-avoidance property (the
-// send never blocks the handler goroutine) without ever dropping: an item that can't be
-// delivered right now stays with the sender and is retried on the sender's own next
-// loop cycle instead of being handed to a separate sender goroutine or dropped.
-// TestMutuallyAdjacentDragFloodNoDeadlock still passes with this change, so the deadlock
-// risk sendMoveLossy was guarding against does not require a lossy send.
-
 // setSelectionUI sets the Go-owned selection (node XOR edge, exclusive). Thin delegator
 // to md.ui (ui_state.go).
 func (md *MoveDispatch) setSelectionUI(node, edge string) {
@@ -363,12 +336,6 @@ func (md *MoveDispatch) setSelectionUI(node, edge string) {
 // delegator to md.ui (ui_state.go).
 func (md *MoveDispatch) setHoverUI(node, port string, isInput bool) {
 	md.ui.setHoverUI(md.sendMove, node, port, isInput)
-}
-
-// resetAbcDrag re-scopes the recipient SET to the drag about to start. Thin delegator to
-// md.ui (ui_state.go).
-func (md *MoveDispatch) resetAbcDrag() {
-	md.ui.resetAbcDrag(md.mr.nodeMovers, md.sendMove)
 }
 
 // NodeKind returns the kind string for the given node id, or "" if unknown.
@@ -396,16 +363,9 @@ func (md *MoveDispatch) NodeKind(nodeID string) string {
 	return ""
 }
 
-// Quantized cascade-link local-polar move math (quantized_move.go): thin delegators to
-// md.lq so their existing in-package call sites (tests, node_move.go, gesture.go) are
-// unchanged.
+// Quantized scene-polar move math (quantized_move.go): thin delegators to md.lq so
+// their existing in-package call sites (tests, node_move.go, gesture.go) are unchanged.
 func (md *MoveDispatch) heldCenters() map[string]vec3 { return md.lq.heldCenters(md) }
-func (md *MoveDispatch) requantizePoleTraced(lh *wire.LayoutHolder, updates map[string]vec3) dir {
-	return md.lq.requantizePoleTraced(lh, updates)
-}
-func (md *MoveDispatch) neighborSetCRequantize(selfID, fromID string, selfCenter, fromCenter vec3, deltaA, deltaB, deltaC int) {
-	md.lq.neighborSetCRequantize(md, selfID, fromID, selfCenter, fromCenter, deltaA, deltaB, deltaC)
-}
 func (md *MoveDispatch) commitNodeMoveLocal(nm *nodeMover, newPos vec3) {
 	md.lq.commitNodeMoveLocal(md, nm, newPos)
 }

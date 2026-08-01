@@ -8,7 +8,6 @@ import (
 )
 
 type Node struct {
-	wire.LayoutHolder
 	Fire         func()
 	EmitGeometry func()
 	// EmitNodeBeads streams the live interior buffer (2x2 grid) as node-bead

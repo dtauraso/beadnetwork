@@ -29,7 +29,6 @@ import (
 // steal values from each other. The output is NOT precondition-gated: it self-emits
 // noValue from the start (like the Input bootstrap), never inert until fed.
 type Pulse struct {
-	wire.LayoutHolder
 	Fire         func()
 	EmitGeometry func()
 	// EmitHeldBead, assigned by this kind's own builder, streams the held value as a

@@ -1,8 +1,6 @@
 package Wiring
 
 import (
-	wire "github.com/dtauraso/wirefold/nodes/wire"
-
 	T "github.com/dtauraso/wirefold/Trace"
 )
 
@@ -52,8 +50,12 @@ var commitEdges = []gestureEdge{
 
 // commitDragStart is the drag-start commit action, copied verbatim from the old
 // gestPointerMove commit switch's `case g.dragNode != ""` arm (minus the phase assignment,
-// which the driver now performs from the edge's `to`). Side-effect order preserved exactly:
-// emitViewFrame(KindAbcDragReset) → resetAbcDrag() → sendMove(DragStart).
+// which the driver now performs from the edge's `to`). Side-effect order preserved:
+// latch lastDraggedNode → sendMove(DragStart) (arms the dragged node's bead-actor wake,
+// nodeMover.startBeadDrag). The local-polar drag-log reset
+// (emitViewFrame(KindAbcDragReset) → resetAbcDrag()) that used to run here was deleted
+// with the local-polar model itself (MODEL.md "the polar model") — there is no more
+// per-drag recipient set to re-scope.
 func (md *MoveDispatch) commitDragStart(g *gestureState, ev rawInputMsg, tr *T.Trace) {
 	// Capture the grab offset ONCE, at this exact slop-crossing commit event: the vector
 	// from where the pointer's ray actually hits the drag plane to the node's center. Every
@@ -79,17 +81,9 @@ func (md *MoveDispatch) commitDragStart(g *gestureState, ev rawInputMsg, tr *T.T
 	// dragNodeRow derivation (which reads lastDraggedNode) already reflects this
 	// drag, not the previous one.
 	md.ui.lastDraggedNode = g.dragNode
-	md.emitViewFrame([]wire.RowEvent{{Kind: T.KindAbcDragReset, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}})
-	// Re-scope every recipient's OWN published state the same way, AND zero each
-	// node's own dragRequantCount: the "drag received ×{count}" counter is per-drag,
-	// mirroring the old central accumulator's KindAbcDragReset handling of its
-	// abcDragged/gotDragMsg — both the NAME SET and the count are drag-scoped.
-	md.resetAbcDrag()
-	// Arm the dragged node's OWN drag-anchor snapshot (moveMsgKindDragStart, see
-	// its doc comment in node_move.go) at this same slop-crossing edge — the ONE
-	// place a drag begins — so the in-editor delta log reads the drag's running
-	// total from this exact start point instead of a per-move-event (0,0,0).
-	// Blocking send (md.sendMove, not lossy): this must not be dropped, same as
+	// Arm the dragged node's OWN bead-actor wake (moveMsgKindDragStart, see
+	// nodeMover.startBeadDrag) at this same slop-crossing edge — the ONE place a drag
+	// begins. Blocking send (md.sendMove, not lossy): this must not be dropped, same as
 	// the drag/center kinds it rides alongside.
 	md.sendMove(g.dragNode, moveMsg{Kind: moveMsgKindDragStart, NodeID: g.dragNode})
 }

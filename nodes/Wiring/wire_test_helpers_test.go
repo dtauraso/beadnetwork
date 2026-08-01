@@ -6,7 +6,8 @@ import (
 	"path/filepath"
 	"sort"
 	"testing"
-	"time"
+
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
 // writeTreeFile writes body to <root>/<rel>, creating any missing parent directories.
@@ -125,9 +126,6 @@ func writeSpecTree(t *testing.T, root string, specJSON string) string {
 			StepTheta:       n.StepTheta,
 			StepPhi:         n.StepPhi,
 			StepR:           n.StepR,
-			LocalPolars:     n.LocalPolars,
-			LocalPoleTheta:  n.LocalPoleTheta,
-			LocalPolePhi:    n.LocalPolePhi,
 			Gate:            n.Gate,
 		}
 		metaBody, err := json.Marshal(meta)
@@ -172,10 +170,33 @@ func WriteSpecTree(t *testing.T, root string, specJSON string) string {
 	return writeSpecTree(t, root, specJSON)
 }
 
-// cascadeSettle is the fixed wall-clock window some drag/neighbor tests sleep after a
-// polled convergence, to let any (unwanted) further cascade land before asserting
-// absence. It is a widening window, NOT the proof of absence — the proof is an
-// "abc-drag" breadcrumb count check (see neighbor_setc_test.go / drag_persist_e2e_test.go,
-// abcDragDeltasFor): a fixed sleep alone can silently pass for the wrong reason under
-// load.
-const cascadeSettle = 20 * time.Millisecond
+// quantizedDragTarget returns the position a drag to target actually COMMITS to under the
+// scene lattice — bead CRUD (bead_crud.go, PLAN.md "moving a node is CRUD on the edge
+// beads touching it"): every touching bead (dragTouchingBeads) judges the SAME raw target
+// independently, and resolveBeadCrudMove resolves those verdicts into the node's single
+// committed centre — taken from the BEAD OPERATION along that edge's own chain axis, NEVER
+// from the raw target itself (the raw target is used directly only for a FREE node with no
+// touching beads at all) — the raw target unchanged when quantizedLayout is off. MUST be
+// called BEFORE the drag commits (reads the node's pre-drag center and its neighbours'
+// pre-drag centers as the judging configuration) — calls the EXACT SAME
+// resolveBeadCrudMove commitNodeMoveLocal calls, so this is not an independent oracle of
+// the formula, only of the call.
+func quantizedDragTarget(md *MoveDispatch, nodeID string, target vec3) vec3 {
+	if !md.lq.quantizedLayout {
+		return target
+	}
+	nm, ok := md.mr.nodeMovers[nodeID]
+	if !ok {
+		return target
+	}
+	prev, ok := md.centerOfNode(nodeID)
+	if !ok {
+		return target
+	}
+	beads := dragTouchingBeads(md, nm, prev)
+	if len(beads) == 0 {
+		return target
+	}
+	committed, _ := resolveBeadCrudMove(beads, prev, target, wire.BeadStepR)
+	return committed
+}

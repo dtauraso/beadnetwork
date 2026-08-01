@@ -19,7 +19,6 @@ const noValue = Wiring.NoValue
 // the held bead when the value changes; EmitGeometry publishes its geometry. It
 // produces NO output — it is the end of a time chain.
 type TimeEnd struct {
-	wire.LayoutHolder
 	Fire         func()
 	EmitGeometry func()
 	EmitHeldBead func(held int)
