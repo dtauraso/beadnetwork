@@ -384,61 +384,31 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 				EdgeRow: -1, Slot: -1, Text: value,
 			})
 		}
-		// One coordinate: bead index i. Offset from this node's centre is
-		// selfTorusR + wire.BeadTorusOuterR + i*wire.BeadStepR (docs/bead-lattice.md
-		// "Placement"). "Beads never inside a node" falls out of this tangency, with no
-		// clamp.
-		offsetAt := func(i int) float64 {
-			return selfTorusR + wire.BeadTorusOuterR + float64(i)*wire.BeadStepR
+		// The unit AIM every bead on this edge applies its own fixed node-local offset
+		// against (bead_actor.go's BeadGeometryIn.Aim) — a UNIT vector, never an
+		// R-scaled one; R is baked into each bead's own offsetR at construction
+		// (ensureBeadEdgeActors), not carried in this broadcast.
+		var aim vec3
+		if useLiveAim {
+			// liveDir is ALREADY a unit cartesian direction.
+			aim = liveDir
+		} else {
+			// Fallback: no live center for `to` yet, so the only direction available is
+			// the stored quantized bearing (ndir) — an angle, not a vector — and
+			// polar2cart is the one legitimate cartesian<->polar boundary conversion
+			// (tools/check-no-sqrt-in-chain-beads.sh) to turn it into a unit vector (R=1).
+			aim = polar2cart(polar{R: 1, Theta: ndir.Theta, Phi: ndir.Phi})
 		}
-		// aimUnit is the SAME direction the fallback/live branches below use, just
-		// carried as a plain unit vector rather than re-derived per bead: this is what
-		// gets broadcast to this edge's bead-actor chain (reconcileBeadChain,
-		// bead_chain.go), which resolves each bead's own position from it directly (one
-		// hop, dependency depth 1 — no neighbour read).
-		aimUnit := liveDir
-		if !useLiveAim {
-			aimUnit = polar2cart(polar{R: 1, Theta: ndir.Theta, Phi: ndir.Phi})
-		}
-		// Production call site for the bead-actor primitive (nodes/wire/bead_actor.go,
-		// bead_wake_group.go): nil in every bare-literal test nodeMover, so this stays a
-		// no-op there and chainBeads keeps its pure, synchronous, deterministic contract
-		// (see beadTickFn's own doc comment). In production this reconciles this edge's
-		// live *wire.Bead goroutine count to `count` and broadcasts fresh geometry when
-		// the aim or count changed.
-		var actorChain *edgeBeadChain
-		if m.beadTickFn != nil {
-			actorChain = m.reconcileBeadChain(to, count, offsetAt, aimUnit)
-		}
-		for i := 0; i < count; i++ {
-			var p vec3
-			if actorChain != nil && i < len(actorChain.valid) && actorChain.valid[i] {
-				// The bead's own goroutine already resolved this position from the
-				// broadcast above (or an earlier one at the same aim) — use it rather
-				// than recomputing the identical value here.
-				p = actorChain.last[i].Position
-			} else {
-				d := offsetAt(i)
-				if useLiveAim {
-					// liveDir is ALREADY a unit cartesian direction — scaling it by d
-					// places the bead directly, with no cartesian->polar->cartesian
-					// round trip that would exist only to look like the fallback below.
-					// That round trip is what the fallback still needs (ndir only
-					// carries an angle, not a vector), but here the live measurement
-					// already IS a vector, so converting it to polar and back would just
-					// reintroduce float error for no reason.
-					p = liveDir.Scale(d)
-				} else {
-					// Fallback: no live center for `to` yet, so the only direction
-					// available is the stored quantized bearing (ndir) — an angle, not a
-					// vector — and polar2cart is the one legitimate cartesian<->polar
-					// boundary conversion (tools/check-no-sqrt-in-chain-beads.sh) to turn
-					// it into a placeable offset. R varies per bead by index arithmetic
-					// (d above); Theta/Phi are this neighbour's own fixed bearing,
-					// reused unchanged for every bead on this edge.
-					p = polar2cart(polar{R: d, Theta: ndir.Theta, Phi: ndir.Phi})
-				}
-			}
+		// Bead CRUD (MODEL.md "moving a node is CRUD on the edge beads that touch it"):
+		// grow/shrink this edge's own bead-actor goroutines to `count`, then hand them
+		// this edge's live transform in ONE broadcast hop and read back each bead's OWN
+		// CURRENTLY-HELD position — non-blocking (broadcastAndRead's own doc comment: a
+		// position may be one broadcast stale, by design). chainBeads computes no
+		// position itself past this point.
+		xf := wire.BeadGeometryIn{Center: selfCenter, Aim: aim}
+		ea := m.ensureBeadEdgeActors(to, count, selfTorusR, xf)
+		positions := ea.broadcastAndRead(xf)
+		for i, p := range positions {
 			ox = append(ox, float32(p.X))
 			oy = append(oy, float32(p.Y))
 			oz = append(oz, float32(p.Z))

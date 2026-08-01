@@ -1,14 +1,16 @@
-// bead_actor.go — the render (CHAIN) bead as its own goroutine, per MODEL.md's "Chain
-// (render/placeholder) bead" bullet (docs/beads-are-the-edge.md names this same entity:
-// the node-owned placeholder chain that IS the visual of an edge).
+// bead_actor.go — the render (CHAIN) bead as its own goroutine, per PLAN.md
+// "two clocks per bead, three channel sets" (docs/beads-are-the-edge.md names this same
+// entity: the node-owned placeholder chain that IS the visual of an edge).
 //
-// This is the PRIMITIVE, validated by its own tests (bead_actor_test.go); its production
-// call site is `nodes/Wiring/bead_chain.go`'s reconcileBeadChain/startBeadDrag/endBeadDrag,
-// driven from chainBeads() (nodes/Wiring/chain_beads.go) and the gesture FSM's drag
-// start/end (nodes/Wiring/node_mover.go's handle, gesture.go's gestPointerUp). See
-// MODEL.md's "Chain (render/placeholder) bead" bullet for the live-behaviour summary and
-// its "Known boundary" note, and memory/project_wire_is_straight_line_not_chain.md for why
-// this replaces the O(N²) reverted chain model instead of repeating it.
+// STATUS: this is a PRIMITIVE, validated by its own tests (bead_actor_test.go) but with NO
+// PRODUCTION CALL SITE yet. `nodes/Wiring/chain_beads.go`'s chainBeads() — the function
+// that actually feeds the live content buffer — does not construct a Bead or a
+// BeadWakeGroup; it still computes chain-bead positions the way it always has, per frame,
+// as plain slice entries. Nothing in the running editor uses this file yet. See MODEL.md's
+// "Chain (render/placeholder) bead" bullet, which states the same status, and
+// memory/project_wire_is_straight_line_not_chain.md for why the integration was deferred
+// rather than rushed. Do not read the rest of this comment as a description of live
+// behaviour — it describes what this primitive DOES, in isolation, today.
 //
 // This is a
 // DIFFERENT bead from PacedWire's in-flight VALUE beads (paced_wire.go) — that bead is a
@@ -155,6 +157,15 @@ type Bead struct {
 	anim      beadAnimationState
 	dragging  bool // the ONE mode flag: set by <-wake.Fire, cleared by <-settle.Fire
 
+	// geomGen counts how many geometry broadcasts THIS bead has applied so far.
+	// Written only by the geom case in run(), alongside geomState — a production
+	// reader (the owning node's own goroutine, chain_beads.go) that just issued its
+	// Nth BroadcastGeometry call can block-read this bead's observe channel until it
+	// sees GeomGen==N, which is race-free against interleaved tick/mode pushes on the
+	// same buffered-1 observe channel (those pushes carry a smaller/equal GeomGen,
+	// never a larger one, since only the geom case increments it).
+	geomGen int
+
 	// observe is an OPTIONAL, buffered-1, latest-wins outbox this goroutine pushes its own
 	// snapshot onto after every state change (the same non-blocking drain-then-send shape
 	// SendLatestNonBlocking/SendSpeedNonBlocking already use in clock.go for "one owner
@@ -171,6 +182,7 @@ type BeadSnapshot struct {
 	Dragging bool
 	Lit      bool
 	LitVal   int32
+	GeomGen  int
 }
 
 // NewBead constructs a bead bound to its owning node's channel sets. geom/wake/settle are
@@ -186,6 +198,19 @@ func NewBead(offsetR float64, geom, wake, settle *BroadcastChain, tickCh <-chan 
 		tickCh:  tickCh,
 		stop:    stop,
 	}
+}
+
+// SeedGeometry applies xf directly to this bead's own geometry state and returns the
+// resulting snapshot — NOT a channel operation, and safe only because it is called
+// BEFORE Start(): there is no goroutine running yet to race it, so a plain field write
+// is exactly as safe as any other single-threaded setup step. It exists so a freshly
+// constructed bead's position is valid from construction (PLAN.md: "a first frame never
+// has nothing to read") — without it, a bead started with a still-unfired geometry chain
+// would read as the zero Vec3 until its first broadcast is serviced.
+func (b *Bead) SeedGeometry(xf BeadGeometryIn) BeadSnapshot {
+	b.geomState.applyTransform(xf, b.offsetR)
+	b.geomGen++
+	return BeadSnapshot{Position: b.geomState.position, Dragging: b.dragging, Lit: b.anim.lit, LitVal: b.anim.litVal, GeomGen: b.geomGen}
 }
 
 // (There is deliberately no Position()/Dragging() getter on Bead: any read from a second
@@ -209,7 +234,7 @@ func (b *Bead) pushObserve() {
 	if b.observe == nil {
 		return
 	}
-	snap := BeadSnapshot{Position: b.geomState.position, Dragging: b.dragging, Lit: b.anim.lit, LitVal: b.anim.litVal}
+	snap := BeadSnapshot{Position: b.geomState.position, Dragging: b.dragging, Lit: b.anim.lit, LitVal: b.anim.litVal, GeomGen: b.geomGen}
 	select {
 	case b.observe <- snap:
 		return
@@ -237,6 +262,7 @@ func (b *Bead) run() {
 			// Geometry channel: the ONLY writer of b.geomState. One broadcast hop from
 			// the node, applied directly — no neighbour read, no relaxation.
 			b.geomState.applyTransform(b.geom.Value, b.offsetR)
+			b.geomGen++
 			b.geom = b.geom.Next
 			b.pushObserve()
 		case <-b.wake.Fire:
