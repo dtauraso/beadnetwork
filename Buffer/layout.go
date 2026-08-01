@@ -21,7 +21,7 @@
 package Buffer
 
 // BufLayoutVersion is the schema version. Bump when any column changes.
-const BufLayoutVersion = 39
+const BufLayoutVersion = 40
 
 // BufInteriorSlotsPerNode is the fixed number of interior grid slots reserved per
 // node in the Interior block (a 2x2 held/interior-bead grid: slot = row*2 + col).
@@ -62,6 +62,17 @@ const BufInteriorSlotsPerNode = 4
 // One row per node. Persistent geometry. (Recv/Fire/Send/Arrive/Done events are
 // carried by the EVENT block only — see bufLayoutEvent — not by per-node columns.)
 type bufLayoutNode struct {
+	// NodeId is this node's stable, load-time numeric identity (1-based; ROW ID = NODE ID -
+	// 1, so the loader/mover enforce Id == row+1 by construction — see
+	// persistence-ownership.md and nodes/Wiring/node_mover.go). Before this column, a node's
+	// identity existed ONLY as the row it arrived on: both Go and TS reconstructed it from
+	// position by the SAME offline rule, so a frame could never contradict where it landed —
+	// a permutation would render silently in the wrong place. This column makes that
+	// contradiction detectable: the decoder compares Id against (arrival row + 1) and reports
+	// a mismatch loudly (buffer-decode.ts's decodeNodeStreamFrame) instead of trusting the
+	// row. This is NOT the removed id/label/kind sidecar message (bridge-surface.md's
+	// no-sidecar clause) — it is a column inside the Node block, the same shape as KindId.
+	NodeId  int32   `buf:"i32"` // this node's own numeric id (1-based); row+1 by construction
 	CX      float32 `buf:"f32"` // node center x (world)
 	CY      float32 `buf:"f32"` // node center y (world)
 	CZ      float32 `buf:"f32"` // node center z (world)

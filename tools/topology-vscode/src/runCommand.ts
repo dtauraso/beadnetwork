@@ -46,6 +46,22 @@ const MAX_EDGE_STREAMS = 256;
 // stream_fds.go requires BOTH "node" and "interior" WIREFOLD_STREAM_FDS entries present
 // together (main.go only wires either when both resolve) — see run() below.
 
+// nodeIdForRow / rowForNodeId make the ROW ID = NODE ID - 1 rule (stated in prose above,
+// and in Buffer/stream_fds.go / nodes/Wiring's SetNodeStreams/SetInteriorStreams) into
+// actual arithmetic instead of a comment nobody runs. Every place below that used to pass
+// a bare per-node-pipe `row` into a cache key or a log/error message now goes through one
+// of these, so a divergence between "which pipe" and "which node" would show up as a wrong
+// id somewhere visible (a probe log line, an error message, a replayed frame) instead of
+// silently-correct positional indexing forever hiding the untested rule. Gaps are legal:
+// a deleted node still owns its row (see persistence-ownership.md), so an idle pipe simply
+// means that node id never emits — it does NOT shift any other pipe's identity.
+export function nodeIdForRow(row: number): number {
+  return row + 1;
+}
+export function rowForNodeId(nodeId: number): number {
+  return nodeId - 1;
+}
+
 // MAX_NODE_STREAMS bounds the per-node fd range (mirrors MAX_EDGE_STREAMS) — one
 // dedicated pipe PER NODE for EACH of node/interior. A topology with more nodes than this
 // omits the dedicated per-node NODE/INTERIOR/Port streams entirely.
@@ -832,7 +848,7 @@ export class BuildAndRunRunner {
     this.stream.nodeBufs[row] = rest;
     if (error) {
       this.deadStreams.add(key);
-      const msg = `handleNodeFd(row=${row}): ${error}`;
+      const msg = `handleNodeFd(node=${nodeIdForRow(row)}): ${error}`;
       this.channel?.appendLine(`\n[${msg}]`);
       appendGoError(this.goErrorsFile, msg);
     }
@@ -874,7 +890,7 @@ export class BuildAndRunRunner {
     this.stream.interiorBufs[row] = rest;
     if (error) {
       this.deadStreams.add(key);
-      const msg = `handleInteriorFd(row=${row}): ${error}`;
+      const msg = `handleInteriorFd(node=${nodeIdForRow(row)}): ${error}`;
       this.channel?.appendLine(`\n[${msg}]`);
       appendGoError(this.goErrorsFile, msg);
     }
@@ -904,7 +920,7 @@ export class BuildAndRunRunner {
     this.stream.driveBufs[row][slot] = rest;
     if (error) {
       this.deadStreams.add(key);
-      const msg = `handleDriveFd(row=${row}, slot=${slot}): ${error}`;
+      const msg = `handleDriveFd(node=${nodeIdForRow(row)}, slot=${slot}): ${error}`;
       this.channel?.appendLine(`\n[${msg}]`);
       appendGoError(this.goErrorsFile, msg);
     }

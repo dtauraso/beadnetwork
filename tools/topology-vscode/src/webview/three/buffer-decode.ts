@@ -22,9 +22,30 @@ import {
   EVENT_STRIDE,
   readNodeLabelOff,
   readNodeLabelLen,
+  readNodeNodeId,
   readEdgeEdgeLabelOff,
   readEdgeEdgeLabelLen,
 } from "../../schema/buffer-layout";
+
+// reportNodeIdMismatch is deliberately NOT a static import of ../log/post: that module
+// transitively imports vscode-api.ts, which reads `window` unconditionally at module-eval
+// time (acquireVsCodeApi() caching) — fine in the real webview, but this decoder is also
+// imported directly by node-environment unit tests (stream-fixture.test.ts) with no
+// `window` global, and a static import would crash the whole test file just for importing
+// the decoder. Dynamic-import it, gated on `window` existing, so the webview still gets a
+// real postLog("load-error", …) (routed to .probe/ts-errors.jsonl) while a headless test
+// gets a plain console.error instead — same reasoning as postLog's own window guard.
+function reportNodeIdMismatch(row: number, expectedId: number, statedId: number): void {
+  const message = `node stream frame arrived on row ${row} (expected id ${expectedId}) but carries NodeId ${statedId}`;
+  if (typeof window === "undefined") {
+    // eslint-disable-next-line no-console
+    console.error(`[wirefold] node-id-row-mismatch: ${message}`);
+    return;
+  }
+  void import("../log/post").then(({ postLog }) => {
+    postLog("load-error", { reason: "node-id-row-mismatch", message, arrivalRow: row, statedNodeId: statedId, expectedNodeId: expectedId });
+  });
+}
 import { BUF_VIEW_FRAME_HEADER_SIZE, BUF_EDGE_STREAM_FRAME_HEADER_SIZE, BUF_NODE_STREAM_FRAME_HEADER_SIZE, BUF_INTERIOR_STREAM_FRAME_HEADER_SIZE, NODE_STREAM_LAYOUT_LINK_STRIDE } from "../../schema/frame-tags";
 // Generated (part of BUF_LAYOUT_FINGERPRINT) — re-exported here so existing consumers
 // (buffer-scene.tsx, InteriorBeadInstances.tsx, buffer-log.ts) keep importing it from the
@@ -309,6 +330,22 @@ export function decodeNodeStreamFrame(row: number, buf: ArrayBuffer): DecodedNod
     return lastDecodedNodeStreamByRow.get(row) ?? null;
   }
   const decoded = decodeNodeStreamFrameUncached(buf);
+  if (decoded) {
+    // Identity check made possible by the NodeId column (task/row-fd-identity-parity):
+    // before this column existed, a node's identity WAS the row it arrived on — a frame
+    // could never contradict where it landed, so a permutation would render silently in the
+    // wrong place. ROW ID = NODE ID - 1 is enforced at Go's load time
+    // (persistence-ownership.md) and packed alongside the row by the SAME mover that owns
+    // it (node_mover.go), so a disagreement here means the frame arrived on the wrong
+    // dedicated fd — a bridge-plumbing bug, not a topology error. Report loudly rather than
+    // silently trusting the row, the way every other row-vs-content mismatch in this file
+    // degrades to "".
+    const statedId = readNodeNodeId(decoded.nodeView, 0);
+    const expectedId = row + 1;
+    if (statedId !== expectedId) {
+      reportNodeIdMismatch(row, expectedId, statedId);
+    }
+  }
   lastNodeStreamBufByRow.set(row, buf);
   lastDecodedNodeStreamByRow.set(row, decoded);
   return decoded;

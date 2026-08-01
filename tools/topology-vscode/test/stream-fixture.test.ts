@@ -27,7 +27,7 @@
 // process, no network running) and decodes it (with the real TS decoder, no movers, no
 // wiring). Same shape as the sanctioned persistence exception — bytes on the wire, checked
 // against the real codec on the other side.
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
@@ -39,6 +39,7 @@ import {
   readNodeStreamLayoutLinkDstNodeRow,
 } from "../src/webview/three/buffer-decode";
 import {
+  readNodeNodeId,
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius, readNodeSphereR,
   readNodeVRX, readNodeVRY, readNodeVRZ, readNodeFRX, readNodeFRY, readNodeFRZ,
   readNodeSelected, readNodeKindId, readNodeHovered, readNodeLatchedSel,
@@ -56,7 +57,7 @@ const committedFixturePath = path.join(__dirname, "fixtures", "stream_fixture.js
 
 interface LayoutLinkFixture { dstNodeRow: number }
 interface NodeFrameFixture {
-  tick: number; nodeRow: number;
+  tick: number; nodeRow: number; nodeId: number;
   cx: number; cy: number; cz: number; radius: number; sphereR: number;
   vrx: number; vry: number; vrz: number; frx: number; fry: number; frz: number;
   selected: number; kindId: number; hovered: number; latchedSel: number;
@@ -138,7 +139,10 @@ describe("stream fixture cross-language decode", () => {
   it("decodeNodeStreamFrame agrees with the Go-encoded node fixture", () => {
     const want = fx.nodeFrame;
     const buf = hexToArrayBuffer(want.hex);
-    const decoded = decodeNodeStreamFrame(0, buf);
+    // Decode on the fixture's OWN nodeRow (the fd-arrival row the fixture's NodeId=8 was
+    // built to agree with — nodeId = row+1 by construction), not a hardcoded 0: passing the
+    // wrong row here would itself trip the id/row mismatch report this column exists to add.
+    const decoded = decodeNodeStreamFrame(want.nodeRow, buf);
     expect(decoded, "Go-encoded node stream frame bytes were rejected by the real TS decoder").not.toBeNull();
     if (!decoded) return;
 
@@ -147,6 +151,7 @@ describe("stream fixture cross-language decode", () => {
     expect(decoded.layoutLinkCount).toBe(want.layoutLinks.length);
 
     const nv = decoded.nodeView;
+    expect(readNodeNodeId(nv, 0), "nodeId").toBe(want.nodeId);
     expectClose(readNodeCX(nv, 0), want.cx, "cx");
     expectClose(readNodeCY(nv, 0), want.cy, "cy");
     expectClose(readNodeCZ(nv, 0), want.cz, "cz");
@@ -205,6 +210,31 @@ describe("stream fixture cross-language decode", () => {
     expectClose(readEdgeEY(ev, 0), want.ey, "ey");
     expectClose(readEdgeEZ(ev, 0), want.ez, "ez");
     expect(readEdgeSelected(ev, 0), "selected").toBe(want.selected);
+  });
+
+  it("decodeNodeStreamFrame reports a loud mismatch when NodeId disagrees with the arrival row", () => {
+    // The whole point of the NodeId column: a frame's stated identity can now CONTRADICT the
+    // row it arrived on, and that must be reported loudly, not silently trusted (see
+    // buffer-decode.ts's reportNodeIdMismatch). Decode the same fixture bytes (NodeId=8) on a
+    // row that does NOT satisfy id==row+1.
+    const want = fx.nodeFrame;
+    const wrongRow = want.nodeRow + 1; // id 8 would need row 7, not row 8
+    const buf = hexToArrayBuffer(want.hex);
+    const errors: string[] = [];
+    const spy = vi.spyOn(console, "error").mockImplementation((msg: unknown) => {
+      errors.push(String(msg));
+    });
+    try {
+      const decoded = decodeNodeStreamFrame(wrongRow, buf);
+      // The mismatch is reported, not swallowed — the frame still decodes (the bytes are
+      // otherwise valid), so callers still get a usable view; only the identity check fires.
+      expect(decoded, "a mismatched frame must still decode, only the identity check reports").not.toBeNull();
+    } finally {
+      spy.mockRestore();
+    }
+    expect(errors.some((e) => e.includes("node-id-row-mismatch"))).toBe(true);
+    expect(errors.some((e) => e.includes(`row ${wrongRow}`))).toBe(true);
+    expect(errors.some((e) => e.includes(`NodeId ${want.nodeId}`))).toBe(true);
   });
 
   it("decodeInteriorStreamFrame agrees with the Go-encoded interior fixture", () => {

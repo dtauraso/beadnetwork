@@ -10,12 +10,14 @@ import {
   BUF_HEADER_SIZE,
   // Bead
   // Node
+  NODE_COL_NODE_ID,
   NODE_COL_CX, NODE_COL_CY, NODE_COL_CZ, NODE_COL_RADIUS, NODE_COL_SPHERE_R,
   NODE_COL_SELECTED,
   NODE_COL_KIND_ID,
   NODE_COL_LABEL_OFF, NODE_COL_LABEL_LEN, NODE_COL_HOVERED,
   NODE_STRIDE,
   NODE_COL_VRX, NODE_COL_VRY, NODE_COL_VRZ, NODE_COL_FRX, NODE_COL_FRY, NODE_COL_FRZ,
+  readNodeNodeId,
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius, readNodeSphereR,
   readNodeVRX, readNodeVRY, readNodeVRZ, readNodeFRX, readNodeFRY, readNodeFRZ,
   readNodeSelected,
@@ -62,17 +64,18 @@ function expectF32(got: number, want: number): void {
 
 describe("buffer-layout — Node block", () => {
   it("stride equals packed field sizes", () => {
-    // 5×f32 + 6×f32 (vr/fr normals) + 1×u8 (selected)
+    // 1×i32 (nodeId) + 5×f32 + 6×f32 (vr/fr normals) + 1×u8 (selected)
     //   + 1×u8 (kindId) + 2×u32 (label off/len)
     //   + 1×u8 (hovered) + 1×u8 (latchedSel)
-    //   = (5+6)×4 + 1 + 1 + 8 + 1 + 1 = 56
-    expect(NODE_STRIDE).toBe(56);
+    //   = 4 + (5+6)×4 + 1 + 1 + 8 + 1 + 1 = 60
+    expect(NODE_STRIDE).toBe(60);
   });
 
   it("read helpers decode known bytes correctly", () => {
     const buf = new ArrayBuffer(NODE_STRIDE);
     const dv = new DataView(buf);
 
+    dv.setInt32(NODE_COL_NODE_ID, 42, true);
     dv.setFloat32(NODE_COL_CX, 1.0, true);
     dv.setFloat32(NODE_COL_CY, 2.0, true);
     dv.setFloat32(NODE_COL_CZ, 3.0, true);
@@ -90,6 +93,7 @@ describe("buffer-layout — Node block", () => {
     dv.setUint32(NODE_COL_LABEL_LEN, 4, true);
     dv.setUint8(NODE_COL_HOVERED, 1);
 
+    expect(readNodeNodeId(dv, 0)).toBe(42);
     expectF32(readNodeCX(dv, 0), 1.0);
     expectF32(readNodeCY(dv, 0), 2.0);
     expectF32(readNodeCZ(dv, 0), 3.0);
@@ -244,8 +248,8 @@ describe("buffer-layout — Overlay block", () => {
 // ─ Meta ───────────────────────────────────────────────────────────────────────
 
 describe("buffer-layout — meta", () => {
-  it("schema version is 39", () => {
-    expect(BUF_LAYOUT_VERSION).toBe(39);
+  it("schema version is 40", () => {
+    expect(BUF_LAYOUT_VERSION).toBe(40);
   });
 
   it("header size is 8 bytes (2×u32: tick + layoutLinkCount; no beadCount/nodeCount/portCount/labelBytesCount/portNameBytesCount/edgeCount/edgeLabelBytesCount/eventCount — beads, the node-owner-group blocks, the Edge block, and events are their own tagged/per-owner frames)", () => {

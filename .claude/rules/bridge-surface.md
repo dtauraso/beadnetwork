@@ -40,10 +40,17 @@ carries the TS → Go vocabulary.
 
 ## No sidecar
 
-There is **no id/label/kind sidecar**: node identity is the buffer's **row index**, kind is
-a numeric column, and the human label rides the buffer's Label section via off/len columns
-on the Node block. (A test asserts the removed sidecar message is rejected; do not
-reintroduce one.)
+There is **no id/label/kind sidecar**: node identity, like kind, is a numeric column on the
+Node block (`NodeId`, `.claude/rules/buffer-schema.md`), and the human label rides the
+buffer's Label section via off/len columns. Identity used to be reconstructed from the
+buffer's row index alone — the loader/mover enforce `NodeId == row + 1` by construction
+(`ROW ID = NODE ID - 1`, `.claude/rules/persistence-ownership.md`), so today the two always
+agree, but a bare row could never have been CONTRADICTED by the frame that carried it: a
+misrouted or permuted frame would render silently in the wrong place. `NodeId` closes that —
+`decodeNodeStreamFrame` (buffer-decode.ts) compares the frame's stated id against its
+arrival row and reports a mismatch loudly instead of trusting the row. (A test asserts the
+removed id/label/kind SIDECAR MESSAGE is rejected; a column inside the Node block is the
+same shape as `KindId`, not a second channel, and does not reintroduce one.)
 
 Full architecture (frame shape, stream inventory, synthetic frame tags) is canonical in
 MODEL.md's "Editor surface (TS)" section; see also `memory/feedback_no_single_writer_bridge.md`

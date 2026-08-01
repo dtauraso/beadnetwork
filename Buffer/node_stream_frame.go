@@ -49,7 +49,7 @@ import (
 // channel-binding ROLE, never a place, so it has no row here any more. An edge's own
 // endpoints ride the Edge block's SX..EZ instead (Buffer/edge_stream_frame.go).
 func BuildNodeStreamFrame(
-	tick uint32, nodeRow int32,
+	tick uint32, nodeRow int32, nodeID int32,
 	cx, cy, cz, radius, sphereR float32,
 	vrx, vry, vrz, frx, fry, frz float32,
 	selected, kindID, hovered, latchedSel uint8,
@@ -89,7 +89,7 @@ func BuildNodeStreamFrame(
 	binary.LittleEndian.PutUint32(buf[off:], uint32(chainBeadCount))
 	off += 4
 
-	SetNodeRow(buf[off:off+BufNodeStride], 0, cx, cy, cz, radius, sphereR, vrx, vry, vrz, frx, fry, frz,
+	SetNodeRow(buf[off:off+BufNodeStride], 0, nodeID, cx, cy, cz, radius, sphereR, vrx, vry, vrz, frx, fry, frz,
 		selected, kindID, 0, uint32(len(labelBytes)), hovered, latchedSel)
 	off += BufNodeStride
 

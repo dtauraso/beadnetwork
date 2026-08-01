@@ -31,6 +31,15 @@ func assertU32At(t *testing.T, buf []byte, offset int, want uint32, label string
 	}
 }
 
+// assertI32At asserts that buf[offset:offset+4] equals the LE encoding of want.
+func assertI32At(t *testing.T, buf []byte, offset int, want int32, label string) {
+	t.Helper()
+	got := int32(binary.LittleEndian.Uint32(buf[offset:]))
+	if got != want {
+		t.Errorf("%s: got %v, want %v (at byte offset %d)", label, got, want, offset)
+	}
+}
+
 // assertU8At asserts that buf[offset] equals want.
 func assertU8At(t *testing.T, buf []byte, offset int, want uint8, label string) {
 	t.Helper()
@@ -42,6 +51,7 @@ func assertU8At(t *testing.T, buf []byte, offset int, want uint8, label string) 
 func TestSetNodeRow(t *testing.T) {
 	buf := make([]byte, BufNodeStride)
 	SetNodeRow(buf, 0,
+		42,            // nodeId
 		1.0, 2.0, 3.0, // cx, cy, cz
 		0.5, 0.25, // radius, sphereR
 		0.1, 0.2, 0.3, // vrx, vry, vrz
@@ -53,6 +63,7 @@ func TestSetNodeRow(t *testing.T) {
 		1, // latchedSel
 	)
 
+	assertI32At(t, buf, BufNodeColNodeId, 42, "NodeId")
 	assertF32At(t, buf, BufNodeColCX, 1.0, "CX")
 	assertF32At(t, buf, BufNodeColCY, 2.0, "CY")
 	assertF32At(t, buf, BufNodeColCZ, 3.0, "CZ")
@@ -133,9 +144,9 @@ func TestSetOverlayRow(t *testing.T) {
 }
 
 func TestNodeStrideIsPackedSize(t *testing.T) {
-	// Node block: 5×f32 + 6×f32 (vr/fr normals) + 1×u8 (selected) + 1×u8 (kindID) + 2×u32 (label off/len) + 1×u8 (hovered) + 1×u8 (latchedSel)
-	//           = (5+6)×4 + 1 + 1 + 8 + 1 + 1 = 56
-	want := 5*4 + 6*4 + 1*1 + 1*1 + 2*4 + 1*1 + 1*1
+	// Node block: 1×i32 (nodeId) + 5×f32 + 6×f32 (vr/fr normals) + 1×u8 (selected) + 1×u8 (kindID) + 2×u32 (label off/len) + 1×u8 (hovered) + 1×u8 (latchedSel)
+	//           = 4 + (5+6)×4 + 1 + 1 + 8 + 1 + 1 = 60
+	want := 1*4 + 5*4 + 6*4 + 1*1 + 1*1 + 2*4 + 1*1 + 1*1
 	if BufNodeStride != want {
 		t.Errorf("BufNodeStride = %d, want %d (packed size)", BufNodeStride, want)
 	}

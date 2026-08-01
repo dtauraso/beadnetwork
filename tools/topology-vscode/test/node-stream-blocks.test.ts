@@ -17,7 +17,7 @@ import {
 } from "../src/schema/frame-tags";
 import {
   NODE_STRIDE, INTERIOR_STRIDE, INTERIOR_SLOTS_PER_NODE,
-  NODE_COL_CX, NODE_COL_CY, NODE_COL_CZ, NODE_COL_RADIUS,
+  NODE_COL_NODE_ID, NODE_COL_CX, NODE_COL_CY, NODE_COL_CZ, NODE_COL_RADIUS,
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius,
   readInteriorPresent, readInteriorValue,
   readLayoutLinkSrcNodeRow, readLayoutLinkDstNodeRow,
@@ -65,6 +65,11 @@ function makeNodeStreamFrame(opts: {
   dv.setUint32(12, 0, true); // chainBeadCount = 0
 
   let off = BUF_NODE_STREAM_FRAME_HEADER_SIZE;
+  // NodeId = nodeRow+1 (ROW ID = NODE ID - 1): keeps every decode below agreeing with the
+  // row it's decoded on, so this helper doesn't itself trip the id/row mismatch report
+  // decodeNodeStreamFrame now makes (task/row-fd-identity-parity). A dedicated mismatch is
+  // exercised separately in stream-fixture.test.ts, not diluted across this file's frames.
+  dv.setInt32(off + NODE_COL_NODE_ID, opts.nodeRow + 1, true);
   dv.setFloat32(off + NODE_COL_CX, opts.cx, true);
   dv.setFloat32(off + NODE_COL_CY, opts.cy, true);
   dv.setFloat32(off + NODE_COL_CZ, opts.cz, true);

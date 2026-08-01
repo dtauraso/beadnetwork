@@ -49,6 +49,7 @@ type layoutLinkFixture struct {
 type nodeFrameFixture struct {
 	Tick        uint32              `json:"tick"`
 	NodeRow     int32               `json:"nodeRow"`
+	NodeId      int32               `json:"nodeId"`
 	CX          float32             `json:"cx"`
 	CY          float32             `json:"cy"`
 	CZ          float32             `json:"cz"`
@@ -104,7 +105,7 @@ type streamFixture struct {
 
 func buildNodeFrame() nodeFrameFixture {
 	f := nodeFrameFixture{
-		Tick: 4242, NodeRow: 7,
+		Tick: 4242, NodeRow: 7, NodeId: 8,
 		CX: 11.5, CY: -12.25, CZ: 13.125, Radius: 14.0625, SphereR: 200.5,
 		VRX: 21.5, VRY: 22.25, VRZ: 23.125, FRX: 24.0625, FRY: 25.5, FRZ: 26.25,
 		Selected: 1, KindID: 3, Hovered: 1, LatchedSel: 0,
@@ -130,7 +131,7 @@ func buildNodeFrame() nodeFrameFixture {
 	}
 
 	raw := Buffer.BuildNodeStreamFrame(
-		f.Tick, f.NodeRow,
+		f.Tick, f.NodeRow, f.NodeId,
 		f.CX, f.CY, f.CZ, f.Radius, f.SphereR,
 		f.VRX, f.VRY, f.VRZ, f.FRX, f.FRY, f.FRZ,
 		f.Selected, f.KindID, f.Hovered, f.LatchedSel,
