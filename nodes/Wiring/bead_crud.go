@@ -110,8 +110,8 @@ func beadCrudImpliedCentre(verdict beadCrudVerdict, beadCentre, aimDir vec3, bea
 }
 
 // beadCrudResult is one touching bead's non-"none" verdict and the node centre it implies
-// — resolveBeadCrudMove's per-edge working set, kept for observability (breadcrumbs,
-// conflict reporting) alongside the resolved commit.
+// — resolveBeadCrudMove's per-edge working set, kept for observability (breadcrumbs)
+// alongside the resolved commit.
 type beadCrudResult struct {
 	NeighborID string
 	Verdict    beadCrudVerdict
@@ -131,16 +131,17 @@ type beadCrudResult struct {
 //     the raw target directly, matching the historic free-node behaviour.)
 //   - Exactly one touching bead signals a change: its beadCrudImpliedCentre IS the node's
 //     new committed centre.
-//   - More than one touching bead signals a change: if every one of their implied centres
-//     agrees (the same point, within float tolerance), that shared point is the commit —
-//     this is the ordinary multi-edge case (PLAN.md's dK=(-1,+1,0) example, one edge adding
-//     while another removes, both driven by the SAME node move). If they DISAGREE — no two
-//     touching beads can imply two different single points for the one node centre — this
-//     is a genuine conflict in the per-bead verdicts: NOT resolved by averaging, nearest-
-//     to-cursor, or falling back to the drag target (PLAN.md forbids all three). The node
-//     holds its position and conflict=true, so the caller can make the conflict observable
-//     (breadcrumb) rather than silently picking a point.
-func resolveBeadCrudMove(beads []touchingBead, prevPos, nodeDestination vec3, beadLen float64) (committed vec3, results []beadCrudResult, conflict bool) {
+//   - More than one touching bead signals a change: a node with several neighbours has
+//     touching beads on several different chain axes, so their implied centres essentially
+//     never coincide — that is the ORDINARY multi-neighbour case, not a conflict (an earlier
+//     version treated disagreement as a conflict and held the node still, which made every
+//     multi-neighbour node immovable — node 2 could not be dragged at all). The commit is
+//     the implied centre with the SMALLEST displacement from prevPos among all verdicts —
+//     a tie-break over the candidate centres the per-bead CRUD already produced, never an
+//     average, and never the mouse target. Movement stays one bead at a time; an edge whose
+//     verdict implied a larger step reaches it over successive pointer-move events instead
+//     of in one jump (edgeStepCount re-counts against the live distance every commit).
+func resolveBeadCrudMove(beads []touchingBead, prevPos, nodeDestination vec3, beadLen float64) (committed vec3, results []beadCrudResult) {
 	dragVector := nodeDestination.Sub(prevPos)
 	for _, b := range beads {
 		verdict, _ := beadCrudDecide(b.Source, b.Centre, nodeDestination, dragVector, beadLen)
@@ -153,17 +154,18 @@ func resolveBeadCrudMove(beads []touchingBead, prevPos, nodeDestination vec3, be
 		}
 		results = append(results, beadCrudResult{NeighborID: b.NeighborID, Verdict: verdict, Implied: implied})
 	}
-	switch len(results) {
-	case 0:
-		return prevPos, results, false
-	case 1:
-		return results[0].Implied, results, false
-	default:
-		for _, r := range results[1:] {
-			if r.Implied.Sub(results[0].Implied).Length() > 1e-6 {
-				return prevPos, results, true
-			}
-		}
-		return results[0].Implied, results, false
+	if len(results) == 0 {
+		return prevPos, results
 	}
+	// Smallest-displacement is a tie-break, NOT a solver and NOT a selection of one edge's
+	// axis to travel along: it reads only the candidate centres the per-bead CRUD already
+	// produced, never the mouse target, never neighbour geometry, and it averages nothing.
+	best := results[0]
+	bestD := best.Implied.Sub(prevPos).Length()
+	for _, r := range results[1:] {
+		if d := r.Implied.Sub(prevPos).Length(); d < bestD {
+			best, bestD = r, d
+		}
+	}
+	return best.Implied, results
 }

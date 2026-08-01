@@ -141,3 +141,75 @@ func TestBeadCrudNoConfigurationDependence(t *testing.T) {
 		t.Fatalf("verdict depended on configuration: A=%v B=%v for the same relative geometry", verdictA, verdictB)
 	}
 }
+
+// TestResolveBeadCrudMoveThreeNeighborsDisagreeStillMoves pins the exact bug that shipped:
+// a node with THREE neighbours has touching beads on three different chain axes, so their
+// implied centres essentially never coincide — this is the ORDINARY multi-neighbour case,
+// not a conflict, and the node must still MOVE (never hold position). An earlier version
+// treated any disagreement among implied centres as a conflict and held the node still,
+// which made every multi-neighbour node immovable (node 2 could not be dragged at all).
+// resolveBeadCrudMove must pick the implied centre with the SMALLEST displacement from
+// prevPos — never an average of the three, never the raw drag/mouse target.
+func TestResolveBeadCrudMoveThreeNeighborsDisagreeStillMoves(t *testing.T) {
+	prevPos := vec3{X: 0, Y: 0, Z: 0}
+	nodeDestination := vec3{X: 1, Y: 0, Z: 0}
+
+	// Three touching beads, one per neighbour, on three different chain axes (X, Y, Z).
+	// Each beadSource sits close to nodeDestination so every one judges REMOVE
+	// independently — REMOVE's implied centre is the bead's own current centre exactly
+	// (beadCrudImpliedCentre), so the three implied centres below (X=5, Y=3, Z=7) are
+	// necessarily different points, by construction, not by accident.
+	beads := []touchingBead{
+		{NeighborID: "N1", Source: vec3{X: 1, Y: 0, Z: 0}, Centre: vec3{X: 5, Y: 0, Z: 0}, AimDir: vec3{X: 1, Y: 0, Z: 0}},
+		{NeighborID: "N2", Source: vec3{X: 0, Y: 1, Z: 0}, Centre: vec3{X: 0, Y: 3, Z: 0}, AimDir: vec3{X: 0, Y: 1, Z: 0}},
+		{NeighborID: "N3", Source: vec3{X: 0, Y: 0, Z: 1}, Centre: vec3{X: 0, Y: 0, Z: 7}, AimDir: vec3{X: 0, Y: 0, Z: 1}},
+	}
+
+	committed, results := resolveBeadCrudMove(beads, prevPos, nodeDestination, testBeadLen)
+
+	if len(results) != 3 {
+		t.Fatalf("expected all three touching beads to reach a non-none verdict, got %d results: %+v", len(results), results)
+	}
+	for _, r := range results {
+		if r.Verdict != beadCrudRemove {
+			t.Fatalf("test setup invalid: expected every bead to judge REMOVE, got %v for %s", r.Verdict, r.NeighborID)
+		}
+	}
+
+	// The node must MOVE — never hold prevPos on disagreement.
+	if committed == prevPos {
+		t.Fatal("node held its previous position on a three-way disagreement — this is the shipped bug: a multi-neighbour node must still move")
+	}
+
+	// The commit must be one of the per-bead implied centres exactly (N2's, the smallest
+	// displacement from prevPos: |3| < |5| < |7|) — never an average of the three, and
+	// never the raw drag/mouse target.
+	want := vec3{X: 0, Y: 3, Z: 0}
+	if committed != want {
+		t.Fatalf("committed = %+v, want %+v (N2's implied centre, the smallest displacement from prevPos)", committed, want)
+	}
+
+	avg := vec3{
+		X: (5 + 0 + 0) / 3,
+		Y: (0 + 3 + 0) / 3,
+		Z: (0 + 0 + 7) / 3,
+	}
+	if committed == avg {
+		t.Fatal("committed equals the average of the three implied centres — averaging is forbidden")
+	}
+	if committed == nodeDestination {
+		t.Fatal("committed equals the raw mouse/drag target — reading the mouse target is forbidden")
+	}
+
+	// The commit must exactly match one of the results' own Implied centre — never a
+	// synthesized point.
+	matched := false
+	for _, r := range results {
+		if r.Implied == committed {
+			matched = true
+		}
+	}
+	if !matched {
+		t.Fatalf("committed %+v does not match any per-bead implied centre in results %+v", committed, results)
+	}
+}

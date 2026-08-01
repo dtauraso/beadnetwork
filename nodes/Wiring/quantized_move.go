@@ -23,7 +23,6 @@ import (
 	"fmt"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"math"
-	"strings"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -488,24 +487,7 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeMover, 
 		if len(beads) == 0 {
 			committedPos = newPos
 		} else {
-			var results []beadCrudResult
-			var conflict bool
-			committedPos, results, conflict = resolveBeadCrudMove(beads, prevPos, newPos, wire.BeadStepR)
-			// A conflict is a REAL finding about the model, not an error to paper over
-			// (PLAN.md forbids averaging, nearest-to-cursor, and falling back to the drag
-			// target): more than one touching bead implied a DIFFERENT single node centre
-			// for the same event. The node holds its position and this is made observable
-			// rather than silently resolved — see resolveBeadCrudMove's doc comment.
-			if conflict && md.tr != nil {
-				parts := make([]string, 0, len(results))
-				for _, r := range results {
-					parts = append(parts, fmt.Sprintf("%s:verdict=%d implied=(%.4f,%.4f,%.4f)",
-						r.NeighborID, int(r.Verdict), r.Implied.X, r.Implied.Y, r.Implied.Z))
-				}
-				md.tr.Breadcrumb("chain-aim", nodeID, "",
-					fmt.Sprintf("bead-crud CONFLICT: touching beads imply different node centres, holding position; %s",
-						strings.Join(parts, " ")))
-			}
+			committedPos, _ = resolveBeadCrudMove(beads, prevPos, newPos, wire.BeadStepR)
 		}
 		committedPolar = cart2polar(committedPos.Sub(md.ui.sceneSphere.Center))
 		off = measureScalar(committedPolar, nm.quantOffset)
