@@ -1,5 +1,4 @@
 import type React from "react";
-import { createPortal } from "react-dom";
 import { postGoRecord } from "../vscode-api";
 import { encodeDistanceGroupAdjust } from "../../schema/input-layout";
 import { useDistanceGroupLens } from "./overlay-flags";
@@ -16,7 +15,9 @@ import { useDistanceGroupLens } from "./overlay-flags";
 // sends no length value, only which group + which direction) and repositions every
 // pair's target node via RootMove, which rebroadcasts geometry so the node moves and
 // its edge redraws. No local domain state (only ephemeral UI, if any) — mirrors
-// SpeedSlider/AbcDragLabel's portal + reflect pattern.
+// SpeedSlider/AbcDragLabel's reflect pattern. Rendered as a plain JSX child of
+// ThreeView (alongside HomeButton/OverlaysControl in camera-ui.tsx), not a
+// portal — see panelStyle's comment for why that matters for anchoring/scroll.
 const GROUPS: { index: number; label: string }[] = [
   { index: 0, label: "time" },
   { index: 1, label: "input" },
@@ -25,8 +26,6 @@ const GROUPS: { index: number; label: string }[] = [
 
 export function DistanceHomePanel() {
   const lens = useDistanceGroupLens();
-  const mount = document.getElementById("distance-home-mount");
-  if (!mount) return null;
 
   const valueFor = (index: number): number | undefined => {
     if (!lens) return undefined;
@@ -39,7 +38,7 @@ export function DistanceHomePanel() {
     postGoRecord(encodeDistanceGroupAdjust(index, dir));
   };
 
-  return createPortal(
+  return (
     <div style={panelStyle}>
       {GROUPS.map(({ index, label }) => {
         const v = valueFor(index);
@@ -66,8 +65,7 @@ export function DistanceHomePanel() {
           </div>
         );
       })}
-    </div>,
-    mount,
+    </div>
   );
 }
 
@@ -75,10 +73,14 @@ export function DistanceHomePanel() {
 // 11px monospace, #ddd — but laid out as a VERTICAL LIST (one group per row)
 // instead of wrapping inline text.
 const panelStyle: React.CSSProperties = {
-  // Placed directly BELOW the camera HomeButton (camera-ui.tsx: absolute top:44
-  // right:12, inside ThreeView's inset:0 viewport container). Fixed positioning
-  // anchors it under that button regardless of the toolbar mount it portals into.
-  position: "fixed",
+  // Rendered as a JSX sibling of HomeButton/OverlaysControl inside ThreeView's
+  // containerRef div (camera-ui.tsx: absolute top:44 right:12; OverlaysControl:
+  // absolute top:128 right:12) — same `position: absolute` scheme and the SAME
+  // containing block, so this panel anchors and scrolls identically to the fit
+  // button and the overlays control instead of drifting on its own (it used to
+  // be `position: fixed`, portaled into a static toolbar mount elsewhere in the
+  // DOM, which is a different containing block and does not scroll with the page).
+  position: "absolute",
   top: 66,
   right: 12,
   zIndex: 20,
