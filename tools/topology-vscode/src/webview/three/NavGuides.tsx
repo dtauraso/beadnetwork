@@ -13,6 +13,11 @@ import {
   type NavNode, decodeNavNodes, sceneSphereFromSnapshot,
 } from "./buffer-nav";
 
+// WORLD_UP — the axis PolarFrame is drawn poled at. A frame given its own pole rotates as
+// a whole from this axis onto it (PolarFrame's quat), so +y stays the only pole any of the
+// meshes below is written against.
+const WORLD_UP = new THREE.Vector3(0, 1, 0);
+
 // HANDHOLD_TERM_TAG — userData key stamped (value `true`) on the octant angle handhold
 // meshes and the pole-crossing radius handholds to mark them as pickable handholds. This is
 // a PRESENCE marker only — no numeric term crosses the TS→Go bridge (a "polar rule-builder"
@@ -125,8 +130,8 @@ const PHI_CIRCLES: { sx: number; sz: number; n: number; c: string }[] = [
 // the scene frame and a node's frame are distinguishable. Decorative (raycast off),
 // not affected by the scene-tori toggle. Same drawing for every center, so node 2's
 // frame matches the scene's exactly.
-export function PolarFrame({ center, scale, tag, octants }: {
-  center: THREE.Vector3; scale: number; tag?: string; octants?: boolean;
+export function PolarFrame({ center, scale, tag, octants, pole }: {
+  center: THREE.Vector3; scale: number; tag?: string; octants?: boolean; pole?: THREE.Vector3;
 }) {
   const radiusKey = Math.max(Math.round(scale), 1);
   const poleLen = radiusKey * 1.3;
@@ -139,8 +144,17 @@ export function PolarFrame({ center, scale, tag, octants }: {
   const hhR = Math.max(radiusKey * 0.04, 3);   // handhold sphere radius (matches the tori handholds)
   const arcHH = arcR * Math.SQRT1_2;           // a quarter-arc's midpoint radius (45° in its plane)
   const sfx = tag ? ` ${tag}` : "";
+  // The frame is DRAWN poled at +y throughout (every mesh below is placed in that frame);
+  // an alternate pole is applied as one rotation of the whole group, so there is exactly
+  // one place a pole can differ and no per-mesh axis to get wrong. Omitted pole = world +y,
+  // i.e. identity — the frames that don't carry one are byte-identical to before.
+  const quat = useMemo(() => {
+    const q = new THREE.Quaternion();
+    if (pole) q.setFromUnitVectors(WORLD_UP, pole.clone().normalize());
+    return q;
+  }, [pole]);
   return (
-    <group position={[center.x, center.y, center.z]}>
+    <group position={[center.x, center.y, center.z]} quaternion={quat}>
       {/* +Y pole (green). */}
       <mesh position={[0, poleLen / 2, 0]} raycast={() => null}>
         <cylinderGeometry args={[poleRadius, poleRadius, poleLen, 12]} />
@@ -425,12 +439,18 @@ export function NavGuides() {
       {/* Scene pole frame at the content-sphere center. */}
       {showScenePoles && <PolarFrame center={cs.center} scale={radiusKey} />}
       {/* Per-node pole frames — one PolarFrame per node, gated behind nodePolesVisible. */}
+      {/* NODE 1 ONLY carries its streamed pole today (row 0 — ROW ID = NODE ID - 1). The
+          pole is not special to node 1: every node streams its own (Buffer/layout.go
+          PoleTheta/PolePhi), and dropping this row check is all it takes to honour the rest.
+          They are held at world +y for now because only node 1 is vector-connected, so
+          rotating the others is not yet worth the visual churn. */}
       {showNodePoles && navNodes.map((node) => (
         <PolarFrame
           key={node.row}
           center={node.center}
           scale={node.radius}
           tag={`(${node.label})`}
+          pole={node.row === 0 ? node.pole : undefined}
         />
       ))}
       {/* Selected-sphere poles (additional feature) — the center(s) of the sphere(s) the

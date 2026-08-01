@@ -61,3 +61,35 @@ func TestPolarMirrorPhiFlipsOnlyZ(t *testing.T) {
 		t.Errorf("mirror_φ did not negate z: %v vs %v", a, b)
 	}
 }
+
+// TestInwardPoleIsTheReversedSceneDirection asserts what one pure function decides: a
+// node's local frame is poled OPPOSITE its own scene-polar direction, so the frame's +y
+// aims back at the scene centre. Checked as a round trip through cartesian rather than by
+// restating the (π−θ, φ+π) arithmetic — restating it would pass on any consistent sign
+// error, whereas "the pole is the exact negation of the direction" cannot.
+func TestInwardPoleIsTheReversedSceneDirection(t *testing.T) {
+	for _, p := range []polar{
+		{R: 50, Theta: 0.3, Phi: 1.1},
+		{R: 7, Theta: 2.9, Phi: -2.4},
+		{R: 120, Theta: math.Pi / 2, Phi: 0}, // equator, +x
+		{R: 1, Theta: 0, Phi: 0},             // straight up
+		{R: 1, Theta: math.Pi, Phi: 0},       // straight down
+	} {
+		theta, phi := inwardPole(p)
+		got := polar2cart(polar{R: 1, Theta: theta, Phi: phi})
+		want := polar2cart(polar{R: 1, Theta: p.Theta, Phi: p.Phi}).Scale(-1)
+		if math.Abs(got.X-want.X) > 1e-12 || math.Abs(got.Y-want.Y) > 1e-12 || math.Abs(got.Z-want.Z) > 1e-12 {
+			t.Fatalf("inwardPole(%v) = (θ=%v, φ=%v) → %v; want the negated direction %v", p, theta, phi, got, want)
+		}
+	}
+}
+
+// TestInwardPoleAtTheCentreIsWorldUp: r=0 carries θ=φ=0 as a placeholder, not a measured
+// direction (cart2polar's r=0 case), so there is nothing to reverse — reversing the
+// placeholder would aim the frame straight DOWN for a non-geometric reason.
+func TestInwardPoleAtTheCentreIsWorldUp(t *testing.T) {
+	theta, phi := inwardPole(polar{})
+	if theta != 0 || phi != 0 {
+		t.Fatalf("inwardPole(origin) = (%v, %v); want world +y (0, 0)", theta, phi)
+	}
+}

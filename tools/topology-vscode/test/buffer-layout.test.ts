@@ -64,11 +64,11 @@ function expectF32(got: number, want: number): void {
 
 describe("buffer-layout — Node block", () => {
   it("stride equals packed field sizes", () => {
-    // 1×i32 (nodeId) + 5×f32 + 6×f32 (vr/fr normals) + 1×u8 (selected)
-    //   + 1×u8 (kindId) + 2×u32 (label off/len)
+    // 1×i32 (nodeId) + 5×f32 + 6×f32 (vr/fr normals) + 2×f32 (poleTheta/polePhi)
+    //   + 1×u8 (selected) + 1×u8 (kindId) + 2×u32 (label off/len)
     //   + 1×u8 (hovered) + 1×u8 (latchedSel)
-    //   = 4 + (5+6)×4 + 1 + 1 + 8 + 1 + 1 = 60
-    expect(NODE_STRIDE).toBe(60);
+    //   = 4 + (5+6+2)×4 + 1 + 1 + 8 + 1 + 1 = 68
+    expect(NODE_STRIDE).toBe(68);
   });
 
   it("read helpers decode known bytes correctly", () => {

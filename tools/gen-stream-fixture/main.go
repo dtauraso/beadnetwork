@@ -61,6 +61,8 @@ type nodeFrameFixture struct {
 	FRX         float32             `json:"frx"`
 	FRY         float32             `json:"fry"`
 	FRZ         float32             `json:"frz"`
+	PoleTheta   float32             `json:"poleTheta"`
+	PolePhi     float32             `json:"polePhi"`
 	Selected    uint8               `json:"selected"`
 	KindID      uint8               `json:"kindId"`
 	Hovered     uint8               `json:"hovered"`
@@ -108,6 +110,7 @@ func buildNodeFrame() nodeFrameFixture {
 		Tick: 4242, NodeRow: 7, NodeId: 8,
 		CX: 11.5, CY: -12.25, CZ: 13.125, Radius: 14.0625, SphereR: 200.5,
 		VRX: 21.5, VRY: 22.25, VRZ: 23.125, FRX: 24.0625, FRY: 25.5, FRZ: 26.25,
+		PoleTheta: 2.1, PolePhi: -1.3,
 		Selected: 1, KindID: 3, Hovered: 1, LatchedSel: 0,
 		Label:       "widgetNode",
 		LayoutLinks: []layoutLinkFixture{{DstNodeRow: 2}, {DstNodeRow: 9}},
@@ -134,6 +137,7 @@ func buildNodeFrame() nodeFrameFixture {
 		f.Tick, f.NodeRow, f.NodeId,
 		f.CX, f.CY, f.CZ, f.Radius, f.SphereR,
 		f.VRX, f.VRY, f.VRZ, f.FRX, f.FRY, f.FRZ,
+		f.PoleTheta, f.PolePhi,
 		f.Selected, f.KindID, f.Hovered, f.LatchedSel,
 		f.Label,
 		dstNodeRows,
