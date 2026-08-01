@@ -385,11 +385,15 @@ and none is a source of truth.
     at all (a free node with no incident edges) the raw target is used directly.
 
   One drag event can remove beads from some edges and add them to others at once, each
-  independently implying its own new node centre. If two or more touching beads imply
-  DIFFERENT centres for the same event, that is a genuine conflict — never resolved by
-  averaging, by picking whichever is nearest the cursor, or by falling back to the drag
-  target (all three are explicitly rejected). The node holds its position and the conflict
-  is made observable (a breadcrumb naming every disagreeing verdict), not silently resolved.
+  independently implying its own new node centre. A node with several neighbours has
+  touching beads on several different chain axes, so their implied centres essentially
+  never coincide — that is the ORDINARY multi-neighbour case, not a conflict (treating
+  disagreement as a conflict and holding the node still made every multi-neighbour node
+  immovable). The commit is the implied centre with the SMALLEST displacement from the
+  node's previous centre among all verdicts — never an average, never nearest-to-cursor,
+  never the raw drag target. Movement stays one bead at a time; an edge whose verdict
+  implied a larger step reaches it over successive pointer-move events instead of in one
+  jump (`edgeStepCount` re-counts against the live distance every commit).
 
   Bead count on an edge falls out of the resulting geometry as one integer subtraction
   (`nodes/Wiring/chain_beads.go`'s `edgeStepCount`), with the near end tangent to the node's

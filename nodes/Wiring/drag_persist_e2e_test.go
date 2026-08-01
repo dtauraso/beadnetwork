@@ -210,18 +210,18 @@ func TestDragPersistsOnlyDraggedNodeAndRequantizesNeighborsOnDisk(t *testing.T) 
 	// changes the neighbor indices for BOTH B and C (a purely radial move along an
 	// existing bearing would leave theta/phi unchanged for that one neighbor and not
 	// exercise the "angle also changes" half of the model). Under bead CRUD (bead_crud.go,
-	// PLAN.md), A's committed position is driven by EXACTLY ONE touching bead's own verdict
-	// per event (resolveBeadCrudMove refuses to move at all if two touching beads imply
-	// different centres — a genuine conflict, never resolved by picking or averaging); this
-	// fixture's B and C are only ~66 degrees apart, so a direction admitting BOTH edges'
-	// angle gates at once is exactly the conflict case. The direction below is built from
-	// the component of B's own outward bearing ORTHOGONAL to C's, tilted slightly further
-	// away from C, so the angle gate admits B's edge (near-aligned) and blocks C's (pushed
-	// past 90 degrees) — ONE clean verdict (a REMOVE on B's touching bead, so A moves the
-	// full "takes the bead's place" distance, not just the smaller ADD offset), and the
-	// resulting move is still off both leaves' prior bearings (neither purely radial to B
-	// nor to C), so both B's and C's re-quantized local polar to A changes in theta, phi,
-	// AND r.
+	// PLAN.md), A's committed position is driven by the touching bead whose implied centre
+	// has the SMALLEST displacement from A's previous centre when more than one touching
+	// bead signals a change (resolveBeadCrudMove) — a node with several neighbours has
+	// touching beads on several different chain axes, so their implied centres essentially
+	// never coincide; that is the ordinary multi-neighbour case, not a conflict. The
+	// direction below is built from the component of B's own outward bearing ORTHOGONAL to
+	// C's, tilted slightly further away from C, so the angle gate admits B's edge
+	// (near-aligned) and blocks C's (pushed past 90 degrees) — ONE clean verdict (a REMOVE
+	// on B's touching bead, so A moves the full "takes the bead's place" distance, not just
+	// the smaller ADD offset), and the resulting move is still off both leaves' prior
+	// bearings (neither purely radial to B nor to C), so both B's and C's re-quantized local
+	// polar to A changes in theta, phi, AND r.
 	outwardB := centerBefore["B"].Sub(centerBefore["A"]).Normalize()
 	outwardC := centerBefore["C"].Sub(centerBefore["A"]).Normalize()
 	bOrthToC := outwardB.Sub(outwardC.Scale(outwardB.Dot(outwardC)))
