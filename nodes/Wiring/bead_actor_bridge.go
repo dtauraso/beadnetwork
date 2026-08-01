@@ -1,10 +1,6 @@
 package Wiring
 
-import (
-	"maps"
-
-	wire "github.com/dtauraso/wirefold/nodes/wire"
-)
+import wire "github.com/dtauraso/wirefold/nodes/wire"
 
 // bead_actor_bridge.go — wires nodes/wire's bead-actor primitive (bead_actor.go,
 // bead_wake_group.go) into chainBeads (chain_beads.go) as the SOLE source of a chain
@@ -34,20 +30,6 @@ type beadEdgeActors struct {
 	// a valid position, even before that bead's own goroutine has served its first
 	// broadcast.
 	last []wire.BeadSnapshot
-
-	// haveGeom/lastXf/lastCount and haveAnim/lastLitVals are this group's own CHANGE
-	// caches, read only by this node's own goroutine (broadcastAndRead) — what makes idle
-	// cost zero (GAP 3/PLAN.md "idle CPU at zero"): a broadcast is issued only when the
-	// value it would carry actually differs from what was last sent, or a drag is in
-	// progress. Without this, chainBeads issuing a broadcast on EVERY call — whether or not
-	// anything moved — wakes every bead on every emit, which is the defect this cache
-	// closes.
-	haveGeom  bool
-	lastXf    wire.BeadGeometryIn
-	lastCount int
-
-	haveAnim    bool
-	lastLitVals map[int]int32
 }
 
 // ensureBeadEdgeActors returns this node's bead-actor group for target `to`, first
@@ -75,10 +57,10 @@ func (m *nodeMover) ensureBeadEdgeActors(to string, count int, selfTorusR float6
 	for len(ea.beads) < count {
 		i := len(ea.beads)
 		offsetR := selfTorusR + wire.BeadTorusOuterR + float64(i)*wire.BeadStepR
-		geom, wake, settle, anim := ea.group.Current()
+		geom, wake, settle := ea.group.Current()
 		tickCh := wire.NewTickChan()
 		stop := make(chan struct{})
-		b := wire.NewBead(offsetR, i, geom, wake, settle, anim, tickCh, stop)
+		b := wire.NewBead(offsetR, geom, wake, settle, tickCh, stop)
 		obs := b.WithObserve()
 		snap := b.SeedGeometry(xf)
 		b.Start()
@@ -121,59 +103,38 @@ func (m *nodeMover) endAllBeadDrags() {
 	}
 }
 
-// broadcastAndRead delivers this edge's live transform and lit set to every bead in ea in
-// ONE hop each (a single BroadcastGeometry call and a single BroadcastAnim call — never a
-// loop of N sends) and then reads back each bead's own CURRENTLY-HELD snapshot, non-
-// blocking.
+// broadcastAndRead delivers this edge's live transform to every bead in ea in ONE hop (a
+// single BroadcastGeometry call, i.e. one close — not a loop of N sends) and then reads
+// back each bead's own CURRENTLY-HELD snapshot, non-blocking.
 //
-// GAP 3/4 — idle costs zero: each broadcast fires only when what it would carry actually
-// differs from the last thing sent to this group (xf/count for geometry, litVals for
-// anim), OR dragging is true. dragging is this NODE's own single per-drag flag (set once
-// at drag start, cleared once at drag end — nodeMover.dragging), not a per-event toggle:
-// while true, every pointer event re-broadcasts geometry at machine speed (PLAN.md "machine
-// time"); while false and nothing changed, no broadcast is issued at all and every bead on
-// this edge stays parked in its own select, burning zero CPU (PLAN.md "idle CPU at zero").
-// Animation is gated purely on the lit set changing, independent of dragging, since a
-// traversal must keep animating even while nothing is being dragged.
+// This does NOT wait for that broadcast to be applied. Every read here is a `select` with
+// `default:` against that bead's own observe channel: if the bead has already pushed a
+// fresher snapshot, take it and cache it in ea.last; if not — because its goroutine hasn't
+// been scheduled yet, or is mid-tick, or is behind on a run of broadcasts issued faster
+// than it drains (a fast drag can easily issue several BroadcastGeometry calls between two
+// scheduler slices of one bead) — keep the PREVIOUSLY cached value in ea.last and move on.
+// There is no generation match, no loop, no blocking receive anywhere in this function: a
+// bead that is arbitrarily far behind still returns instantly, with a slightly stale
+// position, rather than making this node's own goroutine wait on it.
 //
-// Every read of a bead's own state here is a `select` with `default:` against that bead's
-// own observe channel: if the bead has already pushed a fresher snapshot, take it and cache
-// it in ea.last; if not — because its goroutine hasn't been scheduled yet, or is mid-tick,
-// or is behind on a run of broadcasts issued faster than it drains (a fast drag can easily
-// issue several BroadcastGeometry calls between two scheduler slices of one bead) — keep
-// the PREVIOUSLY cached value in ea.last and move on. There is no generation match, no
-// loop, no blocking receive anywhere in this function: a bead that is arbitrarily far
-// behind still returns instantly, with a slightly stale snapshot, rather than making this
-// node's own goroutine wait on it.
-//
-// A returned snapshot may therefore be up to one broadcast (or a few, under a fast drag)
+// A returned position may therefore be up to one broadcast (or a few, under a fast drag)
 // stale. THAT IS CORRECT under this model, not a bug being tolerated: the bead owns its
-// position AND its own colour, and this node's goroutine reads what they currently are —
-// it does not stop and interrogate the bead for a synchronous answer. The staleness is
-// bounded by one tick of scheduler latency (microseconds) and self-heals on the very next
-// call, which reads whatever the bead has caught up to by then; nothing accumulates,
-// because ea.last is always overwritten with the newest available value, never advanced by
-// waiting.
-func (ea *beadEdgeActors) broadcastAndRead(xf wire.BeadGeometryIn, count int, litVals map[int]int32, dragging bool) []wire.BeadSnapshot {
-	if dragging || !ea.haveGeom || xf != ea.lastXf || count != ea.lastCount {
-		ea.group.BroadcastGeometry(xf)
-		ea.haveGeom = true
-		ea.lastXf = xf
-		ea.lastCount = count
-	}
-	if !ea.haveAnim || !maps.Equal(ea.lastLitVals, litVals) {
-		ea.group.BroadcastAnim(wire.BeadAnimIn{LitVals: litVals})
-		ea.haveAnim = true
-		ea.lastLitVals = litVals
-	}
-	snaps := make([]wire.BeadSnapshot, len(ea.beads))
+// position and this node's goroutine reads what it currently is, exactly like reading any
+// other bead-owned state (Lit/LitVal already work this way) — it does not stop and
+// interrogate the bead for a synchronous answer. The staleness is bounded by one tick of
+// scheduler latency (microseconds) and self-heals on the very next call, which reads
+// whatever the bead has caught up to by then; nothing accumulates, because ea.last is
+// always overwritten with the newest available value, never advanced by waiting.
+func (ea *beadEdgeActors) broadcastAndRead(xf wire.BeadGeometryIn) []wire.Vec3 {
+	ea.group.BroadcastGeometry(xf)
+	positions := make([]wire.Vec3, len(ea.beads))
 	for i, obs := range ea.obs {
 		select {
 		case snap := <-obs:
 			ea.last[i] = snap
 		default:
 		}
-		snaps[i] = ea.last[i]
+		positions[i] = ea.last[i].Position
 	}
-	return snaps
+	return positions
 }
