@@ -34,11 +34,14 @@ import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { getChainBeads } from "./node-stream-blocks";
+import { getViewBlocks } from "./view-blocks";
+import { readOverlayPolarVectors } from "../../schema/buffer-layout";
 import { beadStyleForValue } from "./bead-style";
 import {
   SHADING_PARAM_BEAD_RADIUS,
   SHADING_PARAM_BEAD_RING_TUBE_RATIO,
   SHADING_PARAM_CHAIN_BEAD_FILL,
+  SHADING_PARAM_POLAR_VECTOR_FADE_OPACITY_MULT,
 } from "../../schema/shading-params";
 
 // Bead 1's own ring, worn by every chain bead whether lit or not — the ring is not part of the
@@ -53,6 +56,13 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
   const unlitBodyRef = useRef<THREE.InstancedMesh>(null);
   const litBodyRef = useRef<THREE.InstancedMesh>(null);
   const ringRef = useRef<THREE.InstancedMesh>(null);
+  // Fade materials: the polarVectors overlay's "fade the animation" half — the traversal
+  // lighting recedes along with the nodes while the overlay is on (CLAUDE.md's one-toggle-
+  // three-effects overlay). Refs on the materials so the fade lands the SAME frame as the
+  // bead positions/colours below.
+  const unlitMatRef = useRef<THREE.MeshBasicMaterial>(null);
+  const litMatRef = useRef<THREE.MeshBasicMaterial>(null);
+  const ringMatRef = useRef<THREE.MeshBasicMaterial>(null);
   const matRef = useRef(new THREE.Matrix4());
   const colRef = useRef(new THREE.Color());
 
@@ -61,6 +71,13 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
     const litBody = litBodyRef.current;
     const ring = ringRef.current;
     if (!unlitBody || !litBody || !ring) return;
+
+    const blocks = getViewBlocks();
+    const polarVectorsOn = !!blocks && readOverlayPolarVectors(blocks.overlayView) !== 0;
+    const fadeMult = polarVectorsOn ? SHADING_PARAM_POLAR_VECTOR_FADE_OPACITY_MULT : 1;
+    if (unlitMatRef.current) { unlitMatRef.current.transparent = polarVectorsOn; unlitMatRef.current.opacity = fadeMult; }
+    if (litMatRef.current) { litMatRef.current.transparent = polarVectorsOn; litMatRef.current.opacity = fadeMult; }
+    if (ringMatRef.current) { ringMatRef.current.transparent = polarVectorsOn; ringMatRef.current.opacity = fadeMult; }
 
     const { positions, count, lit, litValue } = getChainBeads();
     // Clamp to the allocated instance count. buffer-scene.tsx's capacity-growth table grows
@@ -128,7 +145,7 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
           silhouette. */}
       <instancedMesh ref={unlitBodyRef} args={[undefined, undefined, capacity]} frustumCulled={false}>
         <sphereGeometry args={[SHADING_PARAM_BEAD_RADIUS, 16, 16]} />
-        <meshBasicMaterial color={SHADING_PARAM_CHAIN_BEAD_FILL} toneMapped={false} />
+        <meshBasicMaterial ref={unlitMatRef} color={SHADING_PARAM_CHAIN_BEAD_FILL} toneMapped={false} transparent={false} opacity={1} />
       </instancedMesh>
       {/* Lit body: the 0/1 bead colours via instanceColor — material colour stays white so
           instanceColor applies verbatim.
@@ -142,13 +159,13 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
           not; sharing a material could never make them equal on screen. */}
       <instancedMesh ref={litBodyRef} args={[undefined, undefined, capacity]} frustumCulled={false}>
         <sphereGeometry args={[SHADING_PARAM_BEAD_RADIUS, 16, 16]} />
-        <meshBasicMaterial toneMapped={false} />
+        <meshBasicMaterial ref={litMatRef} toneMapped={false} transparent={false} opacity={1} />
       </instancedMesh>
       <instancedMesh ref={ringRef} args={[undefined, undefined, capacity]} frustumCulled={false}>
         <torusGeometry
           args={[SHADING_PARAM_BEAD_RADIUS, SHADING_PARAM_BEAD_RADIUS * SHADING_PARAM_BEAD_RING_TUBE_RATIO, 8, 24]}
         />
-        <meshBasicMaterial toneMapped={false} />
+        <meshBasicMaterial ref={ringMatRef} toneMapped={false} transparent={false} opacity={1} />
       </instancedMesh>
     </>
   );

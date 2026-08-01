@@ -207,9 +207,9 @@ describe("buffer-layout — Camera block", () => {
 
 describe("buffer-layout — Overlay block", () => {
   it("stride equals packed field sizes", () => {
-    // 8×u8 + 1×i32 + 3×f32 = 24 (8 overlay flags + DragNodeRow + the "distance home
+    // 9×u8 + 1×i32 + 3×f32 = 25 (9 overlay flags + DragNodeRow + the "distance home
     // button" panel's 3 GroupLen* columns)
-    expect(OVERLAY_STRIDE).toBe(24);
+    expect(OVERLAY_STRIDE).toBe(25);
   });
 
   it("column offsets are 0..7", () => {
@@ -244,8 +244,8 @@ describe("buffer-layout — Overlay block", () => {
 // ─ Meta ───────────────────────────────────────────────────────────────────────
 
 describe("buffer-layout — meta", () => {
-  it("schema version is 38", () => {
-    expect(BUF_LAYOUT_VERSION).toBe(38);
+  it("schema version is 39", () => {
+    expect(BUF_LAYOUT_VERSION).toBe(39);
   });
 
   it("header size is 8 bytes (2×u32: tick + layoutLinkCount; no beadCount/nodeCount/portCount/labelBytesCount/portNameBytesCount/edgeCount/edgeLabelBytesCount/eventCount — beads, the node-owner-group blocks, the Edge block, and events are their own tagged/per-owner frames)", () => {

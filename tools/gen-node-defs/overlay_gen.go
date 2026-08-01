@@ -39,6 +39,7 @@ var overlayOverrides = map[string]overlayOverride{
 	"nodePoles":    {breadcrumb: "nodes"},
 	"overlays":     {method: "OverlaysVis"},
 	"cascadeLinks": {defaultOff: true},
+	"polarVectors": {defaultOff: true},
 }
 
 // parseOverlayFlags reads the OVERLAY_FLAG_NAMES const in messages.ts (bounded by the

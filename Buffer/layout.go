@@ -21,7 +21,7 @@
 package Buffer
 
 // BufLayoutVersion is the schema version. Bump when any column changes.
-const BufLayoutVersion = 38
+const BufLayoutVersion = 39
 
 // BufInteriorSlotsPerNode is the fixed number of interior grid slots reserved per
 // node in the Interior block (a 2x2 held/interior-bead grid: slot = row*2 + col).
@@ -250,6 +250,12 @@ type bufLayoutOverlay struct {
 	// only when this is set. NOT the same thing as the LayoutLink block existing: the data
 	// streams every snapshot regardless, this just gates the render.
 	CascadeLinks uint8 `buf:"u8"` // 1 = layout-link (cascade-link) overlay visible
+	// PolarVectors gates the polar-vector overlay (default OFF, like CascadeLinks): ONE
+	// toggle that fades the nodes AND the traversal (chain-bead) animation while drawing the
+	// two polar vectors prominently (scene-centre->node, node->edge's-first-bead) — see
+	// PolarVectors.tsx, NodeInstances.tsx, ChainBeadInstances.tsx. Deliberately not split
+	// into separate flags: the fade and the emphasis are one visual mode, not three knobs.
+	PolarVectors uint8 `buf:"u8"` // 1 = polar-vector emphasis overlay visible (fades nodes + animation)
 	// DragNodeRow is the row index (into the Node block) of the node currently
 	// being dragged by the gesture FSM (nodes/Wiring/gesture.go g.dragNode),
 	// or -1 when no drag is in progress. Identity rides row index, not a

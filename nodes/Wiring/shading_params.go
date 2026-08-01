@@ -223,3 +223,42 @@ const ShadingParamLayoutLinkEmissive = "#00e5ff"
 
 // ShadingParamLayoutLinkEmissiveIntensity is the layout-link overlay emissive intensity.
 const ShadingParamLayoutLinkEmissiveIntensity = 0.8
+
+// --- Polar-vector overlay (polarVectors flag) --------------------------------
+// One toggle, three effects together: nodes and the traversal (chain-bead) animation
+// recede (opacity multiplied down), while the two polar vectors (scene-centre->node,
+// node->edge's-first-bead) are drawn prominently. See NodeInstances.tsx,
+// ChainBeadInstances.tsx, PolarVectors.tsx.
+
+// ShadingParamPolarVectorFadeOpacityMult is applied to the node body/ring opacity and to
+// the chain-bead (traversal animation) opacity while the overlay is on — both recede by
+// the SAME multiplier so the fade reads as one consistent effect, not two separately
+// tuned ones.
+const ShadingParamPolarVectorFadeOpacityMult = 0.18
+
+// ShadingParamPolarVectorColor is the scene-centre->node vector's line/arrowhead color.
+const ShadingParamPolarVectorColor = "#ffcc33"
+
+// ShadingParamPolarVectorEmissiveIntensity is the scene-centre->node vector's emissive
+// intensity (drawn bright against the faded scene).
+const ShadingParamPolarVectorEmissiveIntensity = 1.4
+
+// ShadingParamPolarVectorTubeRadius is the scene-centre->node vector's tube radius —
+// thicker than the layout-link overlay's so "emphasise" reads as a deliberate design, not
+// a faint line.
+const ShadingParamPolarVectorTubeRadius = 1.6
+
+// ShadingParamPolarVectorBeadVectorColor is the node->first-bead vector's line/arrowhead
+// color — a distinct hue from the scene-centre->node vector so the two vector kinds in
+// the model (MODEL.md "the polar model") stay visually distinguishable.
+const ShadingParamPolarVectorBeadVectorColor = "#33e6ff"
+
+// ShadingParamPolarVectorBeadVectorEmissiveIntensity is the node->first-bead vector's
+// emissive intensity.
+const ShadingParamPolarVectorBeadVectorEmissiveIntensity = 1.4
+
+// ShadingParamPolarVectorArrowheadLength is the polar-vector arrowhead cone height.
+const ShadingParamPolarVectorArrowheadLength = 9.0
+
+// ShadingParamPolarVectorArrowheadRadius is the polar-vector arrowhead cone base radius.
+const ShadingParamPolarVectorArrowheadRadius = 4.5

@@ -88,6 +88,10 @@ const (
 	// KindCascadeLinks carries the cascade-link (layout-link) overlay visibility state.
 	// Default OFF (unlike the other overlay flags).
 	KindCascadeLinks = "cascade-links"
+	// KindPolarVectors carries the polar-vector emphasis overlay visibility state (fades
+	// nodes + the traversal animation, draws the polar vectors prominently). Default OFF,
+	// same as KindCascadeLinks.
+	KindPolarVectors = "polar-vectors"
 	// KindLayoutLink carries one cascade-linked node PAIR from the LAYOUT model
 	// (nodes/Wiring/layout_holder.go LocalPolars, filtered to the cascade-link set —
 	// see nodes/Wiring/cascade_links.go) — NOT the bead-edge graph. Streamed once per
@@ -191,7 +195,7 @@ var BreadcrumbLabels = []string{
 // numeric id for the wire encoding. There is no tsc exhaustiveness check derived from
 // it — adding a kind here does not force a TS branch anywhere; it only extends the
 // lookup table.
-var TraceEventKinds = []string{KindRecv, KindFire, KindSend, KindEdgeBead, KindGeometry, KindNodeGeometry, KindArrive, KindNodeBead, KindCamera, KindSceneTori, KindScenePoles, KindNodePoles, KindSelSpherePoles, KindHandholds, KindLabelsGlobal, KindOverlaysVis, KindCascadeLinks, KindLayoutLink, KindSelect, KindHover, KindSceneSphere, KindAbcDrag, KindAbcDragReset, KindBreadcrumb}
+var TraceEventKinds = []string{KindRecv, KindFire, KindSend, KindEdgeBead, KindGeometry, KindNodeGeometry, KindArrive, KindNodeBead, KindCamera, KindSceneTori, KindScenePoles, KindNodePoles, KindSelSpherePoles, KindHandholds, KindLabelsGlobal, KindOverlaysVis, KindCascadeLinks, KindPolarVectors, KindLayoutLink, KindSelect, KindHover, KindSceneSphere, KindAbcDrag, KindAbcDragReset, KindBreadcrumb}
 
 // PortGeom is one port's authoritative world geometry: its name, whether it is an
 // input, its sphere-surface world position (PX/PY/PZ), and the unit direction from node

@@ -23,6 +23,7 @@ type overlayState struct {
 	labelsGlobalVisible   bool
 	overlaysVisible       bool
 	cascadeLinksVisible   bool
+	polarVectorsVisible   bool
 }
 
 // setFlag flips *field. Shared body of the uniform Toggle* methods. The RowEvent
@@ -74,6 +75,11 @@ func (o *overlayState) ToggleCascadeLinks(tr *T.Trace) {
 	o.setFlag(&o.cascadeLinksVisible)
 }
 
+// TogglePolarVectors flips polarVectorsVisible.
+func (o *overlayState) TogglePolarVectors(tr *T.Trace) {
+	o.setFlag(&o.polarVectorsVisible)
+}
+
 // SetGuideVisibility installs an explicit-visibility snapshot wholesale (the TS
 // startup push so settings survive a Go respawn).
 func (o *overlayState) SetGuideVisibility(ov overlayState) {
@@ -109,6 +115,7 @@ func (md *MoveDispatch) ToggleHandholds(tr *T.Trace)      { md.ui.ov.ToggleHandh
 func (md *MoveDispatch) ToggleLabelsGlobal(tr *T.Trace)   { md.ui.ov.ToggleLabelsGlobal(tr) }
 func (md *MoveDispatch) ToggleOverlaysVis(tr *T.Trace)    { md.ui.ov.ToggleOverlaysVis(tr) }
 func (md *MoveDispatch) ToggleCascadeLinks(tr *T.Trace)   { md.ui.ov.ToggleCascadeLinks(tr) }
+func (md *MoveDispatch) TogglePolarVectors(tr *T.Trace)   { md.ui.ov.TogglePolarVectors(tr) }
 
 // overlayToggles maps an overlay FLAG name (the attr="toggle" wire name) to the
 // MoveDispatch method that flips it.
@@ -123,6 +130,7 @@ var overlayToggles = map[string]func(*MoveDispatch, *T.Trace){
 	"labelsGlobal":   (*MoveDispatch).ToggleLabelsGlobal,
 	"overlays":       (*MoveDispatch).ToggleOverlaysVis,
 	"cascadeLinks":   (*MoveDispatch).ToggleCascadeLinks,
+	"polarVectors":   (*MoveDispatch).TogglePolarVectors,
 }
 
 // OVERLAY_TOGGLES_END

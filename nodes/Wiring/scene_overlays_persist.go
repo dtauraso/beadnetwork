@@ -73,6 +73,10 @@ func writeSceneOverlays(overlaysPath string, ov overlayState) error {
 	if ov.cascadeLinksVisible {
 		obj["cascadeLinksVisible"] = json.RawMessage("true")
 	}
+	// polarVectorsVisible is visible-sense with a FALSE default, same as cascadeLinksVisible.
+	if ov.polarVectorsVisible {
+		obj["polarVectorsVisible"] = json.RawMessage("true")
+	}
 	return writeJSONAtomic(overlaysPath, obj)
 }
 
@@ -107,6 +111,7 @@ type sceneOverlaysFile struct {
 	OverlaysActive        *bool `json:"overlaysActive"`
 	LabelsGlobalHidden    *bool `json:"labelsGlobalHidden"`
 	CascadeLinksVisible   *bool `json:"cascadeLinksVisible"`
+	PolarVectorsVisible   *bool `json:"polarVectorsVisible"`
 }
 
 // loadSceneOverlays reads the persisted overlay-visibility snapshot from overlaysPath
@@ -152,6 +157,10 @@ func loadSceneOverlays(overlaysPath string) (overlayState, bool) {
 		ov.cascadeLinksVisible = *sf.CascadeLinksVisible
 		found = true
 	}
+	if sf.PolarVectorsVisible != nil {
+		ov.polarVectorsVisible = *sf.PolarVectorsVisible
+		found = true
+	}
 	return ov, found
 }
 
@@ -166,7 +175,7 @@ func (md *MoveDispatch) LoadOverlays(topologyPath string, tr *T.Trace) {
 	ov, _ := loadSceneOverlays(overlaysFilePath(topologyPath)) // ov = defaults with any persisted keys applied
 	md.ui.ov.SetGuideVisibility(ov)
 	// Decentralized (Step C, memory/feedback_no_single_writer_bridge.md): the gesture/stdin-reader goroutine
-	// (this one) writes its own VIEW frame directly, carrying the 8 one-time overlay-flag
+	// (this one) writes its own VIEW frame directly, carrying the 9 one-time overlay-flag
 	// events this load implies — one RowEvent per flag kind. Every overlay kind decodes
 	// entirely from the VIEW frame's own Overlay block (buffer-log.ts's decodeEventLine
 	// OVERLAY_KINDS branch) — no row identity to resolve. tr is unused now (kept in the
@@ -180,5 +189,6 @@ func (md *MoveDispatch) LoadOverlays(topologyPath string, tr *T.Trace) {
 		{Kind: T.KindLabelsGlobal, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
 		{Kind: T.KindOverlaysVis, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
 		{Kind: T.KindCascadeLinks, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
+		{Kind: T.KindPolarVectors, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
 	})
 }

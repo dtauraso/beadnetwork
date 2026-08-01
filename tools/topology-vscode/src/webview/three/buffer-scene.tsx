@@ -31,6 +31,7 @@ import { SelectionHighlight, HoverHighlight } from "./SelectionHighlight";
 import { SphereRings } from "./SphereRings";
 import { InteriorBeadInstances } from "./InteriorBeadInstances";
 import { EdgeTubes } from "./EdgeTube";
+import { PolarVectors } from "./PolarVectors";
 import { BufferCamera } from "./BufferCamera";
 import { BufferLabelProjector } from "./BufferLabelProjector";
 
@@ -109,6 +110,7 @@ export function BufferScene({ cameraRef }: {
       <HoverHighlight />
       <SphereRings />
       <EdgeTubes     layoutLinkCapacity={layoutLinkCap} />
+      <PolarVectors />
     </>
   );
 }
