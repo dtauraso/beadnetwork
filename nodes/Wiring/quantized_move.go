@@ -391,17 +391,31 @@ func dragTouchingBeads(md *MoveDispatch, nm *nodeMover, prevPos vec3) []touching
 		}
 		beadCentre := prevPos.Add(aimDir.Scale(selfTorusR + wire.BeadTorusOuterR))
 
+		// A touching bead's SOURCE POINT is the previous bead's centre along its chain, or
+		// the chain origin on the NEIGHBOUR's torus surface when it is the only bead
+		// (MODEL.md's bead-CRUD section) — the SAME rule whichever end of the edge this
+		// node happens to own. Which endpoint stores the edge changes nothing about where
+		// the beads sit.
+		//
+		// This used to special-case `isSource` to `prevPos + aimDir*selfTorusR` — a point
+		// on THIS node's own torus surface, which is neither of the two the model allows.
+		// It broke the rule twice over:
+		//   - |third| at rest became selfTorusR (~5 bead lengths, ~44.8 world units) rather
+		//     than one bead length, so |third| never fell below the one-bead threshold and
+		//     REMOVE could never fire at all; and
+		//   - beadVec came out as +aimDir*BeadTorusOuterR, pointing TOWARD the neighbour
+		//     instead of away from it, inverting the angle gate — dragging AWAY (which
+		//     should open a gap and add a bead) scored > 90 degrees and was blocked, while
+		//     dragging toward admitted an add whose implied centre sat ~31 world units
+		//     away. Hence: drag far in most directions and nothing happens; drag the other
+		//     way and the node jumps.
+		neighborKind := nm.cascadeKinds[neighborID]
+		count := edgeStepCount(dist, neighborKind, nm.selfKind)
 		var beadSource vec3
-		if isSource {
-			beadSource = prevPos.Add(aimDir.Scale(selfTorusR))
+		if count >= 2 {
+			beadSource = beadCentre.Add(aimDir.Scale(wire.BeadStepR))
 		} else {
-			neighborKind := nm.cascadeKinds[neighborID]
-			count := edgeStepCount(dist, neighborKind, nm.selfKind)
-			if count >= 2 {
-				beadSource = beadCentre.Add(aimDir.Scale(wire.BeadStepR))
-			} else {
-				beadSource = neighborCenter.Sub(aimDir.Scale(nodeTorusOuterR(neighborKind)))
-			}
+			beadSource = neighborCenter.Sub(aimDir.Scale(nodeTorusOuterR(neighborKind)))
 		}
 		out = append(out, touchingBead{NeighborID: neighborID, Source: beadSource, Centre: beadCentre, AimDir: aimDir})
 	}

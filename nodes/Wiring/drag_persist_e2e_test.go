@@ -214,19 +214,40 @@ func TestDragPersistsOnlyDraggedNodeAndRequantizesNeighborsOnDisk(t *testing.T) 
 	// has the SMALLEST displacement from A's previous centre when more than one touching
 	// bead signals a change (resolveBeadCrudMove) — a node with several neighbours has
 	// touching beads on several different chain axes, so their implied centres essentially
-	// never coincide; that is the ordinary multi-neighbour case, not a conflict. The
-	// direction below is built from the component of B's own outward bearing ORTHOGONAL to
-	// C's, tilted slightly further away from C, so the angle gate admits B's edge
-	// (near-aligned) and blocks C's (pushed past 90 degrees) — ONE clean verdict (a REMOVE
-	// on B's touching bead, so A moves the full "takes the bead's place" distance, not just
-	// the smaller ADD offset), and the resulting move is still off both leaves' prior
-	// bearings (neither purely radial to B nor to C), so both B's and C's re-quantized local
+	// never coincide; that is the ordinary multi-neighbour case, not a conflict.
+	//
+	// The target below is the MIDPOINT of A's two touching beads' own SOURCE points
+	// (dragTouchingBeads — the previous bead's centre along its chain, or the chain origin
+	// on the neighbour's torus surface when it is the only bead, MODEL.md's bead-CRUD
+	// section). Landing inside beadLen (wire.BeadStepR) of BOTH source points puts BOTH
+	// edges' touching bead under beadCrudDecide's REMOVE branch (`|third| < beadLen`) —
+	// REMOVE has no angle gate (only ADD does, bead_crud.go), so this needs no directional
+	// tuning at all, unlike an ADD-gated construction. resolveBeadCrudMove then commits to
+	// whichever REMOVE's implied centre (the touching bead's own current centre) is closer
+	// to A's previous position; either way that commit lies on ONE neighbour's own chain
+	// axis, off the OTHER neighbour's prior bearing, so both B's and C's re-quantized local
 	// polar to A changes in theta, phi, AND r.
-	outwardB := centerBefore["B"].Sub(centerBefore["A"]).Normalize()
-	outwardC := centerBefore["C"].Sub(centerBefore["A"]).Normalize()
-	bOrthToC := outwardB.Sub(outwardC.Scale(outwardB.Dot(outwardC)))
-	dragDir := bOrthToC.Sub(outwardC.Scale(0.1)).Normalize()
-	target := centerBefore["A"].Add(dragDir.Scale(15))
+	//
+	// (An earlier version of this fixture built the direction from the component of B's
+	// outward bearing orthogonal to C's, tilted slightly further from C, reasoning that this
+	// made the angle gate admit exactly one edge. That reasoning was built against an
+	// INVERTED gate bug in dragTouchingBeads (the `isSource` branch used
+	// `prevPos + aimDir*selfTorusR`, a point on A's own torus, instead of the model's two
+	// legal source points) which pointed beadVec toward the neighbour instead of away,
+	// flipping which drag directions the gate admitted. With the gate corrected, that
+	// direction admits nothing on either edge and A never moves — hence this rebuild.)
+	nmA := md.mr.nodeMovers["A"]
+	beadsA := dragTouchingBeads(md, nmA, centerBefore["A"])
+	var srcB, srcC vec3
+	for _, b := range beadsA {
+		switch b.NeighborID {
+		case "B":
+			srcB = b.Source
+		case "C":
+			srcC = b.Source
+		}
+	}
+	target := srcB.Add(srcC).Scale(0.5)
 	// wantA is the point the drag actually COMMITS to — the scene-lattice-snapped
 	// target, not the raw one (docs/which-lattice-a-node-lives-on.md; commitNodeMoveLocal
 	// now draws/persists the quantized position, never the continuous raw target).
