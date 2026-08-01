@@ -358,6 +358,14 @@ type nodeMover struct {
 	// is valid (lazily initialized on first use), matching every other per-edge map on
 	// this struct.
 	beadEdges map[string]*beadEdgeActors
+
+	// dragging is THIS node's own single per-drag flag — the ONE thing that gates
+	// chainBeads' geometry broadcast between machine time (every call, while true) and
+	// parked (no broadcast unless something actually changed, while false) — GAP 3/4.
+	// Set true by moveMsgKindDragStart, cleared by moveMsgKindDragEnd, exactly once per
+	// drag gesture (never toggled per pointer event) — written and read only by this
+	// node's own goroutine, same single-writer discipline as every other field here.
+	dragging bool
 }
 
 func newNodeMover(id string, geom nodeGeom, tr *T.Trace, clockSrc wire.Clock) *nodeMover {
@@ -431,10 +439,12 @@ func (m *nodeMover) handle(msg moveMsg) {
 	if msg.Kind == moveMsgKindDragStart {
 		m.armDragAnchor()
 		m.startAllBeadDrags()
+		m.dragging = true
 		return
 	}
 	if msg.Kind == moveMsgKindDragEnd {
 		m.endAllBeadDrags()
+		m.dragging = false
 		return
 	}
 	if msg.Kind == moveMsgKindSelect {

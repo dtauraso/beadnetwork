@@ -22,8 +22,8 @@ func newTestBead(offsetR float64) (*Bead, *BeadWakeGroup, chan struct{}, chan st
 	g := NewBeadWakeGroup()
 	tickCh := make(chan struct{})
 	stop := make(chan struct{})
-	geom, wake, settle := g.Current()
-	b := NewBead(offsetR, geom, wake, settle, tickCh, stop)
+	geom, wake, settle, anim := g.Current()
+	b := NewBead(offsetR, 0, geom, wake, settle, anim, tickCh, stop)
 	obs := b.WithObserve()
 	return b, g, tickCh, stop, obs
 }
@@ -88,6 +88,51 @@ func TestAnimationStepDoesNotAdvancePosition(t *testing.T) {
 	}
 }
 
+// TestAnimBroadcastAppliesOwnIndexOnly: GAP 2 — a bead's colour is DECIDED by that bead's
+// own goroutine from a single BroadcastAnim hop, by reading its own index out of the
+// broadcast LitVals map. Two beads on the same group, only one index lit: the lit one
+// reports Lit=true with the right value, the other reports Lit=false — neither reads the
+// other's state, and chainBeads never assigns Lit/LitVal directly (nodes/Wiring's own
+// source guard, check-bead-colour-not-central.sh, covers that half; this is the primitive's
+// own behavioural half).
+func TestAnimBroadcastAppliesOwnIndexOnly(t *testing.T) {
+	g := NewBeadWakeGroup()
+	stop := make(chan struct{})
+	defer close(stop)
+	geom, wake, settle, anim := g.Current()
+
+	b0 := NewBead(0, 0, geom, wake, settle, anim, make(chan struct{}), stop)
+	obs0 := b0.WithObserve()
+	b0.Start()
+
+	b1 := NewBead(BeadStepR, 1, geom, wake, settle, anim, make(chan struct{}), stop)
+	obs1 := b1.WithObserve()
+	b1.Start()
+
+	g.BroadcastAnim(BeadAnimIn{LitVals: map[int]int32{1: 42}})
+
+	snap1, ok := waitForSnapshot(t, obs1, time.Second, func(s BeadSnapshot) bool { return s.Lit })
+	if !ok {
+		t.Fatal("bead at index 1 never reported Lit=true after being named in the broadcast LitVals")
+	}
+	if snap1.LitVal != 42 {
+		t.Fatalf("bead at index 1: LitVal = %d, want 42", snap1.LitVal)
+	}
+
+	// bead 0's own index (0) is absent from LitVals, so it must NOT light up from the same
+	// broadcast — it does not read bead 1's own state, it reads only its own key. bead 0
+	// shares the SAME BeadWakeGroup (and therefore the same anim chain) as bead 1, so it
+	// receives and applies the same broadcast; wait for its own push (the only animation
+	// event either bead has seen) and assert it decided Lit=false for itself.
+	snap0, ok := waitForSnapshot(t, obs0, time.Second, func(s BeadSnapshot) bool { return true })
+	if !ok {
+		t.Fatal("bead at index 0 never applied the shared anim broadcast")
+	}
+	if snap0.Lit {
+		t.Fatalf("bead at index 0 lit up from a broadcast that named only index 1: %+v", snap0)
+	}
+}
+
 // --- Mode switching -------------------------------------------------------------------
 
 // TestModeSwitchingRestsThenDragsThenRests: a bead rests in human-clock mode (dragging ==
@@ -138,9 +183,9 @@ func TestOneHopNotN(t *testing.T) {
 
 			obss := make([]<-chan BeadSnapshot, n)
 			for i := 0; i < n; i++ {
-				geom, wake, settle := g.Current()
+				geom, wake, settle, anim := g.Current()
 				tickCh := make(chan struct{})
-				b := NewBead(float64(i), geom, wake, settle, tickCh, stop)
+				b := NewBead(float64(i), 0, geom, wake, settle, anim, tickCh, stop)
 				obss[i] = b.WithObserve()
 				b.Start()
 			}
@@ -176,9 +221,9 @@ func TestNoDiffusion(t *testing.T) {
 	stop := make(chan struct{})
 	defer close(stop)
 
-	geom, wake, settle := g.Current()
-	b1 := NewBead(1.0, geom, wake, settle, make(chan struct{}), stop)
-	b2 := NewBead(9.0, geom, wake, settle, make(chan struct{}), stop)
+	geom, wake, settle, anim := g.Current()
+	b1 := NewBead(1.0, 0, geom, wake, settle, anim, make(chan struct{}), stop)
+	b2 := NewBead(9.0, 0, geom, wake, settle, anim, make(chan struct{}), stop)
 	obs1 := b1.WithObserve()
 	obs2 := b2.WithObserve()
 	b1.Start()
@@ -301,8 +346,8 @@ func TestWakeSetsEveryAffectedBead(t *testing.T) {
 
 	obss := make([]<-chan BeadSnapshot, n)
 	for i := 0; i < n; i++ {
-		geom, wake, settle := g.Current()
-		b := NewBead(float64(i), geom, wake, settle, make(chan struct{}), stop)
+		geom, wake, settle, anim := g.Current()
+		b := NewBead(float64(i), 0, geom, wake, settle, anim, make(chan struct{}), stop)
 		obss[i] = b.WithObserve()
 		b.Start()
 	}
@@ -337,8 +382,8 @@ func TestAbandonedDragStillSettles(t *testing.T) {
 
 	obss := make([]<-chan BeadSnapshot, n)
 	for i := 0; i < n; i++ {
-		geom, wake, settle := g.Current()
-		b := NewBead(float64(i), geom, wake, settle, make(chan struct{}), stop)
+		geom, wake, settle, anim := g.Current()
+		b := NewBead(float64(i), 0, geom, wake, settle, anim, make(chan struct{}), stop)
 		obss[i] = b.WithObserve()
 		b.Start()
 	}
@@ -435,8 +480,8 @@ func TestFrameBudgetN1000(t *testing.T) {
 
 	obss := make([]<-chan BeadSnapshot, n)
 	for i := 0; i < n; i++ {
-		geom, wake, settle := g.Current()
-		b := NewBead(float64(i), geom, wake, settle, make(chan struct{}), stop)
+		geom, wake, settle, anim := g.Current()
+		b := NewBead(float64(i), 0, geom, wake, settle, anim, make(chan struct{}), stop)
 		obss[i] = b.WithObserve()
 		b.Start()
 	}

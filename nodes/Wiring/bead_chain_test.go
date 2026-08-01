@@ -134,11 +134,11 @@ func TestBroadcastAndReadAppliesPosition(t *testing.T) {
 	deadline := time.Now().Add(500 * time.Millisecond)
 	var got wire.Vec3
 	for {
-		positions := ea.broadcastAndRead(xf1)
-		if len(positions) != 1 {
-			t.Fatalf("broadcastAndRead returned %d positions, want 1", len(positions))
+		snaps := ea.broadcastAndRead(xf1, 1, nil, false)
+		if len(snaps) != 1 {
+			t.Fatalf("broadcastAndRead returned %d snapshots, want 1", len(snaps))
 		}
-		got = positions[0]
+		got = snaps[0].Position
 		if got == want || time.Now().After(deadline) {
 			break
 		}
@@ -163,10 +163,10 @@ func TestBroadcastAndReadAppliesPosition(t *testing.T) {
 // rather than waiting for a reply that will never come.
 func TestBroadcastAndReadNeverBlocksOnUnresponsiveBead(t *testing.T) {
 	group := wire.NewBeadWakeGroup()
-	geom, wake, settle := group.Current()
+	geom, wake, settle, anim := group.Current()
 	stop := make(chan struct{})
 	defer close(stop)
-	b := wire.NewBead(1.0, geom, wake, settle, make(chan struct{}), stop)
+	b := wire.NewBead(1.0, 0, geom, wake, settle, anim, make(chan struct{}), stop)
 	obs := b.WithObserve()
 	seed := b.SeedGeometry(wire.BeadGeometryIn{Center: wire.Vec3{}, Aim: wire.Vec3{X: 1}})
 	// b.Start() is deliberately NOT called.
@@ -179,14 +179,14 @@ func TestBroadcastAndReadNeverBlocksOnUnresponsiveBead(t *testing.T) {
 		last:  []wire.BeadSnapshot{seed},
 	}
 
-	done := make(chan []wire.Vec3, 1)
+	done := make(chan []wire.BeadSnapshot, 1)
 	go func() {
-		done <- ea.broadcastAndRead(wire.BeadGeometryIn{Center: wire.Vec3{Y: 99}, Aim: wire.Vec3{X: 1}})
+		done <- ea.broadcastAndRead(wire.BeadGeometryIn{Center: wire.Vec3{Y: 99}, Aim: wire.Vec3{X: 1}}, 1, nil, false)
 	}()
 	select {
-	case positions := <-done:
-		if positions[0] != seed.Position {
-			t.Fatalf("expected the cached seeded position %+v from an unresponsive bead, got %+v", seed.Position, positions[0])
+	case snaps := <-done:
+		if snaps[0].Position != seed.Position {
+			t.Fatalf("expected the cached seeded position %+v from an unresponsive bead, got %+v", seed.Position, snaps[0].Position)
 		}
 	case <-time.After(200 * time.Millisecond):
 		t.Fatal("broadcastAndRead blocked on an unresponsive bead — the read path must never block on a bead's own goroutine (PLAN.md: one broadcast hop, no per-bead round trip)")
@@ -217,6 +217,103 @@ func TestStartEndBeadDragTogglesEveryChain(t *testing.T) {
 	m.endAllBeadDrags()
 	waitAllDragging(t, eaB, false)
 	waitAllDragging(t, eaC, false)
+}
+
+// TestIdleIssuesNoBroadcastWhenNothingChanged is GAP 3: with no drag and no geometry
+// change, repeated broadcastAndRead calls must issue ZERO new broadcasts and wake no bead.
+// GeomGen (each bead's own count of geometry broadcasts it has actually PROCESSED,
+// incremented only inside Bead.run's geom case) is the observable proxy for "was this bead
+// woken" — it can only advance if a real BroadcastGeometry closed a fresh chain link for
+// this bead to receive, so a flat GeomGen across many calls is direct proof no broadcast
+// (and therefore no wake) was issued.
+func TestIdleIssuesNoBroadcastWhenNothingChanged(t *testing.T) {
+	m := &nodeMover{id: "a"}
+	xf := wire.BeadGeometryIn{Center: wire.Vec3{}, Aim: wire.Vec3{X: 1}}
+	ea := m.ensureBeadEdgeActors("b", 1, 0, xf)
+	defer close(ea.stops[0])
+
+	// First call always broadcasts (this group has never broadcast geometry before —
+	// ea.haveGeom starts false) — poll until the bead has caught up to it. SeedGeometry
+	// (ensureBeadEdgeActors, called above) already set GeomGen=1 on ea.last[0] BEFORE this
+	// bead's goroutine ever processed a real broadcast, so ">= 1" would be trivially true
+	// from the seed alone; wait for ">= 2" (seed's 1, plus this call's own real broadcast)
+	// so "steady" below reflects an ACTUALLY-OBSERVED broadcast completion, not the seed.
+	var snaps []wire.BeadSnapshot
+	deadline := time.Now().Add(500 * time.Millisecond)
+	for {
+		snaps = ea.broadcastAndRead(xf, 1, nil, false)
+		if snaps[0].GeomGen >= 2 || time.Now().After(deadline) {
+			break
+		}
+		time.Sleep(2 * time.Millisecond)
+	}
+	steady := snaps[0].GeomGen
+	if steady < 2 {
+		t.Fatalf("bead never applied the initial broadcast; GeomGen=%d, want >= 2 (seed + one real broadcast)", steady)
+	}
+
+	// Every one of these calls repeats the SAME xf/count, not dragging — GAP 3 requires
+	// zero further broadcasts, so GeomGen must not move.
+	for i := 0; i < 50; i++ {
+		snaps = ea.broadcastAndRead(xf, 1, nil, false)
+	}
+	if snaps[0].GeomGen != steady {
+		t.Fatalf("GeomGen advanced from %d to %d across 50 unchanged, non-dragging calls — idle must cost zero broadcasts (PLAN.md 'idle CPU at zero')", steady, snaps[0].GeomGen)
+	}
+}
+
+// TestDraggingBroadcastsEveryCall is GAP 4's positive half: while dragging is true, EVERY
+// call re-broadcasts geometry — even with xf/count unchanged — so the two modes are
+// functionally distinct (not just a flag that changes nothing). GeomGen must strictly
+// advance on every single call.
+func TestDraggingBroadcastsEveryCall(t *testing.T) {
+	m := &nodeMover{id: "a"}
+	xf := wire.BeadGeometryIn{Center: wire.Vec3{}, Aim: wire.Vec3{X: 1}}
+	ea := m.ensureBeadEdgeActors("b", 1, 0, xf)
+	defer close(ea.stops[0])
+
+	prev := 0
+	for i := 0; i < 5; i++ {
+		var snaps []wire.BeadSnapshot
+		deadline := time.Now().Add(500 * time.Millisecond)
+		for {
+			snaps = ea.broadcastAndRead(xf, 1, nil, true)
+			if snaps[0].GeomGen > prev || time.Now().After(deadline) {
+				break
+			}
+			time.Sleep(2 * time.Millisecond)
+		}
+		if snaps[0].GeomGen <= prev {
+			t.Fatalf("call %d: GeomGen did not advance past %d while dragging with unchanged xf/count — dragging must re-broadcast every call (PLAN.md 'machine time')", i, prev)
+		}
+		prev = snaps[0].GeomGen
+	}
+}
+
+// TestNodeMoverDraggingFlagSetOncePerDrag: nodeMover.dragging — the flag chainBeads reads
+// to gate geometry broadcast — is set by moveMsgKindDragStart and cleared by
+// moveMsgKindDragEnd, exactly the flag GAP 4 requires (never toggled per pointer event: a
+// drag sends dragStart once and dragEnd once, regardless of how many moveMsgKindDrag
+// messages fall in between).
+func TestNodeMoverDraggingFlagSetOncePerDrag(t *testing.T) {
+	m := &nodeMover{id: "a"}
+	if m.dragging {
+		t.Fatal("nodeMover.dragging must start false")
+	}
+	m.handle(moveMsg{Kind: moveMsgKindDragStart, NodeID: "a"})
+	if !m.dragging {
+		t.Fatal("moveMsgKindDragStart must set nodeMover.dragging")
+	}
+	// Intervening move messages (the per-pointer-event traffic during a drag) must not
+	// touch the flag.
+	m.handle(moveMsg{Kind: moveMsgKindDrag, NodeID: "a", Target: vec3{}})
+	if !m.dragging {
+		t.Fatal("an intervening moveMsgKindDrag cleared nodeMover.dragging — the flag must only change on dragStart/dragEnd")
+	}
+	m.handle(moveMsg{Kind: moveMsgKindDragEnd, NodeID: "a"})
+	if m.dragging {
+		t.Fatal("moveMsgKindDragEnd must clear nodeMover.dragging")
+	}
 }
 
 func waitAllDragging(t *testing.T, ea *beadEdgeActors, want bool) {
