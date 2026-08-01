@@ -157,6 +157,15 @@ type Bead struct {
 	anim      beadAnimationState
 	dragging  bool // the ONE mode flag: set by <-wake.Fire, cleared by <-settle.Fire
 
+	// geomGen counts how many geometry broadcasts THIS bead has applied so far.
+	// Written only by the geom case in run(), alongside geomState — a production
+	// reader (the owning node's own goroutine, chain_beads.go) that just issued its
+	// Nth BroadcastGeometry call can block-read this bead's observe channel until it
+	// sees GeomGen==N, which is race-free against interleaved tick/mode pushes on the
+	// same buffered-1 observe channel (those pushes carry a smaller/equal GeomGen,
+	// never a larger one, since only the geom case increments it).
+	geomGen int
+
 	// observe is an OPTIONAL, buffered-1, latest-wins outbox this goroutine pushes its own
 	// snapshot onto after every state change (the same non-blocking drain-then-send shape
 	// SendLatestNonBlocking/SendSpeedNonBlocking already use in clock.go for "one owner
@@ -173,6 +182,7 @@ type BeadSnapshot struct {
 	Dragging bool
 	Lit      bool
 	LitVal   int32
+	GeomGen  int
 }
 
 // NewBead constructs a bead bound to its owning node's channel sets. geom/wake/settle are
@@ -211,7 +221,7 @@ func (b *Bead) pushObserve() {
 	if b.observe == nil {
 		return
 	}
-	snap := BeadSnapshot{Position: b.geomState.position, Dragging: b.dragging, Lit: b.anim.lit, LitVal: b.anim.litVal}
+	snap := BeadSnapshot{Position: b.geomState.position, Dragging: b.dragging, Lit: b.anim.lit, LitVal: b.anim.litVal, GeomGen: b.geomGen}
 	select {
 	case b.observe <- snap:
 		return
@@ -239,6 +249,7 @@ func (b *Bead) run() {
 			// Geometry channel: the ONLY writer of b.geomState. One broadcast hop from
 			// the node, applied directly — no neighbour read, no relaxation.
 			b.geomState.applyTransform(b.geom.Value, b.offsetR)
+			b.geomGen++
 			b.geom = b.geom.Next
 			b.pushObserve()
 		case <-b.wake.Fire:

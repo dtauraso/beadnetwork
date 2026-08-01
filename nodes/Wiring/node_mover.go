@@ -350,6 +350,14 @@ type nodeMover struct {
 	// using Buffer's own row-writer columns (Buffer.BuildNodeStreamFrame), injected so
 	// this package needs no Buffer import.
 	buildFrame func(tick uint32, nodeRow int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, selected, kindID, hovered, latchedSel, gotDragMsg uint8, dragDeltaA, dragDeltaB, dragDeltaC, dragRequantCount int32, gotForwardMsg uint8, forwardDeltaA, forwardDeltaB, forwardDeltaC, forwardFromRow int32, cascadeRelay uint8, label string, dstNodeRows []int32, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte
+
+	// beadEdges holds, per outgoing target id, THIS node's own live bead-actor group for
+	// that edge (chain_beads.go's chainBeads reads bead POSITIONS from these actors —
+	// PLAN.md "two clocks per bead" — never computes a position centrally). Lazily
+	// created and grown/shrunk in chainBeads on this node's own goroutine only; nil map
+	// is valid (lazily initialized on first use), matching every other per-edge map on
+	// this struct.
+	beadEdges map[string]*beadEdgeActors
 }
 
 func newNodeMover(id string, geom nodeGeom, tr *T.Trace, clockSrc wire.Clock) *nodeMover {
@@ -422,6 +430,11 @@ func (m *nodeMover) handle(msg moveMsg) {
 	}
 	if msg.Kind == moveMsgKindDragStart {
 		m.armDragAnchor()
+		m.startAllBeadDrags()
+		return
+	}
+	if msg.Kind == moveMsgKindDragEnd {
+		m.endAllBeadDrags()
 		return
 	}
 	if msg.Kind == moveMsgKindSelect {

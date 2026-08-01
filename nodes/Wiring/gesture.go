@@ -279,6 +279,10 @@ func (md *MoveDispatch) gestPointerUp(ev rawInputMsg, slotReg SlotRegistry, tr *
 		md.applySelect(ev, tr)
 	}
 	wasDragging := g.phase == gestDragging
+	// Capture the dragged node's id BEFORE reset() clears g.dragNode below — mirrors
+	// moveMsgKindDragStart's own send site (gesture_graph.go), and is why this capture
+	// cannot move after reset().
+	draggedNode := g.dragNode
 	g.reset(&md.ui.vp.viewpoint)
 	if wasDragging {
 		// The drag just ended: g.dragNode is now "" (cleared by reset above), so the
@@ -286,6 +290,11 @@ func (md *MoveDispatch) gestPointerUp(ev rawInputMsg, slotReg SlotRegistry, tr *
 		// waiting for the next unrelated view-frame emit. Mirrors commitDragStart's own
 		// emitViewFrame call at drag START.
 		md.emitViewFrame(nil)
+		if draggedNode != "" {
+			// Settle every bead this node's own drag woke (PLAN.md "'done dragging' is
+			// not optional") — mirrors moveMsgKindDragStart's send in gesture_graph.go.
+			md.sendMove(draggedNode, moveMsg{Kind: moveMsgKindDragEnd, NodeID: draggedNode})
+		}
 	}
 }
 

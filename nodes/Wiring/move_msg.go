@@ -44,6 +44,13 @@ const (
 	// later than the true drag start) or, worse, STALE from a prior drag if this were the
 	// second+ drag on the same node — so this must never be dropped, same as drag/center.
 	moveMsgKindDragStart = "dragStart"
+	// moveMsgKindDragEnd is the mirror of moveMsgKindDragStart, sent once per drag
+	// gesture at drag END (gesture.go's gestPointerUp, which captures g.dragNode
+	// BEFORE reset() clears it) so the dragged node's own bead-actor groups
+	// (chain_beads.go/bead_actor_bridge.go) settle every bead they woke — PLAN.md
+	// "'done dragging' is not optional": every drag must end on this path, including
+	// one abandoned mid-gesture, so a bead is never left parked on machine time.
+	moveMsgKindDragEnd = "dragEnd"
 	// moveMsgKindSelect (nodeMover) / edge-select (edgeMover, same kind) is the
 	// gesture goroutine's message telling ONE node/edge to turn its OWN selected bit
 	// on or off (Bool). Sent to a node via its extIn (md.sendMove) and to an edge via
