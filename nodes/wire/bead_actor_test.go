@@ -53,8 +53,8 @@ func waitForSnapshot(t *testing.T, obs <-chan BeadSnapshot, timeout time.Duratio
 
 // TestGeometryCompletesWithHumanClockStopped: a position update completes even though no
 // tick is ever sent on this bead's tick channel — geometry is never gated on the human
-// clock (MODEL.md's "no position update may be gated on the human clock" invariant, applied
-// to the bead's own select rather than a package-level rule).
+// clock (MODEL.md's two-clock invariant: "no position update may be gated on the human
+// clock", applied here to the bead's own select rather than a package-level rule).
 func TestGeometryCompletesWithHumanClockStopped(t *testing.T) {
 	b, g, tickCh, stop, obs := newTestBead(2.0)
 	_ = tickCh // deliberately never sent to

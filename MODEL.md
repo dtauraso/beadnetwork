@@ -69,6 +69,11 @@ mistake to avoid (chain_beads.go's own header comment makes the same split):
   `Next` before closing `Fire`, so a woken receiver can read `Next` with no lock/atomic —
   Go's memory model makes the close a happens-before edge for that read).
 
+  **INVARIANT: no position update may be gated on the human clock, and no animation step
+  may run on the system clock.** (`MsPerTick = 16`, clock.go, names the human-speed clock;
+  it exists so a person can watch a bead cross a wire, and geometry must never run on it —
+  one propagation hop per tick would make even linear traversal visibly slow.)
+
   This is additive to the transport model below, not a replacement of it: PacedWire's
   in-flight value beads remain the passive delay queue MODEL.md always described; the chain
   bead is what renders a traversal, and it is now the one entity in this codebase that is
