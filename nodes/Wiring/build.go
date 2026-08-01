@@ -87,7 +87,9 @@ func buildFromSpec(ctx context.Context, spec topoSpec, tr *T.Trace, clk wire.Clo
 	b.computeQuantizedLayout()
 	b.computeReachRadii()
 	b.allocateWires()
-	b.buildMoveDispatch()
+	if err := b.buildMoveDispatch(); err != nil {
+		return nil, nil, nil, nil, err
+	}
 	b.buildTypeMaps()
 	b.buildEdgeMaps()
 	if err := b.buildNodes(); err != nil {
@@ -196,7 +198,7 @@ func (b *buildCtx) allocateWires() {
 // polar locks ride on it in a later step — the lock system and the central polar
 // position store have been removed, so node positions live in the movers' held
 // geometry) and installs the aimed-port registry for drag-time aiming.
-func (b *buildCtx) buildMoveDispatch() {
+func (b *buildCtx) buildMoveDispatch() error {
 	// SPEC order (b.spec.Nodes/Edges — the deterministic directory-sorted order parseSpec
 	// read the topology in), NOT map iteration order, so the buffer's row seed
 	// (md.NodeSeeds/EdgeSeeds) gives every node/edge a deterministic row.
@@ -208,7 +210,10 @@ func (b *buildCtx) buildMoveDispatch() {
 	for i, e := range b.spec.Edges {
 		edgeOrder[i] = e.Label
 	}
-	md := newMoveDispatch(b.nodeGeoms, b.edgeEndpoints, b.tr, nodeOrder, edgeOrder, b.clk, &b.speedSinks, b.spec.RowCount)
+	md, err := newMoveDispatch(b.nodeGeoms, b.edgeEndpoints, b.tr, nodeOrder, edgeOrder, b.clk, &b.speedSinks, b.spec.RowCount)
+	if err != nil {
+		return fmt.Errorf("buildMoveDispatch: %w", err)
+	}
 	if b.hasScene {
 		// Persisted scene sphere: install it now so md.ui.sceneSphere is consistent straight out
 		// of LoadTopology (a fresh/legacy scene has none — main.go's LoadSceneSphere then
@@ -261,6 +266,7 @@ func (b *buildCtx) buildMoveDispatch() {
 		nm.outTargets = append(nm.outTargets, e.Target)
 	}
 	b.md = md
+	return nil
 }
 
 // buildTypeMaps builds the id→type map and per-kind Broadcast port set (needed

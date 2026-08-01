@@ -28,6 +28,7 @@ package Wiring
 
 import (
 	"context"
+	"fmt"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"sort"
 	"strconv"
@@ -119,7 +120,7 @@ type MoveDispatch struct {
 // rowCount is the buffer's node-row space (topoSpec.RowCount — the largest node id found,
 // not the node count): rows 0..rowCount-1, ROW ID = NODE ID - 1. 0 (test call sites that
 // don't pass one) falls back to the number of resolved seeds, i.e. no gaps.
-func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEndpoints, tr *T.Trace, nodeOrder, edgeOrder []string, clk wire.Clock, speedSinks *[]chan float64, rowCount int) *MoveDispatch {
+func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEndpoints, tr *T.Trace, nodeOrder, edgeOrder []string, clk wire.Clock, speedSinks *[]chan float64, rowCount int) (*MoveDispatch, error) {
 	// nil order (test call sites that don't care about seed order) falls back to sorted
 	// map keys — still deterministic, just not necessarily spec order.
 	if nodeOrder == nil {
@@ -184,15 +185,23 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 		}
 		// Real endpoint geometry: the same edgeSegment computation recomputeGeometry
 		// (below) uses on every live move, evaluated once here against the load-time
-		// geoms so the seed row is never a degenerate 0,0,0->0,0,0 segment.
-		var sx, sy, sz, ex, ey, ez float64
-		if srcG, ok := geoms[ep.Source]; ok {
-			if dstG, ok := geoms[ep.Target]; ok {
-				seg := edgeSegment(srcG, dstG)
-				sx, sy, sz = seg.Start.X, seg.Start.Y, seg.Start.Z
-				ex, ey, ez = seg.End.X, seg.End.Y, seg.End.Z
-			}
+		// geoms so the seed row is never a degenerate 0,0,0->0,0,0 segment. A missed
+		// lookup means the edge's source or target node id has no geometry — a
+		// malformed topology (most commonly a stale edge file left behind after its
+		// target node's directory was deleted by hand; in-edges are not indexed, so
+		// nothing else catches this) — and must fail the load loudly, never seed a
+		// silent 0,0,0->0,0,0 segment indistinguishable from real data.
+		srcG, srcOK := geoms[ep.Source]
+		if !srcOK {
+			return nil, fmt.Errorf("newMoveDispatch: edge %q references missing source node %q (no geometry loaded for it)", label, ep.Source)
 		}
+		dstG, dstOK := geoms[ep.Target]
+		if !dstOK {
+			return nil, fmt.Errorf("newMoveDispatch: edge %q references missing target node %q (no geometry loaded for it)", label, ep.Target)
+		}
+		seg := edgeSegment(srcG, dstG)
+		sx, sy, sz := seg.Start.X, seg.Start.Y, seg.Start.Z
+		ex, ey, ez := seg.End.X, seg.End.Y, seg.End.Z
 		md.gs.edgeSeeds = append(md.gs.edgeSeeds, EdgeGeomSeed{
 			Label: label, SrcNode: ep.Source, DstNode: ep.Target,
 			SX: sx, SY: sy, SZ: sz, EX: ex, EY: ey, EZ: ez,
@@ -296,7 +305,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 	// carries its own absolute Row = id-1) — see buildRowTables' doc comment for why this is
 	// a load-time constant, not a discovery log.
 	md.rt.buildRowTables(md.gs.nodeSeeds, md.gs.edgeSeeds, rowCount)
-	return md
+	return md, nil
 }
 
 // Bind wires the per-edge source Outs and dest wires into each edgeMover. Thin delegator

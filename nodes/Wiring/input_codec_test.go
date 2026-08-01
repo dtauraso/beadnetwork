@@ -147,7 +147,10 @@ func TestDecodeTruncatedAndUnknown(t *testing.T) {
 // not a stale/empty snapshot. This is the "Go persists its own current topology" guarantee.
 func TestSavePersistsCurrentOverlayState(t *testing.T) {
 	root := t.TempDir()
-	md := newMoveDispatch(map[string]nodeGeom{}, map[string]EdgeEndpoints{}, nil, nil, nil, wire.NewRealClock(), nil, 0)
+	md, err := newMoveDispatch(map[string]nodeGeom{}, map[string]EdgeEndpoints{}, nil, nil, nil, wire.NewRealClock(), nil, 0)
+	if err != nil {
+		t.Fatalf("newMoveDispatch: %v", err)
+	}
 	// overlaysVisible defaults true; toggle flips it to false.
 	toggle, ok := decodeInputRecord(encodeOverlaysToggle("overlays"))
 	if !ok {
@@ -176,7 +179,10 @@ func TestFramedPartialReads(t *testing.T) {
 	defer cancel()
 	pr, pw := io.Pipe()
 	// A real (empty) dispatch so the `save` command has an overlay snapshot to persist.
-	md := newMoveDispatch(map[string]nodeGeom{}, map[string]EdgeEndpoints{}, nil, nil, nil, wire.NewRealClock(), nil, 0)
+	md, err := newMoveDispatch(map[string]nodeGeom{}, map[string]EdgeEndpoints{}, nil, nil, nil, wire.NewRealClock(), nil, 0)
+	if err != nil {
+		t.Fatalf("newMoveDispatch: %v", err)
+	}
 	md.EnableEditPersist(root) // arms overlaysPersist so `save` can write overlays.json
 	readerDone := make(chan struct{})
 	go func() {
