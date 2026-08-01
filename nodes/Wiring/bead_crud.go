@@ -136,17 +136,11 @@ type beadCrudResult struct {
 //     never coincide — that is the ORDINARY multi-neighbour case, not a conflict (an earlier
 //     version treated disagreement as a conflict and held the node still, which made every
 //     multi-neighbour node immovable — node 2 could not be dragged at all). The commit is
-//     the implied centre NEAREST nodeDestination among all verdicts — a tie-break over the
-//     candidate centres the per-bead CRUD already produced, never an average, and the node's
-//     committed centre is still one of THOSE bead-implied candidates, never nodeDestination
-//     itself (PLAN.md "never set from the mouse target" — the destination only RANKS
-//     candidates, it is not assigned). Ranking by nearest-to-destination instead of
-//     nearest-to-prevPos is what makes the choice follow the drag DIRECTION: the shortest
-//     lever arm (nearest to where the node already was) is a fixed property of the graph and
-//     picks the same neighbour regardless of which way the user drags, which is the "drifts
-//     toward one neighbour" defect this replaced. Movement stays one bead at a time; an edge
-//     whose verdict implied a larger step reaches it over successive pointer-move events
-//     instead of in one jump (edgeStepCount re-counts against the live distance every commit).
+//     the implied centre with the SMALLEST displacement from prevPos among all verdicts —
+//     a tie-break over the candidate centres the per-bead CRUD already produced, never an
+//     average, and never the mouse target. Movement stays one bead at a time; an edge whose
+//     verdict implied a larger step reaches it over successive pointer-move events instead
+//     of in one jump (edgeStepCount re-counts against the live distance every commit).
 func resolveBeadCrudMove(beads []touchingBead, prevPos, nodeDestination vec3, beadLen float64) (committed vec3, results []beadCrudResult) {
 	dragVector := nodeDestination.Sub(prevPos)
 	for _, b := range beads {
@@ -163,14 +157,13 @@ func resolveBeadCrudMove(beads []touchingBead, prevPos, nodeDestination vec3, be
 	if len(results) == 0 {
 		return prevPos, results
 	}
-	// Nearest-to-destination is a tie-break, NOT a solver and NOT a selection of one edge's
+	// Smallest-displacement is a tie-break, NOT a solver and NOT a selection of one edge's
 	// axis to travel along: it reads only the candidate centres the per-bead CRUD already
-	// produced, ranks them by distance to nodeDestination, and averages nothing. The winner
-	// is still a bead-implied centre, never nodeDestination itself.
+	// produced, never the mouse target, never neighbour geometry, and it averages nothing.
 	best := results[0]
-	bestD := best.Implied.Sub(nodeDestination).Length()
+	bestD := best.Implied.Sub(prevPos).Length()
 	for _, r := range results[1:] {
-		if d := r.Implied.Sub(nodeDestination).Length(); d < bestD {
+		if d := r.Implied.Sub(prevPos).Length(); d < bestD {
 			best, bestD = r, d
 		}
 	}

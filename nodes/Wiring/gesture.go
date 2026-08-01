@@ -279,9 +279,8 @@ func (md *MoveDispatch) gestPointerUp(ev rawInputMsg, slotReg SlotRegistry, tr *
 		md.applySelect(ev, tr)
 	}
 	wasDragging := g.phase == gestDragging
-	// Capture the dragged node's id BEFORE reset() clears g.dragNode below — mirrors
-	// moveMsgKindDragStart's own send site (gesture_graph.go), and is why this capture
-	// cannot move after reset().
+	// Capture BEFORE reset() clears it (below) — moveMsgKindDragEnd must name the node
+	// that was actually dragged, and reset() zeroes g.dragNode unconditionally.
 	draggedNode := g.dragNode
 	g.reset(&md.ui.vp.viewpoint)
 	if wasDragging {
@@ -290,9 +289,11 @@ func (md *MoveDispatch) gestPointerUp(ev rawInputMsg, slotReg SlotRegistry, tr *
 		// waiting for the next unrelated view-frame emit. Mirrors commitDragStart's own
 		// emitViewFrame call at drag START.
 		md.emitViewFrame(nil)
+		// "done dragging" (PLAN.md) — mirrors commitDragStart's own moveMsgKindDragStart
+		// send. Sent on EVERY path a drag ends by (this is the FSM's one drag-end exit),
+		// so a chain bead this node woke can never be left on machine time — see
+		// moveMsgKindDragEnd's own doc comment.
 		if draggedNode != "" {
-			// Settle every bead this node's own drag woke (PLAN.md "'done dragging' is
-			// not optional") — mirrors moveMsgKindDragStart's send in gesture_graph.go.
 			md.sendMove(draggedNode, moveMsg{Kind: moveMsgKindDragEnd, NodeID: draggedNode})
 		}
 	}
