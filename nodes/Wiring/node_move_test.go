@@ -12,6 +12,7 @@ package Wiring
 import (
 	"context"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"strings"
 	"testing"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -71,5 +72,30 @@ func TestNodeGeometryLabelSidecar(t *testing.T) {
 	}
 	if len(seen) != 2 {
 		t.Fatalf("saw %d distinct nodes, want 2", len(seen))
+	}
+}
+
+// TestNewMoveDispatchRejectsDanglingEdgeTarget locks the fix for the silent-zero-seed
+// defect: an edge whose target (or source) node id has no entry in the geoms map — the
+// shape a stale edge file left behind after its target node's directory was deleted by
+// hand would produce, since in-edges are not indexed and nothing else catches it — must
+// fail newMoveDispatch loudly, naming both the edge label and the missing node id,
+// rather than silently seeding a degenerate 0,0,0->0,0,0 EdgeGeomSeed.
+func TestNewMoveDispatchRejectsDanglingEdgeTarget(t *testing.T) {
+	geoms := map[string]nodeGeom{
+		"1": {},
+	}
+	edgeEndpoints := map[string]EdgeEndpoints{
+		"e0": {Source: "1", Target: "9", SourceHandle: "Out", TargetHandle: "In"},
+	}
+	_, err := newMoveDispatch(geoms, edgeEndpoints, nil, nil, nil, wire.NewRealClock(), nil, 0)
+	if err == nil {
+		t.Fatal("newMoveDispatch: want error for edge targeting a missing node, got nil")
+	}
+	if !strings.Contains(err.Error(), `"e0"`) {
+		t.Fatalf("newMoveDispatch error %q does not name the edge label \"e0\"", err.Error())
+	}
+	if !strings.Contains(err.Error(), `"9"`) {
+		t.Fatalf("newMoveDispatch error %q does not name the missing node id \"9\"", err.Error())
 	}
 }
