@@ -31,6 +31,7 @@ import {
   NODE_RING_TUBE_RATIO, RING_PICK_TUBE_RATIO, nodeRowColors,
 } from "./buffer-scene-shared";
 import { computeNodeDepthOrder, setNodeDrawOrder } from "./node-depth-order";
+import { createTransparentEdgeTrigger, applyTransparentEdgeTriggered } from "./material-transparent-edge-trigger";
 
 export function NodeInstances({ capacity }: { capacity: number }) {
   const envTex = useContext(EnvTexContext);
@@ -43,6 +44,7 @@ export function NodeInstances({ capacity }: { capacity: number }) {
   // writes the instance matrices — same timing contract as the rest of this file.
   const bodyMatRef = useRef<THREE.MeshPhysicalMaterial>(null);
   const ringMatRef = useRef<THREE.MeshStandardMaterial>(null);
+  const ringTransparentTrigger = useRef(createTransparentEdgeTrigger());
   const matRef  = useRef(new THREE.Matrix4());
   const posRef  = useRef(new THREE.Vector3());
   const quatRef = useRef(new THREE.Quaternion());
@@ -74,7 +76,9 @@ export function NodeInstances({ capacity }: { capacity: number }) {
     const fadeMult = polarVectorsOn ? SHADING_PARAM_POLAR_VECTOR_FADE_OPACITY_MULT : 1;
     if (bodyMatRef.current) bodyMatRef.current.opacity = SHADING_PARAM_NODE_OPACITY * fadeMult;
     if (ringMatRef.current) ringMatRef.current.opacity = fadeMult;
-    if (ringMatRef.current) ringMatRef.current.transparent = polarVectorsOn;
+    if (ringMatRef.current) {
+      applyTransparentEdgeTriggered(ringTransparentTrigger.current, ringMatRef.current, polarVectorsOn);
+    }
 
     const n = Math.min(nodeCount, capacity);
     const q = quatRef.current; // identity (no per-node rotation)
