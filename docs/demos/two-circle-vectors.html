@@ -13,11 +13,11 @@
     gap: 14px;
     padding: 24px;
   }
-  figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; }
   figcaption { color: #8b949e; }
   canvas { background: #0d1013; border-radius: 6px; }
-  .scenes { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; }
-  .panel { display: grid; grid-template-columns: auto 220px 5ch; gap: 8px 12px; align-items: center; }
+  .scenes { display: flex; gap: 22px; flex-wrap: wrap; justify-content: center; align-items: flex-start; }
+  .panel { display: grid; grid-template-columns: auto 190px 6ch; gap: 8px 12px; align-items: center; }
   .panel label { justify-self: end; }
   .swatch { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
   .a { background: #6ea8fe; }
@@ -27,41 +27,16 @@
   button { font: inherit; background: #22262c; color: inherit; border: 1px solid #3a4048; border-radius: 4px; padding: 3px 10px; cursor: pointer; }
 </style>
 
-<div class="scenes">
-  <figure>
-    <canvas id="c-unequal" width="460" height="380"></canvas>
-    <figcaption>different radii — 130 / 78</figcaption>
-  </figure>
-  <figure>
-    <canvas id="c-equal" width="460" height="380"></canvas>
-    <figcaption>same radius — 105 / 105</figcaption>
-  </figure>
-</div>
-
-<div class="panel">
-  <label for="joint">both</label>
-  <input type="range" id="joint" min="-180" max="180" step="1" value="0">
-  <span class="val" id="joint-v">0°</span>
-
-  <label for="va"><span class="swatch a"></span>vector A</label>
-  <input type="range" id="va" min="-180" max="180" step="1" value="0">
-  <span class="val" id="va-v">0°</span>
-
-  <label for="vb"><span class="swatch b"></span>vector B</label>
-  <input type="range" id="vb" min="-180" max="180" step="1" value="0">
-  <span class="val" id="vb-v">0°</span>
-
-  <span></span><span><button id="reset">reset</button></span><span></span>
-</div>
+<div class="scenes" id="scenes"></div>
 
 <script>
   // Circle B's CENTRE lies on circle A's surface, so |AB| = RA exactly — that
   // holds whether or not the radii match. Each vector starts pointing at the
   // other centre: A's base angle is 0 (towards B), B's is PI (back towards A).
-  // Both scenes below share one set of sliders; only the radii differ.
+  // Each scene owns its OWN set of three sliders; the scenes are independent.
   const SCENES = [
-    { id: 'c-unequal', ra: 130, rb: 78 },
-    { id: 'c-equal',   ra: 105, rb: 105 },
+    { id: 'unequal', ra: 130, rb: 78,  caption: 'different radii — 130 / 78' },
+    { id: 'equal',   ra: 105, rb: 105, caption: 'same radius — 105 / 105' },
   ];
 
   const rad = deg => deg * Math.PI / 180;
@@ -120,9 +95,43 @@
     ctx.fillText(`${deg > 0 ? '+' : ''}${deg}°${sense}`, cx + lr * Math.cos(mid), cy + lr * Math.sin(mid));
   }
 
-  function drawScene(scene, joint, a, b) {
+  function slider(id, labelHTML) {
+    return `
+      <label for="${id}">${labelHTML}</label>
+      <input type="range" id="${id}" min="-180" max="180" step="1" value="0">
+      <span class="val" id="${id}-v">0°</span>`;
+  }
+
+  function build(scene) {
+    const fig = document.createElement('figure');
+    fig.innerHTML = `
+      <canvas id="c-${scene.id}" width="460" height="380"></canvas>
+      <figcaption>${scene.caption}</figcaption>
+      <div class="panel">
+        ${slider(`${scene.id}-joint`, 'both')}
+        ${slider(`${scene.id}-a`, '<span class="swatch a"></span>vector A')}
+        ${slider(`${scene.id}-b`, '<span class="swatch b"></span>vector B')}
+        <span></span><span><button id="${scene.id}-reset">reset</button></span><span></span>
+      </div>`;
+    document.getElementById('scenes').appendChild(fig);
+
+    const ids = [`${scene.id}-joint`, `${scene.id}-a`, `${scene.id}-b`];
+    for (const id of ids) {
+      document.getElementById(id).addEventListener('input', () => draw(scene));
+    }
+    document.getElementById(`${scene.id}-reset`).addEventListener('click', () => {
+      for (const id of ids) document.getElementById(id).value = 0;
+      draw(scene);
+    });
+  }
+
+  function draw(scene) {
     const { ra, rb } = scene;
-    const canvas = document.getElementById(scene.id);
+    const joint = +document.getElementById(`${scene.id}-joint`).value;
+    const a = +document.getElementById(`${scene.id}-a`).value;
+    const b = +document.getElementById(`${scene.id}-b`).value;
+
+    const canvas = document.getElementById(`c-${scene.id}`);
     const ctx = canvas.getContext('2d');
 
     // Centre the pair: the drawing spans AX-ra .. AX+ra+rb, i.e. 2*ra + rb wide.
@@ -158,27 +167,14 @@
 
     arrow(ctx, AX, AY, ra, angleA, '#6ea8fe');
     arrow(ctx, BX, BY, rb, angleB, '#f0a868');
+
+    document.getElementById(`${scene.id}-joint-v`).textContent = joint + '°';
+    document.getElementById(`${scene.id}-a-v`).textContent = a + '°';
+    document.getElementById(`${scene.id}-b-v`).textContent = b + '°';
   }
 
-  function draw() {
-    const joint = +document.getElementById('joint').value;
-    const a = +document.getElementById('va').value;
-    const b = +document.getElementById('vb').value;
-
-    for (const scene of SCENES) drawScene(scene, joint, a, b);
-
-    document.getElementById('joint-v').textContent = joint + '°';
-    document.getElementById('va-v').textContent = a + '°';
-    document.getElementById('vb-v').textContent = b + '°';
+  for (const scene of SCENES) {
+    build(scene);
+    draw(scene);
   }
-
-  for (const id of ['joint', 'va', 'vb']) {
-    document.getElementById(id).addEventListener('input', draw);
-  }
-  document.getElementById('reset').addEventListener('click', () => {
-    for (const id of ['joint', 'va', 'vb']) document.getElementById(id).value = 0;
-    draw();
-  });
-
-  draw();
 </script>
