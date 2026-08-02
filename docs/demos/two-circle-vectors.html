@@ -24,10 +24,14 @@
   .b { background: #f0a868; }
   input[type=range] { width: 100%; }
   .val { color: #8b949e; text-align: right; }
+  .tabs { display: flex; gap: 6px; }
+  .tabs button[aria-selected="true"] { background: #6ea8fe; border-color: #6ea8fe; color: #0d1013; }
   button { font: inherit; background: #22262c; color: inherit; border: 1px solid #3a4048; border-radius: 4px; padding: 3px 10px; cursor: pointer; }
 </style>
 
-<div class="scenes" id="scenes"></div>
+<div class="tabs" id="tabs"></div>
+<div class="scenes" id="tab-3"></div>
+<div class="scenes" id="tab-2" hidden></div>
 
 <script>
   // One ORANGE circle in the middle with THREE BLUE circles at equal places
@@ -153,7 +157,7 @@
         ${slider(`${scene.id}-b`, '<span class="swatch b"></span>orange vectors')}
         <span></span><span><button id="${scene.id}-reset">reset</button></span><span></span>
       </div>`;
-    document.getElementById('scenes').appendChild(fig);
+    document.getElementById(`tab-${scene.spokes}`).appendChild(fig);
 
     const ids = [
       `${scene.id}-joint`,
@@ -247,5 +251,25 @@
   for (const scene of SCENES) {
     build(scene);
     draw(scene);
+  }
+
+  // One tab per spoke count — each set of examples gets its own page.
+  const TABS = [
+    { spokes: 3, label: 'three blue circles' },
+    { spokes: 2, label: 'two blue circles' },
+  ];
+  const tabs = document.getElementById('tabs');
+  for (const t of TABS) {
+    const btn = document.createElement('button');
+    btn.textContent = t.label;
+    btn.setAttribute('aria-selected', String(t.spokes === 3));
+    btn.addEventListener('click', () => {
+      for (const other of TABS) {
+        const on = other.spokes === t.spokes;
+        document.getElementById(`tab-${other.spokes}`).hidden = !on;
+      }
+      for (const b of tabs.children) b.setAttribute('aria-selected', String(b === btn));
+    });
+    tabs.appendChild(btn);
   }
 </script>
