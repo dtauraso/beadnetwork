@@ -167,7 +167,10 @@
       </div>`;
     document.getElementById(`tab-${scene.spokes}`).appendChild(fig);
 
-    const ids = [
+    // Kept on the scene so draw() can refresh EVERY slider's degree readout,
+    // including the per-blue ones — a slider whose number never moves reads as
+    // a broken control.
+    const ids = scene.sliderIds = [
       `${scene.id}-joint`,
       `${scene.id}-a`,
       ...names(scene).map((_, k) => `${scene.id}-a${k}`),
@@ -264,9 +267,10 @@
     });
     readout(ctx, canvas.width - 10, 9, 'right', degOrange, '#f0a868');
 
-    document.getElementById(`${scene.id}-joint-v`).textContent = joint + '°';
-    document.getElementById(`${scene.id}-a-v`).textContent = a + '°';
-    document.getElementById(`${scene.id}-b-v`).textContent = b + '°';
+    for (const id of scene.sliderIds) {
+      const deg = +document.getElementById(id).value;
+      document.getElementById(`${id}-v`).textContent = (deg > 0 ? '+' : '') + deg + '°';
+    }
   }
 
   for (const scene of SCENES) {
