@@ -8,6 +8,9 @@ I can visualize pan, zoom, rotation.
 It is very hard to visualize radicals trig, formulas with squarse, matricies.
 this means cartesian and quaterians are rejected.
 
+ai rules for usage:
+minimze ai usage maximize the design value per token.
+
 visual rules.
 the visuals need to be in 3d because that is how I visualize.
 the visuals must be clear what is changing when.
@@ -60,3 +63,12 @@ node kinds:
         wiring node:
             this node alters connections in other nodes in certain ways.
 
+future vision:
+    - work with more than 1 and 2. any number from 1-10 should work.
+    - addition.
+    - subtraction,
+    - division.
+    - lateral cross hierarchy and gate trees for conencting different arithmatic strucures for more uses of "=".
+    - 2d input and geographical represenation. currently this runs on a 1d input stream. all the things correcntly interpret a 1d world.
+    - time delay proxy nodes for the delta and gates.
+    - the delta and gates let different numbers to be seen as the same for flexible future grouping work. part of setting up for set theory.
