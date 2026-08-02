@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
-<title>two circles, two polar vectors</title>
+<title>orange hub, three blue circles, paired polar vectors</title>
 <style>
   body {
     margin: 0;
@@ -30,13 +30,16 @@
 <div class="scenes" id="scenes"></div>
 
 <script>
-  // Circle B's CENTRE lies on circle A's surface, so |AB| = RA exactly — that
-  // holds whether or not the radii match. Each vector starts pointing at the
-  // other centre: A's base angle is 0 (towards B), B's is PI (back towards A).
+  // One ORANGE circle in the middle with THREE BLUE circles at equal places
+  // around it — spokes 120° apart, each blue centre ON the orange circle's
+  // surface, so |orange-blue| = ro on every spoke. Each blue/orange pair carries
+  // a mutual pair of vectors that start pointed at each other, so the orange
+  // circle has one vector per blue neighbour (three of them).
   // Each scene owns its OWN set of three sliders; the scenes are independent.
+  const SPOKES = 3;
   const SCENES = [
-    { id: 'unequal', ra: 130, rb: 78,  caption: 'different radii — 130 / 78' },
-    { id: 'equal',   ra: 105, rb: 105, caption: 'same radius — 105 / 105' },
+    { id: 'unequal', ro: 95, rb: 58, caption: 'different radii — orange 95 / blue 58' },
+    { id: 'equal',   ro: 82, rb: 82, caption: 'same radius — orange 82 / blue 82' },
   ];
 
   const rad = deg => deg * Math.PI / 180;
@@ -73,22 +76,24 @@
     ctx.stroke();
   }
 
-  // The lens where the two circles overlap — the only region BOTH vectors can
-  // reach, so it gets its own colour to be told apart from either circle alone.
-  // d = |AB| = ra by construction; the standard two-circle intersection gives
-  // the chord offset `a` from A's centre and the half-chord height `h`.
+  // The lens where two circles overlap — the only region BOTH of that pair's
+  // vectors can reach, so it gets its own colour to be told apart from either
+  // circle alone. Written along the pair's own axis `psi` rather than the x
+  // axis, because the blue circles sit at every spoke angle, not just left/right.
   function lens(ctx, AX, AY, ra, BX, BY, rb) {
-    const d = BX - AX;
+    const dx = BX - AX, dy = BY - AY;
+    const d = Math.hypot(dx, dy);
     if (d >= ra + rb || d <= Math.abs(ra - rb)) return;
 
+    const psi = Math.atan2(dy, dx);        // A → B
     const a = (d * d - rb * rb + ra * ra) / (2 * d);
     const h = Math.sqrt(ra * ra - a * a);
-    const alpha = Math.atan2(h, a);        // A-centre angle to the upper crossing
+    const alpha = Math.atan2(h, a);        // A-centre angle to one crossing
     const beta = Math.atan2(h, a - d);     // B-centre angle to the same point
 
     ctx.beginPath();
-    ctx.arc(AX, AY, ra, -alpha, alpha, false);  // right cap, on A
-    ctx.arc(BX, BY, rb, beta, -beta, false);    // left cap, on B
+    ctx.arc(AX, AY, ra, psi - alpha, psi + alpha, false);  // cap on A, facing B
+    ctx.arc(BX, BY, rb, psi + beta, psi - beta, false);    // cap on B, facing A
     ctx.closePath();
     ctx.fillStyle = 'rgba(122, 224, 168, 0.16)';
     ctx.fill();
@@ -134,8 +139,8 @@
       <figcaption>${scene.caption}</figcaption>
       <div class="panel">
         ${slider(`${scene.id}-joint`, 'both')}
-        ${slider(`${scene.id}-a`, '<span class="swatch a"></span>vector A')}
-        ${slider(`${scene.id}-b`, '<span class="swatch b"></span>vector B')}
+        ${slider(`${scene.id}-a`, '<span class="swatch a"></span>blue vectors')}
+        ${slider(`${scene.id}-b`, '<span class="swatch b"></span>orange vectors')}
         <span></span><span><button id="${scene.id}-reset">reset</button></span><span></span>
       </div>`;
     document.getElementById('scenes').appendChild(fig);
@@ -151,7 +156,7 @@
   }
 
   function draw(scene) {
-    const { ra, rb } = scene;
+    const { ro, rb } = scene;
     const joint = +document.getElementById(`${scene.id}-joint`).value;
     const a = +document.getElementById(`${scene.id}-a`).value;
     const b = +document.getElementById(`${scene.id}-b`).value;
@@ -159,45 +164,53 @@
     const canvas = document.getElementById(`c-${scene.id}`);
     const ctx = canvas.getContext('2d');
 
-    // Centre the pair: the drawing spans AX-ra .. AX+ra+rb, i.e. 2*ra + rb wide.
-    const AX = (canvas.width - (2 * ra + rb)) / 2 + ra;
+    // Orange in the middle; the drawing reaches ro + rb in every direction.
     const BAND = 28;                            // reserved for the readouts
-    const AY = (canvas.height + BAND) / 2;
-    const BX = AX + ra, BY = AY;
+    const OX = canvas.width / 2;
+    const OY = (canvas.height + BAND) / 2;
 
-    // The joint slider drives the two mirror-wise: left circle takes +joint
-    // (clockwise on screen), right circle takes -joint (counter-clockwise). The
-    // per-vector sliders stay literal offsets in each vector's own frame.
-    const degA = joint + a;
-    const degB = -joint + b;
-    const angleA = rad(degA);            // base 0   — towards B
-    const angleB = Math.PI + rad(degB);  // base PI  — towards A
+    // Every spoke behaves the same way, so it is one loop, not a hand-placed
+    // left and right. Within a pair the two vectors COUNTER-rotate under the
+    // joint slider (orange +joint, blue -joint) — the same mirror rule as
+    // before, now applied per spoke rather than per side. The per-colour
+    // sliders are literal offsets, applied to all instances of that colour.
+    const degOrange = joint + b;                // orange, base = spoke — towards its blue
+    const degBlue = -joint + a;                 // blue, base = spoke + PI — towards orange
+    const spokes = Array.from({ length: SPOKES }, (_, k) => {
+      const psi = -Math.PI / 2 + k * 2 * Math.PI / SPOKES;   // first spoke points up
+      return { psi, x: OX + ro * Math.cos(psi), y: OY + ro * Math.sin(psi) };
+    });
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // centre-to-centre line, the shared baseline both vectors start on
+    // centre-to-centre spokes, the baseline each pair's vectors start on
     ctx.strokeStyle = '#2c333c';
     ctx.setLineDash([4, 4]);
     ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(AX - ra, AY);
-    ctx.lineTo(BX + rb, BY);
-    ctx.stroke();
+    for (const s of spokes) {
+      ctx.beginPath();
+      ctx.moveTo(OX, OY);
+      ctx.lineTo(s.x + rb * Math.cos(s.psi), s.y + rb * Math.sin(s.psi));
+      ctx.stroke();
+    }
     ctx.setLineDash([]);
 
-    lens(ctx, AX, AY, ra, BX, BY, rb);
+    for (const s of spokes) lens(ctx, OX, OY, ro, s.x, s.y, rb);
 
-    circle(ctx, AX, AY, ra, '#3d5a8c');
-    circle(ctx, BX, BY, rb, '#8c6a3d');
+    circle(ctx, OX, OY, ro, '#8c6a3d');
+    for (const s of spokes) circle(ctx, s.x, s.y, rb, '#3d5a8c');
 
-    angleArc(ctx, AX, AY, 0, degA, ra * 0.42, '#6ea8fe');
-    angleArc(ctx, BX, BY, Math.PI, degB, rb * 0.42, '#f0a868');
+    for (const s of spokes) {
+      angleArc(ctx, OX, OY, s.psi, degOrange, ro * 0.42, '#f0a868');
+      angleArc(ctx, s.x, s.y, s.psi + Math.PI, degBlue, rb * 0.42, '#6ea8fe');
+    }
+    for (const s of spokes) {
+      arrow(ctx, OX, OY, ro, s.psi + rad(degOrange), '#f0a868');
+      arrow(ctx, s.x, s.y, rb, s.psi + Math.PI + rad(degBlue), '#6ea8fe');
+    }
 
-    arrow(ctx, AX, AY, ra, angleA, '#6ea8fe');
-    arrow(ctx, BX, BY, rb, angleB, '#f0a868');
-
-    readout(ctx, 10, 9, 'left', degA, '#6ea8fe');
-    readout(ctx, canvas.width - 10, 9, 'right', degB, '#f0a868');
+    readout(ctx, 10, 9, 'left', degBlue, '#6ea8fe');
+    readout(ctx, canvas.width - 10, 9, 'right', degOrange, '#f0a868');
 
     document.getElementById(`${scene.id}-joint-v`).textContent = joint + '°';
     document.getElementById(`${scene.id}-a-v`).textContent = a + '°';
