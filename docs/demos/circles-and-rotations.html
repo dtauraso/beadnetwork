@@ -59,9 +59,9 @@
     { id: 'two',       spokes: 2, ro: 58, rb: 95, caption: 'two blue — blue 95 / orange 58' },
     { id: 'two-equal', spokes: 2, ro: 82, rb: 82, caption: 'two blue — same radius 82' },
     {
-      id: 'two-overlap', spokes: 2, ro: 82, rb: 82, overlapDeg: 30,
+      id: 'two-overlap', spokes: 2, ro: 82, rb: 82, overlapDeg: 120,
       names: ['◤', '◥'],
-      caption: 'all three same radius 82 — two blue overlapping each other by ~30°',
+      caption: 'all three same radius 82 — two blue overlapping each other by ~120°',
     },
   ];
 
@@ -383,7 +383,7 @@
     // `overlapDeg` at each blue centre have their centres |PQ| = 2*rb*cos(half)
     // apart, and both centres lie on the orange circle, so the spoke separation
     // is 2*asin(|PQ| / 2*ro). Solved here rather than hand-tuned, so the stated
-    // 30° is the thing actually drawn.
+    // 120° is the thing actually drawn.
     const step = scene.overlapDeg === undefined
       ? 2 * Math.PI / scene.spokes
       : 2 * Math.asin(Math.min(1, rb * Math.cos(rad(scene.overlapDeg) / 2) / ro));
