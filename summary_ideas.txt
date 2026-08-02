@@ -1,0 +1,23 @@
+keep things that are indipendently important to the desgin of the software
+    if I am explaining I have designed a database the schema is kind of important. it's theckincal but th enames and the comlumns are important to how my application works
+    security systems how the secrets are stored are importants
+    things that aroase from the implementation are less improatnt
+        could have been 1 way or another I just picked and it doesn't affect the overall things
+            factored functiaonlity to achieve something the class design is probably not important. the exact way I did the functions is not important
+
+describe how does it work
+nt all the mistakes
+what the current design does that is correct. not so much about how it does it. what does it do.
+polar vector math example:
+    have a layer (file or class) and it handles rotations in 3d. under the hood it used euler angles.
+    I talk about the stuff around. we have a 3d system and rotations are supported. quaternsa are on the roamapt to replac euolaer angles.
+if it's on the roadmap how does it fit into the vision of the software. euler angles are not fine here because of reason x. reason x shoudl link back to the porject.
+if it's novel then it will be paragraphs.
+
+
+effort to try for iteration.
+
+important future directions.
+
+
+it will not be an accurte picture summary.

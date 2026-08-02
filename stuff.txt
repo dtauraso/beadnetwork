@@ -1,0 +1,62 @@
+ai rules for deisgn.
+ai does the code. I do the direction.
+for this to fit I have to visualize the math in my mind.
+I need to see the math I use for any of the visuals and node interactions.
+they must be few and simple.
+I can visualize polar and addition and subtraction.
+I can visualize pan, zoom, rotation.
+It is very hard to visualize radicals trig, formulas with squarse, matricies.
+this means cartesian and quaterians are rejected.
+
+visual rules.
+the visuals need to be in 3d because that is how I visualize.
+the visuals must be clear what is changing when.
+for this to map to a single number there must be invariants
+that hold no matter what node I drag.
+distance invariance, angular invariance, animation invariance.
+distance invariance:
+    there are certain subgraph regions where the edge lengths must stay the same as other edge lengths
+    reguardless of node dragging.
+there are certaint subgraph regiouns where the angles between edges must stay constrainted
+    reguardless of node dragging.
+animation invariance:
+    the animation has to run at a certain speed for every single node that I can view
+    reguardless of node dragging.
+    I must be able to control the speed to make it faster or slower or stop at any time in the animation.
+
+input:
+1,0 as visual beads with color asignments. 2 values for animation signals is for simplicity.
+nodes:
+    1 node 1 animation job.
+node kinds:
+    input node:
+        send input to time and pulse nodes.
+    time nodes:
+        represent tick marks on a number line because of what they do.
+    selection nodes:
+        represent edge selection for detecting the start and end of a stream of input.
+        for 010, the edges are "01", "01"
+    pulse nodes:
+        send pulses consistently to selection node.
+        time nodes already have a role.
+        selecton nodes already have a role.
+        input nodes already have a role.
+    
+
+    future nodes:
+        "and gate" node:
+            this node gets 11 from the selection nodes and is what represents the number stream as a whole.
+            example: input is 010. it acts as 1 to nodes it will connect with.
+            exmaple input is 0110 or 01010. it acts as 2 to nodes it will connect to.
+        moving "and gate" node.
+            summary: it follows the input and links 2 different hierarchies by the same timing distance.
+            description: has 2 input channels. 1 connected to 1 hierarchy and 1 connected to another hierarchy.
+            the input channels moves at the same cadence as the time nodes.
+            needs to start at the node that connects hierarchy level 1 to hierachy level 2 in the same hierarchy
+            each time it moves it sends a 1 to the selection
+            when the node gets 11 it locks to a postion where the input channels can't move.
+            for the current example it would lock itself 1's level 2 at "time node" 2 with 2's level 2 at "time node" 1.
+            it could be moved by a wiring node to be with a "hierarchy" node as a "long term location"
+        wiring node:
+            this node alters connections in other nodes in certain ways.
+
