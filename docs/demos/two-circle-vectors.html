@@ -10,10 +10,13 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 16px;
+    gap: 14px;
     padding: 24px;
   }
+  figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  figcaption { color: #8b949e; }
   canvas { background: #0d1013; border-radius: 6px; }
+  .scenes { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; }
   .panel { display: grid; grid-template-columns: auto 220px 5ch; gap: 8px 12px; align-items: center; }
   .panel label { justify-self: end; }
   .swatch { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
@@ -24,7 +27,16 @@
   button { font: inherit; background: #22262c; color: inherit; border: 1px solid #3a4048; border-radius: 4px; padding: 3px 10px; cursor: pointer; }
 </style>
 
-<canvas id="c" width="640" height="440"></canvas>
+<div class="scenes">
+  <figure>
+    <canvas id="c-unequal" width="460" height="380"></canvas>
+    <figcaption>different radii — 130 / 78</figcaption>
+  </figure>
+  <figure>
+    <canvas id="c-equal" width="460" height="380"></canvas>
+    <figcaption>same radius — 105 / 105</figcaption>
+  </figure>
+</div>
 
 <div class="panel">
   <label for="joint">both</label>
@@ -43,19 +55,18 @@
 </div>
 
 <script>
-  // Circle A sits at the canvas centre. Circle B's CENTRE lies on A's surface,
-  // so |AB| = RA exactly. Each vector starts pointing at the other centre:
-  // A's base angle is 0 (towards B), B's base angle is PI (back towards A).
-  const RA = 130, RB = 78;
-  const AX = 250, AY = 220;
-  const BX = AX + RA, BY = AY;
-
-  const canvas = document.getElementById('c');
-  const ctx = canvas.getContext('2d');
+  // Circle B's CENTRE lies on circle A's surface, so |AB| = RA exactly — that
+  // holds whether or not the radii match. Each vector starts pointing at the
+  // other centre: A's base angle is 0 (towards B), B's is PI (back towards A).
+  // Both scenes below share one set of sliders; only the radii differ.
+  const SCENES = [
+    { id: 'c-unequal', ra: 130, rb: 78 },
+    { id: 'c-equal',   ra: 105, rb: 105 },
+  ];
 
   const rad = deg => deg * Math.PI / 180;
 
-  function arrow(cx, cy, len, angle, color) {
+  function arrow(ctx, cx, cy, len, angle, color) {
     const tx = cx + len * Math.cos(angle);
     const ty = cy + len * Math.sin(angle);
     ctx.strokeStyle = color;
@@ -79,7 +90,7 @@
     ctx.fill();
   }
 
-  function circle(cx, cy, r, color) {
+  function circle(ctx, cx, cy, r, color) {
     ctx.strokeStyle = color;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
@@ -87,17 +98,45 @@
     ctx.stroke();
   }
 
-  function draw() {
-    const joint = +document.getElementById('joint').value;
-    const a = +document.getElementById('va').value;
-    const b = +document.getElementById('vb').value;
+  // Sweep from the baseline direction to where the vector now points, plus the
+  // signed degree reading. Canvas y grows downward, so a POSITIVE degree step
+  // sweeps clockwise on screen.
+  function angleMark(ctx, cx, cy, base, deg, r, color) {
+    const to = base + rad(deg);
+    if (Math.abs(deg) > 0.5) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, base, to, deg < 0);
+      ctx.stroke();
+    }
+    const mid = base + rad(deg) / 2;
+    const lr = r + 16;
+    ctx.fillStyle = color;
+    ctx.font = '12px ui-monospace, Menlo, monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const sense = deg === 0 ? '' : (deg > 0 ? ' cw' : ' ccw');
+    ctx.fillText(`${deg > 0 ? '+' : ''}${deg}°${sense}`, cx + lr * Math.cos(mid), cy + lr * Math.sin(mid));
+  }
 
-    // The joint slider drives the two mirror-wise: canvas y grows downward, so a
-    // POSITIVE angle step is clockwise on screen. Left circle takes +joint
-    // (clockwise), right circle takes -joint (counter-clockwise). The per-vector
-    // sliders stay literal offsets in each vector's own frame.
-    const angleA = rad(joint + a);            // base 0   — towards B
-    const angleB = Math.PI + rad(-joint + b); // base PI  — towards A
+  function drawScene(scene, joint, a, b) {
+    const { ra, rb } = scene;
+    const canvas = document.getElementById(scene.id);
+    const ctx = canvas.getContext('2d');
+
+    // Centre the pair: the drawing spans AX-ra .. AX+ra+rb, i.e. 2*ra + rb wide.
+    const AX = (canvas.width - (2 * ra + rb)) / 2 + ra;
+    const AY = canvas.height / 2;
+    const BX = AX + ra, BY = AY;
+
+    // The joint slider drives the two mirror-wise: left circle takes +joint
+    // (clockwise on screen), right circle takes -joint (counter-clockwise). The
+    // per-vector sliders stay literal offsets in each vector's own frame.
+    const degA = joint + a;
+    const degB = -joint + b;
+    const angleA = rad(degA);            // base 0   — towards B
+    const angleB = Math.PI + rad(degB);  // base PI  — towards A
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -106,16 +145,27 @@
     ctx.setLineDash([4, 4]);
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(AX, AY);
-    ctx.lineTo(BX, BY);
+    ctx.moveTo(AX - ra, AY);
+    ctx.lineTo(BX + rb, BY);
     ctx.stroke();
     ctx.setLineDash([]);
 
-    circle(AX, AY, RA, '#3d5a8c');
-    circle(BX, BY, RB, '#8c6a3d');
+    circle(ctx, AX, AY, ra, '#3d5a8c');
+    circle(ctx, BX, BY, rb, '#8c6a3d');
 
-    arrow(AX, AY, RA, angleA, '#6ea8fe');
-    arrow(BX, BY, RB, angleB, '#f0a868');
+    angleMark(ctx, AX, AY, 0, degA, ra * 0.42, '#6ea8fe');
+    angleMark(ctx, BX, BY, Math.PI, degB, rb * 0.42, '#f0a868');
+
+    arrow(ctx, AX, AY, ra, angleA, '#6ea8fe');
+    arrow(ctx, BX, BY, rb, angleB, '#f0a868');
+  }
+
+  function draw() {
+    const joint = +document.getElementById('joint').value;
+    const a = +document.getElementById('va').value;
+    const b = +document.getElementById('vb').value;
+
+    for (const scene of SCENES) drawScene(scene, joint, a, b);
 
     document.getElementById('joint-v').textContent = joint + '°';
     document.getElementById('va-v').textContent = a + '°';
