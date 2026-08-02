@@ -27,7 +27,11 @@ animation invariance:
     reguardless of node dragging.
     I must be able to control the speed to make it faster or slower or stop at any time in the animation.
 
+network rules:
 there is 1 network.
+all nodes run concurrently. there are supposed to be no blocking settings.
+    the no blocking is ideal as it is easier to visualize the timing.
+    there have been animation issues and graph interactivity issues that resulted from allowing blocks.
 
 input:
 1,0 as visual beads with color asignments. 2 values for animation signals is for simplicity.
