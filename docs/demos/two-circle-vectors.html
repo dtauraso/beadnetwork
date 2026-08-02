@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>orange hub, three blue circles, paired polar vectors</title>
+<style>
+  body {
+    margin: 0;
+    background: #14161a;
+    color: #c9d1d9;
+    font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 24px;
+  }
+  figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  figcaption { color: #8b949e; }
+  canvas { background: #0d1013; border-radius: 6px; }
+  .scenes { display: flex; gap: 22px; flex-wrap: wrap; justify-content: center; align-items: flex-start; }
+  /* An author `display` beats the UA rule behind the `hidden` attribute, so the
+     hidden tab would otherwise stay on screen. */
+  .scenes[hidden] { display: none; }
+  .panel { display: grid; grid-template-columns: auto 190px 6ch; gap: 8px 12px; align-items: center; }
+  .panel label { justify-self: end; }
+  .swatch { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+  .a { background: #6ea8fe; }
+  .b { background: #f0a868; }
+  input[type=range] { width: 100%; }
+  .val { color: #8b949e; text-align: right; }
+  .tabs { display: flex; gap: 6px; }
+  .tabs button[aria-selected="true"] { background: #6ea8fe; border-color: #6ea8fe; color: #0d1013; }
+  button { font: inherit; background: #22262c; color: inherit; border: 1px solid #3a4048; border-radius: 4px; padding: 3px 10px; cursor: pointer; }
+</style>
+
+<div class="tabs" id="tabs"></div>
+<div class="scenes" id="tab-3"></div>
+<div class="scenes" id="tab-2" hidden></div>
+
+<script>
+  // One ORANGE circle in the middle with THREE BLUE circles at equal places
+  // around it — spokes 120° apart, each blue centre ON the orange circle's
+  // surface, so |orange-blue| = ro on every spoke. Each blue/orange pair carries
+  // a mutual pair of vectors that start pointed at each other, so the orange
+  // circle has one vector per blue neighbour (three of them).
+  // Each scene owns its OWN set of three sliders; the scenes are independent.
+  // Spoke count is per scene: three blue circles at 120°, or two at 180°. Each
+  // spoke's blue centre still sits ON the orange circle's surface either way.
+  const SPOKE_NAMES = {
+    2: ['↑', '↓'],                       // spoke order: up, then clockwise
+    3: ['↑', '↘', '↙'],
+  };
+  const SCENES = [
+    { id: 'unequal',   spokes: 3, ro: 58, rb: 95, caption: 'three blue — blue 95 / orange 58' },
+    { id: 'equal',     spokes: 3, ro: 82, rb: 82, caption: 'three blue — same radius 82' },
+    { id: 'two',       spokes: 2, ro: 58, rb: 95, caption: 'two blue — blue 95 / orange 58' },
+    { id: 'two-equal', spokes: 2, ro: 82, rb: 82, caption: 'two blue — same radius 82' },
+    {
+      id: 'two-overlap', spokes: 2, ro: 82, rb: 82, overlapDeg: 30,
+      names: ['◤', '◥'],
+      caption: 'all three same radius 82 — two blue overlapping each other by ~30°',
+    },
+  ];
+  const names = scene => scene.names || SPOKE_NAMES[scene.spokes];
+
+  const rad = deg => deg * Math.PI / 180;
+
+  function arrow(ctx, cx, cy, len, angle, color) {
+    const tx = cx + len * Math.cos(angle);
+    const ty = cy + len * Math.sin(angle);
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(tx, ty);
+    ctx.stroke();
+
+    const head = 11;
+    ctx.beginPath();
+    ctx.moveTo(tx, ty);
+    ctx.lineTo(tx - head * Math.cos(angle - 0.4), ty - head * Math.sin(angle - 0.4));
+    ctx.lineTo(tx - head * Math.cos(angle + 0.4), ty - head * Math.sin(angle + 0.4));
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function circle(ctx, cx, cy, r, color) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  // The lens where two circles overlap — the only region BOTH of that pair's
+  // vectors can reach, so it gets its own colour to be told apart from either
+  // circle alone. Written along the pair's own axis `psi` rather than the x
+  // axis, because the blue circles sit at every spoke angle, not just left/right.
+  function lens(ctx, AX, AY, ra, BX, BY, rb) {
+    const dx = BX - AX, dy = BY - AY;
+    const d = Math.hypot(dx, dy);
+    if (d >= ra + rb || d <= Math.abs(ra - rb)) return;
+
+    const psi = Math.atan2(dy, dx);        // A → B
+    const a = (d * d - rb * rb + ra * ra) / (2 * d);
+    const h = Math.sqrt(ra * ra - a * a);
+    const alpha = Math.atan2(h, a);        // A-centre angle to one crossing
+    const beta = Math.atan2(h, a - d);     // B-centre angle to the same point
+
+    ctx.beginPath();
+    ctx.arc(AX, AY, ra, psi - alpha, psi + alpha, false);  // cap on A, facing B
+    ctx.arc(BX, BY, rb, psi + beta, psi - beta, false);    // cap on B, facing A
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(122, 224, 168, 0.16)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(122, 224, 168, 0.55)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+
+  // The swept arc from the baseline direction to where the vector now points.
+  // Canvas y grows downward, so a POSITIVE degree step sweeps clockwise.
+  function angleArc(ctx, cx, cy, base, deg, r, color) {
+    if (Math.abs(deg) < 0.5) return;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, base, base + rad(deg), deg < 0);
+    ctx.stroke();
+  }
+
+  // The degree readings live in the empty band ABOVE the circles, never inside
+  // the drawing — a label chased around the arc always ends up on top of some
+  // line at some angle, so it is parked where no line can reach it.
+  function readout(ctx, x, y, align, deg, color, tag = '') {
+    const sense = deg === 0 ? '' : (deg > 0 ? ' cw' : ' ccw');
+    ctx.font = '11px ui-monospace, SFMono-Regular, Menlo, monospace';
+    ctx.textAlign = align;
+    ctx.textBaseline = 'top';
+    ctx.fillStyle = color;
+    ctx.fillText(`${tag ? tag + ' ' : ''}${deg > 0 ? '+' : ''}${deg}°${sense}`, x, y);
+  }
+
+  function slider(id, labelHTML) {
+    return `
+      <label for="${id}">${labelHTML}</label>
+      <input type="range" id="${id}" min="-180" max="180" step="1" value="0">
+      <span class="val" id="${id}-v">0°</span>`;
+  }
+
+  function build(scene) {
+    const fig = document.createElement('figure');
+    fig.innerHTML = `
+      <canvas id="c-${scene.id}" width="460" height="380"></canvas>
+      <figcaption>${scene.caption}</figcaption>
+      <div class="panel">
+        ${slider(`${scene.id}-joint`, 'both')}
+        ${slider(`${scene.id}-a`, '<span class="swatch a"></span>all blue')}
+        ${names(scene).map((n, k) =>
+          slider(`${scene.id}-a${k}`, `<span class="swatch a"></span>blue ${n}`)).join('')}
+        ${slider(`${scene.id}-b`, '<span class="swatch b"></span>orange vectors')}
+        <span></span><span><button id="${scene.id}-reset">reset</button></span><span></span>
+      </div>`;
+    document.getElementById(`tab-${scene.spokes}`).appendChild(fig);
+
+    // Kept on the scene so draw() can refresh EVERY slider's degree readout,
+    // including the per-blue ones — a slider whose number never moves reads as
+    // a broken control.
+    const ids = scene.sliderIds = [
+      `${scene.id}-joint`,
+      `${scene.id}-a`,
+      ...names(scene).map((_, k) => `${scene.id}-a${k}`),
+      `${scene.id}-b`,
+    ];
+    for (const id of ids) {
+      document.getElementById(id).addEventListener('input', () => draw(scene));
+    }
+    document.getElementById(`${scene.id}-reset`).addEventListener('click', () => {
+      for (const id of ids) document.getElementById(id).value = 0;
+      draw(scene);
+    });
+  }
+
+  function draw(scene) {
+    const { ro, rb } = scene;
+    const joint = +document.getElementById(`${scene.id}-joint`).value;
+    const a = +document.getElementById(`${scene.id}-a`).value;
+    const b = +document.getElementById(`${scene.id}-b`).value;
+
+    const canvas = document.getElementById(`c-${scene.id}`);
+    const ctx = canvas.getContext('2d');
+
+    // Orange in the middle; the drawing reaches ro + rb in every direction.
+    const BAND = 28;                            // reserved for the readouts
+    const OX = canvas.width / 2;
+    const OY = (canvas.height + BAND) / 2;
+
+    // Every spoke behaves the same way, so it is one loop, not a hand-placed
+    // left and right. Within a pair the two vectors COUNTER-rotate under the
+    // joint slider (orange +joint, blue -joint) — the same mirror rule as
+    // before, now applied per spoke rather than per side. The per-colour
+    // sliders are literal offsets, applied to all instances of that colour.
+    // Each blue also has its OWN slider on top of the shared one, so a single
+    // blue vector can be moved without disturbing the other two.
+    const degOrange = joint + b;                // orange, base = spoke — towards its blue
+    // Spokes are evenly spaced by default. A scene may instead ask for a given
+    // BLUE-BLUE overlap: two blue circles of radius rb whose lens subtends
+    // `overlapDeg` at each blue centre have their centres |PQ| = 2*rb*cos(half)
+    // apart, and both centres lie on the orange circle, so the spoke separation
+    // is 2*asin(|PQ| / 2*ro). Solved here rather than hand-tuned, so the stated
+    // 30° is the thing actually drawn.
+    const step = scene.overlapDeg === undefined
+      ? 2 * Math.PI / scene.spokes
+      : 2 * Math.asin(Math.min(1, rb * Math.cos(rad(scene.overlapDeg) / 2) / ro));
+    const first = -Math.PI / 2 - step * (scene.spokes - 1) / 2;   // spread about "up"
+
+    const spokes = Array.from({ length: scene.spokes }, (_, k) => {
+      const psi = scene.overlapDeg === undefined
+        ? -Math.PI / 2 + k * step                 // first spoke points up
+        : first + k * step;                       // symmetric about up
+      const own = +document.getElementById(`${scene.id}-a${k}`).value;
+      return {
+        psi,
+        x: OX + ro * Math.cos(psi),
+        y: OY + ro * Math.sin(psi),
+        own,
+        degBlue: -joint + a + own,              // blue, base = spoke + PI — towards orange
+      };
+    });
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // centre-to-centre spokes, the baseline each pair's vectors start on
+    ctx.strokeStyle = '#2c333c';
+    ctx.setLineDash([4, 4]);
+    ctx.lineWidth = 1;
+    for (const s of spokes) {
+      ctx.beginPath();
+      ctx.moveTo(OX, OY);
+      ctx.lineTo(s.x + rb * Math.cos(s.psi), s.y + rb * Math.sin(s.psi));
+      ctx.stroke();
+    }
+    ctx.setLineDash([]);
+
+    for (const s of spokes) lens(ctx, OX, OY, ro, s.x, s.y, rb);
+
+    circle(ctx, OX, OY, ro, '#8c6a3d');
+    for (const s of spokes) circle(ctx, s.x, s.y, rb, '#3d5a8c');
+
+    for (const s of spokes) {
+      angleArc(ctx, OX, OY, s.psi, degOrange, ro * 0.42, '#f0a868');
+      angleArc(ctx, s.x, s.y, s.psi + Math.PI, s.degBlue, rb * 0.42, '#6ea8fe');
+    }
+    for (const s of spokes) {
+      arrow(ctx, OX, OY, ro, s.psi + rad(degOrange), '#f0a868');
+      arrow(ctx, s.x, s.y, rb, s.psi + Math.PI + rad(s.degBlue), '#6ea8fe');
+    }
+
+    // Blue readings can now differ per spoke, so all three are listed.
+    ctx.font = '11px ui-monospace, SFMono-Regular, Menlo, monospace';
+    spokes.forEach((s, k) => {
+      readout(ctx, 10 + k * 74, 9, 'left', s.degBlue, '#6ea8fe', names(scene)[k]);
+    });
+    readout(ctx, canvas.width - 10, 9, 'right', degOrange, '#f0a868');
+
+    for (const id of scene.sliderIds) {
+      const deg = +document.getElementById(id).value;
+      document.getElementById(`${id}-v`).textContent = (deg > 0 ? '+' : '') + deg + '°';
+    }
+  }
+
+  for (const scene of SCENES) {
+    build(scene);
+    draw(scene);
+  }
+
+  // One tab per spoke count — each set of examples gets its own page.
+  const TABS = [
+    { spokes: 3, label: 'three blue circles' },
+    { spokes: 2, label: 'two blue circles' },
+  ];
+  const tabs = document.getElementById('tabs');
+  for (const t of TABS) {
+    const btn = document.createElement('button');
+    btn.textContent = t.label;
+    btn.setAttribute('aria-selected', String(t.spokes === 3));
+    btn.addEventListener('click', () => {
+      for (const other of TABS) {
+        const on = other.spokes === t.spokes;
+        document.getElementById(`tab-${other.spokes}`).hidden = !on;
+      }
+      for (const b of tabs.children) b.setAttribute('aria-selected', String(b === btn));
+    });
+    tabs.appendChild(btn);
+  }
+</script>
