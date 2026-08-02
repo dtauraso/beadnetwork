@@ -38,7 +38,8 @@ all nodes run concurrently. there are supposed to be no blocking settings.
     there have been animation issues and graph interactivity issues that resulted from allowing blocks.
 
 solution rules:
-decentralized.
+decentralized for user interaction.
+setting up the graph uses centralized parts as it appears to be unavoidable for the moment.
 
 input:
 1,0 as visual beads with color asignments. 2 values for animation signals is for simplicity.
