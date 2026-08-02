@@ -40,8 +40,6 @@ fi
 # such and must disclose its change (see the doctrine note above).
 readonly ALLOWED=(
   "stop-checks.sh"              # Stop: runs the guard suite, blocks on failure
-  "delegate-reminder-hook.py"  # UserPromptSubmit: prints a delegation nudge
-  "force-delegate-hook.py"     # PreToolUse: delegation gate
   "check-stray-screenshots.sh" # PreToolUse(Bash): screenshot guard
   "bash-approve-guard.sh"      # PreToolUse(Bash): bash approval gate
   "check-no-foreground-sim.sh" # PreToolUse(Bash): blocks foreground sim runs
