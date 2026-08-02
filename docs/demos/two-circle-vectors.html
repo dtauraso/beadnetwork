@@ -17,6 +17,9 @@
   figcaption { color: #8b949e; }
   canvas { background: #0d1013; border-radius: 6px; }
   .scenes { display: flex; gap: 22px; flex-wrap: wrap; justify-content: center; align-items: flex-start; }
+  /* An author `display` beats the UA rule behind the `hidden` attribute, so the
+     hidden tab would otherwise stay on screen. */
+  .scenes[hidden] { display: none; }
   .panel { display: grid; grid-template-columns: auto 190px 6ch; gap: 8px 12px; align-items: center; }
   .panel label { justify-self: end; }
   .swatch { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
