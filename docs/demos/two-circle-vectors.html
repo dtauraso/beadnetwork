@@ -73,6 +73,30 @@
     ctx.stroke();
   }
 
+  // The lens where the two circles overlap — the only region BOTH vectors can
+  // reach, so it gets its own colour to be told apart from either circle alone.
+  // d = |AB| = ra by construction; the standard two-circle intersection gives
+  // the chord offset `a` from A's centre and the half-chord height `h`.
+  function lens(ctx, AX, AY, ra, BX, BY, rb) {
+    const d = BX - AX;
+    if (d >= ra + rb || d <= Math.abs(ra - rb)) return;
+
+    const a = (d * d - rb * rb + ra * ra) / (2 * d);
+    const h = Math.sqrt(ra * ra - a * a);
+    const alpha = Math.atan2(h, a);        // A-centre angle to the upper crossing
+    const beta = Math.atan2(h, a - d);     // B-centre angle to the same point
+
+    ctx.beginPath();
+    ctx.arc(AX, AY, ra, -alpha, alpha, false);  // right cap, on A
+    ctx.arc(BX, BY, rb, beta, -beta, false);    // left cap, on B
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(122, 224, 168, 0.16)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(122, 224, 168, 0.55)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+
   // Sweep from the baseline direction to where the vector now points, plus the
   // signed degree reading. Canvas y grows downward, so a POSITIVE degree step
   // sweeps clockwise on screen.
@@ -183,6 +207,8 @@
     ctx.lineTo(BX + rb, BY);
     ctx.stroke();
     ctx.setLineDash([]);
+
+    lens(ctx, AX, AY, ra, BX, BY, rb);
 
     circle(ctx, AX, AY, ra, '#3d5a8c');
     circle(ctx, BX, BY, rb, '#8c6a3d');
