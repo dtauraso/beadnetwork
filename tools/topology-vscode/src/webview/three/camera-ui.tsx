@@ -270,7 +270,10 @@ function OverlayGroupSection({ group, disabled }: { group: OverlayGroup; disable
           background: hover ? "rgba(255,255,255,0.05)" : "transparent",
         }}
       >
-        <span style={{ fontSize: 8, width: 7, flex: "0 0 auto" }}>{open ? "▾" : "▸"}</span>
+        {/* ▶/▼ (U+25B6/U+25BC), not the ▸/▾ small variants: those render as thin arrowheads
+            in several of the fonts this stack falls back to, which reads as a link chevron
+            rather than a disclosure triangle. */}
+        <span style={{ fontSize: 8, width: 8, flex: "0 0 auto" }}>{open ? "▼" : "▶"}</span>
         <span style={{ flex: "1 1 auto" }}>{group.heading}</span>
         {/* The count is also the group's toggle, and it is SYMMETRIC with no remembered
             state: any member on → turn them all off; all off → turn them all on. The
@@ -373,7 +376,8 @@ export function OverlaysControl() {
             opacity: 0.85,
           }}
         >
-          {open ? "▴" : "▾"}
+          {/* Same disclosure triangles as the group headings (see OverlayGroupSection). */}
+          {open ? "▲" : "▼"}
         </div>
       </div>
 
