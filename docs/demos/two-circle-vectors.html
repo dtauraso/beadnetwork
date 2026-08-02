@@ -51,8 +51,13 @@
     { id: 'equal',     spokes: 3, ro: 82, rb: 82, caption: 'three blue — same radius 82' },
     { id: 'two',       spokes: 2, ro: 95, rb: 58, caption: 'two blue — orange 95 / blue 58' },
     { id: 'two-equal', spokes: 2, ro: 82, rb: 82, caption: 'two blue — same radius 82' },
+    {
+      id: 'two-overlap', spokes: 2, ro: 95, rb: 58, overlapDeg: 30,
+      names: ['◤', '◥'],
+      caption: 'two blue overlapping each other by ~30°',
+    },
   ];
-  const names = scene => SPOKE_NAMES[scene.spokes];
+  const names = scene => scene.names || SPOKE_NAMES[scene.spokes];
 
   const rad = deg => deg * Math.PI / 180;
 
@@ -196,8 +201,21 @@
     // Each blue also has its OWN slider on top of the shared one, so a single
     // blue vector can be moved without disturbing the other two.
     const degOrange = joint + b;                // orange, base = spoke — towards its blue
+    // Spokes are evenly spaced by default. A scene may instead ask for a given
+    // BLUE-BLUE overlap: two blue circles of radius rb whose lens subtends
+    // `overlapDeg` at each blue centre have their centres |PQ| = 2*rb*cos(half)
+    // apart, and both centres lie on the orange circle, so the spoke separation
+    // is 2*asin(|PQ| / 2*ro). Solved here rather than hand-tuned, so the stated
+    // 30° is the thing actually drawn.
+    const step = scene.overlapDeg === undefined
+      ? 2 * Math.PI / scene.spokes
+      : 2 * Math.asin(Math.min(1, rb * Math.cos(rad(scene.overlapDeg) / 2) / ro));
+    const first = -Math.PI / 2 - step * (scene.spokes - 1) / 2;   // spread about "up"
+
     const spokes = Array.from({ length: scene.spokes }, (_, k) => {
-      const psi = -Math.PI / 2 + k * 2 * Math.PI / scene.spokes;   // first spoke points up
+      const psi = scene.overlapDeg === undefined
+        ? -Math.PI / 2 + k * step                 // first spoke points up
+        : first + k * step;                       // symmetric about up
       const own = +document.getElementById(`${scene.id}-a${k}`).value;
       return {
         psi,
