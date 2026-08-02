@@ -33,6 +33,9 @@ all nodes run concurrently. there are supposed to be no blocking settings.
     the no blocking is ideal as it is easier to visualize the timing.
     there have been animation issues and graph interactivity issues that resulted from allowing blocks.
 
+solution rules:
+decentralized.
+
 input:
 1,0 as visual beads with color asignments. 2 values for animation signals is for simplicity.
 nodes:
