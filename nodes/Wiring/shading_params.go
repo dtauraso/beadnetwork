@@ -152,6 +152,37 @@ const ShadingParamNodeRingTubeRatio = 0.08
 // the fact (see the codegen note below).
 const ShadingParamBeadRadius = wire.BeadRadius
 
+// ShadingParamTweenBeadRadius is the radius of a TWEEN bead — the half-step joint the
+// beadTweens overlay puts between a node and its first chain bead, and between every pair
+// of beads after that. A joint OVERLAPS its two neighbours: sitting half a step (4.48) from
+// each, any radius above 0.48 intersects them, and this one is chosen large enough that the
+// overlap is the visible fact about it.
+//
+// It is the edge bead's OUTER TORUS radius — centre of a chain bead to the outside of its
+// ring — so a joint is exactly as wide as the circle a bead draws, not as wide as the bead's
+// fill sphere. Two tuned fractions of BeadRadius came before it (0.6, then 0.8); this is not
+// a tuned number at all but the same lattice quantity the bead's own ring is built from, so
+// a joint and the ring it sits between are the same size by construction.
+//
+// It also means a joint is WIDER than a bead's fill sphere (4.48 vs 4.0) while its centres
+// are only half a step (4.48) apart, so consecutive joints and beads overlap heavily — the
+// strand reads as continuous rather than as a row of touching balls.
+//
+// NOT the gap-filling radius, which was tried and is wrong: (BeadStepR - 2*BeadRadius)/2 =
+// 0.48 makes a joint exactly tangent to both neighbours, but that is a twelfth of a bead —
+// invisible in practice, and it reads as no tween beads at all. "Nestle in the gap" means
+// overlapping the things on either side, not fitting between their surfaces without
+// touching them.
+const ShadingParamTweenBeadRadius = wire.BeadTorusOuterR
+
+// ShadingParamTweenBeadOpacity is how solid a joint bead draws. It is NOT the polar-vector
+// fade (ShadingParamPolarVectorFadeOpacityMult, 0.18): that constant exists to push the
+// ordinary chain and its animation BACK so the polar vectors stand out, and applying it to
+// the joints faded the one thing the tween overlay is meant to show. A joint is the subject
+// here, so it sits well above the faded chain while staying translucent enough to read as a
+// joint rather than a bead.
+const ShadingParamTweenBeadOpacity = 0.55
+
 // ShadingParamBeadRingTubeRatio is a bead ring's torus tube radius as a fraction of
 // ShadingParamBeadRadius. Same for chain beads as for the 0/1 beads — same structure.
 //

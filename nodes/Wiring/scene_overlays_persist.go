@@ -77,6 +77,10 @@ func writeSceneOverlays(overlaysPath string, ov overlayState) error {
 	if ov.polarVectorsVisible {
 		obj["polarVectorsVisible"] = json.RawMessage("true")
 	}
+	// beadTweensVisible is visible-sense with a FALSE default, same as the two above.
+	if ov.beadTweensVisible {
+		obj["beadTweensVisible"] = json.RawMessage("true")
+	}
 	return writeJSONAtomic(overlaysPath, obj)
 }
 
@@ -112,6 +116,7 @@ type sceneOverlaysFile struct {
 	LabelsGlobalHidden    *bool `json:"labelsGlobalHidden"`
 	CascadeLinksVisible   *bool `json:"cascadeLinksVisible"`
 	PolarVectorsVisible   *bool `json:"polarVectorsVisible"`
+	BeadTweensVisible     *bool `json:"beadTweensVisible"`
 }
 
 // loadSceneOverlays reads the persisted overlay-visibility snapshot from overlaysPath
@@ -161,6 +166,10 @@ func loadSceneOverlays(overlaysPath string) (overlayState, bool) {
 		ov.polarVectorsVisible = *sf.PolarVectorsVisible
 		found = true
 	}
+	if sf.BeadTweensVisible != nil {
+		ov.beadTweensVisible = *sf.BeadTweensVisible
+		found = true
+	}
 	return ov, found
 }
 
@@ -190,5 +199,11 @@ func (md *MoveDispatch) LoadOverlays(topologyPath string, tr *T.Trace) {
 		{Kind: T.KindOverlaysVis, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
 		{Kind: T.KindCascadeLinks, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
 		{Kind: T.KindPolarVectors, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
+		{Kind: T.KindBeadTweens, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
 	})
+	// beadTweens is the one overlay flag a NODE also has to know — its chain population
+	// depends on it, not just its shading — so a loaded-on flag has to reach the movers the
+	// same way a clicked one does. Without this, a persisted "on" would tick the box over
+	// chains that were never reconciled onto the half-step lattice.
+	md.broadcastTweens(md.ui.ov.beadTweensVisible)
 }

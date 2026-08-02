@@ -35,6 +35,7 @@ const OVERLAY_FLAG_NAMES = [
   "overlays",
   "cascadeLinks",
   "polarVectors",
+  "beadTweens",
 ] as const;
 // OVERLAY_FLAGS_END
 

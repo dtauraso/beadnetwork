@@ -342,6 +342,16 @@ func (md *MoveDispatch) sendMove(id string, msg moveMsg) {
 	md.mr.sendMove(md.ctx, id, msg)
 }
 
+// broadcastTweens delivers the tween-overlay flag to EVERY node's own extIn, one message
+// per node. No mover reads a shared flag: each node receives the value and reconciles its
+// own chains on its own goroutine (nodeMover.handle's moveMsgKindTweens case). A node whose
+// chain is already at the requested lattice does nothing.
+func (md *MoveDispatch) broadcastTweens(on bool) {
+	for id := range md.mr.nodeMovers {
+		md.sendMove(id, moveMsg{Kind: moveMsgKindTweens, NodeID: id, Bool: on})
+	}
+}
+
 // enqueueFor returns nm's own non-blocking send function. Thin delegator to md.mr
 // (mover_registry.go).
 func (md *MoveDispatch) enqueueFor(nm *nodeMover) func(id string, msg moveMsg) {

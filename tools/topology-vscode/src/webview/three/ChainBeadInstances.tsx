@@ -37,9 +37,11 @@ import { getChainBeads } from "./node-stream-blocks";
 import { getViewBlocks } from "./view-blocks";
 import { beadStyleForValue } from "./bead-style";
 import { createTransparentEdgeTrigger, applyTransparentEdgeTriggered } from "./material-transparent-edge-trigger";
-import { polarVectorsGated } from "./overlay-flags";
+import { beadTweensGated, polarVectorsGated } from "./overlay-flags";
 import {
   SHADING_PARAM_BEAD_RADIUS,
+  SHADING_PARAM_TWEEN_BEAD_RADIUS,
+  SHADING_PARAM_TWEEN_BEAD_OPACITY,
   SHADING_PARAM_BEAD_RING_TUBE_RATIO,
   SHADING_PARAM_CHAIN_BEAD_FILL,
   SHADING_PARAM_POLAR_VECTOR_FADE_OPACITY_MULT,
@@ -64,6 +66,13 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
   const unlitMatRef = useRef<THREE.MeshBasicMaterial>(null);
   const litMatRef = useRef<THREE.MeshBasicMaterial>(null);
   const ringMatRef = useRef<THREE.MeshBasicMaterial>(null);
+  // Tween beads (the beadTweens overlay's half-step joints) get their OWN mesh: they are a
+  // different SIZE from an ordinary bead (radius derived from the gap they fill, not the
+  // bead lattice), they are never lit, and they are permanently faded — and opacity is a
+  // per-material property, the same reason the unlit/lit split exists below.
+  const tweenBodyRef = useRef<THREE.InstancedMesh>(null);
+  const tweenMatRef = useRef<THREE.MeshBasicMaterial>(null);
+  const tweenTransparentTrigger = useRef(createTransparentEdgeTrigger());
   const unlitTransparentTrigger = useRef(createTransparentEdgeTrigger());
   const litTransparentTrigger = useRef(createTransparentEdgeTrigger());
   const ringTransparentTrigger = useRef(createTransparentEdgeTrigger());
@@ -74,10 +83,12 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
     const unlitBody = unlitBodyRef.current;
     const litBody = litBodyRef.current;
     const ring = ringRef.current;
-    if (!unlitBody || !litBody || !ring) return;
+    const tweenBody = tweenBodyRef.current;
+    if (!unlitBody || !litBody || !ring || !tweenBody) return;
 
     const blocks = getViewBlocks();
     const polarVectorsOn = !!blocks && polarVectorsGated(blocks.overlayView);
+    const tweensOn = !!blocks && beadTweensGated(blocks.overlayView);
     const fadeMult = polarVectorsOn ? SHADING_PARAM_POLAR_VECTOR_FADE_OPACITY_MULT : 1;
     if (unlitMatRef.current) {
       applyTransparentEdgeTriggered(unlitTransparentTrigger.current, unlitMatRef.current, polarVectorsOn);
@@ -91,8 +102,14 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
       applyTransparentEdgeTriggered(ringTransparentTrigger.current, ringMatRef.current, polarVectorsOn);
       ringMatRef.current.opacity = fadeMult;
     }
+    if (tweenMatRef.current) {
+      // A joint is ALWAYS faded — it only ever draws inside the polar-vector overlay, so it
+      // has no full-opacity state to fade from.
+      applyTransparentEdgeTriggered(tweenTransparentTrigger.current, tweenMatRef.current, true);
+      tweenMatRef.current.opacity = SHADING_PARAM_TWEEN_BEAD_OPACITY;
+    }
 
-    const { positions, count, lit, litValue } = getChainBeads();
+    const { positions, count, lit, litValue, tween } = getChainBeads();
     // Clamp to the allocated instance count. buffer-scene.tsx's capacity-growth table grows
     // chainBeadCap off this same count, so a clamp lasts one frame at most — but it is still a
     // clamp, and it is why this block has its OWN row in that table rather than borrowing
@@ -106,12 +123,26 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
     // style) compact into litBody. The ring keeps its single mesh — it never glows either way.
     let unlitCount = 0;
     let litCount = 0;
+    let tweenCount = 0;
+    let ringCount = 0;
     for (let i = 0; i < drawn; i++) {
       // Uniform bead size (see this file's header comment): no per-instance scale — every
       // bead is authored directly at SHADING_PARAM_BEAD_RADIUS geometry.
       matRef.current.makeTranslation(positions[i * 3]!, positions[i * 3 + 1]!, positions[i * 3 + 2]!);
-      ring.setMatrixAt(i, matRef.current);
-      ring.setColorAt(i, colRef.current.set(RING_COLOR));
+
+      // A JOINT bead: its own smaller mesh, no ring (a ring at joint scale would read as
+      // grit), never lit. Skipped entirely when the overlay is off — Go stops emitting them
+      // then, so this only covers the frame the flag flips on.
+      if (tween[i] === 1) {
+        if (!tweensOn) continue;
+        tweenBody.setMatrixAt(tweenCount, matRef.current);
+        tweenCount++;
+        continue;
+      }
+
+      ring.setMatrixAt(ringCount, matRef.current);
+      ring.setColorAt(ringCount, colRef.current.set(RING_COLOR));
+      ringCount++;
 
       // The ONE visual difference: an occupied bead wears its traversal's own fill, an empty
       // one wears the edge tube's own material. A lit bead whose value is not 0|1 has no
@@ -129,9 +160,13 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
     }
     unlitBody.count = unlitCount;
     litBody.count = litCount;
-    ring.count = drawn;
+    tweenBody.count = tweenCount;
+    // ringCount, not drawn: a joint contributes no ring, so the two counts differ whenever
+    // the overlay is on.
+    ring.count = ringCount;
     unlitBody.instanceMatrix.needsUpdate = true;
     litBody.instanceMatrix.needsUpdate = true;
+    tweenBody.instanceMatrix.needsUpdate = true;
     ring.instanceMatrix.needsUpdate = true;
     if (litBody.instanceColor) litBody.instanceColor.needsUpdate = true;
     if (ring.instanceColor) ring.instanceColor.needsUpdate = true;
@@ -173,6 +208,26 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
       <instancedMesh ref={litBodyRef} args={[undefined, undefined, capacity]} frustumCulled={false}>
         <sphereGeometry args={[SHADING_PARAM_BEAD_RADIUS, 16, 16]} />
         <meshBasicMaterial ref={litMatRef} toneMapped={false} transparent={false} opacity={1} />
+      </instancedMesh>
+      {/* Tween body: the beadTweens overlay's joints. A joint is not another bead — its
+          radius is DERIVED from the gap it fills (SHADING_PARAM_TWEEN_BEAD_RADIUS =
+          (BeadStepR − 2·BeadRadius)/2 = 0.48), so it meets both neighbours' surfaces by
+          construction rather than by a tuned constant. Own mesh because it differs from an
+          ordinary bead in size AND opacity, and both are per-mesh/per-material properties. */}
+      <instancedMesh ref={tweenBodyRef} args={[undefined, undefined, capacity]} frustumCulled={false}>
+        <sphereGeometry args={[SHADING_PARAM_TWEEN_BEAD_RADIUS, 16, 16]} />
+        {/* depthWrite stays DEFAULT (true), matching the unlit/lit/ring materials. Setting
+            it false made a joint read as markedly fainter than the ordinary beads beside it
+            at the SAME opacity: it stopped occluding what was behind it, so the scene showed
+            through and the joint washed out. Same opacity constant as the beads, same depth
+            behaviour, so a joint fades exactly as much as its neighbours and no more. */}
+        <meshBasicMaterial
+          ref={tweenMatRef}
+          color={SHADING_PARAM_CHAIN_BEAD_FILL}
+          toneMapped={false}
+          transparent
+          opacity={SHADING_PARAM_TWEEN_BEAD_OPACITY}
+        />
       </instancedMesh>
       <instancedMesh ref={ringRef} args={[undefined, undefined, capacity]} frustumCulled={false}>
         <torusGeometry

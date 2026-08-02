@@ -24,6 +24,7 @@ type overlayState struct {
 	overlaysVisible       bool
 	cascadeLinksVisible   bool
 	polarVectorsVisible   bool
+	beadTweensVisible     bool
 }
 
 // setFlag flips *field. Shared body of the uniform Toggle* methods. The RowEvent
@@ -80,6 +81,11 @@ func (o *overlayState) TogglePolarVectors(tr *T.Trace) {
 	o.setFlag(&o.polarVectorsVisible)
 }
 
+// ToggleBeadTweens flips beadTweensVisible.
+func (o *overlayState) ToggleBeadTweens(tr *T.Trace) {
+	o.setFlag(&o.beadTweensVisible)
+}
+
 // SetGuideVisibility installs an explicit-visibility snapshot wholesale (the TS
 // startup push so settings survive a Go respawn).
 func (o *overlayState) SetGuideVisibility(ov overlayState) {
@@ -116,6 +122,7 @@ func (md *MoveDispatch) ToggleLabelsGlobal(tr *T.Trace)   { md.ui.ov.ToggleLabel
 func (md *MoveDispatch) ToggleOverlaysVis(tr *T.Trace)    { md.ui.ov.ToggleOverlaysVis(tr) }
 func (md *MoveDispatch) ToggleCascadeLinks(tr *T.Trace)   { md.ui.ov.ToggleCascadeLinks(tr) }
 func (md *MoveDispatch) TogglePolarVectors(tr *T.Trace)   { md.ui.ov.TogglePolarVectors(tr) }
+func (md *MoveDispatch) ToggleBeadTweens(tr *T.Trace)     { md.ui.ov.ToggleBeadTweens(tr) }
 
 // overlayToggles maps an overlay FLAG name (the attr="toggle" wire name) to the
 // MoveDispatch method that flips it.
@@ -131,6 +138,7 @@ var overlayToggles = map[string]func(*MoveDispatch, *T.Trace){
 	"overlays":       (*MoveDispatch).ToggleOverlaysVis,
 	"cascadeLinks":   (*MoveDispatch).ToggleCascadeLinks,
 	"polarVectors":   (*MoveDispatch).TogglePolarVectors,
+	"beadTweens":     (*MoveDispatch).ToggleBeadTweens,
 }
 
 // OVERLAY_TOGGLES_END
@@ -153,6 +161,7 @@ var overlayFlagTraceKind = map[string]string{
 	"overlays":       T.KindOverlaysVis,
 	"cascadeLinks":   T.KindCascadeLinks,
 	"polarVectors":   T.KindPolarVectors,
+	"beadTweens":     T.KindBeadTweens,
 }
 
 // OVERLAY_TRACE_KINDS_END

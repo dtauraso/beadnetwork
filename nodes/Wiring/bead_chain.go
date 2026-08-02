@@ -47,6 +47,16 @@ type edgeBeadChain struct {
 	// advances its geometry generation.
 	haveAim bool
 	lastAim wire.Vec3
+	// lattice is offsetAt(0) for the placement these beads were BUILT with. A bead's own
+	// offset is baked in at construction and never changes for its lifetime
+	// (bead_actor.go's Bead.offsetR), so a chain cannot be RE-SPACED by growing it: the
+	// beads that already exist would keep the old spacing while appended ones used the new
+	// one — which is exactly what a naive "grow on overlay flip" produces, an unchanged
+	// chain with extra beads trailing off its far end. The tween overlay changes that
+	// spacing, so when this value moves the chain is torn down and rebuilt rather than
+	// grown. haveLattice distinguishes "never built" from "built at offset 0".
+	haveLattice bool
+	lattice     float64
 }
 
 // reconcileBeadChain grows or shrinks this node's own bead-actor chain for outgoing edge
@@ -63,6 +73,21 @@ func (m *nodeMover) reconcileBeadChain(to string, count int, offsetAt func(i int
 	if c == nil {
 		c = &edgeBeadChain{group: wire.NewBeadWakeGroup()}
 		m.beadChains[to] = c
+	}
+	// Re-space: the per-index offsets changed (the tween overlay flipping the lattice), so
+	// every existing bead holds an offset it cannot be told to update. Tear the chain down
+	// to empty here and let the grow loop below rebuild it at the new spacing — each removed
+	// bead's own stop channel closes, so no goroutine leaks, exactly as the shrink path
+	// does. Rare and cheap: this runs only when the lattice constant itself moves, never on
+	// a move, a drag, or an ordinary count change.
+	if lat := offsetAt(0); !c.haveLattice || lat != c.lattice {
+		for i := range c.stops {
+			close(c.stops[i])
+		}
+		c.beads, c.stops, c.snaps, c.last, c.valid = nil, nil, nil, nil, nil
+		c.haveLattice, c.lattice = true, lat
+		// Force the geometry broadcast below: the rebuilt beads have never been aimed.
+		c.haveAim = false
 	}
 	// Grow: add beads at the chain END (bead CRUD's own convention, bead_crud.go) —
 	// index len(c.beads) is always the next one appended, never inserted mid-chain.
