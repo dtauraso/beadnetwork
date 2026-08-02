@@ -40,7 +40,13 @@ function fireToggle(cfg: ToggleCfg, val: boolean) {
  *  cfg.flag keys the buffer record in store polarity. Falls back to cfg.default until the
  *  first snapshot lands. */
 function useToggleVal(cfg: ToggleCfg): boolean {
-  const bufFlags = useOverlayFlags();
+  return toggleVal(useOverlayFlags(), cfg);
+}
+
+/** useToggleVal's rule as a pure function, so a caller that already holds the flags (a group
+ *  header counting its members) reads them by the SAME rule instead of restating it — two
+ *  copies could disagree about the pre-first-snapshot fallback and only one would be right. */
+function toggleVal(bufFlags: ReturnType<typeof useOverlayFlags>, cfg: ToggleCfg): boolean {
   // ?? cfg.default only guards the (impossible) missing-key case under noUncheckedIndexedAccess;
   // every OverlayFlag is always present in the record, so `false` is preserved. When cfg omits
   // `default` (a flag whose Go default TS should not assert), this falls back to `false` until
@@ -212,6 +218,94 @@ function OverlayRow({ cfg, disabled }: { cfg: ToggleCfg; disabled?: boolean }) {
   );
 }
 
+/** One collapsible group in the popover: a clickable heading that expands to its rows.
+ *
+ *  Collapsed is the DEFAULT, and the heading carries an on/total count so collapsing never
+ *  hides state — you can read "POLES 2/3" without expanding, which is the thing a plain
+ *  dropdown would cost you. Open/closed is view-local `useState`, deliberately NOT a Go
+ *  flag: which section a person has twirled open is not part of the model (no buffer
+ *  column, nothing streamed, nothing persisted), unlike the overlay flags themselves, which
+ *  stay Go-owned. Each ROW still reads its own flag from the buffer — the count here is a
+ *  second reader of the same truth, never a cache of it. */
+function OverlayGroupSection({ group, disabled }: { group: OverlayGroup; disabled?: boolean }) {
+  const [open, setOpen] = useState(false);
+  const [hover, setHover] = useState(false);
+  const [countHover, setCountHover] = useState(false);
+  const bufFlags = useOverlayFlags();
+  const on = group.cfgs.filter((cfg) => cfg.active(toggleVal(bufFlags, cfg))).length;
+  // Flip only the members that need flipping — every send is the SAME per-flag toggle record
+  // a row click sends (encodeOverlaysToggle), so the group action introduces no second way to
+  // set an overlay. Members already in the target state are left alone rather than toggled
+  // twice. stopPropagation keeps this off the heading's expand/collapse.
+  const onCountClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (disabled) return;
+      const target = on === 0; // all off → turn everything on; otherwise turn everything off
+      for (const cfg of group.cfgs) {
+        const val = toggleVal(bufFlags, cfg);
+        if (cfg.active(val) !== target) fireToggle(cfg, val);
+      }
+    },
+    [group, bufFlags, on, disabled]
+  );
+  return (
+    <div>
+      <div
+        onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }}
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
+        title={open ? `Collapse ${group.heading}` : `Expand ${group.heading}`}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 5,
+          fontSize: 9.5,
+          textTransform: "uppercase",
+          letterSpacing: "0.05em",
+          color: "#9a9aa6",
+          padding: "5px 6px 4px",
+          cursor: "pointer",
+          borderRadius: 5,
+          background: hover ? "rgba(255,255,255,0.05)" : "transparent",
+        }}
+      >
+        {/* ▶/▼ (U+25B6/U+25BC), not the ▸/▾ small variants: those render as thin arrowheads
+            in several of the fonts this stack falls back to, which reads as a link chevron
+            rather than a disclosure triangle. */}
+        <span style={{ fontSize: 8, width: 8, flex: "0 0 auto" }}>{open ? "▼" : "▶"}</span>
+        <span style={{ flex: "1 1 auto" }}>{group.heading}</span>
+        {/* The count is also the group's toggle, and it is SYMMETRIC with no remembered
+            state: any member on → turn them all off; all off → turn them all on. The
+            tempting version ("off, then restore what was on") needs to remember which
+            members were on — a cache of Go-owned flags in TS, or a new per-group flag in
+            Go. Neither is worth it for something three row clicks already do, so this
+            sends nothing but the per-flag toggle records the rows themselves send.
+            Accented only when some member is on, so a collapsed group reads at a glance. */}
+        <span
+          onClick={onCountClick}
+          onMouseEnter={() => setCountHover(true)}
+          onMouseLeave={() => setCountHover(false)}
+          title={disabled ? "" : on > 0 ? `Turn all ${group.heading} off` : `Turn all ${group.heading} on`}
+          style={{
+            color: on > 0 ? "#4ea1ff" : "#6e6e78",
+            fontVariantNumeric: "tabular-nums",
+            cursor: disabled ? "default" : "pointer",
+            padding: "1px 4px",
+            borderRadius: 4,
+            background: !disabled && countHover ? "rgba(255,255,255,0.10)" : "transparent",
+          }}
+        >
+          {on}/{group.cfgs.length}
+        </span>
+      </div>
+      {open && group.cfgs.map((cfg) => (
+        <OverlayRow key={cfg.flag} cfg={cfg} disabled={disabled} />
+      ))}
+    </div>
+  );
+}
+
 /** OVERLAYS CONTROL: split-button (body = master toggle, caret = popover) + popover checklist. */
 export function OverlaysControl() {
   const [open, setOpen] = useState(false);
@@ -282,7 +376,8 @@ export function OverlaysControl() {
             opacity: 0.85,
           }}
         >
-          {open ? "▴" : "▾"}
+          {/* Same disclosure triangles as the group headings (see OverlayGroupSection). */}
+          {open ? "▲" : "▼"}
         </div>
       </div>
 
@@ -307,22 +402,7 @@ export function OverlaysControl() {
         >
           <div style={{ opacity: active ? 1 : 0.4, transition: "opacity 0.12s ease" }}>
             {OVERLAY_GROUPS.map((group) => (
-              <div key={group.heading}>
-                <div
-                  style={{
-                    fontSize: 9.5,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.05em",
-                    color: "#9a9aa6",
-                    padding: "6px 6px 2px",
-                  }}
-                >
-                  {group.heading}
-                </div>
-                {group.cfgs.map((cfg) => (
-                  <OverlayRow key={cfg.flag} cfg={cfg} disabled={!active} />
-                ))}
-              </div>
+              <OverlayGroupSection key={group.heading} group={group} disabled={!active} />
             ))}
           </div>
         </div>
