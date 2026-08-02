@@ -27,6 +27,8 @@ animation invariance:
     reguardless of node dragging.
     I must be able to control the speed to make it faster or slower or stop at any time in the animation.
 
+there is 1 network.
+
 input:
 1,0 as visual beads with color asignments. 2 values for animation signals is for simplicity.
 nodes:
