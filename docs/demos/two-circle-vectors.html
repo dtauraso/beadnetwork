@@ -85,14 +85,39 @@
       ctx.arc(cx, cy, r, base, to, deg < 0);
       ctx.stroke();
     }
+    const sense = deg === 0 ? '' : (deg > 0 ? ' cw' : ' ccw');
+    const text = `${deg > 0 ? '+' : ''}${deg}°${sense}`;
+
+    // Sit the label on the bisector of the swept arc. At a small sweep that
+    // bisector lies ON the arrow, so push the label clear along the arc's
+    // perpendicular — otherwise the two overlap and neither reads.
     const mid = base + rad(deg) / 2;
-    const lr = r + 16;
-    ctx.fillStyle = color;
-    ctx.font = '12px ui-monospace, Menlo, monospace';
+    let lx = cx + (r + 18) * Math.cos(mid);
+    let ly = cy + (r + 18) * Math.sin(mid);
+    if (Math.abs(deg) < 25) {
+      const perp = mid + Math.PI / 2 * (deg < 0 ? 1 : -1);
+      lx += 20 * Math.cos(perp);
+      ly += 20 * Math.sin(perp);
+    }
+
+    ctx.font = '600 14px ui-monospace, SFMono-Regular, Menlo, monospace';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    const sense = deg === 0 ? '' : (deg > 0 ? ' cw' : ' ccw');
-    ctx.fillText(`${deg > 0 ? '+' : ''}${deg}°${sense}`, cx + lr * Math.cos(mid), cy + lr * Math.sin(mid));
+
+    // Plate behind the text so it stays readable over circles, arrows and the
+    // dashed baseline.
+    const w = ctx.measureText(text).width + 12;
+    const h = 20;
+    ctx.fillStyle = 'rgba(13, 16, 19, 0.92)';
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(lx - w / 2, ly - h / 2, w, h, 5);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = color;
+    ctx.fillText(text, lx, ly);
   }
 
   function slider(id, labelHTML) {
