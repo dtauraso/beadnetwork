@@ -6,6 +6,10 @@ they must be few and simple.
 I can visualize polar and addition and subtraction.
 I can visualize pan, zoom, rotation.
 It is very hard to visualize radicals trig, formulas with squarse, matricies.
+It is very hard to visualize formulas that assume it's ok to have multiple unknowns with
+no finit values or no scalar constraints. (2 different r's for a node and a bead are ok if 1 is an integer multiple of another).
+Is very hard to visualize. If the formula assumes any possible value could be valid then.
+
 this means cartesian and quaterians are rejected.
 
 ai rules for usage:
