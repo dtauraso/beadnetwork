@@ -97,51 +97,27 @@
     ctx.stroke();
   }
 
-  // Sweep from the baseline direction to where the vector now points, plus the
-  // signed degree reading. Canvas y grows downward, so a POSITIVE degree step
-  // sweeps clockwise on screen.
-  function angleMark(ctx, cx, cy, base, deg, r, color) {
-    const to = base + rad(deg);
-    if (Math.abs(deg) > 0.5) {
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, base, to, deg < 0);
-      ctx.stroke();
-    }
-    const sense = deg === 0 ? '' : (deg > 0 ? ' cw' : ' ccw');
-    const text = `${deg > 0 ? '+' : ''}${deg}°${sense}`;
-
-    // Sit the label on the bisector of the swept arc. At a small sweep that
-    // bisector lies ON the arrow, so push the label clear along the arc's
-    // perpendicular — otherwise the two overlap and neither reads.
-    const mid = base + rad(deg) / 2;
-    let lx = cx + (r + 18) * Math.cos(mid);
-    let ly = cy + (r + 18) * Math.sin(mid);
-    if (Math.abs(deg) < 25) {
-      const perp = mid + Math.PI / 2 * (deg < 0 ? 1 : -1);
-      lx += 20 * Math.cos(perp);
-      ly += 20 * Math.sin(perp);
-    }
-
-    ctx.font = '600 14px ui-monospace, SFMono-Regular, Menlo, monospace';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-
-    // Plate behind the text so it stays readable over circles, arrows and the
-    // dashed baseline.
-    const w = ctx.measureText(text).width + 12;
-    const h = 20;
-    ctx.fillStyle = 'rgba(13, 16, 19, 0.92)';
+  // The swept arc from the baseline direction to where the vector now points.
+  // Canvas y grows downward, so a POSITIVE degree step sweeps clockwise.
+  function angleArc(ctx, cx, cy, base, deg, r, color) {
+    if (Math.abs(deg) < 0.5) return;
     ctx.strokeStyle = color;
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.roundRect(lx - w / 2, ly - h / 2, w, h, 5);
-    ctx.fill();
+    ctx.arc(cx, cy, r, base, base + rad(deg), deg < 0);
     ctx.stroke();
+  }
 
+  // The degree readings live in the empty band ABOVE the circles, never inside
+  // the drawing — a label chased around the arc always ends up on top of some
+  // line at some angle, so it is parked where no line can reach it.
+  function readout(ctx, x, y, align, deg, color) {
+    const sense = deg === 0 ? '' : (deg > 0 ? ' cw' : ' ccw');
+    ctx.font = '11px ui-monospace, SFMono-Regular, Menlo, monospace';
+    ctx.textAlign = align;
+    ctx.textBaseline = 'top';
     ctx.fillStyle = color;
-    ctx.fillText(text, lx, ly);
+    ctx.fillText(`${deg > 0 ? '+' : ''}${deg}°${sense}`, x, y);
   }
 
   function slider(id, labelHTML) {
@@ -185,7 +161,8 @@
 
     // Centre the pair: the drawing spans AX-ra .. AX+ra+rb, i.e. 2*ra + rb wide.
     const AX = (canvas.width - (2 * ra + rb)) / 2 + ra;
-    const AY = canvas.height / 2;
+    const BAND = 28;                            // reserved for the readouts
+    const AY = (canvas.height + BAND) / 2;
     const BX = AX + ra, BY = AY;
 
     // The joint slider drives the two mirror-wise: left circle takes +joint
@@ -213,11 +190,14 @@
     circle(ctx, AX, AY, ra, '#3d5a8c');
     circle(ctx, BX, BY, rb, '#8c6a3d');
 
-    angleMark(ctx, AX, AY, 0, degA, ra * 0.42, '#6ea8fe');
-    angleMark(ctx, BX, BY, Math.PI, degB, rb * 0.42, '#f0a868');
+    angleArc(ctx, AX, AY, 0, degA, ra * 0.42, '#6ea8fe');
+    angleArc(ctx, BX, BY, Math.PI, degB, rb * 0.42, '#f0a868');
 
     arrow(ctx, AX, AY, ra, angleA, '#6ea8fe');
     arrow(ctx, BX, BY, rb, angleB, '#f0a868');
+
+    readout(ctx, 10, 9, 'left', degA, '#6ea8fe');
+    readout(ctx, canvas.width - 10, 9, 'right', degB, '#f0a868');
 
     document.getElementById(`${scene.id}-joint-v`).textContent = joint + '°';
     document.getElementById(`${scene.id}-a-v`).textContent = a + '°';
