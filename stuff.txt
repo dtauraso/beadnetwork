@@ -49,6 +49,9 @@ node kinds:
     
 
     future nodes:
+        "moving channels" node:
+            at the same cadence of time nodes but allow edges to jump
+            to another node without using an edge animation.
         "and gate" node:
             this node gets 11 from the selection nodes and is what represents the number stream as a whole.
             example: input is 010. it acts as 1 to nodes it will connect with.
