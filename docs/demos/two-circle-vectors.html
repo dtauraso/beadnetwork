@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>two circles, two polar vectors</title>
+<style>
+  body {
+    margin: 0;
+    background: #14161a;
+    color: #c9d1d9;
+    font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 24px;
+  }
+  canvas { background: #0d1013; border-radius: 6px; }
+  .panel { display: grid; grid-template-columns: auto 220px 5ch; gap: 8px 12px; align-items: center; }
+  .panel label { justify-self: end; }
+  .swatch { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+  .a { background: #6ea8fe; }
+  .b { background: #f0a868; }
+  input[type=range] { width: 100%; }
+  .val { color: #8b949e; text-align: right; }
+  button { font: inherit; background: #22262c; color: inherit; border: 1px solid #3a4048; border-radius: 4px; padding: 3px 10px; cursor: pointer; }
+</style>
+
+<canvas id="c" width="640" height="440"></canvas>
+
+<div class="panel">
+  <label for="joint">both</label>
+  <input type="range" id="joint" min="-180" max="180" step="1" value="0">
+  <span class="val" id="joint-v">0°</span>
+
+  <label for="va"><span class="swatch a"></span>vector A</label>
+  <input type="range" id="va" min="-180" max="180" step="1" value="0">
+  <span class="val" id="va-v">0°</span>
+
+  <label for="vb"><span class="swatch b"></span>vector B</label>
+  <input type="range" id="vb" min="-180" max="180" step="1" value="0">
+  <span class="val" id="vb-v">0°</span>
+
+  <span></span><span><button id="reset">reset</button></span><span></span>
+</div>
+
+<script>
+  // Circle A sits at the canvas centre. Circle B's CENTRE lies on A's surface,
+  // so |AB| = RA exactly. Each vector starts pointing at the other centre:
+  // A's base angle is 0 (towards B), B's base angle is PI (back towards A).
+  const RA = 130, RB = 78;
+  const AX = 250, AY = 220;
+  const BX = AX + RA, BY = AY;
+
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+
+  const rad = deg => deg * Math.PI / 180;
+
+  function arrow(cx, cy, len, angle, color) {
+    const tx = cx + len * Math.cos(angle);
+    const ty = cy + len * Math.sin(angle);
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(tx, ty);
+    ctx.stroke();
+
+    const head = 11;
+    ctx.beginPath();
+    ctx.moveTo(tx, ty);
+    ctx.lineTo(tx - head * Math.cos(angle - 0.4), ty - head * Math.sin(angle - 0.4));
+    ctx.lineTo(tx - head * Math.cos(angle + 0.4), ty - head * Math.sin(angle + 0.4));
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function circle(cx, cy, r, color) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  function draw() {
+    const joint = +document.getElementById('joint').value;
+    const a = +document.getElementById('va').value;
+    const b = +document.getElementById('vb').value;
+
+    const angleA = rad(joint + a);            // base 0   — towards B
+    const angleB = Math.PI + rad(joint + b);  // base PI  — towards A
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // centre-to-centre line, the shared baseline both vectors start on
+    ctx.strokeStyle = '#2c333c';
+    ctx.setLineDash([4, 4]);
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(AX, AY);
+    ctx.lineTo(BX, BY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    circle(AX, AY, RA, '#3d5a8c');
+    circle(BX, BY, RB, '#8c6a3d');
+
+    arrow(AX, AY, RA, angleA, '#6ea8fe');
+    arrow(BX, BY, RB, angleB, '#f0a868');
+
+    document.getElementById('joint-v').textContent = joint + '°';
+    document.getElementById('va-v').textContent = a + '°';
+    document.getElementById('vb-v').textContent = b + '°';
+  }
+
+  for (const id of ['joint', 'va', 'vb']) {
+    document.getElementById(id).addEventListener('input', draw);
+  }
+  document.getElementById('reset').addEventListener('click', () => {
+    for (const id of ['joint', 'va', 'vb']) document.getElementById(id).value = 0;
+    draw();
+  });
+
+  draw();
+</script>
