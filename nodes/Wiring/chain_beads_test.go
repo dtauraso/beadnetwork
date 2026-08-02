@@ -45,7 +45,7 @@ func TestChainBeadsStayOutsideBothNodes(t *testing.T) {
 		cascadeKinds:   map[string]string{"b": "Time"}, // radius 9
 		partnerCenters: singleNeighborCenter("b", gap),
 	}
-	ox, oy, oz, _, _, _ := m.chainBeads()
+	ox, oy, oz, _, _, _, _ := m.chainBeads()
 	if len(ox) == 0 {
 		t.Fatal("no beads emitted for a 400-unit gap")
 	}
@@ -77,7 +77,7 @@ func TestChainBeadsTouch(t *testing.T) {
 		// on TestChainBeadsStayOutsideBothNodes's gap.
 		partnerCenters: singleNeighborCenter("b", 150*wire.BeadStepR),
 	}
-	ox, oy, oz, _, _, _ := m.chainBeads()
+	ox, oy, oz, _, _, _, _ := m.chainBeads()
 	if len(ox) < 3 {
 		t.Fatalf("want several beads to compare spacing, got %d", len(ox))
 	}
@@ -105,7 +105,7 @@ func TestChainBeadsAlwaysAtLeastOneBead(t *testing.T) {
 		// nodeTorusSteps (2 each) collapses well below the minimum.
 		partnerCenters: singleNeighborCenter("b", 3*wire.BeadStepR),
 	}
-	if ox, _, _, _, _, _ := m.chainBeads(); len(ox) != 1 {
+	if ox, _, _, _, _, _, _ := m.chainBeads(); len(ox) != 1 {
 		t.Errorf("count = %d, want 1 — edgeStepCount clamps a collapsed gap to the minimum, never 0", len(ox))
 	}
 }
@@ -117,7 +117,7 @@ func TestChainBeadsUnknownPartnerContributesNothing(t *testing.T) {
 	m := &nodeMover{
 		id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}}, outTargets: []string{"b"},
 	}
-	if ox, _, _, _, _, _ := m.chainBeads(); len(ox) != 0 {
+	if ox, _, _, _, _, _, _ := m.chainBeads(); len(ox) != 0 {
 		t.Errorf("count = %d, want 0 for an unknown partner", len(ox))
 	}
 }
@@ -133,7 +133,7 @@ func TestChainBeadsCountIsSpanProportional(t *testing.T) {
 			outTargets: []string{"b"}, cascadeKinds: map[string]string{"b": "Input"},
 			partnerCenters: singleNeighborCenter("b", centerGap),
 		}
-		ox, _, _, _, _, _ := m.chainBeads()
+		ox, _, _, _, _, _, _ := m.chainBeads()
 		return len(ox)
 	}
 	// base and span must each be an exact multiple of wire.BeadStepR
@@ -316,7 +316,7 @@ func TestChainBeadsExactDoubleTangency(t *testing.T) {
 				cascadeKinds:   map[string]string{"b": dstKind},
 				partnerCenters: singleNeighborCenter("b", gap),
 			}
-			ox, oy, oz, _, _, _ := m.chainBeads()
+			ox, oy, oz, _, _, _, _ := m.chainBeads()
 			if len(ox) == 0 {
 				t.Fatalf("%s->%s gap %.0f: no beads emitted", srcKind, dstKind, gap)
 			}
@@ -396,7 +396,7 @@ func TestChainBeadsLastBeadOnTargetTorusOffAxis(t *testing.T) {
 	srcTorus := nodeTorusOuterR("Input")
 	dstTorus := nodeTorusOuterR("Time")
 
-	ox, oy, oz, _, _, _ := m.chainBeads()
+	ox, oy, oz, _, _, _, _ := m.chainBeads()
 	if len(ox) != count {
 		t.Fatalf("bead count = %d, want edgeStepCount's %d", len(ox), count)
 	}
@@ -419,5 +419,63 @@ func TestChainBeadsLastBeadOnTargetTorusOffAxis(t *testing.T) {
 	if math.Abs(distToTarget-wantDist) > tangencyEps {
 		t.Errorf("last bead (%d) to target centre = %.9f, want exactly targetTorusR+BeadTorusOuterR = %.9f (off by %.9f)",
 			last, distToTarget, wantDist, distToTarget-wantDist)
+	}
+}
+
+// TestTweenLatticeDoublesAndAlternates asserts what ONE goroutine (this nodeMover) decides
+// when the tween overlay is on: its own chain doubles onto the half-step lattice, the joints
+// land on EVEN indices, and each ordinary bead keeps the exact offset it had with the
+// overlay off. Pure chainBeads, one goroutine, no delivery — the lattice is the claim.
+func TestTweenLatticeDoublesAndAlternates(t *testing.T) {
+	const gap = 20 * wire.BeadStepR
+	newMover := func(tweens bool) *nodeMover {
+		return &nodeMover{
+			id:             "a",
+			geom:           nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}},
+			outTargets:     []string{"b"},
+			cascadeKinds:   map[string]string{"b": "Time"},
+			partnerCenters: singleNeighborCenter("b", gap),
+			tweens:         tweens,
+		}
+	}
+	plainX, plainY, plainZ, _, _, plainTween, _ := newMover(false).chainBeads()
+	for i, tw := range plainTween {
+		if tw != 0 {
+			t.Fatalf("overlay OFF: bead %d is flagged as a tween; no chain has joints with the overlay off", i)
+		}
+	}
+	ox, oy, oz, _, _, tween, _ := newMover(true).chainBeads()
+	if len(ox) != 2*len(plainX) {
+		t.Fatalf("tween chain has %d beads, want 2x the plain chain's %d — one joint per gap, including the node end",
+			len(ox), len(plainX))
+	}
+	for i := range ox {
+		wantTween := uint8(0)
+		if i%2 == 0 {
+			wantTween = 1
+		}
+		if tween[i] != wantTween {
+			t.Fatalf("bead %d: tween flag %d, want %d (even index is a joint, odd is an ordinary bead)", i, tween[i], wantTween)
+		}
+	}
+	// Every ORDINARY bead (odd index 2k+1) sits exactly where plain bead k sat: the overlay
+	// adds joints, it never moves the beads that were already there.
+	for k := range plainX {
+		j := 2*k + 1
+		if math.Abs(float64(ox[j]-plainX[k])) > 1e-4 ||
+			math.Abs(float64(oy[j]-plainY[k])) > 1e-4 ||
+			math.Abs(float64(oz[j]-plainZ[k])) > 1e-4 {
+			t.Fatalf("ordinary bead %d moved: tween-lattice index %d at (%g,%g,%g), plain at (%g,%g,%g)",
+				k, j, ox[j], oy[j], oz[j], plainX[k], plainY[k], plainZ[k])
+		}
+	}
+	// Each joint nestles in its gap: closer to both neighbours than the beads are to each
+	// other, and never further out than the bead it precedes.
+	for i := 0; i < len(ox); i += 2 {
+		d := math.Sqrt(float64(ox[i]*ox[i] + oy[i]*oy[i] + oz[i]*oz[i]))
+		next := math.Sqrt(float64(ox[i+1]*ox[i+1] + oy[i+1]*oy[i+1] + oz[i+1]*oz[i+1]))
+		if d >= next {
+			t.Fatalf("joint %d at radius %g is not before the bead it precedes (%g)", i, d, next)
+		}
 	}
 }

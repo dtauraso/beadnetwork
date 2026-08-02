@@ -71,6 +71,12 @@ type nodeMover struct {
 	// call that sets it (a plain string write before any mover goroutine starts, same
 	// happens-before shape as clockSrc/speedCh below).
 	persistRoot string
+	// tweens mirrors the Go-owned beadTweens overlay flag, delivered by moveMsgKindTweens.
+	// Read only by this node's own chainBeads (the half-step lattice); written only by this
+	// node's own handle. Not a second copy of the view's flag in the sense the drift rule
+	// forbids — the view goroutine stays its owner and only writer; this is the node's
+	// RECEIVED value of it, which is what lets the node reconcile its own chain.
+	tweens bool
 	// extIn is this node's dedicated channel for EXTERNAL entries — the stdin/gesture
 	// goroutine's drag/dragStart sends (md.sendMove). Nothing else ever writes here: no
 	// other mover shares it.
@@ -301,7 +307,7 @@ type nodeMover struct {
 	// buildFrame packs this node's combined per-fd frame (node fields + ports + label)
 	// using Buffer's own row-writer columns (Buffer.BuildNodeStreamFrame), injected so
 	// this package needs no Buffer import.
-	buildFrame func(tick uint32, nodeRow int32, nodeID int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, poleTheta, polePhi float32, selected, kindID, hovered, latchedSel uint8, label string, dstNodeRows []int32, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte
+	buildFrame func(tick uint32, nodeRow int32, nodeID int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, poleTheta, polePhi float32, selected, kindID, hovered, latchedSel uint8, label string, dstNodeRows []int32, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, chainBeadTween []uint8, events []wire.RowEvent) []byte
 }
 
 func newNodeMover(id string, geom nodeGeom, tr *T.Trace, clockSrc wire.Clock) *nodeMover {
@@ -405,6 +411,17 @@ func (m *nodeMover) handle(msg moveMsg) {
 			m.hovered = 0
 			m.hoverPort = ""
 			m.hoverIsInput = false
+		}
+		return
+	}
+	if msg.Kind == moveMsgKindTweens {
+		// The tween overlay flipped. Store it and re-emit: chainBeads reads m.tweens on its
+		// next call and reconciles this node's own chains onto the half-step lattice (or
+		// back), which starts and stops the joint beads' own goroutines through the same
+		// reconcileBeadChain path any other count change goes through.
+		if m.tweens != msg.Bool {
+			m.tweens = msg.Bool
+			m.emitGeometry()
 		}
 		return
 	}
@@ -582,7 +599,7 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 	// This node's own placeholder chain beads, node-local (chain_beads.go). Computed here
 	// on this node's own goroutine from its own center + its own partnerCenters map — no
 	// cross-goroutine position read, same as dstNodeRows above.
-	chainOX, chainOY, chainOZ, chainLit, chainLitVal, chainBreadcrumbs := m.chainBeads()
+	chainOX, chainOY, chainOZ, chainLit, chainLitVal, chainTween, chainBreadcrumbs := m.chainBeads()
 	if len(chainBreadcrumbs) > 0 {
 		// DIAGNOSTIC ONLY (task/log-node4-chain-aim): chainBeads' own "chain-aim" events,
 		// appended here rather than sent via a nested writeStreamFrame call from inside
@@ -600,7 +617,7 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 		flatRingNormalX, flatRingNormalY, flatRingNormalZ,
 		float32(poleTheta), float32(polePhi),
 		selected, kindID, hovered, latchedSel,
-		label, dstNodeRows, chainOX, chainOY, chainOZ, chainLit, chainLitVal, events)
+		label, dstNodeRows, chainOX, chainOY, chainOZ, chainLit, chainLitVal, chainTween, events)
 	var hdr [4]byte
 	binary.LittleEndian.PutUint32(hdr[:], uint32(len(frame)))
 	// Fire-and-forget, same reasoning throughout this bridge: no delivery

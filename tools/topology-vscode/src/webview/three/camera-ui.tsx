@@ -145,24 +145,42 @@ const polarVectorsCfg: ToggleCfg = {
   payload: (v) => ({ flag: "polarVectors", was: v }),
 };
 
+// beadTweensCfg has no `default` — its Go-owned default (off) is not asserted here. NESTED
+// under polarVectorsCfg: it renders indented and is disabled while polar vectors is off,
+// because a joint only ever draws in that overlay's faded style. Unlike every other flag
+// this one also changes what EXISTS — a tween is a real chain bead with its own goroutine —
+// which is why Go broadcasts it to every node's mover instead of treating it as a render
+// gate (Buffer/layout.go BeadTweens).
+const beadTweensCfg: ToggleCfg = {
+  flag: "beadTweens",
+  active: (v) => v,
+  label: "· tween beads",
+  title: (a) => (a ? "Hide the half-step joint beads" : "Show the half-step joint beads"),
+  payload: (v) => ({ flag: "beadTweens", was: v }),
+};
+
 // ---------------------------------------------------------------------------
 // Grouped overlay rows for the popover
 // ---------------------------------------------------------------------------
 
-type OverlayGroup = { heading: string; cfgs: ToggleCfg[] };
+// `under` names the cfg a row NESTS beneath: that row renders indented and is disabled
+// whenever its parent is off. View structure only — the gating that actually suppresses the
+// drawing is Go-owned and lives in the renderer (overlay-flags.ts's beadTweensGated), so a
+// disabled row here is never the only thing holding a child off.
+type OverlayGroup = { heading: string; cfgs: ToggleCfg[]; under?: Partial<Record<string, ToggleCfg>> };
 
 const OVERLAY_GROUPS: OverlayGroup[] = [
   { heading: "GUIDES", cfgs: [ringsCfg, handholdsCfg] },
   { heading: "POLES",  cfgs: [scenePolesCfg, nodePolesCfg, selSpherePolesCfg] },
   { heading: "LABELS", cfgs: [globalLabelsCfg] },
   { heading: "EDGES",  cfgs: [cascadeLinksCfg] },
-  { heading: "VECTORS", cfgs: [polarVectorsCfg] },
+  { heading: "VECTORS", cfgs: [polarVectorsCfg, beadTweensCfg], under: { beadTweens: polarVectorsCfg } },
 ];
 
 /** A single row inside the popover: square checkbox + label, fires the row's op on click.
  *  Styled to match the recommended mock (overlay-toggle-options.html): custom .cb checkbox
  *  that fills accent + ✓ when checked, with a subtle row-hover background. */
-function OverlayRow({ cfg, disabled }: { cfg: ToggleCfg; disabled?: boolean }) {
+function OverlayRow({ cfg, disabled, indent }: { cfg: ToggleCfg; disabled?: boolean; indent?: boolean }) {
   const val = useToggleVal(cfg);
   const active = cfg.active(val);
   const [hover, setHover] = useState(false);
@@ -187,6 +205,8 @@ function OverlayRow({ cfg, disabled }: { cfg: ToggleCfg; disabled?: boolean }) {
         alignItems: "center",
         gap: 7,
         padding: "4px 6px",
+        paddingLeft: indent ? 20 : 6,
+        opacity: disabled ? 0.45 : 1,
         cursor: disabled ? "default" : "pointer",
         color: "#e7e7ea",
         borderRadius: 5,
@@ -299,9 +319,16 @@ function OverlayGroupSection({ group, disabled }: { group: OverlayGroup; disable
           {on}/{group.cfgs.length}
         </span>
       </div>
-      {open && group.cfgs.map((cfg) => (
-        <OverlayRow key={cfg.flag} cfg={cfg} disabled={disabled} />
-      ))}
+      {open && group.cfgs.map((cfg) => {
+        const parent = group.under?.[cfg.flag];
+        // A nested row is dead while its parent is off — the same rule the master `overlays`
+        // flag applies to every row, one level down. Read through toggleVal, the same rule a
+        // row itself reads by, so parent and child cannot disagree about the parent's value.
+        const parentOff = !!parent && !parent.active(toggleVal(bufFlags, parent));
+        return (
+          <OverlayRow key={cfg.flag} cfg={cfg} disabled={disabled || parentOff} indent={!!parent} />
+        );
+      })}
     </div>
   );
 }

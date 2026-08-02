@@ -211,9 +211,10 @@ describe("buffer-layout — Camera block", () => {
 
 describe("buffer-layout — Overlay block", () => {
   it("stride equals packed field sizes", () => {
-    // 9×u8 + 1×i32 + 3×f32 = 25 (9 overlay flags + DragNodeRow + the "distance home
+    // 10×u8 + 1×i32 + 3×f32 = 26 (10 overlay flags — the 9 render gates plus
+    // BeadTweens — + DragNodeRow + the "distance home
     // button" panel's 3 GroupLen* columns)
-    expect(OVERLAY_STRIDE).toBe(25);
+    expect(OVERLAY_STRIDE).toBe(26);
   });
 
   it("column offsets are 0..7", () => {

@@ -42,7 +42,7 @@ func TestApplyUpdateOverlayToggleEmitsViewFrame(t *testing.T) {
 			var kinds []string
 			md.SetViewStream(io.Discard, func(tick uint32,
 				camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
-				sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis, cascadeLinks, polarVectors uint8,
+				sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis, cascadeLinks, polarVectors, beadTweens uint8,
 				dragNodeRow int32,
 				groupLenTime, groupLenInput, groupLenGate float32,
 				sceneCX, sceneCY, sceneCZ, sceneRadius float32,
@@ -82,7 +82,7 @@ func TestApplyUpdatePolarVectorsToggleEmitsViewFrame(t *testing.T) {
 	var kinds []string
 	md.SetViewStream(io.Discard, func(tick uint32,
 		camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
-		sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis, cascadeLinks, polarVectors uint8,
+		sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis, cascadeLinks, polarVectors, beadTweens uint8,
 		dragNodeRow int32,
 		groupLenTime, groupLenInput, groupLenGate float32,
 		sceneCX, sceneCY, sceneCZ, sceneRadius float32,

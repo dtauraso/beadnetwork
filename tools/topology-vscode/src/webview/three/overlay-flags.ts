@@ -23,6 +23,7 @@ import {
   readOverlayOverlaysVis,
   readOverlayCascadeLinks,
   readOverlayPolarVectors,
+  readOverlayBeadTweens,
   readOverlayDragNodeRow,
   readOverlayGroupLenTime,
   readOverlayGroupLenInput,
@@ -54,7 +55,8 @@ function overlayFlagsEqual(a: OverlayFlagVals, b: OverlayFlagVals): boolean {
     a.labelsGlobal === b.labelsGlobal &&
     a.overlays === b.overlays &&
     a.cascadeLinks === b.cascadeLinks &&
-    a.polarVectors === b.polarVectors
+    a.polarVectors === b.polarVectors &&
+    a.beadTweens === b.beadTweens
   );
 }
 
@@ -77,6 +79,7 @@ export function readOverlayFlags(): OverlayFlagVals | null {
     overlays: !!readOverlayOverlaysVis(v),
     cascadeLinks: !!readOverlayCascadeLinks(v),
     polarVectors: !!readOverlayPolarVectors(v),
+    beadTweens: !!readOverlayBeadTweens(v),
   };
   if (cachedVals && overlayFlagsEqual(cachedVals, next)) return cachedVals;
   cachedVals = next;
@@ -182,5 +185,16 @@ export function useDistanceGroupLens(): DistanceGroupLens | null {
  *  without a WebGL context. */
 export function polarVectorsGated(overlayView: DataView): boolean {
   return readOverlayOverlaysVis(overlayView) > 0 && readOverlayPolarVectors(overlayView) > 0;
+}
+
+/** Gate the tween beads on THREE flags: the master, polarVectors, and beadTweens. The tween
+ *  overlay NESTS under polar vectors — a tween only ever draws in that overlay's faded
+ *  style, so the parent being off means the child is off, one level down from the way the
+ *  master gates everything. Built on polarVectorsGated rather than re-reading its two flags,
+ *  so "nested under" is expressed once and cannot drift from what the parent actually
+ *  checks. The toolbar row greys out on the same condition (camera-ui.tsx), but this is what
+ *  suppresses the drawing — a disabled checkbox is never the only thing holding it off. */
+export function beadTweensGated(overlayView: DataView): boolean {
+  return polarVectorsGated(overlayView) && readOverlayBeadTweens(overlayView) > 0;
 }
 

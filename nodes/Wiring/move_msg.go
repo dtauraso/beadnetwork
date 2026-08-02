@@ -56,6 +56,14 @@ const (
 	// right after, so the re-emit always sees the just-pushed center). Reuses the
 	// existing SenderID/FromCenter fields.
 	moveMsgKindNeighborCenter = "neighborCenter"
+	// moveMsgKindTweens tells ONE node whether the TWEEN-BEAD overlay is on (Bool), so it
+	// can reconcile its OWN chains onto the half-step lattice or back. Every other overlay
+	// flag is a pure render gate and never leaves the view goroutine; this one changes what
+	// EXISTS — a tween is a real chain bead with its own goroutine — and a node's chain is
+	// owned by that node alone, so the flag has to ARRIVE as a message rather than be read
+	// out of md.ui.ov by anyone else. Broadcast to every node on flip (stdin_reader.go's
+	// overlay toggle handler) and on load (scene_overlays_persist.go's LoadOverlays).
+	moveMsgKindTweens = "tweens"
 )
 
 // moveMsg is one entry routed to one of a mover's own dedicated channels (there is no

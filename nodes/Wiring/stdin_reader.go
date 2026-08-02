@@ -396,6 +396,14 @@ var overlayAttrHandlers = map[string]func(msg stdinMsg, md *MoveDispatch, tr *T.
 			// caller of every overlay Toggle*) also writes its own VIEW frame directly,
 			// carrying the one flag that just changed — matches the ONE tr.X(bool) event
 			// the toggle already logged.
+			// beadTweens is the one overlay flag that changes what EXISTS rather than only
+			// how it draws (a tween is a real chain bead with its own goroutine), so it is
+			// also delivered to every node's own mover, which reconciles its OWN chains.
+			// Sent from here, the sole caller of every overlay Toggle*, so the message and
+			// the VIEW frame below leave together and cannot disagree.
+			if msg.Flag == "beadTweens" {
+				md.broadcastTweens(md.ui.ov.beadTweensVisible)
+			}
 			if kind, ok := overlayFlagTraceKind[msg.Flag]; ok {
 				md.emitViewFrame([]wire.RowEvent{{Kind: kind, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}})
 			}
