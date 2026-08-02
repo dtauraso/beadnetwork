@@ -37,6 +37,7 @@
   // circle has one vector per blue neighbour (three of them).
   // Each scene owns its OWN set of three sliders; the scenes are independent.
   const SPOKES = 3;
+  const SPOKE_NAMES = ['↑', '↘', '↙'];   // spoke order: up, then clockwise
   const SCENES = [
     { id: 'unequal', ro: 95, rb: 58, caption: 'different radii — orange 95 / blue 58' },
     { id: 'equal',   ro: 82, rb: 82, caption: 'same radius — orange 82 / blue 82' },
@@ -116,13 +117,13 @@
   // The degree readings live in the empty band ABOVE the circles, never inside
   // the drawing — a label chased around the arc always ends up on top of some
   // line at some angle, so it is parked where no line can reach it.
-  function readout(ctx, x, y, align, deg, color) {
+  function readout(ctx, x, y, align, deg, color, tag = '') {
     const sense = deg === 0 ? '' : (deg > 0 ? ' cw' : ' ccw');
     ctx.font = '11px ui-monospace, SFMono-Regular, Menlo, monospace';
     ctx.textAlign = align;
     ctx.textBaseline = 'top';
     ctx.fillStyle = color;
-    ctx.fillText(`${deg > 0 ? '+' : ''}${deg}°${sense}`, x, y);
+    ctx.fillText(`${tag ? tag + ' ' : ''}${deg > 0 ? '+' : ''}${deg}°${sense}`, x, y);
   }
 
   function slider(id, labelHTML) {
@@ -139,13 +140,20 @@
       <figcaption>${scene.caption}</figcaption>
       <div class="panel">
         ${slider(`${scene.id}-joint`, 'both')}
-        ${slider(`${scene.id}-a`, '<span class="swatch a"></span>blue vectors')}
+        ${slider(`${scene.id}-a`, '<span class="swatch a"></span>all blue')}
+        ${SPOKE_NAMES.map((n, k) =>
+          slider(`${scene.id}-a${k}`, `<span class="swatch a"></span>blue ${n}`)).join('')}
         ${slider(`${scene.id}-b`, '<span class="swatch b"></span>orange vectors')}
         <span></span><span><button id="${scene.id}-reset">reset</button></span><span></span>
       </div>`;
     document.getElementById('scenes').appendChild(fig);
 
-    const ids = [`${scene.id}-joint`, `${scene.id}-a`, `${scene.id}-b`];
+    const ids = [
+      `${scene.id}-joint`,
+      `${scene.id}-a`,
+      ...SPOKE_NAMES.map((_, k) => `${scene.id}-a${k}`),
+      `${scene.id}-b`,
+    ];
     for (const id of ids) {
       document.getElementById(id).addEventListener('input', () => draw(scene));
     }
@@ -174,11 +182,19 @@
     // joint slider (orange +joint, blue -joint) — the same mirror rule as
     // before, now applied per spoke rather than per side. The per-colour
     // sliders are literal offsets, applied to all instances of that colour.
+    // Each blue also has its OWN slider on top of the shared one, so a single
+    // blue vector can be moved without disturbing the other two.
     const degOrange = joint + b;                // orange, base = spoke — towards its blue
-    const degBlue = -joint + a;                 // blue, base = spoke + PI — towards orange
     const spokes = Array.from({ length: SPOKES }, (_, k) => {
       const psi = -Math.PI / 2 + k * 2 * Math.PI / SPOKES;   // first spoke points up
-      return { psi, x: OX + ro * Math.cos(psi), y: OY + ro * Math.sin(psi) };
+      const own = +document.getElementById(`${scene.id}-a${k}`).value;
+      return {
+        psi,
+        x: OX + ro * Math.cos(psi),
+        y: OY + ro * Math.sin(psi),
+        own,
+        degBlue: -joint + a + own,              // blue, base = spoke + PI — towards orange
+      };
     });
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -202,14 +218,18 @@
 
     for (const s of spokes) {
       angleArc(ctx, OX, OY, s.psi, degOrange, ro * 0.42, '#f0a868');
-      angleArc(ctx, s.x, s.y, s.psi + Math.PI, degBlue, rb * 0.42, '#6ea8fe');
+      angleArc(ctx, s.x, s.y, s.psi + Math.PI, s.degBlue, rb * 0.42, '#6ea8fe');
     }
     for (const s of spokes) {
       arrow(ctx, OX, OY, ro, s.psi + rad(degOrange), '#f0a868');
-      arrow(ctx, s.x, s.y, rb, s.psi + Math.PI + rad(degBlue), '#6ea8fe');
+      arrow(ctx, s.x, s.y, rb, s.psi + Math.PI + rad(s.degBlue), '#6ea8fe');
     }
 
-    readout(ctx, 10, 9, 'left', degBlue, '#6ea8fe');
+    // Blue readings can now differ per spoke, so all three are listed.
+    ctx.font = '11px ui-monospace, SFMono-Regular, Menlo, monospace';
+    spokes.forEach((s, k) => {
+      readout(ctx, 10 + k * 74, 9, 'left', s.degBlue, '#6ea8fe', SPOKE_NAMES[k]);
+    });
     readout(ctx, canvas.width - 10, 9, 'right', degOrange, '#f0a868');
 
     document.getElementById(`${scene.id}-joint-v`).textContent = joint + '°';
