@@ -92,8 +92,12 @@
     const a = +document.getElementById('va').value;
     const b = +document.getElementById('vb').value;
 
+    // The joint slider drives the two mirror-wise: canvas y grows downward, so a
+    // POSITIVE angle step is clockwise on screen. Left circle takes +joint
+    // (clockwise), right circle takes -joint (counter-clockwise). The per-vector
+    // sliders stay literal offsets in each vector's own frame.
     const angleA = rad(joint + a);            // base 0   — towards B
-    const angleB = Math.PI + rad(joint + b);  // base PI  — towards A
+    const angleB = Math.PI + rad(-joint + b); // base PI  — towards A
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
