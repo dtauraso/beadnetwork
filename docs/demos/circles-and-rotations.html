@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
-<title>orange hub, three blue circles, paired polar vectors</title>
+<title>circles and rotations — flat and spherical</title>
 <style>
   body {
     margin: 0;
@@ -35,6 +35,8 @@
 <div class="tabs" id="tabs"></div>
 <div class="scenes" id="tab-3"></div>
 <div class="scenes" id="tab-2" hidden></div>
+<div class="scenes" id="tab-3s" hidden></div>
+<div class="scenes" id="tab-2s" hidden></div>
 
 <script>
   // One ORANGE circle in the middle with THREE BLUE circles at equal places
@@ -49,7 +51,7 @@
     2: ['↑', '↓'],                       // spoke order: up, then clockwise
     3: ['↑', '↘', '↙'],
   };
-  const SCENES = [
+  const EXAMPLES = [
     { id: 'unequal',   spokes: 3, ro: 58, rb: 95, caption: 'three blue — blue 95 / orange 58' },
     { id: 'equal',     spokes: 3, ro: 82, rb: 82, caption: 'three blue — same radius 82' },
     { id: 'two',       spokes: 2, ro: 58, rb: 95, caption: 'two blue — blue 95 / orange 58' },
@@ -60,7 +62,16 @@
       caption: 'all three same radius 82 — two blue overlapping each other by ~30°',
     },
   ];
+
+  // Every example exists twice: once as flat circles, once as spheres. Same
+  // numbers, same sliders, same construction — only the renderer differs, so a
+  // sphere tab can never drift from the circle tab it mirrors.
+  const SCENES = EXAMPLES.flatMap(e => [
+    { ...e, kind: 'flat' },
+    { ...e, kind: 'sphere', id: `${e.id}-s` },
+  ]);
   const names = scene => scene.names || SPOKE_NAMES[scene.spokes];
+  const tabKey = scene => `${scene.spokes}${scene.kind === 'sphere' ? 's' : ''}`;
 
   const rad = deg => deg * Math.PI / 180;
 
@@ -145,6 +156,128 @@
     ctx.fillText(`${tag ? tag + ' ' : ''}${deg > 0 ? '+' : ''}${deg}°${sense}`, x, y);
   }
 
+  // ===== sphere view =======================================================
+  // Hand-rolled oblique projection, no library: yaw about the vertical, then
+  // pitch, then a perspective divide. The layout still lives in the z = 0
+  // plane, so every angle a slider sets means the same thing it means in the
+  // flat view — the tilt is only how it is looked at.
+  const VIEW = { yaw: -0.45, pitch: 0.95, f: 1000 };
+
+  function project(v, cx, cy) {
+    const cy1 = Math.cos(VIEW.yaw), sy1 = Math.sin(VIEW.yaw);
+    const x1 = v.x * cy1 + v.z * sy1;
+    const z1 = -v.x * sy1 + v.z * cy1;
+    const cp = Math.cos(VIEW.pitch), sp = Math.sin(VIEW.pitch);
+    const y2 = v.y * cp - z1 * sp;
+    const z2 = v.y * sp + z1 * cp;
+    const s = VIEW.f / (VIEW.f + z2);
+    return { x: cx + x1 * s, y: cy + y2 * s, z: z2, s };
+  }
+
+  const polyline = (ctx, pts, cx, cy, color, width = 1.5, alpha = 1) => {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.beginPath();
+    pts.forEach((v, i) => {
+      const p = project(v, cx, cy);
+      i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y);
+    });
+    ctx.stroke();
+    ctx.restore();
+  };
+
+  // A circle of radius r in the plane through C spanned by e1, e2.
+  const ring = (C, r, e1, e2, n = 72) => Array.from({ length: n + 1 }, (_, i) => {
+    const t = i / n * Math.PI * 2;
+    return {
+      x: C.x + r * (e1.x * Math.cos(t) + e2.x * Math.sin(t)),
+      y: C.y + r * (e1.y * Math.cos(t) + e2.y * Math.sin(t)),
+      z: C.z + r * (e1.z * Math.cos(t) + e2.z * Math.sin(t)),
+    };
+  });
+
+  const EX = { x: 1, y: 0, z: 0 }, EY = { x: 0, y: 1, z: 0 }, EZ = { x: 0, y: 0, z: 1 };
+
+  // A sphere reads as a sphere from its silhouette plus three great circles;
+  // the silhouette alone would be indistinguishable from the flat view.
+  function sphere(ctx, C, r, cx, cy, color, wire) {
+    const p = project(C, cx, cy);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, r * p.s, 0, Math.PI * 2);
+    ctx.stroke();
+    polyline(ctx, ring(C, r, EX, EY), cx, cy, wire, 1, 0.5);
+    polyline(ctx, ring(C, r, EX, EZ), cx, cy, wire, 1, 0.5);
+    polyline(ctx, ring(C, r, EY, EZ), cx, cy, wire, 1, 0.5);
+  }
+
+  // Two spheres meet in a CIRCLE, not a lens: same chord algebra as the flat
+  // case, drawn in the plane perpendicular to the centre-to-centre axis.
+  function meetCircle(ctx, P, r1, Q, r2, cx, cy) {
+    const ux = Q.x - P.x, uy = Q.y - P.y, uz = Q.z - P.z;
+    const d = Math.hypot(ux, uy, uz);
+    if (d >= r1 + r2 || d <= Math.abs(r1 - r2)) return;
+
+    const a = (d * d - r2 * r2 + r1 * r1) / (2 * d);
+    const h = Math.sqrt(r1 * r1 - a * a);
+    const u = { x: ux / d, y: uy / d, z: uz / d };
+    const C = { x: P.x + a * u.x, y: P.y + a * u.y, z: P.z + a * u.z };
+
+    // any two unit vectors perpendicular to u
+    const seed = Math.abs(u.z) < 0.9 ? EZ : EX;
+    const cross = (m, n) => ({
+      x: m.y * n.z - m.z * n.y, y: m.z * n.x - m.x * n.z, z: m.x * n.y - m.y * n.x,
+    });
+    const norm = v => { const l = Math.hypot(v.x, v.y, v.z); return { x: v.x / l, y: v.y / l, z: v.z / l }; };
+    const e1 = norm(cross(u, seed));
+    const e2 = cross(u, e1);
+
+    const pts = ring(C, h, e1, e2);
+    ctx.save();
+    ctx.fillStyle = 'rgba(122, 224, 168, 0.16)';
+    ctx.beginPath();
+    pts.forEach((v, i) => {
+      const p = project(v, cx, cy);
+      i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y);
+    });
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+    polyline(ctx, pts, cx, cy, 'rgba(122, 224, 168, 0.75)', 1.5);
+  }
+
+  // A vector living in the layout plane, drawn in 3D with a disc for its head.
+  function vector3(ctx, C, r, angle, cx, cy, color) {
+    const tip = { x: C.x + r * Math.cos(angle), y: C.y + r * Math.sin(angle), z: C.z };
+    const p0 = project(C, cx, cy), p1 = project(tip, cx, cy);
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(p0.x, p0.y);
+    ctx.lineTo(p1.x, p1.y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(p1.x, p1.y, 5 * p1.s, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(p0.x, p0.y, 3.5 * p0.s, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function angleArc3(ctx, C, base, deg, r, cx, cy, color) {
+    if (Math.abs(deg) < 0.5) return;
+    const n = 48;
+    const pts = Array.from({ length: n + 1 }, (_, i) => {
+      const t = base + rad(deg) * (i / n);
+      return { x: C.x + r * Math.cos(t), y: C.y + r * Math.sin(t), z: C.z };
+    });
+    polyline(ctx, pts, cx, cy, color, 1.5);
+  }
+
   function slider(id, labelHTML) {
     return `
       <label for="${id}">${labelHTML}</label>
@@ -165,7 +298,7 @@
         ${slider(`${scene.id}-b`, '<span class="swatch b"></span>orange vectors')}
         <span></span><span><button id="${scene.id}-reset">reset</button></span><span></span>
       </div>`;
-    document.getElementById(`tab-${scene.spokes}`).appendChild(fig);
+    document.getElementById(`tab-${tabKey(scene)}`).appendChild(fig);
 
     // Kept on the scene so draw() can refresh EVERY slider's degree readout,
     // including the per-blue ones — a slider whose number never moves reads as
@@ -234,30 +367,64 @@
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // centre-to-centre spokes, the baseline each pair's vectors start on
-    ctx.strokeStyle = '#2c333c';
-    ctx.setLineDash([4, 4]);
-    ctx.lineWidth = 1;
-    for (const s of spokes) {
-      ctx.beginPath();
-      ctx.moveTo(OX, OY);
-      ctx.lineTo(s.x + rb * Math.cos(s.psi), s.y + rb * Math.sin(s.psi));
-      ctx.stroke();
-    }
-    ctx.setLineDash([]);
+    if (scene.kind === 'sphere') {
+      // Same centres, expressed in the z = 0 plane of the 3D scene.
+      const O = { x: 0, y: 0, z: 0 };
+      const blues = spokes.map(s => ({
+        s, C: { x: ro * Math.cos(s.psi), y: ro * Math.sin(s.psi), z: 0 },
+      }));
 
-    for (const s of spokes) lens(ctx, OX, OY, ro, s.x, s.y, rb);
+      ctx.strokeStyle = '#2c333c';
+      ctx.setLineDash([4, 4]);
+      for (const { s, C } of blues) {
+        polyline(ctx, [O, {
+          x: C.x + rb * Math.cos(s.psi), y: C.y + rb * Math.sin(s.psi), z: 0,
+        }], OX, OY, '#2c333c', 1);
+      }
+      ctx.setLineDash([]);
 
-    circle(ctx, OX, OY, ro, '#8c6a3d');
-    for (const s of spokes) circle(ctx, s.x, s.y, rb, '#3d5a8c');
+      for (const { C } of blues) meetCircle(ctx, O, ro, C, rb, OX, OY);
 
-    for (const s of spokes) {
-      angleArc(ctx, OX, OY, s.psi, degOrange, ro * 0.42, '#f0a868');
-      angleArc(ctx, s.x, s.y, s.psi + Math.PI, s.degBlue, rb * 0.42, '#6ea8fe');
-    }
-    for (const s of spokes) {
-      arrow(ctx, OX, OY, ro, s.psi + rad(degOrange), '#f0a868');
-      arrow(ctx, s.x, s.y, rb, s.psi + Math.PI + rad(s.degBlue), '#6ea8fe');
+      // far spheres first, so the near ones overlap them the right way round
+      const solids = [{ C: O, r: ro, color: '#8c6a3d', wire: '#8c6a3d' },
+        ...blues.map(({ C }) => ({ C, r: rb, color: '#3d5a8c', wire: '#3d5a8c' }))];
+      solids.sort((p, q) => project(q.C, OX, OY).z - project(p.C, OX, OY).z);
+      for (const s of solids) sphere(ctx, s.C, s.r, OX, OY, s.color, s.wire);
+
+      for (const { s, C } of blues) {
+        angleArc3(ctx, O, s.psi, degOrange, ro * 0.42, OX, OY, '#f0a868');
+        angleArc3(ctx, C, s.psi + Math.PI, s.degBlue, rb * 0.42, OX, OY, '#6ea8fe');
+      }
+      for (const { s, C } of blues) {
+        vector3(ctx, O, ro, s.psi + rad(degOrange), OX, OY, '#f0a868');
+        vector3(ctx, C, rb, s.psi + Math.PI + rad(s.degBlue), OX, OY, '#6ea8fe');
+      }
+    } else {
+      // centre-to-centre spokes, the baseline each pair's vectors start on
+      ctx.strokeStyle = '#2c333c';
+      ctx.setLineDash([4, 4]);
+      ctx.lineWidth = 1;
+      for (const s of spokes) {
+        ctx.beginPath();
+        ctx.moveTo(OX, OY);
+        ctx.lineTo(s.x + rb * Math.cos(s.psi), s.y + rb * Math.sin(s.psi));
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+
+      for (const s of spokes) lens(ctx, OX, OY, ro, s.x, s.y, rb);
+
+      circle(ctx, OX, OY, ro, '#8c6a3d');
+      for (const s of spokes) circle(ctx, s.x, s.y, rb, '#3d5a8c');
+
+      for (const s of spokes) {
+        angleArc(ctx, OX, OY, s.psi, degOrange, ro * 0.42, '#f0a868');
+        angleArc(ctx, s.x, s.y, s.psi + Math.PI, s.degBlue, rb * 0.42, '#6ea8fe');
+      }
+      for (const s of spokes) {
+        arrow(ctx, OX, OY, ro, s.psi + rad(degOrange), '#f0a868');
+        arrow(ctx, s.x, s.y, rb, s.psi + Math.PI + rad(s.degBlue), '#6ea8fe');
+      }
     }
 
     // Blue readings can now differ per spoke, so all three are listed.
@@ -278,20 +445,21 @@
     draw(scene);
   }
 
-  // One tab per spoke count — each set of examples gets its own page.
+  // One tab per (spoke count × renderer) — circles first, then the spheres.
   const TABS = [
-    { spokes: 3, label: 'three blue circles' },
-    { spokes: 2, label: 'two blue circles' },
+    { key: '3',  label: 'three blue circles' },
+    { key: '2',  label: 'two blue circles' },
+    { key: '3s', label: 'three blue spheres' },
+    { key: '2s', label: 'two blue spheres' },
   ];
   const tabs = document.getElementById('tabs');
   for (const t of TABS) {
     const btn = document.createElement('button');
     btn.textContent = t.label;
-    btn.setAttribute('aria-selected', String(t.spokes === 3));
+    btn.setAttribute('aria-selected', String(t.key === '3'));
     btn.addEventListener('click', () => {
       for (const other of TABS) {
-        const on = other.spokes === t.spokes;
-        document.getElementById(`tab-${other.spokes}`).hidden = !on;
+        document.getElementById(`tab-${other.key}`).hidden = other.key !== t.key;
       }
       for (const b of tabs.children) b.setAttribute('aria-selected', String(b === btn));
     });
