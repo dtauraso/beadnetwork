@@ -120,3 +120,7 @@ tools/topology-vscode/gen-node-defs
 
 # Agent worktrees (temporary, per-agent scratch checkouts)
 .claude/worktrees/
+
+# Python bytecode from the delegation hooks (scripts/*.py).
+__pycache__/
+*.pyc
