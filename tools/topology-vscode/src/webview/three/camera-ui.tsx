@@ -230,8 +230,25 @@ function OverlayRow({ cfg, disabled }: { cfg: ToggleCfg; disabled?: boolean }) {
 function OverlayGroupSection({ group, disabled }: { group: OverlayGroup; disabled?: boolean }) {
   const [open, setOpen] = useState(false);
   const [hover, setHover] = useState(false);
+  const [countHover, setCountHover] = useState(false);
   const bufFlags = useOverlayFlags();
   const on = group.cfgs.filter((cfg) => cfg.active(toggleVal(bufFlags, cfg))).length;
+  // Flip only the members that need flipping — every send is the SAME per-flag toggle record
+  // a row click sends (encodeOverlaysToggle), so the group action introduces no second way to
+  // set an overlay. Members already in the target state are left alone rather than toggled
+  // twice. stopPropagation keeps this off the heading's expand/collapse.
+  const onCountClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (disabled) return;
+      const target = on === 0; // all off → turn everything on; otherwise turn everything off
+      for (const cfg of group.cfgs) {
+        const val = toggleVal(bufFlags, cfg);
+        if (cfg.active(val) !== target) fireToggle(cfg, val);
+      }
+    },
+    [group, bufFlags, on, disabled]
+  );
   return (
     <div>
       <div
@@ -255,8 +272,27 @@ function OverlayGroupSection({ group, disabled }: { group: OverlayGroup; disable
       >
         <span style={{ fontSize: 8, width: 7, flex: "0 0 auto" }}>{open ? "▾" : "▸"}</span>
         <span style={{ flex: "1 1 auto" }}>{group.heading}</span>
-        {/* Accent only when some member is on, so a collapsed group still reads at a glance. */}
-        <span style={{ color: on > 0 ? "#4ea1ff" : "#6e6e78", fontVariantNumeric: "tabular-nums" }}>
+        {/* The count is also the group's toggle, and it is SYMMETRIC with no remembered
+            state: any member on → turn them all off; all off → turn them all on. The
+            tempting version ("off, then restore what was on") needs to remember which
+            members were on — a cache of Go-owned flags in TS, or a new per-group flag in
+            Go. Neither is worth it for something three row clicks already do, so this
+            sends nothing but the per-flag toggle records the rows themselves send.
+            Accented only when some member is on, so a collapsed group reads at a glance. */}
+        <span
+          onClick={onCountClick}
+          onMouseEnter={() => setCountHover(true)}
+          onMouseLeave={() => setCountHover(false)}
+          title={disabled ? "" : on > 0 ? `Turn all ${group.heading} off` : `Turn all ${group.heading} on`}
+          style={{
+            color: on > 0 ? "#4ea1ff" : "#6e6e78",
+            fontVariantNumeric: "tabular-nums",
+            cursor: disabled ? "default" : "pointer",
+            padding: "1px 4px",
+            borderRadius: 4,
+            background: !disabled && countHover ? "rgba(255,255,255,0.10)" : "transparent",
+          }}
+        >
           {on}/{group.cfgs.length}
         </span>
       </div>
