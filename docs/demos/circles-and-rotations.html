@@ -338,8 +338,11 @@
       canvas.addEventListener('pointermove', e => {
         if (!dragging) return;
         const view = scene.view ??= startView();
+        // Signs chosen so the scene follows the hand. Pitch rotates about the
+        // screen-x axis, which moves near points OPPOSITE the drag, so it takes
+        // a minus; yaw already tracks the drag and does not.
         view.yaw += (e.clientX - dragging.x) * 0.008;
-        view.pitch = Math.max(-1.45, Math.min(1.45, view.pitch + (e.clientY - dragging.y) * 0.008));
+        view.pitch = Math.max(-1.45, Math.min(1.45, view.pitch - (e.clientY - dragging.y) * 0.008));
         dragging = { x: e.clientX, y: e.clientY };
         draw(scene);
       });
