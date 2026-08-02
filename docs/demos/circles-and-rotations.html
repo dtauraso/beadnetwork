@@ -16,6 +16,8 @@
   figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; }
   figcaption { color: #8b949e; }
   canvas { background: #0d1013; border-radius: 6px; }
+  canvas.orbit { cursor: grab; touch-action: none; }
+  canvas.orbit:active { cursor: grabbing; }
   .scenes { display: flex; gap: 22px; flex-wrap: wrap; justify-content: center; align-items: flex-start; }
   /* An author `display` beats the UA rule behind the `hidden` attribute, so the
      hidden tab would otherwise stay on screen. */
@@ -161,7 +163,11 @@
   // pitch, then a perspective divide. The layout still lives in the z = 0
   // plane, so every angle a slider sets means the same thing it means in the
   // flat view — the tilt is only how it is looked at.
+  // The live view. Each sphere scene owns its own yaw/pitch (drag to orbit) and
+  // stamps them here before drawing — rendering is synchronous, so one module
+  // level view is enough and nothing has to thread a camera through every call.
   const VIEW = { yaw: -0.45, pitch: 0.95, f: 1000 };
+  const startView = () => ({ yaw: -0.45, pitch: 0.95 });
 
   function project(v, cx, cy) {
     const cy1 = Math.cos(VIEW.yaw), sy1 = Math.sin(VIEW.yaw);
@@ -314,8 +320,36 @@
     }
     document.getElementById(`${scene.id}-reset`).addEventListener('click', () => {
       for (const id of ids) document.getElementById(id).value = 0;
+      if (scene.kind === 'sphere') scene.view = startView();
       draw(scene);
     });
+
+    // Drag a sphere canvas to orbit that scene's own camera. Pitch is clamped
+    // just short of straight-down so the layout plane never degenerates to a
+    // line, which would make every vector unreadable at once.
+    if (scene.kind === 'sphere') {
+      const canvas = document.getElementById(`c-${scene.id}`);
+      canvas.className = 'orbit';
+      let dragging = null;
+      canvas.addEventListener('pointerdown', e => {
+        dragging = { x: e.clientX, y: e.clientY };
+        canvas.setPointerCapture?.(e.pointerId);
+      });
+      canvas.addEventListener('pointermove', e => {
+        if (!dragging) return;
+        const view = scene.view ??= startView();
+        view.yaw += (e.clientX - dragging.x) * 0.008;
+        view.pitch = Math.max(-1.45, Math.min(1.45, view.pitch + (e.clientY - dragging.y) * 0.008));
+        dragging = { x: e.clientX, y: e.clientY };
+        draw(scene);
+      });
+      const end = e => {
+        dragging = null;
+        canvas.releasePointerCapture?.(e.pointerId);
+      };
+      canvas.addEventListener('pointerup', end);
+      canvas.addEventListener('pointercancel', end);
+    }
   }
 
   function draw(scene) {
@@ -326,6 +360,7 @@
 
     const canvas = document.getElementById(`c-${scene.id}`);
     const ctx = canvas.getContext('2d');
+    if (scene.kind === 'sphere') Object.assign(VIEW, scene.view ??= startView());
 
     // Orange in the middle; the drawing reaches ro + rb in every direction.
     const BAND = 28;                            // reserved for the readouts
