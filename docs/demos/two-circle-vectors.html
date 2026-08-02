@@ -36,12 +36,19 @@
   // a mutual pair of vectors that start pointed at each other, so the orange
   // circle has one vector per blue neighbour (three of them).
   // Each scene owns its OWN set of three sliders; the scenes are independent.
-  const SPOKES = 3;
-  const SPOKE_NAMES = ['↑', '↘', '↙'];   // spoke order: up, then clockwise
+  // Spoke count is per scene: three blue circles at 120°, or two at 180°. Each
+  // spoke's blue centre still sits ON the orange circle's surface either way.
+  const SPOKE_NAMES = {
+    2: ['↑', '↓'],                       // spoke order: up, then clockwise
+    3: ['↑', '↘', '↙'],
+  };
   const SCENES = [
-    { id: 'unequal', ro: 95, rb: 58, caption: 'different radii — orange 95 / blue 58' },
-    { id: 'equal',   ro: 82, rb: 82, caption: 'same radius — orange 82 / blue 82' },
+    { id: 'unequal',   spokes: 3, ro: 95, rb: 58, caption: 'three blue — orange 95 / blue 58' },
+    { id: 'equal',     spokes: 3, ro: 82, rb: 82, caption: 'three blue — same radius 82' },
+    { id: 'two',       spokes: 2, ro: 95, rb: 58, caption: 'two blue — orange 95 / blue 58' },
+    { id: 'two-equal', spokes: 2, ro: 82, rb: 82, caption: 'two blue — same radius 82' },
   ];
+  const names = scene => SPOKE_NAMES[scene.spokes];
 
   const rad = deg => deg * Math.PI / 180;
 
@@ -141,7 +148,7 @@
       <div class="panel">
         ${slider(`${scene.id}-joint`, 'both')}
         ${slider(`${scene.id}-a`, '<span class="swatch a"></span>all blue')}
-        ${SPOKE_NAMES.map((n, k) =>
+        ${names(scene).map((n, k) =>
           slider(`${scene.id}-a${k}`, `<span class="swatch a"></span>blue ${n}`)).join('')}
         ${slider(`${scene.id}-b`, '<span class="swatch b"></span>orange vectors')}
         <span></span><span><button id="${scene.id}-reset">reset</button></span><span></span>
@@ -151,7 +158,7 @@
     const ids = [
       `${scene.id}-joint`,
       `${scene.id}-a`,
-      ...SPOKE_NAMES.map((_, k) => `${scene.id}-a${k}`),
+      ...names(scene).map((_, k) => `${scene.id}-a${k}`),
       `${scene.id}-b`,
     ];
     for (const id of ids) {
@@ -185,8 +192,8 @@
     // Each blue also has its OWN slider on top of the shared one, so a single
     // blue vector can be moved without disturbing the other two.
     const degOrange = joint + b;                // orange, base = spoke — towards its blue
-    const spokes = Array.from({ length: SPOKES }, (_, k) => {
-      const psi = -Math.PI / 2 + k * 2 * Math.PI / SPOKES;   // first spoke points up
+    const spokes = Array.from({ length: scene.spokes }, (_, k) => {
+      const psi = -Math.PI / 2 + k * 2 * Math.PI / scene.spokes;   // first spoke points up
       const own = +document.getElementById(`${scene.id}-a${k}`).value;
       return {
         psi,
@@ -228,7 +235,7 @@
     // Blue readings can now differ per spoke, so all three are listed.
     ctx.font = '11px ui-monospace, SFMono-Regular, Menlo, monospace';
     spokes.forEach((s, k) => {
-      readout(ctx, 10 + k * 74, 9, 'left', s.degBlue, '#6ea8fe', SPOKE_NAMES[k]);
+      readout(ctx, 10 + k * 74, 9, 'left', s.degBlue, '#6ea8fe', names(scene)[k]);
     });
     readout(ctx, canvas.width - 10, 9, 'right', degOrange, '#f0a868');
 
