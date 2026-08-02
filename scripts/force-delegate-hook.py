@@ -35,13 +35,16 @@ session already EDITED is free:
 Nine lookups answering ONE open question is still the thing this blocks, and
 that is unchanged.
 
-ASK, NOT DENY. A hard deny could collide with a session whose own instructions
-forbid spawning subagents unasked: neither rule could be satisfied, and the only
-legal move left was to interrupt the user for a ruling -- a whole conversation
-turn, spent by the rule that exists to save cost. `ask` puts the same decision
-in front of the same person as a one-click permission prompt instead. The
-friction survives (it is still visible, still interrupts the reflex); the
-deadlock does not, because allow/deny is always a legal answer.
+DENY, AND NEVER ASK. This block is between the hook and the assistant; the user
+should never see it. `ask` was tried for one commit, to break a deadlock (a
+session forbidden to spawn subagents unasked could satisfy neither rule), and it
+was worse: `ask` becomes a permission PROMPT, so every block interrupted the
+person the rule exists to save time for -- including in auto mode, where not
+being asked is the entire point. The deadlock is fixed where it belongs, in the
+MESSAGE: it no longer ORDERS a delegation, so "delegate" and "continue another
+way" are both legal answers and the assistant can always pick one without
+escalating. A rule that spends the user's attention to save tokens has its
+economics backwards.
 """
 import json
 import re
@@ -116,17 +119,19 @@ def main() -> int:
 
     if n > THRESHOLD:
         msg = (
-            f"{n} executor-style lookups on this one instruction — consider delegating "
-            "instead: Explore for research, implementer for scoped mechanical edits "
-            "(NOT general-purpose: implementer has no Agent tool, so it cannot nest). "
-            "Approve to continue inline. The counter resets on an Agent spawn, on the "
-            "next user prompt, and on starting a task branch; reading a file with "
-            "uncommitted changes never counts."
+            f"{n} executor-style lookups on this one instruction. Prefer delegating: "
+            "Explore for research, implementer for scoped mechanical edits (NOT "
+            "general-purpose: implementer has no Agent tool, so it cannot nest). If "
+            "delegating is not available to you, do NOT ask the user to approve a "
+            "lookup — batch what is left into one call, or work from what you have. "
+            "The counter resets on an Agent spawn, on the next user prompt, and on "
+            "starting a task branch; reading a file with uncommitted changes never "
+            "counts."
         )
         print(json.dumps({
             "hookSpecificOutput": {
                 "hookEventName": "PreToolUse",
-                "permissionDecision": "ask",
+                "permissionDecision": "deny",
                 "permissionDecisionReason": msg,
             }
         }))
