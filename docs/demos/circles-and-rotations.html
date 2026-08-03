@@ -60,8 +60,13 @@
     { id: 'two-equal', spokes: 2, ro: 82, rb: 82, caption: 'two blue — same radius 82' },
     {
       id: 'two-overlap', spokes: 2, ro: 82, rb: 82, overlapDeg: 120,
+      // The overlap PUTS the centres somewhere; this is where they would sit if
+      // the spacing were named directly instead. Drawn as a ghost spoke so the
+      // difference the overlap costs is a visible angle, not arithmetic.
+      refStepDeg: 120,
       names: ['◤', '◥'],
-      caption: 'all three same radius 82 — two blue overlapping each other by ~120°',
+      caption: 'all three same radius 82 — two blue overlapping each other by ~120°'
+        + ' (grey: where 120°-apart centres would sit, and the offset from them)',
     },
   ];
 
@@ -372,7 +377,8 @@
     if (scene.kind === 'sphere') Object.assign(VIEW, scene.view ??= startView());
 
     // Orange in the middle; the drawing reaches ro + rb in every direction.
-    const BAND = 28;                            // reserved for the readouts
+    // reserved for the readouts — a third row where a reference spacing exists
+    const BAND = scene.refStepDeg === undefined ? 28 : 41;
     const OX = canvas.width / 2;
     const OY = (canvas.height + BAND) / 2;
 
@@ -395,16 +401,28 @@
       : 2 * Math.asin(Math.min(1, rb * Math.cos(rad(scene.overlapDeg) / 2) / ro));
     const first = -Math.PI / 2 - step * (scene.spokes - 1) / 2;   // spread about "up"
 
+    // A scene may also name a REFERENCE spacing: where the same centres would
+    // sit if they were placed by angle around the orange circle rather than by
+    // the overlap they make. Spread about "up" the same way, so the two
+    // placements share a midline and the gap between them is the whole story.
+    const refStep = rad(scene.refStepDeg ?? 0);
+    const refFirst = -Math.PI / 2 - refStep * (scene.spokes - 1) / 2;
+
     const spokes = Array.from({ length: scene.spokes }, (_, k) => {
       const psi = scene.overlapDeg === undefined
         ? -Math.PI / 2 + k * step                 // first spoke points up
         : first + k * step;                       // symmetric about up
+      const refPsi = refFirst + k * refStep;
       const own = +document.getElementById(`${scene.id}-a${k}`).value;
       const ownOrange = +document.getElementById(`${scene.id}-b${k}`).value;
       return {
         psi,
         x: OX + ro * Math.cos(psi),
         y: OY + ro * Math.sin(psi),
+        refPsi,
+        // Signed, and read at the CENTRE: how far this blue circle sits from
+        // where a 120°-apart placement would have put it.
+        offDeg: Math.round((psi - refPsi) * 180 / Math.PI),
         own,
         degBlue: -joint + a + own,              // blue, base = spoke + PI — towards orange
         degOrange: joint + b + ownOrange,       // orange, base = spoke — towards its blue
@@ -428,6 +446,18 @@
         }], OX, OY, '#2c333c', 1);
       }
       ctx.setLineDash([]);
+
+      // The ghost placement, drawn under the solids: a marker where the centre
+      // would be at the reference spacing, and the arc it would swing through
+      // to reach where the centre actually is.
+      if (scene.refStepDeg !== undefined) {
+        for (const s of spokes) {
+          const G = { x: ro * Math.cos(s.refPsi), y: ro * Math.sin(s.refPsi), z: 0 };
+          polyline(ctx, [O, G], OX, OY, '#8b949e', 1, 0.55);
+          polyline(ctx, ring(G, 6, EX, EY), OX, OY, '#8b949e', 1, 0.55);
+          angleArc3(ctx, O, s.refPsi, s.offDeg, ro * 0.78, OX, OY, '#8b949e');
+        }
+      }
 
       for (const { C } of blues) meetCircle(ctx, O, ro, C, rb, OX, OY);
 
@@ -458,6 +488,24 @@
       }
       ctx.setLineDash([]);
 
+      // Ghost placement — see the sphere branch; same construction, flat.
+      if (scene.refStepDeg !== undefined) {
+        ctx.save();
+        ctx.globalAlpha = 0.55;
+        for (const s of spokes) {
+          const gx = OX + ro * Math.cos(s.refPsi), gy = OY + ro * Math.sin(s.refPsi);
+          ctx.strokeStyle = '#8b949e';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(OX, OY);
+          ctx.lineTo(gx, gy);
+          ctx.stroke();
+          circle(ctx, gx, gy, 6, '#8b949e');
+          angleArc(ctx, OX, OY, s.refPsi, s.offDeg, ro * 0.78, '#8b949e');
+        }
+        ctx.restore();
+      }
+
       for (const s of spokes) lens(ctx, OX, OY, ro, s.x, s.y, rb);
 
       circle(ctx, OX, OY, ro, '#8c6a3d');
@@ -479,6 +527,11 @@
     spokes.forEach((s, k) => {
       readout(ctx, 10 + k * 84, 2, 'left', s.degBlue, '#6ea8fe', names(scene)[k]);
       readout(ctx, 10 + k * 84, 15, 'left', s.degOrange, '#f0a868', names(scene)[k]);
+      // Third row only where a reference spacing exists — the offset each blue
+      // centre carries away from it.
+      if (scene.refStepDeg !== undefined) {
+        readout(ctx, 10 + k * 84, 28, 'left', s.offDeg, '#8b949e', names(scene)[k]);
+      }
     });
 
     for (const id of scene.sliderIds) {
