@@ -46,7 +46,7 @@
   // surface, so |orange-blue| = ro on every spoke. Each blue/orange pair carries
   // a mutual pair of vectors that start pointed at each other, so the orange
   // circle has one vector per blue neighbour (three of them).
-  // Each scene owns its OWN set of three sliders; the scenes are independent.
+  // Each scene owns its OWN set of sliders; the scenes are independent.
   // Spoke count is per scene: three blue circles at 120°, or two at 180°. Each
   // spoke's blue centre still sits ON the orange circle's surface either way.
   const SPOKE_NAMES = {
@@ -301,7 +301,9 @@
         ${slider(`${scene.id}-a`, '<span class="swatch a"></span>all blue')}
         ${names(scene).map((n, k) =>
           slider(`${scene.id}-a${k}`, `<span class="swatch a"></span>blue ${n}`)).join('')}
-        ${slider(`${scene.id}-b`, '<span class="swatch b"></span>orange vectors')}
+        ${slider(`${scene.id}-b`, '<span class="swatch b"></span>all orange')}
+        ${names(scene).map((n, k) =>
+          slider(`${scene.id}-b${k}`, `<span class="swatch b"></span>orange ${n}`)).join('')}
         <span></span><span><button id="${scene.id}-reset">reset</button></span><span></span>
       </div>`;
     document.getElementById(`tab-${tabKey(scene)}`).appendChild(fig);
@@ -314,6 +316,7 @@
       `${scene.id}-a`,
       ...names(scene).map((_, k) => `${scene.id}-a${k}`),
       `${scene.id}-b`,
+      ...names(scene).map((_, k) => `${scene.id}-b${k}`),
     ];
     for (const id of ids) {
       document.getElementById(id).addEventListener('input', () => draw(scene));
@@ -375,9 +378,9 @@
     // joint slider (orange +joint, blue -joint) — the same mirror rule as
     // before, now applied per spoke rather than per side. The per-colour
     // sliders are literal offsets, applied to all instances of that colour.
-    // Each blue also has its OWN slider on top of the shared one, so a single
-    // blue vector can be moved without disturbing the other two.
-    const degOrange = joint + b;                // orange, base = spoke — towards its blue
+    // Each vector also has its OWN slider on top of the shared one, so a single
+    // blue or orange vector can be moved without disturbing the others. Both
+    // colours are per-spoke now, so neither angle is a scene-wide scalar.
     // Spokes are evenly spaced by default. A scene may instead ask for a given
     // BLUE-BLUE overlap: two blue circles of radius rb whose lens subtends
     // `overlapDeg` at each blue centre have their centres |PQ| = 2*rb*cos(half)
@@ -394,12 +397,14 @@
         ? -Math.PI / 2 + k * step                 // first spoke points up
         : first + k * step;                       // symmetric about up
       const own = +document.getElementById(`${scene.id}-a${k}`).value;
+      const ownOrange = +document.getElementById(`${scene.id}-b${k}`).value;
       return {
         psi,
         x: OX + ro * Math.cos(psi),
         y: OY + ro * Math.sin(psi),
         own,
         degBlue: -joint + a + own,              // blue, base = spoke + PI — towards orange
+        degOrange: joint + b + ownOrange,       // orange, base = spoke — towards its blue
       };
     });
 
@@ -430,11 +435,11 @@
       for (const s of solids) sphere(ctx, s.C, s.r, OX, OY, s.color, s.wire);
 
       for (const { s, C } of blues) {
-        angleArc3(ctx, O, s.psi, degOrange, ro * 0.42, OX, OY, '#f0a868');
+        angleArc3(ctx, O, s.psi, s.degOrange, ro * 0.42, OX, OY, '#f0a868');
         angleArc3(ctx, C, s.psi + Math.PI, s.degBlue, rb * 0.42, OX, OY, '#6ea8fe');
       }
       for (const { s, C } of blues) {
-        vector3(ctx, O, ro, s.psi + rad(degOrange), OX, OY, '#f0a868');
+        vector3(ctx, O, ro, s.psi + rad(s.degOrange), OX, OY, '#f0a868');
         vector3(ctx, C, rb, s.psi + Math.PI + rad(s.degBlue), OX, OY, '#6ea8fe');
       }
     } else {
@@ -456,21 +461,22 @@
       for (const s of spokes) circle(ctx, s.x, s.y, rb, '#3d5a8c');
 
       for (const s of spokes) {
-        angleArc(ctx, OX, OY, s.psi, degOrange, ro * 0.42, '#f0a868');
+        angleArc(ctx, OX, OY, s.psi, s.degOrange, ro * 0.42, '#f0a868');
         angleArc(ctx, s.x, s.y, s.psi + Math.PI, s.degBlue, rb * 0.42, '#6ea8fe');
       }
       for (const s of spokes) {
-        arrow(ctx, OX, OY, ro, s.psi + rad(degOrange), '#f0a868');
+        arrow(ctx, OX, OY, ro, s.psi + rad(s.degOrange), '#f0a868');
         arrow(ctx, s.x, s.y, rb, s.psi + Math.PI + rad(s.degBlue), '#6ea8fe');
       }
     }
 
-    // Blue readings can now differ per spoke, so all three are listed.
+    // BOTH colours can now differ per spoke, so each gets a row of readings —
+    // one column per spoke, blue over orange, so a pair reads vertically.
     ctx.font = '11px ui-monospace, SFMono-Regular, Menlo, monospace';
     spokes.forEach((s, k) => {
-      readout(ctx, 10 + k * 74, 9, 'left', s.degBlue, '#6ea8fe', names(scene)[k]);
+      readout(ctx, 10 + k * 74, 2, 'left', s.degBlue, '#6ea8fe', names(scene)[k]);
+      readout(ctx, 10 + k * 74, 15, 'left', s.degOrange, '#f0a868', names(scene)[k]);
     });
-    readout(ctx, canvas.width - 10, 9, 'right', degOrange, '#f0a868');
 
     for (const id of scene.sliderIds) {
       const deg = +document.getElementById(id).value;
