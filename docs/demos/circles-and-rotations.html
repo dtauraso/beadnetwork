@@ -22,7 +22,7 @@
   /* An author `display` beats the UA rule behind the `hidden` attribute, so the
      hidden tab would otherwise stay on screen. */
   .scenes[hidden] { display: none; }
-  .panel { display: grid; grid-template-columns: auto 190px 6ch; gap: 8px 12px; align-items: center; }
+  .panel { display: grid; grid-template-columns: auto 190px 8ch; gap: 8px 12px; align-items: center; }
   .panel label { justify-self: end; }
   .swatch { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
   .a { background: #6ea8fe; }
@@ -284,10 +284,13 @@
     polyline(ctx, pts, cx, cy, color, 1.5);
   }
 
+  // A full turn each way, not a half. ±180 already reaches every DIRECTION, so
+  // the wider range is about the TRAVERSAL: it lets a vector wind a whole
+  // revolution, and the swept arc says which way round it got there.
   function slider(id, labelHTML) {
     return `
       <label for="${id}">${labelHTML}</label>
-      <input type="range" id="${id}" min="-180" max="180" step="1" value="0">
+      <input type="range" id="${id}" min="-360" max="360" step="1" value="0">
       <span class="val" id="${id}-v">0°</span>`;
   }
 
@@ -474,8 +477,8 @@
     // one column per spoke, blue over orange, so a pair reads vertically.
     ctx.font = '11px ui-monospace, SFMono-Regular, Menlo, monospace';
     spokes.forEach((s, k) => {
-      readout(ctx, 10 + k * 74, 2, 'left', s.degBlue, '#6ea8fe', names(scene)[k]);
-      readout(ctx, 10 + k * 74, 15, 'left', s.degOrange, '#f0a868', names(scene)[k]);
+      readout(ctx, 10 + k * 84, 2, 'left', s.degBlue, '#6ea8fe', names(scene)[k]);
+      readout(ctx, 10 + k * 84, 15, 'left', s.degOrange, '#f0a868', names(scene)[k]);
     });
 
     for (const id of scene.sliderIds) {
