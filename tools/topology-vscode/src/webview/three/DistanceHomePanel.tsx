@@ -27,6 +27,16 @@ const GROUPS: { index: number; label: string }[] = [
 export function DistanceHomePanel() {
   const lens = useDistanceGroupLens();
 
+  // Data-driven, not scene-branching: a scene whose nodes don't resolve any of the 3
+  // groups' pairs (e.g. the pair scene, whose only nodes are outside every group in
+  // nodes/Wiring/distance_groups.go's distanceGroups table) streams all three
+  // GroupLen* columns as 0 forever — distanceGroupMax's `any` never turns true, so
+  // ApplyDistanceGroupTarget's math never has anything to act on either. That is
+  // exactly the "no groups" condition, so render nothing rather than a panel of
+  // dead buttons. A real ring-topology group briefly reading 0 before its first
+  // resolvable frame lands is the same signal and self-corrects the next frame.
+  if (!lens || (lens.time === 0 && lens.input === 0 && lens.gate === 0)) return null;
+
   const valueFor = (index: number): number | undefined => {
     if (!lens) return undefined;
     if (index === 0) return lens.time;

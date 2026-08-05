@@ -264,6 +264,12 @@ func (b *buildCtx) buildMoveDispatch() error {
 			continue
 		}
 		nm.selfKind = n.Type
+		if n.VectorThetaIdx != nil {
+			nm.vectorThetaIdx = *n.VectorThetaIdx
+		}
+		if n.VectorPhiIdx != nil {
+			nm.vectorPhiIdx = *n.VectorPhiIdx
+		}
 	}
 	// Seed each node's OWN neighborKinds map — every DIRECT domain-adjacent neighbor id
 	// mapped to that neighbor's own kind name, derived straight from the loaded spec's

@@ -47,6 +47,12 @@ type specNode struct {
 	// jsonMeta.Gate and back), but no code path branches on it. Do not assume it
 	// drives behavior; grep call sites before relying on it again.
 	Gate bool `json:"gate,omitempty"`
+	// VectorThetaIdx/VectorPhiIdx are this node's own vector-direction indices
+	// (position.json's VectorThetaIdx/VectorPhiIdx — nodes/Wiring/node_mover.go's
+	// vectorThetaIdx/vectorPhiIdx). nil (unset) means "not stored" — buildMoveDispatch
+	// then leaves the nodeMover's zero-value indices (0,0 = world +y).
+	VectorThetaIdx *int32 `json:"vectorThetaIdx,omitempty"`
+	VectorPhiIdx   *int32 `json:"vectorPhiIdx,omitempty"`
 }
 
 // label returns the node's human label: data.label when present and non-empty,

@@ -25,6 +25,9 @@ import {
   readOverlayGroupLenTime,
   readOverlayGroupLenInput,
   readOverlayGroupLenGate,
+  readNodeVectorLen,
+  readNodeVectorTheta,
+  readNodeVectorPhi,
 } from "../../schema/buffer-layout";
 import { nodeLabel } from "./buffer-decode";
 
@@ -164,5 +167,62 @@ export function readDistanceGroupLens(): DistanceGroupLens | null {
 /** React hook: re-renders the caller when any of the 3 group max-pair-lengths change. */
 export function useDistanceGroupLens(): DistanceGroupLens | null {
   return useSyncExternalStore(subscribeViewBlocks, readDistanceGroupLens, readDistanceGroupLens);
+}
+
+/** One row of the per-node vector-angle panel: read-only reflect of a single node's own
+ *  VectorTheta/VectorPhi (Buffer/layout.go), as the ALREADY-MULTIPLIED radians the buffer
+ *  carries — TS holds no step constant of its own (nodes/Wiring.VectorAngleStep is Go's).
+ *  row is the node's buffer ROW (never an id/name — no sidecar), label its human label for
+ *  display only. */
+export interface NodeVectorRow {
+  row: number;
+  label: string;
+  theta: number;
+  phi: number;
+}
+
+let cachedNodeVectorRows: NodeVectorRow[] | null = null;
+
+function nodeVectorRowsEqual(a: NodeVectorRow[], b: NodeVectorRow[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    const ai = a[i];
+    const bi = b[i];
+    if (!ai || !bi) return false;
+    if (ai.row !== bi.row || ai.theta !== bi.theta || ai.phi !== bi.phi || ai.label !== bi.label) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/** Decode every node whose VectorLen is > 0 (Go's "this node draws a vector" answer — same
+ *  column NodeVectors.tsx gates its own draw on) into a NodeVectorRow list, or null if no
+ *  node frame has decoded yet. An EMPTY (non-null) list is the "no groups"-shaped signal
+ *  for a scene that streams no vectors at all — the panel that reads this renders nothing
+ *  for that case, with no scene branch on either side. */
+export function readNodeVectorRows(): NodeVectorRow[] | null {
+  const decoded = getNodeFrame();
+  if (!decoded) return cachedNodeVectorRows;
+  const { nodeCount, nodeView } = decoded;
+  const next: NodeVectorRow[] = [];
+  for (let row = 0; row < nodeCount; row++) {
+    if (!(readNodeVectorLen(nodeView, row) > 0)) continue;
+    next.push({
+      row,
+      label: nodeLabel(decoded, row),
+      theta: readNodeVectorTheta(nodeView, row),
+      phi: readNodeVectorPhi(nodeView, row),
+    });
+  }
+  if (cachedNodeVectorRows && nodeVectorRowsEqual(cachedNodeVectorRows, next)) return cachedNodeVectorRows;
+  cachedNodeVectorRows = next;
+  return cachedNodeVectorRows;
+}
+
+/** React hook: re-renders the caller when the set of vector-drawing nodes or any of their
+ *  angles changes. Returns null until the first node frame decodes. */
+export function useNodeVectorRows(): NodeVectorRow[] | null {
+  return useSyncExternalStore(subscribeNodeStreamBlocks, readNodeVectorRows, readNodeVectorRows);
 }
 

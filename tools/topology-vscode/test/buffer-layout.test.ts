@@ -68,8 +68,10 @@ describe("buffer-layout — Node block", () => {
     //   + 2×f32 (ringAxisTheta/ringAxisPhi — the DRAWN ring's axis, separate from the
     //     navigation pole above)
     //   + 1×f32 (vectorLen — the node's own drawn vector; 0 = draws none)
-    //   = 4 + (5+6+2+2+1)×4 + 1 + 1 + 8 + 1 + 1 = 80
-    expect(NODE_STRIDE).toBe(80);
+    //   + 2×f32 (vectorTheta/vectorPhi — the vector's OWN direction, separate from the
+    //     drawn ring axis above)
+    //   = 4 + (5+6+2+2+1+2)×4 + 1 + 1 + 8 + 1 + 1 = 88
+    expect(NODE_STRIDE).toBe(88);
   });
 
   it("read helpers decode known bytes correctly", () => {

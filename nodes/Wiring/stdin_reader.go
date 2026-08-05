@@ -56,6 +56,7 @@ import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"io"
 	"os"
+	"strconv"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -337,6 +338,7 @@ var updateKindHandlers = map[string]func(stdinMsg, *MoveDispatch, *T.Trace, []ch
 	"overlays":      applyUpdateOverlays,
 	"distanceGroup": applyUpdateDistanceGroup,
 	"scene":         applyUpdateScene,
+	"nodeVector":    applyUpdateNodeVector,
 }
 
 // EDIT_UPDATE_KINDS_END
@@ -385,6 +387,25 @@ func applyUpdateDistanceGroup(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speed
 		dir = 1
 	}
 	md.ApplyDistanceGroupTarget(msg.Num, dir)
+}
+
+// applyUpdateNodeVector handles kind=="nodeVector" attr=="theta"/"phi": one arrow click
+// on the per-node vector-angle panel. msg.Num is the target node's buffer ROW (never its
+// id/name — no sidecar on this wire, .claude/rules/bridge-surface.md); msg.Attr names
+// which index (theta/phi); msg.Flag is "up" (+1 step) or "down" (-1 step). ROW ID = NODE
+// ID - 1 by construction (persistence-ownership.md), so the row resolves to an id
+// directly — no reverse lookup table needed. Routed via md.sendMove onto the target
+// node's OWN extIn (moveMsgKindVectorAngle) so the index write + persist + re-emit all
+// run on that node's own goroutine, never here.
+func applyUpdateNodeVector(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
+	if md == nil || (msg.Attr != "theta" && msg.Attr != "phi") {
+		return
+	}
+	id := strconv.Itoa(msg.Num + 1)
+	if _, ok := md.mr.nodeMovers[id]; !ok {
+		return
+	}
+	md.sendMove(id, moveMsg{Kind: moveMsgKindVectorAngle, NodeID: id, Axis: msg.Attr, Bool: msg.Flag == "up"})
 }
 
 // applyUpdateScene handles kind=="scene" attr=="selected": one click on the scene tab

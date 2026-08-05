@@ -60,6 +60,7 @@ func TestSetNodeRow(t *testing.T) {
 		0.9, 1.1, // ringAxisTheta, ringAxisPhi
 		2.5, // vectorLen — the DRAWN ring's axis, separate from the
 		//           navigation pole above (Buffer/layout.go)
+		1.3, 1.7, // vectorTheta, vectorPhi — the vector's OWN direction
 		1,    // selected
 		3,    // kindID (Input = index 3 in NODE_DEFS_ARRAY)
 		7, 4, // labelOff, labelLen
@@ -84,6 +85,8 @@ func TestSetNodeRow(t *testing.T) {
 	assertF32At(t, buf, BufNodeColRingAxisTheta, 0.9, "RingAxisTheta")
 	assertF32At(t, buf, BufNodeColRingAxisPhi, 1.1, "RingAxisPhi")
 	assertF32At(t, buf, BufNodeColVectorLen, 2.5, "VectorLen")
+	assertF32At(t, buf, BufNodeColVectorTheta, 1.3, "VectorTheta")
+	assertF32At(t, buf, BufNodeColVectorPhi, 1.7, "VectorPhi")
 	assertU8At(t, buf, BufNodeColSelected, 1, "Selected")
 	assertU8At(t, buf, BufNodeColKindId, 3, "KindId")
 	assertU32At(t, buf, BufNodeColLabelOff, 7, "LabelOff")
@@ -156,8 +159,10 @@ func TestNodeStrideIsPackedSize(t *testing.T) {
 	//             navigation pole)
 	//           + 1×u8 (selected) + 1×u8 (kindID) + 2×u32 (label off/len) + 1×u8 (hovered) + 1×u8 (latchedSel)
 	//           + 1×f32 (vectorLen — the node's own drawn vector; 0 = none)
-	//           = 4 + (5+6+2+2+1)×4 + 1 + 1 + 8 + 1 + 1 = 80
-	want := 1*4 + 5*4 + 6*4 + 2*4 + 2*4 + 1*4 + 1*1 + 1*1 + 2*4 + 1*1 + 1*1
+	//           + 2×f32 (vectorTheta/vectorPhi — the vector's OWN direction, separate
+	//             from the drawn ring axis)
+	//           = 4 + (5+6+2+2+1+2)×4 + 1 + 1 + 8 + 1 + 1 = 88
+	want := 1*4 + 5*4 + 6*4 + 2*4 + 2*4 + 1*4 + 2*4 + 1*1 + 1*1 + 2*4 + 1*1 + 1*1
 	if BufNodeStride != want {
 		t.Errorf("BufNodeStride = %d, want %d (packed size)", BufNodeStride, want)
 	}

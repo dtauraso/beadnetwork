@@ -299,7 +299,15 @@ type nodeMover struct {
 	// buildFrame packs this node's combined per-fd frame (node fields + ports + label)
 	// using Buffer's own row-writer columns (Buffer.BuildNodeStreamFrame), injected so
 	// this package needs no Buffer import.
-	buildFrame func(tick uint32, nodeRow int32, nodeID int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, poleTheta, polePhi, ringAxisTheta, ringAxisPhi, vectorLen float32, selected, kindID, hovered, latchedSel uint8, label string, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte
+	buildFrame func(tick uint32, nodeRow int32, nodeID int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, poleTheta, polePhi, ringAxisTheta, ringAxisPhi, vectorLen, vectorTheta, vectorPhi float32, selected, kindID, hovered, latchedSel uint8, label string, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte
+	// vectorThetaIdx/vectorPhiIdx are THIS node's own vector direction, as INTEGER
+	// indices into VectorAngleStep (memory/feedback_abc_times_constant_not_rederive.md
+	// — index × step-constant, trig only at the cartesian/polar boundary). Default 0,0
+	// means world +y (θ=0), matching the pre-existing hardcoded +y direction. Written
+	// only by this node's own goroutine, from an edit-update(nodeVector) message
+	// (moveMsgKindVectorAngle) or the persisted load value; persisted by this node's own
+	// mover into ITS OWN position.json (persist_position.go), never a foreign file.
+	vectorThetaIdx, vectorPhiIdx int32
 }
 
 func newNodeMover(id string, geom nodeGeom, tr *T.Trace, clockSrc wire.Clock) *nodeMover {
@@ -411,6 +419,27 @@ func (m *nodeMover) handle(msg moveMsg) {
 			m.latchedSel = 1
 		} else {
 			m.latchedSel = 0
+		}
+		return
+	}
+	if msg.Kind == moveMsgKindVectorAngle {
+		// Adjust THIS node's own vector-direction index by one VectorAngleStep click —
+		// index arithmetic only (memory/feedback_abc_times_constant_not_rederive.md), no
+		// trig here. Persisted immediately to this node's OWN file (persistVectorAngle,
+		// quant_offset_persist.go) and re-emitted so the panel's read-only reflect and
+		// the drawn arrow both pick up the change on the next frame.
+		delta := int32(-1)
+		if msg.Bool {
+			delta = 1
+		}
+		if msg.Axis == "phi" {
+			m.vectorPhiIdx += delta
+		} else {
+			m.vectorThetaIdx += delta
+		}
+		m.persistVectorAngle()
+		if m.tr != nil {
+			m.emitGeometry()
 		}
 		return
 	}
@@ -580,6 +609,13 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 			}
 		}
 	}
+	// vectorTheta/vectorPhi are this node's OWN vector direction — separate from the ring
+	// axis above, so a scene/user can aim a node's vector somewhere other than its ring.
+	// Never a free float: index × VectorAngleStep (see the constant's own doc comment),
+	// the streamed value is pure arithmetic on the integer state this node's own mover
+	// holds and persists (m.vectorThetaIdx/vectorPhiIdx).
+	vectorTheta := float64(m.vectorThetaIdx) * CurveParamVectorAngleStep
+	vectorPhi := float64(m.vectorPhiIdx) * CurveParamVectorAngleStep
 	label := m.geom.Label
 	if label == "" {
 		label = m.id
@@ -605,6 +641,7 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 		verticalRingNormalX, verticalRingNormalY, verticalRingNormalZ,
 		flatRingNormalX, flatRingNormalY, flatRingNormalZ,
 		float32(poleTheta), float32(polePhi), float32(ringAxisTheta), float32(ringAxisPhi), float32(vectorLen),
+		float32(vectorTheta), float32(vectorPhi),
 		selected, kindID, hovered, latchedSel,
 		label, chainOX, chainOY, chainOZ, chainLit, chainLitVal, events)
 	var hdr [4]byte

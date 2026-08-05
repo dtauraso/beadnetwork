@@ -118,7 +118,17 @@ type bufLayoutNode struct {
 	// no vectors needs no second flag anywhere. Go decides per scene; the renderer draws
 	// what it is given.
 	VectorLen float32 `buf:"f32"` // node vector length along the ring axis; 0 = no vector
-	Selected  uint8   `buf:"u8"`  // persistent: 1 = this node is the click-selected node
+	// VectorTheta/VectorPhi are the vector's OWN direction, same angle convention as
+	// PoleTheta/PolePhi and RingAxisTheta/RingAxisPhi above (θ from world +y, φ azimuth
+	// around +y) — SEPARATE from RingAxisTheta/Phi so a scene/user can point a node's
+	// vector somewhere other than its ring axis. Each node's mover holds these as an
+	// INTEGER index pair, not a free float (memory/feedback_abc_times_constant_not_
+	// rederive.md): the streamed value is index * nodes/Wiring.VectorAngleStep, and the
+	// index is what an edit-update(nodeVector) click changes. Meaningless (but still
+	// streamed, default 0) on a node whose VectorLen is 0.
+	VectorTheta float32 `buf:"f32"` // node vector direction: θ from world +y (radians) = thetaIdx*step
+	VectorPhi   float32 `buf:"f32"` // node vector direction: φ azimuth around +y (radians) = phiIdx*step
+	Selected    uint8   `buf:"u8"`  // persistent: 1 = this node is the click-selected node
 	// KindId is the node's kind as a STABLE id, assigned once per kind in
 	// nodes/<Kind>/SPEC.md (| kindId | N |) and never renumbered (the generator emits
 	// kindIDMap/NODE_DEFS_ARRAY keyed by it; a removed kind leaves an undefined gap, not

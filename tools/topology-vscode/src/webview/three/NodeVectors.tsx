@@ -1,9 +1,13 @@
-// NodeVectors.tsx — one arrow per node, from its centre to its own top.
+// NodeVectors.tsx — one arrow per node, from its centre outward along its OWN direction.
 //
-// The direction is world UP: "the top" of a node means up, not the normal of its ring. In a
-// scene whose rings stand upright along their edge (nodes/Wiring's uprightRingAxis) that
-// plane already contains up, so the arrow lies across the ring's FACE — the tori and the
-// vector both aiming up, which is the arrangement this exists to draw.
+// The direction is Go-owned: VectorTheta/VectorPhi (Buffer/layout.go), the SAME θ-from-
+// world-+y / φ-azimuth-around-+y convention as the ring axis and every other angle pair
+// on the buffer. Default (0,0) is world +y, matching the vector's original hardcoded-up
+// arrangement — a scene/topology that never sets an angle looks unchanged. Go holds the
+// angle as an INTEGER index × nodes/Wiring.VectorAngleStep
+// (memory/feedback_abc_times_constant_not_rederive.md); this component reads only the
+// already-multiplied radians the buffer carries, same as it reads RingAxisTheta/Phi — no
+// index/step arithmetic on this side.
 //
 // WHETHER a node draws one is Go's answer too, and it rides the SAME value as how long:
 // VectorLen is zero for a node that draws none. There is no toggle and no per-scene branch
@@ -22,7 +26,7 @@ import * as THREE from "three";
 import { getNodeFrame } from "./node-stream-blocks";
 import {
   readNodeCX, readNodeCY, readNodeCZ,
-  readNodeVectorLen,
+  readNodeVectorLen, readNodeVectorTheta, readNodeVectorPhi,
 } from "../../schema/buffer-layout";
 
 // The shaft's thickness and the head's size, as fractions of the vector's own length, so an
@@ -69,13 +73,18 @@ export function NodeVectors({ capacity }: { capacity: number }) {
       const len = readNodeVectorLen(nodeView, row);
       if (!(len > 0)) continue; // Go says this node draws no vector
 
-      // Direction = world UP. The vector runs from a node's centre to its own TOP, and top
-      // means up — it is NOT the ring's axis. Those coincided only while the rings lay flat;
-      // now the rings stand upright along their edge, their axis is horizontal, and drawing
-      // the arrow along it pointed the arrow sideways. The ring's PLANE contains up
-      // (nodes/Wiring's uprightRingAxis), so an up-pointing arrow lies across the ring's
-      // face, which is the arrangement asked for.
+      // Direction = Go's own VectorTheta/VectorPhi for this node — NOT the ring's axis
+      // (RingAxisTheta/Phi is a separate column; see the file header). (0,0) decodes to
+      // world +y, the same default the vector used before this column existed, so an
+      // unedited node's arrow is unchanged. Same θ-from-+y/φ-azimuth-around-+y →
+      // cartesian conversion NodeInstances uses for the ring axis.
       axisRef.current.set(0, 1, 0);
+      const vecTheta = readNodeVectorTheta(nodeView, row);
+      const vecPhi = readNodeVectorPhi(nodeView, row);
+      if (vecTheta !== 0 || vecPhi !== 0) {
+        const st = Math.sin(vecTheta);
+        axisRef.current.set(st * Math.cos(vecPhi), Math.cos(vecTheta), st * Math.sin(vecPhi));
+      }
       quatRef.current.setFromUnitVectors(GEOMETRY_AXIS, axisRef.current);
 
       const cx = readNodeCX(nodeView, row);

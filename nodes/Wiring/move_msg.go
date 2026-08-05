@@ -56,6 +56,15 @@ const (
 	// right after, so the re-emit always sees the just-pushed center). Reuses the
 	// existing SenderID/FromCenter fields.
 	moveMsgKindNeighborCenter = "neighborCenter"
+	// moveMsgKindVectorAngle tells a node to adjust its OWN vector direction by one
+	// VectorAngleStep click (Buffer/layout.go's VectorTheta/VectorPhi,
+	// nodes/Wiring/node_mover.go's vectorThetaIdx/vectorPhiIdx): Axis selects "theta" or
+	// "phi", Bool is the up(+1)/down(-1) direction — same shape as the distanceGroup
+	// arrow-click payload (index + direction, no value on the wire; Go owns the math).
+	// Sent to the target node's own extIn via md.sendMove from applyUpdateNodeVector
+	// (stdin_reader.go), so the index write + persist + re-emit all run on that node's
+	// OWN goroutine.
+	moveMsgKindVectorAngle = "vectorAngle"
 )
 
 // moveMsg is one entry routed to one of a mover's own dedicated channels (there is no
@@ -108,8 +117,12 @@ type moveMsg struct {
 	Target vec3
 	// Bool (Kind == "select"/"hover"/"latched"): the on/off payload for that UI bit —
 	// each mover owns its own selected/hovered/latchedSel bit, set here by whichever
-	// message it receives on its own extIn.
+	// message it receives on its own extIn. Also (Kind == "vectorAngle"): true = up
+	// (index+1), false = down (index-1).
 	Bool bool
+	// Axis (Kind == "vectorAngle"): "theta" or "phi" — which of the node's own
+	// vectorThetaIdx/vectorPhiIdx to adjust.
+	Axis string
 	// testDone: see the type comment. Test-only; production leaves it nil.
 	testDone chan struct{}
 }
