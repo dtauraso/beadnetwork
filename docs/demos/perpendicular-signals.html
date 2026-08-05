@@ -1,0 +1,946 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Perpendicular signals between two lines</title>
+<style>
+  :root { color-scheme: light dark; }
+  body {
+    max-width: 760px; margin: 0; padding: 24px;
+    font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, sans-serif;
+    background: #0f1115; color: #e6e8ee;
+  }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  h2 { font-size: 15px; margin: 28px 0 6px; }
+  p.note { margin: 0 0 8px; color: #9aa3b2; max-width: 70ch; }
+  /* Scale to the window instead of forcing a 700px-wide horizontal scroll:
+     the viewBox keeps the geometry, width:100% keeps both lines on screen. */
+  svg {
+    background: #171a21; border: 1px solid #2a2f3a; border-radius: 6px;
+    display: block; width: 100%; max-width: 700px; height: auto;
+  }
+  .lineA { stroke: #5ec8ff; }
+  .lineB { stroke: #ffb45e; }
+  .ghost { opacity: 0.28; }
+  .sig { stroke: #8ef08e; stroke-width: 1.4; }
+  .sigBack { stroke: #f08ecd; stroke-width: 1.4; }
+  /* The SVG scales down to the window, so diagram text shrinks with it —
+     size it generously in viewBox units. */
+  .lbl { fill: #c3cad6; font-size: 18px; }
+  .normal { stroke: #ffffff; stroke-width: 1; opacity: 0.55; stroke-dasharray: 4 4; }
+  .ref { stroke: #7d8798; stroke-width: 1.5; stroke-dasharray: 7 5; opacity: 0.85; }
+  /* the disc of directions perpendicular to a pole: every way a signal could leave it */
+  .disc { stroke: #5ec8ff; stroke-width: 1; fill: none; opacity: 0.30; stroke-dasharray: 3 4; }
+  .discB { stroke: #ffb45e; stroke-width: 1; fill: none; opacity: 0.30; stroke-dasharray: 3 4; }
+  .spin { fill: #c3cad6; opacity: 0.9; }
+  .gap { stroke: #ff6b6b; stroke-width: 2; }
+  /* The bounce-off angle, drawn rather than written: the wedge between the ray the
+     signal actually came in on and a true 90° to the receiver. Zero when parallel. */
+  .wedge { fill: #ff6b6b; opacity: 0.22; stroke: none; }
+  .arc { stroke: #ff6b6b; stroke-width: 2; fill: none; }
+  /* Earlier rounds keep every mark, faded — CSS opacity beats a presentation attribute,
+     so a faded variant needs its own class rather than .ghost stacked on top. */
+  .wedgeFaint { fill: #ff6b6b; opacity: 0.07; stroke: none; }
+  .arcFaint { stroke: #ff6b6b; stroke-width: 1.2; fill: none; opacity: 0.34; }
+  .normalFaint { stroke: #ffffff; stroke-width: 1; opacity: 0.18; stroke-dasharray: 4 4; }
+  .warn { color: #ffb45e; }
+  /* 3D arrival markers: dotted arms + arc for an off-square landing, a small closed
+     square for a true right angle — the standard drafting convention, so the shape
+     itself says "90°" and no number has to be read. */
+  .dotmark { stroke: #ffffff; stroke-width: 1.3; opacity: 0.75; stroke-dasharray: 2 4; fill: none; }
+  .sq { stroke: #8ef08e; stroke-width: 1.6; opacity: 0.95; fill: none; }
+  .controls { margin: 14px 0 4px; display: flex; gap: 24px; flex-wrap: wrap; align-items: center; }
+  .controls label { display: flex; gap: 8px; align-items: center; }
+  output { font-variant-numeric: tabular-nums; min-width: 4ch; color: #5ec8ff; }
+  table { border-collapse: collapse; margin-top: 12px; font-variant-numeric: tabular-nums; }
+  th, td { border: 1px solid #2a2f3a; padding: 3px 10px; text-align: right; }
+  th { color: #9aa3b2; font-weight: 500; }
+  td.dir { text-align: left; }
+  .tabs { display: flex; gap: 6px; margin: 18px 0 0; border-bottom: 1px solid #2a2f3a; }
+  .tab { padding: 7px 14px; border: 1px solid #2a2f3a; border-bottom: none;
+         border-radius: 7px 7px 0 0; background: transparent; color: #9aa3b2;
+         cursor: pointer; font: inherit; }
+  .tab[aria-selected="true"] { background: #171a21; color: #e6e8ee; }
+  .panel { display: none; padding-top: 12px; }
+  .panel.on { display: block; }
+  .readout { font: 12.5px/1.7 ui-monospace, Menlo, monospace; background: #0f1115;
+             border: 1px solid #2a2f3a; border-radius: 6px; padding: 10px 12px;
+             margin: 10px 0 0; max-width: 700px; white-space: pre; overflow-x: auto; }
+  .readout b { color: #8ef08e; font-weight: 600; }
+  .readout .bad { color: #ff6b6b; }
+</style>
+</head>
+<body>
+
+<h1>Perpendicular signals between two lines</h1>
+<p class="note">
+  A signal always leaves its sender at exactly 90° to the sender. What it hits the
+  <em>receiver</em> at is 90° only when the two lines are parallel.
+</p>
+
+<h2>1 &mdash; Both lines vertical</h2>
+<p class="note">Parallel: leaves A at 90°, arrives at B at 90°. Nothing to see, which is the point.</p>
+<svg id="svg1" viewBox="0 0 700 360" preserveAspectRatio="xMidYMid meet"></svg>
+
+<h2>2 &mdash; The tilt passed back and forth</h2>
+<p class="note">
+  Line A starts tilted by the tilt angle. Its signals meet B at 90° &minus; tilt.
+  B takes the tilt on and A returns to its original position, so on the next round B is
+  the tilted one sending back. The tilt is <em>handed over</em>, not accumulated &mdash;
+  what leaves the sender is gone from the sender &mdash; and the mismatch stays the same
+  size each round, just leaning the other way.
+</p>
+
+<div class="controls" id="commonControls">
+  <label>rounds <input id="rounds" type="range" min="1" max="12" value="1"><output id="roundsOut">1</output></label>
+  <label>subsegments <input id="rate" type="range" min="1" max="20" step="1" value="4"><output id="rateOut">4</output></label>
+  <label>nested oscillation <input id="micro" type="range" min="1" max="12" step="1" value="1"><output id="microOut">1</output></label>
+  <label>tilt per round <input id="tilt" type="range" min="0" max="30" step="0.5" value="1"><output id="tiltOut">1°</output></label>
+  <label>drawing exaggeration <input id="exag" type="range" min="1" max="20" step="1" value="10"><output id="exagOut">×10</output></label>
+</div>
+<p class="note" id="exagNote"></p>
+
+<div class="tabs" role="tablist">
+  <button class="tab" role="tab" aria-selected="true" data-p="panelFlat">Flat</button>
+  <button class="tab" role="tab" aria-selected="false" data-p="panel3d">3D</button>
+  <button class="tab" role="tab" aria-selected="false" data-p="panelRing">N poles</button>
+</div>
+
+<section class="panel on" id="panelFlat">
+  <p class="note">
+    Both sides participate in every subsegment. Neither is held: at each nested oscillation
+    A and B both tilt, each taking part of the angle, and they converge instead of one
+    handing over to the other.
+  </p>
+  <div class="slot"></div>
+  <svg id="svg2" viewBox="0 0 700 360" preserveAspectRatio="xMidYMid meet"></svg>
+</section>
+
+<section class="panel" id="panel3d">
+  <p class="note">
+    The same two poles, in space. Two directions always lie in a plane, so the tilting is
+    still planar &mdash; the third dimension only lets that plane sit anywhere. Turn the
+    view to see it edge-on, and the flat diagram is what you get.
+  </p>
+  <div class="slot"></div>
+  <div class="controls">
+    <label>view turn <input id="az" type="range" min="-180" max="180" step="1" value="35"><output id="azOut">35&deg;</output></label>
+    <label>view lift <input id="el" type="range" min="-89" max="89" step="1" value="20"><output id="elOut">20&deg;</output></label>
+    <label>tilt plane <input id="psi" type="range" min="0" max="180" step="1" value="0"><output id="psiOut">0&deg;</output></label>
+  </div>
+  <svg id="svg3" viewBox="0 0 700 420" preserveAspectRatio="xMidYMid meet"></svg>
+</section>
+
+<section class="panel" id="panelRing">
+  <p class="note">
+    Three poles make a triangle of edges: every pole exchanges with every other, all at
+    once, and the tilt splits three ways instead of two. The pole count is a slider, so
+    the split is <em>tilt/N</em> rather than a hard-coded half.
+  </p>
+  <div class="slot"></div>
+  <div class="controls">
+    <label>poles <input id="poles" type="range" min="2" max="5" step="1" value="3"><output id="polesOut">3</output></label>
+    <label>microtilt size <input id="stepSize" type="range" min="0.05" max="2" step="0.05" value="0.25"><output id="stepSizeOut">0.25&deg;</output></label>
+  </div>
+  <svg id="svgN" viewBox="0 0 700 420" preserveAspectRatio="xMidYMid meet"></svg>
+  <p class="note" id="ringOut"></p>
+</section>
+<p class="note" id="parallelOut"></p>
+<p class="note" id="measureOut"></p>
+
+<div id="table"></div>
+
+<script>
+const NS = 'http://www.w3.org/2000/svg';
+// Line centres and half-length. The gap is 160 — half what it was — so the rays cross a
+// shorter span and fewer of them run off the end of the receiver at large tilts.
+const AX = 270, BX = 430, CY = 180, HALF = 130;
+const D2R = Math.PI / 180;
+
+function el(parent, name, attrs) {
+  const n = document.createElementNS(NS, name);
+  for (const k in attrs) n.setAttribute(k, attrs[k]);
+  parent.appendChild(n);
+  return n;
+}
+
+// A positive tilt leans the line to the RIGHT: it swings the TOP of the line toward +x.
+// Screen y grows downward, so that is the -sin branch, not +sin.
+const dirOf = t => ({ x: -Math.sin(t * D2R), y: Math.cos(t * D2R) });
+// Perpendicular to it, pointing to the right of the page. Sign flipped in step with
+// dirOf so the two stay orthogonal: (-sin)(cos) + (cos)(sin) = 0.
+const perpOf = t => ({ x: Math.cos(t * D2R), y: Math.sin(t * D2R) });
+
+function drawLine(svg, cx, tilt, cls, ghost) {
+  const d = dirOf(tilt);
+  el(svg, 'line', {
+    x1: cx - d.x * HALF, y1: CY - d.y * HALF,
+    x2: cx + d.x * HALF, y2: CY + d.y * HALF,
+    'stroke-width': 3, class: ghost ? cls + ' ghost' : cls
+  });
+}
+
+// Intersect ray p + s*u with the infinite line through c along d. Returns the point or null.
+// Solve p + s*u = c + r*d for s. Cramer on [[u.x, -d.x], [u.y, -d.y]]:
+// det = d.x*u.y - u.x*d.y, and the s-numerator is d.x*ry - d.y*rx.
+function hit(p, u, c, d) {
+  const det = d.x * u.y - u.x * d.y;
+  if (Math.abs(det) < 1e-9) return null;                       // parallel: never meets
+  const rx = c.x - p.x, ry = c.y - p.y;
+  const s = (d.x * ry - d.y * rx) / det;
+  if (s <= 0) return null;                                     // behind the sender
+  return { x: p.x + s * u.x, y: p.y + s * u.y };
+}
+
+// Smallest angle between two undirected directions, in degrees.
+function between(u, d) {
+  const c = Math.abs(u.x * d.x + u.y * d.y);
+  return Math.acos(Math.min(1, c)) / D2R;
+}
+
+// The bounce-off angle as a drawn wedge: centre q, swept from direction `a` to `b`.
+// Both are unit directions leaving q. The short way round is always the one drawn, and a
+// sweep under ~0.06° is skipped so the parallel case shows nothing rather than a sliver.
+function wedge(svg, q, a, b, r, dim) {
+  const a0 = Math.atan2(a.y, a.x);
+  let d = Math.atan2(b.y, b.x) - a0;
+  while (d > Math.PI) d -= 2 * Math.PI;
+  while (d < -Math.PI) d += 2 * Math.PI;
+  if (Math.abs(d) < 1e-3) return;
+  const p0 = { x: q.x + a.x * r, y: q.y + a.y * r };
+  const p1 = { x: q.x + b.x * r, y: q.y + b.y * r };
+  const sweep = d > 0 ? 1 : 0;
+  const arc = `A ${r} ${r} 0 0 ${sweep} ${p1.x} ${p1.y}`;
+  el(svg, 'path', { d: `M ${q.x} ${q.y} L ${p0.x} ${p0.y} ${arc} Z`,
+                    class: dim ? 'wedgeFaint' : 'wedge' });
+  el(svg, 'path', { d: `M ${p0.x} ${p0.y} ${arc}`, class: dim ? 'arcFaint' : 'arc' });
+}
+
+// One volley: `count` signals leaving the sender line perpendicular to itself.
+// A signal is drawn only if it actually lands ON the receiver segment, so nothing
+// shoots off the page; the ray always stays in the gap between the two lines.
+// `shift` and `spread` place this volley's departure points along the sender line:
+// centred on `shift`, reaching ±`spread`. The two directions must occupy DIFFERENT
+// bands of their lines — a small nudge is not enough, because a ray leaves at one
+// height and lands at another, so any uniform offset just trades one coincidence
+// (A's starts on B's ends) for the mirror one (B's starts on A's ends).
+function volley(svg, senderX, senderTilt, recvX, recvTilt, cls, count, marker, dim, shift, spread) {
+  const rayCls = dim ? cls + ' ghost' : cls;
+  const sd = dirOf(senderTilt), rd = dirOf(recvTilt);
+  let u = perpOf(senderTilt);
+  if ((recvX - senderX) * u.x < 0) u = { x: -u.x, y: -u.y };   // aim at the other line
+  const rc = { x: recvX, y: CY };
+  let landed = 0, mid = null;
+  const hits = [];
+  for (let i = 0; i < count; i++) {
+    // Spread along the sender, then slide by `shift` and clamp so no departure point
+    // runs off the end of the line.
+    const amp = spread === undefined ? 0.7 : spread;
+    const base = count === 1 ? 0 : (i / (count - 1) - 0.5) * 2 * amp;
+    const f = Math.max(-0.92, Math.min(0.92, base + (shift || 0)));
+    const p = { x: senderX + sd.x * HALF * f, y: CY + sd.y * HALF * f };
+    const q = hit(p, u, rc, rd);
+    if (!q) continue;
+    const along = (q.x - rc.x) * rd.x + (q.y - rc.y) * rd.y;         // where on the receiver
+    if (Math.abs(along) > HALF) continue;                            // misses the segment
+    if (q.x < 0 || q.x > 700 || q.y < 0 || q.y > 360) continue;      // never leave the canvas
+    el(svg, 'line', { x1: p.x, y1: p.y, x2: q.x, y2: q.y, class: rayCls });
+    el(svg, 'circle', { cx: q.x, cy: q.y, r: 2.5, class: rayCls, fill: 'currentColor' });
+    landed++;
+    hits.push(q);
+    if (mid === null || Math.abs(f) < 1e-9) mid = { p, q };
+  }
+  // The bounce-off angle, at EVERY landing point: dashed stub = a true 90° to the
+  // RECEIVER, red wedge = the angle between that and the ray the signal actually
+  // arrived on. Parallel lines leave the stub sitting on the ray and no wedge at all.
+  let n = perpOf(recvTilt);
+  if ((senderX - recvX) * n.x < 0) n = { x: -n.x, y: -n.y };
+  const back = { x: -u.x, y: -u.y };            // back along the incoming ray
+  // Wedges and reference stubs only on the live round — a wedge per landing on every
+  // faded round buries the picture in red.
+  if (!dim) hits.forEach(q => {
+    el(svg, 'line', {
+      x1: q.x, y1: q.y, x2: q.x + n.x * 44, y2: q.y + n.y * 44, class: 'normal'
+    });
+    wedge(svg, q, back, n, 26, false);
+  });
+  // The one marked landing keeps a longer stub so the reference reads at a glance.
+  if (marker && mid) {
+    el(svg, 'line', {
+      x1: mid.q.x, y1: mid.q.y, x2: mid.q.x + n.x * 70, y2: mid.q.y + n.y * 70,
+      class: 'normal'
+    });
+  }
+  return { arrival: between(u, rd), leave: 90, landed };
+}
+
+// --- Example 1: both vertical -------------------------------------------------
+(function () {
+  const svg = document.getElementById('svg1');
+  drawLine(svg, AX, 0, 'lineA');
+  drawLine(svg, BX, 0, 'lineB');
+  volley(svg, AX, 0, BX, 0, 'sig', 5, true);
+  el(svg, 'text', { x: AX - 12, y: 34, class: 'lbl', 'text-anchor': 'end' }).textContent = 'line A';
+  el(svg, 'text', { x: BX + 12, y: 34, class: 'lbl' }).textContent = 'line B';
+  // No angle is written: the wedge at each landing point IS the reading, and here it is
+  // absent because the lines are parallel.
+  el(svg, 'text', { x: 350, y: 340, class: 'lbl', 'text-anchor': 'middle' }).textContent =
+    'dashed white = a true 90° to the receiver · no wedge = the signal arrived on it';
+})();
+
+// --- Example 2: ratcheting tilt ----------------------------------------------
+const roundsEl = document.getElementById('rounds');
+const tiltEl = document.getElementById('tilt');
+const exagEl = document.getElementById('exag');
+const rateEl = document.getElementById('rate');
+const microEl = document.getElementById('micro');
+
+// A nested oscillation is a swing of the LINES, not an extra signal. Inside one round
+// the pair swings `rate` times per DEGREE of tilt — the rate is a control, not a number
+// chosen here — and each swing hands the tilt across exactly as the outer round does.
+// The second slider selects which of those nested oscillations to view.
+const MAX_OSC = 1000;
+
+// The dashed grey 0° reference, drawn through the same centre as the real line, so the
+// wedge between them IS the tilt. Endpoint ticks mark how far the line has swung off it.
+function drawRef(svg, cx, tilt) {
+  el(svg, 'line', { x1: cx, y1: CY - HALF, x2: cx, y2: CY + HALF, class: 'ref' });
+  const d = dirOf(tilt);
+  for (const s of [-1, 1]) {
+    el(svg, 'line', {
+      x1: cx, y1: CY + s * HALF,
+      x2: cx + d.x * HALF * s, y2: CY + d.y * HALF * s,
+      class: 'gap'
+    });
+  }
+}
+
+
+// Draw the pair. BOTH sides participate in every subsegment: at each nested oscillation
+// A and B both tilt, each taking part of the angle, so they converge and meet in the
+// middle. Nothing is held still — a held side would mean only one participant per step,
+// which the nesting rule does not allow.
+function drawPair(svgId, o) {
+  const svg = document.getElementById(svgId);
+  svg.textContent = '';
+  svg.setAttribute('viewBox', '0 0 700 360');
+  const rows = [];
+
+  for (let k = 1; k <= o.rounds; k++) {
+    const last = k === o.rounds;
+    const nestCount = o.available;
+    const n = Math.min(o.osc, nestCount);
+    const crossed = n / nestCount;
+    const startsA = k % 2 === 1;
+
+    // Each side gives up or takes on half the angle, in step, so the relative angle
+    // closes by one grain per subsegment and both are moving the whole time.
+    const starter = o.tilt * (1 - crossed / 2) * o.exag;
+    const other   = o.tilt * (crossed / 2) * o.exag;
+    const aD = startsA ? starter : other;
+    const bD = startsA ? other : starter;
+
+    if (last) { drawRef(svg, AX, aD); drawRef(svg, BX, bD); }
+    drawLine(svg, AX, aD, 'lineA', !last);
+    drawLine(svg, BX, bD, 'lineB', !last);
+
+    // Both send, every subsegment, on the same starting configuration. Banded so the
+    // two sets do not land on top of each other.
+    volley(svg, AX, aD, BX, bD, 'sig', 3, true, !last, -0.45, 0.28);
+    volley(svg, BX, bD, AX, aD, 'sigBack', 3, true, !last, 0.45, 0.28);
+
+    rows.push({ k, from: 'A ⇄ B', sTilt: o.tilt, rTilt: 0,
+                arrival: between(perpOf(o.tilt), dirOf(0)), nest: n, nestCount });
+  }
+
+  el(svg, 'text', { x: AX - 12, y: 26, class: 'lbl', 'text-anchor': 'end' }).textContent = 'line A';
+  el(svg, 'text', { x: BX + 12, y: 26, class: 'lbl' }).textContent = 'line B';
+  el(svg, 'text', { x: 350, y: 326, class: 'lbl', 'text-anchor': 'middle' }).textContent =
+    'dashed grey = the untilted 0° position · red = how far the line has swung off it';
+  el(svg, 'text', { x: 350, y: 348, class: 'lbl', 'text-anchor': 'middle' }).textContent =
+    'both tilt every subsegment · green = A’s signals · pink = B’s';
+  return rows;
+}
+
+function render() {
+  const rounds = +roundsEl.value, tilt = +tiltEl.value, exag = +exagEl.value;
+  // How many nested oscillations exist: the rate slider times the tilt, in degrees.
+  // The index slider's range follows it, so every stop is a real oscillation instead
+  // of clamping onto the last one.
+  const rate = +rateEl.value;
+  // The tilt is n. The microtilt level is n SQUARED. `rate` fixes what one unit of tilt
+  // is (units per degree), so n = rate x tilt, and the number of microtilts inside that
+  // tilt is n x n. A tilt of 5 units carries 25 microtilts, not 5 — which is the pile,
+  // and it is where the quadratic lives.
+  const n1 = Math.max(1, Math.round(rate * tilt));
+  const available = Math.max(1, Math.min(MAX_OSC, n1 * n1));
+  microEl.max = available;
+  if (+microEl.value > available) microEl.value = available;
+  const osc = Math.max(1, Math.min(available, +microEl.value));
+  document.getElementById('roundsOut').textContent = rounds;
+  document.getElementById('tiltOut').textContent = tilt.toFixed(1) + '° · n=' + n1;
+  document.getElementById('exagOut').textContent = '×' + exag;
+  document.getElementById('rateOut').textContent = rate + '/° · n=' + n1;
+  document.getElementById('microOut').textContent = osc + ' / ' + available + ' (n²)';
+  document.getElementById('exagNote').innerHTML = exag === 1
+    ? 'Drawn true to scale. A 1° tilt swings the end of a line by about 2px — real, but ' +
+      'not something an eye can see. Raise the exaggeration to make it visible.'
+    : `<span class="warn">Angles in the drawing are multiplied by ${exag}</span> so a small ` +
+      `tilt is visible; the drawing is a true picture of a ${(tilt * exag).toFixed(1)}° step. ` +
+      `The table below always reports the real ${tilt.toFixed(1)}° angles.`;
+
+  const rows = drawPair('svg2', { rounds, tilt, exag, osc, available });
+  draw3d({ rounds, tilt, exag, osc, available });
+  drawRing({ rounds, tilt, exag, osc, available });
+
+  // Count the parallel moments by walking every microtilt of every round and measuring
+  // the relative angle, rather than assuming where they fall. If the transfer rule
+  // changes, this count follows it.
+  let parallel = 0;
+  const total = rounds * available;
+  for (let k = 1; k <= rounds; k++) {
+    for (let m = 1; m <= available; m++) {
+      const crossed = m / available;
+      const starter = tilt * (1 - crossed / 2);
+      const other = tilt * (crossed / 2);
+      if (Math.abs(starter - other) < 1e-9) parallel++;
+    }
+  }
+  // The same n microtilts, measured two ways.
+  //
+  //   PATH   — tally them. Each step turns by d, so n steps total n·d. That is the arc:
+  //            how far the turning went, and it has no ceiling.
+  //   NET    — compose them. Apply each step's rotation to the direction in turn, then
+  //            take the perpendicular component of where it ended up relative to where
+  //            it started. Later steps point differently from earlier ones, so they stop
+  //            adding and start cancelling — which is why this one saturates.
+  //
+  // Both are computed by walking the steps, not by calling a trig identity on the total.
+  {
+    const steps = available;
+    const d = (tilt * Math.PI / 180) / steps;     // one microtilt, in radians
+    let vx = 1, vy = 0;                            // direction, starts along the reference
+    let pathSum = 0;
+    for (let i = 0; i < steps; i++) {
+      pathSum += d;                                // tally: every step counts the same
+      // Each microtilt is a straight perpendicular DISPLACEMENT of size d, nudging the
+      // tip sideways; the next one is perpendicular to the new direction. It is NOT a
+      // rotation by d - composing n exact rotations of tilt/n is exactly a rotation by
+      // tilt, which would make the result the same at any step count and leave the
+      // microtilts doing no work.
+      const px = -vy * d, py = vx * d;
+      vx += px; vy += py;
+    }
+    const netSq = vy * vy;                         // perpendicular component, squared
+    const pathSq = pathSum * pathSum;
+    document.getElementById('measureOut').innerHTML =
+      `<b>${steps}</b> microtilts, measured two ways &nbsp;·&nbsp; ` +
+      `tallied <b>${(100 * pathSq).toFixed(3)}%</b>` +
+      `&nbsp;&nbsp;·&nbsp;&nbsp; applied <b>${(100 * netSq).toFixed(3)}%</b>`;
+  }
+
+  // Reduce the ratio rather than assuming it is 1 : n² — if the transfer rule changes
+  // and more moments land parallel, the reduced form follows.
+  const gcd = (a, b) => b ? gcd(b, a % b) : a;
+  const g = gcd(parallel, total) || 1;
+  document.getElementById('parallelOut').innerHTML =
+    `parallel <strong>${parallel}</strong> of <strong>${total}</strong> microtilts` +
+    ` &nbsp;·&nbsp; ratio <strong>${parallel / g} : ${total / g}</strong>` +
+    ` &nbsp;·&nbsp; <strong>${(100 * parallel / total).toFixed(2)}%</strong>` +
+    ` &nbsp;·&nbsp; ${rounds} round${rounds === 1 ? '' : 's'} × ${available} (n²)`;
+
+  document.getElementById('table').innerHTML =
+    '<table><tr><th>round</th><th class="dir" style="text-align:left">direction</th>' +
+    '<th>sender tilt</th><th>receiver tilt</th><th>leaves at</th><th>arrives at</th>' +
+    '<th>off 90° by</th></tr>' +
+    rows.map(r => `<tr><td>${r.k}</td><td class="dir">${r.from}</td>` +
+      `<td>${r.sTilt.toFixed(1)}°</td><td>${r.rTilt.toFixed(1)}°</td>` +
+      `<td>90.0°</td><td>${r.arrival.toFixed(1)}°</td>` +
+      `<td>${(90 - r.arrival).toFixed(1)}°</td></tr>`).join('') +
+    '</table>';
+}
+
+
+/* ── 3D view ─────────────────────────────────────────────────────────────────
+   The same pair of poles, in space. Two directions always span a plane, so the
+   tilting is planar however the plane is oriented - the third dimension only
+   decides where that plane sits. `psi` turns the tilt plane about the axis
+   joining the two poles; `az`/`el` turn the viewer.
+
+   In space a signal leaving "perpendicular to its pole" is a whole disc of
+   directions, so the one it takes is the perpendicular that points at its
+   partner: the part of the A-to-B vector left after removing whatever runs
+   along the pole. The two lines generally do not meet, so a signal is drawn to
+   the closest point on the receiving line rather than to an intersection. */
+const azEl = document.getElementById('az');
+const elEl = document.getElementById('el');
+const psiEl = document.getElementById('psi');
+
+const V3 = {
+  add: (a, b) => [a[0]+b[0], a[1]+b[1], a[2]+b[2]],
+  sub: (a, b) => [a[0]-b[0], a[1]-b[1], a[2]-b[2]],
+  mul: (a, s) => [a[0]*s, a[1]*s, a[2]*s],
+  dot: (a, b) => a[0]*b[0] + a[1]*b[1] + a[2]*b[2],
+  len: a => Math.hypot(a[0], a[1], a[2]),
+  norm(a) { const l = this.len(a) || 1; return this.mul(a, 1/l); },
+};
+
+// Pole direction: starts along +y and tilts by `t` within the plane chosen by psi.
+function dir3(t, psi) {
+  const a = t * D2R, p = psi * D2R;
+  return [Math.sin(a) * Math.cos(p), Math.cos(a), Math.sin(a) * Math.sin(p)];
+}
+
+// Orthographic projection: turn about y, lift about x, drop z.
+function project(v, az, el, cx, cy, s) {
+  const a = az * D2R, e = el * D2R;
+  const x1 = v[0] * Math.cos(a) + v[2] * Math.sin(a);
+  const z1 = -v[0] * Math.sin(a) + v[2] * Math.cos(a);
+  const y2 = v[1] * Math.cos(e) - z1 * Math.sin(e);
+  return [cx + x1 * s, cy - y2 * s];
+}
+
+// Closest point on the line through c along d, to the ray from p along u.
+function closestOnLine(p, u, c, d) {
+  const w = V3.sub(p, c);
+  const a = V3.dot(u, u), b = V3.dot(u, d), e = V3.dot(d, d);
+  const den = a * e - b * b;
+  if (Math.abs(den) < 1e-12) return c;                 // parallel
+  const s = (a * V3.dot(w, d) - b * V3.dot(w, u)) / den;
+  return V3.add(c, V3.mul(d, s));
+}
+
+function draw3d(o) {
+  const svg = document.getElementById('svg3');
+  svg.textContent = '';
+  const az = +azEl.value, el = +elEl.value, psi = +psiEl.value;
+  const CX = 350, CY = 210, S = 1.0;                   // world units are already pixels
+  const HALF3 = 120, GAP = 90;                          // half-length, half-separation
+  const pj = v => project(v, az, el, CX, CY, S);
+
+  azEl.nextElementSibling.textContent = az + '\u00b0';
+  elEl.nextElementSibling.textContent = el + '\u00b0';
+  psiEl.nextElementSibling.textContent = psi + '\u00b0';
+
+  const line = (p, q, cls) => {
+    const A = pj(p), B = pj(q);
+    el3(svg, 'line', { x1: A[0], y1: A[1], x2: B[0], y2: B[1], class: cls });
+  };
+
+  // the plane the two poles span, drawn as a faint quad so the tilting reads as planar
+  const planeN = [Math.sin(psi * D2R), 0, -Math.cos(psi * D2R)];
+  void planeN;
+
+  for (let k = 1; k <= o.rounds; k++) {
+    const last = k === o.rounds;
+    const crossed = Math.min(o.osc, o.available) / o.available;
+    const startsA = k % 2 === 1;
+    const starter = o.tilt * (1 - crossed / 2) * o.exag;
+    const other   = o.tilt * (crossed / 2) * o.exag;
+    const aT = startsA ? starter : other;
+    const bT = startsA ? other : starter;
+
+    const ca = [-GAP, 0, 0], cb = [GAP, 0, 0];
+    const da = dir3(aT, psi), db = dir3(bT, psi);
+    const gh = last ? '' : ' ghost';
+
+    if (last) {                                        // untilted references
+      line([-GAP, -HALF3, 0], [-GAP, HALF3, 0], 'ref');
+      line([ GAP, -HALF3, 0], [ GAP, HALF3, 0], 'ref');
+    }
+    line(V3.sub(ca, V3.mul(da, HALF3)), V3.add(ca, V3.mul(da, HALF3)), 'lineA' + gh);
+    line(V3.sub(cb, V3.mul(db, HALF3)), V3.add(cb, V3.mul(db, HALF3)), 'lineB' + gh);
+
+    // The angle a signal makes with the line it lands on, marked at the landing point.
+    // Arms run back along the arriving ray and along the receiver; a right angle gets the
+    // closed square, anything else the dotted arms and arc. Both are built in 3D and
+    // projected, so they lean with the view like everything else.
+    const RIGHT_EPS = 0.25;                              // degrees either side of 90
+    const angleMark = (q, back, d2) => {
+      const L = 17;
+      // Put the marker on whichever side of the receiver the ray came in on, so the
+      // arms always bracket the angle actually being made rather than its supplement.
+      const s = V3.dot(back, d2) >= 0 ? 1 : -1;
+      const arm = V3.mul(d2, s);
+      const deg = Math.acos(Math.min(1, Math.abs(V3.dot(back, d2)))) / D2R;
+      const P = v => { const p = pj(v); return p[0].toFixed(1) + ',' + p[1].toFixed(1); };
+      if (Math.abs(deg - 90) <= RIGHT_EPS) {
+        const corner = V3.add(q, V3.add(V3.mul(back, L), V3.mul(arm, L)));
+        el3(svg, 'polyline', {
+          points: [P(V3.add(q, V3.mul(back, L))), P(corner), P(V3.add(q, V3.mul(arm, L)))].join(' '),
+          class: 'sq'
+        });
+        return;
+      }
+      // dotted arms plus an arc swept from one to the other, in their own plane
+      el3(svg, 'polyline', { points: [P(q), P(V3.add(q, V3.mul(back, L * 1.5)))].join(' '), class: 'dotmark' });
+      el3(svg, 'polyline', { points: [P(q), P(V3.add(q, V3.mul(arm,  L * 1.5)))].join(' '), class: 'dotmark' });
+      const pts = [];
+      for (let i = 0; i <= 16; i++) {
+        const t = i / 16;
+        const m = V3.norm(V3.add(V3.mul(back, 1 - t), V3.mul(arm, t)));
+        pts.push(P(V3.add(q, V3.mul(m, L))));
+      }
+      el3(svg, 'polyline', { points: pts.join(' '), class: 'dotmark' });
+    };
+
+    // signals: leave perpendicular to the sender, aimed at the partner
+    const volley3 = (c1, d1, c2, d2, cls) => {
+      const toward = V3.sub(c2, c1);
+      const u = V3.norm(V3.sub(toward, V3.mul(d1, V3.dot(toward, d1))));
+      for (const f of [-0.55, 0, 0.55]) {
+        const p = V3.add(c1, V3.mul(d1, HALF3 * f));
+        const q = closestOnLine(p, u, c2, d2);
+        const along = V3.dot(V3.sub(q, c2), d2);
+        if (Math.abs(along) > HALF3) continue;
+        line(p, q, cls + gh);
+        const Q = pj(q);
+        el3(svg, 'circle', { cx: Q[0], cy: Q[1], r: 2.5, class: cls + gh, fill: 'currentColor' });
+        if (last) angleMark(q, V3.mul(u, -1), d2);
+      }
+    };
+    // A perpendicular is only a single direction when the two poles are directly
+    // against each other in one plane. Off that plane it is a whole disc of
+    // directions - the pole can spin about itself and the "normal" stops being one
+    // thing - so no signal is sent. Coplanar means the two pole directions and the
+    // line joining them have zero triple product.
+    // Every pole has a whole DISC of perpendicular directions - a signal could leave
+    // along any of them. Drawing it makes the coplanar case legible: the partner is
+    // reachable only when it lies on that disc, and otherwise the direction the signal
+    // would take is not picked out by anything, so it just goes round.
+    const disc = (c, d, cls) => {
+      const any = Math.abs(d[1]) < 0.9 ? [0, 1, 0] : [1, 0, 0];
+      const e1 = V3.norm([d[1]*any[2] - d[2]*any[1],
+                          d[2]*any[0] - d[0]*any[2],
+                          d[0]*any[1] - d[1]*any[0]]);
+      const e2 = [d[1]*e1[2] - d[2]*e1[1],
+                  d[2]*e1[0] - d[0]*e1[2],
+                  d[0]*e1[1] - d[1]*e1[0]];
+      const R2 = 46, pts = [];
+      for (let i = 0; i <= 48; i++) {
+        const a = (i / 48) * 2 * Math.PI;
+        const q = V3.add(c, V3.add(V3.mul(e1, R2 * Math.cos(a)), V3.mul(e2, R2 * Math.sin(a))));
+        const P = pj(q);
+        pts.push(P[0].toFixed(1) + ',' + P[1].toFixed(1));
+      }
+      el3(svg, 'polyline', { points: pts.join(' '), class: cls });
+      return { e1, e2, R2 };
+    };
+
+    const sep = V3.norm(V3.sub(cb, ca));
+    const cross = [da[1]*db[2] - da[2]*db[1],
+                   da[2]*db[0] - da[0]*db[2],
+                   da[0]*db[1] - da[1]*db[0]];
+    const coplanar = Math.abs(V3.dot(cross, sep)) < 1e-9;
+    if (last) {
+      const fa = disc(ca, da, 'disc'), fb = disc(cb, db, 'discB');
+      if (!coplanar) {
+        // Nothing picks out a direction on the disc, so the pole turns about its own
+        // axis instead of sending across the gap. The marker walks the disc with the
+        // nested oscillation, one step per microtilt.
+        const phase = (Math.min(o.osc, o.available) / o.available) * 2 * Math.PI;
+        for (const [c, f] of [[ca, fa], [cb, fb]]) {
+          const q = V3.add(c, V3.add(V3.mul(f.e1, f.R2 * Math.cos(phase)),
+                                     V3.mul(f.e2, f.R2 * Math.sin(phase))));
+          const P = pj(q);
+          el3(svg, 'circle', { cx: P[0], cy: P[1], r: 4, class: 'spin' });
+        }
+        el3(svg, 'text', { x: 350, y: 40, class: 'lbl', 'text-anchor': 'middle' })
+          .textContent = 'off-plane \u2014 the partner is not on the disc, so the poles spin instead';
+      }
+    }
+    if (coplanar) {
+      volley3(ca, da, cb, db, 'sig');
+      volley3(cb, db, ca, da, 'sigBack');
+    }
+  }
+
+  const la = pj([-GAP, HALF3 + 26, 0]), lb = pj([GAP, HALF3 + 26, 0]);
+  el3(svg, 'text', { x: la[0], y: la[1], class: 'lbl', 'text-anchor': 'middle' }).textContent = 'pole A';
+  el3(svg, 'text', { x: lb[0], y: lb[1], class: 'lbl', 'text-anchor': 'middle' }).textContent = 'pole B';
+  el3(svg, 'text', { x: 350, y: 382, class: 'lbl', 'text-anchor': 'middle' }).textContent =
+    'green square = the signal landed square on · dotted = it did not';
+  el3(svg, 'text', { x: 350, y: 404, class: 'lbl', 'text-anchor': 'middle' }).textContent =
+    'view turn 0, lift 0, tilt plane 0 reproduces the flat diagram exactly';
+}
+
+// `el` is taken by the elevation slider in this scope, so the SVG helper needs its own name
+function el3(parent, name, attrs) { return el(parent, name, attrs); }
+
+
+/* ── N poles ─────────────────────────────────────────────────────────────────
+   The two-pole panels put their poles at fixed x with a shared centre height, so
+   a third has nowhere to go. Here a pole's centre is a real 2D point on a circle
+   and every pole exchanges with every other, so N poles carry N(N-1)/2 edges —
+   a triangle at N=3. The tilt starts on pole 0 and splits tilt/N, with the sum
+   conserved at every subsegment exactly as the two-pole rule does. */
+const polesEl = document.getElementById('poles');
+const stepSizeEl = document.getElementById('stepSize');
+const RING_HALF = 62;
+
+// Same volley, but between 2D centres instead of two x positions.
+function volleyAt(svg, c1, t1, c2, t2, cls, count, dim) {
+  const rayCls = dim ? cls + ' ghost' : cls;
+  const sd = dirOf(t1), rd = dirOf(t2);
+  let u = perpOf(t1);
+  const toward = { x: c2.x - c1.x, y: c2.y - c1.y };
+  if (u.x * toward.x + u.y * toward.y < 0) u = { x: -u.x, y: -u.y };
+  const hits = [];
+  for (let i = 0; i < count; i++) {
+    const f = count === 1 ? 0 : (i / (count - 1) - 0.5) * 2 * 0.6;
+    const p = { x: c1.x + sd.x * RING_HALF * f, y: c1.y + sd.y * RING_HALF * f };
+    const q = hit(p, u, c2, rd);
+    if (!q) continue;
+    const along = (q.x - c2.x) * rd.x + (q.y - c2.y) * rd.y;
+    if (Math.abs(along) > RING_HALF) continue;
+    el(svg, 'line', { x1: p.x, y1: p.y, x2: q.x, y2: q.y, class: rayCls });
+    el(svg, 'circle', { cx: q.x, cy: q.y, r: 2.5, class: rayCls, fill: 'currentColor' });
+    hits.push(q);
+  }
+  // the arrival angle at each landing, same convention as the two-pole panels
+  let n = perpOf(t2);
+  if ((c1.x - c2.x) * n.x + (c1.y - c2.y) * n.y < 0) n = { x: -n.x, y: -n.y };
+  const back = { x: -u.x, y: -u.y };
+  if (!dim) hits.forEach(q => {
+    el(svg, 'line', { x1: q.x, y1: q.y, x2: q.x + n.x * 30, y2: q.y + n.y * 30, class: 'normal' });
+    wedge(svg, q, back, n, 20, false);
+  });
+  // The message line's own direction is what the panel measures — the poles' angles are
+  // not the quantity, they are what you see. Returns null if nothing landed.
+  return hits.length ? u : null;
+}
+
+function drawRing(o) {
+  const svg = document.getElementById('svgN');
+  svg.textContent = '';
+  const N = +polesEl.value;
+  document.getElementById('polesOut').textContent = N;
+
+  // This is the 3D two-pole panel with more poles added — same projection, same volley,
+  // same disc, same right-angle marker. The only change is where the centres are: the
+  // vertices of a polygon lying in the plane PERPENDICULAR to the poles. That plane is
+  // exactly each pole's disc of perpendicular directions, so every pole can reach every
+  // other while all of them stay parallel. Flat on the page this collapses to a row,
+  // which is why the 2D attempt kept forcing a choice between the triangle and parallel.
+  const az = +azEl.value, elv = +elEl.value, psi = +psiEl.value;
+  const CX = 350, CY = 205, HALF3 = 95, R = N === 2 ? 95 : 120;
+  const pj = v => project(v, az, elv, CX, CY, 1.0);
+  const line = (p, q, cls) => {
+    const A = pj(p), B = pj(q);
+    el3(svg, 'line', { x1: A[0], y1: A[1], x2: B[0], y2: B[1], class: cls });
+  };
+  const P = v => { const p = pj(v); return p[0].toFixed(1) + ',' + p[1].toFixed(1); };
+
+  const crossed = Math.min(o.osc, o.available) / o.available;
+  // The tilt is DISTRIBUTED across the poles as N different starting angles, evenly
+  // spaced and summing to the whole tilt: 0, d, 2d, … with d = 2·tilt/(N(N-1)).
+  // Summing to the tilt is what makes the mean tilt/N, so every pole converging on that
+  // mean is the same statement as the tilt splitting N ways. At N=2 it is (0, tilt),
+  // the two-pole case unchanged. Every pair starts at a different angle, so no two
+  // poles are interchangeable and the third pole is not a copy of the second.
+  const step = N > 1 ? 2 * o.tilt / (N * (N - 1)) : 0;
+  const startOf = i => i * step;
+
+  // No target. Nothing here references tilt/N — that is the state this is supposed to
+  // ARRIVE at, so using it to compute positions would be writing the answer in.
+  // Each interaction moves both of its poles by one step eps/N, equal and opposite,
+  // in the direction the acute-angle stress presses. Every pair interacts in the same
+  // subsegment, all reading the state as it was at the start of that subsegment, so the
+  // pressing is concurrent rather than sequential. The total is conserved because every
+  // pair's two contributions cancel; where it settles is whatever falls out.
+  // A FIXED step size, not tilt/subsegments. Dividing the tilt by the number of
+  // subsegments made each microtilt shrink as the animation was sliced finer, so the
+  // count of microtilts was just the slider — and a tally whose value is the frame rate
+  // measures nothing. Fixed, n comes out as tilt/eps: a property of the angle.
+  const EPS = +stepSizeEl.value;
+  document.getElementById('stepSizeOut').textContent = EPS.toFixed(2) + '°';
+  const state = [];
+  for (let i = 0; i < N; i++) state.push(startOf(i));
+  const tally = {};                                  // each microtilt adds 1, per pair
+  const steps = Math.round(crossed * o.available);
+  for (let s = 0; s < steps; s++) {
+    const was = state.slice();                       // concurrent: all read the same state
+    for (let i = 0; i < N; i++) {
+      for (let j = 0; j < N; j++) {
+        if (i === j) continue;
+        const gap = was[j] - was[i];
+        if (Math.abs(gap) < 1e-12) continue;
+        state[i] += Math.sign(gap) * Math.min(EPS / N, Math.abs(gap) / 2);
+        const key = [Math.min(i, j), Math.max(i, j)].join('');
+        tally[key] = (tally[key] || 0) + 1;
+      }
+    }
+  }
+  const shareOf = i => state[i] * o.exag;
+
+  const centre = i => {
+    const a = (i / N) * 2 * Math.PI;
+    return [R * Math.cos(a), 0, R * Math.sin(a)];
+  };
+  const dirOfPole = i => dir3(shareOf(i), psi);
+
+  const RIGHT_EPS = 0.25;
+  const angleMark = (q, back, d2) => {
+    const L = 15;
+    const s = V3.dot(back, d2) >= 0 ? 1 : -1;
+    const arm = V3.mul(d2, s);
+    const deg = Math.acos(Math.min(1, Math.abs(V3.dot(back, d2)))) / D2R;
+    if (Math.abs(deg - 90) <= RIGHT_EPS) {
+      const corner = V3.add(q, V3.add(V3.mul(back, L), V3.mul(arm, L)));
+      el3(svg, 'polyline', {
+        points: [P(V3.add(q, V3.mul(back, L))), P(corner), P(V3.add(q, V3.mul(arm, L)))].join(' '),
+        class: 'sq'
+      });
+      return true;
+    }
+    el3(svg, 'polyline', { points: [P(q), P(V3.add(q, V3.mul(back, L * 1.5)))].join(' '), class: 'dotmark' });
+    el3(svg, 'polyline', { points: [P(q), P(V3.add(q, V3.mul(arm,  L * 1.5)))].join(' '), class: 'dotmark' });
+    const pts = [];
+    for (let t = 0; t <= 16; t++) {
+      const m = V3.norm(V3.add(V3.mul(back, 1 - t / 16), V3.mul(arm, t / 16)));
+      pts.push(P(V3.add(q, V3.mul(m, L))));
+    }
+    el3(svg, 'polyline', { points: pts.join(' '), class: 'dotmark' });
+    return false;
+  };
+
+  // every pole exchanges with every other, both directions, in the same subsegment
+  let squares = 0, marks = 0;
+  const volley3 = (c1, d1, c2, d2, cls) => {
+    const toward = V3.sub(c2, c1);
+    const u = V3.norm(V3.sub(toward, V3.mul(d1, V3.dot(toward, d1))));
+    for (const f of [-0.5, 0.5]) {
+      const p = V3.add(c1, V3.mul(d1, HALF3 * f));
+      const q = closestOnLine(p, u, c2, d2);
+      // EVERY interaction counts. A pole is a line; the exchange happens whether or not
+      // the ray meets the finite stretch of it that gets drawn, so running off the drawn
+      // end is a rendering limit, not a missed interaction. The count is taken first and
+      // only the drawing is skipped — otherwise the denominator moves with pole length.
+      marks++;
+      const square = Math.abs(
+        Math.acos(Math.min(1, Math.abs(V3.dot(V3.mul(u, -1), d2)))) / D2R - 90) <= RIGHT_EPS;
+      if (square) squares++;
+      if (Math.abs(V3.dot(V3.sub(q, c2), d2)) > HALF3) continue;
+      line(p, q, cls);
+      const Q = pj(q);
+      el3(svg, 'circle', { cx: Q[0], cy: Q[1], r: 2.5, class: cls, fill: 'currentColor' });
+      angleMark(q, V3.mul(u, -1), d2);
+    }
+  };
+
+  for (let i = 0; i < N; i++) {
+    const c = centre(i), d = dirOfPole(i);
+    line([c[0], -HALF3, c[2]], [c[0], HALF3, c[2]], 'ref');
+    line(V3.sub(c, V3.mul(d, HALF3)), V3.add(c, V3.mul(d, HALF3)), i === 0 ? 'lineA' : 'lineB');
+    const lab = pj([c[0], HALF3 + 22, c[2]]);
+    el3(svg, 'text', { x: lab[0], y: lab[1], class: 'lbl', 'text-anchor': 'middle' })
+      .textContent = String.fromCharCode(65 + i);
+  }
+  for (let i = 0; i < N; i++) {
+    for (let j = 0; j < N; j++) {
+      if (i === j) continue;
+      volley3(centre(i), dirOfPole(i), centre(j), dirOfPole(j), i === 0 ? 'sig' : 'sigBack');
+    }
+  }
+
+  // Settled when every message line lands square — the poles are then all parallel.
+  // Counted off the drawn marks, not off any pole angle.
+  const settled = marks > 0 && squares === marks;
+  el3(svg, 'text', { x: 350, y: 400, class: 'lbl', 'text-anchor': 'middle' }).textContent =
+    settled ? 'every message line square — the poles are parallel'
+            : 'message lines not square yet';
+  // Each microtilt adds 1, tallied per pair. n is tilt/eps — set by the angle and the
+  // step size, not by how finely the animation is sliced.
+  // The same n microtilts, turned into a percent two ways — the distinction the flat
+  // panel already draws, applied per pair here:
+  //   TALLIED — add the 1's. n steps of eps total n·eps, and the percent is that
+  //             squared. Angles add, so this is linear-addition bookkeeping.
+  //   APPLIED — compose them. Each microtilt displaces perpendicular to where the
+  //             direction NOW points, so later steps stop adding and start cancelling.
+  // They agree for small angles and part company as the angle grows.
+  const pairTally = [];
+  for (let i = 0; i < N; i++) {
+    for (let j = i + 1; j < N; j++) {
+      const n = tally[`${i}${j}`] || 0;
+      const delta = Math.abs(startOf(i) - startOf(j));        // the pair's own angle
+      const d = EPS * D2R;                                    // one microtilt, radians
+      const steps2 = Math.max(0, Math.round(delta / EPS));
+      let vx = 1, vy = 0, path = 0;
+      for (let s = 0; s < steps2; s++) {
+        path += d;
+        const px = -vy * d, py = vx * d;
+        vx += px; vy += py;
+      }
+      // The tally is a COUNT, so to sit beside the composed figure it has to become a
+      // rate: n as a fraction of the tally a quarter turn would take, n₉₀ = 90/eps.
+      // Both are then fractions in [0,1] and comparable. (Only meaningful out to a
+      // quarter turn — past 90° the fraction passes 1 and stops being a rate.)
+      void path;
+      const n90 = 90 / EPS;
+      const talliedRate = steps2 / n90;
+      const appliedRate = vy * vy;
+      const inRange = delta <= 90 + 1e-9;
+      void n;
+      pairTally.push(
+        `<tr><td class="dir">${String.fromCharCode(65 + i)}${String.fromCharCode(65 + j)}</td>` +
+        `<td>${delta.toFixed(0)}°</td>` +
+        `<td>${inRange ? Math.round(100 * (1 - talliedRate)) + '%' : '—'}</td>` +
+        `<td>${Math.round(100 * (1 - appliedRate))}%</td></tr>`);
+    }
+  }
+  document.getElementById('ringOut').innerHTML =
+    `${N} poles at ${state.map(v => Math.round(v)).join('° / ')}° · ` +
+    `${squares}/${marks} message lines square` +
+    (settled ? ' — <strong>settled, all parallel</strong>' : '') +
+    '<table><tr><th class="dir" style="text-align:left">which two poles</th>' +
+    '<th>angle apart</th>' +
+    '<th>match if microtilts are added up</th>' +
+    '<th>match if microtilts are composed</th></tr>' +
+    pairTally.join('') + '</table>' +
+    // The same two measures swept across a range of angles. The pairs above only ever
+    // show whatever angles the distribution happens to produce, so most angles never
+    // appear there. Same measures, same microtilt size, computed the same way.
+    '<table><tr><th>angle apart</th><th>match if microtilts are added up</th>' +
+    '<th>match if microtilts are composed</th></tr>' +
+    [0, 30, 45, 60, 90, 120].map(dg => {
+      const d = EPS * D2R, st2 = Math.round(dg / EPS);
+      let vx = 1, vy = 0;
+      for (let s = 0; s < st2; s++) { const px = -vy * d, py = vx * d; vx += px; vy += py; }
+      const tal = st2 / (90 / EPS);
+      return `<tr><td>${dg}°</td>` +
+             `<td>${dg <= 90 ? Math.round(100 * (1 - tal)) + '%' : '—'}</td>` +
+             `<td>${Math.round(100 * (1 - vy * vy))}%</td></tr>`;
+    }).join('') + '</table>';
+}
+
+[azEl, elEl, psiEl, polesEl, stepSizeEl].forEach(x => x.addEventListener('input', render));
+
+// The shared sliders live in one place and are MOVED into whichever tab is open, so
+// both tabs show them without a second copy to keep in sync.
+function showControlsIn(panelId) {
+  const panel = document.getElementById(panelId);
+  const slot = panel.querySelector('.slot');
+  const controls = document.getElementById('commonControls');
+  const note = document.getElementById('exagNote');
+  slot.appendChild(controls);
+  slot.appendChild(note);
+}
+
+document.querySelectorAll('.tab').forEach(t => {
+  t.onclick = () => {
+    document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', String(x === t)));
+    document.querySelectorAll('.panel').forEach(p => p.classList.toggle('on', p.id === t.dataset.p));
+    showControlsIn(t.dataset.p);
+  };
+});
+showControlsIn('panelFlat');
+
+roundsEl.addEventListener('input', render);
+exagEl.addEventListener('input', render);
+tiltEl.addEventListener('input', render);
+rateEl.addEventListener('input', render);
+microEl.addEventListener('input', render);
+render();
+</script>
+</body>
+</html>
