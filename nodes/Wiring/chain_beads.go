@@ -396,7 +396,7 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 		// (tools/check-no-sqrt-in-chain-beads.sh), the same split edgeCenterDistAndDir uses.
 		var chainSep vec3
 		if m.mutualTargets[to] {
-			if off, ok := parallelChainOffset(m.id, to, selfCenter, targetCenter); ok {
+			if off, ok := parallelChainOffset(m.id, to, selfCenter, targetCenter, m.geom.SceneCenter); ok {
 				chainSep = off
 			}
 		}

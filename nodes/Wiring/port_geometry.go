@@ -320,7 +320,7 @@ func edgeCenterDistAndDir(selfCenter, targetCenter vec3) (dist float64, unitDir 
 // The cost, stated rather than hidden: an offset chain no longer starts exactly tangent to
 // its node's torus, since it is displaced off the centre line that tangency is measured on.
 // That is the trade the separation buys, and it applies ONLY to a mutual pair.
-func parallelChainOffset(selfID, targetID string, selfCenter, targetCenter vec3) (vec3, bool) {
+func parallelChainOffset(selfID, targetID string, selfCenter, targetCenter, sceneCenter vec3) (vec3, bool) {
 	lowCenter, highCenter := selfCenter, targetCenter
 	if !nodeIDLess(selfID, targetID) {
 		lowCenter, highCenter = targetCenter, selfCenter
@@ -330,13 +330,34 @@ func parallelChainOffset(selfID, targetID string, selfCenter, targetCenter vec3)
 		return vec3{}, false
 	}
 	dir := delta.Normalize()
-	// Any axis not parallel to dir yields a usable perpendicular; +y is tried first and +x
-	// covers the one case it cannot (a vertical edge). Which perpendicular is chosen does
-	// not matter — only that BOTH ends choose the SAME one, which canonical order gives.
-	axis := vec3{X: 0, Y: 1, Z: 0}
-	perp := dir.Cross(axis)
+	// COPLANAR WITH THE TORI. A node's ring lies in the plane whose normal is its own
+	// INWARD pole — the direction from the node to the scene centre (node_mover.go's
+	// inwardPole, the same derivation the streamed poleTheta/polePhi come from). Offsetting
+	// along an arbitrary world axis would lift the chain out of that plane, so the offset is
+	// taken perpendicular to the POLE: cross(pole, dir) is perpendicular to the pole, hence
+	// IN the ring's plane, and perpendicular to the edge, hence still a clean displacement.
+	//
+	// The pole is taken from the canonically-lower node, not from whichever node is asking,
+	// for the same reason the direction is: both ends must compute one identical vector.
+	// Each end can derive it alone — an inward pole is a function of a centre and the scene
+	// centre, and a node holds its partner's centre already (partnerCenters).
+	poleAxis := sceneCenter.Sub(lowCenter)
+	if poleAxis.Length() < 1e-9 {
+		// A node sitting ON the scene centre has no inward direction and therefore no
+		// ring plane to be coplanar with.
+		return vec3{}, false
+	}
+	pole := poleAxis.Normalize()
+	perp := pole.Cross(dir)
 	if perp.Length() < 1e-6 {
-		perp = dir.Cross(vec3{X: 1, Y: 0, Z: 0})
+		// The edge runs along the pole (radially, straight at the scene centre): every
+		// perpendicular lies in the ring plane, so any one will do — but it must still be
+		// the SAME one at both ends, so it is derived from the pole rather than picked.
+		alt := vec3{X: 0, Y: 1, Z: 0}
+		if math.Abs(pole.Dot(alt)) > 0.9 {
+			alt = vec3{X: 1, Y: 0, Z: 0}
+		}
+		perp = pole.Cross(alt)
 	}
 	if perp.Length() < 1e-9 {
 		return vec3{}, false
