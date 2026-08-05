@@ -130,6 +130,12 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 		// again, undoing the reset a moment later. The channel is depth-1 latest-wins
 		// (Wiring.PollRecvVector), so one non-blocking receive empties it completely.
 		Wiring.PollRecvVector(n.VectorIn)
+		// ...and tell the partner, so its own tilt returns too. This does NOT clear what is
+		// already queued toward it — a send-only end cannot drain itself, so this send is
+		// dropped outright when something is still sitting there. What empties BOTH
+		// directions is that the reset reaches every node: each drains the one receive end
+		// it owns, and there are exactly two ends between the two nodes.
+		Wiring.SendVectorLatestNonBlocking(n.VectorOut, Wiring.TiltVectorMsg{Reset: true})
 		return false
 	}
 	delta := int32(-1)
@@ -207,6 +213,15 @@ func (n *Node) stepTowardPerpendicularFromVector(received Wiring.TiltVectorMsg) 
 func (n *Node) handleVectorCycle() {
 	received, ok := Wiring.PollRecvVector(n.VectorIn)
 	if !ok {
+		return
+	}
+	// A RESET marker is not a direction to act on: zero this node's own tilt to match its
+	// partner and REPLY WITH NOTHING. Replying would bounce the reset back and forth
+	// forever; the marker's job is to stop the exchange, so it ends here.
+	if received.Reset {
+		n.TiltThetaIdx = 0
+		n.TiltPhiIdx = 0
+		n.syncTiltIndex()
 		return
 	}
 	if !n.stepTowardPerpendicularFromVector(received) {

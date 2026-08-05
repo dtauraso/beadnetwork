@@ -17,6 +17,15 @@ package Wiring
 // channel.
 type TiltVectorMsg struct {
 	ThetaIdx, PhiIdx int32
+	// Reset marks this as a RESET rather than a direction to act on: the receiver zeroes its
+	// own tilt and does not reply, which ends the exchange instead of restarting it.
+	//
+	// It does NOT evict anything already queued — a send-only end cannot drain itself (in Go
+	// only a receiver empties a channel), so SendVectorLatestNonBlocking DROPS when the
+	// buffer is full rather than replacing. Emptying both directions is done by draining,
+	// and it works because the reset reaches EVERY node with a vector: each node drains the
+	// one receive end it owns, and between them that is both channels.
+	Reset bool
 }
 
 // vectorCapableKinds names every kind that asks for a vector channel on its edges.

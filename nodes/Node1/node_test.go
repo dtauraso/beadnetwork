@@ -150,3 +150,53 @@ func TestStepFromVectorStopsAtPerpendicular(t *testing.T) {
 		t.Fatalf("at perpendicular, index must not move; got %d, want %d", n.TiltThetaIdx, Wiring.PerpendicularThetaIdx)
 	}
 }
+
+// A RESET empties BOTH directions — but by each node draining the one receive end it owns,
+// not by either of them evicting the other's queue. A send-only end cannot drain itself (in
+// Go only a receiver empties a channel), so this asserts the pair-level property: reset both
+// nodes and nothing is left anywhere.
+func TestResettingBothNodesEmptiesBothDirections(t *testing.T) {
+	oneToTwo := make(chan Wiring.TiltVectorMsg, 1)
+	twoToOne := make(chan Wiring.TiltVectorMsg, 1)
+	// Node1 sends on oneToTwo and receives on twoToOne; its partner is the mirror image.
+	one := &Node{TiltThetaIdx: 4, TiltPhiIdx: 2, VectorOut: oneToTwo, VectorIn: twoToOne}
+	partnerIn := oneToTwo // what the other node owns the receive end of
+
+	// A stale direction is in flight BOTH ways when reset is pressed.
+	oneToTwo <- Wiring.TiltVectorMsg{ThetaIdx: 9}
+	twoToOne <- Wiring.TiltVectorMsg{ThetaIdx: 9}
+
+	one.applyTiltEdit(Wiring.TiltEditMsg{Reset: true})
+	if one.TiltThetaIdx != 0 || one.TiltPhiIdx != 0 {
+		t.Fatalf("reset must zero both indices; got theta=%d phi=%d", one.TiltThetaIdx, one.TiltPhiIdx)
+	}
+	if _, ok := Wiring.PollRecvVector(twoToOne); ok {
+		t.Fatal("reset left a value on the end this node owns")
+	}
+	// The other direction is still full — this node cannot clear it, and that is the point:
+	// the partner's own reset is what empties it, which the button sends too.
+	if _, ok := Wiring.PollRecvVector(partnerIn); !ok {
+		t.Fatal("expected the outward direction to still hold its stale value before the partner resets")
+	}
+	if _, ok := Wiring.PollRecvVector(partnerIn); ok {
+		t.Fatal("after the partner's own drain, both directions must be empty")
+	}
+}
+
+// A received reset zeroes this node and REPLIES WITH NOTHING — a reply would bounce the
+// reset back and forth forever instead of ending the exchange.
+func TestReceivedResetZeroesAndDoesNotReply(t *testing.T) {
+	out := make(chan Wiring.TiltVectorMsg, 1)
+	in := make(chan Wiring.TiltVectorMsg, 1)
+	n := &Node{TiltThetaIdx: 5, TiltPhiIdx: 3, VectorOut: out, VectorIn: in}
+
+	in <- Wiring.TiltVectorMsg{Reset: true}
+	n.handleVectorCycle()
+
+	if n.TiltThetaIdx != 0 || n.TiltPhiIdx != 0 {
+		t.Fatalf("a received reset must zero both indices; got theta=%d phi=%d", n.TiltThetaIdx, n.TiltPhiIdx)
+	}
+	if v, ok := Wiring.PollRecvVector(out); ok {
+		t.Fatalf("a received reset must not be replied to; got %+v", v)
+	}
+}
