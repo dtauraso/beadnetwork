@@ -157,14 +157,17 @@ export function encodeOverlaysToggle(flag: OverlayFlag): ArrayBuffer {
   return w.toArrayBuffer();
 }
 
-/** Build a clock SPEED record: [22][entityKind=clock][attr=speed][u8 speed].
- *  speed is 0, 1, or 2 — Go owns the clock; this just signals the multiplier. */
+/** Build a clock SPEED record: [22][entityKind=clock][attr=speed][u8 quarterUnits].
+ *  speed is one of the SpeedSlider's six table values (0, 0.25, 0.5, 0.75, 1, 2) — Go owns
+ *  the clock; this just signals the multiplier. msg.Num on the Go side is an int, so a
+ *  fractional multiplier is sent in QUARTER-UNITS (an integer 0..8: speed*4) rather than
+ *  truncated; stdin_reader.go's clockAttrHandlers divides back by 4. */
 export function encodeClockSpeed(speed: number): ArrayBuffer {
   const w = new ByteWriter();
   w.u8(IN_KIND_EDIT_UPDATE);
   w.u8(enumIndex(IN_UPDATE_KINDS, "clock"));
   w.u8(IN_CLOCK_ATTR_SPEED);
-  w.u8(speed);
+  w.u8(Math.round(speed * 4));
   return w.toArrayBuffer();
 }
 
@@ -363,7 +366,9 @@ export function decodeInputRecord(record: ArrayBuffer): DecodedInput | undefined
       if (entityKind === "clock") {
         const attr = r.u8();
         if (attr === IN_CLOCK_ATTR_SPEED) {
-          const value = r.u8();
+          // Wire value is QUARTER-UNITS (see encodeClockSpeed); divide back to the real
+          // multiplier so decodeInputRecord's `value` matches what the caller passed in.
+          const value = r.u8() / 4;
           return { kind: "edit-update", entity: "clock", attr: "speed", value };
         }
         return undefined;
