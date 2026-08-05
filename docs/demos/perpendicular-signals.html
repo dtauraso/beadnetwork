@@ -140,7 +140,7 @@
   <div class="slot"></div>
   <div class="controls">
     <label>poles <input id="poles" type="range" min="2" max="5" step="1" value="3"><output id="polesOut">3</output></label>
-    <label>microtilt size <input id="stepSize" type="range" min="0.05" max="2" step="0.05" value="0.25"><output id="stepSizeOut">0.25&deg;</output></label>
+    <label>microtilt size <output id="stepSizeOut">0.25&deg;</output> <span class="lbl">derived &mdash; tilt / ((N&minus;1) &times; n&sup2;)</span></label>
   </div>
   <svg id="svgN" viewBox="0 0 700 420" preserveAspectRatio="xMidYMid meet"></svg>
   <p class="note" id="ringOut"></p>
@@ -675,7 +675,6 @@ function el3(parent, name, attrs) { return el(parent, name, attrs); }
    a triangle at N=3. The tilt starts on pole 0 and splits tilt/N, with the sum
    conserved at every subsegment exactly as the two-pole rule does. */
 const polesEl = document.getElementById('poles');
-const stepSizeEl = document.getElementById('stepSize');
 const RING_HALF = 62;
 
 // Same volley, but between 2D centres instead of two x positions.
@@ -748,12 +747,23 @@ function drawRing(o) {
   // subsegment, all reading the state as it was at the start of that subsegment, so the
   // pressing is concurrent rather than sequential. The total is conserved because every
   // pair's two contributions cancel; where it settles is whatever falls out.
-  // A FIXED step size, not tilt/subsegments. Dividing the tilt by the number of
-  // subsegments made each microtilt shrink as the animation was sliced finer, so the
-  // count of microtilts was just the slider — and a tally whose value is the frame rate
-  // measures nothing. Fixed, n comes out as tilt/eps: a property of the angle.
-  const EPS = +stepSizeEl.value;
-  document.getElementById('stepSizeOut').textContent = EPS.toFixed(2) + '°';
+  // The microtilt size is DERIVED so the pile is what it says it is. n² is the count of
+  // microtilts inside a tilt (see `available`), so the poles must still be moving at the
+  // n²-th subsegment and done at exactly that one — a fixed step size settled long before
+  // it, leaving most of the index slider inert and the quadratic unillustrated.
+  //
+  // Convergence time is linear in tilt/eps with a constant of 1/(N-1): the extreme pair
+  // start 2·tilt/(N(N-1)) apart and close at eps/N each per subsegment, so
+  //   settle = tilt / ((N-1)·eps).
+  // Setting settle = available and solving gives the eps below. At N=3 that is
+  // tilt/(2·available), and at N=2 tilt/available.
+  //
+  // The cost, stated plainly: eps now shrinks as the tilt is sliced finer, so the
+  // microtilt COUNT no longer measures the angle independently — it is the slider. That
+  // is the tradeoff this file previously refused; the count is now a restatement of n²
+  // rather than a second, corroborating measurement of it.
+  const EPS = o.available > 0 && N > 1 ? o.tilt / ((N - 1) * o.available) : 0;
+  document.getElementById('stepSizeOut').textContent = EPS.toFixed(4) + '°';
   const state = [];
   for (let i = 0; i < N; i++) state.push(startOf(i));
   const tally = {};                                  // each microtilt adds 1, per pair
@@ -913,7 +923,7 @@ function drawRing(o) {
     }).join('') + '</table>';
 }
 
-[azEl, elEl, psiEl, polesEl, stepSizeEl].forEach(x => x.addEventListener('input', render));
+[azEl, elEl, psiEl, polesEl].forEach(x => x.addEventListener('input', render));
 
 // The shared sliders live in one place and are MOVED into whichever tab is open, so
 // both tabs show them without a second copy to keep in sync.
