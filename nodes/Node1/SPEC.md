@@ -30,26 +30,21 @@ REACTIVE, not periodic — the "straightening loop". Each cycle of this node's O
 Update loop non-blockingly drains two sources and, on either, decides and acts itself —
 no round trip to any other goroutine to decide:
 
-**On an In arrival** (`In.PollRecv`):
+**On an In arrival** (`In.PollRecv`): fire this node's own trace and nothing else. A bead
+PACES the exchange and marks the round trip; it decides nothing and places nothing onward.
 
-- Compute dot(tilt, coplanar normal) for THIS node — in practice, for this scene,
-  decided as an INTEGER index compare (`TopTiltThetaIdx == Wiring.PerpendicularThetaIdx`,
-  `nodes/Wiring/node_mover.go`'s exported constant), not a float dot product
-  (`cos(π/2)` in float64 never equals exactly 0). This shortcut is valid ONLY because
-  the ring plane contains world +y and θ is measured from +y, so the tilt's in-plane
-  angle coincides with its θ index; see `Wiring.PerpendicularThetaIdx`'s doc comment for
-  the assumption spelled out, including what breaks it.
-- If not perpendicular: step `TopTiltThetaIdx` ONE click (`Wiring.CurveParamTiltVectorAngleStep`,
-  π/12) toward perpendicular, report the new indices to this node's own mover
-  (`SyncTiltIndex`, one-way/fire-and-forget — the mover streams+persists but never
-  decides), and place a bead (value 1) on Out itself (`Out.PlaceDrivenAt`) — passing the
-  exchange on to the partner.
-- If already perpendicular: do nothing and send nothing. This is how the loop
-  terminates, not a missed case.
+It used to step `TopTiltThetaIdx` one click in this kind's own fixed direction (a retired
+fixed-direction step), with no reference to anything that arrived, stopping only if it happened to
+land exactly on `Wiring.PerpendicularThetaIdx` — which walking away from perpendicular never
+does. That put TWO rules on one index: the fixed bead step and the vector channel's dot
+rule. Where they agreed a node double-stepped; where they disagreed they cancelled and it
+froze. Measured on the real formulas, a pair marched +1/+2/+3… one way forever on one click
+direction and did not move at all on the other. The dots are now the only rule that turns a
+tilt on an arrival.
 
-The STOP condition above compares `TopTiltThetaIdx` directly against
-`Wiring.PerpendicularThetaIdx` and never touches the DRAWN coplanar normal at all — the
-drawn normal (below, "Coplanar normal") is a separate, purely visual derivation.
+The outgoing bead moved with the decision: it is placed by the vector branch when the dots
+actually move this node (`handleVectorCycle`), so one message carries one visible bead and
+the bead loop lives and dies with the exchange it paces.
 
 **On a TiltEditIn arrival** (`BuildArgs.TiltEditIn`, a panel-driven click routed HERE
 instead of to the mover): apply the ±1 click to the named axis unconditionally (never a
@@ -91,7 +86,7 @@ loop body) runs:
   pure index arithmetic (`theta+6`), never a cross product — so the normal turns WITH
   the tilt, always staying 90° away, rather than holding still toward the partner. φ is
   unchanged. Node1 ADDS the quarter turn; Node2 (its mirror package) SUBTRACTS it, same
-  ± split as `stepTilt`'s add/subtract. This node's own goroutine computes it
+  ± split as every other per-kind sign here. This node's own goroutine computes it
   (`coplanarNormal`) and reports BOTH the tilt index and this normal index to its own
   mover in one call (`syncTiltIndex`, `SyncTiltIndex(theta, phi, normalTheta,
   normalPhi)`) every time either changes — the mover is a pure mirror that streams
@@ -129,7 +124,7 @@ loop body) runs:
   exactly perpendicular to the tilt axis. Which end the arrival leans toward IS the
   direction; there is no free sign knob and no ordering dependence between the two tests.
 - **Perpendicular is a property of the ARRIVAL, not of where this node sits**: unlike the
-  bead path's `stepTilt`, this never compares against `Wiring.PerpendicularThetaIdx`. A node
+  retired bead-path rule, this never compares against `Wiring.PerpendicularThetaIdx`. A node
   sitting exactly at that index still steps if what arrived leans either way.
 - **Float hazard, handled**: `cos(π/2)` in float64 is 6.1e-17, so an exactly-perpendicular
   arrival is NOT caught by a bare `dot > 0`. `Wiring.TiltVectorIsAcute` tests against a

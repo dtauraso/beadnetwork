@@ -112,34 +112,9 @@ func (n *Node) clock() wire.Clock {
 	return n.Clock
 }
 
-// stepTowardPerpendicular is the straightening rule (shared shape with Node2's copy — kept
-// duplicated per-package rather than factored into Wiring, since a node-kind package may
-// import only the shared spine, never a sibling kind — see this package's own doc comment
-// on why Node1/Node2 stay distinct packages). Steps TopTiltThetaIdx ONE click toward
-// Wiring.PerpendicularThetaIdx and reports true when it moved; a false return with no
-// mutation is the loop's termination, not a missed case.
-func (n *Node) stepTilt() bool {
-	// Already perpendicular: the exchange ends here — no step, and the caller sends
-	// nothing, which is what stops the beads circulating.
-	if n.TopTiltThetaIdx == Wiring.PerpendicularThetaIdx {
-		return false
-	}
-	// Node1 subtracts. The two kinds move their tilt in OPPOSITE senses by the same one
-	// step of π/12 — Node1 subtracts where the other does the reverse — so a pair turns
-	// symmetrically rather than both chasing the same direction.
-	//
-	// The step is a fixed direction, NOT "toward perpendicular": this node subtracts (or
-	// adds) whatever side of perpendicular it starts on. That is what was asked for, and it
-	// means the exchange only terminates when the walk happens to land exactly on
-	// PerpendicularThetaIdx — from the far side it walks away and keeps going. The bead
-	// paces it, so "keeps going" is a slow visible turn rather than a spin.
-	n.TopTiltThetaIdx -= 1
-	return true
-}
-
 // applyTiltEdit applies one panel-driven edit (TiltVectorAnglePanel's ±1 click, or the
 // RESET button's TiltResetButton.tsx) directly to this node's OWN indices — same
-// no-mover-round-trip shape as stepTilt. Reports whether the caller should place "THE
+// no-mover-round-trip shape as stepFromVector. Reports whether the caller should place "THE
 // KICK" bead: true for an adjust (unconditional, whichever side of perpendicular it lands
 // on), false for a reset — a reset is a stop-and-return, not a nudge, so nothing should
 // start circulating from it (package doc comment's "THE KICK").
@@ -189,8 +164,8 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 //     direction already sitting in it would arrive on the next cycle and step the tilt
 //     straight back off zero. Depth-1 latest-wins, so one receive empties it;
 //   - this node's already-DELIVERED beads, drained off In the same way and for the same
-//     reason — the bead edge, not the vector channel, is what has actually been turning
-//     these tilts (In.PollRecv -> stepTilt -> Out.PlaceDrivenAt), so a reset that skips it
+//     reason — the bead edge paces the exchange that turns
+//     these tilts (the bead paces each round trip of the vector exchange), so a reset that skips it
 //     visibly does not take;
 //   - this node's OUTGOING beads, still crossing. Those are NOT owned here: a PacedWire is
 //     driven by its source node's own MOVER, so this asks the mover to drop them
@@ -261,8 +236,8 @@ func (n *Node) bottomTilt() Wiring.TiltVectorMsg {
 // 90°-worth-of-steps magnitude) from THIS node's OWN tilt vector, so the normal stays
 // perpendicular to the tilt as the tilt turns — index arithmetic only, never trig
 // (memory/feedback_abc_times_constant_not_rederive.md). φ is left unchanged: the turn
-// is entirely in θ, same in-ring-plane assumption this scene's stepTilt already relies
-// on (see Wiring.PerpendicularThetaIdx's doc comment).
+// is entirely in θ, the same in-ring-plane assumption Wiring.PerpendicularThetaIdx's own
+// doc comment spells out.
 func (n *Node) coplanarNormal() Wiring.TiltVectorMsg {
 	return Wiring.TiltVectorMsg{
 		ThetaIdx: n.TopTiltThetaIdx + Wiring.PerpendicularThetaIdx,
@@ -304,7 +279,7 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 	return norm
 }
 
-// stepFromVector is the vector-channel twin of stepTilt, and the ONE place the arrived
+// stepFromVector is the ONE place the arrived
 // direction's own value is consulted rather than just its arrival. TWO DOT PRODUCTS decide,
 // and between them they decide BOTH questions — whether to move, and which way:
 //
@@ -322,9 +297,11 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 // Node1's base direction (the top-acute case) is subtracts one step; its mirror package's is the
 // opposite, so a pair still turns symmetrically when both are leaning the same way.
 //
-// Unlike stepTilt this does NOT consult Wiring.PerpendicularThetaIdx: the dots are the whole
-// gate here, so a node sitting exactly at the perpendicular index still steps if what
-// arrived leans one way or the other.
+// This does NOT consult Wiring.PerpendicularThetaIdx: the dots are the whole gate, so a node
+// sitting exactly at the perpendicular index still steps if what arrived leans one way or
+// the other. (The retired bead-path rule did consult it — and turned
+// this node in a fixed direction regardless of what arrived, which is what made a pair
+// march one way forever.)
 func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
 	switch {
 	case Wiring.TiltVectorIsAcute(received, n.topTilt()):
@@ -350,7 +327,7 @@ func (n *Node) topTilt() Wiring.TiltVectorMsg {
 // also non-blocking. At the perpendicular index nothing steps and nothing sends,
 // which is how the exchange stops. This never touches In/Out or beads — the vector
 // channel is a separate, additive exchange.
-func (n *Node) handleVectorCycle() {
+func (n *Node) handleVectorCycle(tick int64) {
 	received, ok := Wiring.PollRecvVector(n.VectorIn)
 	if !ok {
 		return
@@ -381,6 +358,13 @@ func (n *Node) handleVectorCycle() {
 	}
 	n.syncTiltIndex()
 	Wiring.SendVectorLatestNonBlocking(n.VectorOut, n.outgoingVector())
+	// The bead rides along with the vector: one message, one visible bead, so the bead
+	// loop ends exactly when the exchange does. THIS goroutine is still the sole placer on
+	// this Out (wire.Out.PlaceDrivenAt's one-goroutine-per-Out invariant) — the placement
+	// only moved between two branches of this same loop.
+	if n.Out != nil {
+		n.Out.PlaceDrivenAt(1, tick)
+	}
 }
 
 func (n *Node) Update(ctx context.Context) {
@@ -402,19 +386,22 @@ func (n *Node) Update(ctx context.Context) {
 			return
 		}
 
-		// Drain In non-blocking: an arrival is the straightening loop's reactive
-		// trigger. Step ONE click toward perpendicular; if it moved, sync the mover
-		// and place the outgoing bead ourselves — no round trip to any other
-		// goroutine to decide.
+		// Drain In non-blocking. A bead arrival PACES the exchange and marks the round
+		// trip; it DECIDES nothing. It used to step this node's tilt one click in this
+		// kind's own fixed direction, with no reference to anything that arrived — so
+		// every bead round trip turned this node the same way forever, independently of
+		// (and on top of) the dot rule that is supposed to own that decision. Two rules
+		// moved one index: when they agreed the node double-stepped, when they disagreed
+		// they cancelled and it froze. The dots are now the only thing that turns a tilt
+		// on an arrival, and the bead is what makes that turn visible and timed.
+		//
+		// It does not place a bead onward either: the bead now travels WITH the vector,
+		// placed by handleVectorCycle when the dots actually move this node, so the bead
+		// loop lives and dies with the exchange it is pacing instead of circulating on
+		// its own.
 		if _, ok := n.In.PollRecv(); ok {
 			if n.Fire != nil {
 				n.Fire()
-			}
-			if n.stepTilt() {
-				n.syncTiltIndex()
-				if n.Out != nil {
-					n.Out.PlaceDrivenAt(1, clk.Tick())
-				}
 			}
 		}
 
@@ -434,9 +421,10 @@ func (n *Node) Update(ctx context.Context) {
 			}
 		}
 
-		// Vector-channel exchange: a separate, additive loop body from the bead
-		// exchange above — see handleVectorCycle's own doc comment.
-		n.handleVectorCycle()
+		// Vector-channel exchange: the ONE place an arrival turns this node's tilt, and
+		// the place the outgoing bead is now placed from — see handleVectorCycle's own
+		// doc comment.
+		n.handleVectorCycle(clk.Tick())
 
 		wire.ApplySpeedNonBlocking(clk, n.SpeedCh)
 		if err := clk.SleepCycle(ctx); err != nil {

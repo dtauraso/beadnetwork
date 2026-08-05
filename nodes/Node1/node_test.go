@@ -8,37 +8,14 @@ import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
-// The straightening loop's whole reactive rule now lives on THIS node kind's own
-// goroutine (stepTilt) — this asserts what that ONE goroutine's own
-// method decides, per docs/testing-shape.md: index arithmetic only, no mover/second
-// goroutine involved.
-
-// Node1 always SUBTRACTS one step of π/12, whichever side of perpendicular it is on — the
-// direction is a property of the KIND, not of where the tilt currently sits. Its partner
-// moves the opposite way by the same step, so a pair turns symmetrically.
-func TestStepAlwaysMovesTheSameDirection(t *testing.T) {
-	below := &Node{TopTiltThetaIdx: 3}
-	if moved := below.stepTilt(); !moved || below.TopTiltThetaIdx != 2 {
-		t.Fatalf("from below perpendicular, want moved=true thetaIdx=2, got moved=%v thetaIdx=%d", moved, below.TopTiltThetaIdx)
-	}
-
-	above := &Node{TopTiltThetaIdx: 9}
-	if moved := above.stepTilt(); !moved || above.TopTiltThetaIdx != 8 {
-		t.Fatalf("from above perpendicular, want moved=true thetaIdx=8, got moved=%v thetaIdx=%d", moved, above.TopTiltThetaIdx)
-	}
-}
-
-// AT perpendicular, a call changes nothing and reports no move — this is the loop's
-// termination, not a missed case.
-func TestStepStopsAtPerpendicular(t *testing.T) {
-	n := &Node{TopTiltThetaIdx: Wiring.PerpendicularThetaIdx}
-	if moved := n.stepTilt(); moved {
-		t.Fatalf("at perpendicular, want moved=false, got true (index now %d)", n.TopTiltThetaIdx)
-	}
-	if n.TopTiltThetaIdx != Wiring.PerpendicularThetaIdx {
-		t.Fatalf("at perpendicular, index must not move; got %d, want %d", n.TopTiltThetaIdx, Wiring.PerpendicularThetaIdx)
-	}
-}
+// The pair's whole reactive rule lives on THIS node kind's own goroutine — this asserts
+// what that ONE goroutine's own methods decide, per docs/testing-shape.md: index arithmetic
+// only, no mover/second goroutine involved.
+//
+// The old bead-path step tests are gone with that rule itself: a bead arrival used to step this
+// node one click in the kind's own fixed direction, regardless of what arrived, which is
+// what turned a pair one way forever. The bead now only paces; stepFromVector's dots are
+// the only rule that turns a tilt on an arrival, and they are asserted below.
 
 // applyTiltEdit is what the RESET button (TiltResetButton.tsx) and the tilt-angle panel
 // both drive; this asserts THIS node kind's own decision for a reset, from any starting
@@ -213,7 +190,7 @@ func TestReceivedResetZeroesAndDoesNotReply(t *testing.T) {
 	n := &Node{TopTiltThetaIdx: 5, TopTiltPhiIdx: 3, VectorOut: out, VectorIn: in}
 
 	in <- Wiring.TiltVectorMsg{Reset: true}
-	n.handleVectorCycle()
+	n.handleVectorCycle(0)
 
 	if n.TopTiltThetaIdx != 0 || n.TopTiltPhiIdx != 0 {
 		t.Fatalf("a received reset must zero both indices; got theta=%d phi=%d", n.TopTiltThetaIdx, n.TopTiltPhiIdx)
@@ -225,7 +202,7 @@ func TestReceivedResetZeroesAndDoesNotReply(t *testing.T) {
 
 // handleVectorCycle stores the received direction as this node's own third drawn vector
 // — asserted at the decision method itself (docs/testing-shape.md), never by observing a
-// mover or a second goroutine. Perpendicular so stepTilt itself does not fire; the record
+// mover or a second goroutine. Perpendicular so the step itself does not fire; the record
 // must still happen (the third arrow shows the last ARRIVAL, not the last arrival that
 // moved something). It shows only while the exchange is RUNNING.
 func TestHandleVectorCycleRecordsReceivedDirection(t *testing.T) {
@@ -235,7 +212,7 @@ func TestHandleVectorCycleRecordsReceivedDirection(t *testing.T) {
 	n := &Node{TopTiltThetaIdx: 2, VectorIn: in}
 
 	in <- Wiring.TiltVectorMsg{ThetaIdx: 7, PhiIdx: -4}
-	n.handleVectorCycle()
+	n.handleVectorCycle(0)
 
 	if !n.ReceivedSet {
 		t.Fatal("an arrival must set ReceivedSet, got false")
@@ -252,9 +229,9 @@ func TestHandleVectorCycleReplacesPreviousReceivedDirection(t *testing.T) {
 	n := &Node{TopTiltThetaIdx: 2, VectorIn: in}
 
 	in <- Wiring.TiltVectorMsg{ThetaIdx: 7, PhiIdx: -4}
-	n.handleVectorCycle()
+	n.handleVectorCycle(0)
 	in <- Wiring.TiltVectorMsg{ThetaIdx: -2, PhiIdx: 11}
-	n.handleVectorCycle()
+	n.handleVectorCycle(0)
 
 	if n.ReceivedThetaIdx != -2 || n.ReceivedPhiIdx != 11 {
 		t.Fatalf("want the LATEST arrival theta=-2 phi=11, got theta=%d phi=%d", n.ReceivedThetaIdx, n.ReceivedPhiIdx)
@@ -278,7 +255,7 @@ func TestReceivedVectorRecordedEvenWhenNothingSteps(t *testing.T) {
 	arrived := Wiring.TiltVectorMsg{ThetaIdx: Wiring.PerpendicularThetaIdx, PhiIdx: 0}
 	in <- arrived
 
-	n.handleVectorCycle()
+	n.handleVectorCycle(0)
 
 	if !n.ReceivedSet || n.ReceivedThetaIdx != arrived.ThetaIdx || n.ReceivedPhiIdx != arrived.PhiIdx {
 		t.Fatalf("the arrived direction must be recorded even when nothing steps; got set=%v theta=%d phi=%d",
@@ -318,7 +295,7 @@ func TestHandleVectorCycleReceivedResetClearsReceivedVector(t *testing.T) {
 		ReceivedThetaIdx: 9, ReceivedPhiIdx: -1, ReceivedSet: true}
 
 	in <- Wiring.TiltVectorMsg{Reset: true}
-	n.handleVectorCycle()
+	n.handleVectorCycle(0)
 
 	if n.ReceivedSet {
 		t.Fatal("a received reset must clear ReceivedSet, got true")
@@ -417,7 +394,7 @@ func TestReceivedResetMarkerRunsTheFullClear(t *testing.T) {
 		ClearOutBeads: func() { asked++ }}
 
 	in <- Wiring.TiltVectorMsg{Reset: true}
-	n.handleVectorCycle()
+	n.handleVectorCycle(0)
 
 	if _, ok := n.In.PollRecv(); ok {
 		t.Fatal("a received reset marker must drain this node's delivered beads too")
@@ -466,5 +443,37 @@ func TestResetSendsAMarkerNotADirection(t *testing.T) {
 	got := <-out
 	if !got.Reset {
 		t.Fatalf("reset must send the Reset marker, got a direction %+v", got)
+	}
+}
+
+// The bead now travels WITH the vector: it is placed by the vector branch when the dots
+// actually move this node, not by the bead branch on every round trip. So the bead loop
+// lives and dies with the exchange it paces, instead of circulating on its own in this
+// kind's fixed direction forever.
+func TestBeadIsPlacedByTheVectorStepNotByABeadArrival(t *testing.T) {
+	ctx := context.Background()
+	pw := wire.NewPacedWire(1, 1.0)
+	out := wire.NewPacedOutNoGeom(pw, ctx, "Node1", "Out", nil, wire.RuleFireAndForget, 1, "")
+	in := make(chan Wiring.TiltVectorMsg, 1)
+	n := &Node{TopTiltThetaIdx: 0, VectorIn: in, Out: out}
+
+	// An arrival that LEANS: the dots move this node, so a bead goes out with the reply.
+	in <- Wiring.TiltVectorMsg{ThetaIdx: 0}
+	n.handleVectorCycle(1)
+	pw.DriveOneCycle(ctx, 2)
+	if _, _, ok := pw.RecvTick(); !ok {
+		t.Fatal("a vector step must place its own bead; nothing was placed")
+	}
+
+	// An arrival that is exactly PERPENDICULAR: nothing steps, so nothing is placed and the
+	// bead loop ends here rather than being handed on regardless.
+	n.TopTiltThetaIdx = 0
+	in <- Wiring.TiltVectorMsg{ThetaIdx: Wiring.PerpendicularThetaIdx}
+	n.handleVectorCycle(3)
+	for tick := int64(4); tick < 10; tick++ {
+		pw.DriveOneCycle(ctx, tick)
+		if _, _, ok := pw.RecvTick(); ok {
+			t.Fatal("nothing steps on a perpendicular arrival, so no bead may be placed")
+		}
 	}
 }
