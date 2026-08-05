@@ -100,7 +100,19 @@ type bufLayoutNode struct {
 	// without a position yet carries.
 	PoleTheta float32 `buf:"f32"` // this node's local-frame pole: θ from world +y (radians)
 	PolePhi   float32 `buf:"f32"` // this node's local-frame pole: φ azimuth around +y (radians)
-	Selected  uint8   `buf:"u8"`  // persistent: 1 = this node is the click-selected node
+	// RingAxisTheta/RingAxisPhi are the axis this node's drawn TORUS is poled at — the
+	// normal of the ring's plane, same angle convention as PoleTheta/PolePhi above.
+	//
+	// SEPARATE from the pole on purpose. The pole is the node's own local polar frame,
+	// consumed by navigation (buffer-nav.ts, NavGuides); the ring axis is what the ring is
+	// DRAWN with. They coincide in a scene that wants its rings poled inward, and differ in
+	// one that wants an edge to lie in the ring plane (nodes/Wiring's poleContainingEdge) —
+	// and a scene that wants neither streams the torus's own +Z, which draws exactly as an
+	// unrotated ring did. Reusing the pole for both would have made a rendering choice
+	// change what navigation reads.
+	RingAxisTheta float32 `buf:"f32"` // drawn ring's plane normal: θ from world +y (radians)
+	RingAxisPhi   float32 `buf:"f32"` // drawn ring's plane normal: φ azimuth around +y (radians)
+	Selected      uint8   `buf:"u8"`  // persistent: 1 = this node is the click-selected node
 	// KindId is the node's kind as a STABLE id, assigned once per kind in
 	// nodes/<Kind>/SPEC.md (| kindId | N |) and never renumbered (the generator emits
 	// kindIDMap/NODE_DEFS_ARRAY keyed by it; a removed kind leaves an undefined gap, not

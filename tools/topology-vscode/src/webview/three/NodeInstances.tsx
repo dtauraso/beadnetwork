@@ -22,8 +22,8 @@ import {
   SHADING_PARAM_RING_ROUGHNESS,
 } from "../../schema/shading-params";
 import {
-  readNodePoleTheta,
-  readNodePolePhi,
+  readNodeRingAxisTheta,
+  readNodeRingAxisPhi,
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius,
   readOverlaySelSpherePoles,
 } from "../../schema/buffer-layout";
@@ -133,8 +133,8 @@ export function NodeInstances({ capacity }: { capacity: number }) {
       // this node. The BODY stays unrotated (a sphere has no orientation to get wrong), so
       // this is composed separately rather than reusing the body's matrix.
       ringAxis.set(0, 1, 0);
-      const poleTheta = readNodePoleTheta(nodeView, row);
-      const polePhi = readNodePolePhi(nodeView, row);
+      const poleTheta = readNodeRingAxisTheta(nodeView, row);
+      const polePhi = readNodeRingAxisPhi(nodeView, row);
       if (poleTheta !== 0 || polePhi !== 0) {
         const st = Math.sin(poleTheta);
         ringAxis.set(st * Math.cos(polePhi), Math.cos(poleTheta), st * Math.sin(polePhi));

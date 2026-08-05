@@ -72,3 +72,17 @@ func TestCoplanarEdgesIsPerScene(t *testing.T) {
 		t.Fatal("an unknown tree must keep the plain inward pole")
 	}
 }
+
+// THE RING TAB MUST LOOK EXACTLY AS IT DID. A scene that has not asked for coplanar edges
+// streams the torus's OWN normal, which draws as an unrotated ring — the way every ring was
+// drawn before ring orientation existed. This is the assertion that keeps a pair-scene
+// feature from quietly restyling another scene.
+func TestDefaultRingAxisIsTheUnrotatedTorusNormal(t *testing.T) {
+	theta, phi := torusDefaultAxisAngles()
+	axis := anglesToWorldOffset(1, theta, phi)
+	want := vec3{X: 0, Y: 0, Z: 1} // three.js torusGeometry's own normal
+	if axis.Sub(want).Length() > 1e-9 {
+		t.Fatalf("default ring axis = %v, want the torus's own +Z normal %v — anything else "+
+			"silently re-orients every ring in a scene that asked for nothing", axis, want)
+	}
+}

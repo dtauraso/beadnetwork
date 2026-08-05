@@ -30,8 +30,8 @@ import {
   type DecodedNodeStreamFrame,
 } from "./buffer-decode";
 import {
-  readNodePoleTheta,
-  readNodePolePhi,
+  readNodeRingAxisTheta,
+  readNodeRingAxisPhi,
   NODE_STRIDE, INTERIOR_STRIDE, INTERIOR_SLOTS_PER_NODE,
   NODE_COL_LABEL_OFF, NODE_COL_LABEL_LEN,
   LAYOUT_LINK_STRIDE, LAYOUT_LINK_COL_SRC_NODE_ROW, LAYOUT_LINK_COL_DST_NODE_ROW,
@@ -301,8 +301,8 @@ export function getChainBeads(): ChainBeadsAgg {
     const cz = readNodeCZ(decoded.nodeView, 0);
     // This node's own ring axis, decoded once per node and copied onto each of its beads.
     // (0,0) is the "no position yet" value Go streams, which means world +y.
-    const poleTheta = readNodePoleTheta(decoded.nodeView, 0);
-    const polePhi = readNodePolePhi(decoded.nodeView, 0);
+    const poleTheta = readNodeRingAxisTheta(decoded.nodeView, 0);
+    const polePhi = readNodeRingAxisPhi(decoded.nodeView, 0);
     const st = Math.sin(poleTheta);
     const ax = poleTheta === 0 && polePhi === 0 ? 0 : st * Math.cos(polePhi);
     const ay = poleTheta === 0 && polePhi === 0 ? 1 : Math.cos(poleTheta);

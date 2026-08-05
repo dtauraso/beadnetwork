@@ -410,3 +410,11 @@ func poleContainingEdge(poleTheta, polePhi float64, selfCenter, partnerCenter ve
 	u := projected.Normalize()
 	return math.Acos(clamp(u.Y, -1, 1)), math.Atan2(u.Z, u.X), true
 }
+
+// torusDefaultAxisAngles is the torus geometry's OWN normal (+Z) as this codebase's angle
+// pair. A ring streamed with this axis is drawn exactly as an unrotated one, which is what
+// every scene looked like before ring orientation existed — so it is the default, and a
+// scene opts IN to anything else.
+func torusDefaultAxisAngles() (theta, phi float64) {
+	return math.Pi / 2, math.Pi / 2
+}

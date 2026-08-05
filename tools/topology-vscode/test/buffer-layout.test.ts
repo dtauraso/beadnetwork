@@ -67,8 +67,10 @@ describe("buffer-layout — Node block", () => {
     // 1×i32 (nodeId) + 5×f32 + 6×f32 (vr/fr normals) + 2×f32 (poleTheta/polePhi)
     //   + 1×u8 (selected) + 1×u8 (kindId) + 2×u32 (label off/len)
     //   + 1×u8 (hovered) + 1×u8 (latchedSel)
-    //   = 4 + (5+6+2)×4 + 1 + 1 + 8 + 1 + 1 = 68
-    expect(NODE_STRIDE).toBe(68);
+    //   + 2×f32 (ringAxisTheta/ringAxisPhi — the DRAWN ring's axis, separate from the
+    //     navigation pole above)
+    //   = 4 + (5+6+2+2)×4 + 1 + 1 + 8 + 1 + 1 = 76
+    expect(NODE_STRIDE).toBe(76);
   });
 
   it("read helpers decode known bytes correctly", () => {

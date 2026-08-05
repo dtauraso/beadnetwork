@@ -48,30 +48,34 @@ type layoutLinkFixture struct {
 }
 
 type nodeFrameFixture struct {
-	Tick        uint32              `json:"tick"`
-	NodeRow     int32               `json:"nodeRow"`
-	NodeId      int32               `json:"nodeId"`
-	CX          float32             `json:"cx"`
-	CY          float32             `json:"cy"`
-	CZ          float32             `json:"cz"`
-	Radius      float32             `json:"radius"`
-	SphereR     float32             `json:"sphereR"`
-	VRX         float32             `json:"vrx"`
-	VRY         float32             `json:"vry"`
-	VRZ         float32             `json:"vrz"`
-	FRX         float32             `json:"frx"`
-	FRY         float32             `json:"fry"`
-	FRZ         float32             `json:"frz"`
-	PoleTheta   float32             `json:"poleTheta"`
-	PolePhi     float32             `json:"polePhi"`
-	Selected    uint8               `json:"selected"`
-	KindID      uint8               `json:"kindId"`
-	Hovered     uint8               `json:"hovered"`
-	LatchedSel  uint8               `json:"latchedSel"`
-	ChainBeads  []chainBeadFixture  `json:"chainBeads"`
-	Label       string              `json:"label"`
-	LayoutLinks []layoutLinkFixture `json:"layoutLinks"`
-	Hex         string              `json:"hex"`
+	Tick      uint32  `json:"tick"`
+	NodeRow   int32   `json:"nodeRow"`
+	NodeId    int32   `json:"nodeId"`
+	CX        float32 `json:"cx"`
+	CY        float32 `json:"cy"`
+	CZ        float32 `json:"cz"`
+	Radius    float32 `json:"radius"`
+	SphereR   float32 `json:"sphereR"`
+	VRX       float32 `json:"vrx"`
+	VRY       float32 `json:"vry"`
+	VRZ       float32 `json:"vrz"`
+	FRX       float32 `json:"frx"`
+	FRY       float32 `json:"fry"`
+	FRZ       float32 `json:"frz"`
+	PoleTheta float32 `json:"poleTheta"`
+	PolePhi   float32 `json:"polePhi"`
+	// The DRAWN ring's axis, distinct from the navigation pole above — see
+	// Buffer/layout.go's RingAxisTheta/RingAxisPhi for why they are two values.
+	RingAxisTheta float32             `json:"ringAxisTheta"`
+	RingAxisPhi   float32             `json:"ringAxisPhi"`
+	Selected      uint8               `json:"selected"`
+	KindID        uint8               `json:"kindId"`
+	Hovered       uint8               `json:"hovered"`
+	LatchedSel    uint8               `json:"latchedSel"`
+	ChainBeads    []chainBeadFixture  `json:"chainBeads"`
+	Label         string              `json:"label"`
+	LayoutLinks   []layoutLinkFixture `json:"layoutLinks"`
+	Hex           string              `json:"hex"`
 }
 
 type edgeFrameFixture struct {
@@ -112,6 +116,7 @@ func buildNodeFrame() nodeFrameFixture {
 		CX: 11.5, CY: -12.25, CZ: 13.125, Radius: 14.0625, SphereR: 200.5,
 		VRX: 21.5, VRY: 22.25, VRZ: 23.125, FRX: 24.0625, FRY: 25.5, FRZ: 26.25,
 		PoleTheta: 2.1, PolePhi: -1.3,
+		RingAxisTheta: 1.4, RingAxisPhi: 0.7,
 		Selected: 1, KindID: 3, Hovered: 1, LatchedSel: 0,
 		Label:       "widgetNode",
 		LayoutLinks: []layoutLinkFixture{{DstNodeRow: 2}, {DstNodeRow: 9}},
@@ -140,7 +145,7 @@ func buildNodeFrame() nodeFrameFixture {
 		f.Tick, f.NodeRow, f.NodeId,
 		f.CX, f.CY, f.CZ, f.Radius, f.SphereR,
 		f.VRX, f.VRY, f.VRZ, f.FRX, f.FRY, f.FRZ,
-		f.PoleTheta, f.PolePhi,
+		f.PoleTheta, f.PolePhi, f.RingAxisTheta, f.RingAxisPhi,
 		f.Selected, f.KindID, f.Hovered, f.LatchedSel,
 		f.Label,
 		dstNodeRows,

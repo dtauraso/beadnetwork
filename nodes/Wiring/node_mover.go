@@ -318,7 +318,7 @@ type nodeMover struct {
 	// buildFrame packs this node's combined per-fd frame (node fields + ports + label)
 	// using Buffer's own row-writer columns (Buffer.BuildNodeStreamFrame), injected so
 	// this package needs no Buffer import.
-	buildFrame func(tick uint32, nodeRow int32, nodeID int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, poleTheta, polePhi float32, selected, kindID, hovered, latchedSel uint8, label string, dstNodeRows []int32, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, chainBeadTween []uint8, events []wire.RowEvent) []byte
+	buildFrame func(tick uint32, nodeRow int32, nodeID int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, poleTheta, polePhi, ringAxisTheta, ringAxisPhi float32, selected, kindID, hovered, latchedSel uint8, label string, dstNodeRows []int32, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, chainBeadTween []uint8, events []wire.RowEvent) []byte
 }
 
 func newNodeMover(id string, geom nodeGeom, tr *T.Trace, clockSrc wire.Clock) *nodeMover {
@@ -578,17 +578,20 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 	var poleTheta, polePhi float64
 	if m.geom.HasPos {
 		poleTheta, polePhi = inwardPole(m.geom.ScenePolar)
-		// COPLANAR EDGES: swing the pole off the inward direction by the smallest amount
-		// that puts the edge INSIDE the ring plane — the inward pole with its
-		// along-the-edge component removed. The chain, this node's torus and the beads'
-		// own tori then share one plane, instead of the chain running through the holes.
-		// Only for a node with exactly ONE neighbour: two non-collinear edges have no
-		// common plane, so a node with more keeps the plain inward pole.
-		if m.coplanarEdges && len(m.partnerCenters) == 1 {
-			for _, partner := range m.partnerCenters {
-				if t, p, ok := poleContainingEdge(poleTheta, polePhi, nodeWorldPos(m.geom), partner); ok {
-					poleTheta, polePhi = t, p
-				}
+	}
+	// The DRAWN ring's axis, separate from the navigation pole above (Buffer/layout.go's
+	// RingAxisTheta/RingAxisPhi). Default is the torus's own +Z normal, which draws exactly
+	// as an unrotated ring did — so a scene that has not asked for anything looks unchanged.
+	ringAxisTheta, ringAxisPhi := torusDefaultAxisAngles()
+	if m.coplanarEdges && m.geom.HasPos && len(m.partnerCenters) == 1 {
+		// COPLANAR EDGES: swing the axis off the inward pole by the smallest amount that
+		// puts the edge INSIDE the ring plane — the inward pole with its along-the-edge
+		// component removed. The chain, this node's torus and the beads' own tori then
+		// share one plane instead of the chain running through the holes. Only for a node
+		// with exactly ONE neighbour: two non-collinear edges have no common plane.
+		for _, partner := range m.partnerCenters {
+			if t, p, ok := poleContainingEdge(poleTheta, polePhi, nodeWorldPos(m.geom), partner); ok {
+				ringAxisTheta, ringAxisPhi = t, p
 			}
 		}
 	}
@@ -639,7 +642,7 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 		float32(nodeRadius(m.geom.Kind)), float32(sphereR),
 		verticalRingNormalX, verticalRingNormalY, verticalRingNormalZ,
 		flatRingNormalX, flatRingNormalY, flatRingNormalZ,
-		float32(poleTheta), float32(polePhi),
+		float32(poleTheta), float32(polePhi), float32(ringAxisTheta), float32(ringAxisPhi),
 		selected, kindID, hovered, latchedSel,
 		label, dstNodeRows, chainOX, chainOY, chainOZ, chainLit, chainLitVal, chainTween, events)
 	var hdr [4]byte
