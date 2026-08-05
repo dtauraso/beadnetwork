@@ -620,15 +620,29 @@ const PerpendicularThetaIdx int32 = 6
 // out to exactly abs(thetaIdx), which is what times the bead's own dwell/tick constants
 // into the crossing time the model calls for.
 //
-// Scoped to the pair kinds by construction, not by a kind check: moveMsgKindTiltIndexSync
+// ONE END OF THE PAIR MOVES, AND IT IS ALWAYS Node2. Node1 is the ANCHOR: it reports its
+// own tilt index like any pair member, but it never repositions itself for one. The first
+// version of this had no anchor — both movers ran this on their own index — and both ends
+// chased a distance from a partner that was itself moving, each recomputing the direction
+// live. The pair drifted, and because each end aims AWAY from wherever the other happens to
+// be at that instant, Node2 could cross to the far side of Node1. Pinning Node1 makes the
+// 1->2 direction stable, so Node2 only ever changes its distance along it and stays on the
+// side it loaded on. This IS a kind check, deliberately: "which end is fixed" is not
+// derivable from the pair's shape — both members are the target of one of the two bead
+// edges (1To2 and 2To1), so edge direction cannot name an anchor either.
+//
+// Reached only for a pair member, by construction: moveMsgKindTiltIndexSync
 // is only ever sent by a kind that owns its own tilt index (Node1/Node2 today — see that
-// message kind's own doc comment), so this only ever runs for a pair member. A node with
+// message kind's own doc comment). A node with
 // zero or more than one direct partner (not the pair shape) is left alone: with no unique
 // partner there is no single distance to set. Reuses the SAME owner-goroutine commit path
 // as a drag (m.commitLocal, bound in build.go to MoveDispatch.commitNodeMoveLocal) — no
 // new position or commit path, no worklist, no coordinator (memory/
 // project_lock_propagation_decentralized.md: a node writes only itself).
 func (m *nodeMover) repositionForTiltIndex(thetaIdx int32) {
+	if m.selfKind != "Node2" {
+		return
+	}
 	if m.commitLocal == nil || len(m.partnerCenters) != 1 {
 		return
 	}
