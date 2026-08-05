@@ -86,3 +86,33 @@ func TestDefaultRingAxisIsTheUnrotatedTorusNormal(t *testing.T) {
 			"silently re-orients every ring in a scene that asked for nothing", axis, want)
 	}
 }
+
+// UPRIGHT RINGS: the plane must hold BOTH the edge and world +y, so the ring stands up
+// along the edge and the node's own up-vector lies IN that plane. An axis of +y itself would
+// lie the ring flat and put the vector perpendicular to it — the opposite arrangement, and
+// the one this replaced.
+func TestUprightRingPlaneHoldsTheEdgeAndUp(t *testing.T) {
+	self := vec3{X: 96, Z: -80}
+	partner := vec3{X: 96, Z: -40} // the pair's own shape: same height, edge along +z
+	theta, phi, ok := uprightRingAxis(self, partner)
+	if !ok {
+		t.Fatal("a horizontal edge must resolve an upright axis")
+	}
+	axis := anglesToWorldOffset(1, theta, phi)
+	edge := partner.Sub(self).Normalize()
+	up := vec3{X: 0, Y: 1, Z: 0}
+	if d := axis.Dot(edge); math.Abs(d) > 1e-9 {
+		t.Fatalf("the ring plane must contain the EDGE, so the axis is perpendicular to it; got dot=%v", d)
+	}
+	if d := axis.Dot(up); math.Abs(d) > 1e-9 {
+		t.Fatalf("the ring plane must contain UP, so the axis is perpendicular to it; got dot=%v", d)
+	}
+}
+
+// An edge running straight up has no unique upright plane — every plane through it already
+// contains up. Report that rather than returning a degenerate axis.
+func TestVerticalEdgeHasNoUniqueUprightPlane(t *testing.T) {
+	if _, _, ok := uprightRingAxis(vec3{}, vec3{Y: 100}); ok {
+		t.Fatal("an edge parallel to +y must report not-resolvable")
+	}
+}

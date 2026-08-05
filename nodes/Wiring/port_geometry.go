@@ -418,3 +418,28 @@ func poleContainingEdge(poleTheta, polePhi float64, selfCenter, partnerCenter ve
 func torusDefaultAxisAngles() (theta, phi float64) {
 	return math.Pi / 2, math.Pi / 2
 }
+
+// uprightRingAxis returns the ring axis whose PLANE contains BOTH the edge and world +y —
+// a ring standing upright along the edge, with the node's own up-vector lying IN that plane
+// rather than sticking out of it.
+//
+// A plane contains a direction exactly when its axis is perpendicular to that direction, so
+// an axis perpendicular to both the edge and up is the one plane holding both. That is their
+// cross product, which is why this is the ONLY axis satisfying the pair of constraints —
+// there is nothing to choose and no free sign beyond which way the normal faces, and the
+// ring is the same disc either way.
+//
+// Not resolvable when the edge runs straight up (parallel to +y): the cross product vanishes,
+// every plane through the edge also contains up, and there is no unique answer to give.
+func uprightRingAxis(selfCenter, partnerCenter vec3) (theta, phi float64, ok bool) {
+	delta := partnerCenter.Sub(selfCenter)
+	if delta.Length() < 1e-9 {
+		return 0, 0, false
+	}
+	n := delta.Normalize().Cross(vec3{X: 0, Y: 1, Z: 0})
+	if n.Length() < 1e-6 {
+		return 0, 0, false
+	}
+	u := n.Normalize()
+	return math.Acos(clamp(u.Y, -1, 1)), math.Atan2(u.Z, u.X), true
+}

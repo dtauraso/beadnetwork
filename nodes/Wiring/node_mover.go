@@ -557,12 +557,16 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 	// where a scene draws none (Buffer/layout.go's VectorLen). It runs from the node's
 	// centre to its own top, so its length IS the node's radius.
 	var vectorLen float64
-	if m.upAxis {
-		// UP: the ring's plane normal is world +y, so the ring lies flat and the vector
-		// points straight up out of it. For a scene whose nodes share a height this is
-		// also an axis whose plane contains the edge, which is why it can satisfy
-		// coplanar edges at the same time (scene_tabs.go's UpAxis).
-		ringAxisTheta, ringAxisPhi = 0, 0
+	if m.upAxis && m.geom.HasPos && len(m.partnerCenters) == 1 {
+		// UPRIGHT: the ring STANDS UP along its edge — its plane holds both the edge and
+		// world +y, so the node's own up-vector lies IN the ring's plane rather than
+		// sticking out of a flat disc. An axis of +y itself would lie the ring flat and
+		// put the vector perpendicular to it, which is the opposite arrangement.
+		for _, partner := range m.partnerCenters {
+			if t, p, ok := uprightRingAxis(nodeWorldPos(m.geom), partner); ok {
+				ringAxisTheta, ringAxisPhi = t, p
+			}
+		}
 		vectorLen = nodeRadius(m.geom.Kind)
 	} else if m.coplanarEdges && m.geom.HasPos && len(m.partnerCenters) == 1 {
 		// COPLANAR EDGES: swing the axis off the inward pole by the smallest amount that
