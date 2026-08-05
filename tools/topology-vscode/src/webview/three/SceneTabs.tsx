@@ -22,10 +22,16 @@ import { useSceneTabs } from "./scene-tabs";
 const stripStyle: React.CSSProperties = {
   // Same absolute-positioning scheme and containing block as HomeButton (top 44) /
   // DistanceHomePanel (top 66) / OverlaysControl (top 128) — see DistanceHomePanel's
-  // comment. Top-LEFT, since the right column is taken.
+  // comment. Centered on the top edge, clear of the right-hand widget column.
+  //
+  // Centered by the translate trick rather than by measuring: left:50% puts the strip's
+  // LEFT edge at the midpoint, and translateX(-50%) pulls it back by half its OWN width,
+  // so it stays centered as tabs are added or their labels change — no width to keep in
+  // sync, and nothing to recompute on resize.
   position: "absolute",
   top: 12,
-  left: 12,
+  left: "50%",
+  transform: "translateX(-50%)",
   zIndex: 20,
   pointerEvents: "auto",
   display: "inline-flex",
