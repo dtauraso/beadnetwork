@@ -49,6 +49,7 @@ type ViewFrameBuilder func(tick uint32,
 	sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis uint8,
 	dragNodeRow int32,
 	groupLenTime, groupLenInput, groupLenGate float32,
+	speed float32,
 	sceneCX, sceneCY, sceneCZ, sceneRadius float32,
 	events []wire.RowEvent,
 ) []byte
@@ -116,6 +117,7 @@ func (md *MoveDispatch) emitViewFrame(events []wire.RowEvent) {
 		boolU8(md.ui.ov.overlaysVisible),
 		dragNodeRow,
 		groupLenTime, groupLenInput, groupLenGate,
+		float32(md.ui.speed),
 		float32(sc.Center.X), float32(sc.Center.Y), float32(sc.Center.Z), float32(sc.Radius),
 		events,
 	)

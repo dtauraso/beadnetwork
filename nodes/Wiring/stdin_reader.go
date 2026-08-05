@@ -85,7 +85,9 @@ type stdinMsg struct {
 	Attr string
 	Flag string
 	// Num is the numeric payload for an op=="update" that carries a value rather than a
-	// flag name — currently only clock/speed (the playback multiplier). Zero otherwise.
+	// flag name — currently only clock/speed (the playback multiplier, sent in QUARTER-UNITS:
+	// an integer 0..8 that clockAttrHandlers divides by 4 to get the real multiplier — see
+	// its comment). Zero otherwise.
 	Num int
 	// Event is the payload for the top-level type=="raw-input" message; nil otherwise.
 	Event *rawInputMsg
@@ -350,11 +352,18 @@ func applyUpdate(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan 
 }
 
 // clockAttrHandlers is the attr-level table for kind=="clock".
-var clockAttrHandlers = map[string]func(msg stdinMsg, speedSinks []chan float64){
-	"speed": func(msg stdinMsg, speedSinks []chan float64) {
-		// The playback multiplier (0/1/2 from the slider). SetSpeed left the Clock
-		// INTERFACE in the per-goroutine-clock demolition (item 4): nothing outside a goroutine's own
-		// copy may mutate it anymore, since a copy is owned by exactly one goroutine.
+var clockAttrHandlers = map[string]func(msg stdinMsg, md *MoveDispatch, speedSinks []chan float64){
+	"speed": func(msg stdinMsg, md *MoveDispatch, speedSinks []chan float64) {
+		// msg.Num carries the playback multiplier in QUARTER-UNITS (an integer 0..8:
+		// the SpeedSlider's six-value table 0, 0.25, 0.5, 0.75, 1, 2 sent as 0, 1, 2, 3,
+		// 4, 8) — input-layout.ts's encodeClockSpeed and input_codec.go's decode agree on
+		// this exact integer form so a fractional multiplier survives msg.Num's int type
+		// with no truncation. Divide back to the real multiplier here, the one place that
+		// interprets it.
+		speed := float64(msg.Num) / 4.0
+		// SetSpeed left the Clock INTERFACE in the per-goroutine-clock demolition (item 4):
+		// nothing outside a goroutine's own copy may mutate it anymore, since a copy is
+		// owned by exactly one goroutine.
 		// Delivery (per-goroutine-clock.md "Delivery"): broadcast the new speed to
 		// EVERY clock-owning goroutine's own channel (collected once, at load,
 		// before any goroutine spawned — see LoadTopology's speedSinks return
@@ -362,14 +371,24 @@ var clockAttrHandlers = map[string]func(msg stdinMsg, speedSinks []chan float64)
 		// channels; SendSpeedNonBlocking never blocks on a
 		// receiver that is asleep or never reads (latest-wins coalescing).
 		for _, ch := range speedSinks {
-			wire.SendSpeedNonBlocking(ch, float64(msg.Num))
+			wire.SendSpeedNonBlocking(ch, speed)
 		}
+		if md == nil {
+			return
+		}
+		// Mirror the new speed on this goroutine so the VIEW frame's Speed column
+		// reflects it (the webview slider reads this back — no local default state,
+		// memory/feedback_reflect_dont_create_store.md), and persist it (scene-level,
+		// this view-owner goroutine's own file — .claude/rules/persistence-ownership.md).
+		md.ui.speed = speed
+		md.persist.speed.schedule(speed)
+		md.emitViewFrame(nil)
 	},
 }
 
 func applyUpdateClock(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
 	if h, ok := clockAttrHandlers[msg.Attr]; ok {
-		h(msg, speedSinks)
+		h(msg, md, speedSinks)
 	}
 }
 

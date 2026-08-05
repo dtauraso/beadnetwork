@@ -206,6 +206,7 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 				sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis uint8,
 				dragNodeRow int32,
 				groupLenTime, groupLenInput, groupLenGate float32,
+				speed float32,
 				sceneCX, sceneCY, sceneCZ, sceneRadius float32,
 				events []wire.RowEvent,
 			) []byte {
@@ -217,6 +218,7 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 						OverlaysVis:  overlaysVis,
 						DragNodeRow:  dragNodeRow,
 						GroupLenTime: groupLenTime, GroupLenInput: groupLenInput, GroupLenGate: groupLenGate,
+						Speed: speed,
 					},
 					sceneCX, sceneCY, sceneCZ, sceneRadius,
 					// The tab strip is CONSTANT for this process's lifetime: the list is
@@ -274,6 +276,11 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 	// so the buffer streams the saved overlay state from the first frame. Seed BEFORE
 	// EnableEditPersist so the seed's own emit does not write the loaded state back.
 	md.LoadOverlays(scenePath, tr)
+	// Restore the persisted playback speed: seed md.ui.speed from view/speed.json, broadcast
+	// it to every clock-owning goroutine's own channel (same Delivery path a live slider
+	// edit uses), and emit it so the buffer reflects it from the first frame. Seed BEFORE
+	// EnableEditPersist so the seed's own emit does not write the loaded/default speed back.
+	md.LoadSpeed(scenePath, speedSinks, tr)
 	// Arm the WRITE side AFTER the seeds: from here, every gesture that changes the FSM
 	// viewpoint (orbit/zoom/pan/home) debounces a write of the current pose back to
 	// <topologyPath>/view/camera.json, so navigate-then-reload round-trips.

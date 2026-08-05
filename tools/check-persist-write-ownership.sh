@@ -42,10 +42,11 @@ set -euo pipefail
 #     edges/ path (that would be a node mover reaching into an edge's file — the exact
 #     coupling this model forbids), and (2) if a write call ever appears in edge_mover.go,
 #     it is accepted without editing this guard.
-#   - view/camera.json, view/overlays.json, view/sphere.json — written only by the
-#     view-owner goroutine's own files: scene_camera_persist.go, scene_overlays_persist.go,
-#     scene_selection_persist.go (the scene-tab selection, written on a tab click),
-#     scene_sphere_persist.go.
+#   - view/camera.json, view/overlays.json, view/sphere.json, view/speed.json — written
+#     only by the view-owner goroutine's own files: scene_camera_persist.go,
+#     scene_overlays_persist.go, scene_selection_persist.go (the scene-tab selection,
+#     written on a tab click), scene_sphere_persist.go, scene_speed_persist.go (the
+#     playback-speed multiplier).
 #
 # Exit 0 when clean.
 #
@@ -73,7 +74,7 @@ NODE_OWNERS=("node_mover.go" "quant_offset_persist.go" "scene_anchor_persist.go"
 # Edge-owner files: reserved for a future Go-side edges/<label>.json writer.
 EDGE_OWNERS=("edge_mover.go")
 # View-owner files: the view-owner goroutine's (RunStdinReader) own scene-level writers.
-VIEW_OWNERS=("scene_camera_persist.go" "scene_overlays_persist.go" "scene_sphere_persist.go" "scene_selection_persist.go")
+VIEW_OWNERS=("scene_camera_persist.go" "scene_overlays_persist.go" "scene_sphere_persist.go" "scene_selection_persist.go" "scene_speed_persist.go")
 
 in_list() {
   local needle="$1"; shift
