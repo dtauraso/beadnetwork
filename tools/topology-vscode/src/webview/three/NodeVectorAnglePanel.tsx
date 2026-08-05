@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { postGoRecord } from "../vscode-api";
 import { encodeNodeVectorAdjust } from "../../schema/input-layout";
 import { CURVE_PARAM_VECTOR_ANGLE_STEP } from "../../schema/curve-params";
@@ -28,9 +28,11 @@ import { useNodeVectorRows } from "./overlay-flags";
 // and the index arithmetic (node_mover.go's moveMsgKindVectorAngle handler) — this
 // component sends no angle value, only which node + which axis + which direction.
 //
-// Local state here is the SELECTED node index into the reflected row list — purely
-// ephemeral UI (which row is showing in the panel right now), not a copy of any Go-owned
-// value; mirrors DistanceHomePanel's "no local domain state" comment.
+// EVERY node with a vector is listed at once, θ and φ each on their own line under the
+// node's name. It used to show one node at a time behind ◀/▶, which meant comparing the two
+// ends of a pair — the thing these angles are usually being set relative to — required
+// flipping back and forth and remembering the other one. There is no local state at all
+// now: the panel is a pure function of the reflected rows.
 const DENOM = Math.max(1, Math.round(Math.PI / CURVE_PARAM_VECTOR_ANGLE_STEP));
 
 function formatAngle(radians: number): string {
@@ -42,66 +44,47 @@ function formatAngle(radians: number): string {
 
 export function NodeVectorAnglePanel() {
   const rows = useNodeVectorRows();
-  const [selected, setSelected] = useState(0);
 
   // Data-driven "no rows" render-nothing, same shape as DistanceHomePanel's all-zero
   // check: null (no node frame decoded yet) or an empty list (this scene draws no
   // vectors at all) both mean nothing to show.
   if (!rows || rows.length === 0) return null;
 
-  const activeIdx = selected < rows.length ? selected : 0;
-  const active = rows[activeIdx];
-  if (!active) return null;
-
-  const adjust = (axis: "theta" | "phi", dir: "up" | "down") => {
-    postGoRecord(encodeNodeVectorAdjust(active.row, axis, dir));
+  const adjust = (row: number, axis: "theta" | "phi", dir: "up" | "down") => {
+    postGoRecord(encodeNodeVectorAdjust(row, axis, dir));
   };
 
   return (
     <div style={panelStyle}>
-      {rows.length > 1 && (
-        <div style={rowStyle}>
-          <span style={labelStyle}>node</span>
-          <span style={valueStyle}>{active.label || String(active.row)}</span>
-          <button
-            type="button"
-            style={btnStyle}
-            aria-label="previous node"
-            onClick={() => setSelected((activeIdx - 1 + rows.length) % rows.length)}
-          >
-            ◀
-          </button>
-          <button
-            type="button"
-            style={btnStyle}
-            aria-label="next node"
-            onClick={() => setSelected((activeIdx + 1) % rows.length)}
-          >
-            ▶
-          </button>
-        </div>
-      )}
-      {(["theta", "phi"] as const).map((axis) => (
-        <div style={rowStyle} key={axis}>
-          <span style={labelStyle}>{axis}</span>
-          <span style={valueStyle}>{formatAngle(axis === "theta" ? active.theta : active.phi)}</span>
-          <button
-            type="button"
-            style={btnStyle}
-            aria-label={`${axis} up`}
-            onClick={() => adjust(axis, "up")}
-          >
-            ▲
-          </button>
-          <button
-            type="button"
-            style={btnStyle}
-            aria-label={`${axis} down`}
-            onClick={() => adjust(axis, "down")}
-          >
-            ▼
-          </button>
-        </div>
+      {rows.map((node, i) => (
+        <React.Fragment key={node.row}>
+          {/* A rule between nodes, so two nodes' θ/φ lines cannot be misread as one node's
+              four. Skipped before the first. */}
+          {i > 0 && <div style={sepStyle} />}
+          <div style={headerStyle}>{node.label || String(node.row)}</div>
+          {(["theta", "phi"] as const).map((axis) => (
+            <div style={rowStyle} key={axis}>
+              <span style={labelStyle}>{axis}</span>
+              <span style={valueStyle}>{formatAngle(axis === "theta" ? node.theta : node.phi)}</span>
+              <button
+                type="button"
+                style={btnStyle}
+                aria-label={`${node.label || node.row} ${axis} up`}
+                onClick={() => adjust(node.row, axis, "up")}
+              >
+                ▲
+              </button>
+              <button
+                type="button"
+                style={btnStyle}
+                aria-label={`${node.label || node.row} ${axis} down`}
+                onClick={() => adjust(node.row, axis, "down")}
+              >
+                ▼
+              </button>
+            </div>
+          ))}
+        </React.Fragment>
       ))}
     </div>
   );
@@ -153,4 +136,18 @@ const btnStyle: React.CSSProperties = {
   lineHeight: 1,
   padding: "2px 5px",
   cursor: "pointer",
+};
+
+// A node's name above its own two angle lines, so which θ/φ belongs to which node is read
+// off the layout rather than remembered.
+const headerStyle: React.CSSProperties = {
+  color: "#fff",
+  opacity: 0.85,
+  paddingTop: 1,
+};
+
+const sepStyle: React.CSSProperties = {
+  height: 1,
+  background: "rgba(255,255,255,0.18)",
+  margin: "3px 0",
 };
