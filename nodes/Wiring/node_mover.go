@@ -16,6 +16,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"math"
 	"path/filepath"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -605,30 +606,66 @@ func (m *nodeMover) handle(msg moveMsg) {
 // indices' angles converted through anglesToWorldOffset, not thetaIdx alone.
 const PerpendicularThetaIdx int32 = 6
 
-// repositionForTiltIndex implements the PAIR tab's model (task/tilt-sets-pair-distance):
-// this node's own tilt-vector theta INDEX is the pair's centre-to-centre separation.
-// Whenever this node's own goroutine reports a new index (moveMsgKindTiltIndexSync
-// above), THIS node's own mover repositions itself so its distance to its one direct
-// partner is
+// repositionForTiltIndex implements the PAIR tab's model (task/tilt-sets-pair-distance,
+// narrowed by task/node1-turns-every-round): the user asked ONLY for the pair's
+// centre-to-centre DISTANCE to follow this node's own tilt-vector theta INDEX — nothing
+// about ORIENTATION. Whenever this node's own goroutine reports a new index
+// (moveMsgKindTiltIndexSync above), THIS node's own mover changes ONLY its own quantized
+// r-index (m.quantOffset.iR); iTheta and iPhi — which pin this node's own ray from the
+// scene centre — are left EXACTLY as they are. There is no cartesian "direction" computed
+// here (the earlier version picked the partner-to-self direction and committed a world
+// point, which silently re-placed the node's ray and so changed the graph's ORIENTATION
+// — a placement decision nobody asked for). The node simply slides along the ray it is
+// already on.
+//
+// The distance this slide targets is
 //
 //	D = (abs(thetaIdx) + nodeTorusSteps(selfKind) + nodeTorusSteps(partnerKind)) * wire.BeadStepR
 //
-// along the CURRENT edge direction (this node's own centre moved away from the
-// partner's centre) — index arithmetic only (memory/feedback_abc_times_constant_not_rederive.md),
-// no trig beyond the existing cartesian direction. The two torus-step terms exist so
-// edgeStepCount(D, srcKind, dstKind) (chain_beads.go) — never modified here — comes back
-// out to exactly abs(thetaIdx), which is what times the bead's own dwell/tick constants
-// into the crossing time the model calls for.
+// so that edgeStepCount(D, srcKind, dstKind) (chain_beads.go) — never modified here — comes
+// back out to exactly abs(thetaIdx).
 //
-// Scoped to the pair kinds by construction, not by a kind check: moveMsgKindTiltIndexSync
+// Because the pair is not exactly radial (the two members' loaded iPhi commonly differ by
+// one step), this node's new iR is not simply "partner's iR minus steps" — it is solved
+// along THIS node's own fixed ray. With u the node's unit direction from the scene centre
+// (fixed by its own iTheta/iPhi), c the partner's centre relative to the scene centre, and
+// candidate radius r = iR*stepR, the squared distance to the partner is
+//
+//	|r*u - c|^2 = r^2 - 2*r*(u.c) + |c|^2
+//
+// Solving that quadratic at = D^2 gives r = (u.c) ± sqrt((u.c)^2 - |c|^2 + D^2); the root
+// nearer this node's CURRENT radius is kept (so a turn never flings the node to the far
+// side of the scene centre), divided by this node's own effective r-step
+// (quantOffset.effectiveSteps()) and rounded to the nearest integer iR. A negative
+// discriminant means D is unreachable along this fixed ray at all; per the model, the
+// position is then left unchanged — same silent no-op posture the coincident-centres case
+// already took.
+//
+// ONE END OF THE PAIR MOVES, AND IT IS ALWAYS Node2. Node1 is the ANCHOR: it reports its
+// own tilt index like any pair member, but it never repositions itself for one. The first
+// version of this had no anchor — both movers ran this on their own index — and both ends
+// chased a distance from a partner that was itself moving, each recomputing the direction
+// live. The pair drifted, and because each end aims AWAY from wherever the other happens to
+// be at that instant, Node2 could cross to the far side of Node1. Pinning Node1 makes the
+// pair's geometry stable, so Node2 only ever changes its OWN distance and stays on the ray
+// it loaded on. This IS a kind check, deliberately: "which end is fixed" is not derivable
+// from the pair's shape — both members are the target of one of the two bead edges (1To2
+// and 2To1), so edge direction cannot name an anchor either.
+//
+// Reached only for a pair member, by construction: moveMsgKindTiltIndexSync
 // is only ever sent by a kind that owns its own tilt index (Node1/Node2 today — see that
-// message kind's own doc comment), so this only ever runs for a pair member. A node with
+// message kind's own doc comment). A node with
 // zero or more than one direct partner (not the pair shape) is left alone: with no unique
 // partner there is no single distance to set. Reuses the SAME owner-goroutine commit path
-// as a drag (m.commitLocal, bound in build.go to MoveDispatch.commitNodeMoveLocal) — no
-// new position or commit path, no worklist, no coordinator (memory/
-// project_lock_propagation_decentralized.md: a node writes only itself).
+// as a drag (m.commitLocal, bound in build.go to MoveDispatch.commitNodeMoveLocal) — the
+// new world centre is derived from the updated offset via the SAME forward path
+// (offsetScenePolar + polar2cart + m.geom.SceneCenter) deriveCenters uses, not a second
+// copy of that formula — no new position or commit path, no worklist, no coordinator
+// (memory/project_lock_propagation_decentralized.md: a node writes only itself).
 func (m *nodeMover) repositionForTiltIndex(thetaIdx int32) {
+	if m.selfKind != "Node2" {
+		return
+	}
 	if m.commitLocal == nil || len(m.partnerCenters) != 1 {
 		return
 	}
@@ -637,23 +674,54 @@ func (m *nodeMover) repositionForTiltIndex(thetaIdx int32) {
 	for id, c := range m.partnerCenters {
 		partnerID, partnerCenter = id, c
 	}
-	selfCenter := nodeWorldPos(m.geom)
-	// Direction from the partner's centre toward THIS node's own current centre — i.e.
-	// self moved AWAY from partner along the live edge direction. edgeCenterDistAndDir
-	// returns ok==false when the two centres coincide (zero length, undefined direction);
-	// per the model, leave the position unchanged in that case rather than picking an
-	// arbitrary direction.
-	_, awayDir, ok := edgeCenterDistAndDir(partnerCenter, selfCenter)
+	newOffset, ok := solveTiltIndexROffset(m.quantOffset, m.geom.SceneCenter, partnerCenter, thetaIdx, m.selfKind, m.neighborKinds[partnerID])
 	if !ok {
 		return
 	}
+	newPolar := offsetScenePolar(newOffset)
+	newPos := m.geom.SceneCenter.Add(polar2cart(newPolar))
+	m.commitLocal(m.id, newPos)
+}
+
+// solveTiltIndexROffset is the pure helper behind repositionForTiltIndex: given this
+// node's CURRENT quantized offset (its fixed iTheta/iPhi ray plus its own effective step
+// constants), the scene centre, the partner's world centre, the reported tilt index, and
+// both kinds' torus-step counts, returns the offset with ONLY iR changed to the integer
+// nearest the radius that puts this node at distance D from the partner along its own
+// fixed ray — see repositionForTiltIndex's doc comment for the derivation. ok is false when
+// D is unreachable along this ray (negative discriminant); the input offset is returned
+// unchanged in that case, but callers must check ok rather than using it.
+func solveTiltIndexROffset(offset quantizedOffset, sceneCenter, partnerCenter vec3, thetaIdx int32, selfKind, partnerKind string) (quantizedOffset, bool) {
 	idx := thetaIdx
 	if idx < 0 {
 		idx = -idx
 	}
-	steps := int(idx) + nodeTorusSteps(m.selfKind) + nodeTorusSteps(m.neighborKinds[partnerID])
-	newPos := partnerCenter.Add(awayDir.Scale(float64(steps) * wire.BeadStepR))
-	m.commitLocal(m.id, newPos)
+	steps := int(idx) + nodeTorusSteps(selfKind) + nodeTorusSteps(partnerKind)
+	D := float64(steps) * wire.BeadStepR
+
+	_, _, rStep := offset.effectiveSteps()
+	// u: this node's own unit direction from the scene centre, fixed by its own
+	// (unchanged) iTheta/iPhi — radius 1 along the same ray offsetScenePolar would place
+	// this node's actual radius on.
+	rayPolar := offsetScenePolar(offset)
+	rayPolar.R = 1
+	u := polar2cart(rayPolar)
+	c := partnerCenter.Sub(sceneCenter)
+	uDotC := u.Dot(c)
+	disc := uDotC*uDotC - c.Dot(c) + D*D
+	if disc < 0 {
+		return offset, false
+	}
+	sq := math.Sqrt(disc)
+	r1 := uDotC + sq
+	r2 := uDotC - sq
+	currentR := float64(offset.iR) * rStep
+	chosen := r1
+	if math.Abs(r2-currentR) < math.Abs(r1-currentR) {
+		chosen = r2
+	}
+	offset.iR = int(math.Round(chosen / rStep))
+	return offset, true
 }
 
 // applyCenter is the SOLE WRITE of this node's center/reach. It is called ONLY from
