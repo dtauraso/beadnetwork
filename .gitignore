@@ -124,3 +124,20 @@ tools/topology-vscode/gen-node-defs
 # Python bytecode from the delegation hooks (scripts/*.py).
 __pycache__/
 *.pyc
+
+# LIVE SCENE STATE, written continuously by the running sim — untracked on purpose.
+#
+# Go persists these as you use the editor: each node's own mover writes its position (and
+# its vector's angle indices) to nodes/<id>/position.json, and the view-owner goroutine
+# writes the camera pose, overlay flags, scene sphere and selected tab under view/. They are
+# rewritten while you drag, orbit, or toggle anything.
+#
+# Tracked, they made every branch switch collide with whatever the sim had just written, and
+# the way that got unblocked was `git checkout --` on exactly these paths — which threw away
+# real work (node reorientations and overlay choices, more than once).
+#
+# The authored seed lives in each node's meta.json, so a fresh clone still loads a laid-out
+# scene; what it does not inherit is one person's camera, toggles and hand-nudged positions,
+# which is the correct split.
+topology*/view/*.json
+topology*/nodes/*/position.json
