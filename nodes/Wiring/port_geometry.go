@@ -383,3 +383,30 @@ func nodeIDLess(a, b string) bool {
 	}
 	return a < b
 }
+
+// poleContainingEdge returns the ring axis closest to the given pole whose PLANE contains
+// the edge from selfCenter to partnerCenter — the pole with its along-the-edge component
+// projected out.
+//
+// A ring's plane is everything perpendicular to its axis, so "the edge lies in the plane"
+// is exactly "the axis is perpendicular to the edge". Removing the component along the edge
+// is the minimal rotation achieving that: it keeps as much of the original inward pole as
+// the constraint allows, rather than picking an unrelated perpendicular.
+//
+// Not resolvable when the two centres coincide (no edge direction) or when the pole is
+// PARALLEL to the edge — there the projection vanishes and every perpendicular is equally
+// good, so the caller keeps the pole it had rather than this function inventing one.
+func poleContainingEdge(poleTheta, polePhi float64, selfCenter, partnerCenter vec3) (theta, phi float64, ok bool) {
+	delta := partnerCenter.Sub(selfCenter)
+	if delta.Length() < 1e-9 {
+		return 0, 0, false
+	}
+	dir := delta.Normalize()
+	pole := anglesToWorldOffset(1, poleTheta, polePhi)
+	projected := pole.Sub(dir.Scale(pole.Dot(dir)))
+	if projected.Length() < 1e-6 {
+		return 0, 0, false
+	}
+	u := projected.Normalize()
+	return math.Acos(clamp(u.Y, -1, 1)), math.Atan2(u.Z, u.X), true
+}

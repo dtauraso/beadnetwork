@@ -290,6 +290,10 @@ type nodeMover struct {
 	// edge set, on the single-threaded setup path, and read only by this node's own
 	// goroutine afterwards — a load-time fact, not shared state.
 	mutualTargets map[string]bool
+	// coplanarEdges: this node's ring plane must CONTAIN the edge leaving it, so the chain
+	// and both tori share one plane (scene_tabs.go's CoplanarEdges). Set once at
+	// construction from the loaded scene; read only by this node's own goroutine.
+	coplanarEdges bool
 	// nodeRowFor resolves a node id to its buffer NODE-ROW index (mirroring the old
 	// central accumulator's NodeRowFor), injected via MoveDispatch.SetNodeStreams so this
 	// package stays Buffer-independent. Used to resolve this node's own cascadeEdges dst
@@ -574,6 +578,19 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 	var poleTheta, polePhi float64
 	if m.geom.HasPos {
 		poleTheta, polePhi = inwardPole(m.geom.ScenePolar)
+		// COPLANAR EDGES: swing the pole off the inward direction by the smallest amount
+		// that puts the edge INSIDE the ring plane — the inward pole with its
+		// along-the-edge component removed. The chain, this node's torus and the beads'
+		// own tori then share one plane, instead of the chain running through the holes.
+		// Only for a node with exactly ONE neighbour: two non-collinear edges have no
+		// common plane, so a node with more keeps the plain inward pole.
+		if m.coplanarEdges && len(m.partnerCenters) == 1 {
+			for _, partner := range m.partnerCenters {
+				if t, p, ok := poleContainingEdge(poleTheta, polePhi, nodeWorldPos(m.geom), partner); ok {
+					poleTheta, polePhi = t, p
+				}
+			}
+		}
 	}
 	label := m.geom.Label
 	if label == "" {

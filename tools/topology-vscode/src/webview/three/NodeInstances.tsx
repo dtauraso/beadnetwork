@@ -22,6 +22,8 @@ import {
   SHADING_PARAM_RING_ROUGHNESS,
 } from "../../schema/shading-params";
 import {
+  readNodePoleTheta,
+  readNodePolePhi,
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius,
   readOverlaySelSpherePoles,
 } from "../../schema/buffer-layout";
@@ -33,6 +35,10 @@ import {
 import { computeNodeDepthOrder, setNodeDrawOrder } from "./node-depth-order";
 import { createTransparentEdgeTrigger, applyTransparentEdgeTriggered } from "./material-transparent-edge-trigger";
 import { polarVectorsGated } from "./overlay-flags";
+
+// A three.js torusGeometry lies in the XY plane, so its own normal is +Z. Orienting a ring
+// means rotating THIS onto the axis Go streams for that node.
+const TORUS_DEFAULT_NORMAL = new THREE.Vector3(0, 0, 1);
 
 export function NodeInstances({ capacity }: { capacity: number }) {
   const envTex = useContext(EnvTexContext);
@@ -49,6 +55,8 @@ export function NodeInstances({ capacity }: { capacity: number }) {
   const matRef  = useRef(new THREE.Matrix4());
   const posRef  = useRef(new THREE.Vector3());
   const quatRef = useRef(new THREE.Quaternion());
+  const ringQuatRef = useRef(new THREE.Quaternion());
+  const ringAxisRef = useRef(new THREE.Vector3());
   const sclRef  = useRef(new THREE.Vector3());
   const colRef  = useRef(new THREE.Color());
 
@@ -82,7 +90,14 @@ export function NodeInstances({ capacity }: { capacity: number }) {
     }
 
     const n = Math.min(nodeCount, capacity);
-    const q = quatRef.current; // identity (no per-node rotation)
+    // A node's ring is oriented by the AXIS Go streams for it (PoleTheta/PolePhi), not left
+    // at identity. A torusGeometry lies in the XY plane with its normal along +Z, so an
+    // unrotated ring sits in the world XY plane wherever the node is and whatever its frame
+    // — which is why an edge could run straight through the hole instead of lying in the
+    // plane. Same setFromUnitVectors pattern SphereRings.tsx already uses for the scene
+    // rings; the axis itself is Go's (nodes/Wiring's inwardPole, projected perpendicular to
+    // the edge in a scene that asks for coplanar edges).
+    const q = quatRef.current;
     // Depth-sort node rows back-to-front against the live camera THIS frame, in the SAME
     // useFrame that writes the instance matrices — that's what keeps a moved node's new
     // position and its new draw order landing on the same frame (the TIMING CONTRACT this
@@ -97,6 +112,7 @@ export function NodeInstances({ capacity }: { capacity: number }) {
       camera.position.x, camera.position.y, camera.position.z,
     );
     setNodeDrawOrder(order);
+    const ringAxis = ringAxisRef.current;
     for (let slot = 0; slot < n; slot++) {
       const row = order[slot]!;
       const r = readNodeRadius(nodeView, row) || NODE_SPHERE_RADIUS;
@@ -113,6 +129,18 @@ export function NodeInstances({ capacity }: { capacity: number }) {
       // is baked into the geometry as a fraction of that radius (NODE_RING_TUBE_RATIO).
       // Written at the SAME drawSlot as the body above, so the ring never separates from
       // its node's body once the draw order departs from row order.
+      // Ring orientation: rotate the torus's own +Z normal onto the axis Go streams for
+      // this node. The BODY stays unrotated (a sphere has no orientation to get wrong), so
+      // this is composed separately rather than reusing the body's matrix.
+      ringAxis.set(0, 1, 0);
+      const poleTheta = readNodePoleTheta(nodeView, row);
+      const polePhi = readNodePolePhi(nodeView, row);
+      if (poleTheta !== 0 || polePhi !== 0) {
+        const st = Math.sin(poleTheta);
+        ringAxis.set(st * Math.cos(polePhi), Math.cos(poleTheta), st * Math.sin(polePhi));
+      }
+      ringQuatRef.current.setFromUnitVectors(TORUS_DEFAULT_NORMAL, ringAxis);
+      matRef.current.compose(posRef.current, ringQuatRef.current, sclRef.current);
       ring.setMatrixAt(slot, matRef.current);
       // Invisible pick-proxy: identical transform to the visible ring, just a thicker
       // raycast target (see RING_PICK_TUBE_RATIO comment). Same drawSlot for the same reason.

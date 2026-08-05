@@ -69,14 +69,27 @@ type SceneTab struct {
 	// mechanism reading as live; that is a model decision, not a cleanup, so it is named
 	// here rather than taken.
 	QuantizedDrag bool
+	// CoplanarEdges makes a node's RING PLANE contain the edge leaving it, so the bead
+	// chain, the node's torus and the beads' own tori all lie in ONE plane instead of the
+	// chain running through the tori's holes.
+	//
+	// The ring's axis is normally the node's INWARD pole (toward the scene centre), which
+	// says nothing about where its neighbour is — so an edge lies in that plane only by
+	// coincidence. With this on, the pole is projected PERPENDICULAR to the edge: the
+	// closest axis to the inward one whose plane still contains the edge.
+	//
+	// Only meaningful for a node with ONE neighbour. No single plane contains two edges
+	// that are not collinear, so a node with more keeps its inward pole and this is inert
+	// — which is why it is a per-scene choice rather than a global rule.
+	CoplanarEdges bool
 }
 
 // SceneTabs is the tab strip, in display order. Index 0 is the DEFAULT: its Dir must be
 // the anchor's own basename, since that is the path the extension host launches with and
 // sizes its stream fds from (see AnchorIsTabbed).
 var SceneTabs = []SceneTab{
-	{Name: "ring", Dir: "topology", QuantizedDrag: false},
-	{Name: "pair", Dir: "topology-pair", QuantizedDrag: false},
+	{Name: "ring", Dir: "topology", QuantizedDrag: false, CoplanarEdges: false},
+	{Name: "pair", Dir: "topology-pair", QuantizedDrag: false, CoplanarEdges: true},
 }
 
 // sceneSelectionFile is the persisted selection, held at the ANCHOR (never inside a scene).
@@ -196,4 +209,17 @@ func SceneUsesQuantizedDrag(scenePath string) bool {
 		}
 	}
 	return true
+}
+
+// SceneWantsCoplanarEdges answers, for the tree being LOADED, whether a node's ring plane
+// must contain the edge leaving it (SceneTab.CoplanarEdges). Unknown trees keep the plain
+// inward pole, which is what every scene had before this was a choice.
+func SceneWantsCoplanarEdges(scenePath string) bool {
+	base := filepath.Base(filepath.Clean(scenePath))
+	for _, t := range SceneTabs {
+		if t.Dir == base {
+			return t.CoplanarEdges
+		}
+	}
+	return false
 }

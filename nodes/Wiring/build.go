@@ -240,6 +240,13 @@ func (b *buildCtx) buildMoveDispatch() error {
 	// PER SCENE, not always-on (scene_tabs.go's QuantizedDrag): a bead-distance step is
 	// invisible in a scene that is large against it and dominant in one that is not.
 	md.lq.quantizedLayout = SceneUsesQuantizedDrag(b.scenePath)
+	// Per scene as well (scene_tabs.go's CoplanarEdges): each node's own copy, set here on
+	// the single-threaded build path, read afterwards only by that node's own goroutine.
+	if SceneWantsCoplanarEdges(b.scenePath) {
+		for _, nm := range md.mr.nodeMovers {
+			nm.coplanarEdges = true
+		}
+	}
 	for id, off := range b.quantizedOffsets {
 		if nm, ok := md.mr.nodeMovers[id]; ok {
 			nm.quantOffset = off

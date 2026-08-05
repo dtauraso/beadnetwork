@@ -30,6 +30,8 @@ import {
   type DecodedNodeStreamFrame,
 } from "./buffer-decode";
 import {
+  readNodePoleTheta,
+  readNodePolePhi,
   NODE_STRIDE, INTERIOR_STRIDE, INTERIOR_SLOTS_PER_NODE,
   NODE_COL_LABEL_OFF, NODE_COL_LABEL_LEN,
   LAYOUT_LINK_STRIDE, LAYOUT_LINK_COL_SRC_NODE_ROW, LAYOUT_LINK_COL_DST_NODE_ROW,
@@ -229,6 +231,9 @@ function buildAggregate(
  *  picture of the node-to-node channels, and its length is not a count of messages: a chain
  *  sits fully populated with nothing traversing it. */
 export interface ChainBeadsAgg {
+  /** Per bead: the ring axis of the node it belongs to (xyz), so its torus lies in that
+   *  node's ring plane instead of the world XY plane. */
+  ringAxis: Float32Array;
   /** World-space bead centers, flat [x,y,z, x,y,z, …], every node's chains concatenated. */
   positions: Float32Array;
   /** Number of beads (positions.length / 3). */
@@ -278,6 +283,11 @@ export function getChainBeads(): ChainBeadsAgg {
     total += decoded.chainBeadCount;
   }
   const positions = new Float32Array(total * 3);
+  // The ring AXIS of the node each bead belongs to, one xyz per bead. A bead's torus must
+  // lie in the same plane as its node's, which means sharing that node's axis — and a bead
+  // does not know its own node once these arrays are flattened, so the axis is carried
+  // alongside rather than looked up later.
+  const ringAxis = new Float32Array(total * 3);
   const lit = new Uint8Array(total);
   const litValue = new Int32Array(total);
   const tween = new Uint8Array(total);
@@ -289,7 +299,18 @@ export function getChainBeads(): ChainBeadsAgg {
     const cx = readNodeCX(decoded.nodeView, 0);
     const cy = readNodeCY(decoded.nodeView, 0);
     const cz = readNodeCZ(decoded.nodeView, 0);
+    // This node's own ring axis, decoded once per node and copied onto each of its beads.
+    // (0,0) is the "no position yet" value Go streams, which means world +y.
+    const poleTheta = readNodePoleTheta(decoded.nodeView, 0);
+    const polePhi = readNodePolePhi(decoded.nodeView, 0);
+    const st = Math.sin(poleTheta);
+    const ax = poleTheta === 0 && polePhi === 0 ? 0 : st * Math.cos(polePhi);
+    const ay = poleTheta === 0 && polePhi === 0 ? 1 : Math.cos(poleTheta);
+    const az = poleTheta === 0 && polePhi === 0 ? 0 : st * Math.sin(polePhi);
     for (let i = 0; i < decoded.chainBeadCount; i++) {
+      ringAxis[w] = ax;
+      ringAxis[w + 1] = ay;
+      ringAxis[w + 2] = az;
       positions[w++] = cx + readChainBeadOX(decoded.chainBeadView, i);
       positions[w++] = cy + readChainBeadOY(decoded.chainBeadView, i);
       positions[w++] = cz + readChainBeadOZ(decoded.chainBeadView, i);
@@ -299,6 +320,6 @@ export function getChainBeads(): ChainBeadsAgg {
     }
   }
   lastChainVersion = nv;
-  lastChainAgg = { positions, count: total, lit, litValue, tween };
+  lastChainAgg = { positions, ringAxis, count: total, lit, litValue, tween };
   return lastChainAgg;
 }

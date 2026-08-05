@@ -55,6 +55,12 @@ const RING_COLOR = beadStyleForValue(1)!.ring;
 // ShadingParamChainBeadFill), and adding the tube's blue emissive on top of a pale cyan base
 // would drag it back toward the blue it is meant to differ from.
 
+// A three.js torusGeometry lies in the XY plane, so its own normal is +Z; orienting a bead
+// ring means rotating THIS onto the axis its node streams. The bead geometry is authored at
+// its true radius (see this file's header), so the scale stays unit.
+const TORUS_DEFAULT_NORMAL = new THREE.Vector3(0, 0, 1);
+const BEAD_UNIT_SCALE = new THREE.Vector3(1, 1, 1);
+
 export function ChainBeadInstances({ capacity }: { capacity: number }) {
   const unlitBodyRef = useRef<THREE.InstancedMesh>(null);
   const litBodyRef = useRef<THREE.InstancedMesh>(null);
@@ -77,6 +83,10 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
   const litTransparentTrigger = useRef(createTransparentEdgeTrigger());
   const ringTransparentTrigger = useRef(createTransparentEdgeTrigger());
   const matRef = useRef(new THREE.Matrix4());
+  const beadRingMatRef = useRef(new THREE.Matrix4());
+  const beadQuatRef = useRef(new THREE.Quaternion());
+  const beadAxisRef = useRef(new THREE.Vector3());
+  const beadPosRef = useRef(new THREE.Vector3());
   const colRef = useRef(new THREE.Color());
 
   useFrame(() => {
@@ -109,7 +119,7 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
       tweenMatRef.current.opacity = SHADING_PARAM_TWEEN_BEAD_OPACITY;
     }
 
-    const { positions, count, lit, litValue, tween } = getChainBeads();
+    const { positions, ringAxis, count, lit, litValue, tween } = getChainBeads();
     // Clamp to the allocated instance count. buffer-scene.tsx's capacity-growth table grows
     // chainBeadCap off this same count, so a clamp lasts one frame at most — but it is still a
     // clamp, and it is why this block has its OWN row in that table rather than borrowing
@@ -140,7 +150,19 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
         continue;
       }
 
-      ring.setMatrixAt(ringCount, matRef.current);
+      // A bead's RING is oriented into its node's ring plane, so the chain, the node's
+      // torus and the beads' tori all lie in ONE plane. Without this the torus keeps its
+      // own +Z normal and every bead ring sits in the world XY plane, which is what made a
+      // chain appear to run through the tori rather than along them. The BODY is a sphere
+      // and needs no orientation, so it keeps the plain translation above.
+      beadAxisRef.current.set(ringAxis[i * 3]!, ringAxis[i * 3 + 1]!, ringAxis[i * 3 + 2]!);
+      beadQuatRef.current.setFromUnitVectors(TORUS_DEFAULT_NORMAL, beadAxisRef.current);
+      beadRingMatRef.current.compose(
+        beadPosRef.current.set(positions[i * 3]!, positions[i * 3 + 1]!, positions[i * 3 + 2]!),
+        beadQuatRef.current,
+        BEAD_UNIT_SCALE,
+      );
+      ring.setMatrixAt(ringCount, beadRingMatRef.current);
       ring.setColorAt(ringCount, colRef.current.set(RING_COLOR));
       ringCount++;
 
