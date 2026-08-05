@@ -62,6 +62,8 @@ func TestSetNodeRow(t *testing.T) {
 		//           navigation pole above (Buffer/layout.go)
 		1.3, 1.7, // tiltVectorTheta, tiltVectorPhi — the vector's OWN direction
 		0.55, -0.35, // coplanarNormalTheta, coplanarNormalPhi — a quarter turn from it, in the ring plane
+		4.5, 0.15, -0.85, // receivedVectorLen, receivedVectorTheta, receivedVectorPhi — the THIRD
+		//           vector: the direction last received on this node's vector channel; 0 length = none yet
 		1,    // selected
 		3,    // kindID (Input = index 3 in NODE_DEFS_ARRAY)
 		7, 4, // labelOff, labelLen
@@ -90,6 +92,9 @@ func TestSetNodeRow(t *testing.T) {
 	assertF32At(t, buf, BufNodeColTiltVectorPhi, 1.7, "TiltVectorPhi")
 	assertF32At(t, buf, BufNodeColCoplanarNormalTheta, 0.55, "CoplanarNormalTheta")
 	assertF32At(t, buf, BufNodeColCoplanarNormalPhi, -0.35, "CoplanarNormalPhi")
+	assertF32At(t, buf, BufNodeColReceivedVectorLen, 4.5, "ReceivedVectorLen")
+	assertF32At(t, buf, BufNodeColReceivedVectorTheta, 0.15, "ReceivedVectorTheta")
+	assertF32At(t, buf, BufNodeColReceivedVectorPhi, -0.85, "ReceivedVectorPhi")
 	assertU8At(t, buf, BufNodeColSelected, 1, "Selected")
 	assertU8At(t, buf, BufNodeColKindId, 3, "KindId")
 	assertU32At(t, buf, BufNodeColLabelOff, 7, "LabelOff")
@@ -165,8 +170,10 @@ func TestNodeStrideIsPackedSize(t *testing.T) {
 	//           + 2×f32 (coplanarNormalTheta/coplanarNormalPhi — the SECOND vector, a quarter turn away)
 	//           + 2×f32 (tiltVectorTheta/tiltVectorPhi — the vector's OWN direction, separate
 	//             from the drawn ring axis)
-	//           = 4 + (5+6+2+2+1+2)×4 + 1 + 1 + 8 + 1 + 1 = 88
-	want := 1*4 + 5*4 + 6*4 + 2*4 + 2*4 + 1*4 + 2*4 + 2*4 + 1*1 + 1*1 + 2*4 + 1*1 + 1*1
+	//           + 3×f32 (receivedVectorLen/theta/phi — the THIRD vector: the direction last
+	//             received on this node's vector channel; 0 length = nothing received yet)
+	//           = 4 + (5+6+2+2+1+2+3)×4 + 1 + 1 + 8 + 1 + 1 = 100
+	want := 1*4 + 5*4 + 6*4 + 2*4 + 2*4 + 1*4 + 2*4 + 2*4 + 3*4 + 1*1 + 1*1 + 2*4 + 1*1 + 1*1
 	if BufNodeStride != want {
 		t.Errorf("BufNodeStride = %d, want %d (packed size)", BufNodeStride, want)
 	}

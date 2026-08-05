@@ -79,6 +79,23 @@ type Node struct {
 	// loader — both helpers already treat nil as "nothing wired".
 	VectorOut chan<- Wiring.TiltVectorMsg
 	VectorIn  <-chan Wiring.TiltVectorMsg
+	// ReceivedThetaIdx/ReceivedPhiIdx/ReceivedSet are THIS node's own record of the LAST
+	// direction that ARRIVED on VectorIn — the third drawn arrow (user request: "show a
+	// 3rd vector...the last iteration of it as a different color in the node that
+	// received it"). Written ONLY by this goroutine, in handleVectorCycle below: an
+	// arrival REPLACES whatever was here before (never accumulates), and it persists
+	// indefinitely otherwise — it is NOT cleared when the straightening exchange settles.
+	// It IS cleared by a RESET, both this node's own (applyTiltEdit's Reset branch) and a
+	// Reset marker arriving on VectorIn (handleVectorCycle's Reset branch): a reset is a
+	// stop-and-return, and a stale received arrow left hanging would contradict that.
+	// Reported one-way to this node's own mover via SyncReceivedVector, same shape as
+	// TiltThetaIdx/SyncTiltIndex above.
+	ReceivedThetaIdx, ReceivedPhiIdx int32
+	ReceivedSet                      bool
+	// SyncReceivedVector notifies this node's own mover of the current
+	// ReceivedThetaIdx/PhiIdx/Set — one-way, fire-and-forget, never an ack
+	// (BuildArgs.SyncReceivedVector).
+	SyncReceivedVector func(theta, phi int32, set bool)
 }
 
 func (n *Node) clock() wire.Clock {
@@ -123,6 +140,13 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 	if edit.Reset {
 		n.TiltThetaIdx = 0
 		n.TiltPhiIdx = 0
+		// A reset is a stop-and-return: clear this node's own record of the last
+		// received direction too (the third drawn arrow), same as its tilt/normal —
+		// leaving a stale received arrow hanging would contradict the reset.
+		n.ReceivedThetaIdx = 0
+		n.ReceivedPhiIdx = 0
+		n.ReceivedSet = false
+		n.syncReceivedVector()
 		// Drain any value already sitting on VectorIn, non-blocking, on THIS node's own
 		// goroutine — the goroutine that owns the receive end (never from another
 		// goroutine). Without this, a vector in flight when RESET was pressed would
@@ -181,6 +205,16 @@ func (n *Node) syncTiltIndex() {
 	n.SyncTiltIndex(n.TiltThetaIdx, n.TiltPhiIdx, norm.ThetaIdx, norm.PhiIdx)
 }
 
+// syncReceivedVector reports THIS node's current received-vector state (ReceivedThetaIdx/
+// PhiIdx/Set) to this node's own mover — the third-arrow twin of syncTiltIndex. Called by
+// every site that changes those fields, below. nil-safe, same as syncTiltIndex.
+func (n *Node) syncReceivedVector() {
+	if n.SyncReceivedVector == nil {
+		return
+	}
+	n.SyncReceivedVector(n.ReceivedThetaIdx, n.ReceivedPhiIdx, n.ReceivedSet)
+}
+
 // outgoingVector is what THIS node SENDS on VectorOut: its own coplanarNormal rotated
 // 180° in θ. Node2 turns +180° (+12 steps of π/12); Node1 (its mirror package) turns
 // −180° (−12 steps) — index arithmetic, never radians. φ is untouched.
@@ -217,13 +251,36 @@ func (n *Node) handleVectorCycle() {
 	}
 	// A RESET marker is not a direction to act on: zero this node's own tilt to match its
 	// partner and REPLY WITH NOTHING. Replying would bounce the reset back and forth
-	// forever; the marker's job is to stop the exchange, so it ends here.
+	// forever; the marker's job is to stop the exchange, so it ends here. Same
+	// stop-and-return reasoning as applyTiltEdit's Reset branch: clear the third drawn
+	// arrow (the last-received direction) too, rather than leaving it hanging.
 	if received.Reset {
 		n.TiltThetaIdx = 0
 		n.TiltPhiIdx = 0
 		n.syncTiltIndex()
+		n.ReceivedThetaIdx = 0
+		n.ReceivedPhiIdx = 0
+		n.ReceivedSet = false
+		n.syncReceivedVector()
 		return
 	}
+	// A real direction. It is drawn only while the exchange is RUNNING: it replaces
+	// whatever was last received, and vanishes the moment the exchange stops — which is
+	// this node reaching the perpendicular index, where it steps nothing and sends nothing.
+	// So an arrival that finds this node already perpendicular clears the third arrow
+	// instead of showing itself: the drawing stops with the exchange rather than leaving
+	// its last frame on screen.
+	if n.TiltThetaIdx == Wiring.PerpendicularThetaIdx {
+		n.ReceivedThetaIdx = 0
+		n.ReceivedPhiIdx = 0
+		n.ReceivedSet = false
+		n.syncReceivedVector()
+		return
+	}
+	n.ReceivedThetaIdx = received.ThetaIdx
+	n.ReceivedPhiIdx = received.PhiIdx
+	n.ReceivedSet = true
+	n.syncReceivedVector()
 	if !n.stepTowardPerpendicularFromVector(received) {
 		return
 	}
@@ -307,6 +364,7 @@ func init() {
 			n.TiltThetaIdx, n.TiltPhiIdx = a.TiltVectorAngleSeed()
 			n.TiltEditIn = a.TiltEditIn()
 			n.SyncTiltIndex = a.SyncTiltIndex()
+			n.SyncReceivedVector = a.SyncReceivedVector()
 			n.VectorOut = a.VectorOut()
 			n.VectorIn = a.VectorIn()
 			// EmitGeometry stays nil deliberately — nodeMover/edgeMover emit the

@@ -213,6 +213,26 @@ func (a BuildArgs) SyncTiltIndex() func(theta, phi, normalTheta, normalPhi int32
 	}
 }
 
+// SyncReceivedVector returns a closure that notifies THIS node's own MOVER goroutine of
+// the direction that last arrived on this node's vector channel — the received-vector
+// twin of SyncTiltIndex, same one-way, fire-and-forget shape. A kind that owns its own
+// vector channel (Node1/Node2) calls this on every arrival (set=true, replacing whatever
+// was there before) and on every reset, local or received (set=false, clearing it) — see
+// moveMsgKindReceivedVectorSync's doc comment. nil-safe: a.pb.md is nil on a bare test
+// build with no loader, in which case this is a no-op, same fallback every other closure
+// here takes.
+func (a BuildArgs) SyncReceivedVector() func(theta, phi int32, set bool) {
+	md := a.pb.md
+	name := a.name
+	return func(theta, phi int32, set bool) {
+		if md == nil {
+			return
+		}
+		md.sendMove(name, moveMsg{Kind: moveMsgKindReceivedVectorSync, NodeID: name,
+			ReceivedVectorThetaIdx: theta, ReceivedVectorPhiIdx: phi, ReceivedVectorSet: set})
+	}
+}
+
 // VectorOut returns this node's own SEND end of its dedicated tilt-vector channel
 // (tilt_vector_channel.go) — the buffered-1, latest-wins, non-blocking channel
 // carrying a TiltVectorMsg alongside the ordinary bead edge, wired only when this

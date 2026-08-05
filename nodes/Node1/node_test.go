@@ -200,3 +200,96 @@ func TestReceivedResetZeroesAndDoesNotReply(t *testing.T) {
 		t.Fatalf("a received reset must not be replied to; got %+v", v)
 	}
 }
+
+// handleVectorCycle stores the received direction as this node's own third drawn vector
+// — asserted at the decision method itself (docs/testing-shape.md), never by observing a
+// mover or a second goroutine. Perpendicular so stepTilt itself does not fire; the record
+// must still happen (the third arrow shows the last ARRIVAL, not the last arrival that
+// moved something). It shows only while the exchange is RUNNING.
+func TestHandleVectorCycleRecordsReceivedDirection(t *testing.T) {
+	in := make(chan Wiring.TiltVectorMsg, 1)
+	// MID-exchange: not at the perpendicular index, where an arrival would instead clear
+	// the third arrow because the exchange has stopped.
+	n := &Node{TiltThetaIdx: 2, VectorIn: in}
+
+	in <- Wiring.TiltVectorMsg{ThetaIdx: 7, PhiIdx: -4}
+	n.handleVectorCycle()
+
+	if !n.ReceivedSet {
+		t.Fatal("an arrival must set ReceivedSet, got false")
+	}
+	if n.ReceivedThetaIdx != 7 || n.ReceivedPhiIdx != -4 {
+		t.Fatalf("want recorded theta=7 phi=-4, got theta=%d phi=%d", n.ReceivedThetaIdx, n.ReceivedPhiIdx)
+	}
+}
+
+// A second arrival REPLACES the first, never accumulates.
+func TestHandleVectorCycleReplacesPreviousReceivedDirection(t *testing.T) {
+	in := make(chan Wiring.TiltVectorMsg, 1)
+	// MID-exchange, so both arrivals are recorded rather than clearing (see above).
+	n := &Node{TiltThetaIdx: 2, VectorIn: in}
+
+	in <- Wiring.TiltVectorMsg{ThetaIdx: 7, PhiIdx: -4}
+	n.handleVectorCycle()
+	in <- Wiring.TiltVectorMsg{ThetaIdx: -2, PhiIdx: 11}
+	n.handleVectorCycle()
+
+	if n.ReceivedThetaIdx != -2 || n.ReceivedPhiIdx != 11 {
+		t.Fatalf("want the LATEST arrival theta=-2 phi=11, got theta=%d phi=%d", n.ReceivedThetaIdx, n.ReceivedPhiIdx)
+	}
+	if !n.ReceivedSet {
+		t.Fatal("ReceivedSet must stay true across a replace")
+	}
+}
+
+// The third arrow is drawn only while the exchange is RUNNING. An arrival that finds this
+// node already at the perpendicular index — where it steps nothing and sends nothing, which
+// IS the exchange stopping — clears it instead of showing itself. The drawing stops with the
+// exchange rather than leaving its last frame on screen.
+func TestReceivedVectorVanishesWhenTheExchangeStops(t *testing.T) {
+	n := &Node{TiltThetaIdx: Wiring.PerpendicularThetaIdx, ReceivedThetaIdx: 4, ReceivedPhiIdx: 1, ReceivedSet: true}
+	in := make(chan Wiring.TiltVectorMsg, 1)
+	n.VectorIn = in
+	in <- Wiring.TiltVectorMsg{ThetaIdx: 7, PhiIdx: 2}
+
+	n.handleVectorCycle()
+
+	if n.ReceivedSet || n.ReceivedThetaIdx != 0 || n.ReceivedPhiIdx != 0 {
+		t.Fatalf("at perpendicular the third arrow must vanish; got set=%v theta=%d phi=%d",
+			n.ReceivedSet, n.ReceivedThetaIdx, n.ReceivedPhiIdx)
+	}
+}
+
+// This node's own LOCAL reset (applyTiltEdit's Reset branch) clears the received-vector
+// record too — a stale received arrow left hanging would contradict the reset.
+func TestApplyTiltEditResetClearsReceivedVector(t *testing.T) {
+	n := &Node{TiltThetaIdx: 5, ReceivedThetaIdx: 9, ReceivedPhiIdx: -1, ReceivedSet: true}
+	n.applyTiltEdit(Wiring.TiltEditMsg{Reset: true})
+
+	if n.ReceivedSet {
+		t.Fatal("local reset must clear ReceivedSet, got true")
+	}
+	if n.ReceivedThetaIdx != 0 || n.ReceivedPhiIdx != 0 {
+		t.Fatalf("local reset must zero the received indices; got theta=%d phi=%d", n.ReceivedThetaIdx, n.ReceivedPhiIdx)
+	}
+}
+
+// A Reset marker ARRIVING on the channel clears the received-vector record too, same as
+// the local reset — verified alongside TestReceivedResetZeroesAndDoesNotReply's existing
+// tilt-index assertion.
+func TestHandleVectorCycleReceivedResetClearsReceivedVector(t *testing.T) {
+	out := make(chan Wiring.TiltVectorMsg, 1)
+	in := make(chan Wiring.TiltVectorMsg, 1)
+	n := &Node{TiltThetaIdx: 5, VectorOut: out, VectorIn: in,
+		ReceivedThetaIdx: 9, ReceivedPhiIdx: -1, ReceivedSet: true}
+
+	in <- Wiring.TiltVectorMsg{Reset: true}
+	n.handleVectorCycle()
+
+	if n.ReceivedSet {
+		t.Fatal("a received reset must clear ReceivedSet, got true")
+	}
+	if n.ReceivedThetaIdx != 0 || n.ReceivedPhiIdx != 0 {
+		t.Fatalf("a received reset must zero the received indices; got theta=%d phi=%d", n.ReceivedThetaIdx, n.ReceivedPhiIdx)
+	}
+}

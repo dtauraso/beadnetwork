@@ -72,8 +72,10 @@ describe("buffer-layout — Node block", () => {
     //     from the drawn ring axis above)
     //   + 2×f32 (coplanarNormalTheta/coplanarNormalPhi — the SECOND vector, a quarter turn from the
     //     first inside the ring plane)
-    //   = 4 + (5+6+2+2+1+2+2)×4 + 1 + 1 + 8 + 1 + 1 = 96
-    expect(NODE_STRIDE).toBe(96);
+    //   + 3×f32 (receivedVectorLen/theta/phi — the THIRD vector: the direction last received
+    //     on this node's own tilt-vector channel; 0 length = nothing received yet)
+    //   = 4 + (5+6+2+2+1+2+2+3)×4 + 1 + 1 + 8 + 1 + 1 = 108
+    expect(NODE_STRIDE).toBe(108);
   });
 
   it("read helpers decode known bytes correctly", () => {
@@ -251,8 +253,8 @@ describe("buffer-layout — Overlay block", () => {
 // ─ Meta ───────────────────────────────────────────────────────────────────────
 
 describe("buffer-layout — meta", () => {
-  it("schema version is 40", () => {
-    expect(BUF_LAYOUT_VERSION).toBe(40);
+  it("schema version is 41", () => {
+    expect(BUF_LAYOUT_VERSION).toBe(41);
   });
 
   it("header size is 8 bytes (2×u32: tick + layoutLinkCount; no beadCount/nodeCount/portCount/labelBytesCount/portNameBytesCount/edgeCount/edgeLabelBytesCount/eventCount — beads, the node-owner-group blocks, the Edge block, and events are their own tagged/per-owner frames)", () => {

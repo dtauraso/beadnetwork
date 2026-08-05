@@ -101,8 +101,11 @@ export function BufferScene({ cameraRef }: {
           on. Sized by nodeCap for the same reason NodeInstances is: at most one per row.
           A node whose streamed TiltVectorLen is 0 draws none. */}
       {/* Two arrows per node (its tilt vector and the quarter-turn second one), so the
-          instance budget is twice the node count. */}
-      <TiltVectors capacity={nodeCap * 2} />
+          instance budget is twice the node count. A THIRD arrow — the direction last
+          received on a node's vector channel — draws at most one per node into its own
+          separate, differently-coloured mesh pair (TiltVectors.tsx), so its capacity is
+          the node count, not doubled. */}
+      <TiltVectors capacity={nodeCap * 2} receivedCapacity={nodeCap} />
       <InteriorBeadInstances capacity={nodeCap * INTERIOR_SLOTS_PER_NODE} />
       <SelectionHighlight />
       <HoverHighlight />

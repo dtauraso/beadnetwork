@@ -101,13 +101,43 @@ loop body) runs:
 - **What this node SENDS**: that coplanar normal rotated 180° in θ. Node1 turns −180°
   (−12 steps of π/12, i.e. `2 × PerpendicularThetaIdx` subtracted); Node2 (its mirror
   package) turns +180° (+12 steps). φ is untouched. Index arithmetic only.
-- **On receiving a vector**: the decision is dot(this node's OWN tilt, the received
-  vector) — realized, exactly like the bead exchange's `stepTilt`, as the integer
-  compare `TiltThetaIdx == Wiring.PerpendicularThetaIdx` rather than a float dot
-  product. If not perpendicular: step `TiltThetaIdx` ONE click (Node1 subtracts, same
-  direction as `stepTilt`), sync the mover, and send the outgoing vector above. If
-  already perpendicular: step nothing and send nothing — this is how the vector
-  exchange stops, independently of whether the bead exchange has also stopped.
+- **On receiving a vector**: FIRST, unconditionally, this node records the received
+  direction as its own THIRD drawn vector (`ReceivedThetaIdx`/`ReceivedPhiIdx`/
+  `ReceivedSet`, reported one-way to its own mover via `SyncReceivedVector` — same
+  passive-mirror shape as `SyncTiltIndex`) — REPLACING whatever it received last time,
+  regardless of whether the step below fires. THEN the step decision: dot(this node's
+  OWN tilt, the received vector) — realized, exactly like the bead exchange's
+  `stepTilt`, as the integer compare `TiltThetaIdx == Wiring.PerpendicularThetaIdx`
+  rather than a float dot product. If not perpendicular: step `TiltThetaIdx` ONE click
+  (Node1 subtracts, same direction as `stepTilt`), sync the mover, and send the
+  outgoing vector above. If already perpendicular: step nothing and send nothing — this
+  is how the vector exchange stops, independently of whether the bead exchange has also
+  stopped.
+- **Received-vector RESET**: a Reset marker arriving on `VectorIn` zeroes this node's
+  tilt (as above) AND clears its own received-vector record
+  (`ReceivedSet = false`, synced) — a stale received arrow left hanging would
+  contradict the reset's stop-and-return meaning. The LOCAL `RESET` path (`TiltEditIn`'s
+  `Reset`, above) clears it the same way, for the same reason.
+
+## Third vector (received direction)
+
+Alongside its own tilt vector and the coplanar normal, this node draws a THIRD arrow:
+the direction that last ARRIVED on its vector channel (`ReceivedThetaIdx`/
+`ReceivedPhiIdx`, streamed as the buffer's `ReceivedVectorLen`/`ReceivedVectorTheta`/
+`ReceivedVectorPhi` columns, `Buffer/layout.go`). It:
+
+- Persists indefinitely once set — it is NOT cleared when the straightening exchange
+  settles (i.e. reaches perpendicular and stops circulating).
+- Is REPLACED, never accumulated, by the next arrival.
+- Is cleared ONLY by a reset — this node's own (`TiltEditIn`'s `Reset`) or a Reset
+  marker received on the channel — both zero `ReceivedSet`, and `ReceivedVectorLen`
+  streams 0 in that state.
+- Is distinguishable from "received (0,0)" (world +y): `ReceivedVectorLen` is 0 only
+  when nothing has been received yet or a reset cleared it; an actually-received (0,0)
+  direction still streams a non-zero length (this node's own radius, same as
+  `TiltVectorLen`).
+- Draws in its OWN colour (`RECEIVED_VECTOR_COLOR`, `TiltVectors.tsx`), distinct from
+  the tilt vector/coplanar normal's shared magenta.
 
 ## Runtime status
 

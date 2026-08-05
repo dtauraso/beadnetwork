@@ -70,8 +70,13 @@ type nodeFrameFixture struct {
 	TiltVectorTheta float32 `json:"tiltVectorTheta"`
 	TiltVectorPhi   float32 `json:"tiltVectorPhi"`
 	// The SECOND vector's direction — a quarter turn from the first, in the ring's plane.
-	CoplanarNormalTheta float32            `json:"coplanarNormalTheta"`
-	CoplanarNormalPhi   float32            `json:"coplanarNormalPhi"`
+	CoplanarNormalTheta float32 `json:"coplanarNormalTheta"`
+	CoplanarNormalPhi   float32 `json:"coplanarNormalPhi"`
+	// The THIRD vector: the direction last received on this node's tilt-vector channel
+	// (Buffer/layout.go's ReceivedVectorLen/Theta/Phi); 0 length means nothing received yet.
+	ReceivedVectorLen   float32            `json:"receivedVectorLen"`
+	ReceivedVectorTheta float32            `json:"receivedVectorTheta"`
+	ReceivedVectorPhi   float32            `json:"receivedVectorPhi"`
 	Selected            uint8              `json:"selected"`
 	KindID              uint8              `json:"kindId"`
 	Hovered             uint8              `json:"hovered"`
@@ -122,6 +127,7 @@ func buildNodeFrame() nodeFrameFixture {
 		RingAxisTheta: 1.4, RingAxisPhi: 0.7,
 		TiltVectorLen: 9.5, TiltVectorTheta: 0.5, TiltVectorPhi: -0.9,
 		CoplanarNormalTheta: 0.55, CoplanarNormalPhi: -0.35,
+		ReceivedVectorLen: 8.75, ReceivedVectorTheta: 0.25, ReceivedVectorPhi: -0.15,
 		Selected: 1, KindID: 3, Hovered: 1, LatchedSel: 0,
 		Label: "widgetNode",
 		ChainBeads: []chainBeadFixture{
@@ -144,6 +150,7 @@ func buildNodeFrame() nodeFrameFixture {
 		f.CX, f.CY, f.CZ, f.Radius, f.SphereR,
 		f.VRX, f.VRY, f.VRZ, f.FRX, f.FRY, f.FRZ,
 		f.PoleTheta, f.PolePhi, f.RingAxisTheta, f.RingAxisPhi, f.TiltVectorLen, f.TiltVectorTheta, f.TiltVectorPhi, f.CoplanarNormalTheta, f.CoplanarNormalPhi,
+		f.ReceivedVectorLen, f.ReceivedVectorTheta, f.ReceivedVectorPhi,
 		f.Selected, f.KindID, f.Hovered, f.LatchedSel,
 		f.Label,
 		chainOX, chainOY, chainOZ, chainLit, chainLitVal,

@@ -299,7 +299,7 @@ type nodeMover struct {
 	// buildFrame packs this node's combined per-fd frame (node fields + ports + label)
 	// using Buffer's own row-writer columns (Buffer.BuildNodeStreamFrame), injected so
 	// this package needs no Buffer import.
-	buildFrame func(tick uint32, nodeRow int32, nodeID int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, poleTheta, polePhi, ringAxisTheta, ringAxisPhi, tiltVectorLen, tiltVectorTheta, tiltVectorPhi, coplanarNormalTheta, coplanarNormalPhi float32, selected, kindID, hovered, latchedSel uint8, label string, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte
+	buildFrame func(tick uint32, nodeRow int32, nodeID int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, poleTheta, polePhi, ringAxisTheta, ringAxisPhi, tiltVectorLen, tiltVectorTheta, tiltVectorPhi, coplanarNormalTheta, coplanarNormalPhi, receivedVectorLen, receivedVectorTheta, receivedVectorPhi float32, selected, kindID, hovered, latchedSel uint8, label string, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte
 	// tiltVectorThetaIdx/tiltVectorPhiIdx are THIS node's own vector direction, as INTEGER
 	// indices into TiltVectorAngleStep (memory/feedback_abc_times_constant_not_rederive.md
 	// — index × step-constant, trig only at the cartesian/polar boundary). Default 0,0
@@ -322,6 +322,20 @@ type nodeMover struct {
 	// see writeStreamFrame below). For a kind that has not claimed BuildArgs.TiltEditIn,
 	// these stay 0,0 and this node draws no vector at all (tiltVectorLen's own guard).
 	normalThetaIdx, normalPhiIdx int32
+	// receivedVectorThetaIdx/receivedVectorPhiIdx/receivedVectorSet are THIS node's own
+	// THIRD drawn vector: the direction that LAST ARRIVED on this node's tilt-vector
+	// channel, as decided and reported by that node kind's own goroutine
+	// (nodes/Node1/node.go, nodes/Node2/node.go's handleVectorCycle) via
+	// moveMsgKindReceivedVectorSync — same passive-mirror shape as
+	// tiltVectorThetaIdx/normalThetaIdx above: this mover never decides or mutates these
+	// itself, it only applies, persists nothing (not persisted — a channel arrival is
+	// transient session state, unlike the tilt/normal indices which ARE persisted), and
+	// streams exactly what it is told. receivedVectorSet distinguishes "nothing received
+	// yet" from a received (0,0) direction: Buffer/layout.go's ReceivedVectorLen column
+	// is 0 in EITHER "unset" case OR a kind with no vector channel, but only
+	// receivedVectorSet==false makes the length zero here — see writeStreamFrame below.
+	receivedVectorThetaIdx, receivedVectorPhiIdx int32
+	receivedVectorSet                            bool
 }
 
 func newNodeMover(id string, geom nodeGeom, tr *T.Trace, clockSrc wire.Clock) *nodeMover {
@@ -489,6 +503,21 @@ func (m *nodeMover) handle(msg moveMsg) {
 		m.normalThetaIdx = msg.NormalThetaIdx
 		m.normalPhiIdx = msg.NormalPhiIdx
 		m.persistTiltVectorAngle()
+		if m.tr != nil {
+			m.emitGeometry()
+		}
+		return
+	}
+	if msg.Kind == moveMsgKindReceivedVectorSync {
+		// Passive mirror only, same shape as moveMsgKindTiltIndexSync: Node1/Node2's own
+		// goroutine already decided this (an arrival replaces it, a reset — local or
+		// received — clears it). This mover just applies exactly what it is told and
+		// re-emits so the drawn third arrow picks up the change; nothing here is
+		// persisted (a channel arrival is transient session state, not part of this
+		// node's saved tilt).
+		m.receivedVectorThetaIdx = msg.ReceivedVectorThetaIdx
+		m.receivedVectorPhiIdx = msg.ReceivedVectorPhiIdx
+		m.receivedVectorSet = msg.ReceivedVectorSet
 		if m.tr != nil {
 			m.emitGeometry()
 		}
@@ -697,6 +726,20 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 	// instead of the normal staying fixed toward the partner while the tilt moves under it.
 	coplanarNormalTheta := float64(m.normalThetaIdx) * CurveParamTiltVectorAngleStep
 	coplanarNormalPhi := float64(m.normalPhiIdx) * CurveParamTiltVectorAngleStep
+	// The THIRD vector: the direction last received on this node's tilt-vector channel
+	// (receivedVectorThetaIdx/PhiIdx, mirrored one-way from this node's own goroutine —
+	// see the field's own doc comment). Same length-says-whether-and-how-far convention
+	// as tiltVectorLen: zero when nothing has been received yet (or a reset cleared it),
+	// non-zero (this node's own radius, same as tiltVectorLen) otherwise — so a node with
+	// nothing received is distinguishable from one whose received direction happens to be
+	// (0,0), which still streams a non-zero length.
+	var receivedVectorLen float64
+	var receivedVectorTheta, receivedVectorPhi float64
+	if m.receivedVectorSet {
+		receivedVectorLen = nodeRadius(m.geom.Kind)
+		receivedVectorTheta = float64(m.receivedVectorThetaIdx) * CurveParamTiltVectorAngleStep
+		receivedVectorPhi = float64(m.receivedVectorPhiIdx) * CurveParamTiltVectorAngleStep
+	}
 	label := m.geom.Label
 	if label == "" {
 		label = m.id
@@ -723,6 +766,7 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 		flatRingNormalX, flatRingNormalY, flatRingNormalZ,
 		float32(poleTheta), float32(polePhi), float32(ringAxisTheta), float32(ringAxisPhi), float32(tiltVectorLen),
 		float32(tiltVectorTheta), float32(tiltVectorPhi), float32(coplanarNormalTheta), float32(coplanarNormalPhi),
+		float32(receivedVectorLen), float32(receivedVectorTheta), float32(receivedVectorPhi),
 		selected, kindID, hovered, latchedSel,
 		label, chainOX, chainOY, chainOZ, chainLit, chainLitVal, events)
 	var hdr [4]byte

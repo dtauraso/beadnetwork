@@ -85,6 +85,17 @@ const (
 	// itself. Every OTHER kind still routes moveMsgKindTiltVectorAngle straight to its
 	// mover, which remains the sole owner/mutator of the index for those kinds.
 	moveMsgKindTiltIndexSync = "tiltIndexSync"
+	// moveMsgKindReceivedVectorSync is the ONE-WAY notification a node kind's OWN
+	// goroutine sends to its OWN mover whenever the direction it last received on its
+	// vector channel changes — currently Node1/Node2 only, the same two kinds that send
+	// moveMsgKindTiltIndexSync. It carries the FULL new (theta, phi) index pair plus
+	// ReceivedVectorSet: true on an arrival (this replaces whatever was there before,
+	// never accumulates), false on a reset (this node's own TiltEditIn Reset, or a Reset
+	// marker arriving on the channel — see nodes/Node1/node.go's applyTiltEdit and
+	// handleVectorCycle). The mover is a passive mirror here too: it never decides when
+	// this changes, it only applies exactly what it is told and streams it as the THIRD
+	// drawn vector (Buffer/layout.go's ReceivedVectorLen/Theta/Phi).
+	moveMsgKindReceivedVectorSync = "receivedVectorSync"
 )
 
 // TiltEditMsg is one panel-driven tilt-angle click (TiltVectorAnglePanel), routed to a
@@ -171,6 +182,15 @@ type moveMsg struct {
 	// coplanarNormal). The receiving mover applies these verbatim too; it does not derive
 	// the normal from the edge any more (coplanarNormalTowardPartner was removed).
 	NormalThetaIdx, NormalPhiIdx int32
+	// ReceivedVectorThetaIdx/ReceivedVectorPhiIdx (Kind == "receivedVectorSync"): the
+	// direction last received on this node's vector channel, as decided by the sending
+	// node kind's own goroutine — see moveMsgKindReceivedVectorSync's doc comment.
+	// Meaningless when ReceivedVectorSet is false (a reset).
+	ReceivedVectorThetaIdx, ReceivedVectorPhiIdx int32
+	// ReceivedVectorSet (Kind == "receivedVectorSync"): true = a direction was received
+	// (ReceivedVectorThetaIdx/PhiIdx are meaningful), false = cleared by a reset — see
+	// moveMsgKindReceivedVectorSync's doc comment.
+	ReceivedVectorSet bool
 	// testDone: see the type comment. Test-only; production leaves it nil.
 	testDone chan struct{}
 }

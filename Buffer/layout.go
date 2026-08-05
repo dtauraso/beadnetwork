@@ -21,7 +21,7 @@
 package Buffer
 
 // BufLayoutVersion is the schema version. Bump when any column changes.
-const BufLayoutVersion = 40
+const BufLayoutVersion = 41
 
 // BufInteriorSlotsPerNode is the fixed number of interior grid slots reserved per
 // node in the Interior block (a 2x2 held/interior-bead grid: slot = row*2 + col).
@@ -139,6 +139,21 @@ type bufLayoutNode struct {
 	// in opposite world directions.
 	CoplanarNormalTheta float32 `buf:"f32"` // second vector direction: θ from world +y (radians)
 	CoplanarNormalPhi   float32 `buf:"f32"` // second vector direction: φ azimuth around +y (radians)
+	// ReceivedVectorLen/Theta/Phi are a THIRD drawn vector: the direction that LAST
+	// ARRIVED on this node's own tilt-vector channel (nodes/Wiring/tilt_vector_channel.go),
+	// kept by the RECEIVING node's own goroutine and replaced (never accumulated) by the
+	// next arrival — see nodes/Node1/node.go and nodes/Node2/node.go's handleVectorCycle.
+	// Same "one column says both whether and how far" convention as TiltVectorLen above:
+	// ZERO means this node has received nothing yet (or was reset), so a node with
+	// nothing received is distinguishable from one whose received direction happens to be
+	// (0,0) — the latter still streams a non-zero length. A RESET (this node's own
+	// TiltEditIn Reset, or a Reset marker arriving on the channel) clears it back to zero:
+	// a stale received arrow left hanging would contradict the reset's stop-and-return
+	// meaning. Meaningless (but still streamed, default 0) on a node whose kind never
+	// claims a vector channel — every kind but Node1/Node2 today.
+	ReceivedVectorLen   float32 `buf:"f32"` // received-vector length; 0 = nothing received yet (or reset)
+	ReceivedVectorTheta float32 `buf:"f32"` // received vector direction: θ from world +y (radians)
+	ReceivedVectorPhi   float32 `buf:"f32"` // received vector direction: φ azimuth around +y (radians)
 	Selected            uint8   `buf:"u8"`  // persistent: 1 = this node is the click-selected node
 	// KindId is the node's kind as a STABLE id, assigned once per kind in
 	// nodes/<Kind>/SPEC.md (| kindId | N |) and never renumbered (the generator emits
