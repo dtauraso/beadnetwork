@@ -238,11 +238,40 @@ func (n *Node) bottomTilt() Wiring.TiltVectorMsg {
 // (memory/feedback_abc_times_constant_not_rederive.md). φ is left unchanged: the turn
 // is entirely in θ, the same in-ring-plane assumption Wiring.PerpendicularThetaIdx's own
 // doc comment spells out.
+//
+// theta is measured from world +y, so index 0 is the +y pole and each
+// Wiring.HalfTurnThetaIdx (180°) crossed by TopTiltThetaIdx is a pole crossing. Every time
+// the tilt has crossed an ODD number of poles, the coplanar normal itself has to gain a half
+// turn to keep pointing the same drawn way, so this ADDS Wiring.HalfTurnThetaIdx on top of
+// the usual quarter turn whenever floorDiv(TopTiltThetaIdx, HalfTurnThetaIdx) is odd. This is
+// written as a PURE function of TopTiltThetaIdx alone — no stored "did we just cross" flag,
+// no comparison against a previous value, no crossing event — so there is no missed-edge or
+// double-flip bug class to have (memory/feedback_make_bug_class_unrepresentable.md). floorDiv
+// is FLOOR division, not Go's truncating `/`: Node1's base direction subtracts one step, so
+// TopTiltThetaIdx is negative for most of this node's life, and truncating division would
+// flip parity on the wrong side of zero.
 func (n *Node) coplanarNormal() Wiring.TiltVectorMsg {
+	poles := floorDiv(n.TopTiltThetaIdx, Wiring.HalfTurnThetaIdx)
+	thetaIdx := n.TopTiltThetaIdx + Wiring.PerpendicularThetaIdx
+	if poles%2 != 0 {
+		thetaIdx += Wiring.HalfTurnThetaIdx
+	}
 	return Wiring.TiltVectorMsg{
-		ThetaIdx: n.TopTiltThetaIdx + Wiring.PerpendicularThetaIdx,
+		ThetaIdx: thetaIdx,
 		PhiIdx:   n.TopTiltPhiIdx,
 	}
+}
+
+// floorDiv is FLOOR integer division (rounds toward negative infinity), unlike Go's `/`
+// which truncates toward zero. coplanarNormal above is the one call site that needs this:
+// pole-crossing parity must be correct for negative TopTiltThetaIdx, which is the common
+// case since Node1's base direction subtracts.
+func floorDiv(a, b int32) int32 {
+	q := a / b
+	if (a%b != 0) && ((a < 0) != (b < 0)) {
+		q--
+	}
+	return q
 }
 
 // syncTiltIndex reports THIS node's current tilt index AND its current coplanar-normal
@@ -279,37 +308,38 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 	return norm
 }
 
-// stepFromVector is the ONE place the arrived
-// direction's own value is consulted rather than just its arrival. TWO DOT PRODUCTS decide,
-// and between them they decide BOTH questions — whether to move, and which way:
+// stepFromVector ALWAYS steps this node's own TopTiltThetaIdx by exactly one step on every
+// arrived vector — the exchange no longer has a halt condition. TWO DOT PRODUCTS decide only
+// the SIGN of that one step:
 //
-//   - arrived vector ACUTE with this node's own TOP tilt vector    -> step -1 (subtracts one step)
+//   - arrived vector ACUTE with this node's own TOP tilt vector    -> step -1 (Node1's base
+//     direction)
 //   - arrived vector ACUTE with this node's own BOTTOM tilt vector -> step +1, the REVERSE
-//   - neither acute (exactly perpendicular)                        -> no step, and the caller
-//     sends nothing, which is how the exchange stops
+//   - neither acute (exactly perpendicular)                        -> step -1, falling to
+//     Node1's base direction — this used to be the case that halted the exchange (no step,
+//     caller sends nothing); now it is just another sign choice, and the exchange keeps
+//     sweeping through the perpendicular index instead of stopping there.
 //
-// The two cases are mutually exclusive and jointly exhaustive apart from the perpendicular
-// one: the bottom is the top's exact antipode, so the two dots are always exact negatives
-// and at most one of them can be positive. There is no both-acute case for the ordering of
-// these two ifs to arbitrate, and no free sign knob — which end the arrived vector leans
-// toward IS the direction.
+// The two acute cases are mutually exclusive: the bottom is the top's exact antipode, so the
+// two dots are always exact negatives and at most one of them can be positive. There is no
+// both-acute case for the ordering of these two ifs to arbitrate, and no free sign knob —
+// which end the arrived vector leans toward IS the direction, except at the perpendicular
+// index itself, which has no lean and so falls to the base direction.
 //
-// Node1's base direction (the top-acute case) is subtracts one step; its mirror package's is the
-// opposite, so a pair still turns symmetrically when both are leaning the same way.
+// Node1's base direction (the top-acute and perpendicular cases) is subtracts one step; its
+// mirror package's is the opposite, so a pair still turns symmetrically when both are leaning
+// the same way.
 //
-// This does NOT consult Wiring.PerpendicularThetaIdx: the dots are the whole gate, so a node
-// sitting exactly at the perpendicular index still steps if what arrived leans one way or
-// the other. (The retired bead-path rule did consult it — and turned
-// this node in a fixed direction regardless of what arrived, which is what made a pair
-// march one way forever.)
+// The return value is now always true — every caller that still checks it always proceeds.
+// It stays a bool return (rather than being dropped) so callers read as "this always steps"
+// rather than silently assuming it.
 func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
-	switch {
-	case Wiring.TiltVectorIsAcute(received, n.topTilt()):
-		n.TopTiltThetaIdx -= 1
-	case Wiring.TiltVectorIsAcute(received, n.bottomTilt()):
+	if Wiring.TiltVectorIsAcute(received, n.bottomTilt()) {
 		n.TopTiltThetaIdx += 1
-	default:
-		return false
+	} else {
+		// Acute with the top, or exactly perpendicular to both — both fall to Node1's base
+		// direction.
+		n.TopTiltThetaIdx -= 1
 	}
 	return true
 }
@@ -322,11 +352,12 @@ func (n *Node) topTilt() Wiring.TiltVectorMsg {
 }
 
 // handleVectorCycle is Node1's WHOLE per-cycle vector-channel loop body: read
-// VectorIn non-blocking; if something arrived, decide (stepFromVector);
-// and if that moved this node's own tilt, send outgoingVector back out on VectorOut —
-// also non-blocking. At the perpendicular index nothing steps and nothing sends,
-// which is how the exchange stops. This never touches In/Out or beads — the vector
-// channel is a separate, additive exchange.
+// VectorIn non-blocking; if something arrived, step (stepFromVector always steps now — the
+// two dots only pick which way); and send outgoingVector back out on VectorOut, also
+// non-blocking. There is no longer a perpendicular halt: every arrival steps and replies, so
+// the exchange keeps sweeping through the perpendicular index instead of stopping there. The
+// only thing that still stops the exchange is a RESET marker (below), not an index value.
+// This never touches In/Out or beads — the vector channel is a separate, additive exchange.
 func (n *Node) handleVectorCycle(tick int64) {
 	received, ok := Wiring.PollRecvVector(n.VectorIn)
 	if !ok {
