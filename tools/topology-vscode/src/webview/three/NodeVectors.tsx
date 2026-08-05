@@ -30,7 +30,14 @@ import {
 const SHAFT_RADIUS_FRAC = 0.035;
 const HEAD_LEN_FRAC = 0.22;
 const HEAD_RADIUS_FRAC = 0.09;
-const VECTOR_COLOR = "#7CFF9E";
+// Chosen against what the arrow actually crosses, not in isolation: it overlaps its own
+// node's body, and the pair's two kinds are both PALE (Node1 #fff8e1, a near-white yellow;
+// Node2 #e8eaf6, a near-white blue), while the scene behind them is dark. A light colour —
+// the pale green this replaced — vanished against the node bodies exactly where the arrow
+// starts. A saturated magenta is far from both pale tints in hue AND much darker than them,
+// so it reads on the bodies, and it stays bright enough to read against the dark background
+// over the rest of its length.
+const VECTOR_COLOR = "#FF2E88";
 
 // three.js authors both a cylinder and a cone along +Y, so that is the axis rotated FROM.
 const GEOMETRY_AXIS = new THREE.Vector3(0, 1, 0);
