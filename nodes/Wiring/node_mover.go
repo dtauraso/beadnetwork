@@ -513,6 +513,11 @@ func (m *nodeMover) handle(msg moveMsg) {
 		if m.tr != nil {
 			m.emitGeometry()
 		}
+		// PAIR TAB ONLY (Node1/Node2 — the only kinds that ever send
+		// moveMsgKindTiltIndexSync, see moveMsgKindTiltIndexSync's own doc comment):
+		// the tilt index IS the pair's centre-to-centre distance. See
+		// repositionForTiltIndex's own doc comment for the exact model.
+		m.repositionForTiltIndex(msg.ThetaIdx)
 		return
 	}
 	if msg.Kind == moveMsgKindReceivedVectorSync {
@@ -599,6 +604,57 @@ func (m *nodeMover) handle(msg moveMsg) {
 // rule would need to compare an actual dot(tilt, coplanarNormal) via the two integer
 // indices' angles converted through anglesToWorldOffset, not thetaIdx alone.
 const PerpendicularThetaIdx int32 = 6
+
+// repositionForTiltIndex implements the PAIR tab's model (task/tilt-sets-pair-distance):
+// this node's own tilt-vector theta INDEX is the pair's centre-to-centre separation.
+// Whenever this node's own goroutine reports a new index (moveMsgKindTiltIndexSync
+// above), THIS node's own mover repositions itself so its distance to its one direct
+// partner is
+//
+//	D = (abs(thetaIdx) + nodeTorusSteps(selfKind) + nodeTorusSteps(partnerKind)) * wire.BeadStepR
+//
+// along the CURRENT edge direction (this node's own centre moved away from the
+// partner's centre) — index arithmetic only (memory/feedback_abc_times_constant_not_rederive.md),
+// no trig beyond the existing cartesian direction. The two torus-step terms exist so
+// edgeStepCount(D, srcKind, dstKind) (chain_beads.go) — never modified here — comes back
+// out to exactly abs(thetaIdx), which is what times the bead's own dwell/tick constants
+// into the crossing time the model calls for.
+//
+// Scoped to the pair kinds by construction, not by a kind check: moveMsgKindTiltIndexSync
+// is only ever sent by a kind that owns its own tilt index (Node1/Node2 today — see that
+// message kind's own doc comment), so this only ever runs for a pair member. A node with
+// zero or more than one direct partner (not the pair shape) is left alone: with no unique
+// partner there is no single distance to set. Reuses the SAME owner-goroutine commit path
+// as a drag (m.commitLocal, bound in build.go to MoveDispatch.commitNodeMoveLocal) — no
+// new position or commit path, no worklist, no coordinator (memory/
+// project_lock_propagation_decentralized.md: a node writes only itself).
+func (m *nodeMover) repositionForTiltIndex(thetaIdx int32) {
+	if m.commitLocal == nil || len(m.partnerCenters) != 1 {
+		return
+	}
+	var partnerID string
+	var partnerCenter vec3
+	for id, c := range m.partnerCenters {
+		partnerID, partnerCenter = id, c
+	}
+	selfCenter := nodeWorldPos(m.geom)
+	// Direction from the partner's centre toward THIS node's own current centre — i.e.
+	// self moved AWAY from partner along the live edge direction. edgeCenterDistAndDir
+	// returns ok==false when the two centres coincide (zero length, undefined direction);
+	// per the model, leave the position unchanged in that case rather than picking an
+	// arbitrary direction.
+	_, awayDir, ok := edgeCenterDistAndDir(partnerCenter, selfCenter)
+	if !ok {
+		return
+	}
+	idx := thetaIdx
+	if idx < 0 {
+		idx = -idx
+	}
+	steps := int(idx) + nodeTorusSteps(m.selfKind) + nodeTorusSteps(m.neighborKinds[partnerID])
+	newPos := partnerCenter.Add(awayDir.Scale(float64(steps) * wire.BeadStepR))
+	m.commitLocal(m.id, newPos)
+}
 
 // applyCenter is the SOLE WRITE of this node's center/reach. It is called ONLY from
 // this nodeMover's own inbox-drain goroutine (handle's moveMsgKindCenter case, driven
