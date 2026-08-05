@@ -459,7 +459,11 @@ func uprightRingAxis(selfCenter, partnerCenter vec3) (theta, phi float64, ok boo
 func quarterTurnInRingPlane(theta, phi, axisTheta, axisPhi float64) (outTheta, outPhi float64) {
 	u := anglesToWorldOffset(1, theta, phi)
 	a := anglesToWorldOffset(1, axisTheta, axisPhi)
-	v := a.Cross(u)
+	// u × a, NOT a × u: the two differ by sign, and this is the one that turns the
+	// up-vector TOWARD the node's partner rather than away from it. With a derived from
+	// self→partner, u × a lands along that same direction, so node 1's second vector aims
+	// at node 2 and node 2's aims back at node 1.
+	v := u.Cross(a)
 	if v.Length() < 1e-9 {
 		// u is parallel to the axis: it is not in the plane to begin with, so there is no
 		// quarter turn within the plane to take. Leave it where it was.

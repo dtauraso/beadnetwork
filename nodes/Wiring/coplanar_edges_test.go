@@ -167,3 +167,26 @@ func TestPairSecondVectorsOppose(t *testing.T) {
 		t.Fatalf("the pair's second vectors must be opposites; got %v and %v", av, bv)
 	}
 }
+
+// The second vector must aim AT the partner, not away from it. This is the assertion the
+// earlier pair of tests could not make: perpendicular-to-the-first and opposite-to-each-other
+// are both satisfied by the wrong sign too, so only a direction test catches it.
+func TestSecondVectorAimsAtThePartner(t *testing.T) {
+	a := vec3{X: 96, Z: -80}
+	b := vec3{X: 96, Z: -40}
+	up := worldDirToAngles(vec3{X: 0, Y: 1, Z: 0})
+
+	aAxisT, aAxisP, _ := uprightRingAxis(a, b)
+	aSecT, aSecP := quarterTurnInRingPlane(up.Theta, up.Phi, aAxisT, aAxisP)
+	toward := b.Sub(a).Normalize()
+	if d := anglesToWorldOffset(1, aSecT, aSecP).Dot(toward); d < 0.999 {
+		t.Fatalf("node A's second vector must point AT B: dot with the A→B direction = %v, want ~1", d)
+	}
+
+	bAxisT, bAxisP, _ := uprightRingAxis(b, a)
+	bSecT, bSecP := quarterTurnInRingPlane(up.Theta, up.Phi, bAxisT, bAxisP)
+	back := a.Sub(b).Normalize()
+	if d := anglesToWorldOffset(1, bSecT, bSecP).Dot(back); d < 0.999 {
+		t.Fatalf("node B's second vector must point back AT A: dot with the B→A direction = %v, want ~1", d)
+	}
+}
