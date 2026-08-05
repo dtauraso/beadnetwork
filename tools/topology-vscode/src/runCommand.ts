@@ -440,6 +440,13 @@ export class BuildAndRunRunner {
   // call site in run()) since it's this-process's-bytes state, exactly like the *Bufs fields.
   private deadStreams: Set<string> = new Set();
 
+  // spawnGen counts spawns. It is bumped in run(), BEFORE cp.spawn, so every frame this
+  // runner relays carries the generation of the process that produced it — decided before
+  // that process exists rather than inferred from what has arrived. The webview files rows
+  // per generation, which is what makes a scene switch (a respawn) unable to mix the old
+  // process's rows into the new one's tables.
+  private spawnGen = 0;
+
   private topologyPath: string | undefined;
 
   // Set by restart(), consumed by the close handler's cancelled branch. cancel() alone
@@ -464,6 +471,14 @@ export class BuildAndRunRunner {
   // respawn — a large part of why the panic-loop flicker was unreadable. A build FAILURE
   // still reveals regardless of this flag: that is the one automatic spawn with something
   // the user has to see.
+  /** The generation of the process currently running (or last run). The webview-remount
+   *  replay in handle-message.ts stamps the cached frames with THIS, because those frames
+   *  are that process's own — replaying them under a fresh generation would file them in a
+   *  table nothing reads. */
+  currentGen(): number {
+    return this.spawnGen;
+  }
+
   run(topologyPath?: string, opts?: { reveal?: boolean }) {
     if (this.proc) {
       // Already spawned: return silently, posting nothing. A webview that remounts
@@ -528,6 +543,8 @@ export class BuildAndRunRunner {
     this.channel.appendLine("$ " + binPath + " " + topArgs.join(" "));
     this.cancelled = false;
     this.looping = true;
+    // A new process: everything it emits belongs to a new generation.
+    this.spawnGen++;
     // Size the dedicated per-edge/per-node fd ranges from the stored counts BEFORE spawning
     // (the ext host must know the range up front — see readCounts' doc comment). A missing
     // or malformed counts.json throws; that is a real configuration error, so it is reported
@@ -787,7 +804,7 @@ export class BuildAndRunRunner {
       // the reference itself cannot be cached (postMessage may transfer/detach it).
       this.lastViewFrame = ab.slice(0);
       if (this.onSnapshot) {
-        this.onSnapshot({ type: "buffer-snapshot", buffer: ab, tag: BUF_BLOCK_TAG_VIEW });
+        this.onSnapshot({ type: "buffer-snapshot", buffer: ab, tag: BUF_BLOCK_TAG_VIEW, gen: this.spawnGen });
       }
     }
   }
@@ -829,7 +846,7 @@ export class BuildAndRunRunner {
       // Cache under this edge row (same copy-before-hand-off reasoning as lastViewFrame).
       this.lastEdgeFrames.set(row, ab.slice(0));
       if (this.onSnapshot) {
-        this.onSnapshot({ type: "buffer-snapshot", buffer: ab, tag: BUF_BLOCK_TAG_EDGE_STREAM, row });
+        this.onSnapshot({ type: "buffer-snapshot", buffer: ab, tag: BUF_BLOCK_TAG_EDGE_STREAM, row, gen: this.spawnGen });
       }
     }
   }
@@ -870,7 +887,7 @@ export class BuildAndRunRunner {
       // Cache under this node row (same copy-before-hand-off reasoning as lastViewFrame).
       this.lastNodeFrames.set(row, ab.slice(0));
       if (this.onSnapshot) {
-        this.onSnapshot({ type: "buffer-snapshot", buffer: ab, tag: BUF_BLOCK_TAG_NODE_STREAM, row });
+        this.onSnapshot({ type: "buffer-snapshot", buffer: ab, tag: BUF_BLOCK_TAG_NODE_STREAM, row, gen: this.spawnGen });
       }
     }
   }
@@ -949,7 +966,7 @@ export class BuildAndRunRunner {
       }
       this.lastInteriorFrames.set(row, ab.slice(0));
       if (this.onSnapshot) {
-        this.onSnapshot({ type: "buffer-snapshot", buffer: ab, tag: BUF_BLOCK_TAG_INTERIOR_STREAM, row });
+        this.onSnapshot({ type: "buffer-snapshot", buffer: ab, tag: BUF_BLOCK_TAG_INTERIOR_STREAM, row, gen: this.spawnGen });
       }
     }
   }

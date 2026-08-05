@@ -162,7 +162,13 @@ export type HostToWebviewMsg =
   // per-node/per-interior fds — row names WHICH one, since there are many, unlike view's
   // singleton). main.tsx routes the payload to the right cell (snapshot-buffer.ts's view
   // cell, or the per-row cell for the stream tags) without re-decoding the buffer.
-  | { type: "buffer-snapshot"; buffer: ArrayBuffer; tag: number; row?: number };
+  // gen is the SPAWN GENERATION: which Go process this frame came from. The host bumps it
+  // once per spawn, before the child writes a byte, and stamps every frame it relays from
+  // that child. The webview keeps one row table per generation, so frames from a dead
+  // process can never land in a live one's state — a scene switch restarts Go, so this is
+  // also what keeps one tab's rows unreachable from another's. Routing metadata, decided by
+  // the host that owns the process lifecycle; it is not domain state and Go never sees it.
+  | { type: "buffer-snapshot"; buffer: ArrayBuffer; tag: number; row?: number; gen: number };
 
 export const WEBVIEW_TO_HOST_TYPES: ReadonlySet<WebviewToHostMsg["type"]> = new Set([
   "ready", "webview-log", "edit", "save", "raw-input", "go-record",

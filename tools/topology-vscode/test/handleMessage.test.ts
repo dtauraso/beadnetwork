@@ -29,6 +29,11 @@ function fakeRunner(running: boolean, viewFrame: ArrayBuffer | undefined = undef
       calls.push({ method: "getLastViewFrame", args: [] });
       return viewFrame;
     },
+    // The SPAWN GENERATION of the process whose frames are being replayed. The replay
+    // carries the live process's own generation, not a fresh one — a replayed frame belongs
+    // to the process that produced it, and stamping it otherwise would file it in a table
+    // nothing reads (snapshot-buffer.ts's genTable).
+    currentGen: () => 7,
     // Per-edge/per-node/per-interior dedicated-stream replay caches (see
     // BuildAndRunRunner.getLastEdgeFrames/getLastNodeFrames/getLastInteriorFrames) — empty
     // in every test here (no dedicated-stream fixture data needed for these dispatch
@@ -65,7 +70,7 @@ describe("handleMessage dispatch — ready / auto-launch", () => {
     await handleMessage({ type: "ready" }, ctxFor(wasRunning, (m) => posted.push(m)));
     expect(names(wasRunning)).toEqual(["run", "getLastViewFrame", "getLastEdgeFrames", "getLastNodeFrames", "getLastInteriorFrames"]);
     expect(posted).toEqual([
-      { type: "buffer-snapshot", buffer: cachedView, tag: 4 },
+      { type: "buffer-snapshot", buffer: cachedView, tag: 4, gen: 7 },
     ]);
 
     // A just-spawned Go needs no cached frame — it emits its own startup geometry.

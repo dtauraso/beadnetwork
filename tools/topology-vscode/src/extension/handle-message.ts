@@ -88,22 +88,22 @@ async function dispatch(msg: WebviewToHostMsg, ctx: MessageCtx): Promise<void> {
       if (wasRunning) {
         const viewFrame = runner.getLastViewFrame();
         if (viewFrame) {
-          ctx.post({ type: "buffer-snapshot", buffer: viewFrame, tag: BUF_BLOCK_TAG_VIEW });
+          ctx.post({ type: "buffer-snapshot", buffer: viewFrame, tag: BUF_BLOCK_TAG_VIEW, gen: runner.currentGen() });
         }
         // Per-edge dedicated streams (see BuildAndRunRunner.getLastEdgeFrames): the
         // per-edge analogue of the loop above — one cached frame per edge row.
         for (const { row, buffer } of runner.getLastEdgeFrames()) {
-          ctx.post({ type: "buffer-snapshot", buffer, tag: BUF_BLOCK_TAG_EDGE_STREAM, row });
+          ctx.post({ type: "buffer-snapshot", buffer, tag: BUF_BLOCK_TAG_EDGE_STREAM, row, gen: runner.currentGen() });
         }
         // Per-node dedicated streams (see BuildAndRunRunner.getLastNodeFrames /
         // getLastInteriorFrames): the per-node analogue of the edge loop above — one
         // cached frame per node row, for EACH of the two per-node stream kinds (they are
         // written by two different goroutines onto two different fds).
         for (const { row, buffer } of runner.getLastNodeFrames()) {
-          ctx.post({ type: "buffer-snapshot", buffer, tag: BUF_BLOCK_TAG_NODE_STREAM, row });
+          ctx.post({ type: "buffer-snapshot", buffer, tag: BUF_BLOCK_TAG_NODE_STREAM, row, gen: runner.currentGen() });
         }
         for (const { row, buffer } of runner.getLastInteriorFrames()) {
-          ctx.post({ type: "buffer-snapshot", buffer, tag: BUF_BLOCK_TAG_INTERIOR_STREAM, row });
+          ctx.post({ type: "buffer-snapshot", buffer, tag: BUF_BLOCK_TAG_INTERIOR_STREAM, row, gen: runner.currentGen() });
         }
       }
       return;

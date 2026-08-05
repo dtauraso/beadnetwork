@@ -31,68 +31,70 @@ const viewListeners = new Set<SnapshotListener>();
 
 /** Called by main.tsx whenever a new VIEW buffer-snapshot message arrives (the dedicated
  * view-fd stream — see this file's header comment). */
-export function setLatestViewFrame(buf: ArrayBuffer): void {
+export function setLatestViewFrame(buf: ArrayBuffer, gen = 0): void {
   latestViewFrame = buf;
-  trackActiveScene(buf);
+  noteGen(gen);
   for (const fn of viewListeners) fn();
 }
 
 /**
- * ONE ROW TABLE PER SCENE.
+ * ONE ROW TABLE PER PROCESS.
  *
  * The per-row maps below used to be single module-level Maps keyed by ROW ALONE, so the
- * ring's row 3 and the pair's row 3 were the same cell: two tabs sharing one keyspace,
- * each able to overwrite the other. Switching from a 9-node scene to a 2-node one left
- * rows 2..8 holding the previous scene's frames and the renderer drew both diagrams at
- * once. Neither tab should be able to affect the other at all.
+ * ring's row 3 and the pair's row 3 were the same cell: two tabs sharing one keyspace, each
+ * able to overwrite the other. Switching from a 9-node scene to a 2-node one left rows 2..8
+ * holding the previous scene's frames and the renderer drew both diagrams at once.
  *
- * The first fix for that CLEARED the maps on a scene change, which was worse than it
- * looked. It is fine for node geometry, re-sent every tick and repopulated within a frame.
- * It is wrong for INTERIOR beads, which are written only when a node's held value CHANGES —
- * a cleared interior row has nothing to re-send it, so a Pulse holding a steady value loses
- * its bead until that value happens to change, which may be never.
+ * An earlier fix CLEARED the maps on a scene change. That is fine for node geometry, re-sent
+ * every tick and repopulated within a frame, and wrong for INTERIOR beads, which a node
+ * writes only when its held value CHANGES — a cleared interior row has nothing to re-send it,
+ * so a Pulse holding a steady value loses its bead until that value happens to change, which
+ * may be never.
  *
- * So the scene is part of the KEY instead of a reason to erase. Each scene gets its own
- * table; a write goes to the active scene's table and a read comes from it. Switching tabs
- * selects a different table and switching back finds the previous one intact — nothing is
- * cleared, nothing needs re-requesting, and one tab's rows are not reachable from the other
- * by construction rather than by timing.
+ * So the table is chosen by the frame's own GENERATION, stamped by the extension host at
+ * spawn (runCommand.ts's spawnGen) and carried on the message. A generation is decided
+ * before its process writes a byte, so routing is WIRED rather than inferred: a frame from a
+ * dead process cannot land in a live process's table no matter what order things arrive in.
+ * Since a tab switch restarts Go, that is also what keeps one tab's rows unreachable from
+ * another's.
  *
- * KNOWN LIMIT, stated rather than hidden: which table is active is learned from the VIEW
- * frame, so it is still an arrival-time fact. A frame that arrives from a newly spawned
- * process BEFORE that process's first VIEW frame is filed under the previous scene's table.
- * It is not lost from the wrong tab's diagram — that table is rebuilt from scratch the next
- * time its own process runs — but it can leave one row briefly missing from the new scene.
- * Closing that gap means Go stamping each frame with its own scene, so identity travels
- * with the data instead of being inferred; that is a buffer-schema change and is deliberately
- * not taken here.
+ * Per PROCESS, not per scene name, and deliberately so: ring → pair → ring gives the second
+ * ring visit its own table rather than reusing the first visit's. That is correct — it is a
+ * different process, and a fresh process re-emits what it has. Nothing stale survives a
+ * restart, which is the property the clear was clumsily reaching for.
+ *
+ * Old generations are dropped as new ones appear (see reap below), so this cannot grow
+ * without bound across a long session of restarts.
  */
-function sceneTable<T>(tables: Map<number, Map<number, T>>): Map<number, T> {
-  let t = tables.get(activeScene);
+function genTable<T>(tables: Map<number, Map<number, T>>, gen: number): Map<number, T> {
+  let t = tables.get(gen);
   if (!t) {
     t = new Map<number, T>();
-    tables.set(activeScene, t);
+    tables.set(gen, t);
+    // Keep only the newest generation's table plus the one before it: a frame from the
+    // outgoing process can still be in flight while the new one starts, and dropping its
+    // table mid-relay would throw away a row that is about to be replaced anyway. Anything
+    // older cannot receive another write.
+    for (const key of tables.keys()) {
+      if (key < gen - 1) tables.delete(key);
+    }
   }
   return t;
 }
 
-// activeScene is which scene's tables reads and writes address: the VIEW frame's Go-owned
-// selected tab index (nodes/Wiring/scene_tabs.go). 0 until the first frame lands, which is
-// also the default scene, so pre-first-frame traffic files under the tab that is about to
-// be showing rather than into a table nothing will ever read.
-let activeScene = 0;
+// latestGen is the newest generation any frame has arrived under — which table READS come
+// from. Writes address their own frame's generation, never this.
+let latestGen = 0;
 
-function trackActiveScene(buf: ArrayBuffer): void {
-  const decoded = decodeViewFrame(buf);
-  if (!decoded) return;
-  activeScene = decoded.sceneTabSelected;
+function noteGen(gen: number): void {
+  if (gen > latestGen) latestGen = gen;
 }
 
-/** TEST-ONLY: forget the active scene AND every scene's table, so a fresh test starts from
+/** TEST-ONLY: forget the current generation AND every generation's table, so a fresh test starts from
  *  "nothing has arrived yet". Production has exactly one webview lifetime per page load and
  *  never needs this. */
 export function resetSceneIdentityForTest(): void {
-  activeScene = 0;
+  latestGen = 0;
   edgeStreamTables.clear();
   nodeStreamTables.clear();
   interiorStreamTables.clear();
@@ -123,8 +125,9 @@ const edgeStreamListeners = new Set<SnapshotListener>();
 
 /** Called by main.tsx whenever a new per-edge dedicated-stream frame arrives (tag
  *  BUF_BLOCK_TAG_EDGE_STREAM, carrying `row`). */
-export function setLatestEdgeStreamFrame(row: number, buf: ArrayBuffer): void {
-  sceneTable(edgeStreamTables).set(row, buf);
+export function setLatestEdgeStreamFrame(row: number, buf: ArrayBuffer, gen = 0): void {
+  noteGen(gen);
+  genTable(edgeStreamTables, gen).set(row, buf);
   for (const fn of edgeStreamListeners) fn();
 }
 
@@ -133,7 +136,7 @@ export function setLatestEdgeStreamFrame(row: number, buf: ArrayBuffer): void {
  *  never populate this map) — callers fall back to the single EDGE/BEAD cells above in
  *  that case. */
 export function getLatestEdgeStreamFrames(): ReadonlyMap<number, ArrayBuffer> {
-  return sceneTable(edgeStreamTables);
+  return genTable(edgeStreamTables, latestGen);
 }
 
 /** Subscribe to per-edge dedicated-stream arrivals (any row); returns an unsubscribe fn
@@ -162,8 +165,9 @@ let interiorStreamVersion = 0;
 
 /** Called by main.tsx whenever a new per-node dedicated NODE-stream frame arrives (tag
  *  BUF_BLOCK_TAG_NODE_STREAM, carrying `row`). */
-export function setLatestNodeStreamFrame(row: number, buf: ArrayBuffer): void {
-  sceneTable(nodeStreamTables).set(row, buf);
+export function setLatestNodeStreamFrame(row: number, buf: ArrayBuffer, gen = 0): void {
+  noteGen(gen);
+  genTable(nodeStreamTables, gen).set(row, buf);
   nodeStreamVersion++;
   for (const fn of nodeStreamListeners) fn();
 }
@@ -172,7 +176,7 @@ export function setLatestNodeStreamFrame(row: number, buf: ArrayBuffer): void {
  *  dedicated NODE-stream frame. Empty when the dedicated node-fd path is not active
  *  (fallback launches never populate this map). */
 export function getLatestNodeStreamFrames(): ReadonlyMap<number, ArrayBuffer> {
-  return sceneTable(nodeStreamTables);
+  return genTable(nodeStreamTables, latestGen);
 }
 
 /** Monotonic counter bumped on every setLatestNodeStreamFrame call — a cheap memo key for
@@ -192,8 +196,9 @@ export function subscribeNodeStreamFrame(fn: SnapshotListener): () => void {
 
 /** Called by main.tsx whenever a new per-node dedicated INTERIOR-stream frame arrives (tag
  *  BUF_BLOCK_TAG_INTERIOR_STREAM, carrying `row`). */
-export function setLatestInteriorStreamFrame(row: number, buf: ArrayBuffer): void {
-  sceneTable(interiorStreamTables).set(row, buf);
+export function setLatestInteriorStreamFrame(row: number, buf: ArrayBuffer, gen = 0): void {
+  noteGen(gen);
+  genTable(interiorStreamTables, gen).set(row, buf);
   interiorStreamVersion++;
   for (const fn of interiorStreamListeners) fn();
 }
@@ -201,7 +206,7 @@ export function setLatestInteriorStreamFrame(row: number, buf: ArrayBuffer): voi
 /** Called by node-stream-blocks.ts (and tests) to read every node row's most-recent
  *  dedicated INTERIOR-stream frame. */
 export function getLatestInteriorStreamFrames(): ReadonlyMap<number, ArrayBuffer> {
-  return sceneTable(interiorStreamTables);
+  return genTable(interiorStreamTables, latestGen);
 }
 
 /** Monotonic counter mirroring getNodeStreamVersion for the interior stream. */

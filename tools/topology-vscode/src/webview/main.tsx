@@ -58,24 +58,24 @@ window.addEventListener("message", (e) => {
     // observability log is COALESCED to at most ~1/sec (with a running count) so it does
     // not re-flood the webview->host bridge and re-starve raw-input.
     if (msg.tag === BUF_BLOCK_TAG_VIEW) {
-      setLatestViewFrame(msg.buffer);
+      setLatestViewFrame(msg.buffer, msg.gen);
     } else if (msg.tag === BUF_BLOCK_TAG_EDGE_STREAM) {
       // One of the per-edge dedicated streams (row names WHICH edge — see
       // snapshot-buffer.ts's edgeStreamFrames map). Dropped (not applied) if row is
       // missing — a malformed relay, never emitted by a correct ext host.
       if (typeof msg.row === "number") {
-        setLatestEdgeStreamFrame(msg.row, msg.buffer);
+        setLatestEdgeStreamFrame(msg.row, msg.buffer, msg.gen);
       }
     } else if (msg.tag === BUF_BLOCK_TAG_NODE_STREAM) {
       // One of the per-node dedicated NODE streams (geometry+ports+label) — row names
       // WHICH node (see snapshot-buffer.ts's nodeStreamFrames map).
       if (typeof msg.row === "number") {
-        setLatestNodeStreamFrame(msg.row, msg.buffer);
+        setLatestNodeStreamFrame(msg.row, msg.buffer, msg.gen);
       }
     } else if (msg.tag === BUF_BLOCK_TAG_INTERIOR_STREAM) {
       // One of the per-node dedicated INTERIOR streams (that node's own interior beads).
       if (typeof msg.row === "number") {
-        setLatestInteriorStreamFrame(msg.row, msg.buffer);
+        setLatestInteriorStreamFrame(msg.row, msg.buffer, msg.gen);
       }
     }
     bufSnapCount += 1;

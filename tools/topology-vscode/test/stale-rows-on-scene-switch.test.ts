@@ -11,8 +11,10 @@
 // value simply loses its bead. Node geometry, re-sent every tick, hid the problem by
 // repopulating instantly.
 //
-// So these assert ISOLATION, not removal: each scene has its own table, one tab cannot see
-// or overwrite the other's rows, and switching away and back finds them intact.
+// So these assert ISOLATION, not removal. The table is chosen by the frame's own SPAWN
+// GENERATION, stamped by the host before the process writes a byte — routing is wired, not
+// inferred from arrival order. A tab switch restarts Go, so a new generation is exactly what
+// separates one tab's rows from another's.
 
 import { describe, it, expect, beforeEach } from "vitest";
 import {
@@ -54,62 +56,63 @@ function viewFrameForScene(selected: number): ArrayBuffer {
 
 const rowFrame = (row: number) => new Uint8Array([row]).buffer;
 
-describe("each scene owns its own row tables", () => {
+// Generation 1 stands for the process showing the ring; generation 2 for the one showing the
+// pair after a switch. The host bumps this per spawn; the webview never derives it.
+const RING = 1;
+const PAIR = 2;
+
+describe("each process generation owns its own row tables", () => {
   beforeEach(() => {
     resetSceneIdentityForTest();
-    // Scene 0 (ring): a 9-node / 10-edge scene, filled out the way the live streams would.
-    setLatestViewFrame(viewFrameForScene(0));
-    for (let r = 0; r < 9; r++) setLatestNodeStreamFrame(r, rowFrame(r));
-    for (let r = 0; r < 10; r++) setLatestEdgeStreamFrame(r, rowFrame(r));
+    setLatestViewFrame(viewFrameForScene(0), RING);
+    for (let r = 0; r < 9; r++) setLatestNodeStreamFrame(r, rowFrame(r), RING);
+    for (let r = 0; r < 10; r++) setLatestEdgeStreamFrame(r, rowFrame(r), RING);
   });
 
-  it("shows none of the previous scene's node rows after a switch", () => {
+  it("shows none of the previous process's node rows once the new one streams", () => {
     expect(getLatestNodeStreamFrames().size).toBe(9);
-    setLatestViewFrame(viewFrameForScene(1));
-    // The 2-node scene has streamed nothing yet, and must not inherit rows 0..8.
-    expect(getLatestNodeStreamFrames().size).toBe(0);
+    setLatestNodeStreamFrame(0, rowFrame(100), PAIR);
+    // The 2-node scene streamed one row; rows 1..8 of the ring must not be inherited.
+    expect(getLatestNodeStreamFrames().size).toBe(1);
   });
 
-  it("shows none of the previous scene's edge rows either", () => {
-    setLatestViewFrame(viewFrameForScene(1));
-    expect(getLatestEdgeStreamFrames().size).toBe(0);
-  });
-
-  it("keeps each scene's rows when switching AWAY and BACK", () => {
-    setLatestViewFrame(viewFrameForScene(1));
-    setLatestNodeStreamFrame(0, rowFrame(100));
-    setLatestNodeStreamFrame(1, rowFrame(101));
-    expect(getLatestNodeStreamFrames().size).toBe(2);
-
-    setLatestViewFrame(viewFrameForScene(0));
-    // The ring's own nine rows are still there — NOT cleared by the excursion.
-    expect(getLatestNodeStreamFrames().size).toBe(9);
-
-    setLatestViewFrame(viewFrameForScene(1));
-    expect(getLatestNodeStreamFrames().size).toBe(2);
+  it("shows none of the previous process's edge rows either", () => {
+    setLatestEdgeStreamFrame(0, rowFrame(100), PAIR);
+    expect(getLatestEdgeStreamFrames().size).toBe(1);
   });
 
   // The reason isolation must be by KEY rather than by clearing: an interior frame is
   // written only when a node's held value changes, so a cleared interior row has nothing to
-  // re-send it. Switching away and back must return the held bead, not an empty node.
-  it("preserves INTERIOR rows across a switch, which a clear would silently destroy", () => {
-    setLatestInteriorStreamFrame(0, rowFrame(7));
+  // re-send it. A held bead must survive anything short of its own process ending.
+  it("never destroys an interior row that its own process still owns", () => {
+    setLatestInteriorStreamFrame(0, rowFrame(7), RING);
     expect(getLatestInteriorStreamFrames().size).toBe(1);
-
-    setLatestViewFrame(viewFrameForScene(1));
-    expect(getLatestInteriorStreamFrames().size).toBe(0); // the pair's own table, still empty
-
-    setLatestViewFrame(viewFrameForScene(0));
-    expect(getLatestInteriorStreamFrames().size).toBe(1); // the ring's held bead survived
+    // More ring traffic of every kind — none of it may disturb the held interior row.
+    for (let r = 0; r < 9; r++) setLatestNodeStreamFrame(r, rowFrame(r), RING);
+    setLatestViewFrame(viewFrameForScene(0), RING);
+    expect(getLatestInteriorStreamFrames().size).toBe(1);
+    expect(new Uint8Array(getLatestInteriorStreamFrames().get(0)!)[0]).toBe(7);
   });
 
-  it("writes arriving under one scene never land in the other's table", () => {
-    setLatestViewFrame(viewFrameForScene(1));
-    setLatestNodeStreamFrame(3, rowFrame(200));
-    setLatestViewFrame(viewFrameForScene(0));
-    const ringRow3 = getLatestNodeStreamFrames().get(3);
-    expect(ringRow3).toBeDefined();
-    // Row 3 of the ring is the ring's own frame, not the one written while the pair showed.
-    expect(new Uint8Array(ringRow3!)[0]).toBe(3);
+  // THE RACE THIS DESIGN REMOVES. A frame still in flight from the outgoing process, landing
+  // after the new one has started, must not appear in the new process's table — and must not
+  // evict what the new process already wrote.
+  it("files a late frame from the OLD process away from the new one's table", () => {
+    setLatestNodeStreamFrame(0, rowFrame(100), PAIR);
+    setLatestNodeStreamFrame(3, rowFrame(3), RING); // arrives late, from the dead process
+    const live = getLatestNodeStreamFrames();
+    expect(live.size).toBe(1);
+    expect(live.has(3)).toBe(false);
+    expect(new Uint8Array(live.get(0)!)[0]).toBe(100);
+  });
+
+  // Ring -> pair -> ring is THREE processes, and the third gets its own table rather than
+  // reusing the first's. A fresh process re-emits what it has, so nothing stale survives.
+  it("gives a revisited scene a fresh table, not the previous visit's", () => {
+    setLatestNodeStreamFrame(0, rowFrame(100), PAIR);
+    setLatestNodeStreamFrame(0, rowFrame(200), 3); // ring again, a third spawn
+    const live = getLatestNodeStreamFrames();
+    expect(live.size).toBe(1);
+    expect(new Uint8Array(live.get(0)!)[0]).toBe(200);
   });
 });
