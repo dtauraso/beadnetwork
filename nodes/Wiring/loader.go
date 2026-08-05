@@ -59,5 +59,5 @@ func LoadTopology(ctx context.Context, jsonPath string, tr *T.Trace, clk wire.Cl
 	// is not derived from node positions, so there is no circularity; a fresh/legacy scene
 	// has none and nodes fall back to cartesian x/y/z (polar-model.md phase 2b).
 	sphere, hasScene := loadSceneSphere(jsonPath)
-	return buildFromSpec(ctx, spec, tr, clk, sphere, hasScene)
+	return buildFromSpec(ctx, spec, tr, clk, sphere, hasScene, jsonPath)
 }

@@ -37,14 +37,32 @@ import (
 type SceneTab struct {
 	Name string
 	Dir  string
+	// QuantizedDrag selects which DRAG this scene uses, per scene, because the two are
+	// genuinely different behaviours rather than a tuning knob:
+	//
+	//   true  — the node is drawn from its QUANTIZED polar triple, so it steps one bead
+	//           distance (wire.BeadStepR) at a time, exactly like the beads on its own
+	//           chains. Commit 0a60ffb6 made this the behaviour, fixing the complaint that
+	//           "when I move a node it's jump is very very small. when a bead moves it's
+	//           jump is multiple times larger" — the node used to glide continuously while
+	//           its beads jumped, because the raw target was drawn and the quantized one
+	//           persisted.
+	//   false — the pre-0a60ffb6 drag: the node follows the pointer continuously and no
+	//           offset is measured (quantized_move.go's commitNodeMoveLocal already carries
+	//           this branch; this field is what makes it reachable per scene).
+	//
+	// A step is only invisible when it is small against the scene. The ring spans ~500
+	// world units, so a ~9-unit step reads as smooth; a two-node scene 40 units across
+	// moves ~22% of itself per step, which is why the pair could not be dragged at all.
+	QuantizedDrag bool
 }
 
 // SceneTabs is the tab strip, in display order. Index 0 is the DEFAULT: its Dir must be
 // the anchor's own basename, since that is the path the extension host launches with and
 // sizes its stream fds from (see AnchorIsTabbed).
 var SceneTabs = []SceneTab{
-	{Name: "ring", Dir: "topology"},
-	{Name: "pair", Dir: "topology-pair"},
+	{Name: "ring", Dir: "topology", QuantizedDrag: true},
+	{Name: "pair", Dir: "topology-pair", QuantizedDrag: false},
 }
 
 // sceneSelectionFile is the persisted selection, held at the ANCHOR (never inside a scene).
@@ -149,4 +167,19 @@ func (md *MoveDispatch) SelectScene(idx int) {
 		return
 	}
 	md.scenes.quit()
+}
+
+// SceneUsesQuantizedDrag answers, for the tree actually being LOADED, whether the node
+// drag snaps to the bead lattice. It takes the loaded scene's own path (not the anchor)
+// because the loader knows which tree it is opening but not which tab pointed it there.
+// An unknown tree — every test fixture, every one-off run — gets the quantized drag, which
+// is what every scene did before scenes were selectable.
+func SceneUsesQuantizedDrag(scenePath string) bool {
+	base := filepath.Base(filepath.Clean(scenePath))
+	for _, t := range SceneTabs {
+		if t.Dir == base {
+			return t.QuantizedDrag
+		}
+	}
+	return true
 }

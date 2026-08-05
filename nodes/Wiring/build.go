@@ -29,6 +29,13 @@ type buildCtx struct {
 	clk      wire.Clock
 	sphere   sceneSphere
 	hasScene bool
+	// scenePath is the tree being loaded — carried so the build can ask which DRAG this
+	// scene uses (scene_tabs.go's SceneUsesQuantizedDrag). It is the loaded scene's own
+	// path, never the anchor: the loader knows which tree it is opening, not which tab
+	// pointed it there. "" (test call sites that build a spec directly) reads as unknown,
+	// which SceneUsesQuantizedDrag answers with the quantized drag every scene had before
+	// scenes were selectable.
+	scenePath string
 
 	// Phase 1: node geometry + world centers.
 	nodeGeoms map[string]nodeGeom
@@ -80,8 +87,8 @@ type buildCtx struct {
 // buildFromSpec constructs nodes, wires, and the MoveDispatch from an already-parsed
 // and validated topoSpec. It orchestrates the phase helpers below in the same order
 // the original monolithic function performed them; behavior is unchanged.
-func buildFromSpec(ctx context.Context, spec topoSpec, tr *T.Trace, clk wire.Clock, sphere sceneSphere, hasScene bool) ([]wire.Node, SlotRegistry, *MoveDispatch, []chan float64, error) {
-	b := &buildCtx{ctx: ctx, spec: spec, tr: tr, clk: clk, sphere: sphere, hasScene: hasScene}
+func buildFromSpec(ctx context.Context, spec topoSpec, tr *T.Trace, clk wire.Clock, sphere sceneSphere, hasScene bool, scenePath string) ([]wire.Node, SlotRegistry, *MoveDispatch, []chan float64, error) {
+	b := &buildCtx{ctx: ctx, spec: spec, tr: tr, clk: clk, sphere: sphere, hasScene: hasScene, scenePath: scenePath}
 
 	b.computeNodeGeometry()
 	b.computeQuantizedLayout()
@@ -230,7 +237,9 @@ func (b *buildCtx) buildMoveDispatch() error {
 	// was the "concurrent map read and map write" fatal fixed by node6-drag-decentralized.md's
 	// per-node ownership). A node missing an entry in b.quantizedOffsets keeps its
 	// nodeMover's zero-value quantOffset, matching the old map's zero-value-on-miss read.
-	md.lq.quantizedLayout = true
+	// PER SCENE, not always-on (scene_tabs.go's QuantizedDrag): a bead-distance step is
+	// invisible in a scene that is large against it and dominant in one that is not.
+	md.lq.quantizedLayout = SceneUsesQuantizedDrag(b.scenePath)
 	for id, off := range b.quantizedOffsets {
 		if nm, ok := md.mr.nodeMovers[id]; ok {
 			nm.quantOffset = off
