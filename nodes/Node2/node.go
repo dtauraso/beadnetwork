@@ -291,6 +291,12 @@ func (n *Node) handleVectorCycle() {
 func (n *Node) Update(ctx context.Context) {
 	wire.TryEmit(n.EmitGeometry)
 
+	// Report THIS node's OPENING tilt/normal pair once, before the loop — same reason as
+	// Node1's: the mover mirrors these and cannot derive the normal itself, so without
+	// this its normal indices stay at zero until the first arrival or panel click, the two
+	// drawn arrows superimpose on world +y, and the coplanar normal reads as missing.
+	n.syncTiltIndex()
+
 	// Copy taken ONCE at this goroutine's start (Update IS the goroutine).
 	clk := n.clock().Copy()
 

@@ -1,6 +1,7 @@
 package Node2
 
 import (
+	"context"
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring"
@@ -261,5 +262,36 @@ func TestHandleVectorCycleReceivedResetClearsReceivedVector(t *testing.T) {
 	}
 	if n.ReceivedThetaIdx != 0 || n.ReceivedPhiIdx != 0 {
 		t.Fatalf("a received reset must zero the received indices; got theta=%d phi=%d", n.ReceivedThetaIdx, n.ReceivedPhiIdx)
+	}
+}
+
+// Update must report this node's OPENING tilt/normal pair BEFORE its loop body runs —
+// same reason as Node1's twin of this test: the mover mirrors these and cannot derive the
+// normal itself, so staying silent until the first arrival leaves the mover's normal at
+// zero, decoding to world +y alongside the opening tilt and superimposing the two drawn
+// arrows. Single goroutine: Update runs on an already-cancelled context.
+func TestUpdateSyncsOpeningTiltIndexBeforeLoop(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	var gotTheta, gotPhi, gotNormalTheta, gotNormalPhi int32
+	calls := 0
+	n := &Node{TiltThetaIdx: 4, TiltPhiIdx: -2}
+	n.SyncTiltIndex = func(theta, phi, normalTheta, normalPhi int32) {
+		calls++
+		gotTheta, gotPhi, gotNormalTheta, gotNormalPhi = theta, phi, normalTheta, normalPhi
+	}
+
+	n.Update(ctx)
+
+	if calls != 1 {
+		t.Fatalf("want exactly one opening sync, got %d", calls)
+	}
+	if gotTheta != 4 || gotPhi != -2 {
+		t.Fatalf("opening tilt: want (4,-2), got (%d,%d)", gotTheta, gotPhi)
+	}
+	wantNormalTheta := int32(4) - Wiring.PerpendicularThetaIdx
+	if gotNormalTheta != wantNormalTheta || gotNormalPhi != -2 {
+		t.Fatalf("opening normal: want (%d,-2), got (%d,%d)", wantNormalTheta, gotNormalTheta, gotNormalPhi)
 	}
 }
