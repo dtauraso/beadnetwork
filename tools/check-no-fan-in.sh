@@ -11,6 +11,8 @@ set -euo pipefail
 # diagram can't be committed and only discovered when someone runs it.
 #
 # Exit 0 clean, exit 1 with a report.
+#
+# PLACEMENT: topology/nodes/*/edges/*.json | two committed edges may not target the same target+targetHandle (fan-in)
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"

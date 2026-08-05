@@ -11,6 +11,8 @@ set -euo pipefail
 # so it is EXPENSIVE and belongs in the TS-gated block of stop-checks, never
 # the fast unconditional guard loop. FAILS (nonzero) on any test failure;
 # exit 0 when the whole suite passes.
+#
+# PLACEMENT: none | runs the whole vitest suite; not scoped to the file being written
 
 cd "$(git rev-parse --show-toplevel)/tools/topology-vscode"
 

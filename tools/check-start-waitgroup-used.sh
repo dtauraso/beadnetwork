@@ -15,6 +15,8 @@
 #     t.Cleanup(func() { cancel(); wg.Wait() })
 #
 # See docs/testing-shape.md ("Signal-without-wait teardown").
+#
+# PLACEMENT: *_test.go | a bare `<recv>.Start(ctx)` call must capture and Wait() its returned WaitGroup before cleanup
 set -uo pipefail
 cd "$(dirname "$0")/.."
 

@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+#
+# PLACEMENT: nodes/*/node.go | a kind's wire.Register("<Kind>") name must be unique across every node package
 set -euo pipefail
 
 # Static duplicate-kind check: every production node package registers its kind name with a

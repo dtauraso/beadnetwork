@@ -12,6 +12,8 @@ set -euo pipefail
 # The label columns' ONE legitimate reader is buffer-decode.ts (the .probe decoder). The
 # generated readers live in buffer-layout.ts. Everything else under the three/ render tree —
 # EdgeTube.tsx above all — must not reference them. Exit 0 clean, exit 1 with a report.
+#
+# PLACEMENT: tools/topology-vscode/src/webview/three/**/*.ts,tools/topology-vscode/src/webview/three/**/*.tsx | only buffer-decode.ts/buffer-layout.ts may read EdgeLabelOff/Len; the renderer must not
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"

@@ -6,6 +6,8 @@
 # globs that dir only). Without this wrapper the audit script existed but
 # nothing ever invoked it — see docs/drift-checklist.md item 1 ("Can the model
 # skip a required step/tool and still answer?").
+#
+# PLACEMENT: none | thin wrapper invoking scripts/audit-doc-drift.mjs so it runs in the guard loop
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"

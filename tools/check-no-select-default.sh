@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+#
+# PLACEMENT: nodes/wire/bead_actor.go,nodes/wire/*.go | a bead goroutine's select must have NO default: case — it parks, it never spins
 set -euo pipefail
 
 # check-no-select-default.sh — guard that the bead goroutine's own select carries no

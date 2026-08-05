@@ -52,6 +52,8 @@ set -euo pipefail
 # is a claim. Without it there is no way to document the hatch without invoking it.
 #
 # Exit 0 clean, exit 1 with a named report.
+#
+# PLACEMENT: **/*_test.go,**/*.test.ts,**/*.test.tsx,**/*.spec.ts,**/*.spec.tsx | a test edit must not net-remove assertions or add skip/only/exit/recover without an [allow-test-weakening: <paths>] commit marker
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"

@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+#
+# PLACEMENT: nodes/**/*.go,Buffer/*.go,Trace/*.go | a panic must NAME the invariant it broke, not just the symptom
 # check-panic-message.sh — fail if a network panic does not name the invariant it broke.
 # Run from repo root: bash tools/check-panic-message.sh
 #

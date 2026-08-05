@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # check-dead-doc-tokens.sh — fail if retired architecture tokens reappear in CLAUDE.md or MODEL.md.
 # Run from repo root: bash tools/check-dead-doc-tokens.sh
+#
+# PLACEMENT: CLAUDE.md,MODEL.md | must not reintroduce tokens from the DEAD_TOKENS list (retired React Flow terms)
 set -euo pipefail
 
 # Lives in tools/ with every other guard, and resolves the repo root the way they all do

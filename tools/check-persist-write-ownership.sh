@@ -47,6 +47,8 @@ set -euo pipefail
 #     scene_sphere_persist.go.
 #
 # Exit 0 when clean.
+#
+# PLACEMENT: nodes/Wiring/*.go | writeJSONAtomic/entityReadModifyWrite calls must live in the owning file (node/edge/view mover), never elsewhere
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"

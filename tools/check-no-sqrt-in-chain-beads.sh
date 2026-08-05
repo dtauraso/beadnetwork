@@ -15,6 +15,8 @@ set -euo pipefail
 # cartesian<->polar boundary conversion per bead (polar2cart).
 #
 # Exit 0 clean, exit 1 with a report.
+#
+# PLACEMENT: nodes/Wiring/chain_beads.go | no math.Sqrt/.Length()/.Normalize(); bead placement stays index arithmetic (QuantIR*StepR)
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"

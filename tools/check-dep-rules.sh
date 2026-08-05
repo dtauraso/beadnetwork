@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+#
+# PLACEMENT: nodes/*/node.go,nodes/*/*.go | a node-kind package may import only the shared spine (Wiring/gatecommon/wire), never a sibling kind
 # check-dep-rules.sh — fail if a node-kind package imports a SIBLING node-kind package.
 # Run from repo root: bash tools/check-dep-rules.sh
 #

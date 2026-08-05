@@ -35,6 +35,8 @@ set -euo pipefail
 # content stays unstaged, so it does not disturb a partial staging workflow.
 #
 # Exit 0 when clean, exit 1 (naming each file) when untracked source exists.
+#
+# PLACEMENT: none | repo-wide hygiene check that every *.go/*.ts/*.tsx/*.js/*.jsx/*.sh/*.py file is git-visible (tracked or intent-to-add)
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"

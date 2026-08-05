@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# PLACEMENT: Buffer/buffer_layout_gen.go,tools/gen-node-defs/buffer_layout.go | SetOverlayRow must take one named OverlayRow struct, never positional same-typed scalars
+#
 # check-overlay-row-struct.sh — guards the overlay-flag transposition fix.
 #
 # The Overlay block's eight boolean flags used to be hand-listed in FIVE separate places

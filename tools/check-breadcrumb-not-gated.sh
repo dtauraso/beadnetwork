@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+#
+# PLACEMENT: nodes/wire/*.go,nodes/Wiring/*.go | only stepAll's KindEdgeBead append may sit behind edgeBeadTraceEnabled; breadcrumbs always emit
 # check-breadcrumb-not-gated.sh — forbid the WIREFOLD_EDGE_BEAD_TRACE gate
 # (edgeBeadTraceEnabled, nodes/wire/paced_wire.go) from spreading beyond its one
 # legitimate site: the T.KindEdgeBead append inside stepAll. Debug breadcrumbs

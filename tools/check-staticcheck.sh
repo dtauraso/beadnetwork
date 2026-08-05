@@ -4,6 +4,8 @@ set -euo pipefail
 # check-staticcheck.sh — Go static-analysis guard (the Go equivalent of
 # check-eslint.sh for the TS side).
 #
+# PLACEMENT: none | universal Go vet/staticcheck hygiene, not a placement decision
+#
 # Two layers:
 #   1. `go vet ./...` — ships with the toolchain, so it is ALWAYS version-matched
 #      and always available. Fail hard on any nonzero exit.

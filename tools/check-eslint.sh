@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+#
+# PLACEMENT: none | universal TS lint, not a placement decision (react-hooks rules are errors)
 set -euo pipefail
 
 # check-eslint.sh — lint guard for the webview/extension TypeScript.

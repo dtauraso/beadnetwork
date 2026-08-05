@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+#
+# PLACEMENT: Buffer/layout.go | every buffer column needs a non-test production consumer; delete an unused one rather than allowlisting it
 # check-no-dead-buffer-column.sh — fail if a generated buffer-column reader has NO
 # production consumer. Run from repo root: bash tools/check-no-dead-buffer-column.sh
 #

@@ -34,6 +34,8 @@ set -euo pipefail
 # memory/feedback_two_process_editor_reload.md for that reason.
 #
 # Exit 0 clean, exit 1 with a named report.
+#
+# PLACEMENT: main.go,Buffer/stream_fds.go | every conditionally-wired per-owner StreamKind must have a named stream-fd mismatch report
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"

@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # check-bead-actor-has-call-site.sh — fail if the chain-bead actor primitive
 # (nodes/wire/bead_actor.go, nodes/wire/bead_wake_group.go) has NO production call site.
+#
+# PLACEMENT: nodes/wire/bead_actor.go,nodes/wire/bead_wake_group.go | must have a production call site outside nodes/wire and _test.go
 # Run from repo root: bash tools/check-bead-actor-has-call-site.sh
 #
 # WHY THIS EXISTS: the primitive was built and tested in isolation (bead_actor_test.go)

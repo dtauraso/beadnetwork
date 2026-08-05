@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+#
+# PLACEMENT: tools/topology-vscode/src/webview/three/interaction-controls.ts | the nav handler does no Cartesian math; angle/sphere math lives in the polar helpers
 # check-polar-only-nav.sh — guard that the nav handler stays polar-only.
 #
 # The rotation handler in interaction-controls.ts must do NO Cartesian math itself.

@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# PLACEMENT: nodes/Wiring/*.go,nodes/wire/*.go,tools/topology-vscode/src/schema/types.ts | a new SendRule const must also appear in the SEND_RULES array in types.ts
+#
 # Verifies that the SendRule string constants declared anywhere in the
 # nodes/Wiring/ or nodes/wire/ Go packages match the SEND_RULES array in
 # tools/topology-vscode/src/schema/types.ts.

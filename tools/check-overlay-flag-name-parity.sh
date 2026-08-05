@@ -15,6 +15,8 @@ set -euo pipefail
 # Both regions are sentinel-fenced so the extraction can't sweep in unrelated literals.
 #
 # Exit 0 clean, exit 1 with a report.
+#
+# PLACEMENT: tools/topology-vscode/src/messages.ts,nodes/Wiring/overlay_gen.go | OVERLAY_FLAG_NAMES (TS) and overlayToggles keys (Go) must be the exact same name set
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"

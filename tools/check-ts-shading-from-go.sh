@@ -60,6 +60,8 @@ set -euo pipefail
 #
 # Scope: the whole three/ render dir (shading code is split across several
 # files, not one).
+#
+# PLACEMENT: tools/topology-vscode/src/webview/three/**/*.ts,tools/topology-vscode/src/webview/three/**/*.tsx | Go-owned shading props (roughness, ior, etc.) must reference shading-params.ts, not a numeric literal
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"

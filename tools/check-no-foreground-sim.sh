@@ -22,6 +22,8 @@
 # a path, or README prose written via a heredoc all read as sim runs and blocked
 # an unrelated edit. Mentioning the sim is not running it; only the head of a
 # command is.
+#
+# PLACEMENT: none | this is a PreToolUse(Bash) hook gating shell commands, not a source-file guard
 set -uo pipefail
 
 input="$(cat)"

@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+#
+# PLACEMENT: nodes/SPEC-FORMAT.md,tools/gen-node-defs/ast_parse.go | the `## View` field table must name exactly the view.* fields parseSpecMD reads
 set -euo pipefail
 
 # check-spec-format-view-fields.sh — nodes/SPEC-FORMAT.md's `## View` field table must name

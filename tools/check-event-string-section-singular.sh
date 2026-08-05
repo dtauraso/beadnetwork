@@ -30,6 +30,8 @@ set -euo pipefail
 # asserting the SINGULAR-string-section invariant.
 #
 # Exit 0 if clean; exit 1 with a report otherwise.
+#
+# PLACEMENT: Buffer/layout.go | bufLayoutEvent may declare at most one `<Name>Off uint32` free-form string section
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"

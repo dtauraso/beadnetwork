@@ -15,6 +15,8 @@
 #
 # Exit 0 clean (empty), exit 1 with a report — matches the guard-loop contract in
 # scripts/stop-checks.sh (auto-discovered via tools/check-*.sh glob).
+#
+# PLACEMENT: none | universal prose hygiene: retired vocabulary is banned everywhere, not in one place
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

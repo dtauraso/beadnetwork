@@ -20,6 +20,8 @@ set -euo pipefail
 #
 # Exit 0 when clean, exit 1 (with a report) when any tracked source file
 # contains a NUL byte.
+#
+# PLACEMENT: **/*.{go,ts,tsx,js,jsx,json,md,sh,css} | must not contain a literal 0x00 byte
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"

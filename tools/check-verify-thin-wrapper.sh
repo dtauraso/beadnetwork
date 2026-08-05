@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+#
+# PLACEMENT: scripts/verify.sh | verify.sh stays a thin delegator to stop-checks.sh; never reimplement a check in it
 set -euo pipefail
 
 # scripts/verify.sh is the terminal front door to the verify checks; it MUST stay a thin
