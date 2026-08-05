@@ -85,15 +85,6 @@ const (
 	KindLabelsGlobal = "labels-global"
 	// KindOverlaysVis carries the master overlays visibility state.
 	KindOverlaysVis = "overlays-vis"
-	// KindCascadeLinks carries the cascade-link (layout-link) overlay visibility state.
-	// Default OFF (unlike the other overlay flags).
-	KindCascadeLinks = "cascade-links"
-	// KindLayoutLink carries one cascade-linked node PAIR from the LAYOUT model
-	// (nodes/Wiring/layout_holder.go LocalPolars, filtered to the cascade-link set —
-	// see nodes/Wiring/cascade_links.go) — NOT the bead-edge graph. Streamed once per
-	// pair at load (deduplicated so each unordered pair streams exactly once), keyed by
-	// Node (one endpoint) and Target (the other).
-	KindLayoutLink = "layout-link"
 	// KindSelect carries the CURRENTLY-SELECTED node id (click-select), or an edge label
 	// on Edge with Node empty (edge selection — selection is single + exclusive across
 	// nodes and edges). Node="" clears the selection (empty-space click).
@@ -140,7 +131,9 @@ const (
 	BreadcrumbDwellStart
 	BreadcrumbAbcDrag
 	BreadcrumbWireSendBufferFull
-	BreadcrumbCascadeRoot
+	// BreadcrumbDragCommit reports a node's own drag commit (owner-goroutine handle's
+	// moveMsgKindDrag case) — the new position this node's own goroutine just committed.
+	BreadcrumbDragCommit
 	// BreadcrumbWireBreadcrumbsDropped reports how many KindBreadcrumb rows
 	// PacedWire.Send's non-blocking breadcrumbCh send silently dropped since
 	// the last report (breadcrumbCh's own doc comment, paced_wire.go) — Value
@@ -177,7 +170,7 @@ var BreadcrumbLabels = []string{
 	"dwell_start",
 	"abc-drag",
 	"wire-send-buffer-full",
-	"cascade.root",
+	"drag.commit",
 	"wire-breadcrumbs-dropped",
 	"chain-aim",
 	"neighbor-center-recv",
@@ -191,7 +184,7 @@ var BreadcrumbLabels = []string{
 // numeric id for the wire encoding. There is no tsc exhaustiveness check derived from
 // it — adding a kind here does not force a TS branch anywhere; it only extends the
 // lookup table.
-var TraceEventKinds = []string{KindRecv, KindFire, KindSend, KindEdgeBead, KindGeometry, KindNodeGeometry, KindArrive, KindNodeBead, KindCamera, KindSceneTori, KindScenePoles, KindNodePoles, KindSelSpherePoles, KindHandholds, KindLabelsGlobal, KindOverlaysVis, KindCascadeLinks, KindLayoutLink, KindSelect, KindHover, KindSceneSphere, KindAbcDrag, KindAbcDragReset, KindBreadcrumb}
+var TraceEventKinds = []string{KindRecv, KindFire, KindSend, KindEdgeBead, KindGeometry, KindNodeGeometry, KindArrive, KindNodeBead, KindCamera, KindSceneTori, KindScenePoles, KindNodePoles, KindSelSpherePoles, KindHandholds, KindLabelsGlobal, KindOverlaysVis, KindSelect, KindHover, KindSceneSphere, KindAbcDrag, KindAbcDragReset, KindBreadcrumb}
 
 // PortGeom is one port's authoritative world geometry: its name, whether it is an
 // input, its sphere-surface world position (PX/PY/PZ), and the unit direction from node

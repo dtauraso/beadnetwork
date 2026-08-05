@@ -244,7 +244,7 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 		if !ok {
 			continue
 		}
-		count := edgeStepCount(dist, m.geom.Kind, m.cascadeKinds[to])
+		count := edgeStepCount(dist, m.geom.Kind, m.neighborKinds[to])
 
 		// Publish this edge's freshly computed step count onto its own *wire.Out
 		// (docs/bead-lattice.md "Ownership") and onto its edgeMover's stepsIn (so a live

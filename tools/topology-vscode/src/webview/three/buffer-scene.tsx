@@ -11,16 +11,17 @@
 //
 // The actual per-block renderers live in sibling files (BeadInstances, NodeInstances,
 // SelectionHighlight/HoverHighlight, SphereRings, InteriorBeadInstances,
-// EdgeTube, BufferCamera, BufferLabelProjector) — this file is just the capacity-manager
+// BufferCamera, BufferLabelProjector) — this file is just the capacity-manager
 // orchestrator that mounts them, plus the shared pick-tag re-exports scene-content.tsx and
 // ThreeView.tsx still import from here. There is no PortInstances any more
 // (docs/channels-not-ports.md): a port is a load-time channel-binding ROLE, never drawn or
-// hit-testable.
+// hit-testable. There is no per-edge drawn tube any more either (the source node's own
+// chain of placeholder beads is the edge's visual, docs/beads-are-the-edge.md).
 
 import { useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import type * as THREE from "three";
-import { getNodeFrame, getLayoutLinks, getChainBeads } from "./node-stream-blocks";
+import { getNodeFrame, getChainBeads } from "./node-stream-blocks";
 import { INTERIOR_SLOTS_PER_NODE } from "./buffer-decode";
 // BeadInstances (the single MOVING transit bead per wire) is gone: the animation is now the
 // LIT bead advancing along a node-owned fixed chain (ChainBeadInstances,
@@ -30,7 +31,6 @@ import { NodeInstances } from "./NodeInstances";
 import { SelectionHighlight, HoverHighlight } from "./SelectionHighlight";
 import { SphereRings } from "./SphereRings";
 import { InteriorBeadInstances } from "./InteriorBeadInstances";
-import { EdgeTubes } from "./EdgeTube";
 import { BufferCamera } from "./BufferCamera";
 import { BufferLabelProjector } from "./BufferLabelProjector";
 
@@ -45,7 +45,6 @@ export { BufferLabelProjector };
 // ── Sizing constants ──────────────────────────────────────────────────────────
 const INITIAL_NODE_CAP  = 32;
 const INITIAL_CHAINBEAD_CAP = 256; // node-owned placeholder chain beads (docs/beads-are-the-edge.md): count is len/spacing summed over every node's OUTGOING edges, so it is far larger than any other block's and independent of every other cap
-const INITIAL_LAYOUTLINK_CAP = 32; // layout cascade-link overlay pairs — from LocalPolars filtered to the cascade-link set, NOT the Edge block, so its count is independent of edgeCount and needs its OWN cap
 
 // ── BufferScene ───────────────────────────────────────────────────────────────
 // Capacity manager: checks the latest snapshot each frame and grows per-block
@@ -56,22 +55,15 @@ export function BufferScene({ cameraRef }: {
   cameraRef?: React.MutableRefObject<THREE.PerspectiveCamera | null>;
 } = {}) {
   const [nodeCap,  setNodeCap]  = useState(INITIAL_NODE_CAP);
-  const [layoutLinkCap, setLayoutLinkCap] = useState(INITIAL_LAYOUTLINK_CAP);
   const [chainBeadCap, setChainBeadCap] = useState(INITIAL_CHAINBEAD_CAP);
 
   // Capacity-growth guard: runs every frame to detect need for reallocation. EVERY
   // variable-length streamed block must have a row here — a block whose count outgrows a
-  // cap that isn't tracked is silently clamped (the layout-link overlay lost links this
-  // way, borrowing edgeCap). Listing them in ONE table (not scattered ifs) makes a new
-  // block's capacity a single obvious edit and its omission a visible gap in this list.
+  // cap that isn't tracked is silently clamped. Listing them in ONE table (not scattered
+  // ifs) makes a new block's capacity a single obvious edit and its omission a visible gap
+  // in this list.
   useFrame(() => {
     const grow: { count: number; cap: number; set: (n: number) => void }[] = [];
-
-    // Layout links are aggregated from the per-node dedicated streams' own outbound
-    // layout-links (node-stream-blocks.ts's getLayoutLinks) — independent of edge/bead/node
-    // stream arrival.
-    const { layoutLinkCount } = getLayoutLinks();
-    grow.push({ count: layoutLinkCount, cap: layoutLinkCap, set: setLayoutLinkCap });
 
     // Chain beads are aggregated from the per-node dedicated streams too (getChainBeads) —
     // each node contributes the chains on its OWN outgoing edges. Its own row here, not a
@@ -108,7 +100,6 @@ export function BufferScene({ cameraRef }: {
       <SelectionHighlight />
       <HoverHighlight />
       <SphereRings />
-      <EdgeTubes     layoutLinkCapacity={layoutLinkCap} />
     </>
   );
 }

@@ -38,13 +38,6 @@ func positionFilePath(root, id string) string {
 	return filepath.Join(root, "nodes", id, "position.json")
 }
 
-// cascadeEdgesFilePath is <root>/nodes/<id>/cascade-edges.json — the node's
-// hand-authored cascade-neighbor list (quant_offset_persist.go's doc comment: this file
-// has no runtime writer today, only a reader, but the path belongs here regardless).
-func cascadeEdgesFilePath(root, id string) string {
-	return filepath.Join(root, "nodes", id, "cascade-edges.json")
-}
-
 // pendingSend is one (destination, message) pair this node's own goroutine tried to
 // deliver, failed (the target's inbox was momentarily full), and is retrying — see
 // nodeMover.pending's doc comment. There is no separate sender goroutine:
@@ -226,23 +219,14 @@ type nodeMover struct {
 	// writes so a port row can be resolved back to (nodeRow, portIndex) on the TS side
 	// without a shared port table.
 	nodeRow int32
-	// cascadeEdges holds this node's STORED cascade-neighbor ids (nodes/<id>/
-	// cascade-edges.json, specNode.CascadeEdges), set ONCE at construction (build.go's
-	// buildMoveDispatch) from the loaded file — hand-authored/persisted data, not derived
-	// from the domain-edge adjacency. This is the SOLE source of truth for the
-	// cascade-link overlay's rendered pairs (emitGeometry below draws one tube per entry
-	// where m.id is the lexicographically-smaller endpoint, so an undirected pair streams
-	// from exactly one side's own fd, never both). nil when this node has no
-	// cascade-edges.json entries (or in bare test construction).
-	cascadeEdges []string
 	// selfKind is this node's own kind name (specNode.Type), set ONCE at construction
-	// (build.go's buildMoveDispatch) alongside cascadeEdges/cascadeKinds.
+	// (build.go's buildMoveDispatch) alongside neighborKinds.
 	selfKind string
 	// outTargets is THIS node's own OUTGOING edge targets (b.spec.Edges where Source ==
-	// this node), seeded once at load beside cascadeEdges (build.go) and never written
-	// again. DIRECTED, unlike cascadeEdges: it is the set of chains this node owns, and
-	// edge ownership is already directed on disk (topology/nodes/<source>/edges/, outgoing
-	// only). Read only by chainBeads on this node's own goroutine.
+	// this node), seeded once at load beside neighborKinds (build.go) and never written
+	// again — the set of chains this node owns, matching where the edge is stored on disk
+	// (topology/nodes/<source>/edges/, outgoing only). Read only by chainBeads on this
+	// node's own goroutine.
 	outTargets []string
 	// outWires / outWireTargets are THIS node's own outgoing wires and the target id each
 	// one goes to, parallel slices bound once at load (moverRegistry.bind) and never
@@ -270,13 +254,12 @@ type nodeMover struct {
 	// count too. nil entries are skipped by sendStepsNonBlocking (a nil channel's send
 	// case is simply never selected).
 	outStepsIn []chan int
-	// cascadeKinds maps each cascadeEdges neighbor id → that neighbor's kind name,
-	// loaded once from this node's OWN cascade-edges.json (specNode.CascadeKinds,
-	// loader_tree.go) at construction (build.go's buildMoveDispatch) — never touched
-	// again. Indexing a nil/missing entry is safe (returns ""), so no init needed. This
-	// is the sole source forwardDelta consults to tell a Pulse-kind sender from any
-	// other kind, without a central id->kind table.
-	cascadeKinds map[string]string
+	// neighborKinds maps each DIRECT domain-adjacent neighbor id → that neighbor's kind
+	// name, derived once from the loaded spec's node list + edges (build.go's
+	// buildMoveDispatch) — never touched again. Indexing a nil/missing entry is safe
+	// (returns ""), so no init needed. Used for neighbor-kind-dependent geometry
+	// (edgeStepCount, nodeTorusOuterR) without a central id->kind table.
+	neighborKinds map[string]string
 	// mutualTargets marks each outgoing target that ALSO has an edge back to this node.
 	// Such a pair's two chains run along the same centre line and would draw on top of
 	// each other, so each end offsets its own chain perpendicular to that line
@@ -290,8 +273,9 @@ type nodeMover struct {
 	coplanarEdges bool
 	// nodeRowFor resolves a node id to its buffer NODE-ROW index (mirroring the old
 	// central accumulator's NodeRowFor), injected via MoveDispatch.SetNodeStreams so this
-	// package stays Buffer-independent. Used to resolve this node's own cascadeEdges dst
-	// rows for the overlay's node-stream emission.
+	// package stays Buffer-independent. Used to resolve a neighbor id to its row for
+	// breadcrumb TargetRow columns (handle's moveMsgKindNeighborCenter case) and chain-aim
+	// diagnostics (chain_beads.go).
 	nodeRowFor func(id string) (int32, bool)
 	// --- own selection/hover/abc-drag UI state (per-owner, no shared/republished map) ---
 	//
@@ -312,7 +296,7 @@ type nodeMover struct {
 	// buildFrame packs this node's combined per-fd frame (node fields + ports + label)
 	// using Buffer's own row-writer columns (Buffer.BuildNodeStreamFrame), injected so
 	// this package needs no Buffer import.
-	buildFrame func(tick uint32, nodeRow int32, nodeID int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, poleTheta, polePhi, ringAxisTheta, ringAxisPhi float32, selected, kindID, hovered, latchedSel uint8, label string, dstNodeRows []int32, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte
+	buildFrame func(tick uint32, nodeRow int32, nodeID int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, poleTheta, polePhi, ringAxisTheta, ringAxisPhi float32, selected, kindID, hovered, latchedSel uint8, label string, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte
 }
 
 func newNodeMover(id string, geom nodeGeom, tr *T.Trace, clockSrc wire.Clock) *nodeMover {
@@ -367,20 +351,20 @@ func (m *nodeMover) handle(msg moveMsg) {
 		// Owner-goroutine drag entry (generalized to EVERY node so no node's quantized
 		// offset is ever touched by a foreign mover goroutine): commit this node's OWN
 		// new position via the local (synchronous-snap-publish) commit path. A drag is
-		// always a FREE move now -- there is no equal-radii solve and no self-trigger
-		// cascade to run.
+		// always a FREE move now -- there is no equal-radii solve and no propagation
+		// past this node's own commit.
 		newPos := msg.Target
 		if m.commitLocal != nil {
 			m.commitLocal(m.id, newPos)
 		}
 		if m.tr != nil {
-			m.tr.Breadcrumb("cascade.root", m.id, "", fmt.Sprintf("newPos=(%.4f,%.4f,%.4f)", newPos.X, newPos.Y, newPos.Z))
+			m.tr.Breadcrumb("drag.commit", m.id, "", fmt.Sprintf("newPos=(%.4f,%.4f,%.4f)", newPos.X, newPos.Y, newPos.Z))
 			// Structured buffer counterpart, riding this node's own dedicated
 			// stream frame (emitGeometry's own next emit already fires from
 			// commitLocal above, so this rides as a distinct events-only-shaped
 			// write here rather than waiting on that one).
 			m.writeStreamFrame([]wire.RowEvent{{
-				Kind: T.KindBreadcrumb, Label: T.BreadcrumbCascadeRoot, Debug: 1,
+				Kind: T.KindBreadcrumb, Label: T.BreadcrumbDragCommit, Debug: 1,
 				NodeRow: m.nodeRow, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 				X: newPos.X, Y: newPos.Y, Z: newPos.Z,
 			}})
@@ -583,32 +567,9 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 		label = m.id
 	}
 	selected, hovered, latchedSel, kindID := m.selected, m.hovered, m.latchedSel, m.kindID
-	// This node's own outbound cascade-link overlay pairs (cascadeEdges, static since
-	// load — see its doc comment): each entry where THIS node is the lexicographically
-	// SMALLER endpoint streams from here (so an undirected pair emits from exactly one
-	// side's own fd, never both), resolved to its CURRENT buffer node row (re-resolved
-	// every emit — a node's row is stable, but resolving fresh costs nothing and matches
-	// the rest of this emit). No edge-row resolution: the cascade-link overlay draws
-	// between the two NODES' CENTERS directly, not along any bead edge (see EdgeTube.tsx's
-	// LayoutLinkOverlay). A dst id that hasn't registered a node row yet is skipped rather
-	// than packed with a -1 dst row.
-	var dstNodeRows []int32
-	if len(m.cascadeEdges) > 0 && m.nodeRowFor != nil {
-		dstNodeRows = make([]int32, 0, len(m.cascadeEdges))
-		for _, to := range m.cascadeEdges {
-			if m.id >= to {
-				continue
-			}
-			dstRow, ok := m.nodeRowFor(to)
-			if !ok {
-				continue
-			}
-			dstNodeRows = append(dstNodeRows, dstRow)
-		}
-	}
 	// This node's own placeholder chain beads, node-local (chain_beads.go). Computed here
 	// on this node's own goroutine from its own center + its own partnerCenters map — no
-	// cross-goroutine position read, same as dstNodeRows above.
+	// cross-goroutine position read.
 	chainOX, chainOY, chainOZ, chainLit, chainLitVal, chainBreadcrumbs := m.chainBeads()
 	if len(chainBreadcrumbs) > 0 {
 		// DIAGNOSTIC ONLY (task/log-node4-chain-aim): chainBeads' own "chain-aim" events,
@@ -627,7 +588,7 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 		flatRingNormalX, flatRingNormalY, flatRingNormalZ,
 		float32(poleTheta), float32(polePhi), float32(ringAxisTheta), float32(ringAxisPhi),
 		selected, kindID, hovered, latchedSel,
-		label, dstNodeRows, chainOX, chainOY, chainOZ, chainLit, chainLitVal, events)
+		label, chainOX, chainOY, chainOZ, chainLit, chainLitVal, events)
 	var hdr [4]byte
 	binary.LittleEndian.PutUint32(hdr[:], uint32(len(frame)))
 	// Fire-and-forget, same reasoning throughout this bridge: no delivery

@@ -24,8 +24,8 @@ func TestMoveDispatchRowTablesUseNodeIDMinusOne(t *testing.T) {
 	// row in [0, 30) left empty.
 	const topo = `{
 	  "nodes": [
-	    {"id":"30","type":"AimedSrc","scenePolarR":0,"scenePolarTheta":0,"scenePolarPhi":0,"cascadeEdges":["3"],"cascadeKinds":{"3":"AimedSink"}},
-	    {"id":"3","type":"AimedSink","scenePolarR":50,"scenePolarTheta":1.5707963267948966,"scenePolarPhi":0,"cascadeEdges":["30"],"cascadeKinds":{"30":"AimedSrc"}},
+	    {"id":"30","type":"AimedSrc","scenePolarR":0,"scenePolarTheta":0,"scenePolarPhi":0},
+	    {"id":"3","type":"AimedSink","scenePolarR":50,"scenePolarTheta":1.5707963267948966,"scenePolarPhi":0},
 	    {"id":"15","type":"AimedSink","scenePolarR":50,"scenePolarTheta":1.5707963267948966,"scenePolarPhi":3.14159}
 	  ],
 	  "edges": [

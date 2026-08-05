@@ -33,7 +33,6 @@ const OVERLAY_FLAG_NAMES = [
   "handholds",
   "labelsGlobal",
   "overlays",
-  "cascadeLinks",
 ] as const;
 // OVERLAY_FLAGS_END
 

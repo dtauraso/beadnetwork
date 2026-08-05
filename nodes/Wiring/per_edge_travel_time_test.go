@@ -16,21 +16,18 @@ import (
 // port (fan-in) must be rejected at load, not silently share a wire. Uses SinkNode's one
 // "In" port with two incident edges — the exact shape validateNoFanIn forbids.
 //
-// Two things here are load-bearing, and both were MISSING in the version of this test a
+// One thing here is load-bearing, and was MISSING in the version of this test a
 // mutation audit found vacuous (it passed with validateNoFanIn deleted outright):
 //
-//  1. Every node carries cascadeEdges/cascadeKinds matching its domain adjacency. Without
-//     them, validateCascadeEdges rejects this fixture on its own, so LoadTopology returns
-//     an error whether or not fan-in is checked at all.
-//  2. The assertion reads the error's CONTENT, not just err != nil. Three independent
-//     mechanisms can fail this fixture (validateNoFanIn, validateCascadeEdges, and an
-//     allocateWires panic); only the message distinguishes them.
+//   - The assertion reads the error's CONTENT, not just err != nil. More than one
+//     mechanism can fail this fixture (validateNoFanIn, an allocateWires panic); only the
+//     message distinguishes them.
 func TestFanInRejectedAtLoad(t *testing.T) {
 	const topo = `{
 	  "nodes": [
-	    {"id":"1","type":"SrcNode","outputs":[{"name":"Out"}],"cascadeEdges":["3"],"cascadeKinds":{"3":"SinkNode"}},
-	    {"id":"2","type":"SrcNode","outputs":[{"name":"Out"}],"cascadeEdges":["3"],"cascadeKinds":{"3":"SinkNode"}},
-	    {"id":"3","type":"SinkNode","inputs":[{"name":"In"}],"cascadeEdges":["1","2"],"cascadeKinds":{"1":"SrcNode","2":"SrcNode"}}
+	    {"id":"1","type":"SrcNode","outputs":[{"name":"Out"}]},
+	    {"id":"2","type":"SrcNode","outputs":[{"name":"Out"}]},
+	    {"id":"3","type":"SinkNode","inputs":[{"name":"In"}]}
 	  ],
 	  "edges": [
 	    {"label":"eA","kind":"data","source":"1","sourceHandle":"Out","target":"3","targetHandle":"In"},

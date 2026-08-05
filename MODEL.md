@@ -335,8 +335,10 @@ when a bead has arrived. Go owns the clock.
   not this filename. The tree covers: node bodies (`tools/topology-vscode/src/webview/three/NodeInstances.tsx` — sphere
   mesh + ring, keyed off `node.data.fill`/`node.data.stroke` from `NODE_DEFS`; no port
   geometry — a port is a load-time channel-binding ROLE, never drawn, `docs/channels-not-ports.md`),
-  edge tubes (`tools/topology-vscode/src/webview/three/EdgeTube.tsx`), transit and interior
-  beads (`tools/topology-vscode/src/webview/three/ChainBeadInstances.tsx`, `tools/topology-vscode/src/webview/three/InteriorBeadInstances.tsx`), selection highlight
+  transit and interior
+  beads (`tools/topology-vscode/src/webview/three/ChainBeadInstances.tsx`, `tools/topology-vscode/src/webview/three/InteriorBeadInstances.tsx` — there is no
+  per-edge drawn tube any more; the source node's own chain of placeholder beads is the
+  edge's visual, `docs/beads-are-the-edge.md`), selection highlight
   (`tools/topology-vscode/src/webview/three/SelectionHighlight.tsx`), and the camera (`tools/topology-vscode/src/webview/three/BufferCamera.tsx` maps the buffer
   Camera row onto the three.js camera). Nothing in this tree owns traversal
   timing, positions, or geometry.
@@ -504,7 +506,7 @@ and none is a source of truth.
   invalidate it, and it owns it (single-writer, its own goroutine).
 - **No blow-up, by construction.** The offset is STORED and only carried through the
   composition or nudged one component — it is NEVER re-derived as `cart2polar(node − center)`
-  from a live world during a cascade. That reconstruction against a mid-moving center is the
+  from a live world during a propagation wave. That reconstruction against a mid-moving center is the
   bug that made positions fly to infinity. A moved center rigidly translates its satellites
   (offset unchanged ⇒ locks stay satisfied ⇒ the wave terminates). This is STRUCTURAL, not a
   test: the reconstruction that caused the blow-up has no call site to write. Nav is held

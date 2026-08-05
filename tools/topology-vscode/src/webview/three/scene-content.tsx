@@ -25,7 +25,7 @@ import { resolveNodeDrawSlot } from "./node-depth-order";
 // ---------------------------------------------------------------------------
 
 /**
- * EDGE pick: buffer-rendered edges each carry a wide pick-halo mesh (buffer-scene.tsx EdgeTube)
+ * EDGE pick: buffer-rendered edges each carry a wide pick-halo mesh
  * whose userData[BUFFER_EDGE_TAG] holds its buffer EDGE-ROW index. Returns that row as a decimal
  * STRING so classifyHit can forward the numeric row to Go — which resolves it back to its edge.
  */

@@ -25,7 +25,6 @@
 import { getLatestNodeStreamFrames, getLatestInteriorStreamFrames, getNodeStreamVersion, getInteriorStreamVersion, subscribeNodeStreamFrame, subscribeInteriorStreamFrame } from "../snapshot-buffer";
 import {
   decodeNodeStreamFrame, decodeInteriorStreamFrame,
-  readNodeStreamLayoutLinkDstNodeRow,
   type DecodedNodeFrame,
   type DecodedNodeStreamFrame,
 } from "./buffer-decode";
@@ -34,7 +33,6 @@ import {
   readNodeRingAxisPhi,
   NODE_STRIDE, INTERIOR_STRIDE, INTERIOR_SLOTS_PER_NODE,
   NODE_COL_LABEL_OFF, NODE_COL_LABEL_LEN,
-  LAYOUT_LINK_STRIDE, LAYOUT_LINK_COL_SRC_NODE_ROW, LAYOUT_LINK_COL_DST_NODE_ROW,
   readNodeCX, readNodeCY, readNodeCZ,
   readChainBeadOX, readChainBeadOY, readChainBeadOZ, readChainBeadLit, readChainBeadLitValue,
 } from "../../schema/buffer-layout";
@@ -69,69 +67,6 @@ export function getNodeFrame(): DecodedNodeFrame | null {
   lastInteriorVersion = iv;
   lastAggregate = aggregate;
   return aggregate;
-}
-
-/** Shape of the LayoutLink block the cascade-link overlay (EdgeTube.tsx) consumes — the
- *  SAME shape the old combined scene frame's LayoutLink block produced (SrcNodeRow/
- *  DstNodeRow, LAYOUT_LINK_STRIDE-byte rows — no EdgeRow: this is its OWN edge between
- *  the two nodes' CENTERS, never the bead-edge graph), so EdgeTube's read logic doesn't
- *  have to change shape. */
-export interface LayoutLinkAgg {
-  layoutLinkCount: number;
-  layoutLinkView: DataView;
-}
-
-let lastLayoutLinkVersion = -1;
-let lastLayoutLinkAgg: LayoutLinkAgg | null = null;
-
-/**
- * getLayoutLinks returns the current cascade-link overlay pairs, aggregated from every
- * per-node dedicated NODE stream's own outbound cascade-edges (each node streams the
- * pairs for which it is the lexicographically-smaller endpoint — see node_mover.go's
- * cascadeEdges doc comment). Reconstructs full SrcNodeRow/DstNodeRow rows (SrcNodeRow =
- * the node row whose own frame carried that entry) so the aggregate is
- * BYTE-COMPATIBLE with the pre-migration shared block. Empty (layoutLinkCount 0) until
- * at least one node stream frame has arrived.
- */
-export function getLayoutLinks(): LayoutLinkAgg {
-  const nodeFrames = getLatestNodeStreamFrames();
-  if (nodeFrames.size === 0) {
-    return { layoutLinkCount: 0, layoutLinkView: new DataView(new ArrayBuffer(0)) };
-  }
-  const nv = getNodeStreamVersion();
-  if (nv === lastLayoutLinkVersion && lastLayoutLinkAgg) {
-    return lastLayoutLinkAgg;
-  }
-
-  let maxRow = -1;
-  for (const r of nodeFrames.keys()) if (r > maxRow) maxRow = r;
-  const nodeCount = maxRow + 1;
-
-  const srcRows: number[] = [];
-  const dstRows: number[] = [];
-  for (let row = 0; row < nodeCount; row++) {
-    const buf = nodeFrames.get(row);
-    if (!buf) continue;
-    const decoded = decodeNodeStreamFrame(row, buf);
-    if (!decoded) continue;
-    for (let i = 0; i < decoded.layoutLinkCount; i++) {
-      srcRows.push(row);
-      dstRows.push(readNodeStreamLayoutLinkDstNodeRow(decoded.layoutLinkView, i));
-    }
-  }
-
-  const layoutLinkCount = srcRows.length;
-  const layoutLinkView = new DataView(new ArrayBuffer(layoutLinkCount * LAYOUT_LINK_STRIDE));
-  for (let i = 0; i < layoutLinkCount; i++) {
-    const off = i * LAYOUT_LINK_STRIDE;
-    layoutLinkView.setInt32(off + LAYOUT_LINK_COL_SRC_NODE_ROW, srcRows[i]!, true);
-    layoutLinkView.setInt32(off + LAYOUT_LINK_COL_DST_NODE_ROW, dstRows[i]!, true);
-  }
-
-  const agg: LayoutLinkAgg = { layoutLinkCount, layoutLinkView };
-  lastLayoutLinkVersion = nv;
-  lastLayoutLinkAgg = agg;
-  return agg;
 }
 
 /** Subscribe to either dedicated stream updating (subscribe-fn shape, e.g. for a React
@@ -258,8 +193,8 @@ let lastChainAgg: ChainBeadsAgg | null = null;
  * .claude/rules/persistence-ownership.md), so no bead is contributed twice and no bead's
  * position depends on any other bead's.
  *
- * Empty until at least one node stream frame has arrived. Cached on the node-frame version,
- * mirroring getLayoutLinks, so an unchanged scene re-uses the same array identity.
+ * Empty until at least one node stream frame has arrived. Cached on the node-frame version
+ * so an unchanged scene re-uses the same array identity.
  */
 export function getChainBeads(): ChainBeadsAgg {
   const nodeFrames = getLatestNodeStreamFrames();
@@ -267,7 +202,7 @@ export function getChainBeads(): ChainBeadsAgg {
   if (lastChainAgg !== null && nv === lastChainVersion) {
     return lastChainAgg;
   }
-  // Decode per row, same walk getLayoutLinks does — the frame map holds raw buffers.
+  // Decode per row — the frame map holds raw buffers.
   const decodedByRow: DecodedNodeStreamFrame[] = [];
   let total = 0;
   for (const [row, buf] of nodeFrames) {

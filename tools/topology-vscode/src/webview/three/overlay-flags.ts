@@ -21,7 +21,6 @@ import {
   readOverlayHandholds,
   readOverlayLabelsGlobal,
   readOverlayOverlaysVis,
-  readOverlayCascadeLinks,
   readOverlayDragNodeRow,
   readOverlayGroupLenTime,
   readOverlayGroupLenInput,
@@ -51,8 +50,7 @@ function overlayFlagsEqual(a: OverlayFlagVals, b: OverlayFlagVals): boolean {
     a.selSpherePoles === b.selSpherePoles &&
     a.handholds === b.handholds &&
     a.labelsGlobal === b.labelsGlobal &&
-    a.overlays === b.overlays &&
-    a.cascadeLinks === b.cascadeLinks
+    a.overlays === b.overlays
   );
 }
 
@@ -73,7 +71,6 @@ export function readOverlayFlags(): OverlayFlagVals | null {
     // hidden-sense: buffer stores VISIBLE, store field is *Hidden → invert this one.
     labelsGlobal: !readOverlayLabelsGlobal(v),
     overlays: !!readOverlayOverlaysVis(v),
-    cascadeLinks: !!readOverlayCascadeLinks(v),
   };
   if (cachedVals && overlayFlagsEqual(cachedVals, next)) return cachedVals;
   cachedVals = next;

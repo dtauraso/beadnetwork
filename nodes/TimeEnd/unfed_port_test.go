@@ -34,16 +34,10 @@ import (
 func TestUnfedRequiredPortLoadsAndStaysInert(t *testing.T) {
 	// A TimeEnd with its required In port declared but NO edge feeding it. validateSpec
 	// accepts this by design; the editor no longer flags it either, so it is silent.
-	// Node "1" is deliberately the ONLY node (its In port unfed, no edges) — cascade
-	// adjacency is nonetheless mandatory to load, and there is no other real node to
-	// name, so it carries a self-referencing cascade entry rather than inventing a
-	// domain edge to a node that doesn't exist in this fixture.
+	// Node "1" is deliberately the ONLY node (its In port unfed, no edges).
 	// Inline directory-tree fixture (this package cannot see Wiring's unexported
 	// _test.go helpers): meta.json + inputs/In.json for the one node, no edges/ dir
-	// at all (node "1" has no outgoing edges), and a cascade-edges.json with an empty
-	// list (validateCascadeEdges requires the file's adjacency to EQUAL domain
-	// adjacency — node "1" has no edges, so an empty cascadeEdges list satisfies that,
-	// no self-loop needed). The directory name is numeric ("1") because loadTree now
+	// at all (node "1" has no outgoing edges). The directory name is numeric ("1") because loadTree now
 	// parses node directory names as integers for row order (nodes/Wiring/loader_tree.go)
 	// and rejects a non-numeric name.
 	root := t.TempDir()
@@ -59,7 +53,6 @@ func TestUnfedRequiredPortLoadsAndStaysInert(t *testing.T) {
 	writeFile("nodes/1/meta.json", `{"id":"1","type":"TimeEnd"}`)
 	writeFile("nodes/1/data.json", `{"state":{"held":-1}}`)
 	writeFile("nodes/1/inputs/In.json", `{"name":"In"}`)
-	writeFile("nodes/1/cascade-edges.json", `{"cascadeEdges":[],"cascadeKinds":{}}`)
 	// No nodes/1/edges/ dir at all: under the adjacency layout, a node with no
 	// outgoing edges simply has no edges/ subdir — loadTree treats a missing dir as
 	// normal, not an error (mirrors inputs/outputs/).

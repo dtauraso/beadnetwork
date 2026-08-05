@@ -197,8 +197,8 @@ func breadcrumbLabelFor(event string) (uint8, bool) {
 		return T.BreadcrumbAbcDrag, true
 	case "wire-send-buffer-full":
 		return T.BreadcrumbWireSendBufferFull, true
-	case "cascade.root":
-		return T.BreadcrumbCascadeRoot, true
+	case "drag.commit":
+		return T.BreadcrumbDragCommit, true
 	case "chain-aim":
 		return T.BreadcrumbChainAim, true
 	case "neighbor-center-recv":

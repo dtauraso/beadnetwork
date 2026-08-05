@@ -3,7 +3,7 @@ package Wiring
 // quant_offset_persist.go — the WRITE side of the quantized scalar triple (a,b,c) =
 // (iTheta,iPhi,iR) as file data.
 //
-// Path construction (positionFilePath, localPolarsFilePath, cascadeEdgesFilePath) lives
+// Path construction (positionFilePath, localPolarsFilePath) lives
 // in node_mover.go, not here: those are node paths, and node_mover.go is the node's
 // owning file (.claude/rules/persistence-ownership.md "The owner writes, and owns the path").
 //
@@ -89,15 +89,4 @@ func writeQuantOffset(root, id string, off quantizedOffset, scene polar) error {
 		QuantITheta: off.iTheta, QuantIPhi: off.iPhi, QuantIR: off.iR,
 		StepTheta: t, StepPhi: p, StepR: r,
 	})
-}
-
-// cascadeEdgesFileJSON is the shape of nodes/<id>/cascade-edges.json: a plain hand-authored
-// list of this node's cascade-neighbor ids (specNode.CascadeEdges doc comment), plus
-// cascadeKinds — the same neighbors' kind names, stored ALONGSIDE the ids so each node's
-// cascade channels carry the peer kind directly from persisted data (no central id→kind
-// assignment at load). There is no writer in this codebase — these are seed files, authored
-// directly, not produced by any runtime persist path (unlike local-polars.json/position.json above).
-type cascadeEdgesFileJSON struct {
-	CascadeEdges []string          `json:"cascadeEdges"`
-	CascadeKinds map[string]string `json:"cascadeKinds,omitempty"`
 }

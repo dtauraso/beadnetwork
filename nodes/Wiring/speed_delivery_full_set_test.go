@@ -35,11 +35,9 @@ import (
 const speedFullSetTopo = `{
   "nodes": [
     {"id":"1","type":"Input","data":{"init":[0],"repeat":false},
-     "outputs":[{"name":"OutCadence"}],
-     "cascadeEdges":["2"],"cascadeKinds":{"2":"Time"}},
+     "outputs":[{"name":"OutCadence"}]},
     {"id":"2","type":"Time","data":{"state":{"held":-1}},
-     "inputs":[{"name":"In"}],
-     "cascadeEdges":["1"],"cascadeKinds":{"1":"Input"}},
+     "inputs":[{"name":"In"}]},
     {"id":"3","type":"TimeEnd","data":{"state":{"held":-1}},
      "inputs":[{"name":"In"}]},
     {"id":"4","type":"Pacer","data":{"state":{"held":-1}},

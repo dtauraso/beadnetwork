@@ -43,12 +43,10 @@ import {
   OVERLAY_COL_SCENE_TORI, OVERLAY_COL_SCENE_POLES, OVERLAY_COL_NODE_POLES,
   OVERLAY_COL_SEL_SPHERE_POLES, OVERLAY_COL_HANDHOLDS,
   OVERLAY_COL_LABELS_GLOBAL, OVERLAY_COL_OVERLAYS_VIS,
-  OVERLAY_COL_CASCADE_LINKS,
   OVERLAY_STRIDE,
   readOverlaySceneTori, readOverlayScenePoles, readOverlayNodePoles,
   readOverlaySelSpherePoles, readOverlayHandholds,
   readOverlayLabelsGlobal, readOverlayOverlaysVis,
-  readOverlayCascadeLinks,
   // No Port block any more (docs/channels-not-ports.md — a port carries no geometry, so
   // there is no buffer row for it to have).
 } from "../src/schema/buffer-layout";
@@ -213,12 +211,12 @@ describe("buffer-layout — Camera block", () => {
 
 describe("buffer-layout — Overlay block", () => {
   it("stride equals packed field sizes", () => {
-    // 8×u8 + 1×i32 + 3×f32 = 24 (8 overlay flags — the 8 render gates — + DragNodeRow +
+    // 7×u8 + 1×i32 + 3×f32 = 23 (7 overlay flags — the 7 render gates — + DragNodeRow +
     // the "distance home button" panel's 3 GroupLen* columns)
-    expect(OVERLAY_STRIDE).toBe(24);
+    expect(OVERLAY_STRIDE).toBe(23);
   });
 
-  it("column offsets are 0..7", () => {
+  it("column offsets are 0..6", () => {
     expect(OVERLAY_COL_SCENE_TORI).toBe(0);
     expect(OVERLAY_COL_SCENE_POLES).toBe(1);
     expect(OVERLAY_COL_NODE_POLES).toBe(2);
@@ -226,14 +224,13 @@ describe("buffer-layout — Overlay block", () => {
     expect(OVERLAY_COL_HANDHOLDS).toBe(4);
     expect(OVERLAY_COL_LABELS_GLOBAL).toBe(5);
     expect(OVERLAY_COL_OVERLAYS_VIS).toBe(6);
-    expect(OVERLAY_COL_CASCADE_LINKS).toBe(7);
   });
 
   it("read helpers decode known bytes (alternating pattern)", () => {
     const buf = new ArrayBuffer(OVERLAY_STRIDE);
     const bytes = new Uint8Array(buf);
-    // Alternating 1/0: sceneTori=1, scenePoles=0, nodePoles=1, ..., cascadeLinks=0.
-    ([1, 0, 1, 0, 1, 0, 1, 0] as const).forEach((v, i) => { bytes[i] = v; });
+    // Alternating 1/0: sceneTori=1, scenePoles=0, nodePoles=1, ..., overlaysVis=1.
+    ([1, 0, 1, 0, 1, 0, 1] as const).forEach((v, i) => { bytes[i] = v; });
 
     const dv = new DataView(buf);
     expect(readOverlaySceneTori(dv)).toBe(1);
@@ -243,7 +240,6 @@ describe("buffer-layout — Overlay block", () => {
     expect(readOverlayHandholds(dv)).toBe(1);
     expect(readOverlayLabelsGlobal(dv)).toBe(0);
     expect(readOverlayOverlaysVis(dv)).toBe(1);
-    expect(readOverlayCascadeLinks(dv)).toBe(0);
   });
 });
 

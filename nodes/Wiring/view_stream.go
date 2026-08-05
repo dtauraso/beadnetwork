@@ -46,7 +46,7 @@ import (
 // last write.
 type ViewFrameBuilder func(tick uint32,
 	camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
-	sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis, cascadeLinks uint8,
+	sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis uint8,
 	dragNodeRow int32,
 	groupLenTime, groupLenInput, groupLenGate float32,
 	sceneCX, sceneCY, sceneCZ, sceneRadius float32,
@@ -64,16 +64,6 @@ func (md *MoveDispatch) SetViewStream(out io.Writer, buildFrame ViewFrameBuilder
 	// setNodeStreams/setEdgeStreams claim on one row is (stream_claim.go).
 	md.sw.viewOut = newClaimedStream(md.sw.ensureClaims(), "view", "", out)
 	md.sw.viewBuildFrame = buildFrame
-}
-
-// EmitLayoutLinkViewEvent writes one LayoutLink event onto this goroutine's own VIEW
-// frame (Step C, memory/feedback_no_single_writer_bridge.md): LayoutLink is a load-time-once topology fact
-// with no live per-goroutine owner to stream it from, so it is emitted once here rather
-// than from a per-tick owner. Exported so main.go (package main, which already
-// resolves nodeRow/targetRow via md.NodeRowFor) can call it directly after wiring
-// SetViewStream, mirroring the Seed* idiom Step A used for NodeGeometry/Geometry.
-func (md *MoveDispatch) EmitLayoutLinkViewEvent(nodeRow, targetRow int32) {
-	md.emitViewFrame([]wire.RowEvent{{Kind: T.KindLayoutLink, NodeRow: nodeRow, PortRow: -1, TargetRow: targetRow, TargetPortRow: -1, EdgeRow: -1}})
 }
 
 // EmitBreadcrumb writes ev as a structured Breadcrumb event on the VIEW stream (Kind/
@@ -123,7 +113,7 @@ func (md *MoveDispatch) emitViewFrame(events []wire.RowEvent) {
 		float32(v.pos.Theta), float32(v.pos.Phi), float32(v.up.Theta), float32(v.up.Phi),
 		boolU8(md.ui.ov.sceneToriVisible), boolU8(md.ui.ov.scenePolesVisible), boolU8(md.ui.ov.nodePolesVisible),
 		boolU8(md.ui.ov.selSpherePolesVisible), boolU8(md.ui.ov.handholdsVisible), boolU8(md.ui.ov.labelsGlobalVisible),
-		boolU8(md.ui.ov.overlaysVisible), boolU8(md.ui.ov.cascadeLinksVisible),
+		boolU8(md.ui.ov.overlaysVisible),
 		dragNodeRow,
 		groupLenTime, groupLenInput, groupLenGate,
 		float32(sc.Center.X), float32(sc.Center.Y), float32(sc.Center.Z), float32(sc.Radius),

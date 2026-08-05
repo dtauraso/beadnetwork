@@ -31,7 +31,7 @@ import {
   readCameraPosTheta, readCameraPosPhi, readCameraUpTheta, readCameraUpPhi,
   readOverlaySceneTori, readOverlayScenePoles, readOverlayNodePoles,
   readOverlaySelSpherePoles, readOverlayHandholds, readOverlayLabelsGlobal,
-  readOverlayOverlaysVis, readOverlayCascadeLinks,
+  readOverlayOverlaysVis,
   readEventKind, readEventNodeRow, readEventPortRow, readEventTargetRow, readEventTargetPortRow,
   readEventEdgeRow, readEventSlot, readEventValue, readEventBead,
   readEventBeadSteps, readEventSimLatencyMs, readEventX, readEventY, readEventZ, readEventF,
@@ -68,9 +68,6 @@ export type DecodedEventLine =
   | { step: number; kind: "handholds"; visible: boolean }
   | { step: number; kind: "labels-global"; visible: boolean }
   | { step: number; kind: "overlays-vis"; visible: boolean }
-  | { step: number; kind: "cascade-links"; visible: boolean }
-  // Layout-link pair, from LocalPolars — NOT the Edge block (see Buffer/layout.go LayoutLink).
-  | { step: number; kind: "layout-link"; node: string; target: string }
   // Go-owned click-selection: the currently-selected node id (node="" clears it).
   | { step: number; kind: "select"; node: string }
   | { step: number; kind: "hover"; node: string; port?: string; value?: number }
@@ -117,7 +114,7 @@ interface ViewBlocksOrNull {
 
 // decodeBufferLog decodes the VIEW frame's own trailing EVENTS section — the fallback
 // bucket of trace kinds not yet decentralized to their own owner fd (Fire/Recv/Send/
-// Select/Hover/AbcDrag*/Camera/SceneSphere/overlay toggles/LayoutLink — see Buffer/
+// Select/Hover/AbcDrag*/Camera/SceneSphere/overlay toggles — see Buffer/
 // pack.go's viewEventsSection). The view/scene frame no longer carries an EVENT block at
 // all (memory/feedback_no_single_writer_bridge.md); genuinely decentralized kinds
 // (NodeGeometry/Geometry/Position/Arrive/NodeBead) arrive on their OWN owner fd instead —
@@ -180,14 +177,13 @@ function overlayFlag(vb: ViewBlocksOrNull, kind: string): number {
     case "handholds": return readOverlayHandholds(v);
     case "labels-global": return readOverlayLabelsGlobal(v);
     case "overlays-vis": return readOverlayOverlaysVis(v);
-    case "cascade-links": return readOverlayCascadeLinks(v);
     default: return 0;
   }
 }
 
 const OVERLAY_KINDS = new Set([
   "scene-tori", "scene-poles", "node-poles", "sel-sphere-poles",
-  "handholds", "labels-global", "overlays-vis", "cascade-links",
+  "handholds", "labels-global", "overlays-vis",
 ]);
 
 function decodeEventLine(ev: DataView, eventTextView: DataView, dn: DecodedNodeFrame | null, de: DecodedEdgeFrame | null, vb: ViewBlocksOrNull, i: number): Line | null {
@@ -297,10 +293,6 @@ function decodeEventLine(ev: DataView, eventTextView: DataView, dn: DecodedNodeF
       const sc = vb.sceneView;
       if (!sc) return { kind };
       return { kind, cx: readSceneCX(sc), cy: readSceneCY(sc), cz: readSceneCZ(sc), radius: readSceneRadius(sc) };
-    }
-    case "layout-link": {
-      const target = dn && targetRow >= 0 ? nodeLabel(dn, targetRow) : "";
-      return { kind, node, target };
     }
     case "select":
       // stdout marshals select via the default {node,port,value} shape (edge label not emitted).

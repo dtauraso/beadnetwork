@@ -17,7 +17,7 @@ set -euo pipefail
 #     view/scene.json sidecar and its sceneJSONPath/sceneCameraPath resolvers were REMOVED —
 #     no such file exists in this repo's tree and nothing wrote it once the
 #     one-file-per-writer split landed.
-#   - nodes/<id>/... (position, local-polars, cascade-edges, inputs/outputs port files) —
+#   - nodes/<id>/... (position, inputs/outputs port files) —
 #     node_mover.go only (plus loader_tree.go, which READS these paths to build the graph
 #     at load time — an explicitly out-of-scope concern, see the plan's "Explicitly out of
 #     scope: Loading").
@@ -28,7 +28,7 @@ set -euo pipefail
 # UNLIKE the view-file rule, the node-path rule below matches on the LITERAL "nodes"
 # path segment rather than requiring a shared resolver function — no such function
 # exists (or is wanted) for node paths: node_mover.go's positionFilePath/
-# localPolarsFilePath/cascadeEdgesFilePath/nodePortFilePath ARE the resolvers, called by
+# nodePortFilePath ARE the resolvers, called by
 # quant_offset_persist.go / scene_anchor_persist.go, so this guard's job is just "no
 # OTHER file hand-rolls a nodes/ path with its own filepath.Join".
 #

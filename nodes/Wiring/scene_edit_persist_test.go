@@ -28,7 +28,7 @@ func TestLoadOverlaysEmitsDefaultsWhenNoPersistedKeys(t *testing.T) {
 	// the retired central Trace onEvent hook.
 	md.SetViewStream(io.Discard, func(tick uint32,
 		camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
-		sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis, cascadeLinks uint8,
+		sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis uint8,
 		dragNodeRow int32,
 		groupLenTime, groupLenInput, groupLenGate float32,
 		sceneCX, sceneCY, sceneCZ, sceneRadius float32,
@@ -65,7 +65,6 @@ func writeTree(t *testing.T) string {
 	mk("nodes/1/meta.json", `{"id":"1","type":"SrcNode","r":100,"scenePolarR":37.4165738677,"scenePolarTheta":1.00685368543,"scenePolarPhi":1.2490457724}`)
 	mk("nodes/2/meta.json", `{"id":"2","type":"SinkNode","r":100,"scenePolarR":87.7496438739,"scenePolarTheta":0.96453035788,"scenePolarPhi":-2.15879893034}`)
 	mk("nodes/1/edges/e0.json", `{"label":"e0","kind":"data","sourceHandle":"Out","target":"2","targetHandle":"In"}`)
-	writeCascadeEdgesFromEdges(t, root, map[string]string{"1": "SrcNode", "2": "SinkNode"}, [][2]string{{"1", "2"}})
 	return root
 }
 

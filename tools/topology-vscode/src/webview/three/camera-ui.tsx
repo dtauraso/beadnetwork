@@ -122,16 +122,6 @@ const globalLabelsCfg: ToggleCfg = {
   payload: (v) => ({ flag: "labelsGlobal", wasHidden: v }),
 };
 
-// cascadeLinksCfg has no `default` — its Go-owned default (off) is not asserted here; see
-// useToggleVal's fallback and ToggleCfg.default's doc above.
-const cascadeLinksCfg: ToggleCfg = {
-  flag: "cascadeLinks",
-  active: (v) => v,
-  label: "⇉ cascade links",
-  title: (a) => (a ? "Hide cascade-link overlay" : "Show cascade-link overlay"),
-  payload: (v) => ({ flag: "cascadeLinks", was: v }),
-};
-
 // ---------------------------------------------------------------------------
 // Grouped overlay rows for the popover
 // ---------------------------------------------------------------------------
@@ -146,7 +136,6 @@ const OVERLAY_GROUPS: OverlayGroup[] = [
   { heading: "GUIDES", cfgs: [ringsCfg, handholdsCfg] },
   { heading: "POLES",  cfgs: [scenePolesCfg, nodePolesCfg, selSpherePolesCfg] },
   { heading: "LABELS", cfgs: [globalLabelsCfg] },
-  { heading: "EDGES",  cfgs: [cascadeLinksCfg] },
 ];
 
 /** A single row inside the popover: square checkbox + label, fires the row's op on click.

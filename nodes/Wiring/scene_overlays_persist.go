@@ -69,10 +69,6 @@ func writeSceneOverlays(overlaysPath string, ov overlayState) error {
 	setVisible("handholdsVisible", ov.handholdsVisible)
 	setVisible("overlaysActive", ov.overlaysVisible)
 	setHidden("labelsGlobalHidden", ov.labelsGlobalVisible)
-	// cascadeLinksVisible is visible-sense with a FALSE default — write `true` only when on.
-	if ov.cascadeLinksVisible {
-		obj["cascadeLinksVisible"] = json.RawMessage("true")
-	}
 	return writeJSONAtomic(overlaysPath, obj)
 }
 
@@ -106,7 +102,6 @@ type sceneOverlaysFile struct {
 	HandholdsVisible      *bool `json:"handholdsVisible"`
 	OverlaysActive        *bool `json:"overlaysActive"`
 	LabelsGlobalHidden    *bool `json:"labelsGlobalHidden"`
-	CascadeLinksVisible   *bool `json:"cascadeLinksVisible"`
 }
 
 // loadSceneOverlays reads the persisted overlay-visibility snapshot from overlaysPath
@@ -148,10 +143,6 @@ func loadSceneOverlays(overlaysPath string) (overlayState, bool) {
 		ov.labelsGlobalVisible = !*sf.LabelsGlobalHidden
 		found = true
 	}
-	if sf.CascadeLinksVisible != nil {
-		ov.cascadeLinksVisible = *sf.CascadeLinksVisible
-		found = true
-	}
 	return ov, found
 }
 
@@ -166,7 +157,7 @@ func (md *MoveDispatch) LoadOverlays(topologyPath string, tr *T.Trace) {
 	ov, _ := loadSceneOverlays(overlaysFilePath(topologyPath)) // ov = defaults with any persisted keys applied
 	md.ui.ov.SetGuideVisibility(ov)
 	// Decentralized (Step C, memory/feedback_no_single_writer_bridge.md): the gesture/stdin-reader goroutine
-	// (this one) writes its own VIEW frame directly, carrying the 8 one-time overlay-flag
+	// (this one) writes its own VIEW frame directly, carrying the 7 one-time overlay-flag
 	// events this load implies — one RowEvent per flag kind. Every overlay kind decodes
 	// entirely from the VIEW frame's own Overlay block (buffer-log.ts's decodeEventLine
 	// OVERLAY_KINDS branch) — no row identity to resolve. tr is unused now (kept in the
@@ -179,6 +170,5 @@ func (md *MoveDispatch) LoadOverlays(topologyPath string, tr *T.Trace) {
 		{Kind: T.KindHandholds, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
 		{Kind: T.KindLabelsGlobal, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
 		{Kind: T.KindOverlaysVis, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
-		{Kind: T.KindCascadeLinks, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
 	})
 }

@@ -176,9 +176,8 @@ type touchingBead struct {
 //     is the bead one step back toward the neighbour:
 //     beadSource = beadCentre + aimDir*wire.BeadStepR
 //     With exactly one bead, there is no predecessor bead — the chain's own origin is the
-//     NEIGHBOUR's torus surface (nm.cascadeKinds gives the neighbour's kind; cascade
-//     adjacency is validated equal to domain adjacency, so every direct neighbour has an
-//     entry):
+//     NEIGHBOUR's torus surface (nm.neighborKinds gives the neighbour's kind, derived from
+//     domain adjacency at load — see build.go — so every direct neighbour has an entry):
 //     beadSource = neighborCenter - aimDir*nodeTorusOuterR(neighborKind)
 func dragTouchingBeads(md *MoveDispatch, nm *nodeMover, prevPos vec3) []touchingBead {
 	nodeID := nm.id
@@ -222,7 +221,7 @@ func dragTouchingBeads(md *MoveDispatch, nm *nodeMover, prevPos vec3) []touching
 		//     dragging toward admitted an add whose implied centre sat ~31 world units
 		//     away. Hence: drag far in most directions and nothing happens; drag the other
 		//     way and the node jumps.
-		neighborKind := nm.cascadeKinds[neighborID]
+		neighborKind := nm.neighborKinds[neighborID]
 		count := edgeStepCount(dist, neighborKind, nm.selfKind)
 		var beadSource vec3
 		if count >= 2 {

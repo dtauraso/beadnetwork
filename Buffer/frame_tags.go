@@ -1,7 +1,7 @@
 // Buffer/frame_tags.go — SYNTHETIC ext-host-side tags for the dedicated per-owner stream
 // frames (memory/feedback_no_single_writer_bridge.md, Buffer/stream_fds.go), plus the
-// per-stream frame ENVELOPE constants (header sizes, the node-stream layout-link row
-// width). This file is the SINGLE Go-side source for all of it; the mirrored TS file,
+// per-stream frame ENVELOPE constants (header sizes). This file is the SINGLE Go-side
+// source for all of it; the mirrored TS file,
 // tools/topology-vscode/src/schema/frame-tags.ts, is GENERATED from it by
 // tools/gen-node-defs (see tools/gen-node-defs/frame_tags.go) — every const below that
 // carries a `//frametag:ts=NAME` marker comment is emitted verbatim as `export const NAME`
@@ -91,34 +91,20 @@ const BufBlockTagInteriorStream byte = 7
 
 // BufNodeStreamFrameHeaderSize is the byte width of the leading header on one node's
 // combined per-fd frame (Buffer.BuildNodeStreamFrame), before the Node row:
-// [tick:u32][labelLen:u32][layoutLinkCount:u32][chainBeadCount:u32]. No port section any
+// [tick:u32][labelLen:u32][chainBeadCount:u32]. No port section any
 // more (docs/channels-not-ports.md — a port carries no geometry, so there is no portCount/
 // portNameBytesCount to size).
 // The rest of that frame's layout: one BufNodeStride row (LabelOff=0 into this frame's own
-// label bytes) + labelLen label bytes + layoutLinkCount × BufNodeStreamLayoutLinkStride
-// layout-link rows (this node's OWN outbound layout-links — see buffer-decode.ts's
-// DecodedNodeStreamFrame doc comment) + chainBeadCount chain-bead rows.
+// label bytes) + labelLen label bytes + chainBeadCount chain-bead rows.
 //
 //frametag:ts=BUF_NODE_STREAM_FRAME_HEADER_SIZE
-const BufNodeStreamFrameHeaderSize = 16
-
-// BufNodeStreamLayoutLinkStride is the byte width of ONE layout-link (cascade-link
-// overlay) row within a node stream frame: [DstNodeRow:i32]. Narrower than the combined
-// LayoutLink block's BufLayoutLinkStride (8 bytes, SrcNodeRow+DstNodeRow) because on a
-// per-node stream the source IS this node — its own row is implicit (the fd position /
-// the aggregator's row index), so only the dst endpoint travels. No edge-row column: the
-// cascade-link overlay draws between the two nodes' CENTERS, never along a bead edge.
-//
-//frametag:ts=NODE_STREAM_LAYOUT_LINK_STRIDE
-const BufNodeStreamLayoutLinkStride = 4
+const BufNodeStreamFrameHeaderSize = 12
 
 // NOTE: there is deliberately NO BufNodeStreamChainBeadStride here. A chain-bead row on a
 // node stream is byte-identical to a ChainBead BLOCK row, so BufChainBeadStride (generated
 // from Buffer/layout.go, and CHAIN_BEAD_STRIDE on the TS side) is the single source for both.
 // A second copy existed briefly and immediately went stale when the Lit column was added:
-// the packer allocated 12 bytes per bead and wrote 13, panicking on a slice bound. The
-// LayoutLink stride above is a genuinely DIFFERENT width from its block (no SrcNodeRow on a
-// per-node stream), which is why that one has to exist and this one must not.
+// the packer allocated 12 bytes per bead and wrote 13, panicking on a slice bound.
 
 // BufInteriorStreamFrameHeaderSize is the byte width of the leading header on one node's
 // INTERIOR per-fd frame (Buffer.BuildInteriorStreamFrame), before the interior rows:

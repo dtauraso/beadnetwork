@@ -28,8 +28,8 @@ func TestNodeGeometryLabelSidecar(t *testing.T) {
 	// "1" carries an explicit human label; "2" omits data.label → label falls back to id.
 	const topo = `{
 	  "nodes": [
-	    {"id":"1","type":"SrcNode","data":{"label":"Source Node"},"outputs":[{"name":"Out"}],"cascadeEdges":["2"],"cascadeKinds":{"2":"SinkNode"}},
-	    {"id":"2","type":"SinkNode","inputs":[{"name":"In"}],"cascadeEdges":["1"],"cascadeKinds":{"1":"SrcNode"}}
+	    {"id":"1","type":"SrcNode","data":{"label":"Source Node"},"outputs":[{"name":"Out"}]},
+	    {"id":"2","type":"SinkNode","inputs":[{"name":"In"}]}
 	  ],
 	  "edges": [
 	    {"label":"e0","kind":"data","source":"1","sourceHandle":"Out","target":"2","targetHandle":"In"}

@@ -15,8 +15,8 @@ package Wiring
 // forward. This is a compatibility removal, not a cleanup — see the git log for this file.
 //
 // Node/port/edge path construction does NOT live here: it lives with the goroutine that
-// owns those files — node_mover.go (a node's own meta/position/data/local-polars/
-// cascade-edges/inputs/outputs) and edge_mover.go (an edge's own
+// owns those files — node_mover.go (a node's own meta/position/data/inputs/outputs) and
+// edge_mover.go (an edge's own
 // nodes/<source>/edges/<label>.json). See MODEL.md / docs/planning/decentralized-
 // persistence.md "The model": the owner writes the file AND owns the path.
 //

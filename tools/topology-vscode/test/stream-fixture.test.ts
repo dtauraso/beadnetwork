@@ -36,7 +36,6 @@ import {
   decodeNodeStreamFrame,
   decodeEdgeStreamFrame,
   decodeInteriorStreamFrame,
-  readNodeStreamLayoutLinkDstNodeRow,
 } from "../src/webview/three/buffer-decode";
 import {
   readNodeNodeId,
@@ -55,7 +54,6 @@ import {
 const repoRoot = path.resolve(__dirname, "../../..");
 const committedFixturePath = path.join(__dirname, "fixtures", "stream_fixture.json");
 
-interface LayoutLinkFixture { dstNodeRow: number }
 interface NodeFrameFixture {
   tick: number; nodeRow: number; nodeId: number;
   cx: number; cy: number; cz: number; radius: number; sphereR: number;
@@ -63,7 +61,6 @@ interface NodeFrameFixture {
   selected: number; kindId: number; hovered: number; latchedSel: number;
   chainBeads: { ox: number; oy: number; oz: number; lit: number; litValue: number }[];
   label: string;
-  layoutLinks: LayoutLinkFixture[];
   hex: string;
 }
 interface EdgeFrameFixture {
@@ -148,7 +145,6 @@ describe("stream fixture cross-language decode", () => {
 
     expect(decoded.tick).toBe(want.tick);
     expect(decoded.label).toBe(want.label);
-    expect(decoded.layoutLinkCount).toBe(want.layoutLinks.length);
 
     const nv = decoded.nodeView;
     expect(readNodeNodeId(nv, 0), "nodeId").toBe(want.nodeId);
@@ -183,13 +179,6 @@ describe("stream fixture cross-language decode", () => {
 
     // No port section any more (docs/channels-not-ports.md — a port carries no geometry,
     // so the fixture and the decoder both have nothing to carry for it).
-
-    for (let i = 0; i < want.layoutLinks.length; i++) {
-      expect(
-        readNodeStreamLayoutLinkDstNodeRow(decoded.layoutLinkView, i),
-        `layoutLinks[${i}].dstNodeRow`
-      ).toBe(want.layoutLinks[i]!.dstNodeRow);
-    }
   });
 
   it("decodeEdgeStreamFrame agrees with the Go-encoded edge fixture", () => {

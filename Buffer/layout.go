@@ -234,22 +234,6 @@ type bufLayoutEdge struct {
 	EdgeLabelLen uint32 `buf:"u32"` // edge-label UTF-8 byte length
 }
 
-// bufLayoutLayoutLink defines one row of the LAYOUT-link column block: the cascade-link
-// relationship (nodes/<id>/cascade-edges.json, a STORED per-node list — see
-// nodes/Wiring/node_mover.go's cascadeEdges doc comment), NOT the bead-edge graph and NOT
-// derived from LocalPolars/domain-edge adjacency. The PAIR is streamed once at load
-// (deduplicated: only the lexicographically-smaller endpoint emits it).
-//
-// SrcNodeRow/DstNodeRow are the buffer NODE-ROW indices (resolved against the Node block —
-// see nodeRowIndex). The overlay is its OWN edge between the two NODES' CENTERS
-// (CX/CY/CZ, re-streamed on every move) — it does NOT reference any bead-edge row, so it
-// can never be coupled to (or dimmed/tinted by) the bead edge's own selection/opacity
-// state. No EdgeRow column.
-type bufLayoutLayoutLink struct {
-	SrcNodeRow int32 `buf:"i32"` // one endpoint's buffer node-row index (lexicographically smaller)
-	DstNodeRow int32 `buf:"i32"` // the other endpoint's buffer node-row index
-}
-
 // The Port block is GONE (docs/channels-not-ports.md): a port is a load-time
 // channel-binding ROLE (PortSpec, a.In()/a.Out()), never a place, so it has no ring
 // anchor, no world position, and no buffer row of its own any more. An edge's
@@ -280,11 +264,6 @@ type bufLayoutOverlay struct {
 	Handholds      uint8 `buf:"u8"` // 1 = rotation grab-sphere handholds visible
 	LabelsGlobal   uint8 `buf:"u8"` // 1 = all node labels visible
 	OverlaysVis    uint8 `buf:"u8"` // 1 = master overlays toggle on
-	// CascadeLinks mirrors the LAYOUT-link overlay's own visibility (default OFF, unlike the
-	// other flags which default on) — the cyan second-tube overlay reads the LayoutLink block
-	// only when this is set. NOT the same thing as the LayoutLink block existing: the data
-	// streams every snapshot regardless, this just gates the render.
-	CascadeLinks uint8 `buf:"u8"` // 1 = layout-link (cascade-link) overlay visible
 	// DragNodeRow is the row index (into the Node block) of the node currently
 	// being dragged by the gesture FSM (nodes/Wiring/gesture.go g.dragNode),
 	// or -1 when no drag is in progress. Identity rides row index, not a
@@ -368,7 +347,6 @@ var _ = [...]any{
 	bufLayoutChainBead{},
 	bufLayoutInterior{},
 	bufLayoutEdge{},
-	bufLayoutLayoutLink{},
 	bufLayoutCamera{},
 	bufLayoutOverlay{},
 	bufLayoutScene{},

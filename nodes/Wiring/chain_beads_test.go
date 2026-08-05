@@ -8,7 +8,7 @@ import (
 )
 
 // chainBeads is a pure function of ONE node's own state — its own kind, its own
-// cascadeKinds, and its own live copy of the neighbour's world center
+// neighborKinds, and its own live copy of the neighbour's world center
 // (m.partnerCenters) — all written only by that node's goroutine — so these are plain
 // tables, no second goroutine (docs/testing-shape.md).
 //
@@ -42,7 +42,7 @@ func TestChainBeadsStayOutsideBothNodes(t *testing.T) {
 		id:             "a",
 		geom:           nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}}, // radius 15
 		outTargets:     []string{"b"},
-		cascadeKinds:   map[string]string{"b": "Time"}, // radius 9
+		neighborKinds:  map[string]string{"b": "Time"}, // radius 9
 		partnerCenters: singleNeighborCenter("b", gap),
 	}
 	ox, oy, oz, _, _, _ := m.chainBeads()
@@ -72,7 +72,7 @@ func TestChainBeadsStayOutsideBothNodes(t *testing.T) {
 func TestChainBeadsTouch(t *testing.T) {
 	m := &nodeMover{
 		id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}},
-		outTargets: []string{"b"}, cascadeKinds: map[string]string{"b": "Input"},
+		outTargets: []string{"b"}, neighborKinds: map[string]string{"b": "Input"},
 		// 150 cells * wire.BeadStepR, not the bare literal 300 — see the comment
 		// on TestChainBeadsStayOutsideBothNodes's gap.
 		partnerCenters: singleNeighborCenter("b", 150*wire.BeadStepR),
@@ -97,7 +97,7 @@ func TestChainBeadsTouch(t *testing.T) {
 func TestChainBeadsAlwaysAtLeastOneBead(t *testing.T) {
 	m := &nodeMover{
 		id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}},
-		outTargets: []string{"b"}, cascadeKinds: map[string]string{"b": "Input"},
+		outTargets: []string{"b"}, neighborKinds: map[string]string{"b": "Input"},
 		// 3 cells * wire.BeadStepR, not the bare literal 6 — see the comment on
 		// TestChainBeadsStayOutsideBothNodes's gap. QuantIR IS the bead-step count now
 		// (edgeStepCount no longer divides by a cell-per-step constant — bead_lattice.go's
@@ -130,7 +130,7 @@ func TestChainBeadsCountIsSpanProportional(t *testing.T) {
 	count := func(centerGap float64) int {
 		m := &nodeMover{
 			id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}},
-			outTargets: []string{"b"}, cascadeKinds: map[string]string{"b": "Input"},
+			outTargets: []string{"b"}, neighborKinds: map[string]string{"b": "Input"},
 			partnerCenters: singleNeighborCenter("b", centerGap),
 		}
 		ox, _, _, _, _, _ := m.chainBeads()
@@ -313,7 +313,7 @@ func TestChainBeadsExactDoubleTangency(t *testing.T) {
 				id:             "a",
 				geom:           nodeGeom{nodeIdentity: nodeIdentity{Kind: srcKind}},
 				outTargets:     []string{"b"},
-				cascadeKinds:   map[string]string{"b": dstKind},
+				neighborKinds:  map[string]string{"b": dstKind},
 				partnerCenters: singleNeighborCenter("b", gap),
 			}
 			ox, oy, oz, _, _, _ := m.chainBeads()
@@ -376,7 +376,7 @@ func offAxisFixture(srcKind, dstKind string, count int) *nodeMover {
 		id:             "a",
 		geom:           nodeGeom{nodeIdentity: nodeIdentity{Kind: srcKind}}, // HasPos false -> center at origin
 		outTargets:     []string{"b"},
-		cascadeKinds:   map[string]string{"b": dstKind},
+		neighborKinds:  map[string]string{"b": dstKind},
 		partnerCenters: map[string]vec3{"b": targetCenter},
 	}
 }

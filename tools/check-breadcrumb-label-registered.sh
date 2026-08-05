@@ -89,7 +89,7 @@ if [[ $MISSING -ne 0 ]]; then
   printf '%s' "$report" >&2
   echo "" >&2
   echo "Add each label to Trace.BreadcrumbLabels (and its matching BreadcrumbLabel* const" >&2
-  echo "and nodes/wire/ports.go's breadcrumbLabelFor switch case — follow how cascade.root" >&2
+  echo "and nodes/wire/ports.go's breadcrumbLabelFor switch case — follow how drag.commit" >&2
   echo "is wired) or it is silently dropped before it ever reaches the buffer/logs." >&2
   exit 1
 fi

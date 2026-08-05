@@ -252,28 +252,41 @@ func (b *buildCtx) buildMoveDispatch() error {
 			nm.quantOffset = off
 		}
 	}
-	// Seed each node's OWN cascadeEdges (nodeMover.cascadeEdges doc comment) from the
-	// STORED per-node cascade-edges.json file (specNode.CascadeEdges, loader_tree.go) —
-	// this is now the SOLE source of truth for both delta-forward propagation
-	// (nodeMover.forwardDelta) and the cascade-link overlay's rendered pairs. It is
-	// hand-authored/persisted data, not derived from the local-polar adjacency at load
-	// (the computed cascade_links.go machinery was removed). Absent file → empty list
-	// (readJSONBestEffort's missing-file default), matching every other per-node
-	// optional-file convention in this loader.
+	// Seed each node's OWN selfKind (specNode.Type), set once at construction.
 	for _, n := range b.spec.Nodes {
 		nm, ok := md.mr.nodeMovers[n.ID]
 		if !ok {
 			continue
 		}
-		nm.cascadeEdges = n.CascadeEdges
 		nm.selfKind = n.Type
-		nm.cascadeKinds = n.CascadeKinds
+	}
+	// Seed each node's OWN neighborKinds map — every DIRECT domain-adjacent neighbor id
+	// mapped to that neighbor's own kind name, derived straight from the loaded spec's
+	// node list + edges (no separate persisted file: adjacency is already known from
+	// b.spec.Edges, and a node's kind is already known from b.spec.Nodes, so keeping a
+	// second stored copy in sync would only be a second place for the two to drift).
+	// UNDIRECTED: both endpoints of every edge learn the other's kind.
+	kindByID := make(map[string]string, len(b.spec.Nodes))
+	for _, n := range b.spec.Nodes {
+		kindByID[n.ID] = n.Type
+	}
+	linkNeighborKind := func(fromID, toID string) {
+		nm, ok := md.mr.nodeMovers[fromID]
+		if !ok {
+			return
+		}
+		if nm.neighborKinds == nil {
+			nm.neighborKinds = map[string]string{}
+		}
+		nm.neighborKinds[toID] = kindByID[toID]
+	}
+	for _, e := range b.spec.Edges {
+		linkNeighborKind(e.Source, e.Target)
+		linkNeighborKind(e.Target, e.Source)
 	}
 	// Seed each node's OWN outgoing-edge targets (nodeMover.outTargets) — the chains it
-	// owns (chain_beads.go). Taken from the spec's edges rather than from cascadeEdges,
-	// because cascade adjacency is UNDIRECTED (it equals domain adjacency in both
-	// directions, validateCascadeEdges) while a chain belongs to exactly one endpoint: the
-	// source, matching where the edge is stored on disk.
+	// owns (chain_beads.go). A chain belongs to exactly one endpoint: the source, matching
+	// where the edge is stored on disk.
 	for _, e := range b.spec.Edges {
 		nm, ok := md.mr.nodeMovers[e.Source]
 		if !ok {

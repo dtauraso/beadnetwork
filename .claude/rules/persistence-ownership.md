@@ -20,7 +20,7 @@ topology/
 │                                          (largest node id), not a live-node count
 ├── nodes/<id>/
 │   ├── meta.json                         type, polar position, localPolars
-│   ├── position.json  data.json  local-polars.json  cascade-edges.json
+│   ├── position.json  data.json  local-polars.json
 │   └── edges/<label>.json                OUTGOING only
 └── view/
     └── camera.json  overlays.json  sphere.json  scene.json
@@ -51,7 +51,7 @@ recording the edge under the target — that reintroduces the duplication the la
 
 ## The owner writes, and owns the path
 
-- A `nodeMover` writes its own `position/local-polars/cascade-edges`, and constructs those
+- A `nodeMover` writes its own `position/local-polars`, and constructs those
   paths (`node_mover.go`). There is no longer a separate `inputs/`/`outputs/` port-geometry
   file — port geometry was removed with the port model (edges attach on the bead lattice,
   docs/bead-lattice.md); this bullet used to list it as a second thing the mover writes.

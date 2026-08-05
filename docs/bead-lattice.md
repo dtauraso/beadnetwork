@@ -83,7 +83,7 @@ falls out of the tangency, with no clamp.
 ## The count
 
 Computed by the SOURCE NODE, from state it already owns — its stored `LocalPolar` to the
-target and the target's kind from `cascadeKinds`:
+target and the target's kind from `neighborKinds`:
 
 	N = QuantIR/BeadStepCells - nodeTorusSteps(srcKind) - nodeTorusSteps(dstKind)   minimum 1
 

@@ -4,8 +4,8 @@
 //
 // Buffer/frame_tags.go — SYNTHETIC ext-host-side tags for the dedicated per-owner stream
 // frames (memory/feedback_no_single_writer_bridge.md, Buffer/stream_fds.go), plus the
-// per-stream frame ENVELOPE constants (header sizes, the node-stream layout-link row
-// width). This file is the SINGLE Go-side source for all of it; the mirrored TS file,
+// per-stream frame ENVELOPE constants (header sizes). This file is the SINGLE Go-side
+// source for all of it; the mirrored TS file,
 // tools/topology-vscode/src/schema/frame-tags.ts, is GENERATED from it by
 // tools/gen-node-defs (see tools/gen-node-defs/frame_tags.go) — every const below that
 // carries a `//frametag:ts=NAME` marker comment is emitted verbatim as `export const NAME`
@@ -95,25 +95,13 @@ export const BUF_BLOCK_TAG_INTERIOR_STREAM = 7;
 /**
  * BufNodeStreamFrameHeaderSize is the byte width of the leading header on one node's
  * combined per-fd frame (Buffer.BuildNodeStreamFrame), before the Node row:
- * [tick:u32][labelLen:u32][layoutLinkCount:u32][chainBeadCount:u32]. No port section any
+ * [tick:u32][labelLen:u32][chainBeadCount:u32]. No port section any
  * more (docs/channels-not-ports.md — a port carries no geometry, so there is no portCount/
  * portNameBytesCount to size).
  * The rest of that frame's layout: one BufNodeStride row (LabelOff=0 into this frame's own
- * label bytes) + labelLen label bytes + layoutLinkCount × BufNodeStreamLayoutLinkStride
- * layout-link rows (this node's OWN outbound layout-links — see buffer-decode.ts's
- * DecodedNodeStreamFrame doc comment) + chainBeadCount chain-bead rows.
+ * label bytes) + labelLen label bytes + chainBeadCount chain-bead rows.
  */
-export const BUF_NODE_STREAM_FRAME_HEADER_SIZE = 16;
-
-/**
- * BufNodeStreamLayoutLinkStride is the byte width of ONE layout-link (cascade-link
- * overlay) row within a node stream frame: [DstNodeRow:i32]. Narrower than the combined
- * LayoutLink block's BufLayoutLinkStride (8 bytes, SrcNodeRow+DstNodeRow) because on a
- * per-node stream the source IS this node — its own row is implicit (the fd position /
- * the aggregator's row index), so only the dst endpoint travels. No edge-row column: the
- * cascade-link overlay draws between the two nodes' CENTERS, never along a bead edge.
- */
-export const NODE_STREAM_LAYOUT_LINK_STRIDE = 4;
+export const BUF_NODE_STREAM_FRAME_HEADER_SIZE = 12;
 
 /**
  * BufInteriorStreamFrameHeaderSize is the byte width of the leading header on one node's

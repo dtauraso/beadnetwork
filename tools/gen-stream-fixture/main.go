@@ -42,10 +42,6 @@ type chainBeadFixture struct {
 	LitValue int32   `json:"litValue"`
 }
 
-type layoutLinkFixture struct {
-	DstNodeRow int32 `json:"dstNodeRow"`
-}
-
 type nodeFrameFixture struct {
 	Tick      uint32  `json:"tick"`
 	NodeRow   int32   `json:"nodeRow"`
@@ -65,16 +61,15 @@ type nodeFrameFixture struct {
 	PolePhi   float32 `json:"polePhi"`
 	// The DRAWN ring's axis, distinct from the navigation pole above — see
 	// Buffer/layout.go's RingAxisTheta/RingAxisPhi for why they are two values.
-	RingAxisTheta float32             `json:"ringAxisTheta"`
-	RingAxisPhi   float32             `json:"ringAxisPhi"`
-	Selected      uint8               `json:"selected"`
-	KindID        uint8               `json:"kindId"`
-	Hovered       uint8               `json:"hovered"`
-	LatchedSel    uint8               `json:"latchedSel"`
-	ChainBeads    []chainBeadFixture  `json:"chainBeads"`
-	Label         string              `json:"label"`
-	LayoutLinks   []layoutLinkFixture `json:"layoutLinks"`
-	Hex           string              `json:"hex"`
+	RingAxisTheta float32            `json:"ringAxisTheta"`
+	RingAxisPhi   float32            `json:"ringAxisPhi"`
+	Selected      uint8              `json:"selected"`
+	KindID        uint8              `json:"kindId"`
+	Hovered       uint8              `json:"hovered"`
+	LatchedSel    uint8              `json:"latchedSel"`
+	ChainBeads    []chainBeadFixture `json:"chainBeads"`
+	Label         string             `json:"label"`
+	Hex           string             `json:"hex"`
 }
 
 type edgeFrameFixture struct {
@@ -117,18 +112,13 @@ func buildNodeFrame() nodeFrameFixture {
 		PoleTheta: 2.1, PolePhi: -1.3,
 		RingAxisTheta: 1.4, RingAxisPhi: 0.7,
 		Selected: 1, KindID: 3, Hovered: 1, LatchedSel: 0,
-		Label:       "widgetNode",
-		LayoutLinks: []layoutLinkFixture{{DstNodeRow: 2}, {DstNodeRow: 9}},
+		Label: "widgetNode",
 		ChainBeads: []chainBeadFixture{
 			{OX: 61.5, OY: -62.25, OZ: 63.125, Lit: 1, LitValue: 1},
 			{OX: -64.5, OY: 65.25, OZ: -66.125},
 		},
 	}
 
-	dstNodeRows := make([]int32, len(f.LayoutLinks))
-	for i, ll := range f.LayoutLinks {
-		dstNodeRows[i] = ll.DstNodeRow
-	}
 	chainOX := make([]float32, len(f.ChainBeads))
 	chainOY := make([]float32, len(f.ChainBeads))
 	chainOZ := make([]float32, len(f.ChainBeads))
@@ -145,7 +135,6 @@ func buildNodeFrame() nodeFrameFixture {
 		f.PoleTheta, f.PolePhi, f.RingAxisTheta, f.RingAxisPhi,
 		f.Selected, f.KindID, f.Hovered, f.LatchedSel,
 		f.Label,
-		dstNodeRows,
 		chainOX, chainOY, chainOZ, chainLit, chainLitVal,
 		nil,
 	)

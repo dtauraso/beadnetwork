@@ -22,7 +22,6 @@ type overlayState struct {
 	handholdsVisible      bool
 	labelsGlobalVisible   bool
 	overlaysVisible       bool
-	cascadeLinksVisible   bool
 }
 
 // setFlag flips *field. Shared body of the uniform Toggle* methods. The RowEvent
@@ -69,11 +68,6 @@ func (o *overlayState) ToggleOverlaysVis(tr *T.Trace) {
 	o.setFlag(&o.overlaysVisible)
 }
 
-// ToggleCascadeLinks flips cascadeLinksVisible.
-func (o *overlayState) ToggleCascadeLinks(tr *T.Trace) {
-	o.setFlag(&o.cascadeLinksVisible)
-}
-
 // SetGuideVisibility installs an explicit-visibility snapshot wholesale (the TS
 // startup push so settings survive a Go respawn).
 func (o *overlayState) SetGuideVisibility(ov overlayState) {
@@ -108,7 +102,6 @@ func (md *MoveDispatch) ToggleSelSpherePoles(tr *T.Trace) { md.ui.ov.ToggleSelSp
 func (md *MoveDispatch) ToggleHandholds(tr *T.Trace)      { md.ui.ov.ToggleHandholds(tr) }
 func (md *MoveDispatch) ToggleLabelsGlobal(tr *T.Trace)   { md.ui.ov.ToggleLabelsGlobal(tr) }
 func (md *MoveDispatch) ToggleOverlaysVis(tr *T.Trace)    { md.ui.ov.ToggleOverlaysVis(tr) }
-func (md *MoveDispatch) ToggleCascadeLinks(tr *T.Trace)   { md.ui.ov.ToggleCascadeLinks(tr) }
 
 // overlayToggles maps an overlay FLAG name (the attr="toggle" wire name) to the
 // MoveDispatch method that flips it.
@@ -122,7 +115,6 @@ var overlayToggles = map[string]func(*MoveDispatch, *T.Trace){
 	"handholds":      (*MoveDispatch).ToggleHandholds,
 	"labelsGlobal":   (*MoveDispatch).ToggleLabelsGlobal,
 	"overlays":       (*MoveDispatch).ToggleOverlaysVis,
-	"cascadeLinks":   (*MoveDispatch).ToggleCascadeLinks,
 }
 
 // OVERLAY_TOGGLES_END
@@ -143,7 +135,6 @@ var overlayFlagTraceKind = map[string]string{
 	"handholds":      T.KindHandholds,
 	"labelsGlobal":   T.KindLabelsGlobal,
 	"overlays":       T.KindOverlaysVis,
-	"cascadeLinks":   T.KindCascadeLinks,
 }
 
 // OVERLAY_TRACE_KINDS_END

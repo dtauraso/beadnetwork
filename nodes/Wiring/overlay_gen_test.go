@@ -89,11 +89,7 @@ func TestOverlayToggleFlips(t *testing.T) {
 	}
 }
 
-// TestDefaultOverlayState pins the startup snapshot: 7 flags default ON, and
-// cascadeLinks is the single exception that defaults OFF (overlay_gen.go.s
-// cascadeLinks:{defaultOff:true}). Without the OFF assertion below, a generator bug
-// flipping that default would produce self-consistent output that passes both
-// check-generated and this test.
+// TestDefaultOverlayState pins the startup snapshot: all 7 flags default ON.
 func TestDefaultOverlayState(t *testing.T) {
 	d := defaultOverlayState()
 	on := []bool{
@@ -105,8 +101,5 @@ func TestDefaultOverlayState(t *testing.T) {
 		if !v {
 			t.Fatalf("defaultOverlayState field #%d should default ON", i)
 		}
-	}
-	if d.cascadeLinksVisible {
-		t.Fatal("defaultOverlayState: cascadeLinksVisible should default OFF (defaultOff:true in overlay_gen.go)")
 	}
 }

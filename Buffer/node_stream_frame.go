@@ -19,25 +19,15 @@ import (
 	"fmt"
 )
 
-// BufNodeStreamLayoutLinkStride now lives in Buffer/frame_tags.go (envelope constants,
-// generated into frame-tags.ts alongside the other frame envelope sizes).
-
 // BuildNodeStreamFrame packs one node's combined per-fd frame payload (no outer tag byte
 // — the fd position already identifies which node this is):
 //
 //	[tick:u32]
 //	[labelLen:u32]
-//	[layoutLinkCount:u32]
 //	[chainBeadCount:u32]
 //	Node       BufNodeStride bytes (SAME SetNodeRow column writer buildNodeFrame uses;
 //	           LabelOff=0 into this frame's own label bytes, NodeRow-local)
 //	Label      labelLen bytes (this node's own label bytes — inline, not a shared section)
-//	LayoutLink layoutLinkCount × BufNodeStreamLayoutLinkStride bytes — the cascade-link
-//	           pairs for which THIS node is the lexicographically-smaller endpoint (see
-//	           nodes/Wiring/node_mover.go's cascadeEdges doc comment): each row is
-//	           [DstNodeRow:i32], dstNodeRows a single parallel slice. The overlay draws
-//	           between the two nodes' CENTERS (Node block), never a bead edge — no
-//	           edge-row travels here.
 //	ChainBead  chainBeadCount × BufNodeStreamChainBeadStride bytes — this node's OWN
 //	           placeholder chain beads: NODE-LOCAL offsets + the Lit animation flag
 //	           ([OX,OY,OZ] f32 + [Lit] u8), concatenated
@@ -55,14 +45,12 @@ func BuildNodeStreamFrame(
 	poleTheta, polePhi, ringAxisTheta, ringAxisPhi float32,
 	selected, kindID, hovered, latchedSel uint8,
 	label string,
-	dstNodeRows []int32,
 	chainBeadOX, chainBeadOY, chainBeadOZ []float32,
 	chainBeadLit []uint8,
 	chainBeadLitValue []int32,
 	events []StreamEvent,
 ) []byte {
 	labelBytes := []byte(label)
-	layoutLinkCount := len(dstNodeRows)
 	chainBeadCount := len(chainBeadOX)
 	// INVARIANT: the chain-bead slices are PARALLEL, one entry per bead, same order —
 	// a short slice is an opaque index panic naming no node; a long one is silently dropped.
@@ -78,14 +66,12 @@ func BuildNodeStreamFrame(
 	}
 
 	size := BufNodeStreamFrameHeaderSize + BufNodeStride + len(labelBytes) +
-		layoutLinkCount*BufNodeStreamLayoutLinkStride + chainBeadCount*BufChainBeadStride
+		chainBeadCount*BufChainBeadStride
 	buf := make([]byte, size)
 	off := 0
 	binary.LittleEndian.PutUint32(buf[off:], tick)
 	off += 4
 	binary.LittleEndian.PutUint32(buf[off:], uint32(len(labelBytes)))
-	off += 4
-	binary.LittleEndian.PutUint32(buf[off:], uint32(layoutLinkCount))
 	off += 4
 	binary.LittleEndian.PutUint32(buf[off:], uint32(chainBeadCount))
 	off += 4
@@ -96,12 +82,6 @@ func BuildNodeStreamFrame(
 
 	copy(buf[off:off+len(labelBytes)], labelBytes)
 	off += len(labelBytes)
-
-	for i := 0; i < layoutLinkCount; i++ {
-		rowOff := off + i*BufNodeStreamLayoutLinkStride
-		binary.LittleEndian.PutUint32(buf[rowOff:], uint32(dstNodeRows[i]))
-	}
-	off += layoutLinkCount * BufNodeStreamLayoutLinkStride
 
 	for i := 0; i < chainBeadCount; i++ {
 		rowOff := off + i*BufChainBeadStride

@@ -137,7 +137,6 @@ func TestSetOverlayRow(t *testing.T) {
 		Handholds:      1,
 		LabelsGlobal:   0,
 		OverlaysVis:    0,
-		CascadeLinks:   1,
 	})
 
 	assertU8At(t, buf, BufOverlayColSceneTori, 1, "SceneTori")
@@ -147,7 +146,6 @@ func TestSetOverlayRow(t *testing.T) {
 	assertU8At(t, buf, BufOverlayColHandholds, 1, "Handholds")
 	assertU8At(t, buf, BufOverlayColLabelsGlobal, 0, "LabelsGlobal")
 	assertU8At(t, buf, BufOverlayColOverlaysVis, 0, "OverlaysVis")
-	assertU8At(t, buf, BufOverlayColCascadeLinks, 1, "CascadeLinks")
 }
 
 func TestNodeStrideIsPackedSize(t *testing.T) {
@@ -181,9 +179,9 @@ func TestCameraStrideIsPackedSize(t *testing.T) {
 }
 
 func TestOverlayStrideIsPackedSize(t *testing.T) {
-	// Overlay block: 8×u8 + 1×i32 + 3×f32 = 24 (8 overlay flags — the 8 render gates —
+	// Overlay block: 7×u8 + 1×i32 + 3×f32 = 23 (7 overlay flags — the 7 render gates —
 	// DragNodeRow, and the "distance home button" panel's 3 GroupLen* columns)
-	want := 8*1 + 1*4 + 3*4
+	want := 7*1 + 1*4 + 3*4
 	if BufOverlayStride != want {
 		t.Errorf("BufOverlayStride = %d, want %d (packed size)", BufOverlayStride, want)
 	}

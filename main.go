@@ -179,11 +179,11 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 			// index (Buffer.NodeKindID) — injected so Wiring stays Buffer-independent.
 			md.SetNodeStreams(nodeBase, interiorBase, driveBase, driveWired,
 				md.NodeRowFor,
-				func(tick uint32, nodeRow int32, nodeID int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, poleTheta, polePhi, ringAxisTheta, ringAxisPhi float32, selected, kindID, hovered, latchedSel uint8, label string, dstNodeRows []int32, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte {
+				func(tick uint32, nodeRow int32, nodeID int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, poleTheta, polePhi, ringAxisTheta, ringAxisPhi float32, selected, kindID, hovered, latchedSel uint8, label string, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte {
 					return B.BuildNodeStreamFrame(tick, nodeRow, nodeID, cx, cy, cz, radius, sphereR, vrx, vry, vrz, frx, fry, frz,
 						poleTheta, polePhi, ringAxisTheta, ringAxisPhi,
 						selected, kindID, hovered, latchedSel,
-						label, dstNodeRows, chainBeadOX, chainBeadOY, chainBeadOZ, chainBeadLit, chainBeadLitValue, toStreamEvents(events))
+						label, chainBeadOX, chainBeadOY, chainBeadOZ, chainBeadLit, chainBeadLitValue, toStreamEvents(events))
 				},
 				func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte {
 					return B.BuildInteriorStreamFrame(tick, present, value, ox, oy, oz, toStreamEvents(events))
@@ -202,7 +202,7 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 		md.SetViewStream(viewFile,
 			func(tick uint32,
 				camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
-				sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis, cascadeLinks uint8,
+				sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis uint8,
 				dragNodeRow int32,
 				groupLenTime, groupLenInput, groupLenGate float32,
 				sceneCX, sceneCY, sceneCZ, sceneRadius float32,
@@ -213,7 +213,7 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 					B.OverlayRow{
 						SceneTori: sceneTori, ScenePoles: scenePoles, NodePoles: nodePoles,
 						SelSpherePoles: selSpherePoles, Handholds: handholds, LabelsGlobal: labelsGlobal,
-						OverlaysVis: overlaysVis, CascadeLinks: cascadeLinks,
+						OverlaysVis:  overlaysVis,
 						DragNodeRow:  dragNodeRow,
 						GroupLenTime: groupLenTime, GroupLenInput: groupLenInput, GroupLenGate: groupLenGate,
 					},
@@ -226,23 +226,6 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 					sceneTabNames, uint16(sceneTabSelected),
 					toStreamEvents(events))
 			})
-		// LayoutLink is load-time-once — emit each pair once, now that the view stream is
-		// wired, so the .probe log's per-kind count still matches the -trace reference.
-		// tr.LayoutLink itself (loader.go's emitLayoutLinks, already run inside
-		// LoadTopology above) is UNCHANGED — this is purely the EVENT-block/.probe-log
-		// representation; the render-path LayoutLink section is node_mover.go's own
-		// layoutLinkTos, carried on each node's own stream frame.
-		for _, pair := range md.LayoutLinkPairs() {
-			nodeRow := int32(-1)
-			if r, ok := md.NodeRowFor(pair[0]); ok {
-				nodeRow = r
-			}
-			targetRow := int32(-1)
-			if r, ok := md.NodeRowFor(pair[1]); ok {
-				targetRow = r
-			}
-			md.EmitLayoutLinkViewEvent(nodeRow, targetRow)
-		}
 	}
 	// One example startup breadcrumb — proves the debug channel end-to-end and is genuinely
 	// useful (which topology loaded, how many nodes). Sparse: once per run.

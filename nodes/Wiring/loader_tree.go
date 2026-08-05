@@ -136,14 +136,6 @@ func loadTree(root string) (topoSpec, error) {
 			sn.StepTheta, sn.StepPhi, sn.StepR = &st, &sp, &sr
 		}
 
-		// cascade-edges.json — this node's STORED cascade-neighbor id list (specNode.
-		// CascadeEdges doc comment). Missing file → empty list, not an error (readJSONBestEffort's
-		// standard missing-file default).
-		var cef cascadeEdgesFileJSON
-		readJSONBestEffort(cascadeEdgesFilePath(root, nodeID), &cef)
-		sn.CascadeEdges = cef.CascadeEdges
-		sn.CascadeKinds = cef.CascadeKinds
-
 		// data.json — optional
 		dataPath := filepath.Join(nodeDir, "data.json")
 		if raw, err := os.ReadFile(dataPath); err == nil {

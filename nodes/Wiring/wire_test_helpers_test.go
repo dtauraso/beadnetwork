@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
-	"sort"
 	"testing"
 
 	wire "github.com/dtauraso/wirefold/nodes/wire"
@@ -27,62 +26,6 @@ func writeTreeFile(t *testing.T, root, rel, body string) {
 	}
 }
 
-// writeCascadeEdgesFromEdges writes a complete nodes/<id>/cascade-edges.json for EVERY
-// node in the fixture, derived from the fixture's own edge list — cascade adjacency is
-// mandatory (parseSpec's validateCascadeEdges) and a fixture that omits it fails to load.
-//
-// nodeKinds maps node id -> that node's Type (matching its meta.json), and edges is the
-// list of (source, target) pairs the fixture wrote under each source node's edges/.
-// Cascade adjacency here
-// is the full domain adjacency: fixtures exercising the DRAG/re-quantize fan want every
-// domain neighbor reachable, and a fixture that needs a narrower cascade set (to exercise
-// a per-kind relay rule) should write its own files instead of calling this.
-func writeCascadeEdgesFromEdges(t *testing.T, root string, nodeKinds map[string]string, edges [][2]string) {
-	t.Helper()
-	writeCascadeEdgesFromEdgesAllowIsolated(t, root, nodeKinds, edges, false)
-}
-
-// writeCascadeEdgesFromEdgesAllowIsolated is writeCascadeEdgesFromEdges's shared
-// mechanism, parameterized on whether a node with zero domain neighbors is an error
-// (requireNonEmpty=true, the original behavior every existing caller relies on to catch
-// a fixture that forgot to wire a node in) or a legitimate isolated node that gets an
-// empty cascade-edges.json (requireNonEmpty=false — validateCascadeEdges's equality rule
-// permits this: no edges ⇒ no required cascade neighbors). writeSpecTree uses the
-// latter, since a spec literal can legitimately declare a node with no edges.
-func writeCascadeEdgesFromEdgesAllowIsolated(t *testing.T, root string, nodeKinds map[string]string, edges [][2]string, requireNonEmpty bool) {
-	t.Helper()
-	neighbors := map[string]map[string]string{}
-	add := func(a, b string) {
-		if _, ok := neighbors[a]; !ok {
-			neighbors[a] = map[string]string{}
-		}
-		neighbors[a][b] = nodeKinds[b]
-	}
-	for _, e := range edges {
-		add(e[0], e[1])
-		add(e[1], e[0])
-	}
-	for id := range nodeKinds {
-		n := neighbors[id]
-		if requireNonEmpty && len(n) == 0 {
-			t.Fatalf("fixture node %q has no domain neighbors; cascade adjacency is mandatory so every node needs at least one", id)
-		}
-		ids := make([]string, 0, len(n))
-		for to := range n {
-			ids = append(ids, to)
-		}
-		sort.Strings(ids)
-		body, err := json.Marshal(struct {
-			CascadeEdges []string          `json:"cascadeEdges"`
-			CascadeKinds map[string]string `json:"cascadeKinds"`
-		}{ids, n})
-		if err != nil {
-			t.Fatalf("marshal cascade-edges for %q: %v", id, err)
-		}
-		writeTreeFile(t, root, filepath.Join("nodes", id, "cascade-edges.json"), string(body))
-	}
-}
-
 // writeSpecTree explodes a monolithic topoSpec-shaped JSON document (the same shape the
 // deleted monolithic topology.json form used: {"nodes":[...],"edges":[...]}) into the
 // directory tree LoadTopology now requires, so a test can keep declaring its fixture as
@@ -93,13 +36,7 @@ func writeCascadeEdgesFromEdgesAllowIsolated(t *testing.T, root string, nodeKind
 // minus data/inputs/outputs), nodes/<id>/data.json (when data is present),
 // nodes/<id>/inputs/<name>.json and nodes/<id>/outputs/<name>.json per port; per edge:
 // nodes/<source>/edges/<label>.json (adjacency layout — the redundant "source" key is
-// dropped, since loadTree derives it from the containing node directory); and, for every
-// node, a nodes/<id>/cascade-edges.json derived from
-// the spec's own edge list via writeCascadeEdgesFromEdgesAllowIsolated (cascade adjacency
-// is mandatory per validateCascadeEdges — see that function's doc comment — and any
-// cascadeEdges/cascadeKinds the spec literal itself carried are ignored in favor of this
-// derivation, since domain adjacency is the only value that can satisfy the equality
-// check anyway).
+// dropped, since loadTree derives it from the containing node directory).
 //
 // Returns root so callers can pass it straight to LoadTopology.
 func writeSpecTree(t *testing.T, root string, specJSON string) string {
@@ -109,10 +46,7 @@ func writeSpecTree(t *testing.T, root string, specJSON string) string {
 		t.Fatalf("writeSpecTree: parse spec JSON: %v", err)
 	}
 
-	nodeKinds := make(map[string]string, len(spec.Nodes))
 	for _, n := range spec.Nodes {
-		nodeKinds[n.ID] = n.Type
-
 		meta := jsonMeta{
 			ID:              n.ID,
 			Type:            n.Type,
@@ -143,9 +77,7 @@ func writeSpecTree(t *testing.T, root string, specJSON string) string {
 		}
 	}
 
-	edgePairs := make([][2]string, 0, len(spec.Edges))
 	for _, e := range spec.Edges {
-		edgePairs = append(edgePairs, [2]string{e.Source, e.Target})
 		src := e.Source
 		e.Source = "" // adjacency layout: the source is the directory, not a field on disk
 		body, err := json.Marshal(e)
@@ -154,8 +86,6 @@ func writeSpecTree(t *testing.T, root string, specJSON string) string {
 		}
 		writeTreeFile(t, root, filepath.Join("nodes", src, "edges", e.Label+".json"), string(body))
 	}
-
-	writeCascadeEdgesFromEdgesAllowIsolated(t, root, nodeKinds, edgePairs, false)
 
 	return root
 }
