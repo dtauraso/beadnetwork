@@ -214,21 +214,33 @@ func TestHandleVectorCycleReplacesPreviousReceivedDirection(t *testing.T) {
 	}
 }
 
-// The third arrow is drawn only while the exchange is RUNNING. An arrival that finds this
-// node already at the perpendicular index — where it steps nothing and sends nothing, which
-// IS the exchange stopping — clears it instead of showing itself. The drawing stops with the
-// exchange rather than leaving its last frame on screen.
-func TestReceivedVectorVanishesWhenTheExchangeStops(t *testing.T) {
-	n := &Node{TopTiltThetaIdx: Wiring.PerpendicularThetaIdx, ReceivedThetaIdx: 4, ReceivedPhiIdx: 1, ReceivedSet: true}
+// The third arrow STAYS until the next arrival replaces it. An arrival is recorded even
+// when it does not move this node — including the case where the step decision declines and
+// the exchange comes to rest — because the last direction a node was sent is what it is
+// still holding. Only a RESET removes it (asserted separately, below).
+func TestReceivedVectorRecordedEvenWhenNothingSteps(t *testing.T) {
+	// Perpendicular to this node's own tilt axis: neither dot is acute, so nothing steps
+	// and nothing is sent — the exchange comes to rest on this arrival.
+	n := &Node{TopTiltThetaIdx: 0, ReceivedThetaIdx: 4, ReceivedPhiIdx: 1, ReceivedSet: true}
 	in := make(chan Wiring.TiltVectorMsg, 1)
-	n.VectorIn = in
-	in <- Wiring.TiltVectorMsg{ThetaIdx: 7, PhiIdx: 2}
+	out := make(chan Wiring.TiltVectorMsg, 1)
+	n.VectorIn, n.VectorOut = in, out
+	arrived := Wiring.TiltVectorMsg{ThetaIdx: Wiring.PerpendicularThetaIdx, PhiIdx: 0}
+	in <- arrived
 
 	n.handleVectorCycle()
 
-	if n.ReceivedSet || n.ReceivedThetaIdx != 0 || n.ReceivedPhiIdx != 0 {
-		t.Fatalf("at perpendicular the third arrow must vanish; got set=%v theta=%d phi=%d",
+	if !n.ReceivedSet || n.ReceivedThetaIdx != arrived.ThetaIdx || n.ReceivedPhiIdx != arrived.PhiIdx {
+		t.Fatalf("the arrived direction must be recorded even when nothing steps; got set=%v theta=%d phi=%d",
 			n.ReceivedSet, n.ReceivedThetaIdx, n.ReceivedPhiIdx)
+	}
+	if n.TopTiltThetaIdx != 0 {
+		t.Fatalf("neither dot is acute here, so the tilt must not move; got %d", n.TopTiltThetaIdx)
+	}
+	select {
+	case v := <-out:
+		t.Fatalf("nothing must be sent when nothing steps; got %+v", v)
+	default:
 	}
 }
 

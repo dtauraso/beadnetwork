@@ -139,7 +139,10 @@ the direction that last ARRIVED on its vector channel (`ReceivedThetaIdx`/
 `ReceivedVectorPhi` columns, `Buffer/layout.go`). It:
 
 - Persists indefinitely once set — it is NOT cleared when the straightening exchange
-  settles (i.e. reaches perpendicular and stops circulating).
+  settles (i.e. neither dot is acute, so nothing steps and nothing is sent). An arrival is
+  recorded even when it moves nothing: the last direction this node was sent is what it is
+  still holding, and blanking the arrow when the pair comes to rest would erase the state
+  it came to rest in.
 - Is REPLACED, never accumulated, by the next arrival.
 - Is cleared ONLY by a reset — this node's own (`TiltEditIn`'s `Reset`) or a Reset
   marker received on the channel — both zero `ReceivedSet`, and `ReceivedVectorLen`

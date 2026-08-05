@@ -362,19 +362,13 @@ func (n *Node) handleVectorCycle() {
 		n.clear()
 		return
 	}
-	// A real direction. It is drawn only while the exchange is RUNNING: it replaces
-	// whatever was last received, and vanishes the moment the exchange stops — which is
-	// this node reaching the perpendicular index, where it steps nothing and sends nothing.
-	// So an arrival that finds this node already perpendicular clears the third arrow
-	// instead of showing itself: the drawing stops with the exchange rather than leaving
-	// its last frame on screen.
-	if n.TopTiltThetaIdx == Wiring.PerpendicularThetaIdx {
-		n.ReceivedThetaIdx = 0
-		n.ReceivedPhiIdx = 0
-		n.ReceivedSet = false
-		n.syncReceivedVector()
-		return
-	}
+	// A real direction. It is recorded UNCONDITIONALLY — before, and independently of, the
+	// step decision below — and then STAYS until the next arrival replaces it. It does not
+	// vanish when the exchange settles: the last direction a node was sent is what it is
+	// still holding, and blanking the arrow the moment the pair stops turning would erase
+	// the very state the pair came to rest in. The only thing that removes it is a RESET
+	// (clear, above — this node's own or its partner's marker), which removes it because a
+	// reset means there is nothing in the pair at all any more.
 	n.ReceivedThetaIdx = received.ThetaIdx
 	n.ReceivedPhiIdx = received.PhiIdx
 	n.ReceivedSet = true

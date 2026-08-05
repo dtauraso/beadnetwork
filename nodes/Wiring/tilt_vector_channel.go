@@ -105,13 +105,26 @@ func TiltVectorDot(a, b TiltVectorMsg) float64 {
 	return ax*bx + ay*by + az*bz
 }
 
+// tiltVectorDotEpsilon is the band around zero that counts as PERPENDICULAR rather than
+// acute. It exists because cos(π/2) in float64 is 6.1e-17, not 0 — a bare `dot > 0` test
+// calls the exactly-perpendicular case acute and steps a node that should have stopped,
+// which is the very float hazard the retired integer compare against PerpendicularThetaIdx
+// was written to dodge (nodes/Node1/SPEC.md says so outright).
+//
+// The margin is enormous, so this is a threshold with nothing to tune: both directions sit
+// on the π/12 index lattice, so the angle between them is either exactly 90° (|dot| ~1e-16)
+// or at least one 15° step away from it (|dot| >= sin(15°) = 0.2588). Anything between
+// 1e-9 and 0.25 classifies identically; there is no near-miss case for the constant's exact
+// value to decide.
+const tiltVectorDotEpsilon = 1e-9
+
 // TiltVectorIsAcute reports whether the angle between two directions is ACUTE — the
 // dot-product sign test, and the whole of what the straightening rule asks of a dot
-// (nodes/Node1, nodes/Node2's handleVectorCycle). Exactly zero is perpendicular, which is
-// NOT acute: that is the case the exchange stops on, so it must not fall on the moving side
-// of this comparison.
+// (nodes/Node1, nodes/Node2's handleVectorCycle). Perpendicular is NOT acute: that is the
+// case the exchange stops on, so it must not fall on the moving side of this comparison —
+// see tiltVectorDotEpsilon for why that needs a band rather than a bare > 0.
 func TiltVectorIsAcute(a, b TiltVectorMsg) bool {
-	return TiltVectorDot(a, b) > 0
+	return TiltVectorDot(a, b) > tiltVectorDotEpsilon
 }
 
 // tiltVectorUnit converts one θ/φ index pair to its unit direction, in the SAME convention
