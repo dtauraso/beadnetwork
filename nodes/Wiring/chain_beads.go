@@ -387,6 +387,19 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 		// this node's own "node -> first bead" polar vector (MODEL.md): owned by that
 		// bead's own goroutine, never a second stored copy here.
 		aimUnit := liveDir
+		// A MUTUAL pair (this target also aims back here) offsets its own chain
+		// perpendicular to the shared centre line so the two chains do not draw on top of
+		// each other — see parallelChainOffset (port_geometry.go) for why the direction is
+		// measured in canonical id order and why each end can decide alone. Zero for every
+		// ordinary edge, so a one-way chain is untouched. The vector math lives in
+		// port_geometry.go because this file is guarded against it
+		// (tools/check-no-sqrt-in-chain-beads.sh), the same split edgeCenterDistAndDir uses.
+		var chainSep vec3
+		if m.mutualTargets[to] {
+			if off, ok := parallelChainOffset(m.id, to, selfCenter, targetCenter); ok {
+				chainSep = off
+			}
+		}
 		// Production call site for the bead-actor primitive (nodes/wire/bead_actor.go,
 		// bead_wake_group.go): nil in every bare-literal test nodeMover, so this stays a
 		// no-op there and chainBeads keeps its pure, synchronous, deterministic contract
@@ -409,6 +422,11 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 				// the bead directly, with no cartesian->polar->cartesian round trip.
 				p = liveDir.Scale(offsetAt(i))
 			}
+			// Offsets are NODE-LOCAL (the buffer carries them relative to this node's own
+			// centre), so the separation is added here in the same local frame rather than
+			// being folded into the aim — bending the aim would change the chain's LENGTH
+			// and therefore its published step count, making layout and timing disagree.
+			p = p.Add(chainSep)
 			ox = append(ox, float32(p.X))
 			oy = append(oy, float32(p.Y))
 			oz = append(oz, float32(p.Z))

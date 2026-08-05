@@ -283,6 +283,13 @@ type nodeMover struct {
 	// is the sole source forwardDelta consults to tell a Pulse-kind sender from any
 	// other kind, without a central id->kind table.
 	cascadeKinds map[string]string
+	// mutualTargets marks each outgoing target that ALSO has an edge back to this node.
+	// Such a pair's two chains run along the same centre line and would draw on top of
+	// each other, so each end offsets its own chain perpendicular to that line
+	// (parallelChainOffset, port_geometry.go). Seeded once at construction from the loaded
+	// edge set, on the single-threaded setup path, and read only by this node's own
+	// goroutine afterwards — a load-time fact, not shared state.
+	mutualTargets map[string]bool
 	// nodeRowFor resolves a node id to its buffer NODE-ROW index (mirroring the old
 	// central accumulator's NodeRowFor), injected via MoveDispatch.SetNodeStreams so this
 	// package stays Buffer-independent. Used to resolve this node's own cascadeEdges dst

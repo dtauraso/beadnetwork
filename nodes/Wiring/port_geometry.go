@@ -25,6 +25,7 @@ package Wiring
 
 import (
 	"math"
+	"strconv"
 
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
@@ -292,4 +293,70 @@ func edgeCenterDistAndDir(selfCenter, targetCenter vec3) (dist float64, unitDir 
 		return 0, vec3{}, false
 	}
 	return length, delta.Normalize(), true
+}
+
+// parallelChainOffset is the perpendicular displacement a node applies to its OWN chain
+// toward `targetID` so that two nodes pointing AT EACH OTHER do not draw their chains on
+// top of one another.
+//
+// Two edges between the same pair of nodes (1 -> 2 and 2 -> 1) run along the SAME centre
+// line, so without this every bead of one chain sits exactly on a bead of the other and the
+// pair renders as a single wire — the two edges are there, but unrepresentable on screen.
+//
+// CANONICAL ORDER IS THE WHOLE TRICK. Each node computes this alone, on its own goroutine,
+// with no message to the other — so the two must arrive at OPPOSITE answers from their own
+// local view. Deriving the perpendicular from each node's own outgoing direction fails:
+// node 2's direction is the negation of node 1's, so its perpendicular negates too, and the
+// two offsets cancel back onto the same line. The direction is therefore always measured
+// from the LOWER node id to the HIGHER, giving both ends the identical perpendicular, and
+// the sign is then taken from which end this node is. Local decision, no coordination, and
+// the pair cannot disagree because neither is asking the other.
+//
+// The magnitude is one bead radius, so the two chains end up exactly wire.BeadStepR apart —
+// on the lattice, not a tuned pixel gap.
+//
+// The cost, stated rather than hidden: an offset chain no longer starts exactly tangent to
+// its node's torus, since it is displaced off the centre line that tangency is measured on.
+// That is the trade the separation buys, and it applies ONLY to a mutual pair.
+func parallelChainOffset(selfID, targetID string, selfCenter, targetCenter vec3) (vec3, bool) {
+	lowCenter, highCenter := selfCenter, targetCenter
+	if !nodeIDLess(selfID, targetID) {
+		lowCenter, highCenter = targetCenter, selfCenter
+	}
+	delta := highCenter.Sub(lowCenter)
+	if delta.Length() < 1e-9 {
+		return vec3{}, false
+	}
+	dir := delta.Normalize()
+	// Any axis not parallel to dir yields a usable perpendicular; +y is tried first and +x
+	// covers the one case it cannot (a vertical edge). Which perpendicular is chosen does
+	// not matter — only that BOTH ends choose the SAME one, which canonical order gives.
+	axis := vec3{X: 0, Y: 1, Z: 0}
+	perp := dir.Cross(axis)
+	if perp.Length() < 1e-6 {
+		perp = dir.Cross(vec3{X: 1, Y: 0, Z: 0})
+	}
+	if perp.Length() < 1e-9 {
+		return vec3{}, false
+	}
+	sign := 1.0
+	if !nodeIDLess(selfID, targetID) {
+		sign = -1.0
+	}
+	return perp.Normalize().Scale(sign * wire.BeadTorusOuterR), true
+}
+
+// nodeIDLess orders two node ids NUMERICALLY, because node ids are numbers that are strings
+// only because they are directory names (.claude/rules/persistence-ownership.md). A plain
+// string compare would order "10" before "2" and hand both ends of that pair the same sign,
+// which is the one thing parallelChainOffset must never do. A non-numeric id (impossible
+// today — loadTree rejects one) falls back to the string compare rather than panicking in
+// geometry code.
+func nodeIDLess(a, b string) bool {
+	ai, aerr := strconv.Atoi(a)
+	bi, berr := strconv.Atoi(b)
+	if aerr == nil && berr == nil {
+		return ai < bi
+	}
+	return a < b
 }

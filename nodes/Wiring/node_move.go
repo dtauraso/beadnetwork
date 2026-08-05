@@ -255,6 +255,26 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 		// the partnerCenters seed below).
 		md.mr.centerMirror[id] = nodeWorldPos(g)
 	}
+	// A pair that points at each other is a LOAD-TIME fact of the edge set, resolved here
+	// (single-threaded setup, before any mover goroutine exists) and copied into each
+	// node's own field. Without it a node cannot know whether its target also aims back —
+	// its own outTargets say nothing about the other node's — and the two chains would draw
+	// along the identical centre line (parallelChainOffset, port_geometry.go).
+	hasEdge := make(map[string]bool, len(edgeEndpoints))
+	for _, ep := range edgeEndpoints {
+		hasEdge[ep.Source+"\x00"+ep.Target] = true
+	}
+	for _, ep := range edgeEndpoints {
+		if !hasEdge[ep.Target+"\x00"+ep.Source] {
+			continue
+		}
+		if nm, ok := md.mr.nodeMovers[ep.Source]; ok {
+			if nm.mutualTargets == nil {
+				nm.mutualTargets = map[string]bool{}
+			}
+			nm.mutualTargets[ep.Target] = true
+		}
+	}
 	for edgeID, ep := range edgeEndpoints {
 		em := newEdgeMover(ep, edgeID, geoms[ep.Source], geoms[ep.Target], tr, clk)
 		if speedSinks != nil {
