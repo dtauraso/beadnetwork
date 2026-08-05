@@ -3,6 +3,7 @@ import { postGoRecord } from "../vscode-api";
 import { encodeTiltVectorAdjust } from "../../schema/input-layout";
 import { CURVE_PARAM_TILT_VECTOR_ANGLE_STEP } from "../../schema/curve-params";
 import { useTiltVectorRows } from "./overlay-flags";
+import { panelStyle, rowStyle, labelStyle, valueStyle, btnStyle } from "./panel-styles";
 
 // TiltVectorAnglePanel — a per-node tilt-vector-direction panel, sibling of
 // DistanceHomePanel (same style constants: small dark rounded panel, monospace, ▲/▼
@@ -90,53 +91,6 @@ export function TiltVectorAnglePanel() {
     </div>
   );
 }
-
-// Styling mirrors DistanceHomePanel's own panelStyle (itself mirroring the camera
-// HomeButton): a dark rounded pill, 11px monospace, #ddd, vertical list. Positioned
-// BELOW DistanceHomePanel's slot (top:66) — the two panels never render in the same
-// scene today (distance groups are ring-only, this panel's rows are the pair scene's
-// tilt vectors), but stacking downward keeps this panel out of DistanceHomePanel's spot
-// in case a future scene streams both.
-const panelStyle: React.CSSProperties = {
-  // Placed by ThreeView's right-hand flex column, not by a top/right of its own — this
-  // panel's height depends on how many nodes have vectors, so nothing below it can be
-  // positioned against a number known here.
-  pointerEvents: "auto",
-  display: "inline-flex",
-  flexDirection: "column",
-  gap: 2,
-  background: "rgba(0,0,0,0.55)",
-  borderRadius: 6,
-  padding: "3px 7px",
-  color: "#ddd",
-  fontSize: 11,
-  fontFamily: "monospace",
-  userSelect: "none",
-};
-
-const rowStyle: React.CSSProperties = {
-  display: "flex",
-  flexDirection: "row",
-  alignItems: "center",
-  gap: 4,
-  whiteSpace: "nowrap",
-};
-
-const labelStyle: React.CSSProperties = { flex: 1, minWidth: 40 };
-
-const valueStyle: React.CSSProperties = { minWidth: 34, textAlign: "right" };
-
-const btnStyle: React.CSSProperties = {
-  background: "rgba(255,255,255,0.12)",
-  border: "none",
-  borderRadius: 4,
-  color: "#ddd",
-  fontSize: 11,
-  fontFamily: "monospace",
-  lineHeight: 1,
-  padding: "2px 5px",
-  cursor: "pointer",
-};
 
 // A node's name above its own two angle lines, so which θ/φ belongs to which node is read
 // off the layout rather than remembered.
