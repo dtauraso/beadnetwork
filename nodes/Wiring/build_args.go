@@ -57,10 +57,10 @@ type BuildArgs struct {
 	geom nodeGeom
 
 	// tiltThetaIdx/tiltPhiIdx are this node's PERSISTED tilt-vector-angle indices
-	// (topo_spec.go's specNode.TiltVectorThetaIdx/PhiIdx, dereferenced with a 0 default),
+	// (topo_spec.go's specNode.TopTiltVectorThetaIdx/PhiIdx, dereferenced with a 0 default),
 	// threaded in from the loaded spec so a kind that owns its own index (TiltVectorAngleSeed)
 	// can seed its own struct field from the SAME value the mover used to seed itself with
-	// (build.go's old nm.tiltVectorThetaIdx assignment) — one load-time value, read by
+	// (build.go's old nm.topTiltVectorThetaIdx assignment) — one load-time value, read by
 	// whichever goroutine ends up owning it.
 	tiltThetaIdx, tiltPhiIdx int32
 
@@ -163,7 +163,7 @@ func (a BuildArgs) Fire() func() {
 }
 
 // TiltVectorAngleSeed returns this node's persisted tilt-vector-angle indices
-// (specNode.TiltVectorThetaIdx/PhiIdx, 0 default) — the load-time seed for a kind that
+// (specNode.TopTiltVectorThetaIdx/PhiIdx, 0 default) — the load-time seed for a kind that
 // owns its OWN index field (Node1/Node2), so it starts from the same persisted value the
 // mover used to seed itself with before this reshape.
 func (a BuildArgs) TiltVectorAngleSeed() (theta, phi int32) {
@@ -193,7 +193,8 @@ func (a BuildArgs) TiltEditIn() <-chan TiltEditMsg {
 }
 
 // SyncTiltIndex returns a closure that notifies THIS node's own MOVER goroutine of its
-// current tilt-vector-angle indices AND its current coplanar-normal indices — the
+// current TOP tilt-vector-angle indices AND its current coplanar-normal and BOTTOM tilt
+// indices — the
 // one-way, fire-and-forget counterpart to TiltEditIn: a kind that owns its own index
 // (Node1/Node2) calls this every time it changes that index, so the mover (which still
 // owns streaming that geometry and persisting it to this node's own position.json) stays
@@ -201,15 +202,16 @@ func (a BuildArgs) TiltEditIn() <-chan TiltEditMsg {
 // mirror for both pairs (see moveMsgKindTiltIndexSync's doc comment). nil-safe: a.pb.md
 // is nil on a bare test build with no loader, in which case this is a no-op, same
 // fallback every other closure here takes.
-func (a BuildArgs) SyncTiltIndex() func(theta, phi, normalTheta, normalPhi int32) {
+func (a BuildArgs) SyncTiltIndex() func(theta, phi, normalTheta, normalPhi, bottomTheta, bottomPhi int32) {
 	md := a.pb.md
 	name := a.name
-	return func(theta, phi, normalTheta, normalPhi int32) {
+	return func(theta, phi, normalTheta, normalPhi, bottomTheta, bottomPhi int32) {
 		if md == nil {
 			return
 		}
 		md.sendMove(name, moveMsg{Kind: moveMsgKindTiltIndexSync, NodeID: name,
-			ThetaIdx: theta, PhiIdx: phi, NormalThetaIdx: normalTheta, NormalPhiIdx: normalPhi})
+			ThetaIdx: theta, PhiIdx: phi, NormalThetaIdx: normalTheta, NormalPhiIdx: normalPhi,
+			BottomThetaIdx: bottomTheta, BottomPhiIdx: bottomPhi})
 	}
 }
 

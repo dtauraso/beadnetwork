@@ -33,13 +33,13 @@ acts itself — no round trip to any other goroutine to decide:
 **On an In arrival** (`In.PollRecv`):
 
 - Compute dot(tilt, coplanar normal) for THIS node — in practice, for this scene,
-  decided as an INTEGER index compare (`TiltThetaIdx == Wiring.PerpendicularThetaIdx`,
+  decided as an INTEGER index compare (`TopTiltThetaIdx == Wiring.PerpendicularThetaIdx`,
   `nodes/Wiring/node_mover.go`'s exported constant), not a float dot product
   (`cos(π/2)` in float64 never equals exactly 0). This shortcut is valid ONLY because
   the ring plane contains world +y and θ is measured from +y, so the tilt's in-plane
   angle coincides with its θ index; see `Wiring.PerpendicularThetaIdx`'s doc comment for
   the assumption spelled out, including what breaks it.
-- If not perpendicular: step `TiltThetaIdx` ONE click (`Wiring.CurveParamTiltVectorAngleStep`,
+- If not perpendicular: step `TopTiltThetaIdx` ONE click (`Wiring.CurveParamTiltVectorAngleStep`,
   π/12) toward perpendicular, report the new indices to this node's own mover
   (`SyncTiltIndex`, one-way/fire-and-forget — the mover streams+persists but never
   decides), and place a bead (value 1) on Out itself (`Out.PlaceDrivenAt`) — passing the
@@ -47,7 +47,7 @@ acts itself — no round trip to any other goroutine to decide:
 - If already perpendicular: do nothing and send nothing. This is how the loop
   terminates, not a missed case.
 
-The STOP condition above compares `TiltThetaIdx` directly against
+The STOP condition above compares `TopTiltThetaIdx` directly against
 `Wiring.PerpendicularThetaIdx` and never touches the DRAWN coplanar normal at all — the
 drawn normal (below, "Coplanar normal") is a separate, purely visual derivation.
 
@@ -102,6 +102,12 @@ loop body) runs:
   exactly what it is told as the buffer's `CoplanarNormalTheta`/`CoplanarNormalPhi`
   columns, never deriving a normal from the edge itself
   (`coplanarNormalTowardPartner` was removed).
+- **Bottom tilt vector**: this node's TOP tilt vector turned a half turn (180°,
+  `Wiring.HalfTurnThetaIdx`) in θ — Node2 subtracts it, its mirror package does the
+  opposite. φ untouched. A half turn in θ alone negates the direction exactly in this
+  parameterization, so both signs land in the SAME drawn direction and the sign is index
+  bookkeeping only. It shares the top's length column (`TopTiltVectorLen`) and its colour;
+  it is one of the two dot-product operands above.
 - **What this node SENDS**: that coplanar normal rotated 180° in θ. Node2 turns +180°
   (+12 steps of π/12, i.e. `2 × PerpendicularThetaIdx` added); Node1 (its mirror
   package) turns −180° (−12 steps). φ is untouched. Index arithmetic only.
@@ -109,14 +115,20 @@ loop body) runs:
   direction as its own THIRD drawn vector (`ReceivedThetaIdx`/`ReceivedPhiIdx`/
   `ReceivedSet`, reported one-way to its own mover via `SyncReceivedVector` — same
   passive-mirror shape as `SyncTiltIndex`) — REPLACING whatever it received last time,
-  regardless of whether the step below fires. THEN the step decision: dot(this node's
-  OWN tilt, the received vector) — realized, exactly like the bead exchange's
-  `stepTilt`, as the integer compare `TiltThetaIdx == Wiring.PerpendicularThetaIdx`
-  rather than a float dot product. If not perpendicular: step `TiltThetaIdx` ONE click
-  (Node2 adds, same direction as `stepTilt`), sync the mover, and send the outgoing
-  vector above. If already perpendicular: step nothing and send nothing — this is how
-  the vector exchange stops, independently of whether the bead exchange has also
-  stopped.
+  regardless of whether the step below fires. THEN the step decision: TWO DOT PRODUCTS —
+  the received vector against this node's own TOP tilt vector, and against its own BOTTOM
+  tilt vector (`Wiring.TiltVectorIsAcute`, the sign of `Wiring.TiltVectorDot`). If AT
+  LEAST ONE of them is the ACUTE-angle case, step `TopTiltThetaIdx` ONE click (Node2
+  adds, same direction as `stepTilt` — the kind owns the sign, the dots only decide
+  WHETHER to move), sync the mover, and send the outgoing vector above. If NEITHER is
+  acute, step nothing and send nothing — this is how the vector exchange stops,
+  independently of whether the bead exchange has also stopped.
+- **What the two dots actually gate today**: the bottom tilt is a half turn from the top,
+  i.e. its exact antipode, so the two dots are always exact NEGATIVES of each other and
+  "at least one is acute" is false only when the received vector is exactly perpendicular
+  to the tilt axis. The two-dot form is what is written because it is the rule as stated,
+  and it keeps saying the right thing if the bottom ever stops being a straight half turn
+  — but it is not currently a wider gate than a single dot against the top would be.
 - **Received-vector RESET**: a Reset marker arriving on `VectorIn` zeroes this node's
   tilt (as above) AND clears its own received-vector record
   (`ReceivedSet = false`, synced) — a stale received arrow left hanging would
@@ -139,7 +151,7 @@ the direction that last ARRIVED on its vector channel (`ReceivedThetaIdx`/
 - Is distinguishable from "received (0,0)" (world +y): `ReceivedVectorLen` is 0 only
   when nothing has been received yet or a reset cleared it; an actually-received (0,0)
   direction still streams a non-zero length (this node's own radius, same as
-  `TiltVectorLen`).
+  `TopTiltVectorLen`).
 - Draws in its OWN colour (`RECEIVED_VECTOR_COLOR`, `TiltVectors.tsx`), distinct from
   the tilt vector/coplanar normal's shared magenta.
 

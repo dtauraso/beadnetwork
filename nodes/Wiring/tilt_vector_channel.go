@@ -11,6 +11,8 @@
 // rather than blocks, a receive that finds nothing returns immediately.
 package Wiring
 
+import "math"
+
 // TiltVectorMsg is the vector-channel payload: an integer angle-index pair. θ/φ are
 // each an index × CurveParamTiltVectorAngleStep (π/12) — the boundary conversion to
 // a float angle happens only where geometry is rendered/persisted, never on this
@@ -80,4 +82,44 @@ func PollRecvVector(ch <-chan TiltVectorMsg) (TiltVectorMsg, bool) {
 	default:
 		return TiltVectorMsg{}, false
 	}
+}
+
+// HalfTurnThetaIdx is a half turn (180°) counted in CurveParamTiltVectorAngleStep steps —
+// twice PerpendicularThetaIdx's quarter turn. Adding it to a direction's θ index REVERSES
+// that direction exactly: the drawn direction is (sinθ·cosφ, cosθ, sinθ·sinφ)
+// (TiltVectors.tsx's writeArrowInto), and sin(θ+π) = −sinθ with cos(θ+π) = −cosθ negates
+// all three components at once. So a half turn in θ alone is a true antipode here and needs
+// no companion φ+π — which is why the bottom tilt vector and the outgoing vector are both
+// expressible as pure θ-index arithmetic.
+const HalfTurnThetaIdx = 2 * PerpendicularThetaIdx
+
+// TiltVectorDot is the DOT PRODUCT of two directions given as integer θ/φ index pairs. The
+// indices are exact (index × CurveParamTiltVectorAngleStep,
+// memory/feedback_abc_times_constant_not_rederive.md); the trig here is the
+// polar→cartesian BOUNDARY conversion that memory allows, and it is the only place in this
+// exchange where an angle becomes a float. Both directions are unit length, so the result
+// is exactly cos(angle between them) — no normalization step to get wrong.
+func TiltVectorDot(a, b TiltVectorMsg) float64 {
+	ax, ay, az := tiltVectorUnit(a)
+	bx, by, bz := tiltVectorUnit(b)
+	return ax*bx + ay*by + az*bz
+}
+
+// TiltVectorIsAcute reports whether the angle between two directions is ACUTE — the
+// dot-product sign test, and the whole of what the straightening rule asks of a dot
+// (nodes/Node1, nodes/Node2's handleVectorCycle). Exactly zero is perpendicular, which is
+// NOT acute: that is the case the exchange stops on, so it must not fall on the moving side
+// of this comparison.
+func TiltVectorIsAcute(a, b TiltVectorMsg) bool {
+	return TiltVectorDot(a, b) > 0
+}
+
+// tiltVectorUnit converts one θ/φ index pair to its unit direction, in the SAME convention
+// the renderer draws with (TiltVectors.tsx's writeArrowInto) and NodeInstances uses for a
+// ring axis: θ measured from world +y, φ the azimuth around +y.
+func tiltVectorUnit(v TiltVectorMsg) (x, y, z float64) {
+	theta := float64(v.ThetaIdx) * CurveParamTiltVectorAngleStep
+	phi := float64(v.PhiIdx) * CurveParamTiltVectorAngleStep
+	st := math.Sin(theta)
+	return st * math.Cos(phi), math.Cos(theta), st * math.Sin(phi)
 }

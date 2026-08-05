@@ -57,8 +57,8 @@ const (
 	// existing SenderID/FromCenter fields.
 	moveMsgKindNeighborCenter = "neighborCenter"
 	// moveMsgKindTiltVectorAngle tells a node to adjust its OWN vector direction by one
-	// TiltVectorAngleStep click (Buffer/layout.go's TiltVectorTheta/TiltVectorPhi,
-	// nodes/Wiring/node_mover.go's tiltVectorThetaIdx/tiltVectorPhiIdx): Axis selects "theta" or
+	// TiltVectorAngleStep click (Buffer/layout.go's TopTiltVectorTheta/TopTiltVectorPhi,
+	// nodes/Wiring/node_mover.go's topTiltVectorThetaIdx/topTiltVectorPhiIdx): Axis selects "theta" or
 	// "phi", Bool is the up(+1)/down(-1) direction — same shape as the distanceGroup
 	// arrow-click payload (index + direction, no value on the wire; Go owns the math).
 	// Sent to the target node's own extIn via md.sendMove from applyUpdateTiltVector
@@ -76,7 +76,7 @@ const (
 	// TiltEditIn/TiltEditMsg.Reset, same split as moveMsgKindTiltVectorAngle.
 	moveMsgKindTiltVectorReset = "tiltVectorReset"
 	// moveMsgKindTiltIndexSync is the ONE-WAY notification a node kind's OWN goroutine
-	// sends to its OWN mover whenever it changes its OWN tiltVectorThetaIdx/PhiIdx —
+	// sends to its OWN mover whenever it changes its OWN topTiltVectorThetaIdx/PhiIdx —
 	// currently Node1/Node2 only (nodes/Node1/node.go, nodes/Node2/node.go), the only
 	// kinds that claim BuildArgs.TiltEditIn and therefore own their index independently
 	// (see TiltEditMsg's doc comment). It carries the FULL new (theta, phi) pair, not a
@@ -182,7 +182,7 @@ type moveMsg struct {
 	// (index+1), false = down (index-1).
 	Bool bool
 	// Axis (Kind == "tiltVectorAngle"): "theta" or "phi" — which of the node's own
-	// tiltVectorThetaIdx/tiltVectorPhiIdx to adjust.
+	// topTiltVectorThetaIdx/topTiltVectorPhiIdx to adjust.
 	Axis string
 	// ThetaIdx/PhiIdx (Kind == "tiltIndexSync"): the FULL new index pair, as decided by
 	// the sending node kind's own goroutine (never a delta — see moveMsgKindTiltIndexSync's
@@ -195,6 +195,11 @@ type moveMsg struct {
 	// coplanarNormal). The receiving mover applies these verbatim too; it does not derive
 	// the normal from the edge any more (coplanarNormalTowardPartner was removed).
 	NormalThetaIdx, NormalPhiIdx int32
+	// BottomThetaIdx/BottomPhiIdx carry the sender's own BOTTOM TILT VECTOR index pair on
+	// the same moveMsgKindTiltIndexSync message as the top and the normal — one message per
+	// change, carrying every index the mover mirrors, so the three can never be seen
+	// out of step with each other.
+	BottomThetaIdx, BottomPhiIdx int32
 	// ReceivedVectorThetaIdx/ReceivedVectorPhiIdx (Kind == "receivedVectorSync"): the
 	// direction last received on this node's vector channel, as decided by the sending
 	// node kind's own goroutine — see moveMsgKindReceivedVectorSync's doc comment.

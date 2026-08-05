@@ -28,8 +28,8 @@ const CurveParamPulseSpeedWuPerMs = 0.04
 const CurveParamNodeRadiusDivisor = 4
 
 // CurveParamTiltVectorAngleStep is the ONE quantization step for a node's own tilt
-// vector direction (Buffer/layout.go's TiltVectorTheta/TiltVectorPhi): every node's
-// tiltVectorThetaIdx/tiltVectorPhiIdx (node_mover.go) is an INTEGER count of this step,
+// vector direction (Buffer/layout.go's TopTiltVectorTheta/TopTiltVectorPhi): every node's
+// topTiltVectorThetaIdx/topTiltVectorPhiIdx (node_mover.go) is an INTEGER count of this step,
 // never a free float (memory/feedback_abc_times_constant_not_rederive.md) — a single
 // edit here changes the step for every node's tilt vector in every scene. Same shape as
 // the ring/pole angle vocabulary (polar.go): θ from world +y, φ azimuth around +y,

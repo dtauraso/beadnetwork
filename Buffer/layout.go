@@ -112,38 +112,42 @@ type bufLayoutNode struct {
 	// change what navigation reads.
 	RingAxisTheta float32 `buf:"f32"` // drawn ring's plane normal: θ from world +y (radians)
 	RingAxisPhi   float32 `buf:"f32"` // drawn ring's plane normal: φ azimuth around +y (radians)
-	// TiltVectorLen is how long the node's own drawn TILT VECTOR is, along the same axis as
-	// its ring (RingAxisTheta/Phi above), starting at the node's centre. ZERO means this
-	// node draws no tilt vector — so one column says both whether and how far, and a scene
-	// that wants no tilt vectors needs no second flag anywhere. Go decides per scene; the
-	// renderer draws what it is given.
-	TiltVectorLen float32 `buf:"f32"` // node tilt-vector length along the ring axis; 0 = no vector
-	// TiltVectorTheta/TiltVectorPhi are the tilt vector's OWN direction, same angle
-	// convention as PoleTheta/PolePhi and RingAxisTheta/RingAxisPhi above (θ from world +y,
-	// φ azimuth around +y) — SEPARATE from RingAxisTheta/Phi so a scene/user can point a
-	// node's tilt vector somewhere other than its ring axis. Each node's mover holds these
-	// as an INTEGER index pair, not a free float (memory/feedback_abc_times_constant_not_
-	// rederive.md): the streamed value is index * nodes/Wiring.CurveParamTiltVectorAngleStep,
+	// TopTiltVectorLen is how long the node's own drawn TOP TILT VECTOR is, along the same
+	// axis as its ring (RingAxisTheta/Phi above), starting at the node's centre. ZERO means
+	// this node draws no tilt vectors at all — so one column says both whether and how far,
+	// for the top vector and for the bottom one below (which has no length column of its
+	// own, the same way CoplanarNormal does not). A scene that wants no tilt vectors needs
+	// no second flag anywhere. Go decides per scene; the renderer draws what it is given.
+	TopTiltVectorLen float32 `buf:"f32"` // node top-tilt-vector length along the ring axis; 0 = no vectors
+	// TopTiltVectorTheta/TopTiltVectorPhi are the top tilt vector's OWN direction, same
+	// angle convention as PoleTheta/PolePhi and RingAxisTheta/RingAxisPhi above (θ from
+	// world +y, φ azimuth around +y) — SEPARATE from RingAxisTheta/Phi so a scene/user can
+	// point a node's tilt vector somewhere other than its ring axis. Each node's mover holds
+	// these as an INTEGER index pair, not a free float (memory/feedback_abc_times_constant_
+	// not_rederive.md): the streamed value is index * nodes/Wiring.CurveParamTiltVectorAngleStep,
 	// and the index is what an edit-update(tiltVector) click changes. Meaningless (but
-	// still streamed, default 0) on a node whose TiltVectorLen is 0.
-	TiltVectorTheta float32 `buf:"f32"` // tilt vector direction: θ from world +y (radians) = thetaIdx*step
-	TiltVectorPhi   float32 `buf:"f32"` // tilt vector direction: φ azimuth around +y (radians) = phiIdx*step
-	// CoplanarNormalTheta/CoplanarNormalPhi are the COPLANAR NORMAL: a second vector this node draws, a quarter turn from the
-	// first INSIDE its own ring plane — so both vectors lie across the ring's face rather
-	// than one standing out of it. Same angle convention and the same length as the first,
-	// drawn whenever TiltVectorLen is non-zero, so there is no second length column.
+	// still streamed, default 0) on a node whose TopTiltVectorLen is 0.
+	TopTiltVectorTheta float32 `buf:"f32"` // top tilt vector direction: θ from world +y (radians) = thetaIdx*step
+	TopTiltVectorPhi   float32 `buf:"f32"` // top tilt vector direction: φ azimuth around +y (radians) = phiIdx*step
+	// BottomTiltVectorTheta/BottomTiltVectorPhi are the BOTTOM TILT VECTOR: the top tilt
+	// vector turned a half turn (180°) in θ, so it points out of the node's other side. Same
+	// angle convention and the same length as the top, drawn whenever TopTiltVectorLen is
+	// non-zero, so there is no second length column.
 	//
-	// The two nodes of a pair point OPPOSITE ways along their edge without anyone assigning
-	// them sides: each computes its ring axis from ITS OWN direction to its partner, so
-	// those axes are already opposites, and the same quarter turn about opposite axes lands
-	// in opposite world directions.
-	CoplanarNormalTheta float32 `buf:"f32"` // second vector direction: θ from world +y (radians)
-	CoplanarNormalPhi   float32 `buf:"f32"` // second vector direction: φ azimuth around +y (radians)
+	// The half turn is ADDED by one kind of a pair and SUBTRACTED by the other
+	// (nodes/Node1, nodes/Node2 — the same opposite-senses convention their outgoing vector
+	// already uses). Both land in the same drawn direction, since ±180° in θ is the same
+	// place; the sign is index bookkeeping, so each kind's indices keep walking in its own
+	// direction rather than one kind's jumping the other way at the turn.
+	BottomTiltVectorTheta float32 `buf:"f32"` // bottom tilt vector direction: θ from world +y (radians)
+	BottomTiltVectorPhi   float32 `buf:"f32"` // bottom tilt vector direction: φ azimuth around +y (radians)
+	CoplanarNormalTheta   float32 `buf:"f32"` // second vector direction: θ from world +y (radians)
+	CoplanarNormalPhi     float32 `buf:"f32"` // second vector direction: φ azimuth around +y (radians)
 	// ReceivedVectorLen/Theta/Phi are a THIRD drawn vector: the direction that LAST
 	// ARRIVED on this node's own tilt-vector channel (nodes/Wiring/tilt_vector_channel.go),
 	// kept by the RECEIVING node's own goroutine and replaced (never accumulated) by the
 	// next arrival — see nodes/Node1/node.go and nodes/Node2/node.go's handleVectorCycle.
-	// Same "one column says both whether and how far" convention as TiltVectorLen above:
+	// Same "one column says both whether and how far" convention as TopTiltVectorLen above:
 	// ZERO means this node has received nothing yet (or was reset), so a node with
 	// nothing received is distinguishable from one whose received direction happens to be
 	// (0,0) — the latter still streams a non-zero length. A RESET (this node's own

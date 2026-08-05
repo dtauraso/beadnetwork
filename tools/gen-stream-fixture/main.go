@@ -64,11 +64,15 @@ type nodeFrameFixture struct {
 	RingAxisTheta float32 `json:"ringAxisTheta"`
 	RingAxisPhi   float32 `json:"ringAxisPhi"`
 	// The node's own drawn vector length along that axis; 0 means it draws none.
-	TiltVectorLen float32 `json:"tiltVectorLen"`
+	TopTiltVectorLen float32 `json:"topTiltVectorLen"`
 	// The vector's OWN direction — separate from RingAxisTheta/Phi above (Buffer/layout.go's
-	// TiltVectorTheta/TiltVectorPhi).
-	TiltVectorTheta float32 `json:"tiltVectorTheta"`
-	TiltVectorPhi   float32 `json:"tiltVectorPhi"`
+	// TopTiltVectorTheta/TopTiltVectorPhi).
+	TopTiltVectorTheta float32 `json:"topTiltVectorTheta"`
+	TopTiltVectorPhi   float32 `json:"topTiltVectorPhi"`
+	// The BOTTOM tilt vector's direction — a half turn in θ from the top (Buffer/layout.go's
+	// BottomTiltVectorTheta/BottomTiltVectorPhi); it shares the top's length column.
+	BottomTiltVectorTheta float32 `json:"bottomTiltVectorTheta"`
+	BottomTiltVectorPhi   float32 `json:"bottomTiltVectorPhi"`
 	// The SECOND vector's direction — a quarter turn from the first, in the ring's plane.
 	CoplanarNormalTheta float32 `json:"coplanarNormalTheta"`
 	CoplanarNormalPhi   float32 `json:"coplanarNormalPhi"`
@@ -125,8 +129,9 @@ func buildNodeFrame() nodeFrameFixture {
 		VRX: 21.5, VRY: 22.25, VRZ: 23.125, FRX: 24.0625, FRY: 25.5, FRZ: 26.25,
 		PoleTheta: 2.1, PolePhi: -1.3,
 		RingAxisTheta: 1.4, RingAxisPhi: 0.7,
-		TiltVectorLen: 9.5, TiltVectorTheta: 0.5, TiltVectorPhi: -0.9,
+		TopTiltVectorLen: 9.5, TopTiltVectorTheta: 0.5, TopTiltVectorPhi: -0.9,
 		CoplanarNormalTheta: 0.55, CoplanarNormalPhi: -0.35,
+		BottomTiltVectorTheta: 2.9, BottomTiltVectorPhi: -0.2,
 		ReceivedVectorLen: 8.75, ReceivedVectorTheta: 0.25, ReceivedVectorPhi: -0.15,
 		Selected: 1, KindID: 3, Hovered: 1, LatchedSel: 0,
 		Label: "widgetNode",
@@ -149,7 +154,7 @@ func buildNodeFrame() nodeFrameFixture {
 		f.Tick, f.NodeRow, f.NodeId,
 		f.CX, f.CY, f.CZ, f.Radius, f.SphereR,
 		f.VRX, f.VRY, f.VRZ, f.FRX, f.FRY, f.FRZ,
-		f.PoleTheta, f.PolePhi, f.RingAxisTheta, f.RingAxisPhi, f.TiltVectorLen, f.TiltVectorTheta, f.TiltVectorPhi, f.CoplanarNormalTheta, f.CoplanarNormalPhi,
+		f.PoleTheta, f.PolePhi, f.RingAxisTheta, f.RingAxisPhi, f.TopTiltVectorLen, f.TopTiltVectorTheta, f.TopTiltVectorPhi, f.BottomTiltVectorTheta, f.BottomTiltVectorPhi, f.CoplanarNormalTheta, f.CoplanarNormalPhi,
 		f.ReceivedVectorLen, f.ReceivedVectorTheta, f.ReceivedVectorPhi,
 		f.Selected, f.KindID, f.Hovered, f.LatchedSel,
 		f.Label,

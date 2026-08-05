@@ -4,7 +4,7 @@
 // node's OWN tilt vector one click toward perpendicular to its coplanar normal and, if it
 // moved, place a bead back out on its OWN Out; if it is already perpendicular, do nothing
 // and send nothing, which is how the exchange terminates. This all runs on THIS
-// goroutine: there is no round trip to the mover to decide (see tiltVectorThetaIdx below
+// goroutine: there is no round trip to the mover to decide (see topTiltVectorThetaIdx below
 // for who else the index is reported to and why).
 //
 // Emission is otherwise silent: with no In arrival there is nothing to react to, and the
@@ -54,7 +54,7 @@ type Node struct {
 	// preserving wire.Out.PlaceDrivenAt's one-goroutine-per-Out invariant — the mover no
 	// longer places on this Out at all.
 	Out *wire.Out
-	// TiltThetaIdx/TiltPhiIdx are THIS node's OWN vector-direction indices — the ONE
+	// TopTiltThetaIdx/TopTiltPhiIdx are THIS node's OWN vector-direction indices — the ONE
 	// writer, full stop (memory/feedback_abc_times_constant_not_rederive.md: index ×
 	// step-constant, trig only at the cartesian/polar boundary). Seeded once at build
 	// time from the persisted value (BuildArgs.TiltVectorAngleSeed) and mutated ONLY by
@@ -62,15 +62,15 @@ type Node struct {
 	// node's own mover (SyncTiltIndex) so the mover — which still owns streaming this
 	// node's geometry and persisting it to this node's own position.json — stays in
 	// sync; the mover never decides or mutates these itself for this kind.
-	TiltThetaIdx, TiltPhiIdx int32
+	TopTiltThetaIdx, TopTiltPhiIdx int32
 	// TiltEditIn is this node's dedicated channel for a panel-driven tilt-angle click
 	// (TiltVectorAnglePanel), claimed at build time via BuildArgs.TiltEditIn — see the
 	// package doc comment's "THE KICK".
 	TiltEditIn <-chan Wiring.TiltEditMsg
-	// SyncTiltIndex notifies this node's own mover of the current TiltThetaIdx/TiltPhiIdx
+	// SyncTiltIndex notifies this node's own mover of the current TopTiltThetaIdx/TopTiltPhiIdx
 	// AND the current coplanar-normal indices (coplanarNormal, below) — one-way,
 	// fire-and-forget, never an ack (BuildArgs.SyncTiltIndex).
-	SyncTiltIndex func(theta, phi, normalTheta, normalPhi int32)
+	SyncTiltIndex func(theta, phi, normalTheta, normalPhi, bottomTheta, bottomPhi int32)
 	// VectorOut/VectorIn are THIS node's own ends of its dedicated tilt-vector channel
 	// (Wiring.TiltVectorMsg — an integer θ/φ index pair, never floats on a channel),
 	// claimed at build time via BuildArgs.VectorOut/VectorIn. It travels ALONGSIDE the
@@ -91,7 +91,7 @@ type Node struct {
 	// Reset marker arriving on VectorIn (handleVectorCycle's Reset branch): a reset is a
 	// stop-and-return, and a stale received arrow left hanging would contradict that.
 	// Reported one-way to this node's own mover via SyncReceivedVector, same shape as
-	// TiltThetaIdx/SyncTiltIndex above.
+	// TopTiltThetaIdx/SyncTiltIndex above.
 	ReceivedThetaIdx, ReceivedPhiIdx int32
 	ReceivedSet                      bool
 	// SyncReceivedVector notifies this node's own mover of the current
@@ -115,13 +115,13 @@ func (n *Node) clock() wire.Clock {
 // stepTowardPerpendicular is the straightening rule (shared shape with Node2's copy — kept
 // duplicated per-package rather than factored into Wiring, since a node-kind package may
 // import only the shared spine, never a sibling kind — see this package's own doc comment
-// on why Node1/Node2 stay distinct packages). Steps TiltThetaIdx ONE click toward
+// on why Node1/Node2 stay distinct packages). Steps TopTiltThetaIdx ONE click toward
 // Wiring.PerpendicularThetaIdx and reports true when it moved; a false return with no
 // mutation is the loop's termination, not a missed case.
 func (n *Node) stepTilt() bool {
 	// Already perpendicular: the exchange ends here — no step, and the caller sends
 	// nothing, which is what stops the beads circulating.
-	if n.TiltThetaIdx == Wiring.PerpendicularThetaIdx {
+	if n.TopTiltThetaIdx == Wiring.PerpendicularThetaIdx {
 		return false
 	}
 	// Node1 subtracts. The two kinds move their tilt in OPPOSITE senses by the same one
@@ -133,7 +133,7 @@ func (n *Node) stepTilt() bool {
 	// means the exchange only terminates when the walk happens to land exactly on
 	// PerpendicularThetaIdx — from the far side it walks away and keeps going. The bead
 	// paces it, so "keeps going" is a slow visible turn rather than a spin.
-	n.TiltThetaIdx -= 1
+	n.TopTiltThetaIdx -= 1
 	return true
 }
 
@@ -166,9 +166,9 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 		delta = 1
 	}
 	if edit.Axis == "phi" {
-		n.TiltPhiIdx += delta
+		n.TopTiltPhiIdx += delta
 	} else {
-		n.TiltThetaIdx += delta
+		n.TopTiltThetaIdx += delta
 	}
 	// Open the vector exchange — see this function's own doc comment. Sent AFTER the
 	// index moved, so the partner gets the direction this click produced, not the one it
@@ -206,8 +206,8 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 // one that provably lands last. The marker gets no reply (handleVectorCycle), so it stops
 // there instead of bouncing.
 func (n *Node) clear() {
-	n.TiltThetaIdx = 0
-	n.TiltPhiIdx = 0
+	n.TopTiltThetaIdx = 0
+	n.TopTiltPhiIdx = 0
 	n.syncTiltIndex()
 	n.ReceivedThetaIdx = 0
 	n.ReceivedPhiIdx = 0
@@ -237,6 +237,25 @@ func (n *Node) drainIn() {
 	}
 }
 
+// bottomTilt is THIS node's own BOTTOM TILT VECTOR: a half turn (180°,
+// Wiring.HalfTurnThetaIdx steps) in θ from its OWN top tilt vector, so it points out of the
+// node's other side and turns with the top as the top turns — index arithmetic only, never
+// trig (memory/feedback_abc_times_constant_not_rederive.md). φ is left unchanged: a half
+// turn in θ alone already negates the direction exactly, so no companion φ+π is needed (see
+// Wiring.HalfTurnThetaIdx's own doc comment).
+//
+// Node1 ADDS the half turn (its mirror package does the opposite), the same
+// opposite-senses convention outgoingVector already uses. Both signs land in the SAME drawn
+// direction — ±180° in θ is the same place — so this is index bookkeeping, not geometry:
+// each kind's indices keep walking in its own direction instead of one kind's jumping the
+// other way at the turn.
+func (n *Node) bottomTilt() Wiring.TiltVectorMsg {
+	return Wiring.TiltVectorMsg{
+		ThetaIdx: n.TopTiltThetaIdx + Wiring.HalfTurnThetaIdx,
+		PhiIdx:   n.TopTiltPhiIdx,
+	}
+}
+
 // coplanarNormal is THIS node's own coplanar normal: a quarter turn (90°, 6 steps of
 // Wiring.CurveParamTiltVectorAngleStep — Wiring.PerpendicularThetaIdx names the same
 // 90°-worth-of-steps magnitude) from THIS node's OWN tilt vector, so the normal stays
@@ -246,14 +265,14 @@ func (n *Node) drainIn() {
 // on (see Wiring.PerpendicularThetaIdx's doc comment).
 func (n *Node) coplanarNormal() Wiring.TiltVectorMsg {
 	return Wiring.TiltVectorMsg{
-		ThetaIdx: n.TiltThetaIdx + Wiring.PerpendicularThetaIdx,
-		PhiIdx:   n.TiltPhiIdx,
+		ThetaIdx: n.TopTiltThetaIdx + Wiring.PerpendicularThetaIdx,
+		PhiIdx:   n.TopTiltPhiIdx,
 	}
 }
 
 // syncTiltIndex reports THIS node's current tilt index AND its current coplanar-normal
 // index (coplanarNormal above) to this node's own mover in one call — every call site
-// that changes TiltThetaIdx/TiltPhiIdx must also report the normal, since the normal is
+// that changes TopTiltThetaIdx/TopTiltPhiIdx must also report the normal, since the normal is
 // derived from the tilt and the mover no longer derives it itself (see
 // Wiring.moveMsgKindTiltIndexSync's doc comment). nil-safe, same as every other closure
 // call here.
@@ -262,7 +281,8 @@ func (n *Node) syncTiltIndex() {
 		return
 	}
 	norm := n.coplanarNormal()
-	n.SyncTiltIndex(n.TiltThetaIdx, n.TiltPhiIdx, norm.ThetaIdx, norm.PhiIdx)
+	bottom := n.bottomTilt()
+	n.SyncTiltIndex(n.TopTiltThetaIdx, n.TopTiltPhiIdx, norm.ThetaIdx, norm.PhiIdx, bottom.ThetaIdx, bottom.PhiIdx)
 }
 
 // syncReceivedVector reports THIS node's current received-vector state (ReceivedThetaIdx/
@@ -284,18 +304,33 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 	return norm
 }
 
-// stepTowardPerpendicularFromVector is the vector-channel twin of stepTilt: on
-// receiving a vector, this node's decision is dot(its own tilt, the received vector)
-// — realized, like stepTilt's In-arrival decision, as the SAME integer index compare
-// (TiltThetaIdx == Wiring.PerpendicularThetaIdx) rather than a float dot product (see
-// stepTilt's doc comment for why that shortcut is valid in this scene). The received
-// vector's own value is not otherwise consulted: like a bead's value, its ARRIVAL is
-// the trigger, not its payload. Reports whether it moved; a false return with no
-// mutation is how the exchange stops — the caller must not send when this returns
-// false.
+// stepTowardPerpendicularFromVector is the vector-channel twin of stepTilt, and the ONE
+// place the arrived direction's own value is consulted rather than just its arrival. The
+// rule is two DOT PRODUCTS: the arrived vector against this node's own TOP tilt vector, and
+// against its own BOTTOM tilt vector. If AT LEAST ONE of them is the acute-angle case, this
+// node moves its own tilt by its own fixed one-step "little bit" — Node1 subtracts,
+// its mirror package does the opposite, so a pair turns symmetrically rather than both
+// chasing the same way. If NEITHER is acute, nothing steps and the caller sends nothing,
+// which is how the exchange stops.
+//
+// Note what this means with the bottom tilt defined as a half turn from the top: the bottom
+// is the top's exact antipode, so the two dots are always exact negatives of each other and
+// "at least one is acute" is false ONLY when the arrived vector is exactly perpendicular to
+// the tilt axis. The two-dot form is still what is written here, because it is the rule as
+// stated and it keeps saying the right thing if the bottom ever stops being a straight
+// half turn — but it is not currently a wider gate than a single dot would be.
 func (n *Node) stepTowardPerpendicularFromVector(received Wiring.TiltVectorMsg) bool {
-	_ = received
+	if !Wiring.TiltVectorIsAcute(received, n.topTilt()) && !Wiring.TiltVectorIsAcute(received, n.bottomTilt()) {
+		return false
+	}
 	return n.stepTilt()
+}
+
+// topTilt is THIS node's own top tilt vector as a direction pair — the same indices held on
+// the struct, named so the dot products above read as vector-against-vector rather than as
+// two loose ints.
+func (n *Node) topTilt() Wiring.TiltVectorMsg {
+	return Wiring.TiltVectorMsg{ThetaIdx: n.TopTiltThetaIdx, PhiIdx: n.TopTiltPhiIdx}
 }
 
 // handleVectorCycle is Node1's WHOLE per-cycle vector-channel loop body: read
@@ -325,7 +360,7 @@ func (n *Node) handleVectorCycle() {
 	// So an arrival that finds this node already perpendicular clears the third arrow
 	// instead of showing itself: the drawing stops with the exchange rather than leaving
 	// its last frame on screen.
-	if n.TiltThetaIdx == Wiring.PerpendicularThetaIdx {
+	if n.TopTiltThetaIdx == Wiring.PerpendicularThetaIdx {
 		n.ReceivedThetaIdx = 0
 		n.ReceivedPhiIdx = 0
 		n.ReceivedSet = false
@@ -425,7 +460,7 @@ func init() {
 			n.SpeedCh = a.SpeedCh()
 			n.In = a.In("In")
 			n.Out = a.Out("Out")
-			n.TiltThetaIdx, n.TiltPhiIdx = a.TiltVectorAngleSeed()
+			n.TopTiltThetaIdx, n.TopTiltPhiIdx = a.TiltVectorAngleSeed()
 			n.TiltEditIn = a.TiltEditIn()
 			n.SyncTiltIndex = a.SyncTiltIndex()
 			n.SyncReceivedVector = a.SyncReceivedVector()
