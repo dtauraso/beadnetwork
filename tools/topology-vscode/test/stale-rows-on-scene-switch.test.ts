@@ -1,23 +1,28 @@
-// stale-rows-on-scene-switch.test.ts — switching scenes must not leave the previous
-// diagram on screen.
+// stale-rows-on-scene-switch.test.ts — one tab's streamed rows must be unreachable from
+// the other.
 //
-// THE BUG THIS PINS. A tab switch restarts Go against another topology tree. The extension
-// host clears its own per-row caches at every spawn, but the webview is NOT reloaded by a
-// respawn, so snapshot-buffer.ts's per-row maps survived it. Switching from a 9-node scene
-// to a 2-node scene left rows 2..8 holding the old scene's frames — and since Go never
-// emits for a row its current scene does not have, nothing ever overwrote them. Both
-// diagrams rendered at once.
+// THE BUG THIS PINS. The per-row maps were keyed by ROW ALONE, so the ring's row 3 and the
+// pair's row 3 were the same cell. Switching from a 9-node scene to a 2-node one left rows
+// 2..8 holding the previous scene's frames, and both diagrams drew at once.
 //
-// The assertion is therefore about ROW REMOVAL, not row content: rows the new scene does
-// not have must be GONE, not merely stale.
+// The first fix cleared the maps on a scene change. That repaired the visible symptom and
+// introduced a quieter one: INTERIOR bead frames are written only when a node's held value
+// CHANGES, so a cleared interior row has nothing to re-send it — a Pulse holding a steady
+// value simply loses its bead. Node geometry, re-sent every tick, hid the problem by
+// repopulating instantly.
+//
+// So these assert ISOLATION, not removal: each scene has its own table, one tab cannot see
+// or overwrite the other's rows, and switching away and back finds them intact.
 
 import { describe, it, expect, beforeEach } from "vitest";
 import {
   setLatestViewFrame,
   setLatestNodeStreamFrame,
   setLatestEdgeStreamFrame,
+  setLatestInteriorStreamFrame,
   getLatestNodeStreamFrames,
   getLatestEdgeStreamFrames,
+  getLatestInteriorStreamFrames,
   resetSceneIdentityForTest,
 } from "../src/webview/snapshot-buffer";
 import { SCENE_TABS_HEADER_SIZE } from "../src/webview/three/buffer-decode";
@@ -49,47 +54,62 @@ function viewFrameForScene(selected: number): ArrayBuffer {
 
 const rowFrame = (row: number) => new Uint8Array([row]).buffer;
 
-describe("switching scenes drops the previous scene's rows", () => {
+describe("each scene owns its own row tables", () => {
   beforeEach(() => {
     resetSceneIdentityForTest();
-    // Establish scene 0 as the identity the maps are held FOR, then fill it out as a
-    // 9-node / 10-edge scene the way the live streams would.
+    // Scene 0 (ring): a 9-node / 10-edge scene, filled out the way the live streams would.
     setLatestViewFrame(viewFrameForScene(0));
     for (let r = 0; r < 9; r++) setLatestNodeStreamFrame(r, rowFrame(r));
     for (let r = 0; r < 10; r++) setLatestEdgeStreamFrame(r, rowFrame(r));
   });
 
-  it("removes every node row when the VIEW frame reports a different scene", () => {
+  it("shows none of the previous scene's node rows after a switch", () => {
     expect(getLatestNodeStreamFrames().size).toBe(9);
     setLatestViewFrame(viewFrameForScene(1));
-    // The 2-node scene has not streamed anything yet: the map must be EMPTY, not still
-    // holding rows 2..8 from the 9-node scene.
+    // The 2-node scene has streamed nothing yet, and must not inherit rows 0..8.
     expect(getLatestNodeStreamFrames().size).toBe(0);
   });
 
-  it("removes every edge row too (the wires of the old diagram, not just its nodes)", () => {
-    expect(getLatestEdgeStreamFrames().size).toBe(10);
+  it("shows none of the previous scene's edge rows either", () => {
     setLatestViewFrame(viewFrameForScene(1));
     expect(getLatestEdgeStreamFrames().size).toBe(0);
   });
 
-  it("keeps rows when the scene is unchanged — a plain restart or a per-tick frame must not blank the diagram", () => {
+  it("keeps each scene's rows when switching AWAY and BACK", () => {
+    setLatestViewFrame(viewFrameForScene(1));
+    setLatestNodeStreamFrame(0, rowFrame(100));
+    setLatestNodeStreamFrame(1, rowFrame(101));
+    expect(getLatestNodeStreamFrames().size).toBe(2);
+
     setLatestViewFrame(viewFrameForScene(0));
-    setLatestViewFrame(viewFrameForScene(0));
+    // The ring's own nine rows are still there — NOT cleared by the excursion.
     expect(getLatestNodeStreamFrames().size).toBe(9);
-    expect(getLatestEdgeStreamFrames().size).toBe(10);
+
+    setLatestViewFrame(viewFrameForScene(1));
+    expect(getLatestNodeStreamFrames().size).toBe(2);
   });
 
-  it("does not clear on the FIRST frame, which would discard the replay to a remounted webview", () => {
-    // A webview that remounts is sent the host's cached frames, and the first VIEW frame
-    // may arrive AFTER them. Establishing the identity must not throw those away.
-    //
-    // beforeEach left 9 node rows in place; forgetting the identity makes the next VIEW
-    // frame the "first" one again, even though it names a different scene than the frames
-    // on hand. Those 9 rows must survive — the count is unchanged, which is exactly the
-    // claim: no clear ran.
-    resetSceneIdentityForTest();
+  // The reason isolation must be by KEY rather than by clearing: an interior frame is
+  // written only when a node's held value changes, so a cleared interior row has nothing to
+  // re-send it. Switching away and back must return the held bead, not an empty node.
+  it("preserves INTERIOR rows across a switch, which a clear would silently destroy", () => {
+    setLatestInteriorStreamFrame(0, rowFrame(7));
+    expect(getLatestInteriorStreamFrames().size).toBe(1);
+
     setLatestViewFrame(viewFrameForScene(1));
-    expect(getLatestNodeStreamFrames().size).toBe(9);
+    expect(getLatestInteriorStreamFrames().size).toBe(0); // the pair's own table, still empty
+
+    setLatestViewFrame(viewFrameForScene(0));
+    expect(getLatestInteriorStreamFrames().size).toBe(1); // the ring's held bead survived
+  });
+
+  it("writes arriving under one scene never land in the other's table", () => {
+    setLatestViewFrame(viewFrameForScene(1));
+    setLatestNodeStreamFrame(3, rowFrame(200));
+    setLatestViewFrame(viewFrameForScene(0));
+    const ringRow3 = getLatestNodeStreamFrames().get(3);
+    expect(ringRow3).toBeDefined();
+    // Row 3 of the ring is the ring's own frame, not the one written while the pair showed.
+    expect(new Uint8Array(ringRow3!)[0]).toBe(3);
   });
 });
