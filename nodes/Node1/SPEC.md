@@ -113,18 +113,28 @@ loop body) runs:
   passive-mirror shape as `SyncTiltIndex`) — REPLACING whatever it received last time,
   regardless of whether the step below fires. THEN the step decision: TWO DOT PRODUCTS —
   the received vector against this node's own TOP tilt vector, and against its own BOTTOM
-  tilt vector (`Wiring.TiltVectorIsAcute`, the sign of `Wiring.TiltVectorDot`). If AT
-  LEAST ONE of them is the ACUTE-angle case, step `TopTiltThetaIdx` ONE click (Node1
-  subtracts, same direction as `stepTilt` — the kind owns the sign, the dots only decide
-  WHETHER to move), sync the mover, and send the outgoing vector above. If NEITHER is
-  acute, step nothing and send nothing — this is how the vector exchange stops,
-  independently of whether the bead exchange has also stopped.
-- **What the two dots actually gate today**: the bottom tilt is a half turn from the top,
-  i.e. its exact antipode, so the two dots are always exact NEGATIVES of each other and
-  "at least one is acute" is false only when the received vector is exactly perpendicular
-  to the tilt axis. The two-dot form is what is written because it is the rule as stated,
-  and it keeps saying the right thing if the bottom ever stops being a straight half turn
-  — but it is not currently a wider gate than a single dot against the top would be.
+  tilt vector (`Wiring.TiltVectorIsAcute`, the sign of `Wiring.TiltVectorDot`). They decide
+  BOTH questions, whether to move and which way:
+  - acute with the TOP tilt: step `TopTiltThetaIdx` ONE click SUBTRACTING (−1) — Node1's base
+    direction; its mirror package's base is the opposite, so a pair still turns
+    symmetrically when both lean the same way.
+  - acute with the BOTTOM tilt: step ONE click the REVERSE way (ADDING, +1).
+  - neither acute: step nothing and send nothing — this is how the vector exchange stops,
+    independently of whether the bead exchange has also stopped.
+
+  If it stepped, sync the mover and send the outgoing vector above.
+- **Why there is no both-acute case to arbitrate**: the bottom tilt is a half turn from the
+  top, i.e. its exact antipode, so the two dots are always exact NEGATIVES of each other —
+  at most one can be positive, and neither is positive only when the received vector is
+  exactly perpendicular to the tilt axis. Which end the arrival leans toward IS the
+  direction; there is no free sign knob and no ordering dependence between the two tests.
+- **Perpendicular is a property of the ARRIVAL, not of where this node sits**: unlike the
+  bead path's `stepTilt`, this never compares against `Wiring.PerpendicularThetaIdx`. A node
+  sitting exactly at that index still steps if what arrived leans either way.
+- **Float hazard, handled**: `cos(π/2)` in float64 is 6.1e-17, so an exactly-perpendicular
+  arrival is NOT caught by a bare `dot > 0`. `Wiring.TiltVectorIsAcute` tests against a
+  1e-9 band; both operands sit on the π/12 index lattice, so the dot is either ~1e-16 or at
+  least `sin(15°)` = 0.2588, and every value in between classifies identically.
 - **Received-vector RESET**: a Reset marker arriving on `VectorIn` zeroes this node's
   tilt (as above) AND clears its own received-vector record
   (`ReceivedSet = false`, synced) — a stale received arrow left hanging would

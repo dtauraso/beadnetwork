@@ -130,28 +130,48 @@ func TestOutgoingVectorIsPlus180StepsInThetaOnly(t *testing.T) {
 	}
 }
 
-// stepTowardPerpendicularFromVector is Node2's own step decision on a vector-channel
-// arrival: away from perpendicular it moves one π/12 step (same direction stepTilt
-// always takes for this kind), and reports the move.
-func TestStepFromVectorMovesOneStepAwayFromPerpendicular(t *testing.T) {
-	n := &Node{TopTiltThetaIdx: 3}
-	received := Wiring.TiltVectorMsg{ThetaIdx: 99, PhiIdx: -5}
-	if moved := n.stepTowardPerpendicularFromVector(received); !moved || n.TopTiltThetaIdx != 4 {
-		t.Fatalf("want moved=true thetaIdx=4, got moved=%v thetaIdx=%d", moved, n.TopTiltThetaIdx)
+// stepFromVector's TWO dots decide both whether to move and WHICH WAY. Leaning toward this
+// node's own TOP tilt vector takes Node2's base direction; leaning toward its BOTTOM tilt
+// vector takes the reverse. These assert one goroutine's own arithmetic, no channel
+// involved (docs/testing-shape.md).
+func TestStepFromVectorTakesBaseDirectionWhenAcuteWithTop(t *testing.T) {
+	// Tilt at index 0 points at world +y; an arrival at index 0 is the same direction, so
+	// dot(arrived, top) = 1 (acute) and dot(arrived, bottom) = -1.
+	n := &Node{TopTiltThetaIdx: 0}
+	if moved := n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: 0}); !moved || n.TopTiltThetaIdx != 1 {
+		t.Fatalf("acute with the TOP tilt: want moved=true thetaIdx=1, got moved=%v thetaIdx=%d",
+			moved, n.TopTiltThetaIdx)
 	}
 }
 
-// AT perpendicular, an arriving vector still steps nothing and the caller must send
-// nothing — this is the exchange's stop condition, asserted at the decision method
-// itself, not by observing two goroutines communicate.
-func TestStepFromVectorStopsAtPerpendicular(t *testing.T) {
+func TestStepFromVectorReversesWhenAcuteWithBottom(t *testing.T) {
+	// A half turn from the tilt: now dot(arrived, bottom) = 1 and dot(arrived, top) = -1,
+	// so the step must go the OTHER way from the case above.
+	n := &Node{TopTiltThetaIdx: 0}
+	if moved := n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: Wiring.HalfTurnThetaIdx}); !moved || n.TopTiltThetaIdx != -1 {
+		t.Fatalf("acute with the BOTTOM tilt: want moved=true thetaIdx=-1, got moved=%v thetaIdx=%d",
+			moved, n.TopTiltThetaIdx)
+	}
+}
+
+// Exactly perpendicular to the tilt axis is the ONE case neither dot claims — no step, and
+// the caller must send nothing. This is the exchange's stop condition, and it is about the
+// ARRIVED direction, not about this node sitting on any particular index: the node here is
+// AT PerpendicularThetaIdx and still would have stepped had the arrival leaned either way.
+func TestStepFromVectorStopsWhenNeitherDotIsAcute(t *testing.T) {
 	n := &Node{TopTiltThetaIdx: Wiring.PerpendicularThetaIdx}
-	received := Wiring.TiltVectorMsg{ThetaIdx: 1, PhiIdx: 1}
-	if moved := n.stepTowardPerpendicularFromVector(received); moved {
-		t.Fatalf("at perpendicular, want moved=false, got true (index now %d)", n.TopTiltThetaIdx)
+	perp := Wiring.TiltVectorMsg{ThetaIdx: n.TopTiltThetaIdx + Wiring.PerpendicularThetaIdx}
+	if moved := n.stepFromVector(perp); moved {
+		t.Fatalf("perpendicular arrival: want moved=false, got true (index now %d)", n.TopTiltThetaIdx)
 	}
 	if n.TopTiltThetaIdx != Wiring.PerpendicularThetaIdx {
-		t.Fatalf("at perpendicular, index must not move; got %d, want %d", n.TopTiltThetaIdx, Wiring.PerpendicularThetaIdx)
+		t.Fatalf("perpendicular arrival must not move the index; got %d, want %d",
+			n.TopTiltThetaIdx, Wiring.PerpendicularThetaIdx)
+	}
+	// ...and the same node DOES step when the arrival leans, proving the stop above came
+	// from the dots and not from where this node happens to sit.
+	if moved := n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: n.TopTiltThetaIdx}); !moved {
+		t.Fatal("a leaning arrival must still step a node sitting at the perpendicular index")
 	}
 }
 

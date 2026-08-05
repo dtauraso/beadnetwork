@@ -312,26 +312,37 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 	return norm
 }
 
-// stepTowardPerpendicularFromVector is the vector-channel twin of stepTilt, and the ONE
-// place the arrived direction's own value is consulted rather than just its arrival. The
-// rule is two DOT PRODUCTS: the arrived vector against this node's own TOP tilt vector, and
-// against its own BOTTOM tilt vector. If AT LEAST ONE of them is the acute-angle case, this
-// node moves its own tilt by its own fixed one-step "little bit" — Node2 adds,
-// its mirror package does the opposite, so a pair turns symmetrically rather than both
-// chasing the same way. If NEITHER is acute, nothing steps and the caller sends nothing,
-// which is how the exchange stops.
+// stepFromVector is the vector-channel twin of stepTilt, and the ONE place the arrived
+// direction's own value is consulted rather than just its arrival. TWO DOT PRODUCTS decide,
+// and between them they decide BOTH questions — whether to move, and which way:
 //
-// Note what this means with the bottom tilt defined as a half turn from the top: the bottom
-// is the top's exact antipode, so the two dots are always exact negatives of each other and
-// "at least one is acute" is false ONLY when the arrived vector is exactly perpendicular to
-// the tilt axis. The two-dot form is still what is written here, because it is the rule as
-// stated and it keeps saying the right thing if the bottom ever stops being a straight
-// half turn — but it is not currently a wider gate than a single dot would be.
-func (n *Node) stepTowardPerpendicularFromVector(received Wiring.TiltVectorMsg) bool {
-	if !Wiring.TiltVectorIsAcute(received, n.topTilt()) && !Wiring.TiltVectorIsAcute(received, n.bottomTilt()) {
+//   - arrived vector ACUTE with this node's own TOP tilt vector    -> step +1 (adds one step)
+//   - arrived vector ACUTE with this node's own BOTTOM tilt vector -> step -1, the REVERSE
+//   - neither acute (exactly perpendicular)                        -> no step, and the caller
+//     sends nothing, which is how the exchange stops
+//
+// The two cases are mutually exclusive and jointly exhaustive apart from the perpendicular
+// one: the bottom is the top's exact antipode, so the two dots are always exact negatives
+// and at most one of them can be positive. There is no both-acute case for the ordering of
+// these two ifs to arbitrate, and no free sign knob — which end the arrived vector leans
+// toward IS the direction.
+//
+// Node2's base direction (the top-acute case) is adds one step; its mirror package's is the
+// opposite, so a pair still turns symmetrically when both are leaning the same way.
+//
+// Unlike stepTilt this does NOT consult Wiring.PerpendicularThetaIdx: the dots are the whole
+// gate here, so a node sitting exactly at the perpendicular index still steps if what
+// arrived leans one way or the other.
+func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
+	switch {
+	case Wiring.TiltVectorIsAcute(received, n.topTilt()):
+		n.TopTiltThetaIdx += 1
+	case Wiring.TiltVectorIsAcute(received, n.bottomTilt()):
+		n.TopTiltThetaIdx -= 1
+	default:
 		return false
 	}
-	return n.stepTilt()
+	return true
 }
 
 // topTilt is THIS node's own top tilt vector as a direction pair — the same indices held on
@@ -342,7 +353,7 @@ func (n *Node) topTilt() Wiring.TiltVectorMsg {
 }
 
 // handleVectorCycle is Node2's WHOLE per-cycle vector-channel loop body: read
-// VectorIn non-blocking; if something arrived, decide (stepTowardPerpendicularFromVector);
+// VectorIn non-blocking; if something arrived, decide (stepFromVector);
 // and if that moved this node's own tilt, send outgoingVector back out on VectorOut —
 // also non-blocking. At the perpendicular index nothing steps and nothing sends,
 // which is how the exchange stops. This never touches In/Out or beads — the vector
@@ -373,7 +384,7 @@ func (n *Node) handleVectorCycle() {
 	n.ReceivedPhiIdx = received.PhiIdx
 	n.ReceivedSet = true
 	n.syncReceivedVector()
-	if !n.stepTowardPerpendicularFromVector(received) {
+	if !n.stepFromVector(received) {
 		return
 	}
 	n.syncTiltIndex()
