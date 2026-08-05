@@ -179,9 +179,9 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 			// index (Buffer.NodeKindID) — injected so Wiring stays Buffer-independent.
 			md.SetNodeStreams(nodeBase, interiorBase, driveBase, driveWired,
 				md.NodeRowFor,
-				func(tick uint32, nodeRow int32, nodeID int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, poleTheta, polePhi, ringAxisTheta, ringAxisPhi, tiltVectorLen, tiltVectorTheta, tiltVectorPhi, vector2Theta, vector2Phi float32, selected, kindID, hovered, latchedSel uint8, label string, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte {
+				func(tick uint32, nodeRow int32, nodeID int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, poleTheta, polePhi, ringAxisTheta, ringAxisPhi, tiltVectorLen, tiltVectorTheta, tiltVectorPhi, coplanarNormalTheta, coplanarNormalPhi float32, selected, kindID, hovered, latchedSel uint8, label string, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte {
 					return B.BuildNodeStreamFrame(tick, nodeRow, nodeID, cx, cy, cz, radius, sphereR, vrx, vry, vrz, frx, fry, frz,
-						poleTheta, polePhi, ringAxisTheta, ringAxisPhi, tiltVectorLen, tiltVectorTheta, tiltVectorPhi, vector2Theta, vector2Phi,
+						poleTheta, polePhi, ringAxisTheta, ringAxisPhi, tiltVectorLen, tiltVectorTheta, tiltVectorPhi, coplanarNormalTheta, coplanarNormalPhi,
 						selected, kindID, hovered, latchedSel,
 						label, chainBeadOX, chainBeadOY, chainBeadOZ, chainBeadLit, chainBeadLitValue, toStreamEvents(events))
 				},

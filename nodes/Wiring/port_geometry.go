@@ -445,7 +445,7 @@ func uprightRingAxis(selfCenter, partnerCenter vec3) (theta, phi float64, ok boo
 }
 
 // quarterTurnInRingPlane rotates a direction a quarter turn about the ring's own axis, which
-// keeps the result IN the ring's plane whenever the input was — so a node's two vectors both
+// keeps the result IN the ring's plane whenever the input was — so a node's tilt vector and its coplanar normal both
 // lie across the ring's face rather than one standing out of it.
 //
 // Rodrigues at exactly 90° about a unit axis a, for a vector u perpendicular to it, collapses

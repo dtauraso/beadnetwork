@@ -70,7 +70,7 @@ describe("buffer-layout — Node block", () => {
     //   + 1×f32 (tiltVectorLen — the node's own drawn tilt vector; 0 = draws none)
     //   + 2×f32 (tiltVectorTheta/tiltVectorPhi — the tilt vector's OWN direction, separate
     //     from the drawn ring axis above)
-    //   + 2×f32 (vector2Theta/vector2Phi — the SECOND vector, a quarter turn from the
+    //   + 2×f32 (coplanarNormalTheta/coplanarNormalPhi — the SECOND vector, a quarter turn from the
     //     first inside the ring plane)
     //   = 4 + (5+6+2+2+1+2+2)×4 + 1 + 1 + 8 + 1 + 1 = 96
     expect(NODE_STRIDE).toBe(96);

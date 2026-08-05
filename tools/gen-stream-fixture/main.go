@@ -70,15 +70,15 @@ type nodeFrameFixture struct {
 	TiltVectorTheta float32 `json:"tiltVectorTheta"`
 	TiltVectorPhi   float32 `json:"tiltVectorPhi"`
 	// The SECOND vector's direction — a quarter turn from the first, in the ring's plane.
-	Vector2Theta float32            `json:"vector2Theta"`
-	Vector2Phi   float32            `json:"vector2Phi"`
-	Selected     uint8              `json:"selected"`
-	KindID       uint8              `json:"kindId"`
-	Hovered      uint8              `json:"hovered"`
-	LatchedSel   uint8              `json:"latchedSel"`
-	ChainBeads   []chainBeadFixture `json:"chainBeads"`
-	Label        string             `json:"label"`
-	Hex          string             `json:"hex"`
+	CoplanarNormalTheta float32            `json:"coplanarNormalTheta"`
+	CoplanarNormalPhi   float32            `json:"coplanarNormalPhi"`
+	Selected            uint8              `json:"selected"`
+	KindID              uint8              `json:"kindId"`
+	Hovered             uint8              `json:"hovered"`
+	LatchedSel          uint8              `json:"latchedSel"`
+	ChainBeads          []chainBeadFixture `json:"chainBeads"`
+	Label               string             `json:"label"`
+	Hex                 string             `json:"hex"`
 }
 
 type edgeFrameFixture struct {
@@ -121,7 +121,7 @@ func buildNodeFrame() nodeFrameFixture {
 		PoleTheta: 2.1, PolePhi: -1.3,
 		RingAxisTheta: 1.4, RingAxisPhi: 0.7,
 		TiltVectorLen: 9.5, TiltVectorTheta: 0.5, TiltVectorPhi: -0.9,
-		Vector2Theta: 0.55, Vector2Phi: -0.35,
+		CoplanarNormalTheta: 0.55, CoplanarNormalPhi: -0.35,
 		Selected: 1, KindID: 3, Hovered: 1, LatchedSel: 0,
 		Label: "widgetNode",
 		ChainBeads: []chainBeadFixture{
@@ -143,7 +143,7 @@ func buildNodeFrame() nodeFrameFixture {
 		f.Tick, f.NodeRow, f.NodeId,
 		f.CX, f.CY, f.CZ, f.Radius, f.SphereR,
 		f.VRX, f.VRY, f.VRZ, f.FRX, f.FRY, f.FRZ,
-		f.PoleTheta, f.PolePhi, f.RingAxisTheta, f.RingAxisPhi, f.TiltVectorLen, f.TiltVectorTheta, f.TiltVectorPhi, f.Vector2Theta, f.Vector2Phi,
+		f.PoleTheta, f.PolePhi, f.RingAxisTheta, f.RingAxisPhi, f.TiltVectorLen, f.TiltVectorTheta, f.TiltVectorPhi, f.CoplanarNormalTheta, f.CoplanarNormalPhi,
 		f.Selected, f.KindID, f.Hovered, f.LatchedSel,
 		f.Label,
 		chainOX, chainOY, chainOZ, chainLit, chainLitVal,

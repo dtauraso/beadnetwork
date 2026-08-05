@@ -29,7 +29,7 @@ import { getNodeFrame } from "./node-stream-blocks";
 import {
   readNodeCX, readNodeCY, readNodeCZ,
   readNodeTiltVectorLen, readNodeTiltVectorTheta, readNodeTiltVectorPhi,
-  readNodeVector2Theta, readNodeVector2Phi,
+  readNodeCoplanarNormalTheta, readNodeCoplanarNormalPhi,
 } from "../../schema/buffer-layout";
 
 // The shaft's thickness and the head's size, as fractions of the vector's own length, so an
@@ -72,7 +72,7 @@ export function TiltVectors({ capacity }: { capacity: number }) {
     const { nodeCount, nodeView } = decoded;
 
     // Each node draws TWO arrows: its own tilt vector, and a second one a quarter turn
-    // away inside the same ring plane (Buffer/layout.go's Vector2Theta/Vector2Phi). Both
+    // away inside the same ring plane (Buffer/layout.go's CoplanarNormalTheta/CoplanarNormalPhi). Both
     // come from Go as directions; nothing here decides where either points. They are
     // written into the SAME instanced meshes, so one draw call still covers every arrow.
     let drawn = 0;
@@ -125,7 +125,7 @@ export function TiltVectors({ capacity }: { capacity: number }) {
       const cz = readNodeCZ(nodeView, row);
 
       writeArrow(cx, cy, cz, len, readNodeTiltVectorTheta(nodeView, row), readNodeTiltVectorPhi(nodeView, row));
-      writeArrow(cx, cy, cz, len, readNodeVector2Theta(nodeView, row), readNodeVector2Phi(nodeView, row));
+      writeArrow(cx, cy, cz, len, readNodeCoplanarNormalTheta(nodeView, row), readNodeCoplanarNormalPhi(nodeView, row));
     }
 
     shaft.count = drawn;

@@ -299,7 +299,7 @@ type nodeMover struct {
 	// buildFrame packs this node's combined per-fd frame (node fields + ports + label)
 	// using Buffer's own row-writer columns (Buffer.BuildNodeStreamFrame), injected so
 	// this package needs no Buffer import.
-	buildFrame func(tick uint32, nodeRow int32, nodeID int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, poleTheta, polePhi, ringAxisTheta, ringAxisPhi, tiltVectorLen, tiltVectorTheta, tiltVectorPhi, vector2Theta, vector2Phi float32, selected, kindID, hovered, latchedSel uint8, label string, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte
+	buildFrame func(tick uint32, nodeRow int32, nodeID int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, poleTheta, polePhi, ringAxisTheta, ringAxisPhi, tiltVectorLen, tiltVectorTheta, tiltVectorPhi, coplanarNormalTheta, coplanarNormalPhi float32, selected, kindID, hovered, latchedSel uint8, label string, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte
 	// tiltVectorThetaIdx/tiltVectorPhiIdx are THIS node's own vector direction, as INTEGER
 	// indices into TiltVectorAngleStep (memory/feedback_abc_times_constant_not_rederive.md
 	// — index × step-constant, trig only at the cartesian/polar boundary). Default 0,0
@@ -616,12 +616,13 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 	// holds and persists (m.tiltVectorThetaIdx/tiltVectorPhiIdx).
 	tiltVectorTheta := float64(m.tiltVectorThetaIdx) * CurveParamTiltVectorAngleStep
 	tiltVectorPhi := float64(m.tiltVectorPhiIdx) * CurveParamTiltVectorAngleStep
-	// The SECOND vector: a quarter turn from the first, INSIDE this node's own ring plane,
+	// The COPLANAR NORMAL: a quarter turn from the tilt vector, INSIDE this node's own ring
+	// plane,
 	// so both lie across the ring's face instead of one standing out of it. Zero when this
 	// node draws no vector at all, matching the first.
-	var vector2Theta, vector2Phi float64
+	var coplanarNormalTheta, coplanarNormalPhi float64
 	if tiltVectorLen > 0 {
-		vector2Theta, vector2Phi = quarterTurnInRingPlane(tiltVectorTheta, tiltVectorPhi, ringAxisTheta, ringAxisPhi)
+		coplanarNormalTheta, coplanarNormalPhi = quarterTurnInRingPlane(tiltVectorTheta, tiltVectorPhi, ringAxisTheta, ringAxisPhi)
 	}
 	label := m.geom.Label
 	if label == "" {
@@ -648,7 +649,7 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 		verticalRingNormalX, verticalRingNormalY, verticalRingNormalZ,
 		flatRingNormalX, flatRingNormalY, flatRingNormalZ,
 		float32(poleTheta), float32(polePhi), float32(ringAxisTheta), float32(ringAxisPhi), float32(tiltVectorLen),
-		float32(tiltVectorTheta), float32(tiltVectorPhi), float32(vector2Theta), float32(vector2Phi),
+		float32(tiltVectorTheta), float32(tiltVectorPhi), float32(coplanarNormalTheta), float32(coplanarNormalPhi),
 		selected, kindID, hovered, latchedSel,
 		label, chainOX, chainOY, chainOZ, chainLit, chainLitVal, events)
 	var hdr [4]byte
