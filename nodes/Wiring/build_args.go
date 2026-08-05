@@ -233,6 +233,26 @@ func (a BuildArgs) SyncReceivedVector() func(theta, phi int32, set bool) {
 	}
 }
 
+// ClearOutBeads returns a closure asking THIS node's own MOVER goroutine to empty every
+// one of this node's outgoing wires — same one-way, fire-and-forget shape as
+// SyncTiltIndex/SyncReceivedVector, and for the same reason: the mover, not this node,
+// is the goroutine that drives those wires and therefore the only one that may drop
+// what is crossing them (see moveMsgKindBeadClear's doc comment). Called by the pair's
+// RESET (Node1/Node2), which has to leave the bead edge empty or an in-flight bead lands
+// afterwards and restarts the exchange. nil-safe: a.pb.md is nil on a bare test build
+// with no loader, in which case this is a no-op, same fallback every other closure here
+// takes.
+func (a BuildArgs) ClearOutBeads() func() {
+	md := a.pb.md
+	name := a.name
+	return func() {
+		if md == nil {
+			return
+		}
+		md.sendMove(name, moveMsg{Kind: moveMsgKindBeadClear, NodeID: name})
+	}
+}
+
 // VectorOut returns this node's own SEND end of its dedicated tilt-vector channel
 // (tilt_vector_channel.go) — the buffered-1, latest-wins, non-blocking channel
 // carrying a TiltVectorMsg alongside the ordinary bead edge, wired only when this

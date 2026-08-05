@@ -19,9 +19,12 @@
 // sends until a user tilt starts it, so there is no deadlock to bootstrap out of at t=0.
 //
 // The RESET button (TiltResetButton.tsx) also arrives on TiltEditIn (TiltEditMsg.Reset),
-// but is the opposite of a panel click: it sets BOTH indices to 0 (the documented default,
-// tilt vector at world +y) and places NO bead — a stop-and-return, not a nudge, so it never
-// starts the straightening exchange the way a panel click does.
+// but is the opposite of a panel click: it places NO bead — a stop-and-return, not a nudge,
+// so it never starts the straightening exchange the way a panel click does. It does more
+// than zero the indices, because zeroed indices are not by themselves a stopped exchange:
+// it runs this node's full clear() (below), which also empties the bead edge — the thing
+// that has actually been turning these tilts — so nothing is left in the pair that could
+// land a moment later and step it back off zero.
 //
 // Kept as a distinct package/kind rather than parametrizing Node1, per the check-dep-rules
 // guard: a node-kind package may import only the shared spine, never a sibling kind, so
@@ -96,6 +99,11 @@ type Node struct {
 	// ReceivedThetaIdx/PhiIdx/Set — one-way, fire-and-forget, never an ack
 	// (BuildArgs.SyncReceivedVector).
 	SyncReceivedVector func(theta, phi int32, set bool)
+	// ClearOutBeads asks THIS node's own mover to drop every bead still crossing this
+	// node's outgoing wires — one-way, fire-and-forget, never an ack
+	// (BuildArgs.ClearOutBeads). Called only from clear(), below: those beads are owned
+	// by the mover (it drives the wires), so this node asks rather than reaching in.
+	ClearOutBeads func()
 }
 
 func (n *Node) clock() wire.Clock {
@@ -138,27 +146,9 @@ func (n *Node) stepTilt() bool {
 // start circulating from it (package doc comment's "THE KICK").
 func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 	if edit.Reset {
-		n.TiltThetaIdx = 0
-		n.TiltPhiIdx = 0
-		// A reset is a stop-and-return: clear this node's own record of the last
-		// received direction too (the third drawn arrow), same as its tilt/normal —
-		// leaving a stale received arrow hanging would contradict the reset.
-		n.ReceivedThetaIdx = 0
-		n.ReceivedPhiIdx = 0
-		n.ReceivedSet = false
-		n.syncReceivedVector()
-		// Drain any value already sitting on VectorIn, non-blocking, on THIS node's own
-		// goroutine — the goroutine that owns the receive end (never from another
-		// goroutine). Without this, a vector in flight when RESET was pressed would
-		// arrive on the NEXT cycle's handleVectorCycle and immediately step the tilt
-		// again, undoing the reset a moment later. The channel is depth-1 latest-wins
-		// (Wiring.PollRecvVector), so one non-blocking receive empties it completely.
-		Wiring.PollRecvVector(n.VectorIn)
-		// ...and tell the partner, so its own tilt returns too. This does NOT clear what is
-		// already queued toward it — a send-only end cannot drain itself, so this send is
-		// dropped outright when something is still sitting there. What empties BOTH
-		// directions is that the reset reaches every node: each drains the one receive end
-		// it owns, and there are exactly two ends between the two nodes.
+		n.clear()
+		// Tell the partner, so it clears too — see clear's own doc comment for why the
+		// partner's clear, not this one, is what actually ends the exchange.
 		Wiring.SendVectorLatestNonBlocking(n.VectorOut, Wiring.TiltVectorMsg{Reset: true})
 		return false
 	}
@@ -172,6 +162,67 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 		n.TiltThetaIdx += delta
 	}
 	return true
+}
+
+// clear returns THIS node to its opening state and — the part that matters — leaves
+// nothing behind that could restart the straightening exchange (shared shape with Node1's
+// copy, kept duplicated per-package for the same reason stepTilt is). A reset is not "set
+// the indices to 0"; it is "there is no message anywhere in the pair", and zeroed indices
+// are just what that looks like from outside. Everything the pair holds between clicks is
+// cleared here, each piece by the goroutine that owns it:
+//
+//   - this node's own tilt and derived coplanar-normal indices (owned here);
+//   - this node's record of the last received direction, the third drawn arrow (owned here);
+//   - this node's VectorIn, drained non-blocking — the receive end is owned here, and a
+//     direction already sitting in it would arrive on the next cycle and step the tilt
+//     straight back off zero. Depth-1 latest-wins, so one receive empties it;
+//   - this node's already-DELIVERED beads, drained off In the same way and for the same
+//     reason — the bead edge, not the vector channel, is what has actually been turning
+//     these tilts (In.PollRecv -> stepTilt -> Out.PlaceDrivenAt), so a reset that skips it
+//     visibly does not take;
+//   - this node's OUTGOING beads, still crossing. Those are NOT owned here: a PacedWire is
+//     driven by its source node's own MOVER, so this asks the mover to drop them
+//     (ClearOutBeads / Wiring.moveMsgKindBeadClear) rather than reaching into the wire.
+//
+// WHY BOTH CALLERS EXIST. The RESET button sends one record per node, but the two nodes
+// act on their own goroutines at their own moments, so a single clear each is racy: the
+// partner can place one more bead in the window after this node cleared, and it lands
+// afterwards and restarts everything. What closes that window is the Reset MARKER — this
+// node clears, sends the marker, and places nothing ever again from that path; the partner
+// runs this same clear when the marker arrives, which is therefore ordered after the last
+// thing this node could have placed. So each node clears twice, and the second one is the
+// one that provably lands last. The marker gets no reply (handleVectorCycle), so it stops
+// there instead of bouncing.
+func (n *Node) clear() {
+	n.TiltThetaIdx = 0
+	n.TiltPhiIdx = 0
+	n.syncTiltIndex()
+	n.ReceivedThetaIdx = 0
+	n.ReceivedPhiIdx = 0
+	n.ReceivedSet = false
+	n.syncReceivedVector()
+	Wiring.PollRecvVector(n.VectorIn)
+	n.drainIn()
+	if n.ClearOutBeads != nil {
+		n.ClearOutBeads()
+	}
+}
+
+// drainIn empties this node's own In of every bead already delivered to it, on this
+// node's own goroutine (In.PollRecv is non-blocking, so this terminates as soon as the
+// queue is empty). Bounded by what the partner placed before it stopped placing, which
+// is the pair's own bead-per-cycle traffic — the same drain-until-empty shape as
+// PacedWire.drainPlacements, whose doc comment carries the full reasoning for why these
+// loops need no cap.
+func (n *Node) drainIn() {
+	if n.In == nil {
+		return
+	}
+	for {
+		if _, ok := n.In.PollRecv(); !ok {
+			return
+		}
+	}
 }
 
 // coplanarNormal is THIS node's own coplanar normal: a quarter turn (90°, 6 steps of
@@ -252,16 +303,11 @@ func (n *Node) handleVectorCycle() {
 	// A RESET marker is not a direction to act on: zero this node's own tilt to match its
 	// partner and REPLY WITH NOTHING. Replying would bounce the reset back and forth
 	// forever; the marker's job is to stop the exchange, so it ends here. Same
-	// stop-and-return reasoning as applyTiltEdit's Reset branch: clear the third drawn
-	// arrow (the last-received direction) too, rather than leaving it hanging.
+	// stop-and-return reasoning as applyTiltEdit's Reset branch, and this is the clear
+	// that actually makes the pair quiescent — see clear's own doc comment on why the
+	// marker-driven one, not the button-driven one, is the one that lands last.
 	if received.Reset {
-		n.TiltThetaIdx = 0
-		n.TiltPhiIdx = 0
-		n.syncTiltIndex()
-		n.ReceivedThetaIdx = 0
-		n.ReceivedPhiIdx = 0
-		n.ReceivedSet = false
-		n.syncReceivedVector()
+		n.clear()
 		return
 	}
 	// A real direction. It is drawn only while the exchange is RUNNING: it replaces
@@ -371,6 +417,7 @@ func init() {
 			n.TiltEditIn = a.TiltEditIn()
 			n.SyncTiltIndex = a.SyncTiltIndex()
 			n.SyncReceivedVector = a.SyncReceivedVector()
+			n.ClearOutBeads = a.ClearOutBeads()
 			n.VectorOut = a.VectorOut()
 			n.VectorIn = a.VectorIn()
 			// EmitGeometry stays nil deliberately — nodeMover/edgeMover emit the

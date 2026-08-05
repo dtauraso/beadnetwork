@@ -523,6 +523,17 @@ func (m *nodeMover) handle(msg moveMsg) {
 		}
 		return
 	}
+	if msg.Kind == moveMsgKindBeadClear {
+		// This node's own goroutine asked for its outgoing wires to be emptied (a pair
+		// RESET — see moveMsgKindBeadClear's doc comment). This mover is the goroutine
+		// that drives those wires, so it is the one that may clear them. Nothing is
+		// persisted and nothing is decided here: a bead in flight is transient session
+		// state, exactly like the received vector above.
+		for _, pw := range m.outWires {
+			pw.ClearInFlight()
+		}
+		return
+	}
 	if msg.Kind == moveMsgKindNeighborCenter {
 		// Delivery-mechanism push (see applyCenter/partnerCenters' doc comments): a
 		// direct neighbor's OWN center just changed. Store it in THIS node's owned

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
 // The straightening loop's whole reactive rule now lives on THIS node kind's own
@@ -293,5 +294,67 @@ func TestUpdateSyncsOpeningTiltIndexBeforeLoop(t *testing.T) {
 	wantNormalTheta := int32(4) - Wiring.PerpendicularThetaIdx
 	if gotNormalTheta != wantNormalTheta || gotNormalPhi != -2 {
 		t.Fatalf("opening normal: want (%d,-2), got (%d,%d)", wantNormalTheta, gotNormalTheta, gotNormalPhi)
+	}
+}
+
+// A reset is not "zero the indices" — it is "leave nothing that can restart the exchange".
+// The bead edge is what has actually been turning these tilts, so clear must empty this
+// node's own In of beads already delivered to it; anything left there arrives on the next
+// cycle and steps the tilt straight back off zero, which is what a reset that visibly does
+// not take looks like. One goroutine, its own port, per docs/testing-shape.md.
+func TestClearDrainsDeliveredBeads(t *testing.T) {
+	beads := make(chan int, 4)
+	beads <- 1
+	beads <- 1
+	n := &Node{TiltThetaIdx: 5, In: wire.NewInChan(beads, "n2", "In", nil, nil)}
+
+	n.clear()
+
+	if _, ok := n.In.PollRecv(); ok {
+		t.Fatal("clear must leave In empty; a bead survived and would restart the exchange")
+	}
+	if n.TiltThetaIdx != 0 {
+		t.Fatalf("clear must zero the tilt index, got %d", n.TiltThetaIdx)
+	}
+}
+
+// The beads still CROSSING this node's outgoing wires are not this goroutine's to drop —
+// a PacedWire is driven by its source node's own mover. So clear asks (ClearOutBeads),
+// and this asserts the ask, which is the whole of what this goroutine decides here.
+func TestClearAsksTheMoverToEmptyItsOutgoingWires(t *testing.T) {
+	asked := 0
+	n := &Node{TiltThetaIdx: 5, ClearOutBeads: func() { asked++ }}
+
+	n.clear()
+
+	if asked != 1 {
+		t.Fatalf("clear must ask the mover exactly once to empty this node's outgoing wires, got %d asks", asked)
+	}
+}
+
+// Both routes into a reset run the SAME clear: the button (applyTiltEdit) and the partner's
+// Reset marker (handleVectorCycle). The marker-driven one is the one that lands after the
+// partner stopped placing, so it is the one that actually makes the pair quiescent — it
+// must do the full clear, not just the index zeroing it used to do.
+func TestReceivedResetMarkerRunsTheFullClear(t *testing.T) {
+	beads := make(chan int, 4)
+	beads <- 1
+	asked := 0
+	in := make(chan Wiring.TiltVectorMsg, 1)
+	n := &Node{TiltThetaIdx: 5, ReceivedThetaIdx: 9, ReceivedSet: true,
+		In: wire.NewInChan(beads, "n2", "In", nil, nil), VectorIn: in,
+		ClearOutBeads: func() { asked++ }}
+
+	in <- Wiring.TiltVectorMsg{Reset: true}
+	n.handleVectorCycle()
+
+	if _, ok := n.In.PollRecv(); ok {
+		t.Fatal("a received reset marker must drain this node's delivered beads too")
+	}
+	if asked != 1 {
+		t.Fatalf("a received reset marker must ask the mover to empty the outgoing wires, got %d asks", asked)
+	}
+	if n.TiltThetaIdx != 0 || n.ReceivedSet {
+		t.Fatalf("a received reset marker must zero the tilt and clear the third arrow; got theta=%d set=%v", n.TiltThetaIdx, n.ReceivedSet)
 	}
 }

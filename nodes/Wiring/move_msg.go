@@ -96,6 +96,19 @@ const (
 	// this changes, it only applies exactly what it is told and streams it as the THIRD
 	// drawn vector (Buffer/layout.go's ReceivedVectorLen/Theta/Phi).
 	moveMsgKindReceivedVectorSync = "receivedVectorSync"
+	// moveMsgKindBeadClear is the ONE-WAY request a node kind's OWN goroutine sends to
+	// its OWN mover to empty every one of that node's OUTGOING wires — currently
+	// Node1/Node2's reset only (nodes/Node1/node.go's clear). The node cannot do this
+	// itself: a PacedWire's in-flight beads are owned by whichever goroutine drives it,
+	// and that is the source node's MOVER (nodeMover.run's DriveOneCycle loop), not the
+	// node goroutine. So the node asks, and the mover — the owner — does it, same
+	// ownership split as every other kind here.
+	//
+	// It clears only the OUTGOING side. A node's INCOMING beads are two other things
+	// owned by two other goroutines: what is still crossing belongs to the PARTNER's
+	// mover (cleared when that node handles its own reset), and what has already been
+	// delivered belongs to this node itself (drained on its own goroutine, In.PollRecv).
+	moveMsgKindBeadClear = "beadClear"
 )
 
 // TiltEditMsg is one panel-driven tilt-angle click (TiltVectorAnglePanel), routed to a
