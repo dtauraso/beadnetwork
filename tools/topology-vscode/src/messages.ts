@@ -34,8 +34,6 @@ const OVERLAY_FLAG_NAMES = [
   "labelsGlobal",
   "overlays",
   "cascadeLinks",
-  "polarVectors",
-  "beadTweens",
 ] as const;
 // OVERLAY_FLAGS_END
 

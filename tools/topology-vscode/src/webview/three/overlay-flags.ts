@@ -22,8 +22,6 @@ import {
   readOverlayLabelsGlobal,
   readOverlayOverlaysVis,
   readOverlayCascadeLinks,
-  readOverlayPolarVectors,
-  readOverlayBeadTweens,
   readOverlayDragNodeRow,
   readOverlayGroupLenTime,
   readOverlayGroupLenInput,
@@ -54,9 +52,7 @@ function overlayFlagsEqual(a: OverlayFlagVals, b: OverlayFlagVals): boolean {
     a.handholds === b.handholds &&
     a.labelsGlobal === b.labelsGlobal &&
     a.overlays === b.overlays &&
-    a.cascadeLinks === b.cascadeLinks &&
-    a.polarVectors === b.polarVectors &&
-    a.beadTweens === b.beadTweens
+    a.cascadeLinks === b.cascadeLinks
   );
 }
 
@@ -78,8 +74,6 @@ export function readOverlayFlags(): OverlayFlagVals | null {
     labelsGlobal: !readOverlayLabelsGlobal(v),
     overlays: !!readOverlayOverlaysVis(v),
     cascadeLinks: !!readOverlayCascadeLinks(v),
-    polarVectors: !!readOverlayPolarVectors(v),
-    beadTweens: !!readOverlayBeadTweens(v),
   };
   if (cachedVals && overlayFlagsEqual(cachedVals, next)) return cachedVals;
   cachedVals = next;
@@ -173,28 +167,5 @@ export function readDistanceGroupLens(): DistanceGroupLens | null {
 /** React hook: re-renders the caller when any of the 3 group max-pair-lengths change. */
 export function useDistanceGroupLens(): DistanceGroupLens | null {
   return useSyncExternalStore(subscribeViewBlocks, readDistanceGroupLens, readDistanceGroupLens);
-}
-
-/** Gate the polarVectors overlay on BOTH the master `overlaysVisible` flag and its own
- *  `polarVectors` flag — the same shape as EdgeTube.tsx's `cascade` gate
- *  (`readOverlayOverlaysVis(overlayView) > 0 && readOverlayCascadeLinks(overlayView) > 0`).
- *  Without this, turning off ONLY the master flag left the polar-vector fade/vectors
- *  active because those three call sites (NodeInstances.tsx, ChainBeadInstances.tsx,
- *  PolarVectors.tsx) each read `readOverlayPolarVectors` alone. Extracted here so the
- *  three sites can't drift apart again, and so the boolean logic is unit-testable
- *  without a WebGL context. */
-export function polarVectorsGated(overlayView: DataView): boolean {
-  return readOverlayOverlaysVis(overlayView) > 0 && readOverlayPolarVectors(overlayView) > 0;
-}
-
-/** Gate the tween beads on THREE flags: the master, polarVectors, and beadTweens. The tween
- *  overlay NESTS under polar vectors — a tween only ever draws in that overlay's faded
- *  style, so the parent being off means the child is off, one level down from the way the
- *  master gates everything. Built on polarVectorsGated rather than re-reading its two flags,
- *  so "nested under" is expressed once and cannot drift from what the parent actually
- *  checks. The toolbar row greys out on the same condition (camera-ui.tsx), but this is what
- *  suppresses the drawing — a disabled checkbox is never the only thing holding it off. */
-export function beadTweensGated(overlayView: DataView): boolean {
-  return polarVectorsGated(overlayView) && readOverlayBeadTweens(overlayView) > 0;
 }
 

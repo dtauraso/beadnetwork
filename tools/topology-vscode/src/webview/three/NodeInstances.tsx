@@ -27,14 +27,11 @@ import {
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius,
   readOverlaySelSpherePoles,
 } from "../../schema/buffer-layout";
-import { SHADING_PARAM_POLAR_VECTOR_FADE_OPACITY_MULT } from "../../schema/shading-params";
 import {
   BUFFER_NODE_TAG, BUFFER_RING_TAG, NODE_SPHERE_RADIUS,
   NODE_RING_TUBE_RATIO, RING_PICK_TUBE_RATIO, nodeRowColors,
 } from "./buffer-scene-shared";
 import { computeNodeDepthOrder, setNodeDrawOrder } from "./node-depth-order";
-import { createTransparentEdgeTrigger, applyTransparentEdgeTriggered } from "./material-transparent-edge-trigger";
-import { polarVectorsGated } from "./overlay-flags";
 
 // A three.js torusGeometry lies in the XY plane, so its own normal is +Z. Orienting a ring
 // means rotating THIS onto the axis Go streams for that node.
@@ -45,13 +42,6 @@ export function NodeInstances({ capacity }: { capacity: number }) {
   const bodyRef = useRef<THREE.InstancedMesh>(null);
   const ringRef = useRef<THREE.InstancedMesh>(null);
   const ringPickRef = useRef<THREE.InstancedMesh>(null);
-  // Fade materials: the polarVectors overlay's "fade the nodes" half (CLAUDE.md/MODEL.md's
-  // one-toggle-three-effects overlay). Refs on the materials themselves (not just the
-  // meshes) so the fade multiplier can be applied imperatively in the SAME useFrame that
-  // writes the instance matrices — same timing contract as the rest of this file.
-  const bodyMatRef = useRef<THREE.MeshPhysicalMaterial>(null);
-  const ringMatRef = useRef<THREE.MeshStandardMaterial>(null);
-  const ringTransparentTrigger = useRef(createTransparentEdgeTrigger());
   const matRef  = useRef(new THREE.Matrix4());
   const posRef  = useRef(new THREE.Vector3());
   const quatRef = useRef(new THREE.Quaternion());
@@ -78,16 +68,6 @@ export function NodeInstances({ capacity }: { capacity: number }) {
     // underneath it. The VISIBLE ring (ringRef, NODE_RING_TUBE_RATIO) is unaffected — it stays
     // rendered in both modes; only the fat invisible pick torus is gated.
     const selectModeOn = readOverlaySelSpherePoles(overlayView) !== 0;
-    // polarVectors overlay: fade the node body/ring so the emphasised polar vectors
-    // (PolarVectors.tsx) read as the foreground. One multiplier, applied to both meshes,
-    // so "fade the nodes" reads as one consistent effect.
-    const polarVectorsOn = polarVectorsGated(overlayView);
-    const fadeMult = polarVectorsOn ? SHADING_PARAM_POLAR_VECTOR_FADE_OPACITY_MULT : 1;
-    if (bodyMatRef.current) bodyMatRef.current.opacity = SHADING_PARAM_NODE_OPACITY * fadeMult;
-    if (ringMatRef.current) ringMatRef.current.opacity = fadeMult;
-    if (ringMatRef.current) {
-      applyTransparentEdgeTriggered(ringTransparentTrigger.current, ringMatRef.current, polarVectorsOn);
-    }
 
     const n = Math.min(nodeCount, capacity);
     // A node's ring is oriented by the AXIS Go streams for it (PoleTheta/PolePhi), not left
@@ -177,7 +157,6 @@ export function NodeInstances({ capacity }: { capacity: number }) {
             instanceColor is applied verbatim. envMap comes from the same PMREM context
             the JSON path uses (BufferScene is wrapped in ProceduralEnvProvider). */}
         <meshPhysicalMaterial
-          ref={bodyMatRef}
           transmission={SHADING_PARAM_NODE_TRANSMISSION}
           thickness={SHADING_PARAM_NODE_THICKNESS}
           roughness={SHADING_PARAM_NODE_ROUGHNESS}
@@ -194,10 +173,7 @@ export function NodeInstances({ capacity }: { capacity: number }) {
       </instancedMesh>
       <instancedMesh ref={ringRef} args={[undefined, undefined, capacity]} userData={{ [BUFFER_RING_TAG]: true }} frustumCulled={false}>
         <torusGeometry args={[1, NODE_RING_TUBE_RATIO, 8, 32]} />
-        {/* transparent starts false (matches the pre-overlay look: opaque, opacity=1); the
-            useFrame above flips it to true only while the polarVectors overlay is on, so the
-            fade never costs a blend pass when the overlay is off. */}
-        <meshStandardMaterial ref={ringMatRef} roughness={SHADING_PARAM_RING_ROUGHNESS} metalness={0} depthWrite={false} transparent={false} opacity={1} />
+        <meshStandardMaterial roughness={SHADING_PARAM_RING_ROUGHNESS} metalness={0} depthWrite={false} transparent={false} opacity={1} />
       </instancedMesh>
       {/* Invisible pick-proxy torus: same per-instance transform as the visible ring above,
           but a much thicker tube (RING_PICK_TUBE_RATIO) so the ring band is a generous

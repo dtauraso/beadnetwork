@@ -37,7 +37,6 @@ import {
   LAYOUT_LINK_STRIDE, LAYOUT_LINK_COL_SRC_NODE_ROW, LAYOUT_LINK_COL_DST_NODE_ROW,
   readNodeCX, readNodeCY, readNodeCZ,
   readChainBeadOX, readChainBeadOY, readChainBeadOZ, readChainBeadLit, readChainBeadLitValue,
-  readChainBeadTween,
 } from "../../schema/buffer-layout";
 
 const STR_ENCODER = new TextEncoder();
@@ -247,11 +246,6 @@ export interface ChainBeadsAgg {
    *  is 1. The lit bead wears bead 0's or bead 1's own fill, so the value travels with the
    *  flag — the animation is one fill change, and the fill depends on which value arrived. */
   litValue: Int32Array;
-  /** Per-bead JOINT flag (1 = a half-step tween bead), parallel to positions. Go decides it
-   *  — parity within an edge's own chain, which is not recoverable here because these rows
-   *  arrive concatenated across every node's outgoing edges. A tween draws small and faded
-   *  and is never lit. */
-  tween: Uint8Array;
 }
 
 let lastChainVersion = -1;
@@ -290,7 +284,6 @@ export function getChainBeads(): ChainBeadsAgg {
   const ringAxis = new Float32Array(total * 3);
   const lit = new Uint8Array(total);
   const litValue = new Int32Array(total);
-  const tween = new Uint8Array(total);
   let w = 0;
   let b = 0;
   for (const decoded of decodedByRow) {
@@ -315,11 +308,10 @@ export function getChainBeads(): ChainBeadsAgg {
       positions[w++] = cy + readChainBeadOY(decoded.chainBeadView, i);
       positions[w++] = cz + readChainBeadOZ(decoded.chainBeadView, i);
       litValue[b] = readChainBeadLitValue(decoded.chainBeadView, i);
-      tween[b] = readChainBeadTween(decoded.chainBeadView, i);
       lit[b++] = readChainBeadLit(decoded.chainBeadView, i);
     }
   }
   lastChainVersion = nv;
-  lastChainAgg = { positions, ringAxis, count: total, lit, litValue, tween };
+  lastChainAgg = { positions, ringAxis, count: total, lit, litValue };
   return lastChainAgg;
 }

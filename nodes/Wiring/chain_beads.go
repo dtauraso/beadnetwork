@@ -194,9 +194,9 @@ func litBeadIndex(t float64, steps int) (int, bool) {
 // writeStreamFrame itself invokes chainBeads to build its frame's chain-bead columns, so a
 // second writeStreamFrame call from inside here would recurse (and, before this fix, did:
 // chainBeads -> writeStreamFrame -> chainBeads -> ... stack overflow).
-func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []int32, tween []uint8, breadcrumbs []wire.RowEvent) {
+func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []int32, breadcrumbs []wire.RowEvent) {
 	if len(m.outTargets) == 0 {
-		return nil, nil, nil, nil, nil, nil, nil
+		return nil, nil, nil, nil, nil, nil
 	}
 	// Read the clock only when there is a wire to ask about — m.clk is nil in tests that
 	// build a bare nodeMover directly (the same convention resolveDest/commitLocal state),
@@ -283,14 +283,6 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 				// this edge's PublishSteps); passed straight to litBeadIndex rather than
 				// re-deriving, so lighting and layout can never read two different lengths.
 				if idx, ok := litBeadIndex(p.T, p.Steps); ok {
-					// litBeadIndex works on the COARSE lattice (p.Steps is the wire's own
-					// step count, untouched by the overlay). On the half-step lattice
-					// ordinary bead k sits at ODD index 2k+1 — index 0 is the node-end
-					// joint — so the traversal lights the same positions at the same
-					// speed, and a tween is never the lit one.
-					if m.tweens {
-						idx = 2*idx + 1
-					}
 					litIdx[idx] = int32(p.Val)
 				}
 			}
@@ -352,31 +344,8 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 		// selfTorusR + wire.BeadTorusOuterR + i*wire.BeadStepR (docs/bead-lattice.md
 		// "Placement"). "Beads never inside a node" falls out of this tangency, with no
 		// clamp.
-		// TWEEN LATTICE. With the tween overlay on, a JOINT bead sits in every gap along this
-		// chain, so the render lattice halves its step: 2N beads instead of N, EVEN index a
-		// joint, ODD index ordinary bead (i-1)/2 at exactly the offset it always had. Index 0
-		// is the joint between the NODE and bead 0 — that gap gets one too, which is why this
-		// is 2N and not 2N-1.
-		//
-		// The lattice is UNIFORM, including at the node end: index 0 lands half a step before
-		// bead 0, which is the node's own torus radius, so a joint there straddles the node's
-		// surface — overlapping the node and overlapping bead 0, which is what a joint is for.
-		// An earlier version special-cased index 0 to sit fully outside the node; that made it
-		// a different size problem at one end for no gain, since a joint is SUPPOSED to cross
-		// the boundary it joins.
-		//
-		// Only the render lattice changes. `count` above is this edge's published STEP count
-		// (PublishSteps, the wire's own timing) and is deliberately NOT doubled: doubling it
-		// would make the same traversal take twice as many steps and visibly halve the
-		// animation speed. Timing stays coarse; only what is drawn gets finer.
 		step := wire.BeadStepR
 		base := selfTorusR + wire.BeadTorusOuterR
-		renderCount := count
-		if m.tweens && count > 0 {
-			step = wire.BeadStepR / 2
-			base = selfTorusR + wire.BeadTorusOuterR - step
-			renderCount = 2 * count
-		}
 		offsetAt := func(i int) float64 {
 			return base + float64(i)*step
 		}
@@ -408,9 +377,9 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 		// the aim or count changed.
 		var actorChain *edgeBeadChain
 		if m.beadTickFn != nil {
-			actorChain = m.reconcileBeadChain(to, renderCount, offsetAt, aimUnit)
+			actorChain = m.reconcileBeadChain(to, count, offsetAt, aimUnit)
 		}
-		for i := 0; i < renderCount; i++ {
+		for i := 0; i < count; i++ {
 			var p vec3
 			if actorChain != nil && i < len(actorChain.valid) && actorChain.valid[i] {
 				// The bead's own goroutine already resolved this position from the
@@ -437,16 +406,7 @@ func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []in
 			}
 			lit = append(lit, l)
 			litVal = append(litVal, v)
-			// EVEN index on the half-step lattice is a joint (index 0 is the node-end one);
-			// odd index is an ordinary bead. With the overlay off every index is ordinary.
-			// Emitted per row because parity is not recoverable downstream — see
-			// bufLayoutChainBead.Tween.
-			var tw uint8
-			if m.tweens && i%2 == 0 {
-				tw = 1
-			}
-			tween = append(tween, tw)
 		}
 	}
-	return ox, oy, oz, lit, litVal, tween, breadcrumbs
+	return ox, oy, oz, lit, litVal, breadcrumbs
 }

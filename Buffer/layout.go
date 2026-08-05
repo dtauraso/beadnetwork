@@ -177,12 +177,6 @@ type bufLayoutChainBead struct {
 	// the value, not just the fact of being lit — the whole animation is ONE fill-colour
 	// change against the grey resting chain.
 	LitValue int32 `buf:"i32"` // traversing bead's value (0|1); meaningful when Lit==1
-	// Tween marks a JOINT bead: one of the half-step beads the beadTweens overlay adds
-	// (chain_beads.go's tween lattice, EVEN index on that edge's own chain). It cannot be
-	// derived on the render side — chain-bead rows arrive concatenated across all of a
-	// node's outgoing edges, so a row's parity within ITS edge is not visible from its
-	// position in the block. A tween draws smaller and faded, and is never the lit one.
-	Tween uint8 `buf:"u8"` // 1 = half-step tween bead (drawn small + faded, never lit)
 	// There is no per-bead Radius column. Under bead CRUD (MODEL.md "Moving a node is
 	// CRUD on the edge beads that touch it", nodes/Wiring/bead_crud.go) the single global
 	// wire.BeadRadius/wire.BeadStepR lattice constants already make every chain's beads
@@ -291,19 +285,6 @@ type bufLayoutOverlay struct {
 	// only when this is set. NOT the same thing as the LayoutLink block existing: the data
 	// streams every snapshot regardless, this just gates the render.
 	CascadeLinks uint8 `buf:"u8"` // 1 = layout-link (cascade-link) overlay visible
-	// PolarVectors gates the polar-vector overlay (default OFF, like CascadeLinks): ONE
-	// toggle that fades the nodes AND the traversal (chain-bead) animation while drawing the
-	// two polar vectors prominently (scene-centre->node, node->edge's-first-bead) — see
-	// PolarVectors.tsx, NodeInstances.tsx, ChainBeadInstances.tsx. Deliberately not split
-	// into separate flags: the fade and the emphasis are one visual mode, not three knobs.
-	PolarVectors uint8 `buf:"u8"` // 1 = polar-vector emphasis overlay visible (fades nodes + animation)
-	// BeadTweens gates the TWEEN BEADS: the small half-step joints that nestle in the gaps
-	// along every chain (default OFF). It NESTS under PolarVectors — both must be set for a
-	// tween to draw, the same shape as OverlaysVis gating every other flag. Unlike the other
-	// overlay columns this one is not purely a render gate: a tween is a REAL chain bead
-	// with its own goroutine, so the flag also travels to each node's own mover, which
-	// reconciles its own chains onto the half-step lattice or back.
-	BeadTweens uint8 `buf:"u8"` // 1 = half-step tween beads present and drawn faded
 	// DragNodeRow is the row index (into the Node block) of the node currently
 	// being dragged by the gesture FSM (nodes/Wiring/gesture.go g.dragNode),
 	// or -1 when no drag is in progress. Identity rides row index, not a

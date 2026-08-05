@@ -42,7 +42,7 @@ func TestApplyUpdateOverlayToggleEmitsViewFrame(t *testing.T) {
 			var kinds []string
 			md.SetViewStream(io.Discard, func(tick uint32,
 				camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
-				sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis, cascadeLinks, polarVectors, beadTweens uint8,
+				sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis, cascadeLinks uint8,
 				dragNodeRow int32,
 				groupLenTime, groupLenInput, groupLenGate float32,
 				sceneCX, sceneCY, sceneCZ, sceneRadius float32,
@@ -70,46 +70,5 @@ func TestApplyUpdateOverlayToggleEmitsViewFrame(t *testing.T) {
 				t.Fatalf("toggling overlay flag %q: no VIEW frame carried Trace kind %q (emitted: %v)", flag, wantKind, kinds)
 			}
 		})
-	}
-}
-
-// TestApplyUpdatePolarVectorsToggleEmitsViewFrame pins the exact regression
-// reported live: the "VECTORS" overlay checkbox toggled the flag in Go and emitted
-// nothing to the webview because overlayFlagTraceKind (formerly hand-authored) was
-// missing "polarVectors".
-func TestApplyUpdatePolarVectorsToggleEmitsViewFrame(t *testing.T) {
-	md := &MoveDispatch{ui: uiState{ov: defaultOverlayState()}}
-	var kinds []string
-	md.SetViewStream(io.Discard, func(tick uint32,
-		camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
-		sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis, cascadeLinks, polarVectors, beadTweens uint8,
-		dragNodeRow int32,
-		groupLenTime, groupLenInput, groupLenGate float32,
-		sceneCX, sceneCY, sceneCZ, sceneRadius float32,
-		events []wire.RowEvent,
-	) []byte {
-		for _, e := range events {
-			kinds = append(kinds, e.Kind)
-		}
-		return nil
-	})
-
-	tr := T.New()
-	tr.SetSink(io.Discard)
-	msg := stdinMsg{Type: "edit", Op: "update", Kind: "overlays", Attr: "toggle", Flag: "polarVectors"}
-	applyUpdate(msg, md, tr, nil)
-
-	if !md.ui.ov.polarVectorsVisible {
-		t.Fatalf("polarVectorsVisible did not flip false->true")
-	}
-	seen := false
-	for _, k := range kinds {
-		if k == T.KindPolarVectors {
-			seen = true
-			break
-		}
-	}
-	if !seen {
-		t.Fatalf("polarVectors toggle emitted no VIEW frame carrying %q (emitted: %v)", T.KindPolarVectors, kinds)
 	}
 }

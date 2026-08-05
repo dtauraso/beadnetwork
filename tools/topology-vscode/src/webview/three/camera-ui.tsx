@@ -132,41 +132,14 @@ const cascadeLinksCfg: ToggleCfg = {
   payload: (v) => ({ flag: "cascadeLinks", was: v }),
 };
 
-// polarVectorsCfg has no `default` — its Go-owned default (off) is not asserted here; see
-// useToggleVal's fallback and ToggleCfg.default's doc above. One toggle, three effects
-// together (fade nodes, fade the traversal animation, emphasise the two polar vectors —
-// PolarVectors.tsx, NodeInstances.tsx, ChainBeadInstances.tsx): deliberately NOT split into
-// separate settings.
-const polarVectorsCfg: ToggleCfg = {
-  flag: "polarVectors",
-  active: (v) => v,
-  label: "➜ polar vectors",
-  title: (a) => (a ? "Hide polar-vector emphasis" : "Show polar-vector emphasis"),
-  payload: (v) => ({ flag: "polarVectors", was: v }),
-};
-
-// beadTweensCfg has no `default` — its Go-owned default (off) is not asserted here. NESTED
-// under polarVectorsCfg: it renders indented and is disabled while polar vectors is off,
-// because a joint only ever draws in that overlay's faded style. Unlike every other flag
-// this one also changes what EXISTS — a tween is a real chain bead with its own goroutine —
-// which is why Go broadcasts it to every node's mover instead of treating it as a render
-// gate (Buffer/layout.go BeadTweens).
-const beadTweensCfg: ToggleCfg = {
-  flag: "beadTweens",
-  active: (v) => v,
-  label: "· tween beads",
-  title: (a) => (a ? "Hide the half-step joint beads" : "Show the half-step joint beads"),
-  payload: (v) => ({ flag: "beadTweens", was: v }),
-};
-
 // ---------------------------------------------------------------------------
 // Grouped overlay rows for the popover
 // ---------------------------------------------------------------------------
 
 // `under` names the cfg a row NESTS beneath: that row renders indented and is disabled
 // whenever its parent is off. View structure only — the gating that actually suppresses the
-// drawing is Go-owned and lives in the renderer (overlay-flags.ts's beadTweensGated), so a
-// disabled row here is never the only thing holding a child off.
+// drawing is Go-owned and lives in the renderer, so a disabled row here is never the only
+// thing holding a child off.
 type OverlayGroup = { heading: string; cfgs: ToggleCfg[]; under?: Partial<Record<string, ToggleCfg>> };
 
 const OVERLAY_GROUPS: OverlayGroup[] = [
@@ -174,7 +147,6 @@ const OVERLAY_GROUPS: OverlayGroup[] = [
   { heading: "POLES",  cfgs: [scenePolesCfg, nodePolesCfg, selSpherePolesCfg] },
   { heading: "LABELS", cfgs: [globalLabelsCfg] },
   { heading: "EDGES",  cfgs: [cascadeLinksCfg] },
-  { heading: "VECTORS", cfgs: [polarVectorsCfg, beadTweensCfg], under: { beadTweens: polarVectorsCfg } },
 ];
 
 /** A single row inside the popover: square checkbox + label, fires the row's op on click.

@@ -11,7 +11,7 @@
 //     not re-render every 60fps snapshot).
 
 import { describe, it, expect, beforeEach } from "vitest";
-import { readOverlayFlags, polarVectorsGated } from "../src/webview/three/overlay-flags";
+import { readOverlayFlags } from "../src/webview/three/overlay-flags";
 import { setLatestViewFrame } from "../src/webview/snapshot-buffer";
 import { BUF_VIEW_FRAME_HEADER_SIZE } from "../src/schema/frame-tags";
 import { SCENE_TABS_HEADER_SIZE } from "../src/webview/three/buffer-decode";
@@ -19,7 +19,7 @@ import {
   CAMERA_STRIDE, OVERLAY_STRIDE, SCENE_STRIDE,
   OVERLAY_COL_SCENE_TORI, OVERLAY_COL_SCENE_POLES, OVERLAY_COL_NODE_POLES,
   OVERLAY_COL_SEL_SPHERE_POLES, OVERLAY_COL_HANDHOLDS,
-  OVERLAY_COL_LABELS_GLOBAL, OVERLAY_COL_OVERLAYS_VIS, OVERLAY_COL_POLAR_VECTORS,
+  OVERLAY_COL_LABELS_GLOBAL, OVERLAY_COL_OVERLAYS_VIS,
 } from "../src/schema/buffer-layout";
 
 // Build a VIEW-stream frame (camera+overlay+scene) carrying only the Overlay columns of
@@ -99,35 +99,5 @@ describe("overlay-flags readOverlayFlags", () => {
       [OVERLAY_COL_OVERLAYS_VIS]: 1,
     }));
     expect(readOverlayFlags()).toBe(a);
-  });
-});
-
-// polarVectorsGated — the shared gate NodeInstances.tsx, ChainBeadInstances.tsx, and
-// PolarVectors.tsx all call so the polarVectors overlay's fade/vectors turn off when
-// EITHER the master `overlays` toggle or the per-overlay `polarVectors` toggle is off
-// (previously each of the three sites read `polarVectors` alone and ignored the master).
-describe("overlay-flags polarVectorsGated", () => {
-  function overlayView(overlaysVis: number, polarVectors: number): DataView {
-    const buf = new ArrayBuffer(OVERLAY_STRIDE);
-    const dv = new DataView(buf);
-    dv.setUint8(OVERLAY_COL_OVERLAYS_VIS, overlaysVis);
-    dv.setUint8(OVERLAY_COL_POLAR_VECTORS, polarVectors);
-    return dv;
-  }
-
-  it("is true only when both the master and per-overlay flags are on", () => {
-    expect(polarVectorsGated(overlayView(1, 1))).toBe(true);
-  });
-
-  it("is false when the master flag is off, regardless of the per-overlay flag", () => {
-    expect(polarVectorsGated(overlayView(0, 1))).toBe(false);
-  });
-
-  it("is false when the per-overlay flag is off, regardless of the master flag", () => {
-    expect(polarVectorsGated(overlayView(1, 0))).toBe(false);
-  });
-
-  it("is false when both flags are off", () => {
-    expect(polarVectorsGated(overlayView(0, 0))).toBe(false);
   });
 });
