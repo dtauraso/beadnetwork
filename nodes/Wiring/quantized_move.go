@@ -317,7 +317,6 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeMover, 
 			committedPos, _ = resolveBeadCrudMove(beads, prevPos, newPos, wire.BeadStepR)
 		}
 		committedPolar = cart2polar(committedPos.Sub(md.ui.sceneSphere.Center))
-		off = measureScalar(committedPolar, nm.quantOffset)
 
 		// DIAGNOSTIC ONLY (task/log-node2-bead-crud): one breadcrumb per pointer-move
 		// commit — node 2 (neighbours 1, 4, 5) can barely be dragged; long drags produce
@@ -369,10 +368,20 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeMover, 
 	nm.applyCenter(committedPos, reach[nodeID])
 	lq.broadcastToEdgesAndPartners(md, map[string]vec3{nodeID: committedPos}, nm.sendMove)
 
-	if lq.quantizedLayout {
-		nm.quantOffset = off
-		nm.persistQuantOffset(off, committedPolar)
-	}
+	// PERSIST ON EVERY DRAG, both modes. This used to sit inside `if lq.quantizedLayout`,
+	// which silently stopped saving the moment a scene chose the continuous drag: the node
+	// moved, drew, fanned to its neighbours and looked entirely correct, and the position
+	// was gone on the next load. The two modes differ in WHERE the node lands, never in
+	// whether that landing is written down.
+	//
+	// off is the quantized scalar triple, measured here in both modes because position.json
+	// carries it as a self-describing CACHE of the drag-time snap cells, not as the position
+	// source (quant_offset_persist.go) — the source is committedPolar either way. Measuring
+	// it under the continuous drag keeps that cache describing the position actually stored
+	// rather than the last one a quantized drag happened to leave behind.
+	off = measureScalar(committedPolar, nm.quantOffset)
+	nm.quantOffset = off
+	nm.persistQuantOffset(off, committedPolar)
 }
 
 // RootMove handles a node-drag under the flat absolute scene-polar layout: every node
