@@ -442,15 +442,20 @@ export function NavGuides() {
       {/* NODE 1 ONLY carries its streamed pole today (row 0 — ROW ID = NODE ID - 1). The
           pole is not special to node 1: every node streams its own (Buffer/layout.go
           PoleTheta/PolePhi), and dropping this row check is all it takes to honour the rest.
-          They are held at world +y for now because only node 1 is vector-connected, so
-          rotating the others is not yet worth the visual churn. */}
+          They are ALL held at world +y, so every node's frame reads the same way. */}
       {showNodePoles && navNodes.map((node) => (
         <PolarFrame
           key={node.row}
           center={node.center}
           scale={node.radius}
           tag={`(${node.label})`}
-          pole={node.row === 0 ? node.pole : undefined}
+          /* No pole override: EVERY node's frame is held at world +y, node 1 included.
+             Row 0 alone used to be rotated onto its own streamed pole, from when node 1 was
+             the only vector-connected node — which left one frame in the scene tilted
+             differently from all the others and reading as a property of that node rather
+             than of the feature. Go still streams every node's pole (Buffer/layout.go's
+             PoleTheta/PolePhi); passing it here for all of them is the other way to make
+             them agree, and is what to do when the frames should follow their nodes. */
         />
       ))}
       {/* Selected-sphere poles (additional feature) — the center(s) of the sphere(s) the
