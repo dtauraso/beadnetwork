@@ -159,8 +159,7 @@ func litBeadIndex(t float64, steps int) (int, bool) {
 // tools/check-no-sqrt-in-chain-beads.sh) — a neighbour's distance and direction come from
 // this single live measurement, reused for both layout and the published step count, never
 // re-measured a second time per bead. The only OTHER trig is a boundary conversion, matching
-// the "trig only at the boundary" model the demo (docs/demos/polar-drag-3d.html) exists to
-// enforce. edgeStepCount's integer subtraction is plain arithmetic, not sqrt, so publishing
+// the "trig only at the boundary" model this file enforces. edgeStepCount's integer subtraction is plain arithmetic, not sqrt, so publishing
 // the count alongside layout does not reintroduce one.
 //
 // Offsets are NODE-LOCAL on purpose: this node moving does not change a single one of them,

@@ -5,7 +5,7 @@ metadata:
   type: feedback
 ---
 
-David built a 3-D teaching demo (`docs/demos/polar-drag-3d.html`) specifically to show the
+David built a 3-D teaching demo (since deleted along with the other demo pages) specifically to show the
 update model for the polar layout — how to compute new coordinates WITHOUT the "fancy
 formulas" (azimuthFrom / law-of-cosines / rotating-pole trig) I kept reaching for.
 

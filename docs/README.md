@@ -45,8 +45,6 @@ The mutex-removal work: each `sync.Mutex`/`Cond` replaced by single-owner state.
 |---|---|
 | [polar-sphere.html](polar-sphere.html) | The polar coordinate system for a sphere. |
 | [pole-singularity.html](pole-singularity.html) | The layout pole singularity — φ grid vs great-circle bearing. |
-| [demos/polar-drag-3d.html](demos/polar-drag-3d.html) | Interactive demo — rotation abc + fixed-increment pole nudge in 3D. |
-| [demos/polar-drag-log.jsonl](demos/polar-drag-log.jsonl) | Recorded drag log backing the polar-drag demo. |
 
 ## Visual-editor planning (`docs/planning/visual-editor/`)
 
