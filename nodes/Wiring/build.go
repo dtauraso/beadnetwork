@@ -82,6 +82,13 @@ type buildCtx struct {
 	// Phase 8: built nodes + the paced-Out sink.
 	outSink map[string]*wire.Out
 	nodes   []wire.Node
+
+	// vectorOutByNode/vectorInByNode: node id -> its own dedicated tilt-vector
+	// channel end (tilt_vector_channel.go), built once by allocateVectorChannels
+	// for every edge whose BOTH endpoint kinds asked for one (today: Node1/Node2
+	// only). A node id absent from a map has no vector channel on that side.
+	vectorOutByNode map[string]chan TiltVectorMsg
+	vectorInByNode  map[string]chan TiltVectorMsg
 }
 
 // buildFromSpec constructs nodes, wires, and the MoveDispatch from an already-parsed
@@ -94,6 +101,7 @@ func buildFromSpec(ctx context.Context, spec topoSpec, tr *T.Trace, clk wire.Clo
 	b.computeQuantizedLayout()
 	b.computeReachRadii()
 	b.allocateWires()
+	b.allocateVectorChannels()
 	if err := b.buildMoveDispatch(); err != nil {
 		return nil, nil, nil, nil, err
 	}
@@ -194,6 +202,33 @@ func (b *buildCtx) allocateWires() {
 	b.edgeEndpoints = edgeEndpoints
 	b.edgeSteps = edgeSteps
 	b.edgeSegments = edgeSegments
+}
+
+// allocateVectorChannels creates one dedicated node-to-node tilt-vector channel
+// (tilt_vector_channel.go's TiltVectorMsg, buffered 1, latest-wins) per directed
+// edge whose BOTH endpoint kinds ask for one (KindWantsVectorChannel — today only
+// Node1/Node2). A kind that never asks gets no entry in either map and is entirely
+// unaffected. This travels ALONGSIDE the ordinary bead edge (allocateWires above),
+// never replacing it — the source node keeps its existing *wire.Out for beads and
+// additionally gets this channel's send end; the target node keeps its existing
+// *wire.In and additionally gets this channel's receive end.
+func (b *buildCtx) allocateVectorChannels() {
+	kindByID := make(map[string]string, len(b.spec.Nodes))
+	for _, n := range b.spec.Nodes {
+		kindByID[n.ID] = n.Type
+	}
+	vectorOutByNode := map[string]chan TiltVectorMsg{}
+	vectorInByNode := map[string]chan TiltVectorMsg{}
+	for _, e := range b.spec.Edges {
+		if !KindWantsVectorChannel(kindByID[e.Source]) || !KindWantsVectorChannel(kindByID[e.Target]) {
+			continue
+		}
+		sourceToTargetVectorCh := make(chan TiltVectorMsg, 1)
+		vectorOutByNode[e.Source] = sourceToTargetVectorCh
+		vectorInByNode[e.Target] = sourceToTargetVectorCh
+	}
+	b.vectorOutByNode = vectorOutByNode
+	b.vectorInByNode = vectorInByNode
 }
 
 // buildMoveDispatch builds the MoveDispatch from initial geometry and edge
@@ -385,6 +420,8 @@ func (b *buildCtx) buildNodes() error {
 		// (main.go, after LoadTopology returns); the Emit* closures nil-check both before
 		// writing and no-op until then.
 		pb.md = b.md
+		pb.vectorOut = b.vectorOutByNode
+		pb.vectorIn = b.vectorInByNode
 
 		for _, port := range bind.Ports {
 			switch port.Dir {

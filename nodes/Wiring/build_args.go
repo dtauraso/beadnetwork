@@ -210,6 +210,32 @@ func (a BuildArgs) SyncTiltIndex() func(theta, phi int32) {
 	}
 }
 
+// VectorOut returns this node's own SEND end of its dedicated tilt-vector channel
+// (tilt_vector_channel.go) — the buffered-1, latest-wins, non-blocking channel
+// carrying a TiltVectorMsg alongside the ordinary bead edge, wired only when this
+// node's outgoing edge's OTHER endpoint also asked for one (build.go's
+// allocateVectorChannels). nil when unwired (every kind but Node1/Node2, a node
+// with no outgoing vector-capable edge, or a bare test build with no loader) —
+// SendVectorLatestNonBlocking already treats a nil channel as a no-op send, the
+// same fallback shape as every other unwired-port case in this file.
+func (a BuildArgs) VectorOut() chan<- TiltVectorMsg {
+	if a.pb.vectorOut == nil {
+		return nil
+	}
+	return a.pb.vectorOut[a.name]
+}
+
+// VectorIn returns this node's own RECEIVE end of its dedicated tilt-vector channel
+// — the counterpart to VectorOut. nil when unwired, in which case
+// PollRecvVector(nil) always reports ok=false, matching every other unwired-port
+// fallback in this file.
+func (a BuildArgs) VectorIn() <-chan TiltVectorMsg {
+	if a.pb.vectorIn == nil {
+		return nil
+	}
+	return a.pb.vectorIn[a.name]
+}
+
 // EmitNodeBeads returns the interior working/backup bead emitter.
 func (a BuildArgs) EmitNodeBeads() func(working, backup []int) {
 	tr, name, getStream := a.tr, a.name, a.getStream

@@ -68,6 +68,16 @@ type Node struct {
 	// SyncTiltIndex notifies this node's own mover of the current TiltThetaIdx/TiltPhiIdx
 	// — one-way, fire-and-forget, never an ack (BuildArgs.SyncTiltIndex).
 	SyncTiltIndex func(theta, phi int32)
+	// VectorOut/VectorIn are THIS node's own ends of its dedicated tilt-vector channel
+	// (Wiring.TiltVectorMsg — an integer θ/φ index pair, never floats on a channel),
+	// claimed at build time via BuildArgs.VectorOut/VectorIn. It travels ALONGSIDE the
+	// ordinary bead edge (In/Out above), never replacing it — beads are unaffected.
+	// Buffered depth 1, latest-wins, non-blocking on both ends
+	// (Wiring.SendVectorLatestNonBlocking / Wiring.PollRecvVector). nil when this
+	// node's edge partner did not also ask for one, or on a bare test build with no
+	// loader — both helpers already treat nil as "nothing wired".
+	VectorOut chan<- Wiring.TiltVectorMsg
+	VectorIn  <-chan Wiring.TiltVectorMsg
 }
 
 func (n *Node) clock() wire.Clock {
@@ -126,6 +136,63 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 	return true
 }
 
+// coplanarNormal is THIS node's own coplanar normal: a quarter turn (90°, 6 steps of
+// Wiring.CurveParamTiltVectorAngleStep — Wiring.PerpendicularThetaIdx names the same
+// 90°-worth-of-steps magnitude) from THIS node's OWN tilt vector, so the normal stays
+// perpendicular to the tilt as the tilt turns — index arithmetic only, never trig
+// (memory/feedback_abc_times_constant_not_rederive.md). φ is left unchanged: the turn
+// is entirely in θ, same in-ring-plane assumption this scene's stepTilt already relies
+// on (see Wiring.PerpendicularThetaIdx's doc comment).
+func (n *Node) coplanarNormal() Wiring.TiltVectorMsg {
+	return Wiring.TiltVectorMsg{
+		ThetaIdx: n.TiltThetaIdx + Wiring.PerpendicularThetaIdx,
+		PhiIdx:   n.TiltPhiIdx,
+	}
+}
+
+// outgoingVector is what THIS node SENDS on VectorOut: its own coplanarNormal rotated
+// 180° in θ. Node2 turns +180° (+12 steps of π/12); Node1 (its mirror package) turns
+// −180° (−12 steps) — index arithmetic, never radians. φ is untouched.
+func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
+	norm := n.coplanarNormal()
+	norm.ThetaIdx += 2 * Wiring.PerpendicularThetaIdx
+	return norm
+}
+
+// stepTowardPerpendicularFromVector is the vector-channel twin of stepTilt: on
+// receiving a vector, this node's decision is dot(its own tilt, the received vector)
+// — realized, like stepTilt's In-arrival decision, as the SAME integer index compare
+// (TiltThetaIdx == Wiring.PerpendicularThetaIdx) rather than a float dot product (see
+// stepTilt's doc comment for why that shortcut is valid in this scene). The received
+// vector's own value is not otherwise consulted: like a bead's value, its ARRIVAL is
+// the trigger, not its payload. Reports whether it moved; a false return with no
+// mutation is how the exchange stops — the caller must not send when this returns
+// false.
+func (n *Node) stepTowardPerpendicularFromVector(received Wiring.TiltVectorMsg) bool {
+	_ = received
+	return n.stepTilt()
+}
+
+// handleVectorCycle is Node2's WHOLE per-cycle vector-channel loop body: read
+// VectorIn non-blocking; if something arrived, decide (stepTowardPerpendicularFromVector);
+// and if that moved this node's own tilt, send outgoingVector back out on VectorOut —
+// also non-blocking. At the perpendicular index nothing steps and nothing sends,
+// which is how the exchange stops. This never touches In/Out or beads — the vector
+// channel is a separate, additive exchange.
+func (n *Node) handleVectorCycle() {
+	received, ok := Wiring.PollRecvVector(n.VectorIn)
+	if !ok {
+		return
+	}
+	if !n.stepTowardPerpendicularFromVector(received) {
+		return
+	}
+	if n.SyncTiltIndex != nil {
+		n.SyncTiltIndex(n.TiltThetaIdx, n.TiltPhiIdx)
+	}
+	Wiring.SendVectorLatestNonBlocking(n.VectorOut, n.outgoingVector())
+}
+
 func (n *Node) Update(ctx context.Context) {
 	wire.TryEmit(n.EmitGeometry)
 
@@ -173,6 +240,10 @@ func (n *Node) Update(ctx context.Context) {
 			}
 		}
 
+		// Vector-channel exchange: a separate, additive loop body from the bead
+		// exchange above — see handleVectorCycle's own doc comment.
+		n.handleVectorCycle()
+
 		wire.ApplySpeedNonBlocking(clk, n.SpeedCh)
 		if err := clk.SleepCycle(ctx); err != nil {
 			return
@@ -202,6 +273,8 @@ func init() {
 			n.TiltThetaIdx, n.TiltPhiIdx = a.TiltVectorAngleSeed()
 			n.TiltEditIn = a.TiltEditIn()
 			n.SyncTiltIndex = a.SyncTiltIndex()
+			n.VectorOut = a.VectorOut()
+			n.VectorIn = a.VectorIn()
 			// EmitGeometry stays nil deliberately — nodeMover/edgeMover emit the
 			// same geometry from their own goroutine start.
 			return n, nil

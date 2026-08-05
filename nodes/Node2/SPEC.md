@@ -70,6 +70,35 @@ Pairing a Node1 and a Node2 with one edge running each direction (Node1.Out →
 Node2.In, Node2.Out → Node1.In) needs no seed/bootstrap node: nothing sends until a
 user tilt starts it, so there is no deadlock to bootstrap out of at t=0.
 
+## Vector channel
+
+Alongside the bead edges above, each directed edge between two vector-capable kinds
+(today: Node1/Node2 only — `Wiring.KindWantsVectorChannel`) gets its OWN dedicated
+node-to-node channel carrying `Wiring.TiltVectorMsg`, an integer θ/φ INDEX pair (never
+floats on a channel). Buffered depth 1, latest-wins, both ends non-blocking
+(`Wiring.SendVectorLatestNonBlocking` / `Wiring.PollRecvVector`) — same shape as the
+speed-delivery channel. It travels additively: beads are unaffected, and this channel
+never carries a bead value or vice versa.
+
+Every cycle, this node's own `handleVectorCycle` (its whole per-cycle vector-channel
+loop body) runs:
+
+- **Coplanar normal**: a quarter turn (`Wiring.PerpendicularThetaIdx`, 6 steps of
+  `Wiring.CurveParamTiltVectorAngleStep`, i.e. 90°) from THIS node's OWN tilt vector —
+  so the normal stays perpendicular to the tilt as the tilt turns. φ is unchanged;
+  the turn is entirely in θ index arithmetic, same in-ring-plane assumption as the
+  bead exchange's `PerpendicularThetaIdx` shortcut above.
+- **What this node SENDS**: that coplanar normal rotated 180° in θ. Node2 turns +180°
+  (+12 steps of π/12, i.e. `2 × PerpendicularThetaIdx` added); Node1 (its mirror
+  package) turns −180° (−12 steps). φ is untouched. Index arithmetic only.
+- **On receiving a vector**: the decision is dot(this node's OWN tilt, the received
+  vector) — realized, exactly like the bead exchange's `stepTilt`, as the integer
+  compare `TiltThetaIdx == Wiring.PerpendicularThetaIdx` rather than a float dot
+  product. If not perpendicular: step `TiltThetaIdx` ONE click (Node2 adds, same
+  direction as `stepTilt`), sync the mover, and send the outgoing vector above. If
+  already perpendicular: step nothing and send nothing — this is how the vector
+  exchange stops, independently of whether the bead exchange has also stopped.
+
 ## Runtime status
 
 - Loader-registered: yes

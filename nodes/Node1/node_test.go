@@ -72,3 +72,48 @@ func TestApplyTiltEditAdjustStillPlacesBead(t *testing.T) {
 		t.Fatalf("adjust theta up: want theta=4 phi=1, got theta=%d phi=%d", n.TiltThetaIdx, n.TiltPhiIdx)
 	}
 }
+
+// outgoingVector reverses the coplanar normal by 180° in θ — Node1's own direction is
+// −12 index steps (−180°, two of the 6-step quarter turns) — and leaves φ untouched.
+// This is THIS node's own arithmetic, asserted without any channel involved.
+func TestOutgoingVectorIsMinus180StepsInThetaOnly(t *testing.T) {
+	n := &Node{TiltThetaIdx: 3, TiltPhiIdx: -7}
+	norm := n.coplanarNormal()
+	if norm.ThetaIdx != 3+Wiring.PerpendicularThetaIdx || norm.PhiIdx != -7 {
+		t.Fatalf("coplanarNormal: want theta=%d phi=-7, got theta=%d phi=%d",
+			3+Wiring.PerpendicularThetaIdx, norm.ThetaIdx, norm.PhiIdx)
+	}
+	out := n.outgoingVector()
+	wantTheta := norm.ThetaIdx - 2*Wiring.PerpendicularThetaIdx
+	if out.ThetaIdx != wantTheta {
+		t.Fatalf("outgoingVector theta: want %d (norm - 12 steps), got %d", wantTheta, out.ThetaIdx)
+	}
+	if out.PhiIdx != norm.PhiIdx {
+		t.Fatalf("outgoingVector must leave phi unchanged: norm phi=%d, out phi=%d", norm.PhiIdx, out.PhiIdx)
+	}
+}
+
+// stepTowardPerpendicularFromVector is Node1's own step decision on a vector-channel
+// arrival: away from perpendicular it moves one π/12 step (same direction stepTilt
+// always takes for this kind), and reports the move.
+func TestStepFromVectorMovesOneStepAwayFromPerpendicular(t *testing.T) {
+	n := &Node{TiltThetaIdx: 3}
+	received := Wiring.TiltVectorMsg{ThetaIdx: 99, PhiIdx: -5}
+	if moved := n.stepTowardPerpendicularFromVector(received); !moved || n.TiltThetaIdx != 2 {
+		t.Fatalf("want moved=true thetaIdx=2, got moved=%v thetaIdx=%d", moved, n.TiltThetaIdx)
+	}
+}
+
+// AT perpendicular, an arriving vector still steps nothing and the caller must send
+// nothing — this is the exchange's stop condition, asserted at the decision method
+// itself, not by observing two goroutines communicate.
+func TestStepFromVectorStopsAtPerpendicular(t *testing.T) {
+	n := &Node{TiltThetaIdx: Wiring.PerpendicularThetaIdx}
+	received := Wiring.TiltVectorMsg{ThetaIdx: 1, PhiIdx: 1}
+	if moved := n.stepTowardPerpendicularFromVector(received); moved {
+		t.Fatalf("at perpendicular, want moved=false, got true (index now %d)", n.TiltThetaIdx)
+	}
+	if n.TiltThetaIdx != Wiring.PerpendicularThetaIdx {
+		t.Fatalf("at perpendicular, index must not move; got %d, want %d", n.TiltThetaIdx, Wiring.PerpendicularThetaIdx)
+	}
+}
