@@ -2,7 +2,7 @@
 // direction, the coplanar normal a quarter turn from it, and (a THIRD, separately
 // coloured arrow) the direction that last ARRIVED on this node's tilt-vector channel.
 //
-// The direction is Go-owned: TiltVectorTheta/TiltVectorPhi (Buffer/layout.go), the SAME
+// The direction is Go-owned: TopTiltVectorTheta/TopTiltVectorPhi (Buffer/layout.go), the SAME
 // θ-from-world-+y / φ-azimuth-around-+y convention as the ring axis and every other angle
 // pair on the buffer. Default (0,0) is world +y, matching the tilt vector's original
 // hardcoded-up arrangement — a scene/topology that never sets an angle looks unchanged. Go
@@ -12,7 +12,7 @@
 // index/step arithmetic on this side.
 //
 // WHETHER a node draws one is Go's answer too, and it rides the SAME value as how long:
-// TiltVectorLen is zero for a node that draws none, and ReceivedVectorLen is zero for a
+// TopTiltVectorLen is zero for a node that draws none, and ReceivedVectorLen is zero for a
 // node that has received nothing on its vector channel yet (or was reset) — see that
 // column's own doc comment in Buffer/layout.go for why zero-length is distinguishable
 // from an actually-received (0,0) direction.
@@ -37,7 +37,8 @@ import * as THREE from "three";
 import { getNodeFrame } from "./node-stream-blocks";
 import {
   readNodeCX, readNodeCY, readNodeCZ,
-  readNodeTiltVectorLen, readNodeTiltVectorTheta, readNodeTiltVectorPhi,
+  readNodeTopTiltVectorLen, readNodeTopTiltVectorTheta, readNodeTopTiltVectorPhi,
+  readNodeBottomTiltVectorTheta, readNodeBottomTiltVectorPhi,
   readNodeCoplanarNormalTheta, readNodeCoplanarNormalPhi,
   readNodeReceivedVectorLen, readNodeReceivedVectorTheta, readNodeReceivedVectorPhi,
 } from "../../schema/buffer-layout";
@@ -157,9 +158,17 @@ export function TiltVectors({ capacity, receivedCapacity }: { capacity: number; 
       const cy = readNodeCY(nodeView, row);
       const cz = readNodeCZ(nodeView, row);
 
-      const len = readNodeTiltVectorLen(nodeView, row);
-      if (len > 0 && drawn + 1 < capacity) {
-        writeArrowInto(shaft, head, drawn, cx, cy, cz, len, readNodeTiltVectorTheta(nodeView, row), readNodeTiltVectorPhi(nodeView, row));
+      // One length column gates all three of this node's own arrows — the TOP tilt vector,
+      // the BOTTOM tilt vector (a half turn in θ from the top, so it points out of the
+      // node's other side), and the coplanar normal — because Go streams one
+      // TopTiltVectorLen meaning "this node draws its vectors, this long"
+      // (Buffer/layout.go). They share this mesh pair and its colour; the received vector
+      // below is the one that draws separately.
+      const len = readNodeTopTiltVectorLen(nodeView, row);
+      if (len > 0 && drawn + 2 < capacity) {
+        writeArrowInto(shaft, head, drawn, cx, cy, cz, len, readNodeTopTiltVectorTheta(nodeView, row), readNodeTopTiltVectorPhi(nodeView, row));
+        drawn++;
+        writeArrowInto(shaft, head, drawn, cx, cy, cz, len, readNodeBottomTiltVectorTheta(nodeView, row), readNodeBottomTiltVectorPhi(nodeView, row));
         drawn++;
         writeArrowInto(shaft, head, drawn, cx, cy, cz, len, readNodeCoplanarNormalTheta(nodeView, row), readNodeCoplanarNormalPhi(nodeView, row));
         drawn++;

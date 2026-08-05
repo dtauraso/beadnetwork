@@ -25,9 +25,9 @@ import {
   readOverlayGroupLenTime,
   readOverlayGroupLenInput,
   readOverlayGroupLenGate,
-  readNodeTiltVectorLen,
-  readNodeTiltVectorTheta,
-  readNodeTiltVectorPhi,
+  readNodeTopTiltVectorLen,
+  readNodeTopTiltVectorTheta,
+  readNodeTopTiltVectorPhi,
 } from "../../schema/buffer-layout";
 import { nodeLabel } from "./buffer-decode";
 
@@ -170,7 +170,7 @@ export function useDistanceGroupLens(): DistanceGroupLens | null {
 }
 
 /** One row of the per-node tilt-vector-angle panel: read-only reflect of a single node's
- *  own TiltVectorTheta/TiltVectorPhi (Buffer/layout.go), as the ALREADY-MULTIPLIED
+ *  own TopTiltVectorTheta/TopTiltVectorPhi (Buffer/layout.go), as the ALREADY-MULTIPLIED
  *  radians the buffer carries — TS holds no step constant of its own
  *  (nodes/Wiring.CurveParamTiltVectorAngleStep is Go's). row is the node's buffer ROW
  *  (never an id/name — no sidecar), label its human label for display only. */
@@ -196,7 +196,7 @@ function tiltVectorRowsEqual(a: TiltVectorRow[], b: TiltVectorRow[]): boolean {
   return true;
 }
 
-/** Decode every node whose TiltVectorLen is > 0 (Go's "this node draws a tilt vector"
+/** Decode every node whose TopTiltVectorLen is > 0 (Go's "this node draws a tilt vector"
  *  answer — same column TiltVectors.tsx gates its own draw on) into a TiltVectorRow list,
  *  or null if no node frame has decoded yet. An EMPTY (non-null) list is the "no
  *  groups"-shaped signal for a scene that streams no tilt vectors at all — the panel that
@@ -207,12 +207,12 @@ export function readTiltVectorRows(): TiltVectorRow[] | null {
   const { nodeCount, nodeView } = decoded;
   const next: TiltVectorRow[] = [];
   for (let row = 0; row < nodeCount; row++) {
-    if (!(readNodeTiltVectorLen(nodeView, row) > 0)) continue;
+    if (!(readNodeTopTiltVectorLen(nodeView, row) > 0)) continue;
     next.push({
       row,
       label: nodeLabel(decoded, row),
-      theta: readNodeTiltVectorTheta(nodeView, row),
-      phi: readNodeTiltVectorPhi(nodeView, row),
+      theta: readNodeTopTiltVectorTheta(nodeView, row),
+      phi: readNodeTopTiltVectorPhi(nodeView, row),
     });
   }
   if (cachedTiltVectorRows && tiltVectorRowsEqual(cachedTiltVectorRows, next)) return cachedTiltVectorRows;

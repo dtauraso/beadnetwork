@@ -9,9 +9,9 @@ import { useTiltVectorRows } from "./overlay-flags";
 // arrows).
 //
 // WHICH nodes it can adjust is Go's answer, same data-driven shape as DistanceHomePanel:
-// it reflects every node whose TiltVectorLen > 0 (useTiltVectorRows, overlay-flags.ts —
+// it reflects every node whose TopTiltVectorLen > 0 (useTiltVectorRows, overlay-flags.ts —
 // the SAME column TiltVectors.tsx gates its own draw on). A scene whose nodes all stream
-// TiltVectorLen 0 (no tilt vectors drawn at all) yields an EMPTY row list, and this panel
+// TopTiltVectorLen 0 (no tilt vectors drawn at all) yields an EMPTY row list, and this panel
 // renders nothing — no scene branch on either side, just the shared "no rows" signal
 // DistanceHomePanel's "no groups" check uses.
 //

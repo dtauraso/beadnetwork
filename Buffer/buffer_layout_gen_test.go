@@ -58,9 +58,10 @@ func TestSetNodeRow(t *testing.T) {
 		0.4, 0.5, 0.6, // frx, fry, frz
 		0.7, 0.8, // poleTheta, polePhi
 		0.9, 1.1, // ringAxisTheta, ringAxisPhi
-		2.5, // tiltVectorLen — the DRAWN ring's axis, separate from the
+		2.5, // topTiltVectorLen — the DRAWN ring's axis, separate from the
 		//           navigation pole above (Buffer/layout.go)
-		1.3, 1.7, // tiltVectorTheta, tiltVectorPhi — the vector's OWN direction
+		1.3, 1.7, // topTiltVectorTheta, topTiltVectorPhi — the TOP vector's OWN direction
+		-1.4, 1.7, // bottomTiltVectorTheta, bottomTiltVectorPhi — a half turn in θ from the top
 		0.55, -0.35, // coplanarNormalTheta, coplanarNormalPhi — a quarter turn from it, in the ring plane
 		4.5, 0.15, -0.85, // receivedVectorLen, receivedVectorTheta, receivedVectorPhi — the THIRD
 		//           vector: the direction last received on this node's vector channel; 0 length = none yet
@@ -87,9 +88,11 @@ func TestSetNodeRow(t *testing.T) {
 	assertF32At(t, buf, BufNodeColPolePhi, 0.8, "PolePhi")
 	assertF32At(t, buf, BufNodeColRingAxisTheta, 0.9, "RingAxisTheta")
 	assertF32At(t, buf, BufNodeColRingAxisPhi, 1.1, "RingAxisPhi")
-	assertF32At(t, buf, BufNodeColTiltVectorLen, 2.5, "TiltVectorLen")
-	assertF32At(t, buf, BufNodeColTiltVectorTheta, 1.3, "TiltVectorTheta")
-	assertF32At(t, buf, BufNodeColTiltVectorPhi, 1.7, "TiltVectorPhi")
+	assertF32At(t, buf, BufNodeColTopTiltVectorLen, 2.5, "TopTiltVectorLen")
+	assertF32At(t, buf, BufNodeColBottomTiltVectorTheta, -1.4, "BottomTiltVectorTheta")
+	assertF32At(t, buf, BufNodeColBottomTiltVectorPhi, 1.7, "BottomTiltVectorPhi")
+	assertF32At(t, buf, BufNodeColTopTiltVectorTheta, 1.3, "TopTiltVectorTheta")
+	assertF32At(t, buf, BufNodeColTopTiltVectorPhi, 1.7, "TopTiltVectorPhi")
 	assertF32At(t, buf, BufNodeColCoplanarNormalTheta, 0.55, "CoplanarNormalTheta")
 	assertF32At(t, buf, BufNodeColCoplanarNormalPhi, -0.35, "CoplanarNormalPhi")
 	assertF32At(t, buf, BufNodeColReceivedVectorLen, 4.5, "ReceivedVectorLen")
@@ -166,14 +169,16 @@ func TestNodeStrideIsPackedSize(t *testing.T) {
 	//           + 2×f32 (ringAxisTheta/ringAxisPhi — the DRAWN ring's axis, separate from the
 	//             navigation pole)
 	//           + 1×u8 (selected) + 1×u8 (kindID) + 2×u32 (label off/len) + 1×u8 (hovered) + 1×u8 (latchedSel)
-	//           + 1×f32 (tiltVectorLen — the node's own drawn vector; 0 = none)
+	//           + 1×f32 (topTiltVectorLen — the node's own drawn vector; 0 = none)
 	//           + 2×f32 (coplanarNormalTheta/coplanarNormalPhi — the SECOND vector, a quarter turn away)
-	//           + 2×f32 (tiltVectorTheta/tiltVectorPhi — the vector's OWN direction, separate
-	//             from the drawn ring axis)
+	//           + 2×f32 (topTiltVectorTheta/topTiltVectorPhi — the TOP vector's OWN direction,
+	//             separate from the drawn ring axis)
+	//           + 2×f32 (bottomTiltVectorTheta/bottomTiltVectorPhi — the BOTTOM vector, a half
+	//             turn in θ from the top; it shares the top's length column)
 	//           + 3×f32 (receivedVectorLen/theta/phi — the THIRD vector: the direction last
 	//             received on this node's vector channel; 0 length = nothing received yet)
-	//           = 4 + (5+6+2+2+1+2+3)×4 + 1 + 1 + 8 + 1 + 1 = 100
-	want := 1*4 + 5*4 + 6*4 + 2*4 + 2*4 + 1*4 + 2*4 + 2*4 + 3*4 + 1*1 + 1*1 + 2*4 + 1*1 + 1*1
+	//           = 4 + (5+6+2+2+1+2+2+3)×4 + 1 + 1 + 8 + 1 + 1
+	want := 1*4 + 5*4 + 6*4 + 2*4 + 2*4 + 1*4 + 2*4 + 2*4 + 2*4 + 3*4 + 1*1 + 1*1 + 2*4 + 1*1 + 1*1
 	if BufNodeStride != want {
 		t.Errorf("BufNodeStride = %d, want %d (packed size)", BufNodeStride, want)
 	}

@@ -22,5 +22,5 @@ func TestPerpendicularThetaIdxIsSixSteps(t *testing.T) {
 // coplanarNormalTowardPartner: the DRAWN normal is now defined AS a fixed ±90° offset
 // FROM the tilt (nodes/Node1/node.go, nodes/Node2/node.go's coplanarNormal), so it moves
 // WITH the tilt on purpose. The straightening rule's own stop condition never measured the
-// drawn normal anyway — it compares TiltThetaIdx directly against PerpendicularThetaIdx
+// drawn normal anyway — it compares TopTiltThetaIdx directly against PerpendicularThetaIdx
 // (stepTilt, both packages), which is unaffected by this change.

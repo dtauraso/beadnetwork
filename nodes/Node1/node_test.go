@@ -5,39 +5,17 @@ import (
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
-// The straightening loop's whole reactive rule now lives on THIS node kind's own
-// goroutine (stepTilt) — this asserts what that ONE goroutine's own
-// method decides, per docs/testing-shape.md: index arithmetic only, no mover/second
-// goroutine involved.
-
-// Node1 always SUBTRACTS one step of π/12, whichever side of perpendicular it is on — the
-// direction is a property of the KIND, not of where the tilt currently sits. Its partner
-// moves the opposite way by the same step, so a pair turns symmetrically.
-func TestStepAlwaysMovesTheSameDirection(t *testing.T) {
-	below := &Node{TiltThetaIdx: 3}
-	if moved := below.stepTilt(); !moved || below.TiltThetaIdx != 2 {
-		t.Fatalf("from below perpendicular, want moved=true thetaIdx=2, got moved=%v thetaIdx=%d", moved, below.TiltThetaIdx)
-	}
-
-	above := &Node{TiltThetaIdx: 9}
-	if moved := above.stepTilt(); !moved || above.TiltThetaIdx != 8 {
-		t.Fatalf("from above perpendicular, want moved=true thetaIdx=8, got moved=%v thetaIdx=%d", moved, above.TiltThetaIdx)
-	}
-}
-
-// AT perpendicular, a call changes nothing and reports no move — this is the loop's
-// termination, not a missed case.
-func TestStepStopsAtPerpendicular(t *testing.T) {
-	n := &Node{TiltThetaIdx: Wiring.PerpendicularThetaIdx}
-	if moved := n.stepTilt(); moved {
-		t.Fatalf("at perpendicular, want moved=false, got true (index now %d)", n.TiltThetaIdx)
-	}
-	if n.TiltThetaIdx != Wiring.PerpendicularThetaIdx {
-		t.Fatalf("at perpendicular, index must not move; got %d, want %d", n.TiltThetaIdx, Wiring.PerpendicularThetaIdx)
-	}
-}
+// The pair's whole reactive rule lives on THIS node kind's own goroutine — this asserts
+// what that ONE goroutine's own methods decide, per docs/testing-shape.md: index arithmetic
+// only, no mover/second goroutine involved.
+//
+// The old bead-path step tests are gone with that rule itself: a bead arrival used to step this
+// node one click in the kind's own fixed direction, regardless of what arrived, which is
+// what turned a pair one way forever. The bead now only paces; stepFromVector's dots are
+// the only rule that turns a tilt on an arrival, and they are asserted below.
 
 // applyTiltEdit is what the RESET button (TiltResetButton.tsx) and the tilt-angle panel
 // both drive; this asserts THIS node kind's own decision for a reset, from any starting
@@ -50,13 +28,13 @@ func TestApplyTiltEditResetReturnsBothIndicesToZero(t *testing.T) {
 		{-9, 12},
 		{Wiring.PerpendicularThetaIdx, 4},
 	} {
-		n := &Node{TiltThetaIdx: start.theta, TiltPhiIdx: start.phi}
+		n := &Node{TopTiltThetaIdx: start.theta, TopTiltPhiIdx: start.phi}
 		placeBead := n.applyTiltEdit(Wiring.TiltEditMsg{Reset: true})
 		if placeBead {
 			t.Fatalf("reset from theta=%d phi=%d must place no bead, got placeBead=true", start.theta, start.phi)
 		}
-		if n.TiltThetaIdx != 0 || n.TiltPhiIdx != 0 {
-			t.Fatalf("reset from theta=%d phi=%d: want both indices 0, got theta=%d phi=%d", start.theta, start.phi, n.TiltThetaIdx, n.TiltPhiIdx)
+		if n.TopTiltThetaIdx != 0 || n.TopTiltPhiIdx != 0 {
+			t.Fatalf("reset from theta=%d phi=%d: want both indices 0, got theta=%d phi=%d", start.theta, start.phi, n.TopTiltThetaIdx, n.TopTiltPhiIdx)
 		}
 	}
 }
@@ -68,7 +46,7 @@ func TestCoplanarNormalIsPlusSixStepsInTheta(t *testing.T) {
 	for _, start := range []struct{ theta, phi int32 }{
 		{0, 0}, {5, -3}, {-9, 12},
 	} {
-		n := &Node{TiltThetaIdx: start.theta, TiltPhiIdx: start.phi}
+		n := &Node{TopTiltThetaIdx: start.theta, TopTiltPhiIdx: start.phi}
 		norm := n.coplanarNormal()
 		if norm.ThetaIdx != start.theta+Wiring.PerpendicularThetaIdx {
 			t.Fatalf("coplanarNormal theta: want tilt+%d=%d, got %d", Wiring.PerpendicularThetaIdx, start.theta+Wiring.PerpendicularThetaIdx, norm.ThetaIdx)
@@ -85,7 +63,7 @@ func TestCoplanarNormalIsPlusSixStepsInTheta(t *testing.T) {
 func TestApplyTiltEditResetDrainsVectorIn(t *testing.T) {
 	vectorIn := make(chan Wiring.TiltVectorMsg, 1)
 	vectorIn <- Wiring.TiltVectorMsg{ThetaIdx: 99, PhiIdx: -1}
-	n := &Node{TiltThetaIdx: 5, TiltPhiIdx: -2, VectorIn: vectorIn}
+	n := &Node{TopTiltThetaIdx: 5, TopTiltPhiIdx: -2, VectorIn: vectorIn}
 	n.applyTiltEdit(Wiring.TiltEditMsg{Reset: true})
 	select {
 	case v := <-vectorIn:
@@ -97,13 +75,13 @@ func TestApplyTiltEditResetDrainsVectorIn(t *testing.T) {
 // A non-reset edit (the panel's ±1 click) still unconditionally applies its delta and
 // reports a bead should be placed — the RESET addition must not change this existing path.
 func TestApplyTiltEditAdjustStillPlacesBead(t *testing.T) {
-	n := &Node{TiltThetaIdx: 3, TiltPhiIdx: 1}
+	n := &Node{TopTiltThetaIdx: 3, TopTiltPhiIdx: 1}
 	placeBead := n.applyTiltEdit(Wiring.TiltEditMsg{Axis: "theta", Up: true})
 	if !placeBead {
 		t.Fatalf("adjust must place a bead, got placeBead=false")
 	}
-	if n.TiltThetaIdx != 4 || n.TiltPhiIdx != 1 {
-		t.Fatalf("adjust theta up: want theta=4 phi=1, got theta=%d phi=%d", n.TiltThetaIdx, n.TiltPhiIdx)
+	if n.TopTiltThetaIdx != 4 || n.TopTiltPhiIdx != 1 {
+		t.Fatalf("adjust theta up: want theta=4 phi=1, got theta=%d phi=%d", n.TopTiltThetaIdx, n.TopTiltPhiIdx)
 	}
 }
 
@@ -111,7 +89,7 @@ func TestApplyTiltEditAdjustStillPlacesBead(t *testing.T) {
 // −12 index steps (−180°, two of the 6-step quarter turns) — and leaves φ untouched.
 // This is THIS node's own arithmetic, asserted without any channel involved.
 func TestOutgoingVectorIsMinus180StepsInThetaOnly(t *testing.T) {
-	n := &Node{TiltThetaIdx: 3, TiltPhiIdx: -7}
+	n := &Node{TopTiltThetaIdx: 3, TopTiltPhiIdx: -7}
 	norm := n.coplanarNormal()
 	if norm.ThetaIdx != 3+Wiring.PerpendicularThetaIdx || norm.PhiIdx != -7 {
 		t.Fatalf("coplanarNormal: want theta=%d phi=-7, got theta=%d phi=%d",
@@ -127,28 +105,48 @@ func TestOutgoingVectorIsMinus180StepsInThetaOnly(t *testing.T) {
 	}
 }
 
-// stepTowardPerpendicularFromVector is Node1's own step decision on a vector-channel
-// arrival: away from perpendicular it moves one π/12 step (same direction stepTilt
-// always takes for this kind), and reports the move.
-func TestStepFromVectorMovesOneStepAwayFromPerpendicular(t *testing.T) {
-	n := &Node{TiltThetaIdx: 3}
-	received := Wiring.TiltVectorMsg{ThetaIdx: 99, PhiIdx: -5}
-	if moved := n.stepTowardPerpendicularFromVector(received); !moved || n.TiltThetaIdx != 2 {
-		t.Fatalf("want moved=true thetaIdx=2, got moved=%v thetaIdx=%d", moved, n.TiltThetaIdx)
+// stepFromVector's TWO dots decide both whether to move and WHICH WAY. Leaning toward this
+// node's own TOP tilt vector takes Node1's base direction; leaning toward its BOTTOM tilt
+// vector takes the reverse. These assert one goroutine's own arithmetic, no channel
+// involved (docs/testing-shape.md).
+func TestStepFromVectorTakesBaseDirectionWhenAcuteWithTop(t *testing.T) {
+	// Tilt at index 0 points at world +y; an arrival at index 0 is the same direction, so
+	// dot(arrived, top) = 1 (acute) and dot(arrived, bottom) = -1.
+	n := &Node{TopTiltThetaIdx: 0}
+	if moved := n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: 0}); !moved || n.TopTiltThetaIdx != -1 {
+		t.Fatalf("acute with the TOP tilt: want moved=true thetaIdx=-1, got moved=%v thetaIdx=%d",
+			moved, n.TopTiltThetaIdx)
 	}
 }
 
-// AT perpendicular, an arriving vector still steps nothing and the caller must send
-// nothing — this is the exchange's stop condition, asserted at the decision method
-// itself, not by observing two goroutines communicate.
-func TestStepFromVectorStopsAtPerpendicular(t *testing.T) {
-	n := &Node{TiltThetaIdx: Wiring.PerpendicularThetaIdx}
-	received := Wiring.TiltVectorMsg{ThetaIdx: 1, PhiIdx: 1}
-	if moved := n.stepTowardPerpendicularFromVector(received); moved {
-		t.Fatalf("at perpendicular, want moved=false, got true (index now %d)", n.TiltThetaIdx)
+func TestStepFromVectorReversesWhenAcuteWithBottom(t *testing.T) {
+	// A half turn from the tilt: now dot(arrived, bottom) = 1 and dot(arrived, top) = -1,
+	// so the step must go the OTHER way from the case above.
+	n := &Node{TopTiltThetaIdx: 0}
+	if moved := n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: Wiring.HalfTurnThetaIdx}); !moved || n.TopTiltThetaIdx != 1 {
+		t.Fatalf("acute with the BOTTOM tilt: want moved=true thetaIdx=1, got moved=%v thetaIdx=%d",
+			moved, n.TopTiltThetaIdx)
 	}
-	if n.TiltThetaIdx != Wiring.PerpendicularThetaIdx {
-		t.Fatalf("at perpendicular, index must not move; got %d, want %d", n.TiltThetaIdx, Wiring.PerpendicularThetaIdx)
+}
+
+// Exactly perpendicular to the tilt axis is the ONE case neither dot claims — no step, and
+// the caller must send nothing. This is the exchange's stop condition, and it is about the
+// ARRIVED direction, not about this node sitting on any particular index: the node here is
+// AT PerpendicularThetaIdx and still would have stepped had the arrival leaned either way.
+func TestStepFromVectorStopsWhenNeitherDotIsAcute(t *testing.T) {
+	n := &Node{TopTiltThetaIdx: Wiring.PerpendicularThetaIdx}
+	perp := Wiring.TiltVectorMsg{ThetaIdx: n.TopTiltThetaIdx + Wiring.PerpendicularThetaIdx}
+	if moved := n.stepFromVector(perp); moved {
+		t.Fatalf("perpendicular arrival: want moved=false, got true (index now %d)", n.TopTiltThetaIdx)
+	}
+	if n.TopTiltThetaIdx != Wiring.PerpendicularThetaIdx {
+		t.Fatalf("perpendicular arrival must not move the index; got %d, want %d",
+			n.TopTiltThetaIdx, Wiring.PerpendicularThetaIdx)
+	}
+	// ...and the same node DOES step when the arrival leans, proving the stop above came
+	// from the dots and not from where this node happens to sit.
+	if moved := n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: n.TopTiltThetaIdx}); !moved {
+		t.Fatal("a leaning arrival must still step a node sitting at the perpendicular index")
 	}
 }
 
@@ -160,7 +158,7 @@ func TestResettingBothNodesEmptiesBothDirections(t *testing.T) {
 	oneToTwo := make(chan Wiring.TiltVectorMsg, 1)
 	twoToOne := make(chan Wiring.TiltVectorMsg, 1)
 	// Node1 sends on oneToTwo and receives on twoToOne; its partner is the mirror image.
-	one := &Node{TiltThetaIdx: 4, TiltPhiIdx: 2, VectorOut: oneToTwo, VectorIn: twoToOne}
+	one := &Node{TopTiltThetaIdx: 4, TopTiltPhiIdx: 2, VectorOut: oneToTwo, VectorIn: twoToOne}
 	partnerIn := oneToTwo // what the other node owns the receive end of
 
 	// A stale direction is in flight BOTH ways when reset is pressed.
@@ -168,8 +166,8 @@ func TestResettingBothNodesEmptiesBothDirections(t *testing.T) {
 	twoToOne <- Wiring.TiltVectorMsg{ThetaIdx: 9}
 
 	one.applyTiltEdit(Wiring.TiltEditMsg{Reset: true})
-	if one.TiltThetaIdx != 0 || one.TiltPhiIdx != 0 {
-		t.Fatalf("reset must zero both indices; got theta=%d phi=%d", one.TiltThetaIdx, one.TiltPhiIdx)
+	if one.TopTiltThetaIdx != 0 || one.TopTiltPhiIdx != 0 {
+		t.Fatalf("reset must zero both indices; got theta=%d phi=%d", one.TopTiltThetaIdx, one.TopTiltPhiIdx)
 	}
 	if _, ok := Wiring.PollRecvVector(twoToOne); ok {
 		t.Fatal("reset left a value on the end this node owns")
@@ -189,13 +187,13 @@ func TestResettingBothNodesEmptiesBothDirections(t *testing.T) {
 func TestReceivedResetZeroesAndDoesNotReply(t *testing.T) {
 	out := make(chan Wiring.TiltVectorMsg, 1)
 	in := make(chan Wiring.TiltVectorMsg, 1)
-	n := &Node{TiltThetaIdx: 5, TiltPhiIdx: 3, VectorOut: out, VectorIn: in}
+	n := &Node{TopTiltThetaIdx: 5, TopTiltPhiIdx: 3, VectorOut: out, VectorIn: in}
 
 	in <- Wiring.TiltVectorMsg{Reset: true}
-	n.handleVectorCycle()
+	n.handleVectorCycle(0)
 
-	if n.TiltThetaIdx != 0 || n.TiltPhiIdx != 0 {
-		t.Fatalf("a received reset must zero both indices; got theta=%d phi=%d", n.TiltThetaIdx, n.TiltPhiIdx)
+	if n.TopTiltThetaIdx != 0 || n.TopTiltPhiIdx != 0 {
+		t.Fatalf("a received reset must zero both indices; got theta=%d phi=%d", n.TopTiltThetaIdx, n.TopTiltPhiIdx)
 	}
 	if v, ok := Wiring.PollRecvVector(out); ok {
 		t.Fatalf("a received reset must not be replied to; got %+v", v)
@@ -204,17 +202,17 @@ func TestReceivedResetZeroesAndDoesNotReply(t *testing.T) {
 
 // handleVectorCycle stores the received direction as this node's own third drawn vector
 // — asserted at the decision method itself (docs/testing-shape.md), never by observing a
-// mover or a second goroutine. Perpendicular so stepTilt itself does not fire; the record
+// mover or a second goroutine. Perpendicular so the step itself does not fire; the record
 // must still happen (the third arrow shows the last ARRIVAL, not the last arrival that
 // moved something). It shows only while the exchange is RUNNING.
 func TestHandleVectorCycleRecordsReceivedDirection(t *testing.T) {
 	in := make(chan Wiring.TiltVectorMsg, 1)
 	// MID-exchange: not at the perpendicular index, where an arrival would instead clear
 	// the third arrow because the exchange has stopped.
-	n := &Node{TiltThetaIdx: 2, VectorIn: in}
+	n := &Node{TopTiltThetaIdx: 2, VectorIn: in}
 
 	in <- Wiring.TiltVectorMsg{ThetaIdx: 7, PhiIdx: -4}
-	n.handleVectorCycle()
+	n.handleVectorCycle(0)
 
 	if !n.ReceivedSet {
 		t.Fatal("an arrival must set ReceivedSet, got false")
@@ -228,12 +226,12 @@ func TestHandleVectorCycleRecordsReceivedDirection(t *testing.T) {
 func TestHandleVectorCycleReplacesPreviousReceivedDirection(t *testing.T) {
 	in := make(chan Wiring.TiltVectorMsg, 1)
 	// MID-exchange, so both arrivals are recorded rather than clearing (see above).
-	n := &Node{TiltThetaIdx: 2, VectorIn: in}
+	n := &Node{TopTiltThetaIdx: 2, VectorIn: in}
 
 	in <- Wiring.TiltVectorMsg{ThetaIdx: 7, PhiIdx: -4}
-	n.handleVectorCycle()
+	n.handleVectorCycle(0)
 	in <- Wiring.TiltVectorMsg{ThetaIdx: -2, PhiIdx: 11}
-	n.handleVectorCycle()
+	n.handleVectorCycle(0)
 
 	if n.ReceivedThetaIdx != -2 || n.ReceivedPhiIdx != 11 {
 		t.Fatalf("want the LATEST arrival theta=-2 phi=11, got theta=%d phi=%d", n.ReceivedThetaIdx, n.ReceivedPhiIdx)
@@ -243,28 +241,40 @@ func TestHandleVectorCycleReplacesPreviousReceivedDirection(t *testing.T) {
 	}
 }
 
-// The third arrow is drawn only while the exchange is RUNNING. An arrival that finds this
-// node already at the perpendicular index — where it steps nothing and sends nothing, which
-// IS the exchange stopping — clears it instead of showing itself. The drawing stops with the
-// exchange rather than leaving its last frame on screen.
-func TestReceivedVectorVanishesWhenTheExchangeStops(t *testing.T) {
-	n := &Node{TiltThetaIdx: Wiring.PerpendicularThetaIdx, ReceivedThetaIdx: 4, ReceivedPhiIdx: 1, ReceivedSet: true}
+// The third arrow STAYS until the next arrival replaces it. An arrival is recorded even
+// when it does not move this node — including the case where the step decision declines and
+// the exchange comes to rest — because the last direction a node was sent is what it is
+// still holding. Only a RESET removes it (asserted separately, below).
+func TestReceivedVectorRecordedEvenWhenNothingSteps(t *testing.T) {
+	// Perpendicular to this node's own tilt axis: neither dot is acute, so nothing steps
+	// and nothing is sent — the exchange comes to rest on this arrival.
+	n := &Node{TopTiltThetaIdx: 0, ReceivedThetaIdx: 4, ReceivedPhiIdx: 1, ReceivedSet: true}
 	in := make(chan Wiring.TiltVectorMsg, 1)
-	n.VectorIn = in
-	in <- Wiring.TiltVectorMsg{ThetaIdx: 7, PhiIdx: 2}
+	out := make(chan Wiring.TiltVectorMsg, 1)
+	n.VectorIn, n.VectorOut = in, out
+	arrived := Wiring.TiltVectorMsg{ThetaIdx: Wiring.PerpendicularThetaIdx, PhiIdx: 0}
+	in <- arrived
 
-	n.handleVectorCycle()
+	n.handleVectorCycle(0)
 
-	if n.ReceivedSet || n.ReceivedThetaIdx != 0 || n.ReceivedPhiIdx != 0 {
-		t.Fatalf("at perpendicular the third arrow must vanish; got set=%v theta=%d phi=%d",
+	if !n.ReceivedSet || n.ReceivedThetaIdx != arrived.ThetaIdx || n.ReceivedPhiIdx != arrived.PhiIdx {
+		t.Fatalf("the arrived direction must be recorded even when nothing steps; got set=%v theta=%d phi=%d",
 			n.ReceivedSet, n.ReceivedThetaIdx, n.ReceivedPhiIdx)
+	}
+	if n.TopTiltThetaIdx != 0 {
+		t.Fatalf("neither dot is acute here, so the tilt must not move; got %d", n.TopTiltThetaIdx)
+	}
+	select {
+	case v := <-out:
+		t.Fatalf("nothing must be sent when nothing steps; got %+v", v)
+	default:
 	}
 }
 
 // This node's own LOCAL reset (applyTiltEdit's Reset branch) clears the received-vector
 // record too — a stale received arrow left hanging would contradict the reset.
 func TestApplyTiltEditResetClearsReceivedVector(t *testing.T) {
-	n := &Node{TiltThetaIdx: 5, ReceivedThetaIdx: 9, ReceivedPhiIdx: -1, ReceivedSet: true}
+	n := &Node{TopTiltThetaIdx: 5, ReceivedThetaIdx: 9, ReceivedPhiIdx: -1, ReceivedSet: true}
 	n.applyTiltEdit(Wiring.TiltEditMsg{Reset: true})
 
 	if n.ReceivedSet {
@@ -281,11 +291,11 @@ func TestApplyTiltEditResetClearsReceivedVector(t *testing.T) {
 func TestHandleVectorCycleReceivedResetClearsReceivedVector(t *testing.T) {
 	out := make(chan Wiring.TiltVectorMsg, 1)
 	in := make(chan Wiring.TiltVectorMsg, 1)
-	n := &Node{TiltThetaIdx: 5, VectorOut: out, VectorIn: in,
+	n := &Node{TopTiltThetaIdx: 5, VectorOut: out, VectorIn: in,
 		ReceivedThetaIdx: 9, ReceivedPhiIdx: -1, ReceivedSet: true}
 
 	in <- Wiring.TiltVectorMsg{Reset: true}
-	n.handleVectorCycle()
+	n.handleVectorCycle(0)
 
 	if n.ReceivedSet {
 		t.Fatal("a received reset must clear ReceivedSet, got true")
@@ -305,12 +315,13 @@ func TestUpdateSyncsOpeningTiltIndexBeforeLoop(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	var gotTheta, gotPhi, gotNormalTheta, gotNormalPhi int32
+	var gotTheta, gotPhi, gotNormalTheta, gotNormalPhi, gotBottomTheta, gotBottomPhi int32
 	calls := 0
-	n := &Node{TiltThetaIdx: 4, TiltPhiIdx: -2}
-	n.SyncTiltIndex = func(theta, phi, normalTheta, normalPhi int32) {
+	n := &Node{TopTiltThetaIdx: 4, TopTiltPhiIdx: -2}
+	n.SyncTiltIndex = func(theta, phi, normalTheta, normalPhi, bottomTheta, bottomPhi int32) {
 		calls++
 		gotTheta, gotPhi, gotNormalTheta, gotNormalPhi = theta, phi, normalTheta, normalPhi
+		gotBottomTheta, gotBottomPhi = bottomTheta, bottomPhi
 	}
 
 	n.Update(ctx)
@@ -321,8 +332,148 @@ func TestUpdateSyncsOpeningTiltIndexBeforeLoop(t *testing.T) {
 	if gotTheta != 4 || gotPhi != -2 {
 		t.Fatalf("opening tilt: want (4,-2), got (%d,%d)", gotTheta, gotPhi)
 	}
+	// The BOTTOM tilt rides the same opening sync, for the same reason: the mover cannot
+	// derive the half turn's sign either, and a bottom left at zero would draw at world +y
+	// on top of the opening top tilt.
+	wantBottomTheta := int32(4) + Wiring.HalfTurnThetaIdx
+	if gotBottomTheta != wantBottomTheta || gotBottomPhi != -2 {
+		t.Fatalf("opening bottom tilt: want (%d,-2), got (%d,%d)", wantBottomTheta, gotBottomTheta, gotBottomPhi)
+	}
 	wantNormalTheta := int32(4) + Wiring.PerpendicularThetaIdx
 	if gotNormalTheta != wantNormalTheta || gotNormalPhi != -2 {
 		t.Fatalf("opening normal: want (%d,-2), got (%d,%d)", wantNormalTheta, gotNormalTheta, gotNormalPhi)
+	}
+}
+
+// A reset is not "zero the indices" — it is "leave nothing that can restart the exchange".
+// The bead edge is what has actually been turning these tilts, so clear must empty this
+// node's own In of beads already delivered to it; anything left there arrives on the next
+// cycle and steps the tilt straight back off zero, which is what a reset that visibly does
+// not take looks like. One goroutine, its own port, per docs/testing-shape.md.
+func TestClearDrainsDeliveredBeads(t *testing.T) {
+	beads := make(chan int, 4)
+	beads <- 1
+	beads <- 1
+	n := &Node{TopTiltThetaIdx: 5, In: wire.NewInChan(beads, "n1", "In", nil, nil)}
+
+	n.clear()
+
+	if _, ok := n.In.PollRecv(); ok {
+		t.Fatal("clear must leave In empty; a bead survived and would restart the exchange")
+	}
+	if n.TopTiltThetaIdx != 0 {
+		t.Fatalf("clear must zero the tilt index, got %d", n.TopTiltThetaIdx)
+	}
+}
+
+// The beads still CROSSING this node's outgoing wires are not this goroutine's to drop —
+// a PacedWire is driven by its source node's own mover. So clear asks (ClearOutBeads),
+// and this asserts the ask, which is the whole of what this goroutine decides here.
+func TestClearAsksTheMoverToEmptyItsOutgoingWires(t *testing.T) {
+	asked := 0
+	n := &Node{TopTiltThetaIdx: 5, ClearOutBeads: func() { asked++ }}
+
+	n.clear()
+
+	if asked != 1 {
+		t.Fatalf("clear must ask the mover exactly once to empty this node's outgoing wires, got %d asks", asked)
+	}
+}
+
+// Both routes into a reset run the SAME clear: the button (applyTiltEdit) and the partner's
+// Reset marker (handleVectorCycle). The marker-driven one is the one that lands after the
+// partner stopped placing, so it is the one that actually makes the pair quiescent — it
+// must do the full clear, not just the index zeroing it used to do.
+func TestReceivedResetMarkerRunsTheFullClear(t *testing.T) {
+	beads := make(chan int, 4)
+	beads <- 1
+	asked := 0
+	in := make(chan Wiring.TiltVectorMsg, 1)
+	n := &Node{TopTiltThetaIdx: 5, ReceivedThetaIdx: 9, ReceivedSet: true,
+		In: wire.NewInChan(beads, "n1", "In", nil, nil), VectorIn: in,
+		ClearOutBeads: func() { asked++ }}
+
+	in <- Wiring.TiltVectorMsg{Reset: true}
+	n.handleVectorCycle(0)
+
+	if _, ok := n.In.PollRecv(); ok {
+		t.Fatal("a received reset marker must drain this node's delivered beads too")
+	}
+	if asked != 1 {
+		t.Fatalf("a received reset marker must ask the mover to empty the outgoing wires, got %d asks", asked)
+	}
+	if n.TopTiltThetaIdx != 0 || n.ReceivedSet {
+		t.Fatalf("a received reset marker must zero the tilt and clear the third arrow; got theta=%d set=%v", n.TopTiltThetaIdx, n.ReceivedSet)
+	}
+}
+
+// The panel click is the vector exchange's OPENING MOVE, not just the bead's. Without it
+// nothing is ever sent on the channel that is not a reply to an arrival, so no arrival ever
+// happens, no node records a received direction, and the third arrow cannot be drawn
+// anywhere. Asserts what this ONE goroutine's own method emits, per docs/testing-shape.md.
+func TestPanelAdjustOpensTheVectorExchange(t *testing.T) {
+	out := make(chan Wiring.TiltVectorMsg, 1)
+	n := &Node{TopTiltThetaIdx: 3, VectorOut: out}
+
+	n.applyTiltEdit(Wiring.TiltEditMsg{Axis: "theta", Up: true})
+
+	select {
+	case got := <-out:
+		if got.Reset {
+			t.Fatal("a panel adjust must send a DIRECTION, not a reset marker")
+		}
+		// The direction must be derived from the index this click produced (4), not the
+		// one it replaced (3) — otherwise the partner aims at a tilt that no longer exists.
+		if want := n.outgoingVector(); got != want {
+			t.Fatalf("sent %+v, want this node's post-click outgoing vector %+v", got, want)
+		}
+	default:
+		t.Fatal("a panel adjust sent nothing on VectorOut; the exchange has no opening move and the third arrow can never appear")
+	}
+}
+
+// A RESET is the opposite: it sends the Reset MARKER, never a direction. A direction here
+// would restart the very exchange the reset exists to end.
+func TestResetSendsAMarkerNotADirection(t *testing.T) {
+	out := make(chan Wiring.TiltVectorMsg, 1)
+	n := &Node{TopTiltThetaIdx: 3, VectorOut: out}
+
+	n.applyTiltEdit(Wiring.TiltEditMsg{Reset: true})
+
+	got := <-out
+	if !got.Reset {
+		t.Fatalf("reset must send the Reset marker, got a direction %+v", got)
+	}
+}
+
+// The bead now travels WITH the vector: it is placed by the vector branch when the dots
+// actually move this node, not by the bead branch on every round trip. So the bead loop
+// lives and dies with the exchange it paces, instead of circulating on its own in this
+// kind's fixed direction forever.
+func TestBeadIsPlacedByTheVectorStepNotByABeadArrival(t *testing.T) {
+	ctx := context.Background()
+	pw := wire.NewPacedWire(1, 1.0)
+	out := wire.NewPacedOutNoGeom(pw, ctx, "Node1", "Out", nil, wire.RuleFireAndForget, 1, "")
+	in := make(chan Wiring.TiltVectorMsg, 1)
+	n := &Node{TopTiltThetaIdx: 0, VectorIn: in, Out: out}
+
+	// An arrival that LEANS: the dots move this node, so a bead goes out with the reply.
+	in <- Wiring.TiltVectorMsg{ThetaIdx: 0}
+	n.handleVectorCycle(1)
+	pw.DriveOneCycle(ctx, 2)
+	if _, _, ok := pw.RecvTick(); !ok {
+		t.Fatal("a vector step must place its own bead; nothing was placed")
+	}
+
+	// An arrival that is exactly PERPENDICULAR: nothing steps, so nothing is placed and the
+	// bead loop ends here rather than being handed on regardless.
+	n.TopTiltThetaIdx = 0
+	in <- Wiring.TiltVectorMsg{ThetaIdx: Wiring.PerpendicularThetaIdx}
+	n.handleVectorCycle(3)
+	for tick := int64(4); tick < 10; tick++ {
+		pw.DriveOneCycle(ctx, tick)
+		if _, _, ok := pw.RecvTick(); ok {
+			t.Fatal("nothing steps on a perpendicular arrival, so no bead may be placed")
+		}
 	}
 }

@@ -504,6 +504,34 @@ func (pw *PacedWire) Recv() (int, bool) {
 	return v, ok
 }
 
+// ClearInFlight drops every bead this wire is carrying — the ones already crossing
+// (inflight) AND the ones placed but not yet drained off inCh — so the wire is left
+// as empty as a freshly built one. Nothing is delivered: a cleared bead never reaches
+// the destination's outCh, which is the point. Beads already handed off to outCh are
+// NOT touched here; they belong to the DESTINATION node now, and that node drains its
+// own In (docs/beads-are-the-edge.md's ownership split).
+//
+// Same single-goroutine contract as DriveOneCycle/LiveBeadFractions, and for the same
+// reason: inflight and inCh are owned by whichever goroutine drives this wire, which in
+// production is the SOURCE node's own mover (nodeMover.run). Call it only from there —
+// a node goroutine that wants its own outgoing wires cleared asks its mover
+// (moveMsgKindBeadClear), it does not reach in here itself.
+//
+// The one caller today is the pair's RESET (nodes/Node1, nodes/Node2): a reset means the
+// straightening exchange is over, and beads still crossing would land a moment later and
+// step the tilt straight back off zero — so returning the indices without emptying the
+// bead edge does not actually stop anything.
+func (pw *PacedWire) ClearInFlight() {
+	for {
+		select {
+		case <-pw.inCh:
+		default:
+			pw.inflight = nil
+			return
+		}
+	}
+}
+
 // DriveOneCycle is this wire's single per-cycle unit of work: drain newly
 // Send-ed beads off inCh (stamping their placementTick from req.placementTick
 // — the SENDING node's own clock reading, taken once at Send time, not read

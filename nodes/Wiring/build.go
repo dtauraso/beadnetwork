@@ -299,11 +299,11 @@ func (b *buildCtx) buildMoveDispatch() error {
 			continue
 		}
 		nm.selfKind = n.Type
-		if n.TiltVectorThetaIdx != nil {
-			nm.tiltVectorThetaIdx = *n.TiltVectorThetaIdx
+		if n.TopTiltVectorThetaIdx != nil {
+			nm.topTiltVectorThetaIdx = *n.TopTiltVectorThetaIdx
 		}
-		if n.TiltVectorPhiIdx != nil {
-			nm.tiltVectorPhiIdx = *n.TiltVectorPhiIdx
+		if n.TopTiltVectorPhiIdx != nil {
+			nm.topTiltVectorPhiIdx = *n.TopTiltVectorPhiIdx
 		}
 	}
 	// Seed each node's OWN neighborKinds map — every DIRECT domain-adjacent neighbor id
@@ -462,11 +462,11 @@ func (b *buildCtx) buildNodes() error {
 		}
 
 		var tiltThetaIdx, tiltPhiIdx int32
-		if n.TiltVectorThetaIdx != nil {
-			tiltThetaIdx = *n.TiltVectorThetaIdx
+		if n.TopTiltVectorThetaIdx != nil {
+			tiltThetaIdx = *n.TopTiltVectorThetaIdx
 		}
-		if n.TiltVectorPhiIdx != nil {
-			tiltPhiIdx = *n.TiltVectorPhiIdx
+		if n.TopTiltVectorPhiIdx != nil {
+			tiltPhiIdx = *n.TopTiltVectorPhiIdx
 		}
 		nd, err := bind.Build(b.ctx, n.ID, n.Data, pb, b.tr, b.nodeGeoms[n.ID], tiltThetaIdx, tiltPhiIdx)
 		if err != nil {

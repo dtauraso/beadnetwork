@@ -10,7 +10,7 @@ import { useTiltVectorRows } from "./overlay-flags";
 //
 // WHICH nodes it can reset is the SAME data-driven signal TiltVectorAnglePanel already
 // uses: useTiltVectorRows (overlay-flags.ts), which reflects every node whose
-// TiltVectorLen > 0. A scene with no tilt vectors (e.g. the ring) yields an empty row
+// TopTiltVectorLen > 0. A scene with no tilt vectors (e.g. the ring) yields an empty row
 // list and this button renders nothing — no scene-name check anywhere in TS.
 //
 // A click fire-and-forgets one edit-update(tiltVector, reset) record PER row currently
