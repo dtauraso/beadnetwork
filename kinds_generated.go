@@ -3,6 +3,8 @@
 package main
 
 import (
+	_ "github.com/dtauraso/wirefold/nodes/Node1"
+	_ "github.com/dtauraso/wirefold/nodes/Node2"
 	_ "github.com/dtauraso/wirefold/nodes/PulseLeft"
 	_ "github.com/dtauraso/wirefold/nodes/PulseRight"
 	_ "github.com/dtauraso/wirefold/nodes/Time"

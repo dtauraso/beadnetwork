@@ -12,6 +12,8 @@ type kindDim struct{ Width, Height float64 }
 var kindDims = map[string]kindDim{
 	"HoldFlip":    {Width: 36, Height: 36},
 	"Input":       {Width: 80, Height: 60},
+	"Node1":       {Width: 70, Height: 60},
+	"Node2":       {Width: 70, Height: 60},
 	"Pacer":       {Width: 60, Height: 60},
 	"Pulse":       {Width: 90, Height: 60},
 	"PulseLeft":   {Width: 90, Height: 60},

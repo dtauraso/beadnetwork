@@ -20,6 +20,8 @@ export interface NodeDef {
 export const RUNTIME_IMPLEMENTED_KINDS: ReadonlySet<string> = new Set([
   "HoldFlip",
   "Input",
+  "Node1",
+  "Node2",
   "Pacer",
   "Pulse",
   "PulseLeft",
@@ -34,6 +36,8 @@ export const RUNTIME_IMPLEMENTED_KINDS: ReadonlySet<string> = new Set([
 export const NODE_DEFS: Record<string, NodeDef> = {
   HoldFlip: { bg: "#eceff1", border: "#263238", text: "#263238", minWidth: 36, shape: "rect", fill: "#eceff1", stroke: "#263238", width: 36, height: 36, inputs: [{ name: "In", kind: "chain" }], outputs: [{ name: "Out", kind: "chain" }] },
   Input: { bg: "#e0e0e0", border: "#666", text: "#1a1a1a", minWidth: 90, shape: "rect", fill: "#e0e0e0", stroke: "#666", width: 80, height: 60, inputs: [{ name: "FeedbackIn", kind: "chain" }], outputs: [{ name: "OutCadence", kind: "chain" }, { name: "ToExcitatory", kind: "chain" }] },
+  Node1: { bg: "#fff8e1", border: "#f9a825", text: "#4e342e", minWidth: 70, shape: "rect", fill: "#fff8e1", stroke: "#f9a825", width: 70, height: 60, inputs: [{ name: "In", kind: "chain" }], outputs: [{ name: "Out", kind: "chain" }] },
+  Node2: { bg: "#e8eaf6", border: "#3949ab", text: "#1a237e", minWidth: 70, shape: "rect", fill: "#e8eaf6", stroke: "#3949ab", width: 70, height: 60, inputs: [{ name: "In", kind: "chain" }], outputs: [{ name: "Out", kind: "chain" }] },
   Pacer: { bg: "#e8f5e9", border: "#2e7d32", text: "#1b5e20", minWidth: 60, shape: "rect", fill: "#e8f5e9", stroke: "#2e7d32", width: 60, height: 60, inputs: [{ name: "In", kind: "chain" }], outputs: [{ name: "FeedbackOut", kind: "chain" }] },
   Pulse: { bg: "#e1f5fe", border: "#2196f3", text: "#01579b", minWidth: 90, shape: "rect", fill: "#e1f5fe", stroke: "#2196f3", width: 90, height: 60, inputs: [{ name: "In", kind: "chain" }], outputs: [{ name: "Out", kind: "chain" }, { name: "OutFanout", kind: "chain" }] },
   PulseLeft: { bg: "#e1f5fe", border: "#90caf9", text: "#01579b", minWidth: 90, shape: "rect", fill: "#e1f5fe", stroke: "#90caf9", width: 90, height: 60, inputs: [{ name: "In", kind: "chain" }], outputs: [{ name: "Out", kind: "chain" }] },
@@ -57,6 +61,8 @@ export const NODE_DEFS_ARRAY: readonly NodeDef[] = [
   { bg: "#e1f5fe", border: "#90caf9", text: "#01579b", minWidth: 90, shape: "rect", fill: "#e1f5fe", stroke: "#90caf9", width: 90, height: 60, inputs: [{ name: "In", kind: "chain" }], outputs: [{ name: "Out", kind: "chain" }] },
   { bg: "#e1f5fe", border: "#01579b", text: "#01579b", minWidth: 90, shape: "rect", fill: "#e1f5fe", stroke: "#01579b", width: 90, height: 60, inputs: [{ name: "In", kind: "chain" }], outputs: [{ name: "Out", kind: "chain" }] },
   { bg: "#fff3e0", border: "#ffc400", text: "#bf360c", minWidth: 90, shape: "rect", fill: "#fff3e0", stroke: "#ffc400", width: 90, height: 60, inputs: [{ name: "In", kind: "chain" }], outputs: [{ name: "ToNext", kind: "chain", isMulti: true }] },
+  { bg: "#fff8e1", border: "#f9a825", text: "#4e342e", minWidth: 70, shape: "rect", fill: "#fff8e1", stroke: "#f9a825", width: 70, height: 60, inputs: [{ name: "In", kind: "chain" }], outputs: [{ name: "Out", kind: "chain" }] },
+  { bg: "#e8eaf6", border: "#3949ab", text: "#1a237e", minWidth: 70, shape: "rect", fill: "#e8eaf6", stroke: "#3949ab", width: 70, height: 60, inputs: [{ name: "In", kind: "chain" }], outputs: [{ name: "Out", kind: "chain" }] },
 ];
 
 export const NODE_KIND_NAMES: readonly string[] = [
@@ -71,4 +77,6 @@ export const NODE_KIND_NAMES: readonly string[] = [
   "PulseLeft",
   "PulseRight",
   "TimeStart",
+  "Node1",
+  "Node2",
 ];

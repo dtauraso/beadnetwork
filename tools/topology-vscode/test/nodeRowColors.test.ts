@@ -30,11 +30,13 @@ const EXPECTED_ORDER = [
   "PulseLeft",
   "PulseRight",
   "TimeStart",
+  "Node1",
+  "Node2",
 ] as const;
 
 describe("NODE_DEFS_ARRAY order parity with Go kindIDMap", () => {
-  it("has 11 entries", () => {
-    expect(NODE_DEFS_ARRAY.length).toBe(11);
+  it("has 13 entries", () => {
+    expect(NODE_DEFS_ARRAY.length).toBe(13);
   });
 
   it("entries are in stable-KindId order matching kindIDMap", () => {
