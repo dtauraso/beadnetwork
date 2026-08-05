@@ -1,9 +1,9 @@
 // NodeVectors.tsx — one arrow per node, from its centre to its own top.
 //
-// The direction is the node's own RING AXIS (Buffer/layout.go's RingAxisTheta/RingAxisPhi),
-// the same axis its torus is drawn on, so the arrow points straight out of the ring's plane
-// rather than along some separately-chosen direction. In a scene whose axis is up
-// (scene_tabs.go's UpAxis) that means the rings lie flat and the arrows stand up out of them.
+// The direction is world UP: "the top" of a node means up, not the normal of its ring. In a
+// scene whose rings stand upright along their edge (nodes/Wiring's uprightRingAxis) that
+// plane already contains up, so the arrow lies across the ring's FACE — the tori and the
+// vector both aiming up, which is the arrangement this exists to draw.
 //
 // WHETHER a node draws one is Go's answer too, and it rides the SAME value as how long:
 // VectorLen is zero for a node that draws none. There is no toggle and no per-scene branch
@@ -22,7 +22,7 @@ import * as THREE from "three";
 import { getNodeFrame } from "./node-stream-blocks";
 import {
   readNodeCX, readNodeCY, readNodeCZ,
-  readNodeRingAxisTheta, readNodeRingAxisPhi, readNodeVectorLen,
+  readNodeVectorLen,
 } from "../../schema/buffer-layout";
 
 // The shaft's thickness and the head's size, as fractions of the vector's own length, so an
@@ -62,16 +62,13 @@ export function NodeVectors({ capacity }: { capacity: number }) {
       const len = readNodeVectorLen(nodeView, row);
       if (!(len > 0)) continue; // Go says this node draws no vector
 
-      // Direction = this node's own ring axis. (0,0) is the "no position yet" value, which
-      // means world +y — the same reading NodeInstances gives it.
-      const theta = readNodeRingAxisTheta(nodeView, row);
-      const phi = readNodeRingAxisPhi(nodeView, row);
-      if (theta === 0 && phi === 0) {
-        axisRef.current.set(0, 1, 0);
-      } else {
-        const st = Math.sin(theta);
-        axisRef.current.set(st * Math.cos(phi), Math.cos(theta), st * Math.sin(phi));
-      }
+      // Direction = world UP. The vector runs from a node's centre to its own TOP, and top
+      // means up — it is NOT the ring's axis. Those coincided only while the rings lay flat;
+      // now the rings stand upright along their edge, their axis is horizontal, and drawing
+      // the arrow along it pointed the arrow sideways. The ring's PLANE contains up
+      // (nodes/Wiring's uprightRingAxis), so an up-pointing arrow lies across the ring's
+      // face, which is the arrangement asked for.
+      axisRef.current.set(0, 1, 0);
       quatRef.current.setFromUnitVectors(GEOMETRY_AXIS, axisRef.current);
 
       const cx = readNodeCX(nodeView, row);
