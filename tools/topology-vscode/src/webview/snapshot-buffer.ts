@@ -17,6 +17,8 @@
 //     runCommand.ts), the first stream migrated off fd 3 per the no-single-writer-bridge
 //     rule. Null until the first frame has landed.
 
+import { decodeViewFrame } from "./three/buffer-decode";
+
 let latestViewFrame: ArrayBuffer | null = null;
 
 // Listeners are notified after each new snapshot lands. This is NOT a domain store —
@@ -31,7 +33,65 @@ const viewListeners = new Set<SnapshotListener>();
  * view-fd stream — see this file's header comment). */
 export function setLatestViewFrame(buf: ArrayBuffer): void {
   latestViewFrame = buf;
+  dropRowFramesIfSceneChanged(buf);
   for (const fn of viewListeners) fn();
+}
+
+// lastSceneTab is the scene identity the per-row maps below currently hold frames FOR: the
+// VIEW frame's Go-owned selected tab index (nodes/Wiring/scene_tabs.go). -1 until the first
+// frame lands.
+let lastSceneTab = -1;
+
+/**
+ * Drop every cached per-row frame when the VIEW frame reports a DIFFERENT scene.
+ *
+ * WHY THIS EXISTS. Switching tabs restarts the Go process against another topology tree.
+ * The extension host clears its own per-row caches at every spawn (runCommand.ts's
+ * freshStreamState + the lastNodeFrames/lastEdgeFrames/lastInteriorFrames clear), but the
+ * WEBVIEW is not reloaded by a respawn, so the maps below survive it. A smaller scene
+ * therefore rendered as itself PLUS the leftovers: switching from a 9-node tree to a 2-node
+ * tree left rows 2..8 holding the previous scene's last frames, and the renderer drew both
+ * diagrams at once. Go never emits for a row its current scene does not have, so nothing
+ * would ever have overwritten them.
+ *
+ * The signal rides the buffer because it must: the host→webview seam carries buffer frames
+ * and nothing else (CLAUDE.md's bridge surface), so there is no "the sim restarted" message
+ * to listen for — and there should not be one. The VIEW frame already states which scene is
+ * showing, which makes "a different scene is showing now" a fact Go has already told us.
+ *
+ * Keyed on the scene identity rather than on row counts: a count-based filter would miss a
+ * scene whose row space has a GAP in the middle (row space is sized by the largest node id,
+ * .claude/rules/persistence-ownership.md), leaving a stale row inside the range. Every tab
+ * switch changes this value, so every tab switch clears — by construction, not by arithmetic.
+ *
+ * This is not state authorship: it is cache invalidation of Go's own frames, keyed on a
+ * value Go owns and streams.
+ */
+function dropRowFramesIfSceneChanged(buf: ArrayBuffer): void {
+  const decoded = decodeViewFrame(buf);
+  if (!decoded) return;
+  const tab = decoded.sceneTabSelected;
+  if (tab === lastSceneTab) return;
+  const first = lastSceneTab === -1;
+  lastSceneTab = tab;
+  // The FIRST frame establishes the identity; it invalidates nothing (the maps are empty,
+  // and clearing here would discard the frames the host just replayed to a remounted
+  // webview).
+  if (first) return;
+  edgeStreamFrames.clear();
+  nodeStreamFrames.clear();
+  interiorStreamFrames.clear();
+  nodeStreamVersion++;
+  interiorStreamVersion++;
+  for (const fn of edgeStreamListeners) fn();
+  for (const fn of nodeStreamListeners) fn();
+  for (const fn of interiorStreamListeners) fn();
+}
+
+/** TEST-ONLY: forget the scene identity so a fresh test starts from "no frame yet".
+ *  Production has exactly one webview lifetime per page load and never needs this. */
+export function resetSceneIdentityForTest(): void {
+  lastSceneTab = -1;
 }
 
 /** Called by three/view-blocks.ts (and tests) to read the most-recent VIEW frame. Null
