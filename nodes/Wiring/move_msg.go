@@ -164,6 +164,13 @@ type moveMsg struct {
 	// the sending node kind's own goroutine (never a delta — see moveMsgKindTiltIndexSync's
 	// doc comment). The receiving mover applies these verbatim; it does not compute them.
 	ThetaIdx, PhiIdx int32
+	// NormalThetaIdx/NormalPhiIdx (Kind == "tiltIndexSync"): the FULL new coplanar-normal
+	// index pair, likewise decided by the sending node kind's own goroutine — a fixed ±90°
+	// (Wiring.PerpendicularThetaIdx steps) in θ from ThetaIdx/PhiIdx, sign owned by the kind
+	// (Node1 adds, Node2 subtracts — nodes/Node1/node.go, nodes/Node2/node.go's own
+	// coplanarNormal). The receiving mover applies these verbatim too; it does not derive
+	// the normal from the edge any more (coplanarNormalTowardPartner was removed).
+	NormalThetaIdx, NormalPhiIdx int32
 	// testDone: see the type comment. Test-only; production leaves it nil.
 	testDone chan struct{}
 }

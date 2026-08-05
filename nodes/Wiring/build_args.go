@@ -193,20 +193,23 @@ func (a BuildArgs) TiltEditIn() <-chan TiltEditMsg {
 }
 
 // SyncTiltIndex returns a closure that notifies THIS node's own MOVER goroutine of its
-// current tilt-vector-angle indices — the one-way, fire-and-forget counterpart to
-// TiltEditIn: a kind that owns its own index (Node1/Node2) calls this every time it
-// changes that index, so the mover (which still owns streaming that geometry and
-// persisting it to this node's own position.json) stays in sync without ever deciding or
-// mutating the index itself. nil-safe: a.pb.md is nil on a bare test build with no
-// loader, in which case this is a no-op, same fallback every other closure here takes.
-func (a BuildArgs) SyncTiltIndex() func(theta, phi int32) {
+// current tilt-vector-angle indices AND its current coplanar-normal indices — the
+// one-way, fire-and-forget counterpart to TiltEditIn: a kind that owns its own index
+// (Node1/Node2) calls this every time it changes that index, so the mover (which still
+// owns streaming that geometry and persisting it to this node's own position.json) stays
+// in sync without ever deciding or mutating either index itself; the mover is a pure
+// mirror for both pairs (see moveMsgKindTiltIndexSync's doc comment). nil-safe: a.pb.md
+// is nil on a bare test build with no loader, in which case this is a no-op, same
+// fallback every other closure here takes.
+func (a BuildArgs) SyncTiltIndex() func(theta, phi, normalTheta, normalPhi int32) {
 	md := a.pb.md
 	name := a.name
-	return func(theta, phi int32) {
+	return func(theta, phi, normalTheta, normalPhi int32) {
 		if md == nil {
 			return
 		}
-		md.sendMove(name, moveMsg{Kind: moveMsgKindTiltIndexSync, NodeID: name, ThetaIdx: theta, PhiIdx: phi})
+		md.sendMove(name, moveMsg{Kind: moveMsgKindTiltIndexSync, NodeID: name,
+			ThetaIdx: theta, PhiIdx: phi, NormalThetaIdx: normalTheta, NormalPhiIdx: normalPhi})
 	}
 }
 

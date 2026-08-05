@@ -314,6 +314,14 @@ type nodeMover struct {
 	// (moveMsgKindTiltVectorAngle, applyUpdateTiltVector's fallback) or seeded once from
 	// the persisted load value (build.go).
 	tiltVectorThetaIdx, tiltVectorPhiIdx int32
+	// normalThetaIdx/normalPhiIdx are THIS node's own coplanar-NORMAL indices — the
+	// buffer-streamed CoplanarNormalTheta/CoplanarNormalPhi columns' source. Written
+	// ONLY by moveMsgKindTiltIndexSync (Node1/Node2's own goroutine decides the ±90°
+	// offset from its own tilt index and reports it here); this mover never derives a
+	// normal from the edge/partner any more (coplanarNormalTowardPartner was removed —
+	// see writeStreamFrame below). For a kind that has not claimed BuildArgs.TiltEditIn,
+	// these stay 0,0 and this node draws no vector at all (tiltVectorLen's own guard).
+	normalThetaIdx, normalPhiIdx int32
 }
 
 func newNodeMover(id string, geom nodeGeom, tr *T.Trace, clockSrc wire.Clock) *nodeMover {
@@ -478,6 +486,8 @@ func (m *nodeMover) handle(msg moveMsg) {
 		// panel's read-only reflect and the drawn arrow both pick up the change.
 		m.tiltVectorThetaIdx = msg.ThetaIdx
 		m.tiltVectorPhiIdx = msg.PhiIdx
+		m.normalThetaIdx = msg.NormalThetaIdx
+		m.normalPhiIdx = msg.NormalPhiIdx
 		m.persistTiltVectorAngle()
 		if m.tr != nil {
 			m.emitGeometry()
@@ -678,19 +688,15 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 	// holds and persists (m.tiltVectorThetaIdx/tiltVectorPhiIdx).
 	tiltVectorTheta := float64(m.tiltVectorThetaIdx) * CurveParamTiltVectorAngleStep
 	tiltVectorPhi := float64(m.tiltVectorPhiIdx) * CurveParamTiltVectorAngleStep
-	// The COPLANAR NORMAL: the in-plane direction toward this node's partner
-	// (coplanarNormalTowardPartner, port_geometry.go) — derived from the EDGE, never from
-	// the tilt vector, so turning the tilt never moves what it is measured against (see
-	// that helper's doc comment). Zero when this node draws no vector at all, matching the
-	// first.
-	var coplanarNormalTheta, coplanarNormalPhi float64
-	if tiltVectorLen > 0 {
-		for _, partner := range m.partnerCenters {
-			if t, p, ok := coplanarNormalTowardPartner(nodeWorldPos(m.geom), partner, ringAxisTheta, ringAxisPhi); ok {
-				coplanarNormalTheta, coplanarNormalPhi = t, p
-			}
-		}
-	}
+	// The COPLANAR NORMAL: streamed straight from this node's own normalThetaIdx/
+	// normalPhiIdx, which THIS node's OWN goroutine decided (a fixed ±90° in θ from its
+	// own tilt index, sign owned by the kind — Node1/Node2's coplanarNormal) and reported
+	// one-way via moveMsgKindTiltIndexSync. This mover is a pure mirror here, same shape
+	// as tiltVectorTheta/tiltVectorPhi above — it derives nothing from the edge/partner.
+	// Turning the tilt therefore visibly turns the drawn normal WITH it, staying 90° away,
+	// instead of the normal staying fixed toward the partner while the tilt moves under it.
+	coplanarNormalTheta := float64(m.normalThetaIdx) * CurveParamTiltVectorAngleStep
+	coplanarNormalPhi := float64(m.normalPhiIdx) * CurveParamTiltVectorAngleStep
 	label := m.geom.Label
 	if label == "" {
 		label = m.id

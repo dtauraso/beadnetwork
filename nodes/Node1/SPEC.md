@@ -47,10 +47,9 @@ no round trip to any other goroutine to decide:
 - If already perpendicular: do nothing and send nothing. This is how the loop
   terminates, not a missed case.
 
-The coplanar normal itself is derived from the EDGE toward this node's partner
-(`coplanarNormalTowardPartner`, `nodes/Wiring/port_geometry.go`), never from the tilt —
-so turning the tilt never moves what it is being measured against; this node's own
-goroutine has no view of that derivation and relies on the constant/assumption above.
+The STOP condition above compares `TiltThetaIdx` directly against
+`Wiring.PerpendicularThetaIdx` and never touches the DRAWN coplanar normal at all — the
+drawn normal (below, "Coplanar normal") is a separate, purely visual derivation.
 
 **On a TiltEditIn arrival** (`BuildArgs.TiltEditIn`, a panel-driven click routed HERE
 instead of to the mover): apply the ±1 click to the named axis unconditionally (never a
@@ -66,6 +65,14 @@ Pairing a Node1 and a Node2 with one edge running each direction (Node1.Out →
 Node2.In, Node2.Out → Node1.In) needs no seed/bootstrap node: nothing sends until a
 user tilt starts it, so there is no deadlock to bootstrap out of at t=0.
 
+**RESET** (`TiltEditMsg.Reset`, the RESET button `TiltResetButton.tsx`): sets both
+indices to 0, syncs the mover, places NO bead (stop-and-return, not a nudge), AND drains
+any value already sitting on `VectorIn` (`Wiring.PollRecvVector`, non-blocking, on THIS
+node's own goroutine — the goroutine that owns the receive end). Without the drain, a
+vector already in flight when RESET was pressed would arrive on the very next cycle's
+`handleVectorCycle` and immediately step the tilt again, undoing the reset a moment
+later. `VectorIn` is depth-1 latest-wins, so one non-blocking receive empties it fully.
+
 ## Vector channel
 
 Alongside the bead edges above, each directed edge between two vector-capable kinds
@@ -79,11 +86,18 @@ never carries a bead value or vice versa.
 Every cycle, this node's own `handleVectorCycle` (its whole per-cycle vector-channel
 loop body) runs:
 
-- **Coplanar normal**: a quarter turn (`Wiring.PerpendicularThetaIdx`, 6 steps of
+- **Coplanar normal**: a FIXED quarter turn (`Wiring.PerpendicularThetaIdx`, 6 steps of
   `Wiring.CurveParamTiltVectorAngleStep`, i.e. 90°) from THIS node's OWN tilt vector —
-  so the normal stays perpendicular to the tilt as the tilt turns. φ is unchanged;
-  the turn is entirely in θ index arithmetic, same in-ring-plane assumption as the
-  bead exchange's `PerpendicularThetaIdx` shortcut above.
+  pure index arithmetic (`theta+6`), never a cross product — so the normal turns WITH
+  the tilt, always staying 90° away, rather than holding still toward the partner. φ is
+  unchanged. Node1 ADDS the quarter turn; Node2 (its mirror package) SUBTRACTS it, same
+  ± split as `stepTilt`'s add/subtract. This node's own goroutine computes it
+  (`coplanarNormal`) and reports BOTH the tilt index and this normal index to its own
+  mover in one call (`syncTiltIndex`, `SyncTiltIndex(theta, phi, normalTheta,
+  normalPhi)`) every time either changes — the mover is a pure mirror that streams
+  exactly what it is told as the buffer's `CoplanarNormalTheta`/`CoplanarNormalPhi`
+  columns, never deriving a normal from the edge itself
+  (`coplanarNormalTowardPartner` was removed).
 - **What this node SENDS**: that coplanar normal rotated 180° in θ. Node1 turns −180°
   (−12 steps of π/12, i.e. `2 × PerpendicularThetaIdx` subtracted); Node2 (its mirror
   package) turns +180° (+12 steps). φ is untouched. Index arithmetic only.

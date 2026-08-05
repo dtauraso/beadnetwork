@@ -60,6 +60,39 @@ func TestApplyTiltEditResetReturnsBothIndicesToZero(t *testing.T) {
 	}
 }
 
+// The drawn coplanar normal must sit exactly −6 steps (90°) in θ from the tilt, φ
+// unchanged, for Node2 — pure index arithmetic reusing Wiring.PerpendicularThetaIdx, not
+// a cross product (Part 1 of this task). Node2's sign is the mirror of Node1's.
+func TestCoplanarNormalIsMinusSixStepsInTheta(t *testing.T) {
+	for _, start := range []struct{ theta, phi int32 }{
+		{0, 0}, {5, -3}, {-9, 12},
+	} {
+		n := &Node{TiltThetaIdx: start.theta, TiltPhiIdx: start.phi}
+		norm := n.coplanarNormal()
+		if norm.ThetaIdx != start.theta-Wiring.PerpendicularThetaIdx {
+			t.Fatalf("coplanarNormal theta: want tilt-%d=%d, got %d", Wiring.PerpendicularThetaIdx, start.theta-Wiring.PerpendicularThetaIdx, norm.ThetaIdx)
+		}
+		if norm.PhiIdx != start.phi {
+			t.Fatalf("coplanarNormal phi must equal tilt phi unchanged: want %d, got %d", start.phi, norm.PhiIdx)
+		}
+	}
+}
+
+// RESET must also drain any value already sitting on VectorIn (depth-1 latest-wins), so
+// it cannot arrive on the NEXT cycle and immediately step the tilt again, undoing the
+// reset. Verified by observing the channel is empty afterward.
+func TestApplyTiltEditResetDrainsVectorIn(t *testing.T) {
+	vectorIn := make(chan Wiring.TiltVectorMsg, 1)
+	vectorIn <- Wiring.TiltVectorMsg{ThetaIdx: 99, PhiIdx: -1}
+	n := &Node{TiltThetaIdx: 5, TiltPhiIdx: -2, VectorIn: vectorIn}
+	n.applyTiltEdit(Wiring.TiltEditMsg{Reset: true})
+	select {
+	case v := <-vectorIn:
+		t.Fatalf("VectorIn must be drained by reset; still holds %+v", v)
+	default:
+	}
+}
+
 // A non-reset edit (the panel's ±1 click) still unconditionally applies its delta and
 // reports a bead should be placed — the RESET addition must not change this existing path.
 func TestApplyTiltEditAdjustStillPlacesBead(t *testing.T) {
@@ -79,9 +112,11 @@ func TestApplyTiltEditAdjustStillPlacesBead(t *testing.T) {
 func TestOutgoingVectorIsPlus180StepsInThetaOnly(t *testing.T) {
 	n := &Node{TiltThetaIdx: 3, TiltPhiIdx: -7}
 	norm := n.coplanarNormal()
-	if norm.ThetaIdx != 3+Wiring.PerpendicularThetaIdx || norm.PhiIdx != -7 {
+	// Node2 SUBTRACTS the quarter turn (Node1 adds) — see coplanarNormal's own doc
+	// comment: the tilt and the coplanar normal sit −90° apart in θ for Node2.
+	if norm.ThetaIdx != 3-Wiring.PerpendicularThetaIdx || norm.PhiIdx != -7 {
 		t.Fatalf("coplanarNormal: want theta=%d phi=-7, got theta=%d phi=%d",
-			3+Wiring.PerpendicularThetaIdx, norm.ThetaIdx, norm.PhiIdx)
+			3-Wiring.PerpendicularThetaIdx, norm.ThetaIdx, norm.PhiIdx)
 	}
 	out := n.outgoingVector()
 	wantTheta := norm.ThetaIdx + 2*Wiring.PerpendicularThetaIdx

@@ -66,8 +66,9 @@ type Node struct {
 	// package doc comment's "THE KICK".
 	TiltEditIn <-chan Wiring.TiltEditMsg
 	// SyncTiltIndex notifies this node's own mover of the current TiltThetaIdx/TiltPhiIdx
-	// — one-way, fire-and-forget, never an ack (BuildArgs.SyncTiltIndex).
-	SyncTiltIndex func(theta, phi int32)
+	// AND the current coplanar-normal indices (coplanarNormal, below) — one-way,
+	// fire-and-forget, never an ack (BuildArgs.SyncTiltIndex).
+	SyncTiltIndex func(theta, phi, normalTheta, normalPhi int32)
 	// VectorOut/VectorIn are THIS node's own ends of its dedicated tilt-vector channel
 	// (Wiring.TiltVectorMsg — an integer θ/φ index pair, never floats on a channel),
 	// claimed at build time via BuildArgs.VectorOut/VectorIn. It travels ALONGSIDE the
@@ -122,6 +123,13 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 	if edit.Reset {
 		n.TiltThetaIdx = 0
 		n.TiltPhiIdx = 0
+		// Drain any value already sitting on VectorIn, non-blocking, on THIS node's own
+		// goroutine — the goroutine that owns the receive end (never from another
+		// goroutine). Without this, a vector in flight when RESET was pressed would
+		// arrive on the NEXT cycle's handleVectorCycle and immediately step the tilt
+		// again, undoing the reset a moment later. The channel is depth-1 latest-wins
+		// (Wiring.PollRecvVector), so one non-blocking receive empties it completely.
+		Wiring.PollRecvVector(n.VectorIn)
 		return false
 	}
 	delta := int32(-1)
@@ -144,10 +152,27 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 // is entirely in θ, same in-ring-plane assumption this scene's stepTilt already relies
 // on (see Wiring.PerpendicularThetaIdx's doc comment).
 func (n *Node) coplanarNormal() Wiring.TiltVectorMsg {
+	// Node2 SUBTRACTS the quarter turn (Node1's mirror package adds it) — the tilt
+	// vector and the coplanar normal sit −90° apart in θ for Node2, +90° for Node1,
+	// keeping the sign with the KIND, same as stepTilt's own add/subtract split.
 	return Wiring.TiltVectorMsg{
-		ThetaIdx: n.TiltThetaIdx + Wiring.PerpendicularThetaIdx,
+		ThetaIdx: n.TiltThetaIdx - Wiring.PerpendicularThetaIdx,
 		PhiIdx:   n.TiltPhiIdx,
 	}
+}
+
+// syncTiltIndex reports THIS node's current tilt index AND its current coplanar-normal
+// index (coplanarNormal above) to this node's own mover in one call — every call site
+// that changes TiltThetaIdx/TiltPhiIdx must also report the normal, since the normal is
+// derived from the tilt and the mover no longer derives it itself (see
+// Wiring.moveMsgKindTiltIndexSync's doc comment). nil-safe, same as every other closure
+// call here.
+func (n *Node) syncTiltIndex() {
+	if n.SyncTiltIndex == nil {
+		return
+	}
+	norm := n.coplanarNormal()
+	n.SyncTiltIndex(n.TiltThetaIdx, n.TiltPhiIdx, norm.ThetaIdx, norm.PhiIdx)
 }
 
 // outgoingVector is what THIS node SENDS on VectorOut: its own coplanarNormal rotated
@@ -187,9 +212,7 @@ func (n *Node) handleVectorCycle() {
 	if !n.stepTowardPerpendicularFromVector(received) {
 		return
 	}
-	if n.SyncTiltIndex != nil {
-		n.SyncTiltIndex(n.TiltThetaIdx, n.TiltPhiIdx)
-	}
+	n.syncTiltIndex()
 	Wiring.SendVectorLatestNonBlocking(n.VectorOut, n.outgoingVector())
 }
 
@@ -213,9 +236,7 @@ func (n *Node) Update(ctx context.Context) {
 				n.Fire()
 			}
 			if n.stepTilt() {
-				if n.SyncTiltIndex != nil {
-					n.SyncTiltIndex(n.TiltThetaIdx, n.TiltPhiIdx)
-				}
+				n.syncTiltIndex()
 				if n.Out != nil {
 					n.Out.PlaceDrivenAt(1, clk.Tick())
 				}
@@ -230,9 +251,7 @@ func (n *Node) Update(ctx context.Context) {
 			select {
 			case edit := <-n.TiltEditIn:
 				placeBead := n.applyTiltEdit(edit)
-				if n.SyncTiltIndex != nil {
-					n.SyncTiltIndex(n.TiltThetaIdx, n.TiltPhiIdx)
-				}
+				n.syncTiltIndex()
 				if placeBead && n.Out != nil {
 					n.Out.PlaceDrivenAt(1, clk.Tick())
 				}

@@ -18,26 +18,9 @@ func TestPerpendicularThetaIdxIsSixSteps(t *testing.T) {
 	}
 }
 
-// The coplanar normal a straightening node measures against must be independent of that
-// same node's own tilt (Part 1 of this task) — turning the tilt must never move the
-// normal being compared against it. This is the property that makes "dot == 0" a stable
-// stopping condition instead of one that chases itself.
-func TestCoplanarNormalUnaffectedByTiltForStraightening(t *testing.T) {
-	self := vec3{X: 100}
-	partner := vec3{X: 100, Z: 100}
-	axisT, axisP, ok := uprightRingAxis(self, partner)
-	if !ok {
-		t.Fatal("axis must resolve")
-	}
-	before, beforeP, ok := coplanarNormalTowardPartner(self, partner, axisT, axisP)
-	if !ok {
-		t.Fatal("normal must resolve")
-	}
-	// coplanarNormalTowardPartner takes no tilt argument at all — simulate "the tilt
-	// turned" by simply calling it again; nothing about self/partner/axis changed, so
-	// nothing about the result may either.
-	after, afterP, ok := coplanarNormalTowardPartner(self, partner, axisT, axisP)
-	if !ok || before != after || beforeP != afterP {
-		t.Fatalf("coplanar normal moved independent of any tilt change: before=(%v,%v) after=(%v,%v)", before, beforeP, after, afterP)
-	}
-}
+// The old "coplanar normal independent of tilt" test was removed along with
+// coplanarNormalTowardPartner: the DRAWN normal is now defined AS a fixed ±90° offset
+// FROM the tilt (nodes/Node1/node.go, nodes/Node2/node.go's coplanarNormal), so it moves
+// WITH the tilt on purpose. The straightening rule's own stop condition never measured the
+// drawn normal anyway — it compares TiltThetaIdx directly against PerpendicularThetaIdx
+// (stepTilt, both packages), which is unaffected by this change.

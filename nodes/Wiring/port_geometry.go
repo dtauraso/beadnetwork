@@ -444,35 +444,10 @@ func uprightRingAxis(selfCenter, partnerCenter vec3) (theta, phi float64, ok boo
 	return math.Acos(clamp(u.Y, -1, 1)), math.Atan2(u.Z, u.X), true
 }
 
-// coplanarNormalTowardPartner returns the COPLANAR NORMAL: the ring-plane direction from
-// selfCenter toward partnerCenter — the component of (partnerCenter − selfCenter)
-// perpendicular to the ring axis, normalised. This is deliberately derived from the EDGE
-// alone, never from the node's own tilt vector: an earlier version computed it as a quarter
-// turn OF the tilt (quarterTurnInRingPlane, now deleted), and a quarter turn of u about a is
-// u×a — perpendicular to u BY CONSTRUCTION, so dot(tilt, normal) was identically zero and
-// the "normal" swung every time the tilt turned. The straightening loop (Node1/Node2,
-// nodes/Node1/node.go) needs to measure dot(tilt, coplanarNormal) and have that measurement
-// mean something, so the normal must hold still while the tilt moves — it can only do that
-// if it comes from something the tilt doesn't touch, which is the edge to the partner.
-//
-// The projection (rather than a bare Normalize of the raw edge vector) is what makes this
-// exact even when the axis and the edge are not perfectly perpendicular — same shape as
-// poleContainingEdge above, applied to the edge direction instead of the pole.
-//
-// Not resolvable when the centres coincide (no edge direction) or when the edge runs along
-// the ring axis (its whole length projects to zero, so there is no in-plane component to
-// report) — the caller keeps whatever normal it already had.
-func coplanarNormalTowardPartner(selfCenter, partnerCenter vec3, axisTheta, axisPhi float64) (theta, phi float64, ok bool) {
-	delta := partnerCenter.Sub(selfCenter)
-	if delta.Length() < 1e-9 {
-		return 0, 0, false
-	}
-	dir := delta.Normalize()
-	axis := anglesToWorldOffset(1, axisTheta, axisPhi)
-	projected := dir.Sub(axis.Scale(dir.Dot(axis)))
-	if projected.Length() < 1e-6 {
-		return 0, 0, false
-	}
-	u := projected.Normalize()
-	return math.Acos(clamp(u.Y, -1, 1)), math.Atan2(u.Z, u.X), true
-}
+// coplanarNormalTowardPartner (the edge-derived coplanar normal) was REMOVED: the drawn
+// coplanar normal is now streamed straight from Node1/Node2's own normalThetaIdx/
+// normalPhiIdx (a fixed ±90° in θ from that node's own tilt index, decided on that node's
+// own goroutine and mirrored via moveMsgKindTiltIndexSync — nodes/Node1/node.go's
+// coplanarNormal, nodes/Wiring/node_mover.go's writeStreamFrame), so it turns WITH the
+// tilt instead of holding still toward the partner. See straighten_loop_test.go /
+// coplanar_edges_test.go for what replaced the tests that exercised this function.
