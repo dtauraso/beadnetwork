@@ -23,8 +23,20 @@ topology/
 │   ├── position.json  data.json  local-polars.json  cascade-edges.json
 │   └── edges/<label>.json                OUTGOING only
 └── view/
-    └── camera.json  overlays.json  sphere.json
+    └── camera.json  overlays.json  sphere.json  scene.json
 ```
+
+**`topology/` is one of several sibling SCENES**, not the only tree. `nodes/Wiring/scene_tabs.go`'s
+`SceneTabs` names each sibling directory (today: `topology/`, `topology-pair/`) resolved
+relative to the ANCHOR's parent — the `-topology` flag the extension host launches with is
+the fixed anchor, and which sibling directory actually loads is resolved from it
+(`ResolveScenePath`). Each sibling is a COMPLETE, independently loadable tree with its own
+`counts.json` and `view/`, laid out exactly as above. `topology/view/scene.json`
+(`{"selected": "<tab name>"}`) is the ONE piece of state that lives at the ANCHOR rather than
+inside whichever scene is loaded — it has to, since it is what says which sibling to load, and
+a selection stored inside scene B would be unreachable while scene A is showing. Switching
+tabs writes this file and ends the Go process; the extension host's already-looping runner
+respawns it, and the respawn re-reads the selection and loads the other tree.
 
 An edge is stored under its **source** node and carries no `source` key — that is the
 directory it sits in, and storing it too would be a second copy free to drift.

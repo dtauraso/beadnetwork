@@ -293,10 +293,22 @@ when a bead has arrived. Go owns the clock.
   stdio pipe (`Buffer/stream_fds.go`, memory/feedback_no_single_writer_bridge.md)
   — one VIEW stream (camera/overlay/scene, the gesture/stdin-reader
   goroutine), one stream per edge row (that edgeMover's own geometry + its
-  wire's live beads), and two streams per node row (that nodeMover's own
-  geometry+ports+label, and that node's own Update-goroutine's interior
-  beads). Frames on a dedicated fd are `[len:u32-LE][payload]` with NO tag
-  byte — the fd POSITION identifies the stream/row.
+  wire's live beads), one stream per node row (that nodeMover's own
+  geometry+ports+label), one INTERIOR stream per node row (that node's own
+  Update-goroutine's interior beads — the ONLY writer of that node's four
+  interior slots), and a fixed `DriveSlotsPerNode` (`Buffer/stream_fds.go`)
+  of DRIVE streams per node row for any kind whose held value is driven by
+  a separate `DriveHeld` goroutine (`Pulse`/`PulseLeft`/`PulseRight`/
+  `holdflip`) — a second goroutine that must never share the interior
+  stream's fd (two goroutines racing one fd interleaves their frames'
+  header/payload writes into garbage — `docs/interior-stream-framing.md`).
+  A drive frame is INTERIOR-shaped and its EVENTS are decoded and
+  probe-logged like any other, but it asserts no slot state: nothing ever
+  sets a drive stream's own `lastPresent`, so treating a drive frame as a
+  statement about the node's held value paints an all-absent snapshot over
+  whatever the node's own interior stream just emitted. One writer owns
+  what is inside a node. Frames on a dedicated fd are `[len:u32-LE][payload]`
+  with NO tag byte — the fd POSITION identifies the stream/row.
   `WIREFOLD_STREAM_FDS` (the ext host's spawn env var,
   `tools/topology-vscode/src/runCommand.ts`) is **mandatory**: there is no
   central accumulator and no fallback path left to fall back to.
@@ -347,6 +359,65 @@ when a bead has arrived. Go owns the clock.
   and never blocks on Go, never asks when a bead arrived, and there is no
   delivery signal — Go times its own delivery. Nothing about node-local state
   or animation internals crosses the bridge.
+
+## Scenes
+
+A **scene** is a complete, independently loadable topology tree — its own `counts.json`,
+its own `nodes/`, its own `view/`. There is more than one: they are SIBLING directories next
+to each other (`nodes/Wiring/scene_tabs.go`'s `SceneTabs`, e.g. `topology/` and
+`topology-pair/`), not one topology with variants inside it. Go owns the list, the labels,
+which one is selected, and the switch — this is the same shape as the overlay toggles, not
+a new mechanism. The `-topology` path the extension host launches with is the fixed ANCHOR;
+which sibling actually loads is resolved from it (`ResolveScenePath`) and persisted at the
+anchor, never inside a scene (a selection stored inside scene B would be unreachable while
+scene A is loaded — `.claude/rules/persistence-ownership.md`). TS renders the tab strip
+from the VIEW frame and forwards a click as one addressed edit (`kind="scene"
+attr="selected"`); it holds no list, no labels, no selection of its own.
+
+A tab switch is not an in-process rebuild. There is no teardown of live node goroutines or
+their in-flight beads mid-traversal — persisting the new selection ends the Go process, and
+the extension host's already-looping runner respawns it, which re-reads the selection and
+loads the other tree. This is deliberate: a respawn is machinery that already exists (the
+`.go` file watcher triggers the same path on every edit), so switching scenes buys nothing
+by adding a second, in-process path to do the same thing.
+
+**A scene may fork small pieces of node behavior, and each fork is a named, reasoned
+choice — not a tuning knob:**
+
+- **Drag mode** (`SceneTab.QuantizedDrag`). The default is the CONTINUOUS drag: a node is
+  one point, an edge is the distance between two of them, and a drag says where the point
+  went — the bead count on that edge then fills whatever line that leaves. The alternative,
+  quantized drag steps the node one bead length (`wire.BeadStepR`) at a time, matching its
+  own chain beads' jump size — it exists so a dragged node and its own beads move in the
+  same quanta, instead of the node gliding while its beads jump. That only works when the
+  step is small AGAINST THE SCENE: the ring spans ~500 world units, so a ~9-unit step reads
+  as smooth, while a two-node scene ~40 across moves a fifth of itself per step and cannot
+  be positioned at all. No committed scene uses it today — both tabs drag continuously — but the path
+  stays reachable (and is what an unrecognised tree gets) rather than deleted, since
+  deleting a still-tested, still-reachable mechanism is a model decision, not a cleanup.
+- **Coplanar rings** (`SceneTab.CoplanarEdges`). A node's ring plane normally follows its
+  INWARD pole (toward the scene centre), which says nothing about where its neighbour is,
+  so an edge lies in that plane only by coincidence — the chain then runs through the
+  tori's holes rather than across their faces. With this on, for a node with exactly ONE
+  neighbour, the ring axis is swung the smallest amount off the inward pole that still puts
+  the edge inside the ring plane, so the chain, the node's torus, and the beads' own tori
+  all lie in one plane. A node with more than one neighbour keeps its inward pole — no
+  single plane contains two non-collinear edges — so this is inert there by construction,
+  which is why it is a per-scene choice rather than a global rule.
+
+**The drawn ring axis and the navigation pole are two different streamed values, on
+purpose.** `PoleTheta`/`PolePhi` (`Buffer/layout.go`) is a node's own INWARD pole — its own
+scene-polar direction reversed, pointing back at the scene centre — and is what navigation
+reads (`buffer-nav.ts`'s `NavNode.pole`). `RingAxisTheta`/`RingAxisPhi` is the axis the
+node's RING is actually drawn on, defaulting to the torus's own +Z normal (unrotated) and
+diverging from the inward pole only under coplanar rings (above). Keeping them as separate
+columns is what lets a scene ask for coplanar rings without touching what navigation reads,
+and vice versa. Today every node's own local FRAME is held at world +y regardless of its
+pole — an earlier version rotated node 1's frame alone onto its streamed pole, which read as
+a property of that one node rather than of the feature, and was reverted so every frame
+reads the same way. `PoleTheta`/`PolePhi` is consequently live on the wire (navigation still
+reads it) and not rendered as a frame rotation for any node — whether a node's frame should
+instead follow its own pole is an **open question**, not decided here.
 
 ## Drift rule
 
@@ -498,6 +569,17 @@ and none is a source of truth.
   (`nodes/Wiring/chain_beads.go`'s `edgeStepCount`), with the near end tangent to the node's
   own torus by construction of the placement formula and one uniform global bead size — see
   `docs/bead-lattice.md`.
+- **A mutual pair (two nodes each pointing an edge at the other) offsets its two chains to
+  opposite sides**, so they do not draw on top of each other. `parallelChainOffset`
+  (`nodes/Wiring/port_geometry.go`) computes the offset from the pair's own two centres and
+  the scene centre, in CANONICAL id order (NUMERICALLY smaller id first — a string compare
+  would put "10" before "2" and hand both ends the same side, collapsing the two chains back
+  onto one line) so both
+  endpoints derive the SAME side independently — neither node needs to know what the other
+  decided. The offset stays INSIDE that pair's own ring plane (not along a fixed world
+  axis), so it composes with coplanar rings rather than fighting them. `chain_beads.go` is
+  guarded against doing this vector math itself (`tools/check-no-sqrt-in-chain-beads.sh`);
+  it calls into `port_geometry.go` for it, same split as `edgeCenterDistAndDir`.
 
 ## Assertions
 

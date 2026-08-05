@@ -187,10 +187,19 @@ log, exactly like every other stream-fd mismatch in this file already does.
 partial-frame carry buffer and dead-stream key per `(row, slot)` — reusing `interiorBufs`'
 carry state across two physically distinct pipes would reintroduce the exact desync this
 whole change removes, just moved from Go's write side to the read side. Once reassembled,
-though, a drive-slot frame IS an interior-shaped frame for that node row
-(`Buffer.BuildInteriorStreamFrame` on both), so decode/probe-log/cache/relay
-(`processInteriorLikeFrames`) is shared with `handleInteriorFd` — same `lastInteriorFrames`
-cache (last writer wins), same `BUF_BLOCK_TAG_INTERIOR_STREAM` tag to the webview.
+a drive-slot frame IS an interior-shaped frame for that node row
+(`Buffer.BuildInteriorStreamFrame` on both), so DECODE and PROBE-LOG
+(`processInteriorLikeFrames`) is shared with `handleInteriorFd` — but the shared tail takes
+an `assertsSlots` flag (`handleInteriorFd` passes `true`, `handleDriveFd` passes `false`)
+and a drive frame with `assertsSlots=false` is never written into `lastInteriorFrames` and
+never relayed to the webview as interior state (`BUF_BLOCK_TAG_INTERIOR_STREAM`). This was
+tightened after a follow-on bug (see below): a drive stream's own `lastPresent` is never set
+by anything, so relaying its frame as though it stated the node's slots painted an
+all-absent snapshot over a held bead the node's own interior stream had just emitted. Only
+the node's own interior stream — its Update loop's `emitHeldBead`/`emitNodeBeads`/
+`emitInputBeads` — is the one writer of slot state; a drive frame's EVENTS are still decoded
+and probe-logged, they just never reach the webview's interior cell or its replay cache
+(`tools/topology-vscode/test/driveFramesAreEventsOnly.test.ts`).
 
 **Single-Write framing, done alongside**: `writeInteriorStreamFrame`
 (`nodes/Wiring/interior_stream.go`) now issues ONE `io.Writer.Write` call per frame
