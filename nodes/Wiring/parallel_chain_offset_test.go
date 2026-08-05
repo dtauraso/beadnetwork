@@ -44,12 +44,14 @@ func TestOffsetIsPerpendicularToTheEdge(t *testing.T) {
 	}
 }
 
-// The two chains land exactly one bead step apart — on the lattice, not at a tuned gap.
-func TestTheTwoChainsSitOneBeadStepApart(t *testing.T) {
+// The two chains land exactly TWO bead steps apart — on the lattice, not at a tuned gap.
+// One step each way, so a full bead-sized gap sits between them; at half this (the chains
+// exactly touching) the pair read as a single thick wire rather than as two edges.
+func TestTheTwoChainsSitTwoBeadStepsApart(t *testing.T) {
 	a, _ := parallelChainOffset("1", "2", centerA, centerB)
 	b, _ := parallelChainOffset("2", "1", centerB, centerA)
-	if got, want := a.Sub(b).Length(), wire.BeadStepR; math.Abs(got-want) > 1e-9 {
-		t.Fatalf("chain separation = %v, want one bead step (%v)", got, want)
+	if got, want := a.Sub(b).Length(), 2*wire.BeadStepR; math.Abs(got-want) > 1e-9 {
+		t.Fatalf("chain separation = %v, want two bead steps (%v)", got, want)
 	}
 }
 

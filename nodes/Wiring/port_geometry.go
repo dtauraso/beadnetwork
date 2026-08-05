@@ -312,8 +312,10 @@ func edgeCenterDistAndDir(selfCenter, targetCenter vec3) (dist float64, unitDir 
 // the sign is then taken from which end this node is. Local decision, no coordination, and
 // the pair cannot disagree because neither is asking the other.
 //
-// The magnitude is one bead radius, so the two chains end up exactly wire.BeadStepR apart —
-// on the lattice, not a tuned pixel gap.
+// The magnitude is one bead STEP each way, so the two chains end up exactly 2*wire.BeadStepR
+// apart — still on the lattice, not a tuned pixel gap. It was half that (one bead radius
+// each way, the chains exactly touching), which separated them in principle but read as one
+// thick wire; a full step each way leaves a clear bead-sized gap between the two chains.
 //
 // The cost, stated rather than hidden: an offset chain no longer starts exactly tangent to
 // its node's torus, since it is displaced off the centre line that tangency is measured on.
@@ -343,7 +345,7 @@ func parallelChainOffset(selfID, targetID string, selfCenter, targetCenter vec3)
 	if !nodeIDLess(selfID, targetID) {
 		sign = -1.0
 	}
-	return perp.Normalize().Scale(sign * wire.BeadTorusOuterR), true
+	return perp.Normalize().Scale(sign * wire.BeadStepR), true
 }
 
 // nodeIDLess orders two node ids NUMERICALLY, because node ids are numbers that are strings
