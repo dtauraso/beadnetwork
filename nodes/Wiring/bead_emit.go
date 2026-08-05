@@ -8,6 +8,7 @@ package Wiring
 
 import (
 	"context"
+	"fmt"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -89,6 +90,18 @@ func emitHeldBead(tr *T.Trace, nodeName string, held int, stream *interiorStream
 		Kind: T.KindNodeBead, NodeRow: nodeRow, Slot: 0, Value: int32(v),
 		PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1,
 	}}
+	// DIAGNOSTIC (task/held-bead-diagnostic): what this node is actually holding as it
+	// writes its interior bead, and whether the renderer can paint that value at all
+	// (InteriorBeadInstances.tsx draws 0 and 1 only). Rides THIS frame's own EVENTS section,
+	// like every other breadcrumb that reaches the .probe logs — a bare tr.Breadcrumb call
+	// would go to a sink production does not wire, which is why the first attempt at this
+	// logged nothing. Sparse: emitHeldBead runs when a held value CHANGES, not per tick.
+	events = append(events, wire.RowEvent{
+		Kind: T.KindBreadcrumb, Label: T.BreadcrumbHeldBead, Debug: 1,
+		NodeRow: nodeRow, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
+		Value: int32(held),
+		Text:  fmt.Sprintf("node=%s held=%d present=%v paintable=%v", nodeName, held, has, held == 0 || held == 1),
+	})
 	stream.write(
 		[]uint8{boolU8(has), 0, 0, 0},
 		[]int32{int32(v), 0, 0, 0},
