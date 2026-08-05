@@ -911,7 +911,7 @@ export class BuildAndRunRunner {
       this.channel?.appendLine(`\n[${msg}]`);
       appendGoError(this.goErrorsFile, msg);
     }
-    this.processInteriorLikeFrames(row, frames);
+    this.processInteriorLikeFrames(row, frames, true); // this node own interior stream: the sole author of slot state
   }
 
   // handleDriveFd parses ONE dedicated per-(node row, drive slot) DRIVE stream pipe (fd =
@@ -941,14 +941,26 @@ export class BuildAndRunRunner {
       this.channel?.appendLine(`\n[${msg}]`);
       appendGoError(this.goErrorsFile, msg);
     }
-    this.processInteriorLikeFrames(row, frames);
+    this.processInteriorLikeFrames(row, frames, false); // drive slot: events only
   }
 
-  // processInteriorLikeFrames is the shared decode/probe-log/cache/relay tail of
-  // handleInteriorFd and handleDriveFd, once each has independently reassembled its OWN
-  // fd's frames (see handleDriveFd's doc comment for why reassembly itself is NOT
-  // shared). Unchanged from handleInteriorFd's prior inline body.
-  private processInteriorLikeFrames(row: number, frames: ArrayBuffer[]) {
+  // processInteriorLikeFrames is the shared decode/probe-log tail of handleInteriorFd and
+  // handleDriveFd, once each has independently reassembled its OWN fd's frames (see
+  // handleDriveFd's doc comment for why reassembly itself is NOT shared).
+  //
+  // assertsSlots says whether this frame's four interior SLOTS mean anything. Only the
+  // node's own interior stream authors slot state (emitHeldBead / emitNodeBeads /
+  // emitInputBeads, all on that node's own Update goroutine). A DRIVE-slot stream is
+  // interior-SHAPED but authors none of it: its WriteEvents reuses ITS OWN stream's
+  // lastPresent, which nothing ever sets, so every drive frame carries an all-absent
+  // snapshot. Relaying that as though it were a statement about the node erased the held
+  // bead a fraction of a second after it appeared — the node still held it, and nothing
+  // took its place, because the drive frame had nothing to put there.
+  //
+  // Drive frames are still decoded and probe-logged here (their EVENTS are the point of
+  // them); they simply no longer reach the webview's interior state. One writer for what is
+  // inside a node.
+  private processInteriorLikeFrames(row: number, frames: ArrayBuffer[], assertsSlots: boolean) {
     for (const ab of frames) {
       // Decode this node's OWN trailing EVENTS section (NodeBead — this node's own
       // Update-loop goroutine's row-resolved events; memory/feedback_no_single_writer_bridge.md).
@@ -964,6 +976,7 @@ export class BuildAndRunRunner {
           }
         }
       }
+      if (!assertsSlots) continue; // a drive frame: logged above, never interior state
       this.lastInteriorFrames.set(row, ab.slice(0));
       if (this.onSnapshot) {
         this.onSnapshot({ type: "buffer-snapshot", buffer: ab, tag: BUF_BLOCK_TAG_INTERIOR_STREAM, row, gen: this.spawnGen });
