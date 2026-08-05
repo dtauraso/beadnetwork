@@ -65,7 +65,29 @@ const (
 	// (stdin_reader.go), so the index write + persist + re-emit all run on that node's
 	// OWN goroutine.
 	moveMsgKindTiltVectorAngle = "tiltVectorAngle"
+	// moveMsgKindTiltIndexSync is the ONE-WAY notification a node kind's OWN goroutine
+	// sends to its OWN mover whenever it changes its OWN tiltVectorThetaIdx/PhiIdx —
+	// currently Node1/Node2 only (nodes/Node1/node.go, nodes/Node2/node.go), the only
+	// kinds that claim BuildArgs.TiltEditIn and therefore own their index independently
+	// (see TiltEditMsg's doc comment). It carries the FULL new (theta, phi) pair, not a
+	// delta: the mover is a passive mirror here, not a co-decider — it applies exactly
+	// what it is told (persistTiltVectorAngle + emitGeometry), never steps the index
+	// itself. Every OTHER kind still routes moveMsgKindTiltVectorAngle straight to its
+	// mover, which remains the sole owner/mutator of the index for those kinds.
+	moveMsgKindTiltIndexSync = "tiltIndexSync"
 )
+
+// TiltEditMsg is one panel-driven tilt-angle click (TiltVectorAnglePanel), routed to a
+// node kind's OWN dedicated channel (BuildArgs.TiltEditIn) instead of its mover, for any
+// kind that claims that channel at build time (Node1/Node2 — the only kinds whose own
+// goroutine independently owns/decides their tilt index, per the straightening loop's
+// firing rule). A kind that never calls TiltEditIn is not registered in
+// MoveDispatch.tiltEditIns, so stdin_reader's applyUpdateTiltVector falls back to the old
+// mover-owned path (moveMsgKindTiltVectorAngle) for it unchanged.
+type TiltEditMsg struct {
+	Axis string // "theta" or "phi" — which of the node's own indices to adjust.
+	Up   bool   // true = +1 step, false = -1 step.
+}
 
 // moveMsg is one entry routed to one of a mover's own dedicated channels (there is no
 // shared inbox). kind selects the
@@ -123,6 +145,10 @@ type moveMsg struct {
 	// Axis (Kind == "tiltVectorAngle"): "theta" or "phi" — which of the node's own
 	// tiltVectorThetaIdx/tiltVectorPhiIdx to adjust.
 	Axis string
+	// ThetaIdx/PhiIdx (Kind == "tiltIndexSync"): the FULL new index pair, as decided by
+	// the sending node kind's own goroutine (never a delta — see moveMsgKindTiltIndexSync's
+	// doc comment). The receiving mover applies these verbatim; it does not compute them.
+	ThetaIdx, PhiIdx int32
 	// testDone: see the type comment. Test-only; production leaves it nil.
 	testDone chan struct{}
 }

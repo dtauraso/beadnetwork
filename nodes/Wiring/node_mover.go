@@ -303,10 +303,16 @@ type nodeMover struct {
 	// tiltVectorThetaIdx/tiltVectorPhiIdx are THIS node's own vector direction, as INTEGER
 	// indices into TiltVectorAngleStep (memory/feedback_abc_times_constant_not_rederive.md
 	// — index × step-constant, trig only at the cartesian/polar boundary). Default 0,0
-	// means world +y (θ=0), matching the pre-existing hardcoded +y direction. Written
-	// only by this node's own goroutine, from an edit-update(tiltVector) message
-	// (moveMsgKindTiltVectorAngle) or the persisted load value; persisted by this node's own
-	// mover into ITS OWN position.json (persist_position.go), never a foreign file.
+	// means world +y (θ=0), matching the pre-existing hardcoded +y direction. Always
+	// persisted by this node's own mover into ITS OWN position.json (quant_offset_persist.go)
+	// and streamed by writeStreamFrame below, but who DECIDES the value differs by kind:
+	// for a kind that claims BuildArgs.TiltEditIn and owns its own index independently
+	// (Node1/Node2 today), this mover is a passive MIRROR — written only by
+	// moveMsgKindTiltIndexSync, a one-way notification from that node's own goroutine,
+	// never decided or mutated here. For every other kind, this mover remains the sole
+	// decider/mutator, written directly by an edit-update(tiltVector) message
+	// (moveMsgKindTiltVectorAngle, applyUpdateTiltVector's fallback) or seeded once from
+	// the persisted load value (build.go).
 	tiltVectorThetaIdx, tiltVectorPhiIdx int32
 }
 
@@ -441,6 +447,26 @@ func (m *nodeMover) handle(msg moveMsg) {
 		if m.tr != nil {
 			m.emitGeometry()
 		}
+		// NOTE: this path only runs for a kind that has NOT claimed BuildArgs.TiltEditIn
+		// (every kind except Node1/Node2 today — see moveMsgKindTiltVectorAngle's own doc
+		// comment and applyUpdateTiltVector's fallback, stdin_reader.go). Node1/Node2's own
+		// tilt-panel edits are routed to their OWN goroutine instead (TiltEditIn), which
+		// applies the click, syncs this value back via moveMsgKindTiltIndexSync, AND places
+		// "the kick" bead on its own Out directly — none of that happens here anymore.
+		return
+	}
+	if msg.Kind == moveMsgKindTiltIndexSync {
+		// Passive mirror only: Node1/Node2's own goroutine already decided and mutated
+		// its OWN index (reactToArrival/panel-edit handling now live there —
+		// nodes/Node1/node.go, nodes/Node2/node.go). This mover just applies exactly what
+		// it is told, persists it to this node's OWN position.json, and re-emits so the
+		// panel's read-only reflect and the drawn arrow both pick up the change.
+		m.tiltVectorThetaIdx = msg.ThetaIdx
+		m.tiltVectorPhiIdx = msg.PhiIdx
+		m.persistTiltVectorAngle()
+		if m.tr != nil {
+			m.emitGeometry()
+		}
 		return
 	}
 	if msg.Kind == moveMsgKindNeighborCenter {
@@ -480,6 +506,27 @@ func (m *nodeMover) handle(msg moveMsg) {
 		m.emitGeometry()
 	}
 }
+
+// PerpendicularThetaIdx is the tiltVectorThetaIdx value at which the tilt vector is exactly
+// perpendicular to world +y: CurveParamTiltVectorAngleStep is π/12 (15°), and π/2 (90°) is
+// exactly 6 steps. Comparing to this INTEGER is what makes the straightening loop's stop
+// condition exact — cos(π/2) in float64 is ~6.1e-17, so a literal float dot==0 test would
+// never fire (memory/feedback_abc_times_constant_not_rederive.md: index arithmetic, trig
+// only at the cartesian/polar boundary). Exported (capitalized) so Node1/Node2's own
+// goroutine — which now runs the straightening rule itself, per-package — can compare
+// against it without duplicating the constant; the rule itself no longer lives here (see
+// nodes/Node1/node.go, nodes/Node2/node.go).
+//
+// dot(tilt, coplanarNormal) == 0 is decided as thetaIdx == PerpendicularThetaIdx, not by
+// computing an actual float dot product. STATE THE ASSUMPTION THAT MAKES THE SHORTCUT
+// VALID: the tilt vector's in-plane angle IS its θ index only because, for this scene, the
+// ring plane holds world +y and θ is measured from +y, so the two coincide (see
+// tiltVectorThetaIdx's own doc comment and the CoplanarNormal/UpAxis derivations in
+// writeStreamFrame above). A scene whose ring plane does NOT contain +y breaks that
+// coincidence — θ would then measure something unrelated to the coplanar normal, and the
+// rule would need to compare an actual dot(tilt, coplanarNormal) via the two integer
+// indices' angles converted through anglesToWorldOffset, not thetaIdx alone.
+const PerpendicularThetaIdx int32 = 6
 
 // applyCenter is the SOLE WRITE of this node's center/reach. It is called ONLY from
 // this nodeMover's own inbox-drain goroutine (handle's moveMsgKindCenter case, driven
@@ -616,13 +663,18 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 	// holds and persists (m.tiltVectorThetaIdx/tiltVectorPhiIdx).
 	tiltVectorTheta := float64(m.tiltVectorThetaIdx) * CurveParamTiltVectorAngleStep
 	tiltVectorPhi := float64(m.tiltVectorPhiIdx) * CurveParamTiltVectorAngleStep
-	// The COPLANAR NORMAL: a quarter turn from the tilt vector, INSIDE this node's own ring
-	// plane,
-	// so both lie across the ring's face instead of one standing out of it. Zero when this
-	// node draws no vector at all, matching the first.
+	// The COPLANAR NORMAL: the in-plane direction toward this node's partner
+	// (coplanarNormalTowardPartner, port_geometry.go) — derived from the EDGE, never from
+	// the tilt vector, so turning the tilt never moves what it is measured against (see
+	// that helper's doc comment). Zero when this node draws no vector at all, matching the
+	// first.
 	var coplanarNormalTheta, coplanarNormalPhi float64
 	if tiltVectorLen > 0 {
-		coplanarNormalTheta, coplanarNormalPhi = quarterTurnInRingPlane(tiltVectorTheta, tiltVectorPhi, ringAxisTheta, ringAxisPhi)
+		for _, partner := range m.partnerCenters {
+			if t, p, ok := coplanarNormalTowardPartner(nodeWorldPos(m.geom), partner, ringAxisTheta, ringAxisPhi); ok {
+				coplanarNormalTheta, coplanarNormalPhi = t, p
+			}
+		}
 	}
 	label := m.geom.Label
 	if label == "" {

@@ -424,7 +424,14 @@ func (b *buildCtx) buildNodes() error {
 			}
 		}
 
-		nd, err := bind.Build(b.ctx, n.ID, n.Data, pb, b.tr, b.nodeGeoms[n.ID])
+		var tiltThetaIdx, tiltPhiIdx int32
+		if n.TiltVectorThetaIdx != nil {
+			tiltThetaIdx = *n.TiltVectorThetaIdx
+		}
+		if n.TiltVectorPhiIdx != nil {
+			tiltPhiIdx = *n.TiltVectorPhiIdx
+		}
+		nd, err := bind.Build(b.ctx, n.ID, n.Data, pb, b.tr, b.nodeGeoms[n.ID], tiltThetaIdx, tiltPhiIdx)
 		if err != nil {
 			return fmt.Errorf("LoadTopology: build node %q: %w", n.ID, err)
 		}

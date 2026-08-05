@@ -394,9 +394,15 @@ func applyUpdateDistanceGroup(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speed
 // its id/name — no sidecar on this wire, .claude/rules/bridge-surface.md); msg.Attr names
 // which index (theta/phi); msg.Flag is "up" (+1 step) or "down" (-1 step). ROW ID = NODE
 // ID - 1 by construction (persistence-ownership.md), so the row resolves to an id
-// directly — no reverse lookup table needed. Routed via md.sendMove onto the target
-// node's OWN extIn (moveMsgKindTiltVectorAngle) so the index write + persist + re-emit all
-// run on that node's own goroutine, never here.
+// directly — no reverse lookup table needed.
+//
+// Two routes, decided by whether the target node's OWN kind claimed
+// BuildArgs.TiltEditIn at build time (Node1/Node2 today — the only kinds that own their
+// tilt index independently, per the straightening loop's firing rule): md.sendTiltEdit
+// tries that node's dedicated channel first and reports whether one exists. When it does
+// NOT (every other kind), this falls back to the old path — md.sendMove onto the node's
+// mover (moveMsgKindTiltVectorAngle) — so the index write + persist + re-emit still run on
+// that node's own mover goroutine, unchanged for every kind but the pair.
 func applyUpdateTiltVector(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
 	if md == nil || (msg.Attr != "theta" && msg.Attr != "phi") {
 		return
@@ -405,7 +411,11 @@ func applyUpdateTiltVector(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSin
 	if _, ok := md.mr.nodeMovers[id]; !ok {
 		return
 	}
-	md.sendMove(id, moveMsg{Kind: moveMsgKindTiltVectorAngle, NodeID: id, Axis: msg.Attr, Bool: msg.Flag == "up"})
+	up := msg.Flag == "up"
+	if md.sendTiltEdit(id, TiltEditMsg{Axis: msg.Attr, Up: up}) {
+		return
+	}
+	md.sendMove(id, moveMsg{Kind: moveMsgKindTiltVectorAngle, NodeID: id, Axis: msg.Attr, Bool: up})
 }
 
 // applyUpdateScene handles kind=="scene" attr=="selected": one click on the scene tab

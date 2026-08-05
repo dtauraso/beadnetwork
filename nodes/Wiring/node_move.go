@@ -105,6 +105,16 @@ type MoveDispatch struct {
 	// public Lookup*/…RowFor methods below are thin delegators to it so the external
 	// API is unchanged.
 	rt rowTables
+
+	// tiltEditIns holds, for each node id whose OWN kind claimed BuildArgs.TiltEditIn at
+	// build time (Node1/Node2 — the only kinds that own their tilt index independently),
+	// that node's dedicated inbound channel for a panel-driven tilt-angle click. Written
+	// ONCE per entry, on the single-threaded build path (buildNodes, via
+	// BuildArgs.TiltEditIn), before any goroutine runs — never touched again. A node id
+	// with no entry here is a kind that still routes tiltVectorAngle straight to its
+	// mover (applyUpdateTiltVector's fallback, stdin_reader.go). Read only by
+	// sendTiltEdit, called from the stdin-reader goroutine.
+	tiltEditIns map[string]chan TiltEditMsg
 }
 
 // newMoveDispatch builds the registry from per-node geometry and per-edge endpoints.
@@ -365,6 +375,29 @@ func (md *MoveDispatch) centerOfNode(id string) (vec3, bool) {
 // owning mover goroutine, so it never fires a tap — see nodeMover.tap's doc comment.
 func (md *MoveDispatch) sendMove(id string, msg moveMsg) {
 	md.mr.sendMove(md.ctx, id, msg)
+}
+
+// sendTiltEdit routes one panel-driven tilt-angle click to node id's OWN dedicated
+// tiltEditIns channel and returns true, or returns false when id has no such channel (a
+// kind that never called BuildArgs.TiltEditIn — every kind except Node1/Node2 today),
+// telling the caller (applyUpdateTiltVector) to fall back to the old mover-owned path
+// instead. Same blocking-with-ctx-cancel-escape shape as sendMove/mr.sendMove, for the
+// same reason: this is a bare external-entry send with no owning goroutine to thread a
+// ctx from.
+func (md *MoveDispatch) sendTiltEdit(id string, msg TiltEditMsg) bool {
+	ch, ok := md.tiltEditIns[id]
+	if !ok {
+		return false
+	}
+	if md.ctx == nil {
+		ch <- msg
+		return true
+	}
+	select {
+	case ch <- msg:
+	case <-md.ctx.Done():
+	}
+	return true
 }
 
 // enqueueFor returns nm's own non-blocking send function. Thin delegator to md.mr

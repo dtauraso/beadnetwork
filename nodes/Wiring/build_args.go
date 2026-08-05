@@ -56,6 +56,14 @@ type BuildArgs struct {
 	tr   *T.Trace
 	geom nodeGeom
 
+	// tiltThetaIdx/tiltPhiIdx are this node's PERSISTED tilt-vector-angle indices
+	// (topo_spec.go's specNode.TiltVectorThetaIdx/PhiIdx, dereferenced with a 0 default),
+	// threaded in from the loaded spec so a kind that owns its own index (TiltVectorAngleSeed)
+	// can seed its own struct field from the SAME value the mover used to seed itself with
+	// (build.go's old nm.tiltVectorThetaIdx assignment) — one load-time value, read by
+	// whichever goroutine ends up owning it.
+	tiltThetaIdx, tiltPhiIdx int32
+
 	// sourceOuts collects every Out this node resolves. reflectBuild shared one slice
 	// between its closure injection and its port wiring; the same slice is threaded here
 	// so an Out resolved by a.Out()/a.Broadcast() is still recorded.
@@ -154,6 +162,54 @@ func (a BuildArgs) Fire() func() {
 	}
 }
 
+// TiltVectorAngleSeed returns this node's persisted tilt-vector-angle indices
+// (specNode.TiltVectorThetaIdx/PhiIdx, 0 default) — the load-time seed for a kind that
+// owns its OWN index field (Node1/Node2), so it starts from the same persisted value the
+// mover used to seed itself with before this reshape.
+func (a BuildArgs) TiltVectorAngleSeed() (theta, phi int32) {
+	return a.tiltThetaIdx, a.tiltPhiIdx
+}
+
+// TiltEditIn claims this node's dedicated inbound channel for a panel-driven tilt-angle
+// click (TiltVectorAnglePanel), registering it in MoveDispatch.tiltEditIns so
+// applyUpdateTiltVector (stdin_reader.go) routes that node's edits HERE instead of to its
+// mover. Call this ONLY from a kind whose own goroutine independently owns/decides its
+// tilt index (Node1/Node2) — every other kind must keep using the old mover-owned path by
+// simply never calling this. nil-safe: a.pb.md is nil on a bare test build with no
+// loader, in which case this returns a channel that is never written to (PollRecv-style
+// non-blocking reads on it always find nothing, matching every other build-time fallback
+// in this file).
+func (a BuildArgs) TiltEditIn() <-chan TiltEditMsg {
+	md := a.pb.md
+	if md == nil {
+		return make(chan TiltEditMsg)
+	}
+	panelToNodeTiltEditIn := make(chan TiltEditMsg, moverInboxDepth)
+	if md.tiltEditIns == nil {
+		md.tiltEditIns = map[string]chan TiltEditMsg{}
+	}
+	md.tiltEditIns[a.name] = panelToNodeTiltEditIn
+	return panelToNodeTiltEditIn
+}
+
+// SyncTiltIndex returns a closure that notifies THIS node's own MOVER goroutine of its
+// current tilt-vector-angle indices — the one-way, fire-and-forget counterpart to
+// TiltEditIn: a kind that owns its own index (Node1/Node2) calls this every time it
+// changes that index, so the mover (which still owns streaming that geometry and
+// persisting it to this node's own position.json) stays in sync without ever deciding or
+// mutating the index itself. nil-safe: a.pb.md is nil on a bare test build with no
+// loader, in which case this is a no-op, same fallback every other closure here takes.
+func (a BuildArgs) SyncTiltIndex() func(theta, phi int32) {
+	md := a.pb.md
+	name := a.name
+	return func(theta, phi int32) {
+		if md == nil {
+			return
+		}
+		md.sendMove(name, moveMsg{Kind: moveMsgKindTiltIndexSync, NodeID: name, ThetaIdx: theta, PhiIdx: phi})
+	}
+}
+
 // EmitNodeBeads returns the interior working/backup bead emitter.
 func (a BuildArgs) EmitNodeBeads() func(working, backup []int) {
 	tr, name, getStream := a.tr, a.name, a.getStream
@@ -244,7 +300,7 @@ func RegisterBuilder(kind string, ports []PortSpec, build func(BuildArgs) (wire.
 	}
 	Registry[kind] = NodeBuilder{
 		Ports: ports,
-		Build: func(ctx context.Context, name string, data *NodeData, pb PortBindings, tr *T.Trace, geom nodeGeom) (wire.Node, error) {
+		Build: func(ctx context.Context, name string, data *NodeData, pb PortBindings, tr *T.Trace, geom nodeGeom, tiltThetaIdx, tiltPhiIdx int32) (wire.Node, error) {
 			var sourceOuts []*wire.Out
 			return build(BuildArgs{
 				ctx: ctx, name: name, data: data, pb: pb, tr: tr,
@@ -252,6 +308,8 @@ func RegisterBuilder(kind string, ports []PortSpec, build func(BuildArgs) (wire.
 				sourceOuts:      &sourceOuts,
 				getStream:       newInteriorStreamGetter(name, pb),
 				driveSlotClaims: map[int]string{},
+				tiltThetaIdx:    tiltThetaIdx,
+				tiltPhiIdx:      tiltPhiIdx,
 			})
 		},
 	}

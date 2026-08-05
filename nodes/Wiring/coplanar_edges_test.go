@@ -117,9 +117,9 @@ func TestVerticalEdgeHasNoUniqueUprightPlane(t *testing.T) {
 	}
 }
 
-// The SECOND vector is a quarter turn from the first, and must stay IN the ring's plane —
-// that is the whole point of turning about the ring's own axis rather than any other.
-func TestSecondVectorIsAQuarterTurnInsideTheRingPlane(t *testing.T) {
+// The coplanar normal must stay IN the ring's plane — perpendicular to the ring axis —
+// same requirement the old quarter-turned tilt vector had, but now derived from the edge.
+func TestCoplanarNormalStaysInsideTheRingPlane(t *testing.T) {
 	// The pair's shape: a horizontal edge, so the upright ring plane holds the edge and up.
 	self := vec3{X: 96, Z: -80}
 	partner := vec3{X: 96, Z: -40}
@@ -127,66 +127,77 @@ func TestSecondVectorIsAQuarterTurnInsideTheRingPlane(t *testing.T) {
 	if !ok {
 		t.Fatal("upright axis must resolve")
 	}
-	// The first vector points up, and up lies in that plane.
-	up := worldDirToAngles(vec3{X: 0, Y: 1, Z: 0})
-	upT, upP := up.Theta, up.Phi
-	secT, secP := quarterTurnInRingPlane(upT, upP, axisT, axisP)
+	normT, normP, ok := coplanarNormalTowardPartner(self, partner, axisT, axisP)
+	if !ok {
+		t.Fatal("a well-separated pair must resolve a coplanar normal")
+	}
 
 	axis := anglesToWorldOffset(1, axisT, axisP)
-	first := anglesToWorldOffset(1, upT, upP)
-	second := anglesToWorldOffset(1, secT, secP)
+	normal := anglesToWorldOffset(1, normT, normP)
 
-	if d := second.Dot(axis); math.Abs(d) > 1e-9 {
-		t.Fatalf("the second vector must lie IN the ring plane (perpendicular to its axis), got dot=%v", d)
+	if d := normal.Dot(axis); math.Abs(d) > 1e-9 {
+		t.Fatalf("the coplanar normal must lie IN the ring plane (perpendicular to its axis), got dot=%v", d)
 	}
-	if d := second.Dot(first); math.Abs(d) > 1e-9 {
-		t.Fatalf("a QUARTER turn means perpendicular to the first vector, got dot=%v", d)
+	if l := normal.Length(); math.Abs(l-1) > 1e-9 {
+		t.Fatalf("the normal must stay a unit vector, got length %v", l)
 	}
-	if l := second.Length(); math.Abs(l-1) > 1e-9 {
-		t.Fatalf("the turned direction must stay a unit vector, got length %v", l)
+}
+
+// The coplanar normal must be INDEPENDENT of the tilt vector: turning the tilt (any theta/
+// phi at all) must never move the normal, since it is derived from the edge alone.
+func TestCoplanarNormalIsIndependentOfTilt(t *testing.T) {
+	self := vec3{X: 96, Z: -80}
+	partner := vec3{X: 96, Z: -40}
+	axisT, axisP, _ := uprightRingAxis(self, partner)
+	wantT, wantP, ok := coplanarNormalTowardPartner(self, partner, axisT, axisP)
+	if !ok {
+		t.Fatal("a well-separated pair must resolve a coplanar normal")
+	}
+	// The normal takes no tilt-vector argument at all, so calling it again (as if the tilt
+	// had turned) is the whole test: nothing about the call changes with the tilt.
+	gotT, gotP, ok := coplanarNormalTowardPartner(self, partner, axisT, axisP)
+	if !ok || gotT != wantT || gotP != wantP {
+		t.Fatalf("coplanar normal must be stable regardless of tilt; got (%v,%v), want (%v,%v)", gotT, gotP, wantT, wantP)
 	}
 }
 
 // The two ends of a pair must point OPPOSITE ways without either being told which side it
-// is: each derives its ring axis from its OWN direction to the partner, so the axes are
-// already opposites and the same quarter turn lands in opposite world directions.
-func TestPairSecondVectorsOppose(t *testing.T) {
+// is: each derives its normal from its OWN direction to the partner, so the two are already
+// opposites.
+func TestPairCoplanarNormalsOppose(t *testing.T) {
 	a := vec3{X: 96, Z: -80}
 	b := vec3{X: 96, Z: -40}
-	up := worldDirToAngles(vec3{X: 0, Y: 1, Z: 0})
-	upT, upP := up.Theta, up.Phi
 
 	aAxisT, aAxisP, _ := uprightRingAxis(a, b) // node A measures toward B
 	bAxisT, bAxisP, _ := uprightRingAxis(b, a) // node B measures toward A
-	aSecT, aSecP := quarterTurnInRingPlane(upT, upP, aAxisT, aAxisP)
-	bSecT, bSecP := quarterTurnInRingPlane(upT, upP, bAxisT, bAxisP)
+	aNormT, aNormP, _ := coplanarNormalTowardPartner(a, b, aAxisT, aAxisP)
+	bNormT, bNormP, _ := coplanarNormalTowardPartner(b, a, bAxisT, bAxisP)
 
-	av := anglesToWorldOffset(1, aSecT, aSecP)
-	bv := anglesToWorldOffset(1, bSecT, bSecP)
+	av := anglesToWorldOffset(1, aNormT, aNormP)
+	bv := anglesToWorldOffset(1, bNormT, bNormP)
 	if av.Add(bv).Length() > 1e-9 {
-		t.Fatalf("the pair's second vectors must be opposites; got %v and %v", av, bv)
+		t.Fatalf("the pair's coplanar normals must be opposites; got %v and %v", av, bv)
 	}
 }
 
-// The second vector must aim AT the partner, not away from it. This is the assertion the
-// earlier pair of tests could not make: perpendicular-to-the-first and opposite-to-each-other
-// are both satisfied by the wrong sign too, so only a direction test catches it.
-func TestSecondVectorAimsAtThePartner(t *testing.T) {
+// The normal must aim AT the partner, not away from it. This is the assertion the opposing
+// test above could not make on its own: opposite-to-each-other is also satisfied by the
+// wrong sign, so only a direction test catches it.
+func TestCoplanarNormalAimsAtThePartner(t *testing.T) {
 	a := vec3{X: 96, Z: -80}
 	b := vec3{X: 96, Z: -40}
-	up := worldDirToAngles(vec3{X: 0, Y: 1, Z: 0})
 
 	aAxisT, aAxisP, _ := uprightRingAxis(a, b)
-	aSecT, aSecP := quarterTurnInRingPlane(up.Theta, up.Phi, aAxisT, aAxisP)
+	aNormT, aNormP, _ := coplanarNormalTowardPartner(a, b, aAxisT, aAxisP)
 	toward := b.Sub(a).Normalize()
-	if d := anglesToWorldOffset(1, aSecT, aSecP).Dot(toward); d < 0.999 {
-		t.Fatalf("node A's second vector must point AT B: dot with the A→B direction = %v, want ~1", d)
+	if d := anglesToWorldOffset(1, aNormT, aNormP).Dot(toward); d < 0.999 {
+		t.Fatalf("node A's coplanar normal must point AT B: dot with the A→B direction = %v, want ~1", d)
 	}
 
 	bAxisT, bAxisP, _ := uprightRingAxis(b, a)
-	bSecT, bSecP := quarterTurnInRingPlane(up.Theta, up.Phi, bAxisT, bAxisP)
+	bNormT, bNormP, _ := coplanarNormalTowardPartner(b, a, bAxisT, bAxisP)
 	back := a.Sub(b).Normalize()
-	if d := anglesToWorldOffset(1, bSecT, bSecP).Dot(back); d < 0.999 {
-		t.Fatalf("node B's second vector must point back AT A: dot with the B→A direction = %v, want ~1", d)
+	if d := anglesToWorldOffset(1, bNormT, bNormP).Dot(back); d < 0.999 {
+		t.Fatalf("node B's coplanar normal must point back AT A: dot with the B→A direction = %v, want ~1", d)
 	}
 }

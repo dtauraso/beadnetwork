@@ -444,31 +444,35 @@ func uprightRingAxis(selfCenter, partnerCenter vec3) (theta, phi float64, ok boo
 	return math.Acos(clamp(u.Y, -1, 1)), math.Atan2(u.Z, u.X), true
 }
 
-// quarterTurnInRingPlane rotates a direction a quarter turn about the ring's own axis, which
-// keeps the result IN the ring's plane whenever the input was — so a node's tilt vector and its coplanar normal both
-// lie across the ring's face rather than one standing out of it.
+// coplanarNormalTowardPartner returns the COPLANAR NORMAL: the ring-plane direction from
+// selfCenter toward partnerCenter — the component of (partnerCenter − selfCenter)
+// perpendicular to the ring axis, normalised. This is deliberately derived from the EDGE
+// alone, never from the node's own tilt vector: an earlier version computed it as a quarter
+// turn OF the tilt (quarterTurnInRingPlane, now deleted), and a quarter turn of u about a is
+// u×a — perpendicular to u BY CONSTRUCTION, so dot(tilt, normal) was identically zero and
+// the "normal" swung every time the tilt turned. The straightening loop (Node1/Node2,
+// nodes/Node1/node.go) needs to measure dot(tilt, coplanarNormal) and have that measurement
+// mean something, so the normal must hold still while the tilt moves — it can only do that
+// if it comes from something the tilt doesn't touch, which is the edge to the partner.
 //
-// Rodrigues at exactly 90° about a unit axis a, for a vector u perpendicular to it, collapses
-// to a × u: the cos term vanishes and the (a·u) term is zero. No general rotation machinery
-// is needed, and no angle is ever added to another angle — the turn is a cross product, and
-// the single conversion back to angles is the one boundary crossing this codebase allows.
+// The projection (rather than a bare Normalize of the raw edge vector) is what makes this
+// exact even when the axis and the edge are not perfectly perpendicular — same shape as
+// poleContainingEdge above, applied to the edge direction instead of the pole.
 //
-// The two nodes of a pair need no side assigned to them: each derives its ring axis from ITS
-// OWN direction to its partner, so their axes are already opposites, and the same quarter
-// turn about opposite axes lands in opposite world directions.
-func quarterTurnInRingPlane(theta, phi, axisTheta, axisPhi float64) (outTheta, outPhi float64) {
-	u := anglesToWorldOffset(1, theta, phi)
-	a := anglesToWorldOffset(1, axisTheta, axisPhi)
-	// u × a, NOT a × u: the two differ by sign, and this is the one that turns the
-	// up-vector TOWARD the node's partner rather than away from it. With a derived from
-	// self→partner, u × a lands along that same direction, so node 1's second vector aims
-	// at node 2 and node 2's aims back at node 1.
-	v := u.Cross(a)
-	if v.Length() < 1e-9 {
-		// u is parallel to the axis: it is not in the plane to begin with, so there is no
-		// quarter turn within the plane to take. Leave it where it was.
-		return theta, phi
+// Not resolvable when the centres coincide (no edge direction) or when the edge runs along
+// the ring axis (its whole length projects to zero, so there is no in-plane component to
+// report) — the caller keeps whatever normal it already had.
+func coplanarNormalTowardPartner(selfCenter, partnerCenter vec3, axisTheta, axisPhi float64) (theta, phi float64, ok bool) {
+	delta := partnerCenter.Sub(selfCenter)
+	if delta.Length() < 1e-9 {
+		return 0, 0, false
 	}
-	n := v.Normalize()
-	return math.Acos(clamp(n.Y, -1, 1)), math.Atan2(n.Z, n.X)
+	dir := delta.Normalize()
+	axis := anglesToWorldOffset(1, axisTheta, axisPhi)
+	projected := dir.Sub(axis.Scale(dir.Dot(axis)))
+	if projected.Length() < 1e-6 {
+		return 0, 0, false
+	}
+	u := projected.Normalize()
+	return math.Acos(clamp(u.Y, -1, 1)), math.Atan2(u.Z, u.X), true
 }
