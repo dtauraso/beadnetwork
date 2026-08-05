@@ -27,6 +27,7 @@ import { getNodeFrame } from "./node-stream-blocks";
 import {
   readNodeCX, readNodeCY, readNodeCZ,
   readNodeVectorLen, readNodeVectorTheta, readNodeVectorPhi,
+  readNodeVector2Theta, readNodeVector2Phi,
 } from "../../schema/buffer-layout";
 
 // The shaft's thickness and the head's size, as fractions of the vector's own length, so an
@@ -68,28 +69,22 @@ export function NodeVectors({ capacity }: { capacity: number }) {
     }
     const { nodeCount, nodeView } = decoded;
 
+    // Each node draws TWO arrows: its own vector, and a second one a quarter turn away
+    // inside the same ring plane (Buffer/layout.go's Vector2Theta/Vector2Phi). Both come
+    // from Go as directions; nothing here decides where either points. They are written
+    // into the SAME instanced meshes, so one draw call still covers every arrow.
     let drawn = 0;
-    for (let row = 0; row < nodeCount && drawn < capacity; row++) {
-      const len = readNodeVectorLen(nodeView, row);
-      if (!(len > 0)) continue; // Go says this node draws no vector
-
-      // Direction = Go's own VectorTheta/VectorPhi for this node — NOT the ring's axis
-      // (RingAxisTheta/Phi is a separate column; see the file header). (0,0) decodes to
-      // world +y, the same default the vector used before this column existed, so an
-      // unedited node's arrow is unchanged. Same θ-from-+y/φ-azimuth-around-+y →
-      // cartesian conversion NodeInstances uses for the ring axis.
-      axisRef.current.set(0, 1, 0);
-      const vecTheta = readNodeVectorTheta(nodeView, row);
-      const vecPhi = readNodeVectorPhi(nodeView, row);
-      if (vecTheta !== 0 || vecPhi !== 0) {
-        const st = Math.sin(vecTheta);
-        axisRef.current.set(st * Math.cos(vecPhi), Math.cos(vecTheta), st * Math.sin(vecPhi));
+    const writeArrow = (cx: number, cy: number, cz: number, len: number, theta: number, phi: number) => {
+      // (0,0) decodes to world +y — the default the vector had before it carried its own
+      // direction, so an unedited node's arrow is unchanged. Same θ-from-+y /
+      // φ-azimuth-around-+y conversion NodeInstances uses for the ring axis.
+      if (theta === 0 && phi === 0) {
+        axisRef.current.set(0, 1, 0);
+      } else {
+        const st = Math.sin(theta);
+        axisRef.current.set(st * Math.cos(phi), Math.cos(theta), st * Math.sin(phi));
       }
       quatRef.current.setFromUnitVectors(GEOMETRY_AXIS, axisRef.current);
-
-      const cx = readNodeCX(nodeView, row);
-      const cy = readNodeCY(nodeView, row);
-      const cz = readNodeCZ(nodeView, row);
 
       // SHAFT: a unit cylinder is centred on its own origin, so it sits at the MIDPOINT of
       // the span it covers — from the node's centre to where the head begins.
@@ -104,7 +99,7 @@ export function NodeVectors({ capacity }: { capacity: number }) {
       shaft.setMatrixAt(drawn, matRef.current);
 
       // HEAD: likewise centred, so it sits half a head-length back from the tip — which
-      // lands the tip exactly at the node's top, at distance `len` from its centre.
+      // lands the tip exactly at distance `len` from the node's centre.
       const headLen = len * HEAD_LEN_FRAC;
       const headCentre = len - headLen / 2;
       posRef.current.set(
@@ -117,6 +112,18 @@ export function NodeVectors({ capacity }: { capacity: number }) {
       head.setMatrixAt(drawn, matRef.current);
 
       drawn++;
+    };
+
+    for (let row = 0; row < nodeCount && drawn + 1 < capacity; row++) {
+      const len = readNodeVectorLen(nodeView, row);
+      if (!(len > 0)) continue; // Go says this node draws no vectors
+
+      const cx = readNodeCX(nodeView, row);
+      const cy = readNodeCY(nodeView, row);
+      const cz = readNodeCZ(nodeView, row);
+
+      writeArrow(cx, cy, cz, len, readNodeVectorTheta(nodeView, row), readNodeVectorPhi(nodeView, row));
+      writeArrow(cx, cy, cz, len, readNodeVector2Theta(nodeView, row), readNodeVector2Phi(nodeView, row));
     }
 
     shaft.count = drawn;

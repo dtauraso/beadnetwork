@@ -100,7 +100,9 @@ export function BufferScene({ cameraRef }: {
       {/* One arrow per node, centre to its own top, along the same axis its ring is drawn
           on. Sized by nodeCap for the same reason NodeInstances is: at most one per row.
           A node whose streamed VectorLen is 0 draws none. */}
-      <NodeVectors capacity={nodeCap} />
+      {/* Two arrows per node (its vector and the quarter-turn second one), so the
+          instance budget is twice the node count. */}
+      <NodeVectors capacity={nodeCap * 2} />
       <InteriorBeadInstances capacity={nodeCap * INTERIOR_SLOTS_PER_NODE} />
       <SelectionHighlight />
       <HoverHighlight />

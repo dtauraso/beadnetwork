@@ -116,3 +116,54 @@ func TestVerticalEdgeHasNoUniqueUprightPlane(t *testing.T) {
 		t.Fatal("an edge parallel to +y must report not-resolvable")
 	}
 }
+
+// The SECOND vector is a quarter turn from the first, and must stay IN the ring's plane —
+// that is the whole point of turning about the ring's own axis rather than any other.
+func TestSecondVectorIsAQuarterTurnInsideTheRingPlane(t *testing.T) {
+	// The pair's shape: a horizontal edge, so the upright ring plane holds the edge and up.
+	self := vec3{X: 96, Z: -80}
+	partner := vec3{X: 96, Z: -40}
+	axisT, axisP, ok := uprightRingAxis(self, partner)
+	if !ok {
+		t.Fatal("upright axis must resolve")
+	}
+	// The first vector points up, and up lies in that plane.
+	up := worldDirToAngles(vec3{X: 0, Y: 1, Z: 0})
+	upT, upP := up.Theta, up.Phi
+	secT, secP := quarterTurnInRingPlane(upT, upP, axisT, axisP)
+
+	axis := anglesToWorldOffset(1, axisT, axisP)
+	first := anglesToWorldOffset(1, upT, upP)
+	second := anglesToWorldOffset(1, secT, secP)
+
+	if d := second.Dot(axis); math.Abs(d) > 1e-9 {
+		t.Fatalf("the second vector must lie IN the ring plane (perpendicular to its axis), got dot=%v", d)
+	}
+	if d := second.Dot(first); math.Abs(d) > 1e-9 {
+		t.Fatalf("a QUARTER turn means perpendicular to the first vector, got dot=%v", d)
+	}
+	if l := second.Length(); math.Abs(l-1) > 1e-9 {
+		t.Fatalf("the turned direction must stay a unit vector, got length %v", l)
+	}
+}
+
+// The two ends of a pair must point OPPOSITE ways without either being told which side it
+// is: each derives its ring axis from its OWN direction to the partner, so the axes are
+// already opposites and the same quarter turn lands in opposite world directions.
+func TestPairSecondVectorsOppose(t *testing.T) {
+	a := vec3{X: 96, Z: -80}
+	b := vec3{X: 96, Z: -40}
+	up := worldDirToAngles(vec3{X: 0, Y: 1, Z: 0})
+	upT, upP := up.Theta, up.Phi
+
+	aAxisT, aAxisP, _ := uprightRingAxis(a, b) // node A measures toward B
+	bAxisT, bAxisP, _ := uprightRingAxis(b, a) // node B measures toward A
+	aSecT, aSecP := quarterTurnInRingPlane(upT, upP, aAxisT, aAxisP)
+	bSecT, bSecP := quarterTurnInRingPlane(upT, upP, bAxisT, bAxisP)
+
+	av := anglesToWorldOffset(1, aSecT, aSecP)
+	bv := anglesToWorldOffset(1, bSecT, bSecP)
+	if av.Add(bv).Length() > 1e-9 {
+		t.Fatalf("the pair's second vectors must be opposites; got %v and %v", av, bv)
+	}
+}

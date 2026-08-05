@@ -128,7 +128,18 @@ type bufLayoutNode struct {
 	// streamed, default 0) on a node whose VectorLen is 0.
 	VectorTheta float32 `buf:"f32"` // node vector direction: θ from world +y (radians) = thetaIdx*step
 	VectorPhi   float32 `buf:"f32"` // node vector direction: φ azimuth around +y (radians) = phiIdx*step
-	Selected    uint8   `buf:"u8"`  // persistent: 1 = this node is the click-selected node
+	// Vector2Theta/Vector2Phi are a SECOND vector this node draws, a quarter turn from the
+	// first INSIDE its own ring plane — so both vectors lie across the ring's face rather
+	// than one standing out of it. Same angle convention and the same length as the first,
+	// drawn whenever VectorLen is non-zero, so there is no second length column.
+	//
+	// The two nodes of a pair point OPPOSITE ways along their edge without anyone assigning
+	// them sides: each computes its ring axis from ITS OWN direction to its partner, so
+	// those axes are already opposites, and the same quarter turn about opposite axes lands
+	// in opposite world directions.
+	Vector2Theta float32 `buf:"f32"` // second vector direction: θ from world +y (radians)
+	Vector2Phi   float32 `buf:"f32"` // second vector direction: φ azimuth around +y (radians)
+	Selected     uint8   `buf:"u8"`  // persistent: 1 = this node is the click-selected node
 	// KindId is the node's kind as a STABLE id, assigned once per kind in
 	// nodes/<Kind>/SPEC.md (| kindId | N |) and never renumbered (the generator emits
 	// kindIDMap/NODE_DEFS_ARRAY keyed by it; a removed kind leaves an undefined gap, not

@@ -443,3 +443,28 @@ func uprightRingAxis(selfCenter, partnerCenter vec3) (theta, phi float64, ok boo
 	u := n.Normalize()
 	return math.Acos(clamp(u.Y, -1, 1)), math.Atan2(u.Z, u.X), true
 }
+
+// quarterTurnInRingPlane rotates a direction a quarter turn about the ring's own axis, which
+// keeps the result IN the ring's plane whenever the input was — so a node's two vectors both
+// lie across the ring's face rather than one standing out of it.
+//
+// Rodrigues at exactly 90° about a unit axis a, for a vector u perpendicular to it, collapses
+// to a × u: the cos term vanishes and the (a·u) term is zero. No general rotation machinery
+// is needed, and no angle is ever added to another angle — the turn is a cross product, and
+// the single conversion back to angles is the one boundary crossing this codebase allows.
+//
+// The two nodes of a pair need no side assigned to them: each derives its ring axis from ITS
+// OWN direction to its partner, so their axes are already opposites, and the same quarter
+// turn about opposite axes lands in opposite world directions.
+func quarterTurnInRingPlane(theta, phi, axisTheta, axisPhi float64) (outTheta, outPhi float64) {
+	u := anglesToWorldOffset(1, theta, phi)
+	a := anglesToWorldOffset(1, axisTheta, axisPhi)
+	v := a.Cross(u)
+	if v.Length() < 1e-9 {
+		// u is parallel to the axis: it is not in the plane to begin with, so there is no
+		// quarter turn within the plane to take. Leave it where it was.
+		return theta, phi
+	}
+	n := v.Normalize()
+	return math.Acos(clamp(n.Y, -1, 1)), math.Atan2(n.Z, n.X)
+}

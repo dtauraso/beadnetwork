@@ -299,7 +299,7 @@ type nodeMover struct {
 	// buildFrame packs this node's combined per-fd frame (node fields + ports + label)
 	// using Buffer's own row-writer columns (Buffer.BuildNodeStreamFrame), injected so
 	// this package needs no Buffer import.
-	buildFrame func(tick uint32, nodeRow int32, nodeID int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, poleTheta, polePhi, ringAxisTheta, ringAxisPhi, vectorLen, vectorTheta, vectorPhi float32, selected, kindID, hovered, latchedSel uint8, label string, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte
+	buildFrame func(tick uint32, nodeRow int32, nodeID int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, poleTheta, polePhi, ringAxisTheta, ringAxisPhi, vectorLen, vectorTheta, vectorPhi, vector2Theta, vector2Phi float32, selected, kindID, hovered, latchedSel uint8, label string, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte
 	// vectorThetaIdx/vectorPhiIdx are THIS node's own vector direction, as INTEGER
 	// indices into VectorAngleStep (memory/feedback_abc_times_constant_not_rederive.md
 	// — index × step-constant, trig only at the cartesian/polar boundary). Default 0,0
@@ -616,6 +616,13 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 	// holds and persists (m.vectorThetaIdx/vectorPhiIdx).
 	vectorTheta := float64(m.vectorThetaIdx) * CurveParamVectorAngleStep
 	vectorPhi := float64(m.vectorPhiIdx) * CurveParamVectorAngleStep
+	// The SECOND vector: a quarter turn from the first, INSIDE this node's own ring plane,
+	// so both lie across the ring's face instead of one standing out of it. Zero when this
+	// node draws no vector at all, matching the first.
+	var vector2Theta, vector2Phi float64
+	if vectorLen > 0 {
+		vector2Theta, vector2Phi = quarterTurnInRingPlane(vectorTheta, vectorPhi, ringAxisTheta, ringAxisPhi)
+	}
 	label := m.geom.Label
 	if label == "" {
 		label = m.id
@@ -641,7 +648,7 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 		verticalRingNormalX, verticalRingNormalY, verticalRingNormalZ,
 		flatRingNormalX, flatRingNormalY, flatRingNormalZ,
 		float32(poleTheta), float32(polePhi), float32(ringAxisTheta), float32(ringAxisPhi), float32(vectorLen),
-		float32(vectorTheta), float32(vectorPhi),
+		float32(vectorTheta), float32(vectorPhi), float32(vector2Theta), float32(vector2Phi),
 		selected, kindID, hovered, latchedSel,
 		label, chainOX, chainOY, chainOZ, chainLit, chainLitVal, events)
 	var hdr [4]byte

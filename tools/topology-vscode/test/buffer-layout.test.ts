@@ -70,8 +70,10 @@ describe("buffer-layout — Node block", () => {
     //   + 1×f32 (vectorLen — the node's own drawn vector; 0 = draws none)
     //   + 2×f32 (vectorTheta/vectorPhi — the vector's OWN direction, separate from the
     //     drawn ring axis above)
-    //   = 4 + (5+6+2+2+1+2)×4 + 1 + 1 + 8 + 1 + 1 = 88
-    expect(NODE_STRIDE).toBe(88);
+    //   + 2×f32 (vector2Theta/vector2Phi — the SECOND vector, a quarter turn from the
+    //     first inside the ring plane)
+    //   = 4 + (5+6+2+2+1+2+2)×4 + 1 + 1 + 8 + 1 + 1 = 96
+    expect(NODE_STRIDE).toBe(96);
   });
 
   it("read helpers decode known bytes correctly", () => {
