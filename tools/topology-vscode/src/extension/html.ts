@@ -54,6 +54,7 @@ export function buildWebviewHtml(
     <span id="status" class="clean">saved</span>
     <span id="run-mount"></span>
   </div>
+  <div id="tilt-reset-mount" class="tilt-reset-row"></div>
   <div id="rule-eq-mount"></div>
   <div class="drag-log-row">
     <div id="abc-drag-mount"></div>

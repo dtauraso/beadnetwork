@@ -455,6 +455,21 @@ func (m *nodeMover) handle(msg moveMsg) {
 		// "the kick" bead on its own Out directly — none of that happens here anymore.
 		return
 	}
+	if msg.Kind == moveMsgKindTiltVectorReset {
+		// Return THIS node's own vector direction to the start position — both indices to
+		// 0, the documented default (tilt vector at world +y). No bead: this is a
+		// stop-and-return, not a kick. Persisted immediately, same as an adjust.
+		m.tiltVectorThetaIdx = 0
+		m.tiltVectorPhiIdx = 0
+		m.persistTiltVectorAngle()
+		if m.tr != nil {
+			m.emitGeometry()
+		}
+		// NOTE: same split as moveMsgKindTiltVectorAngle — this path only runs for a kind
+		// that has NOT claimed BuildArgs.TiltEditIn. Node1/Node2 route a reset through
+		// their own TiltEditIn/TiltEditMsg.Reset instead.
+		return
+	}
 	if msg.Kind == moveMsgKindTiltIndexSync {
 		// Passive mirror only: Node1/Node2's own goroutine already decided and mutated
 		// its OWN index (reactToArrival/panel-edit handling now live there —

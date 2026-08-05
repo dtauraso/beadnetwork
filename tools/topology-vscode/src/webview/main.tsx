@@ -8,6 +8,7 @@ import { createRoot } from "react-dom/client";
 import "./webview.css";
 import { ThreeView } from "./three/ThreeView";
 import { SpeedSlider } from "./three/SpeedSlider";
+import { TiltResetButton } from "./three/TiltResetButton";
 import { parseHostToWebview } from "../messages";
 import { ErrorBoundary } from "./log/ErrorBoundary";
 import { CrashListeners } from "./log/CrashListeners";
@@ -19,6 +20,7 @@ function Root() {
     <>
       <ThreeView />
       <SpeedSlider />
+      <TiltResetButton />
     </>
   );
 }

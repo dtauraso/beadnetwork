@@ -65,6 +65,16 @@ const (
 	// (stdin_reader.go), so the index write + persist + re-emit all run on that node's
 	// OWN goroutine.
 	moveMsgKindTiltVectorAngle = "tiltVectorAngle"
+	// moveMsgKindTiltVectorReset tells a node to return its OWN vector direction to the
+	// start position — both indices to 0, the documented default that points the tilt
+	// vector at world +y. This is a STOP-AND-RETURN, not a nudge: unlike
+	// moveMsgKindTiltVectorAngle, it never places a bead — see applyUpdateTiltVector's
+	// (stdin_reader.go) "reset" branch and the RESET button's own doc comment
+	// (TiltResetButton.tsx). Sent to the target node's own extIn via md.sendMove from
+	// applyUpdateTiltVector for any kind that has NOT claimed BuildArgs.TiltEditIn — the
+	// only kinds that have (Node1/Node2) instead route this through their own
+	// TiltEditIn/TiltEditMsg.Reset, same split as moveMsgKindTiltVectorAngle.
+	moveMsgKindTiltVectorReset = "tiltVectorReset"
 	// moveMsgKindTiltIndexSync is the ONE-WAY notification a node kind's OWN goroutine
 	// sends to its OWN mover whenever it changes its OWN tiltVectorThetaIdx/PhiIdx —
 	// currently Node1/Node2 only (nodes/Node1/node.go, nodes/Node2/node.go), the only
@@ -85,8 +95,13 @@ const (
 // MoveDispatch.tiltEditIns, so stdin_reader's applyUpdateTiltVector falls back to the old
 // mover-owned path (moveMsgKindTiltVectorAngle) for it unchanged.
 type TiltEditMsg struct {
-	Axis string // "theta" or "phi" — which of the node's own indices to adjust.
-	Up   bool   // true = +1 step, false = -1 step.
+	Axis string // "theta" or "phi" — which of the node's own indices to adjust. Ignored when Reset is true.
+	Up   bool   // true = +1 step, false = -1 step. Ignored when Reset is true.
+	// Reset (the RESET button, TiltResetButton.tsx): return BOTH indices to 0 — the
+	// documented default, tilt vector pointing at world +y. Unlike an adjust, this places
+	// NO bead: it is a stop-and-return, not "the kick" (see package doc comments on
+	// Node1/Node2).
+	Reset bool
 }
 
 // moveMsg is one entry routed to one of a mover's own dedicated channels (there is no

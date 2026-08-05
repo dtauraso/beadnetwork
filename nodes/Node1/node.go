@@ -17,6 +17,11 @@
 // away from perpendicular. Pairing a Node1 and a Node2 with one edge each direction
 // (Node1.Out → Node2.In, Node2.Out → Node1.In) needs no seed/bootstrap node: nothing ever
 // sends until a user tilt starts it, so there is no deadlock to bootstrap out of at t=0.
+//
+// The RESET button (TiltResetButton.tsx) also arrives on TiltEditIn (TiltEditMsg.Reset),
+// but is the opposite of a panel click: it sets BOTH indices to 0 (the documented default,
+// tilt vector at world +y) and places NO bead — a stop-and-return, not a nudge, so it never
+// starts the straightening exchange the way a panel click does.
 package Node1
 
 import (
@@ -93,6 +98,30 @@ func (n *Node) stepTilt() bool {
 	return true
 }
 
+// applyTiltEdit applies one panel-driven edit (TiltVectorAnglePanel's ±1 click, or the
+// RESET button's TiltResetButton.tsx) directly to this node's OWN indices — same
+// no-mover-round-trip shape as stepTilt. Reports whether the caller should place "THE
+// KICK" bead: true for an adjust (unconditional, whichever side of perpendicular it lands
+// on), false for a reset — a reset is a stop-and-return, not a nudge, so nothing should
+// start circulating from it (package doc comment's "THE KICK").
+func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
+	if edit.Reset {
+		n.TiltThetaIdx = 0
+		n.TiltPhiIdx = 0
+		return false
+	}
+	delta := int32(-1)
+	if edit.Up {
+		delta = 1
+	}
+	if edit.Axis == "phi" {
+		n.TiltPhiIdx += delta
+	} else {
+		n.TiltThetaIdx += delta
+	}
+	return true
+}
+
 func (n *Node) Update(ctx context.Context) {
 	wire.TryEmit(n.EmitGeometry)
 
@@ -129,19 +158,11 @@ func (n *Node) Update(ctx context.Context) {
 		if n.TiltEditIn != nil {
 			select {
 			case edit := <-n.TiltEditIn:
-				delta := int32(-1)
-				if edit.Up {
-					delta = 1
-				}
-				if edit.Axis == "phi" {
-					n.TiltPhiIdx += delta
-				} else {
-					n.TiltThetaIdx += delta
-				}
+				placeBead := n.applyTiltEdit(edit)
 				if n.SyncTiltIndex != nil {
 					n.SyncTiltIndex(n.TiltThetaIdx, n.TiltPhiIdx)
 				}
-				if n.Out != nil {
+				if placeBead && n.Out != nil {
 					n.Out.PlaceDrivenAt(1, clk.Tick())
 				}
 			default:

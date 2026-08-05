@@ -139,6 +139,7 @@ const IN_DISTANCE_GROUP_ATTR_LENGTH = 2;
 const IN_SCENE_ATTR_SELECTED = 3;
 const IN_TILT_VECTOR_ATTR_THETA = 4;
 const IN_TILT_VECTOR_ATTR_PHI = 5;
+const IN_TILT_VECTOR_ATTR_RESET = 6;
 
 // NOTE: there is no encodeSave here. IN_KIND_SAVE stays defined (Go reads it and it is in
 // the INPUT_LAYOUT_FINGERPRINT), but no live TS sender builds that record: `save` has no
@@ -209,6 +210,21 @@ export function encodeTiltVectorAdjust(nodeRow: number, axis: "theta" | "phi", d
   w.u8(axis === "phi" ? IN_TILT_VECTOR_ATTR_PHI : IN_TILT_VECTOR_ATTR_THETA);
   w.u8(nodeRow);
   w.u8(dir === "up" ? 1 : 0);
+  return w.toArrayBuffer();
+}
+
+/** Build a tiltVector RESET record: [22][entityKind=tiltVector][attr=reset][u8 nodeRow].
+ *  nodeRow is the target node's buffer ROW (never its id/name — no sidecar on this wire).
+ *  No direction byte: unlike an adjust, a reset always returns BOTH indices to 0 — the
+ *  RESET button (TiltResetButton.tsx) sends one of these per row it shows, and places no
+ *  bead (nodes/Node1/node.go, nodes/Node2/node.go's applyTiltEdit — a stop-and-return, not
+ *  "the kick"). */
+export function encodeTiltVectorReset(nodeRow: number): ArrayBuffer {
+  const w = new ByteWriter();
+  w.u8(IN_KIND_EDIT_UPDATE);
+  w.u8(enumIndex(IN_UPDATE_KINDS, "tiltVector"));
+  w.u8(IN_TILT_VECTOR_ATTR_RESET);
+  w.u8(nodeRow);
   return w.toArrayBuffer();
 }
 
