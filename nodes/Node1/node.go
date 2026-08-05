@@ -335,13 +335,13 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 // rather than silently assuming it.
 func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
 	switch {
+	case Wiring.TiltVectorIsAcute(received, n.topTilt()):
+		n.TopTiltThetaIdx -= 1
 	case Wiring.TiltVectorIsAcute(received, n.bottomTilt()):
 		n.TopTiltThetaIdx += 1
-	case Wiring.TiltVectorIsAcute(received, n.topTilt()):
-		fallthrough
 	default:
-		// Acute with the top, or exactly perpendicular to both — both fall to Node1's base
-		// direction.
+		// Exactly perpendicular to both: no lean to read, so Node1 keeps turning in its own
+		// base direction — the same one the top-acute case takes.
 		n.TopTiltThetaIdx -= 1
 	}
 	return true
