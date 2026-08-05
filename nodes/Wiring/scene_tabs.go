@@ -82,14 +82,21 @@ type SceneTab struct {
 	// that are not collinear, so a node with more keeps its inward pole and this is inert
 	// — which is why it is a per-scene choice rather than a global rule.
 	CoplanarEdges bool
+	// UpAxis aims this scene's node tori — and the per-node vector drawn along the same
+	// axis — at world +y, straight up, instead of at anything derived from where the node
+	// sits. For a scene whose nodes share a height (the pair does: both at y=0) an up axis
+	// ALSO contains the edge between them, so it satisfies CoplanarEdges at the same time;
+	// the two are separate fields because that agreement is a property of this scene's
+	// layout, not a general fact.
+	UpAxis bool
 }
 
 // SceneTabs is the tab strip, in display order. Index 0 is the DEFAULT: its Dir must be
 // the anchor's own basename, since that is the path the extension host launches with and
 // sizes its stream fds from (see AnchorIsTabbed).
 var SceneTabs = []SceneTab{
-	{Name: "ring", Dir: "topology", QuantizedDrag: false, CoplanarEdges: false},
-	{Name: "pair", Dir: "topology-pair", QuantizedDrag: false, CoplanarEdges: true},
+	{Name: "ring", Dir: "topology", QuantizedDrag: false, CoplanarEdges: false, UpAxis: false},
+	{Name: "pair", Dir: "topology-pair", QuantizedDrag: false, CoplanarEdges: true, UpAxis: true},
 }
 
 // sceneSelectionFile is the persisted selection, held at the ANCHOR (never inside a scene).
@@ -219,6 +226,19 @@ func SceneWantsCoplanarEdges(scenePath string) bool {
 	for _, t := range SceneTabs {
 		if t.Dir == base {
 			return t.CoplanarEdges
+		}
+	}
+	return false
+}
+
+// SceneWantsUpAxis answers whether the tree being LOADED aims its node tori and per-node
+// vectors straight up (SceneTab.UpAxis). Unknown trees do not — they keep the unrotated
+// ring every scene had before ring orientation existed.
+func SceneWantsUpAxis(scenePath string) bool {
+	base := filepath.Base(filepath.Clean(scenePath))
+	for _, t := range SceneTabs {
+		if t.Dir == base {
+			return t.UpAxis
 		}
 	}
 	return false

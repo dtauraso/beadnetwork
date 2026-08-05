@@ -27,6 +27,7 @@ import { INTERIOR_SLOTS_PER_NODE } from "./buffer-decode";
 // LIT bead advancing along a node-owned fixed chain (ChainBeadInstances,
 // docs/beads-are-the-edge.md). Two representations of one traversal would drift.
 import { ChainBeadInstances } from "./ChainBeadInstances";
+import { NodeVectors } from "./NodeVectors";
 import { NodeInstances } from "./NodeInstances";
 import { SelectionHighlight, HoverHighlight } from "./SelectionHighlight";
 import { SphereRings } from "./SphereRings";
@@ -96,6 +97,10 @@ export function BufferScene({ cameraRef }: {
       <BufferCamera cameraRef={cameraRef} />
       <ChainBeadInstances capacity={chainBeadCap} />
       <NodeInstances capacity={nodeCap} />
+      {/* One arrow per node, centre to its own top, along the same axis its ring is drawn
+          on. Sized by nodeCap for the same reason NodeInstances is: at most one per row.
+          A node whose streamed VectorLen is 0 draws none. */}
+      <NodeVectors capacity={nodeCap} />
       <InteriorBeadInstances capacity={nodeCap * INTERIOR_SLOTS_PER_NODE} />
       <SelectionHighlight />
       <HoverHighlight />

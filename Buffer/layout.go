@@ -112,7 +112,13 @@ type bufLayoutNode struct {
 	// change what navigation reads.
 	RingAxisTheta float32 `buf:"f32"` // drawn ring's plane normal: θ from world +y (radians)
 	RingAxisPhi   float32 `buf:"f32"` // drawn ring's plane normal: φ azimuth around +y (radians)
-	Selected      uint8   `buf:"u8"`  // persistent: 1 = this node is the click-selected node
+	// VectorLen is how long the node's own drawn VECTOR is, along the same axis as its
+	// ring (RingAxisTheta/Phi above), starting at the node's centre. ZERO means this node
+	// draws no vector — so one column says both whether and how far, and a scene that wants
+	// no vectors needs no second flag anywhere. Go decides per scene; the renderer draws
+	// what it is given.
+	VectorLen float32 `buf:"f32"` // node vector length along the ring axis; 0 = no vector
+	Selected  uint8   `buf:"u8"`  // persistent: 1 = this node is the click-selected node
 	// KindId is the node's kind as a STABLE id, assigned once per kind in
 	// nodes/<Kind>/SPEC.md (| kindId | N |) and never renumbered (the generator emits
 	// kindIDMap/NODE_DEFS_ARRAY keyed by it; a removed kind leaves an undefined gap, not

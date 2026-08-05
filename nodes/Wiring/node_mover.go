@@ -271,6 +271,9 @@ type nodeMover struct {
 	// and both tori share one plane (scene_tabs.go's CoplanarEdges). Set once at
 	// construction from the loaded scene; read only by this node's own goroutine.
 	coplanarEdges bool
+	// upAxis: this node's ring axis and its own drawn vector both point at world +y
+	// (scene_tabs.go's UpAxis). Set once at construction from the loaded scene.
+	upAxis bool
 	// nodeRowFor resolves a node id to its buffer NODE-ROW index (mirroring the old
 	// central accumulator's NodeRowFor), injected via MoveDispatch.SetNodeStreams so this
 	// package stays Buffer-independent. Used to resolve a neighbor id to its row for
@@ -296,7 +299,7 @@ type nodeMover struct {
 	// buildFrame packs this node's combined per-fd frame (node fields + ports + label)
 	// using Buffer's own row-writer columns (Buffer.BuildNodeStreamFrame), injected so
 	// this package needs no Buffer import.
-	buildFrame func(tick uint32, nodeRow int32, nodeID int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, poleTheta, polePhi, ringAxisTheta, ringAxisPhi float32, selected, kindID, hovered, latchedSel uint8, label string, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte
+	buildFrame func(tick uint32, nodeRow int32, nodeID int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, poleTheta, polePhi, ringAxisTheta, ringAxisPhi, vectorLen float32, selected, kindID, hovered, latchedSel uint8, label string, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte
 }
 
 func newNodeMover(id string, geom nodeGeom, tr *T.Trace, clockSrc wire.Clock) *nodeMover {
@@ -550,7 +553,18 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 	// RingAxisTheta/RingAxisPhi). Default is the torus's own +Z normal, which draws exactly
 	// as an unrotated ring did — so a scene that has not asked for anything looks unchanged.
 	ringAxisTheta, ringAxisPhi := torusDefaultAxisAngles()
-	if m.coplanarEdges && m.geom.HasPos && len(m.partnerCenters) == 1 {
+	// vectorLen is this node's own drawn vector, along the SAME axis as its ring, and 0
+	// where a scene draws none (Buffer/layout.go's VectorLen). It runs from the node's
+	// centre to its own top, so its length IS the node's radius.
+	var vectorLen float64
+	if m.upAxis {
+		// UP: the ring's plane normal is world +y, so the ring lies flat and the vector
+		// points straight up out of it. For a scene whose nodes share a height this is
+		// also an axis whose plane contains the edge, which is why it can satisfy
+		// coplanar edges at the same time (scene_tabs.go's UpAxis).
+		ringAxisTheta, ringAxisPhi = 0, 0
+		vectorLen = nodeRadius(m.geom.Kind)
+	} else if m.coplanarEdges && m.geom.HasPos && len(m.partnerCenters) == 1 {
 		// COPLANAR EDGES: swing the axis off the inward pole by the smallest amount that
 		// puts the edge INSIDE the ring plane — the inward pole with its along-the-edge
 		// component removed. The chain, this node's torus and the beads' own tori then
@@ -586,7 +600,7 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 		float32(nodeRadius(m.geom.Kind)), float32(sphereR),
 		verticalRingNormalX, verticalRingNormalY, verticalRingNormalZ,
 		flatRingNormalX, flatRingNormalY, flatRingNormalZ,
-		float32(poleTheta), float32(polePhi), float32(ringAxisTheta), float32(ringAxisPhi),
+		float32(poleTheta), float32(polePhi), float32(ringAxisTheta), float32(ringAxisPhi), float32(vectorLen),
 		selected, kindID, hovered, latchedSel,
 		label, chainOX, chainOY, chainOZ, chainLit, chainLitVal, events)
 	var hdr [4]byte

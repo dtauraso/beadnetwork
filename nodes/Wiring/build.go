@@ -247,6 +247,11 @@ func (b *buildCtx) buildMoveDispatch() error {
 			nm.coplanarEdges = true
 		}
 	}
+	if SceneWantsUpAxis(b.scenePath) {
+		for _, nm := range md.mr.nodeMovers {
+			nm.upAxis = true
+		}
+	}
 	for id, off := range b.quantizedOffsets {
 		if nm, ok := md.mr.nodeMovers[id]; ok {
 			nm.quantOffset = off

@@ -61,15 +61,17 @@ type nodeFrameFixture struct {
 	PolePhi   float32 `json:"polePhi"`
 	// The DRAWN ring's axis, distinct from the navigation pole above — see
 	// Buffer/layout.go's RingAxisTheta/RingAxisPhi for why they are two values.
-	RingAxisTheta float32            `json:"ringAxisTheta"`
-	RingAxisPhi   float32            `json:"ringAxisPhi"`
-	Selected      uint8              `json:"selected"`
-	KindID        uint8              `json:"kindId"`
-	Hovered       uint8              `json:"hovered"`
-	LatchedSel    uint8              `json:"latchedSel"`
-	ChainBeads    []chainBeadFixture `json:"chainBeads"`
-	Label         string             `json:"label"`
-	Hex           string             `json:"hex"`
+	RingAxisTheta float32 `json:"ringAxisTheta"`
+	RingAxisPhi   float32 `json:"ringAxisPhi"`
+	// The node's own drawn vector length along that axis; 0 means it draws none.
+	VectorLen  float32            `json:"vectorLen"`
+	Selected   uint8              `json:"selected"`
+	KindID     uint8              `json:"kindId"`
+	Hovered    uint8              `json:"hovered"`
+	LatchedSel uint8              `json:"latchedSel"`
+	ChainBeads []chainBeadFixture `json:"chainBeads"`
+	Label      string             `json:"label"`
+	Hex        string             `json:"hex"`
 }
 
 type edgeFrameFixture struct {
@@ -111,7 +113,8 @@ func buildNodeFrame() nodeFrameFixture {
 		VRX: 21.5, VRY: 22.25, VRZ: 23.125, FRX: 24.0625, FRY: 25.5, FRZ: 26.25,
 		PoleTheta: 2.1, PolePhi: -1.3,
 		RingAxisTheta: 1.4, RingAxisPhi: 0.7,
-		Selected: 1, KindID: 3, Hovered: 1, LatchedSel: 0,
+		VectorLen: 9.5,
+		Selected:  1, KindID: 3, Hovered: 1, LatchedSel: 0,
 		Label: "widgetNode",
 		ChainBeads: []chainBeadFixture{
 			{OX: 61.5, OY: -62.25, OZ: 63.125, Lit: 1, LitValue: 1},
@@ -132,7 +135,7 @@ func buildNodeFrame() nodeFrameFixture {
 		f.Tick, f.NodeRow, f.NodeId,
 		f.CX, f.CY, f.CZ, f.Radius, f.SphereR,
 		f.VRX, f.VRY, f.VRZ, f.FRX, f.FRY, f.FRZ,
-		f.PoleTheta, f.PolePhi, f.RingAxisTheta, f.RingAxisPhi,
+		f.PoleTheta, f.PolePhi, f.RingAxisTheta, f.RingAxisPhi, f.VectorLen,
 		f.Selected, f.KindID, f.Hovered, f.LatchedSel,
 		f.Label,
 		chainOX, chainOY, chainOZ, chainLit, chainLitVal,
