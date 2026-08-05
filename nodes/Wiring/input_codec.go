@@ -49,8 +49,8 @@ import (
 // record through both encoders and diffs the fields; do not re-add a version pretending to
 // be a checked invariant.
 //
-// INPUT_LAYOUT_FINGERPRINT: kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock,distanceGroup updateAttrs=toggle,speed,length overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays,cascadeLinks,polarVectors,beadTweens
-const InputLayoutFingerprint = "kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock,distanceGroup updateAttrs=toggle,speed,length overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays,cascadeLinks,polarVectors,beadTweens"
+// INPUT_LAYOUT_FINGERPRINT: kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock,distanceGroup,scene updateAttrs=toggle,speed,length,selected overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays,cascadeLinks,polarVectors,beadTweens
+const InputLayoutFingerprint = "kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock,distanceGroup,scene updateAttrs=toggle,speed,length,selected overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays,cascadeLinks,polarVectors,beadTweens"
 
 // Record kind bytes (first byte of every record).
 const (
@@ -72,6 +72,7 @@ const (
 	inOverlayAttrToggle       = 0 // overlays: flip one flag
 	inClockAttrSpeed          = 1 // clock: set the playback-speed multiplier
 	inDistanceGroupAttrLength = 2 // distanceGroup: set the group's target pair length
+	inSceneAttrSelected       = 3 // scene: select a tab from the Go-owned scene tab strip
 )
 
 // Enum orderings (u8 index → string), shared with input-layout-gen.ts. All five orderings
@@ -247,6 +248,19 @@ func decodeInputRecord(rec []byte) (stdinMsg, bool) {
 				dir = "up"
 			}
 			return stdinMsg{Type: "edit", Op: "update", Kind: "distanceGroup", Attr: "length", Num: int(groupIdx), Flag: dir}, true
+		case "scene":
+			if attr != inSceneAttrSelected {
+				return stdinMsg{}, false
+			}
+			// [u8 tabIndex] — an index into Wiring.SceneTabs, the Go-owned tab strip the
+			// VIEW frame carries. Out-of-range indices are rejected by SelectScene, not
+			// here: the decoder's job is the byte layout, and the tab list is scene
+			// state, not wire state.
+			tabIdx, err := r.u8()
+			if err != nil {
+				return stdinMsg{}, false
+			}
+			return stdinMsg{Type: "edit", Op: "update", Kind: "scene", Attr: "selected", Num: int(tabIdx)}, true
 		}
 		return stdinMsg{}, false
 	}

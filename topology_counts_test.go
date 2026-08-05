@@ -33,9 +33,9 @@ import (
 //
 // Moved here from the deleted headless_stream_helpers_test.go (task/row-fd-identity-parity):
 // this is the last surviving caller now that the real-spawn headless tests are gone.
-func nodeRowLabels(t *testing.T, repoRoot string) []string {
+func nodeRowLabels(t *testing.T, sceneRoot string) []string {
 	t.Helper()
-	entries, err := os.ReadDir(filepath.Join(repoRoot, "topology", "nodes"))
+	entries, err := os.ReadDir(filepath.Join(sceneRoot, "nodes"))
 	if err != nil {
 		t.Fatalf("ReadDir topology/nodes: %v", err)
 	}
@@ -76,9 +76,9 @@ type storedCounts struct {
 //
 // Moved here from the deleted headless_stream_helpers_test.go (task/row-fd-identity-parity):
 // this is the last surviving caller now that the real-spawn headless tests are gone.
-func topologyCounts(t *testing.T, repoRoot string) storedCounts {
+func topologyCounts(t *testing.T, sceneRoot string) storedCounts {
 	t.Helper()
-	p := filepath.Join(repoRoot, "topology", "counts.json")
+	p := filepath.Join(sceneRoot, "counts.json")
 	raw, err := os.ReadFile(p)
 	if err != nil {
 		t.Fatalf("read %s: %v", p, err)
@@ -99,12 +99,13 @@ func TestTopologyCountsMatchTree(t *testing.T) {
 		t.Fatalf("Getwd: %v", err)
 	}
 
-	stored := topologyCounts(t, repoRoot)
+	sceneRoot := filepath.Join(repoRoot, "topology")
+	stored := topologyCounts(t, sceneRoot)
 
-	wantNodes := len(nodeRowLabels(t, repoRoot))
+	wantNodes := len(nodeRowLabels(t, sceneRoot))
 
 	wantEdges := 0
-	nodeEntries, err := os.ReadDir(filepath.Join(repoRoot, "topology", "nodes"))
+	nodeEntries, err := os.ReadDir(filepath.Join(sceneRoot, "nodes"))
 	if err != nil {
 		t.Fatalf("ReadDir topology/nodes: %v", err)
 	}
@@ -112,7 +113,7 @@ func TestTopologyCountsMatchTree(t *testing.T) {
 		if !ne.IsDir() {
 			continue
 		}
-		edgeEntries, err := os.ReadDir(filepath.Join(repoRoot, "topology", "nodes", ne.Name(), "edges"))
+		edgeEntries, err := os.ReadDir(filepath.Join(sceneRoot, "nodes", ne.Name(), "edges"))
 		if err != nil {
 			if os.IsNotExist(err) {
 				continue // a node with no outgoing edges has no edges/ dir at all

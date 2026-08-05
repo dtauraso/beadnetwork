@@ -8,7 +8,7 @@
 
 import { describe, it, expect } from "vitest";
 import * as THREE from "three";
-import { decodeViewFrame } from "../src/webview/three/buffer-decode";
+import { decodeViewFrame, SCENE_TABS_HEADER_SIZE } from "../src/webview/three/buffer-decode";
 import { BUF_VIEW_FRAME_HEADER_SIZE } from "../src/schema/frame-tags";
 import {
   CAMERA_STRIDE, OVERLAY_STRIDE, SCENE_STRIDE,
@@ -39,7 +39,12 @@ function makeCameraSnapshot(cam: {
   px: number; py: number; pz: number; r: number;
   posTheta: number; posPhi: number; upTheta: number; upPhi: number;
 }): ArrayBuffer {
-  const total = BUF_VIEW_FRAME_HEADER_SIZE + CAMERA_STRIDE + OVERLAY_STRIDE + SCENE_STRIDE;
+  const total =
+    BUF_VIEW_FRAME_HEADER_SIZE + CAMERA_STRIDE + OVERLAY_STRIDE + SCENE_STRIDE +
+    // The scene-tabs section header ([count:u16][selected:u16]) is ALWAYS present on a
+    // VIEW frame, even with zero tabs (Buffer.BuildSceneTabsSection) — a frame without
+    // it is short and decodes as null. These fixtures carry zero tabs.
+    SCENE_TABS_HEADER_SIZE;
   const buf = new ArrayBuffer(total);
   const dv = new DataView(buf);
   // header: tick=0

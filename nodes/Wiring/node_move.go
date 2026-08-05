@@ -77,6 +77,11 @@ type MoveDispatch struct {
 	// thin delegators so their existing in-package call sites (tests, node_move.go,
 	// gesture.go) are unchanged.
 	lq layoutQuantizer
+	// scenes owns tab switching: the anchor to persist the selection against, and the
+	// quit func whose call the extension host's looping respawn follows (scene_tabs.go).
+	// Zero until EnableSceneSwitch arms it, so a bare test-constructed MoveDispatch can
+	// never end a process.
+	scenes sceneSwitch
 	// tapToInstall is a TEST-ONLY observability seam: when SetMsgTap is called (before
 	// Start), this is stashed here so any nodeMover constructed AFTER that call (there
 	// are none in practice — all nodeMovers are built once in newMoveDispatch, before

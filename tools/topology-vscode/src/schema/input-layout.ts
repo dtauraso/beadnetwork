@@ -136,6 +136,7 @@ class ByteWriter {
 const IN_OVERLAY_ATTR_TOGGLE = 0;
 const IN_CLOCK_ATTR_SPEED = 1;
 const IN_DISTANCE_GROUP_ATTR_LENGTH = 2;
+const IN_SCENE_ATTR_SELECTED = 3;
 
 // NOTE: there is no encodeSave here. IN_KIND_SAVE stays defined (Go reads it and it is in
 // the INPUT_LAYOUT_FINGERPRINT), but no live TS sender builds that record: `save` has no
@@ -177,6 +178,19 @@ export function encodeDistanceGroupAdjust(groupIndex: number, dir: "up" | "down"
   w.u8(IN_DISTANCE_GROUP_ATTR_LENGTH);
   w.u8(groupIndex);
   w.u8(dir === "up" ? 1 : 0);
+  return w.toArrayBuffer();
+}
+
+/** Build a scene SELECTED record: [22][entityKind=scene][attr=selected][u8 tabIndex].
+ *  tabIndex indexes Go's OWN scene tab strip (nodes/Wiring/scene_tabs.go's SceneTabs), the
+ *  same list whose labels arrive on the VIEW frame — no scene name or directory crosses the
+ *  wire. Go owns what the tabs are, which one is selected, and how the switch happens. */
+export function encodeSceneSelected(tabIndex: number): ArrayBuffer {
+  const w = new ByteWriter();
+  w.u8(IN_KIND_EDIT_UPDATE);
+  w.u8(enumIndex(IN_UPDATE_KINDS, "scene"));
+  w.u8(IN_SCENE_ATTR_SELECTED);
+  w.u8(tabIndex);
   return w.toArrayBuffer();
 }
 

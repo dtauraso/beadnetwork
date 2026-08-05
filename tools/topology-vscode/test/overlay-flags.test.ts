@@ -14,6 +14,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { readOverlayFlags, polarVectorsGated } from "../src/webview/three/overlay-flags";
 import { setLatestViewFrame } from "../src/webview/snapshot-buffer";
 import { BUF_VIEW_FRAME_HEADER_SIZE } from "../src/schema/frame-tags";
+import { SCENE_TABS_HEADER_SIZE } from "../src/webview/three/buffer-decode";
 import {
   CAMERA_STRIDE, OVERLAY_STRIDE, SCENE_STRIDE,
   OVERLAY_COL_SCENE_TORI, OVERLAY_COL_SCENE_POLES, OVERLAY_COL_NODE_POLES,
@@ -26,7 +27,12 @@ import {
 // SCENE frame fixture (removed with the central accumulator — memory/feedback_no_single_writer_bridge.md's
 // final step). `set` writes an overlay column (u8) by offset.
 function makeOverlaySnapshot(cols: Partial<Record<number, number>>): ArrayBuffer {
-  const total = BUF_VIEW_FRAME_HEADER_SIZE + CAMERA_STRIDE + OVERLAY_STRIDE + SCENE_STRIDE;
+  const total =
+    BUF_VIEW_FRAME_HEADER_SIZE + CAMERA_STRIDE + OVERLAY_STRIDE + SCENE_STRIDE +
+    // The scene-tabs section header ([count:u16][selected:u16]) is ALWAYS present on a
+    // VIEW frame, even with zero tabs (Buffer.BuildSceneTabsSection) — a frame without
+    // it is short and decodes as null. These fixtures carry zero tabs.
+    SCENE_TABS_HEADER_SIZE;
   const buf = new ArrayBuffer(total);
   const dv = new DataView(buf);
   const overlayOff = BUF_VIEW_FRAME_HEADER_SIZE + CAMERA_STRIDE;

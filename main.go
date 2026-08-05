@@ -85,7 +85,14 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 	// emits its geometry once at startup (below, after this function's node-goroutine
 	// launch loop); see the row-seeding comment there for why the buffer's row tables do
 	// not depend on that emit order.
-	nodes, slotReg, md, speedSinks, err := W.LoadTopology(ctx, topologyPath, tr, clk)
+	// SCENE TABS (nodes/Wiring/scene_tabs.go). topologyPath is the ANCHOR — the fixed path
+	// the extension host launched against; the scene actually LOADED is the selected tab's
+	// sibling directory. An untabbed anchor (any tree that is not the tab-0 directory —
+	// every test fixture, every one-off run) resolves to itself and streams an empty strip.
+	sceneTabNames := W.SceneTabNames(topologyPath)
+	sceneTabSelected := W.SelectedSceneIndex(topologyPath)
+	scenePath := W.ResolveScenePath(topologyPath)
+	nodes, slotReg, md, speedSinks, err := W.LoadTopology(ctx, scenePath, tr, clk)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "load topology: %v\n", err)
 		os.Exit(1)
@@ -212,6 +219,12 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 						GroupLenTime: groupLenTime, GroupLenInput: groupLenInput, GroupLenGate: groupLenGate,
 					},
 					sceneCX, sceneCY, sceneCZ, sceneRadius,
+					// The tab strip is CONSTANT for this process's lifetime: the list is
+					// Go's own registry and the selection is what this run was loaded
+					// with (switching tabs ends the run — scene_tabs.go's SelectScene),
+					// so it is captured here rather than threaded through MoveDispatch's
+					// view-frame signature as if it were live state.
+					sceneTabNames, uint16(sceneTabSelected),
 					toStreamEvents(events))
 			})
 		// LayoutLink is load-time-once — emit each pair once, now that the view stream is
@@ -234,7 +247,7 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 	}
 	// One example startup breadcrumb — proves the debug channel end-to-end and is genuinely
 	// useful (which topology loaded, how many nodes). Sparse: once per run.
-	tr.Breadcrumb("topology-loaded", topologyPath, "", fmt.Sprintf("nodes=%d", len(nodes)))
+	tr.Breadcrumb("topology-loaded", scenePath, "", fmt.Sprintf("nodes=%d", len(nodes)))
 	// Structured buffer counterpart: rides the VIEW stream (no per-node stream exists
 	// yet for a startup-only event, and this runs on the main goroutine before any
 	// per-node/edge/interior goroutine exists). topologyPath is genuinely free-form
@@ -242,7 +255,7 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 	// the typed Value column.
 	md.EmitBreadcrumb(wire.RowEvent{
 		Label: T.BreadcrumbTopologyLoaded, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
-		Value: int32(len(nodes)), Text: topologyPath,
+		Value: int32(len(nodes)), Text: scenePath,
 	})
 
 	// Sparse, one-time startup sanity check (CLAUDE.md DEBUG BREADCRUMB channel): every
@@ -273,27 +286,33 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 	// md.LookupNodeRow/LookupEdgeRow/LookupPortRow with no separate resolver wiring.
 	// Initial camera viewpoint = FILE DATA: Go reads the saved camera from
 	// <topologyPath>/view/camera.json and installs it into the gesture-FSM viewpoint.
-	W.SeedInitialViewpoint(topologyPath, md, tr)
+	W.SeedInitialViewpoint(scenePath, md, tr)
 	// Restore persisted overlay visibility: seed md.ov from overlays.json and emit each flag
 	// so the buffer streams the saved overlay state from the first frame. Seed BEFORE
 	// EnableEditPersist so the seed's own emit does not write the loaded state back.
-	md.LoadOverlays(topologyPath, tr)
+	md.LoadOverlays(scenePath, tr)
 	// Arm the WRITE side AFTER the seeds: from here, every gesture that changes the FSM
 	// viewpoint (orbit/zoom/pan/home) debounces a write of the current pose back to
 	// <topologyPath>/view/camera.json, so navigate-then-reload round-trips.
 	// Arming after the seed keeps the seed's own emit from persisting the loaded/default pose.
-	md.EnableViewpointPersist(topologyPath)
+	md.EnableViewpointPersist(scenePath)
 	// Arm disk persistence for the FSM-applied edits (node-drag position, ring-move
 	// anchor) — debounced Go-side read-modify-writes, armed after the seeds so their
 	// own emits do not write loaded state back.
-	md.EnableEditPersist(topologyPath)
+	md.EnableEditPersist(scenePath)
 
 	// Install the scene sphere (persisted, or a content-fit centroid for a fresh
 	// scene) BEFORE launching the movers and the stdin reader. It only needs the
 	// movers to be BUILT (their seeded centers, available since LoadTopology), not
 	// running; installing it after Start left md.sceneSphere written unsynchronized
 	// while the mover/gesture goroutines could already read it on the drag path.
-	md.LoadSceneSphere(topologyPath)
+	md.LoadSceneSphere(scenePath)
+
+	// Arm tab switching. The ANCHOR (not scenePath) is what the selection is persisted
+	// against — it is the one path that is the same whichever tab is showing. cancel ends
+	// this run; the extension host's runner is looping, so it respawns against the same
+	// anchor and this function re-resolves the newly selected scene above.
+	md.EnableSceneSwitch(topologyPath, cancel)
 
 	// Launch the per-node and per-edge move-handler goroutines (decentralized
 	// node-move: each node/edge drains its own inbox and recomputes its own geometry).

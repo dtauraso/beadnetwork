@@ -32,6 +32,17 @@ func sceneViewFilePath(topologyPath, name string) string {
 	return filepath.Join(topologyPath, "view", name)
 }
 
+// sceneSelectionFilePath resolves <anchorPath>/view/scene.json — the SCENE TAB selection.
+//
+// It takes the ANCHOR, not a loaded scene: the selection names which scene to load, so it
+// must be readable before one is chosen and must not move when the choice changes. Every
+// other resolver in this file takes the loaded scene's own root. Same "view/" join, one
+// deliberately different argument — which is why it lives here with them rather than being
+// hand-rolled at its call site.
+func sceneSelectionFilePath(anchorPath string) string {
+	return sceneViewFilePath(anchorPath, "scene.json")
+}
+
 // cameraFilePath is the WRITE-side location of the persisted camera pose — the sole
 // successor to scene.json's cameraPolar key. writeSceneCameraPolar is its only writer.
 func cameraFilePath(topologyPath string) string {

@@ -63,7 +63,12 @@ type EditMsg =
   // group name crosses the wire); dir is which arrow. Go owns the group definitions and
   // the ×1.1/÷1.1 math (nodes/Wiring/distance_groups.go); this seam carries only which
   // group + which direction.
-  | { type: "edit"; op: "update"; kind: "distanceGroup"; attr: "length"; group: number; dir: "up" | "down" };
+  | { type: "edit"; op: "update"; kind: "distanceGroup"; attr: "length"; group: number; dir: "up" | "down" }
+  // scene — a click on the scene tab strip. tab is the tab's WIRE INDEX into Go's own
+  // SceneTabs (nodes/Wiring/scene_tabs.go); no scene name or directory crosses the wire.
+  // Go owns the tab list, the labels it streams on the VIEW frame, the selection, and the
+  // switch itself (persist + end the run, which the host's looping runner respawns).
+  | { type: "edit"; op: "update"; kind: "scene"; attr: "selected"; tab: number };
 // EDIT_MSG_END
 
 // RAW INPUT (Phase 6, OFF by default behind USE_RAW_INPUT). A single raw pointer/wheel

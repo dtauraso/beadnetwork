@@ -336,6 +336,7 @@ var updateKindHandlers = map[string]func(stdinMsg, *MoveDispatch, *T.Trace, []ch
 	"clock":         applyUpdateClock,
 	"overlays":      applyUpdateOverlays,
 	"distanceGroup": applyUpdateDistanceGroup,
+	"scene":         applyUpdateScene,
 }
 
 // EDIT_UPDATE_KINDS_END
@@ -384,6 +385,18 @@ func applyUpdateDistanceGroup(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speed
 		dir = 1
 	}
 	md.ApplyDistanceGroupTarget(msg.Num, dir)
+}
+
+// applyUpdateScene handles kind=="scene" attr=="selected": one click on the scene tab
+// strip. msg.Num is the tab INDEX into Wiring.SceneTabs — Go owns the tab list, the labels
+// it streams on the VIEW frame, and the selection; the strip sends only which tab was hit.
+// The switch itself (persist, then end this run so the runner's respawn loads the other
+// scene) is SelectScene's — see scene_tabs.go for why there is no in-process rebuild.
+func applyUpdateScene(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
+	if md == nil || msg.Attr != "selected" {
+		return
+	}
+	md.SelectScene(int(msg.Num))
 }
 
 // overlayAttrHandlers is the attr-level table for kind=="overlays".

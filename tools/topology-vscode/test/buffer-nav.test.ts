@@ -9,7 +9,7 @@
 //     NOT a TS-derived centroid over node centers
 
 import { describe, it, expect } from "vitest";
-import { decodeViewFrame, INTERIOR_SLOTS_PER_NODE, type DecodedNodeFrame } from "../src/webview/three/buffer-decode";
+import { decodeViewFrame, INTERIOR_SLOTS_PER_NODE, SCENE_TABS_HEADER_SIZE, type DecodedNodeFrame } from "../src/webview/three/buffer-decode";
 import {
   decodeNavNodes, sceneSphereFromSnapshot,
 } from "../src/webview/three/buffer-nav";
@@ -78,7 +78,12 @@ function makeNodeFrame(nodeCount: number, fields: NodeFields[]): DecodedNodeFram
 // (decodeSnapshot, removed with the central accumulator — memory/feedback_no_single_writer_bridge.md's final
 // step). `scene` defaults to all-zero, i.e. "not yet populated".
 function makeSceneSnapshot(scene?: SceneFields): ArrayBuffer {
-  const total = BUF_VIEW_FRAME_HEADER_SIZE + CAMERA_STRIDE + OVERLAY_STRIDE + SCENE_STRIDE;
+  const total =
+    BUF_VIEW_FRAME_HEADER_SIZE + CAMERA_STRIDE + OVERLAY_STRIDE + SCENE_STRIDE +
+    // The scene-tabs section header ([count:u16][selected:u16]) is ALWAYS present on a
+    // VIEW frame, even with zero tabs (Buffer.BuildSceneTabsSection) — a frame without
+    // it is short and decodes as null. These fixtures carry zero tabs.
+    SCENE_TABS_HEADER_SIZE;
   const buf = new ArrayBuffer(total);
   const dv = new DataView(buf);
   const sceneOff = BUF_VIEW_FRAME_HEADER_SIZE + CAMERA_STRIDE + OVERLAY_STRIDE;

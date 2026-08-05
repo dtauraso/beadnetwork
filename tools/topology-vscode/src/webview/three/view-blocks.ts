@@ -16,6 +16,10 @@ export interface ViewBlocks {
   cameraView: DataView;
   overlayView: DataView;
   sceneView: DataView;
+  /** The Go-owned scene tab strip carried on the same frame (labels + which is showing).
+   *  Empty when this topology anchor is untabbed. */
+  sceneTabs: string[];
+  sceneTabSelected: number;
 }
 
 /** Read the current camera/overlay/scene views from the dedicated VIEW stream. Null until

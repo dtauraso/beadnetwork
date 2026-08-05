@@ -24,11 +24,17 @@ import "encoding/binary"
 //	Overlay BufOverlayStride bytes (SAME SetOverlayRow column writer — see OverlayRow's
 //	        doc comment)
 //	Scene   BufSceneStride bytes   (SAME SetSceneRow column writer)
+//	TABS section (BuildSceneTabsSection — see below)
 //	EVENTS section (BuildEventsSection)
+//
+// The TABS section sits BEFORE the events trailer because BuildEventsSection's own contract
+// is that it is always LAST in a frame (its text bytes carry no frame-level size
+// bookkeeping, so nothing may follow them).
 func BuildViewStreamFrame(tick uint32,
 	camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
 	overlay OverlayRow,
 	sceneCX, sceneCY, sceneCZ, sceneRadius float32,
+	tabNames []string, tabSelected uint16,
 	events []StreamEvent,
 ) []byte {
 	buf := make([]byte, BufViewFrameHeaderSize+BufCameraStride+BufOverlayStride+BufSceneStride)
@@ -39,5 +45,31 @@ func BuildViewStreamFrame(tick uint32,
 	SetOverlayRow(buf[off:], overlay)
 	off += BufOverlayStride
 	SetSceneRow(buf[off:], sceneCX, sceneCY, sceneCZ, sceneRadius)
+	buf = append(buf, BuildSceneTabsSection(tabNames, tabSelected)...)
 	return append(buf, BuildEventsSection(events)...)
+}
+
+// BuildSceneTabsSection packs the Go-owned scene tab strip:
+//
+//	[count:u16][selected:u16] then count × ( [nameLen:u16][name bytes] )
+//
+// A zero count (an untabbed anchor — see nodes/Wiring/scene_tabs.go's AnchorIsTabbed) still
+// writes the two header fields, so the section's own width is never zero and the decoder
+// never has to special-case "is there a tabs section at all". Names are the labels Go owns;
+// TS renders them and never invents one.
+func BuildSceneTabsSection(names []string, selected uint16) []byte {
+	size := 4
+	for _, n := range names {
+		size += 2 + len(n)
+	}
+	buf := make([]byte, size)
+	binary.LittleEndian.PutUint16(buf[0:], uint16(len(names)))
+	binary.LittleEndian.PutUint16(buf[2:], selected)
+	off := 4
+	for _, n := range names {
+		binary.LittleEndian.PutUint16(buf[off:], uint16(len(n)))
+		off += 2
+		off += copy(buf[off:], n)
+	}
+	return buf
 }
