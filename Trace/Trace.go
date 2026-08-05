@@ -174,12 +174,6 @@ const (
 	// call — the dragged node's own event plus every touching bead's full CRUD arithmetic
 	// (why each returned none/add/remove), packed into Text by quantized_move.go.
 	BreadcrumbBeadCrud
-	// BreadcrumbHeldBead: diagnostic-only (task/held-bead-diagnostic), one per
-	// emitHeldBead call — what a node actually holds at the moment it writes its interior
-	// bead, and whether that value is one the renderer can paint (InteriorBeadInstances.tsx
-	// draws value 0 or 1 only, "non-0/1 value → hide (never paint a fallback)"). Reported
-	// symptom: a pulse node's bead disappears a second after arriving.
-	BreadcrumbHeldBead
 )
 
 // BreadcrumbLabels is the single source of truth for the BreadcrumbLabel* enum's
@@ -200,13 +194,6 @@ var BreadcrumbLabels = []string{
 	"neighbor-center-recv",
 	"neighbor-setc-recv",
 	"bead-crud",
-	// DIAGNOSTIC: reported from the editor — "the pulse nodes' beads disappear under a
-	// second after being in the node". Go holds the value (Pulse is sample-and-hold and
-	// re-emits only on CHANGE), and the renderer draws an interior bead only for value 0 or
-	// 1 ("non-0/1 value → hide (never paint a fallback)", InteriorBeadInstances.tsx). This
-	// records what each node actually holds at each emit, so the numbers decide between
-	// "the value is unpaintable" and "the emit never happened", instead of a third guess.
-	"held-bead",
 }
 
 // TraceEventKinds is the single source of truth for the closed kind vocabulary.
