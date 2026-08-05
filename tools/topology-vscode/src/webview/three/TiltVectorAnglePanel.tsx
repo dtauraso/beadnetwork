@@ -98,10 +98,9 @@ export function TiltVectorAnglePanel() {
 // tilt vectors), but stacking downward keeps this panel out of DistanceHomePanel's spot
 // in case a future scene streams both.
 const panelStyle: React.CSSProperties = {
-  position: "absolute",
-  top: 66,
-  right: 12,
-  zIndex: 20,
+  // Placed by ThreeView's right-hand flex column, not by a top/right of its own — this
+  // panel's height depends on how many nodes have vectors, so nothing below it can be
+  // positioned against a number known here.
   pointerEvents: "auto",
   display: "inline-flex",
   flexDirection: "column",

@@ -321,13 +321,10 @@ export function OverlaysControl() {
           when the master is on, neutral chip when off (overlay-toggle-options.html mock). */}
       <div
         style={{
-          position: "absolute",
-          // Stacked below the distance-home panel (DistanceHomePanel, absolute top:66,
-          // ~55px tall) which itself sits below the fit/home button (top:44). All three
-          // share this same containing block (ThreeView's containerRef, absolute inset:0)
-          // and the same `position: absolute` scheme, so they anchor/scroll together.
-          top: 128,
-          right: 12,
+          // Placed LAST in ThreeView's right-hand flex column, so it sits below every
+          // panel above it however tall they are — the stacking is the column's, not a
+          // number here that has to be re-derived whenever a panel above grows.
+          position: "relative",
           zIndex: 20,
           pointerEvents: "auto",
           display: "flex",
@@ -373,9 +370,11 @@ export function OverlaysControl() {
       {open && (
         <div
           style={{
+            // Anchored to the split button itself (position: relative above), so it
+            // follows wherever the column puts that button instead of to a fixed top.
             position: "absolute",
-            top: 156,
-            right: 12,
+            top: "calc(100% + 4px)",
+            right: 0,
             zIndex: 21,
             pointerEvents: "auto",
             width: 150,
@@ -428,9 +427,7 @@ export function HomeButton({
       onClick={onClick}
       title="Fit diagram in view"
       style={{
-        position: "absolute",
-        top: 44,
-        right: 12,
+        // Placed by ThreeView's right-hand flex column, not by its own top/right.
         background: "rgba(0,0,0,0.55)",
         borderRadius: 6,
         padding: "3px 7px",

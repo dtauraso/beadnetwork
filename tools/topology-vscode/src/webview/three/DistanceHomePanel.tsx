@@ -90,10 +90,8 @@ const panelStyle: React.CSSProperties = {
   // button and the overlays control instead of drifting on its own (it used to
   // be `position: fixed`, portaled into a static toolbar mount elsewhere in the
   // DOM, which is a different containing block and does not scroll with the page).
-  position: "absolute",
-  top: 66,
-  right: 12,
-  zIndex: 20,
+  // Placed by ThreeView's right-hand flex column (see its comment) rather than by its own
+  // top/right.
   pointerEvents: "auto",
   display: "inline-flex",
   flexDirection: "column",

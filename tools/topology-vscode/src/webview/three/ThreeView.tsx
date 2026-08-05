@@ -158,11 +158,33 @@ export function ThreeView() {
         </div>
       ))}
 
-      {/* Widgets — fixed corner, pointerEvents auto */}
-      <HomeButton cameraRef={cameraRef} aspect={canvasSize.w / canvasSize.h} />
-      <DistanceHomePanel />
-      <TiltVectorAnglePanel />
-      <OverlaysControl />
+      {/* RIGHT-HAND COLUMN. These used to be four independently absolute widgets at
+          hardcoded tops (44 / 66 / 128 / 156), each one's comment explaining how tall the
+          widget above it was. That only holds while every panel's height is known in
+          advance — and the tilt-vector panel's is not: it grows a block per node, so with
+          two nodes it ran straight through the overlays button beneath it.
+          One flex column instead. Order here IS order on screen, spacing is the gap, and a
+          panel that grows pushes the rest down rather than overlapping them. The column
+          takes no pointer events, so the canvas stays draggable in the gaps; each widget
+          re-enables them for itself. */}
+      <div
+        style={{
+          position: "absolute",
+          top: 44,
+          right: 12,
+          zIndex: 20,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-end",
+          gap: 6,
+          pointerEvents: "none",
+        }}
+      >
+        <HomeButton cameraRef={cameraRef} aspect={canvasSize.w / canvasSize.h} />
+        <DistanceHomePanel />
+        <TiltVectorAnglePanel />
+        <OverlaysControl />
+      </div>
       <SceneTabs />
     </div>
   );
