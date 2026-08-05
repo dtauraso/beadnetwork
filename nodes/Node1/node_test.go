@@ -41,10 +41,12 @@ func TestApplyTiltEditResetReturnsBothIndicesToZero(t *testing.T) {
 
 // The drawn coplanar normal must sit exactly +6 steps (90°) in θ from the tilt, φ
 // unchanged, for Node1 — pure index arithmetic reusing Wiring.PerpendicularThetaIdx, not
-// a cross product (Part 1 of this task).
+// a cross product (Part 1 of this task). These starting indices all sit within the first
+// pole-crossing zone (no odd number of Wiring.HalfTurnThetaIdx poles crossed yet), so no
+// half-turn flip applies here — the flip itself is asserted separately, below.
 func TestCoplanarNormalIsPlusSixStepsInTheta(t *testing.T) {
 	for _, start := range []struct{ theta, phi int32 }{
-		{0, 0}, {5, -3}, {-9, 12},
+		{0, 0}, {5, -3}, {9, -7},
 	} {
 		n := &Node{TopTiltThetaIdx: start.theta, TopTiltPhiIdx: start.phi}
 		norm := n.coplanarNormal()
@@ -53,6 +55,53 @@ func TestCoplanarNormalIsPlusSixStepsInTheta(t *testing.T) {
 		}
 		if norm.PhiIdx != start.phi {
 			t.Fatalf("coplanarNormal phi must equal tilt phi unchanged: want %d, got %d", start.phi, norm.PhiIdx)
+		}
+	}
+}
+
+// coplanarNormal gains an extra half turn (Wiring.HalfTurnThetaIdx) whenever an ODD number
+// of poles (Wiring.HalfTurnThetaIdx-sized buckets, floor-divided) has been crossed by
+// TopTiltThetaIdx. This is a PURE function of the index — no stored crossing flag — so it
+// must be asserted directly at several bucket boundaries in BOTH directions, explicitly
+// including negative indices: Node1's base direction subtracts, so negative indices are the
+// common case, and Go's truncating `/` gets exactly this case wrong.
+func TestCoplanarNormalFlipsParityAcrossPoleCrossings(t *testing.T) {
+	half := Wiring.HalfTurnThetaIdx
+	quarter := Wiring.PerpendicularThetaIdx
+	cases := []struct {
+		theta    int32
+		wantFlip bool
+	}{
+		// Positive side: [0,11] no crossing (poles=0, even); [12,23] one crossing (odd);
+		// [24,...] two crossings (even).
+		{0, false},
+		{half - 1, false},   // 11
+		{half, true},        // 12: first pole
+		{half + 1, true},    // 13
+		{2*half - 1, true},  // 23
+		{2 * half, false},   // 24: second pole
+		{2*half + 1, false}, // 25
+		// Negative side: floor-division buckets [-12,-1] as poles=-1 (odd); [-24,-13] as
+		// poles=-2 (even); [-36,-25] as poles=-3 (odd) — this is the asymmetric-looking but
+		// correct floor bucketing the task calls for, and the case truncating division gets
+		// wrong.
+		{-1, true},
+		{-half, true},       // -12
+		{-half - 1, false},  // -13
+		{-2 * half, false},  // -24
+		{-2*half - 1, true}, // -25
+		{-3 * half, true},   // -36
+	}
+	for _, c := range cases {
+		n := &Node{TopTiltThetaIdx: c.theta}
+		norm := n.coplanarNormal()
+		want := c.theta + quarter
+		if c.wantFlip {
+			want += half
+		}
+		if norm.ThetaIdx != want {
+			t.Fatalf("theta=%d (wantFlip=%v): coplanarNormal theta want %d, got %d",
+				c.theta, c.wantFlip, want, norm.ThetaIdx)
 		}
 	}
 }
@@ -129,24 +178,44 @@ func TestStepFromVectorReversesWhenAcuteWithBottom(t *testing.T) {
 	}
 }
 
-// Exactly perpendicular to the tilt axis is the ONE case neither dot claims — no step, and
-// the caller must send nothing. This is the exchange's stop condition, and it is about the
-// ARRIVED direction, not about this node sitting on any particular index: the node here is
-// AT PerpendicularThetaIdx and still would have stepped had the arrival leaned either way.
-func TestStepFromVectorStopsWhenNeitherDotIsAcute(t *testing.T) {
+// Exactly perpendicular to both the top and bottom tilt is no longer a halt: it falls to
+// Node1's base direction (-1), same as the acute-with-top case. stepFromVector always steps
+// now; the dots only ever pick the sign.
+func TestStepFromVectorFallsToBaseDirectionWhenNeitherDotIsAcute(t *testing.T) {
 	n := &Node{TopTiltThetaIdx: Wiring.PerpendicularThetaIdx}
 	perp := Wiring.TiltVectorMsg{ThetaIdx: n.TopTiltThetaIdx + Wiring.PerpendicularThetaIdx}
-	if moved := n.stepFromVector(perp); moved {
-		t.Fatalf("perpendicular arrival: want moved=false, got true (index now %d)", n.TopTiltThetaIdx)
+	if moved := n.stepFromVector(perp); !moved {
+		t.Fatal("stepFromVector must always report moved=true, got false")
 	}
-	if n.TopTiltThetaIdx != Wiring.PerpendicularThetaIdx {
-		t.Fatalf("perpendicular arrival must not move the index; got %d, want %d",
-			n.TopTiltThetaIdx, Wiring.PerpendicularThetaIdx)
+	if want := Wiring.PerpendicularThetaIdx - 1; n.TopTiltThetaIdx != want {
+		t.Fatalf("perpendicular arrival must fall to the base direction (-1); got %d, want %d",
+			n.TopTiltThetaIdx, want)
 	}
-	// ...and the same node DOES step when the arrival leans, proving the stop above came
-	// from the dots and not from where this node happens to sit.
-	if moved := n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: n.TopTiltThetaIdx}); !moved {
-		t.Fatal("a leaning arrival must still step a node sitting at the perpendicular index")
+}
+
+// stepFromVector always steps and returns moved=true for all three dot cases: acute with
+// top (-1), acute with bottom (+1), and exactly perpendicular to both (-1, falling to the
+// base direction). Consolidates the three single-case tests above into one table asserting
+// the "always steps" contract explicitly.
+func TestStepFromVectorAlwaysStepsForAllThreeDotCases(t *testing.T) {
+	cases := []struct {
+		name        string
+		arrivedIdx  int32
+		wantDeltaTh int32
+	}{
+		{"acute with top", 0, -1},
+		{"acute with bottom", Wiring.HalfTurnThetaIdx, 1},
+		{"exactly perpendicular", Wiring.PerpendicularThetaIdx, -1},
+	}
+	for _, c := range cases {
+		n := &Node{TopTiltThetaIdx: 0}
+		moved := n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: c.arrivedIdx})
+		if !moved {
+			t.Fatalf("%s: stepFromVector must always return moved=true, got false", c.name)
+		}
+		if n.TopTiltThetaIdx != c.wantDeltaTh {
+			t.Fatalf("%s: want thetaIdx=%d, got %d", c.name, c.wantDeltaTh, n.TopTiltThetaIdx)
+		}
 	}
 }
 
@@ -241,13 +310,13 @@ func TestHandleVectorCycleReplacesPreviousReceivedDirection(t *testing.T) {
 	}
 }
 
-// The third arrow STAYS until the next arrival replaces it. An arrival is recorded even
-// when it does not move this node — including the case where the step decision declines and
-// the exchange comes to rest — because the last direction a node was sent is what it is
-// still holding. Only a RESET removes it (asserted separately, below).
-func TestReceivedVectorRecordedEvenWhenNothingSteps(t *testing.T) {
-	// Perpendicular to this node's own tilt axis: neither dot is acute, so nothing steps
-	// and nothing is sent — the exchange comes to rest on this arrival.
+// The third arrow STAYS until the next arrival replaces it. An arrival is recorded
+// unconditionally, before the step decision even runs. This also covers the perpendicular
+// arrival: stepFromVector always steps now (falling to the base direction when neither dot
+// is acute), so a perpendicular arrival records the direction AND steps AND replies — there
+// is no longer a case where an arrival records but nothing steps. Only a RESET removes the
+// recorded direction (asserted separately, below).
+func TestReceivedVectorRecordedAndStepsOnPerpendicularArrival(t *testing.T) {
 	n := &Node{TopTiltThetaIdx: 0, ReceivedThetaIdx: 4, ReceivedPhiIdx: 1, ReceivedSet: true}
 	in := make(chan Wiring.TiltVectorMsg, 1)
 	out := make(chan Wiring.TiltVectorMsg, 1)
@@ -258,16 +327,16 @@ func TestReceivedVectorRecordedEvenWhenNothingSteps(t *testing.T) {
 	n.handleVectorCycle(0)
 
 	if !n.ReceivedSet || n.ReceivedThetaIdx != arrived.ThetaIdx || n.ReceivedPhiIdx != arrived.PhiIdx {
-		t.Fatalf("the arrived direction must be recorded even when nothing steps; got set=%v theta=%d phi=%d",
+		t.Fatalf("the arrived direction must be recorded; got set=%v theta=%d phi=%d",
 			n.ReceivedSet, n.ReceivedThetaIdx, n.ReceivedPhiIdx)
 	}
-	if n.TopTiltThetaIdx != 0 {
-		t.Fatalf("neither dot is acute here, so the tilt must not move; got %d", n.TopTiltThetaIdx)
+	if n.TopTiltThetaIdx != -1 {
+		t.Fatalf("a perpendicular arrival must fall to the base direction (-1); got %d", n.TopTiltThetaIdx)
 	}
 	select {
-	case v := <-out:
-		t.Fatalf("nothing must be sent when nothing steps; got %+v", v)
+	case <-out:
 	default:
+		t.Fatal("a perpendicular arrival must still step, so a reply must be sent")
 	}
 }
 
@@ -446,11 +515,11 @@ func TestResetSendsAMarkerNotADirection(t *testing.T) {
 	}
 }
 
-// The bead now travels WITH the vector: it is placed by the vector branch when the dots
-// actually move this node, not by the bead branch on every round trip. So the bead loop
-// lives and dies with the exchange it paces, instead of circulating on its own in this
-// kind's fixed direction forever.
-func TestBeadIsPlacedByTheVectorStepNotByABeadArrival(t *testing.T) {
+// The bead now travels WITH the vector: it is placed by the vector branch whenever the
+// vector steps this node, and stepFromVector always steps now (the dots only ever pick the
+// sign), so every arrival places a bead — including a perpendicular one, which used to halt
+// the exchange and place nothing.
+func TestBeadIsPlacedOnEveryVectorArrivalIncludingPerpendicular(t *testing.T) {
 	ctx := context.Background()
 	pw := wire.NewPacedWire(1, 1.0)
 	out := wire.NewPacedOutNoGeom(pw, ctx, "Node1", "Out", nil, wire.RuleFireAndForget, 1, "")
@@ -465,15 +534,20 @@ func TestBeadIsPlacedByTheVectorStepNotByABeadArrival(t *testing.T) {
 		t.Fatal("a vector step must place its own bead; nothing was placed")
 	}
 
-	// An arrival that is exactly PERPENDICULAR: nothing steps, so nothing is placed and the
-	// bead loop ends here rather than being handed on regardless.
+	// An arrival that is exactly PERPENDICULAR: this now ALSO steps (falling to the base
+	// direction) and ALSO places a bead — the old halt is gone.
 	n.TopTiltThetaIdx = 0
 	in <- Wiring.TiltVectorMsg{ThetaIdx: Wiring.PerpendicularThetaIdx}
 	n.handleVectorCycle(3)
+	placed := false
 	for tick := int64(4); tick < 10; tick++ {
 		pw.DriveOneCycle(ctx, tick)
 		if _, _, ok := pw.RecvTick(); ok {
-			t.Fatal("nothing steps on a perpendicular arrival, so no bead may be placed")
+			placed = true
+			break
 		}
+	}
+	if !placed {
+		t.Fatal("a perpendicular arrival must still step and place a bead")
 	}
 }
