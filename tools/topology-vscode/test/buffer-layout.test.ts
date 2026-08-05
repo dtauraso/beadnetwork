@@ -67,9 +67,9 @@ describe("buffer-layout — Node block", () => {
     //   + 1×u8 (hovered) + 1×u8 (latchedSel)
     //   + 2×f32 (ringAxisTheta/ringAxisPhi — the DRAWN ring's axis, separate from the
     //     navigation pole above)
-    //   + 1×f32 (vectorLen — the node's own drawn vector; 0 = draws none)
-    //   + 2×f32 (vectorTheta/vectorPhi — the vector's OWN direction, separate from the
-    //     drawn ring axis above)
+    //   + 1×f32 (tiltVectorLen — the node's own drawn tilt vector; 0 = draws none)
+    //   + 2×f32 (tiltVectorTheta/tiltVectorPhi — the tilt vector's OWN direction, separate
+    //     from the drawn ring axis above)
     //   + 2×f32 (vector2Theta/vector2Phi — the SECOND vector, a quarter turn from the
     //     first inside the ring plane)
     //   = 4 + (5+6+2+2+1+2+2)×4 + 1 + 1 + 8 + 1 + 1 = 96

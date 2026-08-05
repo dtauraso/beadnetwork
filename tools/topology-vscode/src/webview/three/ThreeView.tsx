@@ -9,7 +9,7 @@ import { Canvas } from "@react-three/fiber";
 import * as THREE from "three";
 import { HomeButton, OverlaysControl } from "./camera-ui";
 import { DistanceHomePanel } from "./DistanceHomePanel";
-import { NodeVectorAnglePanel } from "./NodeVectorAnglePanel";
+import { TiltVectorAnglePanel } from "./TiltVectorAnglePanel";
 import { SceneTabs } from "./SceneTabs";
 import { useInteractionControls } from "./interaction-controls";
 import type { PickFn } from "./pick-types";
@@ -161,7 +161,7 @@ export function ThreeView() {
       {/* Widgets — fixed corner, pointerEvents auto */}
       <HomeButton cameraRef={cameraRef} aspect={canvasSize.w / canvasSize.h} />
       <DistanceHomePanel />
-      <NodeVectorAnglePanel />
+      <TiltVectorAnglePanel />
       <OverlaysControl />
       <SceneTabs />
     </div>

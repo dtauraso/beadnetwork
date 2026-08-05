@@ -112,26 +112,26 @@ type bufLayoutNode struct {
 	// change what navigation reads.
 	RingAxisTheta float32 `buf:"f32"` // drawn ring's plane normal: θ from world +y (radians)
 	RingAxisPhi   float32 `buf:"f32"` // drawn ring's plane normal: φ azimuth around +y (radians)
-	// VectorLen is how long the node's own drawn VECTOR is, along the same axis as its
-	// ring (RingAxisTheta/Phi above), starting at the node's centre. ZERO means this node
-	// draws no vector — so one column says both whether and how far, and a scene that wants
-	// no vectors needs no second flag anywhere. Go decides per scene; the renderer draws
-	// what it is given.
-	VectorLen float32 `buf:"f32"` // node vector length along the ring axis; 0 = no vector
-	// VectorTheta/VectorPhi are the vector's OWN direction, same angle convention as
-	// PoleTheta/PolePhi and RingAxisTheta/RingAxisPhi above (θ from world +y, φ azimuth
-	// around +y) — SEPARATE from RingAxisTheta/Phi so a scene/user can point a node's
-	// vector somewhere other than its ring axis. Each node's mover holds these as an
-	// INTEGER index pair, not a free float (memory/feedback_abc_times_constant_not_
-	// rederive.md): the streamed value is index * nodes/Wiring.VectorAngleStep, and the
-	// index is what an edit-update(nodeVector) click changes. Meaningless (but still
-	// streamed, default 0) on a node whose VectorLen is 0.
-	VectorTheta float32 `buf:"f32"` // node vector direction: θ from world +y (radians) = thetaIdx*step
-	VectorPhi   float32 `buf:"f32"` // node vector direction: φ azimuth around +y (radians) = phiIdx*step
+	// TiltVectorLen is how long the node's own drawn TILT VECTOR is, along the same axis as
+	// its ring (RingAxisTheta/Phi above), starting at the node's centre. ZERO means this
+	// node draws no tilt vector — so one column says both whether and how far, and a scene
+	// that wants no tilt vectors needs no second flag anywhere. Go decides per scene; the
+	// renderer draws what it is given.
+	TiltVectorLen float32 `buf:"f32"` // node tilt-vector length along the ring axis; 0 = no vector
+	// TiltVectorTheta/TiltVectorPhi are the tilt vector's OWN direction, same angle
+	// convention as PoleTheta/PolePhi and RingAxisTheta/RingAxisPhi above (θ from world +y,
+	// φ azimuth around +y) — SEPARATE from RingAxisTheta/Phi so a scene/user can point a
+	// node's tilt vector somewhere other than its ring axis. Each node's mover holds these
+	// as an INTEGER index pair, not a free float (memory/feedback_abc_times_constant_not_
+	// rederive.md): the streamed value is index * nodes/Wiring.CurveParamTiltVectorAngleStep,
+	// and the index is what an edit-update(tiltVector) click changes. Meaningless (but
+	// still streamed, default 0) on a node whose TiltVectorLen is 0.
+	TiltVectorTheta float32 `buf:"f32"` // tilt vector direction: θ from world +y (radians) = thetaIdx*step
+	TiltVectorPhi   float32 `buf:"f32"` // tilt vector direction: φ azimuth around +y (radians) = phiIdx*step
 	// Vector2Theta/Vector2Phi are a SECOND vector this node draws, a quarter turn from the
 	// first INSIDE its own ring plane — so both vectors lie across the ring's face rather
 	// than one standing out of it. Same angle convention and the same length as the first,
-	// drawn whenever VectorLen is non-zero, so there is no second length column.
+	// drawn whenever TiltVectorLen is non-zero, so there is no second length column.
 	//
 	// The two nodes of a pair point OPPOSITE ways along their edge without anyone assigning
 	// them sides: each computes its ring axis from ITS OWN direction to its partner, so

@@ -8,9 +8,9 @@
 // separate TS-side fingerprint to hand-keep in lockstep, so the two languages cannot
 // drift apart on record kinds or enum orderings.
 
-// INPUT_LAYOUT_FINGERPRINT: kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock,distanceGroup,scene,nodeVector updateAttrs=toggle,speed,length,selected,theta,phi overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays
+// INPUT_LAYOUT_FINGERPRINT: kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock,distanceGroup,scene,tiltVector updateAttrs=toggle,speed,length,selected,theta,phi overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays
 export const INPUT_LAYOUT_FINGERPRINT =
-  "kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock,distanceGroup,scene,nodeVector updateAttrs=toggle,speed,length,selected,theta,phi overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays";
+  "kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock,distanceGroup,scene,tiltVector updateAttrs=toggle,speed,length,selected,theta,phi overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays";
 
 // Record kind bytes (first byte of every record). Must match input_codec.go.
 export const IN_KIND_SAVE = 4;
@@ -21,6 +21,6 @@ export const IN_KIND_EDIT_UPDATE = 22;
 export const IN_EVENT_KINDS = ["pointerdown", "pointermove", "pointerup", "wheel", "home"] as const;
 export const IN_HIT_KINDS = ["port", "handhold", "node", "edge", "torus", "empty"] as const;
 // EDIT_UPDATE_KINDS_START
-export const IN_UPDATE_KINDS = ["overlays", "clock", "distanceGroup", "scene", "nodeVector"] as const;
+export const IN_UPDATE_KINDS = ["overlays", "clock", "distanceGroup", "scene", "tiltVector"] as const;
 // EDIT_UPDATE_KINDS_END
 export const IN_UPDATE_ATTRS = ["toggle", "speed", "length", "selected", "theta", "phi"] as const;

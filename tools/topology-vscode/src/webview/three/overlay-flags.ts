@@ -25,9 +25,9 @@ import {
   readOverlayGroupLenTime,
   readOverlayGroupLenInput,
   readOverlayGroupLenGate,
-  readNodeVectorLen,
-  readNodeVectorTheta,
-  readNodeVectorPhi,
+  readNodeTiltVectorLen,
+  readNodeTiltVectorTheta,
+  readNodeTiltVectorPhi,
 } from "../../schema/buffer-layout";
 import { nodeLabel } from "./buffer-decode";
 
@@ -169,21 +169,21 @@ export function useDistanceGroupLens(): DistanceGroupLens | null {
   return useSyncExternalStore(subscribeViewBlocks, readDistanceGroupLens, readDistanceGroupLens);
 }
 
-/** One row of the per-node vector-angle panel: read-only reflect of a single node's own
- *  VectorTheta/VectorPhi (Buffer/layout.go), as the ALREADY-MULTIPLIED radians the buffer
- *  carries — TS holds no step constant of its own (nodes/Wiring.VectorAngleStep is Go's).
- *  row is the node's buffer ROW (never an id/name — no sidecar), label its human label for
- *  display only. */
-export interface NodeVectorRow {
+/** One row of the per-node tilt-vector-angle panel: read-only reflect of a single node's
+ *  own TiltVectorTheta/TiltVectorPhi (Buffer/layout.go), as the ALREADY-MULTIPLIED
+ *  radians the buffer carries — TS holds no step constant of its own
+ *  (nodes/Wiring.CurveParamTiltVectorAngleStep is Go's). row is the node's buffer ROW
+ *  (never an id/name — no sidecar), label its human label for display only. */
+export interface TiltVectorRow {
   row: number;
   label: string;
   theta: number;
   phi: number;
 }
 
-let cachedNodeVectorRows: NodeVectorRow[] | null = null;
+let cachedTiltVectorRows: TiltVectorRow[] | null = null;
 
-function nodeVectorRowsEqual(a: NodeVectorRow[], b: NodeVectorRow[]): boolean {
+function tiltVectorRowsEqual(a: TiltVectorRow[], b: TiltVectorRow[]): boolean {
   if (a.length !== b.length) return false;
   for (let i = 0; i < a.length; i++) {
     const ai = a[i];
@@ -196,33 +196,33 @@ function nodeVectorRowsEqual(a: NodeVectorRow[], b: NodeVectorRow[]): boolean {
   return true;
 }
 
-/** Decode every node whose VectorLen is > 0 (Go's "this node draws a vector" answer — same
- *  column NodeVectors.tsx gates its own draw on) into a NodeVectorRow list, or null if no
- *  node frame has decoded yet. An EMPTY (non-null) list is the "no groups"-shaped signal
- *  for a scene that streams no vectors at all — the panel that reads this renders nothing
- *  for that case, with no scene branch on either side. */
-export function readNodeVectorRows(): NodeVectorRow[] | null {
+/** Decode every node whose TiltVectorLen is > 0 (Go's "this node draws a tilt vector"
+ *  answer — same column TiltVectors.tsx gates its own draw on) into a TiltVectorRow list,
+ *  or null if no node frame has decoded yet. An EMPTY (non-null) list is the "no
+ *  groups"-shaped signal for a scene that streams no tilt vectors at all — the panel that
+ *  reads this renders nothing for that case, with no scene branch on either side. */
+export function readTiltVectorRows(): TiltVectorRow[] | null {
   const decoded = getNodeFrame();
-  if (!decoded) return cachedNodeVectorRows;
+  if (!decoded) return cachedTiltVectorRows;
   const { nodeCount, nodeView } = decoded;
-  const next: NodeVectorRow[] = [];
+  const next: TiltVectorRow[] = [];
   for (let row = 0; row < nodeCount; row++) {
-    if (!(readNodeVectorLen(nodeView, row) > 0)) continue;
+    if (!(readNodeTiltVectorLen(nodeView, row) > 0)) continue;
     next.push({
       row,
       label: nodeLabel(decoded, row),
-      theta: readNodeVectorTheta(nodeView, row),
-      phi: readNodeVectorPhi(nodeView, row),
+      theta: readNodeTiltVectorTheta(nodeView, row),
+      phi: readNodeTiltVectorPhi(nodeView, row),
     });
   }
-  if (cachedNodeVectorRows && nodeVectorRowsEqual(cachedNodeVectorRows, next)) return cachedNodeVectorRows;
-  cachedNodeVectorRows = next;
-  return cachedNodeVectorRows;
+  if (cachedTiltVectorRows && tiltVectorRowsEqual(cachedTiltVectorRows, next)) return cachedTiltVectorRows;
+  cachedTiltVectorRows = next;
+  return cachedTiltVectorRows;
 }
 
-/** React hook: re-renders the caller when the set of vector-drawing nodes or any of their
- *  angles changes. Returns null until the first node frame decodes. */
-export function useNodeVectorRows(): NodeVectorRow[] | null {
-  return useSyncExternalStore(subscribeNodeStreamBlocks, readNodeVectorRows, readNodeVectorRows);
+/** React hook: re-renders the caller when the set of tilt-vector-drawing nodes or any of
+ *  their angles changes. Returns null until the first node frame decodes. */
+export function useTiltVectorRows(): TiltVectorRow[] | null {
+  return useSyncExternalStore(subscribeNodeStreamBlocks, readTiltVectorRows, readTiltVectorRows);
 }
 

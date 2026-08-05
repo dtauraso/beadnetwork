@@ -61,12 +61,12 @@ type EditMsg =
   // the ×1.1/÷1.1 math (nodes/Wiring/distance_groups.go); this seam carries only which
   // group + which direction.
   | { type: "edit"; op: "update"; kind: "distanceGroup"; attr: "length"; group: number; dir: "up" | "down" }
-  // nodeVector — one arrow click on the per-node vector-angle panel. row is the target
-  // node's buffer ROW (never its id/name — no sidecar); attr picks which index (theta or
-  // phi); dir is which arrow. Go owns the step constant and the index math
-  // (nodes/Wiring's VectorAngleStep, node_mover.go); this seam carries only which node,
-  // which axis, which direction.
-  | { type: "edit"; op: "update"; kind: "nodeVector"; attr: "theta" | "phi"; row: number; dir: "up" | "down" }
+  // tiltVector — one arrow click on the per-node tilt-vector-angle panel. row is the
+  // target node's buffer ROW (never its id/name — no sidecar); attr picks which index
+  // (theta or phi); dir is which arrow. Go owns the step constant and the index math
+  // (nodes/Wiring's CurveParamTiltVectorAngleStep, node_mover.go); this seam carries only
+  // which node, which axis, which direction.
+  | { type: "edit"; op: "update"; kind: "tiltVector"; attr: "theta" | "phi"; row: number; dir: "up" | "down" }
   // scene — a click on the scene tab strip. tab is the tab's WIRE INDEX into Go's own
   // SceneTabs (nodes/Wiring/scene_tabs.go); no scene name or directory crosses the wire.
   // Go owns the tab list, the labels it streams on the VIEW frame, the selection, and the

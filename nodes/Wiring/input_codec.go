@@ -49,8 +49,8 @@ import (
 // record through both encoders and diffs the fields; do not re-add a version pretending to
 // be a checked invariant.
 //
-// INPUT_LAYOUT_FINGERPRINT: kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock,distanceGroup,scene,nodeVector updateAttrs=toggle,speed,length,selected,theta,phi overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays
-const InputLayoutFingerprint = "kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock,distanceGroup,scene,nodeVector updateAttrs=toggle,speed,length,selected,theta,phi overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays"
+// INPUT_LAYOUT_FINGERPRINT: kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock,distanceGroup,scene,tiltVector updateAttrs=toggle,speed,length,selected,theta,phi overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays
+const InputLayoutFingerprint = "kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock,distanceGroup,scene,tiltVector updateAttrs=toggle,speed,length,selected,theta,phi overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays"
 
 // Record kind bytes (first byte of every record).
 const (
@@ -73,8 +73,8 @@ const (
 	inClockAttrSpeed          = 1 // clock: set the playback-speed multiplier
 	inDistanceGroupAttrLength = 2 // distanceGroup: set the group's target pair length
 	inSceneAttrSelected       = 3 // scene: select a tab from the Go-owned scene tab strip
-	inNodeVectorAttrTheta     = 4 // nodeVector: adjust the vector's θ index by one click
-	inNodeVectorAttrPhi       = 5 // nodeVector: adjust the vector's φ index by one click
+	inTiltVectorAttrTheta     = 4 // tiltVector: adjust the vector's θ index by one click
+	inTiltVectorAttrPhi       = 5 // tiltVector: adjust the vector's φ index by one click
 )
 
 // Enum orderings (u8 index → string), shared with input-layout-gen.ts. All five orderings
@@ -263,15 +263,15 @@ func decodeInputRecord(rec []byte) (stdinMsg, bool) {
 				return stdinMsg{}, false
 			}
 			return stdinMsg{Type: "edit", Op: "update", Kind: "scene", Attr: "selected", Num: int(tabIdx)}, true
-		case "nodeVector":
-			if attr != inNodeVectorAttrTheta && attr != inNodeVectorAttrPhi {
+		case "tiltVector":
+			if attr != inTiltVectorAttrTheta && attr != inTiltVectorAttrPhi {
 				return stdinMsg{}, false
 			}
 			// [u8 nodeRow][u8 dirUp] — nodeRow is the target node's buffer ROW (never its
 			// id/name — no sidecar), dirUp is 1 for the up arrow (+1 index), 0 for down
 			// (-1). Attr already carries WHICH axis (theta/phi), same shape as
 			// distanceGroup's groupIndex+dir payload. Flag carries the axis name so
-			// applyUpdateNodeVector (stdin_reader.go) can dispatch on a single string
+			// applyUpdateTiltVector (stdin_reader.go) can dispatch on a single string
 			// field like every other update handler.
 			row, errR := r.u8()
 			if errR != nil {
@@ -286,10 +286,10 @@ func decodeInputRecord(rec []byte) (stdinMsg, bool) {
 				dir = "up"
 			}
 			axis := "theta"
-			if attr == inNodeVectorAttrPhi {
+			if attr == inTiltVectorAttrPhi {
 				axis = "phi"
 			}
-			return stdinMsg{Type: "edit", Op: "update", Kind: "nodeVector", Attr: axis, Num: int(row), Flag: dir}, true
+			return stdinMsg{Type: "edit", Op: "update", Kind: "tiltVector", Attr: axis, Num: int(row), Flag: dir}, true
 		}
 		return stdinMsg{}, false
 	}

@@ -134,8 +134,8 @@ func loadTree(root string) (topoSpec, error) {
 			sn.ScenePolarR, sn.ScenePolarTheta, sn.ScenePolarPhi = &r, &th, &ph
 			sn.QuantITheta, sn.QuantIPhi, sn.QuantIR = &qt, &qp, &qr
 			sn.StepTheta, sn.StepPhi, sn.StepR = &st, &sp, &sr
-			vt, vp := pf.VectorThetaIdx, pf.VectorPhiIdx
-			sn.VectorThetaIdx, sn.VectorPhiIdx = &vt, &vp
+			vt, vp := pf.TiltVectorThetaIdx, pf.TiltVectorPhiIdx
+			sn.TiltVectorThetaIdx, sn.TiltVectorPhiIdx = &vt, &vp
 		}
 
 		// data.json — optional

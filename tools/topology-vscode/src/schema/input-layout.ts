@@ -137,8 +137,8 @@ const IN_OVERLAY_ATTR_TOGGLE = 0;
 const IN_CLOCK_ATTR_SPEED = 1;
 const IN_DISTANCE_GROUP_ATTR_LENGTH = 2;
 const IN_SCENE_ATTR_SELECTED = 3;
-const IN_NODE_VECTOR_ATTR_THETA = 4;
-const IN_NODE_VECTOR_ATTR_PHI = 5;
+const IN_TILT_VECTOR_ATTR_THETA = 4;
+const IN_TILT_VECTOR_ATTR_PHI = 5;
 
 // NOTE: there is no encodeSave here. IN_KIND_SAVE stays defined (Go reads it and it is in
 // the INPUT_LAYOUT_FINGERPRINT), but no live TS sender builds that record: `save` has no
@@ -196,17 +196,17 @@ export function encodeSceneSelected(tabIndex: number): ArrayBuffer {
   return w.toArrayBuffer();
 }
 
-/** Build a nodeVector THETA/PHI record: [22][entityKind=nodeVector][attr=theta|phi]
+/** Build a tiltVector THETA/PHI record: [22][entityKind=tiltVector][attr=theta|phi]
  *  [u8 nodeRow][u8 dirUp]. nodeRow is the target node's buffer ROW (never its id/name —
- *  no sidecar on this wire); dirUp is 1 for the up arrow (+1 VectorAngleStep index), 0
- *  for down (-1). Go owns the step constant and the index math
- *  (nodes/Wiring's VectorAngleStep, node_mover.go); this just signals which node, which
- *  axis, which direction. */
-export function encodeNodeVectorAdjust(nodeRow: number, axis: "theta" | "phi", dir: "up" | "down"): ArrayBuffer {
+ *  no sidecar on this wire); dirUp is 1 for the up arrow (+1 CurveParamTiltVectorAngleStep
+ *  index), 0 for down (-1). Go owns the step constant and the index math
+ *  (nodes/Wiring's CurveParamTiltVectorAngleStep, node_mover.go); this just signals which
+ *  node, which axis, which direction. */
+export function encodeTiltVectorAdjust(nodeRow: number, axis: "theta" | "phi", dir: "up" | "down"): ArrayBuffer {
   const w = new ByteWriter();
   w.u8(IN_KIND_EDIT_UPDATE);
-  w.u8(enumIndex(IN_UPDATE_KINDS, "nodeVector"));
-  w.u8(axis === "phi" ? IN_NODE_VECTOR_ATTR_PHI : IN_NODE_VECTOR_ATTR_THETA);
+  w.u8(enumIndex(IN_UPDATE_KINDS, "tiltVector"));
+  w.u8(axis === "phi" ? IN_TILT_VECTOR_ATTR_PHI : IN_TILT_VECTOR_ATTR_THETA);
   w.u8(nodeRow);
   w.u8(dir === "up" ? 1 : 0);
   return w.toArrayBuffer();

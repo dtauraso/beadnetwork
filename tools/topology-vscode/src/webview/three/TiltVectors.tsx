@@ -1,17 +1,19 @@
-// NodeVectors.tsx — one arrow per node, from its centre outward along its OWN direction.
+// TiltVectors.tsx — one arrow per node, from its centre outward along its OWN TILT
+// direction.
 //
-// The direction is Go-owned: VectorTheta/VectorPhi (Buffer/layout.go), the SAME θ-from-
-// world-+y / φ-azimuth-around-+y convention as the ring axis and every other angle pair
-// on the buffer. Default (0,0) is world +y, matching the vector's original hardcoded-up
-// arrangement — a scene/topology that never sets an angle looks unchanged. Go holds the
-// angle as an INTEGER index × nodes/Wiring.VectorAngleStep
+// The direction is Go-owned: TiltVectorTheta/TiltVectorPhi (Buffer/layout.go), the SAME
+// θ-from-world-+y / φ-azimuth-around-+y convention as the ring axis and every other angle
+// pair on the buffer. Default (0,0) is world +y, matching the tilt vector's original
+// hardcoded-up arrangement — a scene/topology that never sets an angle looks unchanged. Go
+// holds the angle as an INTEGER index × nodes/Wiring.CurveParamTiltVectorAngleStep
 // (memory/feedback_abc_times_constant_not_rederive.md); this component reads only the
 // already-multiplied radians the buffer carries, same as it reads RingAxisTheta/Phi — no
 // index/step arithmetic on this side.
 //
 // WHETHER a node draws one is Go's answer too, and it rides the SAME value as how long:
-// VectorLen is zero for a node that draws none. There is no toggle and no per-scene branch
-// here — a scene that wants no vectors streams zeros and this component draws nothing.
+// TiltVectorLen is zero for a node that draws none. There is no toggle and no per-scene
+// branch here — a scene that wants no tilt vectors streams zeros and this component draws
+// nothing.
 //
 // Two instanced meshes, one draw call each: a thin cylinder for the shaft and a cone for the
 // head. Both are authored pointing along +Y (three.js's own cylinder/cone axis) and rotated
@@ -26,7 +28,7 @@ import * as THREE from "three";
 import { getNodeFrame } from "./node-stream-blocks";
 import {
   readNodeCX, readNodeCY, readNodeCZ,
-  readNodeVectorLen, readNodeVectorTheta, readNodeVectorPhi,
+  readNodeTiltVectorLen, readNodeTiltVectorTheta, readNodeTiltVectorPhi,
   readNodeVector2Theta, readNodeVector2Phi,
 } from "../../schema/buffer-layout";
 
@@ -47,7 +49,7 @@ const VECTOR_COLOR = "#FF2E88";
 // three.js authors both a cylinder and a cone along +Y, so that is the axis rotated FROM.
 const GEOMETRY_AXIS = new THREE.Vector3(0, 1, 0);
 
-export function NodeVectors({ capacity }: { capacity: number }) {
+export function TiltVectors({ capacity }: { capacity: number }) {
   const shaftRef = useRef<THREE.InstancedMesh>(null);
   const headRef = useRef<THREE.InstancedMesh>(null);
   const matRef = useRef(new THREE.Matrix4());
@@ -69,14 +71,14 @@ export function NodeVectors({ capacity }: { capacity: number }) {
     }
     const { nodeCount, nodeView } = decoded;
 
-    // Each node draws TWO arrows: its own vector, and a second one a quarter turn away
-    // inside the same ring plane (Buffer/layout.go's Vector2Theta/Vector2Phi). Both come
-    // from Go as directions; nothing here decides where either points. They are written
-    // into the SAME instanced meshes, so one draw call still covers every arrow.
+    // Each node draws TWO arrows: its own tilt vector, and a second one a quarter turn
+    // away inside the same ring plane (Buffer/layout.go's Vector2Theta/Vector2Phi). Both
+    // come from Go as directions; nothing here decides where either points. They are
+    // written into the SAME instanced meshes, so one draw call still covers every arrow.
     let drawn = 0;
     const writeArrow = (cx: number, cy: number, cz: number, len: number, theta: number, phi: number) => {
-      // (0,0) decodes to world +y — the default the vector had before it carried its own
-      // direction, so an unedited node's arrow is unchanged. Same θ-from-+y /
+      // (0,0) decodes to world +y — the default the tilt vector had before it carried its
+      // own direction, so an unedited node's arrow is unchanged. Same θ-from-+y /
       // φ-azimuth-around-+y conversion NodeInstances uses for the ring axis.
       if (theta === 0 && phi === 0) {
         axisRef.current.set(0, 1, 0);
@@ -115,14 +117,14 @@ export function NodeVectors({ capacity }: { capacity: number }) {
     };
 
     for (let row = 0; row < nodeCount && drawn + 1 < capacity; row++) {
-      const len = readNodeVectorLen(nodeView, row);
-      if (!(len > 0)) continue; // Go says this node draws no vectors
+      const len = readNodeTiltVectorLen(nodeView, row);
+      if (!(len > 0)) continue; // Go says this node draws no tilt vectors
 
       const cx = readNodeCX(nodeView, row);
       const cy = readNodeCY(nodeView, row);
       const cz = readNodeCZ(nodeView, row);
 
-      writeArrow(cx, cy, cz, len, readNodeVectorTheta(nodeView, row), readNodeVectorPhi(nodeView, row));
+      writeArrow(cx, cy, cz, len, readNodeTiltVectorTheta(nodeView, row), readNodeTiltVectorPhi(nodeView, row));
       writeArrow(cx, cy, cz, len, readNodeVector2Theta(nodeView, row), readNodeVector2Phi(nodeView, row));
     }
 

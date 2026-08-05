@@ -55,23 +55,23 @@ func (nm *nodeMover) persistQuantOffset(off quantizedOffset, scene polar) {
 	}
 	// Carries this node's CURRENT vector-angle indices along unchanged — writeQuantOffset
 	// is a fresh whole-file marshal (no read-modify-write), so a position-only write here
-	// must still round-trip whatever vectorThetaIdx/vectorPhiIdx this node already holds,
+	// must still round-trip whatever tiltVectorThetaIdx/tiltVectorPhiIdx this node already holds,
 	// or a later drag would silently reset a previously-set vector direction back to 0.
-	if err := writeQuantOffset(nm.persistRoot, nm.id, off, scene, nm.vectorThetaIdx, nm.vectorPhiIdx); err != nil {
+	if err := writeQuantOffset(nm.persistRoot, nm.id, off, scene, nm.tiltVectorThetaIdx, nm.tiltVectorPhiIdx); err != nil {
 		logPersistErr("quant_offset_persist", nm.id, err)
 	}
 }
 
-// persistVectorAngle writes THIS node's own vector-direction indices to its OWN
+// persistTiltVectorAngle writes THIS node's own vector-direction indices to its OWN
 // position.json, synchronously, on THIS node's own mover goroutine (handle's
-// moveMsgKindVectorAngle case). Carries the node's CURRENT position/quant-offset along
+// moveMsgKindTiltVectorAngle case). Carries the node's CURRENT position/quant-offset along
 // unchanged (same one-file whole-marshal shape as persistQuantOffset, reversed: this
 // write is angle-driven, not position-driven). nm.persistRoot == "" is a no-op.
-func (nm *nodeMover) persistVectorAngle() {
+func (nm *nodeMover) persistTiltVectorAngle() {
 	if nm.persistRoot == "" {
 		return
 	}
-	if err := writeQuantOffset(nm.persistRoot, nm.id, nm.quantOffset, nm.geom.ScenePolar, nm.vectorThetaIdx, nm.vectorPhiIdx); err != nil {
+	if err := writeQuantOffset(nm.persistRoot, nm.id, nm.quantOffset, nm.geom.ScenePolar, nm.tiltVectorThetaIdx, nm.tiltVectorPhiIdx); err != nil {
 		logPersistErr("quant_offset_persist", nm.id, err)
 	}
 }
@@ -89,12 +89,12 @@ type positionFileJSON struct {
 	StepTheta       float64 `json:"stepTheta"`
 	StepPhi         float64 `json:"stepPhi"`
 	StepR           float64 `json:"stepR"`
-	// VectorThetaIdx/VectorPhiIdx are this node's own vector-direction indices
-	// (node_mover.go's vectorThetaIdx/vectorPhiIdx — an integer count of
-	// VectorAngleStep, never a stored float). Omitted (0,0 = world +y) for a topology
+	// TiltVectorThetaIdx/TiltVectorPhiIdx are this node's own vector-direction indices
+	// (node_mover.go's tiltVectorThetaIdx/tiltVectorPhiIdx — an integer count of
+	// TiltVectorAngleStep, never a stored float). Omitted (0,0 = world +y) for a topology
 	// saved before this field existed — matches the pre-existing hardcoded +y default.
-	VectorThetaIdx int32 `json:"vectorThetaIdx,omitempty"`
-	VectorPhiIdx   int32 `json:"vectorPhiIdx,omitempty"`
+	TiltVectorThetaIdx int32 `json:"tiltVectorThetaIdx,omitempty"`
+	TiltVectorPhiIdx   int32 `json:"tiltVectorPhiIdx,omitempty"`
 }
 
 // writeQuantOffset writes the node's EXACT scenePolarR/Theta/Phi (the authoritative,
@@ -103,7 +103,7 @@ type positionFileJSON struct {
 // content of <root>/nodes/<id>/position.json — the sole writer of that file, so each write
 // is a fresh marshal (no read-modify-write, and no leftover `reference` field to drop: that
 // was a meta.json-only artifact of the removed reference-tree model).
-func writeQuantOffset(root, id string, off quantizedOffset, scene polar, vectorThetaIdx, vectorPhiIdx int32) error {
+func writeQuantOffset(root, id string, off quantizedOffset, scene polar, tiltVectorThetaIdx, tiltVectorPhiIdx int32) error {
 	if !safeTreePathComponent(id) {
 		return fmt.Errorf("unsafe node id %q", id)
 	}
@@ -112,6 +112,6 @@ func writeQuantOffset(root, id string, off quantizedOffset, scene polar, vectorT
 		ScenePolarR: scene.R, ScenePolarTheta: scene.Theta, ScenePolarPhi: scene.Phi,
 		QuantITheta: off.iTheta, QuantIPhi: off.iPhi, QuantIR: off.iR,
 		StepTheta: t, StepPhi: p, StepR: r,
-		VectorThetaIdx: vectorThetaIdx, VectorPhiIdx: vectorPhiIdx,
+		TiltVectorThetaIdx: tiltVectorThetaIdx, TiltVectorPhiIdx: tiltVectorPhiIdx,
 	})
 }

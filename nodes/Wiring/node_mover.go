@@ -299,15 +299,15 @@ type nodeMover struct {
 	// buildFrame packs this node's combined per-fd frame (node fields + ports + label)
 	// using Buffer's own row-writer columns (Buffer.BuildNodeStreamFrame), injected so
 	// this package needs no Buffer import.
-	buildFrame func(tick uint32, nodeRow int32, nodeID int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, poleTheta, polePhi, ringAxisTheta, ringAxisPhi, vectorLen, vectorTheta, vectorPhi, vector2Theta, vector2Phi float32, selected, kindID, hovered, latchedSel uint8, label string, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte
-	// vectorThetaIdx/vectorPhiIdx are THIS node's own vector direction, as INTEGER
-	// indices into VectorAngleStep (memory/feedback_abc_times_constant_not_rederive.md
+	buildFrame func(tick uint32, nodeRow int32, nodeID int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, poleTheta, polePhi, ringAxisTheta, ringAxisPhi, tiltVectorLen, tiltVectorTheta, tiltVectorPhi, vector2Theta, vector2Phi float32, selected, kindID, hovered, latchedSel uint8, label string, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte
+	// tiltVectorThetaIdx/tiltVectorPhiIdx are THIS node's own vector direction, as INTEGER
+	// indices into TiltVectorAngleStep (memory/feedback_abc_times_constant_not_rederive.md
 	// — index × step-constant, trig only at the cartesian/polar boundary). Default 0,0
 	// means world +y (θ=0), matching the pre-existing hardcoded +y direction. Written
-	// only by this node's own goroutine, from an edit-update(nodeVector) message
-	// (moveMsgKindVectorAngle) or the persisted load value; persisted by this node's own
+	// only by this node's own goroutine, from an edit-update(tiltVector) message
+	// (moveMsgKindTiltVectorAngle) or the persisted load value; persisted by this node's own
 	// mover into ITS OWN position.json (persist_position.go), never a foreign file.
-	vectorThetaIdx, vectorPhiIdx int32
+	tiltVectorThetaIdx, tiltVectorPhiIdx int32
 }
 
 func newNodeMover(id string, geom nodeGeom, tr *T.Trace, clockSrc wire.Clock) *nodeMover {
@@ -422,10 +422,10 @@ func (m *nodeMover) handle(msg moveMsg) {
 		}
 		return
 	}
-	if msg.Kind == moveMsgKindVectorAngle {
-		// Adjust THIS node's own vector-direction index by one VectorAngleStep click —
+	if msg.Kind == moveMsgKindTiltVectorAngle {
+		// Adjust THIS node's own vector-direction index by one TiltVectorAngleStep click —
 		// index arithmetic only (memory/feedback_abc_times_constant_not_rederive.md), no
-		// trig here. Persisted immediately to this node's OWN file (persistVectorAngle,
+		// trig here. Persisted immediately to this node's OWN file (persistTiltVectorAngle,
 		// quant_offset_persist.go) and re-emitted so the panel's read-only reflect and
 		// the drawn arrow both pick up the change on the next frame.
 		delta := int32(-1)
@@ -433,11 +433,11 @@ func (m *nodeMover) handle(msg moveMsg) {
 			delta = 1
 		}
 		if msg.Axis == "phi" {
-			m.vectorPhiIdx += delta
+			m.tiltVectorPhiIdx += delta
 		} else {
-			m.vectorThetaIdx += delta
+			m.tiltVectorThetaIdx += delta
 		}
-		m.persistVectorAngle()
+		m.persistTiltVectorAngle()
 		if m.tr != nil {
 			m.emitGeometry()
 		}
@@ -582,10 +582,10 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 	// RingAxisTheta/RingAxisPhi). Default is the torus's own +Z normal, which draws exactly
 	// as an unrotated ring did — so a scene that has not asked for anything looks unchanged.
 	ringAxisTheta, ringAxisPhi := torusDefaultAxisAngles()
-	// vectorLen is this node's own drawn vector, along the SAME axis as its ring, and 0
-	// where a scene draws none (Buffer/layout.go's VectorLen). It runs from the node's
+	// tiltVectorLen is this node's own drawn vector, along the SAME axis as its ring, and 0
+	// where a scene draws none (Buffer/layout.go's TiltVectorLen). It runs from the node's
 	// centre to its own top, so its length IS the node's radius.
-	var vectorLen float64
+	var tiltVectorLen float64
 	if m.upAxis && m.geom.HasPos && len(m.partnerCenters) == 1 {
 		// UPRIGHT: the ring STANDS UP along its edge — its plane holds both the edge and
 		// world +y, so the node's own up-vector lies IN the ring's plane rather than
@@ -596,7 +596,7 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 				ringAxisTheta, ringAxisPhi = t, p
 			}
 		}
-		vectorLen = nodeRadius(m.geom.Kind)
+		tiltVectorLen = nodeRadius(m.geom.Kind)
 	} else if m.coplanarEdges && m.geom.HasPos && len(m.partnerCenters) == 1 {
 		// COPLANAR EDGES: swing the axis off the inward pole by the smallest amount that
 		// puts the edge INSIDE the ring plane — the inward pole with its along-the-edge
@@ -609,19 +609,19 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 			}
 		}
 	}
-	// vectorTheta/vectorPhi are this node's OWN vector direction — separate from the ring
+	// tiltVectorTheta/tiltVectorPhi are this node's OWN vector direction — separate from the ring
 	// axis above, so a scene/user can aim a node's vector somewhere other than its ring.
-	// Never a free float: index × VectorAngleStep (see the constant's own doc comment),
+	// Never a free float: index × TiltVectorAngleStep (see the constant's own doc comment),
 	// the streamed value is pure arithmetic on the integer state this node's own mover
-	// holds and persists (m.vectorThetaIdx/vectorPhiIdx).
-	vectorTheta := float64(m.vectorThetaIdx) * CurveParamVectorAngleStep
-	vectorPhi := float64(m.vectorPhiIdx) * CurveParamVectorAngleStep
+	// holds and persists (m.tiltVectorThetaIdx/tiltVectorPhiIdx).
+	tiltVectorTheta := float64(m.tiltVectorThetaIdx) * CurveParamTiltVectorAngleStep
+	tiltVectorPhi := float64(m.tiltVectorPhiIdx) * CurveParamTiltVectorAngleStep
 	// The SECOND vector: a quarter turn from the first, INSIDE this node's own ring plane,
 	// so both lie across the ring's face instead of one standing out of it. Zero when this
 	// node draws no vector at all, matching the first.
 	var vector2Theta, vector2Phi float64
-	if vectorLen > 0 {
-		vector2Theta, vector2Phi = quarterTurnInRingPlane(vectorTheta, vectorPhi, ringAxisTheta, ringAxisPhi)
+	if tiltVectorLen > 0 {
+		vector2Theta, vector2Phi = quarterTurnInRingPlane(tiltVectorTheta, tiltVectorPhi, ringAxisTheta, ringAxisPhi)
 	}
 	label := m.geom.Label
 	if label == "" {
@@ -647,8 +647,8 @@ func (m *nodeMover) writeStreamFrame(events []wire.RowEvent) {
 		float32(nodeRadius(m.geom.Kind)), float32(sphereR),
 		verticalRingNormalX, verticalRingNormalY, verticalRingNormalZ,
 		flatRingNormalX, flatRingNormalY, flatRingNormalZ,
-		float32(poleTheta), float32(polePhi), float32(ringAxisTheta), float32(ringAxisPhi), float32(vectorLen),
-		float32(vectorTheta), float32(vectorPhi), float32(vector2Theta), float32(vector2Phi),
+		float32(poleTheta), float32(polePhi), float32(ringAxisTheta), float32(ringAxisPhi), float32(tiltVectorLen),
+		float32(tiltVectorTheta), float32(tiltVectorPhi), float32(vector2Theta), float32(vector2Phi),
 		selected, kindID, hovered, latchedSel,
 		label, chainOX, chainOY, chainOZ, chainLit, chainLitVal, events)
 	var hdr [4]byte
