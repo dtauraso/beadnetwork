@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+#
+# PLACEMENT: nodes/Wiring/node_move.go | MoveDispatch stays a thin COMPOSER: new state belongs in a sub-struct, not a new loose field
 # check-movedispatch-composer.sh — keep MoveDispatch a thin COMPOSER, not a regrown
 # god-object. Run from repo root: bash tools/check-movedispatch-composer.sh
 #

@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+#
+# PLACEMENT: none | PreToolUse(Bash) hook on git commit; it inspects the repo root for stray screenshots, not a source path
 set -uo pipefail
 
 # check-stray-screenshots.sh — PreToolUse(Bash) guard.

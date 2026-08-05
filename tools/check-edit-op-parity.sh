@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# PLACEMENT: nodes/Wiring/stdin_reader.go,tools/topology-vscode/src/messages.ts,tools/topology-vscode/src/schema/input-layout-gen.ts,tools/topology-vscode/src/webview/three/overlay-flags.ts | edit ops/update-kinds/overlay flags must stay listed identically on both sides of the bridge
+#
 # Verifies the editor->Go geometry-CRUD "edit" bridge stays in parity across every
 # axis below the top-level msg.Type (which check-message-kind-parity.sh covers).
 # The bridge's sole op is "update" (create/delete were removed end-to-end — no live

@@ -8,6 +8,8 @@
 #
 # Whole-repo scan (excludes vendor/node_modules); sub-second, so it runs
 # unconditionally rather than diff-gated.
+#
+# PLACEMENT: none | universal Go formatting, not a placement decision (gofmt every .go file)
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

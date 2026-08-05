@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# PLACEMENT: nodes/Wiring/stdin_reader.go,tools/topology-vscode/src/runCommand.ts | maxFrameBytes and MAX_FRAME_BYTES must be numerically equal
+#
 # Verifies that the two sides of the SAME framed-binary protocol ([len:u32-LE][payload])
 # agree on the maximum frame length they will accept:
 #   nodes/Wiring/stdin_reader.go        `const maxFrameBytes = ...`   (TS -> Go direction)

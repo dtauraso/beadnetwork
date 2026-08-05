@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+#
+# PLACEMENT: nodes/**/*.go | no sync.Mutex/RWMutex and no sync/atomic in the network: use ownership + message passing
 # check-no-network-locks.sh — forbid shared-synchronization primitives (sync.Mutex/RWMutex
 # AND sync/atomic) in the concurrent node network. Run from repo root:
 # bash tools/check-no-network-locks.sh

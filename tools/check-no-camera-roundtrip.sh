@@ -9,6 +9,8 @@
 # Everything else that reconstructs camera state from a position is banned.
 #
 # Mirrors tools/check-no-await-on-bridge.sh. Exit 1 on any hit.
+#
+# PLACEMENT: tools/topology-vscode/src/webview/three/** | camera/nav code must not reconstruct angles from a Cartesian position (setFromVector3/makeSafe/THREE.Spherical banned outside polar.ts, PanPolarOverlay.tsx)
 
 set -euo pipefail
 

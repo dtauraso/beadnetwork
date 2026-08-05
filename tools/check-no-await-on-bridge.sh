@@ -23,6 +23,8 @@ set -euo pipefail
 # This guard FAILS if any of these is awaited, or `.then`/`.catch`/`.finally`-chained
 # onto a call to any of these, or if writeStdin is declared to return a Promise.
 # Exit 0 when clean.
+#
+# PLACEMENT: tools/topology-vscode/src/**/*.ts,tools/topology-vscode/src/**/*.tsx | TS→Go sends (postGoRecord/sendRawInput/writeStdin/postMessage) must be fire-and-forget, no await/.then
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"

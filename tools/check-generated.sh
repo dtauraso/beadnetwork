@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+#
+# PLACEMENT: Buffer/layout.go,nodes/Wiring/input_codec.go,nodes/*/SPEC.md | changing a generator source means running `go run ./tools/gen-node-defs` in the SAME commit
 set -euo pipefail
 
 # check-generated.sh — guard against stale generated files.

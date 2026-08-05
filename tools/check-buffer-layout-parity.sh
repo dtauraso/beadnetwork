@@ -6,6 +6,8 @@ set -euo pipefail
 #   Buffer/buffer_layout_gen.go
 #   tools/topology-vscode/src/schema/buffer-layout.ts
 #
+# PLACEMENT: Buffer/buffer_layout_gen.go,tools/topology-vscode/src/schema/buffer-layout.ts | BUF_LAYOUT_FINGERPRINT must match between the two generated layout files
+#
 # SCOPE — read this before trusting the guard's name. Both files are written by ONE
 # generator run (tools/gen-node-defs) from Buffer/layout.go, with the SAME fingerprint
 # line. So this guard is generated-vs-generated: it stays clean whenever the two agree,

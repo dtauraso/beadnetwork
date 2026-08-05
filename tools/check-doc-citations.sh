@@ -34,6 +34,8 @@ set -euo pipefail
 # docs marked <meta name="doc-status" content="historical">, which are dated snapshots whose
 # citations are pinned to their moment (same exemption as check-doc-symbols.sh).
 #
+# PLACEMENT: none | universal prose hygiene: any file quoting CLAUDE.md/MODEL.md must quote it verbatim
+#
 # Exit 0 if clean; exit 1 with a report otherwise.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

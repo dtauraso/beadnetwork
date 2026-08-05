@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+#
+# PLACEMENT: tools/topology-vscode/src/webview/**/*.ts,tools/topology-vscode/src/webview/**/*.tsx | no zustand and no useSyncExternalStore outside the named buffer-reflect resources
 set -euo pipefail
 
 # check-no-webview-state.sh — content-buffer erase guard.

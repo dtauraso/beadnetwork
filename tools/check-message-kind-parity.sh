@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# PLACEMENT: nodes/Wiring/stdin_reader.go,tools/topology-vscode/src/messages.ts,tools/topology-vscode/src/extension/handle-message.ts,tools/topology-vscode/src/webview/** | a new message kind needs matching entries in Go's MSG_TYPES fence+doc, messages.ts, and a live sender
+#
 # Verifies THREE parities for the editor<->Go/ext-host seams:
 #   1. every message type dispatched by stdin_reader.go is declared in
 #      WEBVIEW_TO_HOST_TYPES in messages.ts;

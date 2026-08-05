@@ -23,6 +23,8 @@
 # ALLOWLIST (may only shrink): sites that predate this rule and are NOT on the tick-pacing
 # path — see the comment for each. A new entry must justify why it is not a mover/node
 # pacing wait; anything that paces a network goroutine belongs on the tick channel instead.
+#
+# PLACEMENT: nodes/**/*.go | no time.Sleep/time.After/time.NewTicker outside nodes/wire/clock.go; block on the tick channel instead
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

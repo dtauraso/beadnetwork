@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+#
+# PLACEMENT: tools/topology-vscode/src/webview/**/*.ts,tools/topology-vscode/src/webview/**/*.tsx | TS plots what Go streams: no bead positions, no edge curves, no traversal timing computed here
 set -euo pipefail
 
 # check-ts-computes-no-geometry.sh — Phase 2 + Phase 3 guard.

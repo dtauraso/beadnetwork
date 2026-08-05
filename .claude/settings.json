@@ -31,6 +31,15 @@
             "command": "python3 \"$CLAUDE_PROJECT_DIR\"/scripts/block-open-html-hook.py"
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/tools/placement-brief-hook.sh\""
+          }
+        ]
       }
     ]
   },

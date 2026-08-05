@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+#
+# PLACEMENT: none | universal prose hygiene: every file's comments are checked, no placement decision
 set -euo pipefail
 
 # check-doc-symbols.sh — fails when a COMMENT or DOC names a code symbol that does not exist.

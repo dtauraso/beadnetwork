@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# PLACEMENT: nodes/**/*.go | NewPacedWire must have exactly one non-test production call site, passing DwellTicksPerBead
+#
 # Enforces UNIFORM PULSE SPEED on the production path.
 #
 # Doctrine: pulse speed is uniform across all wires; per-wire `speed` is rejected.

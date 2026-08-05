@@ -13,6 +13,8 @@
 #
 # Exit 0 clean, exit 1 with a report — auto-discovered by scripts/stop-checks.sh via the
 # tools/check-*.sh glob.
+#
+# PLACEMENT: memory/*.md | needs YAML frontmatter with name/description/valid type, non-empty body, and an entry in memory/MEMORY.md
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

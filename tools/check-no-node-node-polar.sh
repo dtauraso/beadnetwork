@@ -30,6 +30,8 @@
 #      themselves a second summation site).
 #
 # Exit 0 clean, exit 1 with a report.
+#
+# PLACEMENT: nodes/**/*.go,Buffer/**/*.go,tools/topology-vscode/src/**/*.ts | no node-node polar record (LocalPolar et al.); exactly one bead-centre summation site (node-stream-blocks.ts)
 
 set -euo pipefail
 

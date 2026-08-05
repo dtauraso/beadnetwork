@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+#
+# PLACEMENT: docs/**,*.md | no synced live-state snapshot doc; task state is derived from git/memory/MODEL.md
 # check-no-state-cache.sh — forbid synced live-state snapshot files. Run from repo root:
 # bash tools/check-no-state-cache.sh
 #

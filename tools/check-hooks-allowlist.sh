@@ -2,6 +2,8 @@
 # check-hooks-allowlist.sh — every .claude/settings.json hook command must be a KNOWN
 # check/reminder script. Run from repo root: bash tools/check-hooks-allowlist.sh
 #
+# PLACEMENT: .claude/settings.json,.githooks/* | a new hook command must be classified and added to the ALLOWED list here
+#
 # WHY THIS EXISTS (drift-checklist item #4 — "hidden repair loop"): the checklist asks "does
 # a second pass silently rewrite the answer before delivery?" A repo guard can't observe the
 # runtime, but every automated pass over a turn is a hook declared in settings.json. This
@@ -44,6 +46,9 @@ readonly ALLOWED=(
   "bash-approve-guard.sh"      # PreToolUse(Bash): bash approval gate
   "check-no-foreground-sim.sh" # PreToolUse(Bash): blocks foreground sim runs
   "block-open-html-hook.py"    # PreToolUse(Bash): blocks opening html
+  # ADVISORY, not a gate: adds PreToolUse additionalContext naming the guard rules that
+  # will apply to a NEW file, and always exits 0. It rewrites no input and blocks nothing.
+  "placement-brief-hook.sh"    # PreToolUse(Write|Edit): pre-write guard brief
 )
 is_allowed() { local s="$1"; for a in "${ALLOWED[@]}"; do [[ "$s" == "$a" ]] && return 0; done; return 1; }
 

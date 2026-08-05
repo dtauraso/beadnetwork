@@ -3,6 +3,8 @@
 # tr.Breadcrumb("label", ...)/In.Breadcrumb("label", ...) call site must be a member of
 # Trace.BreadcrumbLabels, or nodes/wire/ports.go's breadcrumbLabelFor DROPS it SILENTLY:
 # its `default:` returns (0, false), the row never reaches the buffer, and the breadcrumb
+# PLACEMENT: Trace/Trace.go,nodes/wire/ports.go,nodes/**/*.go,Buffer/**/*.go | a .Breadcrumb("label") literal must be added to Trace.BreadcrumbLabels
+#
 # reads exactly like a passing (i.e. never-hit) probe — you cannot tell "this code path
 # didn't run" from "this code path ran but its label was never registered" just by staring
 # at an empty .probe log. Three temporary probe breadcrumbs (drag.jump, probe.commitLocal,

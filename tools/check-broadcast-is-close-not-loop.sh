@@ -11,6 +11,8 @@ set -euo pipefail
 # StartDrag/EndDrag/BroadcastGeometry methods (nodes/wire/bead_wake_group.go) must each call
 # Advance/AdvanceWithValue and must not contain a `for`/`range` loop.
 #
+# PLACEMENT: nodes/wire/bead_wake_group.go | StartDrag/EndDrag/BroadcastGeometry must call Advance, never loop over beads
+#
 # Exit 0 clean, exit 1 with a report.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

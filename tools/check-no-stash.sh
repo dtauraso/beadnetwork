@@ -28,6 +28,8 @@ set -euo pipefail
 #   git stash drop stash@{N}            # only once you are sure it is not needed
 #
 # Exit 0 when the stack is empty, exit 1 (listing entries) otherwise.
+#
+# PLACEMENT: none | checks the repo-global git stash stack, not a set of source files
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR/.."
