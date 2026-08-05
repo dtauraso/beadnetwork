@@ -358,3 +358,42 @@ func TestReceivedResetMarkerRunsTheFullClear(t *testing.T) {
 		t.Fatalf("a received reset marker must zero the tilt and clear the third arrow; got theta=%d set=%v", n.TiltThetaIdx, n.ReceivedSet)
 	}
 }
+
+// The panel click is the vector exchange's OPENING MOVE, not just the bead's. Without it
+// nothing is ever sent on the channel that is not a reply to an arrival, so no arrival ever
+// happens, no node records a received direction, and the third arrow cannot be drawn
+// anywhere. Asserts what this ONE goroutine's own method emits, per docs/testing-shape.md.
+func TestPanelAdjustOpensTheVectorExchange(t *testing.T) {
+	out := make(chan Wiring.TiltVectorMsg, 1)
+	n := &Node{TiltThetaIdx: 3, VectorOut: out}
+
+	n.applyTiltEdit(Wiring.TiltEditMsg{Axis: "theta", Up: true})
+
+	select {
+	case got := <-out:
+		if got.Reset {
+			t.Fatal("a panel adjust must send a DIRECTION, not a reset marker")
+		}
+		// The direction must be derived from the index this click produced (4), not the
+		// one it replaced (3) — otherwise the partner aims at a tilt that no longer exists.
+		if want := n.outgoingVector(); got != want {
+			t.Fatalf("sent %+v, want this node's post-click outgoing vector %+v", got, want)
+		}
+	default:
+		t.Fatal("a panel adjust sent nothing on VectorOut; the exchange has no opening move and the third arrow can never appear")
+	}
+}
+
+// A RESET is the opposite: it sends the Reset MARKER, never a direction. A direction here
+// would restart the very exchange the reset exists to end.
+func TestResetSendsAMarkerNotADirection(t *testing.T) {
+	out := make(chan Wiring.TiltVectorMsg, 1)
+	n := &Node{TiltThetaIdx: 3, VectorOut: out}
+
+	n.applyTiltEdit(Wiring.TiltEditMsg{Reset: true})
+
+	got := <-out
+	if !got.Reset {
+		t.Fatalf("reset must send the Reset marker, got a direction %+v", got)
+	}
+}

@@ -14,7 +14,10 @@
 // places a bead on Out ("THE KICK"): with both nodes of a pair perpendicular nothing
 // circulates on In, correctly, since there is nothing left to straighten, so the loop has
 // no way to start on its own — it is kicked off by the thing that actually moves a tilt
-// away from perpendicular. Pairing a Node1 and a Node2 with one edge each direction
+// away from perpendicular. The same click is also the vector channel's opening move — it
+// sends this node's own outgoing vector alongside the bead (applyTiltEdit), which is what
+// gives handleVectorCycle something to reply to; a channel whose only sends are replies
+// never carries anything at all. Pairing a Node1 and a Node2 with one edge each direction
 // (Node1.Out → Node2.In, Node2.Out → Node1.In) needs no seed/bootstrap node: nothing ever
 // sends until a user tilt starts it, so there is no deadlock to bootstrap out of at t=0.
 //
@@ -144,6 +147,16 @@ func (n *Node) stepTilt() bool {
 // KICK" bead: true for an adjust (unconditional, whichever side of perpendicular it lands
 // on), false for a reset — a reset is a stop-and-return, not a nudge, so nothing should
 // start circulating from it (package doc comment's "THE KICK").
+//
+// An adjust ALSO opens the vector exchange, by sending this node's own outgoingVector on
+// VectorOut. This is the vector channel's whole starting move, and without it the channel
+// never carries a direction at all: handleVectorCycle only ever sends in REPLY to an
+// arrival, so with nothing to reply to, no node ever received one, no node ever set its
+// received-direction record, and the third arrow could not be drawn anywhere. The panel
+// click is the right place for it and not an extra decision: it is already the one thing
+// that moves a tilt away from perpendicular, and already the one place that starts the
+// bead half of the exchange. One user click now opens both channels at once, which is why
+// they stay in step rather than one running a cycle ahead of the other.
 func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 	if edit.Reset {
 		n.clear()
@@ -161,6 +174,10 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 	} else {
 		n.TiltThetaIdx += delta
 	}
+	// Open the vector exchange — see this function's own doc comment. Sent AFTER the
+	// index moved, so the partner gets the direction this click produced, not the one it
+	// replaced.
+	Wiring.SendVectorLatestNonBlocking(n.VectorOut, n.outgoingVector())
 	return true
 }
 
