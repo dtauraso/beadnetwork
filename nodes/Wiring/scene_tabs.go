@@ -54,6 +54,20 @@ type SceneTab struct {
 	// A step is only invisible when it is small against the scene. The ring spans ~500
 	// world units, so a ~9-unit step reads as smooth; a two-node scene 40 units across
 	// moves ~22% of itself per step, which is why the pair could not be dragged at all.
+	//
+	// NO COMMITTED SCENE USES THE QUANTIZED DRAG TODAY. The pair never did, and the ring
+	// moved off it deliberately: a node is ONE POINT, an edge is the distance between two
+	// of them, and a drag says where the point went — the bead count then fills whatever
+	// line that leaves (edgeStepCount, from the live centre-to-centre distance, which is
+	// already how the count is derived and did not change). Under the quantized drag the
+	// node's new centre came from the bead operation along the chain axis instead, so the
+	// drag target only nominated a direction.
+	//
+	// It remains the default for an unrecognised tree, so the bead-CRUD path is still
+	// reachable and still tested — but nothing a user opens exercises it. If that stays
+	// true, the honest next step is to delete that path rather than leave a large unused
+	// mechanism reading as live; that is a model decision, not a cleanup, so it is named
+	// here rather than taken.
 	QuantizedDrag bool
 }
 
@@ -61,7 +75,7 @@ type SceneTab struct {
 // the anchor's own basename, since that is the path the extension host launches with and
 // sizes its stream fds from (see AnchorIsTabbed).
 var SceneTabs = []SceneTab{
-	{Name: "ring", Dir: "topology", QuantizedDrag: true},
+	{Name: "ring", Dir: "topology", QuantizedDrag: false},
 	{Name: "pair", Dir: "topology-pair", QuantizedDrag: false},
 }
 

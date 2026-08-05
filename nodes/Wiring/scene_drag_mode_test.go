@@ -59,3 +59,30 @@ func TestPairSeparationIsSmallAgainstOneQuantizedStep(t *testing.T) {
 			"yet the pair is on the quantized drag", wire.BeadStepR, pairSeparation)
 	}
 }
+
+// The ring is the scene that USED the quantized drag, so assert its answer literally too —
+// the table-driven test above passes just as happily when someone flips the field back.
+//
+// A node is one point; an edge is the distance between two of them; a drag says where the
+// point went. The bead count then fills whatever line that leaves, which edgeStepCount
+// already derives from the live centre-to-centre distance.
+func TestRingSceneDragsContinuously(t *testing.T) {
+	if SceneUsesQuantizedDrag("topology") {
+		t.Fatalf("the ring scene must drag CONTINUOUSLY: under the quantized drag a node's new " +
+			"centre came from the bead operation along the chain axis, so the drag target only " +
+			"nominated a direction rather than saying where the node went")
+	}
+}
+
+// Nothing a user can open is on the quantized drag any more. This is not an assertion that
+// it SHOULD stay that way — it is a tripwire, so that whoever adds a scene using it, or
+// deletes the path outright, has to come here and say which they meant.
+func TestNoCommittedSceneUsesTheQuantizedDrag(t *testing.T) {
+	for _, tab := range SceneTabs {
+		if tab.QuantizedDrag {
+			t.Fatalf("scene %q is on the quantized drag; if that is deliberate, update this test "+
+				"and SceneTab.QuantizedDrag's doc comment, which currently records that no "+
+				"committed scene uses it", tab.Name)
+		}
+	}
+}
