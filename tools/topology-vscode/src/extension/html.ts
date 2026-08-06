@@ -50,12 +50,12 @@ export function buildWebviewHtml(
   <link rel="stylesheet" href="${styleUri.toString()}" />
 </head>
 <body>
-  <!-- The toolbar's one mount. SpeedSlider and TiltResetButton both portal in here, so the
-       speed control and the tilt reset sit on the same bar. The bar used to open with a
-       static <span id="status" class="clean">saved</span> — nothing in the webview ever
-       wrote to it, so it read "saved" forever regardless of state; the slider names itself
-       in that spot now. TiltResetButton had its own row below (#tilt-reset-mount), which is
-       gone with it. -->
+  <!-- The toolbar's one mount. SpeedSlider and TiltVectorButtons both portal in here, so the
+       speed control and the start/reset tilt buttons sit on the same bar. The bar used to
+       open with a static <span id="status" class="clean">saved</span> — nothing in the
+       webview ever wrote to it, so it read "saved" forever regardless of state; the slider
+       names itself in that spot now. TiltVectorButtons' RESET half had its own row below
+       (#tilt-reset-mount), which is gone with it. -->
   <div class="toolbar">
     <span id="run-mount"></span>
   </div>

@@ -13,8 +13,19 @@ import {
   popoverRowStyle,
 } from "./overlay-chrome";
 
-// The two angle axes a node exposes, in column order.
-const AXES = ["theta", "phi"] as const;
+// The angle axes this panel lets a node's tilt be set on, in display order.
+//
+// THETA ONLY. φ is deliberately absent: the panel only ever has rows in a scene whose nodes
+// draw tilt vectors (TopTiltVectorLen > 0, which Go streams only where SceneTab.UpAxis is
+// set — the pair), and there the straightening model turns on θ alone. Every derived
+// direction is θ arithmetic with φ carried through untouched — bottom is θ+12, the coplanar
+// normal is θ+6, the outgoing vector is that normal −12 — and the two dot products that
+// decide a step read the same θ lattice. A φ control offered a knob no rule here consults.
+//
+// Go still decodes a φ edit on the tiltVector entity; nothing sends one now. That is the
+// same shape as the rest of the vocabulary Go accepts without a live TS sender
+// (.claude/rules/bridge-surface.md) — the capability is not removed, just not offered.
+const AXES = ["theta"] as const;
 
 // TiltVectorAnglePanel — the PAIR tab's tilt-vector-direction control, built on the SAME
 // pill + popover chrome as OverlaysControl (overlay-chrome.ts): a labeled pill in ThreeView's

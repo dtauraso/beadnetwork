@@ -8,26 +8,30 @@
 // for who else the index is reported to and why).
 //
 // Emission is otherwise silent: with no In arrival there is nothing to react to, and the
-// loop is kicked off by a USER tilting a node via the TiltVectorAnglePanel — routed here
-// via its own dedicated TiltEditIn channel (BuildArgs.TiltEditIn), also drained
-// non-blockingly every cycle. A panel edit unconditionally applies its ±1 click and always
-// places a bead on Out ("THE KICK"): with both nodes of a pair perpendicular nothing
-// circulates on In, correctly, since there is nothing left to straighten, so the loop has
-// no way to start on its own — it is kicked off by the thing that actually moves a tilt
-// away from perpendicular. The same click is also the vector channel's opening move — it
-// sends this node's own outgoing vector alongside the bead (applyTiltEdit), which is what
-// gives handleVectorCycle something to reply to; a channel whose only sends are replies
-// never carries anything at all. Pairing a Node1 and a Node2 with one edge each direction
-// (Node1.Out → Node2.In, Node2.Out → Node1.In) needs no seed/bootstrap node: nothing ever
-// sends until a user tilt starts it, so there is no deadlock to bootstrap out of at t=0.
+// loop is kicked off by a USER — routed here via its own dedicated TiltEditIn channel
+// (BuildArgs.TiltEditIn), also drained non-blockingly every cycle. TiltEditIn carries THREE
+// distinct edits (task/pair-node-owns-itself split), never conflated:
 //
-// The RESET button (TiltResetButton.tsx) also arrives on TiltEditIn (TiltEditMsg.Reset),
-// but is the opposite of a panel click: it places NO bead — a stop-and-return, not a nudge,
-// so it never starts the straightening exchange the way a panel click does. It does more
-// than zero the indices, because zeroed indices are not by themselves a stopped exchange:
-// it runs this node's full clear() (below), which also empties the bead edge — the thing
-// that has actually been turning these tilts — so nothing is left in the pair that could
-// land a moment later and step it back off zero.
+//   - TiltVectorAnglePanel's ▲/▼ click: applies exactly one ±1 step to the named axis and
+//     stops — no send, no bead. It used to ALSO open the vector exchange as a side effect
+//     ("the kick"), so one click moved the tilt by many π/12 steps once the exchange
+//     settled instead of exactly one; that side effect is now Start's alone.
+//   - the START TILT button (TiltVectorButtons.tsx, TiltEditMsg.Start): opens the vector
+//     exchange from whatever angles are CURRENTLY set — sends this node's own outgoing
+//     vector alongside a bead ("THE KICK"), which is what gives handleVectorCycle something
+//     to reply to; a channel whose only sends are replies never carries anything at all. It
+//     changes NO index of its own. With both nodes of a pair perpendicular nothing
+//     circulates on In, correctly, since there is nothing left to straighten, so the loop
+//     has no way to start on its own — Start is the thing a user clicks to start it.
+//     Pairing a Node1 and a Node2 with one edge each direction (Node1.Out → Node2.In,
+//     Node2.Out → Node1.In) needs no seed/bootstrap node: nothing ever sends until a user
+//     starts it, so there is no deadlock to bootstrap out of at t=0.
+//   - the RESET button (TiltResetButton.tsx, TiltEditMsg.Reset): the opposite of Start — it
+//     places NO bead, a stop-and-return, not a nudge, so it never starts the straightening
+//     exchange. It does more than zero the indices, because zeroed indices are not by
+//     themselves a stopped exchange: it runs this node's full clear() (below), which also
+//     empties the bead edge — the thing that has actually been turning these tilts — so
+//     nothing is left in the pair that could land a moment later and step it back off zero.
 //
 // Kept as a distinct package/kind rather than parametrizing Node1, per the check-dep-rules
 // guard: a node-kind package may import only the shared spine, never a sibling kind, so
@@ -122,28 +126,43 @@ func (n *Node) clock() wire.Clock {
 	return n.Clock
 }
 
-// applyTiltEdit applies one panel-driven edit (TiltVectorAnglePanel's ±1 click, or the
-// RESET button's TiltResetButton.tsx) directly to this node's OWN indices — same
-// no-mover-round-trip shape as stepFromVector. Reports whether the caller should place "THE
-// KICK" bead: true for an adjust (unconditional, whichever side of perpendicular it lands
-// on), false for a reset — a reset is a stop-and-return, not a nudge, so nothing should
-// start circulating from it (package doc comment's "THE KICK").
+// applyTiltEdit applies one panel-driven edit — TiltVectorAnglePanel's ±1 click, the START
+// TILT button (TiltVectorButtons.tsx), or the RESET button (same file) — directly to this
+// node's OWN indices, same no-mover-round-trip shape as stepFromVector. Reports whether the
+// caller should place "THE KICK" bead: true for Start, false for a plain adjust or a reset.
 //
-// An adjust ALSO opens the vector exchange, by sending this node's own outgoingVector on
-// VectorOut. This is the vector channel's whole starting move, and without it the channel
-// never carries a direction at all: handleVectorCycle only ever sends in REPLY to an
-// arrival, so with nothing to reply to, no node ever received one, no node ever set its
-// received-direction record, and the third arrow could not be drawn anywhere. The panel
-// click is the right place for it and not an extra decision: it is already the one thing
-// that moves a tilt away from perpendicular, and already the one place that starts the
-// bead half of the exchange. One user click now opens both channels at once, which is why
-// they stay in step rather than one running a cycle ahead of the other.
+// The three branches are now split (task/pair-node-owns-itself):
+//
+//   - Reset: a stop-and-return, not a nudge — see clear's own doc comment.
+//   - Start: opens the vector exchange from whatever angles are CURRENTLY set, by sending
+//     this node's own outgoingVector on VectorOut and placing a bead. It changes NO index.
+//     This is the vector channel's whole starting move, and without it the channel never
+//     carries a direction at all: handleVectorCycle only ever sends in REPLY to an arrival,
+//     so with nothing to reply to, no node ever received one, no node ever set its
+//     received-direction record, and the third arrow could not be drawn anywhere.
+//   - a plain adjust (neither Reset nor Start): applies the ±1 click to the named axis and
+//     STOPS — no send, no bead. It used to also open the vector exchange as a side effect,
+//     so one click moved the tilt by many π/12 steps once the exchange settled instead of
+//     exactly one; Start is what a user now clicks to begin the exchange separately.
 func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 	if edit.Reset {
 		n.clear()
 		// Tell the partner, so it clears too — see clear's own doc comment for why the
 		// partner's clear, not this one, is what actually ends the exchange.
 		Wiring.SendVectorLatestNonBlocking(n.VectorOut, Wiring.TiltVectorMsg{Reset: true})
+		return false
+	}
+	if edit.Start {
+		// START IS NODE1'S ALONE — this kind ignores it. The exchange is begun from ONE end
+		// so there is exactly one opening direction to answer; started from both, each node
+		// would also be replying to the other's opener in the same round, which is two
+		// exchanges running through one pair of channels rather than the one a user asked
+		// for. Node1's applyTiltEdit is where the send lives.
+		//
+		// The button still addresses every node the angles panel lists (TiltVectorButtons
+		// .tsx sends one record per row, exactly as RESET does), because the WEBVIEW must
+		// not know which node is node 1 — that is domain knowledge, and TS holds none. Go
+		// decides, here, by kind.
 		return false
 	}
 	delta := int32(-1)
@@ -155,11 +174,7 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 	} else {
 		n.TopTiltThetaIdx += delta
 	}
-	// Open the vector exchange — see this function's own doc comment. Sent AFTER the
-	// index moved, so the partner gets the direction this click produced, not the one it
-	// replaced.
-	Wiring.SendVectorLatestNonBlocking(n.VectorOut, n.outgoingVector())
-	return true
+	return false
 }
 
 // clear returns THIS node to its opening state and — the part that matters — leaves
@@ -420,10 +435,9 @@ func (n *Node) Update(ctx context.Context) {
 			}
 		}
 
-		// Drain TiltEditIn non-blocking: a panel-driven click. Unconditional ±1 on
-		// the named axis (never a step-toward-perpendicular decision — the user asked
-		// for exactly this move), sync, and unconditionally place "THE KICK" bead —
-		// see the package doc comment for why this send is never conditional.
+		// Drain TiltEditIn non-blocking: a panel/RESET/START edit — see the package doc
+		// comment for the three-way split. applyTiltEdit decides placeBead: true only for
+		// Start ("THE KICK"), false for a plain adjust (index-only, no send) and for Reset.
 		if n.TiltEditIn != nil {
 			select {
 			case edit := <-n.TiltEditIn:

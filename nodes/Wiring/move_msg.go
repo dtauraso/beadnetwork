@@ -92,8 +92,15 @@ const (
 // MoveDispatch.tiltEditIns, so stdin_reader's applyUpdateTiltVector falls back to the old
 // mover-owned path (moveMsgKindTiltVectorAngle) for it unchanged.
 type TiltEditMsg struct {
-	Axis string // "theta" or "phi" — which of the node's own indices to adjust. Ignored when Reset is true.
-	Up   bool   // true = +1 step, false = -1 step. Ignored when Reset is true.
+	Axis string // "theta" or "phi" — which of the node's own indices to adjust. Ignored when Reset or Start is true.
+	Up   bool   // true = +1 step, false = -1 step. Ignored when Reset or Start is true.
+	// Start (the START TILT button) begins the vector exchange from whatever angles are
+	// currently set: send this node's own outgoingVector on VectorOut and place a bead on
+	// Out, exactly what a panel adjust used to do as a side effect ("the kick") — but Start
+	// changes NO index itself. It is the opening move, split out of the index-adjust path so
+	// a ▲/▼ click moves the tilt by exactly one π/12 step and nothing else. Ignored when
+	// Reset is true (Reset wins if both are somehow set).
+	Start bool
 	// Reset (the RESET button, TiltResetButton.tsx): return BOTH indices to 0 — the
 	// documented default, tilt vector pointing at world +y. Unlike an adjust, this places
 	// NO bead: it is a stop-and-return, not "the kick" (see package doc comments on

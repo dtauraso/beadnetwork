@@ -140,6 +140,7 @@ const IN_SCENE_ATTR_SELECTED = 3;
 const IN_TILT_VECTOR_ATTR_THETA = 4;
 const IN_TILT_VECTOR_ATTR_PHI = 5;
 const IN_TILT_VECTOR_ATTR_RESET = 6;
+const IN_TILT_VECTOR_ATTR_START = 7;
 
 // NOTE: there is no encodeSave here. IN_KIND_SAVE stays defined (Go reads it and it is in
 // the INPUT_LAYOUT_FINGERPRINT), but no live TS sender builds that record: `save` has no
@@ -227,6 +228,23 @@ export function encodeTiltVectorReset(nodeRow: number): ArrayBuffer {
   w.u8(IN_KIND_EDIT_UPDATE);
   w.u8(enumIndex(IN_UPDATE_KINDS, "tiltVector"));
   w.u8(IN_TILT_VECTOR_ATTR_RESET);
+  w.u8(nodeRow);
+  return w.toArrayBuffer();
+}
+
+/** Build a tiltVector START record: [22][entityKind=tiltVector][attr=start][u8 nodeRow].
+ *  nodeRow is the target node's buffer ROW (never its id/name — no sidecar on this wire).
+ *  No direction byte: Start never touches an index, it only opens the vector exchange from
+ *  whatever angles are currently set — sends the node's own outgoing vector and places a
+ *  bead ("the kick"), exactly what an adjust click used to do as a side effect
+ *  (nodes/Node1/node.go, nodes/Node2/node.go's applyTiltEdit — task/pair-node-owns-itself
+ *  split). The START TILT button (TiltVectorButtons.tsx) sends one of these per row it
+ *  shows, same fan-out as reset. */
+export function encodeTiltVectorStart(nodeRow: number): ArrayBuffer {
+  const w = new ByteWriter();
+  w.u8(IN_KIND_EDIT_UPDATE);
+  w.u8(enumIndex(IN_UPDATE_KINDS, "tiltVector"));
+  w.u8(IN_TILT_VECTOR_ATTR_START);
   w.u8(nodeRow);
   return w.toArrayBuffer();
 }
