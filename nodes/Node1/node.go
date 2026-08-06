@@ -314,31 +314,26 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 	return norm
 }
 
-// stepFromVector ALWAYS steps this node's own TopTiltThetaIdx by exactly one step on every
-// arrived vector — the exchange no longer has a halt condition. TWO DOT PRODUCTS decide only
-// the SIGN of that one step:
+// stepFromVector decides whether an arrived vector turns this node's own TopTiltThetaIdx at
+// all, and if so which way, using TWO DOT PRODUCTS:
 //
 //   - arrived vector ACUTE with this node's own TOP tilt vector    -> step -1 (Node1's base
-//     direction)
-//   - arrived vector ACUTE with this node's own BOTTOM tilt vector -> step +1, the REVERSE
-//   - neither acute (exactly perpendicular)                        -> step -1, falling to
-//     Node1's base direction — this used to be the case that halted the exchange (no step,
-//     caller sends nothing); now it is just another sign choice, and the exchange keeps
-//     sweeping through the perpendicular index instead of stopping there.
+//     direction), return true
+//   - arrived vector ACUTE with this node's own BOTTOM tilt vector -> step +1, the REVERSE,
+//     return true
+//   - neither acute (exactly perpendicular)                        -> step NOTHING, return
+//     false — this is how the vector exchange comes to rest: the caller
+//     (handleVectorCycle) sends nothing and places no bead on a false return, so a pair
+//     that reaches perpendicular on both dots simply stops circulating.
 //
 // The two acute cases are mutually exclusive: the bottom is the top's exact antipode, so the
 // two dots are always exact negatives and at most one of them can be positive. There is no
 // both-acute case for the ordering of these two ifs to arbitrate, and no free sign knob —
 // which end the arrived vector leans toward IS the direction, except at the perpendicular
-// index itself, which has no lean and so falls to the base direction.
+// index itself, which has no lean at all and so steps nothing.
 //
-// Node1's base direction (the top-acute and perpendicular cases) is subtracts one step; its
-// mirror package's is the opposite, so a pair still turns symmetrically when both are leaning
-// the same way.
-//
-// The return value is now always true — every caller that still checks it always proceeds.
-// It stays a bool return (rather than being dropped) so callers read as "this always steps"
-// rather than silently assuming it.
+// Node1's base direction (the top-acute case) subtracts one step; its mirror package's is the
+// opposite, so a pair still turns symmetrically when both are leaning the same way.
 func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
 	switch {
 	case Wiring.TiltVectorIsAcute(received, n.topTilt()):
@@ -346,9 +341,9 @@ func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
 	case Wiring.TiltVectorIsAcute(received, n.bottomTilt()):
 		n.TopTiltThetaIdx += 1
 	default:
-		// Exactly perpendicular to both: no lean to read, so Node1 keeps turning in its own
-		// base direction — the same one the top-acute case takes.
-		n.TopTiltThetaIdx -= 1
+		// Exactly perpendicular to both: no lean to read, so this node steps nothing —
+		// the halt condition for the exchange.
+		return false
 	}
 	return true
 }
@@ -361,12 +356,13 @@ func (n *Node) topTilt() Wiring.TiltVectorMsg {
 }
 
 // handleVectorCycle is Node1's WHOLE per-cycle vector-channel loop body: read
-// VectorIn non-blocking; if something arrived, step (stepFromVector always steps now — the
-// two dots only pick which way); and send outgoingVector back out on VectorOut, also
-// non-blocking. There is no longer a perpendicular halt: every arrival steps and replies, so
-// the exchange keeps sweeping through the perpendicular index instead of stopping there. The
-// only thing that still stops the exchange is a RESET marker (below), not an index value.
-// This never touches In/Out or beads — the vector channel is a separate, additive exchange.
+// VectorIn non-blocking; if something arrived, step (stepFromVector's two dots decide
+// whether this node turns at all, and which way); and if it stepped, send outgoingVector
+// back out on VectorOut, also non-blocking, and place the paired bead. On a false return from
+// stepFromVector (exactly perpendicular to both dots) this sends nothing and places no bead —
+// that is how the vector exchange comes to rest. A RESET marker (below) is the other way the
+// exchange stops. This never touches In/Out or beads on the halt path — the vector channel is
+// a separate, additive exchange.
 func (n *Node) handleVectorCycle(tick int64) {
 	received, ok := Wiring.PollRecvVector(n.VectorIn)
 	if !ok {

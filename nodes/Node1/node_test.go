@@ -178,40 +178,41 @@ func TestStepFromVectorReversesWhenAcuteWithBottom(t *testing.T) {
 	}
 }
 
-// Exactly perpendicular to both the top and bottom tilt is no longer a halt: it falls to
-// Node1's base direction (-1), same as the acute-with-top case. stepFromVector always steps
-// now; the dots only ever pick the sign.
-func TestStepFromVectorFallsToBaseDirectionWhenNeitherDotIsAcute(t *testing.T) {
+// Exactly perpendicular to both the top and bottom tilt is the HALT case: stepFromVector
+// steps nothing and reports moved=false — this is how the vector exchange comes to rest.
+func TestStepFromVectorHaltsWhenNeitherDotIsAcute(t *testing.T) {
 	n := &Node{TopTiltThetaIdx: Wiring.PerpendicularThetaIdx}
+	before := n.TopTiltThetaIdx
 	perp := Wiring.TiltVectorMsg{ThetaIdx: n.TopTiltThetaIdx + Wiring.PerpendicularThetaIdx}
-	if moved := n.stepFromVector(perp); !moved {
-		t.Fatal("stepFromVector must always report moved=true, got false")
+	if moved := n.stepFromVector(perp); moved {
+		t.Fatal("stepFromVector must report moved=false on a perpendicular arrival, got true")
 	}
-	if want := Wiring.PerpendicularThetaIdx - 1; n.TopTiltThetaIdx != want {
-		t.Fatalf("perpendicular arrival must fall to the base direction (-1); got %d, want %d",
-			n.TopTiltThetaIdx, want)
+	if n.TopTiltThetaIdx != before {
+		t.Fatalf("a perpendicular arrival must step NOTHING; got %d, want unchanged %d",
+			n.TopTiltThetaIdx, before)
 	}
 }
 
-// stepFromVector always steps and returns moved=true for all three dot cases: acute with
-// top (-1), acute with bottom (+1), and exactly perpendicular to both (-1, falling to the
-// base direction). Consolidates the three single-case tests above into one table asserting
-// the "always steps" contract explicitly.
-func TestStepFromVectorAlwaysStepsForAllThreeDotCases(t *testing.T) {
+// stepFromVector's three dot cases: acute with top steps -1 and returns true, acute with
+// bottom steps +1 and returns true, and exactly perpendicular to both steps nothing and
+// returns false. Consolidates the three single-case tests above into one table asserting the
+// full gate.
+func TestStepFromVectorGatesOnBothDotsForAllThreeCases(t *testing.T) {
 	cases := []struct {
 		name        string
 		arrivedIdx  int32
+		wantMoved   bool
 		wantDeltaTh int32
 	}{
-		{"acute with top", 0, -1},
-		{"acute with bottom", Wiring.HalfTurnThetaIdx, 1},
-		{"exactly perpendicular", Wiring.PerpendicularThetaIdx, -1},
+		{"acute with top", 0, true, -1},
+		{"acute with bottom", Wiring.HalfTurnThetaIdx, true, 1},
+		{"exactly perpendicular", Wiring.PerpendicularThetaIdx, false, 0},
 	}
 	for _, c := range cases {
 		n := &Node{TopTiltThetaIdx: 0}
 		moved := n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: c.arrivedIdx})
-		if !moved {
-			t.Fatalf("%s: stepFromVector must always return moved=true, got false", c.name)
+		if moved != c.wantMoved {
+			t.Fatalf("%s: want moved=%v, got %v", c.name, c.wantMoved, moved)
 		}
 		if n.TopTiltThetaIdx != c.wantDeltaTh {
 			t.Fatalf("%s: want thetaIdx=%d, got %d", c.name, c.wantDeltaTh, n.TopTiltThetaIdx)
@@ -310,13 +311,13 @@ func TestHandleVectorCycleReplacesPreviousReceivedDirection(t *testing.T) {
 	}
 }
 
-// The third arrow STAYS until the next arrival replaces it. An arrival is recorded
-// unconditionally, before the step decision even runs. This also covers the perpendicular
-// arrival: stepFromVector always steps now (falling to the base direction when neither dot
-// is acute), so a perpendicular arrival records the direction AND steps AND replies — there
-// is no longer a case where an arrival records but nothing steps. Only a RESET removes the
-// recorded direction (asserted separately, below).
-func TestReceivedVectorRecordedAndStepsOnPerpendicularArrival(t *testing.T) {
+// The third arrow STAYS until the next arrival replaces it, and this is recorded
+// UNCONDITIONALLY — before the step decision even runs, and independently of whether that
+// decision steps anything. This is the case that matters: a perpendicular arrival must still
+// be recorded as the third drawn vector even though stepFromVector halts and nothing is sent
+// back — recording the arrival and halting the exchange are independent rules. Only a RESET
+// removes the recorded direction (asserted separately, below).
+func TestReceivedVectorRecordedButExchangeHaltsOnPerpendicularArrival(t *testing.T) {
 	n := &Node{TopTiltThetaIdx: 0, ReceivedThetaIdx: 4, ReceivedPhiIdx: 1, ReceivedSet: true}
 	in := make(chan Wiring.TiltVectorMsg, 1)
 	out := make(chan Wiring.TiltVectorMsg, 1)
@@ -327,16 +328,16 @@ func TestReceivedVectorRecordedAndStepsOnPerpendicularArrival(t *testing.T) {
 	n.handleVectorCycle(0)
 
 	if !n.ReceivedSet || n.ReceivedThetaIdx != arrived.ThetaIdx || n.ReceivedPhiIdx != arrived.PhiIdx {
-		t.Fatalf("the arrived direction must be recorded; got set=%v theta=%d phi=%d",
+		t.Fatalf("the arrived direction must be recorded even though it halts; got set=%v theta=%d phi=%d",
 			n.ReceivedSet, n.ReceivedThetaIdx, n.ReceivedPhiIdx)
 	}
-	if n.TopTiltThetaIdx != -1 {
-		t.Fatalf("a perpendicular arrival must fall to the base direction (-1); got %d", n.TopTiltThetaIdx)
+	if n.TopTiltThetaIdx != 0 {
+		t.Fatalf("a perpendicular arrival must step NOTHING; got %d, want unchanged 0", n.TopTiltThetaIdx)
 	}
 	select {
 	case <-out:
+		t.Fatal("a perpendicular arrival must halt the exchange, so no reply may be sent")
 	default:
-		t.Fatal("a perpendicular arrival must still step, so a reply must be sent")
 	}
 }
 
@@ -515,11 +516,11 @@ func TestResetSendsAMarkerNotADirection(t *testing.T) {
 	}
 }
 
-// The bead now travels WITH the vector: it is placed by the vector branch whenever the
-// vector steps this node, and stepFromVector always steps now (the dots only ever pick the
-// sign), so every arrival places a bead — including a perpendicular one, which used to halt
-// the exchange and place nothing.
-func TestBeadIsPlacedOnEveryVectorArrivalIncludingPerpendicular(t *testing.T) {
+// The bead travels WITH the vector: it is placed by the vector branch only when the vector
+// actually steps this node. A leaning arrival steps and places a bead; a perpendicular
+// arrival halts (stepFromVector returns false) and places NO bead — this is how the bead
+// exchange comes to rest alongside the vector exchange.
+func TestBeadIsPlacedOnlyWhenVectorStepsNotOnPerpendicularHalt(t *testing.T) {
 	ctx := context.Background()
 	pw := wire.NewPacedWire(1, 1.0)
 	out := wire.NewPacedOutNoGeom(pw, ctx, "Node1", "Out", nil, wire.RuleFireAndForget, 1, "")
@@ -534,20 +535,15 @@ func TestBeadIsPlacedOnEveryVectorArrivalIncludingPerpendicular(t *testing.T) {
 		t.Fatal("a vector step must place its own bead; nothing was placed")
 	}
 
-	// An arrival that is exactly PERPENDICULAR: this now ALSO steps (falling to the base
-	// direction) and ALSO places a bead — the old halt is gone.
+	// An arrival that is exactly PERPENDICULAR: this halts (steps nothing) and must place NO
+	// bead across several subsequent cycles.
 	n.TopTiltThetaIdx = 0
 	in <- Wiring.TiltVectorMsg{ThetaIdx: Wiring.PerpendicularThetaIdx}
 	n.handleVectorCycle(3)
-	placed := false
 	for tick := int64(4); tick < 10; tick++ {
 		pw.DriveOneCycle(ctx, tick)
 		if _, _, ok := pw.RecvTick(); ok {
-			placed = true
-			break
+			t.Fatal("a perpendicular arrival must halt and place no bead, but one was placed")
 		}
-	}
-	if !placed {
-		t.Fatal("a perpendicular arrival must still step and place a bead")
 	}
 }
