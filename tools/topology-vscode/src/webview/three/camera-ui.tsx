@@ -9,6 +9,15 @@ import type { OverlayFlag } from "../../messages";
 import { postLog } from "../log/post";
 import { useOverlayFlags } from "./overlay-flags";
 import { sendRawInput, buildHomeRaw } from "./raw-input";
+import {
+  pillContainerStyle,
+  pillBodyStyle,
+  pillCaretStyle,
+  popoverStyle,
+  groupHeadingStyle,
+  DISCLOSURE_GLYPH_STYLE,
+  popoverRowStyle,
+} from "./overlay-chrome";
 
 // ---------------------------------------------------------------------------
 // Shared Toggle component
@@ -162,18 +171,9 @@ function OverlayRow({ cfg, disabled, indent }: { cfg: ToggleCfg; disabled?: bool
       onMouseLeave={() => setHover(false)}
       title={cfg.title(active)}
       style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 7,
-        padding: "4px 6px",
+        ...popoverRowStyle(hover, !!disabled),
         paddingLeft: indent ? 20 : 6,
         opacity: disabled ? 0.45 : 1,
-        cursor: disabled ? "default" : "pointer",
-        color: "#e7e7ea",
-        borderRadius: 5,
-        background: !disabled && hover ? "rgba(255,255,255,0.05)" : "transparent",
-        userSelect: "none",
-        fontSize: 11.5,
       }}
     >
       <span
@@ -237,24 +237,9 @@ function OverlayGroupSection({ group, disabled }: { group: OverlayGroup; disable
         onMouseEnter={() => setHover(true)}
         onMouseLeave={() => setHover(false)}
         title={open ? `Collapse ${group.heading}` : `Expand ${group.heading}`}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 5,
-          fontSize: 9.5,
-          textTransform: "uppercase",
-          letterSpacing: "0.05em",
-          color: "#9a9aa6",
-          padding: "5px 6px 4px",
-          cursor: "pointer",
-          borderRadius: 5,
-          background: hover ? "rgba(255,255,255,0.05)" : "transparent",
-        }}
+        style={groupHeadingStyle(hover)}
       >
-        {/* ▶/▼ (U+25B6/U+25BC), not the ▸/▾ small variants: those render as thin arrowheads
-            in several of the fonts this stack falls back to, which reads as a link chevron
-            rather than a disclosure triangle. */}
-        <span style={{ fontSize: 8, width: 8, flex: "0 0 auto" }}>{open ? "▼" : "▶"}</span>
+        <span style={DISCLOSURE_GLYPH_STYLE}>{open ? "▼" : "▶"}</span>
         <span style={{ flex: "1 1 auto" }}>{group.heading}</span>
         {/* The count is also the group's toggle, and it is SYMMETRIC with no remembered
             state: any member on → turn them all off; all off → turn them all on. The
@@ -313,8 +298,6 @@ export function OverlaysControl() {
     setOpen((o) => !o);
   }, []);
 
-  const fontStack = '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif';
-
   return (
     <>
       {/* Split button — labeled pill (body = master toggle, caret = popover). Accent fill
@@ -324,42 +307,18 @@ export function OverlaysControl() {
           // Placed LAST in ThreeView's right-hand flex column, so it sits below every
           // panel above it however tall they are — the stacking is the column's, not a
           // number here that has to be re-derived whenever a panel above grows.
-          position: "relative",
-          zIndex: 20,
-          pointerEvents: "auto",
-          display: "flex",
-          alignItems: "stretch",
-          borderRadius: 6,
-          overflow: "hidden",
-          fontSize: 11,
-          fontWeight: 600,
-          fontFamily: fontStack,
-          background: active ? "#4ea1ff" : "#34343d",
-          border: `1px solid ${active ? "#4ea1ff" : "#3a3a44"}`,
-          color: active ? "#04101f" : "#9a9aa6",
-          userSelect: "none",
+          ...pillContainerStyle(active),
         }}
       >
         {/* Body — master toggle */}
-        <div
-          onClick={onBodyClick}
-          title={guidelinesCfg.title(active)}
-          style={{ padding: "3px 9px", cursor: "pointer", display: "flex", alignItems: "center" }}
-        >
+        <div onClick={onBodyClick} title={guidelinesCfg.title(active)} style={pillBodyStyle}>
           Overlays
         </div>
         {/* Caret — popover toggle */}
         <div
           onClick={onCaretClick}
           title={open ? "Close overlay list" : "Open overlay list"}
-          style={{
-            padding: "3px 7px 3px 4px",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            fontSize: 9,
-            opacity: 0.85,
-          }}
+          style={pillCaretStyle}
         >
           {/* Same disclosure triangles as the group headings (see OverlayGroupSection). */}
           {open ? "▲" : "▼"}
@@ -372,19 +331,7 @@ export function OverlaysControl() {
           style={{
             // Anchored to the split button itself (position: relative above), so it
             // follows wherever the column puts that button instead of to a fixed top.
-            position: "absolute",
-            top: "calc(100% + 4px)",
-            right: 0,
-            zIndex: 21,
-            pointerEvents: "auto",
-            width: 150,
-            background: "#2f2f37",
-            border: "1px solid #3a3a44",
-            borderRadius: 8,
-            padding: 6,
-            boxShadow: "0 8px 24px rgba(0,0,0,0.5)",
-            fontFamily: fontStack,
-            userSelect: "none",
+            ...popoverStyle(150),
           }}
         >
           <div style={{ opacity: active ? 1 : 0.4, transition: "opacity 0.12s ease" }}>
