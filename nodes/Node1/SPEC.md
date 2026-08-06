@@ -22,7 +22,7 @@
 | Name | Direction | EdgeKind | Notes |
 |------|-----------|----------|-------|
 | In | in | chain | sole input; every arrival is drained non-blocking and paces the exchange — it decides and places nothing itself |
-| Out | out | chain | THIS node's own goroutine places a bead here directly, from `handleVectorCycle` when the dots actually move this node — never the mover |
+| Out | out | chain | THIS node's own goroutine places a bead here directly, from `handleVectorCycle` when the acute tests actually move this node — never the mover |
 
 ## Firing rule
 
@@ -46,13 +46,13 @@ PACES the exchange and marks the round trip; it decides nothing and places nothi
 It used to step `TopTiltThetaIdx` one click in this kind's own fixed direction (a retired
 fixed-direction step), with no reference to anything that arrived, stopping only if it happened to
 land exactly on `Wiring.PerpendicularThetaIdx` — which walking away from perpendicular never
-does. That put TWO rules on one index: the fixed bead step and the vector channel's dot
+does. That put TWO rules on one index: the fixed bead step and the vector channel's acute-test
 rule. Where they agreed a node double-stepped; where they disagreed they cancelled and it
 froze. Measured on the real formulas, a pair marched +1/+2/+3… one way forever on one click
-direction and did not move at all on the other. The dots are now the only rule that turns a
+direction and did not move at all on the other. The acute tests are now the only rule that turns a
 tilt on an arrival.
 
-The outgoing bead moved with the decision: it is placed by the vector branch when the dots
+The outgoing bead moved with the decision: it is placed by the vector branch when the tests
 actually move this node (`handleVectorCycle`), so one message carries one visible bead and
 the bead loop lives and dies with the exchange it paces.
 
@@ -79,8 +79,8 @@ mover) carries THREE distinct edits, applied by `applyTiltEdit` (`nodes/Node1/no
 - **RESET** (`TiltEditMsg.Reset`, the RESET TILT button, same `TiltVectorButtons.tsx`):
   runs this node's full `clear()` — zeroes both indices, syncs, drains any value already
   sitting on `VectorIn` (`Wiring.PollRecvVector`, non-blocking, on THIS node's own
-  goroutine), drains delivered beads off In, and asks the mover to drop this node's own
-  still-crossing outbound beads (`ClearOutBeads`) — then sends a Reset marker on
+  goroutine), drains delivered beads off In, and drops this node's own still-crossing
+  outbound beads (`ClearOutBeads`, a call on its own `Self`) — then sends a Reset marker on
   `VectorOut` so the partner clears too. Places NO bead (stop-and-return, not a nudge).
   Without the `VectorIn` drain, a vector already in flight when RESET was pressed would
   arrive on the very next cycle's `handleVectorCycle` and immediately step the tilt
@@ -129,7 +129,7 @@ loop body) runs:
   opposite. There is no φ. A half turn in θ alone negates the direction exactly in this
   parameterization, so both signs land in the SAME drawn direction and the sign is index
   bookkeeping only. It shares the top's length column (`TopTiltVectorLen`) and its colour;
-  it is one of the two dot-product operands above.
+  it is one of the two acute-test operands above.
 - **What this node SENDS**: that coplanar normal rotated 180° in θ. Node1 turns −180°
   (−12 steps of π/12, i.e. `2 × PerpendicularThetaIdx` subtracted); Node2 (its mirror
   package) turns +180° (+12 steps). Index arithmetic only.
@@ -150,19 +150,22 @@ loop body) runs:
   - neither acute: step nothing and send nothing — this is how the vector exchange stops,
     independently of whether the bead exchange has also stopped.
 
-  If it stepped, sync the mover and send the outgoing vector above.
+  If it stepped, report the new indices to its own geometry (`syncTiltIndex`) and send the
+  outgoing vector above, alongside the bead.
 - **Why there is no both-acute case to arbitrate**: the bottom tilt is a half turn from the
-  top, i.e. its exact antipode, so the two dots are always exact NEGATIVES of each other —
-  at most one can be positive, and neither is positive only when the received vector is
-  exactly perpendicular to the tilt axis. Which end the arrival leans toward IS the
+  top, i.e. its exact antipode, so the two tests are exact opposites of each other — at
+  most one can pass, and neither passes only when the received vector sits exactly
+  `PerpendicularThetaIdx` from the tilt axis. Which end the arrival leans toward IS the
   direction; there is no free sign knob and no ordering dependence between the two tests.
 - **Perpendicular is a property of the ARRIVAL, not of where this node sits**: unlike the
   retired bead-path rule, this never compares against `Wiring.PerpendicularThetaIdx`. A node
   sitting exactly at that index still steps if what arrived leans either way.
-- **Float hazard, handled**: `cos(π/2)` in float64 is 6.1e-17, so an exactly-perpendicular
-  arrival is NOT caught by a bare `dot > 0`. `Wiring.TiltVectorIsAcute` tests against a
-  1e-9 band; both operands sit on the π/12 index lattice, so the dot is either ~1e-16 or at
-  least `sin(15°)` = 0.2588, and every value in between classifies identically.
+- **No float hazard to handle**: there is no dot product here at all. Since the tilt vector
+  lost its φ, both operands are single θ indices on the same 24-step lattice, and
+  `Wiring.TiltVectorIsAcute` is the integer comparison `d < 6 || d > 18` on their wrapped
+  difference (`nodes/Wiring/tilt_vector_channel.go`). The exactly-perpendicular case is the
+  exact integers 6 and 18, decided exactly — not `cos(π/2)` landing at 6.1e-17 and needing
+  an epsilon band to be classified as "not acute", which is what this test used to be.
 - **Received-vector RESET**: a Reset marker arriving on `VectorIn` zeroes this node's
   tilt (as above) AND clears its own received-vector record
   (`ReceivedSet = false`, synced) — a stale received arrow left hanging would
@@ -208,7 +211,7 @@ streamed as the buffer's `ReceivedVectorLen`/`ReceivedVectorTheta` columns,
 `Buffer/layout.go`). It:
 
 - Persists indefinitely once set — it is NOT cleared when the straightening exchange
-  settles (i.e. neither dot is acute, so nothing steps and nothing is sent). An arrival is
+  settles (i.e. neither test is acute, so nothing steps and nothing is sent). An arrival is
   recorded even when it moves nothing: the last direction this node was sent is what it is
   still holding, and blanking the arrow when the pair comes to rest would erase the state
   it came to rest in.

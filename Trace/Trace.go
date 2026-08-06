@@ -158,7 +158,7 @@ const (
 	BreadcrumbBeadCrud
 	// BreadcrumbPairVector: diagnostic-only (task/log-pair-vector-exchange), one per
 	// ARRIVAL on a pair node's vector channel — what arrived, what this node's own tilt
-	// and bottom were when the two dots read them, which dot was acute, and what the node
+	// and bottom were when the two acute tests read them, which test passed, and what the node
 	// therefore did (step −1 / step +1 / halt). One row per arrival, and an exchange
 	// halts, so a run is bounded rather than a per-tick firehose.
 	BreadcrumbPairVector

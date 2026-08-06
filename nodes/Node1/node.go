@@ -1,11 +1,12 @@
 // Package Node1 is the "Node1" kind: one half of the straightening-loop pair
-// (Node1/Node2). It is REACTIVE, not periodic: every cycle it drains its own In
-// non-blockingly and, on an arrival, runs the straightening rule ITSELF — step this
-// node's OWN tilt vector one click toward perpendicular to its coplanar normal and, if it
-// moved, place a bead back out on its OWN Out; if it is already perpendicular, do nothing
-// and send nothing, which is how the exchange terminates. This all runs on THIS
-// goroutine: there is no round trip to the mover to decide (see topTiltVectorThetaIdx below
-// for who else the index is reported to and why).
+// (Node1/Node2). It is REACTIVE, not periodic: every cycle it drains its own In and its own
+// VectorIn non-blockingly, and runs the straightening rule ITSELF on what arrived. An In
+// bead PACES the exchange and decides nothing; the rule lives on the VECTOR channel
+// (handleVectorCycle below) — two acute tests against this node's own top and bottom tilt
+// vectors decide whether this node turns and which way, and only if it turned does it reply
+// with a vector and place a bead. Neither test acute is how the exchange terminates. This
+// all runs on THIS goroutine: there is no round trip to a second goroutine to decide (see
+// TopTiltThetaIdx below for who else the index is reported to and why).
 //
 // Emission is otherwise silent: with no In arrival there is nothing to react to, and the
 // loop is kicked off by a USER — routed here via its own dedicated TiltEditIn channel
@@ -26,7 +27,7 @@
 //     Pairing a Node1 and a Node2 with one edge each direction (Node1.Out → Node2.In,
 //     Node2.Out → Node1.In) needs no seed/bootstrap node: nothing ever sends until a user
 //     starts it, so there is no deadlock to bootstrap out of at t=0.
-//   - the RESET button (TiltResetButton.tsx, TiltEditMsg.Reset): the opposite of Start — it
+//   - the RESET button (TiltVectorButtons.tsx, TiltEditMsg.Reset): the opposite of Start — it
 //     places NO bead, a stop-and-return, not a nudge, so it never starts the straightening
 //     exchange. It does more than zero the indices, because zeroed indices are not by
 //     themselves a stopped exchange: it runs this node's full clear() (below), which also
@@ -57,24 +58,24 @@ type Node struct {
 	// In is one of two triggers that drive this node — see the package doc comment.
 	In *wire.In
 	// Out is the sole output. THIS goroutine is now the SOLE placer on it (below),
-	// preserving wire.Out.PlaceDrivenAt's one-goroutine-per-Out invariant — the mover no
-	// longer places on this Out at all.
+	// preserving wire.Out.PlaceDrivenAt's one-goroutine-per-Out invariant — nothing else
+	// places on this Out at all.
 	Out *wire.Out
 	// TopTiltThetaIdx is THIS node's OWN vector-direction index — the ONE writer, full stop
 	// (memory/feedback_abc_times_constant_not_rederive.md: index × step-constant, trig only
 	// at the cartesian/polar boundary). There is no companion φ: every tilt vector in this
 	// exchange lives in the θ-only plane. Seeded once at build time from the persisted value
 	// (BuildArgs.TiltVectorAngleSeed) and mutated ONLY by this goroutine's own Update loop,
-	// below. Every change is reported one-way to this node's own mover (SyncTiltIndex) so the
-	// mover — which still owns streaming this node's geometry and persisting it to this
-	// node's own position.json — stays in sync; the mover never decides or mutates these
-	// itself for this kind.
+	// below. Every change is reported one-way to this node's own geometry (SyncTiltIndex,
+	// i.e. Self) so the geometry — which still owns streaming this node's scene columns and
+	// persisting them to this node's own position.json — stays in sync; the geometry never
+	// decides or mutates these itself for this kind, it mirrors what it is told.
 	TopTiltThetaIdx int32
 	// TiltEditIn is this node's dedicated channel for a panel-driven tilt-angle click
 	// (TiltVectorAnglePanel), claimed at build time via BuildArgs.TiltEditIn — see the
 	// package doc comment's "THE KICK".
 	TiltEditIn <-chan Wiring.TiltEditMsg
-	// SyncTiltIndex notifies this node's own mover of the current TopTiltThetaIdx AND the
+	// SyncTiltIndex notifies this node's own geometry of the current TopTiltThetaIdx AND the
 	// current coplanar-normal index (coplanarNormal, below) — one-way, fire-and-forget,
 	// never an ack (BuildArgs.SyncTiltIndex).
 	SyncTiltIndex func(theta, normalTheta, bottomTheta int32)
@@ -97,20 +98,20 @@ type Node struct {
 	// It IS cleared by a RESET, both this node's own (applyTiltEdit's Reset branch) and a
 	// Reset marker arriving on VectorIn (handleVectorCycle's Reset branch): a reset is a
 	// stop-and-return, and a stale received arrow left hanging would contradict that.
-	// Reported one-way to this node's own mover via SyncReceivedVector, same shape as
+	// Reported one-way to this node's own geometry via SyncReceivedVector, same shape as
 	// TopTiltThetaIdx/SyncTiltIndex above.
 	ReceivedThetaIdx int32
 	ReceivedSet      bool
-	// SyncReceivedVector notifies this node's own mover of the current
+	// SyncReceivedVector notifies this node's own geometry of the current
 	// ReceivedThetaIdx/Set — one-way, fire-and-forget, never an ack
 	// (BuildArgs.SyncReceivedVector).
 	SyncReceivedVector func(theta int32, set bool)
-	// ClearOutBeads asks THIS node's own mover to drop every bead still crossing this
-	// node's outgoing wires — one-way, fire-and-forget, never an ack
-	// (BuildArgs.ClearOutBeads). Called only from clear(), below: those beads are owned
-	// by the mover (it drives the wires), so this node asks rather than reaching in.
+	// ClearOutBeads drops every bead still crossing this node's outgoing wires — a call on
+	// this node's own Self (BuildArgs.ClearOutBeads), not a message to a second goroutine.
+	// Called only from clear(), below: this goroutine drives those wires, so it clears them
+	// through the same object that drives them rather than reaching into the wire.
 	ClearOutBeads func()
-	// Self is this node's own mover state (task/pair-node-owns-itself,
+	// Self is this node's own geometry/mover state (task/pair-node-owns-itself,
 	// Wiring.PairNodeSelf), claimed at build time via BuildArgs.ClaimSelfDrive. THIS
 	// goroutine (Update, below) is the sole driver of it — there is no separate
 	// nodeMover goroutine for this node any more. nil on a bare test build with no
@@ -181,9 +182,10 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 //     reason — the bead edge paces the exchange that turns
 //     these tilts (the bead paces each round trip of the vector exchange), so a reset that skips it
 //     visibly does not take;
-//   - this node's OUTGOING beads, still crossing. Those are NOT owned here: a PacedWire is
-//     driven by its source node's own MOVER, so this asks the mover to drop them
-//     (ClearOutBeads / Wiring.moveMsgKindBeadClear) rather than reaching into the wire.
+//   - this node's OUTGOING beads, still crossing. A PacedWire is driven by its source
+//     node's own mover state, which for this kind is this goroutine's own Self, so it drops
+//     them through that (ClearOutBeads / PairNodeSelf.ClearOutBeads) rather than reaching
+//     into the wire.
 //
 // WHY BOTH CALLERS EXIST. The RESET button sends one record per node, but the two nodes
 // act on their own goroutines at their own moments, so a single clear each is racy: the
@@ -285,11 +287,11 @@ func floorDiv(a, b int32) int32 {
 }
 
 // syncTiltIndex reports THIS node's current tilt index AND its current coplanar-normal
-// index (coplanarNormal above) to this node's own mover in one call — every call site
+// index (coplanarNormal above) to this node's own geometry in one call — every call site
 // that changes TopTiltThetaIdx must also report the normal, since the normal is
-// derived from the tilt and the mover no longer derives it itself (see
-// Wiring.moveMsgKindTiltIndexSync's doc comment). nil-safe, same as every other closure
-// call here.
+// derived from the tilt and the geometry does not derive it itself (see
+// Wiring.PairNodeSelf.SetTiltIndex, and moveMsgKindTiltIndexSync's retirement note in
+// move_msg.go for what this used to be). nil-safe, same as every other closure call here.
 func (n *Node) syncTiltIndex() {
 	if n.SyncTiltIndex == nil {
 		return
@@ -300,7 +302,7 @@ func (n *Node) syncTiltIndex() {
 }
 
 // syncReceivedVector reports THIS node's current received-vector state (ReceivedThetaIdx/
-// ReceivedThetaIdx/Set) to this node's own mover — the third-arrow twin of syncTiltIndex.
+// ReceivedThetaIdx/Set) to this node's own geometry — the third-arrow twin of syncTiltIndex.
 // Called by every site that changes those fields, below. nil-safe, same as syncTiltIndex.
 func (n *Node) syncReceivedVector() {
 	if n.SyncReceivedVector == nil {
@@ -319,7 +321,8 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 }
 
 // stepFromVector decides whether an arrived vector turns this node's own TopTiltThetaIdx at
-// all, and if so which way, using TWO DOT PRODUCTS:
+// all, and if so which way, using TWO ACUTE TESTS (Wiring.TiltVectorIsAcute — integer
+// index arithmetic on the 24-step θ lattice, not a dot product):
 //
 //   - arrived vector ACUTE with this node's own TOP tilt vector    -> step -1 (Node1's base
 //     direction), return true
@@ -328,10 +331,10 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 //   - neither acute (exactly perpendicular)                        -> step NOTHING, return
 //     false — this is how the vector exchange comes to rest: the caller
 //     (handleVectorCycle) sends nothing and places no bead on a false return, so a pair
-//     that reaches perpendicular on both dots simply stops circulating.
+//     that reaches perpendicular on both tests simply stops circulating.
 //
 // The two acute cases are mutually exclusive: the bottom is the top's exact antipode, so the
-// two dots are always exact negatives and at most one of them can be positive. There is no
+// two tests are exact opposites and at most one of them can pass. There is no
 // both-acute case for the ordering of these two ifs to arbitrate, and no free sign knob —
 // which end the arrived vector leans toward IS the direction, except at the perpendicular
 // index itself, which has no lean at all and so steps nothing.
@@ -353,17 +356,17 @@ func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
 }
 
 // topTilt is THIS node's own top tilt vector as a direction pair — the same indices held on
-// the struct, named so the dot products above read as vector-against-vector rather than as
+// the struct, named so the acute tests above read as vector-against-vector rather than as
 // two loose ints.
 func (n *Node) topTilt() Wiring.TiltVectorMsg {
 	return Wiring.TiltVectorMsg{ThetaIdx: n.TopTiltThetaIdx}
 }
 
 // handleVectorCycle is Node1's WHOLE per-cycle vector-channel loop body: read
-// VectorIn non-blocking; if something arrived, step (stepFromVector's two dots decide
+// VectorIn non-blocking; if something arrived, step (stepFromVector's two acute tests decide
 // whether this node turns at all, and which way); and if it stepped, send outgoingVector
 // back out on VectorOut, also non-blocking, and place the paired bead. On a false return from
-// stepFromVector (exactly perpendicular to both dots) this sends nothing and places no bead —
+// stepFromVector (exactly perpendicular to both tests) this sends nothing and places no bead —
 // that is how the vector exchange comes to rest. A RESET marker (below) is the other way the
 // exchange stops. This never touches In/Out or beads on the halt path — the vector channel is
 // a separate, additive exchange.
@@ -392,9 +395,9 @@ func (n *Node) handleVectorCycle(tick int64) {
 	n.ReceivedThetaIdx = received.ThetaIdx
 	n.ReceivedSet = true
 	n.syncReceivedVector()
-	// DIAGNOSTIC (task/log-pair-vector-exchange): everything the two dots read, and what
-	// this node decided from them, in one row per arrival. Recorded BEFORE the step so the
-	// `top`/`bottom` here are the operands the dots actually used, not the post-step ones.
+	// DIAGNOSTIC (task/log-pair-vector-exchange): everything the two acute tests read, and
+	// what this node decided from them, in one row per arrival. Recorded BEFORE the step so
+	// the `top`/`bottom` here are the operands the tests actually used, not the post-step ones.
 	// An exchange halts, so this is bounded per run rather than a per-tick firehose.
 	before := n.TopTiltThetaIdx
 	acuteTop := Wiring.TiltVectorIsAcute(received, n.topTilt())
@@ -426,8 +429,8 @@ func (n *Node) Update(ctx context.Context) {
 	// There is no separate nodeMover goroutine to make this emit any more.
 	n.Self.EmitGeometryOnce()
 
-	// Report THIS node's OPENING tilt/normal pair once, before the loop. The mover is a
-	// passive mirror of these (moveMsgKindTiltIndexSync) and has no way to derive the
+	// Report THIS node's OPENING tilt/normal pair once, before the loop. Self is a
+	// passive mirror of these (PairNodeSelf.SetTiltIndex) and has no way to derive the
 	// normal itself, so without this its normal indices sit at their zero value until the
 	// first arrival or panel click — and since the tilt index opens at 0 too, both
 	// directions decode to world +y and the two drawn arrows superimpose, which reads as
@@ -446,13 +449,13 @@ func (n *Node) Update(ctx context.Context) {
 		// trip; it DECIDES nothing. It used to step this node's tilt one click in this
 		// kind's own fixed direction, with no reference to anything that arrived — so
 		// every bead round trip turned this node the same way forever, independently of
-		// (and on top of) the dot rule that is supposed to own that decision. Two rules
-		// moved one index: when they agreed the node double-stepped, when they disagreed
-		// they cancelled and it froze. The dots are now the only thing that turns a tilt
+		// (and on top of) the acute-test rule that is supposed to own that decision. Two
+		// rules moved one index: when they agreed the node double-stepped, when they
+		// disagreed they cancelled and it froze. The tests are now the only thing that turns a tilt
 		// on an arrival, and the bead is what makes that turn visible and timed.
 		//
 		// It does not place a bead onward either: the bead now travels WITH the vector,
-		// placed by handleVectorCycle when the dots actually move this node, so the bead
+		// placed by handleVectorCycle when the tests actually move this node, so the bead
 		// loop lives and dies with the exchange it is pacing instead of circulating on
 		// its own.
 		if _, ok := n.In.PollRecv(); ok {

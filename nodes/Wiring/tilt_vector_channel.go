@@ -95,7 +95,8 @@ const HalfTurnThetaIdx = 2 * PerpendicularThetaIdx
 const FullTurnThetaIdx = 2 * HalfTurnThetaIdx
 
 // TiltVectorIsAcute reports whether the angle between two θ-only directions is ACUTE —
-// the whole of what the straightening rule asks of a dot (nodes/Node1, nodes/Node2's
+// the whole of what the straightening rule needs to know about two directions (nodes/Node1,
+// nodes/Node2's
 // handleVectorCycle). Both directions sit on the π/12 index lattice, so this is exact
 // integer arithmetic instead of a float dot product against an epsilon band: let d be
 // the difference of the two θ indices reduced into [0, FullTurnThetaIdx). The angle

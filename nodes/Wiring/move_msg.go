@@ -57,9 +57,10 @@ const (
 	// existing SenderID/FromCenter fields.
 	moveMsgKindNeighborCenter = "neighborCenter"
 	// moveMsgKindTiltVectorAngle tells a node to adjust its OWN vector direction by one
-	// TiltVectorAngleStep click (Buffer/layout.go's TopTiltVectorTheta/TopTiltVectorPhi,
-	// nodes/Wiring/node_mover.go's topTiltVectorThetaIdx/topTiltVectorPhiIdx): Axis selects "theta" or
-	// "phi", Bool is the up(+1)/down(-1) direction — same shape as the distanceGroup
+	// TiltVectorAngleStep click (Buffer/layout.go's TopTiltVectorTheta,
+	// nodes/Wiring/node_mover.go's topTiltVectorThetaIdx): Axis is always "theta" — there is
+	// no φ any more (task/drop-tilt-vector-phi) — and Bool is the
+	// up(+1)/down(-1) direction — same shape as the distanceGroup
 	// arrow-click payload (index + direction, no value on the wire; Go owns the math).
 	// Sent to the target node's own extIn via md.sendMove from applyUpdateTiltVector
 	// (stdin_reader.go), so the index write + persist + re-emit all run on that node's
@@ -161,8 +162,9 @@ type moveMsg struct {
 	// message it receives on its own extIn. Also (Kind == "tiltVectorAngle"): true = up
 	// (index+1), false = down (index-1).
 	Bool bool
-	// Axis (Kind == "tiltVectorAngle"): "theta" or "phi" — which of the node's own
-	// topTiltVectorThetaIdx/topTiltVectorPhiIdx to adjust.
+	// Axis (Kind == "tiltVectorAngle"): "theta", the only axis there is — the tilt vector
+	// is θ-only end to end (task/drop-tilt-vector-phi), so this names
+	// topTiltVectorThetaIdx and nothing else.
 	Axis string
 	// testDone: see the type comment. Test-only; production leaves it nil.
 	testDone chan struct{}
