@@ -230,11 +230,46 @@
       border-bottom-color: var(--accent)
     }
 
-    /* the checkout path is not known yet — the link says so rather than
-       looking live and doing nothing */
-    a.srclink.needsroot {
-      border-bottom-style: dashed;
-      border-bottom-color: var(--warm)
+    .rootbar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-bottom: 12px;
+      font-size: 11px;
+      color: var(--dim)
+    }
+
+    .rootbar input {
+      font: inherit;
+      font-family: var(--mono);
+      color: var(--ink);
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      padding: 4px 7px;
+      min-width: 280px;
+      flex: 1
+    }
+
+    .rootbar button {
+      font: inherit;
+      font-weight: 600;
+      color: #04101f;
+      background: var(--accent);
+      border: 1px solid var(--accent);
+      border-radius: 5px;
+      padding: 4px 12px;
+      cursor: pointer
+    }
+
+    .rootbar .rootnote {
+      flex-basis: 100%;
+      line-height: 1.45
     }
 
     table.f tr.h td {
