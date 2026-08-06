@@ -4,12 +4,16 @@ html, body { margin: 0; padding: 0; height: 100%; background: #fafafa; font-fami
 .node.dragging { cursor: grabbing; }
 .node text { pointer-events: none; user-select: none; }
 .toolbar { position: fixed; top: 8px; left: 8px; padding: 6px 10px; background: #fff; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; display: flex; gap: 12px; align-items: center; z-index: 10; }
-/* The toolbar's single mount: SpeedSlider and TiltResetButton both portal in here. A
-   COLUMN, so the reset button sits below the slider rather than beside it, and
+/* The toolbar's single mount: SpeedSlider and TiltVectorButtons both portal in here. A
+   COLUMN, so the tilt button row sits below the slider rather than beside it, and
    flex-start so it lines up on the slider's left edge. Order is render order in main.tsx
-   (slider, then button). TiltResetButton renders nothing when the scene has no tilt
-   vectors (the ring), and the gap collapses with it. */
+   (slider, then the tilt button row). TiltVectorButtons renders nothing when the scene has
+   no tilt vectors (the ring), and the gap collapses with it. */
 #run-mount { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+/* The START/RESET pair renders as ONE row (TiltVectorButtons.tsx), so START sits
+   immediately to the left of RESET rather than stacking as two more #run-mount rows. */
+.tilt-vector-btn-row { display: flex; flex-direction: row; gap: 6px; }
+.tilt-start-btn { padding: 3px 10px; }
 .tilt-reset-btn { padding: 3px 10px; }
 .timeline-panel { z-index: 10; }
 .react-flow__controls { bottom: 56px !important; }
