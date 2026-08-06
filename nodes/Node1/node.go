@@ -103,6 +103,12 @@ type Node struct {
 	// (BuildArgs.ClearOutBeads). Called only from clear(), below: those beads are owned
 	// by the mover (it drives the wires), so this node asks rather than reaching in.
 	ClearOutBeads func()
+	// Self is this node's own mover state (task/pair-node-owns-itself,
+	// Wiring.PairNodeSelf), claimed at build time via BuildArgs.ClaimSelfDrive. THIS
+	// goroutine (Update, below) is the sole driver of it — there is no separate
+	// nodeMover goroutine for this node any more. nil on a bare test build with no
+	// loader; every PairNodeSelf method is nil-safe.
+	Self *Wiring.PairNodeSelf
 }
 
 func (n *Node) clock() wire.Clock {
@@ -403,6 +409,9 @@ func (n *Node) handleVectorCycle(tick int64) {
 
 func (n *Node) Update(ctx context.Context) {
 	wire.TryEmit(n.EmitGeometry)
+	// This node's own mover-owned startup geometry emit — see Self's own doc comment.
+	// There is no separate nodeMover goroutine to make this emit any more.
+	n.Self.EmitGeometryOnce()
 
 	// Report THIS node's OPENING tilt/normal pair once, before the loop. The mover is a
 	// passive mirror of these (moveMsgKindTiltIndexSync) and has no way to derive the
@@ -460,6 +469,14 @@ func (n *Node) Update(ctx context.Context) {
 		// doc comment.
 		n.handleVectorCycle(clk.Tick())
 
+		// This node's own mover work — drain its own dedicated inbound channels
+		// (drag/select/hover/center/neighborCenter/etc.), drive its own outgoing
+		// wires one cycle, retry pending sends, write its own dedicated stream
+		// frame. Run on THIS goroutine, on THIS node's own clock tick: there is no
+		// separate nodeMover goroutine for this node any more (task/pair-node-owns-
+		// itself) — see Self's own doc comment.
+		n.Self.Step(ctx, clk.Tick())
+
 		wire.ApplySpeedNonBlocking(clk, n.SpeedCh)
 		if err := clk.SleepCycle(ctx); err != nil {
 			return
@@ -489,13 +506,23 @@ func init() {
 			n.Out = a.Out("Out")
 			n.TopTiltThetaIdx, n.TopTiltPhiIdx = a.TiltVectorAngleSeed()
 			n.TiltEditIn = a.TiltEditIn()
-			n.SyncTiltIndex = a.SyncTiltIndex()
-			n.SyncReceivedVector = a.SyncReceivedVector()
-			n.ClearOutBeads = a.ClearOutBeads()
+			// Self replaces the old SyncTiltIndex/SyncReceivedVector/ClearOutBeads
+			// messages-to-a-separate-mover-goroutine (task/pair-node-owns-itself):
+			// this node's own goroutine now owns that mover state directly, so what
+			// used to be a message is a plain method call on the same object below.
+			self := a.ClaimSelfDrive()
+			n.Self = self
+			n.SyncTiltIndex = func(theta, phi, normalTheta, normalPhi, bottomTheta, bottomPhi int32) {
+				self.SetTiltIndex(theta, phi, normalTheta, normalPhi, bottomTheta, bottomPhi)
+			}
+			n.SyncReceivedVector = func(theta, phi int32, set bool) {
+				self.SetReceivedVector(theta, phi, set)
+			}
+			n.ClearOutBeads = func() { self.ClearOutBeads() }
 			n.VectorOut = a.VectorOut()
 			n.VectorIn = a.VectorIn()
-			// EmitGeometry stays nil deliberately — nodeMover/edgeMover emit the
-			// same geometry from their own goroutine start.
+			// EmitGeometry stays nil deliberately — n.Self.EmitGeometryOnce (Update)
+			// makes this node's own startup geometry emit instead.
 			return n, nil
 		})
 }

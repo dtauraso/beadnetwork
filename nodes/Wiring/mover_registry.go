@@ -131,6 +131,14 @@ func (mr *moverRegistry) bind(outSink map[string]*wire.Out, slotReg SlotRegistry
 func (mr *moverRegistry) start(ctx context.Context) *sync.WaitGroup {
 	wg := new(sync.WaitGroup)
 	for _, nm := range mr.nodeMovers {
+		if nm.selfDriven {
+			// task/pair-node-owns-itself: this node's OWN kind goroutine
+			// (Node1/Node2, via BuildArgs.ClaimSelfDrive/PairNodeSelf) drives this
+			// mover directly on its own Update loop. Launching nm.run here too
+			// would put a second goroutine on the same state — exactly the split
+			// this claim exists to remove.
+			continue
+		}
 		wg.Add(1)
 		go func() {
 			defer wg.Done()

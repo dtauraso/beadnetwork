@@ -342,6 +342,17 @@ type nodeMover struct {
 	bottomThetaIdx, bottomPhiIdx                 int32
 	receivedVectorThetaIdx, receivedVectorPhiIdx int32
 	receivedVectorSet                            bool
+
+	// selfDriven marks a node whose OWN kind goroutine drives this mover directly
+	// (task/pair-node-owns-itself — Node1/Node2 in the PAIR scene, via
+	// BuildArgs.ClaimSelfDrive/PairNodeSelf, pair_node_self.go) instead of a separate
+	// nodeMover goroutine. Set ONCE, at construction time (single-threaded setup,
+	// before any goroutine runs), by ClaimSelfDrive. mr.start (mover_registry.go)
+	// checks this and does NOT launch nm.run(ctx) for such a node — PairNodeSelf.Step
+	// runs the same per-cycle body instead, called from that node's own Update
+	// goroutine, so exactly one goroutine ever touches this nodeMover's state either
+	// way. Always false for every ring node (the ring is untouched by this).
+	selfDriven bool
 }
 
 func newNodeMover(id string, geom nodeGeom, tr *T.Trace, clockSrc wire.Clock) *nodeMover {
@@ -498,55 +509,12 @@ func (m *nodeMover) handle(msg moveMsg) {
 		// their own TiltEditIn/TiltEditMsg.Reset instead.
 		return
 	}
-	if msg.Kind == moveMsgKindTiltIndexSync {
-		// Passive mirror only: Node1/Node2's own goroutine already decided and mutated
-		// its OWN index (reactToArrival/panel-edit handling now live there —
-		// nodes/Node1/node.go, nodes/Node2/node.go). This mover just applies exactly what
-		// it is told, persists it to this node's OWN position.json, and re-emits so the
-		// panel's read-only reflect and the drawn arrow both pick up the change.
-		m.topTiltVectorThetaIdx = msg.ThetaIdx
-		m.topTiltVectorPhiIdx = msg.PhiIdx
-		m.normalThetaIdx = msg.NormalThetaIdx
-		m.normalPhiIdx = msg.NormalPhiIdx
-		m.bottomThetaIdx = msg.BottomThetaIdx
-		m.bottomPhiIdx = msg.BottomPhiIdx
-		m.persistTiltVectorAngle()
-		if m.tr != nil {
-			m.emitGeometry()
-		}
-		// PAIR TAB ONLY (Node1/Node2 — the only kinds that ever send
-		// moveMsgKindTiltIndexSync, see moveMsgKindTiltIndexSync's own doc comment):
-		// the tilt index IS the pair's centre-to-centre distance. See
-		// repositionForTiltIndex's own doc comment for the exact model.
-		m.repositionForTiltIndex(msg.ThetaIdx)
-		return
-	}
-	if msg.Kind == moveMsgKindReceivedVectorSync {
-		// Passive mirror only, same shape as moveMsgKindTiltIndexSync: Node1/Node2's own
-		// goroutine already decided this (an arrival replaces it, a reset — local or
-		// received — clears it). This mover just applies exactly what it is told and
-		// re-emits so the drawn third arrow picks up the change; nothing here is
-		// persisted (a channel arrival is transient session state, not part of this
-		// node's saved tilt).
-		m.receivedVectorThetaIdx = msg.ReceivedVectorThetaIdx
-		m.receivedVectorPhiIdx = msg.ReceivedVectorPhiIdx
-		m.receivedVectorSet = msg.ReceivedVectorSet
-		if m.tr != nil {
-			m.emitGeometry()
-		}
-		return
-	}
-	if msg.Kind == moveMsgKindBeadClear {
-		// This node's own goroutine asked for its outgoing wires to be emptied (a pair
-		// RESET — see moveMsgKindBeadClear's doc comment). This mover is the goroutine
-		// that drives those wires, so it is the one that may clear them. Nothing is
-		// persisted and nothing is decided here: a bead in flight is transient session
-		// state, exactly like the received vector above.
-		for _, pw := range m.outWires {
-			pw.ClearInFlight()
-		}
-		return
-	}
+	// moveMsgKindTiltIndexSync/ReceivedVectorSync/BeadClear are GONE
+	// (task/pair-node-owns-itself): a pair node (Node1/Node2) now owns this mover
+	// directly (PairNodeSelf, pair_node_self.go), so what used to be a one-way
+	// notification message to itself is now a plain method call on the same
+	// goroutine — see PairNodeSelf.SetTiltIndex/SetReceivedVector/ClearOutBeads,
+	// which apply exactly what this handle() branch used to apply.
 	if msg.Kind == moveMsgKindNeighborCenter {
 		// Delivery-mechanism push (see applyCenter/partnerCenters' doc comments): a
 		// direct neighbor's OWN center just changed. Store it in THIS node's owned
