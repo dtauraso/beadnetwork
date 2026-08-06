@@ -50,11 +50,15 @@ export function buildWebviewHtml(
   <link rel="stylesheet" href="${styleUri.toString()}" />
 </head>
 <body>
+  <!-- The toolbar's one mount. SpeedSlider and TiltResetButton both portal in here, so the
+       speed control and the tilt reset sit on the same bar. The bar used to open with a
+       static <span id="status" class="clean">saved</span> — nothing in the webview ever
+       wrote to it, so it read "saved" forever regardless of state; the slider names itself
+       in that spot now. TiltResetButton had its own row below (#tilt-reset-mount), which is
+       gone with it. -->
   <div class="toolbar">
-    <span id="status" class="clean">saved</span>
     <span id="run-mount"></span>
   </div>
-  <div id="tilt-reset-mount" class="tilt-reset-row"></div>
   <div id="rule-eq-mount"></div>
   <div class="drag-log-row">
     <div id="abc-drag-mount"></div>

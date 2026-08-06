@@ -72,8 +72,13 @@ export function SpeedSlider() {
   };
 
   return createPortal(
-    <span className="speed-slider" style={wrapStyle}>
-      <input
+    <span className="speed-slider" style={namedWrapStyle}>
+      {/* The slider's own name, at the head of the toolbar — the spot a static "saved"
+          label used to occupy (html.ts). A control on a bar with other controls has to say
+          which one it is. */}
+      <span style={nameStyle}>speed</span>
+      <span style={wrapStyle}>
+        <input
         type="range"
         min={0}
         max={SPEED_SETTINGS.length - 1}
@@ -103,6 +108,7 @@ export function SpeedSlider() {
             )}
           </span>
         ))}
+        </span>
       </span>
     </span>,
     mount,
@@ -124,6 +130,21 @@ function closestSettingIndex(speed: number): number {
   });
   return best;
 }
+
+// The name sits BESIDE the control; the control itself is the column below.
+const namedWrapStyle: React.CSSProperties = {
+  display: "inline-flex",
+  flexDirection: "row",
+  alignItems: "center",
+  gap: 8,
+};
+
+// Baseline-ish with the slider rather than with its tick row, so the name reads against the
+// track and not against the fractions under it.
+const nameStyle: React.CSSProperties = {
+  color: "#333",
+  whiteSpace: "nowrap",
+};
 
 // The slider and its tick-label row stack, so the labels sit BELOW the positions rather
 // than beside the control. inline-flex keeps the whole thing inline in the run-mount
