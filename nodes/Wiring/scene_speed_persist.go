@@ -35,6 +35,26 @@ import (
 // falls back to.
 const defaultPlaybackSpeed = 1.0
 
+// HumanEditSpeed is the speed every clock runs at WHILE A TILT IS BEING SET from the angle
+// panel — unscaled, the same rate the ring runs at.
+//
+// Setting an angle is an interaction, not a simulation. Since SleepCycle became
+// speed-scaled (nodes/wire/clock.go), a scene's own divisor stretches every paced loop:
+// at the pair's divisor one cycle is about a second, and a node drains its TiltEditIn in
+// that loop — so a ▲/▼ click could sit unanswered for a second and the panel felt dead.
+// The slider's number is about how fast the exchange should RUN, and it should not be
+// what decides how fast a click is noticed.
+//
+// The boundaries are the user's own actions rather than a timer or an idle guess: an angle
+// click switches to this speed, and START or RESET puts the slider's speed back
+// (applyUpdateTiltVector). Those are exactly the edges of "setting the tilt" — you stop
+// setting when you start the exchange, or when you abandon it.
+//
+// Nothing about the user's chosen speed changes: md.ui.speed and view/speed.json still
+// hold the slider's number untouched. Only what is BROADCAST to the clocks differs, and
+// only until the next start or reset.
+const HumanEditSpeed = 1.0
+
 // EffectiveClockSpeed is the ONE place userSpeed (the slider's number, unscaled, the same
 // value persisted to view/speed.json) is turned into the rate actually broadcast to the
 // clocks: userSpeed / scene's ClockDivisor (SceneTab.ClockDivisor / SceneClockDivisor,
@@ -114,6 +134,22 @@ func loadSceneSpeed(speedPath string) (float64, bool) {
 // it so the buffer reflects the loaded speed from the first frame. Call after LoadTopology
 // (which builds MoveDispatch and returns speedSinks) and BEFORE EnableEditPersist so this
 // emit does not write the loaded/default speed back.
+// BroadcastSpeed sends one effective speed to every clock-owning goroutine's own channel —
+// the SAME Delivery path LoadSpeed and a live slider edit use, factored out so the
+// tilt-edit speed override (HumanEditSpeed) cannot drift from it.
+func BroadcastSpeed(speedSinks []chan float64, effective float64) {
+	for _, ch := range speedSinks {
+		wire.SendSpeedNonBlocking(ch, effective)
+	}
+}
+
+// SliderSpeed is what the clocks run at when nothing is overriding them: the user's own
+// chosen number scaled by this scene's divisor. Reading it from md means the restore after
+// a tilt edit can never disagree with what a live slider change would have sent.
+func (md *MoveDispatch) SliderSpeed() float64 {
+	return EffectiveClockSpeed(md.ui.speed, md.ui.clockDivisor)
+}
+
 func (md *MoveDispatch) LoadSpeed(topologyPath string, speedSinks []chan float64, tr *T.Trace) {
 	speed, _ := loadSceneSpeed(speedFilePath(topologyPath))
 	md.ui.clockDivisor = SceneClockDivisor(topologyPath)
