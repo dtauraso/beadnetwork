@@ -55,7 +55,8 @@
       border-bottom: 1px solid var(--line)
     }
 
-    nav a {
+    nav a,
+    a.pill {
       font-size: 11px;
       font-weight: 600;
       color: var(--dim);
@@ -66,14 +67,44 @@
       text-decoration: none
     }
 
-    nav a:hover {
+    nav a:hover,
+    a.pill:hover {
       color: var(--ink)
     }
 
-    nav a.on {
+    nav a.on,
+    a.pill.on {
       background: var(--accent);
       border-color: var(--accent);
       color: #04101f
+    }
+
+    /* the index's own list: the same pill, with its blurb beside it */
+    .rows {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px 18px;
+      align-items: baseline
+    }
+
+    @media (max-width: 720px) {
+      .rows {
+        grid-template-columns: minmax(0, 1fr)
+      }
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      align-items: baseline
+    }
+
+    .row a.pill {
+      flex: none
+    }
+
+    .row .cap {
+      margin-top: 0
     }
 
     main {
