@@ -53,12 +53,16 @@
     nav {
       display: flex;
       gap: 4px;
-      padding: 12px 18px 0;
-      flex-wrap: wrap
+      padding: 10px 18px;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: var(--bg);
+      border-bottom: 1px solid var(--line)
     }
 
-    nav button {
-      font: inherit;
+    nav a {
       font-size: 11px;
       font-weight: 600;
       color: var(--dim);
@@ -66,17 +70,32 @@
       border: 1px solid var(--line);
       border-radius: 6px;
       padding: 5px 11px;
-      cursor: pointer
+      text-decoration: none
     }
 
-    nav button:hover {
+    nav a:hover {
       color: var(--ink)
     }
 
-    nav button.on {
+    nav a.on {
       background: var(--accent);
       border-color: var(--accent);
       color: #04101f
+    }
+
+    .sect {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin: 26px 0 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--line)
+    }
+
+    section:first-of-type .sect {
+      margin-top: 8px
     }
 
     main {
@@ -84,11 +103,8 @@
     }
 
     section {
-      display: none
-    }
-
-    section.on {
-      display: block
+      display: block;
+      scroll-margin-top: 52px
     }
 
     .grid {
@@ -220,23 +236,24 @@
   </header>
 
   <nav>
-    <button class="on" data-t="anatomy">Anatomy</button>
-    <button data-t="own">Ownership</button>
-    <button data-t="vectors">Vectors</button>
-    <button data-t="math">Math</button>
-    <button data-t="formulas">Formulas</button>
-    <button data-t="dots">Acute test</button>
-    <button data-t="channels">Channels</button>
-    <button data-t="cycle">Cycle</button>
-    <button data-t="clock">Clock</button>
-    <button data-t="geometry">Geometry</button>
-    <button data-t="asym">Asymmetry</button>
+    <a class="on" href="#anatomy">Anatomy</a>
+    <a href="#own">Ownership</a>
+    <a href="#vectors">Vectors</a>
+    <a href="#math">Math</a>
+    <a href="#formulas">Formulas</a>
+    <a href="#dots">Acute test</a>
+    <a href="#channels">Channels</a>
+    <a href="#cycle">Cycle</a>
+    <a href="#clock">Clock</a>
+    <a href="#geometry">Geometry</a>
+    <a href="#asym">Asymmetry</a>
   </nav>
 
   <main>
 
     <!-- ─────────────────────────── ANATOMY ─────────────────────────── -->
-    <section id="anatomy" class="on">
+    <section id="anatomy">
+      <div class="sect">Anatomy</div>
       <div class="grid">
 
         <div class="card">
@@ -305,6 +322,7 @@
 
     <!-- ─────────────────────────── OWNERSHIP ─────────────────────────── -->
     <section id="own">
+      <div class="sect">Ownership</div>
       <div class="grid">
 
         <div class="card">
@@ -372,6 +390,7 @@
 
     <!-- ─────────────────────────── VECTORS ─────────────────────────── -->
     <section id="vectors">
+      <div class="sect">Vectors</div>
       <div class="grid">
 
         <div class="card">
@@ -495,6 +514,7 @@
 
     <!-- ─────────────────────────── MATH ─────────────────────────── -->
     <section id="math">
+      <div class="sect">Math</div>
       <div class="grid">
 
         <div class="card">
@@ -712,6 +732,7 @@
 
     <!-- ─────────────────────────── FORMULAS ─────────────────────────── -->
     <section id="formulas">
+      <div class="sect">Formulas</div>
       <div class="grid">
 
         <div class="card">
@@ -894,6 +915,7 @@
 
     <!-- ─────────────────────────── DOT RULE ─────────────────────────── -->
     <section id="dots">
+      <div class="sect">Acute test</div>
       <div class="grid">
 
         <div class="card">
@@ -982,6 +1004,7 @@
 
     <!-- ─────────────────────────── CHANNELS ─────────────────────────── -->
     <section id="channels">
+      <div class="sect">Channels</div>
       <div class="grid">
 
         <div class="card">
@@ -1055,6 +1078,7 @@
 
     <!-- ─────────────────────────── CYCLE ─────────────────────────── -->
     <section id="cycle">
+      <div class="sect">Cycle</div>
       <div class="grid">
         <div class="card">
           <h2>One cycle of the node's own loop</h2>
@@ -1111,6 +1135,7 @@
 
     <!-- ─────────────────────────── CLOCK ─────────────────────────── -->
     <section id="clock">
+      <div class="sect">Clock</div>
       <div class="grid">
 
         <div class="card">
@@ -1179,6 +1204,7 @@
 
     <!-- ─────────────────────────── GEOMETRY ─────────────────────────── -->
     <section id="geometry">
+      <div class="sect">Geometry</div>
       <div class="grid">
 
         <div class="card">
@@ -1248,6 +1274,7 @@
 
     <!-- ─────────────────────────── ASYMMETRY ─────────────────────────── -->
     <section id="asym">
+      <div class="sect">Asymmetry</div>
       <div class="grid">
 
         <div class="card">
@@ -1295,12 +1322,16 @@
   </main>
 
   <script>
-    const tabs = document.querySelectorAll('nav button');
-    const secs = document.querySelectorAll('section');
-    tabs.forEach(b => b.addEventListener('click', () => {
-      tabs.forEach(x => x.classList.toggle('on', x === b));
-      secs.forEach(s => s.classList.toggle('on', s.id === b.dataset.t));
-    }));
+    // Highlight the nav link for whichever section is nearest the top of the viewport.
+    const links = [...document.querySelectorAll('nav a')];
+    const secs = [...document.querySelectorAll('section')];
+    const spy = () => {
+      let cur = secs[0];
+      for (const s of secs) { if (s.getBoundingClientRect().top - 80 > 0) break; cur = s; }
+      links.forEach(a => a.classList.toggle('on', a.hash === '#' + cur.id));
+    };
+    addEventListener('scroll', spy, { passive: true });
+    spy();
   </script>
 </body>
 
