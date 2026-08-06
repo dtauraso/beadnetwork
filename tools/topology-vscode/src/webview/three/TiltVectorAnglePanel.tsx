@@ -3,6 +3,18 @@ import { postGoRecord } from "../vscode-api";
 import { encodeTiltVectorAdjust } from "../../schema/input-layout";
 import { CURVE_PARAM_TILT_VECTOR_ANGLE_STEP } from "../../schema/curve-params";
 import { useTiltVectorRows } from "./overlay-flags";
+import {
+  panelStyle,
+  itemColumnStyle,
+  itemStyle,
+  labelStyle,
+  valueStyle,
+  valueRowStyle,
+  btnStyle,
+} from "./panel-styles";
+
+// The two angle axes a node exposes, in column order. One column per entry.
+const AXES = ["theta", "phi"] as const;
 
 // TiltVectorAnglePanel — a per-node tilt-vector-direction panel, sibling of
 // DistanceHomePanel (same style constants: small dark rounded panel, monospace, ▲/▼
@@ -56,93 +68,65 @@ export function TiltVectorAnglePanel() {
   };
 
   return (
-    <div style={panelStyle}>
+    // NESTED: the panel stacks its NODES; each node holds its own name and, inside it, a row
+    // of AXIS stacks. So a node's whole angle state is one box, and each axis inside it is a
+    // smaller box of name/value/▲▼ — the same item shape DistanceHomePanel uses, one level
+    // down. Which θ/φ belongs to which node is read off the containment, not remembered.
+    <div style={{ ...panelStyle, ...itemColumnStyle }}>
       {rows.map((node, i) => (
-        <React.Fragment key={node.row}>
-          {/* A rule between nodes, so two nodes' θ/φ lines cannot be misread as one node's
-              four. Skipped before the first. */}
+        <div style={itemColumnStyle} key={node.row}>
+          {/* A rule between nodes, so two nodes' axes cannot be misread as one node's four.
+              Skipped before the first. */}
           {i > 0 && <div style={sepStyle} />}
           <div style={headerStyle}>{node.label || String(node.row)}</div>
-          {(["theta", "phi"] as const).map((axis) => (
-            <div style={rowStyle} key={axis}>
-              <span style={labelStyle}>{axis}</span>
-              <span style={valueStyle}>{formatAngle(axis === "theta" ? node.theta : node.phi)}</span>
-              <button
-                type="button"
-                style={btnStyle}
-                aria-label={`${node.label || node.row} ${axis} up`}
-                onClick={() => adjust(node.row, axis, "up")}
-              >
-                ▲
-              </button>
-              <button
-                type="button"
-                style={btnStyle}
-                aria-label={`${node.label || node.row} ${axis} down`}
-                onClick={() => adjust(node.row, axis, "down")}
-              >
-                ▼
-              </button>
-            </div>
-          ))}
-        </React.Fragment>
+          <div style={axesStyle}>
+            {AXES.map((axis) => (
+              <span style={itemStyle} key={axis}>
+                <span style={labelStyle}>{axis}</span>
+                <span style={valueRowStyle}>
+                  <span style={valueStyle}>
+                    {formatAngle(axis === "theta" ? node.theta : node.phi)}
+                  </span>
+                  <button
+                    type="button"
+                    style={btnStyle}
+                    aria-label={`${node.label || node.row} ${axis} up`}
+                    onClick={() => adjust(node.row, axis, "up")}
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    style={btnStyle}
+                    aria-label={`${node.label || node.row} ${axis} down`}
+                    onClick={() => adjust(node.row, axis, "down")}
+                  >
+                    ▼
+                  </button>
+                </span>
+              </span>
+            ))}
+          </div>
+        </div>
       ))}
     </div>
   );
 }
 
-// Styling mirrors DistanceHomePanel's own panelStyle (itself mirroring the camera
-// HomeButton): a dark rounded pill, 11px monospace, #ddd, vertical list. Positioned
-// BELOW DistanceHomePanel's slot (top:66) — the two panels never render in the same
-// scene today (distance groups are ring-only, this panel's rows are the pair scene's
-// tilt vectors), but stacking downward keeps this panel out of DistanceHomePanel's spot
-// in case a future scene streams both.
-const panelStyle: React.CSSProperties = {
-  // Placed by ThreeView's right-hand flex column, not by a top/right of its own — this
-  // panel's height depends on how many nodes have vectors, so nothing below it can be
-  // positioned against a number known here.
-  pointerEvents: "auto",
-  display: "inline-flex",
-  flexDirection: "column",
-  gap: 2,
-  background: "rgba(0,0,0,0.55)",
-  borderRadius: 6,
-  padding: "3px 7px",
-  color: "#ddd",
-  fontSize: 11,
-  fontFamily: "monospace",
-  userSelect: "none",
-};
-
-const rowStyle: React.CSSProperties = {
+// A node's two axis items, stacked under the node's name and indented — the indent is what
+// shows the nesting, so an axis reads as belonging to the node above it rather than as
+// another top-level item.
+const axesStyle: React.CSSProperties = {
   display: "flex",
-  flexDirection: "row",
-  alignItems: "center",
-  gap: 4,
-  whiteSpace: "nowrap",
+  flexDirection: "column",
+  gap: 7,
+  paddingLeft: 8,
 };
 
-const labelStyle: React.CSSProperties = { flex: 1, minWidth: 40 };
-
-const valueStyle: React.CSSProperties = { minWidth: 34, textAlign: "right" };
-
-const btnStyle: React.CSSProperties = {
-  background: "rgba(255,255,255,0.12)",
-  border: "none",
-  borderRadius: 4,
-  color: "#ddd",
-  fontSize: 11,
-  fontFamily: "monospace",
-  lineHeight: 1,
-  padding: "2px 5px",
-  cursor: "pointer",
-};
-
-// A node's name above its own two angle lines, so which θ/φ belongs to which node is read
-// off the layout rather than remembered.
+// A node's name at the top of that node's own box — no column span needed any more, since
+// the node IS a box and its name is simply the first thing in it.
 const headerStyle: React.CSSProperties = {
   color: "#fff",
-  opacity: 0.85,
   paddingTop: 1,
 };
 
