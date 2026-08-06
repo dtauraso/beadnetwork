@@ -1,28 +1,35 @@
 package Wiring
 
-// scene_clock_divisor_test.go — the PAIR scene's clock runs 4x slower than the ring's at
-// the same user-chosen speed, an entirely GO-OWNED scaling (never crosses the bridge, never
+// scene_clock_divisor_test.go — the PAIR scene's clock runs SLOWER than the ring's at the
+// same user-chosen speed, an entirely GO-OWNED scaling (never crosses the bridge, never
 // touches view/speed.json). Tests here cover: the shared arithmetic (EffectiveClockSpeed),
 // unknown-scene resolution (SceneClockDivisor), and that a save/reload cycle never compounds
 // the divisor — the on-disk value stays the USER's unscaled speed.
+//
+// Nothing here pins the pair's divisor to a LITERAL. It is a watched-it tuning number (see
+// SceneTab.ClockDivisor) and has already moved once; a test asserting the literal fails on
+// every tuning change while testing nothing about the behaviour. What is asserted instead is
+// the CONSTRAINT — the ring is unscaled, the pair is slower than the ring, an unknown scene
+// is unscaled — and the arithmetic is exercised against whatever the table currently says.
 
 import (
 	"path/filepath"
 	"testing"
 )
 
-// TestEffectiveClockSpeedRingAndPair: the ring's divisor (1) is a no-op; the pair's (4)
-// quarters the user's speed, across the fractional table the six-value slider actually sends
-// (0, 0.25, 0.5, 0.75, 1, 2) plus 0 itself.
+// TestEffectiveClockSpeedRingAndPair: the ring's divisor is a no-op; the pair's divides the
+// user's speed by whatever the SceneTabs table currently holds, across the fractional table
+// the six-value slider actually sends (0, 0.25, 0.5, 0.75, 1, 2) plus 0 itself.
 func TestEffectiveClockSpeedRingAndPair(t *testing.T) {
+	pairDivisor := SceneClockDivisor(filepath.Join("/anywhere", "topology-pair"))
 	cases := []float64{0, 0.25, 0.5, 0.75, 1, 2}
 	for _, userSpeed := range cases {
 		if got := EffectiveClockSpeed(userSpeed, 1); got != userSpeed {
 			t.Fatalf("ring divisor=1: EffectiveClockSpeed(%v, 1) = %v, want %v (no scaling)", userSpeed, got, userSpeed)
 		}
-		want := userSpeed / 4
-		if got := EffectiveClockSpeed(userSpeed, 4); got != want {
-			t.Fatalf("pair divisor=4: EffectiveClockSpeed(%v, 4) = %v, want %v", userSpeed, got, want)
+		want := userSpeed / pairDivisor
+		if got := EffectiveClockSpeed(userSpeed, pairDivisor); got != want {
+			t.Fatalf("pair divisor=%v: EffectiveClockSpeed(%v, %v) = %v, want %v", pairDivisor, userSpeed, pairDivisor, got, want)
 		}
 	}
 }
@@ -37,17 +44,18 @@ func TestEffectiveClockSpeedGuardsInvalidDivisor(t *testing.T) {
 	}
 }
 
-// TestSceneClockDivisorKnownScenes: the ring resolves to 1, the pair to 4, matching the
-// SceneTabs table directly (a change to that table should move this test, not be silently
-// tolerated).
+// TestSceneClockDivisorKnownScenes: the ring is unscaled and the pair is SLOWER than the
+// ring. The pair's exact value is a tuning number and is deliberately not asserted — what
+// must hold is the relationship (and that the value can never be one a division would choke
+// on, which is the case the guard above covers from the other side).
 func TestSceneClockDivisorKnownScenes(t *testing.T) {
 	ring := SceneClockDivisor(filepath.Join("/anywhere", "topology"))
 	if ring != 1 {
-		t.Fatalf("ring SceneClockDivisor = %v, want 1", ring)
+		t.Fatalf("ring SceneClockDivisor = %v, want 1 (the ring is the unscaled reference)", ring)
 	}
 	pair := SceneClockDivisor(filepath.Join("/anywhere", "topology-pair"))
-	if pair != 4 {
-		t.Fatalf("pair SceneClockDivisor = %v, want 4", pair)
+	if pair <= ring {
+		t.Fatalf("pair SceneClockDivisor = %v, want > the ring's %v — the pair scene is smaller and must run slower at the same slider setting", pair, ring)
 	}
 }
 

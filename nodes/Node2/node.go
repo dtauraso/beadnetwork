@@ -41,6 +41,8 @@ package Node2
 
 import (
 	"context"
+	"fmt"
+
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring"
@@ -382,7 +384,19 @@ func (n *Node) handleVectorCycle(tick int64) {
 	n.ReceivedPhiIdx = received.PhiIdx
 	n.ReceivedSet = true
 	n.syncReceivedVector()
-	if !n.stepFromVector(received) {
+	// DIAGNOSTIC (task/log-pair-vector-exchange) — mirror of Node1's, see there for why the
+	// operands are captured BEFORE the step.
+	before := n.TopTiltThetaIdx
+	acuteTop := Wiring.TiltVectorIsAcute(received, n.topTilt())
+	acuteBottom := Wiring.TiltVectorIsAcute(received, n.bottomTilt())
+	moved := n.stepFromVector(received)
+	if n.Self != nil {
+		n.Self.Breadcrumb("pair-vector", fmt.Sprintf(
+			"tick=%d recv=(%d,%d) top=%d bottom=%d acuteTop=%v acuteBottom=%v moved=%v idx %d->%d",
+			tick, received.ThetaIdx, received.PhiIdx, before, before+Wiring.HalfTurnThetaIdx,
+			acuteTop, acuteBottom, moved, before, n.TopTiltThetaIdx))
+	}
+	if !moved {
 		return
 	}
 	n.syncTiltIndex()
@@ -445,6 +459,13 @@ func (n *Node) Update(ctx context.Context) {
 				n.syncTiltIndex()
 				if placeBead && n.Out != nil {
 					n.Out.PlaceDrivenAt(1, clk.Tick())
+				}
+				// DIAGNOSTIC — mirror of Node1's; see there.
+				if n.Self != nil {
+					n.Self.Breadcrumb("pair-tilt-edit", fmt.Sprintf(
+						"tick=%d reset=%v start=%v axis=%s up=%v placeBead=%v theta=%d phi=%d",
+						clk.Tick(), edit.Reset, edit.Start, edit.Axis, edit.Up, placeBead,
+						n.TopTiltThetaIdx, n.TopTiltPhiIdx))
 				}
 			default:
 			}

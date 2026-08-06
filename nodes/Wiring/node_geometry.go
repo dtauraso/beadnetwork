@@ -66,10 +66,17 @@ type nodeGeometry struct {
 	// that never launches a driving goroutine (e.g. a bare literal calling flushPending
 	// directly) never dereferences a nil Clock.
 	clk wire.Clock
-	// speedCh is intentionally NOT here: polling a speed channel every cycle is pacing —
-	// an ACTOR concern. It lives on nodeMover (node_mover.go), which is the only thing
-	// that ever calls wire.ApplySpeedNonBlocking. A pair node's own kind goroutine paces
-	// itself on its own clock already; there is no second speed channel to poll for it.
+	// speedCh is not here because polling one every cycle is pacing — an ACTOR concern. It
+	// lives on whatever drives this geometry: nodeMover for a ring node (node_mover.go),
+	// PairNodeSelf for a pair node (pair_node_self.go). BOTH must poll it.
+	//
+	// This comment used to say a pair node needed no such channel, because "its own kind
+	// goroutine paces itself on its own clock already". That was wrong, and it hid a real
+	// defect: a pair node has TWO clocks — its kind loop's, which is scaled, and THIS one.
+	// This clock is what chainBeads (chain_beads.go) reads to lay out the bead animation
+	// and what writeStreamFrame stamps a frame with, so while it went unscaled the pair
+	// scene's VISIBLE motion ignored both the speed slider and SceneTab.ClockDivisor,
+	// even though bead delivery timing was scaled correctly and looked fine.
 
 	// There is no geomMu. m.geom (port_geometry.go) splits into an embedded, write-once
 	// nodeIdentity (Kind/Label/R/SceneCenter — set once at construction in loader.go,
