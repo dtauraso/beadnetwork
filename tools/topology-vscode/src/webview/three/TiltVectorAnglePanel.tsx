@@ -5,11 +5,12 @@ import { CURVE_PARAM_TILT_VECTOR_ANGLE_STEP } from "../../schema/curve-params";
 import { useTiltVectorRows } from "./overlay-flags";
 import {
   panelStyle,
-  gridColumns,
+  itemRowStyle,
+  itemColumnStyle,
+  itemStyle,
   labelStyle,
   valueStyle,
   arrowCellStyle,
-  fullRowStyle,
   btnStyle,
 } from "./panel-styles";
 
@@ -68,63 +69,59 @@ export function TiltVectorAnglePanel() {
   };
 
   return (
-    // One column per AXIS, and each node contributes its own block of rows: the node's name
-    // across the top, then the two axis names, then their values, then their arrows. Filling
-    // the grid row by row (a pass per row) is what puts an axis's name, value and arrows in
-    // one column — see DistanceHomePanel for the same shape without the per-node grouping.
-    <div style={{ ...panelStyle, ...gridColumns(AXES.length) }}>
+    // NESTED: the panel stacks its NODES; each node holds its own name and, inside it, a row
+    // of AXIS stacks. So a node's whole angle state is one box, and each axis inside it is a
+    // smaller box of name/value/▲▼ — the same item shape DistanceHomePanel uses, one level
+    // down. Which θ/φ belongs to which node is read off the containment, not remembered.
+    <div style={{ ...panelStyle, ...itemColumnStyle }}>
       {rows.map((node, i) => (
-        <React.Fragment key={node.row}>
-          {/* A rule between nodes, so two nodes' θ/φ columns cannot be misread as one
-              node's four. Skipped before the first. */}
+        <div style={itemColumnStyle} key={node.row}>
+          {/* A rule between nodes, so two nodes' axes cannot be misread as one node's four.
+              Skipped before the first. */}
           {i > 0 && <div style={sepStyle} />}
           <div style={headerStyle}>{node.label || String(node.row)}</div>
-          {AXES.map((axis) => (
-            <span style={labelStyle} key={axis}>
-              {axis}
-            </span>
-          ))}
-          {AXES.map((axis) => (
-            <span style={valueStyle} key={axis}>
-              {formatAngle(axis === "theta" ? node.theta : node.phi)}
-            </span>
-          ))}
-          {AXES.map((axis) => (
-            <span style={arrowCellStyle} key={axis}>
-              <button
-                type="button"
-                style={btnStyle}
-                aria-label={`${node.label || node.row} ${axis} up`}
-                onClick={() => adjust(node.row, axis, "up")}
-              >
-                ▲
-              </button>
-              <button
-                type="button"
-                style={btnStyle}
-                aria-label={`${node.label || node.row} ${axis} down`}
-                onClick={() => adjust(node.row, axis, "down")}
-              >
-                ▼
-              </button>
-            </span>
-          ))}
-        </React.Fragment>
+          <div style={itemRowStyle}>
+            {AXES.map((axis) => (
+              <span style={itemStyle} key={axis}>
+                <span style={labelStyle}>{axis}</span>
+                <span style={valueStyle}>
+                  {formatAngle(axis === "theta" ? node.theta : node.phi)}
+                </span>
+                <span style={arrowCellStyle}>
+                  <button
+                    type="button"
+                    style={btnStyle}
+                    aria-label={`${node.label || node.row} ${axis} up`}
+                    onClick={() => adjust(node.row, axis, "up")}
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    style={btnStyle}
+                    aria-label={`${node.label || node.row} ${axis} down`}
+                    onClick={() => adjust(node.row, axis, "down")}
+                  >
+                    ▼
+                  </button>
+                </span>
+              </span>
+            ))}
+          </div>
+        </div>
       ))}
     </div>
   );
 }
 
-// A node's name above its own two angle lines, so which θ/φ belongs to which node is read
-// off the layout rather than remembered. Spans every column of the panel grid.
+// A node's name at the top of that node's own box — no column span needed any more, since
+// the node IS a box and its name is simply the first thing in it.
 const headerStyle: React.CSSProperties = {
-  ...fullRowStyle,
   color: "#fff",
   paddingTop: 1,
 };
 
 const sepStyle: React.CSSProperties = {
-  ...fullRowStyle,
   height: 1,
   background: "rgba(255,255,255,0.18)",
   margin: "3px 0",

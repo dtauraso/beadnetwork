@@ -2,7 +2,15 @@ import React from "react";
 import { postGoRecord } from "../vscode-api";
 import { encodeDistanceGroupAdjust } from "../../schema/input-layout";
 import { useDistanceGroupLens } from "./overlay-flags";
-import { panelStyle, gridColumns, labelStyle, valueStyle, arrowCellStyle, btnStyle } from "./panel-styles";
+import {
+  panelStyle,
+  itemRowStyle,
+  itemStyle,
+  labelStyle,
+  valueStyle,
+  arrowCellStyle,
+  btnStyle,
+} from "./panel-styles";
 
 // DistanceHomePanel — the "distance home button" toolbar panel: 3 named groups of
 // node-pair distances (time / input / select — Go's distanceGroupOrder,
@@ -52,44 +60,37 @@ export function DistanceHomePanel() {
   };
 
   return (
-    // Three passes over the same groups fill the grid ROW BY ROW: every name, then every
-    // value, then every arrow pair. The grid places them into one column per group, so a
-    // group's name, value and arrows line up vertically without any of them knowing about
-    // the others.
-    <div style={{ ...panelStyle, ...gridColumns(GROUPS.length) }}>
-      {GROUPS.map(({ label }) => (
-        <span style={labelStyle} key={label}>
-          {label}
-        </span>
-      ))}
+    // One STACK per group, side by side. Everything about a group — its name, its length,
+    // its ▲▼ — lives inside that group's own box, so nothing is padded to line up with a
+    // neighbour.
+    <div style={{ ...panelStyle, ...itemRowStyle }}>
       {GROUPS.map(({ index, label }) => {
         const v = valueFor(index);
         return (
-          <span style={valueStyle} key={label}>
-            {v === undefined ? "—" : Math.round(v)}
+          <span style={itemStyle} key={label}>
+            <span style={labelStyle}>{label}</span>
+            <span style={valueStyle}>{v === undefined ? "—" : Math.round(v)}</span>
+            <span style={arrowCellStyle}>
+              <button
+                type="button"
+                style={btnStyle}
+                aria-label={`${label} distance up`}
+                onClick={() => adjust(index, "up")}
+              >
+                ▲
+              </button>
+              <button
+                type="button"
+                style={btnStyle}
+                aria-label={`${label} distance down`}
+                onClick={() => adjust(index, "down")}
+              >
+                ▼
+              </button>
+            </span>
           </span>
         );
       })}
-      {GROUPS.map(({ index, label }) => (
-        <span style={arrowCellStyle} key={label}>
-          <button
-            type="button"
-            style={btnStyle}
-            aria-label={`${label} distance up`}
-            onClick={() => adjust(index, "up")}
-          >
-            ▲
-          </button>
-          <button
-            type="button"
-            style={btnStyle}
-            aria-label={`${label} distance down`}
-            onClick={() => adjust(index, "down")}
-          >
-            ▼
-          </button>
-        </span>
-      ))}
     </div>
   );
 }
