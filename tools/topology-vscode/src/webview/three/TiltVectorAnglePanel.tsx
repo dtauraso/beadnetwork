@@ -1,30 +1,33 @@
-import React from "react";
+import React, { useState } from "react";
 import { postGoRecord } from "../vscode-api";
 import { encodeTiltVectorAdjust } from "../../schema/input-layout";
 import { CURVE_PARAM_TILT_VECTOR_ANGLE_STEP } from "../../schema/curve-params";
-import { useTiltVectorRows } from "./overlay-flags";
+import { useTiltVectorRows, type TiltVectorRow } from "./overlay-flags";
 import {
-  panelStyle,
-  itemColumnStyle,
-  itemStyle,
-  labelStyle,
-  valueStyle,
-  valueRowStyle,
-  btnStyle,
-} from "./panel-styles";
+  pillContainerStyle,
+  pillBodyStyle,
+  pillCaretStyle,
+  popoverStyle,
+  groupHeadingStyle,
+  DISCLOSURE_GLYPH_STYLE,
+  popoverRowStyle,
+} from "./overlay-chrome";
 
-// The two angle axes a node exposes, in column order. One column per entry.
+// The two angle axes a node exposes, in column order.
 const AXES = ["theta", "phi"] as const;
 
-// TiltVectorAnglePanel — a per-node tilt-vector-direction panel, sibling of
-// DistanceHomePanel (same style constants: small dark rounded panel, monospace, ▲/▼
-// arrows).
+// TiltVectorAnglePanel — the PAIR tab's tilt-vector-direction control, built on the SAME
+// pill + popover chrome as OverlaysControl (overlay-chrome.ts): a labeled pill in ThreeView's
+// right-hand column that opens a popover, one collapsible group per node, one row per axis.
+// This control has no master toggle (there is nothing to turn on/off, only angles to read and
+// adjust), so unlike OverlaysControl's split button, the WHOLE pill — body and caret alike —
+// just opens/closes the popover.
 //
 // WHICH nodes it can adjust is Go's answer, same data-driven shape as DistanceHomePanel:
 // it reflects every node whose TopTiltVectorLen > 0 (useTiltVectorRows, overlay-flags.ts —
 // the SAME column TiltVectors.tsx gates its own draw on). A scene whose nodes all stream
-// TopTiltVectorLen 0 (no tilt vectors drawn at all) yields an EMPTY row list, and this panel
-// renders nothing — no scene branch on either side, just the shared "no rows" signal
+// TopTiltVectorLen 0 (no tilt vectors drawn at all) yields an EMPTY row list, and the whole
+// pill renders nothing — no scene branch on either side, just the shared "no rows" signal
 // DistanceHomePanel's "no groups" check uses.
 //
 // θ/φ are displayed as an INTEGER MULTIPLE of Go's own step
@@ -32,20 +35,12 @@ const AXES = ["theta", "phi"] as const;
 // CURVE_PARAM_TILT_VECTOR_ANGLE_STEP — memory/feedback_abc_times_constant_not_rederive.md):
 // the index is the thing being adjusted, not the radians, so it is shown as "5π/12" rather
 // than a decimal. TS computes the DISPLAYED index by dividing Go's own streamed radians by
-// Go's own streamed step — a read-side format transform, not authored angle state (the
-// same kind of transform TiltVectors.tsx already does converting the same θ/φ to a
-// cartesian arrow direction).
+// Go's own streamed step — a read-side format transform, not authored angle state.
 //
 // Clicking an arrow fire-and-forgets an edit-update(tiltVector, theta|phi) record naming
 // the target node's buffer ROW (never its id/name) and the direction; Go owns the step
 // and the index arithmetic (node_mover.go's moveMsgKindTiltVectorAngle handler) — this
 // component sends no angle value, only which node + which axis + which direction.
-//
-// EVERY node with a tilt vector is listed at once, θ and φ each on their own line under
-// the node's name. It used to show one node at a time behind ◀/▶, which meant comparing
-// the two ends of a pair — the thing these angles are usually being set relative to —
-// required flipping back and forth and remembering the other one. There is no local state
-// at all now: the panel is a pure function of the reflected rows.
 const DENOM = Math.max(1, Math.round(Math.PI / CURVE_PARAM_TILT_VECTOR_ANGLE_STEP));
 
 function formatAngle(radians: number): string {
@@ -55,83 +50,112 @@ function formatAngle(radians: number): string {
   return `${sign}${Math.abs(idx)}π/${DENOM}`;
 }
 
-export function TiltVectorAnglePanel() {
-  const rows = useTiltVectorRows();
-
-  // Data-driven "no rows" render-nothing, same shape as DistanceHomePanel's all-zero
-  // check: null (no node frame decoded yet) or an empty list (this scene draws no tilt
-  // vectors at all) both mean nothing to show.
-  if (!rows || rows.length === 0) return null;
-
-  const adjust = (row: number, axis: "theta" | "phi", dir: "up" | "down") => {
-    postGoRecord(encodeTiltVectorAdjust(row, axis, dir));
+/** One axis row inside a node's group: axis name, its formatted value, ▲/▼ adjust buttons.
+ *  Styled like OverlayRow (popoverRowStyle), minus the checkbox glyph — there is nothing to
+ *  check here, only a value to show and adjust. */
+function AxisRow({ node, axis }: { node: TiltVectorRow; axis: (typeof AXES)[number] }) {
+  const [hover, setHover] = useState(false);
+  const adjust = (dir: "up" | "down") => {
+    postGoRecord(encodeTiltVectorAdjust(node.row, axis, dir));
   };
-
   return (
-    // NESTED: the panel stacks its NODES; each node holds its own name and, inside it, a row
-    // of AXIS stacks. So a node's whole angle state is one box, and each axis inside it is a
-    // smaller box of name/value/▲▼ — the same item shape DistanceHomePanel uses, one level
-    // down. Which θ/φ belongs to which node is read off the containment, not remembered.
-    <div style={{ ...panelStyle, ...itemColumnStyle }}>
-      {rows.map((node, i) => (
-        <div style={itemColumnStyle} key={node.row}>
-          {/* A rule between nodes, so two nodes' axes cannot be misread as one node's four.
-              Skipped before the first. */}
-          {i > 0 && <div style={sepStyle} />}
-          <div style={headerStyle}>{node.label || String(node.row)}</div>
-          <div style={axesStyle}>
-            {AXES.map((axis) => (
-              <span style={itemStyle} key={axis}>
-                <span style={labelStyle}>{axis}</span>
-                <span style={valueRowStyle}>
-                  <span style={valueStyle}>
-                    {formatAngle(axis === "theta" ? node.theta : node.phi)}
-                  </span>
-                  <button
-                    type="button"
-                    style={btnStyle}
-                    aria-label={`${node.label || node.row} ${axis} up`}
-                    onClick={() => adjust(node.row, axis, "up")}
-                  >
-                    ▲
-                  </button>
-                  <button
-                    type="button"
-                    style={btnStyle}
-                    aria-label={`${node.label || node.row} ${axis} down`}
-                    onClick={() => adjust(node.row, axis, "down")}
-                  >
-                    ▼
-                  </button>
-                </span>
-              </span>
-            ))}
-          </div>
-        </div>
-      ))}
+    <div
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={popoverRowStyle(hover, false)}
+    >
+      <span style={{ flex: "1 1 auto" }}>{axis}</span>
+      <span style={{ fontVariantNumeric: "tabular-nums" }}>
+        {formatAngle(axis === "theta" ? node.theta : node.phi)}
+      </span>
+      <button
+        type="button"
+        aria-label={`${node.label || node.row} ${axis} up`}
+        onClick={(e) => { e.stopPropagation(); adjust("up"); }}
+        style={arrowBtnStyle}
+      >
+        ▲
+      </button>
+      <button
+        type="button"
+        aria-label={`${node.label || node.row} ${axis} down`}
+        onClick={(e) => { e.stopPropagation(); adjust("down"); }}
+        style={arrowBtnStyle}
+      >
+        ▼
+      </button>
     </div>
   );
 }
 
-// A node's two axis items, stacked under the node's name and indented — the indent is what
-// shows the nesting, so an axis reads as belonging to the node above it rather than as
-// another top-level item.
-const axesStyle: React.CSSProperties = {
-  display: "flex",
-  flexDirection: "column",
-  gap: 7,
-  paddingLeft: 8,
-};
+/** One collapsible node group, styled like OverlayGroupSection's heading. Collapsed by
+ *  default, same as the overlay groups. */
+function NodeGroupSection({ node }: { node: TiltVectorRow }) {
+  const [open, setOpen] = useState(false);
+  const [hover, setHover] = useState(false);
+  const heading = node.label || String(node.row);
+  return (
+    <div>
+      <div
+        onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }}
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
+        title={open ? `Collapse ${heading}` : `Expand ${heading}`}
+        style={groupHeadingStyle(hover)}
+      >
+        <span style={DISCLOSURE_GLYPH_STYLE}>{open ? "▼" : "▶"}</span>
+        <span style={{ flex: "1 1 auto" }}>{heading}</span>
+      </div>
+      {open && AXES.map((axis) => <AxisRow key={axis} node={node} axis={axis} />)}
+    </div>
+  );
+}
 
-// A node's name at the top of that node's own box — no column span needed any more, since
-// the node IS a box and its name is simply the first thing in it.
-const headerStyle: React.CSSProperties = {
-  color: "#fff",
-  paddingTop: 1,
-};
+/** ANGLES CONTROL: a labeled pill (no master toggle — the whole pill opens the popover) +
+ *  popover of per-node collapsible groups, one row per axis. Same pill/popover/heading/row
+ *  chrome as OverlaysControl (overlay-chrome.ts). */
+export function TiltVectorAnglePanel() {
+  const rows = useTiltVectorRows();
+  const [open, setOpen] = useState(false);
 
-const sepStyle: React.CSSProperties = {
-  height: 1,
-  background: "rgba(255,255,255,0.18)",
-  margin: "3px 0",
+  // Data-driven "no rows" render-nothing, same shape as DistanceHomePanel's all-zero
+  // check: null (no node frame decoded yet) or an empty list (this scene draws no tilt
+  // vectors at all) both mean nothing to show — the whole pill, not just the popover.
+  if (!rows || rows.length === 0) return null;
+
+  const onToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setOpen((o) => !o);
+  };
+
+  return (
+    <div style={pillContainerStyle(false)}>
+      {/* No master toggle: the whole pill (body + caret) opens/closes the popover. */}
+      <div onClick={onToggle} title={open ? "Close angles" : "Open angles"} style={pillBodyStyle}>
+        Angles
+      </div>
+      <div onClick={onToggle} title={open ? "Close angles" : "Open angles"} style={pillCaretStyle}>
+        {open ? "▲" : "▼"}
+      </div>
+
+      {open && (
+        <div style={popoverStyle(170)}>
+          {rows.map((node) => (
+            <NodeGroupSection key={node.row} node={node} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const arrowBtnStyle: React.CSSProperties = {
+  background: "rgba(255,255,255,0.12)",
+  border: "none",
+  borderRadius: 4,
+  color: "#e7e7ea",
+  fontSize: 10,
+  lineHeight: 1,
+  padding: "2px 5px",
+  cursor: "pointer",
 };
