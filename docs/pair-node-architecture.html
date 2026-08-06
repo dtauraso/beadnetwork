@@ -186,6 +186,7 @@
     <button class="on" data-t="anatomy">Anatomy</button>
     <button data-t="own">Ownership</button>
     <button data-t="vectors">Vectors</button>
+    <button data-t="math">Math</button>
     <button data-t="dots">Acute test</button>
     <button data-t="channels">Channels</button>
     <button data-t="cycle">Cycle</button>
@@ -449,6 +450,153 @@
           </svg>
           <div class="legend"><span><i style="background:#4ea1ff"></i>flipped 180°</span><span><i
                 style="background:#34343d;border:1px solid #3a3a44"></i>unflipped</span></div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─────────────────────────── MATH ─────────────────────────── -->
+    <section id="math">
+      <div class="grid">
+
+        <div class="card">
+          <h2>Everything from one integer</h2>
+          <svg width="440" height="290" viewBox="0 0 440 290">
+            <rect x="20" y="20" width="400" height="40" rx="8" fill="#2b2b33" stroke="#e05fd8" />
+            <text x="36" y="45" class="lblm" fill="#e05fd8">t — the stored top-tilt index</text>
+
+            <path d="M 220 60 L 220 84" stroke="#9a9aa6" />
+
+            <rect x="20" y="88" width="192" height="72" rx="8" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="36" y="110" class="lblm" fill="#f9a825">node 1</text>
+            <text x="36" y="130" class="lbl">bottom = t + 12</text>
+            <text x="36" y="150" class="lbl">normal = t + 6 (+12 odd pole)</text>
+
+            <rect x="228" y="88" width="192" height="72" rx="8" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="244" y="110" class="lblm" fill="#4ea1ff">node 2</text>
+            <text x="244" y="130" class="lbl">bottom = t − 12</text>
+            <text x="244" y="150" class="lbl">normal = t − 6</text>
+
+            <rect x="20" y="176" width="400" height="46" rx="8" fill="#2b2b33" stroke="#5fd68a" />
+            <text x="36" y="198" class="lblm" fill="#5fd68a">sent = normal turned a half turn</text>
+            <text x="36" y="216" class="lbl">node 1: (t + 6) − 12 · node 2: (t − 6) + 12</text>
+
+            <rect x="20" y="238" width="400" height="40" rx="8" fill="#2b2b33" stroke="#5fd68a" />
+            <text x="36" y="263" class="lblm" fill="#5fd68a">sent = t − 6 · sent = t + 6</text>
+          </svg>
+          <div class="cap">The half turn cancels one of the quarter turns, so what a node sends is its OWN top
+            turned 90° — node 1 back, node 2 forward. Same arithmetic either way round; the mirror is the sign.</div>
+        </div>
+
+        <div class="card">
+          <h2>The wrap</h2>
+          <svg width="300" height="250" viewBox="0 0 300 250">
+            <circle cx="150" cy="120" r="86" fill="none" stroke="#3a3a44" />
+            <g stroke="#3a3a44">
+              <line x1="150" y1="34" x2="150" y2="46" />
+              <line x1="150" y1="194" x2="150" y2="206" />
+              <line x1="64" y1="120" x2="76" y2="120" />
+              <line x1="224" y1="120" x2="236" y2="120" />
+            </g>
+            <text x="150" y="26" text-anchor="middle" class="lblm">0</text>
+            <text x="248" y="125" class="lblm">6</text>
+            <text x="150" y="224" text-anchor="middle" class="lblm">12</text>
+            <text x="40" y="125" class="lblm">18</text>
+
+            <path d="M 150 34 A 86 86 0 0 1 236 120" fill="none" stroke="#5fd68a" stroke-width="5" />
+            <path d="M 64 120 A 86 86 0 0 1 150 34" fill="none" stroke="#5fd68a" stroke-width="5" />
+            <path d="M 236 120 A 86 86 0 0 1 64 120" fill="none" stroke="#ff6b6b" stroke-width="5" />
+
+            <text x="150" y="120" text-anchor="middle" class="lblm" fill="#5fd68a">acute</text>
+          </svg>
+          <div class="cap">d = ((a − b) mod 24 + 24) mod 24. The doubled mod is because Go's % keeps the sign of the
+            dividend, and these indices run negative constantly — node 1's base step subtracts.</div>
+        </div>
+
+        <div class="card">
+          <h2>A worked exchange</h2>
+          <svg width="420" height="300" viewBox="0 0 420 300">
+            <text x="70" y="24" text-anchor="middle" class="lblm" fill="#f9a825">node 1</text>
+            <text x="350" y="24" text-anchor="middle" class="lblm" fill="#4ea1ff">node 2</text>
+            <line x1="70" y1="34" x2="70" y2="284" stroke="#3a3a44" />
+            <line x1="350" y1="34" x2="350" y2="284" stroke="#3a3a44" />
+
+            <text x="70" y="58" text-anchor="middle" class="lbl">t = 0</text>
+            <text x="350" y="58" text-anchor="middle" class="lbl">t = 3</text>
+
+            <line x1="76" y1="80" x2="344" y2="80" stroke="#5fd68a" stroke-width="1.6" />
+            <text x="210" y="72" text-anchor="middle" class="lblm" fill="#5fd68a">START sends 0 − 6 = 18</text>
+            <text x="350" y="100" text-anchor="middle" class="lbl">18 vs bottom 15 → d=3 → step −1</text>
+            <text x="350" y="118" text-anchor="middle" class="lblm">t = 2</text>
+
+            <line x1="344" y1="140" x2="76" y2="140" stroke="#4ea1ff" stroke-width="1.6" />
+            <text x="210" y="132" text-anchor="middle" class="lblm" fill="#4ea1ff">sends 2 + 6 = 8</text>
+            <text x="70" y="160" text-anchor="middle" class="lbl">8 vs bottom 12 → d=20 → step +1</text>
+            <text x="70" y="178" text-anchor="middle" class="lblm">t = 1</text>
+
+            <line x1="76" y1="200" x2="344" y2="200" stroke="#5fd68a" stroke-width="1.6" />
+            <text x="210" y="192" text-anchor="middle" class="lblm" fill="#5fd68a">sends 1 − 6 = 19</text>
+            <text x="350" y="220" text-anchor="middle" class="lbl">19 vs bottom 14 → d=5 → step −1</text>
+            <text x="350" y="238" text-anchor="middle" class="lblm">t = 1</text>
+
+            <line x1="344" y1="260" x2="76" y2="260" stroke="#4ea1ff" stroke-width="1.6" />
+            <text x="210" y="252" text-anchor="middle" class="lblm" fill="#4ea1ff">sends 1 + 6 = 7</text>
+            <text x="70" y="280" text-anchor="middle" class="lbl">7 vs top 1 → d=6 → HALT</text>
+          </svg>
+          <div class="cap">Three rounds. Both tops end at 1: the pair straightens onto one axis, and the run ends
+            on an arrival that is exactly a quarter turn from the receiver's own tilt.</div>
+        </div>
+
+        <div class="card">
+          <h2>Where it lands</h2>
+          <svg width="420" height="200" viewBox="0 0 420 200">
+            <rect x="20" y="24" width="380" height="46" rx="8" fill="#2b2b33" stroke="#5fd68a" />
+            <text x="36" y="46" class="lblm" fill="#5fd68a">every start in [−12, 12]² — 625 openings</text>
+            <text x="36" y="64" class="lbl">all 625 halt · longest run 17 rounds</text>
+
+            <rect x="20" y="86" width="185" height="60" rx="8" fill="#2b2b33" stroke="#e05fd8" />
+            <text x="112" y="110" text-anchor="middle" class="lblm" fill="#e05fd8">t₂ − t₁ = 0</text>
+            <text x="112" y="130" text-anchor="middle" class="lbl">572 — tops parallel</text>
+
+            <rect x="215" y="86" width="185" height="60" rx="8" fill="#2b2b33" stroke="#b34fa8" />
+            <text x="307" y="110" text-anchor="middle" class="lblm" fill="#b34fa8">t₂ − t₁ = 12</text>
+            <text x="307" y="130" text-anchor="middle" class="lbl">53 — tops antiparallel</text>
+
+            <rect x="20" y="160" width="380" height="30" rx="8" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="36" y="180" class="lbl">both are the same drawn axis — that axis is what "straightening" means</text>
+          </svg>
+        </div>
+
+        <div class="card">
+          <h2>What the pole flip changes</h2>
+          <svg width="440" height="200" viewBox="0 0 440 200">
+            <text x="30" y="34" class="lbl">config</text>
+            <text x="250" y="34" class="lbl">longest run</text>
+            <text x="360" y="34" class="lbl">antiparallel</text>
+            <line x1="20" y1="44" x2="420" y2="44" stroke="#3a3a44" />
+
+            <text x="30" y="70" class="lblm" fill="#5fd68a">as built — node 1 only</text>
+            <text x="250" y="70" class="lblm">17</text>
+            <text x="360" y="70" class="lblm">53</text>
+
+            <text x="30" y="100" class="lbl">neither flips</text>
+            <text x="250" y="100" class="lbl">5</text>
+            <text x="360" y="100" class="lbl">26</text>
+
+            <text x="30" y="130" class="lbl">both flip</text>
+            <text x="250" y="130" class="lbl">20</text>
+            <text x="360" y="130" class="lbl">74</text>
+
+            <text x="30" y="160" class="lbl">node 2 only</text>
+            <text x="250" y="160" class="lbl">17</text>
+            <text x="360" y="160" class="lbl">26</text>
+
+            <rect x="20" y="176" width="400" height="20" rx="6" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="30" y="191" class="lbl">every configuration halts on all 625 openings</text>
+          </svg>
+          <div class="cap">The flip sets how long a run takes and which colinear end it reaches. Termination does not
+            depend on it — so the open question is about the DRAWN normal across a pole, which is what it was asked
+            for.</div>
         </div>
 
       </div>
