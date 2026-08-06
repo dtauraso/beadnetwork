@@ -44,7 +44,12 @@ const DEFAULT_INDEX = SPEED_SETTINGS.findIndex((s) => s.speed === 1);
 
 // Slider track width, in px, shared by the input and the tick-label row below it so the
 // labels line up with the positions they name.
-const TRACK_W = 104;
+//
+// Sized by the LABELS, not by the control. Six stops across the old 104px left ~17px each,
+// and "3/4" in 11px monospace is wider than that — so the fractions crowded into one
+// another and read as cramped no matter how they were styled. The width below gives each
+// label its own room with a gap between neighbours.
+const TRACK_W = 176;
 
 // Half a range thumb, in px. The thumb's CENTRE at the extremes sits this far inside the
 // track's own ends, so the label row is inset by the same amount — otherwise "0" and "2"
@@ -143,9 +148,11 @@ const ticksStyle: React.CSSProperties = {
   width: TRACK_W,
   padding: `0 ${THUMB_INSET}px`,
   boxSizing: "border-box",
-  fontSize: 11,
+  fontSize: 12,
   fontFamily: "monospace",
-  lineHeight: 1,
+  // Room for the numerator and denominator to sit FRAC_SHIFT px above and below the
+  // baseline without the row clipping them.
+  lineHeight: 1.6,
   userSelect: "none",
   pointerEvents: "none",
 };
@@ -167,7 +174,7 @@ const tickStyle: React.CSSProperties = { color: "#000" };
 // precomposed "¼" glyph does at this size. translateY moves them WITHOUT changing the
 // line's own height (unlike vertical-align, which grows the line box and would shove the
 // label row down away from the track), so the tick row stays tight under the slider.
-const FRAC_SHIFT = 2;
+const FRAC_SHIFT = 4;
 
 const numStyle: React.CSSProperties = {
   display: "inline-block",
