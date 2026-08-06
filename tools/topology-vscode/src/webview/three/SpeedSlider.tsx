@@ -12,19 +12,31 @@ import { usePlaybackSpeed } from "./overlay-flags";
 // can lose step with each other (a setting added to one and not the other), and nothing
 // would catch it — the labels would silently name the wrong speeds from that index on.
 //
-// The quarters read as vulgar fractions rather than decimals because the table IS quarters
-// of the clock (nodes/wire.MsPerTick is divisible by 4 so they divide exactly —
-// clock_ms_per_tick_quarters_test.go pins that); "¼" says that where "0.25" reads as an
-// arbitrary decimal. Each label is a single precomposed glyph — building one out of a
-// numerator, a slash and a denominator was tried and reverted.
+// The quarters read as fractions rather than decimals because the table IS quarters of the
+// clock (nodes/wire.MsPerTick is divisible by 4 so they divide exactly —
+// clock_ms_per_tick_quarters_test.go pins that); a fraction says that where "0.25" reads as
+// an arbitrary decimal.
+//
+// A fraction carries `num`/`den` and is drawn stacked over a bar (see fracStyle); a whole
+// number carries `label` and is drawn as itself. The quarters were previously the single
+// precomposed glyphs ¼/½/¾, which render stacked-over-a-bar in this font — but with their
+// numerator and denominator almost touching, and a glyph's internal spacing cannot be
+// adjusted. Composing the same two digits, AT THE SAME SIZE the glyph draws them
+// (FRAC_EM), is what makes that one gap settable. This is a gap change only: nothing here
+// resizes a component or restyles it.
 const SPEED_SETTINGS = [
   { speed: 0, label: "0" },
-  { speed: 0.25, label: "¼" },
-  { speed: 0.5, label: "½" },
-  { speed: 0.75, label: "¾" },
+  { speed: 0.25, num: "1", den: "4" },
+  { speed: 0.5, num: "1", den: "2" },
+  { speed: 0.75, num: "3", den: "4" },
   { speed: 1, label: "1" },
   { speed: 2, label: "2" },
 ] as const;
+
+// settingKey identifies a setting for React's list reconciliation — the speed itself, which
+// is unique across the table by construction (a label is not: "1" appears as both a whole
+// number and a numerator).
+const settingKey = (s: (typeof SPEED_SETTINGS)[number]): string => String(s.speed);
 
 // DEFAULT_INDEX is the position holding multiplier 1 — what the slider shows until the
 // first snapshot decodes, matching Go's own defaultPlaybackSpeed fallback for a missing or
@@ -79,8 +91,16 @@ export function SpeedSlider() {
           second place saying the same thing. */}
       <span style={ticksStyle} aria-hidden="true">
         {SPEED_SETTINGS.map((setting, i) => (
-          <span key={setting.label} style={i === index ? tickOnStyle : tickStyle}>
-            {setting.label}
+          <span key={settingKey(setting)} style={i === index ? tickOnStyle : tickStyle}>
+            {"label" in setting ? (
+              setting.label
+            ) : (
+              <span style={fracStyle}>
+                <span>{setting.num}</span>
+                <span style={fracBarStyle} />
+                <span>{setting.den}</span>
+              </span>
+            )}
           </span>
         ))}
       </span>
@@ -142,6 +162,39 @@ const ticksStyle: React.CSSProperties = {
 // is shown is shown to be read, and greying the unselected ones makes five of the six
 // settings harder to read in exchange for saying something WEIGHT already says.
 const tickStyle: React.CSSProperties = { color: "#000" };
+
+// --- the stacked fraction ---
+//
+// FRAC_EM is the numerator/denominator size as a fraction of the row's own font size. It is
+// set to what the precomposed ¼/½/¾ glyphs draw their own digits at, so replacing a glyph
+// with two composed digits does not change how big anything looks — only the gap between
+// them moves.
+const FRAC_EM = 0.62;
+
+// FRAC_GAP is the ONE number this change exists to set: the space above and below the bar,
+// in px. The glyphs sit their numerator and denominator almost against the bar; this opens
+// that up by roughly 2px total.
+const FRAC_GAP = 1;
+
+const fracStyle: React.CSSProperties = {
+  display: "inline-flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  verticalAlign: "middle",
+  fontSize: `${FRAC_EM}em`,
+  lineHeight: 1,
+};
+
+// The fraction bar, drawn in the text's own colour so it bolds along with the digits when
+// this is the selected position.
+const fracBarStyle: React.CSSProperties = {
+  display: "block",
+  width: "100%",
+  height: 1,
+  margin: `${FRAC_GAP}px 0`,
+  background: "currentColor",
+};
 
 // The selected position is marked by WEIGHT ALONE — same colour as the rest, just bold.
 const tickOnStyle: React.CSSProperties = { color: "#000", fontWeight: "bold" };

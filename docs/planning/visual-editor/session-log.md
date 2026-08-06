@@ -549,3 +549,40 @@ narrowing so the escape hatch closes behind itself.
 (2026-07-28), on main.** The marker now exempts only the paths it lists; a path-less
 `[allow-test-weakening]` is a hard failure, and so is one naming a file the branch never
 changed (a typo'd path read identically to a granted exemption). Nothing open here.
+
+## Speed slider: the tick labels, and three wrong fixes before the right one
+
+**2026-08-05, `task/speed-four-ticks`.** The slider grew from three positions to six
+(0, ¼, ½, ¾, 1, 2) with a label under each. Getting those labels readable took four
+attempts, and only the last one was aimed at the actual defect.
+
+![speed slider fraction gap](screenshots/2026-08-05-speed-slider-fraction-gap-1.png)
+
+The screenshot is what finally settled it. Three earlier fixes were all guesses made
+without one:
+
+- **"They're barely visible"** — the labels were `#ddd` at 0.5 opacity, the DARK
+  overlay-panel palette, but the slider portals into `.toolbar`, which is
+  `background: #fff`. Near-white on white. Check which surface a widget sits on before
+  picking a colour; the two palettes in this webview are not interchangeable.
+- **"A few px different, not completely different glyphs"** — the fix rebuilt each
+  fraction from full-size digits around a slash, which changed how big everything looked.
+  The ask was a gap, and only a gap.
+- **"The ticks are the same"** — twice. Both times the deployed code WAS current (bundle
+  fresh, cache-busted on mtime); the changes were simply too small to see. The useful move
+  was not another adjustment but asking what was actually on screen, which established in
+  one question that the new code was live and the problem was sizing.
+
+**The real defect, from the screenshot:** ¼/½/¾ render stacked over a bar in this font,
+with numerator and denominator almost touching. A precomposed glyph's internal spacing is
+not adjustable, so the fraction has to be COMPOSED to make that gap settable — but at
+`FRAC_EM`, the size the glyph draws its own digits at, so nothing changes size and only the
+gap moves. `FRAC_GAP` is the one number the change exists to set.
+
+**Lesson worth keeping:** a repeated "I see no change" is not a signal to adjust harder. It
+is a signal to verify the change is reaching the screen, and then to ask what IS on screen.
+Two rounds of pixel-guessing were spent before that question got asked.
+
+**Guard note:** `tools/check-no-shell-source-edits.sh` (added the same day) blocked the
+`cat >> session-log.md` that first tried to write this entry. Working as intended, on its
+author, within the hour.
