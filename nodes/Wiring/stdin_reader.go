@@ -419,25 +419,30 @@ func applyUpdateDistanceGroup(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speed
 	md.ApplyDistanceGroupTarget(msg.Num, dir)
 }
 
-// applyUpdateTiltVector handles kind=="tiltVector" attr=="theta"/"phi"/"reset": either one
-// arrow click on the per-node tilt-vector-angle panel, or one click of the RESET button
-// (TiltResetButton.tsx). msg.Num is the target node's buffer ROW (never its id/name — no
-// sidecar on this wire, .claude/rules/bridge-surface.md); for theta/phi, msg.Flag is "up"
-// (+1 step) or "down" (-1 step) — "reset" carries no direction, since it always returns
-// both indices to 0. ROW ID = NODE ID - 1 by construction (persistence-ownership.md), so
-// the row resolves to an id directly — no reverse lookup table needed.
+// applyUpdateTiltVector handles kind=="tiltVector" attr=="theta"/"phi"/"reset"/"start":
+// one arrow click on the per-node tilt-vector-angle panel, one click of the RESET button
+// (TiltResetButton.tsx), or one click of the START TILT button (TiltVectorButtons.tsx).
+// msg.Num is the target node's buffer ROW (never its id/name — no sidecar on this wire,
+// .claude/rules/bridge-surface.md); for theta/phi, msg.Flag is "up" (+1 step) or "down"
+// (-1 step) — "reset" and "start" carry no direction. ROW ID = NODE ID - 1 by construction
+// (persistence-ownership.md), so the row resolves to an id directly — no reverse lookup
+// table needed.
 //
-// Two routes, decided by whether the target node's OWN kind claimed
-// BuildArgs.TiltEditIn at build time (Node1/Node2 today — the only kinds that own their
-// tilt index independently, per the straightening loop's firing rule): md.sendTiltEdit
+// theta/phi/reset each have two routes, decided by whether the target node's OWN kind
+// claimed BuildArgs.TiltEditIn at build time (Node1/Node2 today — the only kinds that own
+// their tilt index independently, per the straightening loop's firing rule): md.sendTiltEdit
 // tries that node's dedicated channel first and reports whether one exists. When it does
 // NOT (every other kind), this falls back to the old path — md.sendMove onto the node's
 // mover (moveMsgKindTiltVectorAngle / moveMsgKindTiltVectorReset) — so the index write +
 // persist + re-emit still run on that node's own mover goroutine, unchanged for every kind
-// but the pair. Reset places NO bead on either route — it is a stop-and-return, not "the
-// kick" a theta/phi click always sends.
+// but the pair. A theta/phi click now moves the index by exactly one step and sends/places
+// nothing else (task/pair-node-owns-itself split); reset places NO bead either.
+//
+// start has ONE route only: it is meaningless off the pair's own vector exchange, so it is
+// sent to md.sendTiltEdit and simply dropped when that channel does not exist (see the
+// "start" branch below) — no mover fallback, unlike theta/phi/reset.
 func applyUpdateTiltVector(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
-	if md == nil || (msg.Attr != "theta" && msg.Attr != "phi" && msg.Attr != "reset") {
+	if md == nil || (msg.Attr != "theta" && msg.Attr != "phi" && msg.Attr != "reset" && msg.Attr != "start") {
 		return
 	}
 	id := strconv.Itoa(msg.Num + 1)
@@ -449,6 +454,14 @@ func applyUpdateTiltVector(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSin
 			return
 		}
 		md.sendMove(id, moveMsg{Kind: moveMsgKindTiltVectorReset, NodeID: id})
+		return
+	}
+	if msg.Attr == "start" {
+		// Start only exists on the pair kinds' own dedicated channel (Node1/Node2's
+		// VectorOut/outgoingVector) — there is no mover-owned fallback, unlike
+		// theta/phi/reset: a kind that never claimed BuildArgs.TiltEditIn has no vector
+		// exchange to open, so a Start for it is simply a no-op.
+		md.sendTiltEdit(id, TiltEditMsg{Start: true})
 		return
 	}
 	up := msg.Flag == "up"

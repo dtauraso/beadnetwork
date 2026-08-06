@@ -17,10 +17,11 @@ import (
 // what turned a pair one way forever. The bead now only paces; stepFromVector's dots are
 // the only rule that turns a tilt on an arrival, and they are asserted below.
 
-// applyTiltEdit is what the RESET button (TiltResetButton.tsx) and the tilt-angle panel
-// both drive; this asserts THIS node kind's own decision for a reset, from any starting
-// indices: both indices land on 0 (the start position), and — unlike an adjust — no bead
-// is placed ("the kick" only fires for a panel nudge, never a stop-and-return).
+// applyTiltEdit is what the RESET button, the START TILT button, and the tilt-angle panel
+// (TiltVectorButtons.tsx / TiltVectorAnglePanel.tsx) each drive; this asserts THIS node
+// kind's own decision for a reset, from any starting indices: both indices land on 0 (the
+// start position), and — unlike Start — no bead is placed ("the kick" only fires for
+// Start, never a stop-and-return).
 func TestApplyTiltEditResetReturnsBothIndicesToZero(t *testing.T) {
 	for _, start := range []struct{ theta, phi int32 }{
 		{0, 0},
@@ -121,16 +122,25 @@ func TestApplyTiltEditResetDrainsVectorIn(t *testing.T) {
 	}
 }
 
-// A non-reset edit (the panel's ±1 click) still unconditionally applies its delta and
-// reports a bead should be placed — the RESET addition must not change this existing path.
-func TestApplyTiltEditAdjustStillPlacesBead(t *testing.T) {
-	n := &Node{TopTiltThetaIdx: 3, TopTiltPhiIdx: 1}
+// A plain adjust (the panel's ▲/▼ click, neither Reset nor Start) moves the named index by
+// exactly one step and does NOTHING else: no bead, no send on VectorOut
+// (task/pair-node-owns-itself split — this used to also open the vector exchange as a side
+// effect, "the kick", which made one click move the tilt by many π/12 steps once the
+// exchange settled).
+func TestApplyTiltEditAdjustMovesOneStepAndSendsNothing(t *testing.T) {
+	out := make(chan Wiring.TiltVectorMsg, 1)
+	n := &Node{TopTiltThetaIdx: 3, TopTiltPhiIdx: 1, VectorOut: out}
 	placeBead := n.applyTiltEdit(Wiring.TiltEditMsg{Axis: "theta", Up: true})
-	if !placeBead {
-		t.Fatalf("adjust must place a bead, got placeBead=false")
+	if placeBead {
+		t.Fatalf("a plain adjust must place NO bead, got placeBead=true")
 	}
 	if n.TopTiltThetaIdx != 4 || n.TopTiltPhiIdx != 1 {
 		t.Fatalf("adjust theta up: want theta=4 phi=1, got theta=%d phi=%d", n.TopTiltThetaIdx, n.TopTiltPhiIdx)
+	}
+	select {
+	case v := <-out:
+		t.Fatalf("a plain adjust must send NOTHING on VectorOut; got %+v", v)
+	default:
 	}
 }
 
@@ -477,28 +487,34 @@ func TestReceivedResetMarkerRunsTheFullClear(t *testing.T) {
 	}
 }
 
-// The panel click is the vector exchange's OPENING MOVE, not just the bead's. Without it
-// nothing is ever sent on the channel that is not a reply to an arrival, so no arrival ever
-// happens, no node records a received direction, and the third arrow cannot be drawn
-// anywhere. Asserts what this ONE goroutine's own method emits, per docs/testing-shape.md.
-func TestPanelAdjustOpensTheVectorExchange(t *testing.T) {
+// START is the vector exchange's OPENING MOVE (task/pair-node-owns-itself split — this used
+// to be a panel adjust's side effect). Without it nothing is ever sent on the channel that
+// is not a reply to an arrival, so no arrival ever happens, no node records a received
+// direction, and the third arrow cannot be drawn anywhere. It sends from whatever angles are
+// CURRENTLY set and changes NO index. Asserts what this ONE goroutine's own method emits,
+// per docs/testing-shape.md.
+func TestStartOpensTheVectorExchangeWithoutChangingAnyIndex(t *testing.T) {
 	out := make(chan Wiring.TiltVectorMsg, 1)
-	n := &Node{TopTiltThetaIdx: 3, VectorOut: out}
+	n := &Node{TopTiltThetaIdx: 3, TopTiltPhiIdx: -2, VectorOut: out}
 
-	n.applyTiltEdit(Wiring.TiltEditMsg{Axis: "theta", Up: true})
+	placeBead := n.applyTiltEdit(Wiring.TiltEditMsg{Start: true})
 
+	if !placeBead {
+		t.Fatal("Start must place a bead, got placeBead=false")
+	}
+	if n.TopTiltThetaIdx != 3 || n.TopTiltPhiIdx != -2 {
+		t.Fatalf("Start must change NO index; got theta=%d phi=%d, want unchanged theta=3 phi=-2", n.TopTiltThetaIdx, n.TopTiltPhiIdx)
+	}
 	select {
 	case got := <-out:
 		if got.Reset {
-			t.Fatal("a panel adjust must send a DIRECTION, not a reset marker")
+			t.Fatal("Start must send a DIRECTION, not a reset marker")
 		}
-		// The direction must be derived from the index this click produced (4), not the
-		// one it replaced (3) — otherwise the partner aims at a tilt that no longer exists.
 		if want := n.outgoingVector(); got != want {
-			t.Fatalf("sent %+v, want this node's post-click outgoing vector %+v", got, want)
+			t.Fatalf("sent %+v, want this node's current outgoing vector %+v", got, want)
 		}
 	default:
-		t.Fatal("a panel adjust sent nothing on VectorOut; the exchange has no opening move and the third arrow can never appear")
+		t.Fatal("Start sent nothing on VectorOut; the exchange has no opening move and the third arrow can never appear")
 	}
 }
 

@@ -49,8 +49,8 @@ import (
 // record through both encoders and diffs the fields; do not re-add a version pretending to
 // be a checked invariant.
 //
-// INPUT_LAYOUT_FINGERPRINT: kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock,distanceGroup,scene,tiltVector updateAttrs=toggle,speed,length,selected,theta,phi,reset overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays
-const InputLayoutFingerprint = "kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock,distanceGroup,scene,tiltVector updateAttrs=toggle,speed,length,selected,theta,phi,reset overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays"
+// INPUT_LAYOUT_FINGERPRINT: kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock,distanceGroup,scene,tiltVector updateAttrs=toggle,speed,length,selected,theta,phi,reset,start overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays
+const InputLayoutFingerprint = "kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock,distanceGroup,scene,tiltVector updateAttrs=toggle,speed,length,selected,theta,phi,reset,start overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays"
 
 // Record kind bytes (first byte of every record).
 const (
@@ -76,6 +76,7 @@ const (
 	inTiltVectorAttrTheta     = 4 // tiltVector: adjust the vector's θ index by one click
 	inTiltVectorAttrPhi       = 5 // tiltVector: adjust the vector's φ index by one click
 	inTiltVectorAttrReset     = 6 // tiltVector: return both indices to 0 (the RESET button)
+	inTiltVectorAttrStart     = 7 // tiltVector: begin the vector exchange from the current angles (the START TILT button)
 )
 
 // Enum orderings (u8 index → string), shared with input-layout-gen.ts. All five orderings
@@ -299,6 +300,15 @@ func decodeInputRecord(rec []byte) (stdinMsg, bool) {
 					return stdinMsg{}, false
 				}
 				return stdinMsg{Type: "edit", Op: "update", Kind: "tiltVector", Attr: "reset", Num: int(row)}, true
+			case inTiltVectorAttrStart:
+				// [u8 nodeRow] — the START TILT button (TiltVectorButtons.tsx). No
+				// direction: Start never touches an index, it only opens the vector
+				// exchange from whatever angles are currently set.
+				row, errR := r.u8()
+				if errR != nil {
+					return stdinMsg{}, false
+				}
+				return stdinMsg{Type: "edit", Op: "update", Kind: "tiltVector", Attr: "start", Num: int(row)}, true
 			}
 			return stdinMsg{}, false
 		}
