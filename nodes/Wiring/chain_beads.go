@@ -3,10 +3,17 @@ package Wiring
 import (
 	"fmt"
 	"math"
+	"os"
 
 	T "github.com/dtauraso/wirefold/Trace"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
+
+// chainAimTraceEnabled gates the per-tick "chain-aim" breadcrumb below. Read ONCE at
+// process start, before any goroutine exists — the same "one env var, read once" shape
+// wire.edgeBeadTraceEnabled uses for the other high-volume trace, so no goroutine ever
+// races on it and no synchronization is needed.
+var chainAimTraceEnabled = os.Getenv("WIREFOLD_CHAIN_AIM_TRACE") == "1"
 
 // chain_beads.go — the node-owned placeholder bead chain that IS the visual of an edge.
 // Design and staging: docs/beads-are-the-edge.md. The LENGTH model (one integer bead-step
@@ -315,7 +322,17 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 		// per chainBeads() call. Gated on m.tr != nil exactly like emitGeometry's own
 		// breadcrumb calls elsewhere in this package — cheap no-op with no stream wired
 		// (headless tests, bare movers).
-		if m.tr != nil {
+		// DIAGNOSTIC, AND OFF BY DEFAULT. chainBeads runs once per cycle per outgoing
+		// target, so this breadcrumb is per-tick — 56,492 rows and 15 MB from a single
+		// two-node run, which buries every control-event breadcrumb emitted alongside it
+		// and is the exact firehose .claude/rules/go-debugging.md warns against ("keep it
+		// SPARSE — it is a debug tool for control events, not a per-tick firehose").
+		//
+		// Gated at the SOURCE on one env var read once at process start, the same shape
+		// WIREFOLD_EDGE_BEAD_TRACE uses for the other high-volume trace (paced_wire.go):
+		// with it unset nothing is formatted and nothing is appended, rather than being
+		// built and discarded downstream. Set WIREFOLD_CHAIN_AIM_TRACE=1 to get it back.
+		if m.tr != nil && chainAimTraceEnabled {
 			targetRow := int32(-1)
 			if m.nodeRowFor != nil {
 				if r, ok := m.nodeRowFor(to); ok {
