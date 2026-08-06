@@ -15,7 +15,7 @@ import (
 // Ports and Build both come from the kind itself, via RegisterBuilder.
 type NodeBuilder struct {
 	Ports []PortSpec
-	Build func(ctx context.Context, name string, data *NodeData, pb PortBindings, tr *T.Trace, geom nodeGeom, tiltThetaIdx, tiltPhiIdx int32) (wire.Node, error)
+	Build func(ctx context.Context, name string, data *NodeData, pb PortBindings, tr *T.Trace, geom nodeGeom, tiltThetaIdx int32) (wire.Node, error)
 }
 
 // Registry is the loader-facing map, populated one kind at a time by

@@ -91,8 +91,10 @@ mover) carries THREE distinct edits, applied by `applyTiltEdit` (`nodes/Node1/no
 
 Alongside the bead edges above, each directed edge between two vector-capable kinds
 (today: Node1/Node2 only — `Wiring.KindWantsVectorChannel`) gets its OWN dedicated
-node-to-node channel carrying `Wiring.TiltVectorMsg`, an integer θ/φ INDEX pair (never
-floats on a channel). Buffered depth 1, latest-wins, both ends non-blocking
+node-to-node channel carrying `Wiring.TiltVectorMsg`, a single integer θ INDEX (never
+floats on a channel; there is no φ — every tilt vector in this exchange is θ-only, which
+is what lets `Wiring.TiltVectorIsAcute` be an exact integer comparison instead of a dot
+product against an epsilon). Buffered depth 1, latest-wins, both ends non-blocking
 (`Wiring.SendVectorLatestNonBlocking` / `Wiring.PollRecvVector`) — same shape as the
 speed-delivery channel. It travels additively: beads are unaffected, and this channel
 never carries a bead value or vice versa.
@@ -103,8 +105,8 @@ loop body) runs:
 - **Coplanar normal**: a quarter turn (`Wiring.PerpendicularThetaIdx`, 6 steps of
   `Wiring.CurveParamTiltVectorAngleStep`, i.e. 90°) from THIS node's OWN tilt vector —
   pure index arithmetic (`theta+6`), never a cross product — so the normal turns WITH
-  the tilt, always staying 90° away, rather than holding still toward the partner. φ is
-  unchanged. Node1 ADDS the quarter turn; Node2 (its mirror package) SUBTRACTS it, same
+  the tilt, always staying 90° away, rather than holding still toward the partner. There
+  is no φ. Node1 ADDS the quarter turn; Node2 (its mirror package) SUBTRACTS it, same
   ± split as every other per-kind sign here. On top of that base quarter turn,
   `coplanarNormal` (`nodes/Node1/node.go`) ALSO adds a half turn (`Wiring.HalfTurnThetaIdx`)
   whenever `TopTiltThetaIdx` has crossed an ODD number of poles (`floorDiv(TopTiltThetaIdx,
@@ -115,30 +117,31 @@ loop body) runs:
   pole. This is a PURE function of `TopTiltThetaIdx` alone — no stored "did we just cross"
   flag, no comparison against a previous value. This node's own goroutine computes the
   normal (`coplanarNormal`) and reports the tilt index, the normal index, AND the bottom
-  tilt index to its own geometry in one call (`syncTiltIndex`, `SyncTiltIndex(theta, phi,
-  normalTheta, normalPhi, bottomTheta, bottomPhi)`) every time any of them changes. That
+  tilt index to its own geometry in one call (`syncTiltIndex`, `SyncTiltIndex(theta,
+  normalTheta, bottomTheta)`) every time any of them changes. That
   is a plain method call on this node's OWN goroutine, not a message to a second one:
   there is no `nodeMover` for this kind, and `PairNodeSelf.SetTiltIndex` sets the
   geometry's mirror fields directly. The geometry stays a pure mirror — it streams exactly
-  what it is told as the buffer's `CoplanarNormalTheta`/`CoplanarNormalPhi` columns and
+  what it is told as the buffer's `CoplanarNormalTheta` column and
   never derives a normal from the edge itself (`coplanarNormalTowardPartner` was removed).
 - **Bottom tilt vector**: this node's TOP tilt vector turned a half turn (180°,
   `Wiring.HalfTurnThetaIdx`) in θ — Node1 adds it, its mirror package does the
-  opposite. φ untouched. A half turn in θ alone negates the direction exactly in this
+  opposite. There is no φ. A half turn in θ alone negates the direction exactly in this
   parameterization, so both signs land in the SAME drawn direction and the sign is index
   bookkeeping only. It shares the top's length column (`TopTiltVectorLen`) and its colour;
   it is one of the two dot-product operands above.
 - **What this node SENDS**: that coplanar normal rotated 180° in θ. Node1 turns −180°
   (−12 steps of π/12, i.e. `2 × PerpendicularThetaIdx` subtracted); Node2 (its mirror
-  package) turns +180° (+12 steps). φ is untouched. Index arithmetic only.
+  package) turns +180° (+12 steps). Index arithmetic only.
 - **On receiving a vector**: FIRST, unconditionally, this node records the received
-  direction as its own THIRD drawn vector (`ReceivedThetaIdx`/`ReceivedPhiIdx`/
+  direction as its own THIRD drawn vector (`ReceivedThetaIdx`/
   `ReceivedSet`, reported to its own geometry via `SyncReceivedVector` — same
   passive-mirror shape as `SyncTiltIndex`, and likewise a direct call rather than a
   message) — REPLACING whatever it received last time,
-  regardless of whether the step below fires. THEN the step decision: TWO DOT PRODUCTS —
+  regardless of whether the step below fires. THEN the step decision: TWO ACUTE TESTS —
   the received vector against this node's own TOP tilt vector, and against its own BOTTOM
-  tilt vector (`Wiring.TiltVectorIsAcute`, the sign of `Wiring.TiltVectorDot`). They decide
+  tilt vector (`Wiring.TiltVectorIsAcute`, an integer comparison on the π/12 index lattice,
+  no dot product and no epsilon — see that function). They decide
   BOTH questions, whether to move and which way:
   - acute with the TOP tilt: step `TopTiltThetaIdx` ONE click SUBTRACTING (−1) — Node1's base
     direction; its mirror package's base is the opposite, so a pair still turns
@@ -200,8 +203,8 @@ the clocks changes.
 
 Alongside its own tilt vector and the coplanar normal, this node draws a THIRD arrow:
 the direction that last ARRIVED on its vector channel (`ReceivedThetaIdx`/
-`ReceivedPhiIdx`, streamed as the buffer's `ReceivedVectorLen`/`ReceivedVectorTheta`/
-`ReceivedVectorPhi` columns, `Buffer/layout.go`). It:
+streamed as the buffer's `ReceivedVectorLen`/`ReceivedVectorTheta` columns,
+`Buffer/layout.go`). It:
 
 - Persists indefinitely once set — it is NOT cleared when the straightening exchange
   settles (i.e. neither dot is acute, so nothing steps and nothing is sent). An arrival is

@@ -56,13 +56,14 @@ type BuildArgs struct {
 	tr   *T.Trace
 	geom nodeGeom
 
-	// tiltThetaIdx/tiltPhiIdx are this node's PERSISTED tilt-vector-angle indices
-	// (topo_spec.go's specNode.TopTiltVectorThetaIdx/PhiIdx, dereferenced with a 0 default),
+	// tiltThetaIdx is this node's PERSISTED tilt-vector-angle index
+	// (topo_spec.go's specNode.TopTiltVectorThetaIdx, dereferenced with a 0 default),
 	// threaded in from the loaded spec so a kind that owns its own index (TiltVectorAngleSeed)
 	// can seed its own struct field from the SAME value the mover used to seed itself with
 	// (build.go's old nm.topTiltVectorThetaIdx assignment) — one load-time value, read by
-	// whichever goroutine ends up owning it.
-	tiltThetaIdx, tiltPhiIdx int32
+	// whichever goroutine ends up owning it. There is no φ counterpart
+	// (task/drop-tilt-vector-phi) — the tilt vector is θ-only end to end.
+	tiltThetaIdx int32
 
 	// sourceOuts collects every Out this node resolves. reflectBuild shared one slice
 	// between its closure injection and its port wiring; the same slice is threaded here
@@ -162,12 +163,12 @@ func (a BuildArgs) Fire() func() {
 	}
 }
 
-// TiltVectorAngleSeed returns this node's persisted tilt-vector-angle indices
-// (specNode.TopTiltVectorThetaIdx/PhiIdx, 0 default) — the load-time seed for a kind that
+// TiltVectorAngleSeed returns this node's persisted tilt-vector-angle index
+// (specNode.TopTiltVectorThetaIdx, 0 default) — the load-time seed for a kind that
 // owns its OWN index field (Node1/Node2), so it starts from the same persisted value the
 // mover used to seed itself with before this reshape.
-func (a BuildArgs) TiltVectorAngleSeed() (theta, phi int32) {
-	return a.tiltThetaIdx, a.tiltPhiIdx
+func (a BuildArgs) TiltVectorAngleSeed() (theta int32) {
+	return a.tiltThetaIdx
 }
 
 // TiltEditIn claims this node's dedicated inbound channel for a panel-driven tilt-angle
@@ -359,7 +360,7 @@ func RegisterBuilder(kind string, ports []PortSpec, build func(BuildArgs) (wire.
 	}
 	Registry[kind] = NodeBuilder{
 		Ports: ports,
-		Build: func(ctx context.Context, name string, data *NodeData, pb PortBindings, tr *T.Trace, geom nodeGeom, tiltThetaIdx, tiltPhiIdx int32) (wire.Node, error) {
+		Build: func(ctx context.Context, name string, data *NodeData, pb PortBindings, tr *T.Trace, geom nodeGeom, tiltThetaIdx int32) (wire.Node, error) {
 			var sourceOuts []*wire.Out
 			return build(BuildArgs{
 				ctx: ctx, name: name, data: data, pb: pb, tr: tr,
@@ -368,7 +369,6 @@ func RegisterBuilder(kind string, ports []PortSpec, build func(BuildArgs) (wire.
 				getStream:       newInteriorStreamGetter(name, pb),
 				driveSlotClaims: map[int]string{},
 				tiltThetaIdx:    tiltThetaIdx,
-				tiltPhiIdx:      tiltPhiIdx,
 			})
 		},
 	}

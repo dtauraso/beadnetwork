@@ -6,15 +6,15 @@ import "testing"
 // this is a single call's own behavior, no second goroutine involved.
 func TestSendVectorLatestNonBlockingDropsWhenFull(t *testing.T) {
 	ch := make(chan TiltVectorMsg, 1)
-	SendVectorLatestNonBlocking(ch, TiltVectorMsg{ThetaIdx: 1, PhiIdx: 1})
+	SendVectorLatestNonBlocking(ch, TiltVectorMsg{ThetaIdx: 1})
 	// Buffer now full; this second send must return immediately rather than block,
 	// and — since nothing drains between the two sends — must NOT overwrite the
 	// first pending value (this call has no way to drain a send-only channel end;
 	// only the receiver may drain).
-	SendVectorLatestNonBlocking(ch, TiltVectorMsg{ThetaIdx: 2, PhiIdx: 2})
+	SendVectorLatestNonBlocking(ch, TiltVectorMsg{ThetaIdx: 2})
 	got := <-ch
-	if got.ThetaIdx != 1 || got.PhiIdx != 1 {
-		t.Fatalf("want the first pending value preserved (1,1), got (%d,%d)", got.ThetaIdx, got.PhiIdx)
+	if got.ThetaIdx != 1 {
+		t.Fatalf("want the first pending value preserved (1), got (%d)", got.ThetaIdx)
 	}
 }
 
@@ -41,10 +41,10 @@ func TestPollRecvVectorNilReturnsFalse(t *testing.T) {
 // PollRecvVector drains a pending value.
 func TestPollRecvVectorDrainsPending(t *testing.T) {
 	ch := make(chan TiltVectorMsg, 1)
-	ch <- TiltVectorMsg{ThetaIdx: 5, PhiIdx: -2}
+	ch <- TiltVectorMsg{ThetaIdx: 5}
 	v, ok := PollRecvVector(ch)
-	if !ok || v.ThetaIdx != 5 || v.PhiIdx != -2 {
-		t.Fatalf("want ok=true value (5,-2), got ok=%v value (%d,%d)", ok, v.ThetaIdx, v.PhiIdx)
+	if !ok || v.ThetaIdx != 5 {
+		t.Fatalf("want ok=true value (5), got ok=%v value (%d)", ok, v.ThetaIdx)
 	}
 }
 

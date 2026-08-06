@@ -68,16 +68,16 @@ describe("buffer-layout — Node block", () => {
     //   + 2×f32 (ringAxisTheta/ringAxisPhi — the DRAWN ring's axis, separate from the
     //     navigation pole above)
     //   + 1×f32 (topTiltVectorLen — the node's own drawn tilt vectors; 0 = draws none)
-    //   + 2×f32 (topTiltVectorTheta/topTiltVectorPhi — the TOP tilt vector's OWN direction,
-    //     separate from the drawn ring axis above)
-    //   + 2×f32 (bottomTiltVectorTheta/bottomTiltVectorPhi — the BOTTOM tilt vector, a half
+    //   + 1×f32 (topTiltVectorTheta — the TOP tilt vector's OWN direction, θ-only, no φ
+    //     column; task/drop-tilt-vector-phi)
+    //   + 1×f32 (bottomTiltVectorTheta — the BOTTOM tilt vector, a half
     //     turn in θ from the top; it shares the top's length column)
-    //   + 2×f32 (coplanarNormalTheta/coplanarNormalPhi — the SECOND vector, a quarter turn from the
+    //   + 1×f32 (coplanarNormalTheta — the SECOND vector, a quarter turn from the
     //     first inside the ring plane)
-    //   + 3×f32 (receivedVectorLen/theta/phi — the THIRD vector: the direction last received
+    //   + 2×f32 (receivedVectorLen/theta — the THIRD vector: the direction last received
     //     on this node's own tilt-vector channel; 0 length = nothing received yet)
-    //   = 4 + (5+6+2+2+1+2+2+2+3)×4 + 1 + 1 + 8 + 1 + 1 = 116
-    expect(NODE_STRIDE).toBe(116);
+    //   = 4 + (5+6+2+2+1+1+1+1+2)×4 + 1 + 1 + 8 + 1 + 1 = 100
+    expect(NODE_STRIDE).toBe(100);
   });
 
   it("read helpers decode known bytes correctly", () => {

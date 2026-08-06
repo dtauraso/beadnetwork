@@ -138,7 +138,8 @@ const IN_CLOCK_ATTR_SPEED = 1;
 const IN_DISTANCE_GROUP_ATTR_LENGTH = 2;
 const IN_SCENE_ATTR_SELECTED = 3;
 const IN_TILT_VECTOR_ATTR_THETA = 4;
-const IN_TILT_VECTOR_ATTR_PHI = 5;
+// attr 5 (phi) is a GAP — the tilt vector is θ-only end to end now (task/drop-tilt-vector-phi);
+// never renumber the survivors.
 const IN_TILT_VECTOR_ATTR_RESET = 6;
 const IN_TILT_VECTOR_ATTR_START = 7;
 
@@ -207,11 +208,11 @@ export function encodeSceneSelected(tabIndex: number): ArrayBuffer {
  *  index), 0 for down (-1). Go owns the step constant and the index math
  *  (nodes/Wiring's CurveParamTiltVectorAngleStep, node_mover.go); this just signals which
  *  node, which axis, which direction. */
-export function encodeTiltVectorAdjust(nodeRow: number, axis: "theta" | "phi", dir: "up" | "down"): ArrayBuffer {
+export function encodeTiltVectorAdjust(nodeRow: number, dir: "up" | "down"): ArrayBuffer {
   const w = new ByteWriter();
   w.u8(IN_KIND_EDIT_UPDATE);
   w.u8(enumIndex(IN_UPDATE_KINDS, "tiltVector"));
-  w.u8(axis === "phi" ? IN_TILT_VECTOR_ATTR_PHI : IN_TILT_VECTOR_ATTR_THETA);
+  w.u8(IN_TILT_VECTOR_ATTR_THETA);
   w.u8(nodeRow);
   w.u8(dir === "up" ? 1 : 0);
   return w.toArrayBuffer();

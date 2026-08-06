@@ -74,9 +74,10 @@ const (
 	inDistanceGroupAttrLength = 2 // distanceGroup: set the group's target pair length
 	inSceneAttrSelected       = 3 // scene: select a tab from the Go-owned scene tab strip
 	inTiltVectorAttrTheta     = 4 // tiltVector: adjust the vector's θ index by one click
-	inTiltVectorAttrPhi       = 5 // tiltVector: adjust the vector's φ index by one click
-	inTiltVectorAttrReset     = 6 // tiltVector: return both indices to 0 (the RESET button)
-	inTiltVectorAttrStart     = 7 // tiltVector: begin the vector exchange from the current angles (the START TILT button)
+	// attr 5 (φ) is a GAP — the tilt vector is θ-only end to end now
+	// (task/drop-tilt-vector-phi); never renumber the survivors.
+	inTiltVectorAttrReset = 6 // tiltVector: return the index to 0 (the RESET button)
+	inTiltVectorAttrStart = 7 // tiltVector: begin the vector exchange from the current angles (the START TILT button)
 )
 
 // Enum orderings (u8 index → string), shared with input-layout-gen.ts. All five orderings
@@ -267,13 +268,12 @@ func decodeInputRecord(rec []byte) (stdinMsg, bool) {
 			return stdinMsg{Type: "edit", Op: "update", Kind: "scene", Attr: "selected", Num: int(tabIdx)}, true
 		case "tiltVector":
 			switch attr {
-			case inTiltVectorAttrTheta, inTiltVectorAttrPhi:
+			case inTiltVectorAttrTheta:
 				// [u8 nodeRow][u8 dirUp] — nodeRow is the target node's buffer ROW (never
 				// its id/name — no sidecar), dirUp is 1 for the up arrow (+1 index), 0 for
-				// down (-1). Attr already carries WHICH axis (theta/phi), same shape as
-				// distanceGroup's groupIndex+dir payload. Flag carries the axis name so
-				// applyUpdateTiltVector (stdin_reader.go) can dispatch on a single string
-				// field like every other update handler.
+				// down (-1). There is only one axis now (theta), so attr alone identifies
+				// this as a theta adjust — same shape as distanceGroup's groupIndex+dir
+				// payload.
 				row, errR := r.u8()
 				if errR != nil {
 					return stdinMsg{}, false
@@ -286,14 +286,10 @@ func decodeInputRecord(rec []byte) (stdinMsg, bool) {
 				if dirUp != 0 {
 					dir = "up"
 				}
-				axis := "theta"
-				if attr == inTiltVectorAttrPhi {
-					axis = "phi"
-				}
-				return stdinMsg{Type: "edit", Op: "update", Kind: "tiltVector", Attr: axis, Num: int(row), Flag: dir}, true
+				return stdinMsg{Type: "edit", Op: "update", Kind: "tiltVector", Attr: "theta", Num: int(row), Flag: dir}, true
 			case inTiltVectorAttrReset:
 				// [u8 nodeRow] — the RESET button (TiltResetButton.tsx). No direction: a
-				// reset always returns both indices to 0, so there is nothing else to
+				// reset always returns the index to 0, so there is nothing else to
 				// carry on the wire.
 				row, errR := r.u8()
 				if errR != nil {

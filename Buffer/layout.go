@@ -119,17 +119,17 @@ type bufLayoutNode struct {
 	// own, the same way CoplanarNormal does not). A scene that wants no tilt vectors needs
 	// no second flag anywhere. Go decides per scene; the renderer draws what it is given.
 	TopTiltVectorLen float32 `buf:"f32"` // node top-tilt-vector length along the ring axis; 0 = no vectors
-	// TopTiltVectorTheta/TopTiltVectorPhi are the top tilt vector's OWN direction, same
-	// angle convention as PoleTheta/PolePhi and RingAxisTheta/RingAxisPhi above (θ from
-	// world +y, φ azimuth around +y) — SEPARATE from RingAxisTheta/Phi so a scene/user can
-	// point a node's tilt vector somewhere other than its ring axis. Each node's mover holds
-	// these as an INTEGER index pair, not a free float (memory/feedback_abc_times_constant_
-	// not_rederive.md): the streamed value is index * nodes/Wiring.CurveParamTiltVectorAngleStep,
-	// and the index is what an edit-update(tiltVector) click changes. Meaningless (but
-	// still streamed, default 0) on a node whose TopTiltVectorLen is 0.
+	// TopTiltVectorTheta is the top tilt vector's OWN direction, same angle convention as
+	// PoleTheta/RingAxisTheta above (θ from world +y) — SEPARATE from RingAxisTheta so a
+	// scene/user can point a node's tilt vector somewhere other than its ring axis. There is
+	// no φ column: the whole tilt-vector model is θ-only (task/drop-tilt-vector-phi — every
+	// φ in this exchange was always 0). Each node's mover holds this as an INTEGER index,
+	// not a free float (memory/feedback_abc_times_constant_not_rederive.md): the streamed
+	// value is index * nodes/Wiring.CurveParamTiltVectorAngleStep, and the index is what an
+	// edit-update(tiltVector) click changes. Meaningless (but still streamed, default 0) on
+	// a node whose TopTiltVectorLen is 0.
 	TopTiltVectorTheta float32 `buf:"f32"` // top tilt vector direction: θ from world +y (radians) = thetaIdx*step
-	TopTiltVectorPhi   float32 `buf:"f32"` // top tilt vector direction: φ azimuth around +y (radians) = phiIdx*step
-	// BottomTiltVectorTheta/BottomTiltVectorPhi are the BOTTOM TILT VECTOR: the top tilt
+	// BottomTiltVectorTheta is the BOTTOM TILT VECTOR: the top tilt
 	// vector turned a half turn (180°) in θ, so it points out of the node's other side. Same
 	// angle convention and the same length as the top, drawn whenever TopTiltVectorLen is
 	// non-zero, so there is no second length column.
@@ -140,24 +140,21 @@ type bufLayoutNode struct {
 	// place; the sign is index bookkeeping, so each kind's indices keep walking in its own
 	// direction rather than one kind's jumping the other way at the turn.
 	BottomTiltVectorTheta float32 `buf:"f32"` // bottom tilt vector direction: θ from world +y (radians)
-	BottomTiltVectorPhi   float32 `buf:"f32"` // bottom tilt vector direction: φ azimuth around +y (radians)
 	CoplanarNormalTheta   float32 `buf:"f32"` // second vector direction: θ from world +y (radians)
-	CoplanarNormalPhi     float32 `buf:"f32"` // second vector direction: φ azimuth around +y (radians)
-	// ReceivedVectorLen/Theta/Phi are a THIRD drawn vector: the direction that LAST
+	// ReceivedVectorLen/Theta are a THIRD drawn vector: the direction that LAST
 	// ARRIVED on this node's own tilt-vector channel (nodes/Wiring/tilt_vector_channel.go),
 	// kept by the RECEIVING node's own goroutine and replaced (never accumulated) by the
 	// next arrival — see nodes/Node1/node.go and nodes/Node2/node.go's handleVectorCycle.
 	// Same "one column says both whether and how far" convention as TopTiltVectorLen above:
 	// ZERO means this node has received nothing yet (or was reset), so a node with
 	// nothing received is distinguishable from one whose received direction happens to be
-	// (0,0) — the latter still streams a non-zero length. A RESET (this node's own
+	// 0 — the latter still streams a non-zero length. A RESET (this node's own
 	// TiltEditIn Reset, or a Reset marker arriving on the channel) clears it back to zero:
 	// a stale received arrow left hanging would contradict the reset's stop-and-return
 	// meaning. Meaningless (but still streamed, default 0) on a node whose kind never
 	// claims a vector channel — every kind but Node1/Node2 today.
 	ReceivedVectorLen   float32 `buf:"f32"` // received-vector length; 0 = nothing received yet (or reset)
 	ReceivedVectorTheta float32 `buf:"f32"` // received vector direction: θ from world +y (radians)
-	ReceivedVectorPhi   float32 `buf:"f32"` // received vector direction: φ azimuth around +y (radians)
 	Selected            uint8   `buf:"u8"`  // persistent: 1 = this node is the click-selected node
 	// KindId is the node's kind as a STABLE id, assigned once per kind in
 	// nodes/<Kind>/SPEC.md (| kindId | N |) and never renumbered (the generator emits

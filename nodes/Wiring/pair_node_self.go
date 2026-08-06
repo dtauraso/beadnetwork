@@ -120,17 +120,14 @@ func (p *PairNodeSelf) Step(ctx context.Context, tick int64) {
 // node's OWN position.json, re-emit, and — PAIR TAB ONLY — reposition this node along
 // its own fixed ray per repositionForTiltIndex's model (unchanged; see its own doc
 // comment for the exact D formula and the Node2-only/Node1-anchor rule).
-func (p *PairNodeSelf) SetTiltIndex(theta, phi, normalTheta, normalPhi, bottomTheta, bottomPhi int32) {
+func (p *PairNodeSelf) SetTiltIndex(theta, normalTheta, bottomTheta int32) {
 	if p == nil || p.geom == nil {
 		return
 	}
 	g := p.geom
 	g.topTiltVectorThetaIdx = theta
-	g.topTiltVectorPhiIdx = phi
 	g.normalThetaIdx = normalTheta
-	g.normalPhiIdx = normalPhi
 	g.bottomThetaIdx = bottomTheta
-	g.bottomPhiIdx = bottomPhi
 	g.persistTiltVectorAngle()
 	if g.tr != nil {
 		g.emitGeometry()
@@ -143,13 +140,12 @@ func (p *PairNodeSelf) SetTiltIndex(theta, phi, normalTheta, normalPhi, bottomTh
 // moveMsgKindReceivedVectorSync message-to-self. Same effect as that message's old
 // handle() branch: re-emit so the third drawn arrow picks up the change; nothing here is
 // persisted (a channel arrival is transient session state).
-func (p *PairNodeSelf) SetReceivedVector(theta, phi int32, set bool) {
+func (p *PairNodeSelf) SetReceivedVector(theta int32, set bool) {
 	if p == nil || p.geom == nil {
 		return
 	}
 	g := p.geom
 	g.receivedVectorThetaIdx = theta
-	g.receivedVectorPhiIdx = phi
 	g.receivedVectorSet = set
 	if g.tr != nil {
 		g.emitGeometry()

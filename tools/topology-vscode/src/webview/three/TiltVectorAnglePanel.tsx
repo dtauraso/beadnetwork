@@ -15,16 +15,13 @@ import {
 
 // The angle axes this panel lets a node's tilt be set on, in display order.
 //
-// THETA ONLY. φ is deliberately absent: the panel only ever has rows in a scene whose nodes
-// draw tilt vectors (TopTiltVectorLen > 0, which Go streams only where SceneTab.UpAxis is
-// set — the pair), and there the straightening model turns on θ alone. Every derived
-// direction is θ arithmetic with φ carried through untouched — bottom is θ+12, the coplanar
-// normal is θ+6, the outgoing vector is that normal −12 — and the two dot products that
-// decide a step read the same θ lattice. A φ control offered a knob no rule here consults.
-//
-// Go still decodes a φ edit on the tiltVector entity; nothing sends one now. That is the
-// same shape as the rest of the vocabulary Go accepts without a live TS sender
-// (.claude/rules/bridge-surface.md) — the capability is not removed, just not offered.
+// THETA ONLY. There is no φ anywhere in the tilt-vector model any more
+// (task/drop-tilt-vector-phi removed it end to end): TiltVectorMsg, the buffer columns,
+// and the bridge attribute are all θ-only now, so this is not "a control withheld", it is
+// the whole vocabulary. Every derived direction is θ arithmetic — bottom is θ+12, the
+// coplanar normal is θ+6, the outgoing vector is that normal −12 — and the acute test that
+// decides a step reads the same θ lattice as pure integer index arithmetic
+// (Wiring.TiltVectorIsAcute).
 const AXES = ["theta"] as const;
 
 // TiltVectorAnglePanel — the PAIR tab's tilt-vector-direction control, built on the SAME
@@ -41,17 +38,17 @@ const AXES = ["theta"] as const;
 // pill renders nothing — no scene branch on either side, just the shared "no rows" signal
 // DistanceHomePanel's "no groups" check uses.
 //
-// θ/φ are displayed as an INTEGER MULTIPLE of Go's own step
+// θ is displayed as an INTEGER MULTIPLE of Go's own step
 // (nodes/Wiring.CurveParamTiltVectorAngleStep, mirrored here as the generated
 // CURVE_PARAM_TILT_VECTOR_ANGLE_STEP — memory/feedback_abc_times_constant_not_rederive.md):
 // the index is the thing being adjusted, not the radians, so it is shown as "5π/12" rather
 // than a decimal. TS computes the DISPLAYED index by dividing Go's own streamed radians by
 // Go's own streamed step — a read-side format transform, not authored angle state.
 //
-// Clicking an arrow fire-and-forgets an edit-update(tiltVector, theta|phi) record naming
+// Clicking an arrow fire-and-forgets an edit-update(tiltVector, theta) record naming
 // the target node's buffer ROW (never its id/name) and the direction; Go owns the step
 // and the index arithmetic (node_mover.go's moveMsgKindTiltVectorAngle handler) — this
-// component sends no angle value, only which node + which axis + which direction.
+// component sends no angle value, only which node + which direction.
 const DENOM = Math.max(1, Math.round(Math.PI / CURVE_PARAM_TILT_VECTOR_ANGLE_STEP));
 
 function formatAngle(radians: number): string {
@@ -74,7 +71,7 @@ function formatAngle(radians: number): string {
 function AxisRow({ node, axis }: { node: TiltVectorRow; axis: (typeof AXES)[number] }) {
   const [hover, setHover] = useState(false);
   const adjust = (dir: "up" | "down") => {
-    postGoRecord(encodeTiltVectorAdjust(node.row, axis, dir));
+    postGoRecord(encodeTiltVectorAdjust(node.row, dir));
   };
   return (
     <div
@@ -90,7 +87,7 @@ function AxisRow({ node, axis }: { node: TiltVectorRow; axis: (typeof AXES)[numb
       <span>{axis}</span>
       <span style={valueLineStyle}>
         <span style={{ fontVariantNumeric: "tabular-nums" }}>
-          {formatAngle(axis === "theta" ? node.theta : node.phi)}
+          {formatAngle(node.theta)}
         </span>
         <button
           type="button"

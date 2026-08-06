@@ -42,7 +42,7 @@ func BuildNodeStreamFrame(
 	tick uint32, nodeRow int32, nodeID int32,
 	cx, cy, cz, radius, sphereR float32,
 	vrx, vry, vrz, frx, fry, frz float32,
-	poleTheta, polePhi, ringAxisTheta, ringAxisPhi, topTiltVectorLen, topTiltVectorTheta, topTiltVectorPhi, bottomTiltVectorTheta, bottomTiltVectorPhi, coplanarNormalTheta, coplanarNormalPhi, receivedVectorLen, receivedVectorTheta, receivedVectorPhi float32,
+	poleTheta, polePhi, ringAxisTheta, ringAxisPhi, topTiltVectorLen, topTiltVectorTheta, bottomTiltVectorTheta, coplanarNormalTheta, receivedVectorLen, receivedVectorTheta float32,
 	selected, kindID, hovered, latchedSel uint8,
 	label string,
 	chainBeadOX, chainBeadOY, chainBeadOZ []float32,
@@ -77,7 +77,7 @@ func BuildNodeStreamFrame(
 	off += 4
 
 	SetNodeRow(buf[off:off+BufNodeStride], 0, nodeID, cx, cy, cz, radius, sphereR, vrx, vry, vrz, frx, fry, frz,
-		poleTheta, polePhi, ringAxisTheta, ringAxisPhi, topTiltVectorLen, topTiltVectorTheta, topTiltVectorPhi, bottomTiltVectorTheta, bottomTiltVectorPhi, coplanarNormalTheta, coplanarNormalPhi, receivedVectorLen, receivedVectorTheta, receivedVectorPhi, selected, kindID, 0, uint32(len(labelBytes)), hovered, latchedSel)
+		poleTheta, polePhi, ringAxisTheta, ringAxisPhi, topTiltVectorLen, topTiltVectorTheta, bottomTiltVectorTheta, coplanarNormalTheta, receivedVectorLen, receivedVectorTheta, selected, kindID, 0, uint32(len(labelBytes)), hovered, latchedSel)
 	off += BufNodeStride
 
 	copy(buf[off:off+len(labelBytes)], labelBytes)

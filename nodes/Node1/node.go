@@ -60,25 +60,26 @@ type Node struct {
 	// preserving wire.Out.PlaceDrivenAt's one-goroutine-per-Out invariant — the mover no
 	// longer places on this Out at all.
 	Out *wire.Out
-	// TopTiltThetaIdx/TopTiltPhiIdx are THIS node's OWN vector-direction indices — the ONE
-	// writer, full stop (memory/feedback_abc_times_constant_not_rederive.md: index ×
-	// step-constant, trig only at the cartesian/polar boundary). Seeded once at build
-	// time from the persisted value (BuildArgs.TiltVectorAngleSeed) and mutated ONLY by
-	// this goroutine's own Update loop, below. Every change is reported one-way to this
-	// node's own mover (SyncTiltIndex) so the mover — which still owns streaming this
-	// node's geometry and persisting it to this node's own position.json — stays in
-	// sync; the mover never decides or mutates these itself for this kind.
-	TopTiltThetaIdx, TopTiltPhiIdx int32
+	// TopTiltThetaIdx is THIS node's OWN vector-direction index — the ONE writer, full stop
+	// (memory/feedback_abc_times_constant_not_rederive.md: index × step-constant, trig only
+	// at the cartesian/polar boundary). There is no companion φ: every tilt vector in this
+	// exchange lives in the θ-only plane. Seeded once at build time from the persisted value
+	// (BuildArgs.TiltVectorAngleSeed) and mutated ONLY by this goroutine's own Update loop,
+	// below. Every change is reported one-way to this node's own mover (SyncTiltIndex) so the
+	// mover — which still owns streaming this node's geometry and persisting it to this
+	// node's own position.json — stays in sync; the mover never decides or mutates these
+	// itself for this kind.
+	TopTiltThetaIdx int32
 	// TiltEditIn is this node's dedicated channel for a panel-driven tilt-angle click
 	// (TiltVectorAnglePanel), claimed at build time via BuildArgs.TiltEditIn — see the
 	// package doc comment's "THE KICK".
 	TiltEditIn <-chan Wiring.TiltEditMsg
-	// SyncTiltIndex notifies this node's own mover of the current TopTiltThetaIdx/TopTiltPhiIdx
-	// AND the current coplanar-normal indices (coplanarNormal, below) — one-way,
-	// fire-and-forget, never an ack (BuildArgs.SyncTiltIndex).
-	SyncTiltIndex func(theta, phi, normalTheta, normalPhi, bottomTheta, bottomPhi int32)
+	// SyncTiltIndex notifies this node's own mover of the current TopTiltThetaIdx AND the
+	// current coplanar-normal index (coplanarNormal, below) — one-way, fire-and-forget,
+	// never an ack (BuildArgs.SyncTiltIndex).
+	SyncTiltIndex func(theta, normalTheta, bottomTheta int32)
 	// VectorOut/VectorIn are THIS node's own ends of its dedicated tilt-vector channel
-	// (Wiring.TiltVectorMsg — an integer θ/φ index pair, never floats on a channel),
+	// (Wiring.TiltVectorMsg — an integer θ index, never floats on a channel),
 	// claimed at build time via BuildArgs.VectorOut/VectorIn. It travels ALONGSIDE the
 	// ordinary bead edge (In/Out above), never replacing it — beads are unaffected.
 	// Buffered depth 1, latest-wins, non-blocking on both ends
@@ -87,7 +88,7 @@ type Node struct {
 	// loader — both helpers already treat nil as "nothing wired".
 	VectorOut chan<- Wiring.TiltVectorMsg
 	VectorIn  <-chan Wiring.TiltVectorMsg
-	// ReceivedThetaIdx/ReceivedPhiIdx/ReceivedSet are THIS node's own record of the LAST
+	// ReceivedThetaIdx/ReceivedSet are THIS node's own record of the LAST
 	// direction that ARRIVED on VectorIn — the third drawn arrow (user request: "show a
 	// 3rd vector...the last iteration of it as a different color in the node that
 	// received it"). Written ONLY by this goroutine, in handleVectorCycle below: an
@@ -98,12 +99,12 @@ type Node struct {
 	// stop-and-return, and a stale received arrow left hanging would contradict that.
 	// Reported one-way to this node's own mover via SyncReceivedVector, same shape as
 	// TopTiltThetaIdx/SyncTiltIndex above.
-	ReceivedThetaIdx, ReceivedPhiIdx int32
-	ReceivedSet                      bool
+	ReceivedThetaIdx int32
+	ReceivedSet      bool
 	// SyncReceivedVector notifies this node's own mover of the current
-	// ReceivedThetaIdx/PhiIdx/Set — one-way, fire-and-forget, never an ack
+	// ReceivedThetaIdx/Set — one-way, fire-and-forget, never an ack
 	// (BuildArgs.SyncReceivedVector).
-	SyncReceivedVector func(theta, phi int32, set bool)
+	SyncReceivedVector func(theta int32, set bool)
 	// ClearOutBeads asks THIS node's own mover to drop every bead still crossing this
 	// node's outgoing wires — one-way, fire-and-forget, never an ack
 	// (BuildArgs.ClearOutBeads). Called only from clear(), below: those beads are owned
@@ -161,11 +162,7 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 	if edit.Up {
 		delta = 1
 	}
-	if edit.Axis == "phi" {
-		n.TopTiltPhiIdx += delta
-	} else {
-		n.TopTiltThetaIdx += delta
-	}
+	n.TopTiltThetaIdx += delta
 	return false
 }
 
@@ -199,10 +196,8 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 // there instead of bouncing.
 func (n *Node) clear() {
 	n.TopTiltThetaIdx = 0
-	n.TopTiltPhiIdx = 0
 	n.syncTiltIndex()
 	n.ReceivedThetaIdx = 0
-	n.ReceivedPhiIdx = 0
 	n.ReceivedSet = false
 	n.syncReceivedVector()
 	Wiring.PollRecvVector(n.VectorIn)
@@ -232,9 +227,9 @@ func (n *Node) drainIn() {
 // bottomTilt is THIS node's own BOTTOM TILT VECTOR: a half turn (180°,
 // Wiring.HalfTurnThetaIdx steps) in θ from its OWN top tilt vector, so it points out of the
 // node's other side and turns with the top as the top turns — index arithmetic only, never
-// trig (memory/feedback_abc_times_constant_not_rederive.md). φ is left unchanged: a half
-// turn in θ alone already negates the direction exactly, so no companion φ+π is needed (see
-// Wiring.HalfTurnThetaIdx's own doc comment).
+// trig (memory/feedback_abc_times_constant_not_rederive.md). There is no φ any more: a half
+// turn in θ alone already negates the direction exactly (see Wiring.HalfTurnThetaIdx's own
+// doc comment).
 //
 // Node1 ADDS the half turn (its mirror package does the opposite), the same
 // opposite-senses convention outgoingVector already uses. Both signs land in the SAME drawn
@@ -244,7 +239,6 @@ func (n *Node) drainIn() {
 func (n *Node) bottomTilt() Wiring.TiltVectorMsg {
 	return Wiring.TiltVectorMsg{
 		ThetaIdx: n.TopTiltThetaIdx + Wiring.HalfTurnThetaIdx,
-		PhiIdx:   n.TopTiltPhiIdx,
 	}
 }
 
@@ -252,7 +246,7 @@ func (n *Node) bottomTilt() Wiring.TiltVectorMsg {
 // Wiring.CurveParamTiltVectorAngleStep — Wiring.PerpendicularThetaIdx names the same
 // 90°-worth-of-steps magnitude) from THIS node's OWN tilt vector, so the normal stays
 // perpendicular to the tilt as the tilt turns — index arithmetic only, never trig
-// (memory/feedback_abc_times_constant_not_rederive.md). φ is left unchanged: the turn
+// (memory/feedback_abc_times_constant_not_rederive.md). There is no φ: the turn
 // is entirely in θ, the same in-ring-plane assumption Wiring.PerpendicularThetaIdx's own
 // doc comment spells out.
 //
@@ -275,7 +269,6 @@ func (n *Node) coplanarNormal() Wiring.TiltVectorMsg {
 	}
 	return Wiring.TiltVectorMsg{
 		ThetaIdx: thetaIdx,
-		PhiIdx:   n.TopTiltPhiIdx,
 	}
 }
 
@@ -293,7 +286,7 @@ func floorDiv(a, b int32) int32 {
 
 // syncTiltIndex reports THIS node's current tilt index AND its current coplanar-normal
 // index (coplanarNormal above) to this node's own mover in one call — every call site
-// that changes TopTiltThetaIdx/TopTiltPhiIdx must also report the normal, since the normal is
+// that changes TopTiltThetaIdx must also report the normal, since the normal is
 // derived from the tilt and the mover no longer derives it itself (see
 // Wiring.moveMsgKindTiltIndexSync's doc comment). nil-safe, same as every other closure
 // call here.
@@ -303,22 +296,22 @@ func (n *Node) syncTiltIndex() {
 	}
 	norm := n.coplanarNormal()
 	bottom := n.bottomTilt()
-	n.SyncTiltIndex(n.TopTiltThetaIdx, n.TopTiltPhiIdx, norm.ThetaIdx, norm.PhiIdx, bottom.ThetaIdx, bottom.PhiIdx)
+	n.SyncTiltIndex(n.TopTiltThetaIdx, norm.ThetaIdx, bottom.ThetaIdx)
 }
 
 // syncReceivedVector reports THIS node's current received-vector state (ReceivedThetaIdx/
-// PhiIdx/Set) to this node's own mover — the third-arrow twin of syncTiltIndex. Called by
-// every site that changes those fields, below. nil-safe, same as syncTiltIndex.
+// ReceivedThetaIdx/Set) to this node's own mover — the third-arrow twin of syncTiltIndex.
+// Called by every site that changes those fields, below. nil-safe, same as syncTiltIndex.
 func (n *Node) syncReceivedVector() {
 	if n.SyncReceivedVector == nil {
 		return
 	}
-	n.SyncReceivedVector(n.ReceivedThetaIdx, n.ReceivedPhiIdx, n.ReceivedSet)
+	n.SyncReceivedVector(n.ReceivedThetaIdx, n.ReceivedSet)
 }
 
 // outgoingVector is what THIS node SENDS on VectorOut: its own coplanarNormal rotated
 // 180° in θ. Node1 turns −180° (−12 steps of π/12); Node2 (its mirror package) turns
-// +180° (+12 steps) — index arithmetic, never radians. φ is untouched.
+// +180° (+12 steps) — index arithmetic, never radians.
 func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 	norm := n.coplanarNormal()
 	norm.ThetaIdx -= 2 * Wiring.PerpendicularThetaIdx
@@ -363,7 +356,7 @@ func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
 // the struct, named so the dot products above read as vector-against-vector rather than as
 // two loose ints.
 func (n *Node) topTilt() Wiring.TiltVectorMsg {
-	return Wiring.TiltVectorMsg{ThetaIdx: n.TopTiltThetaIdx, PhiIdx: n.TopTiltPhiIdx}
+	return Wiring.TiltVectorMsg{ThetaIdx: n.TopTiltThetaIdx}
 }
 
 // handleVectorCycle is Node1's WHOLE per-cycle vector-channel loop body: read
@@ -397,7 +390,6 @@ func (n *Node) handleVectorCycle(tick int64) {
 	// (clear, above — this node's own or its partner's marker), which removes it because a
 	// reset means there is nothing in the pair at all any more.
 	n.ReceivedThetaIdx = received.ThetaIdx
-	n.ReceivedPhiIdx = received.PhiIdx
 	n.ReceivedSet = true
 	n.syncReceivedVector()
 	// DIAGNOSTIC (task/log-pair-vector-exchange): everything the two dots read, and what
@@ -410,8 +402,8 @@ func (n *Node) handleVectorCycle(tick int64) {
 	moved := n.stepFromVector(received)
 	if n.Self != nil {
 		n.Self.Breadcrumb("pair-vector", fmt.Sprintf(
-			"tick=%d recv=(%d,%d) top=%d bottom=%d acuteTop=%v acuteBottom=%v moved=%v idx %d->%d",
-			tick, received.ThetaIdx, received.PhiIdx, before, before+Wiring.HalfTurnThetaIdx,
+			"tick=%d recv=%d top=%d bottom=%d acuteTop=%v acuteBottom=%v moved=%v idx %d->%d",
+			tick, received.ThetaIdx, before, before+Wiring.HalfTurnThetaIdx,
 			acuteTop, acuteBottom, moved, before, n.TopTiltThetaIdx))
 	}
 	if !moved {
@@ -485,9 +477,9 @@ func (n *Node) Update(ctx context.Context) {
 				// two of these belongs to the run this one started.
 				if n.Self != nil {
 					n.Self.Breadcrumb("pair-tilt-edit", fmt.Sprintf(
-						"tick=%d reset=%v start=%v axis=%s up=%v placeBead=%v theta=%d phi=%d",
-						clk.Tick(), edit.Reset, edit.Start, edit.Axis, edit.Up, placeBead,
-						n.TopTiltThetaIdx, n.TopTiltPhiIdx))
+						"tick=%d reset=%v start=%v up=%v placeBead=%v theta=%d",
+						clk.Tick(), edit.Reset, edit.Start, edit.Up, placeBead,
+						n.TopTiltThetaIdx))
 				}
 			default:
 			}
@@ -533,7 +525,7 @@ func init() {
 			n.SpeedCh = a.SpeedCh()
 			n.In = a.In("In")
 			n.Out = a.Out("Out")
-			n.TopTiltThetaIdx, n.TopTiltPhiIdx = a.TiltVectorAngleSeed()
+			n.TopTiltThetaIdx = a.TiltVectorAngleSeed()
 			n.TiltEditIn = a.TiltEditIn()
 			// Self replaces the old SyncTiltIndex/SyncReceivedVector/ClearOutBeads
 			// messages-to-a-separate-mover-goroutine (task/pair-node-owns-itself):
@@ -541,11 +533,11 @@ func init() {
 			// used to be a message is a plain method call on the same object below.
 			self := a.ClaimSelfDrive()
 			n.Self = self
-			n.SyncTiltIndex = func(theta, phi, normalTheta, normalPhi, bottomTheta, bottomPhi int32) {
-				self.SetTiltIndex(theta, phi, normalTheta, normalPhi, bottomTheta, bottomPhi)
+			n.SyncTiltIndex = func(theta, normalTheta, bottomTheta int32) {
+				self.SetTiltIndex(theta, normalTheta, bottomTheta)
 			}
-			n.SyncReceivedVector = func(theta, phi int32, set bool) {
-				self.SetReceivedVector(theta, phi, set)
+			n.SyncReceivedVector = func(theta int32, set bool) {
+				self.SetReceivedVector(theta, set)
 			}
 			n.ClearOutBeads = func() { self.ClearOutBeads() }
 			n.VectorOut = a.VectorOut()

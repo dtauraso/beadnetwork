@@ -47,12 +47,13 @@ type specNode struct {
 	// jsonMeta.Gate and back), but no code path branches on it. Do not assume it
 	// drives behavior; grep call sites before relying on it again.
 	Gate bool `json:"gate,omitempty"`
-	// TopTiltVectorThetaIdx/TopTiltVectorPhiIdx are this node's own vector-direction indices
-	// (position.json's TopTiltVectorThetaIdx/TopTiltVectorPhiIdx — nodes/Wiring/node_mover.go's
-	// topTiltVectorThetaIdx/topTiltVectorPhiIdx). nil (unset) means "not stored" — buildMoveDispatch
-	// then leaves the nodeMover's zero-value indices (0,0 = world +y).
+	// TopTiltVectorThetaIdx is this node's own vector-direction index
+	// (position.json's TopTiltVectorThetaIdx — nodes/Wiring/node_mover.go's
+	// topTiltVectorThetaIdx). nil (unset) means "not stored" — buildMoveDispatch
+	// then leaves the nodeMover's zero-value index (0 = world +y). There is no φ
+	// counterpart (task/drop-tilt-vector-phi) — a position.json written by an older
+	// build that still carries "topTiltVectorPhiIdx" simply has that key ignored on load.
 	TopTiltVectorThetaIdx *int32 `json:"topTiltVectorThetaIdx,omitempty"`
-	TopTiltVectorPhiIdx   *int32 `json:"topTiltVectorPhiIdx,omitempty"`
 }
 
 // label returns the node's human label: data.label when present and non-empty,
