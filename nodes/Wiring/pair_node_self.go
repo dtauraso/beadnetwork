@@ -117,9 +117,16 @@ func (p *PairNodeSelf) Step(ctx context.Context, tick int64) {
 // directly to its own geometry state — the direct-call replacement for the removed
 // moveMsgKindTiltIndexSync message-to-self (see that constant's retirement note in
 // move_msg.go). Same effect as that message's old handle() branch: persist to this
-// node's OWN position.json, re-emit, and — PAIR TAB ONLY — reposition this node along
-// its own fixed ray per repositionForTiltIndex's model (unchanged; see its own doc
-// comment for the exact D formula and the Node2-only/Node1-anchor rule).
+// node's OWN position.json and re-emit.
+//
+// A TILT NO LONGER MOVES THE NODE. The pair's separation used to be a second reading of
+// this same index — Node2 slid along its own ray to
+// (|theta| + torus steps) × BeadStepR from Node1 on every change — so the edge grew and
+// shrank as the exchange turned. That is removed: the angle is now only an angle, and the
+// separation stays wherever a drag last put it. What went with it: the moving node also
+// changed the edge's bead-step count, which changed the crossing time, which (now that the
+// exchange is clock-paced) fed back into how fast the tilts turned. One index driving an
+// angle, a distance, a bead count and a pace was more than one number should carry.
 func (p *PairNodeSelf) SetTiltIndex(theta, normalTheta, bottomTheta int32) {
 	if p == nil || p.geom == nil {
 		return
@@ -132,7 +139,6 @@ func (p *PairNodeSelf) SetTiltIndex(theta, normalTheta, bottomTheta int32) {
 	if g.tr != nil {
 		g.emitGeometry()
 	}
-	g.repositionForTiltIndex(theta)
 }
 
 // SetReceivedVector applies this node's own last-received vector-channel direction
