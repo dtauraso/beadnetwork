@@ -16,11 +16,25 @@ import React from "react";
 // A fixed minimum is what makes a COLUMN — the values line up down the panel — without
 // that stretch.
 
-// Column widths, in px. Small enough that a two-node tilt panel and a three-group distance
-// panel both come out compact, wide enough that "theta"/"input" and a 3-digit value still
-// line up rather than ragging.
-const LABEL_COL = 34;
-const VALUE_COL = 30;
+// Column widths are given in `ch`, and each panel states its OWN — they are not one shared
+// pair of px guesses.
+//
+// px guesses are what put the visible slack in these panels: a value column fixed at 30px
+// holding a right-aligned "0" leaves ~24px of empty panel to the left of that digit, every
+// row, and a label column fixed at 34px pads "time" the same way. The columns have to be
+// SOME fixed width — that is what makes the values and the ▲/▼ line up down the panel — but
+// the width should be the longest string the column can actually hold, not a number picked
+// to cover both panels at once.
+//
+// `ch` is exactly that measurement here: these panels are monospace, so 1ch IS one
+// character, and `labelCol(6)` means "six characters wide" rather than "40px, which is
+// about six characters if the font is what I think it is".
+export const labelCol = (ch: number): React.CSSProperties => ({ minWidth: `${ch}ch` });
+
+export const valueCol = (ch: number): React.CSSProperties => ({
+  minWidth: `${ch}ch`,
+  textAlign: "right",
+});
 
 export const panelStyle: React.CSSProperties = {
   // Placed by ThreeView's right-hand flex column, not by a top/right of its own — these
@@ -48,11 +62,6 @@ export const rowStyle: React.CSSProperties = {
   whiteSpace: "nowrap",
 };
 
-// No `flex: 1` — see the file comment. minWidth alone aligns the labels into a column and
-// lets the row end where its content ends.
-export const labelStyle: React.CSSProperties = { minWidth: LABEL_COL };
-
-export const valueStyle: React.CSSProperties = { minWidth: VALUE_COL, textAlign: "right" };
 
 export const btnStyle: React.CSSProperties = {
   background: "rgba(255,255,255,0.12)",

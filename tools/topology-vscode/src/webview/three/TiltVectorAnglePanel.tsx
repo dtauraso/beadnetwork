@@ -3,7 +3,13 @@ import { postGoRecord } from "../vscode-api";
 import { encodeTiltVectorAdjust } from "../../schema/input-layout";
 import { CURVE_PARAM_TILT_VECTOR_ANGLE_STEP } from "../../schema/curve-params";
 import { useTiltVectorRows } from "./overlay-flags";
-import { panelStyle, rowStyle, labelStyle, valueStyle, btnStyle } from "./panel-styles";
+import { panelStyle, rowStyle, labelCol, valueCol, btnStyle } from "./panel-styles";
+
+// Column widths in characters (panel-styles.ts). Label: "theta", the longer of the two axis
+// names. Value: formatAngle's widest output — a sign, up to two index digits, "π/" and the
+// two-digit denominator, e.g. "-11π/12".
+const labelStyle = labelCol(5);
+const valueStyle = valueCol(7);
 
 // TiltVectorAnglePanel — a per-node tilt-vector-direction panel, sibling of
 // DistanceHomePanel (same style constants: small dark rounded panel, monospace, ▲/▼
