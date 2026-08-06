@@ -126,15 +126,20 @@ const ticksStyle: React.CSSProperties = {
   width: TRACK_W,
   padding: `0 ${THUMB_INSET}px`,
   boxSizing: "border-box",
-  fontSize: 9,
+  fontSize: 11,
   fontFamily: "monospace",
   lineHeight: 1,
   userSelect: "none",
   pointerEvents: "none",
 };
 
-const tickStyle: React.CSSProperties = { color: "#ddd", opacity: 0.5 };
+// These labels sit in the LIGHT toolbar (.toolbar in webview.css is `background: #fff`),
+// not in one of the dark overlay panels floating over the canvas. They are coloured from
+// the toolbar's own palette — the same #555/#333 the other toolbar-adjacent labels
+// (.abc-drag-label, .rule-eq-panel) use — because the dark-panel palette (#ddd, and a 0.5
+// opacity dim on top of it) is near-white on white and left them all but unreadable.
+const tickStyle: React.CSSProperties = { color: "#555" };
 
-// The selected position: full-strength and bold, so which setting is live is read off the
-// same row that shows what the settings are.
-const tickOnStyle: React.CSSProperties = { color: "#fff", opacity: 1, fontWeight: "bold" };
+// The selected position: darkest and bold, so which setting is live is read off the same
+// row that shows what the settings are.
+const tickOnStyle: React.CSSProperties = { color: "#000", fontWeight: "bold" };
