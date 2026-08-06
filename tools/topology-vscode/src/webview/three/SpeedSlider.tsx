@@ -12,18 +12,29 @@ import { usePlaybackSpeed } from "./overlay-flags";
 // can lose step with each other (a setting added to one and not the other), and nothing
 // would catch it — the labels would silently name the wrong speeds from that index on.
 //
-// The quarters read as vulgar fractions rather than decimals because the table IS quarters
-// of the clock (nodes/wire.MsPerTick is divisible by 4 so they divide exactly —
-// clock_ms_per_tick_quarters_test.go pins that); "¼" says that where "0.25" reads as an
+// The quarters read as FRACTIONS rather than decimals because the table IS quarters of the
+// clock (nodes/wire.MsPerTick is divisible by 4 so they divide exactly —
+// clock_ms_per_tick_quarters_test.go pins that); "1/4" says that where "0.25" reads as an
 // arbitrary decimal.
+//
+// A fraction carries `num`/`den` as separate strings and is BUILT from three spans, rather
+// than being the single precomposed glyph "¼". At the 11px this row renders at, that glyph's
+// own numerator and denominator are a couple of pixels tall and sit almost on top of each
+// other — legible as "a fraction", not as WHICH fraction. Built from parts, the numerator
+// and denominator can be pushed apart around the slash (see numStyle/denStyle) so each digit
+// is readable at that size. A whole number has no `den` and renders as a plain label.
 const SPEED_SETTINGS = [
-  { speed: 0, label: "0" },
-  { speed: 0.25, label: "¼" },
-  { speed: 0.5, label: "½" },
-  { speed: 0.75, label: "¾" },
-  { speed: 1, label: "1" },
-  { speed: 2, label: "2" },
+  { speed: 0, num: "0" },
+  { speed: 0.25, num: "1", den: "4" },
+  { speed: 0.5, num: "1", den: "2" },
+  { speed: 0.75, num: "3", den: "4" },
+  { speed: 1, num: "1" },
+  { speed: 2, num: "2" },
 ] as const;
+
+// key identifies a setting for React's list reconciliation and for the aria label — the
+// speed itself, which is unique across the table by construction.
+const settingKey = (s: (typeof SPEED_SETTINGS)[number]): string => String(s.speed);
 
 // DEFAULT_INDEX is the position holding multiplier 1 — what the slider shows until the
 // first snapshot decodes, matching Go's own defaultPlaybackSpeed fallback for a missing or
@@ -78,8 +89,14 @@ export function SpeedSlider() {
           second place saying the same thing. */}
       <span style={ticksStyle} aria-hidden="true">
         {SPEED_SETTINGS.map((setting, i) => (
-          <span key={setting.label} style={i === index ? tickOnStyle : tickStyle}>
-            {setting.label}
+          <span key={settingKey(setting)} style={i === index ? tickOnStyle : tickStyle}>
+            <span style={numStyle}>{setting.num}</span>
+            {"den" in setting && (
+              <>
+                <span style={slashStyle}>/</span>
+                <span style={denStyle}>{setting.den}</span>
+              </>
+            )}
           </span>
         ))}
       </span>
@@ -139,6 +156,33 @@ const ticksStyle: React.CSSProperties = {
 // (.abc-drag-label, .rule-eq-panel) use — because the dark-panel palette (#ddd, and a 0.5
 // opacity dim on top of it) is near-white on white and left them all but unreadable.
 const tickStyle: React.CSSProperties = { color: "#555" };
+
+// --- fraction parts ---
+//
+// The numerator rides above the slash and the denominator below it, pushed apart by
+// FRAC_SHIFT so the two digits read separately instead of colliding the way the
+// precomposed "¼" glyph does at this size. translateY moves them WITHOUT changing the
+// line's own height (unlike vertical-align, which grows the line box and would shove the
+// label row down away from the track), so the tick row stays tight under the slider.
+const FRAC_SHIFT = 2;
+
+const numStyle: React.CSSProperties = {
+  display: "inline-block",
+  transform: `translateY(-${FRAC_SHIFT}px)`,
+};
+
+const denStyle: React.CSSProperties = {
+  display: "inline-block",
+  transform: `translateY(${FRAC_SHIFT}px)`,
+};
+
+// The slash leans between the two and is dimmed a little: it is the separator, not a digit,
+// and at full strength it competes with the numbers it divides.
+const slashStyle: React.CSSProperties = {
+  display: "inline-block",
+  opacity: 0.7,
+  margin: "0 -0.5px",
+};
 
 // The selected position: darkest and bold, so which setting is live is read off the same
 // row that shows what the settings are.
