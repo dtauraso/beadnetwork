@@ -36,6 +36,8 @@ package Node1
 
 import (
 	"context"
+	"fmt"
+
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring"
@@ -398,7 +400,21 @@ func (n *Node) handleVectorCycle(tick int64) {
 	n.ReceivedPhiIdx = received.PhiIdx
 	n.ReceivedSet = true
 	n.syncReceivedVector()
-	if !n.stepFromVector(received) {
+	// DIAGNOSTIC (task/log-pair-vector-exchange): everything the two dots read, and what
+	// this node decided from them, in one row per arrival. Recorded BEFORE the step so the
+	// `top`/`bottom` here are the operands the dots actually used, not the post-step ones.
+	// An exchange halts, so this is bounded per run rather than a per-tick firehose.
+	before := n.TopTiltThetaIdx
+	acuteTop := Wiring.TiltVectorIsAcute(received, n.topTilt())
+	acuteBottom := Wiring.TiltVectorIsAcute(received, n.bottomTilt())
+	moved := n.stepFromVector(received)
+	if n.Self != nil {
+		n.Self.Breadcrumb("pair-vector", fmt.Sprintf(
+			"tick=%d recv=(%d,%d) top=%d bottom=%d acuteTop=%v acuteBottom=%v moved=%v idx %d->%d",
+			tick, received.ThetaIdx, received.PhiIdx, before, before+Wiring.HalfTurnThetaIdx,
+			acuteTop, acuteBottom, moved, before, n.TopTiltThetaIdx))
+	}
+	if !moved {
 		return
 	}
 	n.syncTiltIndex()
@@ -463,6 +479,15 @@ func (n *Node) Update(ctx context.Context) {
 				n.syncTiltIndex()
 				if placeBead && n.Out != nil {
 					n.Out.PlaceDrivenAt(1, clk.Tick())
+				}
+				// DIAGNOSTIC: the BOUNDARY of an exchange — which edit a user sent and the
+				// indices it left behind. Reading the log, every "pair-vector" row between
+				// two of these belongs to the run this one started.
+				if n.Self != nil {
+					n.Self.Breadcrumb("pair-tilt-edit", fmt.Sprintf(
+						"tick=%d reset=%v start=%v axis=%s up=%v placeBead=%v theta=%d phi=%d",
+						clk.Tick(), edit.Reset, edit.Start, edit.Axis, edit.Up, placeBead,
+						n.TopTiltThetaIdx, n.TopTiltPhiIdx))
 				}
 			default:
 			}

@@ -38,6 +38,22 @@ type PairNodeSelf struct {
 	speedCh <-chan float64
 }
 
+// Breadcrumb emits a DEBUG breadcrumb on this node's own stream (.claude/rules/
+// go-debugging.md) — the pair kinds have no *T.Trace of their own, so this is how they
+// reach the one their geometry already holds. Diagnostic only: read back with
+// `tools/probe-merge.sh --debug`, never gated on the probe.trace setting, and a no-op when
+// no stream is wired (a headless or bare test build).
+//
+// Keep call sites SPARSE. These are for control events — an arrival, a decision, a user
+// edit — not a per-tick firehose; a per-tick breadcrumb once grew a probe log past a
+// gigabyte in this repo.
+func (p *PairNodeSelf) Breadcrumb(label, value string) {
+	if p == nil || p.geom == nil || p.geom.tr == nil {
+		return
+	}
+	p.geom.tr.Breadcrumb(label, p.geom.id, "", value)
+}
+
 // EmitGeometryOnce sends this node's initial node-geometry frame — the one-time startup
 // emit a ring's nodeMover.run makes at goroutine start (see its own doc comment),
 // reproduced here since this node's own Update loop is that goroutine now.
