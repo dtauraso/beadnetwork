@@ -12,29 +12,19 @@ import { usePlaybackSpeed } from "./overlay-flags";
 // can lose step with each other (a setting added to one and not the other), and nothing
 // would catch it — the labels would silently name the wrong speeds from that index on.
 //
-// The quarters read as FRACTIONS rather than decimals because the table IS quarters of the
-// clock (nodes/wire.MsPerTick is divisible by 4 so they divide exactly —
-// clock_ms_per_tick_quarters_test.go pins that); "1/4" says that where "0.25" reads as an
-// arbitrary decimal.
-//
-// A fraction carries `num`/`den` as separate strings and is BUILT from three spans, rather
-// than being the single precomposed glyph "¼". At the 11px this row renders at, that glyph's
-// own numerator and denominator are a couple of pixels tall and sit almost on top of each
-// other — legible as "a fraction", not as WHICH fraction. Built from parts, the numerator
-// and denominator can be pushed apart around the slash (see numStyle/denStyle) so each digit
-// is readable at that size. A whole number has no `den` and renders as a plain label.
+// The quarters read as vulgar fractions rather than decimals because the table IS quarters
+// of the clock (nodes/wire.MsPerTick is divisible by 4 so they divide exactly —
+// clock_ms_per_tick_quarters_test.go pins that); "¼" says that where "0.25" reads as an
+// arbitrary decimal. Each label is a single precomposed glyph — building one out of a
+// numerator, a slash and a denominator was tried and reverted.
 const SPEED_SETTINGS = [
-  { speed: 0, num: "0" },
-  { speed: 0.25, num: "1", den: "4" },
-  { speed: 0.5, num: "1", den: "2" },
-  { speed: 0.75, num: "3", den: "4" },
-  { speed: 1, num: "1" },
-  { speed: 2, num: "2" },
+  { speed: 0, label: "0" },
+  { speed: 0.25, label: "¼" },
+  { speed: 0.5, label: "½" },
+  { speed: 0.75, label: "¾" },
+  { speed: 1, label: "1" },
+  { speed: 2, label: "2" },
 ] as const;
-
-// key identifies a setting for React's list reconciliation and for the aria label — the
-// speed itself, which is unique across the table by construction.
-const settingKey = (s: (typeof SPEED_SETTINGS)[number]): string => String(s.speed);
 
 // DEFAULT_INDEX is the position holding multiplier 1 — what the slider shows until the
 // first snapshot decodes, matching Go's own defaultPlaybackSpeed fallback for a missing or
@@ -44,12 +34,7 @@ const DEFAULT_INDEX = SPEED_SETTINGS.findIndex((s) => s.speed === 1);
 
 // Slider track width, in px, shared by the input and the tick-label row below it so the
 // labels line up with the positions they name.
-//
-// Sized by the LABELS, not by the control. Six stops across the old 104px left ~17px each,
-// and "3/4" in 11px monospace is wider than that — so the fractions crowded into one
-// another and read as cramped no matter how they were styled. The width below gives each
-// label its own room with a gap between neighbours.
-const TRACK_W = 176;
+const TRACK_W = 104;
 
 // Half a range thumb, in px. The thumb's CENTRE at the extremes sits this far inside the
 // track's own ends, so the label row is inset by the same amount — otherwise "0" and "2"
@@ -94,14 +79,8 @@ export function SpeedSlider() {
           second place saying the same thing. */}
       <span style={ticksStyle} aria-hidden="true">
         {SPEED_SETTINGS.map((setting, i) => (
-          <span key={settingKey(setting)} style={i === index ? tickOnStyle : tickStyle}>
-            <span style={numStyle}>{setting.num}</span>
-            {"den" in setting && (
-              <>
-                <span style={slashStyle}>/</span>
-                <span style={denStyle}>{setting.den}</span>
-              </>
-            )}
+          <span key={setting.label} style={i === index ? tickOnStyle : tickStyle}>
+            {setting.label}
           </span>
         ))}
       </span>
@@ -148,50 +127,21 @@ const ticksStyle: React.CSSProperties = {
   width: TRACK_W,
   padding: `0 ${THUMB_INSET}px`,
   boxSizing: "border-box",
-  fontSize: 12,
+  fontSize: 11,
   fontFamily: "monospace",
-  // Room for the numerator and denominator to sit FRAC_SHIFT px above and below the
-  // baseline without the row clipping them.
-  lineHeight: 1.6,
+  lineHeight: 1,
   userSelect: "none",
   pointerEvents: "none",
 };
 
 // These labels sit in the LIGHT toolbar (.toolbar in webview.css is `background: #fff`),
-// not in one of the dark overlay panels floating over the canvas. They are coloured from
-// the toolbar's own palette — the same #555/#333 the other toolbar-adjacent labels
-// (.abc-drag-label, .rule-eq-panel) use — because the dark-panel palette (#ddd, and a 0.5
-// opacity dim on top of it) is near-white on white and left them all but unreadable.
-// Every label is full-strength. Nothing here is dimmed to push it back: a label that is
-// shown is shown to be read, and greying the unselected ones makes five of the six settings
-// harder to read in exchange for saying something WEIGHT already says.
-const tickStyle: React.CSSProperties = { color: "#000" };
-
-// --- fraction parts ---
+// not in one of the dark overlay panels floating over the canvas — the dark-panel palette
+// (#ddd text) is near-white on white and left them all but unreadable.
 //
-// The numerator rides above the slash and the denominator below it, pushed apart by
-// FRAC_SHIFT so the two digits read separately instead of colliding the way the
-// precomposed "¼" glyph does at this size. translateY moves them WITHOUT changing the
-// line's own height (unlike vertical-align, which grows the line box and would shove the
-// label row down away from the track), so the tick row stays tight under the slider.
-const FRAC_SHIFT = 4;
-
-const numStyle: React.CSSProperties = {
-  display: "inline-block",
-  transform: `translateY(-${FRAC_SHIFT}px)`,
-};
-
-const denStyle: React.CSSProperties = {
-  display: "inline-block",
-  transform: `translateY(${FRAC_SHIFT}px)`,
-};
-
-// The slash sits between them, styled exactly like the digits — same colour, same weight,
-// same size. Only the vertical offset differs across the three parts; anything else (a
-// dimmed slash, a tightened margin) restyles the label rather than separating it.
-const slashStyle: React.CSSProperties = {
-  display: "inline-block",
-};
+// Every label is full-strength black. Nothing here is dimmed to push it back: a label that
+// is shown is shown to be read, and greying the unselected ones makes five of the six
+// settings harder to read in exchange for saying something WEIGHT already says.
+const tickStyle: React.CSSProperties = { color: "#000" };
 
 // The selected position is marked by WEIGHT ALONE — same colour as the rest, just bold.
 const tickOnStyle: React.CSSProperties = { color: "#000", fontWeight: "bold" };
