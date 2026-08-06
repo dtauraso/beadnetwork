@@ -39,7 +39,7 @@
           <table class="f">
             <tr class="h">
               <td>CONSTANTS</td>
-              <td></td>
+              <td>what it is</td>
               <td>source</td>
             </tr>
             <tr>
@@ -88,6 +88,11 @@
               <td class="e">t − PERP (+HALF odd)</td>
               <td class="e">t + PERP</td>
             </tr>
+            <tr class="h">
+              <td>POLE PARITY</td>
+              <td>what it is</td>
+              <td>source</td>
+            </tr>
             <tr>
               <td class="e">odd = floorDiv(t, HALF) mod 2 ≠ 0</td>
               <td class="n">poles crossed; FLOOR, toward −∞</td>
@@ -96,22 +101,22 @@
 
             <tr class="h">
               <td>THE TEST</td>
-              <td></td>
-              <td>tilt_vector_channel.go</td>
+              <td>what it is</td>
+              <td>source</td>
             </tr>
             <tr>
               <td class="e">d = ((a − b) mod FULL + FULL) mod FULL</td>
               <td class="n">separation, reduced to [0, 24)</td>
-              <td class="s">TiltVectorIsAcute</td>
+              <td class="s">tilt_vector_channel.go</td>
             </tr>
             <tr>
               <td class="e">acute ⟺ d &lt; PERP ∨ d &gt; FULL − PERP</td>
               <td class="n">d = 6 and d = 18 are the halt</td>
-              <td class="s">TiltVectorIsAcute</td>
+              <td class="s">tilt_vector_channel.go</td>
             </tr>
 
             <tr class="h">
-              <td>THE STEP</td>
+              <td>THE STEP — what arrived</td>
               <td>node 1</td>
               <td>node 2</td>
             </tr>
@@ -127,10 +132,12 @@
             </tr>
             <tr>
               <td class="e">neither →</td>
-              <td class="n">hold, send nothing, place no bead</td>
-              <td class="s">stepFromVector</td>
+              <td class="n">hold, send nothing</td>
+              <td class="n">hold, send nothing</td>
             </tr>
           </table>
+          <div class="cap">The direction and step rows are each kind's own <code>stepFromVector</code> —
+            nodes/Node1/node.go and nodes/Node2/node.go.</div>
         </div>
 
         <div class="card wide">
@@ -138,7 +145,7 @@
           <table class="f">
             <tr class="h">
               <td>CLOCK</td>
-              <td></td>
+              <td>what it is</td>
               <td>source</td>
             </tr>
             <tr>
@@ -169,7 +176,7 @@
 
             <tr class="h">
               <td>INDEX → SCREEN</td>
-              <td></td>
+              <td>what it is</td>
               <td>source</td>
             </tr>
             <tr>
@@ -185,12 +192,12 @@
             <tr>
               <td class="e">y = r·cosθ</td>
               <td class="n">θ from +y, so y is the cosine</td>
-              <td class="s">anglesToWorldOffset</td>
+              <td class="s">gesture_camera.go</td>
             </tr>
             <tr>
               <td class="e">z = r·sinθ·sinφ</td>
-              <td class="n"></td>
-              <td class="s">anglesToWorldOffset</td>
+              <td class="n">the other in-ring component</td>
+              <td class="s">gesture_camera.go</td>
             </tr>
             <tr>
               <td class="e">r = nodeRadius(kind)</td>
@@ -199,7 +206,7 @@
             </tr>
             <tr>
               <td class="e">nodeRadius = outerR / (1 + tubeRatio)</td>
-              <td class="n"></td>
+              <td class="n">the ring's own radius</td>
               <td class="s">port_geometry.go</td>
             </tr>
           </table>
