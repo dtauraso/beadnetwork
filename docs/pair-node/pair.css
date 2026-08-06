@@ -182,25 +182,29 @@
       vertical-align: baseline
     }
 
-    /* expression : note : source — the shares that keep all three on the page */
+    /* expression : note : source — the shares that keep all three on the page.
+       The source column is sized for the longest file name it carries
+       (tilt_vector_channel.go / scene_speed_persist.go, 22 characters). */
     table.f td:nth-child(1) {
-      width: 42%
+      width: 40%
     }
 
     table.f td:nth-child(2) {
-      width: 36%
+      width: 32%
     }
 
     table.f td:nth-child(3) {
-      width: 22%;
+      width: 28%;
       padding-right: 0
     }
 
     table.f td.e {
       font-family: var(--mono);
       color: var(--ink);
-      /* wraps at spaces rather than forcing the table wider than the card */
-      overflow-wrap: break-word
+      /* `anywhere`, not `break-word`: it also lowers the cell's min-content
+         width, so a long unbroken token (a file name, 0.2617993877991494)
+         cannot push the table past the card. */
+      overflow-wrap: anywhere
     }
 
     table.f td.n {
@@ -211,7 +215,7 @@
       font-family: var(--mono);
       color: var(--dim);
       font-size: 10px;
-      overflow-wrap: break-word
+      overflow-wrap: anywhere
     }
 
     table.f tr.h td {
