@@ -22,6 +22,10 @@
       {
         "command": "topology.openDocs",
         "title": "Topology: Open Pair Node Docs"
+      },
+      {
+        "command": "topology.openSource",
+        "title": "Topology: Open Source File From Docs"
       }
     ],
     "menus": {

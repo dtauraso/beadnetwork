@@ -52,6 +52,32 @@ export function openDocsPanel(context: vscode.ExtensionContext, page?: string): 
 // One panel, reused: opening a nav link replaces the page rather than stacking tabs.
 let docsPanel: vscode.WebviewPanel | undefined;
 
+// openSource opens one of this repo's files as an editor tab, named by its path
+// relative to the workspace root. Called by the source links in the docs panel.
+// Every failure says so out loud: a link that quietly does nothing is the exact
+// thing this whole mechanism exists to stop being.
+export function openSource(rel: string): void {
+  const folder = vscode.workspace.workspaceFolders?.[0];
+  if (!folder || folder.uri.scheme !== "file") {
+    vscode.window.showErrorMessage("No folder open, so there is nothing to open a source file from.");
+    return;
+  }
+  const root = folder.uri.fsPath;
+  const abs = path.resolve(root, rel);
+  if (abs !== root && !abs.startsWith(root + path.sep)) {
+    vscode.window.showErrorMessage(`Refusing to open ${rel}: outside this workspace.`);
+    return;
+  }
+  if (!fs.existsSync(abs)) {
+    vscode.window.showErrorMessage(`No such file: ${rel}`);
+    return;
+  }
+  vscode.window.showTextDocument(vscode.Uri.file(abs), { preview: false }).then(
+    () => { },
+    (err) => vscode.window.showErrorMessage(`Could not open ${rel}: ${String(err)}`),
+  );
+}
+
 // Page names come from links inside the pages, but they arrive as command
 // arguments, so they are treated as untrusted: one path segment, no traversal.
 function sanitize(page?: string): string | undefined {
@@ -67,6 +93,11 @@ function render(webview: vscode.Webview, dir: string, root: string, html: string
   const css = webview.asWebviewUri(vscode.Uri.file(path.join(dir, "pair.css")));
 
   return html
+    // A marker, so which surface you are reading is never in doubt: the source
+    // links are clickable HERE and inert in Live Preview, and those two look
+    // otherwise identical.
+    .replace(/<body>/, `<body>\n  <div style="padding:8px 18px 0;font-size:11px;color:#5fd68a">`
+      + `topology docs panel — source names open as editor tabs</div>`)
     // The stylesheet has to be addressed as a webview resource.
     .replace(/href="pair\.css"/g, `href="${css.toString()}"`)
     // pair.js is for the Live-Preview/browser reading of these same files; here the
@@ -76,8 +107,12 @@ function render(webview: vscode.Webview, dir: string, root: string, html: string
     .replace(/href="([a-z0-9-]+)\.html"/gi,
       (_m: string, p: string) => `href="${commandUri("topology.openDocs", [p])}"`)
     // A source cell becomes a link that opens that file as an editor tab.
-    .replace(/<td class="s" data-src="([^"]+)">([^<]*)<\/td>/g, (_m: string, rel: string, text: string) => {
-      const uri = vscode.Uri.file(path.join(root, rel));
-      return `<td class="s"><a class="srclink" title="${rel}" href="${commandUri("vscode.open", [uri.toString()])}">${text}</a></td>`;
-    });
+    //
+    // Deliberately NOT the built-in vscode.open: that takes a Uri, and a command
+    // URI carries plain JSON, so a Uri does not survive the trip — the command
+    // gets a string, and fails silently, which is a dead link that looks live.
+    // topology.openSource takes the repo-relative path as a string and builds the
+    // Uri on the extension side, where it is a Uri already.
+    .replace(/<td class="s" data-src="([^"]+)">([^<]*)<\/td>/g, (_m: string, rel: string, text: string) =>
+      `<td class="s"><a class="srclink" title="${rel}" href="${commandUri("topology.openSource", [rel])}">${text}</a></td>`);
 }

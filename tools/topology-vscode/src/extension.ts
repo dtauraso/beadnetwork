@@ -8,7 +8,7 @@ import { hashBundle, isHostReloadEnabled, shouldReloadHost } from "./hostReload"
 import type { HostToWebviewMsg } from "./messages";
 import { buildWebviewHtml } from "./extension/html";
 import { handleMessage } from "./extension/handle-message";
-import { openDocsPanel } from "./extension/docs-panel";
+import { openDocsPanel, openSource } from "./extension/docs-panel";
 import { PROBE_FILES } from "./probe-files";
 
 export function activate(context: vscode.ExtensionContext) {
@@ -20,6 +20,11 @@ export function activate(context: vscode.ExtensionContext) {
     // lets their source names open as editor tabs — see docs-panel.ts.
     vscode.commands.registerCommand("topology.openDocs", (page?: string) => {
       openDocsPanel(context, page);
+    }),
+    // What a source link in that panel calls. Takes the repo-relative path as a
+    // STRING: a command: URI carries JSON, so a vscode.Uri would not survive it.
+    vscode.commands.registerCommand("topology.openSource", (rel?: string) => {
+      if (rel) openSource(rel);
     }),
   );
   armHostReloadWatcher(context);
