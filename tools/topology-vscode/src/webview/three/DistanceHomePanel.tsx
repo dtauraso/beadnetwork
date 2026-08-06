@@ -1,14 +1,8 @@
-import type React from "react";
+import React from "react";
 import { postGoRecord } from "../vscode-api";
 import { encodeDistanceGroupAdjust } from "../../schema/input-layout";
 import { useDistanceGroupLens } from "./overlay-flags";
-import { panelStyle, rowStyle, labelCol, valueCol, btnStyle } from "./panel-styles";
-
-// Column widths in characters (panel-styles.ts). Label: "select", the longest of the three
-// group names. Value: a rounded length, four digits' worth — the ring spans ~500 world
-// units, so three digits is the live case and the fourth is headroom.
-const labelStyle = labelCol(6);
-const valueStyle = valueCol(4);
+import { panelStyle, labelStyle, valueStyle, btnStyle } from "./panel-styles";
 
 // DistanceHomePanel — the "distance home button" toolbar panel: 3 named groups of
 // node-pair distances (time / input / select — Go's distanceGroupOrder,
@@ -62,7 +56,7 @@ export function DistanceHomePanel() {
       {GROUPS.map(({ index, label }) => {
         const v = valueFor(index);
         return (
-          <div style={rowStyle} key={label}>
+          <React.Fragment key={label}>
             <span style={labelStyle}>{label}</span>
             <span style={valueStyle}>{v === undefined ? "—" : Math.round(v)}</span>
             <button
@@ -81,7 +75,7 @@ export function DistanceHomePanel() {
             >
               ▼
             </button>
-          </div>
+          </React.Fragment>
         );
       })}
     </div>

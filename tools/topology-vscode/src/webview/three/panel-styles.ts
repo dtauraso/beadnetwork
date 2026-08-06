@@ -16,25 +16,21 @@ import React from "react";
 // A fixed minimum is what makes a COLUMN — the values line up down the panel — without
 // that stretch.
 
-// Column widths are given in `ch`, and each panel states its OWN — they are not one shared
-// pair of px guesses.
+// NOTHING HERE DECLARES A COLUMN WIDTH. The panel is a GRID, and a grid's `auto` column is
+// exactly as wide as the widest thing in it — so the columns line up down the panel with no
+// width stated anywhere, and no slack.
 //
-// px guesses are what put the visible slack in these panels: a value column fixed at 30px
-// holding a right-aligned "0" leaves ~24px of empty panel to the left of that digit, every
-// row, and a label column fixed at 34px pads "time" the same way. The columns have to be
-// SOME fixed width — that is what makes the values and the ▲/▼ line up down the panel — but
-// the width should be the longest string the column can actually hold, not a number picked
-// to cover both panels at once.
+// The slack these panels had came from stating widths at all. Each row was its own flex
+// line, so aligning the values and the ▲/▼ across rows meant giving the label and value
+// cells a fixed `minWidth` — and any fixed width wide enough for the longest string is too
+// wide for every other row. A value cell sized for a 3-digit length left ~24px of empty
+// panel beside a right-aligned "0". Two rounds of re-guessing those numbers (px, then `ch`)
+// changed the amount of slack and could not remove it: the guess itself was the defect, and
+// the second guess made one panel WIDER than the px it replaced.
 //
-// `ch` is exactly that measurement here: these panels are monospace, so 1ch IS one
-// character, and `labelCol(6)` means "six characters wide" rather than "40px, which is
-// about six characters if the font is what I think it is".
-export const labelCol = (ch: number): React.CSSProperties => ({ minWidth: `${ch}ch` });
-
-export const valueCol = (ch: number): React.CSSProperties => ({
-  minWidth: `${ch}ch`,
-  textAlign: "right",
-});
+// A grid removes the question. Rows are not separate flex lines any more — every cell is a
+// direct child of one grid, so column alignment is structural, and each column shrinks to
+// its own content.
 
 export const panelStyle: React.CSSProperties = {
   // Placed by ThreeView's right-hand flex column, not by a top/right of its own — these
@@ -42,9 +38,13 @@ export const panelStyle: React.CSSProperties = {
   // against a number known here. The column takes no pointer events; each panel re-enables
   // them for itself so the canvas stays draggable in the gaps.
   pointerEvents: "auto",
-  display: "inline-flex",
-  flexDirection: "column",
-  gap: 2,
+  // Four content-sized columns: label, value, ▲, ▼. `auto` means "as wide as this column's
+  // widest cell" — the alignment down the panel comes from the grid, not from a width.
+  display: "inline-grid",
+  gridTemplateColumns: "auto auto auto auto",
+  alignItems: "center",
+  columnGap: 4,
+  rowGap: 2,
   background: "rgba(0,0,0,0.55)",
   borderRadius: 6,
   padding: "3px 6px",
@@ -54,13 +54,17 @@ export const panelStyle: React.CSSProperties = {
   userSelect: "none",
 };
 
-export const rowStyle: React.CSSProperties = {
-  display: "flex",
-  flexDirection: "row",
-  alignItems: "center",
-  gap: 4,
-  whiteSpace: "nowrap",
-};
+// Labels and values are cells of the panel grid, not children of a row wrapper — a wrapper
+// would be a single grid item and put every row back on its own independent line, which is
+// what made the widths need guessing.
+export const labelStyle: React.CSSProperties = { whiteSpace: "nowrap" };
+
+// Right-aligned so the digits line up on their last character down the column. The column
+// is already only as wide as the widest value, so this adds no space.
+export const valueStyle: React.CSSProperties = { whiteSpace: "nowrap", textAlign: "right" };
+
+// A cell that spans the full width — a node's name, or the rule between two nodes.
+export const fullRowStyle: React.CSSProperties = { gridColumn: "1 / -1" };
 
 
 export const btnStyle: React.CSSProperties = {

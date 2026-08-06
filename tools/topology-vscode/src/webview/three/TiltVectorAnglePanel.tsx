@@ -3,13 +3,7 @@ import { postGoRecord } from "../vscode-api";
 import { encodeTiltVectorAdjust } from "../../schema/input-layout";
 import { CURVE_PARAM_TILT_VECTOR_ANGLE_STEP } from "../../schema/curve-params";
 import { useTiltVectorRows } from "./overlay-flags";
-import { panelStyle, rowStyle, labelCol, valueCol, btnStyle } from "./panel-styles";
-
-// Column widths in characters (panel-styles.ts). Label: "theta", the longer of the two axis
-// names. Value: formatAngle's widest output — a sign, up to two index digits, "π/" and the
-// two-digit denominator, e.g. "-11π/12".
-const labelStyle = labelCol(5);
-const valueStyle = valueCol(7);
+import { panelStyle, labelStyle, valueStyle, fullRowStyle, btnStyle } from "./panel-styles";
 
 // TiltVectorAnglePanel — a per-node tilt-vector-direction panel, sibling of
 // DistanceHomePanel (same style constants: small dark rounded panel, monospace, ▲/▼
@@ -71,7 +65,7 @@ export function TiltVectorAnglePanel() {
           {i > 0 && <div style={sepStyle} />}
           <div style={headerStyle}>{node.label || String(node.row)}</div>
           {(["theta", "phi"] as const).map((axis) => (
-            <div style={rowStyle} key={axis}>
+            <React.Fragment key={axis}>
               <span style={labelStyle}>{axis}</span>
               <span style={valueStyle}>{formatAngle(axis === "theta" ? node.theta : node.phi)}</span>
               <button
@@ -90,7 +84,7 @@ export function TiltVectorAnglePanel() {
               >
                 ▼
               </button>
-            </div>
+            </React.Fragment>
           ))}
         </React.Fragment>
       ))}
@@ -99,14 +93,15 @@ export function TiltVectorAnglePanel() {
 }
 
 // A node's name above its own two angle lines, so which θ/φ belongs to which node is read
-// off the layout rather than remembered.
+// off the layout rather than remembered. Spans every column of the panel grid.
 const headerStyle: React.CSSProperties = {
+  ...fullRowStyle,
   color: "#fff",
-  opacity: 0.85,
   paddingTop: 1,
 };
 
 const sepStyle: React.CSSProperties = {
+  ...fullRowStyle,
   height: 1,
   background: "rgba(255,255,255,0.18)",
   margin: "3px 0",
