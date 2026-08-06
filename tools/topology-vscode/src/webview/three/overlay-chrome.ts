@@ -58,7 +58,10 @@ export const pillCaretStyle: React.CSSProperties = {
  *  existence — the caret flips and nothing appears, which is exactly how the angles panel
  *  first shipped. Make the popover a SIBLING of the pill, inside a `position: relative`
  *  wrapper that sets no overflow (TiltVectorAnglePanel's `anchorStyle`). */
-export function popoverStyle(width: number): React.CSSProperties {
+// width takes a CSS width, not just a px number: a popover whose contents are narrow and
+// variable (the angles panel's node names) wants "max-content" — its own measurement —
+// rather than a number picked in advance, which shows up as an empty band down its right.
+export function popoverStyle(width: number | string): React.CSSProperties {
   return {
     position: "absolute",
     top: "calc(100% + 4px)",

@@ -118,7 +118,10 @@ function NodeGroupSection({ node }: { node: TiltVectorRow }) {
         style={groupHeadingStyle(hover)}
       >
         <span style={DISCLOSURE_GLYPH_STYLE}>{open ? "▼" : "▶"}</span>
-        <span style={{ flex: "1 1 auto" }}>{heading}</span>
+        {/* No `flex: "1 1 auto"` here. Overlays' heading stretches because it has a count
+            chip to push to the far end; this heading has nothing after it, so stretching it
+            only holds the popover open past its content. */}
+        <span>{heading}</span>
       </div>
       {open && AXES.map((axis) => <AxisRow key={axis} node={node} axis={axis} />)}
     </div>
@@ -159,12 +162,13 @@ export function TiltVectorAnglePanel() {
         </div>
       </div>
 
-      {/* Popover width comes from the CONTENT, not from a number chosen here: stacked items
-          are narrow, and a fixed width would leave the same empty band down the right that
-          the stretched rows left across them. min-width only keeps a one-node popover from
-          collapsing narrower than its own heading reads well at. */}
+      {/* Popover width is PURELY its content — no width and no min-width. Every number
+          tried here so far (170, then a 108 floor) showed up as an empty band down the
+          right-hand side, because a width chosen in advance cannot be the width of whatever
+          the nodes turn out to be called. max-content is the measurement instead of a
+          guess. */}
       {open && (
-        <div style={{ ...popoverStyle(0), width: "max-content", minWidth: 108 }}>
+        <div style={popoverStyle("max-content")}>
           {rows.map((node) => (
             <NodeGroupSection key={node.row} node={node} />
           ))}
