@@ -450,6 +450,8 @@ func applyUpdateTiltVector(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSin
 		return
 	}
 	if msg.Attr == "reset" {
+		// Done setting: the slider's speed governs again. See HumanEditSpeed.
+		BroadcastSpeed(speedSinks, md.SliderSpeed())
 		if md.sendTiltEdit(id, TiltEditMsg{Reset: true}) {
 			return
 		}
@@ -457,6 +459,10 @@ func applyUpdateTiltVector(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSin
 		return
 	}
 	if msg.Attr == "start" {
+		// Done setting — the exchange is about to run, and running it is exactly what the
+		// slider's number is about. Sent BEFORE the Start edit so the first cycle of the
+		// exchange is already at the intended speed rather than one cycle of human speed.
+		BroadcastSpeed(speedSinks, md.SliderSpeed())
 		// Start only exists on the pair kinds' own dedicated channel (Node1/Node2's
 		// VectorOut/outgoingVector) — there is no mover-owned fallback, unlike
 		// theta/phi/reset: a kind that never claimed BuildArgs.TiltEditIn has no vector
@@ -464,6 +470,11 @@ func applyUpdateTiltVector(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSin
 		md.sendTiltEdit(id, TiltEditMsg{Start: true})
 		return
 	}
+	// A ▲/▼ ANGLE CLICK — the user is SETTING a tilt. Run every clock at human speed until
+	// they start or reset, so the click is answered now rather than a scaled cycle from now
+	// (see HumanEditSpeed for why this is not the slider's business). Sent BEFORE the edit,
+	// so the very node about to drain this edit is already cycling at that speed.
+	BroadcastSpeed(speedSinks, HumanEditSpeed)
 	up := msg.Flag == "up"
 	if md.sendTiltEdit(id, TiltEditMsg{Axis: msg.Attr, Up: up}) {
 		return
