@@ -129,6 +129,16 @@
       height: auto
     }
 
+    /* a card whose content is a wide table takes the full row, so its columns
+       fit on the page instead of scrolling inside a half-width card */
+    .card.wide {
+      grid-column: 1 / -1
+    }
+
+    .card.wide table.f {
+      width: 100%
+    }
+
     .card {
       overflow-x: auto
     }
@@ -179,7 +189,8 @@
     }
 
     table.f td.n {
-      color: var(--dim)
+      color: var(--dim);
+      width: 100%
     }
 
     table.f td.s {
