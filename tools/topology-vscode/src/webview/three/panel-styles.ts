@@ -38,12 +38,14 @@ export const panelStyle: React.CSSProperties = {
   // against a number known here. The column takes no pointer events; each panel re-enables
   // them for itself so the canvas stays draggable in the gaps.
   pointerEvents: "auto",
-  // Four content-sized columns: label, value, ▲, ▼. `auto` means "as wide as this column's
-  // widest cell" — the alignment down the panel comes from the grid, not from a width.
+  // A grid of content-sized columns — ONE PER NAME. Each panel sets its own count with
+  // gridColumns() below, since that count is how many things the panel lists. `auto` means
+  // "as wide as this column's widest cell", so alignment comes from the grid rather than
+  // from any stated width.
   display: "inline-grid",
-  gridTemplateColumns: "auto auto auto auto",
   alignItems: "center",
-  columnGap: 4,
+  justifyItems: "center",
+  columnGap: 8,
   rowGap: 2,
   background: "rgba(0,0,0,0.55)",
   borderRadius: 6,
@@ -54,16 +56,30 @@ export const panelStyle: React.CSSProperties = {
   userSelect: "none",
 };
 
-// Labels and values are cells of the panel grid, not children of a row wrapper — a wrapper
-// would be a single grid item and put every row back on its own independent line, which is
-// what made the widths need guessing.
+// gridColumns states how many content-sized columns a panel has — one per name it lists.
+export const gridColumns = (n: number): React.CSSProperties => ({
+  gridTemplateColumns: `repeat(${n}, auto)`,
+});
+
+// A NAME, sitting at the top of its own column as that column's title. The panel reads
+// across the top and down: name, then its value, then its arrows. Every cell of a column is
+// therefore about one thing, and the name is not repeated beside each row.
 export const labelStyle: React.CSSProperties = { whiteSpace: "nowrap" };
 
-// Right-aligned so the digits line up on their last character down the column. The column
-// is already only as wide as the widest value, so this adds no space.
-export const valueStyle: React.CSSProperties = { whiteSpace: "nowrap", textAlign: "right" };
+// The value under its own name. Centred (via the grid's justifyItems) rather than
+// right-aligned: a column holds one value now, so there is no column of digits to align the
+// last character of.
+export const valueStyle: React.CSSProperties = { whiteSpace: "nowrap" };
 
-// A cell that spans the full width — a node's name, or the rule between two nodes.
+// The ▲/▼ pair under a value, kept together as one cell so the arrows stay with the column
+// they act on.
+export const arrowCellStyle: React.CSSProperties = {
+  display: "flex",
+  flexDirection: "row",
+  gap: 2,
+};
+
+// A cell that spans every column — a node's name, or the rule between two nodes.
 export const fullRowStyle: React.CSSProperties = { gridColumn: "1 / -1" };
 
 

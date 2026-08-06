@@ -3,7 +3,18 @@ import { postGoRecord } from "../vscode-api";
 import { encodeTiltVectorAdjust } from "../../schema/input-layout";
 import { CURVE_PARAM_TILT_VECTOR_ANGLE_STEP } from "../../schema/curve-params";
 import { useTiltVectorRows } from "./overlay-flags";
-import { panelStyle, labelStyle, valueStyle, fullRowStyle, btnStyle } from "./panel-styles";
+import {
+  panelStyle,
+  gridColumns,
+  labelStyle,
+  valueStyle,
+  arrowCellStyle,
+  fullRowStyle,
+  btnStyle,
+} from "./panel-styles";
+
+// The two angle axes a node exposes, in column order. One column per entry.
+const AXES = ["theta", "phi"] as const;
 
 // TiltVectorAnglePanel — a per-node tilt-vector-direction panel, sibling of
 // DistanceHomePanel (same style constants: small dark rounded panel, monospace, ▲/▼
@@ -57,17 +68,29 @@ export function TiltVectorAnglePanel() {
   };
 
   return (
-    <div style={panelStyle}>
+    // One column per AXIS, and each node contributes its own block of rows: the node's name
+    // across the top, then the two axis names, then their values, then their arrows. Filling
+    // the grid row by row (a pass per row) is what puts an axis's name, value and arrows in
+    // one column — see DistanceHomePanel for the same shape without the per-node grouping.
+    <div style={{ ...panelStyle, ...gridColumns(AXES.length) }}>
       {rows.map((node, i) => (
         <React.Fragment key={node.row}>
-          {/* A rule between nodes, so two nodes' θ/φ lines cannot be misread as one node's
-              four. Skipped before the first. */}
+          {/* A rule between nodes, so two nodes' θ/φ columns cannot be misread as one
+              node's four. Skipped before the first. */}
           {i > 0 && <div style={sepStyle} />}
           <div style={headerStyle}>{node.label || String(node.row)}</div>
-          {(["theta", "phi"] as const).map((axis) => (
-            <React.Fragment key={axis}>
-              <span style={labelStyle}>{axis}</span>
-              <span style={valueStyle}>{formatAngle(axis === "theta" ? node.theta : node.phi)}</span>
+          {AXES.map((axis) => (
+            <span style={labelStyle} key={axis}>
+              {axis}
+            </span>
+          ))}
+          {AXES.map((axis) => (
+            <span style={valueStyle} key={axis}>
+              {formatAngle(axis === "theta" ? node.theta : node.phi)}
+            </span>
+          ))}
+          {AXES.map((axis) => (
+            <span style={arrowCellStyle} key={axis}>
               <button
                 type="button"
                 style={btnStyle}
@@ -84,7 +107,7 @@ export function TiltVectorAnglePanel() {
               >
                 ▼
               </button>
-            </React.Fragment>
+            </span>
           ))}
         </React.Fragment>
       ))}
