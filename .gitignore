@@ -143,6 +143,6 @@ topology*/view/*.json
 topology*/nodes/*/position.json
 
 # This clone's own absolute path, written by tools/docs-root.sh so the docs pages
-# can address VS Code (vscode://file/<abs path>). Machine-specific by definition —
-# generated per clone, never committed.
+# can address VS Code (vscode://file/<abs path>) when read in a browser.
+# Machine-specific by definition — generated per clone, never committed.
 docs/pair-node/root.js

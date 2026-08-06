@@ -8,12 +8,18 @@ import { hashBundle, isHostReloadEnabled, shouldReloadHost } from "./hostReload"
 import type { HostToWebviewMsg } from "./messages";
 import { buildWebviewHtml } from "./extension/html";
 import { handleMessage } from "./extension/handle-message";
+import { openDocsPanel } from "./extension/docs-panel";
 import { PROBE_FILES } from "./probe-files";
 
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand("topology.openEditor", (uri?: vscode.Uri) => {
       openTopologyEditor(context, uri);
+    }),
+    // Reads docs/pair-node/*.html in a panel this extension owns, which is what
+    // lets their source names open as editor tabs — see docs-panel.ts.
+    vscode.commands.registerCommand("topology.openDocs", (page?: string) => {
+      openDocsPanel(context, page);
     }),
   );
   armHostReloadWatcher(context);

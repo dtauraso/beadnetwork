@@ -1,18 +1,19 @@
-// Turn each source cell into a link that opens that file as a VS Code tab.
+// Make each source name a link, for the readings of these pages that allow one.
 //
-// VS Code answers on vscode://file/<ABSOLUTE path>, so the page needs this
-// clone's own filesystem path. Two ways to get it, in order:
+// This file is for reading the pages OUTSIDE VS Code — from a browser, where
+// vscode://file/<absolute path> launches the editor. tools/docs-root.sh writes
+// root.js with this clone's path (gitignored, so no machine's path is committed);
+// under file:// the path is derived from the page's own location instead.
 //
-//   1. window.WIREFOLD_ROOT, from root.js — generated per clone by
-//      tools/docs-root.sh, gitignored, so no machine's path is committed.
-//   2. the page's own location, when read as a file:// URL: the pages live at
-//      <root>/docs/pair-node/<name>.html, so stripping that suffix gives the
-//      root. This does NOT work under Live Preview, which serves the workspace
-//      over http — the path there is already workspace-relative, with no
-//      filesystem root left in it. That is what (1) is for.
+// It does nothing useful in the Live Preview pane: that webview refuses the
+// vscode: scheme, and Live Preview's injected click handler drops the target URL
+// before it gets anywhere. Inside VS Code, read these pages with
+// "Topology: Open Pair Node Docs" — that panel rewrites the same source cells
+// into command: URIs, which is VS Code's own mechanism for opening an editor tab
+// (see tools/topology-vscode/src/extension/docs-panel.ts).
 //
-// If neither is available the names stay as plain text rather than becoming
-// links that go nowhere.
+// With no root available the names stay plain text rather than becoming links
+// that go nowhere.
 (function () {
   const MARKER = "/docs/pair-node/";
 
