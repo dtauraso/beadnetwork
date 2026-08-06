@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Pair node architecture</title>
+  <style>
+    :root {
+      --bg: #22222a;
+      --panel: #2f2f37;
+      --panel2: #34343d;
+      --line: #3a3a44;
+      --ink: #e7e7ea;
+      --dim: #9a9aa6;
+      --accent: #4ea1ff;
+      --warm: #f9a825;
+      --mag: #e05fd8;
+      --green: #5fd68a;
+      --red: #ff6b6b;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font);
+      font-size: 13px
+    }
+
+    header {
+      padding: 14px 18px 0
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: .02em
+    }
+
+    .sub {
+      color: var(--dim);
+      font-size: 11px;
+      margin-top: 2px
+    }
+
+    nav {
+      display: flex;
+      gap: 4px;
+      padding: 12px 18px 0;
+      flex-wrap: wrap
+    }
+
+    nav button {
+      font: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--dim);
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 5px 11px;
+      cursor: pointer
+    }
+
+    nav button:hover {
+      color: var(--ink)
+    }
+
+    nav button.on {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #04101f
+    }
+
+    main {
+      padding: 14px 18px 40px
+    }
+
+    section {
+      display: none
+    }
+
+    section.on {
+      display: block
+    }
+
+    .grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px 12px
+    }
+
+    .card h2 {
+      margin: 0 0 8px;
+      font-size: 9.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--dim)
+    }
+
+    .cap {
+      color: var(--dim);
+      font-size: 11px;
+      margin-top: 6px;
+      line-height: 1.45
+    }
+
+    code {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent)
+    }
+
+    .k {
+      color: var(--warm)
+    }
+
+    svg {
+      display: block
+    }
+
+    .legend {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+      font-size: 10.5px;
+      color: var(--dim)
+    }
+
+    .legend i {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      margin-right: 5px;
+      vertical-align: -1px
+    }
+
+    text {
+      font-family: var(--font);
+      fill: var(--ink)
+    }
+
+    .lbl {
+      font-size: 10px;
+      fill: var(--dim)
+    }
+
+    .lblm {
+      font-family: ui-monospace, Menlo, monospace;
+      font-size: 10px;
+      fill: var(--ink)
+    }
+
+    .big {
+      font-size: 12px;
+      font-weight: 600
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>Pair node architecture</h1>
+    <div class="sub">nodes/Node1 · nodes/Node2 — mirrors of each other, opposite signs</div>
+  </header>
+
+  <nav>
+    <button class="on" data-t="anatomy">Anatomy</button>
+    <button data-t="own">Ownership</button>
+    <button data-t="vectors">Vectors</button>
+    <button data-t="dots">Acute test</button>
+    <button data-t="channels">Channels</button>
+    <button data-t="cycle">Cycle</button>
+    <button data-t="clock">Clock</button>
+    <button data-t="geometry">Geometry</button>
+    <button data-t="asym">Asymmetry</button>
+  </nav>
+
+  <main>
+
+    <!-- ─────────────────────────── ANATOMY ─────────────────────────── -->
+    <section id="anatomy" class="on">
+      <div class="grid">
+
+        <div class="card">
+          <h2>One node = one goroutine (pair)</h2>
+          <svg width="420" height="310" viewBox="0 0 420 310">
+            <rect x="14" y="14" width="220" height="290" rx="10" fill="#34343d" stroke="#f9a825" />
+            <text x="26" y="34" class="big" fill="#f9a825">node goroutine</text>
+
+            <rect x="26" y="44" width="196" height="60" rx="7" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="36" y="60" class="lbl">OWNED STATE — integer indices</text>
+            <text x="36" y="78" class="lblm">TopTiltThetaIdx — θ only, no φ</text>
+            <text x="36" y="94" class="lblm">Received…Idx / ReceivedSet</text>
+
+            <rect x="26" y="112" width="196" height="46" rx="7" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="36" y="128" class="lbl">DERIVED — arithmetic, never stored</text>
+            <text x="36" y="146" class="lblm">bottom +12 · normal +6 · outgoing</text>
+
+            <rect x="26" y="166" width="196" height="60" rx="7" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="36" y="182" class="lbl">GEOMETRY — its own</text>
+            <text x="36" y="200" class="lblm">quantOffset · reach</text>
+            <text x="36" y="216" class="lblm">position.json</text>
+
+            <rect x="26" y="234" width="196" height="60" rx="7" fill="#2b2b33" stroke="#f9a825" />
+            <text x="36" y="250" class="lbl">OUTGOING WIRES — its own</text>
+            <text x="36" y="268" class="lblm">outWires []*PacedWire</text>
+            <text x="36" y="284" class="lblm">bead chain laid out here</text>
+
+            <rect x="252" y="44" width="152" height="250" rx="8" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="328" y="66" text-anchor="middle" class="lbl">ALL OF IT, ONE OWNER</text>
+            <text x="264" y="96" class="lblm" fill="#5fd68a">no second goroutine</text>
+            <text x="264" y="120" class="lblm" fill="#5fd68a">no messages to itself</text>
+            <text x="264" y="144" class="lblm" fill="#5fd68a">nothing sent sideways</text>
+            <text x="264" y="176" class="lbl">a wire is a FIELD,</text>
+            <text x="264" y="194" class="lbl">not a collaborator —</text>
+            <text x="264" y="212" class="lbl">passive, no goroutine,</text>
+            <text x="264" y="230" class="lbl">stepped by its owner</text>
+            <text x="264" y="262" class="lbl">no mutex · no atomic</text>
+            <text x="264" y="280" class="lbl">no ack · nothing shared</text>
+          </svg>
+        </div>
+
+        <div class="card">
+          <h2>State kinds</h2>
+          <svg width="300" height="290" viewBox="0 0 300 290">
+            <rect x="12" y="16" width="276" height="72" rx="8" fill="#2b2b33" stroke="#5fd68a" />
+            <text x="26" y="38" class="big" fill="#5fd68a">STORED · 3 fields</text>
+            <text x="26" y="58" class="lblm">TopTiltThetaIdx</text>
+            <text x="26" y="76" class="lblm">ReceivedThetaIdx · ReceivedSet</text>
+
+            <rect x="12" y="100" width="276" height="104" rx="8" fill="#2b2b33" stroke="#e05fd8" />
+            <text x="26" y="122" class="big" fill="#e05fd8">DERIVED · 3 directions</text>
+            <text x="26" y="142" class="lblm">bottom tilt</text>
+            <text x="26" y="160" class="lblm">coplanar normal</text>
+            <text x="26" y="178" class="lblm">outgoing vector</text>
+            <text x="26" y="196" class="lbl">recomputed on read</text>
+
+            <rect x="12" y="216" width="276" height="58" rx="8" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="26" y="238" class="big">NEVER radians</text>
+            <text x="26" y="258" class="lbl">indices on a π/12 lattice; floats only at the draw edge</text>
+          </svg>
+          <div class="cap">Three directions are arithmetic on one index, so they cannot disagree with it.</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─────────────────────────── OWNERSHIP ─────────────────────────── -->
+    <section id="own">
+      <div class="grid">
+
+        <div class="card">
+          <h2>One goroutine owns all of it</h2>
+          <svg width="440" height="330" viewBox="0 0 440 330">
+            <rect x="20" y="26" width="400" height="230" rx="10" fill="#2b2b33" stroke="#5fd68a" />
+            <text x="220" y="52" text-anchor="middle" class="big" fill="#5fd68a">the node's goroutine</text>
+            <rect x="42" y="70" width="356" height="168" rx="8" fill="#34343d" stroke="#3a3a44" />
+            <text x="220" y="92" text-anchor="middle" class="lblm">nodeGeometry</text>
+            <text x="60" y="118" class="lbl">tilt indices</text>
+            <text x="60" y="140" class="lbl">position · quantOffset · reach</text>
+            <text x="60" y="162" class="lbl">outgoing wires + bead chain</text>
+            <text x="60" y="184" class="lbl">its own stream frame</text>
+            <text x="60" y="206" class="lbl">its own position.json</text>
+            <text x="60" y="228" class="lbl">its own inbound channels</text>
+
+            <rect x="20" y="272" width="400" height="46" rx="8" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="38" y="296" class="lblm" fill="#5fd68a">no second goroutine · no actor wrapping it</text>
+            <text x="38" y="312" class="lbl">nothing is constructed to be skipped or suppressed</text>
+          </svg>
+        </div>
+
+        <div class="card">
+          <h2>Tilt, received vector, beads</h2>
+          <svg width="440" height="200" viewBox="0 0 440 200">
+            <rect x="20" y="24" width="400" height="104" rx="8" fill="#2b2b33" stroke="#5fd68a" />
+            <text x="36" y="48" class="lblm" fill="#5fd68a">DIRECT STATE — not messages</text>
+            <text x="36" y="72" class="lbl">the tilt index it just stepped</text>
+            <text x="36" y="92" class="lbl">the vector that just arrived</text>
+            <text x="36" y="112" class="lbl">emptying its own outgoing wires</text>
+
+            <rect x="20" y="144" width="400" height="42" rx="8" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="36" y="170" class="lbl">the goroutine that changes them is the one that owns them</text>
+          </svg>
+        </div>
+
+        <div class="card">
+          <h2>Animation and geometry, one owner</h2>
+          <svg width="440" height="180" viewBox="0 0 440 180">
+            <rect x="20" y="24" width="400" height="100" rx="8" fill="#2b2b33" stroke="#5fd68a" />
+            <text x="36" y="48" class="lblm" fill="#5fd68a">ONE GOROUTINE</text>
+            <text x="36" y="72" class="lbl">drives the wire, reads it, lays out the chain</text>
+            <text x="36" y="92" class="lbl">and owns the positions that chain is drawn against</text>
+            <text x="36" y="112" class="lbl">no mutex, no atomic, no synchronisation to get right</text>
+
+            <rect x="20" y="138" width="400" height="34" rx="8" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="36" y="160" class="lbl">nothing can be a cycle stale, because nothing travels</text>
+          </svg>
+        </div>
+
+        <div class="card">
+          <h2>The shape this avoids</h2>
+          <svg width="600" height="200" viewBox="0 0 600 200">
+            <rect x="20" y="30" width="260" height="140" rx="10" fill="#2b2b33" stroke="#ff6b6b" />
+            <text x="150" y="54" text-anchor="middle" class="big" fill="#ff6b6b">shared state</text>
+            <text x="40" y="82" class="lblm">one struct, two writers</text>
+            <text x="40" y="104" class="lblm">mutex / atomic</text>
+            <text x="40" y="126" class="lblm">request → wait → reply</text>
+            <text x="40" y="150" class="lbl">correctness by discipline</text>
+
+            <rect x="320" y="30" width="260" height="140" rx="10" fill="#2b2b33" stroke="#5fd68a" />
+            <text x="450" y="54" text-anchor="middle" class="big" fill="#5fd68a">ownership</text>
+            <text x="340" y="82" class="lblm">one writer per field</text>
+            <text x="340" y="104" class="lblm">dedicated channel per pair</text>
+            <text x="340" y="126" class="lblm">send and move on</text>
+            <text x="340" y="150" class="lbl">correctness by construction</text>
+          </svg>
+          <div class="cap">A guard with an empty allowlist enforces the left column cannot come back.</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─────────────────────────── VECTORS ─────────────────────────── -->
+    <section id="vectors">
+      <div class="grid">
+
+        <div class="card">
+          <h2>Four directions from one index</h2>
+          <svg width="440" height="380" viewBox="0 0 440 380">
+            <defs>
+              <marker id="mTop" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+                <path d="M0,0 L8,3 L0,6 z" fill="#e05fd8" />
+              </marker>
+              <marker id="mBot" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+                <path d="M0,0 L8,3 L0,6 z" fill="#b34fa8" />
+              </marker>
+              <marker id="mNor" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+                <path d="M0,0 L8,3 L0,6 z" fill="#4ea1ff" />
+              </marker>
+              <marker id="mOut" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+                <path d="M0,0 L8,3 L0,6 z" fill="#5fd68a" />
+              </marker>
+            </defs>
+
+            <circle cx="220" cy="190" r="140" fill="none" stroke="#3a3a44" />
+            <circle cx="220" cy="190" r="4" fill="#9a9aa6" />
+
+            <!-- lattice ticks every 15deg -->
+            <g stroke="#3a3a44">
+              <line x1="220" y1="50" x2="220" y2="62" />
+              <line x1="220" y1="318" x2="220" y2="330" />
+              <line x1="80" y1="190" x2="92" y2="190" />
+              <line x1="348" y1="190" x2="360" y2="190" />
+              <line x1="319" y1="91" x2="311" y2="99" />
+              <line x1="121" y1="289" x2="129" y2="281" />
+              <line x1="121" y1="91" x2="129" y2="99" />
+              <line x1="319" y1="289" x2="311" y2="281" />
+            </g>
+            <text x="220" y="42" text-anchor="middle" class="lbl">+y (θ index 0)</text>
+            <text x="220" y="348" text-anchor="middle" class="lbl">−y (θ index 12)</text>
+
+            <!-- top tilt: 45deg from +y -->
+            <line x1="220" y1="190" x2="319" y2="91" stroke="#e05fd8" stroke-width="2.4" marker-end="url(#mTop)" />
+            <text x="330" y="86" class="lblm" fill="#e05fd8">top idx</text>
+
+            <!-- bottom: antipode -->
+            <line x1="220" y1="190" x2="121" y2="289" stroke="#b34fa8" stroke-width="2.4" marker-end="url(#mBot)" />
+            <text x="70" y="300" class="lblm" fill="#b34fa8">bottom +12</text>
+
+            <!-- normal: +6 (90deg further) -->
+            <line x1="220" y1="190" x2="319" y2="289" stroke="#4ea1ff" stroke-width="2.4" marker-end="url(#mNor)" />
+            <text x="330" y="300" class="lblm" fill="#4ea1ff">normal +6</text>
+
+            <!-- outgoing: normal - 12 -->
+            <line x1="220" y1="190" x2="121" y2="91" stroke="#5fd68a" stroke-width="2.4" marker-end="url(#mOut)" />
+            <text x="34" y="86" class="lblm" fill="#5fd68a">outgoing −12</text>
+
+            <path d="M 265 145 A 64 64 0 0 1 265 235" fill="none" stroke="#4ea1ff" stroke-dasharray="3 3" />
+            <text x="290" y="196" class="lbl" fill="#4ea1ff">90°</text>
+          </svg>
+          <div class="legend">
+            <span><i style="background:#e05fd8"></i>top tilt (stored)</span>
+            <span><i style="background:#b34fa8"></i>bottom (+12)</span>
+            <span><i style="background:#4ea1ff"></i>coplanar normal (+6)</span>
+            <span><i style="background:#5fd68a"></i>outgoing (normal −12)</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>The lattice</h2>
+          <svg width="300" height="200" viewBox="0 0 300 200">
+            <line x1="20" y1="70" x2="280" y2="70" stroke="#3a3a44" />
+            <g fill="#4ea1ff">
+              <circle cx="20" cy="70" r="4" />
+              <circle cx="46" cy="70" r="4" />
+              <circle cx="72" cy="70" r="4" />
+              <circle cx="98" cy="70" r="4" />
+              <circle cx="124" cy="70" r="4" />
+              <circle cx="150" cy="70" r="4" />
+              <circle cx="176" cy="70" r="4" />
+              <circle cx="202" cy="70" r="4" />
+              <circle cx="228" cy="70" r="4" />
+              <circle cx="254" cy="70" r="4" />
+              <circle cx="280" cy="70" r="4" />
+            </g>
+            <text x="20" y="94" text-anchor="middle" class="lbl">0</text>
+            <text x="150" y="94" text-anchor="middle" class="lbl">6</text>
+            <text x="280" y="94" text-anchor="middle" class="lbl">12</text>
+            <text x="20" y="112" text-anchor="middle" class="lbl">+y</text>
+            <text x="150" y="112" text-anchor="middle" class="lbl">90°</text>
+            <text x="280" y="112" text-anchor="middle" class="lbl">−y</text>
+            <text x="150" y="42" text-anchor="middle" class="lblm">one step = π/12 = 15°</text>
+
+            <rect x="20" y="136" width="260" height="46" rx="7" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="34" y="156" class="lblm">a step is ±1</text>
+            <text x="34" y="172" class="lbl">no angle is ever added as a float</text>
+          </svg>
+        </div>
+
+        <div class="card">
+          <h2>Pole flip (node 1)</h2>
+          <svg width="300" height="200" viewBox="0 0 300 200">
+            <line x1="20" y1="60" x2="280" y2="60" stroke="#3a3a44" />
+            <g class="lbl" text-anchor="middle">
+              <text x="20" y="84">−24</text><text x="85" y="84">−12</text>
+              <text x="150" y="84">0</text><text x="215" y="84">12</text><text x="280" y="84">24</text>
+            </g>
+            <g>
+              <rect x="20" y="46" width="65" height="14" fill="#4ea1ff" opacity=".85" />
+              <rect x="85" y="46" width="65" height="14" fill="#34343d" />
+              <rect x="150" y="46" width="65" height="14" fill="#34343d" />
+              <rect x="215" y="46" width="65" height="14" fill="#4ea1ff" opacity=".85" />
+            </g>
+            <text x="150" y="116" text-anchor="middle" class="lblm">floor(idx / 12) odd → normal += 12</text>
+            <rect x="20" y="132" width="260" height="52" rx="7" fill="#2b2b33" stroke="#ff6b6b" />
+            <text x="34" y="152" class="lblm" fill="#ff6b6b">FLOOR, not Go's /</text>
+            <text x="34" y="170" class="lbl">base direction is −1, so negatives are the common case</text>
+          </svg>
+          <div class="legend"><span><i style="background:#4ea1ff"></i>flipped 180°</span><span><i
+                style="background:#34343d;border:1px solid #3a3a44"></i>unflipped</span></div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─────────────────────────── DOT RULE ─────────────────────────── -->
+    <section id="dots">
+      <div class="grid">
+
+        <div class="card">
+          <h2>Acute with TOP → step −1</h2>
+          <svg width="240" height="230" viewBox="0 0 240 230">
+            <circle cx="120" cy="110" r="86" fill="none" stroke="#3a3a44" />
+            <line x1="120" y1="110" x2="120" y2="30" stroke="#e05fd8" stroke-width="2.4" />
+            <line x1="120" y1="110" x2="120" y2="190" stroke="#b34fa8" stroke-width="2.4" />
+            <line x1="120" y1="110" x2="181" y2="53" stroke="#f9a825" stroke-width="2.6" stroke-dasharray="5 3" />
+            <path d="M 120 74 A 36 36 0 0 1 147 86" fill="none" stroke="#5fd68a" stroke-width="1.6" />
+            <text x="160" y="44" class="lblm" fill="#f9a825">arrival</text>
+            <text x="120" y="216" text-anchor="middle" class="big" fill="#5fd68a">idx − 1</text>
+          </svg>
+        </div>
+
+        <div class="card">
+          <h2>Acute with BOTTOM → step +1</h2>
+          <svg width="240" height="230" viewBox="0 0 240 230">
+            <circle cx="120" cy="110" r="86" fill="none" stroke="#3a3a44" />
+            <line x1="120" y1="110" x2="120" y2="30" stroke="#e05fd8" stroke-width="2.4" />
+            <line x1="120" y1="110" x2="120" y2="190" stroke="#b34fa8" stroke-width="2.4" />
+            <line x1="120" y1="110" x2="181" y2="167" stroke="#f9a825" stroke-width="2.6" stroke-dasharray="5 3" />
+            <path d="M 147 134 A 36 36 0 0 1 120 146" fill="none" stroke="#5fd68a" stroke-width="1.6" />
+            <text x="160" y="186" class="lblm" fill="#f9a825">arrival</text>
+            <text x="120" y="216" text-anchor="middle" class="big" fill="#5fd68a">idx + 1</text>
+          </svg>
+        </div>
+
+        <div class="card">
+          <h2>Perpendicular</h2>
+          <svg width="240" height="230" viewBox="0 0 240 230">
+            <circle cx="120" cy="110" r="86" fill="none" stroke="#3a3a44" />
+            <line x1="120" y1="110" x2="120" y2="30" stroke="#e05fd8" stroke-width="2.4" />
+            <line x1="120" y1="110" x2="120" y2="190" stroke="#b34fa8" stroke-width="2.4" />
+            <line x1="120" y1="110" x2="206" y2="110" stroke="#f9a825" stroke-width="2.6" stroke-dasharray="5 3" />
+            <rect x="120" y="96" width="14" height="14" fill="none" stroke="#9a9aa6" />
+            <text x="120" y="204" text-anchor="middle" class="big" fill="#ff6b6b">both nodes : halt</text>
+            <text x="120" y="222" text-anchor="middle" class="lbl">no lean to read — nothing steps, nothing is sent</text>
+          </svg>
+        </div>
+
+        <div class="card">
+          <h2>Why no both-acute case</h2>
+          <svg width="420" height="150" viewBox="0 0 420 150">
+            <line x1="30" y1="60" x2="390" y2="60" stroke="#3a3a44" />
+            <circle cx="120" cy="60" r="6" fill="#e05fd8" /><text x="120" y="44" text-anchor="middle"
+              class="lbl">top</text>
+            <circle cx="300" cy="60" r="6" fill="#b34fa8" /><text x="300" y="44" text-anchor="middle"
+              class="lbl">bottom</text>
+            <text x="210" y="64" text-anchor="middle" class="lbl">12 steps apart — exact antipode</text>
+            <rect x="30" y="86" width="360" height="48" rx="7" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="44" y="106" class="lblm">acute(top) and acute(bottom) are exact opposites</text>
+            <text x="44" y="124" class="lbl">at most one passes → no ordering dependence, no sign knob</text>
+          </svg>
+        </div>
+
+        <div class="card">
+          <h2>No float, no epsilon</h2>
+          <svg width="420" height="170" viewBox="0 0 420 170">
+            <rect x="30" y="26" width="360" height="44" rx="7" fill="#2b2b33" stroke="#5fd68a" />
+            <text x="44" y="46" class="lblm" fill="#5fd68a">d = (a − b) mod 24</text>
+            <text x="44" y="62" class="lbl">acute ⟺ d &lt; 6 or d &gt; 18 — integers, decided exactly</text>
+
+            <line x1="30" y1="102" x2="390" y2="102" stroke="#3a3a44" />
+            <g fill="#5fd68a">
+              <circle cx="30" cy="102" r="4" /><circle cx="60" cy="102" r="4" /><circle cx="90" cy="102" r="4" />
+              <circle cx="120" cy="102" r="4" /><circle cx="150" cy="102" r="4" />
+            </g>
+            <circle cx="180" cy="102" r="5" fill="#9a9aa6" />
+            <g fill="#ff6b6b">
+              <circle cx="210" cy="102" r="4" /><circle cx="240" cy="102" r="4" /><circle cx="270" cy="102" r="4" />
+            </g>
+            <circle cx="300" cy="102" r="5" fill="#9a9aa6" />
+            <g fill="#5fd68a">
+              <circle cx="330" cy="102" r="4" /><circle cx="360" cy="102" r="4" /><circle cx="390" cy="102" r="4" />
+            </g>
+            <text x="180" y="90" text-anchor="middle" class="lbl">6</text>
+            <text x="300" y="90" text-anchor="middle" class="lbl">18</text>
+            <text x="210" y="136" text-anchor="middle" class="lbl">grey = exactly perpendicular, the halt case</text>
+            <text x="210" y="154" text-anchor="middle" class="lbl">it used to be cos(π/2) at 6.1e-17 against a 1e-9
+              band</text>
+          </svg>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─────────────────────────── CHANNELS ─────────────────────────── -->
+    <section id="channels">
+      <div class="grid">
+
+        <div class="card">
+          <h2>Two independent channels per direction</h2>
+          <svg width="620" height="290" viewBox="0 0 620 290">
+            <defs>
+              <marker id="c1" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+                <path d="M0,0 L7,3 L0,6 z" fill="#f9a825" />
+              </marker>
+              <marker id="c2" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+                <path d="M0,0 L7,3 L0,6 z" fill="#4ea1ff" />
+              </marker>
+            </defs>
+
+            <rect x="20" y="90" width="120" height="90" rx="10" fill="#34343d" stroke="#f9a825" />
+            <text x="80" y="130" text-anchor="middle" class="big">node 1</text>
+            <text x="80" y="150" text-anchor="middle" class="lbl">owns START</text>
+
+            <rect x="480" y="90" width="120" height="90" rx="10" fill="#34343d" stroke="#f9a825" />
+            <text x="540" y="130" text-anchor="middle" class="big">node 2</text>
+            <text x="540" y="150" text-anchor="middle" class="lbl">ignores it</text>
+
+            <!-- bead edges -->
+            <line x1="140" y1="112" x2="476" y2="112" stroke="#f9a825" stroke-width="2" marker-end="url(#c1)" />
+            <circle cx="200" cy="112" r="5" fill="#f9a825" />
+            <circle cx="250" cy="112" r="5" fill="#f9a825" />
+            <circle cx="300" cy="112" r="5" fill="#f9a825" />
+            <circle cx="350" cy="112" r="5" fill="#f9a825" />
+            <text x="308" y="100" text-anchor="middle" class="lbl">bead edge — paces, decides nothing</text>
+
+            <line x1="476" y1="158" x2="144" y2="158" stroke="#f9a825" stroke-width="2" marker-end="url(#c1)" />
+            <circle cx="380" cy="158" r="5" fill="#f9a825" />
+            <circle cx="330" cy="158" r="5" fill="#f9a825" />
+
+            <!-- vector channels -->
+            <line x1="140" y1="212" x2="476" y2="212" stroke="#4ea1ff" stroke-width="2" marker-end="url(#c2)" />
+            <rect x="290" y="202" width="40" height="20" rx="4" fill="#2b2b33" stroke="#4ea1ff" />
+            <text x="310" y="216" text-anchor="middle" class="lblm" fill="#4ea1ff">idx</text>
+            <text x="308" y="196" text-anchor="middle" class="lbl">vector channel — depth 1, latest-wins</text>
+
+            <line x1="476" y1="250" x2="144" y2="250" stroke="#4ea1ff" stroke-width="2" marker-end="url(#c2)" />
+            <rect x="290" y="240" width="40" height="20" rx="4" fill="#2b2b33" stroke="#4ea1ff" />
+            <text x="310" y="254" text-anchor="middle" class="lblm" fill="#4ea1ff">idx</text>
+
+            <text x="310" y="42" text-anchor="middle" class="big">no seed node needed</text>
+            <text x="310" y="62" text-anchor="middle" class="lbl">nothing sends until a user presses START at node 1
+              — no t=0 deadlock</text>
+          </svg>
+          <div class="legend">
+            <span><i style="background:#f9a825"></i>beads (PacedWire)</span>
+            <span><i style="background:#4ea1ff"></i>tilt vector indices</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Latest-wins, depth 1</h2>
+          <svg width="300" height="180" viewBox="0 0 300 180">
+            <rect x="20" y="40" width="70" height="40" rx="6" fill="#2b2b33" stroke="#4ea1ff" />
+            <text x="55" y="65" text-anchor="middle" class="lblm">v1</text>
+            <text x="150" y="65" text-anchor="middle" class="lbl">v2 arrives</text>
+            <rect x="210" y="40" width="70" height="40" rx="6" fill="#2b2b33" stroke="#4ea1ff" />
+            <text x="245" y="65" text-anchor="middle" class="lblm">v2</text>
+            <path d="M 95 60 L 205 60" stroke="#9a9aa6" stroke-dasharray="3 3" />
+            <text x="150" y="112" text-anchor="middle" class="lbl">v1 dropped, never queued</text>
+            <rect x="20" y="130" width="260" height="34" rx="6" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="34" y="152" class="lbl">both ends non-blocking — a sender never waits</text>
+          </svg>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─────────────────────────── CYCLE ─────────────────────────── -->
+    <section id="cycle">
+      <div class="grid">
+        <div class="card">
+          <h2>One cycle of the node's own loop</h2>
+          <svg width="640" height="350" viewBox="0 0 640 350">
+            <defs>
+              <marker id="f1" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+                <path d="M0,0 L7,3 L0,6 z" fill="#9a9aa6" />
+              </marker>
+            </defs>
+
+            <rect x="16" y="20" width="130" height="46" rx="8" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="81" y="42" text-anchor="middle" class="lblm">poll VectorIn</text>
+            <text x="81" y="58" text-anchor="middle" class="lbl">non-blocking</text>
+
+            <path d="M 146 43 L 186 43" stroke="#9a9aa6" marker-end="url(#f1)" />
+
+            <rect x="190" y="20" width="130" height="46" rx="8" fill="#2b2b33" stroke="#5fd68a" />
+            <text x="255" y="42" text-anchor="middle" class="lblm">record arrival</text>
+            <text x="255" y="58" text-anchor="middle" class="lbl">3rd vector, always</text>
+
+            <path d="M 255 66 L 255 100" stroke="#9a9aa6" marker-end="url(#f1)" />
+
+            <rect x="180" y="104" width="150" height="52" rx="8" fill="#2b2b33" stroke="#4ea1ff" />
+            <text x="255" y="126" text-anchor="middle" class="lblm">two acute tests</text>
+            <text x="255" y="144" text-anchor="middle" class="lbl">top? bottom?</text>
+
+            <path d="M 330 130 L 380 130" stroke="#9a9aa6" marker-end="url(#f1)" />
+
+            <rect x="384" y="104" width="120" height="52" rx="8" fill="#2b2b33" stroke="#e05fd8" />
+            <text x="444" y="126" text-anchor="middle" class="lblm">step ±1</text>
+            <text x="444" y="144" text-anchor="middle" class="lbl">the only turn rule</text>
+
+            <path d="M 444 156 L 444 190" stroke="#9a9aa6" marker-end="url(#f1)" />
+
+            <rect x="360" y="194" width="170" height="52" rx="8" fill="#2b2b33" stroke="#5fd68a" />
+            <text x="445" y="216" text-anchor="middle" class="lblm">sync · send · place bead</text>
+            <text x="445" y="234" text-anchor="middle" class="lbl">all fire-and-forget</text>
+
+            <path d="M 360 220 L 200 220" stroke="#9a9aa6" marker-end="url(#f1)" />
+            <rect x="40" y="194" width="155" height="52" rx="8" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="117" y="216" text-anchor="middle" class="lblm">poll In (bead)</text>
+            <text x="117" y="234" text-anchor="middle" class="lbl">paces only</text>
+
+            <path d="M 117 194 L 117 70" stroke="#9a9aa6" stroke-dasharray="4 3" marker-end="url(#f1)" />
+
+            <rect x="16" y="272" width="600" height="42" rx="8" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="30" y="316" class="lbl">One step per cycle, and a cycle is one SCALED tick — so the dial paces the turning.</text>
+            <text x="30" y="298" class="lbl">The bead marks the round trip. It never decides a direction and never turns
+              a tilt.</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────── CLOCK ─────────────────────────── -->
+    <section id="clock">
+      <div class="grid">
+
+        <div class="card">
+          <h2>The dial reaches the loop, not just the ticks</h2>
+          <svg width="620" height="270" viewBox="0 0 620 270">
+            <rect x="20" y="24" width="580" height="70" rx="8" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="38" y="48" class="lblm">one process-wide ticker · 16 ms wall · every paced loop subscribes</text>
+            <text x="38" y="72" class="lbl">SleepCycle waits ceil(1 / speed) pulses — so a cycle IS one scaled tick</text>
+
+            <rect x="20" y="112" width="180" height="60" rx="8" fill="#2b2b33" stroke="#5fd68a" />
+            <text x="110" y="136" text-anchor="middle" class="lblm" fill="#5fd68a">speed 1</text>
+            <text x="110" y="156" text-anchor="middle" class="lbl">1 pulse · 16 ms</text>
+
+            <rect x="220" y="112" width="180" height="60" rx="8" fill="#2b2b33" stroke="#4ea1ff" />
+            <text x="310" y="136" text-anchor="middle" class="lblm" fill="#4ea1ff">speed ¼</text>
+            <text x="310" y="156" text-anchor="middle" class="lbl">4 pulses · 64 ms</text>
+
+            <rect x="420" y="112" width="180" height="60" rx="8" fill="#2b2b33" stroke="#4ea1ff" />
+            <text x="510" y="136" text-anchor="middle" class="lblm" fill="#4ea1ff">speed 0</text>
+            <text x="510" y="156" text-anchor="middle" class="lbl">clamped · still wakes</text>
+
+            <rect x="20" y="190" width="580" height="60" rx="8" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="38" y="214" class="lbl">the clamp is why 0 is a PAUSE and not a deadlock — a goroutine asleep for ever</text>
+            <text x="38" y="234" class="lbl">can never poll its own speed channel to hear the dial move back</text>
+          </svg>
+          <div class="cap">Above 1× nothing speeds up: the ticker's own rate is the ceiling on cycles, and a faster dial shows as ticks accruing faster within one.</div>
+        </div>
+
+        <div class="card">
+          <h2>Setting vs running</h2>
+          <svg width="460" height="250" viewBox="0 0 460 250">
+            <rect x="20" y="24" width="420" height="76" rx="8" fill="#2b2b33" stroke="#5fd68a" />
+            <text x="38" y="48" class="lblm" fill="#5fd68a">SETTING — a ▲▼ angle click</text>
+            <text x="38" y="70" class="lbl">every clock runs at human speed (1)</text>
+            <text x="38" y="90" class="lbl">the click is answered now, not a scaled cycle from now</text>
+
+            <rect x="20" y="118" width="420" height="76" rx="8" fill="#2b2b33" stroke="#4ea1ff" />
+            <text x="38" y="142" class="lblm" fill="#4ea1ff">RUNNING — start, or reset</text>
+            <text x="38" y="164" class="lbl">the slider's number through the scene's divisor</text>
+            <text x="38" y="184" class="lbl">sent BEFORE the edit, so round one is already at speed</text>
+
+            <text x="230" y="222" text-anchor="middle" class="lbl">the boundaries are the user's own actions — no timer, no idle guess</text>
+            <text x="230" y="240" text-anchor="middle" class="lbl">speed.json still holds the slider's number, untouched</text>
+          </svg>
+        </div>
+
+        <div class="card">
+          <h2>What is measured in what</h2>
+          <svg width="460" height="200" viewBox="0 0 460 200">
+            <rect x="20" y="24" width="420" height="52" rx="8" fill="#2b2b33" stroke="#f9a825" />
+            <text x="38" y="46" class="lblm" fill="#f9a825">TICKS — bead travel</text>
+            <text x="38" y="66" class="lbl">steps × dwell; scaled by speed all along</text>
+
+            <rect x="20" y="92" width="420" height="52" rx="8" fill="#2b2b33" stroke="#e05fd8" />
+            <text x="38" y="114" class="lblm" fill="#e05fd8">CYCLES — the tilt exchange</text>
+            <text x="38" y="134" class="lbl">one step per cycle; scaled only now that the sleep is</text>
+
+            <rect x="20" y="160" width="420" height="30" rx="8" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="38" y="180" class="lbl">both follow one dial — they can no longer come apart</text>
+          </svg>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─────────────────────────── GEOMETRY ─────────────────────────── -->
+    <section id="geometry">
+      <div class="grid">
+
+        <div class="card">
+          <h2>A tilt turns an angle and nothing else</h2>
+          <svg width="600" height="240" viewBox="0 0 600 240">
+            <circle cx="60" cy="120" r="26" fill="#34343d" stroke="#f9a825" />
+            <text x="60" y="125" text-anchor="middle" class="lblm">1</text>
+
+            <circle cx="470" cy="120" r="26" fill="#34343d" stroke="#f9a825" />
+            <text x="470" y="125" text-anchor="middle" class="lblm">2</text>
+
+            <line x1="86" y1="120" x2="444" y2="120" stroke="#3a3a44" />
+            <g fill="#f9a825">
+              <circle cx="130" cy="120" r="6" />
+              <circle cx="180" cy="120" r="6" />
+              <circle cx="230" cy="120" r="6" />
+              <circle cx="280" cy="120" r="6" />
+              <circle cx="330" cy="120" r="6" />
+              <circle cx="380" cy="120" r="6" />
+            </g>
+            <text x="255" y="100" text-anchor="middle" class="lblm">whatever the last drag left — it HOLDS</text>
+
+            <line x1="60" y1="94" x2="60" y2="40" stroke="#e05fd8" stroke-width="2.4" />
+            <line x1="470" y1="94" x2="512" y2="58" stroke="#e05fd8" stroke-width="2.4" />
+            <text x="255" y="188" text-anchor="middle" class="lbl">the tilts turn · the separation does not move</text>
+            <text x="255" y="212" text-anchor="middle" class="lbl">neither node slides along its ray any more</text>
+          </svg>
+          <div class="cap">It was briefly otherwise: the separation was a second reading of the tilt index, so node 2
+            slid as the exchange ran. That put four things on one number — the drawn angle, the separation, the edge's
+            bead count, and (once clock-paced) the rate the tilts turn at, since a longer edge takes longer to cross.
+            One index cannot carry all of that.</div>
+        </div>
+
+        <div class="card">
+          <h2>What the index still does not touch</h2>
+          <svg width="300" height="200" viewBox="0 0 300 200">
+            <rect x="20" y="24" width="260" height="52" rx="8" fill="#2b2b33" stroke="#5fd68a" />
+            <text x="36" y="46" class="lblm" fill="#5fd68a">THE TILT INDEX SETS</text>
+            <text x="36" y="66" class="lbl">four drawn directions, and nothing else</text>
+
+            <rect x="20" y="92" width="260" height="70" rx="8" fill="#2b2b33" stroke="#ff6b6b" />
+            <text x="36" y="114" class="lblm" fill="#ff6b6b">IT DOES NOT SET</text>
+            <text x="36" y="134" class="lbl">position · reach · edge length</text>
+            <text x="36" y="152" class="lbl">bead count · crossing time</text>
+          </svg>
+          <div class="cap">A drag sets the separation. A tilt sets an angle. The two no longer read the same number.
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>The pair's clock</h2>
+          <svg width="300" height="180" viewBox="0 0 300 180">
+            <rect x="20" y="26" width="110" height="52" rx="8" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="75" y="48" text-anchor="middle" class="lblm">slider</text>
+            <text x="75" y="68" text-anchor="middle" class="lbl">userSpeed</text>
+            <text x="150" y="58" text-anchor="middle" class="lblm" fill="#4ea1ff">÷ 64</text>
+            <rect x="170" y="26" width="110" height="52" rx="8" fill="#2b2b33" stroke="#4ea1ff" />
+            <text x="225" y="48" text-anchor="middle" class="lblm" fill="#4ea1ff">clocks</text>
+            <text x="225" y="68" text-anchor="middle" class="lbl">effective</text>
+            <text x="150" y="106" text-anchor="middle" class="lbl">the pair is ~40 units across — the same pace reads
+              faster</text>
+            <rect x="20" y="122" width="260" height="44" rx="7" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="34" y="144" class="lbl">slider and speed.json keep the user's number,</text>
+            <text x="34" y="160" class="lbl">unscaled — only the rate reaching the clocks is divided</text>
+          </svg>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─────────────────────────── ASYMMETRY ─────────────────────────── -->
+    <section id="asym">
+      <div class="grid">
+
+        <div class="card">
+          <h2>Node 1 vs node 2 today</h2>
+          <svg width="600" height="290" viewBox="0 0 600 290">
+            <rect x="20" y="20" width="270" height="250" rx="10" fill="#2b2b33" stroke="#f9a825" />
+            <text x="155" y="46" text-anchor="middle" class="big" fill="#f9a825">node 1</text>
+            <text x="40" y="80" class="lblm">owns START</text>
+            <text x="40" y="100" class="lbl">the exchange opens from this end only</text>
+            <text x="40" y="132" class="lblm">normal flips per pole crossed</text>
+            <text x="40" y="152" class="lbl">floor(idx/12) odd → normal += 12</text>
+            <text x="40" y="184" class="lblm">base step −1 · normal = top + 6</text>
+            <text x="40" y="216" class="lblm" fill="#5fd68a">halts when neither test is acute</text>
+
+            <rect x="310" y="20" width="270" height="250" rx="10" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="445" y="46" text-anchor="middle" class="big">node 2</text>
+            <text x="330" y="80" class="lblm">IGNORES START</text>
+            <text x="330" y="100" class="lbl">started from both, each would answer the other</text>
+            <text x="330" y="132" class="lblm">no pole flip</text>
+            <text x="330" y="152" class="lbl">normal = top − 6, no parity term</text>
+            <text x="330" y="184" class="lblm">base step +1</text>
+            <text x="330" y="216" class="lblm" fill="#5fd68a">halts when neither test is acute</text>
+          </svg>
+          <div class="cap">The halt rule is the SAME on both — neither test acute, step nothing, send nothing. The two
+            real asymmetries are START and the pole flip.</div>
+        </div>
+
+        <div class="card">
+          <h2>The pole flip is an open question</h2>
+          <svg width="440" height="180" viewBox="0 0 440 180">
+            <rect x="20" y="24" width="400" height="52" rx="8" fill="#2b2b33" stroke="#5fd68a" />
+            <text x="36" y="46" class="lblm" fill="#5fd68a">node 1 — has the parity correction</text>
+            <text x="36" y="66" class="lbl">base direction subtracts, so it runs negative and crosses poles</text>
+
+            <rect x="20" y="92" width="400" height="52" rx="8" fill="#2b2b33" stroke="#f9a825" />
+            <text x="36" y="114" class="lblm" fill="#f9a825">node 2 — does not</text>
+            <text x="36" y="134" class="lbl">the argument applies in mirror; nothing has been measured</text>
+          </svg>
+          <div class="cap">Deliberate and scoped, not an oversight: the flip was asked for on node 1 and node 1 was
+            changed alone. Resolve it by watching node 2's normal cross a pole, not by symmetry alone.</div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    const tabs = document.querySelectorAll('nav button');
+    const secs = document.querySelectorAll('section');
+    tabs.forEach(b => b.addEventListener('click', () => {
+      tabs.forEach(x => x.classList.toggle('on', x === b));
+      secs.forEach(s => s.classList.toggle('on', s.id === b.dataset.t));
+    }));
+  </script>
+</body>
+
+</html>
