@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pair node architecture</title>
+  <link rel="stylesheet" href="pair.css">
+  <style>
+    a.idx {
+      display: block;
+      text-decoration: none;
+      color: inherit
+    }
+
+    a.idx:hover {
+      border-color: var(--accent)
+    }
+
+    a.idx .t {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent)
+    }
+
+    a.idx .cap {
+      margin-top: 4px
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>Pair node architecture</h1>
+    <div class="sub">nodes/Node1 · nodes/Node2 — mirrors of each other, opposite signs</div>
+  </header>
+
+  <main>
+    <div class="grid">
+        <a class="card idx" href="anatomy.html">
+          <div class="t">Anatomy</div>
+          <div class="cap">one goroutine owns the node, its wires and its geometry</div>
+        </a>
+        <a class="card idx" href="own.html">
+          <div class="t">Ownership</div>
+          <div class="cap">what one goroutine writes, and what that buys</div>
+        </a>
+        <a class="card idx" href="vectors.html">
+          <div class="t">Vectors</div>
+          <div class="cap">four directions derived from one integer</div>
+        </a>
+        <a class="card idx" href="math.html">
+          <div class="t">Math</div>
+          <div class="cap">the arithmetic drawn: turns, a worked run, where it lands</div>
+        </a>
+        <a class="card idx" href="formulas.html">
+          <div class="t">Formulas</div>
+          <div class="cap">every formula in the pair path, with its source file</div>
+        </a>
+        <a class="card idx" href="dots.html">
+          <div class="t">Acute test</div>
+          <div class="cap">the rule that decides whether a node turns, and which way</div>
+        </a>
+        <a class="card idx" href="channels.html">
+          <div class="t">Channels</div>
+          <div class="cap">the bead edge and the vector channel, side by side</div>
+        </a>
+        <a class="card idx" href="cycle.html">
+          <div class="t">Cycle</div>
+          <div class="cap">one pass of a node&#x27;s own loop</div>
+        </a>
+        <a class="card idx" href="clock.html">
+          <div class="t">Clock</div>
+          <div class="cap">how the speed dial reaches the exchange</div>
+        </a>
+        <a class="card idx" href="geometry.html">
+          <div class="t">Geometry</div>
+          <div class="cap">a tilt turns an angle; the drag sets the separation</div>
+        </a>
+        <a class="card idx" href="asym.html">
+          <div class="t">Asymmetry</div>
+          <div class="cap">START and the pole flip — where the mirror is not exact</div>
+        </a>
+    </div>
+  </main>
+</body>
+
+</html>

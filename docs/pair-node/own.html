@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pair node — Ownership</title>
+  <link rel="stylesheet" href="pair.css">
+</head>
+
+<body>
+
+  <header>
+    <h1>Ownership</h1>
+    <div class="sub">what one goroutine writes, and what that buys</div>
+  </header>
+
+  <nav>
+    <a href="index.html">Index</a>
+    <a href="anatomy.html">Anatomy</a>
+    <a class="on" href="own.html">Ownership</a>
+    <a href="vectors.html">Vectors</a>
+    <a href="math.html">Math</a>
+    <a href="formulas.html">Formulas</a>
+    <a href="dots.html">Acute test</a>
+    <a href="channels.html">Channels</a>
+    <a href="cycle.html">Cycle</a>
+    <a href="clock.html">Clock</a>
+    <a href="geometry.html">Geometry</a>
+    <a href="asym.html">Asymmetry</a>
+  </nav>
+
+  <main>
+
+      <div class="grid">
+
+        <div class="card">
+          <h2>One goroutine owns all of it</h2>
+          <svg width="440" height="330" viewBox="0 0 440 330">
+            <rect x="20" y="26" width="400" height="230" rx="10" fill="#2b2b33" stroke="#5fd68a" />
+            <text x="220" y="52" text-anchor="middle" class="big" fill="#5fd68a">the node's goroutine</text>
+            <rect x="42" y="70" width="356" height="168" rx="8" fill="#34343d" stroke="#3a3a44" />
+            <text x="220" y="92" text-anchor="middle" class="lblm">nodeGeometry</text>
+            <text x="60" y="118" class="lbl">tilt indices</text>
+            <text x="60" y="140" class="lbl">position · quantOffset · reach</text>
+            <text x="60" y="162" class="lbl">outgoing wires + bead chain</text>
+            <text x="60" y="184" class="lbl">its own stream frame</text>
+            <text x="60" y="206" class="lbl">its own position.json</text>
+            <text x="60" y="228" class="lbl">its own inbound channels</text>
+
+            <rect x="20" y="272" width="400" height="46" rx="8" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="38" y="296" class="lblm" fill="#5fd68a">one goroutine per pair node, claimed at build time</text>
+            <text x="38" y="312" class="lbl">the actor directory holds ring nodes</text>
+          </svg>
+        </div>
+
+        <div class="card">
+          <h2>Tilt, received vector, beads</h2>
+          <svg width="440" height="200" viewBox="0 0 440 200">
+            <rect x="20" y="24" width="400" height="104" rx="8" fill="#2b2b33" stroke="#5fd68a" />
+            <text x="36" y="48" class="lblm" fill="#5fd68a">DIRECT STATE — written in place</text>
+            <text x="36" y="72" class="lbl">the tilt index it just stepped</text>
+            <text x="36" y="92" class="lbl">the vector that just arrived</text>
+            <text x="36" y="112" class="lbl">emptying its own outgoing wires</text>
+
+            <rect x="20" y="144" width="400" height="42" rx="8" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="36" y="170" class="lbl">the goroutine that changes them is the one that owns them</text>
+          </svg>
+        </div>
+
+        <div class="card">
+          <h2>Animation and geometry, one owner</h2>
+          <svg width="440" height="180" viewBox="0 0 440 180">
+            <rect x="20" y="24" width="400" height="100" rx="8" fill="#2b2b33" stroke="#5fd68a" />
+            <text x="36" y="48" class="lblm" fill="#5fd68a">ONE GOROUTINE</text>
+            <text x="36" y="72" class="lbl">drives the wire, reads it, lays out the chain</text>
+            <text x="36" y="92" class="lbl">and owns the positions that chain is drawn against</text>
+            <text x="36" y="112" class="lbl">ownership does the synchronising</text>
+
+            <rect x="20" y="138" width="400" height="34" rx="8" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="36" y="160" class="lbl">it reads its own writes, so the chain is drawn at the positions it just set</text>
+          </svg>
+        </div>
+
+        <div class="card">
+          <h2>Ownership</h2>
+          <svg width="300" height="200" viewBox="0 0 300 200">
+            <rect x="20" y="30" width="260" height="140" rx="10" fill="#2b2b33" stroke="#5fd68a" />
+            <text x="150" y="54" text-anchor="middle" class="big" fill="#5fd68a">correctness by construction</text>
+            <text x="40" y="86" class="lblm">one writer per field</text>
+            <text x="40" y="112" class="lblm">a dedicated channel per pair</text>
+            <text x="40" y="138" class="lblm">send and move on</text>
+          </svg>
+          <div class="cap">A guard with an empty allowlist keeps it that way across the whole network.</div>
+        </div>
+
+      </div>
+  </main>
+</body>
+
+</html>

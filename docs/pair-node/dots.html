@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pair node — Acute test</title>
+  <link rel="stylesheet" href="pair.css">
+</head>
+
+<body>
+
+  <header>
+    <h1>Acute test</h1>
+    <div class="sub">the rule that decides whether a node turns, and which way</div>
+  </header>
+
+  <nav>
+    <a href="index.html">Index</a>
+    <a href="anatomy.html">Anatomy</a>
+    <a href="own.html">Ownership</a>
+    <a href="vectors.html">Vectors</a>
+    <a href="math.html">Math</a>
+    <a href="formulas.html">Formulas</a>
+    <a class="on" href="dots.html">Acute test</a>
+    <a href="channels.html">Channels</a>
+    <a href="cycle.html">Cycle</a>
+    <a href="clock.html">Clock</a>
+    <a href="geometry.html">Geometry</a>
+    <a href="asym.html">Asymmetry</a>
+  </nav>
+
+  <main>
+
+      <div class="grid">
+
+        <div class="card">
+          <h2>Acute with TOP → step −1</h2>
+          <svg width="240" height="230" viewBox="0 0 240 230">
+            <circle cx="120" cy="110" r="86" fill="none" stroke="#3a3a44" />
+            <line x1="120" y1="110" x2="120" y2="30" stroke="#e05fd8" stroke-width="2.4" />
+            <line x1="120" y1="110" x2="120" y2="190" stroke="#b34fa8" stroke-width="2.4" />
+            <line x1="120" y1="110" x2="181" y2="53" stroke="#f9a825" stroke-width="2.6" stroke-dasharray="5 3" />
+            <path d="M 120 74 A 36 36 0 0 1 147 86" fill="none" stroke="#5fd68a" stroke-width="1.6" />
+            <text x="160" y="44" class="lblm" fill="#f9a825">arrival</text>
+            <text x="120" y="216" text-anchor="middle" class="big" fill="#5fd68a">idx − 1</text>
+          </svg>
+        </div>
+
+        <div class="card">
+          <h2>Acute with BOTTOM → step +1</h2>
+          <svg width="240" height="230" viewBox="0 0 240 230">
+            <circle cx="120" cy="110" r="86" fill="none" stroke="#3a3a44" />
+            <line x1="120" y1="110" x2="120" y2="30" stroke="#e05fd8" stroke-width="2.4" />
+            <line x1="120" y1="110" x2="120" y2="190" stroke="#b34fa8" stroke-width="2.4" />
+            <line x1="120" y1="110" x2="181" y2="167" stroke="#f9a825" stroke-width="2.6" stroke-dasharray="5 3" />
+            <path d="M 147 134 A 36 36 0 0 1 120 146" fill="none" stroke="#5fd68a" stroke-width="1.6" />
+            <text x="160" y="186" class="lblm" fill="#f9a825">arrival</text>
+            <text x="120" y="216" text-anchor="middle" class="big" fill="#5fd68a">idx + 1</text>
+          </svg>
+        </div>
+
+        <div class="card">
+          <h2>Perpendicular</h2>
+          <svg width="240" height="230" viewBox="0 0 240 230">
+            <circle cx="120" cy="110" r="86" fill="none" stroke="#3a3a44" />
+            <line x1="120" y1="110" x2="120" y2="30" stroke="#e05fd8" stroke-width="2.4" />
+            <line x1="120" y1="110" x2="120" y2="190" stroke="#b34fa8" stroke-width="2.4" />
+            <line x1="120" y1="110" x2="206" y2="110" stroke="#f9a825" stroke-width="2.6" stroke-dasharray="5 3" />
+            <rect x="120" y="96" width="14" height="14" fill="none" stroke="#9a9aa6" />
+            <text x="120" y="204" text-anchor="middle" class="big" fill="#ff6b6b">both nodes : halt</text>
+            <text x="120" y="222" text-anchor="middle" class="lbl">the arrival leans neither way — each node holds</text>
+          </svg>
+        </div>
+
+        <div class="card">
+          <h2>Why one test at most</h2>
+          <svg width="420" height="150" viewBox="0 0 420 150">
+            <line x1="30" y1="60" x2="390" y2="60" stroke="#3a3a44" />
+            <circle cx="120" cy="60" r="6" fill="#e05fd8" /><text x="120" y="44" text-anchor="middle"
+              class="lbl">top</text>
+            <circle cx="300" cy="60" r="6" fill="#b34fa8" /><text x="300" y="44" text-anchor="middle"
+              class="lbl">bottom</text>
+            <text x="210" y="64" text-anchor="middle" class="lbl">12 steps apart — exact antipode</text>
+            <rect x="30" y="86" width="360" height="48" rx="7" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="44" y="106" class="lblm">acute(top) and acute(bottom) are exact opposites</text>
+            <text x="44" y="124" class="lbl">at most one passes → the lean is the direction</text>
+          </svg>
+        </div>
+
+        <div class="card">
+          <h2>Decided on integers</h2>
+          <svg width="420" height="170" viewBox="0 0 420 170">
+            <rect x="30" y="26" width="360" height="44" rx="7" fill="#2b2b33" stroke="#5fd68a" />
+            <text x="44" y="46" class="lblm" fill="#5fd68a">d = (a − b) mod 24</text>
+            <text x="44" y="62" class="lbl">acute ⟺ d &lt; 6 or d &gt; 18 — integers, decided exactly</text>
+
+            <line x1="30" y1="102" x2="390" y2="102" stroke="#3a3a44" />
+            <g fill="#5fd68a">
+              <circle cx="30" cy="102" r="4" /><circle cx="60" cy="102" r="4" /><circle cx="90" cy="102" r="4" />
+              <circle cx="120" cy="102" r="4" /><circle cx="150" cy="102" r="4" />
+            </g>
+            <circle cx="180" cy="102" r="5" fill="#9a9aa6" />
+            <g fill="#ff6b6b">
+              <circle cx="210" cy="102" r="4" /><circle cx="240" cy="102" r="4" /><circle cx="270" cy="102" r="4" />
+            </g>
+            <circle cx="300" cy="102" r="5" fill="#9a9aa6" />
+            <g fill="#5fd68a">
+              <circle cx="330" cy="102" r="4" /><circle cx="360" cy="102" r="4" /><circle cx="390" cy="102" r="4" />
+            </g>
+            <text x="180" y="90" text-anchor="middle" class="lbl">6</text>
+            <text x="300" y="90" text-anchor="middle" class="lbl">18</text>
+            <text x="210" y="136" text-anchor="middle" class="lbl">grey = exactly perpendicular, the halt case</text>
+            <text x="210" y="154" text-anchor="middle" class="lbl">6 and 18 are integers, so the halt is exact</text>
+          </svg>
+        </div>
+
+      </div>
+  </main>
+</body>
+
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pair node — Anatomy</title>
+  <link rel="stylesheet" href="pair.css">
+</head>
+
+<body>
+
+  <header>
+    <h1>Anatomy</h1>
+    <div class="sub">one goroutine owns the node, its wires and its geometry</div>
+  </header>
+
+  <nav>
+    <a href="index.html">Index</a>
+    <a class="on" href="anatomy.html">Anatomy</a>
+    <a href="own.html">Ownership</a>
+    <a href="vectors.html">Vectors</a>
+    <a href="math.html">Math</a>
+    <a href="formulas.html">Formulas</a>
+    <a href="dots.html">Acute test</a>
+    <a href="channels.html">Channels</a>
+    <a href="cycle.html">Cycle</a>
+    <a href="clock.html">Clock</a>
+    <a href="geometry.html">Geometry</a>
+    <a href="asym.html">Asymmetry</a>
+  </nav>
+
+  <main>
+
+      <div class="grid">
+
+        <div class="card">
+          <h2>One node = one goroutine (pair)</h2>
+          <svg width="420" height="310" viewBox="0 0 420 310">
+            <rect x="14" y="14" width="220" height="290" rx="10" fill="#34343d" stroke="#f9a825" />
+            <text x="26" y="34" class="big" fill="#f9a825">node goroutine</text>
+
+            <rect x="26" y="44" width="196" height="60" rx="7" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="36" y="60" class="lbl">OWNED STATE — integer indices</text>
+            <text x="36" y="78" class="lblm">TopTiltThetaIdx — one θ index</text>
+            <text x="36" y="94" class="lblm">Received…Idx / ReceivedSet</text>
+
+            <rect x="26" y="112" width="196" height="46" rx="7" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="36" y="128" class="lbl">DERIVED — arithmetic, recomputed on read</text>
+            <text x="36" y="146" class="lblm">bottom +12 · normal +6 · outgoing</text>
+
+            <rect x="26" y="166" width="196" height="60" rx="7" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="36" y="182" class="lbl">GEOMETRY — its own</text>
+            <text x="36" y="200" class="lblm">quantOffset · reach</text>
+            <text x="36" y="216" class="lblm">position.json</text>
+
+            <rect x="26" y="234" width="196" height="60" rx="7" fill="#2b2b33" stroke="#f9a825" />
+            <text x="36" y="250" class="lbl">OUTGOING WIRES — its own</text>
+            <text x="36" y="268" class="lblm">outWires []*PacedWire</text>
+            <text x="36" y="284" class="lblm">bead chain laid out here</text>
+
+            <rect x="252" y="44" width="152" height="250" rx="8" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="328" y="66" text-anchor="middle" class="lbl">ALL OF IT, ONE OWNER</text>
+            <text x="264" y="96" class="lblm" fill="#5fd68a">one goroutine</text>
+            <text x="264" y="120" class="lblm" fill="#5fd68a">plain method calls</text>
+            <text x="264" y="144" class="lblm" fill="#5fd68a">direct field writes</text>
+            <text x="264" y="176" class="lbl">a wire is a field:</text>
+            <text x="264" y="194" class="lbl">passive, a delay queue,</text>
+            <text x="264" y="212" class="lbl">stepped once a cycle</text>
+            <text x="264" y="230" class="lbl">by the node that owns it</text>
+            <text x="264" y="262" class="lbl">ownership is the whole</text>
+            <text x="264" y="280" class="lbl">synchronisation story</text>
+          </svg>
+        </div>
+
+        <div class="card">
+          <h2>State kinds</h2>
+          <svg width="300" height="290" viewBox="0 0 300 290">
+            <rect x="12" y="16" width="276" height="72" rx="8" fill="#2b2b33" stroke="#5fd68a" />
+            <text x="26" y="38" class="big" fill="#5fd68a">STORED · 3 fields</text>
+            <text x="26" y="58" class="lblm">TopTiltThetaIdx</text>
+            <text x="26" y="76" class="lblm">ReceivedThetaIdx · ReceivedSet</text>
+
+            <rect x="12" y="100" width="276" height="104" rx="8" fill="#2b2b33" stroke="#e05fd8" />
+            <text x="26" y="122" class="big" fill="#e05fd8">DERIVED · 3 directions</text>
+            <text x="26" y="142" class="lblm">bottom tilt</text>
+            <text x="26" y="160" class="lblm">coplanar normal</text>
+            <text x="26" y="178" class="lblm">outgoing vector</text>
+            <text x="26" y="196" class="lbl">recomputed on read</text>
+
+            <rect x="12" y="216" width="276" height="58" rx="8" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="26" y="238" class="big">INTEGERS · π/12 lattice</text>
+            <text x="26" y="258" class="lbl">floats appear at the draw edge</text>
+          </svg>
+          <div class="cap">Three directions are arithmetic on one index, so they agree with it by construction.</div>
+        </div>
+
+      </div>
+  </main>
+</body>
+
+</html>
