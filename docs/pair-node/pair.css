@@ -218,6 +218,18 @@
       overflow-wrap: anywhere
     }
 
+    /* pair.js turns each source cell into a vscode://file link */
+    a.srclink {
+      color: inherit;
+      text-decoration: none;
+      border-bottom: 1px dotted var(--line)
+    }
+
+    a.srclink:hover {
+      color: var(--accent);
+      border-bottom-color: var(--accent)
+    }
+
 
     table.f tr.h td {
       color: var(--accent);
