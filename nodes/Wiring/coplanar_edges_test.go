@@ -119,6 +119,6 @@ func TestVerticalEdgeHasNoUniqueUprightPlane(t *testing.T) {
 
 // coplanarNormalTowardPartner (edge-derived coplanar normal) and its tests were removed:
 // the drawn coplanar normal is now streamed straight from Node1/Node2's own
-// normalThetaIdx/normalPhiIdx, a fixed ±90° offset from that node's own tilt index — see
+// normalThetaIdx, a ±90° θ offset from that node's own tilt index — see
 // port_geometry.go's replaced-function comment and nodes/Node1/node_test.go /
 // nodes/Node2/node_test.go for the tests that cover the new derivation.

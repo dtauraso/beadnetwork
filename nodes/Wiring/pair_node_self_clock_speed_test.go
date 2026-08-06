@@ -6,7 +6,7 @@
 // ring node, whose nodeMover.run polls its own m.speedCh every cycle (mover_registry.go's
 // finalizeActors). The kind's own SEPARATE clock (n.Clock, polled via its own SpeedCh in the
 // kind's Update loop) DID receive speed changes and correctly paced wire delivery, which is
-// why the defect was invisible to anything that only checked bead delivery/dot-turn timing:
+// why the defect was invisible to anything that only checked bead delivery/tilt-turn timing:
 // the visible thing (rendered bead motion) ran at the un-scaled rate regardless.
 //
 // This test asserts what ONE goroutine's own clock state does (docs/testing-shape.md): no

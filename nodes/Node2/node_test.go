@@ -14,7 +14,7 @@ import (
 //
 // The old bead-path step tests are gone with that rule itself: a bead arrival used to step this
 // node one click in the kind's own fixed direction, regardless of what arrived, which is
-// what turned a pair one way forever. The bead now only paces; stepFromVector's dots are
+// what turned a pair one way forever. The bead now only paces; stepFromVector's acute tests are
 // the only rule that turns a tilt on an arrival, and they are asserted below.
 
 // applyTiltEdit is what the RESET button, the START TILT button, and the tilt-angle panel
@@ -112,7 +112,7 @@ func TestOutgoingVectorIsPlus180StepsInThetaOnly(t *testing.T) {
 		if diff := out.ThetaIdx - norm.ThetaIdx; diff != Wiring.HalfTurnThetaIdx {
 			t.Fatalf("theta=%d: outgoing must sit a half turn (%d) from the normal, got %d", theta, Wiring.HalfTurnThetaIdx, diff)
 		}
-		// And the bottom tilt is the TOP's exact antipode — what makes the two dots exact
+		// And the bottom tilt is the TOP's exact antipode — what makes the two tests exact
 		// negatives of each other, which the whole step rule rests on.
 		if bottom := n.bottomTilt(); n.topTilt().ThetaIdx-bottom.ThetaIdx != Wiring.HalfTurnThetaIdx {
 			t.Fatalf("theta=%d: bottom must sit a half turn from the top, got %d", theta, n.topTilt().ThetaIdx-bottom.ThetaIdx)
@@ -120,13 +120,13 @@ func TestOutgoingVectorIsPlus180StepsInThetaOnly(t *testing.T) {
 	}
 }
 
-// stepFromVector's TWO dots decide both whether to move and WHICH WAY. Leaning toward this
+// stepFromVector's TWO acute tests decide both whether to move and WHICH WAY. Leaning toward this
 // node's own TOP tilt vector takes Node2's base direction; leaning toward its BOTTOM tilt
 // vector takes the reverse. These assert one goroutine's own arithmetic, no channel
 // involved (docs/testing-shape.md).
 func TestStepFromVectorTakesBaseDirectionWhenAcuteWithTop(t *testing.T) {
 	// Tilt at index 0 points at world +y; an arrival at index 0 is the same direction, so
-	// dot(arrived, top) = 1 (acute) and dot(arrived, bottom) = -1.
+	// it is 0 steps from the top (acute) and a half turn from the bottom (not acute).
 	n := &Node{TopTiltThetaIdx: 0}
 	if moved := n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: 0}); !moved || n.TopTiltThetaIdx != 1 {
 		t.Fatalf("acute with the TOP tilt: want moved=true thetaIdx=1, got moved=%v thetaIdx=%d",
@@ -135,7 +135,8 @@ func TestStepFromVectorTakesBaseDirectionWhenAcuteWithTop(t *testing.T) {
 }
 
 func TestStepFromVectorReversesWhenAcuteWithBottom(t *testing.T) {
-	// A half turn from the tilt: now dot(arrived, bottom) = 1 and dot(arrived, top) = -1,
+	// A half turn from the tilt: now it is 0 steps from the BOTTOM (acute) and a half turn
+	// from the top (not acute),
 	// so the step must go the OTHER way from the case above.
 	n := &Node{TopTiltThetaIdx: 0}
 	if moved := n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: Wiring.HalfTurnThetaIdx}); !moved || n.TopTiltThetaIdx != -1 {
@@ -144,7 +145,7 @@ func TestStepFromVectorReversesWhenAcuteWithBottom(t *testing.T) {
 	}
 }
 
-// Exactly perpendicular to the tilt axis is the ONE case neither dot claims — no step, and
+// Exactly perpendicular to the tilt axis is the ONE case neither test claims — no step, and
 // the caller must send nothing. This is the exchange's stop condition, and it is about the
 // ARRIVED direction, not about this node sitting on any particular index: the node here is
 // AT PerpendicularThetaIdx and still would have stepped had the arrival leaned either way.
@@ -159,7 +160,7 @@ func TestStepFromVectorStopsWhenNeitherDotIsAcute(t *testing.T) {
 			n.TopTiltThetaIdx, Wiring.PerpendicularThetaIdx)
 	}
 	// ...and the same node DOES step when the arrival leans, proving the stop above came
-	// from the dots and not from where this node happens to sit.
+	// from the acute tests and not from where this node happens to sit.
 	if moved := n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: n.TopTiltThetaIdx}); !moved {
 		t.Fatal("a leaning arrival must still step a node sitting at the perpendicular index")
 	}
@@ -229,7 +230,7 @@ func TestHandleVectorCycleReplacesPreviousReceivedDirection(t *testing.T) {
 // the exchange comes to rest — because the last direction a node was sent is what it is
 // still holding. Only a RESET removes it (asserted separately, below).
 func TestReceivedVectorRecordedEvenWhenNothingSteps(t *testing.T) {
-	// Perpendicular to this node's own tilt axis: neither dot is acute, so nothing steps
+	// Perpendicular to this node's own tilt axis: neither test is acute, so nothing steps
 	// and nothing is sent — the exchange comes to rest on this arrival.
 	n := &Node{TopTiltThetaIdx: 0, ReceivedThetaIdx: 4, ReceivedSet: true}
 	in := make(chan Wiring.TiltVectorMsg, 1)
@@ -245,7 +246,7 @@ func TestReceivedVectorRecordedEvenWhenNothingSteps(t *testing.T) {
 			n.ReceivedSet, n.ReceivedThetaIdx)
 	}
 	if n.TopTiltThetaIdx != 0 {
-		t.Fatalf("neither dot is acute here, so the tilt must not move; got %d", n.TopTiltThetaIdx)
+		t.Fatalf("neither test is acute here, so the tilt must not move; got %d", n.TopTiltThetaIdx)
 	}
 	select {
 	case v := <-out:
@@ -432,7 +433,7 @@ func TestResetSendsAMarkerNotADirection(t *testing.T) {
 	}
 }
 
-// The bead now travels WITH the vector: it is placed by the vector branch when the dots
+// The bead now travels WITH the vector: it is placed by the vector branch when the tests
 // actually move this node, not by the bead branch on every round trip. So the bead loop
 // lives and dies with the exchange it paces, instead of circulating on its own in this
 // kind's fixed direction forever.
@@ -443,7 +444,7 @@ func TestBeadIsPlacedByTheVectorStepNotByABeadArrival(t *testing.T) {
 	in := make(chan Wiring.TiltVectorMsg, 1)
 	n := &Node{TopTiltThetaIdx: 0, VectorIn: in, Out: out}
 
-	// An arrival that LEANS: the dots move this node, so a bead goes out with the reply.
+	// An arrival that LEANS: the acute tests move this node, so a bead goes out with the reply.
 	in <- Wiring.TiltVectorMsg{ThetaIdx: 0}
 	n.handleVectorCycle(1)
 	pw.DriveOneCycle(ctx, 2)

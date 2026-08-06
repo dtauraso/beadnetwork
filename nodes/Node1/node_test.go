@@ -14,7 +14,7 @@ import (
 //
 // The old bead-path step tests are gone with that rule itself: a bead arrival used to step this
 // node one click in the kind's own fixed direction, regardless of what arrived, which is
-// what turned a pair one way forever. The bead now only paces; stepFromVector's dots are
+// what turned a pair one way forever. The bead now only paces; stepFromVector's acute tests are
 // the only rule that turns a tilt on an arrival, and they are asserted below.
 
 // applyTiltEdit is what the RESET button, the START TILT button, and the tilt-angle panel
@@ -52,7 +52,7 @@ func TestCoplanarNormalIsPlusSixStepsInTheta(t *testing.T) {
 		if norm.ThetaIdx != theta+Wiring.PerpendicularThetaIdx {
 			t.Fatalf("coplanarNormal theta: want tilt+%d=%d, got %d", Wiring.PerpendicularThetaIdx, theta+Wiring.PerpendicularThetaIdx, norm.ThetaIdx)
 		}
-		// topTilt is the stored index NAMED as a direction — the dots read it as one
+		// topTilt is the stored index NAMED as a direction — the acute tests read it as one
 		// operand, so it must be exactly the index and never a derived value.
 		if got := n.topTilt().ThetaIdx; got != theta {
 			t.Fatalf("topTilt must be the stored index itself: want %d, got %d", theta, got)
@@ -163,21 +163,21 @@ func TestOutgoingVectorIsMinus180StepsInThetaOnly(t *testing.T) {
 		if diff := norm.ThetaIdx - out.ThetaIdx; diff != Wiring.HalfTurnThetaIdx {
 			t.Fatalf("theta=%d: outgoing must sit a half turn (%d) from the normal, got %d", theta, Wiring.HalfTurnThetaIdx, diff)
 		}
-		// And the bottom tilt is the TOP's exact antipode, which is what makes the two dots
-		// exact negatives of each other — the property the whole step rule rests on.
+		// And the bottom tilt is the TOP's exact antipode, which is what makes the two acute
+		// tests exact opposites of each other — the property the whole step rule rests on.
 		if bottom := n.bottomTilt(); bottom.ThetaIdx-n.topTilt().ThetaIdx != Wiring.HalfTurnThetaIdx {
 			t.Fatalf("theta=%d: bottom must sit a half turn from the top, got %d", theta, bottom.ThetaIdx-n.topTilt().ThetaIdx)
 		}
 	}
 }
 
-// stepFromVector's TWO dots decide both whether to move and WHICH WAY. Leaning toward this
+// stepFromVector's TWO acute tests decide both whether to move and WHICH WAY. Leaning toward this
 // node's own TOP tilt vector takes Node1's base direction; leaning toward its BOTTOM tilt
 // vector takes the reverse. These assert one goroutine's own arithmetic, no channel
 // involved (docs/testing-shape.md).
 func TestStepFromVectorTakesBaseDirectionWhenAcuteWithTop(t *testing.T) {
 	// Tilt at index 0 points at world +y; an arrival at index 0 is the same direction, so
-	// dot(arrived, top) = 1 (acute) and dot(arrived, bottom) = -1.
+	// it is 0 steps from the top (acute) and a half turn from the bottom (not acute).
 	n := &Node{TopTiltThetaIdx: 0}
 	if moved := n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: 0}); !moved || n.TopTiltThetaIdx != -1 {
 		t.Fatalf("acute with the TOP tilt: want moved=true thetaIdx=-1, got moved=%v thetaIdx=%d",
@@ -186,7 +186,8 @@ func TestStepFromVectorTakesBaseDirectionWhenAcuteWithTop(t *testing.T) {
 }
 
 func TestStepFromVectorReversesWhenAcuteWithBottom(t *testing.T) {
-	// A half turn from the tilt: now dot(arrived, bottom) = 1 and dot(arrived, top) = -1,
+	// A half turn from the tilt: now it is 0 steps from the BOTTOM (acute) and a half turn
+	// from the top (not acute),
 	// so the step must go the OTHER way from the case above.
 	n := &Node{TopTiltThetaIdx: 0}
 	if moved := n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: Wiring.HalfTurnThetaIdx}); !moved || n.TopTiltThetaIdx != 1 {
@@ -210,7 +211,7 @@ func TestStepFromVectorHaltsWhenNeitherDotIsAcute(t *testing.T) {
 	}
 }
 
-// stepFromVector's three dot cases: acute with top steps -1 and returns true, acute with
+// stepFromVector's three cases: acute with top steps -1 and returns true, acute with
 // bottom steps +1 and returns true, and exactly perpendicular to both steps nothing and
 // returns false. Consolidates the three single-case tests above into one table asserting the
 // full gate.
@@ -550,7 +551,7 @@ func TestBeadIsPlacedOnlyWhenVectorStepsNotOnPerpendicularHalt(t *testing.T) {
 	in := make(chan Wiring.TiltVectorMsg, 1)
 	n := &Node{TopTiltThetaIdx: 0, VectorIn: in, Out: out}
 
-	// An arrival that LEANS: the dots move this node, so a bead goes out with the reply.
+	// An arrival that LEANS: the acute tests move this node, so a bead goes out with the reply.
 	in <- Wiring.TiltVectorMsg{ThetaIdx: 0}
 	n.handleVectorCycle(1)
 	pw.DriveOneCycle(ctx, 2)

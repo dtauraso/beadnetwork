@@ -75,7 +75,7 @@ func TestTiltVectorIsAcuteAcrossWholeLatticeWithNegativeIndices(t *testing.T) {
 	}
 }
 
-// The two-dot property the straightening rule depends on: top-acute and bottom-acute (the
+// The two-test property the straightening rule depends on: top-acute and bottom-acute (the
 // bottom being the top's exact antipode, HalfTurnThetaIdx away) are MUTUALLY EXCLUSIVE, and
 // neither is acute exactly when the arrival is perpendicular to the top (and therefore also
 // to the bottom, its antipode). Asserted directly against the new integer implementation
@@ -94,7 +94,7 @@ func TestTopAndBottomAcuteAreMutuallyExclusiveAndBothFalseAtPerpendicular(t *tes
 			}
 			atPerp := d == PerpendicularThetaIdx || d == FullTurnThetaIdx-PerpendicularThetaIdx
 			if atPerp && (acuteTop || acuteBottom) {
-				t.Fatalf("top=%d d=%d (perpendicular to top): want neither dot acute, got acuteTop=%v acuteBottom=%v",
+				t.Fatalf("top=%d d=%d (perpendicular to top): want neither test acute, got acuteTop=%v acuteBottom=%v",
 					top, d, acuteTop, acuteBottom)
 			}
 		}
