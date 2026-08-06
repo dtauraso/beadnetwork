@@ -176,12 +176,11 @@ const denStyle: React.CSSProperties = {
   transform: `translateY(${FRAC_SHIFT}px)`,
 };
 
-// The slash leans between the two and is dimmed a little: it is the separator, not a digit,
-// and at full strength it competes with the numbers it divides.
+// The slash sits between them, styled exactly like the digits — same colour, same weight,
+// same size. Only the vertical offset differs across the three parts; anything else (a
+// dimmed slash, a tightened margin) restyles the label rather than separating it.
 const slashStyle: React.CSSProperties = {
   display: "inline-block",
-  opacity: 0.7,
-  margin: "0 -0.5px",
 };
 
 // The selected position: darkest and bold, so which setting is live is read off the same
