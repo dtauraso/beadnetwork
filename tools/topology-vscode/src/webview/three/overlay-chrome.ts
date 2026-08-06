@@ -50,8 +50,14 @@ export const pillCaretStyle: React.CSSProperties = {
   opacity: 0.85,
 };
 
-/** The popover panel anchored under a pill: `position: relative` on the pill container
- *  above, this absolutely positioned at `top: calc(100% + 4px); right: 0`. */
+/** The popover panel anchored under a pill: absolutely positioned at
+ *  `top: calc(100% + 4px); right: 0` against the nearest positioned ancestor.
+ *
+ *  NEVER RENDER THIS INSIDE THE PILL. `pillContainerStyle` sets `overflow: hidden` to clip
+ *  the split-button's own rounded corners, and that clips a popover nested within it out of
+ *  existence — the caret flips and nothing appears, which is exactly how the angles panel
+ *  first shipped. Make the popover a SIBLING of the pill, inside a `position: relative`
+ *  wrapper that sets no overflow (TiltVectorAnglePanel's `anchorStyle`). */
 export function popoverStyle(width: number): React.CSSProperties {
   return {
     position: "absolute",

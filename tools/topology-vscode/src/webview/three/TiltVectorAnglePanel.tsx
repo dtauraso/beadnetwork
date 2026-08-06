@@ -129,13 +129,20 @@ export function TiltVectorAnglePanel() {
   };
 
   return (
-    <div style={pillContainerStyle(false)}>
-      {/* No master toggle: the whole pill (body + caret) opens/closes the popover. */}
-      <div onClick={onToggle} title={open ? "Close angles" : "Open angles"} style={pillBodyStyle}>
-        Angles
-      </div>
-      <div onClick={onToggle} title={open ? "Close angles" : "Open angles"} style={pillCaretStyle}>
-        {open ? "▲" : "▼"}
+    // The popover is a SIBLING of the pill, never a child: pillContainerStyle sets
+    // `overflow: hidden` (it clips the split-button's own rounded corners), which also clips
+    // an absolutely-positioned popover inside it out of existence — the caret flipped and
+    // nothing appeared. This wrapper is what the popover anchors to instead, and it sets no
+    // overflow of its own.
+    <div style={anchorStyle}>
+      <div style={pillContainerStyle(false)}>
+        {/* No master toggle: the whole pill (body + caret) opens/closes the popover. */}
+        <div onClick={onToggle} title={open ? "Close angles" : "Open angles"} style={pillBodyStyle}>
+          Angles
+        </div>
+        <div onClick={onToggle} title={open ? "Close angles" : "Open angles"} style={pillCaretStyle}>
+          {open ? "▲" : "▼"}
+        </div>
       </div>
 
       {open && (
@@ -148,6 +155,16 @@ export function TiltVectorAnglePanel() {
     </div>
   );
 }
+
+// What the popover is positioned against: a wrapper around the pill with no overflow of its
+// own, so `popoverStyle`'s absolute `top: calc(100% + 4px)` measures from the BOTTOM OF THE
+// PILL and is not clipped by it. It must stay pointer-transparent itself — ThreeView's
+// right-hand column takes no pointer events and each widget re-enables them for its own box,
+// so a wrapper that swallowed them would cover the canvas behind this panel.
+const anchorStyle: React.CSSProperties = {
+  position: "relative",
+  pointerEvents: "none",
+};
 
 const arrowBtnStyle: React.CSSProperties = {
   background: "rgba(255,255,255,0.12)",
