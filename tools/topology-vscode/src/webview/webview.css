@@ -4,10 +4,12 @@ html, body { margin: 0; padding: 0; height: 100%; background: #fafafa; font-fami
 .node.dragging { cursor: grabbing; }
 .node text { pointer-events: none; user-select: none; }
 .toolbar { position: fixed; top: 8px; left: 8px; padding: 6px 10px; background: #fff; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; display: flex; gap: 12px; align-items: center; z-index: 10; }
-/* Directly below the toolbar's speed bar (SpeedSlider lives inside #run-mount, above),
-   same look-and-feel as .toolbar/.run-btn. Empty (no tilt-vector rows to reset) unless
-   TiltResetButton portals its button in — an empty div paints nothing. */
-.tilt-reset-row { position: fixed; top: 44px; left: 8px; z-index: 10; }
+/* The toolbar's single mount: SpeedSlider and TiltResetButton both portal in here. A
+   COLUMN, so the reset button sits below the slider rather than beside it, and
+   flex-start so it lines up on the slider's left edge. Order is render order in main.tsx
+   (slider, then button). TiltResetButton renders nothing when the scene has no tilt
+   vectors (the ring), and the gap collapses with it. */
+#run-mount { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
 .tilt-reset-btn { padding: 3px 10px; }
 .timeline-panel { z-index: 10; }
 .react-flow__controls { bottom: 56px !important; }

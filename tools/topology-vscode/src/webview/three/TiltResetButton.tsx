@@ -3,9 +3,11 @@ import { postGoRecord } from "../vscode-api";
 import { encodeTiltVectorReset } from "../../schema/input-layout";
 import { useTiltVectorRows } from "./overlay-flags";
 
-// TiltResetButton — a single RESET control, rendered BELOW the speed bar (portaled into
-// its own mount, "#tilt-reset-mount", the same createPortal-outside-#app pattern as
-// SpeedSlider — see html.ts) rather than into the 3D overlay column
+// TiltResetButton — a single RESET control, portaled into "#run-mount", the SAME toolbar
+// mount SpeedSlider uses (html.ts), so the two sit on one bar. It had its own row below the
+// toolbar (#tilt-reset-mount); a second fixed-position row for one button, whose top had to
+// be kept in step with the toolbar's height by hand, is more layout than one button needs.
+// Either way it is portaled outside #app rather than living in the 3D overlay column
 // TiltVectorAnglePanel occupies.
 //
 // WHICH nodes it can reset is the SAME data-driven signal TiltVectorAnglePanel already
@@ -23,7 +25,7 @@ import { useTiltVectorRows } from "./overlay-flags";
 // straightening exchange never starts.
 export function TiltResetButton() {
   const rows = useTiltVectorRows();
-  const mount = document.getElementById("tilt-reset-mount");
+  const mount = document.getElementById("run-mount");
   if (!mount || !rows || rows.length === 0) return null;
 
   const reset = () => {
