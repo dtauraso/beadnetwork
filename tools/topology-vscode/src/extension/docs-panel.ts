@@ -33,20 +33,47 @@ export function openDocsPanel(context: vscode.ExtensionContext, page?: string): 
     return;
   }
 
-  const panel = docsPanel ?? vscode.window.createWebviewPanel(
-    "topologyDocs", "Pair node architecture", vscode.ViewColumn.Active,
-    {
-      enableScripts: false,
-      enableCommandUris: true,            // what makes the links open editor tabs
-      localResourceRoots: [vscode.Uri.file(dir)],
-    },
-  );
-  docsPanel = panel;
-  panel.onDidDispose(() => { docsPanel = undefined; }, undefined, context.subscriptions);
+  let panel = docsPanel;
+  if (!panel) {
+    panel = vscode.window.createWebviewPanel(
+      "topologyDocs", "Pair node architecture", vscode.ViewColumn.Active,
+      {
+        // A click posts a message, exactly as the topology editor's own webview
+        // does — the one webview→extension path this repo exercises daily.
+        // enableCommandUris stays on for the command: links, but nothing depends
+        // on them any more.
+        enableScripts: true,
+        enableCommandUris: true,
+        localResourceRoots: [vscode.Uri.file(dir)],
+      },
+    );
+    docsPanel = panel;
+    panel.onDidDispose(() => { docsPanel = undefined; }, undefined, context.subscriptions);
+    panel.webview.onDidReceiveMessage((msg: { kind?: string; value?: string }) => {
+      trace(root, `message ${JSON.stringify(msg)}`);
+      if (msg?.kind === "open-source" && msg.value) openSource(msg.value);
+      else if (msg?.kind === "open-page" && msg.value) openDocsPanel(context, msg.value);
+    }, undefined, context.subscriptions);
+  }
 
   panel.title = "Pair node — " + name;
   panel.webview.html = render(panel.webview, dir, root, fs.readFileSync(file, "utf8"));
   panel.reveal(panel.viewColumn);
+  trace(root, `panel opened ${name}`);
+}
+
+// trace appends a breadcrumb to .probe/docs.jsonl. The probe dir is where this
+// repo's runtime logs already live (project_probe_log_layout.md) and is
+// gitignored. It exists so "nothing happens" can be diagnosed from the log
+// instead of from another theory: whether the panel opened, whether a click
+// arrived, and what came back.
+function trace(root: string, line: string): void {
+  try {
+    const dir = path.join(root, ".probe");
+    fs.mkdirSync(dir, { recursive: true });
+    fs.appendFileSync(path.join(dir, "docs.jsonl"),
+      JSON.stringify({ t: new Date().toISOString(), line }) + "\n");
+  } catch { /* diagnostics must never break the thing they diagnose */ }
 }
 
 // One panel, reused: opening a nav link replaces the page rather than stacking tabs.
@@ -58,6 +85,7 @@ let docsPanel: vscode.WebviewPanel | undefined;
 // thing this whole mechanism exists to stop being.
 export function openSource(rel: string): void {
   const folder = vscode.workspace.workspaceFolders?.[0];
+  if (folder?.uri.scheme === "file") trace(folder.uri.fsPath, `openSource ${rel}`);
   if (!folder || folder.uri.scheme !== "file") {
     vscode.window.showErrorMessage("No folder open, so there is nothing to open a source file from.");
     return;
@@ -95,9 +123,30 @@ function render(webview: vscode.Webview, dir: string, root: string, html: string
   return html
     // A marker, so which surface you are reading is never in doubt: the source
     // links are clickable HERE and inert in Live Preview, and those two look
-    // otherwise identical.
-    .replace(/<body>/, `<body>\n  <div style="padding:8px 18px 0;font-size:11px;color:#5fd68a">`
+    // otherwise identical. It doubles as a status line — the click handler
+    // writes into it, so a click that reaches the page is visible even if
+    // nothing downstream happens.
+    .replace(/<body>/, `<body>\n  <div id="panel-marker" style="padding:8px 18px 0;font-size:11px;color:#5fd68a">`
       + `topology docs panel — source names open as editor tabs</div>`)
+    // The click handler: every link posts to the extension instead of navigating.
+    // This is the topology editor's own webview→extension path, the one this repo
+    // relies on daily, rather than a scheme some surface may refuse.
+    .replace(/<\/body>/, `  <script>
+    (function () {
+      const vscodeApi = acquireVsCodeApi();
+      const marker = document.getElementById("panel-marker");
+      document.addEventListener("click", function (ev) {
+        const a = ev.target && ev.target.closest ? ev.target.closest("a[data-open], a[data-page]") : null;
+        if (!a) return;
+        ev.preventDefault();
+        const kind = a.dataset.open ? "open-source" : "open-page";
+        const value = a.dataset.open || a.dataset.page;
+        marker.textContent = "topology docs panel — asked to open " + value;
+        vscodeApi.postMessage({ kind: kind, value: value });
+      });
+    })();
+  </script>
+</body>`)
     // The stylesheet has to be addressed as a webview resource.
     .replace(/href="pair\.css"/g, `href="${css.toString()}"`)
     // pair.js is for the Live-Preview/browser reading of these same files; here the
@@ -105,7 +154,7 @@ function render(webview: vscode.Webview, dir: string, root: string, html: string
     .replace(/<script[^>]*><\/script>\s*/g, "")
     // Nav and index links reopen this panel on another page.
     .replace(/href="([a-z0-9-]+)\.html"/gi,
-      (_m: string, p: string) => `href="${commandUri("topology.openDocs", [p])}"`)
+      (_m: string, p: string) => `data-page="${p}" href="${commandUri("topology.openDocs", [p])}"`)
     // A source cell becomes a link that opens that file as an editor tab.
     //
     // Deliberately NOT the built-in vscode.open: that takes a Uri, and a command
@@ -114,5 +163,6 @@ function render(webview: vscode.Webview, dir: string, root: string, html: string
     // topology.openSource takes the repo-relative path as a string and builds the
     // Uri on the extension side, where it is a Uri already.
     .replace(/<td class="s" data-src="([^"]+)">([^<]*)<\/td>/g, (_m: string, rel: string, text: string) =>
-      `<td class="s"><a class="srclink" title="${rel}" href="${commandUri("topology.openSource", [rel])}">${text}</a></td>`);
+      `<td class="s"><a class="srclink" title="${rel}" data-open="${rel}"`
+      + ` href="${commandUri("topology.openSource", [rel])}">${text}</a></td>`);
 }
