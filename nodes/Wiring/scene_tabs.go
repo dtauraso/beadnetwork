@@ -105,14 +105,30 @@ type SceneTab struct {
 	// slider setting). Never 0 or negative — EffectiveClockSpeed guards against a
 	// division by an invalid value from an unrecognised or malformed scene.
 	ClockDivisor float64
+	// DistanceGroups says whether this scene has the three named node-pair distance groups
+	// (distance_groups.go's distanceGroups table) — the content of the "distance home
+	// button" panel. The table names node ids ("1", "2", "3"…), and NODE IDS ARE PER-SCENE:
+	// they are directory names under each tree's own nodes/, so the same id exists in every
+	// scene and means a different node in each.
+	//
+	// Which is how the panel turned up in the PAIR tab. The groups are the RING's, and its
+	// "input" group holds the pair (1, 2). The pair scene's two nodes are also called 1 and
+	// 2, so that group resolved there — against two nodes it was never about — and the panel
+	// showed a live length for it. The panel is data-driven and hides itself when every
+	// group reads 0, so this flag is the whole fix: a scene without the groups streams three
+	// zeroes and the panel does not render. No TS change, no scene name in the webview.
+	//
+	// An unknown tree (a fixture, a one-off path) gets false: a scene that is not the ring
+	// has no claim on the ring's groups.
+	DistanceGroups bool
 }
 
 // SceneTabs is the tab strip, in display order. Index 0 is the DEFAULT: its Dir must be
 // the anchor's own basename, since that is the path the extension host launches with and
 // sizes its stream fds from (see AnchorIsTabbed).
 var SceneTabs = []SceneTab{
-	{Name: "ring", Dir: "topology", QuantizedDrag: false, CoplanarEdges: false, UpAxis: false, ClockDivisor: 1},
-	{Name: "pair", Dir: "topology-pair", QuantizedDrag: false, CoplanarEdges: true, UpAxis: true, ClockDivisor: 4},
+	{Name: "ring", Dir: "topology", QuantizedDrag: false, CoplanarEdges: false, UpAxis: false, ClockDivisor: 1, DistanceGroups: true},
+	{Name: "pair", Dir: "topology-pair", QuantizedDrag: false, CoplanarEdges: true, UpAxis: true, ClockDivisor: 4, DistanceGroups: false},
 }
 
 // sceneSelectionFile is the persisted selection, held at the ANCHOR (never inside a scene).
@@ -271,4 +287,18 @@ func SceneClockDivisor(scenePath string) float64 {
 		}
 	}
 	return 1
+}
+
+// SceneHasDistanceGroups answers, for the tree being LOADED, whether the three named
+// distance groups apply to it (SceneTab.DistanceGroups). Unknown trees get false — see that
+// field's own doc comment for why the ring's node ids must not be read against another
+// scene's nodes of the same name.
+func SceneHasDistanceGroups(scenePath string) bool {
+	base := filepath.Base(filepath.Clean(scenePath))
+	for _, t := range SceneTabs {
+		if t.Dir == base {
+			return t.DistanceGroups
+		}
+	}
+	return false
 }

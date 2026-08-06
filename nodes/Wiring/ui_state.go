@@ -33,6 +33,14 @@ type uiState struct {
 	// EffectiveClockSpeed (scene_speed_persist.go) so a live slider edit and the load-time
 	// seed can never disagree. Never persisted and never crosses the bridge.
 	clockDivisor float64
+	// hasDistanceGroups is this SCENE's DistanceGroups flag (SceneTab.DistanceGroups,
+	// scene_tabs.go), resolved ONCE at load from the scene actually loaded — same
+	// per-process shape as clockDivisor above, and correct for the same reason (a tab switch
+	// respawns the process). Defaults to FALSE: a bare test-constructed MoveDispatch, and
+	// any tree that is not a known scene, must not read the ring's node ids against its own
+	// nodes of the same name. Never persisted and never crosses the bridge — what TS sees is
+	// three zeroed lengths, which its panel already treats as "no groups".
+	hasDistanceGroups bool
 	// vp is the polar camera viewpoint state (viewpoint_state.go). Owned entirely by
 	// MoveDispatch — no separate goroutine; callers serialize externally (stdin reader
 	// runs in a single goroutine). MoveDispatch exposes thin delegating methods.

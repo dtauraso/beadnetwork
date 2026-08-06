@@ -41,11 +41,28 @@ var distanceGroups = map[string][]distancePair{
 	"gate":  {{Source: "3", Target: "8"}, {Source: "5", Target: "8"}, {Source: "5", Target: "9"}, {Source: "7", Target: "9"}},
 }
 
+// ResolveSceneDistanceGroups records whether the tree being loaded owns the three named
+// distance groups (SceneTab.DistanceGroups). Call it once at load, BEFORE anything emits a
+// VIEW frame — the frame carries the three group lengths, and until this runs they read as
+// "no groups", which is the safe direction: a scene that should have them shows them one
+// frame later, whereas the reverse would flash the ring's lengths into another scene's tab.
+func (md *MoveDispatch) ResolveSceneDistanceGroups(scenePath string) {
+	md.ui.hasDistanceGroups = SceneHasDistanceGroups(scenePath)
+}
+
 // distanceGroupMax computes a group's CURRENT max pair length (max over the group's
 // pairs of |center(target)-center(source)|), reading live centers from md's own
 // centerMirror (md.centerOfNode — the same source RootMove/reachRFromPolar use). ok is
 // false if the group is unknown or none of its pairs' centers are resolvable yet.
 func (md *MoveDispatch) distanceGroupMax(group string) (float64, bool) {
+	// A scene without these groups resolves NONE of them. This is the one gate: every
+	// reader — DistanceGroupLens (and so the VIEW frame's three columns) and
+	// ApplyDistanceGroupTarget (the ▲/▼ math) — comes through here, so neither can act on a
+	// group belonging to a different scene. See SceneTab.DistanceGroups for why sharing node
+	// ids across scenes made that possible.
+	if !md.ui.hasDistanceGroups {
+		return 0, false
+	}
 	pairs, ok := distanceGroups[group]
 	if !ok {
 		return 0, false
