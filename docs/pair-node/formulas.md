@@ -2,13 +2,13 @@
 
 Every formula in the pair path, with the file it comes from.
 
-Open this with **VS Code's Markdown preview** (⌘K V): the source links below open
-the file as an editor tab. That is why this page is Markdown and its sibling
-diagrams are HTML — a rendered HTML page runs in a webview, and a webview does
-not open editor tabs.
+Read this with **VS Code's Markdown preview** (⌘K V): each source name below opens
+that file as an editor tab. That is why this one page is Markdown while its
+sibling diagram pages are HTML — a rendered HTML page runs in a webview, and a
+webview cannot open editor tabs.
 
-The same tables are on [formulas.html](formulas.html) with the diagrams; only
-here do the source names open.
+The diagram pages are beside it: [index](index.html) · [math](math.html) ·
+[acute test](dots.html) · [vectors](vectors.html).
 
 ## Constants
 
