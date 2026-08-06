@@ -29,7 +29,7 @@ import (
 // nodeID's own live centre, using the SAME dragTouchingBeads call production drives.
 func touchingBeadFor(t *testing.T, md *MoveDispatch, nodeID string) (touchingBead, vec3) {
 	t.Helper()
-	nm, ok := md.mr.nodeMovers[nodeID]
+	nm, ok := md.mr.nodeGeoms[nodeID]
 	if !ok {
 		t.Fatalf("no nodeMover for %s", nodeID)
 	}
@@ -61,7 +61,7 @@ func TestTouchingBeadSourceIsOneBeadLengthFromCentre(t *testing.T) {
 		// selfTorusR is a genuinely different (larger) number in this fixture — pin that,
 		// so a regression back to `prevPos + aimDir*selfTorusR` is caught even if
 		// BeadStepR and selfTorusR ever happened to coincide for some future fixture.
-		selfTorusR := nodeTorusOuterR(md.mr.nodeMovers[id].selfKind)
+		selfTorusR := nodeTorusOuterR(md.mr.nodeGeoms[id].selfKind)
 		if selfTorusR-wire.BeadStepR < 1.0 {
 			t.Fatalf("%s: fixture's selfTorusR (%g) is too close to wire.BeadStepR (%g) to distinguish the two forms",
 				id, selfTorusR, wire.BeadStepR)
@@ -85,7 +85,7 @@ func TestThirdAtRestIsOneBeadLengthNotSelfTorusR(t *testing.T) {
 		got := third.Length()
 		if diff := got - wire.BeadStepR; diff > eps || diff < -eps {
 			t.Fatalf("%s: |third| at rest should equal one bead length (wire.BeadStepR=%g), got %g (selfTorusR=%g)",
-				id, wire.BeadStepR, got, nodeTorusOuterR(md.mr.nodeMovers[id].selfKind))
+				id, wire.BeadStepR, got, nodeTorusOuterR(md.mr.nodeGeoms[id].selfKind))
 		}
 	}
 }

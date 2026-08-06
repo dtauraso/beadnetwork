@@ -15,7 +15,7 @@ import (
 // Start has run). Test-only — production code never calls this.
 func (md *MoveDispatch) SetMsgTap(tap func(destID string, msg moveMsg)) {
 	md.tapToInstall = tap
-	for _, nm := range md.mr.nodeMovers {
+	for _, nm := range md.mr.nodeGeoms {
 		nm.tap = tap
 	}
 }
@@ -66,7 +66,7 @@ func (md *MoveDispatch) SetNodeStreams(
 	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte,
 	kindIDFor func(kind string) uint8,
 ) {
-	md.sw.setNodeStreams(md.gs.nodeSeeds, md.mr.nodeMovers, nodeBase, interiorBase, driveBase, driveWired, nodeRowFor, buildFrame, buildInteriorFrame, kindIDFor)
+	md.sw.setNodeStreams(md.gs.nodeSeeds, md.mr.nodeGeoms, nodeBase, interiorBase, driveBase, driveWired, nodeRowFor, buildFrame, buildInteriorFrame, kindIDFor)
 }
 
 // NodeGeomSeed is one node's load-time seed geometry, exported in spec order and consumed

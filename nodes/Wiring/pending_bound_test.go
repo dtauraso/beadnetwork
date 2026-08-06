@@ -17,7 +17,7 @@ import (
 func TestEnqueueForPanicsWhenPendingExceedsBound(t *testing.T) {
 	mr := &moverRegistry{}
 	blockedCh := make(chan moveMsg) // unbuffered, nobody ever receives -> always full
-	nm := &nodeMover{
+	nm := &nodeGeometry{
 		id: "wedged-peer-test",
 		resolveDest: func(id string) (chan moveMsg, bool) {
 			return blockedCh, true
@@ -61,7 +61,7 @@ func TestEnqueueForPanicsWhenPendingExceedsBound(t *testing.T) {
 func TestEnqueueForNeverTripsBoundWhenDestinationDrains(t *testing.T) {
 	mr := &moverRegistry{}
 	liveCh := make(chan moveMsg, moverInboxDepth)
-	nm := &nodeMover{
+	nm := &nodeGeometry{
 		id: "live-peer-test",
 		resolveDest: func(id string) (chan moveMsg, bool) {
 			return liveCh, true

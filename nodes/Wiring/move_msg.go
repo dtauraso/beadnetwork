@@ -75,40 +75,13 @@ const (
 	// only kinds that have (Node1/Node2) instead route this through their own
 	// TiltEditIn/TiltEditMsg.Reset, same split as moveMsgKindTiltVectorAngle.
 	moveMsgKindTiltVectorReset = "tiltVectorReset"
-	// moveMsgKindTiltIndexSync is the ONE-WAY notification a node kind's OWN goroutine
-	// sends to its OWN mover whenever it changes its OWN topTiltVectorThetaIdx/PhiIdx —
-	// currently Node1/Node2 only (nodes/Node1/node.go, nodes/Node2/node.go), the only
-	// kinds that claim BuildArgs.TiltEditIn and therefore own their index independently
-	// (see TiltEditMsg's doc comment). It carries the FULL new (theta, phi) pair, not a
-	// delta: the mover is a passive mirror here, not a co-decider — it applies exactly
-	// what it is told (persistTiltVectorAngle + emitGeometry), never steps the index
-	// itself. Every OTHER kind still routes moveMsgKindTiltVectorAngle straight to its
-	// mover, which remains the sole owner/mutator of the index for those kinds.
-	moveMsgKindTiltIndexSync = "tiltIndexSync"
-	// moveMsgKindReceivedVectorSync is the ONE-WAY notification a node kind's OWN
-	// goroutine sends to its OWN mover whenever the direction it last received on its
-	// vector channel changes — currently Node1/Node2 only, the same two kinds that send
-	// moveMsgKindTiltIndexSync. It carries the FULL new (theta, phi) index pair plus
-	// ReceivedVectorSet: true on an arrival (this replaces whatever was there before,
-	// never accumulates), false on a reset (this node's own TiltEditIn Reset, or a Reset
-	// marker arriving on the channel — see nodes/Node1/node.go's applyTiltEdit and
-	// handleVectorCycle). The mover is a passive mirror here too: it never decides when
-	// this changes, it only applies exactly what it is told and streams it as the THIRD
-	// drawn vector (Buffer/layout.go's ReceivedVectorLen/Theta/Phi).
-	moveMsgKindReceivedVectorSync = "receivedVectorSync"
-	// moveMsgKindBeadClear is the ONE-WAY request a node kind's OWN goroutine sends to
-	// its OWN mover to empty every one of that node's OUTGOING wires — currently
-	// Node1/Node2's reset only (nodes/Node1/node.go's clear). The node cannot do this
-	// itself: a PacedWire's in-flight beads are owned by whichever goroutine drives it,
-	// and that is the source node's MOVER (nodeMover.run's DriveOneCycle loop), not the
-	// node goroutine. So the node asks, and the mover — the owner — does it, same
-	// ownership split as every other kind here.
-	//
-	// It clears only the OUTGOING side. A node's INCOMING beads are two other things
-	// owned by two other goroutines: what is still crossing belongs to the PARTNER's
-	// mover (cleared when that node handles its own reset), and what has already been
-	// delivered belongs to this node itself (drained on its own goroutine, In.PollRecv).
-	moveMsgKindBeadClear = "beadClear"
+	// moveMsgKindTiltIndexSync/moveMsgKindReceivedVectorSync/moveMsgKindBeadClear are
+	// GONE (task/pair-node-owns-itself). They used to be the ONE-WAY notifications a
+	// pair kind's (Node1/Node2) own goroutine sent to a SEPARATE mover goroutine for
+	// the same node id. That separate goroutine no longer exists: a pair node owns its
+	// own mover state directly (PairNodeSelf, pair_node_self.go), so what used to be a
+	// message to itself is now a plain method call — see
+	// PairNodeSelf.SetTiltIndex/SetReceivedVector/ClearOutBeads.
 )
 
 // TiltEditMsg is one panel-driven tilt-angle click (TiltVectorAnglePanel), routed to a
@@ -184,31 +157,6 @@ type moveMsg struct {
 	// Axis (Kind == "tiltVectorAngle"): "theta" or "phi" — which of the node's own
 	// topTiltVectorThetaIdx/topTiltVectorPhiIdx to adjust.
 	Axis string
-	// ThetaIdx/PhiIdx (Kind == "tiltIndexSync"): the FULL new index pair, as decided by
-	// the sending node kind's own goroutine (never a delta — see moveMsgKindTiltIndexSync's
-	// doc comment). The receiving mover applies these verbatim; it does not compute them.
-	ThetaIdx, PhiIdx int32
-	// NormalThetaIdx/NormalPhiIdx (Kind == "tiltIndexSync"): the FULL new coplanar-normal
-	// index pair, likewise decided by the sending node kind's own goroutine — a fixed ±90°
-	// (Wiring.PerpendicularThetaIdx steps) in θ from ThetaIdx/PhiIdx, sign owned by the kind
-	// (Node1 adds, Node2 subtracts — nodes/Node1/node.go, nodes/Node2/node.go's own
-	// coplanarNormal). The receiving mover applies these verbatim too; it does not derive
-	// the normal from the edge any more (coplanarNormalTowardPartner was removed).
-	NormalThetaIdx, NormalPhiIdx int32
-	// BottomThetaIdx/BottomPhiIdx carry the sender's own BOTTOM TILT VECTOR index pair on
-	// the same moveMsgKindTiltIndexSync message as the top and the normal — one message per
-	// change, carrying every index the mover mirrors, so the three can never be seen
-	// out of step with each other.
-	BottomThetaIdx, BottomPhiIdx int32
-	// ReceivedVectorThetaIdx/ReceivedVectorPhiIdx (Kind == "receivedVectorSync"): the
-	// direction last received on this node's vector channel, as decided by the sending
-	// node kind's own goroutine — see moveMsgKindReceivedVectorSync's doc comment.
-	// Meaningless when ReceivedVectorSet is false (a reset).
-	ReceivedVectorThetaIdx, ReceivedVectorPhiIdx int32
-	// ReceivedVectorSet (Kind == "receivedVectorSync"): true = a direction was received
-	// (ReceivedVectorThetaIdx/PhiIdx are meaningful), false = cleared by a reset — see
-	// moveMsgKindReceivedVectorSync's doc comment.
-	ReceivedVectorSet bool
 	// testDone: see the type comment. Test-only; production leaves it nil.
 	testDone chan struct{}
 }

@@ -44,7 +44,7 @@ func beadRunGoroutineCount(t *testing.T) int {
 // returns to baseline after a drag that removes beads (bead_crud.go's own count, recomputed
 // live by chain_beads.go's edgeStepCount, shrinking as two nodes move together).
 func TestBeadGoroutineLifetimeFollowsChainLength(t *testing.T) {
-	m := &nodeMover{id: "a", beadTickFn: wire.NewTickChan}
+	m := &nodeGeometry{id: "a", beadTickFn: wire.NewTickChan}
 	offsetAt := func(i int) float64 { return float64(i) }
 
 	baseline := beadRunGoroutineCount(t)
@@ -101,7 +101,7 @@ func TestBeadGoroutineLifetimeFollowsChainLength(t *testing.T) {
 // not yet had a chance to apply — since a fresh broadcast always starts a bead back at a
 // stale cached position until its own goroutine services the new generation).
 func TestReconcileBeadChainAppliesPosition(t *testing.T) {
-	m := &nodeMover{id: "a", beadTickFn: wire.NewTickChan}
+	m := &nodeGeometry{id: "a", beadTickFn: wire.NewTickChan}
 	offsetAt := func(i int) float64 { return 10 }
 	c := m.reconcileBeadChain("b", 1, offsetAt, wire.Vec3{X: 1})
 	defer close(c.stops[0])
@@ -129,7 +129,7 @@ func TestReconcileBeadChainAppliesPosition(t *testing.T) {
 // send loop — mirroring the primitive-level TestWakeSetsEveryAffectedBead but through the
 // production entry points handle() drives (moveMsgKindDragStart/moveMsgKindDragEnd).
 func TestStartEndBeadDragTogglesEveryChain(t *testing.T) {
-	m := &nodeMover{id: "a", beadTickFn: wire.NewTickChan}
+	m := &nodeGeometry{id: "a", beadTickFn: wire.NewTickChan}
 	offsetAt := func(i int) float64 { return float64(i) }
 	cB := m.reconcileBeadChain("b", 2, offsetAt, wire.Vec3{X: 1})
 	cC := m.reconcileBeadChain("c", 2, offsetAt, wire.Vec3{Y: 1})

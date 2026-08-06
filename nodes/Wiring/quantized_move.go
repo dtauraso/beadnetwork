@@ -43,8 +43,8 @@ type layoutQuantizer struct {
 // goroutine, which is every live caller. There is no separate accumulated positions map
 // to drain.
 func (lq *layoutQuantizer) heldCenters(md *MoveDispatch) map[string]vec3 {
-	out := make(map[string]vec3, len(md.mr.nodeMovers))
-	for id := range md.mr.nodeMovers {
+	out := make(map[string]vec3, len(md.mr.nodeGeoms))
+	for id := range md.mr.nodeGeoms {
 		if c, ok := md.centerOfNode(id); ok {
 			out[id] = c
 		}
@@ -119,7 +119,7 @@ func (lq *layoutQuantizer) broadcastToEdgesAndPartners(md *MoveDispatch, newCent
 		}
 	}
 	for partnerID, movedID := range partners {
-		if _, ok := md.mr.nodeMovers[partnerID]; !ok {
+		if _, ok := md.mr.nodeGeoms[partnerID]; !ok {
 			continue
 		}
 		// Center is deliberately nil (see the doc comment above): this is a PURE
@@ -179,7 +179,7 @@ type touchingBead struct {
 //     NEIGHBOUR's torus surface (nm.neighborKinds gives the neighbour's kind, derived from
 //     domain adjacency at load — see build.go — so every direct neighbour has an entry):
 //     beadSource = neighborCenter - aimDir*nodeTorusOuterR(neighborKind)
-func dragTouchingBeads(md *MoveDispatch, nm *nodeMover, prevPos vec3) []touchingBead {
+func dragTouchingBeads(md *MoveDispatch, nm *nodeGeometry, prevPos vec3) []touchingBead {
 	nodeID := nm.id
 	selfTorusR := nodeTorusOuterR(nm.selfKind)
 	out := make([]touchingBead, 0, len(nm.edgeIDs))
@@ -244,7 +244,7 @@ func dragTouchingBeads(md *MoveDispatch, nm *nodeMover, prevPos vec3) []touching
 // (nodeMover.quantOffset — never a shared map, so no other mover goroutine's commit
 // can race this write even for a different node id), and requantizes nodeID's
 // local-polar cascade-links against its (unmoved) neighbors.
-func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeMover, newPos vec3) {
+func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeGeometry, newPos vec3) {
 	nodeID := nm.id
 	edges := lq.heldEdges(md)
 	// reach[nodeID] only ever needs nodeID's own fresh polar plus its DIRECT
@@ -407,7 +407,7 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeMover, 
 // here for that reason: the reset belongs at the real drag-start edge (the
 // pending→dragging transition in gesture.go), not on every move tick RootMove sees.
 func (lq *layoutQuantizer) RootMove(md *MoveDispatch, nodeID string, target vec3) bool {
-	if _, ok := md.mr.nodeMovers[nodeID]; !ok {
+	if _, ok := md.mr.nodeGeoms[nodeID]; !ok {
 		return false
 	}
 	// Route the drag itself to the dragged node's OWN inbox instead of committing on

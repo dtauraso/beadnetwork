@@ -65,7 +65,7 @@ type edgeBeadChain struct {
 // (selfTorusR + wire.BeadTorusOuterR + i*wire.BeadStepR) — unchanged for the life of bead
 // i, exactly as bead_actor.go's Bead.offsetR documents. Called only from chainBeads, only
 // on this node's own goroutine.
-func (m *nodeMover) reconcileBeadChain(to string, count int, offsetAt func(i int) float64, aim wire.Vec3) *edgeBeadChain {
+func (m *nodeGeometry) reconcileBeadChain(to string, count int, offsetAt func(i int) float64, aim wire.Vec3) *edgeBeadChain {
 	if m.beadChains == nil {
 		m.beadChains = map[string]*edgeBeadChain{}
 	}
@@ -151,7 +151,7 @@ func (m *nodeMover) reconcileBeadChain(to string, count int, offsetAt func(i int
 // resting (dragging=false) by the first reconcileBeadChain call this drag makes, which is
 // harmless: the mode flag does not gate geometry delivery (see bead_actor.go's Bead.run —
 // the geometry case applies unconditionally, dragging or not), only observability.
-func (m *nodeMover) startBeadDrag() {
+func (m *nodeGeometry) startBeadDrag() {
 	for _, c := range m.beadChains {
 		c.group.StartDrag()
 	}
@@ -161,7 +161,7 @@ func (m *nodeMover) startBeadDrag() {
 // bead chains — clears the dragging flag with one close per edge. Called from handle's
 // moveMsgKindDragEnd case, on EVERY path a drag ends by (see that message kind's own doc
 // comment), so no bead this node woke is ever left on machine time.
-func (m *nodeMover) endBeadDrag() {
+func (m *nodeGeometry) endBeadDrag() {
 	for _, c := range m.beadChains {
 		c.group.EndDrag()
 	}

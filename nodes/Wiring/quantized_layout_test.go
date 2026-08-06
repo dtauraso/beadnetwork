@@ -133,7 +133,7 @@ func TestCommitNodeMoveLocalDrawsQuantizedNotRawTarget(t *testing.T) {
 	if !md.lq.quantizedLayout {
 		t.Fatal("test assumes quantizedLayout is on by default")
 	}
-	nm, ok := md.mr.nodeMovers["2"]
+	nm, ok := md.mr.nodeGeoms["2"]
 	if !ok {
 		t.Fatal("no nodeMover for dst")
 	}
@@ -220,7 +220,7 @@ func TestCommitNodeMoveLocalNeverMovesTowardMouseTarget(t *testing.T) {
 	t.Run("remove", func(t *testing.T) {
 		root := writeTree(t)
 		md := loadTreeMD(t, root)
-		nm := md.mr.nodeMovers["2"]
+		nm := md.mr.nodeGeoms["2"]
 		before, ok := md.centerOfNode("2")
 		if !ok {
 			t.Fatal("no center for dst")
@@ -247,7 +247,7 @@ func TestCommitNodeMoveLocalNeverMovesTowardMouseTarget(t *testing.T) {
 	t.Run("add", func(t *testing.T) {
 		root := writeTree(t)
 		md := loadTreeMD(t, root)
-		nm := md.mr.nodeMovers["2"]
+		nm := md.mr.nodeGeoms["2"]
 		before, ok := md.centerOfNode("2")
 		if !ok {
 			t.Fatal("no center for dst")
@@ -280,7 +280,7 @@ func TestCommitNodeMoveLocalNeverMovesTowardMouseTarget(t *testing.T) {
 func TestCommitNodeMoveLocalRemoveTakesBeadsPlace(t *testing.T) {
 	root := writeTree(t)
 	md := loadTreeMD(t, root)
-	nm := md.mr.nodeMovers["2"]
+	nm := md.mr.nodeGeoms["2"]
 	before, ok := md.centerOfNode("2")
 	if !ok {
 		t.Fatal("no center for dst")
@@ -313,7 +313,7 @@ func TestCommitNodeMoveLocalRemoveTakesBeadsPlace(t *testing.T) {
 func TestCommitNodeMoveLocalAddMovesOneBeadBeyondNewBead(t *testing.T) {
 	root := writeTree(t)
 	md := loadTreeMD(t, root)
-	nm := md.mr.nodeMovers["2"]
+	nm := md.mr.nodeGeoms["2"]
 	before, ok := md.centerOfNode("2")
 	if !ok {
 		t.Fatal("no center for dst")

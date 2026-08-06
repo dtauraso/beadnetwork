@@ -115,7 +115,7 @@ func quantizedDragTarget(md *MoveDispatch, nodeID string, target vec3) vec3 {
 	if !md.lq.quantizedLayout {
 		return target
 	}
-	nm, ok := md.mr.nodeMovers[nodeID]
+	nm, ok := md.mr.nodeGeoms[nodeID]
 	if !ok {
 		return target
 	}

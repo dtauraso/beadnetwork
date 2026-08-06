@@ -193,7 +193,7 @@ func litBeadIndex(t float64, steps int) (int, bool) {
 // writeStreamFrame itself invokes chainBeads to build its frame's chain-bead columns, so a
 // second writeStreamFrame call from inside here would recurse (and, before this fix, did:
 // chainBeads -> writeStreamFrame -> chainBeads -> ... stack overflow).
-func (m *nodeMover) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []int32, breadcrumbs []wire.RowEvent) {
+func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []int32, breadcrumbs []wire.RowEvent) {
 	if len(m.outTargets) == 0 {
 		return nil, nil, nil, nil, nil, nil
 	}

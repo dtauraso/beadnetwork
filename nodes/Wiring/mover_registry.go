@@ -58,8 +58,24 @@ const maxPendingSends = moverInboxDepth * moverInboxDepth
 // callers can read an edge's loaded geometry (EdgeOut) without going through a central
 // coordinator.
 type moverRegistry struct {
+	// nodeGeoms is the UNIVERSAL per-node directory — every node's own *nodeGeometry,
+	// ring and pair alike. This is what routing (resolveDest, sendMove, centerOfNode,
+	// NodeKind, drag/commit) looks up: a message addressed to a node must arrive and be
+	// handled regardless of which goroutine drives that node's geometry.
+	nodeGeoms map[string]*nodeGeometry
+	// nodeMovers is the RING-ONLY actor directory: one entry per node whose OWN kind did
+	// NOT claim BuildArgs.ClaimSelfDrive, populated by finalizeActors AFTER buildNodes has
+	// run (so every ClaimSelfDrive call has already happened). Used ONLY by start() to
+	// launch a dedicated goroutine per ring node — a PAIR node (Node1/Node2) has NO entry
+	// here at all, by construction, not by a flag that says "launch nothing for me".
 	nodeMovers map[string]*nodeMover
-	edgeMovers map[string]*edgeMover
+	// selfDriveClaimed holds, for each node id whose OWN kind claimed
+	// BuildArgs.ClaimSelfDrive at build time (Node1/Node2 — the pair scene), true. Written
+	// ONCE per entry by ClaimSelfDrive (build_args.go), on the single-threaded build path,
+	// before finalizeActors runs and before any goroutine exists. finalizeActors reads it
+	// to decide which nodes get a nodeMover actor at all — an id present here gets NONE.
+	selfDriveClaimed map[string]bool
+	edgeMovers       map[string]*edgeMover
 	// edgeOut: edgeId → source *Out, for read-only access by tests/verifiers.
 	edgeOut map[string]*wire.Out
 	// centerMirror is the DISPATCH goroutine's OWN mirror of every node's last-known
@@ -93,7 +109,7 @@ func (mr *moverRegistry) bind(outSink map[string]*wire.Out, slotReg SlotRegistry
 			// goroutine of its own — that is what "the wire goroutine is removed" means
 			// concretely, and it is why the node can read the fraction without touching
 			// another goroutine's state.
-			if srcNM, ok := mr.nodeMovers[em.srcID]; ok {
+			if srcNM, ok := mr.nodeGeoms[em.srcID]; ok {
 				srcNM.outWires = append(srcNM.outWires, pw)
 				srcNM.outWireTargets = append(srcNM.outWireTargets, em.dstID)
 				// Parallel to outWires: the source *Out this edge's step count is
@@ -130,6 +146,9 @@ func (mr *moverRegistry) bind(outSink map[string]*wire.Out, slotReg SlotRegistry
 // still launches every goroutine exactly as before.
 func (mr *moverRegistry) start(ctx context.Context) *sync.WaitGroup {
 	wg := new(sync.WaitGroup)
+	// mr.nodeMovers holds ONLY ring nodes by construction (finalizeActors never builds
+	// one for a node that claimed BuildArgs.ClaimSelfDrive) — there is nothing to skip
+	// here, unlike the old selfDriven-flag check this replaced.
 	for _, nm := range mr.nodeMovers {
 		wg.Add(1)
 		go func() {
@@ -145,6 +164,30 @@ func (mr *moverRegistry) start(ctx context.Context) *sync.WaitGroup {
 		}()
 	}
 	return wg
+}
+
+// finalizeActors builds the RING actor directory (mr.nodeMovers) from mr.nodeGeoms, AFTER
+// buildNodes has run every kind's own build func — which is when a pair kind calls
+// BuildArgs.ClaimSelfDrive (build_args.go) and so is the earliest point "which nodes
+// self-drive" is fully known. Every node id NOT in claimed gets wrapped in a nodeMover and
+// a fresh speed channel (per-goroutine-clock.md "Delivery"), appended to speedSinks; every
+// id IN claimed gets no nodeMover at all — nothing to skip launching later, by
+// construction, not by a flag. clockSrc is copied into that node's own geometry.clk lazily
+// by nodeMover.run at its own goroutine start (mirrors every other per-goroutine clock use).
+func (mr *moverRegistry) finalizeActors(speedSinks *[]chan float64) {
+	mr.nodeMovers = map[string]*nodeMover{}
+	for id, ng := range mr.nodeGeoms {
+		if mr.selfDriveClaimed[id] {
+			continue
+		}
+		nm := newNodeMover(ng)
+		if speedSinks != nil {
+			nodeSpeedCh := make(chan float64, 1)
+			nm.speedCh = nodeSpeedCh
+			*speedSinks = append(*speedSinks, nodeSpeedCh)
+		}
+		mr.nodeMovers[id] = nm
+	}
 }
 
 // edgeOutFor returns the source *Out bound to the given edge label, or nil if unknown.
@@ -166,7 +209,7 @@ func (mr *moverRegistry) drainCenterMirror() {
 	if mr.centerMirror == nil {
 		mr.centerMirror = map[string]vec3{}
 	}
-	for id, nm := range mr.nodeMovers {
+	for id, nm := range mr.nodeGeoms {
 		select {
 		case c := <-nm.centerOut:
 			mr.centerMirror[id] = c
@@ -186,15 +229,17 @@ func (mr *moverRegistry) centerOfNode(id string) (vec3, bool) {
 
 // sendMove routes one moveMsg to a node's dedicated external-entry channel (extIn), if
 // the id is a known node. This is the EXTERNAL-caller path — RootMove (drag) and
-// gesture.go's dragStart send — not a mover-to-mover send (those go through a mover's
-// own nm.pending/flushPending onto its OWN dedicated channel, never through this
-// function), so it has no owning mover to fire a tap through — this bare path never
-// fires the test-only tap (see nodeMover.tap's doc comment; only enqueueFor, a mover's
-// own send, does). mr.nodeMovers is a read-only directory once construction finishes,
-// safe to read from any goroutine. ctx is threaded through from MoveDispatch (not part
-// of moverRegistry).
+// gesture.go's dragStart send — not a mover-to-mover send (those go through a node's
+// own pending/flushPending onto its OWN dedicated channel, never through this
+// function), so it has no owning geometry to fire a tap through — this bare path never
+// fires the test-only tap (see nodeGeometry.tap's doc comment; only enqueueFor, a node's
+// own send, does). Looks up mr.nodeGeoms (every node, ring and pair alike — a drag/
+// select/hover addressed to a pair node must still arrive and be handled, on that
+// node's own goroutine) — a read-only directory once construction finishes, safe to
+// read from any goroutine. ctx is threaded through from MoveDispatch (not part of
+// moverRegistry).
 func (mr *moverRegistry) sendMove(ctx context.Context, id string, msg moveMsg) {
-	nm, ok := mr.nodeMovers[id]
+	nm, ok := mr.nodeGeoms[id]
 	if !ok {
 		return
 	}
@@ -223,11 +268,11 @@ func (mr *moverRegistry) sendMove(ctx context.Context, id string, msg moveMsg) {
 // which is the only caller of the closure returned here), appends the message to nm's
 // own pending retry queue, and attempts an immediate flush — never blocking the calling
 // handler goroutine. Bound once per node at construction (nm.sendMove = md.enqueueFor(nm))
-// so every send a nodeMover's own handle performs — including the ones
+// so every send a node's own handle performs — including the ones
 // fanEdgesAndPartners/requantizeLocalPolars make on that node's behalf — goes through
-// nm's own retry queue, never a raw blocking channel write and never a second mover's
+// nm's own retry queue, never a raw blocking channel write and never a second node's
 // queue (there is no shared outbox to route through anymore).
-func (mr *moverRegistry) enqueueFor(nm *nodeMover) func(id string, msg moveMsg) {
+func (mr *moverRegistry) enqueueFor(nm *nodeGeometry) func(id string, msg moveMsg) {
 	return func(id string, msg moveMsg) {
 		if nm.tap != nil {
 			nm.tap(id, msg)
@@ -248,7 +293,7 @@ func (mr *moverRegistry) enqueueFor(nm *nodeMover) func(id string, msg moveMsg) 
 			// send per blocked destination per cycle, so a persistent
 			// per-cycle surplus accumulates even without a dead peer.
 			panic(fmt.Sprintf(
-				"nodeMover(%s): pending exceeded %d retry-queued sends; either a "+
+				"nodeGeometry(%s): pending exceeded %d retry-queued sends; either a "+
 					"destination's own goroutine has stopped draining its inbox "+
 					"(wedged or dead), or this node is enqueueing to a peer faster "+
 					"than that peer drains, cycle over cycle",

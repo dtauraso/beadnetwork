@@ -20,7 +20,7 @@ import (
 // update to disk immediately, with no timer/flush step required.
 func TestQuantOffsetScheduleWritesSynchronously(t *testing.T) {
 	root := writeTree(t)
-	nm := &nodeMover{id: "1", persistRoot: root}
+	nm := &nodeGeometry{id: "1", persistRoot: root}
 
 	newScene := polar{R: 55.5, Theta: 0.4, Phi: -1.1}
 	nm.persistQuantOffset(quantizedOffset{iTheta: 3, iPhi: 4, iR: 5}, newScene)
@@ -57,7 +57,7 @@ func TestMoveDispatchQuantOffsetScheduleWritesThroughEnableEditPersist(t *testin
 	md := loadTreeMD(t, root)
 	md.EnableEditPersist(root)
 
-	nm, ok := md.mr.nodeMovers["1"]
+	nm, ok := md.mr.nodeGeoms["1"]
 	if !ok {
 		t.Fatal("no nodeMover for src")
 	}
@@ -85,6 +85,6 @@ func TestMoveDispatchQuantOffsetScheduleWritesThroughEnableEditPersist(t *testin
 // panic on a persist call — tests/headless contexts construct a MoveDispatch without
 // EnableEditPersist.
 func TestQuantOffsetScheduleNilSafe(t *testing.T) {
-	nm := &nodeMover{id: "x"}                         // persistRoot == "" — unarmed
+	nm := &nodeGeometry{id: "x"}                      // persistRoot == "" — unarmed
 	nm.persistQuantOffset(quantizedOffset{}, polar{}) // must not panic
 }

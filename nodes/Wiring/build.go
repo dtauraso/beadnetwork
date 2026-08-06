@@ -110,6 +110,11 @@ func buildFromSpec(ctx context.Context, spec topoSpec, tr *T.Trace, clk wire.Clo
 	if err := b.buildNodes(); err != nil {
 		return nil, nil, nil, nil, err
 	}
+	// finalizeActors runs AFTER buildNodes: that is when every kind's own build func has
+	// run, so every BuildArgs.ClaimSelfDrive call (Node1/Node2, the pair scene) has
+	// already recorded itself in md.selfDriveClaimed. Only NOW is it known which node
+	// ids get a real nodeMover actor at all (task/pair-node-owns-itself).
+	b.md.finalizeActors(&b.speedSinks)
 	b.bindDispatch()
 
 	return b.nodes, SlotRegistry(b.destWire), b.md, b.speedSinks, nil
@@ -278,23 +283,23 @@ func (b *buildCtx) buildMoveDispatch() error {
 	// Per scene as well (scene_tabs.go's CoplanarEdges): each node's own copy, set here on
 	// the single-threaded build path, read afterwards only by that node's own goroutine.
 	if SceneWantsCoplanarEdges(b.scenePath) {
-		for _, nm := range md.mr.nodeMovers {
+		for _, nm := range md.mr.nodeGeoms {
 			nm.coplanarEdges = true
 		}
 	}
 	if SceneWantsUpAxis(b.scenePath) {
-		for _, nm := range md.mr.nodeMovers {
+		for _, nm := range md.mr.nodeGeoms {
 			nm.upAxis = true
 		}
 	}
 	for id, off := range b.quantizedOffsets {
-		if nm, ok := md.mr.nodeMovers[id]; ok {
+		if nm, ok := md.mr.nodeGeoms[id]; ok {
 			nm.quantOffset = off
 		}
 	}
 	// Seed each node's OWN selfKind (specNode.Type), set once at construction.
 	for _, n := range b.spec.Nodes {
-		nm, ok := md.mr.nodeMovers[n.ID]
+		nm, ok := md.mr.nodeGeoms[n.ID]
 		if !ok {
 			continue
 		}
@@ -317,7 +322,7 @@ func (b *buildCtx) buildMoveDispatch() error {
 		kindByID[n.ID] = n.Type
 	}
 	linkNeighborKind := func(fromID, toID string) {
-		nm, ok := md.mr.nodeMovers[fromID]
+		nm, ok := md.mr.nodeGeoms[fromID]
 		if !ok {
 			return
 		}
@@ -334,7 +339,7 @@ func (b *buildCtx) buildMoveDispatch() error {
 	// owns (chain_beads.go). A chain belongs to exactly one endpoint: the source, matching
 	// where the edge is stored on disk.
 	for _, e := range b.spec.Edges {
-		nm, ok := md.mr.nodeMovers[e.Source]
+		nm, ok := md.mr.nodeGeoms[e.Source]
 		if !ok {
 			continue
 		}

@@ -192,67 +192,42 @@ func (a BuildArgs) TiltEditIn() <-chan TiltEditMsg {
 	return panelToNodeTiltEditIn
 }
 
-// SyncTiltIndex returns a closure that notifies THIS node's own MOVER goroutine of its
-// current TOP tilt-vector-angle indices AND its current coplanar-normal and BOTTOM tilt
-// indices — the
-// one-way, fire-and-forget counterpart to TiltEditIn: a kind that owns its own index
-// (Node1/Node2) calls this every time it changes that index, so the mover (which still
-// owns streaming that geometry and persisting it to this node's own position.json) stays
-// in sync without ever deciding or mutating either index itself; the mover is a pure
-// mirror for both pairs (see moveMsgKindTiltIndexSync's doc comment). nil-safe: a.pb.md
-// is nil on a bare test build with no loader, in which case this is a no-op, same
-// fallback every other closure here takes.
-func (a BuildArgs) SyncTiltIndex() func(theta, phi, normalTheta, normalPhi, bottomTheta, bottomPhi int32) {
+// ClaimSelfDrive hands THIS node's own kind goroutine direct ownership of its own
+// nodeGeometry (PairNodeSelf, pair_node_self.go) — geometry, outgoing wires, bead chain,
+// and persistence — instead of a SEPARATE nodeMover actor (task/pair-node-owns-
+// itself). Call this ONLY from a kind whose own goroutine is meant to drive its own
+// geometry directly (Node1/Node2 today, the pair scene): it records this node's id in
+// md.selfDriveClaimed so finalizeActors (mover_registry.go, called from build.go AFTER
+// every kind's build func has run) never constructs a nodeMover for it at all — there is
+// no flag on a mover to skip, because no mover is ever built for this id — and returns a
+// handle the caller's own Update loop uses to run that geometry's per-cycle work (Step)
+// and to apply what used to be one-way notification messages to it (SetTiltIndex/
+// SetReceivedVector/ClearOutBeads) as plain method calls instead — there is no longer
+// anything to notify: the caller's own goroutine already IS the driver. Returns nil on a
+// bare test build with no loader (a.pb.md == nil) or if this node has no geometry entry,
+// matching the nil-safe fallback every other closure in this file takes; every method on
+// a nil *PairNodeSelf is itself a no-op.
+func (a BuildArgs) ClaimSelfDrive() *PairNodeSelf {
 	md := a.pb.md
-	name := a.name
-	return func(theta, phi, normalTheta, normalPhi, bottomTheta, bottomPhi int32) {
-		if md == nil {
-			return
-		}
-		md.sendMove(name, moveMsg{Kind: moveMsgKindTiltIndexSync, NodeID: name,
-			ThetaIdx: theta, PhiIdx: phi, NormalThetaIdx: normalTheta, NormalPhiIdx: normalPhi,
-			BottomThetaIdx: bottomTheta, BottomPhiIdx: bottomPhi})
+	if md == nil {
+		return nil
 	}
-}
-
-// SyncReceivedVector returns a closure that notifies THIS node's own MOVER goroutine of
-// the direction that last arrived on this node's vector channel — the received-vector
-// twin of SyncTiltIndex, same one-way, fire-and-forget shape. A kind that owns its own
-// vector channel (Node1/Node2) calls this on every arrival (set=true, replacing whatever
-// was there before) and on every reset, local or received (set=false, clearing it) — see
-// moveMsgKindReceivedVectorSync's doc comment. nil-safe: a.pb.md is nil on a bare test
-// build with no loader, in which case this is a no-op, same fallback every other closure
-// here takes.
-func (a BuildArgs) SyncReceivedVector() func(theta, phi int32, set bool) {
-	md := a.pb.md
-	name := a.name
-	return func(theta, phi int32, set bool) {
-		if md == nil {
-			return
-		}
-		md.sendMove(name, moveMsg{Kind: moveMsgKindReceivedVectorSync, NodeID: name,
-			ReceivedVectorThetaIdx: theta, ReceivedVectorPhiIdx: phi, ReceivedVectorSet: set})
+	ng, ok := md.mr.nodeGeoms[a.name]
+	if !ok {
+		return nil
 	}
-}
-
-// ClearOutBeads returns a closure asking THIS node's own MOVER goroutine to empty every
-// one of this node's outgoing wires — same one-way, fire-and-forget shape as
-// SyncTiltIndex/SyncReceivedVector, and for the same reason: the mover, not this node,
-// is the goroutine that drives those wires and therefore the only one that may drop
-// what is crossing them (see moveMsgKindBeadClear's doc comment). Called by the pair's
-// RESET (Node1/Node2), which has to leave the bead edge empty or an in-flight bead lands
-// afterwards and restarts the exchange. nil-safe: a.pb.md is nil on a bare test build
-// with no loader, in which case this is a no-op, same fallback every other closure here
-// takes.
-func (a BuildArgs) ClearOutBeads() func() {
-	md := a.pb.md
-	name := a.name
-	return func() {
-		if md == nil {
-			return
-		}
-		md.sendMove(name, moveMsg{Kind: moveMsgKindBeadClear, NodeID: name})
+	if md.mr.selfDriveClaimed == nil {
+		md.mr.selfDriveClaimed = map[string]bool{}
 	}
+	md.mr.selfDriveClaimed[a.name] = true
+	// A ring node's nodeMover.run Copies clockSrc into clk once, at its own goroutine
+	// start. There is no such goroutine start for a self-driven node — ClaimSelfDrive
+	// runs during buildNodes, single-threaded setup, before any goroutine exists — so do
+	// the same copy here instead; writeStreamFrame (Step) still reads clk directly.
+	if ng.clockSrc != nil {
+		ng.clk = ng.clockSrc.Copy()
+	}
+	return &PairNodeSelf{geom: ng}
 }
 
 // VectorOut returns this node's own SEND end of its dedicated tilt-vector channel

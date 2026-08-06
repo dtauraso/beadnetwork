@@ -103,6 +103,12 @@ type Node struct {
 	// (BuildArgs.ClearOutBeads). Called only from clear(), below: those beads are owned
 	// by the mover (it drives the wires), so this node asks rather than reaching in.
 	ClearOutBeads func()
+	// Self is this node's own mover state (task/pair-node-owns-itself,
+	// Wiring.PairNodeSelf), claimed at build time via BuildArgs.ClaimSelfDrive. THIS
+	// goroutine (Update, below) is the sole driver of it — there is no separate
+	// nodeMover goroutine for this node any more. nil on a bare test build with no
+	// loader; every PairNodeSelf method is nil-safe.
+	Self *Wiring.PairNodeSelf
 }
 
 func (n *Node) clock() wire.Clock {
@@ -308,31 +314,26 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 	return norm
 }
 
-// stepFromVector ALWAYS steps this node's own TopTiltThetaIdx by exactly one step on every
-// arrived vector — the exchange no longer has a halt condition. TWO DOT PRODUCTS decide only
-// the SIGN of that one step:
+// stepFromVector decides whether an arrived vector turns this node's own TopTiltThetaIdx at
+// all, and if so which way, using TWO DOT PRODUCTS:
 //
 //   - arrived vector ACUTE with this node's own TOP tilt vector    -> step -1 (Node1's base
-//     direction)
-//   - arrived vector ACUTE with this node's own BOTTOM tilt vector -> step +1, the REVERSE
-//   - neither acute (exactly perpendicular)                        -> step -1, falling to
-//     Node1's base direction — this used to be the case that halted the exchange (no step,
-//     caller sends nothing); now it is just another sign choice, and the exchange keeps
-//     sweeping through the perpendicular index instead of stopping there.
+//     direction), return true
+//   - arrived vector ACUTE with this node's own BOTTOM tilt vector -> step +1, the REVERSE,
+//     return true
+//   - neither acute (exactly perpendicular)                        -> step NOTHING, return
+//     false — this is how the vector exchange comes to rest: the caller
+//     (handleVectorCycle) sends nothing and places no bead on a false return, so a pair
+//     that reaches perpendicular on both dots simply stops circulating.
 //
 // The two acute cases are mutually exclusive: the bottom is the top's exact antipode, so the
 // two dots are always exact negatives and at most one of them can be positive. There is no
 // both-acute case for the ordering of these two ifs to arbitrate, and no free sign knob —
 // which end the arrived vector leans toward IS the direction, except at the perpendicular
-// index itself, which has no lean and so falls to the base direction.
+// index itself, which has no lean at all and so steps nothing.
 //
-// Node1's base direction (the top-acute and perpendicular cases) is subtracts one step; its
-// mirror package's is the opposite, so a pair still turns symmetrically when both are leaning
-// the same way.
-//
-// The return value is now always true — every caller that still checks it always proceeds.
-// It stays a bool return (rather than being dropped) so callers read as "this always steps"
-// rather than silently assuming it.
+// Node1's base direction (the top-acute case) subtracts one step; its mirror package's is the
+// opposite, so a pair still turns symmetrically when both are leaning the same way.
 func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
 	switch {
 	case Wiring.TiltVectorIsAcute(received, n.topTilt()):
@@ -340,9 +341,9 @@ func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
 	case Wiring.TiltVectorIsAcute(received, n.bottomTilt()):
 		n.TopTiltThetaIdx += 1
 	default:
-		// Exactly perpendicular to both: no lean to read, so Node1 keeps turning in its own
-		// base direction — the same one the top-acute case takes.
-		n.TopTiltThetaIdx -= 1
+		// Exactly perpendicular to both: no lean to read, so this node steps nothing —
+		// the halt condition for the exchange.
+		return false
 	}
 	return true
 }
@@ -355,12 +356,13 @@ func (n *Node) topTilt() Wiring.TiltVectorMsg {
 }
 
 // handleVectorCycle is Node1's WHOLE per-cycle vector-channel loop body: read
-// VectorIn non-blocking; if something arrived, step (stepFromVector always steps now — the
-// two dots only pick which way); and send outgoingVector back out on VectorOut, also
-// non-blocking. There is no longer a perpendicular halt: every arrival steps and replies, so
-// the exchange keeps sweeping through the perpendicular index instead of stopping there. The
-// only thing that still stops the exchange is a RESET marker (below), not an index value.
-// This never touches In/Out or beads — the vector channel is a separate, additive exchange.
+// VectorIn non-blocking; if something arrived, step (stepFromVector's two dots decide
+// whether this node turns at all, and which way); and if it stepped, send outgoingVector
+// back out on VectorOut, also non-blocking, and place the paired bead. On a false return from
+// stepFromVector (exactly perpendicular to both dots) this sends nothing and places no bead —
+// that is how the vector exchange comes to rest. A RESET marker (below) is the other way the
+// exchange stops. This never touches In/Out or beads on the halt path — the vector channel is
+// a separate, additive exchange.
 func (n *Node) handleVectorCycle(tick int64) {
 	received, ok := Wiring.PollRecvVector(n.VectorIn)
 	if !ok {
@@ -403,6 +405,9 @@ func (n *Node) handleVectorCycle(tick int64) {
 
 func (n *Node) Update(ctx context.Context) {
 	wire.TryEmit(n.EmitGeometry)
+	// This node's own mover-owned startup geometry emit — see Self's own doc comment.
+	// There is no separate nodeMover goroutine to make this emit any more.
+	n.Self.EmitGeometryOnce()
 
 	// Report THIS node's OPENING tilt/normal pair once, before the loop. The mover is a
 	// passive mirror of these (moveMsgKindTiltIndexSync) and has no way to derive the
@@ -460,6 +465,14 @@ func (n *Node) Update(ctx context.Context) {
 		// doc comment.
 		n.handleVectorCycle(clk.Tick())
 
+		// This node's own mover work — drain its own dedicated inbound channels
+		// (drag/select/hover/center/neighborCenter/etc.), drive its own outgoing
+		// wires one cycle, retry pending sends, write its own dedicated stream
+		// frame. Run on THIS goroutine, on THIS node's own clock tick: there is no
+		// separate nodeMover goroutine for this node any more (task/pair-node-owns-
+		// itself) — see Self's own doc comment.
+		n.Self.Step(ctx, clk.Tick())
+
 		wire.ApplySpeedNonBlocking(clk, n.SpeedCh)
 		if err := clk.SleepCycle(ctx); err != nil {
 			return
@@ -489,13 +502,23 @@ func init() {
 			n.Out = a.Out("Out")
 			n.TopTiltThetaIdx, n.TopTiltPhiIdx = a.TiltVectorAngleSeed()
 			n.TiltEditIn = a.TiltEditIn()
-			n.SyncTiltIndex = a.SyncTiltIndex()
-			n.SyncReceivedVector = a.SyncReceivedVector()
-			n.ClearOutBeads = a.ClearOutBeads()
+			// Self replaces the old SyncTiltIndex/SyncReceivedVector/ClearOutBeads
+			// messages-to-a-separate-mover-goroutine (task/pair-node-owns-itself):
+			// this node's own goroutine now owns that mover state directly, so what
+			// used to be a message is a plain method call on the same object below.
+			self := a.ClaimSelfDrive()
+			n.Self = self
+			n.SyncTiltIndex = func(theta, phi, normalTheta, normalPhi, bottomTheta, bottomPhi int32) {
+				self.SetTiltIndex(theta, phi, normalTheta, normalPhi, bottomTheta, bottomPhi)
+			}
+			n.SyncReceivedVector = func(theta, phi int32, set bool) {
+				self.SetReceivedVector(theta, phi, set)
+			}
+			n.ClearOutBeads = func() { self.ClearOutBeads() }
 			n.VectorOut = a.VectorOut()
 			n.VectorIn = a.VectorIn()
-			// EmitGeometry stays nil deliberately — nodeMover/edgeMover emit the
-			// same geometry from their own goroutine start.
+			// EmitGeometry stays nil deliberately — n.Self.EmitGeometryOnce (Update)
+			// makes this node's own startup geometry emit instead.
 			return n, nil
 		})
 }
