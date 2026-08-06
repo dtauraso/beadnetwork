@@ -360,7 +360,17 @@ var clockAttrHandlers = map[string]func(msg stdinMsg, md *MoveDispatch, speedSin
 		// this exact integer form so a fractional multiplier survives msg.Num's int type
 		// with no truncation. Divide back to the real multiplier here, the one place that
 		// interprets it.
-		speed := float64(msg.Num) / 4.0
+		userSpeed := float64(msg.Num) / 4.0
+		// divisor is this scene's own ClockDivisor, resolved once at load into md.clockDivisor
+		// (LoadSpeed) — GO-OWNED and never crosses the bridge. userSpeed stays the number the
+		// slider shows and speed.json persists; only the EFFECTIVE rate reaching the clocks
+		// (EffectiveClockSpeed, scene_speed_persist.go) is scaled, so a live edit and the
+		// load-time seed can never disagree.
+		divisor := 1.0
+		if md != nil {
+			divisor = md.ui.clockDivisor
+		}
+		effective := EffectiveClockSpeed(userSpeed, divisor)
 		// SetSpeed left the Clock INTERFACE in the per-goroutine-clock demolition (item 4):
 		// nothing outside a goroutine's own copy may mutate it anymore, since a copy is
 		// owned by exactly one goroutine.
@@ -371,17 +381,18 @@ var clockAttrHandlers = map[string]func(msg stdinMsg, md *MoveDispatch, speedSin
 		// channels; SendSpeedNonBlocking never blocks on a
 		// receiver that is asleep or never reads (latest-wins coalescing).
 		for _, ch := range speedSinks {
-			wire.SendSpeedNonBlocking(ch, speed)
+			wire.SendSpeedNonBlocking(ch, effective)
 		}
 		if md == nil {
 			return
 		}
-		// Mirror the new speed on this goroutine so the VIEW frame's Speed column
+		// Mirror the USER's speed on this goroutine so the VIEW frame's Speed column
 		// reflects it (the webview slider reads this back — no local default state,
-		// memory/feedback_reflect_dont_create_store.md), and persist it (scene-level,
-		// this view-owner goroutine's own file — .claude/rules/persistence-ownership.md).
-		md.ui.speed = speed
-		md.persist.speed.schedule(speed)
+		// memory/feedback_reflect_dont_create_store.md), and persist it UNSCALED (scene-level,
+		// this view-owner goroutine's own file — .claude/rules/persistence-ownership.md). The
+		// divisor never crosses the bridge and never reaches disk.
+		md.ui.speed = userSpeed
+		md.persist.speed.schedule(userSpeed)
 		md.emitViewFrame(nil)
 	},
 }

@@ -89,14 +89,30 @@ type SceneTab struct {
 	// the two are separate fields because that agreement is a property of this scene's
 	// layout, not a general fact.
 	UpAxis bool
+	// ClockDivisor slows this scene's EFFECTIVE clock speed relative to the user's chosen
+	// multiplier: effective = userSpeed / ClockDivisor. It is a property of the SCENE, not a
+	// tuning knob on the user's speed — the user's number in the slider (and in
+	// view/speed.json) is unchanged; only the rate actually reaching the clocks is scaled.
+	//
+	// The ring spans ~500 world units, so one bead's step across it reads as a small
+	// fraction of the scene. The pair is ~40 units across between its two nodes, so the
+	// SAME wall-clock pace moves a bead a much larger fraction of the scene per tick — the
+	// same user-facing "speed" setting reads far faster on the pair than on the ring purely
+	// because the pair is smaller, not because the user asked for anything different.
+	// ClockDivisor corrects for that so both scenes read at a comparable felt pace.
+	//
+	// Ring = 1 (no correction needed). Pair = 4 (runs at 1/4 the ring's clock for the same
+	// slider setting). Never 0 or negative — EffectiveClockSpeed guards against a
+	// division by an invalid value from an unrecognised or malformed scene.
+	ClockDivisor float64
 }
 
 // SceneTabs is the tab strip, in display order. Index 0 is the DEFAULT: its Dir must be
 // the anchor's own basename, since that is the path the extension host launches with and
 // sizes its stream fds from (see AnchorIsTabbed).
 var SceneTabs = []SceneTab{
-	{Name: "ring", Dir: "topology", QuantizedDrag: false, CoplanarEdges: false, UpAxis: false},
-	{Name: "pair", Dir: "topology-pair", QuantizedDrag: false, CoplanarEdges: true, UpAxis: true},
+	{Name: "ring", Dir: "topology", QuantizedDrag: false, CoplanarEdges: false, UpAxis: false, ClockDivisor: 1},
+	{Name: "pair", Dir: "topology-pair", QuantizedDrag: false, CoplanarEdges: true, UpAxis: true, ClockDivisor: 4},
 }
 
 // sceneSelectionFile is the persisted selection, held at the ANCHOR (never inside a scene).
@@ -242,4 +258,17 @@ func SceneWantsUpAxis(scenePath string) bool {
 		}
 	}
 	return false
+}
+
+// SceneClockDivisor answers, for the tree being LOADED, its SceneTab.ClockDivisor. A test
+// fixture or one-off tree with no tab entry gets divisor 1 (no scaling) — never 0, which
+// would divide the effective speed by zero downstream.
+func SceneClockDivisor(scenePath string) float64 {
+	base := filepath.Base(filepath.Clean(scenePath))
+	for _, t := range SceneTabs {
+		if t.Dir == base {
+			return t.ClockDivisor
+		}
+	}
+	return 1
 }

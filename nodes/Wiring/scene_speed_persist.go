@@ -35,6 +35,22 @@ import (
 // falls back to.
 const defaultPlaybackSpeed = 1.0
 
+// EffectiveClockSpeed is the ONE place userSpeed (the slider's number, unscaled, the same
+// value persisted to view/speed.json) is turned into the rate actually broadcast to the
+// clocks: userSpeed / scene's ClockDivisor (SceneTab.ClockDivisor / SceneClockDivisor,
+// scene_tabs.go). Both broadcast sites — the live slider edit (clockAttrHandlers's "speed"
+// case) and the load-time seed (LoadSpeed) — call this so they can never disagree.
+//
+// divisor is guarded against 0/negative (SceneClockDivisor should never return one, but a
+// division must never be reachable even if that guarantee is ever violated) — such a value
+// is treated as "no scaling" (divisor 1) rather than dividing.
+func EffectiveClockSpeed(userSpeed, divisor float64) float64 {
+	if divisor <= 0 {
+		return userSpeed
+	}
+	return userSpeed / divisor
+}
+
 // writeSceneSpeed writes the current playback-speed multiplier as the WHOLE content of
 // speedPath (speed.json) — the sole writer of that file.
 func writeSceneSpeed(speedPath string, speed float64) error {
@@ -100,9 +116,11 @@ func loadSceneSpeed(speedPath string) (float64, bool) {
 // emit does not write the loaded/default speed back.
 func (md *MoveDispatch) LoadSpeed(topologyPath string, speedSinks []chan float64, tr *T.Trace) {
 	speed, _ := loadSceneSpeed(speedFilePath(topologyPath))
+	md.ui.clockDivisor = SceneClockDivisor(topologyPath)
 	md.ui.speed = speed
+	effective := EffectiveClockSpeed(speed, md.ui.clockDivisor)
 	for _, ch := range speedSinks {
-		wire.SendSpeedNonBlocking(ch, speed)
+		wire.SendSpeedNonBlocking(ch, effective)
 	}
 	md.emitViewFrame(nil)
 }

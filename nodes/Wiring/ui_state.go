@@ -25,6 +25,14 @@ type uiState struct {
 	// the content-fit) at startup; its Center is the one cartesian anchor. Phase 1 stores
 	// it; later phases derive node world from it and move it on pan.
 	sceneSphere sceneSphere
+	// clockDivisor is this SCENE's ClockDivisor (SceneTab.ClockDivisor, scene_tabs.go),
+	// resolved ONCE at load by LoadSpeed from the scene actually loaded (the process is
+	// respawned per tab switch, so a per-process value is correct). Defaults to 1 (no
+	// scaling) so a bare test-constructed MoveDispatch that never calls LoadSpeed behaves
+	// unscaled. clockAttrHandlers's "speed" case and LoadSpeed both feed this through
+	// EffectiveClockSpeed (scene_speed_persist.go) so a live slider edit and the load-time
+	// seed can never disagree. Never persisted and never crosses the bridge.
+	clockDivisor float64
 	// vp is the polar camera viewpoint state (viewpoint_state.go). Owned entirely by
 	// MoveDispatch — no separate goroutine; callers serialize externally (stdin reader
 	// runs in a single goroutine). MoveDispatch exposes thin delegating methods.
