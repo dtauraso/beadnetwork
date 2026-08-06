@@ -256,7 +256,7 @@
 
             <rect x="12" y="216" width="276" height="58" rx="8" fill="#2b2b33" stroke="#3a3a44" />
             <text x="26" y="238" class="big">INTEGERS · π/12 lattice</text>
-            <text x="26" y="258" class="lbl">floats appear at the draw edge, and there only</text>
+            <text x="26" y="258" class="lbl">floats appear at the draw edge</text>
           </svg>
           <div class="cap">Three directions are arithmetic on one index, so they agree with it by construction.</div>
         </div>
@@ -284,7 +284,7 @@
 
             <rect x="20" y="272" width="400" height="46" rx="8" fill="#2b2b33" stroke="#3a3a44" />
             <text x="38" y="296" class="lblm" fill="#5fd68a">one goroutine per pair node, claimed at build time</text>
-            <text x="38" y="312" class="lbl">the actor directory it would appear in holds ring nodes only</text>
+            <text x="38" y="312" class="lbl">the actor directory holds ring nodes</text>
           </svg>
         </div>
 
@@ -292,7 +292,7 @@
           <h2>Tilt, received vector, beads</h2>
           <svg width="440" height="200" viewBox="0 0 440 200">
             <rect x="20" y="24" width="400" height="104" rx="8" fill="#2b2b33" stroke="#5fd68a" />
-            <text x="36" y="48" class="lblm" fill="#5fd68a">DIRECT STATE — not messages</text>
+            <text x="36" y="48" class="lblm" fill="#5fd68a">DIRECT STATE — written in place</text>
             <text x="36" y="72" class="lbl">the tilt index it just stepped</text>
             <text x="36" y="92" class="lbl">the vector that just arrived</text>
             <text x="36" y="112" class="lbl">emptying its own outgoing wires</text>
@@ -444,7 +444,7 @@
             </g>
             <text x="150" y="116" text-anchor="middle" class="lblm">floor(idx / 12) odd → normal += 12</text>
             <rect x="20" y="132" width="260" height="52" rx="7" fill="#2b2b33" stroke="#ff6b6b" />
-            <text x="34" y="152" class="lblm" fill="#ff6b6b">FLOOR, not Go's /</text>
+            <text x="34" y="152" class="lblm" fill="#ff6b6b">FLOOR — rounds toward −∞</text>
             <text x="34" y="170" class="lbl">base direction is −1, so negatives are the common case</text>
           </svg>
           <div class="legend"><span><i style="background:#4ea1ff"></i>flipped 180°</span><span><i
@@ -493,12 +493,12 @@
             <line x1="120" y1="110" x2="206" y2="110" stroke="#f9a825" stroke-width="2.6" stroke-dasharray="5 3" />
             <rect x="120" y="96" width="14" height="14" fill="none" stroke="#9a9aa6" />
             <text x="120" y="204" text-anchor="middle" class="big" fill="#ff6b6b">both nodes : halt</text>
-            <text x="120" y="222" text-anchor="middle" class="lbl">no lean to read — nothing steps, nothing is sent</text>
+            <text x="120" y="222" text-anchor="middle" class="lbl">the arrival leans neither way — each node holds</text>
           </svg>
         </div>
 
         <div class="card">
-          <h2>Why no both-acute case</h2>
+          <h2>Why one test at most</h2>
           <svg width="420" height="150" viewBox="0 0 420 150">
             <line x1="30" y1="60" x2="390" y2="60" stroke="#3a3a44" />
             <circle cx="120" cy="60" r="6" fill="#e05fd8" /><text x="120" y="44" text-anchor="middle"
@@ -508,7 +508,7 @@
             <text x="210" y="64" text-anchor="middle" class="lbl">12 steps apart — exact antipode</text>
             <rect x="30" y="86" width="360" height="48" rx="7" fill="#2b2b33" stroke="#3a3a44" />
             <text x="44" y="106" class="lblm">acute(top) and acute(bottom) are exact opposites</text>
-            <text x="44" y="124" class="lbl">at most one passes → no ordering dependence, no sign knob</text>
+            <text x="44" y="124" class="lbl">at most one passes → the lean IS the direction</text>
           </svg>
         </div>
 
@@ -572,7 +572,7 @@
             <circle cx="250" cy="112" r="5" fill="#f9a825" />
             <circle cx="300" cy="112" r="5" fill="#f9a825" />
             <circle cx="350" cy="112" r="5" fill="#f9a825" />
-            <text x="308" y="100" text-anchor="middle" class="lbl">bead edge — paces, decides nothing</text>
+            <text x="308" y="100" text-anchor="middle" class="lbl">bead edge — marks each round trip</text>
 
             <line x1="476" y1="158" x2="144" y2="158" stroke="#f9a825" stroke-width="2" marker-end="url(#c1)" />
             <circle cx="380" cy="158" r="5" fill="#f9a825" />
@@ -606,9 +606,9 @@
             <rect x="210" y="40" width="70" height="40" rx="6" fill="#2b2b33" stroke="#4ea1ff" />
             <text x="245" y="65" text-anchor="middle" class="lblm">v2</text>
             <path d="M 95 60 L 205 60" stroke="#9a9aa6" stroke-dasharray="3 3" />
-            <text x="150" y="112" text-anchor="middle" class="lbl">v1 dropped, never queued</text>
+            <text x="150" y="112" text-anchor="middle" class="lbl">v1 dropped — the slot holds the latest</text>
             <rect x="20" y="130" width="260" height="34" rx="6" fill="#2b2b33" stroke="#3a3a44" />
-            <text x="34" y="152" class="lbl">both ends non-blocking — a sender never waits</text>
+            <text x="34" y="152" class="lbl">both ends non-blocking — a sender moves on</text>
           </svg>
         </div>
 
@@ -647,7 +647,7 @@
 
             <rect x="384" y="104" width="120" height="52" rx="8" fill="#2b2b33" stroke="#e05fd8" />
             <text x="444" y="126" text-anchor="middle" class="lblm">step ±1</text>
-            <text x="444" y="144" text-anchor="middle" class="lbl">the only turn rule</text>
+            <text x="444" y="144" text-anchor="middle" class="lbl">the turn rule</text>
 
             <path d="M 444 156 L 444 190" stroke="#9a9aa6" marker-end="url(#f1)" />
 
@@ -658,7 +658,7 @@
             <path d="M 360 220 L 200 220" stroke="#9a9aa6" marker-end="url(#f1)" />
             <rect x="40" y="194" width="155" height="52" rx="8" fill="#2b2b33" stroke="#3a3a44" />
             <text x="117" y="216" text-anchor="middle" class="lblm">poll In (bead)</text>
-            <text x="117" y="234" text-anchor="middle" class="lbl">paces only</text>
+            <text x="117" y="234" text-anchor="middle" class="lbl">marks the round trip</text>
 
             <path d="M 117 194 L 117 70" stroke="#9a9aa6" stroke-dasharray="4 3" marker-end="url(#f1)" />
 
@@ -692,11 +692,11 @@
 
             <rect x="420" y="112" width="180" height="60" rx="8" fill="#2b2b33" stroke="#4ea1ff" />
             <text x="510" y="136" text-anchor="middle" class="lblm" fill="#4ea1ff">speed 0</text>
-            <text x="510" y="156" text-anchor="middle" class="lbl">clamped · still wakes</text>
+            <text x="510" y="156" text-anchor="middle" class="lbl">clamped at 64 pulses</text>
 
             <rect x="20" y="190" width="580" height="60" rx="8" fill="#2b2b33" stroke="#3a3a44" />
             <text x="38" y="214" class="lbl">the clamp is why 0 is a PAUSE: the loop keeps waking on its longest cycle,</text>
-            <text x="38" y="234" class="lbl">so it still polls its own speed channel and hears the dial move back</text>
+            <text x="38" y="234" class="lbl">so it polls its own speed channel and hears the dial move back</text>
           </svg>
           <div class="cap">The ticker's own rate is the ceiling on cycles, so above 1× a faster dial shows as ticks
             accruing faster within one.</div>
@@ -708,7 +708,7 @@
             <rect x="20" y="24" width="420" height="76" rx="8" fill="#2b2b33" stroke="#5fd68a" />
             <text x="38" y="48" class="lblm" fill="#5fd68a">SETTING — a ▲▼ angle click</text>
             <text x="38" y="70" class="lbl">every clock runs at human speed (1)</text>
-            <text x="38" y="90" class="lbl">the click is answered now, not a scaled cycle from now</text>
+            <text x="38" y="90" class="lbl">the click is answered on the next real-time cycle</text>
 
             <rect x="20" y="118" width="420" height="76" rx="8" fill="#2b2b33" stroke="#4ea1ff" />
             <text x="38" y="142" class="lblm" fill="#4ea1ff">RUNNING — start, or reset</text>
@@ -765,8 +765,8 @@
 
             <line x1="60" y1="94" x2="60" y2="40" stroke="#e05fd8" stroke-width="2.4" />
             <line x1="470" y1="94" x2="512" y2="58" stroke="#e05fd8" stroke-width="2.4" />
-            <text x="255" y="188" text-anchor="middle" class="lbl">the tilts turn · the separation does not move</text>
-            <text x="255" y="212" text-anchor="middle" class="lbl">neither node slides along its ray</text>
+            <text x="255" y="188" text-anchor="middle" class="lbl">the tilts turn · the separation holds</text>
+            <text x="255" y="212" text-anchor="middle" class="lbl">each node stays where the drag left it</text>
           </svg>
           <div class="cap">The drawn angle, the separation, the edge's bead count and the rate the tilts turn at are
             four separate things. One index carries the angle alone.</div>
@@ -800,8 +800,8 @@
             <text x="150" y="106" text-anchor="middle" class="lbl">the pair is ~40 units across — the same pace reads
               faster</text>
             <rect x="20" y="122" width="260" height="44" rx="7" fill="#2b2b33" stroke="#3a3a44" />
-            <text x="34" y="144" class="lbl">slider and speed.json keep the user's number,</text>
-            <text x="34" y="160" class="lbl">unscaled — only the rate reaching the clocks is divided</text>
+            <text x="34" y="144" class="lbl">slider and speed.json keep the user's number;</text>
+            <text x="34" y="160" class="lbl">the divisor applies to the rate reaching the clocks</text>
           </svg>
         </div>
 
@@ -828,8 +828,8 @@
             <text x="445" y="46" text-anchor="middle" class="big">node 2</text>
             <text x="330" y="80" class="lblm">IGNORES START</text>
             <text x="330" y="100" class="lbl">started from both, each would answer the other</text>
-            <text x="330" y="132" class="lblm">no pole flip</text>
-            <text x="330" y="152" class="lbl">normal = top − 6, no parity term</text>
+            <text x="330" y="132" class="lblm">plain quarter turn</text>
+            <text x="330" y="152" class="lbl">normal = top − 6</text>
             <text x="330" y="184" class="lblm">base step +1</text>
             <text x="330" y="216" class="lblm" fill="#5fd68a">halts when neither test is acute</text>
           </svg>
