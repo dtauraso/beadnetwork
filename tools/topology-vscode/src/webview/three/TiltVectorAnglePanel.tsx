@@ -50,9 +50,16 @@ function formatAngle(radians: number): string {
   return `${sign}${Math.abs(idx)}π/${DENOM}`;
 }
 
-/** One axis row inside a node's group: axis name, its formatted value, ▲/▼ adjust buttons.
- *  Styled like OverlayRow (popoverRowStyle), minus the checkbox glyph — there is nothing to
- *  check here, only a value to show and adjust. */
+/** One axis item inside a node's group, STACKED: the axis name on its own line, its value
+ *  and the ▲/▼ that change it on the line below. Same two-line item the pair panels use.
+ *
+ *  It is stacked rather than laid across one line because a single line has to decide what
+ *  fills the space between the name and the value — and the answer keeps being "nothing
+ *  should". The first version gave the name `flex: "1 1 auto"`, which stretched it to the
+ *  popover's full width and pushed the value and arrows out to the right edge, opening a gap
+ *  across every row. Stacking has nothing to stretch: each line is as wide as its own
+ *  content. Styled from popoverRowStyle (hover background, radius, padding) with the
+ *  direction overridden — the chrome is shared, only the flow differs. */
 function AxisRow({ node, axis }: { node: TiltVectorRow; axis: (typeof AXES)[number] }) {
   const [hover, setHover] = useState(false);
   const adjust = (dir: "up" | "down") => {
@@ -62,28 +69,35 @@ function AxisRow({ node, axis }: { node: TiltVectorRow; axis: (typeof AXES)[numb
     <div
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      style={popoverRowStyle(hover, false)}
+      style={{
+        ...popoverRowStyle(hover, false),
+        flexDirection: "column",
+        alignItems: "flex-start",
+        gap: 2,
+      }}
     >
-      <span style={{ flex: "1 1 auto" }}>{axis}</span>
-      <span style={{ fontVariantNumeric: "tabular-nums" }}>
-        {formatAngle(axis === "theta" ? node.theta : node.phi)}
+      <span>{axis}</span>
+      <span style={valueLineStyle}>
+        <span style={{ fontVariantNumeric: "tabular-nums" }}>
+          {formatAngle(axis === "theta" ? node.theta : node.phi)}
+        </span>
+        <button
+          type="button"
+          aria-label={`${node.label || node.row} ${axis} up`}
+          onClick={(e) => { e.stopPropagation(); adjust("up"); }}
+          style={arrowBtnStyle}
+        >
+          ▲
+        </button>
+        <button
+          type="button"
+          aria-label={`${node.label || node.row} ${axis} down`}
+          onClick={(e) => { e.stopPropagation(); adjust("down"); }}
+          style={arrowBtnStyle}
+        >
+          ▼
+        </button>
       </span>
-      <button
-        type="button"
-        aria-label={`${node.label || node.row} ${axis} up`}
-        onClick={(e) => { e.stopPropagation(); adjust("up"); }}
-        style={arrowBtnStyle}
-      >
-        ▲
-      </button>
-      <button
-        type="button"
-        aria-label={`${node.label || node.row} ${axis} down`}
-        onClick={(e) => { e.stopPropagation(); adjust("down"); }}
-        style={arrowBtnStyle}
-      >
-        ▼
-      </button>
     </div>
   );
 }
@@ -145,8 +159,12 @@ export function TiltVectorAnglePanel() {
         </div>
       </div>
 
+      {/* Popover width comes from the CONTENT, not from a number chosen here: stacked items
+          are narrow, and a fixed width would leave the same empty band down the right that
+          the stretched rows left across them. min-width only keeps a one-node popover from
+          collapsing narrower than its own heading reads well at. */}
       {open && (
-        <div style={popoverStyle(170)}>
+        <div style={{ ...popoverStyle(0), width: "max-content", minWidth: 108 }}>
           {rows.map((node) => (
             <NodeGroupSection key={node.row} node={node} />
           ))}
@@ -161,6 +179,14 @@ export function TiltVectorAnglePanel() {
 // PILL and is not clipped by it. It must stay pointer-transparent itself — ThreeView's
 // right-hand column takes no pointer events and each widget re-enables them for its own box,
 // so a wrapper that swallowed them would cover the canvas behind this panel.
+// An item's second line: the value, then the arrows that change it, packed together.
+const valueLineStyle: React.CSSProperties = {
+  display: "flex",
+  flexDirection: "row",
+  alignItems: "center",
+  gap: 4,
+};
+
 const anchorStyle: React.CSSProperties = {
   position: "relative",
   pointerEvents: "none",
