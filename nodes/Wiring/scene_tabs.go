@@ -101,9 +101,13 @@ type SceneTab struct {
 	// because the pair is smaller, not because the user asked for anything different.
 	// ClockDivisor corrects for that so both scenes read at a comparable felt pace.
 	//
-	// Ring = 1 (no correction needed). Pair = 4 (runs at 1/4 the ring's clock for the same
-	// slider setting). Never 0 or negative — EffectiveClockSpeed guards against a
+	// Ring = 1 (no correction needed). Pair = 16 (runs at 1/16 the ring's clock for the
+	// same slider setting). Never 0 or negative — EffectiveClockSpeed guards against a
 	// division by an invalid value from an unrecognised or malformed scene.
+	//
+	// The pair's value is a WATCHED-IT number, not a derived one: 4 was tried first and
+	// still read too fast in the editor. Nothing computes it from the scene's size, so
+	// treat it as a setting to re-watch rather than a constant with a proof behind it.
 	ClockDivisor float64
 	// DistanceGroups says whether this scene has the three named node-pair distance groups
 	// (distance_groups.go's distanceGroups table) — the content of the "distance home
@@ -128,7 +132,7 @@ type SceneTab struct {
 // sizes its stream fds from (see AnchorIsTabbed).
 var SceneTabs = []SceneTab{
 	{Name: "ring", Dir: "topology", QuantizedDrag: false, CoplanarEdges: false, UpAxis: false, ClockDivisor: 1, DistanceGroups: true},
-	{Name: "pair", Dir: "topology-pair", QuantizedDrag: false, CoplanarEdges: true, UpAxis: true, ClockDivisor: 4, DistanceGroups: false},
+	{Name: "pair", Dir: "topology-pair", QuantizedDrag: false, CoplanarEdges: true, UpAxis: true, ClockDivisor: 16, DistanceGroups: false},
 }
 
 // sceneSelectionFile is the persisted selection, held at the ANCHOR (never inside a scene).
