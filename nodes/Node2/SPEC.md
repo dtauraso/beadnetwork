@@ -175,25 +175,17 @@ loop body) runs:
   contradict the reset's stop-and-return meaning. The LOCAL `RESET` path (`TiltEditIn`'s
   `Reset`, above) clears it the same way, for the same reason.
 
-## Pair separation follows the tilt index
+## A tilt does not move the node
 
-The pair's centre-to-centre distance — never its orientation — follows this node's own
-`TopTiltThetaIdx`, via `repositionForTiltIndex` (`nodes/Wiring/node_geometry.go`), called
-from `PairNodeSelf.SetTiltIndex`. **Node2 is the moving end of the pair**
-(`repositionForTiltIndex` returns immediately unless `m.selfKind == "Node2"`): it reports
-its own tilt index like Node1 does, but Node1 never repositions for one, so this node's
-own reposition is the ONLY one that actually happens. It slides along its OWN fixed ray
-from the scene centre — changing only its own quantized radial index (`iR`), never
-`iTheta`/`iPhi`, so no orientation decision is made — to the integer `iR` nearest a
-distance of
+Turning a tilt changes an ANGLE and nothing else. The pair's separation is whatever a drag
+last left it at, and it holds while the tilts turn.
 
-    D = (abs(thetaIdx) + nodeTorusSteps(selfKind) + nodeTorusSteps(partnerKind)) * wire.BeadStepR
-
-from the partner, so that `edgeStepCount(D, ...)` comes back out to exactly
-`abs(thetaIdx)`. Because the pair is not exactly radial, this is solved as a quadratic
-along Node2's own fixed ray (`solveTiltIndexROffset`), keeping the root nearer this
-node's current radius so a turn never flings it to the far side of the scene centre. A
-negative discriminant (D unreachable along this ray) leaves the position unchanged.
+It was briefly otherwise, and this kind was the end that moved: the separation was a second
+reading of this same index, so this node slid along its own ray to keep the edge's bead
+count equal to the tilt index, and the edge grew and shrank as the exchange ran. That
+coupled four things to one number — the drawn angle, the separation, the edge's bead count,
+and (once the exchange became clock-paced) the rate the tilts turned at, since a longer
+edge takes longer to cross. One index is not enough to carry all of that.
 
 ## Pacing and clock speed
 

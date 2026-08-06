@@ -169,15 +169,16 @@ loop body) runs:
   contradict the reset's stop-and-return meaning. The LOCAL `RESET` path (`TiltEditIn`'s
   `Reset`, above) clears it the same way, for the same reason.
 
-## Pair separation follows the tilt index
+## A tilt does not move the node
 
-The pair's centre-to-centre distance — never its orientation — follows this node's own
-`TopTiltThetaIdx`, via `repositionForTiltIndex` (`nodes/Wiring/node_geometry.go`), called
-from `PairNodeSelf.SetTiltIndex`. **Node1 is the anchor: it never repositions itself,
-even though it reports its own tilt index like any pair member.** Only Node2 moves, and
-it moves along its OWN fixed ray from the scene centre, changing only its own quantized
-radial index (`iR`) — never `iTheta`/`iPhi`, so no orientation decision is made. See
-`nodes/Node2/SPEC.md` for the distance formula.
+Turning a tilt changes an ANGLE and nothing else. The pair's separation is whatever a drag
+last left it at, and it holds while the tilts turn.
+
+It was briefly otherwise: the distance was a second reading of this same index, so Node2
+slid along its own ray as the exchange ran and the edge grew and shrank with the angle.
+That coupled four things to one number — the drawn angle, the separation, the edge's bead
+count, and (once the exchange became clock-paced) the rate the tilts turned at, since a
+longer edge takes longer to cross. One index is not enough to carry all of that.
 
 ## Pacing and clock speed
 
