@@ -178,13 +178,13 @@ type nodeGeometry struct {
 	hoverIsInput                  bool
 	kindID                        uint8
 
-	buildFrame func(tick uint32, nodeRow int32, nodeID int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, poleTheta, polePhi, ringAxisTheta, ringAxisPhi, topTiltVectorLen, topTiltVectorTheta, topTiltVectorPhi, bottomTiltVectorTheta, bottomTiltVectorPhi, coplanarNormalTheta, coplanarNormalPhi, receivedVectorLen, receivedVectorTheta, receivedVectorPhi float32, selected, kindID, hovered, latchedSel uint8, label string, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte
+	buildFrame func(tick uint32, nodeRow int32, nodeID int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, poleTheta, polePhi, ringAxisTheta, ringAxisPhi, topTiltVectorLen, topTiltVectorTheta, bottomTiltVectorTheta, coplanarNormalTheta, receivedVectorLen, receivedVectorTheta float32, selected, kindID, hovered, latchedSel uint8, label string, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte
 
-	topTiltVectorThetaIdx, topTiltVectorPhiIdx   int32
-	normalThetaIdx, normalPhiIdx                 int32
-	bottomThetaIdx, bottomPhiIdx                 int32
-	receivedVectorThetaIdx, receivedVectorPhiIdx int32
-	receivedVectorSet                            bool
+	topTiltVectorThetaIdx  int32
+	normalThetaIdx         int32
+	bottomThetaIdx         int32
+	receivedVectorThetaIdx int32
+	receivedVectorSet      bool
 }
 
 // newNodeGeometry constructs one node's geometry — no actor, no goroutine. Whoever drives
@@ -306,11 +306,7 @@ func (m *nodeGeometry) handle(msg moveMsg) {
 		if msg.Bool {
 			delta = 1
 		}
-		if msg.Axis == "phi" {
-			m.topTiltVectorPhiIdx += delta
-		} else {
-			m.topTiltVectorThetaIdx += delta
-		}
+		m.topTiltVectorThetaIdx += delta
 		m.persistTiltVectorAngle()
 		if m.tr != nil {
 			m.emitGeometry()
@@ -328,7 +324,6 @@ func (m *nodeGeometry) handle(msg moveMsg) {
 		// 0, the documented default (tilt vector at world +y). No bead: this is a
 		// stop-and-return, not a kick. Persisted immediately, same as an adjust.
 		m.topTiltVectorThetaIdx = 0
-		m.topTiltVectorPhiIdx = 0
 		m.persistTiltVectorAngle()
 		if m.tr != nil {
 			m.emitGeometry()
@@ -632,42 +627,39 @@ func (m *nodeGeometry) writeStreamFrame(events []wire.RowEvent) {
 			}
 		}
 	}
-	// topTiltVectorTheta/topTiltVectorPhi are this node's OWN vector direction — separate from the ring
+	// topTiltVectorTheta is this node's OWN vector direction — separate from the ring
 	// axis above, so a scene/user can aim a node's vector somewhere other than its ring.
 	// Never a free float: index × TiltVectorAngleStep (see the constant's own doc comment),
 	// the streamed value is pure arithmetic on the integer state this node's own mover
-	// holds and persists (m.topTiltVectorThetaIdx/topTiltVectorPhiIdx).
+	// holds and persists (m.topTiltVectorThetaIdx). There is no φ: every tilt vector in
+	// this model is θ-only (task/drop-tilt-vector-phi).
 	topTiltVectorTheta := float64(m.topTiltVectorThetaIdx) * CurveParamTiltVectorAngleStep
-	topTiltVectorPhi := float64(m.topTiltVectorPhiIdx) * CurveParamTiltVectorAngleStep
-	// The BOTTOM TILT VECTOR: streamed straight from this node's own bottomThetaIdx/
-	// bottomPhiIdx, decided by THIS node's OWN goroutine (a half turn in θ from its own top
+	// The BOTTOM TILT VECTOR: streamed straight from this node's own bottomThetaIdx,
+	// decided by THIS node's OWN goroutine (a half turn in θ from its own top
 	// tilt index, sign owned by the kind — Node1/Node2's bottomTilt) and reported one-way
 	// via PairNodeSelf.SetTiltIndex alongside the top and the normal. Pure mirror here, same
 	// as every other index on this frame: this mover derives none of them.
 	bottomTiltVectorTheta := float64(m.bottomThetaIdx) * CurveParamTiltVectorAngleStep
-	bottomTiltVectorPhi := float64(m.bottomPhiIdx) * CurveParamTiltVectorAngleStep
-	// The COPLANAR NORMAL: streamed straight from this node's own normalThetaIdx/
-	// normalPhiIdx, which THIS node's OWN goroutine decided (a fixed ±90° in θ from its
+	// The COPLANAR NORMAL: streamed straight from this node's own normalThetaIdx,
+	// which THIS node's OWN goroutine decided (a fixed ±90° in θ from its
 	// own tilt index, sign owned by the kind — Node1/Node2's coplanarNormal) and reported
 	// one-way via PairNodeSelf.SetTiltIndex. This mover is a pure mirror here, same shape
-	// as topTiltVectorTheta/topTiltVectorPhi above — it derives nothing from the edge/partner.
+	// as topTiltVectorTheta above — it derives nothing from the edge/partner.
 	// Turning the tilt therefore visibly turns the drawn normal WITH it, staying 90° away,
 	// instead of the normal staying fixed toward the partner while the tilt moves under it.
 	coplanarNormalTheta := float64(m.normalThetaIdx) * CurveParamTiltVectorAngleStep
-	coplanarNormalPhi := float64(m.normalPhiIdx) * CurveParamTiltVectorAngleStep
 	// The THIRD vector: the direction last received on this node's tilt-vector channel
-	// (receivedVectorThetaIdx/PhiIdx, mirrored one-way from this node's own goroutine —
+	// (receivedVectorThetaIdx, mirrored one-way from this node's own goroutine —
 	// see the field's own doc comment). Same length-says-whether-and-how-far convention
 	// as topTiltVectorLen: zero when nothing has been received yet (or a reset cleared it),
 	// non-zero (this node's own radius, same as topTiltVectorLen) otherwise — so a node with
 	// nothing received is distinguishable from one whose received direction happens to be
-	// (0,0), which still streams a non-zero length.
+	// 0, which still streams a non-zero length.
 	var receivedVectorLen float64
-	var receivedVectorTheta, receivedVectorPhi float64
+	var receivedVectorTheta float64
 	if m.receivedVectorSet {
 		receivedVectorLen = nodeRadius(m.geom.Kind)
 		receivedVectorTheta = float64(m.receivedVectorThetaIdx) * CurveParamTiltVectorAngleStep
-		receivedVectorPhi = float64(m.receivedVectorPhiIdx) * CurveParamTiltVectorAngleStep
 	}
 	label := m.geom.Label
 	if label == "" {
@@ -694,10 +686,10 @@ func (m *nodeGeometry) writeStreamFrame(events []wire.RowEvent) {
 		verticalRingNormalX, verticalRingNormalY, verticalRingNormalZ,
 		flatRingNormalX, flatRingNormalY, flatRingNormalZ,
 		float32(poleTheta), float32(polePhi), float32(ringAxisTheta), float32(ringAxisPhi), float32(topTiltVectorLen),
-		float32(topTiltVectorTheta), float32(topTiltVectorPhi),
-		float32(bottomTiltVectorTheta), float32(bottomTiltVectorPhi),
-		float32(coplanarNormalTheta), float32(coplanarNormalPhi),
-		float32(receivedVectorLen), float32(receivedVectorTheta), float32(receivedVectorPhi),
+		float32(topTiltVectorTheta),
+		float32(bottomTiltVectorTheta),
+		float32(coplanarNormalTheta),
+		float32(receivedVectorLen), float32(receivedVectorTheta),
 		selected, kindID, hovered, latchedSel,
 		label, chainOX, chainOY, chainOZ, chainLit, chainLitVal, events)
 	var hdr [4]byte

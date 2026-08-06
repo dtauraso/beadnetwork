@@ -28,7 +28,6 @@ import {
   readOverlaySpeed,
   readNodeTopTiltVectorLen,
   readNodeTopTiltVectorTheta,
-  readNodeTopTiltVectorPhi,
 } from "../../schema/buffer-layout";
 import { nodeLabel } from "./buffer-decode";
 
@@ -188,15 +187,16 @@ export function usePlaybackSpeed(): number | null {
 }
 
 /** One row of the per-node tilt-vector-angle panel: read-only reflect of a single node's
- *  own TopTiltVectorTheta/TopTiltVectorPhi (Buffer/layout.go), as the ALREADY-MULTIPLIED
+ *  own TopTiltVectorTheta (Buffer/layout.go), as the ALREADY-MULTIPLIED
  *  radians the buffer carries — TS holds no step constant of its own
  *  (nodes/Wiring.CurveParamTiltVectorAngleStep is Go's). row is the node's buffer ROW
- *  (never an id/name — no sidecar), label its human label for display only. */
+ *  (never an id/name — no sidecar), label its human label for display only. There is no
+ *  φ field: every tilt vector in this model is θ-only (TiltVectorAnglePanel.tsx's own
+ *  doc comment). */
 export interface TiltVectorRow {
   row: number;
   label: string;
   theta: number;
-  phi: number;
 }
 
 let cachedTiltVectorRows: TiltVectorRow[] | null = null;
@@ -207,7 +207,7 @@ function tiltVectorRowsEqual(a: TiltVectorRow[], b: TiltVectorRow[]): boolean {
     const ai = a[i];
     const bi = b[i];
     if (!ai || !bi) return false;
-    if (ai.row !== bi.row || ai.theta !== bi.theta || ai.phi !== bi.phi || ai.label !== bi.label) {
+    if (ai.row !== bi.row || ai.theta !== bi.theta || ai.label !== bi.label) {
       return false;
     }
   }
@@ -230,7 +230,6 @@ export function readTiltVectorRows(): TiltVectorRow[] | null {
       row,
       label: nodeLabel(decoded, row),
       theta: readNodeTopTiltVectorTheta(nodeView, row),
-      phi: readNodeTopTiltVectorPhi(nodeView, row),
     });
   }
   if (cachedTiltVectorRows && tiltVectorRowsEqual(cachedTiltVectorRows, next)) return cachedTiltVectorRows;

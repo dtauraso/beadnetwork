@@ -19,41 +19,36 @@ import (
 
 // applyTiltEdit is what the RESET button, the START TILT button, and the tilt-angle panel
 // (TiltVectorButtons.tsx / TiltVectorAnglePanel.tsx) each drive; this asserts THIS node
-// kind's own decision for a reset, from any starting indices: both indices land on 0 (the
+// kind's own decision for a reset, from any starting index: it lands on 0 (the
 // start position), and — unlike Start — no bead is placed ("the kick" only fires for
 // Start, never a stop-and-return).
 func TestApplyTiltEditResetReturnsBothIndicesToZero(t *testing.T) {
-	for _, start := range []struct{ theta, phi int32 }{
-		{0, 0},
-		{5, -3},
-		{-9, 12},
-		{Wiring.PerpendicularThetaIdx, 4},
+	for _, start := range []int32{
+		0,
+		5,
+		-9,
+		Wiring.PerpendicularThetaIdx,
 	} {
-		n := &Node{TopTiltThetaIdx: start.theta, TopTiltPhiIdx: start.phi}
+		n := &Node{TopTiltThetaIdx: start}
 		placeBead := n.applyTiltEdit(Wiring.TiltEditMsg{Reset: true})
 		if placeBead {
-			t.Fatalf("reset from theta=%d phi=%d must place no bead, got placeBead=true", start.theta, start.phi)
+			t.Fatalf("reset from theta=%d must place no bead, got placeBead=true", start)
 		}
-		if n.TopTiltThetaIdx != 0 || n.TopTiltPhiIdx != 0 {
-			t.Fatalf("reset from theta=%d phi=%d: want both indices 0, got theta=%d phi=%d", start.theta, start.phi, n.TopTiltThetaIdx, n.TopTiltPhiIdx)
+		if n.TopTiltThetaIdx != 0 {
+			t.Fatalf("reset from theta=%d: want index 0, got theta=%d", start, n.TopTiltThetaIdx)
 		}
 	}
 }
 
-// The drawn coplanar normal must sit exactly −6 steps (90°) in θ from the tilt, φ
-// unchanged, for Node2 — pure index arithmetic reusing Wiring.PerpendicularThetaIdx, not
-// a cross product (Part 1 of this task). Node2's sign is the mirror of Node1's.
+// The drawn coplanar normal must sit exactly −6 steps (90°) in θ from the tilt, for
+// Node2 — pure index arithmetic reusing Wiring.PerpendicularThetaIdx, not a cross
+// product (Part 1 of this task). Node2's sign is the mirror of Node1's. There is no φ.
 func TestCoplanarNormalIsMinusSixStepsInTheta(t *testing.T) {
-	for _, start := range []struct{ theta, phi int32 }{
-		{0, 0}, {5, -3}, {-9, 12},
-	} {
-		n := &Node{TopTiltThetaIdx: start.theta, TopTiltPhiIdx: start.phi}
+	for _, theta := range []int32{0, 5, -9} {
+		n := &Node{TopTiltThetaIdx: theta}
 		norm := n.coplanarNormal()
-		if norm.ThetaIdx != start.theta-Wiring.PerpendicularThetaIdx {
-			t.Fatalf("coplanarNormal theta: want tilt-%d=%d, got %d", Wiring.PerpendicularThetaIdx, start.theta-Wiring.PerpendicularThetaIdx, norm.ThetaIdx)
-		}
-		if norm.PhiIdx != start.phi {
-			t.Fatalf("coplanarNormal phi must equal tilt phi unchanged: want %d, got %d", start.phi, norm.PhiIdx)
+		if norm.ThetaIdx != theta-Wiring.PerpendicularThetaIdx {
+			t.Fatalf("coplanarNormal theta: want tilt-%d=%d, got %d", Wiring.PerpendicularThetaIdx, theta-Wiring.PerpendicularThetaIdx, norm.ThetaIdx)
 		}
 	}
 }
@@ -63,8 +58,8 @@ func TestCoplanarNormalIsMinusSixStepsInTheta(t *testing.T) {
 // reset. Verified by observing the channel is empty afterward.
 func TestApplyTiltEditResetDrainsVectorIn(t *testing.T) {
 	vectorIn := make(chan Wiring.TiltVectorMsg, 1)
-	vectorIn <- Wiring.TiltVectorMsg{ThetaIdx: 99, PhiIdx: -1}
-	n := &Node{TopTiltThetaIdx: 5, TopTiltPhiIdx: -2, VectorIn: vectorIn}
+	vectorIn <- Wiring.TiltVectorMsg{ThetaIdx: 99}
+	n := &Node{TopTiltThetaIdx: 5, VectorIn: vectorIn}
 	n.applyTiltEdit(Wiring.TiltEditMsg{Reset: true})
 	select {
 	case v := <-vectorIn:
@@ -73,20 +68,20 @@ func TestApplyTiltEditResetDrainsVectorIn(t *testing.T) {
 	}
 }
 
-// A plain adjust (the panel's ▲/▼ click, neither Reset nor Start) moves the named index by
+// A plain adjust (the panel's ▲/▼ click, neither Reset nor Start) moves the tilt index by
 // exactly one step and does NOTHING else: no bead, no send on VectorOut
 // (task/pair-node-owns-itself split — this used to also open the vector exchange as a side
 // effect, "the kick", which made one click move the tilt by many π/12 steps once the
 // exchange settled).
 func TestApplyTiltEditAdjustMovesOneStepAndSendsNothing(t *testing.T) {
 	out := make(chan Wiring.TiltVectorMsg, 1)
-	n := &Node{TopTiltThetaIdx: 3, TopTiltPhiIdx: 1, VectorOut: out}
-	placeBead := n.applyTiltEdit(Wiring.TiltEditMsg{Axis: "theta", Up: true})
+	n := &Node{TopTiltThetaIdx: 3, VectorOut: out}
+	placeBead := n.applyTiltEdit(Wiring.TiltEditMsg{Up: true})
 	if placeBead {
 		t.Fatalf("a plain adjust must place NO bead, got placeBead=true")
 	}
-	if n.TopTiltThetaIdx != 4 || n.TopTiltPhiIdx != 1 {
-		t.Fatalf("adjust theta up: want theta=4 phi=1, got theta=%d phi=%d", n.TopTiltThetaIdx, n.TopTiltPhiIdx)
+	if n.TopTiltThetaIdx != 4 {
+		t.Fatalf("adjust theta up: want theta=4, got theta=%d", n.TopTiltThetaIdx)
 	}
 	select {
 	case v := <-out:
@@ -96,24 +91,32 @@ func TestApplyTiltEditAdjustMovesOneStepAndSendsNothing(t *testing.T) {
 }
 
 // outgoingVector reverses the coplanar normal by 180° in θ — Node2's own direction is
-// +12 index steps (+180°, two of the 6-step quarter turns) — and leaves φ untouched.
+// +12 index steps (+180°, two of the 6-step quarter turns). There is no φ any more.
 // This is THIS node's own arithmetic, asserted without any channel involved.
 func TestOutgoingVectorIsPlus180StepsInThetaOnly(t *testing.T) {
-	n := &Node{TopTiltThetaIdx: 3, TopTiltPhiIdx: -7}
-	norm := n.coplanarNormal()
-	// Node2 SUBTRACTS the quarter turn (Node1 adds) — see coplanarNormal's own doc
-	// comment: the tilt and the coplanar normal sit −90° apart in θ for Node2.
-	if norm.ThetaIdx != 3-Wiring.PerpendicularThetaIdx || norm.PhiIdx != -7 {
-		t.Fatalf("coplanarNormal: want theta=%d phi=-7, got theta=%d phi=%d",
-			3-Wiring.PerpendicularThetaIdx, norm.ThetaIdx, norm.PhiIdx)
-	}
-	out := n.outgoingVector()
-	wantTheta := norm.ThetaIdx + 2*Wiring.PerpendicularThetaIdx
-	if out.ThetaIdx != wantTheta {
-		t.Fatalf("outgoingVector theta: want %d (norm + 12 steps), got %d", wantTheta, out.ThetaIdx)
-	}
-	if out.PhiIdx != norm.PhiIdx {
-		t.Fatalf("outgoingVector must leave phi unchanged: norm phi=%d, out phi=%d", norm.PhiIdx, out.PhiIdx)
+	// Negative indices included on purpose: these derivations are integer arithmetic and
+	// must not care about the sign, whichever direction this kind's base step runs.
+	for _, theta := range []int32{3, 0, -1, -7, -Wiring.HalfTurnThetaIdx} {
+		n := &Node{TopTiltThetaIdx: theta}
+		norm := n.coplanarNormal()
+		// Node2 SUBTRACTS the quarter turn (Node1 adds) — see coplanarNormal's own doc
+		// comment: the tilt and the coplanar normal sit −90° apart in θ for Node2.
+		if want := theta - Wiring.PerpendicularThetaIdx; norm.ThetaIdx != want {
+			t.Fatalf("theta=%d: coplanarNormal want %d, got %d", theta, want, norm.ThetaIdx)
+		}
+		out := n.outgoingVector()
+		if want := norm.ThetaIdx + 2*Wiring.PerpendicularThetaIdx; out.ThetaIdx != want {
+			t.Fatalf("theta=%d: outgoingVector want %d (norm + 12 steps), got %d", theta, want, out.ThetaIdx)
+		}
+		// The outgoing vector is the normal's exact antipode.
+		if diff := out.ThetaIdx - norm.ThetaIdx; diff != Wiring.HalfTurnThetaIdx {
+			t.Fatalf("theta=%d: outgoing must sit a half turn (%d) from the normal, got %d", theta, Wiring.HalfTurnThetaIdx, diff)
+		}
+		// And the bottom tilt is the TOP's exact antipode — what makes the two dots exact
+		// negatives of each other, which the whole step rule rests on.
+		if bottom := n.bottomTilt(); n.topTilt().ThetaIdx-bottom.ThetaIdx != Wiring.HalfTurnThetaIdx {
+			t.Fatalf("theta=%d: bottom must sit a half turn from the top, got %d", theta, n.topTilt().ThetaIdx-bottom.ThetaIdx)
+		}
 	}
 }
 
@@ -167,13 +170,13 @@ func TestStepFromVectorStopsWhenNeitherDotIsAcute(t *testing.T) {
 func TestReceivedResetZeroesAndDoesNotReply(t *testing.T) {
 	out := make(chan Wiring.TiltVectorMsg, 1)
 	in := make(chan Wiring.TiltVectorMsg, 1)
-	n := &Node{TopTiltThetaIdx: 5, TopTiltPhiIdx: 3, VectorOut: out, VectorIn: in}
+	n := &Node{TopTiltThetaIdx: 5, VectorOut: out, VectorIn: in}
 
 	in <- Wiring.TiltVectorMsg{Reset: true}
 	n.handleVectorCycle(0)
 
-	if n.TopTiltThetaIdx != 0 || n.TopTiltPhiIdx != 0 {
-		t.Fatalf("a received reset must zero both indices; got theta=%d phi=%d", n.TopTiltThetaIdx, n.TopTiltPhiIdx)
+	if n.TopTiltThetaIdx != 0 {
+		t.Fatalf("a received reset must zero the index; got theta=%d", n.TopTiltThetaIdx)
 	}
 	if v, ok := Wiring.PollRecvVector(out); ok {
 		t.Fatalf("a received reset must not be replied to; got %+v", v)
@@ -191,14 +194,14 @@ func TestHandleVectorCycleRecordsReceivedDirection(t *testing.T) {
 	// the third arrow because the exchange has stopped.
 	n := &Node{TopTiltThetaIdx: 2, VectorIn: in}
 
-	in <- Wiring.TiltVectorMsg{ThetaIdx: 7, PhiIdx: -4}
+	in <- Wiring.TiltVectorMsg{ThetaIdx: 7}
 	n.handleVectorCycle(0)
 
 	if !n.ReceivedSet {
 		t.Fatal("an arrival must set ReceivedSet, got false")
 	}
-	if n.ReceivedThetaIdx != 7 || n.ReceivedPhiIdx != -4 {
-		t.Fatalf("want recorded theta=7 phi=-4, got theta=%d phi=%d", n.ReceivedThetaIdx, n.ReceivedPhiIdx)
+	if n.ReceivedThetaIdx != 7 {
+		t.Fatalf("want recorded theta=7, got theta=%d", n.ReceivedThetaIdx)
 	}
 }
 
@@ -208,13 +211,13 @@ func TestHandleVectorCycleReplacesPreviousReceivedDirection(t *testing.T) {
 	// MID-exchange, so both arrivals are recorded rather than clearing (see above).
 	n := &Node{TopTiltThetaIdx: 2, VectorIn: in}
 
-	in <- Wiring.TiltVectorMsg{ThetaIdx: 7, PhiIdx: -4}
+	in <- Wiring.TiltVectorMsg{ThetaIdx: 7}
 	n.handleVectorCycle(0)
-	in <- Wiring.TiltVectorMsg{ThetaIdx: -2, PhiIdx: 11}
+	in <- Wiring.TiltVectorMsg{ThetaIdx: -2}
 	n.handleVectorCycle(0)
 
-	if n.ReceivedThetaIdx != -2 || n.ReceivedPhiIdx != 11 {
-		t.Fatalf("want the LATEST arrival theta=-2 phi=11, got theta=%d phi=%d", n.ReceivedThetaIdx, n.ReceivedPhiIdx)
+	if n.ReceivedThetaIdx != -2 {
+		t.Fatalf("want the LATEST arrival theta=-2, got theta=%d", n.ReceivedThetaIdx)
 	}
 	if !n.ReceivedSet {
 		t.Fatal("ReceivedSet must stay true across a replace")
@@ -228,18 +231,18 @@ func TestHandleVectorCycleReplacesPreviousReceivedDirection(t *testing.T) {
 func TestReceivedVectorRecordedEvenWhenNothingSteps(t *testing.T) {
 	// Perpendicular to this node's own tilt axis: neither dot is acute, so nothing steps
 	// and nothing is sent — the exchange comes to rest on this arrival.
-	n := &Node{TopTiltThetaIdx: 0, ReceivedThetaIdx: 4, ReceivedPhiIdx: 1, ReceivedSet: true}
+	n := &Node{TopTiltThetaIdx: 0, ReceivedThetaIdx: 4, ReceivedSet: true}
 	in := make(chan Wiring.TiltVectorMsg, 1)
 	out := make(chan Wiring.TiltVectorMsg, 1)
 	n.VectorIn, n.VectorOut = in, out
-	arrived := Wiring.TiltVectorMsg{ThetaIdx: Wiring.PerpendicularThetaIdx, PhiIdx: 0}
+	arrived := Wiring.TiltVectorMsg{ThetaIdx: Wiring.PerpendicularThetaIdx}
 	in <- arrived
 
 	n.handleVectorCycle(0)
 
-	if !n.ReceivedSet || n.ReceivedThetaIdx != arrived.ThetaIdx || n.ReceivedPhiIdx != arrived.PhiIdx {
-		t.Fatalf("the arrived direction must be recorded even when nothing steps; got set=%v theta=%d phi=%d",
-			n.ReceivedSet, n.ReceivedThetaIdx, n.ReceivedPhiIdx)
+	if !n.ReceivedSet || n.ReceivedThetaIdx != arrived.ThetaIdx {
+		t.Fatalf("the arrived direction must be recorded even when nothing steps; got set=%v theta=%d",
+			n.ReceivedSet, n.ReceivedThetaIdx)
 	}
 	if n.TopTiltThetaIdx != 0 {
 		t.Fatalf("neither dot is acute here, so the tilt must not move; got %d", n.TopTiltThetaIdx)
@@ -254,14 +257,14 @@ func TestReceivedVectorRecordedEvenWhenNothingSteps(t *testing.T) {
 // This node's own LOCAL reset (applyTiltEdit's Reset branch) clears the received-vector
 // record too — a stale received arrow left hanging would contradict the reset.
 func TestApplyTiltEditResetClearsReceivedVector(t *testing.T) {
-	n := &Node{TopTiltThetaIdx: 5, ReceivedThetaIdx: 9, ReceivedPhiIdx: -1, ReceivedSet: true}
+	n := &Node{TopTiltThetaIdx: 5, ReceivedThetaIdx: 9, ReceivedSet: true}
 	n.applyTiltEdit(Wiring.TiltEditMsg{Reset: true})
 
 	if n.ReceivedSet {
 		t.Fatal("local reset must clear ReceivedSet, got true")
 	}
-	if n.ReceivedThetaIdx != 0 || n.ReceivedPhiIdx != 0 {
-		t.Fatalf("local reset must zero the received indices; got theta=%d phi=%d", n.ReceivedThetaIdx, n.ReceivedPhiIdx)
+	if n.ReceivedThetaIdx != 0 {
+		t.Fatalf("local reset must zero the received index; got theta=%d", n.ReceivedThetaIdx)
 	}
 }
 
@@ -272,7 +275,7 @@ func TestHandleVectorCycleReceivedResetClearsReceivedVector(t *testing.T) {
 	out := make(chan Wiring.TiltVectorMsg, 1)
 	in := make(chan Wiring.TiltVectorMsg, 1)
 	n := &Node{TopTiltThetaIdx: 5, VectorOut: out, VectorIn: in,
-		ReceivedThetaIdx: 9, ReceivedPhiIdx: -1, ReceivedSet: true}
+		ReceivedThetaIdx: 9, ReceivedSet: true}
 
 	in <- Wiring.TiltVectorMsg{Reset: true}
 	n.handleVectorCycle(0)
@@ -280,8 +283,8 @@ func TestHandleVectorCycleReceivedResetClearsReceivedVector(t *testing.T) {
 	if n.ReceivedSet {
 		t.Fatal("a received reset must clear ReceivedSet, got true")
 	}
-	if n.ReceivedThetaIdx != 0 || n.ReceivedPhiIdx != 0 {
-		t.Fatalf("a received reset must zero the received indices; got theta=%d phi=%d", n.ReceivedThetaIdx, n.ReceivedPhiIdx)
+	if n.ReceivedThetaIdx != 0 {
+		t.Fatalf("a received reset must zero the received index; got theta=%d", n.ReceivedThetaIdx)
 	}
 }
 
@@ -294,13 +297,13 @@ func TestUpdateSyncsOpeningTiltIndexBeforeLoop(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	var gotTheta, gotPhi, gotNormalTheta, gotNormalPhi, gotBottomTheta, gotBottomPhi int32
+	var gotTheta, gotNormalTheta, gotBottomTheta int32
 	calls := 0
-	n := &Node{TopTiltThetaIdx: 4, TopTiltPhiIdx: -2}
-	n.SyncTiltIndex = func(theta, phi, normalTheta, normalPhi, bottomTheta, bottomPhi int32) {
+	n := &Node{TopTiltThetaIdx: 4}
+	n.SyncTiltIndex = func(theta, normalTheta, bottomTheta int32) {
 		calls++
-		gotTheta, gotPhi, gotNormalTheta, gotNormalPhi = theta, phi, normalTheta, normalPhi
-		gotBottomTheta, gotBottomPhi = bottomTheta, bottomPhi
+		gotTheta, gotNormalTheta = theta, normalTheta
+		gotBottomTheta = bottomTheta
 	}
 
 	n.Update(ctx)
@@ -308,19 +311,19 @@ func TestUpdateSyncsOpeningTiltIndexBeforeLoop(t *testing.T) {
 	if calls != 1 {
 		t.Fatalf("want exactly one opening sync, got %d", calls)
 	}
-	if gotTheta != 4 || gotPhi != -2 {
-		t.Fatalf("opening tilt: want (4,-2), got (%d,%d)", gotTheta, gotPhi)
+	if gotTheta != 4 {
+		t.Fatalf("opening tilt: want 4, got %d", gotTheta)
 	}
 	// The BOTTOM tilt rides the same opening sync, for the same reason: the mover cannot
 	// derive the half turn's sign either, and a bottom left at zero would draw at world +y
 	// on top of the opening top tilt.
 	wantBottomTheta := int32(4) - Wiring.HalfTurnThetaIdx
-	if gotBottomTheta != wantBottomTheta || gotBottomPhi != -2 {
-		t.Fatalf("opening bottom tilt: want (%d,-2), got (%d,%d)", wantBottomTheta, gotBottomTheta, gotBottomPhi)
+	if gotBottomTheta != wantBottomTheta {
+		t.Fatalf("opening bottom tilt: want %d, got %d", wantBottomTheta, gotBottomTheta)
 	}
 	wantNormalTheta := int32(4) - Wiring.PerpendicularThetaIdx
-	if gotNormalTheta != wantNormalTheta || gotNormalPhi != -2 {
-		t.Fatalf("opening normal: want (%d,-2), got (%d,%d)", wantNormalTheta, gotNormalTheta, gotNormalPhi)
+	if gotNormalTheta != wantNormalTheta {
+		t.Fatalf("opening normal: want %d, got %d", wantNormalTheta, gotNormalTheta)
 	}
 }
 
@@ -398,15 +401,15 @@ func TestReceivedResetMarkerRunsTheFullClear(t *testing.T) {
 // each would also be answering the other's opener in the same round.
 func TestStartIsIgnoredByThisKind(t *testing.T) {
 	out := make(chan Wiring.TiltVectorMsg, 1)
-	n := &Node{TopTiltThetaIdx: 3, TopTiltPhiIdx: -2, VectorOut: out}
+	n := &Node{TopTiltThetaIdx: 3, VectorOut: out}
 
 	placeBead := n.applyTiltEdit(Wiring.TiltEditMsg{Start: true})
 
 	if placeBead {
 		t.Fatal("Start must place NO bead on this kind, got placeBead=true")
 	}
-	if n.TopTiltThetaIdx != 3 || n.TopTiltPhiIdx != -2 {
-		t.Fatalf("Start must change NO index; got theta=%d phi=%d, want unchanged theta=3 phi=-2", n.TopTiltThetaIdx, n.TopTiltPhiIdx)
+	if n.TopTiltThetaIdx != 3 {
+		t.Fatalf("Start must change NO index; got theta=%d, want unchanged theta=3", n.TopTiltThetaIdx)
 	}
 	select {
 	case got := <-out:

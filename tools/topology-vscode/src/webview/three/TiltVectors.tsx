@@ -2,13 +2,13 @@
 // direction, the coplanar normal a quarter turn from it, and (a THIRD, separately
 // coloured arrow) the direction that last ARRIVED on this node's tilt-vector channel.
 //
-// The direction is Go-owned: TopTiltVectorTheta/TopTiltVectorPhi (Buffer/layout.go), the SAME
-// θ-from-world-+y / φ-azimuth-around-+y convention as the ring axis and every other angle
-// pair on the buffer. Default (0,0) is world +y, matching the tilt vector's original
+// The direction is Go-owned: TopTiltVectorTheta (Buffer/layout.go) — θ-only, φ FIXED AT 0
+// (task/drop-tilt-vector-phi removed the φ column entirely: every tilt vector in this model
+// lives in the θ-only plane). Default 0 is world +y, matching the tilt vector's original
 // hardcoded-up arrangement — a scene/topology that never sets an angle looks unchanged. Go
 // holds the angle as an INTEGER index × nodes/Wiring.CurveParamTiltVectorAngleStep
 // (memory/feedback_abc_times_constant_not_rederive.md); this component reads only the
-// already-multiplied radians the buffer carries, same as it reads RingAxisTheta/Phi — no
+// already-multiplied radians the buffer carries, same as it reads RingAxisTheta — no
 // index/step arithmetic on this side.
 //
 // WHETHER a node draws one is Go's answer too, and it rides the SAME value as how long:
@@ -37,10 +37,10 @@ import * as THREE from "three";
 import { getNodeFrame } from "./node-stream-blocks";
 import {
   readNodeCX, readNodeCY, readNodeCZ,
-  readNodeTopTiltVectorLen, readNodeTopTiltVectorTheta, readNodeTopTiltVectorPhi,
-  readNodeBottomTiltVectorTheta, readNodeBottomTiltVectorPhi,
-  readNodeCoplanarNormalTheta, readNodeCoplanarNormalPhi,
-  readNodeReceivedVectorLen, readNodeReceivedVectorTheta, readNodeReceivedVectorPhi,
+  readNodeTopTiltVectorLen, readNodeTopTiltVectorTheta,
+  readNodeBottomTiltVectorTheta,
+  readNodeCoplanarNormalTheta,
+  readNodeReceivedVectorLen, readNodeReceivedVectorTheta,
 } from "../../schema/buffer-layout";
 
 // The shaft's thickness and the head's size, as fractions of the vector's own length, so an
@@ -104,16 +104,16 @@ export function TiltVectors({ capacity, receivedCapacity }: { capacity: number; 
     // and the third, received-direction pair, so the geometry math lives in one place.
     const writeArrowInto = (
       targetShaft: THREE.InstancedMesh, targetHead: THREE.InstancedMesh, idx: number,
-      cx: number, cy: number, cz: number, len: number, theta: number, phi: number,
+      cx: number, cy: number, cz: number, len: number, theta: number,
     ) => {
-      // (0,0) decodes to world +y — the default the tilt vector had before it carried its
-      // own direction, so an unedited node's arrow is unchanged. Same θ-from-+y /
-      // φ-azimuth-around-+y conversion NodeInstances uses for the ring axis.
-      if (theta === 0 && phi === 0) {
+      // θ=0 decodes to world +y — the default the tilt vector had before it carried its
+      // own direction, so an unedited node's arrow is unchanged. θ-only now (φ fixed at 0,
+      // task/drop-tilt-vector-phi): (sinθ, cosθ, 0) is exactly (sinθ·cos0, cosθ, sinθ·sin0),
+      // the same convention NodeInstances uses for the ring axis with φ held at 0.
+      if (theta === 0) {
         axisRef.current.set(0, 1, 0);
       } else {
-        const st = Math.sin(theta);
-        axisRef.current.set(st * Math.cos(phi), Math.cos(theta), st * Math.sin(phi));
+        axisRef.current.set(Math.sin(theta), Math.cos(theta), 0);
       }
       quatRef.current.setFromUnitVectors(GEOMETRY_AXIS, axisRef.current);
 
@@ -145,7 +145,7 @@ export function TiltVectors({ capacity, receivedCapacity }: { capacity: number; 
 
     // Each node draws up to TWO arrows in the first pair: its own tilt vector, and a
     // second one a quarter turn away inside the same ring plane
-    // (Buffer/layout.go's CoplanarNormalTheta/CoplanarNormalPhi). Both come from Go as
+    // (Buffer/layout.go's CoplanarNormalTheta). Both come from Go as
     // directions; nothing here decides where either points. They are written into the
     // SAME instanced meshes, so one draw call still covers both.
     let drawn = 0;
@@ -166,11 +166,11 @@ export function TiltVectors({ capacity, receivedCapacity }: { capacity: number; 
       // below is the one that draws separately.
       const len = readNodeTopTiltVectorLen(nodeView, row);
       if (len > 0 && drawn + 2 < capacity) {
-        writeArrowInto(shaft, head, drawn, cx, cy, cz, len, readNodeTopTiltVectorTheta(nodeView, row), readNodeTopTiltVectorPhi(nodeView, row));
+        writeArrowInto(shaft, head, drawn, cx, cy, cz, len, readNodeTopTiltVectorTheta(nodeView, row));
         drawn++;
-        writeArrowInto(shaft, head, drawn, cx, cy, cz, len, readNodeBottomTiltVectorTheta(nodeView, row), readNodeBottomTiltVectorPhi(nodeView, row));
+        writeArrowInto(shaft, head, drawn, cx, cy, cz, len, readNodeBottomTiltVectorTheta(nodeView, row));
         drawn++;
-        writeArrowInto(shaft, head, drawn, cx, cy, cz, len, readNodeCoplanarNormalTheta(nodeView, row), readNodeCoplanarNormalPhi(nodeView, row));
+        writeArrowInto(shaft, head, drawn, cx, cy, cz, len, readNodeCoplanarNormalTheta(nodeView, row));
         drawn++;
       }
 
@@ -182,7 +182,7 @@ export function TiltVectors({ capacity, receivedCapacity }: { capacity: number; 
         writeArrowInto(
           receivedShaft, receivedHead, receivedDrawn,
           cx, cy, cz, receivedLen,
-          readNodeReceivedVectorTheta(nodeView, row), readNodeReceivedVectorPhi(nodeView, row),
+          readNodeReceivedVectorTheta(nodeView, row),
         );
         receivedDrawn++;
       }
