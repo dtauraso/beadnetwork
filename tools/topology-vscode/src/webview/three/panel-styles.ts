@@ -65,14 +65,23 @@ export const itemColumnStyle: React.CSSProperties = {
   gap: 3,
 };
 
-// ONE ITEM: its name, its value and its ▲▼, stacked. This box is the unit the panel is
-// built from — everything about one thing is inside it, and it is as wide as its own widest
-// line.
+// ONE ITEM, on two lines: its NAME, and under it its VALUE beside its ▲▼. This box is the
+// unit a panel is built from — everything about one thing is inside it, and it is as wide as
+// its own widest line. Left-aligned, so the names and the values below them start on the
+// same edge and the whole panel reads down that edge.
 export const itemStyle: React.CSSProperties = {
-  display: "inline-flex",
+  display: "flex",
   flexDirection: "column",
+  alignItems: "flex-start",
+  gap: 1,
+};
+
+// An item's second line: the value, then the arrows that change it.
+export const valueRowStyle: React.CSSProperties = {
+  display: "flex",
+  flexDirection: "row",
   alignItems: "center",
-  gap: 2,
+  gap: 4,
 };
 
 export const labelStyle: React.CSSProperties = { whiteSpace: "nowrap" };

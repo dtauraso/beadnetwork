@@ -4,11 +4,11 @@ import { encodeDistanceGroupAdjust } from "../../schema/input-layout";
 import { useDistanceGroupLens } from "./overlay-flags";
 import {
   panelStyle,
-  itemRowStyle,
+  itemColumnStyle,
   itemStyle,
   labelStyle,
   valueStyle,
-  arrowCellStyle,
+  valueRowStyle,
   btnStyle,
 } from "./panel-styles";
 
@@ -60,17 +60,17 @@ export function DistanceHomePanel() {
   };
 
   return (
-    // One STACK per group, side by side. Everything about a group — its name, its length,
-    // its ▲▼ — lives inside that group's own box, so nothing is padded to line up with a
-    // neighbour.
-    <div style={{ ...panelStyle, ...itemRowStyle }}>
+    // One item per group, stacked down the panel: the group's name on its own line, then its
+    // length beside the ▲▼ that change it. Everything about a group lives inside that
+    // group's own box, so nothing is padded to line up with a neighbour.
+    <div style={{ ...panelStyle, ...itemColumnStyle }}>
       {GROUPS.map(({ index, label }) => {
         const v = valueFor(index);
         return (
           <span style={itemStyle} key={label}>
             <span style={labelStyle}>{label}</span>
-            <span style={valueStyle}>{v === undefined ? "—" : Math.round(v)}</span>
-            <span style={arrowCellStyle}>
+            <span style={valueRowStyle}>
+              <span style={valueStyle}>{v === undefined ? "—" : Math.round(v)}</span>
               <button
                 type="button"
                 style={btnStyle}

@@ -5,12 +5,11 @@ import { CURVE_PARAM_TILT_VECTOR_ANGLE_STEP } from "../../schema/curve-params";
 import { useTiltVectorRows } from "./overlay-flags";
 import {
   panelStyle,
-  itemRowStyle,
   itemColumnStyle,
   itemStyle,
   labelStyle,
   valueStyle,
-  arrowCellStyle,
+  valueRowStyle,
   btnStyle,
 } from "./panel-styles";
 
@@ -80,14 +79,14 @@ export function TiltVectorAnglePanel() {
               Skipped before the first. */}
           {i > 0 && <div style={sepStyle} />}
           <div style={headerStyle}>{node.label || String(node.row)}</div>
-          <div style={itemRowStyle}>
+          <div style={axesStyle}>
             {AXES.map((axis) => (
               <span style={itemStyle} key={axis}>
                 <span style={labelStyle}>{axis}</span>
-                <span style={valueStyle}>
-                  {formatAngle(axis === "theta" ? node.theta : node.phi)}
-                </span>
-                <span style={arrowCellStyle}>
+                <span style={valueRowStyle}>
+                  <span style={valueStyle}>
+                    {formatAngle(axis === "theta" ? node.theta : node.phi)}
+                  </span>
                   <button
                     type="button"
                     style={btnStyle}
@@ -113,6 +112,16 @@ export function TiltVectorAnglePanel() {
     </div>
   );
 }
+
+// A node's two axis items, stacked under the node's name and indented — the indent is what
+// shows the nesting, so an axis reads as belonging to the node above it rather than as
+// another top-level item.
+const axesStyle: React.CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  gap: 3,
+  paddingLeft: 8,
+};
 
 // A node's name at the top of that node's own box — no column span needed any more, since
 // the node IS a box and its name is simply the first thing in it.
