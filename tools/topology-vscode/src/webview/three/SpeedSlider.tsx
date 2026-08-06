@@ -17,12 +17,13 @@ import { usePlaybackSpeed } from "./overlay-flags";
 // clock_ms_per_tick_quarters_test.go pins that); a fraction says that where "0.25" reads as
 // an arbitrary decimal.
 //
-// A fraction carries `num`/`den` and is drawn DIAGONALLY — numerator, slash, denominator
-// (see fracStyle); a whole number carries `label` and is drawn as itself. The quarters were
-// previously the single precomposed glyphs ¼/½/¾, which render stacked over a bar in this
-// font, with their numerator and denominator almost touching — and a glyph's internal
-// spacing cannot be adjusted. Composing the same two digits, AT THE SAME SIZE the glyph
-// draws them (FRAC_EM), is what makes that gap settable.
+// A fraction carries `num`/`den` and is drawn stacked over a bar (see fracStyle); a whole
+// number carries `label` and is drawn as itself. The quarters were previously the single
+// precomposed glyphs ¼/½/¾, which render stacked-over-a-bar in this font — but with their
+// numerator and denominator almost touching, and a glyph's internal spacing cannot be
+// adjusted. Composing the same two digits, AT THE SAME SIZE the glyph draws them
+// (FRAC_EM), is what makes that one gap settable. This is a gap change only: nothing here
+// resizes a component or restyles it.
 const SPEED_SETTINGS = [
   { speed: 0, label: "0" },
   { speed: 0.25, num: "1", den: "4" },
@@ -95,9 +96,9 @@ export function SpeedSlider() {
               setting.label
             ) : (
               <span style={fracStyle}>
-                <span style={fracNumStyle}>{setting.num}</span>
-                <span>/</span>
-                <span style={fracDenStyle}>{setting.den}</span>
+                <span>{setting.num}</span>
+                <span style={fracBarStyle} />
+                <span>{setting.den}</span>
               </span>
             )}
           </span>
@@ -170,34 +171,29 @@ const tickStyle: React.CSSProperties = { color: "#000" };
 // them moves.
 const FRAC_EM = 0.62;
 
-// FRAC_GAP is the ONE number this change exists to set: how far the numerator rides above
-// the slash and the denominator below it, in px. Each digit moves by this much in its own
-// direction, so the total separation is twice it — roughly the 2px the stacked glyphs were
-// missing.
+// FRAC_GAP is the ONE number this change exists to set: the space above and below the bar,
+// in px. The glyphs sit their numerator and denominator almost against the bar; this opens
+// that up by roughly 2px total.
 const FRAC_GAP = 1;
 
-// A DIAGONAL fraction: numerator, slash, denominator on one line, the digits offset in
-// opposite directions around the slash. The three parts are all one size (FRAC_EM) and one
-// style — only the vertical offset differs, so this stays a gap change.
 const fracStyle: React.CSSProperties = {
   display: "inline-flex",
-  flexDirection: "row",
+  flexDirection: "column",
   alignItems: "center",
+  justifyContent: "center",
   verticalAlign: "middle",
   fontSize: `${FRAC_EM}em`,
   lineHeight: 1,
 };
 
-// translateY rather than vertical-align: it offsets the digit WITHOUT growing the line box,
-// so the tick row stays the same height and does not get pushed away from the track.
-const fracNumStyle: React.CSSProperties = {
-  display: "inline-block",
-  transform: `translateY(-${FRAC_GAP}px)`,
-};
-
-const fracDenStyle: React.CSSProperties = {
-  display: "inline-block",
-  transform: `translateY(${FRAC_GAP}px)`,
+// The fraction bar, drawn in the text's own colour so it bolds along with the digits when
+// this is the selected position.
+const fracBarStyle: React.CSSProperties = {
+  display: "block",
+  width: "100%",
+  height: 1,
+  margin: `${FRAC_GAP}px 0`,
+  background: "currentColor",
 };
 
 // The selected position is marked by WEIGHT ALONE — same colour as the rest, just bold.
