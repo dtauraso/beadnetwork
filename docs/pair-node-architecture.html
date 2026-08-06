@@ -284,7 +284,7 @@
 
             <rect x="20" y="272" width="400" height="46" rx="8" fill="#2b2b33" stroke="#3a3a44" />
             <text x="38" y="296" class="lblm" fill="#5fd68a">no second goroutine · no actor wrapping it</text>
-            <text x="38" y="312" class="lbl">nothing is constructed to be skipped or suppressed</text>
+            <text x="38" y="312" class="lbl">a pair node has no actor entry to skip or suppress</text>
           </svg>
         </div>
 
@@ -333,7 +333,8 @@
             <text x="340" y="126" class="lblm">send and move on</text>
             <text x="340" y="150" class="lbl">correctness by construction</text>
           </svg>
-          <div class="cap">A guard with an empty allowlist enforces the left column cannot come back.</div>
+          <div class="cap">A guard with an empty allowlist holds the right column: no mutex, no atomic, anywhere in
+            the network.</div>
         </div>
 
       </div>
@@ -543,8 +544,7 @@
             <text x="180" y="90" text-anchor="middle" class="lbl">6</text>
             <text x="300" y="90" text-anchor="middle" class="lbl">18</text>
             <text x="210" y="136" text-anchor="middle" class="lbl">grey = exactly perpendicular, the halt case</text>
-            <text x="210" y="154" text-anchor="middle" class="lbl">it used to be cos(π/2) at 6.1e-17 against a 1e-9
-              band</text>
+            <text x="210" y="154" text-anchor="middle" class="lbl">6 and 18 are integers, so the halt is exact</text>
           </svg>
         </div>
 
@@ -738,10 +738,10 @@
 
             <rect x="20" y="92" width="420" height="52" rx="8" fill="#2b2b33" stroke="#e05fd8" />
             <text x="38" y="114" class="lblm" fill="#e05fd8">CYCLES — the tilt exchange</text>
-            <text x="38" y="134" class="lbl">one step per cycle; scaled only now that the sleep is</text>
+            <text x="38" y="134" class="lbl">one step per cycle; the sleep is scaled, so the cycle is</text>
 
             <rect x="20" y="160" width="420" height="30" rx="8" fill="#2b2b33" stroke="#3a3a44" />
-            <text x="38" y="180" class="lbl">both follow one dial — they can no longer come apart</text>
+            <text x="38" y="180" class="lbl">both follow one dial</text>
           </svg>
         </div>
 
@@ -775,16 +775,14 @@
             <line x1="60" y1="94" x2="60" y2="40" stroke="#e05fd8" stroke-width="2.4" />
             <line x1="470" y1="94" x2="512" y2="58" stroke="#e05fd8" stroke-width="2.4" />
             <text x="255" y="188" text-anchor="middle" class="lbl">the tilts turn · the separation does not move</text>
-            <text x="255" y="212" text-anchor="middle" class="lbl">neither node slides along its ray any more</text>
+            <text x="255" y="212" text-anchor="middle" class="lbl">neither node slides along its ray</text>
           </svg>
-          <div class="cap">It was briefly otherwise: the separation was a second reading of the tilt index, so node 2
-            slid as the exchange ran. That put four things on one number — the drawn angle, the separation, the edge's
-            bead count, and (once clock-paced) the rate the tilts turn at, since a longer edge takes longer to cross.
-            One index cannot carry all of that.</div>
+          <div class="cap">The drawn angle, the separation, the edge's bead count and the rate the tilts turn at are
+            four separate things. One index carries the angle alone.</div>
         </div>
 
         <div class="card">
-          <h2>What the index still does not touch</h2>
+          <h2>What the index does not touch</h2>
           <svg width="300" height="200" viewBox="0 0 300 200">
             <rect x="20" y="24" width="260" height="52" rx="8" fill="#2b2b33" stroke="#5fd68a" />
             <text x="36" y="46" class="lblm" fill="#5fd68a">THE TILT INDEX SETS</text>
@@ -795,8 +793,7 @@
             <text x="36" y="134" class="lbl">position · reach · edge length</text>
             <text x="36" y="152" class="lbl">bead count · crossing time</text>
           </svg>
-          <div class="cap">A drag sets the separation. A tilt sets an angle. The two no longer read the same number.
-          </div>
+          <div class="cap">A drag sets the separation. A tilt sets an angle. They read different numbers.</div>
         </div>
 
         <div class="card">
@@ -860,8 +857,8 @@
             <text x="36" y="114" class="lblm" fill="#f9a825">node 2 — does not</text>
             <text x="36" y="134" class="lbl">the argument applies in mirror; nothing has been measured</text>
           </svg>
-          <div class="cap">Deliberate and scoped, not an oversight: the flip was asked for on node 1 and node 1 was
-            changed alone. Resolve it by watching node 2's normal cross a pole, not by symmetry alone.</div>
+          <div class="cap">Scoped to node 1 on purpose, not an oversight. Resolve it by watching node 2's normal cross
+            a pole, not by symmetry alone.</div>
         </div>
 
       </div>
