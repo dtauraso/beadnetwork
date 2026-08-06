@@ -227,7 +227,20 @@ func (a BuildArgs) ClaimSelfDrive() *PairNodeSelf {
 	if ng.clockSrc != nil {
 		ng.clk = ng.clockSrc.Copy()
 	}
-	return &PairNodeSelf{geom: ng}
+	// geom.clk also needs its OWN speed-delivery channel, exactly like a ring node's
+	// nodeMover.speedCh (finalizeActors) — otherwise this clock, copied once above, never
+	// hears a later speed broadcast (SceneTab.ClockDivisor or a live slider change) at all,
+	// even though the kind's own SEPARATE clock (its own SpeedCh, polled in its Update
+	// loop) does. See PairNodeSelf.speedCh's own doc comment for the full defect this closes.
+	var self *PairNodeSelf
+	if a.pb.speedSinks != nil {
+		speedCh := make(chan float64, 1)
+		*a.pb.speedSinks = append(*a.pb.speedSinks, speedCh)
+		self = &PairNodeSelf{geom: ng, speedCh: speedCh}
+	} else {
+		self = &PairNodeSelf{geom: ng}
+	}
+	return self
 }
 
 // VectorOut returns this node's own SEND end of its dedicated tilt-vector channel

@@ -14,6 +14,8 @@ package Wiring
 
 import (
 	"context"
+
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
 // PairNodeSelf wraps this node's own *nodeGeometry so a pair kind's Update loop can drive
@@ -24,6 +26,16 @@ import (
 // every other nil-safe fallback in this package.
 type PairNodeSelf struct {
 	geom *nodeGeometry
+	// speedCh is geom.clk's OWN buffered-1 speed-delivery channel — the exact analogue of
+	// nodeMover.speedCh for a ring node (mover_registry.go's finalizeActors). Without this,
+	// geom.clk was copied ONCE at build time (ClaimSelfDrive) and never touched again: the
+	// kind's own SEPARATE clock (Node1/Node2's own n.Clock, polled via its own SpeedCh in
+	// the kind's Update loop) paced wire delivery correctly, but geom.clk — the clock
+	// writeStreamFrame's frame tick and chainBeads' animation actually read — stayed frozen
+	// at whatever speed it had at load, so a pair node's RENDERED bead motion never reflected
+	// SceneTab.ClockDivisor or a live slider change at all. Polled once per Step cycle below,
+	// mirroring nodeMover.run's "ApplySpeedNonBlocking every cycle" shape exactly.
+	speedCh <-chan float64
 }
 
 // EmitGeometryOnce sends this node's initial node-geometry frame — the one-time startup
@@ -51,6 +63,7 @@ func (p *PairNodeSelf) Step(ctx context.Context, tick int64) {
 		return
 	}
 	g := p.geom
+	wire.ApplySpeedNonBlocking(g.clk, p.speedCh)
 	for {
 		progressed := false
 		select {
