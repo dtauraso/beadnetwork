@@ -230,6 +230,13 @@
       border-bottom-color: var(--accent)
     }
 
+    /* the checkout path is not known yet — the link says so rather than
+       looking live and doing nothing */
+    a.srclink.needsroot {
+      border-bottom-style: dashed;
+      border-bottom-color: var(--warm)
+    }
+
     table.f tr.h td {
       color: var(--accent);
       font-weight: 600;
