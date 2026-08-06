@@ -115,11 +115,13 @@ loop body) runs:
   pole. This is a PURE function of `TopTiltThetaIdx` alone — no stored "did we just cross"
   flag, no comparison against a previous value. This node's own goroutine computes the
   normal (`coplanarNormal`) and reports the tilt index, the normal index, AND the bottom
-  tilt index to its own mover in one call (`syncTiltIndex`, `SyncTiltIndex(theta, phi,
-  normalTheta, normalPhi, bottomTheta, bottomPhi)`) every time any of them changes — the
-  mover is a pure mirror that streams exactly what it is told as the buffer's
-  `CoplanarNormalTheta`/`CoplanarNormalPhi` columns, never deriving a normal from the edge
-  itself (`coplanarNormalTowardPartner` was removed).
+  tilt index to its own geometry in one call (`syncTiltIndex`, `SyncTiltIndex(theta, phi,
+  normalTheta, normalPhi, bottomTheta, bottomPhi)`) every time any of them changes. That
+  is a plain method call on this node's OWN goroutine, not a message to a second one:
+  there is no `nodeMover` for this kind, and `PairNodeSelf.SetTiltIndex` sets the
+  geometry's mirror fields directly. The geometry stays a pure mirror — it streams exactly
+  what it is told as the buffer's `CoplanarNormalTheta`/`CoplanarNormalPhi` columns and
+  never derives a normal from the edge itself (`coplanarNormalTowardPartner` was removed).
 - **Bottom tilt vector**: this node's TOP tilt vector turned a half turn (180°,
   `Wiring.HalfTurnThetaIdx`) in θ — Node1 adds it, its mirror package does the
   opposite. φ untouched. A half turn in θ alone negates the direction exactly in this
@@ -131,8 +133,9 @@ loop body) runs:
   package) turns +180° (+12 steps). φ is untouched. Index arithmetic only.
 - **On receiving a vector**: FIRST, unconditionally, this node records the received
   direction as its own THIRD drawn vector (`ReceivedThetaIdx`/`ReceivedPhiIdx`/
-  `ReceivedSet`, reported one-way to its own mover via `SyncReceivedVector` — same
-  passive-mirror shape as `SyncTiltIndex`) — REPLACING whatever it received last time,
+  `ReceivedSet`, reported to its own geometry via `SyncReceivedVector` — same
+  passive-mirror shape as `SyncTiltIndex`, and likewise a direct call rather than a
+  message) — REPLACING whatever it received last time,
   regardless of whether the step below fires. THEN the step decision: TWO DOT PRODUCTS —
   the received vector against this node's own TOP tilt vector, and against its own BOTTOM
   tilt vector (`Wiring.TiltVectorIsAcute`, the sign of `Wiring.TiltVectorDot`). They decide

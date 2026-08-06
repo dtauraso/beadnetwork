@@ -112,16 +112,22 @@ loop body) runs:
   ± split as every other per-kind sign here. **Unlike Node1's `coplanarNormal`, this
   kind's `coplanarNormal` (`nodes/Node2/node.go`) applies NO pole-crossing parity
   correction** — it is exactly `TopTiltThetaIdx - PerpendicularThetaIdx`, no `floorDiv`,
-  no half-turn flip term. (Node1's has one — see `nodes/Node1/SPEC.md` — because its base
-  direction subtracts and so runs negative for most of its life; whether Node2 needs the
-  analogous correction for its own positive-running base direction was not verified here
-  as anything beyond "the code as written has no such term".) This node's own goroutine
+  no half-turn flip term. That asymmetry is DELIBERATE and scoped, not an oversight: the
+  flip was asked for on node 1 alone, and Node1 was changed alone. It is not yet known
+  whether this kind wants the same correction — the argument for Node1's (its base
+  direction subtracts, so it runs negative and crosses poles readily) applies here in
+  mirror, and nothing has been measured either way. Treat it as an OPEN question rather
+  than a settled design, and resolve it by watching this kind's normal arrow across a pole
+  rather than by symmetry alone. This node's own goroutine
   computes the normal (`coplanarNormal`) and reports the tilt index, the normal index, AND
-  the bottom tilt index to its own mover in one call (`syncTiltIndex`,
+  the bottom tilt index to its own geometry in one call (`syncTiltIndex`,
   `SyncTiltIndex(theta, phi, normalTheta, normalPhi, bottomTheta, bottomPhi)`) every time
-  any of them changes — the mover is a pure mirror that streams exactly what it is told as
-  the buffer's `CoplanarNormalTheta`/`CoplanarNormalPhi` columns, never deriving a normal
-  from the edge itself (`coplanarNormalTowardPartner` was removed).
+  any of them changes. That is a plain method call on this node's OWN goroutine, not a
+  message to a second one: there is no `nodeMover` for this kind, and
+  `PairNodeSelf.SetTiltIndex` sets the geometry's mirror fields directly. The geometry
+  stays a pure mirror — it streams exactly what it is told as the buffer's
+  `CoplanarNormalTheta`/`CoplanarNormalPhi` columns and never derives a normal from the
+  edge itself (`coplanarNormalTowardPartner` was removed).
 - **Bottom tilt vector**: this node's TOP tilt vector turned a half turn (180°,
   `Wiring.HalfTurnThetaIdx`) in θ — Node2 subtracts it, its mirror package does the
   opposite. φ untouched. A half turn in θ alone negates the direction exactly in this
@@ -133,8 +139,9 @@ loop body) runs:
   package) turns −180° (−12 steps). φ is untouched. Index arithmetic only.
 - **On receiving a vector**: FIRST, unconditionally, this node records the received
   direction as its own THIRD drawn vector (`ReceivedThetaIdx`/`ReceivedPhiIdx`/
-  `ReceivedSet`, reported one-way to its own mover via `SyncReceivedVector` — same
-  passive-mirror shape as `SyncTiltIndex`) — REPLACING whatever it received last time,
+  `ReceivedSet`, reported to its own geometry via `SyncReceivedVector` — same
+  passive-mirror shape as `SyncTiltIndex`, and likewise a direct call rather than a
+  message) — REPLACING whatever it received last time,
   regardless of whether the step below fires. THEN the step decision: TWO DOT PRODUCTS —
   the received vector against this node's own TOP tilt vector, and against its own BOTTOM
   tilt vector (`Wiring.TiltVectorIsAcute`, the sign of `Wiring.TiltVectorDot`). They decide
