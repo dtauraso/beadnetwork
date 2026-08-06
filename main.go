@@ -272,6 +272,10 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 	// Initial camera viewpoint = FILE DATA: Go reads the saved camera from
 	// <topologyPath>/view/camera.json and installs it into the gesture-FSM viewpoint.
 	W.SeedInitialViewpoint(scenePath, md, tr)
+	// Does THIS scene own the three named distance groups? Resolve before anything emits a
+	// VIEW frame, since that frame carries the three group lengths. Not file data — it is a
+	// property of which scene was loaded (Wiring.SceneTab.DistanceGroups).
+	md.ResolveSceneDistanceGroups(scenePath)
 	// Restore persisted overlay visibility: seed md.ov from overlays.json and emit each flag
 	// so the buffer streams the saved overlay state from the first frame. Seed BEFORE
 	// EnableEditPersist so the seed's own emit does not write the loaded state back.
