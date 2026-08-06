@@ -90,6 +90,15 @@ changed=$(printf '%s\n%s\n' "$worktree_changed" "$committed_changed")
 
 go_changed=$(echo "$changed" | grep -E '\.go$' || true)
 ts_changed=$(echo "$changed" | grep -E 'tools/topology-vscode/.*\.(ts|tsx)$' || true)
+# CSS is a BUNDLE INPUT too — esbuild emits out/webview.css from src/webview/webview.css,
+# and the webview loads that built file, not the source. It is tracked separately from
+# ts_changed because it feeds only the BUILD: tsc --noEmit has nothing to say about a
+# stylesheet.
+#
+# Without this, a CSS-only edit passed every check while never reaching the editor: the
+# build lives inside the `ts_changed` block, so out/webview.css kept whatever the last
+# TS-touching commit had built. A stylesheet change looked verified and shipped nothing.
+css_changed=$(echo "$changed" | grep -E 'tools/topology-vscode/.*\.css$' || true)
 
 fail=0
 out=""
@@ -129,18 +138,19 @@ if [ -n "$go_changed" ]; then
   fi
 fi
 
-if [ -n "$ts_changed" ]; then
-  if ! tsc_out=$(cd tools/topology-vscode && npx --no-install tsc --noEmit 2>&1); then
+if [ -n "$ts_changed" ] || [ -n "$css_changed" ]; then
+  if [ -n "$ts_changed" ] && ! tsc_out=$(cd tools/topology-vscode && npx --no-install tsc --noEmit 2>&1); then
     out+="tsc --noEmit failed:\n$tsc_out\n\n"
     fail=1
   fi
   # Rebuild the webview/extension bundle so Cmd-R in the host picks up
-  # the latest TS changes without a manual `npm run build`. Skip when
-  # out/webview.js is already newer than every changed TS file — avoids
+  # the latest TS/CSS changes without a manual `npm run build`. Skip when
+  # out/webview.js is already newer than every changed bundle input — avoids
   # paying full esbuild cost on no-op or pure-test edits.
   webview_out="tools/topology-vscode/out/webview.js"
-  # Test files don't enter the bundle; skip build when only test/ changed.
-  bundle_ts_changed=$(echo "$ts_changed" | grep -v 'tools/topology-vscode/test/' || true)
+  # Test files don't enter the bundle; skip build when only test/ changed. CSS always
+  # enters it (esbuild emits out/webview.css), so it joins the list unfiltered.
+  bundle_ts_changed=$(printf '%s\n%s' "$(echo "$ts_changed" | grep -v 'tools/topology-vscode/test/' || true)" "$css_changed" | grep -v '^$' || true)
   need_build=0
   if [ -n "$bundle_ts_changed" ]; then
     need_build=1
