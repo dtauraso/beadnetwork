@@ -59,6 +59,14 @@
     "editor.fontSize": 12,
     "debug.console.fontSize": 12,
     "markdown.preview.fontSize": 12,
+    // Styles the Markdown preview to match docs/pair-node/*.html. It exists because
+    // docs/pair-node/formulas.md must be Markdown to have working source links —
+    // a preview opens a workspace file as an editor tab, a webview cannot — and
+    // without this the one Markdown page in that set looked like plain text next
+    // to its sibling diagram pages. Workspace-relative path.
+    "markdown.styles": [
+        "docs/pair-node/markdown.css"
+    ],
     "terminal.integrated.fontSize": 12,
     "files.autoSave": "afterDelay",
     "files.autoSaveDelay": 2000,

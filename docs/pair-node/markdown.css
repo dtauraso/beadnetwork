@@ -1,0 +1,115 @@
+/* Styles VS Code's Markdown preview to match the pair-node HTML pages.
+   Wired up by .vscode/settings.json's "markdown.styles". It applies to every
+   Markdown preview in this workspace, so it stays close to VS Code's own dark
+   defaults and only sharpens what the formula tables need: real table rules,
+   a monospace column, and the palette the sibling pages use. */
+
+:root {
+  --pn-bg: #22222a;
+  --pn-panel: #2f2f37;
+  --pn-line: #3a3a44;
+  --pn-ink: #e7e7ea;
+  --pn-dim: #9a9aa6;
+  --pn-accent: #4ea1ff;
+  --pn-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+body.vscode-dark {
+  background: var(--pn-bg);
+  color: var(--pn-ink);
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 14px 18px 40px;
+  max-width: 1100px;
+}
+
+body.vscode-dark h1 {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  border: 0;
+  margin: 0 0 4px;
+}
+
+body.vscode-dark h2 {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--pn-accent);
+  border-bottom: 1px solid var(--pn-line);
+  padding-bottom: 6px;
+  margin: 26px 0 10px;
+}
+
+body.vscode-dark p {
+  color: var(--pn-dim);
+  font-size: 11px;
+  max-width: 78ch;
+}
+
+body.vscode-dark a {
+  color: var(--pn-accent);
+  text-decoration: none;
+  border-bottom: 1px dotted var(--pn-line);
+}
+
+body.vscode-dark a:hover {
+  border-bottom-color: var(--pn-accent);
+}
+
+body.vscode-dark table {
+  border-collapse: collapse;
+  width: 100%;
+  background: var(--pn-panel);
+  border: 1px solid var(--pn-line);
+  border-radius: 8px;
+  font-size: 11px;
+  margin: 0 0 10px;
+}
+
+body.vscode-dark th {
+  text-align: left;
+  color: var(--pn-accent);
+  font-weight: 600;
+  border-bottom: 1px solid var(--pn-line);
+  padding: 6px 12px 6px 10px;
+}
+
+body.vscode-dark td {
+  border: 0;
+  padding: 4px 12px 4px 10px;
+  vertical-align: baseline;
+  color: var(--pn-dim);
+}
+
+/* expression : note : source — the same shares as the HTML pages had, so a
+   long file name stays on one line and nothing scrolls sideways */
+body.vscode-dark th:nth-child(1),
+body.vscode-dark td:nth-child(1) {
+  width: 40%;
+  color: var(--pn-ink);
+}
+
+body.vscode-dark th:nth-child(2),
+body.vscode-dark td:nth-child(2) {
+  width: 32%;
+}
+
+body.vscode-dark th:nth-child(3),
+body.vscode-dark td:nth-child(3) {
+  width: 28%;
+}
+
+body.vscode-dark code {
+  font-family: var(--pn-mono);
+  font-size: 11px;
+  color: var(--pn-ink);
+  background: none;
+  padding: 0;
+  overflow-wrap: anywhere;
+}
+
+body.vscode-dark tr {
+  background: none !important;
+}
