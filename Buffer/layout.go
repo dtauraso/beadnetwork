@@ -325,6 +325,13 @@ type bufLayoutOverlay struct {
 	GroupLenTime  float32 `buf:"f32"` // time-nodes group's current max pair length
 	GroupLenInput float32 `buf:"f32"` // input-node group's current max pair length
 	GroupLenGate  float32 `buf:"f32"` // gate/pulse-nodes group's current max pair length
+	// Speed is the current playback-speed multiplier (one of the SpeedSlider's six table
+	// values: 0, 0.25, 0.5, 0.75, 1, 2). Go owns it (RunStdinReader's clock/speed edit
+	// handler, seeded at load from view/speed.json); this column is a READ-ONLY reflect so
+	// the webview slider can show the persisted/live value instead of holding its own local
+	// default (memory/feedback_reflect_dont_create_store.md) — it is never derived from this
+	// column, only displayed from it.
+	Speed float32 `buf:"f32"` // current playback-speed multiplier
 }
 
 // bufLayoutScene defines the scene-sphere column block (always 1 row).

@@ -160,6 +160,8 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 	md.mr.edgeOut = map[string]*wire.Out{}
 	md.mr.centerMirror = map[string]vec3{}
 	md.ui.ov = defaultOverlayState()
+	md.ui.speed = 1        // default playback multiplier; LoadSpeed overwrites from view/speed.json if present
+	md.ui.clockDivisor = 1 // no scaling until LoadSpeed resolves the loaded scene's own divisor
 	md.gs.nodeSeeds = make([]NodeGeomSeed, 0, len(nodeOrder))
 	for i, id := range nodeOrder {
 		g, ok := geoms[id]

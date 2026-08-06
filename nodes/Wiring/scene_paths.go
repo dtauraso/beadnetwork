@@ -60,3 +60,10 @@ func overlaysFilePath(topologyPath string) string {
 func sphereFilePath(topologyPath string) string {
 	return sceneViewFilePath(topologyPath, "sphere.json")
 }
+
+// speedFilePath is the WRITE-side location of the persisted playback-speed multiplier —
+// one-file-per-writer, mirroring camera/overlays/sphere above. writeSceneSpeed is its
+// only writer (scene_speed_persist.go).
+func speedFilePath(topologyPath string) string {
+	return sceneViewFilePath(topologyPath, "speed.json")
+}

@@ -31,6 +31,9 @@ type persisters struct {
 	// sphere is "established once and never moves" (MODEL.md). nil until armed (tests that
 	// never arm).
 	sphere *sceneSpherePersister
+	// speed is the playback-speed persister (scene_speed_persist.go), armed by
+	// EnableEditPersist. nil until armed (tests that never arm).
+	speed *speedPersister
 }
 
 // EnableViewpointPersist arms gesture-driven camera persistence: every subsequent
@@ -52,6 +55,7 @@ func (md *MoveDispatch) EnableViewpointPersist(topologyPath string) {
 //     port's anchorId back to the port json file (scene_anchor_persist.go's
 //     persistPortAnchor), same nm.persistRoot as above
 //   - overlays (applyUpdate toggle/set) → overlay-visibility keys in view/overlays.json
+//   - clock speed (applyUpdate clock/speed) → view/speed.json (scene_speed_persist.go)
 //
 // topologyPath is always the tree root directory — LoadTopology rejects anything else
 // (topo_spec.go) — so it is used directly as root for the per-node/per-port persisters.
@@ -60,6 +64,7 @@ func (md *MoveDispatch) EnableEditPersist(topologyPath string) {
 	root := topologyPath
 	md.persist.overlays = &overlaysPersister{path: overlaysFilePath(topologyPath)}
 	md.persist.sphere = &sceneSpherePersister{path: sphereFilePath(topologyPath)}
+	md.persist.speed = &speedPersister{path: speedFilePath(topologyPath)}
 	// Every node's own mover writes its own position.json/local-polars.json/port-anchor
 	// files — set the tree root on each nodeMover directly rather than routing writes
 	// through a shared MoveDispatch-owned persister (docs/planning/decentralized-

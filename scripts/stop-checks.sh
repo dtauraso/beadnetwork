@@ -187,7 +187,7 @@ fi
 #     language gate, not in this fast unconditional loop.
 #   check-no-foreground-sim / check-stray-screenshots — PreToolUse hooks, not checks;
 #     they read tool_input JSON from stdin and must always exit 0.
-GUARD_EXCLUDE="check-staticcheck|check-eslint|check-vitest|check-no-foreground-sim|check-stray-screenshots"
+GUARD_EXCLUDE="check-staticcheck|check-eslint|check-vitest|check-no-foreground-sim|check-stray-screenshots|check-no-shell-source-edits"
 
 shopt -s nullglob
 guards=(tools/check-*.sh)

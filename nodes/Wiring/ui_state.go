@@ -25,6 +25,14 @@ type uiState struct {
 	// the content-fit) at startup; its Center is the one cartesian anchor. Phase 1 stores
 	// it; later phases derive node world from it and move it on pan.
 	sceneSphere sceneSphere
+	// clockDivisor is this SCENE's ClockDivisor (SceneTab.ClockDivisor, scene_tabs.go),
+	// resolved ONCE at load by LoadSpeed from the scene actually loaded (the process is
+	// respawned per tab switch, so a per-process value is correct). Defaults to 1 (no
+	// scaling) so a bare test-constructed MoveDispatch that never calls LoadSpeed behaves
+	// unscaled. clockAttrHandlers's "speed" case and LoadSpeed both feed this through
+	// EffectiveClockSpeed (scene_speed_persist.go) so a live slider edit and the load-time
+	// seed can never disagree. Never persisted and never crosses the bridge.
+	clockDivisor float64
 	// vp is the polar camera viewpoint state (viewpoint_state.go). Owned entirely by
 	// MoveDispatch — no separate goroutine; callers serialize externally (stdin reader
 	// runs in a single goroutine). MoveDispatch exposes thin delegating methods.
@@ -73,6 +81,13 @@ type uiState struct {
 	// pending→dragging commit edge that sets gest.dragNode (commitDragStart,
 	// gesture_graph.go).
 	lastDraggedNode string
+	// speed is the current playback-speed multiplier (one of the SpeedSlider's six table
+	// values: 0, 0.25, 0.5, 0.75, 1, 2). Mirrors, on this goroutine, the value broadcast to
+	// every clock-owning goroutine's own speed channel (clockAttrHandlers's "speed" case) —
+	// it exists so the VIEW frame can REFLECT the current speed (Buffer.OverlayRow's Speed
+	// column) for the webview slider to read, and so LoadSpeed (scene_speed_persist.go) has
+	// somewhere to seed the loaded value before the first emit. Defaults to 1 (newMoveDispatch).
+	speed float64
 }
 
 // sendEdgeSelect routes a select/deselect message to one edge's OWN dedicated extIn

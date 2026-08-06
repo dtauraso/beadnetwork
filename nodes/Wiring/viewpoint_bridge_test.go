@@ -35,6 +35,7 @@ func captureViewFrameKinds(md *MoveDispatch, kinds *[]wire.RowEvent) {
 		sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis uint8,
 		dragNodeRow int32,
 		groupLenTime, groupLenInput, groupLenGate float32,
+		speed float32,
 		sceneCX, sceneCY, sceneCZ, sceneRadius float32,
 		events []wire.RowEvent,
 	) []byte {

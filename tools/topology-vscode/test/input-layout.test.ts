@@ -64,11 +64,20 @@ describe("overlays edit-update — fully numeric (no JSON)", () => {
 });
 
 describe("clock edit-update — fully numeric (no JSON)", () => {
-  it("speed: [22][entityKind=clock][attr=speed=1][value] + round-trip", () => {
+  it("speed: [22][entityKind=clock][attr=speed=1][quarterUnits] + round-trip", () => {
     const rec = encodeClockSpeed(2);
     const b = new Uint8Array(rec);
-    expect(b).toEqual(new Uint8Array([22, IN_UPDATE_KINDS.indexOf("clock"), 1, 2]));
+    // 2 → 8 quarter-units on the wire (encodeClockSpeed sends speed*4 so a fractional
+    // multiplier survives Go's int Num field with no truncation).
+    expect(b).toEqual(new Uint8Array([22, IN_UPDATE_KINDS.indexOf("clock"), 1, 8]));
     expect(decodeInputRecord(rec)).toEqual({ kind: "edit-update", entity: "clock", attr: "speed", value: 2 });
+  });
+
+  it("fractional speed (0.25) round-trips exactly via quarter-units", () => {
+    const rec = encodeClockSpeed(0.25);
+    const b = new Uint8Array(rec);
+    expect(b).toEqual(new Uint8Array([22, IN_UPDATE_KINDS.indexOf("clock"), 1, 1]));
+    expect(decodeInputRecord(rec)).toEqual({ kind: "edit-update", entity: "clock", attr: "speed", value: 0.25 });
   });
 });
 
