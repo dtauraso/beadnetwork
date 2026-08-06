@@ -38,7 +38,7 @@ func TestChainBeadsStayOutsideBothNodes(t *testing.T) {
 	// Expressed as a cell count * wire.BeadStepR, not a bare literal, so this
 	// stays an exact multiple of the local-polar grid constant whatever that constant is.
 	const gap = 200 * wire.BeadStepR
-	m := &nodeMover{
+	m := &nodeGeometry{
 		id:             "a",
 		geom:           nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}}, // radius 15
 		outTargets:     []string{"b"},
@@ -70,7 +70,7 @@ func TestChainBeadsStayOutsideBothNodes(t *testing.T) {
 // an exact multiple of wire.BeadStepR, so there is no residue for a per-edge size to
 // absorb; MODEL.md "Moving a node is CRUD on the edge beads that touch it").
 func TestChainBeadsTouch(t *testing.T) {
-	m := &nodeMover{
+	m := &nodeGeometry{
 		id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}},
 		outTargets: []string{"b"}, neighborKinds: map[string]string{"b": "Input"},
 		// 150 cells * wire.BeadStepR, not the bare literal 300 — see the comment
@@ -95,7 +95,7 @@ func TestChainBeadsTouch(t *testing.T) {
 // ONE bead — edgeStepCount clamps to a minimum of 1 (docs/bead-lattice.md "The count") so an
 // edge never has zero beads, even when the gap collapses.
 func TestChainBeadsAlwaysAtLeastOneBead(t *testing.T) {
-	m := &nodeMover{
+	m := &nodeGeometry{
 		id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}},
 		outTargets: []string{"b"}, neighborKinds: map[string]string{"b": "Input"},
 		// 3 cells * wire.BeadStepR, not the bare literal 6 — see the comment on
@@ -114,7 +114,7 @@ func TestChainBeadsAlwaysAtLeastOneBead(t *testing.T) {
 // only with its own live m.partnerCenters, never a stored bearing or a made-up direction
 // (MODEL.md "the polar model": no node-node stored coordinate).
 func TestChainBeadsUnknownPartnerContributesNothing(t *testing.T) {
-	m := &nodeMover{
+	m := &nodeGeometry{
 		id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}}, outTargets: []string{"b"},
 	}
 	if ox, _, _, _, _, _ := m.chainBeads(); len(ox) != 0 {
@@ -128,7 +128,7 @@ func TestChainBeadsUnknownPartnerContributesNothing(t *testing.T) {
 // what makes a constant per-bead dwell a constant visible speed.
 func TestChainBeadsCountIsSpanProportional(t *testing.T) {
 	count := func(centerGap float64) int {
-		m := &nodeMover{
+		m := &nodeGeometry{
 			id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}},
 			outTargets: []string{"b"}, neighborKinds: map[string]string{"b": "Input"},
 			partnerCenters: singleNeighborCenter("b", centerGap),
@@ -309,7 +309,7 @@ func TestChainBeadsExactDoubleTangency(t *testing.T) {
 	for _, kp := range kindPairs {
 		srcKind, dstKind := kp[0], kp[1]
 		for _, gap := range centerGaps {
-			m := &nodeMover{
+			m := &nodeGeometry{
 				id:             "a",
 				geom:           nodeGeom{nodeIdentity: nodeIdentity{Kind: srcKind}},
 				outTargets:     []string{"b"},
@@ -358,13 +358,13 @@ func TestChainBeadsExactDoubleTangency(t *testing.T) {
 // diverge from (MODEL.md "the polar model": no node-node stored coordinate) — the aim is
 // ALWAYS this live measurement.
 
-// offAxisFixture builds a *nodeMover for one edge "a"->"b" whose LIVE partnerCenters
+// offAxisFixture builds a *nodeGeometry for one edge "a"->"b" whose LIVE partnerCenters
 // direction sits off to the side in the X/Z plane at colatitude ~53.13 degrees (a 3-4-5
 // triangle's angle, chosen only because it is not a whole degree and not a special angle,
 // so no accidental alignment). The live center is placed at EXACTLY count*BeadStepR + both
 // tori (on-lattice, by this fixture's own construction) so the far-edge tangency assertion
 // below has no residue to tolerate beyond float round-off.
-func offAxisFixture(srcKind, dstKind string, count int) *nodeMover {
+func offAxisFixture(srcKind, dstKind string, count int) *nodeGeometry {
 	selfTorus := nodeTorusOuterR(srcKind)
 	dstTorus := nodeTorusOuterR(dstKind)
 	dist := selfTorus + float64(count)*wire.BeadStepR + dstTorus
@@ -372,7 +372,7 @@ func offAxisFixture(srcKind, dstKind string, count int) *nodeMover {
 	// needed to state exactly (a 3-4-5 triangle), scaled to the exact required
 	// center-to-center distance.
 	targetCenter := vec3{X: dist * 0.6, Y: 0, Z: dist * 0.8}
-	return &nodeMover{
+	return &nodeGeometry{
 		id:             "a",
 		geom:           nodeGeom{nodeIdentity: nodeIdentity{Kind: srcKind}}, // HasPos false -> center at origin
 		outTargets:     []string{"b"},

@@ -49,7 +49,7 @@ import (
 // file (position.json is keyed by node id, so no two calls ever race the same
 // os.WriteFile/Rename) and nm.persistRoot is set once, before any mover goroutine starts,
 // and never written again.
-func (nm *nodeMover) persistQuantOffset(off quantizedOffset, scene polar) {
+func (nm *nodeGeometry) persistQuantOffset(off quantizedOffset, scene polar) {
 	if nm.persistRoot == "" {
 		return
 	}
@@ -67,7 +67,7 @@ func (nm *nodeMover) persistQuantOffset(off quantizedOffset, scene polar) {
 // moveMsgKindTiltVectorAngle case). Carries the node's CURRENT position/quant-offset along
 // unchanged (same one-file whole-marshal shape as persistQuantOffset, reversed: this
 // write is angle-driven, not position-driven). nm.persistRoot == "" is a no-op.
-func (nm *nodeMover) persistTiltVectorAngle() {
+func (nm *nodeGeometry) persistTiltVectorAngle() {
 	if nm.persistRoot == "" {
 		return
 	}

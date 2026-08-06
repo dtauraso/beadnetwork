@@ -19,12 +19,12 @@ import (
 // center (400,300) projects EXACTLY onto the node's center — the deterministic "center
 // grab" case the companion test below relies on.
 func dragOffsetMD() *MoveDispatch {
-	md := &MoveDispatch{mr: moverRegistry{nodeMovers: map[string]*nodeMover{}, edgeMovers: map[string]*edgeMover{}}}
+	md := &MoveDispatch{mr: moverRegistry{nodeGeoms: map[string]*nodeGeometry{}, edgeMovers: map[string]*edgeMover{}}}
 	md.ui.vp.viewpoint = canonicalViewpoint()
 	g := nodeGeom{nodeIdentity: nodeIdentity{Kind: "TimeEnd"}}
 	setNodeWorld(&g, vec3{X: 0, Y: 0, Z: 0})
-	nm := newNodeMover("n", g, nil, wire.NewRealClock())
-	md.mr.nodeMovers["n"] = nm
+	nm := newNodeGeometry("n", g, nil, wire.NewRealClock())
+	md.mr.nodeGeoms["n"] = nm
 	// No goroutine started (mirrors gesture_home_test's homeMD): extIn is a buffered
 	// channel (moverInboxDepth), so sendMove's writes land there for the test to drain
 	// without a live mover loop committing them.
@@ -37,7 +37,7 @@ func nodeHit() rawHit { return rawHit{Kind: "node", NodeRow: 0} }
 // drainDrag reads off nm.extIn until it sees a moveMsgKindDrag, returning its Target. Fails
 // the test if none arrives (commitDragStart's DragStart message precedes it on the same
 // channel for the first move of a drag).
-func drainDrag(t *testing.T, nm *nodeMover) vec3 {
+func drainDrag(t *testing.T, nm *nodeGeometry) vec3 {
 	t.Helper()
 	for {
 		select {
@@ -59,7 +59,7 @@ func drainDrag(t *testing.T, nm *nodeMover) vec3 {
 // second, genuine move.
 func TestGestureDragOffCenterPreservesGrabPoint(t *testing.T) {
 	md := dragOffsetMD()
-	nm := md.mr.nodeMovers["n"]
+	nm := md.mr.nodeGeoms["n"]
 
 	down := rawEvent("pointerdown", 450, 300) // OFF the node's screen-center projection
 	down.Hit = nodeHit()
@@ -112,7 +112,7 @@ func TestGestureDragOffCenterPreservesGrabPoint(t *testing.T) {
 // zero offset and drag targets equal to the raw plane-hit, same as before the fix.
 func TestGestureDragCenterGrabUnchanged(t *testing.T) {
 	md := dragOffsetMD()
-	nm := md.mr.nodeMovers["n"]
+	nm := md.mr.nodeGeoms["n"]
 
 	down := rawEvent("pointerdown", 410, 300) // off-center; only its distance to move1 matters for the slop check
 	down.Hit = nodeHit()

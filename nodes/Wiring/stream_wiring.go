@@ -144,7 +144,7 @@ func (sw *streamWiring) setEdgeStreams(
 // happen) is skipped rather than panicking.
 func (sw *streamWiring) setNodeStreams(
 	nodeSeeds []NodeGeomSeed,
-	nodeMovers map[string]*nodeMover,
+	nodeMovers map[string]*nodeGeometry,
 	nodeBase, interiorBase int,
 	driveBase int, driveWired bool,
 	nodeRowFor func(id string) (int32, bool),

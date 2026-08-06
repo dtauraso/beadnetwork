@@ -39,7 +39,7 @@ import (
 
 // MoveDispatch is the pure registry built at load that owns every mover and wires their
 // dedicated channels together — there
-// is no shared dispatch map anymore; md.mr.nodeMovers/md.mr.edgeMovers themselves are the
+// is no shared dispatch map anymore; md.mr.nodeGeoms/md.mr.edgeMovers themselves are the
 // directories a mover's resolveDest closure and the external-entry helpers below look up.
 // It also retains the per-edge source Outs so out-of-package test/verifier callers can
 // read an edge's loaded geometry (EdgeOut) without going through a central coordinator.
@@ -117,9 +117,17 @@ type MoveDispatch struct {
 	tiltEditIns map[string]chan TiltEditMsg
 }
 
+// finalizeActors builds the ring's nodeMover actor directory from md.mr.nodeGeoms, AFTER
+// every kind's own build func has run (so every BuildArgs.ClaimSelfDrive call has already
+// happened — see moverRegistry.selfDriveClaimed's own doc comment). Thin delegator to
+// md.mr (mover_registry.go).
+func (md *MoveDispatch) finalizeActors(speedSinks *[]chan float64) {
+	md.mr.finalizeActors(speedSinks)
+}
+
 // newMoveDispatch builds the registry from per-node geometry and per-edge endpoints.
 // It creates one nodeMover per node and one edgeMover per edge, registering each under
-// its key (node id / edge id) in md.mr.nodeMovers/md.mr.edgeMovers, and wires the dedicated
+// its key (node id / edge id) in md.mr.nodeGeoms/md.mr.edgeMovers, and wires the dedicated
 // directed channels between adjacent movers. Outs and dest wires are bound later by Bind once node
 // construction has populated them. nodeOrder/edgeOrder are the
 // SPEC order (deterministic directory-sorted order, not map iteration order) used to
@@ -155,7 +163,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 	md := &MoveDispatch{
 		tr: tr,
 	}
-	md.mr.nodeMovers = map[string]*nodeMover{}
+	md.mr.nodeGeoms = map[string]*nodeGeometry{}
 	md.mr.edgeMovers = map[string]*edgeMover{}
 	md.mr.edgeOut = map[string]*wire.Out{}
 	md.mr.centerMirror = map[string]vec3{}
@@ -225,20 +233,15 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 		})
 	}
 	for id, g := range geoms {
-		nm := newNodeMover(id, g, tr, clk)
-		if speedSinks != nil {
-			nodeSpeedCh := make(chan float64, 1)
-			nm.speedCh = nodeSpeedCh
-			*speedSinks = append(*speedSinks, nodeSpeedCh)
-		}
+		ng := newNodeGeometry(id, g, tr, clk)
 		// resolveDest resolves the ONE dedicated directed channel FROM this node
 		// (selfID, captured below) TO destID: another node's own neighborIn[selfID]
 		// slot, or an incident edge's srcIn/dstIn depending on which endpoint this
-		// node is. There is no shared dispatch map to look up — md.mr.nodeMovers/md.mr.edgeMovers are the
+		// node is. There is no shared dispatch map to look up — md.mr.nodeGeoms/md.mr.edgeMovers are the
 		// read-only directories, safe to read from any goroutine once construction
 		// finishes.
 		selfID := id
-		nm.resolveDest = func(destID string) (chan moveMsg, bool) {
+		ng.resolveDest = func(destID string) (chan moveMsg, bool) {
 			if em, ok := md.mr.edgeMovers[destID]; ok {
 				switch selfID {
 				case em.srcID:
@@ -248,21 +251,21 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 				}
 				return nil, false
 			}
-			if other, ok := md.mr.nodeMovers[destID]; ok {
+			if other, ok := md.mr.nodeGeoms[destID]; ok {
 				if ch, ok := other.neighborIn[selfID]; ok {
 					return ch, true
 				}
 			}
 			return nil, false
 		}
-		nm.sendMove = md.enqueueFor(nm)
-		nm.tap = md.tapToInstall
-		nm.centerOf = md.centerOfNode
-		ownMover := nm
-		nm.commitLocal = func(_ string, newPos vec3) { md.commitNodeMoveLocal(ownMover, newPos) }
-		md.mr.nodeMovers[id] = nm
+		ng.sendMove = md.enqueueFor(ng)
+		ng.tap = md.tapToInstall
+		ng.centerOf = md.centerOfNode
+		ownGeom := ng
+		ng.commitLocal = func(_ string, newPos vec3) { md.commitNodeMoveLocal(ownGeom, newPos) }
+		md.mr.nodeGeoms[id] = ng
 		// Seed the dispatch goroutine's center mirror from the same load-time geom
-		// (single-threaded setup, before md.Start — no mover goroutine is running yet)
+		// (single-threaded setup, before md.Start — no driving goroutine is running yet)
 		// so the first framing read has every center before any push arrives (mirrors
 		// the partnerCenters seed below).
 		md.mr.centerMirror[id] = nodeWorldPos(g)
@@ -280,7 +283,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 		if !hasEdge[ep.Target+"\x00"+ep.Source] {
 			continue
 		}
-		if nm, ok := md.mr.nodeMovers[ep.Source]; ok {
+		if nm, ok := md.mr.nodeGeoms[ep.Source]; ok {
 			if nm.mutualTargets == nil {
 				nm.mutualTargets = map[string]bool{}
 			}
@@ -299,8 +302,8 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 		// created above, srcIn/dstIn) — and each other's own dedicated channel for
 		// node-to-node traffic (neighborIn, the plain-neighbor/partner-reemit fan):
 		// two directed channels per ordered pair, never a shared inbox.
-		if srcNM, ok := md.mr.nodeMovers[ep.Source]; ok {
-			if dstNM, ok := md.mr.nodeMovers[ep.Target]; ok {
+		if srcNM, ok := md.mr.nodeGeoms[ep.Source]; ok {
+			if dstNM, ok := md.mr.nodeGeoms[ep.Target]; ok {
 				if _, exists := dstNM.neighborIn[ep.Source]; !exists {
 					dstNM.neighborIn[ep.Source] = make(chan moveMsg, moverInboxDepth)
 				}
@@ -315,7 +318,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 	// off THIS node's OWN partnerCenters map (owned, written only by this node's own
 	// goroutine), kept current thereafter by each neighbor's own moveMsgKindNeighborCenter
 	// push (applyCenter) — one hop, no cascade.
-	for _, nm := range md.mr.nodeMovers {
+	for _, nm := range md.mr.nodeGeoms {
 		// Seed partnerCenters at construction (single-threaded setup, before md.Start —
 		// no mover goroutine is running yet, so reading a neighbor's geom directly here
 		// is safe) with the SAME value the old snap seed used (newNodeMover seeds snap
@@ -323,7 +326,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 		// A node's neighbor set is nm.neighborIn's key set (populated above from
 		// edgeEndpoints — one dedicated channel per adjacent node, both directions).
 		for neighborID := range nm.neighborIn {
-			if other, ok := md.mr.nodeMovers[neighborID]; ok {
+			if other, ok := md.mr.nodeGeoms[neighborID]; ok {
 				nm.partnerCenters[neighborID] = nodeWorldPos(other.geom)
 			}
 		}
@@ -331,7 +334,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 	// Give every nodeMover the ids of its OWN incident edges, so a lock-driven move can
 	// notify its edges via sendMove (resolveDest's per-pair channel lookup) — no cached
 	// channel slice.
-	for id, nm := range md.mr.nodeMovers {
+	for id, nm := range md.mr.nodeGeoms {
 		for edgeID, em := range md.mr.edgeMovers {
 			if em.srcID == id || em.dstID == id {
 				nm.edgeIDs = append(nm.edgeIDs, edgeID)
@@ -404,7 +407,7 @@ func (md *MoveDispatch) sendTiltEdit(id string, msg TiltEditMsg) bool {
 
 // enqueueFor returns nm's own non-blocking send function. Thin delegator to md.mr
 // (mover_registry.go).
-func (md *MoveDispatch) enqueueFor(nm *nodeMover) func(id string, msg moveMsg) {
+func (md *MoveDispatch) enqueueFor(nm *nodeGeometry) func(id string, msg moveMsg) {
 	return md.mr.enqueueFor(nm)
 }
 
@@ -439,7 +442,7 @@ func (md *MoveDispatch) setHoverUI(node, port string, isInput bool) {
 // TestNodeKindConcurrentWithApplyCenterUnderRace exercises this concurrently under
 // -race as a regression check on the split holding.
 func (md *MoveDispatch) NodeKind(nodeID string) string {
-	if nm, ok := md.mr.nodeMovers[nodeID]; ok {
+	if nm, ok := md.mr.nodeGeoms[nodeID]; ok {
 		return nm.geom.Kind
 	}
 	return ""
@@ -448,7 +451,7 @@ func (md *MoveDispatch) NodeKind(nodeID string) string {
 // Quantized scene-polar move math (quantized_move.go): thin delegators to md.lq so
 // their existing in-package call sites (tests, node_move.go, gesture.go) are unchanged.
 func (md *MoveDispatch) heldCenters() map[string]vec3 { return md.lq.heldCenters(md) }
-func (md *MoveDispatch) commitNodeMoveLocal(nm *nodeMover, newPos vec3) {
+func (md *MoveDispatch) commitNodeMoveLocal(nm *nodeGeometry, newPos vec3) {
 	md.lq.commitNodeMoveLocal(md, nm, newPos)
 }
 

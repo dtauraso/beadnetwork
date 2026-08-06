@@ -71,7 +71,7 @@ func (md *MoveDispatch) EnableEditPersist(topologyPath string) {
 	// persistence.md "The model"). A plain field write on each mover, done here before
 	// any mover goroutine starts (Start runs after EnableEditPersist in every real call
 	// path), so no synchronization is needed.
-	for _, nm := range md.mr.nodeMovers {
+	for _, nm := range md.mr.nodeGeoms {
 		nm.persistRoot = root
 	}
 }

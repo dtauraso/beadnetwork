@@ -26,18 +26,18 @@ func dragAndReadBack(t *testing.T, quantized bool, target vec3) string {
 	md := &MoveDispatch{}
 	md.lq.quantizedLayout = quantized
 	md.ui.sceneSphere = sceneSphere{Center: vec3{}, Radius: 100}
-	md.mr.nodeMovers = map[string]*nodeMover{}
+	md.mr.nodeGeoms = map[string]*nodeGeometry{}
 	md.mr.edgeMovers = map[string]*edgeMover{}
 	md.mr.centerMirror = map[string]vec3{}
 
-	nm := &nodeMover{
+	nm := &nodeGeometry{
 		id:             "1",
 		persistRoot:    root,
 		geom:           nodeGeom{nodeIdentity: nodeIdentity{Kind: "Node1"}, ScenePolar: cart2polar(vec3{X: 100}), HasPos: true},
 		partnerCenters: map[string]vec3{},
 		neighborIn:     map[string]chan moveMsg{},
 	}
-	md.mr.nodeMovers["1"] = nm
+	md.mr.nodeGeoms["1"] = nm
 
 	md.lq.commitNodeMoveLocal(md, nm, target)
 

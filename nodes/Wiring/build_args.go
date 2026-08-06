@@ -193,16 +193,18 @@ func (a BuildArgs) TiltEditIn() <-chan TiltEditMsg {
 }
 
 // ClaimSelfDrive hands THIS node's own kind goroutine direct ownership of its own
-// mover state (PairNodeSelf, pair_node_self.go) — geometry, outgoing wires, bead chain,
-// and persistence — instead of a SEPARATE nodeMover goroutine (task/pair-node-owns-
+// nodeGeometry (PairNodeSelf, pair_node_self.go) — geometry, outgoing wires, bead chain,
+// and persistence — instead of a SEPARATE nodeMover actor (task/pair-node-owns-
 // itself). Call this ONLY from a kind whose own goroutine is meant to drive its own
-// mover directly (Node1/Node2 today, the pair scene): it marks this node's mover
-// selfDriven so mr.start never launches a second goroutine for it, and returns a handle
-// the caller's own Update loop uses to run that mover's per-cycle work (Step) and to
-// apply what used to be one-way notification messages to it (SetTiltIndex/
+// geometry directly (Node1/Node2 today, the pair scene): it records this node's id in
+// md.selfDriveClaimed so finalizeActors (mover_registry.go, called from build.go AFTER
+// every kind's build func has run) never constructs a nodeMover for it at all — there is
+// no flag on a mover to skip, because no mover is ever built for this id — and returns a
+// handle the caller's own Update loop uses to run that geometry's per-cycle work (Step)
+// and to apply what used to be one-way notification messages to it (SetTiltIndex/
 // SetReceivedVector/ClearOutBeads) as plain method calls instead — there is no longer
-// anything to notify: the caller's own goroutine already IS the mover. Returns nil on a
-// bare test build with no loader (a.pb.md == nil) or if this node has no mover entry,
+// anything to notify: the caller's own goroutine already IS the driver. Returns nil on a
+// bare test build with no loader (a.pb.md == nil) or if this node has no geometry entry,
 // matching the nil-safe fallback every other closure in this file takes; every method on
 // a nil *PairNodeSelf is itself a no-op.
 func (a BuildArgs) ClaimSelfDrive() *PairNodeSelf {
@@ -210,19 +212,22 @@ func (a BuildArgs) ClaimSelfDrive() *PairNodeSelf {
 	if md == nil {
 		return nil
 	}
-	nm, ok := md.mr.nodeMovers[a.name]
+	ng, ok := md.mr.nodeGeoms[a.name]
 	if !ok {
 		return nil
 	}
-	nm.selfDriven = true
-	// nm.run's first line Copies nm.clockSrc into nm.clk once, at that goroutine's own
-	// start. There is no such goroutine start here — ClaimSelfDrive runs during
-	// buildNodes, single-threaded setup, before any goroutine exists — so do the same
-	// copy here instead; writeStreamFrame (Step) still reads nm.clk directly.
-	if nm.clockSrc != nil {
-		nm.clk = nm.clockSrc.Copy()
+	if md.mr.selfDriveClaimed == nil {
+		md.mr.selfDriveClaimed = map[string]bool{}
 	}
-	return &PairNodeSelf{nm: nm}
+	md.mr.selfDriveClaimed[a.name] = true
+	// A ring node's nodeMover.run Copies clockSrc into clk once, at its own goroutine
+	// start. There is no such goroutine start for a self-driven node — ClaimSelfDrive
+	// runs during buildNodes, single-threaded setup, before any goroutine exists — so do
+	// the same copy here instead; writeStreamFrame (Step) still reads clk directly.
+	if ng.clockSrc != nil {
+		ng.clk = ng.clockSrc.Copy()
+	}
+	return &PairNodeSelf{geom: ng}
 }
 
 // VectorOut returns this node's own SEND end of its dedicated tilt-vector channel
