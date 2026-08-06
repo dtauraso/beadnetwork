@@ -46,6 +46,7 @@ readonly ALLOWED=(
   "bash-approve-guard.sh"      # PreToolUse(Bash): bash approval gate
   "check-no-foreground-sim.sh" # PreToolUse(Bash): blocks foreground sim runs
   "block-open-html-hook.py"    # PreToolUse(Bash): blocks opening html
+  "check-no-shell-source-edits.sh" # PreToolUse(Bash): blocks shell writes to source files
   # ADVISORY, not a gate: adds PreToolUse additionalContext naming the guard rules that
   # will apply to a NEW file, and always exits 0. It rewrites no input and blocks nothing.
   "placement-brief-hook.sh"    # PreToolUse(Write|Edit): pre-write guard brief
