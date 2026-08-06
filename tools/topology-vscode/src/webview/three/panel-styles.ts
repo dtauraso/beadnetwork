@@ -59,10 +59,13 @@ export const itemRowStyle: React.CSSProperties = {
   gap: 8,
 };
 
+// The gap BETWEEN items is deliberately larger than the gap inside one (itemStyle's gap of
+// 1, holding a name against its own value). That difference is what groups the two lines of
+// an item together and separates it from the next one.
 export const itemColumnStyle: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
-  gap: 3,
+  gap: 7,
 };
 
 // ONE ITEM, on two lines: its NAME, and under it its VALUE beside its ▲▼. This box is the

@@ -119,7 +119,7 @@ export function TiltVectorAnglePanel() {
 const axesStyle: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
-  gap: 3,
+  gap: 7,
   paddingLeft: 8,
 };
 
