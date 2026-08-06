@@ -153,11 +153,17 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 		return false
 	}
 	if edit.Start {
-		// Open the vector exchange from the current angles — see this function's own doc
-		// comment. Sends exactly what the old adjust-side-effect kick sent, but changes no
-		// index of its own.
-		Wiring.SendVectorLatestNonBlocking(n.VectorOut, n.outgoingVector())
-		return true
+		// START IS NODE1'S ALONE — this kind ignores it. The exchange is begun from ONE end
+		// so there is exactly one opening direction to answer; started from both, each node
+		// would also be replying to the other's opener in the same round, which is two
+		// exchanges running through one pair of channels rather than the one a user asked
+		// for. Node1's applyTiltEdit is where the send lives.
+		//
+		// The button still addresses every node the angles panel lists (TiltVectorButtons
+		// .tsx sends one record per row, exactly as RESET does), because the WEBVIEW must
+		// not know which node is node 1 — that is domain knowledge, and TS holds none. Go
+		// decides, here, by kind.
+		return false
 	}
 	delta := int32(-1)
 	if edit.Up {

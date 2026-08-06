@@ -392,28 +392,26 @@ func TestReceivedResetMarkerRunsTheFullClear(t *testing.T) {
 // direction, and the third arrow cannot be drawn anywhere. It sends from whatever angles are
 // CURRENTLY set and changes NO index. Asserts what this ONE goroutine's own method emits,
 // per docs/testing-shape.md.
-func TestStartOpensTheVectorExchangeWithoutChangingAnyIndex(t *testing.T) {
+// TestStartIsIgnoredByThisKind: START belongs to Node1 alone. The button addresses every
+// node the panel lists (TS holds no knowledge of which node is node 1), so a Start record
+// DOES reach this kind — and must do nothing at all here. If both ends opened the exchange,
+// each would also be answering the other's opener in the same round.
+func TestStartIsIgnoredByThisKind(t *testing.T) {
 	out := make(chan Wiring.TiltVectorMsg, 1)
 	n := &Node{TopTiltThetaIdx: 3, TopTiltPhiIdx: -2, VectorOut: out}
 
 	placeBead := n.applyTiltEdit(Wiring.TiltEditMsg{Start: true})
 
-	if !placeBead {
-		t.Fatal("Start must place a bead, got placeBead=false")
+	if placeBead {
+		t.Fatal("Start must place NO bead on this kind, got placeBead=true")
 	}
 	if n.TopTiltThetaIdx != 3 || n.TopTiltPhiIdx != -2 {
 		t.Fatalf("Start must change NO index; got theta=%d phi=%d, want unchanged theta=3 phi=-2", n.TopTiltThetaIdx, n.TopTiltPhiIdx)
 	}
 	select {
 	case got := <-out:
-		if got.Reset {
-			t.Fatal("Start must send a DIRECTION, not a reset marker")
-		}
-		if want := n.outgoingVector(); got != want {
-			t.Fatalf("sent %+v, want this node's current outgoing vector %+v", got, want)
-		}
+		t.Fatalf("Start must send NOTHING from this kind; got %+v — the exchange is opened from node 1's end only", got)
 	default:
-		t.Fatal("Start sent nothing on VectorOut; the exchange has no opening move and the third arrow can never appear")
 	}
 }
 
