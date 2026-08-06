@@ -129,14 +129,12 @@
       height: auto
     }
 
-    /* a card whose content is a wide table takes the full row, so its columns
-       fit on the page instead of scrolling inside a half-width card */
+    /* A card whose content is a table takes the full row and never scrolls:
+       the table sizes itself to the card and wraps, instead of the card
+       sizing itself to the table. */
     .card.wide {
-      grid-column: 1 / -1
-    }
-
-    .card.wide table.f {
-      width: 100%
+      grid-column: 1 / -1;
+      overflow-x: visible
     }
 
     .card {
@@ -174,29 +172,46 @@
 
     table.f {
       border-collapse: collapse;
-      font-size: 11px
+      font-size: 11px;
+      width: 100%;
+      table-layout: fixed
     }
 
     table.f td {
-      padding: 3px 14px 3px 0;
+      padding: 3px 10px 3px 0;
       vertical-align: baseline
+    }
+
+    /* expression : note : source — the shares that keep all three on the page */
+    table.f td:nth-child(1) {
+      width: 42%
+    }
+
+    table.f td:nth-child(2) {
+      width: 36%
+    }
+
+    table.f td:nth-child(3) {
+      width: 22%;
+      padding-right: 0
     }
 
     table.f td.e {
       font-family: var(--mono);
       color: var(--ink);
-      white-space: nowrap
+      /* wraps at spaces rather than forcing the table wider than the card */
+      overflow-wrap: break-word
     }
 
     table.f td.n {
-      color: var(--dim);
-      width: 100%
+      color: var(--dim)
     }
 
     table.f td.s {
       font-family: var(--mono);
       color: var(--dim);
-      font-size: 10px
+      font-size: 10px;
+      overflow-wrap: break-word
     }
 
     table.f tr.h td {
