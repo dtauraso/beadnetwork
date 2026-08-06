@@ -147,14 +147,20 @@ export function TiltVectorAnglePanel() {
 
   return (
     // The popover is a SIBLING of the pill, never a child: pillContainerStyle sets
+    // The dropdown is a SIBLING of the pill, never a child: pillContainerStyle sets
     // `overflow: hidden` (it clips the split-button's own rounded corners), which also clips
-    // an absolutely-positioned popover inside it out of existence — the caret flipped and
-    // nothing appeared. This wrapper is what the popover anchors to instead, and it sets no
-    // overflow of its own.
+    // anything positioned inside it out of existence — the caret flipped and nothing
+    // appeared. Both are children of the shared-width wrapper instead (anchorStyle).
     <div style={anchorStyle}>
       <div style={pillContainerStyle(false)}>
-        {/* No master toggle: the whole pill (body + caret) opens/closes the popover. */}
-        <div onClick={onToggle} title={open ? "Close angles" : "Open angles"} style={pillBodyStyle}>
+        {/* No master toggle: the whole pill (body + caret) opens/closes the dropdown. The
+            caret is pushed to the far end so the pill fills the shared width rather than
+            leaving its own slack — the label and the caret are its only content. */}
+        <div
+          onClick={onToggle}
+          title={open ? "Close angles" : "Open angles"}
+          style={{ ...pillBodyStyle, flex: "1 1 auto" }}
+        >
           Angles
         </div>
         <div onClick={onToggle} title={open ? "Close angles" : "Open angles"} style={pillCaretStyle}>
@@ -162,13 +168,8 @@ export function TiltVectorAnglePanel() {
         </div>
       </div>
 
-      {/* Popover width is PURELY its content — no width and no min-width. Every number
-          tried here so far (170, then a 108 floor) showed up as an empty band down the
-          right-hand side, because a width chosen in advance cannot be the width of whatever
-          the nodes turn out to be called. max-content is the measurement instead of a
-          guess. */}
       {open && (
-        <div style={popoverStyle("max-content")}>
+        <div style={dropdownStyle}>
           {rows.map((node) => (
             <NodeGroupSection key={node.row} node={node} />
           ))}
@@ -178,11 +179,6 @@ export function TiltVectorAnglePanel() {
   );
 }
 
-// What the popover is positioned against: a wrapper around the pill with no overflow of its
-// own, so `popoverStyle`'s absolute `top: calc(100% + 4px)` measures from the BOTTOM OF THE
-// PILL and is not clipped by it. It must stay pointer-transparent itself — ThreeView's
-// right-hand column takes no pointer events and each widget re-enables them for its own box,
-// so a wrapper that swallowed them would cover the canvas behind this panel.
 // An item's second line: the value, then the arrows that change it, packed together.
 const valueLineStyle: React.CSSProperties = {
   display: "flex",
@@ -191,9 +187,38 @@ const valueLineStyle: React.CSSProperties = {
   gap: 4,
 };
 
+// The pill and its dropdown share ONE WIDTH, and this wrapper defines it: a max-content
+// column whose two children both stretch to it. The width is therefore the widest thing in
+// either — the pill's label, a node heading, or an axis item — so the pill, the node groups
+// (first level) and the axis items (second level) all come out the same width.
+//
+// That is why the dropdown is IN FLOW here rather than absolutely positioned like the
+// overlays popover. An absolute popover is out of flow, so it contributes its width to
+// nothing: the wrapper would size to the pill alone, and the dropdown could only be given a
+// width chosen in advance — the guess that kept leaving a band down its right. In flow, the
+// widest child sizes the wrapper and the other stretches to match.
+//
+// ThreeView's right-hand column is built for this: it stacks its widgets, and "a panel that
+// grows pushes the rest down rather than overlapping them", so an open dropdown displaces
+// what is below it instead of covering it.
+//
+// Pointer-transparent itself — the column takes no pointer events and each widget re-enables
+// them for its own box, so a wrapper that swallowed them would cover the canvas behind it.
 const anchorStyle: React.CSSProperties = {
-  position: "relative",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "stretch",
+  width: "max-content",
+  gap: 4,
   pointerEvents: "none",
+};
+
+// The dropdown takes the overlays popover's CHROME but not its positioning: in flow (see
+// anchorStyle) and filling the shared width.
+const dropdownStyle: React.CSSProperties = {
+  ...popoverStyle("100%"),
+  position: "static",
+  boxSizing: "border-box",
 };
 
 const arrowBtnStyle: React.CSSProperties = {
