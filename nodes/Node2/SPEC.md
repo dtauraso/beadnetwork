@@ -21,14 +21,24 @@
 
 | Name | Direction | EdgeKind | Notes |
 |------|-----------|----------|-------|
-| In | in | chain | sole input; every arrival is drained non-blocking and, if this node steps toward perpendicular, it places a bead itself |
-| Out | out | chain | THIS node's own goroutine places a bead here directly — never the mover |
+| In | in | chain | sole input; every arrival is drained non-blocking and paces the exchange — it decides and places nothing itself |
+| Out | out | chain | THIS node's own goroutine places a bead here directly, from `handleVectorCycle` when the dots actually move this node — never the mover |
 
 ## Firing rule
 
 REACTIVE, not periodic — the "straightening loop", mirroring Node1. Each cycle of this
 node's OWN Update loop non-blockingly drains two sources and, on either, decides and
-acts itself — no round trip to any other goroutine to decide:
+acts itself — no round trip to any other goroutine to decide.
+
+This node owns its own geometry directly (`Self *Wiring.PairNodeSelf`, claimed at build
+time via `BuildArgs.ClaimSelfDrive`, driven every cycle by `n.Self.Step`
+(`nodes/Wiring/pair_node_self.go`)) — there is **no separate `nodeMover` goroutine** for
+Node1 or Node2 (`mover_registry.go`'s `finalizeActors` never constructs one for an id
+claimed via `ClaimSelfDrive`). `SyncTiltIndex`/`SyncReceivedVector`/`ClearOutBeads` below
+are therefore plain method calls on this same object (`PairNodeSelf.SetTiltIndex`/
+`SetReceivedVector`/`ClearOutBeads`), not messages to another goroutine — they are named
+and shaped like the old cross-goroutine sync calls only because nothing else about what
+they carry changed when the separate mover was removed.
 
 **On an In arrival** (`In.PollRecv`): fire this node's own trace and nothing else. A bead
 PACES the exchange and marks the round trip; it decides nothing and places nothing onward.
@@ -46,31 +56,40 @@ The outgoing bead moved with the decision: it is placed by the vector branch whe
 actually move this node (`handleVectorCycle`), so one message carries one visible bead and
 the bead loop lives and dies with the exchange it paces.
 
-**On a TiltEditIn arrival** (`BuildArgs.TiltEditIn`, a panel-driven click routed HERE
-instead of to the mover): apply the ±1 click to the named axis unconditionally (never a
-step-toward-perpendicular decision — the user asked for exactly this move), sync, and
-unconditionally place a bead on Out — "THE KICK". With both nodes of a pair
-perpendicular, nothing circulates on In — correctly, since there is nothing left to
-straighten — so the loop has no way to start on its own; it is kicked off by the thing
-that actually moves a tilt away from perpendicular, which is this edit. This is sent
-unconditionally because the edit always changed the index by one click, so there is
-always something new for the exchange to react to.
+`TiltEditIn` (`BuildArgs.TiltEditIn`, a panel-driven edit routed HERE instead of to a
+mover) carries THREE distinct edits, applied by `applyTiltEdit` (`nodes/Node2/node.go`):
 
-Node2 is the mirror of Node1 (same firing rule), kept as a distinct
-package/kind — not a parametrized Node1 — because a node-kind package may
+- **A ▲/▼ panel click** (`TiltVectorAnglePanel.tsx`): applies exactly one ±1 step to the
+  named axis and STOPS — no send, no bead. This used to ALSO open the vector exchange as
+  a side effect ("the kick"), so one click moved the tilt by many π/12 steps once the
+  exchange settled instead of exactly one; that side effect is now START's alone.
+- **START** (`TiltEditMsg.Start`, the START TILT button, `TiltVectorButtons.tsx`):
+  **Node2 IGNORES this** — `applyTiltEdit`'s `Start` branch returns immediately, doing
+  nothing. START is Node1's alone: the exchange is begun from one end only, so there is
+  exactly one opening direction to answer — started from both, each node would also be
+  replying to the other's opener in the same round, which is two exchanges running
+  through one pair of channels rather than the one a user asked for. The button still
+  addresses every node the angles panel lists (`TiltVectorButtons.tsx` sends one record
+  per row, same as RESET), because the webview must not know which node is Node1 —
+  Go decides that by kind, here.
+- **RESET** (`TiltEditMsg.Reset`, the RESET TILT button, same `TiltVectorButtons.tsx`):
+  runs this node's full `clear()` — zeroes both indices, syncs, drains any value already
+  sitting on `VectorIn` (`Wiring.PollRecvVector`, non-blocking, on THIS node's own
+  goroutine), drains delivered beads off In, and asks the mover to drop this node's own
+  still-crossing outbound beads (`ClearOutBeads`) — then sends a Reset marker on
+  `VectorOut` so the partner clears too. Places NO bead (stop-and-return, not a nudge).
+  Without the `VectorIn` drain, a vector already in flight when RESET was pressed would
+  arrive on the very next cycle's `handleVectorCycle` and immediately step the tilt
+  again, undoing the reset a moment later. `VectorIn` is depth-1 latest-wins, so one
+  non-blocking receive empties it fully.
+
+Node2 is the mirror of Node1 (same firing rule apart from ignoring START), kept as a
+distinct package/kind — not a parametrized Node1 — because a node-kind package may
 import only the shared spine, never a sibling kind (check-dep-rules).
 
 Pairing a Node1 and a Node2 with one edge running each direction (Node1.Out →
 Node2.In, Node2.Out → Node1.In) needs no seed/bootstrap node: nothing sends until a
-user tilt starts it, so there is no deadlock to bootstrap out of at t=0.
-
-**RESET** (`TiltEditMsg.Reset`, the RESET button `TiltResetButton.tsx`): sets both
-indices to 0, syncs the mover, places NO bead (stop-and-return, not a nudge), AND drains
-any value already sitting on `VectorIn` (`Wiring.PollRecvVector`, non-blocking, on THIS
-node's own goroutine — the goroutine that owns the receive end). Without the drain, a
-vector already in flight when RESET was pressed would arrive on the very next cycle's
-`handleVectorCycle` and immediately step the tilt again, undoing the reset a moment
-later. `VectorIn` is depth-1 latest-wins, so one non-blocking receive empties it fully.
+user starts it (from Node1), so there is no deadlock to bootstrap out of at t=0.
 
 ## Vector channel
 
@@ -90,13 +109,19 @@ loop body) runs:
   pure index arithmetic (`theta-6`), never a cross product — so the normal turns WITH
   the tilt, always staying 90° away, rather than holding still toward the partner. φ is
   unchanged. Node2 SUBTRACTS the quarter turn; Node1 (its mirror package) ADDS it, same
-  ± split as every other per-kind sign here. This node's own goroutine computes it
-  (`coplanarNormal`) and reports BOTH the tilt index and this normal index to its own
-  mover in one call (`syncTiltIndex`, `SyncTiltIndex(theta, phi, normalTheta,
-  normalPhi)`) every time either changes — the mover is a pure mirror that streams
-  exactly what it is told as the buffer's `CoplanarNormalTheta`/`CoplanarNormalPhi`
-  columns, never deriving a normal from the edge itself
-  (`coplanarNormalTowardPartner` was removed).
+  ± split as every other per-kind sign here. **Unlike Node1's `coplanarNormal`, this
+  kind's `coplanarNormal` (`nodes/Node2/node.go`) applies NO pole-crossing parity
+  correction** — it is exactly `TopTiltThetaIdx - PerpendicularThetaIdx`, no `floorDiv`,
+  no half-turn flip term. (Node1's has one — see `nodes/Node1/SPEC.md` — because its base
+  direction subtracts and so runs negative for most of its life; whether Node2 needs the
+  analogous correction for its own positive-running base direction was not verified here
+  as anything beyond "the code as written has no such term".) This node's own goroutine
+  computes the normal (`coplanarNormal`) and reports the tilt index, the normal index, AND
+  the bottom tilt index to its own mover in one call (`syncTiltIndex`,
+  `SyncTiltIndex(theta, phi, normalTheta, normalPhi, bottomTheta, bottomPhi)`) every time
+  any of them changes — the mover is a pure mirror that streams exactly what it is told as
+  the buffer's `CoplanarNormalTheta`/`CoplanarNormalPhi` columns, never deriving a normal
+  from the edge itself (`coplanarNormalTowardPartner` was removed).
 - **Bottom tilt vector**: this node's TOP tilt vector turned a half turn (180°,
   `Wiring.HalfTurnThetaIdx`) in θ — Node2 subtracts it, its mirror package does the
   opposite. φ untouched. A half turn in θ alone negates the direction exactly in this
@@ -139,6 +164,46 @@ loop body) runs:
   (`ReceivedSet = false`, synced) — a stale received arrow left hanging would
   contradict the reset's stop-and-return meaning. The LOCAL `RESET` path (`TiltEditIn`'s
   `Reset`, above) clears it the same way, for the same reason.
+
+## Pair separation follows the tilt index
+
+The pair's centre-to-centre distance — never its orientation — follows this node's own
+`TopTiltThetaIdx`, via `repositionForTiltIndex` (`nodes/Wiring/node_geometry.go`), called
+from `PairNodeSelf.SetTiltIndex`. **Node2 is the moving end of the pair**
+(`repositionForTiltIndex` returns immediately unless `m.selfKind == "Node2"`): it reports
+its own tilt index like Node1 does, but Node1 never repositions for one, so this node's
+own reposition is the ONLY one that actually happens. It slides along its OWN fixed ray
+from the scene centre — changing only its own quantized radial index (`iR`), never
+`iTheta`/`iPhi`, so no orientation decision is made — to the integer `iR` nearest a
+distance of
+
+    D = (abs(thetaIdx) + nodeTorusSteps(selfKind) + nodeTorusSteps(partnerKind)) * wire.BeadStepR
+
+from the partner, so that `edgeStepCount(D, ...)` comes back out to exactly
+`abs(thetaIdx)`. Because the pair is not exactly radial, this is solved as a quadratic
+along Node2's own fixed ray (`solveTiltIndexROffset`), keeping the root nearer this
+node's current radius so a turn never flings it to the far side of the scene centre. A
+negative discriminant (D unreachable along this ray) leaves the position unchanged.
+
+## Pacing and clock speed
+
+The clock a bead's round trip is measured in (`clk.Tick()`) and the clock that PACES this
+node's own cycle (`clk.SleepCycle`, `nodes/wire/clock.go`) are scaled by the scene's
+playback speed: `SleepCycle` waits `pulsesPerCycle()` broadcaster pulses, `1/speed`
+rounded up and clamped to `[1, 64]`, so one cycle is one SCALED tick's worth of wall time
+and this goroutine itself runs slower when the slider says slower. The bead marks the
+round trip; the CYCLE — how often this node's loop drains its channels and can react at
+all — is what the dial actually paces.
+
+While a ▲/▼ panel click is being applied, every clock in the scene is broadcast to
+`Wiring.HumanEditSpeed` (1.0, unscaled) instead of the slider's speed
+(`applyUpdateTiltVector`, `nodes/Wiring/stdin_reader.go`), so a click is answered on the
+next real-time cycle rather than sitting unanswered for a scaled cycle (up to ~1 second at
+a slow divisor). START and RESET both restore the slider's own speed
+(`md.SliderSpeed()`) before doing anything else — START because running the exchange is
+exactly what the slider's number is about, RESET because setting is over. The slider's own
+persisted number (view/speed.json, per topology) is untouched throughout; only what is broadcast to
+the clocks changes.
 
 ## Third vector (received direction)
 
