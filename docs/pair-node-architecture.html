@@ -208,11 +208,11 @@
 
             <rect x="26" y="44" width="196" height="60" rx="7" fill="#2b2b33" stroke="#3a3a44" />
             <text x="36" y="60" class="lbl">OWNED STATE — integer indices</text>
-            <text x="36" y="78" class="lblm">TopTiltThetaIdx — θ only, no φ</text>
+            <text x="36" y="78" class="lblm">TopTiltThetaIdx — one θ index</text>
             <text x="36" y="94" class="lblm">Received…Idx / ReceivedSet</text>
 
             <rect x="26" y="112" width="196" height="46" rx="7" fill="#2b2b33" stroke="#3a3a44" />
-            <text x="36" y="128" class="lbl">DERIVED — arithmetic, never stored</text>
+            <text x="36" y="128" class="lbl">DERIVED — arithmetic, recomputed on read</text>
             <text x="36" y="146" class="lblm">bottom +12 · normal +6 · outgoing</text>
 
             <rect x="26" y="166" width="196" height="60" rx="7" fill="#2b2b33" stroke="#3a3a44" />
@@ -227,15 +227,15 @@
 
             <rect x="252" y="44" width="152" height="250" rx="8" fill="#2b2b33" stroke="#3a3a44" />
             <text x="328" y="66" text-anchor="middle" class="lbl">ALL OF IT, ONE OWNER</text>
-            <text x="264" y="96" class="lblm" fill="#5fd68a">no second goroutine</text>
-            <text x="264" y="120" class="lblm" fill="#5fd68a">no messages to itself</text>
-            <text x="264" y="144" class="lblm" fill="#5fd68a">nothing sent sideways</text>
-            <text x="264" y="176" class="lbl">a wire is a FIELD,</text>
-            <text x="264" y="194" class="lbl">not a collaborator —</text>
-            <text x="264" y="212" class="lbl">passive, no goroutine,</text>
-            <text x="264" y="230" class="lbl">stepped by its owner</text>
-            <text x="264" y="262" class="lbl">no mutex · no atomic</text>
-            <text x="264" y="280" class="lbl">no ack · nothing shared</text>
+            <text x="264" y="96" class="lblm" fill="#5fd68a">one goroutine</text>
+            <text x="264" y="120" class="lblm" fill="#5fd68a">plain method calls</text>
+            <text x="264" y="144" class="lblm" fill="#5fd68a">direct field writes</text>
+            <text x="264" y="176" class="lbl">a wire is a FIELD:</text>
+            <text x="264" y="194" class="lbl">passive, a delay queue,</text>
+            <text x="264" y="212" class="lbl">stepped once a cycle</text>
+            <text x="264" y="230" class="lbl">by the node that owns it</text>
+            <text x="264" y="262" class="lbl">ownership is the whole</text>
+            <text x="264" y="280" class="lbl">synchronisation story</text>
           </svg>
         </div>
 
@@ -255,10 +255,10 @@
             <text x="26" y="196" class="lbl">recomputed on read</text>
 
             <rect x="12" y="216" width="276" height="58" rx="8" fill="#2b2b33" stroke="#3a3a44" />
-            <text x="26" y="238" class="big">NEVER radians</text>
-            <text x="26" y="258" class="lbl">indices on a π/12 lattice; floats only at the draw edge</text>
+            <text x="26" y="238" class="big">INTEGERS · π/12 lattice</text>
+            <text x="26" y="258" class="lbl">floats appear at the draw edge, and there only</text>
           </svg>
-          <div class="cap">Three directions are arithmetic on one index, so they cannot disagree with it.</div>
+          <div class="cap">Three directions are arithmetic on one index, so they agree with it by construction.</div>
         </div>
 
       </div>
@@ -283,8 +283,8 @@
             <text x="60" y="228" class="lbl">its own inbound channels</text>
 
             <rect x="20" y="272" width="400" height="46" rx="8" fill="#2b2b33" stroke="#3a3a44" />
-            <text x="38" y="296" class="lblm" fill="#5fd68a">no second goroutine · no actor wrapping it</text>
-            <text x="38" y="312" class="lbl">a pair node has no actor entry to skip or suppress</text>
+            <text x="38" y="296" class="lblm" fill="#5fd68a">one goroutine per pair node, claimed at build time</text>
+            <text x="38" y="312" class="lbl">the actor directory it would appear in holds ring nodes only</text>
           </svg>
         </div>
 
@@ -309,32 +309,23 @@
             <text x="36" y="48" class="lblm" fill="#5fd68a">ONE GOROUTINE</text>
             <text x="36" y="72" class="lbl">drives the wire, reads it, lays out the chain</text>
             <text x="36" y="92" class="lbl">and owns the positions that chain is drawn against</text>
-            <text x="36" y="112" class="lbl">no mutex, no atomic, no synchronisation to get right</text>
+            <text x="36" y="112" class="lbl">ownership does the synchronising</text>
 
             <rect x="20" y="138" width="400" height="34" rx="8" fill="#2b2b33" stroke="#3a3a44" />
-            <text x="36" y="160" class="lbl">nothing can be a cycle stale, because nothing travels</text>
+            <text x="36" y="160" class="lbl">it reads its own writes, so the chain is drawn at the positions it has</text>
           </svg>
         </div>
 
         <div class="card">
-          <h2>The shape this avoids</h2>
-          <svg width="600" height="200" viewBox="0 0 600 200">
-            <rect x="20" y="30" width="260" height="140" rx="10" fill="#2b2b33" stroke="#ff6b6b" />
-            <text x="150" y="54" text-anchor="middle" class="big" fill="#ff6b6b">shared state</text>
-            <text x="40" y="82" class="lblm">one struct, two writers</text>
-            <text x="40" y="104" class="lblm">mutex / atomic</text>
-            <text x="40" y="126" class="lblm">request → wait → reply</text>
-            <text x="40" y="150" class="lbl">correctness by discipline</text>
-
-            <rect x="320" y="30" width="260" height="140" rx="10" fill="#2b2b33" stroke="#5fd68a" />
-            <text x="450" y="54" text-anchor="middle" class="big" fill="#5fd68a">ownership</text>
-            <text x="340" y="82" class="lblm">one writer per field</text>
-            <text x="340" y="104" class="lblm">dedicated channel per pair</text>
-            <text x="340" y="126" class="lblm">send and move on</text>
-            <text x="340" y="150" class="lbl">correctness by construction</text>
+          <h2>Ownership</h2>
+          <svg width="300" height="200" viewBox="0 0 300 200">
+            <rect x="20" y="30" width="260" height="140" rx="10" fill="#2b2b33" stroke="#5fd68a" />
+            <text x="150" y="54" text-anchor="middle" class="big" fill="#5fd68a">correctness by construction</text>
+            <text x="40" y="86" class="lblm">one writer per field</text>
+            <text x="40" y="112" class="lblm">a dedicated channel per pair</text>
+            <text x="40" y="138" class="lblm">send and move on</text>
           </svg>
-          <div class="cap">A guard with an empty allowlist holds the right column: no mutex, no atomic, anywhere in
-            the network.</div>
+          <div class="cap">A guard with an empty allowlist keeps it that way across the whole network.</div>
         </div>
 
       </div>
@@ -433,7 +424,7 @@
 
             <rect x="20" y="136" width="260" height="46" rx="7" fill="#2b2b33" stroke="#3a3a44" />
             <text x="34" y="156" class="lblm">a step is ±1</text>
-            <text x="34" y="172" class="lbl">no angle is ever added as a float</text>
+            <text x="34" y="172" class="lbl">every angle change is ±1 on the index</text>
           </svg>
         </div>
 
@@ -522,7 +513,7 @@
         </div>
 
         <div class="card">
-          <h2>No float, no epsilon</h2>
+          <h2>Decided on integers</h2>
           <svg width="420" height="170" viewBox="0 0 420 170">
             <rect x="30" y="26" width="360" height="44" rx="7" fill="#2b2b33" stroke="#5fd68a" />
             <text x="44" y="46" class="lblm" fill="#5fd68a">d = (a − b) mod 24</text>
@@ -597,9 +588,8 @@
             <rect x="290" y="240" width="40" height="20" rx="4" fill="#2b2b33" stroke="#4ea1ff" />
             <text x="310" y="254" text-anchor="middle" class="lblm" fill="#4ea1ff">idx</text>
 
-            <text x="310" y="42" text-anchor="middle" class="big">no seed node needed</text>
-            <text x="310" y="62" text-anchor="middle" class="lbl">nothing sends until a user presses START at node 1
-              — no t=0 deadlock</text>
+            <text x="310" y="42" text-anchor="middle" class="big">START opens the exchange</text>
+            <text x="310" y="62" text-anchor="middle" class="lbl">the first send is a user pressing START at node 1</text>
           </svg>
           <div class="legend">
             <span><i style="background:#f9a825"></i>beads (PacedWire)</span>
@@ -686,7 +676,7 @@
       <div class="grid">
 
         <div class="card">
-          <h2>The dial reaches the loop, not just the ticks</h2>
+          <h2>The dial paces the loop and the ticks</h2>
           <svg width="620" height="270" viewBox="0 0 620 270">
             <rect x="20" y="24" width="580" height="70" rx="8" fill="#2b2b33" stroke="#3a3a44" />
             <text x="38" y="48" class="lblm">one process-wide ticker · 16 ms wall · every paced loop subscribes</text>
@@ -705,10 +695,11 @@
             <text x="510" y="156" text-anchor="middle" class="lbl">clamped · still wakes</text>
 
             <rect x="20" y="190" width="580" height="60" rx="8" fill="#2b2b33" stroke="#3a3a44" />
-            <text x="38" y="214" class="lbl">the clamp is why 0 is a PAUSE and not a deadlock — a goroutine asleep for ever</text>
-            <text x="38" y="234" class="lbl">can never poll its own speed channel to hear the dial move back</text>
+            <text x="38" y="214" class="lbl">the clamp is why 0 is a PAUSE: the loop keeps waking on its longest cycle,</text>
+            <text x="38" y="234" class="lbl">so it still polls its own speed channel and hears the dial move back</text>
           </svg>
-          <div class="cap">Above 1× nothing speeds up: the ticker's own rate is the ceiling on cycles, and a faster dial shows as ticks accruing faster within one.</div>
+          <div class="cap">The ticker's own rate is the ceiling on cycles, so above 1× a faster dial shows as ticks
+            accruing faster within one.</div>
         </div>
 
         <div class="card">
@@ -724,8 +715,8 @@
             <text x="38" y="164" class="lbl">the slider's number through the scene's divisor</text>
             <text x="38" y="184" class="lbl">sent BEFORE the edit, so round one is already at speed</text>
 
-            <text x="230" y="222" text-anchor="middle" class="lbl">the boundaries are the user's own actions — no timer, no idle guess</text>
-            <text x="230" y="240" text-anchor="middle" class="lbl">speed.json still holds the slider's number, untouched</text>
+            <text x="230" y="222" text-anchor="middle" class="lbl">the user's own actions are the boundaries</text>
+            <text x="230" y="240" text-anchor="middle" class="lbl">speed.json holds the slider's number throughout</text>
           </svg>
         </div>
 
@@ -782,14 +773,14 @@
         </div>
 
         <div class="card">
-          <h2>What the index does not touch</h2>
+          <h2>Which number sets what</h2>
           <svg width="300" height="200" viewBox="0 0 300 200">
-            <rect x="20" y="24" width="260" height="52" rx="8" fill="#2b2b33" stroke="#5fd68a" />
-            <text x="36" y="46" class="lblm" fill="#5fd68a">THE TILT INDEX SETS</text>
-            <text x="36" y="66" class="lbl">four drawn directions, and nothing else</text>
+            <rect x="20" y="24" width="260" height="52" rx="8" fill="#2b2b33" stroke="#e05fd8" />
+            <text x="36" y="46" class="lblm" fill="#e05fd8">THE TILT INDEX</text>
+            <text x="36" y="66" class="lbl">four drawn directions</text>
 
-            <rect x="20" y="92" width="260" height="70" rx="8" fill="#2b2b33" stroke="#ff6b6b" />
-            <text x="36" y="114" class="lblm" fill="#ff6b6b">IT DOES NOT SET</text>
+            <rect x="20" y="92" width="260" height="70" rx="8" fill="#2b2b33" stroke="#f9a825" />
+            <text x="36" y="114" class="lblm" fill="#f9a825">THE LAST DRAG</text>
             <text x="36" y="134" class="lbl">position · reach · edge length</text>
             <text x="36" y="152" class="lbl">bead count · crossing time</text>
           </svg>
@@ -854,11 +845,10 @@
             <text x="36" y="66" class="lbl">base direction subtracts, so it runs negative and crosses poles</text>
 
             <rect x="20" y="92" width="400" height="52" rx="8" fill="#2b2b33" stroke="#f9a825" />
-            <text x="36" y="114" class="lblm" fill="#f9a825">node 2 — does not</text>
-            <text x="36" y="134" class="lbl">the argument applies in mirror; nothing has been measured</text>
+            <text x="36" y="114" class="lblm" fill="#f9a825">node 2 — plain quarter turn, top − 6</text>
+            <text x="36" y="134" class="lbl">the argument applies in mirror; measure it before deciding</text>
           </svg>
-          <div class="cap">Scoped to node 1 on purpose, not an oversight. Resolve it by watching node 2's normal cross
-            a pole, not by symmetry alone.</div>
+          <div class="cap">Scoped to node 1 on purpose. Resolve it by watching node 2's normal cross a pole.</div>
         </div>
 
       </div>
