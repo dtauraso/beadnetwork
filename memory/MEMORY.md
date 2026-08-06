@@ -30,6 +30,7 @@ Each entry can drift; if it conflicts with current code, update or remove the me
 - [feedback_go_vs_coordinator_bias.md](feedback_go_vs_coordinator_bias.md) — Before fixing Go code, name the contract violated, not the symptom. Knob-tuning (interval, cap, timeout) is the wrong shape — find the missing local signal.
 - [feedback_abc_times_constant_not_rederive.md](feedback_abc_times_constant_not_rederive.md) — Update polar positions as abc-index × step-constant (arithmetic) + fixed pole increments; only trig is the cartesian↔polar boundary.
 - [feedback_visuals_scrutiny.md](feedback_visuals_scrutiny.md) — Visual fixes should use general mechanisms over point patches; expect re-evaluation against later observations
+- [feedback_no_dimming_in_ui.md](feedback_no_dimming_in_ui.md) — Never dim UI text (opacity or greyed colour); mark state with weight/size/position instead
 - [feedback_per_emit_simtime_anchoring.md](feedback_per_emit_simtime_anchoring.md) — For emit→pulse animations, anchor each instance at its emit simTime and render concurrently; head-of-queue serial mount is the wrong shape (validated 2026-05-04)
 - [feedback_industry_bug_class_scan.md](feedback_industry_bug_class_scan.md) — Before declaring an animation/timing/state/IPC change ready, scan against the well-known bug-class catalog and name the class in the working text
 - [feedback_webview_devtools_frame.md](feedback_webview_devtools_frame.md) — VS Code webview devtools default to the outer wrapper frame; prefer file-bridge round-trips over `typeof window.X` for verification

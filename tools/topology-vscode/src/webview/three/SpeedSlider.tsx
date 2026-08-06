@@ -155,7 +155,10 @@ const ticksStyle: React.CSSProperties = {
 // the toolbar's own palette — the same #555/#333 the other toolbar-adjacent labels
 // (.abc-drag-label, .rule-eq-panel) use — because the dark-panel palette (#ddd, and a 0.5
 // opacity dim on top of it) is near-white on white and left them all but unreadable.
-const tickStyle: React.CSSProperties = { color: "#555" };
+// Every label is full-strength. Nothing here is dimmed to push it back: a label that is
+// shown is shown to be read, and greying the unselected ones makes five of the six settings
+// harder to read in exchange for saying something WEIGHT already says.
+const tickStyle: React.CSSProperties = { color: "#000" };
 
 // --- fraction parts ---
 //
@@ -183,6 +186,5 @@ const slashStyle: React.CSSProperties = {
   display: "inline-block",
 };
 
-// The selected position: darkest and bold, so which setting is live is read off the same
-// row that shows what the settings are.
+// The selected position is marked by WEIGHT ALONE — same colour as the rest, just bold.
 const tickOnStyle: React.CSSProperties = { color: "#000", fontWeight: "bold" };
