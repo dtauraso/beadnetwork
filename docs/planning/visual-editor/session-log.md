@@ -556,10 +556,8 @@ changed (a typo'd path read identically to a granted exemption). Nothing open he
 (0, ¼, ½, ¾, 1, 2) with a label under each. Getting those labels readable took four
 attempts, and only the last one was aimed at the actual defect.
 
-![speed slider fraction gap](screenshots/2026-08-05-speed-slider-fraction-gap-1.png)
-
-The screenshot is what finally settled it. Three earlier fixes were all guesses made
-without one:
+A screenshot of the tick row is what finally settled it (not kept — the finding below is
+the durable part). Three earlier fixes were all guesses made without one:
 
 - **"They're barely visible"** — the labels were `#ddd` at 0.5 opacity, the DARK
   overlay-panel palette, but the slider portals into `.toolbar`, which is
