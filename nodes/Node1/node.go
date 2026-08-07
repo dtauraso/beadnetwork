@@ -45,24 +45,29 @@ import (
 )
 
 type Node struct {
-	// PairID says WHICH END of the pair this instance is: 1 or 2. It is the only difference
-	// between the two ends, and both are this same struct — nodes/Node2's builder constructs
-	// one of these with PairID 2 rather than keeping a second, hand-mirrored implementation
-	// in step with this one.
+	// PairID says WHICH END of the pair this instance is: 1 or 2. Both ends are this same
+	// struct — nodes/Node2's builder constructs one of these with PairID 2 — so the id is
+	// what tells them apart when something has to be addressed to one of them.
 	//
-	// It decides two things, and nothing else in this file may branch on the kind any other
-	// way:
-	//   - sign(), below: which way this end's derived directions and steps run. End 2 takes
-	//     the opposite of end 1 throughout, and that opposition is what makes the two turn
-	//     TOWARD each other. Two ends with the same sign step apart instead, one index per
-	//     round, until they are a quarter turn each side of where they started.
-	//   - START: id 1 alone opens the exchange (applyTiltEdit). The panel sends START to
-	//     every node it lists, because the webview holds no domain knowledge about which end
-	//     is which; Go decides here.
+	// It decides ONE thing: START opens the exchange from id 1 alone (applyTiltEdit). The
+	// panel posts START to every node row, because the webview holds no domain knowledge
+	// about which end is which; Go decides here, by id.
 	//
-	// The zero value means id 1, which is what a bare test build in this package constructs
-	// and what this package's own tests assert.
+	// It does NOT decide which way this end turns — that is Sign, below, and the two are
+	// independent: an id says which end you are talking to, a sign says which way that end
+	// runs. The zero value means id 1, which is what a bare test build in this package
+	// constructs.
 	PairID int32
+
+	// Sign is +1 or −1: which way this end's derived directions and steps run. It inverts
+	// the bottom tilt, the coplanar normal and both step directions together, and end 2
+	// taking the opposite of end 1 is what makes the two turn TOWARD each other. With the
+	// same sign at both ends they turn APART instead, one index per round, halting a quarter
+	// turn either side of where they started rather than parallel.
+	//
+	// Set by each kind's own builder. The zero value is read as +1, so a bare test build in
+	// this package is end 1's chirality without having to say so.
+	Sign int32
 
 	Fire         func()
 	EmitGeometry func()
@@ -275,11 +280,12 @@ func (n *Node) bottomTilt() Wiring.TiltVectorMsg {
 	}
 }
 
-// sign is +1 for pair id 1 and −1 for id 2 — the ONE place the two ends differ, read by
-// bottomTilt, coplanarNormal and stepFromVector. Anything other than 2 is id 1, since a
-// struct built in a test without a builder has PairID at its zero value and means this end.
+// sign reads the Sign field, treating its zero value as +1 so a struct built in a test
+// without a builder runs end 1's chirality. Read by bottomTilt, coplanarNormal and
+// stepFromVector — the three places chirality shows up, and the only places. It does NOT
+// consult PairID: an id addresses an end, it does not decide which way that end turns.
 func (n *Node) sign() int32 {
-	if n.PairID == 2 {
+	if n.Sign < 0 {
 		return -1
 	}
 	return 1
@@ -561,6 +567,7 @@ func init() {
 		func(a Wiring.BuildArgs) (wire.Node, error) {
 			n := &Node{
 				PairID: 1,
+				Sign:   1,
 				Clock:  wire.NewRealClock(),
 			}
 			n.Fire = a.Fire()
