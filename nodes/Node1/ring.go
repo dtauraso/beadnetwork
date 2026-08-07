@@ -113,7 +113,15 @@ func seedState(idx int32) (s *tiltState, folded bool) {
 	if idx >= 0 && idx < Wiring.FullTurnThetaIdx {
 		return at(idx), false
 	}
-	i := ((idx % Wiring.FullTurnThetaIdx) + Wiring.FullTurnThetaIdx) % Wiring.FullTurnThetaIdx
+	// One modulo and one comparison. Go's `%` keeps the DIVIDEND's sign, so -40 % 24 is -16
+	// rather than 8, and a negative index is the whole reason this function exists — a
+	// persisted running count went below zero as readily as above it. Adding a full turn to
+	// exactly the negative results is the fix, and testing for them costs nothing here: this
+	// runs once per node at load.
+	i := idx % Wiring.FullTurnThetaIdx
+	if i < 0 {
+		i += Wiring.FullTurnThetaIdx
+	}
 	return at(i), true
 }
 
