@@ -80,9 +80,18 @@ func (c *tiltMachineChooser) click(id string, up bool, points int32) {
 	c.idx[id] = next
 }
 
-// forget drops every tally — RESET, the one thing that releases the choice.
+// forget returns every tally to zero — RESET, the one thing that releases the choice. A reset
+// zeroes both tilts (Node1's clear), so the tally follows them to zero.
+//
+// IT DOES NOT DROP THE ENTRIES. Which node ids are in here is the list of pair nodes, written
+// once at build time and never again; deleting them leaves the chooser with fewer than the two
+// tilts it needs to compare, so it answers "none" to every click after the first reset and no
+// machine is ever chosen. That froze a pair: eleven clicks and a start, and not one row in the
+// log, because with no machine an arrival moves nothing.
 func (c *tiltMachineChooser) forget() {
-	c.idx = map[string]int32{}
+	for id := range c.idx {
+		c.idx[id] = 0
+	}
 }
 
 // choose classifies the CURRENT gap between the pair's two tilts:
