@@ -98,15 +98,22 @@
               <td class="s" data-src="nodes/Node1/ring.go#separation">ring.go</td>
             </tr>
             <tr>
-              <td class="e">miss(PERPENDICULAR) = min(sep, |sep − HALF|)<br>miss(PARALLEL) = |sep − QUARTER|</td>
-              <td class="n">distance to the node's OWN halt; zero is that halt. The other halt is
-                an ordinary angle it steps over</td>
-              <td class="s" data-src="nodes/Node1/ring.go#missBy">ring.go</td>
+              <td class="e">miss = min(sep, |sep − HALF|)</td>
+              <td class="n">the PERPENDICULAR machine's own measure. A quarter turn is an ordinary
+                angle to it — one it steps over</td>
+              <td class="s" data-src="nodes/Node1/perpendicular.go#miss">perpendicular.go</td>
+            </tr>
+            <tr>
+              <td class="e">miss = |sep − QUARTER|</td>
+              <td class="n">the PARALLEL machine's own measure, in its own file, sharing no
+                computation with the one above</td>
+              <td class="s" data-src="nodes/Node1/parallel.go#miss">parallel.go</td>
             </tr>
             <tr>
               <td class="e">step = next if miss(next) ≤ miss(prev), else prev</td>
-              <td class="n">answerable everywhere on the ring, including at both halts</td>
-              <td class="s" data-src="nodes/Node1/ring.go#stepToward">ring.go</td>
+              <td class="n">each machine's own; answerable everywhere on the ring, both halts
+                included</td>
+              <td class="s" data-src="nodes/Node1/perpendicular.go#step">perpendicular.go</td>
             </tr>
 
             <tr class="h">

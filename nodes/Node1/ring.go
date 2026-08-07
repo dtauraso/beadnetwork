@@ -189,84 +189,34 @@ func (s *tiltState) separation(target *tiltState) int32 {
 // Both are places the pair can rest, and they are NOT the same place. The rule used to halt on
 // "not acute", which is one condition covering both — so a pair disturbed out of perpendicular
 // could walk into parallel and stop there, and the log read identically at both (every row
-// `kind=none -> hold`). A node now names which of the two it is holding, because the direction
-// it must turn when something disturbs it depends on which one it is trying to get back to.
-type haltKind int8
-
-const (
-	haltNone haltKind = iota
-	haltPerpendicular
-	haltParallel
-)
-
-// String names the halt for the diagnostic row — the two have to be distinguishable there
-// too, since a log that printed both as "halted" is what hid them being one state.
-func (h haltKind) String() string {
-	switch h {
-	case haltPerpendicular:
-		return "perpendicular"
-	case haltParallel:
-		return "parallel"
-	}
-	return "none"
-}
-
-// missBy is how far this arrival is from putting the node in the halt h — zero when it IS
-// that halt. Perpendicular has two separations that are it, a zero and a half turn, so the
-// nearer of the two is the one that counts; parallel has the one, a quarter turn.
+// `kind=none -> hold`). A node now RUNS ONE OF TWO STATE MACHINES, and which one it is running
+// is what says where it is returning to when something disturbs it.
 //
-// This is what lets a node STEP THROUGH the halt it is not holding. The walk back to one halt
-// passes across the other — perpendicular sits at separation 0 and a half turn, parallel at a
-// quarter turn, so getting from one to the other crosses the space between them, and the
-// crossing point IS the other halt. A node that stopped at any halt was captured by whichever
-// it touched first: the log showed a pair holding perpendicular walk correctly toward
-// separation 0, land on 12 in passing, and take up parallel there. Measuring the miss against
-// THIS NODE'S OWN halt makes the other one an ordinary angle it passes over.
-// PARALLEL IS NOT CONSULTED UNLESS A NODE IS HOLDING IT. A node holding nothing yet closes on
-// the arrival, which is the perpendicular measure — it needs no comparison against the other
-// halt to do that, and a version that compared the two to pick a target made a node's distance
-// to parallel part of answering a question about perpendicular.
-func (s *tiltState) missBy(arrival *tiltState, h haltKind) int32 {
-	sep := s.separation(arrival)
-	if h == haltParallel {
-		return abs32(sep - s.ring.quarterTurn)
-	}
-	toZero, toHalf := sep, abs32(sep-s.ring.halfTurn)
-	if toHalf < toZero {
-		return toHalf
-	}
-	return toZero
+// tiltMachine is that pair seen from the node: perpendicularMachine and parallelMachine, each
+// complete in its own file, neither reading the other. A node runs one of them, or none yet.
+// This interface is the ONLY thing the two have in common, and it deliberately carries no
+// computation of its own — a shared helper hung off here is a shared rule by another name,
+// which is what kept coupling them.
+type tiltMachine interface {
+	// halted: is this arrival this machine's resting state?
+	halted(from, arrival *tiltState) bool
+	// step: the one move that leaves the node closer to it.
+	step(from, arrival *tiltState) *tiltState
+	// String names the machine for the diagnostic row — the two have to be distinguishable
+	// there too, since a log that printed both alike is what hid them being one state.
+	String() string
 }
 
-// stepToward is the one step — next or prev, a link either way — that leaves this node closer
-// to its OWN halt against this arrival. It replaces picking a direction from the acute cones,
-// which could not answer at all in one place it had to: a node holding perpendicular that has
-// arrived at exactly a quarter turn is not acute on either side, so the cones said "stand
-// still" at precisely the separation it most needed to move off.
-func (s *tiltState) stepToward(arrival *tiltState, h haltKind) *tiltState {
-	if s.next.missBy(arrival, h) <= s.prev.missBy(arrival, h) {
-		return s.next
-	}
-	return s.prev
-}
+// THE RESTING-STATE RULES ARE NOT IN THIS FILE. Perpendicular lives in perpendicular.go and
+// parallel in parallel.go, one state machine each, sharing no computation — see either file's
+// header for why. What this file provides them is `separation`: a measurement of where two
+// directions sit relative to each other, which is not a rule and names no resting state.
 
 func abs32(v int32) int32 {
 	if v < 0 {
 		return -v
 	}
 	return v
-}
-
-// haltAgainst names the halt this arrival puts the node in, or haltNone when the arrival is
-// somewhere between the two and the node has to turn.
-func (s *tiltState) haltAgainst(arrival *tiltState) haltKind {
-	switch s.separation(arrival) {
-	case 0, s.ring.halfTurn:
-		return haltPerpendicular
-	case s.ring.quarterTurn:
-		return haltParallel
-	}
-	return haltNone
 }
 
 // defaultRing is the lattice a node gets when nothing has said otherwise — the count this

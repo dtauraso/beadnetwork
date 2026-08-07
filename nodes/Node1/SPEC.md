@@ -151,21 +151,27 @@ loop body) runs:
   | 0, or a half turn | a quarter turn apart | PERPENDICULAR |
   | a quarter turn | the same direction | PARALLEL |
 
-  - not holding either yet: the first halt reached is taken up (`Halt`), and the node stops.
-  - holding one, and the arrival IS it: stand still, reply anyway.
-  - otherwise: ONE step, whichever of `next`/`prev` leaves this node nearer its OWN halt
-    (`stepToward`). The other halt is stepped straight over — the two sit a quarter turn apart
-    in separation, so the walk back to one crosses the other, and halting at whichever was
-    touched first is what let a perpendicular pair walk into parallel and stay.
+  Each is a SEPARATE STATE MACHINE in its own file — `perpendicularMachine`
+  (`nodes/Node1/perpendicular.go`) and `parallelMachine` (`nodes/Node1/parallel.go`) — sharing
+  no computation, so a change to one cannot reach the other. A node runs one of them (`Machine`),
+  or neither yet.
 
-  `Halt` is cleared only by a reset (a clean slate), never by an arrival.
+  - running neither yet: whichever machine's halt the arrival IS, is the one taken up; with
+    nothing to return to otherwise, the node closes on the arrival.
+  - running one, and the arrival is its halt: stand still, reply anyway.
+  - otherwise: ONE `step` from that machine. The OTHER machine's halt is stepped straight over
+    — the two sit a quarter turn apart in separation, so the walk back to one crosses the
+    other, and halting at whichever was touched first is what let a perpendicular pair walk
+    into parallel and stay.
+
+  `Machine` is cleared only by a reset (a clean slate), never by an arrival.
 
   If it turned (or answered while square), report the new indices to its own geometry
   (`syncTiltIndex`) and send the outgoing vector above, alongside the bead.
 - **No float hazard to handle**: there is no dot product here at all. Both operands are
-  single θ indices on the same lattice, and `missBy` (`nodes/Node1/ring.go`) measures the
-  distance to a halt in integer ring hops — not `cos(...)` landing near zero and needing an
-  epsilon band.
+  single θ indices on the same lattice, and each machine's own `miss` measures the distance to
+  its own halt in integer ring hops — not `cos(...)` landing near zero and needing an epsilon
+  band.
 - **Received-vector RESET**: a Reset marker arriving on `VectorIn` zeroes this node's
   tilt (as above) AND clears its own received-vector record
   (`ReceivedSet = false`, synced) — a stale received arrow left hanging would

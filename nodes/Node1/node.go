@@ -101,16 +101,15 @@ type Node struct {
 	// step constant, trig only at the cartesian/polar boundary).
 	Top *tiltState
 
-	// Halt is WHICH RESTING STATE this node is holding — perpendicular or parallel (ring.go's
-	// haltKind). The two are different states with different halts, and a node has to know
-	// which of them it is in, because that is what says which way to turn when something
-	// disturbs it: an arrival that leans takes the pair off whichever relationship it was in,
-	// and the correction for one is the correction for the other run backwards.
+	// Machine is WHICH STATE MACHINE this node is running — perpendicularMachine or
+	// parallelMachine, one per file, sharing no computation (perpendicular.go, parallel.go).
+	// nil means neither yet. A node has to know which it is running, because that is what says
+	// where it is returning to when something disturbs it.
 	//
-	// It is written when an arrival lands on either halt and by nothing else — no arrival in
+	// It is set when an arrival lands on one machine's halt and by nothing else — no arrival in
 	// between erases it, so a node disturbed mid-turn still knows what it is returning to. The
 	// RESET button is the one thing that erases it (clear).
-	Halt haltKind
+	Machine tiltMachine
 
 	// Ring is THIS NODE'S OWN lattice — its states, and the counts every rule reads off them.
 	// The point count is a scene setting a user can change, so this is not fixed for the life
@@ -334,8 +333,8 @@ func (n *Node) topState() *tiltState {
 // there instead of bouncing.
 func (n *Node) clear() {
 	n.Top = n.ringOf().at(0)
-	// The held resting state goes too: RESET is the one thing that erases it.
-	n.Halt = haltNone
+	// The machine this node was running goes too: RESET is the one thing that erases it.
+	n.Machine = nil
 	n.syncTiltIndex()
 	n.ReceivedThetaIdx = 0
 	n.ReceivedSet = false
@@ -471,21 +470,27 @@ func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
 	// A NODE HALTS ON ITS OWN HALT AND STEPS THROUGH THE OTHER ONE. Until it is holding either,
 	// the first halt it reaches is the one it takes up; after that, only that halt stops it.
 	// Landing on the other is nothing — an angle it happens to be passing over on the way back
-	// to its own, which is exactly what capturing it there got wrong (ring.go's missBy).
-	if n.Halt == haltNone {
-		if halt := before.haltAgainst(arrival); halt != haltNone {
-			n.Halt = halt
-			return true
+	// to its own, which is what capturing it there got wrong.
+	//
+	// This is the ONE place the two machines meet, and all it does is run whichever this node
+	// is running. Neither machine appears in the other's branch.
+	if n.Machine != nil {
+		if !n.Machine.halted(before, arrival) {
+			n.Top = n.Machine.step(before, arrival)
 		}
-	}
-	if n.Halt != haltNone && before.missBy(arrival, n.Halt) == 0 {
 		return true
 	}
 
-	// Disturbed, or not yet holding anything: one step, the way that closes on the halt this
-	// node is returning to (haltNone reads as perpendicular in missBy, so a node with nothing
-	// to return to closes on the arrival, which is where it used to go).
-	n.Top = before.stepToward(arrival, n.Halt)
+	// Running neither yet. Whichever machine's halt this arrival IS, is the one taken up; with
+	// nothing to return to otherwise, the node closes on the arrival.
+	switch {
+	case (perpendicularMachine{}).halted(before, arrival):
+		n.Machine = perpendicularMachine{}
+	case (parallelMachine{}).halted(before, arrival):
+		n.Machine = parallelMachine{}
+	default:
+		n.Top = (perpendicularMachine{}).step(before, arrival)
+	}
 	return true
 }
 
@@ -537,13 +542,12 @@ func (n *Node) handleVectorCycle(tick int64) {
 	// the `top`/`bottom` here are the operands the tests actually used, not the post-step ones.
 	// A halted pair re-reads the same arrival every tick, so a row per arrival was 1749 rows of
 	// `hold` in 1768 — the per-tick firehose .claude/rules/go-debugging.md warns about. Only a
-	// row where something CHANGED is written: the index moved, or the held resting state did.
+	// row where something CHANGED is written: the index moved, or the machine did.
 	before := n.topState()
 	arrival := n.ringOf().arrivedState(received.ThetaIdx)
-	heldBefore := n.Halt
-	missBefore := before.missBy(arrival, heldBefore)
+	machineBefore := n.Machine
 	moved := n.stepFromVector(received)
-	if n.Self != nil && (n.topState() != before || n.Halt != heldBefore) {
+	if n.Self != nil && (n.topState() != before || n.Machine != machineBefore) {
 		dir := "hold"
 		switch {
 		case n.topState() == before.next:
@@ -551,10 +555,14 @@ func (n *Node) handleVectorCycle(tick int64) {
 		case n.topState() == before.prev:
 			dir = "prev"
 		}
+		running := "none"
+		if n.Machine != nil {
+			running = n.Machine.String()
+		}
 		n.Self.Breadcrumb("pair-vector", fmt.Sprintf(
-			"id=%d recv=%2d top=%2d bottom=%2d sep=%2d miss=%2d held=%-13s -> %-4s idx %2d->%2d sent=%2d moved=%v tick=%d",
+			"id=%d recv=%2d top=%2d bottom=%2d sep=%2d running=%-13s -> %-4s idx %2d->%2d sent=%2d moved=%v tick=%d",
 			n.PairID, received.ThetaIdx, before.idx, before.opposite.idx,
-			before.separation(arrival), missBefore, n.Halt, dir, before.idx, n.topState().idx,
+			before.separation(arrival), running, dir, before.idx, n.topState().idx,
 			n.outgoingVector().ThetaIdx, moved, tick))
 	}
 	if !moved {
