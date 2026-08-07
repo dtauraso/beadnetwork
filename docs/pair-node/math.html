@@ -182,6 +182,48 @@
             point to a quarter-turn separation instead.</div>
         </div>
 
+        <div class="card wide">
+          <h2>Every opening, swept</h2>
+          <p>All 576 openings of a 24-point lattice — every starting tilt for node 1 against every
+            starting tilt for node 2 — run through the same decision functions the live node calls, in
+            the order its own loop calls them. The numbers below are produced by
+            <span data-src="nodes/Node1/node_test.go#TestEveryOpeningSettlesOnTheMachineItChose">that
+              sweep</span>, not estimated; run it with <code>-v</code> after changing the rule and put its
+            new output here.</p>
+          <table class="f">
+            <tr class="h">
+              <td>openings</td>
+              <td>machine chosen at START</td>
+              <td>where it settled</td>
+            </tr>
+            <tr>
+              <td class="e">48</td>
+              <td class="n">perpendicular — the two openings a quarter turn apart, for each of the 24
+                starting tilts</td>
+              <td class="n">the tilts a quarter turn apart</td>
+            </tr>
+            <tr>
+              <td class="e">264</td>
+              <td class="n">parallel</td>
+              <td class="n">the tilts on one line, pointing the SAME way</td>
+            </tr>
+            <tr>
+              <td class="e">264</td>
+              <td class="n">parallel</td>
+              <td class="n">the tilts on one line, pointing OPPOSITE ways</td>
+            </tr>
+          </table>
+          <p>Every one of the 576 settles, and none takes more than 4 rounds — a round being both ends
+            reading the other's last normal and stepping once.</p>
+          <p>Both of the last two rows ARE parallel — two arrows on one line are parallel whether or not
+            they point the same way, so reversing one changes nothing about the relationship. The rule
+            reads it that way without being told to: its halt is a separation of a quarter turn between
+            this node's top and the arrival, and
+            <span data-src="nodes/Node1/ring.go#separation">separation</span> folds the long way round
+            into the short one, so a reversed partner lands exactly where an aligned one does. The split
+            is listed here only because the arrows LOOK different in the editor.</p>
+        </div>
+
       </div>
   </main>
 </body>

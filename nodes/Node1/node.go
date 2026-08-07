@@ -495,7 +495,7 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 // way. THERE ARE TWO TARGETS, and a node is returning to exactly one of them:
 //
 //		PERPENDICULAR   separation 0 or a half turn   the two tilts are a quarter turn apart
-//		PARALLEL        separation a quarter turn     the two tilts point the same way
+//		PARALLEL        separation a quarter turn     the two tilts on one line, either way round
 //
 //	  - not holding either yet -> the first halt reached is taken up, and the node stops there.
 //	  - holding one, arrival IS it -> stand still. Nothing else writes what is held, so an
