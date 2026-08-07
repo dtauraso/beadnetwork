@@ -156,12 +156,11 @@ loop body) runs:
   no computation, so a change to one cannot reach the other. A node runs one of them (`Machine`),
   or neither yet.
 
-  WHICH ONE IT RUNS IS NOT DECIDED HERE. After each ▲/▼ click the gap between the pair's two
-  tilts is checked OUTSIDE the nodes, by the view-owner goroutine that routes every click
-  (`nodes/Wiring/tilt_machine_chooser.go`): a quarter-turn gap picks the perpendicular machine,
-  anything else picks the parallel one, and both ends are told. A node cannot decide this for
-  itself — at click time nothing has arrived on its vector channel, so it knows its own tilt
-  and nothing about its partner's.
+  WHICH ONE IT RUNS COMES FROM THE TILT BEING SET. On each ▲/▼ click, the tilt that click just
+  produced is read: a quarter turn is perpendicular, anything else is acute and is parallel.
+  Nothing is remembered to work that out — no seed, no tally of clicks — and the answer replaces
+  whatever was chosen before. The other end is told on the pair's own vector channel
+  (`TiltVectorMsg.Machine`), since both have to work toward the same thing.
 
   - running neither (before any click, or after a reset): an arrival moves nothing.
   - running one, and the arrival is its halt: stand still, reply anyway.

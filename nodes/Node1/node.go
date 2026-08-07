@@ -232,27 +232,41 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 		Wiring.SendVectorLatestNonBlocking(n.VectorOut, n.outgoingVector())
 		return true
 	}
-	if edit.Machine != Wiring.TiltMachineNone {
-		// WHICH MACHINE THIS NODE RUNS was decided outside it, from the gap between the pair's
-		// two tilts, which a node cannot see for itself at click time — nothing has arrived on
-		// its vector channel yet (nodes/Wiring/tilt_machine_chooser.go). This is the whole of
-		// this node's say in the matter: it is told, and it runs that until a reset.
-		switch edit.Machine {
-		case Wiring.TiltMachinePerpendicular:
-			n.Machine = perpendicularMachine{}
-		case Wiring.TiltMachineParallel:
-			n.Machine = parallelMachine{}
-		}
-		return false
-	}
 	if edit.Up {
 		n.Top = n.topState().next
 	} else {
 		n.Top = n.topState().prev
 	}
+	// THE TILT JUST SET DECIDES WHICH MACHINE THE PAIR RUNS. A quarter turn is perpendicular;
+	// anything else is acute, and acute is parallel. Nothing is remembered to work this out —
+	// no seed, no tally of clicks — it is read off the tilt this click just produced, every
+	// click, and it replaces whatever was chosen before.
+	//
+	// The other end is told on the pair's own channel, since both have to be working toward
+	// the same thing. RESET removes the choice at both ends (clear).
+	choice := Wiring.TiltMachineParallel
+	if n.topState().separation(n.ringOf().at(0)) == n.ringOf().quarterTurn {
+		choice = Wiring.TiltMachinePerpendicular
+	}
+	n.adoptMachine(choice)
+	Wiring.SendVectorLatestNonBlocking(n.VectorOut, Wiring.TiltVectorMsg{Machine: choice})
 	// AND IT STOPS THERE: no send, no bead. Setting an angle and running the exchange are
 	// separate acts — a click moves this node's own tilt and nothing else happens until START.
 	return false
+}
+
+// adoptMachine sets which of this kind's two state machines this node runs. It is the ONE
+// writer of that field outside clear(), and it maps the pair-wide name onto this package's own
+// machine — the naming lives in Wiring so both ends can say it to each other, and the machines
+// themselves live here (perpendicular.go, parallel.go), which is the only place that knows how
+// either one steps.
+func (n *Node) adoptMachine(choice Wiring.TiltMachine) {
+	switch choice {
+	case Wiring.TiltMachinePerpendicular:
+		n.Machine = perpendicularMachine{}
+	case Wiring.TiltMachineParallel:
+		n.Machine = parallelMachine{}
+	}
 }
 
 // adoptLattice rebuilds THIS node's own ring at a new point count, on THIS node's own
@@ -523,6 +537,13 @@ func (n *Node) handleVectorCycle(tick int64) {
 	// why the marker-driven one, not the button-driven one, is the one that lands last.
 	if received.Reset {
 		n.clear()
+		return
+	}
+	// A MACHINE CHOICE IS NOT A DIRECTION TO ACT ON EITHER. The other end read it off the tilt
+	// a user just set on it, and both ends have to be working toward the same thing, so this
+	// takes it up and steps nothing. No reply: it is not a question.
+	if received.Machine != Wiring.TiltMachineNone {
+		n.adoptMachine(received.Machine)
 		return
 	}
 	// A DIRECTION FROM ANOTHER LATTICE IS NOT A DIRECTION HERE. The two ends of a pair adopt

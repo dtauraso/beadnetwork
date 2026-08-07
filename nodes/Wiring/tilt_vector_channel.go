@@ -43,6 +43,42 @@ type TiltVectorMsg struct {
 	// and it works because the reset reaches EVERY node with a vector: each node drains the
 	// one receive end it owns, and between them that is both channels.
 	Reset bool
+	// Machine names WHICH STATE MACHINE the pair runs, decided from THE TILT BEING SET at the
+	// moment of a ▲/▼ click and carried to the other end so both run the same one. It is not a
+	// direction to act on: a receiver takes up the machine and steps nothing.
+	//
+	// TiltMachineNone on every message that is not carrying a choice — an ordinary vector
+	// exchange message says nothing about which machine anyone is running.
+	Machine TiltMachine
+}
+
+// TiltMachine names which state machine a pair node runs. The pair kind maps these to its own
+// two machines (nodes/Node1/perpendicular.go, parallel.go); this package names them without
+// knowing how either one steps.
+//
+// WHICH ONE IS DECIDED FROM THE TILT BEING SET, at the click that sets it — nothing is
+// remembered to make that decision, no seed and no tally of clicks. The RESET button removes
+// the choice; the next click makes a new one.
+type TiltMachine int8
+
+const (
+	// TiltMachineNone: run neither — what a reset restores, and what an ordinary vector
+	// message carries.
+	TiltMachineNone TiltMachine = iota
+	// TiltMachinePerpendicular: the two tilts a quarter turn apart.
+	TiltMachinePerpendicular
+	// TiltMachineParallel: the two tilts pointing the same way.
+	TiltMachineParallel
+)
+
+func (m TiltMachine) String() string {
+	switch m {
+	case TiltMachinePerpendicular:
+		return "perpendicular"
+	case TiltMachineParallel:
+		return "parallel"
+	}
+	return "none"
 }
 
 // vectorCapableKinds names every kind that asks for a vector channel on its edges.

@@ -107,15 +107,6 @@ type TiltEditMsg struct {
 	// NO bead: it is a stop-and-return, not "the kick" (see package doc comments on
 	// Node1).
 	Reset bool
-	// Machine names WHICH STATE MACHINE this node is to run from now on, chosen outside the
-	// nodes from the gap between the pair's two tilts and sent after each ▲/▼ click
-	// (tilt_machine_chooser.go). TiltMachineNone on every message that is not carrying a
-	// choice, and a RESET clears the running one back to that.
-	//
-	// It rides this channel rather than a second one because it is the same event reaching
-	// the same node: the user moved a tilt, and what that tilt now means for the pair is
-	// part of what the node has to be told.
-	Machine TiltMachine
 }
 
 // moveMsg is one entry routed to one of a mover's own dedicated channels (there is no

@@ -190,11 +190,6 @@ func (a BuildArgs) TiltEditIn() <-chan TiltEditMsg {
 		md.inboxes.tiltEdit = map[string]chan TiltEditMsg{}
 	}
 	md.inboxes.tiltEdit[a.name] = panelToNodeTiltEditIn
-	// The view owner's own tally of where the user has put this tilt starts where the NODE
-	// starts — the same persisted seed it is about to build its first state from. Seeded here
-	// because this is the one call that says "this node is a pair node", which is exactly the
-	// set of nodes the chooser compares (tilt_machine_chooser.go).
-	md.inboxes.chooser.seed(a.name, a.tiltThetaIdx)
 	return panelToNodeTiltEditIn
 }
 
