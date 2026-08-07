@@ -136,9 +136,9 @@ loop body) runs:
   parameterization, so both signs land in the SAME drawn direction and the sign is index
   bookkeeping only. It shares the top's length column (`TopTiltVectorLen`) and its colour;
   it is one of the two acute-test operands above.
-- **What this node SENDS**: that coplanar normal rotated 180° in θ. Node2 turns +180°
-  (+12 steps of π/12, i.e. `2 × PerpendicularThetaIdx` added); Node1 (its mirror
-  package) turns −180° (−12 steps). Index arithmetic only.
+- **What this node SENDS**: that coplanar normal. The message on the channel IS the direction
+  this node computed and draws; nothing rotates it on the way out. Node1's SPEC and
+  `docs/pair-node/vectors.html` carry the reasoning.
 - **On receiving a vector**: FIRST, unconditionally, this node records the received
   direction as its own THIRD drawn vector (`ReceivedThetaIdx`/
   `ReceivedSet`, reported to its own geometry via `SyncReceivedVector` — same
@@ -149,10 +149,10 @@ loop body) runs:
   tilt vector (`Wiring.TiltVectorIsAcute`, an integer comparison on the π/12 index lattice,
   no dot product and no epsilon — see that function). They decide
   BOTH questions, whether to move and which way:
-  - acute with the TOP tilt: step `TopTiltThetaIdx` ONE click ADDING (+1) — Node2's base
-    direction; its mirror package's base is the opposite, so a pair still turns
+  - acute with the TOP tilt: step `TopTiltThetaIdx` ONE click SUBTRACTING (−1) — Node2's
+    base direction; its mirror package's base is the opposite, so a pair still turns
     symmetrically when both lean the same way.
-  - acute with the BOTTOM tilt: step ONE click the REVERSE way (SUBTRACTING, −1).
+  - acute with the BOTTOM tilt: step ONE click the REVERSE way (ADDING, +1).
   - neither acute: step nothing and send nothing — this is how the vector exchange stops,
     independently of whether the bead exchange has also stopped.
 

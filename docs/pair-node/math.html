@@ -26,7 +26,6 @@
     <a href="channels.html">Channels</a>
     <a href="cycle.html">Cycle</a>
     <a href="updates.html">Update rules</a>
-    <a href="parallel.html">Unreversed</a>
     <a href="clock.html">Clock</a>
     <a href="geometry.html">Geometry</a>
     <a href="asym.html">Asymmetry</a>
@@ -65,48 +64,40 @@
             <line x1="150" y1="150" x2="200" y2="63.4" stroke="#e05fd8" stroke-width="2.6" marker-end="url(#qT)" />
             <line x1="150" y1="150" x2="100" y2="236.6" stroke="#b34fa8" stroke-width="2.6" marker-end="url(#qB)" />
             <line x1="150" y1="150" x2="236.6" y2="200" stroke="#4ea1ff" stroke-width="2.6" marker-end="url(#qN)" />
-            <line x1="150" y1="150" x2="63.4" y2="100" stroke="#5fd68a" stroke-width="2.6" marker-end="url(#qS)" />
+            <line x1="146" y1="157" x2="232.6" y2="207" stroke="#5fd68a" stroke-width="2.6" marker-end="url(#qS)" />
 
             <path d="M 180 98 A 60 60 0 0 1 202 180" fill="none" stroke="#9a9aa6" stroke-dasharray="3 3"
               marker-end="url(#qA)" />
             <text x="216" y="132" class="lblm" fill="#9a9aa6">+6</text>
 
-            <path d="M 202 180 A 60 60 0 0 1 98 120" fill="none" stroke="#9a9aa6" stroke-dasharray="3 3"
-              marker-end="url(#qA)" />
-            <text x="150" y="212" text-anchor="middle" class="lblm" fill="#9a9aa6">+12</text>
-
             <text x="208" y="58" class="lblm" fill="#e05fd8">top 2</text>
             <text x="244" y="212" class="lblm" fill="#4ea1ff">normal 8</text>
-            <text x="6" y="94" class="lblm" fill="#5fd68a">sent 20</text>
+            <text x="216" y="234" class="lblm" fill="#5fd68a">sent 8</text>
             <text x="40" y="252" class="lblm" fill="#b34fa8">bottom 14</text>
 
-            <text x="150" y="284" text-anchor="middle" class="lblm" fill="#5fd68a">20 = 2 − 6</text>
+            <text x="150" y="284" text-anchor="middle" class="lblm" fill="#5fd68a">8 = 2 + 6</text>
           </svg>
         </div>
 
         <div class="card">
-          <h2>The two turns cancel to one</h2>
+          <h2>One quarter turn, sent as is</h2>
           <svg width="300" height="150" viewBox="0 0 300 150">
             <text x="20" y="34" class="lblm" fill="#f9a825">node 1</text>
             <text x="90" y="34" class="lblm" fill="#e05fd8">t</text>
             <text x="118" y="34" class="lblm" fill="#4ea1ff">+ 6</text>
-            <text x="166" y="34" class="lblm" fill="#5fd68a">− 12</text>
-            <text x="228" y="34" class="lblm">=</text>
-            <text x="250" y="34" class="lblm" fill="#5fd68a">t − 6</text>
-            <path d="M 118 42 L 118 56 L 190 56 L 190 42" fill="none" stroke="#9a9aa6" stroke-dasharray="3 3" />
+            <text x="166" y="34" class="lblm">=</text>
+            <text x="190" y="34" class="lblm" fill="#5fd68a">sent</text>
 
             <text x="20" y="100" class="lblm" fill="#4ea1ff">node 2</text>
             <text x="90" y="100" class="lblm" fill="#e05fd8">t</text>
             <text x="118" y="100" class="lblm" fill="#4ea1ff">− 6</text>
-            <text x="166" y="100" class="lblm" fill="#5fd68a">+ 12</text>
-            <text x="228" y="100" class="lblm">=</text>
-            <text x="250" y="100" class="lblm" fill="#5fd68a">t + 6</text>
-            <path d="M 118 108 L 118 122 L 190 122 L 190 108" fill="none" stroke="#9a9aa6" stroke-dasharray="3 3" />
+            <text x="166" y="100" class="lblm">=</text>
+            <text x="190" y="100" class="lblm" fill="#5fd68a">sent</text>
 
             <text x="20" y="60" class="lbl" fill="#9a9aa6">normal</text>
             <text x="20" y="126" class="lbl" fill="#9a9aa6">normal</text>
           </svg>
-          <div class="cap">A node sends its own top, turned a quarter turn.</div>
+          <div class="cap">A node sends its own top, turned a quarter turn — nothing further is done to it.</div>
         </div>
 
         <div class="card">
@@ -167,9 +158,9 @@
             </g>
 
             <g class="lblm" text-anchor="middle">
-              <text x="115" y="150" fill="#5fd68a">18 →</text>
-              <text x="225" y="150" fill="#4ea1ff">← 8</text>
-              <text x="335" y="150" fill="#5fd68a">19 →</text>
+              <text x="115" y="150" fill="#5fd68a">6 →</text>
+              <text x="225" y="150" fill="#4ea1ff">← 20</text>
+              <text x="335" y="150" fill="#5fd68a">7 →</text>
             </g>
             <text x="390" y="150" text-anchor="middle" class="lblm" fill="#ff6b6b">7 · halt</text>
           </svg>

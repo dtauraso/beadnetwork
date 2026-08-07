@@ -28,7 +28,6 @@
     <a href="channels.html">Channels</a>
     <a href="cycle.html">Cycle</a>
     <a class="on" href="updates.html">Update rules</a>
-    <a href="parallel.html">Unreversed</a>
     <a href="clock.html">Clock</a>
     <a href="geometry.html">Geometry</a>
     <a href="asym.html">Asymmetry</a>
@@ -84,9 +83,9 @@
             <td class="e">normal = t − 6</td>
           </tr>
           <tr>
-            <td class="n">what it sends — the normal, reversed</td>
-            <td class="e">sends = normal − 12 = t − 6 + 12 · (floor(t / 12) mod 2)</td>
-            <td class="e">sends = normal + 12 = t + 6</td>
+            <td class="n">what it sends — the normal, unchanged</td>
+            <td class="e">sends = normal = t + 6 + 12 · (floor(t / 12) mod 2)</td>
+            <td class="e">sends = normal = t − 6</td>
           </tr>
         </table>
         <div class="cap">t + 12 and t − 12 draw the same direction, so the two bottoms coincide on screen.
@@ -219,13 +218,13 @@
           </tr>
           <tr>
             <td class="e">d(v, top) ∈ {0…5, 19…23}</td>
-            <td class="e">t ← t − 1</td>
             <td class="e">t ← t + 1</td>
+            <td class="e">t ← t − 1</td>
           </tr>
           <tr>
             <td class="e">else d(v, bottom) ∈ {0…5, 19…23}</td>
-            <td class="e">t ← t + 1</td>
             <td class="e">t ← t − 1</td>
+            <td class="e">t ← t + 1</td>
           </tr>
           <tr>
             <td class="e">neither set contains d</td>
@@ -269,27 +268,27 @@
           </tr>
           <tr>
             <td class="e">0</td>
-            <td class="e">no · 12 · 6 · −6</td>
+            <td class="e">no · 12 · 6 · 6</td>
             <td class="e">0° · 90°</td>
           </tr>
           <tr>
             <td class="e">−1</td>
-            <td class="e">yes · 11 · 17 · 5</td>
+            <td class="e">yes · 11 · 17 · 17</td>
             <td class="e">−15° · 255°</td>
           </tr>
           <tr>
             <td class="e">−6</td>
-            <td class="e">yes · 6 · 12 · 0</td>
+            <td class="e">yes · 6 · 12 · 12</td>
             <td class="e">−90° · 180°</td>
           </tr>
           <tr>
             <td class="e">−12</td>
-            <td class="e">yes · 0 · 6 · −6</td>
+            <td class="e">yes · 0 · 6 · 6</td>
             <td class="e">−180° · 90°</td>
           </tr>
           <tr>
             <td class="e">−13</td>
-            <td class="e">no · −1 · −7 · −19</td>
+            <td class="e">no · −1 · −7 · −7</td>
             <td class="e">−195° · −105°</td>
           </tr>
           <tr class="h">
@@ -299,12 +298,12 @@
           </tr>
           <tr>
             <td class="e">0</td>
-            <td class="e">−12 · −6 · 6</td>
+            <td class="e">−12 · −6 · −6</td>
             <td class="e">0° · −90°</td>
           </tr>
           <tr>
             <td class="e">1</td>
-            <td class="e">−11 · −5 · 7</td>
+            <td class="e">−11 · −5 · −5</td>
             <td class="e">15° · −75°</td>
           </tr>
         </table>
@@ -324,32 +323,32 @@
           <tr>
             <td class="e">node 1 at t = −1, node 2 at t = 0 · START</td>
             <td class="e">—</td>
-            <td class="e">node 1 sends 5, places a bead</td>
+            <td class="e">node 1 sends normal(−1) = 17, places a bead</td>
           </tr>
           <tr>
-            <td class="e">node 2 receives 5</td>
-            <td class="e">d(5, top 0) = 5 acute</td>
-            <td class="e">t ← 0 + 1 = 1 · sends 7 · bead</td>
+            <td class="e">node 2 receives 17</td>
+            <td class="e">d(17, top 0) = 17 no · d(17, bottom −12) = 5 acute</td>
+            <td class="e">t ← 0 + 1 = 1 · sends normal(1) = −5 · bead</td>
           </tr>
           <tr>
-            <td class="e">node 1 receives 7</td>
-            <td class="e">d(7, top −1) = 8 no · d(7, bottom 11) = 20 acute</td>
-            <td class="e">t ← −1 + 1 = 0 · sends −6 · bead</td>
+            <td class="e">node 1 receives −5</td>
+            <td class="e">d(−5, top −1) = 20 acute</td>
+            <td class="e">t ← −1 + 1 = 0 · sends normal(0) = 6 · bead</td>
           </tr>
           <tr>
-            <td class="e">node 2 receives −6</td>
-            <td class="e">d(−6, top 1) = 17 no · d(−6, bottom −11) = 5 acute</td>
-            <td class="e">t ← 1 − 1 = 0 · sends 6 · bead</td>
+            <td class="e">node 2 receives 6</td>
+            <td class="e">d(6, top 1) = 5 acute</td>
+            <td class="e">t ← 1 − 1 = 0 · sends normal(0) = −6 · bead</td>
           </tr>
           <tr>
-            <td class="e">node 1 receives 6</td>
-            <td class="e">d(6, top 0) = 6 · d(6, bottom 12) = 18</td>
+            <td class="e">node 1 receives −6</td>
+            <td class="e">d(−6, top 0) = 18 · d(−6, bottom 12) = 6</td>
             <td class="e">both perpendicular — HALT. t unchanged, no send, no bead</td>
           </tr>
           <tr>
             <td class="e">at rest</td>
             <td class="e">t = 0 on both</td>
-            <td class="e">r = 6 on node 1, r = −6 on node 2 — the third arrows stay drawn</td>
+            <td class="e">r = −6 on node 1, r = 6 on node 2 — the third arrows stay drawn</td>
           </tr>
         </table>
         <div class="cap">Four sends, four beads, both indices at 0. Sends and beads are equal in number

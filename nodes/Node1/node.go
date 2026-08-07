@@ -311,22 +311,26 @@ func (n *Node) syncReceivedVector() {
 	n.SyncReceivedVector(n.ReceivedThetaIdx, n.ReceivedSet)
 }
 
-// outgoingVector is what THIS node SENDS on VectorOut: its own coplanarNormal rotated
-// 180° in θ. Node1 turns −180° (−12 steps of π/12); Node2 (its mirror package) turns
-// +180° (+12 steps) — index arithmetic, never radians.
+// outgoingVector is what THIS node SENDS on VectorOut: its own coplanarNormal. The message
+// on the channel IS the direction this node computed and draws, so the arrow the partner
+// draws as its received direction coincides with this node's own normal on screen.
+//
+// Do not rotate it on the way out. A rotation here has to be undone by the receiver's step
+// signs (stepFromVector, below) to leave behaviour unchanged, which spreads one convention
+// across two files and two kinds; and rotating by a half turn in particular changes nothing
+// at all about where the pair comes to rest, since the bottom tilt is the top plus that same
+// half turn — it only swaps which of the receiver's two acute tests fires.
 func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
-	norm := n.coplanarNormal()
-	norm.ThetaIdx -= 2 * Wiring.PerpendicularThetaIdx
-	return norm
+	return n.coplanarNormal()
 }
 
 // stepFromVector decides whether an arrived vector turns this node's own TopTiltThetaIdx at
 // all, and if so which way, using TWO ACUTE TESTS (Wiring.TiltVectorIsAcute — integer
 // index arithmetic on the 24-step θ lattice, not a dot product):
 //
-//   - arrived vector ACUTE with this node's own TOP tilt vector    -> step -1 (Node1's base
+//   - arrived vector ACUTE with this node's own TOP tilt vector    -> step +1 (Node1's base
 //     direction), return true
-//   - arrived vector ACUTE with this node's own BOTTOM tilt vector -> step +1, the REVERSE,
+//   - arrived vector ACUTE with this node's own BOTTOM tilt vector -> step -1, the REVERSE,
 //     return true
 //   - neither acute (exactly perpendicular)                        -> step NOTHING, return
 //     false — this is how the vector exchange comes to rest: the caller
@@ -339,14 +343,19 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 // which end the arrived vector leans toward IS the direction, except at the perpendicular
 // index itself, which has no lean at all and so steps nothing.
 //
-// Node1's base direction (the top-acute case) subtracts one step; its mirror package's is the
+// Node1's base direction (the top-acute case) ADDS one step; its mirror package's is the
 // opposite, so a pair still turns symmetrically when both are leaning the same way.
+//
+// These two signs are paired with what outgoingVector sends (above): they are read against
+// an arrival that is the partner's coplanar normal as-is. Rotating what is sent, or flipping
+// one of these signs alone, turns each node the wrong way and the pair walks apart instead
+// of together. Worked run: docs/pair-node/vectors.html.
 func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
 	switch {
 	case Wiring.TiltVectorIsAcute(received, n.topTilt()):
-		n.TopTiltThetaIdx -= 1
-	case Wiring.TiltVectorIsAcute(received, n.bottomTilt()):
 		n.TopTiltThetaIdx += 1
+	case Wiring.TiltVectorIsAcute(received, n.bottomTilt()):
+		n.TopTiltThetaIdx -= 1
 	default:
 		// Exactly perpendicular to both: no lean to read, so this node steps nothing —
 		// the halt condition for the exchange.
