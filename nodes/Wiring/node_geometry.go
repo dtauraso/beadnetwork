@@ -10,7 +10,7 @@
 //
 //   - a RING node's dedicated nodeMover actor (node_mover.go: its own goroutine, launched
 //     by moverRegistry.start), which owns a *nodeGeometry and paces it on its own clock; or
-//   - a PAIR node's own kind goroutine (Node1/Node2, via BuildArgs.ClaimSelfDrive), which
+//   - a PAIR node's own kind goroutine (Node1, via BuildArgs.ClaimSelfDrive), which
 //     owns a *nodeGeometry DIRECTLY — there is no nodeMover for it at all, no second
 //     goroutine, nothing to skip launching.
 //
@@ -311,9 +311,9 @@ func (m *nodeGeometry) handle(msg moveMsg) {
 			m.emitGeometry()
 		}
 		// NOTE: this path only runs for a kind that has NOT claimed BuildArgs.TiltEditIn
-		// (every kind except Node1/Node2 today — see moveMsgKindTiltVectorAngle's own doc
-		// comment and applyUpdateTiltVector's fallback, stdin_reader.go). Node1/Node2's own
-		// tilt-panel edits are routed to their OWN goroutine instead (TiltEditIn), which
+		// (every kind except Node1 today — see moveMsgKindTiltVectorAngle's own doc
+		// comment and applyUpdateTiltVector's fallback, stdin_reader.go). Node1's own
+		// tilt-panel edits are routed to its OWN goroutine instead (TiltEditIn), which
 		// applies the click, syncs this value back via PairNodeSelf.SetTiltIndex, AND places
 		// "the kick" bead on its own Out directly — none of that happens here anymore.
 		return
@@ -328,12 +328,12 @@ func (m *nodeGeometry) handle(msg moveMsg) {
 			m.emitGeometry()
 		}
 		// NOTE: same split as moveMsgKindTiltVectorAngle — this path only runs for a kind
-		// that has NOT claimed BuildArgs.TiltEditIn. Node1/Node2 route a reset through
-		// their own TiltEditIn/TiltEditMsg.Reset instead.
+		// that has NOT claimed BuildArgs.TiltEditIn. Node1 routes a reset through
+		// its own TiltEditIn/TiltEditMsg.Reset instead.
 		return
 	}
 	// moveMsgKindTiltIndexSync/ReceivedVectorSync/BeadClear are GONE
-	// (task/pair-node-owns-itself): a pair node (Node1/Node2) owns this geometry
+	// (task/pair-node-owns-itself): a pair node (Node1) owns this geometry
 	// directly (PairNodeSelf, pair_node_self.go), so what used to be a one-way
 	// notification message to itself is now a plain method call on the same
 	// goroutine — see PairNodeSelf.SetTiltIndex/SetReceivedVector/ClearOutBeads,
@@ -381,10 +381,10 @@ func (m *nodeGeometry) handle(msg moveMsg) {
 // exactly 6 steps. Comparing to this INTEGER is what makes the straightening loop's stop
 // condition exact — cos(π/2) in float64 is ~6.1e-17, so a literal float dot==0 test would
 // never fire (memory/feedback_abc_times_constant_not_rederive.md: index arithmetic, trig
-// only at the cartesian/polar boundary). Exported (capitalized) so Node1/Node2's own
+// only at the cartesian/polar boundary). Exported (capitalized) so Node1's own
 // goroutine — which now runs the straightening rule itself, per-package — can compare
 // against it without duplicating the constant; the rule itself no longer lives here (see
-// nodes/Node1/node.go, nodes/Node2/node.go).
+// nodes/Node1/node.go).
 //
 // dot(tilt, coplanarNormal) == 0 is decided as thetaIdx == PerpendicularThetaIdx, not by
 // computing an actual float dot product. STATE THE ASSUMPTION THAT MAKES THE SHORTCUT
@@ -530,14 +530,15 @@ func (m *nodeGeometry) writeStreamFrame(events []wire.RowEvent) {
 	topTiltVectorTheta := float64(m.topTiltVectorThetaIdx) * CurveParamTiltVectorAngleStep
 	// The BOTTOM TILT VECTOR: streamed straight from this node's own bottomThetaIdx,
 	// decided by THIS node's OWN goroutine (a half turn in θ from its own top
-	// tilt index, sign owned by the kind — Node1/Node2's bottomTilt) and reported one-way
+	// tilt index, same rule run unmodified by both nodes of a pair — Node1's bottomTilt)
+	// and reported one-way
 	// via PairNodeSelf.SetTiltIndex alongside the top and the normal. Pure mirror here, same
 	// as every other index on this frame: this mover derives none of them.
 	bottomTiltVectorTheta := float64(m.bottomThetaIdx) * CurveParamTiltVectorAngleStep
 	// The COPLANAR NORMAL: streamed straight from this node's own normalThetaIdx,
-	// which THIS node's OWN goroutine decided (a fixed ±90° in θ from its
-	// own tilt index, sign owned by the kind — Node1/Node2's coplanarNormal) and reported
-	// one-way via PairNodeSelf.SetTiltIndex. This mover is a pure mirror here, same shape
+	// which THIS node's OWN goroutine decided (a fixed +90° in θ from its
+	// own tilt index, same rule run unmodified by both nodes of a pair — Node1's
+	// coplanarNormal) and reported one-way via PairNodeSelf.SetTiltIndex. This mover is a pure mirror here, same shape
 	// as topTiltVectorTheta above — it derives nothing from the edge/partner.
 	// Turning the tilt therefore visibly turns the drawn normal WITH it, staying 90° away,
 	// instead of the normal staying fixed toward the partner while the tilt moves under it.

@@ -85,7 +85,7 @@ type buildCtx struct {
 
 	// vectorOutByNode/vectorInByNode: node id -> its own dedicated tilt-vector
 	// channel end (tilt_vector_channel.go), built once by allocateVectorChannels
-	// for every edge whose BOTH endpoint kinds asked for one (today: Node1/Node2
+	// for every edge whose BOTH endpoint kinds asked for one (today: Node1
 	// only). A node id absent from a map has no vector channel on that side.
 	vectorOutByNode map[string]chan TiltVectorMsg
 	vectorInByNode  map[string]chan TiltVectorMsg
@@ -111,7 +111,7 @@ func buildFromSpec(ctx context.Context, spec topoSpec, tr *T.Trace, clk wire.Clo
 		return nil, nil, nil, nil, err
 	}
 	// finalizeActors runs AFTER buildNodes: that is when every kind's own build func has
-	// run, so every BuildArgs.ClaimSelfDrive call (Node1/Node2, the pair scene) has
+	// run, so every BuildArgs.ClaimSelfDrive call (Node1, the pair scene) has
 	// already recorded itself in md.selfDriveClaimed. Only NOW is it known which node
 	// ids get a real nodeMover actor at all (task/pair-node-owns-itself).
 	b.md.finalizeActors(&b.speedSinks)
@@ -212,7 +212,7 @@ func (b *buildCtx) allocateWires() {
 // allocateVectorChannels creates one dedicated node-to-node tilt-vector channel
 // (tilt_vector_channel.go's TiltVectorMsg, buffered 1, latest-wins) per directed
 // edge whose BOTH endpoint kinds ask for one (KindWantsVectorChannel — today only
-// Node1/Node2). A kind that never asks gets no entry in either map and is entirely
+// Node1). A kind that never asks gets no entry in either map and is entirely
 // unaffected. This travels ALONGSIDE the ordinary bead edge (allocateWires above),
 // never replacing it — the source node keeps its existing *wire.Out for beads and
 // additionally gets this channel's send end; the target node keeps its existing

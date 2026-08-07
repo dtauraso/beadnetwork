@@ -33,7 +33,7 @@ no round trip to any other goroutine to decide.
 This node owns its own geometry directly (`Self *Wiring.PairNodeSelf`, claimed at build
 time via `BuildArgs.ClaimSelfDrive`, driven every cycle by `n.Self.Step`
 (`nodes/Wiring/pair_node_self.go`)) — there is **no separate `nodeMover` goroutine** for
-Node1 or Node2 (`mover_registry.go`'s `finalizeActors` never constructs one for an id
+either node of a pair (`mover_registry.go`'s `finalizeActors` never constructs one for an id
 claimed via `ClaimSelfDrive`). `SyncTiltIndex`/`SyncReceivedVector`/`ClearOutBeads` below
 are therefore plain method calls on this same object (`PairNodeSelf.SetTiltIndex`/
 `SetReceivedVector`/`ClearOutBeads`), not messages to another goroutine — they are named
@@ -66,15 +66,16 @@ mover) carries THREE distinct edits, applied by `applyTiltEdit` (`nodes/Node1/no
 - **START** (`TiltEditMsg.Start`, the START TILT button, `TiltVectorButtons.tsx`): opens
   the vector exchange from whatever angles are CURRENTLY set — sends this node's own
   `outgoingVector()` on `VectorOut` alongside a bead ("THE KICK"), which is what gives
-  `handleVectorCycle` something to reply to. It changes NO index of its own. **START is
-  Node1's alone** — Node2's `applyTiltEdit` ignores it, since the exchange is begun from
-  one end only (starting from both would answer each other's opener in the same round).
-  With both nodes of a pair perpendicular, nothing circulates on In — correctly, since
-  there is nothing left to straighten — so the loop has no way to start on its own; START
-  is what a user clicks to begin it.
+  `handleVectorCycle` something to reply to. It changes NO index of its own. **START opens
+  the exchange from the node whose `PairID` is 1 alone** — the other node's own
+  `applyTiltEdit` ignores it, since the exchange is begun from one end only (starting from
+  both would answer each other's opener in the same round). With both nodes of a pair
+  perpendicular, nothing circulates on In — correctly, since there is nothing left to
+  straighten — so the loop has no way to start on its own; START is what a user clicks to
+  begin it.
 
-  Pairing a Node1 and a Node2 with one edge running each direction (Node1.Out →
-  Node2.In, Node2.Out → Node1.In) needs no seed/bootstrap node: nothing sends until a
+  Pairing two Node1 instances with one edge running each direction (a.Out → b.In,
+  b.Out → a.In) needs no seed/bootstrap node: nothing sends until a
   user starts it, so there is no deadlock to bootstrap out of at t=0.
 - **RESET** (`TiltEditMsg.Reset`, the RESET TILT button, same `TiltVectorButtons.tsx`):
   runs this node's full `clear()` — zeroes both indices, syncs, drains any value already
@@ -90,7 +91,7 @@ mover) carries THREE distinct edits, applied by `applyTiltEdit` (`nodes/Node1/no
 ## Vector channel
 
 Alongside the bead edges above, each directed edge between two vector-capable kinds
-(today: Node1/Node2 only — `Wiring.KindWantsVectorChannel`) gets its OWN dedicated
+(today: Node1 only — `Wiring.KindWantsVectorChannel`) gets its OWN dedicated
 node-to-node channel carrying `Wiring.TiltVectorMsg`, a single integer θ INDEX (never
 floats on a channel; there is no φ — every tilt vector in this exchange is θ-only, which
 is what lets `Wiring.TiltVectorIsAcute` be an exact integer comparison instead of a dot
@@ -106,8 +107,8 @@ loop body) runs:
   `Wiring.CurveParamTiltVectorAngleStep`, i.e. 90°) from THIS node's OWN tilt vector —
   pure index arithmetic (`theta+6`), never a cross product — so the normal turns WITH
   the tilt, always staying 90° away, rather than holding still toward the partner. There
-  is no φ. Node1 ADDS the quarter turn; Node2 (its mirror package) SUBTRACTS it, same
-  ± split as every other per-kind sign here. `coplanarNormal` (`nodes/Node1/node.go`)
+  is no φ. Both nodes of a pair run this same unmodified addition — there is no per-node
+  sign. `coplanarNormal` (`nodes/Node1/node.go`)
   wraps that single addition with one comparison: if `TopTiltThetaIdx + PerpendicularThetaIdx`
   reaches `Wiring.FullTurnThetaIdx` (24) or past it, it subtracts a full turn back into
   range. There is no pole and nothing to cross: the renderer decodes an index as
@@ -123,10 +124,9 @@ loop body) runs:
   what it is told as the buffer's `CoplanarNormalTheta` column and
   never derives a normal from the edge itself (`coplanarNormalTowardPartner` was removed).
 - **Bottom tilt vector**: this node's TOP tilt vector turned a half turn (180°,
-  `Wiring.HalfTurnThetaIdx`) in θ — Node1 adds it, its mirror package does the
-  opposite. There is no φ. A half turn in θ alone negates the direction exactly in this
-  parameterization, so both signs land in the SAME drawn direction and the sign is index
-  bookkeeping only. It shares the top's length column (`TopTiltVectorLen`) and its colour;
+  `Wiring.HalfTurnThetaIdx`) in θ — both nodes of a pair add it, unmodified. There is no φ.
+  A half turn in θ alone negates the direction exactly in this
+  parameterization, so this is index bookkeeping only. It shares the top's length column (`TopTiltVectorLen`) and its colour;
   it is one of the two acute-test operands above.
 - **What this node SENDS**: that coplanar normal. The message on the channel IS the direction
   this node computed and draws, so the partner's received arrow coincides with this node's
@@ -144,8 +144,8 @@ loop body) runs:
   tilt vector (`Wiring.TiltVectorIsAcute`, an integer comparison on the π/12 index lattice,
   no dot product and no epsilon — see that function). They decide
   BOTH questions, whether to move and which way:
-  - acute with the TOP tilt: step `TopTiltThetaIdx` ONE click ADDING (+1) — Node1's base
-    direction; its mirror package's base is the opposite, so a pair still turns
+  - acute with the TOP tilt: step `TopTiltThetaIdx` ONE click ADDING (+1) — the same
+    unmodified rule on both nodes of a pair, so a pair still turns
     symmetrically when both lean the same way.
   - acute with the BOTTOM tilt: step ONE click the REVERSE way (SUBTRACTING, −1).
   - neither acute: step nothing and send nothing — this is how the vector exchange stops,
@@ -178,11 +178,12 @@ loop body) runs:
 Turning a tilt changes an ANGLE and nothing else. The pair's separation is whatever a drag
 last left it at, and it holds while the tilts turn.
 
-It was briefly otherwise: the distance was a second reading of this same index, so Node2
-slid along its own ray as the exchange ran and the edge grew and shrank with the angle.
-That coupled four things to one number — the drawn angle, the separation, the edge's bead
-count, and (once the exchange became clock-paced) the rate the tilts turned at, since a
-longer edge takes longer to cross. One index is not enough to carry all of that.
+It was briefly otherwise: the distance was a second reading of this same index, so the
+other node slid along its own ray as the exchange ran and the edge grew and shrank with
+the angle. That coupled four things to one number — the drawn angle, the separation, the
+edge's bead count, and (once the exchange became clock-paced) the rate the tilts turned
+at, since a longer edge takes longer to cross. One index is not enough to carry all of
+that.
 
 ## Pacing and clock speed
 

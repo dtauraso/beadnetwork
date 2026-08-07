@@ -31,7 +31,6 @@ const EXPECTED_ORDER = [
   "PulseRight",
   "TimeStart",
   "Node1",
-  "Node2",
 ] as const;
 
 describe("NODE_DEFS_ARRAY order parity with Go kindIDMap", () => {

@@ -2,17 +2,18 @@ package main
 
 // pair_self_drive_persist_test.go — the persistence exception (docs/testing-shape.md):
 // bytes on disk, through a REAL reload, driving the ACTUAL production path (a real
-// LoadTopology, a real MoveDispatch.Start, the real Node1/Node2 Update goroutines, and
+// LoadTopology, a real MoveDispatch.Start, the real Update goroutines of the two Node1
+// instances that make up a pair, and
 // the real editor->Go binary bridge — W.RunStdinReader decoding a framed edit record
 // exactly as stdin_reader.go's own doc comment describes) rather than a bare mover
 // literal or an in-package short-circuit. task/pair-node-owns-itself removed the
-// separate nodeMover goroutine for a pair node (Node1/Node2); this pins that its
+// separate nodeMover goroutine for a pair node (Node1); this pins that its
 // position STILL reaches disk and STILL reloads correctly now that the node's own
 // Update goroutine is the sole driver of that state.
 //
 // This lives in package main (not nodes/Wiring) for the same reason
 // kind_registry_parity_test.go does: main is the only package that imports every node
-// kind (kinds_generated.go's blank imports), so it is the only place Node1/Node2 are
+// kind (kinds_generated.go's blank imports), so it is the only place Node1 is
 // actually registered and LoadTopology can build a real pair.
 import (
 	"context"
@@ -108,12 +109,13 @@ func readNode2Position(t *testing.T, root string) string {
 }
 
 // TestPairNodeSelfDrivePersistsThroughRealReload drives the real production path — a
-// real LoadTopology, a real MoveDispatch.Start, the real Node1/Node2 Update goroutines
+// real LoadTopology, a real MoveDispatch.Start, the real Update goroutines of both Node1
+// instances in the pair
 // (no separate nodeMover goroutine exists for either, per task/pair-node-owns-itself:
 // mr.start skips a selfDriven node), and the real editor->Go binary bridge
 // (W.RunStdinReader decoding a framed tiltVector edit record) — and confirms:
 //  1. Neither pair node has a separate mover goroutine (NodeSelfDriven == true for both).
-//  2. Node2's own goroutine writes its own position.json in response to the edit (its
+//  2. Node 2's own goroutine writes its own position.json in response to the edit (its
 //     r-index follows the tilt index, repositionForTiltIndex's model).
 //  3. A FRESH LoadTopology of the same root loads that exact persisted offset back — a
 //     real reload, not a re-read of the same in-memory struct.
@@ -167,7 +169,7 @@ func TestPairNodeSelfDrivePersistsThroughRealReload(t *testing.T) {
 		t.Fatalf("write tiltVector edit record: %v", err)
 	}
 
-	// Poll (bounded, not a fixed sleep-as-barrier) until Node2's own goroutine has
+	// Poll (bounded, not a fixed sleep-as-barrier) until node 2's own goroutine has
 	// written a NEW position.json — the observable effect of its own commit, which
 	// (per this package's own persistence writers) happens synchronously with no
 	// debounce, so this only ever waits on scheduling, never on a timer this test owns.

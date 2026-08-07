@@ -17,7 +17,7 @@ import (
 )
 
 // TestPairNodesHaveNoNodeMoverRingNodesDo loads the real checked-in pair scene
-// (Node1/Node2, writePairTree — pair_self_drive_persist_test.go) and the real
+// (two Node1 instances, writePairTree — pair_self_drive_persist_test.go) and the real
 // checked-in ring scene ("topology/") and asserts Wiring.MoveDispatch.HasNodeMover:
 // false for every pair node id (no nodeMover was ever constructed for it — see
 // mover_registry.go's finalizeActors), true for every ring node id.

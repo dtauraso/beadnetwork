@@ -49,7 +49,7 @@ func TestRingResolvesItsDistanceGroups(t *testing.T) {
 }
 
 // TestPairSceneIsDeniedTheGroups is the guard against the original defect. It cannot LOAD
-// the pair tree the way the ring test does: the pair's kinds (Node1/Node2) import Wiring, so
+// the pair tree the way the ring test does: the pair's kind (Node1) imports Wiring, so
 // this package's own test binary cannot import them back to register them, and the load
 // fails with `unknown type "Node1"`. So it asserts the two halves of the defect separately —
 //

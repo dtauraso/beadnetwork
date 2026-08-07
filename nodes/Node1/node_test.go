@@ -242,7 +242,8 @@ func TestStepFromVectorGatesOnBothDotsForAllThreeCases(t *testing.T) {
 func TestResettingBothNodesEmptiesBothDirections(t *testing.T) {
 	oneToTwo := make(chan Wiring.TiltVectorMsg, 1)
 	twoToOne := make(chan Wiring.TiltVectorMsg, 1)
-	// Node1 sends on oneToTwo and receives on twoToOne; its partner is the mirror image.
+	// one sends on oneToTwo and receives on twoToOne; the other Node1 instance in the pair
+	// runs the same code with the ends swapped.
 	one := &Node{TopTiltThetaIdx: 4, VectorOut: oneToTwo, VectorIn: twoToOne}
 	partnerIn := oneToTwo // what the other node owns the receive end of
 

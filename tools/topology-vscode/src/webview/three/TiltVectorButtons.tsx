@@ -18,7 +18,7 @@ import { useTiltVectorRows } from "./overlay-flags";
 // Each click fire-and-forgets one edit-update(tiltVector, start|reset) record PER row
 // currently shown, each naming that node's buffer ROW (never its id/name — no sidecar). Go
 // owns what each means and applies it on that node's own goroutine
-// (nodes/Node1/node.go / nodes/Node2/node.go's applyTiltEdit for the pair,
+// (nodes/Node1/node.go's applyTiltEdit for the pair, run unmodified by both nodes,
 // node_mover.go's moveMsgKindTiltVectorReset for every other kind's reset — start has no
 // mover fallback, since it is meaningless off the pair's own vector exchange):
 //

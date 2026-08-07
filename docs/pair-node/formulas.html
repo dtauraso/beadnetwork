@@ -71,22 +71,18 @@
 
             <tr class="h">
               <td>DIRECTIONS FROM t</td>
-              <td>node 1</td>
-              <td>node 2</td>
+              <td>both nodes of a pair — same unmodified rule</td>
             </tr>
             <tr>
               <td class="e">bottom</td>
               <td class="e">t + HALF</td>
-              <td class="e">t − HALF</td>
             </tr>
             <tr>
               <td class="e">normal</td>
               <td class="e">t + PERP; if ≥ FULL, − FULL</td>
-              <td class="e">t − PERP; if &lt; 0, + FULL</td>
             </tr>
             <tr>
               <td class="e">sent</td>
-              <td class="e">normal</td>
               <td class="e">normal</td>
             </tr>
 
@@ -108,27 +104,23 @@
 
             <tr class="h">
               <td>THE STEP — what arrived</td>
-              <td>node 1</td>
-              <td>node 2</td>
+              <td>both nodes of a pair — same unmodified rule</td>
             </tr>
             <tr>
               <td class="e">acute(v, top) →</td>
               <td class="e">t + 1</td>
-              <td class="e">t − 1</td>
             </tr>
             <tr>
               <td class="e">acute(v, bottom) →</td>
               <td class="e">t − 1</td>
-              <td class="e">t + 1</td>
             </tr>
             <tr>
               <td class="e">neither →</td>
               <td class="n">hold, send nothing</td>
-              <td class="n">hold, send nothing</td>
             </tr>
           </table>
-          <div class="cap">The direction and step rows are each kind's own <code>stepFromVector</code> —
-            nodes/Node1/node.go and nodes/Node2/node.go.</div>
+          <div class="cap">The direction and step rows are the one kind's own <code>stepFromVector</code>,
+            run unmodified by both nodes of a pair — nodes/Node1/node.go.</div>
         </div>
 
         <div class="card wide">

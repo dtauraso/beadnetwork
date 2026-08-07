@@ -69,7 +69,7 @@ type PortBindings struct {
 	// own dedicated tilt-vector channel (tilt_vector_channel.go) — built once, for
 	// EVERY node in the whole load, by build.go's allocateVectorChannels phase and
 	// shared read-only by every node's BuildArgs.VectorOut/VectorIn call. A node id
-	// absent from either map (every kind but Node1/Node2, or an edge whose other
+	// absent from either map (every kind but Node1, or an edge whose other
 	// endpoint didn't also ask for one) resolves to nil, which the non-blocking
 	// send/receive helpers already treat as "nothing wired" — same fallback shape as
 	// every other unwired-port case in this file.

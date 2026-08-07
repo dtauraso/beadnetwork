@@ -1,8 +1,8 @@
 // tilt_vector_channel.go — a dedicated node-to-node channel carrying an INTEGER
 // angle-index pair (θ, φ in CurveParamTiltVectorAngleStep steps — never floats on a
 // channel, per memory/feedback_abc_times_constant_not_rederive.md), alongside the
-// existing bead edge. It is used only by the two kinds that ask for it (today:
-// Node1/Node2, see vectorCapableKinds below); every other kind gets nothing and is
+// existing bead edge. It is used only by the kind that asks for it (today:
+// Node1, see vectorCapableKinds below); every other kind gets nothing and is
 // entirely unaffected.
 //
 // Buffered depth 1, latest-wins, both ends non-blocking — same shape as the
@@ -34,7 +34,6 @@ type TiltVectorMsg struct {
 // any edge unless BOTH endpoints are listed.
 var vectorCapableKinds = map[string]bool{
 	"Node1": true,
-	"Node2": true,
 }
 
 // KindWantsVectorChannel reports whether kind participates in the vector-channel
@@ -95,9 +94,9 @@ const HalfTurnThetaIdx = 2 * PerpendicularThetaIdx
 const FullTurnThetaIdx = 2 * HalfTurnThetaIdx
 
 // TiltVectorIsAcute reports whether the angle between two θ-only directions is ACUTE —
-// the whole of what the straightening rule needs to know about two directions (nodes/Node1,
-// nodes/Node2's
-// handleVectorCycle). Both directions sit on the π/12 index lattice, so this is exact
+// the whole of what the straightening rule needs to know about two directions
+// (nodes/Node1/node.go's handleVectorCycle, run unmodified by both nodes of a pair). Both
+// directions sit on the π/12 index lattice, so this is exact
 // integer arithmetic instead of a float dot product against an epsilon band: let d be
 // the difference of the two θ indices reduced into [0, FullTurnThetaIdx). The angle
 // between the directions is min(d, FullTurnThetaIdx-d) steps, which is acute (<90°) when

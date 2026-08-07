@@ -1,5 +1,5 @@
-// Package Node1 is the "Node1" kind: one half of the straightening-loop pair
-// (Node1/Node2). It is REACTIVE, not periodic: every cycle it drains its own In and its own
+// Package Node1 is the "Node1" kind: a pair is two nodes of this one kind. It is
+// REACTIVE, not periodic: every cycle it drains its own In and its own
 // VectorIn non-blockingly, and runs the straightening rule ITSELF on what arrived. An In
 // bead PACES the exchange and decides nothing; the rule lives on the VECTOR channel
 // (handleVectorCycle below) — two acute tests against this node's own top and bottom tilt
@@ -24,8 +24,8 @@
 //     changes NO index of its own. With both nodes of a pair perpendicular nothing
 //     circulates on In, correctly, since there is nothing left to straighten, so the loop
 //     has no way to start on its own — Start is the thing a user clicks to start it.
-//     Pairing a Node1 and a Node2 with one edge each direction (Node1.Out → Node2.In,
-//     Node2.Out → Node1.In) needs no seed/bootstrap node: nothing ever sends until a user
+//     Pairing two Node1 instances with one edge each direction (a.Out → b.In,
+//     b.Out → a.In) needs no seed/bootstrap node: nothing ever sends until a user
 //     starts it, so there is no deadlock to bootstrap out of at t=0.
 //   - the RESET button (TiltVectorButtons.tsx, TiltEditMsg.Reset): the opposite of Start — it
 //     places NO bead, a stop-and-return, not a nudge, so it never starts the straightening
@@ -275,10 +275,9 @@ func (n *Node) bottomTilt() Wiring.TiltVectorMsg {
 
 // coplanarNormal is THIS node's own coplanar normal: ONE QUARTER TURN past this node's own
 // tilt vector, always the same way round — Wiring.PerpendicularThetaIdx (6 steps of
-// Wiring.CurveParamTiltVectorAngleStep, 90°) ADDED to the tilt index, and nothing else. Its
-// mirror package subtracts the same quarter turn, which is the kind's sign and the only
-// difference between the two. Index arithmetic, never trig
-// (memory/feedback_abc_times_constant_not_rederive.md).
+// Wiring.CurveParamTiltVectorAngleStep, 90°) ADDED to the tilt index, and nothing else. Both
+// ends of a pair run this same unmodified addition — there is no sign difference between
+// them. Index arithmetic, never trig (memory/feedback_abc_times_constant_not_rederive.md).
 //
 // The wrap is a COMPARISON, not a division: a quarter turn added to an index can carry it at
 // most one full turn past the top of the circle, so one test against Wiring.FullTurnThetaIdx
@@ -336,10 +335,11 @@ func (n *Node) syncReceivedVector() {
 // draws as its received direction coincides with this node's own normal on screen.
 //
 // Do not rotate it on the way out. A rotation here has to be undone by the receiver's step
-// signs (stepFromVector, below) to leave behaviour unchanged, which spreads one convention
-// across two files and two kinds; and rotating by a half turn in particular changes nothing
-// at all about where the pair comes to rest, since the bottom tilt is the top plus that same
-// half turn — it only swaps which of the receiver's two acute tests fires.
+// signs (stepFromVector, below) to leave behaviour unchanged, which would spread one
+// convention across two call sites of the same rule instead of leaving it in the one place;
+// and rotating by a half turn in particular changes nothing at all about where the pair
+// comes to rest, since the bottom tilt is the top plus that same half turn — it only swaps
+// which of the receiver's two acute tests fires.
 func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 	return n.coplanarNormal()
 }
@@ -348,8 +348,7 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 // all, and if so which way, using TWO ACUTE TESTS (Wiring.TiltVectorIsAcute — integer
 // index arithmetic on the 24-step θ lattice, not a dot product):
 //
-//   - arrived vector ACUTE with this node's own TOP tilt vector    -> step +1 (Node1's base
-//     direction), return true
+//   - arrived vector ACUTE with this node's own TOP tilt vector    -> step +1, return true
 //   - arrived vector ACUTE with this node's own BOTTOM tilt vector -> step -1, the REVERSE,
 //     return true
 //   - neither acute (exactly perpendicular)                        -> step NOTHING, return
@@ -363,8 +362,8 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 // which end the arrived vector leans toward IS the direction, except at the perpendicular
 // index itself, which has no lean at all and so steps nothing.
 //
-// Node1's base direction (the top-acute case) ADDS one step; its mirror package's is the
-// opposite, so a pair still turns symmetrically when both are leaning the same way.
+// Both ends of a pair run this same unmodified rule: the top-acute case ADDS one step,
+// the bottom-acute case SUBTRACTS one step, with no per-instance sign.
 //
 // These two signs are paired with what outgoingVector sends (above): they are read against
 // an arrival that is the partner's coplanar normal as-is. Rotating what is sent, or flipping
