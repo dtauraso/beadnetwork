@@ -101,19 +101,18 @@ type Node struct {
 	// step constant, trig only at the cartesian/polar boundary).
 	Top *tiltState
 
-	// Held marks a tilt this node's OWN USER set. That tilt is intent, not error, so while it
-	// is set this node does not turn on an arrival: the pair's relationship is restored by the
-	// PARTNER moving, and what the user asked for survives.
+	// Squared records that this node HAS BEEN at the pair's relationship — an arrival landed
+	// exactly on its own top, which is the two tilts a quarter turn apart.
 	//
-	// A held end still REPLIES. Silence would leave the partner with nothing to correct
-	// against and it would stop wherever it happened to be; a held end is a target that stays
-	// put, which is what lets the partner close on it a step at a time.
+	// It is what lets the relationship survive being disturbed. Once a node has been square,
+	// an acute arrival is the thing that would take it back off, so the step that arrival
+	// asks for is undone as soon as it is made (stepFromVector). The node still answers, so
+	// the partner has something to work against and the pair settles around the end that is
+	// already right rather than both drifting.
 	//
-	// Set by applyTiltEdit's ▲/▼ branch, which also opens the exchange. Cleared by the arrival
-	// that says the relationship is back — on this node's own top if it moved, on its bottom
-	// if it held, since the partner's normal lands a half turn away when the partner is the
-	// one that walked. Self-clearing on purpose: a hold a user had to release would be a mode.
-	Held bool
+	// Set by the arrival that lands on this node's own top. Cleared by a reset, which is the
+	// one thing that says the pair is starting over.
+	Squared bool
 
 	// Ring is THIS NODE'S OWN lattice — its states, and the counts every rule reads off them.
 	// The point count is a scene setting a user can change, so this is not fixed for the life
@@ -241,9 +240,6 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 	} else {
 		n.Top = n.topState().prev
 	}
-	// A TILT A USER SET IS INTENT, NOT ERROR: this node keeps it, and the pair's relationship
-	// is restored by the PARTNER moving. Held says so — see its own doc comment.
-	n.Held = true
 	// AND IT OPENS THE EXCHANGE. A click that only moved an index left the partner with
 	// nothing to answer: this node sat deaf on its new angle, the partner never heard, and the
 	// pair simply stopped square-less. Sending this node's own normal is what gives the
@@ -343,11 +339,11 @@ func (n *Node) topState() *tiltState {
 // there instead of bouncing.
 func (n *Node) clear() {
 	n.Top = n.ringOf().at(0)
-	// A HOLD IS SOMETHING LEFT IN THE PAIR, so a reset takes it too. It marks whose angle is
-	// intent, and one surviving a reset would silently decide who moves the next time an
-	// exchange runs. Nothing else about START or RESET touches the hold: only a ▲/▼ click
-	// sets it, and only reaching square or a reset clears it.
-	n.Held = false
+	// HAVING BEEN SQUARE IS SOMETHING LEFT IN THE PAIR, so a reset takes it too: a reset is
+	// the pair starting over, and a node that still remembers the old relationship would
+	// refuse to turn toward the new one. Nothing else clears it, and nothing but an arrival
+	// on this node's own top sets it — START and RESET have no other part in it.
+	n.Squared = false
 	n.syncTiltIndex()
 	n.ReceivedThetaIdx = 0
 	n.ReceivedSet = false
@@ -480,70 +476,35 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
 	arrival := n.ringOf().arrivedState(received.ThetaIdx)
 
-	// SQUARE. The arrival is the partner's coplanar normal, already a quarter turn off the
-	// partner's own tilt, so an arrival landing exactly on this node's TOP means the two tilts
-	// are a quarter turn apart. That is the ONE relationship this exchange restores, and
-	// reaching it stops everything: nothing to correct, nothing to say.
+	// SQUARE, AND REMEMBERED. The arrival is the partner's coplanar normal, already a quarter
+	// turn off the partner's own tilt, so an arrival landing exactly on this node's TOP means
+	// the two tilts are a quarter turn apart. That is the relationship the pair holds, so this
+	// node records that it reached it — and answers, because the exchange has to keep running
+	// for the pair to stay there.
 	if arrival == n.topState() {
-		n.Held = false
-		return false
-	}
-
-	// THE PARTNER IS DONE. Seen from the end that HELD, the same relationship looks different:
-	// its partner's normal lands on its BOTTOM, a half turn away, because the partner is the
-	// one that moved. So this is the held end's completion signal — release and stop.
-	//
-	// For an end that is NOT held it is no such thing. A tilt on the bottom used to be a
-	// resting place, which is what let a correction stop at colinear instead of square: the
-	// mover reached that halt first and stayed there. There is one target now, so an end that
-	// is still correcting walks on through this and keeps going.
-	if n.Held && arrival == n.topState().opposite {
-		n.Held = false
-		return false
-	}
-
-	// A HELD TILT DOES NOT MOVE, but it does answer. Going silent would leave the partner with
-	// nothing to correct against and it would stop wherever it happened to be; a held end is a
-	// target that stays put, which is what lets the partner's walk close on it and land exactly
-	// on it.
-	if n.Held {
+		n.Squared = true
 		return true
 	}
 
-	// STEP TOWARD THE ARRIVAL, by the shorter way round. The target is the top-match above, so
-	// the question is which neighbour is nearer to it, and the ring answers that directly.
-	//
-	// This replaces asking which acute cone the arrival fell in. A cone says the arrival is
-	// within a quarter turn but not which SIDE, so half the time the step went away from it —
-	// and then stalled, one step either side of a boundary, moving back and forth. Distance
-	// does not have that failure: every step strictly closes the gap, so the walk ends.
-	if n.stepsToward(arrival) {
+	before := n.topState()
+	switch {
+	case n.topState().acuteWith(arrival):
 		n.Top = n.topState().next
-	} else {
+	case n.topState().opposite.acuteWith(arrival):
 		n.Top = n.topState().prev
+	default:
+		// No lean either way: nothing to read, so nothing to do.
+		return false
+	}
+
+	// UNDO IT IF THIS NODE HAS BEEN SQUARE. Once a node has reached the relationship, an
+	// acute arrival is what would take it back off — so the step it just made is exactly the
+	// wrong one, and it goes back. The node answers all the same, so the partner has
+	// something to work against and the pair settles around the end that is already right.
+	if n.Squared {
+		n.Top = before
 	}
 	return true
-}
-
-// stepsToward reports whether next is nearer to target than prev is — the direction that
-// closes the gap. Exactly a half turn away is the one tie, and it goes next: both neighbours
-// are equally near, so either closes it, and picking one keeps the walk moving rather than
-// leaving a state the rule cannot get out of.
-func (n *Node) stepsToward(target *tiltState) bool {
-	top := n.topState()
-	return ringGap(top.next, target) <= ringGap(top.prev, target)
-}
-
-// ringGap is the shorter way round between two states of the same ring, in steps.
-func ringGap(a, b *tiltState) int32 {
-	d := a.idx - b.idx
-	if d < 0 {
-		d = -d
-	}
-	if half := a.ring.halfTurn; d > half {
-		d = a.ring.points - d
-	}
-	return d
 }
 
 // topTilt is THIS node's own top tilt vector as a channel message — the same state the ring

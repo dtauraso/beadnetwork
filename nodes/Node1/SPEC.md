@@ -144,24 +144,22 @@ loop body) runs:
   regardless of whether the step below fires. THEN the step decision (`stepFromVector`):
   THERE IS ONE TARGET, the two tilts a quarter turn apart ("square"); an arrival lands
   exactly on this node's own TOP when the pair is square.
-  - arrival == this node's own TOP: SQUARE — clear Held, halt (no step, no send, no bead).
-  - Held && arrival == this node's own BOTTOM: the partner has finished (its normal lands a
-    half turn away when IT was the one that moved) — clear Held, halt.
-  - Held: reply without moving — a held end is a target that stays put so the partner's walk
-    can close on it.
-  - otherwise: step ONE click TOWARD the arrival by the shorter way round (`stepsToward`/
-    `ringGap`) — strictly closing the gap every step, not a cone test that only says "within
-    a quarter turn" without saying which side.
+  - arrival == this node's own TOP: SQUARE — record `Squared = true`, reply (still answers).
+  - otherwise, take ONE acute step: acute with this node's own TOP steps `next`; acute with
+    its BOTTOM steps `prev`; acute with neither returns false and moves nothing.
+  - if `Squared` is already true, UNDO the step just taken (`Top` goes back to where it was)
+    — once a node has been square, an acute arrival is what would take it back off, so that
+    step is exactly the wrong one. The node still answers, so the partner has something to
+    work against and the pair settles around the end that is already right.
 
-  If it stepped, report the new indices to its own geometry (`syncTiltIndex`) and send the
-  outgoing vector above, alongside the bead.
-- **Colinear is no longer a resting state.** An arrival on this node's own BOTTOM used to
-  halt a correcting end too; now it only halts a HELD end (the partner's completion signal).
-  An end that is not held walks on through it toward the one target, square.
+  `Squared` is cleared only by a reset (a clean slate), never by an acute arrival.
+
+  If it turned (or answered while square), report the new indices to its own geometry
+  (`syncTiltIndex`) and send the outgoing vector above, alongside the bead.
 - **No float hazard to handle**: there is no dot product here at all. Both operands are
-  single θ indices on the same lattice, and `ringGap` (`nodes/Node1/node.go`) measures the
-  shorter-way-round distance between two ring states exactly, in integer hops — not
-  `cos(...)` landing near zero and needing an epsilon band.
+  single θ indices on the same lattice, and `acuteWith` (`nodes/Node1/ring.go`) tests
+  ring-walk reachability within a quarter turn exactly, in integer hops — not `cos(...)`
+  landing near zero and needing an epsilon band.
 - **Received-vector RESET**: a Reset marker arriving on `VectorIn` zeroes this node's
   tilt (as above) AND clears its own received-vector record
   (`ReceivedSet = false`, synced) — a stale received arrow left hanging would
