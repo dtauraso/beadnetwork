@@ -47,12 +47,15 @@
           </tr>
           <tr>
             <td class="e">TryEmit(EmitGeometry)</td>
-            <td class="n">this node's opening geometry, emitted before anything can move it</td>
+            <td class="n">NOTHING for this kind — the builder leaves EmitGeometry nil on purpose, so this is
+              the shared shape of every kind's Update and a no-op here. The next line is the emit</td>
             <td class="s" data-src="nodes/Node1/node.go#Update">Node1/node.go</td>
           </tr>
           <tr>
             <td class="e">Self.EmitGeometryOnce()</td>
-            <td class="n">the same emit from the self-drive side — there is no separate mover goroutine to do it</td>
+            <td class="n">this node's opening geometry frame, written before anything can move it — the emit a
+              ring node's nodeMover makes at goroutine start, made here because this Update loop IS
+              that goroutine</td>
             <td class="s" data-src="nodes/Wiring/pair_node_self.go#EmitGeometryOnce">pair_node_self.go</td>
           </tr>
           <tr>
