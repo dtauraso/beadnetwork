@@ -109,9 +109,8 @@ const HalfTurnThetaIdx = 2 * PerpendicularThetaIdx
 // twice HalfTurnThetaIdx.
 const FullTurnThetaIdx = 2 * HalfTurnThetaIdx
 
-// THE ACUTE TEST IS NOT HERE. Whether two directions are within a quarter turn is decided by
-// the pair kind itself, on its own ring of states, as reachability — walk out from one state
-// and see whether the other is within a quarter turn's worth of hops (nodes/Node1/ring.go's
-// acuteWith). This package held an arithmetic version, subtracting two indices and reducing
-// the difference onto the lattice; it has no callers now, and a second definition of the same
-// question is exactly the thing that drifts.
+// THE ANGLE TESTS ARE NOT HERE. How far apart two directions are, and which way to step to
+// close on a resting state, are decided by the pair kind itself on its own ring of states
+// (nodes/Node1/ring.go's separation/missBy/stepToward). This package held an arithmetic
+// version, subtracting two indices and reducing the difference onto the lattice; it has no
+// callers now, and a second definition of the same question is exactly the thing that drifts.

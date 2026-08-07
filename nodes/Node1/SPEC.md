@@ -142,24 +142,30 @@ loop body) runs:
   passive-mirror shape as `SyncTiltIndex`, and likewise a direct call rather than a
   message) — REPLACING whatever it received last time,
   regardless of whether the step below fires. THEN the step decision (`stepFromVector`):
-  THERE IS ONE TARGET, the two tilts a quarter turn apart ("square"); an arrival lands
-  exactly on this node's own TOP when the pair is square.
-  - arrival == this node's own TOP: SQUARE — record `Squared = true`, reply (still answers).
-  - otherwise, take ONE acute step: acute with this node's own TOP steps `next`; acute with
-    its BOTTOM steps `prev`; acute with neither returns false and moves nothing.
-  - if `Squared` is already true, UNDO the step just taken (`Top` goes back to where it was)
-    — once a node has been square, an acute arrival is what would take it back off, so that
-    step is exactly the wrong one. The node still answers, so the partner has something to
-    work against and the pair settles around the end that is already right.
+  THERE ARE TWO TARGETS, and each has its own halt. The arrival is the partner's normal,
+  already a quarter turn off the partner's tilt, so the separation between it and this node's
+  own TOP says what the two TILTS are doing:
 
-  `Squared` is cleared only by a reset (a clean slate), never by an acute arrival.
+  | separation | the two tilts | halt |
+  | --- | --- | --- |
+  | 0, or a half turn | a quarter turn apart | PERPENDICULAR |
+  | a quarter turn | the same direction | PARALLEL |
+
+  - not holding either yet: the first halt reached is taken up (`Halt`), and the node stops.
+  - holding one, and the arrival IS it: stand still, reply anyway.
+  - otherwise: ONE step, whichever of `next`/`prev` leaves this node nearer its OWN halt
+    (`stepToward`). The other halt is stepped straight over — the two sit a quarter turn apart
+    in separation, so the walk back to one crosses the other, and halting at whichever was
+    touched first is what let a perpendicular pair walk into parallel and stay.
+
+  `Halt` is cleared only by a reset (a clean slate), never by an arrival.
 
   If it turned (or answered while square), report the new indices to its own geometry
   (`syncTiltIndex`) and send the outgoing vector above, alongside the bead.
 - **No float hazard to handle**: there is no dot product here at all. Both operands are
-  single θ indices on the same lattice, and `acuteWith` (`nodes/Node1/ring.go`) tests
-  ring-walk reachability within a quarter turn exactly, in integer hops — not `cos(...)`
-  landing near zero and needing an epsilon band.
+  single θ indices on the same lattice, and `missBy` (`nodes/Node1/ring.go`) measures the
+  distance to a halt in integer ring hops — not `cos(...)` landing near zero and needing an
+  epsilon band.
 - **Received-vector RESET**: a Reset marker arriving on `VectorIn` zeroes this node's
   tilt (as above) AND clears its own received-vector record
   (`ReceivedSet = false`, synced) — a stale received arrow left hanging would

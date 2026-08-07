@@ -92,15 +92,21 @@
               <td>source</td>
             </tr>
             <tr>
-              <td class="e">gap = max(a.idx, b.idx) − min(a.idx, b.idx)</td>
-              <td class="n">never negative — both are already on the ring, so larger minus smaller is
-                already the gap, with no reduction of any kind</td>
-              <td class="s" data-src="nodes/Node1/ring.go#acuteWith">ring.go</td>
+              <td class="e">sep = |a.idx − b.idx|, folded to ≤ HALF</td>
+              <td class="n">the short way round, so the number means the same thing whichever side
+                the arrival sits on</td>
+              <td class="s" data-src="nodes/Node1/ring.go#separation">ring.go</td>
             </tr>
             <tr>
-              <td class="e">acute ⟺ gap &lt; PERP ∨ gap &gt; FULL − PERP</td>
-              <td class="n">gap = 6 and gap = 18 are the halt</td>
-              <td class="s" data-src="nodes/Node1/ring.go#acuteWith">ring.go</td>
+              <td class="e">miss(PERPENDICULAR) = min(sep, |sep − HALF|)<br>miss(PARALLEL) = |sep − QUARTER|</td>
+              <td class="n">distance to the node's OWN halt; zero is that halt. The other halt is
+                an ordinary angle it steps over</td>
+              <td class="s" data-src="nodes/Node1/ring.go#missBy">ring.go</td>
+            </tr>
+            <tr>
+              <td class="e">step = next if miss(next) ≤ miss(prev), else prev</td>
+              <td class="n">answerable everywhere on the ring, including at both halts</td>
+              <td class="s" data-src="nodes/Node1/ring.go#stepToward">ring.go</td>
             </tr>
 
             <tr class="h">

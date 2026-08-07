@@ -155,48 +155,13 @@ func (r *ring) seedState(idx int32) (s *tiltState, unknown bool) {
 	return &r.states[0], true
 }
 
-// acuteWith reports whether target lies within a quarter turn of s. It no longer decides
-// stepFromVector's direction (a cone says "within a quarter turn" but not which side, which
-// let a correcting end step away from the arrival and oscillate); it survives only as a
-// diagnostic value logged alongside each arrival (handleVectorCycle's breadcrumb).
+// THE ACUTE TEST IS GONE. It asked whether the arrival lay within a quarter turn, and a cone
+// says that without saying which SIDE, so it could not answer at exactly a quarter turn at all
+// — it reported "not acute" there, which the rule read as "stand still", at precisely the
+// separation a node holding perpendicular most needed to move off. Direction now comes from
+// which single step leaves this node nearer its own halt (stepToward), which is answerable
+// everywhere on the ring, including at both halts.
 //
-// THE GAP IS TAKEN LARGER MINUS SMALLER, so it is never negative and there is no sign
-// convention anywhere: both states are on the ring, so the gap lands in [0, points) with no
-// reduction of any kind — no modulo, no conditional add, no floor.
-//
-// A gap and its complement describe the same pair of directions, one going each way round the
-// ring, and the shorter of the two is the angle between them. So rather than pick the shorter
-// — a min, and another comparison — both are tested at once: the pair is within a quarter
-// turn when the gap is under a quarter turn going one way, or over three quarters of a turn,
-// which is the same thing going the other.
-//
-// BOTH ENDS ARE OPEN. An acute angle is strictly between nothing and a quarter turn, so
-// neither bound counts:
-//
-//   - a quarter turn exactly is perpendicular — square, the exchange's one resting state,
-//     though stepFromVector now detects that by identity against this node's own top rather
-//     than by this test;
-//   - a gap of ZERO is not an angle to correct at all — the two directions are the same one.
-//     Counting it as acute makes a node turn hardest at the one arrival it agrees with
-//     completely, which is the opposite of what the rule is for.
-//
-// So the four gaps a node does not turn on are 0, a quarter turn either way, and a half turn:
-// aligned with its top, square to it on either side, and aligned with its bottom. Everything
-// between those leans, and which side it leans is which way the node turns.
-//
-// Both states must belong to THIS ring; a state from another lattice has an index that means
-// a different angle, and comparing the two numbers would silently answer about neither.
-func (s *tiltState) acuteWith(target *tiltState) bool {
-	gap := s.idx - target.idx
-	if target.idx > s.idx {
-		gap = target.idx - s.idx
-	}
-	if gap == 0 {
-		return false
-	}
-	return gap < s.ring.quarterTurn || gap > s.ring.points-s.ring.quarterTurn
-}
-
 // separation is how far apart two states are on the ring, going the SHORT way round — never
 // more than a half turn. acuteWith above answers a yes/no with the long-way case folded into
 // its second comparison; the halt tests need the number itself, and need it to mean the same
@@ -244,6 +209,48 @@ func (h haltKind) String() string {
 		return "parallel"
 	}
 	return "none"
+}
+
+// missBy is how far this arrival is from putting the node in the halt h — zero when it IS
+// that halt. Perpendicular has two separations that are it, a zero and a half turn, so the
+// nearer of the two is the one that counts; parallel has the one, a quarter turn.
+//
+// This is what lets a node STEP THROUGH the halt it is not holding. The walk back to one halt
+// passes across the other — perpendicular sits at separation 0 and a half turn, parallel at a
+// quarter turn, so getting from one to the other crosses the space between them, and the
+// crossing point IS the other halt. A node that stopped at any halt was captured by whichever
+// it touched first: the log showed a pair holding perpendicular walk correctly toward
+// separation 0, land on 12 in passing, and take up parallel there. Measuring the miss against
+// THIS NODE'S OWN halt makes the other one an ordinary angle it passes over.
+func (s *tiltState) missBy(arrival *tiltState, h haltKind) int32 {
+	sep := s.separation(arrival)
+	if h == haltParallel {
+		return abs32(sep - s.ring.quarterTurn)
+	}
+	toZero, toHalf := sep, abs32(sep-s.ring.halfTurn)
+	if toHalf < toZero {
+		return toHalf
+	}
+	return toZero
+}
+
+// stepToward is the one step — next or prev, a link either way — that leaves this node closer
+// to its OWN halt against this arrival. It replaces picking a direction from the acute cones,
+// which could not answer at all in one place it had to: a node holding perpendicular that has
+// arrived at exactly a quarter turn is not acute on either side, so the cones said "stand
+// still" at precisely the separation it most needed to move off.
+func (s *tiltState) stepToward(arrival *tiltState, h haltKind) *tiltState {
+	if s.next.missBy(arrival, h) <= s.prev.missBy(arrival, h) {
+		return s.next
+	}
+	return s.prev
+}
+
+func abs32(v int32) int32 {
+	if v < 0 {
+		return -v
+	}
+	return v
 }
 
 // haltAgainst names the halt this arrival puts the node in, or haltNone when the arrival is

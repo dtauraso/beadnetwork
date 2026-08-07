@@ -2,10 +2,10 @@
 // REACTIVE, not periodic: every cycle it drains its own In and its own
 // VectorIn non-blockingly, and runs the straightening rule ITSELF on what arrived. An In
 // bead PACES the exchange and decides nothing; the rule lives on the VECTOR channel
-// (handleVectorCycle below) — two acute tests against this node's own top and bottom tilt
-// vectors decide whether this node turns and which way, and only if it turned does it reply
-// with a vector and place a bead. There is ONE target — the two tilts a quarter turn apart
-// ("square") — and reaching it is what halts the exchange, not either test alone. This
+// (handleVectorCycle below) — the arrival's distance from the resting state this node is
+// holding decides whether it turns and which way, and only if it turned does it reply with a
+// vector and place a bead. There are TWO resting states, PERPENDICULAR and PARALLEL, each
+// with its own halt, and a node halts on the one it holds and steps over the other. This
 // all runs on THIS goroutine: there is no round trip to a second goroutine to decide (see
 // TopTiltThetaIdx below for who else the index is reported to and why).
 //
@@ -444,22 +444,21 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 }
 
 // stepFromVector decides whether an arrived direction turns this node at all, and if so which
-// way. THERE IS ONE TARGET: an arrival landing exactly on this node's own TOP means the two
-// tilts of the pair are a quarter turn apart ("square") — that is the only resting state.
-// Colinear is no longer one.
+// way. THERE ARE TWO TARGETS, and a node is returning to exactly one of them:
 //
-//   - arrival == this node's own TOP                 -> SQUARE: clear Held, return false (halt).
-//   - Held && arrival == this node's own BOTTOM       -> the partner has finished (its normal
-//     lands a half turn away when IT was the one that moved): clear Held, return false.
-//   - Held                                            -> return true without moving. A held end
-//     still replies, so the partner has something to correct against.
-//   - otherwise                                       -> step TOWARD the arrival by the shorter
-//     way round (stepsToward/ringGap), and return true.
+//		PERPENDICULAR   separation 0 or a half turn   the two tilts are a quarter turn apart
+//		PARALLEL        separation a quarter turn     the two tilts point the same way
 //
-// This node no longer picks a direction from an acute-cone test against its top/bottom
-// (tiltState.acuteWith): a cone says the arrival is within a quarter turn but not which SIDE,
-// so half the time the step went away from the arrival and the pair oscillated one step either
-// side of a boundary. Distance strictly closes the gap every step instead, so the walk ends.
+//	  - not holding either yet -> the first halt reached is taken up, and the node stops there.
+//	  - holding one, arrival IS it -> stand still. Nothing else writes what is held, so an
+//	    arrival part-way back leaves the node still knowing where it is returning to.
+//	  - otherwise -> ONE step, the way that leaves this node nearer its own halt (stepToward).
+//
+// The other halt is stepped straight over. It has to be: the two sit a quarter turn apart in
+// separation, so the walk back to one crosses the other, and a node that stopped at any halt
+// was taken by whichever it touched first — the log showed a pair holding perpendicular walk
+// correctly toward separation 0, meet 12 on the way, and take up parallel there, in both
+// directions of disturbance.
 //
 // Both ends of a pair run this same unmodified rule, and both directions of travel are links
 // rather than ±1, so a step cannot leave the ring. The pairing that matters is with what
@@ -469,35 +468,24 @@ func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
 	arrival := n.ringOf().arrivedState(received.ThetaIdx)
 	before := n.topState()
 
-	// EACH RESTING STATE HAS ITS OWN HALT. The arrival names one of them or neither
-	// (haltAgainst). Landing on one records WHICH — nothing else writes this, so an arrival
-	// that lands between the two leaves the node still knowing what it was holding — and the
-	// node stands still, because it is already where it belongs.
-	if halt := before.haltAgainst(arrival); halt != haltNone {
-		n.Halt = halt
+	// A NODE HALTS ON ITS OWN HALT AND STEPS THROUGH THE OTHER ONE. Until it is holding either,
+	// the first halt it reaches is the one it takes up; after that, only that halt stops it.
+	// Landing on the other is nothing — an angle it happens to be passing over on the way back
+	// to its own, which is exactly what capturing it there got wrong (ring.go's missBy).
+	if n.Halt == haltNone {
+		if halt := before.haltAgainst(arrival); halt != haltNone {
+			n.Halt = halt
+			return true
+		}
+	}
+	if n.Halt != haltNone && before.missBy(arrival, n.Halt) == 0 {
 		return true
 	}
 
-	// Disturbed. The acute tests say which side the arrival leans, and the halt this node is
-	// holding says what to do about that. Closing on the arrival drives the separation toward
-	// ZERO, and zero is the PERPENDICULAR halt — so a node holding perpendicular takes the step
-	// the acute test asks for, and a node holding parallel takes it backwards, since parallel
-	// sits a quarter turn away from the arrival rather than on it. A node holding neither yet
-	// has nothing to return to and closes.
-	switch {
-	case before.acuteWith(arrival):
-		if n.Halt == haltParallel {
-			n.Top = before.prev
-		} else {
-			n.Top = before.next
-		}
-	case before.opposite.acuteWith(arrival):
-		if n.Halt == haltParallel {
-			n.Top = before.next
-		} else {
-			n.Top = before.prev
-		}
-	}
+	// Disturbed, or not yet holding anything: one step, the way that closes on the halt this
+	// node is returning to (haltNone reads as perpendicular in missBy, so a node with nothing
+	// to return to closes on the arrival, which is where it used to go).
+	n.Top = before.stepToward(arrival, n.Halt)
 	return true
 }
 
@@ -552,18 +540,11 @@ func (n *Node) handleVectorCycle(tick int64) {
 	// row where something CHANGED is written: the index moved, or the held resting state did.
 	before := n.topState()
 	arrival := n.ringOf().arrivedState(received.ThetaIdx)
-	acuteTop := before.acuteWith(arrival)
-	acuteBottom := before.opposite.acuteWith(arrival)
 	heldBefore := n.Halt
+	missBefore := before.missBy(arrival, heldBefore)
 	moved := n.stepFromVector(received)
 	if n.Self != nil && (n.topState() != before || n.Halt != heldBefore) {
-		kind, dir := "none", "hold"
-		switch {
-		case acuteTop:
-			kind = "top"
-		case acuteBottom:
-			kind = "bottom"
-		}
+		dir := "hold"
 		switch {
 		case n.topState() == before.next:
 			dir = "next"
@@ -571,9 +552,9 @@ func (n *Node) handleVectorCycle(tick int64) {
 			dir = "prev"
 		}
 		n.Self.Breadcrumb("pair-vector", fmt.Sprintf(
-			"id=%d recv=%2d top=%2d bottom=%2d sep=%2d kind=%-6s held=%-13s -> %-4s idx %2d->%2d sent=%2d moved=%v tick=%d",
+			"id=%d recv=%2d top=%2d bottom=%2d sep=%2d miss=%2d held=%-13s -> %-4s idx %2d->%2d sent=%2d moved=%v tick=%d",
 			n.PairID, received.ThetaIdx, before.idx, before.opposite.idx,
-			before.separation(arrival), kind, n.Halt, dir, before.idx, n.topState().idx,
+			before.separation(arrival), missBefore, n.Halt, dir, before.idx, n.topState().idx,
 			n.outgoingVector().ThetaIdx, moved, tick))
 	}
 	if !moved {
