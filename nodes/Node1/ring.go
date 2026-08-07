@@ -26,16 +26,29 @@ package Node1
 //
 // WHAT ARITHMETIC IS LEFT, and where:
 //
-//   - stateFor, at the edges, where a NUMBER has to become a state — the persisted seed and a
-//     direction arriving from the partner. It reduces once, in one place, and is the only `%`
-//     in this kind.
+//   - Two boundary functions, where a NUMBER has to become a state, because the two callers
+//     want different things from an out-of-range value: arrivedState, for a direction ARRIVING
+//     ON THE VECTOR CHANNEL — the sender is this same kind, so an out-of-range index is a
+//     defect, and it panics rather than fold one. seedState, for the PERSISTED SEED — an older
+//     build's file can legitimately hold one, so it folds onto the ring (the only `%` in this
+//     kind) and reports whether it had to.
 //   - acuteWith, which subtracts two states' own indices to get the gap between them. It
 //     needs no reduction of any kind, because both are on the ring: larger minus smaller is
 //     already the gap, and the two bounds it is tested against cover both ways round.
 //
 // Neither can put a tilt somewhere it cannot be — a tilt only ever moves by following a link.
 
-import "github.com/dtauraso/wirefold/nodes/Wiring"
+import (
+	"fmt"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring"
+)
+
+// at is the ring member with this index — the primitive both boundary functions below are
+// built from, and how anything inside this kind names a direction it already knows is on the
+// ring. An index outside the ring is Go's own out-of-range panic, which is the correct
+// outcome: there is no such direction.
+func at(idx int32) *tiltState { return &ring[idx] }
 
 // tiltState is one of the FullTurnThetaIdx directions. Values are the ring elements
 // themselves — a *tiltState is always one of them, never a fresh one, so pointer identity IS
@@ -69,14 +82,51 @@ func init() {
 	}
 }
 
-// stateFor maps a NUMBER from outside this kind onto its state — the persisted seed, and a
-// direction arriving on the vector channel. This is the boundary, and the only place a
-// modulo appears: an arriving partner's index is on the ring by construction, and a
-// position.json written by an older build may hold anything, and neither is worth trusting
-// over one reduction.
-func stateFor(idx int32) *tiltState {
-	i := ((idx % Wiring.FullTurnThetaIdx) + Wiring.FullTurnThetaIdx) % Wiring.FullTurnThetaIdx
-	return &ring[i]
+// arrivedState maps a direction ARRIVING ON THE VECTOR CHANNEL onto its state.
+//
+// It does not reduce, because there is nothing legitimate to reduce. The sender is this same
+// kind, sending one of its own ring members' idx (outgoingVector → quarter.idx), so an
+// arrival is on the ring or the program is wrong. Folding an out-of-range value would turn
+// that bug into a direction 24 steps from the one that was sent — plausible, drawable, and
+// silent, which is the failure the ring exists to make impossible. So it panics instead, and
+// names what was violated.
+//
+// The panic is reachable only from a defect in this package or a foreign writer on a channel
+// only this kind holds; a partner at a different lattice size would reach it too, and that is
+// worth stopping on rather than rendering.
+func arrivedState(idx int32) *tiltState {
+	if idx < 0 || idx >= Wiring.FullTurnThetaIdx {
+		panic(fmt.Sprintf(
+			"Node1: a direction arriving on the vector channel must already be a ring index in 0..%d — got %d; the sender is this same kind sending one of its own states, so an index off the ring is a defect, not something to fold onto the ring",
+			Wiring.FullTurnThetaIdx-1, idx))
+	}
+	return at(idx)
+}
+
+// seedState maps the PERSISTED SEED onto its state by ASKING THE RING which state carries
+// that index — not by computing one. Every state was given its own index when the ring was
+// built, so the ring is the authority on which indices exist, and a number either names one
+// of them or names nothing.
+//
+// A number that names nothing loads as the ring's origin, and reports that it did. The
+// alternative is to fold it — 30 becoming 6, a quarter turn from where the file said — which
+// is a direction nobody wrote, arrived at by arithmetic, and indistinguishable once drawn
+// from one somebody chose. Landing at the origin is wrong in an obvious way instead of a
+// plausible one, and the breadcrumb says which number was refused.
+//
+// This is the case a persisted file legitimately reaches: position.json is written by an
+// older build as readily as this one, and once the lattice size is editable, a file saved at
+// one size and opened at a smaller one names indices this ring does not have.
+//
+// There is no arithmetic here at all — no modulo, no sign to handle. It is 24 comparisons
+// once per node at load.
+func seedState(idx int32) (s *tiltState, folded bool) {
+	for i := range ring {
+		if ring[i].idx == idx {
+			return &ring[i], false
+		}
+	}
+	return &ring[0], true
 }
 
 // acuteWith reports whether target lies within a quarter turn of s — the whole of what the

@@ -2,6 +2,8 @@ package Node1
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring"
@@ -19,17 +21,12 @@ import (
 
 // applyTiltEdit is what the RESET button, the START TILT button, and the tilt-angle panel
 // (TiltVectorButtons.tsx / TiltVectorAnglePanel.tsx) each drive; this asserts THIS node
-// kind's own decision for a reset, from any starting indices: both indices land on 0 (the
-// start position), and — unlike Start — no bead is placed ("the kick" only fires for
-// Start, never a stop-and-return).
+// kind's own decision for a reset, from EVERY starting index on the ring: both indices land
+// on 0 (the start position), and — unlike Start — no bead is placed ("the kick" only fires
+// for Start, never a stop-and-return).
 func TestApplyTiltEditResetReturnsBothIndicesToZero(t *testing.T) {
-	for _, start := range []int32{
-		0,
-		5,
-		-9,
-		Wiring.PerpendicularThetaIdx,
-	} {
-		n := &Node{Top: stateFor(start)}
+	for start := int32(0); start < Wiring.FullTurnThetaIdx; start++ {
+		n := &Node{Top: at(start)}
 		placeBead := n.applyTiltEdit(Wiring.TiltEditMsg{Reset: true})
 		if placeBead {
 			t.Fatalf("reset from theta=%d must place no bead, got placeBead=true", start)
@@ -40,14 +37,13 @@ func TestApplyTiltEditResetReturnsBothIndicesToZero(t *testing.T) {
 	}
 }
 
-// The drawn coplanar normal must sit exactly +6 steps (90°) in θ from the tilt, φ
-// unchanged, for Node1 — pure index arithmetic reusing Wiring.PerpendicularThetaIdx, not
-// a cross product (Part 1 of this task). These starting indices all sit within the first
-// pole-crossing zone (no odd number of Wiring.HalfTurnThetaIdx poles crossed yet), so no
-// half-turn flip applies here — the flip itself is asserted separately, below.
+// The drawn coplanar normal must sit exactly +6 steps (90°) in θ from the tilt — a link on
+// the ring, reusing Wiring.PerpendicularThetaIdx, not a cross product. These indices are far
+// enough from the ring's end that the link lands without coming round, so the raw sum is the
+// answer; the version that covers every index, wrap included, is the next test.
 func TestCoplanarNormalIsPlusSixStepsInTheta(t *testing.T) {
 	for _, theta := range []int32{0, 5, 9} {
-		n := &Node{Top: stateFor(theta)}
+		n := &Node{Top: at(theta)}
 		norm := n.coplanarNormal()
 		if norm.ThetaIdx != theta+Wiring.PerpendicularThetaIdx {
 			t.Fatalf("coplanarNormal theta: want tilt+%d=%d, got %d", Wiring.PerpendicularThetaIdx, theta+Wiring.PerpendicularThetaIdx, norm.ThetaIdx)
@@ -65,19 +61,18 @@ func TestCoplanarNormalIsPlusSixStepsInTheta(t *testing.T) {
 // directions rather than as a formula, so it holds whether or not the addition wrapped: the
 // wrap takes off a full turn, which is not a change of direction.
 //
-// The indices below span several full turns in both directions and sit on either side of
-// every multiple of a half turn. Those are exactly the boundaries where this used to flip the
-// normal to the other side of the tilt, so a reintroduced parity term fails here rather than
-// only showing up later as an arrow that jumps on screen.
+// EVERY state on the ring is checked, not a chosen few. A tilt is one of exactly
+// FullTurnThetaIdx directions and cannot be anything else, so the whole domain is small
+// enough to walk — including both sides of every multiple of a half turn, which is where a
+// reintroduced parity term would flip the normal to the other side of the tilt.
+//
+// Indices off the ring are not in this list because they are not tilts: a state is the only
+// thing a tilt can be, and the ring has no such member for the node to hold.
 func TestCoplanarNormalIsOneQuarterTurnPastTheTiltEverywhere(t *testing.T) {
-	half := Wiring.HalfTurnThetaIdx
 	full := Wiring.FullTurnThetaIdx
 	quarter := Wiring.PerpendicularThetaIdx
-	for _, theta := range []int32{
-		0, 1, half - 1, half, half + 1, full - 1, full, full + 1, 2 * full,
-		-1, -half + 1, -half, -half - 1, -full, -full - 1, -2 * full,
-	} {
-		n := &Node{Top: stateFor(theta)}
+	for theta := int32(0); theta < full; theta++ {
+		n := &Node{Top: at(theta)}
 		norm := n.coplanarNormal()
 		// The separation must be the quarter turn AHEAD (6), never the quarter turn behind
 		// (18) — the latter is what the removed parity term produced for half of the range.
@@ -88,10 +83,10 @@ func TestCoplanarNormalIsOneQuarterTurnPastTheTiltEverywhere(t *testing.T) {
 	}
 }
 
-// EVERY INDEX STAYS ON THE CIRCLE, whatever a user or an exchange does to it. This is the
-// precondition the one-comparison reductions rest on — here and in
-// Wiring.TiltVectorIsAcute — so it is asserted directly rather than left to the reader to
-// verify by inspecting each site that moves the index.
+// EVERY INDEX STAYS ON THE RING, whatever a user or an exchange does to it. A tilt only ever
+// moves by following a link, so this should be true by construction; it is asserted anyway,
+// because "by construction" is a claim about every site that moves the tilt, and this checks
+// them rather than asking a reader to.
 //
 // Walks the index all the way round in both directions with the panel's ±1, then all the way
 // round again with the acute-test step, checking the range after every single move. A missed
@@ -105,7 +100,7 @@ func TestTheTiltIndexNeverLeavesTheCircle(t *testing.T) {
 	full := Wiring.FullTurnThetaIdx
 
 	for _, up := range []bool{true, false} {
-		n := &Node{Top: stateFor(0)}
+		n := &Node{Top: at(0)}
 		for i := 0; i < 3*int(full); i++ {
 			n.applyTiltEdit(Wiring.TiltEditMsg{Up: up})
 			if n.topState().idx < 0 || n.topState().idx >= full {
@@ -117,7 +112,7 @@ func TestTheTiltIndexNeverLeavesTheCircle(t *testing.T) {
 	// The step: an arrival ON this node's own top turns it one way, an arrival on its bottom
 	// the other, so these two drive the index round in opposite directions.
 	for _, onTop := range []bool{true, false} {
-		n := &Node{Top: stateFor(0)}
+		n := &Node{Top: at(0)}
 		for i := 0; i < 3*int(full); i++ {
 			// The arrival is stated relative to this node's CURRENT tilt, so it keeps
 			// leaning the same way as the index walks.
@@ -144,7 +139,7 @@ func TestTheTiltIndexNeverLeavesTheCircle(t *testing.T) {
 func TestCoplanarNormalWrapsOntoTheCircle(t *testing.T) {
 	full := Wiring.FullTurnThetaIdx
 	for theta := int32(0); theta < full; theta++ {
-		n := &Node{Top: stateFor(theta)}
+		n := &Node{Top: at(theta)}
 		if got := n.coplanarNormal().ThetaIdx; got < 0 || got >= full {
 			t.Fatalf("theta=%d: want a normal in 0…%d, got %d", theta, full-1, got)
 		}
@@ -157,7 +152,7 @@ func TestCoplanarNormalWrapsOntoTheCircle(t *testing.T) {
 func TestApplyTiltEditResetDrainsVectorIn(t *testing.T) {
 	vectorIn := make(chan Wiring.TiltVectorMsg, 1)
 	vectorIn <- Wiring.TiltVectorMsg{ThetaIdx: 99}
-	n := &Node{Top: stateFor(5), VectorIn: vectorIn}
+	n := &Node{Top: at(5), VectorIn: vectorIn}
 	n.applyTiltEdit(Wiring.TiltEditMsg{Reset: true})
 	select {
 	case v := <-vectorIn:
@@ -173,7 +168,7 @@ func TestApplyTiltEditResetDrainsVectorIn(t *testing.T) {
 // exchange settled).
 func TestApplyTiltEditAdjustMovesOneStepAndSendsNothing(t *testing.T) {
 	out := make(chan Wiring.TiltVectorMsg, 1)
-	n := &Node{Top: stateFor(3), VectorOut: out}
+	n := &Node{Top: at(3), VectorOut: out}
 	placeBead := n.applyTiltEdit(Wiring.TiltEditMsg{Up: true})
 	if placeBead {
 		t.Fatalf("a plain adjust must place NO bead, got placeBead=true")
@@ -197,10 +192,11 @@ func TestApplyTiltEditAdjustMovesOneStepAndSendsNothing(t *testing.T) {
 // reduces onto the circle and demands exactly the quarter turn AHEAD — 18 (the quarter turn
 // behind) and 30 (a reintroduced half-turn reversal) both fail it.
 func TestOutgoingVectorIsTheCoplanarNormalUnchanged(t *testing.T) {
-	// Negative indices are included deliberately: a ▼ click takes the index below zero, and
-	// every one of these derivations is integer arithmetic that must not care about the sign.
-	for _, theta := range []int32{3, 0, -1, -7, -Wiring.HalfTurnThetaIdx} {
-		n := &Node{Top: stateFor(theta)}
+	// EVERY index on the ring is checked: a tilt is only ever one of the ring's own states
+	// (a ▼ click follows n.top.prev, which cannot leave the ring), so there is no negative or
+	// out-of-range stored index left to probe — the whole domain is walked instead.
+	for theta := int32(0); theta < Wiring.FullTurnThetaIdx; theta++ {
+		n := &Node{Top: at(theta)}
 		norm := n.coplanarNormal()
 		out := n.outgoingVector()
 		if out.ThetaIdx != norm.ThetaIdx {
@@ -230,7 +226,7 @@ func TestOutgoingVectorIsTheCoplanarNormalUnchanged(t *testing.T) {
 func TestStepFromVectorTakesBaseDirectionWhenAcuteWithTop(t *testing.T) {
 	// Tilt at index 0 points at world +y; an arrival at index 0 is the same direction, so
 	// it is 0 steps from the top (acute) and a half turn from the bottom (not acute).
-	n := &Node{Top: stateFor(0)}
+	n := &Node{Top: at(0)}
 	if moved := n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: 0}); !moved || n.topState().idx != 1 {
 		t.Fatalf("acute with the TOP tilt: want moved=true thetaIdx=1, got moved=%v thetaIdx=%d",
 			moved, n.topState().idx)
@@ -243,7 +239,7 @@ func TestStepFromVectorReversesWhenAcuteWithBottom(t *testing.T) {
 	//
 	// Stepping down from 0 lands on 23, not −1: the index is kept ON THE CIRCLE at every site
 	// that moves it, so it never runs negative. Same drawn direction, one step back from +y.
-	n := &Node{Top: stateFor(0)}
+	n := &Node{Top: at(0)}
 	want := Wiring.FullTurnThetaIdx - 1
 	if moved := n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: Wiring.HalfTurnThetaIdx}); !moved || n.topState().idx != want {
 		t.Fatalf("acute with the BOTTOM tilt: want moved=true thetaIdx=%d, got moved=%v thetaIdx=%d",
@@ -254,7 +250,7 @@ func TestStepFromVectorReversesWhenAcuteWithBottom(t *testing.T) {
 // Exactly perpendicular to both the top and bottom tilt is the HALT case: stepFromVector
 // steps nothing and reports moved=false — this is how the vector exchange comes to rest.
 func TestStepFromVectorHaltsWhenNeitherDotIsAcute(t *testing.T) {
-	n := &Node{Top: stateFor(Wiring.PerpendicularThetaIdx)}
+	n := &Node{Top: at(Wiring.PerpendicularThetaIdx)}
 	before := n.topState().idx
 	perp := Wiring.TiltVectorMsg{ThetaIdx: n.topState().idx + Wiring.PerpendicularThetaIdx}
 	if moved := n.stepFromVector(perp); moved {
@@ -283,7 +279,7 @@ func TestStepFromVectorGatesOnBothDotsForAllThreeCases(t *testing.T) {
 		{"exactly perpendicular", Wiring.PerpendicularThetaIdx, false, 0},
 	}
 	for _, c := range cases {
-		n := &Node{Top: stateFor(0)}
+		n := &Node{Top: at(0)}
 		moved := n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: c.arrivedIdx})
 		if moved != c.wantMoved {
 			t.Fatalf("%s: want moved=%v, got %v", c.name, c.wantMoved, moved)
@@ -303,7 +299,7 @@ func TestResettingBothNodesEmptiesBothDirections(t *testing.T) {
 	twoToOne := make(chan Wiring.TiltVectorMsg, 1)
 	// one sends on oneToTwo and receives on twoToOne; the other Node1 instance in the pair
 	// runs the same code with the ends swapped.
-	one := &Node{Top: stateFor(4), VectorOut: oneToTwo, VectorIn: twoToOne}
+	one := &Node{Top: at(4), VectorOut: oneToTwo, VectorIn: twoToOne}
 	partnerIn := oneToTwo // what the other node owns the receive end of
 
 	// A stale direction is in flight BOTH ways when reset is pressed.
@@ -332,7 +328,7 @@ func TestResettingBothNodesEmptiesBothDirections(t *testing.T) {
 func TestReceivedResetZeroesAndDoesNotReply(t *testing.T) {
 	out := make(chan Wiring.TiltVectorMsg, 1)
 	in := make(chan Wiring.TiltVectorMsg, 1)
-	n := &Node{Top: stateFor(5), VectorOut: out, VectorIn: in}
+	n := &Node{Top: at(5), VectorOut: out, VectorIn: in}
 
 	in <- Wiring.TiltVectorMsg{Reset: true}
 	n.handleVectorCycle(0)
@@ -354,7 +350,7 @@ func TestHandleVectorCycleRecordsReceivedDirection(t *testing.T) {
 	in := make(chan Wiring.TiltVectorMsg, 1)
 	// MID-exchange: not at the perpendicular index, where an arrival would instead clear
 	// the third arrow because the exchange has stopped.
-	n := &Node{Top: stateFor(2), VectorIn: in}
+	n := &Node{Top: at(2), VectorIn: in}
 
 	in <- Wiring.TiltVectorMsg{ThetaIdx: 7}
 	n.handleVectorCycle(0)
@@ -371,15 +367,15 @@ func TestHandleVectorCycleRecordsReceivedDirection(t *testing.T) {
 func TestHandleVectorCycleReplacesPreviousReceivedDirection(t *testing.T) {
 	in := make(chan Wiring.TiltVectorMsg, 1)
 	// MID-exchange, so both arrivals are recorded rather than clearing (see above).
-	n := &Node{Top: stateFor(2), VectorIn: in}
+	n := &Node{Top: at(2), VectorIn: in}
 
 	in <- Wiring.TiltVectorMsg{ThetaIdx: 7}
 	n.handleVectorCycle(0)
-	in <- Wiring.TiltVectorMsg{ThetaIdx: -2}
+	in <- Wiring.TiltVectorMsg{ThetaIdx: 15}
 	n.handleVectorCycle(0)
 
-	if n.ReceivedThetaIdx != -2 {
-		t.Fatalf("want the LATEST arrival theta=-2, got theta=%d", n.ReceivedThetaIdx)
+	if n.ReceivedThetaIdx != 15 {
+		t.Fatalf("want the LATEST arrival theta=15, got theta=%d", n.ReceivedThetaIdx)
 	}
 	if !n.ReceivedSet {
 		t.Fatal("ReceivedSet must stay true across a replace")
@@ -393,7 +389,7 @@ func TestHandleVectorCycleReplacesPreviousReceivedDirection(t *testing.T) {
 // back — recording the arrival and halting the exchange are independent rules. Only a RESET
 // removes the recorded direction (asserted separately, below).
 func TestReceivedVectorRecordedButExchangeHaltsOnPerpendicularArrival(t *testing.T) {
-	n := &Node{Top: stateFor(0), ReceivedThetaIdx: 4, ReceivedSet: true}
+	n := &Node{Top: at(0), ReceivedThetaIdx: 4, ReceivedSet: true}
 	in := make(chan Wiring.TiltVectorMsg, 1)
 	out := make(chan Wiring.TiltVectorMsg, 1)
 	n.VectorIn, n.VectorOut = in, out
@@ -419,7 +415,7 @@ func TestReceivedVectorRecordedButExchangeHaltsOnPerpendicularArrival(t *testing
 // This node's own LOCAL reset (applyTiltEdit's Reset branch) clears the received-vector
 // record too — a stale received arrow left hanging would contradict the reset.
 func TestApplyTiltEditResetClearsReceivedVector(t *testing.T) {
-	n := &Node{Top: stateFor(5), ReceivedThetaIdx: 9, ReceivedSet: true}
+	n := &Node{Top: at(5), ReceivedThetaIdx: 9, ReceivedSet: true}
 	n.applyTiltEdit(Wiring.TiltEditMsg{Reset: true})
 
 	if n.ReceivedSet {
@@ -436,7 +432,7 @@ func TestApplyTiltEditResetClearsReceivedVector(t *testing.T) {
 func TestHandleVectorCycleReceivedResetClearsReceivedVector(t *testing.T) {
 	out := make(chan Wiring.TiltVectorMsg, 1)
 	in := make(chan Wiring.TiltVectorMsg, 1)
-	n := &Node{Top: stateFor(5), VectorOut: out, VectorIn: in,
+	n := &Node{Top: at(5), VectorOut: out, VectorIn: in,
 		ReceivedThetaIdx: 9, ReceivedSet: true}
 
 	in <- Wiring.TiltVectorMsg{Reset: true}
@@ -462,7 +458,7 @@ func TestUpdateSyncsOpeningTiltIndexBeforeLoop(t *testing.T) {
 
 	var gotTheta, gotNormalTheta, gotBottomTheta int32
 	calls := 0
-	n := &Node{Top: stateFor(4)}
+	n := &Node{Top: at(4)}
 	n.SyncTiltIndex = func(theta, normalTheta, bottomTheta int32) {
 		calls++
 		gotTheta, gotNormalTheta = theta, normalTheta
@@ -499,7 +495,7 @@ func TestClearDrainsDeliveredBeads(t *testing.T) {
 	beads := make(chan int, 4)
 	beads <- 1
 	beads <- 1
-	n := &Node{Top: stateFor(5), In: wire.NewInChan(beads, "n1", "In", nil, nil)}
+	n := &Node{Top: at(5), In: wire.NewInChan(beads, "n1", "In", nil, nil)}
 
 	n.clear()
 
@@ -516,7 +512,7 @@ func TestClearDrainsDeliveredBeads(t *testing.T) {
 // and this asserts the ask, which is the whole of what this goroutine decides here.
 func TestClearAsksTheMoverToEmptyItsOutgoingWires(t *testing.T) {
 	asked := 0
-	n := &Node{Top: stateFor(5), ClearOutBeads: func() { asked++ }}
+	n := &Node{Top: at(5), ClearOutBeads: func() { asked++ }}
 
 	n.clear()
 
@@ -534,7 +530,7 @@ func TestReceivedResetMarkerRunsTheFullClear(t *testing.T) {
 	beads <- 1
 	asked := 0
 	in := make(chan Wiring.TiltVectorMsg, 1)
-	n := &Node{Top: stateFor(5), ReceivedThetaIdx: 9, ReceivedSet: true,
+	n := &Node{Top: at(5), ReceivedThetaIdx: 9, ReceivedSet: true,
 		In: wire.NewInChan(beads, "n1", "In", nil, nil), VectorIn: in,
 		ClearOutBeads: func() { asked++ }}
 
@@ -561,7 +557,7 @@ func TestReceivedResetMarkerRunsTheFullClear(t *testing.T) {
 func TestStartOpensTheVectorExchangeWithoutChangingAnyIndex(t *testing.T) {
 	out := make(chan Wiring.TiltVectorMsg, 1)
 	// PairID 1: START is addressed by id, and only the node numbered 1 opens the exchange.
-	n := &Node{PairID: 1, Top: stateFor(3), VectorOut: out}
+	n := &Node{PairID: 1, Top: at(3), VectorOut: out}
 
 	placeBead := n.applyTiltEdit(Wiring.TiltEditMsg{Start: true})
 
@@ -588,7 +584,7 @@ func TestStartOpensTheVectorExchangeWithoutChangingAnyIndex(t *testing.T) {
 // would restart the very exchange the reset exists to end.
 func TestResetSendsAMarkerNotADirection(t *testing.T) {
 	out := make(chan Wiring.TiltVectorMsg, 1)
-	n := &Node{Top: stateFor(3), VectorOut: out}
+	n := &Node{Top: at(3), VectorOut: out}
 
 	n.applyTiltEdit(Wiring.TiltEditMsg{Reset: true})
 
@@ -601,11 +597,12 @@ func TestResetSendsAMarkerNotADirection(t *testing.T) {
 // THE ID CHANGES NOTHING EXCEPT WHO ANSWERS START. Both ends run this one implementation
 // unmodified, so at the same tilt index they derive the same directions and step the same
 // way — which is what makes the shared implementation VISIBLE in the editor: end 2's
-// coplanar normal points where end 1's does, instead of opposite it.
+// coplanar normal points where end 1's does, instead of opposite it. EVERY index on the
+// ring is checked for the derive half of this claim.
 func TestBothIDsDeriveAndStepIdentically(t *testing.T) {
-	for _, theta := range []int32{0, 1, 5, -1, -7, Wiring.HalfTurnThetaIdx, Wiring.FullTurnThetaIdx} {
-		one := &Node{PairID: 1, Top: stateFor(theta)}
-		two := &Node{PairID: 2, Top: stateFor(theta)}
+	for theta := int32(0); theta < Wiring.FullTurnThetaIdx; theta++ {
+		one := &Node{PairID: 1, Top: at(theta)}
+		two := &Node{PairID: 2, Top: at(theta)}
 
 		if one.coplanarNormal().ThetaIdx != two.coplanarNormal().ThetaIdx {
 			t.Fatalf("theta=%d: the two ids must derive the SAME normal, got %d and %d",
@@ -640,7 +637,7 @@ func TestStartOpensTheExchangeFromPairIDOneOnly(t *testing.T) {
 		wantSend bool
 	}{{1, true}, {2, false}, {7, false}, {0, false}} {
 		out := make(chan Wiring.TiltVectorMsg, 1)
-		n := &Node{PairID: c.id, Top: stateFor(3), VectorOut: out}
+		n := &Node{PairID: c.id, Top: at(3), VectorOut: out}
 		placeBead := n.applyTiltEdit(Wiring.TiltEditMsg{Start: true})
 
 		if placeBead != c.wantSend {
@@ -671,7 +668,7 @@ func TestBeadIsPlacedOnlyWhenVectorStepsNotOnPerpendicularHalt(t *testing.T) {
 	pw := wire.NewPacedWire(1, 1.0)
 	out := wire.NewPacedOutNoGeom(pw, ctx, "Node1", "Out", nil, wire.RuleFireAndForget, 1, "")
 	in := make(chan Wiring.TiltVectorMsg, 1)
-	n := &Node{Top: stateFor(0), VectorIn: in, Out: out}
+	n := &Node{Top: at(0), VectorIn: in, Out: out}
 
 	// An arrival that LEANS: the acute tests move this node, so a bead goes out with the reply.
 	in <- Wiring.TiltVectorMsg{ThetaIdx: 0}
@@ -683,7 +680,7 @@ func TestBeadIsPlacedOnlyWhenVectorStepsNotOnPerpendicularHalt(t *testing.T) {
 
 	// An arrival that is exactly PERPENDICULAR: this halts (steps nothing) and must place NO
 	// bead across several subsequent cycles.
-	n.Top = stateFor(0)
+	n.Top = at(0)
 	in <- Wiring.TiltVectorMsg{ThetaIdx: Wiring.PerpendicularThetaIdx}
 	n.handleVectorCycle(3)
 	for tick := int64(4); tick < 10; tick++ {
@@ -712,10 +709,101 @@ func TestAcuteWithAgreesWithTheArithmeticRuleAcrossTheWholeRing(t *testing.T) {
 		for b := int32(0); b < full; b++ {
 			sep := ((a-b)%full + full) % full
 			want := sep < quarter || sep > threeQuarters
-			got := stateFor(a).acuteWith(stateFor(b))
+			got := at(a).acuteWith(at(b))
 			if got != want {
 				t.Fatalf("a=%d b=%d separation=%d: want acuteWith=%v, got %v", a, b, sep, want, got)
 			}
+		}
+	}
+}
+
+// arrivedState PANICS on an index off the ring, and returns the plain ring member for every
+// in-range one — it is the boundary for a direction ARRIVING ON THE VECTOR CHANNEL, where the
+// sender is this same kind sending one of its own states, so an off-ring value is a defect in
+// this package (or a foreign writer on a channel only this kind holds) rather than something to
+// fold. Silently folding it would turn that bug into a direction some number of steps from the
+// one that was actually sent — plausible, drawable, and undetectable, which is exactly the
+// failure the ring exists to make impossible; panicking with the bad index in the message is
+// what makes that defect loud instead.
+func TestArrivedStatePanicsOffRingAndNotOnRing(t *testing.T) {
+	full := Wiring.FullTurnThetaIdx
+
+	for idx := int32(0); idx < full; idx++ {
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					t.Fatalf("arrivedState(%d): must not panic on an in-range index, got %v", idx, r)
+				}
+			}()
+			s := arrivedState(idx)
+			if s.idx != idx {
+				t.Fatalf("arrivedState(%d): want idx=%d, got %d", idx, idx, s.idx)
+			}
+		}()
+	}
+
+	for _, idx := range []int32{-1, -24, -25, full, full + 1, 2 * full} {
+		func() {
+			defer func() {
+				r := recover()
+				if r == nil {
+					t.Fatalf("arrivedState(%d): want a panic, got none", idx)
+				}
+				msg := fmt.Sprintf("%v", r)
+				if !strings.Contains(msg, fmt.Sprintf("%d", idx)) {
+					t.Fatalf("arrivedState(%d): panic message must name the bad index, got %q", idx, msg)
+				}
+				// IT MUST BE THIS FUNCTION'S OWN PANIC, not Go's array-bounds panic from
+				// at(). Checking only for the index cannot tell them apart — Go's message
+				// for at(24) is "index out of range [24] with length 24", which contains
+				// the index too, so a bound loosened from >= to > still passed this test.
+				// The named phrase is what makes the check specific to the invariant
+				// rather than to any panic that happens to mention the number.
+				if !strings.Contains(msg, "vector channel") {
+					t.Fatalf("arrivedState(%d): want THIS function's own panic naming the invariant, got %q",
+						idx, msg)
+				}
+			}()
+			arrivedState(idx)
+		}()
+	}
+}
+
+// seedState maps the PERSISTED SEED by asking the ring which state carries that index. A
+// number the ring has names that state exactly; a number it does not have names nothing, and
+// loads at the origin having said so.
+//
+// WHY THE ORIGIN AND NOT A FOLD. An index of 30 on a 24-state ring folds to 6 — a quarter
+// turn from where the file said, arrived at by arithmetic, and once drawn indistinguishable
+// from a direction somebody chose. The origin is wrong in a way that is obvious on sight, and
+// the reported flag is what says so out loud. This matters more the moment the lattice size
+// is editable: a file saved at one size and opened at a smaller one names indices this ring
+// does not have, and that is a routine case rather than a legacy one.
+//
+// The in-range half of this is the stronger claim: EVERY index the ring has must come back as
+// the identical ring member, not an equal-valued copy, so pointer identity keeps meaning
+// direction equality.
+func TestSeedStateLoadsAKnownIndexExactlyAndAnUnknownOneAtTheOrigin(t *testing.T) {
+	full := Wiring.FullTurnThetaIdx
+
+	for idx := int32(0); idx < full; idx++ {
+		s, unknown := seedState(idx)
+		if unknown {
+			t.Fatalf("seedState(%d): the ring has this index, so it must not report unknown", idx)
+		}
+		if s != at(idx) {
+			t.Fatalf("seedState(%d): want the identical ring member at(%d), got a different state", idx, idx)
+		}
+	}
+
+	for _, idx := range []int32{-1, -24, -25, full, full + 1, full + 23, 2 * full} {
+		s, unknown := seedState(idx)
+		if !unknown {
+			t.Fatalf("seedState(%d): the ring has no such index, so it must report unknown", idx)
+		}
+		if s != at(0) {
+			t.Fatalf("seedState(%d): an index the ring does not have must load at the origin, got idx=%d",
+				idx, s.idx)
 		}
 	}
 }

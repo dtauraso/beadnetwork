@@ -166,6 +166,12 @@ const (
 	// which of the three edits it was (adjust / start / reset) and the indices after it.
 	// These are the BOUNDARIES of an exchange: what a user did, and when.
 	BreadcrumbPairTiltEdit
+	// BreadcrumbPairSeedUnknown: one at BUILD TIME, and only when a pair node's persisted
+	// tilt index is not one its ring has — a position.json written before the tilt became a
+	// state, or by a build with a different lattice size. The node opens at the origin, and
+	// this says which number was refused. At most one per node per load, and none at all for
+	// a file written by this build at this size.
+	BreadcrumbPairSeedUnknown
 )
 
 // BreadcrumbLabels is the single source of truth for the BreadcrumbLabel* enum's
@@ -188,6 +194,7 @@ var BreadcrumbLabels = []string{
 	"bead-crud",
 	"pair-vector",
 	"pair-tilt-edit",
+	"pair-seed-unknown",
 }
 
 // TraceEventKinds is the single source of truth for the closed kind vocabulary.
