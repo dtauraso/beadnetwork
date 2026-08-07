@@ -26,13 +26,19 @@ import (
 // for Start, never a stop-and-return).
 func TestApplyTiltEditResetReturnsBothIndicesToZero(t *testing.T) {
 	for start := int32(0); start < defaultRing.points; start++ {
-		n := &Node{Top: defaultRing.at(start)}
+		// Held on purpose: a reset must take it too. It marks whose angle is intent for an
+		// exchange that has not run yet, and one surviving a reset would silently decide who
+		// moves the next time one starts.
+		n := &Node{Top: defaultRing.at(start), Held: true}
 		placeBead := n.applyTiltEdit(Wiring.TiltEditMsg{Reset: true})
 		if placeBead {
 			t.Fatalf("reset from theta=%d must place no bead, got placeBead=true", start)
 		}
 		if n.topState().idx != 0 {
 			t.Fatalf("reset from theta=%d: want index 0, got theta=%d", start, n.topState().idx)
+		}
+		if n.Held {
+			t.Fatalf("reset from theta=%d must clear the hold; a reset leaves nothing in the pair", start)
 		}
 	}
 }
@@ -164,30 +170,33 @@ func TestApplyTiltEditResetDrainsVectorIn(t *testing.T) {
 }
 
 // A plain adjust (the panel's ▲/▼ click, neither Reset nor Start) moves the named index by
-// exactly one step, marks this end HELD, and OPENS THE EXCHANGE: it sends this node's own
-// outgoing vector and asks the caller to place a bead. A tilt a user set is intent, not
-// error, so this end keeps its new index (the partner is what moves to restore square) —
-// but it does answer, which is what gives the partner something to correct against.
-func TestApplyTiltEditAdjustMovesOneStepHoldsAndSendsItsVector(t *testing.T) {
+// exactly one step, marks this end HELD, and does NOTHING ELSE: no send, no bead.
+//
+// SETTING AN ANGLE AND RUNNING THE EXCHANGE ARE SEPARATE ACTS, and this test is what keeps
+// them separate. Folding the send into a click puts "the kick" back inside an adjust, which
+// is the side effect task/pair-node-owns-itself removed: opening the exchange from the click
+// feeds arrivals straight back to the node just clicked, and one click moved that tilt by
+// many steps. Held happens to mask that today, which is the reason to pin the split here
+// rather than lean on it — the behaviour should not depend on a flag being set correctly.
+//
+// The hold is still set, because it says whose angle is intent when the exchange DOES run.
+func TestApplyTiltEditAdjustMovesOneStepHoldsAndSendsNothing(t *testing.T) {
 	out := make(chan Wiring.TiltVectorMsg, 1)
 	n := &Node{Top: defaultRing.at(3), VectorOut: out}
 	placeBead := n.applyTiltEdit(Wiring.TiltEditMsg{Up: true})
-	if !placeBead {
-		t.Fatalf("a plain adjust must place a bead (it opens the exchange), got placeBead=false")
+	if placeBead {
+		t.Fatal("a plain adjust must place NO bead — START is what runs the exchange")
 	}
 	if n.topState().idx != 4 {
 		t.Fatalf("adjust theta up: want theta=4, got theta=%d", n.topState().idx)
 	}
 	if !n.Held {
-		t.Fatal("a plain adjust must mark this end Held")
+		t.Fatal("a plain adjust must mark this end Held: its angle is intent when the exchange runs")
 	}
 	select {
 	case v := <-out:
-		if want := n.outgoingVector(); v != want {
-			t.Fatalf("a plain adjust must send this node's own outgoing vector; got %+v, want %+v", v, want)
-		}
+		t.Fatalf("a plain adjust must send NOTHING on VectorOut; got %+v", v)
 	default:
-		t.Fatal("a plain adjust must send its own vector on VectorOut to open the exchange")
 	}
 }
 

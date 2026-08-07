@@ -14,11 +14,13 @@
 // (BuildArgs.TiltEditIn), also drained non-blockingly every cycle. TiltEditIn carries THREE
 // distinct edits (task/pair-node-owns-itself split), never conflated:
 //
-//   - TiltVectorAnglePanel's ▲/▼ click: applies exactly one ±1 step to the named axis, marks
-//     this end HELD (a tilt a user set is intent, not error — the partner moves to restore
-//     square instead of this end turning on an arrival), and ALSO opens the vector exchange
-//     by sending this node's own outgoing vector alongside a bead — a click that only moved an
-//     index would leave the partner with nothing to answer.
+//   - TiltVectorAnglePanel's ▲/▼ click: applies exactly one ±1 step to the named axis and
+//     marks this end HELD — a tilt a user set is intent, not error, so when the exchange next
+//     runs it is the PARTNER that moves to restore square. It sends nothing and places no
+//     bead: setting an angle and running the exchange are separate acts, and folding the send
+//     in here would put "the kick" back inside a click, which is the side effect
+//     task/pair-node-owns-itself removed — arrivals came straight back to the node just
+//     clicked, and one click moved its tilt by many steps.
 //   - the START TILT button (TiltVectorButtons.tsx, TiltEditMsg.Start): opens the vector
 //     exchange from whatever angles are CURRENTLY set — sends this node's own outgoing
 //     vector alongside a bead ("THE KICK"), which is what gives handleVectorCycle something
@@ -241,15 +243,17 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 	} else {
 		n.Top = n.topState().prev
 	}
-	// A TILT A USER SET IS INTENT, NOT ERROR: this node keeps it, and the pair's relationship
-	// is restored by the PARTNER moving. Held says so — see its own doc comment.
+	// A TILT A USER SET IS INTENT, NOT ERROR: this node keeps it, and when the exchange next
+	// runs it is the PARTNER that moves to restore square. Held says so — see its own doc
+	// comment.
 	n.Held = true
-	// AND IT OPENS THE EXCHANGE. A click that only moved an index left the partner with
-	// nothing to answer: this node sat deaf on its new angle, the partner never heard, and the
-	// pair simply stopped square-less. Sending this node's own normal is what gives the
-	// partner something to correct against, and the caller places the bead that paces it.
-	Wiring.SendVectorLatestNonBlocking(n.VectorOut, n.outgoingVector())
-	return true
+	// AND IT STOPS THERE. No send, no bead: an adjust sets an angle, START runs the exchange.
+	// Merging the two would put "the kick" back inside a click, which is the side effect
+	// task/pair-node-owns-itself removed — one click moved the tilt by many steps once the
+	// exchange settled, because opening it fed arrivals straight back to the node that was
+	// just clicked. Held would mask that today, which is precisely why the two should not be
+	// merged: the split is what makes the behaviour independent of whether Held is set.
+	return false
 }
 
 // adoptLattice rebuilds THIS node's own ring at a new point count, on THIS node's own
@@ -343,6 +347,12 @@ func (n *Node) topState() *tiltState {
 // there instead of bouncing.
 func (n *Node) clear() {
 	n.Top = n.ringOf().at(0)
+	// A HOLD IS SOMETHING LEFT IN THE PAIR, so a reset takes it too. It marks whose angle is
+	// intent for an exchange that has not run yet; after a reset there is no such angle and no
+	// such exchange, and a hold surviving here would silently decide who moves the next time
+	// one starts. START and RESET otherwise have nothing to do with the hold: neither sets it,
+	// and only a ▲/▼ click does.
+	n.Held = false
 	n.syncTiltIndex()
 	n.ReceivedThetaIdx = 0
 	n.ReceivedSet = false
@@ -662,7 +672,7 @@ func (n *Node) Update(ctx context.Context) {
 
 		// Drain TiltEditIn non-blocking: a panel/RESET/START edit — see the package doc
 		// comment for the three-way split. applyTiltEdit decides placeBead: true for Start
-		// and for a plain adjust (both open the exchange), false only for Reset.
+		// alone, which is the one edit that runs the exchange.
 		if n.TiltEditIn != nil {
 			select {
 			case edit := <-n.TiltEditIn:
