@@ -240,12 +240,11 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 	} else {
 		n.Top = n.topState().prev
 	}
-	// AND IT OPENS THE EXCHANGE. A click that only moved an index left the partner with
-	// nothing to answer: this node sat deaf on its new angle, the partner never heard, and the
-	// pair simply stopped square-less. Sending this node's own normal is what gives the
-	// partner something to correct against, and the caller places the bead that paces it.
-	Wiring.SendVectorLatestNonBlocking(n.VectorOut, n.outgoingVector())
-	return true
+	// AND IT STOPS THERE: no send, no bead. Setting an angle and running the exchange are
+	// separate acts — a click moves this node's own tilt and nothing else happens until START.
+	// The memory of having been square (Squared, read by stepFromVector) is what carries the
+	// relationship across the click, so the click has no need to open anything itself.
+	return false
 }
 
 // adoptLattice rebuilds THIS node's own ring at a new point count, on THIS node's own

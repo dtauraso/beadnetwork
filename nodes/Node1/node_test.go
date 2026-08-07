@@ -170,26 +170,22 @@ func TestApplyTiltEditResetDrainsVectorIn(t *testing.T) {
 }
 
 // A plain adjust (the panel's ▲/▼ click, neither Reset nor Start) moves the named index by
-// exactly one step and OPENS THE EXCHANGE: it sends this node's own outgoing vector and asks
-// the caller to place a bead. A click that only moved an index would leave the partner with
-// nothing to answer.
-func TestApplyTiltEditAdjustMovesOneStepAndSendsItsVector(t *testing.T) {
+// exactly one step and does NOTHING else: no send, no bead. Setting an angle and running the
+// exchange are separate acts — nothing happens in the pair until START.
+func TestApplyTiltEditAdjustMovesOneStepAndSendsNothing(t *testing.T) {
 	out := make(chan Wiring.TiltVectorMsg, 1)
 	n := &Node{Top: defaultRing.at(3), VectorOut: out}
 	placeBead := n.applyTiltEdit(Wiring.TiltEditMsg{Up: true})
-	if !placeBead {
-		t.Fatalf("a plain adjust must place a bead (it opens the exchange), got placeBead=false")
+	if placeBead {
+		t.Fatal("a plain adjust must place NO bead: setting an angle and running the exchange are separate acts")
 	}
 	if n.topState().idx != 4 {
 		t.Fatalf("adjust theta up: want theta=4, got theta=%d", n.topState().idx)
 	}
 	select {
 	case v := <-out:
-		if want := n.outgoingVector(); v != want {
-			t.Fatalf("a plain adjust must send this node's own outgoing vector; got %+v, want %+v", v, want)
-		}
+		t.Fatalf("a plain adjust must send NOTHING — nothing happens until START; got %+v", v)
 	default:
-		t.Fatal("a plain adjust must send its own vector on VectorOut to open the exchange")
 	}
 }
 
@@ -1141,10 +1137,12 @@ func TestMeasurePairBehaviorUnderTheAcuteRememberSquareRule(t *testing.T) {
 	{
 		a, b, aOut, _ := newPair()
 		a.applyTiltEdit(Wiring.TiltEditMsg{Up: true})
+		// A click sends nothing — START is what runs the exchange, and only id 1 opens it.
+		a.applyTiltEdit(Wiring.TiltEditMsg{Start: true})
 		msg := <-aOut
 		rounds, terminated := driveExchange(t, a, msg, b)
 		s := sep(a, b)
-		t.Logf("(b) node1 clicks up from square, node1 opens: sep=%d rounds=%d terminated=%v (a=%d b=%d)",
+		t.Logf("(b) node1 clicks up, then START: sep=%d rounds=%d terminated=%v (a=%d b=%d)",
 			s, rounds, terminated, a.topState().idx, b.topState().idx)
 	}
 
@@ -1152,30 +1150,34 @@ func TestMeasurePairBehaviorUnderTheAcuteRememberSquareRule(t *testing.T) {
 	{
 		a, b, aOut, _ := newPair()
 		a.applyTiltEdit(Wiring.TiltEditMsg{Up: false})
+		a.applyTiltEdit(Wiring.TiltEditMsg{Start: true})
 		msg := <-aOut
 		rounds, terminated := driveExchange(t, a, msg, b)
 		s := sep(a, b)
-		t.Logf("(c) node1 clicks down from square, node1 opens: sep=%d rounds=%d terminated=%v (a=%d b=%d)",
+		t.Logf("(c) node1 clicks down, then START: sep=%d rounds=%d terminated=%v (a=%d b=%d)",
 			s, rounds, terminated, a.topState().idx, b.topState().idx)
 	}
 
-	// (d) Same two, clicking the OTHER end (node 2) instead of node 1.
+	// (d) Same two, clicking the OTHER end (node 2). START still comes from id 1, which is
+	// the only end that opens — the panel posts it to every row and Go decides by id.
 	{
-		a, b, _, bOut := newPair()
+		a, b, aOut, _ := newPair()
 		b.applyTiltEdit(Wiring.TiltEditMsg{Up: true})
-		msg := <-bOut
-		rounds, terminated := driveExchange(t, b, msg, a)
+		a.applyTiltEdit(Wiring.TiltEditMsg{Start: true})
+		msg := <-aOut
+		rounds, terminated := driveExchange(t, a, msg, b)
 		s := sep(a, b)
-		t.Logf("(d-up) node2 clicks up from square, node2 opens: sep=%d rounds=%d terminated=%v (a=%d b=%d)",
+		t.Logf("(d-up) node2 clicks up, then START: sep=%d rounds=%d terminated=%v (a=%d b=%d)",
 			s, rounds, terminated, a.topState().idx, b.topState().idx)
 	}
 	{
-		a, b, _, bOut := newPair()
+		a, b, aOut, _ := newPair()
 		b.applyTiltEdit(Wiring.TiltEditMsg{Up: false})
-		msg := <-bOut
-		rounds, terminated := driveExchange(t, b, msg, a)
+		a.applyTiltEdit(Wiring.TiltEditMsg{Start: true})
+		msg := <-aOut
+		rounds, terminated := driveExchange(t, a, msg, b)
 		s := sep(a, b)
-		t.Logf("(d-down) node2 clicks down from square, node2 opens: sep=%d rounds=%d terminated=%v (a=%d b=%d)",
+		t.Logf("(d-down) node2 clicks down, then START: sep=%d rounds=%d terminated=%v (a=%d b=%d)",
 			s, rounds, terminated, a.topState().idx, b.topState().idx)
 	}
 }
