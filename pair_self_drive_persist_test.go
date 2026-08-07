@@ -72,10 +72,10 @@ func frameTiltVectorTheta(t *testing.T, row byte) []byte {
 	return frame
 }
 
-// writePairTree lays down a minimal real Node1/Node2 pair (one bead edge each
-// direction, the shape task/tilt-sets-pair-distance's model requires — see
-// Wiring.repositionForTiltIndex's own doc comment) so LoadTopology builds the real
-// graph, real nodeMovers, and real Node1/Node2 kinds each with a real self-drive claim.
+// writePairTree lays down a minimal real pair — TWO NODES OF THE ONE PAIR KIND, one bead
+// edge each direction — so LoadTopology builds the real graph, real nodeMovers, and two real
+// Node1 instances each with a real self-drive claim. There is no second kind: the ends differ
+// only by their own spec ids, 1 and 2, which is what START is addressed by.
 func writePairTree(t *testing.T) string {
 	t.Helper()
 	root := t.TempDir()
@@ -89,7 +89,7 @@ func writePairTree(t *testing.T) string {
 		}
 	}
 	mk("nodes/1/meta.json", `{"id":"1","type":"Node1","r":100,"scenePolarR":125.44,"scenePolarTheta":1.5707963267948966,"scenePolarPhi":-0.6981317007977318}`)
-	mk("nodes/2/meta.json", `{"id":"2","type":"Node2","r":100,"scenePolarR":125.44,"scenePolarTheta":1.5707963267948966,"scenePolarPhi":0.6981317007977318}`)
+	mk("nodes/2/meta.json", `{"id":"2","type":"Node1","r":100,"scenePolarR":125.44,"scenePolarTheta":1.5707963267948966,"scenePolarPhi":0.6981317007977318}`)
 	mk("nodes/1/edges/e1.json", `{"label":"e1","kind":"data","sourceHandle":"Out","target":"2","targetHandle":"In"}`)
 	mk("nodes/2/edges/e2.json", `{"label":"e2","kind":"data","sourceHandle":"Out","target":"1","targetHandle":"In"}`)
 	return root

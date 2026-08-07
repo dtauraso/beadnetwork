@@ -35,8 +35,8 @@ const EXPECTED_ORDER = [
 ] as const;
 
 describe("NODE_DEFS_ARRAY order parity with Go kindIDMap", () => {
-  it("has 13 entries", () => {
-    expect(NODE_DEFS_ARRAY.length).toBe(13);
+  it("has 12 entries", () => {
+    expect(NODE_DEFS_ARRAY.length).toBe(12);
   });
 
   it("entries are in stable-KindId order matching kindIDMap", () => {

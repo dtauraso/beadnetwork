@@ -38,6 +38,7 @@ package Node1
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
@@ -45,21 +46,23 @@ import (
 )
 
 type Node struct {
-	// PairID says WHICH END of the pair this instance is: 1 or 2. Both ends are this same
-	// struct — nodes/Node2's builder constructs one of these with PairID 2 — so the id is
-	// what tells them apart when something has to be addressed to one of them.
+	// PairID is THIS NODE'S OWN SPEC ID, the number the editor draws on it — the builder
+	// parses it from BuildArgs.Name(), which is the node's directory name under topology/
+	// and is a number by construction (.claude/rules/persistence-ownership.md: node ids ARE
+	// numbers, strings only because they are directory names).
 	//
 	// It decides ONE thing: START opens the exchange from id 1 alone (applyTiltEdit). The
 	// panel posts START to every node row, because the webview holds no domain knowledge
-	// about which end is which; Go decides here, by id.
+	// about which node should open; Go decides here, by id.
 	//
-	// It decides NOTHING ELSE. Both ends run this one implementation, unmodified — same
-	// derived directions, same step directions — so a pair draws two nodes that behave
-	// identically apart from which one START reaches. That sameness is the visible evidence
-	// that there is one implementation here rather than two: end 2's coplanar normal points
-	// the same way end 1's does, where two mirrored implementations pointed them opposite
-	// ways. The zero value means id 1, which is what a bare test build in this package
-	// constructs.
+	// It decides NOTHING ELSE. There is one pair kind and one implementation, so both ends
+	// of a pair derive the same directions and step the same way, and the id is the only
+	// thing that distinguishes them at all. A pair therefore needs the node numbered 1 to be
+	// one of its ends — with no id 1 present, nothing opens the exchange and START does
+	// nothing.
+	//
+	// The zero value is what a bare test build in this package constructs; it is not id 1,
+	// so such a node does not open an exchange unless the test says PairID: 1.
 	PairID int32
 
 	Fire         func()
@@ -179,7 +182,7 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 		// The panel sends START to every node it lists (TiltVectorButtons.tsx posts one
 		// record per row, exactly as RESET does), because the WEBVIEW must not know which end
 		// is which — that is domain knowledge, and TS holds none. Go decides, here, by id.
-		if n.PairID == 2 {
+		if n.PairID != 1 {
 			return false
 		}
 		// Open the vector exchange from the current angles — see this function's own doc
@@ -545,8 +548,13 @@ func init() {
 		},
 		func(a Wiring.BuildArgs) (wire.Node, error) {
 			n := &Node{
-				PairID: 1,
-				Clock:  wire.NewRealClock(),
+				Clock: wire.NewRealClock(),
+			}
+			// This node's own spec id, which is what START is addressed by — see PairID's
+			// own doc comment. A name that is not a number leaves PairID at 0, so such a
+			// node simply never opens an exchange rather than silently becoming id 1.
+			if id, err := strconv.Atoi(a.Name()); err == nil {
+				n.PairID = int32(id)
 			}
 			n.Fire = a.Fire()
 			if clk := a.Clock(); clk != nil {

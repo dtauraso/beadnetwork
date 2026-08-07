@@ -500,7 +500,8 @@ func TestReceivedResetMarkerRunsTheFullClear(t *testing.T) {
 // per docs/testing-shape.md.
 func TestStartOpensTheVectorExchangeWithoutChangingAnyIndex(t *testing.T) {
 	out := make(chan Wiring.TiltVectorMsg, 1)
-	n := &Node{TopTiltThetaIdx: 3, VectorOut: out}
+	// PairID 1: START is addressed by id, and only the node numbered 1 opens the exchange.
+	n := &Node{PairID: 1, TopTiltThetaIdx: 3, VectorOut: out}
 
 	placeBead := n.applyTiltEdit(Wiring.TiltEditMsg{Start: true})
 
@@ -577,7 +578,7 @@ func TestStartOpensTheExchangeFromPairIDOneOnly(t *testing.T) {
 	for _, c := range []struct {
 		id       int32
 		wantSend bool
-	}{{1, true}, {2, false}} {
+	}{{1, true}, {2, false}, {7, false}, {0, false}} {
 		out := make(chan Wiring.TiltVectorMsg, 1)
 		n := &Node{PairID: c.id, TopTiltThetaIdx: 3, VectorOut: out}
 		placeBead := n.applyTiltEdit(Wiring.TiltEditMsg{Start: true})
