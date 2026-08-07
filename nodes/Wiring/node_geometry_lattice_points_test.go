@@ -21,6 +21,7 @@ import (
 // changed: topTiltVectorTheta, bottomTiltVectorTheta, coplanarNormalTheta, receivedVectorTheta.
 type latticeFrameAngles struct {
 	top, bottom, coplanar, received float32
+	points                          uint8
 }
 
 func captureLatticeAngles(snap *latticeFrameAngles) *nodeGeometry {
@@ -32,13 +33,14 @@ func captureLatticeAngles(snap *latticeFrameAngles) *nodeGeometry {
 			vrx, vry, vrz, frx, fry, frz float32,
 			poleTheta, polePhi, ringAxisTheta, ringAxisPhi, topTiltVectorLen, topTiltVectorTheta,
 			bottomTiltVectorTheta, coplanarNormalTheta, receivedVectorLen, receivedVectorTheta float32,
-			selected, kindID, hovered, latchedSel uint8, label string,
+			selected, kindID, hovered, latchedSel, latticePoints uint8, label string,
 			chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32,
 			events []wire.RowEvent) []byte {
 			snap.top = topTiltVectorTheta
 			snap.bottom = bottomTiltVectorTheta
 			snap.coplanar = coplanarNormalTheta
 			snap.received = receivedVectorTheta
+			snap.points = latticePoints
 			return nil
 		},
 	}
@@ -94,5 +96,8 @@ func TestWriteStreamFrameFollowsSetLatticePoints(t *testing.T) {
 	if snap.top != want || snap.bottom != want || snap.coplanar != want || snap.received != want {
 		t.Fatalf("12-point-lattice angles = (top=%v bottom=%v coplanar=%v received=%v), want all %v (idx=%d * 2π/12, NOT the fixed CurveParamTiltVectorAngleStep %v)",
 			snap.top, snap.bottom, snap.coplanar, snap.received, want, idx, oldConstantAngle)
+	}
+	if snap.points != uint8(points) {
+		t.Fatalf("streamed LatticePoints = %d, want %d — the frame's own point-count column must mirror this node's latticePoints", snap.points, points)
 	}
 }

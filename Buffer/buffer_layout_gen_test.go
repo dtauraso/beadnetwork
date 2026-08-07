@@ -68,8 +68,9 @@ func TestSetNodeRow(t *testing.T) {
 		1,    // selected
 		3,    // kindID (Input = index 3 in NODE_DEFS_ARRAY)
 		7, 4, // labelOff, labelLen
-		1, // hovered
-		1, // latchedSel
+		1,  // hovered
+		1,  // latchedSel
+		12, // latticePoints
 	)
 
 	assertI32At(t, buf, BufNodeColNodeId, 42, "NodeId")
@@ -100,6 +101,7 @@ func TestSetNodeRow(t *testing.T) {
 	assertU32At(t, buf, BufNodeColLabelLen, 4, "LabelLen")
 	assertU8At(t, buf, BufNodeColHovered, 1, "Hovered")
 	assertU8At(t, buf, BufNodeColLatchedSel, 1, "LatchedSel")
+	assertU8At(t, buf, BufNodeColLatticePoints, 12, "LatticePoints")
 }
 
 func TestSetEdgeRow(t *testing.T) {
@@ -172,8 +174,9 @@ func TestNodeStrideIsPackedSize(t *testing.T) {
 	//           + 1×f32 (coplanarNormalTheta — the SECOND vector, a quarter turn away)
 	//           + 2×f32 (receivedVectorLen/theta — the THIRD vector: the direction last
 	//             received on this node's vector channel; 0 length = nothing received yet)
-	//           = 4 + (5+6+2+2+1+1+1+1+2)×4 + 1 + 1 + 8 + 1 + 1
-	want := 1*4 + 5*4 + 6*4 + 2*4 + 2*4 + 1*4 + 1*4 + 1*4 + 1*4 + 2*4 + 1*1 + 1*1 + 2*4 + 1*1 + 1*1
+	//           + 1×u8 (latticePoints — this node's own pair-lattice point count)
+	//           = 4 + (5+6+2+2+1+1+1+1+2)×4 + 1 + 1 + 8 + 1 + 1 + 1
+	want := 1*4 + 5*4 + 6*4 + 2*4 + 2*4 + 1*4 + 1*4 + 1*4 + 1*4 + 2*4 + 1*1 + 1*1 + 2*4 + 1*1 + 1*1 + 1*1
 	if BufNodeStride != want {
 		t.Errorf("BufNodeStride = %d, want %d (packed size)", BufNodeStride, want)
 	}

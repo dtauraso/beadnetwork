@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { postGoRecord } from "../vscode-api";
-import { encodeTiltVectorAdjust } from "../../schema/input-layout";
-import { CURVE_PARAM_TILT_VECTOR_ANGLE_STEP } from "../../schema/curve-params";
+import { encodeTiltVectorAdjust, encodeSceneLatticePoints } from "../../schema/input-layout";
 import { useTiltVectorRows, type TiltVectorRow } from "./overlay-flags";
+import { formatAngle } from "./tilt-vector-angle-format";
 import {
   pillContainerStyle,
   pillBodyStyle,
@@ -38,25 +38,25 @@ const AXES = ["theta"] as const;
 // pill renders nothing — no scene branch on either side, just the shared "no rows" signal
 // DistanceHomePanel's "no groups" check uses.
 //
-// θ is displayed as an INTEGER MULTIPLE of Go's own step
-// (nodes/Wiring.CurveParamTiltVectorAngleStep, mirrored here as the generated
-// CURVE_PARAM_TILT_VECTOR_ANGLE_STEP — memory/feedback_abc_times_constant_not_rederive.md):
-// the index is the thing being adjusted, not the radians, so it is shown as "5π/12" rather
-// than a decimal. TS computes the DISPLAYED index by dividing Go's own streamed radians by
-// Go's own streamed step — a read-side format transform, not authored angle state.
+// θ is displayed as an INTEGER MULTIPLE of THIS NODE'S OWN lattice step — 2π/points, where
+// `points` is the LIVE streamed lattice point count (Buffer/layout.go's LatticePoints,
+// task/pair-lattice-points), not the fixed compile-time
+// CurveParamTiltVectorAngleStep/CURVE_PARAM_TILT_VECTOR_ANGLE_STEP (π/12, a 24-point
+// default). That fixed constant is only right at 24 points; deriving from the streamed
+// count instead keeps the index and its shown fraction denominator correct at whatever
+// count the scene setting currently holds (6 of 24 shows "6π/12", 3 of 12 shows "3π/6" —
+// same index, half the denominator, at half the points). TS computes the DISPLAYED index by
+// dividing Go's own streamed radians by that per-node step — a read-side format transform,
+// not authored angle state.
 //
 // Clicking an arrow fire-and-forgets an edit-update(tiltVector, theta) record naming
 // the target node's buffer ROW (never its id/name) and the direction; Go owns the step
 // and the index arithmetic (node_mover.go's moveMsgKindTiltVectorAngle handler) — this
 // component sends no angle value, only which node + which direction.
-const DENOM = Math.max(1, Math.round(Math.PI / CURVE_PARAM_TILT_VECTOR_ANGLE_STEP));
-
-function formatAngle(radians: number): string {
-  const idx = Math.round(radians / CURVE_PARAM_TILT_VECTOR_ANGLE_STEP);
-  if (idx === 0) return "0";
-  const sign = idx < 0 ? "-" : "";
-  return `${sign}${Math.abs(idx)}π/${DENOM}`;
-}
+//
+// The actual derivation lives in tilt-vector-angle-format.ts (formatAngle, imported above)
+// — split out so it has no react/vscode-api dependency and its own unit test doesn't need
+// to import a webview module.
 
 /** One axis item inside a node's group, STACKED: the axis name on its own line, its value
  *  and the ▲/▼ that change it on the line below. Same two-line item the pair panels use.
@@ -87,7 +87,7 @@ function AxisRow({ node, axis }: { node: TiltVectorRow; axis: (typeof AXES)[numb
       <span>{axis}</span>
       <span style={valueLineStyle}>
         <span style={{ fontVariantNumeric: "tabular-nums" }}>
-          {formatAngle(node.theta)}
+          {formatAngle(node.theta, node.points)}
         </span>
         <button
           type="button"
@@ -136,6 +136,63 @@ function NodeGroupSection({ node }: { node: TiltVectorRow }) {
   );
 }
 
+// Pair-lattice point count bounds (Buffer/layout.go's LatticePoints /
+// nodes/Wiring/scene_lattice_persist.go): valid = a multiple of 4 in 4..64.
+const LATTICE_POINTS_MIN = 4;
+const LATTICE_POINTS_MAX = 64;
+const LATTICE_POINTS_STEP = 4;
+
+/** SCENE-LEVEL row: the pair lattice's current point count, with ▲/▼ that step it by 4
+ *  (clamped 4..64) and fire-and-forget an edit-update(scene, latticePoints) record — the
+ *  same shape as AxisRow's arrows, but this is a SCENE setting (one value for the whole
+ *  scene, not per-node), so it sits once at the top of the popover rather than inside a
+ *  node's group. Disabled at each bound rather than letting a click silently do nothing
+ *  (memory/feedback_clear_button_armed_only_when_loaded.md's "don't bank an action a
+ *  disabled affordance can't take" shape). */
+function LatticePointsRow({ points }: { points: number }) {
+  const [hover, setHover] = useState(false);
+  const adjust = (delta: number) => {
+    const next = Math.min(LATTICE_POINTS_MAX, Math.max(LATTICE_POINTS_MIN, points + delta));
+    if (next === points) return;
+    postGoRecord(encodeSceneLatticePoints(next));
+  };
+  return (
+    <div
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        ...popoverRowStyle(hover, false),
+        flexDirection: "column",
+        alignItems: "flex-start",
+        gap: 2,
+      }}
+    >
+      <span>Lattice points</span>
+      <span style={valueLineStyle}>
+        <span style={{ fontVariantNumeric: "tabular-nums" }}>{points}</span>
+        <button
+          type="button"
+          aria-label="lattice points up"
+          disabled={points >= LATTICE_POINTS_MAX}
+          onClick={(e) => { e.stopPropagation(); adjust(LATTICE_POINTS_STEP); }}
+          style={points >= LATTICE_POINTS_MAX ? arrowBtnDisabledStyle : arrowBtnStyle}
+        >
+          ▲
+        </button>
+        <button
+          type="button"
+          aria-label="lattice points down"
+          disabled={points <= LATTICE_POINTS_MIN}
+          onClick={(e) => { e.stopPropagation(); adjust(-LATTICE_POINTS_STEP); }}
+          style={points <= LATTICE_POINTS_MIN ? arrowBtnDisabledStyle : arrowBtnStyle}
+        >
+          ▼
+        </button>
+      </span>
+    </div>
+  );
+}
+
 /** ANGLES CONTROL: a labeled pill (no master toggle — the whole pill opens the popover) +
  *  popover of per-node collapsible groups, one row per axis. Same pill/popover/heading/row
  *  chrome as OverlaysControl (overlay-chrome.ts). */
@@ -178,6 +235,10 @@ export function TiltVectorAnglePanel() {
 
       {open && (
         <div style={dropdownStyle}>
+          {/* Scene-level, not per-node: one row, at the top, using whichever row's own
+              streamed count happens to be current — every node in the scene streams the
+              same LatticePoints value (task/pair-lattice-points). */}
+          <LatticePointsRow points={rows[0]?.points ?? 24} />
           {rows.map((node) => (
             <NodeGroupSection key={node.row} node={node} />
           ))}
@@ -238,4 +299,12 @@ const arrowBtnStyle: React.CSSProperties = {
   lineHeight: 1,
   padding: "2px 5px",
   cursor: "pointer",
+};
+
+// Same chrome as arrowBtnStyle but visibly inert — used at the lattice-point-count bounds
+// so a disabled arrow reads as disabled rather than a click that silently does nothing.
+const arrowBtnDisabledStyle: React.CSSProperties = {
+  ...arrowBtnStyle,
+  opacity: 0.35,
+  cursor: "default",
 };

@@ -28,6 +28,7 @@ import {
   readOverlaySpeed,
   readNodeTopTiltVectorLen,
   readNodeTopTiltVectorTheta,
+  readNodeLatticePoints,
 } from "../../schema/buffer-layout";
 import { nodeLabel } from "./buffer-decode";
 
@@ -197,6 +198,10 @@ export interface TiltVectorRow {
   row: number;
   label: string;
   theta: number;
+  /** This node's own streamed lattice point count (Buffer/layout.go's LatticePoints) — the
+   *  N `theta` was converted against, so a reader can invert it back to an index at the
+   *  CURRENT count instead of assuming a fixed compile-time step. */
+  points: number;
 }
 
 let cachedTiltVectorRows: TiltVectorRow[] | null = null;
@@ -207,7 +212,7 @@ function tiltVectorRowsEqual(a: TiltVectorRow[], b: TiltVectorRow[]): boolean {
     const ai = a[i];
     const bi = b[i];
     if (!ai || !bi) return false;
-    if (ai.row !== bi.row || ai.theta !== bi.theta || ai.label !== bi.label) {
+    if (ai.row !== bi.row || ai.theta !== bi.theta || ai.label !== bi.label || ai.points !== bi.points) {
       return false;
     }
   }
@@ -230,6 +235,7 @@ export function readTiltVectorRows(): TiltVectorRow[] | null {
       row,
       label: nodeLabel(decoded, row),
       theta: readNodeTopTiltVectorTheta(nodeView, row),
+      points: readNodeLatticePoints(nodeView, row),
     });
   }
   if (cachedTiltVectorRows && tiltVectorRowsEqual(cachedTiltVectorRows, next)) return cachedTiltVectorRows;

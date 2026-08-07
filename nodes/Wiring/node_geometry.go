@@ -179,7 +179,7 @@ type nodeGeometry struct {
 	hoverIsInput                  bool
 	kindID                        uint8
 
-	buildFrame func(tick uint32, nodeRow int32, nodeID int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, poleTheta, polePhi, ringAxisTheta, ringAxisPhi, topTiltVectorLen, topTiltVectorTheta, bottomTiltVectorTheta, coplanarNormalTheta, receivedVectorLen, receivedVectorTheta float32, selected, kindID, hovered, latchedSel uint8, label string, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte
+	buildFrame func(tick uint32, nodeRow int32, nodeID int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, poleTheta, polePhi, ringAxisTheta, ringAxisPhi, topTiltVectorLen, topTiltVectorTheta, bottomTiltVectorTheta, coplanarNormalTheta, receivedVectorLen, receivedVectorTheta float32, selected, kindID, hovered, latchedSel, latticePoints uint8, label string, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte
 
 	topTiltVectorThetaIdx  int32
 	normalThetaIdx         int32
@@ -608,7 +608,7 @@ func (m *nodeGeometry) writeStreamFrame(events []wire.RowEvent) {
 		float32(bottomTiltVectorTheta),
 		float32(coplanarNormalTheta),
 		float32(receivedVectorLen), float32(receivedVectorTheta),
-		selected, kindID, hovered, latchedSel,
+		selected, kindID, hovered, latchedSel, uint8(points),
 		label, chainOX, chainOY, chainOZ, chainLit, chainLitVal, events)
 	var hdr [4]byte
 	binary.LittleEndian.PutUint32(hdr[:], uint32(len(frame)))
