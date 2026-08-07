@@ -9,6 +9,7 @@ import type { HostToWebviewMsg } from "./messages";
 import { buildWebviewHtml } from "./extension/html";
 import { handleMessage } from "./extension/handle-message";
 import { openDocsPanel, openSource } from "./extension/docs-panel";
+import { serveDocsOpen } from "./extension/docs-open";
 import { PROBE_FILES } from "./probe-files";
 
 export function activate(context: vscode.ExtensionContext) {
@@ -28,6 +29,11 @@ export function activate(context: vscode.ExtensionContext) {
     }),
   );
   armHostReloadWatcher(context);
+  // Lets a click in the LIVE PREVIEW pane open a source file as an editor tab —
+  // see docs-open.ts for why that needs a request and not a link. Started on
+  // activation, which is why this extension now activates on startup: the docs
+  // are read without the topology editor being open.
+  serveDocsOpen(context);
 }
 
 // armHostReloadWatcher watches the BUILT extension-host bundle (out/extension.js — the

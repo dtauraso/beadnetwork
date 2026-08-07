@@ -11,7 +11,8 @@
   "main": "./out/extension.js",
   "activationEvents": [
     "onCommand:topology.openEditor",
-    "onCommand:topology.openDocs"
+    "onCommand:topology.openDocs",
+    "onStartupFinished"
   ],
   "contributes": {
     "commands": [
