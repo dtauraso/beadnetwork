@@ -543,12 +543,27 @@ func (n *Node) handleVectorCycle(tick int64) {
 	arrival := n.ringOf().arrivedState(received.ThetaIdx)
 	acuteTop := before.acuteWith(arrival)
 	acuteBottom := before.opposite.acuteWith(arrival)
+	storedBefore := n.Squared
 	moved := n.stepFromVector(received)
 	if n.Self != nil {
+		kind, dir := "none", "hold"
+		switch {
+		case acuteTop:
+			kind = "top"
+		case acuteBottom:
+			kind = "bottom"
+		}
+		switch {
+		case n.topState() == before.next:
+			dir = "next"
+		case n.topState() == before.prev:
+			dir = "prev"
+		}
 		n.Self.Breadcrumb("pair-vector", fmt.Sprintf(
-			"tick=%d recv=%d top=%d bottom=%d acuteTop=%v acuteBottom=%v moved=%v idx %d->%d",
-			tick, received.ThetaIdx, before.idx, before.opposite.idx,
-			acuteTop, acuteBottom, moved, before.idx, n.topState().idx))
+			"id=%d recv=%2d top=%2d bottom=%2d kind=%-6s stored=%-5v -> %-4s idx %2d->%2d sent=%2d moved=%v tick=%d",
+			n.PairID, received.ThetaIdx, before.idx, before.opposite.idx,
+			kind, storedBefore, dir, before.idx, n.topState().idx,
+			n.outgoingVector().ThetaIdx, moved, tick))
 	}
 	if !moved {
 		return
