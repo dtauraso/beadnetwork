@@ -14,7 +14,7 @@
 
   <header>
     <h1>Update rules</h1>
-    <div class="sub">every branch of the node's own Update loop — its precondition and its effect</div>
+    <div class="sub">every branch of the node's own Update loop, as arithmetic</div>
   </header>
 
   <nav>
@@ -38,202 +38,352 @@
     <div class="grid">
 
       <div class="card wide">
-        <h2>Before the loop — once per goroutine</h2>
+        <h2>Terms</h2>
         <table class="f">
-          <tr class="h">
-            <td>runs</td>
-            <td>effect</td>
-            <td>source</td>
+          <tr>
+            <td class="e">PERP = 6 · HALF = 12 · FULL = 24 · step = π/12</td>
+            <td class="n" colspan="2">90° · 180° · 360°, in steps</td>
           </tr>
           <tr>
-            <td class="e">TryEmit(EmitGeometry)</td>
-            <td class="n">NOTHING for this kind — the builder leaves EmitGeometry nil on purpose, so this is
-              the shared shape of every kind's Update and a no-op here. The next line is the emit</td>
-            <td class="s" data-src="nodes/Node1/node.go#Update">Node1/node.go</td>
+            <td class="e">t ∈ ℤ</td>
+            <td class="n" colspan="2">TopTiltThetaIdx — the only number a node holds. t &lt; 0 for most of
+              node 1's life</td>
           </tr>
           <tr>
-            <td class="e">Self.EmitGeometryOnce()</td>
-            <td class="n">this node's opening geometry frame, written before anything can move it — the emit a
-              ring node's nodeMover makes at goroutine start, made here because this Update loop IS
-              that goroutine</td>
-            <td class="s" data-src="nodes/Wiring/pair_node_self.go#EmitGeometryOnce">pair_node_self.go</td>
+            <td class="e">r ∈ ℤ, s ∈ 𝔹</td>
+            <td class="n" colspan="2">ReceivedThetaIdx, ReceivedSet — the third drawn arrow</td>
           </tr>
           <tr>
-            <td class="e">syncTiltIndex()</td>
-            <td class="n">reports the OPENING tilt and its coplanar normal; without it both arrows decode to
-              world +y and read as one missing arrow</td>
-            <td class="s" data-src="nodes/Node1/node.go#syncTiltIndex">Node1/node.go</td>
+            <td class="e">T</td>
+            <td class="n" colspan="2">clk.Tick()</td>
           </tr>
           <tr>
-            <td class="e">clk := clock().Copy()</td>
-            <td class="n">one copy, taken here — Update IS the goroutine, so nothing else ever touches it</td>
-            <td class="s" data-src="nodes/wire/clock.go#Copy">wire/clock.go</td>
+            <td class="e">σ = +1 (node 1) · σ = −1 (node 2)</td>
+            <td class="n" colspan="2">the sign the KIND owns</td>
           </tr>
         </table>
       </div>
 
       <div class="card wide">
-        <h2>Inside the loop — the branches, in the order they are taken</h2>
+        <h2>Derived — pure functions of t, recomputed, never stored</h2>
         <table class="f">
           <tr class="h">
-            <td>precondition</td>
-            <td>effect</td>
-            <td>source</td>
-          </tr>
-
-          <tr>
-            <td class="e">ctx.Err() != nil</td>
-            <td class="n">return — the only exit besides a cancelled sleep</td>
-            <td class="s" data-src="nodes/Node1/node.go#Update">Node1/node.go</td>
-          </tr>
-
-          <tr>
-            <td class="e">In.PollRecv() ok</td>
-            <td class="n">fire this node's own trace, and NOTHING else. A bead paces the exchange and marks
-              the round trip; it decides no turn and places no bead onward</td>
-            <td class="s" data-src="nodes/Node1/node.go#Update">Node1/node.go</td>
-          </tr>
-
-          <tr class="h">
-            <td>TiltEditIn — a panel edit, drained non-blocking</td>
+            <td>quantity</td>
             <td>node 1</td>
             <td>node 2</td>
           </tr>
           <tr>
-            <td class="e">edit.Reset</td>
-            <td class="e">clear() · send Reset marker · no bead</td>
-            <td class="e">clear() · send Reset marker · no bead</td>
+            <td class="n">top</td>
+            <td class="e" colspan="2">top(t) = t</td>
           </tr>
           <tr>
-            <td class="e">edit.Start</td>
-            <td class="e">send outgoingVector() · place bead</td>
-            <td class="e">ignored — the exchange opens from ONE end</td>
+            <td class="n">bottom</td>
+            <td class="e">bot(t) = t + HALF</td>
+            <td class="e">bot(t) = t − HALF</td>
           </tr>
           <tr>
-            <td class="e">plain adjust (Up / not Up)</td>
-            <td class="e">t ± 1 and STOP · no send, no bead</td>
-            <td class="e">t ± 1 and STOP · no send, no bead</td>
+            <td class="n">coplanar normal</td>
+            <td class="e">nrm(t) = t + PERP + HALF·(⌊t / HALF⌋ mod 2)</td>
+            <td class="e">nrm(t) = t − PERP</td>
           </tr>
           <tr>
-            <td class="e">no edit waiting</td>
-            <td class="n" colspan="2">the <code>default:</code> arm — the select never blocks this loop</td>
-          </tr>
-
-          <tr class="h">
-            <td>VectorIn — handleVectorCycle</td>
-            <td>effect</td>
-            <td>source</td>
+            <td class="n">outgoing</td>
+            <td class="e">out(t) = nrm(t) − 2·PERP</td>
+            <td class="e">out(t) = nrm(t) + 2·PERP = t + PERP</td>
           </tr>
           <tr>
-            <td class="e">nothing arrived</td>
-            <td class="n">return — the common case, and why the loop is reactive rather than periodic</td>
-            <td class="s" data-src="nodes/Node1/node.go#handleVectorCycle">Node1/node.go</td>
+            <td class="n">angle of index i</td>
+            <td class="e" colspan="2">θ(i) = i · step, from world +y</td>
           </tr>
           <tr>
-            <td class="e">received.Reset</td>
-            <td class="n">run the FULL clear and REPLY WITH NOTHING — a reply would bounce the marker
-              forever. This is the clear that lands last</td>
-            <td class="s" data-src="nodes/Node1/node.go#clear">Node1/node.go</td>
+            <td class="n">difference</td>
+            <td class="e" colspan="2">d(a,b) = ((a − b) mod FULL + FULL) mod FULL</td>
           </tr>
           <tr>
-            <td class="e">a real direction</td>
-            <td class="n">record it UNCONDITIONALLY, before and independently of the step decision — it
-              stays until the next arrival, and only a reset removes it</td>
-            <td class="s" data-src="nodes/Node1/node.go#handleVectorCycle">Node1/node.go</td>
+            <td class="n">acute</td>
+            <td class="e" colspan="2">acute(a,b) ⇔ d &lt; PERP ∨ d &gt; FULL − PERP</td>
           </tr>
           <tr>
-            <td class="e">acute with top</td>
-            <td class="n">node 1 steps t − 1 · node 2 steps t + 1</td>
-            <td class="s" data-src="nodes/Wiring/tilt_vector_channel.go#TiltVectorIsAcute">tilt_vector_channel.go</td>
-          </tr>
-          <tr>
-            <td class="e">acute with bottom</td>
-            <td class="n">node 1 steps t + 1 · node 2 steps t − 1</td>
-            <td class="s" data-src="nodes/Wiring/tilt_vector_channel.go#TiltVectorIsAcute">tilt_vector_channel.go</td>
-          </tr>
-          <tr>
-            <td class="e">perpendicular to both</td>
-            <td class="n">step nothing, send nothing, place nothing — the halt condition. In and Out are
-              never touched on this path</td>
-            <td class="s" data-src="nodes/Node1/node.go#stepFromVector">Node1/node.go</td>
-          </tr>
-          <tr>
-            <td class="e">it stepped</td>
-            <td class="n">syncTiltIndex() · send outgoingVector() · place ONE bead, so the bead loop lives
-              and dies with the exchange it paces</td>
-            <td class="s" data-src="nodes/Node1/node.go#handleVectorCycle">Node1/node.go</td>
-          </tr>
-
-          <tr class="h">
-            <td>every cycle, unconditionally</td>
-            <td>effect</td>
-            <td>source</td>
-          </tr>
-          <tr>
-            <td class="e">Self.Step(ctx, tick)</td>
-            <td class="n">this node's own mover work — drain its own drag/select/hover/centre channels, drive
-              its own wires one cycle, retry pending sends, write its own stream frame</td>
-            <td class="s" data-src="nodes/Wiring/pair_node_self.go#Step">pair_node_self.go</td>
-          </tr>
-          <tr>
-            <td class="e">ApplySpeedNonBlocking</td>
-            <td class="n">the speed dial reaches this node here, and only here</td>
-            <td class="s" data-src="nodes/wire/clock.go#ApplySpeedNonBlocking">wire/clock.go</td>
-          </tr>
-          <tr>
-            <td class="e">clk.SleepCycle(ctx)</td>
-            <td class="n">one cycle is one scaled tick — so one step per cycle means the dial paces the
-              turning. An error returns</td>
-            <td class="s" data-src="nodes/wire/clock.go#SleepCycle">wire/clock.go</td>
+            <td class="n">perpendicular</td>
+            <td class="e" colspan="2">d ∈ {PERP, FULL − PERP} — NOT acute, and that is the halt</td>
           </tr>
         </table>
-        <div class="cap">Two rules once moved the tilt index — the bead arrival stepped it in this kind's own
-          fixed direction, on top of the acute tests. When they agreed the node double-stepped; when they
-          disagreed it froze. The acute tests are now the only rule that turns a tilt, and the bead is what
-          makes that turn visible and timed.</div>
+        <div class="cap">⌊ ⌋ is FLOOR, not Go's <code>/</code>: t &lt; 0 is the common case on node 1 and
+          truncation flips the parity term on the wrong side of 0. d mods TWICE: Go's <code>%</code> keeps
+          the dividend's sign. The parity term is a pure function of t — no crossing flag, no comparison
+          against a previous t.</div>
       </div>
 
       <div class="card wide">
-        <h2>What clear() puts back, and who owns each piece</h2>
+        <h2>Before the loop</h2>
         <table class="f">
-          <tr class="h">
-            <td>cleared</td>
-            <td>why it is part of "there is no message anywhere in the pair"</td>
-            <td>source</td>
+          <tr>
+            <td class="e">TryEmit(EmitGeometry)</td>
+            <td class="n" colspan="2">∅ — the builder leaves EmitGeometry nil for these two kinds</td>
           </tr>
           <tr>
-            <td class="e">TopTiltThetaIdx = 0</td>
-            <td class="n">this node's own tilt and the normal derived from it</td>
-            <td class="s" data-src="nodes/Node1/node.go#clear">Node1/node.go</td>
+            <td class="e">Self.EmitGeometryOnce()</td>
+            <td class="n" colspan="2">frame ← geom</td>
           </tr>
           <tr>
-            <td class="e">ReceivedThetaIdx · ReceivedSet</td>
-            <td class="n">the third drawn arrow — the record of the last direction received</td>
-            <td class="s" data-src="nodes/Node1/node.go#clear">Node1/node.go</td>
+            <td class="e">syncTiltIndex()</td>
+            <td class="n" colspan="2">geom ← (t, nrm(t), bot(t)) · persist · frame ← geom. Without it, t = 0
+              and nrm = 0 both decode to world +y and the two arrows superimpose</td>
           </tr>
           <tr>
-            <td class="e">PollRecvVector(VectorIn)</td>
-            <td class="n">a direction already sitting in the channel would arrive next cycle and step the
-              tilt straight back off zero. Depth-1 latest-wins, so one receive empties it</td>
-            <td class="s" data-src="nodes/Wiring/tilt_vector_channel.go#PollRecvVector">tilt_vector_channel.go</td>
-          </tr>
-          <tr>
-            <td class="e">drainIn()</td>
-            <td class="n">beads already DELIVERED here — the bead paces the exchange, so a reset that skips
-              them visibly does not take</td>
-            <td class="s" data-src="nodes/Node1/node.go#drainIn">Node1/node.go</td>
-          </tr>
-          <tr>
-            <td class="e">ClearOutBeads()</td>
-            <td class="n">this node's OUTGOING beads, still crossing — dropped through its own Self, which
-              drives that wire, rather than by reaching into the wire</td>
-            <td class="s" data-src="nodes/Wiring/pair_node_self.go#ClearOutBeads">pair_node_self.go</td>
+            <td class="e">clk ← clock().Copy()</td>
+            <td class="n" colspan="2">value copy, tickCh ← nil; this copy subscribes on its first sleep</td>
           </tr>
         </table>
-        <div class="cap">Each node clears TWICE — once from the button, once when the partner's Reset marker
-          arrives. A single clear each is racy: the partner can place one more bead in the window after this
-          node cleared. The marker-driven clear is ordered after the last thing the partner could have placed,
-          so it is the one that provably lands last.</div>
+      </div>
+
+      <div class="card wide">
+        <h2>The loop — guard ⟹ transition</h2>
+        <table class="f">
+          <tr class="h">
+            <td>guard</td>
+            <td colspan="2">transition</td>
+          </tr>
+          <tr>
+            <td class="e">ctx.Err() ≠ nil</td>
+            <td class="e" colspan="2">return</td>
+          </tr>
+          <tr>
+            <td class="e">In ▸ bead</td>
+            <td class="e" colspan="2">Fire() · t unchanged · VectorOut ← ∅ · Out ← ∅</td>
+          </tr>
+
+          <tr class="h">
+            <td>TiltEditIn ▸ e</td>
+            <td colspan="2">transition</td>
+          </tr>
+          <tr>
+            <td class="e">e.Reset</td>
+            <td class="e" colspan="2">clear() · VectorOut ← ⟨Reset⟩ · Out ← ∅</td>
+          </tr>
+          <tr>
+            <td class="e">e.Start ∧ σ = +1</td>
+            <td class="e" colspan="2">VectorOut ← out(t) · Out ← bead@T · t unchanged</td>
+          </tr>
+          <tr>
+            <td class="e">e.Start ∧ σ = −1</td>
+            <td class="e" colspan="2">∅ — one opener per pair</td>
+          </tr>
+          <tr>
+            <td class="e">¬e.Reset ∧ ¬e.Start</td>
+            <td class="e" colspan="2">t ← t + (e.Up ? +1 : −1) · VectorOut ← ∅ · Out ← ∅</td>
+          </tr>
+          <tr>
+            <td class="e">any of the three</td>
+            <td class="e" colspan="2">syncTiltIndex()</td>
+          </tr>
+          <tr>
+            <td class="e">TiltEditIn empty</td>
+            <td class="e" colspan="2">default: — never blocks</td>
+          </tr>
+
+          <tr class="h">
+            <td>VectorIn ▸ v</td>
+            <td colspan="2">transition</td>
+          </tr>
+          <tr>
+            <td class="e">VectorIn empty</td>
+            <td class="e" colspan="2">return</td>
+          </tr>
+          <tr>
+            <td class="e">v.Reset</td>
+            <td class="e" colspan="2">clear() · VectorOut ← ∅ — a reply would bounce the marker forever</td>
+          </tr>
+          <tr>
+            <td class="e">v real</td>
+            <td class="e" colspan="2">r ← v.ThetaIdx · s ← true — unconditional, before the step decision</td>
+          </tr>
+          <tr>
+            <td class="e">acute(v, top(t))</td>
+            <td class="e" colspan="2">t ← t − σ</td>
+          </tr>
+          <tr>
+            <td class="e">¬acute(v, top(t)) ∧ acute(v, bot(t))</td>
+            <td class="e" colspan="2">t ← t + σ</td>
+          </tr>
+          <tr>
+            <td class="e">neither</td>
+            <td class="e" colspan="2">t unchanged · VectorOut ← ∅ · Out ← ∅ — HALT</td>
+          </tr>
+          <tr>
+            <td class="e">t changed</td>
+            <td class="e" colspan="2">syncTiltIndex() · VectorOut ← out(t) · Out ← bead@T</td>
+          </tr>
+
+          <tr class="h">
+            <td>every cycle</td>
+            <td colspan="2">transition</td>
+          </tr>
+          <tr>
+            <td class="e">Self.Step(ctx, T)</td>
+            <td class="e" colspan="2">drain extIn ∪ neighborIn to ∅ · ∀w ∈ outWires: w.DriveOneCycle(T) ·
+              flushPending · frame ← geom</td>
+          </tr>
+          <tr>
+            <td class="e">SpeedCh ▸ v</td>
+            <td class="e" colspan="2">clk.speed ← v (depth 1, latest-wins) · empty ⟹ ∅</td>
+          </tr>
+          <tr>
+            <td class="e">clk.SleepCycle(ctx)</td>
+            <td class="e" colspan="2">wait clamp(⌈1/speed⌉, 1, 64) broadcaster pulses @ 16 ms</td>
+          </tr>
+        </table>
+        <div class="cap">Both acute tests false only at exact perpendicularity; both true is impossible —
+          top and bot are HALF apart and each acute cone is PERP wide. One step per cycle, so the dial sets
+          |Δt| per unit wall time.</div>
+      </div>
+
+      <div class="card wide">
+        <h2>clear() — the reset state, in full</h2>
+        <table class="f">
+          <tr>
+            <td class="e">t ← 0 · syncTiltIndex()</td>
+            <td class="n" colspan="2">bot and nrm follow, being functions of t</td>
+          </tr>
+          <tr>
+            <td class="e">r ← 0 · s ← false · syncReceivedVector()</td>
+            <td class="n" colspan="2">the third arrow</td>
+          </tr>
+          <tr>
+            <td class="e">VectorIn ← ∅</td>
+            <td class="n" colspan="2">depth 1, latest-wins — one receive empties it. A direction left in it
+              steps t off 0 next cycle</td>
+          </tr>
+          <tr>
+            <td class="e">In ← ∅, drained until empty</td>
+            <td class="n" colspan="2">bounded by what the partner placed before it stopped placing</td>
+          </tr>
+          <tr>
+            <td class="e">out-beads ← ∅</td>
+            <td class="n" colspan="2">still crossing; dropped through this node's own Self, which drives
+              that wire</td>
+          </tr>
+          <tr>
+            <td class="e">button: clear · send ⟨Reset⟩ · place nothing again<br>
+              marker: partner clears on arrival</td>
+            <td class="n" colspan="2">each node clears twice; the marker's clear is ordered after the last
+              bead the sender could have placed, so it lands last</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="card wide">
+        <h2>What a sync puts on this node's own frame</h2>
+        <table class="f">
+          <tr class="h">
+            <td>column</td>
+            <td colspan="2">value</td>
+          </tr>
+          <tr>
+            <td class="e">TopTiltVectorTheta</td>
+            <td class="e" colspan="2">t · step</td>
+          </tr>
+          <tr>
+            <td class="e">BottomTiltVectorTheta</td>
+            <td class="e" colspan="2">bot(t) · step</td>
+          </tr>
+          <tr>
+            <td class="e">NormalTheta</td>
+            <td class="e" colspan="2">nrm(t) · step</td>
+          </tr>
+          <tr>
+            <td class="e">ReceivedTheta</td>
+            <td class="e" colspan="2">r · step, drawn iff s. Not persisted</td>
+          </tr>
+          <tr>
+            <td class="e">TopTiltVectorLen</td>
+            <td class="e" colspan="2">nodeRadius(kind) if upright ∧ |partners| = 1, else 0</td>
+          </tr>
+          <tr>
+            <td class="e">centre · ReachR · pole · ring axis</td>
+            <td class="e" colspan="2">independent of t — a tilt turns an angle only</td>
+          </tr>
+          <tr>
+            <td class="e">NodeRow</td>
+            <td class="e" colspan="2">= this node's own row, or panic — an ownership claim, not a
+              reference</td>
+          </tr>
+        </table>
+        <div class="cap">Every θ on the frame is index × step, on this node's own dedicated fd. Trig happens
+          only at the cartesian↔polar boundary.</div>
+      </div>
+
+      <div class="card wide">
+        <h2>Where each rule lives — the names open the file at the definition</h2>
+        <table class="f">
+          <tr class="h">
+            <td>file</td>
+            <td colspan="2">definitions</td>
+          </tr>
+          <tr>
+            <td class="n">nodes/Node1/node.go — σ = +1</td>
+            <td class="s" colspan="2">
+              <span data-src="nodes/Node1/node.go#Update">Update</span> ·
+              <span data-src="nodes/Node1/node.go#applyTiltEdit">applyTiltEdit</span> ·
+              <span data-src="nodes/Node1/node.go#handleVectorCycle">handleVectorCycle</span> ·
+              <span data-src="nodes/Node1/node.go#stepFromVector">stepFromVector</span> ·
+              <span data-src="nodes/Node1/node.go#coplanarNormal">coplanarNormal</span> ·
+              <span data-src="nodes/Node1/node.go#bottomTilt">bottomTilt</span> ·
+              <span data-src="nodes/Node1/node.go#outgoingVector">outgoingVector</span> ·
+              <span data-src="nodes/Node1/node.go#floorDiv">floorDiv</span> ·
+              <span data-src="nodes/Node1/node.go#syncTiltIndex">syncTiltIndex</span> ·
+              <span data-src="nodes/Node1/node.go#syncReceivedVector">syncReceivedVector</span> ·
+              <span data-src="nodes/Node1/node.go#clear">clear</span> ·
+              <span data-src="nodes/Node1/node.go#drainIn">drainIn</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="n">nodes/Node2/node.go — σ = −1</td>
+            <td class="s" colspan="2">
+              <span data-src="nodes/Node2/node.go#applyTiltEdit">applyTiltEdit</span> ·
+              <span data-src="nodes/Node2/node.go#stepFromVector">stepFromVector</span> ·
+              <span data-src="nodes/Node2/node.go#coplanarNormal">coplanarNormal</span> ·
+              <span data-src="nodes/Node2/node.go#bottomTilt">bottomTilt</span> ·
+              <span data-src="nodes/Node2/node.go#outgoingVector">outgoingVector</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="n">nodes/Wiring/tilt_vector_channel.go</td>
+            <td class="s" colspan="2">
+              <span data-src="nodes/Wiring/tilt_vector_channel.go#TiltVectorIsAcute">TiltVectorIsAcute</span> ·
+              <span data-src="nodes/Wiring/tilt_vector_channel.go#PollRecvVector">PollRecvVector</span> ·
+              <span data-src="nodes/Wiring/tilt_vector_channel.go#SendVectorLatestNonBlocking">SendVectorLatestNonBlocking</span> ·
+              <span data-src="nodes/Wiring/tilt_vector_channel.go#FullTurnThetaIdx">FullTurnThetaIdx</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="n">nodes/Wiring/pair_node_self.go</td>
+            <td class="s" colspan="2">
+              <span data-src="nodes/Wiring/pair_node_self.go#EmitGeometryOnce">EmitGeometryOnce</span> ·
+              <span data-src="nodes/Wiring/pair_node_self.go#Step">Step</span> ·
+              <span data-src="nodes/Wiring/pair_node_self.go#SetTiltIndex">SetTiltIndex</span> ·
+              <span data-src="nodes/Wiring/pair_node_self.go#SetReceivedVector">SetReceivedVector</span> ·
+              <span data-src="nodes/Wiring/pair_node_self.go#ClearOutBeads">ClearOutBeads</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="n">nodes/Wiring/node_geometry.go</td>
+            <td class="s" colspan="2">
+              <span data-src="nodes/Wiring/node_geometry.go#emitGeometry">emitGeometry</span> ·
+              <span data-src="nodes/Wiring/node_geometry.go#writeStreamFrame">writeStreamFrame</span> ·
+              <span data-src="nodes/Wiring/node_geometry.go#applyCenter">applyCenter</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="n">nodes/wire/clock.go</td>
+            <td class="s" colspan="2">
+              <span data-src="nodes/wire/clock.go#Copy">Copy</span> ·
+              <span data-src="nodes/wire/clock.go#SleepCycle">SleepCycle</span> ·
+              <span data-src="nodes/wire/clock.go#pulsesPerCycle">pulsesPerCycle</span> ·
+              <span data-src="nodes/wire/clock.go#ApplySpeedNonBlocking">ApplySpeedNonBlocking</span>
+            </td>
+          </tr>
+        </table>
       </div>
 
     </div>
