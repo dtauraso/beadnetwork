@@ -109,26 +109,28 @@ func TestTheTiltIndexNeverLeavesTheCircle(t *testing.T) {
 		}
 	}
 
-	// The step: an arrival ON this node's own top turns it one way, an arrival on its bottom
-	// the other, so these two drive the index round in opposite directions.
-	for _, onTop := range []bool{true, false} {
+	// The step: an arrival LEANING toward this node's own top turns it one way, an arrival
+	// leaning toward its bottom the other, so these two drive the index round in opposite
+	// directions. Exactly on the top or exactly on the bottom is now a halt (gap 0), not a
+	// lean, so each arrival is one step PAST the relevant state — genuinely acute — and
+	// recomputed relative to the CURRENT top every iteration so it keeps leaning the same way
+	// as the index walks.
+	for _, towardTop := range []bool{true, false} {
 		n := &Node{Top: defaultRing.at(0)}
 		for i := 0; i < 3*int(full); i++ {
-			// The arrival is stated relative to this node's CURRENT tilt, so it keeps
-			// leaning the same way as the index walks.
 			var arrivalIdx int32
-			if onTop {
-				arrivalIdx = n.topState().idx
+			if towardTop {
+				arrivalIdx = n.topState().next.idx
 			} else {
-				arrivalIdx = n.topState().opposite.idx
+				arrivalIdx = n.topState().opposite.next.idx
 			}
 			v := Wiring.TiltVectorMsg{ThetaIdx: arrivalIdx}
 			if !n.stepFromVector(v) {
-				t.Fatalf("arrival onTop=%v, move %d: expected a step, got the halt", onTop, i)
+				t.Fatalf("arrival towardTop=%v, move %d: expected a step, got the halt", towardTop, i)
 			}
 			if n.topState().idx < 0 || n.topState().idx >= full {
-				t.Fatalf("arrival onTop=%v, move %d: index left the circle: %d",
-					onTop, i, n.topState().idx)
+				t.Fatalf("arrival towardTop=%v, move %d: index left the circle: %d",
+					towardTop, i, n.topState().idx)
 			}
 		}
 	}
@@ -224,24 +226,26 @@ func TestOutgoingVectorIsTheCoplanarNormalUnchanged(t *testing.T) {
 // vector takes the reverse. These assert one goroutine's own arithmetic, no channel
 // involved (docs/testing-shape.md).
 func TestStepFromVectorTakesBaseDirectionWhenAcuteWithTop(t *testing.T) {
-	// Tilt at index 0 points at world +y; an arrival at index 0 is the same direction, so
-	// it is 0 steps from the top (acute) and a half turn from the bottom (not acute).
+	// Tilt at index 0 points at world +y; an arrival at index 1 is one step off the top —
+	// genuinely acute (strictly between 0 and a quarter turn) — and a half turn minus one step
+	// from the bottom (not acute), so this leans toward the top and steps that way.
 	n := &Node{Top: defaultRing.at(0)}
-	if moved := n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: 0}); !moved || n.topState().idx != 1 {
+	if moved := n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: 1}); !moved || n.topState().idx != 1 {
 		t.Fatalf("acute with the TOP tilt: want moved=true thetaIdx=1, got moved=%v thetaIdx=%d",
 			moved, n.topState().idx)
 	}
 }
 
 func TestStepFromVectorReversesWhenAcuteWithBottom(t *testing.T) {
-	// A half turn from the tilt: now it is 0 steps from the BOTTOM (acute) and a half turn
-	// from the top (not acute), so the step must go the OTHER way from the case above.
+	// One step off a half turn from the tilt: genuinely acute with the BOTTOM (gap 1, strictly
+	// between 0 and a quarter turn) and NOT acute with the top (gap halfTurn-1, well outside a
+	// quarter turn either way), so the step must go the OTHER way from the case above.
 	//
 	// Stepping down from 0 lands on 23, not −1: the index is kept ON THE CIRCLE at every site
 	// that moves it, so it never runs negative. Same drawn direction, one step back from +y.
 	n := &Node{Top: defaultRing.at(0)}
 	want := defaultRing.points - 1
-	if moved := n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: defaultRing.halfTurn}); !moved || n.topState().idx != want {
+	if moved := n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: defaultRing.halfTurn - 1}); !moved || n.topState().idx != want {
 		t.Fatalf("acute with the BOTTOM tilt: want moved=true thetaIdx=%d, got moved=%v thetaIdx=%d",
 			want, moved, n.topState().idx)
 	}
@@ -262,21 +266,30 @@ func TestStepFromVectorHaltsWhenNeitherDotIsAcute(t *testing.T) {
 	}
 }
 
-// stepFromVector's three cases: acute with top steps +1 and returns true, acute with
-// bottom steps -1 and returns true, and exactly perpendicular to both steps nothing and
-// returns false. Consolidates the three single-case tests above into one table asserting the
-// full gate.
-func TestStepFromVectorGatesOnBothDotsForAllThreeCases(t *testing.T) {
+// stepFromVector's cases: genuinely acute with top steps +1 and returns true, genuinely
+// acute with bottom steps -1 and returns true, exactly perpendicular to both steps nothing
+// and returns false, and — the two cases that are now quiet rather than acute — exactly
+// aligned with the top or exactly aligned with the bottom also step nothing and return
+// false. Consolidates the single-case tests above into one table asserting the full gate,
+// including the halting gaps that used to be the acute examples.
+func TestStepFromVectorGatesOnBothDotsForAllCases(t *testing.T) {
 	cases := []struct {
 		name        string
 		arrivedIdx  int32
 		wantMoved   bool
 		wantDeltaTh int32
 	}{
-		{"acute with top", 0, true, 1},
-		// Down from 0 lands on 23, not −1 — the index stays on the circle.
-		{"acute with bottom", defaultRing.halfTurn, true, defaultRing.points - 1},
+		// One step off the top: genuinely acute (gap 1, strictly between 0 and a quarter turn).
+		{"acute with top", 1, true, 1},
+		// Down from 0 lands on 23, not −1 — the index stays on the circle. One step off the
+		// bottom: genuinely acute with the bottom, not with the top.
+		{"acute with bottom", defaultRing.halfTurn - 1, true, defaultRing.points - 1},
 		{"exactly perpendicular", defaultRing.quarterTurn, false, 0},
+		// Exactly aligned with the top (gap 0): no angle to correct, so no step.
+		{"exactly aligned with top", 0, false, 0},
+		// Exactly aligned with the bottom (a half turn, which is gap 0 measured from the
+		// bottom): also no angle to correct, so no step.
+		{"exactly aligned with bottom", defaultRing.halfTurn, false, 0},
 	}
 	for _, c := range cases {
 		n := &Node{Top: defaultRing.at(0)}
@@ -670,8 +683,9 @@ func TestBeadIsPlacedOnlyWhenVectorStepsNotOnPerpendicularHalt(t *testing.T) {
 	in := make(chan Wiring.TiltVectorMsg, 1)
 	n := &Node{Top: defaultRing.at(0), VectorIn: in, Out: out}
 
-	// An arrival that LEANS: the acute tests move this node, so a bead goes out with the reply.
-	in <- Wiring.TiltVectorMsg{ThetaIdx: 0}
+	// An arrival that LEANS: one step off the top, genuinely acute, so the acute tests move
+	// this node and a bead goes out with the reply.
+	in <- Wiring.TiltVectorMsg{ThetaIdx: 1}
 	n.handleVectorCycle(1)
 	pw.DriveOneCycle(ctx, 2)
 	if _, _, ok := pw.RecvTick(); !ok {
@@ -695,11 +709,12 @@ func TestBeadIsPlacedOnlyWhenVectorStepsNotOnPerpendicularHalt(t *testing.T) {
 // dot-product-sign arithmetic. This pins that the two agree at EVERY pair on the ring, not
 // just the handful of cases exercised above: for every (a, b) in 0…FullTurnThetaIdx-1, the
 // walk must report acute exactly when the arithmetic separation
-// ((a-b) mod full + full) mod full is strictly less than a quarter turn (6) or strictly
-// greater than three quarters of a turn (18) — the two ways of being "within a quarter turn
-// either direction" of each other. A wrong hop count in acuteWith's loop bound, or an
+// ((a-b) mod full + full) mod full is strictly greater than 0 AND strictly less than a
+// quarter turn (6), or strictly greater than three quarters of a turn (18) — BOTH bounds
+// open at every boundary: a separation of exactly 0, exactly a quarter turn either way, or
+// exactly a half turn is NOT acute. A wrong hop count in acuteWith's loop bound, or an
 // off-by-one in next/prev, shows up as a mismatch at the boundary pairs (separation exactly
-// 6 or exactly 18) well before it would show up in the handful of indices the tests above
+// 0, 6, or 18) well before it would show up in the handful of indices the tests above
 // exercise, since those never probe every boundary at once.
 func TestAcuteWithAgreesWithTheArithmeticRuleAcrossTheWholeRing(t *testing.T) {
 	full := defaultRing.points
@@ -708,7 +723,7 @@ func TestAcuteWithAgreesWithTheArithmeticRuleAcrossTheWholeRing(t *testing.T) {
 	for a := int32(0); a < full; a++ {
 		for b := int32(0); b < full; b++ {
 			sep := ((a-b)%full + full) % full
-			want := sep < quarter || sep > threeQuarters
+			want := (sep > 0 && sep < quarter) || sep > threeQuarters
 			got := defaultRing.at(a).acuteWith(defaultRing.at(b))
 			if got != want {
 				t.Fatalf("a=%d b=%d separation=%d: want acuteWith=%v, got %v", a, b, sep, want, got)
@@ -898,7 +913,7 @@ func TestAcuteWithHoldsAtANonDefaultRingSize(t *testing.T) {
 	for a := int32(0); a < full; a++ {
 		for b := int32(0); b < full; b++ {
 			sep := ((a-b)%full + full) % full
-			want := sep < quarter || sep > threeQuarters
+			want := (sep > 0 && sep < quarter) || sep > threeQuarters
 			got := r.at(a).acuteWith(r.at(b))
 			if got != want {
 				t.Fatalf("points=12 a=%d b=%d separation=%d: want acuteWith=%v, got %v", a, b, sep, want, got)

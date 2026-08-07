@@ -166,8 +166,19 @@ func (r *ring) seedState(idx int32) (s *tiltState, unknown bool) {
 // ring, and the shorter of the two is the angle between them. So rather than pick the shorter
 // — a min, and another comparison — both are tested at once: the pair is within a quarter
 // turn when the gap is under a quarter turn going one way, or over three quarters of a turn,
-// which is the same thing going the other. Exactly a quarter turn (the gap at either bound)
-// is NOT acute, and that is the perpendicular case the exchange halts on.
+// which is the same thing going the other.
+//
+// BOTH ENDS ARE OPEN. An acute angle is strictly between nothing and a quarter turn, so
+// neither bound counts:
+//
+//   - a quarter turn exactly is perpendicular, which is what the exchange comes to rest on;
+//   - a gap of ZERO is not an angle to correct at all — the two directions are the same one.
+//     Counting it as acute makes a node turn hardest at the one arrival it agrees with
+//     completely, which is the opposite of what the rule is for.
+//
+// So the four gaps a node does not turn on are 0, a quarter turn either way, and a half turn:
+// aligned with its top, square to it on either side, and aligned with its bottom. Everything
+// between those leans, and which side it leans is which way the node turns.
 //
 // Both states must belong to THIS ring; a state from another lattice has an index that means
 // a different angle, and comparing the two numbers would silently answer about neither.
@@ -175,6 +186,9 @@ func (s *tiltState) acuteWith(target *tiltState) bool {
 	gap := s.idx - target.idx
 	if target.idx > s.idx {
 		gap = target.idx - s.idx
+	}
+	if gap == 0 {
+		return false
 	}
 	return gap < s.ring.quarterTurn || gap > s.ring.points-s.ring.quarterTurn
 }
