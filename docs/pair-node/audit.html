@@ -5,12 +5,147 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pair node — Machine sameness audit</title>
-  <link rel="stylesheet" href="pair.css">
-  <!-- port.js is written by the running topology extension: where to ask for a file
-       to be opened as an editor tab. Gitignored; without it the source names render
-       as plain text. -->
-  <script src="port.js"></script>
-  <script src="pair.js" defer></script>
+
+  <!-- Self-contained on purpose: this is one file, not a page of the pair-node
+       site. No stylesheet, no scripts, nothing to load. Source references are
+       plain text rather than editor links, since there is no host to ask. -->
+  <style>
+    :root {
+      --bg: #22222a;
+      --panel: #2f2f37;
+      --line: #3a3a44;
+      --ink: #e7e7ea;
+      --dim: #9a9aa6;
+      --accent: #4ea1ff;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font);
+      font-size: 13px
+    }
+
+    header {
+      padding: 14px 18px 0
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: .02em
+    }
+
+    .sub {
+      color: var(--dim);
+      font-size: 11px;
+      margin-top: 2px
+    }
+
+    main {
+      padding: 14px 18px 40px;
+      display: grid;
+      gap: 12px;
+      max-width: 900px
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px 12px
+    }
+
+    .card h2 {
+      margin: 0 0 8px;
+      font-size: 9.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--dim)
+    }
+
+    p {
+      margin: 6px 0 0;
+      line-height: 1.5
+    }
+
+    code {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent)
+    }
+
+    table.f {
+      border-collapse: collapse;
+      font-size: 11px;
+      width: 100%;
+      table-layout: fixed;
+      margin-top: 8px
+    }
+
+    table.f td {
+      padding: 3px 10px 3px 0;
+      vertical-align: baseline
+    }
+
+    /* expression : note : source — the shares that keep all three on the page */
+    table.f td:nth-child(1) {
+      width: 40%
+    }
+
+    table.f td:nth-child(2) {
+      width: 32%
+    }
+
+    table.f td:nth-child(3) {
+      width: 28%;
+      padding-right: 0
+    }
+
+    table.f td.e {
+      font-family: var(--mono);
+      color: var(--ink);
+      /* `anywhere`, not `break-word`: it also lowers the cell's min-content
+         width, so a long unbroken token cannot push the table past the card. */
+      overflow-wrap: anywhere
+    }
+
+    table.f td.n {
+      color: var(--dim)
+    }
+
+    table.f td.s {
+      font-family: var(--mono);
+      color: var(--dim);
+      font-size: 10px;
+      overflow-wrap: anywhere
+    }
+
+    table.f tr.h td {
+      color: var(--accent);
+      font-weight: 600;
+      padding-top: 12px;
+      border-bottom: 1px solid var(--line)
+    }
+
+    table.f tr.h:first-child td {
+      padding-top: 0
+    }
+
+    /* the four-column tally in section 1 splits evenly instead */
+    table.f.q td {
+      width: 25%
+    }
+  </style>
 </head>
 
 <body>
@@ -21,222 +156,210 @@
     </div>
   </header>
 
-  <nav>
-    <a href="index.html">Index</a>
-    <a href="anatomy.html">Anatomy</a>
-    <a href="own.html">Ownership</a>
-    <a href="vectors.html">Vectors</a>
-    <a href="math.html">Math</a>
-    <a href="formulas.html">Formulas</a>
-    <a href="dots.html">Separation</a>
-    <a href="perpendicular.html">Perpendicular</a>
-    <a href="channels.html">Channels</a>
-    <a href="cycle.html">Cycle</a>
-    <a href="updates.html">Update rules</a>
-    <a href="clock.html">Clock</a>
-    <a href="geometry.html">Geometry</a>
-    <a href="asym.html">Asymmetry</a>
-  </nav>
-
   <main>
 
-    <div class="grid">
-
-      <div class="card wide">
-        <h2>Why this audit exists</h2>
-        <p>The two machines were split into two files so each could be BUILT and changed without the
-          other moving. That worked and is not in question here. What this reports is the separate
-          question of how much of the two is actually different, now that both are finished — 103 lines
-          across the two files, of which the genuinely distinct part is one line.</p>
-        <p>Nothing here is a proposal. Merging them back is exactly what the split exists to prevent,
-          and a duplicate that is deliberate is not a defect.</p>
-      </div>
-
-      <div class="card wide">
-        <h2>1 — The two misses are complements. This is exact.</h2>
-        <p>Written for a separation already folded into <code>[0, half]</code>, with
-          <code>half = 2·quarter</code>:</p>
-        <table class="f">
-          <tr>
-            <td class="e">parallel miss = |sep − quarter|</td>
-            <td class="s" data-src="nodes/Node1/parallel.go#miss">parallel.go</td>
-          </tr>
-          <tr>
-            <td class="e">perpendicular miss = min(sep, half − sep)</td>
-            <td class="s" data-src="nodes/Node1/perpendicular.go#miss">perpendicular.go</td>
-          </tr>
-          <tr>
-            <td class="e">perpendicular miss = quarter − parallel miss</td>
-            <td class="n">everywhere on the ring, no exceptions</td>
-          </tr>
-        </table>
-        <p>Proof, both halves of the fold. If <code>sep ≤ quarter</code> then
-          <code>|sep − quarter| = quarter − sep</code>, so <code>quarter − |sep − quarter| = sep</code>;
-          and <code>min(sep, half − sep) = sep</code>, since <code>sep ≤ quarter ≤ half − sep</code>. If
-          <code>sep ≥ quarter</code> then <code>|sep − quarter| = sep − quarter</code>, so
-          <code>quarter − |sep − quarter| = half − sep</code>; and <code>min(sep, half − sep) =
-            half − sep</code>. Equal in both cases.</p>
-        <table class="f">
-          <tr class="h">
-            <td>sep (on a 48-point ring, quarter = 12)</td>
-            <td>parallel miss</td>
-            <td>perpendicular miss</td>
-            <td>sum</td>
-          </tr>
-          <tr>
-            <td class="e">0</td>
-            <td class="e">12</td>
-            <td class="e">0</td>
-            <td class="n">12</td>
-          </tr>
-          <tr>
-            <td class="e">5</td>
-            <td class="e">7</td>
-            <td class="e">5</td>
-            <td class="n">12</td>
-          </tr>
-          <tr>
-            <td class="e">12</td>
-            <td class="e">0</td>
-            <td class="e">12</td>
-            <td class="n">12</td>
-          </tr>
-          <tr>
-            <td class="e">20</td>
-            <td class="e">8</td>
-            <td class="e">4</td>
-            <td class="n">12</td>
-          </tr>
-          <tr>
-            <td class="e">24</td>
-            <td class="e">12</td>
-            <td class="e">0</td>
-            <td class="n">12</td>
-          </tr>
-        </table>
-        <p>CONSEQUENCE: minimising one miss is maximising the other. The two <code>step</code> functions
-          are the same walk run in opposite directions on one number — not two rules that happen to
-          resemble each other.</p>
-      </div>
-
-      <div class="card wide">
-        <h2>2 — step is character-for-character identical</h2>
-        <table class="f">
-          <tr>
-            <td class="e">if m.miss(from.next, arrival) &lt;= m.miss(from.prev, arrival) { return
-              from.next }; return from.prev</td>
-            <td class="s" data-src="nodes/Node1/perpendicular.go#step">perpendicular.go</td>
-          </tr>
-          <tr>
-            <td class="e">if m.miss(from.next, arrival) &lt;= m.miss(from.prev, arrival) { return
-              from.next }; return from.prev</td>
-            <td class="s" data-src="nodes/Node1/parallel.go#step">parallel.go</td>
-          </tr>
-        </table>
-        <p>Same text, same tie-break, differing only in which <code>miss</code> the receiver resolves
-          to. Six lines each.</p>
-      </div>
-
-      <div class="card wide">
-        <h2>3 — halted is one predicate written two ways</h2>
-        <table class="f">
-          <tr>
-            <td class="e">sep == 0 || sep == half</td>
-            <td class="n">⟺ perpendicular miss == 0</td>
-            <td class="s" data-src="nodes/Node1/perpendicular.go#halted">perpendicular.go</td>
-          </tr>
-          <tr>
-            <td class="e">sep == quarter</td>
-            <td class="n">⟺ parallel miss == 0</td>
-            <td class="s" data-src="nodes/Node1/parallel.go#halted">parallel.go</td>
-          </tr>
-        </table>
-        <p>Neither says anything <code>miss == 0</code> does not already say. Both are a second spelling
-          of their own miss being zero, and the caller only ever asks whether the node is home.</p>
-      </div>
-
-      <div class="card wide">
-        <h2>4 — choice and String are mirrored boilerplate</h2>
-        <table class="f">
-          <tr>
-            <td class="e">String() → its own name</td>
-            <td class="e">choice() → its own Wiring.TiltMachine constant</td>
-          </tr>
-        </table>
-        <p>Two lines each, identical in shape, carrying nothing but the machine's own identity.</p>
-      </div>
-
-      <div class="card wide">
-        <h2>What is actually different</h2>
-        <p>ONE THING: which separations count as home. Perpendicular has two of them — nothing, and a
-          half turn — and parallel has one, a quarter turn. Everything above follows from that and
-          nothing else. Stated as data rather than as code, the whole difference is:</p>
-        <table class="f">
-          <tr>
-            <td class="e">perpendicular</td>
-            <td class="n">home = { 0, half }</td>
-          </tr>
-          <tr>
-            <td class="e">parallel</td>
-            <td class="n">home = { quarter }</td>
-          </tr>
-        </table>
-        <p>The two sets are not arbitrary either: <code>quarter</code> is the midpoint of
-          <code>0</code> and <code>half</code>, which is why the misses sum to a constant and why each
-          machine's home is the other's farthest point.</p>
-      </div>
-
-      <div class="card wide">
-        <h2>The count</h2>
-        <table class="f">
-          <tr class="h">
-            <td>part</td>
-            <td>lines each</td>
-            <td>verdict</td>
-          </tr>
-          <tr>
-            <td class="e">step</td>
-            <td class="e">6</td>
-            <td class="n">identical text</td>
-          </tr>
-          <tr>
-            <td class="e">miss</td>
-            <td class="e">3 and 7</td>
-            <td class="n">complements — one determines the other exactly</td>
-          </tr>
-          <tr>
-            <td class="e">halted</td>
-            <td class="e">3 and 4</td>
-            <td class="n">restates its own miss being zero</td>
-          </tr>
-          <tr>
-            <td class="e">String, choice</td>
-            <td class="e">2 and 2</td>
-            <td class="n">mirrored boilerplate</td>
-          </tr>
-          <tr>
-            <td class="e">file headers</td>
-            <td class="e">25 and 23</td>
-            <td class="n">each explains why it is not the other one</td>
-          </tr>
-        </table>
-        <p>103 lines across both files. The behaviour distinct to either is the home set — one line of
-          data — and the rest is one rule, its complement, and the prose explaining why they are kept
-          apart.</p>
-      </div>
-
-      <div class="card wide">
-        <h2>What the split still buys, given all that</h2>
-        <p>A change to one file cannot move the other, which is the property it was built for and the
-          one that was repeatedly lost when the two shared a parameterised function. That property does
-          not require the two to be independent — and they are not independent, since one miss
-          determines the other — it requires only that no edit reaches across.</p>
-        <p>The header in <span data-src="nodes/Node1/perpendicular.go#perpendicularMachine">perpendicular.go</span>
-          claims they share no computation. That is true of the TEXT and false of the MATHEMATICS, and
-          this page is the correction to it.</p>
-      </div>
-
+    <div class="card">
+      <h2>Why this audit exists</h2>
+      <p>The two machines were split into two files so each could be BUILT and changed without the
+        other moving. That worked and is not in question here. What this reports is the separate
+        question of how much of the two is actually different, now that both are finished — 103 lines
+        across the two files, of which the genuinely distinct part is one line.</p>
+      <p>Nothing here is a proposal. Merging them back is exactly what the split exists to prevent,
+        and a duplicate that is deliberate is not a defect.</p>
     </div>
+
+    <div class="card">
+      <h2>1 — The two misses are complements. This is exact.</h2>
+      <p>Written for a separation already folded into <code>[0, half]</code>, with
+        <code>half = 2·quarter</code>:</p>
+      <table class="f">
+        <tr>
+          <td class="e">parallel miss = |sep − quarter|</td>
+          <td class="n"></td>
+          <td class="s">nodes/Node1/parallel.go — miss</td>
+        </tr>
+        <tr>
+          <td class="e">perpendicular miss = min(sep, half − sep)</td>
+          <td class="n"></td>
+          <td class="s">nodes/Node1/perpendicular.go — miss</td>
+        </tr>
+        <tr>
+          <td class="e">perpendicular miss = quarter − parallel miss</td>
+          <td class="n">everywhere on the ring, no exceptions</td>
+          <td class="s"></td>
+        </tr>
+      </table>
+      <p>Proof, both halves of the fold. If <code>sep ≤ quarter</code> then
+        <code>|sep − quarter| = quarter − sep</code>, so <code>quarter − |sep − quarter| = sep</code>;
+        and <code>min(sep, half − sep) = sep</code>, since <code>sep ≤ quarter ≤ half − sep</code>. If
+        <code>sep ≥ quarter</code> then <code>|sep − quarter| = sep − quarter</code>, so
+        <code>quarter − |sep − quarter| = half − sep</code>; and <code>min(sep, half − sep) =
+          half − sep</code>. Equal in both cases.</p>
+      <table class="f q">
+        <tr class="h">
+          <td>sep (on a 48-point ring, quarter = 12)</td>
+          <td>parallel miss</td>
+          <td>perpendicular miss</td>
+          <td>sum</td>
+        </tr>
+        <tr>
+          <td class="e">0</td>
+          <td class="e">12</td>
+          <td class="e">0</td>
+          <td class="n">12</td>
+        </tr>
+        <tr>
+          <td class="e">5</td>
+          <td class="e">7</td>
+          <td class="e">5</td>
+          <td class="n">12</td>
+        </tr>
+        <tr>
+          <td class="e">12</td>
+          <td class="e">0</td>
+          <td class="e">12</td>
+          <td class="n">12</td>
+        </tr>
+        <tr>
+          <td class="e">20</td>
+          <td class="e">8</td>
+          <td class="e">4</td>
+          <td class="n">12</td>
+        </tr>
+        <tr>
+          <td class="e">24</td>
+          <td class="e">12</td>
+          <td class="e">0</td>
+          <td class="n">12</td>
+        </tr>
+      </table>
+      <p>CONSEQUENCE: minimising one miss is maximising the other. The two <code>step</code> functions
+        are the same walk run in opposite directions on one number — not two rules that happen to
+        resemble each other.</p>
+    </div>
+
+    <div class="card">
+      <h2>2 — step is character-for-character identical</h2>
+      <table class="f">
+        <tr>
+          <td class="e">if m.miss(from.next, arrival) &lt;= m.miss(from.prev, arrival) { return
+            from.next }; return from.prev</td>
+          <td class="n"></td>
+          <td class="s">nodes/Node1/perpendicular.go — step</td>
+        </tr>
+        <tr>
+          <td class="e">if m.miss(from.next, arrival) &lt;= m.miss(from.prev, arrival) { return
+            from.next }; return from.prev</td>
+          <td class="n"></td>
+          <td class="s">nodes/Node1/parallel.go — step</td>
+        </tr>
+      </table>
+      <p>Same text, same tie-break, differing only in which <code>miss</code> the receiver resolves
+        to. Six lines each.</p>
+    </div>
+
+    <div class="card">
+      <h2>3 — halted is one predicate written two ways</h2>
+      <table class="f">
+        <tr>
+          <td class="e">sep == 0 || sep == half</td>
+          <td class="n">⟺ perpendicular miss == 0</td>
+          <td class="s">nodes/Node1/perpendicular.go — halted</td>
+        </tr>
+        <tr>
+          <td class="e">sep == quarter</td>
+          <td class="n">⟺ parallel miss == 0</td>
+          <td class="s">nodes/Node1/parallel.go — halted</td>
+        </tr>
+      </table>
+      <p>Neither says anything <code>miss == 0</code> does not already say. Both are a second spelling
+        of their own miss being zero, and the caller only ever asks whether the node is home.</p>
+    </div>
+
+    <div class="card">
+      <h2>4 — choice and String are mirrored boilerplate</h2>
+      <table class="f">
+        <tr>
+          <td class="e">String() → its own name</td>
+          <td class="e">choice() → its own Wiring.TiltMachine constant</td>
+          <td class="s"></td>
+        </tr>
+      </table>
+      <p>Two lines each, identical in shape, carrying nothing but the machine's own identity.</p>
+    </div>
+
+    <div class="card">
+      <h2>What is actually different</h2>
+      <p>ONE THING: which separations count as home. Perpendicular has two of them — nothing, and a
+        half turn — and parallel has one, a quarter turn. Everything above follows from that and
+        nothing else. Stated as data rather than as code, the whole difference is:</p>
+      <table class="f">
+        <tr>
+          <td class="e">perpendicular</td>
+          <td class="n">home = { 0, half }</td>
+          <td class="s"></td>
+        </tr>
+        <tr>
+          <td class="e">parallel</td>
+          <td class="n">home = { quarter }</td>
+          <td class="s"></td>
+        </tr>
+      </table>
+      <p>The two sets are not arbitrary either: <code>quarter</code> is the midpoint of
+        <code>0</code> and <code>half</code>, which is why the misses sum to a constant and why each
+        machine's home is the other's farthest point.</p>
+    </div>
+
+    <div class="card">
+      <h2>The count</h2>
+      <table class="f q">
+        <tr class="h">
+          <td>part</td>
+          <td>lines each</td>
+          <td colspan="2">verdict</td>
+        </tr>
+        <tr>
+          <td class="e">step</td>
+          <td class="e">6</td>
+          <td class="n" colspan="2">identical text</td>
+        </tr>
+        <tr>
+          <td class="e">miss</td>
+          <td class="e">3 and 7</td>
+          <td class="n" colspan="2">complements — one determines the other exactly</td>
+        </tr>
+        <tr>
+          <td class="e">halted</td>
+          <td class="e">3 and 4</td>
+          <td class="n" colspan="2">restates its own miss being zero</td>
+        </tr>
+        <tr>
+          <td class="e">String, choice</td>
+          <td class="e">2 and 2</td>
+          <td class="n" colspan="2">mirrored boilerplate</td>
+        </tr>
+        <tr>
+          <td class="e">file headers</td>
+          <td class="e">25 and 23</td>
+          <td class="n" colspan="2">each explains why it is not the other one</td>
+        </tr>
+      </table>
+      <p>103 lines across both files. The behaviour distinct to either is the home set — one line of
+        data — and the rest is one rule, its complement, and the prose explaining why they are kept
+        apart.</p>
+    </div>
+
+    <div class="card">
+      <h2>What the split still buys, given all that</h2>
+      <p>A change to one file cannot move the other, which is the property it was built for and the
+        one that was repeatedly lost when the two shared a parameterised function. That property does
+        not require the two to be independent — and they are not independent, since one miss
+        determines the other — it requires only that no edit reaches across.</p>
+      <p>The header in <code>nodes/Node1/perpendicular.go</code> claims they share no computation.
+        That is true of the TEXT and false of the MATHEMATICS, and this page is the correction to
+        it.</p>
+    </div>
+
   </main>
 </body>
 
