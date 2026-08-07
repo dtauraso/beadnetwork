@@ -537,6 +537,84 @@ func TestResetSendsAMarkerNotADirection(t *testing.T) {
 	}
 }
 
+// PAIR ID 2 IS THIS SAME STRUCT WITH THE OPPOSITE SIGN. nodes/Node2's builder constructs one
+// of these with PairID 2, so the mirror is asserted here, against the implementation both
+// ends actually run — not in that package, whose own methods the builder no longer reaches.
+//
+// Every derived direction and both step directions must invert together. Asserted as a
+// SEPARATION reduced onto the circle, since the normal wraps at both ends of the range.
+func TestPairIDTwoMirrorsEveryDerivedDirection(t *testing.T) {
+	full := Wiring.FullTurnThetaIdx
+	for _, theta := range []int32{0, 1, 5, -1, -7, Wiring.HalfTurnThetaIdx, full, full + 3} {
+		one := &Node{PairID: 1, TopTiltThetaIdx: theta}
+		two := &Node{PairID: 2, TopTiltThetaIdx: theta}
+
+		// The normal sits a quarter turn AHEAD for id 1 and a quarter turn BEHIND for id 2.
+		if d := ((one.coplanarNormal().ThetaIdx-theta)%full + full) % full; d != Wiring.PerpendicularThetaIdx {
+			t.Fatalf("theta=%d: id 1 normal must sit %d past the tilt, got %d", theta, Wiring.PerpendicularThetaIdx, d)
+		}
+		if d := ((theta-two.coplanarNormal().ThetaIdx)%full + full) % full; d != Wiring.PerpendicularThetaIdx {
+			t.Fatalf("theta=%d: id 2 normal must sit %d behind the tilt, got %d", theta, Wiring.PerpendicularThetaIdx, d)
+		}
+		// Both bottoms draw the same direction, a half turn from the top, whichever way the
+		// index went to get there.
+		if d := ((one.bottomTilt().ThetaIdx-theta)%full + full) % full; d != Wiring.HalfTurnThetaIdx {
+			t.Fatalf("theta=%d: id 1 bottom must sit a half turn from the top, got %d", theta, d)
+		}
+		if d := ((two.bottomTilt().ThetaIdx-theta)%full + full) % full; d != Wiring.HalfTurnThetaIdx {
+			t.Fatalf("theta=%d: id 2 bottom must sit a half turn from the top, got %d", theta, d)
+		}
+	}
+
+	// The steps invert too: the SAME arrival that adds one at id 1 subtracts one at id 2.
+	// This is what makes the two ends turn toward each other instead of walking apart.
+	for _, arrival := range []int32{0, Wiring.HalfTurnThetaIdx} {
+		one := &Node{PairID: 1}
+		two := &Node{PairID: 2}
+		if !one.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: arrival}) ||
+			!two.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: arrival}) {
+			t.Fatalf("arrival=%d: both ends must step on an arrival that leans", arrival)
+		}
+		if one.TopTiltThetaIdx != -two.TopTiltThetaIdx || one.TopTiltThetaIdx == 0 {
+			t.Fatalf("arrival=%d: the two ends must step opposite ways, got id1=%d id2=%d",
+				arrival, one.TopTiltThetaIdx, two.TopTiltThetaIdx)
+		}
+	}
+}
+
+// START OPENS THE EXCHANGE FROM ID 1 ONLY. Opened from both ends, each end also replies to
+// the other's opener in the same round — two exchanges through one pair of channels, which
+// the user sees as the pair reaching its rest state and being kicked off it again, forever.
+// The panel cannot make this decision: it posts START to every node row, holding no domain
+// knowledge about which end is which.
+func TestStartOpensTheExchangeFromPairIDOneOnly(t *testing.T) {
+	for _, c := range []struct {
+		id       int32
+		wantSend bool
+	}{{1, true}, {2, false}} {
+		out := make(chan Wiring.TiltVectorMsg, 1)
+		n := &Node{PairID: c.id, TopTiltThetaIdx: 3, VectorOut: out}
+		placeBead := n.applyTiltEdit(Wiring.TiltEditMsg{Start: true})
+
+		if placeBead != c.wantSend {
+			t.Fatalf("id %d: placeBead want %v, got %v", c.id, c.wantSend, placeBead)
+		}
+		select {
+		case v := <-out:
+			if !c.wantSend {
+				t.Fatalf("id %d must not open the exchange, but sent %+v", c.id, v)
+			}
+		default:
+			if c.wantSend {
+				t.Fatalf("id %d must open the exchange, but sent nothing", c.id)
+			}
+		}
+		if n.TopTiltThetaIdx != 3 {
+			t.Fatalf("id %d: START must change no index, got %d", c.id, n.TopTiltThetaIdx)
+		}
+	}
+}
+
 // The bead travels WITH the vector: it is placed by the vector branch only when the vector
 // actually steps this node. A leaning arrival steps and places a bead; a perpendicular
 // arrival halts (stepFromVector returns false) and places NO bead — this is how the bead

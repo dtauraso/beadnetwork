@@ -504,7 +504,8 @@ func init() {
 		},
 		func(a Wiring.BuildArgs) (wire.Node, error) {
 			n := &Node1.Node{
-				Clock: wire.NewRealClock(),
+				PairID: 2,
+				Clock:  wire.NewRealClock(),
 			}
 			n.Fire = a.Fire()
 			if clk := a.Clock(); clk != nil {

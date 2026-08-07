@@ -45,6 +45,25 @@ import (
 )
 
 type Node struct {
+	// PairID says WHICH END of the pair this instance is: 1 or 2. It is the only difference
+	// between the two ends, and both are this same struct — nodes/Node2's builder constructs
+	// one of these with PairID 2 rather than keeping a second, hand-mirrored implementation
+	// in step with this one.
+	//
+	// It decides two things, and nothing else in this file may branch on the kind any other
+	// way:
+	//   - sign(), below: which way this end's derived directions and steps run. End 2 takes
+	//     the opposite of end 1 throughout, and that opposition is what makes the two turn
+	//     TOWARD each other. Two ends with the same sign step apart instead, one index per
+	//     round, until they are a quarter turn each side of where they started.
+	//   - START: id 1 alone opens the exchange (applyTiltEdit). The panel sends START to
+	//     every node it lists, because the webview holds no domain knowledge about which end
+	//     is which; Go decides here.
+	//
+	// The zero value means id 1, which is what a bare test build in this package constructs
+	// and what this package's own tests assert.
+	PairID int32
+
 	Fire         func()
 	EmitGeometry func()
 	// Clock is this node's OWN clock storage, assigned by this kind's own
@@ -153,6 +172,18 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 		return false
 	}
 	if edit.Start {
+		// START BELONGS TO PAIR ID 1 ALONE. The exchange is begun from ONE end, so there is
+		// exactly one opening direction to answer; opened from both, each end also replies to
+		// the other's opener in the same round — two exchanges running through one pair of
+		// channels rather than the one a user asked for, which shows up as the pair settling
+		// and then being kicked off its rest state again, forever.
+		//
+		// The panel sends START to every node it lists (TiltVectorButtons.tsx posts one
+		// record per row, exactly as RESET does), because the WEBVIEW must not know which end
+		// is which — that is domain knowledge, and TS holds none. Go decides, here, by id.
+		if n.PairID == 2 {
+			return false
+		}
 		// Open the vector exchange from the current angles — see this function's own doc
 		// comment. Sends exactly what the old adjust-side-effect kick sent, but changes no
 		// index of its own.
@@ -240,8 +271,18 @@ func (n *Node) drainIn() {
 // other way at the turn.
 func (n *Node) bottomTilt() Wiring.TiltVectorMsg {
 	return Wiring.TiltVectorMsg{
-		ThetaIdx: n.TopTiltThetaIdx + Wiring.HalfTurnThetaIdx,
+		ThetaIdx: n.TopTiltThetaIdx + n.sign()*Wiring.HalfTurnThetaIdx,
 	}
+}
+
+// sign is +1 for pair id 1 and −1 for id 2 — the ONE place the two ends differ, read by
+// bottomTilt, coplanarNormal and stepFromVector. Anything other than 2 is id 1, since a
+// struct built in a test without a builder has PairID at its zero value and means this end.
+func (n *Node) sign() int32 {
+	if n.PairID == 2 {
+		return -1
+	}
+	return 1
 }
 
 // coplanarNormal is THIS node's own coplanar normal: ONE QUARTER TURN past this node's own
@@ -267,9 +308,12 @@ func (n *Node) bottomTilt() Wiring.TiltVectorMsg {
 // point the normal the OTHER way, t + 18 rather than t + 6, over half the index range,
 // including the negative indices a ▼ click reaches first.
 func (n *Node) coplanarNormal() Wiring.TiltVectorMsg {
-	thetaIdx := n.TopTiltThetaIdx + Wiring.PerpendicularThetaIdx
+	thetaIdx := n.TopTiltThetaIdx + n.sign()*Wiring.PerpendicularThetaIdx
 	if thetaIdx >= Wiring.FullTurnThetaIdx {
 		thetaIdx -= Wiring.FullTurnThetaIdx
+	}
+	if thetaIdx < 0 {
+		thetaIdx += Wiring.FullTurnThetaIdx
 	}
 	return Wiring.TiltVectorMsg{ThetaIdx: thetaIdx}
 }
@@ -341,9 +385,9 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
 	switch {
 	case Wiring.TiltVectorIsAcute(received, n.topTilt()):
-		n.TopTiltThetaIdx += 1
+		n.TopTiltThetaIdx += n.sign()
 	case Wiring.TiltVectorIsAcute(received, n.bottomTilt()):
-		n.TopTiltThetaIdx -= 1
+		n.TopTiltThetaIdx -= n.sign()
 	default:
 		// Exactly perpendicular to both: no lean to read, so this node steps nothing —
 		// the halt condition for the exchange.
@@ -516,7 +560,8 @@ func init() {
 		},
 		func(a Wiring.BuildArgs) (wire.Node, error) {
 			n := &Node{
-				Clock: wire.NewRealClock(),
+				PairID: 1,
+				Clock:  wire.NewRealClock(),
 			}
 			n.Fire = a.Fire()
 			if clk := a.Clock(); clk != nil {
