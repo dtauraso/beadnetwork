@@ -63,6 +63,95 @@
       </div>
 
       <div class="card wide">
+        <h2>The machine — 24 states, and every input is a transition</h2>
+        <svg width="640" height="200" viewBox="0 0 640 200">
+          <defs>
+            <marker id="mNext" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto">
+              <path d="M0,0 L8,3 L0,6 z" fill="#5fd68a" />
+            </marker>
+            <marker id="mPrev" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto">
+              <path d="M0,0 L8,3 L0,6 z" fill="#e05fd8" />
+            </marker>
+          </defs>
+
+          <g fill="#2b2b33" stroke="#3a3a44">
+            <circle cx="110" cy="96" r="26" />
+            <circle cx="230" cy="96" r="26" />
+            <circle cx="350" cy="96" r="26" />
+            <circle cx="470" cy="96" r="26" />
+            <circle cx="590" cy="96" r="26" />
+          </g>
+          <g class="lblm" text-anchor="middle" fill="#e7e7ea">
+            <text x="110" y="101">21</text>
+            <text x="230" y="101">22</text>
+            <text x="350" y="101">23</text>
+            <text x="470" y="101">0</text>
+            <text x="590" y="101">1</text>
+          </g>
+          <text x="30" y="101" class="lbl" fill="#9a9aa6">…</text>
+          <text x="626" y="101" class="lbl" fill="#9a9aa6">…</text>
+
+          <!-- next: one way round -->
+          <g stroke="#5fd68a" stroke-width="2" fill="none" marker-end="url(#mNext)">
+            <path d="M 136 84 Q 170 62 202 84" />
+            <path d="M 256 84 Q 290 62 322 84" />
+            <path d="M 376 84 Q 410 62 442 84" />
+            <path d="M 496 84 Q 530 62 562 84" />
+          </g>
+          <text x="290" y="46" text-anchor="middle" class="lblm" fill="#5fd68a">next</text>
+
+          <!-- prev: the other -->
+          <g stroke="#e05fd8" stroke-width="2" fill="none" marker-end="url(#mPrev)">
+            <path d="M 562 110 Q 530 132 498 110" />
+            <path d="M 442 110 Q 410 132 378 110" />
+            <path d="M 322 110 Q 290 132 258 110" />
+            <path d="M 202 110 Q 170 132 138 110" />
+          </g>
+          <text x="410" y="156" text-anchor="middle" class="lblm" fill="#e05fd8">prev</text>
+
+          <line x1="410" y1="30" x2="410" y2="170" stroke="#3a3a44" stroke-dasharray="4 4" />
+          <text x="418" y="182" class="lbl" fill="#9a9aa6">23 → 0 is one link like any other</text>
+        </svg>
+        <table class="f">
+          <tr class="h">
+            <td>input</td>
+            <td colspan="2">transition</td>
+          </tr>
+          <tr>
+            <td class="e">arrival acute with Top</td>
+            <td class="e" colspan="2">Top ← Top.next</td>
+          </tr>
+          <tr>
+            <td class="e">arrival acute with Top.opposite</td>
+            <td class="e" colspan="2">Top ← Top.prev</td>
+          </tr>
+          <tr>
+            <td class="e">arrival acute with neither</td>
+            <td class="e" colspan="2">stay — and this is the halt: no send, no bead</td>
+          </tr>
+          <tr>
+            <td class="e">panel ▲ · panel ▼</td>
+            <td class="e" colspan="2">Top ← Top.next · Top ← Top.prev</td>
+          </tr>
+          <tr>
+            <td class="e">RESET, from the button or the marker</td>
+            <td class="e" colspan="2">Top ← ring[0]</td>
+          </tr>
+          <tr>
+            <td class="e">START on id 1 · a bead on In</td>
+            <td class="e" colspan="2">stay — START sends from where it already is, a bead only paces</td>
+          </tr>
+        </table>
+        <div class="cap">Those six are every input the machine has, and the four transitions are every move
+          it can make. A state is a direction the tilt can point, so there are 24 of them and the tilt is
+          always exactly one — there is no 25th to reach and no value between two, which is what makes an
+          off-the-ring tilt impossible to write down rather than merely guarded against.</div>
+        <div class="cap">The seam at 23 → 0 is one link like any other. Nothing detects it, nothing corrects
+          for it, and no rule mentions it — the ring closes because the last state's next IS the first, fixed
+          once when it was built.</div>
+      </div>
+
+      <div class="card wide">
         <h2>The three directions a node reads off its own state</h2>
         <table class="f">
           <tr class="h">
