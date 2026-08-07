@@ -222,16 +222,24 @@ func (h haltKind) String() string {
 // it touched first: the log showed a pair holding perpendicular walk correctly toward
 // separation 0, land on 12 in passing, and take up parallel there. Measuring the miss against
 // THIS NODE'S OWN halt makes the other one an ordinary angle it passes over.
+// A node holding NEITHER yet aims at whichever halt is nearer. It has no reason to prefer one
+// — it is not returning to anything — and naming one in the code is picking for it: this used
+// to read "anything that is not parallel is perpendicular", so every cold start walked to
+// perpendicular no matter where it began, and a pair set up to settle parallel could not.
 func (s *tiltState) missBy(arrival *tiltState, h haltKind) int32 {
 	sep := s.separation(arrival)
+	toParallel := abs32(sep - s.ring.quarterTurn)
 	if h == haltParallel {
-		return abs32(sep - s.ring.quarterTurn)
+		return toParallel
 	}
-	toZero, toHalf := sep, abs32(sep-s.ring.halfTurn)
-	if toHalf < toZero {
-		return toHalf
+	toPerpendicular := sep
+	if toHalf := abs32(sep - s.ring.halfTurn); toHalf < toPerpendicular {
+		toPerpendicular = toHalf
 	}
-	return toZero
+	if h == haltPerpendicular || toPerpendicular <= toParallel {
+		return toPerpendicular
+	}
+	return toParallel
 }
 
 // stepToward is the one step — next or prev, a link either way — that leaves this node closer
