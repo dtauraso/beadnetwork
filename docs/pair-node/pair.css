@@ -1,0 +1,290 @@
+:root {
+      --bg: #22222a;
+      --panel: #2f2f37;
+      --panel2: #34343d;
+      --line: #3a3a44;
+      --ink: #e7e7ea;
+      --dim: #9a9aa6;
+      --accent: #4ea1ff;
+      --warm: #f9a825;
+      --mag: #e05fd8;
+      --green: #5fd68a;
+      --red: #ff6b6b;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font);
+      font-size: 13px
+    }
+
+    header {
+      padding: 14px 18px 0
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: .02em
+    }
+
+    .sub {
+      color: var(--dim);
+      font-size: 11px;
+      margin-top: 2px
+    }
+
+    nav {
+      display: flex;
+      gap: 4px;
+      padding: 10px 18px;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: var(--bg);
+      border-bottom: 1px solid var(--line)
+    }
+
+    nav a,
+    a.pill {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--dim);
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 5px 11px;
+      text-decoration: none
+    }
+
+    nav a:hover,
+    a.pill:hover {
+      color: var(--ink)
+    }
+
+    nav a.on,
+    a.pill.on {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #04101f
+    }
+
+    /* the index's own list: the same pill, with its blurb beside it */
+    .rows {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px 18px;
+      align-items: baseline
+    }
+
+    @media (max-width: 720px) {
+      .rows {
+        grid-template-columns: minmax(0, 1fr)
+      }
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      align-items: baseline
+    }
+
+    .row a.pill {
+      flex: none
+    }
+
+    .row .cap {
+      margin-top: 0
+    }
+
+    main {
+      padding: 14px 18px 40px
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      align-items: start
+    }
+
+    @media (max-width: 720px) {
+      .grid {
+        grid-template-columns: minmax(0, 1fr)
+      }
+    }
+
+    .card svg {
+      max-width: 100%;
+      height: auto
+    }
+
+    /* A card whose content is a table takes the full row and never scrolls:
+       the table sizes itself to the card and wraps, instead of the card
+       sizing itself to the table. */
+    .card.wide {
+      grid-column: 1 / -1;
+      overflow-x: visible
+    }
+
+    .card {
+      overflow-x: auto
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px 12px
+    }
+
+    .card h2 {
+      margin: 0 0 8px;
+      font-size: 9.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--dim)
+    }
+
+    .cap {
+      color: var(--dim);
+      font-size: 11px;
+      margin-top: 6px;
+      line-height: 1.45
+    }
+
+    code {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent)
+    }
+
+    table.f {
+      border-collapse: collapse;
+      font-size: 11px;
+      width: 100%;
+      table-layout: fixed
+    }
+
+    table.f td {
+      padding: 3px 10px 3px 0;
+      vertical-align: baseline
+    }
+
+    /* expression : note : source — the shares that keep all three on the page.
+       The source column is sized for the longest file name it carries
+       (tilt_vector_channel.go / scene_speed_persist.go, 22 characters). */
+    table.f td:nth-child(1) {
+      width: 40%
+    }
+
+    table.f td:nth-child(2) {
+      width: 32%
+    }
+
+    table.f td:nth-child(3) {
+      width: 28%;
+      padding-right: 0
+    }
+
+    table.f td.e {
+      font-family: var(--mono);
+      color: var(--ink);
+      /* `anywhere`, not `break-word`: it also lowers the cell's min-content
+         width, so a long unbroken token (a file name, 0.2617993877991494)
+         cannot push the table past the card. */
+      overflow-wrap: anywhere
+    }
+
+    table.f td.n {
+      color: var(--dim)
+    }
+
+    table.f td.s {
+      font-family: var(--mono);
+      color: var(--dim);
+      font-size: 10px;
+      overflow-wrap: anywhere
+    }
+
+    /* pair.js turns each source cell into a vscode://file link */
+    a.srclink {
+      color: inherit;
+      text-decoration: none;
+      border-bottom: 1px dotted var(--line)
+    }
+
+    a.srclink:hover {
+      color: var(--accent);
+      border-bottom-color: var(--accent)
+    }
+
+
+    table.f tr.h td {
+      color: var(--accent);
+      font-weight: 600;
+      padding-top: 12px;
+      border-bottom: 1px solid var(--line)
+    }
+
+    table.f tr.h:first-child td {
+      padding-top: 0
+    }
+
+    .k {
+      color: var(--warm)
+    }
+
+    svg {
+      display: block
+    }
+
+    .legend {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+      font-size: 10.5px;
+      color: var(--dim)
+    }
+
+    .legend i {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      margin-right: 5px;
+      vertical-align: -1px
+    }
+
+    text {
+      font-family: var(--font);
+      fill: var(--ink)
+    }
+
+    .lbl {
+      font-size: 10px;
+      fill: var(--dim)
+    }
+
+    .lblm {
+      font-family: ui-monospace, Menlo, monospace;
+      font-size: 10px;
+      fill: var(--ink)
+    }
+
+    .big {
+      font-size: 12px;
+      font-weight: 600
+    }

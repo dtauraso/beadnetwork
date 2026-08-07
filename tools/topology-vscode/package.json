@@ -10,13 +10,23 @@
   },
   "main": "./out/extension.js",
   "activationEvents": [
-    "onCommand:topology.openEditor"
+    "onCommand:topology.openEditor",
+    "onCommand:topology.openDocs",
+    "onStartupFinished"
   ],
   "contributes": {
     "commands": [
       {
         "command": "topology.openEditor",
         "title": "Topology: Open Editor"
+      },
+      {
+        "command": "topology.openDocs",
+        "title": "Topology: Open Pair Node Docs"
+      },
+      {
+        "command": "topology.openSource",
+        "title": "Topology: Open Source File From Docs"
       }
     ],
     "menus": {

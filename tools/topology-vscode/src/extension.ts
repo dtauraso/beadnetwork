@@ -8,6 +8,8 @@ import { hashBundle, isHostReloadEnabled, shouldReloadHost } from "./hostReload"
 import type { HostToWebviewMsg } from "./messages";
 import { buildWebviewHtml } from "./extension/html";
 import { handleMessage } from "./extension/handle-message";
+import { openDocsPanel, openSource } from "./extension/docs-panel";
+import { serveDocsOpen } from "./extension/docs-open";
 import { PROBE_FILES } from "./probe-files";
 
 export function activate(context: vscode.ExtensionContext) {
@@ -15,8 +17,23 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("topology.openEditor", (uri?: vscode.Uri) => {
       openTopologyEditor(context, uri);
     }),
+    // Reads docs/pair-node/*.html in a panel this extension owns, which is what
+    // lets their source names open as editor tabs — see docs-panel.ts.
+    vscode.commands.registerCommand("topology.openDocs", (page?: string) => {
+      openDocsPanel(context, page);
+    }),
+    // What a source link in that panel calls. Takes the repo-relative path as a
+    // STRING: a command: URI carries JSON, so a vscode.Uri would not survive it.
+    vscode.commands.registerCommand("topology.openSource", (rel?: string) => {
+      if (rel) openSource(rel);
+    }),
   );
   armHostReloadWatcher(context);
+  // Lets a click in the LIVE PREVIEW pane open a source file as an editor tab —
+  // see docs-open.ts for why that needs a request and not a link. Started on
+  // activation, which is why this extension now activates on startup: the docs
+  // are read without the topology editor being open.
+  serveDocsOpen(context);
 }
 
 // armHostReloadWatcher watches the BUILT extension-host bundle (out/extension.js — the

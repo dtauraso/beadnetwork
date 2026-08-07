@@ -141,3 +141,12 @@ __pycache__/
 # which is the correct split.
 topology*/view/*.json
 topology*/nodes/*/position.json
+
+# This clone's own absolute path, written by tools/docs-root.sh so the docs pages
+# can address VS Code (vscode://file/<abs path>) when read in a browser.
+# Machine-specific by definition — generated per clone, never committed.
+docs/pair-node/root.js
+
+# Where the running extension listens for "open this file as a tab", and that
+# session's token. Written on activation, removed on shutdown.
+docs/pair-node/port.js

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pair node — Channels</title>
+  <link rel="stylesheet" href="pair.css">
+</head>
+
+<body>
+
+  <header>
+    <h1>Channels</h1>
+    <div class="sub">the bead edge and the vector channel, side by side</div>
+  </header>
+
+  <nav>
+    <a href="index.html">Index</a>
+    <a href="anatomy.html">Anatomy</a>
+    <a href="own.html">Ownership</a>
+    <a href="vectors.html">Vectors</a>
+    <a href="math.html">Math</a>
+    <a href="formulas.html">Formulas</a>
+    <a href="dots.html">Acute test</a>
+    <a class="on" href="channels.html">Channels</a>
+    <a href="cycle.html">Cycle</a>
+    <a href="clock.html">Clock</a>
+    <a href="geometry.html">Geometry</a>
+    <a href="asym.html">Asymmetry</a>
+  </nav>
+
+  <main>
+
+      <div class="grid">
+
+        <div class="card">
+          <h2>Two independent channels per direction</h2>
+          <svg width="620" height="290" viewBox="0 0 620 290">
+            <defs>
+              <marker id="c1" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+                <path d="M0,0 L7,3 L0,6 z" fill="#f9a825" />
+              </marker>
+              <marker id="c2" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+                <path d="M0,0 L7,3 L0,6 z" fill="#4ea1ff" />
+              </marker>
+            </defs>
+
+            <rect x="20" y="90" width="120" height="90" rx="10" fill="#34343d" stroke="#f9a825" />
+            <text x="80" y="130" text-anchor="middle" class="big">node 1</text>
+            <text x="80" y="150" text-anchor="middle" class="lbl">owns START</text>
+
+            <rect x="480" y="90" width="120" height="90" rx="10" fill="#34343d" stroke="#f9a825" />
+            <text x="540" y="130" text-anchor="middle" class="big">node 2</text>
+            <text x="540" y="150" text-anchor="middle" class="lbl">answers it</text>
+
+            <!-- bead edges -->
+            <line x1="140" y1="112" x2="476" y2="112" stroke="#f9a825" stroke-width="2" marker-end="url(#c1)" />
+            <circle cx="200" cy="112" r="5" fill="#f9a825" />
+            <circle cx="250" cy="112" r="5" fill="#f9a825" />
+            <circle cx="300" cy="112" r="5" fill="#f9a825" />
+            <circle cx="350" cy="112" r="5" fill="#f9a825" />
+            <text x="308" y="100" text-anchor="middle" class="lbl">bead edge — marks each round trip</text>
+
+            <line x1="476" y1="158" x2="144" y2="158" stroke="#f9a825" stroke-width="2" marker-end="url(#c1)" />
+            <circle cx="380" cy="158" r="5" fill="#f9a825" />
+            <circle cx="330" cy="158" r="5" fill="#f9a825" />
+
+            <!-- vector channels -->
+            <line x1="140" y1="212" x2="476" y2="212" stroke="#4ea1ff" stroke-width="2" marker-end="url(#c2)" />
+            <rect x="290" y="202" width="40" height="20" rx="4" fill="#2b2b33" stroke="#4ea1ff" />
+            <text x="310" y="216" text-anchor="middle" class="lblm" fill="#4ea1ff">idx</text>
+            <text x="308" y="196" text-anchor="middle" class="lbl">vector channel — depth 1, latest-wins</text>
+
+            <line x1="476" y1="250" x2="144" y2="250" stroke="#4ea1ff" stroke-width="2" marker-end="url(#c2)" />
+            <rect x="290" y="240" width="40" height="20" rx="4" fill="#2b2b33" stroke="#4ea1ff" />
+            <text x="310" y="254" text-anchor="middle" class="lblm" fill="#4ea1ff">idx</text>
+
+            <text x="310" y="42" text-anchor="middle" class="big">START opens the exchange</text>
+            <text x="310" y="62" text-anchor="middle" class="lbl">the first send is a user pressing START at node 1</text>
+          </svg>
+          <div class="legend">
+            <span><i style="background:#f9a825"></i>beads (PacedWire)</span>
+            <span><i style="background:#4ea1ff"></i>tilt vector indices</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Latest-wins, depth 1</h2>
+          <svg width="300" height="180" viewBox="0 0 300 180">
+            <rect x="20" y="40" width="70" height="40" rx="6" fill="#2b2b33" stroke="#4ea1ff" />
+            <text x="55" y="65" text-anchor="middle" class="lblm">v1</text>
+            <text x="150" y="65" text-anchor="middle" class="lbl">v2 arrives</text>
+            <rect x="210" y="40" width="70" height="40" rx="6" fill="#2b2b33" stroke="#4ea1ff" />
+            <text x="245" y="65" text-anchor="middle" class="lblm">v2</text>
+            <path d="M 95 60 L 205 60" stroke="#9a9aa6" stroke-dasharray="3 3" />
+            <text x="150" y="112" text-anchor="middle" class="lbl">v1 dropped — the slot holds the latest</text>
+            <rect x="20" y="130" width="260" height="34" rx="6" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="34" y="152" class="lbl">both ends non-blocking — a sender moves on</text>
+          </svg>
+        </div>
+
+      </div>
+  </main>
+</body>
+
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pair node — Asymmetry</title>
+  <link rel="stylesheet" href="pair.css">
+</head>
+
+<body>
+
+  <header>
+    <h1>Asymmetry</h1>
+    <div class="sub">START and the pole flip — where the mirror is not exact</div>
+  </header>
+
+  <nav>
+    <a href="index.html">Index</a>
+    <a href="anatomy.html">Anatomy</a>
+    <a href="own.html">Ownership</a>
+    <a href="vectors.html">Vectors</a>
+    <a href="math.html">Math</a>
+    <a href="formulas.html">Formulas</a>
+    <a href="dots.html">Acute test</a>
+    <a href="channels.html">Channels</a>
+    <a href="cycle.html">Cycle</a>
+    <a href="clock.html">Clock</a>
+    <a href="geometry.html">Geometry</a>
+    <a class="on" href="asym.html">Asymmetry</a>
+  </nav>
+
+  <main>
+
+      <div class="grid">
+
+        <div class="card">
+          <h2>Node 1 vs node 2</h2>
+          <svg width="600" height="290" viewBox="0 0 600 290">
+            <rect x="20" y="20" width="270" height="250" rx="10" fill="#2b2b33" stroke="#f9a825" />
+            <text x="155" y="46" text-anchor="middle" class="big" fill="#f9a825">node 1</text>
+            <text x="40" y="80" class="lblm">owns START</text>
+            <text x="40" y="100" class="lbl">the exchange opens from this end only</text>
+            <text x="40" y="132" class="lblm">normal flips per pole crossed</text>
+            <text x="40" y="152" class="lbl">floor(idx/12) odd → normal += 12</text>
+            <text x="40" y="184" class="lblm">base step −1 · normal = top + 6</text>
+            <text x="40" y="216" class="lblm" fill="#5fd68a">halts when neither test is acute</text>
+
+            <rect x="310" y="20" width="270" height="250" rx="10" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="445" y="46" text-anchor="middle" class="big">node 2</text>
+            <text x="330" y="80" class="lblm">answers START's opener</text>
+            <text x="330" y="100" class="lbl">started from both, each would answer the other</text>
+            <text x="330" y="132" class="lblm">plain quarter turn</text>
+            <text x="330" y="152" class="lbl">normal = top − 6</text>
+            <text x="330" y="184" class="lblm">base step +1</text>
+            <text x="330" y="216" class="lblm" fill="#5fd68a">halts when neither test is acute</text>
+          </svg>
+          <div class="cap">Both halt on the same rule: neither test acute, step nothing, send nothing. The asymmetries
+            are START and the pole flip.</div>
+        </div>
+
+        <div class="card">
+          <h2>The pole flip is an open question</h2>
+          <svg width="440" height="180" viewBox="0 0 440 180">
+            <rect x="20" y="24" width="400" height="52" rx="8" fill="#2b2b33" stroke="#5fd68a" />
+            <text x="36" y="46" class="lblm" fill="#5fd68a">node 1 — has the parity correction</text>
+            <text x="36" y="66" class="lbl">base direction subtracts, so it runs negative and crosses poles</text>
+
+            <rect x="20" y="92" width="400" height="52" rx="8" fill="#2b2b33" stroke="#f9a825" />
+            <text x="36" y="114" class="lblm" fill="#f9a825">node 2 — plain quarter turn, top − 6</text>
+            <text x="36" y="134" class="lbl">the argument applies in mirror; measure it before deciding</text>
+          </svg>
+          <div class="cap">Scoped to node 1. Resolve it by watching node 2's normal cross a pole.</div>
+        </div>
+
+      </div>
+  </main>
+</body>
+
+</html>

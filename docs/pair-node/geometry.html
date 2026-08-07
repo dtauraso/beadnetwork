@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pair node — Geometry</title>
+  <link rel="stylesheet" href="pair.css">
+</head>
+
+<body>
+
+  <header>
+    <h1>Geometry</h1>
+    <div class="sub">a tilt turns an angle; the drag sets the separation</div>
+  </header>
+
+  <nav>
+    <a href="index.html">Index</a>
+    <a href="anatomy.html">Anatomy</a>
+    <a href="own.html">Ownership</a>
+    <a href="vectors.html">Vectors</a>
+    <a href="math.html">Math</a>
+    <a href="formulas.html">Formulas</a>
+    <a href="dots.html">Acute test</a>
+    <a href="channels.html">Channels</a>
+    <a href="cycle.html">Cycle</a>
+    <a href="clock.html">Clock</a>
+    <a class="on" href="geometry.html">Geometry</a>
+    <a href="asym.html">Asymmetry</a>
+  </nav>
+
+  <main>
+
+      <div class="grid">
+
+        <div class="card">
+          <h2>A tilt turns an angle and nothing else</h2>
+          <svg width="600" height="240" viewBox="0 0 600 240">
+            <circle cx="60" cy="120" r="26" fill="#34343d" stroke="#f9a825" />
+            <text x="60" y="125" text-anchor="middle" class="lblm">1</text>
+
+            <circle cx="470" cy="120" r="26" fill="#34343d" stroke="#f9a825" />
+            <text x="470" y="125" text-anchor="middle" class="lblm">2</text>
+
+            <line x1="86" y1="120" x2="444" y2="120" stroke="#3a3a44" />
+            <g fill="#f9a825">
+              <circle cx="130" cy="120" r="6" />
+              <circle cx="180" cy="120" r="6" />
+              <circle cx="230" cy="120" r="6" />
+              <circle cx="280" cy="120" r="6" />
+              <circle cx="330" cy="120" r="6" />
+              <circle cx="380" cy="120" r="6" />
+            </g>
+            <text x="255" y="100" text-anchor="middle" class="lblm">the separation the last drag left</text>
+
+            <line x1="60" y1="94" x2="60" y2="40" stroke="#e05fd8" stroke-width="2.4" />
+            <line x1="470" y1="94" x2="512" y2="58" stroke="#e05fd8" stroke-width="2.4" />
+            <text x="255" y="188" text-anchor="middle" class="lbl">the tilts turn · the separation holds</text>
+            <text x="255" y="212" text-anchor="middle" class="lbl">each node stays where the drag left it</text>
+          </svg>
+          <div class="cap">The drawn angle, the separation, the edge's bead count and the rate the tilts turn at are
+            four separate things. One index carries the angle alone.</div>
+        </div>
+
+        <div class="card">
+          <h2>Which number sets what</h2>
+          <svg width="300" height="200" viewBox="0 0 300 200">
+            <rect x="20" y="24" width="260" height="52" rx="8" fill="#2b2b33" stroke="#e05fd8" />
+            <text x="36" y="46" class="lblm" fill="#e05fd8">THE TILT INDEX</text>
+            <text x="36" y="66" class="lbl">four drawn directions</text>
+
+            <rect x="20" y="92" width="260" height="70" rx="8" fill="#2b2b33" stroke="#f9a825" />
+            <text x="36" y="114" class="lblm" fill="#f9a825">THE LAST DRAG</text>
+            <text x="36" y="134" class="lbl">position · reach · edge length</text>
+            <text x="36" y="152" class="lbl">bead count · crossing time</text>
+          </svg>
+          <div class="cap">A drag sets the separation. A tilt sets an angle. They read different numbers.</div>
+        </div>
+
+        <div class="card">
+          <h2>The pair's clock</h2>
+          <svg width="300" height="180" viewBox="0 0 300 180">
+            <rect x="20" y="26" width="110" height="52" rx="8" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="75" y="48" text-anchor="middle" class="lblm">slider</text>
+            <text x="75" y="68" text-anchor="middle" class="lbl">userSpeed</text>
+            <text x="150" y="58" text-anchor="middle" class="lblm" fill="#4ea1ff">÷ 64</text>
+            <rect x="170" y="26" width="110" height="52" rx="8" fill="#2b2b33" stroke="#4ea1ff" />
+            <text x="225" y="48" text-anchor="middle" class="lblm" fill="#4ea1ff">clocks</text>
+            <text x="225" y="68" text-anchor="middle" class="lbl">effective</text>
+            <text x="150" y="106" text-anchor="middle" class="lbl">the pair is ~40 units across — the same pace reads
+              faster</text>
+            <rect x="20" y="122" width="260" height="44" rx="7" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="34" y="144" class="lbl">slider and speed.json keep the user's number;</text>
+            <text x="34" y="160" class="lbl">the divisor applies to the rate reaching the clocks</text>
+          </svg>
+        </div>
+
+      </div>
+  </main>
+</body>
+
+</html>
