@@ -101,18 +101,13 @@ type Node struct {
 	// step constant, trig only at the cartesian/polar boundary).
 	Top *tiltState
 
-	// Squared records that this node HAS BEEN at the pair's relationship — an arrival landed
-	// exactly on its own top, which is the two tilts a quarter turn apart.
+	// SquareLastRound is whether the PREVIOUS arrival landed exactly on this node's own top —
+	// the gap was zero, which is the two tilts a quarter turn apart.
 	//
-	// It is what lets the relationship survive being disturbed. Once a node has been square,
-	// an acute arrival is the thing that would take it back off, so the step that arrival
-	// asks for is undone as soon as it is made (stepFromVector). The node still answers, so
-	// the partner has something to work against and the pair settles around the end that is
-	// already right rather than both drifting.
-	//
-	// Set by the arrival that lands on this node's own top. Cleared by a reset, which is the
-	// one thing that says the pair is starting over.
-	Squared bool
+	// One round of memory, and that is the whole of it. If the last arrival was square, the
+	// step this one asks for is undone as soon as it is made (stepFromVector): an arrival
+	// that leans is what would take the pair off the relationship it was just in.
+	SquareLastRound bool
 
 	// Ring is THIS NODE'S OWN lattice — its states, and the counts every rule reads off them.
 	// The point count is a scene setting a user can change, so this is not fixed for the life
@@ -242,8 +237,6 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 	}
 	// AND IT STOPS THERE: no send, no bead. Setting an angle and running the exchange are
 	// separate acts — a click moves this node's own tilt and nothing else happens until START.
-	// The memory of having been square (Squared, read by stepFromVector) is what carries the
-	// relationship across the click, so the click has no need to open anything itself.
 	return false
 }
 
@@ -338,11 +331,8 @@ func (n *Node) topState() *tiltState {
 // there instead of bouncing.
 func (n *Node) clear() {
 	n.Top = n.ringOf().at(0)
-	// HAVING BEEN SQUARE IS SOMETHING LEFT IN THE PAIR, so a reset takes it too: a reset is
-	// the pair starting over, and a node that still remembers the old relationship would
-	// refuse to turn toward the new one. Nothing else clears it, and nothing but an arrival
-	// on this node's own top sets it — START and RESET have no other part in it.
-	n.Squared = false
+	// The one round of square memory goes too: a reset is the pair starting over.
+	n.SquareLastRound = false
 	n.syncTiltIndex()
 	n.ReceivedThetaIdx = 0
 	n.ReceivedSet = false
@@ -474,16 +464,8 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 // Worked run: docs/pair-node/vectors.html.
 func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
 	arrival := n.ringOf().arrivedState(received.ThetaIdx)
-
-	// SQUARE, AND REMEMBERED. The arrival is the partner's coplanar normal, already a quarter
-	// turn off the partner's own tilt, so an arrival landing exactly on this node's TOP means
-	// the two tilts are a quarter turn apart. That is the relationship the pair holds, so this
-	// node records that it reached it — and answers, because the exchange has to keep running
-	// for the pair to stay there.
-	if arrival == n.topState() {
-		n.Squared = true
-		return true
-	}
+	wasSquare := n.SquareLastRound
+	n.SquareLastRound = arrival == n.topState()
 
 	before := n.topState()
 	switch {
@@ -491,25 +473,11 @@ func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
 		n.Top = n.topState().next
 	case n.topState().opposite.acuteWith(arrival):
 		n.Top = n.topState().prev
-	default:
-		// No lean either way: nothing to read, so nothing to do.
-		return false
 	}
-
-	// UNDO IT IF THIS NODE HAS BEEN SQUARE. Once a node has reached the relationship, an
-	// acute arrival is what would take it back off — so the step it just made is exactly the
-	// wrong one, and it goes back. The node answers all the same, so the partner has
-	// something to work against and the pair settles around the end that is already right.
-	if n.Squared {
+	if wasSquare {
 		n.Top = before
 	}
 	return true
-}
-
-// topTilt is THIS node's own top tilt vector as a channel message — the same state the ring
-// holds, named so the tests above read as direction-against-direction.
-func (n *Node) topTilt() Wiring.TiltVectorMsg {
-	return Wiring.TiltVectorMsg{ThetaIdx: n.topState().idx}
 }
 
 // handleVectorCycle is Node1's WHOLE per-cycle vector-channel loop body: read
