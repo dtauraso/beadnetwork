@@ -14,7 +14,7 @@
 
   <header>
     <h1>Update rules</h1>
-    <div class="sub">every branch of the node's own Update loop, with the arithmetic it runs</div>
+    <div class="sub">every branch of the node's own Update loop, with the link or test it runs</div>
   </header>
 
   <nav>
@@ -41,10 +41,11 @@
         <h2>The numbers</h2>
         <table class="f">
           <tr>
-            <td class="e">t</td>
-            <td class="n" colspan="2">the tilt index — the only number a node holds, and always on 0…23.
-              One step is 15°, so t is a position 15°·t round from world +y, not a running count of
-              clicks: step past 23 and it is 0 again, step below 0 and it is 23</td>
+            <td class="e">Top</td>
+            <td class="n" colspan="2">the tilt — a STATE on a ring of 24, not a number a node adds to.
+              Turning is following a link, Top ← Top.next or Top ← Top.prev, never +1 or −1 with a wrap.
+              Top.idx is that state's own index, 0…23, and is what leaves this kind: onto the wire, into
+              position.json, and 15°·idx is its angle from world +y</td>
           </tr>
           <tr>
             <td class="e">r, and whether r is set</td>
@@ -62,7 +63,96 @@
       </div>
 
       <div class="card wide">
-        <h2>The three directions a node computes from t</h2>
+        <h2>The machine — 24 states, and every input is a transition</h2>
+        <svg width="640" height="200" viewBox="0 0 640 200">
+          <defs>
+            <marker id="mNext" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto">
+              <path d="M0,0 L8,3 L0,6 z" fill="#5fd68a" />
+            </marker>
+            <marker id="mPrev" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto">
+              <path d="M0,0 L8,3 L0,6 z" fill="#e05fd8" />
+            </marker>
+          </defs>
+
+          <g fill="#2b2b33" stroke="#3a3a44">
+            <circle cx="110" cy="96" r="26" />
+            <circle cx="230" cy="96" r="26" />
+            <circle cx="350" cy="96" r="26" />
+            <circle cx="470" cy="96" r="26" />
+            <circle cx="590" cy="96" r="26" />
+          </g>
+          <g class="lblm" text-anchor="middle" fill="#e7e7ea">
+            <text x="110" y="101">21</text>
+            <text x="230" y="101">22</text>
+            <text x="350" y="101">23</text>
+            <text x="470" y="101">0</text>
+            <text x="590" y="101">1</text>
+          </g>
+          <text x="30" y="101" class="lbl" fill="#9a9aa6">…</text>
+          <text x="626" y="101" class="lbl" fill="#9a9aa6">…</text>
+
+          <!-- next: one way round -->
+          <g stroke="#5fd68a" stroke-width="2" fill="none" marker-end="url(#mNext)">
+            <path d="M 136 84 Q 170 62 202 84" />
+            <path d="M 256 84 Q 290 62 322 84" />
+            <path d="M 376 84 Q 410 62 442 84" />
+            <path d="M 496 84 Q 530 62 562 84" />
+          </g>
+          <text x="290" y="46" text-anchor="middle" class="lblm" fill="#5fd68a">next</text>
+
+          <!-- prev: the other -->
+          <g stroke="#e05fd8" stroke-width="2" fill="none" marker-end="url(#mPrev)">
+            <path d="M 562 110 Q 530 132 498 110" />
+            <path d="M 442 110 Q 410 132 378 110" />
+            <path d="M 322 110 Q 290 132 258 110" />
+            <path d="M 202 110 Q 170 132 138 110" />
+          </g>
+          <text x="410" y="156" text-anchor="middle" class="lblm" fill="#e05fd8">prev</text>
+
+          <line x1="410" y1="30" x2="410" y2="170" stroke="#3a3a44" stroke-dasharray="4 4" />
+          <text x="418" y="182" class="lbl" fill="#9a9aa6">23 → 0 is one link like any other</text>
+        </svg>
+        <table class="f">
+          <tr class="h">
+            <td>input</td>
+            <td colspan="2">transition</td>
+          </tr>
+          <tr>
+            <td class="e">arrival acute with Top</td>
+            <td class="e" colspan="2">Top ← Top.next</td>
+          </tr>
+          <tr>
+            <td class="e">arrival acute with Top.opposite</td>
+            <td class="e" colspan="2">Top ← Top.prev</td>
+          </tr>
+          <tr>
+            <td class="e">arrival acute with neither</td>
+            <td class="e" colspan="2">stay — and this is the halt: no send, no bead</td>
+          </tr>
+          <tr>
+            <td class="e">panel ▲ · panel ▼</td>
+            <td class="e" colspan="2">Top ← Top.next · Top ← Top.prev</td>
+          </tr>
+          <tr>
+            <td class="e">RESET, from the button or the marker</td>
+            <td class="e" colspan="2">Top ← ring[0]</td>
+          </tr>
+          <tr>
+            <td class="e">START on id 1 · a bead on In</td>
+            <td class="e" colspan="2">stay — START sends from where it already is, a bead only paces</td>
+          </tr>
+        </table>
+        <div class="cap">Those six are every input the machine has, and the four transitions are every move
+          it can make. A state is a direction the tilt can point, so there are 24 of them and the tilt is
+          always exactly one — there is no 25th to reach and no value between two, which is what makes an
+          off-the-ring tilt impossible to write down rather than merely guarded against.</div>
+        <div class="cap">The seam at 23 → 0 is one link like any other. Nothing detects it, nothing corrects
+          for it, and no rule mentions it — the ring closes because the last state's next IS the first, fixed
+          once when it was built.</div>
+      </div>
+
+      <div class="card wide">
+        <h2>The three directions a node reads off its own state</h2>
         <table class="f">
           <tr class="h">
             <td>direction</td>
@@ -70,56 +160,57 @@
           </tr>
           <tr>
             <td class="n">top — the tilt itself</td>
-            <td class="e">top = t</td>
+            <td class="e">top = Top</td>
           </tr>
           <tr>
             <td class="n">bottom — half a turn from the top</td>
-            <td class="e">bottom = t + 12</td>
+            <td class="e">bottom = Top.opposite</td>
           </tr>
           <tr>
             <td class="n">coplanar normal — a quarter turn from the top</td>
-            <td class="e">normal = t + 6; if normal ≥ 24 then normal −= 24</td>
+            <td class="e">normal = Top.quarter</td>
           </tr>
           <tr>
             <td class="n">what it sends — the normal, unchanged</td>
             <td class="e">sends = normal</td>
           </tr>
         </table>
-        <div class="cap">t + 12 draws the same direction whether t is positive or negative, since ±180° in θ
-          is one place. Both nodes of a pair run this same unmodified addition — there is no per-node sign.
-        </div>
-        <div class="cap">The wrap is one comparison, not a division: add 6 and pull back a full turn if that
-          pushes past 23. Only the normal wraps this way — the bottom is t + 12 exactly, unwrapped, because
-          the renderer decodes an index as (sin θ, cos θ, 0) and has no pole to cross.</div>
+        <div class="cap">opposite and quarter are links resolved once when the ring is built (init, in
+          ring.go) — a field read, not a sum. Both nodes of a pair run this same unmodified rule — there is
+          no per-node sign.</div>
+        <div class="cap">There is nothing to wrap: a link always points at one of the 24 states, so
+          bottom and normal land on the ring the same way top does, by construction, with no comparison and
+          no reduction at either one.</div>
       </div>
 
       <div class="card wide">
         <h2>The test that decides everything</h2>
         <table class="f">
           <tr>
-            <td class="e">d(a, b) = a − b, and + 24 when that is negative</td>
-            <td class="n" colspan="2">how far apart two directions are, in steps, on 0…23. Every index in
-              the model is already on the circle, so a difference is within one turn either way and one
-              comparison is the whole reduction — no <code>%</code>, and so no sign convention to get
-              wrong</td>
+            <td class="e">gap = max(a, b) − min(a, b)</td>
+            <td class="n" colspan="2">how far apart two directions are, in steps. Both sit on 0…23, so
+              larger minus smaller is already the gap — never negative, so there is nothing to reduce and
+              no sign convention to get wrong</td>
           </tr>
           <tr>
-            <td class="e">acute: d ∈ {0…5, 19…23}</td>
-            <td class="n" colspan="2">under 90° apart — the node turns</td>
+            <td class="e">acute: gap ∈ {0…5, 19…23}</td>
+            <td class="n" colspan="2">under 90° apart — the node turns. Two ranges because a gap and its
+              complement are the same pair of directions measured the other way round, and either being
+              short is enough</td>
           </tr>
           <tr>
-            <td class="e">perpendicular: d ∈ {6, 18}</td>
+            <td class="e">perpendicular: gap ∈ {6, 18}</td>
             <td class="n" colspan="2">exactly 90°, not acute — this is the halt</td>
           </tr>
           <tr>
-            <td class="e">obtuse: d ∈ {7…17}</td>
+            <td class="e">obtuse: gap ∈ {7…17}</td>
             <td class="n" colspan="2">neither test fires either</td>
           </tr>
         </table>
-        <div class="cap">Integer steps, so d is exact: no float dot product, and no epsilon band around 90°
-          to tune. Both tests fail together whenever d(v, top) is 6 or 18. Both passing is impossible: top
-          and bottom are 12 apart, and each acute range spans 5 steps either side of the direction it tests.
-        </div>
+        <div class="cap">Integer steps, so gap is exact: no float dot product, and no epsilon band around
+          90° to tune. Both tests fail together whenever gap(v, top) is 6 or 18. Both passing is impossible:
+          top and bottom are 12 apart, and each acute range spans 5 steps either side of the direction it
+          tests.</div>
       </div>
 
       <div class="card wide">
@@ -135,8 +226,9 @@
           </tr>
           <tr>
             <td class="e">syncTiltIndex()</td>
-            <td class="n" colspan="2">SetTiltIndex(t, normal, bottom) → writes position.json, then one frame.
-              Skip it and t = 0, normal = 0 both decode to world +y, so the two arrows superimpose</td>
+            <td class="n" colspan="2">SetTiltIndex(top.idx, normal.idx, bottom.idx) → writes position.json,
+              then one frame. Skip it and top.idx = 0, normal.idx = 0 both decode to world +y, so the two
+              arrows superimpose</td>
           </tr>
           <tr>
             <td class="e">clk ← clock().Copy()</td>
@@ -159,7 +251,7 @@
           </tr>
           <tr>
             <td class="e">In.PollRecv() returns a bead</td>
-            <td class="e" colspan="2">Fire(). t unchanged · VectorOut unwritten · Out unwritten — the bead
+            <td class="e" colspan="2">Fire(). Top unchanged · VectorOut unwritten · Out unwritten — the bead
               paces the exchange and decides no part of it</td>
           </tr>
 
@@ -173,7 +265,7 @@
           </tr>
           <tr>
             <td class="e">edit.Start, on node 1</td>
-            <td class="e" colspan="2">VectorOut ← sends(t) · Out ← one bead at tick T · t unchanged</td>
+            <td class="e" colspan="2">VectorOut ← sends(Top) · Out ← one bead at tick T · Top unchanged</td>
           </tr>
           <tr>
             <td class="e">edit.Start, on node 2</td>
@@ -182,7 +274,8 @@
           </tr>
           <tr>
             <td class="e">edit.Up true, else false</td>
-            <td class="e" colspan="2">t ← t + 1, else t ← t − 1 · VectorOut unwritten · Out unwritten</td>
+            <td class="e" colspan="2">Top ← Top.next, else Top ← Top.prev · VectorOut unwritten · Out
+              unwritten</td>
           </tr>
           <tr>
             <td class="e">all three of the above</td>
@@ -212,21 +305,21 @@
               and r holds that value until the next arrival or a clear()</td>
           </tr>
           <tr>
-            <td class="e">d(v, top) ∈ {0…5, 19…23}</td>
-            <td class="e" colspan="2">t ← t + 1</td>
+            <td class="e">v acute with top</td>
+            <td class="e" colspan="2">Top ← Top.next</td>
           </tr>
           <tr>
-            <td class="e">else d(v, bottom) ∈ {0…5, 19…23}</td>
-            <td class="e" colspan="2">t ← t − 1</td>
+            <td class="e">else v acute with bottom</td>
+            <td class="e" colspan="2">Top ← Top.prev</td>
           </tr>
           <tr>
-            <td class="e">neither set contains d</td>
-            <td class="e" colspan="2">t unchanged · VectorOut unwritten · Out unwritten — In and Out are not
-              read or written on this path</td>
+            <td class="e">v perpendicular to both</td>
+            <td class="e" colspan="2">Top unchanged · VectorOut unwritten · Out unwritten — In and Out are
+              not read or written on this path</td>
           </tr>
           <tr>
-            <td class="e">t changed</td>
-            <td class="e" colspan="2">syncTiltIndex() · VectorOut ← sends(t) · Out ← one bead at tick T</td>
+            <td class="e">Top changed</td>
+            <td class="e" colspan="2">syncTiltIndex() · VectorOut ← sends(Top) · Out ← one bead at tick T</td>
           </tr>
 
           <tr class="h">
@@ -255,8 +348,8 @@
         <h2>Every direction, worked out</h2>
         <table class="f">
           <tr class="h">
-            <td>t</td>
-            <td>bottom · normal · sends</td>
+            <td>top.idx</td>
+            <td>bottom.idx · normal.idx · sends</td>
             <td>the tilt · the normal</td>
           </tr>
           <tr>
@@ -300,9 +393,10 @@
             <td class="e">345° · 75°</td>
           </tr>
         </table>
-        <div class="cap">One quarter turn at every index, no exception. Every value here is on 0…23,
-          including the bottom: an index that would land past 23 comes back a full turn, one past the bottom
-          of the range goes up one. Both nodes of a pair run this same unmodified arithmetic.</div>
+        <div class="cap">One quarter-turn link from top to normal, one half-turn link from top to bottom, at
+          every state on the ring, no exception — bottom.idx and normal.idx are field reads, resolved when
+          the ring was built, never a sum computed here. Both nodes of a pair run this same unmodified rule.
+        </div>
       </div>
 
       <div class="card wide">
@@ -314,23 +408,23 @@
             <td>result</td>
           </tr>
           <tr>
-            <td class="e">node 1 at t = 23, node 2 at t = 10 · START</td>
+            <td class="e">node 1 top.idx = 23, node 2 top.idx = 10 · START</td>
             <td class="e">—</td>
             <td class="e">node 1 sends normal(23) = 5, places a bead</td>
           </tr>
           <tr>
             <td class="e">node 2 receives 5</td>
-            <td class="e">d(5, top 10) = 19 acute</td>
-            <td class="e">t ← 10 + 1 = 11 · sends normal(11) = 17 · bead</td>
+            <td class="e">gap(5, top 10) = 19 acute</td>
+            <td class="e">Top ← Top.next, top.idx 10 → 11 · sends normal(11) = 17 · bead</td>
           </tr>
           <tr>
             <td class="e">node 1 receives 17</td>
-            <td class="e">d(17, top 23) = 18 perpendicular · d(17, bottom 11) = 6 perpendicular</td>
-            <td class="e">both perpendicular — HALT. t unchanged, no send, no bead</td>
+            <td class="e">gap(17, top 23) = 18 perpendicular · gap(17, bottom 11) = 6 perpendicular</td>
+            <td class="e">both perpendicular — HALT. Top unchanged, no send, no bead</td>
           </tr>
           <tr>
             <td class="e">at rest</td>
-            <td class="e">t = 23 on node 1, t = 11 on node 2</td>
+            <td class="e">top.idx = 23 on node 1, top.idx = 11 on node 2</td>
             <td class="e">r = 17 on node 1, r = 5 on node 2 — the third arrows stay drawn</td>
           </tr>
         </table>
@@ -343,16 +437,16 @@
         <h2>What a report puts on this node's own frame</h2>
         <table class="f">
           <tr>
-            <td class="e">tilt angle = t × 15°</td>
+            <td class="e">tilt angle = top.idx × 15°</td>
             <td class="n" colspan="2">persisted</td>
           </tr>
           <tr>
-            <td class="e">bottom angle = bottom × 15°</td>
-            <td class="n" colspan="2">recomputed from t on every report, never stored</td>
+            <td class="e">bottom angle = top.opposite.idx × 15°</td>
+            <td class="n" colspan="2">read off the link on every report, never stored</td>
           </tr>
           <tr>
-            <td class="e">normal angle = normal × 15°</td>
-            <td class="n" colspan="2">recomputed from t on every report, never stored</td>
+            <td class="e">normal angle = top.quarter.idx × 15°</td>
+            <td class="n" colspan="2">read off the link on every report, never stored</td>
           </tr>
           <tr>
             <td class="e">received angle = r × 15°</td>
@@ -366,8 +460,8 @@
           </tr>
           <tr>
             <td class="e">centre, reach, pole, ring axis</td>
-            <td class="n" colspan="2">unchanged by t — a tilt turns an angle, and the separation stays where
-              the last drag put it</td>
+            <td class="n" colspan="2">unchanged by a tilt — turning is a step to a different state, and the
+              separation stays where the last drag put it</td>
           </tr>
           <tr>
             <td class="e">the row it claims</td>
@@ -383,8 +477,8 @@
         <h2>What a reset puts back</h2>
         <table class="f">
           <tr>
-            <td class="e">t ← 0, reported</td>
-            <td class="n" colspan="2">the bottom and the normal follow, being computed from t</td>
+            <td class="e">Top ← ring[0], reported</td>
+            <td class="n" colspan="2">the bottom and the normal follow, being links off the new Top</td>
           </tr>
           <tr>
             <td class="e">r ← 0, set ← false, reported</td>
@@ -393,7 +487,7 @@
           <tr>
             <td class="e">VectorIn emptied</td>
             <td class="n" colspan="2">depth 1, latest wins, so one receive empties it. A direction left
-              sitting there arrives next cycle and steps t straight back off 0</td>
+              sitting there arrives next cycle and steps Top straight back off ring[0]</td>
           </tr>
           <tr>
             <td class="e">In drained until empty</td>
@@ -438,9 +532,17 @@
             </td>
           </tr>
           <tr>
+            <td class="n">nodes/Node1/ring.go — the 24 states</td>
+            <td class="s" colspan="2">
+              <span data-src="nodes/Node1/ring.go#tiltState">tiltState</span> ·
+              <span data-src="nodes/Node1/ring.go#ring">ring</span> ·
+              <span data-src="nodes/Node1/ring.go#stateFor">stateFor</span> ·
+              <span data-src="nodes/Node1/ring.go#acuteWith">acuteWith</span>
+            </td>
+          </tr>
+          <tr>
             <td class="n">nodes/Wiring/tilt_vector_channel.go</td>
             <td class="s" colspan="2">
-              <span data-src="nodes/Wiring/tilt_vector_channel.go#TiltVectorIsAcute">TiltVectorIsAcute</span> ·
               <span data-src="nodes/Wiring/tilt_vector_channel.go#PollRecvVector">PollRecvVector</span> ·
               <span data-src="nodes/Wiring/tilt_vector_channel.go#SendVectorLatestNonBlocking">SendVectorLatestNonBlocking</span> ·
               <span data-src="nodes/Wiring/tilt_vector_channel.go#FullTurnThetaIdx">FullTurnThetaIdx</span>

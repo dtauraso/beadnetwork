@@ -12,7 +12,7 @@
 
   <header>
     <h1>Vectors</h1>
-    <div class="sub">three directions derived from one integer, and a fourth that arrived</div>
+    <div class="sub">three directions derived from one ring state, and a fourth that arrived</div>
   </header>
 
   <nav>
@@ -97,9 +97,9 @@
             <span><i style="background:#4ea1ff"></i>coplanar normal (+6) — and what is sent</span>
             <span><i style="background:#00E5FF"></i>received — the PARTNER's coplanar normal</span>
           </div>
-          <div class="cap">Three of the four are this index's own arithmetic and move together when t
-            steps. The fourth is not derived here at all: it is whatever last arrived, held until the next
-            arrival replaces it, and it is the only one a reset can remove on its own.</div>
+          <div class="cap">Three of the four are links off this node's own Top state and move together when
+            Top steps. The fourth is not derived here at all: it is whatever last arrived, held until the
+            next arrival replaces it, and it is the only one a reset can remove on its own.</div>
           <div class="cap">The received arrow is the partner's blue arrow, unrotated — the two are the same
             direction, drawn at two centres. In the editor these are the pink trio and the cyan single
             arrow; the colours here match.</div>
@@ -113,15 +113,15 @@
               <td>both nodes of a pair — same unmodified rule</td>
             </tr>
             <tr>
-              <td class="e">d(v, top) ∈ {0…5, 19…23}</td>
-              <td class="e">t ← t + 1</td>
+              <td class="e">v acute with top</td>
+              <td class="e">Top ← Top.next</td>
             </tr>
             <tr>
-              <td class="e">else d(v, bottom) ∈ {0…5, 19…23}</td>
-              <td class="e">t ← t − 1</td>
+              <td class="e">else v acute with bottom</td>
+              <td class="e">Top ← Top.prev</td>
             </tr>
             <tr>
-              <td class="e">d ∈ {6, 18} against both</td>
+              <td class="e">gap ∈ {6, 18} against both</td>
               <td class="e">no step · no send · no bead — the halt</td>
             </tr>
           </table>
@@ -157,13 +157,13 @@
             <text x="150" y="42" text-anchor="middle" class="lblm">one step = π/12 = 15°</text>
 
             <rect x="20" y="136" width="260" height="46" rx="7" fill="#2b2b33" stroke="#3a3a44" />
-            <text x="34" y="156" class="lblm">a step is ±1</text>
-            <text x="34" y="172" class="lbl">every angle change is ±1 on the index</text>
+            <text x="34" y="156" class="lblm">a step is one neighbouring state</text>
+            <text x="34" y="172" class="lbl">every angle change is one link, next or prev</text>
           </svg>
         </div>
 
         <div class="card">
-          <h2>Every index is a position on the circle</h2>
+          <h2>The ring is 24 states, not a number kept in range</h2>
           <svg width="300" height="270" viewBox="0 0 300 270">
             <defs>
               <marker id="wUp" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
@@ -193,24 +193,30 @@
             <text x="48" y="109" class="lblm">18</text>
             <text x="104" y="46" text-anchor="end" class="lbl" fill="#9a9aa6">23</text>
 
-            <!-- stepping up across the seam: 23 + 1 is 0, not 24 -->
+            <!-- 23.next is 0: an ordinary link, crossing the 0/23 boundary like any other pair of
+                 neighbours -->
             <path d="M 107 30.5 A 86 86 0 0 1 148 19" fill="none" stroke="#5fd68a" stroke-width="2"
               marker-end="url(#wUp)" />
-            <text x="196" y="22" class="lbl" fill="#5fd68a">+1 past 23 → 0</text>
+            <text x="196" y="22" class="lbl" fill="#5fd68a">next: 23 → 0</text>
 
-            <!-- and back the other way: 0 − 1 is 23, never −1 -->
+            <!-- and the other way: 0.prev is 23, the same kind of link, nothing special either side -->
             <path d="M 150 9 A 96 96 0 0 0 104 21" fill="none" stroke="#e05fd8" stroke-width="2"
               marker-end="url(#wDn)" />
-            <text x="100" y="12" text-anchor="end" class="lbl" fill="#e05fd8">−1 below 0 → 23</text>
+            <text x="100" y="12" text-anchor="end" class="lbl" fill="#e05fd8">prev: 0 → 23</text>
 
             <rect x="14" y="206" width="272" height="52" rx="7" fill="#2b2b33" stroke="#3a3a44" />
-            <text x="28" y="226" class="lblm">≥ 24 → subtract 24 · &lt; 0 → add 24</text>
-            <text x="28" y="244" class="lbl">the tilt, the bottom, the normal — one comparison, no division</text>
+            <text x="28" y="226" class="lblm">next / prev / opposite / quarter — links, not arithmetic</text>
+            <text x="28" y="244" class="lbl">resolved once when the ring is built; nothing happens at 0/23</text>
           </svg>
-          <div class="cap">t is a POSITION, not a running count of clicks: it is kept on 0…23 at the seed, at
-            the panel's ±1 and at the step's ±1, and every direction derived from it comes back the same
-            way. That is what lets the acute test subtract two indices and add a full turn once if the
-            result went negative, instead of reducing with a modulo.</div>
+          <div class="cap">The ring is 24 states (tiltState), built once at package init. A tilt IS one of
+            them — Top is a *tiltState, not an int — and turning is following Top.next or Top.prev, a link,
+            never a sum with a wrap to undo. Each state also carries opposite (a half turn away, the bottom
+            tilt) and quarter (a quarter turn on, the coplanar normal), resolved once when the ring is
+            built, so both are field reads rather than sums computed on every use.</div>
+          <div class="cap">next crossing 23 → 0, and prev crossing 0 → 23, are the SAME KIND OF LINK as every
+            other neighbouring pair on the ring — nothing is special at that boundary, because there is no
+            boundary to cross: every state already points at its neighbours, seam or not. There is no
+            twenty-fifth state, so "off the ring" cannot be written down at all.</div>
         </div>
 
       </div>

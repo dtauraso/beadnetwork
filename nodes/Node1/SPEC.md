@@ -43,7 +43,7 @@ they carry changed when the separate mover was removed.
 **On an In arrival** (`In.PollRecv`): fire this node's own trace and nothing else. A bead
 PACES the exchange and marks the round trip; it decides nothing and places nothing onward.
 
-It used to step `TopTiltThetaIdx` one click in this kind's own fixed direction (a retired
+It used to step the tilt index one click in this kind's own fixed direction (a retired
 fixed-direction step), with no reference to anything that arrived, stopping only if it happened to
 land exactly on `Wiring.PerpendicularThetaIdx` — which walking away from perpendicular never
 does. That put TWO rules on one index: the fixed bead step and the vector channel's acute-test
@@ -94,8 +94,8 @@ Alongside the bead edges above, each directed edge between two vector-capable ki
 (today: Node1 only — `Wiring.KindWantsVectorChannel`) gets its OWN dedicated
 node-to-node channel carrying `Wiring.TiltVectorMsg`, a single integer θ INDEX (never
 floats on a channel; there is no φ — every tilt vector in this exchange is θ-only, which
-is what lets `Wiring.TiltVectorIsAcute` be an exact integer comparison instead of a dot
-product against an epsilon). Buffered depth 1, latest-wins, both ends non-blocking
+is what lets the acute test be a walk along a ring of 24 states instead of a dot product
+against an epsilon). Buffered depth 1, latest-wins, both ends non-blocking
 (`Wiring.SendVectorLatestNonBlocking` / `Wiring.PollRecvVector`) — same shape as the
 speed-delivery channel. It travels additively: beads are unaffected, and this channel
 never carries a bead value or vice versa.
@@ -108,13 +108,14 @@ loop body) runs:
   pure index arithmetic (`theta+6`), never a cross product — so the normal turns WITH
   the tilt, always staying 90° away, rather than holding still toward the partner. There
   is no φ. Both nodes of a pair run this same unmodified addition — there is no per-node
-  sign. `coplanarNormal` (`nodes/Node1/node.go`)
-  wraps that single addition with one comparison: if `TopTiltThetaIdx + PerpendicularThetaIdx`
-  reaches `Wiring.FullTurnThetaIdx` (24) or past it, it subtracts a full turn back into
-  range. There is no pole and nothing to cross: the renderer decodes an index as
-  `(sin θ, cos θ, 0)`, a plain circle, so there is no φ to flip and no parity term. This is a
-  PURE function of `TopTiltThetaIdx` alone — no stored "did we just cross"
-  flag, no comparison against a previous value. This node's own goroutine computes the
+  sign. `coplanarNormal` (`nodes/Node1/node.go`) reads it straight off the tilt's own
+  `quarter` link on the ring (`nodes/Node1/ring.go`) — the ring is built with that link
+  already wrapped onto `0…Wiring.FullTurnThetaIdx-1`, so there is no addition here to
+  overflow and nothing to subtract back into range. There is no pole and nothing to cross:
+  the renderer decodes an index as `(sin θ, cos θ, 0)`, a plain circle, so there is no φ to
+  flip and no parity term. This is a PURE function of the tilt state's own `quarter` link
+  alone — no stored "did we just cross" flag, no comparison against a previous value. This
+  node's own goroutine computes the
   normal (`coplanarNormal`) and reports the tilt index, the normal index, AND the bottom
   tilt index to its own geometry in one call (`syncTiltIndex`, `SyncTiltIndex(theta,
   normalTheta, bottomTheta)`) every time any of them changes. That
@@ -141,10 +142,10 @@ loop body) runs:
   message) — REPLACING whatever it received last time,
   regardless of whether the step below fires. THEN the step decision: TWO ACUTE TESTS —
   the received vector against this node's own TOP tilt vector, and against its own BOTTOM
-  tilt vector (`Wiring.TiltVectorIsAcute`, an integer comparison on the π/12 index lattice,
-  no dot product and no epsilon — see that function). They decide
+  tilt vector (`acuteWith`, a walk out along the ring — no dot product, no epsilon, and no
+  arithmetic; see `nodes/Node1/ring.go`). They decide
   BOTH questions, whether to move and which way:
-  - acute with the TOP tilt: step `TopTiltThetaIdx` ONE click ADDING (+1) — the same
+  - acute with the TOP tilt: step the tilt state ONE click ADDING (+1) — the same
     unmodified rule on both nodes of a pair, so a pair still turns
     symmetrically when both lean the same way.
   - acute with the BOTTOM tilt: step ONE click the REVERSE way (SUBTRACTING, −1).
@@ -163,9 +164,9 @@ loop body) runs:
   sitting exactly at that index still steps if what arrived leans either way.
 - **No float hazard to handle**: there is no dot product here at all. Since the tilt vector
   lost its φ, both operands are single θ indices on the same 24-step lattice, and
-  `Wiring.TiltVectorIsAcute` is the integer comparison `d < 6 || d > 18` on their wrapped
-  difference (`nodes/Wiring/tilt_vector_channel.go`). The exactly-perpendicular case is the
-  exact integers 6 and 18, decided exactly — not `cos(π/2)` landing at 6.1e-17 and needing
+  `acuteWith` (`nodes/Node1/ring.go`) walks out from one state and asks whether the other is
+  within a quarter turn's worth of hops. The exactly-perpendicular case is the state the walk
+  stops one short of, decided exactly — not `cos(π/2)` landing at 6.1e-17 and needing
   an epsilon band to be classified as "not acute", which is what this test used to be.
 - **Received-vector RESET**: a Reset marker arriving on `VectorIn` zeroes this node's
   tilt (as above) AND clears its own received-vector record
