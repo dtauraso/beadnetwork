@@ -232,6 +232,19 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 		Wiring.SendVectorLatestNonBlocking(n.VectorOut, n.outgoingVector())
 		return true
 	}
+	if edit.Machine != Wiring.TiltMachineNone {
+		// WHICH MACHINE THIS NODE RUNS was decided outside it, from the gap between the pair's
+		// two tilts, which a node cannot see for itself at click time — nothing has arrived on
+		// its vector channel yet (nodes/Wiring/tilt_machine_chooser.go). This is the whole of
+		// this node's say in the matter: it is told, and it runs that until a reset.
+		switch edit.Machine {
+		case Wiring.TiltMachinePerpendicular:
+			n.Machine = perpendicularMachine{}
+		case Wiring.TiltMachineParallel:
+			n.Machine = parallelMachine{}
+		}
+		return false
+	}
 	if edit.Up {
 		n.Top = n.topState().next
 	} else {
@@ -472,24 +485,19 @@ func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
 	// Landing on the other is nothing — an angle it happens to be passing over on the way back
 	// to its own, which is what capturing it there got wrong.
 	//
-	// This is the ONE place the two machines meet, and all it does is run whichever this node
-	// is running. Neither machine appears in the other's branch.
-	if n.Machine != nil {
-		if !n.Machine.halted(before, arrival) {
-			n.Top = n.Machine.step(before, arrival)
-		}
+	// NOTHING HERE CHOOSES A MACHINE. Which one this node runs was decided outside it, from
+	// the gap, at the moment of the click that set the tilt (applyTiltEdit above,
+	// nodes/Wiring/tilt_machine_chooser.go). An arrival cannot answer that question: a node
+	// with nothing to return to closes on the arrival, and closing on the arrival is the
+	// perpendicular measure, so inferring it here always answered perpendicular and a pair set
+	// up near perpendicular could never be asked to run the parallel machine.
+	//
+	// With no machine — before any click, or after a reset — an arrival moves nothing.
+	if n.Machine == nil {
 		return true
 	}
-
-	// Running neither yet. Whichever machine's halt this arrival IS, is the one taken up; with
-	// nothing to return to otherwise, the node closes on the arrival.
-	switch {
-	case (perpendicularMachine{}).halted(before, arrival):
-		n.Machine = perpendicularMachine{}
-	case (parallelMachine{}).halted(before, arrival):
-		n.Machine = parallelMachine{}
-	default:
-		n.Top = (perpendicularMachine{}).step(before, arrival)
+	if !n.Machine.halted(before, arrival) {
+		n.Top = n.Machine.step(before, arrival)
 	}
 	return true
 }

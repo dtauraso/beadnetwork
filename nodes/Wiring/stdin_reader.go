@@ -453,6 +453,10 @@ func applyUpdateTiltVector(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSin
 	if msg.Attr == "reset" {
 		// Done setting: the slider's speed governs again. See HumanEditSpeed.
 		BroadcastSpeed(speedSinks, md.SliderSpeed())
+		// RESET is the one thing that releases the machine choice, so the tallies it was made
+		// from go with it (tilt_machine_chooser.go). The node clears its own running machine
+		// from the Reset edit itself, so nothing needs to be sent for that.
+		md.inboxes.chooser.forget()
 		if md.sendTiltEdit(id, TiltEditMsg{Reset: true}) {
 			return
 		}
@@ -478,6 +482,17 @@ func applyUpdateTiltVector(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSin
 	BroadcastSpeed(speedSinks, HumanEditSpeed)
 	up := msg.Flag == "up"
 	if md.sendTiltEdit(id, TiltEditMsg{Axis: msg.Attr, Up: up}) {
+		// AFTER EACH CLICK, CHECK THE GAP — here, outside the nodes, which is the only place
+		// both tilts are known before the exchange has been started (tilt_machine_chooser.go).
+		// A quarter-turn gap picks the perpendicular machine, anything else the parallel one,
+		// and the pair runs it until RESET. Told to BOTH ends: the gap is the pair's, not one
+		// node's, so both have to be running the same machine to work toward the same thing.
+		md.inboxes.chooser.click(id, up, md.ui.latticePoints)
+		if choice := md.inboxes.chooser.choose(md.ui.latticePoints); choice != TiltMachineNone {
+			for pairID := range md.inboxes.tiltEdit {
+				md.sendTiltEdit(pairID, TiltEditMsg{Machine: choice})
+			}
+		}
 		return
 	}
 	md.sendMove(id, moveMsg{Kind: moveMsgKindTiltVectorAngle, NodeID: id, Axis: msg.Attr, Bool: up})

@@ -156,8 +156,14 @@ loop body) runs:
   no computation, so a change to one cannot reach the other. A node runs one of them (`Machine`),
   or neither yet.
 
-  - running neither yet: whichever machine's halt the arrival IS, is the one taken up; with
-    nothing to return to otherwise, the node closes on the arrival.
+  WHICH ONE IT RUNS IS NOT DECIDED HERE. After each ▲/▼ click the gap between the pair's two
+  tilts is checked OUTSIDE the nodes, by the view-owner goroutine that routes every click
+  (`nodes/Wiring/tilt_machine_chooser.go`): a quarter-turn gap picks the perpendicular machine,
+  anything else picks the parallel one, and both ends are told. A node cannot decide this for
+  itself — at click time nothing has arrived on its vector channel, so it knows its own tilt
+  and nothing about its partner's.
+
+  - running neither (before any click, or after a reset): an arrival moves nothing.
   - running one, and the arrival is its halt: stand still, reply anyway.
   - otherwise: ONE `step` from that machine. The OTHER machine's halt is stepped straight over
     — the two sit a quarter turn apart in separation, so the walk back to one crosses the

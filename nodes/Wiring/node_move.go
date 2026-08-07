@@ -135,6 +135,14 @@ type nodeInboxes struct {
 	// every entry: the count is one scene-wide setting, so unlike a tilt edit it is
 	// addressed to no single node.
 	lattice map[string]chan int32
+
+	// chooser is the view owner's own tally of where the user has put each pair tilt, and the
+	// classification it makes from them — WHICH STATE MACHINE the pair runs
+	// (tilt_machine_chooser.go). It sits here because its entries are per pair node and are
+	// seeded by the same build-time call that registers tiltEdit above, but unlike the two
+	// maps it is WRITTEN AFTER BUILD as well — by the stdin-reader goroutine, on each click,
+	// which is the only goroutine that ever touches it.
+	chooser tiltMachineChooser
 }
 
 // finalizeActors builds the ring's nodeMover actor directory from md.mr.nodeGeoms, AFTER
