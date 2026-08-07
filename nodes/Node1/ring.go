@@ -103,26 +103,30 @@ func arrivedState(idx int32) *tiltState {
 	return at(idx)
 }
 
-// seedState maps the PERSISTED SEED onto its state, and is the one place a reduction is
-// right: position.json is written by an older build as readily as this one, and a file
-// holding a running count from before the tilt became a state is a real case rather than a
-// defect. Refusing to load a scene over it would be the wrong trade, so it folds — and
-// reports whether it had to, so a caller with a stream can say so out loud rather than
-// leaving a silently-moved tilt to be discovered by eye.
+// seedState maps the PERSISTED SEED onto its state by ASKING THE RING which state carries
+// that index — not by computing one. Every state was given its own index when the ring was
+// built, so the ring is the authority on which indices exist, and a number either names one
+// of them or names nothing.
+//
+// A number that names nothing loads as the ring's origin, and reports that it did. The
+// alternative is to fold it — 30 becoming 6, a quarter turn from where the file said — which
+// is a direction nobody wrote, arrived at by arithmetic, and indistinguishable once drawn
+// from one somebody chose. Landing at the origin is wrong in an obvious way instead of a
+// plausible one, and the breadcrumb says which number was refused.
+//
+// This is the case a persisted file legitimately reaches: position.json is written by an
+// older build as readily as this one, and once the lattice size is editable, a file saved at
+// one size and opened at a smaller one names indices this ring does not have.
+//
+// There is no arithmetic here at all — no modulo, no sign to handle. It is 24 comparisons
+// once per node at load.
 func seedState(idx int32) (s *tiltState, folded bool) {
-	if idx >= 0 && idx < Wiring.FullTurnThetaIdx {
-		return at(idx), false
+	for i := range ring {
+		if ring[i].idx == idx {
+			return &ring[i], false
+		}
 	}
-	// One modulo and one comparison. Go's `%` keeps the DIVIDEND's sign, so -40 % 24 is -16
-	// rather than 8, and a negative index is the whole reason this function exists — a
-	// persisted running count went below zero as readily as above it. Adding a full turn to
-	// exactly the negative results is the fix, and testing for them costs nothing here: this
-	// runs once per node at load.
-	i := idx % Wiring.FullTurnThetaIdx
-	if i < 0 {
-		i += Wiring.FullTurnThetaIdx
-	}
-	return at(i), true
+	return &ring[0], true
 }
 
 // acuteWith reports whether target lies within a quarter turn of s — the whole of what the

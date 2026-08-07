@@ -21,18 +21,12 @@ import (
 
 // applyTiltEdit is what the RESET button, the START TILT button, and the tilt-angle panel
 // (TiltVectorButtons.tsx / TiltVectorAnglePanel.tsx) each drive; this asserts THIS node
-// kind's own decision for a reset, from any starting indices: both indices land on 0 (the
-// start position), and — unlike Start — no bead is placed ("the kick" only fires for
-// Start, never a stop-and-return).
+// kind's own decision for a reset, from EVERY starting index on the ring: both indices land
+// on 0 (the start position), and — unlike Start — no bead is placed ("the kick" only fires
+// for Start, never a stop-and-return).
 func TestApplyTiltEditResetReturnsBothIndicesToZero(t *testing.T) {
-	for _, start := range []int32{
-		0,
-		5,
-		-9,
-		Wiring.PerpendicularThetaIdx,
-	} {
-		top, _ := seedState(start)
-		n := &Node{Top: top}
+	for start := int32(0); start < Wiring.FullTurnThetaIdx; start++ {
+		n := &Node{Top: at(start)}
 		placeBead := n.applyTiltEdit(Wiring.TiltEditMsg{Reset: true})
 		if placeBead {
 			t.Fatalf("reset from theta=%d must place no bead, got placeBead=true", start)
@@ -43,11 +37,10 @@ func TestApplyTiltEditResetReturnsBothIndicesToZero(t *testing.T) {
 	}
 }
 
-// The drawn coplanar normal must sit exactly +6 steps (90°) in θ from the tilt, φ
-// unchanged, for Node1 — pure index arithmetic reusing Wiring.PerpendicularThetaIdx, not
-// a cross product (Part 1 of this task). These starting indices all sit within the first
-// pole-crossing zone (no odd number of Wiring.HalfTurnThetaIdx poles crossed yet), so no
-// half-turn flip applies here — the flip itself is asserted separately, below.
+// The drawn coplanar normal must sit exactly +6 steps (90°) in θ from the tilt — a link on
+// the ring, reusing Wiring.PerpendicularThetaIdx, not a cross product. These indices are far
+// enough from the ring's end that the link lands without coming round, so the raw sum is the
+// answer; the version that covers every index, wrap included, is the next test.
 func TestCoplanarNormalIsPlusSixStepsInTheta(t *testing.T) {
 	for _, theta := range []int32{0, 5, 9} {
 		n := &Node{Top: at(theta)}
@@ -68,20 +61,18 @@ func TestCoplanarNormalIsPlusSixStepsInTheta(t *testing.T) {
 // directions rather than as a formula, so it holds whether or not the addition wrapped: the
 // wrap takes off a full turn, which is not a change of direction.
 //
-// The indices below span several full turns in both directions and sit on either side of
-// every multiple of a half turn. Those are exactly the boundaries where this used to flip the
-// normal to the other side of the tilt, so a reintroduced parity term fails here rather than
-// only showing up later as an arrow that jumps on screen.
+// EVERY state on the ring is checked, not a chosen few. A tilt is one of exactly
+// FullTurnThetaIdx directions and cannot be anything else, so the whole domain is small
+// enough to walk — including both sides of every multiple of a half turn, which is where a
+// reintroduced parity term would flip the normal to the other side of the tilt.
+//
+// Indices off the ring are not in this list because they are not tilts: a state is the only
+// thing a tilt can be, and the ring has no such member for the node to hold.
 func TestCoplanarNormalIsOneQuarterTurnPastTheTiltEverywhere(t *testing.T) {
-	half := Wiring.HalfTurnThetaIdx
 	full := Wiring.FullTurnThetaIdx
 	quarter := Wiring.PerpendicularThetaIdx
-	for _, theta := range []int32{
-		0, 1, half - 1, half, half + 1, full - 1, full, full + 1, 2 * full,
-		-1, -half + 1, -half, -half - 1, -full, -full - 1, -2 * full,
-	} {
-		top, _ := seedState(theta)
-		n := &Node{Top: top}
+	for theta := int32(0); theta < full; theta++ {
+		n := &Node{Top: at(theta)}
 		norm := n.coplanarNormal()
 		// The separation must be the quarter turn AHEAD (6), never the quarter turn behind
 		// (18) — the latter is what the removed parity term produced for half of the range.
@@ -92,10 +83,10 @@ func TestCoplanarNormalIsOneQuarterTurnPastTheTiltEverywhere(t *testing.T) {
 	}
 }
 
-// EVERY INDEX STAYS ON THE CIRCLE, whatever a user or an exchange does to it. This is the
-// precondition the one-comparison reductions rest on — here and in
-// Wiring.TiltVectorIsAcute — so it is asserted directly rather than left to the reader to
-// verify by inspecting each site that moves the index.
+// EVERY INDEX STAYS ON THE RING, whatever a user or an exchange does to it. A tilt only ever
+// moves by following a link, so this should be true by construction; it is asserted anyway,
+// because "by construction" is a claim about every site that moves the tilt, and this checks
+// them rather than asking a reader to.
 //
 // Walks the index all the way round in both directions with the panel's ±1, then all the way
 // round again with the acute-test step, checking the range after every single move. A missed
@@ -201,11 +192,11 @@ func TestApplyTiltEditAdjustMovesOneStepAndSendsNothing(t *testing.T) {
 // reduces onto the circle and demands exactly the quarter turn AHEAD — 18 (the quarter turn
 // behind) and 30 (a reintroduced half-turn reversal) both fail it.
 func TestOutgoingVectorIsTheCoplanarNormalUnchanged(t *testing.T) {
-	// Negative indices are included deliberately: a ▼ click takes the index below zero, and
-	// every one of these derivations is integer arithmetic that must not care about the sign.
-	for _, theta := range []int32{3, 0, -1, -7, -Wiring.HalfTurnThetaIdx} {
-		top, _ := seedState(theta)
-		n := &Node{Top: top}
+	// EVERY index on the ring is checked: a tilt is only ever one of the ring's own states
+	// (a ▼ click follows n.top.prev, which cannot leave the ring), so there is no negative or
+	// out-of-range stored index left to probe — the whole domain is walked instead.
+	for theta := int32(0); theta < Wiring.FullTurnThetaIdx; theta++ {
+		n := &Node{Top: at(theta)}
 		norm := n.coplanarNormal()
 		out := n.outgoingVector()
 		if out.ThetaIdx != norm.ThetaIdx {
@@ -606,13 +597,12 @@ func TestResetSendsAMarkerNotADirection(t *testing.T) {
 // THE ID CHANGES NOTHING EXCEPT WHO ANSWERS START. Both ends run this one implementation
 // unmodified, so at the same tilt index they derive the same directions and step the same
 // way — which is what makes the shared implementation VISIBLE in the editor: end 2's
-// coplanar normal points where end 1's does, instead of opposite it.
+// coplanar normal points where end 1's does, instead of opposite it. EVERY index on the
+// ring is checked for the derive half of this claim.
 func TestBothIDsDeriveAndStepIdentically(t *testing.T) {
-	for _, theta := range []int32{0, 1, 5, -1, -7, Wiring.HalfTurnThetaIdx, Wiring.FullTurnThetaIdx} {
-		oneTop, _ := seedState(theta)
-		twoTop, _ := seedState(theta)
-		one := &Node{PairID: 1, Top: oneTop}
-		two := &Node{PairID: 2, Top: twoTop}
+	for theta := int32(0); theta < Wiring.FullTurnThetaIdx; theta++ {
+		one := &Node{PairID: 1, Top: at(theta)}
+		two := &Node{PairID: 2, Top: at(theta)}
 
 		if one.coplanarNormal().ThetaIdx != two.coplanarNormal().ThetaIdx {
 			t.Fatalf("theta=%d: the two ids must derive the SAME normal, got %d and %d",
@@ -779,21 +769,27 @@ func TestArrivedStatePanicsOffRingAndNotOnRing(t *testing.T) {
 	}
 }
 
-// seedState is the one boundary allowed to REDUCE, because it maps the PERSISTED SEED —
-// position.json can hold a running count written by an older build, before the tilt became a
-// state, and that is a real case rather than a defect. In range it must return the identical
-// ring member with folded=false; out of range it must fold onto the ring (reporting
-// folded=true) rather than refuse to load, and the folded index must be exactly what the old
-// double-mod form `((idx % full) + full) % full` would have produced — written out explicitly
-// below rather than reusing seedState's own arithmetic, so a regression in that arithmetic
-// cannot pass by comparing itself to itself.
-func TestSeedStateFoldsOutOfRangeAndPassesThroughInRange(t *testing.T) {
+// seedState maps the PERSISTED SEED by asking the ring which state carries that index. A
+// number the ring has names that state exactly; a number it does not have names nothing, and
+// loads at the origin having said so.
+//
+// WHY THE ORIGIN AND NOT A FOLD. An index of 30 on a 24-state ring folds to 6 — a quarter
+// turn from where the file said, arrived at by arithmetic, and once drawn indistinguishable
+// from a direction somebody chose. The origin is wrong in a way that is obvious on sight, and
+// the reported flag is what says so out loud. This matters more the moment the lattice size
+// is editable: a file saved at one size and opened at a smaller one names indices this ring
+// does not have, and that is a routine case rather than a legacy one.
+//
+// The in-range half of this is the stronger claim: EVERY index the ring has must come back as
+// the identical ring member, not an equal-valued copy, so pointer identity keeps meaning
+// direction equality.
+func TestSeedStateLoadsAKnownIndexExactlyAndAnUnknownOneAtTheOrigin(t *testing.T) {
 	full := Wiring.FullTurnThetaIdx
 
 	for idx := int32(0); idx < full; idx++ {
-		s, folded := seedState(idx)
-		if folded {
-			t.Fatalf("seedState(%d): in-range index must not fold, got folded=true", idx)
+		s, unknown := seedState(idx)
+		if unknown {
+			t.Fatalf("seedState(%d): the ring has this index, so it must not report unknown", idx)
 		}
 		if s != at(idx) {
 			t.Fatalf("seedState(%d): want the identical ring member at(%d), got a different state", idx, idx)
@@ -801,13 +797,13 @@ func TestSeedStateFoldsOutOfRangeAndPassesThroughInRange(t *testing.T) {
 	}
 
 	for _, idx := range []int32{-1, -24, -25, full, full + 1, full + 23, 2 * full} {
-		s, folded := seedState(idx)
-		if !folded {
-			t.Fatalf("seedState(%d): out-of-range index must fold, got folded=false", idx)
+		s, unknown := seedState(idx)
+		if !unknown {
+			t.Fatalf("seedState(%d): the ring has no such index, so it must report unknown", idx)
 		}
-		want := ((idx % full) + full) % full
-		if s.idx != want {
-			t.Fatalf("seedState(%d): want folded idx=%d (double-mod form), got %d", idx, want, s.idx)
+		if s != at(0) {
+			t.Fatalf("seedState(%d): an index the ring does not have must load at the origin, got idx=%d",
+				idx, s.idx)
 		}
 	}
 }

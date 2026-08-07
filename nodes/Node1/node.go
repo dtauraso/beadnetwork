@@ -566,9 +566,9 @@ func init() {
 			n.Out = a.Out("Out")
 			// The persisted seed is a NUMBER from outside this kind — an old position.json
 			// can hold anything, including a running count from before the tilt became a
-			// state — so it comes in through seedState, the one place a number is folded onto
-			// the ring. After this line the tilt is a state and stays one.
-			seed, seedFolded := seedState(a.TiltVectorAngleSeed())
+			// state — so it comes in through seedState, which asks the ring which state
+			// carries that index. After this line the tilt is a state and stays one.
+			seed, seedUnknown := seedState(a.TiltVectorAngleSeed())
 			n.Top = seed
 			n.TiltEditIn = a.TiltEditIn()
 			// Self replaces the old SyncTiltIndex/SyncReceivedVector/ClearOutBeads
@@ -577,12 +577,12 @@ func init() {
 			// used to be a message is a plain method call on the same object below.
 			self := a.ClaimSelfDrive()
 			n.Self = self
-			if seedFolded {
-				// A persisted index that was not on the ring — a position.json written
+			if seedUnknown {
+				// The persisted index is not one this ring has — a position.json written
 				// before the tilt became a state, or by a build with a different lattice.
-				// It loads, folded onto the ring, and says so: the alternative is a tilt
-				// that quietly points somewhere other than where the file asked.
-				self.Breadcrumb("pair-seed-folded", fmt.Sprintf(
+				// The node opens at the origin and says which number it refused, rather
+				// than computing some other direction and drawing it as if chosen.
+				self.Breadcrumb("pair-seed-unknown", fmt.Sprintf(
 					"node=%s persisted=%d loaded=%d", a.Name(), a.TiltVectorAngleSeed(), seed.idx))
 			}
 			n.SyncTiltIndex = func(theta, normalTheta, bottomTheta int32) {
