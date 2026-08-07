@@ -156,11 +156,14 @@ loop body) runs:
   no computation, so a change to one cannot reach the other. A node runs one of them (`Machine`),
   or neither yet.
 
-  WHICH ONE IT RUNS COMES FROM THE TILT BEING SET. On each ▲/▼ click, the tilt that click just
-  produced is read: a quarter turn is perpendicular, anything else is acute and is parallel.
-  Nothing is remembered to work that out — no seed, no tally of clicks — and the answer replaces
-  whatever was chosen before. The other end is told on the pair's own vector channel
-  (`TiltVectorMsg.Machine`), since both have to work toward the same thing.
+  WHICH ONE IT RUNS COMES FROM THE TILT BEING SET, ONCE. On a ▲/▼ click with no machine yet
+  running, the tilt that click just produced is read: a quarter turn is perpendicular, anything
+  else is acute and is parallel. Nothing is remembered to work that out — no seed, no tally of
+  clicks. The other end is told on the pair's own vector channel (`TiltVectorMsg.Machine`),
+  since both have to work toward the same thing.
+
+  Then it STICKS until reset. A click landing once a machine is running is a jitter — the thing
+  the running machine exists to correct — not a new instruction about what the pair is for.
 
   - running neither (before any click, or after a reset): an arrival moves nothing.
   - running one, and the arrival is its halt: stand still, reply anyway.

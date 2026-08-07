@@ -237,13 +237,22 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 	} else {
 		n.Top = n.topState().prev
 	}
-	// THE TILT JUST SET DECIDES WHICH MACHINE THE PAIR RUNS. A quarter turn is perpendicular;
-	// anything else is acute, and acute is parallel. Nothing is remembered to work this out —
-	// no seed, no tally of clicks — it is read off the tilt this click just produced, every
-	// click, and it replaces whatever was chosen before.
+	// THE TILT JUST SET DECIDES WHICH MACHINE THE PAIR RUNS — ONCE. A quarter turn is
+	// perpendicular; anything else is acute, and acute is parallel. Nothing is remembered to
+	// work that out: it is read off the tilt this click just produced.
+	//
+	// AND THEN IT STICKS UNTIL RESET. A click that lands once a machine is already running is
+	// a JITTER — the thing the running machine exists to correct — not a new instruction about
+	// what the pair is for. Re-deciding on it was a real failure: a pair set to a quarter turn
+	// chose perpendicular, was started, and the very next click took the tilt one step off a
+	// quarter turn and switched both ends to parallel mid-run.
 	//
 	// The other end is told on the pair's own channel, since both have to be working toward
-	// the same thing. RESET removes the choice at both ends (clear).
+	// the same thing. RESET removes the choice at both ends (clear), and the next click after
+	// that makes a new one.
+	if n.Machine != nil {
+		return false
+	}
 	choice := Wiring.TiltMachineParallel
 	if n.topState().separation(n.ringOf().at(0)) == n.ringOf().quarterTurn {
 		choice = Wiring.TiltMachinePerpendicular
@@ -260,7 +269,13 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 // machine — the naming lives in Wiring so both ends can say it to each other, and the machines
 // themselves live here (perpendicular.go, parallel.go), which is the only place that knows how
 // either one steps.
+// The choice STICKS: a node already running one keeps it, so a second choice crossing the pair
+// — or one arriving at an end that has already made its own — cannot switch it mid-run. Only a
+// reset clears it, and the next click after that makes a new one.
 func (n *Node) adoptMachine(choice Wiring.TiltMachine) {
+	if n.Machine != nil {
+		return
+	}
 	switch choice {
 	case Wiring.TiltMachinePerpendicular:
 		n.Machine = perpendicularMachine{}
