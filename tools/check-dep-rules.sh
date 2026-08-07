@@ -43,6 +43,22 @@ MODULE="github.com/dtauraso/wirefold"
 # Shared spine: allowed as an import target from any kind, and not itself a "kind".
 is_spine() { [ "$1" = "Wiring" ] || [ "$1" = "gatecommon" ] || [ "$1" = "wire" ]; }
 
+# TEMPORARY EXCEPTION — nodes/Node2 may import nodes/Node1.
+#
+# The two are one rule with one sign between them: bottom is t ± 12, the coplanar normal is
+# t ± 6, and the step is ±1 with the same sign, node 2 taking the opposite of node 1
+# throughout. Rather than keep two hand-mirrored implementations in step, node 2's builder is
+# to construct node 1's struct with the opposite sign — a second INSTANTIATION rather than a
+# second copy.
+#
+# This is exactly the coupling the rule above exists to prevent, and it is granted on purpose
+# and named here rather than being worked around by moving code somewhere it does not belong.
+# The two clean endings for it: the shared body moves into the spine (the gatecommon
+# precedent — SelectRight and SelectLeft already share one Update body parameterised by
+# side), or node 2 stops existing as a separate kind. Until one of those happens this entry
+# is the record that a kind reaches into another kind here.
+is_granted_exception() { [ "$1" = "Node2" ] && [ "$2" = "Node1" ]; }
+
 fail=0
 for dir in "$NODES_DIR"/*/; do
   kind="$(basename "$dir")"
@@ -56,6 +72,7 @@ for dir in "$NODES_DIR"/*/; do
     [ -z "$dep" ] && continue
     [ "$dep" = "$kind" ] && continue      # self (subpackage) — fine
     is_spine "$dep" && continue           # shared spine — allowed
+    is_granted_exception "$kind" "$dep" && continue
     echo "ILLEGAL DEP: nodes/$kind imports sibling nodes/$dep — kinds must couple only through the shared spine (Wiring/gatecommon)"
     fail=1
   done <<< "$imported"
