@@ -102,19 +102,19 @@
               <td class="e">miss = min(sep, |sep − HALF|)</td>
               <td class="n">the PERPENDICULAR machine's own measure. A quarter turn is an ordinary
                 angle to it — one it steps over</td>
-              <td class="s" data-src="nodes/Node1/perpendicular.go#miss">perpendicular.go</td>
+              <td class="s" data-src="nodes/Node1/machine.go#perpendicularMachine">home = { 0, half }</td>
             </tr>
             <tr>
               <td class="e">miss = |sep − QUARTER|</td>
-              <td class="n">the PARALLEL machine's own measure, in its own file, sharing no
-                computation with the one above</td>
-              <td class="s" data-src="nodes/Node1/parallel.go#miss">parallel.go</td>
+              <td class="n">the same measure against the PARALLEL home set — and exactly the
+                complement of the one above, the two summing to a quarter turn</td>
+              <td class="s" data-src="nodes/Node1/machine.go#parallelMachine">home = { quarter }</td>
             </tr>
             <tr>
               <td class="e">step = next if miss(next) ≤ miss(prev), else prev</td>
               <td class="n">each machine's own; answerable everywhere on the ring, both halts
                 included</td>
-              <td class="s" data-src="nodes/Node1/perpendicular.go#step">perpendicular.go</td>
+              <td class="s" data-src="nodes/Node1/machine.go#step">perpendicular.go</td>
             </tr>
 
             <tr class="h">

@@ -22,7 +22,7 @@ func testRing() *ring { return newRing(48) }
 
 func TestPerpendicularHaltsOnItsOwnTwoSeparations(t *testing.T) {
 	r := testRing()
-	m := perpendicularMachine{}
+	m := perpendicularMachine
 	top := r.at(0)
 
 	// The arrival on this node's own top (separation 0) and on its bottom (a half turn) are the
@@ -43,7 +43,7 @@ func TestPerpendicularHaltsOnItsOwnTwoSeparations(t *testing.T) {
 
 func TestParallelHaltsOnlyOnAQuarterTurn(t *testing.T) {
 	r := testRing()
-	m := parallelMachine{}
+	m := parallelMachine
 	top := r.at(0)
 
 	if !m.halted(top, r.at(r.quarterTurn)) {
@@ -66,13 +66,13 @@ func TestEachMachineStepsTowardItsOwnHalt(t *testing.T) {
 		arrival := r.at(sep)
 		top := r.at(0)
 
-		perp := perpendicularMachine{}
+		perp := perpendicularMachine
 		if !perp.halted(top, arrival) {
 			if got, was := perp.miss(perp.step(top, arrival), arrival), perp.miss(top, arrival); got >= was {
 				t.Errorf("perpendicular at separation %d: step left miss at %d, was %d", sep, got, was)
 			}
 		}
-		par := parallelMachine{}
+		par := parallelMachine
 		if !par.halted(top, arrival) {
 			if got, was := par.miss(par.step(top, arrival), arrival), par.miss(top, arrival); got >= was {
 				t.Errorf("parallel at separation %d: step left miss at %d, was %d", sep, got, was)
@@ -83,7 +83,7 @@ func TestEachMachineStepsTowardItsOwnHalt(t *testing.T) {
 
 func TestPerpendicularStepsThroughTheParallelHalt(t *testing.T) {
 	r := testRing()
-	m := perpendicularMachine{}
+	m := perpendicularMachine
 	// Standing one step off a quarter turn, walking home to separation 0, this machine must pass
 	// over the quarter turn rather than stop on it. Sitting still here is the freeze the acute
 	// test produced; halting here is the capture that produced a parallel pair from a
@@ -99,6 +99,53 @@ func TestPerpendicularStepsThroughTheParallelHalt(t *testing.T) {
 	}
 	if m.halted(stepped, arrival) == false && m.miss(stepped, arrival) >= m.miss(top, arrival) {
 		t.Error("the step did not close on the perpendicular halt")
+	}
+}
+
+// TestTheTwoMissesAreComplements locks the identity the one-machine fold rests on: the modes are
+// not merely alike, they are one rule read in two directions. If this ever fails, the home sets
+// have stopped being midpoints of each other and the two modes are genuinely separate rules
+// again — which is the reading under which the split into two files was right (machine.go's
+// header, docs/pair-node/audit.html).
+func TestTheTwoMissesAreComplements(t *testing.T) {
+	r := testRing()
+	top := r.at(0)
+	for sep := int32(0); sep < r.points; sep++ {
+		arrival := r.at(sep)
+		perp := perpendicularMachine.miss(top, arrival)
+		par := parallelMachine.miss(top, arrival)
+		if perp+par != r.quarterTurn {
+			t.Errorf("separation %d: perpendicular miss %d + parallel miss %d = %d, want the quarter turn %d",
+				sep, perp, par, perp+par, r.quarterTurn)
+		}
+	}
+}
+
+// TestAModeHaltsExactlyOnItsHomeSet checks that the shared rule agrees with each mode's declared
+// data: halted is true at exactly the declared homes and nowhere else, for every mode in the
+// table. It reads the home set rather than naming separations, so a mode added to the table is
+// covered here without editing this test.
+//
+// It cannot catch a home set that is simply WRONG — both sides of the comparison move together —
+// and that is not its job: what it catches is miss, the fold, or halted drifting away from the
+// data, which is the failure the one-machine fold could introduce.
+func TestAModeHaltsExactlyOnItsHomeSet(t *testing.T) {
+	r := testRing()
+	top := r.at(0)
+	for _, m := range []*tiltMachine{perpendicularMachine, parallelMachine} {
+		home := map[int32]bool{}
+		for _, h := range m.homes(r) {
+			home[h] = true
+		}
+		for sep := int32(0); sep < r.points; sep++ {
+			// separation folds the long way round into the short one, so the halt is asked
+			// about the folded reading — which is the number a home set is written in.
+			folded := top.separation(r.at(sep))
+			if got := m.halted(top, r.at(sep)); got != home[folded] {
+				t.Errorf("%v at separation %d (folds to %d): halted=%v, home set says %v",
+					m, sep, folded, got, home[folded])
+			}
+		}
 	}
 }
 
@@ -156,14 +203,14 @@ func TestAdoptedMachineSticksUntilCleared(t *testing.T) {
 	n := &Node{Ring: r, Top: r.at(0)}
 
 	n.adoptMachine(Wiring.TiltMachinePerpendicular)
-	if _, ok := n.Machine.(perpendicularMachine); !ok {
+	if n.Machine != perpendicularMachine {
 		t.Fatalf("adopt did not take: running %v", n.Machine)
 	}
 	// A second choice — a click landing mid-run, or the partner's own answer arriving — must not
 	// switch a running machine. Re-deciding on a jitter click switched a started perpendicular
 	// pair to parallel one step after START.
 	n.adoptMachine(Wiring.TiltMachineParallel)
-	if _, ok := n.Machine.(perpendicularMachine); !ok {
+	if n.Machine != perpendicularMachine {
 		t.Errorf("a later choice switched a running machine: now %v", n.Machine)
 	}
 	// RESET is the one thing that releases it.

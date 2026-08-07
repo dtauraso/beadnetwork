@@ -101,15 +101,15 @@ type Node struct {
 	// step constant, trig only at the cartesian/polar boundary).
 	Top *tiltState
 
-	// Machine is WHICH STATE MACHINE this node is running — perpendicularMachine or
-	// parallelMachine, one per file, sharing no computation (perpendicular.go, parallel.go).
-	// nil means neither yet. A node has to know which it is running, because that is what says
-	// where it is returning to when something disturbs it.
+	// Machine is WHICH MODE of the tilt machine this node is running — one of the rows in
+	// machine.go, which differ only in the separations they call home. nil means none yet. A
+	// node has to know which it is running, because that is what says where it is returning to
+	// when something disturbs it.
 	//
 	// It is set when an arrival lands on one machine's halt and by nothing else — no arrival in
 	// between erases it, so a node disturbed mid-turn still knows what it is returning to. The
 	// RESET button is the one thing that erases it (clear).
-	Machine tiltMachine
+	Machine *tiltMachine
 
 	// Ring is THIS NODE'S OWN lattice — its states, and the counts every rule reads off them.
 	// The point count is a scene setting a user can change, so this is not fixed for the life
@@ -264,11 +264,11 @@ func (n *Node) machineForGap(arrival *tiltState) Wiring.TiltMachine {
 	return Wiring.TiltMachineParallel
 }
 
-// adoptMachine sets which of this kind's two state machines this node runs. It is the ONE
-// writer of that field outside clear(), and it maps the pair-wide name onto this package's own
-// machine — the naming lives in Wiring so both ends can say it to each other, and the machines
-// themselves live here (perpendicular.go, parallel.go), which is the only place that knows how
-// either one steps.
+// adoptMachine sets which mode of the tilt machine this node runs. It is the ONE writer of that
+// field outside clear(), and the mapping from the pair-wide name to the mode is machineFor — the
+// naming lives in Wiring so both ends can say it to each other, and the home sets live in
+// machine.go, which is the only place that knows what any of them means on the ring.
+//
 // The choice STICKS: a node already running one keeps it, so a second choice crossing the pair
 // — or one arriving at an end that has already made its own — cannot switch it mid-run. Only a
 // reset clears it, and the next click after that makes a new one.
@@ -276,12 +276,7 @@ func (n *Node) adoptMachine(choice Wiring.TiltMachine) {
 	if n.Machine != nil {
 		return
 	}
-	switch choice {
-	case Wiring.TiltMachinePerpendicular:
-		n.Machine = perpendicularMachine{}
-	case Wiring.TiltMachineParallel:
-		n.Machine = parallelMachine{}
-	}
+	n.Machine = machineFor(choice)
 }
 
 // adoptLattice rebuilds THIS node's own ring at a new point count, on THIS node's own

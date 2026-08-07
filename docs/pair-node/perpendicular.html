@@ -14,7 +14,7 @@
 
   <header>
     <h1>Perpendicular</h1>
-    <div class="sub">one of the pair's two resting states, its own machine, in its own file</div>
+    <div class="sub">one of the pair's two resting states — a mode of the one machine, and its home set</div>
   </header>
 
   <nav>
@@ -53,18 +53,18 @@
           <tr>
             <td class="e">a quarter turn apart</td>
             <td class="n">separation 0 — the arrival sits exactly on this node's own TOP</td>
-            <td class="s" data-src="nodes/Node1/perpendicular.go#halted">perpendicular.go</td>
+            <td class="s" data-src="nodes/Node1/machine.go#perpendicularMachine">home = { 0, half }</td>
           </tr>
           <tr>
             <td class="e">a quarter turn apart, the other way</td>
             <td class="n">separation a half turn — the arrival sits exactly on its BOTTOM</td>
-            <td class="s" data-src="nodes/Node1/perpendicular.go#halted">perpendicular.go</td>
+            <td class="s" data-src="nodes/Node1/machine.go#perpendicularMachine">home = { 0, half }</td>
           </tr>
           <tr>
             <td class="e">on one line, either way round</td>
             <td class="n">separation a quarter turn — this is PARALLEL, and to this machine it is an
               ordinary angle it walks straight over</td>
-            <td class="s" data-src="nodes/Node1/parallel.go#halted">parallel.go</td>
+            <td class="s" data-src="nodes/Node1/machine.go#parallelMachine">home = { quarter }</td>
           </tr>
         </table>
         <p>The two ends see the same relationship from opposite sides: each receives the other's
@@ -84,35 +84,41 @@
             <td class="e">halted ⟺ sep = 0 ∨ sep = HALF</td>
             <td class="n">stand still. The node still replies, so the partner has something to correct
               against</td>
-            <td class="s" data-src="nodes/Node1/perpendicular.go#halted">halted</td>
+            <td class="s" data-src="nodes/Node1/machine.go#halted">halted</td>
           </tr>
           <tr>
             <td class="e">miss = min(sep, |sep − HALF|)</td>
             <td class="n">distance to the nearer of the two halts; zero is the halt</td>
-            <td class="s" data-src="nodes/Node1/perpendicular.go#miss">miss</td>
+            <td class="s" data-src="nodes/Node1/machine.go#miss">miss</td>
           </tr>
           <tr>
             <td class="e">step = next if miss(next) ≤ miss(prev), else prev</td>
             <td class="n">ONE move, a link either way, so a step cannot leave the ring. Answerable
               everywhere — including at a quarter turn, where the old acute test said "not acute" and
               the rule read that as stand still, exactly where this machine most needs to move</td>
-            <td class="s" data-src="nodes/Node1/perpendicular.go#step">step</td>
+            <td class="s" data-src="nodes/Node1/machine.go#step">step</td>
           </tr>
         </table>
       </div>
 
       <div class="card wide">
-        <h2>Why it is a separate file</h2>
+        <h2>Why it was a separate file, and why it is not one now</h2>
         <p>Three attempts at this rule changed the PARALLEL one as a side effect, every time through
           something that served both: a miss parameterized by which state you were in, a step that
           took the state as an argument, and a version where a node running neither compared its
           distance to parallel against its distance to perpendicular to pick a target — parallel
           arithmetic deciding a perpendicular question.</p>
-        <p>Two machines in two files have nowhere to put that coupling. They share
-          <span data-src="nodes/Node1/ring.go#separation">separation</span> and nothing else, and that
-          is a measurement of where two directions sit — it names no resting state and decides
-          nothing. The files look alike and say some of the same things twice; that is the cost, and
-          folding them back into one parameterized rule is what the arrangement exists to prevent.</p>
+        <p>Two machines in two files had nowhere to put that coupling, and both rules were finished
+          under that arrangement without either disturbing the other. The <a href="audit.html">audit</a>
+          then measured what they had become: one rule, its exact complement, and a single line of
+          genuinely distinct data — which separations count as HOME.</p>
+        <p>So the two are now one machine
+          (<span data-src="nodes/Node1/machine.go#tiltMachine">tiltMachine</span>) and a mode is its
+          home set and nothing else. This is not the fourth attempt at the three above: those
+          parameterized the RULE, and a branch inside a shared miss is what let a change meant for one
+          mode land in the other. Nothing branches on the mode now — miss is a minimum over a set of
+          numbers and cannot ask who it works for, step never sees a mode at all — so the coupling has
+          no place left to live.</p>
       </div>
 
       <div class="card wide">
@@ -167,25 +173,25 @@
         <h2>Files</h2>
         <table class="f">
           <tr>
-            <td class="n">nodes/Node1/perpendicular.go</td>
+            <td class="n">nodes/Node1/machine.go</td>
             <td class="s" colspan="2">
-              <span data-src="nodes/Node1/perpendicular.go#perpendicularMachine">perpendicularMachine</span> ·
-              <span data-src="nodes/Node1/perpendicular.go#halted">halted</span> ·
-              <span data-src="nodes/Node1/perpendicular.go#step">step</span> ·
-              <span data-src="nodes/Node1/perpendicular.go#miss">miss</span>
+              <span data-src="nodes/Node1/machine.go#tiltMachine">tiltMachine</span> ·
+              <span data-src="nodes/Node1/machine.go#halted">halted</span> ·
+              <span data-src="nodes/Node1/machine.go#step">step</span> ·
+              <span data-src="nodes/Node1/machine.go#miss">miss</span>
             </td>
           </tr>
           <tr>
-            <td class="n">nodes/Node1/parallel.go</td>
+            <td class="n">— the two modes, each its home set</td>
             <td class="s" colspan="2">
-              <span data-src="nodes/Node1/parallel.go#parallelMachine">parallelMachine</span>
+              <span data-src="nodes/Node1/machine.go#perpendicularMachine">perpendicularMachine</span> ·
+              <span data-src="nodes/Node1/machine.go#parallelMachine">parallelMachine</span>
             </td>
           </tr>
           <tr>
             <td class="n">nodes/Node1/ring.go</td>
             <td class="s" colspan="2">
-              <span data-src="nodes/Node1/ring.go#separation">separation</span> ·
-              <span data-src="nodes/Node1/ring.go#tiltMachine">tiltMachine</span>
+              <span data-src="nodes/Node1/ring.go#separation">separation</span>
             </td>
           </tr>
           <tr>

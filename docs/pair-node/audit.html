@@ -157,8 +157,8 @@
 
   <header>
     <h1>Machine sameness audit</h1>
-    <div class="sub">where perpendicular.go and parallel.go are the same thing — a report, no change made
-    </div>
+    <div class="sub">where perpendicular.go and parallel.go were the same thing — the report that folded
+      them into one machine</div>
   </header>
 
   <main>
@@ -316,13 +316,18 @@
     </div>
 
     <div class="card">
-      <h2>Not a proposal</h2>
-      <div class="cap">The split exists so a change to one file cannot move the other — the property
-        repeatedly lost when the two shared a parameterised function. It does not require the two to be
-        independent, and they are not; it requires only that no edit reaches across. A duplicate that is
-        deliberate is not a defect.<br><br>The header in <code>nodes/Node1/perpendicular.go</code> claims
-        they share no computation. True of the TEXT, false of the MATHEMATICS — this page is the correction
-        to it.</div>
+      <h2>What was done about it</h2>
+      <div class="cap">This page was written as a report, not a proposal — the split existed so a change to
+        one file could not move the other, and that property was repeatedly lost when the two shared a
+        parameterised function.<br><br>The two are now ONE machine (<code>nodes/Node1/machine.go</code>),
+        because of what is measured above: the difference is DATA, not code. A mode contributes a home
+        set and nothing else. The three earlier attempts each parameterised the RULE — a branch inside
+        miss, a mode passed to step — and that branch is what let a change meant for one mode land in the
+        other. There is no such branch now: miss is a minimum over a set of numbers and cannot ask which
+        mode it serves, and step never sees a mode at all.<br><br>The claim the old
+        <code>perpendicular.go</code> header made — that the two share no computation — was true of the
+        TEXT and false of the MATHEMATICS. That is what this page corrected, and the fold is what
+        followed from it.</div>
     </div>
 
   </main>

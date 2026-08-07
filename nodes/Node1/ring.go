@@ -192,28 +192,13 @@ func (s *tiltState) separation(target *tiltState) int32 {
 // `kind=none -> hold`). A node now RUNS ONE OF TWO STATE MACHINES, and which one it is running
 // is what says where it is returning to when something disturbs it.
 //
-// tiltMachine is that pair seen from the node: perpendicularMachine and parallelMachine, each
-// complete in its own file, neither reading the other. A node runs one of them, or none yet.
-// This interface is the ONLY thing the two have in common, and it deliberately carries no
-// computation of its own — a shared helper hung off here is a shared rule by another name,
-// which is what kept coupling them.
-type tiltMachine interface {
-	// halted: is this arrival this machine's resting state?
-	halted(from, arrival *tiltState) bool
-	// step: the one move that leaves the node closer to it.
-	step(from, arrival *tiltState) *tiltState
-	// choice: this machine's pair-wide name, so the end that chose can tell the other one
-	// (Wiring.TiltMachine, carried on every vector message).
-	choice() Wiring.TiltMachine
-	// String names the machine for the diagnostic row — the two have to be distinguishable
-	// there too, since a log that printed both alike is what hid them being one state.
-	String() string
-}
-
-// THE RESTING-STATE RULES ARE NOT IN THIS FILE. Perpendicular lives in perpendicular.go and
-// parallel in parallel.go, one state machine each, sharing no computation — see either file's
-// header for why. What this file provides them is `separation`: a measurement of where two
-// directions sit relative to each other, which is not a rule and names no resting state.
+// A node runs ONE MODE of the one machine (machine.go), or none yet. The modes differ only in
+// which separations they call home, and that difference is written as data — see machine.go's
+// header for the audit that established it and for why the rule is now written once.
+//
+// THE RESTING-STATE RULES ARE NOT IN THIS FILE. They are the home sets in machine.go. What this
+// file provides them is `separation`: a measurement of where two directions sit relative to each
+// other, which is not a rule and names no resting state.
 
 func abs32(v int32) int32 {
 	if v < 0 {

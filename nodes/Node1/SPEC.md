@@ -151,10 +151,10 @@ loop body) runs:
   | 0, or a half turn | a quarter turn apart | PERPENDICULAR |
   | a quarter turn | on one line, either way round | PARALLEL |
 
-  Each is a SEPARATE STATE MACHINE in its own file — `perpendicularMachine`
-  (`nodes/Node1/perpendicular.go`) and `parallelMachine` (`nodes/Node1/parallel.go`) — sharing
-  no computation, so a change to one cannot reach the other. A node runs one of them (`Machine`),
-  or neither yet.
+  Each is a MODE of the one state machine (`nodes/Node1/machine.go`), and a mode is nothing but
+  its HOME SET — the separations it calls a resting state: `{ 0, half }` for `perpendicularMachine`
+  and `{ quarter }` for `parallelMachine`. The rule that walks toward a home set is written once
+  and never asks which mode it is running for. A node runs one mode (`Machine`), or none yet.
 
   WHICH ONE IT RUNS IS READ FROM THE GAP WHEN THE EXCHANGE OPENS — the first arrival, which is
   START, the moment the setup is finished and also the first moment either end can see BOTH
