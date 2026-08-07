@@ -155,42 +155,71 @@ func (r *ring) seedState(idx int32) (s *tiltState, unknown bool) {
 	return &r.states[0], true
 }
 
-// acuteWith reports whether target lies within a quarter turn of s — the whole of what the
-// straightening rule asks about two directions.
+// THE ACUTE TEST IS GONE. It asked whether the arrival lay within a quarter turn, and a cone
+// says that without saying which SIDE, so it could not answer at exactly a quarter turn at all
+// — it reported "not acute" there, which the rule read as "stand still", at precisely the
+// separation a node holding perpendicular most needed to move off. Direction now comes from
+// which single step leaves this node nearer its own halt (stepToward), which is answerable
+// everywhere on the ring, including at both halts.
 //
-// THE GAP IS TAKEN LARGER MINUS SMALLER, so it is never negative and there is no sign
-// convention anywhere: both states are on the ring, so the gap lands in [0, points) with no
-// reduction of any kind — no modulo, no conditional add, no floor.
-//
-// A gap and its complement describe the same pair of directions, one going each way round the
-// ring, and the shorter of the two is the angle between them. So rather than pick the shorter
-// — a min, and another comparison — both are tested at once: the pair is within a quarter
-// turn when the gap is under a quarter turn going one way, or over three quarters of a turn,
-// which is the same thing going the other.
-//
-// BOTH ENDS ARE OPEN. An acute angle is strictly between nothing and a quarter turn, so
-// neither bound counts:
-//
-//   - a quarter turn exactly is perpendicular, which is what the exchange comes to rest on;
-//   - a gap of ZERO is not an angle to correct at all — the two directions are the same one.
-//     Counting it as acute makes a node turn hardest at the one arrival it agrees with
-//     completely, which is the opposite of what the rule is for.
-//
-// So the four gaps a node does not turn on are 0, a quarter turn either way, and a half turn:
-// aligned with its top, square to it on either side, and aligned with its bottom. Everything
-// between those leans, and which side it leans is which way the node turns.
-//
-// Both states must belong to THIS ring; a state from another lattice has an index that means
-// a different angle, and comparing the two numbers would silently answer about neither.
-func (s *tiltState) acuteWith(target *tiltState) bool {
+// separation is how far apart two states are on the ring, going the SHORT way round — never
+// more than a half turn. acuteWith above answers a yes/no with the long-way case folded into
+// its second comparison; the halt tests need the number itself, and need it to mean the same
+// thing whichever side the target sits on, so the fold happens here instead.
+func (s *tiltState) separation(target *tiltState) int32 {
 	gap := s.idx - target.idx
-	if target.idx > s.idx {
-		gap = target.idx - s.idx
+	if gap < 0 {
+		gap = -gap
 	}
-	if gap == 0 {
-		return false
+	if gap > s.ring.halfTurn {
+		gap = s.ring.points - gap
 	}
-	return gap < s.ring.quarterTurn || gap > s.ring.points-s.ring.quarterTurn
+	return gap
+}
+
+// PERPENDICULAR AND PARALLEL ARE DIFFERENT STATES, AND EACH HAS ITS OWN HALT.
+//
+// What arrives is the partner's coplanar NORMAL, which already sits a quarter turn off the
+// partner's own tilt. So the separation between this node's top and that arrival says what
+// the two TILTS are doing, one quarter turn removed:
+//
+//	separation 0, or a half turn  ->  the tilts are a quarter turn apart  ->  PERPENDICULAR
+//	separation a quarter turn     ->  the tilts are the same direction    ->  PARALLEL
+//
+// Both are places the pair can rest, and they are NOT the same place. The rule used to halt on
+// "not acute", which is one condition covering both — so a pair disturbed out of perpendicular
+// could walk into parallel and stop there, and the log read identically at both (every row
+// `kind=none -> hold`). A node now RUNS ONE OF TWO STATE MACHINES, and which one it is running
+// is what says where it is returning to when something disturbs it.
+//
+// tiltMachine is that pair seen from the node: perpendicularMachine and parallelMachine, each
+// complete in its own file, neither reading the other. A node runs one of them, or none yet.
+// This interface is the ONLY thing the two have in common, and it deliberately carries no
+// computation of its own — a shared helper hung off here is a shared rule by another name,
+// which is what kept coupling them.
+type tiltMachine interface {
+	// halted: is this arrival this machine's resting state?
+	halted(from, arrival *tiltState) bool
+	// step: the one move that leaves the node closer to it.
+	step(from, arrival *tiltState) *tiltState
+	// choice: this machine's pair-wide name, so the end that chose can tell the other one
+	// (Wiring.TiltMachine, carried on every vector message).
+	choice() Wiring.TiltMachine
+	// String names the machine for the diagnostic row — the two have to be distinguishable
+	// there too, since a log that printed both alike is what hid them being one state.
+	String() string
+}
+
+// THE RESTING-STATE RULES ARE NOT IN THIS FILE. Perpendicular lives in perpendicular.go and
+// parallel in parallel.go, one state machine each, sharing no computation — see either file's
+// header for why. What this file provides them is `separation`: a measurement of where two
+// directions sit relative to each other, which is not a rule and names no resting state.
+
+func abs32(v int32) int32 {
+	if v < 0 {
+		return -v
+	}
+	return v
 }
 
 // defaultRing is the lattice a node gets when nothing has said otherwise — the count this

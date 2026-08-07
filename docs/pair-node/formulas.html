@@ -27,7 +27,8 @@
     <a href="vectors.html">Vectors</a>
     <a href="math.html">Math</a>
     <a class="on" href="formulas.html">Formulas</a>
-    <a href="dots.html">Acute test</a>
+    <a href="dots.html">Separation</a>
+    <a href="perpendicular.html">Perpendicular</a>
     <a href="channels.html">Channels</a>
     <a href="cycle.html">Cycle</a>
     <a href="updates.html">Update rules</a>
@@ -92,36 +93,50 @@
               <td>source</td>
             </tr>
             <tr>
-              <td class="e">gap = max(a.idx, b.idx) − min(a.idx, b.idx)</td>
-              <td class="n">never negative — both are already on the ring, so larger minus smaller is
-                already the gap, with no reduction of any kind</td>
-              <td class="s" data-src="nodes/Node1/ring.go#acuteWith">ring.go</td>
+              <td class="e">sep = |a.idx − b.idx|, folded to ≤ HALF</td>
+              <td class="n">the short way round, so the number means the same thing whichever side
+                the arrival sits on</td>
+              <td class="s" data-src="nodes/Node1/ring.go#separation">ring.go</td>
             </tr>
             <tr>
-              <td class="e">acute ⟺ gap &lt; PERP ∨ gap &gt; FULL − PERP</td>
-              <td class="n">gap = 6 and gap = 18 are the halt</td>
-              <td class="s" data-src="nodes/Node1/ring.go#acuteWith">ring.go</td>
+              <td class="e">miss = min(sep, |sep − HALF|)</td>
+              <td class="n">the PERPENDICULAR machine's own measure. A quarter turn is an ordinary
+                angle to it — one it steps over</td>
+              <td class="s" data-src="nodes/Node1/perpendicular.go#miss">perpendicular.go</td>
+            </tr>
+            <tr>
+              <td class="e">miss = |sep − QUARTER|</td>
+              <td class="n">the PARALLEL machine's own measure, in its own file, sharing no
+                computation with the one above</td>
+              <td class="s" data-src="nodes/Node1/parallel.go#miss">parallel.go</td>
+            </tr>
+            <tr>
+              <td class="e">step = next if miss(next) ≤ miss(prev), else prev</td>
+              <td class="n">each machine's own; answerable everywhere on the ring, both halts
+                included</td>
+              <td class="s" data-src="nodes/Node1/perpendicular.go#step">perpendicular.go</td>
             </tr>
 
             <tr class="h">
               <td>THE STEP — what arrived</td>
-              <td>both nodes of a pair — same unmodified rule</td>
+              <td>both nodes of a pair — same unmodified rule per machine</td>
             </tr>
             <tr>
-              <td class="e">acute(v, top) →</td>
-              <td class="e">Top ← Top.next</td>
+              <td class="e">this machine.halted(top, arrival) →</td>
+              <td class="n">stand still, reply anyway</td>
             </tr>
             <tr>
-              <td class="e">acute(v, bottom) →</td>
-              <td class="e">Top ← Top.prev</td>
+              <td class="e">otherwise →</td>
+              <td class="e">Top ← this machine.step(top, arrival)</td>
             </tr>
             <tr>
-              <td class="e">neither →</td>
-              <td class="n">hold, send nothing</td>
+              <td class="e">no machine yet →</td>
+              <td class="n">an arrival moves nothing; the choice is made at START (machineForGap)</td>
             </tr>
           </table>
           <div class="cap">The direction and step rows are the one kind's own <code>stepFromVector</code>,
-            run unmodified by both nodes of a pair — nodes/Node1/node.go.</div>
+            run unmodified by both nodes of a pair, dispatching to whichever machine
+            (<code>perpendicularMachine</code>/<code>parallelMachine</code>) the node holds — nodes/Node1/node.go.</div>
         </div>
 
         <div class="card wide">

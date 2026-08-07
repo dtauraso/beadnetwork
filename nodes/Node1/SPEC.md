@@ -22,7 +22,7 @@
 | Name | Direction | EdgeKind | Notes |
 |------|-----------|----------|-------|
 | In | in | chain | sole input; every arrival is drained non-blocking and paces the exchange — it decides and places nothing itself |
-| Out | out | chain | THIS node's own goroutine places a bead here directly, from `handleVectorCycle` when the acute tests actually move this node — never the mover |
+| Out | out | chain | THIS node's own goroutine places a bead here directly, from `handleVectorCycle` when `stepFromVector` actually moves this node — never the mover |
 
 ## Firing rule
 
@@ -60,9 +60,10 @@ the bead loop lives and dies with the exchange it paces.
 mover) carries THREE distinct edits, applied by `applyTiltEdit` (`nodes/Node1/node.go`):
 
 - **A ▲/▼ panel click** (`TiltVectorAnglePanel.tsx`): applies exactly one ±1 step to the
-  named axis and STOPS — no send, no bead. This used to ALSO open the vector exchange as
-  a side effect ("the kick"), so one click moved the tilt by many π/12 steps once the
-  exchange settled instead of exactly one; that side effect is now START's alone.
+  named axis, marks this end HELD (a tilt a user set is intent, not error — this end keeps
+  its index and does not turn on an arrival; the partner moves instead), and ALSO OPENS THE
+  EXCHANGE by sending this node's own outgoing vector alongside a bead — a click that only
+  moved an index would leave the partner with nothing to answer.
 - **START** (`TiltEditMsg.Start`, the START TILT button, `TiltVectorButtons.tsx`): opens
   the vector exchange from whatever angles are CURRENTLY set — sends this node's own
   `outgoingVector()` on `VectorOut` alongside a bead ("THE KICK"), which is what gives
@@ -140,34 +141,51 @@ loop body) runs:
   `ReceivedSet`, reported to its own geometry via `SyncReceivedVector` — same
   passive-mirror shape as `SyncTiltIndex`, and likewise a direct call rather than a
   message) — REPLACING whatever it received last time,
-  regardless of whether the step below fires. THEN the step decision: TWO ACUTE TESTS —
-  the received vector against this node's own TOP tilt vector, and against its own BOTTOM
-  tilt vector (`acuteWith`, a walk out along the ring — no dot product, no epsilon, and no
-  arithmetic; see `nodes/Node1/ring.go`). They decide
-  BOTH questions, whether to move and which way:
-  - acute with the TOP tilt: step the tilt state ONE click ADDING (+1) — the same
-    unmodified rule on both nodes of a pair, so a pair still turns
-    symmetrically when both lean the same way.
-  - acute with the BOTTOM tilt: step ONE click the REVERSE way (SUBTRACTING, −1).
-  - neither acute: step nothing and send nothing — this is how the vector exchange stops,
-    independently of whether the bead exchange has also stopped.
+  regardless of whether the step below fires. THEN the step decision (`stepFromVector`):
+  THERE ARE TWO TARGETS, and each has its own halt. The arrival is the partner's normal,
+  already a quarter turn off the partner's tilt, so the separation between it and this node's
+  own TOP says what the two TILTS are doing:
 
-  If it stepped, report the new indices to its own geometry (`syncTiltIndex`) and send the
-  outgoing vector above, alongside the bead.
-- **Why there is no both-acute case to arbitrate**: the bottom tilt is a half turn from the
-  top, i.e. its exact antipode, so the two tests are exact opposites of each other — at
-  most one can pass, and neither passes only when the received vector sits exactly
-  `PerpendicularThetaIdx` from the tilt axis. Which end the arrival leans toward IS the
-  direction; there is no free sign knob and no ordering dependence between the two tests.
-- **Perpendicular is a property of the ARRIVAL, not of where this node sits**: unlike the
-  retired bead-path rule, this never compares against `Wiring.PerpendicularThetaIdx`. A node
-  sitting exactly at that index still steps if what arrived leans either way.
-- **No float hazard to handle**: there is no dot product here at all. Since the tilt vector
-  lost its φ, both operands are single θ indices on the same 24-step lattice, and
-  `acuteWith` (`nodes/Node1/ring.go`) walks out from one state and asks whether the other is
-  within a quarter turn's worth of hops. The exactly-perpendicular case is the state the walk
-  stops one short of, decided exactly — not `cos(π/2)` landing at 6.1e-17 and needing
-  an epsilon band to be classified as "not acute", which is what this test used to be.
+  | separation | the two tilts | halt |
+  | --- | --- | --- |
+  | 0, or a half turn | a quarter turn apart | PERPENDICULAR |
+  | a quarter turn | the same direction | PARALLEL |
+
+  Each is a SEPARATE STATE MACHINE in its own file — `perpendicularMachine`
+  (`nodes/Node1/perpendicular.go`) and `parallelMachine` (`nodes/Node1/parallel.go`) — sharing
+  no computation, so a change to one cannot reach the other. A node runs one of them (`Machine`),
+  or neither yet.
+
+  WHICH ONE IT RUNS IS READ FROM THE GAP WHEN THE EXCHANGE OPENS — the first arrival, which is
+  START, the moment the setup is finished and also the first moment either end can see BOTH
+  tilts. The arrival is the partner's normal, so backing out its quarter gives the partner's own
+  tilt: a quarter-turn gap is perpendicular, anything else is acute and is parallel. Nothing is
+  remembered to work that out — no seed, no tally of clicks.
+
+  Then it STICKS until reset. A click landing once a machine is running is a jitter — the thing
+  the running machine exists to correct — not a new instruction about what the pair is for.
+  Deciding at a CLICK instead read a gap of one step on the first of eleven and locked the pair
+  to the wrong machine while the tilt was still on its way.
+
+  The end that did not decide learns the answer from the first reply: every vector message
+  carries which machine its sender is running (`TiltVectorMsg.Machine`), and adopting sticks, so
+  a later message cannot switch a running machine.
+
+  - running neither (before any click, or after a reset): an arrival moves nothing.
+  - running one, and the arrival is its halt: stand still, reply anyway.
+  - otherwise: ONE `step` from that machine. The OTHER machine's halt is stepped straight over
+    — the two sit a quarter turn apart in separation, so the walk back to one crosses the
+    other, and halting at whichever was touched first is what let a perpendicular pair walk
+    into parallel and stay.
+
+  `Machine` is cleared only by a reset (a clean slate), never by an arrival.
+
+  If it turned (or answered while square), report the new indices to its own geometry
+  (`syncTiltIndex`) and send the outgoing vector above, alongside the bead.
+- **No float hazard to handle**: there is no dot product here at all. Both operands are
+  single θ indices on the same lattice, and each machine's own `miss` measures the distance to
+  its own halt in integer ring hops — not `cos(...)` landing near zero and needing an epsilon
+  band.
 - **Received-vector RESET**: a Reset marker arriving on `VectorIn` zeroes this node's
   tilt (as above) AND clears its own received-vector record
   (`ReceivedSet = false`, synced) — a stale received arrow left hanging would
@@ -214,7 +232,8 @@ streamed as the buffer's `ReceivedVectorLen`/`ReceivedVectorTheta` columns,
 `Buffer/layout.go`). It:
 
 - Persists indefinitely once set — it is NOT cleared when the straightening exchange
-  settles (i.e. neither test is acute, so nothing steps and nothing is sent). An arrival is
+  settles (i.e. the arrival lands on this node's own top, so nothing steps and nothing is
+  sent). An arrival is
   recorded even when it moves nothing: the last direction this node was sent is what it is
   still holding, and blanking the arrow when the pair comes to rest would erase the state
   it came to rest in.

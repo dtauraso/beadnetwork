@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pair node — Perpendicular</title>
+  <link rel="stylesheet" href="pair.css">
+  <script src="port.js"></script>
+  <script src="pair.js" defer></script>
+</head>
+
+<body>
+
+  <header>
+    <h1>Perpendicular</h1>
+    <div class="sub">one of the pair's two resting states, its own machine, in its own file</div>
+  </header>
+
+  <nav>
+    <a href="index.html">Index</a>
+    <a href="anatomy.html">Anatomy</a>
+    <a href="own.html">Ownership</a>
+    <a href="vectors.html">Vectors</a>
+    <a href="math.html">Math</a>
+    <a href="formulas.html">Formulas</a>
+    <a href="dots.html">Separation</a>
+    <a class="on" href="perpendicular.html">Perpendicular</a>
+    <a href="channels.html">Channels</a>
+    <a href="cycle.html">Cycle</a>
+    <a href="updates.html">Update rules</a>
+    <a href="clock.html">Clock</a>
+    <a href="geometry.html">Geometry</a>
+    <a href="asym.html">Asymmetry</a>
+  </nav>
+
+  <main>
+
+    <div class="grid">
+
+      <div class="card wide">
+        <h2>What perpendicular is, and what the node actually sees</h2>
+        <p>The pair is perpendicular when its two TILTS are a quarter turn apart. No node ever
+          receives a tilt, though — what crosses the channel is the partner's COPLANAR NORMAL, which
+          already sits a quarter turn off the partner's own tilt. So the relationship arrives here
+          with a quarter turn already folded into it.</p>
+        <table class="f">
+          <tr>
+            <td>the two tilts</td>
+            <td>what this node measures</td>
+            <td>source</td>
+          </tr>
+          <tr>
+            <td class="e">a quarter turn apart</td>
+            <td class="n">separation 0 — the arrival sits exactly on this node's own TOP</td>
+            <td class="s" data-src="nodes/Node1/perpendicular.go#halted">perpendicular.go</td>
+          </tr>
+          <tr>
+            <td class="e">a quarter turn apart, the other way</td>
+            <td class="n">separation a half turn — the arrival sits exactly on its BOTTOM</td>
+            <td class="s" data-src="nodes/Node1/perpendicular.go#halted">perpendicular.go</td>
+          </tr>
+          <tr>
+            <td class="e">the same direction</td>
+            <td class="n">separation a quarter turn — this is PARALLEL, and to this machine it is an
+              ordinary angle it walks straight over</td>
+            <td class="s" data-src="nodes/Node1/parallel.go#halted">parallel.go</td>
+          </tr>
+        </table>
+        <p>The two ends see the same relationship from opposite sides: each receives the other's
+          normal, so a square pair reads as separation 0 at one end and a half turn at the other. Both
+          are this machine's halt, which is why it has two.</p>
+      </div>
+
+      <div class="card wide">
+        <h2>The whole machine</h2>
+        <table class="f">
+          <tr>
+            <td>step</td>
+            <td>what it does</td>
+            <td>source</td>
+          </tr>
+          <tr>
+            <td class="e">halted ⟺ sep = 0 ∨ sep = HALF</td>
+            <td class="n">stand still. The node still replies, so the partner has something to correct
+              against</td>
+            <td class="s" data-src="nodes/Node1/perpendicular.go#halted">halted</td>
+          </tr>
+          <tr>
+            <td class="e">miss = min(sep, |sep − HALF|)</td>
+            <td class="n">distance to the nearer of the two halts; zero is the halt</td>
+            <td class="s" data-src="nodes/Node1/perpendicular.go#miss">miss</td>
+          </tr>
+          <tr>
+            <td class="e">step = next if miss(next) ≤ miss(prev), else prev</td>
+            <td class="n">ONE move, a link either way, so a step cannot leave the ring. Answerable
+              everywhere — including at a quarter turn, where the old acute test said "not acute" and
+              the rule read that as stand still, exactly where this machine most needs to move</td>
+            <td class="s" data-src="nodes/Node1/perpendicular.go#step">step</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="card wide">
+        <h2>Why it is a separate file</h2>
+        <p>Three attempts at this rule changed the PARALLEL one as a side effect, every time through
+          something that served both: a miss parameterized by which state you were in, a step that
+          took the state as an argument, and a version where a node running neither compared its
+          distance to parallel against its distance to perpendicular to pick a target — parallel
+          arithmetic deciding a perpendicular question.</p>
+        <p>Two machines in two files have nowhere to put that coupling. They share
+          <span data-src="nodes/Node1/ring.go#separation">separation</span> and nothing else, and that
+          is a measurement of where two directions sit — it names no resting state and decides
+          nothing. The files look alike and say some of the same things twice; that is the cost, and
+          folding them back into one parameterized rule is what the arrangement exists to prevent.</p>
+      </div>
+
+      <div class="card wide">
+        <h2>Stepping over the other halt</h2>
+        <p>The two halts sit a quarter turn apart in separation, so the walk back to one CROSSES the
+          other. A node that stopped at any halt was taken by whichever it touched first — the log
+          caught it in both directions: a pair holding perpendicular stepped correctly toward
+          separation 0, met a quarter turn on the way, and took up parallel there; a pair holding
+          parallel walked the other way, met a half turn, and took up perpendicular.</p>
+        <p>So a node halts on ITS OWN halt only. The other one is an angle it passes over, because
+          this machine names no separation but its own two.</p>
+      </div>
+
+      <div class="card wide">
+        <h2>Which machine runs, and when that is decided</h2>
+        <table class="f">
+          <tr>
+            <td>moment</td>
+            <td>what happens</td>
+            <td>source</td>
+          </tr>
+          <tr>
+            <td class="e">▲/▼ click</td>
+            <td class="n">moves this node's own tilt. Nothing else — no send, no bead, NO choice. The
+              setup is not finished until start, and deciding on the first of twelve clicks read a gap
+              of one step and locked the pair to the wrong machine</td>
+            <td class="s" data-src="nodes/Node1/node.go#applyTiltEdit">applyTiltEdit</td>
+          </tr>
+          <tr>
+            <td class="e">START — the first arrival</td>
+            <td class="n">the gap is read HERE: back the quarter out of the arrival to get the
+              partner's own tilt, and measure. A quarter turn apart picks this machine; anything else
+              is acute and picks parallel</td>
+            <td class="s" data-src="nodes/Node1/node.go#handleVectorCycle">handleVectorCycle</td>
+          </tr>
+          <tr>
+            <td class="e">every reply after that</td>
+            <td class="n">carries which machine its sender is running, which is how the end that did
+              not decide finds out. Adopting STICKS, so a later message cannot switch a running
+              machine</td>
+            <td class="s" data-src="nodes/Node1/node.go#adoptMachine">adoptMachine</td>
+          </tr>
+          <tr>
+            <td class="e">RESET</td>
+            <td class="n">the one thing that removes the choice. The next start makes a new one</td>
+            <td class="s" data-src="nodes/Node1/node.go#clear">clear</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="card wide">
+        <h2>Files</h2>
+        <table class="f">
+          <tr>
+            <td class="n">nodes/Node1/perpendicular.go</td>
+            <td class="s" colspan="2">
+              <span data-src="nodes/Node1/perpendicular.go#perpendicularMachine">perpendicularMachine</span> ·
+              <span data-src="nodes/Node1/perpendicular.go#halted">halted</span> ·
+              <span data-src="nodes/Node1/perpendicular.go#step">step</span> ·
+              <span data-src="nodes/Node1/perpendicular.go#miss">miss</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="n">nodes/Node1/parallel.go</td>
+            <td class="s" colspan="2">
+              <span data-src="nodes/Node1/parallel.go#parallelMachine">parallelMachine</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="n">nodes/Node1/ring.go</td>
+            <td class="s" colspan="2">
+              <span data-src="nodes/Node1/ring.go#separation">separation</span> ·
+              <span data-src="nodes/Node1/ring.go#tiltMachine">tiltMachine</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="n">nodes/Wiring/tilt_vector_channel.go</td>
+            <td class="s" colspan="2">
+              <span data-src="nodes/Wiring/tilt_vector_channel.go#TiltMachine">TiltMachine</span>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+    </div>
+  </main>
+</body>
+
+</html>

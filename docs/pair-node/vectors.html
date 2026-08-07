@@ -22,7 +22,8 @@
     <a class="on" href="vectors.html">Vectors</a>
     <a href="math.html">Math</a>
     <a href="formulas.html">Formulas</a>
-    <a href="dots.html">Acute test</a>
+    <a href="dots.html">Separation</a>
+    <a href="perpendicular.html">Perpendicular</a>
     <a href="channels.html">Channels</a>
     <a href="cycle.html">Cycle</a>
     <a href="updates.html">Update rules</a>
@@ -106,29 +107,29 @@
         </div>
 
         <div class="card">
-          <h2>What the partner does with it</h2>
+          <h2>What the receiver does with it</h2>
           <table class="f">
             <tr class="h">
-              <td>arrival v against</td>
-              <td>both nodes of a pair — same unmodified rule</td>
+              <td>this node's own machine (perpendicular or parallel)</td>
+              <td>both nodes of a pair — same unmodified rule per machine</td>
             </tr>
             <tr>
-              <td class="e">v acute with top</td>
-              <td class="e">Top ← Top.next</td>
+              <td class="e">arrival IS this machine's halt</td>
+              <td class="e">stand still — reply anyway, so the partner has something to correct against</td>
             </tr>
             <tr>
-              <td class="e">else v acute with bottom</td>
-              <td class="e">Top ← Top.prev</td>
+              <td class="e">otherwise</td>
+              <td class="e">Top ← Top.next or Top.prev, whichever lands closer to this machine's own halt</td>
             </tr>
             <tr>
-              <td class="e">gap ∈ {6, 18} against both</td>
-              <td class="e">no step · no send · no bead — the halt</td>
+              <td class="e">no machine yet (before START, or after RESET)</td>
+              <td class="e">an arrival moves nothing — the choice is made at START, not here</td>
             </tr>
           </table>
-          <div class="cap">The halt does not depend on which way round a direction is stated: 6 and 18 are
-            the two separations a half turn maps onto themselves, so a direction and its opposite are
-            perpendicular to the same things. The step signs run the same, unmodified, on both nodes of a
-            pair.</div>
+          <div class="cap">There are two machines, each with its own halt (<a href="perpendicular.html">Perpendicular</a>),
+            and a node holds exactly one of them. It steps straight over the OTHER machine's halt on the way
+            back to its own — see <span data-src="nodes/Node1/node.go#stepFromVector">stepFromVector</span>.
+            The step itself is answerable everywhere on the ring, including sitting exactly on a halt.</div>
         </div>
 
         <div class="card">

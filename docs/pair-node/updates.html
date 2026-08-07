@@ -24,7 +24,8 @@
     <a href="vectors.html">Vectors</a>
     <a href="math.html">Math</a>
     <a href="formulas.html">Formulas</a>
-    <a href="dots.html">Acute test</a>
+    <a href="dots.html">Separation</a>
+    <a href="perpendicular.html">Perpendicular</a>
     <a href="channels.html">Channels</a>
     <a href="cycle.html">Cycle</a>
     <a class="on" href="updates.html">Update rules</a>
@@ -118,24 +119,26 @@
             <td colspan="2">transition</td>
           </tr>
           <tr>
-            <td class="e">arrival acute with Top</td>
-            <td class="e" colspan="2">Top ← Top.next</td>
+            <td class="e">arrival IS this node's own machine's halt</td>
+            <td class="e" colspan="2">stay — and this is the halt: reply anyway, no bead placed</td>
           </tr>
           <tr>
-            <td class="e">arrival acute with Top.opposite</td>
-            <td class="e" colspan="2">Top ← Top.prev</td>
+            <td class="e">arrival is not this node's own machine's halt</td>
+            <td class="e" colspan="2">Top ← this machine's step(before, arrival) — next or prev, whichever
+              lands closer to its own halt</td>
           </tr>
           <tr>
-            <td class="e">arrival acute with neither</td>
-            <td class="e" colspan="2">stay — and this is the halt: no send, no bead</td>
+            <td class="e">no machine yet (before START, or after RESET)</td>
+            <td class="e" colspan="2">stay — nothing chooses a machine from an arrival</td>
           </tr>
           <tr>
             <td class="e">panel ▲ · panel ▼</td>
-            <td class="e" colspan="2">Top ← Top.next · Top ← Top.prev</td>
+            <td class="e" colspan="2">Top ← Top.next · Top ← Top.prev — moves the tilt only, chooses no
+              machine</td>
           </tr>
           <tr>
             <td class="e">RESET, from the button or the marker</td>
-            <td class="e" colspan="2">Top ← ring[0]</td>
+            <td class="e" colspan="2">Top ← ring[0] · Machine ← nil</td>
           </tr>
           <tr>
             <td class="e">START on id 1 · a bead on In</td>
@@ -184,33 +187,33 @@
       </div>
 
       <div class="card wide">
-        <h2>The test that decides everything</h2>
+        <h2>separation — what decides both machines</h2>
         <table class="f">
           <tr>
-            <td class="e">gap = max(a, b) − min(a, b)</td>
-            <td class="n" colspan="2">how far apart two directions are, in steps. Both sit on 0…23, so
-              larger minus smaller is already the gap — never negative, so there is nothing to reduce and
-              no sign convention to get wrong</td>
+            <td class="e">sep = |a.idx − b.idx|, folded to ≤ 12</td>
+            <td class="n" colspan="2">how far apart two directions are on the ring, the SHORT way round.
+              Both sit on 0…23, so this is an exact integer, never more than a half turn</td>
           </tr>
           <tr>
-            <td class="e">acute: gap ∈ {0…5, 19…23}</td>
-            <td class="n" colspan="2">under 90° apart — the node turns. Two ranges because a gap and its
-              complement are the same pair of directions measured the other way round, and either being
-              short is enough</td>
+            <td class="e">perpendicular's halt: sep ∈ {0, 12}</td>
+            <td class="n" colspan="2">the arrival sits exactly on this node's own top, or exactly on its
+              bottom</td>
           </tr>
           <tr>
-            <td class="e">perpendicular: gap ∈ {6, 18}</td>
-            <td class="n" colspan="2">exactly 90°, not acute — this is the halt</td>
+            <td class="e">parallel's halt: sep = 6</td>
+            <td class="n" colspan="2">the arrival sits exactly on this node's own coplanar normal</td>
           </tr>
           <tr>
-            <td class="e">obtuse: gap ∈ {7…17}</td>
-            <td class="n" colspan="2">neither test fires either</td>
+            <td class="e">anything else</td>
+            <td class="n" colspan="2">an ordinary separation to whichever machine this node holds — one
+              step closer, next or prev</td>
           </tr>
         </table>
-        <div class="cap">Integer steps, so gap is exact: no float dot product, and no epsilon band around
-          90° to tune. Both tests fail together whenever gap(v, top) is 6 or 18. Both passing is impossible:
-          top and bottom are 12 apart, and each acute range spans 5 steps either side of the direction it
-          tests.</div>
+        <div class="cap">Integer steps, so separation is exact: no float dot product, and no epsilon band to
+          tune. A separation of 6 is perpendicular's ordinary angle on the way through and parallel's halt;
+          a separation of 0 or 12 is the reverse. Which one a node HALTS on is read once, at START, from the
+          gap between the two tilts (<span data-src="nodes/Node1/node.go#machineForGap">machineForGap</span>)
+          — see <a href="perpendicular.html">Perpendicular</a>.</div>
       </div>
 
       <div class="card wide">
@@ -301,21 +304,23 @@
           </tr>
           <tr>
             <td class="e">v carries a direction</td>
-            <td class="e" colspan="2">r ← v, set ← true — on every arrival, before the two tests below run,
-              and r holds that value until the next arrival or a clear()</td>
+            <td class="e" colspan="2">r ← v, set ← true — on every arrival, before the machine choice/step
+              below runs, and r holds that value until the next arrival or a clear()</td>
           </tr>
           <tr>
-            <td class="e">v acute with top</td>
-            <td class="e" colspan="2">Top ← Top.next</td>
+            <td class="e">no machine yet (this is the setup being read)</td>
+            <td class="e" colspan="2">Machine ← machineForGap(arrival) — a quarter-turn gap between the two
+              tilts picks perpendicular, anything else picks parallel</td>
           </tr>
           <tr>
-            <td class="e">else v acute with bottom</td>
-            <td class="e" colspan="2">Top ← Top.prev</td>
-          </tr>
-          <tr>
-            <td class="e">v perpendicular to both</td>
+            <td class="e">arrival IS this node's own machine's halt</td>
             <td class="e" colspan="2">Top unchanged · VectorOut unwritten · Out unwritten — In and Out are
               not read or written on this path</td>
+          </tr>
+          <tr>
+            <td class="e">otherwise</td>
+            <td class="e" colspan="2">Top ← this machine's step(before, arrival) — the one move closer to
+              its own halt, stepping straight over the other machine's</td>
           </tr>
           <tr>
             <td class="e">Top changed</td>
@@ -400,37 +405,41 @@
       </div>
 
       <div class="card wide">
-        <h2>A run, from one click to the halt</h2>
+        <h2>A run, from START to the halt</h2>
         <table class="f">
           <tr class="h">
             <td>event</td>
-            <td>the two tests</td>
+            <td>machine · separation</td>
             <td>result</td>
           </tr>
           <tr>
             <td class="e">node 1 top.idx = 23, node 2 top.idx = 10 · START</td>
             <td class="e">—</td>
-            <td class="e">node 1 sends normal(23) = 5, places a bead</td>
+            <td class="e">node 1 sends normal(23) = 5, places a bead. Neither node has a machine yet</td>
           </tr>
           <tr>
-            <td class="e">node 2 receives 5</td>
-            <td class="e">gap(5, top 10) = 19 acute</td>
-            <td class="e">Top ← Top.next, top.idx 10 → 11 · sends normal(11) = 17 · bead</td>
+            <td class="e">node 2 receives 5 — its FIRST arrival</td>
+            <td class="e">machineForGap: back the quarter out of 5 (→ partner tilt 23), sep(10, 23) = 11 —
+              not a quarter turn, so PARALLEL. Then sep(top 10, arrival 5) = 5, not parallel's halt (6)</td>
+            <td class="e">adopts parallel · Top ← Top.next, top.idx 10 → 11 (parallel's halt is one step
+              away) · sends normal(11) = 17, carrying Machine=parallel · bead</td>
           </tr>
           <tr>
             <td class="e">node 1 receives 17</td>
-            <td class="e">gap(17, top 23) = 18 perpendicular · gap(17, bottom 11) = 6 perpendicular</td>
-            <td class="e">both perpendicular — HALT. Top unchanged, no send, no bead</td>
+            <td class="e">adopts PARALLEL from the message (adoptMachine), before reading any gap itself ·
+              sep(top 23, arrival 17) = 6 — parallel's own halt</td>
+            <td class="e">HALT on parallel. Top unchanged, no send, no bead</td>
           </tr>
           <tr>
             <td class="e">at rest</td>
-            <td class="e">top.idx = 23 on node 1, top.idx = 11 on node 2</td>
+            <td class="e">top.idx = 23 on node 1, top.idx = 11 on node 2 — both running parallel</td>
             <td class="e">r = 17 on node 1, r = 5 on node 2 — the third arrows stay drawn</td>
           </tr>
         </table>
-        <div class="cap">One send, one bead, and a single reply that lands on perpendicular for both tests at
-          once — same rule run unmodified on both nodes. Sends and beads are equal in number because the
-          only PlaceDrivenAt call sits in the same branch as the send, so no bead is placed on the halt.</div>
+        <div class="cap">One send, one bead, and a single reply that lands on parallel's halt — same rule run
+          unmodified on both nodes, once each has adopted the same machine. Sends and beads are equal in
+          number because the only PlaceDrivenAt call sits in the same branch as the send, so no bead is
+          placed on the halt.</div>
       </div>
 
       <div class="card wide">
@@ -522,6 +531,8 @@
               <span data-src="nodes/Node1/node.go#applyTiltEdit">applyTiltEdit</span> ·
               <span data-src="nodes/Node1/node.go#handleVectorCycle">handleVectorCycle</span> ·
               <span data-src="nodes/Node1/node.go#stepFromVector">stepFromVector</span> ·
+              <span data-src="nodes/Node1/node.go#machineForGap">machineForGap</span> ·
+              <span data-src="nodes/Node1/node.go#adoptMachine">adoptMachine</span> ·
               <span data-src="nodes/Node1/node.go#coplanarNormal">coplanarNormal</span> ·
               <span data-src="nodes/Node1/node.go#bottomTilt">bottomTilt</span> ·
               <span data-src="nodes/Node1/node.go#outgoingVector">outgoingVector</span> ·
@@ -539,7 +550,9 @@
               <span data-src="nodes/Node1/ring.go#at">at</span> ·
               <span data-src="nodes/Node1/ring.go#arrivedState">arrivedState</span> ·
               <span data-src="nodes/Node1/ring.go#seedState">seedState</span> ·
-              <span data-src="nodes/Node1/ring.go#acuteWith">acuteWith</span>
+              <span data-src="nodes/Node1/ring.go#separation">separation</span> ·
+              <span data-src="nodes/Node1/perpendicular.go#perpendicularMachine">perpendicularMachine</span> ·
+              <span data-src="nodes/Node1/parallel.go#parallelMachine">parallelMachine</span>
             </td>
           </tr>
           <tr>
