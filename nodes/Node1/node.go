@@ -244,46 +244,34 @@ func (n *Node) bottomTilt() Wiring.TiltVectorMsg {
 	}
 }
 
-// coplanarNormal is THIS node's own coplanar normal: a quarter turn (90°, 6 steps of
-// Wiring.CurveParamTiltVectorAngleStep — Wiring.PerpendicularThetaIdx names the same
-// 90°-worth-of-steps magnitude) from THIS node's OWN tilt vector, so the normal stays
-// perpendicular to the tilt as the tilt turns — index arithmetic only, never trig
-// (memory/feedback_abc_times_constant_not_rederive.md). There is no φ: the turn
-// is entirely in θ, the same in-ring-plane assumption Wiring.PerpendicularThetaIdx's own
-// doc comment spells out.
+// coplanarNormal is THIS node's own coplanar normal: ONE QUARTER TURN past this node's own
+// tilt vector, always the same way round — Wiring.PerpendicularThetaIdx (6 steps of
+// Wiring.CurveParamTiltVectorAngleStep, 90°) ADDED to the tilt index, and nothing else. Its
+// mirror package subtracts the same quarter turn, which is the kind's sign and the only
+// difference between the two. Index arithmetic, never trig
+// (memory/feedback_abc_times_constant_not_rederive.md).
 //
-// theta is measured from world +y, so index 0 is the +y pole and each
-// Wiring.HalfTurnThetaIdx (180°) crossed by TopTiltThetaIdx is a pole crossing. Every time
-// the tilt has crossed an ODD number of poles, the coplanar normal itself has to gain a half
-// turn to keep pointing the same drawn way, so this ADDS Wiring.HalfTurnThetaIdx on top of
-// the usual quarter turn whenever floorDiv(TopTiltThetaIdx, HalfTurnThetaIdx) is odd. This is
-// written as a PURE function of TopTiltThetaIdx alone — no stored "did we just cross" flag,
-// no comparison against a previous value, no crossing event — so there is no missed-edge or
-// double-flip bug class to have (memory/feedback_make_bug_class_unrepresentable.md). floorDiv
-// is FLOOR division, not Go's truncating `/`: Node1's base direction subtracts one step, so
-// TopTiltThetaIdx is negative for most of this node's life, and truncating division would
-// flip parity on the wrong side of zero.
+// The wrap is a COMPARISON, not a division: a quarter turn added to an index can carry it at
+// most one full turn past the top of the circle, so one test against Wiring.FullTurnThetaIdx
+// and one subtraction bring it back. No `/`, no `%`, and therefore no sign convention to get
+// wrong at negative indices — which is what the arithmetic this replaced needed floor
+// division for.
+//
+// DO NOT ADD A POLE-CROSSING TERM HERE. One was here, adding a further half turn on odd
+// multiples of HalfTurnThetaIdx, on the reasoning that θ measured from world +y makes each
+// half turn a pole crossing, and that crossing a pole flips φ by 180° so the normal needs its
+// own half turn to keep pointing the same drawn way. That reasoning needs a φ to flip, and
+// this model has none: task/drop-tilt-vector-phi removed the φ column, and every consumer
+// treats an index as a position on a plain circle — the renderer decodes it as
+// (sinθ, cosθ, 0), which has no pole and no fold anywhere. What the term actually did was
+// point the normal the OTHER way, t + 18 rather than t + 6, over half the index range,
+// including the negative indices a ▼ click reaches first.
 func (n *Node) coplanarNormal() Wiring.TiltVectorMsg {
-	poles := floorDiv(n.TopTiltThetaIdx, Wiring.HalfTurnThetaIdx)
 	thetaIdx := n.TopTiltThetaIdx + Wiring.PerpendicularThetaIdx
-	if poles%2 != 0 {
-		thetaIdx += Wiring.HalfTurnThetaIdx
+	if thetaIdx >= Wiring.FullTurnThetaIdx {
+		thetaIdx -= Wiring.FullTurnThetaIdx
 	}
-	return Wiring.TiltVectorMsg{
-		ThetaIdx: thetaIdx,
-	}
-}
-
-// floorDiv is FLOOR integer division (rounds toward negative infinity), unlike Go's `/`
-// which truncates toward zero. coplanarNormal above is the one call site that needs this:
-// pole-crossing parity must be correct for negative TopTiltThetaIdx, which is the common
-// case since Node1's base direction subtracts.
-func floorDiv(a, b int32) int32 {
-	q := a / b
-	if (a%b != 0) && ((a < 0) != (b < 0)) {
-		q--
-	}
-	return q
+	return Wiring.TiltVectorMsg{ThetaIdx: thetaIdx}
 }
 
 // syncTiltIndex reports THIS node's current tilt index AND its current coplanar-normal

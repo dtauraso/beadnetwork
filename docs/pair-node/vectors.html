@@ -166,26 +166,16 @@
         </div>
 
         <div class="card">
-          <h2>Pole flip (node 1)</h2>
+          <h2>The wrap is one comparison</h2>
           <svg width="300" height="200" viewBox="0 0 300 200">
             <line x1="20" y1="60" x2="280" y2="60" stroke="#3a3a44" />
             <g class="lbl" text-anchor="middle">
-              <text x="20" y="84">−24</text><text x="85" y="84">−12</text>
-              <text x="150" y="84">0</text><text x="215" y="84">12</text><text x="280" y="84">24</text>
+              <text x="20" y="84">0</text><text x="150" y="84">12</text><text x="280" y="84">23/24</text>
             </g>
-            <g>
-              <rect x="20" y="46" width="65" height="14" fill="#4ea1ff" opacity=".85" />
-              <rect x="85" y="46" width="65" height="14" fill="#34343d" />
-              <rect x="150" y="46" width="65" height="14" fill="#34343d" />
-              <rect x="215" y="46" width="65" height="14" fill="#4ea1ff" opacity=".85" />
-            </g>
-            <text x="150" y="116" text-anchor="middle" class="lblm">floor(idx / 12) odd → normal += 12</text>
-            <rect x="20" y="132" width="260" height="52" rx="7" fill="#2b2b33" stroke="#ff6b6b" />
-            <text x="34" y="152" class="lblm" fill="#ff6b6b">FLOOR — rounds toward −∞</text>
-            <text x="34" y="170" class="lbl">START begins at a negative index, so negatives are the common case</text>
+            <rect x="20" y="132" width="260" height="52" rx="7" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="34" y="152" class="lblm">node 1: normal = t + 6; if normal ≥ 24, subtract 24</text>
+            <text x="34" y="170" class="lbl">node 2: normal = t − 6; if normal &lt; 0, add 24 — no pole, no division</text>
           </svg>
-          <div class="legend"><span><i style="background:#4ea1ff"></i>flipped 180°</span><span><i
-                style="background:#34343d;border:1px solid #3a3a44"></i>unflipped</span></div>
         </div>
 
       </div>

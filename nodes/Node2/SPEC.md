@@ -111,16 +111,13 @@ loop body) runs:
   pure index arithmetic (`theta-6`), never a cross product — so the normal turns WITH
   the tilt, always staying 90° away, rather than holding still toward the partner. There
   is no φ. Node2 SUBTRACTS the quarter turn; Node1 (its mirror package) ADDS it, same
-  ± split as every other per-kind sign here. **Unlike Node1's `coplanarNormal`, this
-  kind's `coplanarNormal` (`nodes/Node2/node.go`) applies NO pole-crossing parity
-  correction** — it is exactly `TopTiltThetaIdx - PerpendicularThetaIdx`, no `floorDiv`,
-  no half-turn flip term. That asymmetry is DELIBERATE and scoped, not an oversight: the
-  flip was asked for on node 1 alone, and Node1 was changed alone. It is not yet known
-  whether this kind wants the same correction — the argument for Node1's (its base
-  direction subtracts, so it runs negative and crosses poles readily) applies here in
-  mirror, and nothing has been measured either way. Treat it as an OPEN question rather
-  than a settled design, and resolve it by watching this kind's normal arrow across a pole
-  rather than by symmetry alone. This node's own goroutine
+  ± split as every other per-kind sign here. `coplanarNormal` (`nodes/Node2/node.go`)
+  wraps that single subtraction with one comparison: if `TopTiltThetaIdx -
+  PerpendicularThetaIdx` drops below 0, it adds a full turn (`Wiring.FullTurnThetaIdx`,
+  24) back into range. There is no pole and nothing to cross: the renderer decodes an
+  index as `(sin θ, cos θ, 0)`, a plain circle, so there is no φ to flip and no parity
+  term — both kinds are a plain quarter turn with the kind's own sign, and neither has a
+  correction the other lacks. This node's own goroutine
   computes the normal (`coplanarNormal`) and reports the tilt index, the normal index, AND
   the bottom tilt index to its own geometry in one call (`syncTiltIndex`,
   `SyncTiltIndex(theta, normalTheta, bottomTheta)`) every time

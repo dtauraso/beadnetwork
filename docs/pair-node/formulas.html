@@ -81,28 +81,13 @@
             </tr>
             <tr>
               <td class="e">normal</td>
-              <td class="e">t + PERP + (odd ? HALF : 0)</td>
-              <td class="e">t − PERP</td>
+              <td class="e">t + PERP; if ≥ FULL, − FULL</td>
+              <td class="e">t − PERP; if &lt; 0, + FULL</td>
             </tr>
             <tr>
               <td class="e">sent</td>
               <td class="e">normal</td>
               <td class="e">normal</td>
-            </tr>
-            <tr>
-              <td class="n">sent, reduced</td>
-              <td class="e">t + PERP (+HALF odd)</td>
-              <td class="e">t − PERP</td>
-            </tr>
-            <tr class="h">
-              <td>POLE PARITY</td>
-              <td>what it is</td>
-              <td>source</td>
-            </tr>
-            <tr>
-              <td class="e">odd = floorDiv(t, HALF) mod 2 ≠ 0</td>
-              <td class="n">poles crossed; FLOOR, toward −∞</td>
-              <td class="s" data-src="nodes/Node1/node.go">Node1/node.go</td>
             </tr>
 
             <tr class="h">

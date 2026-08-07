@@ -107,14 +107,12 @@ loop body) runs:
   pure index arithmetic (`theta+6`), never a cross product — so the normal turns WITH
   the tilt, always staying 90° away, rather than holding still toward the partner. There
   is no φ. Node1 ADDS the quarter turn; Node2 (its mirror package) SUBTRACTS it, same
-  ± split as every other per-kind sign here. On top of that base quarter turn,
-  `coplanarNormal` (`nodes/Node1/node.go`) ALSO adds a half turn (`Wiring.HalfTurnThetaIdx`)
-  whenever `TopTiltThetaIdx` has crossed an ODD number of poles (`floorDiv(TopTiltThetaIdx,
-  Wiring.HalfTurnThetaIdx) % 2 != 0`, FLOOR division, not Go's truncating `/`, since
-  Node1's base direction subtracts and so runs negative for most of this node's life) — θ
-  is measured from world +y, so each half turn crossed is a pole crossing, and without
-  this correction the normal would visibly flip to the wrong side once the tilt passes a
-  pole. This is a PURE function of `TopTiltThetaIdx` alone — no stored "did we just cross"
+  ± split as every other per-kind sign here. `coplanarNormal` (`nodes/Node1/node.go`)
+  wraps that single addition with one comparison: if `TopTiltThetaIdx + PerpendicularThetaIdx`
+  reaches `Wiring.FullTurnThetaIdx` (24) or past it, it subtracts a full turn back into
+  range. There is no pole and nothing to cross: the renderer decodes an index as
+  `(sin θ, cos θ, 0)`, a plain circle, so there is no φ to flip and no parity term. This is a
+  PURE function of `TopTiltThetaIdx` alone — no stored "did we just cross"
   flag, no comparison against a previous value. This node's own goroutine computes the
   normal (`coplanarNormal`) and reports the tilt index, the normal index, AND the bottom
   tilt index to its own geometry in one call (`syncTiltIndex`, `SyncTiltIndex(theta,
