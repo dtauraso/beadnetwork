@@ -145,9 +145,15 @@ func TestApplyTiltEditAdjustMovesOneStepAndSendsNothing(t *testing.T) {
 }
 
 // outgoingVector sends the coplanar normal — the direction this node computed and draws is
-// the one that goes on the channel, unrotated. Asserted as the PROPERTY (a quarter turn from
-// this node's own top), so any rotation added to that path fails here whatever its size.
-// THIS node's own arithmetic, no channel involved.
+// the one that goes on the channel, unrotated. THIS node's own arithmetic, no channel
+// involved.
+//
+// The equality against coplanarNormal is what catches a rotation added to this path; the
+// separation check below is a second, independent statement of WHICH direction that is, and
+// it is written against the EXACT expected index (6, or 18 on an odd pole count) rather than
+// modulo a half turn. Modulo HalfTurnThetaIdx would read 6 for both 6 and 18 — and so also
+// for 30, which is what a reintroduced half-turn reversal would produce. An assertion blind
+// to the one rotation this path is here to exclude is not an assertion about it.
 func TestOutgoingVectorIsTheCoplanarNormalUnchanged(t *testing.T) {
 	// NEGATIVE indices are included deliberately: Node1's base direction SUBTRACTS, so a
 	// running node spends most of its life below zero, and every one of these derivations
@@ -159,12 +165,14 @@ func TestOutgoingVectorIsTheCoplanarNormalUnchanged(t *testing.T) {
 		if out.ThetaIdx != norm.ThetaIdx {
 			t.Fatalf("theta=%d: outgoingVector want %d (the normal itself), got %d", theta, norm.ThetaIdx, out.ThetaIdx)
 		}
-		// A quarter turn from this node's own top tilt, which is what makes it the COPLANAR
-		// NORMAL and not some other direction — asserted through what actually goes out, so a
-		// reversal reintroduced anywhere in this path fails here.
-		if diff := (out.ThetaIdx - n.topTilt().ThetaIdx) % Wiring.HalfTurnThetaIdx; diff != Wiring.PerpendicularThetaIdx {
-			t.Fatalf("theta=%d: what is sent must sit a quarter turn (%d) from the top, got %d",
-				theta, Wiring.PerpendicularThetaIdx, diff)
+		// A quarter turn from this node's own top tilt — plus the half turn this kind adds on
+		// an odd pole count, which is the ONE thing that legitimately moves this separation.
+		want := int32(Wiring.PerpendicularThetaIdx)
+		if floorDiv(theta, Wiring.HalfTurnThetaIdx)%2 != 0 {
+			want += Wiring.HalfTurnThetaIdx
+		}
+		if diff := out.ThetaIdx - n.topTilt().ThetaIdx; diff != want {
+			t.Fatalf("theta=%d: what is sent must sit %d steps from the top, got %d", theta, want, diff)
 		}
 		// And the bottom tilt is the TOP's exact antipode, which is what makes the two acute
 		// tests exact opposites of each other — the property the whole step rule rests on.
