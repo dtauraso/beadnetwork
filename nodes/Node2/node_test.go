@@ -40,15 +40,34 @@ func TestApplyTiltEditResetReturnsBothIndicesToZero(t *testing.T) {
 	}
 }
 
-// The drawn coplanar normal must sit exactly −6 steps (90°) in θ from the tilt, for
-// Node2 — pure index arithmetic reusing Wiring.PerpendicularThetaIdx, not a cross
-// product (Part 1 of this task). Node2's sign is the mirror of Node1's. There is no φ.
-func TestCoplanarNormalIsMinusSixStepsInTheta(t *testing.T) {
-	for _, theta := range []int32{0, 5, -9} {
+// The drawn coplanar normal must sit exactly a quarter turn BEHIND the tilt for Node2 — the
+// mirror of Node1's sign — pure index arithmetic reusing Wiring.PerpendicularThetaIdx, not a
+// cross product. There is no φ.
+//
+// Asserted as the separation reduced onto the circle, not as the raw subtraction: the
+// subtraction wraps by a full turn when it would go below zero, and a full turn is not a
+// change of direction. Demanding the raw value would fail on the wrap while the arrow is
+// drawn in exactly the right place.
+func TestCoplanarNormalIsAQuarterTurnBehindTheTilt(t *testing.T) {
+	full := Wiring.FullTurnThetaIdx
+	for _, theta := range []int32{0, 5, -9, Wiring.HalfTurnThetaIdx, full, full + 5, -full} {
 		n := &Node{TopTiltThetaIdx: theta}
 		norm := n.coplanarNormal()
-		if norm.ThetaIdx != theta-Wiring.PerpendicularThetaIdx {
-			t.Fatalf("coplanarNormal theta: want tilt-%d=%d, got %d", Wiring.PerpendicularThetaIdx, theta-Wiring.PerpendicularThetaIdx, norm.ThetaIdx)
+		if d := ((theta-norm.ThetaIdx)%full + full) % full; d != Wiring.PerpendicularThetaIdx {
+			t.Fatalf("theta=%d: normal must sit %d steps behind the tilt, got %d (normal=%d)",
+				theta, Wiring.PerpendicularThetaIdx, d, norm.ThetaIdx)
+		}
+	}
+}
+
+// The wrap is a COMPARISON — one test, one addition, no division — so a tilt already on the
+// circle gives a normal on the circle rather than a negative index.
+func TestCoplanarNormalWrapsOntoTheCircle(t *testing.T) {
+	full := Wiring.FullTurnThetaIdx
+	for theta := range full {
+		n := &Node{TopTiltThetaIdx: theta}
+		if got := n.coplanarNormal().ThetaIdx; got < 0 || got >= full {
+			t.Fatalf("theta=%d: want a normal in 0…%d, got %d", theta, full-1, got)
 		}
 	}
 }
@@ -90,29 +109,26 @@ func TestApplyTiltEditAdjustMovesOneStepAndSendsNothing(t *testing.T) {
 	}
 }
 
-// outgoingVector sends the coplanar normal UNCHANGED. It used to reverse it by 180° (+12
-// index steps here, −12 on Node1), which stepFromVector's opposite signs then undid; Node1's
-// outgoingVector carries the reasoning. THIS node's own arithmetic, no channel involved.
+// outgoingVector sends the coplanar normal — the direction this node computed and draws is
+// the one that goes on the channel, unrotated. Node1's outgoingVector carries the reasoning.
+// THIS node's own arithmetic, no channel involved.
 func TestOutgoingVectorIsTheCoplanarNormalUnchanged(t *testing.T) {
 	// Negative indices included on purpose: these derivations are integer arithmetic and
 	// must not care about the sign, whichever direction this kind's base step runs.
 	for _, theta := range []int32{3, 0, -1, -7, -Wiring.HalfTurnThetaIdx} {
 		n := &Node{TopTiltThetaIdx: theta}
 		norm := n.coplanarNormal()
-		// Node2 SUBTRACTS the quarter turn (Node1 adds) — see coplanarNormal's own doc
-		// comment: the tilt and the coplanar normal sit −90° apart in θ for Node2.
-		if want := theta - Wiring.PerpendicularThetaIdx; norm.ThetaIdx != want {
-			t.Fatalf("theta=%d: coplanarNormal want %d, got %d", theta, want, norm.ThetaIdx)
-		}
 		out := n.outgoingVector()
 		if out.ThetaIdx != norm.ThetaIdx {
 			t.Fatalf("theta=%d: outgoingVector want %d (the normal itself), got %d", theta, norm.ThetaIdx, out.ThetaIdx)
 		}
-		// A quarter turn from this node's own top tilt, asserted through what actually goes
-		// out — so a reversal reintroduced anywhere in this path fails here.
-		if diff := n.topTilt().ThetaIdx - out.ThetaIdx; diff != Wiring.PerpendicularThetaIdx {
-			t.Fatalf("theta=%d: what is sent must sit a quarter turn (%d) from the top, got %d",
-				theta, Wiring.PerpendicularThetaIdx, diff)
+		// A quarter turn BEHIND this node's own top tilt, asserted through what actually goes
+		// out and reduced onto the circle — so 18 (the other quarter turn) and 30 (a
+		// reintroduced half-turn reversal) both fail here.
+		full := Wiring.FullTurnThetaIdx
+		if d := ((n.topTilt().ThetaIdx-out.ThetaIdx)%full + full) % full; d != Wiring.PerpendicularThetaIdx {
+			t.Fatalf("theta=%d: what is sent must sit %d steps behind the top, got %d",
+				theta, Wiring.PerpendicularThetaIdx, d)
 		}
 		// And the bottom tilt is the TOP's exact antipode — what makes the two tests exact
 		// negatives of each other, which the whole step rule rests on.
@@ -324,9 +340,13 @@ func TestUpdateSyncsOpeningTiltIndexBeforeLoop(t *testing.T) {
 	if gotBottomTheta != wantBottomTheta {
 		t.Fatalf("opening bottom tilt: want %d, got %d", wantBottomTheta, gotBottomTheta)
 	}
-	wantNormalTheta := int32(4) - Wiring.PerpendicularThetaIdx
-	if gotNormalTheta != wantNormalTheta {
-		t.Fatalf("opening normal: want %d, got %d", wantNormalTheta, gotNormalTheta)
+	// The normal rides it too, and at this opening index the quarter turn goes below zero and
+	// wraps, so the reported value is 22 rather than −2 — the same drawn direction, on the
+	// circle. Asserted as the separation for that reason.
+	full := Wiring.FullTurnThetaIdx
+	if d := ((4-gotNormalTheta)%full + full) % full; d != Wiring.PerpendicularThetaIdx {
+		t.Fatalf("opening normal: want %d steps behind the tilt, got %d (normal=%d)",
+			Wiring.PerpendicularThetaIdx, d, gotNormalTheta)
 	}
 }
 

@@ -265,9 +265,15 @@ func (n *Node) coplanarNormal() Wiring.TiltVectorMsg {
 	// Node2 SUBTRACTS the quarter turn (Node1's mirror package adds it) — the tilt
 	// vector and the coplanar normal sit −90° apart in θ for Node2, +90° for Node1,
 	// keeping the sign with the KIND, same as every other per-kind sign here.
-	return Wiring.TiltVectorMsg{
-		ThetaIdx: n.TopTiltThetaIdx - Wiring.PerpendicularThetaIdx,
+	//
+	// The wrap is the mirror of Node1's too, and a comparison rather than a division: taking
+	// a quarter turn off an index can carry it at most one full turn below the bottom of the
+	// circle, so one test and one addition bring it back.
+	thetaIdx := n.TopTiltThetaIdx - Wiring.PerpendicularThetaIdx
+	if thetaIdx < 0 {
+		thetaIdx += Wiring.FullTurnThetaIdx
 	}
+	return Wiring.TiltVectorMsg{ThetaIdx: thetaIdx}
 }
 
 // syncTiltIndex reports THIS node's current tilt index AND its current coplanar-normal

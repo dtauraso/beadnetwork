@@ -60,49 +60,42 @@ func TestCoplanarNormalIsPlusSixStepsInTheta(t *testing.T) {
 	}
 }
 
-// coplanarNormal gains an extra half turn (Wiring.HalfTurnThetaIdx) whenever an ODD number
-// of poles (Wiring.HalfTurnThetaIdx-sized buckets, floor-divided) has been crossed by
-// TopTiltThetaIdx. This is a PURE function of the index — no stored crossing flag — so it
-// must be asserted directly at several bucket boundaries in BOTH directions, explicitly
-// including negative indices: Node1's base direction subtracts, so negative indices are the
-// common case, and Go's truncating `/` gets exactly this case wrong.
-func TestCoplanarNormalFlipsParityAcrossPoleCrossings(t *testing.T) {
+// coplanarNormal is ONE QUARTER TURN past the tilt index, the same way round at every index —
+// no bucket, no crossing count, no parity. Asserted as the SEPARATION between the two
+// directions rather than as a formula, so it holds whether or not the addition wrapped: the
+// wrap takes off a full turn, which is not a change of direction.
+//
+// The indices below span several full turns in both directions and sit on either side of
+// every multiple of a half turn. Those are exactly the boundaries where this used to flip the
+// normal to the other side of the tilt, so a reintroduced parity term fails here rather than
+// only showing up later as an arrow that jumps on screen.
+func TestCoplanarNormalIsOneQuarterTurnPastTheTiltEverywhere(t *testing.T) {
 	half := Wiring.HalfTurnThetaIdx
+	full := Wiring.FullTurnThetaIdx
 	quarter := Wiring.PerpendicularThetaIdx
-	cases := []struct {
-		theta    int32
-		wantFlip bool
-	}{
-		// Positive side: [0,11] no crossing (poles=0, even); [12,23] one crossing (odd);
-		// [24,...] two crossings (even).
-		{0, false},
-		{half - 1, false},   // 11
-		{half, true},        // 12: first pole
-		{half + 1, true},    // 13
-		{2*half - 1, true},  // 23
-		{2 * half, false},   // 24: second pole
-		{2*half + 1, false}, // 25
-		// Negative side: floor-division buckets [-12,-1] as poles=-1 (odd); [-24,-13] as
-		// poles=-2 (even); [-36,-25] as poles=-3 (odd) — this is the asymmetric-looking but
-		// correct floor bucketing the task calls for, and the case truncating division gets
-		// wrong.
-		{-1, true},
-		{-half, true},       // -12
-		{-half - 1, false},  // -13
-		{-2 * half, false},  // -24
-		{-2*half - 1, true}, // -25
-		{-3 * half, true},   // -36
-	}
-	for _, c := range cases {
-		n := &Node{TopTiltThetaIdx: c.theta}
+	for _, theta := range []int32{
+		0, 1, half - 1, half, half + 1, full - 1, full, full + 1, 2 * full,
+		-1, -half + 1, -half, -half - 1, -full, -full - 1, -2 * full,
+	} {
+		n := &Node{TopTiltThetaIdx: theta}
 		norm := n.coplanarNormal()
-		want := c.theta + quarter
-		if c.wantFlip {
-			want += half
+		// The separation must be the quarter turn AHEAD (6), never the quarter turn behind
+		// (18) — the latter is what the removed parity term produced for half of the range.
+		if d := ((norm.ThetaIdx-theta)%full + full) % full; d != quarter {
+			t.Fatalf("theta=%d: normal must sit %d steps past the tilt, got %d (normal=%d)",
+				theta, quarter, d, norm.ThetaIdx)
 		}
-		if norm.ThetaIdx != want {
-			t.Fatalf("theta=%d (wantFlip=%v): coplanarNormal theta want %d, got %d",
-				c.theta, c.wantFlip, want, norm.ThetaIdx)
+	}
+}
+
+// The wrap is a COMPARISON — one test, one subtraction, no division — so a tilt already on
+// the circle gives a normal on the circle rather than an index of 24 or more.
+func TestCoplanarNormalWrapsOntoTheCircle(t *testing.T) {
+	full := Wiring.FullTurnThetaIdx
+	for theta := int32(0); theta < full; theta++ {
+		n := &Node{TopTiltThetaIdx: theta}
+		if got := n.coplanarNormal().ThetaIdx; got < 0 || got >= full {
+			t.Fatalf("theta=%d: want a normal in 0…%d, got %d", theta, full-1, got)
 		}
 	}
 }
@@ -149,15 +142,12 @@ func TestApplyTiltEditAdjustMovesOneStepAndSendsNothing(t *testing.T) {
 // involved.
 //
 // The equality against coplanarNormal is what catches a rotation added to this path; the
-// separation check below is a second, independent statement of WHICH direction that is, and
-// it is written against the EXACT expected index (6, or 18 on an odd pole count) rather than
-// modulo a half turn. Modulo HalfTurnThetaIdx would read 6 for both 6 and 18 — and so also
-// for 30, which is what a reintroduced half-turn reversal would produce. An assertion blind
-// to the one rotation this path is here to exclude is not an assertion about it.
+// separation check below is a second, independent statement of WHICH direction that is. It
+// reduces onto the circle and demands exactly the quarter turn AHEAD — 18 (the quarter turn
+// behind) and 30 (a reintroduced half-turn reversal) both fail it.
 func TestOutgoingVectorIsTheCoplanarNormalUnchanged(t *testing.T) {
-	// NEGATIVE indices are included deliberately: Node1's base direction SUBTRACTS, so a
-	// running node spends most of its life below zero, and every one of these derivations
-	// is plain integer arithmetic that must not care about the sign.
+	// Negative indices are included deliberately: a ▼ click takes the index below zero, and
+	// every one of these derivations is integer arithmetic that must not care about the sign.
 	for _, theta := range []int32{3, 0, -1, -7, -Wiring.HalfTurnThetaIdx} {
 		n := &Node{TopTiltThetaIdx: theta}
 		norm := n.coplanarNormal()
@@ -165,14 +155,10 @@ func TestOutgoingVectorIsTheCoplanarNormalUnchanged(t *testing.T) {
 		if out.ThetaIdx != norm.ThetaIdx {
 			t.Fatalf("theta=%d: outgoingVector want %d (the normal itself), got %d", theta, norm.ThetaIdx, out.ThetaIdx)
 		}
-		// A quarter turn from this node's own top tilt — plus the half turn this kind adds on
-		// an odd pole count, which is the ONE thing that legitimately moves this separation.
-		want := int32(Wiring.PerpendicularThetaIdx)
-		if floorDiv(theta, Wiring.HalfTurnThetaIdx)%2 != 0 {
-			want += Wiring.HalfTurnThetaIdx
-		}
-		if diff := out.ThetaIdx - n.topTilt().ThetaIdx; diff != want {
-			t.Fatalf("theta=%d: what is sent must sit %d steps from the top, got %d", theta, want, diff)
+		full := Wiring.FullTurnThetaIdx
+		if d := ((out.ThetaIdx-n.topTilt().ThetaIdx)%full + full) % full; d != Wiring.PerpendicularThetaIdx {
+			t.Fatalf("theta=%d: what is sent must sit %d steps past the top, got %d",
+				theta, Wiring.PerpendicularThetaIdx, d)
 		}
 		// And the bottom tilt is the TOP's exact antipode, which is what makes the two acute
 		// tests exact opposites of each other — the property the whole step rule rests on.

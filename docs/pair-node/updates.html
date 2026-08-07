@@ -79,24 +79,22 @@
           </tr>
           <tr>
             <td class="n">coplanar normal — a quarter turn from the top</td>
-            <td class="e">normal = t + 6 + 12 · (floor(t / 12) mod 2)</td>
-            <td class="e">normal = t − 6</td>
+            <td class="e">normal = t + 6; if normal ≥ 24 then normal −= 24</td>
+            <td class="e">normal = t − 6; if normal &lt; 0 then normal += 24</td>
           </tr>
           <tr>
             <td class="n">what it sends — the normal, unchanged</td>
-            <td class="e">sends = normal = t + 6 + 12 · (floor(t / 12) mod 2)</td>
-            <td class="e">sends = normal = t − 6</td>
+            <td class="e">sends = normal</td>
+            <td class="e">sends = normal</td>
           </tr>
         </table>
         <div class="cap">t + 12 and t − 12 draw the same direction, so the two bottoms coincide on screen.
           The opposite sign keeps node 2's index counting the other way, which is what makes its step rule
           below the mirror of node 1's.</div>
-        <div class="cap">The + 12 · (floor(t / 12) mod 2) term is the pole count: t = 0 to ±12 crosses one
-          pole, ±12 to ±24 a second. On an odd count the normal is drawn 180° from where the + 6 alone puts
-          it, so the term adds that 180° back. It reads only t — no flag recording a crossing, no comparison
-          with the previous t — so a crossing cannot be missed or counted twice. Use floor, not Go's
-          <code>/</code>: floor(−1 / 12) = −1 while Go's <code>-1/12</code> = 0, which is the opposite parity
-          at every negative t, and node 1's index is negative from its first ▼ click onward.</div>
+        <div class="cap">The wrap is one comparison, not a division: node 1 adds 6 and pulls back a full turn
+          if that pushes past 23; node 2 subtracts 6 and adds a full turn back if that drops below 0. Only
+          the normal wraps this way — the bottom is t ± 12 exactly, unwrapped, because the renderer decodes
+          an index as (sin θ, cos θ, 0) and has no pole to cross.</div>
       </div>
 
       <div class="card wide">
@@ -263,33 +261,43 @@
         <table class="f">
           <tr class="h">
             <td>node 1 · t</td>
-            <td>floor(t/12) odd? · bottom · normal · sends</td>
+            <td>bottom · normal · sends</td>
             <td>the tilt · the normal</td>
           </tr>
           <tr>
             <td class="e">0</td>
-            <td class="e">no · 12 · 6 · 6</td>
+            <td class="e">12 · 6 · 6</td>
             <td class="e">0° · 90°</td>
           </tr>
           <tr>
             <td class="e">−1</td>
-            <td class="e">yes · 11 · 17 · 17</td>
-            <td class="e">−15° · 255°</td>
+            <td class="e">11 · 5 · 5</td>
+            <td class="e">−15° · 75°</td>
           </tr>
           <tr>
             <td class="e">−6</td>
-            <td class="e">yes · 6 · 12 · 12</td>
-            <td class="e">−90° · 180°</td>
+            <td class="e">6 · 0 · 0</td>
+            <td class="e">−90° · 0°</td>
           </tr>
           <tr>
             <td class="e">−12</td>
-            <td class="e">yes · 0 · 6 · 6</td>
-            <td class="e">−180° · 90°</td>
+            <td class="e">0 · −6 · −6</td>
+            <td class="e">−180° · −90°</td>
           </tr>
           <tr>
             <td class="e">−13</td>
-            <td class="e">no · −1 · −7 · −7</td>
+            <td class="e">−1 · −7 · −7</td>
             <td class="e">−195° · −105°</td>
+          </tr>
+          <tr>
+            <td class="e">18</td>
+            <td class="e">30 · 0 · 0</td>
+            <td class="e">270° · 0°</td>
+          </tr>
+          <tr>
+            <td class="e">23</td>
+            <td class="e">35 · 5 · 5</td>
+            <td class="e">345° · 75°</td>
           </tr>
           <tr class="h">
             <td>node 2 · t</td>
@@ -298,18 +306,22 @@
           </tr>
           <tr>
             <td class="e">0</td>
-            <td class="e">−12 · −6 · −6</td>
-            <td class="e">0° · −90°</td>
+            <td class="e">−12 · 18 · 18</td>
+            <td class="e">0° · 270°</td>
           </tr>
           <tr>
             <td class="e">1</td>
-            <td class="e">−11 · −5 · −5</td>
-            <td class="e">15° · −75°</td>
+            <td class="e">−11 · 19 · 19</td>
+            <td class="e">15° · 285°</td>
+          </tr>
+          <tr>
+            <td class="e">4</td>
+            <td class="e">−8 · 22 · 22</td>
+            <td class="e">60° · 330°</td>
           </tr>
         </table>
-        <div class="cap">t = −12 and t = −13 sit either side of a pole: the extra half turn switches off and
-          the normal jumps from 6 to −7 rather than sliding through. Both are still a quarter turn from the
-          tilt as drawn, which is the whole job of that term.</div>
+        <div class="cap">One quarter turn at every index, no exception: node 1 adds 6 and wraps down a full
+          turn past 23, node 2 subtracts 6 and wraps up a full turn below 0. The bottom is never wrapped.</div>
       </div>
 
       <div class="card wide">
@@ -323,35 +335,25 @@
           <tr>
             <td class="e">node 1 at t = −1, node 2 at t = 0 · START</td>
             <td class="e">—</td>
-            <td class="e">node 1 sends normal(−1) = 17, places a bead</td>
+            <td class="e">node 1 sends normal(−1) = 5, places a bead</td>
           </tr>
           <tr>
-            <td class="e">node 2 receives 17</td>
-            <td class="e">d(17, top 0) = 17 no · d(17, bottom −12) = 5 acute</td>
-            <td class="e">t ← 0 + 1 = 1 · sends normal(1) = −5 · bead</td>
+            <td class="e">node 2 receives 5</td>
+            <td class="e">d(5, top 0) = 5 acute</td>
+            <td class="e">t ← 0 − 1 = −1 · sends normal(−1) = 17 · bead</td>
           </tr>
           <tr>
-            <td class="e">node 1 receives −5</td>
-            <td class="e">d(−5, top −1) = 20 acute</td>
-            <td class="e">t ← −1 + 1 = 0 · sends normal(0) = 6 · bead</td>
-          </tr>
-          <tr>
-            <td class="e">node 2 receives 6</td>
-            <td class="e">d(6, top 1) = 5 acute</td>
-            <td class="e">t ← 1 − 1 = 0 · sends normal(0) = −6 · bead</td>
-          </tr>
-          <tr>
-            <td class="e">node 1 receives −6</td>
-            <td class="e">d(−6, top 0) = 18 · d(−6, bottom 12) = 6</td>
+            <td class="e">node 1 receives 17</td>
+            <td class="e">d(17, top −1) = 18 perpendicular · d(17, bottom 11) = 6 perpendicular</td>
             <td class="e">both perpendicular — HALT. t unchanged, no send, no bead</td>
           </tr>
           <tr>
             <td class="e">at rest</td>
-            <td class="e">t = 0 on both</td>
-            <td class="e">r = −6 on node 1, r = 6 on node 2 — the third arrows stay drawn</td>
+            <td class="e">t = −1 on both</td>
+            <td class="e">r = 17 on node 1, r = 5 on node 2 — the third arrows stay drawn, tilts parallel</td>
           </tr>
         </table>
-        <div class="cap">Four sends, four beads, both indices at 0. Sends and beads are equal in number
+        <div class="cap">Two sends, two beads, both indices at −1. Sends and beads are equal in number
           because the only PlaceDrivenAt call sits in the same branch as the send, so no bead is placed on
           the halt.</div>
       </div>
@@ -448,7 +450,6 @@
               <span data-src="nodes/Node1/node.go#coplanarNormal">coplanarNormal</span> ·
               <span data-src="nodes/Node1/node.go#bottomTilt">bottomTilt</span> ·
               <span data-src="nodes/Node1/node.go#outgoingVector">outgoingVector</span> ·
-              <span data-src="nodes/Node1/node.go#floorDiv">floorDiv</span> ·
               <span data-src="nodes/Node1/node.go#syncTiltIndex">syncTiltIndex</span> ·
               <span data-src="nodes/Node1/node.go#syncReceivedVector">syncReceivedVector</span> ·
               <span data-src="nodes/Node1/node.go#clear">clear</span> ·
