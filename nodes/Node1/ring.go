@@ -24,9 +24,16 @@ package Node1
 //
 // so bottomTilt and coplanarNormal are field reads, not sums.
 //
-// THE ONE ARITHMETIC LEFT is at the edges, where a number has to become a state: the
-// persisted seed and a direction arriving from the partner. Both go through stateFor, which
-// reduces once, in one place, and is the only `%` in this kind.
+// WHAT ARITHMETIC IS LEFT, and where:
+//
+//   - stateFor, at the edges, where a NUMBER has to become a state — the persisted seed and a
+//     direction arriving from the partner. It reduces once, in one place, and is the only `%`
+//     in this kind.
+//   - acuteWith, which subtracts two states' own indices to get the gap between them. It
+//     needs no reduction of any kind, because both are on the ring: larger minus smaller is
+//     already the gap, and the two bounds it is tested against cover both ways round.
+//
+// Neither can put a tilt somewhere it cannot be — a tilt only ever moves by following a link.
 
 import "github.com/dtauraso/wirefold/nodes/Wiring"
 
@@ -75,21 +82,21 @@ func stateFor(idx int32) *tiltState {
 // acuteWith reports whether target lies within a quarter turn of s — the whole of what the
 // straightening rule asks about two directions.
 //
-// STATED AS REACHABILITY, not as a difference: acute means "at most PerpendicularThetaIdx-1
-// moves away, either way round", so this walks out from s in both directions and looks for
-// target. Exactly a quarter turn away is NOT acute (the walk stops one short of it), which is
-// the perpendicular case the exchange halts on. The walk is bounded by the cone's own width —
-// five hops each way — and needs no subtraction, no wrap, and no sign convention.
+// THE GAP IS TAKEN LARGER MINUS SMALLER, so it is never negative and there is no sign
+// convention anywhere: both states are on the ring, so the gap lands in [0, FullTurnThetaIdx)
+// with no reduction of any kind — no modulo, no conditional add, no floor.
+//
+// A gap and its complement describe the same pair of directions, one going each way round the
+// ring, and the shorter of the two is the angle between them. So rather than pick the shorter
+// — a min, and another comparison — both are tested at once: the pair is within a quarter
+// turn when the gap is under PerpendicularThetaIdx going one way, or over
+// FullTurnThetaIdx-PerpendicularThetaIdx, which is the same thing going the other. Exactly a
+// quarter turn (the gap at either bound) is NOT acute, and that is the perpendicular case the
+// exchange halts on.
 func (s *tiltState) acuteWith(target *tiltState) bool {
-	if s == target {
-		return true
+	gap := s.idx - target.idx
+	if target.idx > s.idx {
+		gap = target.idx - s.idx
 	}
-	up, down := s, s
-	for hops := int32(1); hops < Wiring.PerpendicularThetaIdx; hops++ {
-		up, down = up.next, down.prev
-		if up == target || down == target {
-			return true
-		}
-	}
-	return false
+	return gap < Wiring.PerpendicularThetaIdx || gap > Wiring.FullTurnThetaIdx-Wiring.PerpendicularThetaIdx
 }

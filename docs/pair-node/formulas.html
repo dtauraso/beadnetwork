@@ -70,16 +70,16 @@
             </tr>
 
             <tr class="h">
-              <td>DIRECTIONS FROM t</td>
+              <td>DIRECTIONS FROM Top — links, not sums</td>
               <td>both nodes of a pair — same unmodified rule</td>
             </tr>
             <tr>
               <td class="e">bottom</td>
-              <td class="e">t + HALF</td>
+              <td class="e">Top.opposite</td>
             </tr>
             <tr>
               <td class="e">normal</td>
-              <td class="e">t + PERP; if ≥ FULL, − FULL</td>
+              <td class="e">Top.quarter</td>
             </tr>
             <tr>
               <td class="e">sent</td>
@@ -92,15 +92,15 @@
               <td>source</td>
             </tr>
             <tr>
-              <td class="e">d = a − b, and + FULL when negative</td>
-              <td class="n">separation on [0, 24). Both operands are already on the circle, so the
-                difference is within one turn and one comparison brings it back</td>
-              <td class="s" data-src="nodes/Wiring/tilt_vector_channel.go">tilt_vector_channel.go</td>
+              <td class="e">gap = max(a.idx, b.idx) − min(a.idx, b.idx)</td>
+              <td class="n">never negative — both are already on the ring, so larger minus smaller is
+                already the gap, with no reduction of any kind</td>
+              <td class="s" data-src="nodes/Node1/ring.go#acuteWith">ring.go</td>
             </tr>
             <tr>
-              <td class="e">acute ⟺ d &lt; PERP ∨ d &gt; FULL − PERP</td>
-              <td class="n">d = 6 and d = 18 are the halt</td>
-              <td class="s" data-src="nodes/Wiring/tilt_vector_channel.go">tilt_vector_channel.go</td>
+              <td class="e">acute ⟺ gap &lt; PERP ∨ gap &gt; FULL − PERP</td>
+              <td class="n">gap = 6 and gap = 18 are the halt</td>
+              <td class="s" data-src="nodes/Node1/ring.go#acuteWith">ring.go</td>
             </tr>
 
             <tr class="h">
@@ -109,11 +109,11 @@
             </tr>
             <tr>
               <td class="e">acute(v, top) →</td>
-              <td class="e">t + 1</td>
+              <td class="e">Top ← Top.next</td>
             </tr>
             <tr>
               <td class="e">acute(v, bottom) →</td>
-              <td class="e">t − 1</td>
+              <td class="e">Top ← Top.prev</td>
             </tr>
             <tr>
               <td class="e">neither →</td>

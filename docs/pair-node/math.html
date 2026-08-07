@@ -12,7 +12,7 @@
 
   <header>
     <h1>Math</h1>
-    <div class="sub">the arithmetic drawn: turns, a worked run, where it lands</div>
+    <div class="sub">turns drawn as links, a worked run, where it lands</div>
   </header>
 
   <nav>
@@ -36,7 +36,7 @@
       <div class="grid">
 
         <div class="card">
-          <h2>t = 2, and everything else</h2>
+          <h2>top.idx = 2, and everything else</h2>
           <svg width="320" height="300" viewBox="0 0 320 300">
             <defs>
               <marker id="qT" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
@@ -75,7 +75,7 @@
             <text x="216" y="234" class="lblm" fill="#5fd68a">sent 8</text>
             <text x="40" y="252" class="lblm" fill="#b34fa8">bottom 14</text>
 
-            <text x="150" y="284" text-anchor="middle" class="lblm" fill="#5fd68a">8 = 2 + 6</text>
+            <text x="150" y="284" text-anchor="middle" class="lblm" fill="#5fd68a">normal = top.quarter</text>
           </svg>
         </div>
 
@@ -83,26 +83,26 @@
           <h2>One quarter turn, sent as is</h2>
           <svg width="300" height="150" viewBox="0 0 300 150">
             <text x="20" y="34" class="lblm" fill="#f9a825">node 1</text>
-            <text x="90" y="34" class="lblm" fill="#e05fd8">t</text>
-            <text x="118" y="34" class="lblm" fill="#4ea1ff">+ 6</text>
+            <text x="90" y="34" class="lblm" fill="#e05fd8">top</text>
+            <text x="118" y="34" class="lblm" fill="#4ea1ff">.quarter</text>
             <text x="166" y="34" class="lblm">=</text>
             <text x="190" y="34" class="lblm" fill="#5fd68a">sent</text>
 
             <text x="20" y="100" class="lblm" fill="#4ea1ff">node 2</text>
-            <text x="90" y="100" class="lblm" fill="#e05fd8">t</text>
-            <text x="118" y="100" class="lblm" fill="#4ea1ff">+ 6</text>
+            <text x="90" y="100" class="lblm" fill="#e05fd8">top</text>
+            <text x="118" y="100" class="lblm" fill="#4ea1ff">.quarter</text>
             <text x="166" y="100" class="lblm">=</text>
             <text x="190" y="100" class="lblm" fill="#5fd68a">sent</text>
 
             <text x="20" y="60" class="lbl" fill="#9a9aa6">normal</text>
             <text x="20" y="126" class="lbl" fill="#9a9aa6">normal</text>
           </svg>
-          <div class="cap">Both nodes of a pair run this same unmodified addition — nothing further is done
-            to it.</div>
+          <div class="cap">Both nodes of a pair run this same unmodified rule — a field read off the ring,
+            nothing further is done to it.</div>
         </div>
 
         <div class="card">
-          <h2>The wrap</h2>
+          <h2>The acute test</h2>
           <svg width="300" height="250" viewBox="0 0 300 250">
             <circle cx="150" cy="120" r="86" fill="none" stroke="#3a3a44" />
             <g stroke="#3a3a44">
@@ -121,11 +121,12 @@
             <path d="M 236 120 A 86 86 0 0 1 64 120" fill="none" stroke="#ff6b6b" stroke-width="5" />
 
             <text x="150" y="112" text-anchor="middle" class="lblm" fill="#5fd68a">acute</text>
-            <text x="150" y="132" text-anchor="middle" class="lbl">d &lt; 6 · d &gt; 18</text>
-            <text x="150" y="244" text-anchor="middle" class="lblm">d = a − b, + 24 if negative</text>
+            <text x="150" y="132" text-anchor="middle" class="lbl">gap &lt; 6 · gap &gt; 18</text>
+            <text x="150" y="244" text-anchor="middle" class="lblm">gap = max(a.idx, b.idx) − min(a.idx, b.idx)</text>
           </svg>
-          <div class="cap">One comparison, no division: every index sits on 0…23, so a difference is within
-            one turn either way.</div>
+          <div class="cap">No modulo, no conditional add, no sign convention: both states are already on
+            the ring, so larger minus smaller is already the gap, and it lands in [0, 24) with no
+            reduction of any kind.</div>
         </div>
 
         <div class="card">
