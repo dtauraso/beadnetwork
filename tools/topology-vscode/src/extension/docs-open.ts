@@ -24,6 +24,48 @@ import * as vscode from "vscode";
 // any page in any browser on this machine, and CORS stops a reply being READ, not
 // a request being SENT. Requests are also refused unless the path resolves inside
 // this workspace.
+// findDefinitionLine resolves a NAME to the line that defines it, so the pages can
+// say `node.go#handleVectorCycle` and never carry a line number. A line number in a
+// doc is wrong the first time anyone inserts a line above it, and nothing tells you —
+// the link still opens, just somewhere else. A name is checkable, and
+// tools/check-docs-symbols.sh checks it.
+//
+// Deliberately a regex over the text rather than vscode.executeDocumentSymbolProvider:
+// the symbol provider is gopls, which returns nothing until the language server has
+// warmed up on that file, so the FIRST click after a window reload — the common one —
+// would silently land at the top. This has no warm-up.
+//
+// Returns a 0-based line, or -1 when the name is not found, in which case the file
+// opens at the top exactly as it did before.
+export function findDefinitionLine(abs: string, symbol: string): number {
+  let text: string;
+  try {
+    text = fs.readFileSync(abs, "utf8");
+  } catch {
+    return -1;
+  }
+  const name = symbol.replace(/[^\w$]/g, "");   // the pages only ever name identifiers
+  if (!name) return -1;
+  const lines = text.split("\n");
+  const patterns = [
+    // Go: a plain func or a method with any receiver.
+    new RegExp(`^func\\s+(\\([^)]*\\)\\s*)?${name}\\b`),
+    // Go: a type, and a const/var/type on its own line.
+    new RegExp(`^(type|const|var)\\s+${name}\\b`),
+    // Go: a name inside a const/var/type ( ... ) block, indented one tab.
+    new RegExp(`^\\t${name}\\s+[\\w*\\[\\].]|^\\t${name}\\s*=`),
+    // TS/JS: function, class, and the const-arrow / const-object form.
+    new RegExp(`^\\s*(export\\s+)?(async\\s+)?function\\s+${name}\\b`),
+    new RegExp(`^\\s*(export\\s+)?(abstract\\s+)?(class|interface|type|enum)\\s+${name}\\b`),
+    new RegExp(`^\\s*(export\\s+)?(const|let|var)\\s+${name}\\b`),
+  ];
+  for (const pattern of patterns) {
+    const i = lines.findIndex((l) => pattern.test(l));
+    if (i >= 0) return i;
+  }
+  return -1;
+}
+
 export function serveDocsOpen(context: vscode.ExtensionContext): void {
   const folder = vscode.workspace.workspaceFolders?.[0];
   if (!folder || folder.uri.scheme !== "file") return;
@@ -40,7 +82,8 @@ export function serveDocsOpen(context: vscode.ExtensionContext): void {
     const url = new URL(req.url ?? "/", "http://localhost");
     res.setHeader("Access-Control-Allow-Origin", "*");
     const rel = url.searchParams.get("file") ?? "";
-    log.appendLine(`request ${url.pathname} file=${rel}`);
+    const symbol = url.searchParams.get("symbol") ?? "";
+    log.appendLine(`request ${url.pathname} file=${rel} symbol=${symbol}`);
 
     if (url.pathname !== "/open" || url.searchParams.get("token") !== token) {
       res.writeHead(404).end();
@@ -58,9 +101,23 @@ export function serveDocsOpen(context: vscode.ExtensionContext): void {
       return;
     }
     res.writeHead(200).end("ok");
-    log.appendLine(`  opening ${abs}`);
-    vscode.window.showTextDocument(vscode.Uri.file(abs), { preview: false }).then(
-      () => log.appendLine(`  opened`),
+    const line = symbol ? findDefinitionLine(abs, symbol) : -1;
+    log.appendLine(`  opening ${abs}${line >= 0 ? ` at line ${line + 1}` : ""}`);
+    const options: vscode.TextDocumentShowOptions = { preview: false };
+    if (line >= 0) {
+      // Put the definition at the TOP of the viewport rather than centred: what a
+      // reader wants from here is the function and its body, and the doc comment
+      // above it is what they just read on the page.
+      const at = new vscode.Range(line, 0, line, 0);
+      options.selection = at;
+    }
+    vscode.window.showTextDocument(vscode.Uri.file(abs), options).then(
+      (ed) => {
+        if (line >= 0) {
+          ed.revealRange(new vscode.Range(line, 0, line, 0), vscode.TextEditorRevealType.AtTop);
+        }
+        log.appendLine(`  opened`);
+      },
       (err) => {
         log.appendLine(`  FAILED: ${String(err)}`);
         vscode.window.showErrorMessage(`Could not open ${rel}: ${String(err)}`);
