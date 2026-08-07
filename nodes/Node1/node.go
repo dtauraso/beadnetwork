@@ -101,14 +101,16 @@ type Node struct {
 	// step constant, trig only at the cartesian/polar boundary).
 	Top *tiltState
 
-	// Squared records that an arrival once landed exactly on this node's own top — a zero
-	// gap, which is the two tilts a quarter turn apart.
+	// Halt is WHICH RESTING STATE this node is holding — perpendicular or parallel (ring.go's
+	// haltKind). The two are different states with different halts, and a node has to know
+	// which of them it is in, because that is what says which way to turn when something
+	// disturbs it: an arrival that leans takes the pair off whichever relationship it was in,
+	// and the correction for one is the correction for the other run backwards.
 	//
-	// It is written when that happens and by nothing else: no arrival erases it. While it is
-	// set, the step an arrival asks for is undone as soon as it is made (stepFromVector),
-	// because an arrival that leans is what would take the pair off the relationship it is
-	// in. The RESET button is the one thing that erases it (clear).
-	Squared bool
+	// It is written when an arrival lands on either halt and by nothing else — no arrival in
+	// between erases it, so a node disturbed mid-turn still knows what it is returning to. The
+	// RESET button is the one thing that erases it (clear).
+	Halt haltKind
 
 	// Ring is THIS NODE'S OWN lattice — its states, and the counts every rule reads off them.
 	// The point count is a scene setting a user can change, so this is not fixed for the life
@@ -332,8 +334,8 @@ func (n *Node) topState() *tiltState {
 // there instead of bouncing.
 func (n *Node) clear() {
 	n.Top = n.ringOf().at(0)
-	// The stored zero goes too: RESET is the one thing that erases it.
-	n.Squared = false
+	// The held resting state goes too: RESET is the one thing that erases it.
+	n.Halt = haltNone
 	n.syncTiltIndex()
 	n.ReceivedThetaIdx = 0
 	n.ReceivedSet = false
@@ -465,25 +467,30 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 // Worked run: docs/pair-node/vectors.html.
 func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
 	arrival := n.ringOf().arrivedState(received.ThetaIdx)
-	wasSquare := n.Squared
-	// A zero gap is stored. Nothing here erases it. The acute test reads the arrival against
-	// this node's top and against its bottom, and the gap is zero when it sits exactly on
-	// either — which is the same relationship seen from the two ends, since each receives the
-	// other's normal.
-	if arrival == n.topState() || arrival == n.topState().opposite {
-		n.Squared = true
+	before := n.topState()
+
+	// EACH RESTING STATE HAS ITS OWN HALT. The arrival names one of them or neither
+	// (haltAgainst). Landing on one records WHICH — nothing else writes this, so an arrival
+	// that lands between the two leaves the node still knowing what it was holding — and the
+	// node stands still, because it is already where it belongs.
+	if halt := before.haltAgainst(arrival); halt != haltNone {
+		n.Halt = halt
+		return true
 	}
 
-	before := n.topState()
+	// Disturbed. The acute tests say which side the arrival leans, and the halt this node is
+	// holding says what to do about that: closing on the arrival walks the pair toward
+	// parallel, so a node holding parallel takes that step and a node holding perpendicular
+	// takes it backwards. A node holding neither yet has nothing to return to and closes.
 	switch {
 	case before.acuteWith(arrival):
-		if wasSquare {
-			n.Top = before.prev // the reverse of what the acute test asked for
+		if n.Halt == haltPerpendicular {
+			n.Top = before.prev
 		} else {
 			n.Top = before.next
 		}
 	case before.opposite.acuteWith(arrival):
-		if wasSquare {
+		if n.Halt == haltPerpendicular {
 			n.Top = before.next
 		} else {
 			n.Top = before.prev
@@ -538,14 +545,16 @@ func (n *Node) handleVectorCycle(tick int64) {
 	// DIAGNOSTIC (task/log-pair-vector-exchange): everything the two acute tests read, and
 	// what this node decided from them, in one row per arrival. Recorded BEFORE the step so
 	// the `top`/`bottom` here are the operands the tests actually used, not the post-step ones.
-	// An exchange halts, so this is bounded per run rather than a per-tick firehose.
+	// A halted pair re-reads the same arrival every tick, so a row per arrival was 1749 rows of
+	// `hold` in 1768 — the per-tick firehose .claude/rules/go-debugging.md warns about. Only a
+	// row where something CHANGED is written: the index moved, or the held resting state did.
 	before := n.topState()
 	arrival := n.ringOf().arrivedState(received.ThetaIdx)
 	acuteTop := before.acuteWith(arrival)
 	acuteBottom := before.opposite.acuteWith(arrival)
-	storedBefore := n.Squared
+	heldBefore := n.Halt
 	moved := n.stepFromVector(received)
-	if n.Self != nil {
+	if n.Self != nil && (n.topState() != before || n.Halt != heldBefore) {
 		kind, dir := "none", "hold"
 		switch {
 		case acuteTop:
@@ -560,9 +569,9 @@ func (n *Node) handleVectorCycle(tick int64) {
 			dir = "prev"
 		}
 		n.Self.Breadcrumb("pair-vector", fmt.Sprintf(
-			"id=%d recv=%2d top=%2d bottom=%2d kind=%-6s stored=%-5v -> %-4s idx %2d->%2d sent=%2d moved=%v tick=%d",
+			"id=%d recv=%2d top=%2d bottom=%2d sep=%2d kind=%-6s held=%-13s -> %-4s idx %2d->%2d sent=%2d moved=%v tick=%d",
 			n.PairID, received.ThetaIdx, before.idx, before.opposite.idx,
-			kind, storedBefore, dir, before.idx, n.topState().idx,
+			before.separation(arrival), kind, n.Halt, dir, before.idx, n.topState().idx,
 			n.outgoingVector().ThetaIdx, moved, tick))
 	}
 	if !moved {

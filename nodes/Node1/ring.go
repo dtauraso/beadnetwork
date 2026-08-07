@@ -197,6 +197,67 @@ func (s *tiltState) acuteWith(target *tiltState) bool {
 	return gap < s.ring.quarterTurn || gap > s.ring.points-s.ring.quarterTurn
 }
 
+// separation is how far apart two states are on the ring, going the SHORT way round — never
+// more than a half turn. acuteWith above answers a yes/no with the long-way case folded into
+// its second comparison; the halt tests need the number itself, and need it to mean the same
+// thing whichever side the target sits on, so the fold happens here instead.
+func (s *tiltState) separation(target *tiltState) int32 {
+	gap := s.idx - target.idx
+	if gap < 0 {
+		gap = -gap
+	}
+	if gap > s.ring.halfTurn {
+		gap = s.ring.points - gap
+	}
+	return gap
+}
+
+// PERPENDICULAR AND PARALLEL ARE DIFFERENT STATES, AND EACH HAS ITS OWN HALT.
+//
+// What arrives is the partner's coplanar NORMAL, which already sits a quarter turn off the
+// partner's own tilt. So the separation between this node's top and that arrival says what
+// the two TILTS are doing, one quarter turn removed:
+//
+//	separation 0, or a half turn  ->  the tilts are a quarter turn apart  ->  PERPENDICULAR
+//	separation a quarter turn     ->  the tilts are the same direction    ->  PARALLEL
+//
+// Both are places the pair can rest, and they are NOT the same place. The rule used to halt on
+// "not acute", which is one condition covering both — so a pair disturbed out of perpendicular
+// could walk into parallel and stop there, and the log read identically at both (every row
+// `kind=none -> hold`). A node now names which of the two it is holding, because the direction
+// it must turn when something disturbs it depends on which one it is trying to get back to.
+type haltKind int8
+
+const (
+	haltNone haltKind = iota
+	haltPerpendicular
+	haltParallel
+)
+
+// String names the halt for the diagnostic row — the two have to be distinguishable there
+// too, since a log that printed both as "halted" is what hid them being one state.
+func (h haltKind) String() string {
+	switch h {
+	case haltPerpendicular:
+		return "perpendicular"
+	case haltParallel:
+		return "parallel"
+	}
+	return "none"
+}
+
+// haltAgainst names the halt this arrival puts the node in, or haltNone when the arrival is
+// somewhere between the two and the node has to turn.
+func (s *tiltState) haltAgainst(arrival *tiltState) haltKind {
+	switch s.separation(arrival) {
+	case 0, s.ring.halfTurn:
+		return haltPerpendicular
+	case s.ring.quarterTurn:
+		return haltParallel
+	}
+	return haltNone
+}
+
 // defaultRing is the lattice a node gets when nothing has said otherwise — the count this
 // model has always run at, and what a bare test build in this package constructs against. It
 // is built once and never written to, so it is immutable shared data rather than shared
