@@ -13,8 +13,42 @@
 // the extension not running there is no listener and the names stay plain text,
 // rather than becoming links that go nowhere.
 (function () {
-  const ask = window.WIREFOLD_DOCS_OPEN;     // {port, token}, from port.js
+  // Where to call. Starts as whatever port.js said when the page loaded, and is
+  // re-read from disk when a call fails — see send().
+  let ask = window.WIREFOLD_DOCS_OPEN;      // {port, token}
   if (!ask) return;
+
+  // Reloading the VS Code window restarts the extension, which listens on a NEW
+  // port with a NEW token and rewrites port.js. A page loaded before that reload
+  // still holds the old pair and every click fails silently against a port that
+  // is now closed. So a failed call re-reads port.js — cache-busted, since the
+  // stale copy is exactly what is wrong — and tries once more. The page heals
+  // itself instead of needing to be refreshed by hand.
+  function reread() {
+    return fetch("port.js?t=" + Date.now())
+      .then(function (r) { return r.ok ? r.text() : ""; })
+      .then(function (text) {
+        const m = text.match(/=\s*(\{[^;]*\})\s*;/);
+        if (!m) return false;
+        const next = JSON.parse(m[1]);
+        const changed = !ask || next.port !== ask.port || next.token !== ask.token;
+        ask = next;
+        return changed;
+      })
+      .catch(function () { return false; });   // extension not running at all
+  }
+
+  function call(rel) {
+    return fetch("http://localhost:" + ask.port + "/open"
+      + "?token=" + encodeURIComponent(ask.token)
+      + "&file=" + encodeURIComponent(rel));
+  }
+
+  function send(rel) {
+    call(rel).catch(function () {
+      reread().then(function (changed) { if (changed) call(rel).catch(function () { }); });
+    });
+  }
 
   for (const cell of document.querySelectorAll("[data-src]")) {
     const rel = cell.getAttribute("data-src");
@@ -25,9 +59,7 @@
     a.title = rel;
     a.addEventListener("click", function (ev) {
       ev.preventDefault();
-      fetch("http://localhost:" + ask.port + "/open"
-        + "?token=" + encodeURIComponent(ask.token)
-        + "&file=" + encodeURIComponent(rel));
+      send(rel);
     });
     cell.textContent = "";
     cell.appendChild(a);
