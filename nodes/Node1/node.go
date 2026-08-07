@@ -466,20 +466,28 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
 	arrival := n.ringOf().arrivedState(received.ThetaIdx)
 	wasSquare := n.Squared
-	// A zero gap is stored. Nothing here erases it.
-	if arrival == n.topState() {
+	// A zero gap is stored. Nothing here erases it. The acute test reads the arrival against
+	// this node's top and against its bottom, and the gap is zero when it sits exactly on
+	// either — which is the same relationship seen from the two ends, since each receives the
+	// other's normal.
+	if arrival == n.topState() || arrival == n.topState().opposite {
 		n.Squared = true
 	}
 
 	before := n.topState()
 	switch {
-	case n.topState().acuteWith(arrival):
-		n.Top = n.topState().next
-	case n.topState().opposite.acuteWith(arrival):
-		n.Top = n.topState().prev
-	}
-	if wasSquare {
-		n.Top = before
+	case before.acuteWith(arrival):
+		if wasSquare {
+			n.Top = before.prev // the reverse of what the acute test asked for
+		} else {
+			n.Top = before.next
+		}
+	case before.opposite.acuteWith(arrival):
+		if wasSquare {
+			n.Top = before.next
+		} else {
+			n.Top = before.prev
+		}
 	}
 	return true
 }
