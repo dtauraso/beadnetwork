@@ -42,8 +42,9 @@
         <table class="f">
           <tr>
             <td class="e">t</td>
-            <td class="n" colspan="2">the tilt index — the only number a node holds. One step is 15°, so t
-              counts 15° turns from world +y</td>
+            <td class="n" colspan="2">the tilt index — the only number a node holds, and always on 0…23.
+              One step is 15°, so t is a position 15°·t round from world +y, not a running count of
+              clicks: step past 23 and it is 0 again, step below 0 and it is 23</td>
           </tr>
           <tr>
             <td class="e">r, and whether r is set</td>
@@ -96,9 +97,11 @@
         <h2>The test that decides everything</h2>
         <table class="f">
           <tr>
-            <td class="e">d(a, b) = ((a − b) mod 24 + 24) mod 24</td>
-            <td class="n" colspan="2">how far apart two directions are, in steps, brought into 0…23. Modded
-              twice: Go's <code>%</code> keeps the dividend's sign, so −7 mod 24 is −7, not 17</td>
+            <td class="e">d(a, b) = a − b, and + 24 when that is negative</td>
+            <td class="n" colspan="2">how far apart two directions are, in steps, on 0…23. Every index in
+              the model is already on the circle, so a difference is within one turn either way and one
+              comparison is the whole reduction — no <code>%</code>, and so no sign convention to get
+              wrong</td>
           </tr>
           <tr>
             <td class="e">acute: d ∈ {0…5, 19…23}</td>
@@ -262,38 +265,44 @@
             <td class="e">0° · 90°</td>
           </tr>
           <tr>
-            <td class="e">−1</td>
-            <td class="e">11 · 5 · 5</td>
-            <td class="e">−15° · 75°</td>
+            <td class="e">1</td>
+            <td class="e">13 · 7 · 7</td>
+            <td class="e">15° · 105°</td>
           </tr>
           <tr>
-            <td class="e">−6</td>
-            <td class="e">6 · 0 · 0</td>
-            <td class="e">−90° · 0°</td>
+            <td class="e">6</td>
+            <td class="e">18 · 12 · 12</td>
+            <td class="e">90° · 180°</td>
           </tr>
           <tr>
-            <td class="e">−12</td>
-            <td class="e">0 · −6 · −6</td>
-            <td class="e">−180° · −90°</td>
+            <td class="e">11</td>
+            <td class="e">23 · 17 · 17</td>
+            <td class="e">165° · 255°</td>
           </tr>
           <tr>
-            <td class="e">−13</td>
-            <td class="e">−1 · −7 · −7</td>
-            <td class="e">−195° · −105°</td>
+            <td class="e">12</td>
+            <td class="e">0 · 18 · 18</td>
+            <td class="e">180° · 270°</td>
+          </tr>
+          <tr>
+            <td class="e">17</td>
+            <td class="e">5 · 23 · 23</td>
+            <td class="e">255° · 345°</td>
           </tr>
           <tr>
             <td class="e">18</td>
-            <td class="e">30 · 0 · 0</td>
+            <td class="e">6 · 0 · 0</td>
             <td class="e">270° · 0°</td>
           </tr>
           <tr>
             <td class="e">23</td>
-            <td class="e">35 · 5 · 5</td>
+            <td class="e">11 · 5 · 5</td>
             <td class="e">345° · 75°</td>
           </tr>
         </table>
-        <div class="cap">One quarter turn at every index, no exception, and both nodes of a pair run this
-          same unmodified addition: t + 6, wrapped down a full turn past 23. The bottom is never wrapped.</div>
+        <div class="cap">One quarter turn at every index, no exception. Every value here is on 0…23,
+          including the bottom: an index that would land past 23 comes back a full turn, one past the bottom
+          of the range goes up one. Both nodes of a pair run this same unmodified arithmetic.</div>
       </div>
 
       <div class="card wide">
@@ -305,9 +314,9 @@
             <td>result</td>
           </tr>
           <tr>
-            <td class="e">node 1 at t = −1, node 2 at t = 10 · START</td>
+            <td class="e">node 1 at t = 23, node 2 at t = 10 · START</td>
             <td class="e">—</td>
-            <td class="e">node 1 sends normal(−1) = 5, places a bead</td>
+            <td class="e">node 1 sends normal(23) = 5, places a bead</td>
           </tr>
           <tr>
             <td class="e">node 2 receives 5</td>
@@ -316,13 +325,13 @@
           </tr>
           <tr>
             <td class="e">node 1 receives 17</td>
-            <td class="e">d(17, top −1) = 18 perpendicular · d(17, bottom 11) = 6 perpendicular</td>
+            <td class="e">d(17, top 23) = 18 perpendicular · d(17, bottom 11) = 6 perpendicular</td>
             <td class="e">both perpendicular — HALT. t unchanged, no send, no bead</td>
           </tr>
           <tr>
             <td class="e">at rest</td>
-            <td class="e">t = −1 on node 1, t = 11 on node 2</td>
-            <td class="e">r = 17 on node 1, r = 5 on node 2 — the third arrows stay drawn, tilts parallel</td>
+            <td class="e">t = 23 on node 1, t = 11 on node 2</td>
+            <td class="e">r = 17 on node 1, r = 5 on node 2 — the third arrows stay drawn</td>
           </tr>
         </table>
         <div class="cap">One send, one bead, and a single reply that lands on perpendicular for both tests at

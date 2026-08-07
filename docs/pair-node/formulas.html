@@ -92,8 +92,9 @@
               <td>source</td>
             </tr>
             <tr>
-              <td class="e">d = ((a − b) mod FULL + FULL) mod FULL</td>
-              <td class="n">separation, reduced to [0, 24)</td>
+              <td class="e">d = a − b, and + FULL when negative</td>
+              <td class="n">separation on [0, 24). Both operands are already on the circle, so the
+                difference is within one turn and one comparison brings it back</td>
               <td class="s" data-src="nodes/Wiring/tilt_vector_channel.go">tilt_vector_channel.go</td>
             </tr>
             <tr>

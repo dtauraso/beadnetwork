@@ -88,6 +88,46 @@ func TestCoplanarNormalIsOneQuarterTurnPastTheTiltEverywhere(t *testing.T) {
 	}
 }
 
+// EVERY INDEX STAYS ON THE CIRCLE, whatever a user or an exchange does to it. This is the
+// precondition the one-comparison reductions rest on — here and in
+// Wiring.TiltVectorIsAcute — so it is asserted directly rather than left to the reader to
+// verify by inspecting each site that moves the index.
+//
+// Walks the index all the way round in both directions with the panel's ±1, then all the way
+// round again with the acute-test step, checking the range after every single move. A missed
+// wrap at either boundary shows up on the first lap.
+func TestTheTiltIndexNeverLeavesTheCircle(t *testing.T) {
+	full := Wiring.FullTurnThetaIdx
+
+	for _, up := range []bool{true, false} {
+		n := &Node{TopTiltThetaIdx: 0}
+		for i := 0; i < 3*int(full); i++ {
+			n.applyTiltEdit(Wiring.TiltEditMsg{Up: up})
+			if n.TopTiltThetaIdx < 0 || n.TopTiltThetaIdx >= full {
+				t.Fatalf("panel up=%v, move %d: index left the circle: %d", up, i, n.TopTiltThetaIdx)
+			}
+		}
+	}
+
+	// The step: an arrival ON this node's own top turns it one way, an arrival on its bottom
+	// the other, so these two drive the index round in opposite directions.
+	for _, arrival := range []int32{0, Wiring.HalfTurnThetaIdx} {
+		n := &Node{TopTiltThetaIdx: 0}
+		for i := 0; i < 3*int(full); i++ {
+			// The arrival is stated relative to this node's CURRENT tilt, so it keeps
+			// leaning the same way as the index walks.
+			v := Wiring.TiltVectorMsg{ThetaIdx: onCircle(n.TopTiltThetaIdx + arrival)}
+			if !n.stepFromVector(v) {
+				t.Fatalf("arrival offset %d, move %d: expected a step, got the halt", arrival, i)
+			}
+			if n.TopTiltThetaIdx < 0 || n.TopTiltThetaIdx >= full {
+				t.Fatalf("arrival offset %d, move %d: index left the circle: %d",
+					arrival, i, n.TopTiltThetaIdx)
+			}
+		}
+	}
+}
+
 // The wrap is a COMPARISON — one test, one subtraction, no division — so a tilt already on
 // the circle gives a normal on the circle rather than an index of 24 or more.
 func TestCoplanarNormalWrapsOntoTheCircle(t *testing.T) {
@@ -184,12 +224,15 @@ func TestStepFromVectorTakesBaseDirectionWhenAcuteWithTop(t *testing.T) {
 
 func TestStepFromVectorReversesWhenAcuteWithBottom(t *testing.T) {
 	// A half turn from the tilt: now it is 0 steps from the BOTTOM (acute) and a half turn
-	// from the top (not acute),
-	// so the step must go the OTHER way from the case above.
+	// from the top (not acute), so the step must go the OTHER way from the case above.
+	//
+	// Stepping down from 0 lands on 23, not −1: the index is kept ON THE CIRCLE at every site
+	// that moves it, so it never runs negative. Same drawn direction, one step back from +y.
 	n := &Node{TopTiltThetaIdx: 0}
-	if moved := n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: Wiring.HalfTurnThetaIdx}); !moved || n.TopTiltThetaIdx != -1 {
-		t.Fatalf("acute with the BOTTOM tilt: want moved=true thetaIdx=-1, got moved=%v thetaIdx=%d",
-			moved, n.TopTiltThetaIdx)
+	want := Wiring.FullTurnThetaIdx - 1
+	if moved := n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: Wiring.HalfTurnThetaIdx}); !moved || n.TopTiltThetaIdx != want {
+		t.Fatalf("acute with the BOTTOM tilt: want moved=true thetaIdx=%d, got moved=%v thetaIdx=%d",
+			want, moved, n.TopTiltThetaIdx)
 	}
 }
 
@@ -220,7 +263,8 @@ func TestStepFromVectorGatesOnBothDotsForAllThreeCases(t *testing.T) {
 		wantDeltaTh int32
 	}{
 		{"acute with top", 0, true, 1},
-		{"acute with bottom", Wiring.HalfTurnThetaIdx, true, -1},
+		// Down from 0 lands on 23, not −1 — the index stays on the circle.
+		{"acute with bottom", Wiring.HalfTurnThetaIdx, true, Wiring.FullTurnThetaIdx - 1},
 		{"exactly perpendicular", Wiring.PerpendicularThetaIdx, false, 0},
 	}
 	for _, c := range cases {
