@@ -479,18 +479,20 @@ func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
 	}
 
 	// Disturbed. The acute tests say which side the arrival leans, and the halt this node is
-	// holding says what to do about that: closing on the arrival walks the pair toward
-	// parallel, so a node holding parallel takes that step and a node holding perpendicular
-	// takes it backwards. A node holding neither yet has nothing to return to and closes.
+	// holding says what to do about that. Closing on the arrival drives the separation toward
+	// ZERO, and zero is the PERPENDICULAR halt — so a node holding perpendicular takes the step
+	// the acute test asks for, and a node holding parallel takes it backwards, since parallel
+	// sits a quarter turn away from the arrival rather than on it. A node holding neither yet
+	// has nothing to return to and closes.
 	switch {
 	case before.acuteWith(arrival):
-		if n.Halt == haltPerpendicular {
+		if n.Halt == haltParallel {
 			n.Top = before.prev
 		} else {
 			n.Top = before.next
 		}
 	case before.opposite.acuteWith(arrival):
-		if n.Halt == haltPerpendicular {
+		if n.Halt == haltParallel {
 			n.Top = before.next
 		} else {
 			n.Top = before.prev
