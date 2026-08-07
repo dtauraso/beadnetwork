@@ -763,6 +763,16 @@ func TestArrivedStatePanicsOffRingAndNotOnRing(t *testing.T) {
 				if !strings.Contains(msg, fmt.Sprintf("%d", idx)) {
 					t.Fatalf("arrivedState(%d): panic message must name the bad index, got %q", idx, msg)
 				}
+				// IT MUST BE THIS FUNCTION'S OWN PANIC, not Go's array-bounds panic from
+				// at(). Checking only for the index cannot tell them apart — Go's message
+				// for at(24) is "index out of range [24] with length 24", which contains
+				// the index too, so a bound loosened from >= to > still passed this test.
+				// The named phrase is what makes the check specific to the invariant
+				// rather than to any panic that happens to mention the number.
+				if !strings.Contains(msg, "vector channel") {
+					t.Fatalf("arrivedState(%d): want THIS function's own panic naming the invariant, got %q",
+						idx, msg)
+				}
 			}()
 			arrivedState(idx)
 		}()
