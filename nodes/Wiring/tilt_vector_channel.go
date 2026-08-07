@@ -67,7 +67,8 @@ const (
 	TiltMachineNone TiltMachine = iota
 	// TiltMachinePerpendicular: the two tilts a quarter turn apart.
 	TiltMachinePerpendicular
-	// TiltMachineParallel: the two tilts pointing the same way.
+	// TiltMachineParallel: the two tilts on the SAME LINE — pointing the same way, or exactly
+	// opposite. The rule does not distinguish the two, and both come up (nodes/Node1/parallel.go).
 	TiltMachineParallel
 )
 

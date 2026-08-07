@@ -184,7 +184,7 @@ func (s *tiltState) separation(target *tiltState) int32 {
 // the two TILTS are doing, one quarter turn removed:
 //
 //	separation 0, or a half turn  ->  the tilts are a quarter turn apart  ->  PERPENDICULAR
-//	separation a quarter turn     ->  the tilts are the same direction    ->  PARALLEL
+//	separation a quarter turn     ->  the tilts lie on one line          ->  PARALLEL
 //
 // Both are places the pair can rest, and they are NOT the same place. The rule used to halt on
 // "not acute", which is one condition covering both — so a pair disturbed out of perpendicular

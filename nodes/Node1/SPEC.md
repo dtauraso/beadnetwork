@@ -149,7 +149,7 @@ loop body) runs:
   | separation | the two tilts | halt |
   | --- | --- | --- |
   | 0, or a half turn | a quarter turn apart | PERPENDICULAR |
-  | a quarter turn | the same direction | PARALLEL |
+  | a quarter turn | on one line, either way round | PARALLEL |
 
   Each is a SEPARATE STATE MACHINE in its own file — `perpendicularMachine`
   (`nodes/Node1/perpendicular.go`) and `parallelMachine` (`nodes/Node1/parallel.go`) — sharing
