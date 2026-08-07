@@ -1,9 +1,9 @@
-// pair_node_self.go — PairNodeSelf, the handle a PAIR-scene node kind (Node1/Node2) uses
+// pair_node_self.go — PairNodeSelf, the handle a PAIR-scene node kind (Node1) uses
 // to own its own nodeGeometry directly, on its own Update goroutine, instead of through a
 // separate nodeMover actor (task/pair-node-owns-itself). See MODEL.md and this package's
 // node_geometry.go/node_mover.go for the split's own doc comments — nothing about what a
-// node's geometry IS changes here; only which goroutine drives it, for exactly these two
-// kinds.
+// node's geometry IS changes here; only which goroutine drives it, for exactly this
+// kind.
 //
 // THE RING IS UNTOUCHED: every ring node still gets a real nodeMover (its own goroutine,
 // launched by mr.start — node_mover.go). PairNodeSelf only ever wraps a *nodeGeometry
@@ -29,7 +29,7 @@ type PairNodeSelf struct {
 	// speedCh is geom.clk's OWN buffered-1 speed-delivery channel — the exact analogue of
 	// nodeMover.speedCh for a ring node (mover_registry.go's finalizeActors). Without this,
 	// geom.clk was copied ONCE at build time (ClaimSelfDrive) and never touched again: the
-	// kind's own SEPARATE clock (Node1/Node2's own n.Clock, polled via its own SpeedCh in
+	// kind's own SEPARATE clock (Node1's own n.Clock, polled via its own SpeedCh in
 	// the kind's Update loop) paced wire delivery correctly, but geom.clk — the clock
 	// writeStreamFrame's frame tick and chainBeads' animation actually read — stayed frozen
 	// at whatever speed it had at load, so a pair node's RENDERED bead motion never reflected
@@ -120,8 +120,8 @@ func (p *PairNodeSelf) Step(ctx context.Context, tick int64) {
 // node's OWN position.json and re-emit.
 //
 // A TILT NO LONGER MOVES THE NODE. The pair's separation used to be a second reading of
-// this same index — Node2 slid along its own ray to
-// (|theta| + torus steps) × BeadStepR from Node1 on every change — so the edge grew and
+// this same index — the other node slid along its own ray to
+// (|theta| + torus steps) × BeadStepR from this one on every change — so the edge grew and
 // shrank as the exchange turned. That is removed: the angle is now only an angle, and the
 // separation stays wherever a drag last put it. What went with it: the moving node also
 // changed the edge's bead-step count, which changed the crossing time, which (now that the
@@ -164,7 +164,7 @@ func (p *PairNodeSelf) SetReceivedVector(theta int32, set bool) {
 // directory at all (finalizeActors never builds one for a claimed id). Exposed for
 // verification: the model's whole point — one goroutine, not two, for the same node id —
 // is otherwise invisible from outside this package (package main's own headless tests are
-// the only place every kind, Node1/Node2 included, is registered — see
+// the only place every kind, Node1 included, is registered — see
 // kind_registry_parity_test.go's own doc comment).
 func (md *MoveDispatch) NodeSelfDriven(id string) bool {
 	if _, hasGeom := md.mr.nodeGeoms[id]; !hasGeom {

@@ -430,8 +430,8 @@ func applyUpdateDistanceGroup(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speed
 // (task/drop-tilt-vector-phi).
 //
 // theta/reset each have two routes, decided by whether the target node's OWN kind
-// claimed BuildArgs.TiltEditIn at build time (Node1/Node2 today — the only kinds that own
-// their tilt index independently, per the straightening loop's firing rule): md.sendTiltEdit
+// claimed BuildArgs.TiltEditIn at build time (Node1 today — the only kind that owns
+// its tilt index independently, per the straightening loop's firing rule): md.sendTiltEdit
 // tries that node's dedicated channel first and reports whether one exists. When it does
 // NOT (every other kind), this falls back to the old path — md.sendMove onto the node's
 // mover (moveMsgKindTiltVectorAngle / moveMsgKindTiltVectorReset) — so the index write +
@@ -464,7 +464,7 @@ func applyUpdateTiltVector(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSin
 		// slider's number is about. Sent BEFORE the Start edit so the first cycle of the
 		// exchange is already at the intended speed rather than one cycle of human speed.
 		BroadcastSpeed(speedSinks, md.SliderSpeed())
-		// Start only exists on the pair kinds' own dedicated channel (Node1/Node2's
+		// Start only exists on the pair kind's own dedicated channel (Node1's
 		// VectorOut/outgoingVector) — there is no mover-owned fallback, unlike
 		// theta/phi/reset: a kind that never claimed BuildArgs.TiltEditIn has no vector
 		// exchange to open, so a Start for it is simply a no-op.

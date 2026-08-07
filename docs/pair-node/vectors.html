@@ -110,28 +110,25 @@
           <table class="f">
             <tr class="h">
               <td>arrival v against</td>
-              <td>node 1</td>
-              <td>node 2</td>
+              <td>both nodes of a pair — same unmodified rule</td>
             </tr>
             <tr>
               <td class="e">d(v, top) ∈ {0…5, 19…23}</td>
               <td class="e">t ← t + 1</td>
-              <td class="e">t ← t − 1</td>
             </tr>
             <tr>
               <td class="e">else d(v, bottom) ∈ {0…5, 19…23}</td>
               <td class="e">t ← t − 1</td>
-              <td class="e">t ← t + 1</td>
             </tr>
             <tr>
               <td class="e">d ∈ {6, 18} against both</td>
-              <td class="e" colspan="2">no step · no send · no bead — the halt</td>
+              <td class="e">no step · no send · no bead — the halt</td>
             </tr>
           </table>
           <div class="cap">The halt does not depend on which way round a direction is stated: 6 and 18 are
             the two separations a half turn maps onto themselves, so a direction and its opposite are
-            perpendicular to the same things. The step signs do depend on it, which is why they are the
-            mirror of each other across the two kinds.</div>
+            perpendicular to the same things. The step signs run the same, unmodified, on both nodes of a
+            pair.</div>
         </div>
 
         <div class="card">
@@ -173,8 +170,8 @@
               <text x="20" y="84">0</text><text x="150" y="84">12</text><text x="280" y="84">23/24</text>
             </g>
             <rect x="20" y="132" width="260" height="52" rx="7" fill="#2b2b33" stroke="#3a3a44" />
-            <text x="34" y="152" class="lblm">node 1: normal = t + 6; if normal ≥ 24, subtract 24</text>
-            <text x="34" y="170" class="lbl">node 2: normal = t − 6; if normal &lt; 0, add 24 — no pole, no division</text>
+            <text x="34" y="152" class="lblm">both nodes of a pair: normal = t + 6; if normal ≥ 24, subtract 24</text>
+            <text x="34" y="170" class="lbl">one comparison, one subtraction — no pole, no division</text>
           </svg>
         </div>
 

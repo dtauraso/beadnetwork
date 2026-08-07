@@ -49,23 +49,22 @@ const SHAFT_RADIUS_FRAC = 0.035;
 const HEAD_LEN_FRAC = 0.22;
 const HEAD_RADIUS_FRAC = 0.09;
 // Chosen against what the arrow actually crosses, not in isolation: it overlaps its own
-// node's body, and the pair's two kinds are both PALE (Node1 #fff8e1, a near-white yellow;
-// Node2 #e8eaf6, a near-white blue), while the scene behind them is dark. A light colour —
-// the pale green this replaced — vanished against the node bodies exactly where the arrow
-// starts. A saturated magenta is far from both pale tints in hue AND much darker than them,
-// so it reads on the bodies, and it stays bright enough to read against the dark background
-// over the rest of its length.
+// node's body, and a pair node is PALE (Node1 #fff8e1, a near-white yellow), while the
+// scene behind it is dark. A light colour — the pale green this replaced — vanished
+// against the node body exactly where the arrow starts. A saturated magenta is far from
+// that pale tint in hue AND much darker than it, so it reads on the body, and it stays
+// bright enough to read against the dark background over the rest of its length.
 const VECTOR_COLOR = "#FF2E88";
 // The THIRD arrow's colour — the last-received direction, kept by the RECEIVING node
 // until the next arrival replaces it. Chosen by the same test as VECTOR_COLOR above: what
-// it actually crosses, not isolation. It overlaps the same two pale, near-white node
-// bodies (Node1 #fff8e1, Node2 #e8eaf6) against the same dark background, and it must
-// also read as visually DISTINCT from the magenta the other two arrows already share on
-// this same node. A saturated cyan is on the opposite side of the hue wheel from magenta
-// (as far as two saturated colours can be), so the two are never confusable even
-// overlapping at a node's centre; it is just as dark relative to the pale bodies as the
-// magenta is, so it reads there too; and it stays bright against the dark background over
-// the rest of its length, for the same reason the magenta does.
+// it actually crosses, not isolation. It overlaps the same pale, near-white node body
+// (Node1 #fff8e1) against the same dark background, and it must also read as visually
+// DISTINCT from the magenta the other two arrows already share on this same node. A
+// saturated cyan is on the opposite side of the hue wheel from magenta (as far as two
+// saturated colours can be), so the two are never confusable even overlapping at a node's
+// centre; it is just as dark relative to the pale body as the magenta is, so it reads
+// there too; and it stays bright against the dark background over the rest of its length,
+// for the same reason the magenta does.
 const RECEIVED_VECTOR_COLOR = "#00E5FF";
 
 // three.js authors both a cylinder and a cone along +Y, so that is the axis rotated FROM.

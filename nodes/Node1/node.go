@@ -1,5 +1,5 @@
-// Package Node1 is the "Node1" kind: one half of the straightening-loop pair
-// (Node1/Node2). It is REACTIVE, not periodic: every cycle it drains its own In and its own
+// Package Node1 is the "Node1" kind: a pair is two nodes of this one kind. It is
+// REACTIVE, not periodic: every cycle it drains its own In and its own
 // VectorIn non-blockingly, and runs the straightening rule ITSELF on what arrived. An In
 // bead PACES the exchange and decides nothing; the rule lives on the VECTOR channel
 // (handleVectorCycle below) — two acute tests against this node's own top and bottom tilt
@@ -24,8 +24,8 @@
 //     changes NO index of its own. With both nodes of a pair perpendicular nothing
 //     circulates on In, correctly, since there is nothing left to straighten, so the loop
 //     has no way to start on its own — Start is the thing a user clicks to start it.
-//     Pairing a Node1 and a Node2 with one edge each direction (Node1.Out → Node2.In,
-//     Node2.Out → Node1.In) needs no seed/bootstrap node: nothing ever sends until a user
+//     Pairing two Node1 instances with one edge each direction (a.Out → b.In,
+//     b.Out → a.In) needs no seed/bootstrap node: nothing ever sends until a user
 //     starts it, so there is no deadlock to bootstrap out of at t=0.
 //   - the RESET button (TiltVectorButtons.tsx, TiltEditMsg.Reset): the opposite of Start — it
 //     places NO bead, a stop-and-return, not a nudge, so it never starts the straightening
@@ -38,6 +38,7 @@ package Node1
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
@@ -45,6 +46,25 @@ import (
 )
 
 type Node struct {
+	// PairID is THIS NODE'S OWN SPEC ID, the number the editor draws on it — the builder
+	// parses it from BuildArgs.Name(), which is the node's directory name under topology/
+	// and is a number by construction (.claude/rules/persistence-ownership.md: node ids ARE
+	// numbers, strings only because they are directory names).
+	//
+	// It decides ONE thing: START opens the exchange from id 1 alone (applyTiltEdit). The
+	// panel posts START to every node row, because the webview holds no domain knowledge
+	// about which node should open; Go decides here, by id.
+	//
+	// It decides NOTHING ELSE. There is one pair kind and one implementation, so both ends
+	// of a pair derive the same directions and step the same way, and the id is the only
+	// thing that distinguishes them at all. A pair therefore needs the node numbered 1 to be
+	// one of its ends — with no id 1 present, nothing opens the exchange and START does
+	// nothing.
+	//
+	// The zero value is what a bare test build in this package constructs; it is not id 1,
+	// so such a node does not open an exchange unless the test says PairID: 1.
+	PairID int32
+
 	Fire         func()
 	EmitGeometry func()
 	// Clock is this node's OWN clock storage, assigned by this kind's own
@@ -153,6 +173,18 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 		return false
 	}
 	if edit.Start {
+		// START BELONGS TO PAIR ID 1 ALONE. The exchange is begun from ONE end, so there is
+		// exactly one opening direction to answer; opened from both, each end also replies to
+		// the other's opener in the same round — two exchanges running through one pair of
+		// channels rather than the one a user asked for, which shows up as the pair settling
+		// and then being kicked off its rest state again, forever.
+		//
+		// The panel sends START to every node it lists (TiltVectorButtons.tsx posts one
+		// record per row, exactly as RESET does), because the WEBVIEW must not know which end
+		// is which — that is domain knowledge, and TS holds none. Go decides, here, by id.
+		if n.PairID != 1 {
+			return false
+		}
 		// Open the vector exchange from the current angles — see this function's own doc
 		// comment. Sends exactly what the old adjust-side-effect kick sent, but changes no
 		// index of its own.
@@ -233,11 +265,8 @@ func (n *Node) drainIn() {
 // turn in θ alone already negates the direction exactly (see Wiring.HalfTurnThetaIdx's own
 // doc comment).
 //
-// Node1 ADDS the half turn (its mirror package does the opposite), the same
-// opposite-senses convention outgoingVector already uses. Both signs land in the SAME drawn
-// direction — ±180° in θ is the same place — so this is index bookkeeping, not geometry:
-// each kind's indices keep walking in its own direction instead of one kind's jumping the
-// other way at the turn.
+// The half turn is ADDED. Both directions land in the SAME drawn place — ±180° in θ is one
+// direction — so this is index bookkeeping, not geometry.
 func (n *Node) bottomTilt() Wiring.TiltVectorMsg {
 	return Wiring.TiltVectorMsg{
 		ThetaIdx: n.TopTiltThetaIdx + Wiring.HalfTurnThetaIdx,
@@ -246,10 +275,9 @@ func (n *Node) bottomTilt() Wiring.TiltVectorMsg {
 
 // coplanarNormal is THIS node's own coplanar normal: ONE QUARTER TURN past this node's own
 // tilt vector, always the same way round — Wiring.PerpendicularThetaIdx (6 steps of
-// Wiring.CurveParamTiltVectorAngleStep, 90°) ADDED to the tilt index, and nothing else. Its
-// mirror package subtracts the same quarter turn, which is the kind's sign and the only
-// difference between the two. Index arithmetic, never trig
-// (memory/feedback_abc_times_constant_not_rederive.md).
+// Wiring.CurveParamTiltVectorAngleStep, 90°) ADDED to the tilt index, and nothing else. Both
+// ends of a pair run this same unmodified addition — there is no sign difference between
+// them. Index arithmetic, never trig (memory/feedback_abc_times_constant_not_rederive.md).
 //
 // The wrap is a COMPARISON, not a division: a quarter turn added to an index can carry it at
 // most one full turn past the top of the circle, so one test against Wiring.FullTurnThetaIdx
@@ -270,6 +298,9 @@ func (n *Node) coplanarNormal() Wiring.TiltVectorMsg {
 	thetaIdx := n.TopTiltThetaIdx + Wiring.PerpendicularThetaIdx
 	if thetaIdx >= Wiring.FullTurnThetaIdx {
 		thetaIdx -= Wiring.FullTurnThetaIdx
+	}
+	if thetaIdx < 0 {
+		thetaIdx += Wiring.FullTurnThetaIdx
 	}
 	return Wiring.TiltVectorMsg{ThetaIdx: thetaIdx}
 }
@@ -304,10 +335,11 @@ func (n *Node) syncReceivedVector() {
 // draws as its received direction coincides with this node's own normal on screen.
 //
 // Do not rotate it on the way out. A rotation here has to be undone by the receiver's step
-// signs (stepFromVector, below) to leave behaviour unchanged, which spreads one convention
-// across two files and two kinds; and rotating by a half turn in particular changes nothing
-// at all about where the pair comes to rest, since the bottom tilt is the top plus that same
-// half turn — it only swaps which of the receiver's two acute tests fires.
+// signs (stepFromVector, below) to leave behaviour unchanged, which would spread one
+// convention across two call sites of the same rule instead of leaving it in the one place;
+// and rotating by a half turn in particular changes nothing at all about where the pair
+// comes to rest, since the bottom tilt is the top plus that same half turn — it only swaps
+// which of the receiver's two acute tests fires.
 func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 	return n.coplanarNormal()
 }
@@ -316,8 +348,7 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 // all, and if so which way, using TWO ACUTE TESTS (Wiring.TiltVectorIsAcute — integer
 // index arithmetic on the 24-step θ lattice, not a dot product):
 //
-//   - arrived vector ACUTE with this node's own TOP tilt vector    -> step +1 (Node1's base
-//     direction), return true
+//   - arrived vector ACUTE with this node's own TOP tilt vector    -> step +1, return true
 //   - arrived vector ACUTE with this node's own BOTTOM tilt vector -> step -1, the REVERSE,
 //     return true
 //   - neither acute (exactly perpendicular)                        -> step NOTHING, return
@@ -331,8 +362,8 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 // which end the arrived vector leans toward IS the direction, except at the perpendicular
 // index itself, which has no lean at all and so steps nothing.
 //
-// Node1's base direction (the top-acute case) ADDS one step; its mirror package's is the
-// opposite, so a pair still turns symmetrically when both are leaning the same way.
+// Both ends of a pair run this same unmodified rule: the top-acute case ADDS one step,
+// the bottom-acute case SUBTRACTS one step, with no per-instance sign.
 //
 // These two signs are paired with what outgoingVector sends (above): they are read against
 // an arrival that is the partner's coplanar normal as-is. Rotating what is sent, or flipping
@@ -517,6 +548,12 @@ func init() {
 		func(a Wiring.BuildArgs) (wire.Node, error) {
 			n := &Node{
 				Clock: wire.NewRealClock(),
+			}
+			// This node's own spec id, which is what START is addressed by — see PairID's
+			// own doc comment. A name that is not a number leaves PairID at 0, so such a
+			// node simply never opens an exchange rather than silently becoming id 1.
+			if id, err := strconv.Atoi(a.Name()); err == nil {
+				n.PairID = int32(id)
 			}
 			n.Fire = a.Fire()
 			if clk := a.Clock(); clk != nil {

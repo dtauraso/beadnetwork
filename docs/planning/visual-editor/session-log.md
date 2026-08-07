@@ -584,3 +584,36 @@ Two rounds of pixel-guessing were spent before that question got asked.
 **Guard note:** `tools/check-no-shell-source-edits.sh` (added the same day) blocked the
 `cat >> session-log.md` that first tried to write this entry. Working as intended, on its
 author, within the hour.
+
+## One pair implementation, and the field that hid it
+
+**2026-08-06, `task/pair-one-implementation`.** The two pair kinds had become one rule with
+one sign between them, so node 2's builder was pointed at node 1's struct — a second
+INSTANTIATION rather than a second hand-mirrored copy. `check-dep-rules` forbids a kind
+importing a sibling kind, and the exception was granted explicitly rather than dodged by
+moving code somewhere it did not belong.
+
+Instantiating one struct for both ends removes what told them apart, and that surfaced two
+things at once. The sign inversion went, so the two ends stepped APART one index per round
+instead of toward each other. And node 2's START gate went with it — that gate lived in node
+2's own `applyTiltEdit`, which the builder no longer reached — so both ends opened the
+exchange, two exchanges ran through one pair of channels, and the pair kept being knocked off
+the rest state it had just found. That was the reported jitter.
+
+`PairID` answers the second. It is 1 or 2, set by each builder, and it decides exactly one
+thing: START opens from id 1. The panel posts START to every node row, holding no domain
+knowledge about which end is which, so Go decides by id — as it always did, just by kind
+before.
+
+**The mistake worth keeping:** the first fix also restored the sign inversion, as a `sign()`
+reading `PairID`, then as its own `Sign` field. Neither was asked for, and the second was
+worse than useless — it made end 2's coplanar normal point opposite end 1's again, which is
+exactly what two mirrored implementations did. [The screenshot](screenshots/2026-08-06-pair-normals-mirrored-1.png)
+is what settled it: node 1's normal points right, node 2's points left, and the editor
+therefore looked completely unchanged. A field added to preserve a behaviour was hiding the
+only evidence that the change had happened at all. It is out; both ends now derive the same
+directions and step the same way, and a test pins that.
+
+**Open, and deliberately so:** with no inversion the pair no longer comes to rest parallel —
+it halts perpendicular, a quarter turn either side. Whether the mirror comes back, and as
+what, is a separate question from the id.

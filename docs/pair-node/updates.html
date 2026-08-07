@@ -43,7 +43,7 @@
           <tr>
             <td class="e">t</td>
             <td class="n" colspan="2">the tilt index — the only number a node holds. One step is 15°, so t
-              counts 15° turns from world +y. Node 1 spends most of its life at negative t</td>
+              counts 15° turns from world +y</td>
           </tr>
           <tr>
             <td class="e">r, and whether r is set</td>
@@ -65,36 +65,31 @@
         <table class="f">
           <tr class="h">
             <td>direction</td>
-            <td>node 1</td>
-            <td>node 2</td>
+            <td>both nodes of a pair — same unmodified rule</td>
           </tr>
           <tr>
             <td class="n">top — the tilt itself</td>
-            <td class="e" colspan="2">top = t</td>
+            <td class="e">top = t</td>
           </tr>
           <tr>
             <td class="n">bottom — half a turn from the top</td>
             <td class="e">bottom = t + 12</td>
-            <td class="e">bottom = t − 12</td>
           </tr>
           <tr>
             <td class="n">coplanar normal — a quarter turn from the top</td>
             <td class="e">normal = t + 6; if normal ≥ 24 then normal −= 24</td>
-            <td class="e">normal = t − 6; if normal &lt; 0 then normal += 24</td>
           </tr>
           <tr>
             <td class="n">what it sends — the normal, unchanged</td>
             <td class="e">sends = normal</td>
-            <td class="e">sends = normal</td>
           </tr>
         </table>
-        <div class="cap">t + 12 and t − 12 draw the same direction, so the two bottoms coincide on screen.
-          The opposite sign keeps node 2's index counting the other way, which is what makes its step rule
-          below the mirror of node 1's.</div>
-        <div class="cap">The wrap is one comparison, not a division: node 1 adds 6 and pulls back a full turn
-          if that pushes past 23; node 2 subtracts 6 and adds a full turn back if that drops below 0. Only
-          the normal wraps this way — the bottom is t ± 12 exactly, unwrapped, because the renderer decodes
-          an index as (sin θ, cos θ, 0) and has no pole to cross.</div>
+        <div class="cap">t + 12 draws the same direction whether t is positive or negative, since ±180° in θ
+          is one place. Both nodes of a pair run this same unmodified addition — there is no per-node sign.
+        </div>
+        <div class="cap">The wrap is one comparison, not a division: add 6 and pull back a full turn if that
+          pushes past 23. Only the normal wraps this way — the bottom is t + 12 exactly, unwrapped, because
+          the renderer decodes an index as (sin θ, cos θ, 0) and has no pole to cross.</div>
       </div>
 
       <div class="card wide">
@@ -129,7 +124,7 @@
         <table class="f">
           <tr>
             <td class="e">TryEmit(EmitGeometry)</td>
-            <td class="n" colspan="2">nothing — the builder leaves that callback nil for these two kinds</td>
+            <td class="n" colspan="2">nothing — the builder leaves that callback nil for this kind</td>
           </tr>
           <tr>
             <td class="e">Self.EmitGeometryOnce()</td>
@@ -197,8 +192,7 @@
 
           <tr class="h">
             <td>VectorIn holds a direction</td>
-            <td>node 1</td>
-            <td>node 2</td>
+            <td colspan="2">both nodes of a pair — same unmodified rule</td>
           </tr>
           <tr>
             <td class="e">VectorIn empty</td>
@@ -216,13 +210,11 @@
           </tr>
           <tr>
             <td class="e">d(v, top) ∈ {0…5, 19…23}</td>
-            <td class="e">t ← t + 1</td>
-            <td class="e">t ← t − 1</td>
+            <td class="e" colspan="2">t ← t + 1</td>
           </tr>
           <tr>
             <td class="e">else d(v, bottom) ∈ {0…5, 19…23}</td>
-            <td class="e">t ← t − 1</td>
-            <td class="e">t ← t + 1</td>
+            <td class="e" colspan="2">t ← t − 1</td>
           </tr>
           <tr>
             <td class="e">neither set contains d</td>
@@ -260,7 +252,7 @@
         <h2>Every direction, worked out</h2>
         <table class="f">
           <tr class="h">
-            <td>node 1 · t</td>
+            <td>t</td>
             <td>bottom · normal · sends</td>
             <td>the tilt · the normal</td>
           </tr>
@@ -299,29 +291,9 @@
             <td class="e">35 · 5 · 5</td>
             <td class="e">345° · 75°</td>
           </tr>
-          <tr class="h">
-            <td>node 2 · t</td>
-            <td>bottom · normal · sends</td>
-            <td>the tilt · the normal</td>
-          </tr>
-          <tr>
-            <td class="e">0</td>
-            <td class="e">−12 · 18 · 18</td>
-            <td class="e">0° · 270°</td>
-          </tr>
-          <tr>
-            <td class="e">1</td>
-            <td class="e">−11 · 19 · 19</td>
-            <td class="e">15° · 285°</td>
-          </tr>
-          <tr>
-            <td class="e">4</td>
-            <td class="e">−8 · 22 · 22</td>
-            <td class="e">60° · 330°</td>
-          </tr>
         </table>
-        <div class="cap">One quarter turn at every index, no exception: node 1 adds 6 and wraps down a full
-          turn past 23, node 2 subtracts 6 and wraps up a full turn below 0. The bottom is never wrapped.</div>
+        <div class="cap">One quarter turn at every index, no exception, and both nodes of a pair run this
+          same unmodified addition: t + 6, wrapped down a full turn past 23. The bottom is never wrapped.</div>
       </div>
 
       <div class="card wide">
@@ -333,14 +305,14 @@
             <td>result</td>
           </tr>
           <tr>
-            <td class="e">node 1 at t = −1, node 2 at t = 0 · START</td>
+            <td class="e">node 1 at t = −1, node 2 at t = 10 · START</td>
             <td class="e">—</td>
             <td class="e">node 1 sends normal(−1) = 5, places a bead</td>
           </tr>
           <tr>
             <td class="e">node 2 receives 5</td>
-            <td class="e">d(5, top 0) = 5 acute</td>
-            <td class="e">t ← 0 − 1 = −1 · sends normal(−1) = 17 · bead</td>
+            <td class="e">d(5, top 10) = 19 acute</td>
+            <td class="e">t ← 10 + 1 = 11 · sends normal(11) = 17 · bead</td>
           </tr>
           <tr>
             <td class="e">node 1 receives 17</td>
@@ -349,13 +321,13 @@
           </tr>
           <tr>
             <td class="e">at rest</td>
-            <td class="e">t = −1 on both</td>
+            <td class="e">t = −1 on node 1, t = 11 on node 2</td>
             <td class="e">r = 17 on node 1, r = 5 on node 2 — the third arrows stay drawn, tilts parallel</td>
           </tr>
         </table>
-        <div class="cap">Two sends, two beads, both indices at −1. Sends and beads are equal in number
-          because the only PlaceDrivenAt call sits in the same branch as the send, so no bead is placed on
-          the halt.</div>
+        <div class="cap">One send, one bead, and a single reply that lands on perpendicular for both tests at
+          once — same rule run unmodified on both nodes. Sends and beads are equal in number because the
+          only PlaceDrivenAt call sits in the same branch as the send, so no bead is placed on the halt.</div>
       </div>
 
       <div class="card wide">
@@ -454,16 +426,6 @@
               <span data-src="nodes/Node1/node.go#syncReceivedVector">syncReceivedVector</span> ·
               <span data-src="nodes/Node1/node.go#clear">clear</span> ·
               <span data-src="nodes/Node1/node.go#drainIn">drainIn</span>
-            </td>
-          </tr>
-          <tr>
-            <td class="n">nodes/Node2/node.go — the opposite signs</td>
-            <td class="s" colspan="2">
-              <span data-src="nodes/Node2/node.go#applyTiltEdit">applyTiltEdit</span> ·
-              <span data-src="nodes/Node2/node.go#stepFromVector">stepFromVector</span> ·
-              <span data-src="nodes/Node2/node.go#coplanarNormal">coplanarNormal</span> ·
-              <span data-src="nodes/Node2/node.go#bottomTilt">bottomTilt</span> ·
-              <span data-src="nodes/Node2/node.go#outgoingVector">outgoingVector</span>
             </td>
           </tr>
           <tr>

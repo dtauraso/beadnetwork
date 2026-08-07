@@ -107,7 +107,7 @@ type MoveDispatch struct {
 	rt rowTables
 
 	// tiltEditIns holds, for each node id whose OWN kind claimed BuildArgs.TiltEditIn at
-	// build time (Node1/Node2 — the only kinds that own their tilt index independently),
+	// build time (Node1 — the only kind that owns its tilt index independently),
 	// that node's dedicated inbound channel for a panel-driven tilt-angle click. Written
 	// ONCE per entry, on the single-threaded build path (buildNodes, via
 	// BuildArgs.TiltEditIn), before any goroutine runs — never touched again. A node id
@@ -384,7 +384,7 @@ func (md *MoveDispatch) sendMove(id string, msg moveMsg) {
 
 // sendTiltEdit routes one panel-driven tilt-angle click to node id's OWN dedicated
 // tiltEditIns channel and returns true, or returns false when id has no such channel (a
-// kind that never called BuildArgs.TiltEditIn — every kind except Node1/Node2 today),
+// kind that never called BuildArgs.TiltEditIn — every kind except Node1 today),
 // telling the caller (applyUpdateTiltVector) to fall back to the old mover-owned path
 // instead. Same blocking-with-ctx-cancel-escape shape as sendMove/mr.sendMove, for the
 // same reason: this is a bare external-entry send with no owning goroutine to thread a

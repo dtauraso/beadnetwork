@@ -242,7 +242,8 @@ func TestStepFromVectorGatesOnBothDotsForAllThreeCases(t *testing.T) {
 func TestResettingBothNodesEmptiesBothDirections(t *testing.T) {
 	oneToTwo := make(chan Wiring.TiltVectorMsg, 1)
 	twoToOne := make(chan Wiring.TiltVectorMsg, 1)
-	// Node1 sends on oneToTwo and receives on twoToOne; its partner is the mirror image.
+	// one sends on oneToTwo and receives on twoToOne; the other Node1 instance in the pair
+	// runs the same code with the ends swapped.
 	one := &Node{TopTiltThetaIdx: 4, VectorOut: oneToTwo, VectorIn: twoToOne}
 	partnerIn := oneToTwo // what the other node owns the receive end of
 
@@ -500,7 +501,8 @@ func TestReceivedResetMarkerRunsTheFullClear(t *testing.T) {
 // per docs/testing-shape.md.
 func TestStartOpensTheVectorExchangeWithoutChangingAnyIndex(t *testing.T) {
 	out := make(chan Wiring.TiltVectorMsg, 1)
-	n := &Node{TopTiltThetaIdx: 3, VectorOut: out}
+	// PairID 1: START is addressed by id, and only the node numbered 1 opens the exchange.
+	n := &Node{PairID: 1, TopTiltThetaIdx: 3, VectorOut: out}
 
 	placeBead := n.applyTiltEdit(Wiring.TiltEditMsg{Start: true})
 
@@ -534,6 +536,70 @@ func TestResetSendsAMarkerNotADirection(t *testing.T) {
 	got := <-out
 	if !got.Reset {
 		t.Fatalf("reset must send the Reset marker, got a direction %+v", got)
+	}
+}
+
+// THE ID CHANGES NOTHING EXCEPT WHO ANSWERS START. Both ends run this one implementation
+// unmodified, so at the same tilt index they derive the same directions and step the same
+// way — which is what makes the shared implementation VISIBLE in the editor: end 2's
+// coplanar normal points where end 1's does, instead of opposite it.
+func TestBothIDsDeriveAndStepIdentically(t *testing.T) {
+	for _, theta := range []int32{0, 1, 5, -1, -7, Wiring.HalfTurnThetaIdx, Wiring.FullTurnThetaIdx} {
+		one := &Node{PairID: 1, TopTiltThetaIdx: theta}
+		two := &Node{PairID: 2, TopTiltThetaIdx: theta}
+
+		if one.coplanarNormal().ThetaIdx != two.coplanarNormal().ThetaIdx {
+			t.Fatalf("theta=%d: the two ids must derive the SAME normal, got %d and %d",
+				theta, one.coplanarNormal().ThetaIdx, two.coplanarNormal().ThetaIdx)
+		}
+		if one.bottomTilt().ThetaIdx != two.bottomTilt().ThetaIdx {
+			t.Fatalf("theta=%d: the two ids must derive the SAME bottom, got %d and %d",
+				theta, one.bottomTilt().ThetaIdx, two.bottomTilt().ThetaIdx)
+		}
+	}
+
+	for _, arrival := range []int32{0, Wiring.HalfTurnThetaIdx} {
+		one := &Node{PairID: 1}
+		two := &Node{PairID: 2}
+		one.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: arrival})
+		two.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: arrival})
+		if one.TopTiltThetaIdx != two.TopTiltThetaIdx {
+			t.Fatalf("arrival=%d: the two ids must step the SAME way, got id1=%d id2=%d",
+				arrival, one.TopTiltThetaIdx, two.TopTiltThetaIdx)
+		}
+	}
+}
+
+// START OPENS THE EXCHANGE FROM ID 1 ONLY. Opened from both ends, each end also replies to
+// the other's opener in the same round — two exchanges through one pair of channels, which
+// the user sees as the pair reaching its rest state and being kicked off it again, forever.
+// The panel cannot make this decision: it posts START to every node row, holding no domain
+// knowledge about which end is which.
+func TestStartOpensTheExchangeFromPairIDOneOnly(t *testing.T) {
+	for _, c := range []struct {
+		id       int32
+		wantSend bool
+	}{{1, true}, {2, false}, {7, false}, {0, false}} {
+		out := make(chan Wiring.TiltVectorMsg, 1)
+		n := &Node{PairID: c.id, TopTiltThetaIdx: 3, VectorOut: out}
+		placeBead := n.applyTiltEdit(Wiring.TiltEditMsg{Start: true})
+
+		if placeBead != c.wantSend {
+			t.Fatalf("id %d: placeBead want %v, got %v", c.id, c.wantSend, placeBead)
+		}
+		select {
+		case v := <-out:
+			if !c.wantSend {
+				t.Fatalf("id %d must not open the exchange, but sent %+v", c.id, v)
+			}
+		default:
+			if c.wantSend {
+				t.Fatalf("id %d must open the exchange, but sent nothing", c.id)
+			}
+		}
+		if n.TopTiltThetaIdx != 3 {
+			t.Fatalf("id %d: START must change no index, got %d", c.id, n.TopTiltThetaIdx)
+		}
 	}
 }
 
