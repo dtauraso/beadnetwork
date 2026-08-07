@@ -1,20 +1,28 @@
 package Node1
 
 // ring.go — the θ lattice as a RING OF STATES rather than a number that gets arithmetic done
-// to it.
+// to it, and one ring PER NODE rather than one for the process.
 //
-// There are exactly Wiring.FullTurnThetaIdx directions a tilt can point, so there are exactly
-// that many states, and a tilt IS one of them. Turning one step is following a link:
+// A tilt can point in exactly as many directions as the lattice has points, so there are
+// exactly that many states, and a tilt IS one of them. Turning one step is following a link:
 //
-//	n.top = n.top.next        // instead of idx = idx + 1, then wrap
-//	n.top = n.top.prev        // instead of idx = idx - 1, then wrap
+//	n.Top = n.Top.next        // instead of idx = idx + 1, then wrap
+//	n.Top = n.Top.prev        // instead of idx = idx - 1, then wrap
 //
-// WHAT THIS BUYS. The previous form kept the index on the circle by applying a wrap at every
-// site that moved it — correct, but a convention rather than a structure: a site that forgot
-// it produced an index 24 steps from where it read, silently, and only a test walking the
-// whole circle would notice. A state has no arithmetic to forget. There is no twenty-fifth
-// state to point at, so "off the circle" cannot be written down at all
+// WHAT THIS BUYS. Keeping an index in range means applying a wrap at every site that moves
+// it — correct, but a convention rather than a structure: a site that forgot it produced an
+// index a full turn from where it read, silently, and only a test walking the whole circle
+// would notice. A state has no arithmetic to forget, and there is no state off the ring to
+// point at, so that cannot be written down at all
 // (memory/feedback_make_bug_class_unrepresentable.md).
+//
+// WHY ONE RING PER NODE. The point count is a scene setting a user can change, so the lattice
+// is not fixed for the life of the process. A single package-level ring rebuilt on that
+// change would be shared MUTABLE state read by every pair node's goroutine — the one thing
+// this network does not do (CLAUDE.md's ownership rule; guard: check-no-network-locks). So
+// each node builds its OWN ring, and a count change is that node building a new one on its
+// own goroutine. A ring is immutable once built: nothing writes to one after newRing returns,
+// so the states inside it need no protection and none is taken.
 //
 // Every relation the pair rule needs is a link, resolved once when the ring is built:
 //
@@ -23,20 +31,6 @@ package Node1
 //	quarter        the coplanar normal, a quarter turn on
 //
 // so bottomTilt and coplanarNormal are field reads, not sums.
-//
-// WHAT ARITHMETIC IS LEFT, and where:
-//
-//   - Two boundary functions, where a NUMBER has to become a state, because the two callers
-//     want different things from an out-of-range value: arrivedState, for a direction ARRIVING
-//     ON THE VECTOR CHANNEL — the sender is this same kind, so an out-of-range index is a
-//     defect, and it panics rather than fold one. seedState, for the PERSISTED SEED — an older
-//     build's file can legitimately hold one, so it folds onto the ring (the only `%` in this
-//     kind) and reports whether it had to.
-//   - acuteWith, which subtracts two states' own indices to get the gap between them. It
-//     needs no reduction of any kind, because both are on the ring: larger minus smaller is
-//     already the gap, and the two bounds it is tested against cover both ways round.
-//
-// Neither can put a tilt somewhere it cannot be — a tilt only ever moves by following a link.
 
 import (
 	"fmt"
@@ -44,20 +38,19 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring"
 )
 
-// at is the ring member with this index — the primitive both boundary functions below are
-// built from, and how anything inside this kind names a direction it already knows is on the
-// ring. An index outside the ring is Go's own out-of-range panic, which is the correct
-// outcome: there is no such direction.
-func at(idx int32) *tiltState { return &ring[idx] }
-
-// tiltState is one of the FullTurnThetaIdx directions. Values are the ring elements
-// themselves — a *tiltState is always one of them, never a fresh one, so pointer identity IS
-// direction equality.
+// tiltState is one of its ring's directions. Values are the ring's own elements — a
+// *tiltState is always one of them, never a fresh one, so pointer identity IS direction
+// equality, WITHIN one ring. Two rings built for the same count hold equal but distinct
+// states, which is why a node compares only against states from its own.
 type tiltState struct {
-	// idx is this state's own index, 0…FullTurnThetaIdx-1. READ ONLY, and it exists for the
-	// BOUNDARY alone: the buffer column, position.json, and the vector-channel message all
-	// carry a number. Nothing inside this kind computes with it.
+	// idx is this state's own index, 0…points-1. READ ONLY, and it exists for the BOUNDARY
+	// alone: the buffer column, position.json, and the vector-channel message all carry a
+	// number. Nothing inside this kind computes with it except acuteWith's gap.
 	idx int32
+
+	// ring is the lattice this state belongs to — read for the two bounds acuteWith needs,
+	// and what makes a state self-describing rather than needing its ring passed alongside.
+	ring *ring
 
 	next     *tiltState // one step on
 	prev     *tiltState // one step back
@@ -65,88 +58,129 @@ type tiltState struct {
 	quarter  *tiltState // a quarter turn on — this state's own coplanar normal
 }
 
-// ring is the whole state space, indexed by direction. Built once at package init and never
-// written again, so every goroutine reads it freely — it is immutable shared data, not shared
-// mutable state (CLAUDE.md's ownership rule is about the latter).
-var ring [Wiring.FullTurnThetaIdx]tiltState
+// ring is ONE NODE'S OWN lattice: its states, and the two counts every rule reads.
+type ring struct {
+	// points is how many directions this lattice has — the number the user sets, and the
+	// number of states. quarterTurn and halfTurn are derived once here rather than at each
+	// read: a quarter turn is points/4 and a half turn is points/2, both exact because
+	// newRing refuses a count that is not a multiple of four.
+	points      int32
+	quarterTurn int32
+	halfTurn    int32
 
-func init() {
-	for i := range ring {
-		ring[i].idx = int32(i)
-	}
-	for i := range ring {
-		ring[i].next = &ring[(i+1)%len(ring)]
-		ring[i].prev = &ring[(i-1+len(ring))%len(ring)]
-		ring[i].opposite = &ring[(i+int(Wiring.HalfTurnThetaIdx))%len(ring)]
-		ring[i].quarter = &ring[(i+int(Wiring.PerpendicularThetaIdx))%len(ring)]
-	}
+	states []tiltState
 }
 
-// arrivedState maps a direction ARRIVING ON THE VECTOR CHANNEL onto its state.
+// newRing builds a lattice of the given number of points, with every link resolved.
+//
+// THE COUNT MUST BE A POSITIVE MULTIPLE OF FOUR. A quarter turn has to be a whole number of
+// states, because the coplanar normal is exactly one and the halt is exactly one: at a count
+// of 25 there is no state a quarter turn from a given state, so "perpendicular" — the
+// condition the exchange comes to rest on — names nothing. A count that cannot express the
+// rule is not a lattice this kind can run on, so this refuses it rather than rounding to one
+// that works and leaving the drawn result to explain itself.
+func newRing(points int32) *ring {
+	if points < 4 || points%4 != 0 {
+		panic(fmt.Sprintf(
+			"Node1: a lattice needs a positive multiple of four points — got %d; a quarter turn must be a whole number of states or the coplanar normal and the perpendicular halt name nothing",
+			points))
+	}
+	r := &ring{
+		points:      points,
+		quarterTurn: points / 4,
+		halfTurn:    points / 2,
+		states:      make([]tiltState, points),
+	}
+	for i := range r.states {
+		r.states[i].idx = int32(i)
+		r.states[i].ring = r
+	}
+	n := int32(len(r.states))
+	for i := int32(0); i < n; i++ {
+		r.states[i].next = &r.states[(i+1)%n]
+		r.states[i].prev = &r.states[(i-1+n)%n]
+		r.states[i].opposite = &r.states[(i+r.halfTurn)%n]
+		r.states[i].quarter = &r.states[(i+r.quarterTurn)%n]
+	}
+	return r
+}
+
+// at is the state with this index — how anything inside this kind names a direction it
+// already knows this ring has. An index outside the ring is Go's own out-of-range panic,
+// which is the correct outcome: there is no such direction.
+func (r *ring) at(idx int32) *tiltState { return &r.states[idx] }
+
+// arrivedState maps a direction ARRIVING ON THE VECTOR CHANNEL onto this ring's state.
 //
 // It does not reduce, because there is nothing legitimate to reduce. The sender is this same
-// kind, sending one of its own ring members' idx (outgoingVector → quarter.idx), so an
-// arrival is on the ring or the program is wrong. Folding an out-of-range value would turn
-// that bug into a direction 24 steps from the one that was sent — plausible, drawable, and
-// silent, which is the failure the ring exists to make impossible. So it panics instead, and
-// names what was violated.
+// kind, sending one of its own states' idx (outgoingVector → quarter.idx), so an arrival is
+// on the ring or something is wrong. Folding an out-of-range value would turn that into a
+// direction a full turn from the one sent — plausible, drawable, and silent, which is the
+// failure the ring exists to make impossible. So it panics instead, and names what was
+// violated.
 //
-// The panic is reachable only from a defect in this package or a foreign writer on a channel
-// only this kind holds; a partner at a different lattice size would reach it too, and that is
-// worth stopping on rather than rendering.
-func arrivedState(idx int32) *tiltState {
-	if idx < 0 || idx >= Wiring.FullTurnThetaIdx {
+// A PARTNER AT A DIFFERENT POINT COUNT REACHES THIS, and should: the two ends of a pair
+// index the same lattice, so a direction from a lattice of another size is not a direction
+// this node can act on. Stopping is better than turning toward a number that means something
+// else.
+func (r *ring) arrivedState(idx int32) *tiltState {
+	if idx < 0 || idx >= r.points {
 		panic(fmt.Sprintf(
-			"Node1: a direction arriving on the vector channel must already be a ring index in 0..%d — got %d; the sender is this same kind sending one of its own states, so an index off the ring is a defect, not something to fold onto the ring",
-			Wiring.FullTurnThetaIdx-1, idx))
+			"Node1: a direction arriving on the vector channel must already be an index on this node's own %d-point ring (0..%d) — got %d; the sender is this same kind sending one of its own states, so an index off the ring is a defect or a partner on a different lattice, not something to fold onto this one",
+			r.points, r.points-1, idx))
 	}
-	return at(idx)
+	return r.at(idx)
 }
 
-// seedState maps the PERSISTED SEED onto its state by ASKING THE RING which state carries
-// that index — not by computing one. Every state was given its own index when the ring was
-// built, so the ring is the authority on which indices exist, and a number either names one
-// of them or names nothing.
+// seedState maps a PERSISTED index onto this ring by asking which state carries it — not by
+// computing one. Every state was given its own index when the ring was built, so the ring is
+// the authority on which indices exist, and a number either names one of them or names
+// nothing.
 //
-// A number that names nothing loads as the ring's origin, and reports that it did. The
-// alternative is to fold it — 30 becoming 6, a quarter turn from where the file said — which
-// is a direction nobody wrote, arrived at by arithmetic, and indistinguishable once drawn
-// from one somebody chose. Landing at the origin is wrong in an obvious way instead of a
-// plausible one, and the breadcrumb says which number was refused.
+// A number that names nothing loads at the origin, and reports that it did. The alternative
+// is to fold it — 30 becoming 6 on a 24-point ring, a quarter turn from where the file said —
+// which is a direction nobody wrote, arrived at by arithmetic, and indistinguishable once
+// drawn from one somebody chose. Landing at the origin is wrong in an obvious way instead of
+// a plausible one, and the caller says which number was refused.
 //
-// This is the case a persisted file legitimately reaches: position.json is written by an
-// older build as readily as this one, and once the lattice size is editable, a file saved at
-// one size and opened at a smaller one names indices this ring does not have.
-//
-// There is no arithmetic here at all — no modulo, no sign to handle. It is 24 comparisons
-// once per node at load.
-func seedState(idx int32) (s *tiltState, folded bool) {
-	for i := range ring {
-		if ring[i].idx == idx {
-			return &ring[i], false
+// THIS IS ROUTINE, not legacy handling: a scene saved at one point count and opened at a
+// smaller one names indices the new ring does not have, and so does a file written before the
+// count was settable at all.
+func (r *ring) seedState(idx int32) (s *tiltState, unknown bool) {
+	for i := range r.states {
+		if r.states[i].idx == idx {
+			return &r.states[i], false
 		}
 	}
-	return &ring[0], true
+	return &r.states[0], true
 }
 
 // acuteWith reports whether target lies within a quarter turn of s — the whole of what the
 // straightening rule asks about two directions.
 //
 // THE GAP IS TAKEN LARGER MINUS SMALLER, so it is never negative and there is no sign
-// convention anywhere: both states are on the ring, so the gap lands in [0, FullTurnThetaIdx)
-// with no reduction of any kind — no modulo, no conditional add, no floor.
+// convention anywhere: both states are on the ring, so the gap lands in [0, points) with no
+// reduction of any kind — no modulo, no conditional add, no floor.
 //
 // A gap and its complement describe the same pair of directions, one going each way round the
 // ring, and the shorter of the two is the angle between them. So rather than pick the shorter
 // — a min, and another comparison — both are tested at once: the pair is within a quarter
-// turn when the gap is under PerpendicularThetaIdx going one way, or over
-// FullTurnThetaIdx-PerpendicularThetaIdx, which is the same thing going the other. Exactly a
-// quarter turn (the gap at either bound) is NOT acute, and that is the perpendicular case the
-// exchange halts on.
+// turn when the gap is under a quarter turn going one way, or over three quarters of a turn,
+// which is the same thing going the other. Exactly a quarter turn (the gap at either bound)
+// is NOT acute, and that is the perpendicular case the exchange halts on.
+//
+// Both states must belong to THIS ring; a state from another lattice has an index that means
+// a different angle, and comparing the two numbers would silently answer about neither.
 func (s *tiltState) acuteWith(target *tiltState) bool {
 	gap := s.idx - target.idx
 	if target.idx > s.idx {
 		gap = target.idx - s.idx
 	}
-	return gap < Wiring.PerpendicularThetaIdx || gap > Wiring.FullTurnThetaIdx-Wiring.PerpendicularThetaIdx
+	return gap < s.ring.quarterTurn || gap > s.ring.points-s.ring.quarterTurn
 }
+
+// defaultRing is the lattice a node gets when nothing has said otherwise — the count this
+// model has always run at, and what a bare test build in this package constructs against. It
+// is built once and never written to, so it is immutable shared data rather than shared
+// mutable state; a node given a different count builds its own ring instead of touching this.
+var defaultRing = newRing(Wiring.FullTurnThetaIdx)

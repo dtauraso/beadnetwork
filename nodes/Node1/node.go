@@ -98,6 +98,15 @@ type Node struct {
 	// the θ-only plane (memory/feedback_abc_times_constant_not_rederive.md: an index times a
 	// step constant, trig only at the cartesian/polar boundary).
 	Top *tiltState
+
+	// Ring is THIS NODE'S OWN lattice — its states, and the counts every rule reads off them.
+	// The point count is a scene setting a user can change, so this is not fixed for the life
+	// of the process; a change means this goroutine building itself a new ring, never a
+	// shared one being rewritten under other readers.
+	//
+	// nil means the default lattice, which is what a bare test build gets — see ringOf below,
+	// the one read of this field.
+	Ring *ring
 	// TiltEditIn is this node's dedicated channel for a panel-driven tilt-angle click
 	// (TiltVectorAnglePanel), claimed at build time via BuildArgs.TiltEditIn — see the
 	// package doc comment's "THE KICK".
@@ -206,12 +215,21 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 	return false
 }
 
-// topState is this node's own tilt direction, with the ring's origin standing in for a Top
+// ringOf is this node's own lattice, with the default standing in for a Ring that was never
+// set — a bare test build. Every read of the lattice goes through here.
+func (n *Node) ringOf() *ring {
+	if n.Ring == nil {
+		return defaultRing
+	}
+	return n.Ring
+}
+
+// topState is this node's own tilt direction, with its ring's origin standing in for a Top
 // that was never set — see the field's own doc comment. Every read of the tilt goes through
 // here, so nothing else in this file has to care about that case.
 func (n *Node) topState() *tiltState {
 	if n.Top == nil {
-		return &ring[0]
+		return n.ringOf().at(0)
 	}
 	return n.Top
 }
@@ -246,7 +264,7 @@ func (n *Node) topState() *tiltState {
 // one that provably lands last. The marker gets no reply (handleVectorCycle), so it stops
 // there instead of bouncing.
 func (n *Node) clear() {
-	n.Top = &ring[0]
+	n.Top = n.ringOf().at(0)
 	n.syncTiltIndex()
 	n.ReceivedThetaIdx = 0
 	n.ReceivedSet = false
@@ -373,7 +391,7 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 // as-is. Rotating what is sent, or swapping these two arms alone, turns each node the wrong
 // way and the pair walks apart instead of together. Worked run: docs/pair-node/vectors.html.
 func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
-	arrival := arrivedState(received.ThetaIdx)
+	arrival := n.ringOf().arrivedState(received.ThetaIdx)
 	switch {
 	case n.topState().acuteWith(arrival):
 		n.Top = n.topState().next
@@ -429,7 +447,7 @@ func (n *Node) handleVectorCycle(tick int64) {
 	// the `top`/`bottom` here are the operands the tests actually used, not the post-step ones.
 	// An exchange halts, so this is bounded per run rather than a per-tick firehose.
 	before := n.topState()
-	arrival := arrivedState(received.ThetaIdx)
+	arrival := n.ringOf().arrivedState(received.ThetaIdx)
 	acuteTop := before.acuteWith(arrival)
 	acuteBottom := before.opposite.acuteWith(arrival)
 	moved := n.stepFromVector(received)
@@ -568,7 +586,10 @@ func init() {
 			// can hold anything, including a running count from before the tilt became a
 			// state — so it comes in through seedState, which asks the ring which state
 			// carries that index. After this line the tilt is a state and stays one.
-			seed, seedUnknown := seedState(a.TiltVectorAngleSeed())
+			// This node's own lattice. The count is a scene setting, and until it is wired
+			// through it is the one this model has always run at.
+			n.Ring = newRing(Wiring.FullTurnThetaIdx)
+			seed, seedUnknown := n.Ring.seedState(a.TiltVectorAngleSeed())
 			n.Top = seed
 			n.TiltEditIn = a.TiltEditIn()
 			// Self replaces the old SyncTiltIndex/SyncReceivedVector/ClearOutBeads
