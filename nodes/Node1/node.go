@@ -81,16 +81,23 @@ type Node struct {
 	// preserving wire.Out.PlaceDrivenAt's one-goroutine-per-Out invariant — nothing else
 	// places on this Out at all.
 	Out *wire.Out
-	// TopTiltThetaIdx is THIS node's OWN vector-direction index — the ONE writer, full stop
-	// (memory/feedback_abc_times_constant_not_rederive.md: index × step-constant, trig only
-	// at the cartesian/polar boundary). There is no companion φ: every tilt vector in this
-	// exchange lives in the θ-only plane. Seeded once at build time from the persisted value
-	// (BuildArgs.TiltVectorAngleSeed) and mutated ONLY by this goroutine's own Update loop,
-	// below. Every change is reported one-way to this node's own geometry (SyncTiltIndex,
-	// i.e. Self) so the geometry — which still owns streaming this node's scene columns and
-	// persisting them to this node's own position.json — stays in sync; the geometry never
-	// decides or mutates these itself for this kind, it mirrors what it is told.
-	TopTiltThetaIdx int32
+	// Top is THIS node's OWN tilt direction, held as a STATE ON THE RING (ring.go) rather
+	// than as a number this goroutine does arithmetic to. Turning is following a link, so
+	// there is no index to keep in range and no twenty-fifth direction to land on.
+	//
+	// The ONE writer, full stop: seeded once at build time from the persisted value
+	// (BuildArgs.TiltVectorAngleSeed, mapped through stateFor) and moved ONLY by this
+	// goroutine's own Update loop, below. Every change is reported one-way to this node's own
+	// geometry (SyncTiltIndex, i.e. Self) so the geometry — which owns streaming this node's
+	// scene columns and persisting them to its own position.json — stays in sync; the
+	// geometry never decides or mutates this itself, it mirrors what it is told.
+	//
+	// nil means the ring's origin: a bare test build constructs this struct without a
+	// builder, and topState below reads a nil Top as direction 0 rather than making every
+	// such test say so. There is no companion φ — every tilt vector in this exchange lives in
+	// the θ-only plane (memory/feedback_abc_times_constant_not_rederive.md: an index times a
+	// step constant, trig only at the cartesian/polar boundary).
+	Top *tiltState
 	// TiltEditIn is this node's dedicated channel for a panel-driven tilt-angle click
 	// (TiltVectorAnglePanel), claimed at build time via BuildArgs.TiltEditIn — see the
 	// package doc comment's "THE KICK".
@@ -191,12 +198,22 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 		Wiring.SendVectorLatestNonBlocking(n.VectorOut, n.outgoingVector())
 		return true
 	}
-	delta := int32(-1)
 	if edit.Up {
-		delta = 1
+		n.Top = n.topState().next
+	} else {
+		n.Top = n.topState().prev
 	}
-	n.TopTiltThetaIdx = onCircle(n.TopTiltThetaIdx + delta)
 	return false
+}
+
+// topState is this node's own tilt direction, with the ring's origin standing in for a Top
+// that was never set — see the field's own doc comment. Every read of the tilt goes through
+// here, so nothing else in this file has to care about that case.
+func (n *Node) topState() *tiltState {
+	if n.Top == nil {
+		return &ring[0]
+	}
+	return n.Top
 }
 
 // clear returns THIS node to its opening state and — the part that matters — leaves
@@ -229,7 +246,7 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 // one that provably lands last. The marker gets no reply (handleVectorCycle), so it stops
 // there instead of bouncing.
 func (n *Node) clear() {
-	n.TopTiltThetaIdx = 0
+	n.Top = &ring[0]
 	n.syncTiltIndex()
 	n.ReceivedThetaIdx = 0
 	n.ReceivedSet = false
@@ -258,38 +275,14 @@ func (n *Node) drainIn() {
 	}
 }
 
-// bottomTilt is THIS node's own BOTTOM TILT VECTOR: a half turn (180°,
-// Wiring.HalfTurnThetaIdx steps) in θ from its OWN top tilt vector, so it points out of the
-// node's other side and turns with the top as the top turns — index arithmetic only, never
-// trig (memory/feedback_abc_times_constant_not_rederive.md). There is no φ any more: a half
-// turn in θ alone already negates the direction exactly (see Wiring.HalfTurnThetaIdx's own
-// doc comment).
-//
-// The half turn is ADDED. Both directions land in the SAME drawn place — ±180° in θ is one
-// direction — so this is index bookkeeping, not geometry.
+// bottomTilt is THIS node's own BOTTOM TILT VECTOR: the state a half turn from its own top,
+// so it points out of the node's other side and turns with the top as the top turns. A LINK,
+// resolved when the ring was built (ring.go) — no arithmetic, and no trig
+// (memory/feedback_abc_times_constant_not_rederive.md). There is no φ any more: a half turn
+// in θ alone already negates the direction exactly (see Wiring.HalfTurnThetaIdx's own doc
+// comment).
 func (n *Node) bottomTilt() Wiring.TiltVectorMsg {
-	return Wiring.TiltVectorMsg{
-		ThetaIdx: onCircle(n.TopTiltThetaIdx + Wiring.HalfTurnThetaIdx),
-	}
-}
-
-// onCircle brings an index back onto 0…23 with COMPARISONS, no division: adding or
-// subtracting a half turn or less to an index already on the circle can carry it at most one
-// full turn past either end, so one test each way is the whole reduction.
-//
-// EVERY INDEX IN THIS MODEL IS ON THE CIRCLE. TopTiltThetaIdx is kept there at every site
-// that moves it — the build-time seed, the panel's ±1, and stepFromVector's ±1 — and every
-// direction derived from it comes through here. That is what makes the one-comparison form
-// sufficient, here and in Wiring.TiltVectorIsAcute, and it is what keeps the negative indices
-// that once forced floor division out of the model entirely.
-func onCircle(idx int32) int32 {
-	if idx >= Wiring.FullTurnThetaIdx {
-		return idx - Wiring.FullTurnThetaIdx
-	}
-	if idx < 0 {
-		return idx + Wiring.FullTurnThetaIdx
-	}
-	return idx
+	return Wiring.TiltVectorMsg{ThetaIdx: n.topState().opposite.idx}
 }
 
 // coplanarNormal is THIS node's own coplanar normal: ONE QUARTER TURN past this node's own
@@ -314,9 +307,7 @@ func onCircle(idx int32) int32 {
 // point the normal the OTHER way, t + 18 rather than t + 6, over half the index range,
 // including the negative indices a ▼ click reaches first.
 func (n *Node) coplanarNormal() Wiring.TiltVectorMsg {
-	return Wiring.TiltVectorMsg{
-		ThetaIdx: onCircle(n.TopTiltThetaIdx + Wiring.PerpendicularThetaIdx),
-	}
+	return Wiring.TiltVectorMsg{ThetaIdx: n.topState().quarter.idx}
 }
 
 // syncTiltIndex reports THIS node's current tilt index AND its current coplanar-normal
@@ -331,7 +322,7 @@ func (n *Node) syncTiltIndex() {
 	}
 	norm := n.coplanarNormal()
 	bottom := n.bottomTilt()
-	n.SyncTiltIndex(n.TopTiltThetaIdx, norm.ThetaIdx, bottom.ThetaIdx)
+	n.SyncTiltIndex(n.topState().idx, norm.ThetaIdx, bottom.ThetaIdx)
 }
 
 // syncReceivedVector reports THIS node's current received-vector state (ReceivedThetaIdx/
@@ -358,50 +349,46 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 	return n.coplanarNormal()
 }
 
-// stepFromVector decides whether an arrived vector turns this node's own TopTiltThetaIdx at
-// all, and if so which way, using TWO ACUTE TESTS (Wiring.TiltVectorIsAcute — integer
-// index arithmetic on the 24-step θ lattice, not a dot product):
+// stepFromVector decides whether an arrived direction turns this node at all, and if so which
+// way, from TWO REACHABILITY TESTS on the ring (tiltState.acuteWith — is the arrival within a
+// quarter turn of this state, walking the links, no arithmetic):
 //
-//   - arrived vector ACUTE with this node's own TOP tilt vector    -> step +1, return true
-//   - arrived vector ACUTE with this node's own BOTTOM tilt vector -> step -1, the REVERSE,
+//   - arrival ACUTE with this node's own TOP tilt vector    -> one step to next, return true
+//   - arrival ACUTE with this node's own BOTTOM tilt vector -> one step to prev, the REVERSE,
 //     return true
-//   - neither acute (exactly perpendicular)                        -> step NOTHING, return
-//     false — this is how the vector exchange comes to rest: the caller
-//     (handleVectorCycle) sends nothing and places no bead on a false return, so a pair
-//     that reaches perpendicular on both tests simply stops circulating.
+//   - neither (exactly a quarter turn from both)            -> step NOTHING, return false —
+//     this is how the vector exchange comes to rest: the caller (handleVectorCycle) sends
+//     nothing and places no bead on a false return, so a pair that reaches perpendicular on
+//     both tests simply stops circulating.
 //
 // The two acute cases are mutually exclusive: the bottom is the top's exact antipode, so the
-// two tests are exact opposites and at most one of them can pass. There is no
-// both-acute case for the ordering of these two ifs to arbitrate, and no free sign knob —
-// which end the arrived vector leans toward IS the direction, except at the perpendicular
-// index itself, which has no lean at all and so steps nothing.
+// two cones are exact opposites and at most one of them can contain the arrival. There is no
+// both-acute case for the ordering of these two arms to arbitrate, and no free sign knob —
+// which end the arrival leans toward IS the direction, except exactly a quarter turn out,
+// which leans neither way and so steps nothing.
 //
-// Both ends of a pair run this same unmodified rule: the top-acute case ADDS one step,
-// the bottom-acute case SUBTRACTS one step, with no per-instance sign.
-//
-// These two signs are paired with what outgoingVector sends (above): they are read against
-// an arrival that is the partner's coplanar normal as-is. Rotating what is sent, or flipping
-// one of these signs alone, turns each node the wrong way and the pair walks apart instead
-// of together. Worked run: docs/pair-node/vectors.html.
+// Both ends of a pair run this same unmodified rule, and both directions of travel are links
+// rather than ±1, so a step cannot leave the ring. The pairing that matters is with what
+// outgoingVector sends: these tests read an arrival that is the partner's coplanar normal
+// as-is. Rotating what is sent, or swapping these two arms alone, turns each node the wrong
+// way and the pair walks apart instead of together. Worked run: docs/pair-node/vectors.html.
 func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
+	arrival := stateFor(received.ThetaIdx)
 	switch {
-	case Wiring.TiltVectorIsAcute(received, n.topTilt()):
-		n.TopTiltThetaIdx = onCircle(n.TopTiltThetaIdx + 1)
-	case Wiring.TiltVectorIsAcute(received, n.bottomTilt()):
-		n.TopTiltThetaIdx = onCircle(n.TopTiltThetaIdx - 1)
+	case n.topState().acuteWith(arrival):
+		n.Top = n.topState().next
+	case n.topState().opposite.acuteWith(arrival):
+		n.Top = n.topState().prev
 	default:
-		// Exactly perpendicular to both: no lean to read, so this node steps nothing —
-		// the halt condition for the exchange.
 		return false
 	}
 	return true
 }
 
-// topTilt is THIS node's own top tilt vector as a direction pair — the same indices held on
-// the struct, named so the acute tests above read as vector-against-vector rather than as
-// two loose ints.
+// topTilt is THIS node's own top tilt vector as a channel message — the same state the ring
+// holds, named so the tests above read as direction-against-direction.
 func (n *Node) topTilt() Wiring.TiltVectorMsg {
-	return Wiring.TiltVectorMsg{ThetaIdx: n.TopTiltThetaIdx}
+	return Wiring.TiltVectorMsg{ThetaIdx: n.topState().idx}
 }
 
 // handleVectorCycle is Node1's WHOLE per-cycle vector-channel loop body: read
@@ -441,15 +428,16 @@ func (n *Node) handleVectorCycle(tick int64) {
 	// what this node decided from them, in one row per arrival. Recorded BEFORE the step so
 	// the `top`/`bottom` here are the operands the tests actually used, not the post-step ones.
 	// An exchange halts, so this is bounded per run rather than a per-tick firehose.
-	before := n.TopTiltThetaIdx
-	acuteTop := Wiring.TiltVectorIsAcute(received, n.topTilt())
-	acuteBottom := Wiring.TiltVectorIsAcute(received, n.bottomTilt())
+	before := n.topState()
+	arrival := stateFor(received.ThetaIdx)
+	acuteTop := before.acuteWith(arrival)
+	acuteBottom := before.opposite.acuteWith(arrival)
 	moved := n.stepFromVector(received)
 	if n.Self != nil {
 		n.Self.Breadcrumb("pair-vector", fmt.Sprintf(
 			"tick=%d recv=%d top=%d bottom=%d acuteTop=%v acuteBottom=%v moved=%v idx %d->%d",
-			tick, received.ThetaIdx, before, before+Wiring.HalfTurnThetaIdx,
-			acuteTop, acuteBottom, moved, before, n.TopTiltThetaIdx))
+			tick, received.ThetaIdx, before.idx, before.opposite.idx,
+			acuteTop, acuteBottom, moved, before.idx, n.topState().idx))
 	}
 	if !moved {
 		return
@@ -524,7 +512,7 @@ func (n *Node) Update(ctx context.Context) {
 					n.Self.Breadcrumb("pair-tilt-edit", fmt.Sprintf(
 						"tick=%d reset=%v start=%v up=%v placeBead=%v theta=%d",
 						clk.Tick(), edit.Reset, edit.Start, edit.Up, placeBead,
-						n.TopTiltThetaIdx))
+						n.topState().idx))
 				}
 			default:
 			}
@@ -576,13 +564,11 @@ func init() {
 			n.SpeedCh = a.SpeedCh()
 			n.In = a.In("In")
 			n.Out = a.Out("Out")
-			// The persisted seed is the ONE index that arrives from outside this kind, so it
-			// is the one that can be anything — an old position.json written before indices
-			// were kept on the circle holds a running count. Reduced fully here, once, so
-			// every index after this point is on the circle by construction and onCircle's
-			// one-comparison form holds everywhere.
-			n.TopTiltThetaIdx = ((a.TiltVectorAngleSeed() % Wiring.FullTurnThetaIdx) +
-				Wiring.FullTurnThetaIdx) % Wiring.FullTurnThetaIdx
+			// The persisted seed is a NUMBER from outside this kind — an old position.json
+			// can hold anything, including a running count from before the tilt became a
+			// state — so it comes in through stateFor, which is where a number becomes a
+			// direction. After this line the tilt is a state and stays one.
+			n.Top = stateFor(a.TiltVectorAngleSeed())
 			n.TiltEditIn = a.TiltEditIn()
 			// Self replaces the old SyncTiltIndex/SyncReceivedVector/ClearOutBeads
 			// messages-to-a-separate-mover-goroutine (task/pair-node-owns-itself):
