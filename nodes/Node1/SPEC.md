@@ -154,7 +154,14 @@ loop body) runs:
   Each is a MODE of the one state machine (`nodes/Node1/machine.go`), and a mode is nothing but
   its HOME SET — the separations it calls a resting state: `{ 0, half }` for `perpendicularMachine`
   and `{ quarter }` for `parallelMachine`. The rule that walks toward a home set is written once
-  and never asks which mode it is running for. A node runs one mode (`Machine`), or none yet.
+  and never asks which mode it is running for.
+
+  There is a THIRD mode, `settingMachine`, for a node that has not yet decided which of the two it
+  runs — before the first arrival, and again after a reset. It is a mode and not an absence of
+  one: its home set is EVERY separation, so it is already at rest wherever it stands and an
+  arrival moves it nothing, by the ordinary rule rather than by an exemption from it. Its pair-wide
+  choice is `TiltMachineNone`, so a node in it tells the other end nothing, which is all it has to
+  say. A node is always in exactly one of the three (`Machine`, read through `mode`).
 
   WHICH ONE IT RUNS IS READ FROM THE GAP WHEN THE EXCHANGE OPENS — the first arrival, which is
   START, the moment the setup is finished and also the first moment either end can see BOTH

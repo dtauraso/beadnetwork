@@ -7,8 +7,13 @@ package Node1
 // only thing written per mode: a home set, one line of data each, in the table at the bottom of
 // this file. The rule that walks toward them is written ONCE.
 //
+//	setting        home = { every one }   which machine to run is still being decided
 //	perpendicular  home = { 0, half }     the two tilts a quarter turn apart
 //	parallel       home = { quarter }     the two tilts on the SAME LINE, either way round
+//
+// Setting is a mode like the other two and not an absence of one: while a node is still being set
+// up nothing is out of place, so every separation is a resting state and the node holds still by
+// the ordinary rule rather than by an exemption from it.
 //
 // WHY THIS IS ONE FILE NOW, HAVING DELIBERATELY BEEN TWO.
 //
@@ -94,9 +99,35 @@ func (m *tiltMachine) String() string { return m.name }
 // THE MODES. Each is its home set and its two names, and a new mode is a new row here — not a
 // new file, and not a new branch anywhere above.
 //
-// The two sets are not independent: quarter is the midpoint of 0 and half, which is why the two
-// misses sum to a constant quarter and why each mode's home is the other's farthest point.
+// perpendicular and parallel are not independent: quarter is the midpoint of 0 and half, which
+// is why their two misses sum to a constant quarter and why each one's home is the other's
+// farthest point.
 var (
+	// settingMachine is the mode a node is in while WHICH MACHINE IT RUNS is still being
+	// decided — before the first arrival, and again after a reset. It was not a mode before;
+	// it was a nil Machine, and every reader special-cased the nil to mean "move nothing".
+	//
+	// It needs no special case, because "nothing is out of place yet" is a home set: EVERY
+	// separation is a resting state here. miss is therefore zero wherever the node stands,
+	// halted is always true, and step is never reached — a node being set up holds still by
+	// the same rule that stops a running one, not by an exemption from it.
+	//
+	// Its choice is TiltMachineNone, which is what that constant already means on the wire: a
+	// message carrying no choice. A node in this mode tells the other end nothing, which is
+	// correct — it has nothing to tell yet.
+	settingMachine = &tiltMachine{
+		name: "setting",
+		pick: Wiring.TiltMachineNone,
+		homes: func(r *ring) []int32 {
+			// separation folds into [0, half], so this is every separation there is.
+			all := make([]int32, 0, r.halfTurn+1)
+			for sep := int32(0); sep <= r.halfTurn; sep++ {
+				all = append(all, sep)
+			}
+			return all
+		},
+	}
+
 	perpendicularMachine = &tiltMachine{
 		name: "perpendicular",
 		pick: Wiring.TiltMachinePerpendicular,
@@ -118,8 +149,11 @@ var (
 // Wiring so both ends can say it to each other; the home sets live here, which is the only place
 // that knows what any of them means on the ring.
 //
-// TiltMachineNone maps to no machine, which is what a reset restores and what an ordinary vector
-// message carries.
+// TiltMachineNone maps to nil rather than to settingMachine ON PURPOSE. Setting has ONE storage
+// spelling — a nil Node.Machine, which is also the zero value, so a Node built as a literal is
+// already in it — and Node.mode() is the only thing that turns that into the mode object. Storing
+// settingMachine as well would make two spellings of one state, which is the shape every
+// `== nil || == settingMachine` bug is made of.
 func machineFor(choice Wiring.TiltMachine) *tiltMachine {
 	switch choice {
 	case Wiring.TiltMachinePerpendicular:

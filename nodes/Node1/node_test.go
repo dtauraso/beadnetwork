@@ -132,7 +132,7 @@ func TestTheTwoMissesAreComplements(t *testing.T) {
 func TestAModeHaltsExactlyOnItsHomeSet(t *testing.T) {
 	r := testRing()
 	top := r.at(0)
-	for _, m := range []*tiltMachine{perpendicularMachine, parallelMachine} {
+	for _, m := range []*tiltMachine{settingMachine, perpendicularMachine, parallelMachine} {
 		home := map[int32]bool{}
 		for _, h := range m.homes(r) {
 			home[h] = true
@@ -198,6 +198,39 @@ func TestMachineIsReadFromTheGapNotFromOneTilt(t *testing.T) {
 	}
 }
 
+// TestASettingNodeHoldsWhereverItStands is the behaviour that used to be an `if Machine == nil`
+// exemption in stepFromVector and is now a consequence of the setting mode's home set: a node
+// still deciding which machine it runs is already halted at every separation, so no arrival can
+// move it. A zero-value Node is in that mode without being put there.
+func TestASettingNodeHoldsWhereverItStands(t *testing.T) {
+	r := testRing()
+	for sep := int32(0); sep < r.points; sep++ {
+		n := &Node{Ring: r, Top: r.at(5)}
+		if n.mode() != settingMachine {
+			t.Fatalf("a fresh node is not in the setting mode: %v", n.mode())
+		}
+		n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: sep})
+		if n.Top != r.at(5) {
+			t.Errorf("arrival at separation %d moved a node that is still being set up: top %d, want 5",
+				sep, n.Top.idx)
+		}
+	}
+}
+
+// TestASettingNodeTellsTheOtherEndNothing: the mode's own choice is TiltMachineNone, so the wire
+// says "no choice carried" without outgoingVector testing for one.
+func TestASettingNodeTellsTheOtherEndNothing(t *testing.T) {
+	r := testRing()
+	n := &Node{Ring: r, Top: r.at(0)}
+	if got := n.outgoingVector().Machine; got != Wiring.TiltMachineNone {
+		t.Errorf("a node still being set up announced machine %v, want none", got)
+	}
+	n.adoptMachine(Wiring.TiltMachineParallel)
+	if got := n.outgoingVector().Machine; got != Wiring.TiltMachineParallel {
+		t.Errorf("after adopting, announced %v, want parallel", got)
+	}
+}
+
 func TestAdoptedMachineSticksUntilCleared(t *testing.T) {
 	r := testRing()
 	n := &Node{Ring: r, Top: r.at(0)}
@@ -215,8 +248,8 @@ func TestAdoptedMachineSticksUntilCleared(t *testing.T) {
 	}
 	// RESET is the one thing that releases it.
 	n.clear()
-	if n.Machine != nil {
-		t.Errorf("reset left a machine running: %v", n.Machine)
+	if n.mode() != settingMachine {
+		t.Errorf("reset left a machine running: %v", n.mode())
 	}
 }
 
