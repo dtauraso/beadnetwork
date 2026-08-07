@@ -53,21 +53,14 @@ type Node struct {
 	// panel posts START to every node row, because the webview holds no domain knowledge
 	// about which end is which; Go decides here, by id.
 	//
-	// It does NOT decide which way this end turns — that is Sign, below, and the two are
-	// independent: an id says which end you are talking to, a sign says which way that end
-	// runs. The zero value means id 1, which is what a bare test build in this package
+	// It decides NOTHING ELSE. Both ends run this one implementation, unmodified — same
+	// derived directions, same step directions — so a pair draws two nodes that behave
+	// identically apart from which one START reaches. That sameness is the visible evidence
+	// that there is one implementation here rather than two: end 2's coplanar normal points
+	// the same way end 1's does, where two mirrored implementations pointed them opposite
+	// ways. The zero value means id 1, which is what a bare test build in this package
 	// constructs.
 	PairID int32
-
-	// Sign is +1 or −1: which way this end's derived directions and steps run. It inverts
-	// the bottom tilt, the coplanar normal and both step directions together, and end 2
-	// taking the opposite of end 1 is what makes the two turn TOWARD each other. With the
-	// same sign at both ends they turn APART instead, one index per round, halting a quarter
-	// turn either side of where they started rather than parallel.
-	//
-	// Set by each kind's own builder. The zero value is read as +1, so a bare test build in
-	// this package is end 1's chirality without having to say so.
-	Sign int32
 
 	Fire         func()
 	EmitGeometry func()
@@ -269,26 +262,12 @@ func (n *Node) drainIn() {
 // turn in θ alone already negates the direction exactly (see Wiring.HalfTurnThetaIdx's own
 // doc comment).
 //
-// Node1 ADDS the half turn (its mirror package does the opposite), the same
-// opposite-senses convention outgoingVector already uses. Both signs land in the SAME drawn
-// direction — ±180° in θ is the same place — so this is index bookkeeping, not geometry:
-// each kind's indices keep walking in its own direction instead of one kind's jumping the
-// other way at the turn.
+// The half turn is ADDED. Both directions land in the SAME drawn place — ±180° in θ is one
+// direction — so this is index bookkeeping, not geometry.
 func (n *Node) bottomTilt() Wiring.TiltVectorMsg {
 	return Wiring.TiltVectorMsg{
-		ThetaIdx: n.TopTiltThetaIdx + n.sign()*Wiring.HalfTurnThetaIdx,
+		ThetaIdx: n.TopTiltThetaIdx + Wiring.HalfTurnThetaIdx,
 	}
-}
-
-// sign reads the Sign field, treating its zero value as +1 so a struct built in a test
-// without a builder runs end 1's chirality. Read by bottomTilt, coplanarNormal and
-// stepFromVector — the three places chirality shows up, and the only places. It does NOT
-// consult PairID: an id addresses an end, it does not decide which way that end turns.
-func (n *Node) sign() int32 {
-	if n.Sign < 0 {
-		return -1
-	}
-	return 1
 }
 
 // coplanarNormal is THIS node's own coplanar normal: ONE QUARTER TURN past this node's own
@@ -314,7 +293,7 @@ func (n *Node) sign() int32 {
 // point the normal the OTHER way, t + 18 rather than t + 6, over half the index range,
 // including the negative indices a ▼ click reaches first.
 func (n *Node) coplanarNormal() Wiring.TiltVectorMsg {
-	thetaIdx := n.TopTiltThetaIdx + n.sign()*Wiring.PerpendicularThetaIdx
+	thetaIdx := n.TopTiltThetaIdx + Wiring.PerpendicularThetaIdx
 	if thetaIdx >= Wiring.FullTurnThetaIdx {
 		thetaIdx -= Wiring.FullTurnThetaIdx
 	}
@@ -391,9 +370,9 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
 	switch {
 	case Wiring.TiltVectorIsAcute(received, n.topTilt()):
-		n.TopTiltThetaIdx += n.sign()
+		n.TopTiltThetaIdx += 1
 	case Wiring.TiltVectorIsAcute(received, n.bottomTilt()):
-		n.TopTiltThetaIdx -= n.sign()
+		n.TopTiltThetaIdx -= 1
 	default:
 		// Exactly perpendicular to both: no lean to read, so this node steps nothing —
 		// the halt condition for the exchange.
@@ -567,7 +546,6 @@ func init() {
 		func(a Wiring.BuildArgs) (wire.Node, error) {
 			n := &Node{
 				PairID: 1,
-				Sign:   1,
 				Clock:  wire.NewRealClock(),
 			}
 			n.Fire = a.Fire()

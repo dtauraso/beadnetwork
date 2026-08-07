@@ -505,7 +505,6 @@ func init() {
 		func(a Wiring.BuildArgs) (wire.Node, error) {
 			n := &Node1.Node{
 				PairID: 2,
-				Sign:   -1,
 				Clock:  wire.NewRealClock(),
 			}
 			n.Fire = a.Fire()

@@ -537,61 +537,33 @@ func TestResetSendsAMarkerNotADirection(t *testing.T) {
 	}
 }
 
-// THE OPPOSITE SIGN IS WHAT MIRRORS AN END, not its id. nodes/Node2's builder constructs
-// this same struct with Sign −1, so the mirror is asserted here, against the implementation
-// both ends actually run — not in that package, whose own methods the builder no longer
-// reaches.
-//
-// Every derived direction and both step directions must invert together. Asserted as a
-// SEPARATION reduced onto the circle, since the normal wraps at both ends of the range.
-func TestOppositeSignMirrorsEveryDerivedDirection(t *testing.T) {
-	full := Wiring.FullTurnThetaIdx
-	for _, theta := range []int32{0, 1, 5, -1, -7, Wiring.HalfTurnThetaIdx, full, full + 3} {
-		one := &Node{Sign: 1, TopTiltThetaIdx: theta}
-		two := &Node{Sign: -1, TopTiltThetaIdx: theta}
+// THE ID CHANGES NOTHING EXCEPT WHO ANSWERS START. Both ends run this one implementation
+// unmodified, so at the same tilt index they derive the same directions and step the same
+// way — which is what makes the shared implementation VISIBLE in the editor: end 2's
+// coplanar normal points where end 1's does, instead of opposite it.
+func TestBothIDsDeriveAndStepIdentically(t *testing.T) {
+	for _, theta := range []int32{0, 1, 5, -1, -7, Wiring.HalfTurnThetaIdx, Wiring.FullTurnThetaIdx} {
+		one := &Node{PairID: 1, TopTiltThetaIdx: theta}
+		two := &Node{PairID: 2, TopTiltThetaIdx: theta}
 
-		// The normal sits a quarter turn AHEAD at sign +1 and a quarter turn BEHIND at −1.
-		if d := ((one.coplanarNormal().ThetaIdx-theta)%full + full) % full; d != Wiring.PerpendicularThetaIdx {
-			t.Fatalf("theta=%d: +1 normal must sit %d past the tilt, got %d", theta, Wiring.PerpendicularThetaIdx, d)
+		if one.coplanarNormal().ThetaIdx != two.coplanarNormal().ThetaIdx {
+			t.Fatalf("theta=%d: the two ids must derive the SAME normal, got %d and %d",
+				theta, one.coplanarNormal().ThetaIdx, two.coplanarNormal().ThetaIdx)
 		}
-		if d := ((theta-two.coplanarNormal().ThetaIdx)%full + full) % full; d != Wiring.PerpendicularThetaIdx {
-			t.Fatalf("theta=%d: −1 normal must sit %d behind the tilt, got %d", theta, Wiring.PerpendicularThetaIdx, d)
-		}
-		// Both bottoms draw the same direction, a half turn from the top, whichever way the
-		// index went to get there.
-		if d := ((one.bottomTilt().ThetaIdx-theta)%full + full) % full; d != Wiring.HalfTurnThetaIdx {
-			t.Fatalf("theta=%d: +1 bottom must sit a half turn from the top, got %d", theta, d)
-		}
-		if d := ((two.bottomTilt().ThetaIdx-theta)%full + full) % full; d != Wiring.HalfTurnThetaIdx {
-			t.Fatalf("theta=%d: −1 bottom must sit a half turn from the top, got %d", theta, d)
+		if one.bottomTilt().ThetaIdx != two.bottomTilt().ThetaIdx {
+			t.Fatalf("theta=%d: the two ids must derive the SAME bottom, got %d and %d",
+				theta, one.bottomTilt().ThetaIdx, two.bottomTilt().ThetaIdx)
 		}
 	}
 
-	// The steps invert too: the SAME arrival that adds one at +1 subtracts one at −1. This is
-	// what makes the two ends turn toward each other instead of walking apart.
 	for _, arrival := range []int32{0, Wiring.HalfTurnThetaIdx} {
-		one := &Node{Sign: 1}
-		two := &Node{Sign: -1}
-		if !one.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: arrival}) ||
-			!two.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: arrival}) {
-			t.Fatalf("arrival=%d: both ends must step on an arrival that leans", arrival)
-		}
-		if one.TopTiltThetaIdx != -two.TopTiltThetaIdx || one.TopTiltThetaIdx == 0 {
-			t.Fatalf("arrival=%d: the two signs must step opposite ways, got +1=%d −1=%d",
+		one := &Node{PairID: 1}
+		two := &Node{PairID: 2}
+		one.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: arrival})
+		two.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: arrival})
+		if one.TopTiltThetaIdx != two.TopTiltThetaIdx {
+			t.Fatalf("arrival=%d: the two ids must step the SAME way, got id1=%d id2=%d",
 				arrival, one.TopTiltThetaIdx, two.TopTiltThetaIdx)
-		}
-	}
-}
-
-// THE ID DOES NOT DECIDE CHIRALITY. An id addresses an end; it says nothing about which way
-// that end turns. Asserted directly, because the two were briefly one field and reading the
-// sign off the id is the obvious shortcut to take again.
-func TestPairIDDoesNotDecideWhichWayAnEndTurns(t *testing.T) {
-	for _, id := range []int32{1, 2} {
-		n := &Node{PairID: id, Sign: 1}
-		if !n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: 0}) || n.TopTiltThetaIdx != 1 {
-			t.Fatalf("id %d at sign +1 must step +1 like any other end at +1, got %d",
-				id, n.TopTiltThetaIdx)
 		}
 	}
 }
