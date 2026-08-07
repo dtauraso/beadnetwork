@@ -373,7 +373,7 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 // as-is. Rotating what is sent, or swapping these two arms alone, turns each node the wrong
 // way and the pair walks apart instead of together. Worked run: docs/pair-node/vectors.html.
 func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
-	arrival := stateFor(received.ThetaIdx)
+	arrival := arrivedState(received.ThetaIdx)
 	switch {
 	case n.topState().acuteWith(arrival):
 		n.Top = n.topState().next
@@ -429,7 +429,7 @@ func (n *Node) handleVectorCycle(tick int64) {
 	// the `top`/`bottom` here are the operands the tests actually used, not the post-step ones.
 	// An exchange halts, so this is bounded per run rather than a per-tick firehose.
 	before := n.topState()
-	arrival := stateFor(received.ThetaIdx)
+	arrival := arrivedState(received.ThetaIdx)
 	acuteTop := before.acuteWith(arrival)
 	acuteBottom := before.opposite.acuteWith(arrival)
 	moved := n.stepFromVector(received)
@@ -566,9 +566,10 @@ func init() {
 			n.Out = a.Out("Out")
 			// The persisted seed is a NUMBER from outside this kind — an old position.json
 			// can hold anything, including a running count from before the tilt became a
-			// state — so it comes in through stateFor, which is where a number becomes a
-			// direction. After this line the tilt is a state and stays one.
-			n.Top = stateFor(a.TiltVectorAngleSeed())
+			// state — so it comes in through seedState, the one place a number is folded onto
+			// the ring. After this line the tilt is a state and stays one.
+			seed, seedFolded := seedState(a.TiltVectorAngleSeed())
+			n.Top = seed
 			n.TiltEditIn = a.TiltEditIn()
 			// Self replaces the old SyncTiltIndex/SyncReceivedVector/ClearOutBeads
 			// messages-to-a-separate-mover-goroutine (task/pair-node-owns-itself):
@@ -576,6 +577,14 @@ func init() {
 			// used to be a message is a plain method call on the same object below.
 			self := a.ClaimSelfDrive()
 			n.Self = self
+			if seedFolded {
+				// A persisted index that was not on the ring — a position.json written
+				// before the tilt became a state, or by a build with a different lattice.
+				// It loads, folded onto the ring, and says so: the alternative is a tilt
+				// that quietly points somewhere other than where the file asked.
+				self.Breadcrumb("pair-seed-folded", fmt.Sprintf(
+					"node=%s persisted=%d loaded=%d", a.Name(), a.TiltVectorAngleSeed(), seed.idx))
+			}
 			n.SyncTiltIndex = func(theta, normalTheta, bottomTheta int32) {
 				self.SetTiltIndex(theta, normalTheta, bottomTheta)
 			}
