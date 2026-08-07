@@ -152,16 +152,19 @@ loop body) runs:
   | a quarter turn | on one line, either way round | PARALLEL |
 
   Each is a MODE of the one state machine (`nodes/Node1/machine.go`), and a mode is nothing but
-  its HOME SET — the separations it calls a resting state: `{ 0, half }` for `perpendicularMachine`
-  and `{ quarter }` for `parallelMachine`. The rule that walks toward a home set is written once
-  and never asks which mode it is running for.
+  its HOME SET — the separations it calls a resting state: `{ 0, half }` for perpendicular and
+  `{ quarter }` for parallel, both rows in `homeSets`. The rule that walks toward a home set is
+  written once and never asks which mode it is running for.
 
-  There is a THIRD mode, `settingMachine`, for a node that has not yet decided which of the two it
-  runs — before the first arrival, and again after a reset. It is a mode and not an absence of
-  one: its home set is EVERY separation, so it is already at rest wherever it stands and an
-  arrival moves it nothing, by the ordinary rule rather than by an exemption from it. Its pair-wide
-  choice is `TiltMachineNone`, so a node in it tells the other end nothing, which is all it has to
-  say. A node is always in exactly one of the three (`Machine`, read through `mode`).
+  There is a THIRD mode, `setting`, for a node that has not yet decided which of the two it runs —
+  before the first arrival, and again after a reset. It is a mode and not an absence of one: its
+  home set is EVERY separation, so it is already at rest wherever it stands and an arrival moves it
+  nothing, by the ordinary rule rather than by an exemption from it. Its pair-wide choice is
+  `TiltMachineNone`, so a node in it tells the other end nothing, which is all it has to say.
+
+  A node holds ONE `tiltMachine` (`Machine`), whose only state is which mode it is in — the same
+  `Wiring.TiltMachine` value the two ends say to each other. Its zero value is `setting`, so a node
+  starts there with nothing to construct and there is no nil to test for.
 
   WHICH ONE IT RUNS IS READ FROM THE GAP WHEN THE EXCHANGE OPENS — the first arrival, which is
   START, the moment the setup is finished and also the first moment either end can see BOTH

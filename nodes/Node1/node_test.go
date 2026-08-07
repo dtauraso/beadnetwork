@@ -20,9 +20,16 @@ import (
 // so the numbers here read the same as the rows in the probe log.
 func testRing() *ring { return newRing(48) }
 
+// The two chosen modes, named once here so the tests read as the modes rather than as calls.
+// `setting` is the zero value and lives in machine.go, since production code names it too.
+var (
+	perpendicular = machineFor(Wiring.TiltMachinePerpendicular)
+	parallel      = machineFor(Wiring.TiltMachineParallel)
+)
+
 func TestPerpendicularHaltsOnItsOwnTwoSeparations(t *testing.T) {
 	r := testRing()
-	m := perpendicularMachine
+	m := perpendicular
 	top := r.at(0)
 
 	// The arrival on this node's own top (separation 0) and on its bottom (a half turn) are the
@@ -43,7 +50,7 @@ func TestPerpendicularHaltsOnItsOwnTwoSeparations(t *testing.T) {
 
 func TestParallelHaltsOnlyOnAQuarterTurn(t *testing.T) {
 	r := testRing()
-	m := parallelMachine
+	m := parallel
 	top := r.at(0)
 
 	if !m.halted(top, r.at(r.quarterTurn)) {
@@ -66,13 +73,13 @@ func TestEachMachineStepsTowardItsOwnHalt(t *testing.T) {
 		arrival := r.at(sep)
 		top := r.at(0)
 
-		perp := perpendicularMachine
+		perp := perpendicular
 		if !perp.halted(top, arrival) {
 			if got, was := perp.miss(perp.step(top, arrival), arrival), perp.miss(top, arrival); got >= was {
 				t.Errorf("perpendicular at separation %d: step left miss at %d, was %d", sep, got, was)
 			}
 		}
-		par := parallelMachine
+		par := parallel
 		if !par.halted(top, arrival) {
 			if got, was := par.miss(par.step(top, arrival), arrival), par.miss(top, arrival); got >= was {
 				t.Errorf("parallel at separation %d: step left miss at %d, was %d", sep, got, was)
@@ -83,7 +90,7 @@ func TestEachMachineStepsTowardItsOwnHalt(t *testing.T) {
 
 func TestPerpendicularStepsThroughTheParallelHalt(t *testing.T) {
 	r := testRing()
-	m := perpendicularMachine
+	m := perpendicular
 	// Standing one step off a quarter turn, walking home to separation 0, this machine must pass
 	// over the quarter turn rather than stop on it. Sitting still here is the freeze the acute
 	// test produced; halting here is the capture that produced a parallel pair from a
@@ -112,8 +119,8 @@ func TestTheTwoMissesAreComplements(t *testing.T) {
 	top := r.at(0)
 	for sep := int32(0); sep < r.points; sep++ {
 		arrival := r.at(sep)
-		perp := perpendicularMachine.miss(top, arrival)
-		par := parallelMachine.miss(top, arrival)
+		perp := perpendicular.miss(top, arrival)
+		par := parallel.miss(top, arrival)
 		if perp+par != r.quarterTurn {
 			t.Errorf("separation %d: perpendicular miss %d + parallel miss %d = %d, want the quarter turn %d",
 				sep, perp, par, perp+par, r.quarterTurn)
@@ -132,7 +139,7 @@ func TestTheTwoMissesAreComplements(t *testing.T) {
 func TestAModeHaltsExactlyOnItsHomeSet(t *testing.T) {
 	r := testRing()
 	top := r.at(0)
-	for _, m := range []*tiltMachine{settingMachine, perpendicularMachine, parallelMachine} {
+	for _, m := range []tiltMachine{setting, perpendicular, parallel} {
 		home := map[int32]bool{}
 		for _, h := range m.homes(r) {
 			home[h] = true
@@ -206,8 +213,8 @@ func TestASettingNodeHoldsWhereverItStands(t *testing.T) {
 	r := testRing()
 	for sep := int32(0); sep < r.points; sep++ {
 		n := &Node{Ring: r, Top: r.at(5)}
-		if n.mode() != settingMachine {
-			t.Fatalf("a fresh node is not in the setting mode: %v", n.mode())
+		if n.Machine != setting {
+			t.Fatalf("a fresh node is not in the setting mode: %v", n.Machine)
 		}
 		n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: sep})
 		if n.Top != r.at(5) {
@@ -236,20 +243,20 @@ func TestAdoptedMachineSticksUntilCleared(t *testing.T) {
 	n := &Node{Ring: r, Top: r.at(0)}
 
 	n.adoptMachine(Wiring.TiltMachinePerpendicular)
-	if n.Machine != perpendicularMachine {
+	if n.Machine != perpendicular {
 		t.Fatalf("adopt did not take: running %v", n.Machine)
 	}
 	// A second choice — a click landing mid-run, or the partner's own answer arriving — must not
 	// switch a running machine. Re-deciding on a jitter click switched a started perpendicular
 	// pair to parallel one step after START.
 	n.adoptMachine(Wiring.TiltMachineParallel)
-	if n.Machine != perpendicularMachine {
+	if n.Machine != perpendicular {
 		t.Errorf("a later choice switched a running machine: now %v", n.Machine)
 	}
 	// RESET is the one thing that releases it.
 	n.clear()
-	if n.mode() != settingMachine {
-		t.Errorf("reset left a machine running: %v", n.mode())
+	if n.Machine != setting {
+		t.Errorf("reset left a machine running: %v", n.Machine)
 	}
 }
 
@@ -292,7 +299,7 @@ func runOpening(r *ring, tiltA, tiltB int32) openingOutcome {
 	// is running, then choose from the gap if still running nothing, then step.
 	read := func(n *Node, arrival *tiltState, senderRuns Wiring.TiltMachine) bool {
 		n.adoptMachine(senderRuns)
-		if n.Machine == nil {
+		if n.Machine == setting {
 			n.adoptMachine(n.machineForGap(arrival))
 		}
 		before := n.topState()
@@ -301,12 +308,7 @@ func runOpening(r *ring, tiltA, tiltB int32) openingOutcome {
 		}
 		return n.topState() != before
 	}
-	runs := func(n *Node) Wiring.TiltMachine {
-		if n.Machine == nil {
-			return Wiring.TiltMachineNone
-		}
-		return n.Machine.choice()
-	}
+	runs := func(n *Node) Wiring.TiltMachine { return n.Machine.choice() }
 	normal := func(n *Node) *tiltState { return n.topState().quarter }
 
 	out := openingOutcome{}

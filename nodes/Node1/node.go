@@ -101,15 +101,18 @@ type Node struct {
 	// step constant, trig only at the cartesian/polar boundary).
 	Top *tiltState
 
-	// Machine is WHICH MODE of the tilt machine this node is running — one of the rows in
-	// machine.go, which differ only in the separations they call home. nil means none yet. A
-	// node has to know which it is running, because that is what says where it is returning to
-	// when something disturbs it.
+	// Machine is THIS NODE'S tilt machine — one instance, carrying which mode it is in. The
+	// modes differ only in the separations they call home (machine.go). A node has to know
+	// which it is in, because that is what says where it is returning to when something
+	// disturbs it.
+	//
+	// Its ZERO VALUE IS THE SETTING MODE, so a Node built as a literal is already in the mode a
+	// node starts in. There is no nil and no "no machine" state to test for.
 	//
 	// It is set when an arrival lands on one machine's halt and by nothing else — no arrival in
 	// between erases it, so a node disturbed mid-turn still knows what it is returning to. The
 	// RESET button is the one thing that erases it (clear).
-	Machine *tiltMachine
+	Machine tiltMachine
 
 	// Ring is THIS NODE'S OWN lattice — its states, and the counts every rule reads off them.
 	// The point count is a scene setting a user can change, so this is not fixed for the life
@@ -264,18 +267,6 @@ func (n *Node) machineForGap(arrival *tiltState) Wiring.TiltMachine {
 	return Wiring.TiltMachineParallel
 }
 
-// mode reads Machine as one of the three modes in machine.go. A nil Machine is not "no mode": it
-// is the STORAGE SPELLING of the setting mode — the node is still deciding which machine it runs
-// — and it is also the zero value, so a Node built as a literal starts there without anyone
-// having to say so. Every reader goes through here, so nothing has to test for nil and nothing
-// can reach a method on it.
-func (n *Node) mode() *tiltMachine {
-	if n.Machine == nil {
-		return settingMachine
-	}
-	return n.Machine
-}
-
 // adoptMachine sets which mode of the tilt machine this node runs. It is the ONE writer of that
 // field outside clear(), and the mapping from the pair-wide name to the mode is machineFor — the
 // naming lives in Wiring so both ends can say it to each other, and the home sets live in
@@ -285,7 +276,7 @@ func (n *Node) mode() *tiltMachine {
 // — or one arriving at an end that has already made its own — cannot switch it mid-run. Only a
 // reset clears it, and the next click after that makes a new one.
 func (n *Node) adoptMachine(choice Wiring.TiltMachine) {
-	if n.mode() != settingMachine {
+	if n.Machine != setting {
 		return
 	}
 	n.Machine = machineFor(choice)
@@ -383,8 +374,8 @@ func (n *Node) topState() *tiltState {
 func (n *Node) clear() {
 	n.Top = n.ringOf().at(0)
 	// The machine this node was running goes too — RESET is the one thing that releases it, and
-	// what it returns to is the setting mode, whose storage spelling is this nil (Node.mode).
-	n.Machine = nil
+	// what it returns to is the setting mode, which is also where a fresh node starts.
+	n.Machine = setting
 	n.syncTiltIndex()
 	n.ReceivedThetaIdx = 0
 	n.ReceivedSet = false
@@ -494,7 +485,7 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 	// how it finds out, on the first reply, without a message of its own. A node still in the
 	// setting mode says TiltMachineNone here — that mode's own choice, not a special case for
 	// having none — and the other end ignores it (adoptMachine).
-	v.Machine = n.mode().choice()
+	v.Machine = n.Machine.choice()
 	return v
 }
 
@@ -538,9 +529,8 @@ func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
 	// A node still in the setting mode — before any click, or after a reset — moves nothing, and
 	// needs no test here to make that happen: every separation is that mode's home, so it is
 	// already halted wherever it stands and the step below is not reached.
-	m := n.mode()
-	if !m.halted(before, arrival) {
-		n.Top = m.step(before, arrival)
+	if !n.Machine.halted(before, arrival) {
+		n.Top = n.Machine.step(before, arrival)
 	}
 	return true
 }
@@ -604,7 +594,7 @@ func (n *Node) handleVectorCycle(tick int64) {
 	// Only while still in the setting mode: this is the setup being read, and after that a click
 	// is a jitter for the running machine to correct, not a new instruction. The other end learns
 	// the answer from this node's next reply, which carries it (outgoingVector).
-	if n.mode() == settingMachine {
+	if n.Machine == setting {
 		n.adoptMachine(n.machineForGap(n.ringOf().arrivedState(received.ThetaIdx)))
 	}
 	if !n.stepFromVector(received) {

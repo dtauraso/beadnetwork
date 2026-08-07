@@ -44,24 +44,68 @@ package Node1
 // reaches a node as the arrival on its own TOP or exactly opposite it (separation 0 or half),
 // and "the tilts lie on one line" reaches it as a quarter turn off its top.
 
-import "github.com/dtauraso/wirefold/nodes/Wiring"
+import (
+	"strconv"
 
-// tiltMachine is the one machine. A mode is an instance of it carrying a different home set;
-// there is no second implementation and no interface, because there is no second rule.
+	"github.com/dtauraso/wirefold/nodes/Wiring"
+)
+
+// tiltMachine is THE machine — one instance per node, not one object per mode. What it carries is
+// which mode it is in, and that is the whole of its state; the home set is read from the mode
+// (homeSets) rather than stored, so there is nothing per-mode to construct, share, or get out of
+// step with the mode itself.
+//
+// It is a VALUE, and its ZERO VALUE IS THE SETTING MODE — TiltMachineNone is the zero of
+// Wiring.TiltMachine. A Node built as a literal is therefore already in the mode a node starts in,
+// with no constructor to call and no nil to test for. There is no second spelling of any mode, so
+// two machines are equal exactly when they are in the same mode.
 type tiltMachine struct {
-	name string
-	pick Wiring.TiltMachine
-	// homes are the separations that ARE this mode's resting state, measured on the ring the
-	// node is holding. It takes the ring because a home is a position on the lattice — a
-	// quarter turn is 12 points on a 48-point ring and 6 on a 24-point one — and a node can
-	// change lattice underneath a running machine (Node.adoptLattice).
-	homes func(r *ring) []int32
+	mode Wiring.TiltMachine
 }
+
+// homeSets is the per-mode data, and the ONLY per-mode thing there is: which separations that mode
+// calls a resting state. A new mode is a new entry here — not a new type, not a new file, and not a
+// branch anywhere in the rule below.
+//
+// A home is a position on the lattice, so each entry takes the ring: a quarter turn is 12 points on
+// a 48-point ring and 6 on a 24-point one, and a node can change lattice underneath a running
+// machine (Node.adoptLattice).
+//
+// perpendicular and parallel are not independent: quarter is the midpoint of 0 and half, which is
+// why their two misses sum to a constant quarter and why each one's home is the other's farthest
+// point (docs/pair-node/audit.html).
+var homeSets = map[Wiring.TiltMachine]func(r *ring) []int32{
+	// Setting: which machine to run is still being decided, so NOTHING IS OUT OF PLACE YET —
+	// every separation is a resting state. That is what makes a node being set up hold still by
+	// the ordinary rule instead of by an exemption from it: miss is zero wherever it stands, so
+	// it is always halted, so step is never reached.
+	Wiring.TiltMachineNone: func(r *ring) []int32 {
+		// separation folds into [0, half], so this is every separation there is.
+		all := make([]int32, 0, r.halfTurn+1)
+		for sep := int32(0); sep <= r.halfTurn; sep++ {
+			all = append(all, sep)
+		}
+		return all
+	},
+	// The two tilts a quarter turn apart, which reaches a node as the arrival on its own TOP or
+	// exactly opposite it.
+	Wiring.TiltMachinePerpendicular: func(r *ring) []int32 {
+		return []int32{0, r.halfTurn}
+	},
+	// The two tilts on the SAME LINE, either way round, which reaches a node as a quarter turn
+	// off its own top.
+	Wiring.TiltMachineParallel: func(r *ring) []int32 {
+		return []int32{r.quarterTurn}
+	},
+}
+
+// homes is this machine's resting separations on the given ring — its mode's row in homeSets.
+func (m tiltMachine) homes(r *ring) []int32 { return homeSets[m.mode](r) }
 
 // miss is how far this arrival is from the NEAREST of this machine's resting states — zero when
 // it is one of them. This is the whole per-mode difference, and it is a minimum over data: the
 // function never learns which mode it is computing for.
-func (m *tiltMachine) miss(from, arrival *tiltState) int32 {
+func (m tiltMachine) miss(from, arrival *tiltState) int32 {
 	sep := from.separation(arrival)
 	homes := m.homes(from.ring)
 	nearest := abs32(sep - homes[0])
@@ -76,12 +120,12 @@ func (m *tiltMachine) miss(from, arrival *tiltState) int32 {
 // halted reports whether this arrival IS one of this machine's resting states. A machine is home
 // exactly when it has nothing left to close, which is what miss already measures — asking it a
 // second way is how the two machines each grew a predicate that restated their own miss.
-func (m *tiltMachine) halted(from, arrival *tiltState) bool { return m.miss(from, arrival) == 0 }
+func (m tiltMachine) halted(from, arrival *tiltState) bool { return m.miss(from, arrival) == 0 }
 
 // step is the single move — next or prev, a link either way, so it cannot leave the ring — that
 // leaves the node closer to its halt. Where a mode has more than one resting state this closes on
 // whichever is nearer, because miss already reports the nearest.
-func (m *tiltMachine) step(from, arrival *tiltState) *tiltState {
+func (m tiltMachine) step(from, arrival *tiltState) *tiltState {
 	if m.miss(from.next, arrival) <= m.miss(from.prev, arrival) {
 		return from.next
 	}
@@ -89,77 +133,36 @@ func (m *tiltMachine) step(from, arrival *tiltState) *tiltState {
 }
 
 // choice is this machine's pair-wide name, so the end that chose can tell the other one
-// (Wiring.TiltMachine, carried on every vector message).
-func (m *tiltMachine) choice() Wiring.TiltMachine { return m.pick }
+// (Wiring.TiltMachine, carried on every vector message). It is the mode itself: the name this
+// package runs on and the name the two ends say to each other are ONE value, so there is no
+// mapping to keep honest in either direction.
+func (m tiltMachine) choice() Wiring.TiltMachine { return m.mode }
 
-// String names the mode for the diagnostic row — the modes have to be distinguishable there,
-// since a log that printed them alike is what once hid two of them being one state.
-func (m *tiltMachine) String() string { return m.name }
-
-// THE MODES. Each is its home set and its two names, and a new mode is a new row here — not a
-// new file, and not a new branch anywhere above.
-//
-// perpendicular and parallel are not independent: quarter is the midpoint of 0 and half, which
-// is why their two misses sum to a constant quarter and why each one's home is the other's
-// farthest point.
-var (
-	// settingMachine is the mode a node is in while WHICH MACHINE IT RUNS is still being
-	// decided — before the first arrival, and again after a reset. It was not a mode before;
-	// it was a nil Machine, and every reader special-cased the nil to mean "move nothing".
-	//
-	// It needs no special case, because "nothing is out of place yet" is a home set: EVERY
-	// separation is a resting state here. miss is therefore zero wherever the node stands,
-	// halted is always true, and step is never reached — a node being set up holds still by
-	// the same rule that stops a running one, not by an exemption from it.
-	//
-	// Its choice is TiltMachineNone, which is what that constant already means on the wire: a
-	// message carrying no choice. A node in this mode tells the other end nothing, which is
-	// correct — it has nothing to tell yet.
-	settingMachine = &tiltMachine{
-		name: "setting",
-		pick: Wiring.TiltMachineNone,
-		homes: func(r *ring) []int32 {
-			// separation folds into [0, half], so this is every separation there is.
-			all := make([]int32, 0, r.halfTurn+1)
-			for sep := int32(0); sep <= r.halfTurn; sep++ {
-				all = append(all, sep)
-			}
-			return all
-		},
+// String names the mode for the diagnostic row — the modes have to be distinguishable there, since
+// a log that printed them alike is what once hid two of them being one state.
+func (m tiltMachine) String() string {
+	if m.mode == Wiring.TiltMachineNone {
+		return "setting"
 	}
+	return m.mode.String()
+}
 
-	perpendicularMachine = &tiltMachine{
-		name: "perpendicular",
-		pick: Wiring.TiltMachinePerpendicular,
-		homes: func(r *ring) []int32 {
-			return []int32{0, r.halfTurn}
-		},
-	}
+// setting is the mode a node starts in and returns to on a reset. It is spelled out here so the
+// readers that ask "is this node still being set up?" can say so by name rather than by comparing
+// against a bare zero value.
+var setting = tiltMachine{mode: Wiring.TiltMachineNone}
 
-	parallelMachine = &tiltMachine{
-		name: "parallel",
-		pick: Wiring.TiltMachineParallel,
-		homes: func(r *ring) []int32 {
-			return []int32{r.quarterTurn}
-		},
+// machineFor is the machine a node runs for a pair-wide choice. There is no mapping table and no
+// per-mode object to look up: the choice IS the mode, so this is the machine holding it. A choice
+// this package does not recognise has no home set, and running it would panic on the nil lookup
+// rather than silently behaving like some other mode — so it is refused here, where the name of
+// the broken invariant can still be said.
+func machineFor(choice Wiring.TiltMachine) tiltMachine {
+	if _, known := homeSets[choice]; !known {
+		// The numeric value, not choice.String(): that falls back to "none" for anything it
+		// does not recognise, so it would name the wrong mode in exactly this message.
+		panic("Node1: no home set for tilt machine " + strconv.Itoa(int(choice)) +
+			" — every mode must name the separations it rests at (machine.go homeSets)")
 	}
-)
-
-// machineFor maps the pair-wide name onto the mode this package runs for it. The naming lives in
-// Wiring so both ends can say it to each other; the home sets live here, which is the only place
-// that knows what any of them means on the ring.
-//
-// TiltMachineNone maps to nil rather than to settingMachine ON PURPOSE. Setting has ONE storage
-// spelling — a nil Node.Machine, which is also the zero value, so a Node built as a literal is
-// already in it — and Node.mode() is the only thing that turns that into the mode object. Storing
-// settingMachine as well would make two spellings of one state, which is the shape every
-// `== nil || == settingMachine` bug is made of.
-func machineFor(choice Wiring.TiltMachine) *tiltMachine {
-	switch choice {
-	case Wiring.TiltMachinePerpendicular:
-		return perpendicularMachine
-	case Wiring.TiltMachineParallel:
-		return parallelMachine
-	}
-	return nil
+	return tiltMachine{mode: choice}
 }
