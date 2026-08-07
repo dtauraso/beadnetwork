@@ -19,6 +19,8 @@ package Node1
 // tilt. So "the tilts are a quarter turn apart" reaches this machine as the arrival sitting
 // exactly on this node's own TOP, or exactly on its BOTTOM — separation 0, or a half turn.
 
+import "github.com/dtauraso/wirefold/nodes/Wiring"
+
 type perpendicularMachine struct{}
 
 // halted reports whether this arrival IS this machine's resting state.
@@ -47,3 +49,5 @@ func (perpendicularMachine) miss(from, arrival *tiltState) int32 {
 }
 
 func (perpendicularMachine) String() string { return "perpendicular" }
+
+func (perpendicularMachine) choice() Wiring.TiltMachine { return Wiring.TiltMachinePerpendicular }

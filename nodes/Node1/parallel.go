@@ -15,6 +15,8 @@ package Node1
 // tilt. So "the tilts point the same way" reaches this machine as the arrival sitting a
 // quarter turn off this node's own TOP — the partner's own quarter, read back.
 
+import "github.com/dtauraso/wirefold/nodes/Wiring"
+
 type parallelMachine struct{}
 
 // halted reports whether this arrival IS this machine's resting state.
@@ -37,3 +39,5 @@ func (parallelMachine) miss(from, arrival *tiltState) int32 {
 }
 
 func (parallelMachine) String() string { return "parallel" }
+
+func (parallelMachine) choice() Wiring.TiltMachine { return Wiring.TiltMachineParallel }

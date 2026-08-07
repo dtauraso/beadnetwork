@@ -202,6 +202,9 @@ type tiltMachine interface {
 	halted(from, arrival *tiltState) bool
 	// step: the one move that leaves the node closer to it.
 	step(from, arrival *tiltState) *tiltState
+	// choice: this machine's pair-wide name, so the end that chose can tell the other one
+	// (Wiring.TiltMachine, carried on every vector message).
+	choice() Wiring.TiltMachine
 	// String names the machine for the diagnostic row — the two have to be distinguishable
 	// there too, since a log that printed both alike is what hid them being one state.
 	String() string

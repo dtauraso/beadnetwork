@@ -237,28 +237,11 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 	} else {
 		n.Top = n.topState().prev
 	}
-	// THE TILT JUST SET DECIDES WHICH MACHINE THE PAIR RUNS — ONCE. A quarter turn is
-	// perpendicular; anything else is acute, and acute is parallel. Nothing is remembered to
-	// work that out: it is read off the tilt this click just produced.
-	//
-	// AND THEN IT STICKS UNTIL RESET. A click that lands once a machine is already running is
-	// a JITTER — the thing the running machine exists to correct — not a new instruction about
-	// what the pair is for. Re-deciding on it was a real failure: a pair set to a quarter turn
-	// chose perpendicular, was started, and the very next click took the tilt one step off a
-	// quarter turn and switched both ends to parallel mid-run.
-	//
-	// The other end is told on the pair's own channel, since both have to be working toward
-	// the same thing. RESET removes the choice at both ends (clear), and the next click after
-	// that makes a new one.
-	if n.Machine != nil {
-		return false
-	}
-	choice := Wiring.TiltMachineParallel
-	if n.topState().separation(n.ringOf().at(0)) == n.ringOf().quarterTurn {
-		choice = Wiring.TiltMachinePerpendicular
-	}
-	n.adoptMachine(choice)
-	Wiring.SendVectorLatestNonBlocking(n.VectorOut, Wiring.TiltVectorMsg{Machine: choice})
+	// AND IT STOPS THERE: no send, no bead, and NO MACHINE CHOSEN. A click is not the moment
+	// to read the gap — the setup is not finished until START, and a user clicks their way up
+	// to the angle they want. Deciding on the first click read a gap of one step and locked
+	// the pair to the parallel machine while the tilt was still eleven clicks from where it
+	// was going. The choice is made when the exchange opens (handleVectorCycle).
 	// AND IT STOPS THERE: no send, no bead. Setting an angle and running the exchange are
 	// separate acts — a click moves this node's own tilt and nothing else happens until START.
 	return false
@@ -481,6 +464,13 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 	// partner cannot tell a direction picked before a point-count change from one picked
 	// after, and the two mean different angles.
 	v.Points = n.ringOf().points
+	// WHICH MACHINE THIS NODE IS RUNNING travels with every direction it sends. One end reads
+	// the gap when the exchange opens and the other has no way to know what it decided; this is
+	// how it finds out, on the first reply, without a message of its own. TiltMachineNone until
+	// this node has one, which the other end ignores (adoptMachine).
+	if n.Machine != nil {
+		v.Machine = n.Machine.choice()
+	}
 	return v
 }
 
@@ -554,13 +544,10 @@ func (n *Node) handleVectorCycle(tick int64) {
 		n.clear()
 		return
 	}
-	// A MACHINE CHOICE IS NOT A DIRECTION TO ACT ON EITHER. The other end read it off the tilt
-	// a user just set on it, and both ends have to be working toward the same thing, so this
-	// takes it up and steps nothing. No reply: it is not a question.
-	if received.Machine != Wiring.TiltMachineNone {
-		n.adoptMachine(received.Machine)
-		return
-	}
+	// EVERY VECTOR MESSAGE SAYS WHICH MACHINE ITS SENDER IS RUNNING (outgoingVector), so this
+	// is how the end that did not decide learns the choice: from the first reply. Adopting
+	// STICKS, so a later message cannot switch a running machine — see adoptMachine.
+	n.adoptMachine(received.Machine)
 	// A DIRECTION FROM ANOTHER LATTICE IS NOT A DIRECTION HERE. The two ends of a pair adopt
 	// a new point count at their own moments, each on its own goroutine, so between those
 	// moments an index picked on the old lattice can land here — where it names a different
@@ -581,6 +568,26 @@ func (n *Node) handleVectorCycle(tick int64) {
 	n.ReceivedThetaIdx = received.ThetaIdx
 	n.ReceivedSet = true
 	n.syncReceivedVector()
+	// THE GAP IS CHECKED WHEN THE EXCHANGE OPENS, which is the first arrival — START is the
+	// moment the setup is finished, and it is also the first moment either end can see BOTH
+	// tilts. The arrival is the partner's normal, a quarter turn off its tilt, so backing that
+	// quarter out gives the partner's own tilt and the gap between the two is a real
+	// measurement rather than one node's angle against zero.
+	//
+	//	the gap is a quarter turn  ->  perpendicular machine
+	//	anything else (acute)      ->  parallel machine
+	//
+	// Only when no machine is running: this is the setup being read, and after that a click is
+	// a jitter for the running machine to correct, not a new instruction. The other end learns
+	// the answer from this node's next reply, which carries it (outgoingVector).
+	if n.Machine == nil {
+		partnerTilt := n.ringOf().arrivedState(received.ThetaIdx).quarter.opposite
+		choice := Wiring.TiltMachineParallel
+		if n.topState().separation(partnerTilt) == n.ringOf().quarterTurn {
+			choice = Wiring.TiltMachinePerpendicular
+		}
+		n.adoptMachine(choice)
+	}
 	// DIAGNOSTIC (task/log-pair-vector-exchange): everything the two acute tests read, and
 	// what this node decided from them, in one row per arrival. Recorded BEFORE the step so
 	// the `top`/`bottom` here are the operands the tests actually used, not the post-step ones.
