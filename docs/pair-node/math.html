@@ -122,10 +122,10 @@
 
             <text x="150" y="112" text-anchor="middle" class="lblm" fill="#5fd68a">acute</text>
             <text x="150" y="132" text-anchor="middle" class="lbl">d &lt; 6 · d &gt; 18</text>
-            <text x="150" y="244" text-anchor="middle" class="lblm">d = (a − b) mod 24</text>
+            <text x="150" y="244" text-anchor="middle" class="lblm">d = a − b, + 24 if negative</text>
           </svg>
-          <div class="cap">Modded twice in the code: Go's % keeps the dividend's sign, and these indices run
-            negative.</div>
+          <div class="cap">One comparison, no division: every index sits on 0…23, so a difference is within
+            one turn either way.</div>
         </div>
 
         <div class="card">

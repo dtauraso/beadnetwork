@@ -195,7 +195,7 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 	if edit.Up {
 		delta = 1
 	}
-	n.TopTiltThetaIdx += delta
+	n.TopTiltThetaIdx = onCircle(n.TopTiltThetaIdx + delta)
 	return false
 }
 
@@ -269,8 +269,27 @@ func (n *Node) drainIn() {
 // direction — so this is index bookkeeping, not geometry.
 func (n *Node) bottomTilt() Wiring.TiltVectorMsg {
 	return Wiring.TiltVectorMsg{
-		ThetaIdx: n.TopTiltThetaIdx + Wiring.HalfTurnThetaIdx,
+		ThetaIdx: onCircle(n.TopTiltThetaIdx + Wiring.HalfTurnThetaIdx),
 	}
+}
+
+// onCircle brings an index back onto 0…23 with COMPARISONS, no division: adding or
+// subtracting a half turn or less to an index already on the circle can carry it at most one
+// full turn past either end, so one test each way is the whole reduction.
+//
+// EVERY INDEX IN THIS MODEL IS ON THE CIRCLE. TopTiltThetaIdx is kept there at every site
+// that moves it — the build-time seed, the panel's ±1, and stepFromVector's ±1 — and every
+// direction derived from it comes through here. That is what makes the one-comparison form
+// sufficient, here and in Wiring.TiltVectorIsAcute, and it is what keeps the negative indices
+// that once forced floor division out of the model entirely.
+func onCircle(idx int32) int32 {
+	if idx >= Wiring.FullTurnThetaIdx {
+		return idx - Wiring.FullTurnThetaIdx
+	}
+	if idx < 0 {
+		return idx + Wiring.FullTurnThetaIdx
+	}
+	return idx
 }
 
 // coplanarNormal is THIS node's own coplanar normal: ONE QUARTER TURN past this node's own
@@ -295,14 +314,9 @@ func (n *Node) bottomTilt() Wiring.TiltVectorMsg {
 // point the normal the OTHER way, t + 18 rather than t + 6, over half the index range,
 // including the negative indices a ▼ click reaches first.
 func (n *Node) coplanarNormal() Wiring.TiltVectorMsg {
-	thetaIdx := n.TopTiltThetaIdx + Wiring.PerpendicularThetaIdx
-	if thetaIdx >= Wiring.FullTurnThetaIdx {
-		thetaIdx -= Wiring.FullTurnThetaIdx
+	return Wiring.TiltVectorMsg{
+		ThetaIdx: onCircle(n.TopTiltThetaIdx + Wiring.PerpendicularThetaIdx),
 	}
-	if thetaIdx < 0 {
-		thetaIdx += Wiring.FullTurnThetaIdx
-	}
-	return Wiring.TiltVectorMsg{ThetaIdx: thetaIdx}
 }
 
 // syncTiltIndex reports THIS node's current tilt index AND its current coplanar-normal
@@ -372,9 +386,9 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
 	switch {
 	case Wiring.TiltVectorIsAcute(received, n.topTilt()):
-		n.TopTiltThetaIdx += 1
+		n.TopTiltThetaIdx = onCircle(n.TopTiltThetaIdx + 1)
 	case Wiring.TiltVectorIsAcute(received, n.bottomTilt()):
-		n.TopTiltThetaIdx -= 1
+		n.TopTiltThetaIdx = onCircle(n.TopTiltThetaIdx - 1)
 	default:
 		// Exactly perpendicular to both: no lean to read, so this node steps nothing —
 		// the halt condition for the exchange.
@@ -562,7 +576,13 @@ func init() {
 			n.SpeedCh = a.SpeedCh()
 			n.In = a.In("In")
 			n.Out = a.Out("Out")
-			n.TopTiltThetaIdx = a.TiltVectorAngleSeed()
+			// The persisted seed is the ONE index that arrives from outside this kind, so it
+			// is the one that can be anything — an old position.json written before indices
+			// were kept on the circle holds a running count. Reduced fully here, once, so
+			// every index after this point is on the circle by construction and onCircle's
+			// one-comparison form holds everywhere.
+			n.TopTiltThetaIdx = ((a.TiltVectorAngleSeed() % Wiring.FullTurnThetaIdx) +
+				Wiring.FullTurnThetaIdx) % Wiring.FullTurnThetaIdx
 			n.TiltEditIn = a.TiltEditIn()
 			// Self replaces the old SyncTiltIndex/SyncReceivedVector/ClearOutBeads
 			// messages-to-a-separate-mover-goroutine (task/pair-node-owns-itself):

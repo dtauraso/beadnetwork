@@ -96,14 +96,25 @@ const FullTurnThetaIdx = 2 * HalfTurnThetaIdx
 // TiltVectorIsAcute reports whether the angle between two θ-only directions is ACUTE —
 // the whole of what the straightening rule needs to know about two directions
 // (nodes/Node1/node.go's handleVectorCycle, run unmodified by both nodes of a pair). Both
-// directions sit on the π/12 index lattice, so this is exact
-// integer arithmetic instead of a float dot product against an epsilon band: let d be
-// the difference of the two θ indices reduced into [0, FullTurnThetaIdx). The angle
-// between the directions is min(d, FullTurnThetaIdx-d) steps, which is acute (<90°) when
-// d < PerpendicularThetaIdx or d > FullTurnThetaIdx-PerpendicularThetaIdx, exactly
-// perpendicular (NOT acute — the case the exchange stops on) when d equals
-// PerpendicularThetaIdx or FullTurnThetaIdx-PerpendicularThetaIdx, and obtuse otherwise.
+// directions sit on the π/12 index lattice, so this is exact integer arithmetic instead of a
+// float dot product against an epsilon band: let d be the difference of the two θ indices
+// brought onto [0, FullTurnThetaIdx). The angle between the directions is
+// min(d, FullTurnThetaIdx-d) steps, which is acute (<90°) when d < PerpendicularThetaIdx or
+// d > FullTurnThetaIdx-PerpendicularThetaIdx, exactly perpendicular (NOT acute — the case the
+// exchange stops on) at PerpendicularThetaIdx and FullTurnThetaIdx-PerpendicularThetaIdx, and
+// obtuse otherwise.
+//
+// BOTH OPERANDS ARE INDICES ON THE CIRCLE, 0…FullTurnThetaIdx-1. That is the model, not a
+// convenience: every index a pair node holds or derives is kept there by construction
+// (nodes/Node1/node.go's onCircle, applied at the seed, at the panel's ±1, at the step's ±1,
+// and to every derived direction). Their difference is therefore in
+// (-FullTurnThetaIdx, FullTurnThetaIdx), and ONE comparison brings it onto the circle — no
+// division, and so no sign convention to get wrong, which is what the reduction this replaced
+// was carrying two modulo operations to handle.
 func TiltVectorIsAcute(a, b TiltVectorMsg) bool {
-	d := ((a.ThetaIdx-b.ThetaIdx)%FullTurnThetaIdx + FullTurnThetaIdx) % FullTurnThetaIdx
+	d := a.ThetaIdx - b.ThetaIdx
+	if d < 0 {
+		d += FullTurnThetaIdx
+	}
 	return d < PerpendicularThetaIdx || d > FullTurnThetaIdx-PerpendicularThetaIdx
 }
