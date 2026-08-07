@@ -156,16 +156,6 @@ const (
 	// call — the dragged node's own event plus every touching bead's full CRUD arithmetic
 	// (why each returned none/add/remove), packed into Text by quantized_move.go.
 	BreadcrumbBeadCrud
-	// BreadcrumbPairVector: diagnostic-only (task/log-pair-vector-exchange), one per
-	// ARRIVAL on a pair node's vector channel — what arrived, what this node's own tilt
-	// and bottom were when the two acute tests read them, which test passed, and what the node
-	// therefore did (step −1 / step +1 / halt). One row per arrival, and an exchange
-	// halts, so a run is bounded rather than a per-tick firehose.
-	BreadcrumbPairVector
-	// BreadcrumbPairTiltEdit: diagnostic-only, one per TiltEditIn arrival at a pair node —
-	// which of the three edits it was (adjust / start / reset) and the indices after it.
-	// These are the BOUNDARIES of an exchange: what a user did, and when.
-	BreadcrumbPairTiltEdit
 	// BreadcrumbPairSeedUnknown: one at BUILD TIME, and only when a pair node's persisted
 	// tilt index is not one its ring has — a position.json written before the tilt became a
 	// state, or by a build with a different lattice size. The node opens at the origin, and
@@ -197,8 +187,6 @@ var BreadcrumbLabels = []string{
 	"neighbor-center-recv",
 	"neighbor-setc-recv",
 	"bead-crud",
-	"pair-vector",
-	"pair-tilt-edit",
 	"pair-seed-unknown",
 	"pair-lattice-adopt",
 }

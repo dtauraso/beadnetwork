@@ -247,6 +247,23 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 	return false
 }
 
+// machineForGap reads WHICH MACHINE THE PAIR IS FOR out of the gap between the two tilts.
+//
+// The arrival is the partner's coplanar NORMAL, a quarter turn off its tilt, so backing that
+// quarter out gives the partner's own tilt and the gap between the two is a real measurement
+// rather than one node's angle against zero — which is what makes this work whether the user
+// tilted one node or both.
+//
+//	the gap is a quarter turn  ->  perpendicular
+//	anything else (acute)      ->  parallel
+func (n *Node) machineForGap(arrival *tiltState) Wiring.TiltMachine {
+	partnerTilt := arrival.quarter.opposite // arrival + three quarters = arrival − a quarter
+	if n.topState().separation(partnerTilt) == n.ringOf().quarterTurn {
+		return Wiring.TiltMachinePerpendicular
+	}
+	return Wiring.TiltMachineParallel
+}
+
 // adoptMachine sets which of this kind's two state machines this node runs. It is the ONE
 // writer of that field outside clear(), and it maps the pair-wide name onto this package's own
 // machine — the naming lives in Wiring so both ends can say it to each other, and the machines
@@ -581,42 +598,9 @@ func (n *Node) handleVectorCycle(tick int64) {
 	// a jitter for the running machine to correct, not a new instruction. The other end learns
 	// the answer from this node's next reply, which carries it (outgoingVector).
 	if n.Machine == nil {
-		partnerTilt := n.ringOf().arrivedState(received.ThetaIdx).quarter.opposite
-		choice := Wiring.TiltMachineParallel
-		if n.topState().separation(partnerTilt) == n.ringOf().quarterTurn {
-			choice = Wiring.TiltMachinePerpendicular
-		}
-		n.adoptMachine(choice)
+		n.adoptMachine(n.machineForGap(n.ringOf().arrivedState(received.ThetaIdx)))
 	}
-	// DIAGNOSTIC (task/log-pair-vector-exchange): everything the two acute tests read, and
-	// what this node decided from them, in one row per arrival. Recorded BEFORE the step so
-	// the `top`/`bottom` here are the operands the tests actually used, not the post-step ones.
-	// A halted pair re-reads the same arrival every tick, so a row per arrival was 1749 rows of
-	// `hold` in 1768 — the per-tick firehose .claude/rules/go-debugging.md warns about. Only a
-	// row where something CHANGED is written: the index moved, or the machine did.
-	before := n.topState()
-	arrival := n.ringOf().arrivedState(received.ThetaIdx)
-	machineBefore := n.Machine
-	moved := n.stepFromVector(received)
-	if n.Self != nil && (n.topState() != before || n.Machine != machineBefore) {
-		dir := "hold"
-		switch {
-		case n.topState() == before.next:
-			dir = "next"
-		case n.topState() == before.prev:
-			dir = "prev"
-		}
-		running := "none"
-		if n.Machine != nil {
-			running = n.Machine.String()
-		}
-		n.Self.Breadcrumb("pair-vector", fmt.Sprintf(
-			"id=%d recv=%2d top=%2d bottom=%2d sep=%2d running=%-13s -> %-4s idx %2d->%2d sent=%2d moved=%v tick=%d",
-			n.PairID, received.ThetaIdx, before.idx, before.opposite.idx,
-			before.separation(arrival), running, dir, before.idx, n.topState().idx,
-			n.outgoingVector().ThetaIdx, moved, tick))
-	}
-	if !moved {
+	if !n.stepFromVector(received) {
 		return
 	}
 	n.syncTiltIndex()
@@ -681,15 +665,6 @@ func (n *Node) Update(ctx context.Context) {
 				n.syncTiltIndex()
 				if placeBead && n.Out != nil {
 					n.Out.PlaceDrivenAt(1, clk.Tick())
-				}
-				// DIAGNOSTIC: the BOUNDARY of an exchange — which edit a user sent and the
-				// indices it left behind. Reading the log, every "pair-vector" row between
-				// two of these belongs to the run this one started.
-				if n.Self != nil {
-					n.Self.Breadcrumb("pair-tilt-edit", fmt.Sprintf(
-						"tick=%d reset=%v start=%v up=%v placeBead=%v theta=%d",
-						clk.Tick(), edit.Reset, edit.Start, edit.Up, placeBead,
-						n.topState().idx))
 				}
 			default:
 			}
