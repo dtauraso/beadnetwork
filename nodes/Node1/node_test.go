@@ -906,3 +906,80 @@ func TestAcuteWithHoldsAtANonDefaultRingSize(t *testing.T) {
 		}
 	}
 }
+
+// ADOPTING A NEW POINT COUNT KEEPS THE INDEX, so a tilt at 6 is still at 6 and the drawn
+// angle moves — 90° on a 24-point lattice, 180° on a 12-point one. That is what "the lattice
+// changed underneath a direction" means here: the number a user set is kept, and what it
+// means follows the new lattice.
+//
+// An index the new lattice does not have names nothing there, so that node opens at its
+// origin rather than at some computed neighbour.
+func TestAdoptLatticeKeepsTheIndexOrOpensAtTheOrigin(t *testing.T) {
+	// Kept: 6 exists on both lattices.
+	n := &Node{Ring: newRing(24)}
+	n.Top = n.Ring.at(6)
+	n.adoptLattice(12)
+	if got := n.ringOf().points; got != 12 {
+		t.Fatalf("adoptLattice(12): want a 12-point ring, got %d", got)
+	}
+	if got := n.topState().idx; got != 6 {
+		t.Fatalf("adoptLattice(12): index 6 exists on the new lattice and must be kept, got %d", got)
+	}
+	// The state must belong to the NEW ring, not be a survivor of the old one — pointer
+	// identity is direction equality only within one lattice.
+	if n.topState().ring != n.Ring {
+		t.Fatal("adoptLattice: the tilt must be a state of the node's own new ring")
+	}
+
+	// Not kept: 20 exists on 24 points and not on 12.
+	m := &Node{Ring: newRing(24)}
+	m.Top = m.Ring.at(20)
+	m.adoptLattice(12)
+	if got := m.topState().idx; got != 0 {
+		t.Fatalf("adoptLattice(12) from index 20: the new lattice has no such index, so it must open at the origin, got %d", got)
+	}
+}
+
+// A DIRECTION FROM THE OLD LATTICE IS DROPPED, not acted on and not fatal. The two ends of a
+// pair adopt a new count at their own moments, so between them an index picked on the old
+// lattice arrives here — where it names a different angle, or no state at all.
+//
+// Dropping it is what keeps arrivedState's panic meaning "this cannot happen" rather than
+// "this happens whenever a user changes the count". Asserted through handleVectorCycle, the
+// real path, rather than by calling the check directly.
+func TestAnArrivalFromAnotherLatticeIsDropped(t *testing.T) {
+	in := make(chan Wiring.TiltVectorMsg, 1)
+	out := make(chan Wiring.TiltVectorMsg, 1)
+	n := &Node{Ring: newRing(12), VectorIn: in, VectorOut: out}
+	n.Top = n.Ring.at(3)
+
+	// An index this node's own 12-point ring does not even have, stated as being from a
+	// 24-point lattice. Acting on it would panic; folding it would turn the node toward an
+	// angle nobody sent.
+	in <- Wiring.TiltVectorMsg{ThetaIdx: 20, Points: 24}
+	n.handleVectorCycle(1)
+
+	if got := n.topState().idx; got != 3 {
+		t.Fatalf("an arrival from another lattice must not turn this node: want index 3, got %d", got)
+	}
+	if n.ReceivedSet {
+		t.Fatal("an arrival from another lattice must not be recorded as the received direction")
+	}
+	select {
+	case v := <-out:
+		t.Fatalf("an arrival from another lattice must not be replied to; sent %+v", v)
+	default:
+	}
+}
+
+// What a node SENDS names the lattice it was picked on, so the partner can tell an old
+// direction from a current one. Without it the drop above cannot be decided at all.
+func TestOutgoingVectorNamesItsOwnLattice(t *testing.T) {
+	for _, points := range []int32{8, 12, 24, 36} {
+		n := &Node{Ring: newRing(points)}
+		n.Top = n.Ring.at(1)
+		if got := n.outgoingVector().Points; got != points {
+			t.Fatalf("a %d-point node must send Points=%d, got %d", points, points, got)
+		}
+	}
+}

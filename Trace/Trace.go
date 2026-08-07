@@ -172,6 +172,11 @@ const (
 	// this says which number was refused. At most one per node per load, and none at all for
 	// a file written by this build at this size.
 	BreadcrumbPairSeedUnknown
+	// BreadcrumbPairLatticeAdopt: one per pair node per POINT-COUNT CHANGE, and only when
+	// the index it was holding is not one the new lattice has — that node opens at the
+	// origin instead, and this says which index was kept and what became of it. A change
+	// that every node's index survives logs nothing.
+	BreadcrumbPairLatticeAdopt
 )
 
 // BreadcrumbLabels is the single source of truth for the BreadcrumbLabel* enum's
@@ -195,6 +200,7 @@ var BreadcrumbLabels = []string{
 	"pair-vector",
 	"pair-tilt-edit",
 	"pair-seed-unknown",
+	"pair-lattice-adopt",
 }
 
 // TraceEventKinds is the single source of truth for the closed kind vocabulary.

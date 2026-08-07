@@ -18,6 +18,22 @@ package Wiring
 // second angle would be a free axis with nothing to vary it (see TiltVectorIsAcute).
 type TiltVectorMsg struct {
 	ThetaIdx int32
+	// Points is the LATTICE THE INDEX IS ON — how many directions the sender's ring had when
+	// it picked ThetaIdx. An index means nothing without it: 6 is a quarter turn on a
+	// 24-point lattice and a half turn on a 12-point one.
+	//
+	// It exists because the point count is a scene setting a user can change, and the two
+	// ends of a pair do not adopt a new one at the same instant — each is its own goroutine,
+	// reached by its own message. In the window between, a direction picked on the old
+	// lattice can arrive at a node already running the new one. Carrying the count makes
+	// that arrival RECOGNISABLE: the receiver drops what is not from its own lattice, which
+	// is a definite answer rather than either acting on a number that means something else
+	// or dying on it (nodes/Node1's arrivedState).
+	//
+	// Zero means "unstated", which a bare test build sends; a receiver treats that as its
+	// own lattice rather than rejecting it, so a test constructing a message by hand does
+	// not have to know this field exists.
+	Points int32
 	// Reset marks this as a RESET rather than a direction to act on: the receiver zeroes its
 	// own tilt and does not reply, which ends the exchange instead of restarting it.
 	//
