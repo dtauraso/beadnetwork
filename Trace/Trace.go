@@ -203,6 +203,21 @@ var BreadcrumbLabels = []string{
 	"pair-lattice-adopt",
 }
 
+// BreadcrumbLabelID resolves a breadcrumb's string name to its BreadcrumbLabel* index —
+// the number a KindBreadcrumb RowEvent carries on the wire. It exists for the call sites
+// that name their breadcrumb with the same string they pass to Trace.Breadcrumb, so the
+// structured production emit and the test-sink line cannot name different things. ok is
+// false for a name not in the table, which a caller should treat as "do not emit" rather
+// than sending an id the decode side would resolve to the wrong label.
+func BreadcrumbLabelID(name string) (uint8, bool) {
+	for i, n := range BreadcrumbLabels {
+		if n == name {
+			return uint8(i), true
+		}
+	}
+	return 0, false
+}
+
 // TraceEventKinds is the single source of truth for the closed kind vocabulary.
 // gen-node-defs reads this slice to emit trace-kinds.ts (the TS decode side's kindId →
 // name lookup), and Buffer.KindID indexes it to resolve a RowEvent's string Kind to its

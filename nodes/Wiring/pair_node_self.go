@@ -15,6 +15,7 @@ package Wiring
 import (
 	"context"
 
+	T "github.com/dtauraso/wirefold/Trace"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
@@ -51,7 +52,23 @@ func (p *PairNodeSelf) Breadcrumb(label, value string) {
 	if p == nil || p.geom == nil || p.geom.tr == nil {
 		return
 	}
+	// The in-process TEST sink. Production has no sink wired here, so this call alone
+	// reaches nothing on a live run (Trace.Breadcrumb's own doc comment) — which is what
+	// silently discarded every pair breadcrumb until now.
 	p.geom.tr.Breadcrumb(label, p.geom.id, "", value)
+	// The PRODUCTION path: a structured KindBreadcrumb event on this node's OWN dedicated
+	// stream frame, the same shape nodeGeometry's drag.commit breadcrumb uses. An unknown
+	// label is dropped rather than sent as a bad id — the decode side indexes
+	// T.BreadcrumbLabels by this number.
+	id, ok := T.BreadcrumbLabelID(label)
+	if !ok {
+		return
+	}
+	p.geom.writeStreamFrame([]wire.RowEvent{{
+		Kind: T.KindBreadcrumb, Label: id, Debug: 1,
+		NodeRow: p.geom.nodeRow, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
+		Text: value,
+	}})
 }
 
 // EmitGeometryOnce sends this node's initial node-geometry frame — the one-time startup
