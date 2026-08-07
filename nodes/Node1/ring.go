@@ -155,8 +155,10 @@ func (r *ring) seedState(idx int32) (s *tiltState, unknown bool) {
 	return &r.states[0], true
 }
 
-// acuteWith reports whether target lies within a quarter turn of s — the whole of what the
-// straightening rule asks about two directions.
+// acuteWith reports whether target lies within a quarter turn of s. It no longer decides
+// stepFromVector's direction (a cone says "within a quarter turn" but not which side, which
+// let a correcting end step away from the arrival and oscillate); it survives only as a
+// diagnostic value logged alongside each arrival (handleVectorCycle's breadcrumb).
 //
 // THE GAP IS TAKEN LARGER MINUS SMALLER, so it is never negative and there is no sign
 // convention anywhere: both states are on the ring, so the gap lands in [0, points) with no
@@ -171,7 +173,9 @@ func (r *ring) seedState(idx int32) (s *tiltState, unknown bool) {
 // BOTH ENDS ARE OPEN. An acute angle is strictly between nothing and a quarter turn, so
 // neither bound counts:
 //
-//   - a quarter turn exactly is perpendicular, which is what the exchange comes to rest on;
+//   - a quarter turn exactly is perpendicular — square, the exchange's one resting state,
+//     though stepFromVector now detects that by identity against this node's own top rather
+//     than by this test;
 //   - a gap of ZERO is not an angle to correct at all — the two directions are the same one.
 //     Counting it as acute makes a node turn hardest at the one arrival it agrees with
 //     completely, which is the opposite of what the rule is for.

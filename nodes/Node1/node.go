@@ -4,7 +4,8 @@
 // bead PACES the exchange and decides nothing; the rule lives on the VECTOR channel
 // (handleVectorCycle below) — two acute tests against this node's own top and bottom tilt
 // vectors decide whether this node turns and which way, and only if it turned does it reply
-// with a vector and place a bead. Neither test acute is how the exchange terminates. This
+// with a vector and place a bead. There is ONE target — the two tilts a quarter turn apart
+// ("square") — and reaching it is what halts the exchange, not either test alone. This
 // all runs on THIS goroutine: there is no round trip to a second goroutine to decide (see
 // TopTiltThetaIdx below for who else the index is reported to and why).
 //
@@ -13,10 +14,11 @@
 // (BuildArgs.TiltEditIn), also drained non-blockingly every cycle. TiltEditIn carries THREE
 // distinct edits (task/pair-node-owns-itself split), never conflated:
 //
-//   - TiltVectorAnglePanel's ▲/▼ click: applies exactly one ±1 step to the named axis and
-//     stops — no send, no bead. It used to ALSO open the vector exchange as a side effect
-//     ("the kick"), so one click moved the tilt by many π/12 steps once the exchange
-//     settled instead of exactly one; that side effect is now Start's alone.
+//   - TiltVectorAnglePanel's ▲/▼ click: applies exactly one ±1 step to the named axis, marks
+//     this end HELD (a tilt a user set is intent, not error — the partner moves to restore
+//     square instead of this end turning on an arrival), and ALSO opens the vector exchange
+//     by sending this node's own outgoing vector alongside a bead — a click that only moved an
+//     index would leave the partner with nothing to answer.
 //   - the START TILT button (TiltVectorButtons.tsx, TiltEditMsg.Start): opens the vector
 //     exchange from whatever angles are CURRENTLY set — sends this node's own outgoing
 //     vector alongside a bead ("THE KICK"), which is what gives handleVectorCycle something
@@ -99,6 +101,20 @@ type Node struct {
 	// step constant, trig only at the cartesian/polar boundary).
 	Top *tiltState
 
+	// Held marks a tilt this node's OWN USER set. That tilt is intent, not error, so while it
+	// is set this node does not turn on an arrival: the pair's relationship is restored by the
+	// PARTNER moving, and what the user asked for survives.
+	//
+	// A held end still REPLIES. Silence would leave the partner with nothing to correct
+	// against and it would stop wherever it happened to be; a held end is a target that stays
+	// put, which is what lets the partner close on it a step at a time.
+	//
+	// Set by applyTiltEdit's ▲/▼ branch, which also opens the exchange. Cleared by the arrival
+	// that says the relationship is back — on this node's own top if it moved, on its bottom
+	// if it held, since the partner's normal lands a half turn away when the partner is the
+	// one that walked. Self-clearing on purpose: a hold a user had to release would be a mode.
+	Held bool
+
 	// Ring is THIS NODE'S OWN lattice — its states, and the counts every rule reads off them.
 	// The point count is a scene setting a user can change, so this is not fixed for the life
 	// of the process; a change means this goroutine building itself a new ring, never a
@@ -176,7 +192,7 @@ func (n *Node) clock() wire.Clock {
 // applyTiltEdit applies one panel-driven edit — TiltVectorAnglePanel's ±1 click, the START
 // TILT button (TiltVectorButtons.tsx), or the RESET button (same file) — directly to this
 // node's OWN indices, same no-mover-round-trip shape as stepFromVector. Reports whether the
-// caller should place "THE KICK" bead: true for Start, false for a plain adjust or a reset.
+// caller should place a bead: true for Start and for a plain adjust, false only for a reset.
 //
 // The three branches are now split (task/pair-node-owns-itself):
 //
@@ -187,10 +203,12 @@ func (n *Node) clock() wire.Clock {
 //     carries a direction at all: handleVectorCycle only ever sends in REPLY to an arrival,
 //     so with nothing to reply to, no node ever received one, no node ever set its
 //     received-direction record, and the third arrow could not be drawn anywhere.
-//   - a plain adjust (neither Reset nor Start): applies the ±1 click to the named axis and
-//     STOPS — no send, no bead. It used to also open the vector exchange as a side effect,
-//     so one click moved the tilt by many π/12 steps once the exchange settled instead of
-//     exactly one; Start is what a user now clicks to begin the exchange separately.
+//   - a plain adjust (neither Reset nor Start): applies the ±1 click to the named axis, marks
+//     this end Held (a tilt a user set is intent, so this end keeps its index and does not
+//     turn on an arrival — the partner moves instead), and ALSO OPENS THE EXCHANGE by sending
+//     this node's own outgoing vector and asking the caller to place a bead. Previously an
+//     adjust sent nothing, which is why a tilted pair just sat there: the tilted end went deaf
+//     and silent at once.
 func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 	if edit.Reset {
 		n.clear()
@@ -223,7 +241,15 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 	} else {
 		n.Top = n.topState().prev
 	}
-	return false
+	// A TILT A USER SET IS INTENT, NOT ERROR: this node keeps it, and the pair's relationship
+	// is restored by the PARTNER moving. Held says so — see its own doc comment.
+	n.Held = true
+	// AND IT OPENS THE EXCHANGE. A click that only moved an index left the partner with
+	// nothing to answer: this node sat deaf on its new angle, the partner never heard, and the
+	// pair simply stopped square-less. Sending this node's own normal is what gives the
+	// partner something to correct against, and the caller places the bead that paces it.
+	Wiring.SendVectorLatestNonBlocking(n.VectorOut, n.outgoingVector())
+	return true
 }
 
 // adoptLattice rebuilds THIS node's own ring at a new point count, on THIS node's own
@@ -425,41 +451,94 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 }
 
 // stepFromVector decides whether an arrived direction turns this node at all, and if so which
-// way, from TWO REACHABILITY TESTS on the ring (tiltState.acuteWith — is the arrival within a
-// quarter turn of this state, walking the links, no arithmetic):
+// way. THERE IS ONE TARGET: an arrival landing exactly on this node's own TOP means the two
+// tilts of the pair are a quarter turn apart ("square") — that is the only resting state.
+// Colinear is no longer one.
 //
-//   - arrival ACUTE with this node's own TOP tilt vector    -> one step to next, return true
-//   - arrival ACUTE with this node's own BOTTOM tilt vector -> one step to prev, the REVERSE,
-//     return true
-//   - neither                                                -> step NOTHING, return false —
-//     this is how the vector exchange comes to rest: the caller (handleVectorCycle) sends
-//     nothing and places no bead on a false return. Neither test fires on FOUR gaps from the
-//     top: aligned with it, square to it on either side, and aligned with the bottom (which is
-//     a half turn from the top, and so also a gap of zero measured from the bottom) — so a
-//     pair that reaches any of those four simply stops circulating.
+//   - arrival == this node's own TOP                 -> SQUARE: clear Held, return false (halt).
+//   - Held && arrival == this node's own BOTTOM       -> the partner has finished (its normal
+//     lands a half turn away when IT was the one that moved): clear Held, return false.
+//   - Held                                            -> return true without moving. A held end
+//     still replies, so the partner has something to correct against.
+//   - otherwise                                       -> step TOWARD the arrival by the shorter
+//     way round (stepsToward/ringGap), and return true.
 //
-// The two acute cases are mutually exclusive: the bottom is the top's exact antipode, so the
-// two cones are exact opposites and at most one of them can contain the arrival. There is no
-// both-acute case for the ordering of these two arms to arbitrate, and no free sign knob —
-// which end the arrival leans toward IS the direction, except at the four halting gaps above,
-// which lean neither way and so step nothing.
+// This node no longer picks a direction from an acute-cone test against its top/bottom
+// (tiltState.acuteWith): a cone says the arrival is within a quarter turn but not which SIDE,
+// so half the time the step went away from the arrival and the pair oscillated one step either
+// side of a boundary. Distance strictly closes the gap every step instead, so the walk ends.
 //
 // Both ends of a pair run this same unmodified rule, and both directions of travel are links
 // rather than ±1, so a step cannot leave the ring. The pairing that matters is with what
-// outgoingVector sends: these tests read an arrival that is the partner's coplanar normal
-// as-is. Rotating what is sent, or swapping these two arms alone, turns each node the wrong
-// way and the pair walks apart instead of together. Worked run: docs/pair-node/vectors.html.
+// outgoingVector sends: this reads an arrival that is the partner's coplanar normal as-is.
+// Worked run: docs/pair-node/vectors.html.
 func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
 	arrival := n.ringOf().arrivedState(received.ThetaIdx)
-	switch {
-	case n.topState().acuteWith(arrival):
-		n.Top = n.topState().next
-	case n.topState().opposite.acuteWith(arrival):
-		n.Top = n.topState().prev
-	default:
+
+	// SQUARE. The arrival is the partner's coplanar normal, already a quarter turn off the
+	// partner's own tilt, so an arrival landing exactly on this node's TOP means the two tilts
+	// are a quarter turn apart. That is the ONE relationship this exchange restores, and
+	// reaching it stops everything: nothing to correct, nothing to say.
+	if arrival == n.topState() {
+		n.Held = false
 		return false
 	}
+
+	// THE PARTNER IS DONE. Seen from the end that HELD, the same relationship looks different:
+	// its partner's normal lands on its BOTTOM, a half turn away, because the partner is the
+	// one that moved. So this is the held end's completion signal — release and stop.
+	//
+	// For an end that is NOT held it is no such thing. A tilt on the bottom used to be a
+	// resting place, which is what let a correction stop at colinear instead of square: the
+	// mover reached that halt first and stayed there. There is one target now, so an end that
+	// is still correcting walks on through this and keeps going.
+	if n.Held && arrival == n.topState().opposite {
+		n.Held = false
+		return false
+	}
+
+	// A HELD TILT DOES NOT MOVE, but it does answer. Going silent would leave the partner with
+	// nothing to correct against and it would stop wherever it happened to be; a held end is a
+	// target that stays put, which is what lets the partner's walk close on it and land exactly
+	// on it.
+	if n.Held {
+		return true
+	}
+
+	// STEP TOWARD THE ARRIVAL, by the shorter way round. The target is the top-match above, so
+	// the question is which neighbour is nearer to it, and the ring answers that directly.
+	//
+	// This replaces asking which acute cone the arrival fell in. A cone says the arrival is
+	// within a quarter turn but not which SIDE, so half the time the step went away from it —
+	// and then stalled, one step either side of a boundary, moving back and forth. Distance
+	// does not have that failure: every step strictly closes the gap, so the walk ends.
+	if n.stepsToward(arrival) {
+		n.Top = n.topState().next
+	} else {
+		n.Top = n.topState().prev
+	}
 	return true
+}
+
+// stepsToward reports whether next is nearer to target than prev is — the direction that
+// closes the gap. Exactly a half turn away is the one tie, and it goes next: both neighbours
+// are equally near, so either closes it, and picking one keeps the walk moving rather than
+// leaving a state the rule cannot get out of.
+func (n *Node) stepsToward(target *tiltState) bool {
+	top := n.topState()
+	return ringGap(top.next, target) <= ringGap(top.prev, target)
+}
+
+// ringGap is the shorter way round between two states of the same ring, in steps.
+func ringGap(a, b *tiltState) int32 {
+	d := a.idx - b.idx
+	if d < 0 {
+		d = -d
+	}
+	if half := a.ring.halfTurn; d > half {
+		d = a.ring.points - d
+	}
+	return d
 }
 
 // topTilt is THIS node's own top tilt vector as a channel message — the same state the ring
@@ -469,13 +548,13 @@ func (n *Node) topTilt() Wiring.TiltVectorMsg {
 }
 
 // handleVectorCycle is Node1's WHOLE per-cycle vector-channel loop body: read
-// VectorIn non-blocking; if something arrived, step (stepFromVector's two acute tests decide
-// whether this node turns at all, and which way); and if it stepped, send outgoingVector
-// back out on VectorOut, also non-blocking, and place the paired bead. On a false return from
-// stepFromVector (exactly perpendicular to both tests) this sends nothing and places no bead —
-// that is how the vector exchange comes to rest. A RESET marker (below) is the other way the
-// exchange stops. This never touches In/Out or beads on the halt path — the vector channel is
-// a separate, additive exchange.
+// VectorIn non-blocking; if something arrived, step (stepFromVector decides whether this node
+// turns at all, and which way — see its own doc comment for the one target, square); and if it
+// stepped, send outgoingVector back out on VectorOut, also non-blocking, and place the paired
+// bead. On a false return from stepFromVector (the arrival landed exactly on this node's own
+// top) this sends nothing and places no bead — that is the ONE way the vector exchange comes to
+// rest. A RESET marker (below) is the other way the exchange stops. This never touches In/Out
+// or beads on the halt path — the vector channel is a separate, additive exchange.
 func (n *Node) handleVectorCycle(tick int64) {
 	received, ok := Wiring.PollRecvVector(n.VectorIn)
 	if !ok {
@@ -582,8 +661,8 @@ func (n *Node) Update(ctx context.Context) {
 		}
 
 		// Drain TiltEditIn non-blocking: a panel/RESET/START edit — see the package doc
-		// comment for the three-way split. applyTiltEdit decides placeBead: true only for
-		// Start ("THE KICK"), false for a plain adjust (index-only, no send) and for Reset.
+		// comment for the three-way split. applyTiltEdit decides placeBead: true for Start
+		// and for a plain adjust (both open the exchange), false only for Reset.
 		if n.TiltEditIn != nil {
 			select {
 			case edit := <-n.TiltEditIn:

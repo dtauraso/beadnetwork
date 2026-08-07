@@ -16,8 +16,8 @@ import (
 //
 // The old bead-path step tests are gone with that rule itself: a bead arrival used to step this
 // node one click in the kind's own fixed direction, regardless of what arrived, which is
-// what turned a pair one way forever. The bead now only paces; stepFromVector's acute tests are
-// the only rule that turns a tilt on an arrival, and they are asserted below.
+// what turned a pair one way forever. The bead now only paces; stepFromVector is the only
+// rule that turns a tilt on an arrival, and it is asserted below.
 
 // applyTiltEdit is what the RESET button, the START TILT button, and the tilt-angle panel
 // (TiltVectorButtons.tsx / TiltVectorAnglePanel.tsx) each drive; this asserts THIS node
@@ -164,24 +164,30 @@ func TestApplyTiltEditResetDrainsVectorIn(t *testing.T) {
 }
 
 // A plain adjust (the panel's ▲/▼ click, neither Reset nor Start) moves the named index by
-// exactly one step and does NOTHING else: no bead, no send on VectorOut
-// (task/pair-node-owns-itself split — this used to also open the vector exchange as a side
-// effect, "the kick", which made one click move the tilt by many π/12 steps once the
-// exchange settled).
-func TestApplyTiltEditAdjustMovesOneStepAndSendsNothing(t *testing.T) {
+// exactly one step, marks this end HELD, and OPENS THE EXCHANGE: it sends this node's own
+// outgoing vector and asks the caller to place a bead. A tilt a user set is intent, not
+// error, so this end keeps its new index (the partner is what moves to restore square) —
+// but it does answer, which is what gives the partner something to correct against.
+func TestApplyTiltEditAdjustMovesOneStepHoldsAndSendsItsVector(t *testing.T) {
 	out := make(chan Wiring.TiltVectorMsg, 1)
 	n := &Node{Top: defaultRing.at(3), VectorOut: out}
 	placeBead := n.applyTiltEdit(Wiring.TiltEditMsg{Up: true})
-	if placeBead {
-		t.Fatalf("a plain adjust must place NO bead, got placeBead=true")
+	if !placeBead {
+		t.Fatalf("a plain adjust must place a bead (it opens the exchange), got placeBead=false")
 	}
 	if n.topState().idx != 4 {
 		t.Fatalf("adjust theta up: want theta=4, got theta=%d", n.topState().idx)
 	}
+	if !n.Held {
+		t.Fatal("a plain adjust must mark this end Held")
+	}
 	select {
 	case v := <-out:
-		t.Fatalf("a plain adjust must send NOTHING on VectorOut; got %+v", v)
+		if want := n.outgoingVector(); v != want {
+			t.Fatalf("a plain adjust must send this node's own outgoing vector; got %+v, want %+v", v, want)
+		}
 	default:
+		t.Fatal("a plain adjust must send its own vector on VectorOut to open the exchange")
 	}
 }
 
@@ -221,84 +227,91 @@ func TestOutgoingVectorIsTheCoplanarNormalUnchanged(t *testing.T) {
 	}
 }
 
-// stepFromVector's TWO acute tests decide both whether to move and WHICH WAY. Leaning toward this
-// node's own TOP tilt vector takes Node1's base direction; leaning toward its BOTTOM tilt
-// vector takes the reverse. These assert one goroutine's own arithmetic, no channel
-// involved (docs/testing-shape.md).
+// stepFromVector's DIRECTION RULE is distance, not a cone: from a given top, an arrival a
+// few steps AHEAD (toward next) steps next, and one a few steps BEHIND (toward prev) steps
+// prev — the shorter way round always wins. These assert one goroutine's own arithmetic, no
+// channel involved (docs/testing-shape.md).
 func TestStepFromVectorTakesBaseDirectionWhenAcuteWithTop(t *testing.T) {
-	// Tilt at index 0 points at world +y; an arrival at index 1 is one step off the top —
-	// genuinely acute (strictly between 0 and a quarter turn) — and a half turn minus one step
-	// from the bottom (not acute), so this leans toward the top and steps that way.
+	// Tilt at index 0 points at world +y; an arrival at index 1 is one step AHEAD of the top,
+	// nearer via next than via prev, so this steps next.
 	n := &Node{Top: defaultRing.at(0)}
 	if moved := n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: 1}); !moved || n.topState().idx != 1 {
-		t.Fatalf("acute with the TOP tilt: want moved=true thetaIdx=1, got moved=%v thetaIdx=%d",
+		t.Fatalf("arrival one step ahead: want moved=true thetaIdx=1, got moved=%v thetaIdx=%d",
 			moved, n.topState().idx)
 	}
 }
 
-func TestStepFromVectorReversesWhenAcuteWithBottom(t *testing.T) {
-	// One step off a half turn from the tilt: genuinely acute with the BOTTOM (gap 1, strictly
-	// between 0 and a quarter turn) and NOT acute with the top (gap halfTurn-1, well outside a
-	// quarter turn either way), so the step must go the OTHER way from the case above.
+// stepFromVector's direction the OTHER way: an arrival closer to the top going BACKWARD
+// (via prev) steps prev, the reverse of the case above.
+func TestStepFromVectorStepsPrevWhenArrivalIsBehind(t *testing.T) {
+	// Two steps off the top going BACKWARD (index points-2): nearer via prev (gap 2) than via
+	// next (gap points-2), so the step must go the OTHER way from the case above.
 	//
-	// Stepping down from 0 lands on 23, not −1: the index is kept ON THE CIRCLE at every site
-	// that moves it, so it never runs negative. Same drawn direction, one step back from +y.
+	// Stepping down from 0 lands on points-1, not −1: the index is kept ON THE CIRCLE at every
+	// site that moves it, so it never runs negative. Same drawn direction, one step back from +y.
 	n := &Node{Top: defaultRing.at(0)}
 	want := defaultRing.points - 1
-	if moved := n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: defaultRing.halfTurn - 1}); !moved || n.topState().idx != want {
-		t.Fatalf("acute with the BOTTOM tilt: want moved=true thetaIdx=%d, got moved=%v thetaIdx=%d",
+	if moved := n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: defaultRing.points - 2}); !moved || n.topState().idx != want {
+		t.Fatalf("arrival behind: want moved=true thetaIdx=%d, got moved=%v thetaIdx=%d",
 			want, moved, n.topState().idx)
 	}
 }
 
-// Exactly perpendicular to both the top and bottom tilt is the HALT case: stepFromVector
-// steps nothing and reports moved=false — this is how the vector exchange comes to rest.
-func TestStepFromVectorHaltsWhenNeitherDotIsAcute(t *testing.T) {
+// THE ONE HALT: an arrival landing EXACTLY on this node's own top is square (see
+// stepFromVector's own doc comment) — stepFromVector steps nothing and reports moved=false.
+// This is the ONLY way the vector exchange comes to rest for a correcting (not held) end;
+// an arrival on the bottom, or anywhere else, now steps.
+func TestStepFromVectorHaltsOnlyWhenArrivalIsExactlyOnTop(t *testing.T) {
 	n := &Node{Top: defaultRing.at(defaultRing.quarterTurn)}
 	before := n.topState().idx
-	perp := Wiring.TiltVectorMsg{ThetaIdx: n.topState().idx + defaultRing.quarterTurn}
-	if moved := n.stepFromVector(perp); moved {
-		t.Fatal("stepFromVector must report moved=false on a perpendicular arrival, got true")
+	onTop := Wiring.TiltVectorMsg{ThetaIdx: before}
+	if moved := n.stepFromVector(onTop); moved {
+		t.Fatal("stepFromVector must report moved=false when the arrival lands on this node's own top, got true")
 	}
 	if n.topState().idx != before {
-		t.Fatalf("a perpendicular arrival must step NOTHING; got %d, want unchanged %d",
+		t.Fatalf("an arrival on top must step NOTHING; got %d, want unchanged %d",
 			n.topState().idx, before)
+	}
+
+	// An arrival a quarter turn from the top (what used to be the "perpendicular halt") is no
+	// longer a halt for an end that is not held: it steps, same as every other non-top gap.
+	n2 := &Node{Top: defaultRing.at(0)}
+	perp := Wiring.TiltVectorMsg{ThetaIdx: defaultRing.quarterTurn}
+	if moved := n2.stepFromVector(perp); !moved {
+		t.Fatal("an arrival a quarter turn from the top must now step (colinear/perpendicular is no longer a resting state)")
 	}
 }
 
-// stepFromVector's cases: genuinely acute with top steps +1 and returns true, genuinely
-// acute with bottom steps -1 and returns true, exactly perpendicular to both steps nothing
-// and returns false, and — the two cases that are now quiet rather than acute — exactly
-// aligned with the top or exactly aligned with the bottom also step nothing and return
-// false. Consolidates the single-case tests above into one table asserting the full gate,
-// including the halting gaps that used to be the acute examples.
-func TestStepFromVectorGatesOnBothDotsForAllCases(t *testing.T) {
-	cases := []struct {
-		name        string
-		arrivedIdx  int32
-		wantMoved   bool
-		wantDeltaTh int32
-	}{
-		// One step off the top: genuinely acute (gap 1, strictly between 0 and a quarter turn).
-		{"acute with top", 1, true, 1},
-		// Down from 0 lands on 23, not −1 — the index stays on the circle. One step off the
-		// bottom: genuinely acute with the bottom, not with the top.
-		{"acute with bottom", defaultRing.halfTurn - 1, true, defaultRing.points - 1},
-		{"exactly perpendicular", defaultRing.quarterTurn, false, 0},
-		// Exactly aligned with the top (gap 0): no angle to correct, so no step.
-		{"exactly aligned with top", 0, false, 0},
-		// Exactly aligned with the bottom (a half turn, which is gap 0 measured from the
-		// bottom): also no angle to correct, so no step.
-		{"exactly aligned with bottom", defaultRing.halfTurn, false, 0},
-	}
-	for _, c := range cases {
+// EVERY STEP STRICTLY CLOSES THE GAP to the arrival — this is what replaced picking a
+// direction from an acute cone, which said "within a quarter turn" but not which side and so
+// could step away from the arrival and oscillate. Checked at several offsets, both ahead of
+// and behind the top, walking one step at a time until the arrival is reached (arrival ==
+// topState halts, per stepFromVector's own rule).
+func TestStepFromVectorEachStepStrictlyReducesDistanceToArrival(t *testing.T) {
+	full := defaultRing.points
+	for _, offset := range []int32{1, 3, 6, 9, 12, 15, 18, 23} {
 		n := &Node{Top: defaultRing.at(0)}
-		moved := n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: c.arrivedIdx})
-		if moved != c.wantMoved {
-			t.Fatalf("%s: want moved=%v, got %v", c.name, c.wantMoved, moved)
-		}
-		if n.topState().idx != c.wantDeltaTh {
-			t.Fatalf("%s: want thetaIdx=%d, got %d", c.name, c.wantDeltaTh, n.topState().idx)
+		arrival := defaultRing.at(offset)
+		msg := Wiring.TiltVectorMsg{ThetaIdx: offset}
+		prevGap := ringGap(n.topState(), arrival)
+		for step := int32(0); step < full; step++ {
+			moved := n.stepFromVector(msg)
+			if !moved {
+				if n.topState() != arrival {
+					t.Fatalf("offset=%d: halted before reaching the arrival: at %d, want %d",
+						offset, n.topState().idx, arrival.idx)
+				}
+				break
+			}
+			gap := ringGap(n.topState(), arrival)
+			if gap >= prevGap {
+				t.Fatalf("offset=%d step=%d: gap must strictly shrink, was %d now %d",
+					offset, step, prevGap, gap)
+			}
+			prevGap = gap
+			if step == full-1 {
+				t.Fatalf("offset=%d: never reached the arrival within %d steps", offset, full)
+			}
 		}
 	}
 }
@@ -397,16 +410,18 @@ func TestHandleVectorCycleReplacesPreviousReceivedDirection(t *testing.T) {
 
 // The third arrow STAYS until the next arrival replaces it, and this is recorded
 // UNCONDITIONALLY — before the step decision even runs, and independently of whether that
-// decision steps anything. This is the case that matters: a perpendicular arrival must still
-// be recorded as the third drawn vector even though stepFromVector halts and nothing is sent
-// back — recording the arrival and halting the exchange are independent rules. Only a RESET
-// removes the recorded direction (asserted separately, below).
+// decision steps anything. This is the case that matters: an arrival that lands on this
+// node's own TOP (the one halt, square) must still be recorded as the third drawn vector
+// even though stepFromVector halts and nothing is sent back — recording the arrival and
+// halting the exchange are independent rules. Only a RESET removes the recorded direction
+// (asserted separately, below).
 func TestReceivedVectorRecordedButExchangeHaltsOnPerpendicularArrival(t *testing.T) {
 	n := &Node{Top: defaultRing.at(0), ReceivedThetaIdx: 4, ReceivedSet: true}
 	in := make(chan Wiring.TiltVectorMsg, 1)
 	out := make(chan Wiring.TiltVectorMsg, 1)
 	n.VectorIn, n.VectorOut = in, out
-	arrived := Wiring.TiltVectorMsg{ThetaIdx: defaultRing.quarterTurn}
+	// An arrival ON this node's own top: square, the one halt.
+	arrived := Wiring.TiltVectorMsg{ThetaIdx: 0}
 	in <- arrived
 
 	n.handleVectorCycle(0)
@@ -416,11 +431,11 @@ func TestReceivedVectorRecordedButExchangeHaltsOnPerpendicularArrival(t *testing
 			n.ReceivedSet, n.ReceivedThetaIdx)
 	}
 	if n.topState().idx != 0 {
-		t.Fatalf("a perpendicular arrival must step NOTHING; got %d, want unchanged 0", n.topState().idx)
+		t.Fatalf("an arrival on top must step NOTHING; got %d, want unchanged 0", n.topState().idx)
 	}
 	select {
 	case <-out:
-		t.Fatal("a perpendicular arrival must halt the exchange, so no reply may be sent")
+		t.Fatal("an arrival on top must halt the exchange, so no reply may be sent")
 	default:
 	}
 }
@@ -673,9 +688,9 @@ func TestStartOpensTheExchangeFromPairIDOneOnly(t *testing.T) {
 }
 
 // The bead travels WITH the vector: it is placed by the vector branch only when the vector
-// actually steps this node. A leaning arrival steps and places a bead; a perpendicular
-// arrival halts (stepFromVector returns false) and places NO bead — this is how the bead
-// exchange comes to rest alongside the vector exchange.
+// actually steps this node. A stepping arrival places a bead; an arrival landing exactly on
+// this node's own TOP (square, the one halt) places NO bead — this is how the bead exchange
+// comes to rest alongside the vector exchange.
 func TestBeadIsPlacedOnlyWhenVectorStepsNotOnPerpendicularHalt(t *testing.T) {
 	ctx := context.Background()
 	pw := wire.NewPacedWire(1, 1.0)
@@ -683,8 +698,8 @@ func TestBeadIsPlacedOnlyWhenVectorStepsNotOnPerpendicularHalt(t *testing.T) {
 	in := make(chan Wiring.TiltVectorMsg, 1)
 	n := &Node{Top: defaultRing.at(0), VectorIn: in, Out: out}
 
-	// An arrival that LEANS: one step off the top, genuinely acute, so the acute tests move
-	// this node and a bead goes out with the reply.
+	// An arrival that STEPS: one step ahead of the top, so stepFromVector moves this node and
+	// a bead goes out with the reply.
 	in <- Wiring.TiltVectorMsg{ThetaIdx: 1}
 	n.handleVectorCycle(1)
 	pw.DriveOneCycle(ctx, 2)
@@ -692,15 +707,15 @@ func TestBeadIsPlacedOnlyWhenVectorStepsNotOnPerpendicularHalt(t *testing.T) {
 		t.Fatal("a vector step must place its own bead; nothing was placed")
 	}
 
-	// An arrival that is exactly PERPENDICULAR: this halts (steps nothing) and must place NO
-	// bead across several subsequent cycles.
+	// An arrival that lands EXACTLY on this node's own top: square, the one halt, and must
+	// place NO bead across several subsequent cycles.
 	n.Top = defaultRing.at(0)
-	in <- Wiring.TiltVectorMsg{ThetaIdx: defaultRing.quarterTurn}
+	in <- Wiring.TiltVectorMsg{ThetaIdx: 0}
 	n.handleVectorCycle(3)
 	for tick := int64(4); tick < 10; tick++ {
 		pw.DriveOneCycle(ctx, tick)
 		if _, _, ok := pw.RecvTick(); ok {
-			t.Fatal("a perpendicular arrival must halt and place no bead, but one was placed")
+			t.Fatal("an arrival on top must halt and place no bead, but one was placed")
 		}
 	}
 }
@@ -1037,5 +1052,65 @@ func TestNodeWithNoRingSetRunsTheDefaultLatticeCount(t *testing.T) {
 	n := &Node{}
 	if got := n.ringOf().points; got != Wiring.FullTurnThetaIdx {
 		t.Fatalf("a Node with no Ring set must run the default lattice count %d, got %d", Wiring.FullTurnThetaIdx, got)
+	}
+}
+
+// A TILT A USER SET IS KEPT, and the pair goes back to square by moving the OTHER end.
+//
+// This is what the hold is for: a correction that undid the click would make the panel
+// useless. The tilted end holds its own index and keeps answering; its partner walks until
+// the arrival lands on its own top, which is the two tilts a quarter turn apart. The user's
+// number survives, the relationship comes back, and the hold releases itself.
+//
+// Both ends are the SAME KIND running the SAME rule — the asymmetry is which end the user
+// touched, which each end knows locally, not which end it is.
+//
+// Driven through the real methods, over every starting position, both click directions, and
+// several click counts: a rule that holds for one index and one click is not a rule.
+func TestAUserTiltIsKeptAndThePartnerRestoresSquare(t *testing.T) {
+	full := defaultRing.points
+	quarter := defaultRing.quarterTurn
+
+	for base := int32(0); base < full; base++ {
+		for _, clicks := range []int{1, 2, 3, 5} {
+			for _, up := range []bool{true, false} {
+				a := &Node{PairID: 1, Ring: newRing(full), VectorOut: make(chan Wiring.TiltVectorMsg, 1)}
+				b := &Node{PairID: 2, Ring: newRing(full)}
+				a.Top = a.Ring.at(base)
+				b.Top = b.Ring.at((base + quarter) % full) // square to start
+
+				for i := 0; i < clicks; i++ {
+					a.applyTiltEdit(Wiring.TiltEditMsg{Up: up})
+				}
+				want := a.topState().idx
+				if !a.Held {
+					t.Fatalf("base=%d: a panel tilt must hold this end's own tilt", base)
+				}
+
+				msg := a.outgoingVector()
+				to, from := b, a
+				settled := false
+				for round := 0; round < 400; round++ {
+					if !to.stepFromVector(msg) {
+						settled = true
+						break
+					}
+					msg = to.outgoingVector()
+					to, from = from, to
+				}
+				if !settled {
+					t.Fatalf("base=%d clicks=%d up=%v: never came to rest", base, clicks, up)
+				}
+				if got := a.topState().idx; got != want {
+					t.Fatalf("base=%d clicks=%d up=%v: the tilt a user set must survive; want %d, got %d",
+						base, clicks, up, want, got)
+				}
+				sep := ((b.topState().idx-a.topState().idx)%full + full) % full
+				if sep != quarter && sep != full-quarter {
+					t.Fatalf("base=%d clicks=%d up=%v: want the tilts a quarter turn apart, got %d apart (a=%d b=%d)",
+						base, clicks, up, sep, a.topState().idx, b.topState().idx)
+				}
+			}
+		}
 	}
 }
