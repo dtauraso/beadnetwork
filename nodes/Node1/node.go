@@ -431,16 +431,18 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 //   - arrival ACUTE with this node's own TOP tilt vector    -> one step to next, return true
 //   - arrival ACUTE with this node's own BOTTOM tilt vector -> one step to prev, the REVERSE,
 //     return true
-//   - neither (exactly a quarter turn from both)            -> step NOTHING, return false —
+//   - neither                                                -> step NOTHING, return false —
 //     this is how the vector exchange comes to rest: the caller (handleVectorCycle) sends
-//     nothing and places no bead on a false return, so a pair that reaches perpendicular on
-//     both tests simply stops circulating.
+//     nothing and places no bead on a false return. Neither test fires on FOUR gaps from the
+//     top: aligned with it, square to it on either side, and aligned with the bottom (which is
+//     a half turn from the top, and so also a gap of zero measured from the bottom) — so a
+//     pair that reaches any of those four simply stops circulating.
 //
 // The two acute cases are mutually exclusive: the bottom is the top's exact antipode, so the
 // two cones are exact opposites and at most one of them can contain the arrival. There is no
 // both-acute case for the ordering of these two arms to arbitrate, and no free sign knob —
-// which end the arrival leans toward IS the direction, except exactly a quarter turn out,
-// which leans neither way and so steps nothing.
+// which end the arrival leans toward IS the direction, except at the four halting gaps above,
+// which lean neither way and so step nothing.
 //
 // Both ends of a pair run this same unmodified rule, and both directions of travel are links
 // rather than ±1, so a step cannot leave the ring. The pairing that matters is with what
