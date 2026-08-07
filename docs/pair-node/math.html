@@ -182,6 +182,48 @@
             point to a quarter-turn separation instead.</div>
         </div>
 
+        <div class="card wide">
+          <h2>Every opening, swept</h2>
+          <p>All 576 openings of a 24-point lattice — every starting tilt for node 1 against every
+            starting tilt for node 2 — run through the same decision functions the live node calls, in
+            the order its own loop calls them. The numbers below are produced by
+            <span data-src="nodes/Node1/node_test.go#TestEveryOpeningSettlesOnTheMachineItChose">that
+              sweep</span>, not estimated; run it with <code>-v</code> after changing the rule and put its
+            new output here.</p>
+          <table class="f">
+            <tr class="h">
+              <td>openings</td>
+              <td>machine chosen at START</td>
+              <td>where it settled</td>
+            </tr>
+            <tr>
+              <td class="e">48</td>
+              <td class="n">perpendicular — the two openings a quarter turn apart, for each of the 24
+                starting tilts</td>
+              <td class="n">the tilts a quarter turn apart</td>
+            </tr>
+            <tr>
+              <td class="e">264</td>
+              <td class="n">parallel</td>
+              <td class="n">the tilts in the SAME direction</td>
+            </tr>
+            <tr>
+              <td class="e">264</td>
+              <td class="n">parallel</td>
+              <td class="n">the tilts a HALF TURN apart — the same line, arrows reversed</td>
+            </tr>
+          </table>
+          <p>Every one of the 576 settles, and none takes more than 4 rounds — a round being both ends
+            reading the other's last normal and stepping once.</p>
+          <p>THE LAST ROW IS A REAL PROPERTY OF THE RULE, not a rounding of the middle one. The parallel
+            halt is a separation of a quarter turn between this node's top and the arrival, and
+            <span data-src="nodes/Node1/ring.go#separation">separation</span> folds the long way round
+            into the short one — so a partner pointing the same way and a partner pointing exactly
+            opposite land the same distance off, and the halt cannot tell them apart. Half the openings
+            come to rest on each. Perpendicular has no such pair: its two halts, a separation of nothing
+            and of a half turn, are the same relationship seen from the two ends of the pair.</p>
+        </div>
+
       </div>
   </main>
 </body>
