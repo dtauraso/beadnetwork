@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pair node — Update rules</title>
+  <link rel="stylesheet" href="pair.css">
+  <script src="port.js"></script>
+  <script src="pair.js" defer></script>
+</head>
+
+<body>
+
+  <header>
+    <h1>Update rules</h1>
+    <div class="sub">every branch of the node's own Update loop, with the arithmetic it runs</div>
+  </header>
+
+  <nav>
+    <a href="index.html">Index</a>
+    <a href="anatomy.html">Anatomy</a>
+    <a href="own.html">Ownership</a>
+    <a href="vectors.html">Vectors</a>
+    <a href="math.html">Math</a>
+    <a href="formulas.html">Formulas</a>
+    <a href="dots.html">Acute test</a>
+    <a href="channels.html">Channels</a>
+    <a href="cycle.html">Cycle</a>
+    <a class="on" href="updates.html">Update rules</a>
+    <a href="parallel.html">Unreversed</a>
+    <a href="clock.html">Clock</a>
+    <a href="geometry.html">Geometry</a>
+    <a href="asym.html">Asymmetry</a>
+  </nav>
+
+  <main>
+
+    <div class="grid">
+
+      <div class="card wide">
+        <h2>The numbers</h2>
+        <table class="f">
+          <tr>
+            <td class="e">t</td>
+            <td class="n" colspan="2">the tilt index — the only number a node holds. One step is 15°, so t
+              counts 15° turns from world +y. Node 1 spends most of its life at negative t</td>
+          </tr>
+          <tr>
+            <td class="e">r, and whether r is set</td>
+            <td class="n" colspan="2">the last direction received — the third drawn arrow</td>
+          </tr>
+          <tr>
+            <td class="e">6 · 12 · 24</td>
+            <td class="n" colspan="2">a quarter turn · a half turn · a full turn, counted in those steps</td>
+          </tr>
+          <tr>
+            <td class="e">one step = 15° = 0.2617993877991494 rad</td>
+            <td class="n" colspan="2">the one quantum; every angle streamed is an index times this</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="card wide">
+        <h2>The three directions a node computes from t</h2>
+        <table class="f">
+          <tr class="h">
+            <td>direction</td>
+            <td>node 1</td>
+            <td>node 2</td>
+          </tr>
+          <tr>
+            <td class="n">top — the tilt itself</td>
+            <td class="e" colspan="2">top = t</td>
+          </tr>
+          <tr>
+            <td class="n">bottom — half a turn from the top</td>
+            <td class="e">bottom = t + 12</td>
+            <td class="e">bottom = t − 12</td>
+          </tr>
+          <tr>
+            <td class="n">coplanar normal — a quarter turn from the top</td>
+            <td class="e">normal = t + 6 + 12 · (floor(t / 12) mod 2)</td>
+            <td class="e">normal = t − 6</td>
+          </tr>
+          <tr>
+            <td class="n">what it sends — the normal, reversed</td>
+            <td class="e">sends = normal − 12 = t − 6 + 12 · (floor(t / 12) mod 2)</td>
+            <td class="e">sends = normal + 12 = t + 6</td>
+          </tr>
+        </table>
+        <div class="cap">t + 12 and t − 12 draw the same direction, so the two bottoms coincide on screen.
+          The opposite sign keeps node 2's index counting the other way, which is what makes its step rule
+          below the mirror of node 1's.</div>
+        <div class="cap">The + 12 · (floor(t / 12) mod 2) term is the pole count: t = 0 to ±12 crosses one
+          pole, ±12 to ±24 a second. On an odd count the normal is drawn 180° from where the + 6 alone puts
+          it, so the term adds that 180° back. It reads only t — no flag recording a crossing, no comparison
+          with the previous t — so a crossing cannot be missed or counted twice. Use floor, not Go's
+          <code>/</code>: floor(−1 / 12) = −1 while Go's <code>-1/12</code> = 0, which is the opposite parity
+          at every negative t, and node 1's index is negative from its first ▼ click onward.</div>
+      </div>
+
+      <div class="card wide">
+        <h2>The test that decides everything</h2>
+        <table class="f">
+          <tr>
+            <td class="e">d(a, b) = ((a − b) mod 24 + 24) mod 24</td>
+            <td class="n" colspan="2">how far apart two directions are, in steps, brought into 0…23. Modded
+              twice: Go's <code>%</code> keeps the dividend's sign, so −7 mod 24 is −7, not 17</td>
+          </tr>
+          <tr>
+            <td class="e">acute: d ∈ {0…5, 19…23}</td>
+            <td class="n" colspan="2">under 90° apart — the node turns</td>
+          </tr>
+          <tr>
+            <td class="e">perpendicular: d ∈ {6, 18}</td>
+            <td class="n" colspan="2">exactly 90°, not acute — this is the halt</td>
+          </tr>
+          <tr>
+            <td class="e">obtuse: d ∈ {7…17}</td>
+            <td class="n" colspan="2">neither test fires either</td>
+          </tr>
+        </table>
+        <div class="cap">Integer steps, so d is exact: no float dot product, and no epsilon band around 90°
+          to tune. Both tests fail together whenever d(v, top) is 6 or 18. Both passing is impossible: top
+          and bottom are 12 apart, and each acute range spans 5 steps either side of the direction it tests.
+        </div>
+      </div>
+
+      <div class="card wide">
+        <h2>Before the loop</h2>
+        <table class="f">
+          <tr>
+            <td class="e">TryEmit(EmitGeometry)</td>
+            <td class="n" colspan="2">nothing — the builder leaves that callback nil for these two kinds</td>
+          </tr>
+          <tr>
+            <td class="e">Self.EmitGeometryOnce()</td>
+            <td class="n" colspan="2">writes one node-geometry frame on this node's own pipe</td>
+          </tr>
+          <tr>
+            <td class="e">syncTiltIndex()</td>
+            <td class="n" colspan="2">SetTiltIndex(t, normal, bottom) → writes position.json, then one frame.
+              Skip it and t = 0, normal = 0 both decode to world +y, so the two arrows superimpose</td>
+          </tr>
+          <tr>
+            <td class="e">clk ← clock().Copy()</td>
+            <td class="n" colspan="2">a value copy with tickCh = nil; it subscribes on its own first
+              SleepCycle, so two goroutines never hold one tick channel</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="card wide">
+        <h2>The loop — when this happens, this runs</h2>
+        <table class="f">
+          <tr class="h">
+            <td>when</td>
+            <td colspan="2">then</td>
+          </tr>
+          <tr>
+            <td class="e">the context is cancelled</td>
+            <td class="e" colspan="2">return</td>
+          </tr>
+          <tr>
+            <td class="e">In.PollRecv() returns a bead</td>
+            <td class="e" colspan="2">Fire(). t unchanged · VectorOut unwritten · Out unwritten — the bead
+              paces the exchange and decides no part of it</td>
+          </tr>
+
+          <tr class="h">
+            <td>TiltEditIn holds an edit</td>
+            <td colspan="2">then</td>
+          </tr>
+          <tr>
+            <td class="e">edit.Reset</td>
+            <td class="e" colspan="2">clear() · VectorOut ← the reset marker · Out unwritten</td>
+          </tr>
+          <tr>
+            <td class="e">edit.Start, on node 1</td>
+            <td class="e" colspan="2">VectorOut ← sends(t) · Out ← one bead at tick T · t unchanged</td>
+          </tr>
+          <tr>
+            <td class="e">edit.Start, on node 2</td>
+            <td class="e" colspan="2">returns without writing anything — node 1 is the only opener, so one
+              direction is in flight, not two</td>
+          </tr>
+          <tr>
+            <td class="e">edit.Up true, else false</td>
+            <td class="e" colspan="2">t ← t + 1, else t ← t − 1 · VectorOut unwritten · Out unwritten</td>
+          </tr>
+          <tr>
+            <td class="e">all three of the above</td>
+            <td class="e" colspan="2">syncTiltIndex()</td>
+          </tr>
+          <tr>
+            <td class="e">TiltEditIn empty</td>
+            <td class="e" colspan="2">the select's default arm returns immediately</td>
+          </tr>
+
+          <tr class="h">
+            <td>VectorIn holds a direction</td>
+            <td>node 1</td>
+            <td>node 2</td>
+          </tr>
+          <tr>
+            <td class="e">VectorIn empty</td>
+            <td class="e" colspan="2">return — nothing below this row runs this cycle</td>
+          </tr>
+          <tr>
+            <td class="e">v.Reset</td>
+            <td class="e" colspan="2">clear() · VectorOut unwritten — a reply would return the marker to its
+              sender, which would return it again</td>
+          </tr>
+          <tr>
+            <td class="e">v carries a direction</td>
+            <td class="e" colspan="2">r ← v, set ← true — on every arrival, before the two tests below run,
+              and r holds that value until the next arrival or a clear()</td>
+          </tr>
+          <tr>
+            <td class="e">d(v, top) ∈ {0…5, 19…23}</td>
+            <td class="e">t ← t − 1</td>
+            <td class="e">t ← t + 1</td>
+          </tr>
+          <tr>
+            <td class="e">else d(v, bottom) ∈ {0…5, 19…23}</td>
+            <td class="e">t ← t + 1</td>
+            <td class="e">t ← t − 1</td>
+          </tr>
+          <tr>
+            <td class="e">neither set contains d</td>
+            <td class="e" colspan="2">t unchanged · VectorOut unwritten · Out unwritten — In and Out are not
+              read or written on this path</td>
+          </tr>
+          <tr>
+            <td class="e">t changed</td>
+            <td class="e" colspan="2">syncTiltIndex() · VectorOut ← sends(t) · Out ← one bead at tick T</td>
+          </tr>
+
+          <tr class="h">
+            <td>every cycle, after the three above</td>
+            <td colspan="2">then</td>
+          </tr>
+          <tr>
+            <td class="e">Self.Step(ctx, T)</td>
+            <td class="e" colspan="2">drain extIn and every neighborIn until both are empty · DriveOneCycle(T)
+              on each outgoing wire · flushPending() · write one frame</td>
+          </tr>
+          <tr>
+            <td class="e">SpeedCh holds a value</td>
+            <td class="e" colspan="2">clk.SetSpeed(that value); depth 1, latest wins. Empty: no call. Never
+              blocks</td>
+          </tr>
+          <tr>
+            <td class="e">clk.SleepCycle(ctx)</td>
+            <td class="e" colspan="2">wait ceil(1 / speed) pulses of 16 ms, held between 1 and 64. At speed 1
+              that is one pulse; at speed 1/64, 64 of them, or about a second</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="card wide">
+        <h2>Every direction, worked out</h2>
+        <table class="f">
+          <tr class="h">
+            <td>node 1 · t</td>
+            <td>floor(t/12) odd? · bottom · normal · sends</td>
+            <td>the tilt · the normal</td>
+          </tr>
+          <tr>
+            <td class="e">0</td>
+            <td class="e">no · 12 · 6 · −6</td>
+            <td class="e">0° · 90°</td>
+          </tr>
+          <tr>
+            <td class="e">−1</td>
+            <td class="e">yes · 11 · 17 · 5</td>
+            <td class="e">−15° · 255°</td>
+          </tr>
+          <tr>
+            <td class="e">−6</td>
+            <td class="e">yes · 6 · 12 · 0</td>
+            <td class="e">−90° · 180°</td>
+          </tr>
+          <tr>
+            <td class="e">−12</td>
+            <td class="e">yes · 0 · 6 · −6</td>
+            <td class="e">−180° · 90°</td>
+          </tr>
+          <tr>
+            <td class="e">−13</td>
+            <td class="e">no · −1 · −7 · −19</td>
+            <td class="e">−195° · −105°</td>
+          </tr>
+          <tr class="h">
+            <td>node 2 · t</td>
+            <td>bottom · normal · sends</td>
+            <td>the tilt · the normal</td>
+          </tr>
+          <tr>
+            <td class="e">0</td>
+            <td class="e">−12 · −6 · 6</td>
+            <td class="e">0° · −90°</td>
+          </tr>
+          <tr>
+            <td class="e">1</td>
+            <td class="e">−11 · −5 · 7</td>
+            <td class="e">15° · −75°</td>
+          </tr>
+        </table>
+        <div class="cap">t = −12 and t = −13 sit either side of a pole: the extra half turn switches off and
+          the normal jumps from 6 to −7 rather than sliding through. Both are still a quarter turn from the
+          tilt as drawn, which is the whole job of that term.</div>
+      </div>
+
+      <div class="card wide">
+        <h2>A run, from one click to the halt</h2>
+        <table class="f">
+          <tr class="h">
+            <td>event</td>
+            <td>the two tests</td>
+            <td>result</td>
+          </tr>
+          <tr>
+            <td class="e">node 1 at t = −1, node 2 at t = 0 · START</td>
+            <td class="e">—</td>
+            <td class="e">node 1 sends 5, places a bead</td>
+          </tr>
+          <tr>
+            <td class="e">node 2 receives 5</td>
+            <td class="e">d(5, top 0) = 5 acute</td>
+            <td class="e">t ← 0 + 1 = 1 · sends 7 · bead</td>
+          </tr>
+          <tr>
+            <td class="e">node 1 receives 7</td>
+            <td class="e">d(7, top −1) = 8 no · d(7, bottom 11) = 20 acute</td>
+            <td class="e">t ← −1 + 1 = 0 · sends −6 · bead</td>
+          </tr>
+          <tr>
+            <td class="e">node 2 receives −6</td>
+            <td class="e">d(−6, top 1) = 17 no · d(−6, bottom −11) = 5 acute</td>
+            <td class="e">t ← 1 − 1 = 0 · sends 6 · bead</td>
+          </tr>
+          <tr>
+            <td class="e">node 1 receives 6</td>
+            <td class="e">d(6, top 0) = 6 · d(6, bottom 12) = 18</td>
+            <td class="e">both perpendicular — HALT. t unchanged, no send, no bead</td>
+          </tr>
+          <tr>
+            <td class="e">at rest</td>
+            <td class="e">t = 0 on both</td>
+            <td class="e">r = 6 on node 1, r = −6 on node 2 — the third arrows stay drawn</td>
+          </tr>
+        </table>
+        <div class="cap">Four sends, four beads, both indices at 0. Sends and beads are equal in number
+          because the only PlaceDrivenAt call sits in the same branch as the send, so no bead is placed on
+          the halt.</div>
+      </div>
+
+      <div class="card wide">
+        <h2>What a report puts on this node's own frame</h2>
+        <table class="f">
+          <tr>
+            <td class="e">tilt angle = t × 15°</td>
+            <td class="n" colspan="2">persisted</td>
+          </tr>
+          <tr>
+            <td class="e">bottom angle = bottom × 15°</td>
+            <td class="n" colspan="2">recomputed from t on every report, never stored</td>
+          </tr>
+          <tr>
+            <td class="e">normal angle = normal × 15°</td>
+            <td class="n" colspan="2">recomputed from t on every report, never stored</td>
+          </tr>
+          <tr>
+            <td class="e">received angle = r × 15°</td>
+            <td class="n" colspan="2">drawn only when set. Written to no file — a reload starts with r
+              unset</td>
+          </tr>
+          <tr>
+            <td class="e">the tilt's drawn length</td>
+            <td class="n" colspan="2">the node's radius when it stands upright with exactly one neighbour,
+              otherwise 0</td>
+          </tr>
+          <tr>
+            <td class="e">centre, reach, pole, ring axis</td>
+            <td class="n" colspan="2">unchanged by t — a tilt turns an angle, and the separation stays where
+              the last drag put it</td>
+          </tr>
+          <tr>
+            <td class="e">the row it claims</td>
+            <td class="n" colspan="2">its own, or it panics — the row is an ownership claim, and a foreign
+              node belongs in the target column</td>
+          </tr>
+        </table>
+        <div class="cap">Every angle on the frame is an index times 15°, on this node's own dedicated pipe.
+          Trig happens only where polar meets cartesian, never here.</div>
+      </div>
+
+      <div class="card wide">
+        <h2>What a reset puts back</h2>
+        <table class="f">
+          <tr>
+            <td class="e">t ← 0, reported</td>
+            <td class="n" colspan="2">the bottom and the normal follow, being computed from t</td>
+          </tr>
+          <tr>
+            <td class="e">r ← 0, set ← false, reported</td>
+            <td class="n" colspan="2">the third arrow goes away</td>
+          </tr>
+          <tr>
+            <td class="e">VectorIn emptied</td>
+            <td class="n" colspan="2">depth 1, latest wins, so one receive empties it. A direction left
+              sitting there arrives next cycle and steps t straight back off 0</td>
+          </tr>
+          <tr>
+            <td class="e">In drained until empty</td>
+            <td class="n" colspan="2">beads already delivered here. Bounded by what the partner placed
+              before it stopped placing</td>
+          </tr>
+          <tr>
+            <td class="e">outgoing beads dropped</td>
+            <td class="n" colspan="2">the ones still crossing, dropped through this node's own self, which
+              drives that wire</td>
+          </tr>
+          <tr>
+            <td class="e">each node clears twice</td>
+            <td class="n" colspan="2">the button clears this node and sends the marker, after which it
+              places nothing ever again; the partner clears when the marker arrives. That second clear is
+              ordered after the last bead the sender could have placed, so it is the one that lands last</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="card wide">
+        <h2>Where each rule lives — the names open the file at the definition</h2>
+        <table class="f">
+          <tr class="h">
+            <td>file</td>
+            <td colspan="2">definitions</td>
+          </tr>
+          <tr>
+            <td class="n">nodes/Node1/node.go</td>
+            <td class="s" colspan="2">
+              <span data-src="nodes/Node1/node.go#Update">Update</span> ·
+              <span data-src="nodes/Node1/node.go#applyTiltEdit">applyTiltEdit</span> ·
+              <span data-src="nodes/Node1/node.go#handleVectorCycle">handleVectorCycle</span> ·
+              <span data-src="nodes/Node1/node.go#stepFromVector">stepFromVector</span> ·
+              <span data-src="nodes/Node1/node.go#coplanarNormal">coplanarNormal</span> ·
+              <span data-src="nodes/Node1/node.go#bottomTilt">bottomTilt</span> ·
+              <span data-src="nodes/Node1/node.go#outgoingVector">outgoingVector</span> ·
+              <span data-src="nodes/Node1/node.go#floorDiv">floorDiv</span> ·
+              <span data-src="nodes/Node1/node.go#syncTiltIndex">syncTiltIndex</span> ·
+              <span data-src="nodes/Node1/node.go#syncReceivedVector">syncReceivedVector</span> ·
+              <span data-src="nodes/Node1/node.go#clear">clear</span> ·
+              <span data-src="nodes/Node1/node.go#drainIn">drainIn</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="n">nodes/Node2/node.go — the opposite signs</td>
+            <td class="s" colspan="2">
+              <span data-src="nodes/Node2/node.go#applyTiltEdit">applyTiltEdit</span> ·
+              <span data-src="nodes/Node2/node.go#stepFromVector">stepFromVector</span> ·
+              <span data-src="nodes/Node2/node.go#coplanarNormal">coplanarNormal</span> ·
+              <span data-src="nodes/Node2/node.go#bottomTilt">bottomTilt</span> ·
+              <span data-src="nodes/Node2/node.go#outgoingVector">outgoingVector</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="n">nodes/Wiring/tilt_vector_channel.go</td>
+            <td class="s" colspan="2">
+              <span data-src="nodes/Wiring/tilt_vector_channel.go#TiltVectorIsAcute">TiltVectorIsAcute</span> ·
+              <span data-src="nodes/Wiring/tilt_vector_channel.go#PollRecvVector">PollRecvVector</span> ·
+              <span data-src="nodes/Wiring/tilt_vector_channel.go#SendVectorLatestNonBlocking">SendVectorLatestNonBlocking</span> ·
+              <span data-src="nodes/Wiring/tilt_vector_channel.go#FullTurnThetaIdx">FullTurnThetaIdx</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="n">nodes/Wiring/pair_node_self.go</td>
+            <td class="s" colspan="2">
+              <span data-src="nodes/Wiring/pair_node_self.go#EmitGeometryOnce">EmitGeometryOnce</span> ·
+              <span data-src="nodes/Wiring/pair_node_self.go#Step">Step</span> ·
+              <span data-src="nodes/Wiring/pair_node_self.go#SetTiltIndex">SetTiltIndex</span> ·
+              <span data-src="nodes/Wiring/pair_node_self.go#SetReceivedVector">SetReceivedVector</span> ·
+              <span data-src="nodes/Wiring/pair_node_self.go#ClearOutBeads">ClearOutBeads</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="n">nodes/Wiring/node_geometry.go</td>
+            <td class="s" colspan="2">
+              <span data-src="nodes/Wiring/node_geometry.go#emitGeometry">emitGeometry</span> ·
+              <span data-src="nodes/Wiring/node_geometry.go#writeStreamFrame">writeStreamFrame</span> ·
+              <span data-src="nodes/Wiring/node_geometry.go#applyCenter">applyCenter</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="n">nodes/wire/clock.go</td>
+            <td class="s" colspan="2">
+              <span data-src="nodes/wire/clock.go#Copy">Copy</span> ·
+              <span data-src="nodes/wire/clock.go#SleepCycle">SleepCycle</span> ·
+              <span data-src="nodes/wire/clock.go#pulsesPerCycle">pulsesPerCycle</span> ·
+              <span data-src="nodes/wire/clock.go#ApplySpeedNonBlocking">ApplySpeedNonBlocking</span>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+    </div>
+  </main>
+</body>
+
+</html>

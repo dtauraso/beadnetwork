@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pair node — Unreversed</title>
+  <link rel="stylesheet" href="pair.css">
+  <script src="port.js"></script>
+  <script src="pair.js" defer></script>
+</head>
+
+<body>
+
+  <header>
+    <h1>Unreversed</h1>
+    <div class="sub">send the coplanar normal as it is, keep the acute test, still converge on parallel</div>
+  </header>
+
+  <nav>
+    <a href="index.html">Index</a>
+    <a href="anatomy.html">Anatomy</a>
+    <a href="own.html">Ownership</a>
+    <a href="vectors.html">Vectors</a>
+    <a href="math.html">Math</a>
+    <a href="formulas.html">Formulas</a>
+    <a href="dots.html">Acute test</a>
+    <a href="channels.html">Channels</a>
+    <a href="cycle.html">Cycle</a>
+    <a href="updates.html">Update rules</a>
+    <a class="on" href="parallel.html">Unreversed</a>
+    <a href="clock.html">Clock</a>
+    <a href="geometry.html">Geometry</a>
+    <a href="asym.html">Asymmetry</a>
+  </nav>
+
+  <main>
+
+    <div class="grid">
+
+      <div class="card wide">
+        <h2>The whole change</h2>
+        <table class="f">
+          <tr class="h">
+            <td>rule</td>
+            <td>today</td>
+            <td>unreversed</td>
+          </tr>
+          <tr>
+            <td class="n">node 1 sends</td>
+            <td class="e">normal − 12</td>
+            <td class="e">normal</td>
+          </tr>
+          <tr>
+            <td class="n">node 2 sends</td>
+            <td class="e">normal + 12</td>
+            <td class="e">normal</td>
+          </tr>
+          <tr>
+            <td class="n">node 1, d(v, top) acute</td>
+            <td class="e">t ← t − 1</td>
+            <td class="e">t ← t + 1</td>
+          </tr>
+          <tr>
+            <td class="n">node 1, else d(v, bottom) acute</td>
+            <td class="e">t ← t + 1</td>
+            <td class="e">t ← t − 1</td>
+          </tr>
+          <tr>
+            <td class="n">node 2, d(v, top) acute</td>
+            <td class="e">t ← t + 1</td>
+            <td class="e">t ← t − 1</td>
+          </tr>
+          <tr>
+            <td class="n">node 2, else d(v, bottom) acute</td>
+            <td class="e">t ← t − 1</td>
+            <td class="e">t ← t + 1</td>
+          </tr>
+          <tr>
+            <td class="n">the acute test itself</td>
+            <td class="e" colspan="2">unchanged — d ∈ {0…5, 19…23}</td>
+          </tr>
+          <tr>
+            <td class="n">the halt</td>
+            <td class="e" colspan="2">unchanged — d ∈ {6, 18} against both</td>
+          </tr>
+          <tr>
+            <td class="n">rest state</td>
+            <td class="e" colspan="2">unchanged — both indices equal, the two tilts parallel</td>
+          </tr>
+        </table>
+        <div class="cap">Four lines of arithmetic move: two sends lose their ∓12, two step rules swap their
+          signs. Nothing else in the loop changes.</div>
+      </div>
+
+      <div class="card wide">
+        <h2>Why swapping the signs is exactly the right compensation</h2>
+        <table class="f">
+          <tr>
+            <td class="e">t + 12 ≡ t − 12 (mod 24)</td>
+            <td class="n" colspan="2">the two kinds' bottoms are ONE index. Reversing a direction is
+              adding 12, and adding 12 twice returns it</td>
+          </tr>
+          <tr>
+            <td class="e">d(v + 12, top) = d(v, top − 12) = d(v, bottom)</td>
+            <td class="n" colspan="2">reversing what is SENT is the same as testing the receiver's OTHER
+              direction. The two tests trade places, and nothing else about them changes</td>
+          </tr>
+          <tr>
+            <td class="e">{0…5, 19…23} + 12 = {7…17}</td>
+            <td class="n" colspan="2">acute maps onto obtuse against the SAME direction — which is why a
+              node cannot simply keep its old rule and read the unreversed vector: every arrival that used to
+              fire the top test now fires the bottom one</td>
+          </tr>
+          <tr>
+            <td class="e">{6, 18} + 12 = {6, 18}</td>
+            <td class="n" colspan="2">the halt set is FIXED under reversal. Perpendicular to the top is
+              perpendicular to the bottom, either way round — so the exchange stops on exactly the same
+              arrivals it stops on today</td>
+          </tr>
+        </table>
+        <div class="cap">The two edits therefore compose to the identity: every arrival produces the same
+          index change it produces today, and the pair walks the same path to the same rest state. This is a
+          change of what travels on the wire, not of what the pair does.</div>
+      </div>
+
+      <div class="card wide">
+        <h2>The rules, restated in full</h2>
+        <table class="f">
+          <tr class="h">
+            <td>quantity</td>
+            <td>node 1</td>
+            <td>node 2</td>
+          </tr>
+          <tr>
+            <td class="n">top</td>
+            <td class="e" colspan="2">top = t</td>
+          </tr>
+          <tr>
+            <td class="n">bottom</td>
+            <td class="e">bottom = t + 12</td>
+            <td class="e">bottom = t − 12</td>
+          </tr>
+          <tr>
+            <td class="n">coplanar normal</td>
+            <td class="e">normal = t + 6 + 12 · (floor(t / 12) mod 2)</td>
+            <td class="e">normal = t − 6</td>
+          </tr>
+          <tr>
+            <td class="n">sends</td>
+            <td class="e">normal</td>
+            <td class="e">normal</td>
+          </tr>
+          <tr>
+            <td class="n">d(v, top) ∈ {0…5, 19…23}</td>
+            <td class="e">t ← t + 1</td>
+            <td class="e">t ← t − 1</td>
+          </tr>
+          <tr>
+            <td class="n">else d(v, bottom) ∈ {0…5, 19…23}</td>
+            <td class="e">t ← t − 1</td>
+            <td class="e">t ← t + 1</td>
+          </tr>
+          <tr>
+            <td class="n">neither</td>
+            <td class="e" colspan="2">t unchanged · no send · no bead</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="card wide">
+        <h2>The same run, recomputed</h2>
+        <table class="f">
+          <tr class="h">
+            <td>event</td>
+            <td>the two tests</td>
+            <td>result</td>
+          </tr>
+          <tr>
+            <td class="e">node 1 at t = −1, node 2 at t = 0 · START</td>
+            <td class="e">—</td>
+            <td class="e">node 1 sends normal(−1) = 17 · bead</td>
+          </tr>
+          <tr>
+            <td class="e">node 2 receives 17</td>
+            <td class="e">d(17, top 0) = 17 no · d(17, bottom −12) = 5 acute</td>
+            <td class="e">t ← 0 + 1 = 1 · sends normal(1) = −5 · bead</td>
+          </tr>
+          <tr>
+            <td class="e">node 1 receives −5</td>
+            <td class="e">d(−5, top −1) = 20 acute</td>
+            <td class="e">t ← −1 + 1 = 0 · sends normal(0) = 6 · bead</td>
+          </tr>
+          <tr>
+            <td class="e">node 2 receives 6</td>
+            <td class="e">d(6, top 1) = 5 acute</td>
+            <td class="e">t ← 1 − 1 = 0 · sends normal(0) = −6 · bead</td>
+          </tr>
+          <tr>
+            <td class="e">node 1 receives −6</td>
+            <td class="e">d(−6, top 0) = 18 · d(−6, bottom 12) = 6</td>
+            <td class="e">both perpendicular — HALT</td>
+          </tr>
+          <tr>
+            <td class="e">at rest</td>
+            <td class="e">t = 0 on both — the tilts are parallel</td>
+            <td class="e">r = −6 on node 1, r = 6 on node 2</td>
+          </tr>
+        </table>
+        <div class="cap">Same four rounds, same four beads, same indices at every step as the reversed run
+          on the <a class="srclink" href="updates.html">Update rules</a> page. The only difference on the
+          wire is which direction each message names: 17 and 6 where it used to be 5 and −6, and −5 and −6
+          where it used to be 7 and 6. The third arrows therefore point the other way at rest, which is the
+          one visible change.</div>
+      </div>
+
+      <div class="card wide">
+        <h2>What lands where, if it is built</h2>
+        <table class="f">
+          <tr class="h">
+            <td>file</td>
+            <td colspan="2">edit</td>
+          </tr>
+          <tr>
+            <td class="n">nodes/Node1/node.go</td>
+            <td class="s" colspan="2">
+              <span data-src="nodes/Node1/node.go#outgoingVector">outgoingVector</span> returns
+              coplanarNormal unchanged (drop the − 2 · PerpendicularThetaIdx) ·
+              <span data-src="nodes/Node1/node.go#stepFromVector">stepFromVector</span> swaps its two signs
+            </td>
+          </tr>
+          <tr>
+            <td class="n">nodes/Node2/node.go</td>
+            <td class="s" colspan="2">
+              <span data-src="nodes/Node2/node.go#outgoingVector">outgoingVector</span> drops its
+              + 2 · PerpendicularThetaIdx ·
+              <span data-src="nodes/Node2/node.go#stepFromVector">stepFromVector</span> swaps its two signs
+            </td>
+          </tr>
+          <tr>
+            <td class="n">nodes/Node1/node_test.go · nodes/Node2/node_test.go</td>
+            <td class="n" colspan="2">the outgoingVector tests assert "normal − 12 steps" and "normal + 12
+              steps" by name, and the stepFromVector case tables assert the old signs; both move with the
+              rules</td>
+          </tr>
+          <tr>
+            <td class="n">nodes/Wiring/tilt_vector_channel.go</td>
+            <td class="s" colspan="2">
+              <span data-src="nodes/Wiring/tilt_vector_channel.go#TiltVectorIsAcute">TiltVectorIsAcute</span>
+              — untouched
+            </td>
+          </tr>
+          <tr>
+            <td class="n">docs/pair-node/updates.html · formulas.html · math.html · vectors.html</td>
+            <td class="n" colspan="2">carry "the normal, reversed" and the old step signs; they move in the
+              same commit</td>
+          </tr>
+        </table>
+        <div class="cap">The pole-parity term stays on node 1 and stays absent on node 2 — reversal never
+          touched it, so removing the reversal cannot fix or break it.</div>
+      </div>
+
+      <div class="card wide">
+        <h2>What this buys, and the one thing to check first</h2>
+        <table class="f">
+          <tr>
+            <td class="n">the wire says what it means</td>
+            <td class="e" colspan="2">a node sends the direction it actually computed and holds, so the
+              message on the channel matches the arrow drawn on the sender</td>
+          </tr>
+          <tr>
+            <td class="n">one fewer constant in the path</td>
+            <td class="e" colspan="2">the ∓12 exists only to be undone by the receiver's sign; the pair of
+              them is a round trip through nothing</td>
+          </tr>
+          <tr>
+            <td class="n">the sign stays with the kind</td>
+            <td class="e" colspan="2">every remaining per-kind sign is in one place, the step rule, instead
+              of split across a send and a step</td>
+          </tr>
+          <tr>
+            <td class="n">to check before building</td>
+            <td class="e" colspan="2">the third arrow. It is drawn from r, and r is what ARRIVED, so it
+              flips by 180° at rest. If that arrow is read as "what my partner is aiming at me", unreversed
+              is the more honest picture; if it is read as "the direction I was pushed toward", it now points
+              away</td>
+          </tr>
+        </table>
+      </div>
+
+    </div>
+  </main>
+</body>
+
+</html>

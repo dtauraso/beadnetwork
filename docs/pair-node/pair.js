@@ -38,28 +38,35 @@
       .catch(function () { return false; });   // extension not running at all
   }
 
-  function call(rel) {
+  // A data-src may name a definition inside the file: "nodes/Node1/node.go#clear".
+  // The NAME travels, never a line number — the extension resolves it when the click
+  // arrives (docs-open.ts's findDefinitionLine), so nothing here goes stale when the
+  // file is edited above the definition.
+  function call(rel, symbol) {
     return fetch("http://localhost:" + ask.port + "/open"
       + "?token=" + encodeURIComponent(ask.token)
-      + "&file=" + encodeURIComponent(rel));
+      + "&file=" + encodeURIComponent(rel)
+      + (symbol ? "&symbol=" + encodeURIComponent(symbol) : ""));
   }
 
-  function send(rel) {
-    call(rel).catch(function () {
-      reread().then(function (changed) { if (changed) call(rel).catch(function () { }); });
+  function send(rel, symbol) {
+    call(rel, symbol).catch(function () {
+      reread().then(function (changed) { if (changed) call(rel, symbol).catch(function () { }); });
     });
   }
 
   for (const cell of document.querySelectorAll("[data-src]")) {
-    const rel = cell.getAttribute("data-src");
+    const hash = cell.getAttribute("data-src").split("#");
+    const rel = hash[0];
+    const symbol = hash[1] || "";
     const a = document.createElement("a");
     a.className = "srclink";
     a.textContent = cell.textContent;
     a.href = "#";
-    a.title = rel;
+    a.title = symbol ? rel + " — " + symbol : rel;
     a.addEventListener("click", function (ev) {
       ev.preventDefault();
-      send(rel);
+      send(rel, symbol);
     });
     cell.textContent = "";
     cell.appendChild(a);
