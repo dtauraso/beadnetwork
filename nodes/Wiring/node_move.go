@@ -106,15 +106,35 @@ type MoveDispatch struct {
 	// API is unchanged.
 	rt rowTables
 
-	// tiltEditIns holds, for each node id whose OWN kind claimed BuildArgs.TiltEditIn at
-	// build time (Node1 — the only kind that owns its tilt index independently),
-	// that node's dedicated inbound channel for a panel-driven tilt-angle click. Written
-	// ONCE per entry, on the single-threaded build path (buildNodes, via
-	// BuildArgs.TiltEditIn), before any goroutine runs — never touched again. A node id
-	// with no entry here is a kind that still routes tiltVectorAngle straight to its
-	// mover (applyUpdateTiltVector's fallback, stdin_reader.go). Read only by
-	// sendTiltEdit, called from the stdin-reader goroutine.
-	tiltEditIns map[string]chan TiltEditMsg
+	// inboxes owns the directories of per-node dedicated channels a kind can claim for
+	// itself at build time — see nodeInboxes' own doc comment.
+	inboxes nodeInboxes
+}
+
+// nodeInboxes holds the DIRECTORIES OF DEDICATED PER-NODE CHANNELS that kinds claim for
+// themselves at build time, one map per thing a node can be sent.
+//
+// It exists as an owner type rather than as loose MoveDispatch fields because that is what
+// the composer rule asks for (check-movedispatch-composer.sh): a new thing a node can be
+// sent is a new entry HERE, and the composer's field count does not move. The two maps
+// share one lifecycle exactly — written once per entry on the single-threaded build path
+// (buildNodes, via BuildArgs), before any goroutine runs, and never touched again — so
+// after build they are read-only lookup tables, which is what lets the stdin-reader
+// goroutine read them without coordination.
+type nodeInboxes struct {
+	// tiltEdit holds, for each node id whose OWN kind claimed BuildArgs.TiltEditIn (Node1 —
+	// the only kind that owns its tilt index independently), that node's dedicated inbound
+	// channel for a panel-driven tilt-angle click. A node id with no entry is a kind that
+	// still routes tiltVectorAngle straight to its mover (applyUpdateTiltVector's fallback,
+	// stdin_reader.go). Read only by sendTiltEdit.
+	tiltEdit map[string]chan TiltEditMsg
+
+	// lattice holds, for each node id whose own kind claimed BuildArgs.LatticeIn (Node1 —
+	// the only kind that owns a lattice), that node's dedicated inbound channel for a
+	// scene-level point-count change. Read only by BroadcastLatticePoints, which sends to
+	// every entry: the count is one scene-wide setting, so unlike a tilt edit it is
+	// addressed to no single node.
+	lattice map[string]chan int32
 }
 
 // finalizeActors builds the ring's nodeMover actor directory from md.mr.nodeGeoms, AFTER
@@ -168,8 +188,9 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 	md.mr.edgeOut = map[string]*wire.Out{}
 	md.mr.centerMirror = map[string]vec3{}
 	md.ui.ov = defaultOverlayState()
-	md.ui.speed = 1        // default playback multiplier; LoadSpeed overwrites from view/speed.json if present
-	md.ui.clockDivisor = 1 // no scaling until LoadSpeed resolves the loaded scene's own divisor
+	md.ui.speed = 1                            // default playback multiplier; LoadSpeed overwrites from view/speed.json if present
+	md.ui.clockDivisor = 1                     // no scaling until LoadSpeed resolves the loaded scene's own divisor
+	md.ui.latticePoints = defaultLatticePoints // LoadLatticePoints overwrites from view/lattice.json if present
 	md.gs.nodeSeeds = make([]NodeGeomSeed, 0, len(nodeOrder))
 	for i, id := range nodeOrder {
 		g, ok := geoms[id]
@@ -390,7 +411,7 @@ func (md *MoveDispatch) sendMove(id string, msg moveMsg) {
 // same reason: this is a bare external-entry send with no owning goroutine to thread a
 // ctx from.
 func (md *MoveDispatch) sendTiltEdit(id string, msg TiltEditMsg) bool {
-	ch, ok := md.tiltEditIns[id]
+	ch, ok := md.inboxes.tiltEdit[id]
 	if !ok {
 		return false
 	}

@@ -261,6 +261,10 @@ func (b *buildCtx) buildMoveDispatch() error {
 	if err != nil {
 		return fmt.Errorf("buildMoveDispatch: %w", err)
 	}
+	// Seed the scene's lattice point count from view/lattice.json BEFORE buildNodes runs,
+	// so BuildArgs.LatticePointsSeed (called from each Node1's own build func) hands back
+	// the loaded count rather than the compile-time default.
+	md.LoadLatticePoints(b.scenePath)
 	if b.hasScene {
 		// Persisted scene sphere: install it now so md.ui.sceneSphere is consistent straight out
 		// of LoadTopology (a fresh/legacy scene has none — main.go's LoadSceneSphere then

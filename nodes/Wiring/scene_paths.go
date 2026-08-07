@@ -67,3 +67,10 @@ func sphereFilePath(topologyPath string) string {
 func speedFilePath(topologyPath string) string {
 	return sceneViewFilePath(topologyPath, "speed.json")
 }
+
+// latticeFilePath is the WRITE-side location of the persisted pair-lattice point count —
+// one-file-per-writer, mirroring camera/overlays/sphere/speed above. writeSceneLattice is
+// its only writer (scene_lattice_persist.go).
+func latticeFilePath(topologyPath string) string {
+	return sceneViewFilePath(topologyPath, "lattice.json")
+}

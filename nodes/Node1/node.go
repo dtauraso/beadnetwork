@@ -665,12 +665,15 @@ func init() {
 			// can hold anything, including a running count from before the tilt became a
 			// state — so it comes in through seedState, which asks the ring which state
 			// carries that index. After this line the tilt is a state and stays one.
-			// This node's own lattice. The count is a scene setting, and until it is wired
-			// through it is the one this model has always run at.
-			n.Ring = newRing(Wiring.FullTurnThetaIdx)
+			// This node's own lattice, opened at the scene's currently-persisted point
+			// count (view/lattice.json via BuildArgs.LatticePointsSeed) rather than the
+			// compile-time default.
+			latticeSeed := a.LatticePointsSeed()
+			n.Ring = newRing(latticeSeed)
 			seed, seedUnknown := n.Ring.seedState(a.TiltVectorAngleSeed())
 			n.Top = seed
 			n.TiltEditIn = a.TiltEditIn()
+			n.LatticeIn = a.LatticeIn()
 			// Self replaces the old SyncTiltIndex/SyncReceivedVector/ClearOutBeads
 			// messages-to-a-separate-mover-goroutine (task/pair-node-owns-itself):
 			// this node's own goroutine now owns that mover state directly, so what
@@ -680,7 +683,7 @@ func init() {
 			n.SyncLatticePoints = func(points int32) {
 				self.SetLatticePoints(points)
 			}
-			n.SyncLatticePoints(Wiring.FullTurnThetaIdx)
+			n.SyncLatticePoints(latticeSeed)
 			if seedUnknown {
 				// The persisted index is not one this ring has — a position.json written
 				// before the tilt became a state, or by a build with a different lattice.

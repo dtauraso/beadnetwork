@@ -46,7 +46,8 @@ set -euo pipefail
 #     only by the view-owner goroutine's own files: scene_camera_persist.go,
 #     scene_overlays_persist.go, scene_selection_persist.go (the scene-tab selection,
 #     written on a tab click), scene_sphere_persist.go, scene_speed_persist.go (the
-#     playback-speed multiplier).
+#     playback-speed multiplier), scene_lattice_persist.go (the pair lattice's point
+#     count).
 #
 # Exit 0 when clean.
 #
@@ -74,7 +75,7 @@ NODE_OWNERS=("node_mover.go" "quant_offset_persist.go" "scene_anchor_persist.go"
 # Edge-owner files: reserved for a future Go-side edges/<label>.json writer.
 EDGE_OWNERS=("edge_mover.go")
 # View-owner files: the view-owner goroutine's (RunStdinReader) own scene-level writers.
-VIEW_OWNERS=("scene_camera_persist.go" "scene_overlays_persist.go" "scene_sphere_persist.go" "scene_selection_persist.go" "scene_speed_persist.go")
+VIEW_OWNERS=("scene_camera_persist.go" "scene_overlays_persist.go" "scene_sphere_persist.go" "scene_selection_persist.go" "scene_speed_persist.go" "scene_lattice_persist.go")
 
 in_list() {
   local needle="$1"; shift

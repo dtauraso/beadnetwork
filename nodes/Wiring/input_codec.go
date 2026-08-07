@@ -49,8 +49,8 @@ import (
 // record through both encoders and diffs the fields; do not re-add a version pretending to
 // be a checked invariant.
 //
-// INPUT_LAYOUT_FINGERPRINT: kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock,distanceGroup,scene,tiltVector updateAttrs=toggle,speed,length,selected,theta,phi,reset,start overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays
-const InputLayoutFingerprint = "kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock,distanceGroup,scene,tiltVector updateAttrs=toggle,speed,length,selected,theta,phi,reset,start overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays"
+// INPUT_LAYOUT_FINGERPRINT: kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock,distanceGroup,scene,tiltVector updateAttrs=toggle,speed,length,selected,theta,phi,reset,start,latticePoints overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays
+const InputLayoutFingerprint = "kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock,distanceGroup,scene,tiltVector updateAttrs=toggle,speed,length,selected,theta,phi,reset,start,latticePoints overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays"
 
 // Record kind bytes (first byte of every record).
 const (
@@ -76,8 +76,9 @@ const (
 	inTiltVectorAttrTheta     = 4 // tiltVector: adjust the vector's θ index by one click
 	// attr 5 (φ) is a GAP — the tilt vector is θ-only end to end now
 	// (task/drop-tilt-vector-phi); never renumber the survivors.
-	inTiltVectorAttrReset = 6 // tiltVector: return the index to 0 (the RESET button)
-	inTiltVectorAttrStart = 7 // tiltVector: begin the vector exchange from the current angles (the START TILT button)
+	inTiltVectorAttrReset    = 6 // tiltVector: return the index to 0 (the RESET button)
+	inTiltVectorAttrStart    = 7 // tiltVector: begin the vector exchange from the current angles (the START TILT button)
+	inSceneAttrLatticePoints = 8 // scene: set the pair lattice's point count
 )
 
 // Enum orderings (u8 index → string), shared with input-layout-gen.ts. All five orderings
@@ -254,18 +255,28 @@ func decodeInputRecord(rec []byte) (stdinMsg, bool) {
 			}
 			return stdinMsg{Type: "edit", Op: "update", Kind: "distanceGroup", Attr: "length", Num: int(groupIdx), Flag: dir}, true
 		case "scene":
-			if attr != inSceneAttrSelected {
-				return stdinMsg{}, false
+			switch attr {
+			case inSceneAttrSelected:
+				// [u8 tabIndex] — an index into Wiring.SceneTabs, the Go-owned tab strip the
+				// VIEW frame carries. Out-of-range indices are rejected by SelectScene, not
+				// here: the decoder's job is the byte layout, and the tab list is scene
+				// state, not wire state.
+				tabIdx, err := r.u8()
+				if err != nil {
+					return stdinMsg{}, false
+				}
+				return stdinMsg{Type: "edit", Op: "update", Kind: "scene", Attr: "selected", Num: int(tabIdx)}, true
+			case inSceneAttrLatticePoints:
+				// [u8 points] — the pair lattice's new point count. Out-of-range/non-multiple
+				// values are rejected by the handler (applyUpdateScene's "latticePoints"
+				// case), not here: the decoder's job is the byte layout only.
+				points, err := r.u8()
+				if err != nil {
+					return stdinMsg{}, false
+				}
+				return stdinMsg{Type: "edit", Op: "update", Kind: "scene", Attr: "latticePoints", Num: int(points)}, true
 			}
-			// [u8 tabIndex] — an index into Wiring.SceneTabs, the Go-owned tab strip the
-			// VIEW frame carries. Out-of-range indices are rejected by SelectScene, not
-			// here: the decoder's job is the byte layout, and the tab list is scene
-			// state, not wire state.
-			tabIdx, err := r.u8()
-			if err != nil {
-				return stdinMsg{}, false
-			}
-			return stdinMsg{Type: "edit", Op: "update", Kind: "scene", Attr: "selected", Num: int(tabIdx)}, true
+			return stdinMsg{}, false
 		case "tiltVector":
 			switch attr {
 			case inTiltVectorAttrTheta:
@@ -421,6 +432,17 @@ func encodeDistanceGroupAdjust(groupIdx int, dirUp bool) []byte {
 	} else {
 		w.u8(0)
 	}
+	return w.b
+}
+
+// encodeSceneLatticePoints builds a scene LATTICE-POINTS record (test helper):
+// [22][entityKind=scene][attr=latticePoints][u8 points].
+func encodeSceneLatticePoints(points int) []byte {
+	w := &recWriter{}
+	w.u8(inKindEditUpdate)
+	w.u8(enumIndex(inUpdateKinds, "scene"))
+	w.u8(inSceneAttrLatticePoints)
+	w.u8(byte(points))
 	return w.b
 }
 

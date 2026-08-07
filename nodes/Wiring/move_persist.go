@@ -34,6 +34,9 @@ type persisters struct {
 	// speed is the playback-speed persister (scene_speed_persist.go), armed by
 	// EnableEditPersist. nil until armed (tests that never arm).
 	speed *speedPersister
+	// lattice is the lattice-point-count persister (scene_lattice_persist.go), armed by
+	// EnableEditPersist. nil until armed (tests that never arm).
+	lattice *latticePersister
 }
 
 // EnableViewpointPersist arms gesture-driven camera persistence: every subsequent
@@ -56,6 +59,8 @@ func (md *MoveDispatch) EnableViewpointPersist(topologyPath string) {
 //     persistPortAnchor), same nm.persistRoot as above
 //   - overlays (applyUpdate toggle/set) → overlay-visibility keys in view/overlays.json
 //   - clock speed (applyUpdate clock/speed) → view/speed.json (scene_speed_persist.go)
+//   - pair lattice point count (applyUpdate scene/latticePoints) → view/lattice.json
+//     (scene_lattice_persist.go)
 //
 // topologyPath is always the tree root directory — LoadTopology rejects anything else
 // (topo_spec.go) — so it is used directly as root for the per-node/per-port persisters.
@@ -65,6 +70,7 @@ func (md *MoveDispatch) EnableEditPersist(topologyPath string) {
 	md.persist.overlays = &overlaysPersister{path: overlaysFilePath(topologyPath)}
 	md.persist.sphere = &sceneSpherePersister{path: sphereFilePath(topologyPath)}
 	md.persist.speed = &speedPersister{path: speedFilePath(topologyPath)}
+	md.persist.lattice = &latticePersister{path: latticeFilePath(topologyPath)}
 	// Every node's own mover writes its own position.json/local-polars.json/port-anchor
 	// files — set the tree root on each nodeMover directly rather than routing writes
 	// through a shared MoveDispatch-owned persister (docs/planning/decentralized-
