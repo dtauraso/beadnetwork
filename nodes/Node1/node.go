@@ -101,13 +101,14 @@ type Node struct {
 	// step constant, trig only at the cartesian/polar boundary).
 	Top *tiltState
 
-	// SquareLastRound is whether the PREVIOUS arrival landed exactly on this node's own top —
-	// the gap was zero, which is the two tilts a quarter turn apart.
+	// Squared records that an arrival once landed exactly on this node's own top — a zero
+	// gap, which is the two tilts a quarter turn apart.
 	//
-	// One round of memory, and that is the whole of it. If the last arrival was square, the
-	// step this one asks for is undone as soon as it is made (stepFromVector): an arrival
-	// that leans is what would take the pair off the relationship it was just in.
-	SquareLastRound bool
+	// It is written when that happens and by nothing else: no arrival erases it. While it is
+	// set, the step an arrival asks for is undone as soon as it is made (stepFromVector),
+	// because an arrival that leans is what would take the pair off the relationship it is
+	// in. The RESET button is the one thing that erases it (clear).
+	Squared bool
 
 	// Ring is THIS NODE'S OWN lattice — its states, and the counts every rule reads off them.
 	// The point count is a scene setting a user can change, so this is not fixed for the life
@@ -331,8 +332,8 @@ func (n *Node) topState() *tiltState {
 // there instead of bouncing.
 func (n *Node) clear() {
 	n.Top = n.ringOf().at(0)
-	// The one round of square memory goes too: a reset is the pair starting over.
-	n.SquareLastRound = false
+	// The stored zero goes too: RESET is the one thing that erases it.
+	n.Squared = false
 	n.syncTiltIndex()
 	n.ReceivedThetaIdx = 0
 	n.ReceivedSet = false
@@ -464,8 +465,11 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 // Worked run: docs/pair-node/vectors.html.
 func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
 	arrival := n.ringOf().arrivedState(received.ThetaIdx)
-	wasSquare := n.SquareLastRound
-	n.SquareLastRound = arrival == n.topState()
+	wasSquare := n.Squared
+	// A zero gap is stored. Nothing here erases it.
+	if arrival == n.topState() {
+		n.Squared = true
+	}
 
 	before := n.topState()
 	switch {
