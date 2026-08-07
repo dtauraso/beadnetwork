@@ -6,6 +6,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pair node — Math</title>
   <link rel="stylesheet" href="pair.css">
+  <!-- port.js is written by the running topology extension: where to ask for a file
+       to be opened as an editor tab. Gitignored; without it the source names render
+       as plain text. -->
+  <script src="port.js"></script>
+  <script src="pair.js" defer></script>
 </head>
 
 <body>
@@ -22,7 +27,8 @@
     <a href="vectors.html">Vectors</a>
     <a class="on" href="math.html">Math</a>
     <a href="formulas.html">Formulas</a>
-    <a href="dots.html">Acute test</a>
+    <a href="dots.html">Separation</a>
+    <a href="perpendicular.html">Perpendicular</a>
     <a href="channels.html">Channels</a>
     <a href="cycle.html">Cycle</a>
     <a href="updates.html">Update rules</a>
@@ -102,7 +108,7 @@
         </div>
 
         <div class="card">
-          <h2>The acute test</h2>
+          <h2>separation, folded to the short side</h2>
           <svg width="300" height="250" viewBox="0 0 300 250">
             <circle cx="150" cy="120" r="86" fill="none" stroke="#3a3a44" />
             <g stroke="#3a3a44">
@@ -118,15 +124,16 @@
 
             <path d="M 150 34 A 86 86 0 0 1 236 120" fill="none" stroke="#5fd68a" stroke-width="5" />
             <path d="M 64 120 A 86 86 0 0 1 150 34" fill="none" stroke="#5fd68a" stroke-width="5" />
-            <path d="M 236 120 A 86 86 0 0 1 64 120" fill="none" stroke="#ff6b6b" stroke-width="5" />
 
-            <text x="150" y="112" text-anchor="middle" class="lblm" fill="#5fd68a">acute</text>
-            <text x="150" y="132" text-anchor="middle" class="lbl">gap &lt; 6 · gap &gt; 18</text>
-            <text x="150" y="244" text-anchor="middle" class="lblm">gap = max(a.idx, b.idx) − min(a.idx, b.idx)</text>
+            <text x="150" y="112" text-anchor="middle" class="lblm" fill="#5fd68a">short arc = separation</text>
+            <text x="150" y="132" text-anchor="middle" class="lbl">never more than a half turn</text>
+            <text x="150" y="244" text-anchor="middle" class="lblm">gap = |a.idx − b.idx|, folded if it exceeds a half turn</text>
           </svg>
-          <div class="cap">No modulo, no conditional add, no sign convention: both states are already on
-            the ring, so larger minus smaller is already the gap, and it lands in [0, 24) with no
-            reduction of any kind.</div>
+          <div class="cap">No trig: both states are already on the ring, so the fold is one subtraction
+            against the ring's own half-turn count
+            (<span data-src="nodes/Node1/ring.go#separation">separation</span>). This number alone names
+            no resting state — each machine reads its own halt off it, in its own file
+            (<a href="perpendicular.html">Perpendicular</a>).</div>
         </div>
 
         <div class="card">
@@ -170,40 +177,9 @@
             <span><i style="background:#e05fd8"></i>node 1 top</span>
             <span><i style="background:#4ea1ff"></i>node 2 top</span>
           </div>
-        </div>
-
-        <div class="card">
-          <h2>Every opening reaches colinear</h2>
-          <svg width="400" height="200" viewBox="0 0 400 200">
-            <line x1="40" y1="24" x2="40" y2="154" stroke="#3a3a44" />
-            <line x1="40" y1="154" x2="378" y2="154" stroke="#3a3a44" />
-            <text x="34" y="28" text-anchor="end" class="lbl">6</text>
-            <text x="34" y="158" text-anchor="end" class="lbl">0</text>
-            <text x="14" y="96" text-anchor="middle" class="lbl" transform="rotate(-90 14 96)">steps from
-              colinear</text>
-            <text x="210" y="176" text-anchor="middle" class="lbl">rounds</text>
-
-            <path d="M 40.0 89.0 L 52.2 110.7 L 64.4 132.3 L 76.7 154.0" fill="none" stroke="#4ea1ff"
-              stroke-width="1.8" />
-            <circle cx="76.7" cy="154.0" r="3" fill="#4ea1ff" />
-            <path
-              d="M 40.0 89.0 L 52.2 110.7 L 64.4 132.3 L 76.7 110.7 L 88.9 132.3 L 101.1 110.7 L 113.3 132.3 L 125.6 110.7 L 137.8 132.3 L 150.0 110.7 L 162.2 132.3 L 174.4 110.7 L 186.7 132.3 L 198.9 110.7 L 211.1 132.3 L 223.3 110.7 L 235.6 132.3 L 247.8 110.7 L 260.0 132.3 L 272.2 110.7 L 284.4 132.3 L 296.7 110.7 L 308.9 132.3 L 321.1 110.7 L 333.3 132.3 L 345.6 110.7 L 357.8 132.3 L 370.0 154.0"
-              fill="none" stroke="#5fd68a" stroke-width="1.8" />
-            <circle cx="370.0" cy="154.0" r="3" fill="#5fd68a" />
-            <path
-              d="M 40.0 110.7 L 52.2 132.3 L 64.4 110.7 L 76.7 132.3 L 88.9 110.7 L 101.1 132.3 L 113.3 110.7 L 125.6 132.3 L 137.8 110.7 L 150.0 89.0 L 162.2 67.3 L 174.4 45.7 L 186.7 24.0 L 198.9 45.7 L 211.1 67.3 L 223.3 89.0 L 235.6 110.7 L 247.8 132.3 L 260.0 154.0"
-              fill="none" stroke="#e05fd8" stroke-width="1.8" />
-            <circle cx="260.0" cy="154.0" r="3" fill="#e05fd8" />
-            <path
-              d="M 40.0 110.7 L 52.2 89.0 L 64.4 67.3 L 76.7 45.7 L 88.9 24.0 L 101.1 45.7 L 113.3 67.3 L 125.6 89.0 L 137.8 110.7 L 150.0 132.3 L 162.2 154.0"
-              fill="none" stroke="#ff6b6b" stroke-width="1.8" />
-            <circle cx="162.2" cy="154.0" r="3" fill="#ff6b6b" />
-            <path
-              d="M 40.0 89.0 L 52.2 67.3 L 64.4 45.7 L 76.7 24.0 L 88.9 45.7 L 101.1 67.3 L 113.3 89.0 L 125.6 110.7 L 137.8 132.3 L 150.0 154.0"
-              fill="none" stroke="#9a9aa6" stroke-width="1.8" />
-            <circle cx="150.0" cy="154.0" r="3" fill="#9a9aa6" />
-          </svg>
-          <div class="cap">625 openings over [−12, 12]², all halt, longest 12 rounds. Six of them drawn.</div>
+          <div class="cap">This run's gap picked <a href="perpendicular.html">perpendicular</a>, so it
+            halts at separation 0 — the other machine, running the same ring, would have walked past this
+            point to a quarter-turn separation instead.</div>
         </div>
 
       </div>
