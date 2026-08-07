@@ -311,19 +311,15 @@ func (n *Node) syncReceivedVector() {
 	n.SyncReceivedVector(n.ReceivedThetaIdx, n.ReceivedSet)
 }
 
-// outgoingVector is what THIS node SENDS on VectorOut: its own coplanarNormal, UNCHANGED.
-// The message on the channel is the direction this node computed and draws, not a rotated
-// stand-in for it.
+// outgoingVector is what THIS node SENDS on VectorOut: its own coplanarNormal. The message
+// on the channel IS the direction this node computed and draws, so the arrow the partner
+// draws as its received direction coincides with this node's own normal on screen.
 //
-// It used to send that normal rotated 180° in θ (Node1 −12 steps, Node2 +12), and the
-// receiver's step rule carried the matching opposite sign. Those two cancelled exactly, so
-// the reversal was a round trip through nothing: reversing is adding HalfTurnThetaIdx, the
-// bottom tilt IS the top plus that same half turn, so d(v+HALF, top) = d(v, bottom) — the
-// reversal only ever swapped WHICH of the receiver's two acute tests fired, and
-// stepFromVector's signs (below, now swapped with it) swap it back. The halt is untouched
-// by the removal: perpendicular is the one difference fixed under a half turn
-// ({PERP, FULL-PERP} + HALF is itself), so the exchange comes to rest on exactly the
-// arrivals it always did. Derived on docs/pair-node/parallel.html.
+// Do not rotate it on the way out. A rotation here has to be undone by the receiver's step
+// signs (stepFromVector, below) to leave behaviour unchanged, which spreads one convention
+// across two files and two kinds; and rotating by a half turn in particular changes nothing
+// at all about where the pair comes to rest, since the bottom tilt is the top plus that same
+// half turn — it only swaps which of the receiver's two acute tests fires.
 func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 	return n.coplanarNormal()
 }
@@ -350,13 +346,10 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 // Node1's base direction (the top-acute case) ADDS one step; its mirror package's is the
 // opposite, so a pair still turns symmetrically when both are leaning the same way.
 //
-// Both signs here are the opposite of what they were before outgoingVector stopped reversing
-// what it sends (above). The sender's half turn and these signs were two halves of one
-// convention: with the reversal gone, the arrival that used to satisfy the top test now
-// satisfies the bottom one, so keeping the old signs would turn each node the wrong way and
-// the pair would walk apart instead of together. Every index the pair passes through is
-// unchanged from before both edits — see the recomputed run on
-// docs/pair-node/parallel.html.
+// These two signs are paired with what outgoingVector sends (above): they are read against
+// an arrival that is the partner's coplanar normal as-is. Rotating what is sent, or flipping
+// one of these signs alone, turns each node the wrong way and the pair walks apart instead
+// of together. Worked run: docs/pair-node/vectors.html.
 func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
 	switch {
 	case Wiring.TiltVectorIsAcute(received, n.topTilt()):

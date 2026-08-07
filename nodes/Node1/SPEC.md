@@ -130,14 +130,12 @@ loop body) runs:
   parameterization, so both signs land in the SAME drawn direction and the sign is index
   bookkeeping only. It shares the top's length column (`TopTiltVectorLen`) and its colour;
   it is one of the two acute-test operands above.
-- **What this node SENDS**: that coplanar normal, UNCHANGED — the message on the channel is
-  the direction this node computed and draws. It used to be that normal rotated 180° in θ
-  (Node1 −12 steps of π/12, Node2 +12), with the step rule below carrying the matching
-  opposite sign; the two cancelled exactly, so the reversal was a round trip through
-  nothing. Reversing is adding `HalfTurnThetaIdx`, and the bottom tilt IS the top plus that
-  same half turn, so reversing only ever swapped WHICH of the receiver's two acute tests
-  fired. The halt is unaffected — perpendicular is fixed under a half turn. Derived on
-  `docs/pair-node/parallel.html`.
+- **What this node SENDS**: that coplanar normal. The message on the channel IS the direction
+  this node computed and draws, so the partner's received arrow coincides with this node's
+  own normal on screen. Nothing rotates it on the way out: a rotation has to be undone by the
+  receiver's step signs to leave behaviour unchanged, and a half turn in particular cannot
+  move where the pair comes to rest, since the bottom tilt is the top plus that same half
+  turn. `docs/pair-node/vectors.html`.
 - **On receiving a vector**: FIRST, unconditionally, this node records the received
   direction as its own THIRD drawn vector (`ReceivedThetaIdx`/
   `ReceivedSet`, reported to its own geometry via `SyncReceivedVector` — same

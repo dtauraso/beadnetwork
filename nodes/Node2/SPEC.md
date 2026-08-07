@@ -136,10 +136,9 @@ loop body) runs:
   parameterization, so both signs land in the SAME drawn direction and the sign is index
   bookkeeping only. It shares the top's length column (`TopTiltVectorLen`) and its colour;
   it is one of the two acute-test operands above.
-- **What this node SENDS**: that coplanar normal, UNCHANGED. It used to be that normal
-  rotated 180° in θ (Node2 +12 steps of π/12, Node1 −12), with the step rule below carrying
-  the matching opposite sign; the two cancelled exactly. Node1's SPEC and
-  `docs/pair-node/parallel.html` carry the derivation, including why the halt is unaffected.
+- **What this node SENDS**: that coplanar normal. The message on the channel IS the direction
+  this node computed and draws; nothing rotates it on the way out. Node1's SPEC and
+  `docs/pair-node/vectors.html` carry the reasoning.
 - **On receiving a vector**: FIRST, unconditionally, this node records the received
   direction as its own THIRD drawn vector (`ReceivedThetaIdx`/
   `ReceivedSet`, reported to its own geometry via `SyncReceivedVector` — same

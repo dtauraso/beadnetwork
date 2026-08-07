@@ -144,10 +144,10 @@ func TestApplyTiltEditAdjustMovesOneStepAndSendsNothing(t *testing.T) {
 	}
 }
 
-// outgoingVector sends the coplanar normal UNCHANGED — the direction this node computed and
-// draws is the one that goes on the channel. It used to reverse it by 180° (−12 index steps
-// here, +12 on Node2), which stepFromVector's opposite signs then undid; see outgoingVector's
-// own doc comment. This is THIS node's own arithmetic, asserted without any channel involved.
+// outgoingVector sends the coplanar normal — the direction this node computed and draws is
+// the one that goes on the channel, unrotated. Asserted as the PROPERTY (a quarter turn from
+// this node's own top), so any rotation added to that path fails here whatever its size.
+// THIS node's own arithmetic, no channel involved.
 func TestOutgoingVectorIsTheCoplanarNormalUnchanged(t *testing.T) {
 	// NEGATIVE indices are included deliberately: Node1's base direction SUBTRACTS, so a
 	// running node spends most of its life below zero, and every one of these derivations

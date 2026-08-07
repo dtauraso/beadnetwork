@@ -12,7 +12,7 @@
 
   <header>
     <h1>Vectors</h1>
-    <div class="sub">four directions derived from one integer</div>
+    <div class="sub">three directions derived from one integer, and a fourth that arrived</div>
   </header>
 
   <nav>
@@ -26,7 +26,6 @@
     <a href="channels.html">Channels</a>
     <a href="cycle.html">Cycle</a>
     <a href="updates.html">Update rules</a>
-    <a href="parallel.html">Unreversed</a>
     <a href="clock.html">Clock</a>
     <a href="geometry.html">Geometry</a>
     <a href="asym.html">Asymmetry</a>
@@ -37,7 +36,7 @@
       <div class="grid">
 
         <div class="card">
-          <h2>Four directions from one index</h2>
+          <h2>Four drawn vectors — three from this node's index, one from its channel</h2>
           <svg width="440" height="380" viewBox="0 0 440 380">
             <defs>
               <marker id="mTop" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
@@ -49,8 +48,8 @@
               <marker id="mNor" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
                 <path d="M0,0 L8,3 L0,6 z" fill="#4ea1ff" />
               </marker>
-              <marker id="mOut" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
-                <path d="M0,0 L8,3 L0,6 z" fill="#5fd68a" />
+              <marker id="mRcv" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+                <path d="M0,0 L8,3 L0,6 z" fill="#00E5FF" />
               </marker>
             </defs>
 
@@ -79,13 +78,15 @@
             <line x1="220" y1="190" x2="121" y2="289" stroke="#b34fa8" stroke-width="2.4" marker-end="url(#mBot)" />
             <text x="70" y="300" class="lblm" fill="#b34fa8">bottom +12</text>
 
-            <!-- normal: +6 (90deg further) -->
+            <!-- normal: +6 (90deg further) — and this is what goes on the channel -->
             <line x1="220" y1="190" x2="319" y2="289" stroke="#4ea1ff" stroke-width="2.4" marker-end="url(#mNor)" />
             <text x="330" y="300" class="lblm" fill="#4ea1ff">normal +6</text>
+            <text x="330" y="316" class="lbl" fill="#4ea1ff">this is what is sent</text>
 
-            <!-- outgoing: normal, unchanged, drawn parallel to it -->
-            <line x1="212" y1="198" x2="311" y2="297" stroke="#5fd68a" stroke-width="2.4" marker-end="url(#mOut)" />
-            <text x="250" y="322" class="lblm" fill="#5fd68a">outgoing = normal</text>
+            <!-- received: the PARTNER's normal, arrived on this node's channel. Not derived
+                 from this node's index at all — drawn here at some unrelated angle. -->
+            <line x1="220" y1="190" x2="121" y2="121" stroke="#00E5FF" stroke-width="2.4" marker-end="url(#mRcv)" />
+            <text x="52" y="116" class="lblm" fill="#00E5FF">received</text>
 
             <path d="M 265 145 A 64 64 0 0 1 265 235" fill="none" stroke="#4ea1ff" stroke-dasharray="3 3" />
             <text x="290" y="196" class="lbl" fill="#4ea1ff">90°</text>
@@ -93,9 +94,44 @@
           <div class="legend">
             <span><i style="background:#e05fd8"></i>top tilt (stored)</span>
             <span><i style="background:#b34fa8"></i>bottom (+12)</span>
-            <span><i style="background:#4ea1ff"></i>coplanar normal (+6)</span>
-            <span><i style="background:#5fd68a"></i>outgoing (normal, unchanged)</span>
+            <span><i style="background:#4ea1ff"></i>coplanar normal (+6) — and what is sent</span>
+            <span><i style="background:#00E5FF"></i>received — the PARTNER's coplanar normal</span>
           </div>
+          <div class="cap">Three of the four are this index's own arithmetic and move together when t
+            steps. The fourth is not derived here at all: it is whatever last arrived, held until the next
+            arrival replaces it, and it is the only one a reset can remove on its own.</div>
+          <div class="cap">The received arrow is the partner's blue arrow, unrotated — the two are the same
+            direction, drawn at two centres. In the editor these are the pink trio and the cyan single
+            arrow; the colours here match.</div>
+        </div>
+
+        <div class="card">
+          <h2>What the partner does with it</h2>
+          <table class="f">
+            <tr class="h">
+              <td>arrival v against</td>
+              <td>node 1</td>
+              <td>node 2</td>
+            </tr>
+            <tr>
+              <td class="e">d(v, top) ∈ {0…5, 19…23}</td>
+              <td class="e">t ← t + 1</td>
+              <td class="e">t ← t − 1</td>
+            </tr>
+            <tr>
+              <td class="e">else d(v, bottom) ∈ {0…5, 19…23}</td>
+              <td class="e">t ← t − 1</td>
+              <td class="e">t ← t + 1</td>
+            </tr>
+            <tr>
+              <td class="e">d ∈ {6, 18} against both</td>
+              <td class="e" colspan="2">no step · no send · no bead — the halt</td>
+            </tr>
+          </table>
+          <div class="cap">The halt does not depend on which way round a direction is stated: 6 and 18 are
+            the two separations a half turn maps onto themselves, so a direction and its opposite are
+            perpendicular to the same things. The step signs do depend on it, which is why they are the
+            mirror of each other across the two kinds.</div>
         </div>
 
         <div class="card">

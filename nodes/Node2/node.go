@@ -295,11 +295,9 @@ func (n *Node) syncReceivedVector() {
 	n.SyncReceivedVector(n.ReceivedThetaIdx, n.ReceivedSet)
 }
 
-// outgoingVector is what THIS node SENDS on VectorOut: its own coplanarNormal, UNCHANGED.
-// The message on the channel is the direction this node computed and draws, not a rotated
-// stand-in for it. Node1's own outgoingVector carries the full reasoning for why the old
-// 180° reversal (Node2 +12 steps, Node1 −12) came out with stepFromVector's signs and why
-// the halt is unaffected by removing both.
+// outgoingVector is what THIS node SENDS on VectorOut: its own coplanarNormal. The message
+// on the channel IS the direction this node computed and draws. Node1's own outgoingVector
+// carries the reasoning for why nothing rotates it on the way out.
 func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 	return n.coplanarNormal()
 }
@@ -323,9 +321,9 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 // Node2's base direction (the top-acute case) subtracts one step; its mirror package's is
 // the opposite, so a pair still turns symmetrically when both are leaning the same way.
 //
-// Both signs are the opposite of what they were before outgoingVector stopped reversing what
-// it sends: the sender's half turn and these signs were two halves of one convention, and
-// removing one without the other would turn each node the wrong way.
+// These two signs are paired with what outgoingVector sends: they are read against an
+// arrival that is the partner's coplanar normal as-is, so neither the send nor one sign may
+// change alone.
 //
 // This does NOT consult Wiring.PerpendicularThetaIdx directly: the two tests are the whole gate, so a node
 // sitting exactly at the perpendicular index still steps if what arrived leans one way or
