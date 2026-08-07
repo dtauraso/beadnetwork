@@ -83,9 +83,9 @@
             <line x1="220" y1="190" x2="319" y2="289" stroke="#4ea1ff" stroke-width="2.4" marker-end="url(#mNor)" />
             <text x="330" y="300" class="lblm" fill="#4ea1ff">normal +6</text>
 
-            <!-- outgoing: normal - 12 -->
-            <line x1="220" y1="190" x2="121" y2="91" stroke="#5fd68a" stroke-width="2.4" marker-end="url(#mOut)" />
-            <text x="34" y="86" class="lblm" fill="#5fd68a">outgoing −12</text>
+            <!-- outgoing: normal, unchanged, drawn parallel to it -->
+            <line x1="212" y1="198" x2="311" y2="297" stroke="#5fd68a" stroke-width="2.4" marker-end="url(#mOut)" />
+            <text x="250" y="322" class="lblm" fill="#5fd68a">outgoing = normal</text>
 
             <path d="M 265 145 A 64 64 0 0 1 265 235" fill="none" stroke="#4ea1ff" stroke-dasharray="3 3" />
             <text x="290" y="196" class="lbl" fill="#4ea1ff">90°</text>
@@ -94,7 +94,7 @@
             <span><i style="background:#e05fd8"></i>top tilt (stored)</span>
             <span><i style="background:#b34fa8"></i>bottom (+12)</span>
             <span><i style="background:#4ea1ff"></i>coplanar normal (+6)</span>
-            <span><i style="background:#5fd68a"></i>outgoing (normal −12)</span>
+            <span><i style="background:#5fd68a"></i>outgoing (normal, unchanged)</span>
           </div>
         </div>
 
@@ -146,7 +146,7 @@
             <text x="150" y="116" text-anchor="middle" class="lblm">floor(idx / 12) odd → normal += 12</text>
             <rect x="20" y="132" width="260" height="52" rx="7" fill="#2b2b33" stroke="#ff6b6b" />
             <text x="34" y="152" class="lblm" fill="#ff6b6b">FLOOR — rounds toward −∞</text>
-            <text x="34" y="170" class="lbl">base direction is −1, so negatives are the common case</text>
+            <text x="34" y="170" class="lbl">START begins at a negative index, so negatives are the common case</text>
           </svg>
           <div class="legend"><span><i style="background:#4ea1ff"></i>flipped 180°</span><span><i
                 style="background:#34343d;border:1px solid #3a3a44"></i>unflipped</span></div>

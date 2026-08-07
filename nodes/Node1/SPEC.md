@@ -130,9 +130,14 @@ loop body) runs:
   parameterization, so both signs land in the SAME drawn direction and the sign is index
   bookkeeping only. It shares the top's length column (`TopTiltVectorLen`) and its colour;
   it is one of the two acute-test operands above.
-- **What this node SENDS**: that coplanar normal rotated 180° in θ. Node1 turns −180°
-  (−12 steps of π/12, i.e. `2 × PerpendicularThetaIdx` subtracted); Node2 (its mirror
-  package) turns +180° (+12 steps). Index arithmetic only.
+- **What this node SENDS**: that coplanar normal, UNCHANGED — the message on the channel is
+  the direction this node computed and draws. It used to be that normal rotated 180° in θ
+  (Node1 −12 steps of π/12, Node2 +12), with the step rule below carrying the matching
+  opposite sign; the two cancelled exactly, so the reversal was a round trip through
+  nothing. Reversing is adding `HalfTurnThetaIdx`, and the bottom tilt IS the top plus that
+  same half turn, so reversing only ever swapped WHICH of the receiver's two acute tests
+  fired. The halt is unaffected — perpendicular is fixed under a half turn. Derived on
+  `docs/pair-node/parallel.html`.
 - **On receiving a vector**: FIRST, unconditionally, this node records the received
   direction as its own THIRD drawn vector (`ReceivedThetaIdx`/
   `ReceivedSet`, reported to its own geometry via `SyncReceivedVector` — same
@@ -143,10 +148,10 @@ loop body) runs:
   tilt vector (`Wiring.TiltVectorIsAcute`, an integer comparison on the π/12 index lattice,
   no dot product and no epsilon — see that function). They decide
   BOTH questions, whether to move and which way:
-  - acute with the TOP tilt: step `TopTiltThetaIdx` ONE click SUBTRACTING (−1) — Node1's base
+  - acute with the TOP tilt: step `TopTiltThetaIdx` ONE click ADDING (+1) — Node1's base
     direction; its mirror package's base is the opposite, so a pair still turns
     symmetrically when both lean the same way.
-  - acute with the BOTTOM tilt: step ONE click the REVERSE way (ADDING, +1).
+  - acute with the BOTTOM tilt: step ONE click the REVERSE way (SUBTRACTING, −1).
   - neither acute: step nothing and send nothing — this is how the vector exchange stops,
     independently of whether the bead exchange has also stopped.
 

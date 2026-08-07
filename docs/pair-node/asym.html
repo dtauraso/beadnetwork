@@ -45,7 +45,7 @@
             <text x="40" y="100" class="lbl">the exchange opens from this end only</text>
             <text x="40" y="132" class="lblm">normal flips per pole crossed</text>
             <text x="40" y="152" class="lbl">floor(idx/12) odd → normal += 12</text>
-            <text x="40" y="184" class="lblm">base step −1 · normal = top + 6</text>
+            <text x="40" y="184" class="lblm">base step +1 · normal = top + 6</text>
             <text x="40" y="216" class="lblm" fill="#5fd68a">halts when neither test is acute</text>
 
             <rect x="310" y="20" width="270" height="250" rx="10" fill="#2b2b33" stroke="#3a3a44" />
@@ -54,7 +54,7 @@
             <text x="330" y="100" class="lbl">started from both, each would answer the other</text>
             <text x="330" y="132" class="lblm">plain quarter turn</text>
             <text x="330" y="152" class="lbl">normal = top − 6</text>
-            <text x="330" y="184" class="lblm">base step +1</text>
+            <text x="330" y="184" class="lblm">base step −1</text>
             <text x="330" y="216" class="lblm" fill="#5fd68a">halts when neither test is acute</text>
           </svg>
           <div class="cap">Both halt on the same rule: neither test acute, step nothing, send nothing. The asymmetries
@@ -66,7 +66,7 @@
           <svg width="440" height="180" viewBox="0 0 440 180">
             <rect x="20" y="24" width="400" height="52" rx="8" fill="#2b2b33" stroke="#5fd68a" />
             <text x="36" y="46" class="lblm" fill="#5fd68a">node 1 — has the parity correction</text>
-            <text x="36" y="66" class="lbl">base direction subtracts, so it runs negative and crosses poles</text>
+            <text x="36" y="66" class="lbl">START begins negative, so it still runs negative and crosses poles</text>
 
             <rect x="20" y="92" width="400" height="52" rx="8" fill="#2b2b33" stroke="#f9a825" />
             <text x="36" y="114" class="lblm" fill="#f9a825">node 2 — plain quarter turn, top − 6</text>

@@ -311,22 +311,30 @@ func (n *Node) syncReceivedVector() {
 	n.SyncReceivedVector(n.ReceivedThetaIdx, n.ReceivedSet)
 }
 
-// outgoingVector is what THIS node SENDS on VectorOut: its own coplanarNormal rotated
-// 180° in θ. Node1 turns −180° (−12 steps of π/12); Node2 (its mirror package) turns
-// +180° (+12 steps) — index arithmetic, never radians.
+// outgoingVector is what THIS node SENDS on VectorOut: its own coplanarNormal, UNCHANGED.
+// The message on the channel is the direction this node computed and draws, not a rotated
+// stand-in for it.
+//
+// It used to send that normal rotated 180° in θ (Node1 −12 steps, Node2 +12), and the
+// receiver's step rule carried the matching opposite sign. Those two cancelled exactly, so
+// the reversal was a round trip through nothing: reversing is adding HalfTurnThetaIdx, the
+// bottom tilt IS the top plus that same half turn, so d(v+HALF, top) = d(v, bottom) — the
+// reversal only ever swapped WHICH of the receiver's two acute tests fired, and
+// stepFromVector's signs (below, now swapped with it) swap it back. The halt is untouched
+// by the removal: perpendicular is the one difference fixed under a half turn
+// ({PERP, FULL-PERP} + HALF is itself), so the exchange comes to rest on exactly the
+// arrivals it always did. Derived on docs/pair-node/parallel.html.
 func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
-	norm := n.coplanarNormal()
-	norm.ThetaIdx -= 2 * Wiring.PerpendicularThetaIdx
-	return norm
+	return n.coplanarNormal()
 }
 
 // stepFromVector decides whether an arrived vector turns this node's own TopTiltThetaIdx at
 // all, and if so which way, using TWO ACUTE TESTS (Wiring.TiltVectorIsAcute — integer
 // index arithmetic on the 24-step θ lattice, not a dot product):
 //
-//   - arrived vector ACUTE with this node's own TOP tilt vector    -> step -1 (Node1's base
+//   - arrived vector ACUTE with this node's own TOP tilt vector    -> step +1 (Node1's base
 //     direction), return true
-//   - arrived vector ACUTE with this node's own BOTTOM tilt vector -> step +1, the REVERSE,
+//   - arrived vector ACUTE with this node's own BOTTOM tilt vector -> step -1, the REVERSE,
 //     return true
 //   - neither acute (exactly perpendicular)                        -> step NOTHING, return
 //     false — this is how the vector exchange comes to rest: the caller
@@ -339,14 +347,22 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 // which end the arrived vector leans toward IS the direction, except at the perpendicular
 // index itself, which has no lean at all and so steps nothing.
 //
-// Node1's base direction (the top-acute case) subtracts one step; its mirror package's is the
+// Node1's base direction (the top-acute case) ADDS one step; its mirror package's is the
 // opposite, so a pair still turns symmetrically when both are leaning the same way.
+//
+// Both signs here are the opposite of what they were before outgoingVector stopped reversing
+// what it sends (above). The sender's half turn and these signs were two halves of one
+// convention: with the reversal gone, the arrival that used to satisfy the top test now
+// satisfies the bottom one, so keeping the old signs would turn each node the wrong way and
+// the pair would walk apart instead of together. Every index the pair passes through is
+// unchanged from before both edits — see the recomputed run on
+// docs/pair-node/parallel.html.
 func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
 	switch {
 	case Wiring.TiltVectorIsAcute(received, n.topTilt()):
-		n.TopTiltThetaIdx -= 1
-	case Wiring.TiltVectorIsAcute(received, n.bottomTilt()):
 		n.TopTiltThetaIdx += 1
+	case Wiring.TiltVectorIsAcute(received, n.bottomTilt()):
+		n.TopTiltThetaIdx -= 1
 	default:
 		// Exactly perpendicular to both: no lean to read, so this node steps nothing —
 		// the halt condition for the exchange.

@@ -215,7 +215,7 @@
       </div>
 
       <div class="card wide">
-        <h2>What lands where, if it is built</h2>
+        <h2>What it landed as</h2>
         <table class="f">
           <tr class="h">
             <td>file</td>
@@ -225,8 +225,9 @@
             <td class="n">nodes/Node1/node.go</td>
             <td class="s" colspan="2">
               <span data-src="nodes/Node1/node.go#outgoingVector">outgoingVector</span> returns
-              coplanarNormal unchanged (drop the − 2 · PerpendicularThetaIdx) ·
-              <span data-src="nodes/Node1/node.go#stepFromVector">stepFromVector</span> swaps its two signs
+              coplanarNormal unchanged (the − 2 · PerpendicularThetaIdx is gone) ·
+              <span data-src="nodes/Node1/node.go#stepFromVector">stepFromVector</span> has its two signs
+              swapped
             </td>
           </tr>
           <tr>
@@ -234,14 +235,14 @@
             <td class="s" colspan="2">
               <span data-src="nodes/Node2/node.go#outgoingVector">outgoingVector</span> drops its
               + 2 · PerpendicularThetaIdx ·
-              <span data-src="nodes/Node2/node.go#stepFromVector">stepFromVector</span> swaps its two signs
+              <span data-src="nodes/Node2/node.go#stepFromVector">stepFromVector</span> has its two signs
+              swapped
             </td>
           </tr>
           <tr>
             <td class="n">nodes/Node1/node_test.go · nodes/Node2/node_test.go</td>
-            <td class="n" colspan="2">the outgoingVector tests assert "normal − 12 steps" and "normal + 12
-              steps" by name, and the stepFromVector case tables assert the old signs; both move with the
-              rules</td>
+            <td class="n" colspan="2">the outgoingVector tests now assert the normal unchanged, and the
+              stepFromVector case tables assert the swapped signs</td>
           </tr>
           <tr>
             <td class="n">nodes/Wiring/tilt_vector_channel.go</td>
@@ -252,16 +253,16 @@
           </tr>
           <tr>
             <td class="n">docs/pair-node/updates.html · formulas.html · math.html · vectors.html</td>
-            <td class="n" colspan="2">carry "the normal, reversed" and the old step signs; they move in the
+            <td class="n" colspan="2">carried "the normal, reversed" and the old step signs; moved in the
               same commit</td>
           </tr>
         </table>
         <div class="cap">The pole-parity term stays on node 1 and stays absent on node 2 — reversal never
-          touched it, so removing the reversal cannot fix or break it.</div>
+          touched it, so removing the reversal did not fix or break it.</div>
       </div>
 
       <div class="card wide">
-        <h2>What this buys, and the one thing to check first</h2>
+        <h2>What this bought, and the one thing to watch</h2>
         <table class="f">
           <tr>
             <td class="n">the wire says what it means</td>
@@ -270,8 +271,8 @@
           </tr>
           <tr>
             <td class="n">one fewer constant in the path</td>
-            <td class="e" colspan="2">the ∓12 exists only to be undone by the receiver's sign; the pair of
-              them is a round trip through nothing</td>
+            <td class="e" colspan="2">the ∓12 existed only to be undone by the receiver's sign; the pair of
+              them was a round trip through nothing</td>
           </tr>
           <tr>
             <td class="n">the sign stays with the kind</td>
@@ -279,11 +280,11 @@
               of split across a send and a step</td>
           </tr>
           <tr>
-            <td class="n">to check before building</td>
-            <td class="e" colspan="2">the third arrow. It is drawn from r, and r is what ARRIVED, so it
-              flips by 180° at rest. If that arrow is read as "what my partner is aiming at me", unreversed
-              is the more honest picture; if it is read as "the direction I was pushed toward", it now points
-              away</td>
+            <td class="n">what to watch</td>
+            <td class="e" colspan="2">the third arrow. It is drawn from r, and r is what ARRIVED, so it now
+              flips by 180° at rest compared to the reversed rule. If that arrow is read as "what my partner
+              is aiming at me", unreversed is the more honest picture; if it is read as "the direction I was
+              pushed toward", it now points away</td>
           </tr>
         </table>
       </div>

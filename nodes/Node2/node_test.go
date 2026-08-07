@@ -90,10 +90,10 @@ func TestApplyTiltEditAdjustMovesOneStepAndSendsNothing(t *testing.T) {
 	}
 }
 
-// outgoingVector reverses the coplanar normal by 180° in θ — Node2's own direction is
-// +12 index steps (+180°, two of the 6-step quarter turns). There is no φ any more.
-// This is THIS node's own arithmetic, asserted without any channel involved.
-func TestOutgoingVectorIsPlus180StepsInThetaOnly(t *testing.T) {
+// outgoingVector sends the coplanar normal UNCHANGED. It used to reverse it by 180° (+12
+// index steps here, −12 on Node1), which stepFromVector's opposite signs then undid; Node1's
+// outgoingVector carries the reasoning. THIS node's own arithmetic, no channel involved.
+func TestOutgoingVectorIsTheCoplanarNormalUnchanged(t *testing.T) {
 	// Negative indices included on purpose: these derivations are integer arithmetic and
 	// must not care about the sign, whichever direction this kind's base step runs.
 	for _, theta := range []int32{3, 0, -1, -7, -Wiring.HalfTurnThetaIdx} {
@@ -105,12 +105,14 @@ func TestOutgoingVectorIsPlus180StepsInThetaOnly(t *testing.T) {
 			t.Fatalf("theta=%d: coplanarNormal want %d, got %d", theta, want, norm.ThetaIdx)
 		}
 		out := n.outgoingVector()
-		if want := norm.ThetaIdx + 2*Wiring.PerpendicularThetaIdx; out.ThetaIdx != want {
-			t.Fatalf("theta=%d: outgoingVector want %d (norm + 12 steps), got %d", theta, want, out.ThetaIdx)
+		if out.ThetaIdx != norm.ThetaIdx {
+			t.Fatalf("theta=%d: outgoingVector want %d (the normal itself), got %d", theta, norm.ThetaIdx, out.ThetaIdx)
 		}
-		// The outgoing vector is the normal's exact antipode.
-		if diff := out.ThetaIdx - norm.ThetaIdx; diff != Wiring.HalfTurnThetaIdx {
-			t.Fatalf("theta=%d: outgoing must sit a half turn (%d) from the normal, got %d", theta, Wiring.HalfTurnThetaIdx, diff)
+		// A quarter turn from this node's own top tilt, asserted through what actually goes
+		// out — so a reversal reintroduced anywhere in this path fails here.
+		if diff := n.topTilt().ThetaIdx - out.ThetaIdx; diff != Wiring.PerpendicularThetaIdx {
+			t.Fatalf("theta=%d: what is sent must sit a quarter turn (%d) from the top, got %d",
+				theta, Wiring.PerpendicularThetaIdx, diff)
 		}
 		// And the bottom tilt is the TOP's exact antipode — what makes the two tests exact
 		// negatives of each other, which the whole step rule rests on.
@@ -128,8 +130,8 @@ func TestStepFromVectorTakesBaseDirectionWhenAcuteWithTop(t *testing.T) {
 	// Tilt at index 0 points at world +y; an arrival at index 0 is the same direction, so
 	// it is 0 steps from the top (acute) and a half turn from the bottom (not acute).
 	n := &Node{TopTiltThetaIdx: 0}
-	if moved := n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: 0}); !moved || n.TopTiltThetaIdx != 1 {
-		t.Fatalf("acute with the TOP tilt: want moved=true thetaIdx=1, got moved=%v thetaIdx=%d",
+	if moved := n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: 0}); !moved || n.TopTiltThetaIdx != -1 {
+		t.Fatalf("acute with the TOP tilt: want moved=true thetaIdx=-1, got moved=%v thetaIdx=%d",
 			moved, n.TopTiltThetaIdx)
 	}
 }
@@ -139,8 +141,8 @@ func TestStepFromVectorReversesWhenAcuteWithBottom(t *testing.T) {
 	// from the top (not acute),
 	// so the step must go the OTHER way from the case above.
 	n := &Node{TopTiltThetaIdx: 0}
-	if moved := n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: Wiring.HalfTurnThetaIdx}); !moved || n.TopTiltThetaIdx != -1 {
-		t.Fatalf("acute with the BOTTOM tilt: want moved=true thetaIdx=-1, got moved=%v thetaIdx=%d",
+	if moved := n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: Wiring.HalfTurnThetaIdx}); !moved || n.TopTiltThetaIdx != 1 {
+		t.Fatalf("acute with the BOTTOM tilt: want moved=true thetaIdx=1, got moved=%v thetaIdx=%d",
 			moved, n.TopTiltThetaIdx)
 	}
 }
