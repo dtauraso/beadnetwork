@@ -163,16 +163,54 @@
         </div>
 
         <div class="card">
-          <h2>The wrap is one comparison</h2>
-          <svg width="300" height="200" viewBox="0 0 300 200">
-            <line x1="20" y1="60" x2="280" y2="60" stroke="#3a3a44" />
-            <g class="lbl" text-anchor="middle">
-              <text x="20" y="84">0</text><text x="150" y="84">12</text><text x="280" y="84">23/24</text>
+          <h2>Every index is a position on the circle</h2>
+          <svg width="300" height="270" viewBox="0 0 300 270">
+            <defs>
+              <marker id="wUp" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+                <path d="M0,0 L7,3 L0,6 z" fill="#5fd68a" />
+              </marker>
+              <marker id="wDn" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+                <path d="M0,0 L7,3 L0,6 z" fill="#e05fd8" />
+              </marker>
+            </defs>
+
+            <circle cx="150" cy="105" r="70" fill="none" stroke="#3a3a44" />
+
+            <!-- the 24 steps, marked every third -->
+            <g stroke="#3a3a44">
+              <line x1="150" y1="39" x2="150" y2="31" />
+              <line x1="196.7" y1="58.3" x2="202.3" y2="52.7" />
+              <line x1="216" y1="105" x2="224" y2="105" />
+              <line x1="196.7" y1="151.7" x2="202.3" y2="157.3" />
+              <line x1="150" y1="171" x2="150" y2="179" />
+              <line x1="103.3" y1="151.7" x2="97.7" y2="157.3" />
+              <line x1="84" y1="105" x2="76" y2="105" />
+              <line x1="103.3" y1="58.3" x2="97.7" y2="52.7" />
             </g>
-            <rect x="20" y="132" width="260" height="52" rx="7" fill="#2b2b33" stroke="#3a3a44" />
-            <text x="34" y="152" class="lblm">both nodes of a pair: normal = t + 6; if normal ≥ 24, subtract 24</text>
-            <text x="34" y="170" class="lbl">one comparison, one subtraction — no pole, no division</text>
+            <text x="150" y="27" text-anchor="middle" class="lblm">0</text>
+            <text x="238" y="109" class="lblm">6</text>
+            <text x="150" y="194" text-anchor="middle" class="lblm">12</text>
+            <text x="48" y="109" class="lblm">18</text>
+            <text x="104" y="46" text-anchor="end" class="lbl" fill="#9a9aa6">23</text>
+
+            <!-- stepping up across the seam: 23 + 1 is 0, not 24 -->
+            <path d="M 107 30.5 A 86 86 0 0 1 148 19" fill="none" stroke="#5fd68a" stroke-width="2"
+              marker-end="url(#wUp)" />
+            <text x="196" y="22" class="lbl" fill="#5fd68a">+1 past 23 → 0</text>
+
+            <!-- and back the other way: 0 − 1 is 23, never −1 -->
+            <path d="M 150 9 A 96 96 0 0 0 104 21" fill="none" stroke="#e05fd8" stroke-width="2"
+              marker-end="url(#wDn)" />
+            <text x="100" y="12" text-anchor="end" class="lbl" fill="#e05fd8">−1 below 0 → 23</text>
+
+            <rect x="14" y="206" width="272" height="52" rx="7" fill="#2b2b33" stroke="#3a3a44" />
+            <text x="28" y="226" class="lblm">≥ 24 → subtract 24 · &lt; 0 → add 24</text>
+            <text x="28" y="244" class="lbl">the tilt, the bottom, the normal — one comparison, no division</text>
           </svg>
+          <div class="cap">t is a POSITION, not a running count of clicks: it is kept on 0…23 at the seed, at
+            the panel's ±1 and at the step's ±1, and every direction derived from it comes back the same
+            way. That is what lets the acute test subtract two indices and add a full turn once if the
+            result went negative, instead of reducing with a modulo.</div>
         </div>
 
       </div>
