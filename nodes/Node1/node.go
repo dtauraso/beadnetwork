@@ -116,6 +116,12 @@ type Node struct {
 	// same shape as TiltEditIn. Drained non-blocking every cycle; a value that matches the
 	// count this node already runs is a no-op (adoptLattice). nil on a bare test build.
 	LatticeIn <-chan int32
+	// SyncLatticePoints notifies this node's own geometry of the current lattice point
+	// count — one-way, fire-and-forget, never an ack, same shape as SyncTiltIndex below.
+	// The geometry converts a tilt-vector INDEX to an angle every frame (2π / points per
+	// step) but does not itself decide the count, so it has to be told whenever this
+	// goroutine adopts a new one (BuildArgs.SyncLatticePoints, i.e. Self.SetLatticePoints).
+	SyncLatticePoints func(points int32)
 	// SyncTiltIndex notifies this node's own geometry of the current TopTiltThetaIdx AND the
 	// current coplanar-normal index (coplanarNormal, below) — one-way, fire-and-forget,
 	// never an ack (BuildArgs.SyncTiltIndex).
@@ -255,6 +261,9 @@ func (n *Node) adoptLattice(points int32) {
 	n.ReceivedSet = false
 	n.syncReceivedVector()
 	Wiring.PollRecvVector(n.VectorIn)
+	if n.SyncLatticePoints != nil {
+		n.SyncLatticePoints(points)
+	}
 	n.syncTiltIndex()
 }
 
@@ -668,6 +677,10 @@ func init() {
 			// used to be a message is a plain method call on the same object below.
 			self := a.ClaimSelfDrive()
 			n.Self = self
+			n.SyncLatticePoints = func(points int32) {
+				self.SetLatticePoints(points)
+			}
+			n.SyncLatticePoints(Wiring.FullTurnThetaIdx)
 			if seedUnknown {
 				// The persisted index is not one this ring has — a position.json written
 				// before the tilt became a state, or by a build with a different lattice.

@@ -21,6 +21,8 @@ package Wiring
 import (
 	"encoding/binary"
 	"fmt"
+	"math"
+
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -184,6 +186,14 @@ type nodeGeometry struct {
 	bottomThetaIdx         int32
 	receivedVectorThetaIdx int32
 	receivedVectorSet      bool
+	// latticePoints is the point count of THIS node's own lattice — the N a tilt-vector
+	// index is converted against (2π / latticePoints per step), reported one-way by
+	// PairNodeSelf.SetLatticePoints when a Node1's own goroutine adopts a new count
+	// (Node1.adoptLattice) and at build time. Defaults to Wiring.FullTurnThetaIdx (the
+	// old compile-time constant this field replaces) so every node that never calls
+	// SetLatticePoints — every ring node, and a bare test-built pair geometry — streams
+	// exactly what it streamed before this field existed.
+	latticePoints int32
 }
 
 // newNodeGeometry constructs one node's geometry — no actor, no goroutine. Whoever drives
@@ -196,6 +206,7 @@ func newNodeGeometry(id string, geom nodeGeom, tr *T.Trace, clockSrc wire.Clock)
 		partnerCenters: map[string]vec3{},
 		centerOut:      make(chan vec3, 1),
 		clockSrc:       clockSrc, clk: wire.NewRealClock(),
+		latticePoints: FullTurnThetaIdx,
 	}
 	// Self-seed centerOut with the initial geometry (even when !HasPos, in which case
 	// nodeWorldPos falls back to the origin) so the dispatch goroutine's first drain
@@ -521,20 +532,32 @@ func (m *nodeGeometry) writeStreamFrame(events []wire.RowEvent) {
 			}
 		}
 	}
+	// latticeThetaStep is THIS node's own angle-per-index — 2π / latticePoints, not the
+	// fixed CurveParamTiltVectorAngleStep (which stays π/12, the compile-time 24-point
+	// default every OTHER conversion in this codebase still uses). A pair node's own
+	// lattice size is a scene setting (Node.adoptLattice, nodes/Node1/node.go), reported
+	// here one-way via PairNodeSelf.SetLatticePoints, so the same index draws a different
+	// angle depending on how many points that node's own ring currently has. Derived once
+	// per frame; every conversion below reads this local rather than recomputing it.
+	points := m.latticePoints
+	if points == 0 {
+		points = FullTurnThetaIdx
+	}
+	latticeThetaStep := 2 * math.Pi / float64(points)
 	// topTiltVectorTheta is this node's OWN vector direction — separate from the ring
 	// axis above, so a scene/user can aim a node's vector somewhere other than its ring.
-	// Never a free float: index × TiltVectorAngleStep (see the constant's own doc comment),
+	// Never a free float: index × latticeThetaStep (this node's own lattice step, above),
 	// the streamed value is pure arithmetic on the integer state this node's own mover
 	// holds and persists (m.topTiltVectorThetaIdx). There is no φ: every tilt vector in
 	// this model is θ-only (task/drop-tilt-vector-phi).
-	topTiltVectorTheta := float64(m.topTiltVectorThetaIdx) * CurveParamTiltVectorAngleStep
+	topTiltVectorTheta := float64(m.topTiltVectorThetaIdx) * latticeThetaStep
 	// The BOTTOM TILT VECTOR: streamed straight from this node's own bottomThetaIdx,
 	// decided by THIS node's OWN goroutine (a half turn in θ from its own top
 	// tilt index, same rule run unmodified by both nodes of a pair — Node1's bottomTilt)
 	// and reported one-way
 	// via PairNodeSelf.SetTiltIndex alongside the top and the normal. Pure mirror here, same
 	// as every other index on this frame: this mover derives none of them.
-	bottomTiltVectorTheta := float64(m.bottomThetaIdx) * CurveParamTiltVectorAngleStep
+	bottomTiltVectorTheta := float64(m.bottomThetaIdx) * latticeThetaStep
 	// The COPLANAR NORMAL: streamed straight from this node's own normalThetaIdx,
 	// which THIS node's OWN goroutine decided (a fixed +90° in θ from its
 	// own tilt index, same rule run unmodified by both nodes of a pair — Node1's
@@ -542,7 +565,7 @@ func (m *nodeGeometry) writeStreamFrame(events []wire.RowEvent) {
 	// as topTiltVectorTheta above — it derives nothing from the edge/partner.
 	// Turning the tilt therefore visibly turns the drawn normal WITH it, staying 90° away,
 	// instead of the normal staying fixed toward the partner while the tilt moves under it.
-	coplanarNormalTheta := float64(m.normalThetaIdx) * CurveParamTiltVectorAngleStep
+	coplanarNormalTheta := float64(m.normalThetaIdx) * latticeThetaStep
 	// The THIRD vector: the direction last received on this node's tilt-vector channel
 	// (receivedVectorThetaIdx, mirrored one-way from this node's own goroutine —
 	// see the field's own doc comment). Same length-says-whether-and-how-far convention
@@ -554,7 +577,7 @@ func (m *nodeGeometry) writeStreamFrame(events []wire.RowEvent) {
 	var receivedVectorTheta float64
 	if m.receivedVectorSet {
 		receivedVectorLen = nodeRadius(m.geom.Kind)
-		receivedVectorTheta = float64(m.receivedVectorThetaIdx) * CurveParamTiltVectorAngleStep
+		receivedVectorTheta = float64(m.receivedVectorThetaIdx) * latticeThetaStep
 	}
 	label := m.geom.Label
 	if label == "" {

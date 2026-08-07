@@ -983,3 +983,44 @@ func TestOutgoingVectorNamesItsOwnLattice(t *testing.T) {
 		}
 	}
 }
+
+// The GEOMETRY converts a tilt-vector INDEX to a drawn angle every frame (2π/points per
+// step, nodes/Wiring/node_geometry.go's writeStreamFrame) but does not itself decide the
+// point count — that is this node's own scene setting (adoptLattice). So adopting a count
+// must report it onward exactly once, the same "report, don't derive" shape SyncTiltIndex
+// already uses (TestUpdateSyncsOpeningTiltIndexBeforeLoop, above): a mover that missed this
+// call would keep converting every index against whatever count it last heard, drawing a
+// scene that no longer matches the ring this node is actually running.
+func TestAdoptLatticeReportsTheNewCountExactlyOnce(t *testing.T) {
+	var got int32
+	calls := 0
+	n := &Node{Ring: newRing(24)}
+	n.Top = n.Ring.at(6)
+	n.SyncLatticePoints = func(points int32) {
+		calls++
+		got = points
+	}
+
+	n.adoptLattice(12)
+
+	if calls != 1 {
+		t.Fatalf("adoptLattice(12): want exactly one SyncLatticePoints call, got %d", calls)
+	}
+	if got != 12 {
+		t.Fatalf("adoptLattice(12): reported %d, want 12", got)
+	}
+}
+
+// A node built with no count set at all (this package's test-literal shape — every field
+// left zero) runs the model's documented default, Wiring.FullTurnThetaIdx (24) — the same
+// default nodeGeometry.latticePoints falls back to when SetLatticePoints is never called.
+// Only adoptLattice reports a NEW count (above); a node's OPENING count is stated once at
+// build time (BuildArgs, node.go), which a bare test-literal Node never runs — so this test
+// pins the default via ringOf(), the one read every other test in this file already uses
+// for "no Ring set", rather than asserting a build-time call this construction never makes.
+func TestNodeWithNoRingSetRunsTheDefaultLatticeCount(t *testing.T) {
+	n := &Node{}
+	if got := n.ringOf().points; got != Wiring.FullTurnThetaIdx {
+		t.Fatalf("a Node with no Ring set must run the default lattice count %d, got %d", Wiring.FullTurnThetaIdx, got)
+	}
+}
