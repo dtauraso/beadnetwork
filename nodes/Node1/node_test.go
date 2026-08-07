@@ -26,13 +26,18 @@ import (
 // for Start, never a stop-and-return).
 func TestApplyTiltEditResetReturnsBothIndicesToZero(t *testing.T) {
 	for start := int32(0); start < defaultRing.points; start++ {
-		n := &Node{Top: defaultRing.at(start)}
+		// Held on purpose: a reset must take it too, or a hold survives to decide who moves
+		// the next time an exchange runs.
+		n := &Node{Top: defaultRing.at(start), Held: true}
 		placeBead := n.applyTiltEdit(Wiring.TiltEditMsg{Reset: true})
 		if placeBead {
 			t.Fatalf("reset from theta=%d must place no bead, got placeBead=true", start)
 		}
 		if n.topState().idx != 0 {
 			t.Fatalf("reset from theta=%d: want index 0, got theta=%d", start, n.topState().idx)
+		}
+		if n.Held {
+			t.Fatalf("reset from theta=%d must clear the hold; a reset leaves nothing in the pair", start)
 		}
 	}
 }

@@ -343,6 +343,11 @@ func (n *Node) topState() *tiltState {
 // there instead of bouncing.
 func (n *Node) clear() {
 	n.Top = n.ringOf().at(0)
+	// A HOLD IS SOMETHING LEFT IN THE PAIR, so a reset takes it too. It marks whose angle is
+	// intent, and one surviving a reset would silently decide who moves the next time an
+	// exchange runs. Nothing else about START or RESET touches the hold: only a ▲/▼ click
+	// sets it, and only reaching square or a reset clears it.
+	n.Held = false
 	n.syncTiltIndex()
 	n.ReceivedThetaIdx = 0
 	n.ReceivedSet = false
