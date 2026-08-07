@@ -96,6 +96,13 @@ type uiState struct {
 	// column) for the webview slider to read, and so LoadSpeed (scene_speed_persist.go) has
 	// somewhere to seed the loaded value before the first emit. Defaults to 1 (newMoveDispatch).
 	speed float64
+	// latticePoints is the pair lattice's current point count (a scene setting, not a
+	// per-node one -- every Node1 in a scene runs the same lattice). Seeded ONCE at load
+	// by LoadLatticePoints (scene_lattice_persist.go) from view/lattice.json, BEFORE
+	// buildNodes runs, so BuildArgs.LatticePointsSeed can hand each node its opening ring
+	// size. Defaults to defaultLatticePoints (newMoveDispatch) so a bare test-constructed
+	// MoveDispatch that never calls LoadLatticePoints still seeds a valid ring.
+	latticePoints int32
 }
 
 // sendEdgeSelect routes a select/deselect message to one edge's OWN dedicated extIn

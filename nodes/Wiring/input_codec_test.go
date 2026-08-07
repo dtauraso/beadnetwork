@@ -103,6 +103,20 @@ func TestDecodeEditUpdateDistanceGroupLength(t *testing.T) {
 	}
 }
 
+// TestDecodeEditUpdateSceneLatticePoints exercises the pair-lattice point-count panel's
+// wire record: [22][entityKind=scene][attr=latticePoints][u8 points].
+func TestDecodeEditUpdateSceneLatticePoints(t *testing.T) {
+	rec := encodeSceneLatticePoints(12)
+	want := []byte{inKindEditUpdate, byte(enumIndex(inUpdateKinds, "scene")), inSceneAttrLatticePoints, 12}
+	if !bytes.Equal(rec, want) {
+		t.Fatalf("scene latticePoints bytes = %v, want %v", rec, want)
+	}
+	msg, ok := decodeInputRecord(rec)
+	if !ok || msg.Type != "edit" || msg.Op != "update" || msg.Kind != "scene" || msg.Attr != "latticePoints" || msg.Num != 12 {
+		t.Fatalf("scene latticePoints decode = %+v ok=%v", msg, ok)
+	}
+}
+
 // TestOverlayFlagOrderMatchesFingerprint guards that the derived flag order equals the
 // fingerprint's overlayFlags list (self-check on parseOverlayFlags).
 func TestOverlayFlagOrderMatchesFingerprint(t *testing.T) {

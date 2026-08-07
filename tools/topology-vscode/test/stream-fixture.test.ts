@@ -41,7 +41,7 @@ import {
   readNodeNodeId,
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius, readNodeSphereR,
   readNodeVRX, readNodeVRY, readNodeVRZ, readNodeFRX, readNodeFRY, readNodeFRZ,
-  readNodeSelected, readNodeKindId, readNodeHovered, readNodeLatchedSel,
+  readNodeSelected, readNodeKindId, readNodeHovered, readNodeLatchedSel, readNodeLatticePoints,
   readChainBeadOX,
   readChainBeadOY,
   readChainBeadOZ,
@@ -58,7 +58,7 @@ interface NodeFrameFixture {
   tick: number; nodeRow: number; nodeId: number;
   cx: number; cy: number; cz: number; radius: number; sphereR: number;
   vrx: number; vry: number; vrz: number; frx: number; fry: number; frz: number;
-  selected: number; kindId: number; hovered: number; latchedSel: number;
+  selected: number; kindId: number; hovered: number; latchedSel: number; latticePoints: number;
   chainBeads: { ox: number; oy: number; oz: number; lit: number; litValue: number }[];
   label: string;
   hex: string;
@@ -163,6 +163,7 @@ describe("stream fixture cross-language decode", () => {
     expect(readNodeKindId(nv, 0), "kindId").toBe(want.kindId);
     expect(readNodeHovered(nv, 0), "hovered").toBe(want.hovered);
     expect(readNodeLatchedSel(nv, 0), "latchedSel").toBe(want.latchedSel);
+    expect(readNodeLatticePoints(nv, 0), "latticePoints").toBe(want.latticePoints);
 
     // ChainBead section: node-local offsets, read with the GENERATED ChainBead column
     // readers (the node-stream row stride equals the block's own stride, so there is no

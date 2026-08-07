@@ -181,6 +181,18 @@ type bufLayoutNode struct {
 	// `latchedSel` React state in NavGuides.tsx (that was a second, TS-invented selection
 	// concept unreachable from Go); the render path now just reads this column.
 	LatchedSel uint8 `buf:"u8"` // 1 = this is the last-selected node (persists through deselect)
+	// LatticePoints is THIS node's own pair-lattice point count — the N its own
+	// TopTiltVectorTheta/BottomTiltVectorTheta/CoplanarNormalTheta/ReceivedVectorTheta
+	// columns above were converted against (2π/LatticePoints per index step, this node's
+	// own nodeGeometry.latticePoints — see writeStreamFrame's latticeThetaStep). Streamed
+	// so a renderer-side reader (TiltVectorAnglePanel) can invert an angle back to an index
+	// at the CURRENT count instead of assuming the compile-time default
+	// (CurveParamTiltVectorAngleStep, fixed at 24 points) — the panel used to divide by
+	// that fixed step regardless of what the scene's lattice actually holds, so it read
+	// wrong the moment the scene setting changed the point count. Defaults to
+	// FullTurnThetaIdx (24) on a node that never adopts a different count, matching
+	// nodeGeometry.latticePoints' own default.
+	LatticePoints uint8 `buf:"u8"` // this node's own lattice point count (4..64, multiple of 4)
 }
 
 // bufLayoutChainBead defines one row of the chain-bead column block — the node-owned

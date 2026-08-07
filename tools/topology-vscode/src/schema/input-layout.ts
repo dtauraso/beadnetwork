@@ -142,6 +142,7 @@ const IN_TILT_VECTOR_ATTR_THETA = 4;
 // never renumber the survivors.
 const IN_TILT_VECTOR_ATTR_RESET = 6;
 const IN_TILT_VECTOR_ATTR_START = 7;
+const IN_SCENE_ATTR_LATTICE_POINTS = 8;
 
 // NOTE: there is no encodeSave here. IN_KIND_SAVE stays defined (Go reads it and it is in
 // the INPUT_LAYOUT_FINGERPRINT), but no live TS sender builds that record: `save` has no
@@ -199,6 +200,19 @@ export function encodeSceneSelected(tabIndex: number): ArrayBuffer {
   w.u8(enumIndex(IN_UPDATE_KINDS, "scene"));
   w.u8(IN_SCENE_ATTR_SELECTED);
   w.u8(tabIndex);
+  return w.toArrayBuffer();
+}
+
+/** Build a scene LATTICE-POINTS record: [22][entityKind=scene][attr=latticePoints]
+ *  [u8 points]. points is the pair lattice's new point count (4..64, a multiple of 4 —
+ *  Go rejects anything else, nodes/Wiring/stdin_reader.go's applyUpdateScene); Go owns the
+ *  valid range and the delivery to every pair node, this just signals the requested count. */
+export function encodeSceneLatticePoints(points: number): ArrayBuffer {
+  const w = new ByteWriter();
+  w.u8(IN_KIND_EDIT_UPDATE);
+  w.u8(enumIndex(IN_UPDATE_KINDS, "scene"));
+  w.u8(IN_SCENE_ATTR_LATTICE_POINTS);
+  w.u8(points);
   return w.toArrayBuffer();
 }
 

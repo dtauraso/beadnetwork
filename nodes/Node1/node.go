@@ -98,10 +98,30 @@ type Node struct {
 	// the θ-only plane (memory/feedback_abc_times_constant_not_rederive.md: an index times a
 	// step constant, trig only at the cartesian/polar boundary).
 	Top *tiltState
+
+	// Ring is THIS NODE'S OWN lattice — its states, and the counts every rule reads off them.
+	// The point count is a scene setting a user can change, so this is not fixed for the life
+	// of the process; a change means this goroutine building itself a new ring, never a
+	// shared one being rewritten under other readers.
+	//
+	// nil means the default lattice, which is what a bare test build gets — see ringOf below,
+	// the one read of this field.
+	Ring *ring
 	// TiltEditIn is this node's dedicated channel for a panel-driven tilt-angle click
 	// (TiltVectorAnglePanel), claimed at build time via BuildArgs.TiltEditIn — see the
 	// package doc comment's "THE KICK".
 	TiltEditIn <-chan Wiring.TiltEditMsg
+	// LatticeIn carries a new POINT COUNT for this node's own ring — the scene setting the
+	// angles panel changes, delivered to every pair node on its own dedicated channel, the
+	// same shape as TiltEditIn. Drained non-blocking every cycle; a value that matches the
+	// count this node already runs is a no-op (adoptLattice). nil on a bare test build.
+	LatticeIn <-chan int32
+	// SyncLatticePoints notifies this node's own geometry of the current lattice point
+	// count — one-way, fire-and-forget, never an ack, same shape as SyncTiltIndex below.
+	// The geometry converts a tilt-vector INDEX to an angle every frame (2π / points per
+	// step) but does not itself decide the count, so it has to be told whenever this
+	// goroutine adopts a new one (BuildArgs.SyncLatticePoints, i.e. Self.SetLatticePoints).
+	SyncLatticePoints func(points int32)
 	// SyncTiltIndex notifies this node's own geometry of the current TopTiltThetaIdx AND the
 	// current coplanar-normal index (coplanarNormal, below) — one-way, fire-and-forget,
 	// never an ack (BuildArgs.SyncTiltIndex).
@@ -206,12 +226,62 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 	return false
 }
 
-// topState is this node's own tilt direction, with the ring's origin standing in for a Top
+// adoptLattice rebuilds THIS node's own ring at a new point count, on THIS node's own
+// goroutine. Nothing else touches the ring, so there is nothing to coordinate: the old one is
+// simply dropped and a new one takes its place.
+//
+// WHAT SURVIVES THE CHANGE IS THE INDEX, not the angle. A tilt at 6 stays at 6 — which is a
+// quarter turn on a 24-point lattice and a half turn on a 12-point one, so the drawn arrow
+// moves. That is the honest reading of "the lattice changed underneath a direction": the
+// number a user set is kept, and what it means follows the new lattice. An index the new ring
+// does not have names nothing there, so that node opens at the origin and says so
+// (ring.seedState).
+//
+// TWO THINGS ARE DISCARDED, both because they are indices on the lattice being left:
+//
+//   - the received direction, the third drawn arrow. It was picked on the old lattice, so
+//     redrawing it at the same index would point it somewhere the partner never sent.
+//   - whatever is queued on VectorIn. Same reason, and it would otherwise be read as a
+//     direction on the new ring the moment the next cycle polls.
+//
+// The beads in flight are untouched: a bead carries no direction, only pacing.
+func (n *Node) adoptLattice(points int32) {
+	if points == n.ringOf().points {
+		return
+	}
+	keptIdx := n.topState().idx
+	n.Ring = newRing(points)
+	top, unknown := n.Ring.seedState(keptIdx)
+	n.Top = top
+	if unknown && n.Self != nil {
+		n.Self.Breadcrumb("pair-lattice-adopt", fmt.Sprintf(
+			"points=%d keptIdx=%d unknown=true loaded=%d", points, keptIdx, top.idx))
+	}
+	n.ReceivedThetaIdx = 0
+	n.ReceivedSet = false
+	n.syncReceivedVector()
+	Wiring.PollRecvVector(n.VectorIn)
+	if n.SyncLatticePoints != nil {
+		n.SyncLatticePoints(points)
+	}
+	n.syncTiltIndex()
+}
+
+// ringOf is this node's own lattice, with the default standing in for a Ring that was never
+// set — a bare test build. Every read of the lattice goes through here.
+func (n *Node) ringOf() *ring {
+	if n.Ring == nil {
+		return defaultRing
+	}
+	return n.Ring
+}
+
+// topState is this node's own tilt direction, with its ring's origin standing in for a Top
 // that was never set — see the field's own doc comment. Every read of the tilt goes through
 // here, so nothing else in this file has to care about that case.
 func (n *Node) topState() *tiltState {
 	if n.Top == nil {
-		return &ring[0]
+		return n.ringOf().at(0)
 	}
 	return n.Top
 }
@@ -246,7 +316,7 @@ func (n *Node) topState() *tiltState {
 // one that provably lands last. The marker gets no reply (handleVectorCycle), so it stops
 // there instead of bouncing.
 func (n *Node) clear() {
-	n.Top = &ring[0]
+	n.Top = n.ringOf().at(0)
 	n.syncTiltIndex()
 	n.ReceivedThetaIdx = 0
 	n.ReceivedSet = false
@@ -346,7 +416,12 @@ func (n *Node) syncReceivedVector() {
 // comes to rest, since the bottom tilt is the top plus that same half turn — it only swaps
 // which of the receiver's two acute tests fires.
 func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
-	return n.coplanarNormal()
+	v := n.coplanarNormal()
+	// The lattice the index is on travels with it — see TiltVectorMsg.Points. Without it the
+	// partner cannot tell a direction picked before a point-count change from one picked
+	// after, and the two mean different angles.
+	v.Points = n.ringOf().points
+	return v
 }
 
 // stepFromVector decides whether an arrived direction turns this node at all, and if so which
@@ -373,7 +448,7 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 // as-is. Rotating what is sent, or swapping these two arms alone, turns each node the wrong
 // way and the pair walks apart instead of together. Worked run: docs/pair-node/vectors.html.
 func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
-	arrival := arrivedState(received.ThetaIdx)
+	arrival := n.ringOf().arrivedState(received.ThetaIdx)
 	switch {
 	case n.topState().acuteWith(arrival):
 		n.Top = n.topState().next
@@ -414,6 +489,16 @@ func (n *Node) handleVectorCycle(tick int64) {
 		n.clear()
 		return
 	}
+	// A DIRECTION FROM ANOTHER LATTICE IS NOT A DIRECTION HERE. The two ends of a pair adopt
+	// a new point count at their own moments, each on its own goroutine, so between those
+	// moments an index picked on the old lattice can land here — where it names a different
+	// angle, or no state at all. Dropping it is the definite answer: the partner adopts the
+	// same count within its own next cycle and the exchange resumes from directions both
+	// ends can read. Zero is a bare test build that stated nothing, and is taken as this
+	// node's own lattice.
+	if received.Points != 0 && received.Points != n.ringOf().points {
+		return
+	}
 	// A real direction. It is recorded UNCONDITIONALLY — before, and independently of, the
 	// step decision below — and then STAYS until the next arrival replaces it. It does not
 	// vanish when the exchange settles: the last direction a node was sent is what it is
@@ -429,7 +514,7 @@ func (n *Node) handleVectorCycle(tick int64) {
 	// the `top`/`bottom` here are the operands the tests actually used, not the post-step ones.
 	// An exchange halts, so this is bounded per run rather than a per-tick firehose.
 	before := n.topState()
-	arrival := arrivedState(received.ThetaIdx)
+	arrival := n.ringOf().arrivedState(received.ThetaIdx)
 	acuteTop := before.acuteWith(arrival)
 	acuteBottom := before.opposite.acuteWith(arrival)
 	moved := n.stepFromVector(received)
@@ -518,6 +603,18 @@ func (n *Node) Update(ctx context.Context) {
 			}
 		}
 
+		// Drain LatticeIn non-blocking: a new point count for this node's own ring. Drained
+		// BEFORE the vector cycle below so that anything already queued on VectorIn is
+		// discarded by the adopt rather than read one last time against the lattice it was
+		// not picked on.
+		if n.LatticeIn != nil {
+			select {
+			case points := <-n.LatticeIn:
+				n.adoptLattice(points)
+			default:
+			}
+		}
+
 		// Vector-channel exchange: the ONE place an arrival turns this node's tilt, and
 		// the place the outgoing bead is now placed from — see handleVectorCycle's own
 		// doc comment.
@@ -568,15 +665,25 @@ func init() {
 			// can hold anything, including a running count from before the tilt became a
 			// state — so it comes in through seedState, which asks the ring which state
 			// carries that index. After this line the tilt is a state and stays one.
-			seed, seedUnknown := seedState(a.TiltVectorAngleSeed())
+			// This node's own lattice, opened at the scene's currently-persisted point
+			// count (view/lattice.json via BuildArgs.LatticePointsSeed) rather than the
+			// compile-time default.
+			latticeSeed := a.LatticePointsSeed()
+			n.Ring = newRing(latticeSeed)
+			seed, seedUnknown := n.Ring.seedState(a.TiltVectorAngleSeed())
 			n.Top = seed
 			n.TiltEditIn = a.TiltEditIn()
+			n.LatticeIn = a.LatticeIn()
 			// Self replaces the old SyncTiltIndex/SyncReceivedVector/ClearOutBeads
 			// messages-to-a-separate-mover-goroutine (task/pair-node-owns-itself):
 			// this node's own goroutine now owns that mover state directly, so what
 			// used to be a message is a plain method call on the same object below.
 			self := a.ClaimSelfDrive()
 			n.Self = self
+			n.SyncLatticePoints = func(points int32) {
+				self.SetLatticePoints(points)
+			}
+			n.SyncLatticePoints(latticeSeed)
 			if seedUnknown {
 				// The persisted index is not one this ring has — a position.json written
 				// before the tilt became a state, or by a build with a different lattice.

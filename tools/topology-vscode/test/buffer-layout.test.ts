@@ -14,7 +14,7 @@ import {
   NODE_COL_CX, NODE_COL_CY, NODE_COL_CZ, NODE_COL_RADIUS, NODE_COL_SPHERE_R,
   NODE_COL_SELECTED,
   NODE_COL_KIND_ID,
-  NODE_COL_LABEL_OFF, NODE_COL_LABEL_LEN, NODE_COL_HOVERED,
+  NODE_COL_LABEL_OFF, NODE_COL_LABEL_LEN, NODE_COL_HOVERED, NODE_COL_LATTICE_POINTS,
   NODE_STRIDE,
   NODE_COL_VRX, NODE_COL_VRY, NODE_COL_VRZ, NODE_COL_FRX, NODE_COL_FRY, NODE_COL_FRZ,
   readNodeNodeId,
@@ -22,7 +22,7 @@ import {
   readNodeVRX, readNodeVRY, readNodeVRZ, readNodeFRX, readNodeFRY, readNodeFRZ,
   readNodeSelected,
   readNodeKindId,
-  readNodeLabelOff, readNodeLabelLen, readNodeHovered,
+  readNodeLabelOff, readNodeLabelLen, readNodeHovered, readNodeLatticePoints,
   // Interior
   INTERIOR_COL_PRESENT, INTERIOR_COL_VALUE, INTERIOR_COL_OX, INTERIOR_COL_OY, INTERIOR_COL_OZ,
   INTERIOR_STRIDE,
@@ -76,8 +76,9 @@ describe("buffer-layout — Node block", () => {
     //     first inside the ring plane)
     //   + 2×f32 (receivedVectorLen/theta — the THIRD vector: the direction last received
     //     on this node's own tilt-vector channel; 0 length = nothing received yet)
-    //   = 4 + (5+6+2+2+1+1+1+1+2)×4 + 1 + 1 + 8 + 1 + 1 = 100
-    expect(NODE_STRIDE).toBe(100);
+    //   + 1×u8 (latticePoints — this node's own pair-lattice point count)
+    //   = 4 + (5+6+2+2+1+1+1+1+2)×4 + 1 + 1 + 8 + 1 + 1 + 1 = 101
+    expect(NODE_STRIDE).toBe(101);
   });
 
   it("read helpers decode known bytes correctly", () => {
@@ -101,6 +102,7 @@ describe("buffer-layout — Node block", () => {
     dv.setUint32(NODE_COL_LABEL_OFF, 7, true);
     dv.setUint32(NODE_COL_LABEL_LEN, 4, true);
     dv.setUint8(NODE_COL_HOVERED, 1);
+    dv.setUint8(NODE_COL_LATTICE_POINTS, 12);
 
     expect(readNodeNodeId(dv, 0)).toBe(42);
     expectF32(readNodeCX(dv, 0), 1.0);
@@ -119,6 +121,7 @@ describe("buffer-layout — Node block", () => {
     expect(readNodeLabelOff(dv, 0)).toBe(7);
     expect(readNodeLabelLen(dv, 0)).toBe(4);
     expect(readNodeHovered(dv, 0)).toBe(1);
+    expect(readNodeLatticePoints(dv, 0)).toBe(12);
   });
 });
 

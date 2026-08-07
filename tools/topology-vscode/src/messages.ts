@@ -81,7 +81,12 @@ type EditMsg =
   // SceneTabs (nodes/Wiring/scene_tabs.go); no scene name or directory crosses the wire.
   // Go owns the tab list, the labels it streams on the VIEW frame, the selection, and the
   // switch itself (persist + end the run, which the host's looping runner respawns).
-  | { type: "edit"; op: "update"; kind: "scene"; attr: "selected"; tab: number };
+  | { type: "edit"; op: "update"; kind: "scene"; attr: "selected"; tab: number }
+  // scene — a lattice-point-count edit. points is the pair lattice's new point count
+  // (4..64, a multiple of 4 — Go rejects anything else and simply ignores the edit). Go
+  // owns the valid range, the persistence (view/lattice.json), and delivery to every pair
+  // node; this seam carries only the requested count.
+  | { type: "edit"; op: "update"; kind: "scene"; attr: "latticePoints"; points: number };
 // EDIT_MSG_END
 
 // RAW INPUT (Phase 6, OFF by default behind USE_RAW_INPUT). A single raw pointer/wheel

@@ -76,15 +76,18 @@ type nodeFrameFixture struct {
 	CoplanarNormalTheta float32 `json:"coplanarNormalTheta"`
 	// The THIRD vector: the direction last received on this node's tilt-vector channel
 	// (Buffer/layout.go's ReceivedVectorLen/Theta); 0 length means nothing received yet.
-	ReceivedVectorLen   float32            `json:"receivedVectorLen"`
-	ReceivedVectorTheta float32            `json:"receivedVectorTheta"`
-	Selected            uint8              `json:"selected"`
-	KindID              uint8              `json:"kindId"`
-	Hovered             uint8              `json:"hovered"`
-	LatchedSel          uint8              `json:"latchedSel"`
-	ChainBeads          []chainBeadFixture `json:"chainBeads"`
-	Label               string             `json:"label"`
-	Hex                 string             `json:"hex"`
+	ReceivedVectorLen   float32 `json:"receivedVectorLen"`
+	ReceivedVectorTheta float32 `json:"receivedVectorTheta"`
+	Selected            uint8   `json:"selected"`
+	KindID              uint8   `json:"kindId"`
+	Hovered             uint8   `json:"hovered"`
+	LatchedSel          uint8   `json:"latchedSel"`
+	// LatticePoints is this node's own pair-lattice point count (Buffer/layout.go's
+	// LatticePoints) — the N the four θ columns above were converted against.
+	LatticePoints uint8              `json:"latticePoints"`
+	ChainBeads    []chainBeadFixture `json:"chainBeads"`
+	Label         string             `json:"label"`
+	Hex           string             `json:"hex"`
 }
 
 type edgeFrameFixture struct {
@@ -131,7 +134,8 @@ func buildNodeFrame() nodeFrameFixture {
 		BottomTiltVectorTheta: 2.9,
 		ReceivedVectorLen:     8.75, ReceivedVectorTheta: 0.25,
 		Selected: 1, KindID: 3, Hovered: 1, LatchedSel: 0,
-		Label: "widgetNode",
+		LatticePoints: 12,
+		Label:         "widgetNode",
 		ChainBeads: []chainBeadFixture{
 			{OX: 61.5, OY: -62.25, OZ: 63.125, Lit: 1, LitValue: 1},
 			{OX: -64.5, OY: 65.25, OZ: -66.125},
@@ -153,7 +157,7 @@ func buildNodeFrame() nodeFrameFixture {
 		f.VRX, f.VRY, f.VRZ, f.FRX, f.FRY, f.FRZ,
 		f.PoleTheta, f.PolePhi, f.RingAxisTheta, f.RingAxisPhi, f.TopTiltVectorLen, f.TopTiltVectorTheta, f.BottomTiltVectorTheta, f.CoplanarNormalTheta,
 		f.ReceivedVectorLen, f.ReceivedVectorTheta,
-		f.Selected, f.KindID, f.Hovered, f.LatchedSel,
+		f.Selected, f.KindID, f.Hovered, f.LatchedSel, f.LatticePoints,
 		f.Label,
 		chainOX, chainOY, chainOZ, chainLit, chainLitVal,
 		nil,

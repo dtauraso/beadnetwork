@@ -483,16 +483,39 @@ func applyUpdateTiltVector(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSin
 	md.sendMove(id, moveMsg{Kind: moveMsgKindTiltVectorAngle, NodeID: id, Axis: msg.Attr, Bool: up})
 }
 
-// applyUpdateScene handles kind=="scene" attr=="selected": one click on the scene tab
-// strip. msg.Num is the tab INDEX into Wiring.SceneTabs — Go owns the tab list, the labels
-// it streams on the VIEW frame, and the selection; the strip sends only which tab was hit.
-// The switch itself (persist, then end this run so the runner's respawn loads the other
-// scene) is SelectScene's — see scene_tabs.go for why there is no in-process rebuild.
+// applyUpdateScene handles kind=="scene" attr=="selected" (one click on the scene tab
+// strip) and attr=="latticePoints" (a scene-level pair-lattice point-count edit).
+//
+// "selected": msg.Num is the tab INDEX into Wiring.SceneTabs — Go owns the tab list, the
+// labels it streams on the VIEW frame, and the selection; the strip sends only which tab
+// was hit. The switch itself (persist, then end this run so the runner's respawn loads the
+// other scene) is SelectScene's — see scene_tabs.go for why there is no in-process
+// rebuild.
+//
+// "latticePoints": msg.Num is the new point count. Go owns the valid range (4..64,
+// multiples of 4 — nodes/Node1's newRing panics outside it) and rejects anything else by
+// simply ignoring the edit — this is a decoded EXTERNAL message, so an out-of-range value
+// must never reach newRing and panic the process. A valid value is persisted to
+// view/lattice.json and broadcast to every pair node's own LatticeIn channel
+// (BroadcastLatticePoints); it does NOT touch md.ui.speed/clockDivisor — a lattice size
+// has no "setting" mode the way a tilt angle does, so there is no HumanEditSpeed-style
+// speed override here.
 func applyUpdateScene(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
-	if md == nil || msg.Attr != "selected" {
+	if md == nil {
 		return
 	}
-	md.SelectScene(int(msg.Num))
+	switch msg.Attr {
+	case "selected":
+		md.SelectScene(int(msg.Num))
+	case "latticePoints":
+		points := int32(msg.Num)
+		if points < 4 || points > 64 || points%4 != 0 {
+			return
+		}
+		md.ui.latticePoints = points
+		md.persist.lattice.schedule(points)
+		md.BroadcastLatticePoints(points)
+	}
 }
 
 // overlayAttrHandlers is the attr-level table for kind=="overlays".

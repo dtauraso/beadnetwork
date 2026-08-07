@@ -158,6 +158,25 @@ func (p *PairNodeSelf) SetReceivedVector(theta int32, set bool) {
 	}
 }
 
+// SetLatticePoints applies this node's own new lattice point count directly to its own
+// geometry state — the direct-call replacement for a message-to-self, same one-way shape
+// as SetTiltIndex above. It exists because the angle a tilt-vector INDEX draws depends on
+// how many points the lattice has (2π / points per step, node_geometry.go's
+// writeStreamFrame): the geometry converts index → angle every frame, but it does not
+// itself decide the point count — that is a scene setting Node1's own goroutine owns
+// (Node.adoptLattice) — so it has to be told. Re-emits so the drawn angles pick up the
+// new step on the very next frame.
+func (p *PairNodeSelf) SetLatticePoints(points int32) {
+	if p == nil || p.geom == nil {
+		return
+	}
+	g := p.geom
+	g.latticePoints = points
+	if g.tr != nil {
+		g.emitGeometry()
+	}
+}
+
 // NodeSelfDriven reports whether node id's own geometry is driven by that node's own kind
 // goroutine (task/pair-node-owns-itself, ClaimSelfDrive) rather than a separate nodeMover
 // goroutine — equivalently, whether id has NO entry in the ring's nodeMover actor
