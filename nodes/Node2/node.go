@@ -48,6 +48,7 @@ import (
 
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
+	"github.com/dtauraso/wirefold/nodes/Node1"
 	"github.com/dtauraso/wirefold/nodes/Wiring"
 )
 
@@ -502,7 +503,7 @@ func init() {
 			{Name: "Out", Dir: Wiring.PortOut},
 		},
 		func(a Wiring.BuildArgs) (wire.Node, error) {
-			n := &Node{
+			n := &Node1.Node{
 				Clock: wire.NewRealClock(),
 			}
 			n.Fire = a.Fire()
