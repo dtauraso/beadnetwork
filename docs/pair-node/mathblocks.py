@@ -152,10 +152,13 @@ BODIES = {
   \quad \text{\color{acc}this node} \quad
     \text{tilt} = t \qquad \text{normal} = t+6 \qquad \text{bottom} = t+12 \\[4pt]
   \quad {\color{dim}\text{only } t \text{ moves; the other two are read off it}} \\[9pt]
-  \quad \text{\color{acc}what arrives} \quad a = p + 6
-    \quad {\color{dim}\text{the partner's normal, not its tilt}} \\[9pt]
+  \quad \text{\color{acc}what arrives} \quad a = t' + 6
+    \quad {\color{dim}t' \text{ is the partner's tilt; it sends its normal}} \\[9pt]
+  \quad \text{\color{acc}which way, and how far, from } a \text{ to } t \\[4pt]
+  \quad d = t - a
+    \quad {\color{dim}-23 \le d \le 23, \text{ negative when } a > t} \\[9pt]
   \quad \text{\color{acc}how far apart} \\[4pt]
-  \quad \ell = \bigl\lvert\, (t - a + 12 \bmod 24) - 12 \,\bigr\rvert
+  \quad \ell = \bigl\lvert\, (d + 12 \bmod 24) - 12 \,\bigr\rvert
     \quad {\color{dim}0 \le \ell \le 12} \\[4pt]
   \quad {\color{dim}\text{slots from } t \text{ to } a,\text{ the shorter way round}}
 """,
@@ -171,22 +174,18 @@ BODIES = {
     # away, so it needs a comparison to get direction back. Keep the SIGNED gap instead and
     # both arrangements are one line, differing by a shift of 6 inside the modulus.
     "closed-round": r"""
-  \quad \text{\color{acc}which way, and how far, from } a \text{ to } t \\[4pt]
-  \quad d = t - a
-    \quad {\color{dim}-23 \le d \le 23, \text{ negative when } a > t} \\[9pt]
   \quad \text{\color{acc}which way, and how far, to the nearest resting angle} \\[4pt]
   \quad {\color{par}\text{parallel} : \; e = (d \bmod 12) - 6} \\[5pt]
   \quad {\color{perp}\text{perpendicular} : \; e = (d + 6 \bmod 12) - 6} \\[4pt]
   \quad {\color{dim}d \bmod 12 \;\in\; \{0, \ldots, 11\}, \text{ so } -6 \le e \le 5} \\[9pt]
   \quad {\color{acc}t_{\mathrm{after}} = t - \operatorname{sign}(e)}
     \qquad {\color{acc}f = \lvert e \rvert} \\[11pt]
-  \quad {\color{dim}\ell = \lvert (d + 12 \bmod 24) - 12 \rvert} \\[4pt]
   \quad {\color{dim}\text{writing } \lvert d \rvert \text{ for } d
     \text{ leaves } f \text{ equal and flips } \operatorname{sign}(e)}
 """,
     "closed-run": r"""
   \quad {\color{acc}\text{arrivals}} \;=\; f \\[7pt]
-  \quad {\color{acc}\text{lands at}} \;=\; t - f\operatorname{sign}(e) \\[7pt]
+  \quad {\color{acc}t_{\mathrm{after}} = t - f\operatorname{sign}(e)} \\[7pt]
   \quad {\color{dim}\operatorname{sign}(e) \text{ from the first arrival, and never again}}
 """,
     "other": r"""

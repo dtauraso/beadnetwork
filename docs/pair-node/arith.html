@@ -55,13 +55,15 @@
 
     <div class="card wide">
       <h2>Two numbers, one arrow each</h2>
-      <img class="math" src="update-closed-numbers.svg" style="width:573px"
-        alt="t and a are in {0, 1, ..., 23}. This node: tilt = t, normal = t + 6, bottom = t + 12; only t moves, the other two are read off it. What arrives: a = p + 6, the partner's normal, not its tilt. How far apart: L = |(t - a + 12 mod 24) - 12|, between 0 and 12 — slots from t to a, the shorter way round.">
+      <img class="math" src="update-closed-numbers.svg" style="width:659px"
+        alt="t and a are in {0, 1, ..., 23}. This node: tilt = t, normal = t + 6, bottom = t + 12; only t moves, the other two are read off it. What arrives: a = t-prime + 6, where t-prime is the partner's tilt and it sends its normal. Which way, and how far, from a to t: d = t - a, between -23 and 23, negative when a is greater than t. How far apart: L = |(d + 12 mod 24) - 12|, between 0 and 12 — slots from t to a, the shorter way round.">
       <div class="keynote">
         <p>a node draws three arrows and sends the middle one, so the quarter turn is already inside
           a before it is measured against anything</p>
-        <p>ℓ needs no min: the remainder lands t − a in −12…11 already, and ℓ is its size. The min
-          form asks which of two arcs is shorter; this one never makes two</p>
+        <p>ℓ needs no min: the remainder lands d in −12…11 already, and ℓ is its size. The min form
+          asks which of two arcs is shorter; this one never makes two</p>
+        <p>d is defined here rather than with the round below, because ℓ is already made of it —
+          every measurement on this page is d, read in a different way</p>
       </div>
     </div>
 
@@ -83,21 +85,20 @@
     <div class="card wide">
       <h2>Where it is after one arrival</h2>
       <img class="math" src="update-closed-round.svg" style="width:510px"
-        alt="Which way, and how far, from a to t: d = t - a, between -23 and 23, negative when a is greater than t. Which way, and how far, to the nearest resting angle — parallel: e = (d mod 12) - 6. Perpendicular: e = (d + 6 mod 12) - 6, where d mod 12 is in 0 to 11, so e is between -6 and 5. t after = t - sign(e), and f = |e|. L = |(d + 12 mod 24) - 12|. Writing |d| for d leaves f equal and flips sign(e).">
+        alt="Which way, and how far, to the nearest resting angle — parallel: e = (d mod 12) - 6. Perpendicular: e = (d + 6 mod 12) - 6, where d mod 12 is in 0 to 11, so e is between -6 and 5. t after = t - sign(e), and f = |e|. Writing |d| for d leaves f equal and flips sign(e).">
       <div class="keynote">
-        <p>d keeps whatever value t − a has: it may be negative, and it may fall outside 0…23.
-          Nothing is done to bring it back into that range, because d mod 12 would undo it —
-          24 is two 12s, so d, d + 24 and d − 24 all give the same e</p>
+        <p>nothing is done to bring d into 0…23 first, because d mod 12 would undo it — 24 is two
+          12s, so d, d + 24 and d − 24 all give the same e</p>
         <p>d mod 12 is the non-negative remainder, 0…11, so e runs −6…5 and e = 0 means t already
           sits on a resting angle</p>
         <p>parallel and perpendicular differ only by the +6 inside the remainder. A tilt the same
           distance from two resting angles gives e = −6, and −6 turns up, so that case needs no
           rule of its own — 96 of the 1152 (tilt, arrival) pairs are that case</p>
-        <p>the last two lines put e and ℓ side by side. They are one expression: a remainder less
-          half the modulus — 12 and 6 for e, 24 and 12 for ℓ — and ℓ is that with an abs on the
-          outside. The abs is the whole difference, and the direction is what it costs</p>
-        <p>with t = 0, an arrival at 1 turns down and an arrival at 23 turns up. d is −1 and +23,
-          and e keeps that apart; ℓ is 1 for both and cannot</p>
+        <p>e and ℓ are the same expression on the same d: a remainder less half the modulus — 12
+          and 6 here, 24 and 12 for ℓ — with an abs on the outside for ℓ and none here. That abs is
+          the whole difference between them, and the direction is what it costs</p>
+        <p>with t = 0, an arrival at 1 gives d = −1 and one at 23 gives d = +23. e keeps those
+          apart, so one turns down and the other up; ℓ is 1 for both and cannot</p>
         <p>swept by
           <span data-src="nodes/Node1/node_test.go#TestOneRoundIsSignAndRemainder">TestOneRoundIsSignAndRemainder</span></p>
       </div>
@@ -108,7 +109,7 @@
     <div class="card wide">
       <h2>Where it stops, and when</h2>
       <img class="math" src="update-closed-run.svg" style="width:442px"
-        alt="Arrivals = f. Lands at t - f sign(e). The sign of e is taken from the first arrival and never again.">
+        alt="Arrivals = f. t after = t - f sign(e). The sign of e is taken from the first arrival and never again.">
       <div class="keynote">
         <p>f is the count as well as the distance — each arrival closes one slot, so there is no
           arrival number f + 1, and f = 0 is the run that takes none</p>
