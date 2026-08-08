@@ -1,0 +1,176 @@
+<meta charset="utf-8">
+<title>Pair node — in code</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="pair.css">
+
+<header>
+  <h1>In code</h1>
+  <div class="sub">the update rule as <code>machine.go</code> computes it — four numbers, one
+    comparison, and no mode anywhere in the rule</div>
+</header>
+
+<nav>
+  <a href="index.html">Index</a>
+  <a href="anatomy.html">Anatomy</a>
+  <a href="own.html">Ownership</a>
+  <a href="vectors.html">Vectors</a>
+  <a href="math.html">Math</a>
+  <a href="formulas.html">Formulas</a>
+  <a href="dots.html">Separation</a>
+  <a href="perpendicular.html">Perpendicular</a>
+  <a href="cases.html">Cases</a>
+  <a href="channels.html">Channels</a>
+  <a href="cycle.html">Cycle</a>
+  <a href="updates.html">Update rules</a>
+  <a href="arith.html">Arithmetic instead</a>
+  <a class="on" href="code.html">In code</a>
+  <a href="clock.html">Clock</a>
+  <a href="geometry.html">Geometry</a>
+  <a href="asym.html">Asymmetry</a>
+</nav>
+
+<!-- WHAT THIS PAGE IS FOR, and what would make it worthless.
+
+     "Arithmetic instead" states the rule as maths. This page states what the Go actually
+     runs, expression for expression, with every name on it a data-src citation. The value
+     is the citations: check-docs-symbols fails when one names a definition that no longer
+     exists, so a rename in machine.go breaks this page loudly instead of leaving it
+     confidently wrong.
+
+     THE RULE FOR ADDING A LINE HERE: it must be something the code computes, named as the
+     code names it. A line that paraphrases the maths belongs on arith.html; a line that
+     narrates the machine's behaviour belongs on updates.html. If this page ever grows a
+     paragraph with no symbol in it, that paragraph is on the wrong page.
+
+     Numbers are written as q (a quarter turn) and h (a half turn), read off the ring, and
+     NEVER as 6 and 12 — those are their values on a 24-point lattice only, and the code
+     runs 24 and 48. The page that prints 6 and 12 is arith.html, which says so. -->
+
+<main>
+  <section>
+    <h3 class="secname">One count, taken at the end the arrival is nearer</h3>
+
+    <div class="card wide">
+      <h2>The measurement</h2>
+      <p class="eq head"><span data-src="nodes/Node1/machine.go#nearerEndCount">nearerEndCount</span>
+        <span class="note">returns the count, and which end it came from</span></p>
+      <p class="eq step"><var>u</var> = (<var>t</var> − <var>a</var>) mod points</p>
+      <p class="eq step sub"><var>u</var> &lt; <var>h</var> :
+        <var>c</var> = <var>u</var>, the top is the nearer end</p>
+      <p class="eq step sub"><var>u</var> ≥ <var>h</var> :
+        <var>c</var> = (<var>b</var> − <var>a</var>) mod points, the bottom is</p>
+      <div class="keynote">
+        <p><var>c</var> lives on a ring of <var>h</var>, not of points. A node draws two ends and
+          they differ by exactly <var>h</var>, so one of the two counts is always under <var>h</var>
+          — and that one is already the acute angle at its own end</p>
+        <p>the bottom's count is taken from
+          <span data-src="nodes/Node1/ring.go#tiltState">the bottom's own state</span>, a link the
+          ring resolved, rather than by folding <var>h</var> back out of <var>u</var></p>
+        <p>this replaced <span data-src="nodes/Node1/ring.go#angleLength">angleLength</span>, which
+          folds points down to <var>h</var> with an absolute value and so cannot say which end it
+          measured. The rule needs that end: it is the one the update moves</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h3 class="secname">A mode is one row of numbers, and the rule never reads which row</h3>
+
+    <div class="card wide">
+      <h2>The per-mode data</h2>
+      <p class="eq head"><span data-src="nodes/Node1/machine.go#stoppingCounts">stoppingCounts</span>
+        <span class="note">the counts a mode stops at</span></p>
+      <p class="eq step perp"><span class="g">perpendicular</span> { 0 }</p>
+      <p class="eq step par"><span class="g">parallel</span> { <var>q</var> }</p>
+      <p class="eq step dim"><span class="g">setting</span> every count</p>
+      <div class="keynote">
+        <p>perpendicular used to carry TWO resting lengths, { 0, <var>h</var> }, because measured
+          from the top its two stopping tilts fall on opposite ends of one line. Counted from the
+          NEARER end they are the same count, so the row is a single 0 — the pair was one fact
+          written twice</p>
+        <p>setting stops everywhere, so it is at rest wherever it stands and the turn below is never
+          reached. It is a row like the other two, not an exemption from the rule</p>
+        <p><span data-src="nodes/Node1/machine.go#machineFor">machineFor</span> refuses a mode with
+          no row rather than defaulting to an arrangement</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h3 class="secname">Two distances, and the smaller one is the answer to both questions</h3>
+
+    <div class="card wide">
+      <h2>The turn</h2>
+      <p class="eq head"><span data-src="nodes/Node1/machine.go#walk">walk</span>
+        <span class="note">how far the stop is, each way round the count-ring</span></p>
+      <p class="eq step"><var>up</var> = (<var>stop</var> − <var>c</var>) mod <var>h</var></p>
+      <p class="eq step"><var>down</var> = (<var>c</var> − <var>stop</var>) mod <var>h</var></p>
+      <p class="eq head">and the two questions one arrival asks</p>
+      <p class="eq step"><span data-src="nodes/Node1/machine.go#fromRest">fromRest</span>
+        = min(<var>up</var>, <var>down</var>)</p>
+      <p class="eq step"><span data-src="nodes/Node1/machine.go#settled">settled</span>
+        = <var>fromRest</var> = 0</p>
+      <p class="eq step"><span data-src="nodes/Node1/machine.go#step">step</span>
+        = the measured end moves one slot up if <var>up</var> ≤ <var>down</var>, else down</p>
+      <div class="keynote">
+        <p><b>the comparison is between the two ways round from where the node IS</b>, not between
+          two places it could go. The rule used to redo the whole measurement at both neighbours and
+          compare the results — picking the better of its next two positions without ever working
+          out where it was heading</p>
+        <p>no value here is negative and no sign is taken. <var>up</var> and <var>down</var> are
+          counts of slots; the direction is which is smaller</p>
+        <p>the tie goes UP, and it is load-bearing: <var>≤</var> written as <var>&lt;</var> picks the
+          wrong state, first at <var>t</var> = 0 with <var>a</var> = 0, on both lattices</p>
+        <p><b>nothing here asks which mode is running.</b> arith.html prints this as two four-line
+          blocks, one per arrangement, and they are one sentence said twice — walk the count the
+          short way to your own stop. Written as two blocks, this file would have a switch in it</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h3 class="secname">The end that was measured is the end that moves</h3>
+
+    <div class="card wide">
+      <h2>The write</h2>
+      <p class="eq head"><span data-src="nodes/Node1/node.go#Top">Top</span> and
+        <span data-src="nodes/Node1/node.go#Bottom">Bottom</span> are both stored</p>
+      <p class="eq step"><span data-src="nodes/Node1/node.go#setTop">setTop</span>(<var>x</var>) :
+        Top = <var>x</var>, Bottom = <var>x</var>.opposite</p>
+      <p class="eq step"><span data-src="nodes/Node1/node.go#setBottom">setBottom</span>(<var>x</var>) :
+        Bottom = <var>x</var>, Top = <var>x</var>.opposite</p>
+      <div class="keynote">
+        <p>these are the ONLY ways either end is written, and each writes BOTH — the end named, and
+          the other read off its opposite link in the same statement. The two cannot come apart
+          because coming apart is not spellable, not because a rule says not to</p>
+        <p>with only the top stored, the half of the ring measured at the bottom had to be written
+          back to the top with its direction negated — a correction term standing in for a fact the
+          state could not say</p>
+        <p>nothing about persistence changes: position.json still carries one angle, and the second
+          end is still a half turn from it</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h3 class="secname">What holds this page to the code</h3>
+
+    <div class="card wide">
+      <h2>The checks</h2>
+      <p class="eq step"><span data-src="nodes/Node1/node_test.go#TestOneRoundIsSignAndRemainder">TestOneRoundIsSignAndRemainder</span>
+        <span class="note">derives arith.html's forms and asks the machine for the same answer, on
+          every (tilt, arrival) pair of the 24- and 48-point lattices</span></p>
+      <p class="eq step"><span data-src="nodes/Node1/node_test.go#TestAnUpdateDrivesTheEndItMeasured">TestAnUpdateDrivesTheEndItMeasured</span>
+        <span class="note">the driven end is the measured end, and the two ends stay a half turn
+          apart</span></p>
+      <p class="eq step"><span data-src="nodes/Node1/node_test.go#TestAModeHaltsExactlyOnItsHomeSet">TestAModeHaltsExactlyOnItsHomeSet</span>
+        <span class="note">settled agrees with the mode's own row, so a row and the rule cannot
+          drift apart</span></p>
+      <div class="keynote">
+        <p>every name on this page is a data-src citation, so
+          <code>tools/check-docs-symbols.sh</code> fails when one of them is renamed or deleted. A
+          page that merely described this code would go quietly wrong instead</p>
+      </div>
+    </div>
+  </section>
+</main>
