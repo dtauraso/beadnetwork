@@ -71,21 +71,26 @@
       <p class="eq step"><span class="g"><var>a</var> = <var>p</var> + 6</span>
         <span class="note"><var>a</var> IS the partner's normal — its tilt <var>p</var> is never
           seen</span></p>
-      <p class="eq head">count from the tilt line up to <var>a</var></p>
-      <p class="eq step"><span class="g"><var>c</var> = <var>t</var> − <var>a</var> (mod 12)</span>
-        <span class="note">0 … 11</span></p>
-      <p class="eq step dim">the bottom is the top's other side, a half turn on, so counting from
-        it gives the same <var>c</var> — mod 12 is the tilt LINE against <var>a</var>, and the two
-        ends are one line</p>
+      <p class="eq head">count from each end of the tilt line up to <var>a</var></p>
+      <p class="eq step"><span class="g"><var>u</var> = <var>t</var> − <var>a</var> (mod 24)</span>
+        <span class="note">from the top</span></p>
+      <p class="eq step"><span class="g"><var>v</var> = <var>b</var> − <var>a</var> (mod 24)</span>
+        <span class="note">from the bottom</span></p>
+      <p class="eq head">which end <var>a</var> is nearer, and its angle</p>
+      <p class="eq step"><span class="g">top, <var>c</var> = <var>u</var></span>
+        <span class="note">if <var>u</var> &lt; 12</span></p>
+      <p class="eq step"><span class="g">bottom, <var>c</var> = <var>v</var></span>
+        <span class="note">otherwise</span></p>
+      <p class="eq step dim">the counts differ by 12, so exactly one is under 12 — that end is the
+        nearer one, and its count is the angle</p>
       <div class="keynote">
         <p><b>t</b> — this node's tilt, the only thing it stores</p>
         <p><b>b</b> — its bottom, the other end of the same line</p>
         <p><b>p</b> — the partner's tilt, never seen by this node</p>
         <p><b>a</b> — what this node has: the partner's normal</p>
-        <p><b>c</b> — where a sits against the tilt line, 0…11</p>
-        <p>c is never negative, and no value on this page is: what a sign would carry is carried
-          by which side of 6 c falls on, in the card below</p>
-        <p>worked: t = 11, a = 0 → c = 11. t = 1, a = 0 → c = 1</p>
+        <p><b>u, v</b> — counts round the ring from the top, and from the bottom, to a</p>
+        <p><b>c</b> — the angle at whichever end is nearer, 0…11</p>
+        <p>worked: t = 11, a = 0, b = 23 → u = 11, v = 23 → top is nearer, c = 11</p>
       </div>
     </div>
 
@@ -108,6 +113,7 @@
 
     <div class="card wide">
       <h2>Whether t goes +1, −1 or stays, under each arrangement</h2>
+      <p class="eq head">the top is the nearer end</p>
       <p class="eq step"><span class="g"><var>c</var> = 6 :</span>
         <span class="note par">parallel</span></p>
       <p class="eq step sub"><var>t</var><sub>after</sub> = <var>t</var></p>
@@ -122,6 +128,23 @@
       <p class="eq step sub2"><var>t</var><sub>after</sub> = <var>t</var>+1</p>
       <p class="eq step sub"><var>c</var> &lt; 6 :</p>
       <p class="eq step sub2"><var>t</var><sub>after</sub> = <var>t</var>−1</p>
+      <p class="eq head">the bottom is the nearer end</p>
+      <p class="eq step"><span class="g"><var>r</var> = 12 − <var>c</var></span>
+        <span class="note">the angle counted the other way, 1 … 12</span></p>
+      <p class="eq step"><span class="g"><var>r</var> = 6 :</span>
+        <span class="note par">parallel</span></p>
+      <p class="eq step sub"><var>t</var><sub>after</sub> = <var>t</var></p>
+      <p class="eq step sub"><var>r</var> &gt; 6 :</p>
+      <p class="eq step sub2"><var>t</var><sub>after</sub> = <var>t</var>+1</p>
+      <p class="eq step sub"><var>r</var> &lt; 6 :</p>
+      <p class="eq step sub2"><var>t</var><sub>after</sub> = <var>t</var>−1</p>
+      <p class="eq step"><span class="g"><var>r</var> = 12 :</span>
+        <span class="note perp">perpendicular</span></p>
+      <p class="eq step sub"><var>t</var><sub>after</sub> = <var>t</var></p>
+      <p class="eq step sub"><var>r</var> ≤ 6 :</p>
+      <p class="eq step sub2"><var>t</var><sub>after</sub> = <var>t</var>+1</p>
+      <p class="eq step sub"><var>r</var> &gt; 6 :</p>
+      <p class="eq step sub2"><var>t</var><sub>after</sub> = <var>t</var>−1</p>
       <p class="eq head">standing still means <var>a</var> lies along one of this node's own
         two lines</p>
       <p class="eq step par"><span class="g">parallel</span>
@@ -131,12 +154,13 @@
       <div class="keynote">
         <p><b>t<sub>after</sub></b> — the tilt this update lands on; t itself is untouched until
           it is stored, and the normal and bottom are read off whatever it becomes</p>
-        <p>turning one slot moves c by one, so which way to turn is which side of 6 c is on:
-          parallel walks toward 6 and perpendicular away from it</p>
-        <p>6 sits in perpendicular's t+1 branch because it is the same distance from 0 either way
-          round, and a tie goes up</p>
-        <p>the direction is a comparison, not a sign: c is 0…11 throughout, and which side of 6 it
-          falls on is what a signed distance would have carried</p>
+        <p><b>r</b> — the same angle from the bottom, counted the other way: r = 12 − c</p>
+        <p>every comparison flips with it, because counting the other way round reverses the
+          order — and the two halves pick the same move, which is what makes them one rule seen
+          from two ends</p>
+        <p>r is 1…12, not 0…11: at c = 0 the far end reads a half turn, and reducing that to 0
+          would put both ends on the same number</p>
+        <p>the direction is a comparison, not a sign: no value here is negative</p>
         <p>swept over every pair by
           <span data-src="nodes/Node1/node_test.go#TestOneRoundIsSignAndRemainder">TestOneRoundIsSignAndRemainder</span></p>
       </div>

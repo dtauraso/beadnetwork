@@ -330,6 +330,35 @@ func TestOneRoundIsSignAndRemainder(t *testing.T) {
 						m.mode, tilt, arr, c, fromC, up)
 				}
 
+				// THE ACUTE END, AND THE SAME RULE STATED ON IT.
+				//
+				// Which end a is nearer is a bit: the top when u < 12, the bottom
+				// otherwise. Stated on the BOTTOM the angle is measured the other way
+				// round — the complementary angle, cr = 12 - c — and every comparison
+				// flips, because counting counter-clockwise reverses the order.
+				//
+				// The two descriptions must pick the same move; that is the whole claim.
+				acuteTop := u < 12
+				// 12 - c, and NOT reduced: at c = 0 the other end reads a half turn, 12,
+				// not 0. Reducing it collapses the two ends onto each other, which is the
+				// one thing this measurement exists to keep apart.
+				cr := 12 - c
+				var byEnd bool // does t go up?
+				switch {
+				case acuteTop && m.mode == Wiring.TiltMachineParallel:
+					byEnd = c < 6
+				case acuteTop:
+					byEnd = c >= 6
+				case m.mode == Wiring.TiltMachineParallel:
+					byEnd = cr > 6 // flipped
+				default:
+					byEnd = cr <= 6 // flipped
+				}
+				if e != 0 && byEnd != up {
+					t.Fatalf("mode=%v t=%d a=%d: acuteTop=%v c=%d cr=%d says up=%v, step says %v",
+						m.mode, tilt, arr, acuteTop, c, cr, byEnd, up)
+				}
+
 				// AND WHICH END c CAME FROM DOES NOT ENTER THE RULE. The two ends turn
 				// TOGETHER — b = t + 12, so t+1 makes b+1 — which means u and v both gain
 				// one and c steps up whichever end supplied it. There is no end whose
