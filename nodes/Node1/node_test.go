@@ -209,6 +209,71 @@ func TestOneRoundIsSignAndRemainder(t *testing.T) {
 					}
 				}
 
+				// THE BOTTOM IS WHERE THE SIGN WENT. A node draws two ends of one line,
+				// t and t+12, and the two stopping values are one on each. Measure the
+				// arrival against BOTH ends and there are two magnitudes, never negative:
+				//
+				//	top     = angleLength(t,      a)
+				//	bottom  = angleLength(t + 12, a) = 12 - top
+				//
+				// The end with the smaller reading is the one this node walks to, and that
+				// is a comparison of two counts — no sign, no direction, no minus. Reduce
+				// the pair to ONE number and the second reading has to come back as the
+				// sign of the first, which is what e is.
+				topL := cur.angleLength(a)
+				botL := cur.opposite.angleLength(a)
+				if topL+botL != 12 {
+					t.Fatalf("t=%d a=%d: top=%d bottom=%d, do not sum to a half turn",
+						tilt, arr, topL, botL)
+				}
+
+				// And each arrangement stops when the arrival lands ON one of the node's
+				// own drawn lines — which is what the two stopping values ARE:
+				//
+				//	perpendicular   the arrival lies on the TILT line, t or t+12
+				//	parallel        the arrival lies on the NORMAL line, t+6 or t+18
+				//
+				// Both are stated with unsigned readings and no direction at all.
+				onTiltLine := topL == 0 || botL == 0
+				normL := cur.quarter.angleLength(a)
+				onNormalLine := normL == 0 || cur.quarter.opposite.angleLength(a) == 0
+				stopped := e == 0
+				if m.mode == Wiring.TiltMachinePerpendicular && stopped != onTiltLine {
+					t.Fatalf("perpendicular t=%d a=%d: stopped=%v but on tilt line=%v",
+						tilt, arr, stopped, onTiltLine)
+				}
+				if m.mode == Wiring.TiltMachineParallel && stopped != onNormalLine {
+					t.Fatalf("parallel t=%d a=%d: stopped=%v but on normal line=%v",
+						tilt, arr, stopped, onNormalLine)
+				}
+
+				// NO SIGN AT ALL, once the answer is read as a LINE rather than an index.
+				// The two stopping values are a half turn apart — one on this node's top,
+				// one on its bottom — so they are ONE arrangement, and which of the two a
+				// walk reaches is a fact about indices, not about the pair. Taken mod 12,
+				// where a tilt and its bottom are the same number, the whole rule has no
+				// direction in it:
+				//
+				//	u = (t - a + shift) mod 12     0..11, never negative
+				//	f = |u - 6|                    arrivals, a magnitude
+				//	ends on the line  t = a + 6 (mod 12)  parallel
+				//	                  t = a     (mod 12)  perpendicular
+				//
+				// e and sign(e) name the index it walks to. Nothing above needs them.
+				u := ((tilt-arr+shift)%12 + 12) % 12
+				if u < 0 || u > 11 {
+					t.Fatalf("mode=%v t=%d a=%d: u=%d outside 0..11", m.mode, tilt, arr, u)
+				}
+				if got := m.fromRest(cur, a); got != abs32(u-6) {
+					t.Fatalf("mode=%v t=%d a=%d: |u-6|=%d but fromRest=%d",
+						m.mode, tilt, arr, abs32(u-6), got)
+				}
+				wantLine := ((arr+6-shift)%12 + 12) % 12
+				if e == 0 && ((tilt%12)+12)%12 != wantLine {
+					t.Fatalf("mode=%v t=%d a=%d: stopped off the line — t mod 12 = %d, want %d",
+						m.mode, tilt, arr, ((tilt%12)+12)%12, wantLine)
+				}
+
 				// d is that subtraction with the abs ON it, which is why e cannot use d:
 				// |t - a| makes the two sides of the arrival identical, but a node one
 				// slot below it must turn opposite to one slot above — t=0, a=1 turns
