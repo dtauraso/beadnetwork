@@ -112,27 +112,27 @@ func TestPerpendicularStepsThroughTheParallelHalt(t *testing.T) {
 // TestOneRoundIsSignAndRemainder is the other half of what docs/pair-node/arith.html rests on: ONE
 // update round, written without a case in it.
 //
-// The trick is to stop folding. angleLength throws the sign away, which is why the rule that uses
-// it needs a comparison to get direction back. Keep the plain subtraction d = t - a instead — which
+// The trick is to keep the sign. angleLength drops it, which is why the rule that uses angleLength
+// needs a comparison to get direction back. Work from the plain subtraction t - a instead — which
 // may be negative and may fall outside 0..23, and is left that way — and both arrangements are the
-// same statement, since the resting angles sit every 12 apart in d and the arrangement is a SHIFT
-// of 6 inside the modulus:
+// same statement, since the resting angles sit every 12 apart and the arrangement is a SHIFT of 6
+// inside the modulus:
 //
-//	parallel       e = (d mod 12) - 6          rests at d = -6, +6
-//	perpendicular  e = ((d + 6) mod 12) - 6    rests at d = -12, 0, +12
+//	parallel       e = ((t - a) mod 12) - 6          rests at t - a = -6, +6
+//	perpendicular  e = ((t - a + 6) mod 12) - 6      rests at t - a = -12, 0, +12
 //
 // e is then the signed distance to the nearest rest, and the whole round is t_after = t - sign(e),
 // with |e| equal to fromRest. No branch, no minimum, no list.
 //
-// Two reductions that look necessary and are not, both checked below:
+// Two things that look necessary and are not, both checked below:
 //
-//	putting d in range   24 is two 12s, so d, d+24 and d-24 all give the same e. Bringing d
-//	                     into 0..23 first is work that d mod 12 immediately undoes.
-//	abs on d             min(|d|, 24-|d|) IS angleLength, so the magnitude the other form
-//	                     starts from is this same subtraction with its sign dropped. Dropping
-//	                     it keeps f exactly (checked below) and loses the TURN: with t=0, an
-//	                     arrival at 1 must turn down and one at 23 must turn up, yet
-//	                     min(1,23) = min(23,1) = 1 describes both.
+//	putting t - a in range   24 is two 12s, so t-a, t-a+24 and t-a-24 all give the same e.
+//	                         Bringing it into 0..23 first is work the modulus undoes.
+//	using d                  d = |t - a| is the same subtraction with the abs on it, and
+//	                         12 - |12 - d| IS angleLength. That abs keeps f exactly (checked
+//	                         below) and loses the TURN: with t=0, an arrival at 1 must turn
+//	                         down and one at 23 must turn up, yet d is 1 and 23 and l is 1
+//	                         for both. So e reads t - a and never d.
 //
 // The ties — a tilt equidistant from two rests, which is where a comparison rule has to be told
 // what to prefer — need NO special case here: they land on e = -6 by themselves, and -6 turns up,
@@ -163,37 +163,36 @@ func TestOneRoundIsSignAndRemainder(t *testing.T) {
 			for tilt := int32(0); tilt < points; tilt++ {
 				cur := r.at(tilt)
 
-				// The RAW difference — no folding, no reduction. e takes it modulo 12
-				// below, and 24 is a whole number of 12s, so every representative of
-				// t - a on the ring gives the same e. Folding first would be work that
+				// e reads the SUBTRACTION, not d — no reduction of any kind. It takes
+				// t - a modulo 12, and 24 is two 12s, so every representative of t - a on
+				// the ring gives the same e. Bringing it into range first would be work
 				// the modulus immediately undoes.
-				d := tilt - arr
-				e := ((d+shift)%12+12)%12 - 6
+				e := ((tilt-arr+shift)%12+12)%12 - 6
 
-				// abs on d keeps the SIZE and loses the TURN. |t - a| makes the two sides
-				// of the arrival identical, but a node one slot below it must turn the
-				// opposite way from one slot above — t=0, a=1 turns down to 23, while
-				// t=0, a=23 turns up to 1. Same f, opposite sign.
-				eAbs := ((abs32(d)+shift)%12+12)%12 - 6
-				if abs32(eAbs) != abs32(e) {
-					t.Fatalf("mode=%v a=%d t=%d: |e| from |d| is %d, from d is %d",
-						m.mode, arr, tilt, abs32(eAbs), abs32(e))
+				// d is that subtraction with the abs ON it, which is why e cannot use d:
+				// |t - a| makes the two sides of the arrival identical, but a node one
+				// slot below it must turn opposite to one slot above — t=0, a=1 turns
+				// down to 23, while t=0, a=23 turns up to 1. Same f, opposite sign.
+				d := abs32(tilt - arr)
+				eFromD := ((d+shift)%12+12)%12 - 6
+				if abs32(eFromD) != abs32(e) {
+					t.Fatalf("mode=%v a=%d t=%d: |e| from d is %d, from t-a is %d",
+						m.mode, arr, tilt, abs32(eFromD), abs32(e))
 				}
 
-				// The angle length needs no min: it is d brought onto the ring by the
-				// SAME shape that produces e — a remainder, less half the modulus — with
-				// an abs on the outside. e uses 12 and 6; this uses 24 and 12.
+				// The angle length needs no min: d runs 0..23 and l is its distance to
+				// the nearer end of that range.
 				//
-				//	l = 12 - |12 - |d||
+				//	d = |t - a|        l = 12 - |12 - d|
 				//
-				// The abs sits ON d, which is where l parts company with e: l throws the
-				// sign away before it starts, e never does.
-				l := 12 - abs32(12-abs32(d))
+				// The abs is on the subtraction, which is where l parts company with e:
+				// l throws the sign away before it starts, e never does.
+				l := 12 - abs32(12-d)
 				if got := cur.angleLength(a); got != l {
-					t.Fatalf("a=%d t=%d: 12-|12-|d||=%d but angleLength=%d", arr, tilt, l, got)
+					t.Fatalf("a=%d t=%d: 12-|12-d|=%d but angleLength=%d", arr, tilt, l, got)
 				}
-				if want := min(abs32(d), points-abs32(d)); l != want {
-					t.Fatalf("a=%d t=%d: got %d but min(|d|, 24-|d|)=%d", arr, tilt, l, want)
+				if want := min(d, points-d); l != want {
+					t.Fatalf("a=%d t=%d: got %d but min(d, 24-d)=%d", arr, tilt, l, want)
 				}
 
 				if got := m.fromRest(cur, a); got != abs32(e) {

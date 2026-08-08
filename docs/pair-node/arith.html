@@ -56,16 +56,15 @@
     <div class="card wide">
       <h2>Two numbers, one arrow each</h2>
       <img class="math" src="update-closed-numbers.svg" style="width:573px"
-        alt="t and a are in {0, 1, ..., 23}. This node: tilt = t, normal = t + 6, bottom = t + 12; only t moves, the other two are read off it. What arrives: a = p + 6, the partner's normal, not its tilt. Which way, and how far, from a to t: d = t - a, between -23 and 23, negative when a is greater than t. How far apart: L = 12 - |12 - |d||, between 0 and 12 — slots from t to a, the shorter way round.">
+        alt="t and a are in {0, 1, ..., 23}. This node: tilt = t, normal = t + 6, bottom = t + 12; only t moves, the other two are read off it. What arrives: a = p + 6, the partner's normal, not its tilt. How far apart: d = |t - a|, between 0 and 23; L = 12 - |12 - d|, between 0 and 12 — slots from t to a, the shorter way round.">
       <div class="keynote">
         <p>a node draws three arrows and sends the middle one, so the quarter turn is already inside
           a before it is measured against anything</p>
-        <p>ℓ needs no min: |d| runs 0…23, and 12 − |12 − |d|| is its distance to the nearer end of
-          that range. The min form asks which of two arcs is shorter; this one never makes two</p>
-        <p>the abs sits ON d, and that is where ℓ parts company with the round below. ℓ starts by
-          throwing the sign away; e keeps d whole</p>
-        <p>d is defined here rather than with the round below, because ℓ is already made of it —
-          every measurement on this page is d, read in a different way</p>
+        <p>ℓ needs no min: d runs 0…23, and 12 − |12 − d| is its distance to the nearer end of that
+          range. The min form asks which of two arcs is shorter; this one never makes two</p>
+        <p>the abs is on the subtraction, so d is a distance and nothing downstream of it can say
+          which way. That is where this card parts company with the round below, which goes back to
+          t − a for exactly that reason</p>
       </div>
     </div>
 
@@ -86,20 +85,21 @@
 
     <div class="card wide">
       <h2>Where it is after one arrival</h2>
-      <img class="math" src="update-closed-round.svg" style="width:510px"
-        alt="Which way, and how far, to the nearest resting angle — parallel: e = (d mod 12) - 6. Perpendicular: e = (d + 6 mod 12) - 6, where d mod 12 is in 0 to 11, so e is between -6 and 5. t after = t - sign(e), and f = |e|. Writing |d| for d leaves f equal and flips sign(e).">
+      <img class="math" src="update-closed-round.svg" style="width:519px"
+        alt="Which way, and how far, to the nearest resting angle — parallel: e = (t - a mod 12) - 6. Perpendicular: e = (t - a + 6 mod 12) - 6, where t - a mod 12 is in 0 to 11, so e is between -6 and 5. t after = t - sign(e), and f = |e|. e reads t - a, not d: d has already dropped the sign.">
       <div class="keynote">
-        <p>nothing is done to bring d into 0…23 first, because d mod 12 would undo it — 24 is two
-          12s, so d, d + 24 and d − 24 all give the same e</p>
-        <p>d mod 12 is the non-negative remainder, 0…11, so e runs −6…5 and e = 0 means t already
-          sits on a resting angle</p>
+        <p>e goes back to t − a rather than using d, because d is |t − a| and the sign is the one
+          thing this card needs. It is the same subtraction with one operation less on it</p>
+        <p>nothing is done to bring t − a into 0…23 first, because the modulus would undo it — 24
+          is two 12s, so t − a, t − a + 24 and t − a − 24 all give the same e</p>
+        <p>t − a mod 12 is the non-negative remainder, 0…11, so e runs −6…5 and e = 0 means t
+          already sits on a resting angle</p>
         <p>parallel and perpendicular differ only by the +6 inside the remainder. A tilt the same
           distance from two resting angles gives e = −6, and −6 turns up, so that case needs no
           rule of its own — 96 of the 1152 (tilt, arrival) pairs are that case</p>
-        <p>e and ℓ read the same d and differ in one place: ℓ takes |d| first, e does not. That
-          single abs is the whole difference between them, and the direction is what it costs</p>
-        <p>with t = 0, an arrival at 1 gives d = −1 and one at 23 gives d = +23. e keeps those
-          apart, so one turns down and the other up; ℓ is 1 for both and cannot</p>
+        <p>with t = 0, an arrival at 1 gives t − a = −1 and one at 23 gives +23. e keeps those
+          apart, so one turns down and the other up; d is 1 and 23, ℓ is 1 for both, and neither
+          can</p>
         <p>swept by
           <span data-src="nodes/Node1/node_test.go#TestOneRoundIsSignAndRemainder">TestOneRoundIsSignAndRemainder</span></p>
       </div>
