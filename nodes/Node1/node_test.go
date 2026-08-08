@@ -242,27 +242,36 @@ func TestOneRoundIsSignAndRemainder(t *testing.T) {
 				// count IS the distance; at or over, the distance is 24 minus it. No
 				// cross-reference between the two ends, and no third quantity — the
 				// distance from an end is that end's own count, tested.
-				// The count and the angle it stands for are separate values, as on the
-				// page: u and v are counts round the ring, g(u) and g(v) the acute angles
-				// they stand for. Neither count is overwritten — "round the ring from the
-				// top" and "the angle at the top" are different things to say — and one
-				// function serves both ends, because it is one test run twice.
-				g := func(x int32) int32 {
-					if x < 12 {
-						return x
-					}
-					return points - x
-				}
+				// ONE letter holds the result. The two counts differ by 12, so exactly one
+				// of them is under 12, and that one already IS the acute angle at its own
+				// end — nothing has to be computed for it and nothing is overwritten:
+				//
+				//	c = whichever of u, v is under 12
+				//
+				// The other end is 12 - c, and nothing downstream needs it: q = |c - 6| is
+				// the same either way, since |(12 - c) - 6| = |6 - c|.
 				b := cur.opposite.idx
 				u := ((tilt-arr)%points + points) % points
 				v := ((b-arr)%points + points) % points
-				if g(u) != topL || g(v) != botL {
-					t.Fatalf("t=%d a=%d: u=%d v=%d give g=%d and %d, but the angles are %d and %d",
-						tilt, arr, u, v, g(u), g(v), topL, botL)
+				c := u
+				if u >= 12 {
+					c = v
 				}
-				if g(u)+g(v) != 12 {
-					t.Fatalf("t=%d a=%d: g(u)=%d and g(v)=%d are not a half turn",
-						tilt, arr, g(u), g(v))
+				if c >= 12 {
+					t.Fatalf("t=%d a=%d: u=%d v=%d, neither under 12", tilt, arr, u, v)
+				}
+				if c != topL && c != botL {
+					t.Fatalf("t=%d a=%d: c=%d is neither the top angle %d nor the bottom %d",
+						tilt, arr, c, topL, botL)
+				}
+				if q := abs32(c - 6); m.mode == Wiring.TiltMachineParallel {
+					if got := m.fromRest(cur, a); got != q {
+						t.Fatalf("parallel t=%d a=%d: c=%d gives q=%d but fromRest=%d",
+							tilt, arr, c, q, got)
+					}
+				} else if got := m.fromRest(cur, a); got != 6-q {
+					t.Fatalf("perpendicular t=%d a=%d: c=%d gives 6-q=%d but fromRest=%d",
+						tilt, arr, c, 6-q, got)
 				}
 
 				// And each arrangement stops when the arrival lands ON one of the node's

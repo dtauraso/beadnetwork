@@ -76,20 +76,20 @@
         <span class="note">from the top</span></p>
       <p class="eq step"><span class="g"><var>v</var> = <var>b</var> − <var>a</var> (mod 24)</span>
         <span class="note">from the bottom</span></p>
-      <p class="eq head">one test, on each count: the acute angle it stands for</p>
-      <p class="eq step"><span class="g"><var>g</var>(<var>x</var>) = <var>x</var>, or
-          24 − <var>x</var></span>
-        <span class="note">whichever is under 12</span></p>
-      <p class="eq step dim"><var>g</var>(<var>u</var>) + <var>g</var>(<var>v</var>) = 12 — the ends
-        are a half turn apart, so the two angles share it</p>
+      <p class="eq head">one test: which count is the acute angle</p>
+      <p class="eq step"><span class="g"><var>c</var> = <var>u</var>, if <var>u</var> &lt; 12</span>
+        <span class="note">otherwise <var>c</var> = <var>v</var></span></p>
+      <p class="eq step dim">the counts differ by 12, so exactly one is under 12, and that one is
+        the angle at its own end</p>
       <div class="keynote">
         <p><b>t</b> — this node's tilt, the only thing it stores</p>
         <p><b>b</b> — its bottom, the other end of the same line</p>
         <p><b>p</b> — the partner's tilt, never seen by this node</p>
         <p><b>a</b> — what this node has: the partner's normal</p>
         <p><b>u, v</b> — counts round the ring from the top, and from the bottom, to a</p>
-        <p><b>g</b> — the acute angle a count stands for; g(u) at the top, g(v) at the bottom</p>
-        <p>worked: t = 11, a = 0, b = 23 → u = 11, v = 23 → g(u) = 11, g(v) = 1</p>
+        <p><b>c</b> — the acute angle: whichever count is under 12</p>
+        <p>the other end is 12 − c, and nothing below needs it</p>
+        <p>worked: t = 11, a = 0, b = 23 → u = 11, v = 23 → c = 11</p>
       </div>
     </div>
 
@@ -98,16 +98,16 @@
     <div class="card wide">
       <h2>q and f</h2>
       <p class="eq head">slots from either distance to the quarter</p>
-      <p class="eq step"><var>q</var> = |<var>g</var>(<var>u</var>) − 6| =
-        |<var>g</var>(<var>v</var>) − 6|</p>
+      <p class="eq step"><span class="g"><var>q</var> = |<var>c</var> − 6|</span>
+        <span class="note">the same from the other end, since |(12 − <var>c</var>) − 6| =
+          |6 − <var>c</var>|</span></p>
       <p class="eq head">slots <var>t</var> must turn before it stops</p>
-      <p class="eq step perp">perpendicular stops when an end reads 0</p>
-      <p class="eq step perp"><var>f</var> = min(<var>g</var>(<var>u</var>),
-        <var>g</var>(<var>v</var>)) = 6 − <var>q</var></p>
-      <p class="eq step par">parallel stops when both ends read 6</p>
+      <p class="eq step perp">perpendicular stops at <var>c</var> = 0</p>
+      <p class="eq step perp"><var>f</var> = 6 − <var>q</var></p>
+      <p class="eq step par">parallel stops at <var>c</var> = 6</p>
       <p class="eq step par"><var>f</var> = <var>q</var></p>
       <div class="keynote">
-        <p><b>q</b> — slots from either acute angle to 6</p>
+        <p><b>q</b> — slots from c to 6</p>
         <p><b>f</b> — slots t must turn before it stops</p>
         <p>q is the same off either end because u + v = 12 and 6 is halfway, which is why one q
           settles both arrangements and their two f are complements
