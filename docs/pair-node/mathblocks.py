@@ -95,29 +95,41 @@ BODIES = {
   \quad {\color{dim}\text{every other } g \;\Rightarrow\; L(x,\,y+6)
     \text{ is none of } 0,\,6,\,12}
 """,
-    "choose": r"""
-  \text{\color{acc}when } R_{\mathrm{before}} = R_{\mathrm{setting}} : \\[7pt]
-  \quad t_{\mathrm{partner}} = a_{-6} \\[5pt]
-  \quad R_{\mathrm{after}} = \begin{cases}
-      {\color{perp}R_{\perp}}    & \len(t_{\mathrm{before}},\, t_{\mathrm{partner}}) = 6 \\
-      {\color{par}R_{\parallel}} & \text{otherwise}
-    \end{cases}
+    # WHICH MODE TO BE IN, written as the conditional it is: measure something, then let the
+    # measurement decide. The earlier spelling set R_after with a cases brace, which reads as
+    # a definition of R_after — a thing that IS one of two values — and hides that a node
+    # computes the partner's tilt and compares it before it knows which. Same rule, written
+    # as the decision it makes rather than the value it ends up with.
+    "decide-mode": r"""
+  \text{\color{acc}if } R \neq R_{\mathrm{setting}} :
+    \quad {\color{dim}\text{nothing changes — the choice already stuck}} \\[9pt]
+  \text{\color{acc}otherwise, measure} \\[5pt]
+  \quad p = a_{-6}
+    \quad {\color{dim}\text{the partner's tilt, backed out of the arrival}} \\[5pt]
+  \quad G = \len(t,\, p)
+    \quad {\color{dim}\text{the gap between the two tilts}} \\[9pt]
+  \text{\color{acc}then decide} \\[5pt]
+  \quad \text{if } G = 6 : \quad {\color{perp}R \leftarrow R_{\perp}} \\[5pt]
+  \quad \text{else} : \qquad\;\; {\color{par}R \leftarrow R_{\parallel}}
 """,
     "resting": r"""
   {\color{perp}R_{\perp} = \{0,\,12\}} \\[5pt]
   {\color{par}R_{\parallel} = \{6\}} \\[5pt]
   {\color{dim}R_{\mathrm{setting}} = \text{any}}
 """,
-    "questions": r"""
-  \text{\color{acc}settle?} \quad L \in R \\[7pt]
-  \text{\color{acc}up?} \quad \len(t_{+1},a) \text{ closer to } R \text{ than } \len(t_{-1},a)
-""",
-    "turn": r"""
-  t_{\mathrm{after}} = \begin{cases}
-      t_{\mathrm{before}} & \text{settle} \\
-      t_{+1}              & \text{up} \\
-      t_{-1}              & \text{otherwise}
-    \end{cases}
+    # WHICH SLOT TO GO TO. This was two blocks — "the two questions" and "the turn" — and
+    # between them they stated the same measurement twice: once as a pair of yes/no questions
+    # and again as a cases brace over the answers. One conditional says it once. The measure
+    # step is the whole of what the mode contributes, and it contributes it as R, a list of
+    # numbers, which is why neither branch below mentions perpendicular or parallel.
+    "decide-turn": r"""
+  \text{\color{acc}measure} \\[5pt]
+  \quad f(u) = \text{how far } \len(u,a) \text{ is from the nearest length in } R
+    \\[9pt]
+  \text{\color{acc}then decide} \\[5pt]
+  \quad \text{if } f(t) = 0 : \qquad\qquad\;\; \text{stay at } t \\[5pt]
+  \quad \text{else if } f(t_{+1}) \le f(t_{-1}) : \quad \text{go to } t_{+1} \\[5pt]
+  \quad \text{else} : \qquad\qquad\qquad\quad\;\; \text{go to } t_{-1}
 """,
     "other": r"""
   \text{every arrival} :\; r_{\mathrm{after}} = a \\[5pt]

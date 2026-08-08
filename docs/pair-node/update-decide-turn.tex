@@ -1,0 +1,15 @@
+% update-decide-turn.tex — one block of the update. Shared setup is pairmath.sty,
+% which also carries the rebuild command.
+\documentclass[12pt]{article}
+\usepackage{pairmath}
+\begin{document}
+\[\begin{array}{@{}l@{}}
+  \text{\color{acc}measure} \\[5pt]
+  \quad f(u) = \text{how far } \len(u,a) \text{ is from the nearest length in } R
+    \\[9pt]
+  \text{\color{acc}then decide} \\[5pt]
+  \quad \text{if } f(t) = 0 : \qquad\qquad\;\; \text{stay at } t \\[5pt]
+  \quad \text{else if } f(t_{+1}) \le f(t_{-1}) : \quad \text{go to } t_{+1} \\[5pt]
+  \quad \text{else} : \qquad\qquad\qquad\quad\;\; \text{go to } t_{-1}
+\end{array}\]
+\end{document}
