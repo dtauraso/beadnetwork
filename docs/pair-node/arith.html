@@ -113,37 +113,37 @@
 
     <div class="card wide">
       <h2>Whether t goes +1, −1 or stays, under each arrangement</h2>
-      <p class="eq head"><var>u</var> &lt; 12</p>
-      <p class="eq step"><span class="g"><var>c</var> = 6 :</span>
+      <p class="eq head"><var>u</var> &lt; 12
+        <span class="note">nearer end = top</span></p>
+      <p class="eq step"><span class="g"><var>u</var> = 6 :</span>
         <span class="note par">parallel</span></p>
       <p class="eq step sub"><var>t</var><sub>after</sub> = <var>t</var></p>
-      <p class="eq step sub"><var>c</var> &lt; 6 :</p>
+      <p class="eq step sub"><var>u</var> &lt; 6 :</p>
       <p class="eq step sub2"><var>t</var><sub>after</sub> = <var>t</var>+1</p>
-      <p class="eq step sub"><var>c</var> &gt; 6 :</p>
+      <p class="eq step sub"><var>u</var> &gt; 6 :</p>
       <p class="eq step sub2"><var>t</var><sub>after</sub> = <var>t</var>−1</p>
-      <p class="eq step"><span class="g"><var>c</var> = 0 :</span>
+      <p class="eq step"><span class="g"><var>u</var> = 0 :</span>
         <span class="note perp">perpendicular</span></p>
       <p class="eq step sub"><var>t</var><sub>after</sub> = <var>t</var></p>
-      <p class="eq step sub"><var>c</var> ≥ 6 :</p>
+      <p class="eq step sub"><var>u</var> ≥ 6 :</p>
       <p class="eq step sub2"><var>t</var><sub>after</sub> = <var>t</var>+1</p>
-      <p class="eq step sub"><var>c</var> &lt; 6 :</p>
+      <p class="eq step sub"><var>u</var> &lt; 6 :</p>
       <p class="eq step sub2"><var>t</var><sub>after</sub> = <var>t</var>−1</p>
-      <p class="eq head"><var>u</var> ≥ 12</p>
-      <p class="eq step"><span class="g"><var>r</var> = 12 − <var>c</var></span>
-        <span class="note">the angle counted the other way, 1 … 12</span></p>
-      <p class="eq step"><span class="g"><var>r</var> = 6 :</span>
+      <p class="eq head"><var>u</var> ≥ 12
+        <span class="note">nearer end = bottom, and <var>v</var> &lt; 12</span></p>
+      <p class="eq step"><span class="g"><var>v</var> = 6 :</span>
         <span class="note par">parallel</span></p>
       <p class="eq step sub"><var>t</var><sub>after</sub> = <var>t</var></p>
-      <p class="eq step sub"><var>r</var> &gt; 6 :</p>
+      <p class="eq step sub"><var>v</var> &lt; 6 :</p>
       <p class="eq step sub2"><var>t</var><sub>after</sub> = <var>t</var>+1</p>
-      <p class="eq step sub"><var>r</var> &lt; 6 :</p>
+      <p class="eq step sub"><var>v</var> &gt; 6 :</p>
       <p class="eq step sub2"><var>t</var><sub>after</sub> = <var>t</var>−1</p>
-      <p class="eq step"><span class="g"><var>r</var> = 12 :</span>
+      <p class="eq step"><span class="g"><var>v</var> = 0 :</span>
         <span class="note perp">perpendicular</span></p>
       <p class="eq step sub"><var>t</var><sub>after</sub> = <var>t</var></p>
-      <p class="eq step sub"><var>r</var> ≤ 6 :</p>
+      <p class="eq step sub"><var>v</var> ≥ 6 :</p>
       <p class="eq step sub2"><var>t</var><sub>after</sub> = <var>t</var>+1</p>
-      <p class="eq step sub"><var>r</var> &gt; 6 :</p>
+      <p class="eq step sub"><var>v</var> &lt; 6 :</p>
       <p class="eq step sub2"><var>t</var><sub>after</sub> = <var>t</var>−1</p>
       <p class="eq head">standing still means <var>a</var> lies along one of this node's own
         two lines</p>
@@ -154,12 +154,11 @@
       <div class="keynote">
         <p><b>t<sub>after</sub></b> — the tilt this update lands on; t itself is untouched until
           it is stored, and the normal and bottom are read off whatever it becomes</p>
-        <p><b>r</b> — the same angle from the bottom, counted the other way: r = 12 − c</p>
-        <p>every comparison flips with it, because counting the other way round reverses the
-          order — and the two halves pick the same move, which is what makes them one rule seen
-          from two ends</p>
-        <p>r is 1…12, not 0…11: at c = 0 the far end reads a half turn, and reducing that to 0
-          would put both ends on the same number</p>
+        <p>read on the nearer end's OWN count the two halves are the same four lines — u under 12
+          in the first, v under 12 in the second — so no comparison reverses</p>
+        <p>the reversal appears only if the bottom is measured by the complementary angle,
+          12 − c, which counts the other way round: then every comparison flips and the two
+          descriptions still pick the same move</p>
         <p>the direction is a comparison, not a sign: no value here is negative</p>
         <p>swept over every pair by
           <span data-src="nodes/Node1/node_test.go#TestOneRoundIsSignAndRemainder">TestOneRoundIsSignAndRemainder</span></p>

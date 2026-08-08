@@ -339,6 +339,25 @@ func TestOneRoundIsSignAndRemainder(t *testing.T) {
 				//
 				// The two descriptions must pick the same move; that is the whole claim.
 				acuteTop := u < 12
+
+				// STATED ON THE END'S OWN COUNT there is no reversal at all: when the
+				// bottom is nearer, v is itself under 12 and the comparisons read exactly
+				// as the top's do. The reversal only appears if the bottom is measured by
+				// the COMPLEMENTARY angle, 12 - c, which counts the other way round.
+				bit := 0
+				measure := u
+				if !acuteTop {
+					bit, measure = 1, v
+				}
+				byOwnCount := measure < 6
+				if m.mode == Wiring.TiltMachinePerpendicular {
+					byOwnCount = measure >= 6
+				}
+				if e != 0 && byOwnCount != up {
+					t.Fatalf("mode=%v t=%d a=%d: bit=%d measure=%d says up=%v, step says %v",
+						m.mode, tilt, arr, bit, measure, byOwnCount, up)
+				}
+
 				// 12 - c, and NOT reduced: at c = 0 the other end reads a half turn, 12,
 				// not 0. Reducing it collapses the two ends onto each other, which is the
 				// one thing this measurement exists to keep apart.
