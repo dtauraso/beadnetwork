@@ -62,9 +62,9 @@
           a before it is measured against anything</p>
         <p>ℓ needs no min: d runs 0…23, and 12 − |12 − d| is its distance to the nearer end of that
           range. The min form asks which of two arcs is shorter; this one never makes two</p>
-        <p>the abs is on the subtraction, so d is a distance and nothing downstream of it can say
-          which way. That is where this card parts company with the round below, which goes back to
-          t − a for exactly that reason</p>
+        <p>the abs is on the subtraction, so d is a distance. Nothing downstream of it can say
+          which way — and nothing below needs to, because the round reads the arrival off both ends
+          of a line rather than off one number</p>
       </div>
     </div>
 
@@ -85,25 +85,21 @@
 
     <div class="card wide">
       <h2>Where it is after one arrival</h2>
-      <img class="math" src="update-closed-round.svg" style="width:519px"
-        alt="Which way, and how far, to a stopping value. Parallel stops where t - a = 6 or 18: e = (t - a mod 12) - 6. Perpendicular stops where t - a = 0 or 12: e = (t - a + 6 mod 12) - 6. t - a mod 12 is in 0 to 11, so e is between -6 and 5. t after = t - sign(e), and f = |e|. e reads t - a, not d: d has already dropped the sign.">
+      <img class="math" src="update-closed-round.svg" style="width:544px"
+        alt="Each arrangement has a line, and a line has two ends. Perpendicular: the tilt line, t and t + 12. Parallel: the normal line, t + 6 and t + 18. Read the arrival off both ends and keep the smaller: f(u) = min(angleLength(u, a), angleLength(u + 12, a)), with u = t for perpendicular and t + 6 for parallel. The two readings sum to 12 and neither is ever negative. If f(t) = 0 then t after = t, the arrival is on the line; else t after is whichever of t + 1, t - 1 reads smaller.">
       <div class="keynote">
-        <p>e goes back to t − a rather than using d, because d is |t − a| and the sign is the one
-          thing this card needs. It is the same subtraction with one operation less on it</p>
-        <p>nothing is done to bring t − a into 0…23 first, because the modulus would undo it — 24
-          is two 12s, so t − a, t − a + 24 and t − a − 24 all give the same e</p>
-        <p>t − a mod 12 is the non-negative remainder, 0…11, so e runs −6…5, and e = 0 means t − a
-          is already one of the two stopping values above</p>
-        <p>parallel and perpendicular differ only by the +6 inside the remainder, and the two
-          stopping values of one are the two "between" values of the other</p>
-        <p>at t − a = 0 or 12, parallel is 6 from both its stopping values. Nothing decides that
-          case, because there is nothing to decide: 6 up and 6 down both stop, in the same number
-          of arrivals, and the two stopping values are a half turn apart — the same line at two
-          indices. The sign e happens to take there picks the index, not the answer</p>
-        <p>with t = 0, an arrival at 1 gives t − a = −1 and one at 23 gives +23. e keeps those
-          apart, so one turns down and the other up; d is 1 and 23, ℓ is 1 for both, and neither
-          can</p>
-        <p>swept by
+        <p>nothing here is negative and nothing is a sign. A node draws both ends of its line, and
+          reading the arrival off both is what a single number cannot do — collapse the pair and
+          the second reading has to come back as the sign of the first</p>
+        <p>each arrangement stops when the arrival lands ON one of the node's own drawn lines:
+          perpendicular on the tilt itself, parallel on the normal. That is what its two stopping
+          values are — the two ends of one line</p>
+        <p>so the two readings always sum to 12, and f is the smaller of them. No subtraction from
+          6, and no separate rule per arrangement — only which line is read</p>
+        <p>the cost is the comparison in the last line, which the signed version bought its way out
+          of. That is the whole trade: one number and a sign, or two readings and no sign</p>
+        <p>readings summing to 12, stopping on a drawn line, and f being the smaller reading are
+          all swept over every pair by
           <span data-src="nodes/Node1/node_test.go#TestOneRoundIsSignAndRemainder">TestOneRoundIsSignAndRemainder</span></p>
       </div>
     </div>
@@ -112,13 +108,15 @@
 
     <div class="card wide">
       <h2>Where it stops, and when</h2>
-      <img class="math" src="update-closed-run.svg" style="width:442px"
-        alt="Arrivals = f. t after = t - f sign(e). The sign of e is taken from the first arrival and never again.">
+      <img class="math" src="update-closed-run.svg" style="width:505px"
+        alt="Arrivals = f(t). Ends on the line: parallel, t = a + 6 mod 12; perpendicular, t = a, mod 12. Which end of that line it reaches is not decided here.">
       <div class="keynote">
-        <p>f is the count as well as the distance — each arrival closes one slot, so there is no
+        <p>f is the count as well as the reading — each arrival closes one slot, so there is no
           arrival number f + 1, and f = 0 is the run that takes none</p>
-        <p>the walk cannot turn back, which is what makes the landing slot a multiplication rather
-          than a simulation. Swept by
+        <p>the ANSWER needs no direction at all. Mod 12 a tilt and its bottom are the same number,
+          so both ends of the line are one arrangement, and where the walk ends is settled without
+          ever saying which way it went</p>
+        <p>the walk cannot turn back, which is what lets f be known before it starts. Swept by
           <span data-src="nodes/Node1/node_test.go#TestTheWalkIsClosedForm">TestTheWalkIsClosedForm</span></p>
       </div>
     </div>

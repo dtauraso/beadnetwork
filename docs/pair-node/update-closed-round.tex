@@ -4,15 +4,16 @@
 \usepackage{pairmath}
 \begin{document}
 \[\begin{array}{@{}l@{}}
-  \quad \text{\color{acc}which way, and how far, to a stopping value} \\[4pt]
-  \quad {\color{par}\text{parallel stops where } t - a = 6 \text{ or } 18} \\[3pt]
-  \qquad {\color{par}e = (t - a \bmod 12) - 6} \\[6pt]
-  \quad {\color{perp}\text{perpendicular stops where } t - a = 0 \text{ or } 12} \\[3pt]
-  \qquad {\color{perp}e = (t - a + 6 \bmod 12) - 6} \\[4pt]
-  \quad {\color{dim}t - a \bmod 12 \;\in\; \{0, \ldots, 11\}, \text{ so } -6 \le e \le 5} \\[9pt]
-  \quad {\color{acc}t_{\mathrm{after}} = t - \operatorname{sign}(e)}
-    \qquad {\color{acc}f = \lvert e \rvert} \\[11pt]
-  \quad {\color{dim}e \text{ reads } t - a, \text{ not } d :
-    \; d \text{ has already dropped the sign}}
+  \quad \text{\color{acc}each arrangement has a line, and a line has two ends} \\[5pt]
+  \quad {\color{perp}\text{perpendicular} : \; \text{the tilt line} \quad t,\; t+12} \\[4pt]
+  \quad {\color{par}\text{parallel} : \; \text{the normal line} \quad t+6,\; t+18} \\[9pt]
+  \quad \text{\color{acc}read the arrival off both ends, and keep the smaller} \\[5pt]
+  \quad f(u) = \min\bigl(\len(u,\, a),\; \len(u+12,\, a)\bigr) \\[4pt]
+  \quad {\color{dim}u = t \text{ perpendicular},\; t+6 \text{ parallel}} \\[4pt]
+  \quad {\color{dim}\text{the two readings sum to } 12; \text{ neither is ever negative}} \\[9pt]
+  \quad {\color{acc}f(t) = 0 :} \quad t_{\mathrm{after}} = t
+    \quad {\color{dim}\text{the arrival is on the line}} \\[5pt]
+  \quad {\color{acc}\text{else} :} \quad t_{\mathrm{after}} =
+    \text{whichever of } t_{+1},\, t_{-1} \text{ reads smaller}
 \end{array}\]
 \end{document}
