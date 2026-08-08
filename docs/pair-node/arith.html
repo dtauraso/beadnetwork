@@ -51,12 +51,12 @@
         and how many messages it takes come out.</p>
     </div>
 
-    <h3 class="secname">What there is</h3>
+    <h3 class="secname">The tilts, and the two counts taken from them</h3>
 
     <div class="card wide">
-      <h2>Two numbers, one arrow each</h2>
+      <h2>Where the numbers come from</h2>
       <img class="math" src="update-closed-numbers.svg" style="width:724px"
-        alt="t and a are in {0, 1, ..., 23}. This node: tilt = t, normal = t + 6, bottom = b = t + 12 mod 24; only t moves, the other two are read off it. The partner: tilt = p, normal = p + 6. a = p + 6 — a IS the partner's normal, and its tilt p is never seen. Count from each end of the tilt line up to a: u = t - a mod 24, from the top; v = b - a mod 24, from the bottom. One test, on each count: which way round is the acute one. If u is 12 or more, replace it with 24 - u, and the same for v. Then u + v = 12 — the ends are a half turn apart, so the two distances share it.">
+        alt="t and a are in {0, 1, ..., 23}. This node: tilt = t, normal = t + 6, bottom = b = t + 12 mod 24; only t moves, the other two are read off it. The partner: tilt = p, normal = p + 6. a = p + 6 — a IS the partner's normal, and its tilt p is never seen. Count from each end of the tilt line up to a: u = t - a mod 24, from the top; v = b - a mod 24, from the bottom. One test, on each count: keep it under 12. If u is 12 or more, replace it with 24 - u, and the same for v. Then u + v = 12 — the ends are a half turn apart, so the two distances share it.">
       <div class="keynote">
         <p><b>t</b> — this node's tilt, the only thing it stores</p>
         <p><b>b</b> — its bottom, the other end of the same line</p>
@@ -67,25 +67,25 @@
       </div>
     </div>
 
-    <h3 class="secname">How far off</h3>
+    <h3 class="secname">Slots to the quarter, and slots to a stop</h3>
 
     <div class="card wide">
-      <h2>One number, off the quarter</h2>
-      <img class="math" src="update-closed-far.svg" style="width:504px"
-        alt="How far off the quarter, the same from either end: q = |u - 6| = |v - 6|. How far off stopping: perpendicular stops when an end reads 0, and f = min(u, v) = 6 - q; parallel stops when both ends read 6, and f = q.">
+      <h2>q and f</h2>
+      <img class="math" src="update-closed-far.svg" style="width:399px"
+        alt="Slots from either distance to the quarter: q = |u - 6| = |v - 6|. Slots t must turn before it stops: perpendicular stops when an end reads 0, and f = min(u, v) = 6 - q; parallel stops when both ends read 6, and f = q.">
       <div class="keynote">
-        <p><b>q</b> — slots from either end's distance to the quarter</p>
-        <p><b>f</b> — slots this node is off stopping</p>
+        <p><b>q</b> — slots from u (or from v) to 6</p>
+        <p><b>f</b> — slots t must turn before it stops</p>
         <p>q is the same off either end because u + v = 12 and 6 is halfway, which is why one q
           settles both arrangements and their two f are complements
           (<a href="audit.html">audit</a>)</p>
       </div>
     </div>
 
-    <h3 class="secname">One round</h3>
+    <h3 class="secname">One message: t moves one slot, or none</h3>
 
     <div class="card wide">
-      <h2>Where it is after one message</h2>
+      <h2>t after one message</h2>
       <img class="math" src="update-closed-round.svg" style="width:556px"
         alt="f is a reading of the tilt t, so t + 1 and t - 1 have their own. If f = 0 then t after = t; else t after is whichever of t + 1, t - 1 has the smaller f. f = 0 is a lying on one of this node's own lines: perpendicular, the tilt line t and b; parallel, the normal line t + 6 and b + 6.">
       <div class="keynote">
@@ -97,10 +97,10 @@
       </div>
     </div>
 
-    <h3 class="secname">The whole run</h3>
+    <h3 class="secname">f messages, and the tilt they end on</h3>
 
     <div class="card wide">
-      <h2>Where it stops, and when</h2>
+      <h2>The run, without running it</h2>
       <img class="math" src="update-closed-run.svg" style="width:505px"
         alt="Arrivals = f(t). Ends on the line: parallel, t = a + 6 mod 12; perpendicular, t = a, mod 12. Which end of that line it reaches is not decided here.">
       <div class="keynote">
@@ -113,10 +113,10 @@
       </div>
     </div>
 
-    <h3 class="secname">What this does not say</h3>
+    <h3 class="secname">What is held fixed</h3>
 
     <div class="card wide">
-      <h2>It holds while a is held</h2>
+      <h2>a does not move here</h2>
       <div class="keynote">
         <p>a is fixed here; a live pair moves both ends. The exchange itself is on
           <a href="updates.html">Update rules</a></p>

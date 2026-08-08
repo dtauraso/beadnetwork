@@ -163,16 +163,16 @@ BODIES = {
     \qquad {\color{dim}\text{from the top}} \\[4pt]
   \quad v = b - a \pmod{24}
     \qquad {\color{dim}\text{from the bottom}} \\[6pt]
-  \quad \text{\color{acc}one test, on each count: which way round is the acute one} \\[5pt]
+  \quad \text{\color{acc}one test, on each count: keep it under } 12 \\[5pt]
   \quad \text{if } u \ge 12 : \; u \leftarrow 24 - u
     \qquad {\color{dim}\text{and the same for } v} \\[6pt]
   \quad {\color{dim}u + v = 12 \text{ — the ends are a half turn apart, so the two
     distances share it}}
 """,
     "closed-far": r"""
-  \quad \text{\color{acc}how far off the quarter — the same from either end} \\[4pt]
+  \quad \text{\color{acc}slots from either distance to the quarter} \\[4pt]
   \quad q = \lvert\, u - 6 \,\rvert = \lvert\, v - 6 \,\rvert \\[9pt]
-  \quad \text{\color{acc}how far off stopping} \\[4pt]
+  \quad \text{\color{acc}slots } t \text{ must turn before it stops} \\[4pt]
   \quad {\color{perp}\text{perpendicular stops when an end reads } 0} \\[3pt]
   \qquad {\color{perp}f = \min(u,\, v) = 6 - q} \\[6pt]
   \quad {\color{par}\text{parallel stops when both ends read } 6} \\[3pt]
