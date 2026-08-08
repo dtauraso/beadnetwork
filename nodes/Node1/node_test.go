@@ -109,6 +109,37 @@ func TestPerpendicularStepsThroughTheParallelHalt(t *testing.T) {
 	}
 }
 
+// TestRestingLengthsFollowFromTheCongruences checks that the resting lengths are DERIVED rather
+// than chosen. A tilt is a LINE, so reversing it changes nothing, which makes the tilts live in
+// Z24 modulo the half turn — and in those terms the two arrangements are congruences on the gap
+// g between the two tilts:
+//
+//	parallel       g = 0 (mod 12)     the two lines coincide
+//	perpendicular  g = 6 (mod 12)     a quarter turn between them
+//
+// What ARRIVES is the partner's normal, a = p + 6, so the angle length this node measures is
+// |g - 6| folded — which turns the two congruences into L = 6 and L in {0, 12}. That is where
+// restingLengths comes from, and this sweeps every (partner, tilt) pair to confirm it, including
+// that no other gap produces a resting length by accident.
+func TestRestingLengthsFollowFromTheCongruences(t *testing.T) {
+	r := newRing(24)
+	for p := int32(0); p < 24; p++ {
+		a := r.at((p + 6) % 24) // the partner sends its normal, not its tilt
+		for tilt := int32(0); tilt < 24; tilt++ {
+			g := ((tilt-p)%24 + 24) % 24
+			L := r.at(tilt).angleLength(a)
+			switch {
+			case g%12 == 0 && L != 6:
+				t.Fatalf("p=%d tilt=%d g=%d: parallel congruence but L=%d, want 6", p, tilt, g, L)
+			case g%12 == 6 && L != 0 && L != 12:
+				t.Fatalf("p=%d tilt=%d g=%d: perpendicular congruence but L=%d, want 0 or 12", p, tilt, g, L)
+			case g%12 != 0 && g%12 != 6 && (L == 0 || L == 6 || L == 12):
+				t.Fatalf("p=%d tilt=%d g=%d: neither congruence, yet L=%d is a resting length", p, tilt, g, L)
+			}
+		}
+	}
+}
+
 // TestTheTwoMissesAreComplements locks the identity the one-machine fold rests on: the modes are
 // not merely alike, they are one rule read in two directions. If this ever fails, the home sets
 // have stopped being midpoints of each other and the two modes are genuinely separate rules
