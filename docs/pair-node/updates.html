@@ -235,23 +235,27 @@
 
       <div class="card wide">
         <h2>Which slot to go to — measure, then decide</h2>
-        <img class="math" src="update-decide-turn.svg" style="width:318px"
-          alt="Measure: L(u) = angleLength(u, a), and f(u) = the minimum over r in R of |L(u) - r|. Then decide: f(t) = 0 gives t after = t; f(t plus one) less than or equal to f(t minus one) gives t after = t plus one; else t after = t minus one.">
+        <img class="math" src="update-decide-turn.svg" style="width:511px"
+          alt="Measure where it is and each way it could turn: L = angleLength(t, a), L plus = angleLength(t plus one, a), L minus = angleLength(t minus one, a). How far off a rest, with f plus and f minus from L plus and L minus the same way: parallel, f = |L - 6|; perpendicular, f = 6 - |L - 6|; setting, f = 0. Then decide: f = 0 gives t after = t; f plus less than or equal to f minus gives t after = t plus one; else t after = t minus one.">
         <div class="keynote">
-          <p>ℓ is the angle length from a state to what arrived; R is the list this mode rests at,
-            two cards up; f is the distance from ℓ to the nearest entry of R</p>
+          <p>both modes rest symmetrically about the quarter — parallel ON it, perpendicular at the
+            two ends — so f is just how far ℓ sits off 6, one way up or the other. No list is
+            searched and no minimum is taken</p>
+          <p>the two f lines being 6 apart is the <a href="audit.html">audit</a>'s "one mode is the
+            other upside down", written as arithmetic</p>
           <p>f is computed inside the arrival and thrown away — it is not a countdown, and no walk
             is planned from it. One arrival turns the tilt at most one slot</p>
-          <p>neither branch names a mode. The mode is in R, as a list of numbers, which is why
-            <span data-src="nodes/Node1/machine.go#fromRest">fromRest</span> cannot ask which mode
-            it is computing for</p>
-          <p>the measure lines are what the code does:
-            <span data-src="nodes/Node1/ring.go#angleLength">angleLength</span> for ℓ, then a
-            minimum over the list <span data-src="nodes/Node1/machine.go#resting">resting</span>
-            returns — that call is the one line the mode enters through</p>
-          <p>f takes the state as its argument, which is what lets the same function answer both
-            branches: <span data-src="nodes/Node1/machine.go#settled">settled</span> asks it about t,
-            <span data-src="nodes/Node1/machine.go#step">step</span> asks it about t ± 1</p>
+          <p>the deciding never names a mode — by the time it runs, the mode is spent, having
+            produced one number per way to turn</p>
+          <p><span data-src="nodes/Node1/machine.go#fromRest">fromRest</span> computes f the GENERAL
+            way, as a minimum over the list
+            <span data-src="nodes/Node1/machine.go#resting">resting</span> returns, which is the
+            shape a third mode would join. The two lines above are what that minimum comes to for
+            these two modes, checked over both lattices and every tilt-and-arrival pair by
+            <span data-src="nodes/Node1/node_test.go#TestFromRestIsTheQuarterOffset">TestFromRestIsTheQuarterOffset</span></p>
+          <p>ℓ, ℓ₊ and ℓ₋ are one function called three times —
+            <span data-src="nodes/Node1/machine.go#settled">settled</span> uses the first,
+            <span data-src="nodes/Node1/machine.go#step">step</span> the other two</p>
         </div>
       </div>
 

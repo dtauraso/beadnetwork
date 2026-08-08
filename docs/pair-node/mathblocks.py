@@ -123,13 +123,21 @@ BODIES = {
     # step is the whole of what the mode contributes, and it contributes it as R, a list of
     # numbers, which is why neither branch below mentions perpendicular or parallel.
     "decide-turn": r"""
-  \text{\color{acc}measure} \\[5pt]
-  \quad \ell(u) = \len(u,\, a) \\[5pt]
-  \quad f(u) = \min_{r \in R}\, \lvert\, \ell(u) - r \,\rvert \\[11pt]
+  \text{\color{acc}measure}
+    \quad {\color{dim}\text{where it is, and each way it could turn}} \\[5pt]
+  \quad \ell = \len(t,\, a) \\[4pt]
+  \quad \ell_{+} = \len(t_{+1},\, a) \\[4pt]
+  \quad \ell_{-} = \len(t_{-1},\, a) \\[9pt]
+  \text{\color{acc}how far off a rest}
+    \quad {\color{dim}f_{+},\, f_{-} \text{ from } \ell_{+},\, \ell_{-} \text{ the same way}}
+    \\[5pt]
+  \quad {\color{par}\text{parallel} : \; f = \lvert \ell - 6 \rvert} \\[4pt]
+  \quad {\color{perp}\text{perpendicular} : \; f = 6 - \lvert \ell - 6 \rvert} \\[4pt]
+  \quad {\color{dim}\text{setting} : \; f = 0} \\[11pt]
   \text{\color{acc}then decide} \\[5pt]
-  \quad f(t) = 0 : \qquad\qquad\quad\; t_{\mathrm{after}} = t \\[5pt]
-  \quad f(t_{+1}) \le f(t_{-1}) : \quad t_{\mathrm{after}} = t_{+1} \\[5pt]
-  \quad \text{else} : \qquad\qquad\qquad\; t_{\mathrm{after}} = t_{-1}
+  \quad f = 0 : \qquad\quad\; t_{\mathrm{after}} = t \\[5pt]
+  \quad f_{+} \le f_{-} : \quad t_{\mathrm{after}} = t_{+1} \\[5pt]
+  \quad \text{else} : \qquad\quad\;\, t_{\mathrm{after}} = t_{-1}
 """,
     "other": r"""
   \text{every arrival} :\; r_{\mathrm{after}} = a \\[5pt]

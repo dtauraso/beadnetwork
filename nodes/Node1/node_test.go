@@ -109,6 +109,42 @@ func TestPerpendicularStepsThroughTheParallelHalt(t *testing.T) {
 	}
 }
 
+// TestFromRestIsTheQuarterOffset checks the closed form the update-rules page states, against the
+// fromRest the node actually runs. fromRest is a minimum over the mode's resting-length list, which
+// is the general shape and the one a new mode joins. But BOTH real modes rest symmetrically about
+// the quarter — parallel at the quarter itself, perpendicular at the two ends of the angle-length
+// range — so for both of them fromRest is a function of how far the angle length sits off the
+// quarter, and no minimum over a list is needed to say it:
+//
+//	q = |L - quarter|
+//	parallel       fromRest = q
+//	perpendicular  fromRest = quarter - q
+//
+// The two being complements is the audit's "one is the other upside down" (docs/pair-node/audit.html),
+// here as arithmetic rather than as a picture. This sweeps both lattices the model runs on, every
+// tilt against every arrival, so the page cannot claim a shortcut the code does not honour.
+func TestFromRestIsTheQuarterOffset(t *testing.T) {
+	for _, points := range []int32{24, 48} {
+		r := newRing(points)
+		perp := tiltMachine{mode: Wiring.TiltMachinePerpendicular}
+		par := tiltMachine{mode: Wiring.TiltMachineParallel}
+		for tilt := int32(0); tilt < points; tilt++ {
+			for arr := int32(0); arr < points; arr++ {
+				from, a := r.at(tilt), r.at(arr)
+				q := abs32(from.angleLength(a) - r.quarterTurn)
+				if got := par.fromRest(from, a); got != q {
+					t.Fatalf("points=%d tilt=%d arrival=%d: parallel fromRest=%d, want q=%d",
+						points, tilt, arr, got, q)
+				}
+				if got := perp.fromRest(from, a); got != r.quarterTurn-q {
+					t.Fatalf("points=%d tilt=%d arrival=%d: perpendicular fromRest=%d, want quarter-q=%d",
+						points, tilt, arr, got, r.quarterTurn-q)
+				}
+			}
+		}
+	}
+}
+
 // TestRestingLengthsFollowFromTheGaps checks that the resting lengths are DERIVED rather than
 // chosen. A tilt is a LINE, so reversing it changes nothing and tilt and tilt+12 are the same
 // tilt — which leaves exactly four gaps g between the two tilts that the pair can hold:

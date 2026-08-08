@@ -16,7 +16,11 @@
 \RequirePackage{amsmath}
 \RequirePackage{amssymb}
 \RequirePackage{xcolor}
-\RequirePackage[paperwidth=20cm,paperheight=7cm,margin=2mm]{geometry}
+% --exact-bbox crops to the ink, so this only has to be BIG ENOUGH — nothing here is
+% sized against it. It was 7cm, which a block of ten rows overflows onto a second page;
+% dvisvgm then converts page 1 and reports "graphic size: 0pt x 0pt", which looks like a
+% LaTeX error and is not one. Tall enough that no block of this kind reaches the edge.
+\RequirePackage[paperwidth=20cm,paperheight=25cm,margin=2mm]{geometry}
 
 \pagestyle{empty}
 
