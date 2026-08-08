@@ -48,12 +48,17 @@ BODIES = {
   \delta(R,\, \mathrm{reset}) = R_{\mathrm{setting}}
 """,
     # The arithmetic the machine COMES OUT OF, not arithmetic imitating the machine.
-    # The point is that the resting lengths are DERIVED, not declared — and it is a claim
-    # about 24 slots on a ring, so it is written in slots. No Z_24, no congruence, no min:
-    # each of those imports a name for something the ring already says out loud. A slot is
-    # a slot, "the same line" is t and t+12, and the shorter of two arcs is a comparison of
-    # two numbers you can read off. Naming them after the group makes the claim look like
-    # it needs the group, when it is four lines of counting.
+    #
+    # These four say NOTHING about the machine. No tilt, no partner, no arrival, no mode,
+    # no rest — x and y are two numbers on a ring of 24, and the claim is a fact about
+    # them: shift one by 6, and the only gaps whose length lands on 0, 6 or 12 are the four
+    # quarter gaps. That fact is true whether or not anything runs. Writing it in the
+    # machine's own words (t, p, a, "the rests") made it read as the machine restated,
+    # which is exactly what this card exists to deny — the machine is what you get when
+    # you build something that lives on these numbers, not the other way round.
+    #
+    # Also: no Z_24, no congruence, no min. Each is a NAME for something the ring says out
+    # loud, and naming it makes four lines of counting look like it needs the machinery.
     #
     # FOUR FILES, not one. The first cut was a single block that ran each claim and its
     # gloss across one long line: 399pt wide against 157-322pt for every other block on
@@ -63,29 +68,32 @@ BODIES = {
     # cropped an empty first page to 0pt. The page's own pattern is one card per block,
     # each its own file at a size you can read; these are the four steps of the argument.
     "arith-groups": r"""
-  \text{\color{acc}the ring} \quad t = 0,\,1,\,\ldots,\,23 \\[3pt]
-  \quad {\color{dim}\text{a turn is one step, and 24 steps come back}} \\[8pt]
-  \text{\color{acc}the line} \quad t \text{ and } t+12 \text{ are the same tilt} \\[3pt]
-  \quad {\color{dim}\text{a tilt is a line, so reversing it changes nothing}}
+  \text{\color{acc}the ring} \quad x = 0,\,1,\,\ldots,\,23 \\[3pt]
+  \quad {\color{dim}\text{counted round, so } 24 \text{ is } 0 \text{ again}} \\[8pt]
+  \text{\color{acc}the half turn} \quad x \text{ and } x+12 \text{ name the same line} \\[3pt]
+  \quad {\color{dim}\text{so a line is a number counted round twelve}}
 """,
     "arith-distance": r"""
-  \text{\color{acc}how far apart} \quad d = \lvert x - y \rvert \\[3pt]
-  \quad L(x,y) = d \text{ or } 24 - d, \text{ whichever is shorter} \\[8pt]
-  \text{\color{acc}what arrives} \quad a = p + 6 \\[3pt]
-  \quad {\color{dim}\text{the partner's normal, a quarter turn on}}
+  \text{\color{acc}the length between two numbers} \\[4pt]
+  \quad d = \lvert x - y \rvert \\[5pt]
+  \quad L(x,y) = d \text{ or } 24 - d, \text{ whichever is shorter} \\[3pt]
+  \quad {\color{dim}\text{never more than } 12}
 """,
     "arith-gap": r"""
-  \text{\color{acc}the gap} \quad g = t - p \\[3pt]
-  \quad {\color{dim}\text{how far this tilt sits from the partner's}} \\[8pt]
-  \quad {\color{par}\text{parallel} \iff g = 0 \text{ or } 12} \\[5pt]
-  \quad {\color{perp}\text{perpendicular} \iff g = 6 \text{ or } 18}
+  \text{\color{acc}the four quarter gaps} \quad g = x - y \\[6pt]
+  \quad {\color{par}g = 0 \text{ or } 12} \\[3pt]
+  \qquad {\color{dim}x \text{ and } y \text{ name the same line}} \\[6pt]
+  \quad {\color{perp}g = 6 \text{ or } 18} \\[3pt]
+  \qquad {\color{dim}\text{a quarter of the ring between them}}
 """,
     "arith-rests": r"""
-  \text{\color{acc}so the rests are derived} \\[4pt]
-  \quad {\color{dim}a \text{ is already a quarter turn on, so } L(t,a)
-    \text{ measures } g - 6} \\[6pt]
-  \quad {\color{par}g = 0 \text{ or } 12 \;\Rightarrow\; L = 6} \\[5pt]
-  \quad {\color{perp}g = 6 \text{ or } 18 \;\Rightarrow\; L = 0 \text{ or } 12}
+  \text{\color{acc}shift one of the two by 6, and only those four land on }
+    0,\,6,\,12 \\[6pt]
+  \quad {\color{par}g = 0 \text{ or } 12 \;\Rightarrow\; L(x,\,y+6) = 6} \\[5pt]
+  \quad {\color{perp}g = 6 \text{ or } 18 \;\Rightarrow\; L(x,\,y+6) = 0 \text{ or } 12}
+    \\[5pt]
+  \quad {\color{dim}\text{every other } g \;\Rightarrow\; L(x,\,y+6)
+    \text{ is none of } 0,\,6,\,12}
 """,
     "choose": r"""
   \text{\color{acc}when } R_{\mathrm{before}} = R_{\mathrm{setting}} : \\[7pt]
