@@ -114,14 +114,16 @@
 
     <div class="card wide">
       <h2>t after the update</h2>
-      <p class="eq head">work out <var>u</var>, <var>v</var> and the acute angle three times, once
-        for each tilt this node could hold next</p>
-      <p class="eq step"><span class="g"><var>c</var></span> the acute angle with the tilt at
-        <var>t</var></p>
-      <p class="eq step"><span class="g"><var>d</var></span> the acute angle with the tilt at
-        <var>t</var>+1</p>
-      <p class="eq step"><span class="g"><var>e</var></span> the acute angle with the tilt at
-        <var>t</var>−1</p>
+      <p class="eq head">the same two counts and the same test, once per tilt (mod 24)</p>
+      <p class="eq step"><span class="g"><var>c</var> :</span>
+        <var>u</var> = <var>t</var> − <var>a</var>,
+        <var>v</var> = <var>b</var> − <var>a</var></p>
+      <p class="eq step"><span class="g"><var>d</var> :</span>
+        <var>u</var> = <var>t</var>+1 − <var>a</var>,
+        <var>v</var> = <var>b</var>+1 − <var>a</var></p>
+      <p class="eq step"><span class="g"><var>e</var> :</span>
+        <var>u</var> = <var>t</var>−1 − <var>a</var>,
+        <var>v</var> = <var>b</var>−1 − <var>a</var></p>
       <p class="eq head par">parallel</p>
       <p class="eq step"><span class="g"><var>c</var> = 6 :</span>
         <var>t</var><sub>after</sub> = <var>t</var></p>
@@ -145,8 +147,7 @@
       <div class="keynote">
         <p><b>t<sub>after</sub></b> — this node's tilt when the update is done; its normal and
           bottom are read off the new t, so one slot moves all three</p>
-        <p><b>d, e</b> — c again, with t+1 and with t−1 in place of t; b moves with the tilt, so
-          both counts are retaken</p>
+        <p><b>d, e</b> — the acute angle for the two tilts this node could turn to</p>
         <p>the two arrangements differ by one character: parallel takes the smaller |c − 6| and
           perpendicular the larger, because parallel stops where that value is 0 and perpendicular
           where it is 6, its largest</p>
