@@ -1,0 +1,14 @@
+% update-closed-round.tex — one block of the update. Shared setup is pairmath.sty,
+% which also carries the rebuild command.
+\documentclass[12pt]{article}
+\usepackage{pairmath}
+\begin{document}
+\[\begin{array}{@{}l@{}}
+  \quad d = t - a
+    \quad {\color{dim}\text{folded into } (-12,\, 12]} \\[9pt]
+  \quad {\color{par}\text{parallel} : \; e = (d \bmod 12) - 6} \\[5pt]
+  \quad {\color{perp}\text{perpendicular} : \; e = (d + 6 \bmod 12) - 6} \\[9pt]
+  \quad {\color{acc}t_{\mathrm{after}} = t - \operatorname{sign}(e)}
+    \qquad {\color{dim}f = \lvert e \rvert}
+\end{array}\]
+\end{document}

@@ -109,6 +109,76 @@ func TestPerpendicularStepsThroughTheParallelHalt(t *testing.T) {
 	}
 }
 
+// TestOneRoundIsSignAndRemainder is the other half of what docs/pair-node/arith.html rests on: ONE
+// update round, written without a case in it.
+//
+// The trick is to stop folding. angleLength throws the sign away, which is why the rule that uses
+// it needs a comparison to get direction back. Keep the SIGNED gap d = t - a instead, folded only
+// into (-12, 12], and both arrangements are the same statement — the rests sit every 12 apart in d,
+// and the arrangement is a SHIFT of 6 inside the modulus:
+//
+//	parallel       e = (d mod 12) - 6          rests at d = -6, +6
+//	perpendicular  e = ((d + 6) mod 12) - 6    rests at d = -12, 0, +12
+//
+// e is then the signed distance to the nearest rest, and the whole round is t_after = t - sign(e),
+// with |e| equal to fromRest. No branch, no minimum, no list.
+//
+// The ties — a tilt equidistant from two rests, which is where a comparison rule has to be told
+// what to prefer — need NO special case here: they land on e = -6 by themselves, and -6 turns up,
+// which is exactly what step does. 96 of the 1152 pairs are such ties, so this is not a corner
+// being skirted.
+func TestOneRoundIsSignAndRemainder(t *testing.T) {
+	const points = 24
+	r := newRing(points)
+	sign := func(x int32) int32 {
+		switch {
+		case x > 0:
+			return 1
+		case x < 0:
+			return -1
+		}
+		return 0
+	}
+	for _, m := range []tiltMachine{
+		{mode: Wiring.TiltMachineParallel},
+		{mode: Wiring.TiltMachinePerpendicular},
+	} {
+		shift := int32(0)
+		if m.mode == Wiring.TiltMachinePerpendicular {
+			shift = 6
+		}
+		for arr := int32(0); arr < points; arr++ {
+			a := r.at(arr)
+			for tilt := int32(0); tilt < points; tilt++ {
+				cur := r.at(tilt)
+
+				d := ((tilt-arr)%points + points) % points // the signed gap, in (-12, 12]
+				if d > points/2 {
+					d -= points
+				}
+				e := ((d+shift)%12+12)%12 - 6
+
+				if got := m.fromRest(cur, a); got != abs32(e) {
+					t.Fatalf("mode=%v a=%d t=%d d=%d: |e|=%d but fromRest=%d",
+						m.mode, arr, tilt, d, abs32(e), got)
+				}
+				if (e == 0) != m.settled(cur, a) {
+					t.Fatalf("mode=%v a=%d t=%d d=%d: e=%d but settled=%v",
+						m.mode, arr, tilt, d, e, m.settled(cur, a))
+				}
+				if e == 0 {
+					continue
+				}
+				want := ((tilt-sign(e))%points + points) % points
+				if got := m.step(cur, a).idx; got != want {
+					t.Fatalf("mode=%v a=%d t=%d d=%d e=%d: step gave %d, t-sign(e)=%d",
+						m.mode, arr, tilt, d, e, got, want)
+				}
+			}
+		}
+	}
+}
+
 // TestTheWalkIsClosedForm is what docs/pair-node/arith.html rests on: that for a HELD arrival the
 // whole walk can be written down rather than run. Three claims, swept over both modes and every
 // (arrival, tilt) pair:

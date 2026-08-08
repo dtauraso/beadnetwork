@@ -5,7 +5,8 @@
 
 <header>
   <h1>The arithmetic instead</h1>
-  <div class="sub">the same node, with no states, no transitions, and nothing to run</div>
+  <div class="sub">one round, and the whole run — with no states, no transitions, and nothing to
+    step</div>
 </header>
 
 <nav>
@@ -73,7 +74,31 @@
         <p>both are symmetric about the quarter, so q — how far ℓ sits off 6 — settles both, one way
           up or the other. The two f being complements is the same fact the
           <a href="audit.html">audit</a> found by drawing them</p>
-        <p>f is a DISTANCE, in slots, and the next card is what that distance turns out to be worth</p>
+        <p>f is a DISTANCE, in slots, and it says nothing about WHICH WAY — ℓ folded the sign away
+          to get it. The next card puts the sign back, and the direction comes with it</p>
+      </div>
+    </div>
+
+    <h3 class="secname">One round</h3>
+
+    <div class="card wide">
+      <h2>Where it is after one arrival</h2>
+      <img class="math" src="update-closed-round.svg" style="width:383px"
+        alt="d = t - a, folded into (-12, 12]. Parallel: e = (d mod 12) - 6. Perpendicular: e = (d + 6 mod 12) - 6. t after = t - sign(e), and f = |e|.">
+      <div class="keynote">
+        <p>ℓ above threw the SIGN away, which is why a rule built on it has to compare two
+          neighbours to get direction back. Keep the signed gap and the direction is already
+          there — it is the sign of e</p>
+        <p>the rests sit every 12 apart in d, so taking d modulo 12 asks "how far past the last
+          rest", and subtracting 6 recentres that on the nearest one. The two arrangements differ
+          by a SHIFT OF 6 INSIDE the modulus and by nothing else</p>
+        <p>a tilt exactly between two rests is where a comparison rule has to be told what to
+          prefer. Here it needs nothing: those land on e = −6 by themselves, and −6 turns up, which
+          is what the code does. 96 of the 1152 pairs are such ties, so this is not a corner being
+          skirted</p>
+        <p>and f is just |e| — the magnitude the page opened with, with the sign put back on</p>
+        <p>swept over both arrangements and every tilt-against-arrival pair by
+          <span data-src="nodes/Node1/node_test.go#TestOneRoundIsSignAndRemainder">TestOneRoundIsSignAndRemainder</span></p>
       </div>
     </div>
 
@@ -86,8 +111,8 @@
       <div class="keynote">
         <p>f is not only how far off it is — it is the COUNT. Each arrival closes exactly one slot,
           so f arrivals is the whole run and there is no arrival number f + 1</p>
-        <p>s is decided once, by which way is closer at the start, and never revisited. The walk
-          cannot turn back, which is why the landing slot is a multiplication and not a simulation</p>
+        <p>s is −sign(e) from the card above, and it is decided once. The walk cannot turn back,
+          which is why the landing slot is a multiplication and not a simulation</p>
         <p>so f = 0 is not a special case or a halt condition — it is the run that takes no arrivals</p>
         <p>all three claims are swept over both arrangements and every tilt-against-arrival pair by
           <span data-src="nodes/Node1/node_test.go#TestTheWalkIsClosedForm">TestTheWalkIsClosedForm</span></p>

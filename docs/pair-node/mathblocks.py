@@ -157,6 +157,17 @@ BODIES = {
   \quad {\color{par}\text{parallel} : \; f = q} \qquad
         {\color{perp}\text{perpendicular} : \; f = 6 - q}
 """,
+    # ONE ROUND, with no case in it. The magnitude story above (l, q, f) has thrown the sign
+    # away, so it needs a comparison to get direction back. Keep the SIGNED gap instead and
+    # both arrangements are one line, differing by a shift of 6 inside the modulus.
+    "closed-round": r"""
+  \quad d = t - a
+    \quad {\color{dim}\text{folded into } (-12,\, 12]} \\[9pt]
+  \quad {\color{par}\text{parallel} : \; e = (d \bmod 12) - 6} \\[5pt]
+  \quad {\color{perp}\text{perpendicular} : \; e = (d + 6 \bmod 12) - 6} \\[9pt]
+  \quad {\color{acc}t_{\mathrm{after}} = t - \operatorname{sign}(e)}
+    \qquad {\color{dim}f = \lvert e \rvert}
+""",
     "closed-run": r"""
   \quad {\color{acc}\text{arrivals until it stops}} \;=\; f \\[9pt]
   \quad {\color{acc}\text{where it stops}} \;=\; t + s\,f
