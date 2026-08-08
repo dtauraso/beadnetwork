@@ -23,7 +23,11 @@
       background: var(--bg);
       color: var(--ink);
       font-family: var(--font);
-      font-size: 13px
+      font-size: 13px;
+      /* The page scrolls DOWN and only down. The causes are fixed below — children
+         scale or wrap, grid items get min-width:0 — and this is the backstop so a
+         future wide element cannot reintroduce a sideways scrollbar unnoticed. */
+      overflow-x: hidden
     }
 
     header {
@@ -129,16 +133,30 @@
       height: auto
     }
 
-    /* A card whose content is a table takes the full row and never scrolls:
-       the table sizes itself to the card and wraps, instead of the card
-       sizing itself to the table. */
+    /* NOTHING SCROLLS SIDEWAYS. A card sizes its content to itself — tables wrap,
+       drawings scale — instead of sizing itself to the content and growing a second
+       scrollbar. The page scrolls DOWN and only down. */
     .card.wide {
-      grid-column: 1 / -1;
-      overflow-x: visible
+      grid-column: 1 / -1
     }
 
+    /* No overflow property here on purpose: setting overflow-x alone computes
+       overflow-y to auto, which grows a scrollbar INSIDE the card. Nothing needs
+       clipping anyway — every child scales (svg, img) or wraps (table). */
     .card {
-      overflow-x: auto
+      min-width: 0
+    }
+
+    /* grid children default to min-width:auto, which lets a wide child push the
+       column past the viewport — the usual cause of a page that scrolls across. */
+    .grid,
+    .rows {
+      min-width: 0
+    }
+
+    .grid>*,
+    .rows>* {
+      min-width: 0
     }
 
     .card {
@@ -168,6 +186,17 @@
       font-family: var(--mono);
       font-size: 11px;
       color: var(--accent)
+    }
+
+    /* The arithmetic, set in LaTeX and rendered to an SVG of paths at authoring time.
+       It scales down to the card rather than scrolling: no page is ever wider than the
+       window. */
+    img.math {
+      display: block;
+      width: 100%;
+      max-width: 620px;
+      height: auto;
+      margin: 12px auto 4px
     }
 
     table.f {
