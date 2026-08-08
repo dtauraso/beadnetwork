@@ -55,7 +55,7 @@
 
     <div class="card wide">
       <h2>Two numbers, one arrow each</h2>
-      <img class="math" src="update-closed-numbers.svg" style="width:533px"
+      <img class="math" src="update-closed-numbers.svg" style="width:724px"
         alt="t and a are in {0, 1, ..., 23}. This node: tilt = t, normal = t + 6, bottom = b = t + 12 mod 24; only t moves, the other two are read off it. The partner: tilt = p, normal = p + 6. a = p + 6 — a IS the partner's normal, and its tilt p is never seen. Count from each end of the tilt line up to a: u = t - a mod 24, from the top; v = b - a mod 24, from the bottom. The ends are a half turn apart, so u and v differ by 12 — exactly one of them is under 12. That one is its own end's reading, and the other end reads 12 minus it.">
       <div class="keynote">
         <p>a is a normal, so the quarter turn is already in it before anything is measured. That is
@@ -75,7 +75,7 @@
 
     <div class="card wide">
       <h2>One number, off the quarter</h2>
-      <img class="math" src="update-closed-far.svg" style="width:356px"
+      <img class="math" src="update-closed-far.svg" style="width:483px"
         alt="How far off the quarter, the same for both ends: q = |L top - 6| = |L bottom - 6|. How far off stopping: perpendicular stops when an end reads 0, and f = min(L top, L bottom) = 6 - q; parallel stops when both ends read 6, and f = q.">
       <div class="keynote">
         <p>q is the same off either end, because the two readings sum to 12 and 6 is halfway. That
@@ -90,7 +90,7 @@
 
     <div class="card wide">
       <h2>Where it is after one message</h2>
-      <img class="math" src="update-closed-round.svg" style="width:401px"
+      <img class="math" src="update-closed-round.svg" style="width:544px"
         alt="Each arrangement has a line, and a line has two ends. Perpendicular: the tilt line, t and t + 12. Parallel: the normal line, t + 6 and t + 18. Read a off both ends and keep the smaller: f(u) = min(angleLength(u, a), angleLength(u + 12, a)), with u = t for perpendicular and t + 6 for parallel. The two readings sum to 12 and neither is ever negative. If f(t) = 0 then t after = t, a is on the line; else t after is whichever of t + 1, t - 1 reads smaller.">
       <div class="keynote">
         <p>nothing here is negative and nothing is a sign. A node draws both ends of its line, and
@@ -113,7 +113,7 @@
 
     <div class="card wide">
       <h2>Where it stops, and when</h2>
-      <img class="math" src="update-closed-run.svg" style="width:372px"
+      <img class="math" src="update-closed-run.svg" style="width:505px"
         alt="Arrivals = f(t). Ends on the line: parallel, t = a + 6 mod 12; perpendicular, t = a, mod 12. Which end of that line it reaches is not decided here.">
       <div class="keynote">
         <p>f is the count as well as the reading — each message closes one slot, so there is no

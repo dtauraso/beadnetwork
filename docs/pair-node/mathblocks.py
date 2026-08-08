@@ -222,16 +222,16 @@ HEAD = ("%% update-%s.tex — one block of the update. Shared setup is pairmath.
 # shows them at their authored width, so 15px is that page's at-a-glance size and the maths
 # matches it rather than sitting under it.
 #
-# arith.html (ARITH_SCALE) has no drawings — it is maths and prose and nothing else. There
-# the maths is set against the PROSE, which pair.css puts at 14px.
+# ONE constant again, and arith.html is back on it. Two earlier attempts at a page-specific
+# size both read as too small when rendered: 14/12 = 1.167 (matching the em to the 14px prose)
+# and 1.4 (matching the x-heights instead). Set against the prose the maths comes out at
+# reading size, and reading size is not the size a formula wants — the comparison that matters
+# is with OTHER MATHS, which is on updates.html at 1.9.
 #
-# NOT 14/12. Matching the em to the prose (12pt document, so 14/12 = 1.167) renders the maths
-# visibly SMALLER than the text beside it: Computer Modern has a much lower x-height than the
-# page's sans, so equal em is not equal size — what a reader compares is the height of an x,
-# not the invisible box around it. The ratio of the two x-heights is about 1.2, which is where
-# this number comes from. Checked by rendering the page and looking, not computed and trusted.
+# The ceiling is real and worth knowing before raising this again: a wide card's inner width
+# is viewport - 60, and the widest block here is the arithmetic page's first card at 381pt, so
+# 1.9 needs a 784px window before anything shrinks. Twice 1.4 would need 1126px.
 SCALE = 1.9
-ARITH_SCALE = 1.4
 
 for name, body in BODIES.items():
     stem = f"update-{name}"
@@ -246,5 +246,4 @@ for name, body in BODIES.items():
         print(out[-600:])
         continue
     pt = float(line[0].split()[2].removesuffix("pt"))
-    scale = ARITH_SCALE if name.startswith("closed-") else SCALE
-    print(f'{stem}.svg  {pt:7.1f}pt  ->  style="width:{round(pt * scale)}px"')
+    print(f'{stem}.svg  {pt:7.1f}pt  ->  style="width:{round(pt * SCALE)}px"')
