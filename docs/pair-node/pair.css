@@ -196,6 +196,12 @@
       margin-left: 0
     }
 
+    /* The exception: a case that only applies INSIDE another case is indented under it, so
+       the branch it belongs to is visible rather than inferred from reading order. */
+    .eq.sub {
+      margin-left: 28px
+    }
+
     .eq.head {
       color: var(--accent);
       margin-top: 14px
