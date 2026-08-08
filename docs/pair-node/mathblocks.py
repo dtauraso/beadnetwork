@@ -38,14 +38,14 @@ BODIES = {
 """,
     "turn": r"""
   t_{\mathrm{after}} = \begin{cases}
-      t      & \text{settle} \\
-      t_{+1} & \text{up} \\
-      t_{-1} & \text{otherwise}
+      t_{\mathrm{before}} & \text{settle} \\
+      t_{+1}              & \text{up} \\
+      t_{-1}              & \text{otherwise}
     \end{cases}
 """,
     "other": r"""
   \text{panel } \blacktriangle\,\blacktriangledown :\;
-    t_{\mathrm{after}} = t_{\pm 1}, \quad R_{\mathrm{after}} = R \\[5pt]
+    t_{\mathrm{after}} = t_{\pm 1}, \quad R_{\mathrm{after}} = R_{\mathrm{before}} \\[5pt]
   \text{reset} :\; t_{\mathrm{after}} = 0, \quad R_{\mathrm{after}} = R_{\mathrm{setting}}
 """,
 }
