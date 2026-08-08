@@ -158,33 +158,43 @@ func (r *ring) seedState(idx int32) (s *tiltState, unknown bool) {
 // THE ACUTE TEST IS GONE. It asked whether the arrival lay within a quarter turn, and a cone
 // says that without saying which SIDE, so it could not answer at exactly a quarter turn at all
 // — it reported "not acute" there, which the rule read as "stand still", at precisely the
-// separation a node holding perpendicular most needed to move off. Direction now comes from
+// angle length a node holding perpendicular most needed to move off. Direction now comes from
 // which single step leaves this node nearer its own halt (stepToward), which is answerable
 // everywhere on the ring, including at both halts.
 //
-// separation is how far apart two states are on the ring, going the SHORT way round — never
+// angle length is how far apart two states are on the ring, going the SHORT way round — never
 // more than a half turn. acuteWith above answers a yes/no with the long-way case folded into
 // its second comparison; the halt tests need the number itself, and need it to mean the same
 // thing whichever side the target sits on, so the fold happens here instead.
-func (s *tiltState) separation(target *tiltState) int32 {
-	gap := s.idx - target.idx
-	if gap < 0 {
-		gap = -gap
+func (s *tiltState) angleLength(target *tiltState) int32 {
+	// TWO POINTS ON A CIRCLE HAVE TWO ARCS BETWEEN THEM, one each way round, and this is
+	// the shorter. That choice is not wrap handling and is not something the ring's 24
+	// states already answer: a STATE cannot leave the ring, which is why turning never
+	// does arithmetic, but a MEASUREMENT between two states still has to say which of
+	// the two arcs it means.
+	//
+	// One subtraction and a sign test. NOT max-min: a comparison is itself a subtraction,
+	// so ordering the operands first would subtract twice to avoid a sign check that the
+	// sign bit already answers. Both indices are in [0, points), so no modulus is needed
+	// or taken — d is simply one of the two arcs, and points-d is the other.
+	d := s.idx - target.idx
+	if d < 0 {
+		d = -d
 	}
-	if gap > s.ring.halfTurn {
-		gap = s.ring.points - gap
+	if d > s.ring.halfTurn {
+		d = s.ring.points - d
 	}
-	return gap
+	return d
 }
 
 // PERPENDICULAR AND PARALLEL ARE DIFFERENT STATES, AND EACH HAS ITS OWN HALT.
 //
 // What arrives is the partner's coplanar NORMAL, which already sits a quarter turn off the
-// partner's own tilt. So the separation between this node's top and that arrival says what
+// partner's own tilt. So the angle length between this node's top and that arrival says what
 // the two TILTS are doing, one quarter turn removed:
 //
-//	separation 0, or a half turn  ->  the tilts are a quarter turn apart  ->  PERPENDICULAR
-//	separation a quarter turn     ->  the tilts lie on one line          ->  PARALLEL
+//	angle length 0, or a half turn  ->  the tilts are a quarter turn apart  ->  PERPENDICULAR
+//	angle length a quarter turn     ->  the tilts lie on one line          ->  PARALLEL
 //
 // Both are places the pair can rest, and they are NOT the same place. The rule used to halt on
 // "not acute", which is one condition covering both — so a pair disturbed out of perpendicular
@@ -192,28 +202,13 @@ func (s *tiltState) separation(target *tiltState) int32 {
 // `kind=none -> hold`). A node now RUNS ONE OF TWO STATE MACHINES, and which one it is running
 // is what says where it is returning to when something disturbs it.
 //
-// tiltMachine is that pair seen from the node: perpendicularMachine and parallelMachine, each
-// complete in its own file, neither reading the other. A node runs one of them, or none yet.
-// This interface is the ONLY thing the two have in common, and it deliberately carries no
-// computation of its own — a shared helper hung off here is a shared rule by another name,
-// which is what kept coupling them.
-type tiltMachine interface {
-	// halted: is this arrival this machine's resting state?
-	halted(from, arrival *tiltState) bool
-	// step: the one move that leaves the node closer to it.
-	step(from, arrival *tiltState) *tiltState
-	// choice: this machine's pair-wide name, so the end that chose can tell the other one
-	// (Wiring.TiltMachine, carried on every vector message).
-	choice() Wiring.TiltMachine
-	// String names the machine for the diagnostic row — the two have to be distinguishable
-	// there too, since a log that printed both alike is what hid them being one state.
-	String() string
-}
-
-// THE RESTING-STATE RULES ARE NOT IN THIS FILE. Perpendicular lives in perpendicular.go and
-// parallel in parallel.go, one state machine each, sharing no computation — see either file's
-// header for why. What this file provides them is `separation`: a measurement of where two
-// directions sit relative to each other, which is not a rule and names no resting state.
+// A node runs ONE MODE of the one machine (machine.go), or none yet. The modes differ only in
+// which angle lengths they call home, and that difference is written as data — see machine.go's
+// header for the audit that established it and for why the rule is now written once.
+//
+// THE RESTING-STATE RULES ARE NOT IN THIS FILE. They are the home sets in machine.go. What this
+// file provides them is `angle length`: a measurement of where two directions sit relative to each
+// other, which is not a rule and names no resting state.
 
 func abs32(v int32) int32 {
 	if v < 0 {

@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pair node — Machine sameness audit</title>
+
+  <!-- Self-contained on purpose: this is one file, not a page of the pair-node
+       site. No stylesheet, no scripts, nothing to load. Source references are
+       plain text rather than editor links, since there is no host to ask. -->
+  <style>
+    :root {
+      --bg: #22222a;
+      --panel: #2f2f37;
+      --line: #3a3a44;
+      --ink: #e7e7ea;
+      --dim: #9a9aa6;
+      --accent: #4ea1ff;
+      --warm: #f9a825;
+      --mag: #e05fd8;
+      --green: #5fd68a;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font);
+      font-size: 13px
+    }
+
+    header {
+      padding: 14px 18px 0
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: .02em
+    }
+
+    .sub {
+      color: var(--dim);
+      font-size: 11px;
+      margin-top: 2px
+    }
+
+    main {
+      padding: 14px 18px 40px;
+      display: grid;
+      gap: 12px;
+      max-width: 760px
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px 12px
+    }
+
+    .card h2 {
+      margin: 0 0 8px;
+      font-size: 9.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--dim)
+    }
+
+    .cap {
+      color: var(--dim);
+      font-size: 11px;
+      margin-top: 6px;
+      line-height: 1.45
+    }
+
+    code {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent)
+    }
+
+    svg {
+      display: block;
+      max-width: 100%;
+      height: auto
+    }
+
+    .two {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap
+    }
+
+    text {
+      font-family: var(--font);
+      fill: var(--ink)
+    }
+
+    .lbl {
+      font-size: 10px;
+      fill: var(--dim)
+    }
+
+    .lblm {
+      font-family: var(--mono);
+      font-size: 10px;
+      fill: var(--ink)
+    }
+
+    .big {
+      font-size: 12px;
+      font-weight: 600
+    }
+
+    table.f {
+      border-collapse: collapse;
+      font-size: 11px;
+      width: 100%;
+      table-layout: fixed;
+      margin-top: 8px
+    }
+
+    table.f td {
+      padding: 3px 10px 3px 0;
+      vertical-align: baseline
+    }
+
+    table.f td.e {
+      font-family: var(--mono);
+      color: var(--ink);
+      overflow-wrap: anywhere
+    }
+
+    table.f td.n {
+      color: var(--dim)
+    }
+
+    table.f tr.h td {
+      color: var(--accent);
+      font-weight: 600;
+      border-bottom: 1px solid var(--line)
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>Machine sameness audit</h1>
+    <div class="sub">where perpendicular.go and parallel.go were the same thing — the report that folded
+      them into one machine</div>
+  </header>
+
+  <main>
+
+    <div class="card">
+      <h2>The finding, in one picture</h2>
+      <svg width="660" height="286" viewBox="0 0 660 286">
+        <!-- sum band -->
+        <line x1="60" y1="90" x2="540" y2="90" stroke="#5fd68a" stroke-width="1.4" stroke-dasharray="5 4" />
+        <text x="300" y="74" text-anchor="middle" class="big" fill="#5fd68a">the two always sum to quarter</text>
+
+        <!-- axes -->
+        <line x1="60" y1="210" x2="540" y2="210" stroke="#3a3a44" />
+        <line x1="300" y1="86" x2="300" y2="216" stroke="#3a3a44" stroke-dasharray="3 3" />
+
+        <!-- perpendicular miss = min(sep, half - sep) -->
+        <polyline points="60,210 300,90 540,210" fill="none" stroke="#e05fd8" stroke-width="2.4" />
+        <!-- parallel miss = |sep - quarter| -->
+        <polyline points="60,90 300,210 540,90" fill="none" stroke="#f9a825" stroke-width="2.4" />
+
+        <circle cx="180" cy="150" r="3.5" fill="#e7e7ea" />
+        <circle cx="420" cy="150" r="3.5" fill="#e7e7ea" />
+
+        <text x="548" y="94" class="lblm" fill="#f9a825">parallel miss</text>
+        <text x="548" y="214" class="lblm" fill="#e05fd8">perpendicular miss</text>
+
+        <text x="52" y="94" text-anchor="end" class="lbl">12</text>
+        <text x="52" y="214" text-anchor="end" class="lbl">0</text>
+
+        <text x="60" y="228" text-anchor="middle" class="lbl">0</text>
+        <text x="180" y="228" text-anchor="middle" class="lbl">6</text>
+        <text x="300" y="228" text-anchor="middle" class="lbl">12</text>
+        <text x="420" y="228" text-anchor="middle" class="lbl">18</text>
+        <text x="540" y="228" text-anchor="middle" class="lbl">24</text>
+        <text x="300" y="248" text-anchor="middle" class="lbl">separation, folded into [0, half] — 48-point ring, quarter =
+          12</text>
+        <text x="300" y="270" text-anchor="middle" class="lblm" fill="#5fd68a">perpendicular miss = quarter − parallel
+          miss</text>
+      </svg>
+      <div class="cap">One curve is the other upside down. Minimising one miss IS maximising the other, so
+        the two machines are one walk run in opposite directions on one number — not two rules that
+        happen to resemble each other.</div>
+    </div>
+
+    <div class="card">
+      <h2>Exact, both halves of the fold</h2>
+      <table class="f">
+        <tr class="h">
+          <td>case</td>
+          <td>parallel miss</td>
+          <td>quarter − that</td>
+          <td>perpendicular miss</td>
+        </tr>
+        <tr>
+          <td class="n">sep ≤ quarter</td>
+          <td class="e">quarter − sep</td>
+          <td class="e">sep</td>
+          <td class="e">sep</td>
+        </tr>
+        <tr>
+          <td class="n">sep ≥ quarter</td>
+          <td class="e">sep − quarter</td>
+          <td class="e">half − sep</td>
+          <td class="e">half − sep</td>
+        </tr>
+      </table>
+      <div class="cap">Equal in both cases, so equal everywhere on the ring. No exceptions, no approximation.</div>
+    </div>
+
+    <div class="card">
+      <h2>What is actually different: which separations count as home</h2>
+      <svg width="720" height="238" viewBox="0 0 720 238">
+        <!-- perpendicular ring -->
+        <circle cx="120" cy="106" r="72" fill="none" stroke="#3a3a44" />
+        <circle cx="120" cy="34" r="7" fill="#5fd68a" />
+        <circle cx="120" cy="178" r="7" fill="#5fd68a" />
+        <circle cx="192" cy="106" r="5" fill="none" stroke="#9a9aa6" />
+        <circle cx="48" cy="106" r="5" fill="none" stroke="#9a9aa6" />
+        <text x="120" y="20" text-anchor="middle" class="lbl">0</text>
+        <text x="120" y="198" text-anchor="middle" class="lbl">half</text>
+        <text x="206" y="110" class="lbl">quarter</text>
+        <text x="120" y="224" text-anchor="middle" class="big" fill="#e05fd8">perpendicular — home = { 0, half }</text>
+
+        <!-- parallel ring -->
+        <circle cx="360" cy="106" r="72" fill="none" stroke="#3a3a44" />
+        <circle cx="360" cy="34" r="5" fill="none" stroke="#9a9aa6" />
+        <circle cx="360" cy="178" r="5" fill="none" stroke="#9a9aa6" />
+        <circle cx="432" cy="106" r="7" fill="#5fd68a" />
+        <circle cx="288" cy="106" r="7" fill="#5fd68a" />
+        <text x="360" y="20" text-anchor="middle" class="lbl">0</text>
+        <text x="360" y="198" text-anchor="middle" class="lbl">half</text>
+        <text x="446" y="110" class="lbl">quarter</text>
+        <text x="360" y="224" text-anchor="middle" class="big" fill="#f9a825">parallel — home = { quarter }</text>
+
+        <!-- setting ring: every separation is home, so the node never has anywhere to walk to -->
+        <circle cx="600" cy="106" r="72" fill="none" stroke="#3a3a44" />
+        <g fill="#5fd68a">
+          <circle cx="600" cy="34" r="5" />
+          <circle cx="636" cy="43.6" r="5" />
+          <circle cx="662.4" cy="70" r="5" />
+          <circle cx="672" cy="106" r="5" />
+          <circle cx="662.4" cy="142" r="5" />
+          <circle cx="636" cy="168.4" r="5" />
+          <circle cx="600" cy="178" r="5" />
+          <circle cx="564" cy="168.4" r="5" />
+          <circle cx="537.6" cy="142" r="5" />
+          <circle cx="528" cy="106" r="5" />
+          <circle cx="537.6" cy="70" r="5" />
+          <circle cx="564" cy="43.6" r="5" />
+        </g>
+        <text x="600" y="224" text-anchor="middle" class="big" fill="#9a9aa6">setting — home = every one</text>
+      </svg>
+      <div class="cap">Filled is home, hollow is farthest. Perpendicular's home is exactly parallel's farthest
+        point and the reverse, because <code>quarter</code> is the midpoint of <code>0</code> and
+        <code>half</code> — which is why those two misses sum to a constant.<br><br>SETTING is the third
+        mode: a node that has not yet decided which of the two it runs. Its home is every separation, so it
+        is already at rest wherever it stands and no arrival moves it — which is what "still being set up"
+        means, said as a home set rather than as an exemption from the rule.</div>
+    </div>
+
+    <div class="card">
+      <h2>One walk, two directions</h2>
+      <svg width="660" height="204" viewBox="0 0 660 204">
+        <text x="300" y="26" text-anchor="middle" class="big" fill="#e05fd8">perpendicular walks outward</text>
+        <line x1="220" y1="52" x2="126" y2="52" stroke="#e05fd8" stroke-width="2" />
+        <polygon points="118,52 130,46 130,58" fill="#e05fd8" />
+        <line x1="380" y1="52" x2="474" y2="52" stroke="#e05fd8" stroke-width="2" />
+        <polygon points="482,52 470,46 470,58" fill="#e05fd8" />
+
+        <!-- shared axis -->
+        <line x1="60" y1="100" x2="540" y2="100" stroke="#3a3a44" />
+        <circle cx="60" cy="100" r="6" fill="#5fd68a" />
+        <circle cx="300" cy="100" r="6" fill="#5fd68a" />
+        <circle cx="540" cy="100" r="6" fill="#5fd68a" />
+        <text x="60" y="122" text-anchor="middle" class="lbl">0</text>
+        <text x="300" y="122" text-anchor="middle" class="lbl">quarter</text>
+        <text x="540" y="122" text-anchor="middle" class="lbl">half</text>
+
+        <line x1="126" y1="150" x2="220" y2="150" stroke="#f9a825" stroke-width="2" />
+        <polygon points="228,150 216,144 216,156" fill="#f9a825" />
+        <line x1="474" y1="150" x2="380" y2="150" stroke="#f9a825" stroke-width="2" />
+        <polygon points="372,150 384,144 384,156" fill="#f9a825" />
+        <text x="300" y="180" text-anchor="middle" class="big" fill="#f9a825">parallel walks inward</text>
+      </svg>
+      <div class="cap">Same number, same step, same tie-break — opposite downhill. The green points are the
+        halts: whichever machine is running, it is heading for one of them.</div>
+    </div>
+
+    <div class="card">
+      <h2>103 lines, and where they go</h2>
+      <svg width="660" height="196" viewBox="0 0 660 196">
+        <rect x="60" y="28" width="224" height="26" fill="#3f3f4a" />
+        <rect x="284" y="28" width="102" height="26" fill="#34343d" />
+        <rect x="386" y="28" width="56" height="26" fill="#4ea1ff" />
+        <rect x="442" y="28" width="47" height="26" fill="#e05fd8" />
+        <rect x="489" y="28" width="33" height="26" fill="#f9a825" />
+        <rect x="522" y="28" width="18" height="26" fill="#6a6a76" />
+
+        <text x="172" y="46" text-anchor="middle" class="lbl" fill="#e7e7ea">headers, 48</text>
+        <text x="335" y="46" text-anchor="middle" class="lbl">decls, 22</text>
+        <text x="414" y="72" text-anchor="middle" class="lbl" fill="#4ea1ff">step 12</text>
+        <text x="465" y="88" text-anchor="middle" class="lbl" fill="#e05fd8">miss 10</text>
+        <text x="505" y="104" text-anchor="middle" class="lbl" fill="#f9a825">halted 7</text>
+        <text x="531" y="120" text-anchor="middle" class="lbl" fill="#9a9aa6">String, choice 4</text>
+
+        <rect x="60" y="142" width="480" height="20" fill="#34343d" />
+        <rect x="60" y="142" width="5" height="20" fill="#5fd68a" />
+        <text x="76" y="157" class="lbl" fill="#5fd68a">1 line genuinely distinct — the home set, stated as data</text>
+        <text x="300" y="184" text-anchor="middle" class="lbl">the other 102: identical text, its exact complement, or
+          prose explaining why the two are kept apart</text>
+      </svg>
+      <div class="cap"><code>step</code> is character-for-character identical, differing only in which
+        <code>miss</code> the receiver resolves to. <code>halted</code> is each machine restating its own
+        miss being zero. <code>String</code> and <code>choice</code> carry nothing but the machine's own
+        identity.</div>
+    </div>
+
+    <div class="card">
+      <h2>What was done about it</h2>
+      <div class="cap">This page was written as a report, not a proposal — the split existed so a change to
+        one file could not move the other, and that property was repeatedly lost when the two shared a
+        parameterised function.<br><br>The two are now ONE machine (<code>nodes/Node1/machine.go</code>),
+        because of what is measured above: the difference is DATA, not code. A mode contributes a home
+        set and nothing else. The three earlier attempts each parameterised the RULE — a branch inside
+        miss, a mode passed to step — and that branch is what let a change meant for one mode land in the
+        other. There is no such branch now: miss is a minimum over a set of numbers and cannot ask which
+        mode it serves, and step never sees a mode at all.<br><br>The claim the old
+        <code>perpendicular.go</code> header made — that the two share no computation — was true of the
+        TEXT and false of the MATHEMATICS. That is what this page corrected, and the fold is what
+        followed from it.</div>
+    </div>
+
+  </main>
+</body>
+
+</html>

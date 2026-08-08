@@ -29,9 +29,11 @@
     <a class="on" href="formulas.html">Formulas</a>
     <a href="dots.html">Separation</a>
     <a href="perpendicular.html">Perpendicular</a>
+    <a href="cases.html">Cases</a>
     <a href="channels.html">Channels</a>
     <a href="cycle.html">Cycle</a>
     <a href="updates.html">Update rules</a>
+    <a href="arith.html">Arithmetic instead</a>
     <a href="clock.html">Clock</a>
     <a href="geometry.html">Geometry</a>
     <a href="asym.html">Asymmetry</a>
@@ -96,25 +98,25 @@
               <td class="e">sep = |a.idx − b.idx|, folded to ≤ HALF</td>
               <td class="n">the short way round, so the number means the same thing whichever side
                 the arrival sits on</td>
-              <td class="s" data-src="nodes/Node1/ring.go#separation">ring.go</td>
+              <td class="s" data-src="nodes/Node1/ring.go#angleLength">ring.go</td>
             </tr>
             <tr>
               <td class="e">miss = min(sep, |sep − HALF|)</td>
               <td class="n">the PERPENDICULAR machine's own measure. A quarter turn is an ordinary
                 angle to it — one it steps over</td>
-              <td class="s" data-src="nodes/Node1/perpendicular.go#miss">perpendicular.go</td>
+              <td class="s" data-src="nodes/Node1/machine.go#restingLengths">home = { 0, half }</td>
             </tr>
             <tr>
               <td class="e">miss = |sep − QUARTER|</td>
-              <td class="n">the PARALLEL machine's own measure, in its own file, sharing no
-                computation with the one above</td>
-              <td class="s" data-src="nodes/Node1/parallel.go#miss">parallel.go</td>
+              <td class="n">the same measure against the PARALLEL home set — and exactly the
+                complement of the one above, the two summing to a quarter turn</td>
+              <td class="s" data-src="nodes/Node1/machine.go#restingLengths">home = { quarter }</td>
             </tr>
             <tr>
               <td class="e">step = next if miss(next) ≤ miss(prev), else prev</td>
-              <td class="n">each machine's own; answerable everywhere on the ring, both halts
-                included</td>
-              <td class="s" data-src="nodes/Node1/perpendicular.go#step">perpendicular.go</td>
+              <td class="n">written ONCE and shared by every mode; answerable everywhere on the ring,
+                every halt included</td>
+              <td class="s" data-src="nodes/Node1/machine.go#step">step</td>
             </tr>
 
             <tr class="h">
@@ -130,13 +132,15 @@
               <td class="e">Top ← this machine.step(top, arrival)</td>
             </tr>
             <tr>
-              <td class="e">no machine yet →</td>
-              <td class="n">an arrival moves nothing; the choice is made at START (machineForGap)</td>
+              <td class="e">the SETTING mode →</td>
+              <td class="n">already halted at every separation, so an arrival moves nothing; the choice is
+                made at START (machineForGap)</td>
             </tr>
           </table>
           <div class="cap">The direction and step rows are the one kind's own <code>stepFromVector</code>,
-            run unmodified by both nodes of a pair, dispatching to whichever machine
-            (<code>perpendicularMachine</code>/<code>parallelMachine</code>) the node holds — nodes/Node1/node.go.</div>
+            run unmodified by both nodes of a pair. There is nothing to dispatch to: the node holds one
+            machine, and which mode it is in selects the home set the same rule measures against —
+            nodes/Node1/node.go.</div>
         </div>
 
         <div class="card wide">

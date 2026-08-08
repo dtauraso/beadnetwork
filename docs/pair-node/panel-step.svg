@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300">
+<circle cx="150" cy="140" r="108" fill="none" stroke="#3a3a44" stroke-width="1.4"/><path d="M177 41L178 36M202 51L204 46M223 67L226 64M239 88L244 86M249 113L254 112M249 167L254 168M239 192L244 194M223 213L226 216M202 229L204 234M177 239L178 244M123 239L122 244M98 229L96 234M77 213L74 216M61 192L56 194M51 167L46 168M51 113L46 112M61 88L56 86M77 67L74 64M98 51L96 46M123 41L122 36" stroke="#3a3a44"/><path d="M150 37L150 32M253 140L258 140M150 243L150 248M47 140L42 140" stroke="#9a9aa6" stroke-width="1.6"/>
+<circle cx="258" cy="140" r="7" fill="#e05fd8"/>
+<text x="258" y="164" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#e05fd8">rests</text>
+<circle cx="42" cy="140" r="7" fill="#e05fd8"/>
+<text x="42" y="164" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#e05fd8">rests</text>
+<circle cx="226" cy="216" r="6" fill="#2f2f37" stroke="#4ea1ff" stroke-width="2.4"/>
+<text x="238" y="244" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#4ea1ff">9</text>
+<circle cx="178" cy="244" r="6" fill="#2f2f37" stroke="#4ea1ff" stroke-width="2.4"/>
+<text x="182" y="276" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#4ea1ff">11</text>
+<line x1="150" y1="140" x2="150" y2="49" stroke="#f9a825" stroke-width="2.6"/><polygon points="150,40 154,49 146,49" fill="#f9a825"/>
+<text x="150" y="22" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#f9a825">a = 0</text>
+<line x1="150" y1="140" x2="195" y2="219" stroke="#5fd68a" stroke-width="3"/><polygon points="200,226 191,221 199,217" fill="#5fd68a"/>
+<text x="134" y="206" text-anchor="end" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#5fd68a">t = 10</text>
+</svg>

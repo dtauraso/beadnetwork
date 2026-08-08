@@ -101,10 +101,13 @@ type Node struct {
 	// step constant, trig only at the cartesian/polar boundary).
 	Top *tiltState
 
-	// Machine is WHICH STATE MACHINE this node is running — perpendicularMachine or
-	// parallelMachine, one per file, sharing no computation (perpendicular.go, parallel.go).
-	// nil means neither yet. A node has to know which it is running, because that is what says
-	// where it is returning to when something disturbs it.
+	// Machine is THIS NODE'S tilt machine — one instance, carrying which mode it is in. The
+	// modes differ only in the angle lengths they call home (machine.go). A node has to know
+	// which it is in, because that is what says where it is returning to when something
+	// disturbs it.
+	//
+	// Its ZERO VALUE IS THE SETTING MODE, so a Node built as a literal is already in the mode a
+	// node starts in. There is no nil and no "no machine" state to test for.
 	//
 	// It is set when an arrival lands on one machine's halt and by nothing else — no arrival in
 	// between erases it, so a node disturbed mid-turn still knows what it is returning to. The
@@ -258,30 +261,25 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 //	anything else (acute)      ->  parallel
 func (n *Node) machineForGap(arrival *tiltState) Wiring.TiltMachine {
 	partnerTilt := arrival.quarter.opposite // arrival + three quarters = arrival − a quarter
-	if n.topState().separation(partnerTilt) == n.ringOf().quarterTurn {
+	if n.topState().angleLength(partnerTilt) == n.ringOf().quarterTurn {
 		return Wiring.TiltMachinePerpendicular
 	}
 	return Wiring.TiltMachineParallel
 }
 
-// adoptMachine sets which of this kind's two state machines this node runs. It is the ONE
-// writer of that field outside clear(), and it maps the pair-wide name onto this package's own
-// machine — the naming lives in Wiring so both ends can say it to each other, and the machines
-// themselves live here (perpendicular.go, parallel.go), which is the only place that knows how
-// either one steps.
+// adoptMachine sets which mode of the tilt machine this node runs. It is the ONE writer of that
+// field outside clear(), and the mapping from the pair-wide name to the mode is machineFor — the
+// naming lives in Wiring so both ends can say it to each other, and the home sets live in
+// machine.go, which is the only place that knows what any of them means on the ring.
+//
 // The choice STICKS: a node already running one keeps it, so a second choice crossing the pair
 // — or one arriving at an end that has already made its own — cannot switch it mid-run. Only a
 // reset clears it, and the next click after that makes a new one.
 func (n *Node) adoptMachine(choice Wiring.TiltMachine) {
-	if n.Machine != nil {
+	if n.Machine != setting {
 		return
 	}
-	switch choice {
-	case Wiring.TiltMachinePerpendicular:
-		n.Machine = perpendicularMachine{}
-	case Wiring.TiltMachineParallel:
-		n.Machine = parallelMachine{}
-	}
+	n.Machine = machineFor(choice)
 }
 
 // adoptLattice rebuilds THIS node's own ring at a new point count, on THIS node's own
@@ -375,8 +373,9 @@ func (n *Node) topState() *tiltState {
 // there instead of bouncing.
 func (n *Node) clear() {
 	n.Top = n.ringOf().at(0)
-	// The machine this node was running goes too: RESET is the one thing that erases it.
-	n.Machine = nil
+	// The machine this node was running goes too — RESET is the one thing that releases it, and
+	// what it returns to is the setting mode, which is also where a fresh node starts.
+	n.Machine = setting
 	n.syncTiltIndex()
 	n.ReceivedThetaIdx = 0
 	n.ReceivedSet = false
@@ -483,19 +482,18 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 	v.Points = n.ringOf().points
 	// WHICH MACHINE THIS NODE IS RUNNING travels with every direction it sends. One end reads
 	// the gap when the exchange opens and the other has no way to know what it decided; this is
-	// how it finds out, on the first reply, without a message of its own. TiltMachineNone until
-	// this node has one, which the other end ignores (adoptMachine).
-	if n.Machine != nil {
-		v.Machine = n.Machine.choice()
-	}
+	// how it finds out, on the first reply, without a message of its own. A node still in the
+	// setting mode says TiltMachineNone here — that mode's own choice, not a special case for
+	// having none — and the other end ignores it (adoptMachine).
+	v.Machine = n.Machine.choice()
 	return v
 }
 
 // stepFromVector decides whether an arrived direction turns this node at all, and if so which
 // way. THERE ARE TWO TARGETS, and a node is returning to exactly one of them:
 //
-//		PERPENDICULAR   separation 0 or a half turn   the two tilts are a quarter turn apart
-//		PARALLEL        separation a quarter turn     the two tilts on one line, either way round
+//		PERPENDICULAR   angle length 0 or a half turn   the two tilts are a quarter turn apart
+//		PARALLEL        angle length a quarter turn     the two tilts on one line, either way round
 //
 //	  - not holding either yet -> the first halt reached is taken up, and the node stops there.
 //	  - holding one, arrival IS it -> stand still. Nothing else writes what is held, so an
@@ -503,9 +501,9 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 //	  - otherwise -> ONE step, the way that leaves this node nearer its own halt (stepToward).
 //
 // The other halt is stepped straight over. It has to be: the two sit a quarter turn apart in
-// separation, so the walk back to one crosses the other, and a node that stopped at any halt
+// angle length, so the walk back to one crosses the other, and a node that stopped at any halt
 // was taken by whichever it touched first — the log showed a pair holding perpendicular walk
-// correctly toward separation 0, meet 12 on the way, and take up parallel there, in both
+// correctly toward angle length 0, meet 12 on the way, and take up parallel there, in both
 // directions of disturbance.
 //
 // Both ends of a pair run this same unmodified rule, and both directions of travel are links
@@ -528,11 +526,10 @@ func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
 	// perpendicular measure, so inferring it here always answered perpendicular and a pair set
 	// up near perpendicular could never be asked to run the parallel machine.
 	//
-	// With no machine — before any click, or after a reset — an arrival moves nothing.
-	if n.Machine == nil {
-		return true
-	}
-	if !n.Machine.halted(before, arrival) {
+	// A node still in the setting mode — before any click, or after a reset — moves nothing, and
+	// needs no test here to make that happen: every angle length is that mode's home, so it is
+	// already halted wherever it stands and the step below is not reached.
+	if !n.Machine.settled(before, arrival) {
 		n.Top = n.Machine.step(before, arrival)
 	}
 	return true
@@ -594,10 +591,10 @@ func (n *Node) handleVectorCycle(tick int64) {
 	//	the gap is a quarter turn  ->  perpendicular machine
 	//	anything else (acute)      ->  parallel machine
 	//
-	// Only when no machine is running: this is the setup being read, and after that a click is
-	// a jitter for the running machine to correct, not a new instruction. The other end learns
+	// Only while still in the setting mode: this is the setup being read, and after that a click
+	// is a jitter for the running machine to correct, not a new instruction. The other end learns
 	// the answer from this node's next reply, which carries it (outgoingVector).
-	if n.Machine == nil {
+	if n.Machine == setting {
 		n.adoptMachine(n.machineForGap(n.ringOf().arrivedState(received.ThetaIdx)))
 	}
 	if !n.stepFromVector(received) {

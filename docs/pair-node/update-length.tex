@@ -1,0 +1,10 @@
+% update-length.tex — one block of the update. Shared setup is pairmath.sty,
+% which also carries the rebuild command.
+\documentclass[12pt]{article}
+\usepackage{pairmath}
+\begin{document}
+\[\begin{array}{@{}l@{}}
+  d = \lvert t - a \rvert \\[6pt]
+  L \;=\; \len(t,a) = \min(d,\; 24 - d)
+\end{array}\]
+\end{document}

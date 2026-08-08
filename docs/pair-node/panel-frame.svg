@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="260" height="250" viewBox="0 0 260 250">
+<circle cx="130" cy="125" r="104" fill="none" stroke="#3a3a44" stroke-width="1.4"/><path d="M156 29L157 25M180 39L182 35M200 55L204 51M216 75L220 73M226 99L230 98M226 151L230 152M216 174L220 177M200 195L204 199M180 211L182 215M156 221L157 225M104 221L103 225M80 211L78 215M60 195L56 199M44 175L40 177M34 151L30 152M34 99L30 98M44 75L40 73M60 55L56 51M80 39L78 35M104 29L103 25" stroke="#3a3a44"/><path d="M130 26L130 21M229 125L234 125M130 224L130 229M31 125L26 125" stroke="#9a9aa6" stroke-width="1.6"/>
+<line x1="130" y1="125" x2="46" y2="148" stroke="#f9a825" stroke-width="2.4"/><polygon points="37,150 45,144 47,152" fill="#f9a825"/>
+<line x1="130" y1="125" x2="68" y2="187" stroke="#9a9aa6" stroke-width="2.2"/><polygon points="62,193 65,184 71,190" fill="#9a9aa6"/>
+<line x1="130" y1="125" x2="192" y2="187" stroke="#4ea1ff" stroke-width="2.6"/><polygon points="198,193 189,190 195,184" fill="#4ea1ff"/>
+<line x1="130" y1="125" x2="192" y2="63" stroke="#5fd68a" stroke-width="3"/><polygon points="198,57 195,66 189,60" fill="#5fd68a"/>
+</svg>

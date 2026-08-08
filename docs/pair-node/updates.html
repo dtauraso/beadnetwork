@@ -14,7 +14,7 @@
 
   <header>
     <h1>Update rules</h1>
-    <div class="sub">every branch of the node's own Update loop, with the link or test it runs</div>
+    <div class="sub">one arrival, two yes-or-no questions: settle, and if not, which way</div>
   </header>
 
   <nav>
@@ -26,499 +26,324 @@
     <a href="formulas.html">Formulas</a>
     <a href="dots.html">Separation</a>
     <a href="perpendicular.html">Perpendicular</a>
+    <a href="cases.html">Cases</a>
     <a href="channels.html">Channels</a>
     <a href="cycle.html">Cycle</a>
     <a class="on" href="updates.html">Update rules</a>
+    <a href="arith.html">Arithmetic instead</a>
     <a href="clock.html">Clock</a>
     <a href="geometry.html">Geometry</a>
     <a href="asym.html">Asymmetry</a>
   </nav>
 
+  <!-- Every drawing on this page is a generated file: panel-*.svg, built by panels.py,
+       one file per case at its own readable size. They are <img>, so they do NOT inherit
+       this site's CSS — each carries its own text styling, which panels.py bakes in.
+       The maths blocks are update-*.svg, set in LaTeX (pairmath.sty carries the rebuild
+       command). Nothing here is loaded over the network. -->
+
   <main>
+
+    <!-- The cards are grouped by the QUESTION they answer, and .secname names each group.
+         The groups run in the order a reader needs them: what a node holds, what it reads
+         off that, the two machines it is, the decisions an arrival makes, those decisions
+         worked through, what leaves the node, and last the map into the code. Before this
+         the two decision cards sat either side of an unrelated one and the state cards were
+         split across the machine cards. -->
 
     <div class="grid">
 
+      <h3 class="secname">What a node holds, and what it reads off it</h3>
+
       <div class="card wide">
-        <h2>The numbers</h2>
-        <table class="f">
-          <tr>
-            <td class="e">Top</td>
-            <td class="n" colspan="2">the tilt — a STATE on a ring of 24, not a number a node adds to.
-              Turning is following a link, Top ← Top.next or Top ← Top.prev, never +1 or −1 with a wrap.
-              Top.idx is that state's own index, 0…23, and is what leaves this kind: onto the wire, into
-              position.json, and 15°·idx is its angle from world +y</td>
-          </tr>
-          <tr>
-            <td class="e">r, and whether r is set</td>
-            <td class="n" colspan="2">the last direction received — the third drawn arrow</td>
-          </tr>
-          <tr>
-            <td class="e">6 · 12 · 24</td>
-            <td class="n" colspan="2">a quarter turn · a half turn · a full turn, counted in those steps</td>
-          </tr>
-          <tr>
-            <td class="e">one step = 15° = 0.2617993877991494 rad</td>
-            <td class="n" colspan="2">the one quantum; every angle streamed is an index times this</td>
-          </tr>
-        </table>
+        <h2>The state</h2>
+        <img class="figure" src="panel-state.svg"
+          alt="A 24-slot ring. Slots 0, 6, 12 and 18 are marked; one step of the ring is pi/12; the link from 23 back to 0 is highlighted.">
+        <div class="keynote">
+          <p><code>t ∈ {0 … 23}</code></p>
+          <p>a state, not a number — t ± 1 follows a link. 6 is a quarter turn, 12 a half</p>
+          <p>t is the node's TILT, and the whole of what it stores — one state, persisted as one
+            angle. The normal and the bottom on the next card are read off it</p>
+          <p><code>angle = (π/12) · t</code></p>
+          <p>the only thing that leaves this kind</p>
+          <p><i class="sw" style="background:#4ea1ff"></i>23 → 0 — one link like any other, and the
+            only reason the ring closes</p>
+        </div>
       </div>
 
       <div class="card wide">
-        <h2>The machine — 24 states, and every input is a transition</h2>
-        <svg width="640" height="200" viewBox="0 0 640 200">
-          <defs>
-            <marker id="mNext" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto">
-              <path d="M0,0 L8,3 L0,6 z" fill="#5fd68a" />
-            </marker>
-            <marker id="mPrev" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto">
-              <path d="M0,0 L8,3 L0,6 z" fill="#e05fd8" />
-            </marker>
-          </defs>
-
-          <g fill="#2b2b33" stroke="#3a3a44">
-            <circle cx="110" cy="96" r="26" />
-            <circle cx="230" cy="96" r="26" />
-            <circle cx="350" cy="96" r="26" />
-            <circle cx="470" cy="96" r="26" />
-            <circle cx="590" cy="96" r="26" />
-          </g>
-          <g class="lblm" text-anchor="middle" fill="#e7e7ea">
-            <text x="110" y="101">21</text>
-            <text x="230" y="101">22</text>
-            <text x="350" y="101">23</text>
-            <text x="470" y="101">0</text>
-            <text x="590" y="101">1</text>
-          </g>
-          <text x="30" y="101" class="lbl" fill="#9a9aa6">…</text>
-          <text x="626" y="101" class="lbl" fill="#9a9aa6">…</text>
-
-          <!-- next: one way round -->
-          <g stroke="#5fd68a" stroke-width="2" fill="none" marker-end="url(#mNext)">
-            <path d="M 136 84 Q 170 62 202 84" />
-            <path d="M 256 84 Q 290 62 322 84" />
-            <path d="M 376 84 Q 410 62 442 84" />
-            <path d="M 496 84 Q 530 62 562 84" />
-          </g>
-          <text x="290" y="46" text-anchor="middle" class="lblm" fill="#5fd68a">next</text>
-
-          <!-- prev: the other -->
-          <g stroke="#e05fd8" stroke-width="2" fill="none" marker-end="url(#mPrev)">
-            <path d="M 562 110 Q 530 132 498 110" />
-            <path d="M 442 110 Q 410 132 378 110" />
-            <path d="M 322 110 Q 290 132 258 110" />
-            <path d="M 202 110 Q 170 132 138 110" />
-          </g>
-          <text x="410" y="156" text-anchor="middle" class="lblm" fill="#e05fd8">prev</text>
-
-          <line x1="410" y1="30" x2="410" y2="170" stroke="#3a3a44" stroke-dasharray="4 4" />
-          <text x="418" y="182" class="lbl" fill="#9a9aa6">23 → 0 is one link like any other</text>
-        </svg>
-        <table class="f">
-          <tr class="h">
-            <td>input</td>
-            <td colspan="2">transition</td>
-          </tr>
-          <tr>
-            <td class="e">arrival IS this node's own machine's halt</td>
-            <td class="e" colspan="2">stay — and this is the halt: reply anyway, no bead placed</td>
-          </tr>
-          <tr>
-            <td class="e">arrival is not this node's own machine's halt</td>
-            <td class="e" colspan="2">Top ← this machine's step(before, arrival) — next or prev, whichever
-              lands closer to its own halt</td>
-          </tr>
-          <tr>
-            <td class="e">no machine yet (before START, or after RESET)</td>
-            <td class="e" colspan="2">stay — nothing chooses a machine from an arrival</td>
-          </tr>
-          <tr>
-            <td class="e">panel ▲ · panel ▼</td>
-            <td class="e" colspan="2">Top ← Top.next · Top ← Top.prev — moves the tilt only, chooses no
-              machine</td>
-          </tr>
-          <tr>
-            <td class="e">RESET, from the button or the marker</td>
-            <td class="e" colspan="2">Top ← ring[0] · Machine ← nil</td>
-          </tr>
-          <tr>
-            <td class="e">START on id 1 · a bead on In</td>
-            <td class="e" colspan="2">stay — START sends from where it already is, a bead only paces</td>
-          </tr>
-        </table>
-        <div class="cap">Those six are every input the machine has, and the four transitions are every move
-          it can make. A state is a direction the tilt can point, so there are 24 of them and the tilt is
-          always exactly one — there is no 25th to reach and no value between two, which is what makes an
-          off-the-ring tilt impossible to write down rather than merely guarded against.</div>
-        <div class="cap">The seam at 23 → 0 is one link like any other. Nothing detects it, nothing corrects
-          for it, and no rule mentions it — the ring closes because the last state's next IS the first, fixed
-          once when it was built.</div>
+        <h2>What is read off the tilt</h2>
+        <div class="strip">
+          <img src="panel-triad-0.svg" alt="tilt 0, with its normal and bottom">
+          <img src="panel-triad-6.svg" alt="tilt 6, with its normal and bottom">
+          <img src="panel-triad-12.svg" alt="tilt 12, with its normal and bottom">
+          <img src="panel-triad-17.svg" alt="tilt 17, with its normal and bottom">
+        </div>
+        <div class="keynote">
+          <p><i class="sw" style="background:#5fd68a"></i>t — the tilt</p>
+          <p><i class="sw" style="background:#4ea1ff"></i>t + 6 — the normal, and what it sends</p>
+          <p><i class="sw" style="background:#9a9aa6"></i>t + 12 — the bottom</p>
+          <p>links, not sums — the triad turns as one, and nothing wraps</p>
+          <p>ONLY t is updated, and only ever by this node's own loop
+            (<span data-src="nodes/Node1/node.go#Top">Top</span>). The normal and the bottom are
+            links off it — <span data-src="nodes/Node1/ring.go#tiltState">quarter</span> and
+            <span data-src="nodes/Node1/ring.go#tiltState">opposite</span> — so they are not two
+            more vectors to move, and cannot fall out of step with the tilt</p>
+          <p>the normal is what LEAVES
+            (<span data-src="nodes/Node1/node.go#outgoingVector">outgoingVector</span>); the bottom
+            is drawn and never sent</p>
+        </div>
+        <img class="math" src="update-read.svg" style="width:184px"
+          alt="normal(t) = t+6. bottom(t) = t+12. sends = normal(t). angle(i) = (pi/12) i.">
       </div>
 
       <div class="card wide">
-        <h2>The three directions a node reads off its own state</h2>
-        <table class="f">
-          <tr class="h">
-            <td>direction</td>
-            <td>both nodes of a pair — same unmodified rule</td>
-          </tr>
-          <tr>
-            <td class="n">top — the tilt itself</td>
-            <td class="e">top = Top</td>
-          </tr>
-          <tr>
-            <td class="n">bottom — half a turn from the top</td>
-            <td class="e">bottom = Top.opposite</td>
-          </tr>
-          <tr>
-            <td class="n">coplanar normal — a quarter turn from the top</td>
-            <td class="e">normal = Top.quarter</td>
-          </tr>
-          <tr>
-            <td class="n">what it sends — the normal, unchanged</td>
-            <td class="e">sends = normal</td>
-          </tr>
-        </table>
-        <div class="cap">opposite and quarter are links resolved once when the ring is built (init, in
-          ring.go) — a field read, not a sum. Both nodes of a pair run this same unmodified rule — there is
-          no per-node sign.</div>
-        <div class="cap">There is nothing to wrap: a link always points at one of the 24 states, so
-          bottom and normal land on the ring the same way top does, by construction, with no comparison and
-          no reduction at either one.</div>
+        <h2>The angle length, and what it says the pair is at</h2>
+        <div class="strip">
+          <img src="panel-length-0.svg" alt="angle length 0 — perpendicular rests here">
+          <img src="panel-length-3.svg" alt="angle length 3, an acute angle — neither mode rests here, so the node turns">
+          <img src="panel-length-6.svg" alt="angle length 6 — parallel rests here">
+          <img src="panel-length-11.svg" alt="angle length 11, an obtuse angle — neither mode rests here, so the node turns">
+          <img src="panel-length-12.svg" alt="angle length 12, a half turn — perpendicular rests here too">
+        </div>
+        <div class="keynote">
+          <p><i class="sw" style="background:#5fd68a"></i>t — this node's own tilt</p>
+          <p><i class="sw" style="background:#f9a825"></i>a — the direction that arrived</p>
+          <p><i class="sw" style="background:#e05fd8"></i>L — short for
+            <span data-src="nodes/Node1/ring.go#angleLength">angleLength</span>, the slots between
+            them the short way round, so never more than 12</p>
+          <p>the two slots have TWO arcs between them, one each way round, and L is the shorter —
+            that choice is what min is for. It is not wrap handling: a tilt is a state on the ring
+            and cannot leave it, so turning never does arithmetic at all</p>
+          <p>0 and 12 are perpendicular's two rests, 6 is parallel's one; every other length —
+            acute below the quarter, obtuse above it — is ordinary to both, and gets turned over</p>
+          <p>integers, so exact — no dot product, no epsilon to tune</p>
+        </div>
+        <img class="math" src="update-length.svg" style="width:396px"
+          alt="d = absolute value of t minus a. L, short for angleLength(t,a), = min(d, 24 - d) — the shorter of the two arcs.">
+      </div>
+
+      <h3 class="secname">The two machines it is</h3>
+
+      <div class="card wide">
+        <h2>The tilt as a state machine — 24 states, two links out of each</h2>
+        <img class="figure" src="panel-links.svg"
+          alt="Five adjacent states, 21 22 23 0 1, with a next link running one way between them and a prev link running the other. The seam between 23 and 0 is marked and is an ordinary link.">
+        <div class="keynote">
+          <p><i class="sw" style="background:#5fd68a"></i>next &nbsp;
+            <i class="sw" style="background:#e05fd8"></i>prev — the only two moves there are</p>
+          <p>a turn FOLLOWS one of these links, so it cannot land between two states or off the
+            ring, and no rule anywhere adds 1 or takes a modulus</p>
+          <p>the seam in the middle is 23 → 0. Nothing detects it and no rule mentions it — the
+            last state's next simply IS the first, fixed when the ring was built</p>
+        </div>
       </div>
 
       <div class="card wide">
-        <h2>separation — what decides both machines</h2>
-        <table class="f">
-          <tr>
-            <td class="e">sep = |a.idx − b.idx|, folded to ≤ 12</td>
-            <td class="n" colspan="2">how far apart two directions are on the ring, the SHORT way round.
-              Both sit on 0…23, so this is an exact integer, never more than a half turn</td>
-          </tr>
-          <tr>
-            <td class="e">perpendicular's halt: sep ∈ {0, 12}</td>
-            <td class="n" colspan="2">the arrival sits exactly on this node's own top, or exactly on its
-              bottom</td>
-          </tr>
-          <tr>
-            <td class="e">parallel's halt: sep = 6</td>
-            <td class="n" colspan="2">the arrival sits exactly on this node's own coplanar normal</td>
-          </tr>
-          <tr>
-            <td class="e">anything else</td>
-            <td class="n" colspan="2">an ordinary separation to whichever machine this node holds — one
-              step closer, next or prev</td>
-          </tr>
-        </table>
-        <div class="cap">Integer steps, so separation is exact: no float dot product, and no epsilon band to
-          tune. A separation of 6 is perpendicular's ordinary angle on the way through and parallel's halt;
-          a separation of 0 or 12 is the reverse. Which one a node HALTS on is read once, at START, from the
-          gap between the two tilts (<span data-src="nodes/Node1/node.go#machineForGap">machineForGap</span>)
-          — see <a href="perpendicular.html">Perpendicular</a>.</div>
+        <h2>The mode as a state machine — three modes, four transitions</h2>
+        <img class="figure" src="panel-modes.svg"
+          alt="Three modes: setting, perpendicular and parallel. Setting goes to either of the other two, chosen from the gap at the first arrival. Both go back to setting on a reset. There is no edge between perpendicular and parallel.">
+        <div class="keynote">
+          <p>setting is where a node starts and what a reset restores — it is the zero value, so a
+            node is in it without anything having to put it there</p>
+          <p>there is NO edge between perpendicular and parallel: a chosen mode sticks, and a second
+            choice arriving mid-run is ignored</p>
+          <p>every case, mode by mode and length by length, is on <a href="cases.html">Cases</a></p>
+        </div>
       </div>
 
       <div class="card wide">
-        <h2>Before the loop</h2>
-        <table class="f">
-          <tr>
-            <td class="e">TryEmit(EmitGeometry)</td>
-            <td class="n" colspan="2">nothing — the builder leaves that callback nil for this kind</td>
-          </tr>
-          <tr>
-            <td class="e">Self.EmitGeometryOnce()</td>
-            <td class="n" colspan="2">writes one node-geometry frame on this node's own pipe</td>
-          </tr>
-          <tr>
-            <td class="e">syncTiltIndex()</td>
-            <td class="n" colspan="2">SetTiltIndex(top.idx, normal.idx, bottom.idx) → writes position.json,
-              then one frame. Skip it and top.idx = 0, normal.idx = 0 both decode to world +y, so the two
-              arrows superimpose</td>
-          </tr>
-          <tr>
-            <td class="e">clk ← clock().Copy()</td>
-            <td class="n" colspan="2">a value copy with tickCh = nil; it subscribes on its own first
-              SleepCycle, so two goroutines never hold one tick channel</td>
-          </tr>
-        </table>
+        <h2>Both machines, as a transition function</h2>
+        <p class="lead">A state machine is its states, its inputs, and where each input sends each
+          state. Written that way the two above are small enough to read in full — and the
+          difference in size between them is the point: one has 24 states and two inputs, the other
+          three states and two, and neither has anything else in it.</p>
+        <p class="figlabel">the tilt</p>
+        <img class="math" src="update-machine-tilt.svg" style="width:299px"
+          alt="S = the integers mod 24. Sigma = next, prev. delta(t, next) = t+1 mod 24. delta(t, prev) = t-1 mod 24.">
+        <p class="figlabel">the mode</p>
+        <img class="math" src="update-machine-mode.svg" style="width:453px"
+          alt="S = R setting, R perpendicular, R parallel. Sigma = a, reset. delta(R setting, a) = R perpendicular if angleLength(t, a sub minus six) = 6, else R parallel. delta(R, a) = R for R not setting. delta(R, reset) = R setting.">
+        <div class="keynote">
+          <p>the tilt ring is the Cayley graph of ℤ₂₄ on the generator 1 — which is exactly what
+            "24 states, two links out of each" says</p>
+          <p>the mod 24 above is the DEFINITION the links implement, not an operation the code
+            performs: <span data-src="nodes/Node1/ring.go#newRing">newRing</span> resolves next and
+            prev once, so a turn is a field read and no arithmetic runs at a turn at all</p>
+          <p>δ(R, a) = R for a chosen mode is the whole of "a choice sticks", and it is why there is
+            no edge between perpendicular and parallel</p>
+        </div>
       </div>
 
       <div class="card wide">
-        <h2>The loop — when this happens, this runs</h2>
-        <table class="f">
-          <tr class="h">
-            <td>when</td>
-            <td colspan="2">then</td>
-          </tr>
-          <tr>
-            <td class="e">the context is cancelled</td>
-            <td class="e" colspan="2">return</td>
-          </tr>
-          <tr>
-            <td class="e">In.PollRecv() returns a bead</td>
-            <td class="e" colspan="2">Fire(). Top unchanged · VectorOut unwritten · Out unwritten — the bead
-              paces the exchange and decides no part of it</td>
-          </tr>
+        <h2>The arithmetic the machine comes out of</h2>
+        <p class="lead">Nothing below mentions the machine — no tilt, no partner, no arrival, no
+          mode. It is a fact about two numbers on a ring of 24: shift one of them by 6, and the
+          only gaps whose length lands on 0, 6 or 12 are the four quarter gaps. That is true
+          whether or not anything is running. Read it back with x as this node's tilt and y as the
+          partner's, and it is the machine: 24 states with two links out of each, a line that
+          reversing does not change, and the two resting lengths — which are therefore not chosen,
+          but counted.</p>
+        <!-- Four blocks, one per step of the argument, at the SAME px-per-pt as every other
+             block on the page. It used to be ONE block at 399pt — the widest on the page by a
+             long way, so it was the only one max-width:100% shrank, and the only one that did
+             not render at the size it was set at. The doubled constant it carried was a fix for
+             being the widest; split, each step is 211-300pt, in the same band as the rest, so
+             there is nothing left to compensate for. -->
+        <img class="math" src="update-arith-groups.svg" style="width:468px"
+          alt="The ring: x runs 0 to 23, counted round, so 24 is 0 again. The half turn: x and x + 12 name the same line, so a line is a number counted round twelve.">
+        <img class="math" src="update-arith-distance.svg" style="width:439px"
+          alt="The length between two numbers: d = |x - y|, and L(x, y) is d or 24 - d, whichever is shorter — never more than 12.">
+        <img class="math" src="update-arith-gap.svg" style="width:387px"
+          alt="The four quarter gaps, with g = x - y: g is 0 or 12, where x and y name the same line; and g is 6 or 18, a quarter of the ring between them.">
+        <img class="math" src="update-arith-rests.svg" style="width:602px"
+          alt="Shift one of the two by 6, and only those four land on 0, 6, 12: a gap of 0 or 12 gives L(x, y + 6) = 6; a gap of 6 or 18 gives L(x, y + 6) = 0 or 12; every other gap gives an L(x, y + 6) that is none of 0, 6, 12.">
+        <div class="keynote">
+          <p>this is where <span data-src="nodes/Node1/machine.go#restingLengths">restingLengths</span>
+            comes from. { 6 } and { 0, 12 } are not two facts to remember — they are the four
+            quarter gaps, and the shift by 6 above is the quarter turn the partner adds when it
+            sends its normal instead of its tilt</p>
+          <p>it also explains the shape the <a href="audit.html">audit</a> found: the two modes are a
+            half turn apart in g, so their two distances sum to a constant, which is why one is the
+            other upside down</p>
+          <p>guarded by
+            <span data-src="nodes/Node1/node_test.go#TestRestingLengthsFollowFromTheGaps">TestRestingLengthsFollowFromTheGaps</span>,
+            which sweeps every partner-and-tilt pair and checks that no other gap lands on a resting
+            length by accident</p>
+        </div>
+      </div>
 
-          <tr class="h">
-            <td>TiltEditIn holds an edit</td>
-            <td colspan="2">then</td>
-          </tr>
-          <tr>
-            <td class="e">edit.Reset</td>
-            <td class="e" colspan="2">clear() · VectorOut ← the reset marker · Out unwritten</td>
-          </tr>
-          <tr>
-            <td class="e">edit.Start, on node 1</td>
-            <td class="e" colspan="2">VectorOut ← sends(Top) · Out ← one bead at tick T · Top unchanged</td>
-          </tr>
-          <tr>
-            <td class="e">edit.Start, on node 2</td>
-            <td class="e" colspan="2">returns without writing anything — node 1 is the only opener, so one
-              direction is in flight, not two</td>
-          </tr>
-          <tr>
-            <td class="e">edit.Up true, else false</td>
-            <td class="e" colspan="2">Top ← Top.next, else Top ← Top.prev · VectorOut unwritten · Out
-              unwritten</td>
-          </tr>
-          <tr>
-            <td class="e">all three of the above</td>
-            <td class="e" colspan="2">syncTiltIndex()</td>
-          </tr>
-          <tr>
-            <td class="e">TiltEditIn empty</td>
-            <td class="e" colspan="2">the select's default arm returns immediately</td>
-          </tr>
+      <h3 class="secname">What an arrival does</h3>
 
-          <tr class="h">
-            <td>VectorIn holds a direction</td>
-            <td colspan="2">both nodes of a pair — same unmodified rule</td>
-          </tr>
-          <tr>
-            <td class="e">VectorIn empty</td>
-            <td class="e" colspan="2">return — nothing below this row runs this cycle</td>
-          </tr>
-          <tr>
-            <td class="e">v.Reset</td>
-            <td class="e" colspan="2">clear() · VectorOut unwritten — a reply would return the marker to its
-              sender, which would return it again</td>
-          </tr>
-          <tr>
-            <td class="e">v carries a direction</td>
-            <td class="e" colspan="2">r ← v, set ← true — on every arrival, before the machine choice/step
-              below runs, and r holds that value until the next arrival or a clear()</td>
-          </tr>
-          <tr>
-            <td class="e">no machine yet (this is the setup being read)</td>
-            <td class="e" colspan="2">Machine ← machineForGap(arrival) — a quarter-turn gap between the two
-              tilts picks perpendicular, anything else picks parallel</td>
-          </tr>
-          <tr>
-            <td class="e">arrival IS this node's own machine's halt</td>
-            <td class="e" colspan="2">Top unchanged · VectorOut unwritten · Out unwritten — In and Out are
-              not read or written on this path</td>
-          </tr>
-          <tr>
-            <td class="e">otherwise</td>
-            <td class="e" colspan="2">Top ← this machine's step(before, arrival) — the one move closer to
-              its own halt, stepping straight over the other machine's</td>
-          </tr>
-          <tr>
-            <td class="e">Top changed</td>
-            <td class="e" colspan="2">syncTiltIndex() · VectorOut ← sends(Top) · Out ← one bead at tick T</td>
-          </tr>
-
-          <tr class="h">
-            <td>every cycle, after the three above</td>
-            <td colspan="2">then</td>
-          </tr>
-          <tr>
-            <td class="e">Self.Step(ctx, T)</td>
-            <td class="e" colspan="2">drain extIn and every neighborIn until both are empty · DriveOneCycle(T)
-              on each outgoing wire · flushPending() · write one frame</td>
-          </tr>
-          <tr>
-            <td class="e">SpeedCh holds a value</td>
-            <td class="e" colspan="2">clk.SetSpeed(that value); depth 1, latest wins. Empty: no call. Never
-              blocks</td>
-          </tr>
-          <tr>
-            <td class="e">clk.SleepCycle(ctx)</td>
-            <td class="e" colspan="2">wait ceil(1 / speed) pulses of 16 ms, held between 1 and 64. At speed 1
-              that is one pulse; at speed 1/64, 64 of them, or about a second</td>
-          </tr>
-        </table>
+      <div class="card">
+        <h2 id="loop">Where each mode rests</h2>
+        <img class="math" src="update-resting.svg" style="width:130px"
+          alt="R perpendicular = {0, 12}. R parallel = {6}. R setting = any.">
       </div>
 
       <div class="card wide">
-        <h2>Every direction, worked out</h2>
-        <table class="f">
-          <tr class="h">
-            <td>top.idx</td>
-            <td>bottom.idx · normal.idx · sends</td>
-            <td>the tilt · the normal</td>
-          </tr>
-          <tr>
-            <td class="e">0</td>
-            <td class="e">12 · 6 · 6</td>
-            <td class="e">0° · 90°</td>
-          </tr>
-          <tr>
-            <td class="e">1</td>
-            <td class="e">13 · 7 · 7</td>
-            <td class="e">15° · 105°</td>
-          </tr>
-          <tr>
-            <td class="e">6</td>
-            <td class="e">18 · 12 · 12</td>
-            <td class="e">90° · 180°</td>
-          </tr>
-          <tr>
-            <td class="e">11</td>
-            <td class="e">23 · 17 · 17</td>
-            <td class="e">165° · 255°</td>
-          </tr>
-          <tr>
-            <td class="e">12</td>
-            <td class="e">0 · 18 · 18</td>
-            <td class="e">180° · 270°</td>
-          </tr>
-          <tr>
-            <td class="e">17</td>
-            <td class="e">5 · 23 · 23</td>
-            <td class="e">255° · 345°</td>
-          </tr>
-          <tr>
-            <td class="e">18</td>
-            <td class="e">6 · 0 · 0</td>
-            <td class="e">270° · 0°</td>
-          </tr>
-          <tr>
-            <td class="e">23</td>
-            <td class="e">11 · 5 · 5</td>
-            <td class="e">345° · 75°</td>
-          </tr>
-        </table>
-        <div class="cap">One quarter-turn link from top to normal, one half-turn link from top to bottom, at
-          every state on the ring, no exception — bottom.idx and normal.idx are field reads, resolved when
-          the ring was built, never a sum computed here. Both nodes of a pair run this same unmodified rule.
+        <h2>Which mode to be in — measure, then decide, and it is the only update that reads the
+          arrival's own tilt</h2>
+        <div class="strip">
+          <img src="panel-gap-perp.svg"
+            alt="The arrival at slot 12; backing out its quarter puts the partner's tilt at 6, a quarter turn from this node's tilt, so the pair runs perpendicular.">
+          <img src="panel-gap-par.svg"
+            alt="The arrival at slot 9; backing out its quarter puts the partner's tilt at 3, three slots from this node's tilt, so the pair runs parallel.">
+        </div>
+        <img class="math" src="update-decide-mode.svg" style="width:603px"
+          alt="If R is not R setting, nothing changes — the choice already stuck. Otherwise measure: p = a minus six, the partner's tilt backed out of the arrival, and G = angleLength(t, p), the gap between the two tilts. Then decide: if G = 6, R becomes R perpendicular; else R becomes R parallel.">
+        <div class="keynote">
+          <p><i class="sw" style="background:#5fd68a"></i>t — this node's own tilt</p>
+          <p><i class="sw" style="background:#f9a825"></i>a — what arrived, which is the partner's
+            NORMAL, already a quarter turn off its tilt</p>
+          <p><i class="sw" style="background:#9a9aa6"></i>the partner's own tilt, backed out of the
+            arrival — dashed, because it is inferred and never sent</p>
+          <p>this is the one place the gap between the two TILTS is measured; everything else
+            measures the arrival directly</p>
+          <p>it runs once, on the first arrival, and the answer sticks until a reset</p>
+        </div>
+      </div>
+
+      <div class="card wide">
+        <h2>Which slot to go to — measure, then decide</h2>
+        <img class="math" src="update-decide-turn.svg" style="width:511px"
+          alt="Measure where it is and each way it could turn: L = angleLength(t, a), L plus = angleLength(t plus one, a), L minus = angleLength(t minus one, a). How far off a rest, with f plus and f minus from L plus and L minus the same way: parallel, f = |L - 6|; perpendicular, f = 6 - |L - 6|; setting, f = 0. Then decide: f = 0 gives t after = t; f plus less than or equal to f minus gives t after = t plus one; else t after = t minus one.">
+        <div class="keynote">
+          <p>both modes rest symmetrically about the quarter — parallel ON it, perpendicular at the
+            two ends — so f is just how far ℓ sits off 6, one way up or the other. No list is
+            searched and no minimum is taken</p>
+          <p>the two f lines being 6 apart is the <a href="audit.html">audit</a>'s "one mode is the
+            other upside down", written as arithmetic</p>
+          <p>t_after is the TILT, and it is the only thing an update writes. The normal and the
+            bottom follow because they are links off it, not because anything moves them</p>
+          <p>f is computed inside the arrival and thrown away — it is not a countdown, and no walk
+            is planned from it. One arrival turns the tilt at most one slot</p>
+          <p>the deciding never names a mode — by the time it runs, the mode is spent, having
+            produced one number per way to turn</p>
+          <p><span data-src="nodes/Node1/machine.go#fromRest">fromRest</span> computes f the GENERAL
+            way, as a minimum over the list
+            <span data-src="nodes/Node1/machine.go#resting">resting</span> returns, which is the
+            shape a third mode would join. The two lines above are what that minimum comes to for
+            these two modes, checked over both lattices and every tilt-and-arrival pair by
+            <span data-src="nodes/Node1/node_test.go#TestFromRestIsTheQuarterOffset">TestFromRestIsTheQuarterOffset</span></p>
+          <p>ℓ, ℓ₊ and ℓ₋ are one function called three times —
+            <span data-src="nodes/Node1/machine.go#settled">settled</span> uses the first,
+            <span data-src="nodes/Node1/machine.go#step">step</span> the other two</p>
+        </div>
+      </div>
+
+      <div class="card wide">
+        <h2>The other updates</h2>
+        <img class="math" src="update-other.svg" style="width:396px"
+          alt="Every arrival: r sub after = a. Panel up/down: t sub after = t sub plus or minus one, R sub after = R sub before. Reset: t sub after = 0, R sub after = R sub setting.">
+      </div>
+
+      <h3 class="secname">The same two decisions, worked</h3>
+
+      <div class="card wide">
+        <h2>One step, worked</h2>
+        <img class="figure" src="panel-step.svg"
+          alt="Parallel mode. The arrival sits at slot 0, the tilt at slot 10. Slots 6 and 18 are the two tilts that would rest for this arrival; slots 9 and 11 are the only two the tilt can turn to.">
+        <div class="keynote">
+          <p><code>settle?</code> L = 10 is not a resting length → <b>no</b></p>
+          <p><code>up?</code> down reaches 6 sooner than up does → <b>no</b></p>
+          <p><code>t_after = t − 1 = 9</code></p>
+          <p><i class="sw" style="background:#e05fd8"></i>the two tilts whose angle length is a resting 6
+            for this arrival</p>
+          <p><i class="sw" style="background:#4ea1ff"></i>the only two slots it can turn to — a tie turns
+            up</p>
         </div>
       </div>
 
       <div class="card wide">
         <h2>A run, from START to the halt</h2>
-        <table class="f">
-          <tr class="h">
-            <td>event</td>
-            <td>machine · separation</td>
-            <td>result</td>
-          </tr>
-          <tr>
-            <td class="e">node 1 top.idx = 23, node 2 top.idx = 10 · START</td>
-            <td class="e">—</td>
-            <td class="e">node 1 sends normal(23) = 5, places a bead. Neither node has a machine yet</td>
-          </tr>
-          <tr>
-            <td class="e">node 2 receives 5 — its FIRST arrival</td>
-            <td class="e">machineForGap: back the quarter out of 5 (→ partner tilt 23), sep(10, 23) = 11 —
-              not a quarter turn, so PARALLEL. Then sep(top 10, arrival 5) = 5, not parallel's halt (6)</td>
-            <td class="e">adopts parallel · Top ← Top.next, top.idx 10 → 11 (parallel's halt is one step
-              away) · sends normal(11) = 17, carrying Machine=parallel · bead</td>
-          </tr>
-          <tr>
-            <td class="e">node 1 receives 17</td>
-            <td class="e">adopts PARALLEL from the message (adoptMachine), before reading any gap itself ·
-              sep(top 23, arrival 17) = 6 — parallel's own halt</td>
-            <td class="e">HALT on parallel. Top unchanged, no send, no bead</td>
-          </tr>
-          <tr>
-            <td class="e">at rest</td>
-            <td class="e">top.idx = 23 on node 1, top.idx = 11 on node 2 — both running parallel</td>
-            <td class="e">r = 17 on node 1, r = 5 on node 2 — the third arrows stay drawn</td>
-          </tr>
-        </table>
-        <div class="cap">One send, one bead, and a single reply that lands on parallel's halt — same rule run
-          unmodified on both nodes, once each has adopted the same machine. Sends and beads are equal in
-          number because the only PlaceDrivenAt call sits in the same branch as the send, so no bead is
-          placed on the halt.</div>
+        <div class="strip">
+          <img src="panel-run-1.svg" alt="START: node 1 sends 5">
+          <img src="panel-run-2.svg" alt="node 2 reads 5 and is one slot short">
+          <img src="panel-run-3.svg" alt="node 2 turns to 11 and sends 17">
+          <img src="panel-run-4.svg" alt="node 1 reads 17, angle length 6, and settles">
+        </div>
+        <div class="keynote">
+          <p><i class="sw" style="background:#5fd68a"></i>t — each node's own tilt</p>
+          <p><i class="sw" style="background:#f9a825"></i>what just arrived at that node</p>
+          <p>both ends run R = { 6 }, chosen from the gap at the first arrival</p>
+          <p>one bead per send, and settling sends nothing</p>
+        </div>
       </div>
 
+      <h3 class="secname">What leaves the node, and what a reset puts back</h3>
+
       <div class="card wide">
-        <h2>What a report puts on this node's own frame</h2>
-        <table class="f">
-          <tr>
-            <td class="e">tilt angle = top.idx × 15°</td>
-            <td class="n" colspan="2">persisted</td>
-          </tr>
-          <tr>
-            <td class="e">bottom angle = top.opposite.idx × 15°</td>
-            <td class="n" colspan="2">read off the link on every report, never stored</td>
-          </tr>
-          <tr>
-            <td class="e">normal angle = top.quarter.idx × 15°</td>
-            <td class="n" colspan="2">read off the link on every report, never stored</td>
-          </tr>
-          <tr>
-            <td class="e">received angle = r × 15°</td>
-            <td class="n" colspan="2">drawn only when set. Written to no file — a reload starts with r
-              unset</td>
-          </tr>
-          <tr>
-            <td class="e">the tilt's drawn length</td>
-            <td class="n" colspan="2">the node's radius when it stands upright with exactly one neighbour,
-              otherwise 0</td>
-          </tr>
-          <tr>
-            <td class="e">centre, reach, pole, ring axis</td>
-            <td class="n" colspan="2">unchanged by a tilt — turning is a step to a different state, and the
-              separation stays where the last drag put it</td>
-          </tr>
-          <tr>
-            <td class="e">the row it claims</td>
-            <td class="n" colspan="2">its own, or it panics — the row is an ownership claim, and a foreign
-              node belongs in the target column</td>
-          </tr>
-        </table>
-        <div class="cap">Every angle on the frame is an index times 15°, on this node's own dedicated pipe.
-          Trig happens only where polar meets cartesian, never here.</div>
+        <h2>What a report puts on the frame</h2>
+        <img class="figure" src="panel-frame.svg"
+          alt="One node's ring carrying four arrows: its tilt, its normal, its bottom, and the direction it last received.">
+        <div class="keynote">
+          <p><i class="sw" style="background:#5fd68a"></i><code>(π/12) · t</code> — persisted, position.json</p>
+          <p><i class="sw" style="background:#4ea1ff"></i><code>(π/12) · (t + 6)</code> — a link, never stored</p>
+          <p><i class="sw" style="background:#9a9aa6"></i><code>(π/12) · (t + 12)</code> — a link, never stored</p>
+          <p><i class="sw" style="background:#f9a825"></i><code>(π/12) · r</code> — drawn when set, never
+            persisted</p>
+          <p>centre · reach · pole · ring axis — a tilt touches none of them</p>
+        </div>
       </div>
 
       <div class="card wide">
         <h2>What a reset puts back</h2>
-        <table class="f">
-          <tr>
-            <td class="e">Top ← ring[0], reported</td>
-            <td class="n" colspan="2">the bottom and the normal follow, being links off the new Top</td>
-          </tr>
-          <tr>
-            <td class="e">r ← 0, set ← false, reported</td>
-            <td class="n" colspan="2">the third arrow goes away</td>
-          </tr>
-          <tr>
-            <td class="e">VectorIn emptied</td>
-            <td class="n" colspan="2">depth 1, latest wins, so one receive empties it. A direction left
-              sitting there arrives next cycle and steps Top straight back off ring[0]</td>
-          </tr>
-          <tr>
-            <td class="e">In drained until empty</td>
-            <td class="n" colspan="2">beads already delivered here. Bounded by what the partner placed
-              before it stopped placing</td>
-          </tr>
-          <tr>
-            <td class="e">outgoing beads dropped</td>
-            <td class="n" colspan="2">the ones still crossing, dropped through this node's own self, which
-              drives that wire</td>
-          </tr>
-          <tr>
-            <td class="e">each node clears twice</td>
-            <td class="n" colspan="2">the button clears this node and sends the marker, after which it
-              places nothing ever again; the partner clears when the marker arrives. That second clear is
-              ordered after the last bead the sender could have placed, so it is the one that lands last</td>
-          </tr>
-        </table>
+        <div class="strip">
+          <img src="panel-reset-before.svg" alt="before the reset: tilt 17, and a received direction drawn">
+          <img src="panel-reset-after.svg" alt="after the reset: tilt 0, and no received direction">
+        </div>
+        <div class="keynote">
+          <p>the tilt goes to 0 and the other two follow, being links off it</p>
+          <p>both queues emptied — a direction left waiting would step t straight back off 0</p>
+          <p>beads still crossing dropped · each node clears twice, and the marker's clear lands last</p>
+        </div>
       </div>
 
+      <h3 class="secname">The map into the code</h3>
+
       <div class="card wide">
-        <h2>Where each rule lives — the names open the file at the definition</h2>
+        <h2>Where every rule above lives — the names open the file at the definition</h2>
         <table class="f">
           <tr class="h">
             <td>file</td>
@@ -550,9 +375,9 @@
               <span data-src="nodes/Node1/ring.go#at">at</span> ·
               <span data-src="nodes/Node1/ring.go#arrivedState">arrivedState</span> ·
               <span data-src="nodes/Node1/ring.go#seedState">seedState</span> ·
-              <span data-src="nodes/Node1/ring.go#separation">separation</span> ·
-              <span data-src="nodes/Node1/perpendicular.go#perpendicularMachine">perpendicularMachine</span> ·
-              <span data-src="nodes/Node1/parallel.go#parallelMachine">parallelMachine</span>
+              <span data-src="nodes/Node1/ring.go#angleLength">angleLength</span> ·
+              <span data-src="nodes/Node1/machine.go#tiltMachine">tiltMachine</span> ·
+              <span data-src="nodes/Node1/machine.go#restingLengths">restingLengths</span>
             </td>
           </tr>
           <tr>

@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="436" height="280" viewBox="0 0 436 280">
+<circle cx="150" cy="140" r="106" fill="none" stroke="#3a3a44" stroke-width="1.4"/><path d="M176 42L177 38M200 53L203 48M221 69L225 65M237 89L242 87M248 114L252 113M248 166L252 167M237 190L242 193M221 211L225 215M200 227L203 232M176 238L177 242M124 238L123 242M99 227L97 232M79 211L75 215M63 191L58 193M52 166L48 167M52 114L48 113M63 89L58 87M79 69L75 65M99 53L97 48M124 42L123 38" stroke="#3a3a44"/><path d="M150 39L150 34M251 140L256 140M150 241L150 246M49 140L44 140" stroke="#9a9aa6" stroke-width="1.6"/>
+<path d="M233 57A118 118 0 0 1 252 81" fill="none" stroke="#e05fd8" stroke-width="4"/>
+<path d="M250 66 L280 66" stroke="#e05fd8" stroke-width="1"/>
+<text x="288" y="70" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="15" fill="#e05fd8" text-anchor="start">one step = π/12</text>
+<text x="150" y="22" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#9a9aa6">0</text>
+<text x="274" y="146" text-anchor="start" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#9a9aa6">6</text>
+<text x="150" y="270" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#9a9aa6">12</text>
+<text x="26" y="146" text-anchor="end" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#9a9aa6">18</text>
+<circle cx="150" cy="34" r="4" fill="#5fd68a"/>
+<circle cx="177" cy="38" r="4" fill="#4a4a56"/>
+<circle cx="203" cy="48" r="4" fill="#4a4a56"/>
+<circle cx="225" cy="65" r="4" fill="#4a4a56"/>
+<circle cx="242" cy="87" r="4" fill="#4a4a56"/>
+<circle cx="252" cy="113" r="4" fill="#4a4a56"/>
+<circle cx="256" cy="140" r="4" fill="#5fd68a"/>
+<circle cx="252" cy="167" r="4" fill="#4a4a56"/>
+<circle cx="242" cy="193" r="4" fill="#4a4a56"/>
+<circle cx="225" cy="215" r="4" fill="#4a4a56"/>
+<circle cx="203" cy="232" r="4" fill="#4a4a56"/>
+<circle cx="177" cy="242" r="4" fill="#4a4a56"/>
+<circle cx="150" cy="246" r="4" fill="#5fd68a"/>
+<circle cx="123" cy="242" r="4" fill="#4a4a56"/>
+<circle cx="97" cy="232" r="4" fill="#4a4a56"/>
+<circle cx="75" cy="215" r="4" fill="#4a4a56"/>
+<circle cx="58" cy="193" r="4" fill="#4a4a56"/>
+<circle cx="48" cy="167" r="4" fill="#4a4a56"/>
+<circle cx="44" cy="140" r="4" fill="#5fd68a"/>
+<circle cx="48" cy="113" r="4" fill="#4a4a56"/>
+<circle cx="58" cy="87" r="4" fill="#4a4a56"/>
+<circle cx="75" cy="65" r="4" fill="#4a4a56"/>
+<circle cx="97" cy="48" r="4" fill="#4a4a56"/>
+<circle cx="123" cy="38" r="4" fill="#4a4a56"/>
+<path d="M121 31A113 113 0 0 1 150 27" fill="none" stroke="#4ea1ff" stroke-width="3"/>
+</svg>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="152" height="194" viewBox="0 0 152 194">
+<circle cx="76" cy="80" r="64" fill="none" stroke="#3a3a44" stroke-width="1.4"/><path d="M91 23L93 18M106 29L108 25M118 38L121 35M127 50L131 48M133 65L138 63M133 95L138 97M127 109L131 112M118 122L121 125M106 131L108 135M91 137L93 142M61 137L59 142M46 131L44 135M34 122L31 125M25 110L21 112M19 95L14 97M19 65L14 63M25 50L21 48M34 38L31 35M46 29L44 25M61 23L59 18" stroke="#3a3a44"/><path d="M76 21L76 16M135 80L140 80M76 139L76 144M17 80L12 80" stroke="#9a9aa6" stroke-width="1.6"/>
+<line x1="76" y1="80" x2="76" y2="26" stroke="#9a9aa6" stroke-width="2"/><polygon points="76,17 80,26 72,26" fill="#9a9aa6"/>
+<line x1="76" y1="80" x2="22" y2="80" stroke="#4ea1ff" stroke-width="2.4"/><polygon points="13,80 22,76 22,84" fill="#4ea1ff"/>
+<line x1="76" y1="80" x2="76" y2="134" stroke="#5fd68a" stroke-width="2.8"/><polygon points="76,143 72,134 80,134" fill="#5fd68a"/>
+<text x="76" y="176" text-anchor="middle" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="15" fill="#e7e7ea">t = 12</text>
+</svg>
