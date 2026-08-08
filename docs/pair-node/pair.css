@@ -158,6 +158,59 @@
       margin-left: 0
     }
 
+    /* The equations on arith.html are TEXT, not LaTeX rendered to SVG. Two typefaces cannot
+       be the same size: matched by em, Computer Modern's low x-height reads small; matched
+       by x-height, its em is 22.7px against the page's 19px and it reads large. Setting the
+       maths in the page's own font ends the argument — one element, one font-size, and it
+       reflows on a narrow window instead of scaling. Symbols are letters, so italic marks
+       them apart the way the maths did. */
+    .eq {
+      font-size: 19px;
+      line-height: 1.6;
+      margin: 0 0 5px;
+      color: var(--ink)
+    }
+
+    .eq var {
+      font-style: italic
+    }
+
+    .eq .g {
+      display: inline-block;
+      min-width: 15ch
+    }
+
+    .eq .note {
+      color: var(--dim);
+      margin-left: 14px
+    }
+
+    .eq.step {
+      margin-left: 22px
+    }
+
+    .eq.head {
+      color: var(--accent);
+      margin-top: 14px
+    }
+
+    .eq.head:first-child {
+      margin-top: 0
+    }
+
+    .eq.dim {
+      color: var(--dim)
+    }
+
+    /* the site's own two mode colours, as in the drawings */
+    .eq .perp {
+      color: var(--mag)
+    }
+
+    .eq .par {
+      color: var(--warm)
+    }
+
     .secname {
       grid-column: 1 / -1;
       margin: 16px 0 0;

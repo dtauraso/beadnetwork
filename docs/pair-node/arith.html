@@ -28,8 +28,12 @@
   <a href="asym.html">Asymmetry</a>
 </nav>
 
-<!-- The maths blocks are update-closed-*.svg, set in LaTeX by mathblocks.py (pairmath.sty
-     carries the rebuild command). Nothing here is loaded over the network.
+<!-- The equations here are TEXT (pair.css, .eq), not LaTeX rendered to SVG like updates.html.
+     That page sets its maths beside DRAWINGS; this one sets it beside PROSE, and two
+     typefaces cannot be made the same size — matched by em, Computer Modern's low x-height
+     reads small; matched by x-height, its em is 22.7px against the page's 19px and it reads
+     large. One font ends the argument, and the equations reflow on a narrow window rather
+     than scaling. Nothing here is loaded over the network.
 
      This page is deliberately NOT a restatement of updates.html. Its claim is that the
      node's behaviour can be written down instead of stepped through, so nothing here may
@@ -55,8 +59,28 @@
 
     <div class="card wide">
       <h2>Where the numbers come from</h2>
-      <img class="math" src="update-closed-numbers.svg" style="width:724px"
-        alt="t and a are in {0, 1, ..., 23}. This node: tilt = t, normal = t + 6, bottom = b = t + 12 mod 24; only t moves, the other two are read off it. The partner: tilt = p, normal = p + 6. a = p + 6 — a IS the partner's normal, and its tilt p is never seen. Count from each end of the tilt line up to a: u = t - a mod 24, from the top; v = b - a mod 24, from the bottom. One test, on each count: keep it under 12. If u is 12 or more, replace it with 24 - u, and the same for v. Then u + v = 12 — the ends are a half turn apart, so the two distances share it.">
+      <p class="eq"><var>t</var>, <var>a</var> ∈ {0, 1, …, 23}</p>
+      <p class="eq head">this node</p>
+      <p class="eq step"><span class="g">tilt = <var>t</var></span>
+        <span class="g">normal = <var>t</var> + 6</span>
+        bottom = <var>b</var> = <var>t</var> + 12 (mod 24)</p>
+      <p class="eq step dim">only <var>t</var> moves; the other two are read off it</p>
+      <p class="eq head">the partner</p>
+      <p class="eq step"><span class="g">tilt = <var>p</var></span>
+        normal = <var>p</var> + 6</p>
+      <p class="eq step"><span class="g"><var>a</var> = <var>p</var> + 6</span>
+        <span class="note"><var>a</var> IS the partner's normal — its tilt <var>p</var> is never
+          seen</span></p>
+      <p class="eq head">count from each end of the tilt line up to <var>a</var></p>
+      <p class="eq step"><span class="g"><var>u</var> = <var>t</var> − <var>a</var> (mod 24)</span>
+        <span class="note">from the top</span></p>
+      <p class="eq step"><span class="g"><var>v</var> = <var>b</var> − <var>a</var> (mod 24)</span>
+        <span class="note">from the bottom</span></p>
+      <p class="eq head">one test, on each count: keep it under 12</p>
+      <p class="eq step">if <var>u</var> ≥ 12 : <var>u</var> ← 24 − <var>u</var>
+        <span class="note">and the same for <var>v</var></span></p>
+      <p class="eq step dim"><var>u</var> + <var>v</var> = 12 — the ends are a half turn apart, so
+        the two distances share it</p>
       <div class="keynote">
         <p><b>t</b> — this node's tilt, the only thing it stores</p>
         <p><b>b</b> — its bottom, the other end of the same line</p>
@@ -71,8 +95,14 @@
 
     <div class="card wide">
       <h2>q and f</h2>
-      <img class="math" src="update-closed-far.svg" style="width:399px"
-        alt="Slots from either distance to the quarter: q = |u - 6| = |v - 6|. Slots t must turn before it stops: perpendicular stops when an end reads 0, and f = min(u, v) = 6 - q; parallel stops when both ends read 6, and f = q.">
+      <p class="eq head">slots from either distance to the quarter</p>
+      <p class="eq step"><var>q</var> = |<var>u</var> − 6| = |<var>v</var> − 6|</p>
+      <p class="eq head">slots <var>t</var> must turn before it stops</p>
+      <p class="eq step perp">perpendicular stops when an end reads 0</p>
+      <p class="eq step perp" style="margin-left:44px"><var>f</var> = min(<var>u</var>,
+        <var>v</var>) = 6 − <var>q</var></p>
+      <p class="eq step par">parallel stops when both ends read 6</p>
+      <p class="eq step par" style="margin-left:44px"><var>f</var> = <var>q</var></p>
       <div class="keynote">
         <p><b>q</b> — slots from u (or from v) to 6</p>
         <p><b>f</b> — slots t must turn before it stops</p>
@@ -86,8 +116,18 @@
 
     <div class="card wide">
       <h2>t after one message</h2>
-      <img class="math" src="update-closed-round.svg" style="width:556px"
-        alt="f is a reading of the tilt t, so t + 1 and t - 1 have their own. If f = 0 then t after = t; else t after is whichever of t + 1, t - 1 has the smaller f. f = 0 is a lying on one of this node's own lines: perpendicular, the tilt line t and b; parallel, the normal line t + 6 and b + 6.">
+      <p class="eq dim"><var>f</var> is a reading of the tilt <var>t</var>, so <var>t</var>+1 and
+        <var>t</var>−1 have their own</p>
+      <p class="eq step"><span class="g"><var>f</var> = 0 :</span>
+        <var>t</var><sub>after</sub> = <var>t</var></p>
+      <p class="eq step"><span class="g">else :</span>
+        <var>t</var><sub>after</sub> = whichever of <var>t</var>+1, <var>t</var>−1 has the smaller
+        <var>f</var></p>
+      <p class="eq head"><var>f</var> = 0 is <var>a</var> lying on one of this node's own lines</p>
+      <p class="eq step perp"><span class="g">perpendicular</span>
+        the tilt line <var>t</var>, <var>b</var></p>
+      <p class="eq step par"><span class="g">parallel</span>
+        the normal line <var>t</var>+6, <var>b</var>+6</p>
       <div class="keynote">
         <p><b>t<sub>after</sub></b> — the tilt after one message; the normal and bottom follow</p>
         <p>nothing here is negative and nothing is a sign: two distances say between them what one
@@ -101,8 +141,11 @@
 
     <div class="card wide">
       <h2>The run, without running it</h2>
-      <img class="math" src="update-closed-run.svg" style="width:505px"
-        alt="Arrivals = f(t). Ends on the line: parallel, t = a + 6 mod 12; perpendicular, t = a, mod 12. Which end of that line it reaches is not decided here.">
+      <p class="eq step"><span class="g">messages</span> = <var>f</var></p>
+      <p class="eq step"><span class="g">ends on the line</span>
+        <span class="par"><var>t</var> ≡ <var>a</var> + 6</span> &nbsp;
+        <span class="perp"><var>t</var> ≡ <var>a</var></span> &nbsp; (mod 12)</p>
+      <p class="eq step dim">which end of that line it reaches is not decided here</p>
       <div class="keynote">
         <p>f is the count as well as the distance: each message closes one slot, so there is no
           message f + 1, and f = 0 is the run that takes none</p>

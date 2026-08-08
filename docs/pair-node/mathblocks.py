@@ -139,64 +139,13 @@ BODIES = {
   \quad f_{+} \le f_{-} : \quad t_{\mathrm{after}} = t_{+1} \\[5pt]
   \quad \text{else} : \qquad\quad\;\, t_{\mathrm{after}} = t_{-1}
 """,
-    # ---- closed-*: the arithmetic that REPLACES the machine (arith.html) ----------------
-    #
-    # These are not the machine written out. There is no current state, no transition, no
-    # rule applied over and over — you are given three numbers and you write down where the
-    # node ends up and how many arrivals it takes. The machine's own vocabulary (states,
-    # links, next/prev, settle) does not appear because none of it is needed to say this.
-    #
-    # Every claim here is swept against the running code by TestTheWalkIsClosedForm.
-    "closed-numbers": r"""
-  \quad t,\, a \;\in\; \{0,\, 1,\, \ldots,\, 23\} \\[9pt]
-  \quad \text{\color{acc}this node} \quad
-    \text{tilt} = t \qquad \text{normal} = t + 6 \qquad
-    \text{bottom} = b = t + 12 \pmod{24} \\[4pt]
-  \quad {\color{dim}\text{only } t \text{ moves; the other two are read off it}} \\[9pt]
-  \quad \text{\color{acc}the partner} \quad
-    \text{tilt} = p \qquad \text{normal} = p + 6 \\[6pt]
-  \quad a = p + 6
-    \qquad {\color{dim}a \text{ IS the partner's normal — its tilt } p
-      \text{ is never seen}} \\[9pt]
-  \quad \text{\color{acc}count from each end of the tilt line up to } a \\[6pt]
-  \quad u = t - a \pmod{24}
-    \qquad {\color{dim}\text{from the top}} \\[4pt]
-  \quad v = b - a \pmod{24}
-    \qquad {\color{dim}\text{from the bottom}} \\[6pt]
-  \quad \text{\color{acc}one test, on each count: keep it under } 12 \\[5pt]
-  \quad \text{if } u \ge 12 : \; u \leftarrow 24 - u
-    \qquad {\color{dim}\text{and the same for } v} \\[6pt]
-  \quad {\color{dim}u + v = 12 \text{ — the ends are a half turn apart, so the two
-    distances share it}}
-""",
-    "closed-far": r"""
-  \quad \text{\color{acc}slots from either distance to the quarter} \\[4pt]
-  \quad q = \lvert\, u - 6 \,\rvert = \lvert\, v - 6 \,\rvert \\[9pt]
-  \quad \text{\color{acc}slots } t \text{ must turn before it stops} \\[4pt]
-  \quad {\color{perp}\text{perpendicular stops when an end reads } 0} \\[3pt]
-  \qquad {\color{perp}f = \min(u,\, v) = 6 - q} \\[6pt]
-  \quad {\color{par}\text{parallel stops when both ends read } 6} \\[3pt]
-  \qquad {\color{par}f = q}
-""",
-    # ONE ROUND, with no case in it. The magnitude story above (l, q, f) has thrown the sign
-    # away, so it needs a comparison to get direction back. Keep the SIGNED gap instead and
-    # both arrangements are one line, differing by a shift of 6 inside the modulus.
-    "closed-round": r"""
-  \quad {\color{dim}f \text{ is a reading of the tilt } t, \text{ so } t_{+1}
-    \text{ and } t_{-1} \text{ have their own}} \\[9pt]
-  \quad {\color{acc}f = 0 :} \qquad t_{\mathrm{after}} = t \\[5pt]
-  \quad {\color{acc}\text{else} :} \qquad t_{\mathrm{after}} =
-    \text{whichever of } t_{+1},\, t_{-1} \text{ has the smaller } f \\[9pt]
-  \quad {\color{dim}f = 0 \text{ is } a \text{ lying on one of this node's own lines:}} \\[4pt]
-  \qquad {\color{perp}\text{perpendicular} \; — \; \text{the tilt line} \quad t,\; b} \\[4pt]
-  \qquad {\color{par}\text{parallel} \; — \; \text{the normal line} \quad t+6,\; b+6}
-""",
-    "closed-run": r"""
-  \quad {\color{acc}\text{messages}} \;=\; f(t) \\[7pt]
-  \quad {\color{acc}\text{ends on the line}} \quad
-    {\color{par}t \equiv a + 6} \qquad {\color{perp}t \equiv a} \qquad (\bmod\; 12) \\[7pt]
-  \quad {\color{dim}\text{which end of that line it reaches is not decided here}}
-""",
+    # NO closed-* BLOCKS HERE. arith.html sets its equations as HTML text (pair.css, .eq)
+    # rather than LaTeX rendered to SVG, because that page is maths and prose side by side
+    # and two typefaces cannot be made the same size: matched by em, Computer Modern's low
+    # x-height reads small; matched by x-height, its em is 22.7px against the page's 19px
+    # and it reads large. One font ends the argument, and the equations reflow on a narrow
+    # window instead of scaling. This file is for updates.html, which sets its maths beside
+    # DRAWINGS and wants the LaTeX look.
     "other": r"""
   \text{every arrival} :\; r_{\mathrm{after}} = a \\[5pt]
   \text{panel } \blacktriangle\,\blacktriangledown :\;
