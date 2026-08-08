@@ -10,14 +10,15 @@
   \quad {\color{dim}\text{only } t \text{ moves; the other two are read off it}} \\[9pt]
   \quad \text{\color{acc}what arrives} \quad a = p + 6
     \quad {\color{dim}\text{the partner's normal, not its tilt}} \\[9pt]
-  \quad \text{\color{acc}the arrival, read off each end of the tilt line} \\[6pt]
-  \quad d = \lvert t - a \rvert
-    \qquad {\color{dim}\text{the plain difference, } 0 \le d \le 23} \\[6pt]
-  \quad \ell_{\mathrm{bottom}} = \lvert 12 - d \rvert
-    \qquad {\color{dim}\text{slots from } t+12 \text{ to } a} \\[4pt]
-  \quad \ell_{\mathrm{top}} = 12 - \ell_{\mathrm{bottom}}
-    \qquad {\color{dim}\text{slots from } t \text{ to } a} \\[6pt]
-  \quad \ell_{\mathrm{top}} + \ell_{\mathrm{bottom}} = 12
-    \qquad {\color{dim}\text{the two ends are a half turn apart}}
+  \quad \text{\color{acc}count from each end of the tilt line up to the arrival} \\[6pt]
+  \quad u = t - a \pmod{24}
+    \qquad {\color{dim}\text{from the top}} \\[4pt]
+  \quad v = t + 12 - a \pmod{24}
+    \qquad {\color{dim}\text{from the bottom}} \\[6pt]
+  \quad {\color{dim}\text{the ends are a half turn apart, so } u \text{ and } v
+    \text{ differ by } 12} \\[4pt]
+  \quad {\color{dim}\text{— exactly one of them is under } 12} \\[6pt]
+  \quad \text{that one is its own end's reading} \\[4pt]
+  \quad \text{the other end reads } 12 \text{ minus it}
 \end{array}\]
 \end{document}

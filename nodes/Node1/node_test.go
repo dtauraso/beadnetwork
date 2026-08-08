@@ -227,17 +227,28 @@ func TestOneRoundIsSignAndRemainder(t *testing.T) {
 						tilt, arr, topL, botL)
 				}
 
-				// And the two readings are already IN the angle-length formula: with
-				// d = |t - a|, the bottom reads |12 - d| and the top reads 12 minus that.
-				// So the inner term of 12 - |12 - d| is not a device for picking the
-				// shorter arc — it is the BOTTOM's own reading, and the top is what is
-				// left of a half turn once the bottom has taken its share.
-				dAbs := abs32(tilt - arr)
-				if botL != abs32(12-dAbs) {
-					t.Fatalf("t=%d a=%d: bottom reads %d, |12-d| = %d", tilt, arr, botL, abs32(12-dAbs))
+				// Measured from the two INDICES, no abs anywhere. Count from each end up
+				// to the arrival:
+				//
+				//	u = (t - a)      mod 24        from the top
+				//	v = (t + 12 - a) mod 24        from the bottom
+				//
+				// The two ends are a half turn apart, so u and v differ by 12 — which
+				// means EXACTLY ONE of them is below 12. That one is its own end's
+				// reading, and the other end reads 12 minus it. No abs, no min, and no
+				// fold applied twice: the pair sorts itself.
+				u := ((tilt-arr)%points + points) % points
+				v := ((tilt+12-arr)%points + points) % points
+				if (u < 12) == (v < 12) {
+					t.Fatalf("t=%d a=%d: u=%d v=%d, not exactly one below 12", tilt, arr, u, v)
 				}
-				if topL != 12-abs32(12-dAbs) {
-					t.Fatalf("t=%d a=%d: top reads %d, 12-|12-d| = %d", tilt, arr, topL, 12-abs32(12-dAbs))
+				wantTop, wantBot := 12-v, v
+				if u < 12 {
+					wantTop, wantBot = u, 12-u
+				}
+				if topL != wantTop || botL != wantBot {
+					t.Fatalf("t=%d a=%d: u=%d v=%d give top=%d bottom=%d, but readings are %d and %d",
+						tilt, arr, u, v, wantTop, wantBot, topL, botL)
 				}
 
 				// And each arrangement stops when the arrival lands ON one of the node's
@@ -286,13 +297,13 @@ func TestOneRoundIsSignAndRemainder(t *testing.T) {
 				//	                  t = a     (mod 12)  perpendicular
 				//
 				// e and sign(e) name the index it walks to. Nothing above needs them.
-				u := ((tilt-arr+shift)%12 + 12) % 12
-				if u < 0 || u > 11 {
-					t.Fatalf("mode=%v t=%d a=%d: u=%d outside 0..11", m.mode, tilt, arr, u)
+				r12 := ((tilt-arr+shift)%12 + 12) % 12
+				if r12 < 0 || r12 > 11 {
+					t.Fatalf("mode=%v t=%d a=%d: remainder %d outside 0..11", m.mode, tilt, arr, r12)
 				}
-				if got := m.fromRest(cur, a); got != abs32(u-6) {
-					t.Fatalf("mode=%v t=%d a=%d: |u-6|=%d but fromRest=%d",
-						m.mode, tilt, arr, abs32(u-6), got)
+				if got := m.fromRest(cur, a); got != abs32(r12-6) {
+					t.Fatalf("mode=%v t=%d a=%d: |r-6|=%d but fromRest=%d",
+						m.mode, tilt, arr, abs32(r12-6), got)
 				}
 				wantLine := ((arr+6-shift)%12 + 12) % 12
 				if e == 0 && ((tilt%12)+12)%12 != wantLine {

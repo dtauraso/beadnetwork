@@ -56,19 +56,17 @@
     <div class="card wide">
       <h2>Two numbers, one arrow each</h2>
       <img class="math" src="update-closed-numbers.svg" style="width:422px"
-        alt="t and a are in {0, 1, ..., 23}. This node: tilt = t, normal = t + 6, bottom = t + 12; only t moves, the other two are read off it. What arrives: a = p + 6, the partner's normal, not its tilt. The arrival, read off each end of the tilt line: d = |t - a|, the plain difference, 0 to 23; L bottom = |12 - d|, the slots from t + 12 to a; L top = 12 - L bottom, the slots from t to a; and L top + L bottom = 12, because the two ends are a half turn apart.">
+        alt="t and a are in {0, 1, ..., 23}. This node: tilt = t, normal = t + 6, bottom = t + 12; only t moves, the other two are read off it. What arrives: a = p + 6, the partner's normal, not its tilt. Count from each end of the tilt line up to the arrival: u = t - a mod 24, from the top; v = t + 12 - a mod 24, from the bottom. The ends are a half turn apart, so u and v differ by 12 — exactly one of them is under 12. That one is its own end's reading, and the other end reads 12 minus it.">
       <div class="keynote">
         <p>a node draws three arrows and sends the middle one, so the quarter turn is already inside
           a before it is measured against anything</p>
-        <p>the top's reading is a half turn less the bottom's, so only one of the two is ever
-          computed. |12 − d| is not a device for picking the shorter arc — it is the bottom end
-          measured, and the top gets what is left</p>
-        <p>the bottom's reading cannot be a plain difference of its own. t = 11 puts the bottom at
-          23, and against an arrival at 0 the plain difference is 23 while the reading is 1 — the
-          same folding d needs. Doing it once, on the bottom, is what the other three lines then
-          get for free</p>
-        <p>d drops the sign, so nothing downstream of it can say which way. Nothing needs to: two
-          readings say between them what one number and a sign would have to</p>
+        <p>no abs and no min, because the pair sorts itself: two counts a half turn apart cannot
+          both be under 12, nor both over. Asking which one is under 12 is the whole of the work
+          that folding used to do</p>
+        <p>t = 11 against an arrival at 0: from the top u = 11, from the bottom v = 23. The 11 is
+          under 12, so the top reads 11 and the bottom reads 1</p>
+        <p>neither count says which way to turn — they are counts, not directions. Nothing here
+          needs one: two readings say between them what a single number and a sign would have to</p>
       </div>
     </div>
 
