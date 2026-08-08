@@ -128,6 +128,24 @@
       }
     }
 
+    /* A run of cards that answer one question, named. It is a grid child rather than a
+       wrapper around the cards, so the cards stay direct children of .grid and keep
+       flowing across both columns — a wrapper would restart a one-column layout inside
+       each section. First-child gets no top margin so the page does not open with a gap. */
+    .secname {
+      grid-column: 1 / -1;
+      margin: 16px 0 0;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--accent)
+    }
+
+    .secname:first-child {
+      margin-top: 0
+    }
+
     /* A drawing grows to its card but STOPS. width:100% alone was wrong on a wide
        window: a portrait canvas (520 wide, 620 tall) stretched to an 1130px card
        renders 1340px tall, which is a full screen of one circle. The cap keeps every

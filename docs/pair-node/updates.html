@@ -43,7 +43,16 @@
 
   <main>
 
+    <!-- The cards are grouped by the QUESTION they answer, and .secname names each group.
+         The groups run in the order a reader needs them: what a node holds, what it reads
+         off that, the two machines it is, the decisions an arrival makes, those decisions
+         worked through, what leaves the node, and last the map into the code. Before this
+         the two decision cards sat either side of an unrelated one and the state cards were
+         split across the machine cards. -->
+
     <div class="grid">
+
+      <h3 class="secname">What a node holds, and what it reads off it</h3>
 
       <div class="card wide">
         <h2>The state</h2>
@@ -58,6 +67,52 @@
             only reason the ring closes</p>
         </div>
       </div>
+
+      <div class="card wide">
+        <h2>What is read off the tilt</h2>
+        <div class="strip">
+          <img src="panel-triad-0.svg" alt="tilt 0, with its normal and bottom">
+          <img src="panel-triad-6.svg" alt="tilt 6, with its normal and bottom">
+          <img src="panel-triad-12.svg" alt="tilt 12, with its normal and bottom">
+          <img src="panel-triad-17.svg" alt="tilt 17, with its normal and bottom">
+        </div>
+        <div class="keynote">
+          <p><i class="sw" style="background:#5fd68a"></i>t — the tilt</p>
+          <p><i class="sw" style="background:#4ea1ff"></i>t + 6 — the normal, and what it sends</p>
+          <p><i class="sw" style="background:#9a9aa6"></i>t + 12 — the bottom</p>
+          <p>links, not sums — the triad turns as one, and nothing wraps</p>
+        </div>
+        <img class="math" src="update-read.svg" style="width:145px"
+          alt="normal(t) = t+6. bottom(t) = t+12. sends = normal(t). angle(i) = (pi/12) i.">
+      </div>
+
+      <div class="card wide">
+        <h2>The angle length, and what it says the pair is at</h2>
+        <div class="strip">
+          <img src="panel-length-0.svg" alt="angle length 0 — perpendicular rests here">
+          <img src="panel-length-3.svg" alt="angle length 3, an acute angle — neither mode rests here, so the node turns">
+          <img src="panel-length-6.svg" alt="angle length 6 — parallel rests here">
+          <img src="panel-length-11.svg" alt="angle length 11, an obtuse angle — neither mode rests here, so the node turns">
+          <img src="panel-length-12.svg" alt="angle length 12, a half turn — perpendicular rests here too">
+        </div>
+        <div class="keynote">
+          <p><i class="sw" style="background:#5fd68a"></i>t — this node's own tilt</p>
+          <p><i class="sw" style="background:#f9a825"></i>a — the direction that arrived</p>
+          <p><i class="sw" style="background:#e05fd8"></i>L — short for
+            <span data-src="nodes/Node1/ring.go#angleLength">angleLength</span>, the slots between
+            them the short way round, so never more than 12</p>
+          <p>the two slots have TWO arcs between them, one each way round, and L is the shorter —
+            that choice is what min is for. It is not wrap handling: a tilt is a state on the ring
+            and cannot leave it, so turning never does arithmetic at all</p>
+          <p>0 and 12 are perpendicular's two rests, 6 is parallel's one; every other length —
+            acute below the quarter, obtuse above it — is ordinary to both, and gets turned over</p>
+          <p>integers, so exact — no dot product, no epsilon to tune</p>
+        </div>
+        <img class="math" src="update-length.svg" style="width:313px"
+          alt="d = absolute value of t minus a. L, short for angleLength(t,a), = min(d, 24 - d) — the shorter of the two arcs.">
+      </div>
+
+      <h3 class="secname">The two machines it is</h3>
 
       <div class="card wide">
         <h2>The tilt as a state machine — 24 states, two links out of each</h2>
@@ -147,73 +202,12 @@
         </div>
       </div>
 
-      <div class="card wide">
-        <h2>What is read off the tilt</h2>
-        <div class="strip">
-          <img src="panel-triad-0.svg" alt="tilt 0, with its normal and bottom">
-          <img src="panel-triad-6.svg" alt="tilt 6, with its normal and bottom">
-          <img src="panel-triad-12.svg" alt="tilt 12, with its normal and bottom">
-          <img src="panel-triad-17.svg" alt="tilt 17, with its normal and bottom">
-        </div>
-        <div class="keynote">
-          <p><i class="sw" style="background:#5fd68a"></i>t — the tilt</p>
-          <p><i class="sw" style="background:#4ea1ff"></i>t + 6 — the normal, and what it sends</p>
-          <p><i class="sw" style="background:#9a9aa6"></i>t + 12 — the bottom</p>
-          <p>links, not sums — the triad turns as one, and nothing wraps</p>
-        </div>
-        <img class="math" src="update-read.svg" style="width:145px"
-          alt="normal(t) = t+6. bottom(t) = t+12. sends = normal(t). angle(i) = (pi/12) i.">
-      </div>
-
-      <div class="card wide">
-        <h2>The angle length, and what it says the pair is at</h2>
-        <div class="strip">
-          <img src="panel-length-0.svg" alt="angle length 0 — perpendicular rests here">
-          <img src="panel-length-3.svg" alt="angle length 3, an acute angle — neither mode rests here, so the node turns">
-          <img src="panel-length-6.svg" alt="angle length 6 — parallel rests here">
-          <img src="panel-length-11.svg" alt="angle length 11, an obtuse angle — neither mode rests here, so the node turns">
-          <img src="panel-length-12.svg" alt="angle length 12, a half turn — perpendicular rests here too">
-        </div>
-        <div class="keynote">
-          <p><i class="sw" style="background:#5fd68a"></i>t — this node's own tilt</p>
-          <p><i class="sw" style="background:#f9a825"></i>a — the direction that arrived</p>
-          <p><i class="sw" style="background:#e05fd8"></i>L — short for
-            <span data-src="nodes/Node1/ring.go#angleLength">angleLength</span>, the slots between
-            them the short way round, so never more than 12</p>
-          <p>the two slots have TWO arcs between them, one each way round, and L is the shorter —
-            that choice is what min is for. It is not wrap handling: a tilt is a state on the ring
-            and cannot leave it, so turning never does arithmetic at all</p>
-          <p>0 and 12 are perpendicular's two rests, 6 is parallel's one; every other length —
-            acute below the quarter, obtuse above it — is ordinary to both, and gets turned over</p>
-          <p>integers, so exact — no dot product, no epsilon to tune</p>
-        </div>
-        <img class="math" src="update-length.svg" style="width:313px"
-          alt="d = absolute value of t minus a. L, short for angleLength(t,a), = min(d, 24 - d) — the shorter of the two arcs.">
-      </div>
+      <h3 class="secname">What an arrival does</h3>
 
       <div class="card">
         <h2 id="loop">Where each mode rests</h2>
         <img class="math" src="update-resting.svg" style="width:103px"
           alt="R perpendicular = {0, 12}. R parallel = {6}. R setting = any.">
-      </div>
-
-      <div class="card wide">
-        <h2>Which slot to go to — measure, then decide</h2>
-        <img class="math" src="update-decide-turn.svg" style="width:521px"
-          alt="Measure: f(u) is how far angleLength(u, a) is from the nearest length in R. Then decide: if f(t) = 0, stay at t; else if f(t plus one) is less than or equal to f(t minus one), go to t plus one; else go to t minus one.">
-        <div class="keynote">
-          <p>f is computed inside the arrival and thrown away — it is not a countdown, and no walk
-            is planned from it. One arrival turns the tilt at most one slot</p>
-          <p>neither branch names a mode. The mode is in R, as a list of numbers, which is why
-            <span data-src="nodes/Node1/machine.go#fromRest">fromRest</span> cannot ask which mode
-            it is computing for</p>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>The other updates</h2>
-        <img class="math" src="update-other.svg" style="width:312px"
-          alt="Every arrival: r sub after = a. Panel up/down: t sub after = t sub plus or minus one, R sub after = R sub before. Reset: t sub after = 0, R sub after = R sub setting.">
       </div>
 
       <div class="card wide">
@@ -238,6 +232,27 @@
           <p>it runs once, on the first arrival, and the answer sticks until a reset</p>
         </div>
       </div>
+
+      <div class="card wide">
+        <h2>Which slot to go to — measure, then decide</h2>
+        <img class="math" src="update-decide-turn.svg" style="width:521px"
+          alt="Measure: f(u) is how far angleLength(u, a) is from the nearest length in R. Then decide: if f(t) = 0, stay at t; else if f(t plus one) is less than or equal to f(t minus one), go to t plus one; else go to t minus one.">
+        <div class="keynote">
+          <p>f is computed inside the arrival and thrown away — it is not a countdown, and no walk
+            is planned from it. One arrival turns the tilt at most one slot</p>
+          <p>neither branch names a mode. The mode is in R, as a list of numbers, which is why
+            <span data-src="nodes/Node1/machine.go#fromRest">fromRest</span> cannot ask which mode
+            it is computing for</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>The other updates</h2>
+        <img class="math" src="update-other.svg" style="width:312px"
+          alt="Every arrival: r sub after = a. Panel up/down: t sub after = t sub plus or minus one, R sub after = R sub before. Reset: t sub after = 0, R sub after = R sub setting.">
+      </div>
+
+      <h3 class="secname">The same two decisions, worked</h3>
 
       <div class="card wide">
         <h2>One step, worked</h2>
@@ -270,6 +285,8 @@
         </div>
       </div>
 
+      <h3 class="secname">What leaves the node, and what a reset puts back</h3>
+
       <div class="card wide">
         <h2>What a report puts on the frame</h2>
         <img class="figure" src="panel-frame.svg"
@@ -297,8 +314,10 @@
         </div>
       </div>
 
+      <h3 class="secname">The map into the code</h3>
+
       <div class="card wide">
-        <h2>Where each rule lives — the names open the file at the definition</h2>
+        <h2>Where every rule above lives — the names open the file at the definition</h2>
         <table class="f">
           <tr class="h">
             <td>file</td>
