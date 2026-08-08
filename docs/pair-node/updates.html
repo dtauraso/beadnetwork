@@ -35,16 +35,22 @@
     <a href="asym.html">Asymmetry</a>
   </nav>
 
-  <main>
+  <!-- readable-type: the drawings on this page are scaled DOWN to fit their cards
+       (a 520-wide canvas at 400px, a 700 at 660), so 10px labels land at 8-9px and
+       are not readable at a glance. This page sets its diagram type larger to
+       compensate. Scoped here rather than in .lbl, whose 10px other pages' tighter
+       drawings are laid out around. -->
+  <main class="readable-type">
 
     <div class="grid">
 
       <div class="card wide">
         <h2>The state</h2>
-        <svg class="tall" width="520" height="606" viewBox="0 0 520 606">
+        <svg class="tall" width="520" height="500" viewBox="0 0 520 500">
 <circle cx="260" cy="250" r="196" fill="none" stroke="#3a3a44" stroke-width="1.6"/><path d="M308 69L311 61M354 88L358 80M392 118L399 111M422 156L430 152M441 202L449 199M441 298L449 301M422 344L430 348M392 382L399 389M354 412L358 420M308 431L311 439M212 431L209 439M166 412L162 420M128 382L121 389M98 344L90 348M79 298L71 301M79 202L71 199M98 156L90 152M128 118L121 111M166 88L162 80M212 69L209 61" stroke="#3a3a44" stroke-width="1.4"/><path d="M260 63L260 54M447 250L456 250M260 437L260 446M73 250L64 250" stroke="#9a9aa6" stroke-width="2.4"/>
 <path d="M414 96A218 218 0 0 1 449 141" fill="none" stroke="#e05fd8" stroke-width="5"/>
-<text x="454" y="101" class="lblm" fill="#e05fd8" text-anchor="middle">one step = π/12</text>
+<path d="M368 150 L408 112" stroke="#e05fd8" stroke-width="1.2"/>
+<text x="300" y="158" class="lblm" fill="#e05fd8" text-anchor="middle">one step = π/12</text>
 <text x="260" y="29" text-anchor="middle" class="lbl">0</text>
 <text x="486" y="255" text-anchor="start" class="lbl">6</text>
 <text x="260" y="481" text-anchor="middle" class="lbl">12</text>
@@ -74,12 +80,18 @@
 <circle cx="162" cy="80" r="6" fill="#4a4a56"/>
 <circle cx="209" cy="61" r="6" fill="#4a4a56"/>
 <path d="M206 49A208 208 0 0 1 260 42" fill="none" stroke="#4ea1ff" stroke-width="4"/>
-<text x="24" y="512" class="lblm">t ∈ {0 … 23}</text>
-<text x="24" y="534" class="lbl">a state, not a number — t ± 1 follows a link. 6 is a quarter turn, 12 a half</text>
-<text x="24" y="560" class="lblm">angle = (π/12) · t</text>
-<text x="24" y="582" class="lbl">the only thing that leaves this kind</text>
-<rect x="24" y="591" width="12" height="12" rx="3" fill="#4ea1ff"/><text x="44" y="601" class="lbl">23 → 0 — one link like any other, and the only reason the ring closes</text>
 </svg>
+        <!-- These lines are HTML, not <text> in the drawing above. Inside the svg they
+             scaled with it — 10px type at a 400/520 scale renders under 8px, unreadable.
+             Out here they are page type and stay legible whatever the drawing does. -->
+        <div class="keynote">
+          <p><code>t ∈ {0 … 23}</code></p>
+          <p>a state, not a number — t ± 1 follows a link. 6 is a quarter turn, 12 a half</p>
+          <p><code>angle = (π/12) · t</code></p>
+          <p>the only thing that leaves this kind</p>
+          <p><i class="sw" style="background:#4ea1ff"></i>23 → 0 — one link like any other, and the
+            only reason the ring closes</p>
+        </div>
       </div>
 
       <div class="card wide">
@@ -111,12 +123,12 @@
 <circle cx="100" cy="98" r="62" fill="none" stroke="#3a3a44"/><path d="M115 43L116 38M128 49L131 44M140 58L144 54M149 70L154 67M155 83L160 82M155 113L160 114M149 126L154 129M140 138L144 142M128 147L131 152M115 153L116 158M85 153L84 158M72 147L69 152M60 138L56 142M51 127L46 129M45 113L40 114M45 83L40 82M51 70L46 67M60 58L56 54M71 49L69 44M85 43L84 38" stroke="#3a3a44"/><path d="M100 41L100 36M157 98L162 98M100 155L100 160M43 98L38 98" stroke="#9a9aa6" stroke-width="1.6"/>
 <line x1="100" y1="98" x2="100" y2="46" stroke="#5fd68a" stroke-width="5"/><polygon points="100,37 104,46 96,46" fill="#5fd68a"/><line x1="100" y1="98" x2="100" y2="61" stroke="#f9a825" stroke-width="2.4"/><polygon points="100,52 104,61 96,61" fill="#f9a825"/>
 <text x="100" y="184" text-anchor="middle" class="lblm" fill="#e05fd8">L = 0</text>
-<text x="100" y="200" text-anchor="middle" class="lbl">⊥ halts</text>
+<text x="100" y="200" text-anchor="middle" class="lbl">perpendicular rests</text>
 <circle cx="280" cy="98" r="62" fill="none" stroke="#3a3a44"/><path d="M295 43L296 38M308 49L311 44M320 58L324 54M329 70L334 67M335 83L340 82M335 113L340 114M329 126L334 129M320 138L324 142M308 147L311 152M295 153L296 158M265 153L264 158M252 147L249 152M240 138L236 142M231 127L226 129M225 113L220 114M225 83L220 82M231 70L226 67M240 58L236 54M251 49L249 44M265 43L264 38" stroke="#3a3a44"/><path d="M280 41L280 36M337 98L342 98M280 155L280 160M223 98L218 98" stroke="#9a9aa6" stroke-width="1.6"/>
 <path d="M280 64A34 34 0 0 1 314 98" fill="none" stroke="#e05fd8" stroke-width="2.6"/>
 <line x1="280" y1="98" x2="280" y2="46" stroke="#5fd68a" stroke-width="2.8"/><polygon points="280,37 284,46 276,46" fill="#5fd68a"/><line x1="280" y1="98" x2="332" y2="98" stroke="#f9a825" stroke-width="2.4"/><polygon points="341,98 332,102 332,94" fill="#f9a825"/>
 <text x="280" y="184" text-anchor="middle" class="lblm" fill="#e05fd8">L = 6</text>
-<text x="280" y="200" text-anchor="middle" class="lbl">∥ halts</text>
+<text x="280" y="200" text-anchor="middle" class="lbl">parallel rests</text>
 <circle cx="460" cy="98" r="62" fill="none" stroke="#3a3a44"/><path d="M475 43L476 38M488 49L491 44M500 58L504 54M509 70L514 67M515 83L520 82M515 113L520 114M509 126L514 129M500 138L504 142M488 147L491 152M475 153L476 158M445 153L444 158M432 147L429 152M420 138L416 142M411 127L406 129M405 113L400 114M405 83L400 82M411 70L406 67M420 58L416 54M432 49L429 44M445 43L444 38" stroke="#3a3a44"/><path d="M460 41L460 36M517 98L522 98M460 155L460 160M403 98L398 98" stroke="#9a9aa6" stroke-width="1.6"/>
 <path d="M460 64A34 34 0 0 1 469 131" fill="none" stroke="#e05fd8" stroke-width="2.6"/>
 <line x1="460" y1="98" x2="460" y2="46" stroke="#5fd68a" stroke-width="2.8"/><polygon points="460,37 464,46 456,46" fill="#5fd68a"/><line x1="460" y1="98" x2="473" y2="148" stroke="#f9a825" stroke-width="2.4"/><polygon points="476,157 469,149 477,147" fill="#f9a825"/>
@@ -168,7 +180,7 @@
 
       <div class="card wide">
         <h2>One step, worked</h2>
-        <svg class="tall" width="520" height="624" viewBox="0 0 520 624">
+        <svg class="tall" width="520" height="500" viewBox="0 0 520 500">
 <circle cx="260" cy="250" r="198" fill="none" stroke="#3a3a44" stroke-width="1.6"/><path d="M309 67L311 59M354 86L359 79M394 116L400 110M424 156L431 151M443 201L451 199M443 299L451 301M424 344L431 349M394 384L400 390M354 414L359 421M309 433L311 441M211 433L209 441M166 414L161 421M126 384L120 390M96 345L89 349M77 299L69 301M77 201L69 199M96 156L89 151M126 116L120 110M165 86L161 79M211 67L209 59" stroke="#3a3a44" stroke-width="1.4"/><path d="M260 61L260 52M449 250L458 250M260 439L260 448M71 250L62 250" stroke="#9a9aa6" stroke-width="2.4"/>
 <circle cx="458" cy="250" r="10" fill="#e05fd8"/>
 <circle cx="62" cy="250" r="10" fill="#e05fd8"/>
@@ -182,12 +194,16 @@
 <text x="260" y="26" text-anchor="middle" class="lbl" fill="#f9a825">a = 0</text>
 <line x1="260" y1="250" x2="343" y2="394" stroke="#5fd68a" stroke-width="4.2"/><polygon points="350,406 337,398 349,390" fill="#5fd68a"/>
 <text x="248" y="348" text-anchor="end" class="lbl" fill="#5fd68a">t = 10</text>
-<text x="24" y="500" class="lblm" fill="#4ea1ff">settle?  L = 10 is not a resting length → no</text>
-<text x="24" y="526" class="lblm" fill="#4ea1ff">up?  down reaches 6 sooner than up does → no</text>
-<text x="24" y="556" class="lblm" fill="#5fd68a">t_after = t − 1 = 9</text>
-<rect x="24" y="577" width="12" height="12" rx="3" fill="#e05fd8"/><text x="44" y="587" class="lbl">the two tilts whose angle length is a resting 6 for this arrival</text>
-<rect x="24" y="603" width="12" height="12" rx="3" fill="#4ea1ff"/><text x="44" y="613" class="lbl">the only two slots it can turn to — a tie turns up</text>
 </svg>
+        <div class="keynote">
+          <p><code>settle?</code> L = 10 is not a resting length → <b>no</b></p>
+          <p><code>up?</code> down reaches 6 sooner than up does → <b>no</b></p>
+          <p><code>t_after = t − 1 = 9</code></p>
+          <p><i class="sw" style="background:#e05fd8"></i>the two tilts whose angle length is a resting 6
+            for this arrival</p>
+          <p><i class="sw" style="background:#4ea1ff"></i>the only two slots it can turn to — a tie turns
+            up</p>
+        </div>
       </div>
 
       <div class="card wide">
@@ -226,31 +242,26 @@
 
       <div class="card wide">
         <h2>What a report puts on the frame</h2>
-        <svg class="tall" width="520" height="616" viewBox="0 0 520 616">
+        <svg class="tall" width="520" height="460" viewBox="0 0 520 460">
 <circle cx="260" cy="240" r="190" fill="none" stroke="#3a3a44" stroke-width="1.6"/><path d="M307 65L309 56M350 83L355 75M388 112L394 106M417 150L425 145M435 193L444 191M435 287L444 289M417 330L425 335M388 368L394 374M350 397L355 405M307 415L309 424M213 415L211 424M170 397L165 405M132 368L126 374M103 331L95 335M85 287L76 289M85 193L76 191M103 150L95 145M132 112L126 106M169 83L165 75M213 65L211 56" stroke="#3a3a44" stroke-width="1.4"/><path d="M260 59L260 50M441 240L450 240M260 421L260 430M79 240L70 240" stroke="#9a9aa6" stroke-width="2.4"/>
 <line x1="260" y1="240" x2="106" y2="281" stroke="#f9a825" stroke-width="3.4"/><polygon points="92,285 104,274 108,288" fill="#f9a825"/>
 <line x1="260" y1="240" x2="147" y2="353" stroke="#9a9aa6" stroke-width="3"/><polygon points="137,363 142,348 152,358" fill="#9a9aa6"/>
 <line x1="260" y1="240" x2="373" y2="353" stroke="#4ea1ff" stroke-width="3.6"/><polygon points="383,363 368,358 378,348" fill="#4ea1ff"/>
 <line x1="260" y1="240" x2="373" y2="127" stroke="#5fd68a" stroke-width="4.2"/><polygon points="383,117 378,132 368,122" fill="#5fd68a"/>
-<rect x="24" y="470" width="13" height="13" rx="3" fill="#5fd68a"/>
-<text x="46" y="481" class="lblm">(π/12) · t</text>
-<text x="215" y="481" class="lbl">persisted — position.json</text>
-<rect x="24" y="504" width="13" height="13" rx="3" fill="#4ea1ff"/>
-<text x="46" y="515" class="lblm">(π/12) · (t + 6)</text>
-<text x="215" y="515" class="lbl">a link, never stored</text>
-<rect x="24" y="538" width="13" height="13" rx="3" fill="#9a9aa6"/>
-<text x="46" y="549" class="lblm">(π/12) · (t + 12)</text>
-<text x="215" y="549" class="lbl">a link, never stored</text>
-<rect x="24" y="572" width="13" height="13" rx="3" fill="#f9a825"/>
-<text x="46" y="583" class="lblm">(π/12) · r</text>
-<text x="215" y="583" class="lbl">drawn when set, never persisted</text>
-<text x="24" y="612" class="lbl" fill="#9a9aa6">centre · reach · pole · ring axis — a tilt touches none of them</text>
 </svg>
+        <div class="keynote">
+          <p><i class="sw" style="background:#5fd68a"></i><code>(π/12) · t</code> — persisted, position.json</p>
+          <p><i class="sw" style="background:#4ea1ff"></i><code>(π/12) · (t + 6)</code> — a link, never stored</p>
+          <p><i class="sw" style="background:#9a9aa6"></i><code>(π/12) · (t + 12)</code> — a link, never stored</p>
+          <p><i class="sw" style="background:#f9a825"></i><code>(π/12) · r</code> — drawn when set, never
+            persisted</p>
+          <p>centre · reach · pole · ring axis — a tilt touches none of them</p>
+        </div>
       </div>
 
       <div class="card wide">
         <h2>What a reset puts back</h2>
-        <svg width="600" height="262" viewBox="0 0 600 262">
+        <svg width="600" height="226" viewBox="0 0 600 226">
 <circle cx="120" cy="106" r="84" fill="none" stroke="#3a3a44"/><path d="M140 30L142 25M160 38L162 33M176 50L179 47M188 66L193 64M196 86L201 84M196 126L201 128M188 146L193 148M176 162L179 165M160 174L162 179M140 182L142 187M100 182L98 187M80 174L78 179M64 162L61 165M52 146L47 148M44 126L39 128M44 86L39 84M52 66L47 64M64 50L61 47M80 38L78 33M100 30L98 25" stroke="#3a3a44"/><path d="M120 27L120 22M199 106L204 106M120 185L120 190M41 106L36 106" stroke="#9a9aa6" stroke-width="1.6"/>
 <line x1="120" y1="106" x2="188" y2="88" stroke="#9a9aa6" stroke-width="2"/><polygon points="197,85 189,92 187,84" fill="#9a9aa6"/><line x1="120" y1="106" x2="102" y2="38" stroke="#4ea1ff" stroke-width="2.4"/><polygon points="99,29 106,37 98,39" fill="#4ea1ff"/><line x1="120" y1="106" x2="52" y2="124" stroke="#5fd68a" stroke-width="2.8"/><polygon points="43,127 51,120 53,128" fill="#5fd68a"/>
 <line x1="120" y1="106" x2="181" y2="141" stroke="#f9a825" stroke-width="2.2"/><polygon points="189,146 179,145 183,137" fill="#f9a825"/>
@@ -261,9 +272,11 @@
 <line x1="216" y1="106" x2="272" y2="106" stroke="#ff6b6b" stroke-width="2"/>
 <polygon points="282,106 270,100 270,112" fill="#ff6b6b"/>
 <text x="249" y="92" text-anchor="middle" class="lblm" fill="#ff6b6b">RESET</text>
-<text x="60" y="238" class="lbl" fill="#9a9aa6">both queues emptied — a direction left waiting would step t straight back off 0</text>
-<text x="60" y="254" class="lbl" fill="#9a9aa6">beads still crossing dropped · each node clears twice, the marker&#8217;s clear lands last</text>
 </svg>
+        <div class="keynote">
+          <p>both queues emptied — a direction left waiting would step t straight back off 0</p>
+          <p>beads still crossing dropped · each node clears twice, and the marker's clear lands last</p>
+        </div>
       </div>
 
       <div class="card wide">

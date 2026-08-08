@@ -132,10 +132,13 @@
        window: a portrait canvas (520 wide, 620 tall) stretched to an 1130px card
        renders 1340px tall, which is a full screen of one circle. The cap keeps every
        drawing at a readable size and still lets it shrink on a narrow window. */
+    /* The caps are each drawing's OWN authored width, so on a wide window nothing is
+       scaled down and the labels render at the size they were set in. Scaling only
+       happens on a narrow window, where shrinking is the right answer anyway. */
     .card svg {
       display: block;
       width: 100%;
-      max-width: 660px;
+      max-width: 720px;
       height: auto
     }
 
@@ -144,8 +147,38 @@
        high and swamp the page, so they get their own limit. Verified by rendering the
        page headless and looking at it, not by reading the numbers. */
     .card svg.tall {
-      max-width: 400px;
+      max-width: 520px;
       margin: 0 auto
+    }
+
+    /* The notes that belong to a drawing, kept OUT of the svg so they stay page-size
+       when the drawing scales down. Larger than .cap because these are the point of
+       the card, not an aside. */
+    .keynote {
+      max-width: 62ch;
+      margin: 14px auto 0
+    }
+
+    .keynote p {
+      margin: 0 0 7px;
+      font-size: 14px;
+      line-height: 1.55;
+      color: var(--dim)
+    }
+
+    .keynote code {
+      font-size: 14px;
+      color: var(--ink)
+    }
+
+    /* the legend swatch, matching the chips drawn inside the diagrams */
+    .keynote i.sw {
+      display: inline-block;
+      width: 11px;
+      height: 11px;
+      border-radius: 3px;
+      margin-right: 8px;
+      vertical-align: baseline
     }
 
     /* NOTHING SCROLLS SIDEWAYS. A card sizes its content to itself — tables wrap,
@@ -321,6 +354,18 @@
     .lbl {
       font-size: 10px;
       fill: var(--dim)
+    }
+
+    /* A page whose drawings are scaled down opts into bigger diagram type, so the
+       labels survive the scaling. Only the type changes — the geometry is untouched,
+       so check the render for anything that now runs past its canvas. */
+    .readable-type svg .lbl,
+    .readable-type svg .lblm {
+      font-size: 14px
+    }
+
+    .readable-type svg .big {
+      font-size: 16px
     }
 
     .lblm {
