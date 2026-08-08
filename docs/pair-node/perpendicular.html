@@ -55,18 +55,19 @@
           <tr>
             <td class="e">a quarter turn apart</td>
             <td class="n">separation 0 — the arrival sits exactly on this node's own TOP</td>
-            <td class="s" data-src="nodes/Node1/machine.go#restingLengths">home = { 0, half }</td>
+            <td class="s" data-src="nodes/Node1/machine.go#stoppingCounts">stops at { 0 }</td>
           </tr>
           <tr>
             <td class="e">a quarter turn apart, the other way</td>
-            <td class="n">separation a half turn — the arrival sits exactly on its BOTTOM</td>
-            <td class="s" data-src="nodes/Node1/machine.go#restingLengths">home = { 0, half }</td>
+            <td class="n">separation a half turn — the arrival sits exactly on its BOTTOM, which is
+              the SAME count of 0, taken at the nearer end</td>
+            <td class="s" data-src="nodes/Node1/machine.go#stoppingCounts">stops at { 0 }</td>
           </tr>
           <tr>
             <td class="e">on one line, either way round</td>
             <td class="n">separation a quarter turn — this is PARALLEL, and to this machine it is an
               ordinary angle it walks straight over</td>
-            <td class="s" data-src="nodes/Node1/machine.go#restingLengths">home = { quarter }</td>
+            <td class="s" data-src="nodes/Node1/machine.go#stoppingCounts">stops at { quarter }</td>
           </tr>
         </table>
         <p>The two ends see the same relationship from opposite sides: each receives the other's
@@ -184,9 +185,9 @@
             </td>
           </tr>
           <tr>
-            <td class="n">— the three modes, each its home set</td>
+            <td class="n">— the three modes, each the counts it stops at</td>
             <td class="s" colspan="2">
-              <span data-src="nodes/Node1/machine.go#restingLengths">homeSets</span> ·
+              <span data-src="nodes/Node1/machine.go#stoppingCounts">stoppingCounts</span> ·
               <span data-src="nodes/Node1/machine.go#setting">setting</span>
             </td>
           </tr>

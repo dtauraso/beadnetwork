@@ -536,23 +536,12 @@ func oneRoundSweep(t *testing.T, points int32) {
 					t.Fatalf("mode=%v t=%d a=%d: nearerEndCount says atBottom=%v with u=%d",
 						m.mode, tilt, arr, atBottom, u)
 				}
-				if got := m.stopsAtCount(cur, a); got != m.settled(cur, a) {
-					t.Fatalf("mode=%v t=%d a=%d c=%d: stopsAtCount=%v but settled=%v",
-						m.mode, tilt, arr, c, got, m.settled(cur, a))
-				}
-				// The direction is compared as the STATE CHOSEN, not as a distance: c is
-				// (t - a) and not (a - t), and the two agree at every stop while
-				// disagreeing in the turn, so a swapped subtraction survives settled and
-				// shows up only here.
-				if e != 0 {
-					wantByCount := cur.prev
-					if m.countGoesUp(cur, a) {
-						wantByCount = cur.next
-					}
-					if got := m.step(cur, a); got != wantByCount {
-						t.Fatalf("mode=%v t=%d a=%d c=%d: countGoesUp chose %d, step chose %d",
-							m.mode, tilt, arr, c, wantByCount.idx, got.idx)
-					}
+				// The walk is the two ways round from where this node IS, so both
+				// readings are counts on the half-turn ring and their minimum is
+				// fromRest — not a pair of scores for two places it might go.
+				if up, down := m.walk(cur, a); up > half || down > half {
+					t.Fatalf("mode=%v t=%d a=%d c=%d: walk %d/%d is not a pair of counts",
+						m.mode, tilt, arr, c, up, down)
 				}
 
 				if (e == 0) != m.settled(cur, a) {
@@ -680,7 +669,8 @@ func TestFromRestIsTheQuarterOffset(t *testing.T) {
 //
 // What ARRIVES is the partner's normal, a = p + 6, already a quarter turn on, so the angle
 // length this node measures is the gap with that quarter turn taken off — which turns those
-// four gaps into L = 6 and L in {0, 12}. That is where restingLengths comes from, and this
+// four gaps into L = 6 and L in {0, 12}. That is where stoppingCounts comes from — counted from
+// the nearer end, {0, 12} is the single count 0 — and this
 // sweeps every (partner, tilt) pair to confirm it, including that no other gap produces a
 // resting length by accident.
 func TestRestingLengthsFollowFromTheGaps(t *testing.T) {
@@ -705,7 +695,7 @@ func TestRestingLengthsFollowFromTheGaps(t *testing.T) {
 }
 
 // TestTheTwoMissesAreComplements locks the identity the one-machine fold rests on: the modes are
-// not merely alike, they are one rule read in two directions. If this ever fails, the home sets
+// not merely alike, they are one rule read in two directions. If this ever fails, the stopping counts
 // have stopped being midpoints of each other and the two modes are genuinely separate rules
 // again — which is the reading under which the split into two files was right (machine.go's
 // header, docs/pair-node/audit.html).
@@ -736,16 +726,17 @@ func TestAModeHaltsExactlyOnItsHomeSet(t *testing.T) {
 	top := r.at(0)
 	for _, m := range []tiltMachine{setting, perpendicular, parallel} {
 		home := map[int32]bool{}
-		for _, h := range m.resting(r) {
+		for _, h := range m.stopping(r) {
 			home[h] = true
 		}
 		for sep := int32(0); sep < r.points; sep++ {
-			// angle length folds the long way round into the short one, so the halt is asked
-			// about the folded reading — which is the number a home set is written in.
-			folded := top.angleLength(r.at(sep))
-			if got := m.settled(top, r.at(sep)); got != home[folded] {
-				t.Errorf("%v at angle length %d (folds to %d): halted=%v, home set says %v",
-					m, sep, folded, got, home[folded])
+			// The halt is asked about the count from the NEARER END, which is the number a
+			// stopping-count row is written in. It is not the folded angle length: the two
+			// agree only where the nearer end is the top.
+			c, _ := top.nearerEndCount(r.at(sep))
+			if got := m.settled(top, r.at(sep)); got != home[c] {
+				t.Errorf("%v at arrival %d (count %d): halted=%v, stopping counts say %v",
+					m, sep, c, got, home[c])
 			}
 		}
 	}

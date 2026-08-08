@@ -206,7 +206,7 @@ func (s *tiltState) angleLength(target *tiltState) int32 {
 // which angle lengths they call home, and that difference is written as data — see machine.go's
 // header for the audit that established it and for why the rule is now written once.
 //
-// THE RESTING-STATE RULES ARE NOT IN THIS FILE. They are the home sets in machine.go. What this
+// THE RESTING-STATE RULES ARE NOT IN THIS FILE. They are the stopping counts in machine.go. What this
 // file provides them is `angle length`: a measurement of where two directions sit relative to each
 // other, which is not a rule and names no resting state.
 

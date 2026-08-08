@@ -199,10 +199,13 @@
         <img class="math" src="update-arith-rests.svg" style="width:602px"
           alt="Shift one of the two by 6, and only those four land on 0, 6, 12: a gap of 0 or 12 gives L(x, y + 6) = 6; a gap of 6 or 18 gives L(x, y + 6) = 0 or 12; every other gap gives an L(x, y + 6) that is none of 0, 6, 12.">
         <div class="keynote">
-          <p>this is where <span data-src="nodes/Node1/machine.go#restingLengths">restingLengths</span>
+          <p>this is where <span data-src="nodes/Node1/machine.go#stoppingCounts">stoppingCounts</span>
             comes from. { 6 } and { 0, 12 } are not two facts to remember — they are the four
             quarter gaps, and the shift by 6 above is the quarter turn the partner adds when it
             sends its normal instead of its tilt</p>
+          <p>counted from the NEARER END the second of those is a single 0: 0 and 12 are the same
+            count taken at the two ends of one line, which is why a mode's row is { 0 } or
+            { 6 } and never a pair</p>
           <p>it also explains the shape the <a href="audit.html">audit</a> found: the two modes are a
             half turn apart in g, so their two distances sum to a constant, which is why one is the
             other upside down</p>
@@ -261,9 +264,9 @@
           <p>the deciding never names a mode — by the time it runs, the mode is spent, having
             produced one number per way to turn</p>
           <p><span data-src="nodes/Node1/machine.go#fromRest">fromRest</span> computes f the GENERAL
-            way, as a minimum over the list
-            <span data-src="nodes/Node1/machine.go#resting">resting</span> returns, which is the
-            shape a third mode would join. The two lines above are what that minimum comes to for
+            way, as the shorter of the two ways round to the nearest count
+            <span data-src="nodes/Node1/machine.go#stopping">stopping</span> returns, which is the
+            shape a third mode would join. The two lines above are what that comes to for
             these two modes, checked over both lattices and every tilt-and-arrival pair by
             <span data-src="nodes/Node1/node_test.go#TestFromRestIsTheQuarterOffset">TestFromRestIsTheQuarterOffset</span></p>
           <p>ℓ, ℓ₊ and ℓ₋ are one function called three times —
@@ -377,7 +380,8 @@
               <span data-src="nodes/Node1/ring.go#seedState">seedState</span> ·
               <span data-src="nodes/Node1/ring.go#angleLength">angleLength</span> ·
               <span data-src="nodes/Node1/machine.go#tiltMachine">tiltMachine</span> ·
-              <span data-src="nodes/Node1/machine.go#restingLengths">restingLengths</span>
+              <span data-src="nodes/Node1/machine.go#stoppingCounts">stoppingCounts</span> ·
+              <span data-src="nodes/Node1/machine.go#nearerEndCount">nearerEndCount</span>
             </td>
           </tr>
           <tr>

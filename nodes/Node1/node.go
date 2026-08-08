@@ -269,7 +269,7 @@ func (n *Node) machineForGap(arrival *tiltState) Wiring.TiltMachine {
 
 // adoptMachine sets which mode of the tilt machine this node runs. It is the ONE writer of that
 // field outside clear(), and the mapping from the pair-wide name to the mode is machineFor — the
-// naming lives in Wiring so both ends can say it to each other, and the home sets live in
+// naming lives in Wiring so both ends can say it to each other, and the stopping counts live in
 // machine.go, which is the only place that knows what any of them means on the ring.
 //
 // The choice STICKS: a node already running one keeps it, so a second choice crossing the pair
