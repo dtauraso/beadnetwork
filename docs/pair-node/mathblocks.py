@@ -34,19 +34,19 @@ BODIES = {
 """,
     "questions": r"""
   \text{\color{acc}settle?} \quad L \in R \\[7pt]
-  \text{\color{acc}up?} \quad \len(t+1,a) \text{ closer to } R \text{ than } \len(t-1,a)
+  \text{\color{acc}up?} \quad \len(t_{+1},a) \text{ closer to } R \text{ than } \len(t_{-1},a)
 """,
     "turn": r"""
   t_{\mathrm{after}} = \begin{cases}
-      t   & \text{settle} \\
-      t+1 & \text{up} \\
-      t-1 & \text{otherwise}
+      t      & \text{settle} \\
+      t_{+1} & \text{up} \\
+      t_{-1} & \text{otherwise}
     \end{cases}
 """,
     "other": r"""
   \text{panel } \blacktriangle\,\blacktriangledown :\;
-    t_{\mathrm{after}} = t \pm 1, \quad R \text{ unchanged} \\[5pt]
-  \text{reset} :\; t_{\mathrm{after}} = 0, \quad R = R_{\mathrm{setting}}
+    t_{\mathrm{after}} = t_{\pm 1}, \quad R_{\mathrm{after}} = R \\[5pt]
+  \text{reset} :\; t_{\mathrm{after}} = 0, \quad R_{\mathrm{after}} = R_{\mathrm{setting}}
 """,
 }
 
