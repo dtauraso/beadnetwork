@@ -47,8 +47,8 @@
 
     <div class="card wide">
       <p class="lead"><a href="updates.html">Update rules</a> gives this node as two state machines
-        and the rule an arrival runs. None of that is needed. Two numbers in, and where it stops and
-        how long it takes come out.</p>
+        and the rule each message runs. None of that is needed. Two numbers in, and where it stops
+        and how many messages it takes come out.</p>
     </div>
 
     <h3 class="secname">What there is</h3>
@@ -56,15 +56,15 @@
     <div class="card wide">
       <h2>Two numbers, one arrow each</h2>
       <img class="math" src="update-closed-numbers.svg" style="width:422px"
-        alt="t and a are in {0, 1, ..., 23}. This node: tilt = t, normal = t + 6, bottom = t + 12; only t moves, the other two are read off it. What arrives: a = p + 6, the partner's normal, not its tilt. Count from each end of the tilt line up to the arrival: u = t - a mod 24, from the top; v = t + 12 - a mod 24, from the bottom. The ends are a half turn apart, so u and v differ by 12 — exactly one of them is under 12. That one is its own end's reading, and the other end reads 12 minus it.">
+        alt="t and a are in {0, 1, ..., 23}. This node: tilt = t, normal = t + 6, bottom = t + 12; only t moves, the other two are read off it. The partner: tilt = p, normal = p + 6; it sends its normal, so a = p + 6, never p. Count from each end of the tilt line up to a: u = t - a mod 24, from the top; v = t + 12 - a mod 24, from the bottom. The ends are a half turn apart, so u and v differ by 12 — exactly one of them is under 12. That one is its own end's reading, and the other end reads 12 minus it.">
       <div class="keynote">
         <p>a node draws three arrows and sends the middle one, so the quarter turn is already inside
           a before it is measured against anything</p>
         <p>no abs and no min, because the pair sorts itself: two counts a half turn apart cannot
           both be under 12, nor both over. Asking which one is under 12 is the whole of the work
           that folding used to do</p>
-        <p>t = 11 against an arrival at 0: from the top u = 11, from the bottom v = 23. The 11 is
-          under 12, so the top reads 11 and the bottom reads 1</p>
+        <p>t = 11 against a = 0: from the top u = 11, from the bottom v = 23. The 11 is under 12,
+          so the top reads 11 and the bottom reads 1</p>
         <p>neither count says which way to turn — they are counts, not directions. Nothing here
           needs one: two readings say between them what a single number and a sign would have to</p>
       </div>
@@ -80,23 +80,22 @@
         <p>q is the same off either end, because the two readings sum to 12 and 6 is halfway. That
           is why one q settles both arrangements, and why their two f are complements — the same
           fact the <a href="audit.html">audit</a> found by drawing them</p>
-        <p>parallel stopping when BOTH ends read 6 is the same statement as the arrival lying on
-          the normal line: a half turn from the tilt in both directions is the normal and its
-          opposite</p>
+        <p>parallel stopping when BOTH ends read 6 is the same statement as a lying on the normal
+          line: a quarter turn from each end of the tilt line is the normal and its opposite</p>
       </div>
     </div>
 
     <h3 class="secname">One round</h3>
 
     <div class="card wide">
-      <h2>Where it is after one arrival</h2>
+      <h2>Where it is after one message</h2>
       <img class="math" src="update-closed-round.svg" style="width:401px"
-        alt="Each arrangement has a line, and a line has two ends. Perpendicular: the tilt line, t and t + 12. Parallel: the normal line, t + 6 and t + 18. Read the arrival off both ends and keep the smaller: f(u) = min(angleLength(u, a), angleLength(u + 12, a)), with u = t for perpendicular and t + 6 for parallel. The two readings sum to 12 and neither is ever negative. If f(t) = 0 then t after = t, the arrival is on the line; else t after is whichever of t + 1, t - 1 reads smaller.">
+        alt="Each arrangement has a line, and a line has two ends. Perpendicular: the tilt line, t and t + 12. Parallel: the normal line, t + 6 and t + 18. Read a off both ends and keep the smaller: f(u) = min(angleLength(u, a), angleLength(u + 12, a)), with u = t for perpendicular and t + 6 for parallel. The two readings sum to 12 and neither is ever negative. If f(t) = 0 then t after = t, a is on the line; else t after is whichever of t + 1, t - 1 reads smaller.">
       <div class="keynote">
         <p>nothing here is negative and nothing is a sign. A node draws both ends of its line, and
-          reading the arrival off both is what a single number cannot do — collapse the pair and
+          reading a off both is what a single number cannot do — collapse the pair and
           the second reading has to come back as the sign of the first</p>
-        <p>each arrangement stops when the arrival lands ON one of the node's own drawn lines:
+        <p>each arrangement stops when a lands ON one of the node's own drawn lines:
           perpendicular on the tilt itself, parallel on the normal. That is what its two stopping
           values are — the two ends of one line</p>
         <p>so the two readings always sum to 12, and f is the smaller of them. No subtraction from
@@ -116,8 +115,8 @@
       <img class="math" src="update-closed-run.svg" style="width:372px"
         alt="Arrivals = f(t). Ends on the line: parallel, t = a + 6 mod 12; perpendicular, t = a, mod 12. Which end of that line it reaches is not decided here.">
       <div class="keynote">
-        <p>f is the count as well as the reading — each arrival closes one slot, so there is no
-          arrival number f + 1, and f = 0 is the run that takes none</p>
+        <p>f is the count as well as the reading — each message closes one slot, so there is no
+          message number f + 1, and f = 0 is the run that takes none</p>
         <p>the ANSWER needs no direction at all. Mod 12 a tilt and its bottom are the same number,
           so both ends of the line are one arrangement, and where the walk ends is settled without
           ever saying which way it went</p>
@@ -129,10 +128,10 @@
     <h3 class="secname">What this does not say</h3>
 
     <div class="card wide">
-      <h2>It holds for a held arrival</h2>
+      <h2>It holds while a is held</h2>
       <div class="keynote">
         <p>a is fixed here. A live pair moves both ends, so this is one node against a direction that
-          stays put — which is why the code keeps a comparison per arrival rather than this shortcut,
+          stays put — which is why the code keeps a comparison per message rather than this shortcut,
           and why the exchange itself is on <a href="updates.html">Update rules</a></p>
       </div>
     </div>

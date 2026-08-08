@@ -152,9 +152,10 @@ BODIES = {
   \quad \text{\color{acc}this node} \quad
     \text{tilt} = t \qquad \text{normal} = t+6 \qquad \text{bottom} = t+12 \\[4pt]
   \quad {\color{dim}\text{only } t \text{ moves; the other two are read off it}} \\[9pt]
-  \quad \text{\color{acc}what arrives} \quad a = p + 6
-    \quad {\color{dim}\text{the partner's normal, not its tilt}} \\[9pt]
-  \quad \text{\color{acc}count from each end of the tilt line up to the arrival} \\[6pt]
+  \quad \text{\color{acc}the partner} \quad
+    \text{tilt} = p \qquad \text{normal} = p + 6 \\[4pt]
+  \quad {\color{dim}\text{it sends its normal, so } a = p + 6 \text{ — never } p} \\[9pt]
+  \quad \text{\color{acc}count from each end of the tilt line up to } a \\[6pt]
   \quad u = t - a \pmod{24}
     \qquad {\color{dim}\text{from the top}} \\[4pt]
   \quad v = t + 12 - a \pmod{24}
@@ -182,17 +183,17 @@ BODIES = {
   \quad \text{\color{acc}each arrangement has a line, and a line has two ends} \\[5pt]
   \quad {\color{perp}\text{perpendicular} : \; \text{the tilt line} \quad t,\; t+12} \\[4pt]
   \quad {\color{par}\text{parallel} : \; \text{the normal line} \quad t+6,\; t+18} \\[9pt]
-  \quad \text{\color{acc}read the arrival off both ends, and keep the smaller} \\[5pt]
+  \quad \text{\color{acc}read } a \text{ off both ends, and keep the smaller} \\[5pt]
   \quad f(u) = \min\bigl(\len(u,\, a),\; \len(u+12,\, a)\bigr) \\[4pt]
   \quad {\color{dim}u = t \text{ perpendicular},\; t+6 \text{ parallel}} \\[4pt]
   \quad {\color{dim}\text{the two readings sum to } 12; \text{ neither is ever negative}} \\[9pt]
   \quad {\color{acc}f(t) = 0 :} \quad t_{\mathrm{after}} = t
-    \quad {\color{dim}\text{the arrival is on the line}} \\[5pt]
+    \quad {\color{dim}a \text{ is on the line}} \\[5pt]
   \quad {\color{acc}\text{else} :} \quad t_{\mathrm{after}} =
     \text{whichever of } t_{+1},\, t_{-1} \text{ reads smaller}
 """,
     "closed-run": r"""
-  \quad {\color{acc}\text{arrivals}} \;=\; f(t) \\[7pt]
+  \quad {\color{acc}\text{messages}} \;=\; f(t) \\[7pt]
   \quad {\color{acc}\text{ends on the line}} \quad
     {\color{par}t \equiv a + 6} \qquad {\color{perp}t \equiv a} \qquad (\bmod\; 12) \\[7pt]
   \quad {\color{dim}\text{which end of that line it reaches is not decided here}}
