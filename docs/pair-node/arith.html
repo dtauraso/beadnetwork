@@ -56,7 +56,7 @@
     <div class="card wide">
       <h2>Two numbers, one arrow each</h2>
       <img class="math" src="update-closed-numbers.svg" style="width:573px"
-        alt="t and a are in {0, 1, ..., 23}. This node: tilt = t, normal = t + 6, bottom = t + 12; only t moves, the other two are read off it. What arrives: a = p + 6, the partner's normal, not its tilt. L = |t - a| or 24 - |t - a|, whichever is shorter.">
+        alt="t and a are in {0, 1, ..., 23}. This node: tilt = t, normal = t + 6, bottom = t + 12; only t moves, the other two are read off it. What arrives: a = p + 6, the partner's normal, not its tilt. L = min(|t - a|, 24 - |t - a|), between 0 and 12.">
       <div class="keynote">
         <p>a node draws three arrows and sends the middle one, so the quarter turn is already inside
           a before it is measured against anything</p>
@@ -80,16 +80,20 @@
 
     <div class="card wide">
       <h2>Where it is after one arrival</h2>
-      <img class="math" src="update-closed-round.svg" style="width:557px"
-        alt="d = t - a, unreduced. Parallel: e = (d mod 12) - 6. Perpendicular: e = (d + 6 mod 12) - 6. t after = t - sign(e), and f = |e|. Fold d and |d| = L. Take |d| and f survives but sign(e) does not.">
+      <img class="math" src="update-closed-round.svg" style="width:464px"
+        alt="d = t - a, between -23 and 23, negative when a is greater than t. Parallel: e = (d mod 12) - 6. Perpendicular: e = (d + 6 mod 12) - 6, where d mod 12 is in 0 to 11, so e is between -6 and 5. t after = t - sign(e), and f = |e|. min(|d|, 24 - |d|) = L. Writing |d| for d leaves f equal and flips sign(e).">
       <div class="keynote">
-        <p>d is not reduced first because the modulus would undo it: 24 is a whole number of 12s, so
-          every way of writing t − a gives the same e</p>
-        <p>the two arrangements are one statement differing by a shift of 6 inside the modulus, and
-          a tilt equidistant from two rests needs no rule — it lands on e = −6 by itself, which
-          turns up. 96 of the 1152 pairs are such ties</p>
-        <p>the last line is why the magnitude form needs a comparison and this one does not:
-          t = 0 against a = 1 turns down, a = 23 turns up, and |d| cannot tell those apart</p>
+        <p>d keeps whatever value t − a has: it may be negative, and it may fall outside 0…23.
+          Nothing is done to bring it back into that range, because d mod 12 would undo it —
+          24 is two 12s, so d, d + 24 and d − 24 all give the same e</p>
+        <p>d mod 12 is the non-negative remainder, 0…11, so e runs −6…5 and e = 0 means t already
+          sits on a resting angle</p>
+        <p>parallel and perpendicular differ only by the +6 inside the remainder. A tilt the same
+          distance from two resting angles gives e = −6, and −6 turns up, so that case needs no
+          rule of its own — 96 of the 1152 (tilt, arrival) pairs are that case</p>
+        <p>the last line is the cost of using ℓ: with t = 0, an arrival at 1 turns down and an
+          arrival at 23 turns up, but |t − a| is 1 and 23, and min(1, 23) = min(23, 1) = 1 for
+          both</p>
         <p>swept by
           <span data-src="nodes/Node1/node_test.go#TestOneRoundIsSignAndRemainder">TestOneRoundIsSignAndRemainder</span></p>
       </div>

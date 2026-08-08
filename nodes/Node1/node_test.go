@@ -113,9 +113,10 @@ func TestPerpendicularStepsThroughTheParallelHalt(t *testing.T) {
 // update round, written without a case in it.
 //
 // The trick is to stop folding. angleLength throws the sign away, which is why the rule that uses
-// it needs a comparison to get direction back. Keep the RAW signed difference d = t - a instead —
-// unreduced, not even brought onto the ring — and both arrangements are the same statement, since
-// the rests sit every 12 apart in d and the arrangement is a SHIFT of 6 inside the modulus:
+// it needs a comparison to get direction back. Keep the plain subtraction d = t - a instead — which
+// may be negative and may fall outside 0..23, and is left that way — and both arrangements are the
+// same statement, since the resting angles sit every 12 apart in d and the arrangement is a SHIFT
+// of 6 inside the modulus:
 //
 //	parallel       e = (d mod 12) - 6          rests at d = -6, +6
 //	perpendicular  e = ((d + 6) mod 12) - 6    rests at d = -12, 0, +12
@@ -125,12 +126,13 @@ func TestPerpendicularStepsThroughTheParallelHalt(t *testing.T) {
 //
 // Two reductions that look necessary and are not, both checked below:
 //
-//	the fold on d   24 is a whole number of 12s, so every representative of t - a gives the
-//	                same e. Reducing d first is work the modulus immediately undoes.
-//	abs on d        |d|, folded, IS the angle length — so the magnitude the other form starts
-//	                from is this same gap with its sign dropped. Dropping it keeps f exactly
-//	                (checked below) and loses the TURN: t=0 against a=1 must turn down while
-//	                t=0 against a=23 turns up, and |t - a| cannot tell those two apart.
+//	putting d in range   24 is two 12s, so d, d+24 and d-24 all give the same e. Bringing d
+//	                     into 0..23 first is work that d mod 12 immediately undoes.
+//	abs on d             min(|d|, 24-|d|) IS angleLength, so the magnitude the other form
+//	                     starts from is this same subtraction with its sign dropped. Dropping
+//	                     it keeps f exactly (checked below) and loses the TURN: with t=0, an
+//	                     arrival at 1 must turn down and one at 23 must turn up, yet
+//	                     min(1,23) = min(23,1) = 1 describes both.
 //
 // The ties — a tilt equidistant from two rests, which is where a comparison rule has to be told
 // what to prefer — need NO special case here: they land on e = -6 by themselves, and -6 turns up,
@@ -178,14 +180,12 @@ func TestOneRoundIsSignAndRemainder(t *testing.T) {
 						m.mode, arr, tilt, abs32(eAbs), abs32(e))
 				}
 
-				// and folding it IS the angle length: |d folded| = l, which is the number
-				// the magnitude form starts from. Same gap, with its sign dropped.
-				folded := ((tilt-arr)%points + points) % points
-				if folded > points/2 {
-					folded -= points
-				}
-				if got := cur.angleLength(a); got != abs32(folded) {
-					t.Fatalf("a=%d t=%d: |d|=%d but angleLength=%d", arr, tilt, abs32(folded), got)
+				// min(|d|, 24-|d|) IS the angle length — the number the magnitude form
+				// starts from, which is this same subtraction with its sign dropped.
+				short := min(abs32(d), points-abs32(d))
+				if got := cur.angleLength(a); got != short {
+					t.Fatalf("a=%d t=%d: min(|d|, 24-|d|)=%d but angleLength=%d",
+						arr, tilt, short, got)
 				}
 
 				if got := m.fromRest(cur, a); got != abs32(e) {

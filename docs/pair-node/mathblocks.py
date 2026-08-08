@@ -154,8 +154,8 @@ BODIES = {
   \quad {\color{dim}\text{only } t \text{ moves; the other two are read off it}} \\[9pt]
   \quad \text{\color{acc}what arrives} \quad a = p + 6
     \quad {\color{dim}\text{the partner's normal, not its tilt}} \\[9pt]
-  \quad \ell = \lvert t - a \rvert \text{ or } 24 - \lvert t - a \rvert,
-    \text{ whichever is shorter}
+  \quad \ell = \min\bigl(\lvert t - a \rvert,\; 24 - \lvert t - a \rvert\bigr)
+    \quad {\color{dim}0 \le \ell \le 12}
 """,
     "closed-far": r"""
   \quad q = \lvert\, \ell - 6 \,\rvert \\[7pt]
@@ -166,14 +166,16 @@ BODIES = {
     # away, so it needs a comparison to get direction back. Keep the SIGNED gap instead and
     # both arrangements are one line, differing by a shift of 6 inside the modulus.
     "closed-round": r"""
-  \quad d = t - a \qquad {\color{dim}\text{unreduced}} \\[9pt]
+  \quad d = t - a
+    \quad {\color{dim}-23 \le d \le 23, \text{ negative when } a > t} \\[9pt]
   \quad {\color{par}\text{parallel} : \; e = (d \bmod 12) - 6} \\[5pt]
-  \quad {\color{perp}\text{perpendicular} : \; e = (d + 6 \bmod 12) - 6} \\[9pt]
+  \quad {\color{perp}\text{perpendicular} : \; e = (d + 6 \bmod 12) - 6} \\[4pt]
+  \quad {\color{dim}d \bmod 12 \;\in\; \{0, \ldots, 11\}, \text{ so } -6 \le e \le 5} \\[9pt]
   \quad {\color{acc}t_{\mathrm{after}} = t - \operatorname{sign}(e)}
     \qquad {\color{acc}f = \lvert e \rvert} \\[11pt]
-  \quad {\color{dim}\text{fold } d : \; \lvert d \rvert = \ell}
-    \qquad {\color{dim}\text{take } \lvert d \rvert : \; f \text{ survives},\;
-      \operatorname{sign}(e) \text{ does not}}
+  \quad {\color{dim}\min(\lvert d \rvert,\; 24 - \lvert d \rvert) = \ell} \\[4pt]
+  \quad {\color{dim}\text{writing } \lvert d \rvert \text{ for } d
+    \text{ leaves } f \text{ equal and flips } \operatorname{sign}(e)}
 """,
     "closed-run": r"""
   \quad {\color{acc}\text{arrivals}} \;=\; f \\[7pt]
