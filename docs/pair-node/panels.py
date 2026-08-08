@@ -118,12 +118,14 @@ for name, t, extra in (("before", 17, True), ("after", 0, False)):
     out[f"panel-reset-{name}"] = "\n".join(o)
 
 # ---- the state
-W, H, cx, cy, R = 300, 280, 150, 140, 106
+# W leaves room to the RIGHT of the ring for the step label, which sits outside the
+# circle and points back at the wedge rather than being crowded inside it.
+W, H, cx, cy, R = 436, 280, 150, 140, 106
 o = [f'<svg width="{W}" height="{H}" viewBox="0 0 {W} {H}">', ring(cx, cy, R)]
 o.append(arc(cx, cy, R + 12, 3, 4, HOME, 4))
 wx, wy = P(cx, cy, R + 12, 3.5)
-o.append(f'<path d="M{cx + 46} {cy - 42} L{wx - 6} {wy + 6}" stroke="{HOME}" stroke-width="1"/>')
-o.append(f'<text x="{cx - 6}" y="{cy - 44}" {MONO} fill="{HOME}" text-anchor="middle">one step = π/12</text>')
+o.append(f'<path d="M{wx + 6} {wy - 2} L280 66" stroke="{HOME}" stroke-width="1"/>')
+o.append(f'<text x="288" y="70" {MONO} fill="{HOME}" text-anchor="start">one step = π/12</text>')
 for i, lab in [(0, "0"), (6, "6"), (12, "12"), (18, "18")]:
     x, y = P(cx, cy, R + 18, i)
     anc = "middle" if i % 12 == 0 else ("start" if i == 6 else "end")
