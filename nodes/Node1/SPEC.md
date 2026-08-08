@@ -171,8 +171,8 @@ loop body) runs:
   (`settled`)? If so the node stays put and sends nothing. If not, is that stop nearer going up the
   count-ring or down it (`step`, and a tie turns up)? Then it turns ONE slot. Nothing
   is remembered between arrivals: no distance is stored, no walk is planned, and the next arrival
-  re-derives all of it. `fromRest` is the comparison that answers both, computed and discarded
-  inside the one arrival.
+  re-derives all of it. NO DISTANCE IS COMPUTED EITHER — the first question is a comparison and the
+  second is one subtraction against a quarter turn, so neither answer is a length.
 
   A node holds ONE `tiltMachine` (`Machine`), whose only state is which mode it is in — the same
   `Wiring.TiltMachine` value the two ends say to each other. Its zero value is `setting`, so a node

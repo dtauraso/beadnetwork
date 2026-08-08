@@ -20,6 +20,14 @@ package Node1
 // down it. Then it turns ONE slot. No walk is planned and no distance is kept; the next arrival
 // re-derives everything from scratch.
 //
+// AND NO DISTANCE IS COMPUTED, not merely kept. Neither question is a length: the first is a
+// comparison, the second one subtraction against a quarter turn. This file did carry a magnitude
+// for a while after the arithmetic below replaced the old rule — because the OLD second question
+// needed one, scoring both neighbours and comparing the results. When that went, the magnitude had
+// exactly one consumer left, a test for zero, and a node computing "how far am I" only ever to ask
+// "am I there" is answering a question it does not have. It is now in node_test.go (offBy), where
+// something does want it: "each step lands nearer than it started" is a claim about a distance.
+//
 // THE SECOND QUESTION IS ASKED FROM WHERE THE NODE IS, not from the two places it could go. It
 // used to fold the arrival to an angle length, hold that against a list, and then redo that whole
 // measurement at BOTH NEIGHBOURS so the two results could be compared — a machine choosing between
@@ -33,7 +41,7 @@ package Node1
 // WHY THIS IS ONE FILE NOW, HAVING DELIBERATELY BEEN TWO.
 //
 // perpendicular.go and parallel.go were split apart because three attempts at changing one rule
-// changed the other as a side effect — every time through something that served both: a fromRest
+// changed the other as a side effect — every time through something that served both: a distance
 // function PARAMETERIZED BY WHICH STATE YOU WERE IN, a step that took the state as an ARGUMENT,
 // and a version where a node holding neither compared its distance to parallel against its
 // distance to perpendicular to pick a target. Two files had nowhere to put that coupling, and
@@ -41,23 +49,22 @@ package Node1
 //
 // The audit that followed (docs/pair-node/audit.html) measured what the two had become. Across
 // 103 lines: step was character-for-character identical; settled was each machine restating its
-// own fromRest being zero; String and choice were mirrored boilerplate; and the two fromRest values are EXACT
-// COMPLEMENTS -- perpendicular fromRest = quarter − parallel fromRest, everywhere on the ring, proved on
+// own distance being zero; String and choice were mirrored boilerplate; and the two distances are
+// EXACT COMPLEMENTS -- perpendicular's = quarter − parallel's, everywhere on the ring, proved on
 // both sides of the fold. One rule, run in opposite directions on one number. The genuinely
-// distinct behaviour was one line of data — then a list of resting lengths, now the counts a mode
-// stops at.
+// distinct behaviour was one line of data — then a list of resting lengths, now the one count a
+// mode stops at.
 //
 // So the fold here is NOT the fourth attempt at the three that failed. Those three parameterized
-// the RULE — a branch inside fromRest, a mode passed to step — which is what let a change meant for
-// one mode land inside the other. Nothing here branches on which mode is running: walk is a
-// distance to a set of numbers and cannot ask who it is working for, step reads only which of its
-// two answers is smaller, and settled is that minimum being zero. A mode contributes its stopping
-// counts and NOTHING ELSE, so there is no code belonging to one mode for a change to the other to
-// reach into. The coupling the split defended against has no place left to live.
+// the RULE — a branch inside the distance, a mode passed to step — which is what let a change meant
+// for one mode land inside the other. Nothing here branches on which mode is running: settled and
+// step both read the row and neither can ask whose it is. A mode contributes its stopping count and
+// NOTHING ELSE, so there is no code belonging to one mode for a change to the other to reach into.
+// The coupling the split defended against has no place left to live.
 //
 // THAT SURVIVED THE MOVE TO THE PAGE'S ARITHMETIC, which is not obvious: arith.html prints the
 // update as two four-line blocks, one per arrangement, and they LOOK like two rules. They are one
-// sentence said twice — walk the count the short way to your own stop — and stating it that way is
+// sentence said twice — is your stop within a quarter turn going up? — and stating it that way is
 // what keeps the mode out of the rule. Written as the page prints it, this file would have a
 // switch in it and the paragraph above would be false.
 //
@@ -112,85 +119,79 @@ func (s *tiltState) nearerEndCount(arrival *tiltState) (c int32, atBottom bool) 
 // mode's two stopping tilts fell on opposite ends of the line. Measured from whichever end is
 // NEARER, perpendicular's { 0, half } is a single 0 — the two entries were one fact counted twice.
 //
-// Each entry takes the ring: a quarter turn is 12 points on a 48-point ring and 6 on a 24-point
+// The count takes the ring: a quarter turn is 12 points on a 48-point ring and 6 on a 24-point
 // one, and a node can change lattice underneath a running machine (Node.adoptLattice).
-var stoppingCounts = map[Wiring.TiltMachine]func(r *ring) []int32{
+//
+// A ROW IS ONE COUNT, NOT A LIST, and that is a claim about the geometry rather than a convenience:
+// measured from the nearer end there is nowhere for a second entry to come from. `anywhere` is the
+// one thing a row can say instead of naming a count.
+type stoppingCount struct {
+	// anywhere: this mode stops at EVERY count, so it is at rest wherever it stands.
+	anywhere bool
+	// at: the count it stops at, read off the ring. Meaningless when anywhere is set.
+	at func(r *ring) int32
+}
+
+var stoppingCounts = map[Wiring.TiltMachine]stoppingCount{
 	// Setting: which machine to run is still being decided, so NOTHING IS OUT OF PLACE YET —
 	// every count is a stopping one. That is what makes a node being set up hold still by the
-	// ordinary rule instead of by an exemption from it: fromRest is zero wherever it stands, so
-	// it is always settled, so step is never reached.
-	Wiring.TiltMachineNone: func(r *ring) []int32 {
-		// c is a count on the half-turn ring, so this is every count there is.
-		all := make([]int32, 0, r.halfTurn)
-		for c := int32(0); c < r.halfTurn; c++ {
-			all = append(all, c)
-		}
-		return all
-	},
+	// ordinary rule instead of by an exemption from it: it is settled wherever it stands, so
+	// step is never reached.
+	Wiring.TiltMachineNone: {anywhere: true},
 	// The arrival lies ON this node's tilt line — either end of it, which from the nearer end
 	// is one count and not two.
-	Wiring.TiltMachinePerpendicular: func(r *ring) []int32 { return []int32{0} },
+	Wiring.TiltMachinePerpendicular: {at: func(r *ring) int32 { return 0 }},
 	// The arrival lies a quarter turn off it, on the normal line.
-	Wiring.TiltMachineParallel: func(r *ring) []int32 { return []int32{r.quarterTurn} },
+	Wiring.TiltMachineParallel: {at: func(r *ring) int32 { return r.quarterTurn }},
 }
 
-// stopping is this machine's stopping counts on the given ring — its mode's row in
-// stoppingCounts, and the only per-mode data there is.
-func (m tiltMachine) stopping(r *ring) []int32 { return stoppingCounts[m.mode](r) }
+// stopping is this machine's row — the only per-mode data there is.
+func (m tiltMachine) stopping() stoppingCount { return stoppingCounts[m.mode] }
 
-// walk is how far c is from this mode's nearest stopping count, each way round the half-turn ring.
-// Both are non-negative counts of slots; the smaller one is the direction, and their minimum is
-// fromRest.
+// settled is the FIRST of the two questions an arrival asks: is this count the one this mode stops
+// at? A COMPARISON, and nothing else.
 //
-// It is where the mode enters the arithmetic, and it enters as DATA — a row of counts — so nothing
-// here learns which mode it is computing for.
-func (m tiltMachine) walk(from, arrival *tiltState) (up, down int32) {
-	h := from.ring.halfTurn
-	c, _ := from.nearerEndCount(arrival)
-	up, down = h, h
-	for _, stop := range m.stopping(from.ring) {
-		if d := ((stop-c)%h + h) % h; d < up {
-			up = d
-		}
-		if d := ((c-stop)%h + h) % h; d < down {
-			down = d
-		}
+// It does NOT go through a distance. The old rule measured how far off it was and tested that for
+// zero, because the SECOND question needed the magnitude — it scored both neighbours and compared
+// the results. Nothing needs the magnitude now: one arrival moves the tilt at most one slot, so the
+// only things a node ever asks are "am I there" and "which way", and neither is a length.
+func (m tiltMachine) settled(from, arrival *tiltState) bool {
+	stop := m.stopping()
+	if stop.anywhere {
+		return true
 	}
-	return up, down
+	c, _ := from.nearerEndCount(arrival)
+	return c == stop.at(from.ring)
 }
-
-// fromRest is how far this arrival's count is from a stopping one — zero when it already IS one.
-// NOTHING KEEPS THIS. It is computed inside one arrival and discarded. It is not a countdown and no
-// walk is planned from it: one arrival moves the tilt at most one slot.
-func (m tiltMachine) fromRest(from, arrival *tiltState) int32 {
-	return min(m.walk(from, arrival))
-}
-
-// settled is the FIRST of the two questions an arrival asks: is this count one this mode stops at?
-// It is fromRest being zero and nothing else — asking it a second, independent way is how the two
-// machines each grew a predicate that restated their own measurement.
-func (m tiltMachine) settled(from, arrival *tiltState) bool { return m.fromRest(from, arrival) == 0 }
 
 // step answers the SECOND question — up or down — and turns ONE slot that way. It is a link either
 // way, so the turn cannot leave the ring.
 //
-// THE COMPARISON IS BETWEEN THE TWO WAYS ROUND FROM WHERE THIS NODE IS, not between two places it
-// might go: c walks the short way to its stop, and a tie goes UP. What the page prints as two
-// four-line blocks — parallel stopping at a quarter turn, perpendicular at 0 — is this one
-// sentence twice, which is why neither block appears here.
+// ONE SUBTRACTION AND ONE COMPARISON. How far the stop is going UP is (stop − c) mod h; the way
+// down is the rest of the circle, h minus that, so asking which is shorter is asking whether the
+// upward count is at most a quarter turn. There is no downward count to work out and nothing to
+// take a minimum over, and a tie — exactly a quarter each way — goes up by the ≤.
+//
+// This is what docs/pair-node/arith.html prints as two four-line blocks, one per arrangement.
+// Perpendicular stops at 0, so its (0 − c) mod h ≤ q reads as c ≥ q; parallel stops at q, so its
+// reads as c ≤ q. Two blocks, one sentence, and no mode reaching the rule.
 //
 // IT RETURNS THE END THAT MOVED, AND WHICH END THAT IS. The count was taken at the nearer end, so
 // the slot it gains is that end's slot — the page's two halves each measure an end and then move
 // the one they measured. Turning either end moves both, so the caller writes the other from this
 // one's opposite; naming the driven end is what lets it be written without a correction term for
 // the half where the bottom was nearer.
+//
+// A mode that stops anywhere never reaches here — settled above is already true — so its row
+// naming no count costs this nothing.
 func (m tiltMachine) step(from, arrival *tiltState) (moved *tiltState, atBottom bool) {
-	_, atBottom = from.nearerEndCount(arrival)
+	c, atBottom := from.nearerEndCount(arrival)
 	end := from
 	if atBottom {
 		end = from.opposite
 	}
-	if up, down := m.walk(from, arrival); up <= down {
+	h := from.ring.halfTurn
+	if ((m.stopping().at(from.ring)-c)%h+h)%h <= from.ring.quarterTurn {
 		return end.next, atBottom
 	}
 	return end.prev, atBottom

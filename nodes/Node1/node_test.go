@@ -17,6 +17,28 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring"
 )
 
+// offBy is how far a count sits from its mode's stop, the short way round the count-ring.
+//
+// THE MACHINE DOES NOT COMPUTE THIS, and that is the point of it living here. One arrival asks two
+// things — am I there, and which way — and neither is a length: settled is a comparison and step is
+// a subtraction against a quarter turn. The rule used to produce a magnitude because its second
+// question scored both neighbours and compared the results; when that went, the magnitude had one
+// consumer left, a test for zero.
+//
+// The tests below still want it, because "each step lands nearer than it started" is a claim about
+// a distance and cannot be stated without one. So it is computed here, by the test that needs it,
+// and the production rule stays free of a number nothing reads.
+func offBy(m tiltMachine, from, arrival *tiltState) int32 {
+	stop := m.stopping()
+	if stop.anywhere {
+		return 0
+	}
+	h := from.ring.halfTurn
+	c, _ := from.nearerEndCount(arrival)
+	up := ((stop.at(from.ring)-c)%h + h) % h
+	return min(up, h-up)
+}
+
 // steppedTop is this node's new TOP after one step, whichever end the rule actually drove. step
 // names the end it moved (machine.go) and node.go writes that one and derives the other; this is
 // that same conversion, so a test whose subject is the top can go on naming the top.
@@ -87,13 +109,13 @@ func TestEachMachineStepsTowardItsOwnHalt(t *testing.T) {
 
 		perp := perpendicular
 		if !perp.settled(top, arrival) {
-			if got, was := perp.fromRest(steppedTop(perp, top, arrival), arrival), perp.fromRest(top, arrival); got >= was {
+			if got, was := offBy(perp, steppedTop(perp, top, arrival), arrival), offBy(perp, top, arrival); got >= was {
 				t.Errorf("perpendicular at angle length %d: step left miss at %d, was %d", sep, got, was)
 			}
 		}
 		par := parallel
 		if !par.settled(top, arrival) {
-			if got, was := par.fromRest(steppedTop(par, top, arrival), arrival), par.fromRest(top, arrival); got >= was {
+			if got, was := offBy(par, steppedTop(par, top, arrival), arrival), offBy(par, top, arrival); got >= was {
 				t.Errorf("parallel at angle length %d: step left miss at %d, was %d", sep, got, was)
 			}
 		}
@@ -116,7 +138,7 @@ func TestPerpendicularStepsThroughTheParallelHalt(t *testing.T) {
 	if stepped == top {
 		t.Fatal("the perpendicular machine stood still one step off a quarter turn")
 	}
-	if m.settled(stepped, arrival) == false && m.fromRest(stepped, arrival) >= m.fromRest(top, arrival) {
+	if m.settled(stepped, arrival) == false && offBy(m, stepped, arrival) >= offBy(m, top, arrival) {
 		t.Error("the step did not close on the perpendicular halt")
 	}
 }
@@ -438,12 +460,12 @@ func oneRoundSweep(t *testing.T, points int32) {
 				// the quarter, perpendicular where c is 0, and the two are complements
 				// because they stop at opposite ends of the same measurement.
 				if m.mode == Wiring.TiltMachineParallel {
-					if got, want := m.fromRest(cur, a), abs32(c-quarter); got != want {
-						t.Fatalf("parallel t=%d a=%d: c=%d gives |c-q|=%d but fromRest=%d",
+					if got, want := offBy(m, cur, a), abs32(c-quarter); got != want {
+						t.Fatalf("parallel t=%d a=%d: c=%d gives |c-q|=%d but offBy=%d",
 							tilt, arr, c, want, got)
 					}
-				} else if got, want := m.fromRest(cur, a), quarter-abs32(c-quarter); got != want {
-					t.Fatalf("perpendicular t=%d a=%d: c=%d gives q-|c-q|=%d but fromRest=%d",
+				} else if got, want := offBy(m, cur, a), quarter-abs32(c-quarter); got != want {
+					t.Fatalf("perpendicular t=%d a=%d: c=%d gives q-|c-q|=%d but offBy=%d",
 						tilt, arr, c, want, got)
 				}
 
@@ -465,8 +487,8 @@ func oneRoundSweep(t *testing.T, points int32) {
 				if m.mode == Wiring.TiltMachineParallel {
 					line = [2]int32{normL, antiNormL}
 				}
-				if got := m.fromRest(cur, a); got != min(line[0], line[1]) {
-					t.Fatalf("mode=%v t=%d a=%d: readings %d and %d, min=%d but fromRest=%d",
+				if got := offBy(m, cur, a); got != min(line[0], line[1]) {
+					t.Fatalf("mode=%v t=%d a=%d: readings %d and %d, min=%d but offBy=%d",
 						m.mode, tilt, arr, line[0], line[1], min(line[0], line[1]), got)
 				}
 
@@ -497,8 +519,8 @@ func oneRoundSweep(t *testing.T, points int32) {
 				if r12 < 0 || r12 >= half {
 					t.Fatalf("mode=%v t=%d a=%d: remainder %d outside a half turn", m.mode, tilt, arr, r12)
 				}
-				if got := m.fromRest(cur, a); got != abs32(r12-quarter) {
-					t.Fatalf("mode=%v t=%d a=%d: |r-q|=%d but fromRest=%d",
+				if got := offBy(m, cur, a); got != abs32(r12-quarter) {
+					t.Fatalf("mode=%v t=%d a=%d: |r-q|=%d but offBy=%d",
 						m.mode, tilt, arr, abs32(r12-quarter), got)
 				}
 				wantLine := ((arr+quarter-shift)%half + half) % half
@@ -530,8 +552,8 @@ func oneRoundSweep(t *testing.T, points int32) {
 					t.Fatalf("a=%d t=%d: got %d but min(|t-a|, %d-|t-a|)=%d", arr, tilt, l, points, want)
 				}
 
-				if got := m.fromRest(cur, a); got != abs32(e) {
-					t.Fatalf("mode=%v a=%d t=%d |t-a|=%d: |e|=%d but fromRest=%d",
+				if got := offBy(m, cur, a); got != abs32(e) {
+					t.Fatalf("mode=%v a=%d t=%d |t-a|=%d: |e|=%d but offBy=%d",
 						m.mode, arr, tilt, absDiff, abs32(e), got)
 				}
 				// AND THE PAGE'S OWN ARITHMETIC, asked of the machine rather than
@@ -547,12 +569,17 @@ func oneRoundSweep(t *testing.T, points int32) {
 					t.Fatalf("mode=%v t=%d a=%d: nearerEndCount says atBottom=%v with u=%d",
 						m.mode, tilt, arr, atBottom, u)
 				}
-				// The walk is the two ways round from where this node IS, so both
-				// readings are counts on the half-turn ring and their minimum is
-				// fromRest — not a pair of scores for two places it might go.
-				if up, down := m.walk(cur, a); up > half || down > half {
-					t.Fatalf("mode=%v t=%d a=%d c=%d: walk %d/%d is not a pair of counts",
-						m.mode, tilt, arr, c, up, down)
+				// THE RULE ASKS ITS SECOND QUESTION WITHOUT A DISTANCE. step is one
+				// subtraction against a quarter turn, so the direction it picks must
+				// agree with the nearer of the two ways round — worked out here, since
+				// the machine no longer works it out anywhere.
+				if !m.settled(cur, a) {
+					upDist := ((m.stopping().at(r)-c)%half + half) % half
+					wantUp := upDist <= quarter
+					if wantUp != (upDist <= half-upDist) {
+						t.Fatalf("mode=%v t=%d a=%d c=%d: up-count %d against a quarter says %v, against the way down says %v",
+							m.mode, tilt, arr, c, upDist, wantUp, upDist <= half-upDist)
+					}
 				}
 
 				if (e == 0) != m.settled(cur, a) {
@@ -607,10 +634,10 @@ func TestTheWalkIsClosedForm(t *testing.T) {
 			a := r.at(arr)
 			for tilt := int32(0); tilt < points; tilt++ {
 				cur := r.at(tilt)
-				f := m.fromRest(cur, a)
+				f := offBy(m, cur, a)
 
 				s := int32(-1) // step's own rule: up unless down is strictly closer
-				if m.fromRest(cur.next, a) <= m.fromRest(cur.prev, a) {
+				if offBy(m, cur.next, a) <= offBy(m, cur.prev, a) {
 					s = 1
 				}
 
@@ -658,12 +685,12 @@ func TestFromRestIsTheQuarterOffset(t *testing.T) {
 			for arr := int32(0); arr < points; arr++ {
 				from, a := r.at(tilt), r.at(arr)
 				q := abs32(from.angleLength(a) - r.quarterTurn)
-				if got := par.fromRest(from, a); got != q {
-					t.Fatalf("points=%d tilt=%d arrival=%d: parallel fromRest=%d, want q=%d",
+				if got := offBy(par, from, a); got != q {
+					t.Fatalf("points=%d tilt=%d arrival=%d: parallel offBy=%d, want q=%d",
 						points, tilt, arr, got, q)
 				}
-				if got := perp.fromRest(from, a); got != r.quarterTurn-q {
-					t.Fatalf("points=%d tilt=%d arrival=%d: perpendicular fromRest=%d, want quarter-q=%d",
+				if got := offBy(perp, from, a); got != r.quarterTurn-q {
+					t.Fatalf("points=%d tilt=%d arrival=%d: perpendicular offBy=%d, want quarter-q=%d",
 						points, tilt, arr, got, r.quarterTurn-q)
 				}
 			}
@@ -715,8 +742,8 @@ func TestTheTwoMissesAreComplements(t *testing.T) {
 	top := r.at(0)
 	for sep := int32(0); sep < r.points; sep++ {
 		arrival := r.at(sep)
-		perp := perpendicular.fromRest(top, arrival)
-		par := parallel.fromRest(top, arrival)
+		perp := offBy(perpendicular, top, arrival)
+		par := offBy(parallel, top, arrival)
 		if perp+par != r.quarterTurn {
 			t.Errorf("angle length %d: perpendicular miss %d + parallel miss %d = %d, want the quarter turn %d",
 				sep, perp, par, perp+par, r.quarterTurn)
@@ -736,18 +763,18 @@ func TestAModeHaltsExactlyOnItsHomeSet(t *testing.T) {
 	r := testRing()
 	top := r.at(0)
 	for _, m := range []tiltMachine{setting, perpendicular, parallel} {
-		home := map[int32]bool{}
-		for _, h := range m.stopping(r) {
-			home[h] = true
-		}
+		// A row is one count or "anywhere", so the home set is built from the row rather
+		// than read off a list — the shape the data actually has.
+		row := m.stopping()
+		home := func(c int32) bool { return row.anywhere || c == row.at(r) }
 		for sep := int32(0); sep < r.points; sep++ {
 			// The halt is asked about the count from the NEARER END, which is the number a
 			// stopping-count row is written in. It is not the folded angle length: the two
 			// agree only where the nearer end is the top.
 			c, _ := top.nearerEndCount(r.at(sep))
-			if got := m.settled(top, r.at(sep)); got != home[c] {
-				t.Errorf("%v at arrival %d (count %d): halted=%v, stopping counts say %v",
-					m, sep, c, got, home[c])
+			if got := m.settled(top, r.at(sep)); got != home(c) {
+				t.Errorf("%v at arrival %d (count %d): halted=%v, its row says %v",
+					m, sep, c, got, home(c))
 			}
 		}
 	}

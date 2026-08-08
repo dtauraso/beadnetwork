@@ -260,16 +260,18 @@
             other upside down", written as arithmetic</p>
           <p>t_after is the TILT, and it is the only thing an update writes. The normal and the
             bottom follow because they are links off it, not because anything moves them</p>
-          <p>f is computed inside the arrival and thrown away — it is not a countdown, and no walk
-            is planned from it. One arrival turns the tilt at most one slot</p>
+          <p>f is a quantity of THIS PAGE, not of the node. One arrival turns the tilt at most one
+            slot, so the code asks a comparison and a subtraction and never works out a distance at
+            all — <span data-src="nodes/Node1/machine.go#settled">settled</span> tests
+            <var>c</var> against the mode's one stopping count, and
+            <span data-src="nodes/Node1/machine.go#step">step</span> tests the way up against a
+            quarter turn</p>
           <p>the deciding never names a mode — by the time it runs, the mode is spent, having
-            produced one number per way to turn</p>
-          <p><span data-src="nodes/Node1/machine.go#fromRest">fromRest</span> computes f the GENERAL
-            way, as the shorter of the two ways round to the nearest count
-            <span data-src="nodes/Node1/machine.go#stopping">stopping</span> returns, which is the
-            shape a third mode would join. The two lines above are what that comes to for
-            these two modes, checked over both lattices and every tilt-and-arrival pair by
-            <span data-src="nodes/Node1/node_test.go#TestFromRestIsTheQuarterOffset">TestFromRestIsTheQuarterOffset</span></p>
+            produced the one count <span data-src="nodes/Node1/machine.go#stopping">stopping</span>
+            returns</p>
+          <p>f survives as a test-side measurement, because "each step lands nearer than it started"
+            cannot be said without one — checked over both lattices and every tilt-and-arrival pair
+            by <span data-src="nodes/Node1/node_test.go#TestFromRestIsTheQuarterOffset">TestFromRestIsTheQuarterOffset</span></p>
           <p>ℓ, ℓ₊ and ℓ₋ are one function called three times —
             <span data-src="nodes/Node1/machine.go#settled">settled</span> uses the first,
             <span data-src="nodes/Node1/machine.go#step">step</span> the other two</p>

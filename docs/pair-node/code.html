@@ -131,21 +131,19 @@
   </section>
 
   <section>
-    <h3 class="secname">Two distances, and the smaller one answers both questions</h3>
+    <h3 class="secname">Two questions, and neither answer is a length</h3>
 
     <div class="card wide">
-      <h2><span data-src="nodes/Node1/machine.go#walk">walk</span></h2>
+      <h2><span data-src="nodes/Node1/machine.go#settled">settled</span> ·
+        <span data-src="nodes/Node1/machine.go#step">step</span></h2>
       <div class="cap"><span data-src="nodes/Node1/machine.go">nodes/Node1/machine.go</span></div>
-      <p class="eq step" data-src="nodes/Node1/machine.go#walk"><var>up</var> = min over
-        <var>stop</var> of (<var>stop</var> − <var>c</var>) mod <var>h</var></p>
-      <p class="eq step" data-src="nodes/Node1/machine.go#walk"><var>down</var> = min over
-        <var>stop</var> of (<var>c</var> − <var>stop</var>) mod <var>h</var></p>
-      <p class="eq step" data-src="nodes/Node1/machine.go#fromRest">fromRest
-        = min(<var>up</var>, <var>down</var>)</p>
       <p class="eq step" data-src="nodes/Node1/machine.go#settled">settled
-        = <var>fromRest</var> = 0</p>
+        = <var>c</var> = <var>stop</var>, or the row stops anywhere</p>
       <p class="eq step" data-src="nodes/Node1/machine.go#step">step
-        = the measured end, one slot: next if <var>up</var> ≤ <var>down</var>, else prev</p>
+        = the measured end, one slot: next if (<var>stop</var> − <var>c</var>) mod <var>h</var>
+        ≤ <var>q</var>, else prev</p>
+      <p class="eq step dim">no distance is taken and no minimum: the way down is the rest of the
+        circle, so asking which is shorter is asking whether the way up is at most a quarter</p>
       <p class="eq step dim">no mode is read below
         <span data-src="nodes/Node1/machine.go#stopping">stopping</span>; no value is negative</p>
     </div>
