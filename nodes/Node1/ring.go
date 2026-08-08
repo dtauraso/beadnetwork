@@ -167,10 +167,16 @@ func (r *ring) seedState(idx int32) (s *tiltState, unknown bool) {
 // its second comparison; the halt tests need the number itself, and need it to mean the same
 // thing whichever side the target sits on, so the fold happens here instead.
 func (s *tiltState) angleLength(target *tiltState) int32 {
-	gap := s.idx - target.idx
-	if gap < 0 {
-		gap = -gap
+	// Subtract in the order that cannot go negative: this is the HIGHER index minus the
+	// lower one, so the result is a magnitude by construction rather than a signed
+	// difference with its sign removed afterwards. Both indices are already in
+	// [0, points), so no modulus is needed or taken — the difference is one of the two
+	// arcs between them, and the fold below swaps to the other when this is the longer.
+	hi, lo := s.idx, target.idx
+	if hi < lo {
+		hi, lo = lo, hi
 	}
+	gap := hi - lo
 	if gap > s.ring.halfTurn {
 		gap = s.ring.points - gap
 	}
@@ -200,11 +206,15 @@ func (s *tiltState) angleLength(target *tiltState) int32 {
 // file provides them is `angle length`: a measurement of where two directions sit relative to each
 // other, which is not a rule and names no resting state.
 
-func abs32(v int32) int32 {
-	if v < 0 {
-		return -v
+// gapBetween is how far apart two counts are: the larger minus the smaller, so it is a
+// magnitude by construction rather than a signed difference with its sign removed
+// afterwards. angleLength does the same thing inline on the two ring indices; this is the
+// version for the two counts fromRest compares.
+func gapBetween(a, b int32) int32 {
+	if a < b {
+		return b - a
 	}
-	return v
+	return a - b
 }
 
 // defaultRing is the lattice a node gets when nothing has said otherwise — the count this

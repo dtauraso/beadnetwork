@@ -20,10 +20,13 @@ BODIES = {
   \mathrm{sends} = \mathrm{normal}(t) \\[4pt]
   \mathrm{angle}(i) = \tfrac{\pi}{12}\, i
 """,
-    # no \bmod: both indices are already in 0..23, so |t-a| never exceeds 23 and the
-    # code takes no modulus. Writing one implies an operation that is not there.
+    # max - min rather than |t - a|: the same number, but subtracted in the order that
+    # cannot go negative, so it is a magnitude by construction instead of a signed
+    # difference with its sign thrown away afterwards.
+    # No \bmod either: both indices are already 0..23, so d never exceeds 23 and the code
+    # takes no modulus. Writing one implies an operation that is not there.
     "length": r"""
-  d = \lvert t-a \rvert \\[6pt]
+  d = \max(t,a) - \min(t,a) \\[6pt]
   L \;=\; \len(t,a) = \begin{cases}
       d      & d \le 12 \\
       24 - d & \text{otherwise}
