@@ -277,10 +277,11 @@ func TestOneRoundIsSignAndRemainder(t *testing.T) {
 					}
 					return ((x+12-arr)%points + points) % points
 				}
-				cUp, cDown := cAt(tilt+1), cAt(tilt-1)
-				up := abs32(cUp-6) <= abs32(cDown-6)
+				// d and e are the page's names for c worked out at t+1 and at t-1.
+				d, eNbr := cAt(tilt+1), cAt(tilt-1)
+				up := abs32(d-6) <= abs32(eNbr-6)
 				if m.mode == Wiring.TiltMachinePerpendicular {
-					up = abs32(cUp-6) >= abs32(cDown-6)
+					up = abs32(d-6) >= abs32(eNbr-6)
 				}
 				if e != 0 {
 					wantNext := cur.prev
@@ -288,8 +289,8 @@ func TestOneRoundIsSignAndRemainder(t *testing.T) {
 						wantNext = cur.next
 					}
 					if got := m.step(cur, a); got != wantNext {
-						t.Fatalf("mode=%v t=%d a=%d: |c-6| up=%d down=%d chose %d, step chose %d",
-							m.mode, tilt, arr, abs32(cUp-6), abs32(cDown-6), wantNext.idx, got.idx)
+						t.Fatalf("mode=%v t=%d a=%d: |d-6|=%d |e-6|=%d chose %d, step chose %d",
+							m.mode, tilt, arr, abs32(d-6), abs32(eNbr-6), wantNext.idx, got.idx)
 					}
 				}
 
@@ -366,35 +367,31 @@ func TestOneRoundIsSignAndRemainder(t *testing.T) {
 						m.mode, tilt, arr, ((tilt%12)+12)%12, wantLine)
 				}
 
-				// d is that subtraction with the abs ON it, which is why e cannot use d:
-				// |t - a| makes the two sides of the arrival identical, but a node one
-				// slot below it must turn opposite to one slot above — t=0, a=1 turns
-				// down to 23, while t=0, a=23 turns up to 1. Same f, opposite sign.
-				d := abs32(tilt - arr)
-				eFromD := ((d+shift)%12+12)%12 - 6
-				if abs32(eFromD) != abs32(e) {
-					t.Fatalf("mode=%v a=%d t=%d: |e| from d is %d, from t-a is %d",
-						m.mode, arr, tilt, abs32(eFromD), abs32(e))
+				// Taking the abs BEFORE the modulus keeps the size and loses the turn:
+				// |t - a| makes the two sides of a identical, but a node one slot below it
+				// must turn opposite to one slot above — t=0, a=1 turns down to 23, while
+				// t=0, a=23 turns up to 1. Same distance, opposite direction.
+				absDiff := abs32(tilt - arr)
+				eFromAbs := ((absDiff+shift)%12+12)%12 - 6
+				if abs32(eFromAbs) != abs32(e) {
+					t.Fatalf("mode=%v a=%d t=%d: |e| from |t-a| is %d, from t-a is %d",
+						m.mode, arr, tilt, abs32(eFromAbs), abs32(e))
 				}
 
-				// The angle length needs no min: d runs 0..23 and l is its distance to
-				// the nearer end of that range.
-				//
-				//	d = |t - a|        l = 12 - |12 - d|
-				//
-				// The abs is on the subtraction, which is where l parts company with e:
-				// l throws the sign away before it starts, e never does.
-				l := 12 - abs32(12-d)
-				if got := cur.angleLength(a); got != l {
-					t.Fatalf("a=%d t=%d: 12-|12-d|=%d but angleLength=%d", arr, tilt, l, got)
+				// And the angle length needs no min: |t - a| runs 0..23, and the length is
+				// its distance to the nearer end of that range — 12 - |12 - |t - a||.
+				l := 12 - abs32(12-absDiff)
+				if cur.angleLength(a) != l {
+					t.Fatalf("a=%d t=%d: 12-|12-|t-a||=%d but angleLength=%d",
+						arr, tilt, l, cur.angleLength(a))
 				}
-				if want := min(d, points-d); l != want {
-					t.Fatalf("a=%d t=%d: got %d but min(d, 24-d)=%d", arr, tilt, l, want)
+				if want := min(absDiff, points-absDiff); l != want {
+					t.Fatalf("a=%d t=%d: got %d but min(|t-a|, 24-|t-a|)=%d", arr, tilt, l, want)
 				}
 
 				if got := m.fromRest(cur, a); got != abs32(e) {
-					t.Fatalf("mode=%v a=%d t=%d d=%d: |e|=%d but fromRest=%d",
-						m.mode, arr, tilt, d, abs32(e), got)
+					t.Fatalf("mode=%v a=%d t=%d |t-a|=%d: |e|=%d but fromRest=%d",
+						m.mode, arr, tilt, absDiff, abs32(e), got)
 				}
 				if (e == 0) != m.settled(cur, a) {
 					t.Fatalf("mode=%v a=%d t=%d d=%d: e=%d but settled=%v",

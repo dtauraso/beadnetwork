@@ -116,20 +116,20 @@
       <h2>t after the update</h2>
       <p class="eq head">run the card above three times, on <var>t</var> and on each neighbour</p>
       <p class="eq step"><span class="g"><var>c</var></span> from <var>t</var></p>
-      <p class="eq step"><span class="g"><var>c</var><sub>+</sub></span> from <var>t</var>+1</p>
-      <p class="eq step"><span class="g"><var>c</var><sub>−</sub></span> from <var>t</var>−1</p>
+      <p class="eq step"><span class="g"><var>d</var></span> from <var>t</var>+1</p>
+      <p class="eq step"><span class="g"><var>e</var></span> from <var>t</var>−1</p>
       <p class="eq head par">parallel</p>
       <p class="eq step"><span class="g"><var>c</var> = 6 :</span>
         <var>t</var><sub>after</sub> = <var>t</var></p>
-      <p class="eq step"><span class="g">|<var>c</var><sub>+</sub> − 6| ≤ |<var>c</var><sub>−</sub>
-          − 6| :</span> <var>t</var><sub>after</sub> = <var>t</var>+1</p>
+      <p class="eq step"><span class="g">|<var>d</var> − 6| ≤ |<var>e</var> − 6| :</span>
+        <var>t</var><sub>after</sub> = <var>t</var>+1</p>
       <p class="eq step"><span class="g">otherwise :</span>
         <var>t</var><sub>after</sub> = <var>t</var>−1</p>
       <p class="eq head perp">perpendicular</p>
       <p class="eq step"><span class="g"><var>c</var> = 0 :</span>
         <var>t</var><sub>after</sub> = <var>t</var></p>
-      <p class="eq step"><span class="g">|<var>c</var><sub>+</sub> − 6| ≥ |<var>c</var><sub>−</sub>
-          − 6| :</span> <var>t</var><sub>after</sub> = <var>t</var>+1</p>
+      <p class="eq step"><span class="g">|<var>d</var> − 6| ≥ |<var>e</var> − 6| :</span>
+        <var>t</var><sub>after</sub> = <var>t</var>+1</p>
       <p class="eq step"><span class="g">otherwise :</span>
         <var>t</var><sub>after</sub> = <var>t</var>−1</p>
       <p class="eq head">standing still means <var>a</var> lies along one of this node's own
@@ -141,7 +141,7 @@
       <div class="keynote">
         <p><b>t<sub>after</sub></b> — this node's tilt when the update is done; its normal and
           bottom are read off the new t, so one slot moves all three</p>
-        <p><b>c<sub>+</sub>, c<sub>−</sub></b> — the same c, worked out for t+1 and for t−1</p>
+        <p><b>d, e</b> — the same measurement as c, worked out for t+1 and for t−1</p>
         <p>the two arrangements differ by one character: parallel takes the smaller |c − 6| and
           perpendicular the larger, because parallel stops where that value is 0 and perpendicular
           where it is 6, its largest</p>
