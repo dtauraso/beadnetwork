@@ -14,7 +14,7 @@
 
   <header>
     <h1>Update rules</h1>
-    <div class="sub">every branch of the node's own Update loop, with the link or test it runs</div>
+    <div class="sub">one arrival, two yes-or-no questions: settle, and if not, which way</div>
   </header>
 
   <nav>
@@ -26,6 +26,7 @@
     <a href="formulas.html">Formulas</a>
     <a href="dots.html">Separation</a>
     <a href="perpendicular.html">Perpendicular</a>
+    <a href="cases.html">Cases</a>
     <a href="channels.html">Channels</a>
     <a href="cycle.html">Cycle</a>
     <a class="on" href="updates.html">Update rules</a>
@@ -39,482 +40,206 @@
     <div class="grid">
 
       <div class="card wide">
-        <h2>The numbers</h2>
-        <table class="f">
-          <tr>
-            <td class="e">Top</td>
-            <td class="n" colspan="2">the tilt — a STATE on a ring of 24, not a number a node adds to.
-              Turning is following a link, Top ← Top.next or Top ← Top.prev, never +1 or −1 with a wrap.
-              Top.idx is that state's own index, 0…23, and is what leaves this kind: onto the wire, into
-              position.json, and 15°·idx is its angle from world +y</td>
-          </tr>
-          <tr>
-            <td class="e">r, and whether r is set</td>
-            <td class="n" colspan="2">the last direction received — the third drawn arrow</td>
-          </tr>
-          <tr>
-            <td class="e">6 · 12 · 24</td>
-            <td class="n" colspan="2">a quarter turn · a half turn · a full turn, counted in those steps</td>
-          </tr>
-          <tr>
-            <td class="e">one step = 15° = 0.2617993877991494 rad</td>
-            <td class="n" colspan="2">the one quantum; every angle streamed is an index times this</td>
-          </tr>
-        </table>
+        <h2>The state</h2>
+        <svg width="620" height="284" viewBox="0 0 620 284">
+<circle cx="150" cy="138" r="100" fill="none" stroke="#3a3a44"/><path d="M175 46L176 41M198 56L200 51M217 71L221 67M232 90L237 88M242 113L247 112M242 163L247 164M232 186L237 188M217 205L221 209M198 220L200 225M175 230L176 235M125 230L124 235M102 220L100 225M83 205L79 209M68 186L63 188M58 163L53 164M58 113L53 112M68 90L63 88M83 71L79 67M102 56L100 51M125 46L124 41" stroke="#3a3a44"/><path d="M150 43L150 38M245 138L250 138M150 233L150 238M55 138L50 138" stroke="#9a9aa6" stroke-width="1.6"/>
+<path d="M231 57A115 115 0 0 1 250 80" fill="none" stroke="#e05fd8" stroke-width="3"/>
+<text x="259" y="59" class="lblm" fill="#e05fd8">one step = π/12</text>
+<text x="150" y="20" text-anchor="middle" class="lbl">0</text>
+<text x="272" y="142" text-anchor="start" class="lbl">6 — a quarter</text>
+<text x="150" y="264" text-anchor="middle" class="lbl">12 — a half</text>
+<text x="28" y="142" text-anchor="end" class="lbl">18</text>
+<circle cx="150" cy="38" r="3.5" fill="#5fd68a"/>
+<circle cx="176" cy="41" r="3.5" fill="#4a4a56"/>
+<circle cx="200" cy="51" r="3.5" fill="#4a4a56"/>
+<circle cx="221" cy="67" r="3.5" fill="#4a4a56"/>
+<circle cx="237" cy="88" r="3.5" fill="#4a4a56"/>
+<circle cx="247" cy="112" r="3.5" fill="#4a4a56"/>
+<circle cx="250" cy="138" r="3.5" fill="#5fd68a"/>
+<circle cx="247" cy="164" r="3.5" fill="#4a4a56"/>
+<circle cx="237" cy="188" r="3.5" fill="#4a4a56"/>
+<circle cx="221" cy="209" r="3.5" fill="#4a4a56"/>
+<circle cx="200" cy="225" r="3.5" fill="#4a4a56"/>
+<circle cx="176" cy="235" r="3.5" fill="#4a4a56"/>
+<circle cx="150" cy="238" r="3.5" fill="#5fd68a"/>
+<circle cx="124" cy="235" r="3.5" fill="#4a4a56"/>
+<circle cx="100" cy="225" r="3.5" fill="#4a4a56"/>
+<circle cx="79" cy="209" r="3.5" fill="#4a4a56"/>
+<circle cx="63" cy="188" r="3.5" fill="#4a4a56"/>
+<circle cx="53" cy="164" r="3.5" fill="#4a4a56"/>
+<circle cx="50" cy="138" r="3.5" fill="#5fd68a"/>
+<circle cx="53" cy="112" r="3.5" fill="#4a4a56"/>
+<circle cx="63" cy="88" r="3.5" fill="#4a4a56"/>
+<circle cx="79" cy="67" r="3.5" fill="#4a4a56"/>
+<circle cx="100" cy="51" r="3.5" fill="#4a4a56"/>
+<circle cx="124" cy="41" r="3.5" fill="#4a4a56"/>
+<path d="M122 33A109 109 0 0 1 150 29" fill="none" stroke="#4ea1ff" stroke-width="2.4"/>
+<text x="330" y="96" class="lblm">t ∈ {0 … 23}</text>
+<text x="330" y="116" class="lbl">a state, not a number — t ± 1 follows a link</text>
+<text x="330" y="134" class="lbl">24 of them, and the tilt is always exactly one</text>
+<text x="330" y="164" class="lblm">angle = (π/12) · t</text>
+<text x="330" y="182" class="lbl">the only thing that leaves this kind</text>
+<rect x="330" y="206" width="10" height="10" rx="2.5" fill="#4ea1ff"/>
+<text x="346" y="215" class="lbl">23 → 0 — one link like any other, and</text>
+<text x="346" y="232" class="lbl">the only reason the ring closes</text>
+</svg>
       </div>
 
       <div class="card wide">
-        <h2>The machine — 24 states, and every input is a transition</h2>
-        <svg width="640" height="200" viewBox="0 0 640 200">
-          <defs>
-            <marker id="mNext" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto">
-              <path d="M0,0 L8,3 L0,6 z" fill="#5fd68a" />
-            </marker>
-            <marker id="mPrev" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto">
-              <path d="M0,0 L8,3 L0,6 z" fill="#e05fd8" />
-            </marker>
-          </defs>
-
-          <g fill="#2b2b33" stroke="#3a3a44">
-            <circle cx="110" cy="96" r="26" />
-            <circle cx="230" cy="96" r="26" />
-            <circle cx="350" cy="96" r="26" />
-            <circle cx="470" cy="96" r="26" />
-            <circle cx="590" cy="96" r="26" />
-          </g>
-          <g class="lblm" text-anchor="middle" fill="#e7e7ea">
-            <text x="110" y="101">21</text>
-            <text x="230" y="101">22</text>
-            <text x="350" y="101">23</text>
-            <text x="470" y="101">0</text>
-            <text x="590" y="101">1</text>
-          </g>
-          <text x="30" y="101" class="lbl" fill="#9a9aa6">…</text>
-          <text x="626" y="101" class="lbl" fill="#9a9aa6">…</text>
-
-          <!-- next: one way round -->
-          <g stroke="#5fd68a" stroke-width="2" fill="none" marker-end="url(#mNext)">
-            <path d="M 136 84 Q 170 62 202 84" />
-            <path d="M 256 84 Q 290 62 322 84" />
-            <path d="M 376 84 Q 410 62 442 84" />
-            <path d="M 496 84 Q 530 62 562 84" />
-          </g>
-          <text x="290" y="46" text-anchor="middle" class="lblm" fill="#5fd68a">next</text>
-
-          <!-- prev: the other -->
-          <g stroke="#e05fd8" stroke-width="2" fill="none" marker-end="url(#mPrev)">
-            <path d="M 562 110 Q 530 132 498 110" />
-            <path d="M 442 110 Q 410 132 378 110" />
-            <path d="M 322 110 Q 290 132 258 110" />
-            <path d="M 202 110 Q 170 132 138 110" />
-          </g>
-          <text x="410" y="156" text-anchor="middle" class="lblm" fill="#e05fd8">prev</text>
-
-          <line x1="410" y1="30" x2="410" y2="170" stroke="#3a3a44" stroke-dasharray="4 4" />
-          <text x="418" y="182" class="lbl" fill="#9a9aa6">23 → 0 is one link like any other</text>
-        </svg>
-        <table class="f">
-          <tr class="h">
-            <td>input</td>
-            <td colspan="2">transition</td>
-          </tr>
-          <tr>
-            <td class="e">arrival IS this node's own machine's halt</td>
-            <td class="e" colspan="2">stay — and this is the halt: reply anyway, no bead placed</td>
-          </tr>
-          <tr>
-            <td class="e">arrival is not this node's own machine's halt</td>
-            <td class="e" colspan="2">Top ← this machine's step(before, arrival) — next or prev, whichever
-              lands closer to its own halt</td>
-          </tr>
-          <tr>
-            <td class="e">no machine yet (before START, or after RESET)</td>
-            <td class="e" colspan="2">stay — nothing chooses a machine from an arrival</td>
-          </tr>
-          <tr>
-            <td class="e">panel ▲ · panel ▼</td>
-            <td class="e" colspan="2">Top ← Top.next · Top ← Top.prev — moves the tilt only, chooses no
-              machine</td>
-          </tr>
-          <tr>
-            <td class="e">RESET, from the button or the marker</td>
-            <td class="e" colspan="2">Top ← ring[0] · Machine ← nil</td>
-          </tr>
-          <tr>
-            <td class="e">START on id 1 · a bead on In</td>
-            <td class="e" colspan="2">stay — START sends from where it already is, a bead only paces</td>
-          </tr>
-        </table>
-        <div class="cap">Those six are every input the machine has, and the four transitions are every move
-          it can make. A state is a direction the tilt can point, so there are 24 of them and the tilt is
-          always exactly one — there is no 25th to reach and no value between two, which is what makes an
-          off-the-ring tilt impossible to write down rather than merely guarded against.</div>
-        <div class="cap">The seam at 23 → 0 is one link like any other. Nothing detects it, nothing corrects
-          for it, and no rule mentions it — the ring closes because the last state's next IS the first, fixed
-          once when it was built.</div>
+        <h2>What is read off t</h2>
+        <svg width="700" height="252" viewBox="0 0 700 252">
+<circle cx="90" cy="98" r="60" fill="none" stroke="#3a3a44"/><path d="M104 45L106 40M118 50L120 46M129 59L132 56M138 70L142 68M143 84L148 82M143 112L148 114M138 125L142 128M129 137L132 140M118 146L120 150M104 151L106 156M76 151L74 156M62 146L60 150M51 137L48 140M42 126L38 128M37 112L32 114M37 84L32 82M42 70L38 68M51 59L48 56M62 50L60 46M76 45L74 40" stroke="#3a3a44"/><path d="M90 43L90 38M145 98L150 98M90 153L90 158M35 98L30 98" stroke="#9a9aa6" stroke-width="1.6"/><line x1="90" y1="98" x2="90" y2="148" stroke="#9a9aa6" stroke-width="2"/><polygon points="90,157 86,148 94,148" fill="#9a9aa6"/><line x1="90" y1="98" x2="140" y2="98" stroke="#4ea1ff" stroke-width="2.4"/><polygon points="149,98 140,102 140,94" fill="#4ea1ff"/><line x1="90" y1="98" x2="90" y2="48" stroke="#5fd68a" stroke-width="2.8"/><polygon points="90,39 94,48 86,48" fill="#5fd68a"/>
+<text x="90" y="182" text-anchor="middle" class="lblm">t = 0</text>
+<circle cx="250" cy="98" r="60" fill="none" stroke="#3a3a44"/><path d="M264 45L266 40M278 50L280 46M289 59L292 56M298 70L302 68M303 84L308 82M303 112L308 114M298 125L302 128M289 137L292 140M278 146L280 150M264 151L266 156M236 151L234 156M222 146L220 150M211 137L208 140M202 126L198 128M197 112L192 114M197 84L192 82M202 70L198 68M211 59L208 56M222 50L220 46M236 45L234 40" stroke="#3a3a44"/><path d="M250 43L250 38M305 98L310 98M250 153L250 158M195 98L190 98" stroke="#9a9aa6" stroke-width="1.6"/><line x1="250" y1="98" x2="200" y2="98" stroke="#9a9aa6" stroke-width="2"/><polygon points="191,98 200,94 200,102" fill="#9a9aa6"/><line x1="250" y1="98" x2="250" y2="148" stroke="#4ea1ff" stroke-width="2.4"/><polygon points="250,157 246,148 254,148" fill="#4ea1ff"/><line x1="250" y1="98" x2="300" y2="98" stroke="#5fd68a" stroke-width="2.8"/><polygon points="309,98 300,102 300,94" fill="#5fd68a"/>
+<text x="250" y="182" text-anchor="middle" class="lblm">t = 6</text>
+<circle cx="410" cy="98" r="60" fill="none" stroke="#3a3a44"/><path d="M424 45L426 40M438 50L440 46M449 59L452 56M458 70L462 68M463 84L468 82M463 112L468 114M458 125L462 128M449 137L452 140M438 146L440 150M424 151L426 156M396 151L394 156M382 146L380 150M371 137L368 140M362 126L358 128M357 112L352 114M357 84L352 82M362 70L358 68M371 59L368 56M382 50L380 46M396 45L394 40" stroke="#3a3a44"/><path d="M410 43L410 38M465 98L470 98M410 153L410 158M355 98L350 98" stroke="#9a9aa6" stroke-width="1.6"/><line x1="410" y1="98" x2="410" y2="48" stroke="#9a9aa6" stroke-width="2"/><polygon points="410,39 414,48 406,48" fill="#9a9aa6"/><line x1="410" y1="98" x2="360" y2="98" stroke="#4ea1ff" stroke-width="2.4"/><polygon points="351,98 360,94 360,102" fill="#4ea1ff"/><line x1="410" y1="98" x2="410" y2="148" stroke="#5fd68a" stroke-width="2.8"/><polygon points="410,157 406,148 414,148" fill="#5fd68a"/>
+<text x="410" y="182" text-anchor="middle" class="lblm">t = 12</text>
+<circle cx="570" cy="98" r="60" fill="none" stroke="#3a3a44"/><path d="M584 45L586 40M598 50L600 46M609 59L612 56M618 70L622 68M623 84L628 82M623 112L628 114M618 125L622 128M609 137L612 140M598 146L600 150M584 151L586 156M556 151L554 156M542 146L540 150M531 137L528 140M522 126L518 128M517 112L512 114M517 84L512 82M522 70L518 68M531 59L528 56M542 50L540 46M556 45L554 40" stroke="#3a3a44"/><path d="M570 43L570 38M625 98L630 98M570 153L570 158M515 98L510 98" stroke="#9a9aa6" stroke-width="1.6"/><line x1="570" y1="98" x2="619" y2="85" stroke="#9a9aa6" stroke-width="2"/><polygon points="627,83 620,89 618,81" fill="#9a9aa6"/><line x1="570" y1="98" x2="557" y2="49" stroke="#4ea1ff" stroke-width="2.4"/><polygon points="555,41 561,48 553,50" fill="#4ea1ff"/><line x1="570" y1="98" x2="521" y2="111" stroke="#5fd68a" stroke-width="2.8"/><polygon points="513,113 520,107 522,115" fill="#5fd68a"/>
+<text x="570" y="182" text-anchor="middle" class="lblm">t = 17</text>
+<rect x="60" y="204" width="10" height="10" rx="2.5" fill="#5fd68a"/>
+<text x="76" y="213" class="lbl">t — the tilt</text>
+<rect x="60" y="221" width="10" height="10" rx="2.5" fill="#4ea1ff"/>
+<text x="76" y="230" class="lbl">t + 6 — the normal, and what it sends</text>
+<rect x="390" y="204" width="10" height="10" rx="2.5" fill="#9a9aa6"/>
+<text x="406" y="213" class="lbl">t + 12 — the bottom</text>
+<text x="406" y="230" class="lbl">links, not sums — the triad turns as one</text>
+</svg>
       </div>
 
       <div class="card wide">
-        <h2>The three directions a node reads off its own state</h2>
-        <table class="f">
-          <tr class="h">
-            <td>direction</td>
-            <td>both nodes of a pair — same unmodified rule</td>
-          </tr>
-          <tr>
-            <td class="n">top — the tilt itself</td>
-            <td class="e">top = Top</td>
-          </tr>
-          <tr>
-            <td class="n">bottom — half a turn from the top</td>
-            <td class="e">bottom = Top.opposite</td>
-          </tr>
-          <tr>
-            <td class="n">coplanar normal — a quarter turn from the top</td>
-            <td class="e">normal = Top.quarter</td>
-          </tr>
-          <tr>
-            <td class="n">what it sends — the normal, unchanged</td>
-            <td class="e">sends = normal</td>
-          </tr>
-        </table>
-        <div class="cap">opposite and quarter are links resolved once when the ring is built (init, in
-          ring.go) — a field read, not a sum. Both nodes of a pair run this same unmodified rule — there is
-          no per-node sign.</div>
-        <div class="cap">There is nothing to wrap: a link always points at one of the 24 states, so
-          bottom and normal land on the ring the same way top does, by construction, with no comparison and
-          no reduction at either one.</div>
+        <h2>The angle length, and what it says the pair is at</h2>
+        <svg width="580" height="252" viewBox="0 0 580 252">
+<circle cx="100" cy="98" r="62" fill="none" stroke="#3a3a44"/><path d="M115 43L116 38M128 49L131 44M140 58L144 54M149 70L154 67M155 83L160 82M155 113L160 114M149 126L154 129M140 138L144 142M128 147L131 152M115 153L116 158M85 153L84 158M72 147L69 152M60 138L56 142M51 127L46 129M45 113L40 114M45 83L40 82M51 70L46 67M60 58L56 54M71 49L69 44M85 43L84 38" stroke="#3a3a44"/><path d="M100 41L100 36M157 98L162 98M100 155L100 160M43 98L38 98" stroke="#9a9aa6" stroke-width="1.6"/>
+<line x1="100" y1="98" x2="100" y2="46" stroke="#5fd68a" stroke-width="5"/><polygon points="100,37 104,46 96,46" fill="#5fd68a"/><line x1="100" y1="98" x2="100" y2="61" stroke="#f9a825" stroke-width="2.4"/><polygon points="100,52 104,61 96,61" fill="#f9a825"/>
+<text x="100" y="184" text-anchor="middle" class="lblm" fill="#e05fd8">L = 0</text>
+<text x="100" y="200" text-anchor="middle" class="lbl">⊥ halts</text>
+<circle cx="280" cy="98" r="62" fill="none" stroke="#3a3a44"/><path d="M295 43L296 38M308 49L311 44M320 58L324 54M329 70L334 67M335 83L340 82M335 113L340 114M329 126L334 129M320 138L324 142M308 147L311 152M295 153L296 158M265 153L264 158M252 147L249 152M240 138L236 142M231 127L226 129M225 113L220 114M225 83L220 82M231 70L226 67M240 58L236 54M251 49L249 44M265 43L264 38" stroke="#3a3a44"/><path d="M280 41L280 36M337 98L342 98M280 155L280 160M223 98L218 98" stroke="#9a9aa6" stroke-width="1.6"/>
+<path d="M280 64A34 34 0 0 1 314 98" fill="none" stroke="#e05fd8" stroke-width="2.6"/>
+<line x1="280" y1="98" x2="280" y2="46" stroke="#5fd68a" stroke-width="2.8"/><polygon points="280,37 284,46 276,46" fill="#5fd68a"/><line x1="280" y1="98" x2="332" y2="98" stroke="#f9a825" stroke-width="2.4"/><polygon points="341,98 332,102 332,94" fill="#f9a825"/>
+<text x="280" y="184" text-anchor="middle" class="lblm" fill="#e05fd8">L = 6</text>
+<text x="280" y="200" text-anchor="middle" class="lbl">∥ halts</text>
+<circle cx="460" cy="98" r="62" fill="none" stroke="#3a3a44"/><path d="M475 43L476 38M488 49L491 44M500 58L504 54M509 70L514 67M515 83L520 82M515 113L520 114M509 126L514 129M500 138L504 142M488 147L491 152M475 153L476 158M445 153L444 158M432 147L429 152M420 138L416 142M411 127L406 129M405 113L400 114M405 83L400 82M411 70L406 67M420 58L416 54M432 49L429 44M445 43L444 38" stroke="#3a3a44"/><path d="M460 41L460 36M517 98L522 98M460 155L460 160M403 98L398 98" stroke="#9a9aa6" stroke-width="1.6"/>
+<path d="M460 64A34 34 0 0 1 469 131" fill="none" stroke="#e05fd8" stroke-width="2.6"/>
+<line x1="460" y1="98" x2="460" y2="46" stroke="#5fd68a" stroke-width="2.8"/><polygon points="460,37 464,46 456,46" fill="#5fd68a"/><line x1="460" y1="98" x2="473" y2="148" stroke="#f9a825" stroke-width="2.4"/><polygon points="476,157 469,149 477,147" fill="#f9a825"/>
+<text x="460" y="184" text-anchor="middle" class="lblm" fill="#e05fd8">L = 11</text>
+<text x="460" y="200" text-anchor="middle" class="lbl">steps</text>
+<rect x="60" y="218" width="10" height="10" rx="2.5" fill="#5fd68a"/>
+<text x="76" y="227" class="lbl">t</text>
+<rect x="60" y="235" width="10" height="10" rx="2.5" fill="#f9a825"/>
+<text x="76" y="244" class="lbl">the arrival a</text>
+<rect x="250" y="218" width="10" height="10" rx="2.5" fill="#e05fd8"/>
+<text x="266" y="227" class="lbl">L — the angle length, short way round, ≤ 12</text>
+<text x="266" y="244" class="lbl">integers, so exact — no epsilon</text>
+</svg>
       </div>
 
       <div class="card wide">
-        <h2>separation — what decides both machines</h2>
-        <table class="f">
-          <tr>
-            <td class="e">sep = |a.idx − b.idx|, folded to ≤ 12</td>
-            <td class="n" colspan="2">how far apart two directions are on the ring, the SHORT way round.
-              Both sit on 0…23, so this is an exact integer, never more than a half turn</td>
-          </tr>
-          <tr>
-            <td class="e">perpendicular's halt: sep ∈ {0, 12}</td>
-            <td class="n" colspan="2">the arrival sits exactly on this node's own top, or exactly on its
-              bottom</td>
-          </tr>
-          <tr>
-            <td class="e">parallel's halt: sep = 6</td>
-            <td class="n" colspan="2">the arrival sits exactly on this node's own coplanar normal</td>
-          </tr>
-          <tr>
-            <td class="e">anything else</td>
-            <td class="n" colspan="2">an ordinary separation to whichever machine this node holds — one
-              step closer, next or prev</td>
-          </tr>
-        </table>
-        <div class="cap">Integer steps, so separation is exact: no float dot product, and no epsilon band to
-          tune. A separation of 6 is perpendicular's ordinary angle on the way through and parallel's halt;
-          a separation of 0 or 12 is the reverse. Which one a node HALTS on is read once, at START, from the
-          gap between the two tilts (<span data-src="nodes/Node1/node.go#machineForGap">machineForGap</span>)
-          — see <a href="perpendicular.html">Perpendicular</a>.</div>
+        <h2 id="loop">The update</h2>
+        <!-- Set in LaTeX and rendered to paths by dvisvgm at authoring time (the source is
+             docs/pair-node/update-math.tex). No MathJax, no KaTeX, no CDN: this site loads
+             nothing over the network, and a renderer that needs one would be the first thing
+             here to break offline. -->
+        <img class="math" src="update-math.svg"
+          alt="normal(t) = t+6, bottom(t) = t+12, sends = normal(t), angle(i) = (pi/12) i. L = angleLength(t,a) = d if d <= 12 else 24-d, where d = |t-a| mod 24; all arithmetic mod 24. Resting lengths: perpendicular {0,12}, parallel {6}, setting any. Settle? L is a resting length. Up? angleLength(t+1,a) is closer to a resting length than angleLength(t-1,a). t_after = t if settle, t+1 if up, t-1 otherwise.">
       </div>
 
       <div class="card wide">
-        <h2>Before the loop</h2>
-        <table class="f">
-          <tr>
-            <td class="e">TryEmit(EmitGeometry)</td>
-            <td class="n" colspan="2">nothing — the builder leaves that callback nil for this kind</td>
-          </tr>
-          <tr>
-            <td class="e">Self.EmitGeometryOnce()</td>
-            <td class="n" colspan="2">writes one node-geometry frame on this node's own pipe</td>
-          </tr>
-          <tr>
-            <td class="e">syncTiltIndex()</td>
-            <td class="n" colspan="2">SetTiltIndex(top.idx, normal.idx, bottom.idx) → writes position.json,
-              then one frame. Skip it and top.idx = 0, normal.idx = 0 both decode to world +y, so the two
-              arrows superimpose</td>
-          </tr>
-          <tr>
-            <td class="e">clk ← clock().Copy()</td>
-            <td class="n" colspan="2">a value copy with tickCh = nil; it subscribes on its own first
-              SleepCycle, so two goroutines never hold one tick channel</td>
-          </tr>
-        </table>
-      </div>
-
-      <div class="card wide">
-        <h2>The loop — when this happens, this runs</h2>
-        <table class="f">
-          <tr class="h">
-            <td>when</td>
-            <td colspan="2">then</td>
-          </tr>
-          <tr>
-            <td class="e">the context is cancelled</td>
-            <td class="e" colspan="2">return</td>
-          </tr>
-          <tr>
-            <td class="e">In.PollRecv() returns a bead</td>
-            <td class="e" colspan="2">Fire(). Top unchanged · VectorOut unwritten · Out unwritten — the bead
-              paces the exchange and decides no part of it</td>
-          </tr>
-
-          <tr class="h">
-            <td>TiltEditIn holds an edit</td>
-            <td colspan="2">then</td>
-          </tr>
-          <tr>
-            <td class="e">edit.Reset</td>
-            <td class="e" colspan="2">clear() · VectorOut ← the reset marker · Out unwritten</td>
-          </tr>
-          <tr>
-            <td class="e">edit.Start, on node 1</td>
-            <td class="e" colspan="2">VectorOut ← sends(Top) · Out ← one bead at tick T · Top unchanged</td>
-          </tr>
-          <tr>
-            <td class="e">edit.Start, on node 2</td>
-            <td class="e" colspan="2">returns without writing anything — node 1 is the only opener, so one
-              direction is in flight, not two</td>
-          </tr>
-          <tr>
-            <td class="e">edit.Up true, else false</td>
-            <td class="e" colspan="2">Top ← Top.next, else Top ← Top.prev · VectorOut unwritten · Out
-              unwritten</td>
-          </tr>
-          <tr>
-            <td class="e">all three of the above</td>
-            <td class="e" colspan="2">syncTiltIndex()</td>
-          </tr>
-          <tr>
-            <td class="e">TiltEditIn empty</td>
-            <td class="e" colspan="2">the select's default arm returns immediately</td>
-          </tr>
-
-          <tr class="h">
-            <td>VectorIn holds a direction</td>
-            <td colspan="2">both nodes of a pair — same unmodified rule</td>
-          </tr>
-          <tr>
-            <td class="e">VectorIn empty</td>
-            <td class="e" colspan="2">return — nothing below this row runs this cycle</td>
-          </tr>
-          <tr>
-            <td class="e">v.Reset</td>
-            <td class="e" colspan="2">clear() · VectorOut unwritten — a reply would return the marker to its
-              sender, which would return it again</td>
-          </tr>
-          <tr>
-            <td class="e">v carries a direction</td>
-            <td class="e" colspan="2">r ← v, set ← true — on every arrival, before the machine choice/step
-              below runs, and r holds that value until the next arrival or a clear()</td>
-          </tr>
-          <tr>
-            <td class="e">no machine yet (this is the setup being read)</td>
-            <td class="e" colspan="2">Machine ← machineForGap(arrival) — a quarter-turn gap between the two
-              tilts picks perpendicular, anything else picks parallel</td>
-          </tr>
-          <tr>
-            <td class="e">arrival IS this node's own machine's halt</td>
-            <td class="e" colspan="2">Top unchanged · VectorOut unwritten · Out unwritten — In and Out are
-              not read or written on this path</td>
-          </tr>
-          <tr>
-            <td class="e">otherwise</td>
-            <td class="e" colspan="2">Top ← this machine's step(before, arrival) — the one move closer to
-              its own halt, stepping straight over the other machine's</td>
-          </tr>
-          <tr>
-            <td class="e">Top changed</td>
-            <td class="e" colspan="2">syncTiltIndex() · VectorOut ← sends(Top) · Out ← one bead at tick T</td>
-          </tr>
-
-          <tr class="h">
-            <td>every cycle, after the three above</td>
-            <td colspan="2">then</td>
-          </tr>
-          <tr>
-            <td class="e">Self.Step(ctx, T)</td>
-            <td class="e" colspan="2">drain extIn and every neighborIn until both are empty · DriveOneCycle(T)
-              on each outgoing wire · flushPending() · write one frame</td>
-          </tr>
-          <tr>
-            <td class="e">SpeedCh holds a value</td>
-            <td class="e" colspan="2">clk.SetSpeed(that value); depth 1, latest wins. Empty: no call. Never
-              blocks</td>
-          </tr>
-          <tr>
-            <td class="e">clk.SleepCycle(ctx)</td>
-            <td class="e" colspan="2">wait ceil(1 / speed) pulses of 16 ms, held between 1 and 64. At speed 1
-              that is one pulse; at speed 1/64, 64 of them, or about a second</td>
-          </tr>
-        </table>
-      </div>
-
-      <div class="card wide">
-        <h2>Every direction, worked out</h2>
-        <table class="f">
-          <tr class="h">
-            <td>top.idx</td>
-            <td>bottom.idx · normal.idx · sends</td>
-            <td>the tilt · the normal</td>
-          </tr>
-          <tr>
-            <td class="e">0</td>
-            <td class="e">12 · 6 · 6</td>
-            <td class="e">0° · 90°</td>
-          </tr>
-          <tr>
-            <td class="e">1</td>
-            <td class="e">13 · 7 · 7</td>
-            <td class="e">15° · 105°</td>
-          </tr>
-          <tr>
-            <td class="e">6</td>
-            <td class="e">18 · 12 · 12</td>
-            <td class="e">90° · 180°</td>
-          </tr>
-          <tr>
-            <td class="e">11</td>
-            <td class="e">23 · 17 · 17</td>
-            <td class="e">165° · 255°</td>
-          </tr>
-          <tr>
-            <td class="e">12</td>
-            <td class="e">0 · 18 · 18</td>
-            <td class="e">180° · 270°</td>
-          </tr>
-          <tr>
-            <td class="e">17</td>
-            <td class="e">5 · 23 · 23</td>
-            <td class="e">255° · 345°</td>
-          </tr>
-          <tr>
-            <td class="e">18</td>
-            <td class="e">6 · 0 · 0</td>
-            <td class="e">270° · 0°</td>
-          </tr>
-          <tr>
-            <td class="e">23</td>
-            <td class="e">11 · 5 · 5</td>
-            <td class="e">345° · 75°</td>
-          </tr>
-        </table>
-        <div class="cap">One quarter-turn link from top to normal, one half-turn link from top to bottom, at
-          every state on the ring, no exception — bottom.idx and normal.idx are field reads, resolved when
-          the ring was built, never a sum computed here. Both nodes of a pair run this same unmodified rule.
-        </div>
+        <h2>One step, worked</h2>
+        <svg width="660" height="308" viewBox="0 0 660 308">
+<circle cx="175" cy="150" r="108" fill="none" stroke="#3a3a44"/><path d="M202 51L203 46M226 61L229 56M248 77L251 74M264 98L269 96M274 123L279 122M274 177L279 178M264 202L269 204M248 223L251 226M226 239L229 244M202 249L203 254M148 249L147 254M123 239L121 244M102 223L99 226M86 202L81 204M76 177L71 178M76 123L71 122M86 98L81 96M102 77L99 74M123 61L121 56M148 51L147 46" stroke="#3a3a44"/><path d="M175 47L175 42M278 150L283 150M175 253L175 258M72 150L67 150" stroke="#9a9aa6" stroke-width="1.6"/>
+<circle cx="283" cy="150" r="6" fill="#e05fd8"/>
+<circle cx="67" cy="150" r="6" fill="#e05fd8"/>
+<text x="305" y="154" class="lbl" fill="#e05fd8">home</text>
+<text x="45" y="154" text-anchor="end" class="lbl" fill="#e05fd8">home</text>
+<circle cx="251" cy="226" r="5" fill="#2f2f37" stroke="#4ea1ff" stroke-width="1.8"/>
+<text x="262" y="255" text-anchor="end" class="lbl" fill="#4ea1ff">down → L 9</text>
+<circle cx="203" cy="254" r="5" fill="#2f2f37" stroke="#4ea1ff" stroke-width="1.8"/>
+<text x="210" y="289" text-anchor="middle" class="lbl" fill="#4ea1ff">up → L 11</text>
+<line x1="175" y1="150" x2="175" y2="59" stroke="#f9a825" stroke-width="2.4"/><polygon points="175,50 180,59 170,59" fill="#f9a825"/>
+<text x="175" y="26" text-anchor="middle" class="lbl" fill="#f9a825">a = 0</text>
+<line x1="175" y1="150" x2="220" y2="229" stroke="#5fd68a" stroke-width="2.8"/><polygon points="225,236 216,231 224,227" fill="#5fd68a"/>
+<text x="233" y="295" text-anchor="end" class="lbl" fill="#5fd68a">t = 10 — L 10, not resting</text>
+<text x="380" y="96" class="lblm" fill="#4ea1ff">settle?  L = 10, not a resting length → no</text>
+<text x="380" y="122" class="lblm" fill="#4ea1ff">up?  L 9 is nearer 6 than L 11 → no</text>
+<text x="380" y="150" class="lblm" fill="#5fd68a">t_after = t − 1 = 9</text>
+<text x="380" y="188" class="lbl" fill="#e05fd8">pink: the two slots whose angle length</text>
+<text x="380" y="206" class="lbl" fill="#e05fd8">is a resting 6 for this arrival — t = 6 or 18</text>
+<text x="380" y="236" class="lbl" fill="#4ea1ff">blue: the only two slots it can turn to</text>
+<text x="380" y="262" class="lbl">a tie turns up</text>
+</svg>
       </div>
 
       <div class="card wide">
         <h2>A run, from START to the halt</h2>
-        <table class="f">
-          <tr class="h">
-            <td>event</td>
-            <td>machine · separation</td>
-            <td>result</td>
-          </tr>
-          <tr>
-            <td class="e">node 1 top.idx = 23, node 2 top.idx = 10 · START</td>
-            <td class="e">—</td>
-            <td class="e">node 1 sends normal(23) = 5, places a bead. Neither node has a machine yet</td>
-          </tr>
-          <tr>
-            <td class="e">node 2 receives 5 — its FIRST arrival</td>
-            <td class="e">machineForGap: back the quarter out of 5 (→ partner tilt 23), sep(10, 23) = 11 —
-              not a quarter turn, so PARALLEL. Then sep(top 10, arrival 5) = 5, not parallel's halt (6)</td>
-            <td class="e">adopts parallel · Top ← Top.next, top.idx 10 → 11 (parallel's halt is one step
-              away) · sends normal(11) = 17, carrying Machine=parallel · bead</td>
-          </tr>
-          <tr>
-            <td class="e">node 1 receives 17</td>
-            <td class="e">adopts PARALLEL from the message (adoptMachine), before reading any gap itself ·
-              sep(top 23, arrival 17) = 6 — parallel's own halt</td>
-            <td class="e">HALT on parallel. Top unchanged, no send, no bead</td>
-          </tr>
-          <tr>
-            <td class="e">at rest</td>
-            <td class="e">top.idx = 23 on node 1, top.idx = 11 on node 2 — both running parallel</td>
-            <td class="e">r = 17 on node 1, r = 5 on node 2 — the third arrows stay drawn</td>
-          </tr>
-        </table>
-        <div class="cap">One send, one bead, and a single reply that lands on parallel's halt — same rule run
-          unmodified on both nodes, once each has adopted the same machine. Sends and beads are equal in
-          number because the only PlaceDrivenAt call sits in the same branch as the send, so no bead is
-          placed on the halt.</div>
+        <svg width="720" height="242" viewBox="0 0 720 242">
+<circle cx="100" cy="52" r="32" fill="none" stroke="#3a3a44"/><line x1="100" y1="52" x2="93" y2="26" stroke="#5fd68a" stroke-width="2.2"/><polygon points="91,17 97,25 89,27" fill="#5fd68a"/>
+<text x="61" y="56" text-anchor="end" class="lbl">n1</text>
+<circle cx="100" cy="128" r="32" fill="none" stroke="#3a3a44"/><line x1="100" y1="128" x2="113" y2="151" stroke="#5fd68a" stroke-width="2.2"/><polygon points="118,159 109,153 117,149" fill="#5fd68a"/>
+<text x="61" y="132" text-anchor="end" class="lbl">n2</text>
+<text x="100" y="184" text-anchor="middle" class="lbl">n1 sends 5</text>
+<circle cx="272" cy="52" r="32" fill="none" stroke="#3a3a44"/><line x1="272" y1="52" x2="265" y2="26" stroke="#5fd68a" stroke-width="2.2"/><polygon points="263,17 269,25 261,27" fill="#5fd68a"/>
+<text x="233" y="56" text-anchor="end" class="lbl">n1</text>
+<circle cx="272" cy="128" r="32" fill="none" stroke="#3a3a44"/><line x1="272" y1="128" x2="285" y2="151" stroke="#5fd68a" stroke-width="2.2"/><polygon points="290,159 281,153 289,149" fill="#5fd68a"/>
+<line x1="272" y1="128" x2="298" y2="121" stroke="#f9a825" stroke-width="2.2"/><polygon points="307,119 299,125 297,117" fill="#f9a825"/>
+<text x="233" y="132" text-anchor="end" class="lbl">n2</text>
+<text x="272" y="184" text-anchor="middle" class="lbl">n2 reads 5, one slot short</text>
+<circle cx="444" cy="52" r="32" fill="none" stroke="#3a3a44"/><line x1="444" y1="52" x2="437" y2="26" stroke="#5fd68a" stroke-width="2.2"/><polygon points="435,17 441,25 433,27" fill="#5fd68a"/>
+<text x="405" y="56" text-anchor="end" class="lbl">n1</text>
+<circle cx="444" cy="128" r="32" fill="none" stroke="#3a3a44"/><line x1="444" y1="128" x2="451" y2="154" stroke="#5fd68a" stroke-width="2.2"/><polygon points="453,163 447,155 455,153" fill="#5fd68a"/>
+<text x="405" y="132" text-anchor="end" class="lbl">n2</text>
+<text x="444" y="184" text-anchor="middle" class="lbl">n2 → 11, sends 17</text>
+<circle cx="616" cy="52" r="32" fill="none" stroke="#3a3a44"/><line x1="616" y1="52" x2="609" y2="26" stroke="#5fd68a" stroke-width="2.2"/><polygon points="607,17 613,25 605,27" fill="#5fd68a"/>
+<line x1="616" y1="52" x2="590" y2="59" stroke="#f9a825" stroke-width="2.2"/><polygon points="581,61 589,55 591,63" fill="#f9a825"/>
+<text x="577" y="56" text-anchor="end" class="lbl">n1</text>
+<circle cx="616" cy="128" r="32" fill="none" stroke="#3a3a44"/><line x1="616" y1="128" x2="623" y2="154" stroke="#5fd68a" stroke-width="2.2"/><polygon points="625,163 619,155 627,153" fill="#5fd68a"/>
+<text x="577" y="132" text-anchor="end" class="lbl">n2</text>
+<text x="616" y="184" text-anchor="middle" class="lbl">n1 reads 17: L 6, settles</text>
+<rect x="60" y="206" width="10" height="10" rx="2.5" fill="#5fd68a"/>
+<text x="76" y="215" class="lbl">t</text>
+<rect x="60" y="223" width="10" height="10" rx="2.5" fill="#f9a825"/>
+<text x="76" y="232" class="lbl">what just arrived</text>
+<text x="346" y="215" class="lbl">H = {6} — both ends, chosen at the first arrival</text>
+<text x="346" y="232" class="lbl">one bead per send · settling sends nothing</text>
+</svg>
       </div>
 
       <div class="card wide">
-        <h2>What a report puts on this node's own frame</h2>
-        <table class="f">
-          <tr>
-            <td class="e">tilt angle = top.idx × 15°</td>
-            <td class="n" colspan="2">persisted</td>
-          </tr>
-          <tr>
-            <td class="e">bottom angle = top.opposite.idx × 15°</td>
-            <td class="n" colspan="2">read off the link on every report, never stored</td>
-          </tr>
-          <tr>
-            <td class="e">normal angle = top.quarter.idx × 15°</td>
-            <td class="n" colspan="2">read off the link on every report, never stored</td>
-          </tr>
-          <tr>
-            <td class="e">received angle = r × 15°</td>
-            <td class="n" colspan="2">drawn only when set. Written to no file — a reload starts with r
-              unset</td>
-          </tr>
-          <tr>
-            <td class="e">the tilt's drawn length</td>
-            <td class="n" colspan="2">the node's radius when it stands upright with exactly one neighbour,
-              otherwise 0</td>
-          </tr>
-          <tr>
-            <td class="e">centre, reach, pole, ring axis</td>
-            <td class="n" colspan="2">unchanged by a tilt — turning is a step to a different state, and the
-              separation stays where the last drag put it</td>
-          </tr>
-          <tr>
-            <td class="e">the row it claims</td>
-            <td class="n" colspan="2">its own, or it panics — the row is an ownership claim, and a foreign
-              node belongs in the target column</td>
-          </tr>
-        </table>
-        <div class="cap">Every angle on the frame is an index times 15°, on this node's own dedicated pipe.
-          Trig happens only where polar meets cartesian, never here.</div>
+        <h2>What a report puts on the frame</h2>
+        <svg width="640" height="248" viewBox="0 0 640 248">
+<circle cx="130" cy="122" r="92" fill="none" stroke="#3a3a44"/><path d="M153 38L154 33M174 47L176 42M192 60L195 57M205 78L210 76M214 99L219 98M214 145L219 146M205 166L210 168M192 184L195 187M174 197L176 202M153 206L154 211M107 206L106 211M86 197L84 202M68 184L65 187M55 166L50 168M46 145L41 146M46 99L41 98M55 78L50 76M68 60L65 57M86 47L84 42M107 38L106 33" stroke="#3a3a44"/><path d="M130 35L130 30M217 122L222 122M130 209L130 214M43 122L38 122" stroke="#9a9aa6" stroke-width="1.6"/>
+<line x1="130" y1="122" x2="55" y2="142" stroke="#f9a825" stroke-width="2.2"/><polygon points="47,144 54,138 56,146" fill="#f9a825"/><line x1="130" y1="122" x2="75" y2="177" stroke="#9a9aa6" stroke-width="2"/><polygon points="69,183 72,174 78,180" fill="#9a9aa6"/><line x1="130" y1="122" x2="185" y2="177" stroke="#4ea1ff" stroke-width="2.4"/><polygon points="191,183 182,180 188,174" fill="#4ea1ff"/><line x1="130" y1="122" x2="185" y2="67" stroke="#5fd68a" stroke-width="2.8"/><polygon points="191,61 188,70 182,64" fill="#5fd68a"/>
+<rect x="250" y="44" width="12" height="12" rx="3" fill="#5fd68a"/>
+<text x="272" y="55" class="lblm">(π/12) · t</text>
+<text x="272" y="70" class="lbl">persisted — position.json</text>
+<rect x="250" y="84" width="12" height="12" rx="3" fill="#4ea1ff"/>
+<text x="272" y="95" class="lblm">(π/12) · (t + 6)</text>
+<text x="272" y="110" class="lbl">a link, never stored</text>
+<rect x="250" y="124" width="12" height="12" rx="3" fill="#9a9aa6"/>
+<text x="272" y="135" class="lblm">(π/12) · (t + 12)</text>
+<text x="272" y="150" class="lbl">a link, never stored</text>
+<rect x="250" y="164" width="12" height="12" rx="3" fill="#f9a825"/>
+<text x="272" y="175" class="lblm">(π/12) · r</text>
+<text x="272" y="190" class="lbl">drawn when set, never persisted</text>
+<text x="250" y="228" class="lbl" fill="#9a9aa6">centre · reach · pole · ring axis — a tilt touches none of them</text>
+</svg>
       </div>
 
       <div class="card wide">
         <h2>What a reset puts back</h2>
-        <table class="f">
-          <tr>
-            <td class="e">Top ← ring[0], reported</td>
-            <td class="n" colspan="2">the bottom and the normal follow, being links off the new Top</td>
-          </tr>
-          <tr>
-            <td class="e">r ← 0, set ← false, reported</td>
-            <td class="n" colspan="2">the third arrow goes away</td>
-          </tr>
-          <tr>
-            <td class="e">VectorIn emptied</td>
-            <td class="n" colspan="2">depth 1, latest wins, so one receive empties it. A direction left
-              sitting there arrives next cycle and steps Top straight back off ring[0]</td>
-          </tr>
-          <tr>
-            <td class="e">In drained until empty</td>
-            <td class="n" colspan="2">beads already delivered here. Bounded by what the partner placed
-              before it stopped placing</td>
-          </tr>
-          <tr>
-            <td class="e">outgoing beads dropped</td>
-            <td class="n" colspan="2">the ones still crossing, dropped through this node's own self, which
-              drives that wire</td>
-          </tr>
-          <tr>
-            <td class="e">each node clears twice</td>
-            <td class="n" colspan="2">the button clears this node and sends the marker, after which it
-              places nothing ever again; the partner clears when the marker arrives. That second clear is
-              ordered after the last bead the sender could have placed, so it is the one that lands last</td>
-          </tr>
-        </table>
+        <svg width="600" height="262" viewBox="0 0 600 262">
+<circle cx="120" cy="106" r="84" fill="none" stroke="#3a3a44"/><path d="M140 30L142 25M160 38L162 33M176 50L179 47M188 66L193 64M196 86L201 84M196 126L201 128M188 146L193 148M176 162L179 165M160 174L162 179M140 182L142 187M100 182L98 187M80 174L78 179M64 162L61 165M52 146L47 148M44 126L39 128M44 86L39 84M52 66L47 64M64 50L61 47M80 38L78 33M100 30L98 25" stroke="#3a3a44"/><path d="M120 27L120 22M199 106L204 106M120 185L120 190M41 106L36 106" stroke="#9a9aa6" stroke-width="1.6"/>
+<line x1="120" y1="106" x2="188" y2="88" stroke="#9a9aa6" stroke-width="2"/><polygon points="197,85 189,92 187,84" fill="#9a9aa6"/><line x1="120" y1="106" x2="102" y2="38" stroke="#4ea1ff" stroke-width="2.4"/><polygon points="99,29 106,37 98,39" fill="#4ea1ff"/><line x1="120" y1="106" x2="52" y2="124" stroke="#5fd68a" stroke-width="2.8"/><polygon points="43,127 51,120 53,128" fill="#5fd68a"/>
+<line x1="120" y1="106" x2="181" y2="141" stroke="#f9a825" stroke-width="2.2"/><polygon points="189,146 179,145 183,137" fill="#f9a825"/>
+<text x="120" y="208" text-anchor="middle" class="lblm">t = 17, r set</text>
+<circle cx="440" cy="106" r="84" fill="none" stroke="#3a3a44"/><path d="M460 30L462 25M480 38L482 33M496 50L499 47M508 66L513 64M516 86L521 84M516 126L521 128M508 146L513 148M496 162L499 165M480 174L482 179M460 182L462 187M420 182L418 187M400 174L398 179M384 162L381 165M372 146L367 148M364 126L359 128M364 86L359 84M372 66L367 64M384 50L381 47M400 38L398 33M420 30L418 25" stroke="#3a3a44"/><path d="M440 27L440 22M519 106L524 106M440 185L440 190M361 106L356 106" stroke="#9a9aa6" stroke-width="1.6"/>
+<line x1="440" y1="106" x2="440" y2="177" stroke="#9a9aa6" stroke-width="2"/><polygon points="440,186 436,177 444,177" fill="#9a9aa6"/><line x1="440" y1="106" x2="511" y2="106" stroke="#4ea1ff" stroke-width="2.4"/><polygon points="520,106 511,110 511,102" fill="#4ea1ff"/><line x1="440" y1="106" x2="440" y2="35" stroke="#5fd68a" stroke-width="2.8"/><polygon points="440,26 444,35 436,35" fill="#5fd68a"/>
+<text x="440" y="208" text-anchor="middle" class="lblm">t = 0, r unset</text>
+<line x1="216" y1="106" x2="272" y2="106" stroke="#ff6b6b" stroke-width="2"/>
+<polygon points="282,106 270,100 270,112" fill="#ff6b6b"/>
+<text x="249" y="92" text-anchor="middle" class="lblm" fill="#ff6b6b">RESET</text>
+<text x="60" y="238" class="lbl" fill="#9a9aa6">both queues emptied — a direction left waiting would step t straight back off 0</text>
+<text x="60" y="254" class="lbl" fill="#9a9aa6">beads still crossing dropped · each node clears twice, the marker&#8217;s clear lands last</text>
+</svg>
       </div>
 
       <div class="card wide">
@@ -550,9 +275,9 @@
               <span data-src="nodes/Node1/ring.go#at">at</span> ·
               <span data-src="nodes/Node1/ring.go#arrivedState">arrivedState</span> ·
               <span data-src="nodes/Node1/ring.go#seedState">seedState</span> ·
-              <span data-src="nodes/Node1/ring.go#separation">separation</span> ·
+              <span data-src="nodes/Node1/ring.go#angleLength">separation</span> ·
               <span data-src="nodes/Node1/machine.go#tiltMachine">tiltMachine</span> ·
-              <span data-src="nodes/Node1/machine.go#homeSets">homeSets</span>
+              <span data-src="nodes/Node1/machine.go#restingLengths">homeSets</span>
             </td>
           </tr>
           <tr>

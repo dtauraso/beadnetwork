@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pair node — Cases</title>
+  <link rel="stylesheet" href="pair.css">
+  <script src="port.js"></script>
+  <script src="pair.js" defer></script>
+</head>
+
+<body>
+
+  <header>
+    <h1>Cases</h1>
+    <div class="sub">every case the one machine has — three modes, what each does at every angle length,
+      and the only four transitions between them</div>
+  </header>
+
+  <nav>
+    <a href="index.html">Index</a>
+    <a href="anatomy.html">Anatomy</a>
+    <a href="own.html">Ownership</a>
+    <a href="vectors.html">Vectors</a>
+    <a href="math.html">Math</a>
+    <a href="formulas.html">Formulas</a>
+    <a href="dots.html">Separation</a>
+    <a href="perpendicular.html">Perpendicular</a>
+    <a class="on" href="cases.html">Cases</a>
+    <a href="channels.html">Channels</a>
+    <a href="cycle.html">Cycle</a>
+    <a href="updates.html">Update rules</a>
+    <a href="clock.html">Clock</a>
+    <a href="geometry.html">Geometry</a>
+    <a href="asym.html">Asymmetry</a>
+  </nav>
+
+  <main>
+
+    <div class="grid">
+
+      <div class="card wide">
+        <h2>The whole case space</h2>
+        <p>A node's tilt machine is ONE instance
+          (<span data-src="nodes/Node1/machine.go#tiltMachine">tiltMachine</span>) whose entire state is
+          which mode it is in. So the cases are: three modes, each against every ANGLE LENGTH an arrival can
+          produce — the number of ring slots between this node's tilt and the arrival, counted the short way
+          round. That is the grid below, on a 24-point ring where a quarter turn is 6 and a half turn is 12.
+          Nothing else is a case: the turn never sees which mode is running, and there is no fourth input.</p>
+        <svg width="700" height="252" viewBox="0 0 700 252">
+          <!-- column headers: separation 0..12 -->
+          <text x="150" y="26" class="lbl">angle length L — slots between the tilt and the arrival, short way round</text>
+          <g class="lbl" text-anchor="middle">
+            <text x="176" y="46">0</text>
+            <text x="216" y="46">1</text>
+            <text x="256" y="46">2</text>
+            <text x="296" y="46">3</text>
+            <text x="336" y="46">4</text>
+            <text x="376" y="46">5</text>
+            <text x="416" y="46">6</text>
+            <text x="456" y="46">7</text>
+            <text x="496" y="46">8</text>
+            <text x="536" y="46">9</text>
+            <text x="576" y="46">10</text>
+            <text x="616" y="46">11</text>
+            <text x="656" y="46">12</text>
+          </g>
+
+          <!-- setting: home everywhere -->
+          <text x="150" y="80" text-anchor="end" class="lblm" fill="#9a9aa6">setting</text>
+          <g fill="#5fd68a">
+            <circle cx="176" cy="75" r="7" /><circle cx="216" cy="75" r="7" /><circle cx="256" cy="75" r="7" />
+            <circle cx="296" cy="75" r="7" /><circle cx="336" cy="75" r="7" /><circle cx="376" cy="75" r="7" />
+            <circle cx="416" cy="75" r="7" /><circle cx="456" cy="75" r="7" /><circle cx="496" cy="75" r="7" />
+            <circle cx="536" cy="75" r="7" /><circle cx="576" cy="75" r="7" /><circle cx="616" cy="75" r="7" />
+            <circle cx="656" cy="75" r="7" />
+          </g>
+
+          <!-- perpendicular: home 0 and 12; next for 1..6; prev for 7..11 -->
+          <text x="150" y="130" text-anchor="end" class="lblm" fill="#e05fd8">perpendicular</text>
+          <circle cx="176" cy="125" r="7" fill="#5fd68a" />
+          <g fill="#4ea1ff" class="lblm" text-anchor="middle">
+            <text x="216" y="130">›</text>
+            <text x="256" y="130">›</text>
+            <text x="296" y="130">›</text>
+            <text x="336" y="130">›</text>
+            <text x="376" y="130">›</text>
+            <text x="416" y="130">›</text>
+          </g>
+          <g fill="#4ea1ff" class="lblm" text-anchor="middle">
+            <text x="456" y="130">‹</text>
+            <text x="496" y="130">‹</text>
+            <text x="536" y="130">‹</text>
+            <text x="576" y="130">‹</text>
+            <text x="616" y="130">‹</text>
+          </g>
+          <circle cx="656" cy="125" r="7" fill="#5fd68a" />
+
+          <!-- parallel: home 6; next at 0 and 7..12; prev for 1..5 -->
+          <text x="150" y="180" text-anchor="end" class="lblm" fill="#f9a825">parallel</text>
+          <g fill="#4ea1ff" class="lblm" text-anchor="middle">
+            <text x="176" y="180">›</text>
+          </g>
+          <g fill="#4ea1ff" class="lblm" text-anchor="middle">
+            <text x="216" y="180">‹</text>
+            <text x="256" y="180">‹</text>
+            <text x="296" y="180">‹</text>
+            <text x="336" y="180">‹</text>
+            <text x="376" y="180">‹</text>
+          </g>
+          <circle cx="416" cy="175" r="7" fill="#5fd68a" />
+          <g fill="#4ea1ff" class="lblm" text-anchor="middle">
+            <text x="456" y="180">›</text>
+            <text x="496" y="180">›</text>
+            <text x="536" y="180">›</text>
+            <text x="576" y="180">›</text>
+            <text x="616" y="180">›</text>
+            <text x="656" y="180">›</text>
+          </g>
+
+          <text x="176" y="214" class="lbl">● settle — this L IS one of the mode's resting lengths</text>
+          <text x="176" y="232" class="lbl">› turn up · ‹ turn down — one slot, toward a resting length</text>
+        </svg>
+        <div class="cap">Read a row and you have that mode entirely. SETTING rests at every length, which is
+          why a node being set up cannot be moved by an arrival. The other two rest at their own lengths and
+          turn straight over the other's — perpendicular walks through a quarter turn, parallel walks through
+          0 and a half turn.</div>
+      </div>
+
+      <div class="card wide">
+        <h2>The two ties, and which way they break</h2>
+        <table class="f">
+          <tr class="h">
+            <td>case</td>
+            <td>why it is a tie</td>
+            <td>what happens</td>
+          </tr>
+          <tr>
+            <td class="e">perpendicular, L = a quarter turn</td>
+            <td class="n">exactly between the resting lengths 0 and a half — both 6 away on a 24-ring</td>
+            <td class="n">turns UP</td>
+          </tr>
+          <tr>
+            <td class="e">parallel, L = 0 or a half turn</td>
+            <td class="n">its one resting length is a quarter away in either direction</td>
+            <td class="n">turns UP</td>
+          </tr>
+        </table>
+        <div class="cap">Both fall out of one <code>&lt;=</code> in
+          <span data-src="nodes/Node1/machine.go#step">step</span>: when the two neighbours are equally far
+          from resting, the up bit wins. It is a convention, not a measurement — there is no better answer,
+          since the two directions are genuinely the same distance. What matters is that it MOVES: standing
+          still at a tie is the freeze the old "not acute" test produced.</div>
+      </div>
+
+      <div class="card wide">
+        <h2>Every transition — there are four, and no others</h2>
+        <svg width="700" height="196" viewBox="0 0 700 196">
+          <!-- setting -->
+          <rect x="40" y="60" width="150" height="46" rx="8" fill="#2b2b33" stroke="#9a9aa6" />
+          <text x="115" y="80" text-anchor="middle" class="lblm" fill="#9a9aa6">setting</text>
+          <text x="115" y="96" text-anchor="middle" class="lbl">the zero value</text>
+
+          <!-- perpendicular -->
+          <rect x="430" y="14" width="190" height="46" rx="8" fill="#2b2b33" stroke="#e05fd8" />
+          <text x="525" y="34" text-anchor="middle" class="lblm" fill="#e05fd8">perpendicular</text>
+          <text x="525" y="50" text-anchor="middle" class="lbl">rests at { 0, half }</text>
+
+          <!-- parallel -->
+          <rect x="430" y="112" width="190" height="46" rx="8" fill="#2b2b33" stroke="#f9a825" />
+          <text x="525" y="132" text-anchor="middle" class="lblm" fill="#f9a825">parallel</text>
+          <text x="525" y="148" text-anchor="middle" class="lbl">rests at { quarter }</text>
+
+          <!-- adopt arrows -->
+          <line x1="190" y1="74" x2="422" y2="42" stroke="#5fd68a" stroke-width="1.8" />
+          <polygon points="430,40 418,38 419,48" fill="#5fd68a" />
+          <line x1="190" y1="92" x2="422" y2="130" stroke="#5fd68a" stroke-width="1.8" />
+          <polygon points="430,132 419,124 417,134" fill="#5fd68a" />
+          <text x="300" y="52" text-anchor="middle" class="lbl" fill="#5fd68a">gap read at START,</text>
+          <text x="300" y="66" text-anchor="middle" class="lbl" fill="#5fd68a">or the partner says so</text>
+
+          <!-- reset arrows -->
+          <path d="M 430 26 L 300 8 L 60 44" fill="none" stroke="#ff6b6b" stroke-width="1.4"
+            stroke-dasharray="4 3" />
+          <polygon points="52,46 64,38 66,48" fill="#ff6b6b" />
+          <path d="M 430 150 L 300 180 L 60 122" fill="none" stroke="#ff6b6b" stroke-width="1.4"
+            stroke-dasharray="4 3" />
+          <polygon points="52,120 66,118 63,128" fill="#ff6b6b" />
+          <text x="250" y="176" class="lbl" fill="#ff6b6b">RESET — the only way back</text>
+        </svg>
+        <table class="f">
+          <tr class="h">
+            <td>from → to</td>
+            <td>what causes it</td>
+            <td>source</td>
+          </tr>
+          <tr>
+            <td class="e">setting → perpendicular</td>
+            <td class="n">first arrival, and the gap between the two TILTS is a quarter turn</td>
+            <td class="s" data-src="nodes/Node1/node.go#machineForGap">machineForGap</td>
+          </tr>
+          <tr>
+            <td class="e">setting → parallel</td>
+            <td class="n">first arrival, and the gap is anything else</td>
+            <td class="s" data-src="nodes/Node1/node.go#machineForGap">machineForGap</td>
+          </tr>
+          <tr>
+            <td class="e">setting → either</td>
+            <td class="n">the partner already chose and its reply carries the choice</td>
+            <td class="s" data-src="nodes/Node1/node.go#adoptMachine">adoptMachine</td>
+          </tr>
+          <tr>
+            <td class="e">perpendicular or parallel → setting</td>
+            <td class="n">RESET, and nothing else</td>
+            <td class="s" data-src="nodes/Node1/node.go#clear">clear</td>
+          </tr>
+        </table>
+        <div class="cap">There is NO perpendicular ↔ parallel edge. A chosen mode STICKS: a second choice —
+          a click landing mid-run, or the partner's own answer arriving after this end already decided —
+          is ignored, because re-deciding on a jitter is what once switched a started perpendicular pair to
+          parallel one step after START.</div>
+      </div>
+
+      <div class="card wide">
+        <h2>What the gap read actually asks</h2>
+        <table class="f">
+          <tr class="h">
+            <td>arrival lands at angle length</td>
+            <td>the two tilts are</td>
+            <td>mode chosen</td>
+          </tr>
+          <tr>
+            <td class="e">0, or a half turn</td>
+            <td class="n">a quarter turn apart — ALREADY perpendicular</td>
+            <td class="n">perpendicular</td>
+          </tr>
+          <tr>
+            <td class="e">anything else</td>
+            <td class="n">an acute gap</td>
+            <td class="n">parallel</td>
+          </tr>
+        </table>
+        <div class="cap">The two rows are perpendicular's resting lengths and everything else, which is the honest
+          reading of the rule: it asks "is this setup already perpendicular?", and everything that is not
+          becomes a parallel pair to be closed. A pair set up at a quarter turn is therefore perpendicular
+          and finished on arrival — it has nowhere to walk.</div>
+      </div>
+
+      <div class="card wide">
+        <h2>The cases that are NOT mode cases</h2>
+        <table class="f">
+          <tr class="h">
+            <td>case</td>
+            <td>what happens, and why it is not a fourth mode</td>
+            <td>source</td>
+          </tr>
+          <tr>
+            <td class="e">the lattice changes under a running mode</td>
+            <td class="n">the resting lengths are read from the ring at every call, never stored, so a mode
+              that rested at 12 on a 48-ring rests at 6 on a 24-ring with nothing to migrate. The INDEX is
+              what survives, not the angle</td>
+            <td class="s" data-src="nodes/Node1/node.go#adoptLattice">adoptLattice</td>
+          </tr>
+          <tr>
+            <td class="e">the arrival lands on this node's own top</td>
+            <td class="n">the exchange comes to rest: nothing is sent and no bead is placed. That is the
+              halt of the EXCHANGE, not of a mode</td>
+            <td class="s" data-src="nodes/Node1/node.go#handleVectorCycle">handleVectorCycle</td>
+          </tr>
+          <tr>
+            <td class="e">the partner's arrow is reversed</td>
+            <td class="n">not a case at all — the angle length folds the long way round into the short one,
+              so a reversed partner lands exactly where an aligned one does and parallel reads both as its
+              one resting length</td>
+            <td class="s" data-src="nodes/Node1/ring.go#angleLength">separation</td>
+          </tr>
+          <tr>
+            <td class="e">a mode with no resting lengths</td>
+            <td class="n">refused where the broken invariant can still be named, rather than silently
+              behaving like some other mode</td>
+            <td class="s" data-src="nodes/Node1/machine.go#machineFor">machineFor</td>
+          </tr>
+        </table>
+      </div>
+
+    </div>
+  </main>
+</body>
+
+</html>

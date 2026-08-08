@@ -26,6 +26,7 @@
     <a href="formulas.html">Formulas</a>
     <a href="dots.html">Separation</a>
     <a class="on" href="perpendicular.html">Perpendicular</a>
+    <a href="cases.html">Cases</a>
     <a href="channels.html">Channels</a>
     <a href="cycle.html">Cycle</a>
     <a href="updates.html">Update rules</a>
@@ -53,18 +54,18 @@
           <tr>
             <td class="e">a quarter turn apart</td>
             <td class="n">separation 0 — the arrival sits exactly on this node's own TOP</td>
-            <td class="s" data-src="nodes/Node1/machine.go#homeSets">home = { 0, half }</td>
+            <td class="s" data-src="nodes/Node1/machine.go#restingLengths">home = { 0, half }</td>
           </tr>
           <tr>
             <td class="e">a quarter turn apart, the other way</td>
             <td class="n">separation a half turn — the arrival sits exactly on its BOTTOM</td>
-            <td class="s" data-src="nodes/Node1/machine.go#homeSets">home = { 0, half }</td>
+            <td class="s" data-src="nodes/Node1/machine.go#restingLengths">home = { 0, half }</td>
           </tr>
           <tr>
             <td class="e">on one line, either way round</td>
             <td class="n">separation a quarter turn — this is PARALLEL, and to this machine it is an
               ordinary angle it walks straight over</td>
-            <td class="s" data-src="nodes/Node1/machine.go#homeSets">home = { quarter }</td>
+            <td class="s" data-src="nodes/Node1/machine.go#restingLengths">home = { quarter }</td>
           </tr>
         </table>
         <p>The two ends see the same relationship from opposite sides: each receives the other's
@@ -84,12 +85,12 @@
             <td class="e">halted ⟺ sep = 0 ∨ sep = HALF</td>
             <td class="n">stand still. The node still replies, so the partner has something to correct
               against</td>
-            <td class="s" data-src="nodes/Node1/machine.go#halted">halted</td>
+            <td class="s" data-src="nodes/Node1/machine.go#settled">halted</td>
           </tr>
           <tr>
             <td class="e">miss = min(sep, |sep − HALF|)</td>
             <td class="n">distance to the nearer of the two halts; zero is the halt</td>
-            <td class="s" data-src="nodes/Node1/machine.go#miss">miss</td>
+            <td class="s" data-src="nodes/Node1/machine.go#fromRest">miss</td>
           </tr>
           <tr>
             <td class="e">step = next if miss(next) ≤ miss(prev), else prev</td>
@@ -176,22 +177,22 @@
             <td class="n">nodes/Node1/machine.go</td>
             <td class="s" colspan="2">
               <span data-src="nodes/Node1/machine.go#tiltMachine">tiltMachine</span> ·
-              <span data-src="nodes/Node1/machine.go#halted">halted</span> ·
+              <span data-src="nodes/Node1/machine.go#settled">halted</span> ·
               <span data-src="nodes/Node1/machine.go#step">step</span> ·
-              <span data-src="nodes/Node1/machine.go#miss">miss</span>
+              <span data-src="nodes/Node1/machine.go#fromRest">miss</span>
             </td>
           </tr>
           <tr>
             <td class="n">— the three modes, each its home set</td>
             <td class="s" colspan="2">
-              <span data-src="nodes/Node1/machine.go#homeSets">homeSets</span> ·
+              <span data-src="nodes/Node1/machine.go#restingLengths">homeSets</span> ·
               <span data-src="nodes/Node1/machine.go#setting">setting</span>
             </td>
           </tr>
           <tr>
             <td class="n">nodes/Node1/ring.go</td>
             <td class="s" colspan="2">
-              <span data-src="nodes/Node1/ring.go#separation">separation</span>
+              <span data-src="nodes/Node1/ring.go#angleLength">separation</span>
             </td>
           </tr>
           <tr>

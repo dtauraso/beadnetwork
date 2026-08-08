@@ -24,6 +24,7 @@
     <a href="formulas.html">Formulas</a>
     <a href="dots.html">Separation</a>
     <a href="perpendicular.html">Perpendicular</a>
+    <a href="cases.html">Cases</a>
     <a href="channels.html">Channels</a>
     <a href="cycle.html">Cycle</a>
     <a href="updates.html">Update rules</a>
@@ -122,13 +123,14 @@
               <td class="e">Top ← Top.next or Top.prev, whichever lands closer to this machine's own halt</td>
             </tr>
             <tr>
-              <td class="e">no machine yet (before START, or after RESET)</td>
-              <td class="e">an arrival moves nothing — the choice is made at START, not here</td>
+              <td class="e">in the SETTING mode (before START, or after RESET)</td>
+              <td class="e">an arrival moves nothing — every separation is that mode's home, so the node is
+                already halted wherever it stands. The choice is made at START, not here</td>
             </tr>
           </table>
-          <div class="cap">There are two machines, each with its own halt (<a href="perpendicular.html">Perpendicular</a>),
-            and a node holds exactly one of them. It steps straight over the OTHER machine's halt on the way
-            back to its own — see <span data-src="nodes/Node1/node.go#stepFromVector">stepFromVector</span>.
+          <div class="cap">There is ONE machine with three modes (<a href="cases.html">Cases</a>), and a node is
+            in exactly one of them. A chosen mode steps straight over the OTHER mode's halt on the way back to
+            its own — see <span data-src="nodes/Node1/node.go#stepFromVector">stepFromVector</span>.
             The step itself is answerable everywhere on the ring, including sitting exactly on a halt.</div>
         </div>
 
