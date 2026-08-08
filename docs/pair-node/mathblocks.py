@@ -25,12 +25,12 @@ BODIES = {
     # difference with its sign thrown away afterwards.
     # No \bmod either: both indices are already 0..23, so d never exceeds 23 and the code
     # takes no modulus. Writing one implies an operation that is not there.
+    # min of the two arcs, not a case split. The cases read as wrap handling, which this
+    # is not — the ring's 24 states already make wrapping impossible. What is being
+    # chosen is WHICH OF THE TWO ARCS between the points is meant.
     "length": r"""
   d = \max(t,a) - \min(t,a) \\[6pt]
-  L \;=\; \len(t,a) = \begin{cases}
-      d      & d \le 12 \\
-      24 - d & \text{otherwise}
-    \end{cases}
+  L \;=\; \len(t,a) = \min(d,\; 24 - d)
 """,
     # machineForGap: the third way R changes, and the only one that reads the arrival.
     "choose": r"""

@@ -5,9 +5,6 @@
 \begin{document}
 \[\begin{array}{@{}l@{}}
   d = \max(t,a) - \min(t,a) \\[6pt]
-  L \;=\; \len(t,a) = \begin{cases}
-      d      & d \le 12 \\
-      24 - d & \text{otherwise}
-    \end{cases}
+  L \;=\; \len(t,a) = \min(d,\; 24 - d)
 \end{array}\]
 \end{document}
