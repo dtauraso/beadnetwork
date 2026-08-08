@@ -5,8 +5,8 @@
 
 <header>
   <h1>The arithmetic instead</h1>
-  <div class="sub">what one message does, and where it stops — with no states, no transitions, and
-    nothing to step</div>
+  <div class="sub">one node's update, and the tilt it stops on — with no states, no transitions,
+    and nothing to step</div>
 </header>
 
 <nav>
@@ -51,8 +51,8 @@
 
     <div class="card wide">
       <p class="lead"><a href="updates.html">Update rules</a> gives this node as two state machines
-        and the rule each message runs. None of that is needed: two tilt numbers in, and what this
-        node does with the next message comes out.</p>
+        and the rule it runs. None of that is needed: two tilt numbers in, and this node's next
+        tilt comes out.</p>
     </div>
 
     <h3 class="secname">t, b and a, and the counts u and v taken between them</h3>
@@ -110,25 +110,25 @@
       </div>
     </div>
 
-    <h3 class="secname">One message: t moves one slot, or none</h3>
+    <h3 class="secname">One update of one node: t moves one slot, or none</h3>
 
     <div class="card wide">
-      <h2>t after one message</h2>
-      <p class="eq dim"><var>c</var> is computed from <var>t</var>, so <var>t</var>+1 and
-        <var>t</var>−1 have a <var>c</var> of their own</p>
+      <h2>t after the update</h2>
       <p class="eq step"><span class="g"><var>c</var> is the stop :</span>
         <var>t</var><sub>after</sub> = <var>t</var></p>
       <p class="eq step"><span class="g">else :</span>
         <var>t</var><sub>after</sub> = whichever of <var>t</var>+1, <var>t</var>−1 has
         <var>c</var> nearer the stop</p>
+      <p class="eq step dim"><var>c</var> is computed from <var>t</var>, so <var>t</var>+1 and
+        <var>t</var>−1 have a <var>c</var> of their own</p>
       <p class="eq head">at the stop, <var>a</var> lies along one of this node's own two lines</p>
       <p class="eq step par"><span class="g">parallel</span>
         the normal line <var>t</var>+6, <var>b</var>+6</p>
       <p class="eq step perp"><span class="g">perpendicular</span>
         the tilt line <var>t</var>, <var>b</var></p>
       <div class="keynote">
-        <p><b>t<sub>after</sub></b> — this node's tilt once the message is done with; its normal
-          and bottom are read off the new t</p>
+        <p><b>t<sub>after</sub></b> — this node's tilt when the update is done; its normal and
+          bottom are read off the new t, so one slot moves all three</p>
         <p>no value here is negative and none is a sign: u and v between them carry the direction
           that one count and a sign would have to</p>
         <p>swept over every pair by
@@ -158,7 +158,7 @@
     <div class="card wide">
       <h2>Everything above assumes a keeps the same value</h2>
       <div class="keynote">
-        <p>in a live pair the partner turns too, so a changes between messages. The exchange is on
+        <p>in a live pair the partner turns too, so a changes between updates. The exchange is on
           <a href="updates.html">Update rules</a></p>
       </div>
     </div>
