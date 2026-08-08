@@ -51,14 +51,14 @@
 
     <div class="card wide">
       <p class="lead"><a href="updates.html">Update rules</a> gives this node as two state machines
-        and the rule each message runs. None of that is needed. Two numbers in, and where it stops
-        and how many messages it takes come out.</p>
+        and the rule each message runs. None of that is needed. Two tilt numbers in; the tilt this
+        node stops on, and how many messages it takes to get there, come out.</p>
     </div>
 
-    <h3 class="secname">The tilts, and the two counts taken from them</h3>
+    <h3 class="secname">t, b and a, and the counts u and v taken between them</h3>
 
     <div class="card wide">
-      <h2>Where the numbers come from</h2>
+      <h2>Every number this page uses, and where it comes from</h2>
       <p class="eq"><var>t</var>, <var>a</var> ∈ {0, 1, …, 23}</p>
       <p class="eq head">this node</p>
       <p class="eq step">tilt = <var>t</var></p>
@@ -98,7 +98,7 @@
     <h3 class="secname">Parallel and perpendicular: the c each stops at</h3>
 
     <div class="card wide">
-      <h2>Where each arrangement stops, and how far t is from it</h2>
+      <h2>The c each stops at, and the f slots to reach it</h2>
       <p class="eq step"><span class="g"><var>q</var> = |<var>c</var> − 6|</span>
         <span class="note">slots from <var>c</var> to the quarter, which is 6</span></p>
       <p class="eq head par">parallel</p>
@@ -121,22 +121,24 @@
 
     <div class="card wide">
       <h2>t after one message</h2>
-      <p class="eq dim"><var>f</var> is a reading of the tilt <var>t</var>, so <var>t</var>+1 and
-        <var>t</var>−1 have their own</p>
+      <p class="eq dim">every line above is computed from <var>t</var>, so <var>t</var>+1 and
+        <var>t</var>−1 have an <var>f</var> of their own</p>
       <p class="eq step"><span class="g"><var>f</var> = 0 :</span>
         <var>t</var><sub>after</sub> = <var>t</var></p>
       <p class="eq step"><span class="g">else :</span>
         <var>t</var><sub>after</sub> = whichever of <var>t</var>+1, <var>t</var>−1 has the smaller
         <var>f</var></p>
-      <p class="eq head"><var>f</var> = 0 is <var>a</var> lying on one of this node's own lines</p>
+      <p class="eq head"><var>f</var> = 0 means <var>a</var> lies along one of this node's own
+        two lines</p>
       <p class="eq step par"><span class="g">parallel</span>
         the normal line <var>t</var>+6, <var>b</var>+6</p>
       <p class="eq step perp"><span class="g">perpendicular</span>
         the tilt line <var>t</var>, <var>b</var></p>
       <div class="keynote">
-        <p><b>t<sub>after</sub></b> — the tilt after one message; the normal and bottom follow</p>
-        <p>nothing here is negative and nothing is a sign: two distances say between them what one
-          number and a sign would have to</p>
+        <p><b>t<sub>after</sub></b> — this node's tilt once the message is done with; its normal
+          and bottom are read off the new t</p>
+        <p>no value here is negative and none is a sign: u and v between them carry the direction
+          that one count and a sign would have to</p>
         <p>swept over every pair by
           <span data-src="nodes/Node1/node_test.go#TestOneRoundIsSignAndRemainder">TestOneRoundIsSignAndRemainder</span></p>
       </div>
@@ -145,30 +147,30 @@
     <h3 class="secname">f messages, and the tilt they end on</h3>
 
     <div class="card wide">
-      <h2>The run, without running it</h2>
+      <h2>t after f messages, written down rather than stepped through</h2>
       <p class="eq step">messages = <var>f</var></p>
-      <p class="eq head">ends on the line</p>
+      <p class="eq head">the tilt it ends on, as a line</p>
       <p class="eq step par"><span class="g">parallel</span>
         <var>t</var> ≡ <var>a</var> + 6 (mod 12)</p>
       <p class="eq step perp"><span class="g">perpendicular</span>
         <var>t</var> ≡ <var>a</var> (mod 12)</p>
-      <p class="eq step dim">which end of that line it reaches is not decided here</p>
+      <p class="eq step dim">which of the line's two ends it lands on is not settled by these</p>
       <div class="keynote">
-        <p>f is the count as well as the distance: each message closes one slot, so there is no
-          message f + 1, and f = 0 is the run that takes none</p>
-        <p>mod 12 a tilt and its bottom are one number, so where it ends is settled without saying
-          which way it went</p>
+        <p>f counts the messages as well as the slots: each message turns t by one slot, so there
+          is no message f + 1, and f = 0 is a node already stopped</p>
+        <p>taken mod 12 a tilt and its bottom are the same number, so these two lines fix the
+          arrangement without naming which way t turned to reach it</p>
         <p>swept by
           <span data-src="nodes/Node1/node_test.go#TestTheWalkIsClosedForm">TestTheWalkIsClosedForm</span></p>
       </div>
     </div>
 
-    <h3 class="secname">What is held fixed</h3>
+    <h3 class="secname">The one thing held fixed: a</h3>
 
     <div class="card wide">
-      <h2>a does not move here</h2>
+      <h2>Everything above assumes a keeps the same value</h2>
       <div class="keynote">
-        <p>a is fixed here; a live pair moves both ends. The exchange itself is on
+        <p>in a live pair the partner turns too, so a changes between messages. The exchange is on
           <a href="updates.html">Update rules</a></p>
       </div>
     </div>
