@@ -277,8 +277,14 @@ func TestOneRoundIsSignAndRemainder(t *testing.T) {
 					}
 					return ((x+12-arr)%points + points) % points
 				}
-				// d and e are the page's names for c worked out at t+1 and at t-1.
+				// d and e are the page's names for c worked out at t+1 and at t-1 — and
+				// they need no counts of their own: turning one slot moves BOTH counts by
+				// one, so the acute angle just steps round a ring of 12.
 				d, eNbr := cAt(tilt+1), cAt(tilt-1)
+				if d != (c+1)%12 || eNbr != (c+11)%12 {
+					t.Fatalf("t=%d a=%d: c=%d, but d=%d e=%d (want %d and %d)",
+						tilt, arr, c, d, eNbr, (c+1)%12, (c+11)%12)
+				}
 				up := abs32(d-6) <= abs32(eNbr-6)
 				if m.mode == Wiring.TiltMachinePerpendicular {
 					up = abs32(d-6) >= abs32(eNbr-6)

@@ -114,20 +114,10 @@
 
     <div class="card wide">
       <h2>t after the update</h2>
-      <p class="eq head">the counts at <var>t</var>+1, and their acute angle (mod 24)</p>
-      <p class="eq step"><var>w</var> = <var>t</var>+1 − <var>a</var></p>
-      <p class="eq step"><var>x</var> = <var>b</var>+1 − <var>a</var></p>
-      <p class="eq step"><span class="g"><var>d</var> = <var>w</var></span>
-        <span class="note">if <var>w</var> &lt; 12</span></p>
-      <p class="eq step"><span class="g"><var>d</var> = <var>x</var></span>
-        <span class="note">otherwise</span></p>
-      <p class="eq head">the counts at <var>t</var>−1, and their acute angle (mod 24)</p>
-      <p class="eq step"><var>y</var> = <var>t</var>−1 − <var>a</var></p>
-      <p class="eq step"><var>z</var> = <var>b</var>−1 − <var>a</var></p>
-      <p class="eq step"><span class="g"><var>e</var> = <var>y</var></span>
-        <span class="note">if <var>y</var> &lt; 12</span></p>
-      <p class="eq step"><span class="g"><var>e</var> = <var>z</var></span>
-        <span class="note">otherwise</span></p>
+      <p class="eq step"><span class="g"><var>d</var> = <var>c</var> + 1 (mod 12)</span>
+        <span class="note">the acute angle at <var>t</var>+1</span></p>
+      <p class="eq step"><span class="g"><var>e</var> = <var>c</var> − 1 (mod 12)</span>
+        <span class="note">the acute angle at <var>t</var>−1</span></p>
       <p class="eq head par">parallel</p>
       <p class="eq step"><span class="g"><var>c</var> = 6 :</span>
         <var>t</var><sub>after</sub> = <var>t</var></p>
@@ -151,9 +141,9 @@
       <div class="keynote">
         <p><b>t<sub>after</sub></b> — this node's tilt when the update is done; its normal and
           bottom are read off the new t, so one slot moves all three</p>
-        <p><b>w, x</b> — the two counts at t+1</p>
-        <p><b>y, z</b> — the two counts at t−1</p>
-        <p><b>d, e</b> — their acute angles, by the test that gives c</p>
+        <p><b>d, e</b> — the acute angle at t+1 and at t−1</p>
+        <p>turning one slot moves both counts by one, so neither neighbour needs counts of its own:
+          the acute angle steps round a ring of 12</p>
         <p>the two arrangements differ by one character: parallel takes the smaller |c − 6| and
           perpendicular the larger, because parallel stops where that value is 0 and perpendicular
           where it is 6, its largest</p>
