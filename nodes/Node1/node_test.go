@@ -115,14 +115,14 @@ func TestPerpendicularStepsThroughTheParallelHalt(t *testing.T) {
 // The trick is to keep the sign. angleLength drops it, which is why the rule that uses angleLength
 // needs a comparison to get direction back. Work from the plain subtraction t - a instead — which
 // may be negative and may fall outside 0..23, and is left that way — and both arrangements are the
-// same statement, since the resting angles sit every 12 apart and the arrangement is a SHIFT of 6
+// same statement, since the stopping values sit 12 apart and the arrangement is a SHIFT of 6
 // inside the modulus:
 //
-//	parallel       e = ((t - a) mod 12) - 6          rests at t - a = -6, +6
-//	perpendicular  e = ((t - a + 6) mod 12) - 6      rests at t - a = -12, 0, +12
+//	parallel       e = ((t - a) mod 12) - 6          stops where t - a = 6 or 18
+//	perpendicular  e = ((t - a + 6) mod 12) - 6      stops where t - a = 0 or 12
 //
-// e is then the signed distance to the nearest rest, and the whole round is t_after = t - sign(e),
-// with |e| equal to fromRest. No branch, no minimum, no list.
+// e is then how many slots t is from a stopping value and on which side of it, and the whole round
+// is t_after = t - sign(e), with |e| equal to fromRest. No branch, no minimum, no list.
 //
 // Two things that look necessary and are not, both checked below:
 //
@@ -134,10 +134,12 @@ func TestPerpendicularStepsThroughTheParallelHalt(t *testing.T) {
 //	                         down and one at 23 must turn up, yet d is 1 and 23 and l is 1
 //	                         for both. So e reads t - a and never d.
 //
-// The ties — a tilt equidistant from two rests, which is where a comparison rule has to be told
-// what to prefer — need NO special case here: they land on e = -6 by themselves, and -6 turns up,
-// which is exactly what step does. 96 of the 1152 pairs are such ties, so this is not a corner
-// being skirted.
+// A comparison rule needs telling what to prefer when a tilt sits the same distance from two
+// stopping values (96 of the 1152 pairs). This needs nothing, and NOT because the -6 in the formula
+// quietly settles it: at those values the two stopping values are a half turn apart, so they are
+// the same LINE at two indices, and 6 up and 6 down stop equally soon on the same arrangement.
+// There is no preference to encode. Whatever sign e takes there picks an index, not an outcome —
+// checked below, so the claim does not rest on the shape of the expression.
 func TestOneRoundIsSignAndRemainder(t *testing.T) {
 	const points = 24
 	r := newRing(points)
@@ -154,9 +156,19 @@ func TestOneRoundIsSignAndRemainder(t *testing.T) {
 		{mode: Wiring.TiltMachineParallel},
 		{mode: Wiring.TiltMachinePerpendicular},
 	} {
+		// The two stopping values of t - a, and the two values exactly between them. Named
+		// as NUMBERS because the page names them as numbers: a tilt is a line, so t and
+		// t+12 are the same tilt, so each arrangement stops at two values a half turn
+		// apart — which leaves a value 6 from each, and that is where a rule that compares
+		// neighbours has to be told what to prefer.
+		//
+		// The two sets are each other's: one arrangement stops where the other is stuck
+		// between, which is the +6 inside the modulus seen from the other end.
 		shift := int32(0)
+		stops, between := map[int32]bool{6: true, 18: true}, map[int32]bool{0: true, 12: true}
 		if m.mode == Wiring.TiltMachinePerpendicular {
 			shift = 6
+			stops, between = between, stops
 		}
 		for arr := int32(0); arr < points; arr++ {
 			a := r.at(arr)
@@ -168,6 +180,34 @@ func TestOneRoundIsSignAndRemainder(t *testing.T) {
 				// the ring gives the same e. Bringing it into range first would be work
 				// the modulus immediately undoes.
 				e := ((tilt-arr+shift)%12+12)%12 - 6
+
+				// e = 0 at the stopping values and nowhere else; |e| = 6 exactly at the
+				// two values between them. Both stated as the numbers the page prints.
+				gap := ((tilt-arr)%points + points) % points
+				if (e == 0) != stops[gap] {
+					t.Fatalf("mode=%v t-a=%d: e=%d, but stops=%v", m.mode, gap, e, stops[gap])
+				}
+				if (abs32(e) == 6) != between[gap] {
+					t.Fatalf("mode=%v t-a=%d: |e|=%d, but between=%v", m.mode, gap, abs32(e), between[gap])
+				}
+
+				// AND THE TIE HAS NO WRONG ANSWER, so nothing rests on the sign there.
+				// The two stopping values are 12 apart — a half turn — and a tilt is a
+				// line, so they are the SAME arrangement at two indices. From a value
+				// between them, 6 up and 6 down both stop, in the same number of
+				// arrivals, on the same line. The minus in the formula picks which index
+				// it walks to; it does not pick between a right and a wrong answer.
+				if between[gap] {
+					up, down := ((gap+6)%points+points)%points, ((gap-6)%points+points)%points
+					if !stops[up] || !stops[down] {
+						t.Fatalf("mode=%v t-a=%d: 6 either way gives %d and %d, not both stops",
+							m.mode, gap, up, down)
+					}
+					if (up-down+points)%points != points/2 {
+						t.Fatalf("mode=%v t-a=%d: the two stops %d and %d are not a half turn apart",
+							m.mode, gap, up, down)
+					}
+				}
 
 				// d is that subtraction with the abs ON it, which is why e cannot use d:
 				// |t - a| makes the two sides of the arrival identical, but a node one

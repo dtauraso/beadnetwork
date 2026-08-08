@@ -165,17 +165,19 @@ BODIES = {
   \quad \text{\color{acc}how far off the quarter} \\[4pt]
   \quad q = \lvert\, \ell - 6 \,\rvert
     \quad {\color{dim}\text{slots from } \ell \text{ to } 6} \\[9pt]
-  \quad \text{\color{acc}how far off the nearest resting angle} \\[4pt]
-  \quad {\color{par}\text{parallel} : \; f = q} \qquad
-        {\color{perp}\text{perpendicular} : \; f = 6 - q}
+  \quad \text{\color{acc}how far off stopping} \\[4pt]
+  \quad {\color{par}\text{parallel stops at } \ell = 6 : \; f = q} \\[4pt]
+  \quad {\color{perp}\text{perpendicular stops at } \ell = 0 \text{ or } 12 : \; f = 6 - q}
 """,
     # ONE ROUND, with no case in it. The magnitude story above (l, q, f) has thrown the sign
     # away, so it needs a comparison to get direction back. Keep the SIGNED gap instead and
     # both arrangements are one line, differing by a shift of 6 inside the modulus.
     "closed-round": r"""
-  \quad \text{\color{acc}which way, and how far, to the nearest resting angle} \\[4pt]
-  \quad {\color{par}\text{parallel} : \; e = (t - a \bmod 12) - 6} \\[5pt]
-  \quad {\color{perp}\text{perpendicular} : \; e = (t - a + 6 \bmod 12) - 6} \\[4pt]
+  \quad \text{\color{acc}which way, and how far, to a stopping value} \\[4pt]
+  \quad {\color{par}\text{parallel stops where } t - a = 6 \text{ or } 18} \\[3pt]
+  \qquad {\color{par}e = (t - a \bmod 12) - 6} \\[6pt]
+  \quad {\color{perp}\text{perpendicular stops where } t - a = 0 \text{ or } 12} \\[3pt]
+  \qquad {\color{perp}e = (t - a + 6 \bmod 12) - 6} \\[4pt]
   \quad {\color{dim}t - a \bmod 12 \;\in\; \{0, \ldots, 11\}, \text{ so } -6 \le e \le 5} \\[9pt]
   \quad {\color{acc}t_{\mathrm{after}} = t - \operatorname{sign}(e)}
     \qquad {\color{acc}f = \lvert e \rvert} \\[11pt]
