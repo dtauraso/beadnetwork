@@ -264,14 +264,17 @@ func TestOneRoundIsSignAndRemainder(t *testing.T) {
 					t.Fatalf("t=%d a=%d: c=%d is neither the top angle %d nor the bottom %d",
 						tilt, arr, c, topL, botL)
 				}
-				if q := abs32(c - 6); m.mode == Wiring.TiltMachineParallel {
-					if got := m.fromRest(cur, a); got != q {
-						t.Fatalf("parallel t=%d a=%d: c=%d gives q=%d but fromRest=%d",
-							tilt, arr, c, q, got)
+				// f comes straight off c, with no intermediate: parallel stops where c is
+				// the quarter, perpendicular where c is 0, and the two are complements
+				// because they stop at opposite ends of the same measurement.
+				if m.mode == Wiring.TiltMachineParallel {
+					if got, want := m.fromRest(cur, a), abs32(c-6); got != want {
+						t.Fatalf("parallel t=%d a=%d: c=%d gives |c-6|=%d but fromRest=%d",
+							tilt, arr, c, want, got)
 					}
-				} else if got := m.fromRest(cur, a); got != 6-q {
-					t.Fatalf("perpendicular t=%d a=%d: c=%d gives 6-q=%d but fromRest=%d",
-						tilt, arr, c, 6-q, got)
+				} else if got, want := m.fromRest(cur, a), 6-abs32(c-6); got != want {
+					t.Fatalf("perpendicular t=%d a=%d: c=%d gives 6-|c-6|=%d but fromRest=%d",
+						tilt, arr, c, want, got)
 				}
 
 				// And each arrangement stops when the arrival lands ON one of the node's
