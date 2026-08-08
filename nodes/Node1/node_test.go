@@ -264,6 +264,35 @@ func TestOneRoundIsSignAndRemainder(t *testing.T) {
 					t.Fatalf("t=%d a=%d: c=%d is neither the top angle %d nor the bottom %d",
 						tilt, arr, c, topL, botL)
 				}
+				// THE TWO ARRANGEMENTS DIFFER BY THE DIRECTION OF ONE INEQUALITY. Both
+				// compare |c - 6| at the two neighbours; parallel walks toward the smaller
+				// (its stop is c = 6) and perpendicular toward the larger (its stop is
+				// c = 0, which is |c - 6| at its largest). Ties go up in both, as step
+				// does. This is what docs/pair-node/arith.html prints as two branches per
+				// arrangement, so it cannot be left as "nearer its stop".
+				cAt := func(x int32) int32 {
+					uu := ((x-arr)%points + points) % points
+					if uu < 12 {
+						return uu
+					}
+					return ((x+12-arr)%points + points) % points
+				}
+				cUp, cDown := cAt(tilt+1), cAt(tilt-1)
+				up := abs32(cUp-6) <= abs32(cDown-6)
+				if m.mode == Wiring.TiltMachinePerpendicular {
+					up = abs32(cUp-6) >= abs32(cDown-6)
+				}
+				if e != 0 {
+					wantNext := cur.prev
+					if up {
+						wantNext = cur.next
+					}
+					if got := m.step(cur, a); got != wantNext {
+						t.Fatalf("mode=%v t=%d a=%d: |c-6| up=%d down=%d chose %d, step chose %d",
+							m.mode, tilt, arr, abs32(cUp-6), abs32(cDown-6), wantNext.idx, got.idx)
+					}
+				}
+
 				// f comes straight off c, with no intermediate: parallel stops where c is
 				// the quarter, perpendicular where c is 0, and the two are complements
 				// because they stop at opposite ends of the same measurement.
