@@ -70,7 +70,12 @@ for t in (0, 6, 12, 17):
 
 # ---- the angle length, one panel per case. The canvas is as wide as the CAPTION,
 # not as the ring — "perpendicular rests" is the widest thing in it.
-for sep, note in ((0, "perpendicular rests"), (6, "parallel rests"), (11, "steps")):
+# Every kind of angle length there is, in order: the two perpendicular rests at each
+# end, the parallel rest in the middle, and an ACUTE and an OBTUSE example for the
+# ordinary lengths on either side of the quarter — the acute one was missing, and with
+# it the fact that a length below the quarter is just as ordinary as one above.
+for sep, note in ((0, "perpendicular rests"), (3, "acute — steps"), (6, "parallel rests"),
+                  (11, "obtuse — steps"), (12, "perpendicular rests")):
     W, H, cx, cy, R = 186, 218, 93, 82, 66
     o = [f'<svg width="{W}" height="{H}" viewBox="0 0 {W} {H}">', ring(cx, cy, R)]
     if sep:
