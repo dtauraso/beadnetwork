@@ -1,0 +1,11 @@
+% update-closed-numbers.tex — one block of the update. Shared setup is pairmath.sty,
+% which also carries the rebuild command.
+\documentclass[12pt]{article}
+\usepackage{pairmath}
+\begin{document}
+\[\begin{array}{@{}l@{}}
+  \quad t,\, a \;\in\; \{0,\, 1,\, \ldots,\, 23\} \\[7pt]
+  \quad \ell = \lvert t - a \rvert
+    \quad {\color{dim}\text{or } 24 - \lvert t - a \rvert, \text{ whichever is shorter}}
+\end{array}\]
+\end{document}

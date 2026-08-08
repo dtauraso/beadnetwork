@@ -109,6 +109,60 @@ func TestPerpendicularStepsThroughTheParallelHalt(t *testing.T) {
 	}
 }
 
+// TestTheWalkIsClosedForm is what docs/pair-node/arith.html rests on: that for a HELD arrival the
+// whole walk can be written down rather than run. Three claims, swept over both modes and every
+// (arrival, tilt) pair:
+//
+//	how many arrivals it takes  =  f          fromRest is a count, not just a comparison
+//	the direction               =  s          decided by the first arrival and never revisited
+//	where it stops              =  t + s*f    so no intermediate state is ever needed
+//
+// The direction is read the way step reads it — whichever neighbour is closer, ties up — and then
+// held FIXED for the rest of the walk here. That is the real content: it is not obvious that the
+// sign cannot flip halfway, and at the fold points (l = 0 and l = 12) the two neighbours score the
+// same, which is exactly where a walk could turn back. It does not.
+//
+// This does NOT say the pair is closed form. A live exchange moves both ends, so a is not held;
+// arith.html says so on the page rather than leaving the reader to assume otherwise.
+func TestTheWalkIsClosedForm(t *testing.T) {
+	const points = 24
+	r := newRing(points)
+	for _, m := range []tiltMachine{
+		{mode: Wiring.TiltMachineParallel},
+		{mode: Wiring.TiltMachinePerpendicular},
+	} {
+		for arr := int32(0); arr < points; arr++ {
+			a := r.at(arr)
+			for tilt := int32(0); tilt < points; tilt++ {
+				cur := r.at(tilt)
+				f := m.fromRest(cur, a)
+
+				s := int32(-1) // step's own rule: up unless down is strictly closer
+				if m.fromRest(cur.next, a) <= m.fromRest(cur.prev, a) {
+					s = 1
+				}
+
+				steps := int32(0)
+				for !m.settled(cur, a) {
+					cur = m.step(cur, a)
+					steps++
+					if steps > 2*points {
+						t.Fatalf("mode=%v arrival=%d tilt=%d: never settled", m.mode, arr, tilt)
+					}
+				}
+				if steps != f {
+					t.Fatalf("mode=%v arrival=%d tilt=%d: settled after %d arrivals, f said %d",
+						m.mode, arr, tilt, steps, f)
+				}
+				if want := ((tilt+s*f)%points + points) % points; cur.idx != want {
+					t.Fatalf("mode=%v arrival=%d tilt=%d: stopped at %d, t+s*f said %d (s=%d f=%d)",
+						m.mode, arr, tilt, cur.idx, want, s, f)
+				}
+			}
+		}
+	}
+}
+
 // TestFromRestIsTheQuarterOffset checks the closed form the update-rules page states, against the
 // fromRest the node actually runs. fromRest is a minimum over the mode's resting-length list, which
 // is the general shape and the one a new mode joins. But BOTH real modes rest symmetrically about

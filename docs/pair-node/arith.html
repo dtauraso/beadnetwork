@@ -1,0 +1,116 @@
+<meta charset="utf-8">
+<title>Pair node — the arithmetic instead</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="pair.css">
+
+<header>
+  <h1>The arithmetic instead</h1>
+  <div class="sub">the same node, with no states, no transitions, and nothing to run</div>
+</header>
+
+<nav>
+  <a href="index.html">Index</a>
+  <a href="anatomy.html">Anatomy</a>
+  <a href="own.html">Ownership</a>
+  <a href="vectors.html">Vectors</a>
+  <a href="math.html">Math</a>
+  <a href="formulas.html">Formulas</a>
+  <a href="dots.html">Separation</a>
+  <a href="perpendicular.html">Perpendicular</a>
+  <a href="cases.html">Cases</a>
+  <a href="channels.html">Channels</a>
+  <a href="cycle.html">Cycle</a>
+  <a href="updates.html">Update rules</a>
+  <a class="on" href="arith.html">Arithmetic instead</a>
+  <a href="clock.html">Clock</a>
+  <a href="geometry.html">Geometry</a>
+  <a href="asym.html">Asymmetry</a>
+</nav>
+
+<!-- The maths blocks are update-closed-*.svg, set in LaTeX by mathblocks.py (pairmath.sty
+     carries the rebuild command). Nothing here is loaded over the network.
+
+     This page is deliberately NOT a restatement of updates.html. Its whole claim is that
+     the node's behaviour can be written down instead of stepped through, so nothing on it
+     may use the machine's vocabulary — no state, no transition, no link, no next or prev,
+     no settle. If a line here needs one of those words to make sense, it belongs on the
+     update-rules page and not on this one. -->
+
+<main>
+
+  <div class="grid">
+
+    <div class="card wide">
+      <p class="lead">A node holding <span class="k">t</span> and told <span class="k">a</span> turns
+        one slot at a time until it stops. <a href="updates.html">Update rules</a> gives that as two
+        machines and the rule an arrival runs. None of that is needed to say what happens. Given the
+        two numbers you can write down where the node ends and how many arrivals it takes, and the
+        turning in between is arithmetic you never have to watch.</p>
+    </div>
+
+    <h3 class="secname">The two numbers, and the one between them</h3>
+
+    <div class="card wide">
+      <h2>What there is</h2>
+      <img class="math" src="update-closed-numbers.svg" style="width:471px"
+        alt="t and a are in {0, 1, ..., 23}. L is |t - a|, or 24 - |t - a|, whichever is shorter.">
+      <div class="keynote">
+        <p>t is this node's tilt, a is the direction that arrived. Both are counts of slots round a
+          ring of 24, so both are ordinary integers</p>
+        <p>ℓ is how far apart they are the short way round, so ℓ never exceeds 12</p>
+      </div>
+    </div>
+
+    <h3 class="secname">How far it is from stopping</h3>
+
+    <div class="card wide">
+      <h2>One number, off the quarter</h2>
+      <img class="math" src="update-closed-far.svg" style="width:448px"
+        alt="q = |L - 6|. Parallel: f = q. Perpendicular: f = 6 - q.">
+      <div class="keynote">
+        <p>a pair is set up for one of two arrangements, and each stops at its own angle: parallel at
+          the quarter, perpendicular at either end</p>
+        <p>both are symmetric about the quarter, so q — how far ℓ sits off 6 — settles both, one way
+          up or the other. The two f being complements is the same fact the
+          <a href="audit.html">audit</a> found by drawing them</p>
+        <p>f is a DISTANCE, in slots, and the next card is what that distance turns out to be worth</p>
+      </div>
+    </div>
+
+    <h3 class="secname">The whole run, without running it</h3>
+
+    <div class="card wide">
+      <h2>Where it stops, and when</h2>
+      <img class="math" src="update-closed-run.svg" style="width:583px"
+        alt="Arrivals until it stops = f. Where it stops = t + s f, with s = plus or minus 1, fixed by the first arrival.">
+      <div class="keynote">
+        <p>f is not only how far off it is — it is the COUNT. Each arrival closes exactly one slot,
+          so f arrivals is the whole run and there is no arrival number f + 1</p>
+        <p>s is decided once, by which way is closer at the start, and never revisited. The walk
+          cannot turn back, which is why the landing slot is a multiplication and not a simulation</p>
+        <p>so f = 0 is not a special case or a halt condition — it is the run that takes no arrivals</p>
+        <p>all three claims are swept over both arrangements and every tilt-against-arrival pair by
+          <span data-src="nodes/Node1/node_test.go#TestTheWalkIsClosedForm">TestTheWalkIsClosedForm</span></p>
+      </div>
+    </div>
+
+    <h3 class="secname">What this does not say</h3>
+
+    <div class="card wide">
+      <h2>It holds for a held arrival</h2>
+      <div class="keynote">
+        <p>a is treated here as fixed. In a live pair it is not: each end sends its own normal and
+          both turn, so a moves while t does. The closed form describes one node against a direction
+          that stays put</p>
+        <p>that is the honest limit of this page. The exchange itself — two ends, each turning on
+          what the other last sent — is the run on
+          <a href="updates.html">Update rules</a>, and it is why the code keeps the general form
+          (a comparison per arrival) rather than the shortcut above</p>
+        <p>the arithmetic is still what the machine IS. It is not a model of the machine, and not
+          the machine transcribed: it never mentions a state, and there is nothing in it to step</p>
+      </div>
+    </div>
+
+  </div>
+
+</main>

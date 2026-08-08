@@ -139,6 +139,29 @@ BODIES = {
   \quad f_{+} \le f_{-} : \quad t_{\mathrm{after}} = t_{+1} \\[5pt]
   \quad \text{else} : \qquad\quad\;\, t_{\mathrm{after}} = t_{-1}
 """,
+    # ---- closed-*: the arithmetic that REPLACES the machine (arith.html) ----------------
+    #
+    # These are not the machine written out. There is no current state, no transition, no
+    # rule applied over and over — you are given three numbers and you write down where the
+    # node ends up and how many arrivals it takes. The machine's own vocabulary (states,
+    # links, next/prev, settle) does not appear because none of it is needed to say this.
+    #
+    # Every claim here is swept against the running code by TestTheWalkIsClosedForm.
+    "closed-numbers": r"""
+  \quad t,\, a \;\in\; \{0,\, 1,\, \ldots,\, 23\} \\[7pt]
+  \quad \ell = \lvert t - a \rvert
+    \quad {\color{dim}\text{or } 24 - \lvert t - a \rvert, \text{ whichever is shorter}}
+""",
+    "closed-far": r"""
+  \quad q = \lvert\, \ell - 6 \,\rvert \\[7pt]
+  \quad {\color{par}\text{parallel} : \; f = q} \qquad
+        {\color{perp}\text{perpendicular} : \; f = 6 - q}
+""",
+    "closed-run": r"""
+  \quad {\color{acc}\text{arrivals until it stops}} \;=\; f \\[9pt]
+  \quad {\color{acc}\text{where it stops}} \;=\; t + s\,f
+    \quad {\color{dim}s = \pm 1, \text{ fixed by the first arrival}}
+""",
     "other": r"""
   \text{every arrival} :\; r_{\mathrm{after}} = a \\[5pt]
   \text{panel } \blacktriangle\,\blacktriangledown :\;
