@@ -143,6 +143,7 @@ func TestPerpendicularStepsThroughTheParallelHalt(t *testing.T) {
 func TestOneRoundIsSignAndRemainder(t *testing.T) {
 	const points = 24
 	r := newRing(points)
+	var sawTop, sawBottom int // c comes from the top end, or from the bottom end
 	sign := func(x int32) int32 {
 		switch {
 		case x > 0:
@@ -317,6 +318,22 @@ func TestOneRoundIsSignAndRemainder(t *testing.T) {
 					t.Fatalf("mode=%v t=%d a=%d c=%d: c against 6 says up=%v, |d-6| vs |e-6| says %v",
 						m.mode, tilt, arr, c, fromC, up)
 				}
+
+				// AND WHICH END c CAME FROM DOES NOT ENTER THE RULE. The two ends turn
+				// TOGETHER — b = t + 12, so t+1 makes b+1 — which means u and v both gain
+				// one and c steps up whichever end supplied it. There is no end whose
+				// update runs backwards, and no variable is needed to remember which one
+				// it was: both cases are swept here, and the same c-against-6 rule holds.
+				if c == u {
+					sawTop++
+				} else {
+					sawBottom++
+				}
+				if got := cAt(tilt + 1); got != (c+1)%12 {
+					t.Fatalf("mode=%v t=%d a=%d: c=%d came from the %s, but t+1 gives %d not %d",
+						m.mode, tilt, arr, c, map[bool]string{true: "top", false: "bottom"}[c == u],
+						got, (c+1)%12)
+				}
 				if e != 0 {
 					wantNext := cur.prev
 					if up {
@@ -441,6 +458,12 @@ func TestOneRoundIsSignAndRemainder(t *testing.T) {
 				}
 			}
 		}
+	}
+	// Both ends really do supply c across the sweep, so the claim that it does not
+	// matter which one did is a claim about cases that occur, not an empty one.
+	if sawTop == 0 || sawBottom == 0 {
+		t.Fatalf("c came from the top %d times and the bottom %d — one case never happened",
+			sawTop, sawBottom)
 	}
 }
 
