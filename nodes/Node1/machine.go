@@ -179,13 +179,21 @@ func (m tiltMachine) settled(from, arrival *tiltState) bool { return m.fromRest(
 // four-line blocks — parallel stopping at a quarter turn, perpendicular at 0 — is this one
 // sentence twice, which is why neither block appears here.
 //
-// The count is what moves, and the end it was measured at is what carries it: turning either end
-// one slot moves both, so the direction c travels is the direction that end travels.
-func (m tiltMachine) step(from, arrival *tiltState) *tiltState {
-	if up, down := m.walk(from, arrival); up <= down {
-		return from.next
+// IT RETURNS THE END THAT MOVED, AND WHICH END THAT IS. The count was taken at the nearer end, so
+// the slot it gains is that end's slot — the page's two halves each measure an end and then move
+// the one they measured. Turning either end moves both, so the caller writes the other from this
+// one's opposite; naming the driven end is what lets it be written without a correction term for
+// the half where the bottom was nearer.
+func (m tiltMachine) step(from, arrival *tiltState) (moved *tiltState, atBottom bool) {
+	_, atBottom = from.nearerEndCount(arrival)
+	end := from
+	if atBottom {
+		end = from.opposite
 	}
-	return from.prev
+	if up, down := m.walk(from, arrival); up <= down {
+		return end.next, atBottom
+	}
+	return end.prev, atBottom
 }
 
 // choice is this machine's pair-wide name, so the end that chose can tell the other one

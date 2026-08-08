@@ -87,9 +87,18 @@ type Node struct {
 	// than as a number this goroutine does arithmetic to. Turning is following a link, so
 	// there is no index to keep in range and no twenty-fifth direction to land on.
 	//
-	// The ONE writer, full stop: seeded once at build time from the persisted value
-	// (BuildArgs.TiltVectorAngleSeed, mapped through stateFor) and moved ONLY by this
-	// goroutine's own Update loop, below. Every change is reported one-way to this node's own
+	// THIS GOROUTINE IS THE ONE WRITER, full stop: seeded once at build time from the persisted
+	// value (BuildArgs.TiltVectorAngleSeed, mapped through stateFor) and moved ONLY by this
+	// goroutine's own Update loop, below.
+	//
+	// Of the two fields it is not the one writer, and cannot be: an update moves the end the
+	// arrival was measured at, which is Bottom for half the ring. The two CANNOT DISAGREE
+	// because neither is ever written alone — one step writes the end that moved and reads the
+	// other straight off its own opposite link, in the same statement, so there is no window
+	// where one has turned and the other has not, and no arithmetic that could put them
+	// anywhere but a half turn apart.
+	//
+	// Every change is reported one-way to this node's own
 	// geometry (SyncTiltIndex, i.e. Self) so the geometry — which owns streaming this node's
 	// scene columns and persisting them to its own position.json — stays in sync; the
 	// geometry never decides or mutates this itself, it mirrors what it is told.
@@ -100,6 +109,20 @@ type Node struct {
 	// the θ-only plane (memory/feedback_abc_times_constant_not_rederive.md: an index times a
 	// step constant, trig only at the cartesian/polar boundary).
 	Top *tiltState
+
+	// Bottom is the OTHER end of the same line, a half turn from Top, and it is stored rather
+	// than fetched through Top.opposite so that an update can NAME the end it drove. The rule
+	// counts from whichever end the arrival is nearer (machine.go, nearerEndCount) and moves
+	// that one; with only Top held, the half of the ring measured at the bottom had to be
+	// written back to the top with its direction negated, which is a correction term standing
+	// in for a fact the state could not say.
+	//
+	// It changes nothing about what is persisted or streamed: position.json still carries one
+	// angle, and this end is still a half turn from it. What is stored is which end an update
+	// names, not a second degree of freedom.
+	//
+	// nil means the ring origin's opposite, for the same reason Top's nil means the origin.
+	Bottom *tiltState
 
 	// Machine is THIS NODE'S tilt machine — one instance, carrying which mode it is in. The
 	// modes differ only in the angle lengths they call home (machine.go). A node has to know
@@ -235,10 +258,11 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 		Wiring.SendVectorLatestNonBlocking(n.VectorOut, n.outgoingVector())
 		return true
 	}
+	// A click names the TOP — it is the arrow the user is dragging, not a measured end.
 	if edit.Up {
-		n.Top = n.topState().next
+		n.setTop(n.topState().next)
 	} else {
-		n.Top = n.topState().prev
+		n.setTop(n.topState().prev)
 	}
 	// AND IT STOPS THERE: no send, no bead, and NO MACHINE CHOSEN. A click is not the moment
 	// to read the gap — the setup is not finished until START, and a user clicks their way up
@@ -308,7 +332,7 @@ func (n *Node) adoptLattice(points int32) {
 	keptIdx := n.topState().idx
 	n.Ring = newRing(points)
 	top, unknown := n.Ring.seedState(keptIdx)
-	n.Top = top
+	n.setTop(top)
 	if unknown && n.Self != nil {
 		n.Self.Breadcrumb("pair-lattice-adopt", fmt.Sprintf(
 			"points=%d keptIdx=%d unknown=true loaded=%d", points, keptIdx, top.idx))
@@ -342,6 +366,25 @@ func (n *Node) topState() *tiltState {
 	return n.Top
 }
 
+// bottomState is the other end of the same line, read the same way topState reads the first.
+func (n *Node) bottomState() *tiltState {
+	if n.Bottom == nil {
+		return n.topState().opposite
+	}
+	return n.Bottom
+}
+
+// setTop and setBottom are THE ONLY WAYS EITHER END IS WRITTEN, and each writes BOTH: the end
+// named, and the other read straight off its opposite link in the same statement. That is what
+// makes the two unable to disagree — not a rule to follow but the only spelling available, so a
+// future update that drives one end cannot leave the other where it was.
+//
+// Which one a caller reaches for says which end its measurement was taken at, which is the whole
+// reason both are stored (see the Bottom field).
+func (n *Node) setTop(top *tiltState) { n.Top, n.Bottom = top, top.opposite }
+
+func (n *Node) setBottom(bottom *tiltState) { n.Bottom, n.Top = bottom, bottom.opposite }
+
 // clear returns THIS node to its opening state and — the part that matters — leaves
 // nothing behind that could restart the straightening exchange. A reset is not "set the
 // indices to 0"; it is "there is no message anywhere in the pair", and zeroed indices are
@@ -372,7 +415,7 @@ func (n *Node) topState() *tiltState {
 // one that provably lands last. The marker gets no reply (handleVectorCycle), so it stops
 // there instead of bouncing.
 func (n *Node) clear() {
-	n.Top = n.ringOf().at(0)
+	n.setTop(n.ringOf().at(0))
 	// The machine this node was running goes too — RESET is the one thing that releases it, and
 	// what it returns to is the setting mode, which is also where a fresh node starts.
 	n.Machine = setting
@@ -411,7 +454,7 @@ func (n *Node) drainIn() {
 // in θ alone already negates the direction exactly (see Wiring.HalfTurnThetaIdx's own doc
 // comment).
 func (n *Node) bottomTilt() Wiring.TiltVectorMsg {
-	return Wiring.TiltVectorMsg{ThetaIdx: n.topState().opposite.idx}
+	return Wiring.TiltVectorMsg{ThetaIdx: n.bottomState().idx}
 }
 
 // coplanarNormal is THIS node's own coplanar normal: ONE QUARTER TURN past this node's own
@@ -529,8 +572,16 @@ func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
 	// A node still in the setting mode — before any click, or after a reset — moves nothing, and
 	// needs no test here to make that happen: every angle length is that mode's home, so it is
 	// already halted wherever it stands and the step below is not reached.
+	// THE END THAT WAS MEASURED IS THE END THAT MOVES. step names it; setTop/setBottom write it
+	// and derive the other. Behaviour is the same either way — the ends are a half turn apart, so
+	// a slot gained by one is a slot gained by both — but the write now says which end the
+	// arrival was near, instead of expressing a bottom-side turn as a negated top-side one.
 	if !n.Machine.settled(before, arrival) {
-		n.Top = n.Machine.step(before, arrival)
+		if moved, atBottom := n.Machine.step(before, arrival); atBottom {
+			n.setBottom(moved)
+		} else {
+			n.setTop(moved)
+		}
 	}
 	return true
 }
@@ -735,7 +786,7 @@ func init() {
 			latticeSeed := a.LatticePointsSeed()
 			n.Ring = newRing(latticeSeed)
 			seed, seedUnknown := n.Ring.seedState(a.TiltVectorAngleSeed())
-			n.Top = seed
+			n.setTop(seed)
 			n.TiltEditIn = a.TiltEditIn()
 			n.LatticeIn = a.LatticeIn()
 			// Self replaces the old SyncTiltIndex/SyncReceivedVector/ClearOutBeads

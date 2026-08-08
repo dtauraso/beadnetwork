@@ -17,6 +17,17 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring"
 )
 
+// steppedTop is this node's new TOP after one step, whichever end the rule actually drove. step
+// names the end it moved (machine.go) and node.go writes that one and derives the other; this is
+// that same conversion, so a test whose subject is the top can go on naming the top.
+func steppedTop(m tiltMachine, top, arrival *tiltState) *tiltState {
+	moved, atBottom := m.step(top, arrival)
+	if atBottom {
+		return moved.opposite
+	}
+	return moved
+}
+
 // a 48-point ring: a quarter turn is 12, a half turn 24 — the lattice the live scene runs at,
 // so the numbers here read the same as the rows in the probe log.
 func testRing() *ring { return newRing(48) }
@@ -76,13 +87,13 @@ func TestEachMachineStepsTowardItsOwnHalt(t *testing.T) {
 
 		perp := perpendicular
 		if !perp.settled(top, arrival) {
-			if got, was := perp.fromRest(perp.step(top, arrival), arrival), perp.fromRest(top, arrival); got >= was {
+			if got, was := perp.fromRest(steppedTop(perp, top, arrival), arrival), perp.fromRest(top, arrival); got >= was {
 				t.Errorf("perpendicular at angle length %d: step left miss at %d, was %d", sep, got, was)
 			}
 		}
 		par := parallel
 		if !par.settled(top, arrival) {
-			if got, was := par.fromRest(par.step(top, arrival), arrival), par.fromRest(top, arrival); got >= was {
+			if got, was := par.fromRest(steppedTop(par, top, arrival), arrival), par.fromRest(top, arrival); got >= was {
 				t.Errorf("parallel at angle length %d: step left miss at %d, was %d", sep, got, was)
 			}
 		}
@@ -101,7 +112,7 @@ func TestPerpendicularStepsThroughTheParallelHalt(t *testing.T) {
 	if m.settled(top, arrival) {
 		t.Fatal("one step off a quarter turn is not the perpendicular halt")
 	}
-	stepped := m.step(top, arrival)
+	stepped := steppedTop(m, top, arrival)
 	if stepped == top {
 		t.Fatal("the perpendicular machine stood still one step off a quarter turn")
 	}
@@ -417,7 +428,7 @@ func oneRoundSweep(t *testing.T, points int32) {
 					if up {
 						wantNext = cur.next
 					}
-					if got := m.step(cur, a); got != wantNext {
+					if got := steppedTop(m, cur, a); got != wantNext {
 						t.Fatalf("mode=%v t=%d a=%d: |d-q|=%d |e-q|=%d chose %d, step chose %d",
 							m.mode, tilt, arr, abs32(d-quarter), abs32(eNbr-quarter), wantNext.idx, got.idx)
 					}
@@ -552,7 +563,7 @@ func oneRoundSweep(t *testing.T, points int32) {
 					continue
 				}
 				want := ((tilt-sign(e))%points + points) % points
-				if got := m.step(cur, a).idx; got != want {
+				if got := steppedTop(m, cur, a).idx; got != want {
 					t.Fatalf("mode=%v a=%d t=%d d=%d e=%d: step gave %d, t-sign(e)=%d",
 						m.mode, arr, tilt, d, e, got, want)
 				}
@@ -605,7 +616,7 @@ func TestTheWalkIsClosedForm(t *testing.T) {
 
 				steps := int32(0)
 				for !m.settled(cur, a) {
-					cur = m.step(cur, a)
+					cur = steppedTop(m, cur, a)
 					steps++
 					if steps > 2*points {
 						t.Fatalf("mode=%v arrival=%d tilt=%d: never settled", m.mode, arr, tilt)
@@ -737,6 +748,57 @@ func TestAModeHaltsExactlyOnItsHomeSet(t *testing.T) {
 			if got := m.settled(top, r.at(sep)); got != home[c] {
 				t.Errorf("%v at arrival %d (count %d): halted=%v, stopping counts say %v",
 					m, sep, c, got, home[c])
+			}
+		}
+	}
+}
+
+// TestAnUpdateDrivesTheEndItMeasured is the claim behind storing both ends: an arrival is measured
+// at whichever end is nearer, and THAT is the end the update moves — the page's two halves, each
+// moving the end it read.
+//
+// Two things are asserted on every (tilt, arrival) pair of both lattices, on ONE node, with no
+// exchange running:
+//
+//	the driven end is the measured end     step's bit is nearerEndCount's bit
+//	the two ends stay a half turn apart    whichever was written, the other followed
+//
+// The second is the reason setTop/setBottom exist rather than two assignments at each site. It
+// cannot drift into a delivery test: nothing here sends anything, and one goroutine does all of it.
+func TestAnUpdateDrivesTheEndItMeasured(t *testing.T) {
+	for _, points := range []int32{24, 48} {
+		r := newRing(points)
+		for _, m := range []tiltMachine{perpendicular, parallel} {
+			for tilt := int32(0); tilt < points; tilt++ {
+				for arr := int32(0); arr < points; arr++ {
+					a, before := r.at(arr), r.at(tilt)
+					n := &Node{Ring: r}
+					n.setTop(before)
+					n.Machine = m
+					if m.settled(before, a) {
+						continue
+					}
+					moved, atBottom := m.step(before, a)
+					if _, measuredAtBottom := before.nearerEndCount(a); atBottom != measuredAtBottom {
+						t.Fatalf("points=%d %v t=%d a=%d: measured at bottom=%v but drove bottom=%v",
+							points, m, tilt, arr, measuredAtBottom, atBottom)
+					}
+					if atBottom {
+						n.setBottom(moved)
+					} else {
+						n.setTop(moved)
+					}
+					if n.Top.opposite != n.Bottom {
+						t.Fatalf("points=%d %v t=%d a=%d: top %d and bottom %d are not a half turn apart",
+							points, m, tilt, arr, n.Top.idx, n.Bottom.idx)
+					}
+					// And the line moved by exactly one slot, in the direction the count
+					// went — the behaviour storing the second end was not allowed to change.
+					if n.Top != before.next && n.Top != before.prev {
+						t.Fatalf("points=%d %v t=%d a=%d: top went %d -> %d, not one slot",
+							points, m, tilt, arr, before.idx, n.Top.idx)
+					}
+				}
 			}
 		}
 	}
@@ -889,8 +951,14 @@ func runOpening(r *ring, tiltA, tiltB int32) openingOutcome {
 			n.adoptMachine(n.machineForGap(arrival))
 		}
 		before := n.topState()
+		// Written the way stepFromVector writes it: the end that was measured is the end
+		// that moves, and the other is read off its opposite in the same statement.
 		if !n.Machine.settled(before, arrival) {
-			n.Top = n.Machine.step(before, arrival)
+			if moved, atBottom := n.Machine.step(before, arrival); atBottom {
+				n.setBottom(moved)
+			} else {
+				n.setTop(moved)
+			}
 		}
 		return n.topState() != before
 	}
