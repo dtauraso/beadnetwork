@@ -163,23 +163,18 @@ BODIES = {
     \qquad {\color{dim}\text{from the top}} \\[4pt]
   \quad v = b - a \pmod{24}
     \qquad {\color{dim}\text{from the bottom}} \\[6pt]
-  \quad {\color{dim}\text{the ends are a half turn apart, so } u \text{ and } v
-    \text{ differ by } 12} \\[4pt]
-  \quad {\color{dim}\text{— exactly one of them is under } 12} \\[9pt]
-  \quad \text{\color{acc}each end's reading: the one under } 12,
-    \text{ and } 12 \text{ minus it} \\[5pt]
-  \quad u < 12 : \qquad \ell_{\mathrm{top}} = u, \qquad\;\;
-    \ell_{\mathrm{bottom}} = 12 - u \\[4pt]
-  \quad \text{else} : \qquad\;\; \ell_{\mathrm{bottom}} = v, \qquad
-    \ell_{\mathrm{top}} = 12 - v
+  \quad \text{\color{acc}one test, on each count: which way round is the acute one} \\[5pt]
+  \quad \text{if } u \ge 12 : \; u \leftarrow 24 - u
+    \qquad {\color{dim}\text{and the same for } v} \\[6pt]
+  \quad {\color{dim}u + v = 12 \text{ — the ends are a half turn apart, so the two
+    distances share it}}
 """,
     "closed-far": r"""
-  \quad \text{\color{acc}how far off the quarter — the same for both ends} \\[4pt]
-  \quad q = \lvert\, \ell_{\mathrm{top}} - 6 \,\rvert
-        = \lvert\, \ell_{\mathrm{bottom}} - 6 \,\rvert \\[9pt]
+  \quad \text{\color{acc}how far off the quarter — the same from either end} \\[4pt]
+  \quad q = \lvert\, u - 6 \,\rvert = \lvert\, v - 6 \,\rvert \\[9pt]
   \quad \text{\color{acc}how far off stopping} \\[4pt]
   \quad {\color{perp}\text{perpendicular stops when an end reads } 0} \\[3pt]
-  \qquad {\color{perp}f = \min(\ell_{\mathrm{top}},\; \ell_{\mathrm{bottom}}) = 6 - q} \\[6pt]
+  \qquad {\color{perp}f = \min(u,\, v) = 6 - q} \\[6pt]
   \quad {\color{par}\text{parallel stops when both ends read } 6} \\[3pt]
   \qquad {\color{par}f = q}
 """,

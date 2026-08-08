@@ -238,23 +238,25 @@ func TestOneRoundIsSignAndRemainder(t *testing.T) {
 				// it — b is a state the node already has (cur.opposite), so writing
 				// t + 12 - a here would be reaching past the vector to rebuild it.
 				//
-				// The two ends are a half turn apart, so u and v differ by 12 — which
-				// means EXACTLY ONE of them is below 12. That one is its own end's
-				// reading, and the other end reads 12 minus it. No abs, no min, and no
-				// fold applied twice: the pair sorts itself.
+				// ONE TEST, applied to each count on its own: under a half turn, the
+				// count IS the distance; at or over, the distance is 24 minus it. No
+				// cross-reference between the two ends, and no third quantity — the
+				// distance from an end is that end's own count, tested.
+				acute := func(x int32) int32 {
+					if x < 12 {
+						return x
+					}
+					return points - x
+				}
 				b := cur.opposite.idx
 				u := ((tilt-arr)%points + points) % points
 				v := ((b-arr)%points + points) % points
-				if (u < 12) == (v < 12) {
-					t.Fatalf("t=%d a=%d: u=%d v=%d, not exactly one below 12", tilt, arr, u, v)
+				if acute(u) != topL || acute(v) != botL {
+					t.Fatalf("t=%d a=%d: u=%d v=%d test to %d and %d, but readings are %d and %d",
+						tilt, arr, u, v, acute(u), acute(v), topL, botL)
 				}
-				wantTop, wantBot := 12-v, v
-				if u < 12 {
-					wantTop, wantBot = u, 12-u
-				}
-				if topL != wantTop || botL != wantBot {
-					t.Fatalf("t=%d a=%d: u=%d v=%d give top=%d bottom=%d, but readings are %d and %d",
-						tilt, arr, u, v, wantTop, wantBot, topL, botL)
+				if acute(u)+acute(v) != 12 {
+					t.Fatalf("t=%d a=%d: %d + %d is not a half turn", tilt, arr, acute(u), acute(v))
 				}
 
 				// And each arrangement stops when the arrival lands ON one of the node's
