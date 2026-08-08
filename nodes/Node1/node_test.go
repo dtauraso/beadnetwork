@@ -180,12 +180,21 @@ func TestOneRoundIsSignAndRemainder(t *testing.T) {
 						m.mode, arr, tilt, abs32(eAbs), abs32(e))
 				}
 
-				// min(|d|, 24-|d|) IS the angle length — the number the magnitude form
-				// starts from, which is this same subtraction with its sign dropped.
-				short := min(abs32(d), points-abs32(d))
-				if got := cur.angleLength(a); got != short {
-					t.Fatalf("a=%d t=%d: min(|d|, 24-|d|)=%d but angleLength=%d",
-						arr, tilt, short, got)
+				// The angle length needs no min: it is d brought onto the ring by the
+				// SAME shape that produces e — a remainder, less half the modulus — with
+				// an abs on the outside. e uses 12 and 6; this uses 24 and 12.
+				//
+				//	D = (d + 12 mod 24) - 12    -12 <= D <= 11
+				//	l = |D|
+				//
+				// Written this way the two forms are one expression differing by that abs,
+				// which is exactly the direction l cannot keep.
+				D := ((d+12)%points+points)%points - 12
+				if got := cur.angleLength(a); got != abs32(D) {
+					t.Fatalf("a=%d t=%d: |D|=%d but angleLength=%d", arr, tilt, abs32(D), got)
+				}
+				if want := min(abs32(d), points-abs32(d)); abs32(D) != want {
+					t.Fatalf("a=%d t=%d: |D|=%d but min(|d|, 24-|d|)=%d", arr, tilt, abs32(D), want)
 				}
 
 				if got := m.fromRest(cur, a); got != abs32(e) {

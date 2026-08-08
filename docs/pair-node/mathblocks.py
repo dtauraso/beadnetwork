@@ -154,10 +154,12 @@ BODIES = {
   \quad {\color{dim}\text{only } t \text{ moves; the other two are read off it}} \\[9pt]
   \quad \text{\color{acc}what arrives} \quad a = p + 6
     \quad {\color{dim}\text{the partner's normal, not its tilt}} \\[9pt]
+  \quad \text{\color{acc}which way, and how far, from } a \text{ to } t \\[4pt]
+  \quad D = (t - a + 12 \bmod 24) - 12
+    \quad {\color{dim}-12 \le D \le 11} \\[9pt]
   \quad \text{\color{acc}how far apart} \\[4pt]
-  \quad \ell = \min\bigl(\lvert t - a \rvert,\; 24 - \lvert t - a \rvert\bigr)
-    \quad {\color{dim}0 \le \ell \le 12} \\[4pt]
-  \quad {\color{dim}\text{slots from } t \text{ to } a,\text{ the shorter way round}}
+  \quad \ell = \lvert D \rvert
+    \quad {\color{dim}0 \le \ell \le 12, \text{ slots from } t \text{ to } a}
 """,
     "closed-far": r"""
   \quad \text{\color{acc}how far off the quarter} \\[4pt]
@@ -173,14 +175,16 @@ BODIES = {
     "closed-round": r"""
   \quad \text{\color{acc}which way, and how far, from } a \text{ to } t \\[4pt]
   \quad d = t - a
-    \quad {\color{dim}-23 \le d \le 23, \text{ negative when } a > t} \\[9pt]
+    \quad {\color{dim}-23 \le d \le 23, \text{ negative when } a > t} \\[4pt]
+  \quad {\color{dim}\text{the same subtraction } D \text{ came from, without the } \bmod 24}
+    \\[9pt]
   \quad \text{\color{acc}which way, and how far, to the nearest resting angle} \\[4pt]
   \quad {\color{par}\text{parallel} : \; e = (d \bmod 12) - 6} \\[5pt]
   \quad {\color{perp}\text{perpendicular} : \; e = (d + 6 \bmod 12) - 6} \\[4pt]
   \quad {\color{dim}d \bmod 12 \;\in\; \{0, \ldots, 11\}, \text{ so } -6 \le e \le 5} \\[9pt]
   \quad {\color{acc}t_{\mathrm{after}} = t - \operatorname{sign}(e)}
     \qquad {\color{acc}f = \lvert e \rvert} \\[11pt]
-  \quad {\color{dim}\min(\lvert d \rvert,\; 24 - \lvert d \rvert) = \ell} \\[4pt]
+  \quad {\color{dim}\ell = \lvert (d + 12 \bmod 24) - 12 \rvert} \\[4pt]
   \quad {\color{dim}\text{writing } \lvert d \rvert \text{ for } d
     \text{ leaves } f \text{ equal and flips } \operatorname{sign}(e)}
 """,
