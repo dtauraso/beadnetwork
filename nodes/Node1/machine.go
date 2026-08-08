@@ -145,6 +145,97 @@ func (m tiltMachine) step(from, arrival *tiltState) *tiltState {
 	return from.prev
 }
 
+// ————— THE PAGE'S ARITHMETIC —————
+//
+// docs/pair-node/arith.html's "Which end moves, and whether it goes +1, −1 or stays" decides the
+// same thing the three functions above decide, by different arithmetic. Below is that statement,
+// written here so the two can be compared pair by pair before either replaces the other
+// (node_test.go, TestOneRoundIsSignAndRemainder).
+//
+// The difference is what gets measured. Above, an arrival is folded to an angle length, held
+// against a list, and then that whole measurement is REDONE at both neighbours so the two results
+// can be compared — a machine asking which of its next two positions is better without ever
+// working out where it is going. Below, one count is taken and compared to one number.
+//
+// nearerEndCount is that count: how far the arrival is from the nearer END OF THIS NODE'S TILT
+// LINE, which is a count on a ring of a HALF TURN, not of the whole ring. A node draws two ends,
+// t and t + h, so the two counts to the arrival differ by h — exactly one of them is under h, and
+// that one is the acute angle at its own end with nothing left to compute. Which end it came from
+// is returned alongside it because the update moves THAT end.
+func (s *tiltState) nearerEndCount(arrival *tiltState) (c int32, atBottom bool) {
+	h := s.ring.halfTurn
+	u := ((s.idx-arrival.idx)%s.ring.points + s.ring.points) % s.ring.points
+	if u < h {
+		return u, false
+	}
+	// The bottom's own count, (b - a) mod points, and NOT u with an h folded out of it: b is a
+	// state this node already has, and the two agree because b = t + h.
+	return ((s.opposite.idx-arrival.idx)%s.ring.points + s.ring.points) % s.ring.points, true
+}
+
+// stoppingCounts is the per-mode data in the page's terms, and the same one line per mode the
+// resting-length lists are: which counts on the half-turn ring that mode STOPS at.
+//
+// It is a shorter statement of the same fact. A resting length is measured from the top and so
+// each mode needs two of them where its two stopping tilts fall on opposite ends; a stopping count
+// is measured from whichever end is nearer, which is what collapses perpendicular's { 0, half }
+// to a single 0.
+var stoppingCounts = map[Wiring.TiltMachine]func(r *ring) []int32{
+	// Setting rests wherever it stands, so every count is a stopping one — the same statement
+	// its resting-length row makes, and the reason a node being set up holds still by the
+	// ordinary rule rather than by an exemption from it.
+	Wiring.TiltMachineNone: func(r *ring) []int32 {
+		all := make([]int32, 0, r.halfTurn)
+		for c := int32(0); c < r.halfTurn; c++ {
+			all = append(all, c)
+		}
+		return all
+	},
+	// The arrival lies ON this node's tilt line — either end of it, which from the nearer end
+	// is one count and not two.
+	Wiring.TiltMachinePerpendicular: func(r *ring) []int32 { return []int32{0} },
+	// The arrival lies a quarter turn off it, on the normal line.
+	Wiring.TiltMachineParallel: func(r *ring) []int32 { return []int32{r.quarterTurn} },
+}
+
+// stopsAtCount is the page's settled: the count this arrival makes is one this mode stops at.
+// No subtraction and no minimum — a membership test on the one number.
+func (m tiltMachine) stopsAtCount(from, arrival *tiltState) bool {
+	c, _ := from.nearerEndCount(arrival)
+	for _, stop := range stoppingCounts[m.mode](from.ring) {
+		if c == stop {
+			return true
+		}
+	}
+	return false
+}
+
+// countGoesUp is the page's direction, and the one rule its two four-line blocks both state.
+//
+// c lives on a ring of a half turn, each mode stops at one count on it, and the node walks c ONE
+// SLOT THE SHORT WAY toward that stop, a tie going up. Parallel's "c < a quarter turn goes up" is
+// that sentence about the quarter; perpendicular's "c at or over a quarter turn goes up" is the
+// same sentence about 0, reached the short way round. Neither is a rule of its own, which is why
+// nothing here asks which mode is running.
+//
+// The count is what moves, and the end it was measured at is what carries it: turning either end
+// one slot moves both, so the direction c travels is the direction that end travels.
+func (m tiltMachine) countGoesUp(from, arrival *tiltState) bool {
+	h := from.ring.halfTurn
+	c, _ := from.nearerEndCount(arrival)
+	stops := stoppingCounts[m.mode](from.ring)
+	up, down := h, h // how far the walk is, each way round, to the nearest stop
+	for _, stop := range stops {
+		if d := ((stop-c)%h + h) % h; d < up {
+			up = d
+		}
+		if d := ((c-stop)%h + h) % h; d < down {
+			down = d
+		}
+	}
+	return up <= down
+}
+
 // choice is this machine's pair-wide name, so the end that chose can tell the other one
 // (Wiring.TiltMachine, carried on every vector message). It is the mode itself: the name this
 // package runs on and the name the two ends say to each other are ONE value, so there is no

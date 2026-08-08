@@ -523,6 +523,38 @@ func oneRoundSweep(t *testing.T, points int32) {
 					t.Fatalf("mode=%v a=%d t=%d |t-a|=%d: |e|=%d but fromRest=%d",
 						m.mode, arr, tilt, absDiff, abs32(e), got)
 				}
+				// AND THE PAGE'S OWN ARITHMETIC, asked of the machine rather than
+				// rebuilt here. Everything above derives the page's forms in this test
+				// and checks the machine agrees; these two call what machine.go computes
+				// the page's way and check it against what it computes the other way. That
+				// is the comparison the switch-over rests on, so it is made on every pair
+				// of both lattices, including the stopped ones.
+				if got, _ := cur.nearerEndCount(a); got != c {
+					t.Fatalf("mode=%v t=%d a=%d: nearerEndCount=%d but c=%d", m.mode, tilt, arr, got, c)
+				}
+				if _, atBottom := cur.nearerEndCount(a); atBottom == acuteTop {
+					t.Fatalf("mode=%v t=%d a=%d: nearerEndCount says atBottom=%v with u=%d",
+						m.mode, tilt, arr, atBottom, u)
+				}
+				if got := m.stopsAtCount(cur, a); got != m.settled(cur, a) {
+					t.Fatalf("mode=%v t=%d a=%d c=%d: stopsAtCount=%v but settled=%v",
+						m.mode, tilt, arr, c, got, m.settled(cur, a))
+				}
+				// The direction is compared as the STATE CHOSEN, not as a distance: c is
+				// (t - a) and not (a - t), and the two agree at every stop while
+				// disagreeing in the turn, so a swapped subtraction survives settled and
+				// shows up only here.
+				if e != 0 {
+					wantByCount := cur.prev
+					if m.countGoesUp(cur, a) {
+						wantByCount = cur.next
+					}
+					if got := m.step(cur, a); got != wantByCount {
+						t.Fatalf("mode=%v t=%d a=%d c=%d: countGoesUp chose %d, step chose %d",
+							m.mode, tilt, arr, c, wantByCount.idx, got.idx)
+					}
+				}
+
 				if (e == 0) != m.settled(cur, a) {
 					t.Fatalf("mode=%v a=%d t=%d d=%d: e=%d but settled=%v",
 						m.mode, arr, tilt, d, e, m.settled(cur, a))
