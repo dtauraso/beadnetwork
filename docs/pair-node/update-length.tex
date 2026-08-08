@@ -3,14 +3,11 @@
 \documentclass[12pt]{article}
 \usepackage{pairmath}
 \begin{document}
-
-\[
-\begin{aligned}
-  d      &= \lvert t-a \rvert \bmod 24 \\[4pt]
-  L \;=\; \len(t,a) &= \begin{cases}
+\[\begin{array}{@{}l@{}}
+  d = \lvert t-a \rvert \bmod 24 \\[6pt]
+  L \;=\; \len(t,a) = \begin{cases}
       d      & d \le 12 \\
       24 - d & \text{otherwise}
     \end{cases}
-\end{aligned}
-\]
+\end{array}\]
 \end{document}
