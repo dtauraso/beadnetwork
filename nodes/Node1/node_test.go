@@ -184,17 +184,16 @@ func TestOneRoundIsSignAndRemainder(t *testing.T) {
 				// SAME shape that produces e — a remainder, less half the modulus — with
 				// an abs on the outside. e uses 12 and 6; this uses 24 and 12.
 				//
-				//	D = (d + 12 mod 24) - 12    -12 <= D <= 11
-				//	l = |D|
+				//	l = |(d + 12 mod 24) - 12|
 				//
 				// Written this way the two forms are one expression differing by that abs,
 				// which is exactly the direction l cannot keep.
-				D := ((d+12)%points+points)%points - 12
-				if got := cur.angleLength(a); got != abs32(D) {
-					t.Fatalf("a=%d t=%d: |D|=%d but angleLength=%d", arr, tilt, abs32(D), got)
+				l := abs32(((d+12)%points+points)%points - 12)
+				if got := cur.angleLength(a); got != l {
+					t.Fatalf("a=%d t=%d: |(d+12 mod 24)-12|=%d but angleLength=%d", arr, tilt, l, got)
 				}
-				if want := min(abs32(d), points-abs32(d)); abs32(D) != want {
-					t.Fatalf("a=%d t=%d: |D|=%d but min(|d|, 24-|d|)=%d", arr, tilt, abs32(D), want)
+				if want := min(abs32(d), points-abs32(d)); l != want {
+					t.Fatalf("a=%d t=%d: got %d but min(|d|, 24-|d|)=%d", arr, tilt, l, want)
 				}
 
 				if got := m.fromRest(cur, a); got != abs32(e) {

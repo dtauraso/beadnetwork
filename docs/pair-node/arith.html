@@ -56,12 +56,12 @@
     <div class="card wide">
       <h2>Two numbers, one arrow each</h2>
       <img class="math" src="update-closed-numbers.svg" style="width:573px"
-        alt="t and a are in {0, 1, ..., 23}. This node: tilt = t, normal = t + 6, bottom = t + 12; only t moves, the other two are read off it. What arrives: a = p + 6, the partner's normal, not its tilt. Which way, and how far, from a to t: D = (t - a + 12 mod 24) - 12, between -12 and 11. How far apart: L = |D|, between 0 and 12, slots from t to a.">
+        alt="t and a are in {0, 1, ..., 23}. This node: tilt = t, normal = t + 6, bottom = t + 12; only t moves, the other two are read off it. What arrives: a = p + 6, the partner's normal, not its tilt. How far apart: L = |(t - a + 12 mod 24) - 12|, between 0 and 12 — slots from t to a, the shorter way round.">
       <div class="keynote">
         <p>a node draws three arrows and sends the middle one, so the quarter turn is already inside
           a before it is measured against anything</p>
-        <p>ℓ needs no min: (t − a + 12 mod 24) − 12 lands the subtraction in −12…11 already, and ℓ
-          is its size. The min form asks which of two arcs is shorter; this one never makes two</p>
+        <p>ℓ needs no min: the remainder lands t − a in −12…11 already, and ℓ is its size. The min
+          form asks which of two arcs is shorter; this one never makes two</p>
       </div>
     </div>
 
@@ -82,8 +82,8 @@
 
     <div class="card wide">
       <h2>Where it is after one arrival</h2>
-      <img class="math" src="update-closed-round.svg" style="width:553px"
-        alt="Which way, and how far, from a to t: d = t - a, between -23 and 23, negative when a is greater than t — the same subtraction D came from, without the mod 24. Which way, and how far, to the nearest resting angle — parallel: e = (d mod 12) - 6. Perpendicular: e = (d + 6 mod 12) - 6, where d mod 12 is in 0 to 11, so e is between -6 and 5. t after = t - sign(e), and f = |e|. L = |(d + 12 mod 24) - 12|. Writing |d| for d leaves f equal and flips sign(e).">
+      <img class="math" src="update-closed-round.svg" style="width:510px"
+        alt="Which way, and how far, from a to t: d = t - a, between -23 and 23, negative when a is greater than t. Which way, and how far, to the nearest resting angle — parallel: e = (d mod 12) - 6. Perpendicular: e = (d + 6 mod 12) - 6, where d mod 12 is in 0 to 11, so e is between -6 and 5. t after = t - sign(e), and f = |e|. L = |(d + 12 mod 24) - 12|. Writing |d| for d leaves f equal and flips sign(e).">
       <div class="keynote">
         <p>d keeps whatever value t − a has: it may be negative, and it may fall outside 0…23.
           Nothing is done to bring it back into that range, because d mod 12 would undo it —
@@ -96,8 +96,8 @@
         <p>the last two lines put e and ℓ side by side. They are one expression: a remainder less
           half the modulus — 12 and 6 for e, 24 and 12 for ℓ — and ℓ is that with an abs on the
           outside. The abs is the whole difference, and the direction is what it costs</p>
-        <p>with t = 0, an arrival at 1 turns down and an arrival at 23 turns up. D is −1 and +1,
-          which says so; ℓ is 1 for both, which cannot</p>
+        <p>with t = 0, an arrival at 1 turns down and an arrival at 23 turns up. d is −1 and +23,
+          and e keeps that apart; ℓ is 1 for both and cannot</p>
         <p>swept by
           <span data-src="nodes/Node1/node_test.go#TestOneRoundIsSignAndRemainder">TestOneRoundIsSignAndRemainder</span></p>
       </div>
