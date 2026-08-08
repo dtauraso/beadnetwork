@@ -243,11 +243,11 @@ func TestOneRoundIsSignAndRemainder(t *testing.T) {
 				// cross-reference between the two ends, and no third quantity — the
 				// distance from an end is that end's own count, tested.
 				// The count and the angle it stands for are separate values, as on the
-				// page: u and v are counts round the ring, U and V the acute angles. The
-				// count is not overwritten — a value that means "round the ring from the
-				// top" and a value that means "the angle at the top" are different things
-				// to say, and the second is what everything downstream uses.
-				acute := func(x int32) int32 {
+				// page: u and v are counts round the ring, g(u) and g(v) the acute angles
+				// they stand for. Neither count is overwritten — "round the ring from the
+				// top" and "the angle at the top" are different things to say — and one
+				// function serves both ends, because it is one test run twice.
+				g := func(x int32) int32 {
 					if x < 12 {
 						return x
 					}
@@ -256,13 +256,13 @@ func TestOneRoundIsSignAndRemainder(t *testing.T) {
 				b := cur.opposite.idx
 				u := ((tilt-arr)%points + points) % points
 				v := ((b-arr)%points + points) % points
-				U, V := acute(u), acute(v)
-				if U != topL || V != botL {
-					t.Fatalf("t=%d a=%d: u=%d v=%d give U=%d V=%d, but the angles are %d and %d",
-						tilt, arr, u, v, U, V, topL, botL)
+				if g(u) != topL || g(v) != botL {
+					t.Fatalf("t=%d a=%d: u=%d v=%d give g=%d and %d, but the angles are %d and %d",
+						tilt, arr, u, v, g(u), g(v), topL, botL)
 				}
-				if U+V != 12 {
-					t.Fatalf("t=%d a=%d: U=%d and V=%d are not a half turn", tilt, arr, U, V)
+				if g(u)+g(v) != 12 {
+					t.Fatalf("t=%d a=%d: g(u)=%d and g(v)=%d are not a half turn",
+						tilt, arr, g(u), g(v))
 				}
 
 				// And each arrangement stops when the arrival lands ON one of the node's
