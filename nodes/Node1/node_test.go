@@ -286,8 +286,22 @@ func TestOneRoundIsSignAndRemainder(t *testing.T) {
 						tilt, arr, c, d, eNbr, (c+1)%12, (c+11)%12)
 				}
 				up := abs32(d-6) <= abs32(eNbr-6)
+				rawUp := abs32(c+1-6) <= abs32(c-1-6)
 				if m.mode == Wiring.TiltMachinePerpendicular {
 					up = abs32(d-6) >= abs32(eNbr-6)
+					rawUp = abs32(c+1-6) >= abs32(c-1-6)
+				}
+
+				// The mod 12 is what makes d and e ANGLES: without it, c-1 at c = 0 is -1,
+				// which is not an angle, and |−1 − 6| = 7 is not a reading of anything.
+				//
+				// c = 0 is the ONLY place the reduced and un-reduced numbers disagree
+				// (|e-6| is 5 reduced, 7 not) — and it is perpendicular's stop, so no
+				// comparison runs there. Wherever a comparison IS run, the two agree,
+				// which is why the modulus can be justified as "d and e are angles"
+				// rather than as a correction the branches depend on.
+				if e != 0 && rawUp != up {
+					t.Fatalf("mode=%v t=%d a=%d c=%d: reducing changed the branch", m.mode, tilt, arr, c)
 				}
 				if e != 0 {
 					wantNext := cur.prev
