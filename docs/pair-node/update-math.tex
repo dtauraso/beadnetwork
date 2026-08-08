@@ -1,0 +1,46 @@
+\documentclass[12pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{xcolor}
+\usepackage[paperwidth=19cm,paperheight=13cm,margin=2mm]{geometry}
+\pagestyle{empty}
+
+% the site's palette, so the maths matches the diagrams beside it
+\definecolor{ink}{HTML}{E7E7EA}
+\definecolor{dim}{HTML}{9A9AA6}
+\definecolor{perp}{HTML}{E05FD8}
+\definecolor{par}{HTML}{F9A825}
+\definecolor{acc}{HTML}{4EA1FF}
+
+\newcommand{\len}{\operatorname{angleLength}}
+
+\begin{document}
+\color{ink}
+
+% Every row anchors at the same column, so the block reads flush left rather than
+% centred on the widest line.
+\[
+\begin{aligned}
+  \mathrm{normal}(t) &= t+6 \qquad \mathrm{bottom}(t) = t+12 \qquad \mathrm{sends} = \mathrm{normal}(t)
+    \qquad \mathrm{angle}(i) = \tfrac{\pi}{12}\, i \\[10pt]
+  L \;=\; \len(t,a) &= \begin{cases}
+      d      & d \le 12 \\
+      24 - d & \text{otherwise}
+    \end{cases}
+    \qquad d = \lvert t-a \rvert \bmod 24
+    \qquad {\color{dim}\text{all arithmetic} \bmod 24} \\[12pt]
+  \text{\color{dim}resting lengths} \qquad
+  &{\color{perp}R_{\perp} = \{0,\,12\}} \qquad
+   {\color{par}R_{\parallel} = \{6\}} \qquad
+   {\color{dim}R_{\mathrm{setting}} = \text{any}} \\[12pt]
+  \text{\color{acc}settle?} \quad &L \in R \\[4pt]
+  \text{\color{acc}up?} \quad &\len(t+1,a) \text{ is closer to } R \text{ than } \len(t-1,a) \\[12pt]
+  t_{\mathrm{after}} &= \begin{cases}
+      t   & \text{settle} \\
+      t+1 & \text{up} \\
+      t-1 & \text{otherwise}
+    \end{cases}
+\end{aligned}
+\]
+\end{document}
