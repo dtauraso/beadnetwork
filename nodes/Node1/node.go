@@ -102,7 +102,7 @@ type Node struct {
 	Top *tiltState
 
 	// Machine is THIS NODE'S tilt machine — one instance, carrying which mode it is in. The
-	// modes differ only in the separations they call home (machine.go). A node has to know
+	// modes differ only in the angle lengths they call home (machine.go). A node has to know
 	// which it is in, because that is what says where it is returning to when something
 	// disturbs it.
 	//
@@ -261,7 +261,7 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 //	anything else (acute)      ->  parallel
 func (n *Node) machineForGap(arrival *tiltState) Wiring.TiltMachine {
 	partnerTilt := arrival.quarter.opposite // arrival + three quarters = arrival − a quarter
-	if n.topState().separation(partnerTilt) == n.ringOf().quarterTurn {
+	if n.topState().angleLength(partnerTilt) == n.ringOf().quarterTurn {
 		return Wiring.TiltMachinePerpendicular
 	}
 	return Wiring.TiltMachineParallel
@@ -492,8 +492,8 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 // stepFromVector decides whether an arrived direction turns this node at all, and if so which
 // way. THERE ARE TWO TARGETS, and a node is returning to exactly one of them:
 //
-//		PERPENDICULAR   separation 0 or a half turn   the two tilts are a quarter turn apart
-//		PARALLEL        separation a quarter turn     the two tilts on one line, either way round
+//		PERPENDICULAR   angle length 0 or a half turn   the two tilts are a quarter turn apart
+//		PARALLEL        angle length a quarter turn     the two tilts on one line, either way round
 //
 //	  - not holding either yet -> the first halt reached is taken up, and the node stops there.
 //	  - holding one, arrival IS it -> stand still. Nothing else writes what is held, so an
@@ -501,9 +501,9 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 //	  - otherwise -> ONE step, the way that leaves this node nearer its own halt (stepToward).
 //
 // The other halt is stepped straight over. It has to be: the two sit a quarter turn apart in
-// separation, so the walk back to one crosses the other, and a node that stopped at any halt
+// angle length, so the walk back to one crosses the other, and a node that stopped at any halt
 // was taken by whichever it touched first — the log showed a pair holding perpendicular walk
-// correctly toward separation 0, meet 12 on the way, and take up parallel there, in both
+// correctly toward angle length 0, meet 12 on the way, and take up parallel there, in both
 // directions of disturbance.
 //
 // Both ends of a pair run this same unmodified rule, and both directions of travel are links
@@ -527,9 +527,9 @@ func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
 	// up near perpendicular could never be asked to run the parallel machine.
 	//
 	// A node still in the setting mode — before any click, or after a reset — moves nothing, and
-	// needs no test here to make that happen: every separation is that mode's home, so it is
+	// needs no test here to make that happen: every angle length is that mode's home, so it is
 	// already halted wherever it stands and the step below is not reached.
-	if !n.Machine.halted(before, arrival) {
+	if !n.Machine.settled(before, arrival) {
 		n.Top = n.Machine.step(before, arrival)
 	}
 	return true

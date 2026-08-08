@@ -143,24 +143,32 @@ loop body) runs:
   message) — REPLACING whatever it received last time,
   regardless of whether the step below fires. THEN the step decision (`stepFromVector`):
   THERE ARE TWO TARGETS, and each has its own halt. The arrival is the partner's normal,
-  already a quarter turn off the partner's tilt, so the separation between it and this node's
-  own TOP says what the two TILTS are doing:
+  already a quarter turn off the partner's tilt, so the ANGLE LENGTH between it and this node's
+  own TOP says what the two TILTS are doing. The angle length (`angleLength`) is how many ring
+  slots lie between two directions, counted the short way round, so never more than a half turn:
 
-  | separation | the two tilts | halt |
+  | angle length | the two tilts | mode that rests here |
   | --- | --- | --- |
   | 0, or a half turn | a quarter turn apart | PERPENDICULAR |
   | a quarter turn | on one line, either way round | PARALLEL |
 
   Each is a MODE of the one state machine (`nodes/Node1/machine.go`), and a mode is nothing but
-  its HOME SET — the separations it calls a resting state: `{ 0, half }` for perpendicular and
-  `{ quarter }` for parallel, both rows in `homeSets`. The rule that walks toward a home set is
-  written once and never asks which mode it is running for.
+  the list of angle lengths it RESTS at: `{ 0, half }` for perpendicular and `{ quarter }` for
+  parallel, both rows in `restingLengths`. The rule that turns toward them is written once and
+  never asks which mode it is running for.
 
   There is a THIRD mode, `setting`, for a node that has not yet decided which of the two it runs —
-  before the first arrival, and again after a reset. It is a mode and not an absence of one: its
-  home set is EVERY separation, so it is already at rest wherever it stands and an arrival moves it
+  before the first arrival, and again after a reset. It is a mode and not an absence of one: it
+  rests at EVERY angle length, so it is already at rest wherever it stands and an arrival moves it
   nothing, by the ordinary rule rather than by an exemption from it. Its pair-wide choice is
   `TiltMachineNone`, so a node in it tells the other end nothing, which is all it has to say.
+
+  ONE ARRIVAL ANSWERS TWO YES-OR-NO QUESTIONS. Is this angle length one the mode rests at
+  (`settled`)? If so the node stays put and sends nothing. If not, is the neighbour above closer to
+  a resting length than the one below (`step`, and a tie turns up)? Then it turns ONE slot. Nothing
+  is remembered between arrivals: no distance is stored, no walk is planned, and the next arrival
+  re-derives all of it. `fromRest` is the comparison that answers both, computed and discarded
+  inside the one arrival.
 
   A node holds ONE `tiltMachine` (`Machine`), whose only state is which mode it is in — the same
   `Wiring.TiltMachine` value the two ends say to each other. Its zero value is `setting`, so a node
@@ -193,8 +201,8 @@ loop body) runs:
   If it turned (or answered while square), report the new indices to its own geometry
   (`syncTiltIndex`) and send the outgoing vector above, alongside the bead.
 - **No float hazard to handle**: there is no dot product here at all. Both operands are
-  single θ indices on the same lattice, and each machine's own `miss` measures the distance to
-  its own halt in integer ring hops — not `cos(...)` landing near zero and needing an epsilon
+  single θ indices on the same lattice, and `miss` measures the distance to the mode's nearest
+  home in integer ring hops — not `cos(...)` landing near zero and needing an epsilon
   band.
 - **Received-vector RESET**: a Reset marker arriving on `VectorIn` zeroes this node's
   tilt (as above) AND clears its own received-vector record

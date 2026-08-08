@@ -32,18 +32,18 @@ func TestPerpendicularHaltsOnItsOwnTwoSeparations(t *testing.T) {
 	m := perpendicular
 	top := r.at(0)
 
-	// The arrival on this node's own top (separation 0) and on its bottom (a half turn) are the
+	// The arrival on this node's own top (angle length 0) and on its bottom (a half turn) are the
 	// same relationship seen from the two ends of the pair, since each receives the other's
 	// normal. Both are this machine's halt.
 	for _, sep := range []int32{0, r.halfTurn} {
-		if !m.halted(top, r.at(sep)) {
-			t.Errorf("separation %d is perpendicular and must halt this machine", sep)
+		if !m.settled(top, r.at(sep)) {
+			t.Errorf("angle length %d is perpendicular and must halt this machine", sep)
 		}
 	}
 	// A quarter turn is PARALLEL. This machine must walk over it, not stop on it: stopping at
 	// any halt let a disturbed perpendicular pair meet a quarter turn on the way home and take
 	// up parallel there, in both directions of disturbance.
-	if m.halted(top, r.at(r.quarterTurn)) {
+	if m.settled(top, r.at(r.quarterTurn)) {
 		t.Error("a quarter turn is parallel — the perpendicular machine must step over it, not halt")
 	}
 }
@@ -53,19 +53,19 @@ func TestParallelHaltsOnlyOnAQuarterTurn(t *testing.T) {
 	m := parallel
 	top := r.at(0)
 
-	if !m.halted(top, r.at(r.quarterTurn)) {
+	if !m.settled(top, r.at(r.quarterTurn)) {
 		t.Error("a quarter turn is parallel and must halt this machine")
 	}
 	for _, sep := range []int32{0, r.halfTurn} {
-		if m.halted(top, r.at(sep)) {
-			t.Errorf("separation %d is perpendicular — the parallel machine must step over it", sep)
+		if m.settled(top, r.at(sep)) {
+			t.Errorf("angle length %d is perpendicular — the parallel machine must step over it", sep)
 		}
 	}
 }
 
 func TestEachMachineStepsTowardItsOwnHalt(t *testing.T) {
 	r := testRing()
-	// Every starting separation, both machines: one step must never leave the node further from
+	// Every starting angle length, both machines: one step must never leave the node further from
 	// its own halt than it was. This is the property the whole rule rests on, and the acute test
 	// broke it at exactly one place — a quarter turn, where it reported "not acute" and the rule
 	// read that as stand still.
@@ -74,15 +74,15 @@ func TestEachMachineStepsTowardItsOwnHalt(t *testing.T) {
 		top := r.at(0)
 
 		perp := perpendicular
-		if !perp.halted(top, arrival) {
-			if got, was := perp.miss(perp.step(top, arrival), arrival), perp.miss(top, arrival); got >= was {
-				t.Errorf("perpendicular at separation %d: step left miss at %d, was %d", sep, got, was)
+		if !perp.settled(top, arrival) {
+			if got, was := perp.fromRest(perp.step(top, arrival), arrival), perp.fromRest(top, arrival); got >= was {
+				t.Errorf("perpendicular at angle length %d: step left miss at %d, was %d", sep, got, was)
 			}
 		}
 		par := parallel
-		if !par.halted(top, arrival) {
-			if got, was := par.miss(par.step(top, arrival), arrival), par.miss(top, arrival); got >= was {
-				t.Errorf("parallel at separation %d: step left miss at %d, was %d", sep, got, was)
+		if !par.settled(top, arrival) {
+			if got, was := par.fromRest(par.step(top, arrival), arrival), par.fromRest(top, arrival); got >= was {
+				t.Errorf("parallel at angle length %d: step left miss at %d, was %d", sep, got, was)
 			}
 		}
 	}
@@ -91,20 +91,20 @@ func TestEachMachineStepsTowardItsOwnHalt(t *testing.T) {
 func TestPerpendicularStepsThroughTheParallelHalt(t *testing.T) {
 	r := testRing()
 	m := perpendicular
-	// Standing one step off a quarter turn, walking home to separation 0, this machine must pass
+	// Standing one step off a quarter turn, walking home to angle length 0, this machine must pass
 	// over the quarter turn rather than stop on it. Sitting still here is the freeze the acute
 	// test produced; halting here is the capture that produced a parallel pair from a
 	// perpendicular one.
 	top := r.at(r.quarterTurn + 1)
 	arrival := r.at(0)
-	if m.halted(top, arrival) {
+	if m.settled(top, arrival) {
 		t.Fatal("one step off a quarter turn is not the perpendicular halt")
 	}
 	stepped := m.step(top, arrival)
 	if stepped == top {
 		t.Fatal("the perpendicular machine stood still one step off a quarter turn")
 	}
-	if m.halted(stepped, arrival) == false && m.miss(stepped, arrival) >= m.miss(top, arrival) {
+	if m.settled(stepped, arrival) == false && m.fromRest(stepped, arrival) >= m.fromRest(top, arrival) {
 		t.Error("the step did not close on the perpendicular halt")
 	}
 }
@@ -119,10 +119,10 @@ func TestTheTwoMissesAreComplements(t *testing.T) {
 	top := r.at(0)
 	for sep := int32(0); sep < r.points; sep++ {
 		arrival := r.at(sep)
-		perp := perpendicular.miss(top, arrival)
-		par := parallel.miss(top, arrival)
+		perp := perpendicular.fromRest(top, arrival)
+		par := parallel.fromRest(top, arrival)
 		if perp+par != r.quarterTurn {
-			t.Errorf("separation %d: perpendicular miss %d + parallel miss %d = %d, want the quarter turn %d",
+			t.Errorf("angle length %d: perpendicular miss %d + parallel miss %d = %d, want the quarter turn %d",
 				sep, perp, par, perp+par, r.quarterTurn)
 		}
 	}
@@ -130,7 +130,7 @@ func TestTheTwoMissesAreComplements(t *testing.T) {
 
 // TestAModeHaltsExactlyOnItsHomeSet checks that the shared rule agrees with each mode's declared
 // data: halted is true at exactly the declared homes and nowhere else, for every mode in the
-// table. It reads the home set rather than naming separations, so a mode added to the table is
+// table. It reads the home set rather than naming angle lengths, so a mode added to the table is
 // covered here without editing this test.
 //
 // It cannot catch a home set that is simply WRONG — both sides of the comparison move together —
@@ -141,15 +141,15 @@ func TestAModeHaltsExactlyOnItsHomeSet(t *testing.T) {
 	top := r.at(0)
 	for _, m := range []tiltMachine{setting, perpendicular, parallel} {
 		home := map[int32]bool{}
-		for _, h := range m.homes(r) {
+		for _, h := range m.resting(r) {
 			home[h] = true
 		}
 		for sep := int32(0); sep < r.points; sep++ {
-			// separation folds the long way round into the short one, so the halt is asked
+			// angle length folds the long way round into the short one, so the halt is asked
 			// about the folded reading — which is the number a home set is written in.
-			folded := top.separation(r.at(sep))
-			if got := m.halted(top, r.at(sep)); got != home[folded] {
-				t.Errorf("%v at separation %d (folds to %d): halted=%v, home set says %v",
+			folded := top.angleLength(r.at(sep))
+			if got := m.settled(top, r.at(sep)); got != home[folded] {
+				t.Errorf("%v at angle length %d (folds to %d): halted=%v, home set says %v",
 					m, sep, folded, got, home[folded])
 			}
 		}
@@ -163,12 +163,12 @@ func TestSeparationIsTheShortWayRound(t *testing.T) {
 	// state.
 	for a := int32(0); a < r.points; a++ {
 		for b := int32(0); b < r.points; b++ {
-			sep := r.at(a).separation(r.at(b))
+			sep := r.at(a).angleLength(r.at(b))
 			if sep < 0 || sep > r.halfTurn {
-				t.Fatalf("separation(%d,%d) = %d is outside 0..%d", a, b, sep, r.halfTurn)
+				t.Fatalf("angleLength(%d,%d) = %d is outside 0..%d", a, b, sep, r.halfTurn)
 			}
-			if back := r.at(b).separation(r.at(a)); back != sep {
-				t.Fatalf("separation(%d,%d) = %d but separation(%d,%d) = %d", a, b, sep, b, a, back)
+			if back := r.at(b).angleLength(r.at(a)); back != sep {
+				t.Fatalf("angleLength(%d,%d) = %d but angleLength(%d,%d) = %d", a, b, sep, b, a, back)
 			}
 		}
 	}
@@ -207,7 +207,7 @@ func TestMachineIsReadFromTheGapNotFromOneTilt(t *testing.T) {
 
 // TestASettingNodeHoldsWhereverItStands is the behaviour that used to be an `if Machine == nil`
 // exemption in stepFromVector and is now a consequence of the setting mode's home set: a node
-// still deciding which machine it runs is already halted at every separation, so no arrival can
+// still deciding which machine it runs is already halted at every angle length, so no arrival can
 // move it. A zero-value Node is in that mode without being put there.
 func TestASettingNodeHoldsWhereverItStands(t *testing.T) {
 	r := testRing()
@@ -218,7 +218,7 @@ func TestASettingNodeHoldsWhereverItStands(t *testing.T) {
 		}
 		n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: sep})
 		if n.Top != r.at(5) {
-			t.Errorf("arrival at separation %d moved a node that is still being set up: top %d, want 5",
+			t.Errorf("arrival at angle length %d moved a node that is still being set up: top %d, want 5",
 				sep, n.Top.idx)
 		}
 	}
@@ -303,7 +303,7 @@ func runOpening(r *ring, tiltA, tiltB int32) openingOutcome {
 			n.adoptMachine(n.machineForGap(arrival))
 		}
 		before := n.topState()
-		if !n.Machine.halted(before, arrival) {
+		if !n.Machine.settled(before, arrival) {
 			n.Top = n.Machine.step(before, arrival)
 		}
 		return n.topState() != before
@@ -323,7 +323,7 @@ func runOpening(r *ring, tiltA, tiltB int32) openingOutcome {
 		}
 	}
 	out.machine = runs(b)
-	out.tiltGap = a.topState().separation(b.topState())
+	out.tiltGap = a.topState().angleLength(b.topState())
 	return out
 }
 
@@ -356,7 +356,7 @@ func TestEveryOpeningSettlesOnTheMachineItChose(t *testing.T) {
 			// Settling means the two TILTS ended in the relationship the chosen machine is for.
 			// PARALLEL ACCEPTS TWO OF THEM: the same direction, and a half turn apart, which is
 			// the same LINE with the arrows reversed. The halt cannot tell those apart, because
-			// separation folds the long way round into the short one and a reversed partner
+			// angle length folds the long way round into the short one and a reversed partner
 			// lands the same distance off. Perpendicular has the one, a quarter turn.
 			ok := got.tiltGap == r.quarterTurn
 			if got.machine == Wiring.TiltMachineParallel {
