@@ -165,9 +165,13 @@ BODIES = {
     \qquad {\color{dim}\text{from the bottom}} \\[6pt]
   \quad {\color{dim}\text{the ends are a half turn apart, so } u \text{ and } v
     \text{ differ by } 12} \\[4pt]
-  \quad {\color{dim}\text{— exactly one of them is under } 12} \\[6pt]
-  \quad \text{that one is its own end's reading} \\[4pt]
-  \quad \text{the other end reads } 12 \text{ minus it}
+  \quad {\color{dim}\text{— exactly one of them is under } 12} \\[9pt]
+  \quad \text{\color{acc}each end's reading: the one under } 12,
+    \text{ and } 12 \text{ minus it} \\[5pt]
+  \quad u < 12 : \qquad \ell_{\mathrm{top}} = u, \qquad\;\;
+    \ell_{\mathrm{bottom}} = 12 - u \\[4pt]
+  \quad \text{else} : \qquad\;\; \ell_{\mathrm{bottom}} = v, \qquad
+    \ell_{\mathrm{top}} = 12 - v
 """,
     "closed-far": r"""
   \quad \text{\color{acc}how far off the quarter — the same for both ends} \\[4pt]
@@ -183,17 +187,14 @@ BODIES = {
     # away, so it needs a comparison to get direction back. Keep the SIGNED gap instead and
     # both arrangements are one line, differing by a shift of 6 inside the modulus.
     "closed-round": r"""
-  \quad \text{\color{acc}each arrangement has a line, and a line has two ends} \\[5pt]
-  \quad {\color{perp}\text{perpendicular} : \; \text{the tilt line} \quad t,\; t+12} \\[4pt]
-  \quad {\color{par}\text{parallel} : \; \text{the normal line} \quad t+6,\; t+18} \\[9pt]
-  \quad \text{\color{acc}read } a \text{ off both ends, and keep the smaller} \\[5pt]
-  \quad f(u) = \min\bigl(\len(u,\, a),\; \len(u+12,\, a)\bigr) \\[4pt]
-  \quad {\color{dim}u = t \text{ perpendicular},\; t+6 \text{ parallel}} \\[4pt]
-  \quad {\color{dim}\text{the two readings sum to } 12; \text{ neither is ever negative}} \\[9pt]
-  \quad {\color{acc}f(t) = 0 :} \quad t_{\mathrm{after}} = t
-    \quad {\color{dim}a \text{ is on the line}} \\[5pt]
-  \quad {\color{acc}\text{else} :} \quad t_{\mathrm{after}} =
-    \text{whichever of } t_{+1},\, t_{-1} \text{ reads smaller}
+  \quad {\color{dim}f \text{ is a reading of the tilt } t, \text{ so } t_{+1}
+    \text{ and } t_{-1} \text{ have their own}} \\[9pt]
+  \quad {\color{acc}f = 0 :} \qquad t_{\mathrm{after}} = t \\[5pt]
+  \quad {\color{acc}\text{else} :} \qquad t_{\mathrm{after}} =
+    \text{whichever of } t_{+1},\, t_{-1} \text{ has the smaller } f \\[9pt]
+  \quad {\color{dim}f = 0 \text{ is } a \text{ lying on one of this node's own lines:}} \\[4pt]
+  \qquad {\color{perp}\text{perpendicular} \; — \; \text{the tilt line} \quad t,\; b} \\[4pt]
+  \qquad {\color{par}\text{parallel} \; — \; \text{the normal line} \quad t+6,\; b+6}
 """,
     "closed-run": r"""
   \quad {\color{acc}\text{messages}} \;=\; f(t) \\[7pt]

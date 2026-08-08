@@ -56,7 +56,7 @@
     <div class="card wide">
       <h2>Two numbers, one arrow each</h2>
       <img class="math" src="update-closed-numbers.svg" style="width:724px"
-        alt="t and a are in {0, 1, ..., 23}. This node: tilt = t, normal = t + 6, bottom = b = t + 12 mod 24; only t moves, the other two are read off it. The partner: tilt = p, normal = p + 6. a = p + 6 — a IS the partner's normal, and its tilt p is never seen. Count from each end of the tilt line up to a: u = t - a mod 24, from the top; v = b - a mod 24, from the bottom. The ends are a half turn apart, so u and v differ by 12 — exactly one of them is under 12. That one is its own end's reading, and the other end reads 12 minus it.">
+        alt="t and a are in {0, 1, ..., 23}. This node: tilt = t, normal = t + 6, bottom = b = t + 12 mod 24; only t moves, the other two are read off it. The partner: tilt = p, normal = p + 6. a = p + 6 — a IS the partner's normal, and its tilt p is never seen. Count from each end of the tilt line up to a: u = t - a mod 24, from the top; v = b - a mod 24, from the bottom. The ends are a half turn apart, so u and v differ by 12 — exactly one of them is under 12. Each end's reading is the one under 12, and 12 minus it: if u is under 12 then L top = u and L bottom = 12 - u; otherwise L bottom = v and L top = 12 - v.">
       <div class="keynote">
         <p>a is a normal, so the quarter turn is already in it before anything is measured. That is
           why the two arrangements come out 6 apart rather than 0 and 6 — the shift is in a itself,
@@ -90,17 +90,15 @@
 
     <div class="card wide">
       <h2>Where it is after one message</h2>
-      <img class="math" src="update-closed-round.svg" style="width:544px"
-        alt="Each arrangement has a line, and a line has two ends. Perpendicular: the tilt line, t and t + 12. Parallel: the normal line, t + 6 and t + 18. Read a off both ends and keep the smaller: f(u) = min(angleLength(u, a), angleLength(u + 12, a)), with u = t for perpendicular and t + 6 for parallel. The two readings sum to 12 and neither is ever negative. If f(t) = 0 then t after = t, a is on the line; else t after is whichever of t + 1, t - 1 reads smaller.">
+      <img class="math" src="update-closed-round.svg" style="width:556px"
+        alt="f is a reading of the tilt t, so t + 1 and t - 1 have their own. If f = 0 then t after = t; else t after is whichever of t + 1, t - 1 has the smaller f. f = 0 is a lying on one of this node's own lines: perpendicular, the tilt line t and b; parallel, the normal line t + 6 and b + 6.">
       <div class="keynote">
-        <p>nothing here is negative and nothing is a sign. A node draws both ends of its line, and
-          reading a off both is what a single number cannot do — collapse the pair and
-          the second reading has to come back as the sign of the first</p>
-        <p>each arrangement stops when a lands ON one of the node's own drawn lines:
-          perpendicular on the tilt itself, parallel on the normal. That is what its two stopping
-          values are — the two ends of one line</p>
-        <p>so the two readings always sum to 12, and f is the smaller of them. No subtraction from
-          6, and no separate rule per arrangement — only which line is read</p>
+        <p>f is the one from the card above — nothing new is measured here. A tilt is a number, so
+          f can be asked of t + 1 and t − 1 as readily as of t, and the three answers are the whole
+          round</p>
+        <p>nothing here is negative and nothing is a sign. Two readings of one line are what a
+          single number cannot be — collapse the pair and the second has to come back as the sign
+          of the first</p>
         <p>the cost is the comparison in the last line, which the signed version bought its way out
           of. That is the whole trade: one number and a sign, or two readings and no sign</p>
         <p>readings summing to 12, stopping on a drawn line, and f being the smaller reading are
