@@ -30,6 +30,23 @@ BODIES = {
   L \;=\; \len(t,a) = \min(d,\; 24 - d)
 """,
     # machineForGap: the third way R changes, and the only one that reads the arrival.
+    # both machines as (states, inputs, transition function)
+    "machine-tilt": r"""
+  S = \mathbb{Z}_{24} \qquad \Sigma = \{\,\mathrm{next},\; \mathrm{prev}\,\} \\[6pt]
+  \delta(t,\, \mathrm{next}) = t + 1 \pmod{24} \\[4pt]
+  \delta(t,\, \mathrm{prev}) = t - 1 \pmod{24}
+""",
+    "machine-mode": r"""
+  S = \{\, {\color{dim}R_{\mathrm{setting}}},\; {\color{perp}R_{\perp}},\;
+        {\color{par}R_{\parallel}} \,\}
+  \qquad \Sigma = \{\, a,\; \mathrm{reset} \,\} \\[6pt]
+  \delta(R_{\mathrm{setting}},\, a) = \begin{cases}
+      {\color{perp}R_{\perp}}    & \len(t,\, a_{-6}) = 6 \\
+      {\color{par}R_{\parallel}} & \text{otherwise}
+    \end{cases} \\[6pt]
+  \delta(R,\, a) = R \qquad R \neq R_{\mathrm{setting}} \\[4pt]
+  \delta(R,\, \mathrm{reset}) = R_{\mathrm{setting}}
+""",
     "choose": r"""
   \text{\color{acc}when } R_{\mathrm{before}} = R_{\mathrm{setting}} : \\[7pt]
   \quad t_{\mathrm{partner}} = a_{-6} \\[5pt]

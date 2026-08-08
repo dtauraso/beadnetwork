@@ -1,0 +1,11 @@
+% update-machine-tilt.tex — one block of the update. Shared setup is pairmath.sty,
+% which also carries the rebuild command.
+\documentclass[12pt]{article}
+\usepackage{pairmath}
+\begin{document}
+\[\begin{array}{@{}l@{}}
+  S = \mathbb{Z}_{24} \qquad \Sigma = \{\,\mathrm{next},\; \mathrm{prev}\,\} \\[6pt]
+  \delta(t,\, \mathrm{next}) = t + 1 \pmod{24} \\[4pt]
+  \delta(t,\, \mathrm{prev}) = t - 1 \pmod{24}
+\end{array}\]
+\end{document}

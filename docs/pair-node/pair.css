@@ -180,6 +180,25 @@
       margin: 4px 0 2px
     }
 
+    /* Names the figure directly below it, when a card carries more than one and they
+       would otherwise run together. */
+    .figlabel {
+      margin: 16px 0 0;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--accent)
+    }
+
+    /* A sentence or two setting up what a card shows, above the figure rather than under
+       it. Same size as .keynote so the card reads as one voice. */
+    .lead {
+      max-width: 62ch;
+      margin: 2px 0 12px;
+      font-size: 14px;
+      line-height: 1.55;
+      color: var(--dim)
+    }
+
     /* The notes that belong to a drawing, kept OUT of the svg so they stay page-size
        when the drawing scales down. Larger than .cap because these are the point of
        the card, not an aside. */
