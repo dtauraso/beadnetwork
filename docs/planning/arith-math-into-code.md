@@ -54,6 +54,36 @@ fails on a citation whose target no longer exists.
 which is why fromRest cannot ask which mode it is computing for", plus the whole "Where each mode
 rests" card. That page would be describing a machine that no longer exists.
 
+## Both ends are stored, and the update drives the nearer one
+
+A second change, decided after the first was written, and the reason the page and the code still
+read differently even once the arithmetic matches.
+
+Today `Top` is the only stored tilt and `Bottom` is `Top.opposite`, a link. So every update is
+written to `Top` — including the half where the angle was read off the BOTTOM. The page inherits
+that: its second half measures `v` at the bottom and then says `t_after = t ± 1`.
+
+Target: store both ends, and have an update write the end it measured.
+
+```
+u < 12   →  Top    = Top ± 1        then Bottom = Top.opposite
+u ≥ 12   →  Bottom = Bottom ± 1     then Top    = Bottom.opposite
+```
+
+Behaviour is unchanged — `b = t + 12`, so moving either end moves both — but the code then says
+WHICH end was driven, and the page's two halves become symmetric: each measures an end and moves
+that end.
+
+What this touches beyond the arithmetic:
+
+- `Node.Top`'s doc comment calls itself "The ONE writer, full stop". That becomes two writers of
+  one line, and the comment has to say how they cannot disagree: each writes the other from its
+  own `opposite` in the same step.
+- Persistence is unaffected — `position.json` keeps one angle, and the second end is still
+  derivable. Storing it is about which end an update names, not about what survives a reload.
+- `syncTiltIndex` already reports all three arrows; it keeps doing so from whichever end moved.
+- The page's `u ≥ 12` half changes `t_after` to `b_after`, and says `t` follows.
+
 ## Order
 
 1. `machine.go`: add the page's arithmetic beside the existing rule, not replacing it — a
@@ -63,6 +93,9 @@ rests" card. That page would be describing a machine that no longer exists.
 3. Switch `settled`, `step` and `fromRest` to the new arithmetic. Delete `restingLengths` and
    `resting`. Rewrite the header comment to say what the rule now is and why the mode branch is
    acceptable here.
+3a. Store both ends on `Node` and have the update drive the nearer one, writing the other from its
+   `opposite` in the same step. Rewrite `Top`'s "ONE writer" comment to say why two writers of one
+   line cannot disagree.
 4. Repoint the nine citations. `bash tools/check-docs-symbols.sh` names each failure.
 5. Rewrite `updates.html`'s resting-length card and the two keynote lines that argue for the list.
 6. `MODEL.md` and `.claude/rules/node-kinds.md` — grep for `restingLengths` and for "a mode
