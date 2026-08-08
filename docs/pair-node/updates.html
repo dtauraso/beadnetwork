@@ -61,6 +61,8 @@
         <div class="keynote">
           <p><code>t ∈ {0 … 23}</code></p>
           <p>a state, not a number — t ± 1 follows a link. 6 is a quarter turn, 12 a half</p>
+          <p>t is the node's TILT, and the whole of what it stores — one state, persisted as one
+            angle. The normal and the bottom on the next card are read off it</p>
           <p><code>angle = (π/12) · t</code></p>
           <p>the only thing that leaves this kind</p>
           <p><i class="sw" style="background:#4ea1ff"></i>23 → 0 — one link like any other, and the
@@ -81,6 +83,14 @@
           <p><i class="sw" style="background:#4ea1ff"></i>t + 6 — the normal, and what it sends</p>
           <p><i class="sw" style="background:#9a9aa6"></i>t + 12 — the bottom</p>
           <p>links, not sums — the triad turns as one, and nothing wraps</p>
+          <p>ONLY t is updated, and only ever by this node's own loop
+            (<span data-src="nodes/Node1/node.go#Top">Top</span>). The normal and the bottom are
+            links off it — <span data-src="nodes/Node1/ring.go#tiltState">quarter</span> and
+            <span data-src="nodes/Node1/ring.go#tiltState">opposite</span> — so they are not two
+            more vectors to move, and cannot fall out of step with the tilt</p>
+          <p>the normal is what LEAVES
+            (<span data-src="nodes/Node1/node.go#outgoingVector">outgoingVector</span>); the bottom
+            is drawn and never sent</p>
         </div>
         <img class="math" src="update-read.svg" style="width:184px"
           alt="normal(t) = t+6. bottom(t) = t+12. sends = normal(t). angle(i) = (pi/12) i.">
@@ -243,6 +253,8 @@
             searched and no minimum is taken</p>
           <p>the two f lines being 6 apart is the <a href="audit.html">audit</a>'s "one mode is the
             other upside down", written as arithmetic</p>
+          <p>t_after is the TILT, and it is the only thing an update writes. The normal and the
+            bottom follow because they are links off it, not because anything moves them</p>
           <p>f is computed inside the arrival and thrown away — it is not a countdown, and no walk
             is planned from it. One arrival turns the tilt at most one slot</p>
           <p>the deciding never names a mode — by the time it runs, the mode is spent, having
