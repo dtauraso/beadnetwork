@@ -235,18 +235,20 @@
 
       <div class="card wide">
         <h2>Which slot to go to — measure, then decide</h2>
-        <img class="math" src="update-decide-turn.svg" style="width:647px"
-          alt="Measure: L is angleLength(u, a), the angle length from u to what arrived; R is the lengths this mode rests at, a list of numbers; and f(u) is the smallest |L - r| over the r in R. Then decide: if f(t) = 0, stay at t; else if f(t plus one) is less than or equal to f(t minus one), go to t plus one; else go to t minus one.">
+        <img class="math" src="update-decide-turn.svg" style="width:318px"
+          alt="Measure: L(u) = angleLength(u, a), and f(u) = the minimum over r in R of |L(u) - r|. Then decide: f(t) = 0 gives t after = t; f(t plus one) less than or equal to f(t minus one) gives t after = t plus one; else t after = t minus one.">
         <div class="keynote">
+          <p>ℓ is the angle length from a state to what arrived; R is the list this mode rests at,
+            two cards up; f is the distance from ℓ to the nearest entry of R</p>
           <p>f is computed inside the arrival and thrown away — it is not a countdown, and no walk
             is planned from it. One arrival turns the tilt at most one slot</p>
           <p>neither branch names a mode. The mode is in R, as a list of numbers, which is why
             <span data-src="nodes/Node1/machine.go#fromRest">fromRest</span> cannot ask which mode
             it is computing for</p>
-          <p>the three measure lines are the three the code does:
-            <span data-src="nodes/Node1/ring.go#angleLength">angleLength</span> for ℓ,
-            <span data-src="nodes/Node1/machine.go#resting">resting</span> for R — the one line the
-            mode enters through — and a minimum over that list for f</p>
+          <p>the measure lines are what the code does:
+            <span data-src="nodes/Node1/ring.go#angleLength">angleLength</span> for ℓ, then a
+            minimum over the list <span data-src="nodes/Node1/machine.go#resting">resting</span>
+            returns — that call is the one line the mode enters through</p>
           <p>f takes the state as its argument, which is what lets the same function answer both
             branches: <span data-src="nodes/Node1/machine.go#settled">settled</span> asks it about t,
             <span data-src="nodes/Node1/machine.go#step">step</span> asks it about t ± 1</p>
