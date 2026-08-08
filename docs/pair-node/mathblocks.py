@@ -152,8 +152,8 @@ BODIES = {
   \quad \text{\color{acc}this node} \quad
     \text{tilt} = t \qquad \text{normal} = t+6 \qquad \text{bottom} = t+12 \\[4pt]
   \quad {\color{dim}\text{only } t \text{ moves; the other two are read off it}} \\[9pt]
-  \quad \text{\color{acc}what arrives} \quad a = t' + 6
-    \quad {\color{dim}t' \text{ is the partner's tilt; it sends its normal}} \\[9pt]
+  \quad \text{\color{acc}what arrives} \quad a = p + 6
+    \quad {\color{dim}\text{the partner's normal, not its tilt}} \\[9pt]
   \quad \text{\color{acc}which way, and how far, from } a \text{ to } t \\[4pt]
   \quad d = t - a
     \quad {\color{dim}-23 \le d \le 23, \text{ negative when } a > t} \\[9pt]
