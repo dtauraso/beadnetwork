@@ -58,18 +58,12 @@
       <img class="math" src="update-closed-numbers.svg" style="width:724px"
         alt="t and a are in {0, 1, ..., 23}. This node: tilt = t, normal = t + 6, bottom = b = t + 12 mod 24; only t moves, the other two are read off it. The partner: tilt = p, normal = p + 6. a = p + 6 — a IS the partner's normal, and its tilt p is never seen. Count from each end of the tilt line up to a: u = t - a mod 24, from the top; v = b - a mod 24, from the bottom. One test, on each count: which way round is the acute one. If u is 12 or more, replace it with 24 - u, and the same for v. Then u + v = 12 — the ends are a half turn apart, so the two distances share it.">
       <div class="keynote">
-        <p>a is a normal, so the quarter turn is already in it before anything is measured. That is
-          why the two arrangements come out 6 apart rather than 0 and 6 — the shift is in a itself,
-          not applied afterwards</p>
-        <p>one test, run on each count separately — neither end is defined in terms of the other,
-          and no third quantity is introduced to hold the answer. u and v go in as counts and come
-          out as distances</p>
-        <p>t = 11 against a = 0: the bottom is b = 23, so u = 11 and v = 23. u is under 12 and
-          stands; v becomes 24 − 23 = 1. The top is 11 slots off a, the bottom 1</p>
-        <p>they sum to 12 afterwards because the ends are a half turn apart — not because one was
-          computed from the other</p>
-        <p>neither count says which way to turn — they are counts, not directions. Nothing here
-          needs one: two readings say between them what a single number and a sign would have to</p>
+        <p><b>t</b> — this node's tilt, the only thing it stores</p>
+        <p><b>b</b> — its bottom, the other end of the same line</p>
+        <p><b>p</b> — the partner's tilt, never seen by this node</p>
+        <p><b>a</b> — what this node has: the partner's normal</p>
+        <p><b>u, v</b> — slots from the top, and from the bottom, to a</p>
+        <p>worked: t = 11, a = 0, b = 23 → u = 11, v = 23 → v becomes 1</p>
       </div>
     </div>
 
@@ -80,11 +74,11 @@
       <img class="math" src="update-closed-far.svg" style="width:504px"
         alt="How far off the quarter, the same from either end: q = |u - 6| = |v - 6|. How far off stopping: perpendicular stops when an end reads 0, and f = min(u, v) = 6 - q; parallel stops when both ends read 6, and f = q.">
       <div class="keynote">
-        <p>q is the same off either end, because the two readings sum to 12 and 6 is halfway. That
-          is why one q settles both arrangements, and why their two f are complements — the same
-          fact the <a href="audit.html">audit</a> found by drawing them</p>
-        <p>parallel stopping when BOTH ends read 6 is the same statement as a lying on the normal
-          line: a quarter turn from each end of the tilt line is the normal and its opposite</p>
+        <p><b>q</b> — slots from either end's distance to the quarter</p>
+        <p><b>f</b> — slots this node is off stopping</p>
+        <p>q is the same off either end because u + v = 12 and 6 is halfway, which is why one q
+          settles both arrangements and their two f are complements
+          (<a href="audit.html">audit</a>)</p>
       </div>
     </div>
 
@@ -95,16 +89,10 @@
       <img class="math" src="update-closed-round.svg" style="width:556px"
         alt="f is a reading of the tilt t, so t + 1 and t - 1 have their own. If f = 0 then t after = t; else t after is whichever of t + 1, t - 1 has the smaller f. f = 0 is a lying on one of this node's own lines: perpendicular, the tilt line t and b; parallel, the normal line t + 6 and b + 6.">
       <div class="keynote">
-        <p>f is the one from the card above — nothing new is measured here. A tilt is a number, so
-          f can be asked of t + 1 and t − 1 as readily as of t, and the three answers are the whole
-          round</p>
-        <p>nothing here is negative and nothing is a sign. Two readings of one line are what a
-          single number cannot be — collapse the pair and the second has to come back as the sign
-          of the first</p>
-        <p>the cost is the comparison in the last line, which the signed version bought its way out
-          of. That is the whole trade: one number and a sign, or two readings and no sign</p>
-        <p>readings summing to 12, stopping on a drawn line, and f being the smaller reading are
-          all swept over every pair by
+        <p><b>t<sub>after</sub></b> — the tilt after one message; the normal and bottom follow</p>
+        <p>nothing here is negative and nothing is a sign: two distances say between them what one
+          number and a sign would have to</p>
+        <p>swept over every pair by
           <span data-src="nodes/Node1/node_test.go#TestOneRoundIsSignAndRemainder">TestOneRoundIsSignAndRemainder</span></p>
       </div>
     </div>
@@ -116,12 +104,11 @@
       <img class="math" src="update-closed-run.svg" style="width:505px"
         alt="Arrivals = f(t). Ends on the line: parallel, t = a + 6 mod 12; perpendicular, t = a, mod 12. Which end of that line it reaches is not decided here.">
       <div class="keynote">
-        <p>f is the count as well as the reading — each message closes one slot, so there is no
-          message number f + 1, and f = 0 is the run that takes none</p>
-        <p>the ANSWER needs no direction at all. Mod 12 a tilt and its bottom are the same number,
-          so both ends of the line are one arrangement, and where the walk ends is settled without
-          ever saying which way it went</p>
-        <p>the walk cannot turn back, which is what lets f be known before it starts. Swept by
+        <p>f is the count as well as the distance: each message closes one slot, so there is no
+          message f + 1, and f = 0 is the run that takes none</p>
+        <p>mod 12 a tilt and its bottom are one number, so where it ends is settled without saying
+          which way it went</p>
+        <p>swept by
           <span data-src="nodes/Node1/node_test.go#TestTheWalkIsClosedForm">TestTheWalkIsClosedForm</span></p>
       </div>
     </div>
@@ -131,9 +118,8 @@
     <div class="card wide">
       <h2>It holds while a is held</h2>
       <div class="keynote">
-        <p>a is fixed here. A live pair moves both ends, so this is one node against a direction that
-          stays put — which is why the code keeps a comparison per message rather than this shortcut,
-          and why the exchange itself is on <a href="updates.html">Update rules</a></p>
+        <p>a is fixed here; a live pair moves both ends. The exchange itself is on
+          <a href="updates.html">Update rules</a></p>
       </div>
     </div>
 
