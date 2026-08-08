@@ -188,15 +188,16 @@
       color: var(--accent)
     }
 
-    /* The arithmetic, set in LaTeX and rendered to an SVG of paths at authoring time.
-       It scales down to the card rather than scrolling: no page is ever wider than the
-       window. */
+    /* One block of the arithmetic, set in LaTeX and rendered to an SVG of paths at
+       authoring time. The WIDTH IS SET PER IMAGE, inline, as that block's own intrinsic
+       pt width times one shared constant — so blocks of different shapes all render at
+       the same glyph size, which a blanket width:100% would not do. max-width keeps it
+       inside the card, so it scales down rather than scrolling. */
     img.math {
       display: block;
-      width: 100%;
-      max-width: 620px;
+      max-width: 100%;
       height: auto;
-      margin: 12px auto 4px
+      margin: 14px 0 4px
     }
 
     table.f {

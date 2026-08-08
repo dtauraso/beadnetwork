@@ -1,0 +1,33 @@
+% pairmath.sty — shared setup for the pair-node update maths.
+%
+% Each block of the update lives in its own .tex file next to this one, and each
+% renders to its own .svg so the page can put one block per card. Rebuild any of
+% them with:
+%
+%   latex update-<name>.tex
+%   dvisvgm --no-fonts --exact-bbox --output=update-<name>.svg update-<name>.dvi
+%
+% --no-fonts converts glyphs to paths, so the .svg needs no font files and the
+% site keeps loading nothing over the network. --exact-bbox crops the page to the
+% ink, which is why the paper size below only has to be "big enough".
+\ProvidesPackage{pairmath}
+
+\RequirePackage[T1]{fontenc}
+\RequirePackage{amsmath}
+\RequirePackage{amssymb}
+\RequirePackage{xcolor}
+\RequirePackage[paperwidth=20cm,paperheight=7cm,margin=2mm]{geometry}
+
+\pagestyle{empty}
+
+% the site's palette (pair.css), so the maths matches the diagrams beside it
+\definecolor{ink}{HTML}{E7E7EA}
+\definecolor{dim}{HTML}{9A9AA6}
+\definecolor{perp}{HTML}{E05FD8}
+\definecolor{par}{HTML}{F9A825}
+\definecolor{acc}{HTML}{4EA1FF}
+
+\newcommand{\len}{\operatorname{angleLength}}
+
+% every document starts in ink; the coloured bits opt out locally
+\AtBeginDocument{\color{ink}}

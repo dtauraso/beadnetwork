@@ -1,0 +1,16 @@
+% update-length.tex — one block of the update. Shared setup is pairmath.sty,
+% which also carries the rebuild command.
+\documentclass[12pt]{article}
+\usepackage{pairmath}
+\begin{document}
+
+\[
+\begin{aligned}
+  d      &= \lvert t-a \rvert \bmod 24 \\[4pt]
+  L \;=\; \len(t,a) &= \begin{cases}
+      d      & d \le 12 \\
+      24 - d & \text{otherwise}
+    \end{cases}
+\end{aligned}
+\]
+\end{document}

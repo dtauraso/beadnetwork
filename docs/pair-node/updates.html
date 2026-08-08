@@ -104,6 +104,8 @@
 <text x="406" y="213" class="lbl">t + 12 — the bottom</text>
 <text x="406" y="230" class="lbl">links, not sums — the triad turns as one</text>
 </svg>
+        <img class="math" src="update-read.svg" style="width:290px"
+          alt="normal(t) = t+6. bottom(t) = t+12. sends = normal(t). angle(i) = (pi/12) i.">
       </div>
 
       <div class="card wide">
@@ -131,16 +133,40 @@
 <text x="266" y="227" class="lbl">L — the angle length, short way round, ≤ 12</text>
 <text x="266" y="244" class="lbl">integers, so exact — no epsilon</text>
 </svg>
+        <img class="math" src="update-length.svg" style="width:597px"
+          alt="d = |t - a| mod 24. L = angleLength(t,a) = d if d <= 12, else 24 - d.">
+      </div>
+
+      <!-- Each block below is its own LaTeX file, rendered to paths by dvisvgm at authoring
+           time — update-<name>.tex, with the shared setup and the rebuild command in
+           pairmath.sty. No MathJax, no KaTeX, no CDN: this site loads nothing over the
+           network, and a renderer that needed one would be the first thing here to break
+           offline. The px width on each image is its own intrinsic pt width scaled by one
+           constant, so every block renders at the SAME glyph size despite being different
+           shapes. -->
+
+      <div class="card wide">
+        <h2 id="loop">Where each mode rests</h2>
+        <img class="math" src="update-resting.svg" style="width:219px"
+          alt="R perpendicular = {0, 12}. R parallel = {6}. R setting = any.">
       </div>
 
       <div class="card wide">
-        <h2 id="loop">The update</h2>
-        <!-- Set in LaTeX and rendered to paths by dvisvgm at authoring time (the source is
-             docs/pair-node/update-math.tex). No MathJax, no KaTeX, no CDN: this site loads
-             nothing over the network, and a renderer that needs one would be the first thing
-             here to break offline. -->
-        <img class="math" src="update-math.svg"
-          alt="normal(t) = t+6, bottom(t) = t+12, sends = normal(t), angle(i) = (pi/12) i. L = angleLength(t,a) = d if d <= 12 else 24-d, where d = |t-a| mod 24; all arithmetic mod 24. Resting lengths: perpendicular {0,12}, parallel {6}, setting any. Settle? L is a resting length. Up? angleLength(t+1,a) is closer to a resting length than angleLength(t-1,a). t_after = t if settle, t+1 if up, t-1 otherwise.">
+        <h2>The two questions an arrival asks</h2>
+        <img class="math" src="update-questions.svg" style="width:898px"
+          alt="settle? L is in R. up? angleLength(t+1,a) is closer to R than angleLength(t-1,a).">
+      </div>
+
+      <div class="card wide">
+        <h2>The turn</h2>
+        <img class="math" src="update-turn.svg" style="width:337px"
+          alt="t_after = t if settle, t+1 if up, t-1 otherwise.">
+      </div>
+
+      <div class="card wide">
+        <h2>The other two updates</h2>
+        <img class="math" src="update-other.svg" style="width:533px"
+          alt="Panel up/down: t_after = t plus or minus 1, R unchanged. Reset: t_after = 0, R = R setting.">
       </div>
 
       <div class="card wide">
