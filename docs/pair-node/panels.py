@@ -122,6 +122,24 @@ for name, t, extra in (("before", 17, True), ("after", 0, False)):
     o.append('</svg>')
     out[f"panel-reset-{name}"] = "\n".join(o)
 
+# ---- the gap read: this node's tilt against the PARTNER'S tilt, which is the arrival
+# backed up by a quarter. Two cases, because the answer is two-valued.
+for name, a, note in (("perp", 12, "gap 6 → perpendicular"), ("par", 9, "gap 3 → parallel")):
+    W, H, cx, cy, R = 200, 232, 100, 84, 68
+    partner = (a - 6) % 24
+    o = [f'<svg width="{W}" height="{H}" viewBox="0 0 {W} {H}">', ring(cx, cy, R)]
+    o.append(arc(cx, cy, round(R * 0.46), 0, partner, HOME))
+    o.append(arrow(cx, cy, R, a, ARR, 2.2))
+    # the partner's own tilt is inferred, never sent, so it is drawn dashed
+    px, py = P(cx, cy, R * 0.84, partner)
+    o.append(f'<line x1="{cx}" y1="{cy}" x2="{px}" y2="{py}" stroke="#9a9aa6" stroke-width="2" '
+             f'stroke-dasharray="5 4"/>')
+    o.append(arrow(cx, cy, R, 0, TOP, 2.8))
+    o.append(f'<text x="{cx}" y="196" text-anchor="middle" {SANS} {DIM}>{note}</text>')
+    o.append(f'<text x="{cx}" y="218" text-anchor="middle" {SANS} {DIM}>a = {a}, partner = {partner}</text>')
+    o.append('</svg>')
+    out[f"panel-gap-{name}"] = "\n".join(o)
+
 # ---- the state
 # W leaves room to the RIGHT of the ring for the step label, which sits outside the
 # circle and points back at the wedge rather than being crowded inside it.

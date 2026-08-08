@@ -1,0 +1,14 @@
+% update-choose.tex — one block of the update. Shared setup is pairmath.sty,
+% which also carries the rebuild command.
+\documentclass[12pt]{article}
+\usepackage{pairmath}
+\begin{document}
+\[\begin{array}{@{}l@{}}
+  \text{\color{acc}when } R_{\mathrm{before}} = R_{\mathrm{setting}} : \\[7pt]
+  \quad t_{\mathrm{partner}} = a_{-6} \\[5pt]
+  \quad R_{\mathrm{after}} = \begin{cases}
+      {\color{perp}R_{\perp}}    & \len(t_{\mathrm{before}},\, t_{\mathrm{partner}}) = 6 \\
+      {\color{par}R_{\parallel}} & \text{otherwise}
+    \end{cases}
+\end{array}\]
+\end{document}

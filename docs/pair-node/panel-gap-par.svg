@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="232" viewBox="0 0 200 232">
+<circle cx="100" cy="84" r="68" fill="none" stroke="#3a3a44" stroke-width="1.4"/><path d="M116 23L118 18M132 29L134 25M145 39L148 36M155 52L159 50M161 68L166 66M161 100L166 102M155 115L159 118M145 129L148 132M132 139L134 143M116 145L118 150M84 145L82 150M68 139L66 143M55 129L52 132M45 116L41 118M39 100L34 102M39 68L34 66M45 52L41 50M55 39L52 36M68 29L66 25M84 23L82 18" stroke="#3a3a44"/><path d="M100 21L100 16M163 84L168 84M100 147L100 152M37 84L32 84" stroke="#9a9aa6" stroke-width="1.6"/>
+<path d="M100 53A31 31 0 0 1 122 62" fill="none" stroke="#e05fd8" stroke-width="3"/>
+<line x1="100" y1="84" x2="140" y2="124" stroke="#f9a825" stroke-width="2.2"/><polygon points="147,131 137,127 143,121" fill="#f9a825"/>
+<line x1="100" y1="84" x2="140" y2="44" stroke="#9a9aa6" stroke-width="2" stroke-dasharray="5 4"/>
+<line x1="100" y1="84" x2="100" y2="27" stroke="#5fd68a" stroke-width="2.8"/><polygon points="100,18 104,27 96,27" fill="#5fd68a"/>
+<text x="100" y="196" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#9a9aa6">gap 3 → parallel</text>
+<text x="100" y="218" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#9a9aa6">a = 9, partner = 3</text>
+</svg>

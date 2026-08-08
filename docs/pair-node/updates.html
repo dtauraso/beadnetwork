@@ -96,7 +96,7 @@
           <p>integers, so exact — no dot product, no epsilon to tune</p>
         </div>
         <img class="math" src="update-length.svg" style="width:354px"
-          alt="d = |t - a| mod 24. L = angleLength(t,a) = d if d <= 12, else 24 - d.">
+          alt="d = |t - a|. L = angleLength(t,a) = d if d <= 12, else 24 - d.">
       </div>
 
       <div class="card">
@@ -118,9 +118,31 @@
       </div>
 
       <div class="card">
-        <h2>The other two updates</h2>
+        <h2>The other updates</h2>
         <img class="math" src="update-other.svg" style="width:312px"
-          alt="Panel up/down: t sub after = t sub plus or minus one, R sub after = R sub before. Reset: t sub after = 0, R sub after = R sub setting.">
+          alt="Every arrival: r sub after = a. Panel up/down: t sub after = t sub plus or minus one, R sub after = R sub before. Reset: t sub after = 0, R sub after = R sub setting.">
+      </div>
+
+      <div class="card wide">
+        <h2>Choosing the mode — the only update that reads the arrival's own tilt</h2>
+        <div class="strip">
+          <img src="panel-gap-perp.svg"
+            alt="The arrival at slot 12; backing out its quarter puts the partner's tilt at 6, a quarter turn from this node's tilt, so the pair runs perpendicular.">
+          <img src="panel-gap-par.svg"
+            alt="The arrival at slot 9; backing out its quarter puts the partner's tilt at 3, three slots from this node's tilt, so the pair runs parallel.">
+        </div>
+        <img class="math" src="update-choose.svg" style="width:378px"
+          alt="When R sub before = R sub setting: t sub partner = a sub minus six; R sub after = R perpendicular if angleLength of t sub before and t sub partner equals 6, else R parallel.">
+        <div class="keynote">
+          <p><i class="sw" style="background:#5fd68a"></i>t — this node's own tilt</p>
+          <p><i class="sw" style="background:#f9a825"></i>a — what arrived, which is the partner's
+            NORMAL, already a quarter turn off its tilt</p>
+          <p><i class="sw" style="background:#9a9aa6"></i>the partner's own tilt, backed out of the
+            arrival — dashed, because it is inferred and never sent</p>
+          <p>this is the one place the gap between the two TILTS is measured; everything else
+            measures the arrival directly</p>
+          <p>it runs once, on the first arrival, and the answer sticks until a reset</p>
+        </div>
       </div>
 
       <div class="card wide">

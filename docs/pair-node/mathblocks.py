@@ -20,11 +20,22 @@ BODIES = {
   \mathrm{sends} = \mathrm{normal}(t) \\[4pt]
   \mathrm{angle}(i) = \tfrac{\pi}{12}\, i
 """,
+    # no \bmod: both indices are already in 0..23, so |t-a| never exceeds 23 and the
+    # code takes no modulus. Writing one implies an operation that is not there.
     "length": r"""
-  d = \lvert t-a \rvert \bmod 24 \\[6pt]
+  d = \lvert t-a \rvert \\[6pt]
   L \;=\; \len(t,a) = \begin{cases}
       d      & d \le 12 \\
       24 - d & \text{otherwise}
+    \end{cases}
+""",
+    # machineForGap: the third way R changes, and the only one that reads the arrival.
+    "choose": r"""
+  \text{\color{acc}when } R_{\mathrm{before}} = R_{\mathrm{setting}} : \\[7pt]
+  \quad t_{\mathrm{partner}} = a_{-6} \\[5pt]
+  \quad R_{\mathrm{after}} = \begin{cases}
+      {\color{perp}R_{\perp}}    & \len(t_{\mathrm{before}},\, t_{\mathrm{partner}}) = 6 \\
+      {\color{par}R_{\parallel}} & \text{otherwise}
     \end{cases}
 """,
     "resting": r"""
@@ -44,6 +55,7 @@ BODIES = {
     \end{cases}
 """,
     "other": r"""
+  \text{every arrival} :\; r_{\mathrm{after}} = a \\[5pt]
   \text{panel } \blacktriangle\,\blacktriangledown :\;
     t_{\mathrm{after}} = t_{\pm 1}, \quad R_{\mathrm{after}} = R_{\mathrm{before}} \\[5pt]
   \text{reset} :\; t_{\mathrm{after}} = 0, \quad R_{\mathrm{after}} = R_{\mathrm{setting}}
