@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="356" viewBox="0 0 300 356">
+<circle cx="150" cy="150" r="120" fill="none" stroke="#3a3a44" stroke-width="1.6"/><path d="M179 41L181 34M206 52L210 46M230 70L235 65M248 93L254 90M259 121L266 119M259 179L266 181M248 206L254 210M230 230L235 235M206 248L210 254M179 259L181 266M121 259L119 266M93 248L90 254M70 230L65 235M52 207L46 210M41 179L34 181M41 121L34 119M52 93L46 90M70 70L65 65M93 52L90 46M121 41L119 34" stroke="#3a3a44" stroke-width="1.2"/><path d="M150 37L150 30M263 150L270 150M150 263L150 270M37 150L30 150" stroke="#9a9aa6" stroke-width="2"/>
+<path d="M150 90A60 60 0 0 1 210 150" fill="none" stroke="#e05fd8" stroke-width="4"/>
+<line x1="150" y1="150" x2="150" y2="49" stroke="#5fd68a" stroke-width="3.6"/><polygon points="150,36 156,49 144,49" fill="#5fd68a"/>
+<line x1="150" y1="150" x2="251" y2="150" stroke="#f9a825" stroke-width="3"/><polygon points="264,150 251,156 251,144" fill="#f9a825"/>
+<text x="150" y="304" text-anchor="middle" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="15" fill="#e05fd8">L = 6</text>
+<text x="150" y="330" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#9a9aa6">parallel rests</text>
+</svg>

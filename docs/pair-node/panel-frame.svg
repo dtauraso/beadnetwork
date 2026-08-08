@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="460" viewBox="0 0 520 460">
+<circle cx="260" cy="230" r="190" fill="none" stroke="#3a3a44" stroke-width="1.6"/><path d="M307 53L309 46M352 72L355 65M389 101L394 96M418 138L425 135M437 183L444 181M437 277L444 279M418 322L425 325M389 359L394 364M352 388L355 395M307 407L309 414M213 407L211 414M168 388L165 395M131 359L126 364M102 322L95 325M83 277L76 279M83 183L76 181M102 138L95 135M131 101L126 96M168 72L165 65M213 53L211 46" stroke="#3a3a44" stroke-width="1.2"/><path d="M260 47L260 40M443 230L450 230M260 413L260 420M77 230L70 230" stroke="#9a9aa6" stroke-width="2"/>
+<line x1="260" y1="230" x2="106" y2="271" stroke="#f9a825" stroke-width="3.4"/><polygon points="93,275 104,265 108,277" fill="#f9a825"/>
+<line x1="260" y1="230" x2="147" y2="343" stroke="#9a9aa6" stroke-width="3"/><polygon points="138,352 142,338 152,348" fill="#9a9aa6"/>
+<line x1="260" y1="230" x2="373" y2="343" stroke="#4ea1ff" stroke-width="3.6"/><polygon points="382,352 368,348 378,338" fill="#4ea1ff"/>
+<line x1="260" y1="230" x2="373" y2="117" stroke="#5fd68a" stroke-width="4.2"/><polygon points="382,108 378,122 368,112" fill="#5fd68a"/>
+</svg>

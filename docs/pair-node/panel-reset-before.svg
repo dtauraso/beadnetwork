@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="280" height="336" viewBox="0 0 280 336">
+<circle cx="140" cy="150" r="118" fill="none" stroke="#3a3a44" stroke-width="1.6"/><path d="M169 43L171 36M196 54L199 48M218 72L223 67M236 94L242 91M247 121L254 119M247 179L254 181M236 205L242 209M218 228L223 233M196 246L199 252M169 257L171 264M111 257L109 264M84 246L81 252M62 228L57 233M44 206L38 209M33 179L26 181M33 121L26 119M44 94L38 91M62 72L57 67M84 54L81 48M111 43L109 36" stroke="#3a3a44" stroke-width="1.2"/><path d="M140 39L140 32M251 150L258 150M140 261L140 268M29 150L22 150" stroke="#9a9aa6" stroke-width="2"/>
+<line x1="140" y1="150" x2="236" y2="124" stroke="#9a9aa6" stroke-width="2.6"/><polygon points="248,121 238,130 234,118" fill="#9a9aa6"/>
+<line x1="140" y1="150" x2="114" y2="54" stroke="#4ea1ff" stroke-width="3"/><polygon points="111,42 120,52 108,56" fill="#4ea1ff"/>
+<line x1="140" y1="150" x2="44" y2="176" stroke="#5fd68a" stroke-width="3.6"/><polygon points="32,179 42,170 46,182" fill="#5fd68a"/>
+<line x1="140" y1="150" x2="226" y2="200" stroke="#f9a825" stroke-width="3"/><polygon points="237,206 223,206 229,194" fill="#f9a825"/>
+<text x="140" y="300" text-anchor="middle" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="15" fill="#e7e7ea">t = 17, r set</text>
+<text x="140" y="324" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#9a9aa6">before</text>
+</svg>

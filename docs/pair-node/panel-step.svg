@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="500" viewBox="0 0 520 500">
+<circle cx="260" cy="250" r="198" fill="none" stroke="#3a3a44" stroke-width="1.6"/><path d="M309 66L311 59M356 85L359 79M395 115L400 110M425 154L431 151M444 201L451 199M444 299L451 301M425 346L431 349M395 385L400 390M356 415L359 421M309 434L311 441M211 434L209 441M164 415L161 421M125 385L120 390M95 346L89 349M76 299L69 301M76 201L69 199M95 154L89 151M125 115L120 110M164 85L161 79M211 66L209 59" stroke="#3a3a44" stroke-width="1.2"/><path d="M260 59L260 52M451 250L458 250M260 441L260 448M69 250L62 250" stroke="#9a9aa6" stroke-width="2"/>
+<circle cx="458" cy="250" r="10" fill="#e05fd8"/>
+<circle cx="62" cy="250" r="10" fill="#e05fd8"/>
+<text x="458" y="284" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#e05fd8">rests</text>
+<text x="62" y="284" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#e05fd8">rests</text>
+<circle cx="400" cy="390" r="9" fill="#2f2f37" stroke="#4ea1ff" stroke-width="3"/>
+<text x="421" y="425" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#4ea1ff">9</text>
+<circle cx="311" cy="441" r="9" fill="#2f2f37" stroke="#4ea1ff" stroke-width="3"/>
+<text x="319" y="484" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#4ea1ff">11</text>
+<line x1="260" y1="250" x2="260" y2="84" stroke="#f9a825" stroke-width="3.4"/><polygon points="260,71 266,84 254,84" fill="#f9a825"/>
+<text x="260" y="30" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#f9a825">a = 0</text>
+<line x1="260" y1="250" x2="343" y2="394" stroke="#5fd68a" stroke-width="4.2"/><polygon points="350,405 337,397 349,391" fill="#5fd68a"/>
+<text x="238" y="352" text-anchor="end" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#5fd68a">t = 10</text>
+</svg>

@@ -151,6 +151,35 @@
       margin: 0 auto
     }
 
+    /* A row of separate drawings, one per case, that wraps. Small multiples packed into
+       ONE canvas had to shrink to fit — four rings in a 700px drawing gave each a 120px
+       circle whose tick marks were invisible, and the tick marks are what make a slot
+       count readable. Each panel is now its own file at its own size, and the row wraps
+       instead of scaling anything down.
+       They are <img>, which does not inherit this stylesheet, so those files carry their
+       own text styling (docs/pair-node/panels.py). */
+    .strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 18px;
+      align-items: flex-start;
+      margin: 4px 0 2px
+    }
+
+    .strip img {
+      display: block;
+      max-width: 100%;
+      height: auto
+    }
+
+    /* A single drawing, same deal: its own generated file at its own size. */
+    img.figure {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      margin: 4px 0 2px
+    }
+
     /* The notes that belong to a drawing, kept OUT of the svg so they stay page-size
        when the drawing scales down. Larger than .cap because these are the point of
        the card, not an aside. */

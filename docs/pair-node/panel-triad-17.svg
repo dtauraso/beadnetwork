@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="270" height="322" viewBox="0 0 270 322">
+<circle cx="135" cy="145" r="116" fill="none" stroke="#3a3a44" stroke-width="1.6"/><path d="M163 40L165 33M190 51L193 45M212 68L217 63M229 90L235 87M240 117L247 115M240 173L247 175M229 199L235 203M212 222L217 227M190 239L193 245M163 250L165 257M107 250L105 257M80 239L77 245M58 222L53 227M41 200L35 203M30 173L23 175M30 117L23 115M41 90L35 87M58 68L53 63M80 51L77 45M107 40L105 33" stroke="#3a3a44" stroke-width="1.2"/><path d="M135 36L135 29M244 145L251 145M135 254L135 261M26 145L19 145" stroke="#9a9aa6" stroke-width="2"/>
+<line x1="135" y1="145" x2="229" y2="120" stroke="#9a9aa6" stroke-width="2.6"/><polygon points="242,116 231,126 227,114" fill="#9a9aa6"/>
+<line x1="135" y1="145" x2="110" y2="51" stroke="#4ea1ff" stroke-width="3"/><polygon points="106,38 116,49 104,53" fill="#4ea1ff"/>
+<line x1="135" y1="145" x2="41" y2="170" stroke="#5fd68a" stroke-width="3.6"/><polygon points="28,174 39,164 43,176" fill="#5fd68a"/>
+<text x="135" y="296" text-anchor="middle" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="15" fill="#e7e7ea">t = 17</text>
+</svg>
