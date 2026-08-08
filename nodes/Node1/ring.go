@@ -173,16 +173,18 @@ func (s *tiltState) angleLength(target *tiltState) int32 {
 	// does arithmetic, but a MEASUREMENT between two states still has to say which of
 	// the two arcs it means.
 	//
-	// d is the higher index minus the lower, so it is a magnitude by construction rather
-	// than a signed difference with its sign removed afterwards. Both indices are already
-	// in [0, points), so no modulus is needed or taken — d is simply one of the two arcs,
-	// and points-d is the other.
-	hi, lo := s.idx, target.idx
-	if hi < lo {
-		hi, lo = lo, hi
+	// One subtraction and a sign test. NOT max-min: a comparison is itself a subtraction,
+	// so ordering the operands first would subtract twice to avoid a sign check that the
+	// sign bit already answers. Both indices are in [0, points), so no modulus is needed
+	// or taken — d is simply one of the two arcs, and points-d is the other.
+	d := s.idx - target.idx
+	if d < 0 {
+		d = -d
 	}
-	d := hi - lo
-	return min(d, s.ring.points-d)
+	if d > s.ring.halfTurn {
+		d = s.ring.points - d
+	}
+	return d
 }
 
 // PERPENDICULAR AND PARALLEL ARE DIFFERENT STATES, AND EACH HAS ITS OWN HALT.
@@ -208,15 +210,11 @@ func (s *tiltState) angleLength(target *tiltState) int32 {
 // file provides them is `angle length`: a measurement of where two directions sit relative to each
 // other, which is not a rule and names no resting state.
 
-// gapBetween is how far apart two counts are: the larger minus the smaller, so it is a
-// magnitude by construction rather than a signed difference with its sign removed
-// afterwards. angleLength does the same thing inline on the two ring indices; this is the
-// version for the two counts fromRest compares.
-func gapBetween(a, b int32) int32 {
-	if a < b {
-		return b - a
+func abs32(v int32) int32 {
+	if v < 0 {
+		return -v
 	}
-	return a - b
+	return v
 }
 
 // defaultRing is the lattice a node gets when nothing has said otherwise — the count this

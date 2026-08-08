@@ -120,9 +120,9 @@ func (m tiltMachine) resting(r *ring) []int32 { return restingLengths[m.mode](r)
 func (m tiltMachine) fromRest(from, arrival *tiltState) int32 {
 	length := from.angleLength(arrival)
 	resting := m.resting(from.ring)
-	nearest := gapBetween(length, resting[0])
+	nearest := abs32(length - resting[0])
 	for _, r := range resting[1:] {
-		if d := gapBetween(length, r); d < nearest {
+		if d := abs32(length - r); d < nearest {
 			nearest = d
 		}
 	}

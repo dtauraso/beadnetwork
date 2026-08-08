@@ -20,16 +20,13 @@ BODIES = {
   \mathrm{sends} = \mathrm{normal}(t) \\[4pt]
   \mathrm{angle}(i) = \tfrac{\pi}{12}\, i
 """,
-    # max - min rather than |t - a|: the same number, but subtracted in the order that
-    # cannot go negative, so it is a magnitude by construction instead of a signed
-    # difference with its sign thrown away afterwards.
-    # No \bmod either: both indices are already 0..23, so d never exceeds 23 and the code
-    # takes no modulus. Writing one implies an operation that is not there.
-    # min of the two arcs, not a case split. The cases read as wrap handling, which this
-    # is not — the ring's 24 states already make wrapping impossible. What is being
-    # chosen is WHICH OF THE TWO ARCS between the points is meant.
+    # |t - a|, not max-min: a comparison is a subtraction, so ordering the operands first
+    # subtracts twice to avoid a sign check the sign bit already answers.
+    # No \bmod: both indices are already 0..23, so d never exceeds 23 and the code takes
+    # no modulus. The min is the arc choice, which is a real choice between two different
+    # numbers — unlike the case split it replaced, which only looked like wrap handling.
     "length": r"""
-  d = \max(t,a) - \min(t,a) \\[6pt]
+  d = \lvert t - a \rvert \\[6pt]
   L \;=\; \len(t,a) = \min(d,\; 24 - d)
 """,
     # machineForGap: the third way R changes, and the only one that reads the arrival.
