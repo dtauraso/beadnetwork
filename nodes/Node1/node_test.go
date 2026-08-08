@@ -261,6 +261,17 @@ func TestOneRoundIsSignAndRemainder(t *testing.T) {
 				if c >= 12 {
 					t.Fatalf("t=%d a=%d: u=%d v=%d, neither under 12", tilt, arr, u, v)
 				}
+
+				// THE SECOND COUNT IS NOT NEEDED. The bottom is the top's other side, so
+				// v is u a half turn on — and picking whichever is under 12 is the same as
+				// taking u modulo 12:
+				//
+				//	c = (t - a) mod 12
+				//
+				// No v, no test, and nothing to remember about which end was acute.
+				if got := ((tilt-arr)%12 + 12) % 12; got != c {
+					t.Fatalf("t=%d a=%d: (t-a) mod 12 = %d but c = %d", tilt, arr, got, c)
+				}
 				if c != topL && c != botL {
 					t.Fatalf("t=%d a=%d: c=%d is neither the top angle %d nor the bottom %d",
 						tilt, arr, c, topL, botL)

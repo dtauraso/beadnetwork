@@ -55,7 +55,7 @@
         tilt comes out.</p>
     </div>
 
-    <h3 class="secname">t, b and a, and the counts u and v taken between them</h3>
+    <h3 class="secname">t, b and a, and the one count c taken between them</h3>
 
     <div class="card wide">
       <h2>Every number this page uses, and where it comes from</h2>
@@ -71,27 +71,21 @@
       <p class="eq step"><span class="g"><var>a</var> = <var>p</var> + 6</span>
         <span class="note"><var>a</var> IS the partner's normal — its tilt <var>p</var> is never
           seen</span></p>
-      <p class="eq head">count from each end of the tilt line up to <var>a</var></p>
-      <p class="eq step"><span class="g"><var>u</var> = <var>t</var> − <var>a</var> (mod 24)</span>
-        <span class="note">from the top</span></p>
-      <p class="eq step"><span class="g"><var>v</var> = <var>b</var> − <var>a</var> (mod 24)</span>
-        <span class="note">from the bottom</span></p>
-      <p class="eq head">one test: which count is the acute angle</p>
-      <p class="eq step"><span class="g"><var>c</var> = <var>u</var></span>
-        <span class="note">if <var>u</var> &lt; 12</span></p>
-      <p class="eq step"><span class="g"><var>c</var> = <var>v</var></span>
-        <span class="note">otherwise</span></p>
-      <p class="eq step dim">the counts differ by 12, so exactly one is under 12, and that one is
-        the angle at its own end</p>
+      <p class="eq head">count from the tilt line up to <var>a</var></p>
+      <p class="eq step"><span class="g"><var>c</var> = <var>t</var> − <var>a</var> (mod 12)</span>
+        <span class="note">0 … 11</span></p>
+      <p class="eq step dim">the bottom is the top's other side, a half turn on, so counting from
+        it gives the same <var>c</var> — mod 12 is the tilt LINE against <var>a</var>, and the two
+        ends are one line</p>
       <div class="keynote">
         <p><b>t</b> — this node's tilt, the only thing it stores</p>
         <p><b>b</b> — its bottom, the other end of the same line</p>
         <p><b>p</b> — the partner's tilt, never seen by this node</p>
         <p><b>a</b> — what this node has: the partner's normal</p>
-        <p><b>u, v</b> — counts round the ring from the top, and from the bottom, to a</p>
-        <p><b>c</b> — the acute angle: whichever count is under 12</p>
-        <p>the other end is 12 − c, and nothing below needs it</p>
-        <p>worked: t = 11, a = 0, b = 23 → u = 11, v = 23 → c = 11</p>
+        <p><b>c</b> — where a sits against the tilt line, 0…11</p>
+        <p>c is never negative, and no value on this page is: what a sign would carry is carried
+          by which side of 6 c falls on, in the card below</p>
+        <p>worked: t = 11, a = 0 → c = 11. t = 1, a = 0 → c = 1</p>
       </div>
     </div>
 
@@ -139,12 +133,10 @@
           it is stored, and the normal and bottom are read off whatever it becomes</p>
         <p>turning one slot moves c by one, so which way to turn is which side of 6 c is on:
           parallel walks toward 6 and perpendicular away from it</p>
-        <p>which end c came from never enters. b = t + 12, so t+1 makes b+1 — the two ends turn
-          together, u and v both gain one, and c steps up whichever of them supplied it</p>
         <p>6 sits in perpendicular's t+1 branch because it is the same distance from 0 either way
           round, and a tie goes up</p>
-        <p>no value here is negative and none is a sign: u and v between them carry the direction
-          that one count and a sign would have to</p>
+        <p>the direction is a comparison, not a sign: c is 0…11 throughout, and which side of 6 it
+          falls on is what a signed distance would have carried</p>
         <p>swept over every pair by
           <span data-src="nodes/Node1/node_test.go#TestOneRoundIsSignAndRemainder">TestOneRoundIsSignAndRemainder</span></p>
       </div>
