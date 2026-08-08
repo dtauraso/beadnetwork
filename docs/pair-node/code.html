@@ -2,6 +2,8 @@
 <title>Pair node — in code</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="pair.css">
+<script src="port.js"></script>
+<script src="pair.js" defer></script>
 
 <header>
   <h1>In code</h1>
@@ -56,7 +58,7 @@
 
     <div class="card wide">
       <h2><span data-src="nodes/Node1/machine.go#nearerEndCount">nearerEndCount</span></h2>
-      <div class="cap">nodes/Node1/machine.go</div>
+      <div class="cap"><span data-src="nodes/Node1/machine.go">nodes/Node1/machine.go</span></div>
       <p class="eq step"><var>u</var> = (<var>t</var> − <var>a</var>) mod points</p>
       <p class="eq step"><var>u</var> &lt; <var>h</var> :
         <var>c</var> = <var>u</var>, at the top</p>
@@ -67,7 +69,8 @@
 
     <div class="card wide">
       <h2>where <var>t</var>, <var>b</var> and <var>a</var> come from</h2>
-      <div class="cap">nodes/Node1/ring.go · nodes/Node1/node.go</div>
+      <div class="cap"><span data-src="nodes/Node1/ring.go">nodes/Node1/ring.go</span> ·
+        <span data-src="nodes/Node1/node.go">nodes/Node1/node.go</span></div>
       <p class="eq step"><var>b</var> = <span data-src="nodes/Node1/ring.go#tiltState">t.opposite</span>
         <span class="note">a link the ring resolved, not <var>t</var> + <var>h</var> computed</span></p>
       <p class="eq step"><var>a</var> = the partner's
@@ -84,7 +87,7 @@
 
     <div class="card wide">
       <h2><span data-src="nodes/Node1/machine.go#stoppingCounts">stoppingCounts</span></h2>
-      <div class="cap">nodes/Node1/machine.go</div>
+      <div class="cap"><span data-src="nodes/Node1/machine.go">nodes/Node1/machine.go</span></div>
       <p class="eq step perp"><span class="g">perpendicular</span> { 0 }</p>
       <p class="eq step par"><span class="g">parallel</span> { <var>q</var> }</p>
       <p class="eq step dim"><span class="g">setting</span> { 0 … <var>h</var>−1 }</p>
@@ -94,7 +97,7 @@
 
     <div class="card wide">
       <h2>which row — <span data-src="nodes/Node1/node.go#machineForGap">machineForGap</span></h2>
-      <div class="cap">nodes/Node1/node.go</div>
+      <div class="cap"><span data-src="nodes/Node1/node.go">nodes/Node1/node.go</span></div>
       <p class="eq step">partner's tilt = <var>a</var>.quarter.opposite</p>
       <p class="eq step"><var>G</var> =
         <span data-src="nodes/Node1/ring.go#angleLength">angleLength</span>(<var>t</var>,
@@ -113,7 +116,7 @@
 
     <div class="card wide">
       <h2>a click, and a change of lattice</h2>
-      <div class="cap">nodes/Node1/node.go</div>
+      <div class="cap"><span data-src="nodes/Node1/node.go">nodes/Node1/node.go</span></div>
       <p class="eq step"><span data-src="nodes/Node1/node.go#applyTiltEdit">applyTiltEdit</span>
         : setTop(<var>t</var>.next) or setTop(<var>t</var>.prev)
         <span class="note">one slot, no mode chosen, nothing sent</span></p>
@@ -129,7 +132,7 @@
 
     <div class="card wide">
       <h2><span data-src="nodes/Node1/machine.go#walk">walk</span></h2>
-      <div class="cap">nodes/Node1/machine.go</div>
+      <div class="cap"><span data-src="nodes/Node1/machine.go">nodes/Node1/machine.go</span></div>
       <p class="eq step"><var>up</var> = min over <var>stop</var> of
         (<var>stop</var> − <var>c</var>) mod <var>h</var></p>
       <p class="eq step"><var>down</var> = min over <var>stop</var> of
@@ -151,7 +154,7 @@
     <div class="card wide">
       <h2><span data-src="nodes/Node1/node.go#setTop">setTop</span> ·
         <span data-src="nodes/Node1/node.go#setBottom">setBottom</span></h2>
-      <div class="cap">nodes/Node1/node.go</div>
+      <div class="cap"><span data-src="nodes/Node1/node.go">nodes/Node1/node.go</span></div>
       <p class="eq step"><span data-src="nodes/Node1/node.go#Top">Top</span>,
         <span data-src="nodes/Node1/node.go#Bottom">Bottom</span> — both stored</p>
       <p class="eq step">setTop(<var>x</var>) : Top = <var>x</var>,
@@ -186,7 +189,7 @@
 
     <div class="card wide">
       <h2>swept over every (tilt, arrival) pair, on the 24- and 48-point lattices</h2>
-      <div class="cap">nodes/Node1/node_test.go</div>
+      <div class="cap"><span data-src="nodes/Node1/node_test.go">nodes/Node1/node_test.go</span></div>
       <p class="eq step"><span data-src="nodes/Node1/node_test.go#TestOneRoundIsSignAndRemainder">TestOneRoundIsSignAndRemainder</span>
         <span class="note">arith.html's forms = this machine's answers</span></p>
       <p class="eq step"><span data-src="nodes/Node1/node_test.go#TestAnUpdateDrivesTheEndItMeasured">TestAnUpdateDrivesTheEndItMeasured</span>
