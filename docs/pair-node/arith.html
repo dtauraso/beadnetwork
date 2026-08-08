@@ -5,8 +5,8 @@
 
 <header>
   <h1>The arithmetic instead</h1>
-  <div class="sub">one round, and the whole run — with no states, no transitions, and nothing to
-    step</div>
+  <div class="sub">what one message does, and where it stops — with no states, no transitions, and
+    nothing to step</div>
 </header>
 
 <nav>
@@ -51,8 +51,8 @@
 
     <div class="card wide">
       <p class="lead"><a href="updates.html">Update rules</a> gives this node as two state machines
-        and the rule each message runs. None of that is needed. Two tilt numbers in; the tilt this
-        node stops on, and how many messages it takes to get there, come out.</p>
+        and the rule each message runs. None of that is needed: two tilt numbers in, and what this
+        node does with the next message comes out.</p>
     </div>
 
     <h3 class="secname">t, b and a, and the counts u and v taken between them</h3>
@@ -98,19 +98,15 @@
     <h3 class="secname">Parallel and perpendicular: the c each stops at</h3>
 
     <div class="card wide">
-      <h2>The c each stops at, and the f slots to reach it</h2>
-      <p class="eq head par">parallel</p>
-      <p class="eq step">stops at <var>c</var> = 6</p>
-      <p class="eq step"><var>f</var> = |<var>c</var> − 6|</p>
-      <p class="eq head perp">perpendicular</p>
-      <p class="eq step">stops at <var>c</var> = 0</p>
-      <p class="eq step"><var>f</var> = 6 − |<var>c</var> − 6|</p>
+      <h2>The c each arrangement stops at</h2>
+      <p class="eq step par"><span class="g">parallel</span>
+        stops at <var>c</var> = 6</p>
+      <p class="eq step perp"><span class="g">perpendicular</span>
+        stops at <var>c</var> = 0</p>
       <div class="keynote">
-        <p><b>f</b> — slots t must turn before its own arrangement stops</p>
-        <p>the two stop at opposite ends of the same measurement, so the two f are complements —
-          the same fact the <a href="audit.html">audit</a> found by drawing them</p>
-        <p>|c − 6| reads the same from either end of the tilt line, since |(12 − c) − 6| = |6 − c|,
-          so one measurement settles both</p>
+        <p>the two stop at opposite ends of c's range — the same fact the
+          <a href="audit.html">audit</a> found by drawing them</p>
+        <p>c reads the same from either end of the tilt line, so one measurement settles both</p>
       </div>
     </div>
 
@@ -118,15 +114,14 @@
 
     <div class="card wide">
       <h2>t after one message</h2>
-      <p class="eq dim">every line above is computed from <var>t</var>, so <var>t</var>+1 and
-        <var>t</var>−1 have an <var>f</var> of their own</p>
-      <p class="eq step"><span class="g"><var>f</var> = 0 :</span>
+      <p class="eq dim"><var>c</var> is computed from <var>t</var>, so <var>t</var>+1 and
+        <var>t</var>−1 have a <var>c</var> of their own</p>
+      <p class="eq step"><span class="g"><var>c</var> is the stop :</span>
         <var>t</var><sub>after</sub> = <var>t</var></p>
       <p class="eq step"><span class="g">else :</span>
-        <var>t</var><sub>after</sub> = whichever of <var>t</var>+1, <var>t</var>−1 has the smaller
-        <var>f</var></p>
-      <p class="eq head"><var>f</var> = 0 means <var>a</var> lies along one of this node's own
-        two lines</p>
+        <var>t</var><sub>after</sub> = whichever of <var>t</var>+1, <var>t</var>−1 has
+        <var>c</var> nearer the stop</p>
+      <p class="eq head">at the stop, <var>a</var> lies along one of this node's own two lines</p>
       <p class="eq step par"><span class="g">parallel</span>
         the normal line <var>t</var>+6, <var>b</var>+6</p>
       <p class="eq step perp"><span class="g">perpendicular</span>
@@ -141,20 +136,16 @@
       </div>
     </div>
 
-    <h3 class="secname">f messages, and the tilt they end on</h3>
+    <h3 class="secname">The tilt it stops on</h3>
 
     <div class="card wide">
-      <h2>t after f messages, written down rather than stepped through</h2>
-      <p class="eq step">messages = <var>f</var></p>
-      <p class="eq head">the tilt it ends on, as a line</p>
+      <h2>t once it has stopped, as a line</h2>
       <p class="eq step par"><span class="g">parallel</span>
         <var>t</var> ≡ <var>a</var> + 6 (mod 12)</p>
       <p class="eq step perp"><span class="g">perpendicular</span>
         <var>t</var> ≡ <var>a</var> (mod 12)</p>
       <p class="eq step dim">which of the line's two ends it lands on is not settled by these</p>
       <div class="keynote">
-        <p>f counts the messages as well as the slots: each message turns t by one slot, so there
-          is no message f + 1, and f = 0 is a node already stopped</p>
         <p>taken mod 12 a tilt and its bottom are the same number, so these two lines fix the
           arrangement without naming which way t turned to reach it</p>
         <p>swept by

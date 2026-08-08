@@ -218,12 +218,16 @@
       color: var(--dim)
     }
 
-    /* the site's own two mode colours, as in the drawings */
-    .eq .perp {
+    /* The site's own two mode colours, as in the drawings. BOTH forms are needed: a span
+       inside a line, and the line itself — an .eq.par line was rendering uncoloured because
+       only the descendant rule existed. */
+    .eq .perp,
+    .eq.perp {
       color: var(--mag)
     }
 
-    .eq .par {
+    .eq .par,
+    .eq.par {
       color: var(--warm)
     }
 

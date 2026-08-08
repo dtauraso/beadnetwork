@@ -384,13 +384,16 @@ func TestOneRoundIsSignAndRemainder(t *testing.T) {
 	}
 }
 
-// TestTheWalkIsClosedForm is what docs/pair-node/arith.html rests on: that for a HELD arrival the
-// whole walk can be written down rather than run. Three claims, swept over both modes and every
+// TestTheWalkIsClosedForm holds the WHERE IT STOPS claim that docs/pair-node/arith.html makes, and
+// two more the page deliberately does not. For a HELD arrival, swept over both modes and every
 // (arrival, tilt) pair:
 //
-//	how many arrivals it takes  =  f          fromRest is a count, not just a comparison
-//	the direction               =  s          decided by the first arrival and never revisited
-//	where it stops              =  t + s*f    so no intermediate state is ever needed
+//	where it stops              =  t + s*f    THIS is on the page, as a line mod 12
+//	how many messages it takes  =  f          not on the page: a pair's message count is an
+//	                                          outcome of the exchange, not something a node
+//	                                          computes, and printing it invited it to be read
+//	                                          as a quantity a node holds
+//	the direction               =  s          decided by the first message and never revisited
 //
 // The direction is read the way step reads it — whichever neighbour is closer, ties up — and then
 // held FIXED for the rest of the walk here. That is the real content: it is not obvious that the
