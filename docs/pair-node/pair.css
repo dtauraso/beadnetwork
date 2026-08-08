@@ -201,6 +201,15 @@
       margin-top: 14px
     }
 
+    /* a head that names one arrangement takes that arrangement's colour */
+    .eq.head.par {
+      color: var(--warm)
+    }
+
+    .eq.head.perp {
+      color: var(--mag)
+    }
+
     .eq.head:first-child {
       margin-top: 0
     }
