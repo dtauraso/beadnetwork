@@ -60,6 +60,33 @@
       </div>
 
       <div class="card wide">
+        <h2>The tilt as a state machine — 24 states, two links out of each</h2>
+        <img class="figure" src="panel-links.svg"
+          alt="Five adjacent states, 21 22 23 0 1, with a next link running one way between them and a prev link running the other. The seam between 23 and 0 is marked and is an ordinary link.">
+        <div class="keynote">
+          <p><i class="sw" style="background:#5fd68a"></i>next &nbsp;
+            <i class="sw" style="background:#e05fd8"></i>prev — the only two moves there are</p>
+          <p>a turn FOLLOWS one of these links, so it cannot land between two states or off the
+            ring, and no rule anywhere adds 1 or takes a modulus</p>
+          <p>the seam in the middle is 23 → 0. Nothing detects it and no rule mentions it — the
+            last state's next simply IS the first, fixed when the ring was built</p>
+        </div>
+      </div>
+
+      <div class="card wide">
+        <h2>The mode as a state machine — three modes, four transitions</h2>
+        <img class="figure" src="panel-modes.svg"
+          alt="Three modes: setting, perpendicular and parallel. Setting goes to either of the other two, chosen from the gap at the first arrival. Both go back to setting on a reset. There is no edge between perpendicular and parallel.">
+        <div class="keynote">
+          <p>setting is where a node starts and what a reset restores — it is the zero value, so a
+            node is in it without anything having to put it there</p>
+          <p>there is NO edge between perpendicular and parallel: a chosen mode sticks, and a second
+            choice arriving mid-run is ignored</p>
+          <p>every case, mode by mode and length by length, is on <a href="cases.html">Cases</a></p>
+        </div>
+      </div>
+
+      <div class="card wide">
         <h2>What is read off the tilt</h2>
         <div class="strip">
           <img src="panel-triad-0.svg" alt="tilt 0, with its normal and bottom">

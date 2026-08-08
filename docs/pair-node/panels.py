@@ -122,6 +122,64 @@ for name, t, extra in (("before", 17, True), ("after", 0, False)):
     o.append('</svg>')
     out[f"panel-reset-{name}"] = "\n".join(o)
 
+# ---- the tilt as a state machine: five adjacent states and the two links out of each,
+# with the seam sitting in the middle so it can be seen to be an ordinary link.
+W, H = 620, 176
+o = [f'<svg width="{W}" height="{H}" viewBox="0 0 {W} {H}">']
+xs = [70, 190, 310, 430, 550]
+names = ["21", "22", "23", "0", "1"]
+o.append(f'<line x1="370" y1="18" x2="370" y2="158" stroke="#3a3a44" stroke-dasharray="4 4"/>')
+for x, name in zip(xs, names):
+    o.append(f'<circle cx="{x}" cy="88" r="26" fill="#2b2b33" stroke="#3a3a44" stroke-width="1.4"/>')
+    o.append(f'<text x="{x}" y="94" text-anchor="middle" {MONO} {INK}>{name}</text>')
+# straight arrows in the gap between neighbours: next along the top, prev along the bottom
+for a, b in zip(xs, xs[1:]):
+    o.append(f'<line x1="{a + 30}" y1="78" x2="{b - 36}" y2="78" stroke="{TOP}" stroke-width="2.2"/>')
+    o.append(f'<polygon points="{b - 28},78 {b - 38},73 {b - 38},83" fill="{TOP}"/>')
+    o.append(f'<line x1="{b - 30}" y1="100" x2="{a + 36}" y2="100" stroke="{HOME}" stroke-width="2.2"/>')
+    o.append(f'<polygon points="{a + 28},100 {a + 38},95 {a + 38},105" fill="{HOME}"/>')
+o.append(f'<text x="130" y="46" text-anchor="middle" {SANS} fill="{TOP}">next</text>')
+o.append(f'<text x="490" y="140" text-anchor="middle" {SANS} fill="{HOME}">prev</text>')
+o.append(f'<text x="370" y="170" text-anchor="middle" {SANS} {DIM}>the seam</text>')
+o.append('</svg>')
+out["panel-links"] = "\n".join(o)
+
+# ---- the mode as a state machine: three modes, four transitions, and no edge between
+# the two chosen ones.
+W, H = 620, 250
+o = [f'<svg width="{W}" height="{H}" viewBox="0 0 {W} {H}">']
+boxes = [(24, 102, 140, 46, "setting", "#9a9aa6"),
+         (400, 30, 190, 46, "perpendicular", HOME),
+         (400, 174, 190, 46, "parallel", ARR)]
+for x, y, w, h, name, col in boxes:
+    o.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="9" fill="#2b2b33" stroke="{col}"/>')
+    o.append(f'<text x="{x + w // 2}" y="{y + 29}" text-anchor="middle" {MONO} fill="{col}">{name}</text>')
+
+
+def straight(x1, y1, x2, y2, col, dash=""):
+    n = ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5
+    ux, uy = (x2 - x1) / n, (y2 - y1) / n
+    bx, by = x2 - 11 * ux, y2 - 11 * uy
+    return (f'<line x1="{x1}" y1="{y1}" x2="{round(bx)}" y2="{round(by)}" stroke="{col}" '
+            f'stroke-width="2"{dash}/>'
+            f'<polygon points="{x2},{y2} {round(bx - 5 * uy)},{round(by + 5 * ux)} '
+            f'{round(bx + 5 * uy)},{round(by - 5 * ux)}" fill="{col}"/>')
+
+
+# chosen from the gap, at the first arrival — one edge into each chosen mode
+o.append(straight(168, 118, 396, 56, TOP))
+o.append(straight(168, 132, 396, 194, TOP))
+o.append(f'<text x="286" y="118" text-anchor="middle" {SANS} fill="{TOP}">the gap, at the</text>')
+o.append(f'<text x="286" y="136" text-anchor="middle" {SANS} fill="{TOP}">first arrival</text>')
+# reset, from each chosen mode back to setting, routed clear of the green edges
+o.append(straight(400, 40, 172, 106, "#ff6b6b", ' stroke-dasharray="5 4"'))
+o.append(straight(400, 210, 172, 144, "#ff6b6b", ' stroke-dasharray="5 4"'))
+o.append(f'<text x="286" y="60" text-anchor="middle" {SANS} fill="#ff6b6b">RESET</text>')
+o.append(f'<text x="286" y="204" text-anchor="middle" {SANS} fill="#ff6b6b">RESET</text>')
+o.append(f'<text x="310" y="240" text-anchor="middle" {SANS} {DIM}>no edge between the two chosen modes — a choice sticks</text>')
+o.append('</svg>')
+out["panel-modes"] = "\n".join(o)
+
 # ---- the gap read: this node's tilt against the PARTNER'S tilt, which is the arrival
 # backed up by a quarter. Two cases, because the answer is two-valued.
 for name, a, note in (("perp", 12, "gap 6 → perpendicular"), ("par", 9, "gap 3 → parallel")):
