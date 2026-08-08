@@ -127,9 +127,10 @@ func TestPerpendicularStepsThroughTheParallelHalt(t *testing.T) {
 //
 //	the fold on d   24 is a whole number of 12s, so every representative of t - a gives the
 //	                same e. Reducing d first is work the modulus immediately undoes.
-//	abs on d        |d|, folded, IS the angle length — so the folded magnitude the other form
-//	                starts from is this same gap with its sign dropped, and dropping the sign
-//	                is exactly what costs it the direction.
+//	abs on d        |d|, folded, IS the angle length — so the magnitude the other form starts
+//	                from is this same gap with its sign dropped. Dropping it keeps f exactly
+//	                (checked below) and loses the TURN: t=0 against a=1 must turn down while
+//	                t=0 against a=23 turns up, and |t - a| cannot tell those two apart.
 //
 // The ties — a tilt equidistant from two rests, which is where a comparison rule has to be told
 // what to prefer — need NO special case here: they land on e = -6 by themselves, and -6 turns up,
@@ -166,6 +167,16 @@ func TestOneRoundIsSignAndRemainder(t *testing.T) {
 				// the modulus immediately undoes.
 				d := tilt - arr
 				e := ((d+shift)%12+12)%12 - 6
+
+				// abs on d keeps the SIZE and loses the TURN. |t - a| makes the two sides
+				// of the arrival identical, but a node one slot below it must turn the
+				// opposite way from one slot above — t=0, a=1 turns down to 23, while
+				// t=0, a=23 turns up to 1. Same f, opposite sign.
+				eAbs := ((abs32(d)+shift)%12+12)%12 - 6
+				if abs32(eAbs) != abs32(e) {
+					t.Fatalf("mode=%v a=%d t=%d: |e| from |d| is %d, from d is %d",
+						m.mode, arr, tilt, abs32(eAbs), abs32(e))
+				}
 
 				// and folding it IS the angle length: |d folded| = l, which is the number
 				// the magnitude form starts from. Same gap, with its sign dropped.

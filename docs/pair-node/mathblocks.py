@@ -148,9 +148,14 @@ BODIES = {
     #
     # Every claim here is swept against the running code by TestTheWalkIsClosedForm.
     "closed-numbers": r"""
-  \quad t,\, a \;\in\; \{0,\, 1,\, \ldots,\, 23\} \\[7pt]
-  \quad \ell = \lvert t - a \rvert
-    \quad {\color{dim}\text{or } 24 - \lvert t - a \rvert, \text{ whichever is shorter}}
+  \quad t,\, a \;\in\; \{0,\, 1,\, \ldots,\, 23\} \\[9pt]
+  \quad \text{\color{acc}this node} \quad
+    \text{tilt} = t \qquad \text{normal} = t+6 \qquad \text{bottom} = t+12 \\[4pt]
+  \quad {\color{dim}\text{only } t \text{ moves; the other two are read off it}} \\[9pt]
+  \quad \text{\color{acc}what arrives} \quad a = p + 6
+    \quad {\color{dim}\text{the partner's normal, not its tilt}} \\[9pt]
+  \quad \ell = \lvert t - a \rvert \text{ or } 24 - \lvert t - a \rvert,
+    \text{ whichever is shorter}
 """,
     "closed-far": r"""
   \quad q = \lvert\, \ell - 6 \,\rvert \\[7pt]
@@ -161,18 +166,19 @@ BODIES = {
     # away, so it needs a comparison to get direction back. Keep the SIGNED gap instead and
     # both arrangements are one line, differing by a shift of 6 inside the modulus.
     "closed-round": r"""
-  \quad d = t - a
-    \quad {\color{dim}\text{the difference, unreduced}} \\[5pt]
-  \quad {\color{dim}\text{brought onto the ring, } \lvert d \rvert \text{ is } \ell} \\[9pt]
+  \quad d = t - a \qquad {\color{dim}\text{unreduced}} \\[9pt]
   \quad {\color{par}\text{parallel} : \; e = (d \bmod 12) - 6} \\[5pt]
   \quad {\color{perp}\text{perpendicular} : \; e = (d + 6 \bmod 12) - 6} \\[9pt]
   \quad {\color{acc}t_{\mathrm{after}} = t - \operatorname{sign}(e)}
-    \qquad {\color{dim}f = \lvert e \rvert}
+    \qquad {\color{acc}f = \lvert e \rvert} \\[11pt]
+  \quad {\color{dim}\text{fold } d : \; \lvert d \rvert = \ell}
+    \qquad {\color{dim}\text{take } \lvert d \rvert : \; f \text{ survives},\;
+      \operatorname{sign}(e) \text{ does not}}
 """,
     "closed-run": r"""
-  \quad {\color{acc}\text{arrivals until it stops}} \;=\; f \\[9pt]
-  \quad {\color{acc}\text{where it stops}} \;=\; t + s\,f
-    \quad {\color{dim}s = \pm 1, \text{ fixed by the first arrival}}
+  \quad {\color{acc}\text{arrivals}} \;=\; f \\[7pt]
+  \quad {\color{acc}\text{lands at}} \;=\; t - f\operatorname{sign}(e) \\[7pt]
+  \quad {\color{dim}\operatorname{sign}(e) \text{ from the first arrival, and never again}}
 """,
     "other": r"""
   \text{every arrival} :\; r_{\mathrm{after}} = a \\[5pt]
