@@ -55,14 +55,20 @@
 
     <div class="card wide">
       <h2>Two numbers, one arrow each</h2>
-      <img class="math" src="update-closed-numbers.svg" style="width:463px"
-        alt="t and a are in {0, 1, ..., 23}. This node: tilt = t, normal = t + 6, bottom = t + 12; only t moves, the other two are read off it. What arrives: a = p + 6, the partner's normal, not its tilt. How far apart — the slots between t and a, the shorter way round: d = |t - a| is one way round; 24 - d is the other way round; d + (24 - d) = 24, so the two sit either side of 12; and L = 12 - |12 - d|, which is 12 less how far d is from 12.">
+      <img class="math" src="update-closed-numbers.svg" style="width:422px"
+        alt="t and a are in {0, 1, ..., 23}. This node: tilt = t, normal = t + 6, bottom = t + 12; only t moves, the other two are read off it. What arrives: a = p + 6, the partner's normal, not its tilt. The arrival, read off each end of the tilt line: d = |t - a|, the plain difference, 0 to 23; L bottom = |12 - d|, the slots from t + 12 to a; L top = 12 - L bottom, the slots from t to a; and L top + L bottom = 12, because the two ends are a half turn apart.">
       <div class="keynote">
         <p>a node draws three arrows and sends the middle one, so the quarter turn is already inside
           a before it is measured against anything</p>
-        <p>the abs is on the subtraction, so d is a distance. Nothing downstream of it can say
-          which way — and nothing below needs to, because the round reads the arrival off both ends
-          of a line rather than off one number</p>
+        <p>the top's reading is a half turn less the bottom's, so only one of the two is ever
+          computed. |12 − d| is not a device for picking the shorter arc — it is the bottom end
+          measured, and the top gets what is left</p>
+        <p>the bottom's reading cannot be a plain difference of its own. t = 11 puts the bottom at
+          23, and against an arrival at 0 the plain difference is 23 while the reading is 1 — the
+          same folding d needs. Doing it once, on the bottom, is what the other three lines then
+          get for free</p>
+        <p>d drops the sign, so nothing downstream of it can say which way. Nothing needs to: two
+          readings say between them what one number and a sign would have to</p>
       </div>
     </div>
 
@@ -70,12 +76,15 @@
 
     <div class="card wide">
       <h2>One number, off the quarter</h2>
-      <img class="math" src="update-closed-far.svg" style="width:333px"
-        alt="How far off the quarter: q = |L - 6|, slots from L to 6. How far off stopping: parallel stops at L = 6, so f = q; perpendicular stops at L = 0 or 12, so f = 6 - q.">
+      <img class="math" src="update-closed-far.svg" style="width:356px"
+        alt="How far off the quarter, the same for both ends: q = |L top - 6| = |L bottom - 6|. How far off stopping: perpendicular stops when an end reads 0, and f = min(L top, L bottom) = 6 - q; parallel stops when both ends read 6, and f = q.">
       <div class="keynote">
-        <p>both arrangements rest symmetrically about the quarter, which is why one q settles both —
-          and why their two f are complements, the same fact the <a href="audit.html">audit</a>
-          found by drawing them</p>
+        <p>q is the same off either end, because the two readings sum to 12 and 6 is halfway. That
+          is why one q settles both arrangements, and why their two f are complements — the same
+          fact the <a href="audit.html">audit</a> found by drawing them</p>
+        <p>parallel stopping when BOTH ends read 6 is the same statement as the arrival lying on
+          the normal line: a half turn from the tilt in both directions is the normal and its
+          opposite</p>
       </div>
     </div>
 

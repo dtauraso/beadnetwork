@@ -227,6 +227,19 @@ func TestOneRoundIsSignAndRemainder(t *testing.T) {
 						tilt, arr, topL, botL)
 				}
 
+				// And the two readings are already IN the angle-length formula: with
+				// d = |t - a|, the bottom reads |12 - d| and the top reads 12 minus that.
+				// So the inner term of 12 - |12 - d| is not a device for picking the
+				// shorter arc — it is the BOTTOM's own reading, and the top is what is
+				// left of a half turn once the bottom has taken its share.
+				dAbs := abs32(tilt - arr)
+				if botL != abs32(12-dAbs) {
+					t.Fatalf("t=%d a=%d: bottom reads %d, |12-d| = %d", tilt, arr, botL, abs32(12-dAbs))
+				}
+				if topL != 12-abs32(12-dAbs) {
+					t.Fatalf("t=%d a=%d: top reads %d, 12-|12-d| = %d", tilt, arr, topL, 12-abs32(12-dAbs))
+				}
+
 				// And each arrangement stops when the arrival lands ON one of the node's
 				// own drawn lines — which is what the two stopping values ARE:
 				//
@@ -237,6 +250,19 @@ func TestOneRoundIsSignAndRemainder(t *testing.T) {
 				onTiltLine := topL == 0 || botL == 0
 				normL := cur.quarter.angleLength(a)
 				onNormalLine := normL == 0 || cur.quarter.opposite.angleLength(a) == 0
+				// AND f IS THE SMALLER OF THE TWO READINGS of that line. So the count and
+				// the stop are one statement — "how far the arrival is off my line" — with
+				// no subtraction from 6 and no case for which arrangement.
+				antiNormL := cur.quarter.opposite.angleLength(a)
+				line := [2]int32{topL, botL}
+				if m.mode == Wiring.TiltMachineParallel {
+					line = [2]int32{normL, antiNormL}
+				}
+				if got := m.fromRest(cur, a); got != min(line[0], line[1]) {
+					t.Fatalf("mode=%v t=%d a=%d: readings %d and %d, min=%d but fromRest=%d",
+						m.mode, tilt, arr, line[0], line[1], min(line[0], line[1]), got)
+				}
+
 				stopped := e == 0
 				if m.mode == Wiring.TiltMachinePerpendicular && stopped != onTiltLine {
 					t.Fatalf("perpendicular t=%d a=%d: stopped=%v but on tilt line=%v",

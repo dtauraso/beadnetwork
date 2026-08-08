@@ -4,11 +4,13 @@
 \usepackage{pairmath}
 \begin{document}
 \[\begin{array}{@{}l@{}}
-  \quad \text{\color{acc}how far off the quarter} \\[4pt]
-  \quad q = \lvert\, \ell - 6 \,\rvert
-    \quad {\color{dim}\text{slots from } \ell \text{ to } 6} \\[9pt]
+  \quad \text{\color{acc}how far off the quarter — the same for both ends} \\[4pt]
+  \quad q = \lvert\, \ell_{\mathrm{top}} - 6 \,\rvert
+        = \lvert\, \ell_{\mathrm{bottom}} - 6 \,\rvert \\[9pt]
   \quad \text{\color{acc}how far off stopping} \\[4pt]
-  \quad {\color{par}\text{parallel stops at } \ell = 6 : \; f = q} \\[4pt]
-  \quad {\color{perp}\text{perpendicular stops at } \ell = 0 \text{ or } 12 : \; f = 6 - q}
+  \quad {\color{perp}\text{perpendicular stops when an end reads } 0} \\[3pt]
+  \qquad {\color{perp}f = \min(\ell_{\mathrm{top}},\; \ell_{\mathrm{bottom}}) = 6 - q} \\[6pt]
+  \quad {\color{par}\text{parallel stops when both ends read } 6} \\[3pt]
+  \qquad {\color{par}f = q}
 \end{array}\]
 \end{document}

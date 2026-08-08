@@ -154,24 +154,25 @@ BODIES = {
   \quad {\color{dim}\text{only } t \text{ moves; the other two are read off it}} \\[9pt]
   \quad \text{\color{acc}what arrives} \quad a = p + 6
     \quad {\color{dim}\text{the partner's normal, not its tilt}} \\[9pt]
-  \quad \text{\color{acc}how far apart: the slots between } t \text{ and } a,
-    \text{ the shorter way round} \\[6pt]
+  \quad \text{\color{acc}the arrival, read off each end of the tilt line} \\[6pt]
   \quad d = \lvert t - a \rvert
-    \qquad {\color{dim}\text{one way round}} \\[4pt]
-  \quad 24 - d
-    \qquad {\color{dim}\text{the other way round}} \\[4pt]
-  \quad d + (24 - d) = 24
-    \qquad {\color{dim}\text{so the two sit either side of } 12} \\[6pt]
-  \quad \ell = 12 - \lvert 12 - d \rvert
-    \qquad {\color{dim}12, \text{ less how far } d \text{ is from } 12}
+    \qquad {\color{dim}\text{the plain difference, } 0 \le d \le 23} \\[6pt]
+  \quad \ell_{\mathrm{bottom}} = \lvert 12 - d \rvert
+    \qquad {\color{dim}\text{slots from } t+12 \text{ to } a} \\[4pt]
+  \quad \ell_{\mathrm{top}} = 12 - \ell_{\mathrm{bottom}}
+    \qquad {\color{dim}\text{slots from } t \text{ to } a} \\[6pt]
+  \quad \ell_{\mathrm{top}} + \ell_{\mathrm{bottom}} = 12
+    \qquad {\color{dim}\text{the two ends are a half turn apart}}
 """,
     "closed-far": r"""
-  \quad \text{\color{acc}how far off the quarter} \\[4pt]
-  \quad q = \lvert\, \ell - 6 \,\rvert
-    \quad {\color{dim}\text{slots from } \ell \text{ to } 6} \\[9pt]
+  \quad \text{\color{acc}how far off the quarter — the same for both ends} \\[4pt]
+  \quad q = \lvert\, \ell_{\mathrm{top}} - 6 \,\rvert
+        = \lvert\, \ell_{\mathrm{bottom}} - 6 \,\rvert \\[9pt]
   \quad \text{\color{acc}how far off stopping} \\[4pt]
-  \quad {\color{par}\text{parallel stops at } \ell = 6 : \; f = q} \\[4pt]
-  \quad {\color{perp}\text{perpendicular stops at } \ell = 0 \text{ or } 12 : \; f = 6 - q}
+  \quad {\color{perp}\text{perpendicular stops when an end reads } 0} \\[3pt]
+  \qquad {\color{perp}f = \min(\ell_{\mathrm{top}},\; \ell_{\mathrm{bottom}}) = 6 - q} \\[6pt]
+  \quad {\color{par}\text{parallel stops when both ends read } 6} \\[3pt]
+  \qquad {\color{par}f = q}
 """,
     # ONE ROUND, with no case in it. The magnitude story above (l, q, f) has thrown the sign
     # away, so it needs a comparison to get direction back. Keep the SIGNED gap instead and
