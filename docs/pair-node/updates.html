@@ -82,7 +82,7 @@
           <p><i class="sw" style="background:#9a9aa6"></i>t + 12 — the bottom</p>
           <p>links, not sums — the triad turns as one, and nothing wraps</p>
         </div>
-        <img class="math" src="update-read.svg" style="width:145px"
+        <img class="math" src="update-read.svg" style="width:184px"
           alt="normal(t) = t+6. bottom(t) = t+12. sends = normal(t). angle(i) = (pi/12) i.">
       </div>
 
@@ -108,7 +108,7 @@
             acute below the quarter, obtuse above it — is ordinary to both, and gets turned over</p>
           <p>integers, so exact — no dot product, no epsilon to tune</p>
         </div>
-        <img class="math" src="update-length.svg" style="width:313px"
+        <img class="math" src="update-length.svg" style="width:396px"
           alt="d = absolute value of t minus a. L, short for angleLength(t,a), = min(d, 24 - d) — the shorter of the two arcs.">
       </div>
 
@@ -148,10 +148,10 @@
           difference in size between them is the point: one has 24 states and two inputs, the other
           three states and two, and neither has anything else in it.</p>
         <p class="figlabel">the tilt</p>
-        <img class="math" src="update-machine-tilt.svg" style="width:236px"
+        <img class="math" src="update-machine-tilt.svg" style="width:299px"
           alt="S = the integers mod 24. Sigma = next, prev. delta(t, next) = t+1 mod 24. delta(t, prev) = t-1 mod 24.">
         <p class="figlabel">the mode</p>
-        <img class="math" src="update-machine-mode.svg" style="width:357px"
+        <img class="math" src="update-machine-mode.svg" style="width:453px"
           alt="S = R setting, R perpendicular, R parallel. Sigma = a, reset. delta(R setting, a) = R perpendicular if angleLength(t, a sub minus six) = 6, else R parallel. delta(R, a) = R for R not setting. delta(R, reset) = R setting.">
         <div class="keynote">
           <p>the tilt ring is the Cayley graph of ℤ₂₄ on the generator 1 — which is exactly what
@@ -179,13 +179,13 @@
              not render at the size it was set at. The doubled constant it carried was a fix for
              being the widest; split, each step is 211-300pt, in the same band as the rest, so
              there is nothing left to compensate for. -->
-        <img class="math" src="update-arith-groups.svg" style="width:370px"
+        <img class="math" src="update-arith-groups.svg" style="width:468px"
           alt="The ring: x runs 0 to 23, counted round, so 24 is 0 again. The half turn: x and x + 12 name the same line, so a line is a number counted round twelve.">
-        <img class="math" src="update-arith-distance.svg" style="width:346px"
+        <img class="math" src="update-arith-distance.svg" style="width:439px"
           alt="The length between two numbers: d = |x - y|, and L(x, y) is d or 24 - d, whichever is shorter — never more than 12.">
-        <img class="math" src="update-arith-gap.svg" style="width:306px"
+        <img class="math" src="update-arith-gap.svg" style="width:387px"
           alt="The four quarter gaps, with g = x - y: g is 0 or 12, where x and y name the same line; and g is 6 or 18, a quarter of the ring between them.">
-        <img class="math" src="update-arith-rests.svg" style="width:475px"
+        <img class="math" src="update-arith-rests.svg" style="width:602px"
           alt="Shift one of the two by 6, and only those four land on 0, 6, 12: a gap of 0 or 12 gives L(x, y + 6) = 6; a gap of 6 or 18 gives L(x, y + 6) = 0 or 12; every other gap gives an L(x, y + 6) that is none of 0, 6, 12.">
         <div class="keynote">
           <p>this is where <span data-src="nodes/Node1/machine.go#restingLengths">restingLengths</span>
@@ -206,7 +206,7 @@
 
       <div class="card">
         <h2 id="loop">Where each mode rests</h2>
-        <img class="math" src="update-resting.svg" style="width:103px"
+        <img class="math" src="update-resting.svg" style="width:130px"
           alt="R perpendicular = {0, 12}. R parallel = {6}. R setting = any.">
       </div>
 
@@ -219,7 +219,7 @@
           <img src="panel-gap-par.svg"
             alt="The arrival at slot 9; backing out its quarter puts the partner's tilt at 3, three slots from this node's tilt, so the pair runs parallel.">
         </div>
-        <img class="math" src="update-decide-mode.svg" style="width:476px"
+        <img class="math" src="update-decide-mode.svg" style="width:603px"
           alt="If R is not R setting, nothing changes — the choice already stuck. Otherwise measure: p = a minus six, the partner's tilt backed out of the arrival, and G = angleLength(t, p), the gap between the two tilts. Then decide: if G = 6, R becomes R perpendicular; else R becomes R parallel.">
         <div class="keynote">
           <p><i class="sw" style="background:#5fd68a"></i>t — this node's own tilt</p>
@@ -235,7 +235,7 @@
 
       <div class="card wide">
         <h2>Which slot to go to — measure, then decide</h2>
-        <img class="math" src="update-decide-turn.svg" style="width:511px"
+        <img class="math" src="update-decide-turn.svg" style="width:647px"
           alt="Measure: L is angleLength(u, a), the angle length from u to what arrived; R is the lengths this mode rests at, a list of numbers; and f(u) is the smallest |L - r| over the r in R. Then decide: if f(t) = 0, stay at t; else if f(t plus one) is less than or equal to f(t minus one), go to t plus one; else go to t minus one.">
         <div class="keynote">
           <p>f is computed inside the arrival and thrown away — it is not a countdown, and no walk
@@ -253,9 +253,9 @@
         </div>
       </div>
 
-      <div class="card">
+      <div class="card wide">
         <h2>The other updates</h2>
-        <img class="math" src="update-other.svg" style="width:312px"
+        <img class="math" src="update-other.svg" style="width:396px"
           alt="Every arrival: r sub after = a. Panel up/down: t sub after = t sub plus or minus one, R sub after = R sub before. Reset: t sub after = 0, R sub after = R sub setting.">
       </div>
 

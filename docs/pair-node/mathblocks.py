@@ -149,7 +149,12 @@ HEAD = ("%% update-%s.tex — one block of the update. Shared setup is pairmath.
         "\\usepackage{pairmath}\n"
         "\\begin{document}\n")
 
-SCALE = 1.5  # px per pt for the displayed width
+# px per pt for the displayed width, shared by every block so blocks of different shapes
+# render at the same glyph size. Set against the DRAWINGS, not chosen in the abstract:
+# panels.py labels its SVGs at 15px and those SVGs are shown at their authored width, so
+# 15px is the page's at-a-glance size. At 1.5 the maths was the smaller of the two sizes on
+# the page — uniform among itself, but under the thing it sits beside.
+SCALE = 1.9
 
 for name, body in BODIES.items():
     stem = f"update-{name}"

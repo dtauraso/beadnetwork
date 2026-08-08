@@ -306,7 +306,17 @@
        authoring time. The WIDTH IS SET PER IMAGE, inline, as that block's own intrinsic
        pt width times one shared constant — so blocks of different shapes all render at
        the same glyph size, which a blanket width:100% would not do. max-width keeps it
-       inside the card, so it scales down rather than scrolling. */
+       inside the card, so it scales down rather than scrolling.
+
+       The constant (mathblocks.py, SCALE) is set against the DRAWINGS: panels.py labels
+       its SVGs at 15px and shows them at their authored width, so that is the page's
+       at-a-glance size and the maths matches it rather than sitting under it.
+
+       One glyph size holds only while every block fits its card. A wide card's inner
+       width is viewport - 60px, so below roughly a 710px window the widest block starts
+       shrinking while the narrow ones do not, and the page has two sizes again. That is
+       the cost of raising the constant, and it is why a block that grows past the widest
+       one here should be SPLIT rather than scaled down. */
     img.math {
       display: block;
       max-width: 100%;
