@@ -265,7 +265,7 @@ func TestOneRoundIsSignAndRemainder(t *testing.T) {
 						tilt, arr, c, topL, botL)
 				}
 				// THE TWO ARRANGEMENTS DIFFER BY THE DIRECTION OF ONE INEQUALITY. Both
-				// compare |c - 6| at the two neighbours; parallel walks toward the smaller
+				// compare |c - 6| at the two tilts one slot away; parallel walks to the smaller
 				// (its stop is c = 6) and perpendicular toward the larger (its stop is
 				// c = 0, which is |c - 6| at its largest). Ties go up in both, as step
 				// does. This is what docs/pair-node/arith.html prints as two branches per
