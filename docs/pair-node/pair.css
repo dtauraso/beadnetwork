@@ -141,14 +141,18 @@
        leaves an empty column on a card whose content is a left-aligned block of maths. */
     .onesize .card h2,
     .onesize .secname {
-      font-size: 24px;
+      font-size: 21px;
       letter-spacing: .02em
     }
 
+    /* 17px, not 19: the longest equation line is about 74 characters, and at 19px that runs
+       690px, which wraps as soon as the window is under about 750. An equation that wraps
+       reads as two statements. 17px holds it to roughly 615px, so the whole page fits a
+       675px window before anything breaks. The prose moves with it — one font, one size. */
     .onesize .lead,
     .onesize .keynote p,
     .onesize .keynote code {
-      font-size: 19px;
+      font-size: 17px;
       line-height: 1.5
     }
 
@@ -165,7 +169,7 @@
        reflows on a narrow window instead of scaling. Symbols are letters, so italic marks
        them apart the way the maths did. */
     .eq {
-      font-size: 19px;
+      font-size: 17px;
       line-height: 1.6;
       margin: 0 0 5px;
       color: var(--ink)
@@ -185,8 +189,11 @@
       margin-left: 14px
     }
 
+    /* Every line starts at the same left edge — heading, equation and note alike. Indenting
+       the equations under their headings gave the card two left edges and made the maths
+       read as an aside to the label above it, which is backwards. */
     .eq.step {
-      margin-left: 22px
+      margin-left: 0
     }
 
     .eq.head {
