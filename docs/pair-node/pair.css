@@ -489,6 +489,18 @@
       border-bottom: 1px dotted var(--line)
     }
 
+    /* A WHOLE EQUATION LINE can carry a data-src, so that clicking the RULE opens the code
+       that runs it. Underlining all of it would draw a rule under every line on the page and
+       read as emphasis rather than as a link, so inside .eq the dotted border waits for the
+       hover — the line still answers the pointer, it just does not shout when idle. */
+    .eq a.srclink {
+      border-bottom: none
+    }
+
+    .eq a.srclink:hover {
+      border-bottom: 1px dotted var(--accent)
+    }
+
     a.srclink:hover {
       color: var(--accent);
       border-bottom-color: var(--accent)

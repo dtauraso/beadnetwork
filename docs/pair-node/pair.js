@@ -61,14 +61,19 @@
     const symbol = hash[1] || "";
     const a = document.createElement("a");
     a.className = "srclink";
-    a.textContent = cell.textContent;
     a.href = "#";
     a.title = symbol ? rel + " — " + symbol : rel;
     a.addEventListener("click", function (ev) {
       ev.preventDefault();
       send(rel, symbol);
     });
-    cell.textContent = "";
+    // MOVE the children in rather than copying textContent out. A data-src used to be
+    // put only on a bare name, so flattening to text cost nothing; put one on a whole
+    // line — which is what makes a RULE clickable rather than just the name of the
+    // function holding it — and flattening throws away the italics, the colours and the
+    // <var>s that make the line readable. Moving the nodes keeps all of it inside the
+    // link, and is identical to the old behaviour wherever the content was plain text.
+    while (cell.firstChild) a.appendChild(cell.firstChild);
     cell.appendChild(a);
   }
 })();
