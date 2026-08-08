@@ -147,6 +147,30 @@
       <p class="eq step dim">no mode is read below
         <span data-src="nodes/Node1/machine.go#stopping">stopping</span>; no value is negative</p>
     </div>
+
+    <div class="card wide">
+      <h2>what that one line comes to, per arrangement</h2>
+      <div class="cap">arith.html prints these twelve; the code holds none of them</div>
+      <p class="eq step perp" data-src="nodes/Node1/machine.go#step"><span class="g">perpendicular</span>
+        stop = 0, so (0 − <var>c</var>) mod <var>h</var> ≤ <var>q</var> is
+        <var>c</var> ≥ <var>q</var></p>
+      <p class="eq step sub"><var>c</var> = 0 : stay ·
+        <var>c</var> ≥ <var>q</var> : +1 · <var>c</var> &lt; <var>q</var> : −1</p>
+      <p class="eq step par" data-src="nodes/Node1/machine.go#step"><span class="g">parallel</span>
+        stop = <var>q</var>, so (<var>q</var> − <var>c</var>) mod <var>h</var> ≤ <var>q</var> is
+        <var>c</var> ≤ <var>q</var></p>
+      <p class="eq step sub"><var>c</var> = <var>q</var> : stay ·
+        <var>c</var> &lt; <var>q</var> : +1 · <var>c</var> &gt; <var>q</var> : −1</p>
+      <p class="eq step dim">the ±1 is on the MEASURED end — the top when <var>u</var> &lt;
+        <var>h</var>, the bottom otherwise — which is the page's two halves. Six lines each way,
+        twelve in all, and not one of them is written down in
+        <span data-src="nodes/Node1/machine.go">machine.go</span>: they are the one comparison
+        above, read for a stop of 0 and a stop of <var>q</var></p>
+      <p class="eq step dim">the collapse is not taken on trust —
+        <span data-src="nodes/Node1/node_test.go#TestOneRoundIsSignAndRemainder">TestOneRoundIsSignAndRemainder</span>
+        derives the page's branches and asks the machine for the same state, on every pair of both
+        lattices</p>
+    </div>
   </section>
 
   <section>
