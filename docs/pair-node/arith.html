@@ -56,12 +56,14 @@
     <div class="card wide">
       <h2>Two numbers, one arrow each</h2>
       <img class="math" src="update-closed-numbers.svg" style="width:573px"
-        alt="t and a are in {0, 1, ..., 23}. This node: tilt = t, normal = t + 6, bottom = t + 12; only t moves, the other two are read off it. What arrives: a = p + 6, the partner's normal, not its tilt. Which way, and how far, from a to t: d = t - a, between -23 and 23, negative when a is greater than t. How far apart: L = |(d + 12 mod 24) - 12|, between 0 and 12 — slots from t to a, the shorter way round.">
+        alt="t and a are in {0, 1, ..., 23}. This node: tilt = t, normal = t + 6, bottom = t + 12; only t moves, the other two are read off it. What arrives: a = p + 6, the partner's normal, not its tilt. Which way, and how far, from a to t: d = t - a, between -23 and 23, negative when a is greater than t. How far apart: L = 12 - |12 - |d||, between 0 and 12 — slots from t to a, the shorter way round.">
       <div class="keynote">
         <p>a node draws three arrows and sends the middle one, so the quarter turn is already inside
           a before it is measured against anything</p>
-        <p>ℓ needs no min: the remainder lands d in −12…11 already, and ℓ is its size. The min form
-          asks which of two arcs is shorter; this one never makes two</p>
+        <p>ℓ needs no min: |d| runs 0…23, and 12 − |12 − |d|| is its distance to the nearer end of
+          that range. The min form asks which of two arcs is shorter; this one never makes two</p>
+        <p>the abs sits ON d, and that is where ℓ parts company with the round below. ℓ starts by
+          throwing the sign away; e keeps d whole</p>
         <p>d is defined here rather than with the round below, because ℓ is already made of it —
           every measurement on this page is d, read in a different way</p>
       </div>
@@ -94,9 +96,8 @@
         <p>parallel and perpendicular differ only by the +6 inside the remainder. A tilt the same
           distance from two resting angles gives e = −6, and −6 turns up, so that case needs no
           rule of its own — 96 of the 1152 (tilt, arrival) pairs are that case</p>
-        <p>e and ℓ are the same expression on the same d: a remainder less half the modulus — 12
-          and 6 here, 24 and 12 for ℓ — with an abs on the outside for ℓ and none here. That abs is
-          the whole difference between them, and the direction is what it costs</p>
+        <p>e and ℓ read the same d and differ in one place: ℓ takes |d| first, e does not. That
+          single abs is the whole difference between them, and the direction is what it costs</p>
         <p>with t = 0, an arrival at 1 gives d = −1 and one at 23 gives d = +23. e keeps those
           apart, so one turns down and the other up; ℓ is 1 for both and cannot</p>
         <p>swept by

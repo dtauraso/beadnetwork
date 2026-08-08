@@ -158,7 +158,7 @@ BODIES = {
   \quad d = t - a
     \quad {\color{dim}-23 \le d \le 23, \text{ negative when } a > t} \\[9pt]
   \quad \text{\color{acc}how far apart} \\[4pt]
-  \quad \ell = \bigl\lvert\, (d + 12 \bmod 24) - 12 \,\bigr\rvert
+  \quad \ell = 12 - \bigl\lvert\, 12 - \lvert d \rvert \,\bigr\rvert
     \quad {\color{dim}0 \le \ell \le 12} \\[4pt]
   \quad {\color{dim}\text{slots from } t \text{ to } a,\text{ the shorter way round}}
 """,
