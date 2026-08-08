@@ -132,13 +132,30 @@
        wrapper around the cards, so the cards stay direct children of .grid and keep
        flowing across both columns — a wrapper would restart a one-column layout inside
        each section. First-child gets no top margin so the page does not open with a gap. */
-    /* arith.html sets its maths at the prose size (mathblocks.py, ARITH_SCALE), so every
-       character of the ARGUMENT is one size there. Its headers are not part of the argument
-       and stay above it, which is what makes them findable when nothing else varies. */
+    /* arith.html is maths and prose and nothing else — no drawings — so the two are sized
+       against each other rather than against a figure. The maths is at the site's 1.9
+       (mathblocks.py), which puts its x-height near a 19px sans; the prose meets it there
+       instead of the maths coming down to a 14px reading size. Headers sit above both.
+
+       The notes also align LEFT here. Elsewhere .keynote is centred under a drawing, which
+       leaves an empty column on a card whose content is a left-aligned block of maths. */
     .onesize .card h2,
     .onesize .secname {
-      font-size: 17px;
-      letter-spacing: .04em
+      font-size: 24px;
+      letter-spacing: .02em
+    }
+
+    .onesize .lead,
+    .onesize .keynote p,
+    .onesize .keynote code {
+      font-size: 19px;
+      line-height: 1.5
+    }
+
+    .onesize .keynote,
+    .onesize .lead {
+      max-width: 74ch;
+      margin-left: 0
     }
 
     .secname {
