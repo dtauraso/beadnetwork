@@ -202,6 +202,11 @@
       margin-left: 28px
     }
 
+    /* one level deeper again: a result belonging to a condition that is itself nested */
+    .eq.sub2 {
+      margin-left: 56px
+    }
+
     .eq.head {
       color: var(--accent);
       margin-top: 14px
