@@ -128,7 +128,13 @@
       }
     }
 
+    /* A drawing FILLS its card. Left at its intrinsic width it sat at whatever pixel
+       size it happened to be authored at — around half a wide card — with dead space
+       beside it. width:100% scales it up to the card and max-width keeps it from ever
+       forcing the card wider, so it grows on a big window and shrinks on a small one. */
     .card svg {
+      display: block;
+      width: 100%;
       max-width: 100%;
       height: auto
     }
