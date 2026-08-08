@@ -230,15 +230,21 @@ func TestOneRoundIsSignAndRemainder(t *testing.T) {
 				// Measured from the two INDICES, no abs anywhere. Count from each end up
 				// to the arrival:
 				//
-				//	u = (t - a)      mod 24        from the top
-				//	v = (t + 12 - a) mod 24        from the bottom
+				//	b = (t + 12) mod 24            the bottom's own index
+				//	u = (t - a)  mod 24            from the top
+				//	v = (b - a)  mod 24            from the bottom
+				//
+				// v is measured FROM THE BOTTOM, not from the top with a 12 folded into
+				// it — b is a state the node already has (cur.opposite), so writing
+				// t + 12 - a here would be reaching past the vector to rebuild it.
 				//
 				// The two ends are a half turn apart, so u and v differ by 12 — which
 				// means EXACTLY ONE of them is below 12. That one is its own end's
 				// reading, and the other end reads 12 minus it. No abs, no min, and no
 				// fold applied twice: the pair sorts itself.
+				b := cur.opposite.idx
 				u := ((tilt-arr)%points + points) % points
-				v := ((tilt+12-arr)%points + points) % points
+				v := ((b-arr)%points + points) % points
 				if (u < 12) == (v < 12) {
 					t.Fatalf("t=%d a=%d: u=%d v=%d, not exactly one below 12", tilt, arr, u, v)
 				}

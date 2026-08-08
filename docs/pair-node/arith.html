@@ -55,8 +55,8 @@
 
     <div class="card wide">
       <h2>Two numbers, one arrow each</h2>
-      <img class="math" src="update-closed-numbers.svg" style="width:465px"
-        alt="t and a are in {0, 1, ..., 23}. This node: tilt = t, normal = t + 6, bottom = t + 12; only t moves, the other two are read off it. The partner: tilt = p, normal = p + 6. a = p + 6 — a IS the partner's normal, and its tilt p is never seen. Count from each end of the tilt line up to a: u = t - a mod 24, from the top; v = t + 12 - a mod 24, from the bottom. The ends are a half turn apart, so u and v differ by 12 — exactly one of them is under 12. That one is its own end's reading, and the other end reads 12 minus it.">
+      <img class="math" src="update-closed-numbers.svg" style="width:533px"
+        alt="t and a are in {0, 1, ..., 23}. This node: tilt = t, normal = t + 6, bottom = b = t + 12 mod 24; only t moves, the other two are read off it. The partner: tilt = p, normal = p + 6. a = p + 6 — a IS the partner's normal, and its tilt p is never seen. Count from each end of the tilt line up to a: u = t - a mod 24, from the top; v = b - a mod 24, from the bottom. The ends are a half turn apart, so u and v differ by 12 — exactly one of them is under 12. That one is its own end's reading, and the other end reads 12 minus it.">
       <div class="keynote">
         <p>a is a normal, so the quarter turn is already in it before anything is measured. That is
           why the two arrangements come out 6 apart rather than 0 and 6 — the shift is in a itself,
@@ -64,7 +64,7 @@
         <p>no abs and no min, because the pair sorts itself: two counts a half turn apart cannot
           both be under 12, nor both over. Asking which one is under 12 is the whole of the work
           that folding used to do</p>
-        <p>t = 11 against a = 0: from the top u = 11, from the bottom v = 23. The 11 is under 12,
+        <p>t = 11 against a = 0: the bottom is b = 23, so u = 11 and v = 23. The 11 is under 12,
           so the top reads 11 and the bottom reads 1</p>
         <p>neither count says which way to turn — they are counts, not directions. Nothing here
           needs one: two readings say between them what a single number and a sign would have to</p>

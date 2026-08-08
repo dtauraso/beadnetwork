@@ -6,7 +6,8 @@
 \[\begin{array}{@{}l@{}}
   \quad t,\, a \;\in\; \{0,\, 1,\, \ldots,\, 23\} \\[9pt]
   \quad \text{\color{acc}this node} \quad
-    \text{tilt} = t \qquad \text{normal} = t+6 \qquad \text{bottom} = t+12 \\[4pt]
+    \text{tilt} = t \qquad \text{normal} = t + 6 \qquad
+    \text{bottom} = b = t + 12 \pmod{24} \\[4pt]
   \quad {\color{dim}\text{only } t \text{ moves; the other two are read off it}} \\[9pt]
   \quad \text{\color{acc}the partner} \quad
     \text{tilt} = p \qquad \text{normal} = p + 6 \\[6pt]
@@ -16,7 +17,7 @@
   \quad \text{\color{acc}count from each end of the tilt line up to } a \\[6pt]
   \quad u = t - a \pmod{24}
     \qquad {\color{dim}\text{from the top}} \\[4pt]
-  \quad v = t + 12 - a \pmod{24}
+  \quad v = b - a \pmod{24}
     \qquad {\color{dim}\text{from the bottom}} \\[6pt]
   \quad {\color{dim}\text{the ends are a half turn apart, so } u \text{ and } v
     \text{ differ by } 12} \\[4pt]
