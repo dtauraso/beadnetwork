@@ -303,6 +303,20 @@ func TestOneRoundIsSignAndRemainder(t *testing.T) {
 				if e != 0 && rawUp != up {
 					t.Fatalf("mode=%v t=%d a=%d c=%d: reducing changed the branch", m.mode, tilt, arr, c)
 				}
+
+				// AND NEITHER d NOR e IS NEEDED. |d-6| against |e-6| is |c-5| against
+				// |c-7|, whose answer is which side of 6 c is on:
+				//
+				//	parallel        c < 6 -> up      c > 6 -> down     (c = 6 stands still)
+				//	perpendicular   c >= 6 -> up     c < 6 -> down     (c = 0 stands still)
+				fromC := c < 6
+				if m.mode == Wiring.TiltMachinePerpendicular {
+					fromC = c >= 6
+				}
+				if e != 0 && fromC != up {
+					t.Fatalf("mode=%v t=%d a=%d c=%d: c against 6 says up=%v, |d-6| vs |e-6| says %v",
+						m.mode, tilt, arr, c, fromC, up)
+				}
 				if e != 0 {
 					wantNext := cur.prev
 					if up {

@@ -114,32 +114,19 @@
 
     <div class="card wide">
       <h2>Whether t goes +1, −1 or stays, under each arrangement</h2>
-      <p class="eq head">first, the acute angle at each tilt <var>t</var> could take</p>
-      <p class="eq step"><span class="g"><var>d</var> = <var>c</var> + 1 (mod 12)</span>
-        <span class="note">the acute angle at <var>t</var>+1</span></p>
-      <p class="eq step"><span class="g"><var>e</var> = <var>c</var> − 1 (mod 12)</span>
-        <span class="note">the acute angle at <var>t</var>−1</span></p>
-      <p class="eq step dim">turning one slot adds one to <var>u</var> and to <var>v</var>, so the
-        count under 12 gains one — and at 12 it is no longer the smaller, so the other end takes
-        over at 0</p>
-      <p class="eq step dim">the ends are a half turn apart, so <var>c</var> comes back to itself
-        every 12: it is a position on a ring of 12, not a distance that keeps growing — and mod 12
-        is what keeps <var>d</var> and <var>e</var> angles, since <var>c</var>−1 at <var>c</var> = 0
-        is −1, which is not one</p>
-      <p class="eq head">then, which way <var>t</var> goes</p>
       <p class="eq step"><span class="g"><var>c</var> = 6 :</span>
         <span class="note par">parallel</span></p>
       <p class="eq step sub"><var>t</var><sub>after</sub> = <var>t</var></p>
-      <p class="eq step sub">|<var>d</var> − 6| ≤ |<var>e</var> − 6| :</p>
+      <p class="eq step sub"><var>c</var> &lt; 6 :</p>
       <p class="eq step sub2"><var>t</var><sub>after</sub> = <var>t</var>+1</p>
-      <p class="eq step sub">otherwise :</p>
+      <p class="eq step sub"><var>c</var> &gt; 6 :</p>
       <p class="eq step sub2"><var>t</var><sub>after</sub> = <var>t</var>−1</p>
       <p class="eq step"><span class="g"><var>c</var> = 0 :</span>
         <span class="note perp">perpendicular</span></p>
       <p class="eq step sub"><var>t</var><sub>after</sub> = <var>t</var></p>
-      <p class="eq step sub">|<var>d</var> − 6| ≥ |<var>e</var> − 6| :</p>
+      <p class="eq step sub"><var>c</var> ≥ 6 :</p>
       <p class="eq step sub2"><var>t</var><sub>after</sub> = <var>t</var>+1</p>
-      <p class="eq step sub">otherwise :</p>
+      <p class="eq step sub"><var>c</var> &lt; 6 :</p>
       <p class="eq step sub2"><var>t</var><sub>after</sub> = <var>t</var>−1</p>
       <p class="eq head">standing still means <var>a</var> lies along one of this node's own
         two lines</p>
@@ -150,11 +137,10 @@
       <div class="keynote">
         <p><b>t<sub>after</sub></b> — the tilt this update lands on; t itself is untouched until
           it is stored, and the normal and bottom are read off whatever it becomes</p>
-        <p><b>d, e</b> — the acute angle at t+1 and at t−1</p>
-        <p>the two arrangements differ by one character: parallel takes the smaller |c − 6| and
-          perpendicular the larger, because parallel stops where that value is 0 and perpendicular
-          where it is 6, its largest</p>
-        <p>a tie goes to t+1 in both, which is what the ≤ and the ≥ carry</p>
+        <p>turning one slot moves c by one, so which way to turn is which side of 6 c is on:
+          parallel walks toward 6 and perpendicular away from it</p>
+        <p>6 sits in perpendicular's t+1 branch because it is the same distance from 0 either way
+          round, and a tie goes up</p>
         <p>no value here is negative and none is a sign: u and v between them carry the direction
           that one count and a sign would have to</p>
         <p>swept over every pair by
