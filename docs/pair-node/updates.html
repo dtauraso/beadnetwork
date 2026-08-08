@@ -235,14 +235,21 @@
 
       <div class="card wide">
         <h2>Which slot to go to — measure, then decide</h2>
-        <img class="math" src="update-decide-turn.svg" style="width:521px"
-          alt="Measure: f(u) is how far angleLength(u, a) is from the nearest length in R. Then decide: if f(t) = 0, stay at t; else if f(t plus one) is less than or equal to f(t minus one), go to t plus one; else go to t minus one.">
+        <img class="math" src="update-decide-turn.svg" style="width:511px"
+          alt="Measure: L is angleLength(u, a), the angle length from u to what arrived; R is the lengths this mode rests at, a list of numbers; and f(u) is the smallest |L - r| over the r in R. Then decide: if f(t) = 0, stay at t; else if f(t plus one) is less than or equal to f(t minus one), go to t plus one; else go to t minus one.">
         <div class="keynote">
           <p>f is computed inside the arrival and thrown away — it is not a countdown, and no walk
             is planned from it. One arrival turns the tilt at most one slot</p>
           <p>neither branch names a mode. The mode is in R, as a list of numbers, which is why
             <span data-src="nodes/Node1/machine.go#fromRest">fromRest</span> cannot ask which mode
             it is computing for</p>
+          <p>the three measure lines are the three the code does:
+            <span data-src="nodes/Node1/ring.go#angleLength">angleLength</span> for ℓ,
+            <span data-src="nodes/Node1/machine.go#resting">resting</span> for R — the one line the
+            mode enters through — and a minimum over that list for f</p>
+          <p>f takes the state as its argument, which is what lets the same function answer both
+            branches: <span data-src="nodes/Node1/machine.go#settled">settled</span> asks it about t,
+            <span data-src="nodes/Node1/machine.go#step">step</span> asks it about t ± 1</p>
         </div>
       </div>
 
