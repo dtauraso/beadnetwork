@@ -5,8 +5,8 @@
 
 <header>
   <h1>The arithmetic instead</h1>
-  <div class="sub">one round, and the whole run — with no states, no transitions, and nothing to
-    step</div>
+  <div class="sub">one node's update, and the tilt it stops on — with no states, no transitions,
+    and nothing to step</div>
 </header>
 
 <nav>
@@ -28,8 +28,12 @@
   <a href="asym.html">Asymmetry</a>
 </nav>
 
-<!-- The maths blocks are update-closed-*.svg, set in LaTeX by mathblocks.py (pairmath.sty
-     carries the rebuild command). Nothing here is loaded over the network.
+<!-- The equations here are TEXT (pair.css, .eq), not LaTeX rendered to SVG like updates.html.
+     That page sets its maths beside DRAWINGS; this one sets it beside PROSE, and two
+     typefaces cannot be made the same size — matched by em, Computer Modern's low x-height
+     reads small; matched by x-height, its em is 22.7px against the page's 19px and it reads
+     large. One font ends the argument, and the equations reflow on a narrow window rather
+     than scaling. Nothing here is loaded over the network.
 
      This page is deliberately NOT a restatement of updates.html. Its claim is that the
      node's behaviour can be written down instead of stepped through, so nothing here may
@@ -41,92 +45,150 @@
      of the real explanation instead of being it. Bullets here earn their place only by
      saying what the notation cannot — why a step is available, or what it would cost. -->
 
-<main>
+<main class="onesize">
 
   <div class="grid">
 
     <div class="card wide">
       <p class="lead"><a href="updates.html">Update rules</a> gives this node as two state machines
-        and the rule an arrival runs. None of that is needed. Two numbers in, and where it stops and
-        how long it takes come out.</p>
+        and the rule it runs. None of that is needed: two tilt numbers in, and this node's next
+        tilt comes out.</p>
     </div>
 
-    <h3 class="secname">What there is</h3>
+    <h3 class="secname">t, b and a, and the one count c taken between them</h3>
 
     <div class="card wide">
-      <h2>Two numbers, one arrow each</h2>
-      <img class="math" src="update-closed-numbers.svg" style="width:573px"
-        alt="t and a are in {0, 1, ..., 23}. This node: tilt = t, normal = t + 6, bottom = t + 12; only t moves, the other two are read off it. What arrives: a = p + 6, the partner's normal, not its tilt. Which way, and how far, from a to t: d = t - a, between -23 and 23, negative when a is greater than t. How far apart: L = |(d + 12 mod 24) - 12|, between 0 and 12 — slots from t to a, the shorter way round.">
+      <h2>Every number this page uses, and where it comes from</h2>
+      <p class="eq"><var>t</var>, <var>a</var> ∈ {0, 1, …, 23}</p>
+      <p class="eq head">this node</p>
+      <p class="eq step">tilt = <var>t</var></p>
+      <p class="eq step">normal = <var>t</var> + 6</p>
+      <p class="eq step">bottom = <var>b</var> = <var>t</var> + 12 (mod 24)</p>
+      <p class="eq step dim">only <var>t</var> moves; the other two are read off it</p>
+      <p class="eq head">the partner</p>
+      <p class="eq step">tilt = <var>p</var></p>
+      <p class="eq step">normal = <var>p</var> + 6</p>
+      <p class="eq step"><span class="g"><var>a</var> = <var>p</var> + 6</span>
+        <span class="note"><var>a</var> IS the partner's normal — its tilt <var>p</var> is never
+          seen</span></p>
+      <p class="eq head">count from each end of the tilt line up to <var>a</var></p>
+      <p class="eq step"><span class="g"><var>u</var> = <var>t</var> − <var>a</var> (mod 24)</span>
+        <span class="note">from the top</span></p>
+      <p class="eq step"><span class="g"><var>v</var> = <var>b</var> − <var>a</var> (mod 24)</span>
+        <span class="note">from the bottom</span></p>
+      <p class="eq head">which end <var>a</var> is nearer, and its angle</p>
+      <p class="eq step"><span class="g">top, <var>c</var> = <var>u</var></span>
+        <span class="note">if <var>u</var> &lt; 12</span></p>
+      <p class="eq step"><span class="g">bottom, <var>c</var> = <var>v</var></span>
+        <span class="note">otherwise</span></p>
+      <p class="eq step dim">the counts differ by 12, so exactly one is under 12 — that end is the
+        nearer one, and its count is the angle</p>
       <div class="keynote">
-        <p>a node draws three arrows and sends the middle one, so the quarter turn is already inside
-          a before it is measured against anything</p>
-        <p>ℓ needs no min: the remainder lands d in −12…11 already, and ℓ is its size. The min form
-          asks which of two arcs is shorter; this one never makes two</p>
-        <p>d is defined here rather than with the round below, because ℓ is already made of it —
-          every measurement on this page is d, read in a different way</p>
+        <p><b>t</b> — this node's tilt, the only thing it stores</p>
+        <p><b>b</b> — its bottom, the other end of the same line</p>
+        <p><b>p</b> — the partner's tilt, never seen by this node</p>
+        <p><b>a</b> — what this node has: the partner's normal</p>
+        <p><b>u, v</b> — counts round the ring from the top, and from the bottom, to a</p>
+        <p><b>c</b> — the angle at whichever end is nearer, 0…11</p>
+        <p>worked: t = 11, a = 0, b = 23 → u = 11, v = 23 → top is nearer, c = 11</p>
       </div>
     </div>
 
-    <h3 class="secname">How far off</h3>
+    <h3 class="secname">Parallel and perpendicular: the c each stops at</h3>
 
     <div class="card wide">
-      <h2>One number, off the quarter</h2>
-      <img class="math" src="update-closed-far.svg" style="width:448px"
-        alt="How far off the quarter: q = |L - 6|, slots from L to 6. How far off the nearest resting angle: parallel, f = q; perpendicular, f = 6 - q.">
+      <h2>The c each arrangement stops at</h2>
+      <p class="eq step par"><span class="g">parallel</span>
+        stops at <var>c</var> = 6</p>
+      <p class="eq step perp"><span class="g">perpendicular</span>
+        stops at <var>c</var> = 0</p>
       <div class="keynote">
-        <p>both arrangements rest symmetrically about the quarter, which is why one q settles both —
-          and why their two f are complements, the same fact the <a href="audit.html">audit</a>
-          found by drawing them</p>
+        <p>the two stop at opposite ends of c's range — the same fact the
+          <a href="audit.html">audit</a> found by drawing them</p>
+        <p>c reads the same from either end of the tilt line, so one measurement settles both</p>
       </div>
     </div>
 
-    <h3 class="secname">One round</h3>
+    <h3 class="secname">One update of one node: t moves one slot, or none</h3>
 
     <div class="card wide">
-      <h2>Where it is after one arrival</h2>
-      <img class="math" src="update-closed-round.svg" style="width:510px"
-        alt="Which way, and how far, to the nearest resting angle — parallel: e = (d mod 12) - 6. Perpendicular: e = (d + 6 mod 12) - 6, where d mod 12 is in 0 to 11, so e is between -6 and 5. t after = t - sign(e), and f = |e|. Writing |d| for d leaves f equal and flips sign(e).">
+      <h2>Whether t goes +1, −1 or stays, under each arrangement</h2>
+      <p class="eq head"><var>u</var> &lt; 12
+        <span class="note">nearer end = top</span></p>
+      <p class="eq step"><span class="g"><var>u</var> = 6 :</span>
+        <span class="note par">parallel</span></p>
+      <p class="eq step sub"><var>t</var><sub>after</sub> = <var>t</var></p>
+      <p class="eq step sub"><var>u</var> &lt; 6 :</p>
+      <p class="eq step sub2"><var>t</var><sub>after</sub> = <var>t</var>+1</p>
+      <p class="eq step sub"><var>u</var> &gt; 6 :</p>
+      <p class="eq step sub2"><var>t</var><sub>after</sub> = <var>t</var>−1</p>
+      <p class="eq step"><span class="g"><var>u</var> = 0 :</span>
+        <span class="note perp">perpendicular</span></p>
+      <p class="eq step sub"><var>t</var><sub>after</sub> = <var>t</var></p>
+      <p class="eq step sub"><var>u</var> ≥ 6 :</p>
+      <p class="eq step sub2"><var>t</var><sub>after</sub> = <var>t</var>+1</p>
+      <p class="eq step sub"><var>u</var> &lt; 6 :</p>
+      <p class="eq step sub2"><var>t</var><sub>after</sub> = <var>t</var>−1</p>
+      <p class="eq head"><var>u</var> ≥ 12
+        <span class="note">nearer end = bottom, and <var>v</var> &lt; 12</span></p>
+      <p class="eq step"><span class="g"><var>v</var> = 6 :</span>
+        <span class="note par">parallel</span></p>
+      <p class="eq step sub"><var>t</var><sub>after</sub> = <var>t</var></p>
+      <p class="eq step sub"><var>v</var> &lt; 6 :</p>
+      <p class="eq step sub2"><var>t</var><sub>after</sub> = <var>t</var>+1</p>
+      <p class="eq step sub"><var>v</var> &gt; 6 :</p>
+      <p class="eq step sub2"><var>t</var><sub>after</sub> = <var>t</var>−1</p>
+      <p class="eq step"><span class="g"><var>v</var> = 0 :</span>
+        <span class="note perp">perpendicular</span></p>
+      <p class="eq step sub"><var>t</var><sub>after</sub> = <var>t</var></p>
+      <p class="eq step sub"><var>v</var> ≥ 6 :</p>
+      <p class="eq step sub2"><var>t</var><sub>after</sub> = <var>t</var>+1</p>
+      <p class="eq step sub"><var>v</var> &lt; 6 :</p>
+      <p class="eq step sub2"><var>t</var><sub>after</sub> = <var>t</var>−1</p>
+      <p class="eq head">standing still means <var>a</var> lies along one of this node's own
+        two lines</p>
+      <p class="eq step par"><span class="g">parallel</span>
+        the normal line: <var>t</var>+6, <var>b</var>+6</p>
+      <p class="eq step perp"><span class="g">perpendicular</span>
+        the tilt line: <var>t</var>, <var>b</var></p>
       <div class="keynote">
-        <p>nothing is done to bring d into 0…23 first, because d mod 12 would undo it — 24 is two
-          12s, so d, d + 24 and d − 24 all give the same e</p>
-        <p>d mod 12 is the non-negative remainder, 0…11, so e runs −6…5 and e = 0 means t already
-          sits on a resting angle</p>
-        <p>parallel and perpendicular differ only by the +6 inside the remainder. A tilt the same
-          distance from two resting angles gives e = −6, and −6 turns up, so that case needs no
-          rule of its own — 96 of the 1152 (tilt, arrival) pairs are that case</p>
-        <p>e and ℓ are the same expression on the same d: a remainder less half the modulus — 12
-          and 6 here, 24 and 12 for ℓ — with an abs on the outside for ℓ and none here. That abs is
-          the whole difference between them, and the direction is what it costs</p>
-        <p>with t = 0, an arrival at 1 gives d = −1 and one at 23 gives d = +23. e keeps those
-          apart, so one turns down and the other up; ℓ is 1 for both and cannot</p>
-        <p>swept by
+        <p><b>t<sub>after</sub></b> — the tilt this update lands on; t itself is untouched until
+          it is stored, and the normal and bottom are read off whatever it becomes</p>
+        <p>read on the nearer end's OWN count the two halves are the same four lines — u under 12
+          in the first, v under 12 in the second — so no comparison reverses</p>
+        <p>the reversal appears only if the bottom is measured by the complementary angle,
+          12 − c, which counts the other way round: then every comparison flips and the two
+          descriptions still pick the same move</p>
+        <p>the direction is a comparison, not a sign: no value here is negative</p>
+        <p>swept over every pair by
           <span data-src="nodes/Node1/node_test.go#TestOneRoundIsSignAndRemainder">TestOneRoundIsSignAndRemainder</span></p>
       </div>
     </div>
 
-    <h3 class="secname">The whole run</h3>
+    <h3 class="secname">The tilt it stops on</h3>
 
     <div class="card wide">
-      <h2>Where it stops, and when</h2>
-      <img class="math" src="update-closed-run.svg" style="width:442px"
-        alt="Arrivals = f. t after = t - f sign(e). The sign of e is taken from the first arrival and never again.">
+      <h2>t once it has stopped, as a line</h2>
+      <p class="eq step par"><span class="g">parallel</span>
+        <var>t</var> ≡ <var>a</var> + 6 (mod 12)</p>
+      <p class="eq step perp"><span class="g">perpendicular</span>
+        <var>t</var> ≡ <var>a</var> (mod 12)</p>
+      <p class="eq step dim">which of the line's two ends it lands on is not settled by these</p>
       <div class="keynote">
-        <p>f is the count as well as the distance — each arrival closes one slot, so there is no
-          arrival number f + 1, and f = 0 is the run that takes none</p>
-        <p>the walk cannot turn back, which is what makes the landing slot a multiplication rather
-          than a simulation. Swept by
+        <p>taken mod 12 a tilt and its bottom are the same number, so these two lines fix the
+          arrangement without naming which way t turned to reach it</p>
+        <p>swept by
           <span data-src="nodes/Node1/node_test.go#TestTheWalkIsClosedForm">TestTheWalkIsClosedForm</span></p>
       </div>
     </div>
 
-    <h3 class="secname">What this does not say</h3>
+    <h3 class="secname">The one thing held fixed: a</h3>
 
     <div class="card wide">
-      <h2>It holds for a held arrival</h2>
+      <h2>Everything above assumes a keeps the same value</h2>
       <div class="keynote">
-        <p>a is fixed here. A live pair moves both ends, so this is one node against a direction that
-          stays put — which is why the code keeps a comparison per arrival rather than this shortcut,
-          and why the exchange itself is on <a href="updates.html">Update rules</a></p>
+        <p>in a live pair the partner turns too, so a changes between updates. The exchange is on
+          <a href="updates.html">Update rules</a></p>
       </div>
     </div>
 

@@ -139,55 +139,13 @@ BODIES = {
   \quad f_{+} \le f_{-} : \quad t_{\mathrm{after}} = t_{+1} \\[5pt]
   \quad \text{else} : \qquad\quad\;\, t_{\mathrm{after}} = t_{-1}
 """,
-    # ---- closed-*: the arithmetic that REPLACES the machine (arith.html) ----------------
-    #
-    # These are not the machine written out. There is no current state, no transition, no
-    # rule applied over and over — you are given three numbers and you write down where the
-    # node ends up and how many arrivals it takes. The machine's own vocabulary (states,
-    # links, next/prev, settle) does not appear because none of it is needed to say this.
-    #
-    # Every claim here is swept against the running code by TestTheWalkIsClosedForm.
-    "closed-numbers": r"""
-  \quad t,\, a \;\in\; \{0,\, 1,\, \ldots,\, 23\} \\[9pt]
-  \quad \text{\color{acc}this node} \quad
-    \text{tilt} = t \qquad \text{normal} = t+6 \qquad \text{bottom} = t+12 \\[4pt]
-  \quad {\color{dim}\text{only } t \text{ moves; the other two are read off it}} \\[9pt]
-  \quad \text{\color{acc}what arrives} \quad a = p + 6
-    \quad {\color{dim}\text{the partner's normal, not its tilt}} \\[9pt]
-  \quad \text{\color{acc}which way, and how far, from } a \text{ to } t \\[4pt]
-  \quad d = t - a
-    \quad {\color{dim}-23 \le d \le 23, \text{ negative when } a > t} \\[9pt]
-  \quad \text{\color{acc}how far apart} \\[4pt]
-  \quad \ell = \bigl\lvert\, (d + 12 \bmod 24) - 12 \,\bigr\rvert
-    \quad {\color{dim}0 \le \ell \le 12} \\[4pt]
-  \quad {\color{dim}\text{slots from } t \text{ to } a,\text{ the shorter way round}}
-""",
-    "closed-far": r"""
-  \quad \text{\color{acc}how far off the quarter} \\[4pt]
-  \quad q = \lvert\, \ell - 6 \,\rvert
-    \quad {\color{dim}\text{slots from } \ell \text{ to } 6} \\[9pt]
-  \quad \text{\color{acc}how far off the nearest resting angle} \\[4pt]
-  \quad {\color{par}\text{parallel} : \; f = q} \qquad
-        {\color{perp}\text{perpendicular} : \; f = 6 - q}
-""",
-    # ONE ROUND, with no case in it. The magnitude story above (l, q, f) has thrown the sign
-    # away, so it needs a comparison to get direction back. Keep the SIGNED gap instead and
-    # both arrangements are one line, differing by a shift of 6 inside the modulus.
-    "closed-round": r"""
-  \quad \text{\color{acc}which way, and how far, to the nearest resting angle} \\[4pt]
-  \quad {\color{par}\text{parallel} : \; e = (d \bmod 12) - 6} \\[5pt]
-  \quad {\color{perp}\text{perpendicular} : \; e = (d + 6 \bmod 12) - 6} \\[4pt]
-  \quad {\color{dim}d \bmod 12 \;\in\; \{0, \ldots, 11\}, \text{ so } -6 \le e \le 5} \\[9pt]
-  \quad {\color{acc}t_{\mathrm{after}} = t - \operatorname{sign}(e)}
-    \qquad {\color{acc}f = \lvert e \rvert} \\[11pt]
-  \quad {\color{dim}\text{writing } \lvert d \rvert \text{ for } d
-    \text{ leaves } f \text{ equal and flips } \operatorname{sign}(e)}
-""",
-    "closed-run": r"""
-  \quad {\color{acc}\text{arrivals}} \;=\; f \\[7pt]
-  \quad {\color{acc}t_{\mathrm{after}} = t - f\operatorname{sign}(e)} \\[7pt]
-  \quad {\color{dim}\operatorname{sign}(e) \text{ from the first arrival, and never again}}
-""",
+    # NO closed-* BLOCKS HERE. arith.html sets its equations as HTML text (pair.css, .eq)
+    # rather than LaTeX rendered to SVG, because that page is maths and prose side by side
+    # and two typefaces cannot be made the same size: matched by em, Computer Modern's low
+    # x-height reads small; matched by x-height, its em is 22.7px against the page's 19px
+    # and it reads large. One font ends the argument, and the equations reflow on a narrow
+    # window instead of scaling. This file is for updates.html, which sets its maths beside
+    # DRAWINGS and wants the LaTeX look.
     "other": r"""
   \text{every arrival} :\; r_{\mathrm{after}} = a \\[5pt]
   \text{panel } \blacktriangle\,\blacktriangledown :\;
@@ -202,11 +160,22 @@ HEAD = ("%% update-%s.tex — one block of the update. Shared setup is pairmath.
         "\\usepackage{pairmath}\n"
         "\\begin{document}\n")
 
-# px per pt for the displayed width, shared by every block so blocks of different shapes
-# render at the same glyph size. Set against the DRAWINGS, not chosen in the abstract:
-# panels.py labels its SVGs at 15px and those SVGs are shown at their authored width, so
-# 15px is the page's at-a-glance size. At 1.5 the maths was the smaller of the two sizes on
-# the page — uniform among itself, but under the thing it sits beside.
+# px per pt for the displayed width, so blocks of different shapes render at the same glyph
+# size. TWO constants, because the two pages are set against different things.
+#
+# updates.html (SCALE) is set against the DRAWINGS: panels.py labels its SVGs at 15px and
+# shows them at their authored width, so 15px is that page's at-a-glance size and the maths
+# matches it rather than sitting under it.
+#
+# ONE constant again, and arith.html is back on it. Two earlier attempts at a page-specific
+# size both read as too small when rendered: 14/12 = 1.167 (matching the em to the 14px prose)
+# and 1.4 (matching the x-heights instead). Set against the prose the maths comes out at
+# reading size, and reading size is not the size a formula wants — the comparison that matters
+# is with OTHER MATHS, which is on updates.html at 1.9.
+#
+# The ceiling is real and worth knowing before raising this again: a wide card's inner width
+# is viewport - 60, and the widest block here is the arithmetic page's first card at 381pt, so
+# 1.9 needs a 784px window before anything shrinks. Twice 1.4 would need 1126px.
 SCALE = 1.9
 
 for name, body in BODIES.items():

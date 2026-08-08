@@ -112,35 +112,38 @@ func TestPerpendicularStepsThroughTheParallelHalt(t *testing.T) {
 // TestOneRoundIsSignAndRemainder is the other half of what docs/pair-node/arith.html rests on: ONE
 // update round, written without a case in it.
 //
-// The trick is to stop folding. angleLength throws the sign away, which is why the rule that uses
-// it needs a comparison to get direction back. Keep the plain subtraction d = t - a instead — which
+// The trick is to keep the sign. angleLength drops it, which is why the rule that uses angleLength
+// needs a comparison to get direction back. Work from the plain subtraction t - a instead — which
 // may be negative and may fall outside 0..23, and is left that way — and both arrangements are the
-// same statement, since the resting angles sit every 12 apart in d and the arrangement is a SHIFT
-// of 6 inside the modulus:
+// same statement, since the stopping values sit 12 apart and the arrangement is a SHIFT of 6
+// inside the modulus:
 //
-//	parallel       e = (d mod 12) - 6          rests at d = -6, +6
-//	perpendicular  e = ((d + 6) mod 12) - 6    rests at d = -12, 0, +12
+//	parallel       e = ((t - a) mod 12) - 6          stops where t - a = 6 or 18
+//	perpendicular  e = ((t - a + 6) mod 12) - 6      stops where t - a = 0 or 12
 //
-// e is then the signed distance to the nearest rest, and the whole round is t_after = t - sign(e),
-// with |e| equal to fromRest. No branch, no minimum, no list.
+// e is then how many slots t is from a stopping value and on which side of it, and the whole round
+// is t_after = t - sign(e), with |e| equal to fromRest. No branch, no minimum, no list.
 //
-// Two reductions that look necessary and are not, both checked below:
+// Two things that look necessary and are not, both checked below:
 //
-//	putting d in range   24 is two 12s, so d, d+24 and d-24 all give the same e. Bringing d
-//	                     into 0..23 first is work that d mod 12 immediately undoes.
-//	abs on d             min(|d|, 24-|d|) IS angleLength, so the magnitude the other form
-//	                     starts from is this same subtraction with its sign dropped. Dropping
-//	                     it keeps f exactly (checked below) and loses the TURN: with t=0, an
-//	                     arrival at 1 must turn down and one at 23 must turn up, yet
-//	                     min(1,23) = min(23,1) = 1 describes both.
+//	putting t - a in range   24 is two 12s, so t-a, t-a+24 and t-a-24 all give the same e.
+//	                         Bringing it into 0..23 first is work the modulus undoes.
+//	using d                  d = |t - a| is the same subtraction with the abs on it, and
+//	                         12 - |12 - d| IS angleLength. That abs keeps f exactly (checked
+//	                         below) and loses the TURN: with t=0, an arrival at 1 must turn
+//	                         down and one at 23 must turn up, yet d is 1 and 23 and l is 1
+//	                         for both. So e reads t - a and never d.
 //
-// The ties — a tilt equidistant from two rests, which is where a comparison rule has to be told
-// what to prefer — need NO special case here: they land on e = -6 by themselves, and -6 turns up,
-// which is exactly what step does. 96 of the 1152 pairs are such ties, so this is not a corner
-// being skirted.
+// A comparison rule needs telling what to prefer when a tilt sits the same distance from two
+// stopping values (96 of the 1152 pairs). This needs nothing, and NOT because the -6 in the formula
+// quietly settles it: at those values the two stopping values are a half turn apart, so they are
+// the same LINE at two indices, and 6 up and 6 down stop equally soon on the same arrangement.
+// There is no preference to encode. Whatever sign e takes there picks an index, not an outcome —
+// checked below, so the claim does not rest on the shape of the expression.
 func TestOneRoundIsSignAndRemainder(t *testing.T) {
 	const points = 24
 	r := newRing(points)
+	var sawTop, sawBottom int // c comes from the top end, or from the bottom end
 	sign := func(x int32) int32 {
 		switch {
 		case x > 0:
@@ -154,51 +157,351 @@ func TestOneRoundIsSignAndRemainder(t *testing.T) {
 		{mode: Wiring.TiltMachineParallel},
 		{mode: Wiring.TiltMachinePerpendicular},
 	} {
+		// The two stopping values of t - a, and the two values exactly between them. Named
+		// as NUMBERS because the page names them as numbers: a tilt is a line, so t and
+		// t+12 are the same tilt, so each arrangement stops at two values a half turn
+		// apart — which leaves a value 6 from each, and that is where a rule that compares
+		// neighbours has to be told what to prefer.
+		//
+		// The two sets are each other's: one arrangement stops where the other is stuck
+		// between, which is the +6 inside the modulus seen from the other end.
 		shift := int32(0)
+		stops, between := map[int32]bool{6: true, 18: true}, map[int32]bool{0: true, 12: true}
 		if m.mode == Wiring.TiltMachinePerpendicular {
 			shift = 6
+			stops, between = between, stops
 		}
 		for arr := int32(0); arr < points; arr++ {
 			a := r.at(arr)
 			for tilt := int32(0); tilt < points; tilt++ {
 				cur := r.at(tilt)
 
-				// The RAW difference — no folding, no reduction. e takes it modulo 12
-				// below, and 24 is a whole number of 12s, so every representative of
-				// t - a on the ring gives the same e. Folding first would be work that
+				// e reads the SUBTRACTION, not d — no reduction of any kind. It takes
+				// t - a modulo 12, and 24 is two 12s, so every representative of t - a on
+				// the ring gives the same e. Bringing it into range first would be work
 				// the modulus immediately undoes.
-				d := tilt - arr
-				e := ((d+shift)%12+12)%12 - 6
+				e := ((tilt-arr+shift)%12+12)%12 - 6
 
-				// abs on d keeps the SIZE and loses the TURN. |t - a| makes the two sides
-				// of the arrival identical, but a node one slot below it must turn the
-				// opposite way from one slot above — t=0, a=1 turns down to 23, while
-				// t=0, a=23 turns up to 1. Same f, opposite sign.
-				eAbs := ((abs32(d)+shift)%12+12)%12 - 6
-				if abs32(eAbs) != abs32(e) {
-					t.Fatalf("mode=%v a=%d t=%d: |e| from |d| is %d, from d is %d",
-						m.mode, arr, tilt, abs32(eAbs), abs32(e))
+				// e = 0 at the stopping values and nowhere else; |e| = 6 exactly at the
+				// two values between them. Both stated as the numbers the page prints.
+				gap := ((tilt-arr)%points + points) % points
+				if (e == 0) != stops[gap] {
+					t.Fatalf("mode=%v t-a=%d: e=%d, but stops=%v", m.mode, gap, e, stops[gap])
+				}
+				if (abs32(e) == 6) != between[gap] {
+					t.Fatalf("mode=%v t-a=%d: |e|=%d, but between=%v", m.mode, gap, abs32(e), between[gap])
 				}
 
-				// The angle length needs no min: it is d brought onto the ring by the
-				// SAME shape that produces e — a remainder, less half the modulus — with
-				// an abs on the outside. e uses 12 and 6; this uses 24 and 12.
-				//
-				//	l = |(d + 12 mod 24) - 12|
-				//
-				// Written this way the two forms are one expression differing by that abs,
-				// which is exactly the direction l cannot keep.
-				l := abs32(((d+12)%points+points)%points - 12)
-				if got := cur.angleLength(a); got != l {
-					t.Fatalf("a=%d t=%d: |(d+12 mod 24)-12|=%d but angleLength=%d", arr, tilt, l, got)
+				// AND THE TIE HAS NO WRONG ANSWER, so nothing rests on the sign there.
+				// The two stopping values are 12 apart — a half turn — and a tilt is a
+				// line, so they are the SAME arrangement at two indices. From a value
+				// between them, 6 up and 6 down both stop, in the same number of
+				// arrivals, on the same line. The minus in the formula picks which index
+				// it walks to; it does not pick between a right and a wrong answer.
+				if between[gap] {
+					up, down := ((gap+6)%points+points)%points, ((gap-6)%points+points)%points
+					if !stops[up] || !stops[down] {
+						t.Fatalf("mode=%v t-a=%d: 6 either way gives %d and %d, not both stops",
+							m.mode, gap, up, down)
+					}
+					if (up-down+points)%points != points/2 {
+						t.Fatalf("mode=%v t-a=%d: the two stops %d and %d are not a half turn apart",
+							m.mode, gap, up, down)
+					}
 				}
-				if want := min(abs32(d), points-abs32(d)); l != want {
-					t.Fatalf("a=%d t=%d: got %d but min(|d|, 24-|d|)=%d", arr, tilt, l, want)
+
+				// THE BOTTOM IS WHERE THE SIGN WENT. A node draws two ends of one line,
+				// t and t+12, and the two stopping values are one on each. Measure the
+				// arrival against BOTH ends and there are two magnitudes, never negative:
+				//
+				//	top     = angleLength(t,      a)
+				//	bottom  = angleLength(t + 12, a) = 12 - top
+				//
+				// The end with the smaller reading is the one this node walks to, and that
+				// is a comparison of two counts — no sign, no direction, no minus. Reduce
+				// the pair to ONE number and the second reading has to come back as the
+				// sign of the first, which is what e is.
+				topL := cur.angleLength(a)
+				botL := cur.opposite.angleLength(a)
+				if topL+botL != 12 {
+					t.Fatalf("t=%d a=%d: top=%d bottom=%d, do not sum to a half turn",
+						tilt, arr, topL, botL)
+				}
+
+				// Measured from the two INDICES, no abs anywhere. Count from each end up
+				// to the arrival:
+				//
+				//	b = (t + 12) mod 24            the bottom's own index
+				//	u = (t - a)  mod 24            from the top
+				//	v = (b - a)  mod 24            from the bottom
+				//
+				// v is measured FROM THE BOTTOM, not from the top with a 12 folded into
+				// it — b is a state the node already has (cur.opposite), so writing
+				// t + 12 - a here would be reaching past the vector to rebuild it.
+				//
+				// ONE TEST, applied to each count on its own: under a half turn, the
+				// count IS the distance; at or over, the distance is 24 minus it. No
+				// cross-reference between the two ends, and no third quantity — the
+				// distance from an end is that end's own count, tested.
+				// ONE letter holds the result. The two counts differ by 12, so exactly one
+				// of them is under 12, and that one already IS the acute angle at its own
+				// end — nothing has to be computed for it and nothing is overwritten:
+				//
+				//	c = whichever of u, v is under 12
+				//
+				// The other end is 12 - c, and nothing downstream needs it: q = |c - 6| is
+				// the same either way, since |(12 - c) - 6| = |6 - c|.
+				b := cur.opposite.idx
+				u := ((tilt-arr)%points + points) % points
+				v := ((b-arr)%points + points) % points
+				c := u
+				if u >= 12 {
+					c = v
+				}
+				if c >= 12 {
+					t.Fatalf("t=%d a=%d: u=%d v=%d, neither under 12", tilt, arr, u, v)
+				}
+
+				// THE SECOND COUNT IS NOT NEEDED. The bottom is the top's other side, so
+				// v is u a half turn on — and picking whichever is under 12 is the same as
+				// taking u modulo 12:
+				//
+				//	c = (t - a) mod 12
+				//
+				// No v, no test, and nothing to remember about which end was acute.
+				if got := ((tilt-arr)%12 + 12) % 12; got != c {
+					t.Fatalf("t=%d a=%d: (t-a) mod 12 = %d but c = %d", tilt, arr, got, c)
+				}
+				if c != topL && c != botL {
+					t.Fatalf("t=%d a=%d: c=%d is neither the top angle %d nor the bottom %d",
+						tilt, arr, c, topL, botL)
+				}
+				// THE TWO ARRANGEMENTS DIFFER BY THE DIRECTION OF ONE INEQUALITY. Both
+				// compare |c - 6| at the two tilts one slot away; parallel walks to the smaller
+				// (its stop is c = 6) and perpendicular toward the larger (its stop is
+				// c = 0, which is |c - 6| at its largest). Ties go up in both, as step
+				// does. This is what docs/pair-node/arith.html prints as two branches per
+				// arrangement, so it cannot be left as "nearer its stop".
+				cAt := func(x int32) int32 {
+					uu := ((x-arr)%points + points) % points
+					if uu < 12 {
+						return uu
+					}
+					return ((x+12-arr)%points + points) % points
+				}
+				// d and e are the page's names for c worked out at t+1 and at t-1 — and
+				// they need no counts of their own: turning one slot moves BOTH counts by
+				// one, so the acute angle just steps round a ring of 12.
+				d, eNbr := cAt(tilt+1), cAt(tilt-1)
+				if d != (c+1)%12 || eNbr != (c+11)%12 {
+					t.Fatalf("t=%d a=%d: c=%d, but d=%d e=%d (want %d and %d)",
+						tilt, arr, c, d, eNbr, (c+1)%12, (c+11)%12)
+				}
+				up := abs32(d-6) <= abs32(eNbr-6)
+				rawUp := abs32(c+1-6) <= abs32(c-1-6)
+				if m.mode == Wiring.TiltMachinePerpendicular {
+					up = abs32(d-6) >= abs32(eNbr-6)
+					rawUp = abs32(c+1-6) >= abs32(c-1-6)
+				}
+
+				// The mod 12 is what makes d and e ANGLES: without it, c-1 at c = 0 is -1,
+				// which is not an angle, and |−1 − 6| = 7 is not a reading of anything.
+				//
+				// c = 0 is the ONLY place the reduced and un-reduced numbers disagree
+				// (|e-6| is 5 reduced, 7 not) — and it is perpendicular's stop, so no
+				// comparison runs there. Wherever a comparison IS run, the two agree,
+				// which is why the modulus can be justified as "d and e are angles"
+				// rather than as a correction the branches depend on.
+				if e != 0 && rawUp != up {
+					t.Fatalf("mode=%v t=%d a=%d c=%d: reducing changed the branch", m.mode, tilt, arr, c)
+				}
+
+				// AND NEITHER d NOR e IS NEEDED. |d-6| against |e-6| is |c-5| against
+				// |c-7|, whose answer is which side of 6 c is on:
+				//
+				//	parallel        c < 6 -> up      c > 6 -> down     (c = 6 stands still)
+				//	perpendicular   c >= 6 -> up     c < 6 -> down     (c = 0 stands still)
+				fromC := c < 6
+				if m.mode == Wiring.TiltMachinePerpendicular {
+					fromC = c >= 6
+				}
+				if e != 0 && fromC != up {
+					t.Fatalf("mode=%v t=%d a=%d c=%d: c against 6 says up=%v, |d-6| vs |e-6| says %v",
+						m.mode, tilt, arr, c, fromC, up)
+				}
+
+				// THE ACUTE END, AND THE SAME RULE STATED ON IT.
+				//
+				// Which end a is nearer is a bit: the top when u < 12, the bottom
+				// otherwise. Stated on the BOTTOM the angle is measured the other way
+				// round — the complementary angle, cr = 12 - c — and every comparison
+				// flips, because counting counter-clockwise reverses the order.
+				//
+				// The two descriptions must pick the same move; that is the whole claim.
+				acuteTop := u < 12
+
+				// STATED ON THE END'S OWN COUNT there is no reversal at all: when the
+				// bottom is nearer, v is itself under 12 and the comparisons read exactly
+				// as the top's do. The reversal only appears if the bottom is measured by
+				// the COMPLEMENTARY angle, 12 - c, which counts the other way round.
+				bit := 0
+				measure := u
+				if !acuteTop {
+					bit, measure = 1, v
+				}
+				byOwnCount := measure < 6
+				if m.mode == Wiring.TiltMachinePerpendicular {
+					byOwnCount = measure >= 6
+				}
+				if e != 0 && byOwnCount != up {
+					t.Fatalf("mode=%v t=%d a=%d: bit=%d measure=%d says up=%v, step says %v",
+						m.mode, tilt, arr, bit, measure, byOwnCount, up)
+				}
+
+				// 12 - c, and NOT reduced: at c = 0 the other end reads a half turn, 12,
+				// not 0. Reducing it collapses the two ends onto each other, which is the
+				// one thing this measurement exists to keep apart.
+				cr := 12 - c
+				var byEnd bool // does t go up?
+				switch {
+				case acuteTop && m.mode == Wiring.TiltMachineParallel:
+					byEnd = c < 6
+				case acuteTop:
+					byEnd = c >= 6
+				case m.mode == Wiring.TiltMachineParallel:
+					byEnd = cr > 6 // flipped
+				default:
+					byEnd = cr <= 6 // flipped
+				}
+				if e != 0 && byEnd != up {
+					t.Fatalf("mode=%v t=%d a=%d: acuteTop=%v c=%d cr=%d says up=%v, step says %v",
+						m.mode, tilt, arr, acuteTop, c, cr, byEnd, up)
+				}
+
+				// AND WHICH END c CAME FROM DOES NOT ENTER THE RULE. The two ends turn
+				// TOGETHER — b = t + 12, so t+1 makes b+1 — which means u and v both gain
+				// one and c steps up whichever end supplied it. There is no end whose
+				// update runs backwards, and no variable is needed to remember which one
+				// it was: both cases are swept here, and the same c-against-6 rule holds.
+				if c == u {
+					sawTop++
+				} else {
+					sawBottom++
+				}
+				if got := cAt(tilt + 1); got != (c+1)%12 {
+					t.Fatalf("mode=%v t=%d a=%d: c=%d came from the %s, but t+1 gives %d not %d",
+						m.mode, tilt, arr, c, map[bool]string{true: "top", false: "bottom"}[c == u],
+						got, (c+1)%12)
+				}
+				if e != 0 {
+					wantNext := cur.prev
+					if up {
+						wantNext = cur.next
+					}
+					if got := m.step(cur, a); got != wantNext {
+						t.Fatalf("mode=%v t=%d a=%d: |d-6|=%d |e-6|=%d chose %d, step chose %d",
+							m.mode, tilt, arr, abs32(d-6), abs32(eNbr-6), wantNext.idx, got.idx)
+					}
+				}
+
+				// f comes straight off c, with no intermediate: parallel stops where c is
+				// the quarter, perpendicular where c is 0, and the two are complements
+				// because they stop at opposite ends of the same measurement.
+				if m.mode == Wiring.TiltMachineParallel {
+					if got, want := m.fromRest(cur, a), abs32(c-6); got != want {
+						t.Fatalf("parallel t=%d a=%d: c=%d gives |c-6|=%d but fromRest=%d",
+							tilt, arr, c, want, got)
+					}
+				} else if got, want := m.fromRest(cur, a), 6-abs32(c-6); got != want {
+					t.Fatalf("perpendicular t=%d a=%d: c=%d gives 6-|c-6|=%d but fromRest=%d",
+						tilt, arr, c, want, got)
+				}
+
+				// And each arrangement stops when the arrival lands ON one of the node's
+				// own drawn lines — which is what the two stopping values ARE:
+				//
+				//	perpendicular   the arrival lies on the TILT line, t or t+12
+				//	parallel        the arrival lies on the NORMAL line, t+6 or t+18
+				//
+				// Both are stated with unsigned readings and no direction at all.
+				onTiltLine := topL == 0 || botL == 0
+				normL := cur.quarter.angleLength(a)
+				onNormalLine := normL == 0 || cur.quarter.opposite.angleLength(a) == 0
+				// AND f IS THE SMALLER OF THE TWO READINGS of that line. So the count and
+				// the stop are one statement — "how far the arrival is off my line" — with
+				// no subtraction from 6 and no case for which arrangement.
+				antiNormL := cur.quarter.opposite.angleLength(a)
+				line := [2]int32{topL, botL}
+				if m.mode == Wiring.TiltMachineParallel {
+					line = [2]int32{normL, antiNormL}
+				}
+				if got := m.fromRest(cur, a); got != min(line[0], line[1]) {
+					t.Fatalf("mode=%v t=%d a=%d: readings %d and %d, min=%d but fromRest=%d",
+						m.mode, tilt, arr, line[0], line[1], min(line[0], line[1]), got)
+				}
+
+				stopped := e == 0
+				if m.mode == Wiring.TiltMachinePerpendicular && stopped != onTiltLine {
+					t.Fatalf("perpendicular t=%d a=%d: stopped=%v but on tilt line=%v",
+						tilt, arr, stopped, onTiltLine)
+				}
+				if m.mode == Wiring.TiltMachineParallel && stopped != onNormalLine {
+					t.Fatalf("parallel t=%d a=%d: stopped=%v but on normal line=%v",
+						tilt, arr, stopped, onNormalLine)
+				}
+
+				// NO SIGN AT ALL, once the answer is read as a LINE rather than an index.
+				// The two stopping values are a half turn apart — one on this node's top,
+				// one on its bottom — so they are ONE arrangement, and which of the two a
+				// walk reaches is a fact about indices, not about the pair. Taken mod 12,
+				// where a tilt and its bottom are the same number, the whole rule has no
+				// direction in it:
+				//
+				//	u = (t - a + shift) mod 12     0..11, never negative
+				//	f = |u - 6|                    arrivals, a magnitude
+				//	ends on the line  t = a + 6 (mod 12)  parallel
+				//	                  t = a     (mod 12)  perpendicular
+				//
+				// e and sign(e) name the index it walks to. Nothing above needs them.
+				r12 := ((tilt-arr+shift)%12 + 12) % 12
+				if r12 < 0 || r12 > 11 {
+					t.Fatalf("mode=%v t=%d a=%d: remainder %d outside 0..11", m.mode, tilt, arr, r12)
+				}
+				if got := m.fromRest(cur, a); got != abs32(r12-6) {
+					t.Fatalf("mode=%v t=%d a=%d: |r-6|=%d but fromRest=%d",
+						m.mode, tilt, arr, abs32(r12-6), got)
+				}
+				wantLine := ((arr+6-shift)%12 + 12) % 12
+				if e == 0 && ((tilt%12)+12)%12 != wantLine {
+					t.Fatalf("mode=%v t=%d a=%d: stopped off the line — t mod 12 = %d, want %d",
+						m.mode, tilt, arr, ((tilt%12)+12)%12, wantLine)
+				}
+
+				// Taking the abs BEFORE the modulus keeps the size and loses the turn:
+				// |t - a| makes the two sides of a identical, but a node one slot below it
+				// must turn opposite to one slot above — t=0, a=1 turns down to 23, while
+				// t=0, a=23 turns up to 1. Same distance, opposite direction.
+				absDiff := abs32(tilt - arr)
+				eFromAbs := ((absDiff+shift)%12+12)%12 - 6
+				if abs32(eFromAbs) != abs32(e) {
+					t.Fatalf("mode=%v a=%d t=%d: |e| from |t-a| is %d, from t-a is %d",
+						m.mode, arr, tilt, abs32(eFromAbs), abs32(e))
+				}
+
+				// And the angle length needs no min: |t - a| runs 0..23, and the length is
+				// its distance to the nearer end of that range — 12 - |12 - |t - a||.
+				l := 12 - abs32(12-absDiff)
+				if cur.angleLength(a) != l {
+					t.Fatalf("a=%d t=%d: 12-|12-|t-a||=%d but angleLength=%d",
+						arr, tilt, l, cur.angleLength(a))
+				}
+				if want := min(absDiff, points-absDiff); l != want {
+					t.Fatalf("a=%d t=%d: got %d but min(|t-a|, 24-|t-a|)=%d", arr, tilt, l, want)
 				}
 
 				if got := m.fromRest(cur, a); got != abs32(e) {
-					t.Fatalf("mode=%v a=%d t=%d d=%d: |e|=%d but fromRest=%d",
-						m.mode, arr, tilt, d, abs32(e), got)
+					t.Fatalf("mode=%v a=%d t=%d |t-a|=%d: |e|=%d but fromRest=%d",
+						m.mode, arr, tilt, absDiff, abs32(e), got)
 				}
 				if (e == 0) != m.settled(cur, a) {
 					t.Fatalf("mode=%v a=%d t=%d d=%d: e=%d but settled=%v",
@@ -215,15 +518,24 @@ func TestOneRoundIsSignAndRemainder(t *testing.T) {
 			}
 		}
 	}
+	// Both ends really do supply c across the sweep, so the claim that it does not
+	// matter which one did is a claim about cases that occur, not an empty one.
+	if sawTop == 0 || sawBottom == 0 {
+		t.Fatalf("c came from the top %d times and the bottom %d — one case never happened",
+			sawTop, sawBottom)
+	}
 }
 
-// TestTheWalkIsClosedForm is what docs/pair-node/arith.html rests on: that for a HELD arrival the
-// whole walk can be written down rather than run. Three claims, swept over both modes and every
+// TestTheWalkIsClosedForm holds the WHERE IT STOPS claim that docs/pair-node/arith.html makes, and
+// two more the page deliberately does not. For a HELD arrival, swept over both modes and every
 // (arrival, tilt) pair:
 //
-//	how many arrivals it takes  =  f          fromRest is a count, not just a comparison
-//	the direction               =  s          decided by the first arrival and never revisited
-//	where it stops              =  t + s*f    so no intermediate state is ever needed
+//	where it stops              =  t + s*f    THIS is on the page, as a line mod 12
+//	how many messages it takes  =  f          not on the page: a pair's message count is an
+//	                                          outcome of the exchange, not something a node
+//	                                          computes, and printing it invited it to be read
+//	                                          as a quantity a node holds
+//	the direction               =  s          decided by the first message and never revisited
 //
 // The direction is read the way step reads it — whichever neighbour is closer, ties up — and then
 // held FIXED for the rest of the walk here. That is the real content: it is not obvious that the

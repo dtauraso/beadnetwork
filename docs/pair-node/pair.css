@@ -132,6 +132,116 @@
        wrapper around the cards, so the cards stay direct children of .grid and keep
        flowing across both columns — a wrapper would restart a one-column layout inside
        each section. First-child gets no top margin so the page does not open with a gap. */
+    /* arith.html is maths and prose and nothing else — no drawings — so the two are sized
+       against each other rather than against a figure. The maths is at the site's 1.9
+       (mathblocks.py), which puts its x-height near a 19px sans; the prose meets it there
+       instead of the maths coming down to a 14px reading size. Headers sit above both.
+
+       The notes also align LEFT here. Elsewhere .keynote is centred under a drawing, which
+       leaves an empty column on a card whose content is a left-aligned block of maths. */
+    .onesize .card h2,
+    .onesize .secname {
+      font-size: 21px;
+      letter-spacing: .02em
+    }
+
+    /* 17px, not 19: the longest equation line is about 74 characters, and at 19px that runs
+       690px, which wraps as soon as the window is under about 750. An equation that wraps
+       reads as two statements. 17px holds it to roughly 615px, so the whole page fits a
+       675px window before anything breaks. The prose moves with it — one font, one size. */
+    .onesize .lead,
+    .onesize .keynote p,
+    .onesize .keynote code {
+      font-size: 17px;
+      line-height: 1.5
+    }
+
+    .onesize .keynote,
+    .onesize .lead {
+      max-width: 74ch;
+      margin-left: 0
+    }
+
+    /* The equations on arith.html are TEXT, not LaTeX rendered to SVG. Two typefaces cannot
+       be the same size: matched by em, Computer Modern's low x-height reads small; matched
+       by x-height, its em is 22.7px against the page's 19px and it reads large. Setting the
+       maths in the page's own font ends the argument — one element, one font-size, and it
+       reflows on a narrow window instead of scaling. Symbols are letters, so italic marks
+       them apart the way the maths did. */
+    .eq {
+      font-size: 17px;
+      line-height: 1.6;
+      margin: 0 0 5px;
+      color: var(--ink)
+    }
+
+    .eq var {
+      font-style: italic
+    }
+
+    .eq .g {
+      display: inline-block;
+      min-width: 15ch
+    }
+
+    .eq .note {
+      color: var(--dim);
+      margin-left: 14px
+    }
+
+    /* Every line starts at the same left edge — heading, equation and note alike. Indenting
+       the equations under their headings gave the card two left edges and made the maths
+       read as an aside to the label above it, which is backwards. */
+    .eq.step {
+      margin-left: 0
+    }
+
+    /* The exception: a case that only applies INSIDE another case is indented under it, so
+       the branch it belongs to is visible rather than inferred from reading order. */
+    .eq.sub {
+      margin-left: 28px
+    }
+
+    /* one level deeper again: a result belonging to a condition that is itself nested */
+    .eq.sub2 {
+      margin-left: 56px
+    }
+
+    .eq.head {
+      color: var(--accent);
+      margin-top: 14px
+    }
+
+    /* a head that names one arrangement takes that arrangement's colour */
+    .eq.head.par {
+      color: var(--warm)
+    }
+
+    .eq.head.perp {
+      color: var(--mag)
+    }
+
+    .eq.head:first-child {
+      margin-top: 0
+    }
+
+    .eq.dim {
+      color: var(--dim)
+    }
+
+    /* The site's own two mode colours, as in the drawings. BOTH forms are needed: a span
+       inside a line, and the line itself — an .eq.par line was rendering uncoloured because
+       only the descendant rule existed. */
+    .eq .perp,
+    .eq.perp {
+      color: var(--mag)
+    }
+
+    .eq .par,
+    .eq.par {
+      color: var(--warm)
+    }
+
     .secname {
       grid-column: 1 / -1;
       margin: 16px 0 0;
