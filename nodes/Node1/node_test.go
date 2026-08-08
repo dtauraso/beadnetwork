@@ -113,15 +113,23 @@ func TestPerpendicularStepsThroughTheParallelHalt(t *testing.T) {
 // update round, written without a case in it.
 //
 // The trick is to stop folding. angleLength throws the sign away, which is why the rule that uses
-// it needs a comparison to get direction back. Keep the SIGNED gap d = t - a instead, folded only
-// into (-12, 12], and both arrangements are the same statement — the rests sit every 12 apart in d,
-// and the arrangement is a SHIFT of 6 inside the modulus:
+// it needs a comparison to get direction back. Keep the RAW signed difference d = t - a instead —
+// unreduced, not even brought onto the ring — and both arrangements are the same statement, since
+// the rests sit every 12 apart in d and the arrangement is a SHIFT of 6 inside the modulus:
 //
 //	parallel       e = (d mod 12) - 6          rests at d = -6, +6
 //	perpendicular  e = ((d + 6) mod 12) - 6    rests at d = -12, 0, +12
 //
 // e is then the signed distance to the nearest rest, and the whole round is t_after = t - sign(e),
 // with |e| equal to fromRest. No branch, no minimum, no list.
+//
+// Two reductions that look necessary and are not, both checked below:
+//
+//	the fold on d   24 is a whole number of 12s, so every representative of t - a gives the
+//	                same e. Reducing d first is work the modulus immediately undoes.
+//	abs on d        |d|, folded, IS the angle length — so the folded magnitude the other form
+//	                starts from is this same gap with its sign dropped, and dropping the sign
+//	                is exactly what costs it the direction.
 //
 // The ties — a tilt equidistant from two rests, which is where a comparison rule has to be told
 // what to prefer — need NO special case here: they land on e = -6 by themselves, and -6 turns up,
@@ -152,11 +160,22 @@ func TestOneRoundIsSignAndRemainder(t *testing.T) {
 			for tilt := int32(0); tilt < points; tilt++ {
 				cur := r.at(tilt)
 
-				d := ((tilt-arr)%points + points) % points // the signed gap, in (-12, 12]
-				if d > points/2 {
-					d -= points
-				}
+				// The RAW difference — no folding, no reduction. e takes it modulo 12
+				// below, and 24 is a whole number of 12s, so every representative of
+				// t - a on the ring gives the same e. Folding first would be work that
+				// the modulus immediately undoes.
+				d := tilt - arr
 				e := ((d+shift)%12+12)%12 - 6
+
+				// and folding it IS the angle length: |d folded| = l, which is the number
+				// the magnitude form starts from. Same gap, with its sign dropped.
+				folded := ((tilt-arr)%points + points) % points
+				if folded > points/2 {
+					folded -= points
+				}
+				if got := cur.angleLength(a); got != abs32(folded) {
+					t.Fatalf("a=%d t=%d: |d|=%d but angleLength=%d", arr, tilt, abs32(folded), got)
+				}
 
 				if got := m.fromRest(cur, a); got != abs32(e) {
 					t.Fatalf("mode=%v a=%d t=%d d=%d: |e|=%d but fromRest=%d",

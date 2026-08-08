@@ -56,8 +56,16 @@
       <img class="math" src="update-closed-numbers.svg" style="width:471px"
         alt="t and a are in {0, 1, ..., 23}. L is |t - a|, or 24 - |t - a|, whichever is shorter.">
       <div class="keynote">
-        <p>t is this node's tilt, a is the direction that arrived. Both are counts of slots round a
-          ring of 24, so both are ordinary integers</p>
+        <p>a node draws three arrows — its TILT, its normal a quarter turn on, and its bottom a half
+          turn on. Only the first of those is t, and it is the only one this arithmetic moves. The
+          other two are read off it (<a href="vectors.html">Vectors</a>), so they follow without
+          appearing here</p>
+        <p>a is the PARTNER'S NORMAL, not the partner's tilt — a node sends the quarter-turn-on
+          arrow, never its own tilt. That quarter turn is already inside a, which is why the two
+          arrangements below come out 6 apart rather than 0 and 6</p>
+        <p>so d = t − a is this node's tilt against the other node's normal: one arrow each, and the
+          only two numbers on this page</p>
+        <p>both are counts of slots round a ring of 24, so both are ordinary integers</p>
         <p>ℓ is how far apart they are the short way round, so ℓ never exceeds 12</p>
       </div>
     </div>
@@ -84,7 +92,7 @@
     <div class="card wide">
       <h2>Where it is after one arrival</h2>
       <img class="math" src="update-closed-round.svg" style="width:383px"
-        alt="d = t - a, folded into (-12, 12]. Parallel: e = (d mod 12) - 6. Perpendicular: e = (d + 6 mod 12) - 6. t after = t - sign(e), and f = |e|.">
+        alt="d = t - a, the difference, unreduced; brought onto the ring, |d| is L. Parallel: e = (d mod 12) - 6. Perpendicular: e = (d + 6 mod 12) - 6. t after = t - sign(e), and f = |e|.">
       <div class="keynote">
         <p>ℓ above threw the SIGN away, which is why a rule built on it has to compare two
           neighbours to get direction back. Keep the signed gap and the direction is already
@@ -92,11 +100,18 @@
         <p>the rests sit every 12 apart in d, so taking d modulo 12 asks "how far past the last
           rest", and subtracting 6 recentres that on the nearest one. The two arrangements differ
           by a SHIFT OF 6 INSIDE the modulus and by nothing else</p>
+        <p>d is NOT reduced first — not folded, not even brought onto the ring. 24 is a whole number
+          of 12s, so every way of writing t − a gives the same e, and reducing it would be work the
+          modulus immediately undoes</p>
+        <p>the two forms meet here: bring d onto the ring and its size IS ℓ. The magnitude the page
+          opened with is this gap with its sign dropped — and dropping the sign is exactly what
+          costs it the direction. e never needs that fold, which is why it keeps what ℓ lost</p>
+        <p>t_after is the TILT — the same one arrow. The normal and the bottom are read off it, so
+          one subtraction here moves all three drawn arrows and nothing else needs updating</p>
         <p>a tilt exactly between two rests is where a comparison rule has to be told what to
           prefer. Here it needs nothing: those land on e = −6 by themselves, and −6 turns up, which
           is what the code does. 96 of the 1152 pairs are such ties, so this is not a corner being
           skirted</p>
-        <p>and f is just |e| — the magnitude the page opened with, with the sign put back on</p>
         <p>swept over both arrangements and every tilt-against-arrival pair by
           <span data-src="nodes/Node1/node_test.go#TestOneRoundIsSignAndRemainder">TestOneRoundIsSignAndRemainder</span></p>
       </div>
