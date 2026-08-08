@@ -1,35 +1,35 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="520" height="500" viewBox="0 0 520 500">
-<circle cx="260" cy="250" r="196" fill="none" stroke="#3a3a44" stroke-width="1.6"/><path d="M309 67L311 61M354 86L358 80M394 116L399 111M424 156L430 152M443 201L449 199M443 299L449 301M424 344L430 348M394 384L399 389M354 414L358 420M309 433L311 439M211 433L209 439M166 414L162 420M126 384L121 389M96 345L90 348M77 299L71 301M77 201L71 199M96 156L90 152M126 116L121 111M165 86L162 80M211 67L209 61" stroke="#3a3a44" stroke-width="1.2"/><path d="M260 61L260 54M449 250L456 250M260 439L260 446M71 250L64 250" stroke="#9a9aa6" stroke-width="2"/>
-<path d="M414 96A218 218 0 0 1 449 141" fill="none" stroke="#e05fd8" stroke-width="5"/>
-<path d="M368 150 L408 112" stroke="#e05fd8" stroke-width="1.2"/>
-<text x="300" y="158" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="15" fill="#e05fd8" text-anchor="middle">one step = π/12</text>
-<text x="260" y="30" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#9a9aa6">0</text>
-<text x="486" y="256" text-anchor="start" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#9a9aa6">6</text>
-<text x="260" y="482" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#9a9aa6">12</text>
-<text x="34" y="256" text-anchor="end" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#9a9aa6">18</text>
-<circle cx="260" cy="54" r="6" fill="#5fd68a"/>
-<circle cx="311" cy="61" r="6" fill="#4a4a56"/>
-<circle cx="358" cy="80" r="6" fill="#4a4a56"/>
-<circle cx="399" cy="111" r="6" fill="#4a4a56"/>
-<circle cx="430" cy="152" r="6" fill="#4a4a56"/>
-<circle cx="449" cy="199" r="6" fill="#4a4a56"/>
-<circle cx="456" cy="250" r="6" fill="#5fd68a"/>
-<circle cx="449" cy="301" r="6" fill="#4a4a56"/>
-<circle cx="430" cy="348" r="6" fill="#4a4a56"/>
-<circle cx="399" cy="389" r="6" fill="#4a4a56"/>
-<circle cx="358" cy="420" r="6" fill="#4a4a56"/>
-<circle cx="311" cy="439" r="6" fill="#4a4a56"/>
-<circle cx="260" cy="446" r="6" fill="#5fd68a"/>
-<circle cx="209" cy="439" r="6" fill="#4a4a56"/>
-<circle cx="162" cy="420" r="6" fill="#4a4a56"/>
-<circle cx="121" cy="389" r="6" fill="#4a4a56"/>
-<circle cx="90" cy="348" r="6" fill="#4a4a56"/>
-<circle cx="71" cy="301" r="6" fill="#4a4a56"/>
-<circle cx="64" cy="250" r="6" fill="#5fd68a"/>
-<circle cx="71" cy="199" r="6" fill="#4a4a56"/>
-<circle cx="90" cy="152" r="6" fill="#4a4a56"/>
-<circle cx="121" cy="111" r="6" fill="#4a4a56"/>
-<circle cx="162" cy="80" r="6" fill="#4a4a56"/>
-<circle cx="209" cy="61" r="6" fill="#4a4a56"/>
-<path d="M206 49A208 208 0 0 1 260 42" fill="none" stroke="#4ea1ff" stroke-width="4"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="280" viewBox="0 0 300 280">
+<circle cx="150" cy="140" r="106" fill="none" stroke="#3a3a44" stroke-width="1.4"/><path d="M176 42L177 38M200 53L203 48M221 69L225 65M237 89L242 87M248 114L252 113M248 166L252 167M237 190L242 193M221 211L225 215M200 227L203 232M176 238L177 242M124 238L123 242M99 227L97 232M79 211L75 215M63 191L58 193M52 166L48 167M52 114L48 113M63 89L58 87M79 69L75 65M99 53L97 48M124 42L123 38" stroke="#3a3a44"/><path d="M150 39L150 34M251 140L256 140M150 241L150 246M49 140L44 140" stroke="#9a9aa6" stroke-width="1.6"/>
+<path d="M233 57A118 118 0 0 1 252 81" fill="none" stroke="#e05fd8" stroke-width="4"/>
+<path d="M196 98 L238 74" stroke="#e05fd8" stroke-width="1"/>
+<text x="144" y="96" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="15" fill="#e05fd8" text-anchor="middle">one step = π/12</text>
+<text x="150" y="22" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#9a9aa6">0</text>
+<text x="274" y="146" text-anchor="start" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#9a9aa6">6</text>
+<text x="150" y="270" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#9a9aa6">12</text>
+<text x="26" y="146" text-anchor="end" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#9a9aa6">18</text>
+<circle cx="150" cy="34" r="4" fill="#5fd68a"/>
+<circle cx="177" cy="38" r="4" fill="#4a4a56"/>
+<circle cx="203" cy="48" r="4" fill="#4a4a56"/>
+<circle cx="225" cy="65" r="4" fill="#4a4a56"/>
+<circle cx="242" cy="87" r="4" fill="#4a4a56"/>
+<circle cx="252" cy="113" r="4" fill="#4a4a56"/>
+<circle cx="256" cy="140" r="4" fill="#5fd68a"/>
+<circle cx="252" cy="167" r="4" fill="#4a4a56"/>
+<circle cx="242" cy="193" r="4" fill="#4a4a56"/>
+<circle cx="225" cy="215" r="4" fill="#4a4a56"/>
+<circle cx="203" cy="232" r="4" fill="#4a4a56"/>
+<circle cx="177" cy="242" r="4" fill="#4a4a56"/>
+<circle cx="150" cy="246" r="4" fill="#5fd68a"/>
+<circle cx="123" cy="242" r="4" fill="#4a4a56"/>
+<circle cx="97" cy="232" r="4" fill="#4a4a56"/>
+<circle cx="75" cy="215" r="4" fill="#4a4a56"/>
+<circle cx="58" cy="193" r="4" fill="#4a4a56"/>
+<circle cx="48" cy="167" r="4" fill="#4a4a56"/>
+<circle cx="44" cy="140" r="4" fill="#5fd68a"/>
+<circle cx="48" cy="113" r="4" fill="#4a4a56"/>
+<circle cx="58" cy="87" r="4" fill="#4a4a56"/>
+<circle cx="75" cy="65" r="4" fill="#4a4a56"/>
+<circle cx="97" cy="48" r="4" fill="#4a4a56"/>
+<circle cx="123" cy="38" r="4" fill="#4a4a56"/>
+<path d="M121 31A113 113 0 0 1 150 27" fill="none" stroke="#4ea1ff" stroke-width="3"/>
 </svg>
