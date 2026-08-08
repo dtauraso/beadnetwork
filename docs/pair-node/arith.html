@@ -56,7 +56,7 @@
     <div class="card wide">
       <h2>Two numbers, one arrow each</h2>
       <img class="math" src="update-closed-numbers.svg" style="width:573px"
-        alt="t and a are in {0, 1, ..., 23}. This node: tilt = t, normal = t + 6, bottom = t + 12; only t moves, the other two are read off it. What arrives: a = p + 6, the partner's normal, not its tilt. L = min(|t - a|, 24 - |t - a|), between 0 and 12.">
+        alt="t and a are in {0, 1, ..., 23}. This node: tilt = t, normal = t + 6, bottom = t + 12; only t moves, the other two are read off it. What arrives: a = p + 6, the partner's normal, not its tilt. How far apart: L = min(|t - a|, 24 - |t - a|), between 0 and 12 — slots from t to a, the shorter way round.">
       <div class="keynote">
         <p>a node draws three arrows and sends the middle one, so the quarter turn is already inside
           a before it is measured against anything</p>
@@ -68,7 +68,7 @@
     <div class="card wide">
       <h2>One number, off the quarter</h2>
       <img class="math" src="update-closed-far.svg" style="width:448px"
-        alt="q = |L - 6|. Parallel: f = q. Perpendicular: f = 6 - q.">
+        alt="How far off the quarter: q = |L - 6|, slots from L to 6. How far off the nearest resting angle: parallel, f = q; perpendicular, f = 6 - q.">
       <div class="keynote">
         <p>both arrangements rest symmetrically about the quarter, which is why one q settles both —
           and why their two f are complements, the same fact the <a href="audit.html">audit</a>
@@ -80,8 +80,8 @@
 
     <div class="card wide">
       <h2>Where it is after one arrival</h2>
-      <img class="math" src="update-closed-round.svg" style="width:464px"
-        alt="d = t - a, between -23 and 23, negative when a is greater than t. Parallel: e = (d mod 12) - 6. Perpendicular: e = (d + 6 mod 12) - 6, where d mod 12 is in 0 to 11, so e is between -6 and 5. t after = t - sign(e), and f = |e|. min(|d|, 24 - |d|) = L. Writing |d| for d leaves f equal and flips sign(e).">
+      <img class="math" src="update-closed-round.svg" style="width:510px"
+        alt="Which way, and how far, from a to t: d = t - a, between -23 and 23, negative when a is greater than t. Which way, and how far, to the nearest resting angle — parallel: e = (d mod 12) - 6. Perpendicular: e = (d + 6 mod 12) - 6, where d mod 12 is in 0 to 11, so e is between -6 and 5. t after = t - sign(e), and f = |e|. min(|d|, 24 - |d|) = L. Writing |d| for d leaves f equal and flips sign(e).">
       <div class="keynote">
         <p>d keeps whatever value t − a has: it may be negative, and it may fall outside 0…23.
           Nothing is done to bring it back into that range, because d mod 12 would undo it —

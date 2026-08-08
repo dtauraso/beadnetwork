@@ -154,11 +154,16 @@ BODIES = {
   \quad {\color{dim}\text{only } t \text{ moves; the other two are read off it}} \\[9pt]
   \quad \text{\color{acc}what arrives} \quad a = p + 6
     \quad {\color{dim}\text{the partner's normal, not its tilt}} \\[9pt]
+  \quad \text{\color{acc}how far apart} \\[4pt]
   \quad \ell = \min\bigl(\lvert t - a \rvert,\; 24 - \lvert t - a \rvert\bigr)
-    \quad {\color{dim}0 \le \ell \le 12}
+    \quad {\color{dim}0 \le \ell \le 12} \\[4pt]
+  \quad {\color{dim}\text{slots from } t \text{ to } a,\text{ the shorter way round}}
 """,
     "closed-far": r"""
-  \quad q = \lvert\, \ell - 6 \,\rvert \\[7pt]
+  \quad \text{\color{acc}how far off the quarter} \\[4pt]
+  \quad q = \lvert\, \ell - 6 \,\rvert
+    \quad {\color{dim}\text{slots from } \ell \text{ to } 6} \\[9pt]
+  \quad \text{\color{acc}how far off the nearest resting angle} \\[4pt]
   \quad {\color{par}\text{parallel} : \; f = q} \qquad
         {\color{perp}\text{perpendicular} : \; f = 6 - q}
 """,
@@ -166,8 +171,10 @@ BODIES = {
     # away, so it needs a comparison to get direction back. Keep the SIGNED gap instead and
     # both arrangements are one line, differing by a shift of 6 inside the modulus.
     "closed-round": r"""
+  \quad \text{\color{acc}which way, and how far, from } a \text{ to } t \\[4pt]
   \quad d = t - a
     \quad {\color{dim}-23 \le d \le 23, \text{ negative when } a > t} \\[9pt]
+  \quad \text{\color{acc}which way, and how far, to the nearest resting angle} \\[4pt]
   \quad {\color{par}\text{parallel} : \; e = (d \bmod 12) - 6} \\[5pt]
   \quad {\color{perp}\text{perpendicular} : \; e = (d + 6 \bmod 12) - 6} \\[4pt]
   \quad {\color{dim}d \bmod 12 \;\in\; \{0, \ldots, 11\}, \text{ so } -6 \le e \le 5} \\[9pt]
