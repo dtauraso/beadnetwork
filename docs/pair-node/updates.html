@@ -41,13 +41,13 @@
 
       <div class="card wide">
         <h2>The state</h2>
-        <svg width="520" height="606" viewBox="0 0 520 606">
+        <svg class="tall" width="520" height="606" viewBox="0 0 520 606">
 <circle cx="260" cy="250" r="196" fill="none" stroke="#3a3a44" stroke-width="1.6"/><path d="M308 69L311 61M354 88L358 80M392 118L399 111M422 156L430 152M441 202L449 199M441 298L449 301M422 344L430 348M392 382L399 389M354 412L358 420M308 431L311 439M212 431L209 439M166 412L162 420M128 382L121 389M98 344L90 348M79 298L71 301M79 202L71 199M98 156L90 152M128 118L121 111M166 88L162 80M212 69L209 61" stroke="#3a3a44" stroke-width="1.4"/><path d="M260 63L260 54M447 250L456 250M260 437L260 446M73 250L64 250" stroke="#9a9aa6" stroke-width="2.4"/>
 <path d="M414 96A218 218 0 0 1 449 141" fill="none" stroke="#e05fd8" stroke-width="5"/>
 <text x="454" y="101" class="lblm" fill="#e05fd8" text-anchor="middle">one step = π/12</text>
 <text x="260" y="29" text-anchor="middle" class="lbl">0</text>
-<text x="486" y="255" text-anchor="start" class="lbl">6 — a quarter</text>
-<text x="260" y="481" text-anchor="middle" class="lbl">12 — a half</text>
+<text x="486" y="255" text-anchor="start" class="lbl">6</text>
+<text x="260" y="481" text-anchor="middle" class="lbl">12</text>
 <text x="34" y="255" text-anchor="end" class="lbl">18</text>
 <circle cx="260" cy="54" r="6" fill="#5fd68a"/>
 <circle cx="311" cy="61" r="6" fill="#4a4a56"/>
@@ -75,7 +75,7 @@
 <circle cx="209" cy="61" r="6" fill="#4a4a56"/>
 <path d="M206 49A208 208 0 0 1 260 42" fill="none" stroke="#4ea1ff" stroke-width="4"/>
 <text x="24" y="512" class="lblm">t ∈ {0 … 23}</text>
-<text x="24" y="534" class="lbl">a state, not a number — t ± 1 follows a link, and the tilt is always exactly one</text>
+<text x="24" y="534" class="lbl">a state, not a number — t ± 1 follows a link. 6 is a quarter turn, 12 a half</text>
 <text x="24" y="560" class="lblm">angle = (π/12) · t</text>
 <text x="24" y="582" class="lbl">the only thing that leaves this kind</text>
 <rect x="24" y="591" width="12" height="12" rx="3" fill="#4ea1ff"/><text x="44" y="601" class="lbl">23 → 0 — one link like any other, and the only reason the ring closes</text>
@@ -101,7 +101,7 @@
 <text x="406" y="213" class="lbl">t + 12 — the bottom</text>
 <text x="406" y="230" class="lbl">links, not sums — the triad turns as one</text>
 </svg>
-        <img class="math" src="update-read.svg" style="width:290px"
+        <img class="math" src="update-read.svg" style="width:174px"
           alt="normal(t) = t+6. bottom(t) = t+12. sends = normal(t). angle(i) = (pi/12) i.">
       </div>
 
@@ -130,7 +130,7 @@
 <text x="266" y="227" class="lbl">L — the angle length, short way round, ≤ 12</text>
 <text x="266" y="244" class="lbl">integers, so exact — no epsilon</text>
 </svg>
-        <img class="math" src="update-length.svg" style="width:597px"
+        <img class="math" src="update-length.svg" style="width:358px"
           alt="d = |t - a| mod 24. L = angleLength(t,a) = d if d <= 12, else 24 - d.">
       </div>
 
@@ -144,36 +144,36 @@
 
       <div class="card">
         <h2 id="loop">Where each mode rests</h2>
-        <img class="math" src="update-resting.svg" style="width:219px"
+        <img class="math" src="update-resting.svg" style="width:131px"
           alt="R perpendicular = {0, 12}. R parallel = {6}. R setting = any.">
       </div>
 
       <div class="card">
         <h2>The two questions an arrival asks</h2>
-        <img class="math" src="update-questions.svg" style="width:898px"
+        <img class="math" src="update-questions.svg" style="width:539px"
           alt="settle? L is in R. up? angleLength(t+1,a) is closer to R than angleLength(t-1,a).">
       </div>
 
       <div class="card">
         <h2>The turn</h2>
-        <img class="math" src="update-turn.svg" style="width:337px"
+        <img class="math" src="update-turn.svg" style="width:202px"
           alt="t_after = t if settle, t+1 if up, t-1 otherwise.">
       </div>
 
       <div class="card">
         <h2>The other two updates</h2>
-        <img class="math" src="update-other.svg" style="width:533px"
+        <img class="math" src="update-other.svg" style="width:320px"
           alt="Panel up/down: t_after = t plus or minus 1, R unchanged. Reset: t_after = 0, R = R setting.">
       </div>
 
       <div class="card wide">
         <h2>One step, worked</h2>
-        <svg width="520" height="624" viewBox="0 0 520 624">
+        <svg class="tall" width="520" height="624" viewBox="0 0 520 624">
 <circle cx="260" cy="250" r="198" fill="none" stroke="#3a3a44" stroke-width="1.6"/><path d="M309 67L311 59M354 86L359 79M394 116L400 110M424 156L431 151M443 201L451 199M443 299L451 301M424 344L431 349M394 384L400 390M354 414L359 421M309 433L311 441M211 433L209 441M166 414L161 421M126 384L120 390M96 345L89 349M77 299L69 301M77 201L69 199M96 156L89 151M126 116L120 110M165 86L161 79M211 67L209 59" stroke="#3a3a44" stroke-width="1.4"/><path d="M260 61L260 52M449 250L458 250M260 439L260 448M71 250L62 250" stroke="#9a9aa6" stroke-width="2.4"/>
 <circle cx="458" cy="250" r="10" fill="#e05fd8"/>
 <circle cx="62" cy="250" r="10" fill="#e05fd8"/>
-<text x="492" y="255" class="lbl" fill="#e05fd8">rests</text>
-<text x="28" y="255" text-anchor="end" class="lbl" fill="#e05fd8">rests</text>
+<text x="458" y="286" text-anchor="middle" class="lbl" fill="#e05fd8">rests</text>
+<text x="62" y="286" text-anchor="middle" class="lbl" fill="#e05fd8">rests</text>
 <circle cx="400" cy="390" r="9" fill="#2f2f37" stroke="#4ea1ff" stroke-width="3"/>
 <text x="423" y="425" text-anchor="end" class="lbl" fill="#4ea1ff">9</text>
 <circle cx="311" cy="441" r="9" fill="#2f2f37" stroke="#4ea1ff" stroke-width="3"/>
@@ -226,7 +226,7 @@
 
       <div class="card wide">
         <h2>What a report puts on the frame</h2>
-        <svg width="520" height="616" viewBox="0 0 520 616">
+        <svg class="tall" width="520" height="616" viewBox="0 0 520 616">
 <circle cx="260" cy="240" r="190" fill="none" stroke="#3a3a44" stroke-width="1.6"/><path d="M307 65L309 56M350 83L355 75M388 112L394 106M417 150L425 145M435 193L444 191M435 287L444 289M417 330L425 335M388 368L394 374M350 397L355 405M307 415L309 424M213 415L211 424M170 397L165 405M132 368L126 374M103 331L95 335M85 287L76 289M85 193L76 191M103 150L95 145M132 112L126 106M169 83L165 75M213 65L211 56" stroke="#3a3a44" stroke-width="1.4"/><path d="M260 59L260 50M441 240L450 240M260 421L260 430M79 240L70 240" stroke="#9a9aa6" stroke-width="2.4"/>
 <line x1="260" y1="240" x2="106" y2="281" stroke="#f9a825" stroke-width="3.4"/><polygon points="92,285 104,274 108,288" fill="#f9a825"/>
 <line x1="260" y1="240" x2="147" y2="353" stroke="#9a9aa6" stroke-width="3"/><polygon points="137,363 142,348 152,358" fill="#9a9aa6"/>

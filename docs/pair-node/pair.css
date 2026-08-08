@@ -128,15 +128,24 @@
       }
     }
 
-    /* A drawing FILLS its card. Left at its intrinsic width it sat at whatever pixel
-       size it happened to be authored at — around half a wide card — with dead space
-       beside it. width:100% scales it up to the card and max-width keeps it from ever
-       forcing the card wider, so it grows on a big window and shrinks on a small one. */
+    /* A drawing grows to its card but STOPS. width:100% alone was wrong on a wide
+       window: a portrait canvas (520 wide, 620 tall) stretched to an 1130px card
+       renders 1340px tall, which is a full screen of one circle. The cap keeps every
+       drawing at a readable size and still lets it shrink on a narrow window. */
     .card svg {
       display: block;
       width: 100%;
-      max-width: 100%;
+      max-width: 660px;
       height: auto
+    }
+
+    /* A PORTRAIT drawing — one big ring with its notes underneath — needs a tighter cap
+       than a row of small multiples. At the same 660px the tall ones render about 600px
+       high and swamp the page, so they get their own limit. Verified by rendering the
+       page headless and looking at it, not by reading the numbers. */
+    .card svg.tall {
+      max-width: 400px;
+      margin: 0 auto
     }
 
     /* NOTHING SCROLLS SIDEWAYS. A card sizes its content to itself — tables wrap,
