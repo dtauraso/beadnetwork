@@ -205,12 +205,23 @@ HEAD = ("%% update-%s.tex — one block of the update. Shared setup is pairmath.
         "\\usepackage{pairmath}\n"
         "\\begin{document}\n")
 
-# px per pt for the displayed width, shared by every block so blocks of different shapes
-# render at the same glyph size. Set against the DRAWINGS, not chosen in the abstract:
-# panels.py labels its SVGs at 15px and those SVGs are shown at their authored width, so
-# 15px is the page's at-a-glance size. At 1.5 the maths was the smaller of the two sizes on
-# the page — uniform among itself, but under the thing it sits beside.
+# px per pt for the displayed width, so blocks of different shapes render at the same glyph
+# size. TWO constants, because the two pages are set against different things.
+#
+# updates.html (SCALE) is set against the DRAWINGS: panels.py labels its SVGs at 15px and
+# shows them at their authored width, so 15px is that page's at-a-glance size and the maths
+# matches it rather than sitting under it.
+#
+# arith.html (ARITH_SCALE) has no drawings — it is maths and prose and nothing else. There
+# the maths is set against the PROSE, which pair.css puts at 14px.
+#
+# NOT 14/12. Matching the em to the prose (12pt document, so 14/12 = 1.167) renders the maths
+# visibly SMALLER than the text beside it: Computer Modern has a much lower x-height than the
+# page's sans, so equal em is not equal size — what a reader compares is the height of an x,
+# not the invisible box around it. The ratio of the two x-heights is about 1.2, which is where
+# this number comes from. Checked by rendering the page and looking, not computed and trusted.
 SCALE = 1.9
+ARITH_SCALE = 1.4
 
 for name, body in BODIES.items():
     stem = f"update-{name}"
@@ -225,4 +236,5 @@ for name, body in BODIES.items():
         print(out[-600:])
         continue
     pt = float(line[0].split()[2].removesuffix("pt"))
-    print(f'{stem}.svg  {pt:7.1f}pt  ->  style="width:{round(pt * SCALE)}px"')
+    scale = ARITH_SCALE if name.startswith("closed-") else SCALE
+    print(f'{stem}.svg  {pt:7.1f}pt  ->  style="width:{round(pt * scale)}px"')

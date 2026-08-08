@@ -132,6 +132,15 @@
        wrapper around the cards, so the cards stay direct children of .grid and keep
        flowing across both columns — a wrapper would restart a one-column layout inside
        each section. First-child gets no top margin so the page does not open with a gap. */
+    /* arith.html sets its maths at the prose size (mathblocks.py, ARITH_SCALE), so every
+       character of the ARGUMENT is one size there. Its headers are not part of the argument
+       and stay above it, which is what makes them findable when nothing else varies. */
+    .onesize .card h2,
+    .onesize .secname {
+      font-size: 17px;
+      letter-spacing: .04em
+    }
+
     .secname {
       grid-column: 1 / -1;
       margin: 16px 0 0;
