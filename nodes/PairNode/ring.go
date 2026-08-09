@@ -1,4 +1,4 @@
-package Node1
+package PairNode
 
 // ring.go — the θ lattice as a RING OF STATES rather than a number that gets arithmetic done
 // to it, and one ring PER NODE rather than one for the process.
@@ -82,7 +82,7 @@ type ring struct {
 func newRing(points int32) *ring {
 	if points < 4 || points%4 != 0 {
 		panic(fmt.Sprintf(
-			"Node1: a lattice needs a positive multiple of four points — got %d; a quarter turn must be a whole number of states or the coplanar normal and the perpendicular halt name nothing",
+			"PairNode: a lattice needs a positive multiple of four points — got %d; a quarter turn must be a whole number of states or the coplanar normal and the perpendicular halt name nothing",
 			points))
 	}
 	r := &ring{
@@ -126,7 +126,7 @@ func (r *ring) at(idx int32) *tiltState { return &r.states[idx] }
 func (r *ring) arrivedState(idx int32) *tiltState {
 	if idx < 0 || idx >= r.points {
 		panic(fmt.Sprintf(
-			"Node1: a direction arriving on the vector channel must already be an index on this node's own %d-point ring (0..%d) — got %d; the sender is this same kind sending one of its own states, so an index off the ring is a defect or a partner on a different lattice, not something to fold onto this one",
+			"PairNode: a direction arriving on the vector channel must already be an index on this node's own %d-point ring (0..%d) — got %d; the sender is this same kind sending one of its own states, so an index off the ring is a defect or a partner on a different lattice, not something to fold onto this one",
 			r.points, r.points-1, idx))
 	}
 	return r.at(idx)

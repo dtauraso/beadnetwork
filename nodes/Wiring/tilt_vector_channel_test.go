@@ -48,10 +48,10 @@ func TestPollRecvVectorDrainsPending(t *testing.T) {
 	}
 }
 
-// KindWantsVectorChannel only names Node1 today — every other kind gets nothing.
-func TestKindWantsVectorChannelOnlyNode1(t *testing.T) {
-	if !KindWantsVectorChannel("Node1") {
-		t.Fatalf("want Node1 to ask for a vector channel")
+// KindWantsVectorChannel only names PairNode today — every other kind gets nothing.
+func TestKindWantsVectorChannelOnlyPairNode(t *testing.T) {
+	if !KindWantsVectorChannel("PairNode") {
+		t.Fatalf("want PairNode to ask for a vector channel")
 	}
 	if KindWantsVectorChannel("Pulse") || KindWantsVectorChannel("Time") || KindWantsVectorChannel("") {
 		t.Fatalf("want no other kind to ask for a vector channel")

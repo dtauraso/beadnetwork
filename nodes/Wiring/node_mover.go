@@ -1,6 +1,6 @@
 // node_mover.go — nodeMover, the RING-ONLY actor: its own goroutine, its own inbox drain,
 // its own clock-paced loop, wrapping a *nodeGeometry it owns (node_geometry.go). A PAIR
-// node (Node1, task/pair-node-owns-itself) has NO nodeMover at all — its own kind
+// node (PairNode, task/pair-node-owns-itself) has NO nodeMover at all — its own kind
 // goroutine owns a *nodeGeometry directly (BuildArgs.ClaimSelfDrive, pair_node_self.go) —
 // there is nothing here for it to skip launching.
 //

@@ -435,7 +435,7 @@ func applyUpdateDistanceGroup(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speed
 // (task/drop-tilt-vector-phi).
 //
 // theta/reset each have two routes, decided by whether the target node's OWN kind
-// claimed BuildArgs.TiltEditIn at build time (Node1 today — the only kind that owns
+// claimed BuildArgs.TiltEditIn at build time (PairNode today — the only kind that owns
 // its tilt index independently, per the straightening loop's firing rule): md.sendTiltEdit
 // tries that node's dedicated channel first and reports whether one exists. When it does
 // NOT (every other kind), this falls back to the old path — md.sendMove onto the node's
@@ -469,7 +469,7 @@ func applyUpdateTiltVector(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSin
 		// slider's number is about. Sent BEFORE the Start edit so the first cycle of the
 		// exchange is already at the intended speed rather than one cycle of human speed.
 		BroadcastSpeed(speedSinks, md.SliderSpeed())
-		// Start only exists on the pair kind's own dedicated channel (Node1's
+		// Start only exists on the pair kind's own dedicated channel (PairNode's
 		// VectorOut/outgoingVector) — there is no mover-owned fallback, unlike
 		// theta/phi/reset: a kind that never claimed BuildArgs.TiltEditIn has no vector
 		// exchange to open, so a Start for it is simply a no-op.
@@ -498,7 +498,7 @@ func applyUpdateTiltVector(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSin
 // rebuild.
 //
 // "latticePoints": msg.Num is the new point count. Go owns the valid range (4..64,
-// multiples of 4 — nodes/Node1's newRing panics outside it) and rejects anything else by
+// multiples of 4 — nodes/PairNode's newRing panics outside it) and rejects anything else by
 // simply ignoring the edit — this is a decoded EXTERNAL message, so an out-of-range value
 // must never reach newRing and panic the process. A valid value is persisted to
 // view/lattice.json and broadcast to every pair node's own LatticeIn channel

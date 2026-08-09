@@ -165,7 +165,7 @@ func (a BuildArgs) Fire() func() {
 
 // TiltVectorAngleSeed returns this node's persisted tilt-vector-angle index
 // (specNode.TopTiltVectorThetaIdx, 0 default) — the load-time seed for a kind that
-// owns its OWN index field (Node1), so it starts from the same persisted value the
+// owns its OWN index field (PairNode), so it starts from the same persisted value the
 // mover used to seed itself with before this reshape.
 func (a BuildArgs) TiltVectorAngleSeed() (theta int32) {
 	return a.tiltThetaIdx
@@ -175,7 +175,7 @@ func (a BuildArgs) TiltVectorAngleSeed() (theta int32) {
 // click (TiltVectorAnglePanel), registering it in MoveDispatch.tiltEditIns so
 // applyUpdateTiltVector (stdin_reader.go) routes that node's edits HERE instead of to its
 // mover. Call this ONLY from a kind whose own goroutine independently owns/decides its
-// tilt index (Node1) — every other kind must keep using the old mover-owned path by
+// tilt index (PairNode) — every other kind must keep using the old mover-owned path by
 // simply never calling this. nil-safe: a.pb.md is nil on a bare test build with no
 // loader, in which case this returns a channel that is never written to (PollRecv-style
 // non-blocking reads on it always find nothing, matching every other build-time fallback
@@ -209,7 +209,7 @@ func (a BuildArgs) LatticePointsSeed() int32 {
 // LatticeIn claims this node's dedicated inbound channel for a scene-level
 // lattice-point-count change, registering it in MoveDispatch.latticeIns so
 // BroadcastLatticePoints (scene_lattice_persist.go) delivers a new count to this node.
-// Call this ONLY from a kind whose own goroutine owns its own lattice (Node1) — every
+// Call this ONLY from a kind whose own goroutine owns its own lattice (PairNode) — every
 // other kind simply never calls this. nil-safe: a.pb.md is nil on a bare test build with
 // no loader, in which case this returns a channel that is never written to (PollRecv-style
 // non-blocking reads on it always find nothing, matching every other build-time fallback
@@ -231,7 +231,7 @@ func (a BuildArgs) LatticeIn() <-chan int32 {
 // nodeGeometry (PairNodeSelf, pair_node_self.go) — geometry, outgoing wires, bead chain,
 // and persistence — instead of a SEPARATE nodeMover actor (task/pair-node-owns-
 // itself). Call this ONLY from a kind whose own goroutine is meant to drive its own
-// geometry directly (Node1 today, the pair scene): it records this node's id in
+// geometry directly (PairNode today, the pair scene): it records this node's id in
 // md.selfDriveClaimed so finalizeActors (mover_registry.go, called from build.go AFTER
 // every kind's build func has run) never constructs a nodeMover for it at all — there is
 // no flag on a mover to skip, because no mover is ever built for this id — and returns a
@@ -282,7 +282,7 @@ func (a BuildArgs) ClaimSelfDrive() *PairNodeSelf {
 // (tilt_vector_channel.go) — the buffered-1, latest-wins, non-blocking channel
 // carrying a TiltVectorMsg alongside the ordinary bead edge, wired only when this
 // node's outgoing edge's OTHER endpoint also asked for one (build.go's
-// allocateVectorChannels). nil when unwired (every kind but Node1, a node
+// allocateVectorChannels). nil when unwired (every kind but PairNode, a node
 // with no outgoing vector-capable edge, or a bare test build with no loader) —
 // SendVectorLatestNonBlocking already treats a nil channel as a no-op send, the
 // same fallback shape as every other unwired-port case in this file.

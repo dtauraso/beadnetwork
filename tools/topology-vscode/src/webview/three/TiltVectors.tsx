@@ -49,7 +49,7 @@ const SHAFT_RADIUS_FRAC = 0.035;
 const HEAD_LEN_FRAC = 0.22;
 const HEAD_RADIUS_FRAC = 0.09;
 // Chosen against what the arrow actually crosses, not in isolation: it overlaps its own
-// node's body, and a pair node is PALE (Node1 #fff8e1, a near-white yellow), while the
+// node's body, and a pair node is PALE (PairNode #fff8e1, a near-white yellow), while the
 // scene behind it is dark. A light colour — the pale green this replaced — vanished
 // against the node body exactly where the arrow starts. A saturated magenta is far from
 // that pale tint in hue AND much darker than it, so it reads on the body, and it stays
@@ -58,7 +58,7 @@ const VECTOR_COLOR = "#FF2E88";
 // The THIRD arrow's colour — the last-received direction, kept by the RECEIVING node
 // until the next arrival replaces it. Chosen by the same test as VECTOR_COLOR above: what
 // it actually crosses, not isolation. It overlaps the same pale, near-white node body
-// (Node1 #fff8e1) against the same dark background, and it must also read as visually
+// (PairNode #fff8e1) against the same dark background, and it must also read as visually
 // DISTINCT from the magenta the other two arrows already share on this same node. A
 // saturated cyan is on the opposite side of the hue wheel from magenta (as far as two
 // saturated colours can be), so the two are never confusable even overlapping at a node's

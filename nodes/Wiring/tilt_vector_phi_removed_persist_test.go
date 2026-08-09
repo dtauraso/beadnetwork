@@ -10,7 +10,7 @@ import "testing"
 // path that would turn that into a load failure.
 func TestLoadTreeIgnoresLegacyTopTiltVectorPhiIdx(t *testing.T) {
 	root := t.TempDir()
-	writeTreeFile(t, root, "nodes/1/meta.json", `{"id":"1","type":"Node1"}`)
+	writeTreeFile(t, root, "nodes/1/meta.json", `{"id":"1","type":"PairNode"}`)
 	// A legacy position.json exactly as an older build would have written it: the current
 	// theta field PLUS the now-removed phi field.
 	writeTreeFile(t, root, "nodes/1/position.json",

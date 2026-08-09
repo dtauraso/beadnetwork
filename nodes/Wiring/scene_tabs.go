@@ -145,7 +145,7 @@ type SceneTab struct {
 	// that has never thought about it gets.
 	//
 	// It is a per-scene list rather than a per-kind flag because "is this a pair kind" is not
-	// a property of the kind: Node1 is the pair's node AND the ring's, and a kind that suits
+	// a property of the kind: PairNode is the pair's node AND the ring's, and a kind that suits
 	// two scenes should not have to name them. The scene knows what it is made of.
 	Kinds []string
 }
@@ -155,11 +155,11 @@ type SceneTab struct {
 // sizes its stream fds from (see AnchorIsTabbed).
 var SceneTabs = []SceneTab{
 	{Name: "ring", Dir: "topology", QuantizedDrag: false, CoplanarEdges: false, UpAxis: false, ClockDivisor: 1, DistanceGroups: true, Editable: false},
-	// The pair takes PAIR KINDS ONLY: Node1, which is what both of its nodes are, and
+	// The pair takes PAIR KINDS ONLY: PairNode, which is what both of its nodes are, and
 	// NormalSum, which exists to sum two of their normals. Dropping a ring kind here would
 	// build something the pair's own model has no place for — its exchange is two nodes and
 	// the vectors between them, not a pipeline of gates.
-	{Name: "pair", Dir: "topology-pair", QuantizedDrag: false, CoplanarEdges: true, UpAxis: true, ClockDivisor: 64, DistanceGroups: false, Editable: true, Kinds: []string{"Node1", "NormalSum"}},
+	{Name: "pair", Dir: "topology-pair", QuantizedDrag: false, CoplanarEdges: true, UpAxis: true, ClockDivisor: 64, DistanceGroups: false, Editable: true, Kinds: []string{"PairNode", "NormalSum"}},
 }
 
 // sceneSelectionFile is the persisted selection, held at the ANCHOR (never inside a scene).

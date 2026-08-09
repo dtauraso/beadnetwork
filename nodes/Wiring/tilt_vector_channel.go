@@ -2,7 +2,7 @@
 // angle-index pair (θ, φ in CurveParamTiltVectorAngleStep steps — never floats on a
 // channel, per memory/feedback_abc_times_constant_not_rederive.md), alongside the
 // existing bead edge. It is used only by the kind that asks for it (today:
-// Node1, see vectorCapableKinds below); every other kind gets nothing and is
+// PairNode, see vectorCapableKinds below); every other kind gets nothing and is
 // entirely unaffected.
 //
 // Buffered depth 1, latest-wins, both ends non-blocking — same shape as the
@@ -28,7 +28,7 @@ type TiltVectorMsg struct {
 	// lattice can arrive at a node already running the new one. Carrying the count makes
 	// that arrival RECOGNISABLE: the receiver drops what is not from its own lattice, which
 	// is a definite answer rather than either acting on a number that means something else
-	// or dying on it (nodes/Node1's arrivedState).
+	// or dying on it (nodes/PairNode's arrivedState).
 	//
 	// Zero means "unstated", which a bare test build sends; a receiver treats that as its
 	// own lattice rather than rejecting it, so a test constructing a message by hand does
@@ -53,7 +53,7 @@ type TiltVectorMsg struct {
 }
 
 // TiltMachine names which state machine a pair node runs. The pair kind maps these to its own
-// two machines (nodes/Node1/perpendicular.go, parallel.go); this package names them without
+// two machines (nodes/PairNode/perpendicular.go, parallel.go); this package names them without
 // knowing how either one steps.
 //
 // WHICH ONE IS DECIDED FROM THE TILT BEING SET, at the click that sets it — nothing is
@@ -68,7 +68,7 @@ const (
 	// TiltMachinePerpendicular: the two tilts a quarter turn apart.
 	TiltMachinePerpendicular
 	// TiltMachineParallel: the two tilts on the SAME LINE, either way round — reversing one arrow
-	// leaves them parallel (nodes/Node1/parallel.go).
+	// leaves them parallel (nodes/PairNode/parallel.go).
 	TiltMachineParallel
 )
 
@@ -86,7 +86,7 @@ func (m TiltMachine) String() string {
 // A kind not listed here gets no channel at all — allocateVectorChannels below skips
 // any edge unless BOTH endpoints are listed.
 var vectorCapableKinds = map[string]bool{
-	"Node1": true,
+	"PairNode": true,
 }
 
 // KindWantsVectorChannel reports whether kind participates in the vector-channel
@@ -148,6 +148,6 @@ const FullTurnThetaIdx = 2 * HalfTurnThetaIdx
 
 // THE ANGLE TESTS ARE NOT HERE. How far apart two directions are, and which way to step to
 // close on a resting state, are decided by the pair kind itself on its own ring of states
-// (nodes/Node1/ring.go's separation/missBy/stepToward). This package held an arithmetic
+// (nodes/PairNode/ring.go's separation/missBy/stepToward). This package held an arithmetic
 // version, subtracting two indices and reducing the difference onto the lattice; it has no
 // callers now, and a second definition of the same question is exactly the thing that drifts.

@@ -111,7 +111,7 @@ type uiState struct {
 	// somewhere to seed the loaded value before the first emit. Defaults to 1 (newMoveDispatch).
 	speed float64
 	// latticePoints is the pair lattice's current point count (a scene setting, not a
-	// per-node one -- every Node1 in a scene runs the same lattice). Seeded ONCE at load
+	// per-node one -- every PairNode in a scene runs the same lattice). Seeded ONCE at load
 	// by LoadLatticePoints (scene_lattice_persist.go) from view/lattice.json, BEFORE
 	// buildNodes runs, so BuildArgs.LatticePointsSeed can hand each node its opening ring
 	// size. Defaults to defaultLatticePoints (newMoveDispatch) so a bare test-constructed

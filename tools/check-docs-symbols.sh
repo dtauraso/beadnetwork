@@ -6,7 +6,7 @@ set -euo pipefail
 # check-docs-symbols.sh — every source name on the pair-node docs pages points at
 # something real.
 #
-# The pages carry `data-src="nodes/Node1/node.go#handleVectorCycle"`; clicking the name
+# The pages carry `data-src="nodes/PairNode/node.go#handleVectorCycle"`; clicking the name
 # opens that file AT THAT DEFINITION (docs-open.ts's findDefinitionLine, which resolves
 # the name at click time — the pages hold no line numbers, precisely so an edit above a
 # definition cannot silently move a link).

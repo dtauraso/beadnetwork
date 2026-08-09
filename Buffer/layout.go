@@ -134,7 +134,7 @@ type bufLayoutNode struct {
 	// angle convention and the same length as the top, drawn whenever TopTiltVectorLen is
 	// non-zero, so there is no second length column.
 	//
-	// The half turn is ADDED, unmodified, by both nodes of a pair (nodes/Node1). Both land
+	// The half turn is ADDED, unmodified, by both nodes of a pair (nodes/PairNode). Both land
 	// in the same drawn direction, since 180° in θ is the same place either way; the
 	// addition is index bookkeeping only.
 	BottomTiltVectorTheta float32 `buf:"f32"` // bottom tilt vector direction: θ from world +y (radians)
@@ -142,7 +142,7 @@ type bufLayoutNode struct {
 	// ReceivedVectorLen/Theta are a THIRD drawn vector: the direction that LAST
 	// ARRIVED on this node's own tilt-vector channel (nodes/Wiring/tilt_vector_channel.go),
 	// kept by the RECEIVING node's own goroutine and replaced (never accumulated) by the
-	// next arrival — see nodes/Node1/node.go's handleVectorCycle.
+	// next arrival — see nodes/PairNode/node.go's handleVectorCycle.
 	// Same "one column says both whether and how far" convention as TopTiltVectorLen above:
 	// ZERO means this node has received nothing yet (or was reset), so a node with
 	// nothing received is distinguishable from one whose received direction happens to be
@@ -150,7 +150,7 @@ type bufLayoutNode struct {
 	// TiltEditIn Reset, or a Reset marker arriving on the channel) clears it back to zero:
 	// a stale received arrow left hanging would contradict the reset's stop-and-return
 	// meaning. Meaningless (but still streamed, default 0) on a node whose kind never
-	// claims a vector channel — every kind but Node1 today.
+	// claims a vector channel — every kind but PairNode today.
 	ReceivedVectorLen   float32 `buf:"f32"` // received-vector length; 0 = nothing received yet (or reset)
 	ReceivedVectorTheta float32 `buf:"f32"` // received vector direction: θ from world +y (radians)
 	Selected            uint8   `buf:"u8"`  // persistent: 1 = this node is the click-selected node

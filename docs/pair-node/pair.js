@@ -38,7 +38,7 @@
       .catch(function () { return false; });   // extension not running at all
   }
 
-  // A data-src may name a definition inside the file: "nodes/Node1/node.go#clear".
+  // A data-src may name a definition inside the file: "nodes/PairNode/node.go#clear".
   // The NAME travels, never a line number — the extension resolves it when the click
   // arrives (docs-open.ts's findDefinitionLine), so nothing here goes stale when the
   // file is edited above the definition.

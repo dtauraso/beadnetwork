@@ -279,7 +279,7 @@ export function encodeTiltVectorAdjust(nodeRow: number, dir: "up" | "down"): Arr
  *  nodeRow is the target node's buffer ROW (never its id/name — no sidecar on this wire).
  *  No direction byte: unlike an adjust, a reset always returns BOTH indices to 0 — the
  *  RESET button (TiltResetButton.tsx) sends one of these per row it shows, and places no
- *  bead (nodes/Node1/node.go's applyTiltEdit, run unmodified by both nodes of a pair — a
+ *  bead (nodes/PairNode/node.go's applyTiltEdit, run unmodified by both nodes of a pair — a
  *  stop-and-return, not "the kick"). */
 export function encodeTiltVectorReset(nodeRow: number): ArrayBuffer {
   const w = new ByteWriter();
@@ -295,7 +295,7 @@ export function encodeTiltVectorReset(nodeRow: number): ArrayBuffer {
  *  No direction byte: Start never touches an index, it only opens the vector exchange from
  *  whatever angles are currently set — sends the node's own outgoing vector and places a
  *  bead ("the kick"), exactly what an adjust click used to do as a side effect
- *  (nodes/Node1/node.go's applyTiltEdit, run unmodified by both nodes of a pair —
+ *  (nodes/PairNode/node.go's applyTiltEdit, run unmodified by both nodes of a pair —
  *  task/pair-node-owns-itself split). The START TILT button (TiltVectorButtons.tsx) sends one of these per row it
  *  shows, same fan-out as reset. */
 export function encodeTiltVectorStart(nodeRow: number): ArrayBuffer {
