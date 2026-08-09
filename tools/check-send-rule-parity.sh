@@ -10,9 +10,10 @@ set -euo pipefail
 # Exit 0 if clean; exit 1 with a report if they diverge.
 #
 # NOTE: SendRule consts are not confined to one file or even one package
-# (ports.go moved from nodes/Wiring to nodes/wire under task/wiring-decompose,
-# and a future file split, e.g. ports_extra.go, could add a const elsewhere in
-# either package). Scrape ALL tracked .go files under BOTH nodes/Wiring/ and
+# (ports.go moved from nodes/Wiring to nodes/wire under task/wiring-decompose, and
+# the consts then moved AGAIN, out of ports.go into nodes/wire/send_rule.go, when
+# ports.go was split by job — the anticipated split, now actual. Another one could
+# add a const elsewhere in either package). Scrape ALL tracked .go files under BOTH nodes/Wiring/ and
 # nodes/wire/, not one hardcoded filename/dir, so the guard can't go blind on
 # a split or a package move.
 
@@ -66,7 +67,7 @@ GO_RULES=$(rules_from_go) || true
 TS_RULES=$(rules_from_ts) || true
 
 # Refuse a vacuous pass: if either extractor returns an EMPTY set (a SendRule const
-# rename in ports.go or a SEND_RULES rename in types.ts), comm would compare
+# rename in send_rule.go or a SEND_RULES rename in types.ts), comm would compare
 # empty-to-empty and "pass" blind. Assert each set is non-empty. (Positive-assertion
 # pattern, per check-edit-op-parity.sh / check-message-kind-parity.sh.)
 assert_nonempty() { # value label
@@ -75,7 +76,7 @@ assert_nonempty() { # value label
     exit 1
   fi
 }
-assert_nonempty "$GO_RULES" "SendRule consts (nodes/wire/ports.go)"
+assert_nonempty "$GO_RULES" "SendRule consts (nodes/wire/send_rule.go)"
 assert_nonempty "$TS_RULES" "SEND_RULES array (types.ts)"
 
 MISSING=$(comm -23 <(echo "$GO_RULES") <(echo "$TS_RULES"))
@@ -85,7 +86,7 @@ HITS=0
 if [[ -n "$MISSING" ]]; then
   while IFS= read -r k; do
     [[ -z "$k" ]] && continue
-    echo "  SendRule in ports.go but missing from SEND_RULES in types.ts: \"$k\""
+    echo "  SendRule in send_rule.go but missing from SEND_RULES in types.ts: \"$k\""
     HITS=$((HITS + 1))
   done <<< "$MISSING"
 fi
@@ -93,7 +94,7 @@ fi
 if [[ -n "$EXTRA" ]]; then
   while IFS= read -r k; do
     [[ -z "$k" ]] && continue
-    echo "  SendRule in SEND_RULES (types.ts) but not defined in ports.go: \"$k\""
+    echo "  SendRule in SEND_RULES (types.ts) but not defined in send_rule.go: \"$k\""
     HITS=$((HITS + 1))
   done <<< "$EXTRA"
 fi

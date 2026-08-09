@@ -126,7 +126,7 @@ type edgeMover struct {
 	// CURRENT step count to re-derive an in-flight bead's remaining travel — but
 	// this edgeMover cannot read the source Out's Geom() itself (that cache,
 	// o.sendCur, is owned exclusively by the ONE goroutine that places beads on
-	// it, per ports.go's Geom() doc comment; a second reader would race it). A
+	// it, per out_port.go's Geom() doc comment; a second reader would race it). A
 	// dedicated delivery channel, drained non-blockingly every cycle into `steps`
 	// below, is the same "producer sends, one consumer owns its copy" shape
 	// speedCh already uses (per-goroutine-clock.md "Delivery") — not a lock, not

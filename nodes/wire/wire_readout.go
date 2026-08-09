@@ -74,7 +74,7 @@ type wireReadout struct {
 	// droppedBreadcrumbs counts breadcrumbCh sends Send's non-blocking send
 	// dropped (channel full) since the last flushDroppedBreadcrumbs report.
 	// breadcrumbCh has exactly one producer call site (Send, called only from
-	// this wire's fixed SOURCE node's own goroutine — nodes/wire/ports.go's
+	// this wire's fixed SOURCE node's own goroutine — nodes/wire/out_port.go's
 	// one call site), so this field is owned EXCLUSIVELY by that same source
 	// goroutine, never touched by this wire's own goroutine — a different,
 	// but equally single-owner, contract than pending/inflight above

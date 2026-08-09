@@ -1,7 +1,7 @@
 // paced_wire_buffer_full_test.go — regression for the defect where Send's false
 // (buffer full) was indistinguishable from a genuinely terminal condition and a
 // caller's drive loop exited permanently on it. See CLAUDE.md's debugging
-// section and the DriveOutcome doc comment in ports.go: DriveBufferFull is
+// section and the DriveOutcome doc comment in drive_item.go: DriveBufferFull is
 // TRANSIENT and must never stop a drive goroutine.
 package wire
 

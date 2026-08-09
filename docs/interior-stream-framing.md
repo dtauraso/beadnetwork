@@ -38,7 +38,7 @@ uses `gatecommon.DriveHeld` — `Pulse`, `PulseLeft`, `PulseRight`, `holdflip`, 
 
 `DriveHeld` spawns its **own goroutine** (`nodes/gatecommon/drive.go:86`, `go func() {
 ... }()`) that calls `Out.PlaceDrivenAt` → `flushSendEvent` → `s.WriteEvents(...)` on the
-node's shared `*interiorStream` (`nodes/wire/ports.go:516-531`). Meanwhile the node's own
+node's shared `*interiorStream` (`nodes/wire/out_port.go`'s `flushSendEvent`). Meanwhile the node's own
 `Update` goroutine (its main loop, e.g. `nodes/pulse/node.go`'s `consume()`) calls
 `EmitHeldBead(v)` → the SAME shared `*interiorStream` (`nodes/Wiring/port_wiring.go`'s
 `newInteriorStreamGetter` lazily builds **one** `*interiorStream` per node and hands the

@@ -70,7 +70,7 @@ func (d DrivenOut) Paced() bool { return d.out.Paced() }
 func (d DrivenOut) Steps() int { return d.out.Geom().Steps }
 
 // PlaceDrivenAt delegates to the underlying Out's PlaceDrivenAt — see its doc comment
-// (nodes/wire/ports.go). This is the one write operation a DriveHeld goroutine performs.
+// (nodes/wire/drive_item.go). This is the one write operation a DriveHeld goroutine performs.
 func (d DrivenOut) PlaceDrivenAt(v int, tick int64) wire.DriveItem {
 	return d.out.PlaceDrivenAt(v, tick)
 }
