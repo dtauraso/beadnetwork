@@ -10,6 +10,17 @@ import React from "react";
 
 export const CHROME_FONT_STACK = '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif';
 
+// The one text colour for this chrome — pill labels, group headings, rows, and the ▲▼/▶▼
+// triangles that sit among them. It used to be two: rows at this value and everything else
+// at #9a9aa6, a grey that read as FADED next to them rather than as hierarchy, with the
+// carets dimmed a further 0.85 on top. Nothing here is disabled, so nothing here should look
+// disabled: the popover already separates a heading from a row by size, weight, case and
+// letter-spacing, none of which need dimming to do their job.
+//
+// Dimming stays where it MEANS something: an inert checkbox (camera-ui.tsx's 0.45), an
+// arrow at its bound (arrowBtnDisabledStyle's 0.35).
+export const CHROME_TEXT = "#e7e7ea";
+
 /** The split-button/pill's outer chip: neutral by default, accent-filled when `active`
  *  (a control with no master toggle, like the angle panel, always passes active=false). */
 export function pillContainerStyle(active: boolean): React.CSSProperties {
@@ -26,7 +37,9 @@ export function pillContainerStyle(active: boolean): React.CSSProperties {
     fontFamily: CHROME_FONT_STACK,
     background: active ? "#4ea1ff" : "#34343d",
     border: `1px solid ${active ? "#4ea1ff" : "#3a3a44"}`,
-    color: active ? "#04101f" : "#9a9aa6",
+    // Dark ink on the accent fill when active; otherwise the chrome's own text colour —
+    // an unlit pill is not a disabled one.
+    color: active ? "#04101f" : CHROME_TEXT,
     userSelect: "none",
   };
 }
@@ -47,7 +60,9 @@ export const pillCaretStyle: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
   fontSize: 9,
-  opacity: 0.85,
+  // No opacity here. It was 0.85, which faded the caret against the label beside it — and
+  // the caret is the affordance that says the pill opens, so it is the last thing that
+  // should read as half-there. It is already smaller than the label; that is the hierarchy.
 };
 
 /** The popover panel anchored under a pill: absolutely positioned at
@@ -88,7 +103,7 @@ export function groupHeadingStyle(hover: boolean): React.CSSProperties {
     fontSize: 9.5,
     textTransform: "uppercase",
     letterSpacing: "0.05em",
-    color: "#9a9aa6",
+    color: CHROME_TEXT,
     padding: "5px 6px 4px",
     cursor: "pointer",
     borderRadius: 5,
@@ -163,7 +178,7 @@ export function popoverRowStyle(hover: boolean, disabled: boolean): React.CSSPro
     gap: 7,
     padding: "4px 6px",
     cursor: disabled ? "default" : "pointer",
-    color: "#e7e7ea",
+    color: CHROME_TEXT,
     borderRadius: 5,
     background: !disabled && hover ? "rgba(255,255,255,0.05)" : "transparent",
     userSelect: "none",

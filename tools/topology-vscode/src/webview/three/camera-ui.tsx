@@ -18,6 +18,7 @@ import {
   groupHeadingStyle,
   DISCLOSURE_GLYPH_STYLE,
   popoverRowStyle,
+  CHROME_TEXT,
   REVEALED_LIST_STYLE,
 } from "./overlay-chrome";
 
@@ -378,7 +379,10 @@ function OverlayGroupSection({ group, disabled }: { group: OverlayGroup; disable
           onMouseLeave={() => setCountHover(false)}
           title={disabled ? "" : on > 0 ? `Turn all ${group.heading} off` : `Turn all ${group.heading} on`}
           style={{
-            color: on > 0 ? "#4ea1ff" : "#6e6e78",
+            // Accent when some member is on; otherwise the chrome's own text colour. It was
+            // #6e6e78 — dimmer than anything else in the popover, so an all-off group's count
+            // was the hardest thing to read in it, when "0/3" is exactly what you look for.
+            color: on > 0 ? "#4ea1ff" : CHROME_TEXT,
             fontVariantNumeric: "tabular-nums",
             // Pointer either way: with the master off this chip is part of the heading's
             // expand target, so a default cursor here would say "nothing to click" over
