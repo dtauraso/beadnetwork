@@ -175,11 +175,17 @@ export function ThreeView() {
           zIndex: 20,
           display: "flex",
           flexDirection: "column",
-          alignItems: "flex-end",
+          // `stretch`, not `flex-end`: the column is as wide as its widest widget and every
+          // widget takes that width, so the three pills below come out the SAME width as
+          // each other instead of each sizing to its own label. The column measures the
+          // pills alone — an open popover measures as nothing (inFlowPopoverStyle) — so
+          // that shared width is settled before anything is opened and does not move.
+          alignItems: "stretch",
           gap: 6,
           pointerEvents: "none",
         }}
       >
+        {/* Not a pill: keeps its own size rather than stretching to the pills' width. */}
         <HomeButton cameraRef={cameraRef} aspect={canvasSize.w / canvasSize.h} />
         <DistanceHomePanel />
         <TiltVectorAnglePanel />
