@@ -57,11 +57,18 @@ export function TiltVectorButtons() {
       <button type="button" className="run-btn tilt-reset-btn" onClick={reset} aria-label="reset tilt vectors">
         reset tilt
       </button>
-      <span className="tilt-rounds-readout" aria-label="rounds to parallel">
-        rounds{" "}
+      <span className="tilt-rounds-readout" aria-label="rounds and messages to parallel">
         {rows.map((row) => (
-          <span key={row.row} className="tilt-rounds-cell">
-            {row.label}:{row.roundsToParallel}
+          <span key={row.row} className="tilt-rounds-group">
+            <span className="tilt-rounds-node">node {row.label}</span>
+            <span className="tilt-rounds-cell">
+              <span className="tilt-rounds-key">rounds</span>
+              <span className="tilt-rounds-val">{row.roundsToParallel}</span>
+            </span>
+            <span className="tilt-rounds-cell">
+              <span className="tilt-rounds-key">msgs</span>
+              <span className="tilt-rounds-val">{row.msgsToParallel}</span>
+            </span>
           </span>
         ))}
       </span>

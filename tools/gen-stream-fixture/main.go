@@ -87,10 +87,12 @@ type nodeFrameFixture struct {
 	LatticePoints uint8 `json:"latticePoints"`
 	// RoundsToParallel is this node's own rounds-to-rest count (Buffer/layout.go's
 	// RoundsToParallel) — vector-exchange rounds between START and its rule settling.
-	RoundsToParallel int32              `json:"roundsToParallel"`
-	ChainBeads       []chainBeadFixture `json:"chainBeads"`
-	Label            string             `json:"label"`
-	Hex              string             `json:"hex"`
+	RoundsToParallel int32 `json:"roundsToParallel"`
+	// MsgsToParallel is the same span in vector-channel messages (Buffer/layout.go).
+	MsgsToParallel int32              `json:"msgsToParallel"`
+	ChainBeads     []chainBeadFixture `json:"chainBeads"`
+	Label          string             `json:"label"`
+	Hex            string             `json:"hex"`
 }
 
 type edgeFrameFixture struct {
@@ -139,6 +141,7 @@ func buildNodeFrame() nodeFrameFixture {
 		Selected: 1, KindID: 3, Hovered: 1, LatchedSel: 0,
 		LatticePoints:    12,
 		RoundsToParallel: 3,
+		MsgsToParallel:   6,
 		Label:            "widgetNode",
 		ChainBeads: []chainBeadFixture{
 			{OX: 61.5, OY: -62.25, OZ: 63.125, Lit: 1, LitValue: 1},
@@ -162,7 +165,7 @@ func buildNodeFrame() nodeFrameFixture {
 		f.PoleTheta, f.PolePhi, f.RingAxisTheta, f.RingAxisPhi, f.TopTiltVectorLen, f.TopTiltVectorTheta, f.BottomTiltVectorTheta, f.CoplanarNormalTheta,
 		f.ReceivedVectorLen, f.ReceivedVectorTheta,
 		f.Selected, f.KindID, f.Hovered, f.LatchedSel, f.LatticePoints,
-		f.RoundsToParallel,
+		f.RoundsToParallel, f.MsgsToParallel,
 		f.Label,
 		chainOX, chainOY, chainOZ, chainLit, chainLitVal,
 		nil,

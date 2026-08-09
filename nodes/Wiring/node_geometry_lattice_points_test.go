@@ -33,7 +33,7 @@ func captureLatticeAngles(snap *latticeFrameAngles) *nodeGeometry {
 			vrx, vry, vrz, frx, fry, frz float32,
 			poleTheta, polePhi, ringAxisTheta, ringAxisPhi, topTiltVectorLen, topTiltVectorTheta,
 			bottomTiltVectorTheta, coplanarNormalTheta, receivedVectorLen, receivedVectorTheta float32,
-			selected, kindID, hovered, latchedSel, latticePoints uint8, roundsToParallel int32, label string,
+			selected, kindID, hovered, latchedSel, latticePoints uint8, roundsToParallel, msgsToParallel int32, label string,
 			chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32,
 			events []wire.RowEvent) []byte {
 			snap.top = topTiltVectorTheta

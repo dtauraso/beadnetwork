@@ -167,12 +167,13 @@ func (p *PairNodeSelf) SetTiltIndex(theta, normalTheta, bottomTheta int32) {
 // scene stays open, because the exchange keeps circulating after both ends settle
 // (stepFromVector replies to every arrival whether or not it moved), and the number a
 // reader wants is how far the tilt had to travel, not how long they have been watching.
-func (p *PairNodeSelf) SetRoundsToParallel(rounds int32) {
+func (p *PairNodeSelf) SetRoundsToParallel(rounds, msgs int32) {
 	if p == nil || p.geom == nil {
 		return
 	}
 	g := p.geom
 	g.roundsToParallel = rounds
+	g.msgsToParallel = msgs
 	if g.tr != nil {
 		g.emitGeometry()
 	}

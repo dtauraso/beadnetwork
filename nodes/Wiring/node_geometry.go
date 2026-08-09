@@ -179,7 +179,7 @@ type nodeGeometry struct {
 	hoverIsInput                  bool
 	kindID                        uint8
 
-	buildFrame func(tick uint32, nodeRow int32, nodeID int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, poleTheta, polePhi, ringAxisTheta, ringAxisPhi, topTiltVectorLen, topTiltVectorTheta, bottomTiltVectorTheta, coplanarNormalTheta, receivedVectorLen, receivedVectorTheta float32, selected, kindID, hovered, latchedSel, latticePoints uint8, roundsToParallel int32, label string, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte
+	buildFrame func(tick uint32, nodeRow int32, nodeID int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, poleTheta, polePhi, ringAxisTheta, ringAxisPhi, topTiltVectorLen, topTiltVectorTheta, bottomTiltVectorTheta, coplanarNormalTheta, receivedVectorLen, receivedVectorTheta float32, selected, kindID, hovered, latchedSel, latticePoints uint8, roundsToParallel, msgsToParallel int32, label string, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte
 
 	topTiltVectorThetaIdx  int32
 	normalThetaIdx         int32
@@ -200,6 +200,10 @@ type nodeGeometry struct {
 	// (PairNodeSelf.SetRoundsToParallel), never computed here. Streamed as the Node block's
 	// RoundsToParallel column; 0 on every kind that has no vector exchange at all.
 	roundsToParallel int32
+
+	// msgsToParallel is the same span counted in vector-channel messages — see the Node
+	// block's MsgsToParallel column. Reported alongside roundsToParallel, never derived.
+	msgsToParallel int32
 }
 
 // newNodeGeometry constructs one node's geometry — no actor, no goroutine. Whoever drives
@@ -614,7 +618,7 @@ func (m *nodeGeometry) writeStreamFrame(events []wire.RowEvent) {
 		float32(bottomTiltVectorTheta),
 		float32(coplanarNormalTheta),
 		float32(receivedVectorLen), float32(receivedVectorTheta),
-		selected, kindID, hovered, latchedSel, uint8(points), m.roundsToParallel,
+		selected, kindID, hovered, latchedSel, uint8(points), m.roundsToParallel, m.msgsToParallel,
 		label, chainOX, chainOY, chainOZ, chainLit, chainLitVal, events)
 	var hdr [4]byte
 	binary.LittleEndian.PutUint32(hdr[:], uint32(len(frame)))

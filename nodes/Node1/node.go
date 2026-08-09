@@ -203,25 +203,39 @@ type Node struct {
 	// loader; every PairNodeSelf method is nil-safe.
 	Self *Wiring.PairNodeSelf
 
-	// roundsSinceOpen counts the vector-exchange arrivals THIS node has answered since the
-	// exchange opened. One arrival answered is one round from this node's side; the pair's
-	// combined channel traffic is four per round (each end one send and one receive), so
-	// this is deliberately the per-node number, not that.
+	// msgsSinceOpen counts THIS node's own vector-channel messages since the exchange
+	// opened — every receive and every reply. Both directions are counted because both are
+	// work this node did: a node that answers two arrivals received twice and replied
+	// twice, four messages, and counting only the arrivals would report half of what it
+	// moved through.
+	//
+	// The START opener is NOT counted: it is the kick, not a round, and including it made
+	// the opening end read one higher than the other for identical work.
+	msgsSinceOpen int32
+
+	// roundsSinceOpen counts the same span in ROUNDS: arrivals this node answered. One
+	// answered arrival is one round from this node's side, and is two messages.
 	roundsSinceOpen int32
 
-	// roundsAtRest is roundsSinceOpen frozen at the moment this node's rule FIRST came to
+	// roundsAtRest is msgsSinceOpen frozen at the moment this node's rule FIRST came to
 	// rest after the exchange opened — the number reported to the geometry and streamed as
 	// the Node block's RoundsToParallel column.
 	//
 	// It freezes because the exchange does not stop when the pair settles: stepFromVector
-	// replies to every arrival whether or not it moved, so roundsSinceOpen keeps climbing
+	// replies to every arrival whether or not it moved, so msgsSinceOpen keeps climbing
 	// for as long as the scene is open. A reader wants how far the tilt had to travel, and
 	// that stops changing at rest.
 	//
 	// restReported is what makes "first" mean first: without it, every later arrival would
 	// re-report the then-current count and the column would climb after all.
 	roundsAtRest int32
+	msgsAtRest   int32
 	restReported bool
+
+	// restedThisCycle is set by stepFromVector when this node's rule found itself already
+	// at its halt, and read by handleVectorCycle after that cycle's reply has been sent.
+	// It exists so the freeze lands after the send rather than before it — see roundsAtRest.
+	restedThisCycle bool
 }
 
 func (n *Node) clock() wire.Clock {
@@ -275,6 +289,10 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 		// Open the vector exchange from the current angles — see this function's own doc
 		// comment. Sends exactly what the old adjust-side-effect kick sent, but changes no
 		// index of its own.
+		// The opener is deliberately NOT counted. It is the kick that starts the exchange,
+		// not part of a round, and counting it would make the opening end report one more
+		// message than the other for the same amount of work — the two ends did the same
+		// number of rounds and the same number of receive/reply pairs.
 		Wiring.SendVectorLatestNonBlocking(n.VectorOut, n.outgoingVector())
 		return true
 	}
@@ -445,11 +463,14 @@ func (n *Node) clear() {
 	n.syncReceivedVector()
 	// The counters go with the machine: RESET returns this node to the setting mode, so the
 	// next START opens a fresh exchange and its rounds are counted from zero, not continued.
+	n.msgsSinceOpen = 0
 	n.roundsSinceOpen = 0
 	n.roundsAtRest = 0
+	n.msgsAtRest = 0
 	n.restReported = false
+	n.restedThisCycle = false
 	if n.Self != nil {
-		n.Self.SetRoundsToParallel(0)
+		n.Self.SetRoundsToParallel(0, 0)
 	}
 	Wiring.PollRecvVector(n.VectorIn)
 	n.drainIn()
@@ -604,22 +625,16 @@ func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
 	// and derive the other. Behaviour is the same either way — the ends are a half turn apart, so
 	// a slot gained by one is a slot gained by both — but the write now says which end the
 	// arrival was near, instead of expressing a bottom-side turn as a negated top-side one.
-	// One arrival answered is one round from this node's side. Counted before the halt test
-	// so the round the node comes to rest IN is included: the pair converged during it.
-	n.roundsSinceOpen++
 	if !n.Machine.settled(before, arrival) {
 		if moved, atBottom := n.Machine.step(before, arrival); atBottom {
 			n.setBottom(moved)
 		} else {
 			n.setTop(moved)
 		}
-	} else if !n.restReported {
-		// FIRST rest since the exchange opened: freeze the count and report it once.
-		n.roundsAtRest = n.roundsSinceOpen
-		n.restReported = true
-		if n.Self != nil {
-			n.Self.SetRoundsToParallel(n.roundsAtRest)
-		}
+	} else {
+		// Came to rest on this arrival. The freeze happens in handleVectorCycle, AFTER the
+		// reply goes out, so the message that closes the round is inside the count.
+		n.restedThisCycle = true
 	}
 	return true
 }
@@ -637,6 +652,8 @@ func (n *Node) handleVectorCycle(tick int64) {
 	if !ok {
 		return
 	}
+	n.msgsSinceOpen++ // this node's own receive
+	n.roundsSinceOpen++
 	// A RESET marker is not a direction to act on: run this node's FULL clear (indices,
 	// third arrow, vector end, delivered beads, and the beads still crossing this node's
 	// own outgoing wires) and REPLY WITH NOTHING. Replying would bounce the reset back and
@@ -690,7 +707,18 @@ func (n *Node) handleVectorCycle(tick int64) {
 		return
 	}
 	n.syncTiltIndex()
+	n.msgsSinceOpen++ // this node's own reply
 	Wiring.SendVectorLatestNonBlocking(n.VectorOut, n.outgoingVector())
+	if n.restedThisCycle && !n.restReported {
+		// FIRST rest since the exchange opened, counted through the reply that closed it.
+		n.roundsAtRest = n.roundsSinceOpen
+		n.msgsAtRest = n.msgsSinceOpen
+		n.restReported = true
+		if n.Self != nil {
+			n.Self.SetRoundsToParallel(n.roundsAtRest, n.msgsAtRest)
+		}
+	}
+	n.restedThisCycle = false
 	// The bead rides along with the vector: one message, one visible bead, so the bead
 	// loop ends exactly when the exchange does. THIS goroutine is still the sole placer on
 	// this Out (wire.Out.PlaceDrivenAt's one-goroutine-per-Out invariant) — the placement

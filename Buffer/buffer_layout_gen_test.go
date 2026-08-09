@@ -72,6 +72,7 @@ func TestSetNodeRow(t *testing.T) {
 		1,  // latchedSel
 		12, // latticePoints
 		3,  // roundsToParallel
+		6,  // msgsToParallel
 	)
 
 	assertI32At(t, buf, BufNodeColNodeId, 42, "NodeId")
@@ -177,8 +178,9 @@ func TestNodeStrideIsPackedSize(t *testing.T) {
 	//             received on this node's vector channel; 0 length = nothing received yet)
 	//           + 1×u8 (latticePoints — this node's own pair-lattice point count)
 	//           + 1×i32 (roundsToParallel — rounds from START until this node's rule rested)
-	//           = 4 + (5+6+2+2+1+1+1+1+2)×4 + 1 + 1 + 8 + 1 + 1 + 1 + 4
-	want := 1*4 + 5*4 + 6*4 + 2*4 + 2*4 + 1*4 + 1*4 + 1*4 + 1*4 + 2*4 + 1*1 + 1*1 + 2*4 + 1*1 + 1*1 + 1*1 + 1*4
+	//           + 1×i32 (msgsToParallel — the same span in vector-channel messages)
+	//           = 4 + (5+6+2+2+1+1+1+1+2)×4 + 1 + 1 + 8 + 1 + 1 + 1 + 4 + 4
+	want := 1*4 + 5*4 + 6*4 + 2*4 + 2*4 + 1*4 + 1*4 + 1*4 + 1*4 + 2*4 + 1*1 + 1*1 + 2*4 + 1*1 + 1*1 + 1*1 + 1*4 + 1*4
 	if BufNodeStride != want {
 		t.Errorf("BufNodeStride = %d, want %d (packed size)", BufNodeStride, want)
 	}

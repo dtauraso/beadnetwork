@@ -204,6 +204,15 @@ type bufLayoutNode struct {
 	// the tilt had to travel. Zero means not yet at rest, or opened already at rest (a pair
 	// preset to exactly a quarter turn adopts the perpendicular machine and never steps).
 	RoundsToParallel int32 `buf:"i32"` // rounds from START until this node's rule came to rest; 0 = not yet / none needed
+	// MsgsToParallel is the same span counted in MESSAGES rather than rounds — every
+	// vector-channel receive AND send this node performed, including the START opener on
+	// the node that sends it. A node that answered two arrivals did four messages, so this
+	// is twice RoundsToParallel on the answering side and one more than that on the opener.
+	//
+	// Both are streamed rather than one being divided out on the render side, because the
+	// two differ by the opener and a reader dividing by two would be silently wrong for the
+	// node that opened the exchange.
+	MsgsToParallel int32 `buf:"i32"` // vector-channel messages (receives + sends) over the same span
 }
 
 // bufLayoutChainBead defines one row of the chain-bead column block — the node-owned
