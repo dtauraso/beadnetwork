@@ -173,7 +173,6 @@ function OverlayRow({ cfg, disabled, indent }: { cfg: ToggleCfg; disabled?: bool
       style={{
         ...popoverRowStyle(hover, !!disabled),
         paddingLeft: indent ? 20 : 6,
-        opacity: disabled ? 0.45 : 1,
       }}
     >
       <span
@@ -334,11 +333,13 @@ export function OverlaysControl() {
             ...popoverStyle(150),
           }}
         >
-          <div style={{ opacity: active ? 1 : 0.4, transition: "opacity 0.12s ease" }}>
-            {OVERLAY_GROUPS.map((group) => (
-              <OverlayGroupSection key={group.heading} group={group} disabled={!active} />
-            ))}
-          </div>
+          {/* No dimming for the master-off state: the PILL is that indicator — unlit chip
+              means overlays are off — and a second, fainter copy of the same fact inside the
+              popover only made the list hard to read. The rows stay inert (`disabled`), they
+              just no longer fade to say so; a checkmark still shows each flag's real value. */}
+          {OVERLAY_GROUPS.map((group) => (
+            <OverlayGroupSection key={group.heading} group={group} disabled={!active} />
+          ))}
         </div>
       )}
     </>
