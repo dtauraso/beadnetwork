@@ -26,7 +26,7 @@ Communication is `panel.webview.postMessage` ↔ `vscode.postMessage`, wired in
 
 `src/messages.ts` is the shared discriminated-union source for both sides.
 `WebviewToHostMsg` includes `ready` and the binary bridge envelope (a fully
-encoded editor→Go record built via `src/schema/input-layout.ts` and written
+encoded editor→Go record built via `src/schema/input-encode.ts` and written
 FRAMED to Go's stdin by `runCommand.ts`); `HostToWebviewMsg` carries the
 decoded content-buffer snapshot. Extension-side dispatch is
 `src/extension/handle-message.ts`. Per CLAUDE.md, Go → TS is the binary

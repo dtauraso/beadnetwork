@@ -46,7 +46,7 @@ MESSAGES_TS="$REPO_ROOT/tools/topology-vscode/src/messages.ts"
 # when the TS→Go bridge became a binary buffer) to the shared IN_UPDATE_KINDS schema, which
 # is the single TS list of edit-update entity kinds the encoders key off. IN_UPDATE_KINDS
 # itself is GENERATED (from Go's InputLayoutFingerprint) into input-layout-gen.ts, so that is
-# the file carrying the sentinel-bound literal now, not the hand-authored input-layout.ts.
+# the file carrying the sentinel-bound literal now, not the hand-authored input-encode.ts.
 HANDLE_MSG="$REPO_ROOT/tools/topology-vscode/src/schema/input-layout-gen.ts"
 # overlay-flags.ts is the HAND-AUTHORED overlay renderer: it reflects each Go-owned overlay
 # column out of the binary content buffer. Its per-flag bit reads (readOverlay*) + its

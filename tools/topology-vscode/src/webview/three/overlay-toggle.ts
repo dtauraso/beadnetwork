@@ -3,7 +3,7 @@
 // what firing it sends (the same per-flag toggle record everywhere). No JSX.
 
 import { postGoRecord } from "../vscode-api";
-import { encodeOverlaysToggle } from "../../schema/input-layout";
+import { encodeOverlaysToggle } from "../../schema/input-encode";
 import type { OverlayFlag } from "../../messages";
 import { postLog } from "../log/post";
 import { useOverlayFlags } from "./overlay-flags";

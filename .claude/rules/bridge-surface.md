@@ -62,4 +62,4 @@ Keep all of it in parity across `messages.ts`, the `nodes/Wiring` stdin reader/d
 (`stdin_reader.go`'s `MSG_TYPES` fence, `stdin_dispatch.go`'s edit tables), and `handle-message.ts`
 (guards: `tools/check-edit-op-parity.sh`, `tools/check-message-kind-parity.sh`, and the
 `INPUT_LAYOUT_FINGERPRINT` in `input_codec.go` /
-`tools/topology-vscode/src/schema/input-layout.ts`).
+`tools/topology-vscode/src/schema/input-layout-gen.ts`).

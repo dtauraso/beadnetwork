@@ -1,8 +1,10 @@
 // input-layout binary record tests: exact byte layout for the simple records + encode/
 // decode round-trips. The Go decoder (input_codec.go) mirrors this layout; the shared
 // fingerprint (and the IN_KIND_*/enum-array constants) are GENERATED from Go's
-// InputLayoutFingerprint into ./input-layout-gen.ts, so they cannot drift from Go by
-// construction — see tools/gen-node-defs/input_layout.go.
+// InputLayoutFingerprint into ../src/schema/input-layout-gen.ts, so they cannot drift from
+// Go by construction — see tools/gen-node-defs/input_layout.go. The hand-authored codec
+// itself is split across input-encode.ts (encoders), input-decode.ts (decoder),
+// byte-writer.ts/byte-reader.ts (record primitives), and input-attrs.ts (attr indices).
 import { describe, it, expect } from "vitest";
 import {
   IN_KIND_SAVE,
@@ -13,11 +15,9 @@ import {
   IN_UPDATE_KINDS,
   IN_UPDATE_ATTRS,
   INPUT_LAYOUT_FINGERPRINT,
-  encodeOverlaysToggle,
-  encodeClockSpeed,
-  decodeInputRecord,
-  frameRecord,
-} from "../src/schema/input-layout";
+} from "../src/schema/input-layout-gen";
+import { encodeOverlaysToggle, encodeClockSpeed, frameRecord } from "../src/schema/input-encode";
+import { decodeInputRecord } from "../src/schema/input-decode";
 import { OVERLAY_FLAG_ORDER } from "../src/messages";
 
 /** Build a bare kind-byte control record (mirrors ByteWriter's u8-only shape). No live

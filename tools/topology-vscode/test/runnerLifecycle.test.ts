@@ -12,7 +12,7 @@
 //   - looping respawns only on a NATURAL exit; cancel()/stop() must not respawn.
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { frameRecord } from "../src/schema/input-layout";
+import { frameRecord } from "../src/schema/input-encode";
 import { EventEmitter } from "node:events";
 import * as fs from "fs";
 import * as os from "os";

@@ -5,7 +5,8 @@
 // pan included) while the cursor was over an edge (and over a node, whose incident edge
 // pick-halos classify as "edge" first).
 import { describe, it, expect } from "vitest";
-import { encodeRawInput, decodeInputRecord } from "../src/schema/input-layout";
+import { encodeRawInput } from "../src/schema/input-encode";
+import { decodeInputRecord } from "../src/schema/input-decode";
 import type { RawInputEvent, RawHit } from "../src/messages";
 
 function rawInput(hit: RawHit): RawInputEvent {

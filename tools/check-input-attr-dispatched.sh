@@ -7,7 +7,8 @@ set -euo pipefail
 #
 # THE BUG THIS EXISTS FOR. A new addressed-edit ATTRIBUTE (the only way new addressed
 # capability lands — .claude/rules/bridge-surface.md: new entity kind or attribute, never a
-# new op) is spread across four files: the TS const + encoder (src/schema/input-layout.ts),
+# new op) is spread across four files: the TS const + encoder (src/schema/input-attrs.ts,
+# src/schema/input-encode.ts),
 # Go's decode (edit_update_decode.go), the dispatch TABLE (stdin_dispatch.go's updateKindHandlers /
 # the per-kind *AttrHandlers tables), and the HANDLER that says what it means
 # (stdin_apply.go). Miss the last two and the attribute round-trips the wire PERFECTLY —
@@ -21,7 +22,7 @@ set -euo pipefail
 #     is kind-level; it never looks at an attr.
 #   - check-message-kind-parity.sh: top-level msg.Type kinds and their senders. Above this
 #     seam entirely.
-#   - INPUT_LAYOUT_FINGERPRINT (input_codec.go vs input-layout.ts): pins the attr NAME LIST
+#   - INPUT_LAYOUT_FINGERPRINT (input_codec.go vs input-layout-gen.ts): pins the attr NAME LIST
 #     and its index order across the two languages, so an encoder and a decoder cannot
 #     disagree about byte 5. It says nothing about whether anything RUNS afterwards.
 #   The gap this guard closes: decoded-but-never-dispatched.

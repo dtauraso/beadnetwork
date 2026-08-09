@@ -17,7 +17,8 @@
 // against the committed fixture, so a stale fixture fails loudly instead of silently
 // testing its own past self.
 
-import { encodeRawInput, INPUT_LAYOUT_FINGERPRINT } from "../src/schema/input-layout";
+import { encodeRawInput } from "../src/schema/input-encode";
+import { INPUT_LAYOUT_FINGERPRINT } from "../src/schema/input-layout-gen";
 import type { RawInputEvent } from "../src/messages";
 import * as fs from "fs";
 

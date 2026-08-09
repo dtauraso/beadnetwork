@@ -1,7 +1,7 @@
 import type React from "react";
 import { createPortal } from "react-dom";
 import { postGoRecord } from "../vscode-api";
-import { encodeClockSpeed } from "../../schema/input-layout";
+import { encodeClockSpeed } from "../../schema/input-encode";
 import { usePlaybackSpeed } from "./overlay-flags";
 
 // SPEED_SETTINGS — the six settings the slider's raw <input> value (0..5) indexes into.

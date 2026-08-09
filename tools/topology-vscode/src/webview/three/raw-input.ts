@@ -9,7 +9,7 @@
 
 import * as THREE from "three";
 import { postGoRecord } from "../vscode-api";
-import { encodeRawInput } from "../../schema/input-layout";
+import { encodeRawInput } from "../../schema/input-encode";
 import type { RawInputEvent, RawHit, RawPointerKind } from "../../messages";
 import type { PickRef } from "./pick-types";
 import { pixelToNDC } from "./geometry-helpers";

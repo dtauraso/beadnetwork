@@ -11,7 +11,8 @@
 // derives the TS-side equivalents the same way, so the two languages can never carry a
 // hand-copied fingerprint that silently drifts. Only the fingerprint STRING and its
 // directly-derived constants/arrays are generated here; the codec functions
-// (encode*/decode*, ByteWriter/ByteReader, etc.) stay hand-written in input-layout.ts.
+// (encode*/decode*, ByteWriter/ByteReader, etc.) stay hand-written in input-encode.ts,
+// input-decode.ts, byte-writer.ts, byte-reader.ts, and input-attrs.ts.
 package main
 
 import (

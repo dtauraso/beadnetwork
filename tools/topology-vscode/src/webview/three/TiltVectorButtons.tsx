@@ -1,6 +1,6 @@
 import { createPortal } from "react-dom";
 import { postGoRecord } from "../vscode-api";
-import { encodeTiltVectorStart, encodeTiltVectorReset } from "../../schema/input-layout";
+import { encodeTiltVectorStart, encodeTiltVectorReset } from "../../schema/input-encode";
 import { useTiltVectorRows } from "./overlay-flags";
 
 // TiltVectorButtons — the START TILT and RESET TILT controls, portaled into "#run-mount",

@@ -3,7 +3,7 @@ import * as cp from "child_process";
 import * as path from "path";
 import type { HostToWebviewMsg } from "./messages";
 import { killOrphanedSims } from "./goBuild";
-import { frameRecord } from "./schema/input-layout";
+import { frameRecord } from "./schema/input-encode";
 import { isProbeTraceEnabled } from "./probe-files";
 import { readCounts } from "./runner/counts";
 import { appendGoError } from "./runner/go-errors";

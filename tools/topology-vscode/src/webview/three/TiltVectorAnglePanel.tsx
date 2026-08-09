@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { postGoRecord } from "../vscode-api";
-import { encodeTiltVectorAdjust, encodeSceneLatticePoints } from "../../schema/input-layout";
+import { encodeTiltVectorAdjust, encodeSceneLatticePoints } from "../../schema/input-encode";
 import { useTiltVectorRows, type TiltVectorRow } from "./overlay-flags";
 import { formatAngle, widestAngle } from "./tilt-vector-angle-format";
 import {
