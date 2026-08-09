@@ -28,6 +28,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	B "github.com/dtauraso/wirefold/Buffer"
 )
 
 // SceneTab is one tab: the label Go streams to the strip, and the directory it loads.
@@ -138,6 +140,14 @@ type SceneTab struct {
 	// Nothing structural stops the ring taking edits — this is a choice about which diagram
 	// a stray delete key can damage.
 	Editable bool
+	// Kinds names the node kinds this scene ACCEPTS — what its palette offers and what a
+	// create is allowed to make. Empty means every registered kind, which is what a scene
+	// that has never thought about it gets.
+	//
+	// It is a per-scene list rather than a per-kind flag because "is this a pair kind" is not
+	// a property of the kind: Node1 is the pair's node AND the ring's, and a kind that suits
+	// two scenes should not have to name them. The scene knows what it is made of.
+	Kinds []string
 }
 
 // SceneTabs is the tab strip, in display order. Index 0 is the DEFAULT: its Dir must be
@@ -145,7 +155,11 @@ type SceneTab struct {
 // sizes its stream fds from (see AnchorIsTabbed).
 var SceneTabs = []SceneTab{
 	{Name: "ring", Dir: "topology", QuantizedDrag: false, CoplanarEdges: false, UpAxis: false, ClockDivisor: 1, DistanceGroups: true, Editable: false},
-	{Name: "pair", Dir: "topology-pair", QuantizedDrag: false, CoplanarEdges: true, UpAxis: true, ClockDivisor: 64, DistanceGroups: false, Editable: true},
+	// The pair takes PAIR KINDS ONLY: Node1, which is what both of its nodes are, and
+	// NormalSum, which exists to sum two of their normals. Dropping a ring kind here would
+	// build something the pair's own model has no place for — its exchange is two nodes and
+	// the vectors between them, not a pipeline of gates.
+	{Name: "pair", Dir: "topology-pair", QuantizedDrag: false, CoplanarEdges: true, UpAxis: true, ClockDivisor: 64, DistanceGroups: false, Editable: true, Kinds: []string{"Node1", "NormalSum"}},
 }
 
 // sceneSelectionFile is the persisted selection, held at the ANCHOR (never inside a scene).
@@ -338,4 +352,31 @@ func SceneIsEditable(scenePath string) bool {
 		}
 	}
 	return false
+}
+
+// SceneKindMask is the set of kinds the loaded scene accepts, as a BITMASK over kind ids —
+// bit N set means the kind whose Buffer KindId is N may be created here. An empty Kinds list
+// (or an unknown tree) yields every bit set: no declared restriction restricts nothing.
+//
+// A mask rather than a list of names because the wire carries kind IDS, not names, and one
+// integer says the whole answer. It rides the Overlay block so the palette can offer exactly
+// the kinds the scene will accept, instead of offering all of them and letting Go refuse.
+func SceneKindMask(scenePath string) uint32 {
+	base := filepath.Base(filepath.Clean(scenePath))
+	for _, t := range SceneTabs {
+		if t.Dir != base {
+			continue
+		}
+		if len(t.Kinds) == 0 {
+			break
+		}
+		var mask uint32
+		for _, k := range t.Kinds {
+			if id := B.NodeKindID(k); id != B.KindIDUnknown {
+				mask |= 1 << uint(id)
+			}
+		}
+		return mask
+	}
+	return ^uint32(0)
 }

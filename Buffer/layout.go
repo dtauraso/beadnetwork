@@ -347,6 +347,11 @@ type bufLayoutOverlay struct {
 	// for the same reason the tab LIST is streamed: which scenes exist and what they allow
 	// is Go's, and the editor renders what it is told.
 	SceneEditable uint8 `buf:"u8"` // 1 = this scene takes node create/delete
+	// SceneKinds is the BITMASK of kind ids this scene accepts (bit N = the kind whose
+	// KindId is N). All bits set means no restriction. The palette offers exactly these, so
+	// a kind a scene has no place for is never draggable in it — rather than draggable and
+	// then refused, which teaches nothing and looks broken.
+	SceneKinds uint32 `buf:"u32"` // kind-id bitmask this scene accepts
 	// GroupLenTime/GroupLenInput/GroupLenGate are the "distance home button" toolbar
 	// panel's 3 read-only group max-pair-lengths (nodes/Wiring/distance_groups.go's
 	// distanceGroupOrder: time, input, gate). Computed fresh every VIEW-frame emit from

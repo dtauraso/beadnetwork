@@ -65,6 +65,7 @@ type ViewOverlayFlags struct {
 type ViewSceneState struct {
 	EditRefused   uint32
 	SceneEditable uint8
+	SceneKinds    uint32
 }
 
 type ViewFrameBuilder func(tick uint32,
@@ -155,6 +156,7 @@ func (md *MoveDispatch) emitViewFrame(events []wire.RowEvent) {
 		ViewSceneState{
 			EditRefused:   md.ui.editRefused,
 			SceneEditable: boolU8(md.ui.sceneEditable),
+			SceneKinds:    md.ui.sceneKinds,
 		},
 		groupLenTime, groupLenInput, groupLenGate,
 		float32(md.ui.speed),

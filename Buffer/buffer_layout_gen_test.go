@@ -201,11 +201,12 @@ func TestCameraStrideIsPackedSize(t *testing.T) {
 }
 
 func TestOverlayStrideIsPackedSize(t *testing.T) {
-	// Overlay block: 14×u8 + 1×i32 + 1×u32 + 4×f32 = 38 — 13 overlay flags (the 7
+	// Overlay block: 14×u8 + 1×i32 + 2×u32 + 4×f32 = 42 — 13 overlay flags (the 7
 	// scene-furniture render gates plus the 6 node-local ones) plus SceneEditable, then
-	// DragNodeRow, EditRefused (the refused-structural-edit count), the "distance home
-	// button" panel's 3 GroupLen* columns, and Speed (the playback multiplier)
-	want := 14*1 + 1*4 + 1*4 + 4*4
+	// DragNodeRow, EditRefused (the refused-structural-edit count), SceneKinds (the kind-id
+	// bitmask this scene accepts), the "distance home button" panel's 3 GroupLen* columns,
+	// and Speed (the playback multiplier)
+	want := 14*1 + 1*4 + 2*4 + 4*4
 	if BufOverlayStride != want {
 		t.Errorf("BufOverlayStride = %d, want %d (packed size)", BufOverlayStride, want)
 	}

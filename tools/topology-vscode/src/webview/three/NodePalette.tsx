@@ -16,7 +16,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { postGoRecord } from "../vscode-api";
 import { encodeSceneCreate, encodeSceneDelete } from "../../schema/input-layout";
 import { NODE_KIND_NAMES, NODE_DEFS } from "../../schema/node-defs";
-import { useSelectedNodeRow, useSceneEditable, useEditRefused } from "./overlay-flags";
+import { useSelectedNodeRow, useSceneEditable, useSceneKinds, useEditRefused } from "./overlay-flags";
 import {
   pillContainerStyle,
   pillBodyStyle,
@@ -34,6 +34,7 @@ const KIND_MIME = "application/x-wirefold-kind";
 /** The palette pill: a kind per row, each draggable onto the scene. */
 export function NodePalette() {
   const editable = useSceneEditable();
+  const sceneKinds = useSceneKinds();
   const [open, setOpen] = useState(false);
   const selectedRow = useSelectedNodeRow();
 
@@ -77,9 +78,14 @@ export function NodePalette() {
       </div>
       {open && (
         <div style={inFlowPopoverStyle()}>
-          {NODE_KIND_NAMES.map((kind, kindId) => (
-            <PaletteRow key={kind} kind={kind} kindId={kindId} />
-          ))}
+          {/* Only the kinds THIS SCENE takes (SceneTab.Kinds, streamed as a kind-id
+              bitmask). Offering a kind the scene has no place for and then refusing the drop
+              teaches nothing and looks broken; not offering it says the same thing before
+              the gesture. Go checks the same mask anyway — the tree is written on that side,
+              and "the UI does not offer it" is not "it cannot happen". */}
+          {NODE_KIND_NAMES.map((kind, kindId) =>
+            sceneKinds & (1 << kindId) ? <PaletteRow key={kind} kind={kind} kindId={kindId} /> : null,
+          )}
         </div>
       )}
       <RefusedNotice />

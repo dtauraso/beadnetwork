@@ -53,6 +53,7 @@ func (md *MoveDispatch) ResolveSceneDistanceGroups(scenePath string) {
 	// reads as NOT editable, which is the safe direction — a palette that appears a frame
 	// late costs nothing, one that appears in a scene that cannot take it invites a delete.
 	md.ui.sceneEditable = SceneIsEditable(scenePath)
+	md.ui.sceneKinds = SceneKindMask(scenePath)
 }
 
 // distanceGroupMax computes a group's CURRENT max pair length (max over the group's

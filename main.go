@@ -223,6 +223,7 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 						DragNodeRow:   dragNodeRow,
 						EditRefused:   scene.EditRefused,
 						SceneEditable: scene.SceneEditable,
+						SceneKinds:    scene.SceneKinds,
 						GroupLenTime:  groupLenTime, GroupLenInput: groupLenInput, GroupLenGate: groupLenGate,
 						Speed: speed,
 					},

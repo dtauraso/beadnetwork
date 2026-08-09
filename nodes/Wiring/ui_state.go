@@ -30,6 +30,10 @@ type uiState struct {
 	// (ResolveSceneDistanceGroups) and streamed on the Overlay block. The palette asks this
 	// rather than branching on a scene name in TS.
 	sceneEditable bool
+	// sceneKinds is the bitmask of kind ids this scene accepts (SceneTab.Kinds), resolved at
+	// load beside sceneEditable and streamed with it. Zero until resolved, which reads as
+	// "no kind is offered" — the same safe direction sceneEditable takes.
+	sceneKinds uint32
 	// sceneSphere is the first-class scene reference every node's SCENE polar is measured
 	// about (polar-model.md, sphere_layout.go). Loaded from sphere.json (or defaulted from
 	// the content-fit) at startup; its Center is the one cartesian anchor. Phase 1 stores

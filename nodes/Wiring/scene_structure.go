@@ -51,6 +51,13 @@ func (md *MoveDispatch) CreateNode(kindID uint8, ndcX, ndcY float64, tr *T.Trace
 		md.refuseStructuralEdit(fmt.Sprintf("unknown kind id %d", kindID))
 		return
 	}
+	// A kind this SCENE does not take (SceneTab.Kinds). The palette does not offer it, so
+	// this should be unreachable from the editor — which is exactly why it is checked: the
+	// tree is written on this side, and "the UI does not offer it" is not "it cannot happen".
+	if md.ui.sceneKinds&(1<<uint(kindID)) == 0 {
+		md.refuseStructuralEdit(fmt.Sprintf("this scene does not take %s nodes", kind))
+		return
+	}
 	// WHERE THE DROP LANDED. TS sent NDC; the camera that turns it into a place is Go's, so
 	// the unprojection happens here — the same ray every node drag already unprojects
 	// (dragPlaneHit), onto the camera-facing plane through the SCENE CENTRE. That plane,
