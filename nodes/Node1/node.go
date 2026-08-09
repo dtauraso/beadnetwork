@@ -217,7 +217,8 @@ type Node struct {
 	// answered arrival is one round from this node's side, and is two messages.
 	roundsSinceOpen int32
 
-	// roundsAtRest is msgsSinceOpen frozen at the moment this node's rule FIRST came to
+	// roundsAtRest is the count REPORTED to the geometry: live each round while the tilt is
+	// still turning, then frozen at the value it held when this node's rule FIRST came to
 	// rest after the exchange opened — the number reported to the geometry and streamed as
 	// the Node block's RoundsToParallel column.
 	//
@@ -709,13 +710,20 @@ func (n *Node) handleVectorCycle(tick int64) {
 	n.syncTiltIndex()
 	n.msgsSinceOpen++ // this node's own reply
 	Wiring.SendVectorLatestNonBlocking(n.VectorOut, n.outgoingVector())
-	if n.restedThisCycle && !n.restReported {
-		// FIRST rest since the exchange opened, counted through the reply that closed it.
+	if !n.restReported {
+		// LIVE while the tilt is still turning: report the running counts each round so the
+		// readout climbs as it goes rather than staying blank and then jumping. Once this
+		// node comes to rest the same numbers are reported one last time and then frozen —
+		// the exchange keeps circulating after rest (this function replies to every arrival
+		// whether or not it moved), so a counter that kept reporting would measure how long
+		// the scene had been open instead of how far the tilt travelled.
 		n.roundsAtRest = n.roundsSinceOpen
 		n.msgsAtRest = n.msgsSinceOpen
-		n.restReported = true
 		if n.Self != nil {
 			n.Self.SetRoundsToParallel(n.roundsAtRest, n.msgsAtRest)
+		}
+		if n.restedThisCycle {
+			n.restReported = true
 		}
 	}
 	n.restedThisCycle = false
