@@ -89,6 +89,10 @@ type stdinMsg struct {
 	// an integer 0..8 that clockAttrHandlers divides by 4 to get the real multiplier — see
 	// its comment). Zero otherwise.
 	Num int
+	// X/Y/Z is the WORLD POINT payload for scene/create — where the node was dropped. Zero
+	// for every other message. It is a point, not a target: which node the new one connects
+	// to is Go's own decision from its own geometry, so nothing here names a neighbour.
+	X, Y, Z float64
 	// Event is the payload for the top-level type=="raw-input" message; nil otherwise.
 	Event *rawInputMsg
 }
@@ -515,6 +519,13 @@ func applyUpdateScene(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []
 		md.ui.latticePoints = points
 		md.persist.lattice.schedule(points)
 		md.BroadcastLatticePoints(points)
+	case "create":
+		// The palette's drop. Num is the kind id, X/Y/Z the world point — see
+		// scene_structure.go for why this ends the run rather than building anything live.
+		md.CreateNode(uint8(msg.Num), msg.X, msg.Y, msg.Z, tr)
+	case "delete":
+		// The delete key. Num is the target's buffer ROW.
+		md.DeleteNode(msg.Num, tr)
 	}
 }
 

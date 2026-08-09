@@ -97,7 +97,24 @@ type EditMsg =
   // (4..64, a multiple of 4 — Go rejects anything else and simply ignores the edit). Go
   // owns the valid range, the persistence (view/lattice.json), and delivery to every pair
   // node; this seam carries only the requested count.
-  | { type: "edit"; op: "update"; kind: "scene"; attr: "latticePoints"; points: number };
+  | { type: "edit"; op: "update"; kind: "scene"; attr: "latticePoints"; points: number }
+  // scene CREATE / DELETE — the node palette's drop, and the delete key.
+  //
+  // ATTRIBUTES, not the create/delete OPS this file's header records as removed end to end.
+  // Their kind bytes (20, 21) stay gaps and are not reused. The edit surface still has
+  // exactly one op; a new capability is a new entity kind or attribute.
+  //
+  // create carries the kind's NODE_DEFS id and the world point the drop landed on — a POINT,
+  // not a target. Go picks the nearest existing node from its own geometry, so no neighbour
+  // is named here and TS never measures proximity. delete carries the target's buffer ROW,
+  // the same no-sidecar rule as every other addressed edit.
+  //
+  // Both make Go persist the tree and END THE RUN: a node's stream is a dedicated fd the
+  // host allocates at spawn from counts.json, so a node created in-process would have no
+  // stream to emit on. The host's looping runner respawns and the new tree loads — the same
+  // mechanism a scene-tab switch already uses.
+  | { type: "edit"; op: "update"; kind: "scene"; attr: "create"; kindId: number; x: number; y: number; z: number }
+  | { type: "edit"; op: "update"; kind: "scene"; attr: "delete"; row: number };
 // EDIT_MSG_END
 
 // RAW INPUT (Phase 6, OFF by default behind USE_RAW_INPUT). A single raw pointer/wheel

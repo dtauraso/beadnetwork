@@ -65,18 +65,21 @@ deliberately not local, so this is a pass, and the loader already does the same 
 `RegisterBuilder`. A link is refusable for two reasons and both are Go's to judge: the target
 kind declares NO input port at all, or every input it declares is already bound by an
 existing edge. Go performs no partial work in that case — nothing is written, nothing is
-respawned, and the refusal rides a breadcrumb. THE DROP MUST NOT SILENTLY DO NOTHING: the
-user sees no new node, so the refusal has to be visible. Simplest surface that already
-exists: the node is created UNCONNECTED, or the drop is rejected outright — decide with
-David before building this step, since it is the one place the spec does not settle.
+respawned, and no node appears.
+
+**The drop is REFUSED WITH A VISIBLE SIGNAL** (David). Nothing is created, and the refusal
+shows: a drop that silently does nothing is a bug indistinguishable from a broken build. The
+signal is Go's to raise, since the judgement is Go's — it rides the same stream everything
+else does, and TS renders it.
 
 **5 — The new kind.** Four things in one commit (CLAUDE.md's primitive landing rule): a Go
 package `nodes/<Kind>/` with its logic in `node.go` plus `SPEC.md`, the `NODE_DEFS` entry,
 nothing else in the schema dir, and `go run ./tools/gen-node-defs`. Two input ports taking a
-normal each, one held value that is their total, and an output carrying it. Open question for
-David: is the total a VECTOR SUM of the two normals, and is it drawn (a tilt-vector-style
-arrow) or only held? The buffer answer follows from that — a drawn total needs a column, a
-held one does not.
+normal each, one held value that is their total, and an output carrying it.
+
+**The total is DRAWN** (David), so it needs a buffer column and a render path — a
+tilt-vector-style arrow from the node's centre along the summed direction, alongside the
+arrows TiltVectors already draws.
 
 **6 — The palette + the delete key, in TS.** A drag source per kind, listed from `NODE_DEFS`
 (the single registry). The drop resolves a world point through the raycast that already runs

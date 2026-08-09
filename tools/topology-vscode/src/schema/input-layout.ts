@@ -111,6 +111,11 @@ class ByteWriter {
     this.view.setUint32(this.pos, v, true);
     this.pos += 4;
   }
+  f32(v: number): void {
+    this.ensure(4);
+    this.view.setFloat32(this.pos, v, true);
+    this.pos += 4;
+  }
   f64(v: number): void {
     this.ensure(8);
     this.view.setFloat64(this.pos, v, true);
@@ -143,6 +148,8 @@ const IN_TILT_VECTOR_ATTR_THETA = 4;
 const IN_TILT_VECTOR_ATTR_RESET = 6;
 const IN_TILT_VECTOR_ATTR_START = 7;
 const IN_SCENE_ATTR_LATTICE_POINTS = 8;
+const IN_SCENE_ATTR_CREATE = 9;
+const IN_SCENE_ATTR_DELETE = 10;
 
 // NOTE: there is no encodeSave here. IN_KIND_SAVE stays defined (Go reads it and it is in
 // the INPUT_LAYOUT_FINGERPRINT), but no live TS sender builds that record: `save` has no
@@ -207,6 +214,40 @@ export function encodeSceneSelected(tabIndex: number): ArrayBuffer {
  *  [u8 points]. points is the pair lattice's new point count (4..64, a multiple of 4 —
  *  Go rejects anything else, nodes/Wiring/stdin_reader.go's applyUpdateScene); Go owns the
  *  valid range and the delivery to every pair node, this just signals the requested count. */
+/** Build a scene CREATE record: [22][entityKind=scene][attr=create][u8 kindId][f32 x][f32 y]
+ *  [f32 z]. kindId is the kind's NODE_DEFS id — the same numeric kind identity the Node
+ *  block's KindId column carries, so no kind NAME crosses this wire. x/y/z is where the drop
+ *  landed, from the raycast that already runs; it is a POINT, not a target. Which node the
+ *  new one connects to is Go's decision from its own geometry, so nothing here names a
+ *  neighbour and TS never measures proximity.
+ *
+ *  Go persists the new node and ENDS THE RUN; the host's looping runner respawns and the new
+ *  tree loads. That is not this function's concern, but it is why a create looks like nothing
+ *  happened for the length of a restart. */
+export function encodeSceneCreate(kindId: number, x: number, y: number, z: number): ArrayBuffer {
+  const w = new ByteWriter();
+  w.u8(IN_KIND_EDIT_UPDATE);
+  w.u8(enumIndex(IN_UPDATE_KINDS, "scene"));
+  w.u8(IN_SCENE_ATTR_CREATE);
+  w.u8(kindId);
+  w.f32(x);
+  w.f32(y);
+  w.f32(z);
+  return w.toArrayBuffer();
+}
+
+/** Build a scene DELETE record: [22][entityKind=scene][attr=delete][u8 nodeRow]. The target
+ *  is a buffer ROW, never an id or a name — the same no-sidecar rule every addressed edit
+ *  follows. Go removes the node and every edge touching it, then ends the run. */
+export function encodeSceneDelete(nodeRow: number): ArrayBuffer {
+  const w = new ByteWriter();
+  w.u8(IN_KIND_EDIT_UPDATE);
+  w.u8(enumIndex(IN_UPDATE_KINDS, "scene"));
+  w.u8(IN_SCENE_ATTR_DELETE);
+  w.u8(nodeRow);
+  return w.toArrayBuffer();
+}
+
 export function encodeSceneLatticePoints(points: number): ArrayBuffer {
   const w = new ByteWriter();
   w.u8(IN_KIND_EDIT_UPDATE);

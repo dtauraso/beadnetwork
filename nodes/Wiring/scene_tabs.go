@@ -205,6 +205,12 @@ func SceneTabNames(anchorPath string) []string {
 type sceneSwitch struct {
 	anchorPath string
 	quit       func()
+	// treeRoot is the LOADED scene's own directory (the anchor's sibling the selected tab
+	// points at), set by EnableEditPersist. A structural edit writes here, while the tab
+	// SELECTION is written at the anchor — the two are different paths for the reason this
+	// file's header gives: a selection stored inside the scene it selects is unreachable
+	// while another scene is loaded.
+	treeRoot string
 }
 
 // EnableSceneSwitch arms tab switching. quit ends the run (main's context cancel), which
