@@ -1,6 +1,7 @@
 // NodeInstances.tsx — solid node render matching GraphNode's look: a SOLID sphere per node
 // (fill from NODE_DEFS[kind].fill) plus a border torus ring (stroke from NODE_DEFS[kind].stroke),
-// plus the invisible pick-proxy ring used to author a `port ∈ torus` lock. Split out of
+// plus the pick-proxy ring used to author a `port ∈ torus` lock — drawn in RING_PICK_COLOR
+// now, not invisible. Split out of
 // buffer-scene.tsx: pure buffer→GPU render, no state authority.
 
 import { useRef, useContext } from "react";
@@ -26,10 +27,12 @@ import {
   readNodeRingAxisPhi,
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius,
   readOverlaySelSpherePoles,
+  readOverlayNodeBody, readOverlayNodeRing, readOverlayRingPick,
 } from "../../schema/buffer-layout";
 import {
   BUFFER_NODE_TAG, BUFFER_RING_TAG, NODE_SPHERE_RADIUS,
-  NODE_RING_TUBE_RATIO, RING_PICK_TUBE_RATIO, nodeRowColors,
+  NODE_RING_TUBE_RATIO, RING_PICK_TUBE_RATIO, RING_PICK_COLOR, RING_PICK_OPACITY,
+  RING_BAND_MAJOR, RING_BAND_TUBE, nodeRowColors,
 } from "./buffer-scene-shared";
 import { computeNodeDepthOrder, setNodeDrawOrder } from "./node-depth-order";
 
@@ -42,6 +45,7 @@ export function NodeInstances({ capacity }: { capacity: number }) {
   const bodyRef = useRef<THREE.InstancedMesh>(null);
   const ringRef = useRef<THREE.InstancedMesh>(null);
   const ringPickRef = useRef<THREE.InstancedMesh>(null);
+  const ringBandRef = useRef<THREE.InstancedMesh>(null);
   const matRef  = useRef(new THREE.Matrix4());
   const posRef  = useRef(new THREE.Vector3());
   const quatRef = useRef(new THREE.Quaternion());
@@ -54,11 +58,15 @@ export function NodeInstances({ capacity }: { capacity: number }) {
     const body = bodyRef.current;
     const ring = ringRef.current;
     const ringPick = ringPickRef.current;
-    if (!body || !ring || !ringPick) return;
+    const ringBand = ringBandRef.current;
+    if (!body || !ring || !ringPick || !ringBand) return;
 
     const blocks = getViewBlocks();
     const decodedNode = getNodeFrame();
-    if (!decodedNode || !blocks) { body.count = 0; ring.count = 0; ringPick.count = 0; return; }
+    if (!decodedNode || !blocks) {
+      body.count = 0; ring.count = 0; ringPick.count = 0; ringBand.count = 0;
+      return;
+    }
     const { overlayView } = blocks;
     const { nodeCount, nodeView } = decodedNode;
     // The invisible ring pick-proxy (RING_PICK_TUBE_RATIO) is a pick target ONLY while the
@@ -68,6 +76,17 @@ export function NodeInstances({ capacity }: { capacity: number }) {
     // underneath it. The VISIBLE ring (ringRef, NODE_RING_TUBE_RATIO) is unaffected — it stays
     // rendered in both modes; only the fat invisible pick torus is gated.
     const selectModeOn = readOverlaySelSpherePoles(overlayView) !== 0;
+    // The three NODE-cluster overlays. Each drops its mesh's instance count to 0, which is
+    // how this file already turns something off — an instance count, not a hidden mesh, so
+    // an off drawing costs no draw and takes no raycast hit. `ringPick` gates the pick proxy
+    // ON TOP of the select-mode gate above: the proxy is present only when the mode that
+    // gives a ring click meaning is on AND the overlay says the ring may take clicks.
+    const showBody = readOverlayNodeBody(overlayView) !== 0;
+    const showRing = readOverlayNodeRing(overlayView) !== 0;
+    // An overlay says whether a thing is SHOWN — never whether it works. This one draws the
+    // marker that MARKS the click band; the band itself (ringPick) is untouched by it, so a
+    // ring click means the same thing whether the marker is showing or not.
+    const showPickBand = readOverlayRingPick(overlayView) !== 0;
 
     const n = Math.min(nodeCount, capacity);
     // A node's ring is oriented by the AXIS Go streams for it (PoleTheta/PolePhi), not left
@@ -122,27 +141,36 @@ export function NodeInstances({ capacity }: { capacity: number }) {
       ringQuatRef.current.setFromUnitVectors(TORUS_DEFAULT_NORMAL, ringAxis);
       matRef.current.compose(posRef.current, ringQuatRef.current, sclRef.current);
       ring.setMatrixAt(slot, matRef.current);
-      // Invisible pick-proxy: identical transform to the visible ring, just a thicker
-      // raycast target (see RING_PICK_TUBE_RATIO comment). Same drawSlot for the same reason.
+      // Pick proxy and its visible marker: both take the ring's exact transform (the marker
+      // is a bigger, thinner torus in its own geometry, so it needs no separate matrix).
+      // Same drawSlot for the same reason the ring uses it.
       ringPick.setMatrixAt(slot, matRef.current);
+      ringBand.setMatrixAt(slot, matRef.current);
 
       const { fill, stroke } = nodeRowColors(nodeView, row);
       body.setColorAt(slot, colRef.current.set(fill));
       ring.setColorAt(slot, colRef.current.set(stroke));
     }
-    body.count = n;
-    ring.count = n;
+    body.count = showBody ? n : 0;
+    ring.count = showRing ? n : 0;
+    // The pick proxy is unchanged and stays invisible: present exactly when select mode is
+    // on, because that is the mode where a ring click means something.
     ringPick.count = selectModeOn ? n : 0;
+    // The MARKER is drawn from the overlay ALONE — not from select mode. Ticking the box
+    // has to show something, and gating this on a second flag is why it showed nothing:
+    // with select mode off the count was 0 and the checkbox looked broken.
+    ringBand.count = showPickBand ? n : 0;
     body.instanceMatrix.needsUpdate = true;
     ring.instanceMatrix.needsUpdate = true;
     ringPick.instanceMatrix.needsUpdate = true;
+    ringBand.instanceMatrix.needsUpdate = true;
     if (body.instanceColor) body.instanceColor.needsUpdate = true;
     if (ring.instanceColor) ring.instanceColor.needsUpdate = true;
     // Refresh the InstancedMesh bounding sphere so raycast picking stays accurate as
     // nodes move (three.js early-outs a ray against a cached union sphere; a dragged
     // node outside the stale sphere would otherwise be un-pickable). Cheap for the
     // small node counts here.
-    body.computeBoundingSphere();
+    if (showBody) body.computeBoundingSphere();
     if (selectModeOn) ringPick.computeBoundingSphere();
   });
 
@@ -175,15 +203,39 @@ export function NodeInstances({ capacity }: { capacity: number }) {
         <torusGeometry args={[1, NODE_RING_TUBE_RATIO, 8, 32]} />
         <meshStandardMaterial roughness={SHADING_PARAM_RING_ROUGHNESS} metalness={0} depthWrite={false} transparent={false} opacity={1} />
       </instancedMesh>
-      {/* Invisible pick-proxy torus: same per-instance transform as the visible ring above,
-          but a much thicker tube (RING_PICK_TUBE_RATIO) so the ring band is a generous
-          raycast target. colorWrite/depthWrite false + zero opacity means it draws nothing;
-          it must stay visible (not visible={false}) or three.js Raycaster skips it entirely.
-          Tagged BUFFER_RING_TAG so pickBufferRing (scene-content.tsx) resolves its instanceId
-          to the same node row as the visible ring. */}
+      {/* The ring's PICK PROXY: same per-instance transform and tube as the visible ring
+          above, so the band that takes the click sits exactly on the ring it belongs to.
+          It exists because the visible ring lies flush on the body sphere and is practically
+          unhittable — clicks aimed at it arrive as hitKind=node. Tagged BUFFER_RING_TAG so
+          pickBufferRing (scene-content.tsx) resolves its instanceId to the same node row as
+          the visible ring.
+
+          It draws NOTHING (colorWrite false, zero opacity) and must stay `visible` — three.js
+          skips invisible meshes when raycasting, so hiding it that way would silently stop
+          the ring taking clicks. What you SEE is the marker below, a separate mesh. */}
       <instancedMesh ref={ringPickRef} args={[undefined, undefined, capacity]} userData={{ [BUFFER_RING_TAG]: true }} frustumCulled={false}>
         <torusGeometry args={[1, RING_PICK_TUBE_RATIO, 8, 32]} />
         <meshBasicMaterial transparent opacity={0} colorWrite={false} depthWrite={false} />
+      </instancedMesh>
+      {/* The "ring band" MARKER: what the overlay shows. A separate mesh from the pick proxy
+          on purpose — painting the proxy itself could not be seen, since it is exactly
+          coincident with the visible ring (same transform, same tube), so it only tinted it.
+          This one is a thinner torus at a larger major radius, so it reads as a mint collar
+          just outside the node's own ring instead of a recolouring of it.
+
+          raycast disabled: it marks where the click band is, it is not the click band. That
+          separation is what lets it be as legible as it needs to be without touching picking
+          — the pick tube's size is already a solved, fragile thing (a 0.4 tube once spread a
+          donut over the node face and stole body clicks). depthWrite false, like the ring's,
+          so it never occludes the node interior. */}
+      <instancedMesh ref={ringBandRef} args={[undefined, undefined, capacity]} frustumCulled={false} raycast={() => null}>
+        <torusGeometry args={[RING_BAND_MAJOR, RING_BAND_TUBE, 8, 32]} />
+        <meshBasicMaterial
+          color={RING_PICK_COLOR}
+          transparent
+          opacity={RING_PICK_OPACITY}
+          depthWrite={false}
+        />
       </instancedMesh>
     </>
   );

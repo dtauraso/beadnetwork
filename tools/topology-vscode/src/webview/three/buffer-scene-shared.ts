@@ -46,6 +46,31 @@ export const NODE_RING_TUBE_RATIO = 0.08;
 // donut covered most of the node face, stealing body clicks (the "band spread over the whole
 // node" bug). Matched to NODE_RING_TUBE_RATIO so the band IS the torus.
 export const RING_PICK_TUBE_RATIO = NODE_RING_TUBE_RATIO;
+// The pick proxy's colour. It used to draw nothing (colorWrite false, opacity 0), which
+// made the one band on screen that behaves differently from everything around it the only
+// one you could not see — "why did that click select the node?" had no visible answer.
+// Now the band that takes the click IS the band you see.
+//
+// Neon mint, chosen against the node palette rather than for taste: NODE_DEFS' strokes run
+// blue (#2196f3, #01579b, #90caf9), green-but-muted (#2e7d32), orange/amber (#e65100,
+// #f9a825, #ffc400), pink (#f06292, #880e4f) and greys, over near-white fills. Nothing there
+// is a saturated cyan-green, so this band reads as "not part of the node" on every kind.
+export const RING_PICK_COLOR = "#00e5a8";
+// Nearly opaque. The first attempt painted the PICK TORUS ITSELF at 0.55, and it could not
+// be seen: that torus is exactly coincident with the visible ring — same transform, same
+// tube, by design — so a half-transparent coat of mint over a saturated kind colour is a
+// tint, not a band. The marker is its own ring now (below), sitting outside the node's, so
+// it can be solid without hiding the ring it marks.
+export const RING_PICK_OPACITY = 0.9;
+// The marker's geometry, as a torus [majorRadius, tube] in node-radius units. It sits just
+// OUTSIDE the node's own ring — major radius pushed out by a ring tube, and drawn thinner —
+// so it reads as a collar around the ring rather than a recolouring of it. The PICK torus
+// keeps the ring's exact tube and is untouched by any of this: the marker says where the
+// click band is, it is not the click band, so making it legible can never make picking
+// worse (a lesson already paid for once — the pick tube at 0.4 spread a donut over the
+// whole node face and stole body clicks).
+export const RING_BAND_MAJOR = 1 + NODE_RING_TUBE_RATIO * 1.6;
+export const RING_BAND_TUBE = NODE_RING_TUBE_RATIO * 0.275;
 // Pointer-hover highlight (pre-branch scene-graph.tsx): the hovered node's border ring turns
 // #aaddff and thickens to r*0.14 (HOVER_RING_TUBE_RATIO). Go OWNS hover (the Hovered
 // column); this is render-only. There is no port hover any more (docs/channels-not-ports.md

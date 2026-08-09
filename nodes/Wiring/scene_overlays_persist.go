@@ -69,6 +69,12 @@ func writeSceneOverlays(overlaysPath string, ov overlayState) error {
 	setVisible("handholdsVisible", ov.handholdsVisible)
 	setVisible("overlaysActive", ov.overlaysVisible)
 	setHidden("labelsGlobalHidden", ov.labelsGlobalVisible)
+	setVisible("nodeBodyVisible", ov.nodeBodyVisible)
+	setVisible("nodeRingVisible", ov.nodeRingVisible)
+	setVisible("ringPickVisible", ov.ringPickVisible)
+	setVisible("selectionRingVisible", ov.selectionRingVisible)
+	setVisible("hoverRingVisible", ov.hoverRingVisible)
+	setVisible("reachSphereVisible", ov.reachSphereVisible)
 	return writeJSONAtomic(overlaysPath, obj)
 }
 
@@ -102,6 +108,12 @@ type sceneOverlaysFile struct {
 	HandholdsVisible      *bool `json:"handholdsVisible"`
 	OverlaysActive        *bool `json:"overlaysActive"`
 	LabelsGlobalHidden    *bool `json:"labelsGlobalHidden"`
+	NodeBodyVisible       *bool `json:"nodeBodyVisible"`
+	NodeRingVisible       *bool `json:"nodeRingVisible"`
+	RingPickVisible       *bool `json:"ringPickVisible"`
+	SelectionRingVisible  *bool `json:"selectionRingVisible"`
+	HoverRingVisible      *bool `json:"hoverRingVisible"`
+	ReachSphereVisible    *bool `json:"reachSphereVisible"`
 }
 
 // loadSceneOverlays reads the persisted overlay-visibility snapshot from overlaysPath
@@ -143,6 +155,30 @@ func loadSceneOverlays(overlaysPath string) (overlayState, bool) {
 		ov.labelsGlobalVisible = !*sf.LabelsGlobalHidden
 		found = true
 	}
+	if sf.NodeBodyVisible != nil {
+		ov.nodeBodyVisible = *sf.NodeBodyVisible
+		found = true
+	}
+	if sf.NodeRingVisible != nil {
+		ov.nodeRingVisible = *sf.NodeRingVisible
+		found = true
+	}
+	if sf.RingPickVisible != nil {
+		ov.ringPickVisible = *sf.RingPickVisible
+		found = true
+	}
+	if sf.SelectionRingVisible != nil {
+		ov.selectionRingVisible = *sf.SelectionRingVisible
+		found = true
+	}
+	if sf.HoverRingVisible != nil {
+		ov.hoverRingVisible = *sf.HoverRingVisible
+		found = true
+	}
+	if sf.ReachSphereVisible != nil {
+		ov.reachSphereVisible = *sf.ReachSphereVisible
+		found = true
+	}
 	return ov, found
 }
 
@@ -157,7 +193,7 @@ func (md *MoveDispatch) LoadOverlays(topologyPath string, tr *T.Trace) {
 	ov, _ := loadSceneOverlays(overlaysFilePath(topologyPath)) // ov = defaults with any persisted keys applied
 	md.ui.ov.SetGuideVisibility(ov)
 	// Decentralized (Step C, memory/feedback_no_single_writer_bridge.md): the gesture/stdin-reader goroutine
-	// (this one) writes its own VIEW frame directly, carrying the 7 one-time overlay-flag
+	// (this one) writes its own VIEW frame directly, carrying the one-time overlay-flag
 	// events this load implies — one RowEvent per flag kind. Every overlay kind decodes
 	// entirely from the VIEW frame's own Overlay block (buffer-log.ts's decodeEventLine
 	// OVERLAY_KINDS branch) — no row identity to resolve. tr is unused now (kept in the
@@ -170,5 +206,11 @@ func (md *MoveDispatch) LoadOverlays(topologyPath string, tr *T.Trace) {
 		{Kind: T.KindHandholds, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
 		{Kind: T.KindLabelsGlobal, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
 		{Kind: T.KindOverlaysVis, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
+		{Kind: T.KindNodeBody, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
+		{Kind: T.KindNodeRing, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
+		{Kind: T.KindRingPick, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
+		{Kind: T.KindSelectionRing, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
+		{Kind: T.KindHoverRing, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
+		{Kind: T.KindReachSphere, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
 	})
 }

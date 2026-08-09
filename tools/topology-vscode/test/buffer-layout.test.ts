@@ -43,6 +43,8 @@ import {
   OVERLAY_COL_SCENE_TORI, OVERLAY_COL_SCENE_POLES, OVERLAY_COL_NODE_POLES,
   OVERLAY_COL_SEL_SPHERE_POLES, OVERLAY_COL_HANDHOLDS,
   OVERLAY_COL_LABELS_GLOBAL, OVERLAY_COL_OVERLAYS_VIS,
+  OVERLAY_COL_NODE_BODY, OVERLAY_COL_NODE_RING, OVERLAY_COL_RING_PICK,
+  OVERLAY_COL_SELECTION_RING, OVERLAY_COL_HOVER_RING, OVERLAY_COL_REACH_SPHERE,
   OVERLAY_STRIDE,
   readOverlaySceneTori, readOverlayScenePoles, readOverlayNodePoles,
   readOverlaySelSpherePoles, readOverlayHandholds,
@@ -223,13 +225,13 @@ describe("buffer-layout — Camera block", () => {
 
 describe("buffer-layout — Overlay block", () => {
   it("stride equals packed field sizes", () => {
-    // 7×u8 + 1×i32 + 4×f32 = 27 (7 overlay flags — the 7 render gates — + DragNodeRow +
-    // the "distance home button" panel's 3 GroupLen* columns + Speed, the current
-    // playback-speed multiplier)
-    expect(OVERLAY_STRIDE).toBe(27);
+    // 13×u8 + 1×i32 + 4×f32 = 33 (13 overlay flags — 7 scene-furniture render gates plus
+    // the 6 node-local ones — + DragNodeRow + the "distance home button" panel's 3
+    // GroupLen* columns + Speed, the current playback-speed multiplier)
+    expect(OVERLAY_STRIDE).toBe(33);
   });
 
-  it("column offsets are 0..6", () => {
+  it("column offsets are 0..12", () => {
     expect(OVERLAY_COL_SCENE_TORI).toBe(0);
     expect(OVERLAY_COL_SCENE_POLES).toBe(1);
     expect(OVERLAY_COL_NODE_POLES).toBe(2);
@@ -237,6 +239,12 @@ describe("buffer-layout — Overlay block", () => {
     expect(OVERLAY_COL_HANDHOLDS).toBe(4);
     expect(OVERLAY_COL_LABELS_GLOBAL).toBe(5);
     expect(OVERLAY_COL_OVERLAYS_VIS).toBe(6);
+    expect(OVERLAY_COL_NODE_BODY).toBe(7);
+    expect(OVERLAY_COL_NODE_RING).toBe(8);
+    expect(OVERLAY_COL_RING_PICK).toBe(9);
+    expect(OVERLAY_COL_SELECTION_RING).toBe(10);
+    expect(OVERLAY_COL_HOVER_RING).toBe(11);
+    expect(OVERLAY_COL_REACH_SPHERE).toBe(12);
   });
 
   it("read helpers decode known bytes (alternating pattern)", () => {

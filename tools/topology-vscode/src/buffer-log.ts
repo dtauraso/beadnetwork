@@ -32,6 +32,12 @@ import {
   readOverlaySceneTori, readOverlayScenePoles, readOverlayNodePoles,
   readOverlaySelSpherePoles, readOverlayHandholds, readOverlayLabelsGlobal,
   readOverlayOverlaysVis,
+  readOverlayNodeBody,
+  readOverlayNodeRing,
+  readOverlayRingPick,
+  readOverlaySelectionRing,
+  readOverlayHoverRing,
+  readOverlayReachSphere,
   readEventKind, readEventNodeRow, readEventPortRow, readEventTargetRow, readEventTargetPortRow,
   readEventEdgeRow, readEventSlot, readEventValue, readEventBead,
   readEventBeadSteps, readEventSimLatencyMs, readEventX, readEventY, readEventZ, readEventF,
@@ -177,6 +183,12 @@ function overlayFlag(vb: ViewBlocksOrNull, kind: string): number {
     case "handholds": return readOverlayHandholds(v);
     case "labels-global": return readOverlayLabelsGlobal(v);
     case "overlays-vis": return readOverlayOverlaysVis(v);
+    case "node-body": return readOverlayNodeBody(v);
+    case "node-ring": return readOverlayNodeRing(v);
+    case "ring-pick": return readOverlayRingPick(v);
+    case "selection-ring": return readOverlaySelectionRing(v);
+    case "hover-ring": return readOverlayHoverRing(v);
+    case "reach-sphere": return readOverlayReachSphere(v);
     default: return 0;
   }
 }
@@ -184,6 +196,7 @@ function overlayFlag(vb: ViewBlocksOrNull, kind: string): number {
 const OVERLAY_KINDS = new Set([
   "scene-tori", "scene-poles", "node-poles", "sel-sphere-poles",
   "handholds", "labels-global", "overlays-vis",
+  "node-body", "node-ring", "ring-pick", "selection-ring", "hover-ring", "reach-sphere",
 ]);
 
 function decodeEventLine(ev: DataView, eventTextView: DataView, dn: DecodedNodeFrame | null, de: DecodedEdgeFrame | null, vb: ViewBlocksOrNull, i: number): Line | null {

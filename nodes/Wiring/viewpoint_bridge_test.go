@@ -32,7 +32,7 @@ func countCameraEvents(events []wire.RowEvent) int {
 func captureViewFrameKinds(md *MoveDispatch, kinds *[]wire.RowEvent) {
 	md.SetViewStream(io.Discard, func(tick uint32,
 		camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
-		sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis uint8,
+		_ ViewOverlayFlags,
 		dragNodeRow int32,
 		groupLenTime, groupLenInput, groupLenGate float32,
 		speed float32,

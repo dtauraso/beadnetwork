@@ -148,6 +148,74 @@ const globalLabelsCfg: ToggleCfg = {
   payload: (v) => ({ flag: "labelsGlobal", wasHidden: v }),
 };
 
+// The NODE-LOCAL drawings. Everything above this line is scene furniture drawn AROUND the
+// nodes; these six are the node itself, and until now nothing could turn any of them off.
+// Each is `active: (v) => v` and default-on: the flag says "drawn", and a node with all six
+// off simply is not drawn.
+
+const nodeBodyCfg: ToggleCfg = {
+  flag: "nodeBody",
+  default: true,
+  active: (v) => v,
+  icon: "●",
+  label: "body",
+  title: (a) => (a ? "Hide node bodies" : "Show node bodies"),
+  payload: (v) => ({ flag: "nodeBody", was: v }),
+};
+
+const nodeRingCfg: ToggleCfg = {
+  flag: "nodeRing",
+  default: true,
+  active: (v) => v,
+  icon: "○",
+  label: "ring",
+  title: (a) => (a ? "Hide node rings" : "Show node rings"),
+  payload: (v) => ({ flag: "nodeRing", was: v }),
+};
+
+const ringPickCfg: ToggleCfg = {
+  flag: "ringPick",
+  default: true,
+  active: (v) => v,
+  icon: "◌",
+  // The band that takes a ring click, painted so you can see where it is. Like every other
+  // overlay this shows or hides a drawing and nothing else — the ring takes clicks either
+  // way (that is select mode's job), so this can never quietly disable an interaction.
+  label: "ring band",
+  title: (a) => (a ? "Hide the ring's click band" : "Show the ring's click band"),
+  payload: (v) => ({ flag: "ringPick", was: v }),
+};
+
+const selectionRingCfg: ToggleCfg = {
+  flag: "selectionRing",
+  default: true,
+  active: (v) => v,
+  icon: "◉",
+  label: "selection",
+  title: (a) => (a ? "Hide the selection ring" : "Show the selection ring"),
+  payload: (v) => ({ flag: "selectionRing", was: v }),
+};
+
+const hoverRingCfg: ToggleCfg = {
+  flag: "hoverRing",
+  default: true,
+  active: (v) => v,
+  icon: "◍",
+  label: "hover",
+  title: (a) => (a ? "Hide the hover ring" : "Show the hover ring"),
+  payload: (v) => ({ flag: "hoverRing", was: v }),
+};
+
+const reachSphereCfg: ToggleCfg = {
+  flag: "reachSphere",
+  default: true,
+  active: (v) => v,
+  icon: "⌾",
+  label: "reach sphere",
+  title: (a) => (a ? "Hide the reach sphere" : "Show the reach sphere"),
+  payload: (v) => ({ flag: "reachSphere", was: v }),
+};
+
 // ---------------------------------------------------------------------------
 // Grouped overlay rows for the popover
 // ---------------------------------------------------------------------------
@@ -158,7 +226,17 @@ const globalLabelsCfg: ToggleCfg = {
 // thing holding a child off.
 type OverlayGroup = { heading: string; cfgs: ToggleCfg[]; under?: Partial<Record<string, ToggleCfg>> };
 
+// EVERY overlay sits in a cluster — there is no loose row at the top level of the popover,
+// so the list reads as "which part of the picture" rather than as one flat inventory. The
+// clusters answer that question in one word each: what a NODE is made of, what marks the
+// node you are touching, the scene furniture you navigate BY, the pole frames, the text.
+//
+// NODE and STATE are the new ones. The split between them is what changes the drawing
+// permanently (a node's body and ring are there whatever you do) versus what appears
+// because of where the pointer or the selection is right now.
 const OVERLAY_GROUPS: OverlayGroup[] = [
+  { heading: "NODE",   cfgs: [nodeBodyCfg, nodeRingCfg, ringPickCfg] }, // body, ring, click band
+  { heading: "STATE",  cfgs: [selectionRingCfg, hoverRingCfg, reachSphereCfg] },
   { heading: "GUIDES", cfgs: [ringsCfg, handholdsCfg] },
   { heading: "POLES",  cfgs: [scenePolesCfg, nodePolesCfg, selSpherePolesCfg] },
   { heading: "LABELS", cfgs: [globalLabelsCfg] },

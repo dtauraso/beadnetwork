@@ -85,6 +85,20 @@ const (
 	KindLabelsGlobal = "labels-global"
 	// KindOverlaysVis carries the master overlays visibility state.
 	KindOverlaysVis = "overlays-vis"
+	// KindNodeBody carries the node-sphere visibility state.
+	KindNodeBody = "node-body"
+	// KindNodeRing carries the per-node border-ring visibility state.
+	KindNodeRing = "node-ring"
+	// KindRingPick carries the ring click-band's visibility state — the band a click lands
+	// on to author a port∈torus lock, painted so its position is visible. The band takes
+	// clicks either way; this flag only says whether it is drawn.
+	KindRingPick = "ring-pick"
+	// KindSelectionRing carries the selected node's ring+halo visibility state.
+	KindSelectionRing = "selection-ring"
+	// KindHoverRing carries the hovered node's ring visibility state.
+	KindHoverRing = "hover-ring"
+	// KindReachSphere carries the selected node's reach-sphere ring visibility state.
+	KindReachSphere = "reach-sphere"
 	// KindSelect carries the CURRENTLY-SELECTED node id (click-select), or an edge label
 	// on Edge with Node empty (edge selection — selection is single + exclusive across
 	// nodes and edges). Node="" clears the selection (empty-space click).
@@ -212,7 +226,7 @@ func BreadcrumbLabelID(name string) (uint8, bool) {
 // numeric id for the wire encoding. There is no tsc exhaustiveness check derived from
 // it — adding a kind here does not force a TS branch anywhere; it only extends the
 // lookup table.
-var TraceEventKinds = []string{KindRecv, KindFire, KindSend, KindEdgeBead, KindGeometry, KindNodeGeometry, KindArrive, KindNodeBead, KindCamera, KindSceneTori, KindScenePoles, KindNodePoles, KindSelSpherePoles, KindHandholds, KindLabelsGlobal, KindOverlaysVis, KindSelect, KindHover, KindSceneSphere, KindAbcDrag, KindAbcDragReset, KindBreadcrumb}
+var TraceEventKinds = []string{KindRecv, KindFire, KindSend, KindEdgeBead, KindGeometry, KindNodeGeometry, KindArrive, KindNodeBead, KindCamera, KindSceneTori, KindScenePoles, KindNodePoles, KindSelSpherePoles, KindHandholds, KindLabelsGlobal, KindOverlaysVis, KindNodeBody, KindNodeRing, KindRingPick, KindSelectionRing, KindHoverRing, KindReachSphere, KindSelect, KindHover, KindSceneSphere, KindAbcDrag, KindAbcDragReset, KindBreadcrumb}
 
 // PortGeom is one port's authoritative world geometry: its name, whether it is an
 // input, its sphere-surface world position (PX/PY/PZ), and the unit direction from node

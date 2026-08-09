@@ -120,7 +120,12 @@ func TestDecodeEditUpdateSceneLatticePoints(t *testing.T) {
 // TestOverlayFlagOrderMatchesFingerprint guards that the derived flag order equals the
 // fingerprint's overlayFlags list (self-check on parseOverlayFlags).
 func TestOverlayFlagOrderMatchesFingerprint(t *testing.T) {
-	want := []string{"tori", "scenePoles", "nodePoles", "selSpherePoles", "handholds", "labelsGlobal", "overlays"}
+	want := []string{
+		// Scene furniture, drawn around the nodes.
+		"tori", "scenePoles", "nodePoles", "selSpherePoles", "handholds", "labelsGlobal", "overlays",
+		// The node itself, and what marks the node being touched.
+		"nodeBody", "nodeRing", "ringPick", "selectionRing", "hoverRing", "reachSphere",
+	}
 	if !reflect.DeepEqual(inOverlayFlags, want) {
 		t.Fatalf("inOverlayFlags = %v, want %v", inOverlayFlags, want)
 	}

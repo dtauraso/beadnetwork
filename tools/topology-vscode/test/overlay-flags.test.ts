@@ -13,6 +13,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { readOverlayFlags } from "../src/webview/three/overlay-flags";
 import { setLatestViewFrame } from "../src/webview/snapshot-buffer";
+import { OVERLAY_FLAG_ORDER } from "../src/messages";
 import { BUF_VIEW_FRAME_HEADER_SIZE } from "../src/schema/frame-tags";
 import { SCENE_TABS_HEADER_SIZE } from "../src/webview/three/buffer-decode";
 import {
@@ -42,19 +43,22 @@ function makeOverlaySnapshot(cols: Partial<Record<number, number>>): ArrayBuffer
   return buf;
 }
 
+// Every flag column set to 1 (visible). Column offset == index in OVERLAY_FLAG_ORDER — the
+// Overlay block opens with the flags, in flag order (buffer-layout.test.ts pins 0..12).
+function allVisibleCols(): Record<number, number> {
+  const cols: Record<number, number> = {};
+  for (let i = 0; i < OVERLAY_FLAG_ORDER.length; i++) cols[i] = 1;
+  return cols;
+}
+
 describe("overlay-flags readOverlayFlags", () => {
   beforeEach(() => {
     // Reset the module cell to a known "all-visible" baseline between tests. (There is no
-    // clear API — a fresh snapshot resets the cached bits.)
-    setLatestViewFrame(makeOverlaySnapshot({
-      [OVERLAY_COL_SCENE_TORI]: 1,
-      [OVERLAY_COL_SCENE_POLES]: 1,
-      [OVERLAY_COL_NODE_POLES]: 1,
-      [OVERLAY_COL_SEL_SPHERE_POLES]: 1,
-      [OVERLAY_COL_HANDHOLDS]: 1,
-      [OVERLAY_COL_LABELS_GLOBAL]: 1,
-      [OVERLAY_COL_OVERLAYS_VIS]: 1,
-    }));
+    // clear API — a fresh snapshot resets the cached bits.) EVERY flag column, taken from
+    // the vocabulary rather than listed: a baseline that named only some of them left the
+    // rest at 0, so a test "flipping" one of those to 0 changed nothing and failed for a
+    // reason that had nothing to do with what it was testing.
+    setLatestViewFrame(makeOverlaySnapshot(allVisibleCols()));
   });
 
   it("decodes visible-sense columns to store-polarity booleans", () => {
@@ -89,15 +93,30 @@ describe("overlay-flags readOverlayFlags", () => {
     const b = readOverlayFlags();
     expect(a).toBe(b);
     // A new snapshot with the SAME flag bits keeps identity (no needless re-render).
-    setLatestViewFrame(makeOverlaySnapshot({
-      [OVERLAY_COL_SCENE_TORI]: 1,
-      [OVERLAY_COL_SCENE_POLES]: 1,
-      [OVERLAY_COL_NODE_POLES]: 1,
-      [OVERLAY_COL_SEL_SPHERE_POLES]: 1,
-      [OVERLAY_COL_HANDHOLDS]: 1,
-      [OVERLAY_COL_LABELS_GLOBAL]: 1,
-      [OVERLAY_COL_OVERLAYS_VIS]: 1,
-    }));
+    setLatestViewFrame(makeOverlaySnapshot(allVisibleCols()));
     expect(readOverlayFlags()).toBe(a);
   });
+
+  // The counterpart to the test above, and the one that was missing: identity must also
+  // CHANGE when a flag flips — for EVERY flag, not just the ones someone remembered to
+  // list. The stuck-checkmark bug was exactly this: the equality check named seven fields
+  // by hand, six flags were added without extending it, and each of those six reported
+  // "unchanged" forever, so useSyncExternalStore never re-rendered the row while the
+  // drawing itself turned off.
+  //
+  // Driven off OVERLAY_FLAG_ORDER, so a flag added later is covered without editing this
+  // test. Column offset == index in that order (the Overlay block opens with the flags, in
+  // flag order — pinned by buffer-layout.test.ts's offsets 0..12).
+  it.each(OVERLAY_FLAG_ORDER.map((flag, col) => [flag, col] as const))(
+    "flipping %s mints a new flags object",
+    (flag, col) => {
+      const before = readOverlayFlags()!;
+      const cols: Record<number, number> = {};
+      for (let i = 0; i < OVERLAY_FLAG_ORDER.length; i++) cols[i] = i === col ? 0 : 1;
+      setLatestViewFrame(makeOverlaySnapshot(cols));
+      const after = readOverlayFlags()!;
+      expect(after).not.toBe(before);
+      expect(after[flag]).not.toBe(before[flag]);
+    },
+  );
 });
