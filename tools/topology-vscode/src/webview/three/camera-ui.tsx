@@ -336,8 +336,15 @@ export function OverlaysControl() {
           ...pillContainerStyle(active),
         }}
       >
-        {/* Body — master toggle */}
-        <div onClick={onBodyClick} title={guidelinesCfg.title(active)} style={pillBodyStyle}>
+        {/* Body — master toggle. `flex: "1 1 auto"` so the LABEL takes the pill's slack and
+            the caret stays at the far end, the same as the angles pill. Without it the
+            caret sits right after the word and slides whenever the shared width changes —
+            which is what made it look like the triangle was following the popover. */}
+        <div
+          onClick={onBodyClick}
+          title={guidelinesCfg.title(active)}
+          style={{ ...pillBodyStyle, flex: "1 1 auto" }}
+        >
           Overlays
         </div>
         {/* Caret — popover toggle */}
