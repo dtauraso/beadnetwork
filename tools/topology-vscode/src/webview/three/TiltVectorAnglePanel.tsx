@@ -155,7 +155,11 @@ function NodeGroupSection({ node }: { node: TiltVectorRow }) {
             only holds the popover open past its content. */}
         <span>{heading}</span>
       </div>
-      {open && AXES.map((axis) => <AxisRow key={axis} node={node} axis={axis} />)}
+      {open && (
+        <div style={axisListStyle}>
+          {AXES.map((axis) => <AxisRow key={axis} node={node} axis={axis} />)}
+        </div>
+      )}
     </div>
   );
 }
@@ -290,6 +294,22 @@ const valueTextStyle: React.CSSProperties = {
   top: 0,
 };
 
+// The axis items revealed by a node's disclosure triangle. THEY DO NOT SIZE THE POPOVER:
+// expanding a node must not change any width, so an item wider than the popover wraps onto
+// the next line instead of pushing the edge (and the pill, which shares the width) outward.
+//
+// `width: 0` is what buys that. The popover's width is `max-content` over its children, and
+// a child with a DEFINITE width contributes that width — zero — rather than its contents.
+// So the popover stays sized by what is there before any triangle is clicked: the lattice
+// row and the node headings. `minWidth: "100%"` then expands this box back out to the
+// popover's resolved width, so the items lay out across the full row despite measuring as
+// nothing. (The same effect `contain: inline-size` describes, in a form that does not need
+// containment support and reads as ordinary sizing.)
+const axisListStyle: React.CSSProperties = {
+  width: 0,
+  minWidth: "100%",
+};
+
 // An item's second line: the value at the left, the arrows that change it at the RIGHT EDGE
 // of the dropdown. The line takes the full row width (the rows stretch) and the arrow group
 // is pushed to its end, so every ▲/▼ in the popover lands on one right-hand column whatever
@@ -300,6 +320,10 @@ const valueLineStyle: React.CSSProperties = {
   alignItems: "center",
   gap: 4,
   width: "100%",
+  // When the value and its arrows do not both fit the popover's width, the arrow group
+  // drops to the next line (still right-aligned there) rather than widening the popover.
+  flexWrap: "wrap",
+  rowGap: 2,
 };
 
 // The ▲/▼ pair, held together and pushed to the line's right end. `marginLeft: auto` eats
