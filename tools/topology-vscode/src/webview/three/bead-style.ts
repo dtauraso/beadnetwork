@@ -23,6 +23,15 @@ export function beadStyleForValue(v: number | null | undefined): { fill: string;
   return v == null ? undefined : VALUE_BEAD_STYLE[v];
 }
 
+// The drawn edge's colour (EdgeLines.tsx) — the SAME white the value-1 bead is filled with,
+// read from the registry above rather than repeated as a literal, so the line and the pulse
+// that runs along it cannot drift apart. They are one edge: the line is it at rest, the
+// pulse is it carrying a value.
+//
+// Value 1's fill, not value 0's: 0 is black, which against this scene's dark background
+// would be a line you cannot see.
+export const EDGE_LINE_COLOR = VALUE_BEAD_STYLE[1]!.fill;
+
 // Interior (held-inside-a-node) value→appearance. This is a SEPARATE registry from
 // VALUE_BEAD_STYLE above, not a reuse of it: an interior bead is seen THROUGH the node's
 // glassy transmissive shell (NodeInstances.tsx), which tints whatever is behind it, so the

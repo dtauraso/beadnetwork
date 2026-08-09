@@ -61,7 +61,8 @@ func TestEmitsInitValuesLean(t *testing.T) {
 
 	want := []int{30, 20, 10}
 	for i, w := range want {
-		deadline := time.Now().Add(3 * time.Second)
+		// Scaled by wire.PulseSubStepsPerBead — see the same wait in nodes/pulse.
+		deadline := time.Now().Add(3 * wire.PulseSubStepsPerBead * time.Second)
 		got := false
 		for time.Now().Before(deadline) {
 			if v, ok := obs.PollRecv(); ok {

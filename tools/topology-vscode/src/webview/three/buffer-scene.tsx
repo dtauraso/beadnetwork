@@ -27,6 +27,8 @@ import { INTERIOR_SLOTS_PER_NODE } from "./buffer-decode";
 // LIT bead advancing along a node-owned fixed chain (ChainBeadInstances,
 // docs/beads-are-the-edge.md). Two representations of one traversal would drift.
 import { ChainBeadInstances } from "./ChainBeadInstances";
+import { EdgeLines } from "./EdgeLines";
+import { getEdgeStreamAccessor } from "./edge-stream-blocks";
 import { TiltVectors } from "./TiltVectors";
 import { NodeInstances } from "./NodeInstances";
 import { SelectionHighlight, HoverHighlight } from "./SelectionHighlight";
@@ -45,7 +47,12 @@ export { BufferLabelProjector };
 
 // ── Sizing constants ──────────────────────────────────────────────────────────
 const INITIAL_NODE_CAP  = 32;
-const INITIAL_CHAINBEAD_CAP = 256; // node-owned placeholder chain beads (docs/beads-are-the-edge.md): count is len/spacing summed over every node's OUTGOING edges, so it is far larger than any other block's and independent of every other cap
+// Chain-bead rows are now one per LIVE PULSE, not one per placeholder: an idle edge streams
+// no rows at all, and a busy one streams a handful. 256 stays as headroom (it costs one
+// allocation, and a burst of concurrent traversals is exactly when a re-alloc would be most
+// visible), but it is no longer sized by edge LENGTH — nothing about the geometry sets it.
+const INITIAL_CHAINBEAD_CAP = 256;
+const INITIAL_EDGE_CAP = 32; // one line + one arrowhead per edge row
 
 // ── BufferScene ───────────────────────────────────────────────────────────────
 // Capacity manager: checks the latest snapshot each frame and grows per-block
@@ -57,6 +64,7 @@ export function BufferScene({ cameraRef }: {
 } = {}) {
   const [nodeCap,  setNodeCap]  = useState(INITIAL_NODE_CAP);
   const [chainBeadCap, setChainBeadCap] = useState(INITIAL_CHAINBEAD_CAP);
+  const [edgeCap, setEdgeCap] = useState(INITIAL_EDGE_CAP);
 
   // Capacity-growth guard: runs every frame to detect need for reallocation. EVERY
   // variable-length streamed block must have a row here — a block whose count outgrows a
@@ -73,11 +81,14 @@ export function BufferScene({ cameraRef }: {
     const { count: chainBeadCount } = getChainBeads();
     grow.push({ count: chainBeadCount, cap: chainBeadCap, set: setChainBeadCap });
 
-    // No edgeCap/beadCap row any more: nothing renders per-edge geometry or the per-edge
-    // transit beads. Each edge's own dedicated stream frame is still read directly by row
-    // (edge-stream-blocks.ts, for segment/label decode and the .probe debug log) — that read
-    // is un-capacitied (a Map keyed by row), not an instanced-mesh pool sized ahead of time,
-    // so there is nothing here to grow.
+    // Edges are drawn again (EdgeLines), so their row count is capacity-tracked once more —
+    // one line + one arrowhead instance per edge row. Still no beadCap: the per-edge transit
+    // bead has no instanced pool of its own; a traversal renders as a pulse row on the
+    // source node's own chain-bead stream, already counted above.
+    const edges = getEdgeStreamAccessor();
+    if (edges) {
+      grow.push({ count: edges.edgeCount, cap: edgeCap, set: setEdgeCap });
+    }
 
     // Node/Interior + Label bytes are aggregated from every node row's own dedicated
     // stream frame (node-stream-blocks.ts) — grow nodeCap off that aggregate's count,
@@ -95,6 +106,9 @@ export function BufferScene({ cameraRef }: {
   return (
     <>
       <BufferCamera cameraRef={cameraRef} />
+      {/* The edge itself, drawn: a line per edge with an arrowhead at its target end. First
+          in the list so it draws before the pulse that runs along it. */}
+      <EdgeLines capacity={edgeCap} />
       <ChainBeadInstances capacity={chainBeadCap} />
       <NodeInstances capacity={nodeCap} />
       {/* One arrow per node, centre to its own top, along the same axis its ring is drawn

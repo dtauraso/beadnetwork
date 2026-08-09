@@ -88,6 +88,14 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
     let litCount = 0;
     let ringCount = 0;
     for (let i = 0; i < drawn; i++) {
+      // ONLY LIT ROWS ARE DRAWN. The placeholder chain still streams — it is the chain's own
+      // geometry and Go still owns it — but it is no longer the edge's picture: EdgeLines
+      // draws the edge, and what moves along it is the single lit pulse row Go appends per
+      // live traversal, at a continuous position. An unlit row is skipped outright rather
+      // than drawn dim, so a chain at rest shows nothing at all and the line is the only
+      // thing left saying two nodes are connected.
+      if (lit[i] !== 1) continue;
+
       // Uniform bead size (see this file's header comment): no per-instance scale — every
       // bead is authored directly at SHADING_PARAM_BEAD_RADIUS geometry.
       matRef.current.makeTranslation(positions[i * 3]!, positions[i * 3 + 1]!, positions[i * 3 + 2]!);
