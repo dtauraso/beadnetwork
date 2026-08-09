@@ -66,7 +66,7 @@ func (p *PairNodeSelf) Breadcrumb(label, value string) {
 	}
 	p.geom.writeStreamFrame([]wire.RowEvent{{
 		Kind: T.KindBreadcrumb, Label: id, Debug: 1,
-		NodeRow: p.geom.nodeRow, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
+		NodeRow: p.geom.stream.nodeRow, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 		Text: value,
 	}})
 }
@@ -96,11 +96,11 @@ func (p *PairNodeSelf) Step(ctx context.Context, tick int64) {
 		return
 	}
 	g := p.geom
-	wire.ApplySpeedNonBlocking(g.clk, p.speedCh)
+	wire.ApplySpeedNonBlocking(g.clocks.clk, p.speedCh)
 	for {
 		progressed := false
 		select {
-		case msg := <-g.extIn:
+		case msg := <-g.msg.extIn:
 			g.handle(msg)
 			if msg.testDone != nil {
 				close(msg.testDone)
@@ -108,7 +108,7 @@ func (p *PairNodeSelf) Step(ctx context.Context, tick int64) {
 			progressed = true
 		default:
 		}
-		for _, ch := range g.neighborIn {
+		for _, ch := range g.msg.neighborIn {
 			select {
 			case msg := <-ch:
 				g.handle(msg)
@@ -123,7 +123,7 @@ func (p *PairNodeSelf) Step(ctx context.Context, tick int64) {
 			break
 		}
 	}
-	for _, pw := range g.outWires {
+	for _, pw := range g.outs.outWires {
 		pw.DriveOneCycle(ctx, tick)
 	}
 	g.flushPending()
@@ -149,9 +149,9 @@ func (p *PairNodeSelf) SetTiltIndex(theta, normalTheta, bottomTheta int32) {
 		return
 	}
 	g := p.geom
-	g.topTiltVectorThetaIdx = theta
-	g.normalThetaIdx = normalTheta
-	g.bottomThetaIdx = bottomTheta
+	g.tilt.topTiltVectorThetaIdx = theta
+	g.tilt.normalThetaIdx = normalTheta
+	g.tilt.bottomThetaIdx = bottomTheta
 	g.persistTiltVectorAngle()
 	if g.tr != nil {
 		g.emitGeometry()
@@ -172,8 +172,8 @@ func (p *PairNodeSelf) SetRoundsToParallel(rounds, msgs int32) {
 		return
 	}
 	g := p.geom
-	g.roundsToParallel = rounds
-	g.msgsToParallel = msgs
+	g.readout.roundsToParallel = rounds
+	g.readout.msgsToParallel = msgs
 	if g.tr != nil {
 		g.emitGeometry()
 	}
@@ -189,8 +189,8 @@ func (p *PairNodeSelf) SetReceivedVector(theta int32, set bool) {
 		return
 	}
 	g := p.geom
-	g.receivedVectorThetaIdx = theta
-	g.receivedVectorSet = set
+	g.tilt.receivedVectorThetaIdx = theta
+	g.tilt.receivedVectorSet = set
 	if g.tr != nil {
 		g.emitGeometry()
 	}
@@ -209,7 +209,7 @@ func (p *PairNodeSelf) SetLatticePoints(points int32) {
 		return
 	}
 	g := p.geom
-	g.latticePoints = points
+	g.tilt.latticePoints = points
 	if g.tr != nil {
 		g.emitGeometry()
 	}
@@ -256,7 +256,7 @@ func (p *PairNodeSelf) ClearOutBeads() {
 	if p == nil || p.geom == nil {
 		return
 	}
-	for _, pw := range p.geom.outWires {
+	for _, pw := range p.geom.outs.outWires {
 		pw.ClearInFlight()
 	}
 }

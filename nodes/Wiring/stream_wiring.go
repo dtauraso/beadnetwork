@@ -167,15 +167,15 @@ func (sw *streamWiring) setNodeStreams(
 		row := seed.Row
 		nFd := nodeBase + row
 		rawNodeOut := os.NewFile(uintptr(nFd), fmt.Sprintf("node-fd%d", nFd))
-		nm.streamOut = newClaimedStream(sw.ensureClaims(), "node", seed.ID, rawNodeOut)
-		nm.nodeRow = int32(row)
+		nm.stream.streamOut = newClaimedStream(sw.ensureClaims(), "node", seed.ID, rawNodeOut)
+		nm.stream.nodeRow = int32(row)
 		// kindID is static per node (never changes after load) — resolved once here,
 		// directly onto the mover's own field, not via a per-emit lookup func.
 		if kindIDFor != nil {
-			nm.kindID = kindIDFor(seed.Kind)
+			nm.stream.kindID = kindIDFor(seed.Kind)
 		}
-		nm.nodeRowFor = nodeRowFor
-		nm.buildFrame = buildFrame
+		nm.topo.nodeRowFor = nodeRowFor
+		nm.stream.buildFrame = buildFrame
 
 		iFd := interiorBase + row
 		sw.interiorOuts[seed.ID] = os.NewFile(uintptr(iFd), fmt.Sprintf("interior-fd%d", iFd))

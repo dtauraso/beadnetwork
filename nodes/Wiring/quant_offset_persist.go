@@ -57,7 +57,7 @@ func (nm *nodeGeometry) persistQuantOffset(off quantizedOffset, scene polar) {
 	// is a fresh whole-file marshal (no read-modify-write), so a position-only write here
 	// must still round-trip whatever topTiltVectorThetaIdx this node already holds,
 	// or a later drag would silently reset a previously-set vector direction back to 0.
-	if err := writeQuantOffset(nm.persistRoot, nm.id, off, scene, nm.topTiltVectorThetaIdx); err != nil {
+	if err := writeQuantOffset(nm.persistRoot, nm.id, off, scene, nm.tilt.topTiltVectorThetaIdx); err != nil {
 		logPersistErr("quant_offset_persist", nm.id, err)
 	}
 }
@@ -71,7 +71,7 @@ func (nm *nodeGeometry) persistTiltVectorAngle() {
 	if nm.persistRoot == "" {
 		return
 	}
-	if err := writeQuantOffset(nm.persistRoot, nm.id, nm.quantOffset, nm.geom.ScenePolar, nm.topTiltVectorThetaIdx); err != nil {
+	if err := writeQuantOffset(nm.persistRoot, nm.id, nm.quantOffset, nm.geom.ScenePolar, nm.tilt.topTiltVectorThetaIdx); err != nil {
 		logPersistErr("quant_offset_persist", nm.id, err)
 	}
 }

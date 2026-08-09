@@ -115,7 +115,7 @@ type MoveDispatch struct {
 // themselves at build time, one map per thing a node can be sent.
 //
 // It exists as an owner type rather than as loose MoveDispatch fields because that is what
-// the composer rule asks for (check-movedispatch-composer.sh): a new thing a node can be
+// the composer rule asks for (check-composer-fields.sh): a new thing a node can be
 // sent is a new entry HERE, and the composer's field count does not move. The two maps
 // share one lifecycle exactly — written once per entry on the single-threaded build path
 // (buildNodes, via BuildArgs), before any goroutine runs, and never touched again — so
@@ -262,7 +262,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 		// read-only directories, safe to read from any goroutine once construction
 		// finishes.
 		selfID := id
-		ng.resolveDest = func(destID string) (chan moveMsg, bool) {
+		ng.msg.resolveDest = func(destID string) (chan moveMsg, bool) {
 			if em, ok := md.mr.edgeMovers[destID]; ok {
 				switch selfID {
 				case em.srcID:
@@ -273,17 +273,17 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 				return nil, false
 			}
 			if other, ok := md.mr.nodeGeoms[destID]; ok {
-				if ch, ok := other.neighborIn[selfID]; ok {
+				if ch, ok := other.msg.neighborIn[selfID]; ok {
 					return ch, true
 				}
 			}
 			return nil, false
 		}
-		ng.sendMove = md.enqueueFor(ng)
-		ng.tap = md.tapToInstall
-		ng.centerOf = md.centerOfNode
+		ng.msg.sendMove = md.enqueueFor(ng)
+		ng.msg.tap = md.tapToInstall
+		ng.msg.centerOf = md.centerOfNode
 		ownGeom := ng
-		ng.commitLocal = func(_ string, newPos vec3) { md.commitNodeMoveLocal(ownGeom, newPos) }
+		ng.msg.commitLocal = func(_ string, newPos vec3) { md.commitNodeMoveLocal(ownGeom, newPos) }
 		md.mr.nodeGeoms[id] = ng
 		// Seed the dispatch goroutine's center mirror from the same load-time geom
 		// (single-threaded setup, before md.Start — no driving goroutine is running yet)
@@ -305,10 +305,10 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 			continue
 		}
 		if nm, ok := md.mr.nodeGeoms[ep.Source]; ok {
-			if nm.mutualTargets == nil {
-				nm.mutualTargets = map[string]bool{}
+			if nm.topo.mutualTargets == nil {
+				nm.topo.mutualTargets = map[string]bool{}
 			}
-			nm.mutualTargets[ep.Target] = true
+			nm.topo.mutualTargets[ep.Target] = true
 		}
 	}
 	for edgeID, ep := range edgeEndpoints {
@@ -325,11 +325,11 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 		// two directed channels per ordered pair, never a shared inbox.
 		if srcNM, ok := md.mr.nodeGeoms[ep.Source]; ok {
 			if dstNM, ok := md.mr.nodeGeoms[ep.Target]; ok {
-				if _, exists := dstNM.neighborIn[ep.Source]; !exists {
-					dstNM.neighborIn[ep.Source] = make(chan moveMsg, moverInboxDepth)
+				if _, exists := dstNM.msg.neighborIn[ep.Source]; !exists {
+					dstNM.msg.neighborIn[ep.Source] = make(chan moveMsg, moverInboxDepth)
 				}
-				if _, exists := srcNM.neighborIn[ep.Target]; !exists {
-					srcNM.neighborIn[ep.Target] = make(chan moveMsg, moverInboxDepth)
+				if _, exists := srcNM.msg.neighborIn[ep.Target]; !exists {
+					srcNM.msg.neighborIn[ep.Target] = make(chan moveMsg, moverInboxDepth)
 				}
 			}
 		}
@@ -344,11 +344,11 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 		// no mover goroutine is running yet, so reading a neighbor's geom directly here
 		// is safe) with the SAME value the old snap seed used (newNodeMover seeds snap
 		// from nodeWorldPos(geom)), so the first emit reproduces today's center exactly.
-		// A node's neighbor set is nm.neighborIn's key set (populated above from
+		// A node's neighbor set is nm.msg.neighborIn's key set (populated above from
 		// edgeEndpoints — one dedicated channel per adjacent node, both directions).
-		for neighborID := range nm.neighborIn {
+		for neighborID := range nm.msg.neighborIn {
 			if other, ok := md.mr.nodeGeoms[neighborID]; ok {
-				nm.partnerCenters[neighborID] = nodeWorldPos(other.geom)
+				nm.topo.partnerCenters[neighborID] = nodeWorldPos(other.geom)
 			}
 		}
 	}
@@ -358,7 +358,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 	for id, nm := range md.mr.nodeGeoms {
 		for edgeID, em := range md.mr.edgeMovers {
 			if em.srcID == id || em.dstID == id {
-				nm.edgeIDs = append(nm.edgeIDs, edgeID)
+				nm.topo.edgeIDs = append(nm.topo.edgeIDs, edgeID)
 			}
 		}
 	}

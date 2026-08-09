@@ -31,11 +31,11 @@ func dragAndReadBack(t *testing.T, quantized bool, target vec3) string {
 	md.mr.centerMirror = map[string]vec3{}
 
 	nm := &nodeGeometry{
-		id:             "1",
-		persistRoot:    root,
-		geom:           nodeGeom{nodeIdentity: nodeIdentity{Kind: "PairNode"}, ScenePolar: cart2polar(vec3{X: 100}), HasPos: true},
-		partnerCenters: map[string]vec3{},
-		neighborIn:     map[string]chan moveMsg{},
+		id:          "1",
+		persistRoot: root,
+		geom:        nodeGeom{nodeIdentity: nodeIdentity{Kind: "PairNode"}, ScenePolar: cart2polar(vec3{X: 100}), HasPos: true},
+		topo:        neighborTopology{partnerCenters: map[string]vec3{}},
+		msg:         nodeMessaging{neighborIn: map[string]chan moveMsg{}},
 	}
 	md.mr.nodeGeoms["1"] = nm
 

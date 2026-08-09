@@ -151,14 +151,14 @@ func litBeadIndex(t float64, steps int) (int, bool) {
 }
 
 // chainBeads returns THIS node's own placeholder chain beads as node-local offsets, in
-// outgoing-edge order (m.outTargets), each edge's beads ordered outward from this node. It
+// outgoing-edge order (m.outs.outTargets), each edge's beads ordered outward from this node. It
 // also PUBLISHES each edge's freshly computed step count onto that edge's own *wire.Out
 // (docs/bead-lattice.md "Ownership": the source node owns the count) — the same call that
 // lays the chain out on that integer, so the wire's own timing budget and this chain's
 // layout can never disagree.
 //
 // Reads only state this node owns: its own kind/radius and its own live copy of each
-// neighbour's world center (m.partnerCenters — pushed by that neighbour's own
+// neighbour's world center (m.topo.partnerCenters — pushed by that neighbour's own
 // applyCenter), never reaching into another goroutine's state directly. There is no
 // cross-goroutine read here, which is why this can run on the emit path.
 //
@@ -172,7 +172,7 @@ func litBeadIndex(t float64, steps int) (int, bool) {
 // Offsets are NODE-LOCAL on purpose: this node moving does not change a single one of them,
 // so a move costs one center write instead of degree × N bead positions. Only a NEIGHBOUR
 // moving re-aims a chain, and that arrives as the one-hop center message that already
-// exists (moveMsgKindNeighborCenter, which is what keeps m.partnerCenters current). That is
+// exists (moveMsgKindNeighborCenter, which is what keeps m.topo.partnerCenters current). That is
 // the whole constant-time claim.
 //
 // A target with no live partner center yet (never linked, or a bare test mover with no
@@ -201,15 +201,15 @@ func litBeadIndex(t float64, steps int) (int, bool) {
 // second writeStreamFrame call from inside here would recurse (and, before this fix, did:
 // chainBeads -> writeStreamFrame -> chainBeads -> ... stack overflow).
 func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []int32, breadcrumbs []wire.RowEvent) {
-	if len(m.outTargets) == 0 {
+	if len(m.outs.outTargets) == 0 {
 		return nil, nil, nil, nil, nil, nil
 	}
-	// Read the clock only when there is a wire to ask about — m.clk is nil in tests that
+	// Read the clock only when there is a wire to ask about — m.clocks.clk is nil in tests that
 	// build a bare nodeMover directly (the same convention resolveDest/commitLocal state),
 	// and such a mover has no outWires either, so geometry stays testable without a clock.
 	var tick int64
-	if len(m.outWires) > 0 {
-		tick = m.clk.Tick()
+	if len(m.outs.outWires) > 0 {
+		tick = m.clocks.clk.Tick()
 	}
 	selfTorusR := nodeTorusOuterR(m.geom.Kind)
 	// selfCenter is THIS node's own live world center, read the same way
@@ -217,17 +217,17 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 	// is the sole writer of m.geom (applyCenter), so this is a same-goroutine read of
 	// state already owned here, not a second cross-goroutine touch.
 	selfCenter := nodeWorldPos(m.geom)
-	for _, to := range m.outTargets {
+	for _, to := range m.outs.outTargets {
 		// MODEL.md "the polar model": a node has ONE polar vector PER EDGE, pointing to
 		// that edge's starting bead — measured live from this node's own center and its
-		// neighbour's own center (m.partnerCenters, pushed by that neighbour's own
+		// neighbour's own center (m.topo.partnerCenters, pushed by that neighbour's own
 		// applyCenter — seeded synchronously for every domain neighbour at construction,
 		// node_move.go, so this is populated before this node's own goroutine ever runs).
 		// There is NO stored node-node bearing record here any more (wire.LocalPolar and
 		// its requantize machinery are deleted): a target with no live partner center yet
 		// (never linked, or a bare test mover with no pushes) contributes no beads, exactly
 		// like the old "no LocalPolar entry" skip.
-		targetCenter, haveTargetCenter := m.partnerCenters[to]
+		targetCenter, haveTargetCenter := m.topo.partnerCenters[to]
 		if !haveTargetCenter {
 			continue
 		}
@@ -250,7 +250,7 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 		if !ok {
 			continue
 		}
-		count := edgeStepCount(dist, m.geom.Kind, m.neighborKinds[to])
+		count := edgeStepCount(dist, m.geom.Kind, m.topo.neighborKinds[to])
 
 		// Publish this edge's freshly computed step count onto its own *wire.Out
 		// (docs/bead-lattice.md "Ownership") and onto its edgeMover's stepsIn (so a live
@@ -259,15 +259,15 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 		// edge_mover.go's stepsIn doc comment for why a second delivery is needed instead of
 		// the edgeMover reading the Out directly). Both are non-blocking, latest-wins sends —
 		// this node's own goroutine never waits on either reader.
-		for i, wt := range m.outWireTargets {
+		for i, wt := range m.outs.outWireTargets {
 			if wt != to {
 				continue
 			}
-			if i < len(m.outWireOuts) && m.outWireOuts[i] != nil {
-				m.outWireOuts[i].PublishSteps(count)
+			if i < len(m.outs.outWireOuts) && m.outs.outWireOuts[i] != nil {
+				m.outs.outWireOuts[i].PublishSteps(count)
 			}
-			if i < len(m.outStepsIn) && m.outStepsIn[i] != nil {
-				sendStepsNonBlocking(m.outStepsIn[i], count)
+			if i < len(m.outs.outStepsIn) && m.outs.outStepsIn[i] != nil {
+				sendStepsNonBlocking(m.outs.outStepsIn[i], count)
 			}
 		}
 
@@ -296,11 +296,11 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 			val   int32
 		}
 		var pulses []pulse
-		for i, wt := range m.outWireTargets {
-			if wt != to || m.outWires[i] == nil {
+		for i, wt := range m.outs.outWireTargets {
+			if wt != to || m.outs.outWires[i] == nil {
 				continue
 			}
-			for _, p := range m.outWires[i].LiveBeadFractions(tick) {
+			for _, p := range m.outs.outWires[i].LiveBeadFractions(tick) {
 				if p.T < 0 || p.T >= 1 || p.Steps <= 0 {
 					continue
 				}
@@ -351,8 +351,8 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 		// built and discarded downstream. Set WIREFOLD_CHAIN_AIM_TRACE=1 to get it back.
 		if m.tr != nil && chainAimTraceEnabled {
 			targetRow := int32(-1)
-			if m.nodeRowFor != nil {
-				if r, ok := m.nodeRowFor(to); ok {
+			if m.topo.nodeRowFor != nil {
+				if r, ok := m.topo.nodeRowFor(to); ok {
 					targetRow = r
 				}
 			}
@@ -369,7 +369,7 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 			m.tr.Breadcrumb("chain-aim", m.id, to, value)
 			breadcrumbs = append(breadcrumbs, wire.RowEvent{
 				Kind: T.KindBreadcrumb, Label: T.BreadcrumbChainAim, Debug: 1,
-				NodeRow: m.nodeRow, PortRow: -1, TargetRow: targetRow, TargetPortRow: -1,
+				NodeRow: m.stream.nodeRow, PortRow: -1, TargetRow: targetRow, TargetPortRow: -1,
 				EdgeRow: -1, Slot: -1, Text: value,
 			})
 		}
@@ -397,7 +397,7 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 		// port_geometry.go because this file is guarded against it
 		// (tools/check-no-sqrt-in-chain-beads.sh), the same split edgeCenterDistAndDir uses.
 		var chainSep vec3
-		if m.mutualTargets[to] {
+		if m.topo.mutualTargets[to] {
 			if off, ok := parallelChainOffset(m.id, to, selfCenter, targetCenter, m.geom.SceneCenter); ok {
 				chainSep = off
 			}
@@ -409,7 +409,7 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 		// live *wire.Bead goroutine count to `count` and broadcasts fresh geometry when
 		// the aim or count changed.
 		var actorChain *edgeBeadChain
-		if m.beadTickFn != nil {
+		if m.beads.beadTickFn != nil {
 			actorChain = m.reconcileBeadChain(to, count, offsetAt, aimUnit)
 		}
 		// The placeholder chain still streams, and every row of it is UNLIT. It is no longer

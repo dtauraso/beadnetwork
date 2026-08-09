@@ -130,8 +130,8 @@ func newNodeMover(geom *nodeGeometry) *nodeMover {
 // clock" shape the design calls for.
 func (m *nodeMover) run(ctx context.Context) {
 	g := m.geom
-	if g.clockSrc != nil {
-		g.clk = g.clockSrc.Copy()
+	if g.clocks.clockSrc != nil {
+		g.clocks.clk = g.clocks.clockSrc.Copy()
 	}
 	// ONE-TIME startup geometry emit, on THIS node's own goroutine — the sole per-owner
 	// source of a node's initial node-geometry event.
@@ -139,7 +139,7 @@ func (m *nodeMover) run(ctx context.Context) {
 		g.emitGeometry()
 	}
 	for {
-		wire.ApplySpeedNonBlocking(g.clk, m.speedCh)
+		wire.ApplySpeedNonBlocking(g.clocks.clk, m.speedCh)
 		// Drain-until-empty, transitively bounded by each channel's own declared
 		// capacity (moverInboxDepth) -- no iteration cap; see
 		// nodes/wire/paced_wire.go's drainPlacements doc comment for the full
@@ -149,7 +149,7 @@ func (m *nodeMover) run(ctx context.Context) {
 			select {
 			case <-ctx.Done():
 				return
-			case msg := <-g.extIn:
+			case msg := <-g.msg.extIn:
 				g.handle(msg)
 				if msg.testDone != nil {
 					close(msg.testDone)
@@ -157,7 +157,7 @@ func (m *nodeMover) run(ctx context.Context) {
 				progressed = true
 			default:
 			}
-			for _, ch := range g.neighborIn {
+			for _, ch := range g.msg.neighborIn {
 				select {
 				case msg := <-ch:
 					g.handle(msg)
@@ -181,8 +181,8 @@ func (m *nodeMover) run(ctx context.Context) {
 		// Read the clock ONCE for this whole pass, not once per wire: a per-wire read
 		// can straddle a tick boundary mid-loop, splitting one emission's beads across
 		// two ticks even though they were placed microseconds apart.
-		outTick := g.clk.Tick()
-		for _, pw := range g.outWires {
+		outTick := g.clocks.clk.Tick()
+		for _, pw := range g.outs.outWires {
 			pw.DriveOneCycle(ctx, outTick)
 		}
 		// Retry any pending sends every cycle — a destination that was full earlier may
@@ -192,7 +192,7 @@ func (m *nodeMover) run(ctx context.Context) {
 		// this cycle — write this node's dedicated stream frame every cycle (no-op when
 		// streamOut is nil), mirroring edgeMover.run's same every-cycle writeStreamFrame call.
 		g.writeStreamFrame(nil)
-		if err := g.clk.SleepCycle(ctx); err != nil {
+		if err := g.clocks.clk.SleepCycle(ctx); err != nil {
 			return
 		}
 	}

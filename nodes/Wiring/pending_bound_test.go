@@ -1,4 +1,4 @@
-// pending_bound_test.go — proves nm.pending's declared bound (maxPendingSends,
+// pending_bound_test.go — proves nm.msg.pending's declared bound (maxPendingSends,
 // mover_registry.go) actually fires when a destination never drains (a wedged peer),
 // and confirms the normal path — a destination that drains promptly — never trips it.
 // Plain single-goroutine tests only (no synctest changes on this branch).
@@ -19,8 +19,10 @@ func TestEnqueueForPanicsWhenPendingExceedsBound(t *testing.T) {
 	blockedCh := make(chan moveMsg) // unbuffered, nobody ever receives -> always full
 	nm := &nodeGeometry{
 		id: "wedged-peer-test",
-		resolveDest: func(id string) (chan moveMsg, bool) {
-			return blockedCh, true
+		msg: nodeMessaging{
+			resolveDest: func(id string) (chan moveMsg, bool) {
+				return blockedCh, true
+			},
 		},
 	}
 	send := mr.enqueueFor(nm)
@@ -63,8 +65,10 @@ func TestEnqueueForNeverTripsBoundWhenDestinationDrains(t *testing.T) {
 	liveCh := make(chan moveMsg, moverInboxDepth)
 	nm := &nodeGeometry{
 		id: "live-peer-test",
-		resolveDest: func(id string) (chan moveMsg, bool) {
-			return liveCh, true
+		msg: nodeMessaging{
+			resolveDest: func(id string) (chan moveMsg, bool) {
+				return liveCh, true
+			},
 		},
 	}
 	send := mr.enqueueFor(nm)
@@ -78,7 +82,7 @@ func TestEnqueueForNeverTripsBoundWhenDestinationDrains(t *testing.T) {
 		}
 	}
 
-	if len(nm.pending) != 0 {
-		t.Fatalf("normal (draining) path left %d items pending; want 0", len(nm.pending))
+	if len(nm.msg.pending) != 0 {
+		t.Fatalf("normal (draining) path left %d items pending; want 0", len(nm.msg.pending))
 	}
 }

@@ -288,12 +288,12 @@ func (b *buildCtx) buildMoveDispatch() error {
 	// the single-threaded build path, read afterwards only by that node's own goroutine.
 	if SceneWantsCoplanarEdges(b.scenePath) {
 		for _, nm := range md.mr.nodeGeoms {
-			nm.coplanarEdges = true
+			nm.flags.coplanarEdges = true
 		}
 	}
 	if SceneWantsUpAxis(b.scenePath) {
 		for _, nm := range md.mr.nodeGeoms {
-			nm.upAxis = true
+			nm.flags.upAxis = true
 		}
 	}
 	for id, off := range b.quantizedOffsets {
@@ -309,7 +309,7 @@ func (b *buildCtx) buildMoveDispatch() error {
 		}
 		nm.selfKind = n.Type
 		if n.TopTiltVectorThetaIdx != nil {
-			nm.topTiltVectorThetaIdx = *n.TopTiltVectorThetaIdx
+			nm.tilt.topTiltVectorThetaIdx = *n.TopTiltVectorThetaIdx
 		}
 	}
 	// Seed each node's OWN neighborKinds map — every DIRECT domain-adjacent neighbor id
@@ -327,10 +327,10 @@ func (b *buildCtx) buildMoveDispatch() error {
 		if !ok {
 			return
 		}
-		if nm.neighborKinds == nil {
-			nm.neighborKinds = map[string]string{}
+		if nm.topo.neighborKinds == nil {
+			nm.topo.neighborKinds = map[string]string{}
 		}
-		nm.neighborKinds[toID] = kindByID[toID]
+		nm.topo.neighborKinds[toID] = kindByID[toID]
 	}
 	for _, e := range b.spec.Edges {
 		linkNeighborKind(e.Source, e.Target)
@@ -344,7 +344,7 @@ func (b *buildCtx) buildMoveDispatch() error {
 		if !ok {
 			continue
 		}
-		nm.outTargets = append(nm.outTargets, e.Target)
+		nm.outs.outTargets = append(nm.outs.outTargets, e.Target)
 	}
 	b.md = md
 	return nil

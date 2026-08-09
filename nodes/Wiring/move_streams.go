@@ -9,14 +9,14 @@ import (
 )
 
 // SetMsgTap installs (or clears, with nil) the test-only message-trace hook, on md.tapToInstall
-// AND on every already-constructed nodeMover's own nm.tap field. MUST be called before
+// AND on every already-constructed nodeMover's own nm.msg.tap field. MUST be called before
 // Start (a setup-goroutine write to each mover's plain field is safe only because it
 // happens-before the mover goroutines are launched; there is no concurrent access once
 // Start has run). Test-only — production code never calls this.
 func (md *MoveDispatch) SetMsgTap(tap func(destID string, msg moveMsg)) {
 	md.tapToInstall = tap
 	for _, nm := range md.mr.nodeGeoms {
-		nm.tap = tap
+		nm.msg.tap = tap
 	}
 }
 

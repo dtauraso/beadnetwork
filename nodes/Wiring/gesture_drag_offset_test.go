@@ -34,14 +34,14 @@ func dragOffsetMD() *MoveDispatch {
 
 func nodeHit() rawHit { return rawHit{Kind: "node", NodeRow: 0} }
 
-// drainDrag reads off nm.extIn until it sees a moveMsgKindDrag, returning its Target. Fails
+// drainDrag reads off nm.msg.extIn until it sees a moveMsgKindDrag, returning its Target. Fails
 // the test if none arrives (commitDragStart's DragStart message precedes it on the same
 // channel for the first move of a drag).
 func drainDrag(t *testing.T, nm *nodeGeometry) vec3 {
 	t.Helper()
 	for {
 		select {
-		case msg := <-nm.extIn:
+		case msg := <-nm.msg.extIn:
 			if msg.Kind == moveMsgKindDrag {
 				return msg.Target
 			}

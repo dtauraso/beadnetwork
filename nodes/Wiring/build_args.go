@@ -259,8 +259,8 @@ func (a BuildArgs) ClaimSelfDrive() *PairNodeSelf {
 	// start. There is no such goroutine start for a self-driven node — ClaimSelfDrive
 	// runs during buildNodes, single-threaded setup, before any goroutine exists — so do
 	// the same copy here instead; writeStreamFrame (Step) still reads clk directly.
-	if ng.clockSrc != nil {
-		ng.clk = ng.clockSrc.Copy()
+	if ng.clocks.clockSrc != nil {
+		ng.clocks.clk = ng.clocks.clockSrc.Copy()
 	}
 	// geom.clk also needs its OWN speed-delivery channel, exactly like a ring node's
 	// nodeMover.speedCh (finalizeActors) — otherwise this clock, copied once above, never

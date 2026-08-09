@@ -1,7 +1,7 @@
 // pair_node_self_clock_speed_test.go — regression coverage for the bug where a
 // self-driven pair node's own RENDER clock (nodeGeometry.clk — read by writeStreamFrame's
 // frame tick and chainBeads' animation, per_node_self.go's own doc comment) never applied a
-// delivered speed change at all: ClaimSelfDrive copied clockSrc into geom.clk exactly ONCE,
+// delivered speed change at all: ClaimSelfDrive copied clockSrc into geom.clocks.clk exactly ONCE,
 // at build time, and nothing ever polled ApplySpeedNonBlocking on it afterward — unlike a
 // ring node, whose nodeMover.run polls its own m.speedCh every cycle (mover_registry.go's
 // finalizeActors). The kind's own SEPARATE clock (n.Clock, polled via its own SpeedCh in the
@@ -37,18 +37,18 @@ func TestSelfDrivenGeometryClockAppliesDeliveredSpeed(t *testing.T) {
 	}
 	// Reproduce exactly what ClaimSelfDrive does at build time: copy clockSrc into clk once,
 	// then wire this node's own dedicated speed channel (the fix under test).
-	if geom.clockSrc != nil {
-		geom.clk = geom.clockSrc.Copy()
+	if geom.clocks.clockSrc != nil {
+		geom.clocks.clk = geom.clocks.clockSrc.Copy()
 	}
 	speedCh := make(chan float64, 1)
 	self := &PairNodeSelf{geom: geom, speedCh: speedCh}
 	ctx := context.Background()
 
 	// Baseline: default speed 1, ~2 ticks over 2 periods.
-	before := geom.clk.Tick()
+	before := geom.clocks.clk.Tick()
 	time.Sleep(2 * wire.TickPeriod)
-	self.Step(ctx, geom.clk.Tick())
-	afterDefault := geom.clk.Tick()
+	self.Step(ctx, geom.clocks.clk.Tick())
+	afterDefault := geom.clocks.clk.Tick()
 	if advanced := afterDefault - before; advanced > 5 {
 		t.Fatalf("baseline advance too fast before any speed change: advanced=%d ticks", advanced)
 	}
@@ -59,13 +59,13 @@ func TestSelfDrivenGeometryClockAppliesDeliveredSpeed(t *testing.T) {
 	// from the moment it is applied, same ordering TestApplySpeedNonBlockingAppliesOnWake
 	// uses: send, apply-on-wake, THEN measure the next window).
 	wire.SendSpeedNonBlocking(speedCh, 8)
-	self.Step(ctx, geom.clk.Tick())
+	self.Step(ctx, geom.clocks.clk.Tick())
 
-	before2 := geom.clk.Tick()
+	before2 := geom.clocks.clk.Tick()
 	time.Sleep(2 * wire.TickPeriod)
-	self.Step(ctx, geom.clk.Tick())
-	after2 := geom.clk.Tick()
+	self.Step(ctx, geom.clocks.clk.Tick())
+	after2 := geom.clocks.clk.Tick()
 	if advanced := after2 - before2; advanced < 5 {
-		t.Fatalf("self-driven node geometry clock did not apply delivered speed: advanced=%d ticks over 2 periods at speed 8 (want >=5, i.e. clearly faster than the old speed-1 rate) — geom.clk is stuck at its build-time copy", advanced)
+		t.Fatalf("self-driven node geometry clock did not apply delivered speed: advanced=%d ticks over 2 periods at speed 8 (want >=5, i.e. clearly faster than the old speed-1 rate) — geom.clocks.clk is stuck at its build-time copy", advanced)
 	}
 }

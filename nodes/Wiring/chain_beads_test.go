@@ -39,11 +39,13 @@ func TestChainBeadsStayOutsideBothNodes(t *testing.T) {
 	// stays an exact multiple of the local-polar grid constant whatever that constant is.
 	const gap = 200 * wire.BeadStepR
 	m := &nodeGeometry{
-		id:             "a",
-		geom:           nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}}, // radius 15
-		outTargets:     []string{"b"},
-		neighborKinds:  map[string]string{"b": "Time"}, // radius 9
-		partnerCenters: singleNeighborCenter("b", gap),
+		id:   "a",
+		geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}}, // radius 15
+		outs: nodeOuts{outTargets: []string{"b"}},
+		topo: neighborTopology{
+			neighborKinds:  map[string]string{"b": "Time"}, // radius 9
+			partnerCenters: singleNeighborCenter("b", gap),
+		},
 	}
 	ox, oy, oz, _, _, _ := m.chainBeads()
 	if len(ox) == 0 {
@@ -72,10 +74,13 @@ func TestChainBeadsStayOutsideBothNodes(t *testing.T) {
 func TestChainBeadsTouch(t *testing.T) {
 	m := &nodeGeometry{
 		id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}},
-		outTargets: []string{"b"}, neighborKinds: map[string]string{"b": "Input"},
-		// 150 cells * wire.BeadStepR, not the bare literal 300 — see the comment
-		// on TestChainBeadsStayOutsideBothNodes's gap.
-		partnerCenters: singleNeighborCenter("b", 150*wire.BeadStepR),
+		outs: nodeOuts{outTargets: []string{"b"}},
+		topo: neighborTopology{
+			neighborKinds: map[string]string{"b": "Input"},
+			// 150 cells * wire.BeadStepR, not the bare literal 300 — see the comment
+			// on TestChainBeadsStayOutsideBothNodes's gap.
+			partnerCenters: singleNeighborCenter("b", 150*wire.BeadStepR),
+		},
 	}
 	ox, oy, oz, _, _, _ := m.chainBeads()
 	if len(ox) < 3 {
@@ -97,13 +102,16 @@ func TestChainBeadsTouch(t *testing.T) {
 func TestChainBeadsAlwaysAtLeastOneBead(t *testing.T) {
 	m := &nodeGeometry{
 		id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}},
-		outTargets: []string{"b"}, neighborKinds: map[string]string{"b": "Input"},
-		// 3 cells * wire.BeadStepR, not the bare literal 6 — see the comment on
-		// TestChainBeadsStayOutsideBothNodes's gap. QuantIR IS the bead-step count now
-		// (edgeStepCount no longer divides by a cell-per-step constant — bead_lattice.go's
-		// BeadStepCells doc comment), so 3 steps minus both "Input" nodes' own
-		// nodeTorusSteps (2 each) collapses well below the minimum.
-		partnerCenters: singleNeighborCenter("b", 3*wire.BeadStepR),
+		outs: nodeOuts{outTargets: []string{"b"}},
+		topo: neighborTopology{
+			neighborKinds: map[string]string{"b": "Input"},
+			// 3 cells * wire.BeadStepR, not the bare literal 6 — see the comment on
+			// TestChainBeadsStayOutsideBothNodes's gap. QuantIR IS the bead-step count now
+			// (edgeStepCount no longer divides by a cell-per-step constant — bead_lattice.go's
+			// BeadStepCells doc comment), so 3 steps minus both "Input" nodes' own
+			// nodeTorusSteps (2 each) collapses well below the minimum.
+			partnerCenters: singleNeighborCenter("b", 3*wire.BeadStepR),
+		},
 	}
 	if ox, _, _, _, _, _ := m.chainBeads(); len(ox) != 1 {
 		t.Errorf("count = %d, want 1 — edgeStepCount clamps a collapsed gap to the minimum, never 0", len(ox))
@@ -115,7 +123,8 @@ func TestChainBeadsAlwaysAtLeastOneBead(t *testing.T) {
 // (MODEL.md "the polar model": no node-node stored coordinate).
 func TestChainBeadsUnknownPartnerContributesNothing(t *testing.T) {
 	m := &nodeGeometry{
-		id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}}, outTargets: []string{"b"},
+		id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}},
+		outs: nodeOuts{outTargets: []string{"b"}},
 	}
 	if ox, _, _, _, _, _ := m.chainBeads(); len(ox) != 0 {
 		t.Errorf("count = %d, want 0 for an unknown partner", len(ox))
@@ -130,8 +139,11 @@ func TestChainBeadsCountIsSpanProportional(t *testing.T) {
 	count := func(centerGap float64) int {
 		m := &nodeGeometry{
 			id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}},
-			outTargets: []string{"b"}, neighborKinds: map[string]string{"b": "Input"},
-			partnerCenters: singleNeighborCenter("b", centerGap),
+			outs: nodeOuts{outTargets: []string{"b"}},
+			topo: neighborTopology{
+				neighborKinds:  map[string]string{"b": "Input"},
+				partnerCenters: singleNeighborCenter("b", centerGap),
+			},
 		}
 		ox, _, _, _, _, _ := m.chainBeads()
 		return len(ox)
@@ -310,11 +322,13 @@ func TestChainBeadsExactDoubleTangency(t *testing.T) {
 		srcKind, dstKind := kp[0], kp[1]
 		for _, gap := range centerGaps {
 			m := &nodeGeometry{
-				id:             "a",
-				geom:           nodeGeom{nodeIdentity: nodeIdentity{Kind: srcKind}},
-				outTargets:     []string{"b"},
-				neighborKinds:  map[string]string{"b": dstKind},
-				partnerCenters: singleNeighborCenter("b", gap),
+				id:   "a",
+				geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: srcKind}},
+				outs: nodeOuts{outTargets: []string{"b"}},
+				topo: neighborTopology{
+					neighborKinds:  map[string]string{"b": dstKind},
+					partnerCenters: singleNeighborCenter("b", gap),
+				},
 			}
 			ox, oy, oz, _, _, _ := m.chainBeads()
 			if len(ox) == 0 {
@@ -373,11 +387,13 @@ func offAxisFixture(srcKind, dstKind string, count int) *nodeGeometry {
 	// center-to-center distance.
 	targetCenter := vec3{X: dist * 0.6, Y: 0, Z: dist * 0.8}
 	return &nodeGeometry{
-		id:             "a",
-		geom:           nodeGeom{nodeIdentity: nodeIdentity{Kind: srcKind}}, // HasPos false -> center at origin
-		outTargets:     []string{"b"},
-		neighborKinds:  map[string]string{"b": dstKind},
-		partnerCenters: map[string]vec3{"b": targetCenter},
+		id:   "a",
+		geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: srcKind}}, // HasPos false -> center at origin
+		outs: nodeOuts{outTargets: []string{"b"}},
+		topo: neighborTopology{
+			neighborKinds:  map[string]string{"b": dstKind},
+			partnerCenters: map[string]vec3{"b": targetCenter},
+		},
 	}
 }
 
@@ -392,7 +408,7 @@ func offAxisFixture(srcKind, dstKind string, count int) *nodeGeometry {
 func TestChainBeadsLastBeadOnTargetTorusOffAxis(t *testing.T) {
 	const count = 12
 	m := offAxisFixture("Input", "Time", count)
-	targetCenter := m.partnerCenters["b"]
+	targetCenter := m.topo.partnerCenters["b"]
 	srcTorus := nodeTorusOuterR("Input")
 	dstTorus := nodeTorusOuterR("Time")
 

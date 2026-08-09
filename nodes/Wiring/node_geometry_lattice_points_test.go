@@ -26,22 +26,24 @@ type latticeFrameAngles struct {
 
 func captureLatticeAngles(snap *latticeFrameAngles) *nodeGeometry {
 	return &nodeGeometry{
-		id:        "n",
-		clk:       wire.NewRealClock(),
-		streamOut: newClaimedStream(nil, "node", "n", io.Discard),
-		buildFrame: func(tick uint32, nodeRow int32, nodeID int32, cx, cy, cz, radius, sphereR float32,
-			vrx, vry, vrz, frx, fry, frz float32,
-			poleTheta, polePhi, ringAxisTheta, ringAxisPhi, topTiltVectorLen, topTiltVectorTheta,
-			bottomTiltVectorTheta, coplanarNormalTheta, receivedVectorLen, receivedVectorTheta float32,
-			selected, kindID, hovered, latchedSel, latticePoints uint8, roundsToParallel, msgsToParallel int32, label string,
-			chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32,
-			events []wire.RowEvent) []byte {
-			snap.top = topTiltVectorTheta
-			snap.bottom = bottomTiltVectorTheta
-			snap.coplanar = coplanarNormalTheta
-			snap.received = receivedVectorTheta
-			snap.points = latticePoints
-			return nil
+		id:     "n",
+		clocks: nodeClocks{clk: wire.NewRealClock()},
+		stream: nodeStream{
+			streamOut: newClaimedStream(nil, "node", "n", io.Discard),
+			buildFrame: func(tick uint32, nodeRow int32, nodeID int32, cx, cy, cz, radius, sphereR float32,
+				vrx, vry, vrz, frx, fry, frz float32,
+				poleTheta, polePhi, ringAxisTheta, ringAxisPhi, topTiltVectorLen, topTiltVectorTheta,
+				bottomTiltVectorTheta, coplanarNormalTheta, receivedVectorLen, receivedVectorTheta float32,
+				selected, kindID, hovered, latchedSel, latticePoints uint8, roundsToParallel, msgsToParallel int32, label string,
+				chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32,
+				events []wire.RowEvent) []byte {
+				snap.top = topTiltVectorTheta
+				snap.bottom = bottomTiltVectorTheta
+				snap.coplanar = coplanarNormalTheta
+				snap.received = receivedVectorTheta
+				snap.points = latticePoints
+				return nil
+			},
 		},
 	}
 }
@@ -56,11 +58,11 @@ func TestWriteStreamFrameDefaultLatticeMatchesOldConstant(t *testing.T) {
 	const idx = int32(5)
 	var snap latticeFrameAngles
 	g := captureLatticeAngles(&snap)
-	g.topTiltVectorThetaIdx = idx
-	g.bottomThetaIdx = idx
-	g.normalThetaIdx = idx
-	g.receivedVectorThetaIdx = idx
-	g.receivedVectorSet = true
+	g.tilt.topTiltVectorThetaIdx = idx
+	g.tilt.bottomThetaIdx = idx
+	g.tilt.normalThetaIdx = idx
+	g.tilt.receivedVectorThetaIdx = idx
+	g.tilt.receivedVectorSet = true
 	g.writeStreamFrame(nil)
 
 	want := float32(float64(idx) * CurveParamTiltVectorAngleStep)
@@ -79,12 +81,12 @@ func TestWriteStreamFrameFollowsSetLatticePoints(t *testing.T) {
 	const points = int32(12)
 	var snap latticeFrameAngles
 	g := captureLatticeAngles(&snap)
-	g.topTiltVectorThetaIdx = idx
-	g.bottomThetaIdx = idx
-	g.normalThetaIdx = idx
-	g.receivedVectorThetaIdx = idx
-	g.receivedVectorSet = true
-	g.latticePoints = points
+	g.tilt.topTiltVectorThetaIdx = idx
+	g.tilt.bottomThetaIdx = idx
+	g.tilt.normalThetaIdx = idx
+	g.tilt.receivedVectorThetaIdx = idx
+	g.tilt.receivedVectorSet = true
+	g.tilt.latticePoints = points
 	g.writeStreamFrame(nil)
 
 	wantStep := 2 * math.Pi / float64(points)

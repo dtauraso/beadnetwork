@@ -8,7 +8,7 @@
 // is exercised directly, synchronously, by bare `&nodeMover{...}` test literals
 // (chain_beads_test.go) that construct no goroutine and expect a pure, deterministic
 // answer on the calling goroutine with no live TickBroadcaster started as a side effect.
-// The switch is m.beadTickFn (nil in every such test, set to wire.NewTickChan only by
+// The switch is m.beads.beadTickFn (nil in every such test, set to wire.NewTickChan only by
 // production's newNodeMover) — chainBeads reads it once per outgoing target and only
 // calls into this file when it is non-nil.
 package Wiring
@@ -66,13 +66,13 @@ type edgeBeadChain struct {
 // i, exactly as bead_actor.go's Bead.offsetR documents. Called only from chainBeads, only
 // on this node's own goroutine.
 func (m *nodeGeometry) reconcileBeadChain(to string, count int, offsetAt func(i int) float64, aim wire.Vec3) *edgeBeadChain {
-	if m.beadChains == nil {
-		m.beadChains = map[string]*edgeBeadChain{}
+	if m.beads.beadChains == nil {
+		m.beads.beadChains = map[string]*edgeBeadChain{}
 	}
-	c := m.beadChains[to]
+	c := m.beads.beadChains[to]
 	if c == nil {
 		c = &edgeBeadChain{group: wire.NewBeadWakeGroup()}
-		m.beadChains[to] = c
+		m.beads.beadChains[to] = c
 	}
 	// Re-space: the per-index offsets changed (the tween overlay flipping the lattice), so
 	// every existing bead holds an offset it cannot be told to update. Tear the chain down
@@ -95,7 +95,7 @@ func (m *nodeGeometry) reconcileBeadChain(to string, count int, offsetAt func(i 
 		i := len(c.beads)
 		geom, wake, settle := c.group.Current()
 		stop := make(chan struct{})
-		b := wire.NewBead(offsetAt(i), geom, wake, settle, m.beadTickFn(), stop)
+		b := wire.NewBead(offsetAt(i), geom, wake, settle, m.beads.beadTickFn(), stop)
 		snap := b.WithObserve()
 		b.Start()
 		c.beads = append(c.beads, b)
@@ -147,12 +147,12 @@ func (m *nodeGeometry) reconcileBeadChain(to string, count int, offsetAt func(i 
 // time — one close per edge (StartDrag), never a per-bead send-loop. Called from handle's
 // moveMsgKindDragStart case, the same edge armDragAnchor already runs on. A chain that
 // does not exist yet (this node has never emitted a frame with beads on that edge) is
-// simply absent from m.beadChains and is skipped — its beads will be constructed already
+// simply absent from m.beads.beadChains and is skipped — its beads will be constructed already
 // resting (dragging=false) by the first reconcileBeadChain call this drag makes, which is
 // harmless: the mode flag does not gate geometry delivery (see bead_actor.go's Bead.run —
 // the geometry case applies unconditionally, dragging or not), only observability.
 func (m *nodeGeometry) startBeadDrag() {
-	for _, c := range m.beadChains {
+	for _, c := range m.beads.beadChains {
 		c.group.StartDrag()
 	}
 }
@@ -162,7 +162,7 @@ func (m *nodeGeometry) startBeadDrag() {
 // moveMsgKindDragEnd case, on EVERY path a drag ends by (see that message kind's own doc
 // comment), so no bead this node woke is ever left on machine time.
 func (m *nodeGeometry) endBeadDrag() {
-	for _, c := range m.beadChains {
+	for _, c := range m.beads.beadChains {
 		c.group.EndDrag()
 	}
 }

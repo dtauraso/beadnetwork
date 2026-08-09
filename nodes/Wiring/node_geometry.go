@@ -31,6 +31,12 @@ import (
 // nodeGeometry owns one node's geometry, its own inbound channel set (extIn + one per
 // neighbor — there is no single shared inbox), and its own outbound retry queue. On a move
 // for itself it updates its held position and re-emits its node-geometry.
+//
+// It is a thin COMPOSER (same pattern as MoveDispatch, node_move.go): each concern is a
+// NAMED sub-object declared in node_geometry_parts.go and accessed explicitly
+// (m.ui.selected), never embedded — embedding would keep the old flat 46-field namespace
+// and hide which owner a field belongs to. New state belongs on (or as) one of those
+// owners, not as another loose field here. Guard: tools/check-composer-fields.sh.
 type nodeGeometry struct {
 	id   string
 	geom nodeGeom
@@ -44,40 +50,14 @@ type nodeGeometry struct {
 	// EnableEditPersist call that sets it (a plain string write before any driving
 	// goroutine starts).
 	persistRoot string
-	// extIn is this node's dedicated channel for EXTERNAL entries — the stdin/gesture
-	// goroutine's drag/dragStart sends (md.sendMove). Nothing else ever writes here: no
-	// other node shares it.
-	extIn chan moveMsg
-	// neighborIn holds one dedicated inbound channel PER ADJACENT NODE (keyed by that
-	// neighbor's id) — the "two channels, A→B and B→A" topology generalized to this
-	// node's whole neighbor set. Built once at construction (newMoveDispatch) from edge
-	// adjacency and never mutated afterward, so it's safe for the driving goroutine to
-	// snapshot into a fixed select-case list at its own start. A neighbor M's own
-	// goroutine is the only writer of neighborIn[M]; nothing else ever sends on it.
-	neighborIn map[string]chan moveMsg
-	tr         *T.Trace
-	// clockSrc is the Clock this node's driving goroutine Copies from EXACTLY ONCE, at its
-	// own start, into clk below (per-goroutine-clock.md). Set once at construction. Not
-	// read again after that copy.
-	clockSrc wire.Clock
-	// clk is this node's OWN clock copy — read by writeStreamFrame (the frame tick) and,
-	// for a ring node, by its owning nodeMover's pacing loop (ApplySpeedNonBlocking/
-	// SleepCycle). Only the one goroutine driving this geometry ever reads or writes it.
-	// Defaults to a fresh, real, live-ticking RealClock (see newNodeGeometry) so a test
-	// that never launches a driving goroutine (e.g. a bare literal calling flushPending
-	// directly) never dereferences a nil Clock.
-	clk wire.Clock
-	// speedCh is not here because polling one every cycle is pacing — an ACTOR concern. It
-	// lives on whatever drives this geometry: nodeMover for a ring node (node_mover.go),
-	// PairNodeSelf for a pair node (pair_node_self.go). BOTH must poll it.
-	//
-	// This comment used to say a pair node needed no such channel, because "its own kind
-	// goroutine paces itself on its own clock already". That was wrong, and it hid a real
-	// defect: a pair node has TWO clocks — its kind loop's, which is scaled, and THIS one.
-	// This clock is what chainBeads (chain_beads.go) reads to lay out the bead animation
-	// and what writeStreamFrame stamps a frame with, so while it went unscaled the pair
-	// scene's VISIBLE motion ignored both the speed slider and SceneTab.ClockDivisor,
-	// even though bead delivery timing was scaled correctly and looked fine.
+	selfKind    string
+	// quantOffset is THIS node's own quantized polar offset (iTheta,iPhi,iR + step
+	// constants) about the scene center. Seeded at load (buildMoveDispatch) from the
+	// computed/persisted offset, then mutated ONLY by this node's own commit path
+	// (commitNodeMoveCommon, called from this node's own driving goroutine via
+	// commitLocal) — single-writer, no map, no race.
+	quantOffset quantizedOffset
+	tr          *T.Trace
 
 	// There is no geomMu. m.geom (port_geometry.go) splits into an embedded, write-once
 	// nodeIdentity (Kind/Label/R/SceneCenter — set once at construction in loader.go,
@@ -94,116 +74,36 @@ type nodeGeometry struct {
 	// (node_mover_geom_race_test.go) drives NodeKind's reader loop and applyCenter's
 	// writer loop concurrently under -race, as a standing regression check that the split
 	// holds.
-	// centerOut is this node's OWN dedicated one-slot delivery channel to the DISPATCH
-	// goroutine's owned center mirror (moverRegistry.centerMirror). A size-1 buffered
-	// channel written with LATEST-WINS semantics (applyCenter drains any stale unread
-	// value before sending the fresh one, never blocking): only the newest pushed center
-	// matters to a framing read, so an unread stale value is simply overwritten rather
-	// than queued. Only this node's own driving goroutine (applyCenter) ever sends here;
-	// only the dispatch goroutine (moverRegistry.drainCenterMirror) ever receives.
-	centerOut chan vec3
-	// sendMove routes a moveMsg to another id's OWN dedicated channel (resolveDest,
-	// above) — no shared inbox, no shared mutable state. Bound to md.enqueueFor(this): it
-	// appends to pending and immediately attempts a non-blocking flush (never blocks the
-	// calling handler goroutine).
-	sendMove func(id string, msg moveMsg)
-	edgeIDs  []string
-	// centerOf resolves another node's current world center, bound to md.centerOfNode.
-	// Unused by any live handler now that the rule/gate/anchor cascade (which used it to
-	// read rule-neighbor centers) is gone; kept wired for any future direct-neighbor
-	// lookup need.
-	centerOf func(id string) (vec3, bool)
-	// commitLocal is the OWNER-GOROUTINE commit path, bound to md.commitNodeMoveLocal
-	// (generalized to every node). It publishes this node's own snap SYNCHRONOUSLY via
-	// applyCenter instead of enqueuing an async self-send, so it is safe to call from
-	// THIS node's own handle() for a moveMsgKindDrag, with no cross-goroutine self-send
-	// and no shared mutable state (each node's quantized offset lives on its own
-	// geometry — see quantOffset). nil in tests that build a bare nodeGeometry directly.
-	commitLocal func(id string, newPos vec3)
-	// partnerCenters is THIS node's OWN copy of every direct neighbor's last-known world
-	// center, read by quantized_move.go's neighbor-move math. Written ONLY by this
-	// node's own driving goroutine: seeded once at construction (newMoveDispatch,
-	// single-threaded setup) from each neighbor's load-time geom, then kept current by
-	// the moveMsgKindNeighborCenter handler in handle() below, fed by every direct
-	// neighbor's own applyCenter push. Never read or written by any other goroutine.
-	partnerCenters map[string]vec3
-	// quantOffset is THIS node's own quantized polar offset (iTheta,iPhi,iR + step
-	// constants) about the scene center. Seeded at load (buildMoveDispatch) from the
-	// computed/persisted offset, then mutated ONLY by this node's own commit path
-	// (commitNodeMoveCommon, called from this node's own driving goroutine via
-	// commitLocal) — single-writer, no map, no race.
-	quantOffset quantizedOffset
-	// pending is THIS node's own outbound retry queue: sendMove appends here and
-	// attempts an immediate non-blocking send; an item that can't be delivered right now
-	// (the target's inbox is momentarily full) stays here and is retried — before any
-	// newer item to the SAME destination — on the next flushPending call, which the
-	// driving goroutine makes every cycle. There is no dedicated sender goroutine: only
-	// this node's own driving goroutine ever touches pending (every sendMove call
-	// originates from handle, which only ever runs on that same goroutine).
-	pending []pendingSend
-	// tap is a TEST-ONLY observability seam: when non-nil, THIS node's own enqueueFor
-	// closure invokes it with every (destID, msg) it routes, before appending to
-	// pending. nil in production.
-	tap func(destID string, msg moveMsg)
-	// resolveDest looks up the ONE dedicated directed channel FROM this node TO the given
-	// destination id — the destination's neighborIn[this node's id] if destID is another
-	// node, or the destination edge's srcIn/dstIn depending on which endpoint this node
-	// is. There is no shared inbox to look up. nil only in tests that build a bare
-	// nodeGeometry directly, in which case flushPending is a no-op.
-	resolveDest func(id string) (chan moveMsg, bool)
 
-	// --- chain bead actors (bead_chain.go) ---
-	beadTickFn func() <-chan struct{}
-	beadChains map[string]*edgeBeadChain
-
-	// --- dedicated per-node stream (memory/feedback_no_single_writer_bridge.md) ---
-	streamOut claimedStream
-	nodeRow   int32
-	selfKind  string
-
-	outTargets     []string
-	outWires       []*wire.PacedWire
-	outWireTargets []string
-	outWireOuts    []*wire.Out
-	outStepsIn     []chan int
-
-	neighborKinds map[string]string
-	mutualTargets map[string]bool
-	coplanarEdges bool
-	upAxis        bool
-	nodeRowFor    func(id string) (int32, bool)
-
-	// --- own selection/hover/abc-drag UI state (per-owner, no shared/republished map) ---
-	selected, hovered, latchedSel uint8
-	hoverPort                     string
-	hoverIsInput                  bool
-	kindID                        uint8
-
-	buildFrame func(tick uint32, nodeRow int32, nodeID int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, poleTheta, polePhi, ringAxisTheta, ringAxisPhi, topTiltVectorLen, topTiltVectorTheta, bottomTiltVectorTheta, coplanarNormalTheta, receivedVectorLen, receivedVectorTheta float32, selected, kindID, hovered, latchedSel, latticePoints uint8, roundsToParallel, msgsToParallel int32, label string, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte
-
-	topTiltVectorThetaIdx  int32
-	normalThetaIdx         int32
-	bottomThetaIdx         int32
-	receivedVectorThetaIdx int32
-	receivedVectorSet      bool
-	// latticePoints is the point count of THIS node's own lattice — the N a tilt-vector
-	// index is converted against (2π / latticePoints per step), reported one-way by
-	// PairNodeSelf.SetLatticePoints when a PairNode's own goroutine adopts a new count
-	// (PairNode.adoptLattice) and at build time. Defaults to Wiring.FullTurnThetaIdx (the
-	// old compile-time constant this field replaces) so every node that never calls
-	// SetLatticePoints — every ring node, and a bare test-built pair geometry — streams
-	// exactly what it streamed before this field existed.
-	latticePoints int32
-
-	// roundsToParallel is how many vector-exchange rounds this node's own rule took to come
-	// to rest after the exchange opened — reported one-way by that node's own goroutine
-	// (PairNodeSelf.SetRoundsToParallel), never computed here. Streamed as the Node block's
-	// RoundsToParallel column; 0 on every kind that has no vector exchange at all.
-	roundsToParallel int32
-
-	// msgsToParallel is the same span counted in vector-channel messages — see the Node
-	// block's MsgsToParallel column. Reported alongside roundsToParallel, never derived.
-	msgsToParallel int32
+	// msg owns this node's dedicated inbound channels, its outbound retry queue and the
+	// routing closures it hands a moveMsg to (nodeMessaging, node_geometry_parts.go).
+	msg nodeMessaging
+	// clocks owns the clock source this node copies from once and its own copy
+	// (nodeClocks).
+	clocks nodeClocks
+	// stream owns this node's dedicated per-node content-buffer stream: its fd, its row,
+	// its kind column and its frame packer (nodeStream).
+	stream nodeStream
+	// ui owns this node's OWN selection/hover bytes — per-owner, no shared or republished
+	// map (nodeUI).
+	ui nodeUI
+	// tilt owns this node's tilt/received-vector mirror indices and its lattice size
+	// (nodeTilt).
+	tilt nodeTilt
+	// readout owns the two pair vector-exchange span counters (pairReadout).
+	readout pairReadout
+	// outs owns this node's outgoing targets, paced wires, Outs and step channels
+	// (nodeOuts).
+	outs nodeOuts
+	// topo owns this node's own view of its adjacency: incident edges, partner centres and
+	// kinds, mutual targets, neighbour row lookup (neighborTopology).
+	topo neighborTopology
+	// flags owns the two scene-wide ring-axis drawing choices this node applies to its own
+	// frame (sceneFlags).
+	flags sceneFlags
+	// beads owns this node's placeholder chain-bead actors and their tick source
+	// (nodeBeads).
+	beads nodeBeads
 }
 
 // newNodeGeometry constructs one node's geometry — no actor, no goroutine. Whoever drives
@@ -211,22 +111,25 @@ type nodeGeometry struct {
 // clockSrc into clk once, at its own start.
 func newNodeGeometry(id string, geom nodeGeom, tr *T.Trace, clockSrc wire.Clock) *nodeGeometry {
 	ng := &nodeGeometry{
-		id: id, geom: geom,
-		extIn: make(chan moveMsg, moverInboxDepth), neighborIn: map[string]chan moveMsg{}, tr: tr,
-		partnerCenters: map[string]vec3{},
-		centerOut:      make(chan vec3, 1),
-		clockSrc:       clockSrc, clk: wire.NewRealClock(),
-		latticePoints: FullTurnThetaIdx,
+		id: id, geom: geom, tr: tr,
+		msg: nodeMessaging{
+			extIn:      make(chan moveMsg, moverInboxDepth),
+			neighborIn: map[string]chan moveMsg{},
+			centerOut:  make(chan vec3, 1),
+		},
+		topo:   neighborTopology{partnerCenters: map[string]vec3{}},
+		clocks: nodeClocks{clockSrc: clockSrc, clk: wire.NewRealClock()},
+		tilt:   nodeTilt{latticePoints: FullTurnThetaIdx},
 	}
 	// Self-seed centerOut with the initial geometry (even when !HasPos, in which case
 	// nodeWorldPos falls back to the origin) so the dispatch goroutine's first drain
 	// always finds a valid center.
-	ng.centerOut <- nodeWorldPos(geom)
+	ng.msg.centerOut <- nodeWorldPos(geom)
 	// Production-only hook: arms the bead-actor path in chainBeads/reconcileBeadChain
 	// (bead_chain.go). Bare `&nodeGeometry{...}` test literals never call
 	// newNodeGeometry, so beadTickFn stays nil there and chainBeads' pure-function tests
 	// never touch a live TickBroadcaster goroutine.
-	ng.beadTickFn = wire.NewTickChan
+	ng.beads.beadTickFn = wire.NewTickChan
 	return ng
 }
 
@@ -259,8 +162,8 @@ func (m *nodeGeometry) handle(msg moveMsg) {
 		// always a FREE move now -- there is no equal-radii solve and no propagation
 		// past this node's own commit.
 		newPos := msg.Target
-		if m.commitLocal != nil {
-			m.commitLocal(m.id, newPos)
+		if m.msg.commitLocal != nil {
+			m.msg.commitLocal(m.id, newPos)
 		}
 		if m.tr != nil {
 			m.tr.Breadcrumb("drag.commit", m.id, "", fmt.Sprintf("newPos=(%.4f,%.4f,%.4f)", newPos.X, newPos.Y, newPos.Z))
@@ -270,7 +173,7 @@ func (m *nodeGeometry) handle(msg moveMsg) {
 			// write here rather than waiting on that one).
 			m.writeStreamFrame([]wire.RowEvent{{
 				Kind: T.KindBreadcrumb, Label: T.BreadcrumbDragCommit, Debug: 1,
-				NodeRow: m.nodeRow, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
+				NodeRow: m.stream.nodeRow, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 				X: newPos.X, Y: newPos.Y, Z: newPos.Z,
 			}})
 		}
@@ -290,29 +193,29 @@ func (m *nodeGeometry) handle(msg moveMsg) {
 	}
 	if msg.Kind == moveMsgKindSelect {
 		if msg.Bool {
-			m.selected = 1
+			m.ui.selected = 1
 		} else {
-			m.selected = 0
+			m.ui.selected = 0
 		}
 		return
 	}
 	if msg.Kind == moveMsgKindHover {
 		if msg.Bool {
-			m.hovered = 1
-			m.hoverPort = msg.Port
-			m.hoverIsInput = msg.IsInput
+			m.ui.hovered = 1
+			m.ui.hoverPort = msg.Port
+			m.ui.hoverIsInput = msg.IsInput
 		} else {
-			m.hovered = 0
-			m.hoverPort = ""
-			m.hoverIsInput = false
+			m.ui.hovered = 0
+			m.ui.hoverPort = ""
+			m.ui.hoverIsInput = false
 		}
 		return
 	}
 	if msg.Kind == moveMsgKindLatched {
 		if msg.Bool {
-			m.latchedSel = 1
+			m.ui.latchedSel = 1
 		} else {
-			m.latchedSel = 0
+			m.ui.latchedSel = 0
 		}
 		return
 	}
@@ -326,7 +229,7 @@ func (m *nodeGeometry) handle(msg moveMsg) {
 		if msg.Bool {
 			delta = 1
 		}
-		m.topTiltVectorThetaIdx += delta
+		m.tilt.topTiltVectorThetaIdx += delta
 		m.persistTiltVectorAngle()
 		if m.tr != nil {
 			m.emitGeometry()
@@ -343,7 +246,7 @@ func (m *nodeGeometry) handle(msg moveMsg) {
 		// Return THIS node's own vector direction to the start position — both indices to
 		// 0, the documented default (tilt vector at world +y). No bead: this is a
 		// stop-and-return, not a kick. Persisted immediately, same as an adjust.
-		m.topTiltVectorThetaIdx = 0
+		m.tilt.topTiltVectorThetaIdx = 0
 		m.persistTiltVectorAngle()
 		if m.tr != nil {
 			m.emitGeometry()
@@ -367,10 +270,10 @@ func (m *nodeGeometry) handle(msg moveMsg) {
 		// same effect as the old cross-goroutine snap read, just message-delivered.
 		// ONE HOP ONLY: this node's own center did NOT change, so it must never push
 		// a NeighborCenter of its own onward from here (no cascade past this point).
-		if m.partnerCenters == nil {
-			m.partnerCenters = map[string]vec3{}
+		if m.topo.partnerCenters == nil {
+			m.topo.partnerCenters = map[string]vec3{}
 		}
-		m.partnerCenters[msg.SenderID] = msg.FromCenter
+		m.topo.partnerCenters[msg.SenderID] = msg.FromCenter
 		if m.tr != nil {
 			// DIAGNOSTIC ONLY (task/log-node4-chain-aim): records that this node's own
 			// goroutine received a neighbor-center push, and from whom, so a drag-time
@@ -378,14 +281,14 @@ func (m *nodeGeometry) handle(msg moveMsg) {
 			value := fmt.Sprintf("sender=%s center=(%.4f,%.4f,%.4f)", msg.SenderID, msg.FromCenter.X, msg.FromCenter.Y, msg.FromCenter.Z)
 			m.tr.Breadcrumb("neighbor-center-recv", m.id, msg.SenderID, value)
 			senderRow := int32(-1)
-			if m.nodeRowFor != nil {
-				if r, ok := m.nodeRowFor(msg.SenderID); ok {
+			if m.topo.nodeRowFor != nil {
+				if r, ok := m.topo.nodeRowFor(msg.SenderID); ok {
 					senderRow = r
 				}
 			}
 			m.writeStreamFrame([]wire.RowEvent{{
 				Kind: T.KindBreadcrumb, Label: T.BreadcrumbNeighborCenterRecv, Debug: 1,
-				NodeRow: m.nodeRow, PortRow: -1, TargetRow: senderRow, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
+				NodeRow: m.stream.nodeRow, PortRow: -1, TargetRow: senderRow, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 				Text: value,
 			}})
 			m.emitGeometry()
@@ -422,7 +325,7 @@ const PerpendicularThetaIdx int32 = 6
 // node's own driving goroutine (handle's moveMsgKindCenter case, driven by fanCenters
 // below), which is what makes that one goroutine the exclusive writer of m.geom. It sets
 // the held polar position, pushes the fresh center to the dispatch goroutine's owned
-// center mirror (m.centerOut, latest-wins — see its doc comment) and to every direct
+// center mirror (m.msg.centerOut, latest-wins — see its doc comment) and to every direct
 // neighbor's partnerCenters map (below), and re-emits this node's live geometry.
 func (m *nodeGeometry) applyCenter(center vec3, reach float64) {
 	setNodeWorld(&m.geom, center)
@@ -431,23 +334,23 @@ func (m *nodeGeometry) applyCenter(center vec3, reach float64) {
 	// so the slot always ends up holding the newest center, never blocking this
 	// goroutine even if the dispatch goroutine hasn't drained the previous push yet.
 	select {
-	case <-m.centerOut:
+	case <-m.msg.centerOut:
 	default:
 	}
 	select {
-	case m.centerOut <- center:
+	case m.msg.centerOut <- center:
 	default:
 	}
-	// Push this fresh center to every direct neighbor (nm.neighborIn's key set — one
+	// Push this fresh center to every direct neighbor (nm.msg.neighborIn's key set — one
 	// hop, no cascade) so each neighbor's OWN partnerCenters map picks it up via
-	// moveMsgKindNeighborCenter (handle, below). Routed through m.sendMove (this
+	// moveMsgKindNeighborCenter (handle, below). Routed through m.msg.sendMove (this
 	// node's own retry queue), same as every other fan-out this file makes, so a
 	// momentarily-full neighbor inbox is retried, never dropped or blocking. Sent
 	// BEFORE this same commit's broadcastToEdgesAndPartners nil-Center re-emit (called
 	// right after applyCenter by every live caller), so per-destination FIFO delivers
 	// this push first and the re-emit always sees the just-pushed center.
-	for neighborID := range m.neighborIn {
-		m.sendMove(neighborID, moveMsg{Kind: moveMsgKindNeighborCenter, NodeID: neighborID,
+	for neighborID := range m.msg.neighborIn {
+		m.msg.sendMove(neighborID, moveMsg{Kind: moveMsgKindNeighborCenter, NodeID: neighborID,
 			SenderID: m.id, FromCenter: center})
 	}
 	if m.tr != nil {
@@ -468,7 +371,7 @@ func (m *nodeGeometry) emitGeometry() {
 	// its own NodeRow at the call site (owner_events.go) rather than routing through a
 	// shared accumulator.
 	m.writeStreamFrame([]wire.RowEvent{{
-		Kind: T.KindNodeGeometry, NodeRow: m.nodeRow,
+		Kind: T.KindNodeGeometry, NodeRow: m.stream.nodeRow,
 		PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1,
 	}})
 }
@@ -480,7 +383,7 @@ func (m *nodeGeometry) emitGeometry() {
 // driving goroutine, reading m.geom. events carries whatever this call's caller wants
 // riding this frame's trailing EVENTS section (nil from a plain tick-driven write).
 func (m *nodeGeometry) writeStreamFrame(events []wire.RowEvent) {
-	if !m.streamOut.Ok() || m.buildFrame == nil {
+	if !m.stream.streamOut.Ok() || m.stream.buildFrame == nil {
 		return
 	}
 	// INVARIANT: a node carries only its OWN events on its OWN dedicated stream. This is
@@ -488,17 +391,17 @@ func (m *nodeGeometry) writeStreamFrame(events []wire.RowEvent) {
 	// memory/feedback_no_single_writer_bridge.md + memory/feedback_per_goroutine_bridge.md,
 	// and until now it was enforced by prose alone. NodeRow is the ownership column; a
 	// FOREIGN node is referenced through TargetRow (see quantized_move.go's abc-drag
-	// breadcrumb, which sets NodeRow: nm.nodeRow and TargetRow: the other node). Violating
+	// breadcrumb, which sets NodeRow: nm.stream.nodeRow and TargetRow: the other node). Violating
 	// it produces a frame the TS side decodes onto the wrong row — a silently wrong scene
 	// that still renders, which is the expensive failure this panic converts into a cheap
 	// one. Placed AFTER the nil guard on purpose: bare geometries built in tests never
 	// reach the pack path, and nodeRow is seeded alongside streamOut (stream_wiring.go),
 	// so any frame that gets here has a real row.
 	for _, e := range events {
-		if e.NodeRow != m.nodeRow {
+		if e.NodeRow != m.stream.nodeRow {
 			panic(fmt.Sprintf(
 				"nodeGeometry.writeStreamFrame: node %q (row %d) is carrying a %s event for row %d on its OWN dedicated stream — NodeRow is an ownership claim, not a reference; a foreign node belongs in TargetRow",
-				m.id, m.nodeRow, e.Kind, e.NodeRow))
+				m.id, m.stream.nodeRow, e.Kind, e.NodeRow))
 		}
 	}
 	center := nodeWorldPos(m.geom)
@@ -519,24 +422,24 @@ func (m *nodeGeometry) writeStreamFrame(events []wire.RowEvent) {
 	// where a scene draws none (Buffer/layout.go's TopTiltVectorLen). It runs from the node's
 	// centre to its own top, so its length IS the node's radius.
 	var topTiltVectorLen float64
-	if m.upAxis && m.geom.HasPos && len(m.partnerCenters) == 1 {
+	if m.flags.upAxis && m.geom.HasPos && len(m.topo.partnerCenters) == 1 {
 		// UPRIGHT: the ring STANDS UP along its edge — its plane holds both the edge and
 		// world +y, so the node's own up-vector lies IN the ring's plane rather than
 		// sticking out of a flat disc. An axis of +y itself would lie the ring flat and
 		// put the vector perpendicular to it, which is the opposite arrangement.
-		for _, partner := range m.partnerCenters {
+		for _, partner := range m.topo.partnerCenters {
 			if t, p, ok := uprightRingAxis(nodeWorldPos(m.geom), partner); ok {
 				ringAxisTheta, ringAxisPhi = t, p
 			}
 		}
 		topTiltVectorLen = nodeRadius(m.geom.Kind)
-	} else if m.coplanarEdges && m.geom.HasPos && len(m.partnerCenters) == 1 {
+	} else if m.flags.coplanarEdges && m.geom.HasPos && len(m.topo.partnerCenters) == 1 {
 		// COPLANAR EDGES: swing the axis off the inward pole by the smallest amount that
 		// puts the edge INSIDE the ring plane — the inward pole with its along-the-edge
 		// component removed. The chain, this node's torus and the beads' own tori then
 		// share one plane instead of the chain running through the holes. Only for a node
 		// with exactly ONE neighbour: two non-collinear edges have no common plane.
-		for _, partner := range m.partnerCenters {
+		for _, partner := range m.topo.partnerCenters {
 			if t, p, ok := poleContainingEdge(poleTheta, polePhi, nodeWorldPos(m.geom), partner); ok {
 				ringAxisTheta, ringAxisPhi = t, p
 			}
@@ -549,7 +452,7 @@ func (m *nodeGeometry) writeStreamFrame(events []wire.RowEvent) {
 	// here one-way via PairNodeSelf.SetLatticePoints, so the same index draws a different
 	// angle depending on how many points that node's own ring currently has. Derived once
 	// per frame; every conversion below reads this local rather than recomputing it.
-	points := m.latticePoints
+	points := m.tilt.latticePoints
 	if points == 0 {
 		points = FullTurnThetaIdx
 	}
@@ -558,16 +461,16 @@ func (m *nodeGeometry) writeStreamFrame(events []wire.RowEvent) {
 	// axis above, so a scene/user can aim a node's vector somewhere other than its ring.
 	// Never a free float: index × latticeThetaStep (this node's own lattice step, above),
 	// the streamed value is pure arithmetic on the integer state this node's own mover
-	// holds and persists (m.topTiltVectorThetaIdx). There is no φ: every tilt vector in
+	// holds and persists (m.tilt.topTiltVectorThetaIdx). There is no φ: every tilt vector in
 	// this model is θ-only (task/drop-tilt-vector-phi).
-	topTiltVectorTheta := float64(m.topTiltVectorThetaIdx) * latticeThetaStep
+	topTiltVectorTheta := float64(m.tilt.topTiltVectorThetaIdx) * latticeThetaStep
 	// The BOTTOM TILT VECTOR: streamed straight from this node's own bottomThetaIdx,
 	// decided by THIS node's OWN goroutine (a half turn in θ from its own top
 	// tilt index, same rule run unmodified by both nodes of a pair — PairNode's bottomTilt)
 	// and reported one-way
 	// via PairNodeSelf.SetTiltIndex alongside the top and the normal. Pure mirror here, same
 	// as every other index on this frame: this mover derives none of them.
-	bottomTiltVectorTheta := float64(m.bottomThetaIdx) * latticeThetaStep
+	bottomTiltVectorTheta := float64(m.tilt.bottomThetaIdx) * latticeThetaStep
 	// The COPLANAR NORMAL: streamed straight from this node's own normalThetaIdx,
 	// which THIS node's OWN goroutine decided (a fixed +90° in θ from its
 	// own tilt index, same rule run unmodified by both nodes of a pair — PairNode's
@@ -575,7 +478,7 @@ func (m *nodeGeometry) writeStreamFrame(events []wire.RowEvent) {
 	// as topTiltVectorTheta above — it derives nothing from the edge/partner.
 	// Turning the tilt therefore visibly turns the drawn normal WITH it, staying 90° away,
 	// instead of the normal staying fixed toward the partner while the tilt moves under it.
-	coplanarNormalTheta := float64(m.normalThetaIdx) * latticeThetaStep
+	coplanarNormalTheta := float64(m.tilt.normalThetaIdx) * latticeThetaStep
 	// The THIRD vector: the direction last received on this node's tilt-vector channel
 	// (receivedVectorThetaIdx, mirrored one-way from this node's own goroutine —
 	// see the field's own doc comment). Same length-says-whether-and-how-far convention
@@ -585,15 +488,15 @@ func (m *nodeGeometry) writeStreamFrame(events []wire.RowEvent) {
 	// 0, which still streams a non-zero length.
 	var receivedVectorLen float64
 	var receivedVectorTheta float64
-	if m.receivedVectorSet {
+	if m.tilt.receivedVectorSet {
 		receivedVectorLen = nodeRadius(m.geom.Kind)
-		receivedVectorTheta = float64(m.receivedVectorThetaIdx) * latticeThetaStep
+		receivedVectorTheta = float64(m.tilt.receivedVectorThetaIdx) * latticeThetaStep
 	}
 	label := m.geom.Label
 	if label == "" {
 		label = m.id
 	}
-	selected, hovered, latchedSel, kindID := m.selected, m.hovered, m.latchedSel, m.kindID
+	selected, hovered, latchedSel, kindID := m.ui.selected, m.ui.hovered, m.ui.latchedSel, m.stream.kindID
 	// This node's own placeholder chain beads, node-local (chain_beads.go). Computed here
 	// on this node's own goroutine from its own center + its own partnerCenters map — no
 	// cross-goroutine position read.
@@ -606,9 +509,9 @@ func (m *nodeGeometry) writeStreamFrame(events []wire.RowEvent) {
 		events = append(events, chainBreadcrumbs...)
 	}
 	// nodeID is this node's own numeric identity: ROW ID = NODE ID - 1 (enforced at load,
-	// persistence-ownership.md), so it is m.nodeRow+1 by construction — not re-derived by any
+	// persistence-ownership.md), so it is m.stream.nodeRow+1 by construction — not re-derived by any
 	// offline rule the decoder also has to apply, it travels with the frame.
-	frame := m.buildFrame(uint32(m.clk.Tick()), m.nodeRow, m.nodeRow+1,
+	frame := m.stream.buildFrame(uint32(m.clocks.clk.Tick()), m.stream.nodeRow, m.stream.nodeRow+1,
 		float32(center.X), float32(center.Y), float32(center.Z),
 		float32(nodeRadius(m.geom.Kind)), float32(sphereR),
 		verticalRingNormalX, verticalRingNormalY, verticalRingNormalZ,
@@ -618,17 +521,17 @@ func (m *nodeGeometry) writeStreamFrame(events []wire.RowEvent) {
 		float32(bottomTiltVectorTheta),
 		float32(coplanarNormalTheta),
 		float32(receivedVectorLen), float32(receivedVectorTheta),
-		selected, kindID, hovered, latchedSel, uint8(points), m.roundsToParallel, m.msgsToParallel,
+		selected, kindID, hovered, latchedSel, uint8(points), m.readout.roundsToParallel, m.readout.msgsToParallel,
 		label, chainOX, chainOY, chainOZ, chainLit, chainLitVal, events)
 	var hdr [4]byte
 	binary.LittleEndian.PutUint32(hdr[:], uint32(len(frame)))
 	// Fire-and-forget, same reasoning throughout this bridge: no delivery
 	// guarantee on this channel, errors ignored.
-	_, _ = m.streamOut.Write(hdr[:])
-	_, _ = m.streamOut.Write(frame)
+	_, _ = m.stream.streamOut.Write(hdr[:])
+	_, _ = m.stream.streamOut.Write(frame)
 }
 
-// flushPending retries every message in m.pending in order, attempting a non-blocking
+// flushPending retries every message in m.msg.pending in order, attempting a non-blocking
 // send to its destination's inbox. A destination whose channel is momentarily full
 // stays in the queue (retried next call) — and so does every LATER item addressed to
 // that SAME destination, even if its own channel isn't full, so per-destination FIFO
@@ -637,17 +540,17 @@ func (m *nodeGeometry) writeStreamFrame(events []wire.RowEvent) {
 // matching the old deliverMove no-op for an unknown id. Called only from m's own
 // driving goroutine (sendMove, at enqueue time, and the driving loop, every cycle).
 func (m *nodeGeometry) flushPending() {
-	if len(m.pending) == 0 || m.resolveDest == nil {
+	if len(m.msg.pending) == 0 || m.msg.resolveDest == nil {
 		return
 	}
 	blocked := map[string]bool{}
-	kept := m.pending[:0]
-	for _, item := range m.pending {
+	kept := m.msg.pending[:0]
+	for _, item := range m.msg.pending {
 		if blocked[item.destID] {
 			kept = append(kept, item)
 			continue
 		}
-		ch, ok := m.resolveDest(item.destID)
+		ch, ok := m.msg.resolveDest(item.destID)
 		if !ok {
 			continue
 		}
@@ -658,5 +561,5 @@ func (m *nodeGeometry) flushPending() {
 			kept = append(kept, item)
 		}
 	}
-	m.pending = kept
+	m.msg.pending = kept
 }

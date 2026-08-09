@@ -34,15 +34,15 @@ import (
 // not a bug: the sender keeps the message in its own pending queue and retries, which
 // is the designed backpressure. The thing that actually grows unbounded when an inbox
 // stays full is that retry queue (nodeMover.pending) — ITS bound (maxPendingSends,
-// below) IS asserted, and enforced where nm.pending is checked in flushPending. Naming
+// below) IS asserted, and enforced where nm.msg.pending is checked in flushPending. Naming
 // this constant is the "declared" half of the rule; the "asserted" half belongs to
 // that queue, not to this capacity.
 const moverInboxDepth = 8
 
-// maxPendingSends is the declared, asserted upper bound on len(nm.pending) between
+// maxPendingSends is the declared, asserted upper bound on len(nm.msg.pending) between
 // flushPending calls (enforced below; see pending_bound_test.go). GENEROUS ceiling,
 // not a tight derivation, same honesty as maxPendingEvents/maxInflightBeads in
-// nodes/wire/paced_wire.go: nm.pending's own drain rate isn't a function of
+// nodes/wire/paced_wire.go: nm.msg.pending's own drain rate isn't a function of
 // moverInboxDepth (flushPending only ever attempts ONE real send per blocked
 // destination per cycle — every later item to that same destination is
 // retained WITHOUT an attempt, to preserve FIFO — so a bigger peer inbox
@@ -110,22 +110,22 @@ func (mr *moverRegistry) bind(outSink map[string]*wire.Out, slotReg SlotRegistry
 			// concretely, and it is why the node can read the fraction without touching
 			// another goroutine's state.
 			if srcNM, ok := mr.nodeGeoms[em.srcID]; ok {
-				srcNM.outWires = append(srcNM.outWires, pw)
-				srcNM.outWireTargets = append(srcNM.outWireTargets, em.dstID)
+				srcNM.outs.outWires = append(srcNM.outs.outWires, pw)
+				srcNM.outs.outWireTargets = append(srcNM.outs.outWireTargets, em.dstID)
 				// Parallel to outWires: the source *Out this edge's step count is
 				// PUBLISHED through (chainBeads calls PublishSteps on it — see
 				// outWireOuts' doc comment). o may be nil if this edge's source handle
 				// wasn't found in outSink; chainBeads then just skips publishing for
 				// this edge (it still lays the chain out — the step count is computed
 				// locally either way, see edgeStepCount).
-				srcNM.outWireOuts = append(srcNM.outWireOuts, o)
+				srcNM.outs.outWireOuts = append(srcNM.outs.outWireOuts, o)
 				// Parallel to outWires/outWireOuts: this edge's OWN edgeMover.stepsIn
 				// channel (edge_mover.go's doc comment) — the second delivery
 				// chainBeads makes alongside PublishSteps, so the edgeMover's own
 				// goroutine (which cannot read the Out directly — see stepsIn's doc
 				// comment) can revise an in-flight bead's remaining travel against the
 				// same freshly computed count.
-				srcNM.outStepsIn = append(srcNM.outStepsIn, em.stepsIn)
+				srcNM.outs.outStepsIn = append(srcNM.outs.outStepsIn, em.stepsIn)
 			}
 		}
 	}
@@ -211,7 +211,7 @@ func (mr *moverRegistry) drainCenterMirror() {
 	}
 	for id, nm := range mr.nodeGeoms {
 		select {
-		case c := <-nm.centerOut:
+		case c := <-nm.msg.centerOut:
 			mr.centerMirror[id] = c
 		default:
 		}
@@ -253,18 +253,18 @@ func (mr *moverRegistry) sendMove(ctx context.Context, id string, msg moveMsg) {
 	// blocking send there (matches prior test behavior; no shutdown path exists in
 	// that setting anyway).
 	if ctx == nil {
-		nm.extIn <- msg
+		nm.msg.extIn <- msg
 		return
 	}
 	select {
-	case nm.extIn <- msg:
+	case nm.msg.extIn <- msg:
 	case <-ctx.Done():
 	}
 }
 
 // enqueueFor returns nm's own non-blocking send function: it fires nm's own tap (at
 // enqueue time, so tap-based tests' counts/ordering match today's behavior — a plain
-// nil check + direct call, since nm.tap is owned and read only by nm's own goroutine,
+// nil check + direct call, since nm.msg.tap is owned and read only by nm's own goroutine,
 // which is the only caller of the closure returned here), appends the message to nm's
 // own pending retry queue, and attempts an immediate flush — never blocking the calling
 // handler goroutine. Bound once per node at construction (nm.sendMove = md.enqueueFor(nm))
@@ -274,12 +274,12 @@ func (mr *moverRegistry) sendMove(ctx context.Context, id string, msg moveMsg) {
 // queue (there is no shared outbox to route through anymore).
 func (mr *moverRegistry) enqueueFor(nm *nodeGeometry) func(id string, msg moveMsg) {
 	return func(id string, msg moveMsg) {
-		if nm.tap != nil {
-			nm.tap(id, msg)
+		if nm.msg.tap != nil {
+			nm.msg.tap(id, msg)
 		}
-		nm.pending = append(nm.pending, pendingSend{destID: id, msg: msg})
+		nm.msg.pending = append(nm.msg.pending, pendingSend{destID: id, msg: msg})
 		nm.flushPending()
-		if len(nm.pending) > maxPendingSends {
+		if len(nm.msg.pending) > maxPendingSends {
 			// Named causes, checked against flushPending's actual behaviour (not
 			// guessed): an item whose destID doesn't resolve is DROPPED, not
 			// retained (flushPending's `!ok` branch), so an unresolvable

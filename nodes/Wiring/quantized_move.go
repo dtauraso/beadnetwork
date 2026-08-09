@@ -71,7 +71,7 @@ func (lq *layoutQuantizer) heldEdges(md *MoveDispatch) []sphereEdge {
 func (lq *layoutQuantizer) broadcastToEdgesAndPartners(md *MoveDispatch, newCenters map[string]vec3, enqueue func(id string, msg moveMsg)) {
 	// Per-edge: send ONE batched message carrying every moved endpoint of that edge,
 	// so an edge whose both endpoints moved this frame recomputes/emits exactly once.
-	// enqueue (the sending node's own retry queue — nm.sendMove) appends the
+	// enqueue (the sending node's own retry queue — nm.msg.sendMove) appends the
 	// message to nm.pending and attempts an immediate non-blocking send on the
 	// destination's own directed channel (extIn or the sender's slot in the
 	// destination's neighborIn map), retrying next cycle if that channel isn't ready
@@ -176,14 +176,14 @@ type touchingBead struct {
 //     is the bead one step back toward the neighbour:
 //     beadSource = beadCentre + aimDir*wire.BeadStepR
 //     With exactly one bead, there is no predecessor bead — the chain's own origin is the
-//     NEIGHBOUR's torus surface (nm.neighborKinds gives the neighbour's kind, derived from
+//     NEIGHBOUR's torus surface (nm.topo.neighborKinds gives the neighbour's kind, derived from
 //     domain adjacency at load — see build.go — so every direct neighbour has an entry):
 //     beadSource = neighborCenter - aimDir*nodeTorusOuterR(neighborKind)
 func dragTouchingBeads(md *MoveDispatch, nm *nodeGeometry, prevPos vec3) []touchingBead {
 	nodeID := nm.id
 	selfTorusR := nodeTorusOuterR(nm.selfKind)
-	out := make([]touchingBead, 0, len(nm.edgeIDs))
-	for _, edgeID := range nm.edgeIDs {
+	out := make([]touchingBead, 0, len(nm.topo.edgeIDs))
+	for _, edgeID := range nm.topo.edgeIDs {
 		em, ok := md.mr.edgeMovers[edgeID]
 		if !ok {
 			continue
@@ -193,7 +193,7 @@ func dragTouchingBeads(md *MoveDispatch, nm *nodeGeometry, prevPos vec3) []touch
 		if isSource {
 			neighborID = em.dstID
 		}
-		neighborCenter, ok := nm.partnerCenters[neighborID]
+		neighborCenter, ok := nm.topo.partnerCenters[neighborID]
 		if !ok {
 			continue
 		}
@@ -221,7 +221,7 @@ func dragTouchingBeads(md *MoveDispatch, nm *nodeGeometry, prevPos vec3) []touch
 		//     dragging toward admitted an add whose implied centre sat ~31 world units
 		//     away. Hence: drag far in most directions and nothing happens; drag the other
 		//     way and the node jumps.
-		neighborKind := nm.neighborKinds[neighborID]
+		neighborKind := nm.topo.neighborKinds[neighborID]
 		count := edgeStepCount(dist, neighborKind, nm.selfKind)
 		var beadSource vec3
 		if count >= 2 {
@@ -252,14 +252,14 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeGeometr
 	// SOURCE, from that edge's Target) — each direct neighbor's last-pushed
 	// CARTESIAN center is read from THIS node's OWN partnerCenters map (nm.
 	// partnerCenters, kept current by every neighbor's applyCenter push — see its
-	// doc comment), resolved via nm.edgeIDs (this node's own incident edges, fixed
+	// doc comment), resolved via nm.topo.edgeIDs (this node's own incident edges, fixed
 	// at construction; every edgeIDs neighbor is by construction a key of
 	// nm.neighborIn, the same set partnerCenters is seeded/kept from). scene polar
 	// is a pure re-derive off the fixed, write-once md.ui.sceneSphere.Center (never
 	// mutated after load), so this stays race-free with no cross-goroutine read at
 	// all now (this runs on nm's own goroutine, reading nm's own map).
 	polars := map[string]polar{}
-	for _, edgeID := range nm.edgeIDs {
+	for _, edgeID := range nm.topo.edgeIDs {
 		em, ok := md.mr.edgeMovers[edgeID]
 		if !ok {
 			continue
@@ -268,7 +268,7 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeGeometr
 		if neighborID == nodeID {
 			neighborID = em.dstID
 		}
-		if c, ok := nm.partnerCenters[neighborID]; ok {
+		if c, ok := nm.topo.partnerCenters[neighborID]; ok {
 			polars[neighborID] = cart2polar(c.Sub(md.ui.sceneSphere.Center))
 		}
 	}
@@ -355,7 +355,7 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeGeometr
 			nm.tr.Breadcrumb("bead-crud", nodeID, "", value)
 			nm.writeStreamFrame([]wire.RowEvent{{
 				Kind: T.KindBreadcrumb, Label: T.BreadcrumbBeadCrud, Debug: 1,
-				NodeRow: nm.nodeRow, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
+				NodeRow: nm.stream.nodeRow, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 				Text: value,
 			}})
 		}
@@ -365,7 +365,7 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeGeometr
 	reach := reachRFromPolar(polars, edges)
 
 	nm.applyCenter(committedPos, reach[nodeID])
-	lq.broadcastToEdgesAndPartners(md, map[string]vec3{nodeID: committedPos}, nm.sendMove)
+	lq.broadcastToEdgesAndPartners(md, map[string]vec3{nodeID: committedPos}, nm.msg.sendMove)
 
 	// PERSIST ON EVERY DRAG, both modes. This used to sit inside `if lq.quantizedLayout`,
 	// which silently stopped saving the moment a scene chose the continuous drag: the node
