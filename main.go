@@ -97,28 +97,58 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 		fmt.Fprintf(os.Stderr, "load topology: %v\n", err)
 		os.Exit(1)
 	}
-	// The per-edge dedicated stream (memory/feedback_no_single_writer_bridge.md): when
-	// WIREFOLD_STREAM_FDS carries an "edge" entry, wire every edgeMover to its OWN fd
-	// (fd = baseFd + edgeRow, edgeRow = the stable seed order — see
-	// MoveDispatch.SetEdgeStreams). No edges (edgeBase absent) leaves every edgeMover's
-	// streamOut at its zero value (nil) — there is nothing to stream.
-	//
-	// REPORT the asymmetry rather than skipping it silently. A graph that loaded N edges
-	// but received no edge fds streams nothing, so the editor draws no edges — and without
-	// this message that is indistinguishable from a broken edge path, sending the reader
-	// through the code (disk layout, bundle freshness, recent merges) when the cause is
-	// operational: a VS Code extension host left running across a change, holding older fd
-	// plumbing. Reopening a file does not restart it; only "Developer: Reload Window" does
-	// (memory/feedback_two_process_editor_reload.md).
-	//
-	// This is the same class runCommand.ts's MAX_EDGE_STREAMS overflow was fixed for in
-	// 93d2e9b6, and its reasoning applies verbatim: silently disabling every dedicated
-	// per-edge stream is "the quietest possible failure for the loudest consequence."
-	// That fix covered the count-too-large case on the TS side; this covers the fds-absent
-	// case on the Go side, which is the one an operator actually hits.
-	//
-	// Not fatal: a deliberate no-fd launch (headless runs, tools with no dedicated pipes)
-	// is legitimate input, exactly like a large topology. Loud, not dead.
+	wireEdgeStreams(streamFDs, md)
+	wireNodeStreams(streamFDs, md)
+	wireViewStream(md, viewFile, viewStreamWired, sceneTabNames, sceneTabSelected)
+	emitStartupBreadcrumbs(tr, md, scenePath, len(nodes))
+	checkRowSeedCount(tr, md, len(nodes))
+	loadSceneState(scenePath, md, tr, speedSinks)
+
+	// Arm tab switching. The ANCHOR (not scenePath) is what the selection is persisted
+	// against — it is the one path that is the same whichever tab is showing. cancel ends
+	// this run; the extension host's runner is looping, so it respawns against the same
+	// anchor and this function re-resolves the newly selected scene above.
+	md.EnableSceneSwitch(topologyPath, cancel)
+
+	// Launch the per-node and per-edge move-handler goroutines (decentralized
+	// node-move: each node/edge drains its own inbox and recomputes its own geometry).
+	// moverWG covers every nodeMover/edgeMover goroutine Start launched (see its doc
+	// comment). Waiting on it is what lets Close() run with nothing still emitting —
+	// the reason Trace needs no mutex.
+	moverWG := md.Start(ctx)
+
+	stdinWG := startStdinReader(ctx, cancel, slotReg, md, tr, speedSinks)
+	wg := launchNodeGoroutines(ctx, nodes)
+	joinAll(wg, moverWG, stdinWG)
+}
+
+// wireEdgeStreams reports the edge-fd asymmetry (loaded edges but no "edge" entry) and,
+// when the entry IS present, wires every edgeMover to its own dedicated fd. Report first,
+// then wire — the same order as before this was a named phase.
+//
+// The per-edge dedicated stream (memory/feedback_no_single_writer_bridge.md): when
+// WIREFOLD_STREAM_FDS carries an "edge" entry, wire every edgeMover to its OWN fd
+// (fd = baseFd + edgeRow, edgeRow = the stable seed order — see
+// MoveDispatch.SetEdgeStreams). No edges (edgeBase absent) leaves every edgeMover's
+// streamOut at its zero value (nil) — there is nothing to stream.
+//
+// REPORT the asymmetry rather than skipping it silently. A graph that loaded N edges
+// but received no edge fds streams nothing, so the editor draws no edges — and without
+// this message that is indistinguishable from a broken edge path, sending the reader
+// through the code (disk layout, bundle freshness, recent merges) when the cause is
+// operational: a VS Code extension host left running across a change, holding older fd
+// plumbing. Reopening a file does not restart it; only "Developer: Reload Window" does
+// (memory/feedback_two_process_editor_reload.md).
+//
+// This is the same class runCommand.ts's MAX_EDGE_STREAMS overflow was fixed for in
+// 93d2e9b6, and its reasoning applies verbatim: silently disabling every dedicated
+// per-edge stream is "the quietest possible failure for the loudest consequence."
+// That fix covered the count-too-large case on the TS side; this covers the fds-absent
+// case on the Go side, which is the one an operator actually hits.
+//
+// Not fatal: a deliberate no-fd launch (headless runs, tools with no dedicated pipes)
+// is legitimate input, exactly like a large topology. Loud, not dead.
+func wireEdgeStreams(streamFDs B.StreamFDs, md *W.MoveDispatch) {
 	if _, edgeFDsWired := streamFDs[B.StreamKindEdge]; !edgeFDsWired {
 		if n := len(md.EdgeSeeds()); n > 0 {
 			fmt.Fprintf(os.Stderr,
@@ -138,23 +168,31 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 				return B.BuildEdgeStreamFrame(tick, sx, sy, sz, ex, ey, ez, selected, label, toStreamEvents(events))
 			})
 	}
-	// The two per-node dedicated streams (memory/feedback_no_single_writer_bridge.md):
-	// NODE (geometry+ports+label, written by each nodeMover) and INTERIOR (interior
-	// beads, written by each node's OWN Update goroutine — the SECOND emitting goroutine
-	// per node). Both require the SAME "node" AND "interior" WIREFOLD_STREAM_FDS entries
-	// (a node stream with no interior counterpart, or vice versa, would leave one of the
-	// two goroutines with nowhere fresh to write while the other has one — so both are
-	// required together).
-	//
-	// The "both required together" rule above is enforced by a silent skip: one entry
-	// present without the other leaves BOTH streams unwired and says nothing. Same class
-	// as the edge case, and harder to spot because the half that IS wired looks healthy.
-	// "drive" joins "node"/"interior" as a THIRD entry now required in lockstep: it is
-	// the per-gatecommon.DriveHeld-goroutine fd (Buffer.StreamKindDrive,
-	// docs/interior-stream-framing.md's fix) — a node with a DriveHeld drive goroutine
-	// needs it exactly as much as it needs "interior", or that goroutine falls back to
-	// writing nothing (a quieter failure than the pre-fix framing desync, but still a
-	// silent one) rather than sharing the node's own interior fd (the original bug).
+}
+
+// wireNodeStreams wires the two per-node dedicated streams (NODE and INTERIOR) plus the
+// per-drive-goroutine one, and reports the "all three required together" asymmetry first.
+// The prose below is the record of the silent-skip failure mode this phase exists to make
+// loud — it travels with this code.
+//
+// The two per-node dedicated streams (memory/feedback_no_single_writer_bridge.md):
+// NODE (geometry+ports+label, written by each nodeMover) and INTERIOR (interior
+// beads, written by each node's OWN Update goroutine — the SECOND emitting goroutine
+// per node). Both require the SAME "node" AND "interior" WIREFOLD_STREAM_FDS entries
+// (a node stream with no interior counterpart, or vice versa, would leave one of the
+// two goroutines with nowhere fresh to write while the other has one — so both are
+// required together).
+//
+// The "both required together" rule above is enforced by a silent skip: one entry
+// present without the other leaves BOTH streams unwired and says nothing. Same class
+// as the edge case, and harder to spot because the half that IS wired looks healthy.
+// "drive" joins "node"/"interior" as a THIRD entry now required in lockstep: it is
+// the per-gatecommon.DriveHeld-goroutine fd (Buffer.StreamKindDrive,
+// docs/interior-stream-framing.md's fix) — a node with a DriveHeld drive goroutine
+// needs it exactly as much as it needs "interior", or that goroutine falls back to
+// writing nothing (a quieter failure than the pre-fix framing desync, but still a
+// silent one) rather than sharing the node's own interior fd (the original bug).
+func wireNodeStreams(streamFDs B.StreamFDs, md *W.MoveDispatch) {
 	_, nodeFDsWired := streamFDs[B.StreamKindNode]
 	_, interiorFDsWired := streamFDs[B.StreamKindInterior]
 	_, driveFDsWired := streamFDs[B.StreamKindDrive]
@@ -193,13 +231,18 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 				B.NodeKindID)
 		}
 	}
-	// The VIEW stream's write side (Step C, memory/feedback_no_single_writer_bridge.md): wire md as the
-	// stream's owner/writer BEFORE anything that can change camera/overlay/scene-sphere/
-	// selection/hover reaches it (SeedInitialViewpoint/LoadOverlays/LoadSceneSphere below,
-	// then the launched movers/stdin reader) — mirrors SetEdgeStreams/SetNodeStreams'
-	// "wire before it can fire" ordering above. Only when the dedicated fd is actually
-	// wired (viewStreamWired) — left uncalled otherwise (no WIREFOLD_STREAM_FDS "view"
-	// entry, e.g. a non-extension launch with no dedicated pipes at all).
+}
+
+// wireViewStream makes md the VIEW stream's owner/writer.
+//
+// The VIEW stream's write side (Step C, memory/feedback_no_single_writer_bridge.md): wire md as the
+// stream's owner/writer BEFORE anything that can change camera/overlay/scene-sphere/
+// selection/hover reaches it (SeedInitialViewpoint/LoadOverlays/LoadSceneSphere below,
+// then the launched movers/stdin reader) — mirrors SetEdgeStreams/SetNodeStreams'
+// "wire before it can fire" ordering above. Only when the dedicated fd is actually
+// wired (viewStreamWired) — left uncalled otherwise (no WIREFOLD_STREAM_FDS "view"
+// entry, e.g. a non-extension launch with no dedicated pipes at all).
+func wireViewStream(md *W.MoveDispatch, viewFile *os.File, viewStreamWired bool, sceneTabNames []string, sceneTabSelected int) {
 	if viewStreamWired {
 		md.SetViewStream(viewFile,
 			func(tick uint32,
@@ -238,9 +281,14 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 					toStreamEvents(events))
 			})
 	}
+}
+
+// emitStartupBreadcrumbs announces which scene loaded, on both the breadcrumb channel and
+// the VIEW stream. nodeCount is len(nodes) from LoadTopology.
+func emitStartupBreadcrumbs(tr *T.Trace, md *W.MoveDispatch, scenePath string, nodeCount int) {
 	// One example startup breadcrumb — proves the debug channel end-to-end and is genuinely
 	// useful (which topology loaded, how many nodes). Sparse: once per run.
-	tr.Breadcrumb("topology-loaded", scenePath, "", fmt.Sprintf("nodes=%d", len(nodes)))
+	tr.Breadcrumb("topology-loaded", scenePath, "", fmt.Sprintf("nodes=%d", nodeCount))
 	// Structured buffer counterpart: rides the VIEW stream (no per-node stream exists
 	// yet for a startup-only event, and this runs on the main goroutine before any
 	// per-node/edge/interior goroutine exists). topologyPath is genuinely free-form
@@ -248,37 +296,47 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 	// the typed Value column.
 	md.EmitBreadcrumb(wire.RowEvent{
 		Label: T.BreadcrumbTopologyLoaded, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
-		Value: int32(len(nodes)), Text: scenePath,
+		Value: int32(nodeCount), Text: scenePath,
 	})
+}
 
-	// Sparse, one-time startup sanity check (CLAUDE.md DEBUG BREADCRUMB channel): every
-	// node LoadTopology returned should have a row-seed entry (md.NodeSeeds(), the SAME
-	// spec-order row table nodes/Wiring's own move-dispatch/stream wiring above already
-	// uses). A mismatch means md.NodeSeeds() (spec order) and LoadTopology's node list
-	// diverged — a real topology bug — and must be visible.
-	if len(md.NodeSeeds()) != len(nodes) {
-		tr.Breadcrumb("row-seed-count-mismatch", "", "", fmt.Sprintf("NodeSeeds=%d nodes=%d", len(md.NodeSeeds()), len(nodes)))
+// checkRowSeedCount is the row-seed sanity check. nodeCount is len(nodes).
+//
+// Sparse, one-time startup sanity check (CLAUDE.md DEBUG BREADCRUMB channel): every
+// node LoadTopology returned should have a row-seed entry (md.NodeSeeds(), the SAME
+// spec-order row table nodes/Wiring's own move-dispatch/stream wiring above already
+// uses). A mismatch means md.NodeSeeds() (spec order) and LoadTopology's node list
+// diverged — a real topology bug — and must be visible.
+func checkRowSeedCount(tr *T.Trace, md *W.MoveDispatch, nodeCount int) {
+	if len(md.NodeSeeds()) != nodeCount {
+		tr.Breadcrumb("row-seed-count-mismatch", "", "", fmt.Sprintf("NodeSeeds=%d nodes=%d", len(md.NodeSeeds()), nodeCount))
 		// Structured buffer counterpart, VIEW stream (same reasoning as
 		// topology-loaded above). Value=NodeSeeds count, X=nodes count — both
 		// small typed ints, no free-form text needed.
 		md.EmitBreadcrumb(wire.RowEvent{
 			Label: T.BreadcrumbRowSeedCountMismatch, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
-			Value: int32(len(md.NodeSeeds())), X: float64(len(nodes)),
+			Value: int32(len(md.NodeSeeds())), X: float64(nodeCount),
 		})
 	}
+}
 
-	// Initial camera viewpoint = FILE DATA. Go reads the saved camera from
-	// <topologyPath>/view/camera.json itself and installs it into the gesture-FSM viewpoint,
-	// so the buffer camera columns carry a real, non-degenerate saved pose from the first
-	// frame (pan works immediately). Absent/malformed file → a fixed non-degenerate default.
-	//
-	// The buffer's node/edge/port row-identity tables now live ON md itself (built once at
-	// load, in newMoveDispatch's buildRowTables call, from the same spec-order nodeSeeds/
-	// edgeSeeds each per-owner stream frame uses below) — a node/edge/port hit (which
-	// carries only a numeric buffer row index) resolves back to its identity via
-	// md.LookupNodeRow/LookupEdgeRow/LookupPortRow with no separate resolver wiring.
-	// Initial camera viewpoint = FILE DATA: Go reads the saved camera from
-	// <topologyPath>/view/camera.json and installs it into the gesture-FSM viewpoint.
+// loadSceneState installs the saved camera / distance groups / overlays / speed / scene
+// sphere, arming each persist writer AFTER its own seed. The ordering inside is the whole
+// content of this phase — do not reorder it.
+//
+// Initial camera viewpoint = FILE DATA. Go reads the saved camera from
+// <topologyPath>/view/camera.json itself and installs it into the gesture-FSM viewpoint,
+// so the buffer camera columns carry a real, non-degenerate saved pose from the first
+// frame (pan works immediately). Absent/malformed file → a fixed non-degenerate default.
+//
+// The buffer's node/edge/port row-identity tables now live ON md itself (built once at
+// load, in newMoveDispatch's buildRowTables call, from the same spec-order nodeSeeds/
+// edgeSeeds each per-owner stream frame uses below) — a node/edge/port hit (which
+// carries only a numeric buffer row index) resolves back to its identity via
+// md.LookupNodeRow/LookupEdgeRow/LookupPortRow with no separate resolver wiring.
+// Initial camera viewpoint = FILE DATA: Go reads the saved camera from
+// <topologyPath>/view/camera.json and installs it into the gesture-FSM viewpoint.
+func loadSceneState(scenePath string, md *W.MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
 	W.SeedInitialViewpoint(scenePath, md, tr)
 	// Does THIS scene own the three named distance groups? Resolve before anything emits a
 	// VIEW frame, since that frame carries the three group lengths. Not file data — it is a
@@ -309,34 +367,26 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 	// running; installing it after Start left md.sceneSphere written unsynchronized
 	// while the mover/gesture goroutines could already read it on the drag path.
 	md.LoadSceneSphere(scenePath)
+}
 
-	// Arm tab switching. The ANCHOR (not scenePath) is what the selection is persisted
-	// against — it is the one path that is the same whichever tab is showing. cancel ends
-	// this run; the extension host's runner is looping, so it respawns against the same
-	// anchor and this function re-resolves the newly selected scene above.
-	md.EnableSceneSwitch(topologyPath, cancel)
-
-	// Launch the per-node and per-edge move-handler goroutines (decentralized
-	// node-move: each node/edge drains its own inbox and recomputes its own geometry).
-	// moverWG covers every nodeMover/edgeMover goroutine Start launched (see its doc
-	// comment). Waiting on it is what lets Close() run with nothing still emitting —
-	// the reason Trace needs no mutex.
-	moverWG := md.Start(ctx)
-
-	// Read the editor→Go bridge: "edit" JSON lines (op = create/update/delete)
-	// from stdin. When stdin reaches EOF (extension host disconnect), cancel the context.
-	//
-	// stdinWG tracks ONLY this dispatch-loop goroutine, not RunStdinReader's internal
-	// frame-reader goroutine. That inner goroutine blocks in io.ReadFull(os.Stdin),
-	// which does NOT select on ctx — it is unblocked only by closing the fd (which
-	// RunStdinReader itself arranges when r is an io.Closer and ctx is done). On a
-	// non-pollable fd that close could still leave the read parked, so waiting on it
-	// here would turn a leak into a hang. RunStdinReader's dispatch loop, in contrast,
-	// selects on ctx.Done() and returns immediately on cancel regardless of the frame
-	// reader's state — that promptness is what stdinWG actually certifies. The frame
-	// reader goroutine is deliberately left un-waited (detached); in production it
-	// outlives the process only as long as it takes the OS to tear down the closed fd,
-	// which is bounded by process exit, not by this WaitGroup.
+// startStdinReader launches the editor→Go bridge dispatch loop and returns the WaitGroup
+// that tracks ONLY that loop.
+//
+// Read the editor→Go bridge: "edit" JSON lines (op = create/update/delete)
+// from stdin. When stdin reaches EOF (extension host disconnect), cancel the context.
+//
+// stdinWG tracks ONLY this dispatch-loop goroutine, not RunStdinReader's internal
+// frame-reader goroutine. That inner goroutine blocks in io.ReadFull(os.Stdin),
+// which does NOT select on ctx — it is unblocked only by closing the fd (which
+// RunStdinReader itself arranges when r is an io.Closer and ctx is done). On a
+// non-pollable fd that close could still leave the read parked, so waiting on it
+// here would turn a leak into a hang. RunStdinReader's dispatch loop, in contrast,
+// selects on ctx.Done() and returns immediately on cancel regardless of the frame
+// reader's state — that promptness is what stdinWG actually certifies. The frame
+// reader goroutine is deliberately left un-waited (detached); in production it
+// outlives the process only as long as it takes the OS to tear down the closed fd,
+// which is bounded by process exit, not by this WaitGroup.
+func startStdinReader(ctx context.Context, cancel context.CancelFunc, slotReg W.SlotRegistry, md *W.MoveDispatch, tr *T.Trace, speedSinks []chan float64) *sync.WaitGroup {
 	stdinWG := new(sync.WaitGroup)
 	stdinWG.Add(1)
 	go func() {
@@ -344,7 +394,12 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 		W.RunStdinReader(ctx, os.Stdin, slotReg, md, tr, speedSinks)
 		cancel()
 	}()
+	return stdinWG
+}
 
+// launchNodeGoroutines starts every node's own Update loop and returns the WaitGroup
+// covering them.
+func launchNodeGoroutines(ctx context.Context, nodes []wire.Node) *sync.WaitGroup {
 	wg := new(sync.WaitGroup)
 	wg.Add(len(nodes))
 	for _, node := range nodes {
@@ -353,14 +408,19 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 			node.Update(ctx)
 		}()
 	}
+	return wg
+}
 
-	// Wait for every tracked goroutine to exit — node Update loops, nodeMover/
-	// edgeMover goroutines, and the stdin dispatch loop — before closing the trace.
-	// No grace timeout: every one of these goroutines' only blocking call is
-	// SleepCycle, which selects on ctx.Done(), so cancel-to-return is bounded by one
-	// clock tick (~16ms), not by an arbitrary grace window. If a goroutine ever fails
-	// to exit, wg.Wait() below hangs visibly instead of silently proceeding past a
-	// still-running goroutine — a hang names the bug; a grace timeout hides it.
+// joinAll blocks until every tracked goroutine has exited.
+//
+// Wait for every tracked goroutine to exit — node Update loops, nodeMover/
+// edgeMover goroutines, and the stdin dispatch loop — before closing the trace.
+// No grace timeout: every one of these goroutines' only blocking call is
+// SleepCycle, which selects on ctx.Done(), so cancel-to-return is bounded by one
+// clock tick (~16ms), not by an arbitrary grace window. If a goroutine ever fails
+// to exit, wg.Wait() below hangs visibly instead of silently proceeding past a
+// still-running goroutine — a hang names the bug; a grace timeout hides it.
+func joinAll(wg, moverWG, stdinWG *sync.WaitGroup) {
 	done := make(chan struct{})
 	go func() {
 		wg.Wait()
