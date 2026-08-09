@@ -524,7 +524,7 @@ func TestFilterPorts_SplitsByDirection(t *testing.T) {
 	}
 }
 
-// --- ast_parse.go: parsePortsFromAST / parseSpecMD / parseGoKindName -------
+// --- ast_ports.go/spec_md.go/ast_kind.go: parsePortsFromAST / parseSpecMD / parseGoKindName -------
 
 func writeFile(t *testing.T, dir, name, contents string) {
 	t.Helper()

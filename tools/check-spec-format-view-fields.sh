@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 #
-# PLACEMENT: nodes/SPEC-FORMAT.md,tools/gen-node-defs/ast_parse.go | the `## View` field table must name exactly the view.* fields parseSpecMD reads
+# PLACEMENT: nodes/SPEC-FORMAT.md,tools/gen-node-defs/spec_md.go | the `## View` field table must name exactly the view.* fields parseSpecMD reads
 set -euo pipefail
 
 # check-spec-format-view-fields.sh — nodes/SPEC-FORMAT.md's `## View` field table must name
-# exactly the view.* fields tools/gen-node-defs's parseSpecMD (now in ast_parse.go) actually
+# exactly the view.* fields tools/gen-node-defs's parseSpecMD (in spec_md.go) actually
 # reads (via vmap["<field>"]) — no more, no less.
 #
 # WHY THIS EXISTS
