@@ -30,18 +30,12 @@ func captureLatticeAngles(snap *latticeFrameAngles) *nodeGeometry {
 		clocks: nodeClocks{clk: wire.NewRealClock()},
 		stream: nodeStream{
 			streamOut: newClaimedStream(nil, "node", "n", io.Discard),
-			buildFrame: func(tick uint32, nodeRow int32, nodeID int32, cx, cy, cz, radius, sphereR float32,
-				vrx, vry, vrz, frx, fry, frz float32,
-				poleTheta, polePhi, ringAxisTheta, ringAxisPhi, topTiltVectorLen, topTiltVectorTheta,
-				bottomTiltVectorTheta, coplanarNormalTheta, receivedVectorLen, receivedVectorTheta float32,
-				selected, kindID, hovered, latchedSel, latticePoints uint8, roundsToParallel, msgsToParallel int32, label string,
-				chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32,
-				events []wire.RowEvent) []byte {
-				snap.top = topTiltVectorTheta
-				snap.bottom = bottomTiltVectorTheta
-				snap.coplanar = coplanarNormalTheta
-				snap.received = receivedVectorTheta
-				snap.points = latticePoints
+			buildFrame: func(f NodeFrameInput) []byte {
+				snap.top = f.TopTiltVectorTheta
+				snap.bottom = f.BottomTiltVectorTheta
+				snap.coplanar = f.CoplanarNormalTheta
+				snap.received = f.ReceivedVectorTheta
+				snap.points = f.LatticePoints
 				return nil
 			},
 		},

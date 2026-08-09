@@ -158,18 +158,46 @@ func buildNodeFrame() nodeFrameFixture {
 		chainOX[i], chainOY[i], chainOZ[i], chainLit[i], chainLitVal[i] = cb.OX, cb.OY, cb.OZ, cb.Lit, cb.LitValue
 	}
 
-	raw := Buffer.BuildNodeStreamFrame(
-		f.Tick, f.NodeRow, f.NodeId,
-		f.CX, f.CY, f.CZ, f.Radius, f.SphereR,
-		f.VRX, f.VRY, f.VRZ, f.FRX, f.FRY, f.FRZ,
-		f.PoleTheta, f.PolePhi, f.RingAxisTheta, f.RingAxisPhi, f.TopTiltVectorLen, f.TopTiltVectorTheta, f.BottomTiltVectorTheta, f.CoplanarNormalTheta,
-		f.ReceivedVectorLen, f.ReceivedVectorTheta,
-		f.Selected, f.KindID, f.Hovered, f.LatchedSel, f.LatticePoints,
-		f.RoundsToParallel, f.MsgsToParallel,
-		f.Label,
-		chainOX, chainOY, chainOZ, chainLit, chainLitVal,
-		nil,
-	)
+	raw := Buffer.BuildNodeStreamFrame(Buffer.NodeStreamFrame{
+		Tick:                  f.Tick,
+		NodeRow:               f.NodeRow,
+		NodeID:                f.NodeId,
+		CX:                    f.CX,
+		CY:                    f.CY,
+		CZ:                    f.CZ,
+		Radius:                f.Radius,
+		SphereR:               f.SphereR,
+		VRX:                   f.VRX,
+		VRY:                   f.VRY,
+		VRZ:                   f.VRZ,
+		FRX:                   f.FRX,
+		FRY:                   f.FRY,
+		FRZ:                   f.FRZ,
+		PoleTheta:             f.PoleTheta,
+		PolePhi:               f.PolePhi,
+		RingAxisTheta:         f.RingAxisTheta,
+		RingAxisPhi:           f.RingAxisPhi,
+		TopTiltVectorLen:      f.TopTiltVectorLen,
+		TopTiltVectorTheta:    f.TopTiltVectorTheta,
+		BottomTiltVectorTheta: f.BottomTiltVectorTheta,
+		CoplanarNormalTheta:   f.CoplanarNormalTheta,
+		ReceivedVectorLen:     f.ReceivedVectorLen,
+		ReceivedVectorTheta:   f.ReceivedVectorTheta,
+		Selected:              f.Selected,
+		KindID:                f.KindID,
+		Hovered:               f.Hovered,
+		LatchedSel:            f.LatchedSel,
+		LatticePoints:         f.LatticePoints,
+		RoundsToParallel:      f.RoundsToParallel,
+		MsgsToParallel:        f.MsgsToParallel,
+		Label:                 f.Label,
+		ChainBeadOX:           chainOX,
+		ChainBeadOY:           chainOY,
+		ChainBeadOZ:           chainOZ,
+		ChainBeadLit:          chainLit,
+		ChainBeadLitValue:     chainLitVal,
+		Events:                nil,
+	})
 	f.Hex = hex.EncodeToString(raw)
 	return f
 }

@@ -217,13 +217,51 @@ func wireNodeStreams(streamFDs B.StreamFDs, md *W.MoveDispatch) {
 			// index (Buffer.NodeKindID) — injected so Wiring stays Buffer-independent.
 			md.SetNodeStreams(nodeBase, interiorBase, driveBase, driveWired,
 				md.NodeRowFor,
-				func(tick uint32, nodeRow int32, nodeID int32, cx, cy, cz, radius, sphereR float32, vrx, vry, vrz, frx, fry, frz float32, poleTheta, polePhi, ringAxisTheta, ringAxisPhi, topTiltVectorLen, topTiltVectorTheta, bottomTiltVectorTheta, coplanarNormalTheta, receivedVectorLen, receivedVectorTheta float32, selected, kindID, hovered, latchedSel, latticePoints uint8, roundsToParallel, msgsToParallel int32, label string, chainBeadOX, chainBeadOY, chainBeadOZ []float32, chainBeadLit []uint8, chainBeadLitValue []int32, events []wire.RowEvent) []byte {
-					return B.BuildNodeStreamFrame(tick, nodeRow, nodeID, cx, cy, cz, radius, sphereR, vrx, vry, vrz, frx, fry, frz,
-						poleTheta, polePhi, ringAxisTheta, ringAxisPhi, topTiltVectorLen, topTiltVectorTheta, bottomTiltVectorTheta, coplanarNormalTheta,
-						receivedVectorLen, receivedVectorTheta,
-						selected, kindID, hovered, latchedSel, latticePoints,
-						roundsToParallel, msgsToParallel,
-						label, chainBeadOX, chainBeadOY, chainBeadOZ, chainBeadLit, chainBeadLitValue, toStreamEvents(events))
+				// Field-by-NAME across the Buffer-independence seam, same shape as
+				// toStreamEvents above: Wiring.NodeFrameInput → Buffer.NodeStreamFrame.
+				// Two structs, one per side, so a transposition is a wrong field name
+				// rather than a silently wrong scene.
+				func(f W.NodeFrameInput) []byte {
+					return B.BuildNodeStreamFrame(B.NodeStreamFrame{
+						Tick:                  f.Tick,
+						NodeRow:               f.NodeRow,
+						NodeID:                f.NodeID,
+						CX:                    f.CX,
+						CY:                    f.CY,
+						CZ:                    f.CZ,
+						Radius:                f.Radius,
+						SphereR:               f.SphereR,
+						VRX:                   f.VRX,
+						VRY:                   f.VRY,
+						VRZ:                   f.VRZ,
+						FRX:                   f.FRX,
+						FRY:                   f.FRY,
+						FRZ:                   f.FRZ,
+						PoleTheta:             f.PoleTheta,
+						PolePhi:               f.PolePhi,
+						RingAxisTheta:         f.RingAxisTheta,
+						RingAxisPhi:           f.RingAxisPhi,
+						TopTiltVectorLen:      f.TopTiltVectorLen,
+						TopTiltVectorTheta:    f.TopTiltVectorTheta,
+						BottomTiltVectorTheta: f.BottomTiltVectorTheta,
+						CoplanarNormalTheta:   f.CoplanarNormalTheta,
+						ReceivedVectorLen:     f.ReceivedVectorLen,
+						ReceivedVectorTheta:   f.ReceivedVectorTheta,
+						Selected:              f.Selected,
+						KindID:                f.KindID,
+						Hovered:               f.Hovered,
+						LatchedSel:            f.LatchedSel,
+						LatticePoints:         f.LatticePoints,
+						RoundsToParallel:      f.RoundsToParallel,
+						MsgsToParallel:        f.MsgsToParallel,
+						Label:                 f.Label,
+						ChainBeadOX:           f.ChainBeadOX,
+						ChainBeadOY:           f.ChainBeadOY,
+						ChainBeadOZ:           f.ChainBeadOZ,
+						ChainBeadLit:          f.ChainBeadLit,
+						ChainBeadLitValue:     f.ChainBeadLitValue,
+						Events:                toStreamEvents(f.Events),
+					})
 				},
 				func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte {
 					return B.BuildInteriorStreamFrame(tick, present, value, ox, oy, oz, toStreamEvents(events))
