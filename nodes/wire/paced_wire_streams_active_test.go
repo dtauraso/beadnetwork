@@ -37,10 +37,10 @@ func TestPendingStaysEmptyWithNoStreamConsumer(t *testing.T) {
 	if len(pw.inflight) != 0 {
 		t.Fatalf("inflight = %d after driving to completion, want 0 (all delivered)", len(pw.inflight))
 	}
-	if len(pw.pending) != 0 {
+	if len(pw.readout.pending) != 0 {
 		t.Fatalf("pending = %d with no stream consumer wired (StreamsActive=false), want 0 "+
 			"— pending must never accumulate when nothing will ever call DrainPendingEvents "+
-			"(the confirmed unbounded-growth bug)", len(pw.pending))
+			"(the confirmed unbounded-growth bug)", len(pw.readout.pending))
 	}
 }
 
@@ -52,7 +52,7 @@ func TestPendingStaysEmptyWithNoStreamConsumer(t *testing.T) {
 // tracing, once a real consumer exists.
 func TestPendingAccumulatesAndDrainsWithStreamConsumer(t *testing.T) {
 	pw := NewPacedWire(1, 1.0)
-	pw.StreamsActive = true
+	pw.SetStreamsActive(true)
 	ctx := context.Background()
 
 	if got := pw.Send(1, beadPlacement{Steps: 1, Node: "src", Port: "out"}, 0); got != SendPlaced {
@@ -62,7 +62,7 @@ func TestPendingAccumulatesAndDrainsWithStreamConsumer(t *testing.T) {
 	sawPending := false
 	for tick := int64(0); tick < 200; tick++ {
 		pw.DriveOneCycle(ctx, tick)
-		if len(pw.pending) > 0 {
+		if len(pw.readout.pending) > 0 {
 			sawPending = true
 			break
 		}
@@ -71,10 +71,10 @@ func TestPendingAccumulatesAndDrainsWithStreamConsumer(t *testing.T) {
 		t.Fatalf("pending never accumulated any event with StreamsActive=true; want at least one")
 	}
 
-	if drained := pw.drainPendingEvents(); len(drained) == 0 {
+	if drained := pw.readout.drainPendingEvents(); len(drained) == 0 {
 		t.Fatalf("drainPendingEvents() returned 0 events, want at least 1")
 	}
-	if len(pw.pending) != 0 {
-		t.Fatalf("pending = %d after drainPendingEvents, want 0 (drain clears the buffer)", len(pw.pending))
+	if len(pw.readout.pending) != 0 {
+		t.Fatalf("pending = %d after drainPendingEvents, want 0 (drain clears the buffer)", len(pw.readout.pending))
 	}
 }

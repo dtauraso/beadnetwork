@@ -133,7 +133,13 @@ mistake to avoid (chain_beads.go's own header comment makes the same split):
   single-goroutine ownership is dead weight, and if two goroutines ever
   need to touch this state again that is a sign the ownership model
   broke, not a reason to add a mutex. The wire applies no send policy —
-  see §Sending.
+  see §Sending. A wire's TRANSPORT state and the REPORTING it does for the
+  renderer are separate types: `PacedWire` holds the queue (`inflight`,
+  the in/out channels, dwell, the arrival math), and its `readout`
+  (`wireReadout`, `nodes/wire/wire_readout.go`) holds the pending
+  Position/Arrive buffer, the `Trace` handle and the debug-breadcrumb
+  channel. Both are owned by the same single source-node goroutine; the
+  split says which concern a field belongs to, it does not add an owner.
 - **Node goroutine.** Receives beads over its input port's channel,
   holds them in node-local state until its firing rule is satisfied,
   then fires. There is no held-value slot in this model sense — node-local held

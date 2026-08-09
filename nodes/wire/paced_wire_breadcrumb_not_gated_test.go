@@ -45,7 +45,7 @@ func TestBreadcrumbEmitsWithEdgeBeadTraceOff(t *testing.T) {
 		t.Fatalf("Send on a full, undrained inCh = %v, want SendBufferFull", got)
 	}
 
-	events := pw.drainBreadcrumbEvents()
+	events := pw.readout.drainBreadcrumbEvents()
 	if len(events) != 1 {
 		t.Fatalf("drainBreadcrumbEvents() after a SendBufferFull = %d events, want 1 "+
 			"(breadcrumb must emit regardless of edgeBeadTraceEnabled)", len(events))

@@ -113,11 +113,11 @@ func (sw *streamWiring) setEdgeStreams(
 		em.nodeRowFor = nodeRowFor
 		em.buildFrame = buildFrame
 		// This edge now has a real consumer wired: let its PacedWire accumulate
-		// pending events (nodes/wire/paced_wire.go's StreamsActive doc comment) —
+		// pending events (nodes/wire/wire_readout.go's StreamsActive doc comment) —
 		// set here, before this edge's mover goroutine launches, same "wire
 		// before launch" ordering as everything else in this function.
 		if em.dest != nil {
-			em.dest.StreamsActive = true
+			em.dest.SetStreamsActive(true)
 		}
 	}
 }

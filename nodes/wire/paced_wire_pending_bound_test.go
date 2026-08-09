@@ -1,5 +1,5 @@
 // paced_wire_pending_bound_test.go — pins PacedWire.pending's declared maximum
-// (maxPendingEvents, paced_wire.go) and its fail-loud behavior at the bound
+// (maxPendingEvents, wire_readout.go) and its fail-loud behavior at the bound
 // (docs/planning/visual-editor/session-log.md Step 1). Per
 // memory/feedback_check_the_signal_the_check_emits.md, the bound must be
 // exceeded once deliberately to confirm it panics and names its own cause —
@@ -22,7 +22,7 @@ import (
 // maxPendingEvents+1, naming its own cause.
 func TestPendingBoundPanicsWhenDrainStops(t *testing.T) {
 	pw := NewPacedWire(1, 1.0)
-	pw.StreamsActive = true
+	pw.SetStreamsActive(true)
 
 	defer func() {
 		r := recover()
@@ -39,14 +39,14 @@ func TestPendingBoundPanicsWhenDrainStops(t *testing.T) {
 			t.Fatalf("panic message %q does not name its own cause "+
 				"(want it to mention \"pending exceeded\" and \"not running\")", msg)
 		}
-		if len(pw.pending) != maxPendingEvents+1 {
+		if len(pw.readout.pending) != maxPendingEvents+1 {
 			t.Fatalf("pending len at panic = %d, want %d (bound + the one that tripped it)",
-				len(pw.pending), maxPendingEvents+1)
+				len(pw.readout.pending), maxPendingEvents+1)
 		}
 	}()
 
 	for i := 0; i <= maxPendingEvents; i++ {
-		pw.appendPending(pendingWireEvent{kind: "arrive", value: i})
+		pw.readout.appendPending(pendingWireEvent{kind: "arrive", value: i}, pw.Target, pw.TargetHandle)
 	}
 	t.Fatalf("unreachable: appendPending should have panicked by iteration %d", maxPendingEvents)
 }
@@ -58,7 +58,7 @@ func TestPendingBoundPanicsWhenDrainStops(t *testing.T) {
 // false-fire on ordinary traffic.
 func TestPendingBoundNeverTripsWithNormalDrain(t *testing.T) {
 	pw := NewPacedWire(1, 1.0)
-	pw.StreamsActive = true
+	pw.SetStreamsActive(true)
 	ctx := context.Background()
 
 	for i := range 50 {
@@ -69,9 +69,9 @@ func TestPendingBoundNeverTripsWithNormalDrain(t *testing.T) {
 
 	for tick := int64(0); tick < 500; tick++ {
 		pw.DriveOneCycle(ctx, tick)
-		pw.drainPendingEvents()
-		if len(pw.pending) > 0 {
-			t.Fatalf("tick %d: pending = %d right after drain, want 0", tick, len(pw.pending))
+		pw.readout.drainPendingEvents()
+		if len(pw.readout.pending) > 0 {
+			t.Fatalf("tick %d: pending = %d right after drain, want 0", tick, len(pw.readout.pending))
 		}
 	}
 }

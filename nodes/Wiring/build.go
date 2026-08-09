@@ -194,7 +194,7 @@ func (b *buildCtx) allocateWires() {
 		pw := wire.NewPacedWire(steps, wire.DwellTicksPerBead)
 		pw.Target = e.Target
 		pw.TargetHandle = e.TargetHandle
-		pw.Trace = b.tr
+		pw.SetTrace(b.tr)
 		destWire[destKey] = pw
 		edgeWire[e.Label] = pw
 		edgeEndpoints[e.Label] = EdgeEndpoints{

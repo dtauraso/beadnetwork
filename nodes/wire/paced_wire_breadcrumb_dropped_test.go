@@ -46,19 +46,19 @@ func TestBreadcrumbDropsAreCountedAndReported(t *testing.T) {
 		}
 	}
 
-	wantDropped := sends - cap(pw.breadcrumbCh)
-	if pw.droppedBreadcrumbs != wantDropped {
-		t.Fatalf("pw.droppedBreadcrumbs = %d, want %d (%d sends - %d channel capacity)",
-			pw.droppedBreadcrumbs, wantDropped, sends, cap(pw.breadcrumbCh))
+	wantDropped := sends - cap(pw.readout.breadcrumbCh)
+	if pw.readout.droppedBreadcrumbs != wantDropped {
+		t.Fatalf("pw.readout.droppedBreadcrumbs = %d, want %d (%d sends - %d channel capacity)",
+			pw.readout.droppedBreadcrumbs, wantDropped, sends, cap(pw.readout.breadcrumbCh))
 	}
 
 	// Drain breadcrumbCh (the cap-4 buffer of "wire-send-buffer-full" rows
 	// from the sends that fit) so the next Send call finds room to report
 	// the drop count.
-	events := pw.drainBreadcrumbEvents()
-	if len(events) != cap(pw.breadcrumbCh) {
+	events := pw.readout.drainBreadcrumbEvents()
+	if len(events) != cap(pw.readout.breadcrumbCh) {
 		t.Fatalf("drainBreadcrumbEvents() = %d events, want %d (the channel's full capacity)",
-			len(events), cap(pw.breadcrumbCh))
+			len(events), cap(pw.readout.breadcrumbCh))
 	}
 
 	// The NEXT Send call must report the drop before doing anything else
@@ -67,7 +67,7 @@ func TestBreadcrumbDropsAreCountedAndReported(t *testing.T) {
 		t.Fatalf("Send = %v, want SendBufferFull", got)
 	}
 
-	dropReport := pw.drainBreadcrumbEvents()
+	dropReport := pw.readout.drainBreadcrumbEvents()
 	if len(dropReport) < 1 {
 		t.Fatalf("drainBreadcrumbEvents() after room reappeared = 0 events, want at least 1 "+
 			"(a %q report of the %d drops)", T.BreadcrumbLabels[T.BreadcrumbWireBreadcrumbsDropped], wantDropped)
@@ -82,8 +82,8 @@ func TestBreadcrumbDropsAreCountedAndReported(t *testing.T) {
 		t.Fatalf("dropped-breadcrumb report Value = %d, want %d", ev.Value, wantDropped)
 	}
 
-	if pw.droppedBreadcrumbs != 0 {
-		t.Fatalf("pw.droppedBreadcrumbs = %d after a successful report, want 0 (reset)",
-			pw.droppedBreadcrumbs)
+	if pw.readout.droppedBreadcrumbs != 0 {
+		t.Fatalf("pw.readout.droppedBreadcrumbs = %d after a successful report, want 0 (reset)",
+			pw.readout.droppedBreadcrumbs)
 	}
 }
