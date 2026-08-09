@@ -89,10 +89,11 @@ type stdinMsg struct {
 	// an integer 0..8 that clockAttrHandlers divides by 4 to get the real multiplier — see
 	// its comment). Zero otherwise.
 	Num int
-	// X/Y/Z is the WORLD POINT payload for scene/create — where the node was dropped. Zero
-	// for every other message. It is a point, not a target: which node the new one connects
-	// to is Go's own decision from its own geometry, so nothing here names a neighbour.
-	X, Y, Z float64
+	// X/Y is the drop's NDC for scene/create — where on SCREEN the node was dropped. Zero
+	// for every other message. Screen rather than world because turning a drop into a place
+	// needs the camera, which is Go's; and a point rather than a target because which node
+	// the new one connects to is Go's decision from its own geometry.
+	X, Y float64
 	// Event is the payload for the top-level type=="raw-input" message; nil otherwise.
 	Event *rawInputMsg
 }
@@ -520,9 +521,10 @@ func applyUpdateScene(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []
 		md.persist.lattice.schedule(points)
 		md.BroadcastLatticePoints(points)
 	case "create":
-		// The palette's drop. Num is the kind id, X/Y/Z the world point — see
-		// scene_structure.go for why this ends the run rather than building anything live.
-		md.CreateNode(uint8(msg.Num), msg.X, msg.Y, msg.Z, tr)
+		// The palette's drop. Num is the kind id, X/Y the drop's NDC — see
+		// scene_structure.go for how that becomes a place, and why this ends the run rather
+		// than building anything live.
+		md.CreateNode(uint8(msg.Num), msg.X, msg.Y, tr)
 	case "delete":
 		// The delete key. Num is the target's buffer ROW.
 		md.DeleteNode(msg.Num, tr)

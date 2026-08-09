@@ -27,6 +27,9 @@ import {
   readOverlaySelectionRing,
   readOverlayHoverRing,
   readOverlayReachSphere,
+  readOverlayEditRefused,
+  readOverlaySceneEditable,
+  readNodeSelected,
   readOverlayDragNodeRow,
   readOverlayGroupLenTime,
   readOverlayGroupLenInput,
@@ -118,6 +121,53 @@ export function readDragNodeRow(): number {
   const blocks = getViewBlocks();
   if (!blocks) return -1;
   return readOverlayDragNodeRow(blocks.overlayView);
+}
+
+/** Decode how many structural edits Go has REFUSED this run (Overlay block EditRefused).
+ *  A count, not a flag: a second refusal has to be distinguishable from the first, or making
+ *  the same mistake twice looks like the editor ignoring you. 0 before the first snapshot. */
+export function readEditRefused(): number {
+  const blocks = getViewBlocks();
+  if (!blocks) return 0;
+  return readOverlayEditRefused(blocks.overlayView);
+}
+
+/** React hook: re-renders the caller each time Go refuses a structural edit. */
+export function useEditRefused(): number {
+  return useSyncExternalStore(subscribeViewBlocks, readEditRefused, readEditRefused);
+}
+
+/** Decode whether THIS scene can be structurally edited (Overlay block SceneEditable —
+ *  SceneTab.Editable, Go's own per-scene property). false before the first snapshot: a
+ *  palette that appears for an instant in a scene that cannot take one is worse than a
+ *  palette that appears a frame late. */
+export function readSceneEditable(): boolean {
+  const blocks = getViewBlocks();
+  if (!blocks) return false;
+  return readOverlaySceneEditable(blocks.overlayView) !== 0;
+}
+
+/** React hook: whether this scene can be structurally edited. */
+export function useSceneEditable(): boolean {
+  return useSyncExternalStore(subscribeViewBlocks, readSceneEditable, readSceneEditable);
+}
+
+/** Decode the SELECTED node's buffer row, or -1 when nothing is selected. Selection is
+ *  Go-owned (the Node block's Selected column); this is a second READER of that truth, never
+ *  a cache of it — which is what lets the delete key forward a row without TS ever deciding
+ *  what is selected. */
+export function readSelectedNodeRow(): number {
+  const decoded = getNodeFrame();
+  if (!decoded) return -1;
+  for (let i = 0; i < decoded.nodeCount; i++) {
+    if (readNodeSelected(decoded.nodeView, i)) return i;
+  }
+  return -1;
+}
+
+/** React hook: the selected node's row, or -1. */
+export function useSelectedNodeRow(): number {
+  return useSyncExternalStore(subscribeViewBlocks, readSelectedNodeRow, readSelectedNodeRow);
 }
 
 /** React hook: re-renders the caller when the dragged node's row changes (drag

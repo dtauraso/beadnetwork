@@ -331,6 +331,22 @@ type bufLayoutOverlay struct {
 	// or -1 when no drag is in progress. Identity rides row index, not a
 	// name/id sidecar; TS resolves the human name from that row's Label.
 	DragNodeRow int32 `buf:"i32"` // dragged node's row index, -1 = not dragging
+	// EditRefused COUNTS refused structural edits (scene_structure.go: a drop that cannot be
+	// connected, a delete of a row holding no node). It is a counter, not a flag, because a
+	// second refusal must be distinguishable from the first: a flag that is already 1 says
+	// nothing when the same mistake is made twice, and the whole point of this column is that
+	// the gesture did nothing and the person needs telling. TS shows a message when the count
+	// it last saw goes up.
+	//
+	// The REASON is not here. It rides stderr into the output channel and
+	// .probe/go-errors.jsonl, where the detail belongs; the screen only has to say that the
+	// edit was refused, which is the part a person cannot otherwise see.
+	EditRefused uint32 `buf:"u32"` // count of refused structural edits this run
+	// SceneEditable is SceneTab.Editable for the tree actually loaded — whether this scene
+	// takes structural edits at all. Streamed rather than inferred in TS from a scene name,
+	// for the same reason the tab LIST is streamed: which scenes exist and what they allow
+	// is Go's, and the editor renders what it is told.
+	SceneEditable uint8 `buf:"u8"` // 1 = this scene takes node create/delete
 	// GroupLenTime/GroupLenInput/GroupLenGate are the "distance home button" toolbar
 	// panel's 3 read-only group max-pair-lengths (nodes/Wiring/distance_groups.go's
 	// distanceGroupOrder: time, input, gate). Computed fresh every VIEW-frame emit from

@@ -214,25 +214,27 @@ export function encodeSceneSelected(tabIndex: number): ArrayBuffer {
  *  [u8 points]. points is the pair lattice's new point count (4..64, a multiple of 4 —
  *  Go rejects anything else, nodes/Wiring/stdin_reader.go's applyUpdateScene); Go owns the
  *  valid range and the delivery to every pair node, this just signals the requested count. */
-/** Build a scene CREATE record: [22][entityKind=scene][attr=create][u8 kindId][f32 x][f32 y]
- *  [f32 z]. kindId is the kind's NODE_DEFS id — the same numeric kind identity the Node
- *  block's KindId column carries, so no kind NAME crosses this wire. x/y/z is where the drop
- *  landed, from the raycast that already runs; it is a POINT, not a target. Which node the
- *  new one connects to is Go's decision from its own geometry, so nothing here names a
- *  neighbour and TS never measures proximity.
+/** Build a scene CREATE record: [22][entityKind=scene][attr=create][u8 kindId][f32 ndcX]
+ *  [f32 ndcY]. kindId is the kind's NODE_DEFS id — the same numeric kind identity the Node
+ *  block's KindId column carries, so no kind NAME crosses this wire.
+ *
+ *  SCREEN coordinates, not world. Turning a drop into a place in the scene needs the camera,
+ *  and the camera is Go's — it unprojects this with the same ray every node drag already
+ *  uses. TS forwards where the pointer was, exactly as raw-input does, and computes no
+ *  geometry. Which node the new one connects to is not here either: Go picks the nearest
+ *  from its own node positions.
  *
  *  Go persists the new node and ENDS THE RUN; the host's looping runner respawns and the new
  *  tree loads. That is not this function's concern, but it is why a create looks like nothing
  *  happened for the length of a restart. */
-export function encodeSceneCreate(kindId: number, x: number, y: number, z: number): ArrayBuffer {
+export function encodeSceneCreate(kindId: number, ndcX: number, ndcY: number): ArrayBuffer {
   const w = new ByteWriter();
   w.u8(IN_KIND_EDIT_UPDATE);
   w.u8(enumIndex(IN_UPDATE_KINDS, "scene"));
   w.u8(IN_SCENE_ATTR_CREATE);
   w.u8(kindId);
-  w.f32(x);
-  w.f32(y);
-  w.f32(z);
+  w.f32(ndcX);
+  w.f32(ndcY);
   return w.toArrayBuffer();
 }
 

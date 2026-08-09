@@ -294,30 +294,32 @@ func decodeInputRecord(rec []byte) (stdinMsg, bool) {
 				}
 				return stdinMsg{Type: "edit", Op: "update", Kind: "scene", Attr: "latticePoints", Num: int(points)}, true
 			case inSceneAttrCreate:
-				// [u8 kindId][f32 x][f32 y][f32 z] — the kind to create (its NODE_DEFS id,
+				// [u8 kindId][f32 ndcX][f32 ndcY] — the kind to create (its NODE_DEFS id,
 				// the same numeric kind identity the Node block's KindId column carries, so
-				// no kind NAME crosses this wire) and the world point it was dropped at.
-				// Which node it connects to is NOT here: Go picks the nearest from its own
-				// geometry, so TS never measures proximity.
+				// no kind NAME crosses this wire) and WHERE ON SCREEN it was dropped, in
+				// normalized device coordinates.
+				//
+				// SCREEN, not world. Turning a drop into a place in the scene needs the
+				// camera, and the camera is Go's: the same rayDirThroughNDC every gesture
+				// already uses turns this into a world point (scene_structure.go). TS
+				// forwards where the pointer was, exactly as raw-input does, and computes
+				// no geometry. Which node it connects to is not here either — Go picks the
+				// nearest from its own node positions.
 				kindID, err := r.u8()
 				if err != nil {
 					return stdinMsg{}, false
 				}
-				x, err := r.f32()
+				ndcX, err := r.f32()
 				if err != nil {
 					return stdinMsg{}, false
 				}
-				y, err := r.f32()
-				if err != nil {
-					return stdinMsg{}, false
-				}
-				z, err := r.f32()
+				ndcY, err := r.f32()
 				if err != nil {
 					return stdinMsg{}, false
 				}
 				return stdinMsg{
 					Type: "edit", Op: "update", Kind: "scene", Attr: "create",
-					Num: int(kindID), X: float64(x), Y: float64(y), Z: float64(z),
+					Num: int(kindID), X: float64(ndcX), Y: float64(ndcY),
 				}, true
 			case inSceneAttrDelete:
 				// [u8 nodeRow] — the target's buffer ROW, never its id or name (no sidecar,

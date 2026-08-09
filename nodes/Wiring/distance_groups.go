@@ -48,6 +48,11 @@ var distanceGroups = map[string][]distancePair{
 // frame later, whereas the reverse would flash the ring's lengths into another scene's tab.
 func (md *MoveDispatch) ResolveSceneDistanceGroups(scenePath string) {
 	md.ui.hasDistanceGroups = SceneHasDistanceGroups(scenePath)
+	// Resolved from the same path at the same moment, for the same reason: both are facts
+	// about the tree being loaded, and both ride the VIEW frame. Until this runs the scene
+	// reads as NOT editable, which is the safe direction — a palette that appears a frame
+	// late costs nothing, one that appears in a scene that cannot take it invites a delete.
+	md.ui.sceneEditable = SceneIsEditable(scenePath)
 }
 
 // distanceGroupMax computes a group's CURRENT max pair length (max over the group's

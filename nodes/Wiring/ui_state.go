@@ -20,6 +20,16 @@ import (
 // of the dispatch/persist/row-table concerns. See each embedded field's own doc comment
 // (sceneSphere, vp, ov, gest, sel below) for its own history/reasoning.
 type uiState struct {
+	// editRefused counts structural edits this run has REFUSED (scene_structure.go). Written
+	// only by the view-owner goroutine, which is the only one that handles an edit, and
+	// streamed on the Overlay block so the editor can say a gesture did nothing. A counter
+	// rather than a flag: the second refusal has to be distinguishable from the first, or
+	// making the same mistake twice looks like the editor ignoring you.
+	editRefused uint32
+	// sceneEditable is SceneTab.Editable for the tree actually loaded, resolved once at load
+	// (ResolveSceneDistanceGroups) and streamed on the Overlay block. The palette asks this
+	// rather than branching on a scene name in TS.
+	sceneEditable bool
 	// sceneSphere is the first-class scene reference every node's SCENE polar is measured
 	// about (polar-model.md, sphere_layout.go). Loaded from sphere.json (or defaulted from
 	// the content-fit) at startup; its Center is the one cartesian anchor. Phase 1 stores

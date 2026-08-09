@@ -8,6 +8,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { Canvas } from "@react-three/fiber";
 import * as THREE from "three";
 import { HomeButton, OverlaysControl } from "./camera-ui";
+import { NodePalette, dropKindFromEvent, fireCreateAt } from "./NodePalette";
 import { DistanceHomePanel } from "./DistanceHomePanel";
 import { TiltVectorAnglePanel } from "./TiltVectorAnglePanel";
 import { SceneTabs } from "./SceneTabs";
@@ -111,6 +112,27 @@ export function ThreeView() {
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerCancel}
         onContextMenu={(e) => e.preventDefault()}
+        // THE DROP TARGET for the node palette. It sits on the same element that captures
+        // gestures, because that element IS the scene as far as the pointer is concerned —
+        // its rect is what turns a client pixel into NDC, exactly as raw-input already does
+        // for every pointer event.
+        //
+        // onDragOver must preventDefault or the browser refuses the drop outright; that is
+        // the whole reason it exists here.
+        onDragOver={(e) => {
+          if (e.dataTransfer.types.includes("application/x-wirefold-kind")) e.preventDefault();
+        }}
+        onDrop={(e) => {
+          const kindId = dropKindFromEvent(e.nativeEvent);
+          if (kindId === null) return;
+          e.preventDefault();
+          const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+          fireCreateAt(
+            kindId,
+            ((e.clientX - r.left) / r.width) * 2 - 1,
+            -(((e.clientY - r.top) / r.height) * 2 - 1),
+          );
+        }}
       >
         <Canvas
           camera={{ fov: 50, near: 0.1, far: 20000, position: [0, 0, 500] }}
@@ -189,6 +211,8 @@ export function ThreeView() {
         <HomeButton cameraRef={cameraRef} aspect={canvasSize.w / canvasSize.h} />
         <DistanceHomePanel />
         <TiltVectorAnglePanel />
+        {/* Renders nothing in a scene Go says is not editable. */}
+        <NodePalette />
         <OverlaysControl />
       </div>
       <SceneTabs />

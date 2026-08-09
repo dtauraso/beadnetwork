@@ -128,14 +128,24 @@ type SceneTab struct {
 	// An unknown tree (a fixture, a one-off path) gets false: a scene that is not the ring
 	// has no claim on the ring's groups.
 	DistanceGroups bool
+	// Editable says whether this scene takes STRUCTURAL edits — the node palette's drop and
+	// the delete key (scene_structure.go). A per-scene property for the same reason every
+	// other field here is one: it is a fact about the scene, and Go owns it, so the editor
+	// asks rather than branching on a scene NAME it would have to be told.
+	//
+	// Pair only, for now. The ring is the long-lived diagram whose layout has been tuned by
+	// hand across many sessions; the pair is the small one built to be experimented with.
+	// Nothing structural stops the ring taking edits — this is a choice about which diagram
+	// a stray delete key can damage.
+	Editable bool
 }
 
 // SceneTabs is the tab strip, in display order. Index 0 is the DEFAULT: its Dir must be
 // the anchor's own basename, since that is the path the extension host launches with and
 // sizes its stream fds from (see AnchorIsTabbed).
 var SceneTabs = []SceneTab{
-	{Name: "ring", Dir: "topology", QuantizedDrag: false, CoplanarEdges: false, UpAxis: false, ClockDivisor: 1, DistanceGroups: true},
-	{Name: "pair", Dir: "topology-pair", QuantizedDrag: false, CoplanarEdges: true, UpAxis: true, ClockDivisor: 64, DistanceGroups: false},
+	{Name: "ring", Dir: "topology", QuantizedDrag: false, CoplanarEdges: false, UpAxis: false, ClockDivisor: 1, DistanceGroups: true, Editable: false},
+	{Name: "pair", Dir: "topology-pair", QuantizedDrag: false, CoplanarEdges: true, UpAxis: true, ClockDivisor: 64, DistanceGroups: false, Editable: true},
 }
 
 // sceneSelectionFile is the persisted selection, held at the ANCHOR (never inside a scene).
@@ -311,6 +321,20 @@ func SceneHasDistanceGroups(scenePath string) bool {
 	for _, t := range SceneTabs {
 		if t.Dir == base {
 			return t.DistanceGroups
+		}
+	}
+	return false
+}
+
+// SceneIsEditable answers, for the tree actually being LOADED, whether it takes structural
+// edits (SceneTab.Editable). An UNKNOWN tree — every test fixture, every one-off run — is
+// NOT editable: a create writes directories and rewrites counts.json, so the safe answer for
+// a tree nobody declared is to leave it alone.
+func SceneIsEditable(scenePath string) bool {
+	base := filepath.Base(filepath.Clean(scenePath))
+	for _, t := range SceneTabs {
+		if t.Dir == base {
+			return t.Editable
 		}
 	}
 	return false

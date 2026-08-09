@@ -54,10 +54,24 @@ type ViewOverlayFlags struct {
 	NodeBody, NodeRing, RingPick, SelectionRing, HoverRing, ReachSphere                    uint8
 }
 
+// ViewSceneState carries the VIEW frame's per-scene scalars that are neither camera, nor
+// overlay flags, nor a panel readout: whether this scene takes structural edits, and how
+// many it has refused.
+//
+// A named struct rather than two more positional parameters, for the reason
+// ViewOverlayFlags gives: this signature is already long, and "the wrong value in the wrong
+// slot" compiles and streams silently. Anything the frame gains that is ABOUT THE SCENE
+// belongs here rather than at the end of the argument list.
+type ViewSceneState struct {
+	EditRefused   uint32
+	SceneEditable uint8
+}
+
 type ViewFrameBuilder func(tick uint32,
 	camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
 	flags ViewOverlayFlags,
 	dragNodeRow int32,
+	scene ViewSceneState,
 	groupLenTime, groupLenInput, groupLenGate float32,
 	speed float32,
 	sceneCX, sceneCY, sceneCZ, sceneRadius float32,
@@ -138,6 +152,10 @@ func (md *MoveDispatch) emitViewFrame(events []wire.RowEvent) {
 			ReachSphere:    boolU8(md.ui.ov.reachSphereVisible),
 		},
 		dragNodeRow,
+		ViewSceneState{
+			EditRefused:   md.ui.editRefused,
+			SceneEditable: boolU8(md.ui.sceneEditable),
+		},
 		groupLenTime, groupLenInput, groupLenGate,
 		float32(md.ui.speed),
 		float32(sc.Center.X), float32(sc.Center.Y), float32(sc.Center.Z), float32(sc.Radius),

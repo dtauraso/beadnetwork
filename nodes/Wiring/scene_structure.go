@@ -17,12 +17,12 @@ package Wiring
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"strconv"
 
 	B "github.com/dtauraso/wirefold/Buffer"
 	T "github.com/dtauraso/wirefold/Trace"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
 // CreateNode adds a node of kindID at a dropped world point, connected to the NEAREST
@@ -35,8 +35,15 @@ import (
 // A drop that cannot be connected is REFUSED: nothing is written, the run does not end, and
 // the refusal is emitted so the editor can say so. A drop that silently does nothing is
 // indistinguishable from a broken build.
-func (md *MoveDispatch) CreateNode(kindID uint8, x, y, z float64, tr *T.Trace) {
+func (md *MoveDispatch) CreateNode(kindID uint8, ndcX, ndcY float64, tr *T.Trace) {
 	if md == nil || md.scenes.treeRoot == "" || md.scenes.quit == nil {
+		return
+	}
+	// A scene that does not take structural edits refuses every one of them, here rather
+	// than in the editor: the palette is hidden in such a scene, but "the UI does not offer
+	// it" is not the same as "it cannot happen", and this is the side that owns the tree.
+	if !md.ui.sceneEditable {
+		md.refuseStructuralEdit("this scene does not take structural edits")
 		return
 	}
 	kind, ok := kindForID(kindID)
@@ -44,10 +51,21 @@ func (md *MoveDispatch) CreateNode(kindID uint8, x, y, z float64, tr *T.Trace) {
 		md.refuseStructuralEdit(fmt.Sprintf("unknown kind id %d", kindID))
 		return
 	}
+	// WHERE THE DROP LANDED. TS sent NDC; the camera that turns it into a place is Go's, so
+	// the unprojection happens here — the same ray every node drag already unprojects
+	// (dragPlaneHit), onto the camera-facing plane through the SCENE CENTRE. That plane,
+	// rather than the plane through some node, is what makes a drop into empty space land
+	// somewhere sensible: the scene sphere is the frame every node position is measured
+	// from anyway.
+	drop, okDrop := md.dropPointFromNDC(ndcX, ndcY)
+	if !okDrop {
+		md.refuseStructuralEdit("could not resolve where the drop landed")
+		return
+	}
 	// The nearest node is also the SOURCE of the new edge: an edge is stored under its
 	// source and carries no `source` key, so choosing the source is choosing the directory
 	// the edge file lands in.
-	src, okNear := md.nearestNodeTo(wire.Vec3{X: x, Y: y, Z: z})
+	src, okNear := md.nearestNodeTo(drop)
 	target := newNodeID(md.scenes.treeRoot)
 	if okNear {
 		if why, canLink := md.linkRefusal(src, kind); !canLink {
@@ -63,13 +81,8 @@ func (md *MoveDispatch) CreateNode(kindID uint8, x, y, z float64, tr *T.Trace) {
 	// SceneCenter, established once at load — sphere_layout.go), read through the source
 	// node this create already resolved. An empty scene has no node to read it from and no
 	// nearest node either, so the drop is measured from the origin.
-	var c vec3
-	if okNear {
-		if ng, found := md.mr.nodeGeoms[src]; found {
-			c = ng.geom.SceneCenter
-		}
-	}
-	off := vec3{X: x - c.X, Y: y - c.Y, Z: z - c.Z}
+	c := md.ui.sceneSphere.Center
+	off := drop.Sub(c)
 	d := worldDirToAngles(off)
 	if err := WriteNewNodeFiles(md.scenes.treeRoot, target, kind, off.Length(), d.Theta, d.Phi); err != nil {
 		md.refuseStructuralEdit(fmt.Sprintf("could not write node %s: %v", target, err))
@@ -101,6 +114,13 @@ func (md *MoveDispatch) CreateNode(kindID uint8, x, y, z float64, tr *T.Trace) {
 // keeping a second copy that can drift.
 func (md *MoveDispatch) DeleteNode(row int, tr *T.Trace) {
 	if md == nil || md.scenes.treeRoot == "" || md.scenes.quit == nil {
+		return
+	}
+	// A scene that does not take structural edits refuses every one of them, here rather
+	// than in the editor: the palette is hidden in such a scene, but "the UI does not offer
+	// it" is not the same as "it cannot happen", and this is the side that owns the tree.
+	if !md.ui.sceneEditable {
+		md.refuseStructuralEdit("this scene does not take structural edits")
 		return
 	}
 	id, ok := md.LookupNodeRow(row)
@@ -166,10 +186,37 @@ func kindHasPortDir(kind string, dir PortDir) bool {
 	return false
 }
 
+// dropPointFromNDC unprojects a drop's screen position onto the camera-facing plane through
+// the SCENE CENTRE — the same ray-through-NDC a node drag already unprojects
+// (gesture_actions.go's dragPlaneHit), against a plane that exists whether or not anything
+// was under the pointer. ok=false when the ray is parallel to the plane or the hit is
+// non-finite, which is a refusal rather than a guess at where the node should go.
+func (md *MoveDispatch) dropPointFromNDC(ndcX, ndcY float64) (vec3, bool) {
+	vp := md.ui.vp.viewpoint
+	eye := eyeOf(vp)
+	basis := basisFromViewpoint(vp.pos, vp.up)
+	// g.fov/g.rect are the last render params the viewport reported. A gesture reads them
+	// off the event it is handling; a palette DROP has no event of its own — it arrives as
+	// an addressed edit, not raw input — so it uses the ones every pointer move across the
+	// canvas has been keeping current.
+	dir := rayDirThroughNDC(ndcX, ndcY, basis, md.ui.gest.fov, md.ui.gest.rect.aspect())
+	forward := basis.pole.Scale(-1) // camera looks along -pole
+	denom := dir.Dot(forward)
+	if denom == 0 {
+		return vec3{}, false
+	}
+	t := md.ui.sceneSphere.Center.Sub(eye).Dot(forward) / denom
+	hit := eye.Add(dir.Scale(t))
+	if math.IsNaN(hit.X) || math.IsInf(hit.X, 0) {
+		return vec3{}, false
+	}
+	return hit, true
+}
+
 // nearestNodeTo picks the live node whose centre is closest to p, from this process's own
 // geometry. Squared distance — the ordering is the same and there is no reason to take a
 // square root to compare.
-func (md *MoveDispatch) nearestNodeTo(p wire.Vec3) (string, bool) {
+func (md *MoveDispatch) nearestNodeTo(p vec3) (string, bool) {
 	best, bestD2, found := "", 0.0, false
 	for id, ng := range md.mr.nodeGeoms {
 		c := nodeWorldPos(ng.geom)
@@ -189,6 +236,12 @@ func (md *MoveDispatch) nearestNodeTo(p wire.Vec3) (string, bool) {
 // does not end, so the editor is exactly as it was.
 func (md *MoveDispatch) refuseStructuralEdit(why string) {
 	fmt.Fprintf(os.Stderr, "structural edit refused: %s\n", why)
+	// …and SAY SO ON SCREEN. The reason belongs in the log; that the edit was refused at all
+	// is the part a person cannot otherwise see, since the scene looks exactly as it did.
+	// Bumping the count and emitting a frame is the whole signal — the editor watches the
+	// number and shows a message when it goes up.
+	md.ui.editRefused++
+	md.emitViewFrame(nil)
 }
 
 // kindForID reverses Buffer's kind-id map: the wire carries the numeric kind identity the
