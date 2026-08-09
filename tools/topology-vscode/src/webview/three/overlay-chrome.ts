@@ -101,19 +101,24 @@ export function groupHeadingStyle(hover: boolean): React.CSSProperties {
 // than a disclosure triangle.
 export const DISCLOSURE_GLYPH_STYLE: React.CSSProperties = { fontSize: 8, width: 8, flex: "0 0 auto" };
 
-/** The wrapper a pill and its popover live in, and what gives them ONE WIDTH: a max-content
- *  column whose two children both stretch to it. The width is therefore the widest thing in
- *  either — the pill's label, or a group heading in the popover — so the pill and the
- *  popover always come out the same width.
+/** The wrapper a pill and its popover live in. It sets NO width of its own: ThreeView's
+ *  right-hand column stretches every widget in it to one width, so all three pills
+ *  (overlays, angles, distances) come out the same width as each other and their popovers
+ *  come out the same width as their pills. A `max-content` here — what this used to
+ *  carry — would opt each control out of that and size it to its own label again.
  *
- *  This only works with the popover IN FLOW (inFlowPopoverStyle below). An absolutely
- *  positioned popover is out of flow, so it contributes its width to nothing: the wrapper
- *  would size to the pill alone and the popover could only be given a width chosen in
- *  advance — the guess that kept leaving a band down its right. In flow, the widest child
- *  sizes the wrapper and the other stretches to match.
+ *  Closed, the column measures the pills, so the shared width is "the widest pill" and the
+ *  three start out matching. An OPEN popover is measured too, and if its content is wider
+ *  it sizes the column — the pill above it grows to fit exactly as it did before the pills
+ *  were tied together, and the other pills, sharing the column's width, grow with it. What
+ *  a popover never does is change width again once open: the rows a group reveals measure
+ *  as nothing (REVEALED_LIST_STYLE), so expanding one wraps rather than widening.
  *
- *  ThreeView's right-hand column is built for this: it stacks its widgets, so an open
- *  popover displaces what is below it instead of covering it.
+ *  The popover is IN FLOW, not absolutely positioned. Out of flow it would contribute its
+ *  width to nothing AND take no space, so it could only be given a width chosen in advance
+ *  — the guess that kept leaving a band down its right — and would cover what sits below
+ *  it. ThreeView's column is built for the in-flow version: an open popover displaces what
+ *  is below it instead.
  *
  *  Pointer-transparent itself — the column takes no pointer events and each widget re-enables
  *  them for its own box, so a wrapper that swallowed them would cover the canvas behind it. */
@@ -121,13 +126,14 @@ export const PILL_ANCHOR_STYLE: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
   alignItems: "stretch",
-  width: "max-content",
   gap: 4,
   pointerEvents: "none",
 };
 
 /** The popover with the chrome above but not its positioning: in flow inside
- *  PILL_ANCHOR_STYLE, filling the width the anchor resolved to. */
+ *  PILL_ANCHOR_STYLE, filling the width the column resolved to — and contributing its own
+ *  content to that resolution, so an open popover wider than the pills carries them with it
+ *  rather than wrapping its top-level rows. */
 export function inFlowPopoverStyle(): React.CSSProperties {
   return { ...popoverStyle("100%"), position: "static", boxSizing: "border-box" };
 }

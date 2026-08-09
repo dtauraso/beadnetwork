@@ -444,7 +444,10 @@ export function HomeButton({
       onClick={onClick}
       title="Fit diagram in view"
       style={{
-        // Placed by ThreeView's right-hand flex column, not by its own top/right.
+        // Placed by ThreeView's right-hand flex column, not by its own top/right. That
+        // column stretches its widgets to one width so the pills match each other; this
+        // is not a pill, so it opts out and stays as wide as "⌂ fit".
+        alignSelf: "flex-end",
         background: "rgba(0,0,0,0.55)",
         borderRadius: 6,
         padding: "3px 7px",
