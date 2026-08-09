@@ -184,19 +184,25 @@ const ShadingParamBeadRingTubeRatio = wire.BeadRingTubeRatio
 // that is only true while the material stays unlit.
 const ShadingParamChainBeadFill = "#9acdd3"
 
-// ShadingParamEdgeLineColor is the drawn edge line's colour (EdgeLines.tsx). It is the chain
-// bead's tone TAKEN DOWN by eye, not the same constant, and the reason is the same one that
-// made ShadingParamChainBeadFill itself a hand-adjusted value rather than a sampled one:
-// what matters is the tone that lands on screen, and the same fill lands differently on a
-// different shape. A chain bead is a sphere wearing a black ring, which darkens the chain's
-// apparent colour; a bare cylinder has nothing doing that, so the identical hex read visibly
-// lighter than the beads it was supposed to match — reported from the UI, after a magenta
-// probe proved the constant was reaching the pixel and the wiring was not at fault.
+// ShadingParamEdgeLineColor is the drawn edge line's colour (EdgeLines.tsx): the CHAIN BEAD'S
+// OWN FILL, because the edge line is the resting edge and that is the tone a resting edge had.
 //
-// So this is a SECOND authored tone, deliberately, exactly like the interior bead's fills
-// are authored separately from the on-wire ones for the same "seen through something that
-// changes it" reason. Adjust it by looking, never by recomputing it from the bead fill.
-const ShadingParamEdgeLineColor = "#7ba4a9"
+// It briefly held a darkened #7ba4a9, on the theory that the same hex reads lighter on a bare
+// cylinder than on a sphere wearing a black ring. MEASURED AND FALSE: rendering both in a
+// three.js scene with this app's material setup (meshBasicMaterial + toneMapped:false) and
+// sampling the pixels returns each material's authored hex exactly — a basic material is flat,
+// so shape shifts nothing. Darkening it therefore made the line genuinely differ from the bead
+// colour rather than compensating for anything.
+//
+// Kept as its OWN constant rather than pointed back at ShadingParamChainBeadFill: the two are
+// equal today because the line IS the resting-edge tone, but they answer different questions
+// (what a resting edge looks like vs. what a bead looks like) and a future change to one
+// should not silently move the other.
+//
+// Spelled as a LITERAL rather than as `= ShadingParamChainBeadFill`: gen-node-defs reads these
+// constants' literal values out of the AST and panics on an identifier reference ("not a
+// Float"), so the equality is stated here in the comment instead of in the expression.
+const ShadingParamEdgeLineColor = "#9acdd3"
 
 // ShadingParamInteriorBeadFill0 and ShadingParamInteriorBeadFill1 are the fills for a bead
 // HELD INSIDE a node (InteriorBeadInstances.tsx), deliberately kept SEPARATE from
