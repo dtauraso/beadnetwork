@@ -5,7 +5,7 @@
 // which one is selected, what each one loads, and how the switch is performed. This file
 // forwards a click as ONE addressed edit (edit-update kind="scene" attr="selected",
 // carrying the tab INDEX — no name, no path) and renders what scene-tabs.ts reflects. Same
-// shape as the overlay toggles: camera-ui.tsx draws, overlay-flags.ts reflects.
+// shape as the overlay toggles: overlays-control.tsx draws, overlay-flags.ts reflects.
 //
 // Deliberately NO optimistic highlight. Clicking a tab does not move the highlight here —
 // the highlight follows the buffer, so it moves when the newly-loaded scene's first VIEW

@@ -7,7 +7,8 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Canvas } from "@react-three/fiber";
 import * as THREE from "three";
-import { HomeButton, OverlaysControl } from "./camera-ui";
+import { HomeButton } from "./home-button";
+import { OverlaysControl } from "./overlays-control";
 import { NodePalette, dropKindFromEvent, fireCreateAt } from "./NodePalette";
 import { DistanceHomePanel } from "./DistanceHomePanel";
 import { TiltVectorAnglePanel } from "./TiltVectorAnglePanel";

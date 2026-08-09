@@ -1,10 +1,10 @@
 import React from "react";
 
 // overlay-chrome.ts — the shared LOOK of the right-hand column's PILL+POPOVER controls
-// (OverlaysControl in camera-ui.tsx, the tilt-vector angle panel). Both controls are a
+// (OverlaysControl in overlays-control.tsx, the tilt-vector angle panel). Both controls are a
 // labeled pill with a ▼/▲ disclosure caret that opens a popover; the popover holds
 // collapsible ▶/▼ group headings, each holding rows. That chrome used to live only in
-// camera-ui.tsx; a second control copying its style constants verbatim is how a look that is
+// overlays-control.tsx; a second control copying its style constants verbatim is how a look that is
 // meant to be one look drifts. One definition here, imported by all three controls (overlays,
 // angles, distances) — the row shapes that go inside a popover are pill-rows.tsx.
 
@@ -17,7 +17,7 @@ export const CHROME_FONT_STACK = '-apple-system,BlinkMacSystemFont,"Segoe UI",sa
 // disabled: the popover already separates a heading from a row by size, weight, case and
 // letter-spacing, none of which need dimming to do their job.
 //
-// Dimming stays where it MEANS something: an inert checkbox (camera-ui.tsx's 0.45), an
+// Dimming stays where it MEANS something: an inert checkbox (overlay-row.tsx's 0.45), an
 // arrow at its bound (arrowBtnDisabledStyle's 0.35).
 export const CHROME_TEXT = "#e7e7ea";
 
