@@ -21,7 +21,10 @@ import { EDGE_LINE_COLOR } from "./bead-style";
 // The line reuses the node ring's own roughness rather than introducing a second one: it is
 // the same kind of surface, and a literal here would be exactly the drift that guard exists
 // to stop.
-import { SHADING_PARAM_RING_ROUGHNESS } from "../../schema/shading-params";
+import {
+  SHADING_PARAM_BEAD_RADIUS,
+  SHADING_PARAM_CHAIN_BEAD_FILL,
+} from "../../schema/shading-params";
 import { DIRECTION_ZERO_EPS } from "./buffer-scene-shared";
 
 // Line thickness and arrowhead size in world units. The head is sized off the line so the
@@ -40,6 +43,7 @@ const AXIS_DEFAULT = new THREE.Vector3(0, 1, 0);
 export function EdgeLines({ capacity }: { capacity: number }) {
   const lineRef = useRef<THREE.InstancedMesh>(null);
   const headRef = useRef<THREE.InstancedMesh>(null);
+  const beadRef = useRef<THREE.InstancedMesh>(null);
   const mat = useRef(new THREE.Matrix4());
   const pos = useRef(new THREE.Vector3());
   const dir = useRef(new THREE.Vector3());
@@ -49,10 +53,11 @@ export function EdgeLines({ capacity }: { capacity: number }) {
   useFrame(() => {
     const line = lineRef.current;
     const head = headRef.current;
-    if (!line || !head) return;
+    const bead = beadRef.current;
+    if (!line || !head || !bead) return;
 
     const edges = getEdgeStreamAccessor();
-    if (!edges) { line.count = 0; head.count = 0; return; }
+    if (!edges) { line.count = 0; head.count = 0; bead.count = 0; return; }
 
     const n = Math.min(edges.edgeCount, capacity);
     let drawn = 0;
@@ -85,12 +90,23 @@ export function EdgeLines({ capacity }: { capacity: number }) {
       mat.current.compose(pos.current, quat.current, scl.current);
       head.setMatrixAt(drawn, mat.current);
 
+      // ONE RESTING EDGE BEAD, at the segment's midpoint — a chain bead, in the chain bead's
+      // own fill, sitting between the two nodes. Every other bead on screen is a pulse in a
+      // value colour (black/white), so this is the only place the resting tone appears
+      // besides the line, which is what makes the line's colour judgeable against it: same
+      // scene, same lighting, side by side.
+      pos.current.set(sx, sy, sz).addScaledVector(dir.current, len / 2);
+      mat.current.makeTranslation(pos.current.x, pos.current.y, pos.current.z);
+      bead.setMatrixAt(drawn, mat.current);
+
       drawn++;
     }
     line.count = drawn;
     head.count = drawn;
+    bead.count = drawn;
     line.instanceMatrix.needsUpdate = true;
     head.instanceMatrix.needsUpdate = true;
+    bead.instanceMatrix.needsUpdate = true;
     if (drawn > 0) {
       line.computeBoundingSphere();
       head.computeBoundingSphere();
@@ -124,6 +140,15 @@ export function EdgeLines({ capacity }: { capacity: number }) {
             renderer's default ACES tone mapping still compressed it, so the line came out a
             different colour from the beads despite reading the identical constant. */}
         <meshBasicMaterial color={EDGE_LINE_COLOR} toneMapped={false} transparent={false} opacity={1} />
+      </instancedMesh>
+      {/* The RESTING EDGE BEAD, one per edge at its midpoint. Authored at the bead's own
+          radius and the bead's own fill (SHADING_PARAM_CHAIN_BEAD_FILL) with the same
+          unlit + tone-mapping-exempt pair ChainBeadInstances uses — a chain bead in every
+          respect, just placed between the nodes rather than filling the edge.
+          raycast disabled: it is scenery, not a target. */}
+      <instancedMesh ref={beadRef} args={[undefined, undefined, capacity]} frustumCulled={false} raycast={() => null}>
+        <sphereGeometry args={[SHADING_PARAM_BEAD_RADIUS, 16, 16]} />
+        <meshBasicMaterial color={SHADING_PARAM_CHAIN_BEAD_FILL} toneMapped={false} transparent={false} opacity={1} />
       </instancedMesh>
     </>
   );
