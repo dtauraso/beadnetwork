@@ -65,7 +65,8 @@ func TestPacerChangeStepFeedbackLean(t *testing.T) {
 
 	waitFor := func(want int) {
 		t.Helper()
-		deadline := time.Now().Add(3 * time.Second)
+		// Scaled by wire.PulseSubStepsPerBead — see the same wait in nodes/pulse.
+		deadline := time.Now().Add(3 * wire.PulseSubStepsPerBead * time.Second)
 		for time.Now().Before(deadline) {
 			if v, ok := observer.PollRecv(); ok {
 				if v != want {

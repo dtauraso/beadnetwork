@@ -278,19 +278,36 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 		//
 		// index -> the traversing bead's VALUE. The value travels because the lit bead takes
 		// bead 0's or bead 1's own fill: a bare "is lit" flag could not say which.
-		litIdx := map[int]int32{}
+		// THE PULSES on this edge: one entry per live traversal, each carrying its own
+		// CONTINUOUS fraction rather than the index of a chain bead it has reached.
+		//
+		// The edge is drawn as a line now, not as a sequence of placeholder beads lighting
+		// in turn, so there is no slot for a traversal to occupy — it has a position. That
+		// is why litBeadIndex (a FLOOR onto a bead index) is not used here: floor is exactly
+		// what made the old motion a series of jumps, one bead-width each, and no tick rate
+		// can smooth a value that is quantised before it is drawn.
+		//
+		// t stays the wire's own [0,1) fraction, and the step count still comes with the
+		// bead (p.Steps), so lighting and layout still read ONE length — the property
+		// litBeadIndex's doc comment protects, kept by passing t through instead of an index.
+		type pulse struct {
+			t     float64
+			steps int
+			val   int32
+		}
+		var pulses []pulse
 		for i, wt := range m.outWireTargets {
 			if wt != to || m.outWires[i] == nil {
 				continue
 			}
 			for _, p := range m.outWires[i].LiveBeadFractions(tick) {
-				// p.Steps is this bead's OWN step count — the geometry its t was computed
-				// against, and must be the same value as `count` above (both trace back to
-				// this edge's PublishSteps); passed straight to litBeadIndex rather than
-				// re-deriving, so lighting and layout can never read two different lengths.
-				if idx, ok := litBeadIndex(p.T, p.Steps); ok {
-					litIdx[idx] = int32(p.Val)
+				if p.T < 0 || p.T >= 1 || p.Steps <= 0 {
+					continue
 				}
+				// p.Steps travels WITH the bead: it is the length its own t was computed
+				// against. Carried here so placement spans that same integer — see the
+				// placement below.
+				pulses = append(pulses, pulse{t: p.T, steps: p.Steps, val: int32(p.Val)})
 			}
 		}
 		// spacing is the center-to-center distance between consecutive beads on THIS
@@ -395,6 +412,11 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 		if m.beadTickFn != nil {
 			actorChain = m.reconcileBeadChain(to, count, offsetAt, aimUnit)
 		}
+		// The placeholder chain still streams, and every row of it is UNLIT. It is no longer
+		// what a traversal looks like — the drawn line is the edge and the pulse below is the
+		// traversal — but it stays on the wire because it is still the chain's own geometry,
+		// still what the bead-actor goroutines resolve, and still what every placement rule
+		// in this file's tests is written against. The renderer simply draws lit rows only.
 		for i := 0; i < count; i++ {
 			var p vec3
 			if actorChain != nil && i < len(actorChain.valid) && actorChain.valid[i] {
@@ -415,13 +437,52 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 			ox = append(ox, float32(p.X))
 			oy = append(oy, float32(p.Y))
 			oz = append(oz, float32(p.Z))
-			v, isLit := litIdx[i]
-			var l uint8
-			if isLit {
-				l = 1
+			lit = append(lit, 0)
+			litVal = append(litVal, 0)
+		}
+		// THEN one LIT row per live pulse, appended after this edge's chain.
+		//
+		// Its position is the same lattice arithmetic the placeholders use, evaluated at a
+		// CONTINUOUS index (t × count) instead of at integer i: the pulse travels the same
+		// path, through the same points, and simply is not rounded to one of them. That
+		// rounding — litBeadIndex's floor — is what made the old motion a series of
+		// bead-wide hops, and no tick rate can smooth a value quantised before it is drawn.
+		for _, pl := range pulses {
+			// liveDir is ALREADY a unit cartesian direction — scaling it places the pulse
+			// directly, with no cartesian->polar->cartesian round trip.
+			// t runs over the CHAIN, whose last bead is index count-1 — tangent to the
+			// TARGET's torus (TestChainBeadsLastBeadOnTargetTorus). Scaling by count instead
+			// of count-1 carried the pulse one whole bead step past that last slot, i.e.
+			// INSIDE the target node: it arrived by disappearing into the body rather than
+			// landing on the edge's end. Ending on the last slot is what makes the hand-off
+			// read as "reaches the node, then reappears inside it" — the interior bead is a
+			// separate drawing (InteriorBeadInstances) and the travelling one has no business
+			// entering the sphere.
+			// SPANNED BY THE BEAD'S OWN STEP COUNT, not by this cycle's live `count`. They
+			// are normally the same integer, and when they are not — a node moved while this
+			// bead was in flight, so the edge re-measured under it — the bead's own is the
+			// right one: its t was computed as elapsed/(steps × dwell) against THAT length,
+			// and the wire is pacing the next placement against the same published number
+			// (DriveHeld's k). Using the live count instead makes the drawing span a length
+			// the timing never agreed to, so the pulse runs out early or lags — and an early
+			// finish is indistinguishable, watching it, from the next pulse starting too soon.
+			// One integer travels with the bead so placement, timing and pacing cannot read
+			// three different lengths (litBeadIndex's own doc comment names this).
+			lastSlot := float64(pl.steps - 1)
+			if lastSlot < 0 {
+				lastSlot = 0
 			}
-			lit = append(lit, l)
-			litVal = append(litVal, v)
+			p := liveDir.Scale(base + pl.t*lastSlot*step)
+			// Offsets are NODE-LOCAL (the buffer carries them relative to this node's own
+			// centre), so the separation is added here in the same local frame rather than
+			// being folded into the aim — bending the aim would change the chain's LENGTH
+			// and therefore its published step count, making layout and timing disagree.
+			p = p.Add(chainSep)
+			ox = append(ox, float32(p.X))
+			oy = append(oy, float32(p.Y))
+			oz = append(oz, float32(p.Z))
+			lit = append(lit, 1)
+			litVal = append(litVal, pl.val)
 		}
 	}
 	return ox, oy, oz, lit, litVal, breadcrumbs

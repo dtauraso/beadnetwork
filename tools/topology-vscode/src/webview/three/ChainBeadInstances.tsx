@@ -56,7 +56,6 @@ const TORUS_DEFAULT_NORMAL = new THREE.Vector3(0, 0, 1);
 const BEAD_UNIT_SCALE = new THREE.Vector3(1, 1, 1);
 
 export function ChainBeadInstances({ capacity }: { capacity: number }) {
-  const unlitBodyRef = useRef<THREE.InstancedMesh>(null);
   const litBodyRef = useRef<THREE.InstancedMesh>(null);
   const ringRef = useRef<THREE.InstancedMesh>(null);
   const matRef = useRef(new THREE.Matrix4());
@@ -67,10 +66,9 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
   const colRef = useRef(new THREE.Color());
 
   useFrame(() => {
-    const unlitBody = unlitBodyRef.current;
     const litBody = litBodyRef.current;
     const ring = ringRef.current;
-    if (!unlitBody || !litBody || !ring) return;
+    if (!litBody || !ring) return;
 
     const { positions, ringAxis, count, lit, litValue } = getChainBeads();
     // Clamp to the allocated instance count. buffer-scene.tsx's capacity-growth table grows
@@ -79,15 +77,30 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
     // another block's cap (the layout-link overlay silently lost links doing that).
     const drawn = Math.min(count, capacity);
 
-    // Emissive is a per-MATERIAL property, not a per-instance one (setColorAt only ever
-    // reaches the base colour), so one instanced mesh cannot hold both a glowing unlit bead
-    // (matching the tube's material exactly) and a flat black/white lit bead. The body is
-    // therefore split into two meshes: unlit beads compact into unlitBody, lit beads (with a
-    // style) compact into litBody. The ring keeps its single mesh — it never glows either way.
-    let unlitCount = 0;
+    // ONE body mesh now. There used to be two — unlit beads in one, lit in the other —
+    // because emissive is per-MATERIAL and a resting bead and a carrying one wanted
+    // different materials. Nothing rests here any more: only a pulse is drawn, and a pulse
+    // always carries a value, so the unlit mesh could never receive an instance again and
+    // is gone rather than left drawing zero of itself every frame.
     let litCount = 0;
     let ringCount = 0;
     for (let i = 0; i < drawn; i++) {
+      // ONLY LIT ROWS ARE DRAWN. The placeholder chain still streams — it is the chain's own
+      // geometry and Go still owns it — but it is no longer the edge's picture: EdgeLines
+      // draws the edge, and what moves along it is the single lit pulse row Go appends per
+      // live traversal, at a continuous position. An unlit row is skipped outright rather
+      // than drawn dim, so a chain at rest shows nothing at all and the line is the only
+      // thing left saying two nodes are connected.
+      if (lit[i] !== 1) continue;
+      // …AND ONLY IF THE VALUE HAS A STYLE. Pulse self-emits -1 from the start (its SPEC:
+      // "drives it out continuously, even before any input arrives"), and -1 is not a bead
+      // colour — bead-style's stance is that the caller HIDES such a bead rather than
+      // painting a fallback. The unlit branch used to be that fallback here, which drew
+      // every startup -1 as a pale chain bead crossing the edge: the network was pulsing
+      // before anything had been sent. A row with no style is skipped entirely now, ring
+      // included, so it costs no instance at all.
+      if (!beadStyleForValue(litValue[i])) continue;
+
       // Uniform bead size (see this file's header comment): no per-instance scale — every
       // bead is authored directly at SHADING_PARAM_BEAD_RADIUS geometry.
       matRef.current.makeTranslation(positions[i * 3]!, positions[i * 3 + 1]!, positions[i * 3 + 2]!);
@@ -112,20 +125,14 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
       // one wears the edge tube's own material. A lit bead whose value is not 0|1 has no
       // style — that is a Go bug rather than a colour to invent, so it stays edge-coloured
       // instead of painting a fake one (bead-style.ts's own stance on a non-0/1 value).
-      const style = lit[i] === 1 ? beadStyleForValue(litValue[i]) : undefined;
-      if (style) {
-        litBody.setMatrixAt(litCount, matRef.current);
-        litBody.setColorAt(litCount, colRef.current.set(style.fill));
-        litCount++;
-      } else {
-        unlitBody.setMatrixAt(unlitCount, matRef.current);
-        unlitCount++;
-      }
+      const style = beadStyleForValue(litValue[i]);
+      if (!style) continue;
+      litBody.setMatrixAt(litCount, matRef.current);
+      litBody.setColorAt(litCount, colRef.current.set(style.fill));
+      litCount++;
     }
-    unlitBody.count = unlitCount;
     litBody.count = litCount;
     ring.count = ringCount;
-    unlitBody.instanceMatrix.needsUpdate = true;
     litBody.instanceMatrix.needsUpdate = true;
     ring.instanceMatrix.needsUpdate = true;
     if (litBody.instanceColor) litBody.instanceColor.needsUpdate = true;
@@ -151,10 +158,6 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
           separately-tuned constant to look the same on screen, not the same material props.
           Cost here: no shading gradient, so a resting bead reads flat and its ring carries the
           silhouette. */}
-      <instancedMesh ref={unlitBodyRef} args={[undefined, undefined, capacity]} frustumCulled={false}>
-        <sphereGeometry args={[SHADING_PARAM_BEAD_RADIUS, 16, 16]} />
-        <meshBasicMaterial color={SHADING_PARAM_CHAIN_BEAD_FILL} toneMapped={false} transparent={false} opacity={1} />
-      </instancedMesh>
       {/* Lit body: the 0/1 bead colours via instanceColor — material colour stays white so
           instanceColor applies verbatim.
 

@@ -91,7 +91,8 @@ func TestPulseLeftDrivesHeldValueLean(t *testing.T) {
 	}
 
 	// The drive goroutine continuously pulses the held value (5) to Out.
-	deadline := time.Now().Add(3 * time.Second)
+	// Scaled by wire.PulseSubStepsPerBead — see the same wait in nodes/pulse.
+	deadline := time.Now().Add(3 * wire.PulseSubStepsPerBead * time.Second)
 	got := false
 	for time.Now().Before(deadline) {
 		if v, ok := observer.PollRecv(); ok && v == 5 {

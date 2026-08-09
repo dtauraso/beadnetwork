@@ -3,6 +3,7 @@ package wire
 import (
 	"context"
 	"fmt"
+	"math"
 	"os"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -142,6 +143,52 @@ func (pw *PacedWire) ticksToCross(steps int) float64 {
 		return 0
 	}
 	return float64(steps) * pw.dwell
+}
+
+// NextArrivalTick is the tick the EARLIEST in-flight bead on this wire will finish
+// crossing on — known at PLACEMENT, not discovered by watching: a bead placed at
+// placementTick with a step count of steps lands at placementTick + steps*dwell, and
+// nothing about that changes while it flies. ok is false when nothing is in flight.
+//
+// This is what lets the source node SLEEP to the moment a traversal completes instead of
+// waking every cycle to ask whether it has. The animation is unaffected either way —
+// LiveBeadFractions is a pure function of (current tick, placementTick), so the pulse's
+// drawn position never depended on this goroutine being awake.
+//
+// Called on this wire's own goroutine, like every other reader of inflight.
+func (pw *PacedWire) NextArrivalTick() (int64, bool) {
+	best := int64(0)
+	found := false
+	for _, b := range pw.inflight {
+		// Ceil: delivery happens on the first INTEGER tick at or past the deadline
+		// (ticksToCross' own doc comment), so the wake must not land a fraction early.
+		at := int64(math.Ceil(b.placementTick + pw.ticksToCross(b.steps)))
+		if !found || at < best {
+			best, found = at, true
+		}
+	}
+	return best, found
+}
+
+// EarliestArrival is the SOONEST arrival across n wires — what a node with several
+// outgoing edges sleeps to. The shorter edge wins because it is the first thing that needs
+// this goroutine awake; a longer one simply has not arrived yet, and waking for it early is
+// the polling this replaces. ok is false when nothing is in flight on any of them.
+//
+// A free function over a slice rather than a method on the node: the node owns which wires
+// it drives, and this owns none of them — it only reads each one's own answer.
+func EarliestArrival(wires []*PacedWire) (int64, bool) {
+	best := int64(0)
+	found := false
+	for _, w := range wires {
+		if w == nil {
+			continue
+		}
+		if at, ok := w.NextArrivalTick(); ok && (!found || at < best) {
+			best, found = at, true
+		}
+	}
+	return best, found
 }
 
 // PacedWire is an ACTIVE GOROUTINE (MODEL.md "The network"), not a passive

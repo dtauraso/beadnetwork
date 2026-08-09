@@ -184,6 +184,37 @@ const ShadingParamBeadRingTubeRatio = wire.BeadRingTubeRatio
 // that is only true while the material stays unlit.
 const ShadingParamChainBeadFill = "#9acdd3"
 
+// ShadingParamEdgeLineColor is the drawn edge line's colour (EdgeLines.tsx): the CHAIN BEAD'S
+// OWN FILL, because the edge line is the resting edge and that is the tone a resting edge had.
+//
+// It briefly held a darkened #7ba4a9, on the theory that the same hex reads lighter on a bare
+// cylinder than on a sphere wearing a black ring. MEASURED AND FALSE: rendering both in a
+// three.js scene with this app's material setup (meshBasicMaterial + toneMapped:false) and
+// sampling the pixels returns each material's authored hex exactly — a basic material is flat,
+// so shape shifts nothing. Darkening it therefore made the line genuinely differ from the bead
+// colour rather than compensating for anything.
+//
+// Kept as its OWN constant rather than pointed back at ShadingParamChainBeadFill: the two are
+// equal today because the line IS the resting-edge tone, but they answer different questions
+// (what a resting edge looks like vs. what a bead looks like) and a future change to one
+// should not silently move the other.
+//
+// BRIGHTENED, and only here. The 0/1 pulse tones are the extremes (#000000, #ffffff) so a
+// carrying bead reads as different from a resting one, and against them the chain fill sat
+// visibly dimmer than either. This tone is that fill taken up toward white — same hue, more
+// light — so the edge and its bead sit in the pulses' brightness range instead of below it.
+//
+// ShadingParamChainBeadFill itself is deliberately NOT changed: it is every OTHER bead's
+// resting tone, and the ask was for the edge. That the two constants started equal is why
+// they are separate constants (see above) — this is the change that separation was for.
+//
+// Spelled as a LITERAL rather than as an expression over the bead fill: gen-node-defs reads
+// these constants' literal values out of the AST and panics on anything else ("not a Float").
+// The ORIGINAL cyan — the tone sampled off the screenshot before ShadingParamChainBeadFill
+// took it down ~8% by eye for the beads. Shown here on the edge, where the ~8% was never the
+// question: that adjustment was made for a bead's own read in place, not a line's.
+const ShadingParamEdgeLineColor = "#a7dfe5"
+
 // ShadingParamInteriorBeadFill0 and ShadingParamInteriorBeadFill1 are the fills for a bead
 // HELD INSIDE a node (InteriorBeadInstances.tsx), deliberately kept SEPARATE from
 // bead-style.ts's on-wire 0/1 fills even though they start at the same values. The reason

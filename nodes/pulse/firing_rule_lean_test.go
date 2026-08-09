@@ -91,7 +91,12 @@ func TestPulseDrivesHeldValueLean(t *testing.T) {
 	}
 
 	// The drive goroutine continuously pulses the held value (5) to Out.
-	deadline := time.Now().Add(3 * time.Second)
+	// Scaled by wire.PulseSubStepsPerBead: a traversal now takes that many times as many
+	// ticks (bead_lattice.go), so a fixed wall-clock budget written against the old rate
+	// would fail for a network that is working exactly as specified. Expressed as the
+	// constant, not as a bigger number, so the wait tracks the rate instead of needing a
+	// second edit the next time it changes.
+	deadline := time.Now().Add(3 * wire.PulseSubStepsPerBead * time.Second)
 	got := false
 	for time.Now().Before(deadline) {
 		if v, ok := observer.PollRecv(); ok && v == 5 {

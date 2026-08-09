@@ -68,7 +68,31 @@ const BeadStepR = 2 * BeadTorusOuterR
 // no per-edge arc to divide by speed (docs/bead-lattice.md "Timing"). This is
 // the value the ONE production PacedWire construction site (loader.go, guarded
 // by tools/check-uniform-pulse-speed.sh) is expected to pass as dwellTicks.
-const DwellTicksPerBead = BeadStepR / PulseSpeedWuPerTick
+const DwellTicksPerBead = BeadStepR / PulseSpeedWuPerTick * PulseSubStepsPerBead
+
+// PulseSubStepsPerBead is how many ticks the pulse takes to cross ONE bead step, as a
+// multiple of what it used to take. It exists because the pulse is now drawn at a
+// continuous position rather than snapped to a bead index: at the old rate it covers a
+// whole bead-width per tick, which was invisible while the drawing could only ever be AT a
+// bead, and is a visible hop now that it can be between them. Four sub-steps is four times
+// as many samples across the same edge — the motion reads as travel rather than as a
+// sequence of positions.
+//
+// It multiplies DWELL, not speed, deliberately: dwell-per-bead is the constant that makes
+// pulse speed uniform across every edge (ticksToCross = steps × dwell, no per-edge division),
+// so scaling it keeps that structural property — every edge slows by the same factor and no
+// edge gains a speed of its own.
+// ONE — the original rate. Ticks are
+// the one clock, so every multiple here slowed delivery, not just the drawing, and none of
+// it was buying the smoothness it was introduced for: that comes from the pulse being drawn
+// at a CONTINUOUS position instead of floored onto a bead slot, which is independent of the
+// rate — so this constant is purely PACE, not smoothness, and is set by what looks right.
+//
+// It is the knob for that: dwell is what makes pulse speed uniform across every edge
+// (ticksToCross = steps × dwell, no per-edge division), so a change of pace belongs here —
+// one edit, every edge equally. The lean node tests' wall-clock waits scale off it, so they
+// track it without a second edit.
+const PulseSubStepsPerBead = 1
 
 // SnapQuantIR does not exist. It used to round a stored quantIR to the nearest
 // multiple of BeadStepCells so the node lattice stayed a commensurate SUBLATTICE

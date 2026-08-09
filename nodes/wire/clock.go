@@ -71,6 +71,16 @@ type Clock interface {
 	// to see how many scaled ticks actually elapsed, so speed scaling lives in
 	// Tick(), not in the sleep cadence.
 	SleepCycle(ctx context.Context) error
+	// SleepUntilTick blocks until Tick() reaches target (or ctx is done), by sleeping
+	// whole cycles — it never waits on wall time directly, so a speed change mid-wait is
+	// picked up on the next cycle exactly as a one-cycle loop would (and a clock held at
+	// speed 0 waits forever, correctly: no ticks are accruing, so nothing arrives).
+	//
+	// This is what a node with beads in flight sleeps on: the earliest arrival tick is
+	// known at placement (PacedWire.NextArrivalTick / EarliestArrival), so the goroutine
+	// can wait for that moment instead of waking every cycle to ask whether it has come.
+	// Returns immediately when target is already past.
+	SleepUntilTick(ctx context.Context, target int64) error
 	// Copy returns a clock a single goroutine can OWN from this point on. Per
 	// per-goroutine-clock.md: a goroutine calls Copy() exactly ONCE, at its own
 	// start, and uses only the returned clock thereafter — never a second call
@@ -215,6 +225,21 @@ func (c *RealClock) SleepCycle(ctx context.Context) error {
 		case <-c.tickCh:
 		case <-ctx.Done():
 			return ctx.Err()
+		}
+	}
+	return nil
+}
+
+// SleepUntilTick blocks until this clock's own Tick() reaches target — see the interface
+// doc. Implemented as whole SleepCycle waits rather than as one long wall wait, so it stays
+// inside the ONE clock: no time.After, no deadline computed in milliseconds
+// (tools/check-no-wall-clock-wait.sh forbids both outside this file), and a playback-speed
+// change during the wait is honoured on the very next cycle because the loop re-reads Tick()
+// each time rather than having pre-computed when to wake.
+func (c *RealClock) SleepUntilTick(ctx context.Context, target int64) error {
+	for c.Tick() < target {
+		if err := c.SleepCycle(ctx); err != nil {
+			return err
 		}
 	}
 	return nil
