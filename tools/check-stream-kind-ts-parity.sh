@@ -3,7 +3,7 @@ set -euo pipefail
 
 # check-stream-kind-ts-parity.sh — a stream KIND declared in Go must exist on the TS side.
 #
-# PLACEMENT: Buffer/stream_fds.go,tools/topology-vscode/src/runCommand.ts,tools/topology-vscode/src/runner/stream-fds.ts,tools/topology-vscode/src/runner/stream-demux.ts | a new StreamKind must gain a WIREFOLD_STREAM_FDS env entry (runCommand.ts's spawn env) and its own handle<Kind>Fd reader (runner/stream-demux.ts) in the ext host
+# PLACEMENT: Buffer/stream_fds.go,tools/topology-vscode/src/runCommand.ts,tools/topology-vscode/src/runner/stream-fds.ts,tools/topology-vscode/src/runner/spawn-layout.ts,tools/topology-vscode/src/runner/stream-demux.ts | a new StreamKind must gain a WIREFOLD_STREAM_FDS env entry (runner/spawn-layout.ts builds the string, runCommand.ts's spawn env assigns it) and its own handle<Kind>Fd reader (runner/stream-demux.ts) in the ext host
 #
 # THE BUG THIS EXISTS FOR. The "one inherited stdio pipe per emitting goroutine" transport
 # is agreed BY POSITION and BY NAME, with no runtime negotiation (Buffer/stream_fds.go's
@@ -89,7 +89,10 @@ fi
 
 # --- TS side: discover the file that builds WIREFOLD_STREAM_FDS ---------------
 # The ASSIGNMENT site (`WIREFOLD_STREAM_FDS:` in the spawn env object), not every file that
-# merely names the env var in a comment.
+# merely names the env var in a comment. Existence-only check — the assignment site (spawn
+# env object) and the string-building site (the `<kind>:${…Fd}` template literals, pattern 1
+# below) can be different files (e.g. runCommand.ts assigns, runner/spawn-layout.ts builds),
+# so this only confirms SOMETHING still wires WIREFOLD_STREAM_FDS into a spawn.
 ENV_FILES=$(grep -rl 'WIREFOLD_STREAM_FDS:' --include='*.ts' "$TS_SRC" 2>/dev/null || true)
 if [ -z "$ENV_FILES" ]; then
   echo "check-stream-kind-ts-parity: MISCONFIGURED — nothing under $TS_SRC assigns"
@@ -97,14 +100,21 @@ if [ -z "$ENV_FILES" ]; then
   echo "repoint this guard."
   exit 1
 fi
+# The pattern search below scans the WHOLE ext-host src tree (not just ENV_FILES): the
+# `<kind>:${…Fd}` template literals that actually spell each kind may live in a helper file
+# the assignment site merely imports from (runner/spawn-layout.ts), not the assignment site
+# itself.
+PATTERN_FILES="$TS_SRC"
 
 HITS=0
 for k in $KINDS; do
-  # 1. env spelling: `<kind>:${…Fd}` / `${…FD}` in the file that builds the env var.
+  # 1. env spelling: `<kind>:${…Fd}` / `${…FD}` anywhere under the ext-host src tree (the
+  #    template literal that spells this kind may live in a helper the assignment site
+  #    imports from, not in one of ENV_FILES itself).
   envpat="${k}:\\\$\\{[A-Za-z0-9_.]*[Ff][Dd]\\}"
-  if ! grep -hoE "$envpat" $ENV_FILES >/dev/null 2>&1; then
+  if ! grep -rhoE "$envpat" --include='*.ts' "$PATTERN_FILES" >/dev/null 2>&1; then
     echo "check-stream-kind-ts-parity: stream kind \"$k\" is declared in Go but the ext host"
-    echo "  never spells it into WIREFOLD_STREAM_FDS (looked for \`$k:\${…Fd}\` in: $ENV_FILES)."
+    echo "  never spells it into WIREFOLD_STREAM_FDS (looked for \`$k:\${…Fd}\` under: $PATTERN_FILES)."
     echo "  Go will find no base fd for it and every emitter of that kind will silently write"
     echo "  nowhere. Allocate a base fd and push the entry."
     HITS=$((HITS + 1))

@@ -5,29 +5,25 @@ import type { HostToWebviewMsg } from "./messages";
 import { killOrphanedSims } from "./goBuild";
 import { frameRecord } from "./schema/input-layout";
 import { isProbeTraceEnabled } from "./probe-files";
-import {
-  VIEW_FD,
-  EDGE_BASE_FD,
-  MAX_EDGE_STREAMS,
-  MAX_NODE_STREAMS,
-  DRIVE_SLOTS_PER_NODE,
-} from "./runner/stream-fds";
 import { readCounts } from "./runner/counts";
 import { appendGoError } from "./runner/go-errors";
 import { probePathsFor, type ProbePaths } from "./runner/probe-paths";
 import { ensureBinaryBuilt } from "./runner/ensure-binary";
 import { StreamDemux } from "./runner/stream-demux";
+import { computeSpawnLayout } from "./runner/spawn-layout";
+import { attachStreamListeners } from "./runner/attach-listeners";
 
 // The jobs this file used to do inline now live beside it under ./runner/, one concern per
 // module: the fd-allocation contract and the ROW ID = NODE ID - 1 arithmetic
-// (runner/stream-fds.ts), the stored topology counts (runner/counts.ts), the Go-error probe
-// line (runner/go-errors.ts), the probe-log rotation and path layout (runner/probe-paths.ts),
-// the two pure framing steps (runner/framing.ts), the per-spawn parse state
-// (runner/parse-state.ts), and the whole read side — per-fd frame reassembly, per-owner
-// probe decode, the last-frame replay cache — as ONE object the runner owns per spawn
-// (runner/stream-demux.ts; the state is that process's bytes, held on the INSTANCE, never
-// module state). What stays here is the runner itself: spawn + env, the listener wiring,
-// lifecycle, and writeStdin.
+// (runner/stream-fds.ts), the per-spawn fd/stdio/env arithmetic (runner/spawn-layout.ts),
+// wiring each of those fds' `data` events to the demux (runner/attach-listeners.ts), the
+// stored topology counts (runner/counts.ts), the Go-error probe line (runner/go-errors.ts),
+// the probe-log rotation and path layout (runner/probe-paths.ts), the two pure framing steps
+// (runner/framing.ts), the per-spawn parse state (runner/parse-state.ts), and the whole read
+// side — per-fd frame reassembly, per-owner probe decode, the last-frame replay cache — as
+// ONE object the runner owns per spawn (runner/stream-demux.ts; the state is that process's
+// bytes, held on the INSTANCE, never module state). What stays here is the runner itself:
+// spawn + env, process lifecycle (close/error handlers, cancel/restart), and writeStdin.
 //
 // Re-exported so importers (extension.ts, extension/handle-message.ts, and the tests that
 // import these from "../src/runCommand") keep working unchanged.
@@ -198,43 +194,18 @@ export class BuildAndRunRunner {
       this.looping = false;
       return;
     }
-    // Clamped to MAX_EDGE_STREAMS; a count above the bound omits the dedicated per-edge
-    // streams entirely — see MAX_EDGE_STREAMS's doc comment.
-    const edgeCountRaw = counts.edges;
-    const edgeCount = edgeCountRaw > MAX_EDGE_STREAMS ? 0 : edgeCountRaw;
-    if (edgeCountRaw > MAX_EDGE_STREAMS) {
-      // Capacity limit reached by legitimate input (a large topology), not a code bug — a
-      // panic/throw here would be wrong. But silently zeroing edgeCount disables ALL
-      // dedicated per-edge streams with no signal, which is the quietest possible failure
-      // for the loudest consequence (this is the same path that used to strand the
-      // `pending` leak, fixed in 93d2e9b6). Report it loudly through the same error
-      // channel as every other operational problem in this file.
-      const msg = `edge count ${edgeCountRaw} exceeds MAX_EDGE_STREAMS (${MAX_EDGE_STREAMS}); disabling ALL dedicated per-edge streams for this run`;
+    // Size the dedicated per-edge/per-node/per-interior/per-drive fd ranges from the stored
+    // counts (runner/spawn-layout.ts); any count above its MAX_*_STREAMS cap comes back with
+    // that range disabled AND a warning — legitimate input (a large topology), not a code
+    // bug, so it is reported through the same channel as every other operational problem in
+    // this file rather than thrown (this is the same path that used to strand the `pending`
+    // leak, fixed in 93d2e9b6).
+    const layout = computeSpawnLayout(counts);
+    const { edgeCount, nodeCount, stdio, streamFDsEnv } = layout;
+    for (const msg of layout.warnings) {
       this.channel.appendLine(`\n[${msg}]`);
       appendGoError(probePaths.goErrorsFile, msg);
     }
-    // Size the dedicated per-node NODE + INTERIOR fd ranges the same way, right after the
-    // edge range (nodeBase = EDGE_BASE_FD + edgeCount, interiorBase = nodeBase + nodeCount —
-    // see NODE_BASE_FD's doc comment). Clamped to MAX_NODE_STREAMS; 0 omits the dedicated
-    // per-node NODE/INTERIOR/Port streams entirely.
-    const nodeCountRaw = counts.nodes;
-    const nodeCount = nodeCountRaw > MAX_NODE_STREAMS ? 0 : nodeCountRaw;
-    if (nodeCountRaw > MAX_NODE_STREAMS) {
-      // Same reasoning as the edge-count case above.
-      const msg = `node count ${nodeCountRaw} exceeds MAX_NODE_STREAMS (${MAX_NODE_STREAMS}); disabling ALL dedicated per-node NODE/INTERIOR streams for this run`;
-      this.channel.appendLine(`\n[${msg}]`);
-      appendGoError(probePaths.goErrorsFile, msg);
-    }
-    const nodeBaseFd = EDGE_BASE_FD + edgeCount;
-    const interiorBaseFd = nodeBaseFd + nodeCount;
-    // driveBaseFd sits right after the interior range: nodeCount * DRIVE_SLOTS_PER_NODE
-    // dedicated fds, one PER (node row, drive slot) — see DRIVE_SLOTS_PER_NODE's doc
-    // comment and Buffer/stream_fds.go's StreamKindDrive. Required in lockstep with
-    // "node"/"interior" (see the streamFDsEnvParts push below and main.go's matching
-    // three-way check) — Go falls back to a loud stderr message and unwired streams
-    // rather than a startup panic if this ever drifts from what Go expects (never a
-    // crash-loop; see the panic-avoidance note on that fallback in main.go).
-    const driveBaseFd = interiorBaseFd + nodeCount;
     // A FRESH read side for this spawn: a prior process's leftover partial frame must
     // never prefix this one's stream (see freshStreamState). This is the single reset
     // point every restart path funnels through, including the looping respawn.
@@ -250,38 +221,25 @@ export class BuildAndRunRunner {
     // detached: true makes the child the leader of a new process group; the
     // prebuilt binary is the sole group member, so kill(-pid) reaches it
     // directly. Without this, SIGTERM could leave it orphaned on macOS.
-    // stdio index 3 is a RESERVED, UNUSED pipe slot: Go no longer writes anything to fd 3
-    // (the central accumulator that used to write it, plus its fallback frames, was
-    // deleted entirely; memory/feedback_no_single_writer_bridge.md's final step). The
-    // slot stays allocated purely so the remaining fd numbering (VIEW_FD=4, edge/node/
-    // interior ranges after it) matches this file's existing constants unchanged. stdio
-    // index VIEW_FD (4) = the dedicated VIEW-stream pipe (WIREFOLD_STREAM_FDS=
-    // "view:<VIEW_FD>"). stdio indices EDGE_BASE_FD..EDGE_BASE_FD+edgeCount-1 are one
-    // dedicated pipe PER EDGE (see EDGE_BASE_FD's doc comment); the next nodeCount indices
-    // are one dedicated pipe PER NODE (the "node" stream — geometry + ports + label); the
-    // FOLLOWING nodeCount indices are one dedicated pipe PER NODE again (the "interior"
-    // stream — that node's own interior beads, a SEPARATE goroutine's fd — see
-    // NODE_BASE_FD's doc comment). The FOLLOWING nodeCount*DRIVE_SLOTS_PER_NODE indices
-    // are one dedicated pipe PER (NODE, DRIVE SLOT) — the "drive" stream, one per
-    // gatecommon.DriveHeld goroutine a node kind may spawn (docs/interior-stream-
-    // framing.md's fix; see driveBaseFd's doc comment). Any of these ranges is omitted
-    // (and its kind left out of WIREFOLD_STREAM_FDS) when its count is 0 (e.g. a topology
-    // with no edges) — Go simply never streams that kind. "pipe" opens a readable pipe at
-    // each index; the existing stdin(0)/stdout(1)/stderr(2) are unchanged.
-    const stdio: Array<"pipe"> = ["pipe", "pipe", "pipe", "pipe", "pipe"];
-    for (let i = 0; i < edgeCount; i++) stdio.push("pipe");
-    for (let i = 0; i < nodeCount; i++) stdio.push("pipe");
-    for (let i = 0; i < nodeCount; i++) stdio.push("pipe");
-    for (let i = 0; i < nodeCount * DRIVE_SLOTS_PER_NODE; i++) stdio.push("pipe");
-    const streamFDsEnvParts = [`view:${VIEW_FD}`];
-    if (edgeCount > 0) streamFDsEnvParts.push(`edge:${EDGE_BASE_FD}`);
-    // Go's stream_fds.go / main.go only wires the per-node node+interior+drive streams
-    // when "node", "interior", AND "drive" env entries ALL resolve — always emit all
-    // three together (main.go's three-way check treats a partial set the same as none).
-    if (nodeCount > 0) {
-      streamFDsEnvParts.push(`node:${nodeBaseFd}`, `interior:${interiorBaseFd}`, `drive:${driveBaseFd}`);
-    }
-    const streamFDsEnv = streamFDsEnvParts.join(",");
+    // stdio and streamFDsEnv come from computeSpawnLayout above. stdio index 3 is a
+    // RESERVED, UNUSED pipe slot: Go no longer writes anything to fd 3 (the central
+    // accumulator that used to write it, plus its fallback frames, was deleted entirely;
+    // memory/feedback_no_single_writer_bridge.md's final step). The slot stays allocated
+    // purely so the remaining fd numbering (VIEW_FD=4, edge/node/interior ranges after it)
+    // matches this file's existing constants unchanged. stdio index VIEW_FD (4) = the
+    // dedicated VIEW-stream pipe (WIREFOLD_STREAM_FDS="view:<VIEW_FD>"). stdio indices
+    // EDGE_BASE_FD..EDGE_BASE_FD+edgeCount-1 are one dedicated pipe PER EDGE (see
+    // EDGE_BASE_FD's doc comment); the next nodeCount indices are one dedicated pipe PER
+    // NODE (the "node" stream — geometry + ports + label); the FOLLOWING nodeCount indices
+    // are one dedicated pipe PER NODE again (the "interior" stream — that node's own
+    // interior beads, a SEPARATE goroutine's fd — see NODE_BASE_FD's doc comment). The
+    // FOLLOWING nodeCount*DRIVE_SLOTS_PER_NODE indices are one dedicated pipe PER (NODE,
+    // DRIVE SLOT) — the "drive" stream, one per gatecommon.DriveHeld goroutine a node kind
+    // may spawn (docs/interior-stream-framing.md's fix; see driveBaseFd's doc comment). Any
+    // of these ranges is omitted (and its kind left out of WIREFOLD_STREAM_FDS) when its
+    // count is 0 (e.g. a topology with no edges) — Go simply never streams that kind.
+    // "pipe" opens a readable pipe at each index; the existing stdin(0)/stdout(1)/stderr(2)
+    // are unchanged.
     this.proc = cp.spawn(binPath, [...topArgs], {
       cwd: repoRoot,
       detached: true,
@@ -306,52 +264,10 @@ export class BuildAndRunRunner {
       for (const rec of this.pendingStdin) this.proc.stdin?.write(rec);
       this.pendingStdin = [];
     }
-    this.proc.stdout?.on("data", (d: Buffer) => demux.handleStdout(d.toString()));
-    // stdio index 3 is a reserved, unused pipe (see the stdio comment above) — nothing
-    // reads it; Go writes nothing to it.
-    // VIEW_FD: the dedicated view-stream pipe. Cast needed because Node's ChildProcess
-    // types only narrow stdio[0..2]; higher indices are typed as Readable|null via the
-    // array form.
-    const viewFd = (this.proc.stdio as (NodeJS.ReadableStream | null)[])[VIEW_FD];
-    if (viewFd) {
-      viewFd.on("data", (d: Buffer) => demux.handleViewFd(d));
-    }
-    // Per-edge dedicated pipes: EDGE_BASE_FD..EDGE_BASE_FD+edgeCount-1, one per edge row.
-    for (let row = 0; row < edgeCount; row++) {
-      const fdIdx = EDGE_BASE_FD + row;
-      const edgeFd = (this.proc.stdio as (NodeJS.ReadableStream | null)[])[fdIdx];
-      if (edgeFd) {
-        edgeFd.on("data", (d: Buffer) => demux.handleEdgeFd(row, d));
-      }
-    }
-    // Per-node dedicated pipes: nodeBaseFd..nodeBaseFd+nodeCount-1 (NODE stream, geometry+
-    // ports+label) and interiorBaseFd..interiorBaseFd+nodeCount-1 (INTERIOR stream, that
-    // node's own interior beads — a separate goroutine's fd, see NODE_BASE_FD's doc comment).
-    for (let row = 0; row < nodeCount; row++) {
-      const nodeFdIdx = nodeBaseFd + row;
-      const nodeFd = (this.proc.stdio as (NodeJS.ReadableStream | null)[])[nodeFdIdx];
-      if (nodeFd) {
-        nodeFd.on("data", (d: Buffer) => demux.handleNodeFd(row, d));
-      }
-      const interiorFdIdx = interiorBaseFd + row;
-      const interiorFd = (this.proc.stdio as (NodeJS.ReadableStream | null)[])[interiorFdIdx];
-      if (interiorFd) {
-        interiorFd.on("data", (d: Buffer) => demux.handleInteriorFd(row, d));
-      }
-      // Per-drive dedicated pipes: driveBaseFd + row*DRIVE_SLOTS_PER_NODE + slot, one PER
-      // (node row, drive slot) — see driveBaseFd's doc comment. Each is its OWN pipe
-      // (handleDriveFd keeps its carry buffer and dead-stream key separate per slot; see
-      // driveBufs' doc comment) but decodes/relays through the SAME per-node interior
-      // state as handleInteriorFd, since a drive-slot frame IS an interior-shaped frame
-      // for this node row (Buffer.StreamKindDrive's doc comment).
-      for (let slot = 0; slot < DRIVE_SLOTS_PER_NODE; slot++) {
-        const driveFdIdx = driveBaseFd + row * DRIVE_SLOTS_PER_NODE + slot;
-        const driveFd = (this.proc.stdio as (NodeJS.ReadableStream | null)[])[driveFdIdx];
-        if (driveFd) {
-          driveFd.on("data", (d: Buffer) => demux.handleDriveFd(row, slot, d));
-        }
-      }
-    }
+    // Wire every dedicated stdio pipe this spawn opened (view, per-edge, per-node NODE/
+    // INTERIOR/DRIVE) to the matching demux method — pure plumbing, split out to
+    // runner/attach-listeners.ts (see its doc comment).
+    attachStreamListeners(this.proc, demux, layout);
     this.proc.stderr?.on("data", (d: Buffer) => {
       const msg = d.toString();
       this.channel!.append(msg);
