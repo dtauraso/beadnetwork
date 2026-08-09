@@ -60,6 +60,18 @@ func (n *Node) Update(ctx context.Context) {
 	c := n.Clock.Copy()
 	n.a, n.b, n.total = noNormal, noNormal, noNormal
 
+	// THIS NODE OWNS ITS OWN GEOMETRY. Claiming self-drive means no nodeMover actor is
+	// constructed for it (mover_registry.go's finalizeActors skips a claimed id), so the
+	// per-cycle work a mover would do — drain this node's inbound channels, drive its
+	// outgoing wires, write its own stream frame — is this loop's, and the startup emit is
+	// this loop's too.
+	//
+	// Missing both is what made a created NormalSum INVISIBLE: it loaded, it linked, and it
+	// never streamed a geometry frame, so there was nothing to draw and no row to select or
+	// delete. A node that claims itself and then does not drive itself does not exist on
+	// screen.
+	n.Self.EmitGeometryOnce()
+
 	for {
 		if ctx.Err() != nil {
 			return
@@ -98,6 +110,11 @@ func (n *Node) Update(ctx context.Context) {
 			n.Fire()
 			n.republish()
 		}
+		// One cycle of this node's own geometry work, on this loop's own clock reading —
+		// the same body nodeMover.run drives for a node that has a mover. It takes no sleep
+		// of its own: this loop already paces itself, and a second sleep would double-pace
+		// the same node.
+		n.Self.Step(ctx, c.Tick())
 		if err := c.SleepCycle(ctx); err != nil {
 			return
 		}

@@ -21,6 +21,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strconv"
 	"testing"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -74,10 +75,49 @@ func firstPort(t *testing.T, kind string, dir Wiring.PortDir) string {
 	return ""
 }
 
+// nextNodeID is one past the largest id in the tree — the same rule CreateNode allocates by,
+// so the test's node lands where a real one would.
+func nextNodeID(t *testing.T, root string) string {
+	t.Helper()
+	entries, err := os.ReadDir(filepath.Join(root, "nodes"))
+	if err != nil {
+		t.Fatalf("read nodes dir: %v", err)
+	}
+	best := 0
+	for _, e := range entries {
+		if n, convErr := strconv.Atoi(e.Name()); convErr == nil && n > best {
+			best = n
+		}
+	}
+	return strconv.Itoa(best + 1)
+}
+
+// countEdges counts every edge file in the tree — counts.json's "edges", a plain count.
+func countEdges(t *testing.T, root string) int {
+	t.Helper()
+	nodes, err := os.ReadDir(filepath.Join(root, "nodes"))
+	if err != nil {
+		t.Fatalf("read nodes dir: %v", err)
+	}
+	total := 0
+	for _, n := range nodes {
+		files, readErr := os.ReadDir(filepath.Join(root, "nodes", n.Name(), "edges"))
+		if readErr != nil {
+			continue
+		}
+		total += len(files)
+	}
+	return total
+}
+
 func TestCreatedNodeTreeStillLoads(t *testing.T) {
 	root := copyTreeForCreate(t, "topology-pair")
 
-	const newID = "3"
+	// The new id is DERIVED, never a literal: this copies the live pair tree, which grows a
+	// node every time one is actually created in the editor. A hardcoded "3" passed until
+	// the tree had a 3 of its own, and then failed as a fan-in — a confusing way to be told
+	// the fixture had moved.
+	newID := nextNodeID(t, root)
 	const newKind = "NormalSum"
 	if err := Wiring.WriteNewNodeFiles(root, newID, newKind, 120, 1.4, 0.3); err != nil {
 		t.Fatalf("WriteNewNodeFiles: %v", err)
@@ -94,7 +134,13 @@ func TestCreatedNodeTreeStillLoads(t *testing.T) {
 	if err := Wiring.WriteEdgeFile(root, "1", srcPort, newID, targetPort); err != nil {
 		t.Fatalf("WriteEdgeFile: %v", err)
 	}
-	if err := Wiring.WriteCounts(root, 3, 3); err != nil {
+	// Counts derived the same way, for the same reason: nodes is the LARGEST id (the row
+	// count under ROW ID = NODE ID - 1), and this tree just grew by one node and one edge.
+	newRows, err := strconv.Atoi(newID)
+	if err != nil {
+		t.Fatalf("new id %q is not a number", newID)
+	}
+	if err := Wiring.WriteCounts(root, newRows, countEdges(t, root)); err != nil {
 		t.Fatalf("WriteCounts: %v", err)
 	}
 
