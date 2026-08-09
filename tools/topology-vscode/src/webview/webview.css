@@ -12,8 +12,8 @@ html, body { margin: 0; padding: 0; height: 100%; background: #fafafa; font-fami
 #run-mount { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
 /* The START/RESET pair renders as ONE row (TiltVectorButtons.tsx), so START sits
    immediately to the left of RESET rather than stacking as two more #run-mount rows. */
-.tilt-vector-btn-row { display: flex; flex-direction: row; gap: 6px; align-items: center; }
-.tilt-rounds-readout { display: flex; flex-direction: row; gap: 8px; align-items: center; font-size: 13px; font-weight: 600; color: #222; white-space: nowrap; }
+.tilt-vector-btn-row { display: flex; flex-direction: row; gap: 6px; align-items: flex-start; }
+.tilt-rounds-readout { display: flex; flex-direction: column; gap: 3px; align-items: flex-start; font-size: 13px; font-weight: 600; color: #222; white-space: nowrap; }
 .tilt-rounds-group { display: flex; flex-direction: row; gap: 5px; align-items: center; }
 .tilt-rounds-node { color: #222; font-weight: 700; }
 .tilt-rounds-cell {
