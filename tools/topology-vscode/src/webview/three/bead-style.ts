@@ -1,7 +1,7 @@
 import {
   SHADING_PARAM_INTERIOR_BEAD_FILL0,
   SHADING_PARAM_INTERIOR_BEAD_FILL1,
-  SHADING_PARAM_CHAIN_BEAD_FILL,
+  SHADING_PARAM_EDGE_LINE_COLOR,
 } from "../../schema/shading-params";
 
 // bead-style.ts — Single source of truth for bead value → appearance.
@@ -32,12 +32,12 @@ export function beadStyleForValue(v: number | null | undefined): { fill: string;
 // It is a RENDERED tone chosen off a screenshot, so the material that wears it must stay
 // unlit — a lit material multiplies it by incoming light and renders it a second time
 // (~0.8x, measured; see that constant's own doc comment in nodes/Wiring/shading_params.go).
-// Verified by probe (a magenta value reached the screen), so this constant IS what the line
-// draws with — if the line reads differently from the beads it is not the value that
-// differs. It is the same fill on a different SHAPE: a chain bead is a sphere wearing a
-// BLACK RING (RING_COLOR, ChainBeadInstances), and the ring darkens the whole chain's
-// apparent tone; a bare cylinder has nothing doing that, so the identical hex looks lighter.
-export const EDGE_LINE_COLOR = SHADING_PARAM_CHAIN_BEAD_FILL;
+// The line's own authored tone (Go's ShadingParamEdgeLineColor), NOT the bead fill it was
+// first pointed at. Sharing the constant made the two agree in the source and disagree on
+// screen — the same hex lands differently on a bare cylinder than on a sphere wearing a
+// black ring, and the screen is what is being matched. A magenta probe ruled out the wiring
+// first, so this is a tone adjustment, not a plumbing fix.
+export const EDGE_LINE_COLOR = SHADING_PARAM_EDGE_LINE_COLOR;
 
 // Interior (held-inside-a-node) value→appearance. This is a SEPARATE registry from
 // VALUE_BEAD_STYLE above, not a reuse of it: an interior bead is seen THROUGH the node's

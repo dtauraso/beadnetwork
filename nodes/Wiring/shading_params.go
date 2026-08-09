@@ -184,6 +184,20 @@ const ShadingParamBeadRingTubeRatio = wire.BeadRingTubeRatio
 // that is only true while the material stays unlit.
 const ShadingParamChainBeadFill = "#9acdd3"
 
+// ShadingParamEdgeLineColor is the drawn edge line's colour (EdgeLines.tsx). It is the chain
+// bead's tone TAKEN DOWN by eye, not the same constant, and the reason is the same one that
+// made ShadingParamChainBeadFill itself a hand-adjusted value rather than a sampled one:
+// what matters is the tone that lands on screen, and the same fill lands differently on a
+// different shape. A chain bead is a sphere wearing a black ring, which darkens the chain's
+// apparent colour; a bare cylinder has nothing doing that, so the identical hex read visibly
+// lighter than the beads it was supposed to match — reported from the UI, after a magenta
+// probe proved the constant was reaching the pixel and the wiring was not at fault.
+//
+// So this is a SECOND authored tone, deliberately, exactly like the interior bead's fills
+// are authored separately from the on-wire ones for the same "seen through something that
+// changes it" reason. Adjust it by looking, never by recomputing it from the bead fill.
+const ShadingParamEdgeLineColor = "#7ba4a9"
+
 // ShadingParamInteriorBeadFill0 and ShadingParamInteriorBeadFill1 are the fills for a bead
 // HELD INSIDE a node (InteriorBeadInstances.tsx), deliberately kept SEPARATE from
 // bead-style.ts's on-wire 0/1 fills even though they start at the same values. The reason
