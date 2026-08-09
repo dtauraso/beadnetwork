@@ -193,6 +193,26 @@ type bufLayoutNode struct {
 	// FullTurnThetaIdx (24) on a node that never adopts a different count, matching
 	// nodeGeometry.latticePoints' own default.
 	LatticePoints uint8 `buf:"u8"` // this node's own lattice point count (4..64, multiple of 4)
+	// RoundsToParallel is how many vector-exchange ROUNDS this node spent between the
+	// exchange opening (START) and its own rule coming to rest — one round is one arrival
+	// this node answered, so it counts this node's own arrivals, not the pair's combined
+	// channel traffic (which is 4 per round for a pair: each end one send and one receive).
+	//
+	// It FREEZES at rest and does not keep climbing. The exchange keeps circulating after
+	// both ends settle — stepFromVector replies to every arrival whether or not it moved —
+	// so a live counter would measure how long the scene has been open rather than how far
+	// the tilt had to travel. Zero means not yet at rest, or opened already at rest (a pair
+	// preset to exactly a quarter turn adopts the perpendicular machine and never steps).
+	RoundsToParallel int32 `buf:"i32"` // rounds from START until this node's rule came to rest; 0 = not yet / none needed
+	// MsgsToParallel is the same span counted in MESSAGES rather than rounds — every
+	// vector-channel receive AND send this node performed, including the START opener on
+	// the node that sends it. A node that answered two arrivals did four messages, so this
+	// is twice RoundsToParallel on the answering side and one more than that on the opener.
+	//
+	// Both are streamed rather than one being divided out on the render side, because the
+	// two differ by the opener and a reader dividing by two would be silently wrong for the
+	// node that opened the exchange.
+	MsgsToParallel int32 `buf:"i32"` // vector-channel messages (receives + sends) over the same span
 }
 
 // bufLayoutChainBead defines one row of the chain-bead column block — the node-owned

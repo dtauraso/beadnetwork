@@ -158,6 +158,27 @@ func (p *PairNodeSelf) SetTiltIndex(theta, normalTheta, bottomTheta int32) {
 	}
 }
 
+// SetRoundsToParallel reports this node's own rounds-to-rest count to its own geometry,
+// so the Node block's RoundsToParallel column carries it. Same one-way shape as
+// SetTiltIndex: the node's own goroutine counts, the geometry only mirrors.
+//
+// It is called ONCE, at the moment this node's rule first comes to rest after the exchange
+// opened — not per round. A per-round call would make the column climb for as long as the
+// scene stays open, because the exchange keeps circulating after both ends settle
+// (stepFromVector replies to every arrival whether or not it moved), and the number a
+// reader wants is how far the tilt had to travel, not how long they have been watching.
+func (p *PairNodeSelf) SetRoundsToParallel(rounds, msgs int32) {
+	if p == nil || p.geom == nil {
+		return
+	}
+	g := p.geom
+	g.roundsToParallel = rounds
+	g.msgsToParallel = msgs
+	if g.tr != nil {
+		g.emitGeometry()
+	}
+}
+
 // SetReceivedVector applies this node's own last-received vector-channel direction
 // directly to its own geometry state — the direct-call replacement for the removed
 // moveMsgKindReceivedVectorSync message-to-self. Same effect as that message's old

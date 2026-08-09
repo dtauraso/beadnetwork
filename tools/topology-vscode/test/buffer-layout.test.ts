@@ -79,8 +79,10 @@ describe("buffer-layout — Node block", () => {
     //   + 2×f32 (receivedVectorLen/theta — the THIRD vector: the direction last received
     //     on this node's own tilt-vector channel; 0 length = nothing received yet)
     //   + 1×u8 (latticePoints — this node's own pair-lattice point count)
-    //   = 4 + (5+6+2+2+1+1+1+1+2)×4 + 1 + 1 + 8 + 1 + 1 + 1 = 101
-    expect(NODE_STRIDE).toBe(101);
+    //   + 1×i32 (roundsToParallel — rounds from START until this node's rule rested)
+    //   + 1×i32 (msgsToParallel — the same span in vector-channel messages)
+    //   = 4 + (5+6+2+2+1+1+1+1+2)×4 + 1 + 1 + 8 + 1 + 1 + 1 + 4 + 4 = 109
+    expect(NODE_STRIDE).toBe(109);
   });
 
   it("read helpers decode known bytes correctly", () => {
