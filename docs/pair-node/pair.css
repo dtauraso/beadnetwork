@@ -189,6 +189,24 @@
       margin-left: 14px
     }
 
+    /* The name or condition at the head of an equation sits in a fixed column, so every "=" and
+       every right-hand side on a card begins at the same x and the lines read as one table
+       rather than as ragged sentences.
+
+       INLINE-BLOCK, not a grid on the row: a line carrying a data-src is rewrapped into a single
+       <a> when the click handling is wired (pair.js), which would collapse a two-column grid on
+       the row to one cell. An inline-block first child survives being moved inside the link. */
+    .eq .lhs {
+      display: inline-block;
+      min-width: 13ch
+    }
+
+    /* A line whose head runs past the column keeps its own spacing rather than pushing the whole
+       card wider — one long name is not worth a wider column for every other line. */
+    .eq .lhs.wide {
+      min-width: 20ch
+    }
+
     /* Every line starts at the same left edge — heading, equation and note alike. Indenting
        the equations under their headings gave the card two left edges and made the maths
        read as an aside to the label above it, which is backwards. */
