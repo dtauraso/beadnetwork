@@ -232,8 +232,13 @@ function OverlayGroupSection({ group, disabled }: { group: OverlayGroup; disable
   // twice. stopPropagation keeps this off the heading's expand/collapse.
   const onCountClick = useCallback(
     (e: React.MouseEvent) => {
-      e.stopPropagation();
+      // The chip is the group's toggle ONLY while overlays are on. With the master off it
+      // has no toggle to give, so it does NOT stop the click: it falls through to the
+      // heading and expands the group like the words and the triangle beside it. Swallowing
+      // it (the old `stopPropagation` before this check) made one part of the heading dead
+      // to a click the rest of it answers.
       if (disabled) return;
+      e.stopPropagation();
       const target = on === 0; // all off → turn everything on; otherwise turn everything off
       for (const cfg of group.cfgs) {
         const val = toggleVal(bufFlags, cfg);
@@ -268,7 +273,10 @@ function OverlayGroupSection({ group, disabled }: { group: OverlayGroup; disable
           style={{
             color: on > 0 ? "#4ea1ff" : "#6e6e78",
             fontVariantNumeric: "tabular-nums",
-            cursor: disabled ? "default" : "pointer",
+            // Pointer either way: with the master off this chip is part of the heading's
+            // expand target, so a default cursor here would say "nothing to click" over
+            // something that does answer a click.
+            cursor: "pointer",
             padding: "1px 4px",
             borderRadius: 4,
             background: !disabled && countHover ? "rgba(255,255,255,0.10)" : "transparent",
