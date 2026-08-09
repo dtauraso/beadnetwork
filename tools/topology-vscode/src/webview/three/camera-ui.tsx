@@ -13,10 +13,12 @@ import {
   pillContainerStyle,
   pillBodyStyle,
   pillCaretStyle,
-  popoverStyle,
+  inFlowPopoverStyle,
+  PILL_ANCHOR_STYLE,
   groupHeadingStyle,
   DISCLOSURE_GLYPH_STYLE,
   popoverRowStyle,
+  REVEALED_LIST_STYLE,
 } from "./overlay-chrome";
 
 // ---------------------------------------------------------------------------
@@ -199,7 +201,12 @@ function OverlayRow({ cfg, disabled, indent }: { cfg: ToggleCfg; disabled?: bool
       >
         {active ? "✓" : ""}
       </span>
-      <span>{labelText}</span>
+      {/* Wraps rather than widening: the row lives in a box that measures as nothing, so a
+          label longer than the popover has to break onto the next line or it would just
+          overflow the edge. `minWidth: 0` is what lets a flex item shrink below its own
+          content — without it the default `min-width: auto` keeps the label at full width
+          and the break never happens. */}
+      <span style={{ minWidth: 0, overflowWrap: "break-word" }}>{labelText}</span>
     </div>
   );
 }
@@ -270,16 +277,26 @@ function OverlayGroupSection({ group, disabled }: { group: OverlayGroup; disable
           {on}/{group.cfgs.length}
         </span>
       </div>
-      {open && group.cfgs.map((cfg) => {
-        const parent = group.under?.[cfg.flag];
-        // A nested row is dead while its parent is off — the same rule the master `overlays`
-        // flag applies to every row, one level down. Read through toggleVal, the same rule a
-        // row itself reads by, so parent and child cannot disagree about the parent's value.
-        const parentOff = !!parent && !parent.active(toggleVal(bufFlags, parent));
-        return (
-          <OverlayRow key={cfg.flag} cfg={cfg} disabled={disabled || parentOff} indent={!!parent} />
-        );
-      })}
+      {open && (
+        <div style={REVEALED_LIST_STYLE}>
+          {group.cfgs.map((cfg) => {
+            const parent = group.under?.[cfg.flag];
+            // A nested row is dead while its parent is off — the same rule the master
+            // `overlays` flag applies to every row, one level down. Read through toggleVal,
+            // the same rule a row itself reads by, so parent and child cannot disagree about
+            // the parent's value.
+            const parentOff = !!parent && !parent.active(toggleVal(bufFlags, parent));
+            return (
+              <OverlayRow
+                key={cfg.flag}
+                cfg={cfg}
+                disabled={disabled || parentOff}
+                indent={!!parent}
+              />
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -304,7 +321,11 @@ export function OverlaysControl() {
   }, []);
 
   return (
-    <>
+    // The pill and the popover are SIBLINGS inside the shared-width anchor, so they always
+    // come out the same width (PILL_ANCHOR_STYLE). Never nest the popover in the pill:
+    // pillContainerStyle sets `overflow: hidden` to clip the chip's rounded corners, which
+    // would clip the popover out of existence.
+    <div style={PILL_ANCHOR_STYLE}>
       {/* Split button — labeled pill (body = master toggle, caret = popover). Accent fill
           when the master is on, neutral chip when off (overlay-toggle-options.html mock). */}
       <div
@@ -315,8 +336,15 @@ export function OverlaysControl() {
           ...pillContainerStyle(active),
         }}
       >
-        {/* Body — master toggle */}
-        <div onClick={onBodyClick} title={guidelinesCfg.title(active)} style={pillBodyStyle}>
+        {/* Body — master toggle. `flex: "1 1 auto"` so the LABEL takes the pill's slack and
+            the caret stays at the far end, the same as the angles pill. Without it the
+            caret sits right after the word and slides whenever the shared width changes —
+            which is what made it look like the triangle was following the popover. */}
+        <div
+          onClick={onBodyClick}
+          title={guidelinesCfg.title(active)}
+          style={{ ...pillBodyStyle, flex: "1 1 auto" }}
+        >
           Overlays
         </div>
         {/* Caret — popover toggle */}
@@ -330,15 +358,13 @@ export function OverlaysControl() {
         </div>
       </div>
 
-      {/* Popover — grouped checklist (.pop mock style: panel2 bg, border, shadow). */}
+      {/* Popover — grouped checklist (.pop mock style: panel2 bg, border, shadow). IN FLOW
+          under the pill, filling the anchor's width — not the old absolute popover at a
+          fixed 150. In flow it is measured, so the anchor sizes to whichever is wider (the
+          pill's label or a group heading) and BOTH come out at that width. The rows measure
+          as nothing (REVEALED_LIST_STYLE), so expanding a group still changes neither. */}
       {open && (
-        <div
-          style={{
-            // Anchored to the split button itself (position: relative above), so it
-            // follows wherever the column puts that button instead of to a fixed top.
-            ...popoverStyle(150),
-          }}
-        >
+        <div style={inFlowPopoverStyle()}>
           {/* No dimming for the master-off state: the PILL is that indicator — unlit chip
               means overlays are off — and a second, fainter copy of the same fact inside the
               popover only made the list hard to read. The rows stay inert (`disabled`), they
@@ -348,7 +374,7 @@ export function OverlaysControl() {
           ))}
         </div>
       )}
-    </>
+    </div>
   );
 }
 

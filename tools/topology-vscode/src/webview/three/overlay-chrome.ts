@@ -101,6 +101,52 @@ export function groupHeadingStyle(hover: boolean): React.CSSProperties {
 // than a disclosure triangle.
 export const DISCLOSURE_GLYPH_STYLE: React.CSSProperties = { fontSize: 8, width: 8, flex: "0 0 auto" };
 
+/** The wrapper a pill and its popover live in, and what gives them ONE WIDTH: a max-content
+ *  column whose two children both stretch to it. The width is therefore the widest thing in
+ *  either — the pill's label, or a group heading in the popover — so the pill and the
+ *  popover always come out the same width.
+ *
+ *  This only works with the popover IN FLOW (inFlowPopoverStyle below). An absolutely
+ *  positioned popover is out of flow, so it contributes its width to nothing: the wrapper
+ *  would size to the pill alone and the popover could only be given a width chosen in
+ *  advance — the guess that kept leaving a band down its right. In flow, the widest child
+ *  sizes the wrapper and the other stretches to match.
+ *
+ *  ThreeView's right-hand column is built for this: it stacks its widgets, so an open
+ *  popover displaces what is below it instead of covering it.
+ *
+ *  Pointer-transparent itself — the column takes no pointer events and each widget re-enables
+ *  them for its own box, so a wrapper that swallowed them would cover the canvas behind it. */
+export const PILL_ANCHOR_STYLE: React.CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "stretch",
+  width: "max-content",
+  gap: 4,
+  pointerEvents: "none",
+};
+
+/** The popover with the chrome above but not its positioning: in flow inside
+ *  PILL_ANCHOR_STYLE, filling the width the anchor resolved to. */
+export function inFlowPopoverStyle(): React.CSSProperties {
+  return { ...popoverStyle("100%"), position: "static", boxSizing: "border-box" };
+}
+
+/** Wrapper for the rows a disclosure triangle REVEALS. They lay out across the popover's
+ *  full width but MEASURE AS NOTHING, so expanding a group cannot change any width —
+ *  content too long for the popover wraps onto the next line instead of pushing the edge
+ *  (and, where the pill shares that width, the pill) outward.
+ *
+ *  `width: 0` is what buys it: a popover sized by `max-content` counts a child with a
+ *  DEFINITE width as that width — zero — rather than as its contents, so the popover stays
+ *  sized by what is there before any triangle is clicked (the headings). `minWidth: "100%"`
+ *  then expands this box back out to the popover's resolved width. (The effect
+ *  `contain: inline-size` describes, in a form that reads as ordinary sizing.)
+ *
+ *  Rows inside it must be able to BREAK — a flex row of fixed-width children with nothing
+ *  wrappable will still overflow. See OverlayRow's label and the angle panel's value line. */
+export const REVEALED_LIST_STYLE: React.CSSProperties = { width: 0, minWidth: "100%" };
+
 /** A single popover row (OverlayRow's shape), minus the checkbox glyph — callers that want
  *  a checkbox (OverlaysControl) render their own leading element; callers that don't (the
  *  angle panel's axis rows) render their content directly inside this. */
