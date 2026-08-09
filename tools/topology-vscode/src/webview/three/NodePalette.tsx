@@ -20,6 +20,7 @@ import { useSelectedNodeRow, useSceneEditable, useSceneKinds, useEditRefused } f
 import {
   pillContainerStyle,
   pillBodyStyle,
+  pillCaretStyle,
   PILL_ANCHOR_STYLE,
   inFlowPopoverStyle,
   popoverRowStyle,
@@ -70,12 +71,25 @@ export function NodePalette() {
   return (
     <div style={PILL_ANCHOR_STYLE}>
       <div style={pillContainerStyle(false)}>
+        {/* No master toggle — there is nothing to turn on or off, only kinds to drag — so
+            the WHOLE pill opens the popover, as on the angles and distances pills. The label
+            takes the pill's slack so the caret stays at the far end. */}
         <div
           onClick={onToggle}
           title={open ? "Close node palette" : "Open node palette"}
           style={{ ...pillBodyStyle, flex: "1 1 auto" }}
         >
           Nodes
+        </div>
+        {/* The caret this pill was missing. Every other pill in the column has one, and it is
+            the affordance that says the thing opens — without it the pill reads as a button
+            that does something rather than a menu. */}
+        <div
+          onClick={onToggle}
+          title={open ? "Close node palette" : "Open node palette"}
+          style={pillCaretStyle}
+        >
+          {open ? "▲" : "▼"}
         </div>
       </div>
       {open && (
