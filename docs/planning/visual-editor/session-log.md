@@ -613,7 +613,3 @@ is what settled it: node 1's normal points right, node 2's points left, and the 
 therefore looked completely unchanged. A field added to preserve a behaviour was hiding the
 only evidence that the change had happened at all. It is out; both ends now derive the same
 directions and step the same way, and a test pins that.
-
-**Open, and deliberately so:** with no inversion the pair no longer comes to rest parallel —
-it halts perpendicular, a quarter turn either side. Whether the mirror comes back, and as
-what, is a separate question from the id.
