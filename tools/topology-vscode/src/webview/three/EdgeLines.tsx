@@ -107,13 +107,23 @@ export function EdgeLines({ capacity }: { capacity: number }) {
         <cylinderGeometry args={[EDGE_LINE_RADIUS, EDGE_LINE_RADIUS, 1, 8]} />
         {/* UNLIT (meshBasic), see EDGE_LINE_COLOR: this tone is a rendered appearance, and a
             lit material would render it a second time and come out darker than the beads. */}
-        <meshBasicMaterial color={EDGE_LINE_COLOR} />
+        {/* meshBasicMaterial + toneMapped={false}, the SAME pair every mesh in
+            ChainBeadInstances uses, and load-bearing for the same reason: it makes the
+            authored fill constant equal the pixel. Basic alone was not enough — the
+            renderer's default ACES tone mapping still compressed it, so the line came out a
+            different colour from the beads despite reading the identical constant. */}
+        <meshBasicMaterial color={EDGE_LINE_COLOR} toneMapped={false} transparent={false} opacity={1} />
       </instancedMesh>
       <instancedMesh ref={headRef} args={[undefined, undefined, capacity]} frustumCulled={false} raycast={() => null}>
         <coneGeometry args={[ARROW_HEAD_RADIUS, ARROW_HEAD_LENGTH, 12]} />
         {/* UNLIT (meshBasic), see EDGE_LINE_COLOR: this tone is a rendered appearance, and a
             lit material would render it a second time and come out darker than the beads. */}
-        <meshBasicMaterial color={EDGE_LINE_COLOR} />
+        {/* meshBasicMaterial + toneMapped={false}, the SAME pair every mesh in
+            ChainBeadInstances uses, and load-bearing for the same reason: it makes the
+            authored fill constant equal the pixel. Basic alone was not enough — the
+            renderer's default ACES tone mapping still compressed it, so the line came out a
+            different colour from the beads despite reading the identical constant. */}
+        <meshBasicMaterial color={EDGE_LINE_COLOR} toneMapped={false} transparent={false} opacity={1} />
       </instancedMesh>
     </>
   );
