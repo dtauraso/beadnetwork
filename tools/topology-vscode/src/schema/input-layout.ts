@@ -7,7 +7,7 @@
 // nodes/Wiring/input_codec.go into the SAME stdinMsg the dispatch loop consumes.
 //
 // The record-layout CONSTANTS (INPUT_LAYOUT_FINGERPRINT, IN_KIND_*, and the enum-ordering
-// arrays) are no longer hand-kept-in-lockstep with input_codec.go: they are GENERATED into
+// arrays) are no longer hand-kept-in-lockstep with input_fingerprint.go: they are GENERATED into
 // ./input-layout-gen.ts from Go's InputLayoutFingerprint string (the single source) and
 // re-exported below, so the two languages cannot drift apart. This module hand-authors only
 // the encode*/decode* codec functions and the Writer/Reader helpers.
@@ -26,7 +26,7 @@
 // BuildAndRunRunner.lastSnapshot / getLastSnapshot in runCommand.ts). Left as an
 // intentional GAP rather than renumbered, so no other kind's wire value moves.
 
-// Record kind bytes (first byte of every record). Must match input_codec.go.
+// Record kind bytes (first byte of every record). Must match input_fingerprint.go.
 // Kinds 1 (resume) and 2 (pause) removed — the play/pause clock gate was deleted
 // end-to-end. Intentional gaps (never renumber a live wire value).
 // Kind 3 (IN_KIND_RESEND) removed — intentional gap, see comment above.

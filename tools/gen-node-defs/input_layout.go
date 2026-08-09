@@ -1,9 +1,13 @@
-// input-layout-gen.ts emitter: mirrors nodes/Wiring/input_codec.go's
-// InputLayoutFingerprint into tools/topology-vscode/src/schema/input-layout-gen.ts.
+// input-layout-gen.ts emitter: mirrors the nodes/Wiring InputLayoutFingerprint const
+// (input_fingerprint.go) into tools/topology-vscode/src/schema/input-layout-gen.ts.
+//
+// The const is located by SCANNING the package, never by a hardcoded filename
+// (memory/feedback_guards_hardcoding_single_file_break_on_split.md — it used to live in
+// input_codec.go and moved when that file was split by job).
 //
 // Go's InputLayoutFingerprint string is the single source of truth for the TS→Go input
 // record layout (record kind bytes + enum orderings). Go derives its own kind consts and
-// enum arrays from that same string via parseFPList (see input_codec.go) — this generator
+// enum arrays from that same string via parseFPList (see input_fingerprint.go) — this generator
 // derives the TS-side equivalents the same way, so the two languages can never carry a
 // hand-copied fingerprint that silently drifts. Only the fingerprint STRING and its
 // directly-derived constants/arrays are generated here; the codec functions
@@ -13,11 +17,14 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
 	"os"
+	"path/filepath"
+	"sort"
 	"strings"
 )
 
@@ -32,7 +39,37 @@ type inputLayoutFingerprint struct {
 	updateAttrs []string
 }
 
-// parseInputLayoutFingerprint reads nodes/Wiring/input_codec.go via go/ast and extracts the
+// errFingerprintNotFound says "this particular file does not declare the const" — as
+// opposed to "the const is there and is malformed". parseInputLayoutFingerprintDir needs
+// the distinction so it can keep scanning past the package's other files while still
+// surfacing a real parse error from the file that DOES declare it.
+var errFingerprintNotFound = fmt.Errorf("InputLayoutFingerprint const not found")
+
+// parseInputLayoutFingerprintDir finds the one file in the nodes/Wiring package that
+// declares InputLayoutFingerprint and parses it. Scanning rather than naming a file is what
+// keeps this generator working across a file split
+// (memory/feedback_guards_hardcoding_single_file_break_on_split.md); finding no declaration
+// at all is an ERROR, never a silent skip that would emit an empty layout.
+func parseInputLayoutFingerprintDir(dir string) (*inputLayoutFingerprint, error) {
+	paths, err := filepath.Glob(filepath.Join(dir, "*.go"))
+	if err != nil {
+		return nil, err
+	}
+	sort.Strings(paths)
+	for _, p := range paths {
+		fp, err := parseInputLayoutFingerprint(p)
+		if errors.Is(err, errFingerprintNotFound) {
+			continue
+		}
+		if err != nil {
+			return nil, err
+		}
+		return fp, nil
+	}
+	return nil, fmt.Errorf("no file in %s declares InputLayoutFingerprint", dir)
+}
+
+// parseInputLayoutFingerprint reads one Go file via go/ast and extracts the
 // InputLayoutFingerprint string-literal constant, then tokenizes it the same way Go's own
 // parseFPList does (space-delimited tokens, comma-separated lists after "marker=").
 func parseInputLayoutFingerprint(goPath string) (*inputLayoutFingerprint, error) {
@@ -75,7 +112,7 @@ func parseInputLayoutFingerprint(goPath string) (*inputLayoutFingerprint, error)
 		}
 	}
 	if !found {
-		return nil, fmt.Errorf("InputLayoutFingerprint const not found in %s", goPath)
+		return nil, fmt.Errorf("%w in %s", errFingerprintNotFound, goPath)
 	}
 
 	fp := &inputLayoutFingerprint{raw: raw, kindValues: map[string]string{}}
@@ -113,7 +150,7 @@ func parseInputLayoutFingerprint(goPath string) (*inputLayoutFingerprint, error)
 	return fp, nil
 }
 
-// fpListToken mirrors input_codec.go's parseFPList body-extraction, returning the raw
+// fpListToken mirrors input_fingerprint.go's parseFPList body-extraction, returning the raw
 // comma-joined token text (without splitting into a slice).
 func fpListToken(fp, marker string) string {
 	i := strings.Index(fp, marker)
@@ -127,7 +164,7 @@ func fpListToken(fp, marker string) string {
 	return rest
 }
 
-// fpList mirrors input_codec.go's parseFPList exactly (returns nil if marker absent).
+// fpList mirrors input_fingerprint.go's parseFPList exactly (returns nil if marker absent).
 func fpList(fp, marker string) []string {
 	tok := fpListToken(fp, marker)
 	if tok == "" {
@@ -137,7 +174,7 @@ func fpList(fp, marker string) []string {
 }
 
 // unquoteGoString strips the surrounding double quotes from a Go string-literal AST value.
-// input_codec.go's fingerprint is a plain double-quoted literal (no escapes), so a simple
+// input_fingerprint.go's fingerprint is a plain double-quoted literal (no escapes), so a simple
 // trim suffices; a raw/backtick literal or one containing escapes is rejected loudly rather
 // than mis-parsed.
 func unquoteGoString(lit string) (string, error) {
@@ -166,7 +203,7 @@ func writeInputLayout(outPath string, fp *inputLayoutFingerprint) error {
 	w := bufio.NewWriter(&buf)
 
 	fmt.Fprintln(w, `// GENERATED by tools/gen-node-defs — do not edit.`)
-	fmt.Fprintln(w, `// Source: nodes/Wiring/input_codec.go's InputLayoutFingerprint const.`)
+	fmt.Fprintln(w, `// Source: nodes/Wiring/input_fingerprint.go's InputLayoutFingerprint const.`)
 	fmt.Fprintln(w, `// Regenerate with: npm run gen:node-defs`)
 	fmt.Fprintln(w, `//`)
 	fmt.Fprintln(w, `// Go is the single source of the TS<->Go input-record layout: Go's InputLayoutFingerprint`)
@@ -179,13 +216,13 @@ func writeInputLayout(outPath string, fp *inputLayoutFingerprint) error {
 	fmt.Fprintln(w, `// INPUT_LAYOUT_FINGERPRINT: `+fp.raw)
 	fmt.Fprintf(w, "export const INPUT_LAYOUT_FINGERPRINT =\n  %q;\n\n", fp.raw)
 
-	fmt.Fprintln(w, `// Record kind bytes (first byte of every record). Must match input_codec.go.`)
+	fmt.Fprintln(w, `// Record kind bytes (first byte of every record). Must match input_fingerprint.go.`)
 	for _, name := range fp.kindNames {
 		fmt.Fprintf(w, "export const %s = %s;\n", kindConstName(name), fp.kindValues[name])
 	}
 	fmt.Fprintln(w)
 
-	fmt.Fprintln(w, `// Enum orderings (u8 index -> string), shared with input_codec.go.`)
+	fmt.Fprintln(w, `// Enum orderings (u8 index -> string), shared with input_fingerprint.go.`)
 	writeTSArray(w, "IN_EVENT_KINDS", fp.eventKinds)
 	writeTSArray(w, "IN_HIT_KINDS", fp.hitKinds)
 	// EDIT_UPDATE_KINDS_START / _END bound tools/check-edit-op-parity.sh's axis-2 extraction

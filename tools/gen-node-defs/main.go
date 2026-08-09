@@ -307,8 +307,11 @@ func main() {
 	}
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d constants)\n", frameTagsTSPath, len(frameTagConsts))
 
-	inputCodecGoPath := filepath.Join(repoRoot, "nodes", "Wiring", "input_codec.go")
-	inputFP, err := parseInputLayoutFingerprint(inputCodecGoPath)
+	// Scan the package for whichever file declares InputLayoutFingerprint rather than
+	// naming one (it moved from input_codec.go to input_fingerprint.go when that file was
+	// split by job — memory/feedback_guards_hardcoding_single_file_break_on_split.md).
+	wiringGoDir := filepath.Join(repoRoot, "nodes", "Wiring")
+	inputFP, err := parseInputLayoutFingerprintDir(wiringGoDir)
 	if err != nil {
 		fatalf("parse input layout fingerprint: %v", err)
 	}
