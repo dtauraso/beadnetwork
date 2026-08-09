@@ -18,3 +18,14 @@ export function formatAngle(radians: number, points: number): string {
   const sign = idx < 0 ? "-" : "";
   return `${sign}${Math.abs(idx)}π/${denom}`;
 }
+
+// The WIDEST string formatAngle can return at this point count — a full negative turn,
+// `-<points>π/<denom>`. The readout reserves this much room so the ▲/▼ beside it keep one
+// position while θ steps: the number is what changes width (0 → 11π/12 → -1π/12), and an
+// arrow that slides sideways under the cursor is a different button than the one clicked.
+// Derived from the same `points` as formatAngle rather than measured, so the reservation
+// tracks the lattice-point setting instead of a guessed character count.
+export function widestAngle(points: number): string {
+  const denom = Math.max(1, Math.round(points / 2));
+  return `-${Math.max(1, points)}π/${denom}`;
+}
