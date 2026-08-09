@@ -72,8 +72,10 @@ fi
 # Node-owner files: files whose writeJSONAtomic/entityReadModifyWrite call acts on behalf
 # of a node's own mover (a nodeMover method, called only from that node's own goroutine).
 NODE_OWNERS=("node_mover.go" "quant_offset_persist.go" "scene_anchor_persist.go")
-# Edge-owner files: reserved for a future Go-side edges/<label>.json writer.
-EDGE_OWNERS=("edge_mover.go")
+# Edge-owner files: the edges/<label>.json writer (edge_file.go) plus edge_mover.go itself,
+# kept as an owner so a future write added directly there does not need this guard touched
+# again.
+EDGE_OWNERS=("edge_file.go" "edge_mover.go")
 # View-owner files: the view-owner goroutine's (RunStdinReader) own scene-level writers.
 VIEW_OWNERS=("scene_camera_persist.go" "scene_overlays_persist.go" "scene_sphere_persist.go" "scene_selection_persist.go" "scene_speed_persist.go" "scene_lattice_persist.go")
 # Tree-shape owner: counts.json, which is neither per-node nor per-edge nor view state — it
