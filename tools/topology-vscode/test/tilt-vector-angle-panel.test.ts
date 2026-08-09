@@ -7,7 +7,7 @@
 // same physical direction, different index and different denominator, because the step
 // (2π/points) itself depends on the count.
 import { describe, it, expect } from "vitest";
-import { formatAngle } from "../src/webview/three/tilt-vector-angle-format";
+import { formatAngle, widestAngle } from "../src/webview/three/tilt-vector-angle-format";
 
 describe("TiltVectorAnglePanel formatAngle", () => {
   it("at 24 points, π/2 is index 6 shown as 6π/12", () => {
@@ -25,5 +25,24 @@ describe("TiltVectorAnglePanel formatAngle", () => {
 
   it("a negative index carries its sign", () => {
     expect(formatAngle(-Math.PI / 2, 24)).toBe("-6π/12");
+  });
+});
+
+// The readout reserves widestAngle(points) so the ▲/▼ beside it keep one position while θ
+// steps. That only holds if no value formatAngle can produce is longer than the reservation.
+describe("TiltVectorAnglePanel widestAngle", () => {
+  it("is at least as long as every angle at that point count", () => {
+    for (const points of [4, 12, 24, 64]) {
+      const widest = widestAngle(points);
+      const step = (2 * Math.PI) / points;
+      for (let idx = -points; idx <= points; idx++) {
+        expect(formatAngle(idx * step, points).length).toBeLessThanOrEqual(widest.length);
+      }
+    }
+  });
+
+  it("tracks the point count rather than a fixed character budget", () => {
+    expect(widestAngle(24)).toBe("-24π/12");
+    expect(widestAngle(12)).toBe("-12π/6");
   });
 });

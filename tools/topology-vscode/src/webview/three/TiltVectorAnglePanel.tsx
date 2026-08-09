@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { postGoRecord } from "../vscode-api";
 import { encodeTiltVectorAdjust, encodeSceneLatticePoints } from "../../schema/input-layout";
 import { useTiltVectorRows, type TiltVectorRow } from "./overlay-flags";
-import { formatAngle } from "./tilt-vector-angle-format";
+import { formatAngle, widestAngle } from "./tilt-vector-angle-format";
 import {
   pillContainerStyle,
   pillBodyStyle,
@@ -68,6 +68,24 @@ const AXES = ["theta"] as const;
  *  across every row. Stacking has nothing to stretch: each line is as wide as its own
  *  content. Styled from popoverRowStyle (hover background, radius, padding) with the
  *  direction overridden — the chrome is shared, only the flow differs. */
+/** The value half of an item's second line, sized to `widest` rather than to what it shows.
+ *
+ *  The shown value is taken OUT OF FLOW over an invisible copy of the widest string the
+ *  readout can ever hold, so the box is that wide whatever is in it. Everything after it —
+ *  the ▲/▼ — therefore keeps one position while the number steps, instead of sliding as
+ *  "0" becomes "-11π/12" and back. Reserving by rendering the widest string measures it in
+ *  the real font; a `ch`/`em` guess does not, and "π" is exactly where such a guess is
+ *  wrong. `tabular-nums` holds the digits themselves to one width, so the shown value does
+ *  not shift inside the reserved box either. */
+function ValueBox({ shown, widest }: { shown: string; widest: string }) {
+  return (
+    <span style={valueBoxStyle}>
+      <span aria-hidden style={{ visibility: "hidden" }}>{widest}</span>
+      <span style={valueTextStyle}>{shown}</span>
+    </span>
+  );
+}
+
 function AxisRow({ node, axis }: { node: TiltVectorRow; axis: (typeof AXES)[number] }) {
   const [hover, setHover] = useState(false);
   const adjust = (dir: "up" | "down") => {
@@ -86,9 +104,10 @@ function AxisRow({ node, axis }: { node: TiltVectorRow; axis: (typeof AXES)[numb
     >
       <span>{axis}</span>
       <span style={valueLineStyle}>
-        <span style={{ fontVariantNumeric: "tabular-nums" }}>
-          {formatAngle(node.theta, node.points)}
-        </span>
+        <ValueBox
+          shown={formatAngle(node.theta, node.points)}
+          widest={widestAngle(node.points)}
+        />
         <button
           type="button"
           aria-label={`${node.label || node.row} ${axis} up`}
@@ -169,7 +188,7 @@ function LatticePointsRow({ points }: { points: number }) {
     >
       <span>Lattice points</span>
       <span style={valueLineStyle}>
-        <span style={{ fontVariantNumeric: "tabular-nums" }}>{points}</span>
+        <ValueBox shown={String(points)} widest={String(LATTICE_POINTS_MAX)} />
         <button
           type="button"
           aria-label="lattice points up"
@@ -247,6 +266,22 @@ export function TiltVectorAnglePanel() {
     </div>
   );
 }
+
+// The value's own box: as wide as the widest value it can hold (see ValueBox), and the
+// positioning context the shown value sits in.
+const valueBoxStyle: React.CSSProperties = {
+  position: "relative",
+  display: "inline-block",
+  fontVariantNumeric: "tabular-nums",
+  whiteSpace: "nowrap",
+};
+
+// The shown value, out of flow so only the invisible widest copy sizes the box.
+const valueTextStyle: React.CSSProperties = {
+  position: "absolute",
+  left: 0,
+  top: 0,
+};
 
 // An item's second line: the value, then the arrows that change it, packed together.
 const valueLineStyle: React.CSSProperties = {
