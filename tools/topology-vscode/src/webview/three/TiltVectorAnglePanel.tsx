@@ -9,11 +9,11 @@ import {
   pillCaretStyle,
   groupHeadingStyle,
   DISCLOSURE_GLYPH_STYLE,
-  popoverRowStyle,
   REVEALED_LIST_STYLE,
   PILL_ANCHOR_STYLE,
   inFlowPopoverStyle,
 } from "./overlay-chrome";
+import { StepperRow } from "./pill-rows";
 
 // The angle axes this panel lets a node's tilt be set on, in display order.
 //
@@ -60,79 +60,23 @@ const AXES = ["theta"] as const;
 // — split out so it has no react/vscode-api dependency and its own unit test doesn't need
 // to import a webview module.
 
-/** One axis item inside a node's group, STACKED: the axis name on its own line, its value
- *  and the ▲/▼ that change it on the line below. Same two-line item the pair panels use.
- *
- *  It is stacked rather than laid across one line because a single line has to decide what
- *  fills the space between the name and the value — and the answer keeps being "nothing
- *  should". The first version gave the name `flex: "1 1 auto"`, which stretched it to the
- *  popover's full width and pushed the value and arrows out to the right edge, opening a gap
- *  across every row. Stacking has nothing to stretch: the name is its own line, so the gap
- *  it opened cannot exist. The value line below it does span the row, deliberately — that is
- *  what carries the arrows out to the shared right-hand column (valueLineStyle,
- *  arrowGroupStyle) without a stretched name pushing the value with them.
- *  Styled from popoverRowStyle (hover background, radius, padding) with the
- *  direction overridden — the chrome is shared, only the flow differs. */
-/** The value half of an item's second line, sized to `widest` rather than to what it shows.
- *
- *  The shown value is taken OUT OF FLOW over an invisible copy of the widest string the
- *  readout can ever hold, so the box is that wide whatever is in it. Everything after it —
- *  the ▲/▼ — therefore keeps one position while the number steps, instead of sliding as
- *  "0" becomes "-11π/12" and back. Reserving by rendering the widest string measures it in
- *  the real font; a `ch`/`em` guess does not, and "π" is exactly where such a guess is
- *  wrong. `tabular-nums` holds the digits themselves to one width, so the shown value does
- *  not shift inside the reserved box either. */
-function ValueBox({ shown, widest }: { shown: string; widest: string }) {
-  return (
-    <span style={valueBoxStyle}>
-      <span aria-hidden style={{ visibility: "hidden" }}>{widest}</span>
-      <span style={valueTextStyle}>{shown}</span>
-    </span>
-  );
-}
-
+/** One axis item inside a node's group: the shared StepperRow (pill-rows.tsx), which every
+ *  pill's popover uses — the name on its own line, the value and its ▲/▼ below. */
 function AxisRow({ node, axis }: { node: TiltVectorRow; axis: (typeof AXES)[number] }) {
-  const [hover, setHover] = useState(false);
   const adjust = (dir: "up" | "down") => {
     postGoRecord(encodeTiltVectorAdjust(node.row, dir));
   };
+  const who = node.label || node.row;
   return (
-    <div
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      style={{
-        ...popoverRowStyle(hover, false),
-        flexDirection: "column",
-        alignItems: "stretch",
-        gap: 2,
-      }}
-    >
-      <span>{axis}</span>
-      <span style={valueLineStyle}>
-        <ValueBox
-          shown={formatAngle(node.theta, node.points)}
-          widest={widestAngle(node.points)}
-        />
-        <span style={arrowGroupStyle}>
-          <button
-            type="button"
-            aria-label={`${node.label || node.row} ${axis} up`}
-            onClick={(e) => { e.stopPropagation(); adjust("up"); }}
-            style={arrowBtnStyle}
-          >
-            ▲
-          </button>
-          <button
-            type="button"
-            aria-label={`${node.label || node.row} ${axis} down`}
-            onClick={(e) => { e.stopPropagation(); adjust("down"); }}
-            style={arrowBtnStyle}
-          >
-            ▼
-          </button>
-        </span>
-      </span>
-    </div>
+    <StepperRow
+      name={axis}
+      shown={formatAngle(node.theta, node.points)}
+      widest={widestAngle(node.points)}
+      upLabel={`${who} ${axis} up`}
+      downLabel={`${who} ${axis} down`}
+      onUp={() => adjust("up")}
+      onDown={() => adjust("down")}
+    />
   );
 }
 
@@ -182,48 +126,21 @@ const LATTICE_POINTS_STEP = 4;
  *  (memory/feedback_clear_button_armed_only_when_loaded.md's "don't bank an action a
  *  disabled affordance can't take" shape). */
 function LatticePointsRow({ points }: { points: number }) {
-  const [hover, setHover] = useState(false);
   const adjust = (delta: number) => {
-    const next = Math.min(LATTICE_POINTS_MAX, Math.max(LATTICE_POINTS_MIN, points + delta));
-    if (next === points) return;
-    postGoRecord(encodeSceneLatticePoints(next));
+    postGoRecord(encodeSceneLatticePoints(points + delta));
   };
+  // No handler at a bound, which is what renders that arrow disabled (StepperRow) — the
+  // affordance says it cannot take the click rather than banking one that does nothing.
   return (
-    <div
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      style={{
-        ...popoverRowStyle(hover, false),
-        flexDirection: "column",
-        alignItems: "stretch",
-        gap: 2,
-      }}
-    >
-      <span>Lattice points</span>
-      <span style={valueLineStyle}>
-        <ValueBox shown={String(points)} widest={String(LATTICE_POINTS_MAX)} />
-        <span style={arrowGroupStyle}>
-          <button
-            type="button"
-            aria-label="lattice points up"
-            disabled={points >= LATTICE_POINTS_MAX}
-            onClick={(e) => { e.stopPropagation(); adjust(LATTICE_POINTS_STEP); }}
-            style={points >= LATTICE_POINTS_MAX ? arrowBtnDisabledStyle : arrowBtnStyle}
-          >
-            ▲
-          </button>
-          <button
-            type="button"
-            aria-label="lattice points down"
-            disabled={points <= LATTICE_POINTS_MIN}
-            onClick={(e) => { e.stopPropagation(); adjust(-LATTICE_POINTS_STEP); }}
-            style={points <= LATTICE_POINTS_MIN ? arrowBtnDisabledStyle : arrowBtnStyle}
-          >
-            ▼
-          </button>
-        </span>
-      </span>
-    </div>
+    <StepperRow
+      name="Lattice points"
+      shown={String(points)}
+      widest={String(LATTICE_POINTS_MAX)}
+      upLabel="lattice points up"
+      downLabel="lattice points down"
+      onUp={points >= LATTICE_POINTS_MAX ? undefined : () => adjust(LATTICE_POINTS_STEP)}
+      onDown={points <= LATTICE_POINTS_MIN ? undefined : () => adjust(-LATTICE_POINTS_STEP)}
+    />
   );
 }
 
@@ -282,71 +199,7 @@ export function TiltVectorAnglePanel() {
   );
 }
 
-// The value's own box: as wide as the widest value it can hold (see ValueBox), and the
-// positioning context the shown value sits in.
-const valueBoxStyle: React.CSSProperties = {
-  position: "relative",
-  display: "inline-block",
-  fontVariantNumeric: "tabular-nums",
-  whiteSpace: "nowrap",
-};
-
-// The shown value, out of flow so only the invisible widest copy sizes the box.
-const valueTextStyle: React.CSSProperties = {
-  position: "absolute",
-  left: 0,
-  top: 0,
-};
-
-// An item's second line: the value at the left, the arrows that change it at the RIGHT EDGE
-// of the dropdown. The line takes the full row width (the rows stretch) and the arrow group
-// is pushed to its end, so every ▲/▼ in the popover lands on one right-hand column whatever
-// its row's value or label is.
-const valueLineStyle: React.CSSProperties = {
-  display: "flex",
-  flexDirection: "row",
-  alignItems: "center",
-  gap: 4,
-  width: "100%",
-  // When the value and its arrows do not both fit the popover's width, the arrow group
-  // drops to the next line (still right-aligned there) rather than widening the popover.
-  flexWrap: "wrap",
-  rowGap: 2,
-};
-
-// The ▲/▼ pair, held together and pushed to the line's right end. `marginLeft: auto` eats
-// whatever space is left over, which is what puts them on the shared right-hand column.
-//
-// This does NOT replace ValueBox's width reservation. The dropdown is sized by its widest
-// content (anchorStyle's max-content), so a value that grows would widen the whole popover
-// and carry the right edge — and the arrows with it — outward. The reservation holds that
-// width still; this holds the arrows at it.
-const arrowGroupStyle: React.CSSProperties = {
-  display: "flex",
-  flexDirection: "row",
-  alignItems: "center",
-  gap: 4,
-  marginLeft: "auto",
-};
-
-// The pill and its dropdown share ONE WIDTH — PILL_ANCHOR_STYLE and inFlowPopoverStyle()
-// in overlay-chrome.ts, used by the overlays control too.
-
-const arrowBtnStyle: React.CSSProperties = {
-  background: "rgba(255,255,255,0.12)",
-  border: "none",
-  borderRadius: 4,
-  color: "#e7e7ea",
-  fontSize: 10,
-  lineHeight: 1,
-  padding: "2px 5px",
-  cursor: "pointer",
-};
-
-// Same chrome as arrowBtnStyle but visibly inert — used at the lattice-point-count bounds
-// so a disabled arrow reads as disabled rather than a click that silently does nothing.
-const arrowBtnDisabledStyle: React.CSSProperties = {
-  ...arrowBtnStyle,
-  opacity: 0.35,
-  cursor: "default",
-};
+// Nothing about a row's look lives here any more: the value reservation, the right-aligned
+// arrows and their disabled state are StepperRow's (pill-rows.tsx), and the pill and its
+// dropdown share ONE WIDTH via PILL_ANCHOR_STYLE / inFlowPopoverStyle() (overlay-chrome.ts).
+// Both are used by the overlays and distances controls too.

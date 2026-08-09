@@ -4,9 +4,9 @@ import React from "react";
 // (OverlaysControl in camera-ui.tsx, the tilt-vector angle panel). Both controls are a
 // labeled pill with a ▼/▲ disclosure caret that opens a popover; the popover holds
 // collapsible ▶/▼ group headings, each holding rows. That chrome used to live only in
-// camera-ui.tsx; a second control copying its style constants verbatim is exactly the
-// pattern panel-styles.ts's own file comment warns against (two copies of one look drift
-// silently). One definition here, imported by both.
+// camera-ui.tsx; a second control copying its style constants verbatim is how a look that is
+// meant to be one look drifts. One definition here, imported by all three controls (overlays,
+// angles, distances) — the row shapes that go inside a popover are pill-rows.tsx.
 
 export const CHROME_FONT_STACK = '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif';
 
