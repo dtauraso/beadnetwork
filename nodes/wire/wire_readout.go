@@ -4,7 +4,8 @@
 // struct was never about transport at all: the pending Position/Arrive buffer the renderer
 // drains, the Trace handle, the debug-breadcrumb channel and its drop counter. Those say
 // nothing about when a bead lands; they exist so a frame can be written. This file gives
-// that concern a NAMED type; paced_wire.go keeps the queue plus its arrival math.
+// that concern a NAMED type; paced_wire.go keeps the queue itself (arrival.go its arrival
+// math, paced_wire_drive.go the stepping of it).
 //
 // Same pattern nodeGeometry already follows (nodes/Wiring/node_geometry_parts.go): a NAMED
 // sub-object accessed explicitly (pw.readout.pending), never Go embedding — embedding would
@@ -123,7 +124,7 @@ func (r *wireReadout) flushDroppedBreadcrumbs() {
 // goroutine (edgeMover.writeStreamFrame), same contract as drainPendingEvents.
 //
 // Drain-until-empty, transitively bounded by breadcrumbCh's declared capacity (4) —
-// no iteration cap; see drainPlacements's doc comment (paced_wire.go) for the full
+// no iteration cap; see drainPlacements's doc comment (paced_wire_drive.go) for the full
 // reasoning shared by every drain-until-empty loop in this repo.
 func (r *wireReadout) drainBreadcrumbEvents() []RowEvent {
 	if r.breadcrumbCh == nil {

@@ -108,7 +108,7 @@ func (in *TimeStart) Update(ctx context.Context) {
 			// consumed silently; neither is processed).
 			//
 			// Drain-until-empty, transitively bounded by this wire's declared
-			// channel capacity -- no iteration cap; see nodes/wire/paced_wire.go's
+			// channel capacity -- no iteration cap; see nodes/wire/paced_wire_drive.go's
 			// drainPlacements doc comment for the full reasoning shared by every
 			// drain-until-empty loop in this repo.
 			for {

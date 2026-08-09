@@ -142,7 +142,7 @@ func (m *nodeMover) run(ctx context.Context) {
 		wire.ApplySpeedNonBlocking(g.clocks.clk, m.speedCh)
 		// Drain-until-empty, transitively bounded by each channel's own declared
 		// capacity (moverInboxDepth) -- no iteration cap; see
-		// nodes/wire/paced_wire.go's drainPlacements doc comment for the full
+		// nodes/wire/paced_wire_drive.go's drainPlacements doc comment for the full
 		// reasoning shared by every drain-until-empty loop in this repo.
 		for {
 			progressed := false
