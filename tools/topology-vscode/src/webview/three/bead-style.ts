@@ -1,6 +1,7 @@
 import {
   SHADING_PARAM_INTERIOR_BEAD_FILL0,
   SHADING_PARAM_INTERIOR_BEAD_FILL1,
+  SHADING_PARAM_CHAIN_BEAD_FILL,
 } from "../../schema/shading-params";
 
 // bead-style.ts — Single source of truth for bead value → appearance.
@@ -23,14 +24,15 @@ export function beadStyleForValue(v: number | null | undefined): { fill: string;
   return v == null ? undefined : VALUE_BEAD_STYLE[v];
 }
 
-// The drawn edge's colour (EdgeLines.tsx) — the SAME white the value-1 bead is filled with,
-// read from the registry above rather than repeated as a literal, so the line and the pulse
-// that runs along it cannot drift apart. They are one edge: the line is it at rest, the
-// pulse is it carrying a value.
+// The drawn edge's colour (EdgeLines.tsx): the BEAD SPHERE's own fill — Go's
+// ShadingParamChainBeadFill, the pale cyan the chain beads wear. Not the value-1 white: the
+// lit tones (black/white) belong to a bead CARRYING a value, and painting the resting edge
+// with one of them would say the whole edge is holding a 1.
 //
-// Value 1's fill, not value 0's: 0 is black, which against this scene's dark background
-// would be a line you cannot see.
-export const EDGE_LINE_COLOR = VALUE_BEAD_STYLE[1]!.fill;
+// It is a RENDERED tone chosen off a screenshot, so the material that wears it must stay
+// unlit — a lit material multiplies it by incoming light and renders it a second time
+// (~0.8x, measured; see that constant's own doc comment in nodes/Wiring/shading_params.go).
+export const EDGE_LINE_COLOR = SHADING_PARAM_CHAIN_BEAD_FILL;
 
 // Interior (held-inside-a-node) value→appearance. This is a SEPARATE registry from
 // VALUE_BEAD_STYLE above, not a reuse of it: an interior bead is seen THROUGH the node's

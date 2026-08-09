@@ -446,7 +446,19 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 		for _, pl := range pulses {
 			// liveDir is ALREADY a unit cartesian direction — scaling it places the pulse
 			// directly, with no cartesian->polar->cartesian round trip.
-			p := liveDir.Scale(base + pl.t*float64(count)*step)
+			// t runs over the CHAIN, whose last bead is index count-1 — tangent to the
+			// TARGET's torus (TestChainBeadsLastBeadOnTargetTorus). Scaling by count instead
+			// of count-1 carried the pulse one whole bead step past that last slot, i.e.
+			// INSIDE the target node: it arrived by disappearing into the body rather than
+			// landing on the edge's end. Ending on the last slot is what makes the hand-off
+			// read as "reaches the node, then reappears inside it" — the interior bead is a
+			// separate drawing (InteriorBeadInstances) and the travelling one has no business
+			// entering the sphere.
+			lastSlot := float64(count - 1)
+			if lastSlot < 0 {
+				lastSlot = 0
+			}
+			p := liveDir.Scale(base + pl.t*lastSlot*step)
 			// Offsets are NODE-LOCAL (the buffer carries them relative to this node's own
 			// centre), so the separation is added here in the same local frame rather than
 			// being folded into the aim — bending the aim would change the chain's LENGTH

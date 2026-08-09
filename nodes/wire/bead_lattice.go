@@ -82,7 +82,10 @@ const DwellTicksPerBead = BeadStepR / PulseSpeedWuPerTick * PulseSubStepsPerBead
 // pulse speed uniform across every edge (ticksToCross = steps × dwell, no per-edge division),
 // so scaling it keeps that structural property — every edge slows by the same factor and no
 // edge gains a speed of its own.
-const PulseSubStepsPerBead = 4
+// Two, not four: four was picked before it had been watched, and it slowed the whole
+// network — ticks are the one clock, so this is delivery speed, not just drawing speed.
+// Two keeps the motion continuous while costing the node behaviour half as much.
+const PulseSubStepsPerBead = 2
 
 // SnapQuantIR does not exist. It used to round a stored quantIR to the nearest
 // multiple of BeadStepCells so the node lattice stayed a commensurate SUBLATTICE

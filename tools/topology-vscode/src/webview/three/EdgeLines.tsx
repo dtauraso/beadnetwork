@@ -26,9 +26,12 @@ import { DIRECTION_ZERO_EPS } from "./buffer-scene-shared";
 
 // Line thickness and arrowhead size in world units. The head is sized off the line so the
 // two stay in proportion if the line changes.
-const EDGE_LINE_RADIUS = 0.35;
-const ARROW_HEAD_RADIUS = EDGE_LINE_RADIUS * 3.2;
-const ARROW_HEAD_LENGTH = ARROW_HEAD_RADIUS * 2.2;
+// The ORIGINAL drawn edge's own numbers, recovered from the deleted EdgeTube rather than
+// re-picked by eye: core tube radius 1.5, arrowhead radius 3. An edge that comes back should
+// come back the size it was.
+const EDGE_LINE_RADIUS = 1.5;
+const ARROW_HEAD_RADIUS = 3;
+const ARROW_HEAD_LENGTH = ARROW_HEAD_RADIUS * 2;
 
 // A three.js cylinder and cone are both authored along +Y, so orienting either one means
 // rotating THIS onto the segment's own direction.
@@ -102,11 +105,15 @@ export function EdgeLines({ capacity }: { capacity: number }) {
           again does not silently re-introduce a hit path. */}
       <instancedMesh ref={lineRef} args={[undefined, undefined, capacity]} frustumCulled={false} raycast={() => null}>
         <cylinderGeometry args={[EDGE_LINE_RADIUS, EDGE_LINE_RADIUS, 1, 8]} />
-        <meshStandardMaterial color={EDGE_LINE_COLOR} roughness={SHADING_PARAM_RING_ROUGHNESS} metalness={0} depthWrite={false} transparent />
+        {/* UNLIT (meshBasic), see EDGE_LINE_COLOR: this tone is a rendered appearance, and a
+            lit material would render it a second time and come out darker than the beads. */}
+        <meshBasicMaterial color={EDGE_LINE_COLOR} />
       </instancedMesh>
       <instancedMesh ref={headRef} args={[undefined, undefined, capacity]} frustumCulled={false} raycast={() => null}>
         <coneGeometry args={[ARROW_HEAD_RADIUS, ARROW_HEAD_LENGTH, 12]} />
-        <meshStandardMaterial color={EDGE_LINE_COLOR} roughness={SHADING_PARAM_RING_ROUGHNESS} metalness={0} depthWrite={false} transparent />
+        {/* UNLIT (meshBasic), see EDGE_LINE_COLOR: this tone is a rendered appearance, and a
+            lit material would render it a second time and come out darker than the beads. */}
+        <meshBasicMaterial color={EDGE_LINE_COLOR} />
       </instancedMesh>
     </>
   );
