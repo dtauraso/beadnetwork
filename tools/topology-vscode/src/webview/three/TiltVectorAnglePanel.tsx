@@ -65,8 +65,11 @@ const AXES = ["theta"] as const;
  *  fills the space between the name and the value — and the answer keeps being "nothing
  *  should". The first version gave the name `flex: "1 1 auto"`, which stretched it to the
  *  popover's full width and pushed the value and arrows out to the right edge, opening a gap
- *  across every row. Stacking has nothing to stretch: each line is as wide as its own
- *  content. Styled from popoverRowStyle (hover background, radius, padding) with the
+ *  across every row. Stacking has nothing to stretch: the name is its own line, so the gap
+ *  it opened cannot exist. The value line below it does span the row, deliberately — that is
+ *  what carries the arrows out to the shared right-hand column (valueLineStyle,
+ *  arrowGroupStyle) without a stretched name pushing the value with them.
+ *  Styled from popoverRowStyle (hover background, radius, padding) with the
  *  direction overridden — the chrome is shared, only the flow differs. */
 /** The value half of an item's second line, sized to `widest` rather than to what it shows.
  *
@@ -98,7 +101,7 @@ function AxisRow({ node, axis }: { node: TiltVectorRow; axis: (typeof AXES)[numb
       style={{
         ...popoverRowStyle(hover, false),
         flexDirection: "column",
-        alignItems: "flex-start",
+        alignItems: "stretch",
         gap: 2,
       }}
     >
@@ -108,22 +111,24 @@ function AxisRow({ node, axis }: { node: TiltVectorRow; axis: (typeof AXES)[numb
           shown={formatAngle(node.theta, node.points)}
           widest={widestAngle(node.points)}
         />
-        <button
-          type="button"
-          aria-label={`${node.label || node.row} ${axis} up`}
-          onClick={(e) => { e.stopPropagation(); adjust("up"); }}
-          style={arrowBtnStyle}
-        >
-          ▲
-        </button>
-        <button
-          type="button"
-          aria-label={`${node.label || node.row} ${axis} down`}
-          onClick={(e) => { e.stopPropagation(); adjust("down"); }}
-          style={arrowBtnStyle}
-        >
-          ▼
-        </button>
+        <span style={arrowGroupStyle}>
+          <button
+            type="button"
+            aria-label={`${node.label || node.row} ${axis} up`}
+            onClick={(e) => { e.stopPropagation(); adjust("up"); }}
+            style={arrowBtnStyle}
+          >
+            ▲
+          </button>
+          <button
+            type="button"
+            aria-label={`${node.label || node.row} ${axis} down`}
+            onClick={(e) => { e.stopPropagation(); adjust("down"); }}
+            style={arrowBtnStyle}
+          >
+            ▼
+          </button>
+        </span>
       </span>
     </div>
   );
@@ -182,31 +187,33 @@ function LatticePointsRow({ points }: { points: number }) {
       style={{
         ...popoverRowStyle(hover, false),
         flexDirection: "column",
-        alignItems: "flex-start",
+        alignItems: "stretch",
         gap: 2,
       }}
     >
       <span>Lattice points</span>
       <span style={valueLineStyle}>
         <ValueBox shown={String(points)} widest={String(LATTICE_POINTS_MAX)} />
-        <button
-          type="button"
-          aria-label="lattice points up"
-          disabled={points >= LATTICE_POINTS_MAX}
-          onClick={(e) => { e.stopPropagation(); adjust(LATTICE_POINTS_STEP); }}
-          style={points >= LATTICE_POINTS_MAX ? arrowBtnDisabledStyle : arrowBtnStyle}
-        >
-          ▲
-        </button>
-        <button
-          type="button"
-          aria-label="lattice points down"
-          disabled={points <= LATTICE_POINTS_MIN}
-          onClick={(e) => { e.stopPropagation(); adjust(-LATTICE_POINTS_STEP); }}
-          style={points <= LATTICE_POINTS_MIN ? arrowBtnDisabledStyle : arrowBtnStyle}
-        >
-          ▼
-        </button>
+        <span style={arrowGroupStyle}>
+          <button
+            type="button"
+            aria-label="lattice points up"
+            disabled={points >= LATTICE_POINTS_MAX}
+            onClick={(e) => { e.stopPropagation(); adjust(LATTICE_POINTS_STEP); }}
+            style={points >= LATTICE_POINTS_MAX ? arrowBtnDisabledStyle : arrowBtnStyle}
+          >
+            ▲
+          </button>
+          <button
+            type="button"
+            aria-label="lattice points down"
+            disabled={points <= LATTICE_POINTS_MIN}
+            onClick={(e) => { e.stopPropagation(); adjust(-LATTICE_POINTS_STEP); }}
+            style={points <= LATTICE_POINTS_MIN ? arrowBtnDisabledStyle : arrowBtnStyle}
+          >
+            ▼
+          </button>
+        </span>
       </span>
     </div>
   );
@@ -283,12 +290,31 @@ const valueTextStyle: React.CSSProperties = {
   top: 0,
 };
 
-// An item's second line: the value, then the arrows that change it, packed together.
+// An item's second line: the value at the left, the arrows that change it at the RIGHT EDGE
+// of the dropdown. The line takes the full row width (the rows stretch) and the arrow group
+// is pushed to its end, so every ▲/▼ in the popover lands on one right-hand column whatever
+// its row's value or label is.
 const valueLineStyle: React.CSSProperties = {
   display: "flex",
   flexDirection: "row",
   alignItems: "center",
   gap: 4,
+  width: "100%",
+};
+
+// The ▲/▼ pair, held together and pushed to the line's right end. `marginLeft: auto` eats
+// whatever space is left over, which is what puts them on the shared right-hand column.
+//
+// This does NOT replace ValueBox's width reservation. The dropdown is sized by its widest
+// content (anchorStyle's max-content), so a value that grows would widen the whole popover
+// and carry the right edge — and the arrows with it — outward. The reservation holds that
+// width still; this holds the arrows at it.
+const arrowGroupStyle: React.CSSProperties = {
+  display: "flex",
+  flexDirection: "row",
+  alignItems: "center",
+  gap: 4,
+  marginLeft: "auto",
 };
 
 // The pill and its dropdown share ONE WIDTH, and this wrapper defines it: a max-content
