@@ -24,7 +24,13 @@ import { EDGE_LINE_COLOR } from "./bead-style";
 import {
   SHADING_PARAM_BEAD_RADIUS,
   SHADING_PARAM_CHAIN_BEAD_FILL,
+  SHADING_PARAM_BEAD_RING_TUBE_RATIO,
 } from "../../schema/shading-params";
+import { beadStyleForValue } from "./bead-style";
+
+// The chain bead's ring colour, taken the way ChainBeadInstances takes it: off the value-1
+// style rather than as a second black literal.
+const BEAD_RING_COLOR = beadStyleForValue(1)!.ring;
 import { DIRECTION_ZERO_EPS } from "./buffer-scene-shared";
 
 // Line thickness and arrowhead size in world units. The head is sized off the line so the
@@ -39,11 +45,17 @@ const ARROW_HEAD_LENGTH = ARROW_HEAD_RADIUS * 2;
 // A three.js cylinder and cone are both authored along +Y, so orienting either one means
 // rotating THIS onto the segment's own direction.
 const AXIS_DEFAULT = new THREE.Vector3(0, 1, 0);
+// A torusGeometry lies in the XY plane, so ITS own normal is +Z — a different default from
+// the cylinder/cone above, which is why both constants exist rather than one.
+const TORUS_DEFAULT_NORMAL = new THREE.Vector3(0, 0, 1);
 
 export function EdgeLines({ capacity }: { capacity: number }) {
   const lineRef = useRef<THREE.InstancedMesh>(null);
   const headRef = useRef<THREE.InstancedMesh>(null);
   const beadRef = useRef<THREE.InstancedMesh>(null);
+  const beadRingRef = useRef<THREE.InstancedMesh>(null);
+  const ringQuat = useRef(new THREE.Quaternion());
+  const unit = useRef(new THREE.Vector3(1, 1, 1));
   const mat = useRef(new THREE.Matrix4());
   const pos = useRef(new THREE.Vector3());
   const dir = useRef(new THREE.Vector3());
@@ -54,10 +66,14 @@ export function EdgeLines({ capacity }: { capacity: number }) {
     const line = lineRef.current;
     const head = headRef.current;
     const bead = beadRef.current;
-    if (!line || !head || !bead) return;
+    const beadRing = beadRingRef.current;
+    if (!line || !head || !bead || !beadRing) return;
 
     const edges = getEdgeStreamAccessor();
-    if (!edges) { line.count = 0; head.count = 0; bead.count = 0; return; }
+    if (!edges) {
+      line.count = 0; head.count = 0; bead.count = 0; beadRing.count = 0;
+      return;
+    }
 
     const n = Math.min(edges.edgeCount, capacity);
     let drawn = 0;
@@ -98,15 +114,25 @@ export function EdgeLines({ capacity }: { capacity: number }) {
       pos.current.set(sx, sy, sz).addScaledVector(dir.current, len / 2);
       mat.current.makeTranslation(pos.current.x, pos.current.y, pos.current.z);
       bead.setMatrixAt(drawn, mat.current);
+      // …and its RING. A chain bead is a sphere INSIDE a torus, never a bare sphere — the
+      // ring is most of what it looks like. A torusGeometry's own normal is +Z, so it is
+      // rotated onto the edge direction here, which puts the ring around the line the bead
+      // sits on (on a real chain the same ring lies in its node's ring plane, resolved from
+      // the streamed per-bead axis this reference bead has no equivalent of).
+      ringQuat.current.setFromUnitVectors(TORUS_DEFAULT_NORMAL, dir.current);
+      mat.current.compose(pos.current, ringQuat.current, unit.current);
+      beadRing.setMatrixAt(drawn, mat.current);
 
       drawn++;
     }
     line.count = drawn;
     head.count = drawn;
     bead.count = drawn;
+    beadRing.count = drawn;
     line.instanceMatrix.needsUpdate = true;
     head.instanceMatrix.needsUpdate = true;
     bead.instanceMatrix.needsUpdate = true;
+    beadRing.instanceMatrix.needsUpdate = true;
     if (drawn > 0) {
       line.computeBoundingSphere();
       head.computeBoundingSphere();
@@ -149,6 +175,16 @@ export function EdgeLines({ capacity }: { capacity: number }) {
       <instancedMesh ref={beadRef} args={[undefined, undefined, capacity]} frustumCulled={false} raycast={() => null}>
         <sphereGeometry args={[SHADING_PARAM_BEAD_RADIUS, 16, 16]} />
         <meshBasicMaterial color={SHADING_PARAM_CHAIN_BEAD_FILL} toneMapped={false} transparent={false} opacity={1} />
+      </instancedMesh>
+      {/* Its RING — geometry and colour copied from ChainBeadInstances verbatim (bead radius,
+          tube = radius × SHADING_PARAM_BEAD_RING_TUBE_RATIO, 8×24 segments, the black
+          beadStyleForValue(1).ring). Without it this was a bare sphere, which is not what an
+          edge bead looks like: the ring carries most of its silhouette. */}
+      <instancedMesh ref={beadRingRef} args={[undefined, undefined, capacity]} frustumCulled={false} raycast={() => null}>
+        <torusGeometry
+          args={[SHADING_PARAM_BEAD_RADIUS, SHADING_PARAM_BEAD_RADIUS * SHADING_PARAM_BEAD_RING_TUBE_RATIO, 8, 24]}
+        />
+        <meshBasicMaterial color={BEAD_RING_COLOR} toneMapped={false} transparent={false} opacity={1} />
       </instancedMesh>
     </>
   );
