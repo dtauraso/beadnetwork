@@ -25,6 +25,8 @@ import {
   popoverRowStyle,
   CHROME_TEXT,
   CHROME_FONT_STACK,
+  DISCLOSURE_GLYPH_STYLE,
+  REVEALED_LIST_STYLE,
 } from "./overlay-chrome";
 
 // The MIME the drag carries. A private type, not text/plain: a stray text drop from another
@@ -97,6 +99,9 @@ export function NodePalette() {
  *  is what crosses the bridge (the Node block's KindId column already uses it). */
 function PaletteRow({ kind, kindId }: { kind: string; kindId: number }) {
   const [hover, setHover] = useState(false);
+  // Collapsed by default, like every other disclosure in this chrome: thirteen open
+  // descriptions is a wall of prose where a menu should be.
+  const [open, setOpen] = useState(false);
   const def = NODE_DEFS[kind];
   return (
     <div
@@ -107,14 +112,21 @@ function PaletteRow({ kind, kindId }: { kind: string; kindId: number }) {
       }}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      // STACKED, like every other two-line row in this chrome (pill-rows' StepperRow): the
-      // name on its own line, the description under it. Laid across one line instead, the
-      // description would have to be truncated to keep the popover a sane width, and a
-      // truncated sentence is worse than none.
       style={{ ...popoverRowStyle(hover, false), cursor: "grab", flexDirection: "column", alignItems: "stretch", gap: 2 }}
       title={`Drag ${kind} onto the scene`}
     >
-      <span style={{ display: "flex", alignItems: "center", gap: 7 }}>
+      {/* THE HEADING — click the triangle to read what this kind is, drag the row itself to
+          make one. Both live on the same row because they are two things you want to do with
+          the same kind, and a separate "info" affordance beside every name would be a second
+          column of chrome carrying one bit. */}
+      <span
+        style={{ display: "flex", alignItems: "center", gap: 7 }}
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((o) => !o);
+        }}
+      >
+        <span style={DISCLOSURE_GLYPH_STYLE}>{open ? "▼" : "▶"}</span>
         {/* The kind's own swatch, from its NODE_DEFS entry — the same fill and stroke the
             node itself is drawn with, so the palette shows what you are about to get. */}
         <span
@@ -127,14 +139,32 @@ function PaletteRow({ kind, kindId }: { kind: string; kindId: number }) {
             border: `1px solid ${def?.stroke ?? "#888"}`,
           }}
         />
-        <span style={{ minWidth: 0, overflowWrap: "break-word" }}>{kind}</span>
+        <span style={{ minWidth: 0, overflowWrap: "anywhere" }}>{kind}</span>
       </span>
-      {/* The kind's DESCRIPTION, generated from its SPEC.md — the same file that already says
-          what the kind's ports and colours are, so the menu cannot describe a kind the code
-          does not. A kind whose SPEC has no Description section shows none: an empty row is
-          honest, a placeholder is not. */}
-      {def?.desc && (
-        <span style={{ opacity: 0.75, overflowWrap: "break-word", lineHeight: 1.3 }}>{def.desc}</span>
+      {/* THE DESCRIPTION, revealed. Generated from the kind's own SPEC.md — the same file
+          that already says what its ports and colours are, so the menu cannot describe a
+          kind the code does not.
+          REVEALED_LIST_STYLE: it lays out at the popover's width but MEASURES AS NOTHING, so
+          a sentence expanding here wraps down the popover instead of stretching it (and the
+          pills that share that width) out across the scene. That is what makes a full
+          sentence affordable in a menu at all. */}
+      {open && def?.desc && (
+        <div style={REVEALED_LIST_STYLE}>
+          <span
+            style={{
+              display: "block",
+              opacity: 0.8,
+              // WRAP, hard. Long prose in a narrow popover has to break wherever it must —
+              // `anywhere` breaks mid-word rather than pushing one long token past the edge.
+              overflowWrap: "anywhere",
+              whiteSpace: "normal",
+              lineHeight: 1.35,
+              paddingLeft: 18,
+            }}
+          >
+            {def.desc}
+          </span>
+        </div>
       )}
     </div>
   );
