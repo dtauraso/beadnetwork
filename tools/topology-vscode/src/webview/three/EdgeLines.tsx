@@ -23,7 +23,6 @@ import { EDGE_LINE_COLOR } from "./bead-style";
 // to stop.
 import {
   SHADING_PARAM_BEAD_RADIUS,
-  SHADING_PARAM_CHAIN_BEAD_FILL,
   SHADING_PARAM_BEAD_RING_TUBE_RATIO,
 } from "../../schema/shading-params";
 import { beadStyleForValue } from "./bead-style";
@@ -168,13 +167,15 @@ export function EdgeLines({ capacity }: { capacity: number }) {
         <meshBasicMaterial color={EDGE_LINE_COLOR} toneMapped={false} transparent={false} opacity={1} />
       </instancedMesh>
       {/* The RESTING EDGE BEAD, one per edge at its midpoint. Authored at the bead's own
-          radius and the bead's own fill (SHADING_PARAM_CHAIN_BEAD_FILL) with the same
+          radius and the EDGE's own fill (EDGE_LINE_COLOR) with the same
           unlit + tone-mapping-exempt pair ChainBeadInstances uses — a chain bead in every
           respect, just placed between the nodes rather than filling the edge.
           raycast disabled: it is scenery, not a target. */}
       <instancedMesh ref={beadRef} args={[undefined, undefined, capacity]} frustumCulled={false} raycast={() => null}>
         <sphereGeometry args={[SHADING_PARAM_BEAD_RADIUS, 16, 16]} />
-        <meshBasicMaterial color={SHADING_PARAM_CHAIN_BEAD_FILL} toneMapped={false} transparent={false} opacity={1} />
+        {/* EDGE_LINE_COLOR, not the chain fill: this bead belongs to the edge, so it wears
+            the edge's own (brighter) tone and stays the line's like-for-like reference. */}
+        <meshBasicMaterial color={EDGE_LINE_COLOR} toneMapped={false} transparent={false} opacity={1} />
       </instancedMesh>
       {/* Its RING — geometry and colour copied from ChainBeadInstances verbatim (bead radius,
           tube = radius × SHADING_PARAM_BEAD_RING_TUBE_RATIO, 8×24 segments, the black

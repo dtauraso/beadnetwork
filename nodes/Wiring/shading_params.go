@@ -199,10 +199,18 @@ const ShadingParamChainBeadFill = "#9acdd3"
 // (what a resting edge looks like vs. what a bead looks like) and a future change to one
 // should not silently move the other.
 //
-// Spelled as a LITERAL rather than as `= ShadingParamChainBeadFill`: gen-node-defs reads these
-// constants' literal values out of the AST and panics on an identifier reference ("not a
-// Float"), so the equality is stated here in the comment instead of in the expression.
-const ShadingParamEdgeLineColor = "#9acdd3"
+// BRIGHTENED, and only here. The 0/1 pulse tones are the extremes (#000000, #ffffff) so a
+// carrying bead reads as different from a resting one, and against them the chain fill sat
+// visibly dimmer than either. This tone is that fill taken up toward white — same hue, more
+// light — so the edge and its bead sit in the pulses' brightness range instead of below it.
+//
+// ShadingParamChainBeadFill itself is deliberately NOT changed: it is every OTHER bead's
+// resting tone, and the ask was for the edge. That the two constants started equal is why
+// they are separate constants (see above) — this is the change that separation was for.
+//
+// Spelled as a LITERAL rather than as an expression over the bead fill: gen-node-defs reads
+// these constants' literal values out of the AST and panics on anything else ("not a Float").
+const ShadingParamEdgeLineColor = "#d6ebed"
 
 // ShadingParamInteriorBeadFill0 and ShadingParamInteriorBeadFill1 are the fills for a bead
 // HELD INSIDE a node (InteriorBeadInstances.tsx), deliberately kept SEPARATE from
