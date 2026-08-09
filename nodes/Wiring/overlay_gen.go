@@ -32,7 +32,7 @@ type overlayState struct {
 
 // setFlag flips *field. Shared body of the uniform Toggle* methods. The RowEvent
 // carrying the new value is written by the caller's own goroutine directly (see
-// stdin_reader.go's applyUpdate) — this no longer emits through Trace.
+// stdin_dispatch.go's applyUpdate) — this no longer emits through Trace.
 func (o *overlayState) setFlag(field *bool) {
 	*field = !*field
 }

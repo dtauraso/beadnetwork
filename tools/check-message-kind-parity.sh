@@ -24,12 +24,29 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-STDIN_READER="$REPO_ROOT/nodes/Wiring/stdin_reader.go"
+# The Go side is the nodes/Wiring PACKAGE, scanned, not one named file
+# (memory/feedback_guards_hardcoding_single_file_break_on_split.md): the MSG_TYPES fence and
+# its MSG_TYPES_DOC header sit in stdin_reader.go today, but that file has already been split
+# once by job, and a guard pinned to a path goes quiet the next time it is. Tests are excluded
+# so a fixture comparing msg.Type cannot enter the kind set. An empty scan is MISCONFIGURED
+# (asserted below), never a pass.
+GO_PKG_DIR="$REPO_ROOT/nodes/Wiring"
 MESSAGES_TS="$REPO_ROOT/tools/topology-vscode/src/messages.ts"
 HANDLE_MESSAGE_TS="$REPO_ROOT/tools/topology-vscode/src/extension/handle-message.ts"
 WEBVIEW_SRC_DIR="$REPO_ROOT/tools/topology-vscode/src/webview"
 
-for f in "$STDIN_READER" "$MESSAGES_TS" "$HANDLE_MESSAGE_TS"; do
+if [[ ! -d "$GO_PKG_DIR" ]]; then
+  echo "message-kind-parity: MISCONFIGURED — dir not found: $GO_PKG_DIR" >&2
+  exit 1
+fi
+# Non-test .go files of the package, as an argument list for grep/awk.
+GO_FILES=$(find "$GO_PKG_DIR" -maxdepth 1 -name '*.go' ! -name '*_test.go' | sort)
+if [[ -z "$GO_FILES" ]]; then
+  echo "message-kind-parity: MISCONFIGURED — no non-test .go files under $GO_PKG_DIR" >&2
+  exit 1
+fi
+
+for f in "$MESSAGES_TS" "$HANDLE_MESSAGE_TS"; do
   if [[ ! -f "$f" ]]; then
     echo "message-kind-parity: MISCONFIGURED — file not found: $f" >&2
     exit 1
@@ -40,13 +57,13 @@ if [[ ! -d "$WEBVIEW_SRC_DIR" ]]; then
   exit 1
 fi
 
-# Extract string literals compared against msg.Type in stdin_reader.go.
+# Extract string literals compared against msg.Type anywhere in the nodes/Wiring package.
 # Patterns matched:
 #   msg.Type != "..." or msg.Type == "..."  (if-style comparisons)
 #   case "...":  inside the MSG_TYPES_START/END fence
 kinds_from_go() {
   {
-    grep -aoE 'msg\.Type[[:space:]]*[!=]=[[:space:]]*"[^"]+"' "$STDIN_READER" \
+    grep -haoE 'msg\.Type[[:space:]]*[!=]=[[:space:]]*"[^"]+"' $GO_FILES \
       | grep -oE '"[^"]+"' \
       | tr -d '"'
     # Extract case literals from the FENCED dispatch switch only. The fence is explicit
@@ -57,26 +74,30 @@ kinds_from_go() {
     # An unanchored match is a trap: this file's own header PROSE names the markers, and a
     # loose /MARKER/ match opens the fence on that prose line — which made a deleted marker
     # still "pass". Anchoring is what makes deleting the fence fail loudly.
+    # FNR==1 resets the fence at each file boundary (the scan spans the package now), so an
+    # unterminated fence in one file cannot swallow the next one whole.
     awk '
+      FNR==1 { inblk=0 }
       /^[[:space:]]*\/\/[[:space:]]*MSG_TYPES_START[[:space:]]*$/ { inblk=1; next }
       /^[[:space:]]*\/\/[[:space:]]*MSG_TYPES_END[[:space:]]*$/   { inblk=0 }
       inblk
-    ' "$STDIN_READER" \
+    ' $GO_FILES \
       | grep -aoE 'case[[:space:]]+"[^"]+"' \
       | grep -oE '"[^"]+"' \
       | tr -d '"'
   } | sort -u
 }
 
-# Extract the types DECLARED in stdin_reader.go's own MSG_TYPES_DOC block. Only numbered
+# Extract the types DECLARED in the package's MSG_TYPES_DOC block (stdin_reader.go's header). Only numbered
 # entry lines are read (`//  N. "type" [/ "type"] — prose`), so prose on continuation lines
 # can quote freely without being mistaken for a declaration.
 kinds_from_go_doc() {
   awk '
+    FNR==1 { inblk=0 }
     /^[[:space:]]*\/\/[[:space:]]*MSG_TYPES_DOC_START[[:space:]]*$/ { inblk=1; next }
     /^[[:space:]]*\/\/[[:space:]]*MSG_TYPES_DOC_END[[:space:]]*$/   { inblk=0 }
     inblk && /^\/\/[[:space:]]+[0-9]+\.[[:space:]]+"/
-  ' "$STDIN_READER" \
+  ' $GO_FILES \
     | grep -oE '"[^"]+"' \
     | tr -d '"' \
     | sort -u

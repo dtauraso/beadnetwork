@@ -12,7 +12,7 @@ import (
 // it exercises the mechanical name-derivation (flag → field / method) that
 // replaced the hand-written methods. For EACH overlay flag it asserts that
 // Toggle flips the owned overlayState bool. The RowEvent this toggle implies is
-// written by the caller (stdin_reader.go's applyUpdate), not by overlayState
+// written by the caller (stdin_dispatch.go's applyUpdate), not by overlayState
 // itself, so it is out of scope here. The exception flags (scene/node poles
 // breadcrumb) are covered explicitly.
 

@@ -6,6 +6,11 @@
 // and every handler (applyEdit / HandleRawInput) are UNCHANGED —
 // only the wire decode moved from newline-JSON to framed binary.
 //
+// ONE JOB HERE: bytes off the pipe, whole records out. The message SHAPES are
+// stdin_msg_types.go, the decode is input_codec.go, and the routing tables (applyEdit /
+// applyUpdate / the per-attr tables) are stdin_dispatch.go. This file owns framing,
+// back-pressure, and shutdown — nothing else.
+//
 // The editor→Go bridge carries these top-level message kinds (all fully binary; no JSON
 // on the wire — see input_codec.go). This list is the AUTHORITATIVE doc for the dispatch
 // switch below and is checked against it by tools/check-message-kind-parity.sh: every type
@@ -53,104 +58,11 @@ import (
 	"context"
 	"encoding/binary"
 	"fmt"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"io"
 	"os"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
-
-// EdgeEndpoints identifies the source and target node IDs (and the port handles)
-// for one edge. Handles are needed to recompute the port-to-port arc length.
-type EdgeEndpoints struct {
-	Source       string
-	Target       string
-	SourceHandle string
-	TargetHandle string
-}
-
-// stdinMsg is the single editor→Go bridge shape. For type=="edit", op is the sole
-// remaining value "update", which sets an attribute on a typed entity — the sole live
-// entity is overlays: Attr=="toggle" (Flag names one overlay). The other top-level types
-// are raw-input (Event) and the bare command (save).
-//
-// These structs carry NO json tags: this seam is framed binary end to end and nothing
-// unmarshals them (input_codec.go decodes the record). The wire field order is the
-// INPUT_LAYOUT_FINGERPRINT, not a struct tag.
-type stdinMsg struct {
-	Type string
-	Op   string
-	Kind string
-	Attr string
-	Flag string
-	// Num is the numeric payload for an op=="update" that carries a value rather than a
-	// flag name — currently only clock/speed (the playback multiplier, sent in QUARTER-UNITS:
-	// an integer 0..8 that clockAttrHandlers divides by 4 to get the real multiplier — see
-	// its comment). Zero otherwise.
-	Num int
-	// X/Y is the drop's NDC for scene/create — where on SCREEN the node was dropped. Zero
-	// for every other message. Screen rather than world because turning a drop into a place
-	// needs the camera, which is Go's; and a point rather than a target because which node
-	// the new one connects to is Go's decision from its own geometry.
-	X, Y float64
-	// Event is the payload for the top-level type=="raw-input" message; nil otherwise.
-	Event *rawInputMsg
-}
-
-// rawInputMsg carries the payload for a top-level type=="raw-input" message (Phase 6):
-// a single RAW pointer/wheel event plus the stateless three.js raycast hit. Go's gesture
-// state machine (gesture.go) decides what it means — TS does not interpret it. Mirrors the
-// TS RawInputEvent (messages.ts); the field ORDER is pinned by INPUT_LAYOUT_FINGERPRINT
-// (input_codec.go), not by struct tags — this seam is framed binary, never JSON.
-type rawInputMsg struct {
-	Kind       string // pointerdown | pointermove | pointerup | wheel | home
-	X          float64
-	Y          float64 // client pixel X/Y
-	RectLeft   float64
-	RectTop    float64
-	RectWidth  float64
-	RectHeight float64
-	Button     int // 0 primary, 2 secondary; -1 for move/wheel
-	Ctrl       bool
-	Shift      bool
-	Alt        bool
-	Meta       bool
-	DeltaX     float64
-	DeltaY     float64
-	Fov        float64
-	Hit        rawHit
-}
-
-// rawHit is the classified raycast hit: which rendered entity is under the pointer. Kind ∈
-// port|handhold|node|edge|torus|empty. Topology facts (e.g. connected?) are NOT carried —
-// Go's FSM decides those from its own held state. There is no world point on this record:
-// any ray/plane unprojection Go needs is computed Go-side from the raw pointer NDC + Go's
-// own camera/surface state (pointerOnRingPlane / rayDirThroughNDC in gesture.go).
-type rawHit struct {
-	Kind string
-	// PortRow is the numeric buffer PORT-ROW index for a port hit (the port InstancedMesh
-	// instanceId == its buffer port row). -1 (or absent) when not a port hit. Go resolves
-	// this row → (node, port) via its own port-row table (portFromHit); no port name crosses
-	// the bridge.
-	PortRow int
-	// EdgeRow is the numeric buffer EDGE-ROW index for an edge hit (the edge's pick-halo
-	// carries its buffer edge row). -1 (or absent) when not an edge hit. Go resolves this
-	// row → edge label via its own edge-row table (edgeFromHit); no edge label crosses the
-	// bridge.
-	EdgeRow int
-	// NodeRow is the numeric buffer NODE-ROW index for a node hit (the node InstancedMesh
-	// instanceId == its buffer node row). -1 (or absent) when not a node hit. Go resolves
-	// this row → node id via its own node-row table (nodeFromHit); no node id crosses the
-	// bridge.
-	NodeRow int
-	IsInput bool
-}
-
-// SlotRegistry maps "targetNodeId.targetHandle" → *PacedWire.
-// It is the stable, slot-keyed identity for the wire owned by each destination port,
-// consumed by md.Bind to seed edgeMovers (the create/delete edit ops that once indexed
-// it were removed end-to-end).
-type SlotRegistry map[string]*wire.PacedWire
 
 // RunStdinReader reads FRAMED BINARY records from r, dispatching geometry-CRUD "edit"
 // messages and the bare save command. RunStdinReader itself returns
@@ -270,150 +182,4 @@ func RunStdinReader(ctx context.Context, r io.Reader, slotReg SlotRegistry, md *
 			// MSG_TYPES_END
 		}
 	}
-}
-
-// handleRawInputMsg hands a raw pointer/wheel event + stateless raycast hit to the
-// gesture state machine, which owns gesture bookkeeping and produces camera/topology
-// changes. Fire-and-forget — nothing on this seam triggers delivery.
-func handleRawInputMsg(msg stdinMsg, slotReg SlotRegistry, md *MoveDispatch, tr *T.Trace) {
-	if md != nil && msg.Event != nil {
-		md.HandleRawInput(*msg.Event, slotReg, tr)
-	}
-}
-
-// handleSaveMsg persists Go's OWN authoritative scene state (overlay visibility and the
-// scene sphere) in response to the bare "save" command. The camera pose is already
-// continuously flushed elsewhere (scene_camera_persist.go).
-func handleSaveMsg(md *MoveDispatch) {
-	if md == nil {
-		return
-	}
-	md.persist.overlays.schedule(md.ui.ov)
-	// Persist the scene sphere immediately (not debounced) so save reliably activates
-	// the polar-load path (scene_sphere_persist.go LoadSceneSphere) — until the sphere
-	// is in sphere.json, reload stays on cartesian x/y/z.
-	md.persist.sphere.flushNow(md.ui.sceneSphere)
-}
-
-// overlayToggles (the FLAG name → MoveDispatch flip-method table) and
-// overlayFlagTraceKind (the FLAG name → Trace.Kind* string, so applyUpdate's toggle case
-// can hand emitViewFrame the ONE event that flag's toggle logged) are both GENERATED into
-// overlay_gen.go from the SAME OVERLAY_FLAG_NAMES source, so they cannot drift apart by
-// flag-name set — a flag missing its Trace kind constant fails the Go build rather than
-// silently omitting the emit. See tools/gen-node-defs/overlay_gen.go's writeOverlayGen.
-
-// applyEdit dispatches one geometry-CRUD edit by its op. The sole op is update
-// (matched by value so it stays invisible to the message-kind-parity guard, which
-// fences only top-level msg.Type kinds).
-//
-//   - update: set an ATTRIBUTE on a typed entity (msg.Kind). Live entities are
-//     overlays (attr "toggle": flip the named flag) and clock (attr "speed").
-//     (Camera / node-move / port-anchor edits are produced in-process by the
-//     gesture FSM from raw-input, so they never cross this seam.)
-//
-// The create/delete edge ops were removed end-to-end: no TS sender ever emitted them,
-// and the create path's only live trigger — a port-drop gesture — tore down a live
-// wire's in-flight beads via PacedWire.Restore. The destination-keyed SlotRegistry
-// stays live for delivery/movers (md.Bind), but the reader no longer indexes it here.
-//
-// Unknown ops/kinds/attrs are ignored (forward-compat).
-// EDIT_OPS_START
-var editOps = map[string]func(stdinMsg, *MoveDispatch, *T.Trace, []chan float64){
-	"update": applyUpdate,
-}
-
-// EDIT_OPS_END
-
-func applyEdit(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
-	if h, ok := editOps[msg.Op]; ok {
-		h(msg, md, tr, speedSinks)
-	}
-}
-
-// applyUpdate routes an op=="update" edit to the entity named by msg.Kind, setting the
-// requested attribute. Live entities: overlays (toggle one flag) and clock (set the
-// playback-speed multiplier — Go-owned state, the slider just signals the value).
-// Unknown kinds/attrs are ignored (forward-compat). Dispatch is a NESTED table: the
-// top-level kind→handler table below routes to a per-kind handler that owns its own
-// attr-level table (applyUpdateClock / applyUpdateOverlays), so each kind can keep
-// kind-specific behavior that runs regardless of which attr matched (e.g. overlays'
-// unconditional persist-on-change) without distorting the attr dispatch itself.
-// EDIT_UPDATE_KINDS_START
-var updateKindHandlers = map[string]func(stdinMsg, *MoveDispatch, *T.Trace, []chan float64){
-	"clock":         applyUpdateClock,
-	"overlays":      applyUpdateOverlays,
-	"distanceGroup": applyUpdateDistanceGroup,
-	"scene":         applyUpdateScene,
-	"tiltVector":    applyUpdateTiltVector,
-}
-
-// EDIT_UPDATE_KINDS_END
-
-func applyUpdate(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
-	if h, ok := updateKindHandlers[msg.Kind]; ok {
-		h(msg, md, tr, speedSinks)
-	}
-}
-
-// clockAttrHandlers is the attr-level table for kind=="clock".
-var clockAttrHandlers = map[string]func(msg stdinMsg, md *MoveDispatch, speedSinks []chan float64){
-	"speed": func(msg stdinMsg, md *MoveDispatch, speedSinks []chan float64) {
-		// msg.Num carries the playback multiplier in QUARTER-UNITS (an integer 0..8:
-		// the SpeedSlider's six-value table 0, 0.25, 0.5, 0.75, 1, 2 sent as 0, 1, 2, 3,
-		// 4, 8) — input-layout.ts's encodeClockSpeed and input_codec.go's decode agree on
-		// this exact integer form so a fractional multiplier survives msg.Num's int type
-		// with no truncation. Divide back to the real multiplier here, the one place that
-		// interprets it.
-		userSpeed := float64(msg.Num) / 4.0
-		// divisor is this scene's own ClockDivisor, resolved once at load into md.clockDivisor
-		// (LoadSpeed) — GO-OWNED and never crosses the bridge. userSpeed stays the number the
-		// slider shows and speed.json persists; only the EFFECTIVE rate reaching the clocks
-		// (EffectiveClockSpeed, scene_speed_persist.go) is scaled, so a live edit and the
-		// load-time seed can never disagree.
-		divisor := 1.0
-		if md != nil {
-			divisor = md.ui.clockDivisor
-		}
-		effective := EffectiveClockSpeed(userSpeed, divisor)
-		// SetSpeed left the Clock INTERFACE in the per-goroutine-clock demolition (item 4):
-		// nothing outside a goroutine's own copy may mutate it anymore, since a copy is
-		// owned by exactly one goroutine.
-		// Delivery (per-goroutine-clock.md "Delivery"): broadcast the new speed to
-		// EVERY clock-owning goroutine's own channel (collected once, at load,
-		// before any goroutine spawned — see LoadTopology's speedSinks return
-		// value). This RunStdinReader goroutine is the sole writer of any of these
-		// channels; SendSpeedNonBlocking never blocks on a
-		// receiver that is asleep or never reads (latest-wins coalescing).
-		for _, ch := range speedSinks {
-			wire.SendSpeedNonBlocking(ch, effective)
-		}
-		if md == nil {
-			return
-		}
-		// Mirror the USER's speed on this goroutine so the VIEW frame's Speed column
-		// reflects it (the webview slider reads this back — no local default state,
-		// memory/feedback_reflect_dont_create_store.md), and persist it UNSCALED (scene-level,
-		// this view-owner goroutine's own file — .claude/rules/persistence-ownership.md). The
-		// divisor never crosses the bridge and never reaches disk.
-		md.ui.speed = userSpeed
-		md.persist.speed.schedule(userSpeed)
-		md.emitViewFrame(nil)
-	},
-}
-
-// overlayAttrHandlers is the attr-level table for kind=="overlays".
-var overlayAttrHandlers = map[string]func(msg stdinMsg, md *MoveDispatch, tr *T.Trace){
-	"toggle": func(msg stdinMsg, md *MoveDispatch, tr *T.Trace) {
-		// Flip the named flag — Go owns the state; TS just signals the flip.
-		if fn, ok := overlayToggles[msg.Flag]; ok {
-			fn(md, tr)
-			// Decentralized (Step C, memory/feedback_no_single_writer_bridge.md): this goroutine (the sole
-			// caller of every overlay Toggle*) also writes its own VIEW frame directly,
-			// carrying the one flag that just changed — matches the ONE tr.X(bool) event
-			// the toggle already logged.
-			if kind, ok := overlayFlagTraceKind[msg.Flag]; ok {
-				md.emitViewFrame([]wire.RowEvent{{Kind: kind, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}})
-			}
-		}
-	},
 }

@@ -3,7 +3,7 @@
 // at type-narrow time rather than silently writing `[object Object]` to disk.
 
 // Geometry-CRUD edit sent webview → host → Go. ONE message kind ("edit") whose sole op is
-// "update" (mirroring nodes/Wiring/stdin_reader.go applyEdit). Go owns the clock; this
+// "update" (mirroring nodes/Wiring/stdin_dispatch.go applyEdit). Go owns the clock; this
 // seam carries no delivery signal. The create/delete ops were removed end-to-end: no live
 // TS sender ever emitted them, and their only trigger (a port-drop gesture) unconditionally
 // tore down a live wire's in-flight beads via PacedWire.Restore().
@@ -20,7 +20,7 @@
 // new position. The webview computes the incident edges from its React Flow graph
 // (TS owns the graph; Go owns the recompute).
 // OVERLAY_FLAG_NAMES is the SINGLE source for the overlay wire vocabulary — named
-// boolean overlay attributes shared with Go's overlayToggles map (stdin_reader.go).
+// boolean overlay attributes shared with Go's overlayToggles map (dispatched in stdin_dispatch.go).
 // The OverlayFlag union and the OVERLAY_FLAGS runtime set are ALL derived from it, so
 // the field set is listed once.
 // Guarded by check-edit-op-parity.sh.

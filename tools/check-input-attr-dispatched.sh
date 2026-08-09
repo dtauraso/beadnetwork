@@ -3,12 +3,12 @@ set -euo pipefail
 
 # check-input-attr-dispatched.sh — an attribute Go can DECODE must be DISPATCHED.
 #
-# PLACEMENT: nodes/Wiring/input_codec.go,nodes/Wiring/stdin_reader.go,nodes/Wiring/stdin_apply.go | a new addressed-edit attribute must reach a handler, not just decode off the wire
+# PLACEMENT: nodes/Wiring/edit_update_decode.go,nodes/Wiring/stdin_dispatch.go,nodes/Wiring/stdin_apply.go | a new addressed-edit attribute must reach a handler, not just decode off the wire
 #
 # THE BUG THIS EXISTS FOR. A new addressed-edit ATTRIBUTE (the only way new addressed
 # capability lands — .claude/rules/bridge-surface.md: new entity kind or attribute, never a
 # new op) is spread across four files: the TS const + encoder (src/schema/input-layout.ts),
-# Go's decode (input_codec.go), the dispatch TABLE (stdin_reader.go's updateKindHandlers /
+# Go's decode (edit_update_decode.go), the dispatch TABLE (stdin_dispatch.go's updateKindHandlers /
 # the per-kind *AttrHandlers tables), and the HANDLER that says what it means
 # (stdin_apply.go). Miss the last two and the attribute round-trips the wire PERFECTLY —
 # encodes, frames, decodes into a stdinMsg with the right Kind/Attr — and is then dropped on

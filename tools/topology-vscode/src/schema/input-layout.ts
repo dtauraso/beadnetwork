@@ -36,7 +36,7 @@
 // Kind 21 (IN_KIND_EDIT_DELETE) removed — same removal as above.
 //
 // IN_UPDATE_KINDS is the shared edit-update ENTITY vocabulary. It is the 3rd parity source
-// (with messages.ts EditMsg kinds + stdin_reader.go applyUpdate) checked by
+// (with messages.ts EditMsg kinds + stdin_dispatch.go applyUpdate) checked by
 // check-edit-op-parity.sh axis 2 — the EDIT_UPDATE_KINDS_START/_END sentinels bounding that
 // extraction now live in ./input-layout-gen.ts, around the generated array literal. overlays
 // is the sole live edit-update entity; camera/node/edge left the wire when their edits
@@ -171,7 +171,7 @@ export function encodeOverlaysToggle(flag: OverlayFlag): ArrayBuffer {
  *  speed is one of the SpeedSlider's six table values (0, 0.25, 0.5, 0.75, 1, 2) — Go owns
  *  the clock; this just signals the multiplier. msg.Num on the Go side is an int, so a
  *  fractional multiplier is sent in QUARTER-UNITS (an integer 0..8: speed*4) rather than
- *  truncated; stdin_reader.go's clockAttrHandlers divides back by 4. */
+ *  truncated; stdin_dispatch.go's clockAttrHandlers divides back by 4. */
 export function encodeClockSpeed(speed: number): ArrayBuffer {
   const w = new ByteWriter();
   w.u8(IN_KIND_EDIT_UPDATE);

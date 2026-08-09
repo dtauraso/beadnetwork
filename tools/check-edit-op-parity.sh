@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: nodes/Wiring/stdin_reader.go,tools/topology-vscode/src/messages.ts,tools/topology-vscode/src/schema/input-layout-gen.ts,tools/topology-vscode/src/webview/three/overlay-flags.ts | edit ops/update-kinds/overlay flags must stay listed identically on both sides of the bridge
+# PLACEMENT: nodes/Wiring/stdin_dispatch.go,tools/topology-vscode/src/messages.ts,tools/topology-vscode/src/schema/input-layout-gen.ts,tools/topology-vscode/src/webview/three/overlay-flags.ts | edit ops/update-kinds/overlay flags must stay listed identically on both sides of the bridge
 #
 # Verifies the editor->Go geometry-CRUD "edit" bridge stays in parity across every
 # axis below the top-level msg.Type (which check-message-kind-parity.sh covers).
@@ -12,9 +12,9 @@ set -euo pipefail
 # attribute per overlay. A value added on one side and forgotten on another silently
 # no-ops at runtime (CLAUDE.md "Bridge surface"). Three axes are checked:
 #
-#   1. ops          — messages.ts EditMsg  vs  stdin_reader.go applyEdit op switch
+#   1. ops          — messages.ts EditMsg  vs  nodes/Wiring's applyEdit op table
 #                     (both now reduce to the single set {update}).
-#   2. update kinds — messages.ts EditMsg  vs  stdin_reader.go applyUpdate kind switch
+#   2. update kinds — messages.ts EditMsg  vs  nodes/Wiring's applyUpdate kind table
 #                     vs  handle-message.ts update-dispatch switch (3-way).
 #   3. overlay flags— messages.ts OVERLAY_FLAG_NAMES  vs  the HAND-AUTHORED overlay-flags.ts
 #                     renderer (readOverlay* reads + OverlayFlagVals keys), by cardinality.
@@ -30,7 +30,17 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-STDIN_READER="$REPO_ROOT/nodes/Wiring/stdin_reader.go"
+# The Go side is located by SCANNING the nodes/Wiring package for the sentinel fences, not
+# by naming a file (memory/feedback_guards_hardcoding_single_file_break_on_split.md): the
+# EDIT_OPS / EDIT_UPDATE_KINDS tables moved out of stdin_reader.go into stdin_dispatch.go
+# when that file was split by job, and a path-hardcoded guard is exactly what such a split
+# blinds. Tests are excluded so a fixture can never supply a fence. Finding no file with the
+# fence is MISCONFIGURED below, not a pass.
+GO_PKG_DIR="$REPO_ROOT/nodes/Wiring"
+go_fence_files() { # start-marker
+  grep -rl --include='*.go' -E "^[[:space:]]*//[[:space:]]*$1[[:space:]]*$" "$GO_PKG_DIR" \
+    | grep -v '_test\.go$' || true
+}
 MESSAGES_TS="$REPO_ROOT/tools/topology-vscode/src/messages.ts"
 # The 3rd update-kind parity source moved from handle-message.ts's dispatch switch (removed
 # when the TS→Go bridge became a binary buffer) to the shared IN_UPDATE_KINDS schema, which
@@ -45,9 +55,25 @@ HANDLE_MSG="$REPO_ROOT/tools/topology-vscode/src/schema/input-layout-gen.ts"
 # content-buffer erase; overlay state now round-trips through the buffer.)
 OVERLAY_FLAGS_TS="$REPO_ROOT/tools/topology-vscode/src/webview/three/overlay-flags.ts"
 
-for f in "$STDIN_READER" "$MESSAGES_TS" "$HANDLE_MSG" "$OVERLAY_FLAGS_TS"; do
+for f in "$MESSAGES_TS" "$HANDLE_MSG" "$OVERLAY_FLAGS_TS"; do
   if [[ ! -f "$f" ]]; then
     echo "edit-op-parity: MISCONFIGURED — file not found: $f" >&2
+    exit 1
+  fi
+done
+if [[ ! -d "$GO_PKG_DIR" ]]; then
+  echo "edit-op-parity: MISCONFIGURED — dir not found: $GO_PKG_DIR" >&2
+  exit 1
+fi
+
+GO_OPS_FILES=$(go_fence_files EDIT_OPS_START)
+GO_KINDS_FILES=$(go_fence_files EDIT_UPDATE_KINDS_START)
+for pair in "GO_OPS_FILES:EDIT_OPS_START" "GO_KINDS_FILES:EDIT_UPDATE_KINDS_START"; do
+  var="${pair%%:*}"; marker="${pair#*:}"
+  if [[ -z "${!var}" ]]; then
+    echo "edit-op-parity: MISCONFIGURED — no non-test .go file under $GO_PKG_DIR carries the" >&2
+    echo "  $marker sentinel. The fenced table was renamed, deleted, or moved out of the" >&2
+    echo "  package; repoint this guard rather than letting it scan nothing." >&2
     exit 1
   fi
 done
@@ -57,19 +83,25 @@ done
 # Markers are matched ANCHORED: a comment line containing the marker and NOTHING else.
 # The previous `index($0,s)` was an unanchored substring match, and that is a trap — the
 # moment any prose in the scanned file names the sentinel (e.g. a header saying "the op
-# switch is fenced by EDIT_OPS_START/END", which is exactly the style stdin_reader.go and
+# switch is fenced by EDIT_OPS_START/END", which is exactly the style stdin_dispatch.go and
 # CLAUDE.md already use), the fence opens on that prose line and the extracted set becomes
 # silently WRONG. It was armed but unexploded here.
 #
 # assert_nonempty does NOT protect against this: an unanchored match yields a non-empty,
 # wrong set rather than an empty one. Vacuous-pass refusal is orthogonal to fence
 # correctness. Same fix as check-message-kind-parity.sh, which cites this file as its model.
-between() { # start end file
-  awk -v s="$1" -v e="$2" '
+#
+# Takes ONE OR MORE files (the Go side is now a package scan, so a fence may live in any of
+# several files); each file's fence state is reset at its first line so an unterminated
+# fence in one file cannot leak into the next.
+between() { # start end file...
+  local s="$1" e="$2"; shift 2
+  awk -v s="$s" -v e="$e" '
+    FNR==1 { p=0 }
     $0 ~ "^[ \t]*(//|#)[ \t]*" s "[ \t]*$" { p=1; next }
     $0 ~ "^[ \t]*(//|#)[ \t]*" e "[ \t]*$" { p=0 }
     p
-  ' "$3"
+  ' "$@"
 }
 
 # Double-quoted literal values from a stream.
@@ -79,7 +111,7 @@ quoted() { grep -aoE '"[^"]+"' | tr -d '"' | sort -u; }
 # exactly one leading tab (nested cases/keys have two or more, so they are excluded).
 # BSD grep lacks -P, so match with awk (\t = tab). The two alternatives let this extractor
 # survive either a switch or a map[string]func(...) dispatch table at the fenced level —
-# applyEdit/applyUpdate in stdin_reader.go moved from switch to table form; this keeps the
+# applyEdit/applyUpdate (stdin_dispatch.go) moved from switch to table form; this keeps the
 # same fences discoverable either way.
 toplevel_case() { awk '/^\tcase "/ || /^\t"[^"]+":/'; }
 
@@ -114,20 +146,20 @@ report_diff() { # label missing_in_a a_name missing_in_b b_name
 # could never print. The script still exited nonzero, so it failed SAFE but SILENTLY,
 # defeating the message. Verified with a minimal repro.
 TS_OPS=$(between EDIT_MSG_START EDIT_MSG_END "$MESSAGES_TS" | grep -aoE 'op: "[^"]+"' | quoted) || true
-GO_OPS=$(between EDIT_OPS_START EDIT_OPS_END "$STDIN_READER" | toplevel_case | quoted) || true
+GO_OPS=$(between EDIT_OPS_START EDIT_OPS_END $GO_OPS_FILES | toplevel_case | quoted) || true
 assert_nonempty "$TS_OPS" "axis1 messages.ts ops"
-assert_nonempty "$GO_OPS" "axis1 stdin_reader.go ops"
-report_diff "$(comm -13 <(echo "$GO_OPS") <(echo "$TS_OPS"))" "stdin_reader.go ops" \
+assert_nonempty "$GO_OPS" "axis1 nodes/Wiring ops"
+report_diff "$(comm -13 <(echo "$GO_OPS") <(echo "$TS_OPS"))" "nodes/Wiring ops" \
             "$(comm -23 <(echo "$GO_OPS") <(echo "$TS_OPS"))" "messages.ts ops"
 
 # --- Axis 2: update entity kinds (3-way) ------------------------------------
 TS_KINDS=$(between EDIT_MSG_START EDIT_MSG_END "$MESSAGES_TS" | grep -aoE 'kind: "[^"]+"' | quoted) || true
-GO_KINDS=$(between EDIT_UPDATE_KINDS_START EDIT_UPDATE_KINDS_END "$STDIN_READER" | toplevel_case | quoted) || true
+GO_KINDS=$(between EDIT_UPDATE_KINDS_START EDIT_UPDATE_KINDS_END $GO_KINDS_FILES | toplevel_case | quoted) || true
 HM_KINDS=$(between EDIT_UPDATE_KINDS_START EDIT_UPDATE_KINDS_END "$HANDLE_MSG" | quoted) || true
 assert_nonempty "$TS_KINDS" "axis2 messages.ts update kinds"
-assert_nonempty "$GO_KINDS" "axis2 stdin_reader.go update kinds"
+assert_nonempty "$GO_KINDS" "axis2 nodes/Wiring update kinds"
 assert_nonempty "$HM_KINDS" "axis2 handle-message.ts update kinds"
-report_diff "$(comm -13 <(echo "$GO_KINDS") <(echo "$TS_KINDS"))" "stdin_reader.go kinds" \
+report_diff "$(comm -13 <(echo "$GO_KINDS") <(echo "$TS_KINDS"))" "nodes/Wiring kinds" \
             "$(comm -23 <(echo "$GO_KINDS") <(echo "$TS_KINDS"))" "messages.ts kinds"
 report_diff "$(comm -13 <(echo "$HM_KINDS") <(echo "$TS_KINDS"))" "handle-message.ts kinds" \
             "$(comm -23 <(echo "$HM_KINDS") <(echo "$TS_KINDS"))" "messages.ts kinds"

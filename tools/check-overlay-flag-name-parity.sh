@@ -4,7 +4,7 @@ set -euo pipefail
 # Overlay wire-vocabulary name parity: the overlay FLAG names authored in messages.ts
 # (OVERLAY_FLAG_NAMES, the single TS source) must be exactly the key set of the Go
 # overlayToggles map (overlay_gen.go) — the attr="toggle" wire name → flip-method table
-# stdin_reader.go dispatches on. A name present on one side and not the other silently
+# stdin_dispatch.go dispatches on. A name present on one side and not the other silently
 # no-ops the toggle at runtime.
 #
 # overlay_gen.go IS generated from OVERLAY_FLAG_NAMES (tools/gen-node-defs), so

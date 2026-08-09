@@ -159,7 +159,7 @@ func writeOverlayGen(outPath string, flags []overlayFlag) error {
 	// setFlag helper.
 	fmt.Fprintln(w, `// setFlag flips *field. Shared body of the uniform Toggle* methods. The RowEvent`)
 	fmt.Fprintln(w, `// carrying the new value is written by the caller's own goroutine directly (see`)
-	fmt.Fprintln(w, `// stdin_reader.go's applyUpdate) — this no longer emits through Trace.`)
+	fmt.Fprintln(w, `// stdin_dispatch.go's applyUpdate) — this no longer emits through Trace.`)
 	fmt.Fprintln(w, `func (o *overlayState) setFlag(field *bool) {`)
 	fmt.Fprintln(w, "\t*field = !*field")
 	fmt.Fprintln(w, `}`)
@@ -168,7 +168,7 @@ func writeOverlayGen(outPath string, flags []overlayFlag) error {
 	// Per-flag Toggle (+ accessor) on overlayState. tr is kept only for the breadcrumb
 	// variants (scenePoles/nodePoles) and to keep every Toggle* method's signature
 	// uniform for the overlayToggles method-expression table; the per-owner RowEvent
-	// write lives at the call site (stdin_reader.go's applyUpdate), not here.
+	// write lives at the call site (stdin_dispatch.go's applyUpdate), not here.
 	for _, f := range flags {
 		fmt.Fprintf(w, "// Toggle%s flips %s.\n", f.method, f.field)
 		fmt.Fprintf(w, "func (o *overlayState) Toggle%s(tr *T.Trace) {\n", f.method)

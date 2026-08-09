@@ -5,7 +5,7 @@
 // to set (clock speed, distanceGroup length, tiltVector theta/reset/start, scene
 // selection/lattice/create/delete, overlay flag toggles).
 //
-// The OTHER half — HOW BYTES BECOME A DISPATCH — stays in stdin_reader.go: the wire
+// The OTHER half — HOW BYTES BECOME A DISPATCH — stays in stdin_reader.go (framing) and stdin_dispatch.go (routing): the wire
 // structs, the framed-binary read loop and maxFrameBytes framing, raw-input forwarding and
 // the bare save command, and the dispatch TABLES (editOps, updateKindHandlers,
 // clockAttrHandlers, overlayAttrHandlers) that route into the handlers below. The tables
