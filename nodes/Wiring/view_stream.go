@@ -44,9 +44,19 @@ import (
 // so this package stays Buffer-independent). tick is a purely local sequence counter (not
 // shared with any other stream). events are this goroutine's OWN resolved events since the
 // last write.
+// ViewOverlayFlags carries the overlay-visibility bits from this package to whoever packs
+// the frame (main.go maps them onto Buffer's OverlayRow — Wiring does not import Buffer).
+// NAMED FIELDS, not a positional run of uint8s: there are thirteen flags, and a positional
+// signature that long makes "the wrong flag in the wrong slot" a silent, compiling bug —
+// the two poles flags already sit next to each other and differ only in one word.
+type ViewOverlayFlags struct {
+	SceneTori, ScenePoles, NodePoles, SelSpherePoles, Handholds, LabelsGlobal, OverlaysVis uint8
+	NodeBody, NodeRing, RingPick, SelectionRing, HoverRing, ReachSphere                    uint8
+}
+
 type ViewFrameBuilder func(tick uint32,
 	camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
-	sceneTori, scenePoles, nodePoles, selSpherePoles, handholds, labelsGlobal, overlaysVis uint8,
+	flags ViewOverlayFlags,
 	dragNodeRow int32,
 	groupLenTime, groupLenInput, groupLenGate float32,
 	speed float32,
@@ -112,9 +122,21 @@ func (md *MoveDispatch) emitViewFrame(events []wire.RowEvent) {
 	frame := md.sw.viewBuildFrame(md.sw.viewTick,
 		float32(v.pivot.X), float32(v.pivot.Y), float32(v.pivot.Z), float32(v.r),
 		float32(v.pos.Theta), float32(v.pos.Phi), float32(v.up.Theta), float32(v.up.Phi),
-		boolU8(md.ui.ov.sceneToriVisible), boolU8(md.ui.ov.scenePolesVisible), boolU8(md.ui.ov.nodePolesVisible),
-		boolU8(md.ui.ov.selSpherePolesVisible), boolU8(md.ui.ov.handholdsVisible), boolU8(md.ui.ov.labelsGlobalVisible),
-		boolU8(md.ui.ov.overlaysVisible),
+		ViewOverlayFlags{
+			SceneTori:      boolU8(md.ui.ov.sceneToriVisible),
+			ScenePoles:     boolU8(md.ui.ov.scenePolesVisible),
+			NodePoles:      boolU8(md.ui.ov.nodePolesVisible),
+			SelSpherePoles: boolU8(md.ui.ov.selSpherePolesVisible),
+			Handholds:      boolU8(md.ui.ov.handholdsVisible),
+			LabelsGlobal:   boolU8(md.ui.ov.labelsGlobalVisible),
+			OverlaysVis:    boolU8(md.ui.ov.overlaysVisible),
+			NodeBody:       boolU8(md.ui.ov.nodeBodyVisible),
+			NodeRing:       boolU8(md.ui.ov.nodeRingVisible),
+			RingPick:       boolU8(md.ui.ov.ringPickVisible),
+			SelectionRing:  boolU8(md.ui.ov.selectionRingVisible),
+			HoverRing:      boolU8(md.ui.ov.hoverRingVisible),
+			ReachSphere:    boolU8(md.ui.ov.reachSphereVisible),
+		},
 		dragNodeRow,
 		groupLenTime, groupLenInput, groupLenGate,
 		float32(md.ui.speed),

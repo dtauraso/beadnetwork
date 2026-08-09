@@ -22,6 +22,12 @@ type overlayState struct {
 	handholdsVisible      bool
 	labelsGlobalVisible   bool
 	overlaysVisible       bool
+	nodeBodyVisible       bool
+	nodeRingVisible       bool
+	ringPickVisible       bool
+	selectionRingVisible  bool
+	hoverRingVisible      bool
+	reachSphereVisible    bool
 }
 
 // setFlag flips *field. Shared body of the uniform Toggle* methods. The RowEvent
@@ -68,6 +74,36 @@ func (o *overlayState) ToggleOverlaysVis(tr *T.Trace) {
 	o.setFlag(&o.overlaysVisible)
 }
 
+// ToggleNodeBody flips nodeBodyVisible.
+func (o *overlayState) ToggleNodeBody(tr *T.Trace) {
+	o.setFlag(&o.nodeBodyVisible)
+}
+
+// ToggleNodeRing flips nodeRingVisible.
+func (o *overlayState) ToggleNodeRing(tr *T.Trace) {
+	o.setFlag(&o.nodeRingVisible)
+}
+
+// ToggleRingPick flips ringPickVisible.
+func (o *overlayState) ToggleRingPick(tr *T.Trace) {
+	o.setFlag(&o.ringPickVisible)
+}
+
+// ToggleSelectionRing flips selectionRingVisible.
+func (o *overlayState) ToggleSelectionRing(tr *T.Trace) {
+	o.setFlag(&o.selectionRingVisible)
+}
+
+// ToggleHoverRing flips hoverRingVisible.
+func (o *overlayState) ToggleHoverRing(tr *T.Trace) {
+	o.setFlag(&o.hoverRingVisible)
+}
+
+// ToggleReachSphere flips reachSphereVisible.
+func (o *overlayState) ToggleReachSphere(tr *T.Trace) {
+	o.setFlag(&o.reachSphereVisible)
+}
+
 // SetGuideVisibility installs an explicit-visibility snapshot wholesale (the TS
 // startup push so settings survive a Go respawn).
 func (o *overlayState) SetGuideVisibility(ov overlayState) {
@@ -84,6 +120,12 @@ func defaultOverlayState() overlayState {
 		handholdsVisible:      true,
 		labelsGlobalVisible:   true,
 		overlaysVisible:       true,
+		nodeBodyVisible:       true,
+		nodeRingVisible:       true,
+		ringPickVisible:       true,
+		selectionRingVisible:  true,
+		hoverRingVisible:      true,
+		reachSphereVisible:    true,
 	}
 }
 
@@ -102,6 +144,12 @@ func (md *MoveDispatch) ToggleSelSpherePoles(tr *T.Trace) { md.ui.ov.ToggleSelSp
 func (md *MoveDispatch) ToggleHandholds(tr *T.Trace)      { md.ui.ov.ToggleHandholds(tr) }
 func (md *MoveDispatch) ToggleLabelsGlobal(tr *T.Trace)   { md.ui.ov.ToggleLabelsGlobal(tr) }
 func (md *MoveDispatch) ToggleOverlaysVis(tr *T.Trace)    { md.ui.ov.ToggleOverlaysVis(tr) }
+func (md *MoveDispatch) ToggleNodeBody(tr *T.Trace)       { md.ui.ov.ToggleNodeBody(tr) }
+func (md *MoveDispatch) ToggleNodeRing(tr *T.Trace)       { md.ui.ov.ToggleNodeRing(tr) }
+func (md *MoveDispatch) ToggleRingPick(tr *T.Trace)       { md.ui.ov.ToggleRingPick(tr) }
+func (md *MoveDispatch) ToggleSelectionRing(tr *T.Trace)  { md.ui.ov.ToggleSelectionRing(tr) }
+func (md *MoveDispatch) ToggleHoverRing(tr *T.Trace)      { md.ui.ov.ToggleHoverRing(tr) }
+func (md *MoveDispatch) ToggleReachSphere(tr *T.Trace)    { md.ui.ov.ToggleReachSphere(tr) }
 
 // overlayToggles maps an overlay FLAG name (the attr="toggle" wire name) to the
 // MoveDispatch method that flips it.
@@ -115,6 +163,12 @@ var overlayToggles = map[string]func(*MoveDispatch, *T.Trace){
 	"handholds":      (*MoveDispatch).ToggleHandholds,
 	"labelsGlobal":   (*MoveDispatch).ToggleLabelsGlobal,
 	"overlays":       (*MoveDispatch).ToggleOverlaysVis,
+	"nodeBody":       (*MoveDispatch).ToggleNodeBody,
+	"nodeRing":       (*MoveDispatch).ToggleNodeRing,
+	"ringPick":       (*MoveDispatch).ToggleRingPick,
+	"selectionRing":  (*MoveDispatch).ToggleSelectionRing,
+	"hoverRing":      (*MoveDispatch).ToggleHoverRing,
+	"reachSphere":    (*MoveDispatch).ToggleReachSphere,
 }
 
 // OVERLAY_TOGGLES_END
@@ -135,6 +189,12 @@ var overlayFlagTraceKind = map[string]string{
 	"handholds":      T.KindHandholds,
 	"labelsGlobal":   T.KindLabelsGlobal,
 	"overlays":       T.KindOverlaysVis,
+	"nodeBody":       T.KindNodeBody,
+	"nodeRing":       T.KindNodeRing,
+	"ringPick":       T.KindRingPick,
+	"selectionRing":  T.KindSelectionRing,
+	"hoverRing":      T.KindHoverRing,
+	"reachSphere":    T.KindReachSphere,
 }
 
 // OVERLAY_TRACE_KINDS_END

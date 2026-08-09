@@ -9,6 +9,8 @@ import { getNodeFrame } from "./node-stream-blocks";
 import {
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius, readNodeSelected, readNodeHovered,
 } from "../../schema/buffer-layout";
+import { readOverlaySelectionRing, readOverlayHoverRing } from "../../schema/buffer-layout";
+import { overlayOn } from "./overlay-flags";
 import { NODE_SPHERE_RADIUS, HOVER_COLOR, HOVER_RING_TUBE_RATIO } from "./buffer-scene-shared";
 
 // Selection-highlight geometry (built at radius=1 and scaled by the node's radius via
@@ -58,7 +60,10 @@ export function SelectionHighlight() {
         show = true;
       }
     }
-    g.visible = show;
+    // …and only if the STATE cluster's selection overlay is on. Read from the same buffer
+    // snapshot the geometry came from, so the flag can never be a frame ahead of or behind
+    // the selection it decorates.
+    g.visible = show && overlayOn(readOverlaySelectionRing);
   });
 
   return (
@@ -109,9 +114,11 @@ export function HoverHighlight() {
       }
 
       if (hoveredRow >= 0) {
-        // Suppress if the hovered node is the selected node — the ring
-        // SelectionHighlight already draws there wins.
-        const suppressed = readNodeSelected(nodeView, hoveredRow) !== 0;
+        // Suppress if the hovered node is the selected node — the ring SelectionHighlight
+        // already draws there wins. Only when that ring is actually DRAWN, though: with the
+        // selection overlay off there is nothing to yield to, so the hover ring shows.
+        const suppressed =
+          readNodeSelected(nodeView, hoveredRow) !== 0 && overlayOn(readOverlaySelectionRing);
         if (!suppressed) {
           const r = readNodeRadius(nodeView, hoveredRow) || NODE_SPHERE_RADIUS;
           ring.position.set(
@@ -124,7 +131,7 @@ export function HoverHighlight() {
         }
       }
     }
-    ring.visible = show;
+    ring.visible = show && overlayOn(readOverlayHoverRing);
   });
 
   return (

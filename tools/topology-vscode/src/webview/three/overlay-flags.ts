@@ -21,6 +21,12 @@ import {
   readOverlayHandholds,
   readOverlayLabelsGlobal,
   readOverlayOverlaysVis,
+  readOverlayNodeBody,
+  readOverlayNodeRing,
+  readOverlayRingPick,
+  readOverlaySelectionRing,
+  readOverlayHoverRing,
+  readOverlayReachSphere,
   readOverlayDragNodeRow,
   readOverlayGroupLenTime,
   readOverlayGroupLenInput,
@@ -75,10 +81,29 @@ export function readOverlayFlags(): OverlayFlagVals | null {
     // hidden-sense: buffer stores VISIBLE, store field is *Hidden → invert this one.
     labelsGlobal: !readOverlayLabelsGlobal(v),
     overlays: !!readOverlayOverlaysVis(v),
+    nodeBody: !!readOverlayNodeBody(v),
+    nodeRing: !!readOverlayNodeRing(v),
+    ringPick: !!readOverlayRingPick(v),
+    selectionRing: !!readOverlaySelectionRing(v),
+    hoverRing: !!readOverlayHoverRing(v),
+    reachSphere: !!readOverlayReachSphere(v),
   };
   if (cachedVals && overlayFlagsEqual(cachedVals, next)) return cachedVals;
   cachedVals = next;
   return cachedVals;
+}
+
+/** Read ONE overlay column from the latest snapshot, for a renderer inside a useFrame that
+ *  cannot use the hook (it is not a React render) and wants the flag from the same frame as
+ *  the geometry it is deciding about. `read` is the generated column reader.
+ *
+ *  Missing snapshot ⇒ FALSE, not true: before the first frame there is nothing to draw
+ *  anyway, and "draw it until told otherwise" is how a decoration outlives the flag that
+ *  turned it off. */
+export function overlayOn(read: (v: DataView) => number): boolean {
+  const blocks = getViewBlocks();
+  if (!blocks) return false;
+  return read(blocks.overlayView) !== 0;
 }
 
 /** React hook: re-renders the caller when any overlay flag flips (Go-owned). Returns

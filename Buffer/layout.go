@@ -317,6 +317,15 @@ type bufLayoutOverlay struct {
 	Handholds      uint8 `buf:"u8"` // 1 = rotation grab-sphere handholds visible
 	LabelsGlobal   uint8 `buf:"u8"` // 1 = all node labels visible
 	OverlaysVis    uint8 `buf:"u8"` // 1 = master overlays toggle on
+	// The NODE-LOCAL drawings (OVERLAY_FLAG_NAMES' second half). Everything above is scene
+	// furniture drawn around the nodes; these six are the node itself. Order matches the
+	// flag list, same as the block's first half.
+	NodeBody      uint8 `buf:"u8"` // 1 = node sphere drawn
+	NodeRing      uint8 `buf:"u8"` // 1 = per-node border ring drawn
+	RingPick      uint8 `buf:"u8"` // 1 = ring pick-proxy present (never drawn; hit-testable)
+	SelectionRing uint8 `buf:"u8"` // 1 = selected node's ring + halo drawn
+	HoverRing     uint8 `buf:"u8"` // 1 = hovered node's ring drawn
+	ReachSphere   uint8 `buf:"u8"` // 1 = selected node's reach-sphere rings drawn
 	// DragNodeRow is the row index (into the Node block) of the node currently
 	// being dragged by the gesture FSM (nodes/Wiring/gesture.go g.dragNode),
 	// or -1 when no drag is in progress. Identity rides row index, not a

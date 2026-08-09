@@ -33,6 +33,17 @@ const OVERLAY_FLAG_NAMES = [
   "handholds",
   "labelsGlobal",
   "overlays",
+  // The NODE-LOCAL drawings. Everything above is scene furniture drawn AROUND the nodes;
+  // these six are the node itself — its body, its own border ring, the invisible ring a
+  // click lands on to author a port∈torus lock, and the three state decorations (the
+  // selected node's ring+halo, the hovered node's ring, the selected node's reach-sphere).
+  // They were the only things drawn per node that no toggle reached.
+  "nodeBody",
+  "nodeRing",
+  "ringPick",
+  "selectionRing",
+  "hoverRing",
+  "reachSphere",
 ] as const;
 // OVERLAY_FLAGS_END
 

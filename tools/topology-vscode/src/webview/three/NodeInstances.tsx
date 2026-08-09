@@ -26,6 +26,7 @@ import {
   readNodeRingAxisPhi,
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius,
   readOverlaySelSpherePoles,
+  readOverlayNodeBody, readOverlayNodeRing, readOverlayRingPick,
 } from "../../schema/buffer-layout";
 import {
   BUFFER_NODE_TAG, BUFFER_RING_TAG, NODE_SPHERE_RADIUS,
@@ -68,6 +69,14 @@ export function NodeInstances({ capacity }: { capacity: number }) {
     // underneath it. The VISIBLE ring (ringRef, NODE_RING_TUBE_RATIO) is unaffected — it stays
     // rendered in both modes; only the fat invisible pick torus is gated.
     const selectModeOn = readOverlaySelSpherePoles(overlayView) !== 0;
+    // The three NODE-cluster overlays. Each drops its mesh's instance count to 0, which is
+    // how this file already turns something off — an instance count, not a hidden mesh, so
+    // an off drawing costs no draw and takes no raycast hit. `ringPick` gates the pick proxy
+    // ON TOP of the select-mode gate above: the proxy is present only when the mode that
+    // gives a ring click meaning is on AND the overlay says the ring may take clicks.
+    const showBody = readOverlayNodeBody(overlayView) !== 0;
+    const showRing = readOverlayNodeRing(overlayView) !== 0;
+    const ringTakesClicks = readOverlayRingPick(overlayView) !== 0;
 
     const n = Math.min(nodeCount, capacity);
     // A node's ring is oriented by the AXIS Go streams for it (PoleTheta/PolePhi), not left
@@ -130,9 +139,9 @@ export function NodeInstances({ capacity }: { capacity: number }) {
       body.setColorAt(slot, colRef.current.set(fill));
       ring.setColorAt(slot, colRef.current.set(stroke));
     }
-    body.count = n;
-    ring.count = n;
-    ringPick.count = selectModeOn ? n : 0;
+    body.count = showBody ? n : 0;
+    ring.count = showRing ? n : 0;
+    ringPick.count = selectModeOn && ringTakesClicks ? n : 0;
     body.instanceMatrix.needsUpdate = true;
     ring.instanceMatrix.needsUpdate = true;
     ringPick.instanceMatrix.needsUpdate = true;
@@ -142,8 +151,8 @@ export function NodeInstances({ capacity }: { capacity: number }) {
     // nodes move (three.js early-outs a ray against a cached union sphere; a dragged
     // node outside the stale sphere would otherwise be un-pickable). Cheap for the
     // small node counts here.
-    body.computeBoundingSphere();
-    if (selectModeOn) ringPick.computeBoundingSphere();
+    if (showBody) body.computeBoundingSphere();
+    if (selectModeOn && ringTakesClicks) ringPick.computeBoundingSphere();
   });
 
   return (

@@ -10,7 +10,9 @@ import { getNodeFrame } from "./node-stream-blocks";
 import {
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius, readNodeSelected, readNodeSphereR,
   readNodeVRX, readNodeVRY, readNodeVRZ, readNodeFRX, readNodeFRY, readNodeFRZ,
+  readOverlayReachSphere,
 } from "../../schema/buffer-layout";
+import { overlayOn } from "./overlay-flags";
 import { NODE_SPHERE_RADIUS, NORMAL_DEGENERATE_EPS, SPHERE_RING_MIN_RADIUS, nodeRowColors } from "./buffer-scene-shared";
 
 // Mirrors the pre-branch SphereRing (scene-graph.tsx) EXACTLY: major radius R = the
@@ -108,7 +110,10 @@ export function SphereRings() {
   useFrame(() => {
     const decoded = getNodeFrame();
     const next: OwnerRing[] = [];
-    if (decoded) {
+    // The STATE cluster's reach-sphere overlay. Off ⇒ an EMPTY ring list, which is the same
+    // path "nothing is selected" already takes — so the tori are torn down rather than left
+    // in the scene hidden, and nothing here needs a second way to be invisible.
+    if (decoded && overlayOn(readOverlayReachSphere)) {
       const { nodeCount, nodeView } = decoded;
 
       // Selected row (at most one) — the ONLY row this draws a sphere ring for.
