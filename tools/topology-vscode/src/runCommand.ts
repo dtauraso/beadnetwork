@@ -3,377 +3,47 @@ import * as cp from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 import type { HostToWebviewMsg } from "./messages";
-import { buildBinary, maxGoMtime, killOrphanedSims } from "./goBuild";
+import { killOrphanedSims } from "./goBuild";
 import { frameRecord } from "./schema/input-layout";
-import { PROBE_DIR, PROBE_FILES, PROBE_TRACE_FILES, isProbeTraceEnabled } from "./probe-files";
+import { isProbeTraceEnabled } from "./probe-files";
 import { decodeBufferLog, decodeStreamFrameEvents } from "./buffer-log";
 import { decodeNodeStreamFrame, decodeEdgeStreamFrame, decodeInteriorStreamFrame } from "./webview/three/buffer-decode";
 import { BUF_BLOCK_TAG_VIEW, BUF_BLOCK_TAG_EDGE_STREAM, BUF_BLOCK_TAG_NODE_STREAM, BUF_BLOCK_TAG_INTERIOR_STREAM } from "./schema/frame-tags";
+import {
+  VIEW_FD,
+  EDGE_BASE_FD,
+  MAX_EDGE_STREAMS,
+  MAX_NODE_STREAMS,
+  DRIVE_SLOTS_PER_NODE,
+  nodeIdForRow,
+} from "./runner/stream-fds";
+import { readCounts } from "./runner/counts";
+import { appendGoError } from "./runner/go-errors";
+import { probePathsFor } from "./runner/probe-paths";
+import { splitJsonlLines, splitFrames } from "./runner/framing";
+import { ensureBinaryBuilt } from "./runner/ensure-binary";
+import { freshStreamState, type StreamParseState } from "./runner/parse-state";
 
-// The fd-ALLOCATION contract (mirrors Buffer/stream_fds.go's doc comment): the ext host
-// knows the topology from the spec it holds, computes a base fd PER STREAM KIND, and
-// passes it to Go via WIREFOLD_STREAM_FDS = "kind:baseFd,kind:baseFd,…". VIEW_FD is the
-// base (and, since view is a singleton stream — one gesture/MoveDispatch goroutine
-// network-wide — also the ONLY) fd for the "view" kind: fd = baseFd["view"] + rowIndex,
-// rowIndex always 0 for this singleton. This is the FIRST stream migrated off fd 3 onto
-// its own dedicated inherited pipe (memory/feedback_no_single_writer_bridge.md).
-const VIEW_FD = 4;
-
-// EDGE_BASE_FD: the base fd for the "edge" stream kind — one dedicated fd PER EDGE ROW,
-// fd = EDGE_BASE_FD + edgeRow (edgeRow = that edge's stable seed-order row, matching
-// Buffer's Edge block row order — see nodes/Wiring's MoveDispatch.SetEdgeStreams). Sits
-// right after the view fd. Layout today: fd 0-2 stdin/stdout/stderr, fd 3 = fd3 (node/
-// interior/port dual-path — see the module doc), fd 4 = view (singleton), fd 5..5+E-1 =
-// one per edge (E = readCounts(topologyPath).edges below).
-const EDGE_BASE_FD = 5;
-
-// MAX_EDGE_STREAMS bounds the per-edge fd range: one dedicated pipe PER EDGE (see
-// EDGE_BASE_FD's doc comment) — fine for current graph sizes (this is a scaling bound the
-// no-single-writer-bridge migration accepts explicitly, not an oversight). A topology with
-// more edges than this omits the dedicated per-edge streams entirely (edgeCount is
-// clamped, WIREFOLD_STREAM_FDS omits "edge", Go never calls SetEdgeStreamActive).
-const MAX_EDGE_STREAMS = 256;
-
-// NODE_BASE_FD / INTERIOR_BASE_FD: the base fds for the "node" and "interior" stream
-// kinds — one dedicated fd PER NODE ROW each, fd = base + nodeRow. ROW ID = NODE ID - 1
-// (nodeRow is that node's own id minus one, not a position in a seed list — no ordering
-// step decides it; see nodes/Wiring's MoveDispatch.SetNodeStreams / SetInteriorStreams and
-// main.go), so this range must be sized by the LARGEST node id in the tree (counts.json's
-// "nodes" field — see readCounts' doc comment), not by how many node directories exist: a
-// gap left by a deleted node still needs its row's fd allocated. Sit right after the edge
-// range, computed PER-SPAWN (not module-level constants) since they depend on edgeCount:
-// nodeBase = EDGE_BASE_FD + edgeCount, interiorBase = nodeBase + nodeCount. Go's
-// stream_fds.go requires BOTH "node" and "interior" WIREFOLD_STREAM_FDS entries present
-// together (main.go only wires either when both resolve) — see run() below.
-
-// nodeIdForRow / rowForNodeId make the ROW ID = NODE ID - 1 rule (stated in prose above,
-// and in Buffer/stream_fds.go / nodes/Wiring's SetNodeStreams/SetInteriorStreams) into
-// actual arithmetic instead of a comment nobody runs. Every place below that used to pass
-// a bare per-node-pipe `row` into a cache key or a log/error message now goes through one
-// of these, so a divergence between "which pipe" and "which node" would show up as a wrong
-// id somewhere visible (a probe log line, an error message, a replayed frame) instead of
-// silently-correct positional indexing forever hiding the untested rule. Gaps are legal:
-// a deleted node still owns its row (see persistence-ownership.md), so an idle pipe simply
-// means that node id never emits — it does NOT shift any other pipe's identity.
-export function nodeIdForRow(row: number): number {
-  return row + 1;
-}
-export function rowForNodeId(nodeId: number): number {
-  return nodeId - 1;
-}
-
-// MAX_NODE_STREAMS bounds the per-node fd range (mirrors MAX_EDGE_STREAMS) — one
-// dedicated pipe PER NODE for EACH of node/interior. A topology with more nodes than this
-// omits the dedicated per-node NODE/INTERIOR/Port streams entirely.
-const MAX_NODE_STREAMS = 256;
-
-// DRIVE_SLOTS_PER_NODE mirrors Buffer.DriveSlotsPerNode (Go) — the fixed number of
-// dedicated "drive" fds allocated per node row, one per gatecommon.DriveHeld goroutine a
-// node kind may spawn (docs/interior-stream-framing.md's fix: each such goroutine gets
-// its OWN fd instead of sharing the node's "interior" fd with its Update-loop goroutine).
-// Kept as a separate mirrored constant rather than a generated one, matching
-// MAX_EDGE_STREAMS/MAX_NODE_STREAMS's existing "small bound, hand-kept in parity" shape —
-// raise both sides together if a node kind ever needs a third DriveHeld output.
-const DRIVE_SLOTS_PER_NODE = 2;
-
-// readCounts replaces the old countNodes/countEdges tree-walks (see
-// .claude/rules/persistence-ownership.md "Counts are stored, never re-derived"). The ext host must know the fd RANGE
-// before spawning Go, so it cannot ask Go for this — but it also must not WALK the tree to
-// derive it, because that re-implements the on-disk layout in a second language (step 2's
-// near-miss, when countEdges had to be hand-updated in lockstep with a path move). Instead
-// the counts are STORED, at `<topologyPath>/counts.json` = `{"nodes": N, "edges": E}`,
-// written once by whichever operation changes the node/edge set (today: none does — the
-// topology is editor-authored by hand, so this file is hand-maintained alongside it). TS
-// reads two numbers and stops knowing the layout entirely.
+// The jobs this file used to do inline now live beside it under ./runner/, one concern per
+// module: the fd-allocation contract and the ROW ID = NODE ID - 1 arithmetic
+// (runner/stream-fds.ts), the stored topology counts (runner/counts.ts), the Go-error probe
+// line (runner/go-errors.ts), the probe-log rotation and path layout (runner/probe-paths.ts),
+// the two pure framing steps (runner/framing.ts), and the per-spawn parse state
+// (runner/parse-state.ts). What stays here is the runner itself: spawn + env, the per-fd
+// demux, the last-frame replay cache (owned by the INSTANCE — it is that process's bytes,
+// never module state), lifecycle, and writeStdin.
 //
-// `nodes` means the ROW COUNT (the largest node id in the tree, ROW ID = NODE ID - 1 —
-// nodes/Wiring's `topoSpec.RowCount`), NOT how many node directories exist. A deleted node
-// leaves a gap row rather than shrinking the row space, and that gap row still needs its
-// own dedicated node/interior/drive fds allocated, so sizing this from a live-node count
-// would under-allocate. `edges` has no id space to gap and stays a plain count.
-//
-// Unlike the old countNodes/countEdges, which returned 0 on any read/parse failure (a
-// SILENT failure: 0 edges/nodes just meant no dedicated streams got allocated, degrading
-// the bridge invisibly), a missing or malformed counts.json now THROWS. There is no correct
-// fallback count to guess, and guessing 0 is exactly the bug this rewrite removes.
-export function readCounts(topologyPath: string): { nodes: number; edges: number } {
-  const countsPath = path.join(topologyPath, "counts.json");
-  let raw: string;
-  try {
-    raw = fs.readFileSync(countsPath, "utf8");
-  } catch (err) {
-    throw new Error(`cannot read ${countsPath}: ${err instanceof Error ? err.message : String(err)}`);
-  }
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(raw);
-  } catch (err) {
-    throw new Error(`cannot parse ${countsPath}: ${err instanceof Error ? err.message : String(err)}`);
-  }
-  const obj = parsed as { nodes?: unknown; edges?: unknown };
-  if (
-    !parsed || typeof parsed !== "object" ||
-    typeof obj.nodes !== "number" || !Number.isInteger(obj.nodes) || obj.nodes < 0 ||
-    typeof obj.edges !== "number" || !Number.isInteger(obj.edges) || obj.edges < 0
-  ) {
-    throw new Error(`${countsPath} must be {"nodes": <non-negative integer>, "edges": <non-negative integer>}, got: ${raw}`);
-  }
-  return { nodes: obj.nodes, edges: obj.edges };
-}
-
-
-/** Format a Go-side error as a probe JSONL line (src="go", kind="error"). */
-function goErrorLine(message: string): string {
-  return JSON.stringify({ ts_ms: Date.now(), src: "go", kind: "error", message }) + "\n";
-}
-
-/** Append a Go-side error line to goErrorsFile, swallowing write failures (the same
- *  best-effort append repeated at every stderr/build-error/close/error call site below). */
-function appendGoError(goErrorsFile: string | undefined, message: string): void {
-  if (!goErrorsFile) return;
-  try {
-    fs.appendFileSync(goErrorsFile, goErrorLine(message), "utf8");
-  } catch { /* swallow */ }
-}
-
-/** The probe-path set derived once per run() from the workspace folder — see
- *  probePathsFor. */
-interface ProbePaths {
-  // All paths are ALWAYS armed, regardless of wirefold.probe.trace: the four Go trace
-  // files (probeFile/probeNodeFile/probeEdgeFile/probeInteriorFile) double as the DEBUG
-  // BREADCRUMB channel's storage (.claude/rules/go-debugging.md — breadcrumb rows
-  // must survive with tracing off), so they must exist and be writable either way. What
-  // the setting gates is which DECODED LINES get appended at each write site — see
-  // handleViewFd/handleEdgeFd/handleNodeFd/handleInteriorFd's probeTrace-gated filtering.
-  probeFile: string;
-  probeNodeFile: string;
-  probeEdgeFile: string;
-  probeInteriorFile: string;
-  goErrorsFile: string;
-  // NOTE: ts.jsonl / ts-errors.jsonl are deliberately absent. The runner never writes
-  // them — extension/webview-log.ts is the sole writer and resolves its own paths from
-  // the webview's workspace folder. Fields for them were armed here and read by nobody.
-}
-
-/** Computes (and ensures on disk) the probe-directory file paths for one run. Pure w.r.t.
- *  the runner — returns a plain object rather than writing `this.*` fields, so a caller can
- *  use goErrorsFile to report a build failure BEFORE deciding whether to arm the runner's
- *  own fields (see run()). */
-/** Rotates one probe log: `<f>` -> `<f>.prev` (overwriting any older .prev), leaving no
- *  `<f>` so the run's first appendFileSync starts it fresh.
- *
- *  Why rotate rather than truncate: the probe writers are append-only and nothing ever
- *  reset them, so `.probe/` grew without bound across every run AND every reload-window
- *  (measured at 1.2 GB, 1.1 GB of it go-edge.jsonl). But plain truncate-on-start would
- *  destroy the log of the run you just did — which is the exact moment you want it, since
- *  the first move on an editor hang is to read go-errors.jsonl
- *  (memory/feedback_runner_errors_probe_first). One generation keeps that evidence alive
- *  across a single reload while bounding growth at two runs.
- *
- *  Best-effort: a rotation failure must never stop a run from starting, so errors are
- *  swallowed. The worst case is the old behavior (this run appends to the existing file).
- *  tools/probe-merge.sh reads the live files and is unaffected. */
-function rotateProbeLog(p: string): void {
-  try {
-    if (!fs.existsSync(p)) return;
-    fs.rmSync(`${p}.prev`, { force: true });
-    fs.renameSync(p, `${p}.prev`);
-  } catch {
-    /* best effort — never block a run on log rotation */
-  }
-}
-
-function probePathsFor(folder: vscode.WorkspaceFolder): ProbePaths {
-  const probeDir = path.join(folder.uri.fsPath, PROBE_DIR);
-  fs.mkdirSync(probeDir, { recursive: true });
-  // All paths rotate unconditionally: the four Go trace files always receive breadcrumb
-  // rows regardless of wirefold.probe.trace (see ProbePaths), so they are live logs either
-  // way and must rotate like the error logs.
-  rotateProbeLog(path.join(probeDir, PROBE_FILES.goErrors));
-  rotateProbeLog(path.join(probeDir, PROBE_FILES.tsErrors));
-  rotateProbeLog(path.join(probeDir, PROBE_FILES.handlerErrorLast));
-  for (const name of PROBE_TRACE_FILES) {
-    rotateProbeLog(path.join(probeDir, name));
-  }
-  return {
-    probeFile: path.join(probeDir, PROBE_FILES.go),
-    probeNodeFile: path.join(probeDir, PROBE_FILES.goNode),
-    probeEdgeFile: path.join(probeDir, PROBE_FILES.goEdge),
-    probeInteriorFile: path.join(probeDir, PROBE_FILES.goInterior),
-    goErrorsFile: path.join(probeDir, PROBE_FILES.goErrors),
-  };
-}
-
-// splitJsonlLines is the pure newline-framing step for stdout: given the carried-over
-// partial buffer and a freshly-arrived chunk, it returns every COMPLETE (newline-
-// terminated) line and the trailing partial `rest` to carry into the next call. A line
-// split across two chunks is reassembled (its bytes accumulate in `rest` until the
-// newline arrives); multiple lines in one chunk all come out; a trailing partial is
-// buffered. handleStdout owns per-line dispatch; this owns only the framing.
-export function splitJsonlLines(buf: string, chunk: string): { lines: string[]; rest: string } {
-  let rest = buf + chunk;
-  const lines: string[] = [];
-  let nl: number;
-  while ((nl = rest.indexOf("\n")) !== -1) {
-    lines.push(rest.slice(0, nl));
-    rest = rest.slice(nl + 1);
-  }
-  return { lines, rest };
-}
-
-// MAX_FRAME_BYTES bounds a single framed-binary record read off ANY dedicated stream fd
-// (view/edge/node/interior). MUST match Go's `maxFrameBytes` in nodes/Wiring/stdin_reader.go
-// — this is the SAME [len:u32-LE][payload] protocol, just read in the opposite direction
-// (Go emits, TS decodes here), and a corrupt/hostile length must be rejected the same way
-// on both ends or a bound that only fires going one way is not a bound on the protocol at
-// all. Parity is enforced by tools/check-frame-bytes-parity.sh. Without this bound, a
-// corrupt length makes splitFrames' carried-over `rest` grow forever waiting for bytes that
-// will never complete the frame — unbounded memory, silently.
-export const MAX_FRAME_BYTES = 1 << 20;
-
-// splitFrames is the pure length-prefix framing step shared by every dedicated stream fd
-// (view/edge/node/interior): given the carried-over partial Buffer and a freshly-arrived
-// binary chunk, it returns every COMPLETE frame payload (as an ArrayBuffer, ready to
-// transfer zero-copy) and the trailing partial `rest` to carry into the next call. Frames
-// are [len:u32-LE][payload] with NO tag byte (the fd position identifies the stream — see
-// Buffer/stream_fds.go). A frame split across two chunks is reassembled; multiple frames in
-// one chunk all come out; a trailing partial (len header not yet complete, or payload bytes
-// not yet complete) is buffered. Each handleXFd method owns dispatch; this owns only the
-// framing.
-//
-// A decoded length exceeding MAX_FRAME_BYTES is reported via `error` (mirroring Go's
-// stdin_reader.go: log and stop, never throw across an event-emitter callback where it
-// would be swallowed) and framing STOPS immediately — `rest` is returned as whatever bytes
-// preceded the bad header, and no further bytes from `chunk` are scanned. The caller
-// (handleXFd) is responsible for ceasing to feed that fd's chunks into splitFrames again;
-// see the `deadStreams` field.
-export function splitFrames(buf: Buffer, chunk: Buffer): { frames: ArrayBuffer[]; rest: Buffer; error?: string } {
-  let rest = buf.length > 0 ? Buffer.concat([buf, chunk]) : chunk;
-  const frames: ArrayBuffer[] = [];
-  while (rest.length >= 4) {
-    const frameLen = rest.readUInt32LE(0);
-    if (frameLen > MAX_FRAME_BYTES) {
-      return { frames, rest, error: `bad frame length ${frameLen} (max ${MAX_FRAME_BYTES}); stopping stream` };
-    }
-    const needed = 4 + frameLen;
-    if (rest.length < needed) break;
-    // Slice out the payload and copy into a standalone ArrayBuffer (detached from
-    // the Node.js Buffer pool so it can be transferred zero-copy to the webview).
-    const payload = rest.slice(4, needed);
-    const ab = payload.buffer.slice(payload.byteOffset, payload.byteOffset + payload.byteLength);
-    frames.push(ab);
-    rest = rest.slice(needed);
-  }
-  return { frames, rest };
-}
+// Re-exported so importers (extension.ts, extension/handle-message.ts, and the tests that
+// import these from "../src/runCommand") keep working unchanged.
+export { nodeIdForRow, rowForNodeId } from "./runner/stream-fds";
+export { readCounts } from "./runner/counts";
+export { splitJsonlLines, splitFrames, MAX_FRAME_BYTES } from "./runner/framing";
 
 // Go stdout relay: errors (stderr, non-zero exit, spawn failure) are written to
 // .probe/go-errors.jsonl. Trace events are no longer emitted on stdout at all (see
 // handleStdout below) — the .probe trace logs are now the DECODE of each per-owner
 // stream's own trailing EVENTS section (decodeBufferLog/decodeStreamFrameEvents, in
 // handleViewFd/handleNodeFd/handleEdgeFd/handleInteriorFd).
-
-// ensureBinaryBuilt builds the Go binary at binPath if it's missing or stale.
-// A rebuild is needed when binPath does not exist OR any *.go source under
-// repoRoot is newer than binPath. Up-to-date → no build, returns ok. This
-// replaces `go run .` (which relinks a throwaway binary every launch) with a
-// single prebuilt binary reused across animation start/restart.
-//
-// Lazy safety net: even with the eager .go watcher (see extension.ts) keeping
-// the binary fresh, this still rebuilds at launch when the watcher missed an
-// event or wasn't armed. It delegates to the guarded buildBinary, so if the
-// watcher is mid-build this call coalesces (busy → ok) wait-free and never
-// blocks run().
-// ensureBinaryBuilt retries buildBinary/existsSync this many times while waiting out an
-// in-flight coalesced Go binary build (see below) before giving up and reporting an error.
-// Each attempt is cheap (a build call that returns immediately when coalesced, or a stat
-// check), so 50 is a generous ceiling meant to absorb a slow first-open Go build without
-// hanging the extension host indefinitely on a build that never completes.
-const BUILD_BINARY_MAX_ATTEMPTS = 50;
-
-function ensureBinaryBuilt(
-  repoRoot: string,
-  binPath: string,
-): { ok: true } | { ok: false; error: string } {
-  let binMtime = -1;
-  try {
-    binMtime = fs.statSync(binPath).mtimeMs;
-  } catch { /* missing → rebuild */ }
-  const needsRebuild = binMtime < 0 || maxGoMtime(repoRoot) > binMtime;
-  if (!needsRebuild) return { ok: true };
-  // buildBinary may COALESCE (returns ok with busy:true) when a watcher build is
-  // in flight against the same output path. On first open the binary can be
-  // absent AND a watcher build in flight — a coalesced ok would let run() spawn a
-  // non-existent path (ENOENT, runner stuck). So only report ok once the binary
-  // actually exists on disk: retry buildBinary until it runs to completion (the
-  // guard is released) or the in-flight build has produced the binary.
-  for (let attempt = 0; attempt < BUILD_BINARY_MAX_ATTEMPTS; attempt++) {
-    const res = buildBinary(repoRoot, binPath);
-    if (!res.ok) return res;
-    if (!res.busy) {
-      // Our own build ran synchronously to completion (ok). Trust it — but sanity
-      // check the file so a silent absence still surfaces as an error, not ENOENT.
-      if (fs.existsSync(binPath)) return { ok: true };
-      return { ok: false, error: `go build reported success but ${binPath} is missing` };
-    }
-    // Coalesced against an in-flight build. If that build has already produced the
-    // binary, we're done; otherwise retry (the guard will clear and our own build runs).
-    if (fs.existsSync(binPath)) return { ok: true };
-  }
-  return {
-    ok: false,
-    error: `binary ${binPath} not built after ${BUILD_BINARY_MAX_ATTEMPTS} attempts`,
-  };
-}
-
-// Per-process incremental parse state for Go's output byte-streams. Each field holds a
-// partial fragment straddling a chunk boundary — a partial newline-delimited stdout line,
-// and a partial length-prefixed binary frame per dedicated stream fd — and is meaningful
-// ONLY within a single Go process's stream: a leftover tail is a fragment of THAT process's
-// output. Its lifetime is therefore the process's, not the runner's. fd 3 itself carries no
-// frames anymore (WIREFOLD_STREAM_FDS is mandatory — the old central accumulator and
-// its fallback frames were deleted, memory/feedback_no_single_writer_bridge.md's final step); the pipe slot
-// stays allocated (see run()) purely to keep the remaining fd numbering unchanged.
-interface StreamParseState {
-  stdoutBuf: string;
-  // Partial-frame carry-over for the dedicated VIEW fd (VIEW_FD).
-  viewBuf: Buffer;
-  // Partial-frame carry-over PER EDGE fd (index = edge row), same role as viewBuf but one
-  // per dedicated edge pipe — each is its OWN pipe with its own chunk boundaries.
-  edgeBufs: Buffer[];
-  // Partial-frame carry-over PER NODE fd / PER INTERIOR fd (index = node row), same role
-  // as edgeBufs — one per dedicated node/interior pipe.
-  nodeBufs: Buffer[];
-  interiorBufs: Buffer[];
-  // Partial-frame carry-over PER DRIVE fd (index = node row, inner index = drive slot,
-  // 0..DRIVE_SLOTS_PER_NODE-1) — one per dedicated per-DriveHeld-goroutine pipe (see
-  // DRIVE_SLOTS_PER_NODE's doc comment). Kept SEPARATE from interiorBufs even though
-  // handleDriveFd feeds the same decode/cache/relay path as handleInteriorFd: each drive
-  // fd is its OWN pipe with its OWN chunk boundaries, and merging two physically distinct
-  // byte streams into one carry buffer would reintroduce the exact framing desync this
-  // whole per-goroutine-fd change exists to remove, just moved from Go's write side to
-  // this file's read side.
-  driveBufs: Buffer[][];
-}
-
-// freshStreamState mints empty parse state for a newly spawned process. run() calls it
-// at every spawn so no respawn/restart path can carry a dead process's tail bytes into
-// the next process — concatenating them would make splitFrames read a frame length from
-// inside stale bytes and freeze (or silently starve) the scene. Binding the reset to the
-// spawn, not to each exit handler, makes "start a process with leftover bytes" impossible
-// to express rather than a rule every exit path must remember. edgeCount/nodeCount size
-// edgeBufs/nodeBufs+interiorBufs to this spawn's fd ranges (0 when that dedicated path is
-// off).
-function freshStreamState(edgeCount: number, nodeCount: number): StreamParseState {
-  return {
-    stdoutBuf: "",
-    viewBuf: Buffer.alloc(0),
-    edgeBufs: Array.from({ length: edgeCount }, () => Buffer.alloc(0)),
-    nodeBufs: Array.from({ length: nodeCount }, () => Buffer.alloc(0)),
-    interiorBufs: Array.from({ length: nodeCount }, () => Buffer.alloc(0)),
-    driveBufs: Array.from({ length: nodeCount }, () => Array.from({ length: DRIVE_SLOTS_PER_NODE }, () => Buffer.alloc(0))),
-  };
-}
 
 export class BuildAndRunRunner {
   private proc: cp.ChildProcess | undefined;
