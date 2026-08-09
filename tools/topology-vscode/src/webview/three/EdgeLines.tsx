@@ -21,15 +21,6 @@ import { EDGE_LINE_COLOR } from "./bead-style";
 // The line reuses the node ring's own roughness rather than introducing a second one: it is
 // the same kind of surface, and a literal here would be exactly the drift that guard exists
 // to stop.
-import {
-  SHADING_PARAM_BEAD_RADIUS,
-  SHADING_PARAM_BEAD_RING_TUBE_RATIO,
-} from "../../schema/shading-params";
-import { beadStyleForValue } from "./bead-style";
-
-// The chain bead's ring colour, taken the way ChainBeadInstances takes it: off the value-1
-// style rather than as a second black literal.
-const BEAD_RING_COLOR = beadStyleForValue(1)!.ring;
 import { DIRECTION_ZERO_EPS } from "./buffer-scene-shared";
 
 // Line thickness and arrowhead size in world units. The head is sized off the line so the
@@ -51,10 +42,6 @@ const TORUS_DEFAULT_NORMAL = new THREE.Vector3(0, 0, 1);
 export function EdgeLines({ capacity }: { capacity: number }) {
   const lineRef = useRef<THREE.InstancedMesh>(null);
   const headRef = useRef<THREE.InstancedMesh>(null);
-  const beadRef = useRef<THREE.InstancedMesh>(null);
-  const beadRingRef = useRef<THREE.InstancedMesh>(null);
-  const ringQuat = useRef(new THREE.Quaternion());
-  const unit = useRef(new THREE.Vector3(1, 1, 1));
   const mat = useRef(new THREE.Matrix4());
   const pos = useRef(new THREE.Vector3());
   const dir = useRef(new THREE.Vector3());
@@ -64,15 +51,10 @@ export function EdgeLines({ capacity }: { capacity: number }) {
   useFrame(() => {
     const line = lineRef.current;
     const head = headRef.current;
-    const bead = beadRef.current;
-    const beadRing = beadRingRef.current;
-    if (!line || !head || !bead || !beadRing) return;
+    if (!line || !head) return;
 
     const edges = getEdgeStreamAccessor();
-    if (!edges) {
-      line.count = 0; head.count = 0; bead.count = 0; beadRing.count = 0;
-      return;
-    }
+    if (!edges) { line.count = 0; head.count = 0; return; }
 
     const n = Math.min(edges.edgeCount, capacity);
     let drawn = 0;
@@ -105,33 +87,12 @@ export function EdgeLines({ capacity }: { capacity: number }) {
       mat.current.compose(pos.current, quat.current, scl.current);
       head.setMatrixAt(drawn, mat.current);
 
-      // ONE RESTING EDGE BEAD, at the segment's midpoint — a chain bead, in the chain bead's
-      // own fill, sitting between the two nodes. Every other bead on screen is a pulse in a
-      // value colour (black/white), so this is the only place the resting tone appears
-      // besides the line, which is what makes the line's colour judgeable against it: same
-      // scene, same lighting, side by side.
-      pos.current.set(sx, sy, sz).addScaledVector(dir.current, len / 2);
-      mat.current.makeTranslation(pos.current.x, pos.current.y, pos.current.z);
-      bead.setMatrixAt(drawn, mat.current);
-      // …and its RING. A chain bead is a sphere INSIDE a torus, never a bare sphere — the
-      // ring is most of what it looks like. A torusGeometry's own normal is +Z, so it is
-      // rotated onto the edge direction here, which puts the ring around the line the bead
-      // sits on (on a real chain the same ring lies in its node's ring plane, resolved from
-      // the streamed per-bead axis this reference bead has no equivalent of).
-      ringQuat.current.setFromUnitVectors(TORUS_DEFAULT_NORMAL, dir.current);
-      mat.current.compose(pos.current, ringQuat.current, unit.current);
-      beadRing.setMatrixAt(drawn, mat.current);
-
       drawn++;
     }
     line.count = drawn;
     head.count = drawn;
-    bead.count = drawn;
-    beadRing.count = drawn;
     line.instanceMatrix.needsUpdate = true;
     head.instanceMatrix.needsUpdate = true;
-    bead.instanceMatrix.needsUpdate = true;
-    beadRing.instanceMatrix.needsUpdate = true;
     if (drawn > 0) {
       line.computeBoundingSphere();
       head.computeBoundingSphere();
@@ -166,27 +127,9 @@ export function EdgeLines({ capacity }: { capacity: number }) {
             different colour from the beads despite reading the identical constant. */}
         <meshBasicMaterial color={EDGE_LINE_COLOR} toneMapped={false} transparent={false} opacity={1} />
       </instancedMesh>
-      {/* The RESTING EDGE BEAD, one per edge at its midpoint. Authored at the bead's own
-          radius and the EDGE's own fill (EDGE_LINE_COLOR) with the same
-          unlit + tone-mapping-exempt pair ChainBeadInstances uses — a chain bead in every
-          respect, just placed between the nodes rather than filling the edge.
-          raycast disabled: it is scenery, not a target. */}
-      <instancedMesh ref={beadRef} args={[undefined, undefined, capacity]} frustumCulled={false} raycast={() => null}>
-        <sphereGeometry args={[SHADING_PARAM_BEAD_RADIUS, 16, 16]} />
-        {/* EDGE_LINE_COLOR, not the chain fill: this bead belongs to the edge, so it wears
-            the edge's own (brighter) tone and stays the line's like-for-like reference. */}
-        <meshBasicMaterial color={EDGE_LINE_COLOR} toneMapped={false} transparent={false} opacity={1} />
-      </instancedMesh>
-      {/* Its RING — geometry and colour copied from ChainBeadInstances verbatim (bead radius,
-          tube = radius × SHADING_PARAM_BEAD_RING_TUBE_RATIO, 8×24 segments, the black
-          beadStyleForValue(1).ring). Without it this was a bare sphere, which is not what an
-          edge bead looks like: the ring carries most of its silhouette. */}
-      <instancedMesh ref={beadRingRef} args={[undefined, undefined, capacity]} frustumCulled={false} raycast={() => null}>
-        <torusGeometry
-          args={[SHADING_PARAM_BEAD_RADIUS, SHADING_PARAM_BEAD_RADIUS * SHADING_PARAM_BEAD_RING_TUBE_RATIO, 8, 24]}
-        />
-        <meshBasicMaterial color={BEAD_RING_COLOR} toneMapped={false} transparent={false} opacity={1} />
-      </instancedMesh>
+      {/* No midpoint reference bead here any more. It existed to make the line's colour
+          judgeable against a real chain bead in the same scene; that question is answered,
+          and a decorative bead sitting on every edge is not something the diagram means. */}
     </>
   );
 }
