@@ -82,16 +82,17 @@ const DwellTicksPerBead = BeadStepR / PulseSpeedWuPerTick * PulseSubStepsPerBead
 // pulse speed uniform across every edge (ticksToCross = steps × dwell, no per-edge division),
 // so scaling it keeps that structural property — every edge slows by the same factor and no
 // edge gains a speed of its own.
-// ONE — the original rate, arrived at by halving twice from the 4 this started at. Ticks are
+// TWO — the original rate doubled. Ticks are
 // the one clock, so every multiple here slowed delivery, not just the drawing, and none of
 // it was buying the smoothness it was introduced for: that comes from the pulse being drawn
 // at a CONTINUOUS position instead of floored onto a bead slot, which is independent of the
-// rate. At 1 the constant multiplies nothing and the network runs at the speed it always did.
+// rate — so this constant is purely PACE, not smoothness, and is set by what looks right.
 //
-// Kept rather than deleted, because it is the knob: dwell is what makes pulse speed uniform
-// across every edge (ticksToCross = steps × dwell, no per-edge division), so this is where a
-// change of pace belongs — one edit, every edge equally.
-const PulseSubStepsPerBead = 1
+// It is the knob for that: dwell is what makes pulse speed uniform across every edge
+// (ticksToCross = steps × dwell, no per-edge division), so a change of pace belongs here —
+// one edit, every edge equally. The lean node tests' wall-clock waits scale off it, so they
+// track it without a second edit.
+const PulseSubStepsPerBead = 2
 
 // SnapQuantIR does not exist. It used to round a stored quantIR to the nearest
 // multiple of BeadStepCells so the node lattice stayed a commensurate SUBLATTICE
