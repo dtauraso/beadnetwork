@@ -341,11 +341,16 @@
       <div class="cap">This page was written as a report, not a proposal — the split existed so a change to
         one file could not move the other, and that property was repeatedly lost when the two shared a
         parameterised function.<br><br>The two are now ONE machine (<code>nodes/Node1/machine.go</code>),
-        because of what is measured above: the difference is DATA, not code. A mode contributes a home
-        set and nothing else. The three earlier attempts each parameterised the RULE — a branch inside
+        because of what is measured above: the difference is DATA, not code. A mode contributes ONE COUNT
+        and nothing else. The three earlier attempts each parameterised the RULE — a branch inside
         miss, a mode passed to step — and that branch is what let a change meant for one mode land in the
-        other. There is no such branch now: miss is a minimum over a set of numbers and cannot ask which
-        mode it serves, and step never sees a mode at all.<br><br>The claim the old
+        other. There is no such branch now: <code>settled</code> compares the count against the mode's row
+        and <code>step</code> measures the way up against a quarter turn, and neither can ask whose row it
+        is holding.<br><br>SINCE THIS PAGE WAS WRITTEN the measurement changed: the rule counts from the
+        NEARER END of the tilt line rather than from the top, so the misses drawn above are no longer
+        computed at all, and a home set of two separations became a single count. The audit's finding
+        holds — the difference between the modes is one line of data — but that line is now shorter than
+        what is drawn here.<br><br>The claim the old
         <code>perpendicular.go</code> header made — that the two share no computation — was true of the
         TEXT and false of the MATHEMATICS. That is what this page corrected, and the fold is what
         followed from it.</div>

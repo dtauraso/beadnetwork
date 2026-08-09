@@ -14,7 +14,8 @@
 
   <header>
     <h1>Perpendicular</h1>
-    <div class="sub">one of the pair's two resting states — a mode of the one machine, and its home set</div>
+    <div class="sub">one of the pair's two resting states — a mode of the one machine, and the count it
+      stops at</div>
   </header>
 
   <nav>
@@ -99,7 +100,7 @@
             <td class="s" data-src="nodes/Node1/node_test.go#offBy">miss</td>
           </tr>
           <tr>
-            <td class="e">step = next if miss(next) ≤ miss(prev), else prev</td>
+            <td class="e">step = next if (stop − c) mod HALF ≤ QUARTER, else prev</td>
             <td class="n">ONE move, a link either way, so a step cannot leave the ring. Answerable
               everywhere — including at a quarter turn, where the old acute test said "not acute" and
               the rule read that as stand still, exactly where this machine most needs to move</td>
@@ -118,14 +119,19 @@
         <p>Two machines in two files had nowhere to put that coupling, and both rules were finished
           under that arrangement without either disturbing the other. The <a href="audit.html">audit</a>
           then measured what they had become: one rule, its exact complement, and a single line of
-          genuinely distinct data — which separations count as HOME.</p>
+          genuinely distinct data — which reading counts as HOME.</p>
         <p>So the two are now one machine
-          (<span data-src="nodes/Node1/machine.go#tiltMachine">tiltMachine</span>) and a mode is its
-          home set and nothing else. This is not the fourth attempt at the three above: those
+          (<span data-src="nodes/Node1/machine.go#tiltMachine">tiltMachine</span>) and a mode is the ONE
+          COUNT it stops at and nothing else. This is not the fourth attempt at the three above: those
           parameterized the RULE, and a branch inside a shared miss is what let a change meant for one
-          mode land in the other. Nothing branches on the mode now — miss is a minimum over a set of
-          numbers and cannot ask who it works for, step never sees a mode at all — so the coupling has
-          no place left to live.</p>
+          mode land in the other. Nothing branches on the mode now —
+          <span data-src="nodes/Node1/machine.go#settled">settled</span> compares the count against the
+          row and <span data-src="nodes/Node1/machine.go#step">step</span> measures the way up against a
+          quarter turn, and neither can ask whose row it is holding — so the coupling has no place left
+          to live.</p>
+        <p>The row is one count and not two because the count is taken from the NEARER END of this
+          node's tilt line. Measured from the top, this machine looked like it rested at two separations,
+          0 and a half turn; those are one reading at the two ends of one line.</p>
       </div>
 
       <div class="card wide">

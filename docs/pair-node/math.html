@@ -134,9 +134,13 @@
           </svg>
           <div class="cap">No trig: both states are already on the ring, so the fold is one subtraction
             against the ring's own half-turn count
-            (<span data-src="nodes/Node1/ring.go#angleLength">separation</span>). This number alone names
-            no resting state — each mode reads its own halt off it, against its own home set
-            (<a href="perpendicular.html">Perpendicular</a>).</div>
+            (<span data-src="nodes/Node1/ring.go#angleLength">separation</span>). The turn does not read
+            this number: it counts from the NEARER END of the tilt line instead
+            (<span data-src="nodes/Node1/machine.go#nearerEndCount">nearerEndCount</span>), which keeps
+            the end it measured. Separation survives for the one question that is about the two TILTS
+            rather than the arrival — which mode the pair runs
+            (<span data-src="nodes/Node1/node.go#machineForGap">machineForGap</span>) — and there it names
+            no resting state either (<a href="perpendicular.html">Perpendicular</a>).</div>
         </div>
 
         <div class="card">

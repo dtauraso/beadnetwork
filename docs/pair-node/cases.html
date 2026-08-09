@@ -14,7 +14,7 @@
 
   <header>
     <h1>Cases</h1>
-    <div class="sub">every case the one machine has — three modes, what each does at every angle length,
+    <div class="sub">every case the one machine has — three modes, what each does at every count,
       and the only four transitions between them</div>
   </header>
 
@@ -46,13 +46,16 @@
         <h2>The whole case space</h2>
         <p>A node's tilt machine is ONE instance
           (<span data-src="nodes/Node1/machine.go#tiltMachine">tiltMachine</span>) whose entire state is
-          which mode it is in. So the cases are: three modes, each against every ANGLE LENGTH an arrival can
-          produce — the number of ring slots between this node's tilt and the arrival, counted the short way
-          round. That is the grid below, on a 24-point ring where a quarter turn is 6 and a half turn is 12.
-          Nothing else is a case: the turn never sees which mode is running, and there is no fourth input.</p>
+          which mode it is in. So the cases are: three modes, each against every COUNT an arrival can
+          produce — the ring slots between the arrival and the NEARER END of this node's tilt line
+          (<span data-src="nodes/Node1/machine.go#nearerEndCount">nearerEndCount</span>). A node draws two
+          ends a half turn apart, so exactly one count is under a half turn, and that is the one. The grid
+          runs 0 to 11 on a 24-point ring, not 0 to 12: <var>c</var> lives on a ring of a HALF TURN, and 12
+          is 0 at the other end. Nothing else is a case: the turn never sees which mode is running, and there
+          is no fourth input.</p>
         <svg width="700" height="252" viewBox="0 0 700 252">
-          <!-- column headers: separation 0..12 -->
-          <text x="150" y="26" class="lbl">angle length L — slots between the tilt and the arrival, short way round</text>
+          <!-- column headers: the count 0..11 -->
+          <text x="150" y="26" class="lbl">count c — slots from the nearer end of the tilt line to the arrival</text>
           <g class="lbl" text-anchor="middle">
             <text x="176" y="46">0</text>
             <text x="216" y="46">1</text>
@@ -66,68 +69,63 @@
             <text x="536" y="46">9</text>
             <text x="576" y="46">10</text>
             <text x="616" y="46">11</text>
-            <text x="656" y="46">12</text>
           </g>
 
-          <!-- setting: home everywhere -->
+          <!-- setting: stops at every count -->
           <text x="150" y="80" text-anchor="end" class="lblm" fill="#9a9aa6">setting</text>
           <g fill="#5fd68a">
             <circle cx="176" cy="75" r="7" /><circle cx="216" cy="75" r="7" /><circle cx="256" cy="75" r="7" />
             <circle cx="296" cy="75" r="7" /><circle cx="336" cy="75" r="7" /><circle cx="376" cy="75" r="7" />
             <circle cx="416" cy="75" r="7" /><circle cx="456" cy="75" r="7" /><circle cx="496" cy="75" r="7" />
             <circle cx="536" cy="75" r="7" /><circle cx="576" cy="75" r="7" /><circle cx="616" cy="75" r="7" />
-            <circle cx="656" cy="75" r="7" />
           </g>
 
-          <!-- perpendicular: home 0 and 12; next for 1..6; prev for 7..11 -->
+          <!-- perpendicular: stops at 0; down for 1..5; up for 6..11 (c >= q goes up) -->
           <text x="150" y="130" text-anchor="end" class="lblm" fill="#e05fd8">perpendicular</text>
           <circle cx="176" cy="125" r="7" fill="#5fd68a" />
           <g fill="#4ea1ff" class="lblm" text-anchor="middle">
-            <text x="216" y="130">›</text>
-            <text x="256" y="130">›</text>
-            <text x="296" y="130">›</text>
-            <text x="336" y="130">›</text>
-            <text x="376" y="130">›</text>
-            <text x="416" y="130">›</text>
+            <text x="216" y="130">‹</text>
+            <text x="256" y="130">‹</text>
+            <text x="296" y="130">‹</text>
+            <text x="336" y="130">‹</text>
+            <text x="376" y="130">‹</text>
           </g>
           <g fill="#4ea1ff" class="lblm" text-anchor="middle">
-            <text x="456" y="130">‹</text>
-            <text x="496" y="130">‹</text>
-            <text x="536" y="130">‹</text>
-            <text x="576" y="130">‹</text>
-            <text x="616" y="130">‹</text>
+            <text x="416" y="130">›</text>
+            <text x="456" y="130">›</text>
+            <text x="496" y="130">›</text>
+            <text x="536" y="130">›</text>
+            <text x="576" y="130">›</text>
+            <text x="616" y="130">›</text>
           </g>
-          <circle cx="656" cy="125" r="7" fill="#5fd68a" />
 
-          <!-- parallel: home 6; next at 0 and 7..12; prev for 1..5 -->
+          <!-- parallel: stops at 6; up for 0..5; down for 7..11 (c <= q goes up) -->
           <text x="150" y="180" text-anchor="end" class="lblm" fill="#f9a825">parallel</text>
           <g fill="#4ea1ff" class="lblm" text-anchor="middle">
             <text x="176" y="180">›</text>
-          </g>
-          <g fill="#4ea1ff" class="lblm" text-anchor="middle">
-            <text x="216" y="180">‹</text>
-            <text x="256" y="180">‹</text>
-            <text x="296" y="180">‹</text>
-            <text x="336" y="180">‹</text>
-            <text x="376" y="180">‹</text>
+            <text x="216" y="180">›</text>
+            <text x="256" y="180">›</text>
+            <text x="296" y="180">›</text>
+            <text x="336" y="180">›</text>
+            <text x="376" y="180">›</text>
           </g>
           <circle cx="416" cy="175" r="7" fill="#5fd68a" />
           <g fill="#4ea1ff" class="lblm" text-anchor="middle">
-            <text x="456" y="180">›</text>
-            <text x="496" y="180">›</text>
-            <text x="536" y="180">›</text>
-            <text x="576" y="180">›</text>
-            <text x="616" y="180">›</text>
-            <text x="656" y="180">›</text>
+            <text x="456" y="180">‹</text>
+            <text x="496" y="180">‹</text>
+            <text x="536" y="180">‹</text>
+            <text x="576" y="180">‹</text>
+            <text x="616" y="180">‹</text>
           </g>
 
-          <text x="176" y="214" class="lbl">● settle — this L IS one of the mode's resting lengths</text>
-          <text x="176" y="232" class="lbl">› turn up · ‹ turn down — one slot, toward a resting length</text>
+          <text x="176" y="214" class="lbl">● settle — this c IS the count the mode stops at</text>
+          <text x="176" y="232" class="lbl">› turn up · ‹ turn down — one slot, on the end that was counted from</text>
         </svg>
-        <div class="cap">Read a row and you have that mode entirely. SETTING rests at every length, which is
-          why a node being set up cannot be moved by an arrival. The other two rest at their own lengths and
-          turn straight over the other's — perpendicular walks through a quarter turn, parallel walks through
-          0 and a half turn.</div>
+        <div class="cap">Read a row and you have that mode entirely. SETTING stops at every count, which is
+          why a node being set up cannot be moved by an arrival. The other two stop at ONE count each and
+          turn straight over the other's — perpendicular walks through a quarter turn, parallel walks
+          through 0. Each row is a single run of ‹ and a single run of ›, because the rule is a single
+          comparison: is the stop within a quarter turn going up.</div>
       </div>
 
       <div class="card wide">
@@ -139,21 +137,23 @@
             <td>what happens</td>
           </tr>
           <tr>
-            <td class="e">perpendicular, L = a quarter turn</td>
-            <td class="n">exactly between the resting lengths 0 and a half — both 6 away on a 24-ring</td>
+            <td class="e">perpendicular, c = a quarter turn</td>
+            <td class="n">its stop, 0, is a quarter turn away going either way round the count-ring</td>
             <td class="n">turns UP</td>
           </tr>
           <tr>
-            <td class="e">parallel, L = 0 or a half turn</td>
-            <td class="n">its one resting length is a quarter away in either direction</td>
+            <td class="e">parallel, c = 0</td>
+            <td class="n">its stop, a quarter turn, is a quarter away going either way round</td>
             <td class="n">turns UP</td>
           </tr>
         </table>
         <div class="cap">Both fall out of one <code>&lt;=</code> in
-          <span data-src="nodes/Node1/machine.go#step">step</span>: when the two neighbours are equally far
-          from resting, the up bit wins. It is a convention, not a measurement — there is no better answer,
-          since the two directions are genuinely the same distance. What matters is that it MOVES: standing
-          still at a tie is the freeze the old "not acute" test produced.</div>
+          <span data-src="nodes/Node1/machine.go#step">step</span>: the way up is measured against a quarter
+          turn, and at exactly a quarter the two ways round are the same length, so the ≤ takes it up. It is
+          a convention, not a measurement — there is no better answer, since the two directions are genuinely
+          the same distance. What matters is that it MOVES: standing still at a tie is the freeze the old
+          "not acute" test produced. There are TWO ties and not four: read from the nearer end, each mode has
+          one stop, so each has one count that sits opposite it.</div>
       </div>
 
       <div class="card wide">
@@ -167,12 +167,12 @@
           <!-- perpendicular -->
           <rect x="430" y="14" width="190" height="46" rx="8" fill="#2b2b33" stroke="#e05fd8" />
           <text x="525" y="34" text-anchor="middle" class="lblm" fill="#e05fd8">perpendicular</text>
-          <text x="525" y="50" text-anchor="middle" class="lbl">rests at { 0, half }</text>
+          <text x="525" y="50" text-anchor="middle" class="lbl">stops at c = 0</text>
 
           <!-- parallel -->
           <rect x="430" y="112" width="190" height="46" rx="8" fill="#2b2b33" stroke="#f9a825" />
           <text x="525" y="132" text-anchor="middle" class="lblm" fill="#f9a825">parallel</text>
-          <text x="525" y="148" text-anchor="middle" class="lbl">rests at { quarter }</text>
+          <text x="525" y="148" text-anchor="middle" class="lbl">stops at c = quarter</text>
 
           <!-- adopt arrows -->
           <line x1="190" y1="74" x2="422" y2="42" stroke="#5fd68a" stroke-width="1.8" />
@@ -228,13 +228,16 @@
         <h2>What the gap read actually asks</h2>
         <table class="f">
           <tr class="h">
-            <td>arrival lands at angle length</td>
+            <td>arrival lands at count</td>
             <td>the two tilts are</td>
             <td>mode chosen</td>
           </tr>
           <tr>
-            <td class="e">0, or a half turn</td>
-            <td class="n">a quarter turn apart — ALREADY perpendicular</td>
+            <td class="e">c = 0 — on this node's tilt line, either end</td>
+            <td class="n">a quarter turn apart — ALREADY perpendicular. The code measures this the other
+              way about, as the gap between the two TILTS being a quarter turn
+              (<span data-src="nodes/Node1/node.go#machineForGap">machineForGap</span>); the two are the
+              same fact, since the arrival is the partner's normal</td>
             <td class="n">perpendicular</td>
           </tr>
           <tr>
@@ -243,7 +246,7 @@
             <td class="n">parallel</td>
           </tr>
         </table>
-        <div class="cap">The two rows are perpendicular's resting lengths and everything else, which is the honest
+        <div class="cap">The two rows are perpendicular's gap and everything else, which is the honest
           reading of the rule: it asks "is this setup already perpendicular?", and everything that is not
           becomes a parallel pair to be closed. A pair set up at a quarter turn is therefore perpendicular
           and finished on arrival — it has nowhere to walk.</div>
@@ -259,8 +262,8 @@
           </tr>
           <tr>
             <td class="e">the lattice changes under a running mode</td>
-            <td class="n">the resting lengths are read from the ring at every call, never stored, so a mode
-              that rested at 12 on a 48-ring rests at 6 on a 24-ring with nothing to migrate. The INDEX is
+            <td class="n">the stopping count is read from the ring at every call, never stored, so a mode
+              that stopped at 12 on a 48-ring stops at 6 on a 24-ring with nothing to migrate. The INDEX is
               what survives, not the angle</td>
             <td class="s" data-src="nodes/Node1/node.go#adoptLattice">adoptLattice</td>
           </tr>
@@ -272,13 +275,13 @@
           </tr>
           <tr>
             <td class="e">the partner's arrow is reversed</td>
-            <td class="n">not a case at all — the angle length folds the long way round into the short one,
-              so a reversed partner lands exactly where an aligned one does and parallel reads both as its
-              one resting length</td>
-            <td class="s" data-src="nodes/Node1/ring.go#angleLength">separation</td>
+            <td class="n">not a case at all — the count is taken from whichever END is nearer, so a
+              reversed partner lands exactly where an aligned one does and parallel reads both as its one
+              stopping count</td>
+            <td class="s" data-src="nodes/Node1/machine.go#nearerEndCount">nearerEndCount</td>
           </tr>
           <tr>
-            <td class="e">a mode with no resting lengths</td>
+            <td class="e">a mode with no stopping count</td>
             <td class="n">refused where the broken invariant can still be named, rather than silently
               behaving like some other mode</td>
             <td class="s" data-src="nodes/Node1/machine.go#machineFor">machineFor</td>
