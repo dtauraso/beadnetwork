@@ -10,12 +10,53 @@ package Wiring
 
 import (
 	"io"
+	"reflect"
 	"testing"
 
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
+
+// TestViewFrameCarriesEveryOverlayFlag closes ViewOverlayFlags' one weakness: it is a
+// HAND-WRITTEN struct beside the generated flag vocabulary, so a flag added to
+// OVERLAY_FLAG_NAMES without a field here (or with a field nobody assigns in
+// emitViewFrame) would stream as zero forever — its toggle would flip Go's state, persist,
+// and change nothing on screen, which reads as "the overlay is broken" rather than as
+// "a field is missing".
+//
+// Driven off inOverlayFlags (the fingerprint's own list), it asserts both halves: the
+// struct carries exactly as many flags as the vocabulary, and with every flag defaulting
+// ON, every field arrives set — a field left unassigned in emitViewFrame is a 0 here.
+func TestViewFrameCarriesEveryOverlayFlag(t *testing.T) {
+	md := &MoveDispatch{ui: uiState{ov: defaultOverlayState()}}
+	var got ViewOverlayFlags
+	md.SetViewStream(io.Discard, func(tick uint32,
+		camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
+		flags ViewOverlayFlags,
+		dragNodeRow int32,
+		groupLenTime, groupLenInput, groupLenGate float32,
+		speed float32,
+		sceneCX, sceneCY, sceneCZ, sceneRadius float32,
+		events []wire.RowEvent,
+	) []byte {
+		got = flags
+		return nil
+	})
+	md.emitViewFrame(nil)
+
+	rv := reflect.ValueOf(got)
+	if rv.NumField() != len(inOverlayFlags) {
+		t.Fatalf("ViewOverlayFlags has %d fields, but there are %d overlay flags (%v) — a flag was added to OVERLAY_FLAG_NAMES without a field to carry it across the frame builder",
+			rv.NumField(), len(inOverlayFlags), inOverlayFlags)
+	}
+	for i := 0; i < rv.NumField(); i++ {
+		if rv.Field(i).Interface().(uint8) != 1 {
+			t.Fatalf("ViewOverlayFlags.%s arrived 0 with every overlay defaulting ON — emitViewFrame never assigns it, so this flag streams as off whatever the toggle says",
+				rv.Type().Field(i).Name)
+		}
+	}
+}
 
 // TestApplyUpdateOverlayToggleEmitsViewFrame drives applyUpdate exactly as
 // RunStdinReader's dispatch loop does for a top-level edit/update message with

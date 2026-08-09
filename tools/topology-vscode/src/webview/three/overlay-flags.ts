@@ -10,7 +10,7 @@
 // toggle round-trips to the displayed state.
 
 import { useSyncExternalStore } from "react";
-import type { OverlayFlag } from "../../messages";
+import { OVERLAY_FLAG_ORDER, type OverlayFlag } from "../../messages";
 import { getNodeFrame, subscribeNodeStreamBlocks } from "./node-stream-blocks";
 import { getViewBlocks, subscribeViewBlocks } from "./view-blocks";
 import {
@@ -52,16 +52,15 @@ export type OverlayFlagVals = Record<OverlayFlag, boolean>;
 // new OverlayFlagVals when a flag actually flips, detected by VALUE equality.
 let cachedVals: OverlayFlagVals | null = null;
 
+// Compared over OVERLAY_FLAG_ORDER — the flag vocabulary itself — NOT a hand-written
+// conjunction of field names. The conjunction was a second list of the flags that had to be
+// extended in step with the first, and when six flags were added and it was not, this
+// function reported "unchanged" for every one of them: the cached object kept its identity,
+// useSyncExternalStore saw nothing, and the row's checkmark froze while the drawing itself
+// (which reads the buffer directly, not this) turned off correctly. Iterating the vocabulary
+// means a new flag is covered by existing.
 function overlayFlagsEqual(a: OverlayFlagVals, b: OverlayFlagVals): boolean {
-  return (
-    a.tori === b.tori &&
-    a.scenePoles === b.scenePoles &&
-    a.nodePoles === b.nodePoles &&
-    a.selSpherePoles === b.selSpherePoles &&
-    a.handholds === b.handholds &&
-    a.labelsGlobal === b.labelsGlobal &&
-    a.overlays === b.overlays
-  );
+  return OVERLAY_FLAG_ORDER.every((flag) => a[flag] === b[flag]);
 }
 
 /** Decode the latest snapshot's Overlay row into store-polarity booleans, or null if no
