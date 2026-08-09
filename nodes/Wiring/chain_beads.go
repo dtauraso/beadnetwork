@@ -18,6 +18,11 @@ var chainAimTraceEnabled = os.Getenv("WIREFOLD_CHAIN_AIM_TRACE") == "1"
 // chain_beads.go — the node-owned placeholder bead chain that IS the visual of an edge.
 // Design and staging: docs/beads-are-the-edge.md. The LENGTH model (one integer bead-step
 // count, tangent placement, no arc) is docs/bead-lattice.md — this file implements it.
+// The length itself (edgeStepCount) is in chain_length.go, the step-count publish helper
+// (sendStepsNonBlocking) is in step_publish.go, and the progress->index math (litBeadIndex,
+// used by tests and documented here for the lit-pulse placement below) is in
+// lit_bead_index.go — this file keeps the one thing that reads all three: the placement
+// loop itself.
 //
 // A node owns one chain per OUTGOING edge, following ownership the tree already has: an edge
 // is stored at topology/nodes/<source>/edges/<label>.json, outgoing only, "carries no
@@ -41,114 +46,6 @@ var chainAimTraceEnabled = os.Getenv("WIREFOLD_CHAIN_AIM_TRACE") == "1"
 // held spacing by neighbour midpoints and therefore followed a drag in O(N²) — measured
 // ~1.5s at N≈40. Every offset here is index × spacing along this node's own aim at the
 // target: dependency depth 1, which that same memory names as the one escape.
-
-// edgeStepCount is the bead-lattice length of an edge (docs/bead-lattice.md "The count"): ONE
-// INTEGER, the number of bead steps between the two nodes' tori. Computed from the LIVE
-// measured center-to-center distance (dist), never a stored cache, plus both nodes' kinds:
-//
-//	K = round(dist / wire.BeadStepR)
-//	N = K - nodeTorusSteps(srcKind) - nodeTorusSteps(dstKind), minimum 1
-//
-// Under bead CRUD (MODEL.md "Moving a node is CRUD on the edge beads that touch it",
-// bead_crud.go) a node's placement does NOT guarantee dist lands on an exact integer
-// multiple of BeadStepR for every neighbour simultaneously (that guarantee belonged to the
-// rejected global bead-cell solver) — round() here is the real discretizer, not a no-op:
-// it is what turns a live, generally off-lattice distance into the whole bead-step count
-// this edge actually renders.
-//
-// PURE INTEGER SUBTRACTION once K is known — no division anywhere else, not even by a
-// fixed cell count. That used to divide the STORED QuantIR cache by a per-bead cell-count
-// constant (4) before subtracting, assuming the node lattice's cell was a quarter of a
-// bead step; before that, it read QuantIR straight off a cache that could go stale
-// relative to a node's live position (an offset propagated to a neighbor before that
-// neighbor's own commit landed, or a load-time value never re-measured after a drag).
-// Reading the live distance instead means this can never disagree with where the node
-// ACTUALLY is.
-//
-// nodeTorusOuterR is still snapped to a whole number of bead steps (nodeTorusSteps,
-// port_geometry.go) rather than measured from width/height, so the subtraction's second and
-// third terms are exact integers too — no term here can reintroduce a fraction.
-//
-// This is a pure function of state a node already owns, called from TWO places that must
-// never disagree: chainBeads below (this node's own goroutine, every cycle, for LAYOUT) and
-// build.go's allocateWires (load time, for the wire's INITIAL published step count) — both
-// call this same function on the same live center-to-center distance, so layout and timing
-// can never read two different lengths (the exact divergence docs/bead-lattice.md replaces
-// the old arc-length model to close off).
-func edgeStepCount(dist float64, srcKind, dstKind string) int {
-	k := int(math.Round(dist / wire.BeadStepR))
-	n := k - nodeTorusSteps(srcKind) - nodeTorusSteps(dstKind)
-	if n < 1 {
-		return 1
-	}
-	return n
-}
-
-// sendStepsNonBlocking delivers steps to ch, latest-wins: if the buffer already holds
-// an undrained stale value (the edgeMover's own goroutine hasn't woken to drain it
-// since the last publish), that stale value is dropped and replaced — the same
-// "producer sends, one consumer owns its copy" shape speedCh already uses
-// (per-goroutine-clock.md "Delivery"), applied to edgeMover.stepsIn. A nil ch (this
-// edge had no bound edgeMover.stepsIn, or a bare test nodeMover with no outStepsIn)
-// makes every case here select `default`, so this is a silent no-op — this node's own
-// goroutine never blocks on it.
-func sendStepsNonBlocking(ch chan int, steps int) {
-	select {
-	case ch <- steps:
-		return
-	default:
-	}
-	select {
-	case <-ch:
-	default:
-	}
-	select {
-	case ch <- steps:
-	default:
-	}
-}
-
-// litBeadIndex maps a bead's progress t (elapsed/ticksToCross, this edge's OWN t) onto the
-// index of the chain bead it currently occupies, for a chain of the given STEP count. ok is
-// false only when t is outside [0, 1) — off the edge entirely — never because the geometry
-// ran out of beads: an index at or past steps is clamped onto the last bead rather than
-// reported off-chain.
-//
-// steps must be the SAME integer chainBeads used to lay the chain out — two different
-// lengths for layout vs. lighting is exactly the drift docs/bead-lattice.md's one-integer
-// model exists to make impossible (LiveBeadProgress.Steps travels with the bead precisely so
-// this can never be re-derived from a second source).
-//
-//	t*steps = (elapsed/ticksToCross)*steps = elapsed/dwell
-//
-// which is the same for every edge (dwell is the uniform per-bead constant,
-// wire.DwellTicksPerBead), so each index lasts exactly one dwell everywhere.
-//
-// FLOOR, not round. The lit bead is the last one the traversal has reached, which is what
-// floor means; round would instead light the NEAREST, and that ties exactly halfway between
-// two beads — not academic here, since two edges reach the same distance via different t
-// values and float error would decide the tie differently per edge
-// (TestLitBeadIndexSameElapsedLightsSameBead pins this).
-func litBeadIndex(t float64, steps int) (int, bool) {
-	if t < 0 || t >= 1 || steps <= 0 {
-		return 0, false
-	}
-	// epsilon: t*steps is a float round-trip (t was itself elapsed/ticksToCross), so a
-	// bead sitting EXACTLY on bead i's position can land a hair under it and floor to
-	// i-1. A bead's own position is a reachable value, not an edge case, so nudge before
-	// flooring. 1e-9 against an integer step index is far below anything visible and far
-	// above float noise — the same epsilon the retired arc-length version used, kept
-	// because the reasoning (a float round-trip, not the unit it multiplies) is unchanged.
-	const eps = 1e-9
-	idx := int(math.Floor(t*float64(steps) + eps))
-	if idx < 0 {
-		idx = 0
-	}
-	if idx >= steps {
-		idx = steps - 1
-	}
-	return idx, true
-}
 
 // chainBeads returns THIS node's own placeholder chain beads as node-local offsets, in
 // outgoing-edge order (m.outs.outTargets), each edge's beads ordered outward from this node. It
@@ -283,9 +180,9 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 		//
 		// The edge is drawn as a line now, not as a sequence of placeholder beads lighting
 		// in turn, so there is no slot for a traversal to occupy — it has a position. That
-		// is why litBeadIndex (a FLOOR onto a bead index) is not used here: floor is exactly
-		// what made the old motion a series of jumps, one bead-width each, and no tick rate
-		// can smooth a value that is quantised before it is drawn.
+		// is why litBeadIndex (a FLOOR onto a bead index, lit_bead_index.go) is not used
+		// here: floor is exactly what made the old motion a series of jumps, one bead-width
+		// each, and no tick rate can smooth a value that is quantised before it is drawn.
 		//
 		// t stays the wire's own [0,1) fraction, and the step count still comes with the
 		// bead (p.Steps), so lighting and layout still read ONE length — the property
@@ -445,8 +342,9 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 		// Its position is the same lattice arithmetic the placeholders use, evaluated at a
 		// CONTINUOUS index (t × count) instead of at integer i: the pulse travels the same
 		// path, through the same points, and simply is not rounded to one of them. That
-		// rounding — litBeadIndex's floor — is what made the old motion a series of
-		// bead-wide hops, and no tick rate can smooth a value quantised before it is drawn.
+		// rounding — litBeadIndex's floor (lit_bead_index.go) — is what made the old motion
+		// a series of bead-wide hops, and no tick rate can smooth a value quantised before
+		// it is drawn.
 		for _, pl := range pulses {
 			// liveDir is ALREADY a unit cartesian direction — scaling it places the pulse
 			// directly, with no cartesian->polar->cartesian round trip.
