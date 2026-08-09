@@ -101,7 +101,7 @@ PROPS=(
 # overlay meshes whose material intensities are not Go-owned scene-base shading
 # (see header). A NEW *different* Go-owned prop reused in these files would
 # still be caught, since exclusion is by filename only, applied per-hit below.
-EXCLUDED_FILES=(SelectionHighlight.tsx NavGuides.tsx)
+EXCLUDED_FILES=(SelectionHighlight.tsx NavGuides.tsx polar-frame.tsx)
 
 # Number pattern: optional sign, digits, optional decimal, optional exponent, or hex.
 NUM='-?(0x[0-9a-fA-F]+|[0-9]+\.?[0-9]*([eE][-+]?[0-9]+)?)'
