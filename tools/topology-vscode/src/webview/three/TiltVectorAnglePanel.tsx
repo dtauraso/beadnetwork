@@ -11,6 +11,7 @@ import {
   groupHeadingStyle,
   DISCLOSURE_GLYPH_STYLE,
   popoverRowStyle,
+  REVEALED_LIST_STYLE,
 } from "./overlay-chrome";
 
 // The angle axes this panel lets a node's tilt be set on, in display order.
@@ -155,8 +156,10 @@ function NodeGroupSection({ node }: { node: TiltVectorRow }) {
             only holds the popover open past its content. */}
         <span>{heading}</span>
       </div>
+      {/* The list measures as nothing and lays out full width, so expanding θ changes no
+          width and what does not fit wraps (REVEALED_LIST_STYLE). */}
       {open && (
-        <div style={axisListStyle}>
+        <div style={REVEALED_LIST_STYLE}>
           {AXES.map((axis) => <AxisRow key={axis} node={node} axis={axis} />)}
         </div>
       )}
@@ -292,22 +295,6 @@ const valueTextStyle: React.CSSProperties = {
   position: "absolute",
   left: 0,
   top: 0,
-};
-
-// The axis items revealed by a node's disclosure triangle. THEY DO NOT SIZE THE POPOVER:
-// expanding a node must not change any width, so an item wider than the popover wraps onto
-// the next line instead of pushing the edge (and the pill, which shares the width) outward.
-//
-// `width: 0` is what buys that. The popover's width is `max-content` over its children, and
-// a child with a DEFINITE width contributes that width — zero — rather than its contents.
-// So the popover stays sized by what is there before any triangle is clicked: the lattice
-// row and the node headings. `minWidth: "100%"` then expands this box back out to the
-// popover's resolved width, so the items lay out across the full row despite measuring as
-// nothing. (The same effect `contain: inline-size` describes, in a form that does not need
-// containment support and reads as ordinary sizing.)
-const axisListStyle: React.CSSProperties = {
-  width: 0,
-  minWidth: "100%",
 };
 
 // An item's second line: the value at the left, the arrows that change it at the RIGHT EDGE

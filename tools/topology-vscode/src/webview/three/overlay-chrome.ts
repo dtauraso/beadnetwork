@@ -101,6 +101,21 @@ export function groupHeadingStyle(hover: boolean): React.CSSProperties {
 // than a disclosure triangle.
 export const DISCLOSURE_GLYPH_STYLE: React.CSSProperties = { fontSize: 8, width: 8, flex: "0 0 auto" };
 
+/** Wrapper for the rows a disclosure triangle REVEALS. They lay out across the popover's
+ *  full width but MEASURE AS NOTHING, so expanding a group cannot change any width —
+ *  content too long for the popover wraps onto the next line instead of pushing the edge
+ *  (and, where the pill shares that width, the pill) outward.
+ *
+ *  `width: 0` is what buys it: a popover sized by `max-content` counts a child with a
+ *  DEFINITE width as that width — zero — rather than as its contents, so the popover stays
+ *  sized by what is there before any triangle is clicked (the headings). `minWidth: "100%"`
+ *  then expands this box back out to the popover's resolved width. (The effect
+ *  `contain: inline-size` describes, in a form that reads as ordinary sizing.)
+ *
+ *  Rows inside it must be able to BREAK — a flex row of fixed-width children with nothing
+ *  wrappable will still overflow. See OverlayRow's label and the angle panel's value line. */
+export const REVEALED_LIST_STYLE: React.CSSProperties = { width: 0, minWidth: "100%" };
+
 /** A single popover row (OverlayRow's shape), minus the checkbox glyph — callers that want
  *  a checkbox (OverlaysControl) render their own leading element; callers that don't (the
  *  angle panel's axis rows) render their content directly inside this. */

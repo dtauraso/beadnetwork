@@ -17,6 +17,7 @@ import {
   groupHeadingStyle,
   DISCLOSURE_GLYPH_STYLE,
   popoverRowStyle,
+  REVEALED_LIST_STYLE,
 } from "./overlay-chrome";
 
 // ---------------------------------------------------------------------------
@@ -199,7 +200,12 @@ function OverlayRow({ cfg, disabled, indent }: { cfg: ToggleCfg; disabled?: bool
       >
         {active ? "✓" : ""}
       </span>
-      <span>{labelText}</span>
+      {/* Wraps rather than widening: the row lives in a box that measures as nothing, so a
+          label longer than the popover has to break onto the next line or it would just
+          overflow the edge. `minWidth: 0` is what lets a flex item shrink below its own
+          content — without it the default `min-width: auto` keeps the label at full width
+          and the break never happens. */}
+      <span style={{ minWidth: 0, overflowWrap: "break-word" }}>{labelText}</span>
     </div>
   );
 }
@@ -270,16 +276,26 @@ function OverlayGroupSection({ group, disabled }: { group: OverlayGroup; disable
           {on}/{group.cfgs.length}
         </span>
       </div>
-      {open && group.cfgs.map((cfg) => {
-        const parent = group.under?.[cfg.flag];
-        // A nested row is dead while its parent is off — the same rule the master `overlays`
-        // flag applies to every row, one level down. Read through toggleVal, the same rule a
-        // row itself reads by, so parent and child cannot disagree about the parent's value.
-        const parentOff = !!parent && !parent.active(toggleVal(bufFlags, parent));
-        return (
-          <OverlayRow key={cfg.flag} cfg={cfg} disabled={disabled || parentOff} indent={!!parent} />
-        );
-      })}
+      {open && (
+        <div style={REVEALED_LIST_STYLE}>
+          {group.cfgs.map((cfg) => {
+            const parent = group.under?.[cfg.flag];
+            // A nested row is dead while its parent is off — the same rule the master
+            // `overlays` flag applies to every row, one level down. Read through toggleVal,
+            // the same rule a row itself reads by, so parent and child cannot disagree about
+            // the parent's value.
+            const parentOff = !!parent && !parent.active(toggleVal(bufFlags, parent));
+            return (
+              <OverlayRow
+                key={cfg.flag}
+                cfg={cfg}
+                disabled={disabled || parentOff}
+                indent={!!parent}
+              />
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -336,7 +352,12 @@ export function OverlaysControl() {
           style={{
             // Anchored to the split button itself (position: relative above), so it
             // follows wherever the column puts that button instead of to a fixed top.
-            ...popoverStyle(150),
+            // `max-content`, not the old fixed 150: the popover measures the group
+            // headings — the only thing in it before a triangle is clicked, since the rows
+            // measure as nothing (REVEALED_LIST_STYLE) — so it is exactly as wide as its
+            // own headings rather than as wide as a number picked in advance, and
+            // expanding a group still changes nothing.
+            ...popoverStyle("max-content"),
           }}
         >
           {/* No dimming for the master-off state: the PILL is that indicator — unlit chip
