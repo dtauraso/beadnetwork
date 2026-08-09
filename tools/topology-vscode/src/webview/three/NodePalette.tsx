@@ -12,7 +12,7 @@
 // The editor goes away and comes back with the new tree, the same way a scene-tab switch
 // already works. That is why a create does not animate: there is nothing to animate.
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { postGoRecord } from "../vscode-api";
 import { encodeSceneCreate, encodeSceneDelete } from "../../schema/input-layout";
 import { NODE_KIND_NAMES, NODE_DEFS } from "../../schema/node-defs";
@@ -102,6 +102,8 @@ function PaletteRow({ kind, kindId }: { kind: string; kindId: number }) {
   // Collapsed by default, like every other disclosure in this chrome: thirteen open
   // descriptions is a wall of prose where a menu should be.
   const [open, setOpen] = useState(false);
+  // The heading element itself, handed to the drag as its image — see onDragStart.
+  const headingRef = useRef<HTMLSpanElement>(null);
   const def = NODE_DEFS[kind];
   return (
     <div
@@ -109,6 +111,13 @@ function PaletteRow({ kind, kindId }: { kind: string; kindId: number }) {
       onDragStart={(e) => {
         e.dataTransfer.setData(KIND_MIME, String(kindId));
         e.dataTransfer.effectAllowed = "copy";
+        // THE DRAG CARRIES THE HEADING ONLY — swatch and name. The browser's default ghost is
+        // the whole dragged element, which for an open row is the description too: a
+        // paragraph floating under the cursor while you aim a drop. The heading is what
+        // identifies the kind, and it is the only part worth carrying.
+        if (headingRef.current) {
+          e.dataTransfer.setDragImage(headingRef.current, 12, 8);
+        }
       }}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
@@ -120,6 +129,7 @@ function PaletteRow({ kind, kindId }: { kind: string; kindId: number }) {
           the same kind, and a separate "info" affordance beside every name would be a second
           column of chrome carrying one bit. */}
       <span
+        ref={headingRef}
         style={{ display: "flex", alignItems: "center", gap: 7 }}
         onClick={(e) => {
           e.stopPropagation();
