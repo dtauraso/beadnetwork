@@ -147,28 +147,32 @@ loop body) runs:
   own TOP says what the two TILTS are doing. The angle length (`angleLength`) is how many ring
   slots lie between two directions, counted the short way round, so never more than a half turn:
 
-  | angle length | the two tilts | mode that rests here |
+  The rule counts from the NEARER END of the node's own tilt line. A node draws two ends a half
+  turn apart, so there are two counts to the arrival and exactly one is under a half turn; that one
+  is the count, and it lives on a ring of a half turn.
+
+  | count | the two tilts | mode that stops here |
   | --- | --- | --- |
-  | 0, or a half turn | a quarter turn apart | PERPENDICULAR |
+  | 0 | a quarter turn apart | PERPENDICULAR |
   | a quarter turn | on one line, either way round | PARALLEL |
 
   Each is a MODE of the one state machine (`nodes/Node1/machine.go`), and a mode is nothing but
-  the list of angle lengths it RESTS at: `{ 0, half }` for perpendicular and `{ quarter }` for
-  parallel, both rows in `restingLengths`. The rule that turns toward them is written once and
-  never asks which mode it is running for.
+  the counts it STOPS at: `{ 0 }` for perpendicular and `{ quarter }` for parallel, both rows in
+  `stoppingCounts`. The rule that turns toward them is written once and never asks which mode it is
+  running for.
 
   There is a THIRD mode, `setting`, for a node that has not yet decided which of the two it runs —
   before the first arrival, and again after a reset. It is a mode and not an absence of one: it
-  rests at EVERY angle length, so it is already at rest wherever it stands and an arrival moves it
+  stops at EVERY count, so it is already at rest wherever it stands and an arrival moves it
   nothing, by the ordinary rule rather than by an exemption from it. Its pair-wide choice is
   `TiltMachineNone`, so a node in it tells the other end nothing, which is all it has to say.
 
-  ONE ARRIVAL ANSWERS TWO YES-OR-NO QUESTIONS. Is this angle length one the mode rests at
-  (`settled`)? If so the node stays put and sends nothing. If not, is the neighbour above closer to
-  a resting length than the one below (`step`, and a tie turns up)? Then it turns ONE slot. Nothing
+  ONE ARRIVAL ANSWERS TWO YES-OR-NO QUESTIONS. Is this count one the mode stops at
+  (`settled`)? If so the node stays put and sends nothing. If not, is that stop nearer going up the
+  count-ring or down it (`step`, and a tie turns up)? Then it turns ONE slot. Nothing
   is remembered between arrivals: no distance is stored, no walk is planned, and the next arrival
-  re-derives all of it. `fromRest` is the comparison that answers both, computed and discarded
-  inside the one arrival.
+  re-derives all of it. NO DISTANCE IS COMPUTED EITHER — the first question is a comparison and the
+  second is one subtraction against a quarter turn, so neither answer is a length.
 
   A node holds ONE `tiltMachine` (`Machine`), whose only state is which mode it is in — the same
   `Wiring.TiltMachine` value the two ends say to each other. Its zero value is `setting`, so a node

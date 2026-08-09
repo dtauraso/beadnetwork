@@ -23,6 +23,7 @@
   <a href="cycle.html">Cycle</a>
   <a href="updates.html">Update rules</a>
   <a class="on" href="arith.html">Arithmetic instead</a>
+  <a href="code.html">In code</a>
   <a href="clock.html">Clock</a>
   <a href="geometry.html">Geometry</a>
   <a href="asym.html">Asymmetry</a>
@@ -159,6 +160,14 @@
         <p><b>t<sub>after</sub>, b<sub>after</sub></b> — the two ends after this update. Each half
           moves the end it measured and derives the other, so the ends never have to agree about
           who moved: one of them is written and the other is read off it</p>
+        <p>the node stores both ends and runs exactly this:
+          <span data-src="nodes/Node1/machine.go#nearerEndCount">nearerEndCount</span> says which
+          end the count came from, <span data-src="nodes/Node1/machine.go#step">step</span> returns
+          that end moved one slot, and
+          <span data-src="nodes/Node1/node.go#setTop">setTop</span> /
+          <span data-src="nodes/Node1/node.go#setBottom">setBottom</span> write it — each writing
+          the other end off its own opposite in the same statement, which is why the two cannot
+          come apart</p>
         <p>read on the nearer end's OWN count the two halves are the same four lines — u under 12
           in the first, v under 12 in the second — so no comparison reverses</p>
         <p>the reversal appears only if the bottom is measured by the complementary angle,

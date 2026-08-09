@@ -142,4 +142,8 @@ preferences stated only verbally. Save anything in the second list to a file bef
 
 ## Posture (post-v0)
 
-Visual editor reached v0. New work is friction-driven, not phase-driven (the old per-phase plans were deleted — git history is the archive, not a `docs/planning/visual-editor/archive/` dir); justify changes from real-world editor use logged in [session-log.md](docs/planning/visual-editor/session-log.md). Working mode: user drives the editor and narrates; assistant logs and makes changes.
+Visual editor reached v0. New work is friction-driven, not phase-driven; justify changes from real-world editor use logged in [session-log.md](docs/planning/visual-editor/session-log.md). Working mode: user drives the editor and narrates; assistant logs and makes changes.
+
+**Plan docs are allowed, per change, in `docs/planning/`.** The old blanket "per-phase plans were deleted, git history is the archive" is gone: a change that reverses a documented invariant, or ripples across code and several pages at once, is worth writing down BEFORE it is made — what breaks, in what order, and how it is verified. Write one when the change is that shape; skip it when the change is a page edit or a rename.
+
+A plan doc states intent, not live state: the target, the ripple list, the order, the verification, the risks. It must NOT become a status board — no "current step", no checkboxes updated as work lands, no summary of what is done. That is what `check-no-state-cache.sh` bans and what branch descriptions plus `tools/next.sh` already answer. Delete the plan when the change lands; git history is the archive for the plan itself.

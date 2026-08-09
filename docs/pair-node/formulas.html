@@ -34,6 +34,7 @@
     <a href="cycle.html">Cycle</a>
     <a href="updates.html">Update rules</a>
     <a href="arith.html">Arithmetic instead</a>
+  <a href="code.html">In code</a>
     <a href="clock.html">Clock</a>
     <a href="geometry.html">Geometry</a>
     <a href="asym.html">Asymmetry</a>
@@ -101,21 +102,22 @@
               <td class="s" data-src="nodes/Node1/ring.go#angleLength">ring.go</td>
             </tr>
             <tr>
-              <td class="e">miss = min(sep, |sep − HALF|)</td>
-              <td class="n">the PERPENDICULAR machine's own measure. A quarter turn is an ordinary
-                angle to it — one it steps over</td>
-              <td class="s" data-src="nodes/Node1/machine.go#restingLengths">home = { 0, half }</td>
+            <tr>
+              <td class="e">c = u if u &lt; HALF, else (b − a) mod points</td>
+              <td class="n">the count from the NEARER END of the tilt line, which is the one measurement
+                the rule makes. It lives on a ring of a half turn</td>
+              <td class="s" data-src="nodes/Node1/machine.go#nearerEndCount">nearerEndCount</td>
             </tr>
             <tr>
-              <td class="e">miss = |sep − QUARTER|</td>
-              <td class="n">the same measure against the PARALLEL home set — and exactly the
-                complement of the one above, the two summing to a quarter turn</td>
-              <td class="s" data-src="nodes/Node1/machine.go#restingLengths">home = { quarter }</td>
+              <td class="e">settled = (c = stop)</td>
+              <td class="n">perpendicular stops at 0, parallel at a quarter. A comparison — no distance
+                is taken and nothing is minimised</td>
+              <td class="s" data-src="nodes/Node1/machine.go#stoppingCounts">stoppingCounts</td>
             </tr>
             <tr>
-              <td class="e">step = next if miss(next) ≤ miss(prev), else prev</td>
-              <td class="n">written ONCE and shared by every mode; answerable everywhere on the ring,
-                every halt included</td>
+              <td class="e">step = next if (stop − c) mod HALF ≤ QUARTER, else prev</td>
+              <td class="n">written ONCE and shared by every mode; the way down is the rest of the circle,
+                so one subtraction settles it. Answerable everywhere on the ring, every halt included</td>
               <td class="s" data-src="nodes/Node1/machine.go#step">step</td>
             </tr>
 
@@ -139,7 +141,7 @@
           </table>
           <div class="cap">The direction and step rows are the one kind's own <code>stepFromVector</code>,
             run unmodified by both nodes of a pair. There is nothing to dispatch to: the node holds one
-            machine, and which mode it is in selects the home set the same rule measures against —
+            machine, and which mode it is in supplies the one count the same rule compares against —
             nodes/Node1/node.go.</div>
         </div>
 

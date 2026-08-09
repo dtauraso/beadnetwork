@@ -31,6 +31,7 @@
     <a href="cycle.html">Cycle</a>
     <a class="on" href="updates.html">Update rules</a>
     <a href="arith.html">Arithmetic instead</a>
+  <a href="code.html">In code</a>
     <a href="clock.html">Clock</a>
     <a href="geometry.html">Geometry</a>
     <a href="asym.html">Asymmetry</a>
@@ -100,11 +101,11 @@
       <div class="card wide">
         <h2>The angle length, and what it says the pair is at</h2>
         <div class="strip">
-          <img src="panel-length-0.svg" alt="angle length 0 — perpendicular rests here">
-          <img src="panel-length-3.svg" alt="angle length 3, an acute angle — neither mode rests here, so the node turns">
-          <img src="panel-length-6.svg" alt="angle length 6 — parallel rests here">
-          <img src="panel-length-11.svg" alt="angle length 11, an obtuse angle — neither mode rests here, so the node turns">
-          <img src="panel-length-12.svg" alt="angle length 12, a half turn — perpendicular rests here too">
+          <img src="panel-length-0.svg" alt="angle length 0 — the arrival is on this node's top, so perpendicular stops">
+          <img src="panel-length-3.svg" alt="angle length 3, an acute angle — neither mode stops here, so the node turns">
+          <img src="panel-length-6.svg" alt="angle length 6 — the arrival is a quarter turn off, so parallel stops">
+          <img src="panel-length-11.svg" alt="angle length 11, an obtuse angle — neither mode stops here, so the node turns">
+          <img src="panel-length-12.svg" alt="angle length 12, a half turn — the arrival is on this node's bottom, which is the SAME count of 0 taken at the nearer end, so perpendicular stops">
         </div>
         <div class="keynote">
           <p><i class="sw" style="background:#5fd68a"></i>t — this node's own tilt</p>
@@ -115,8 +116,13 @@
           <p>the two slots have TWO arcs between them, one each way round, and L is the shorter —
             that choice is what min is for. It is not wrap handling: a tilt is a state on the ring
             and cannot leave it, so turning never does arithmetic at all</p>
-          <p>0 and 12 are perpendicular's two rests, 6 is parallel's one; every other length —
+          <p>0 and 12 are where perpendicular stops and 6 is where parallel does; every other length —
             acute below the quarter, obtuse above it — is ordinary to both, and gets turned over</p>
+          <p><b>the RULE does not read L.</b> It counts from the nearer END of the tilt line
+            (<span data-src="nodes/Node1/machine.go#nearerEndCount">nearerEndCount</span>), which is
+            under 12 by construction and remembers which end it came from — and that fold is why
+            perpendicular's two lengths here, 0 and 12, are ONE count of 0 to the code. L survives for
+            the one question about the two TILTS rather than the arrival: which mode the pair runs</p>
           <p>integers, so exact — no dot product, no epsilon to tune</p>
         </div>
         <img class="math" src="update-length.svg" style="width:396px"
@@ -182,7 +188,7 @@
           only gaps whose length lands on 0, 6 or 12 are the four quarter gaps. That is true
           whether or not anything is running. Read it back with x as this node's tilt and y as the
           partner's, and it is the machine: 24 states with two links out of each, a line that
-          reversing does not change, and the two resting lengths — which are therefore not chosen,
+          reversing does not change, and the two stopping counts — which are therefore not chosen,
           but counted.</p>
         <!-- Four blocks, one per step of the argument, at the SAME px-per-pt as every other
              block on the page. It used to be ONE block at 399pt — the widest on the page by a
@@ -199,10 +205,13 @@
         <img class="math" src="update-arith-rests.svg" style="width:602px"
           alt="Shift one of the two by 6, and only those four land on 0, 6, 12: a gap of 0 or 12 gives L(x, y + 6) = 6; a gap of 6 or 18 gives L(x, y + 6) = 0 or 12; every other gap gives an L(x, y + 6) that is none of 0, 6, 12.">
         <div class="keynote">
-          <p>this is where <span data-src="nodes/Node1/machine.go#restingLengths">restingLengths</span>
+          <p>this is where <span data-src="nodes/Node1/machine.go#stoppingCounts">stoppingCounts</span>
             comes from. { 6 } and { 0, 12 } are not two facts to remember — they are the four
             quarter gaps, and the shift by 6 above is the quarter turn the partner adds when it
             sends its normal instead of its tilt</p>
+          <p>counted from the NEARER END the second of those is a single 0: 0 and 12 are the same
+            count taken at the two ends of one line, which is why a mode's row is { 0 } or
+            { 6 } and never a pair</p>
           <p>it also explains the shape the <a href="audit.html">audit</a> found: the two modes are a
             half turn apart in g, so their two distances sum to a constant, which is why one is the
             other upside down</p>
@@ -216,9 +225,9 @@
       <h3 class="secname">What an arrival does</h3>
 
       <div class="card">
-        <h2 id="loop">Where each mode rests</h2>
-        <img class="math" src="update-resting.svg" style="width:130px"
-          alt="R perpendicular = {0, 12}. R parallel = {6}. R setting = any.">
+        <h2 id="loop">Where each mode stops</h2>
+        <img class="math" src="update-resting.svg" style="width:112px"
+          alt="R perpendicular = {0}. R parallel = {6}. R setting = any.">
       </div>
 
       <div class="card wide">
@@ -246,26 +255,34 @@
 
       <div class="card wide">
         <h2>Which slot to go to — measure, then decide</h2>
-        <img class="math" src="update-decide-turn.svg" style="width:511px"
-          alt="Measure where it is and each way it could turn: L = angleLength(t, a), L plus = angleLength(t plus one, a), L minus = angleLength(t minus one, a). How far off a rest, with f plus and f minus from L plus and L minus the same way: parallel, f = |L - 6|; perpendicular, f = 6 - |L - 6|; setting, f = 0. Then decide: f = 0 gives t after = t; f plus less than or equal to f minus gives t after = t plus one; else t after = t minus one.">
+        <img class="math" src="update-decide-turn.svg" style="width:456px"
+          alt="Measure once, at the end the arrival is nearer: u = (t - a) mod 24; c = u if u is under 12, else (b - a) mod 24; e is t if u is under 12, else b — the end that was counted from. The count each mode stops at: parallel s = 6, perpendicular s = 0, setting every c. Then decide, with no distance and nothing measured at the neighbours: c = s gives e after = e; (s - c) mod 12 at most 6 gives e after = e plus one; else e after = e minus one.">
         <div class="keynote">
-          <p>both modes rest symmetrically about the quarter — parallel ON it, perpendicular at the
-            two ends — so f is just how far ℓ sits off 6, one way up or the other. No list is
-            searched and no minimum is taken</p>
+          <p>ONE measurement, and it is taken where the node already is — not at the two places it
+            could go. The old form read ℓ at t, t+1 and t−1 and compared the results, which is a
+            machine choosing the better of its next two positions without working out where it was
+            heading</p>
+          <p>the way DOWN never appears: the two ways round the count-ring sum to 12, so asking which
+            is shorter is asking whether the way up is at most 6</p>
           <p>the two f lines being 6 apart is the <a href="audit.html">audit</a>'s "one mode is the
             other upside down", written as arithmetic</p>
-          <p>t_after is the TILT, and it is the only thing an update writes. The normal and the
-            bottom follow because they are links off it, not because anything moves them</p>
-          <p>f is computed inside the arrival and thrown away — it is not a countdown, and no walk
-            is planned from it. One arrival turns the tilt at most one slot</p>
+          <p>an update writes the END IT COUNTED FROM — the top for half the ring, the bottom for the
+            other half — and reads the other straight off its opposite in the same statement
+            (<span data-src="nodes/Node1/node.go#setTop">setTop</span> /
+            <span data-src="nodes/Node1/node.go#setBottom">setBottom</span>). The normal still follows,
+            because it is a link and nothing moves it</p>
+          <p>f is a quantity of THIS PAGE, not of the node. One arrival turns the tilt at most one
+            slot, so the code asks a comparison and a subtraction and never works out a distance at
+            all — <span data-src="nodes/Node1/machine.go#settled">settled</span> tests
+            <var>c</var> against the mode's one stopping count, and
+            <span data-src="nodes/Node1/machine.go#step">step</span> tests the way up against a
+            quarter turn</p>
           <p>the deciding never names a mode — by the time it runs, the mode is spent, having
-            produced one number per way to turn</p>
-          <p><span data-src="nodes/Node1/machine.go#fromRest">fromRest</span> computes f the GENERAL
-            way, as a minimum over the list
-            <span data-src="nodes/Node1/machine.go#resting">resting</span> returns, which is the
-            shape a third mode would join. The two lines above are what that minimum comes to for
-            these two modes, checked over both lattices and every tilt-and-arrival pair by
-            <span data-src="nodes/Node1/node_test.go#TestFromRestIsTheQuarterOffset">TestFromRestIsTheQuarterOffset</span></p>
+            produced the one count <span data-src="nodes/Node1/machine.go#stopping">stopping</span>
+            returns</p>
+          <p>f survives as a test-side measurement, because "each step lands nearer than it started"
+            cannot be said without one — checked over both lattices and every tilt-and-arrival pair
+            by <span data-src="nodes/Node1/node_test.go#TestFromRestIsTheQuarterOffset">TestFromRestIsTheQuarterOffset</span></p>
           <p>ℓ, ℓ₊ and ℓ₋ are one function called three times —
             <span data-src="nodes/Node1/machine.go#settled">settled</span> uses the first,
             <span data-src="nodes/Node1/machine.go#step">step</span> the other two</p>
@@ -285,8 +302,8 @@
         <img class="figure" src="panel-step.svg"
           alt="Parallel mode. The arrival sits at slot 0, the tilt at slot 10. Slots 6 and 18 are the two tilts that would rest for this arrival; slots 9 and 11 are the only two the tilt can turn to.">
         <div class="keynote">
-          <p><code>settle?</code> L = 10 is not a resting length → <b>no</b></p>
-          <p><code>up?</code> down reaches 6 sooner than up does → <b>no</b></p>
+          <p><code>settle?</code> c = 10 is not parallel's stop of 6 → <b>no</b></p>
+          <p><code>up?</code> (6 − 10) mod 12 = 8, more than a quarter turn → <b>no</b></p>
           <p><code>t_after = t − 1 = 9</code></p>
           <p><i class="sw" style="background:#e05fd8"></i>the two tilts whose angle length is a resting 6
             for this arrival</p>
@@ -377,7 +394,8 @@
               <span data-src="nodes/Node1/ring.go#seedState">seedState</span> ·
               <span data-src="nodes/Node1/ring.go#angleLength">angleLength</span> ·
               <span data-src="nodes/Node1/machine.go#tiltMachine">tiltMachine</span> ·
-              <span data-src="nodes/Node1/machine.go#restingLengths">restingLengths</span>
+              <span data-src="nodes/Node1/machine.go#stoppingCounts">stoppingCounts</span> ·
+              <span data-src="nodes/Node1/machine.go#nearerEndCount">nearerEndCount</span>
             </td>
           </tr>
           <tr>
