@@ -12,8 +12,28 @@ package PairNode
 // decision is node.go's; this file only starts and stops the exchange those run.
 
 import (
+	wire "github.com/dtauraso/wirefold/nodes/wire"
+
 	"github.com/dtauraso/wirefold/nodes/Wiring"
 )
+
+// drainTiltEdit drains TiltEditIn non-blocking: a panel/RESET/START edit — see the package doc
+// comment for the three-way split. applyTiltEdit decides placeBead: true for Start
+// and for a plain adjust (both open the exchange), false only for Reset.
+func (n *Node) drainTiltEdit(clk wire.Clock) {
+	if n.tilt.TiltEditIn == nil {
+		return
+	}
+	select {
+	case edit := <-n.tilt.TiltEditIn:
+		placeBead := n.applyTiltEdit(edit)
+		n.syncTiltIndex()
+		if placeBead && n.plumb.Out != nil {
+			n.plumb.Out.PlaceDrivenAt(1, clk.Tick())
+		}
+	default:
+	}
+}
 
 // applyTiltEdit applies one panel-driven edit — TiltVectorAnglePanel's ±1 click, the START
 // TILT button (TiltVectorButtons.tsx), or the RESET button (same file) — directly to this
@@ -40,7 +60,7 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 		n.clear()
 		// Tell the partner, so it clears too — see clear's own doc comment for why the
 		// partner's clear, not this one, is what actually ends the exchange.
-		Wiring.SendVectorLatestNonBlocking(n.VectorOut, Wiring.TiltVectorMsg{Reset: true})
+		Wiring.SendVectorLatestNonBlocking(n.vec.VectorOut, Wiring.TiltVectorMsg{Reset: true})
 		return false
 	}
 	if edit.Start {
@@ -53,7 +73,7 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 		// The panel sends START to every node it lists (TiltVectorButtons.tsx posts one
 		// record per row, exactly as RESET does), because the WEBVIEW must not know which end
 		// is which — that is domain knowledge, and TS holds none. Go decides, here, by id.
-		if n.PairID != 1 {
+		if n.plumb.PairID != 1 {
 			return false
 		}
 		// Open the vector exchange from the current angles — see this function's own doc
@@ -63,7 +83,7 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 		// not part of a round, and counting it would make the opening end report one more
 		// message than the other for the same amount of work — the two ends did the same
 		// number of rounds and the same number of receive/reply pairs.
-		Wiring.SendVectorLatestNonBlocking(n.VectorOut, n.outgoingVector())
+		Wiring.SendVectorLatestNonBlocking(n.vec.VectorOut, n.outgoingVector())
 		return true
 	}
 	// A click names the TOP — it is the arrow the user is dragging, not a measured end.
@@ -115,21 +135,21 @@ func (n *Node) clear() {
 	n.setTop(n.ringOf().at(0))
 	// The machine this node was running goes too — RESET is the one thing that releases it, and
 	// what it returns to is the setting mode, which is also where a fresh node starts.
-	n.Machine = setting
+	n.tilt.Machine = setting
 	n.syncTiltIndex()
-	n.ReceivedThetaIdx = 0
-	n.ReceivedSet = false
+	n.vec.ReceivedThetaIdx = 0
+	n.vec.ReceivedSet = false
 	n.syncReceivedVector()
 	// The counters go with the machine: RESET returns this node to the setting mode, so the
 	// next START opens a fresh exchange and its rounds are counted from zero, not continued.
 	n.rest = restCounters{}
-	if n.Self != nil {
-		n.Self.SetRoundsToParallel(0, 0)
+	if n.plumb.Self != nil {
+		n.plumb.Self.SetRoundsToParallel(0, 0)
 	}
-	Wiring.PollRecvVector(n.VectorIn)
+	Wiring.PollRecvVector(n.vec.VectorIn)
 	n.drainIn()
-	if n.ClearOutBeads != nil {
-		n.ClearOutBeads()
+	if n.plumb.ClearOutBeads != nil {
+		n.plumb.ClearOutBeads()
 	}
 }
 
@@ -140,11 +160,11 @@ func (n *Node) clear() {
 // PacedWire.drainPlacements, whose doc comment carries the full reasoning for why these
 // loops need no cap.
 func (n *Node) drainIn() {
-	if n.In == nil {
+	if n.plumb.In == nil {
 		return
 	}
 	for {
-		if _, ok := n.In.PollRecv(); !ok {
+		if _, ok := n.plumb.In.PollRecv(); !ok {
 			return
 		}
 	}

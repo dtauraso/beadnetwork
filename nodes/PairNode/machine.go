@@ -262,8 +262,8 @@ func (n *Node) machineForGap(arrival *tiltState) Wiring.TiltMachine {
 // — or one arriving at an end that has already made its own — cannot switch it mid-run. Only a
 // reset clears it, and the next click after that makes a new one.
 func (n *Node) adoptMachine(choice Wiring.TiltMachine) {
-	if n.Machine != setting {
+	if n.tilt.Machine != setting {
 		return
 	}
-	n.Machine = machineFor(choice)
+	n.tilt.Machine = machineFor(choice)
 }

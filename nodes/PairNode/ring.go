@@ -231,28 +231,28 @@ var defaultRing = newRing(Wiring.FullTurnThetaIdx)
 // ringOf is this node's own lattice, with the default standing in for a Ring that was never
 // set — a bare test build. Every read of the lattice goes through here.
 func (n *Node) ringOf() *ring {
-	if n.Ring == nil {
+	if n.lattice.Ring == nil {
 		return defaultRing
 	}
-	return n.Ring
+	return n.lattice.Ring
 }
 
 // topState is this node's own tilt direction, with its ring's origin standing in for a Top
 // that was never set — see the field's own doc comment. Every read of the tilt goes through
 // here, so nothing else in this file has to care about that case.
 func (n *Node) topState() *tiltState {
-	if n.Top == nil {
+	if n.tilt.Top == nil {
 		return n.ringOf().at(0)
 	}
-	return n.Top
+	return n.tilt.Top
 }
 
 // bottomState is the other end of the same line, read the same way topState reads the first.
 func (n *Node) bottomState() *tiltState {
-	if n.Bottom == nil {
+	if n.tilt.Bottom == nil {
 		return n.topState().opposite
 	}
-	return n.Bottom
+	return n.tilt.Bottom
 }
 
 // setTop and setBottom are THE ONLY WAYS EITHER END IS WRITTEN, and each writes BOTH: the end
@@ -262,9 +262,38 @@ func (n *Node) bottomState() *tiltState {
 //
 // Which one a caller reaches for says which end its measurement was taken at, which is the whole
 // reason both are stored (see the Bottom field).
-func (n *Node) setTop(top *tiltState) { n.Top, n.Bottom = top, top.opposite }
+func (n *Node) setTop(top *tiltState) { n.tilt.Top, n.tilt.Bottom = top, top.opposite }
 
-func (n *Node) setBottom(bottom *tiltState) { n.Bottom, n.Top = bottom, bottom.opposite }
+func (n *Node) setBottom(bottom *tiltState) { n.tilt.Bottom, n.tilt.Top = bottom, bottom.opposite }
+
+// fromAnotherLattice is the drop test for an arrival, and the reason it is a test rather than
+// a fold is the whole of this file's argument about indices.
+//
+// A DIRECTION FROM ANOTHER LATTICE IS NOT A DIRECTION HERE. The two ends of a pair adopt
+// a new point count at their own moments, each on its own goroutine, so between those
+// moments an index picked on the old lattice can land here — where it names a different
+// angle, or no state at all. Dropping it is the definite answer: the partner adopts the
+// same count within its own next cycle and the exchange resumes from directions both
+// ends can read. Zero is a bare test build that stated nothing, and is taken as this
+// node's own lattice.
+func (n *Node) fromAnotherLattice(received Wiring.TiltVectorMsg) bool {
+	return received.Points != 0 && received.Points != n.ringOf().points
+}
+
+// drainLattice drains LatticeIn non-blocking: a new point count for this node's own ring.
+// Drained BEFORE the vector cycle (Update) so that anything already queued on VectorIn is
+// discarded by the adopt rather than read one last time against the lattice it was not
+// picked on.
+func (n *Node) drainLattice() {
+	if n.lattice.LatticeIn == nil {
+		return
+	}
+	select {
+	case points := <-n.lattice.LatticeIn:
+		n.adoptLattice(points)
+	default:
+	}
+}
 
 // adoptLattice rebuilds THIS node's own ring at a new point count, on THIS node's own
 // goroutine. Nothing else touches the ring, so there is nothing to coordinate: the old one is
@@ -290,19 +319,19 @@ func (n *Node) adoptLattice(points int32) {
 		return
 	}
 	keptIdx := n.topState().idx
-	n.Ring = newRing(points)
-	top, unknown := n.Ring.seedState(keptIdx)
+	n.lattice.Ring = newRing(points)
+	top, unknown := n.lattice.Ring.seedState(keptIdx)
 	n.setTop(top)
-	if unknown && n.Self != nil {
-		n.Self.Breadcrumb("pair-lattice-adopt", fmt.Sprintf(
+	if unknown && n.plumb.Self != nil {
+		n.plumb.Self.Breadcrumb("pair-lattice-adopt", fmt.Sprintf(
 			"points=%d keptIdx=%d unknown=true loaded=%d", points, keptIdx, top.idx))
 	}
-	n.ReceivedThetaIdx = 0
-	n.ReceivedSet = false
+	n.vec.ReceivedThetaIdx = 0
+	n.vec.ReceivedSet = false
 	n.syncReceivedVector()
-	Wiring.PollRecvVector(n.VectorIn)
-	if n.SyncLatticePoints != nil {
-		n.SyncLatticePoints(points)
+	Wiring.PollRecvVector(n.vec.VectorIn)
+	if n.lattice.SyncLatticePoints != nil {
+		n.lattice.SyncLatticePoints(points)
 	}
 	n.syncTiltIndex()
 }

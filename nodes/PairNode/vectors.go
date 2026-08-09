@@ -55,22 +55,47 @@ func (n *Node) coplanarNormal() Wiring.TiltVectorMsg {
 // Wiring.PairNodeSelf.SetTiltIndex, and moveMsgKindTiltIndexSync's retirement note in
 // move_msg.go for what this used to be). nil-safe, same as every other closure call here.
 func (n *Node) syncTiltIndex() {
-	if n.SyncTiltIndex == nil {
+	if n.tilt.SyncTiltIndex == nil {
 		return
 	}
 	norm := n.coplanarNormal()
 	bottom := n.bottomTilt()
-	n.SyncTiltIndex(n.topState().idx, norm.ThetaIdx, bottom.ThetaIdx)
+	n.tilt.SyncTiltIndex(n.topState().idx, norm.ThetaIdx, bottom.ThetaIdx)
 }
 
 // syncReceivedVector reports THIS node's current received-vector state (ReceivedThetaIdx/
 // ReceivedThetaIdx/Set) to this node's own geometry — the third-arrow twin of syncTiltIndex.
 // Called by every site that changes those fields, below. nil-safe, same as syncTiltIndex.
 func (n *Node) syncReceivedVector() {
-	if n.SyncReceivedVector == nil {
+	if n.vec.SyncReceivedVector == nil {
 		return
 	}
-	n.SyncReceivedVector(n.ReceivedThetaIdx, n.ReceivedSet)
+	n.vec.SyncReceivedVector(n.vec.ReceivedThetaIdx, n.vec.ReceivedSet)
+}
+
+// recordReceived stores the arrived direction as this node's third drawn arrow and reports it.
+//
+// A real direction. It is recorded UNCONDITIONALLY — before, and independently of, the
+// step decision (stepFromVector, node.go) — and then STAYS until the next arrival replaces
+// it. It does not
+// vanish when the exchange settles: the last direction a node was sent is what it is
+// still holding, and blanking the arrow the moment the pair stops turning would erase
+// the very state the pair came to rest in. The only thing that removes it is a RESET
+// (clear — this node's own or its partner's marker), which removes it because a
+// reset means there is nothing in the pair at all any more.
+func (n *Node) recordReceived(received Wiring.TiltVectorMsg) {
+	n.vec.ReceivedThetaIdx = received.ThetaIdx
+	n.vec.ReceivedSet = true
+	n.syncReceivedVector()
+}
+
+// reply is this node ANSWERING the arrival it just stepped on: report the new indices to its
+// own geometry, count the outgoing message, and send its own direction back. One arrival, one
+// reply — the send is non-blocking and latest-wins, like every other write to this channel.
+func (n *Node) reply() {
+	n.syncTiltIndex()
+	n.rest.msgsSinceOpen++ // this node's own reply
+	Wiring.SendVectorLatestNonBlocking(n.vec.VectorOut, n.outgoingVector())
 }
 
 // outgoingVector is what THIS node SENDS on VectorOut: its own coplanarNormal. The message
@@ -94,6 +119,6 @@ func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
 	// how it finds out, on the first reply, without a message of its own. A node still in the
 	// setting mode says TiltMachineNone here — that mode's own choice, not a special case for
 	// having none — and the other end ignores it (adoptMachine).
-	v.Machine = n.Machine.choice()
+	v.Machine = n.tilt.Machine.choice()
 	return v
 }

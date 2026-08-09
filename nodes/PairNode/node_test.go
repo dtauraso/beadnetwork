@@ -799,9 +799,9 @@ func TestAnUpdateDrivesTheEndItMeasured(t *testing.T) {
 			for tilt := int32(0); tilt < points; tilt++ {
 				for arr := int32(0); arr < points; arr++ {
 					a, before := r.at(arr), r.at(tilt)
-					n := &Node{Ring: r}
+					n := &Node{lattice: latticeState{Ring: r}}
 					n.setTop(before)
-					n.Machine = m
+					n.tilt.Machine = m
 					if m.settled(before, a) {
 						continue
 					}
@@ -815,15 +815,15 @@ func TestAnUpdateDrivesTheEndItMeasured(t *testing.T) {
 					} else {
 						n.setTop(moved)
 					}
-					if n.Top.opposite != n.Bottom {
+					if n.tilt.Top.opposite != n.tilt.Bottom {
 						t.Fatalf("points=%d %v t=%d a=%d: top %d and bottom %d are not a half turn apart",
-							points, m, tilt, arr, n.Top.idx, n.Bottom.idx)
+							points, m, tilt, arr, n.tilt.Top.idx, n.tilt.Bottom.idx)
 					}
 					// And the line moved by exactly one slot, in the direction the count
 					// went — the behaviour storing the second end was not allowed to change.
-					if n.Top != before.next && n.Top != before.prev {
+					if n.tilt.Top != before.next && n.tilt.Top != before.prev {
 						t.Fatalf("points=%d %v t=%d a=%d: top went %d -> %d, not one slot",
-							points, m, tilt, arr, before.idx, n.Top.idx)
+							points, m, tilt, arr, before.idx, n.tilt.Top.idx)
 					}
 				}
 			}
@@ -873,7 +873,7 @@ func TestMachineIsReadFromTheGapNotFromOneTilt(t *testing.T) {
 		{"an ordinary acute gap", 3, 0, Wiring.TiltMachineParallel},
 	}
 	for _, c := range cases {
-		n := &Node{Ring: r, Top: r.at(c.ownTilt)}
+		n := &Node{lattice: latticeState{Ring: r}, tilt: tiltHeld{Top: r.at(c.ownTilt)}}
 		if got := n.machineForGap(arrivalFor(c.partner)); got != c.want {
 			t.Errorf("%s (tilts %d and %d): chose %v, want %v", c.name, c.ownTilt, c.partner, got, c.want)
 		}
@@ -887,14 +887,14 @@ func TestMachineIsReadFromTheGapNotFromOneTilt(t *testing.T) {
 func TestASettingNodeHoldsWhereverItStands(t *testing.T) {
 	r := testRing()
 	for sep := int32(0); sep < r.points; sep++ {
-		n := &Node{Ring: r, Top: r.at(5)}
-		if n.Machine != setting {
-			t.Fatalf("a fresh node is not in the setting mode: %v", n.Machine)
+		n := &Node{lattice: latticeState{Ring: r}, tilt: tiltHeld{Top: r.at(5)}}
+		if n.tilt.Machine != setting {
+			t.Fatalf("a fresh node is not in the setting mode: %v", n.tilt.Machine)
 		}
 		n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: sep})
-		if n.Top != r.at(5) {
+		if n.tilt.Top != r.at(5) {
 			t.Errorf("arrival at angle length %d moved a node that is still being set up: top %d, want 5",
-				sep, n.Top.idx)
+				sep, n.tilt.Top.idx)
 		}
 	}
 }
@@ -903,7 +903,7 @@ func TestASettingNodeHoldsWhereverItStands(t *testing.T) {
 // says "no choice carried" without outgoingVector testing for one.
 func TestASettingNodeTellsTheOtherEndNothing(t *testing.T) {
 	r := testRing()
-	n := &Node{Ring: r, Top: r.at(0)}
+	n := &Node{lattice: latticeState{Ring: r}, tilt: tiltHeld{Top: r.at(0)}}
 	if got := n.outgoingVector().Machine; got != Wiring.TiltMachineNone {
 		t.Errorf("a node still being set up announced machine %v, want none", got)
 	}
@@ -915,29 +915,29 @@ func TestASettingNodeTellsTheOtherEndNothing(t *testing.T) {
 
 func TestAdoptedMachineSticksUntilCleared(t *testing.T) {
 	r := testRing()
-	n := &Node{Ring: r, Top: r.at(0)}
+	n := &Node{lattice: latticeState{Ring: r}, tilt: tiltHeld{Top: r.at(0)}}
 
 	n.adoptMachine(Wiring.TiltMachinePerpendicular)
-	if n.Machine != perpendicular {
-		t.Fatalf("adopt did not take: running %v", n.Machine)
+	if n.tilt.Machine != perpendicular {
+		t.Fatalf("adopt did not take: running %v", n.tilt.Machine)
 	}
 	// A second choice — a click landing mid-run, or the partner's own answer arriving — must not
 	// switch a running machine. Re-deciding on a jitter click switched a started perpendicular
 	// pair to parallel one step after START.
 	n.adoptMachine(Wiring.TiltMachineParallel)
-	if n.Machine != perpendicular {
-		t.Errorf("a later choice switched a running machine: now %v", n.Machine)
+	if n.tilt.Machine != perpendicular {
+		t.Errorf("a later choice switched a running machine: now %v", n.tilt.Machine)
 	}
 	// RESET is the one thing that releases it.
 	n.clear()
-	if n.Machine != setting {
-		t.Errorf("reset left a machine running: %v", n.Machine)
+	if n.tilt.Machine != setting {
+		t.Errorf("reset left a machine running: %v", n.tilt.Machine)
 	}
 }
 
 func TestNoMachineMeansNoMovement(t *testing.T) {
 	r := testRing()
-	n := &Node{Ring: r, Top: r.at(5)}
+	n := &Node{lattice: latticeState{Ring: r}, tilt: tiltHeld{Top: r.at(5)}}
 	// Before any start, and after a reset, an arrival moves nothing. The node used to infer a
 	// machine from the arrival here, and that inference always answered perpendicular, because
 	// closing on the arrival IS the perpendicular measure.
@@ -967,21 +967,21 @@ type openingOutcome struct {
 // being exercised. The order is the real one — node 1 opens (START belongs to id 1), node 2
 // answers, and from then on each end reads the other's last normal and steps once.
 func runOpening(r *ring, tiltA, tiltB int32) openingOutcome {
-	a := &Node{Ring: r, Top: r.at(tiltA)}
-	b := &Node{Ring: r, Top: r.at(tiltB)}
+	a := &Node{lattice: latticeState{Ring: r}, tilt: tiltHeld{Top: r.at(tiltA)}}
+	b := &Node{lattice: latticeState{Ring: r}, tilt: tiltHeld{Top: r.at(tiltB)}}
 
 	// One end reads an arrival exactly as handleVectorCycle does: adopt what the sender says it
 	// is running, then choose from the gap if still running nothing, then step.
 	read := func(n *Node, arrival *tiltState, senderRuns Wiring.TiltMachine) bool {
 		n.adoptMachine(senderRuns)
-		if n.Machine == setting {
+		if n.tilt.Machine == setting {
 			n.adoptMachine(n.machineForGap(arrival))
 		}
 		before := n.topState()
 		// Written the way stepFromVector writes it: the end that was measured is the end
 		// that moves, and the other is read off its opposite in the same statement.
-		if !n.Machine.settled(before, arrival) {
-			if moved, atBottom := n.Machine.step(before, arrival); atBottom {
+		if !n.tilt.Machine.settled(before, arrival) {
+			if moved, atBottom := n.tilt.Machine.step(before, arrival); atBottom {
 				n.setBottom(moved)
 			} else {
 				n.setTop(moved)
@@ -989,7 +989,7 @@ func runOpening(r *ring, tiltA, tiltB int32) openingOutcome {
 		}
 		return n.topState() != before
 	}
-	runs := func(n *Node) Wiring.TiltMachine { return n.Machine.choice() }
+	runs := func(n *Node) Wiring.TiltMachine { return n.tilt.Machine.choice() }
 	normal := func(n *Node) *tiltState { return n.topState().quarter }
 
 	out := openingOutcome{}
