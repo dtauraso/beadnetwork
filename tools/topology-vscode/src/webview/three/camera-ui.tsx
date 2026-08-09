@@ -178,10 +178,11 @@ const ringPickCfg: ToggleCfg = {
   default: true,
   active: (v) => v,
   icon: "◌",
-  // Not a drawing at all — this ring is never rendered. The flag decides whether it is
-  // THERE to be hit, i.e. whether clicking a node's ring can author a port∈torus lock.
-  label: "ring target",
-  title: (a) => (a ? "Stop the ring taking clicks" : "Let the ring take clicks"),
+  // The band that takes a ring click, painted so you can see where it is. Like every other
+  // overlay this shows or hides a drawing and nothing else — the ring takes clicks either
+  // way (that is select mode's job), so this can never quietly disable an interaction.
+  label: "ring band",
+  title: (a) => (a ? "Hide the ring's click band" : "Show the ring's click band"),
   payload: (v) => ({ flag: "ringPick", was: v }),
 };
 
@@ -234,7 +235,7 @@ type OverlayGroup = { heading: string; cfgs: ToggleCfg[]; under?: Partial<Record
 // permanently (a node's body and ring are there whatever you do) versus what appears
 // because of where the pointer or the selection is right now.
 const OVERLAY_GROUPS: OverlayGroup[] = [
-  { heading: "NODE",   cfgs: [nodeBodyCfg, nodeRingCfg, ringPickCfg] },
+  { heading: "NODE",   cfgs: [nodeBodyCfg, nodeRingCfg, ringPickCfg] }, // body, ring, click band
   { heading: "STATE",  cfgs: [selectionRingCfg, hoverRingCfg, reachSphereCfg] },
   { heading: "GUIDES", cfgs: [ringsCfg, handholdsCfg] },
   { heading: "POLES",  cfgs: [scenePolesCfg, nodePolesCfg, selSpherePolesCfg] },

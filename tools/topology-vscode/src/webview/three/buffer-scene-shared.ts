@@ -46,6 +46,20 @@ export const NODE_RING_TUBE_RATIO = 0.08;
 // donut covered most of the node face, stealing body clicks (the "band spread over the whole
 // node" bug). Matched to NODE_RING_TUBE_RATIO so the band IS the torus.
 export const RING_PICK_TUBE_RATIO = NODE_RING_TUBE_RATIO;
+// The pick proxy's colour. It used to draw nothing (colorWrite false, opacity 0), which
+// made the one band on screen that behaves differently from everything around it the only
+// one you could not see — "why did that click select the node?" had no visible answer.
+// Now the band that takes the click IS the band you see.
+//
+// Neon mint, chosen against the node palette rather than for taste: NODE_DEFS' strokes run
+// blue (#2196f3, #01579b, #90caf9), green-but-muted (#2e7d32), orange/amber (#e65100,
+// #f9a825, #ffc400), pink (#f06292, #880e4f) and greys, over near-white fills. Nothing there
+// is a saturated cyan-green, so this band reads as "not part of the node" on every kind.
+export const RING_PICK_COLOR = "#00e5a8";
+// Held at partial opacity so the ring's own kind colour still shows through the band —
+// the proxy sits exactly on the visible ring, and hiding what it marks would be its own
+// kind of wrong.
+export const RING_PICK_OPACITY = 0.55;
 // Pointer-hover highlight (pre-branch scene-graph.tsx): the hovered node's border ring turns
 // #aaddff and thickens to r*0.14 (HOVER_RING_TUBE_RATIO). Go OWNS hover (the Hovered
 // column); this is render-only. There is no port hover any more (docs/channels-not-ports.md

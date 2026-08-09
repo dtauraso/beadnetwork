@@ -322,7 +322,7 @@ type bufLayoutOverlay struct {
 	// flag list, same as the block's first half.
 	NodeBody      uint8 `buf:"u8"` // 1 = node sphere drawn
 	NodeRing      uint8 `buf:"u8"` // 1 = per-node border ring drawn
-	RingPick      uint8 `buf:"u8"` // 1 = ring pick-proxy present (never drawn; hit-testable)
+	RingPick      uint8 `buf:"u8"` // 1 = ring click-band drawn (it is hit-testable either way)
 	SelectionRing uint8 `buf:"u8"` // 1 = selected node's ring + halo drawn
 	HoverRing     uint8 `buf:"u8"` // 1 = hovered node's ring drawn
 	ReachSphere   uint8 `buf:"u8"` // 1 = selected node's reach-sphere rings drawn

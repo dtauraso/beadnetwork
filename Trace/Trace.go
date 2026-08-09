@@ -89,9 +89,9 @@ const (
 	KindNodeBody = "node-body"
 	// KindNodeRing carries the per-node border-ring visibility state.
 	KindNodeRing = "node-ring"
-	// KindRingPick carries the ring pick-proxy's state — the invisible ring a click lands
-	// on to author a port∈torus lock. Never drawn either way; the flag decides whether it
-	// is THERE to be hit.
+	// KindRingPick carries the ring click-band's visibility state — the band a click lands
+	// on to author a port∈torus lock, painted so its position is visible. The band takes
+	// clicks either way; this flag only says whether it is drawn.
 	KindRingPick = "ring-pick"
 	// KindSelectionRing carries the selected node's ring+halo visibility state.
 	KindSelectionRing = "selection-ring"

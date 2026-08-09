@@ -34,8 +34,8 @@ const OVERLAY_FLAG_NAMES = [
   "labelsGlobal",
   "overlays",
   // The NODE-LOCAL drawings. Everything above is scene furniture drawn AROUND the nodes;
-  // these six are the node itself — its body, its own border ring, the invisible ring a
-  // click lands on to author a port∈torus lock, and the three state decorations (the
+  // these six are the node itself — its body, its own border ring, the band a click lands
+  // on to author a port∈torus lock, and the three state decorations (the
   // selected node's ring+halo, the hovered node's ring, the selected node's reach-sphere).
   // They were the only things drawn per node that no toggle reached.
   "nodeBody",
