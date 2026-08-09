@@ -81,7 +81,7 @@ func (o quantizedOffset) effectiveSteps() (t, p, r float64) {
 // measureScalars is the flat-polar INVERSE measurement: given each node's current world
 // center (centers), derive the integer scalar triple (iTheta, iPhi, iR) that is the
 // node's polar coordinate about the ONE scene center — the model this file implements
-// (see the package-level Model doc in node_move.go / CLAUDE.md). Every node is measured
+// (see the package-level Model doc in move_dispatch.go / CLAUDE.md). Every node is measured
 // independently; there is no reference/parent origin.
 //
 // ids selects which node ids to measure (so callers can measure a subset without

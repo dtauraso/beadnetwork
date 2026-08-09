@@ -176,7 +176,7 @@ func nodeRadius(kind string) float64 {
 
 // effectiveRadius returns the node's REACH radius (max distance to a surface child),
 // falling back to nodeR for childless nodes (ReachR == 0) so the value stays sane. Used
-// by nodeMover.writeStreamFrame (sphereR) and the load-time node-seed build (node_move.go).
+// by nodeMover.writeStreamFrame (sphereR) and the load-time node-seed build (move_dispatch_construct.go).
 func effectiveRadius(g nodeGeom) float64 {
 	if g.ReachR > 0 {
 		return g.ReachR

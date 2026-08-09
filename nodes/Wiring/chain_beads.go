@@ -119,7 +119,7 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 		// that edge's starting bead — measured live from this node's own center and its
 		// neighbour's own center (m.topo.partnerCenters, pushed by that neighbour's own
 		// applyCenter — seeded synchronously for every domain neighbour at construction,
-		// node_move.go, so this is populated before this node's own goroutine ever runs).
+		// move_dispatch_construct.go, so this is populated before this node's own goroutine ever runs).
 		// There is NO stored node-node bearing record here any more (wire.LocalPolar and
 		// its requantize machinery are deleted): a target with no live partner center yet
 		// (never linked, or a bare test mover with no pushes) contributes no beads, exactly

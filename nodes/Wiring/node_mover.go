@@ -110,7 +110,7 @@ type nodeMover struct {
 }
 
 // newNodeMover wraps geom in a RING actor. Only called for a node that never claims
-// BuildArgs.ClaimSelfDrive (see MoveDispatch's finalizeActors, node_move.go).
+// BuildArgs.ClaimSelfDrive (see MoveDispatch's finalizeActors, move_dispatch_api.go).
 func newNodeMover(geom *nodeGeometry) *nodeMover {
 	return &nodeMover{geom: geom}
 }

@@ -17,7 +17,7 @@ import (
 
 // moverInboxDepth is the declared capacity of every per-mover moveMsg inbox: an
 // edgeMover's extIn/srcIn/dstIn (edge_mover.go), a nodeMover's extIn
-// (node_mover.go), and each directed neighborIn (node_move.go). Previously the same
+// (node_mover.go), and each directed neighborIn (move_dispatch_construct.go). Previously the same
 // bare 8 repeated at six construction sites — the largest group of magic numbers in
 // the network.
 //

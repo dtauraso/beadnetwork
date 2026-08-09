@@ -113,7 +113,7 @@ const (
 	KindSceneSphere = "scene-sphere"
 	// KindAbcDrag marks one time-node (Time) abc-drag re-quantize event — the
 	// routed counterpart to the "time.abc-drag" debug breadcrumb emitted alongside it
-	// (nodes/Wiring/node_move.go neighborSetCRequantize).
+	// (nodes/Wiring/quantized_move.go neighborSetCRequantize).
 	KindAbcDrag = "abc-drag"
 	// KindAbcDragReset marks the START of one drag operation — resolved exactly once at
 	// the gesture FSM's pending→dragging transition, BEFORE the dragged node's
@@ -231,7 +231,7 @@ var TraceEventKinds = []string{KindRecv, KindFire, KindSend, KindEdgeBead, KindG
 // PortGeom is one port's authoritative world geometry: its name, whether it is an
 // input, its sphere-surface world position (PX/PY/PZ), and the unit direction from node
 // center toward the port (DX/DY/DZ). Shared value type used by nodes/Wiring's own
-// per-node stream-frame builders (node_mover.go/node_move.go) — independent of the
+// per-node stream-frame builders (node_mover.go/move_dispatch_construct.go) — independent of the
 // (deleted) central NodeGeometry event this used to also ride on.
 type PortGeom struct {
 	Name       string

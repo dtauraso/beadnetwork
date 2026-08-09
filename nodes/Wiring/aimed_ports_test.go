@@ -7,7 +7,7 @@ import (
 
 // aimedSrc / aimedSink / aimedPacer are minimal node kinds used as fixtures by other tests
 // (the lock cascade). The aimed-port registry itself is gone (edges run node-to-node), and
-// position writes route through nodeMover's own goroutine (node_move.go), so these are just
+// position writes route through nodeMover's own goroutine (move_dispatch_construct.go), so these are just
 // plain kinds now — no layout plumbing to drain.
 type aimedSrc struct {
 	Out        *wire.Out

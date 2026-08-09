@@ -56,7 +56,7 @@ const speedFullSetTopo = `{
 
 // expectedSpeedSinkCount is the hand-derived total, one term per clock-owning
 // goroutine kind (see the field-name lists in builders.go's speedChanFieldNames and
-// node_move.go's per-edge speedSinks append):
+// move_dispatch_construct.go's per-edge speedSinks append):
 //
 //	Input(1) + Time(1) + TimeEnd(1) + Pacer(1)  = 4   (one SpeedCh each)
 //	HoldFlip: SpeedCh + DriveSpeedCh                    = 2   (main loop + 1 drive goroutine)

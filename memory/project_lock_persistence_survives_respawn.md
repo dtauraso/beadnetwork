@@ -7,7 +7,7 @@ metadata:
 
 SUPERSEDED: this describes an older `RootMove`/`eqNodeNode` cascade model; the code
 has since moved to the decentralized `moveMsgKindEqualize`/`moveMsgKindTrigger` model
-in `nodes/Wiring/node_move.go` (see [[project_lock_propagation_decentralized]]).
+in `nodes/Wiring/move_dispatch.go` (see [[project_lock_propagation_decentralized]]).
 `eqNodeNode`, `RootMove`, and `nodes/Wiring/locks.go` no longer exist — kept here as
 historical record of the persistence bug and its original fix, not as a current map.
 

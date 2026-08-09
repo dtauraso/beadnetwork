@@ -177,7 +177,7 @@ type bufLayoutNode struct {
 	// LatchedSel is Go-owned: 1 marks the LAST node that was click-selected, and stays 1
 	// through a deselect (clicking empty space clears Selected but NOT LatchedSel; selecting
 	// a DIFFERENT node moves LatchedSel to it). Set alongside Selected by the affected
-	// node's own nodeMover (nodes/Wiring/node_move.go). Replaces the old TS-owned
+	// node's own nodeMover (nodes/Wiring/move_dispatch_construct.go). Replaces the old TS-owned
 	// `latchedSel` React state in NavGuides.tsx (that was a second, TS-invented selection
 	// concept unreachable from Go); the render path now just reads this column.
 	LatchedSel uint8 `buf:"u8"` // 1 = this is the last-selected node (persists through deselect)

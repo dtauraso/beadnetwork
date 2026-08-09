@@ -16,8 +16,8 @@
 // centerOfNode/NodeRowFor/sendMove are owned elsewhere. MoveDispatch's
 // public RootMove, and its several package-private methods of the same names as below
 // (heldCenters, heldEdges, broadcastToEdgesAndPartners, commitNodeMoveLocal), stay thin
-// delegators in node_move.go so their existing in-package call sites (tests, node_move.go,
-// gesture.go) are unchanged.
+// delegators in move_dispatch_api.go so their existing in-package call sites (tests,
+// move_dispatch_construct.go, gesture.go) are unchanged.
 
 package Wiring
 
@@ -30,7 +30,7 @@ import (
 )
 
 // layoutQuantizer owns the quantized scene-polar move math. See MoveDispatch.lq's doc
-// comment (node_move.go) for what it owns and why.
+// comment (move_dispatch.go) for what it owns and why.
 type layoutQuantizer struct {
 	// quantizedLayout gates the quantized absolute-scene-polar snap — every node is a
 	// root, measured/derived about the scene center only.

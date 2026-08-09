@@ -3,7 +3,7 @@ package Wiring
 // viewpoint_state.go — viewpointState owns the polar camera viewpoint value plus its
 // set/orbit/zoom/pan mutators and the camera-trace emit. It is owned as a field by
 // MoveDispatch (md.ui.vp), which exposes thin delegating methods; extracting it here keeps
-// node_move.go focused on the dispatch registry. There is no goroutine — callers
+// move_dispatch.go focused on the dispatch registry. There is no goroutine — callers
 // serialize externally (the stdin reader runs in a single goroutine).
 //
 // The viewpoint value is embedded so callers that reach through the field (e.g. tests

@@ -157,7 +157,7 @@ func RunStdinReader(ctx context.Context, r io.Reader, slotReg SlotRegistry, md *
 			// Row-identity resolution (a "raw-input" record's rawHit carries only numeric
 			// rows; portFromHit/edgeFromHit/nodeFromHit in gesture.go resolve them) reads
 			// md.portRowTable/edgeRowTable/nodeRowTable directly — those are a LOAD-TIME
-			// CONSTANT built once in newMoveDispatch (node_move.go buildRowTables), not a
+			// CONSTANT built once in newMoveDispatch (move_dispatch_construct.go buildRowTables), not a
 			// per-iteration drain: node/edge/port row order never changes after load (a
 			// new node/edge only ever arrives via a full respawn), so there is nothing to
 			// drain here anymore. Likewise heldCenters/centerOfNode read the dispatch

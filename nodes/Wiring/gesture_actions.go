@@ -153,7 +153,7 @@ func (md *MoveDispatch) setHover(node, port string, isInput bool, tr *T.Trace) {
 	if node == md.ui.sel.hoverNode && port == md.ui.sel.hoverPort && isInput == md.ui.sel.hoverInput {
 		return // no change → no re-emit (dedupe)
 	}
-	// setHoverUI (node_move.go) is the AUTHORITATIVE write: it sets md.ui.sel's hover
+	// setHoverUI (move_dispatch_api.go) is the AUTHORITATIVE write: it sets md.ui.sel's hover
 	// fields (mutated only by this goroutine) and MESSAGES the affected
 	// node(s) to set their OWN hovered bit — no shared/republished map.
 	md.setHoverUI(node, port, isInput)
@@ -180,7 +180,7 @@ func (md *MoveDispatch) setHover(node, port string, isInput bool, tr *T.Trace) {
 // empty-space hit CLEARS the transient highlight (md.ui.sel.selected / md.ui.sel.selectedEdge) — this is
 // the original click-empty-clears behavior.
 func (md *MoveDispatch) applySelect(ev rawInputMsg, tr *T.Trace) {
-	// setSelectionUI (node_move.go) is the AUTHORITATIVE write, same reasoning as
+	// setSelectionUI (move_dispatch_api.go) is the AUTHORITATIVE write, same reasoning as
 	// setHoverUI above: it sets md.ui.sel's selection fields (+ latchedNode, mutated only
 	// by this goroutine) and MESSAGES the affected node(s)/edge to set their
 	// OWN selected/latchedSel bit.

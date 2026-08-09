@@ -11,7 +11,7 @@ import (
 )
 
 // srcNode is a minimal source kind with one paced Out. Position writes route through
-// nodeMover's own goroutine (node_move.go), so no layout plumbing is needed here.
+// nodeMover's own goroutine (move_dispatch_construct.go), so no layout plumbing is needed here.
 type srcNode struct {
 	Out *wire.Out
 }

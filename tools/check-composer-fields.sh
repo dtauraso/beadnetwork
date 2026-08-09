@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# PLACEMENT: nodes/Wiring/node_move.go,nodes/Wiring/node_geometry.go | a composer struct (MoveDispatch, nodeGeometry) stays THIN: new state belongs in a named sub-struct, not a new loose field
+# PLACEMENT: nodes/Wiring/move_dispatch.go,nodes/Wiring/node_geometry.go | a composer struct (MoveDispatch, nodeGeometry) stays THIN: new state belongs in a named sub-struct, not a new loose field
 # check-composer-fields.sh — keep this package's COMPOSER structs thin, not regrown
 # god-objects. Run from repo root: bash tools/check-composer-fields.sh
 #

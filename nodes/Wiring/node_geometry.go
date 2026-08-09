@@ -35,7 +35,7 @@ import (
 // neighbor — there is no single shared inbox), and its own outbound retry queue. On a move
 // for itself it updates its held position and re-emits its node-geometry.
 //
-// It is a thin COMPOSER (same pattern as MoveDispatch, node_move.go): each concern is a
+// It is a thin COMPOSER (same pattern as MoveDispatch, move_dispatch.go): each concern is a
 // NAMED sub-object declared in node_geometry_parts.go and accessed explicitly
 // (m.ui.selected), never embedded — embedding would keep the old flat 46-field namespace
 // and hide which owner a field belongs to. New state belongs on (or as) one of those
@@ -69,7 +69,7 @@ type nodeGeometry struct {
 	// reader of the mutable part — applyCenter, emitGeometry's full-struct copy — runs
 	// exclusively on this node's OWN driving goroutine (whichever one that is), so there
 	// is never more than one goroutine touching that memory. The one cross-goroutine
-	// reader, MoveDispatch.NodeKind (node_move.go), called from the gesture/stdin-reader
+	// reader, MoveDispatch.NodeKind (move_dispatch_api.go), called from the gesture/stdin-reader
 	// goroutine, reads ONLY nm.geom.Kind — a field on the embedded nodeIdentity, which no
 	// writer here ever touches.
 	//

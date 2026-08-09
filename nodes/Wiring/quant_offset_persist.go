@@ -39,7 +39,7 @@ import (
 
 // persistQuantOffset writes THIS node's own exact position (scene) plus its quantized
 // triple to its OWN position.json, synchronously, on THIS node's own mover goroutine
-// (commitNodeMoveLocal calls it from nm's own inbox-drain goroutine — see node_move.go).
+// (commitNodeMoveLocal calls it from nm's own inbox-drain goroutine — see move_dispatch_api.go).
 // nm.persistRoot == "" (unarmed — bare test construction, or no EnableEditPersist call)
 // makes this a no-op. scene is the authoritative persisted position.
 //

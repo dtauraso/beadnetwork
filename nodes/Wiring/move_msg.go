@@ -1,5 +1,5 @@
 // move_msg.go — the inter-mover message vocabulary: moveMsgKind* constants and the
-// moveMsg type routed between mover goroutines (node_move.go).
+// moveMsg type routed between mover goroutines (move_dispatch.go).
 
 package Wiring
 

@@ -40,7 +40,7 @@ type specNode struct {
 	StepTheta *float64 `json:"stepTheta,omitempty"`
 	StepPhi   *float64 `json:"stepPhi,omitempty"`
 	StepR     *float64 `json:"stepR,omitempty"`
-	// Gate marks this node as a two-neighbor GATE node (node_move.go).
+	// Gate marks this node as a two-neighbor GATE node (move_dispatch.go).
 	//
 	// UNCONSUMED since the rule/gate/anchor cascade was deleted (2026-07-18): still
 	// read/written for meta.json round-trip only (loader_tree.go copies it into
