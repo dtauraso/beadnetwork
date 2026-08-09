@@ -462,15 +462,16 @@ export class BuildAndRunRunner {
     private readonly onSnapshot?: (msg: HostToWebviewMsg & { type: "buffer-snapshot" }) => void,
   ) {}
 
-  // reveal: pop the output panel open for this spawn. TRUE only for a run the USER
-  // started (the topology.run command); false for every automatic spawn — the hot-restart
-  // after a .go rebuild, the looping respawn, and the webview's "ready" re-arm. run() used
-  // to reveal unconditionally, which was harmless while a spawn only happened on demand.
-  // Hot-restart made a spawn happen on every successful Go build, so editing a .go file
-  // yanked the panel over whatever was showing, and a crash loop revealed it once per
-  // respawn — a large part of why the panic-loop flicker was unreadable. A build FAILURE
-  // still reveals regardless of this flag: that is the one automatic spawn with something
-  // the user has to see.
+  // No spawn reveals the output panel. This was once a `reveal` option, true for the one
+  // spawn a user started by opening the editor and false for every automatic one (the
+  // hot-restart after a .go rebuild, the looping respawn, the webview's "ready" re-arm),
+  // because an automatic spawn yanking the panel over whatever was showing made a crash
+  // loop unreadable. The user-started case turned out to be no better: opening the editor
+  // is exactly when someone wants to SEE the editor, and the panel came back at whatever
+  // height VS Code had remembered — maximized, if it was maximized when the window was
+  // last reloaded — covering the tab that had just opened. With its last true case gone the
+  // option would only be a knob nothing sets, so it is gone too. A build FAILURE still
+  // reveals: that is the one event with nothing else on screen to announce it.
   /** The generation of the process currently running (or last run). The webview-remount
    *  replay in handle-message.ts stamps the cached frames with THIS, because those frames
    *  are that process's own — replaying them under a fresh generation would file them in a
@@ -479,7 +480,7 @@ export class BuildAndRunRunner {
     return this.spawnGen;
   }
 
-  run(topologyPath?: string, opts?: { reveal?: boolean }) {
+  run(topologyPath?: string) {
     if (this.proc) {
       // Already spawned: return silently, posting nothing. A webview that remounts
       // (reopened file, hot reload) re-learns liveness via the "ready" handler, which
@@ -495,7 +496,6 @@ export class BuildAndRunRunner {
     // before this refactor.
     if (!this.channel) this.channel = vscode.window.createOutputChannel("topology run");
     this.channel.clear();
-    if (opts?.reveal) this.channel.show(true);
     const repoRoot = folder.uri.fsPath;
     const binPath = path.join(repoRoot, ".wirefold-cache", "wirefold");
     const topArgs = this.topologyPath ? ["-topology", this.topologyPath] : [];
