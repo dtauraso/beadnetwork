@@ -181,6 +181,31 @@ func DriveHeld(ctx context.Context, out Wiring.DrivenOut, heldCh <-chan int64, t
 				}
 			}
 
+			// SLEEP TO THE NEXT PLACEMENT, not one cycle at a time. In paced mode the
+			// moment this loop next has work is known: the bead just placed lands at
+			// placementTick + steps×dwell, and the next placement is due one k after the
+			// last — both computable now, neither discoverable by waking to look.
+			//
+			// The animation does not depend on this goroutine being awake: the pulse's
+			// drawn position is a pure function of (current tick, placementTick), resolved
+			// per frame by whoever is drawing. Sleeping longer here makes the picture no
+			// coarser — it only stops this goroutine asking "is it there yet" every cycle.
+			//
+			// Still whole cycles underneath (SleepUntilTick), so a speed change lands on
+			// the next cycle and a clock held at 0 simply never reaches the target.
+			if paced {
+				if steps := out.Steps(); steps > 0 {
+					k := int64(float64(steps)*wire.DwellTicksPerBead + 0.999999)
+					if k < 1 {
+						k = 1
+					}
+					wire.ApplySpeedNonBlocking(c, speedCh)
+					if err := c.SleepUntilTick(ctx, lastPlaceTick+k); err != nil {
+						return
+					}
+					continue
+				}
+			}
 			if err := sleep(ctx); err != nil {
 				return
 			}
