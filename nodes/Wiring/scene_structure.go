@@ -74,8 +74,11 @@ func (md *MoveDispatch) CreateNode(kindID uint8, ndcX, ndcY float64, tr *T.Trace
 	// the edge file lands in.
 	src, okNear := md.nearestNodeTo(drop)
 	target := newNodeID(md.scenes.treeRoot)
+	var srcPort, targetPort string
 	if okNear {
-		if why, canLink := md.linkRefusal(src, kind); !canLink {
+		var why string
+		var canLink bool
+		if srcPort, targetPort, why, canLink = md.linkRefusal(src, kind); !canLink {
 			md.refuseStructuralEdit(why)
 			return
 		}
@@ -97,7 +100,7 @@ func (md *MoveDispatch) CreateNode(kindID uint8, ndcX, ndcY float64, tr *T.Trace
 	}
 	edges := countEdgeFiles(md.scenes.treeRoot)
 	if okNear {
-		if err := WriteEdgeFile(md.scenes.treeRoot, src, target); err != nil {
+		if err := WriteEdgeFile(md.scenes.treeRoot, src, srcPort, target, targetPort); err != nil {
 			md.refuseStructuralEdit(fmt.Sprintf("could not write edge %s->%s: %v", src, target, err))
 			return
 		}
@@ -165,32 +168,41 @@ func (md *MoveDispatch) DeleteNode(row int, tr *T.Trace) {
 //
 // A kind's ports are its explicit []PortSpec at RegisterBuilder, which is why this can be
 // answered without building anything.
-func (md *MoveDispatch) linkRefusal(src, kind string) (why string, ok bool) {
-	if !kindHasPortDir(kind, PortIn) {
-		return fmt.Sprintf("%s takes no input, so nothing can connect to it", kind), false
+// It also returns the PORTS the edge would use, because deciding a link is possible and
+// deciding which ports carry it are the same question asked once. Answering them separately
+// is what let an edge be written to a port that does not exist: the check looked at the
+// kind's real ports, and the writer then assumed "Out" and "In".
+func (md *MoveDispatch) linkRefusal(src, kind string) (srcPort, targetPort, why string, ok bool) {
+	targetPort, hasIn := firstPortOfDir(kind, PortIn)
+	if !hasIn {
+		return "", "", fmt.Sprintf("%s takes no input, so nothing can connect to it", kind), false
 	}
 	srcGeom, found := md.mr.nodeGeoms[src]
 	if !found {
-		return fmt.Sprintf("no geometry for %s", src), false
+		return "", "", fmt.Sprintf("no geometry for %s", src), false
 	}
-	if !kindHasPortDir(srcGeom.geom.Kind, PortOut) {
-		return fmt.Sprintf("%s has no output to connect from", srcGeom.geom.Kind), false
+	srcPort, hasOut := firstPortOfDir(srcGeom.geom.Kind, PortOut)
+	if !hasOut {
+		return "", "", fmt.Sprintf("%s has no output to connect from", srcGeom.geom.Kind), false
 	}
-	return "", true
+	return srcPort, targetPort, "", true
 }
 
-// kindHasPortDir reports whether a registered kind declares at least one port in dir.
-func kindHasPortDir(kind string, dir PortDir) bool {
+// firstPortOfDir returns a registered kind's FIRST port in dir, in the order the kind
+// declared them at RegisterBuilder. First, not "In": a kind names its own ports, and the
+// declaration order is the only ranking there is — NormalSum's NormalA before NormalB says
+// which one an edge should take when nothing else has been said.
+func firstPortOfDir(kind string, dir PortDir) (string, bool) {
 	b, ok := Registry[kind]
 	if !ok {
-		return false
+		return "", false
 	}
 	for _, p := range b.Ports {
 		if p.Dir == dir {
-			return true
+			return p.Name, true
 		}
 	}
-	return false
+	return "", false
 }
 
 // dropPointFromNDC unprojects a drop's screen position onto the camera-facing plane through

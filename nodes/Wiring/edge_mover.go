@@ -53,10 +53,17 @@ func edgesDirPath(root, id string) string {
 
 // WriteEdgeFile writes the edge src->target under src. The label encodes both endpoints
 // ("1To2"), the convention the whole tree already uses.
-func WriteEdgeFile(root, src, target string) error {
+//
+// THE HANDLES ARE PASSED IN, not assumed. They used to be hardcoded "Out" and "In", which is
+// true of most kinds and false of some: NormalSum's inputs are NormalA/NormalB, so an edge
+// written that way named a port that does not exist. Nothing rejected it at the drop —
+// loading is what rejects it, and by then the process is the RESPAWNED one, which exits
+// during load. On screen that is the editor freezing: Go owns the camera, so a Go that
+// exited is a scene with no zoom, pan or rotate and nothing saying why.
+func WriteEdgeFile(root, src, srcPort, target, targetPort string) error {
 	label := src + "To" + target
 	return writeJSONAtomic(edgeFilePath(root, src, label), edgeFile{
-		SourceHandle: "Out", Target: target, TargetHandle: "In", Kind: "chain", Label: label,
+		SourceHandle: srcPort, Target: target, TargetHandle: targetPort, Kind: "chain", Label: label,
 	})
 }
 
