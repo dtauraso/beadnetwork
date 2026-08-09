@@ -85,6 +85,9 @@ type nodeFrameFixture struct {
 	// LatticePoints is this node's own pair-lattice point count (Buffer/layout.go's
 	// LatticePoints) — the N the four θ columns above were converted against.
 	LatticePoints uint8              `json:"latticePoints"`
+	// RoundsToParallel is this node's own rounds-to-rest count (Buffer/layout.go's
+	// RoundsToParallel) — vector-exchange rounds between START and its rule settling.
+	RoundsToParallel int32 `json:"roundsToParallel"`
 	ChainBeads    []chainBeadFixture `json:"chainBeads"`
 	Label         string             `json:"label"`
 	Hex           string             `json:"hex"`
@@ -134,7 +137,8 @@ func buildNodeFrame() nodeFrameFixture {
 		BottomTiltVectorTheta: 2.9,
 		ReceivedVectorLen:     8.75, ReceivedVectorTheta: 0.25,
 		Selected: 1, KindID: 3, Hovered: 1, LatchedSel: 0,
-		LatticePoints: 12,
+		LatticePoints:    12,
+		RoundsToParallel: 3,
 		Label:         "widgetNode",
 		ChainBeads: []chainBeadFixture{
 			{OX: 61.5, OY: -62.25, OZ: 63.125, Lit: 1, LitValue: 1},
@@ -158,6 +162,7 @@ func buildNodeFrame() nodeFrameFixture {
 		f.PoleTheta, f.PolePhi, f.RingAxisTheta, f.RingAxisPhi, f.TopTiltVectorLen, f.TopTiltVectorTheta, f.BottomTiltVectorTheta, f.CoplanarNormalTheta,
 		f.ReceivedVectorLen, f.ReceivedVectorTheta,
 		f.Selected, f.KindID, f.Hovered, f.LatchedSel, f.LatticePoints,
+		f.RoundsToParallel,
 		f.Label,
 		chainOX, chainOY, chainOZ, chainLit, chainLitVal,
 		nil,

@@ -27,6 +27,12 @@ import { useTiltVectorRows } from "./overlay-flags";
 //     split, so a panel click now moves the tilt by exactly one π/12 step and nothing else).
 //   - RESET is a stop-and-return: both tilt-angle indices back to 0 (world +y), no bead
 //     placed, and the straightening exchange never starts.
+//
+// To the RIGHT of RESET sits the ROUNDS readout: each row's own RoundsToParallel column,
+// the vector-exchange rounds that row's node spent between START and its own rule coming
+// to rest. Go counts and freezes it (nodes/Node1/node.go's roundsAtRest); this only reads
+// the column, exactly like the angle readout — no round counting in TS, no state held here.
+// A row still at 0 has not come to rest yet, or opened already at rest.
 export function TiltVectorButtons() {
   const rows = useTiltVectorRows();
   const mount = document.getElementById("run-mount");
@@ -51,6 +57,14 @@ export function TiltVectorButtons() {
       <button type="button" className="run-btn tilt-reset-btn" onClick={reset} aria-label="reset tilt vectors">
         reset tilt
       </button>
+      <span className="tilt-rounds-readout" aria-label="rounds to parallel">
+        rounds{" "}
+        {rows.map((row) => (
+          <span key={row.row} className="tilt-rounds-cell">
+            {row.label}:{row.roundsToParallel}
+          </span>
+        ))}
+      </span>
     </span>,
     mount,
   );

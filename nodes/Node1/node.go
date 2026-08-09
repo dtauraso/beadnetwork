@@ -202,6 +202,26 @@ type Node struct {
 	// nodeMover goroutine for this node any more. nil on a bare test build with no
 	// loader; every PairNodeSelf method is nil-safe.
 	Self *Wiring.PairNodeSelf
+
+	// roundsSinceOpen counts the vector-exchange arrivals THIS node has answered since the
+	// exchange opened. One arrival answered is one round from this node's side; the pair's
+	// combined channel traffic is four per round (each end one send and one receive), so
+	// this is deliberately the per-node number, not that.
+	roundsSinceOpen int32
+
+	// roundsAtRest is roundsSinceOpen frozen at the moment this node's rule FIRST came to
+	// rest after the exchange opened — the number reported to the geometry and streamed as
+	// the Node block's RoundsToParallel column.
+	//
+	// It freezes because the exchange does not stop when the pair settles: stepFromVector
+	// replies to every arrival whether or not it moved, so roundsSinceOpen keeps climbing
+	// for as long as the scene is open. A reader wants how far the tilt had to travel, and
+	// that stops changing at rest.
+	//
+	// restReported is what makes "first" mean first: without it, every later arrival would
+	// re-report the then-current count and the column would climb after all.
+	roundsAtRest int32
+	restReported bool
 }
 
 func (n *Node) clock() wire.Clock {
@@ -423,6 +443,14 @@ func (n *Node) clear() {
 	n.ReceivedThetaIdx = 0
 	n.ReceivedSet = false
 	n.syncReceivedVector()
+	// The counters go with the machine: RESET returns this node to the setting mode, so the
+	// next START opens a fresh exchange and its rounds are counted from zero, not continued.
+	n.roundsSinceOpen = 0
+	n.roundsAtRest = 0
+	n.restReported = false
+	if n.Self != nil {
+		n.Self.SetRoundsToParallel(0)
+	}
 	Wiring.PollRecvVector(n.VectorIn)
 	n.drainIn()
 	if n.ClearOutBeads != nil {
@@ -576,11 +604,21 @@ func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
 	// and derive the other. Behaviour is the same either way — the ends are a half turn apart, so
 	// a slot gained by one is a slot gained by both — but the write now says which end the
 	// arrival was near, instead of expressing a bottom-side turn as a negated top-side one.
+	// One arrival answered is one round from this node's side. Counted before the halt test
+	// so the round the node comes to rest IN is included: the pair converged during it.
+	n.roundsSinceOpen++
 	if !n.Machine.settled(before, arrival) {
 		if moved, atBottom := n.Machine.step(before, arrival); atBottom {
 			n.setBottom(moved)
 		} else {
 			n.setTop(moved)
+		}
+	} else if !n.restReported {
+		// FIRST rest since the exchange opened: freeze the count and report it once.
+		n.roundsAtRest = n.roundsSinceOpen
+		n.restReported = true
+		if n.Self != nil {
+			n.Self.SetRoundsToParallel(n.roundsAtRest)
 		}
 	}
 	return true

@@ -35,6 +35,7 @@ import {
   readNodeTopTiltVectorLen,
   readNodeTopTiltVectorTheta,
   readNodeLatticePoints,
+  readNodeRoundsToParallel,
 } from "../../schema/buffer-layout";
 import { nodeLabel } from "./buffer-decode";
 
@@ -226,6 +227,11 @@ export interface TiltVectorRow {
    *  N `theta` was converted against, so a reader can invert it back to an index at the
    *  CURRENT count instead of assuming a fixed compile-time step. */
   points: number;
+  /** This node's own streamed rounds-to-rest count (Buffer/layout.go's RoundsToParallel) —
+   *  vector-exchange rounds between the exchange opening and this node's rule settling.
+   *  Frozen at rest by Go, so it does not climb while the settled exchange keeps
+   *  circulating; 0 means not yet at rest, or opened already at rest. */
+  roundsToParallel: number;
 }
 
 let cachedTiltVectorRows: TiltVectorRow[] | null = null;
@@ -236,7 +242,13 @@ function tiltVectorRowsEqual(a: TiltVectorRow[], b: TiltVectorRow[]): boolean {
     const ai = a[i];
     const bi = b[i];
     if (!ai || !bi) return false;
-    if (ai.row !== bi.row || ai.theta !== bi.theta || ai.label !== bi.label || ai.points !== bi.points) {
+    if (
+      ai.row !== bi.row ||
+      ai.theta !== bi.theta ||
+      ai.label !== bi.label ||
+      ai.points !== bi.points ||
+      ai.roundsToParallel !== bi.roundsToParallel
+    ) {
       return false;
     }
   }
@@ -260,6 +272,7 @@ export function readTiltVectorRows(): TiltVectorRow[] | null {
       label: nodeLabel(decoded, row),
       theta: readNodeTopTiltVectorTheta(nodeView, row),
       points: readNodeLatticePoints(nodeView, row),
+      roundsToParallel: readNodeRoundsToParallel(nodeView, row),
     });
   }
   if (cachedTiltVectorRows && tiltVectorRowsEqual(cachedTiltVectorRows, next)) return cachedTiltVectorRows;
