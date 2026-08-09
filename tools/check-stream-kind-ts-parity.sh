@@ -3,7 +3,7 @@ set -euo pipefail
 
 # check-stream-kind-ts-parity.sh — a stream KIND declared in Go must exist on the TS side.
 #
-# PLACEMENT: Buffer/stream_fds.go,tools/topology-vscode/src/runCommand.ts,tools/topology-vscode/src/runner/stream-fds.ts | a new StreamKind must gain a WIREFOLD_STREAM_FDS env entry and its own handle<Kind>Fd reader in the ext host
+# PLACEMENT: Buffer/stream_fds.go,tools/topology-vscode/src/runCommand.ts,tools/topology-vscode/src/runner/stream-fds.ts,tools/topology-vscode/src/runner/stream-demux.ts | a new StreamKind must gain a WIREFOLD_STREAM_FDS env entry (runCommand.ts's spawn env) and its own handle<Kind>Fd reader (runner/stream-demux.ts) in the ext host
 #
 # THE BUG THIS EXISTS FOR. The "one inherited stdio pipe per emitting goroutine" transport
 # is agreed BY POSITION and BY NAME, with no runtime negotiation (Buffer/stream_fds.go's

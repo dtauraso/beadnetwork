@@ -19,11 +19,13 @@ import { describe, it, expect } from "vitest";
 import { BuildAndRunRunner } from "../src/runCommand";
 
 /** Reach the private relay tail directly: this is a unit test of the routing decision, not
- *  of process spawning, and driving a real child would test the OS rather than this rule. */
+ *  of process spawning, and driving a real child would test the OS rather than this rule.
+ *  It lives on the runner's StreamDemux (runner/stream-demux.ts) — the read side the runner
+ *  owns one of per spawn; the routing rule and the cache it protects are unchanged. */
 function relay(runner: BuildAndRunRunner, row: number, frames: ArrayBuffer[], assertsSlots: boolean) {
   (runner as unknown as {
-    processInteriorLikeFrames(row: number, frames: ArrayBuffer[], assertsSlots: boolean): void;
-  }).processInteriorLikeFrames(row, frames, assertsSlots);
+    demux: { processInteriorLikeFrames(row: number, frames: ArrayBuffer[], assertsSlots: boolean): void };
+  }).demux.processInteriorLikeFrames(row, frames, assertsSlots);
 }
 
 const frame = (marker: number) => new Uint8Array([marker, 0, 0, 0]).buffer;

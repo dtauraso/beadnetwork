@@ -15,7 +15,7 @@ set -euo pipefail
 # see tools/check-no-await-on-bridge.sh history for the miss this replaced):
 #   webview (call site)  -> postGoRecord()   (webview/vscode-api.ts)
 #   webview (call site)  -> sendRawInput()   (webview/three/raw-input.ts, wraps postGoRecord)
-#   host    -> Go        -> writeStdin()     (extension/runCommand.ts)
+#   host    -> Go        -> writeStdin()     (the runner; file LOCATED BY SCANNING, below)
 # postGoRecord itself is a thin wrapper over vscode.postMessage; sendRawInput wraps
 # postGoRecord. Grepping for all three names (plus the raw postMessage/writeStdin
 # primitives) catches a caller no matter which layer of wrapper they used.
@@ -30,7 +30,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 SRC_DIR="$REPO_ROOT/tools/topology-vscode/src"
-RUNCOMMAND="$SRC_DIR/runCommand.ts"
+
+# The file DECLARING writeStdin, found by scanning rather than hardcoded: the runner has
+# been split twice now and a hardcoded path either dies or, worse, keeps pointing at a file
+# the declaration left (memory/feedback_guards_hardcoding_single_file_break_on_split.md).
+# Finding nothing is MISCONFIGURED, not clean.
+WRITESTDIN_FILES=$(grep -rlE '\bwriteStdin\(' --include="*.ts" "$SRC_DIR" 2>/dev/null \
+  | xargs grep -lE '\bwriteStdin\([^)]*\)[[:space:]]*:' 2>/dev/null || true)
 
 # The forbidden-call set: every function (at any wrapper layer) that performs a
 # TS->Go bridge send, plus the underlying primitives for defense in depth.
@@ -65,18 +71,23 @@ done < <(grep -arnE "($SEND_FNS)\(.*\)[[:space:]]*\.(then|catch|finally)\b" \
 
 # 3. writeStdin must NOT be declared to return a Promise/Thenable — a void return is
 #    what keeps the send fire-and-forget at the type level.
-[[ -f "$RUNCOMMAND" ]] || { echo "no-await-on-bridge: MISCONFIGURED — $RUNCOMMAND not found" >&2; exit 1; }
+[[ -n "$WRITESTDIN_FILES" ]] || {
+  echo "no-await-on-bridge: MISCONFIGURED — nothing under $SRC_DIR declares writeStdin(...): <type>." >&2
+  echo "The runner's send method moved or was renamed; this guard is scanning nothing rather than" >&2
+  echo "passing vacuously. Repoint it." >&2
+  exit 1
+}
 
 while IFS= read -r line; do
   [[ -z "$line" ]] && continue
   report "writeStdin-returns-promise: $line"
-done < <(grep -nE 'writeStdin\([^)]*\)[[:space:]]*:[[:space:]]*(Promise|Thenable)' "$RUNCOMMAND" 2>/dev/null || true)
+done < <(grep -nE 'writeStdin\([^)]*\)[[:space:]]*:[[:space:]]*(Promise|Thenable)' $WRITESTDIN_FILES 2>/dev/null || true)
 
 # Positive assertion: writeStdin must be declared returning void, AND at least one
 # actual send call must exist in the scanned set (otherwise the "clean" result could
 # be vacuous — the send surface renamed away and the guard scanning nothing).
-if ! grep -qE 'writeStdin\([^)]*\)[[:space:]]*:[[:space:]]*void' "$RUNCOMMAND"; then
-  report "writeStdin-not-void: $RUNCOMMAND does not declare writeStdin(...): void — the TS→Go send must be fire-and-forget"
+if ! grep -qE 'writeStdin\([^)]*\)[[:space:]]*:[[:space:]]*void' $WRITESTDIN_FILES; then
+  report "writeStdin-not-void: $WRITESTDIN_FILES does not declare writeStdin(...): void — the TS→Go send must be fire-and-forget"
 fi
 
 SEND_CALL_COUNT=$(grep -arlE "($SEND_FNS)\(" --include="*.ts" --include="*.tsx" "$SRC_DIR" 2>/dev/null | wc -l | tr -d '[:space:]')
