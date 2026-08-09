@@ -10,7 +10,7 @@
 //
 //   - a RING node's dedicated nodeMover actor (node_mover.go: its own goroutine, launched
 //     by moverRegistry.start), which owns a *nodeGeometry and paces it on its own clock; or
-//   - a PAIR node's own kind goroutine (Node1, via BuildArgs.ClaimSelfDrive), which
+//   - a PAIR node's own kind goroutine (PairNode, via BuildArgs.ClaimSelfDrive), which
 //     owns a *nodeGeometry DIRECTLY — there is no nodeMover for it at all, no second
 //     goroutine, nothing to skip launching.
 //
@@ -188,8 +188,8 @@ type nodeGeometry struct {
 	receivedVectorSet      bool
 	// latticePoints is the point count of THIS node's own lattice — the N a tilt-vector
 	// index is converted against (2π / latticePoints per step), reported one-way by
-	// PairNodeSelf.SetLatticePoints when a Node1's own goroutine adopts a new count
-	// (Node1.adoptLattice) and at build time. Defaults to Wiring.FullTurnThetaIdx (the
+	// PairNodeSelf.SetLatticePoints when a PairNode's own goroutine adopts a new count
+	// (PairNode.adoptLattice) and at build time. Defaults to Wiring.FullTurnThetaIdx (the
 	// old compile-time constant this field replaces) so every node that never calls
 	// SetLatticePoints — every ring node, and a bare test-built pair geometry — streams
 	// exactly what it streamed before this field existed.
@@ -332,8 +332,8 @@ func (m *nodeGeometry) handle(msg moveMsg) {
 			m.emitGeometry()
 		}
 		// NOTE: this path only runs for a kind that has NOT claimed BuildArgs.TiltEditIn
-		// (every kind except Node1 today — see moveMsgKindTiltVectorAngle's own doc
-		// comment and applyUpdateTiltVector's fallback, stdin_reader.go). Node1's own
+		// (every kind except PairNode today — see moveMsgKindTiltVectorAngle's own doc
+		// comment and applyUpdateTiltVector's fallback, stdin_reader.go). PairNode's own
 		// tilt-panel edits are routed to its OWN goroutine instead (TiltEditIn), which
 		// applies the click, syncs this value back via PairNodeSelf.SetTiltIndex, AND places
 		// "the kick" bead on its own Out directly — none of that happens here anymore.
@@ -349,12 +349,12 @@ func (m *nodeGeometry) handle(msg moveMsg) {
 			m.emitGeometry()
 		}
 		// NOTE: same split as moveMsgKindTiltVectorAngle — this path only runs for a kind
-		// that has NOT claimed BuildArgs.TiltEditIn. Node1 routes a reset through
+		// that has NOT claimed BuildArgs.TiltEditIn. PairNode routes a reset through
 		// its own TiltEditIn/TiltEditMsg.Reset instead.
 		return
 	}
 	// moveMsgKindTiltIndexSync/ReceivedVectorSync/BeadClear are GONE
-	// (task/pair-node-owns-itself): a pair node (Node1) owns this geometry
+	// (task/pair-node-owns-itself): a pair node (PairNode) owns this geometry
 	// directly (PairNodeSelf, pair_node_self.go), so what used to be a one-way
 	// notification message to itself is now a plain method call on the same
 	// goroutine — see PairNodeSelf.SetTiltIndex/SetReceivedVector/ClearOutBeads,
@@ -402,10 +402,10 @@ func (m *nodeGeometry) handle(msg moveMsg) {
 // exactly 6 steps. Comparing to this INTEGER is what makes the straightening loop's stop
 // condition exact — cos(π/2) in float64 is ~6.1e-17, so a literal float dot==0 test would
 // never fire (memory/feedback_abc_times_constant_not_rederive.md: index arithmetic, trig
-// only at the cartesian/polar boundary). Exported (capitalized) so Node1's own
+// only at the cartesian/polar boundary). Exported (capitalized) so PairNode's own
 // goroutine — which now runs the straightening rule itself, per-package — can compare
 // against it without duplicating the constant; the rule itself no longer lives here (see
-// nodes/Node1/node.go).
+// nodes/PairNode/node.go).
 //
 // dot(tilt, coplanarNormal) == 0 is decided as thetaIdx == PerpendicularThetaIdx, not by
 // computing an actual float dot product. STATE THE ASSUMPTION THAT MAKES THE SHORTCUT
@@ -545,7 +545,7 @@ func (m *nodeGeometry) writeStreamFrame(events []wire.RowEvent) {
 	// latticeThetaStep is THIS node's own angle-per-index — 2π / latticePoints, not the
 	// fixed CurveParamTiltVectorAngleStep (which stays π/12, the compile-time 24-point
 	// default every OTHER conversion in this codebase still uses). A pair node's own
-	// lattice size is a scene setting (Node.adoptLattice, nodes/Node1/node.go), reported
+	// lattice size is a scene setting (Node.adoptLattice, nodes/PairNode/node.go), reported
 	// here one-way via PairNodeSelf.SetLatticePoints, so the same index draws a different
 	// angle depending on how many points that node's own ring currently has. Derived once
 	// per frame; every conversion below reads this local rather than recomputing it.
@@ -563,14 +563,14 @@ func (m *nodeGeometry) writeStreamFrame(events []wire.RowEvent) {
 	topTiltVectorTheta := float64(m.topTiltVectorThetaIdx) * latticeThetaStep
 	// The BOTTOM TILT VECTOR: streamed straight from this node's own bottomThetaIdx,
 	// decided by THIS node's OWN goroutine (a half turn in θ from its own top
-	// tilt index, same rule run unmodified by both nodes of a pair — Node1's bottomTilt)
+	// tilt index, same rule run unmodified by both nodes of a pair — PairNode's bottomTilt)
 	// and reported one-way
 	// via PairNodeSelf.SetTiltIndex alongside the top and the normal. Pure mirror here, same
 	// as every other index on this frame: this mover derives none of them.
 	bottomTiltVectorTheta := float64(m.bottomThetaIdx) * latticeThetaStep
 	// The COPLANAR NORMAL: streamed straight from this node's own normalThetaIdx,
 	// which THIS node's OWN goroutine decided (a fixed +90° in θ from its
-	// own tilt index, same rule run unmodified by both nodes of a pair — Node1's
+	// own tilt index, same rule run unmodified by both nodes of a pair — PairNode's
 	// coplanarNormal) and reported one-way via PairNodeSelf.SetTiltIndex. This mover is a pure mirror here, same shape
 	// as topTiltVectorTheta above — it derives nothing from the edge/partner.
 	// Turning the tilt therefore visibly turns the drawn normal WITH it, staying 90° away,

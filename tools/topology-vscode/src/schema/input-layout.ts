@@ -111,6 +111,11 @@ class ByteWriter {
     this.view.setUint32(this.pos, v, true);
     this.pos += 4;
   }
+  f32(v: number): void {
+    this.ensure(4);
+    this.view.setFloat32(this.pos, v, true);
+    this.pos += 4;
+  }
   f64(v: number): void {
     this.ensure(8);
     this.view.setFloat64(this.pos, v, true);
@@ -143,6 +148,8 @@ const IN_TILT_VECTOR_ATTR_THETA = 4;
 const IN_TILT_VECTOR_ATTR_RESET = 6;
 const IN_TILT_VECTOR_ATTR_START = 7;
 const IN_SCENE_ATTR_LATTICE_POINTS = 8;
+const IN_SCENE_ATTR_CREATE = 9;
+const IN_SCENE_ATTR_DELETE = 10;
 
 // NOTE: there is no encodeSave here. IN_KIND_SAVE stays defined (Go reads it and it is in
 // the INPUT_LAYOUT_FINGERPRINT), but no live TS sender builds that record: `save` has no
@@ -207,6 +214,42 @@ export function encodeSceneSelected(tabIndex: number): ArrayBuffer {
  *  [u8 points]. points is the pair lattice's new point count (4..64, a multiple of 4 —
  *  Go rejects anything else, nodes/Wiring/stdin_reader.go's applyUpdateScene); Go owns the
  *  valid range and the delivery to every pair node, this just signals the requested count. */
+/** Build a scene CREATE record: [22][entityKind=scene][attr=create][u8 kindId][f32 ndcX]
+ *  [f32 ndcY]. kindId is the kind's NODE_DEFS id — the same numeric kind identity the Node
+ *  block's KindId column carries, so no kind NAME crosses this wire.
+ *
+ *  SCREEN coordinates, not world. Turning a drop into a place in the scene needs the camera,
+ *  and the camera is Go's — it unprojects this with the same ray every node drag already
+ *  uses. TS forwards where the pointer was, exactly as raw-input does, and computes no
+ *  geometry. Which node the new one connects to is not here either: Go picks the nearest
+ *  from its own node positions.
+ *
+ *  Go persists the new node and ENDS THE RUN; the host's looping runner respawns and the new
+ *  tree loads. That is not this function's concern, but it is why a create looks like nothing
+ *  happened for the length of a restart. */
+export function encodeSceneCreate(kindId: number, ndcX: number, ndcY: number): ArrayBuffer {
+  const w = new ByteWriter();
+  w.u8(IN_KIND_EDIT_UPDATE);
+  w.u8(enumIndex(IN_UPDATE_KINDS, "scene"));
+  w.u8(IN_SCENE_ATTR_CREATE);
+  w.u8(kindId);
+  w.f32(ndcX);
+  w.f32(ndcY);
+  return w.toArrayBuffer();
+}
+
+/** Build a scene DELETE record: [22][entityKind=scene][attr=delete][u8 nodeRow]. The target
+ *  is a buffer ROW, never an id or a name — the same no-sidecar rule every addressed edit
+ *  follows. Go removes the node and every edge touching it, then ends the run. */
+export function encodeSceneDelete(nodeRow: number): ArrayBuffer {
+  const w = new ByteWriter();
+  w.u8(IN_KIND_EDIT_UPDATE);
+  w.u8(enumIndex(IN_UPDATE_KINDS, "scene"));
+  w.u8(IN_SCENE_ATTR_DELETE);
+  w.u8(nodeRow);
+  return w.toArrayBuffer();
+}
+
 export function encodeSceneLatticePoints(points: number): ArrayBuffer {
   const w = new ByteWriter();
   w.u8(IN_KIND_EDIT_UPDATE);
@@ -236,7 +279,7 @@ export function encodeTiltVectorAdjust(nodeRow: number, dir: "up" | "down"): Arr
  *  nodeRow is the target node's buffer ROW (never its id/name — no sidecar on this wire).
  *  No direction byte: unlike an adjust, a reset always returns BOTH indices to 0 — the
  *  RESET button (TiltResetButton.tsx) sends one of these per row it shows, and places no
- *  bead (nodes/Node1/node.go's applyTiltEdit, run unmodified by both nodes of a pair — a
+ *  bead (nodes/PairNode/node.go's applyTiltEdit, run unmodified by both nodes of a pair — a
  *  stop-and-return, not "the kick"). */
 export function encodeTiltVectorReset(nodeRow: number): ArrayBuffer {
   const w = new ByteWriter();
@@ -252,7 +295,7 @@ export function encodeTiltVectorReset(nodeRow: number): ArrayBuffer {
  *  No direction byte: Start never touches an index, it only opens the vector exchange from
  *  whatever angles are currently set — sends the node's own outgoing vector and places a
  *  bead ("the kick"), exactly what an adjust click used to do as a side effect
- *  (nodes/Node1/node.go's applyTiltEdit, run unmodified by both nodes of a pair —
+ *  (nodes/PairNode/node.go's applyTiltEdit, run unmodified by both nodes of a pair —
  *  task/pair-node-owns-itself split). The START TILT button (TiltVectorButtons.tsx) sends one of these per row it
  *  shows, same fan-out as reset. */
 export function encodeTiltVectorStart(nodeRow: number): ArrayBuffer {

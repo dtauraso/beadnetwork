@@ -1,6 +1,6 @@
 // node_mover.go — nodeMover, the RING-ONLY actor: its own goroutine, its own inbox drain,
 // its own clock-paced loop, wrapping a *nodeGeometry it owns (node_geometry.go). A PAIR
-// node (Node1, task/pair-node-owns-itself) has NO nodeMover at all — its own kind
+// node (PairNode, task/pair-node-owns-itself) has NO nodeMover at all — its own kind
 // goroutine owns a *nodeGeometry directly (BuildArgs.ClaimSelfDrive, pair_node_self.go) —
 // there is nothing here for it to skip launching.
 //
@@ -13,6 +13,7 @@ package Wiring
 
 import (
 	"context"
+	"os"
 	"path/filepath"
 
 	wire "github.com/dtauraso/wirefold/nodes/wire"
@@ -33,6 +34,55 @@ import (
 // position plus its quantized-scalar-triple cache (quant_offset_persist.go).
 func positionFilePath(root, id string) string {
 	return filepath.Join(root, "nodes", id, "position.json")
+}
+
+// nodeMetaFilePath is <root>/nodes/<id>/meta.json — a node's kind and id.
+func nodeMetaFilePath(root, id string) string {
+	return filepath.Join(root, "nodes", id, "meta.json")
+}
+
+// nodeDirPath is <root>/nodes/<id> — the whole node, which is the unit a delete removes:
+// "a node and its outgoing edges are one unit" (.claude/rules/persistence-ownership.md).
+func nodeDirPath(root, id string) string {
+	return filepath.Join(root, "nodes", id)
+}
+
+// newNodeMeta / newNodePosition are the two files a CREATED node starts with. Position is
+// polar because that is what a node's position IS here; the quantized triple beside it is
+// this node's own mover's to fill in once it runs.
+type newNodeMeta struct {
+	ID   string `json:"id"`
+	Type string `json:"type"`
+}
+
+type newNodePosition struct {
+	ScenePolarR     float64 `json:"scenePolarR"`
+	ScenePolarTheta float64 `json:"scenePolarTheta"`
+	ScenePolarPhi   float64 `json:"scenePolarPhi"`
+}
+
+// WriteNewNodeFiles creates <root>/nodes/<id>/ with its meta, position and empty edges dir.
+// It lives HERE, with every other per-node write, because a per-node file may only be
+// written by the node's own mover file (check-persist-write-ownership) — a node being born
+// has no running mover yet, but its bytes still belong to the same owner.
+func WriteNewNodeFiles(root, id, kind string, scenePolarR, theta, phi float64) error {
+	dir := nodeDirPath(root, id)
+	if err := os.MkdirAll(filepath.Join(dir, "edges"), 0o755); err != nil {
+		return err
+	}
+	if err := writeJSONAtomic(nodeMetaFilePath(root, id), newNodeMeta{ID: id, Type: kind}); err != nil {
+		return err
+	}
+	return writeJSONAtomic(positionFilePath(root, id), newNodePosition{
+		ScenePolarR: scenePolarR, ScenePolarTheta: theta, ScenePolarPhi: phi,
+	})
+}
+
+// RemoveNodeDir deletes a node and, with it, its OUTGOING edges — they live inside it. The
+// in-edges are another matter entirely and belong to their own sources (edge_mover.go's
+// RemoveEdgesTo).
+func RemoveNodeDir(root, id string) error {
+	return os.RemoveAll(nodeDirPath(root, id))
 }
 
 // pendingSend is one (destination, message) pair this node's own goroutine tried to

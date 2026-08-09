@@ -28,6 +28,10 @@ func writeNodeDefs(outPath string, kinds []kindEntry) error {
 	fmt.Fprintln(w, `  stroke?: string;`)
 	fmt.Fprintln(w, `  width?: number;`)
 	fmt.Fprintln(w, `  height?: number;`)
+	fmt.Fprintln(w, `  // One line saying what this kind IS, from its SPEC.md "## Description" section.`)
+	fmt.Fprintln(w, `  // The node palette shows it under the kind's name; absent when the SPEC has no such`)
+	fmt.Fprintln(w, `  // section, which renders as no description rather than as a placeholder.`)
+	fmt.Fprintln(w, `  desc?: string;`)
 	fmt.Fprintln(w, `  inputs?: { name: string; kind: string; isMulti?: boolean }[];`)
 	fmt.Fprintln(w, `  outputs?: { name: string; kind: string; isMulti?: boolean }[];`)
 	fmt.Fprintln(w, `}`)
@@ -135,6 +139,10 @@ func buildDef(v viewDef, ports []port) string {
 	}
 	if v.height != "" {
 		fields = append(fields, fmt.Sprintf(`height: %s`, v.height))
+	}
+	if v.desc != "" {
+		// %q, not "%s": a description is prose and will contain quotes and apostrophes.
+		fields = append(fields, fmt.Sprintf(`desc: %q`, v.desc))
 	}
 	// Emit typed inputs/outputs for schema/adapter consumers.
 	if len(targets) > 0 {

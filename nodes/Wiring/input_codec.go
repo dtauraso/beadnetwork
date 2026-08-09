@@ -49,8 +49,8 @@ import (
 // record through both encoders and diffs the fields; do not re-add a version pretending to
 // be a checked invariant.
 //
-// INPUT_LAYOUT_FINGERPRINT: kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock,distanceGroup,scene,tiltVector updateAttrs=toggle,speed,length,selected,theta,phi,reset,start,latticePoints overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays,nodeBody,nodeRing,ringPick,selectionRing,hoverRing,reachSphere
-const InputLayoutFingerprint = "kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock,distanceGroup,scene,tiltVector updateAttrs=toggle,speed,length,selected,theta,phi,reset,start,latticePoints overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays,nodeBody,nodeRing,ringPick,selectionRing,hoverRing,reachSphere"
+// INPUT_LAYOUT_FINGERPRINT: kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock,distanceGroup,scene,tiltVector updateAttrs=toggle,speed,length,selected,theta,phi,reset,start,latticePoints,create,delete overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays,nodeBody,nodeRing,ringPick,selectionRing,hoverRing,reachSphere
+const InputLayoutFingerprint = "kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock,distanceGroup,scene,tiltVector updateAttrs=toggle,speed,length,selected,theta,phi,reset,start,latticePoints,create,delete overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays,nodeBody,nodeRing,ringPick,selectionRing,hoverRing,reachSphere"
 
 // Record kind bytes (first byte of every record).
 const (
@@ -79,6 +79,12 @@ const (
 	inTiltVectorAttrReset    = 6 // tiltVector: return the index to 0 (the RESET button)
 	inTiltVectorAttrStart    = 7 // tiltVector: begin the vector exchange from the current angles (the START TILT button)
 	inSceneAttrLatticePoints = 8 // scene: set the pair lattice's point count
+	// scene: CREATE a node at a dropped world point, and DELETE the node on a buffer row.
+	// ATTRIBUTES, not the create/delete OPS that were removed end-to-end (their kind bytes
+	// 20/21 stay gaps and are not reused): the edit surface still has exactly one op, and a
+	// new capability is a new entity kind or attribute (CLAUDE.md's bridge-surface rule).
+	inSceneAttrCreate = 9  // scene: create a node of a kind, at a world point
+	inSceneAttrDelete = 10 // scene: delete the node on a buffer row, and every edge touching it
 )
 
 // Enum orderings (u8 index → string), shared with input-layout-gen.ts. All five orderings
@@ -160,6 +166,18 @@ func (r *recReader) i32() (int32, error) {
 		return 0, errShortRecord
 	}
 	v := int32(binary.LittleEndian.Uint32(r.b[r.pos:]))
+	r.pos += 4
+	return v, nil
+}
+
+// f32 reads a 4-byte float. The drop point rides as f32, not f64: it is a WORLD POSITION,
+// the same precision every position on the content buffer already uses, and it is about to
+// be rounded onto the node lattice anyway.
+func (r *recReader) f32() (float32, error) {
+	if r.pos+4 > len(r.b) {
+		return 0, errShortRecord
+	}
+	v := math.Float32frombits(binary.LittleEndian.Uint32(r.b[r.pos:]))
 	r.pos += 4
 	return v, nil
 }
@@ -275,6 +293,42 @@ func decodeInputRecord(rec []byte) (stdinMsg, bool) {
 					return stdinMsg{}, false
 				}
 				return stdinMsg{Type: "edit", Op: "update", Kind: "scene", Attr: "latticePoints", Num: int(points)}, true
+			case inSceneAttrCreate:
+				// [u8 kindId][f32 ndcX][f32 ndcY] — the kind to create (its NODE_DEFS id,
+				// the same numeric kind identity the Node block's KindId column carries, so
+				// no kind NAME crosses this wire) and WHERE ON SCREEN it was dropped, in
+				// normalized device coordinates.
+				//
+				// SCREEN, not world. Turning a drop into a place in the scene needs the
+				// camera, and the camera is Go's: the same rayDirThroughNDC every gesture
+				// already uses turns this into a world point (scene_structure.go). TS
+				// forwards where the pointer was, exactly as raw-input does, and computes
+				// no geometry. Which node it connects to is not here either — Go picks the
+				// nearest from its own node positions.
+				kindID, err := r.u8()
+				if err != nil {
+					return stdinMsg{}, false
+				}
+				ndcX, err := r.f32()
+				if err != nil {
+					return stdinMsg{}, false
+				}
+				ndcY, err := r.f32()
+				if err != nil {
+					return stdinMsg{}, false
+				}
+				return stdinMsg{
+					Type: "edit", Op: "update", Kind: "scene", Attr: "create",
+					Num: int(kindID), X: float64(ndcX), Y: float64(ndcY),
+				}, true
+			case inSceneAttrDelete:
+				// [u8 nodeRow] — the target's buffer ROW, never its id or name (no sidecar,
+				// same as every other addressed edit). Go resolves the row to a node.
+				row, err := r.u8()
+				if err != nil {
+					return stdinMsg{}, false
+				}
+				return stdinMsg{Type: "edit", Op: "update", Kind: "scene", Attr: "delete", Num: int(row)}, true
 			}
 			return stdinMsg{}, false
 		case "tiltVector":

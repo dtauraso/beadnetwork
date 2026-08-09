@@ -66,11 +66,11 @@ type moverRegistry struct {
 	// nodeMovers is the RING-ONLY actor directory: one entry per node whose OWN kind did
 	// NOT claim BuildArgs.ClaimSelfDrive, populated by finalizeActors AFTER buildNodes has
 	// run (so every ClaimSelfDrive call has already happened). Used ONLY by start() to
-	// launch a dedicated goroutine per ring node — a PAIR node (Node1) has NO entry
+	// launch a dedicated goroutine per ring node — a PAIR node (PairNode) has NO entry
 	// here at all, by construction, not by a flag that says "launch nothing for me".
 	nodeMovers map[string]*nodeMover
 	// selfDriveClaimed holds, for each node id whose OWN kind claimed
-	// BuildArgs.ClaimSelfDrive at build time (Node1 — the pair scene), true. Written
+	// BuildArgs.ClaimSelfDrive at build time (PairNode — the pair scene), true. Written
 	// ONCE per entry by ClaimSelfDrive (build_args.go), on the single-threaded build path,
 	// before finalizeActors runs and before any goroutine exists. finalizeActors reads it
 	// to decide which nodes get a nodeMover actor at all — an id present here gets NONE.

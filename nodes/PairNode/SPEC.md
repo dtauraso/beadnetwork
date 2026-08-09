@@ -1,11 +1,21 @@
-# Node1Node
+# PairNode
+
+The PAIR TAB'S node — the thing that scene is made of, two of them exchanging vectors until
+they come to rest. It was called PairNode, which named nothing: not what it does, not what it is
+for, and not even which node it is (both nodes of a pair are this kind). kindId stays 11; ids
+are assigned once and never renumbered, and the rename does not touch identity.
+
+## Description
+
+One half of a pair: turns its own tilt vector toward rest by exchanging directions with its
+partner, one step per arrival.
 
 ## View
 
 | Field | Value |
 |-------|-------|
 | kindId | 11 |
-| kind | node1 |
+| kind | pairNode |
 | bg | #fff8e1 |
 | border | #f9a825 |
 | text | #4e342e |
@@ -57,7 +67,7 @@ actually move this node (`handleVectorCycle`), so one message carries one visibl
 the bead loop lives and dies with the exchange it paces.
 
 `TiltEditIn` (`BuildArgs.TiltEditIn`, a panel-driven edit routed HERE instead of to a
-mover) carries THREE distinct edits, applied by `applyTiltEdit` (`nodes/Node1/node.go`):
+mover) carries THREE distinct edits, applied by `applyTiltEdit` (`nodes/PairNode/node.go`):
 
 - **A ▲/▼ panel click** (`TiltVectorAnglePanel.tsx`): applies exactly one ±1 step to the
   named axis, marks this end HELD (a tilt a user set is intent, not error — this end keeps
@@ -75,7 +85,7 @@ mover) carries THREE distinct edits, applied by `applyTiltEdit` (`nodes/Node1/no
   straighten — so the loop has no way to start on its own; START is what a user clicks to
   begin it.
 
-  Pairing two Node1 instances with one edge running each direction (a.Out → b.In,
+  Pairing two PairNode instances with one edge running each direction (a.Out → b.In,
   b.Out → a.In) needs no seed/bootstrap node: nothing sends until a
   user starts it, so there is no deadlock to bootstrap out of at t=0.
 - **RESET** (`TiltEditMsg.Reset`, the RESET TILT button, same `TiltVectorButtons.tsx`):
@@ -92,7 +102,7 @@ mover) carries THREE distinct edits, applied by `applyTiltEdit` (`nodes/Node1/no
 ## Vector channel
 
 Alongside the bead edges above, each directed edge between two vector-capable kinds
-(today: Node1 only — `Wiring.KindWantsVectorChannel`) gets its OWN dedicated
+(today: PairNode only — `Wiring.KindWantsVectorChannel`) gets its OWN dedicated
 node-to-node channel carrying `Wiring.TiltVectorMsg`, a single integer θ INDEX (never
 floats on a channel; there is no φ — every tilt vector in this exchange is θ-only, which
 is what lets the acute test be a walk along a ring of 24 states instead of a dot product
@@ -109,8 +119,8 @@ loop body) runs:
   pure index arithmetic (`theta+6`), never a cross product — so the normal turns WITH
   the tilt, always staying 90° away, rather than holding still toward the partner. There
   is no φ. Both nodes of a pair run this same unmodified addition — there is no per-node
-  sign. `coplanarNormal` (`nodes/Node1/node.go`) reads it straight off the tilt's own
-  `quarter` link on the ring (`nodes/Node1/ring.go`) — the ring is built with that link
+  sign. `coplanarNormal` (`nodes/PairNode/node.go`) reads it straight off the tilt's own
+  `quarter` link on the ring (`nodes/PairNode/ring.go`) — the ring is built with that link
   already wrapped onto `0…Wiring.FullTurnThetaIdx-1`, so there is no addition here to
   overflow and nothing to subtract back into range. There is no pole and nothing to cross:
   the renderer decodes an index as `(sin θ, cos θ, 0)`, a plain circle, so there is no φ to
@@ -156,7 +166,7 @@ loop body) runs:
   | 0 | a quarter turn apart | PERPENDICULAR |
   | a quarter turn | on one line, either way round | PARALLEL |
 
-  Each is a MODE of the one state machine (`nodes/Node1/machine.go`), and a mode is nothing but
+  Each is a MODE of the one state machine (`nodes/PairNode/machine.go`), and a mode is nothing but
   the counts it STOPS at: `{ 0 }` for perpendicular and `{ quarter }` for parallel, both rows in
   `stoppingCounts`. The rule that turns toward them is written once and never asks which mode it is
   running for.

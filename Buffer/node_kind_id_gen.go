@@ -23,7 +23,8 @@ var kindIDMap = map[string]uint8{
 	"PulseLeft":   8,
 	"PulseRight":  9,
 	"TimeStart":   10,
-	"Node1":       11,
+	"PairNode":    11,
+	"NormalSum":   12,
 }
 
 // NodeKindID returns the buffer KindId for a node's Go kind string.

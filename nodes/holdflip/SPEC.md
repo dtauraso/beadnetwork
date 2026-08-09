@@ -1,5 +1,9 @@
 # HoldFlipNode
 
+## Description
+
+Inverts what it receives: a 0 goes out as 1, a 1 as 0.
+
 ## View
 
 | Field | Value |

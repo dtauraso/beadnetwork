@@ -28,6 +28,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	B "github.com/dtauraso/wirefold/Buffer"
 )
 
 // SceneTab is one tab: the label Go streams to the strip, and the directory it loads.
@@ -128,14 +130,47 @@ type SceneTab struct {
 	// An unknown tree (a fixture, a one-off path) gets false: a scene that is not the ring
 	// has no claim on the ring's groups.
 	DistanceGroups bool
+	// Editable says whether this scene takes STRUCTURAL edits — the node palette's drop and
+	// the delete key (scene_structure.go). A per-scene property for the same reason every
+	// other field here is one: it is a fact about the scene, and Go owns it, so the editor
+	// asks rather than branching on a scene NAME it would have to be told.
+	//
+	// Both scenes take edits. It was pair-only at first, on the reasoning that the ring is
+	// the long-lived diagram whose layout has been tuned by hand across many sessions and
+	// the pair is the small one built to be experimented with — but that argues for being
+	// careful in the ring, not for the editor refusing to build one. What each scene accepts
+	// is Kinds, below; whether it accepts anything at all is this.
+	Editable bool
+	// Kinds names the node kinds this scene ACCEPTS — what its palette offers and what a
+	// create is allowed to make. Empty means every registered kind, which is what a scene
+	// that has never thought about it gets.
+	//
+	// It is a per-scene list rather than a per-kind flag because "is this a pair kind" is not
+	// a property of the kind: PairNode is the pair's node AND the ring's, and a kind that suits
+	// two scenes should not have to name them. The scene knows what it is made of.
+	Kinds []string
 }
 
 // SceneTabs is the tab strip, in display order. Index 0 is the DEFAULT: its Dir must be
 // the anchor's own basename, since that is the path the extension host launches with and
 // sizes its stream fds from (see AnchorIsTabbed).
 var SceneTabs = []SceneTab{
-	{Name: "ring", Dir: "topology", QuantizedDrag: false, CoplanarEdges: false, UpAxis: false, ClockDivisor: 1, DistanceGroups: true},
-	{Name: "pair", Dir: "topology-pair", QuantizedDrag: false, CoplanarEdges: true, UpAxis: true, ClockDivisor: 64, DistanceGroups: false},
+	// The ring takes the PIPELINE kinds — the nine it is already built from, plus HoldFlip
+	// and Pacer, which speak the same vocabulary (a value in, a value on) and were simply
+	// not used in this particular diagram. Not PairNode or NormalSum: those hold a tilt
+	// vector and exchange directions, which is the pair's model, not a chain of gates.
+	{Name: "ring", Dir: "topology", QuantizedDrag: false, CoplanarEdges: false, UpAxis: false, ClockDivisor: 1, DistanceGroups: true, Editable: true,
+		Kinds: []string{
+			"Input", "Time", "TimeStart", "TimeEnd",
+			"Pulse", "PulseLeft", "PulseRight",
+			"SelectLeft", "SelectRight",
+			"HoldFlip", "Pacer",
+		}},
+	// The pair takes PAIR KINDS ONLY: PairNode, which is what both of its nodes are, and
+	// NormalSum, which exists to sum two of their normals. Dropping a ring kind here would
+	// build something the pair's own model has no place for — its exchange is two nodes and
+	// the vectors between them, not a pipeline of gates.
+	{Name: "pair", Dir: "topology-pair", QuantizedDrag: false, CoplanarEdges: true, UpAxis: true, ClockDivisor: 64, DistanceGroups: false, Editable: true, Kinds: []string{"PairNode", "NormalSum"}},
 }
 
 // sceneSelectionFile is the persisted selection, held at the ANCHOR (never inside a scene).
@@ -205,6 +240,12 @@ func SceneTabNames(anchorPath string) []string {
 type sceneSwitch struct {
 	anchorPath string
 	quit       func()
+	// treeRoot is the LOADED scene's own directory (the anchor's sibling the selected tab
+	// points at), set by EnableEditPersist. A structural edit writes here, while the tab
+	// SELECTION is written at the anchor — the two are different paths for the reason this
+	// file's header gives: a selection stored inside the scene it selects is unreachable
+	// while another scene is loaded.
+	treeRoot string
 }
 
 // EnableSceneSwitch arms tab switching. quit ends the run (main's context cancel), which
@@ -308,4 +349,45 @@ func SceneHasDistanceGroups(scenePath string) bool {
 		}
 	}
 	return false
+}
+
+// SceneIsEditable answers, for the tree actually being LOADED, whether it takes structural
+// edits (SceneTab.Editable). An UNKNOWN tree — every test fixture, every one-off run — is
+// NOT editable: a create writes directories and rewrites counts.json, so the safe answer for
+// a tree nobody declared is to leave it alone.
+func SceneIsEditable(scenePath string) bool {
+	base := filepath.Base(filepath.Clean(scenePath))
+	for _, t := range SceneTabs {
+		if t.Dir == base {
+			return t.Editable
+		}
+	}
+	return false
+}
+
+// SceneKindMask is the set of kinds the loaded scene accepts, as a BITMASK over kind ids —
+// bit N set means the kind whose Buffer KindId is N may be created here. An empty Kinds list
+// (or an unknown tree) yields every bit set: no declared restriction restricts nothing.
+//
+// A mask rather than a list of names because the wire carries kind IDS, not names, and one
+// integer says the whole answer. It rides the Overlay block so the palette can offer exactly
+// the kinds the scene will accept, instead of offering all of them and letting Go refuse.
+func SceneKindMask(scenePath string) uint32 {
+	base := filepath.Base(filepath.Clean(scenePath))
+	for _, t := range SceneTabs {
+		if t.Dir != base {
+			continue
+		}
+		if len(t.Kinds) == 0 {
+			break
+		}
+		var mask uint32
+		for _, k := range t.Kinds {
+			if id := B.NodeKindID(k); id != B.KindIDUnknown {
+				mask |= 1 << uint(id)
+			}
+		}
+		return mask
+	}
+	return ^uint32(0)
 }

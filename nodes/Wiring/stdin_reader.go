@@ -89,6 +89,11 @@ type stdinMsg struct {
 	// an integer 0..8 that clockAttrHandlers divides by 4 to get the real multiplier — see
 	// its comment). Zero otherwise.
 	Num int
+	// X/Y is the drop's NDC for scene/create — where on SCREEN the node was dropped. Zero
+	// for every other message. Screen rather than world because turning a drop into a place
+	// needs the camera, which is Go's; and a point rather than a target because which node
+	// the new one connects to is Go's decision from its own geometry.
+	X, Y float64
 	// Event is the payload for the top-level type=="raw-input" message; nil otherwise.
 	Event *rawInputMsg
 }
@@ -430,7 +435,7 @@ func applyUpdateDistanceGroup(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speed
 // (task/drop-tilt-vector-phi).
 //
 // theta/reset each have two routes, decided by whether the target node's OWN kind
-// claimed BuildArgs.TiltEditIn at build time (Node1 today — the only kind that owns
+// claimed BuildArgs.TiltEditIn at build time (PairNode today — the only kind that owns
 // its tilt index independently, per the straightening loop's firing rule): md.sendTiltEdit
 // tries that node's dedicated channel first and reports whether one exists. When it does
 // NOT (every other kind), this falls back to the old path — md.sendMove onto the node's
@@ -464,7 +469,7 @@ func applyUpdateTiltVector(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSin
 		// slider's number is about. Sent BEFORE the Start edit so the first cycle of the
 		// exchange is already at the intended speed rather than one cycle of human speed.
 		BroadcastSpeed(speedSinks, md.SliderSpeed())
-		// Start only exists on the pair kind's own dedicated channel (Node1's
+		// Start only exists on the pair kind's own dedicated channel (PairNode's
 		// VectorOut/outgoingVector) — there is no mover-owned fallback, unlike
 		// theta/phi/reset: a kind that never claimed BuildArgs.TiltEditIn has no vector
 		// exchange to open, so a Start for it is simply a no-op.
@@ -493,7 +498,7 @@ func applyUpdateTiltVector(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSin
 // rebuild.
 //
 // "latticePoints": msg.Num is the new point count. Go owns the valid range (4..64,
-// multiples of 4 — nodes/Node1's newRing panics outside it) and rejects anything else by
+// multiples of 4 — nodes/PairNode's newRing panics outside it) and rejects anything else by
 // simply ignoring the edit — this is a decoded EXTERNAL message, so an out-of-range value
 // must never reach newRing and panic the process. A valid value is persisted to
 // view/lattice.json and broadcast to every pair node's own LatticeIn channel
@@ -515,6 +520,14 @@ func applyUpdateScene(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []
 		md.ui.latticePoints = points
 		md.persist.lattice.schedule(points)
 		md.BroadcastLatticePoints(points)
+	case "create":
+		// The palette's drop. Num is the kind id, X/Y the drop's NDC — see
+		// scene_structure.go for how that becomes a place, and why this ends the run rather
+		// than building anything live.
+		md.CreateNode(uint8(msg.Num), msg.X, msg.Y, tr)
+	case "delete":
+		// The delete key. Num is the target's buffer ROW.
+		md.DeleteNode(msg.Num, tr)
 	}
 }
 

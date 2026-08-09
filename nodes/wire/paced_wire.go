@@ -564,7 +564,7 @@ func (pw *PacedWire) Recv() (int, bool) {
 // a node goroutine that wants its own outgoing wires cleared asks its mover
 // (moveMsgKindBeadClear), it does not reach in here itself.
 //
-// The one caller today is the pair's RESET (nodes/Node1): a reset means the
+// The one caller today is the pair's RESET (nodes/PairNode): a reset means the
 // straightening exchange is over, and beads still crossing would land a moment later and
 // step the tilt straight back off zero — so returning the indices without emptying the
 // bead edge does not actually stop anything.

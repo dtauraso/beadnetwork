@@ -230,7 +230,10 @@ describe("buffer-layout — Overlay block", () => {
     // 13×u8 + 1×i32 + 4×f32 = 33 (13 overlay flags — 7 scene-furniture render gates plus
     // the 6 node-local ones — + DragNodeRow + the "distance home button" panel's 3
     // GroupLen* columns + Speed, the current playback-speed multiplier)
-    expect(OVERLAY_STRIDE).toBe(33);
+    // …plus SceneEditable (u8) and EditRefused (u32), added with the node palette: whether
+    // this scene takes structural edits, and how many it has refused.
+    // …and SceneKinds (u32), the bitmask of kind ids the scene accepts.
+    expect(OVERLAY_STRIDE).toBe(42);
   });
 
   it("column offsets are 0..12", () => {

@@ -2,18 +2,18 @@ package main
 
 // pair_self_drive_persist_test.go — the persistence exception (docs/testing-shape.md):
 // bytes on disk, through a REAL reload, driving the ACTUAL production path (a real
-// LoadTopology, a real MoveDispatch.Start, the real Update goroutines of the two Node1
+// LoadTopology, a real MoveDispatch.Start, the real Update goroutines of the two PairNode
 // instances that make up a pair, and
 // the real editor->Go binary bridge — W.RunStdinReader decoding a framed edit record
 // exactly as stdin_reader.go's own doc comment describes) rather than a bare mover
 // literal or an in-package short-circuit. task/pair-node-owns-itself removed the
-// separate nodeMover goroutine for a pair node (Node1); this pins that its
+// separate nodeMover goroutine for a pair node (PairNode); this pins that its
 // position STILL reaches disk and STILL reloads correctly now that the node's own
 // Update goroutine is the sole driver of that state.
 //
 // This lives in package main (not nodes/Wiring) for the same reason
 // kind_registry_parity_test.go does: main is the only package that imports every node
-// kind (kinds_generated.go's blank imports), so it is the only place Node1 is
+// kind (kinds_generated.go's blank imports), so it is the only place PairNode is
 // actually registered and LoadTopology can build a real pair.
 import (
 	"context"
@@ -75,7 +75,7 @@ func frameTiltVectorTheta(t *testing.T, row byte) []byte {
 
 // writePairTree lays down a minimal real pair — TWO NODES OF THE ONE PAIR KIND, one bead
 // edge each direction — so LoadTopology builds the real graph, real nodeMovers, and two real
-// Node1 instances each with a real self-drive claim. There is no second kind: the ends differ
+// PairNode instances each with a real self-drive claim. There is no second kind: the ends differ
 // only by their own spec ids, 1 and 2, which is what START is addressed by.
 func writePairTree(t *testing.T) string {
 	t.Helper()
@@ -89,8 +89,8 @@ func writePairTree(t *testing.T) string {
 			t.Fatalf("write %s: %v", rel, err)
 		}
 	}
-	mk("nodes/1/meta.json", `{"id":"1","type":"Node1","r":100,"scenePolarR":125.44,"scenePolarTheta":1.5707963267948966,"scenePolarPhi":-0.6981317007977318}`)
-	mk("nodes/2/meta.json", `{"id":"2","type":"Node1","r":100,"scenePolarR":125.44,"scenePolarTheta":1.5707963267948966,"scenePolarPhi":0.6981317007977318}`)
+	mk("nodes/1/meta.json", `{"id":"1","type":"PairNode","r":100,"scenePolarR":125.44,"scenePolarTheta":1.5707963267948966,"scenePolarPhi":-0.6981317007977318}`)
+	mk("nodes/2/meta.json", `{"id":"2","type":"PairNode","r":100,"scenePolarR":125.44,"scenePolarTheta":1.5707963267948966,"scenePolarPhi":0.6981317007977318}`)
 	mk("nodes/1/edges/e1.json", `{"label":"e1","kind":"data","sourceHandle":"Out","target":"2","targetHandle":"In"}`)
 	mk("nodes/2/edges/e2.json", `{"label":"e2","kind":"data","sourceHandle":"Out","target":"1","targetHandle":"In"}`)
 	return root
@@ -109,7 +109,7 @@ func readNode2Position(t *testing.T, root string) string {
 }
 
 // TestPairNodeSelfDrivePersistsThroughRealReload drives the real production path — a
-// real LoadTopology, a real MoveDispatch.Start, the real Update goroutines of both Node1
+// real LoadTopology, a real MoveDispatch.Start, the real Update goroutines of both PairNode
 // instances in the pair
 // (no separate nodeMover goroutine exists for either, per task/pair-node-owns-itself:
 // mr.start skips a selfDriven node), and the real editor->Go binary bridge

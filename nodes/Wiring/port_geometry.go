@@ -445,9 +445,9 @@ func uprightRingAxis(selfCenter, partnerCenter vec3) (theta, phi float64, ok boo
 }
 
 // coplanarNormalTowardPartner (the edge-derived coplanar normal) was REMOVED: the drawn
-// coplanar normal is now streamed straight from Node1's own normalThetaIdx
+// coplanar normal is now streamed straight from PairNode's own normalThetaIdx
 // (a +90° in θ from that node's own tilt index, decided on that node's
-// own goroutine and mirrored by a direct PairNodeSelf.SetTiltIndex call — nodes/Node1/node.go's
+// own goroutine and mirrored by a direct PairNodeSelf.SetTiltIndex call — nodes/PairNode/node.go's
 // coplanarNormal, nodes/Wiring/node_mover.go's writeStreamFrame), so it turns WITH the
 // tilt instead of holding still toward the partner. See straighten_loop_test.go /
 // coplanar_edges_test.go for what replaced the tests that exercised this function.

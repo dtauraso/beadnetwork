@@ -1,4 +1,4 @@
-// pair_node_self.go — PairNodeSelf, the handle a PAIR-scene node kind (Node1) uses
+// pair_node_self.go — PairNodeSelf, the handle a PAIR-scene node kind (PairNode) uses
 // to own its own nodeGeometry directly, on its own Update goroutine, instead of through a
 // separate nodeMover actor (task/pair-node-owns-itself). See MODEL.md and this package's
 // node_geometry.go/node_mover.go for the split's own doc comments — nothing about what a
@@ -30,7 +30,7 @@ type PairNodeSelf struct {
 	// speedCh is geom.clk's OWN buffered-1 speed-delivery channel — the exact analogue of
 	// nodeMover.speedCh for a ring node (mover_registry.go's finalizeActors). Without this,
 	// geom.clk was copied ONCE at build time (ClaimSelfDrive) and never touched again: the
-	// kind's own SEPARATE clock (Node1's own n.Clock, polled via its own SpeedCh in
+	// kind's own SEPARATE clock (PairNode's own n.Clock, polled via its own SpeedCh in
 	// the kind's Update loop) paced wire delivery correctly, but geom.clk — the clock
 	// writeStreamFrame's frame tick and chainBeads' animation actually read — stayed frozen
 	// at whatever speed it had at load, so a pair node's RENDERED bead motion never reflected
@@ -201,7 +201,7 @@ func (p *PairNodeSelf) SetReceivedVector(theta int32, set bool) {
 // as SetTiltIndex above. It exists because the angle a tilt-vector INDEX draws depends on
 // how many points the lattice has (2π / points per step, node_geometry.go's
 // writeStreamFrame): the geometry converts index → angle every frame, but it does not
-// itself decide the point count — that is a scene setting Node1's own goroutine owns
+// itself decide the point count — that is a scene setting PairNode's own goroutine owns
 // (Node.adoptLattice) — so it has to be told. Re-emits so the drawn angles pick up the
 // new step on the very next frame.
 func (p *PairNodeSelf) SetLatticePoints(points int32) {
@@ -221,7 +221,7 @@ func (p *PairNodeSelf) SetLatticePoints(points int32) {
 // directory at all (finalizeActors never builds one for a claimed id). Exposed for
 // verification: the model's whole point — one goroutine, not two, for the same node id —
 // is otherwise invisible from outside this package (package main's own headless tests are
-// the only place every kind, Node1 included, is registered — see
+// the only place every kind, PairNode included, is registered — see
 // kind_registry_parity_test.go's own doc comment).
 func (md *MoveDispatch) NodeSelfDriven(id string) bool {
 	if _, hasGeom := md.mr.nodeGeoms[id]; !hasGeom {

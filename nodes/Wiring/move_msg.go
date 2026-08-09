@@ -73,12 +73,12 @@ const (
 	// (stdin_reader.go) "reset" branch and the RESET button's own doc comment
 	// (TiltResetButton.tsx). Sent to the target node's own extIn via md.sendMove from
 	// applyUpdateTiltVector for any kind that has NOT claimed BuildArgs.TiltEditIn — the
-	// only kind that has (Node1) instead routes this through its own
+	// only kind that has (PairNode) instead routes this through its own
 	// TiltEditIn/TiltEditMsg.Reset, same split as moveMsgKindTiltVectorAngle.
 	moveMsgKindTiltVectorReset = "tiltVectorReset"
 	// moveMsgKindTiltIndexSync/moveMsgKindReceivedVectorSync/moveMsgKindBeadClear are
 	// GONE (task/pair-node-owns-itself). They used to be the ONE-WAY notifications a
-	// pair kind's (Node1) own goroutine sent to a SEPARATE mover goroutine for
+	// pair kind's (PairNode) own goroutine sent to a SEPARATE mover goroutine for
 	// the same node id. That separate goroutine no longer exists: a pair node owns its
 	// own mover state directly (PairNodeSelf, pair_node_self.go), so what used to be a
 	// message to itself is now a plain method call — see
@@ -87,7 +87,7 @@ const (
 
 // TiltEditMsg is one panel-driven tilt-angle click (TiltVectorAnglePanel), routed to a
 // node kind's OWN dedicated channel (BuildArgs.TiltEditIn) instead of its mover, for any
-// kind that claims that channel at build time (Node1 — the only kind whose own
+// kind that claims that channel at build time (PairNode — the only kind whose own
 // goroutine independently owns/decides their tilt index, per the straightening loop's
 // firing rule). A kind that never calls TiltEditIn is not registered in
 // MoveDispatch.tiltEditIns, so stdin_reader's applyUpdateTiltVector falls back to the old
@@ -105,7 +105,7 @@ type TiltEditMsg struct {
 	// Reset (the RESET button, TiltResetButton.tsx): return BOTH indices to 0 — the
 	// documented default, tilt vector pointing at world +y. Unlike an adjust, this places
 	// NO bead: it is a stop-and-return, not "the kick" (see package doc comments on
-	// Node1).
+	// PairNode).
 	Reset bool
 }
 

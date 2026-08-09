@@ -1,4 +1,4 @@
-// Package Node1 is the "Node1" kind: a pair is two nodes of this one kind. It is
+// Package PairNode is the "PairNode" kind: a pair is two nodes of this one kind. It is
 // REACTIVE, not periodic: every cycle it drains its own In and its own
 // VectorIn non-blockingly, and runs the straightening rule ITSELF on what arrived. An In
 // bead PACES the exchange and decides nothing; the rule lives on the VECTOR channel
@@ -26,7 +26,7 @@
 //     changes NO index of its own. With both nodes of a pair perpendicular nothing
 //     circulates on In, correctly, since there is nothing left to straighten, so the loop
 //     has no way to start on its own — Start is the thing a user clicks to start it.
-//     Pairing two Node1 instances with one edge each direction (a.Out → b.In,
+//     Pairing two PairNode instances with one edge each direction (a.Out → b.In,
 //     b.Out → a.In) needs no seed/bootstrap node: nothing ever sends until a user
 //     starts it, so there is no deadlock to bootstrap out of at t=0.
 //   - the RESET button (TiltVectorButtons.tsx, TiltEditMsg.Reset): the opposite of Start — it
@@ -35,7 +35,7 @@
 //     themselves a stopped exchange: it runs this node's full clear() (below), which also
 //     empties the bead edge — the thing that has actually been turning these tilts — so
 //     nothing is left in the pair that could land a moment later and step it back off zero.
-package Node1
+package PairNode
 
 import (
 	"context"
@@ -640,7 +640,7 @@ func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
 	return true
 }
 
-// handleVectorCycle is Node1's WHOLE per-cycle vector-channel loop body: read
+// handleVectorCycle is PairNode's WHOLE per-cycle vector-channel loop body: read
 // VectorIn non-blocking; if something arrived, step (stepFromVector decides whether this node
 // turns at all, and which way — see its own doc comment for the one target, square); and if it
 // stepped, send outgoingVector back out on VectorOut, also non-blocking, and place the paired
@@ -825,10 +825,10 @@ func (n *Node) Update(ctx context.Context) {
 }
 
 func init() {
-	// Node1 CONSTRUCTS ITSELF (Wiring.RegisterBuilder), same self-construction
+	// PairNode CONSTRUCTS ITSELF (Wiring.RegisterBuilder), same self-construction
 	// shape as every other kind — see Pacer/Input for the general note on why
 	// this replaced reflectBuild.
-	Wiring.RegisterBuilder("Node1",
+	Wiring.RegisterBuilder("PairNode",
 		[]Wiring.PortSpec{
 			{Name: "In", Dir: Wiring.PortIn},
 			{Name: "Out", Dir: Wiring.PortOut},

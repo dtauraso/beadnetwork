@@ -134,12 +134,12 @@
           </svg>
           <div class="cap">No trig: both states are already on the ring, so the fold is one subtraction
             against the ring's own half-turn count
-            (<span data-src="nodes/Node1/ring.go#angleLength">separation</span>). The turn does not read
+            (<span data-src="nodes/PairNode/ring.go#angleLength">separation</span>). The turn does not read
             this number: it counts from the NEARER END of the tilt line instead
-            (<span data-src="nodes/Node1/machine.go#nearerEndCount">nearerEndCount</span>), which keeps
+            (<span data-src="nodes/PairNode/machine.go#nearerEndCount">nearerEndCount</span>), which keeps
             the end it measured. Separation survives for the one question that is about the two TILTS
             rather than the arrival — which mode the pair runs
-            (<span data-src="nodes/Node1/node.go#machineForGap">machineForGap</span>) — and there it names
+            (<span data-src="nodes/PairNode/node.go#machineForGap">machineForGap</span>) — and there it names
             no resting state either (<a href="perpendicular.html">Perpendicular</a>).</div>
         </div>
 
@@ -194,7 +194,7 @@
           <p>All 576 openings of a 24-point lattice — every starting tilt for node 1 against every
             starting tilt for node 2 — run through the same decision functions the live node calls, in
             the order its own loop calls them. The numbers below are produced by
-            <span data-src="nodes/Node1/node_test.go#TestEveryOpeningSettlesOnTheMachineItChose">that
+            <span data-src="nodes/PairNode/node_test.go#TestEveryOpeningSettlesOnTheMachineItChose">that
               sweep</span>, not estimated; run it with <code>-v</code> after changing the rule and put its
             new output here.</p>
           <table class="f">
@@ -226,7 +226,7 @@
             they point the same way, so reversing one changes nothing about the relationship. The rule
             reads it that way without being told to: its halt is a separation of a quarter turn between
             this node's top and the arrival, and
-            <span data-src="nodes/Node1/ring.go#angleLength">separation</span> folds the long way round
+            <span data-src="nodes/PairNode/ring.go#angleLength">separation</span> folds the long way round
             into the short one, so a reversed partner lands exactly where an aligned one does. The split
             is listed here only because the arrows LOOK different in the editor.</p>
         </div>

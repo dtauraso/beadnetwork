@@ -1,5 +1,9 @@
 # PulseLeftNode
 
+## Description
+
+Holds and drives a value like Pulse, feeding the LEFT input of a select gate.
+
 ## View
 
 | Field | Value |

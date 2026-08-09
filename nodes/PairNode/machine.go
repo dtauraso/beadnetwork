@@ -1,4 +1,4 @@
-package Node1
+package PairNode
 
 // machine.go — THE TILT STATE MACHINE. One machine, one rule, one file.
 //
@@ -226,7 +226,7 @@ func machineFor(choice Wiring.TiltMachine) tiltMachine {
 	if _, known := stoppingCounts[choice]; !known {
 		// The numeric value, not choice.String(): that falls back to "none" for anything it
 		// does not recognise, so it would name the wrong mode in exactly this message.
-		panic("Node1: no stopping counts for tilt machine " + strconv.Itoa(int(choice)) +
+		panic("PairNode: no stopping counts for tilt machine " + strconv.Itoa(int(choice)) +
 			" — every mode must name the counts it stops at (machine.go stoppingCounts)")
 	}
 	return tiltMachine{mode: choice}

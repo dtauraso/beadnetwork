@@ -15,7 +15,7 @@
 // loudly — same reasoning as speed.json.
 //
 // UNLIKE speed, there is no divisor/EffectiveClockSpeed-style scaling step: the lattice
-// point count is delivered to nodes VERBATIM (nodes/Node1's newRing enforces its own
+// point count is delivered to nodes VERBATIM (nodes/PairNode's newRing enforces its own
 // 4..64-multiple-of-4 range), so this file has no analogue to HumanEditSpeed/
 // EffectiveClockSpeed — those exist only because a clock's RATE has a separate
 // "setting" mode, and a point count has no such mode.

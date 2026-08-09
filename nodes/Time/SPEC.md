@@ -1,5 +1,9 @@
 # TimeNode
 
+## Description
+
+Holds what arrives and sends on what it was holding, so a value comes out one arrival late.
+
 ## View
 
 | Field | Value |

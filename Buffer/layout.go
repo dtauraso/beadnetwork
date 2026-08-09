@@ -134,7 +134,7 @@ type bufLayoutNode struct {
 	// angle convention and the same length as the top, drawn whenever TopTiltVectorLen is
 	// non-zero, so there is no second length column.
 	//
-	// The half turn is ADDED, unmodified, by both nodes of a pair (nodes/Node1). Both land
+	// The half turn is ADDED, unmodified, by both nodes of a pair (nodes/PairNode). Both land
 	// in the same drawn direction, since 180° in θ is the same place either way; the
 	// addition is index bookkeeping only.
 	BottomTiltVectorTheta float32 `buf:"f32"` // bottom tilt vector direction: θ from world +y (radians)
@@ -142,7 +142,7 @@ type bufLayoutNode struct {
 	// ReceivedVectorLen/Theta are a THIRD drawn vector: the direction that LAST
 	// ARRIVED on this node's own tilt-vector channel (nodes/Wiring/tilt_vector_channel.go),
 	// kept by the RECEIVING node's own goroutine and replaced (never accumulated) by the
-	// next arrival — see nodes/Node1/node.go's handleVectorCycle.
+	// next arrival — see nodes/PairNode/node.go's handleVectorCycle.
 	// Same "one column says both whether and how far" convention as TopTiltVectorLen above:
 	// ZERO means this node has received nothing yet (or was reset), so a node with
 	// nothing received is distinguishable from one whose received direction happens to be
@@ -150,7 +150,7 @@ type bufLayoutNode struct {
 	// TiltEditIn Reset, or a Reset marker arriving on the channel) clears it back to zero:
 	// a stale received arrow left hanging would contradict the reset's stop-and-return
 	// meaning. Meaningless (but still streamed, default 0) on a node whose kind never
-	// claims a vector channel — every kind but Node1 today.
+	// claims a vector channel — every kind but PairNode today.
 	ReceivedVectorLen   float32 `buf:"f32"` // received-vector length; 0 = nothing received yet (or reset)
 	ReceivedVectorTheta float32 `buf:"f32"` // received vector direction: θ from world +y (radians)
 	Selected            uint8   `buf:"u8"`  // persistent: 1 = this node is the click-selected node
@@ -351,6 +351,27 @@ type bufLayoutOverlay struct {
 	// or -1 when no drag is in progress. Identity rides row index, not a
 	// name/id sidecar; TS resolves the human name from that row's Label.
 	DragNodeRow int32 `buf:"i32"` // dragged node's row index, -1 = not dragging
+	// EditRefused COUNTS refused structural edits (scene_structure.go: a drop that cannot be
+	// connected, a delete of a row holding no node). It is a counter, not a flag, because a
+	// second refusal must be distinguishable from the first: a flag that is already 1 says
+	// nothing when the same mistake is made twice, and the whole point of this column is that
+	// the gesture did nothing and the person needs telling. TS shows a message when the count
+	// it last saw goes up.
+	//
+	// The REASON is not here. It rides stderr into the output channel and
+	// .probe/go-errors.jsonl, where the detail belongs; the screen only has to say that the
+	// edit was refused, which is the part a person cannot otherwise see.
+	EditRefused uint32 `buf:"u32"` // count of refused structural edits this run
+	// SceneEditable is SceneTab.Editable for the tree actually loaded — whether this scene
+	// takes structural edits at all. Streamed rather than inferred in TS from a scene name,
+	// for the same reason the tab LIST is streamed: which scenes exist and what they allow
+	// is Go's, and the editor renders what it is told.
+	SceneEditable uint8 `buf:"u8"` // 1 = this scene takes node create/delete
+	// SceneKinds is the BITMASK of kind ids this scene accepts (bit N = the kind whose
+	// KindId is N). All bits set means no restriction. The palette offers exactly these, so
+	// a kind a scene has no place for is never draggable in it — rather than draggable and
+	// then refused, which teaches nothing and looks broken.
+	SceneKinds uint32 `buf:"u32"` // kind-id bitmask this scene accepts
 	// GroupLenTime/GroupLenInput/GroupLenGate are the "distance home button" toolbar
 	// panel's 3 read-only group max-pair-lengths (nodes/Wiring/distance_groups.go's
 	// distanceGroupOrder: time, input, gate). Computed fresh every VIEW-frame emit from

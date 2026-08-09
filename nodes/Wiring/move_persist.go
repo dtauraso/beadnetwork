@@ -67,6 +67,12 @@ func (md *MoveDispatch) EnableViewpointPersist(topologyPath string) {
 // Call AFTER SeedInitialViewpoint so the seed emits do not write the loaded state back.
 func (md *MoveDispatch) EnableEditPersist(topologyPath string) {
 	root := topologyPath
+	// The LOADED scene's own root, kept so a structural edit (scene_structure.go's node
+	// create/delete) can write into the tree that is actually showing. Every other persister
+	// here already closes over a path derived from it; this is the one operation that needs
+	// the root itself, because it creates and removes whole node directories rather than
+	// rewriting one known file.
+	md.scenes.treeRoot = root
 	md.persist.overlays = &overlaysPersister{path: overlaysFilePath(topologyPath)}
 	md.persist.sphere = &sceneSpherePersister{path: sphereFilePath(topologyPath)}
 	md.persist.speed = &speedPersister{path: speedFilePath(topologyPath)}

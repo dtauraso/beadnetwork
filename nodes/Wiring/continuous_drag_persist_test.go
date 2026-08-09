@@ -33,7 +33,7 @@ func dragAndReadBack(t *testing.T, quantized bool, target vec3) string {
 	nm := &nodeGeometry{
 		id:             "1",
 		persistRoot:    root,
-		geom:           nodeGeom{nodeIdentity: nodeIdentity{Kind: "Node1"}, ScenePolar: cart2polar(vec3{X: 100}), HasPos: true},
+		geom:           nodeGeom{nodeIdentity: nodeIdentity{Kind: "PairNode"}, ScenePolar: cart2polar(vec3{X: 100}), HasPos: true},
 		partnerCenters: map[string]vec3{},
 		neighborIn:     map[string]chan moveMsg{},
 	}

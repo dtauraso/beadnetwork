@@ -1,5 +1,9 @@
 # InputNode
 
+## Description
+
+The source: emits its own authored list of values, last one first, optionally repeating.
+
 ## View
 
 | Field | Value |

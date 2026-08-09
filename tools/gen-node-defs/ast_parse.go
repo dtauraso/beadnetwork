@@ -214,6 +214,25 @@ func chanDirection(expr ast.Expr) (string, bool) {
 // "Name" cell that appears in the Ports table (used by callers to validate
 // each one resolves to a real AST-derived port id — a typo previously
 // dropped its override silently instead of failing).
+// firstParagraph joins a section's leading paragraph into ONE line — the palette shows a
+// kind's description on a single row, and a SPEC is written in wrapped prose. Stops at the
+// first blank line, so a Description section can say more underneath without any of it
+// reaching the menu.
+func firstParagraph(sec []string) string {
+	var out []string
+	for _, l := range sec {
+		t := strings.TrimSpace(l)
+		if t == "" {
+			if len(out) > 0 {
+				break
+			}
+			continue
+		}
+		out = append(out, t)
+	}
+	return strings.Join(out, " ")
+}
+
 func parseSpecMD(pkgDir string) (viewDef, map[string]string, map[string]string, map[string]bool, map[string]bool, error) {
 	specPortNames := map[string]bool{}
 	data, readErr := os.ReadFile(filepath.Join(pkgDir, "SPEC.md"))
@@ -323,6 +342,7 @@ func parseSpecMD(pkgDir string) (viewDef, map[string]string, map[string]string, 
 		stroke:   vmap["stroke"],
 		width:    vmap["width"],
 		height:   vmap["height"],
+		desc:     firstParagraph(sectionLines("Description")),
 	}
 
 	// Parse Ports section for accent, edgeKind overrides, and optional flags.

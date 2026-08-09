@@ -76,6 +76,12 @@ NODE_OWNERS=("node_mover.go" "quant_offset_persist.go" "scene_anchor_persist.go"
 EDGE_OWNERS=("edge_mover.go")
 # View-owner files: the view-owner goroutine's (RunStdinReader) own scene-level writers.
 VIEW_OWNERS=("scene_camera_persist.go" "scene_overlays_persist.go" "scene_sphere_persist.go" "scene_selection_persist.go" "scene_speed_persist.go" "scene_lattice_persist.go")
+# Tree-shape owner: counts.json, which is neither per-node nor per-edge nor view state — it
+# is how many of each the tree HAS, written only by the operation that changes that (a node
+# create or delete, scene_structure.go). Its own category, and so its own file, for the same
+# reason each view/ file has one: single-writer is enforced by there being exactly one place
+# the bytes can come from.
+TREE_OWNERS=("scene_counts_persist.go")
 
 in_list() {
   local needle="$1"; shift
@@ -123,6 +129,9 @@ while IFS= read -r hit; do
   TOTAL_CALLS=$((TOTAL_CALLS + 1))
 
   if in_list "$base" "${VIEW_OWNERS[@]}"; then
+    continue
+  fi
+  if in_list "$base" "${TREE_OWNERS[@]}"; then
     continue
   fi
   if in_list "$base" "${EDGE_OWNERS[@]}"; then

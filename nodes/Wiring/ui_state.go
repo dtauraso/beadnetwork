@@ -20,6 +20,20 @@ import (
 // of the dispatch/persist/row-table concerns. See each embedded field's own doc comment
 // (sceneSphere, vp, ov, gest, sel below) for its own history/reasoning.
 type uiState struct {
+	// editRefused counts structural edits this run has REFUSED (scene_structure.go). Written
+	// only by the view-owner goroutine, which is the only one that handles an edit, and
+	// streamed on the Overlay block so the editor can say a gesture did nothing. A counter
+	// rather than a flag: the second refusal has to be distinguishable from the first, or
+	// making the same mistake twice looks like the editor ignoring you.
+	editRefused uint32
+	// sceneEditable is SceneTab.Editable for the tree actually loaded, resolved once at load
+	// (ResolveSceneDistanceGroups) and streamed on the Overlay block. The palette asks this
+	// rather than branching on a scene name in TS.
+	sceneEditable bool
+	// sceneKinds is the bitmask of kind ids this scene accepts (SceneTab.Kinds), resolved at
+	// load beside sceneEditable and streamed with it. Zero until resolved, which reads as
+	// "no kind is offered" — the same safe direction sceneEditable takes.
+	sceneKinds uint32
 	// sceneSphere is the first-class scene reference every node's SCENE polar is measured
 	// about (polar-model.md, sphere_layout.go). Loaded from sphere.json (or defaulted from
 	// the content-fit) at startup; its Center is the one cartesian anchor. Phase 1 stores
@@ -97,7 +111,7 @@ type uiState struct {
 	// somewhere to seed the loaded value before the first emit. Defaults to 1 (newMoveDispatch).
 	speed float64
 	// latticePoints is the pair lattice's current point count (a scene setting, not a
-	// per-node one -- every Node1 in a scene runs the same lattice). Seeded ONCE at load
+	// per-node one -- every PairNode in a scene runs the same lattice). Seeded ONCE at load
 	// by LoadLatticePoints (scene_lattice_persist.go) from view/lattice.json, BEFORE
 	// buildNodes runs, so BuildArgs.LatticePointsSeed can hand each node its opening ring
 	// size. Defaults to defaultLatticePoints (newMoveDispatch) so a bare test-constructed

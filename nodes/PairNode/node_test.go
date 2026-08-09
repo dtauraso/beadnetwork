@@ -1,4 +1,4 @@
-package Node1
+package PairNode
 
 // node_test.go — the pair rule, asked of ONE node at a time.
 //

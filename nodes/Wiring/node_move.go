@@ -122,14 +122,14 @@ type MoveDispatch struct {
 // after build they are read-only lookup tables, which is what lets the stdin-reader
 // goroutine read them without coordination.
 type nodeInboxes struct {
-	// tiltEdit holds, for each node id whose OWN kind claimed BuildArgs.TiltEditIn (Node1 —
+	// tiltEdit holds, for each node id whose OWN kind claimed BuildArgs.TiltEditIn (PairNode —
 	// the only kind that owns its tilt index independently), that node's dedicated inbound
 	// channel for a panel-driven tilt-angle click. A node id with no entry is a kind that
 	// still routes tiltVectorAngle straight to its mover (applyUpdateTiltVector's fallback,
 	// stdin_reader.go). Read only by sendTiltEdit.
 	tiltEdit map[string]chan TiltEditMsg
 
-	// lattice holds, for each node id whose own kind claimed BuildArgs.LatticeIn (Node1 —
+	// lattice holds, for each node id whose own kind claimed BuildArgs.LatticeIn (PairNode —
 	// the only kind that owns a lattice), that node's dedicated inbound channel for a
 	// scene-level point-count change. Read only by BroadcastLatticePoints, which sends to
 	// every entry: the count is one scene-wide setting, so unlike a tilt edit it is
@@ -405,7 +405,7 @@ func (md *MoveDispatch) sendMove(id string, msg moveMsg) {
 
 // sendTiltEdit routes one panel-driven tilt-angle click to node id's OWN dedicated
 // tiltEditIns channel and returns true, or returns false when id has no such channel (a
-// kind that never called BuildArgs.TiltEditIn — every kind except Node1 today),
+// kind that never called BuildArgs.TiltEditIn — every kind except PairNode today),
 // telling the caller (applyUpdateTiltVector) to fall back to the old mover-owned path
 // instead. Same blocking-with-ctx-cancel-escape shape as sendMove/mr.sendMove, for the
 // same reason: this is a bare external-entry send with no owning goroutine to thread a
