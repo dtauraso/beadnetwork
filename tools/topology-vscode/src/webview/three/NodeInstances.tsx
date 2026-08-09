@@ -32,7 +32,7 @@ import {
 import {
   BUFFER_NODE_TAG, BUFFER_RING_TAG, NODE_SPHERE_RADIUS,
   NODE_RING_TUBE_RATIO, RING_PICK_TUBE_RATIO, RING_PICK_COLOR, RING_PICK_OPACITY,
-  nodeRowColors,
+  RING_BAND_MAJOR, RING_BAND_TUBE, nodeRowColors,
 } from "./buffer-scene-shared";
 import { computeNodeDepthOrder, setNodeDrawOrder } from "./node-depth-order";
 
@@ -45,6 +45,7 @@ export function NodeInstances({ capacity }: { capacity: number }) {
   const bodyRef = useRef<THREE.InstancedMesh>(null);
   const ringRef = useRef<THREE.InstancedMesh>(null);
   const ringPickRef = useRef<THREE.InstancedMesh>(null);
+  const ringBandRef = useRef<THREE.InstancedMesh>(null);
   const matRef  = useRef(new THREE.Matrix4());
   const posRef  = useRef(new THREE.Vector3());
   const quatRef = useRef(new THREE.Quaternion());
@@ -57,11 +58,15 @@ export function NodeInstances({ capacity }: { capacity: number }) {
     const body = bodyRef.current;
     const ring = ringRef.current;
     const ringPick = ringPickRef.current;
-    if (!body || !ring || !ringPick) return;
+    const ringBand = ringBandRef.current;
+    if (!body || !ring || !ringPick || !ringBand) return;
 
     const blocks = getViewBlocks();
     const decodedNode = getNodeFrame();
-    if (!decodedNode || !blocks) { body.count = 0; ring.count = 0; ringPick.count = 0; return; }
+    if (!decodedNode || !blocks) {
+      body.count = 0; ring.count = 0; ringPick.count = 0; ringBand.count = 0;
+      return;
+    }
     const { overlayView } = blocks;
     const { nodeCount, nodeView } = decodedNode;
     // The invisible ring pick-proxy (RING_PICK_TUBE_RATIO) is a pick target ONLY while the
@@ -78,11 +83,9 @@ export function NodeInstances({ capacity }: { capacity: number }) {
     // gives a ring click meaning is on AND the overlay says the ring may take clicks.
     const showBody = readOverlayNodeBody(overlayView) !== 0;
     const showRing = readOverlayNodeRing(overlayView) !== 0;
-    // An overlay says whether a thing is SHOWN — never whether it works. So this one paints
-    // the pick band or leaves it a ghost; it does NOT decide whether the ring takes clicks.
-    // The proxy's instance count stays governed by select mode alone, so a ring click means
-    // the same thing with the band showing or hidden, and turning an overlay off can never
-    // quietly disable an interaction.
+    // An overlay says whether a thing is SHOWN — never whether it works. This one draws the
+    // marker that MARKS the click band; the band itself (ringPick) is untouched by it, so a
+    // ring click means the same thing whether the marker is showing or not.
     const showPickBand = readOverlayRingPick(overlayView) !== 0;
 
     const n = Math.min(nodeCount, capacity);
@@ -138,9 +141,11 @@ export function NodeInstances({ capacity }: { capacity: number }) {
       ringQuatRef.current.setFromUnitVectors(TORUS_DEFAULT_NORMAL, ringAxis);
       matRef.current.compose(posRef.current, ringQuatRef.current, sclRef.current);
       ring.setMatrixAt(slot, matRef.current);
-      // Invisible pick-proxy: identical transform to the visible ring, just a thicker
-      // raycast target (see RING_PICK_TUBE_RATIO comment). Same drawSlot for the same reason.
+      // Pick proxy and its visible marker: both take the ring's exact transform (the marker
+      // is a bigger, thinner torus in its own geometry, so it needs no separate matrix).
+      // Same drawSlot for the same reason the ring uses it.
       ringPick.setMatrixAt(slot, matRef.current);
+      ringBand.setMatrixAt(slot, matRef.current);
 
       const { fill, stroke } = nodeRowColors(nodeView, row);
       body.setColorAt(slot, colRef.current.set(fill));
@@ -148,17 +153,17 @@ export function NodeInstances({ capacity }: { capacity: number }) {
     }
     body.count = showBody ? n : 0;
     ring.count = showRing ? n : 0;
+    // The pick proxy is unchanged and stays invisible: present exactly when select mode is
+    // on, because that is the mode where a ring click means something.
     ringPick.count = selectModeOn ? n : 0;
-    // Painted or ghosted, never removed: colorWrite=false + opacity 0 is what the proxy
-    // always was, and a mesh in that state still takes raycast hits (`visible={false}`
-    // would not — three.js skips those entirely, which is why the band is hidden this way
-    // and not that way).
-    const pickMat = ringPick.material as THREE.MeshBasicMaterial;
-    pickMat.colorWrite = showPickBand;
-    pickMat.opacity = showPickBand ? RING_PICK_OPACITY : 0;
+    // The MARKER is drawn from the overlay ALONE — not from select mode. Ticking the box
+    // has to show something, and gating this on a second flag is why it showed nothing:
+    // with select mode off the count was 0 and the checkbox looked broken.
+    ringBand.count = showPickBand ? n : 0;
     body.instanceMatrix.needsUpdate = true;
     ring.instanceMatrix.needsUpdate = true;
     ringPick.instanceMatrix.needsUpdate = true;
+    ringBand.instanceMatrix.needsUpdate = true;
     if (body.instanceColor) body.instanceColor.needsUpdate = true;
     if (ring.instanceColor) ring.instanceColor.needsUpdate = true;
     // Refresh the InstancedMesh bounding sphere so raycast picking stays accurate as
@@ -205,26 +210,31 @@ export function NodeInstances({ capacity }: { capacity: number }) {
           pickBufferRing (scene-content.tsx) resolves its instanceId to the same node row as
           the visible ring.
 
-          It is now DRAWN, in RING_PICK_COLOR, rather than being a colorWrite=false ghost:
-          the click target you cannot see is the one whose behaviour looks like a bug. The
-          "ring band" overlay paints or ghosts it — it never removes it, so hiding the band
-          never changes what a click does. Values here are the SHOWN state; the useFrame
-          above writes colorWrite/opacity each frame from the flag.
-
-          polygonOffset, because this torus is COPLANAR with the visible ring by design;
-          without it the two z-fight and the band flickers as the camera moves. Negative
-          factor/units pull it toward the camera so it wins the shared depth consistently.
-          depthWrite stays false, like the ring's, so it never occludes the node interior. */}
+          It draws NOTHING (colorWrite false, zero opacity) and must stay `visible` — three.js
+          skips invisible meshes when raycasting, so hiding it that way would silently stop
+          the ring taking clicks. What you SEE is the marker below, a separate mesh. */}
       <instancedMesh ref={ringPickRef} args={[undefined, undefined, capacity]} userData={{ [BUFFER_RING_TAG]: true }} frustumCulled={false}>
         <torusGeometry args={[1, RING_PICK_TUBE_RATIO, 8, 32]} />
+        <meshBasicMaterial transparent opacity={0} colorWrite={false} depthWrite={false} />
+      </instancedMesh>
+      {/* The "ring band" MARKER: what the overlay shows. A separate mesh from the pick proxy
+          on purpose — painting the proxy itself could not be seen, since it is exactly
+          coincident with the visible ring (same transform, same tube), so it only tinted it.
+          This one is a thinner torus at a larger major radius, so it reads as a mint collar
+          just outside the node's own ring instead of a recolouring of it.
+
+          raycast disabled: it marks where the click band is, it is not the click band. That
+          separation is what lets it be as legible as it needs to be without touching picking
+          — the pick tube's size is already a solved, fragile thing (a 0.4 tube once spread a
+          donut over the node face and stole body clicks). depthWrite false, like the ring's,
+          so it never occludes the node interior. */}
+      <instancedMesh ref={ringBandRef} args={[undefined, undefined, capacity]} frustumCulled={false} raycast={() => null}>
+        <torusGeometry args={[RING_BAND_MAJOR, RING_BAND_TUBE, 8, 32]} />
         <meshBasicMaterial
           color={RING_PICK_COLOR}
           transparent
           opacity={RING_PICK_OPACITY}
           depthWrite={false}
-          polygonOffset
-          polygonOffsetFactor={-1}
-          polygonOffsetUnits={-1}
         />
       </instancedMesh>
     </>
