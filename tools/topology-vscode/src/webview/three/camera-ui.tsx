@@ -175,11 +175,17 @@ function OverlayRow({ cfg, disabled, indent }: { cfg: ToggleCfg; disabled?: bool
         paddingLeft: indent ? 20 : 6,
       }}
     >
+      {/* The checkbox is the ONLY thing that fades when the row is inert. The label stays
+          full strength — fading it was what made the open list hard to read — and the pill
+          still says whether the master gate is on. Here the fade is on the one element whose
+          job is to be clicked, so it reads as "this box is not taking clicks" rather than as
+          the whole row receding. */}
       <span
         style={{
           width: 13,
           height: 13,
           flex: "0 0 auto",
+          opacity: disabled ? 0.45 : 1,
           borderRadius: 3,
           border: `1.5px solid ${active ? "#4ea1ff" : "#9a9aa6"}`,
           background: active ? "#4ea1ff" : "transparent",
