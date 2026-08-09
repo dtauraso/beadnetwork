@@ -7,11 +7,12 @@ import {
   pillContainerStyle,
   pillBodyStyle,
   pillCaretStyle,
-  popoverStyle,
   groupHeadingStyle,
   DISCLOSURE_GLYPH_STYLE,
   popoverRowStyle,
   REVEALED_LIST_STYLE,
+  PILL_ANCHOR_STYLE,
+  inFlowPopoverStyle,
 } from "./overlay-chrome";
 
 // The angle axes this panel lets a node's tilt be set on, in display order.
@@ -249,7 +250,7 @@ export function TiltVectorAnglePanel() {
     // `overflow: hidden` (it clips the split-button's own rounded corners), which also clips
     // anything positioned inside it out of existence — the caret flipped and nothing
     // appeared. Both are children of the shared-width wrapper instead (anchorStyle).
-    <div style={anchorStyle}>
+    <div style={PILL_ANCHOR_STYLE}>
       <div style={pillContainerStyle(false)}>
         {/* No master toggle: the whole pill (body + caret) opens/closes the dropdown. The
             caret is pushed to the far end so the pill fills the shared width rather than
@@ -267,7 +268,7 @@ export function TiltVectorAnglePanel() {
       </div>
 
       {open && (
-        <div style={dropdownStyle}>
+        <div style={inFlowPopoverStyle()}>
           {/* Scene-level, not per-node: one row, at the top, using whichever row's own
               streamed count happens to be current — every node in the scene streams the
               same LatticePoints value (task/pair-lattice-points). */}
@@ -328,39 +329,8 @@ const arrowGroupStyle: React.CSSProperties = {
   marginLeft: "auto",
 };
 
-// The pill and its dropdown share ONE WIDTH, and this wrapper defines it: a max-content
-// column whose two children both stretch to it. The width is therefore the widest thing in
-// either — the pill's label, a node heading, or an axis item — so the pill, the node groups
-// (first level) and the axis items (second level) all come out the same width.
-//
-// That is why the dropdown is IN FLOW here rather than absolutely positioned like the
-// overlays popover. An absolute popover is out of flow, so it contributes its width to
-// nothing: the wrapper would size to the pill alone, and the dropdown could only be given a
-// width chosen in advance — the guess that kept leaving a band down its right. In flow, the
-// widest child sizes the wrapper and the other stretches to match.
-//
-// ThreeView's right-hand column is built for this: it stacks its widgets, and "a panel that
-// grows pushes the rest down rather than overlapping them", so an open dropdown displaces
-// what is below it instead of covering it.
-//
-// Pointer-transparent itself — the column takes no pointer events and each widget re-enables
-// them for its own box, so a wrapper that swallowed them would cover the canvas behind it.
-const anchorStyle: React.CSSProperties = {
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "stretch",
-  width: "max-content",
-  gap: 4,
-  pointerEvents: "none",
-};
-
-// The dropdown takes the overlays popover's CHROME but not its positioning: in flow (see
-// anchorStyle) and filling the shared width.
-const dropdownStyle: React.CSSProperties = {
-  ...popoverStyle("100%"),
-  position: "static",
-  boxSizing: "border-box",
-};
+// The pill and its dropdown share ONE WIDTH — PILL_ANCHOR_STYLE and inFlowPopoverStyle()
+// in overlay-chrome.ts, used by the overlays control too.
 
 const arrowBtnStyle: React.CSSProperties = {
   background: "rgba(255,255,255,0.12)",

@@ -13,7 +13,8 @@ import {
   pillContainerStyle,
   pillBodyStyle,
   pillCaretStyle,
-  popoverStyle,
+  inFlowPopoverStyle,
+  PILL_ANCHOR_STYLE,
   groupHeadingStyle,
   DISCLOSURE_GLYPH_STYLE,
   popoverRowStyle,
@@ -320,7 +321,11 @@ export function OverlaysControl() {
   }, []);
 
   return (
-    <>
+    // The pill and the popover are SIBLINGS inside the shared-width anchor, so they always
+    // come out the same width (PILL_ANCHOR_STYLE). Never nest the popover in the pill:
+    // pillContainerStyle sets `overflow: hidden` to clip the chip's rounded corners, which
+    // would clip the popover out of existence.
+    <div style={PILL_ANCHOR_STYLE}>
       {/* Split button — labeled pill (body = master toggle, caret = popover). Accent fill
           when the master is on, neutral chip when off (overlay-toggle-options.html mock). */}
       <div
@@ -346,20 +351,13 @@ export function OverlaysControl() {
         </div>
       </div>
 
-      {/* Popover — grouped checklist (.pop mock style: panel2 bg, border, shadow). */}
+      {/* Popover — grouped checklist (.pop mock style: panel2 bg, border, shadow). IN FLOW
+          under the pill, filling the anchor's width — not the old absolute popover at a
+          fixed 150. In flow it is measured, so the anchor sizes to whichever is wider (the
+          pill's label or a group heading) and BOTH come out at that width. The rows measure
+          as nothing (REVEALED_LIST_STYLE), so expanding a group still changes neither. */}
       {open && (
-        <div
-          style={{
-            // Anchored to the split button itself (position: relative above), so it
-            // follows wherever the column puts that button instead of to a fixed top.
-            // `max-content`, not the old fixed 150: the popover measures the group
-            // headings — the only thing in it before a triangle is clicked, since the rows
-            // measure as nothing (REVEALED_LIST_STYLE) — so it is exactly as wide as its
-            // own headings rather than as wide as a number picked in advance, and
-            // expanding a group still changes nothing.
-            ...popoverStyle("max-content"),
-          }}
-        >
+        <div style={inFlowPopoverStyle()}>
           {/* No dimming for the master-off state: the PILL is that indicator — unlit chip
               means overlays are off — and a second, fainter copy of the same fact inside the
               popover only made the list hard to read. The rows stay inert (`disabled`), they
@@ -369,7 +367,7 @@ export function OverlaysControl() {
           ))}
         </div>
       )}
-    </>
+    </div>
   );
 }
 
