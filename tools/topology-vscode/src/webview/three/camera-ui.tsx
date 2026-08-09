@@ -34,7 +34,14 @@ type ToggleCfg = {
   default?: boolean;
   /** Compute active (highlight) from the raw value. */
   active: (val: boolean) => boolean;
-  /** Label string or function of raw value. */
+  /** The row's glyph, kept OUT of the label. It used to be part of the label string, which
+   *  made its position a per-row accident (`select ⬡` trailed while the rest led) and left
+   *  it in the same text run as the words — so a label that wrapped put its second line
+   *  under the icon. As its own field it is always rendered first, in its own column, and
+   *  the words wrap under the words. A function of the raw value for a glyph that reports
+   *  state (labels' ▴/▾). */
+  icon: string | ((val: boolean) => string);
+  /** Label WORDS ONLY — no glyph (see `icon`). String or function of raw value. */
   label: string | ((val: boolean) => string);
   /** Title string function of active value. */
   title: (active: boolean) => string;
@@ -74,7 +81,8 @@ const guidelinesCfg: ToggleCfg = {
   flag: "overlays",
   default: true,
   active: (v) => v,
-  label: "▦ overlays",
+  icon: "▦",
+  label: "overlays",
   title: (a) => (a ? "Hide overlays" : "Show overlays"),
   payload: (v) => ({ flag: "overlays", was: v }),
 };
@@ -83,7 +91,8 @@ const ringsCfg: ToggleCfg = {
   flag: "tori",
   default: true,
   active: (v) => v,
-  label: "◎ rings",
+  icon: "◎",
+  label: "rings",
   title: (a) => (a ? "Hide polar rings" : "Show polar rings"),
   payload: (v) => ({ flag: "tori", was: v }),
 };
@@ -92,7 +101,8 @@ const scenePolesCfg: ToggleCfg = {
   flag: "scenePoles",
   default: true,
   active: (v) => v,
-  label: "⊹ scene poles",
+  icon: "⊹",
+  label: "scene poles",
   title: (a) => (a ? "Hide scene pole frame" : "Show scene pole frame"),
   payload: (v) => ({ flag: "scenePoles", was: v }),
 };
@@ -101,7 +111,8 @@ const nodePolesCfg: ToggleCfg = {
   flag: "nodePoles",
   default: true,
   active: (v) => v,
-  label: "⊹ node poles",
+  icon: "⊹",
+  label: "node poles",
   title: (a) => (a ? "Hide node pole frames" : "Show node pole frames"),
   payload: (v) => ({ flag: "nodePoles", was: v }),
 };
@@ -110,7 +121,9 @@ const selSpherePolesCfg: ToggleCfg = {
   flag: "selSpherePoles",
   default: true,
   active: (v) => v,
-  label: "select ⬡",
+  // Was `select ⬡` — the one row whose glyph trailed its words. It leads now, like the rest.
+  icon: "⬡",
+  label: "select",
   title: (a) => (a ? "Hide select-sphere poles" : "Show select-sphere poles"),
   payload: (v) => ({ flag: "selSpherePoles", was: v }),
 };
@@ -119,7 +132,8 @@ const handholdsCfg: ToggleCfg = {
   flag: "handholds",
   default: true,
   active: (v) => v !== false,
-  label: "⊙ grips",
+  icon: "⊙",
+  label: "grips",
   title: (a) => (a ? "Hide rotation grips" : "Show rotation grips"),
   payload: (v) => ({ flag: "handholds", was: v }),
 };
@@ -128,7 +142,8 @@ const globalLabelsCfg: ToggleCfg = {
   flag: "labelsGlobal",
   default: false,
   active: (v) => !v,
-  label: (v) => `${v ? "▴" : "▾"} labels`,
+  icon: (v) => (v ? "▴" : "▾"),
+  label: "labels",
   title: (a) => (a ? "Hide labels" : "Show labels"),
   payload: (v) => ({ flag: "labelsGlobal", wasHidden: v }),
 };
@@ -166,6 +181,7 @@ function OverlayRow({ cfg, disabled, indent }: { cfg: ToggleCfg; disabled?: bool
     [val, disabled]
   );
   const labelText = typeof cfg.label === "function" ? cfg.label(val) : cfg.label;
+  const iconText = typeof cfg.icon === "function" ? cfg.icon(val) : cfg.icon;
   return (
     <div
       onClick={onClick}
@@ -187,6 +203,8 @@ function OverlayRow({ cfg, disabled, indent }: { cfg: ToggleCfg; disabled?: bool
           width: 13,
           height: 13,
           flex: "0 0 auto",
+          // Beside the first line too, for the same reason as the icon below it.
+          alignSelf: "flex-start",
           opacity: disabled ? 0.45 : 1,
           borderRadius: 3,
           border: `1.5px solid ${active ? "#4ea1ff" : "#9a9aa6"}`,
@@ -200,6 +218,17 @@ function OverlayRow({ cfg, disabled, indent }: { cfg: ToggleCfg; disabled?: bool
         }}
       >
         {active ? "✓" : ""}
+      </span>
+      {/* The icon LEADS, in a column of its own — never inside the label's text run. A
+          glyph sharing that run is just another word, so a label that wrapped put its
+          second line under the icon; here the icon is a sibling the text never flows
+          beneath, and the words wrap under the words. Fixed-width so every row's words
+          start at one x whatever glyph precedes them. */}
+      {/* `alignSelf: flex-start` so a wrapped row keeps its glyph beside the FIRST line
+          rather than floating to the middle of two. Identical to the row's centering while
+          the label is one line, which is every row until one wraps. */}
+      <span style={{ width: 11, flex: "0 0 auto", textAlign: "center", alignSelf: "flex-start" }}>
+        {iconText}
       </span>
       {/* Wraps rather than widening: the row lives in a box that measures as nothing, so a
           label longer than the popover has to break onto the next line or it would just
