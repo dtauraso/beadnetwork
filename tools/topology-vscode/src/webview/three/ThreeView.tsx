@@ -176,10 +176,10 @@ export function ThreeView() {
           display: "flex",
           flexDirection: "column",
           // `stretch`, not `flex-end`: the column is as wide as its widest widget and every
-          // widget takes that width, so the three pills below come out the SAME width as
-          // each other instead of each sizing to its own label. The column measures the
-          // pills alone — an open popover measures as nothing (inFlowPopoverStyle) — so
-          // that shared width is settled before anything is opened and does not move.
+          // widget takes that width, so the three pills below START the same width as each
+          // other instead of each sizing to its own label. Opening one still grows it to
+          // fit its popover as it always did — the others just come along, since the width
+          // is now the column's rather than each pill's own.
           alignItems: "stretch",
           gap: 6,
           pointerEvents: "none",

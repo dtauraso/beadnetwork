@@ -107,9 +107,12 @@ export const DISCLOSURE_GLYPH_STYLE: React.CSSProperties = { fontSize: 8, width:
  *  come out the same width as their pills. A `max-content` here — what this used to
  *  carry — would opt each control out of that and size it to its own label again.
  *
- *  What the column measures is the PILLS ONLY, because the popover in it measures as
- *  nothing (inFlowPopoverStyle below). So the shared width is "the widest pill", and
- *  opening any popover changes it not at all.
+ *  Closed, the column measures the pills, so the shared width is "the widest pill" and the
+ *  three start out matching. An OPEN popover is measured too, and if its content is wider
+ *  it sizes the column — the pill above it grows to fit exactly as it did before the pills
+ *  were tied together, and the other pills, sharing the column's width, grow with it. What
+ *  a popover never does is change width again once open: the rows a group reveals measure
+ *  as nothing (REVEALED_LIST_STYLE), so expanding one wraps rather than widening.
  *
  *  The popover is IN FLOW, not absolutely positioned. Out of flow it would contribute its
  *  width to nothing AND take no space, so it could only be given a width chosen in advance
@@ -128,12 +131,11 @@ export const PILL_ANCHOR_STYLE: React.CSSProperties = {
 };
 
 /** The popover with the chrome above but not its positioning: in flow inside
- *  PILL_ANCHOR_STYLE, and MEASURING AS NOTHING so it never sets a width — `width: 0`
- *  (definite, so intrinsic sizing counts it as zero) with `minWidth: "100%"` expanding it
- *  back out to the width the pills settled on. Contents too wide for that wrap; the same
- *  rule REVEALED_LIST_STYLE applies to the rows a triangle reveals, one level up. */
+ *  PILL_ANCHOR_STYLE, filling the width the column resolved to — and contributing its own
+ *  content to that resolution, so an open popover wider than the pills carries them with it
+ *  rather than wrapping its top-level rows. */
 export function inFlowPopoverStyle(): React.CSSProperties {
-  return { ...popoverStyle(0), position: "static", boxSizing: "border-box", minWidth: "100%" };
+  return { ...popoverStyle("100%"), position: "static", boxSizing: "border-box" };
 }
 
 /** Wrapper for the rows a disclosure triangle REVEALS. They lay out across the popover's
