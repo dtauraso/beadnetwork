@@ -291,8 +291,9 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 		// bead (p.Steps), so lighting and layout still read ONE length — the property
 		// litBeadIndex's doc comment protects, kept by passing t through instead of an index.
 		type pulse struct {
-			t   float64
-			val int32
+			t     float64
+			steps int
+			val   int32
 		}
 		var pulses []pulse
 		for i, wt := range m.outWireTargets {
@@ -303,7 +304,10 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 				if p.T < 0 || p.T >= 1 || p.Steps <= 0 {
 					continue
 				}
-				pulses = append(pulses, pulse{t: p.T, val: int32(p.Val)})
+				// p.Steps travels WITH the bead: it is the length its own t was computed
+				// against. Carried here so placement spans that same integer — see the
+				// placement below.
+				pulses = append(pulses, pulse{t: p.T, steps: p.Steps, val: int32(p.Val)})
 			}
 		}
 		// spacing is the center-to-center distance between consecutive beads on THIS
@@ -454,7 +458,17 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 			// read as "reaches the node, then reappears inside it" — the interior bead is a
 			// separate drawing (InteriorBeadInstances) and the travelling one has no business
 			// entering the sphere.
-			lastSlot := float64(count - 1)
+			// SPANNED BY THE BEAD'S OWN STEP COUNT, not by this cycle's live `count`. They
+			// are normally the same integer, and when they are not — a node moved while this
+			// bead was in flight, so the edge re-measured under it — the bead's own is the
+			// right one: its t was computed as elapsed/(steps × dwell) against THAT length,
+			// and the wire is pacing the next placement against the same published number
+			// (DriveHeld's k). Using the live count instead makes the drawing span a length
+			// the timing never agreed to, so the pulse runs out early or lags — and an early
+			// finish is indistinguishable, watching it, from the next pulse starting too soon.
+			// One integer travels with the bead so placement, timing and pacing cannot read
+			// three different lengths (litBeadIndex's own doc comment names this).
+			lastSlot := float64(pl.steps - 1)
 			if lastSlot < 0 {
 				lastSlot = 0
 			}
