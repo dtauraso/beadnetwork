@@ -35,17 +35,22 @@ set -euo pipefail
 #
 # Exit 0 clean, exit 1 with a named report.
 #
-# PLACEMENT: main.go,Buffer/stream_fds.go | every conditionally-wired per-owner StreamKind must have a named stream-fd mismatch report
+# PLACEMENT: main.go,edge_stream.go,node_stream.go,Buffer/stream_fds.go | every conditionally-wired per-owner StreamKind must have a named stream-fd mismatch report
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
 
 KINDS_FILE="Buffer/stream_fds.go"
-MAIN_FILE="main.go"
+# main.go itself now holds only the startup sequence; the per-owner stream wiring
+# (and its stream-fd mismatch reports) lives in edge_stream.go/node_stream.go
+# (main.go's split, tools/check-generated.sh-adjacent decomposition). Scan every
+# root-package .go file, not a single hardcoded name, so a future split doesn't
+# blind this guard again.
+MAIN_FILE="main.go edge_stream.go node_stream.go"
 
 # A missing scan root is a disarmed guard, not a clean one (check-guards-refuse-vacuous).
-for f in "$KINDS_FILE" "$MAIN_FILE"; do
+for f in "$KINDS_FILE" $MAIN_FILE; do
   if [ ! -f "$f" ]; then
     echo "check-stream-fd-mismatch-reported: $f not found — this guard cannot scan and is"
     echo "reporting that fact rather than passing vacuously. If the file moved, repoint it here."
@@ -73,12 +78,12 @@ for k in "${kinds[@]}"; do
   case " $EXCLUDED " in
     *" $k "*) continue ;;
   esac
-  # Only kinds main.go actually wires conditionally can have a silent-skip path.
-  grep -qF "streamFDs[B.$k]" "$MAIN_FILE" || continue
+  # Only kinds these files actually wire conditionally can have a silent-skip path.
+  grep -qF "streamFDs[B.$k]" $MAIN_FILE || continue
   checked=$((checked + 1))
   # The report must name the kind constant and sit on a stream-fd mismatch line.
-  if ! grep -F 'stream-fd mismatch' "$MAIN_FILE" | grep -qF "B.$k"; then
-    if ! grep -A6 'stream-fd mismatch' "$MAIN_FILE" | grep -qF "B.$k"; then
+  if ! grep -F 'stream-fd mismatch' $MAIN_FILE | grep -qF "B.$k"; then
+    if ! grep -A6 'stream-fd mismatch' $MAIN_FILE | grep -qF "B.$k"; then
       missing="$missing $k"
     fi
   fi
@@ -86,8 +91,8 @@ done
 
 if [ "$checked" -eq 0 ]; then
   echo "check-stream-fd-mismatch-reported: found ${#kinds[@]} StreamKind constant(s) but none are"
-  echo "wired via streamFDs[B.<kind>] in $MAIN_FILE. Either the wiring moved out of main.go or"
-  echo "the pattern changed — - either way this guard is scanning nothing. Repoint it."
+  echo "wired via streamFDs[B.<kind>] in $MAIN_FILE. Either the wiring moved or"
+  echo "the pattern changed — either way this guard is scanning nothing. Repoint it."
   exit 1
 fi
 
