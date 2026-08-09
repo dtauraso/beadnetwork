@@ -70,7 +70,7 @@ export const RING_PICK_OPACITY = 0.9;
 // worse (a lesson already paid for once — the pick tube at 0.4 spread a donut over the
 // whole node face and stole body clicks).
 export const RING_BAND_MAJOR = 1 + NODE_RING_TUBE_RATIO * 1.6;
-export const RING_BAND_TUBE = NODE_RING_TUBE_RATIO * 0.55;
+export const RING_BAND_TUBE = NODE_RING_TUBE_RATIO * 0.275;
 // Pointer-hover highlight (pre-branch scene-graph.tsx): the hovered node's border ring turns
 // #aaddff and thickens to r*0.14 (HOVER_RING_TUBE_RATIO). Go OWNS hover (the Hovered
 // column); this is render-only. There is no port hover any more (docs/channels-not-ports.md
