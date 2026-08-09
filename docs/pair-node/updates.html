@@ -91,7 +91,7 @@
             <span data-src="nodes/PairNode/ring.go#tiltState">opposite</span> — so they are not two
             more vectors to move, and cannot fall out of step with the tilt</p>
           <p>the normal is what LEAVES
-            (<span data-src="nodes/PairNode/node.go#outgoingVector">outgoingVector</span>); the bottom
+            (<span data-src="nodes/PairNode/vectors.go#outgoingVector">outgoingVector</span>); the bottom
             is drawn and never sent</p>
         </div>
         <img class="math" src="update-read.svg" style="width:184px"
@@ -268,8 +268,8 @@
             other upside down", written as arithmetic</p>
           <p>an update writes the END IT COUNTED FROM — the top for half the ring, the bottom for the
             other half — and reads the other straight off its opposite in the same statement
-            (<span data-src="nodes/PairNode/node.go#setTop">setTop</span> /
-            <span data-src="nodes/PairNode/node.go#setBottom">setBottom</span>). The normal still follows,
+            (<span data-src="nodes/PairNode/ring.go#setTop">setTop</span> /
+            <span data-src="nodes/PairNode/ring.go#setBottom">setBottom</span>). The normal still follows,
             because it is a link and nothing moves it</p>
           <p>f is a quantity of THIS PAGE, not of the node. One arrival turns the tilt at most one
             slot, so the code asks a comparison and a subtraction and never works out a distance at
@@ -367,21 +367,29 @@
             <td colspan="2">definitions</td>
           </tr>
           <tr>
-            <td class="n">nodes/PairNode/node.go</td>
+            <td class="n">nodes/PairNode/node.go — the decision</td>
             <td class="s" colspan="2">
               <span data-src="nodes/PairNode/node.go#Update">Update</span> ·
-              <span data-src="nodes/PairNode/node.go#applyTiltEdit">applyTiltEdit</span> ·
               <span data-src="nodes/PairNode/node.go#handleVectorCycle">handleVectorCycle</span> ·
-              <span data-src="nodes/PairNode/node.go#stepFromVector">stepFromVector</span> ·
-              <span data-src="nodes/PairNode/node.go#machineForGap">machineForGap</span> ·
-              <span data-src="nodes/PairNode/node.go#adoptMachine">adoptMachine</span> ·
-              <span data-src="nodes/PairNode/node.go#coplanarNormal">coplanarNormal</span> ·
-              <span data-src="nodes/PairNode/node.go#bottomTilt">bottomTilt</span> ·
-              <span data-src="nodes/PairNode/node.go#outgoingVector">outgoingVector</span> ·
-              <span data-src="nodes/PairNode/node.go#syncTiltIndex">syncTiltIndex</span> ·
-              <span data-src="nodes/PairNode/node.go#syncReceivedVector">syncReceivedVector</span> ·
-              <span data-src="nodes/PairNode/node.go#clear">clear</span> ·
-              <span data-src="nodes/PairNode/node.go#drainIn">drainIn</span>
+              <span data-src="nodes/PairNode/node.go#stepFromVector">stepFromVector</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="n">nodes/PairNode/vectors.go — the directions it computes</td>
+            <td class="s" colspan="2">
+              <span data-src="nodes/PairNode/vectors.go#coplanarNormal">coplanarNormal</span> ·
+              <span data-src="nodes/PairNode/vectors.go#bottomTilt">bottomTilt</span> ·
+              <span data-src="nodes/PairNode/vectors.go#outgoingVector">outgoingVector</span> ·
+              <span data-src="nodes/PairNode/vectors.go#syncTiltIndex">syncTiltIndex</span> ·
+              <span data-src="nodes/PairNode/vectors.go#syncReceivedVector">syncReceivedVector</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="n">nodes/PairNode/edits.go — the panel, and the reset</td>
+            <td class="s" colspan="2">
+              <span data-src="nodes/PairNode/edits.go#applyTiltEdit">applyTiltEdit</span> ·
+              <span data-src="nodes/PairNode/edits.go#clear">clear</span> ·
+              <span data-src="nodes/PairNode/edits.go#drainIn">drainIn</span>
             </td>
           </tr>
           <tr>
@@ -393,9 +401,19 @@
               <span data-src="nodes/PairNode/ring.go#arrivedState">arrivedState</span> ·
               <span data-src="nodes/PairNode/ring.go#seedState">seedState</span> ·
               <span data-src="nodes/PairNode/ring.go#angleLength">angleLength</span> ·
+              <span data-src="nodes/PairNode/ring.go#setTop">setTop</span> ·
+              <span data-src="nodes/PairNode/ring.go#setBottom">setBottom</span> ·
+              <span data-src="nodes/PairNode/ring.go#adoptLattice">adoptLattice</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="n">nodes/PairNode/machine.go — the one rule</td>
+            <td class="s" colspan="2">
               <span data-src="nodes/PairNode/machine.go#tiltMachine">tiltMachine</span> ·
               <span data-src="nodes/PairNode/machine.go#stoppingCounts">stoppingCounts</span> ·
-              <span data-src="nodes/PairNode/machine.go#nearerEndCount">nearerEndCount</span>
+              <span data-src="nodes/PairNode/machine.go#nearerEndCount">nearerEndCount</span> ·
+              <span data-src="nodes/PairNode/machine.go#machineForGap">machineForGap</span> ·
+              <span data-src="nodes/PairNode/machine.go#adoptMachine">adoptMachine</span>
             </td>
           </tr>
           <tr>

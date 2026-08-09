@@ -67,7 +67,7 @@ actually move this node (`handleVectorCycle`), so one message carries one visibl
 the bead loop lives and dies with the exchange it paces.
 
 `TiltEditIn` (`BuildArgs.TiltEditIn`, a panel-driven edit routed HERE instead of to a
-mover) carries THREE distinct edits, applied by `applyTiltEdit` (`nodes/PairNode/node.go`):
+mover) carries THREE distinct edits, applied by `applyTiltEdit` (`nodes/PairNode/edits.go`):
 
 - **A ▲/▼ panel click** (`TiltVectorAnglePanel.tsx`): applies exactly one ±1 step to the
   named axis, marks this end HELD (a tilt a user set is intent, not error — this end keeps
@@ -119,7 +119,7 @@ loop body) runs:
   pure index arithmetic (`theta+6`), never a cross product — so the normal turns WITH
   the tilt, always staying 90° away, rather than holding still toward the partner. There
   is no φ. Both nodes of a pair run this same unmodified addition — there is no per-node
-  sign. `coplanarNormal` (`nodes/PairNode/node.go`) reads it straight off the tilt's own
+  sign. `coplanarNormal` (`nodes/PairNode/vectors.go`) reads it straight off the tilt's own
   `quarter` link on the ring (`nodes/PairNode/ring.go`) — the ring is built with that link
   already wrapped onto `0…Wiring.FullTurnThetaIdx-1`, so there is no addition here to
   overflow and nothing to subtract back into range. There is no pole and nothing to cross:

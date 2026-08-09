@@ -231,3 +231,39 @@ func machineFor(choice Wiring.TiltMachine) tiltMachine {
 	}
 	return tiltMachine{mode: choice}
 }
+
+// WHICH MODE A NODE RUNS — the two functions that answer it, kept in this file because the
+// answer is only meaningful against the stopping counts above. Neither is part of the rule:
+// one reads the setup, the other writes the field once.
+
+// machineForGap reads WHICH MACHINE THE PAIR IS FOR out of the gap between the two tilts.
+//
+// The arrival is the partner's coplanar NORMAL, a quarter turn off its tilt, so backing that
+// quarter out gives the partner's own tilt and the gap between the two is a real measurement
+// rather than one node's angle against zero — which is what makes this work whether the user
+// tilted one node or both.
+//
+//	the gap is a quarter turn  ->  perpendicular
+//	anything else (acute)      ->  parallel
+func (n *Node) machineForGap(arrival *tiltState) Wiring.TiltMachine {
+	partnerTilt := arrival.quarter.opposite // arrival + three quarters = arrival − a quarter
+	if n.topState().angleLength(partnerTilt) == n.ringOf().quarterTurn {
+		return Wiring.TiltMachinePerpendicular
+	}
+	return Wiring.TiltMachineParallel
+}
+
+// adoptMachine sets which mode of the tilt machine this node runs. It is the ONE writer of that
+// field outside clear(), and the mapping from the pair-wide name to the mode is machineFor — the
+// naming lives in Wiring so both ends can say it to each other, and the stopping counts live in
+// machine.go, which is the only place that knows what any of them means on the ring.
+//
+// The choice STICKS: a node already running one keeps it, so a second choice crossing the pair
+// — or one arriving at an end that has already made its own — cannot switch it mid-run. Only a
+// reset clears it, and the next click after that makes a new one.
+func (n *Node) adoptMachine(choice Wiring.TiltMachine) {
+	if n.Machine != setting {
+		return
+	}
+	n.Machine = machineFor(choice)
+}

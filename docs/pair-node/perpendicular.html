@@ -158,7 +158,7 @@
             <td class="n">moves this node's own tilt. Nothing else — no send, no bead, NO choice. The
               setup is not finished until start, and deciding on the first of twelve clicks read a gap
               of one step and locked the pair to the wrong machine</td>
-            <td class="s" data-src="nodes/PairNode/node.go#applyTiltEdit">applyTiltEdit</td>
+            <td class="s" data-src="nodes/PairNode/edits.go#applyTiltEdit">applyTiltEdit</td>
           </tr>
           <tr>
             <td class="e">START — the first arrival</td>
@@ -172,12 +172,12 @@
             <td class="n">carries which machine its sender is running, which is how the end that did
               not decide finds out. Adopting STICKS, so a later message cannot switch a running
               machine</td>
-            <td class="s" data-src="nodes/PairNode/node.go#adoptMachine">adoptMachine</td>
+            <td class="s" data-src="nodes/PairNode/machine.go#adoptMachine">adoptMachine</td>
           </tr>
           <tr>
             <td class="e">RESET</td>
             <td class="n">the one thing that removes the choice. The next start makes a new one</td>
-            <td class="s" data-src="nodes/PairNode/node.go#clear">clear</td>
+            <td class="s" data-src="nodes/PairNode/edits.go#clear">clear</td>
           </tr>
         </table>
       </div>

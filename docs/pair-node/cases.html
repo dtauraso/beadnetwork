@@ -200,22 +200,22 @@
           <tr>
             <td class="e">setting → perpendicular</td>
             <td class="n">first arrival, and the gap between the two TILTS is a quarter turn</td>
-            <td class="s" data-src="nodes/PairNode/node.go#machineForGap">machineForGap</td>
+            <td class="s" data-src="nodes/PairNode/machine.go#machineForGap">machineForGap</td>
           </tr>
           <tr>
             <td class="e">setting → parallel</td>
             <td class="n">first arrival, and the gap is anything else</td>
-            <td class="s" data-src="nodes/PairNode/node.go#machineForGap">machineForGap</td>
+            <td class="s" data-src="nodes/PairNode/machine.go#machineForGap">machineForGap</td>
           </tr>
           <tr>
             <td class="e">setting → either</td>
             <td class="n">the partner already chose and its reply carries the choice</td>
-            <td class="s" data-src="nodes/PairNode/node.go#adoptMachine">adoptMachine</td>
+            <td class="s" data-src="nodes/PairNode/machine.go#adoptMachine">adoptMachine</td>
           </tr>
           <tr>
             <td class="e">perpendicular or parallel → setting</td>
             <td class="n">RESET, and nothing else</td>
-            <td class="s" data-src="nodes/PairNode/node.go#clear">clear</td>
+            <td class="s" data-src="nodes/PairNode/edits.go#clear">clear</td>
           </tr>
         </table>
         <div class="cap">There is NO perpendicular ↔ parallel edge. A chosen mode STICKS: a second choice —
@@ -236,7 +236,7 @@
             <td class="e">c = 0 — on this node's tilt line, either end</td>
             <td class="n">a quarter turn apart — ALREADY perpendicular. The code measures this the other
               way about, as the gap between the two TILTS being a quarter turn
-              (<span data-src="nodes/PairNode/node.go#machineForGap">machineForGap</span>); the two are the
+              (<span data-src="nodes/PairNode/machine.go#machineForGap">machineForGap</span>); the two are the
               same fact, since the arrival is the partner's normal</td>
             <td class="n">perpendicular</td>
           </tr>
@@ -265,7 +265,7 @@
             <td class="n">the stopping count is read from the ring at every call, never stored, so a mode
               that stopped at 12 on a 48-ring stops at 6 on a 24-ring with nothing to migrate. The INDEX is
               what survives, not the angle</td>
-            <td class="s" data-src="nodes/PairNode/node.go#adoptLattice">adoptLattice</td>
+            <td class="s" data-src="nodes/PairNode/ring.go#adoptLattice">adoptLattice</td>
           </tr>
           <tr>
             <td class="e">the arrival lands on this node's own top</td>

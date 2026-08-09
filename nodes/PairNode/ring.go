@@ -222,3 +222,87 @@ func abs32(v int32) int32 {
 // is built once and never written to, so it is immutable shared data rather than shared
 // mutable state; a node given a different count builds its own ring instead of touching this.
 var defaultRing = newRing(Wiring.FullTurnThetaIdx)
+
+// A NODE'S OWN PLACE ON THE RING — the accessors every other file reads its lattice and its
+// two ends through, and the one function that gives it a different lattice. They live here
+// because each is about the ring rather than about the exchange: what a nil field falls back
+// to, which end an update names, and what survives a change of point count.
+
+// ringOf is this node's own lattice, with the default standing in for a Ring that was never
+// set — a bare test build. Every read of the lattice goes through here.
+func (n *Node) ringOf() *ring {
+	if n.Ring == nil {
+		return defaultRing
+	}
+	return n.Ring
+}
+
+// topState is this node's own tilt direction, with its ring's origin standing in for a Top
+// that was never set — see the field's own doc comment. Every read of the tilt goes through
+// here, so nothing else in this file has to care about that case.
+func (n *Node) topState() *tiltState {
+	if n.Top == nil {
+		return n.ringOf().at(0)
+	}
+	return n.Top
+}
+
+// bottomState is the other end of the same line, read the same way topState reads the first.
+func (n *Node) bottomState() *tiltState {
+	if n.Bottom == nil {
+		return n.topState().opposite
+	}
+	return n.Bottom
+}
+
+// setTop and setBottom are THE ONLY WAYS EITHER END IS WRITTEN, and each writes BOTH: the end
+// named, and the other read straight off its opposite link in the same statement. That is what
+// makes the two unable to disagree — not a rule to follow but the only spelling available, so a
+// future update that drives one end cannot leave the other where it was.
+//
+// Which one a caller reaches for says which end its measurement was taken at, which is the whole
+// reason both are stored (see the Bottom field).
+func (n *Node) setTop(top *tiltState) { n.Top, n.Bottom = top, top.opposite }
+
+func (n *Node) setBottom(bottom *tiltState) { n.Bottom, n.Top = bottom, bottom.opposite }
+
+// adoptLattice rebuilds THIS node's own ring at a new point count, on THIS node's own
+// goroutine. Nothing else touches the ring, so there is nothing to coordinate: the old one is
+// simply dropped and a new one takes its place.
+//
+// WHAT SURVIVES THE CHANGE IS THE INDEX, not the angle. A tilt at 6 stays at 6 — which is a
+// quarter turn on a 24-point lattice and a half turn on a 12-point one, so the drawn arrow
+// moves. That is the honest reading of "the lattice changed underneath a direction": the
+// number a user set is kept, and what it means follows the new lattice. An index the new ring
+// does not have names nothing there, so that node opens at the origin and says so
+// (ring.seedState).
+//
+// TWO THINGS ARE DISCARDED, both because they are indices on the lattice being left:
+//
+//   - the received direction, the third drawn arrow. It was picked on the old lattice, so
+//     redrawing it at the same index would point it somewhere the partner never sent.
+//   - whatever is queued on VectorIn. Same reason, and it would otherwise be read as a
+//     direction on the new ring the moment the next cycle polls.
+//
+// The beads in flight are untouched: a bead carries no direction, only pacing.
+func (n *Node) adoptLattice(points int32) {
+	if points == n.ringOf().points {
+		return
+	}
+	keptIdx := n.topState().idx
+	n.Ring = newRing(points)
+	top, unknown := n.Ring.seedState(keptIdx)
+	n.setTop(top)
+	if unknown && n.Self != nil {
+		n.Self.Breadcrumb("pair-lattice-adopt", fmt.Sprintf(
+			"points=%d keptIdx=%d unknown=true loaded=%d", points, keptIdx, top.idx))
+	}
+	n.ReceivedThetaIdx = 0
+	n.ReceivedSet = false
+	n.syncReceivedVector()
+	Wiring.PollRecvVector(n.VectorIn)
+	if n.SyncLatticePoints != nil {
+		n.SyncLatticePoints(points)
+	}
+	n.syncTiltIndex()
+}
