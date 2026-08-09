@@ -5,6 +5,11 @@ they come to rest. It was called PairNode, which named nothing: not what it does
 for, and not even which node it is (both nodes of a pair are this kind). kindId stays 11; ids
 are assigned once and never renumbered, and the rename does not touch identity.
 
+## Description
+
+One half of a pair: turns its own tilt vector toward rest by exchanging directions with its
+partner, one step per arrival.
+
 ## View
 
 | Field | Value |

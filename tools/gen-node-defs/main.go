@@ -59,6 +59,11 @@ type viewDef struct {
 	stroke string
 	width  string
 	height string
+	// desc is one line saying what this kind IS, from SPEC.md's "## Description" section —
+	// what the palette shows under a kind's name so a person picking one does not have to
+	// already know the vocabulary. Empty for a kind whose SPEC has no such section, which
+	// renders as no description rather than as a placeholder.
+	desc string
 }
 
 // kindEntry is one node kind to emit.

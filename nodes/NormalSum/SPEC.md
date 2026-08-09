@@ -1,5 +1,9 @@
 # NormalSumNode
 
+## Description
+
+Takes a normal from each of two nodes and holds their total, drawn as its own vector.
+
 ## View
 
 | Field | Value |

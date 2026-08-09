@@ -1,5 +1,9 @@
 # SelectRightNode
 
+## Description
+
+Passes a value on only when both inputs arrive within one window, favouring the RIGHT one.
+
 ## View
 
 | Field | Value |

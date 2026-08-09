@@ -1,5 +1,9 @@
 # PulseRightNode
 
+## Description
+
+Holds and drives a value like Pulse, feeding the RIGHT input of a select gate.
+
 ## View
 
 | Field | Value |

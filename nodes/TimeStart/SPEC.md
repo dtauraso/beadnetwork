@@ -1,5 +1,10 @@
 # TimeStartNode
 
+## Description
+
+The head of a time chain: holds what arrives and fans the value it was holding to every
+downstream node at once.
+
 ## View
 
 | Field | Value |

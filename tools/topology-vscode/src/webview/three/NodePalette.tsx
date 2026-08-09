@@ -107,22 +107,35 @@ function PaletteRow({ kind, kindId }: { kind: string; kindId: number }) {
       }}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      style={{ ...popoverRowStyle(hover, false), cursor: "grab" }}
+      // STACKED, like every other two-line row in this chrome (pill-rows' StepperRow): the
+      // name on its own line, the description under it. Laid across one line instead, the
+      // description would have to be truncated to keep the popover a sane width, and a
+      // truncated sentence is worse than none.
+      style={{ ...popoverRowStyle(hover, false), cursor: "grab", flexDirection: "column", alignItems: "stretch", gap: 2 }}
       title={`Drag ${kind} onto the scene`}
     >
-      {/* The kind's own swatch, from its NODE_DEFS entry — the same fill and stroke the node
-          itself is drawn with, so the palette shows what you are about to get. */}
-      <span
-        style={{
-          width: 11,
-          height: 11,
-          flex: "0 0 auto",
-          borderRadius: 3,
-          background: def?.fill ?? "#888",
-          border: `1px solid ${def?.stroke ?? "#888"}`,
-        }}
-      />
-      <span style={{ minWidth: 0, overflowWrap: "break-word" }}>{kind}</span>
+      <span style={{ display: "flex", alignItems: "center", gap: 7 }}>
+        {/* The kind's own swatch, from its NODE_DEFS entry — the same fill and stroke the
+            node itself is drawn with, so the palette shows what you are about to get. */}
+        <span
+          style={{
+            width: 11,
+            height: 11,
+            flex: "0 0 auto",
+            borderRadius: 3,
+            background: def?.fill ?? "#888",
+            border: `1px solid ${def?.stroke ?? "#888"}`,
+          }}
+        />
+        <span style={{ minWidth: 0, overflowWrap: "break-word" }}>{kind}</span>
+      </span>
+      {/* The kind's DESCRIPTION, generated from its SPEC.md — the same file that already says
+          what the kind's ports and colours are, so the menu cannot describe a kind the code
+          does not. A kind whose SPEC has no Description section shows none: an empty row is
+          honest, a placeholder is not. */}
+      {def?.desc && (
+        <span style={{ opacity: 0.75, overflowWrap: "break-word", lineHeight: 1.3 }}>{def.desc}</span>
+      )}
     </div>
   );
 }

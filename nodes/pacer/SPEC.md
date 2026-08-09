@@ -1,5 +1,9 @@
 # PacerNode
 
+## Description
+
+Sends 1 back when the value it receives differs from the last one, and 0 when it repeats.
+
 ## View
 
 | Field | Value |

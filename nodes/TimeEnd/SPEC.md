@@ -1,5 +1,9 @@
 # TimeEndNode
 
+## Description
+
+The end of a time chain: holds what arrives and sends nothing on.
+
 ## View
 
 | Field | Value |

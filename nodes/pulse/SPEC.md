@@ -1,5 +1,9 @@
 # PulseNode
 
+## Description
+
+Holds the last value it received and drives it out continuously, from the moment it starts.
+
 ## View
 
 | Field | Value |
