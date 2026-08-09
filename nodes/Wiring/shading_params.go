@@ -210,9 +210,10 @@ const ShadingParamChainBeadFill = "#9acdd3"
 //
 // Spelled as a LITERAL rather than as an expression over the bead fill: gen-node-defs reads
 // these constants' literal values out of the AST and panics on anything else ("not a Float").
-// Nudged toward BLUE from #d6ebed: red down, blue up, green between — the same brightness,
-// a cooler hue.
-const ShadingParamEdgeLineColor = "#c6e4f6"
+// The ORIGINAL cyan — the tone sampled off the screenshot before ShadingParamChainBeadFill
+// took it down ~8% by eye for the beads. Shown here on the edge, where the ~8% was never the
+// question: that adjustment was made for a bead's own read in place, not a line's.
+const ShadingParamEdgeLineColor = "#a7dfe5"
 
 // ShadingParamInteriorBeadFill0 and ShadingParamInteriorBeadFill1 are the fills for a bead
 // HELD INSIDE a node (InteriorBeadInstances.tsx), deliberately kept SEPARATE from
