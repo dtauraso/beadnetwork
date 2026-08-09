@@ -135,10 +135,11 @@ type SceneTab struct {
 	// other field here is one: it is a fact about the scene, and Go owns it, so the editor
 	// asks rather than branching on a scene NAME it would have to be told.
 	//
-	// Pair only, for now. The ring is the long-lived diagram whose layout has been tuned by
-	// hand across many sessions; the pair is the small one built to be experimented with.
-	// Nothing structural stops the ring taking edits — this is a choice about which diagram
-	// a stray delete key can damage.
+	// Both scenes take edits. It was pair-only at first, on the reasoning that the ring is
+	// the long-lived diagram whose layout has been tuned by hand across many sessions and
+	// the pair is the small one built to be experimented with — but that argues for being
+	// careful in the ring, not for the editor refusing to build one. What each scene accepts
+	// is Kinds, below; whether it accepts anything at all is this.
 	Editable bool
 	// Kinds names the node kinds this scene ACCEPTS — what its palette offers and what a
 	// create is allowed to make. Empty means every registered kind, which is what a scene
@@ -154,7 +155,17 @@ type SceneTab struct {
 // the anchor's own basename, since that is the path the extension host launches with and
 // sizes its stream fds from (see AnchorIsTabbed).
 var SceneTabs = []SceneTab{
-	{Name: "ring", Dir: "topology", QuantizedDrag: false, CoplanarEdges: false, UpAxis: false, ClockDivisor: 1, DistanceGroups: true, Editable: false},
+	// The ring takes the PIPELINE kinds — the nine it is already built from, plus HoldFlip
+	// and Pacer, which speak the same vocabulary (a value in, a value on) and were simply
+	// not used in this particular diagram. Not PairNode or NormalSum: those hold a tilt
+	// vector and exchange directions, which is the pair's model, not a chain of gates.
+	{Name: "ring", Dir: "topology", QuantizedDrag: false, CoplanarEdges: false, UpAxis: false, ClockDivisor: 1, DistanceGroups: true, Editable: true,
+		Kinds: []string{
+			"Input", "Time", "TimeStart", "TimeEnd",
+			"Pulse", "PulseLeft", "PulseRight",
+			"SelectLeft", "SelectRight",
+			"HoldFlip", "Pacer",
+		}},
 	// The pair takes PAIR KINDS ONLY: PairNode, which is what both of its nodes are, and
 	// NormalSum, which exists to sum two of their normals. Dropping a ring kind here would
 	// build something the pair's own model has no place for — its exchange is two nodes and
