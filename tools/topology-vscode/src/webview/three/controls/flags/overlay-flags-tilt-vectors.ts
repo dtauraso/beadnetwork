@@ -4,15 +4,15 @@
 // full sibling-file list.
 
 import { useSyncExternalStore } from "react";
-import { getNodeFrame, subscribeNodeStreamBlocks } from "../scene/node-stream-blocks";
+import { getNodeFrame, subscribeNodeStreamBlocks } from "../../scene/node-stream-blocks";
 import {
   readNodeTopTiltVectorLen,
   readNodeTopTiltVectorTheta,
   readNodeLatticePoints,
   readNodeRoundsToParallel,
   readNodeMsgsToParallel,
-} from "../../../schema/buffer-layout";
-import { nodeLabel } from "../decode/buffer-decode-node";
+} from "../../../../schema/buffer-layout";
+import { nodeLabel } from "../../decode/buffer-decode-node";
 
 /** One row of the per-node tilt-vector-angle panel: read-only reflect of a single node's
  *  own TopTiltVectorTheta (Buffer/layout.go), as the ALREADY-MULTIPLIED

@@ -19,8 +19,8 @@
 // reflect of the buffer) and is covered by the same check-no-webview-state.sh allowlist.
 
 import { useSyncExternalStore } from "react";
-import { OVERLAY_FLAG_ORDER, type OverlayFlag } from "../../../messages";
-import { getViewBlocks, subscribeViewBlocks } from "../scene/view-blocks";
+import { OVERLAY_FLAG_ORDER, type OverlayFlag } from "../../../../messages";
+import { getViewBlocks, subscribeViewBlocks } from "../../scene/view-blocks";
 import {
   readOverlaySceneTori,
   readOverlayScenePoles,
@@ -35,7 +35,7 @@ import {
   readOverlaySelectionRing,
   readOverlayHoverRing,
   readOverlayReachSphere,
-} from "../../../schema/buffer-layout";
+} from "../../../../schema/buffer-layout";
 
 // Keyed by OverlayFlag. Polarity is MIXED — a historical wart worth stating plainly, since
 // the ViewerState key names it mirrored are gone (that state island was deleted once Go

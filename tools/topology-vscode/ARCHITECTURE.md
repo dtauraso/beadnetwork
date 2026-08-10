@@ -69,7 +69,7 @@ generically from the decoded content buffer, keyed off `NODE_DEFS`
 | `src/webview/three/scene/buffer-scene.tsx` | Draws the whole scene generically from the decoded snapshot |
 | `src/webview/three/scene/ThreeView.tsx` | R3F `<Canvas>` root. Holds NO gesture state — raw pointer/wheel events forward verbatim to Go's FSM (`nodes/Wiring/gesture.go`) |
 | `src/webview/three/interaction/raw-input.ts` | Raw pointer/wheel + raycast hit → binary `raw-input` record to Go |
-| `src/webview/three/controls/overlay-flags.ts` | Read-only reflection of Go-owned overlay-toggle state (`useSyncExternalStore`; no store) |
+| `src/webview/three/controls/flags/overlay-flags.ts` | Read-only reflection of Go-owned overlay-toggle state (`useSyncExternalStore`; no store) |
 | `webview/log/*` | Crash listeners, error boundary, log posting to the extension host |
 
 There is no JSON-trace render path, no `pump.ts`, and no zustand/Redux-style

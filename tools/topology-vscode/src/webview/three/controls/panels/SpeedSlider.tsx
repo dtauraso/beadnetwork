@@ -1,8 +1,8 @@
 import type React from "react";
 import { createPortal } from "react-dom";
-import { postGoRecord } from "../../vscode-api";
-import { encodeClockSpeed } from "../../../schema/input-encode";
-import { usePlaybackSpeed } from "./overlay-flags-speed";
+import { postGoRecord } from "../../../vscode-api";
+import { encodeClockSpeed } from "../../../../schema/input-encode";
+import { usePlaybackSpeed } from "../flags/overlay-flags-speed";
 
 // SPEED_SETTINGS — the six settings the slider's raw <input> value (0..5) indexes into.
 // The slider position is an INDEX, never the multiplier itself: `speed` is what crosses the

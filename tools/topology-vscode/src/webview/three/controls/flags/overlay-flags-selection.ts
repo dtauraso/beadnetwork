@@ -3,9 +3,9 @@
 // sibling-file list.
 
 import { useSyncExternalStore } from "react";
-import { getNodeFrame } from "../scene/node-stream-blocks";
-import { subscribeViewBlocks } from "../scene/view-blocks";
-import { readNodeSelected } from "../../../schema/buffer-layout";
+import { getNodeFrame } from "../../scene/node-stream-blocks";
+import { subscribeViewBlocks } from "../../scene/view-blocks";
+import { readNodeSelected } from "../../../../schema/buffer-layout";
 
 /** Decode the SELECTED node's buffer row, or -1 when nothing is selected. Selection is
  *  Go-owned (the Node block's Selected column); this is a second READER of that truth, never

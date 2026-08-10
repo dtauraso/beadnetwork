@@ -2,11 +2,11 @@
 // overlay row's value is (Go-owned buffer flag, default-until-first-snapshot fallback) and
 // what firing it sends (the same per-flag toggle record everywhere). No JSX.
 
-import { postGoRecord } from "../../vscode-api";
-import { encodeOverlaysToggle } from "../../../schema/input-encode";
-import type { OverlayFlag } from "../../../messages";
-import { postLog } from "../../log/post";
-import { useOverlayFlags } from "./overlay-flags";
+import { postGoRecord } from "../../../vscode-api";
+import { encodeOverlaysToggle } from "../../../../schema/input-encode";
+import type { OverlayFlag } from "../../../../messages";
+import { postLog } from "../../../log/post";
+import { useOverlayFlags } from "../flags/overlay-flags";
 
 export type ToggleCfg = {
   flag: OverlayFlag;

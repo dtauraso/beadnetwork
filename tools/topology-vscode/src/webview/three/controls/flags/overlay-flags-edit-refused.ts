@@ -3,8 +3,8 @@
 // header for the full sibling-file list.
 
 import { useSyncExternalStore } from "react";
-import { getViewBlocks, subscribeViewBlocks } from "../scene/view-blocks";
-import { readOverlayEditRefused } from "../../../schema/buffer-layout";
+import { getViewBlocks, subscribeViewBlocks } from "../../scene/view-blocks";
+import { readOverlayEditRefused } from "../../../../schema/buffer-layout";
 
 /** Decode how many structural edits Go has REFUSED this run (Overlay block EditRefused).
  *  A count, not a flag: a second refusal has to be distinguishable from the first, or making

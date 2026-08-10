@@ -3,7 +3,7 @@
 
 import React, { useCallback, useState } from "react";
 import { fireToggle, toggleVal } from "./overlay-toggle";
-import { useOverlayFlags } from "./overlay-flags";
+import { useOverlayFlags } from "../flags/overlay-flags";
 import type { OverlayGroup } from "./overlay-defs";
 import { OverlayRow } from "./overlay-row";
 import {

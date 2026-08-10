@@ -3,10 +3,10 @@
 // overlay-flags.ts — see that file's header for the full sibling-file list.
 
 import { useSyncExternalStore } from "react";
-import { getNodeFrame, subscribeNodeStreamBlocks } from "../scene/node-stream-blocks";
-import { getViewBlocks, subscribeViewBlocks } from "../scene/view-blocks";
-import { readOverlayDragNodeRow } from "../../../schema/buffer-layout";
-import { nodeLabel } from "../decode/buffer-decode-node";
+import { getNodeFrame, subscribeNodeStreamBlocks } from "../../scene/node-stream-blocks";
+import { getViewBlocks, subscribeViewBlocks } from "../../scene/view-blocks";
+import { readOverlayDragNodeRow } from "../../../../schema/buffer-layout";
+import { nodeLabel } from "../../decode/buffer-decode-node";
 
 /** Decode the row index of the node currently being dragged (Overlay block
  *  DragNodeRow column, Go's gesture FSM g.dragNode resolved via NodeRowFor), or -1

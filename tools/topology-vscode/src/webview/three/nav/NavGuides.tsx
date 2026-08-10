@@ -5,7 +5,7 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { useOverlayFlags } from "../controls/overlay-flags";
+import { useOverlayFlags } from "../controls/flags/overlay-flags";
 import { getNodeFrame } from "../scene/node-stream-blocks";
 import { getViewBlocks } from "../scene/view-blocks";
 import {

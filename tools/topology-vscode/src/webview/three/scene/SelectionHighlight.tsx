@@ -10,7 +10,7 @@ import {
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius, readNodeSelected, readNodeHovered,
 } from "../../../schema/buffer-layout";
 import { readOverlaySelectionRing, readOverlayHoverRing } from "../../../schema/buffer-layout";
-import { overlayOn } from "../controls/overlay-flags";
+import { overlayOn } from "../controls/flags/overlay-flags";
 import { NODE_SPHERE_RADIUS, HOVER_COLOR, HOVER_RING_TUBE_RATIO } from "./buffer-scene-shared";
 
 // Selection-highlight geometry (built at radius=1 and scaled by the node's radius via

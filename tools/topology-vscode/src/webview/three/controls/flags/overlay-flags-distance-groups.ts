@@ -3,12 +3,12 @@
 // overlay-flags.ts — see that file's header for the full sibling-file list.
 
 import { useSyncExternalStore } from "react";
-import { getViewBlocks, subscribeViewBlocks } from "../scene/view-blocks";
+import { getViewBlocks, subscribeViewBlocks } from "../../scene/view-blocks";
 import {
   readOverlayGroupLenTime,
   readOverlayGroupLenInput,
   readOverlayGroupLenGate,
-} from "../../../schema/buffer-layout";
+} from "../../../../schema/buffer-layout";
 
 /** The "distance home button" toolbar panel's 3 group max-pair-lengths, in Go's
  *  distanceGroupOrder (nodes/Wiring/distance_groups.go): time, input, gate. Read-only

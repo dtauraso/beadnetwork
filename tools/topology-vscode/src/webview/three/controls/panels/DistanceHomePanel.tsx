@@ -1,15 +1,15 @@
 import React, { useState } from "react";
-import { postGoRecord } from "../../vscode-api";
-import { encodeDistanceGroupAdjust } from "../../../schema/input-encode";
-import { useDistanceGroupLens } from "./overlay-flags-distance-groups";
+import { postGoRecord } from "../../../vscode-api";
+import { encodeDistanceGroupAdjust } from "../../../../schema/input-encode";
+import { useDistanceGroupLens } from "../flags/overlay-flags-distance-groups";
 import {
   pillContainerStyle,
   pillBodyStyle,
   pillCaretStyle,
   PILL_ANCHOR_STYLE,
   inFlowPopoverStyle,
-} from "./overlay-chrome";
-import { StepperRow } from "./pill-rows";
+} from "../pills/overlay-chrome";
+import { StepperRow } from "../pills/pill-rows";
 
 // DistanceHomePanel — the RING tab's node-pair distance control: 3 named groups
 // (time / input / select — Go's distanceGroupOrder, whose third group is still keyed "gate"

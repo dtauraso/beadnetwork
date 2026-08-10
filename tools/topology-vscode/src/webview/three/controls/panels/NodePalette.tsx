@@ -13,12 +13,12 @@
 // already works. That is why a create does not animate: there is nothing to animate.
 
 import React, { useEffect, useRef, useState } from "react";
-import { postGoRecord } from "../../vscode-api";
-import { encodeSceneCreate, encodeSceneDelete } from "../../../schema/input-encode";
-import { NODE_KIND_NAMES, NODE_DEFS } from "../../../schema/node-defs";
-import { useSelectedNodeRow } from "./overlay-flags-selection";
-import { useSceneEditable, useSceneKinds } from "./overlay-flags-scene";
-import { useEditRefused } from "./overlay-flags-edit-refused";
+import { postGoRecord } from "../../../vscode-api";
+import { encodeSceneCreate, encodeSceneDelete } from "../../../../schema/input-encode";
+import { NODE_KIND_NAMES, NODE_DEFS } from "../../../../schema/node-defs";
+import { useSelectedNodeRow } from "../flags/overlay-flags-selection";
+import { useSceneEditable, useSceneKinds } from "../flags/overlay-flags-scene";
+import { useEditRefused } from "../flags/overlay-flags-edit-refused";
 import {
   pillContainerStyle,
   pillBodyStyle,
@@ -30,7 +30,7 @@ import {
   CHROME_FONT_STACK,
   DISCLOSURE_GLYPH_STYLE,
   REVEALED_LIST_STYLE,
-} from "./overlay-chrome";
+} from "../pills/overlay-chrome";
 
 // The MIME the drag carries. A private type, not text/plain: a stray text drop from another
 // app must not read as a node creation.

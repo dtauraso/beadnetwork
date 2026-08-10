@@ -11,7 +11,7 @@
 //     not re-render every 60fps snapshot).
 
 import { describe, it, expect, beforeEach } from "vitest";
-import { readOverlayFlags } from "../../src/webview/three/controls/overlay-flags";
+import { readOverlayFlags } from "../../src/webview/three/controls/flags/overlay-flags";
 import { setLatestViewFrame } from "../../src/webview/snapshot-buffer";
 import { OVERLAY_FLAG_ORDER } from "../../src/messages";
 import { BUF_VIEW_FRAME_HEADER_SIZE } from "../../src/schema/frame-tags";

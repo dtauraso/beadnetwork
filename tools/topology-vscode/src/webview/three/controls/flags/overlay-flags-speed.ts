@@ -3,8 +3,8 @@
 // sibling-file list.
 
 import { useSyncExternalStore } from "react";
-import { getViewBlocks, subscribeViewBlocks } from "../scene/view-blocks";
-import { readOverlaySpeed } from "../../../schema/buffer-layout";
+import { getViewBlocks, subscribeViewBlocks } from "../../scene/view-blocks";
+import { readOverlaySpeed } from "../../../../schema/buffer-layout";
 
 /** The current playback-speed multiplier (Overlay block's Speed column) — Go-owned
  *  (RunStdinReader's clock/speed edit handler, seeded at load from view/speed.json).

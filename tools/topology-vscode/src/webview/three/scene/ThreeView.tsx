@@ -7,12 +7,12 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Canvas } from "@react-three/fiber";
 import * as THREE from "three";
-import { HomeButton } from "../controls/home-button";
-import { OverlaysControl } from "../controls/overlays-control";
-import { NodePalette, dropKindFromEvent, fireCreateAt } from "../controls/NodePalette";
-import { DistanceHomePanel } from "../controls/DistanceHomePanel";
-import { TiltVectorAnglePanel } from "../controls/TiltVectorAnglePanel";
-import { SceneTabs } from "../controls/SceneTabs";
+import { HomeButton } from "../controls/panels/home-button";
+import { OverlaysControl } from "../controls/pills/overlays-control";
+import { NodePalette, dropKindFromEvent, fireCreateAt } from "../controls/panels/NodePalette";
+import { DistanceHomePanel } from "../controls/panels/DistanceHomePanel";
+import { TiltVectorAnglePanel } from "../controls/panels/TiltVectorAnglePanel";
+import { SceneTabs } from "../controls/panels/SceneTabs";
 import { useInteractionControls } from "../interaction/interaction-controls";
 import type { PickFn } from "../interaction/pick-types";
 import { Scene } from "./scene-content";
@@ -20,7 +20,7 @@ import { BufferScene, BufferLabelProjector } from "./buffer-scene";
 import { ProceduralEnvProvider } from "./scene-env";
 import type { BufferLabelPos } from "./buffer-scene";
 import { NavGuides } from "../nav/NavGuides";
-import { useOverlayFlags } from "../controls/overlay-flags";
+import { useOverlayFlags } from "../controls/flags/overlay-flags";
 
 // ---------------------------------------------------------------------------
 // ThreeView: Canvas wrapper + interaction + label overlay + widgets

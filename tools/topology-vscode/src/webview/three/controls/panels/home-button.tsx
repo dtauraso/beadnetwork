@@ -2,7 +2,7 @@
 
 import React, { useCallback } from "react";
 import * as THREE from "three";
-import { sendRawInput, buildHomeRaw } from "../interaction/raw-input";
+import { sendRawInput, buildHomeRaw } from "../../interaction/raw-input";
 
 /** HOME BUTTON: reframes the camera to fit all nodes in view. */
 export function HomeButton({

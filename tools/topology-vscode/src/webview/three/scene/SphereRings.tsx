@@ -12,7 +12,7 @@ import {
   readNodeVRX, readNodeVRY, readNodeVRZ, readNodeFRX, readNodeFRY, readNodeFRZ,
   readOverlayReachSphere,
 } from "../../../schema/buffer-layout";
-import { overlayOn } from "../controls/overlay-flags";
+import { overlayOn } from "../controls/flags/overlay-flags";
 import { NODE_SPHERE_RADIUS, NORMAL_DEGENERATE_EPS, SPHERE_RING_MIN_RADIUS, nodeRowColors } from "./buffer-scene-shared";
 
 // Mirrors the pre-branch SphereRing (scene-graph.tsx) EXACTLY: major radius R = the

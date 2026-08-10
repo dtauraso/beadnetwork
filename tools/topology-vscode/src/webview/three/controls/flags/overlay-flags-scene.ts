@@ -3,8 +3,8 @@
 // header for the full sibling-file list.
 
 import { useSyncExternalStore } from "react";
-import { getViewBlocks, subscribeViewBlocks } from "../scene/view-blocks";
-import { readOverlaySceneEditable, readOverlaySceneKinds } from "../../../schema/buffer-layout";
+import { getViewBlocks, subscribeViewBlocks } from "../../scene/view-blocks";
+import { readOverlaySceneEditable, readOverlaySceneKinds } from "../../../../schema/buffer-layout";
 
 /** Decode whether THIS scene can be structurally edited (Overlay block SceneEditable —
  *  SceneTab.Editable, Go's own per-scene property). false before the first snapshot: a
