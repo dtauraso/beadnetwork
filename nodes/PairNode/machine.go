@@ -76,7 +76,7 @@ package PairNode
 import (
 	"strconv"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring"
+	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 )
 
 // tiltMachine is THE machine — one instance per node, not one object per mode. What it carries is
@@ -85,11 +85,11 @@ import (
 // step with the mode itself.
 //
 // It is a VALUE, and its ZERO VALUE IS THE SETTING MODE — TiltMachineNone is the zero of
-// Wiring.TiltMachine. A Node built as a literal is therefore already in the mode a node starts in,
+// tiltvector.TiltMachine. A Node built as a literal is therefore already in the mode a node starts in,
 // with no constructor to call and no nil to test for. There is no second spelling of any mode, so
 // two machines are equal exactly when they are in the same mode.
 type tiltMachine struct {
-	mode Wiring.TiltMachine
+	mode tiltvector.TiltMachine
 }
 
 // nearerEndCount is THE measurement, and it is the one docs/pair-node/math/arith.html makes: how far the
@@ -132,17 +132,17 @@ type stoppingCount struct {
 	at func(r *ring) int32
 }
 
-var stoppingCounts = map[Wiring.TiltMachine]stoppingCount{
+var stoppingCounts = map[tiltvector.TiltMachine]stoppingCount{
 	// Setting: which machine to run is still being decided, so NOTHING IS OUT OF PLACE YET —
 	// every count is a stopping one. That is what makes a node being set up hold still by the
 	// ordinary rule instead of by an exemption from it: it is settled wherever it stands, so
 	// step is never reached.
-	Wiring.TiltMachineNone: {anywhere: true},
+	tiltvector.TiltMachineNone: {anywhere: true},
 	// The arrival lies ON this node's tilt line — either end of it, which from the nearer end
 	// is one count and not two.
-	Wiring.TiltMachinePerpendicular: {at: func(r *ring) int32 { return 0 }},
+	tiltvector.TiltMachinePerpendicular: {at: func(r *ring) int32 { return 0 }},
 	// The arrival lies a quarter turn off it, on the normal line.
-	Wiring.TiltMachineParallel: {at: func(r *ring) int32 { return r.quarterTurn }},
+	tiltvector.TiltMachineParallel: {at: func(r *ring) int32 { return r.quarterTurn }},
 }
 
 // stopping is this machine's row — the only per-mode data there is.
@@ -198,15 +198,15 @@ func (m tiltMachine) step(from, arrival *tiltState) (moved *tiltState, atBottom 
 }
 
 // choice is this machine's pair-wide name, so the end that chose can tell the other one
-// (Wiring.TiltMachine, carried on every vector message). It is the mode itself: the name this
+// (tiltvector.TiltMachine, carried on every vector message). It is the mode itself: the name this
 // package runs on and the name the two ends say to each other are ONE value, so there is no
 // mapping to keep honest in either direction.
-func (m tiltMachine) choice() Wiring.TiltMachine { return m.mode }
+func (m tiltMachine) choice() tiltvector.TiltMachine { return m.mode }
 
 // String names the mode for the diagnostic row — the modes have to be distinguishable there, since
 // a log that printed them alike is what once hid two of them being one state.
 func (m tiltMachine) String() string {
-	if m.mode == Wiring.TiltMachineNone {
+	if m.mode == tiltvector.TiltMachineNone {
 		return "setting"
 	}
 	return m.mode.String()
@@ -215,14 +215,14 @@ func (m tiltMachine) String() string {
 // setting is the mode a node starts in and returns to on a reset. It is spelled out here so the
 // readers that ask "is this node still being set up?" can say so by name rather than by comparing
 // against a bare zero value.
-var setting = tiltMachine{mode: Wiring.TiltMachineNone}
+var setting = tiltMachine{mode: tiltvector.TiltMachineNone}
 
 // machineFor is the machine a node runs for a pair-wide choice. There is no mapping table and no
 // per-mode object to look up: the choice IS the mode, so this is the machine holding it. A choice
 // this package does not recognise has no stopping counts, and running it would panic on the nil lookup
 // rather than silently behaving like some other mode — so it is refused here, where the name of
 // the broken invariant can still be said.
-func machineFor(choice Wiring.TiltMachine) tiltMachine {
+func machineFor(choice tiltvector.TiltMachine) tiltMachine {
 	if _, known := stoppingCounts[choice]; !known {
 		// The numeric value, not choice.String(): that falls back to "none" for anything it
 		// does not recognise, so it would name the wrong mode in exactly this message.
@@ -245,12 +245,12 @@ func machineFor(choice Wiring.TiltMachine) tiltMachine {
 //
 //	the gap is a quarter turn  ->  perpendicular
 //	anything else (acute)      ->  parallel
-func (n *Node) machineForGap(arrival *tiltState) Wiring.TiltMachine {
+func (n *Node) machineForGap(arrival *tiltState) tiltvector.TiltMachine {
 	partnerTilt := arrival.quarter.opposite // arrival + three quarters = arrival − a quarter
 	if n.topState().angleLength(partnerTilt) == n.ringOf().quarterTurn {
-		return Wiring.TiltMachinePerpendicular
+		return tiltvector.TiltMachinePerpendicular
 	}
-	return Wiring.TiltMachineParallel
+	return tiltvector.TiltMachineParallel
 }
 
 // adoptMachine sets which mode of the tilt machine this node runs. It is the ONE writer of that
@@ -261,7 +261,7 @@ func (n *Node) machineForGap(arrival *tiltState) Wiring.TiltMachine {
 // The choice STICKS: a node already running one keeps it, so a second choice crossing the pair
 // — or one arriving at an end that has already made its own — cannot switch it mid-run. Only a
 // reset clears it, and the next click after that makes a new one.
-func (n *Node) adoptMachine(choice Wiring.TiltMachine) {
+func (n *Node) adoptMachine(choice tiltvector.TiltMachine) {
 	if n.tilt.Machine != setting {
 		return
 	}

@@ -27,11 +27,12 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
+	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 )
 
 // defaultLatticePoints is the point count a fresh topology (or a missing/malformed
 // lattice.json) falls back to — the model's long-standing default (Wiring.FullTurnThetaIdx).
-const defaultLatticePoints int32 = FullTurnThetaIdx
+const defaultLatticePoints int32 = tiltvector.FullTurnThetaIdx
 
 // writeSceneLattice writes the current lattice point count as the WHOLE content of
 // latticePath (lattice.json) — the sole writer of that file.

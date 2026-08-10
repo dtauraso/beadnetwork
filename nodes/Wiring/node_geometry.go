@@ -27,6 +27,7 @@ import (
 	"fmt"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
@@ -124,7 +125,7 @@ func newNodeGeometry(id string, geom nodegeom.NodeGeom, tr *T.Trace, clockSrc cl
 		},
 		topo:   neighborTopology{partnerCenters: map[string]vec3{}},
 		clocks: nodeClocks{clockSrc: clockSrc, clk: clock.NewRealClock()},
-		tilt:   nodeTilt{latticePoints: FullTurnThetaIdx},
+		tilt:   nodeTilt{latticePoints: tiltvector.FullTurnThetaIdx},
 	}
 	// Self-seed centerOut with the initial geometry (even when !HasPos, in which case
 	// nodeWorldPos falls back to the origin) so the dispatch goroutine's first drain

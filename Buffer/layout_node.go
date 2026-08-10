@@ -83,7 +83,7 @@ type bufLayoutNode struct {
 	BottomTiltVectorTheta float32 `buf:"f32"` // bottom tilt vector direction: θ from world +y (radians)
 	CoplanarNormalTheta   float32 `buf:"f32"` // second vector direction: θ from world +y (radians)
 	// ReceivedVectorLen/Theta are a THIRD drawn vector: the direction that LAST
-	// ARRIVED on this node's own tilt-vector channel (nodes/Wiring/tilt_vector_channel.go),
+	// ARRIVED on this node's own tilt-vector channel (nodes/Wiring/tiltvector/tilt_vector_channel.go),
 	// kept by the RECEIVING node's own goroutine and replaced (never accumulated) by the
 	// next arrival — see nodes/PairNode/node.go's handleVectorCycle.
 	// Same "one column says both whether and how far" convention as TopTiltVectorLen above:

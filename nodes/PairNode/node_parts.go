@@ -24,6 +24,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring"
+	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 )
 
 // nodePlumbing owns EVERYTHING THIS NODE'S BUILDER PLUMBED INTO IT and nothing this node
@@ -179,15 +180,15 @@ type latticeState struct {
 // it decides nothing about them.
 type vectorExchange struct {
 	// VectorOut/VectorIn are THIS node's own ends of its dedicated tilt-vector channel
-	// (Wiring.TiltVectorMsg — an integer θ index, never floats on a channel),
+	// (tiltvector.TiltVectorMsg — an integer θ index, never floats on a channel),
 	// claimed at build time via BuildArgs.VectorOut/VectorIn. It travels ALONGSIDE the
 	// ordinary bead edge (In/Out above), never replacing it — beads are unaffected.
 	// Buffered depth 1, latest-wins, non-blocking on both ends
-	// (Wiring.SendVectorLatestNonBlocking / Wiring.PollRecvVector). nil when this
+	// (tiltvector.SendVectorLatestNonBlocking / tiltvector.PollRecvVector). nil when this
 	// node's edge partner did not also ask for one, or on a bare test build with no
 	// loader — both helpers already treat nil as "nothing wired".
-	VectorOut chan<- Wiring.TiltVectorMsg
-	VectorIn  <-chan Wiring.TiltVectorMsg
+	VectorOut chan<- tiltvector.TiltVectorMsg
+	VectorIn  <-chan tiltvector.TiltVectorMsg
 	// ReceivedThetaIdx/ReceivedSet are THIS node's own record of the LAST
 	// direction that ARRIVED on VectorIn — the third drawn arrow (user request: "show a
 	// 3rd vector...the last iteration of it as a different color in the node that

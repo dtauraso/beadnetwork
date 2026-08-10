@@ -7,7 +7,7 @@ package PairNode
 import (
 	"testing"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring"
+	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 )
 
 // TestTheWalkIsClosedForm holds the WHERE IT STOPS claim that docs/pair-node/math/arith.html makes, and
@@ -32,8 +32,8 @@ func TestTheWalkIsClosedForm(t *testing.T) {
 	const points = 24
 	r := newRing(points)
 	for _, m := range []tiltMachine{
-		{mode: Wiring.TiltMachineParallel},
-		{mode: Wiring.TiltMachinePerpendicular},
+		{mode: tiltvector.TiltMachineParallel},
+		{mode: tiltvector.TiltMachinePerpendicular},
 	} {
 		for arr := int32(0); arr < points; arr++ {
 			a := r.at(arr)

@@ -53,6 +53,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring"
+	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 )
 
 // Node COMPOSES the five owners its state is split across (node_parts.go) and adds nothing of
@@ -102,7 +103,7 @@ func (n *Node) clock() clock.Clock {
 // rather than ±1, so a step cannot leave the ring. The pairing that matters is with what
 // outgoingVector sends: this reads an arrival that is the partner's coplanar normal as-is.
 // Worked run: docs/pair-node/math/vectors.html.
-func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
+func (n *Node) stepFromVector(received tiltvector.TiltVectorMsg) bool {
 	arrival := n.ringOf().arrivedState(received.ThetaIdx)
 	before := n.topState()
 
@@ -148,7 +149,7 @@ func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
 // rest. A RESET marker (below) is the other way the exchange stops. This never touches In/Out
 // or beads on the halt path — the vector channel is a separate, additive exchange.
 func (n *Node) handleVectorCycle(tick int64) {
-	received, ok := Wiring.PollRecvVector(n.vec.VectorIn)
+	received, ok := tiltvector.PollRecvVector(n.vec.VectorIn)
 	if !ok {
 		return
 	}

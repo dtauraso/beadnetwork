@@ -6,6 +6,8 @@
 
 package Wiring
 
+import "github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
+
 // TiltVectorAngleSeed returns this node's persisted tilt-vector-angle index
 // (specNode.TopTiltVectorThetaIdx, 0 default) — the load-time seed for a kind that
 // owns its OWN index field (PairNode), so it starts from the same persisted value the
@@ -44,7 +46,7 @@ func (a BuildArgs) TiltEditIn() <-chan TiltEditMsg {
 // with no outgoing vector-capable edge, or a bare test build with no loader) —
 // SendVectorLatestNonBlocking already treats a nil channel as a no-op send, the
 // same fallback shape as every other unwired-port case in this file.
-func (a BuildArgs) VectorOut() chan<- TiltVectorMsg {
+func (a BuildArgs) VectorOut() chan<- tiltvector.TiltVectorMsg {
 	if a.pb.vectorOut == nil {
 		return nil
 	}
@@ -55,7 +57,7 @@ func (a BuildArgs) VectorOut() chan<- TiltVectorMsg {
 // — the counterpart to VectorOut. nil when unwired, in which case
 // PollRecvVector(nil) always reports ok=false, matching every other unwired-port
 // fallback in this file.
-func (a BuildArgs) VectorIn() <-chan TiltVectorMsg {
+func (a BuildArgs) VectorIn() <-chan tiltvector.TiltVectorMsg {
 	if a.pb.vectorIn == nil {
 		return nil
 	}

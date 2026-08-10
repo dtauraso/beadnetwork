@@ -8,7 +8,7 @@ package PairNode
 import (
 	"testing"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring"
+	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 )
 
 // TestFromRestIsTheQuarterOffset checks the closed form the update-rules page states, against the
@@ -28,8 +28,8 @@ import (
 func TestFromRestIsTheQuarterOffset(t *testing.T) {
 	for _, points := range []int32{24, 48} {
 		r := newRing(points)
-		perp := tiltMachine{mode: Wiring.TiltMachinePerpendicular}
-		par := tiltMachine{mode: Wiring.TiltMachineParallel}
+		perp := tiltMachine{mode: tiltvector.TiltMachinePerpendicular}
+		par := tiltMachine{mode: tiltvector.TiltMachineParallel}
 		for tilt := int32(0); tilt < points; tilt++ {
 			for arr := int32(0); arr < points; arr++ {
 				from, a := r.at(tilt), r.at(arr)

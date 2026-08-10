@@ -6,6 +6,7 @@
 package Wiring
 
 import (
+	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
@@ -74,8 +75,8 @@ type PortBindings struct {
 	// endpoint didn't also ask for one) resolves to nil, which the non-blocking
 	// send/receive helpers already treat as "nothing wired" — same fallback shape as
 	// every other unwired-port case in this file.
-	vectorOut map[string]chan TiltVectorMsg
-	vectorIn  map[string]chan TiltVectorMsg
+	vectorOut map[string]chan tiltvector.TiltVectorMsg
+	vectorIn  map[string]chan tiltvector.TiltVectorMsg
 }
 
 // singleBinding is the resolved paced binding for one single port. For an INPUT

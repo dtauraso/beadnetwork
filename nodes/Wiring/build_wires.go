@@ -7,6 +7,7 @@ package Wiring
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
@@ -75,7 +76,7 @@ func (b *buildCtx) allocateWires() {
 
 // allocateVectorChannels creates one dedicated node-to-node tilt-vector channel
 // (tilt_vector_channel.go's TiltVectorMsg, buffered 1, latest-wins) per directed
-// edge whose BOTH endpoint kinds ask for one (KindWantsVectorChannel — today only
+// edge whose BOTH endpoint kinds ask for one (tiltvector.KindWantsVectorChannel — today only
 // PairNode). A kind that never asks gets no entry in either map and is entirely
 // unaffected. This travels ALONGSIDE the ordinary bead edge (allocateWires above),
 // never replacing it — the source node keeps its existing *wire.Out for beads and
@@ -86,13 +87,13 @@ func (b *buildCtx) allocateVectorChannels() {
 	for _, n := range b.spec.Nodes {
 		kindByID[n.ID] = n.Type
 	}
-	vectorOutByNode := map[string]chan TiltVectorMsg{}
-	vectorInByNode := map[string]chan TiltVectorMsg{}
+	vectorOutByNode := map[string]chan tiltvector.TiltVectorMsg{}
+	vectorInByNode := map[string]chan tiltvector.TiltVectorMsg{}
 	for _, e := range b.spec.Edges {
-		if !KindWantsVectorChannel(kindByID[e.Source]) || !KindWantsVectorChannel(kindByID[e.Target]) {
+		if !tiltvector.KindWantsVectorChannel(kindByID[e.Source]) || !tiltvector.KindWantsVectorChannel(kindByID[e.Target]) {
 			continue
 		}
-		sourceToTargetVectorCh := make(chan TiltVectorMsg, 1)
+		sourceToTargetVectorCh := make(chan tiltvector.TiltVectorMsg, 1)
 		vectorOutByNode[e.Source] = sourceToTargetVectorCh
 		vectorInByNode[e.Target] = sourceToTargetVectorCh
 	}

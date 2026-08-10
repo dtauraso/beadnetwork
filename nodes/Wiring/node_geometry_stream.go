@@ -10,6 +10,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -111,7 +112,7 @@ func (m *nodeGeometry) writeStreamFrame(events []wire.RowEvent) {
 	// per frame; every conversion below reads this local rather than recomputing it.
 	points := m.tilt.latticePoints
 	if points == 0 {
-		points = FullTurnThetaIdx
+		points = tiltvector.FullTurnThetaIdx
 	}
 	latticeThetaStep := 2 * math.Pi / float64(points)
 	// topTiltVectorTheta is this node's OWN vector direction — separate from the ring

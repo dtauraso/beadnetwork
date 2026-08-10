@@ -10,27 +10,27 @@ package PairNode
 // (memory/feedback_abc_times_constant_not_rederive.md).
 
 import (
-	"github.com/dtauraso/wirefold/nodes/Wiring"
+	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 )
 
 // bottomTilt is THIS node's own BOTTOM TILT VECTOR: the state a half turn from its own top,
 // so it points out of the node's other side and turns with the top as the top turns. A LINK,
 // resolved when the ring was built (ring.go) — no arithmetic, and no trig
 // (memory/feedback_abc_times_constant_not_rederive.md). There is no φ any more: a half turn
-// in θ alone already negates the direction exactly (see Wiring.HalfTurnThetaIdx's own doc
+// in θ alone already negates the direction exactly (see tiltvector.HalfTurnThetaIdx's own doc
 // comment).
-func (n *Node) bottomTilt() Wiring.TiltVectorMsg {
-	return Wiring.TiltVectorMsg{ThetaIdx: n.bottomState().idx}
+func (n *Node) bottomTilt() tiltvector.TiltVectorMsg {
+	return tiltvector.TiltVectorMsg{ThetaIdx: n.bottomState().idx}
 }
 
 // coplanarNormal is THIS node's own coplanar normal: ONE QUARTER TURN past this node's own
-// tilt vector, always the same way round — Wiring.PerpendicularThetaIdx (6 steps of
-// Wiring.CurveParamTiltVectorAngleStep, 90°) ADDED to the tilt index, and nothing else. Both
+// tilt vector, always the same way round — tiltvector.PerpendicularThetaIdx (6 steps of
+// nodegeom.CurveParamTiltVectorAngleStep, 90°) ADDED to the tilt index, and nothing else. Both
 // ends of a pair run this same unmodified addition — there is no sign difference between
 // them. Index arithmetic, never trig (memory/feedback_abc_times_constant_not_rederive.md).
 //
 // The wrap is a COMPARISON, not a division: a quarter turn added to an index can carry it at
-// most one full turn past the top of the circle, so one test against Wiring.FullTurnThetaIdx
+// most one full turn past the top of the circle, so one test against tiltvector.FullTurnThetaIdx
 // and one subtraction bring it back. No `/`, no `%`, and therefore no sign convention to get
 // wrong at negative indices — which is what the arithmetic this replaced needed floor
 // division for.
@@ -44,8 +44,8 @@ func (n *Node) bottomTilt() Wiring.TiltVectorMsg {
 // (sinθ, cosθ, 0), which has no pole and no fold anywhere. What the term actually did was
 // point the normal the OTHER way, t + 18 rather than t + 6, over half the index range,
 // including the negative indices a ▼ click reaches first.
-func (n *Node) coplanarNormal() Wiring.TiltVectorMsg {
-	return Wiring.TiltVectorMsg{ThetaIdx: n.topState().quarter.idx}
+func (n *Node) coplanarNormal() tiltvector.TiltVectorMsg {
+	return tiltvector.TiltVectorMsg{ThetaIdx: n.topState().quarter.idx}
 }
 
 // syncTiltIndex reports THIS node's current tilt index AND its current coplanar-normal
@@ -83,7 +83,7 @@ func (n *Node) syncReceivedVector() {
 // the very state the pair came to rest in. The only thing that removes it is a RESET
 // (clear — this node's own or its partner's marker), which removes it because a
 // reset means there is nothing in the pair at all any more.
-func (n *Node) recordReceived(received Wiring.TiltVectorMsg) {
+func (n *Node) recordReceived(received tiltvector.TiltVectorMsg) {
 	n.vec.ReceivedThetaIdx = received.ThetaIdx
 	n.vec.ReceivedSet = true
 	n.syncReceivedVector()
@@ -95,7 +95,7 @@ func (n *Node) recordReceived(received Wiring.TiltVectorMsg) {
 func (n *Node) reply() {
 	n.syncTiltIndex()
 	n.rest.msgsSinceOpen++ // this node's own reply
-	Wiring.SendVectorLatestNonBlocking(n.vec.VectorOut, n.outgoingVector())
+	tiltvector.SendVectorLatestNonBlocking(n.vec.VectorOut, n.outgoingVector())
 }
 
 // outgoingVector is what THIS node SENDS on VectorOut: its own coplanarNormal. The message
@@ -108,7 +108,7 @@ func (n *Node) reply() {
 // and rotating by a half turn in particular changes nothing at all about where the pair
 // comes to rest, since the bottom tilt is the top plus that same half turn — it only swaps
 // which of the receiver's two acute tests fires.
-func (n *Node) outgoingVector() Wiring.TiltVectorMsg {
+func (n *Node) outgoingVector() tiltvector.TiltVectorMsg {
 	v := n.coplanarNormal()
 	// The lattice the index is on travels with it — see TiltVectorMsg.Points. Without it the
 	// partner cannot tell a direction picked before a point-count change from one picked

@@ -4,7 +4,7 @@ package PairNode
 // package's test files. See docs/process/testing-shape.md for what a test here may assert.
 
 import (
-	"github.com/dtauraso/wirefold/nodes/Wiring"
+	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 )
 
 // offBy is how far a count sits from its mode's stop, the short way round the count-ring.
@@ -47,6 +47,6 @@ func testRing() *ring { return newRing(48) }
 // The two chosen modes, named once here so the tests read as the modes rather than as calls.
 // `setting` is the zero value and lives in machine.go, since production code names it too.
 var (
-	perpendicular = machineFor(Wiring.TiltMachinePerpendicular)
-	parallel      = machineFor(Wiring.TiltMachineParallel)
+	perpendicular = machineFor(tiltvector.TiltMachinePerpendicular)
+	parallel      = machineFor(tiltvector.TiltMachineParallel)
 )

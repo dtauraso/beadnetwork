@@ -13,6 +13,7 @@ package PairNode
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring"
+	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
@@ -59,7 +60,7 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 		n.clear()
 		// Tell the partner, so it clears too — see clear's own doc comment for why the
 		// partner's clear, not this one, is what actually ends the exchange.
-		Wiring.SendVectorLatestNonBlocking(n.vec.VectorOut, Wiring.TiltVectorMsg{Reset: true})
+		tiltvector.SendVectorLatestNonBlocking(n.vec.VectorOut, tiltvector.TiltVectorMsg{Reset: true})
 		return false
 	}
 	if edit.Start {
@@ -82,7 +83,7 @@ func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
 		// not part of a round, and counting it would make the opening end report one more
 		// message than the other for the same amount of work — the two ends did the same
 		// number of rounds and the same number of receive/reply pairs.
-		Wiring.SendVectorLatestNonBlocking(n.vec.VectorOut, n.outgoingVector())
+		tiltvector.SendVectorLatestNonBlocking(n.vec.VectorOut, n.outgoingVector())
 		return true
 	}
 	// A click names the TOP — it is the arrow the user is dragging, not a measured end.
@@ -145,7 +146,7 @@ func (n *Node) clear() {
 	if n.plumb.Self != nil {
 		n.plumb.Self.SetRoundsToParallel(0, 0)
 	}
-	Wiring.PollRecvVector(n.vec.VectorIn)
+	tiltvector.PollRecvVector(n.vec.VectorIn)
 	n.drainIn()
 	if n.plumb.ClearOutBeads != nil {
 		n.plumb.ClearOutBeads()

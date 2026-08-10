@@ -7,13 +7,13 @@ package PairNode
 import (
 	"testing"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring"
+	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 )
 
 // openingOutcome is what one opening of the exchange came to: which machine the pair took up,
 // how many rounds it took, and how far apart the two TILTS ended.
 type openingOutcome struct {
-	machine Wiring.TiltMachine
+	machine tiltvector.TiltMachine
 	rounds  int
 	tiltGap int32
 	settled bool
@@ -31,7 +31,7 @@ func runOpening(r *ring, tiltA, tiltB int32) openingOutcome {
 
 	// One end reads an arrival exactly as handleVectorCycle does: adopt what the sender says it
 	// is running, then choose from the gap if still running nothing, then step.
-	read := func(n *Node, arrival *tiltState, senderRuns Wiring.TiltMachine) bool {
+	read := func(n *Node, arrival *tiltState, senderRuns tiltvector.TiltMachine) bool {
 		n.adoptMachine(senderRuns)
 		if n.tilt.Machine == setting {
 			n.adoptMachine(n.machineForGap(arrival))
@@ -48,7 +48,7 @@ func runOpening(r *ring, tiltA, tiltB int32) openingOutcome {
 		}
 		return n.topState() != before
 	}
-	runs := func(n *Node) Wiring.TiltMachine { return n.tilt.Machine.choice() }
+	runs := func(n *Node) tiltvector.TiltMachine { return n.tilt.Machine.choice() }
 	normal := func(n *Node) *tiltState { return n.topState().quarter }
 
 	out := openingOutcome{}
@@ -78,7 +78,7 @@ func TestEveryOpeningSettlesOnTheMachineItChose(t *testing.T) {
 		for tiltB := int32(0); tiltB < r.points; tiltB++ {
 			got := runOpening(r, tiltA, tiltB)
 			switch {
-			case got.machine == Wiring.TiltMachinePerpendicular:
+			case got.machine == tiltvector.TiltMachinePerpendicular:
 				perp++
 			case got.tiltGap == 0:
 				par, same = par+1, same+1
@@ -99,7 +99,7 @@ func TestEveryOpeningSettlesOnTheMachineItChose(t *testing.T) {
 			// angle length folds the long way round into the short one and a reversed partner
 			// lands the same distance off. Perpendicular has the one, a quarter turn.
 			ok := got.tiltGap == r.quarterTurn
-			if got.machine == Wiring.TiltMachineParallel {
+			if got.machine == tiltvector.TiltMachineParallel {
 				ok = got.tiltGap == 0 || got.tiltGap == r.halfTurn
 			}
 			if !ok {

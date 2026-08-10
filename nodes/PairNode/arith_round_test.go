@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring"
+	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 )
 
 // TestOneRoundIsSignAndRemainder is the other half of what docs/pair-node/math/arith.html rests on: ONE
@@ -75,8 +75,8 @@ func oneRoundSweep(t *testing.T, points int32) {
 		return 0
 	}
 	for _, m := range []tiltMachine{
-		{mode: Wiring.TiltMachineParallel},
-		{mode: Wiring.TiltMachinePerpendicular},
+		{mode: tiltvector.TiltMachineParallel},
+		{mode: tiltvector.TiltMachinePerpendicular},
 	} {
 		// The two stopping values of t - a, and the two values exactly between them. A tilt
 		// is a line, so t and t + h are the same tilt, so each arrangement stops at two
@@ -88,7 +88,7 @@ func oneRoundSweep(t *testing.T, points int32) {
 		shift := int32(0)
 		stops := map[int32]bool{quarter: true, quarter + half: true}
 		between := map[int32]bool{0: true, half: true}
-		if m.mode == Wiring.TiltMachinePerpendicular {
+		if m.mode == tiltvector.TiltMachinePerpendicular {
 			shift = quarter
 			stops, between = between, stops
 		}
@@ -220,7 +220,7 @@ func oneRoundSweep(t *testing.T, points int32) {
 				}
 				up := abs32(d-quarter) <= abs32(eNbr-quarter)
 				rawUp := abs32(c+1-quarter) <= abs32(c-1-quarter)
-				if m.mode == Wiring.TiltMachinePerpendicular {
+				if m.mode == tiltvector.TiltMachinePerpendicular {
 					up = abs32(d-quarter) >= abs32(eNbr-quarter)
 					rawUp = abs32(c+1-quarter) >= abs32(c-1-quarter)
 				}
@@ -243,7 +243,7 @@ func oneRoundSweep(t *testing.T, points int32) {
 				//	parallel        c < q -> up      c > q -> down     (c = q stands still)
 				//	perpendicular   c >= q -> up     c < q -> down     (c = 0 stands still)
 				fromC := c < quarter
-				if m.mode == Wiring.TiltMachinePerpendicular {
+				if m.mode == tiltvector.TiltMachinePerpendicular {
 					fromC = c >= quarter
 				}
 				if e != 0 && fromC != up {
@@ -271,7 +271,7 @@ func oneRoundSweep(t *testing.T, points int32) {
 					bit, measure = 1, v
 				}
 				byOwnCount := measure < quarter
-				if m.mode == Wiring.TiltMachinePerpendicular {
+				if m.mode == tiltvector.TiltMachinePerpendicular {
 					byOwnCount = measure >= quarter
 				}
 				if e != 0 && byOwnCount != up {
@@ -285,11 +285,11 @@ func oneRoundSweep(t *testing.T, points int32) {
 				cr := half - c
 				var byEnd bool // does t go up?
 				switch {
-				case acuteTop && m.mode == Wiring.TiltMachineParallel:
+				case acuteTop && m.mode == tiltvector.TiltMachineParallel:
 					byEnd = c < quarter
 				case acuteTop:
 					byEnd = c >= quarter
-				case m.mode == Wiring.TiltMachineParallel:
+				case m.mode == tiltvector.TiltMachineParallel:
 					byEnd = cr > quarter // flipped
 				default:
 					byEnd = cr <= quarter // flipped
@@ -328,7 +328,7 @@ func oneRoundSweep(t *testing.T, points int32) {
 				// f comes straight off c, with no intermediate: parallel stops where c is
 				// the quarter, perpendicular where c is 0, and the two are complements
 				// because they stop at opposite ends of the same measurement.
-				if m.mode == Wiring.TiltMachineParallel {
+				if m.mode == tiltvector.TiltMachineParallel {
 					if got, want := offBy(m, cur, a), abs32(c-quarter); got != want {
 						t.Fatalf("parallel t=%d a=%d: c=%d gives |c-q|=%d but offBy=%d",
 							tilt, arr, c, want, got)
@@ -353,7 +353,7 @@ func oneRoundSweep(t *testing.T, points int32) {
 				// no subtraction from the quarter and no case for which arrangement.
 				antiNormL := cur.quarter.opposite.angleLength(a)
 				line := [2]int32{topL, botL}
-				if m.mode == Wiring.TiltMachineParallel {
+				if m.mode == tiltvector.TiltMachineParallel {
 					line = [2]int32{normL, antiNormL}
 				}
 				if got := offBy(m, cur, a); got != min(line[0], line[1]) {
@@ -362,11 +362,11 @@ func oneRoundSweep(t *testing.T, points int32) {
 				}
 
 				stopped := e == 0
-				if m.mode == Wiring.TiltMachinePerpendicular && stopped != onTiltLine {
+				if m.mode == tiltvector.TiltMachinePerpendicular && stopped != onTiltLine {
 					t.Fatalf("perpendicular t=%d a=%d: stopped=%v but on tilt line=%v",
 						tilt, arr, stopped, onTiltLine)
 				}
-				if m.mode == Wiring.TiltMachineParallel && stopped != onNormalLine {
+				if m.mode == tiltvector.TiltMachineParallel && stopped != onNormalLine {
 					t.Fatalf("parallel t=%d a=%d: stopped=%v but on normal line=%v",
 						tilt, arr, stopped, onNormalLine)
 				}

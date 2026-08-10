@@ -16,6 +16,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
@@ -93,8 +94,8 @@ type buildCtx struct {
 	// channel end (tilt_vector_channel.go), built once by allocateVectorChannels
 	// for every edge whose BOTH endpoint kinds asked for one (today: PairNode
 	// only). A node id absent from a map has no vector channel on that side.
-	vectorOutByNode map[string]chan TiltVectorMsg
-	vectorInByNode  map[string]chan TiltVectorMsg
+	vectorOutByNode map[string]chan tiltvector.TiltVectorMsg
+	vectorInByNode  map[string]chan tiltvector.TiltVectorMsg
 }
 
 // buildFromSpec constructs nodes, wires, and the MoveDispatch from an already-parsed

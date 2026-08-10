@@ -7,7 +7,7 @@ package PairNode
 import (
 	"testing"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring"
+	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 )
 
 func TestMachineIsReadFromTheGapNotFromOneTilt(t *testing.T) {
@@ -19,19 +19,19 @@ func TestMachineIsReadFromTheGapNotFromOneTilt(t *testing.T) {
 	cases := []struct {
 		name             string
 		ownTilt, partner int32
-		want             Wiring.TiltMachine
+		want             tiltvector.TiltMachine
 	}{
 		// The case the live test runs: one node clicked to a quarter turn, the other left at 0.
-		{"a quarter turn apart", 12, 0, Wiring.TiltMachinePerpendicular},
-		{"a quarter turn apart, the other way", 0, 12, Wiring.TiltMachinePerpendicular},
+		{"a quarter turn apart", 12, 0, tiltvector.TiltMachinePerpendicular},
+		{"a quarter turn apart, the other way", 0, 12, tiltvector.TiltMachinePerpendicular},
 		// BOTH tilted, still a quarter apart — the gap is the pair's, not one node's angle
 		// against zero, which is what reading a single tilt got wrong.
-		{"both tilted, a quarter apart", 20, 8, Wiring.TiltMachinePerpendicular},
-		{"the same direction", 7, 7, Wiring.TiltMachineParallel},
+		{"both tilted, a quarter apart", 20, 8, tiltvector.TiltMachinePerpendicular},
+		{"the same direction", 7, 7, tiltvector.TiltMachineParallel},
 		// One step short of a quarter turn — the gap a click reads mid-setup. Deciding here is
 		// what locked a pair to the wrong machine while the tilt was still on its way.
-		{"one step off a quarter turn", 11, 0, Wiring.TiltMachineParallel},
-		{"an ordinary acute gap", 3, 0, Wiring.TiltMachineParallel},
+		{"one step off a quarter turn", 11, 0, tiltvector.TiltMachineParallel},
+		{"an ordinary acute gap", 3, 0, tiltvector.TiltMachineParallel},
 	}
 	for _, c := range cases {
 		n := &Node{lattice: latticeState{Ring: r}, tilt: tiltHeld{Top: r.at(c.ownTilt)}}
@@ -52,7 +52,7 @@ func TestASettingNodeHoldsWhereverItStands(t *testing.T) {
 		if n.tilt.Machine != setting {
 			t.Fatalf("a fresh node is not in the setting mode: %v", n.tilt.Machine)
 		}
-		n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: sep})
+		n.stepFromVector(tiltvector.TiltVectorMsg{ThetaIdx: sep})
 		if n.tilt.Top != r.at(5) {
 			t.Errorf("arrival at angle length %d moved a node that is still being set up: top %d, want 5",
 				sep, n.tilt.Top.idx)
@@ -65,11 +65,11 @@ func TestASettingNodeHoldsWhereverItStands(t *testing.T) {
 func TestASettingNodeTellsTheOtherEndNothing(t *testing.T) {
 	r := testRing()
 	n := &Node{lattice: latticeState{Ring: r}, tilt: tiltHeld{Top: r.at(0)}}
-	if got := n.outgoingVector().Machine; got != Wiring.TiltMachineNone {
+	if got := n.outgoingVector().Machine; got != tiltvector.TiltMachineNone {
 		t.Errorf("a node still being set up announced machine %v, want none", got)
 	}
-	n.adoptMachine(Wiring.TiltMachineParallel)
-	if got := n.outgoingVector().Machine; got != Wiring.TiltMachineParallel {
+	n.adoptMachine(tiltvector.TiltMachineParallel)
+	if got := n.outgoingVector().Machine; got != tiltvector.TiltMachineParallel {
 		t.Errorf("after adopting, announced %v, want parallel", got)
 	}
 }
@@ -78,14 +78,14 @@ func TestAdoptedMachineSticksUntilCleared(t *testing.T) {
 	r := testRing()
 	n := &Node{lattice: latticeState{Ring: r}, tilt: tiltHeld{Top: r.at(0)}}
 
-	n.adoptMachine(Wiring.TiltMachinePerpendicular)
+	n.adoptMachine(tiltvector.TiltMachinePerpendicular)
 	if n.tilt.Machine != perpendicular {
 		t.Fatalf("adopt did not take: running %v", n.tilt.Machine)
 	}
 	// A second choice — a click landing mid-run, or the partner's own answer arriving — must not
 	// switch a running machine. Re-deciding on a jitter click switched a started perpendicular
 	// pair to parallel one step after START.
-	n.adoptMachine(Wiring.TiltMachineParallel)
+	n.adoptMachine(tiltvector.TiltMachineParallel)
 	if n.tilt.Machine != perpendicular {
 		t.Errorf("a later choice switched a running machine: now %v", n.tilt.Machine)
 	}
@@ -104,7 +104,7 @@ func TestNoMachineMeansNoMovement(t *testing.T) {
 	// closing on the arrival IS the perpendicular measure.
 	before := n.topState()
 	for _, sep := range []int32{0, 1, 7, 12, 24, 40} {
-		n.stepFromVector(Wiring.TiltVectorMsg{ThetaIdx: sep, Points: r.points})
+		n.stepFromVector(tiltvector.TiltVectorMsg{ThetaIdx: sep, Points: r.points})
 		if got := n.topState(); got != before {
 			t.Fatalf("arrival at %d moved the tilt with no machine running: %d -> %d",
 				sep, before.idx, got.idx)

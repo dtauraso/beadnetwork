@@ -1,4 +1,4 @@
-package Wiring
+package tiltvector
 
 import (
 	"testing"

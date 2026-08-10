@@ -35,7 +35,7 @@ package PairNode
 import (
 	"fmt"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring"
+	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 )
 
 // tiltState is one of its ring's directions. Values are the ring's own elements — a
@@ -221,7 +221,7 @@ func abs32(v int32) int32 {
 // model has always run at, and what a bare test build in this package constructs against. It
 // is built once and never written to, so it is immutable shared data rather than shared
 // mutable state; a node given a different count builds its own ring instead of touching this.
-var defaultRing = newRing(Wiring.FullTurnThetaIdx)
+var defaultRing = newRing(tiltvector.FullTurnThetaIdx)
 
 // A NODE'S OWN PLACE ON THE RING — the accessors every other file reads its lattice and its
 // two ends through, and the one function that gives it a different lattice. They live here
@@ -276,7 +276,7 @@ func (n *Node) setBottom(bottom *tiltState) { n.tilt.Bottom, n.tilt.Top = bottom
 // same count within its own next cycle and the exchange resumes from directions both
 // ends can read. Zero is a bare test build that stated nothing, and is taken as this
 // node's own lattice.
-func (n *Node) fromAnotherLattice(received Wiring.TiltVectorMsg) bool {
+func (n *Node) fromAnotherLattice(received tiltvector.TiltVectorMsg) bool {
 	return received.Points != 0 && received.Points != n.ringOf().points
 }
 
@@ -329,7 +329,7 @@ func (n *Node) adoptLattice(points int32) {
 	n.vec.ReceivedThetaIdx = 0
 	n.vec.ReceivedSet = false
 	n.syncReceivedVector()
-	Wiring.PollRecvVector(n.vec.VectorIn)
+	tiltvector.PollRecvVector(n.vec.VectorIn)
 	if n.lattice.SyncLatticePoints != nil {
 		n.lattice.SyncLatticePoints(points)
 	}
