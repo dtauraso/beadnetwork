@@ -1,11 +1,12 @@
-// scene_tabs.go — the SCENE TABS: which diagrams this editor can show, which one is
-// showing, and how a click on a tab becomes the other diagram.
+// scene_tabs.go — the SCENE TAB REGISTRY: which diagrams this editor can show and what
+// each one declares about itself.
 //
-// OWNERSHIP: Go owns all three. The tab list is this file's SceneTabs; the selection is
-// Go's own persisted state (<anchor>/view/scene.json); the switch is performed by Go. TS
-// renders the strip from the VIEW frame and forwards a click as one addressed edit
-// (edit-update kind="scene" attr="selected"). It holds no list, no labels, no selection —
-// same shape as the overlay toggles (see overlay_gen.go / overlay-flags.ts).
+// OWNERSHIP: Go owns all three (the tab list, the selection, and the switch — see this
+// file's sibling scene_switch.go for the switch and scene_selection.go for anchor/path
+// resolution against the selection). TS renders the strip from the VIEW frame and forwards
+// a click as one addressed edit (edit-update kind="scene" attr="selected"). It holds no
+// list, no labels, no selection — same shape as the overlay toggles (see overlay_gen.go /
+// overlay-flags.ts).
 //
 // THE ANCHOR vs THE SCENE. The -topology flag is the ANCHOR: the fixed path the extension
 // host launches against and reads counts.json from. It never changes for the life of the
@@ -22,15 +23,6 @@
 // beads mid-traversal — an in-process rebuild — buys nothing over the respawn that the .go
 // file watcher already performs on every Go edit.
 package Wiring
-
-import (
-	"encoding/json"
-	"fmt"
-	"os"
-	"path/filepath"
-
-	B "github.com/dtauraso/wirefold/Buffer"
-)
 
 // SceneTab is one tab: the label Go streams to the strip, and the directory it loads.
 // Dir is resolved relative to the ANCHOR'S PARENT, so the scenes are sibling topology
@@ -153,7 +145,7 @@ type SceneTab struct {
 
 // SceneTabs is the tab strip, in display order. Index 0 is the DEFAULT: its Dir must be
 // the anchor's own basename, since that is the path the extension host launches with and
-// sizes its stream fds from (see AnchorIsTabbed).
+// sizes its stream fds from (see AnchorIsTabbed, in scene_selection.go).
 var SceneTabs = []SceneTab{
 	// The ring takes the PIPELINE kinds — the nine it is already built from, plus HoldFlip
 	// and Pacer, which speak the same vocabulary (a value in, a value on) and were simply
@@ -171,208 +163,4 @@ var SceneTabs = []SceneTab{
 	// build something the pair's own model has no place for — its exchange is two nodes and
 	// the vectors between them, not a pipeline of gates.
 	{Name: "pair", Dir: "topology-pair", QuantizedDrag: false, CoplanarEdges: true, UpAxis: true, ClockDivisor: 64, DistanceGroups: false, Editable: true, Kinds: []string{"PairNode", "NormalSum"}},
-}
-
-// sceneSelectionFile is the persisted selection, held at the ANCHOR (never inside a scene).
-type sceneSelectionFile struct {
-	Selected string `json:"selected"`
-}
-
-// AnchorIsTabbed reports whether this anchor is the tabbed layout's anchor — i.e. whether
-// its basename is tab 0's Dir. A test fixture or a one-off tree launched from somewhere
-// else is NOT tabbed: it loads exactly itself, streams an empty tab strip, and no tab UI
-// appears. That keeps every existing fixture working untouched rather than requiring each
-// to grow a scenes layout.
-func AnchorIsTabbed(anchorPath string) bool {
-	return filepath.Base(filepath.Clean(anchorPath)) == SceneTabs[0].Dir
-}
-
-// SelectedSceneIndex reads the persisted selection for this anchor. An absent, malformed,
-// or unknown-name file means tab 0 — a fresh checkout has no selection, and that is the
-// normal case, not an error.
-func SelectedSceneIndex(anchorPath string) int {
-	if !AnchorIsTabbed(anchorPath) {
-		return 0
-	}
-	b, err := os.ReadFile(sceneSelectionFilePath(anchorPath))
-	if err != nil {
-		return 0
-	}
-	var f sceneSelectionFile
-	if json.Unmarshal(b, &f) != nil {
-		return 0
-	}
-	for i, t := range SceneTabs {
-		if t.Name == f.Selected {
-			return i
-		}
-	}
-	return 0
-}
-
-// ResolveScenePath maps an anchor to the directory LoadTopology should actually load: the
-// selected tab's sibling directory, or the anchor itself when this anchor is not tabbed.
-func ResolveScenePath(anchorPath string) string {
-	if !AnchorIsTabbed(anchorPath) {
-		return anchorPath
-	}
-	tab := SceneTabs[SelectedSceneIndex(anchorPath)]
-	return filepath.Join(filepath.Dir(filepath.Clean(anchorPath)), tab.Dir)
-}
-
-// SceneTabNames is the label list streamed on the VIEW frame. Empty for an untabbed
-// anchor, which is what makes the strip absent rather than a single dead tab.
-func SceneTabNames(anchorPath string) []string {
-	if !AnchorIsTabbed(anchorPath) {
-		return nil
-	}
-	names := make([]string, len(SceneTabs))
-	for i, t := range SceneTabs {
-		names[i] = t.Name
-	}
-	return names
-}
-
-// EnableSceneSwitch arms tab switching. quit ends the run (main's context cancel), which
-// the extension host's looping runner follows with a respawn. Called from main.go after
-// load, before the stdin reader starts — the view-owner goroutine is the only caller of
-// SelectScene, so this field is written once, before that goroutine exists.
-func (md *MoveDispatch) EnableSceneSwitch(anchorPath string, quit func()) {
-	md.Scenes.AnchorPath = anchorPath
-	md.Scenes.Quit = quit
-}
-
-// SelectScene handles a tab click: persist, then end the run so the respawn loads it.
-// Selecting the tab already showing is a no-op — restarting the sim to arrive at the same
-// diagram would look like a random flicker to whoever clicked.
-func (md *MoveDispatch) SelectScene(idx int) {
-	if md.Scenes.AnchorPath == "" || md.Scenes.Quit == nil {
-		return
-	}
-	if idx < 0 || idx >= len(SceneTabs) {
-		return
-	}
-	if idx == SelectedSceneIndex(md.Scenes.AnchorPath) {
-		return
-	}
-	if err := writeSelectedScene(md.Scenes.AnchorPath, idx); err != nil {
-		// Do NOT quit on a failed write: the respawn would reload the OLD scene and the
-		// click would read as "the editor restarted for no reason". Report and stay put.
-		// stderr, not a breadcrumb: the extension host pipes this straight to the sim's
-		// output channel AND .probe/go-errors.jsonl, which is where an operator looks when
-		// a click did nothing (memory/feedback_runner_errors_probe_first.md).
-		fmt.Fprintf(os.Stderr, "scene tab: could not persist selection to %s: %v — staying on the current scene\n",
-			sceneSelectionFilePath(md.Scenes.AnchorPath), err)
-		return
-	}
-	md.Scenes.Quit()
-}
-
-// SceneUsesQuantizedDrag answers, for the tree actually being LOADED, whether the node
-// drag snaps to the bead lattice. It takes the loaded scene's own path (not the anchor)
-// because the loader knows which tree it is opening but not which tab pointed it there.
-// An unknown tree — every test fixture, every one-off run — gets the quantized drag, which
-// is what every scene did before scenes were selectable.
-func SceneUsesQuantizedDrag(scenePath string) bool {
-	base := filepath.Base(filepath.Clean(scenePath))
-	for _, t := range SceneTabs {
-		if t.Dir == base {
-			return t.QuantizedDrag
-		}
-	}
-	return true
-}
-
-// SceneWantsCoplanarEdges answers, for the tree being LOADED, whether a node's ring plane
-// must contain the edge leaving it (SceneTab.CoplanarEdges). Unknown trees keep the plain
-// inward pole, which is what every scene had before this was a choice.
-func SceneWantsCoplanarEdges(scenePath string) bool {
-	base := filepath.Base(filepath.Clean(scenePath))
-	for _, t := range SceneTabs {
-		if t.Dir == base {
-			return t.CoplanarEdges
-		}
-	}
-	return false
-}
-
-// SceneWantsUpAxis answers whether the tree being LOADED aims its node tori and per-node
-// vectors straight up (SceneTab.UpAxis). Unknown trees do not — they keep the unrotated
-// ring every scene had before ring orientation existed.
-func SceneWantsUpAxis(scenePath string) bool {
-	base := filepath.Base(filepath.Clean(scenePath))
-	for _, t := range SceneTabs {
-		if t.Dir == base {
-			return t.UpAxis
-		}
-	}
-	return false
-}
-
-// SceneClockDivisor answers, for the tree being LOADED, its SceneTab.ClockDivisor. A test
-// fixture or one-off tree with no tab entry gets divisor 1 (no scaling) — never 0, which
-// would divide the effective speed by zero downstream.
-func SceneClockDivisor(scenePath string) float64 {
-	base := filepath.Base(filepath.Clean(scenePath))
-	for _, t := range SceneTabs {
-		if t.Dir == base {
-			return t.ClockDivisor
-		}
-	}
-	return 1
-}
-
-// SceneHasDistanceGroups answers, for the tree being LOADED, whether the three named
-// distance groups apply to it (SceneTab.DistanceGroups). Unknown trees get false — see that
-// field's own doc comment for why the ring's node ids must not be read against another
-// scene's nodes of the same name.
-func SceneHasDistanceGroups(scenePath string) bool {
-	base := filepath.Base(filepath.Clean(scenePath))
-	for _, t := range SceneTabs {
-		if t.Dir == base {
-			return t.DistanceGroups
-		}
-	}
-	return false
-}
-
-// SceneIsEditable answers, for the tree actually being LOADED, whether it takes structural
-// edits (SceneTab.Editable). An UNKNOWN tree — every test fixture, every one-off run — is
-// NOT editable: a create writes directories and rewrites counts.json, so the safe answer for
-// a tree nobody declared is to leave it alone.
-func SceneIsEditable(scenePath string) bool {
-	base := filepath.Base(filepath.Clean(scenePath))
-	for _, t := range SceneTabs {
-		if t.Dir == base {
-			return t.Editable
-		}
-	}
-	return false
-}
-
-// SceneKindMask is the set of kinds the loaded scene accepts, as a BITMASK over kind ids —
-// bit N set means the kind whose Buffer KindId is N may be created here. An empty Kinds list
-// (or an unknown tree) yields every bit set: no declared restriction restricts nothing.
-//
-// A mask rather than a list of names because the wire carries kind IDS, not names, and one
-// integer says the whole answer. It rides the Overlay block so the palette can offer exactly
-// the kinds the scene will accept, instead of offering all of them and letting Go refuse.
-func SceneKindMask(scenePath string) uint32 {
-	base := filepath.Base(filepath.Clean(scenePath))
-	for _, t := range SceneTabs {
-		if t.Dir != base {
-			continue
-		}
-		if len(t.Kinds) == 0 {
-			break
-		}
-		var mask uint32
-		for _, k := range t.Kinds {
-			if id := B.NodeKindID(k); id != B.KindIDUnknown {
-				mask |= 1 << uint(id)
-			}
-		}
-		return mask
-	}
-	return ^uint32(0)
 }
