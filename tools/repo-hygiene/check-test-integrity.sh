@@ -252,7 +252,12 @@ for f in "${files[@]}"; do
     # rescues nothing looks exactly like a strict one.
     needle=$(printf '%s' "$stripped" | sed -n 's/.*"\([^"]\{8,\}\)".*/\1/p' | head -1)
     [ -n "$needle" ] || needle="$stripped"
-    if [ -n "$(grep -rlF --include='*_test.go' --include='*.test.ts' --include='*.test.tsx' \
+    # Case-INSENSITIVE, because an assertion's message usually names the symbol under test:
+    # exporting `edgeStepCount` to move it into a package rewrites the message to
+    # "EdgeStepCount = %d, want %d" while the assertion is otherwise untouched. Matching case
+    # -sensitively reports that as a deletion, and a package split renames symbols wholesale.
+    # Two messages differing ONLY in capitalisation are the same message.
+    if [ -n "$(grep -rliF --include='*_test.go' --include='*.test.ts' --include='*.test.tsx' \
                  --include='*.spec.ts' --include='*.spec.tsx' \
                  "$needle" . --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=out 2>/dev/null \
                | grep -vxF "./$f")" ]; then
