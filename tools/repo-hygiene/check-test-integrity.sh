@@ -118,6 +118,41 @@ while IFS= read -r line; do
 done < <(git diff --name-only "$base" -- '*_test.go' '*.test.ts' '*.test.tsx' '*.spec.ts' '*.spec.tsx' 2>/dev/null || true)
 [ ${#files[@]} -eq 0 ] && exit 0
 
+# Rename map. WITHOUT this, a test file MOVED to another package reads as a pure delete at
+# the old path ("all its coverage removed") and as an all-new file at the new path — so its
+# pre-existing t.Skip lines count as freshly ADDED. Both are false alarms, and a package
+# split trips them on every moved test at once. git only detects a rename when it sees both
+# paths in ONE diff, which the per-path `git diff -- "$f"` below never does; so compute the
+# pairs up front, here, and let the per-file diff run old->new.
+#
+# -M40%: a cross-package move also EXPORTS identifiers (foo -> Foo) throughout the file, which
+# drags similarity below git's 50% default — an observed move scored 43%. 40% keeps real
+# renames pairing while staying far enough above noise that an unrelated new test file cannot
+# absorb a genuine deletion.
+renamed_away=""   # old paths that live on elsewhere — not deletions
+renamed_from=""   # "new<TAB>old" pairs, so the per-file diff can compare against the old path
+while IFS=$'\t' read -r status old new; do
+  case "$status" in
+    R*) renamed_away="$renamed_away $old"
+        renamed_from="$renamed_from $new:$old" ;;
+  esac
+done < <(git diff --name-status -M40% "$base" -- '*_test.go' '*.test.ts' '*.test.tsx' '*.spec.ts' '*.spec.tsx' 2>/dev/null || true)
+
+was_renamed_away() {
+  local want="$1" p
+  for p in $renamed_away; do [ "$p" = "$want" ] && return 0; done
+  return 1
+}
+
+# Echoes the old path for a renamed file, empty otherwise.
+rename_source_of() {
+  local want="$1" pair
+  for pair in $renamed_from; do
+    [ "${pair%%:*}" = "$want" ] && { printf '%s' "${pair#*:}"; return 0; }
+  done
+  return 1
+}
+
 ASSERT_RE='t\.(Fatal|Fatalf|Error|Errorf)\b|\b(require|assert)\.|expect\('
 WEAKEN_RE='\bt\.Skip(Now)?\b|\.(skip|only)\(|\bxit\b|\bxdescribe\b|\bos\.Exit\b|\brecover\(\)'
 
@@ -142,8 +177,20 @@ for f in "${files[@]}"; do
     exempted_seen="$exempted_seen $f"
     continue
   fi
-  [ -f "$f" ] || { report+="  $f: test file DELETED (all its coverage removed)\n"; continue; }
-  fdiff=$(git diff "$base" -- "$f" 2>/dev/null || true)
+  # A path that git paired with a new one is a MOVE, not a deletion — its coverage is
+  # accounted for at the new path, which is separately in this loop.
+  if [ ! -f "$f" ]; then
+    was_renamed_away "$f" && continue
+    report+="  $f: test file DELETED (all its coverage removed)\n"
+    continue
+  fi
+  # For a moved file, diff against where it came FROM, so only real content changes count.
+  src=$(rename_source_of "$f" || true)
+  if [ -n "$src" ]; then
+    fdiff=$(git diff -M40% "$base" -- "$src" "$f" 2>/dev/null || true)
+  else
+    fdiff=$(git diff "$base" -- "$f" 2>/dev/null || true)
+  fi
   [ -z "$fdiff" ] && continue
 
   # Added/removed lines only (skip the +++/--- headers).
