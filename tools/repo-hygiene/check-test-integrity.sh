@@ -213,9 +213,22 @@ for f in "${files[@]}"; do
     body=${rline#-}
     stripped=$(printf '%s' "$body" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
     [ -n "$stripped" ] || continue
-    if [ -n "$(grep -rlxF --include='*_test.go' --include='*.test.ts' --include='*.test.tsx' \
+    # Search for the assertion's MESSAGE, not the whole line. The message is what identifies
+    # an assertion across a refactor: renaming a field in the expression (n.Machine ->
+    # n.tilt.Machine) rewrites the line while the assertion itself is untouched, and a
+    # whole-line search calls that a deletion. Falls back to the whole line when there is no
+    # quoted message to key on.
+    #
+    # Fixed-string SUBSTRING match, deliberately not -x: the pattern is stripped of leading
+    # whitespace while the on-disk line keeps its tabs, so a whole-line match can never hit
+    # for indented code — i.e. for every line of Go and TS test source. That defect made this
+    # check a silent no-op that still passed a deletion teeth-test, because a detector that
+    # rescues nothing looks exactly like a strict one.
+    needle=$(printf '%s' "$stripped" | sed -n 's/.*"\([^"]\{8,\}\)".*/\1/p' | head -1)
+    [ -n "$needle" ] || needle="$stripped"
+    if [ -n "$(grep -rlF --include='*_test.go' --include='*.test.ts' --include='*.test.tsx' \
                  --include='*.spec.ts' --include='*.spec.tsx' \
-                 "$stripped" . --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=out 2>/dev/null \
+                 "$needle" . --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=out 2>/dev/null \
                | grep -vxF "./$f")" ]; then
       continue   # same assertion lives in another test file — relocated, not removed
     fi
@@ -227,9 +240,23 @@ for f in "${files[@]}"; do
     report+="  $f: assertions ${a} added / ${r} removed (net -$((r - a)))\n"
   fi
 
-  weak=$(printf '%s\n' "$added_lines" | grep -nE "$WEAKEN_RE" | sed 's/^/      /' || true)
+  # Same relocation rule as assertions above: a skip/recover that MOVED here from another
+  # test file was not "added" — it is the same line, in a new home. Without this, splitting
+  # a file that legitimately uses recover() to assert a panic reports a fresh weakening on
+  # every split. A construct that exists nowhere in the base tree is still reported.
+  weak=""
+  while IFS= read -r wline; do
+    [ -n "$wline" ] || continue
+    wbody=${wline#+}
+    wstripped=$(printf '%s' "$wbody" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+    [ -n "$wstripped" ] || continue
+    if git grep -qF "$wstripped" "$base" -- '*_test.go' '*.test.ts' '*.test.tsx' '*.spec.ts' '*.spec.tsx' 2>/dev/null; then
+      continue   # already present in the base tree — moved, not introduced
+    fi
+    weak="${weak}      ${wstripped}\n"
+  done < <(printf '%s\n' "$added_lines" | grep -E "$WEAKEN_RE" || true)
   if [ -n "$weak" ]; then
-    report+="  $f: added a skip/only/exit/recover:\n${weak}\n"
+    report+="  $f: added a skip/only/exit/recover:\n${weak}"
   fi
 done
 
