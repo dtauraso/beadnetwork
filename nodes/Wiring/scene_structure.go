@@ -48,11 +48,13 @@ func (md *MoveDispatch) CreateNode(kindID uint8, ndcX, ndcY float64, tr *T.Trace
 	// it" is not the same as "it cannot happen", and this is the side that owns the tree.
 	if !md.ui.sceneEditable {
 		md.refuseStructuralEdit("this scene does not take structural edits")
+		md.emitViewFrame(nil)
 		return
 	}
 	kind, ok := kindForID(kindID)
 	if !ok {
 		md.refuseStructuralEdit(fmt.Sprintf("unknown kind id %d", kindID))
+		md.emitViewFrame(nil)
 		return
 	}
 	// A kind this SCENE does not take (SceneTab.Kinds). The palette does not offer it, so
@@ -60,6 +62,7 @@ func (md *MoveDispatch) CreateNode(kindID uint8, ndcX, ndcY float64, tr *T.Trace
 	// tree is written on this side, and "the UI does not offer it" is not "it cannot happen".
 	if md.ui.sceneKinds&(1<<uint(kindID)) == 0 {
 		md.refuseStructuralEdit(fmt.Sprintf("this scene does not take %s nodes", kind))
+		md.emitViewFrame(nil)
 		return
 	}
 	// WHERE THE DROP LANDED. TS sent NDC; the camera that turns it into a place is Go's, so
@@ -71,6 +74,7 @@ func (md *MoveDispatch) CreateNode(kindID uint8, ndcX, ndcY float64, tr *T.Trace
 	drop, okDrop := md.ui.dropPointFromNDC(ndcX, ndcY)
 	if !okDrop {
 		md.refuseStructuralEdit("could not resolve where the drop landed")
+		md.emitViewFrame(nil)
 		return
 	}
 	// The nearest node is also the SOURCE of the new edge: an edge is stored under its
@@ -84,6 +88,7 @@ func (md *MoveDispatch) CreateNode(kindID uint8, ndcX, ndcY float64, tr *T.Trace
 		var canLink bool
 		if srcPort, targetPort, why, canLink = md.mr.linkRefusal(src, kind); !canLink {
 			md.refuseStructuralEdit(why)
+			md.emitViewFrame(nil)
 			return
 		}
 	}
@@ -100,12 +105,14 @@ func (md *MoveDispatch) CreateNode(kindID uint8, ndcX, ndcY float64, tr *T.Trace
 	d := geom.WorldDirToAngles(off)
 	if err := WriteNewNodeFiles(md.Scenes.TreeRoot, target, kind, off.Length(), d.Theta, d.Phi); err != nil {
 		md.refuseStructuralEdit(fmt.Sprintf("could not write node %s: %v", target, err))
+		md.emitViewFrame(nil)
 		return
 	}
 	edges := loadspec.CountEdgeFiles(md.Scenes.TreeRoot)
 	if okNear {
 		if err := edgefile.WriteEdgeFile(md.Scenes.TreeRoot, src, srcPort, target, targetPort); err != nil {
 			md.refuseStructuralEdit(fmt.Sprintf("could not write edge %s->%s: %v", src, target, err))
+			md.emitViewFrame(nil)
 			return
 		}
 		edges++
@@ -114,6 +121,7 @@ func (md *MoveDispatch) CreateNode(kindID uint8, ndcX, ndcY float64, tr *T.Trace
 	// error — there is nothing to refuse, only nothing to connect to.
 	if err := countspersist.WriteCounts(md.Scenes.TreeRoot, loadspec.LargestNodeID(md.Scenes.TreeRoot), edges); err != nil {
 		md.refuseStructuralEdit(fmt.Sprintf("could not update counts.json: %v", err))
+		md.emitViewFrame(nil)
 		return
 	}
 	md.Scenes.Quit()
@@ -135,20 +143,24 @@ func (md *MoveDispatch) DeleteNode(row int, tr *T.Trace) {
 	// it" is not the same as "it cannot happen", and this is the side that owns the tree.
 	if !md.ui.sceneEditable {
 		md.refuseStructuralEdit("this scene does not take structural edits")
+		md.emitViewFrame(nil)
 		return
 	}
 	id, ok := md.RT.LookupNodeRow(row)
 	if !ok {
 		md.refuseStructuralEdit(fmt.Sprintf("no node on row %d", row))
+		md.emitViewFrame(nil)
 		return
 	}
 	root := md.Scenes.TreeRoot
 	if err := RemoveNodeDir(root, id); err != nil {
 		md.refuseStructuralEdit(fmt.Sprintf("could not remove node %s: %v", id, err))
+		md.emitViewFrame(nil)
 		return
 	}
 	if err := edgefile.RemoveEdgesTo(root, id, loadspec.NodeIDStringsInTree(root)); err != nil {
 		md.refuseStructuralEdit(fmt.Sprintf("could not remove edges into %s: %v", id, err))
+		md.emitViewFrame(nil)
 		return
 	}
 	// The ROW SPACE KEEPS ITS HOLE. counts.json's "nodes" is the largest id, not a live
@@ -157,6 +169,7 @@ func (md *MoveDispatch) DeleteNode(row int, tr *T.Trace) {
 	// prevent (node 6's geometry arriving on node 5's row the moment 5 is deleted).
 	if err := countspersist.WriteCounts(root, loadspec.LargestNodeID(root), loadspec.CountEdgeFiles(root)); err != nil {
 		md.refuseStructuralEdit(fmt.Sprintf("could not update counts.json: %v", err))
+		md.emitViewFrame(nil)
 		return
 	}
 	md.Scenes.Quit()
@@ -210,14 +223,17 @@ func firstPortOfDir(kind string, dir portwiring.PortDir) (string, bool) {
 // route SelectScene's failed write takes, and where an operator looks when a gesture did
 // nothing (memory/feedback_runner_errors_probe_first.md). Nothing is written and the run
 // does not end, so the editor is exactly as it was.
+//
+// It mutates md.ui's refusal counter only; every call site (CreateNode/DeleteNode's own
+// refusal returns, in this file) follows it with md.emitViewFrame(nil) itself — the VIEW
+// frame is emitted by the caller, per docs/planning/movedispatch-decomposition.md's
+// write-then-emit split. Bumping the count and emitting a frame is the whole signal — the
+// editor watches the number and shows a message when it goes up.
 func (md *MoveDispatch) refuseStructuralEdit(why string) {
 	fmt.Fprintf(os.Stderr, "structural edit refused: %s\n", why)
 	// …and SAY SO ON SCREEN. The reason belongs in the log; that the edit was refused at all
 	// is the part a person cannot otherwise see, since the scene looks exactly as it did.
-	// Bumping the count and emitting a frame is the whole signal — the editor watches the
-	// number and shows a message when it goes up.
 	md.ui.editRefused++
-	md.emitViewFrame(nil)
 }
 
 // kindForID reverses Buffer's kind-id map: the wire carries the numeric kind identity the
