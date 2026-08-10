@@ -526,12 +526,12 @@ and none is a source of truth.
   to them — that is the whole mechanism. There is no solver, no constraint system, no
   enumeration across neighbours: each touching bead decides for itself
   (`nodes/Wiring/bead_crud.go`'s `beadCrudDecide`, wired in `commitNodeMoveLocal`,
-  `nodes/Wiring/quantized_move.go`).
+  `nodes/Wiring/commit_node_move.go`).
 
   The drag gives the node's own polar vector `v` (its previous position to its
   destination). Each touching bead has its own **source point** — the previous bead's
   centre along its chain, or the chain origin on the neighbour's torus surface when it is
-  the only bead (`nodes/Wiring/quantized_move.go`'s `dragTouchingBeads`) — NEVER the
+  the only bead (`nodes/Wiring/touching_beads.go`'s `dragTouchingBeads`) — NEVER the
   touching bead's own centre; using the centre instead is wrong by one bead. The **third
   polar vector** runs from the bead's source point to the node's destination point.
   Compare its length to one bead length (`wire.BeadStepR`):
