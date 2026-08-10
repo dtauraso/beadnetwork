@@ -58,9 +58,39 @@ constraint rules out.
 nodes/Wiring/*.go | grep -v _test | wc -l`). Exported-symbol count for package `Wiring`
 dropped 119 → 114 (no new exports).
 
-Remaining, unstarted: ~43 single-owner methods remain to rehome (mostly `ui`, plus a few
-`RT`/`Scenes`/`sw`/`inboxes`), the same mechanical shape as this round. 12 span two or more
-owners; the dominant shape among them is *mutate state, then emit a view frame*, 8 times.
+Round 3 rehomed the 8 more single-owner methods whose bodies called NOTHING but their one
+owner field (plus params/locals/package funcs) and had no cross-package callers requiring
+their delegator to keep growing exports: `NodeFromHit`/`EdgeFromHit` (→ `RT`, now
+`rowtables.RowTables.NodeFromHit`/`EdgeFromHit`, deleted from `MoveDispatch`); `NodeKind`,
+`nodeBodyRadius`, `linkRefusal`, `nearestNodeTo` (→ `mr`, deleted from `MoveDispatch`);
+`dropPointFromNDC` (→ `ui`, deleted); `LoadLatticePoints` (→ `ui`, deleted).
+`HasNodeMover`/`NodeSelfDriven`/`NodeQuantOffset` moved their bodies to `mr` too but kept
+thin nil-free `MoveDispatch` delegators, since `pair_self_drive_persist_test.go`/
+`pair_node_mover_absence_test.go` (package `main`, outside `nodes/Wiring`) call them and
+`mr` is unexported — deleting the delegator would break those tests, not just grow exports.
+`BroadcastLatticePoints` kept its `MoveDispatch` delegator for the same nil-`*MoveDispatch`
+guard reason (defensive, never exercised) but moved its send loop to a new
+`nodeInboxes.broadcastLatticePoints`. 63 → 55 methods (drop of 8); exported `MoveDispatch`
+method count 33 → 31 (`NodeKind`/`nodeBodyRadius`... only `NodeKind` was exported, so -1
+export there, and `nodeBodyRadius` was already unexported, -1 more from the 3 that kept
+delegators net-zero — see the commits for the exact per-owner diff). Package `Wiring`
+exported-symbol count unchanged, 158 → 158 (no new exports; `rowtables.RowTables` gained
+two exported methods, a different package).
+
+`SelectScene`/`EnableSceneSwitch` were checked and declined: `sceneswitch`'s own package
+doc comment already records the reason (genuine orchestration referencing `scene.SceneTabs`
+and persistence helpers, not a thin delegator). `ResolveSceneDistanceGroups`/`LoadOverlays`/
+`LoadSpeed`/`SetViewpoint`/`EmitViewpoint`/`SetViewStream`/`EnableSceneSwitch` remain the 7
+export-blocked methods (unchanged from the task that measured them) — several of these ALSO
+call another `MoveDispatch` method (e.g. `LoadOverlays` calls `emitViewFrame`), so they are
+doubly blocked, not just export-blocked.
+
+Remaining, unstarted: most of the rest of the ~63-methods list touches its owner field
+AND calls at least one other `MoveDispatch` method (`emitViewFrame`, `sendMove`,
+`SetViewpoint`, etc.) — the *mutate state, then emit a view frame*/route-through-dispatch
+shape — or has a cross-package caller through an unexported field, so it stays until the
+write-then-emit question is answered once (see below). 12 span two or more owners
+outright; the dominant shape among them is *mutate state, then emit a view frame*, 8 times.
 
 Order: rehome the remaining single-owner methods, then answer the write-then-emit question
 once. Do not answer it by giving owners a back-reference to the hub — that is the cycle
