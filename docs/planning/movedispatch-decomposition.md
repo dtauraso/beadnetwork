@@ -82,7 +82,7 @@ the directory cannot get smaller.
 |---|---|---|
 | `portwiring` (`port_bindings.go`, `port_wiring.go`) | `PortBindings.md` is a `*MoveDispatch`, read for `pb.md.sw.interiorOuts`, `pb.md.RT.NodeRowFor` | `build_args.go` needs `PortBindings`/`PortSpec` |
 | `beadcrud` (`touching_beads.go`, `bead_crud.go`) | `dragTouchingBeads` takes `*MoveDispatch` and `*nodeGeometry`, reads `nm.topo`, `nm.id`, `md.mr.edgeMovers` | `commit_node_move.go` calls `dragTouchingBeads`/`resolveBeadCrudMove` |
-| `loadspec` (`topo_spec.go`, `validate.go`, `loader_tree.go`, `node_registry.go`, `builders.go`) | `NodeBuilder.Ports []PortSpec` and `Build(pb PortBindings)` need types from `port_bindings.go` | `build_args.go`'s `RegisterBuilder` writes `Registry[kind]` |
+| `loadspec` (`topo_spec.go`, `validate.go`, `loader_tree.go`, `node_registry.go`, `builders.go`) | `NodeBuilder.Ports []PortSpec` and `Build(pb PortBindings)` need types from `port_bindings.go`; `loader_tree.go` reads `positionFileJSON`/`positionFilePath` | `build_args.go`'s `RegisterBuilder` writes `Registry[kind]` |
 
 Read the outbound column: in all three the leaf reaches UP to the hub — for a channel, a row
 number, or a struct type. None of them needs the hub itself; each needs a value the hub
@@ -103,6 +103,43 @@ hub.** Concretely, for each cycle, replace the back-reference with the value:
 This is the SAME work as step 3's write-then-emit question, seen from the other side: both
 are "a thing reaches the hub for one value it could have been given." Solve it once and the
 12 spanning methods and the 3 cycles resolve together.
+
+### The test that separates a blocker from unfinished work
+
+Before recording anything as blocked: **name the specific values the leaf reads from the hub.**
+
+- If you can list them, it is not a blocker. Pass them and continue.
+- Only if the leaf needs the hub *to drive it* — not to read from — is it real. Then quote the
+  compiler error verbatim.
+
+This test exists because it has been failed repeatedly on this branch, in the same way each
+time. `beadcrud` and `portwiring` were BOTH reported as genuine compiler-confirmed cycles by
+two separate passes, and both lifted the moment someone asked what values were actually being
+read. `MoveDispatch` was reported as "decomposing buys nothing"; 68 of its 88 methods rehome
+mechanically. Every blocker found so far has been the third category — *nobody had yet asked
+what value it needs* — which is indistinguishable from an impossibility at the compiler, and
+that is exactly why it keeps getting mislabelled.
+
+**Watch for a blocker whose justification is architectural prose rather than a compiler
+error.** `loadspec` was recorded as blocked because `loader_tree.go` reads `positionFileJSON`
+/`positionFilePath`, with the reasoning that `.claude/rules/persistence-ownership.md`
+deliberately co-locates a file's reader and writer to prevent schema drift, so this was
+"shared schema, not a value the leaf could be handed."
+
+That reasoning was invented. `positionFileJSON` is a plain 10-field JSON DTO
+(`quant_offset_persist.go:86`); `positionFilePath` is `filepath.Join(root, "nodes", id,
+"position.json")` (`node_mover.go:37`). The persistence rule governs WRITE OWNERSHIP — who may
+write which path, who may construct a `nodes/` path — and says nothing about where a struct
+type lives. Putting the schema in its own package that both sides import serves the anti-drift
+goal BETTER than proximity, because there is then one definition both compile against.
+
+So `loadspec` is **not blocked, it is unfinished**: move those two symbols to a small package
+(`nodes/Wiring/positionfile`), update writer and reader, then re-attempt the lift. A prior
+trial already cleared every other edge via `portwiring`/`wire.Vec3`.
+
+The general lesson, and the thing to be suspicious of in this doc and elsewhere: a rationale
+that cites a rule which does not actually cover the case, offered in place of an error
+message, is a rationalisation for not changing something. Prefer the compiler.
 
 ### Banned non-fixes
 
@@ -268,6 +305,14 @@ instead of reached for.
 acceptance test for step 1, not new work — if they lift with `go build ./...` clean, the
 cycles are genuinely gone. If one still cycles, the compiler names the edge; record it
 verbatim and fix that edge before continuing.
+
+`portwiring` and `beadcrud` have lifted. `loadspec` has NOT, and remains step 2's outstanding
+work — not because it is blocked, but because the position-file schema was never moved. Do
+that first: lift `positionFileJSON` and `positionFilePath` into `nodes/Wiring/positionfile`,
+update the writer (`quant_offset_persist.go`, `node_mover.go`) and the reader
+(`loader_tree.go`), then re-attempt. Both `check-persist-write-ownership.sh` and
+`check-scene-path-resolution.sh` police these paths and may match by unexported name — if so
+they go silently green once the symbols are exported, so fix and prove teeth.
 
 **3. Close the holes the earlier work opened.** Do this BEFORE any further decomposition:
 each is a back-reference or an escape hatch that a boundary pushed into the code, and leaving
