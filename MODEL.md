@@ -113,7 +113,7 @@ mistake to avoid (chain_beads.go's own header comment makes the same split):
   does so through `chainBeads`' own inline placement math for that edge on that call rather
   than through the target also toggling that chain's `BeadWakeGroup` mode flags. The
   `BeadWakeGroup`/`Bead` primitive itself supports either endpoint waking the SAME beads
-  (`nodes/wire/beadchain/bead_actor_test.go`'s `TestEitherEndpointCanWakeSource`/
+  (`nodes/wire/beadchain/bead_wake_settle_test.go`'s `TestEitherEndpointCanWakeSource`/
   `TestEitherEndpointCanWakeTarget`); wiring the TARGET's own drag lifecycle through to the
   SOURCE's chain (so target-drags also toggle the mode flag, not just geometry) is future
   work, not yet done.
