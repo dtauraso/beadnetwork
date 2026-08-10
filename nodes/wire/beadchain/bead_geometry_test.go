@@ -1,55 +1,18 @@
 package beadchain
 
 import (
-	"bytes"
-	"runtime"
-	"runtime/pprof"
-	"strings"
 	"testing"
 	"time"
 
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
-// newTestBead builds one bead against a fresh BeadWakeGroup and its own dedicated tick
-// channel (a plain, test-controlled channel rather than the real TickBroadcaster, so
-// animation ticks can be delivered deterministically without depending on wall time), with
-// its observation channel already armed — every read of the bead's state in these tests
-// goes through that channel, never through a direct field read from another goroutine
-// (`go test -race` enforces this: a direct read of Bead's fields from the test goroutine
-// was caught as a genuine data race during this file's own development, exactly the
-// cross-goroutine shared-read the ownership model forbids — see bead_actor.go's note next
-// to WithObserve).
-func newTestBead(offsetR float64) (*Bead, *BeadWakeGroup, chan struct{}, chan struct{}, <-chan BeadSnapshot) {
-	g := NewBeadWakeGroup()
-	tickCh := make(chan struct{})
-	stop := make(chan struct{})
-	geom, wake, settle := g.Current()
-	b := NewBead(offsetR, geom, wake, settle, tickCh, stop)
-	obs := b.WithObserve()
-	return b, g, tickCh, stop, obs
-}
-
-// waitForSnapshot drains obs (a buffered-1, latest-wins channel) until cond holds on a
-// received snapshot, or the timeout elapses. This is a genuine channel RECEIVE — properly
-// synchronized with the bead's own pushObserve send — never a poll of the bead's fields.
-func waitForSnapshot(t *testing.T, obs <-chan BeadSnapshot, timeout time.Duration, cond func(BeadSnapshot) bool) (BeadSnapshot, bool) {
-	t.Helper()
-	deadline := time.NewTimer(timeout)
-	defer deadline.Stop()
-	var last BeadSnapshot
-	for {
-		select {
-		case snap := <-obs:
-			last = snap
-			if cond(snap) {
-				return snap, true
-			}
-		case <-deadline.C:
-			return last, false
-		}
-	}
-}
+// bead_geometry_test.go — the geometry side of a bead: clock-independent (the two-clock
+// invariant, MODEL.md's "no position update may be gated on the human clock"), mode
+// switching between human and machine time, one BroadcastGeometry call reaching every bead
+// in one hop (not a chain), each bead's position as a pure function of its own offset (no
+// diffusion), the geometry/animation writer split, and the per-event work staying inside a
+// frame budget at N=1000.
 
 // --- Clock separation ---------------------------------------------------------------
 
@@ -160,13 +123,6 @@ func TestOneHopNotN(t *testing.T) {
 	}
 }
 
-func itoa(n int) string {
-	if n == 40 {
-		return "N=40"
-	}
-	return "N=1000"
-}
-
 // --- No diffusion -----------------------------------------------------------------------
 
 // TestNoDiffusion: a bead's position is a pure function of the broadcast transform and its
@@ -240,188 +196,6 @@ func TestGeometryServicedWithoutWaitingForATick(t *testing.T) {
 	g.BroadcastGeometry(BeadGeometryIn{Center: wire.Vec3{X: 1}, Aim: wire.Vec3{X: 1}})
 	if _, ok := waitForSnapshot(t, obs, 200*time.Millisecond, func(s BeadSnapshot) bool { return s.Position == (wire.Vec3{X: 2}) }); !ok {
 		t.Fatalf("geometry update took too long (possible hidden wait): %v", time.Since(start))
-	}
-}
-
-// --- Idle costs nothing ---------------------------------------------------------------
-
-// TestIdleBeadIsBlockedNotRunnable: with no drag, no tick, and no geometry event, every
-// bead goroutine's own frame (Bead.run, chan receive) shows up in a goroutine dump as
-// blocked in Go's "[select]" state — never running/runnable — which is what "parked at
-// zero CPU" means at the runtime level. This is the direct behavioural evidence for the
-// claim tools/network/check-no-select-default.sh backs structurally: default: would make the frame
-// appear as "[running]" in a tight loop instead of "[select]" here.
-func TestIdleBeadIsBlockedNotRunnable(t *testing.T) {
-	const n = 50
-	stops := make([]chan struct{}, n)
-	for i := 0; i < n; i++ {
-		b, _, _, stop, _ := newTestBead(float64(i))
-		stops[i] = stop
-		b.Start()
-	}
-	defer func() {
-		for _, s := range stops {
-			close(s)
-		}
-	}()
-
-	// Give the goroutines a moment to actually park (get scheduled and reach their select).
-	runtime.Gosched()
-	time.Sleep(50 * time.Millisecond)
-
-	var buf bytes.Buffer
-	if err := pprof.Lookup("goroutine").WriteTo(&buf, 2); err != nil {
-		t.Fatalf("goroutine profile: %v", err)
-	}
-	dump := buf.String()
-
-	sections := strings.Split(dump, "\n\n")
-	found := 0
-	for _, sec := range sections {
-		if !strings.Contains(sec, "beadchain.(*Bead).run") {
-			continue
-		}
-		found++
-		if !strings.Contains(sec, "[select]") {
-			t.Fatalf("an idle Bead.run goroutine is not parked in [select] (possible spin):\n%s", sec)
-		}
-	}
-	if found < n {
-		t.Fatalf("expected %d idle Bead.run stacks, found %d", n, found)
-	}
-}
-
-// --- Wake and settle --------------------------------------------------------------------
-
-// TestWakeSetsEveryAffectedBead: a single StartDrag sets EVERY bead's flag; a single
-// EndDrag clears every bead's flag.
-func TestWakeSetsEveryAffectedBead(t *testing.T) {
-	const n = 25
-	g := NewBeadWakeGroup()
-	stop := make(chan struct{})
-	defer close(stop)
-
-	obss := make([]<-chan BeadSnapshot, n)
-	for i := 0; i < n; i++ {
-		geom, wake, settle := g.Current()
-		b := NewBead(float64(i), geom, wake, settle, make(chan struct{}), stop)
-		obss[i] = b.WithObserve()
-		b.Start()
-	}
-
-	g.StartDrag()
-	for i, obs := range obss {
-		if _, ok := waitForSnapshot(t, obs, time.Second, func(s BeadSnapshot) bool { return s.Dragging }); !ok {
-			t.Fatalf("bead %d was not woken by a single StartDrag", i)
-		}
-	}
-
-	g.EndDrag()
-	for i, obs := range obss {
-		if _, ok := waitForSnapshot(t, obs, time.Second, func(s BeadSnapshot) bool { return !s.Dragging }); !ok {
-			t.Fatalf("bead %d was not settled by a single EndDrag", i)
-		}
-	}
-}
-
-// --- "done dragging" is not optional ----------------------------------------------------
-
-// TestAbandonedDragStillSettles: a drag that ends WITHOUT a clean per-event "end" — the
-// caller simply calls EndDrag once, exactly as it would for any other drag conclusion, with
-// no intervening geometry events after StartDrag — still clears every bead's flag. There is
-// no separate "abandoned" code path in BeadWakeGroup; EndDrag is unconditional, so this
-// documents that an abandoned drag is not a distinguishable case at this layer.
-func TestAbandonedDragStillSettles(t *testing.T) {
-	const n = 10
-	g := NewBeadWakeGroup()
-	stop := make(chan struct{})
-	defer close(stop)
-
-	obss := make([]<-chan BeadSnapshot, n)
-	for i := 0; i < n; i++ {
-		geom, wake, settle := g.Current()
-		b := NewBead(float64(i), geom, wake, settle, make(chan struct{}), stop)
-		obss[i] = b.WithObserve()
-		b.Start()
-	}
-
-	g.StartDrag() // drag begins; no geometry ever arrives, no explicit "abandon" signal
-	for i, obs := range obss {
-		if _, ok := waitForSnapshot(t, obs, time.Second, func(s BeadSnapshot) bool { return s.Dragging }); !ok {
-			t.Fatalf("bead %d never woke", i)
-		}
-	}
-
-	g.EndDrag() // the FSM's unconditional settle path, same call an ordinary drag end uses
-	for i, obs := range obss {
-		if _, ok := waitForSnapshot(t, obs, time.Second, func(s BeadSnapshot) bool { return !s.Dragging }); !ok {
-			t.Fatalf("an abandoned drag left bead %d on machine time", i)
-		}
-	}
-}
-
-// --- The flag is set once per drag ------------------------------------------------------
-
-// TestFlagSetOncePerDragNotPerEvent: a whole gesture with many geometry events between one
-// StartDrag and one EndDrag never toggles dragging in between — it is read true across
-// every intervening geometry event, proving BroadcastGeometry alone cannot flip the flag
-// (only StartDrag/EndDrag advance g.wake/g.settle — check-broadcast-is-close-not-loop.sh
-// scopes each method separately, and the type split above keeps geometry and mode disjoint
-// besides).
-func TestFlagSetOncePerDragNotPerEvent(t *testing.T) {
-	b, g, _, stop, obs := newTestBead(1.0)
-	defer close(stop)
-	b.Start()
-
-	g.StartDrag()
-	if _, ok := waitForSnapshot(t, obs, time.Second, func(s BeadSnapshot) bool { return s.Dragging }); !ok {
-		t.Fatalf("drag never started")
-	}
-
-	for i := 0; i < 60; i++ { // one gesture's worth of pointer events
-		g.BroadcastGeometry(BeadGeometryIn{Center: wire.Vec3{X: float64(i)}, Aim: wire.Vec3{X: 1}})
-		want := wire.Vec3{X: float64(i) + 1}
-		snap, ok := waitForSnapshot(t, obs, time.Second, func(s BeadSnapshot) bool { return s.Position == want })
-		if !ok {
-			t.Fatalf("geometry event %d never resolved", i)
-		}
-		if !snap.Dragging {
-			t.Fatalf("dragging flag flipped mid-gesture at event %d — it must be set once per drag, not per event", i)
-		}
-	}
-
-	g.EndDrag()
-	if _, ok := waitForSnapshot(t, obs, time.Second, func(s BeadSnapshot) bool { return !s.Dragging }); !ok {
-		t.Fatalf("drag never ended")
-	}
-}
-
-// --- Either endpoint can wake -----------------------------------------------------------
-
-// TestEitherEndpointCanWakeSource / TestEitherEndpointCanWakeTarget: dragging the source
-// node's own BeadWakeGroup wakes the edge's beads, and so does dragging the target's own
-// group — each endpoint owns an independent group over the SAME beads' worth of state (a
-// bead subscribes to exactly one group at construction; a real edge would give the source's
-// beads to the source's group — this test exercises the mechanism from each side, not a
-// shared-group scenario, since a bead is owned by exactly one node/edge/direction, matching
-// PLAN.md's "one test each, not a both-at-once test").
-func TestEitherEndpointCanWakeSource(t *testing.T) {
-	b, g, _, stop, obs := newTestBead(1.0)
-	defer close(stop)
-	b.Start()
-	g.StartDrag() // this bead's group belongs to the edge's SOURCE node
-	if _, ok := waitForSnapshot(t, obs, time.Second, func(s BeadSnapshot) bool { return s.Dragging }); !ok {
-		t.Fatalf("dragging the source did not wake the bead")
-	}
-}
-
-func TestEitherEndpointCanWakeTarget(t *testing.T) {
-	b, g, _, stop, obs := newTestBead(1.0)
-	defer close(stop)
-	b.Start()
-	g.StartDrag() // this bead's group belongs to the edge's TARGET node instead
-	if _, ok := waitForSnapshot(t, obs, time.Second, func(s BeadSnapshot) bool { return s.Dragging }); !ok {
-		t.Fatalf("dragging the target did not wake the bead")
 	}
 }
 
