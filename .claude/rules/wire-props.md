@@ -26,4 +26,4 @@ could not affect a single pixel; its only consumer was a test importing the sche
 not production code.)
 
 Pulse speed is uniform across all wires — reject per-wire `speed` props
-(`memory/feedback/feedback_uniform_pulse_speed.md`).
+(`memory/feedback/architecture/feedback_uniform_pulse_speed.md`).

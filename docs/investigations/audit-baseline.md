@@ -113,7 +113,7 @@ read-only dispatch tables, not shared mutable state; do not flag them alongside 
 
 This section described `AbcDragLabel.tsx`'s drag-delta-forward overlay, an
 `abc-drag` trace kind, and the local-polar model's DeltaA/B/C vocabulary
-(abc-index × step-constant — `memory/feedback/feedback_abc_times_constant_not_rederive.md`). That
+(abc-index × step-constant — `memory/feedback/architecture/feedback_abc_times_constant_not_rederive.md`). That
 whole model — `wire.LocalPolar`, `requantizeLocalPolars`, `neighborSetC`,
 `AbcDragLabel.tsx`/`DeltaForwardLabel.tsx`, and the delta-forward cascade — was deleted
 (MODEL.md "the polar model": a node has one polar coordinate about the scene centre only,

@@ -87,7 +87,7 @@ This is the largest change since the per-owner buffer split. It is not a renderi
 
 ## The consequence nobody asked for yet: per-edge streams lose their owner
 
-`memory/feedback/feedback_no_single_writer_bridge.md` is *one goroutine = one dedicated stream*. The
+`memory/feedback/architecture/feedback_no_single_writer_bridge.md` is *one goroutine = one dedicated stream*. The
 per-edge fds exist because an edge is a goroutine. Remove the goroutine and the per-edge
 stream has no owner — its frames have to fold into the SOURCE node's own stream (the node
 that owns that edge, see open question 1).
@@ -144,14 +144,14 @@ makes the commit very large.
 
    That last line is today's `ticksToCross = arcLength / pulseSpeed` exactly, so this
    reproduces current timing rather than approximating it, and the per-edge arc-length
-   division disappears. `memory/feedback/feedback_uniform_pulse_speed.md` is satisfied structurally
+   division disappears. `memory/feedback/architecture/feedback_uniform_pulse_speed.md` is satisfied structurally
    instead of by computation.
 
    The in-flight revision rule survives and gets simpler. MODEL.md preserves fractional
    progress `t` across a geometry edit and recomputes remaining ticks from the new arc; here
    `index = t × newCount` and `remaining = (newCount − index) × d`, which is
    `(1−t)·newArc/speed` — the same rule as index arithmetic rather than distance, which is
-   the shape `memory/feedback/feedback_abc_times_constant_not_rederive.md` asks for.
+   the shape `memory/feedback/architecture/feedback_abc_times_constant_not_rederive.md` asks for.
 5. **What happens to the Bead block?** Today `bufLayoutBead` (`Buffer/layout.go:56`) is
    `X/Y/Z` world position + `Value`, **one row per live in-flight bead**, fed from
    `KindEdgeBead` events and read by `edge-stream-blocks.ts` off the per-edge stream — Go
