@@ -1,4 +1,8 @@
-# Decomposing MoveDispatch, then closing the ForTest hole
+---
+branch: task/god-objects
+---
+
+# Decomposing MoveDispatch, then closing the holes the boundaries opened
 
 Two changes, in this order. The second depends on the first: the hole exists because
 `MoveDispatch` is unconstructible from outside, and the shape of the fix changes once
@@ -170,20 +174,25 @@ acceptance test for step 1, not new work — if they lift with `go build ./...` 
 cycles are genuinely gone. If one still cycles, the compiler names the edge; record it
 verbatim and fix that edge before continuing.
 
-**3. Answer the write-then-emit question ONCE.** Same defect as steps 1–2 from the other
+**3. Close the holes the earlier work opened.** Do this BEFORE any further decomposition:
+each is a back-reference or an escape hatch that a boundary pushed into the code, and leaving
+them means later steps build on top of them. Full list and rationale in **Part 2** below —
+it is no longer only the `ForTest` hatches. Two of the five were created by step 1 itself.
+
+**4. Answer the write-then-emit question ONCE.** Same defect as steps 1–2 from the other
 side: an owner mutates, then something must emit a view frame. Decide where the frame
 boundary lives. This is the one design decision in the plan; everything after it is
 mechanical. Do NOT answer it by giving owners a back-reference to `MoveDispatch` — that is
 the cycle returning under a new name.
 
-**4. Delete the 26 pure delegators.** Now safe and purely mechanical. Change the
+**5. Delete the 26 pure delegators.** Now safe and purely mechanical. Change the
 `overlay_gen.go` emitter for the 13 generated ones and regenerate; hand-edit the rest.
 Callers move to `md.ui.ov.X` / `md.ui.vp.X`. Takes 88 → ~62, touching no logic.
 
-**5. Rehome the ~50 single-owner methods,** heaviest owner first: `ui` (43), then `mr` (12),
+**6. Rehome the ~50 single-owner methods,** heaviest owner first: `ui` (43), then `mr` (12),
 then the small tails (`lq`, `RT`, `GS`, `Scenes`, `sw`, `inboxes`). Mechanical.
 
-**6. Reassess.** With the facade gone and the graph acyclic, re-ask whether the
+**7. Reassess.** With the facade gone and the graph acyclic, re-ask whether the
 assembly/command-surface split is now a real seam. Do not assume it is. If the export count
 has gone UP, stop — see Risks.
 
@@ -245,12 +254,61 @@ the actors MODEL.md pins, and whatever remains of `MoveDispatch` stays with it.
 
 ---
 
-# Part 2 — closing the ForTest hole
+# Part 2 — closing the holes the boundary work opened
 
-Do this AFTER the decomposition, because the fix depends on what `MoveDispatch` ends up
-being. Closing it first would make step 1 harder for no gain.
+This is step 3, immediately after the cycles. It ran late in the first draft, on the reasoning
+that the fix depends on what `MoveDispatch` becomes. That was wrong: every later step builds
+on these, so they get closed first.
 
-## The hole
+There are five, and **two of them were created by step 1 itself** — which is the argument for
+doing this now rather than at the end. Each has the same shape: a package boundary needed a
+value from the other side, and instead of passing it, the code reached for it.
+
+## Hole 1 — `currentBuildMD`, a package-level mutable hub reference
+
+`nodes/Wiring/build_args.go` now holds `var currentBuildMD *MoveDispatch`, set once by
+`buildNodes` and read by `build_args_lattice.go`, `build_args_tilt_vector.go` and
+`build_args_selfdrive.go` for `md.ui` / `md.inboxes` / `md.mr`.
+
+This was introduced to break Cycle A: `PortBindings` could not carry that state once it moved
+to `portwiring`, so the reference moved to a package-level var instead. **The import cycle is
+gone and the coupling is not — it is now global and invisible.** That is a worse position
+than the struct field it replaced: a field back-reference is at least visible in the type.
+
+It is also a shared mutable global in a codebase whose whole architecture is ownership plus
+message passing with zero shared memory (`check-no-network-locks.sh`, empty allowlist). It is
+safe only by the argument that the build phase is single-threaded — an argument, not an
+enforcement. Nothing checks it. Two overlapping loads would race.
+
+**Fix:** those three `BuildArgs` methods need specific values (`ui` lattice/tilt state,
+`inboxes`, a mover lookup). Pass them into `BuildArgs` at construction like every other field
+it carries. Then delete the var.
+
+## Hole 2 — the `portwiring` re-export aliases
+
+`nodes/Wiring/port_bindings.go` now contains:
+
+```go
+type PortDir = portwiring.PortDir
+type PortSpec = portwiring.PortSpec
+type PortBindings = portwiring.PortBindings
+```
+
+Alias shims are banned in this plan, and were banned in the brief that produced them — a
+`geom_bridge.go` of exactly this shape was built and deleted earlier on this branch.
+
+The constraint behind them is real: fourteen node-kind packages (`nodes/Time`, `nodes/pulse`,
+`nodes/PairNode`, …) call `Wiring.PortSpec` / `Wiring.PortIn` / `Wiring.RegisterBuilder` as
+their public construction API, and `.claude/rules/node-kinds.md` documents that surface. So
+the aliases keep 14 packages compiling.
+
+**Fix:** update those 14 call sites to name `portwiring` directly, then delete the aliases.
+That is a mechanical rename across a documented API, and `.claude/rules/node-kinds.md` and
+`nodes/SPEC-FORMAT.md` must be updated in the same commit. If the decision instead is that
+`Wiring` should keep re-exporting the node-kind API deliberately, then say so in the rule file
+and drop the ban — but do not leave it undecided, which is where it is now.
+
+## Holes 3–5 — the `ForTest` hatches
 
 `newMoveDispatch` builds the entire mover graph — every `nodeMover`, `edgeMover`, and their
 dedicated channels. The only supported way to obtain one was `LoadTopology`, which goes
@@ -263,7 +321,7 @@ that returns a live one. Any package can now construct a `MoveDispatch` over arb
 geometry, bypassing validation and the registry.
 
 **Nothing enforces the naming.** A grep of every guard script finds no check that a `ForTest`
-symbol has no production caller. Three exist today:
+symbol has no production caller. Three exist:
 
 - `Wiring.NewMoveDispatchForTest` (`move_dispatch_construct.go`)
 - `Wiring.NewDrivenOutForTest` (`driven_out.go`)
@@ -277,36 +335,83 @@ This repo machine-checks weaker things: a buffer column with no production consu
 `check-no-dead-buffer-column.sh`; `useSyncExternalStore` outside an allowlist fails
 `check-no-webview-state.sh`; a hand-rolled scene path fails `check-scene-path-resolution.sh`.
 
-## Target
+## These are closed by DELETING them, not by guarding them
 
-A guard — `tools/network/structure/check-fortest-has-no-production-caller.sh` — that fails
-when any `*ForTest` symbol is referenced from a non-`_test.go` file. Empty allowlist, like
-`check-no-network-locks.sh`.
+A guard is a detector. Adding one leaves the hole in place and posts a sentry next to it —
+the code still permits the thing, and the repo grows another shell script. **Every hole below
+is closed by removing the construct, so that the thing it permitted is no longer expressible.
+No new guard is required for any of them.**
 
-## Order
+That is this repo's own preference: make the bug class unrepresentable rather than police it
+(`memory/feedback/architecture/feedback_make_bug_class_unrepresentable.md`), and prefer code
+structure over rules that describe the structure
+(`memory/feedback/process/feedback_code_self_defends.md`).
 
-1. Write the guard. Confirm it passes on the current tree (all three have test-only callers
-   today — verify, do not assume).
-2. **Make it fail on purpose**: add a production reference to one `ForTest` symbol, confirm
-   the guard names it, remove it. A guard that has never failed is indistinguishable from one
-   that cannot.
-3. Register it in the suite. `scripts/stop-checks.sh` discovers guards via
-   `tools/*/check-*.sh tools/*/*/check-*.sh` — confirm the suite's guard COUNT goes up by
-   exactly one. A guard the glob does not find is silently absent and the suite still prints
-   nothing.
-4. Only then consider whether any hatch can be removed outright. If the decomposition made an
-   owner constructible without the full registry, its `ForTest` hatch may not be needed at
-   all — deleting it beats guarding it.
+All five are the same move: a boundary needed a value from the other side, and the code
+reached across instead of being handed it. Holes 1 and 2 were created while *fixing* exactly
+that defect — which is how easily it recurs, and why the fix has to be structural.
+
+## Order — each step DELETES something
+
+1. **Hole 1: delete `currentBuildMD`.** Pass the three values those `BuildArgs` methods need
+   (`ui` lattice/tilt state, `inboxes`, a mover lookup) in at construction, like every other
+   field `BuildArgs` already carries. Then the var is unreferenced and is removed. After this
+   there is no package-level hub reference to reach for — the shape is gone, not watched.
+
+2. **Hole 2: delete the three aliases.** Repoint the 14 node-kind packages to name
+   `portwiring` directly and update `.claude/rules/node-kinds.md` and `nodes/SPEC-FORMAT.md`
+   in the same commit. The alternative is equally structural: decide `Wiring` re-exports the
+   node-kind API deliberately, write that in the rule file, and drop the ban. Either is fine;
+   leaving it undecided is not.
+
+3. **Holes 3–5: delete the hatches, don't guard them.** Each `ForTest` constructor exists for
+   ONE reason — a test in an external package cannot reach an unexported constructor. So
+   remove the reason:
+   - `NewMoveDispatchForTest` exists because `stdinreader`'s test moved out of `Wiring`.
+     Either move that test back into `Wiring` (it tests `Wiring` internals; per
+     `docs/process/testing-shape.md` it asserts what one goroutine decided, and nothing
+     requires it to live in the sibling package), or give `stdinreader` a seam that does not
+     require constructing the whole mover graph.
+   - `NewDrivenOutForTest` and `NewOutChanForTest` predate this work. Check each: if its
+     caller can live in the same package as the type, the hatch deletes with it.
+   - Only if a hatch genuinely cannot be removed does a guard become the fallback — and then
+     it is a fallback, recorded as such, not the plan.
+
+**If, and only if, a hatch survives step 3**, add
+`tools/network/structure/check-fortest-has-no-production-caller.sh` (fails when a `*ForTest`
+symbol is referenced from a non-`_test.go` file; empty allowlist). Then: confirm it passes on
+the current tree, **make it fail on purpose** and record the text (a guard that has never
+failed is indistinguishable from one that cannot), and confirm `stop-checks`' guard COUNT
+rises by exactly one — its discovery glob is `tools/*/check-*.sh tools/*/*/check-*.sh`, and a
+guard it does not find is silently absent while the suite still prints nothing.
+
+## What actually prevents recurrence
+
+Not a script. The reason holes 1 and 2 appeared is that a boundary was created before the
+values crossing it were identified — the cycle got broken by relocating the reference rather
+than removing it. The preventive is in step 1 of Part 1: *identify what the leaf reads, then
+pass it*. If that is done first, there is nothing to guard.
+
+The one thing worth considering as a guard is hole 1's SHAPE — a package-level `var` holding
+a `*MoveDispatch` or any actor pointer. That is genuinely hard to make unrepresentable in Go,
+nothing caught it, and it is a shared-mutable-global in a codebase whose architecture forbids
+exactly that. Decide it after step 1, when it is clear whether the shape can recur.
 
 ## Verification
 
-- Guard count before vs after, from the suite's own discovery glob: +1 exactly.
-- The deliberate-failure text, recorded.
+- `grep -rn "currentBuildMD" nodes/` returns nothing.
+- `grep -rn "= portwiring\." nodes/Wiring/port_bindings.go` returns nothing, or the rule file
+  documents the re-export as deliberate.
+- `grep -rn "ForTest" nodes/ --include="*.go"` returns only definitions that survived step 3
+  with a recorded reason.
+- Net guard count unchanged, unless step 3 left a survivor — in which case +1 exactly.
 - `bash scripts/stop-checks.sh` clean, read as empty stdout.
 
 ## Risk
 
-The guard must distinguish a definition from a reference, or it will flag the `func
-NewXForTest` line itself and be permanently red. It must also not fire on doc comments naming
-the symbol. Both are pattern problems; get them wrong and the usual failure applies — a guard
-that matches nothing reads exactly like a guard that passes.
+The `ForTest` deletions change where tests live, and this repo's testing doctrine
+(`docs/process/testing-shape.md`) constrains that: a test asserts what ONE goroutine decided,
+and cross-goroutine tests are forbidden. Moving a test back into `Wiring` must not turn it
+into a test of two goroutines communicating. If it would, the test stays external and its
+hatch is the one that earns the fallback guard.
+
