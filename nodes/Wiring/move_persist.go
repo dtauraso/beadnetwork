@@ -1,6 +1,9 @@
 package Wiring
 
-import "github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
+import (
+	"github.com/dtauraso/wirefold/nodes/Wiring/camerapersist"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
+)
 
 // persisters is the view-owner goroutine's (RunStdinReader, stdin_reader.go) OWN state for
 // the three SCENE-LEVEL files it writes — camera.json/overlays.json/sphere.json, each
@@ -19,9 +22,9 @@ import "github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 // scene_persist.go's header comment for why the prior debounce was removed) — there is no
 // pending-value/clean-shutdown-flush machinery to maintain.
 type persisters struct {
-	// vp is the camera-viewpoint persister (scene_camera_persist.go), armed by
+	// vp is the camera-viewpoint persister (nodes/Wiring/camerapersist), armed by
 	// EnableViewpointPersist after the startup seed. nil until armed (old path / tests).
-	vp *viewpointPersister
+	vp *camerapersist.ViewpointPersister
 	// overlays is the overlay-flags persister (scene_overlays_persist.go), armed by
 	// EnableEditPersist after the startup seed. nil until armed (tests that never arm).
 	overlays *overlaysPersister
@@ -41,13 +44,13 @@ type persisters struct {
 
 // EnableViewpointPersist arms gesture-driven camera persistence: every subsequent
 // EmitViewpoint (orbit/zoom/pan/home) writes the current viewpoint to
-// `<topologyPath>/view/camera.json` (scene_camera_persist.go). Call AFTER
+// `<topologyPath>/view/camera.json` (nodes/Wiring/camerapersist). Call AFTER
 // SeedInitialViewpoint so the seed's own emit does not write the loaded/default pose back.
 // Go owns this write (MODEL.md); the old path persists the camera via its own TS scene-save.
 func (md *MoveDispatch) EnableViewpointPersist(topologyPath string) {
-	p := &viewpointPersister{path: scenepaths.CameraFilePath(topologyPath)}
+	p := &camerapersist.ViewpointPersister{Path: scenepaths.CameraFilePath(topologyPath)}
 	md.persist.vp = p
-	md.ui.vp.persist = p.schedule
+	md.ui.vp.persist = p.Schedule
 }
 
 // EnableEditPersist arms disk persistence for the FSM-applied topology edits:

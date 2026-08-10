@@ -26,6 +26,7 @@ import (
 
 	T "github.com/dtauraso/wirefold/Trace"
 	Wiring "github.com/dtauraso/wirefold/nodes/Wiring"
+	"github.com/dtauraso/wirefold/nodes/Wiring/countspersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgefile"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
@@ -141,7 +142,7 @@ func TestCreatedNodeTreeStillLoads(t *testing.T) {
 	if err != nil {
 		t.Fatalf("new id %q is not a number", newID)
 	}
-	if err := Wiring.WriteCounts(root, newRows, countEdges(t, root)); err != nil {
+	if err := countspersist.WriteCounts(root, newRows, countEdges(t, root)); err != nil {
 		t.Fatalf("WriteCounts: %v", err)
 	}
 

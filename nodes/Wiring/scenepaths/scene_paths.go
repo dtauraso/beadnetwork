@@ -43,7 +43,8 @@ func SelectionFilePath(anchorPath string) string {
 }
 
 // CameraFilePath is the WRITE-side location of the persisted camera pose — the sole
-// successor to scene.json's cameraPolar key. writeSceneCameraPolar is its only writer.
+// successor to scene.json's cameraPolar key. camerapersist.WriteSceneCameraPolar is its
+// only writer.
 func CameraFilePath(topologyPath string) string {
 	return ViewFilePath(topologyPath, "camera.json")
 }

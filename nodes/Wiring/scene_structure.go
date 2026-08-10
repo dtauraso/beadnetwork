@@ -23,6 +23,7 @@ import (
 
 	B "github.com/dtauraso/wirefold/Buffer"
 	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/Wiring/countspersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgefile"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
@@ -111,7 +112,7 @@ func (md *MoveDispatch) CreateNode(kindID uint8, ndcX, ndcY float64, tr *T.Trace
 	}
 	// An empty scene has no nearest node, so the new node stands alone. That is not an
 	// error — there is nothing to refuse, only nothing to connect to.
-	if err := WriteCounts(md.Scenes.TreeRoot, largestNodeID(md.Scenes.TreeRoot), edges); err != nil {
+	if err := countspersist.WriteCounts(md.Scenes.TreeRoot, largestNodeID(md.Scenes.TreeRoot), edges); err != nil {
 		md.refuseStructuralEdit(fmt.Sprintf("could not update counts.json: %v", err))
 		return
 	}
@@ -154,7 +155,7 @@ func (md *MoveDispatch) DeleteNode(row int, tr *T.Trace) {
 	// count, so deleting a middle node leaves its row empty rather than shifting the ids
 	// above it down — that shift is the silent rename ROW ID = NODE ID - 1 exists to
 	// prevent (node 6's geometry arriving on node 5's row the moment 5 is deleted).
-	if err := WriteCounts(root, largestNodeID(root), countEdgeFiles(root)); err != nil {
+	if err := countspersist.WriteCounts(root, largestNodeID(root), countEdgeFiles(root)); err != nil {
 		md.refuseStructuralEdit(fmt.Sprintf("could not update counts.json: %v", err))
 		return
 	}

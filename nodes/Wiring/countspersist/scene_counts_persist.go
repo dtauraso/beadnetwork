@@ -1,4 +1,4 @@
-// scene_counts_persist.go — the ONLY writer of counts.json.
+// Package countspersist is the ONLY writer of counts.json.
 //
 // counts.json is its own ownership category, which is why it gets its own file the way each
 // view/ file does. It is neither per-node nor per-edge nor view state: it is the TREE'S
@@ -7,10 +7,10 @@
 // (.claude/rules/persistence-ownership.md, "Counts are stored, never re-derived").
 //
 // Its rule is SINGLE-WRITER: the operation that creates, deletes or renumbers a node is the
-// operation that updates it, and nothing else touches it. That operation is
-// scene_structure.go's CreateNode/DeleteNode, and until they existed nothing in Go wrote
+// operation that updates it, and nothing else touches it. That operation is Wiring's
+// scene_structure.go CreateNode/DeleteNode, and until they existed nothing in Go wrote
 // this file at all — it was maintained by hand alongside the tree.
-package Wiring
+package countspersist
 
 import (
 	"path/filepath"

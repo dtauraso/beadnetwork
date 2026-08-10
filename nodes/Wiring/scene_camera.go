@@ -23,6 +23,7 @@ import (
 	"math"
 
 	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/Wiring/camerapersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
@@ -46,28 +47,16 @@ func SeedInitialViewpoint(topologyPath string, md *MoveDispatch, tr *T.Trace) {
 	md.EmitViewpoint(tr)
 }
 
-// scenePolarCamera mirrors TS's persisted `cameraPolar` JSON shape exactly
-// (camera-store.ts PolarCamera / parse.ts parsePolarCamera):
-//
-//	{ "pivot": [x,y,z], "r": n, "pos": [theta,phi], "up": [theta,phi] }
-//
-// Pointer fields distinguish "absent" from a legitimate zero so a partial object is
-// rejected rather than silently read as a degenerate pose.
-type scenePolarCamera struct {
-	Pivot *[3]float64 `json:"pivot"`
-	R     *float64    `json:"r"`
-	Pos   *[2]float64 `json:"pos"`
-	Up    *[2]float64 `json:"up"`
-}
-
 // loadSceneViewpoint reads the saved polar camera from camera.json and converts it to the
 // FSM viewpoint tuple (pivot, r, pos, up). ok is false when camera.json yields no complete
-// pose — callers then use defaultViewpoint. The mapping is 1:1 with the TS schema:
+// pose — callers then use defaultViewpoint. The mapping is 1:1 with the TS schema
+// (camerapersist.PolarCamera mirrors camera-store.ts PolarCamera / parse.ts
+// parsePolarCamera):
 //
 //	pivot = (pivot[0], pivot[1], pivot[2])   r = r
 //	pos   = {Theta: pos[0], Phi: pos[1]}     up = {Theta: up[0], Phi: up[1]}
 func loadSceneViewpoint(topologyPath string) (pivot vec3, r float64, pos, up geom.Dir, ok bool) {
-	var cp scenePolarCamera
+	var cp camerapersist.PolarCamera
 	jsonpersist.ReadJSONBestEffort(scenepaths.CameraFilePath(topologyPath), &cp)
 	// Require every field (matches parsePolarCamera, which drops a partial object).
 	if cp.Pivot == nil || cp.R == nil || cp.Pos == nil || cp.Up == nil {
