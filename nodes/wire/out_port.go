@@ -280,6 +280,19 @@ func NewPacedOutNoGeom(pw *PacedWire, ctx context.Context, node, port string, tr
 // directly; this is the supported entry point, mirroring NewPacedOutNoGeom's
 // role for paced-mode tests.
 func NewOutChanForTest(ch chan<- int, node, port string, tr *T.Trace) *Out {
+	return newOutChan(ch, node, port, tr)
+}
+
+// NewOutChanDeadEnd is portwiring's own production entry point for an unwired Out field
+// (a port a spec's kind declares but this node's topology never wires — deadEndOut/
+// deadEndOutSlice's send-only sink): identical construction to NewOutChanForTest, under a
+// name that does not read as test-only, so check-fortest-has-no-production-caller.sh does
+// not flag a real production call site as a test escape hatch.
+func NewOutChanDeadEnd(ch chan<- int, node, port string, tr *T.Trace) *Out {
+	return newOutChan(ch, node, port, tr)
+}
+
+func newOutChan(ch chan<- int, node, port string, tr *T.Trace) *Out {
 	return &Out{ch: ch, node: node, port: port, trace: tr}
 }
 

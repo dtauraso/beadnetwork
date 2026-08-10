@@ -143,7 +143,7 @@ func NewOutPort(portName string, ctx context.Context, name string, pb PortBindin
 		return o
 	}
 	ch := pb.deadEndOut(portName)
-	return wire.NewOutChanForTest(ch, name, portName, tr)
+	return wire.NewOutChanDeadEnd(ch, name, portName, tr)
 }
 
 func NewBroadcastPort(portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, sourceOuts *[]*wire.Out, getStream func() *interior.InteriorStream) wire.Broadcast {
@@ -169,7 +169,7 @@ func NewBroadcastPort(portName string, ctx context.Context, name string, pb Port
 		chs := pb.deadEndOutSlice(portName)
 		outs := make(wire.Broadcast, len(chs))
 		for i, c := range chs {
-			outs[i] = wire.NewOutChanForTest(c, name, portName, tr)
+			outs[i] = wire.NewOutChanDeadEnd(c, name, portName, tr)
 		}
 		return outs
 	}

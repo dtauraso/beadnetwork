@@ -25,39 +25,7 @@ co-locates a file's reader and writer to stop schema drift. That rule governs wr
 ownership, not where a type lives. A schema in its own package that both sides import
 prevents drift better than proximity.
 
-## 2. Three `ForTest` hatches, unguarded
-
-`Wiring.NewMoveDispatchForTest`, `Wiring.NewDrivenOutForTest`, `wire.NewOutChanForTest`.
-
-`newMoveDispatch` builds the whole mover graph; the only supported way to get one was
-`LoadTopology`, through validation and a registry only `package main` can populate. The
-unexported constructor WAS that enforcement. The public `ForTest` sibling lets any package
-construct one over arbitrary geometry. Nothing in the guard suite checks that a `ForTest`
-symbol has no production caller.
-
-**Close by deleting, not guarding** — but the three differ, so check each rather than
-assuming one answer:
-
-- `NewMoveDispatchForTest` has ONE caller, `stdinreader`'s external test. `stdinreader` no
-  longer imports `Wiring` (it takes its three dispatch operations as function values,
-  `Handlers` in `stdin_reader.go`), so a `package Wiring` test CAN now import `stdinreader`
-  without a cycle. Move `stdinreader`'s external test into `package Wiring` and this hatch
-  deletes — not done in this pass, deliberately: do it as its own change.
-- `NewDrivenOutForTest` and `NewOutChanForTest` predate this branch. Their callers are tests
-  in `nodes/gatecommon`, `nodes/holdflip`, `nodes/pulse` — packages testing their OWN firing
-  rules, which cannot move into `Wiring`/`wire`. These are the intended seam, and
-  `driven_out.go`'s header documents that. **They stay**, and are the case where a guard is
-  the right fallback.
-
-The guard, once those two are the only survivors:
-`tools/network/structure/check-fortest-has-no-production-caller.sh`, failing when a `*ForTest`
-symbol is referenced from a non-`_test.go` file, empty allowlist. It must distinguish a
-definition from a reference or it is permanently red, and must not fire on doc comments.
-Confirm it passes for the right reason (print what it scanned, not just that it was silent),
-make it fail once on purpose and record the text, and confirm `stop-checks`' guard count rises
-by exactly one — its glob is `tools/*/check-*.sh tools/*/*/check-*.sh`.
-
-## 3. `MoveDispatch` is still 88 methods across 20 files
+## 2. `MoveDispatch` is still 88 methods across 20 files
 
 Its state is already twelve named owners; the facade over them was never decomposed.
 Measured: **68 of 88 touch exactly one owner** and rehome mechanically (43 `ui`, 12 `mr`, 3
@@ -73,7 +41,7 @@ returning under a new name.
 `moverRegistry` is not a target. It owns `nodeMover`/`edgeMover`/`nodeGeometry`, the actors
 MODEL.md pins, and whatever remains of `MoveDispatch` stays with it.
 
-## 4. `buildCtx` is a 26-field shared mutable blackboard
+## 3. `buildCtx` is a 26-field shared mutable blackboard
 
 11 build phases read and write it; no signature says what any phase reads or produces. Same
 defect as `pb.md` and `currentBuildMD` — reaching for state instead of being handed it — and
@@ -85,7 +53,7 @@ are an open set of independent things; the phases are a closed ordered sequence,
 registering them would need priority numbers or a dependency DAG — more machinery for eleven
 known steps.
 
-## 5. ~3½ build phases recompute what the movers already derive
+## 4. ~3½ build phases recompute what the movers already derive
 
 One coordinate system: MODEL.md — *"a centre is a sum of polar vectors from ONE centre… every
 node hangs off the scene centre directly, one hop."* `nodegeom.EdgeStepCount` is called from
@@ -96,7 +64,7 @@ node hangs off the scene centre directly, one hop."* `nodegeom.EdgeStepCount` is
 The structural phases are genuinely one-time (you cannot bind a channel that does not exist).
 The derived-geometry ones need not exist: if a node derives its geometry from its position and
 the scene sphere, as it already does at runtime, construction is the first update and those
-phases delete rather than move. Worth more than item 4, and item 4 does not block it.
+phases delete rather than move. Worth more than item 3, and item 3 does not block it.
 
 ---
 
@@ -123,8 +91,9 @@ locally true statements that did not reach the conclusion drawn from them.
 ## Constraints
 
 - No interfaces, no `types`/`common` package, no alias shims, no dot-imports, no new
-  package-level actor globals, no new `ForTest` hatches. All of these make the compiler stop
-  complaining while leaving the coupling in the design.
+  package-level actor globals, no new `ForTest` hatches — enforced by
+  `tools/network/structure/check-fortest-has-no-production-caller.sh`, empty allowlist. All
+  of these make the compiler stop complaining while leaving the coupling in the design.
 - No package under `nodes/Wiring/` may import `nodes/Wiring`. Verify across EVERY subpackage,
   not just the one being moved — scoping this check to the current change is how
   `stdinreader`/`scenecamera`'s two violations survived while the invariant was repeatedly
