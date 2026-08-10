@@ -180,9 +180,10 @@ func (md *MoveDispatch) ApplyDistanceGroupTarget(groupIdx, dir int) bool {
 	// Whoever does that work owes an answer here first; the likely one is that an edge
 	// carries its OWN length on its own EDGE frame (already per-owner, already streaming),
 	// so nothing has to measure across goroutines at all.
-	if moved {
-		md.emitViewFrame(nil)
-	}
+	//
+	// This method itself no longer emits: the caller (applyUpdateDistanceGroup,
+	// stdin_apply.go — the same stdin/dispatch goroutine) emits the VIEW frame when moved
+	// is true, per docs/planning/movedispatch-decomposition.md's write-then-emit split.
 	return moved
 }
 

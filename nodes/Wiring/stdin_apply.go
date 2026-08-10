@@ -43,7 +43,9 @@ func applyUpdateDistanceGroup(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.T
 	if msg.Flag == "up" {
 		dir = 1
 	}
-	md.ApplyDistanceGroupTarget(msg.Num, dir)
+	if md.ApplyDistanceGroupTarget(msg.Num, dir) {
+		md.emitViewFrame(nil)
+	}
 }
 
 // applyUpdateTiltVector handles kind=="tiltVector" attr=="theta"/"reset"/"start":
