@@ -49,7 +49,8 @@ func (v *viewpointState) EmitViewpoint(tr *T.Trace) {
 	}
 }
 
-// OrbitViewpoint applies a great-circle orbit (carrying from→to) and emits the new state.
+// OrbitViewpoint applies a great-circle orbit (carrying from→to) and runs the persist hook.
+// The caller (MoveDispatch.OrbitViewpoint below) emits the VIEW frame.
 func (v *viewpointState) OrbitViewpoint(from, to geom.Dir, tr *T.Trace) {
 	v.Orbit(from, to)
 	v.EmitViewpoint(tr)
@@ -57,19 +58,21 @@ func (v *viewpointState) OrbitViewpoint(from, to geom.Dir, tr *T.Trace) {
 
 // OrbitLockedViewpoint applies a handhold-constrained orbit: the first call locks the
 // rotation axis from the from→to arc; subsequent calls keep the same axis. The lock is
-// cleared by the next SetViewpoint. Emits a camera event each call.
+// cleared by the next SetViewpoint. Runs the persist hook; the caller emits the frame.
 func (v *viewpointState) OrbitLockedViewpoint(from, to geom.Dir, tr *T.Trace) {
 	v.OrbitLocked(from, to)
 	v.EmitViewpoint(tr)
 }
 
-// ZoomViewpoint scales the orbit radius by factor and emits the new state.
+// ZoomViewpoint scales the orbit radius by factor and runs the persist hook; the caller
+// emits the frame.
 func (v *viewpointState) ZoomViewpoint(factor float64, tr *T.Trace) {
 	v.Zoom(factor)
 	v.EmitViewpoint(tr)
 }
 
-// PanViewpoint slides the orbit pivot by a world delta and emits the new state.
+// PanViewpoint slides the orbit pivot by a world delta and runs the persist hook; the
+// caller emits the frame.
 func (v *viewpointState) PanViewpoint(delta vec3, tr *T.Trace) {
 	v.Pan(delta)
 	v.EmitViewpoint(tr)
@@ -100,21 +103,21 @@ func cameraViewEvent() []wire.RowEvent {
 	return []wire.RowEvent{{Kind: T.KindCamera, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}}
 }
 
+// EmitViewpoint/OrbitViewpoint/OrbitLockedViewpoint/ZoomViewpoint/PanViewpoint mutate the
+// owned viewpointState only. The VIEW frame is emitted by the caller — always the
+// view-owner goroutine (RunStdinReader, via the gesture handlers) — not here, per
+// docs/planning/movedispatch-decomposition.md's write-then-emit split.
 func (md *MoveDispatch) EmitViewpoint(tr *T.Trace) {
 	md.ui.vp.EmitViewpoint(tr)
-	md.emitViewFrame(cameraViewEvent())
 }
 func (md *MoveDispatch) OrbitViewpoint(from, to geom.Dir, tr *T.Trace) {
 	md.ui.vp.OrbitViewpoint(from, to, tr)
-	md.emitViewFrame(cameraViewEvent())
 }
 func (md *MoveDispatch) OrbitLockedViewpoint(from, to geom.Dir, tr *T.Trace) {
 	md.ui.vp.OrbitLockedViewpoint(from, to, tr)
-	md.emitViewFrame(cameraViewEvent())
 }
 func (md *MoveDispatch) ZoomViewpoint(factor float64, tr *T.Trace) {
 	md.ui.vp.ZoomViewpoint(factor, tr)
-	md.emitViewFrame(cameraViewEvent())
 }
 func (md *MoveDispatch) PanViewpoint(delta vec3, tr *T.Trace) {
 	// A dolly is a pure CAMERA move (the eye translates toward the cursor). It must NOT move the
@@ -124,5 +127,4 @@ func (md *MoveDispatch) PanViewpoint(delta vec3, tr *T.Trace) {
 	// Pan-moves-the-sphere is REJECTED doctrine, not a gap to fill; if it is ever revisited it
 	// must be its own gesture, never a side effect of a camera move.
 	md.ui.vp.PanViewpoint(delta, tr)
-	md.emitViewFrame(cameraViewEvent())
 }

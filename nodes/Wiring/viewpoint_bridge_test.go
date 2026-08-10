@@ -13,7 +13,10 @@ import (
 // viewpoint_bridge_test.go — tests for SetViewpoint / OrbitLockedViewpoint integration.
 //
 // Assertions:
-//   (a) OrbitLockedViewpoint writes a camera RowEvent to the VIEW stream each call.
+//   (a) OrbitLockedViewpoint mutates state such that the caller's own emitViewFrame call
+//       (the real callers are gesture_actions.go/gesture_handlers.go, the view-owner
+//       goroutine — see docs/planning/movedispatch-decomposition.md's write-then-emit
+//       split) writes a camera RowEvent to the VIEW stream each call.
 //   (b) SetViewpoint clears the locked axis: nil after set, non-nil after first
 //       OrbitLocked call, nil again after another SetViewpoint.
 
@@ -61,10 +64,12 @@ func TestOrbitLockedViewpointEmitsCamera(t *testing.T) {
 		geom.Dir{Theta: 1.5708, Phi: 0.0},
 	)
 
-	// First OrbitLockedViewpoint should write a camera RowEvent.
+	// First OrbitLockedViewpoint + the caller's emit should write a camera RowEvent.
 	md.OrbitLockedViewpoint(geom.Dir{Theta: 1.0, Phi: 0.0}, geom.Dir{Theta: 1.1, Phi: 0.1}, tr)
-	// Second OrbitLockedViewpoint should write another camera RowEvent.
+	md.emitViewFrame(cameraViewEvent())
+	// Second OrbitLockedViewpoint + emit should write another camera RowEvent.
 	md.OrbitLockedViewpoint(geom.Dir{Theta: 1.1, Phi: 0.1}, geom.Dir{Theta: 1.2, Phi: 0.15}, tr)
+	md.emitViewFrame(cameraViewEvent())
 
 	if n := countCameraEvents(events); n < 2 {
 		t.Fatalf("expected at least 2 camera events, got %d", n)

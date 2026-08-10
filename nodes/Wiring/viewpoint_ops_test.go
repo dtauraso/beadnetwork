@@ -54,7 +54,10 @@ func TestOrbitViewpointEmitsMovedPos(t *testing.T) {
 }
 
 // TestMoveDispatchViewpointDelegatorsEmit: the MoveDispatch delegators (Zoom/Pan/Orbit)
-// forward to md.ui.vp and each writes a camera RowEvent onto the VIEW stream.
+// forward to md.ui.vp; the view-owner goroutine (the real callers: gesture_actions.go,
+// gesture_handlers.go) emits the camera RowEvent onto the VIEW stream after each mutation —
+// this test drives that same mutate-then-emit shape at the call site, per
+// docs/planning/movedispatch-decomposition.md's write-then-emit split.
 func TestMoveDispatchViewpointDelegatorsEmit(t *testing.T) {
 	tr := T.New()
 	md := &MoveDispatch{}
@@ -63,8 +66,11 @@ func TestMoveDispatchViewpointDelegatorsEmit(t *testing.T) {
 	md.SetViewpoint(vec3{}, 100, geom.Dir{Theta: 1.0}, geom.Dir{Theta: 1.5708})
 
 	md.ZoomViewpoint(0.5, tr)
+	md.emitViewFrame(cameraViewEvent())
 	md.PanViewpoint(vec3{X: 5}, tr)
+	md.emitViewFrame(cameraViewEvent())
 	md.OrbitViewpoint(geom.Dir{Theta: 1.0, Phi: 0.0}, geom.Dir{Theta: 1.1, Phi: 0.1}, tr)
+	md.emitViewFrame(cameraViewEvent())
 
 	if n := countCameraEvents(events); n < 3 {
 		t.Fatalf("expected >=3 camera events from delegators, got %d", n)

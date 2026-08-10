@@ -65,7 +65,9 @@ func (md *MoveDispatch) updateHover(ev inputcodec.RawInputMsg, tr *T.Trace) {
 			node = n
 		}
 	}
-	md.setHover(node, "", false, tr)
+	if events, changed := md.setHover(node, "", false, tr); changed {
+		md.emitViewFrame(events)
+	}
 }
 
 // seedOrbitPivot installs the frozen pivot as the viewpoint pivot (mirrors the TS
@@ -91,6 +93,7 @@ func (md *MoveDispatch) applyOrbit(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	prevDir := geom.ToWorldDir(basis, prev)
 	currDir := geom.ToWorldDir(basis, curr)
 	md.OrbitViewpoint(geom.WorldDirToAngles(currDir), geom.WorldDirToAngles(prevDir), tr)
+	md.emitViewFrame(cameraViewEvent())
 }
 
 // applyOrbitLocked mirrors the "handhold-rotating" branch of interaction-handlers.ts
@@ -106,6 +109,7 @@ func (md *MoveDispatch) applyOrbitLocked(ev inputcodec.RawInputMsg, tr *T.Trace)
 	prevDir := geom.ToWorldDir(basis, prev)
 	currDir := geom.ToWorldDir(basis, curr)
 	md.OrbitLockedViewpoint(geom.WorldDirToAngles(currDir), geom.WorldDirToAngles(prevDir), tr)
+	md.emitViewFrame(cameraViewEvent())
 }
 
 // dragPlaneHit unprojects ev's pointer onto the camera-facing plane through
@@ -150,19 +154,19 @@ func (md *MoveDispatch) applyNodeDragTarget(ev inputcodec.RawInputMsg) bool {
 	return true
 }
 
-// setHover is the shared dedupe+emit hover write; updateHover (pointer path) is its
-// one caller.
-func (md *MoveDispatch) setHover(node, port string, isInput bool, tr *T.Trace) {
+// setHover is the shared dedupe+mutate hover write; updateHover (pointer path) is its one
+// caller. It mutates md.ui's hover fields and reports whether they changed plus the one
+// hover RowEvent to emit; the caller (the view-owner goroutine) emits it — this method
+// itself never calls emitViewFrame, per docs/planning/movedispatch-decomposition.md's
+// write-then-emit split.
+func (md *MoveDispatch) setHover(node, port string, isInput bool, tr *T.Trace) (events []wire.RowEvent, changed bool) {
 	if node == md.ui.sel.HoverNode && port == md.ui.sel.HoverPort && isInput == md.ui.sel.HoverInput {
-		return // no change → no re-emit (dedupe)
+		return nil, false // no change → no re-emit (dedupe)
 	}
 	// ui_state.go's setHoverUI is the AUTHORITATIVE write: it sets md.ui.sel's hover
 	// fields (mutated only by this goroutine) and MESSAGES the affected
 	// node(s) to set their OWN hovered bit — no shared/republished map.
 	md.ui.setHoverUI(md.sendMove, node, port, isInput)
-	// Decentralized (Step C, memory/feedback_no_single_writer_bridge.md): this same goroutine also writes
-	// its own VIEW frame directly, carrying this one hover event resolved to buffer rows
-	// (mirrors owner_events.go's pattern for every other per-owner stream).
 	nodeRow := int32(-1)
 	if r, ok := md.RT.NodeRowFor(node); ok {
 		nodeRow = r
@@ -174,7 +178,7 @@ func (md *MoveDispatch) setHover(node, port string, isInput bool, tr *T.Trace) {
 	if isInput {
 		value = 1
 	}
-	md.emitViewFrame([]wire.RowEvent{{Kind: T.KindHover, NodeRow: nodeRow, PortRow: portRow, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Value: value}})
+	return []wire.RowEvent{{Kind: T.KindHover, NodeRow: nodeRow, PortRow: portRow, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Value: value}}, true
 }
 
 // applySelect sets the Go-owned selection from a click hit and emits it. Selection is
@@ -189,7 +193,7 @@ func (md *MoveDispatch) applySelect(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	// OWN selected/latchedSel bit.
 	if ev.Hit.Kind == "empty" {
 		md.setSelectionUI("", "")
-		md.emitSelectViewFrame("")
+		md.emitViewFrame(md.selectViewEvent(""))
 		return
 	}
 	if ev.Hit.Kind == "edge" {
@@ -198,7 +202,7 @@ func (md *MoveDispatch) applySelect(ev inputcodec.RawInputMsg, tr *T.Trace) {
 			// An edge selection carries no NodeRow (see decodeEventLine's "select" case,
 			// buffer-log.ts — it never reads EdgeRow for this kind), mirroring the
 			// KindSelect{Edge: label, Node: ""} shape exactly.
-			md.emitSelectViewFrame("")
+			md.emitViewFrame(md.selectViewEvent(""))
 			return
 		}
 		// Unresolvable edge hit → clear selection rather than leaving stale state.
@@ -211,18 +215,20 @@ func (md *MoveDispatch) applySelect(ev inputcodec.RawInputMsg, tr *T.Trace) {
 		}
 	}
 	md.setSelectionUI(node, "")
-	md.emitSelectViewFrame(node)
+	md.emitViewFrame(md.selectViewEvent(node))
 }
 
-// emitSelectViewFrame is applySelect's decentralized-view-frame counterpart (Step C,
-// memory/feedback_no_single_writer_bridge.md): writes this goroutine's own VIEW frame carrying the one
-// select event just logged via tr.Select/tr.SelectEdge above.
-func (md *MoveDispatch) emitSelectViewFrame(node string) {
+// selectViewEvent builds applySelect's one select RowEvent (reading only md.RT — no
+// mutation), for the caller to hand to emitViewFrame. Kept as a MoveDispatch method
+// (rather than a free function like cameraViewEvent) because it resolves node → row via
+// md.RT.NodeRowFor; it does not itself call emitViewFrame, per
+// docs/planning/movedispatch-decomposition.md's write-then-emit split.
+func (md *MoveDispatch) selectViewEvent(node string) []wire.RowEvent {
 	nodeRow := int32(-1)
 	if node != "" {
 		if r, ok := md.RT.NodeRowFor(node); ok {
 			nodeRow = r
 		}
 	}
-	md.emitViewFrame([]wire.RowEvent{{Kind: T.KindSelect, NodeRow: nodeRow, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}})
+	return []wire.RowEvent{{Kind: T.KindSelect, NodeRow: nodeRow, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}}
 }
