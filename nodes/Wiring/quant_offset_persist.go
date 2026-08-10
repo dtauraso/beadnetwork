@@ -21,8 +21,8 @@ package Wiring
 // reader/writer were deleted with the LocalPolar type.
 //
 // Go owns persistence (MODEL.md): fire-and-forget, SYNCHRONOUS — persistQuantOffset writes
-// immediately, inline on the caller's own goroutine (see scene_persist.go's header comment
-// for why the prior debounce was removed) — logs on error, never blocks the gesture. Only
+// immediately, inline on the caller's own goroutine (see nodes/Wiring/jsonpersist's header
+// comment for why the prior debounce was removed) — logs on error, never blocks the gesture. Only
 // nm.persistRoot == "" (never armed via EnableEditPersist) is a no-op. The owning goroutine
 // IS the node's own nodeMover (.claude/rules/persistence-ownership.md "The owner writes, and owns the path") —
 // every call site above runs on nm's own goroutine, never routed through MoveDispatch.
@@ -35,6 +35,8 @@ package Wiring
 
 import (
 	"fmt"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 )
 
 // persistQuantOffset writes THIS node's own exact position (scene) plus its quantized
@@ -58,7 +60,7 @@ func (nm *nodeGeometry) persistQuantOffset(off quantizedOffset, scene polar) {
 	// must still round-trip whatever topTiltVectorThetaIdx this node already holds,
 	// or a later drag would silently reset a previously-set vector direction back to 0.
 	if err := writeQuantOffset(nm.persistRoot, nm.id, off, scene, nm.tilt.topTiltVectorThetaIdx); err != nil {
-		logPersistErr("quant_offset_persist", nm.id, err)
+		jsonpersist.LogPersistErr("quant_offset_persist", nm.id, err)
 	}
 }
 
@@ -72,7 +74,7 @@ func (nm *nodeGeometry) persistTiltVectorAngle() {
 		return
 	}
 	if err := writeQuantOffset(nm.persistRoot, nm.id, nm.quantOffset, nm.geom.ScenePolar, nm.tilt.topTiltVectorThetaIdx); err != nil {
-		logPersistErr("quant_offset_persist", nm.id, err)
+		jsonpersist.LogPersistErr("quant_offset_persist", nm.id, err)
 	}
 }
 
@@ -107,11 +109,11 @@ type positionFileJSON struct {
 // is a fresh marshal (no read-modify-write, and no leftover `reference` field to drop: that
 // was a meta.json-only artifact of the removed reference-tree model).
 func writeQuantOffset(root, id string, off quantizedOffset, scene polar, topTiltVectorThetaIdx int32) error {
-	if !safeTreePathComponent(id) {
+	if !jsonpersist.SafeTreePathComponent(id) {
 		return fmt.Errorf("unsafe node id %q", id)
 	}
 	t, p, r := off.effectiveSteps()
-	return writeJSONAtomic(positionFilePath(root, id), positionFileJSON{
+	return jsonpersist.WriteJSONAtomic(positionFilePath(root, id), positionFileJSON{
 		ScenePolarR: scene.R, ScenePolarTheta: scene.Theta, ScenePolarPhi: scene.Phi,
 		QuantITheta: off.iTheta, QuantIPhi: off.iPhi, QuantIR: off.iR,
 		StepTheta: t, StepPhi: p, StepR: r,

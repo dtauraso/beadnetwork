@@ -12,7 +12,11 @@
 // this file at all — it was maintained by hand alongside the tree.
 package Wiring
 
-import "path/filepath"
+import (
+	"path/filepath"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
+)
 
 type countsFile struct {
 	Nodes int `json:"nodes"`
@@ -25,5 +29,5 @@ type countsFile struct {
 // number of directories: a gap left by a deleted node still needs its row, and its dedicated
 // fd, allocated. `edges` is a plain count — an edge has no id space to leave gaps in.
 func WriteCounts(root string, nodes, edges int) error {
-	return writeJSONAtomic(filepath.Join(root, "counts.json"), countsFile{Nodes: nodes, Edges: edges})
+	return jsonpersist.WriteJSONAtomic(filepath.Join(root, "counts.json"), countsFile{Nodes: nodes, Edges: edges})
 }

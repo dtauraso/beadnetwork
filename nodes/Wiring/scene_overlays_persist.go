@@ -39,6 +39,8 @@ package Wiring
 
 import (
 	"encoding/json"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -75,7 +77,7 @@ func writeSceneOverlays(overlaysPath string, ov overlayState) error {
 	setVisible("selectionRingVisible", ov.selectionRingVisible)
 	setVisible("hoverRingVisible", ov.hoverRingVisible)
 	setVisible("reachSphereVisible", ov.reachSphereVisible)
-	return writeJSONAtomic(overlaysPath, obj)
+	return jsonpersist.WriteJSONAtomic(overlaysPath, obj)
 }
 
 // overlaysPersister writes overlay toggles/sets to overlays.json as they happen. Armed by
@@ -91,7 +93,7 @@ func (p *overlaysPersister) schedule(ov overlayState) {
 		return
 	}
 	if err := writeSceneOverlays(p.path, ov); err != nil {
-		logPersistErr("scene_overlays_persist", p.path, err)
+		jsonpersist.LogPersistErr("scene_overlays_persist", p.path, err)
 		return
 	}
 }
@@ -125,7 +127,7 @@ type sceneOverlaysFile struct {
 func loadSceneOverlays(overlaysPath string) (overlayState, bool) {
 	ov := defaultOverlayState()
 	var sf sceneOverlaysFile
-	readJSONBestEffort(overlaysPath, &sf)
+	jsonpersist.ReadJSONBestEffort(overlaysPath, &sf)
 	found := false
 	if sf.SceneToriVisible != nil {
 		ov.sceneToriVisible = *sf.SceneToriVisible

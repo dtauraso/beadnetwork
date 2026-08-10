@@ -31,6 +31,7 @@ package Wiring
 
 import (
 	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
@@ -43,7 +44,7 @@ type sceneSphereJSON struct {
 // yields no complete sphere — callers then content-fit.
 func loadSceneSphere(topologyPath string) (sceneSphere, bool) {
 	var sj sceneSphereJSON
-	readJSONBestEffort(sphereFilePath(topologyPath), &sj)
+	jsonpersist.ReadJSONBestEffort(sphereFilePath(topologyPath), &sj)
 	if sj.Center == nil || sj.Radius == nil {
 		return sceneSphere{}, false
 	}
@@ -58,7 +59,7 @@ func loadSceneSphere(topologyPath string) (sceneSphere, bool) {
 func writeSceneSphere(sphereJSONPath string, s sceneSphere) error {
 	center := [3]float64{s.Center.X, s.Center.Y, s.Center.Z}
 	radius := s.Radius
-	return writeJSONAtomic(sphereJSONPath, sceneSphereJSON{Center: &center, Radius: &radius})
+	return jsonpersist.WriteJSONAtomic(sphereJSONPath, sceneSphereJSON{Center: &center, Radius: &radius})
 }
 
 // LoadSceneSphere installs md.ui.sceneSphere from FILE DATA, or — when sphere.json has no
@@ -128,7 +129,7 @@ func (p *sceneSpherePersister) flushNow(s sceneSphere) {
 		return
 	}
 	if err := writeSceneSphere(p.path, s); err != nil {
-		logPersistErr("scene_sphere_persist", p.path, err)
+		jsonpersist.LogPersistErr("scene_sphere_persist", p.path, err)
 		return
 	}
 }

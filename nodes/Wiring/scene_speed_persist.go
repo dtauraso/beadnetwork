@@ -26,6 +26,7 @@ package Wiring
 import (
 	"encoding/json"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -77,7 +78,7 @@ func writeSceneSpeed(speedPath string, speed float64) error {
 	obj := map[string]json.RawMessage{
 		"speed": json.RawMessage(formatSpeedJSON(speed)),
 	}
-	return writeJSONAtomic(speedPath, obj)
+	return jsonpersist.WriteJSONAtomic(speedPath, obj)
 }
 
 // formatSpeedJSON renders speed as a plain JSON number (no trailing zeros games needed —
@@ -104,7 +105,7 @@ func (p *speedPersister) schedule(speed float64) {
 		return
 	}
 	if err := writeSceneSpeed(p.path, speed); err != nil {
-		logPersistErr("scene_speed_persist", p.path, err)
+		jsonpersist.LogPersistErr("scene_speed_persist", p.path, err)
 		return
 	}
 }
@@ -118,10 +119,10 @@ type sceneSpeedFile struct {
 // return is false when the file yields no speed key (fresh topology, or a missing/malformed
 // file) — the caller then keeps defaultPlaybackSpeed. This is a PREFERENCE, not a structural
 // invariant (unlike counts.json), so a missing/malformed file falls back quietly rather than
-// failing loudly — see readJSONBestEffort.
+// failing loudly — see jsonpersist.ReadJSONBestEffort.
 func loadSceneSpeed(speedPath string) (float64, bool) {
 	var sf sceneSpeedFile
-	readJSONBestEffort(speedPath, &sf)
+	jsonpersist.ReadJSONBestEffort(speedPath, &sf)
 	if sf.Speed == nil {
 		return defaultPlaybackSpeed, false
 	}

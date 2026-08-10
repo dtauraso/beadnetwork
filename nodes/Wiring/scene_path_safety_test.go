@@ -1,8 +1,8 @@
 package Wiring
 
-// scene_path_safety_test.go — verifies safeTreePathComponent rejects path-traversal
-// values and that writeQuantOffset rejects an unsafe id rather than escaping the tree
-// root (see quant_offset_persist.go). The former port-anchor write sink
+// scene_path_safety_test.go — verifies jsonpersist.SafeTreePathComponent rejects
+// path-traversal values and that writeQuantOffset rejects an unsafe id rather than escaping
+// the tree root (see quant_offset_persist.go). The former port-anchor write sink
 // (scene_anchor_persist.go) is gone — docs/bead-model/channels-not-ports.md, a port has no file
 // of its own any more.
 
@@ -10,6 +10,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 )
 
 func TestSafeTreePathComponent(t *testing.T) {
@@ -29,8 +31,8 @@ func TestSafeTreePathComponent(t *testing.T) {
 		{"node_2", true},
 	}
 	for _, c := range cases {
-		if got := safeTreePathComponent(c.s); got != c.want {
-			t.Errorf("safeTreePathComponent(%q) = %v, want %v", c.s, got, c.want)
+		if got := jsonpersist.SafeTreePathComponent(c.s); got != c.want {
+			t.Errorf("jsonpersist.SafeTreePathComponent(%q) = %v, want %v", c.s, got, c.want)
 		}
 	}
 }

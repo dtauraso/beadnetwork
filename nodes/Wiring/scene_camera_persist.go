@@ -1,5 +1,7 @@
 package Wiring
 
+import "github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
+
 // scene_camera_persist.go — the WRITE side of camera-viewpoint-as-file-data.
 //
 // The read side (scene_camera.go) loads the saved polar camera from
@@ -50,7 +52,7 @@ func (p *viewpointPersister) schedule(v viewpoint) {
 	}
 	cam := viewpointToPolar(v)
 	if err := writeSceneCameraPolar(p.path, cam); err != nil {
-		logPersistErr("scene_camera_persist", p.path, err)
+		jsonpersist.LogPersistErr("scene_camera_persist", p.path, err)
 		return
 	}
 }
@@ -68,5 +70,5 @@ func viewpointToPolar(v viewpoint) *scenePolarCamera {
 // writeSceneCameraPolar writes cam as the whole content of path (camera.json) — the sole
 // writer of that file, so no read-modify-write is needed.
 func writeSceneCameraPolar(path string, cam *scenePolarCamera) error {
-	return writeJSONAtomic(path, cam)
+	return jsonpersist.WriteJSONAtomic(path, cam)
 }

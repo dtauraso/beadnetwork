@@ -12,11 +12,12 @@ set -euo pipefail
 # regression step 3's path-construction guard alone cannot catch, because it only checks
 # who builds a path string, not who actually calls the OS write.
 #
-# Every real on-disk write in this package funnels through exactly two primitives
-# (scene_persist.go): writeJSONAtomic (whole-file marshal+write) and entityReadModifyWrite
-# (read-modify-write, used only by the port-anchor writer). scene_persist.go itself is
-# exempted as shared plumbing every owner calls THROUGH — same exemption shape as
-# scene_paths.go in check-scene-path-resolution.sh.
+# Every real on-disk write in this package funnels through the shared primitive
+# nodes/Wiring/jsonpersist.WriteJSONAtomic (whole-file marshal+write) — the sole survivor of
+# what used to be two primitives; the read-modify-write helper (entityReadModifyWrite, for
+# the now-removed port-anchor writer) is gone. The jsonpersist package itself is exempted as
+# shared plumbing every owner calls THROUGH — same exemption shape as scene_paths.go in
+# check-scene-path-resolution.sh.
 #
 # Ownership is matched by PATH PATTERN, not directory
 # (.claude/rules/persistence-ownership.md "The owner writes, and owns the path": nodes/<id>/
@@ -56,16 +57,17 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 WIRING_DIR="$REPO_ROOT/nodes/Wiring"
-PLUMBING="scene_persist.go"
+PLUMBING="json_persist.go"
+PLUMBING_PATH="$WIRING_DIR/jsonpersist/$PLUMBING"
 
 if [[ ! -d "$WIRING_DIR" ]]; then
   echo "check-persist-write-ownership: MISCONFIGURED — $WIRING_DIR not found (moved/renamed?)." >&2
   exit 1
 fi
-if [[ ! -f "$WIRING_DIR/$PLUMBING" ]]; then
-  echo "check-persist-write-ownership: MISCONFIGURED — $WIRING_DIR/$PLUMBING not found." >&2
-  echo "  This guard exempts scene_persist.go as the shared write primitive; if it is gone," >&2
-  echo "  the invariant it enforces no longer has a home. Update the guard deliberately." >&2
+if [[ ! -f "$PLUMBING_PATH" ]]; then
+  echo "check-persist-write-ownership: MISCONFIGURED — $PLUMBING_PATH not found." >&2
+  echo "  This guard exempts nodes/Wiring/jsonpersist as the shared write primitive; if it is" >&2
+  echo "  gone, the invariant it enforces no longer has a home. Update the guard deliberately." >&2
   exit 1
 fi
 
@@ -105,7 +107,7 @@ done < <(find "$WIRING_DIR" -name "*.go" -not -name "*_test.go")
 
 all_hits=""
 if [[ ${#eligible_files[@]} -gt 0 ]]; then
-  all_hits="$(grep -nE 'writeJSONAtomic\(|entityReadModifyWrite\(' "${eligible_files[@]}" 2>/dev/null || true)"
+  all_hits="$(grep -nE 'jsonpersist\.WriteJSONAtomic\(|entityReadModifyWrite\(' "${eligible_files[@]}" 2>/dev/null || true)"
 fi
 
 HITS=0

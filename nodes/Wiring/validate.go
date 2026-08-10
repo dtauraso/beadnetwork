@@ -12,6 +12,8 @@ package Wiring
 
 import (
 	"fmt"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"strings"
 )
@@ -70,7 +72,7 @@ func validateSpec(spec *topoSpec) error {
 	// filepath.Join'd anywhere (docs/bead-model/channels-not-ports.md: no nodes/<id>/inputs/
 	// or outputs/ any more), so there is nothing left to check on them here.
 	for _, n := range spec.Nodes {
-		if !safeTreePathComponent(n.ID) {
+		if !jsonpersist.SafeTreePathComponent(n.ID) {
 			errs = append(errs, fmt.Sprintf("node id %q is not a safe path component", n.ID))
 		}
 	}

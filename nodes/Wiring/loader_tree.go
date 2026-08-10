@@ -25,6 +25,8 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 )
 
 // jsonMeta is the shape of nodes/<id>/meta.json.
@@ -127,7 +129,7 @@ func loadTree(root string) (topoSpec, error) {
 		// writeQuantOffset). Present → overrides meta.json's (possibly stale/legacy) position
 		// fields. Absent → sn keeps whatever meta.json carried above (old-format topology).
 		var pf positionFileJSON
-		if readJSONIfExists(positionFilePath(root, nodeID), &pf) {
+		if jsonpersist.ReadJSONIfExists(positionFilePath(root, nodeID), &pf) {
 			r, th, ph := pf.ScenePolarR, pf.ScenePolarTheta, pf.ScenePolarPhi
 			qt, qp, qr := pf.QuantITheta, pf.QuantIPhi, pf.QuantIR
 			st, sp, sr := pf.StepTheta, pf.StepPhi, pf.StepR

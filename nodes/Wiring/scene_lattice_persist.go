@@ -24,6 +24,8 @@ package Wiring
 
 import (
 	"encoding/json"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 )
 
 // defaultLatticePoints is the point count a fresh topology (or a missing/malformed
@@ -36,7 +38,7 @@ func writeSceneLattice(latticePath string, points int32) error {
 	obj := map[string]json.RawMessage{
 		"points": json.RawMessage(formatLatticeJSON(points)),
 	}
-	return writeJSONAtomic(latticePath, obj)
+	return jsonpersist.WriteJSONAtomic(latticePath, obj)
 }
 
 // formatLatticeJSON renders points as a plain JSON integer.
@@ -61,7 +63,7 @@ func (p *latticePersister) schedule(points int32) {
 		return
 	}
 	if err := writeSceneLattice(p.path, points); err != nil {
-		logPersistErr("scene_lattice_persist", p.path, err)
+		jsonpersist.LogPersistErr("scene_lattice_persist", p.path, err)
 		return
 	}
 }
@@ -75,10 +77,10 @@ type sceneLatticeFile struct {
 // (lattice.json). The bool return is false when the file yields no points key (fresh
 // topology, or a missing/malformed file) — the caller then keeps defaultLatticePoints.
 // This is a PREFERENCE, not a structural invariant, so a missing/malformed file falls
-// back quietly rather than failing loudly — see readJSONBestEffort.
+// back quietly rather than failing loudly — see jsonpersist.ReadJSONBestEffort.
 func loadSceneLattice(latticePath string) (int32, bool) {
 	var lf sceneLatticeFile
-	readJSONBestEffort(latticePath, &lf)
+	jsonpersist.ReadJSONBestEffort(latticePath, &lf)
 	if lf.Points == nil {
 		return defaultLatticePoints, false
 	}

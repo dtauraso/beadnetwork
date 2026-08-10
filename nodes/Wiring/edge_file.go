@@ -14,6 +14,8 @@ package Wiring
 import (
 	"os"
 	"path/filepath"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 )
 
 // edgeFile mirrors the on-disk shape exactly (see any topology/nodes/*/edges/*.json).
@@ -46,7 +48,7 @@ func edgesDirPath(root, id string) string {
 // exited is a scene with no zoom, pan or rotate and nothing saying why.
 func WriteEdgeFile(root, src, srcPort, target, targetPort string) error {
 	label := src + "To" + target
-	return writeJSONAtomic(edgeFilePath(root, src, label), edgeFile{
+	return jsonpersist.WriteJSONAtomic(edgeFilePath(root, src, label), edgeFile{
 		SourceHandle: srcPort, Target: target, TargetHandle: targetPort, Kind: "chain", Label: label,
 	})
 }
@@ -67,7 +69,7 @@ func RemoveEdgesTo(root, id string, nodeIDs []string) error {
 			}
 			path := filepath.Join(edgesDirPath(root, n), e.Name())
 			var ef edgeFile
-			readJSONBestEffort(path, &ef)
+			jsonpersist.ReadJSONBestEffort(path, &ef)
 			if ef.Target != id {
 				continue
 			}

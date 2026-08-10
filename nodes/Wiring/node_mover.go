@@ -16,6 +16,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
@@ -26,7 +27,7 @@ import (
 // node — see edge_mover.go's doc comment and .claude/rules/persistence-ownership.md
 // "The model"). These are the ONLY functions in the package that build those paths;
 // quant_offset_persist.go and scene_anchor_persist.go call them rather than
-// constructing the path themselves. safeTreePathComponent (scene_persist.go) is applied
+// constructing the path themselves. jsonpersist.SafeTreePathComponent is applied
 // at each call site before use, same as it always was — node ids and port names are
 // spec-authored and must not escape the tree root via ".." or a separator.
 
@@ -70,10 +71,10 @@ func WriteNewNodeFiles(root, id, kind string, scenePolarR, theta, phi float64) e
 	if err := os.MkdirAll(filepath.Join(dir, "edges"), 0o755); err != nil {
 		return err
 	}
-	if err := writeJSONAtomic(nodeMetaFilePath(root, id), newNodeMeta{ID: id, Type: kind}); err != nil {
+	if err := jsonpersist.WriteJSONAtomic(nodeMetaFilePath(root, id), newNodeMeta{ID: id, Type: kind}); err != nil {
 		return err
 	}
-	return writeJSONAtomic(positionFilePath(root, id), newNodePosition{
+	return jsonpersist.WriteJSONAtomic(positionFilePath(root, id), newNodePosition{
 		ScenePolarR: scenePolarR, ScenePolarTheta: theta, ScenePolarPhi: phi,
 	})
 }

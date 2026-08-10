@@ -23,6 +23,7 @@ import (
 	"math"
 
 	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 )
 
 // SeedInitialViewpoint installs the initial camera viewpoint from FILE DATA. It loads the
@@ -65,7 +66,7 @@ type scenePolarCamera struct {
 //	pos   = {Theta: pos[0], Phi: pos[1]}     up = {Theta: up[0], Phi: up[1]}
 func loadSceneViewpoint(topologyPath string) (pivot vec3, r float64, pos, up dir, ok bool) {
 	var cp scenePolarCamera
-	readJSONBestEffort(cameraFilePath(topologyPath), &cp)
+	jsonpersist.ReadJSONBestEffort(cameraFilePath(topologyPath), &cp)
 	// Require every field (matches parsePolarCamera, which drops a partial object).
 	if cp.Pivot == nil || cp.R == nil || cp.Pos == nil || cp.Up == nil {
 		return vec3{}, 0, dir{}, dir{}, false
