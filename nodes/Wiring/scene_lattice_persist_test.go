@@ -9,6 +9,8 @@ package Wiring
 import (
 	"os"
 	"testing"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 )
 
 // TestPersistLatticePointsRoundTrips: schedule a lattice write -> lattice.json carries the
@@ -20,7 +22,7 @@ func TestPersistLatticePointsRoundTrips(t *testing.T) {
 
 	md.persist.lattice.schedule(12)
 
-	got, found := loadSceneLattice(latticeFilePath(root))
+	got, found := loadSceneLattice(scenepaths.LatticeFilePath(root))
 	if !found {
 		t.Fatalf("loadSceneLattice found no points key after flush")
 	}
@@ -54,10 +56,10 @@ func TestLoadLatticePointsFallsBackQuietlyWhenMissing(t *testing.T) {
 // failed load (readJSONBestEffort).
 func TestLoadLatticePointsFallsBackQuietlyWhenMalformed(t *testing.T) {
 	root := writeTree(t)
-	if err := os.MkdirAll(latticeFilePath(root)[:len(latticeFilePath(root))-len("/lattice.json")], 0o755); err != nil {
+	if err := os.MkdirAll(scenepaths.LatticeFilePath(root)[:len(scenepaths.LatticeFilePath(root))-len("/lattice.json")], 0o755); err != nil {
 		t.Fatalf("mkdir view dir: %v", err)
 	}
-	if err := os.WriteFile(latticeFilePath(root), []byte("{not json"), 0o644); err != nil {
+	if err := os.WriteFile(scenepaths.LatticeFilePath(root), []byte("{not json"), 0o644); err != nil {
 		t.Fatalf("write malformed lattice.json: %v", err)
 	}
 	md := loadTreeMD(t, root)

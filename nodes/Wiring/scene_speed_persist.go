@@ -27,6 +27,7 @@ import (
 	"encoding/json"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -96,7 +97,7 @@ func formatSpeedJSON(speed float64) []byte {
 // EnableEditPersist, then called exclusively by the view-owner goroutine (RunStdinReader)
 // — see the OWNER note above. path == "" (tests that never arm) → no-op.
 type speedPersister struct {
-	path string // speed.json path (speedFilePath(topologyPath))
+	path string // speed.json path (scenepaths.SpeedFilePath(topologyPath))
 }
 
 // schedule writes the given speed to speed.json synchronously.
@@ -152,7 +153,7 @@ func (md *MoveDispatch) SliderSpeed() float64 {
 }
 
 func (md *MoveDispatch) LoadSpeed(topologyPath string, speedSinks []chan float64, tr *T.Trace) {
-	speed, _ := loadSceneSpeed(speedFilePath(topologyPath))
+	speed, _ := loadSceneSpeed(scenepaths.SpeedFilePath(topologyPath))
 	md.ui.clockDivisor = SceneClockDivisor(topologyPath)
 	md.ui.speed = speed
 	effective := EffectiveClockSpeed(speed, md.ui.clockDivisor)

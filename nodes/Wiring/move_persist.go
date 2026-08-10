@@ -1,5 +1,7 @@
 package Wiring
 
+import "github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
+
 // persisters is the view-owner goroutine's (RunStdinReader, stdin_reader.go) OWN state for
 // the three SCENE-LEVEL files it writes — camera.json/overlays.json/sphere.json, each
 // genuinely singular (there is only one camera pose, one overlay-flag set, one scene
@@ -43,7 +45,7 @@ type persisters struct {
 // SeedInitialViewpoint so the seed's own emit does not write the loaded/default pose back.
 // Go owns this write (MODEL.md); the old path persists the camera via its own TS scene-save.
 func (md *MoveDispatch) EnableViewpointPersist(topologyPath string) {
-	p := &viewpointPersister{path: cameraFilePath(topologyPath)}
+	p := &viewpointPersister{path: scenepaths.CameraFilePath(topologyPath)}
 	md.persist.vp = p
 	md.ui.vp.persist = p.schedule
 }
@@ -71,10 +73,10 @@ func (md *MoveDispatch) EnableEditPersist(topologyPath string) {
 	// the root itself, because it creates and removes whole node directories rather than
 	// rewriting one known file.
 	md.Scenes.TreeRoot = root
-	md.persist.overlays = &overlaysPersister{path: overlaysFilePath(topologyPath)}
-	md.persist.sphere = &sceneSpherePersister{path: sphereFilePath(topologyPath)}
-	md.persist.speed = &speedPersister{path: speedFilePath(topologyPath)}
-	md.persist.lattice = &latticePersister{path: latticeFilePath(topologyPath)}
+	md.persist.overlays = &overlaysPersister{path: scenepaths.OverlaysFilePath(topologyPath)}
+	md.persist.sphere = &sceneSpherePersister{path: scenepaths.SphereFilePath(topologyPath)}
+	md.persist.speed = &speedPersister{path: scenepaths.SpeedFilePath(topologyPath)}
+	md.persist.lattice = &latticePersister{path: scenepaths.LatticeFilePath(topologyPath)}
 	// Every node's own mover writes its own position.json/local-polars.json/port-anchor
 	// files — set the tree root on each nodeMover directly rather than routing writes
 	// through a shared MoveDispatch-owned persister (docs/planning/decentralized-

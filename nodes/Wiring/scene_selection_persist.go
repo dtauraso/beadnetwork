@@ -18,11 +18,14 @@
 // persistence plumbing.
 package Wiring
 
-import "github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
+import (
+	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
+)
 
 // writeSelectedScene writes the selected tab's NAME (not its index) as the whole content of
 // the anchor's view/scene.json. The name is what survives a reordering of SceneTabs; an
 // index would silently come back pointing at a different diagram.
 func writeSelectedScene(anchorPath string, idx int) error {
-	return jsonpersist.WriteJSONAtomic(sceneSelectionFilePath(anchorPath), sceneSelectionFile{Selected: SceneTabs[idx].Name})
+	return jsonpersist.WriteJSONAtomic(scenepaths.SelectionFilePath(anchorPath), sceneSelectionFile{Selected: SceneTabs[idx].Name})
 }

@@ -10,6 +10,8 @@ package Wiring
 
 import (
 	"testing"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 )
 
 // TestPersistSpeedRoundTrips: schedule a speed write -> speed.json carries the exact
@@ -21,7 +23,7 @@ func TestPersistSpeedRoundTrips(t *testing.T) {
 
 	md.persist.speed.schedule(0.25)
 
-	got, found := loadSceneSpeed(speedFilePath(root))
+	got, found := loadSceneSpeed(scenepaths.SpeedFilePath(root))
 	if !found {
 		t.Fatalf("loadSceneSpeed found no speed key after flush")
 	}

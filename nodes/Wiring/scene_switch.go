@@ -7,6 +7,8 @@ package Wiring
 import (
 	"fmt"
 	"os"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 )
 
 // EnableSceneSwitch arms tab switching. quit ends the run (main's context cancel), which
@@ -38,7 +40,7 @@ func (md *MoveDispatch) SelectScene(idx int) {
 		// output channel AND .probe/go-errors.jsonl, which is where an operator looks when
 		// a click did nothing (memory/feedback_runner_errors_probe_first.md).
 		fmt.Fprintf(os.Stderr, "scene tab: could not persist selection to %s: %v — staying on the current scene\n",
-			sceneSelectionFilePath(md.Scenes.AnchorPath), err)
+			scenepaths.SelectionFilePath(md.Scenes.AnchorPath), err)
 		return
 	}
 	md.Scenes.Quit()

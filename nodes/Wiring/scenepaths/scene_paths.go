@@ -1,8 +1,6 @@
-package Wiring
-
-// scene_paths.go — resolves ONLY the scene-level paths under a topology tree: the
+// Package scenepaths resolves ONLY the scene-level paths under a topology tree: the
 // one-file-per-writer view/camera.json, view/overlays.json, view/sphere.json.
-// topologyPath is always the tree root directory — LoadTopology rejects anything else
+// TopologyPath is always the tree root directory — LoadTopology rejects anything else
 // (topo_spec.go's "a topology is a directory tree and nothing else") — so every function
 // here is a plain filepath.Join, no os.Stat/IsDir resolution needed.
 //
@@ -22,55 +20,56 @@ package Wiring
 //
 // Guard: tools/network/check-scene-path-resolution.sh enforces the split by path pattern — see the
 // guard's own header for the current rule.
+package scenepaths
 
 import "path/filepath"
 
-// sceneViewFilePath resolves <topologyPath>/view/<name>. Backs the one-file-per-writer
+// ViewFilePath resolves <topologyPath>/view/<name>. Backs the one-file-per-writer
 // split: camera.json, overlays.json and sphere.json each replace one of the three writers
 // that used to share scene.json, and each resolves its path through this one shared helper.
-func sceneViewFilePath(topologyPath, name string) string {
+func ViewFilePath(topologyPath, name string) string {
 	return filepath.Join(topologyPath, "view", name)
 }
 
-// sceneSelectionFilePath resolves <anchorPath>/view/scene.json — the SCENE TAB selection.
+// SelectionFilePath resolves <anchorPath>/view/scene.json — the SCENE TAB selection.
 //
 // It takes the ANCHOR, not a loaded scene: the selection names which scene to load, so it
 // must be readable before one is chosen and must not move when the choice changes. Every
 // other resolver in this file takes the loaded scene's own root. Same "view/" join, one
 // deliberately different argument — which is why it lives here with them rather than being
 // hand-rolled at its call site.
-func sceneSelectionFilePath(anchorPath string) string {
-	return sceneViewFilePath(anchorPath, "scene.json")
+func SelectionFilePath(anchorPath string) string {
+	return ViewFilePath(anchorPath, "scene.json")
 }
 
-// cameraFilePath is the WRITE-side location of the persisted camera pose — the sole
+// CameraFilePath is the WRITE-side location of the persisted camera pose — the sole
 // successor to scene.json's cameraPolar key. writeSceneCameraPolar is its only writer.
-func cameraFilePath(topologyPath string) string {
-	return sceneViewFilePath(topologyPath, "camera.json")
+func CameraFilePath(topologyPath string) string {
+	return ViewFilePath(topologyPath, "camera.json")
 }
 
-// overlaysFilePath is the WRITE-side location of the persisted overlay-visibility flags —
+// OverlaysFilePath is the WRITE-side location of the persisted overlay-visibility flags —
 // the sole successor to scene.json's overlay keys. writeSceneOverlays is its only writer.
-func overlaysFilePath(topologyPath string) string {
-	return sceneViewFilePath(topologyPath, "overlays.json")
+func OverlaysFilePath(topologyPath string) string {
+	return ViewFilePath(topologyPath, "overlays.json")
 }
 
-// sphereFilePath is the WRITE-side location of the persisted scene sphere — the sole
+// SphereFilePath is the WRITE-side location of the persisted scene sphere — the sole
 // successor to scene.json's sceneSphere key. writeSceneSphere is its only writer.
-func sphereFilePath(topologyPath string) string {
-	return sceneViewFilePath(topologyPath, "sphere.json")
+func SphereFilePath(topologyPath string) string {
+	return ViewFilePath(topologyPath, "sphere.json")
 }
 
-// speedFilePath is the WRITE-side location of the persisted playback-speed multiplier —
+// SpeedFilePath is the WRITE-side location of the persisted playback-speed multiplier —
 // one-file-per-writer, mirroring camera/overlays/sphere above. writeSceneSpeed is its
 // only writer (scene_speed_persist.go).
-func speedFilePath(topologyPath string) string {
-	return sceneViewFilePath(topologyPath, "speed.json")
+func SpeedFilePath(topologyPath string) string {
+	return ViewFilePath(topologyPath, "speed.json")
 }
 
-// latticeFilePath is the WRITE-side location of the persisted pair-lattice point count —
+// LatticeFilePath is the WRITE-side location of the persisted pair-lattice point count —
 // one-file-per-writer, mirroring camera/overlays/sphere/speed above. writeSceneLattice is
 // its only writer (scene_lattice_persist.go).
-func latticeFilePath(topologyPath string) string {
-	return sceneViewFilePath(topologyPath, "lattice.json")
+func LatticeFilePath(topologyPath string) string {
+	return ViewFilePath(topologyPath, "lattice.json")
 }

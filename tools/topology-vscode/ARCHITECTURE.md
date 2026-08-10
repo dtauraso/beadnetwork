@@ -87,7 +87,7 @@ store — the TS layer is render + forward only (guard:
   supported form.
 - **`<tree-root>/view/{camera,overlays,sphere}.json`** — one file per writer, for
   camera/view state not affecting generated Go. Paths computed in
-  `nodes/Wiring/scene_paths.go`. (An earlier shared sidecar under that same `view/`
+  `nodes/Wiring/scenepaths/scene_paths.go`. (An earlier shared sidecar under that same `view/`
   directory, a single `scene.json`, held all three in one document; it and its
   best-effort read fallback were removed once the split landed — no such file exists in
   this repo's tree.)

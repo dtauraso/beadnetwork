@@ -6,7 +6,7 @@ set -uo pipefail
 #
 # THE PROBLEM THIS SOLVES
 # The guards in tools/*/check-*.sh encode a placement discipline: a write to view/* belongs in
-# a view-owner file; a filepath.Join("view", …) belongs in scene_paths.go; useSyncExternalStore
+# a view-owner file; a filepath.Join("view", …) belongs in scenepaths/scene_paths.go; useSyncExternalStore
 # belongs in a named buffer-reflect resource; a breadcrumb label must be registered. Each rule
 # is documented — in the guard's own header, which nobody reads until that guard fails. The
 # feedback therefore arrives AFTER the file is written the wrong way, and the fix is a

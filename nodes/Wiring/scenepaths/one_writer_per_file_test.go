@@ -1,21 +1,14 @@
-package Wiring
+package scenepaths
 
-// one_writer_per_file_test.go — pins fact #2 of the one-file-per-goroutine split
-//: position.json (the one of the four NEW files this
-// split introduced that stays owned by this package) has its
-// ON-DISK NAME literal spelled out in exactly ONE place in production (non-test) source —
-// the single path-building function for that file (positionFilePath). The sibling
-// assertions for camera.json/overlays.json/sphere.json moved with scene_paths.go into
-// nodes/Wiring/scenepaths/one_writer_per_file_test.go, since those three literals now live
-// there. Every
-// writer, loader and persister-arming call site
-// reaches the file only through that one function; nothing else is allowed to spell the
-// filename itself. There is no local-polars.json any more — a node has no stored record
-// of a NEIGHBOUR's coordinate (MODEL.md "the polar model"). A
-// second writer appearing later — the exact way sceneFileMu and entityFileMus were born in
-// the first place — would need to either reuse the existing path helper (in which case grep
-// for its call sites, not this test, is the tripwire) or hand-roll the filename again, which
-// this test catches directly.
+// one_writer_per_file_test.go — pins fact #2 of the one-file-per-goroutine split for the
+// three scene-level files this package resolves: camera.json, overlays.json, sphere.json
+// each has its ON-DISK NAME literal spelled out in exactly ONE place in production
+// (non-test) source — the single path-building function for that file
+// (CameraFilePath / OverlaysFilePath / SphereFilePath). Every writer, loader and
+// persister-arming call site in nodes/Wiring reaches the file only through that one
+// function; nothing else is allowed to spell the filename itself. The sibling assertion for
+// position.json (owned by nodes/Wiring's node_mover.go, never moved here) stays in
+// nodes/Wiring/one_writer_per_file_test.go.
 
 import (
 	"os"
@@ -54,7 +47,9 @@ func countLiteralOccurrences(t *testing.T, literal string) int {
 // ever construct a path to it, and therefore exactly one writer.
 func TestEachSplitFileNameIsSpelledExactlyOnce(t *testing.T) {
 	names := []string{
-		`"position.json"`,
+		`"camera.json"`,
+		`"overlays.json"`,
+		`"sphere.json"`,
 	}
 	for _, name := range names {
 		got := countLiteralOccurrences(t, name)

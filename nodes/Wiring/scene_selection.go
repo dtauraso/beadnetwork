@@ -9,6 +9,8 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 )
 
 // sceneSelectionFile is the persisted selection, held at the ANCHOR (never inside a scene).
@@ -32,7 +34,7 @@ func SelectedSceneIndex(anchorPath string) int {
 	if !AnchorIsTabbed(anchorPath) {
 		return 0
 	}
-	b, err := os.ReadFile(sceneSelectionFilePath(anchorPath))
+	b, err := os.ReadFile(scenepaths.SelectionFilePath(anchorPath))
 	if err != nil {
 		return 0
 	}

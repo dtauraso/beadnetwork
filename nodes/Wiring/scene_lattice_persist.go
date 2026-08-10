@@ -26,6 +26,7 @@ import (
 	"encoding/json"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 )
 
 // defaultLatticePoints is the point count a fresh topology (or a missing/malformed
@@ -54,7 +55,7 @@ func formatLatticeJSON(points int32) []byte {
 // EnableEditPersist, then called exclusively by the view-owner goroutine (RunStdinReader).
 // path == "" (tests that never arm) → no-op.
 type latticePersister struct {
-	path string // lattice.json path (latticeFilePath(topologyPath))
+	path string // lattice.json path (scenepaths.LatticeFilePath(topologyPath))
 }
 
 // schedule writes the given point count to lattice.json synchronously.
@@ -95,7 +96,7 @@ func loadSceneLattice(latticePath string) (int32, bool) {
 // yet. A live in-process change (the scene/latticePoints edit) goes through
 // BroadcastLatticePoints instead.
 func (md *MoveDispatch) LoadLatticePoints(topologyPath string) {
-	points, _ := loadSceneLattice(latticeFilePath(topologyPath))
+	points, _ := loadSceneLattice(scenepaths.LatticeFilePath(topologyPath))
 	md.ui.latticePoints = points
 }
 

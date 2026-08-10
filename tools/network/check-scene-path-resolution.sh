@@ -9,10 +9,11 @@ set -euo pipefail
 # (same doc, "The model" / step 3-5): a path is constructed only by the goroutine that
 # owns the file it names.
 #
-#   - view/*.json (camera, overlays, sphere) — scene_paths.go only. Enforced the original
-#     way: no hand-rolled os.Stat+IsDir or filepath.Join("view", ...) outside scene_paths.go
-#     (still real — scene_camera.go et al. must call the shared cameraFilePath/
-#     overlaysFilePath/sphereFilePath/sceneViewFilePath resolvers, not reimplement them, so
+#   - view/*.json (camera, overlays, sphere) — scenepaths/scene_paths.go only. Enforced the
+#     original way: no hand-rolled os.Stat+IsDir or filepath.Join("view", ...) outside
+#     scenepaths/scene_paths.go (still real — scene_camera.go et al. must call the shared
+#     scenepaths.CameraFilePath/scenepaths.OverlaysFilePath/scenepaths.SphereFilePath/
+#     scenepaths.ViewFilePath resolvers, not reimplement them, so
 #     a future scene file split can't silently diverge again). The pre-split shared
 #     view/scene.json sidecar and its sceneJSONPath/sceneCameraPath resolvers were REMOVED —
 #     no such file exists in this repo's tree and nothing wrote it once the
@@ -39,7 +40,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 WIRING_DIR="$REPO_ROOT/nodes/Wiring"
-RESOLVER="$WIRING_DIR/scene_paths.go"
+RESOLVER="$WIRING_DIR/scenepaths/scene_paths.go"
 
 # POSITIVE ASSERTIONS — this guard had none, and was the only one in the suite that could
 # pass vacuously. `find` on a missing dir writes to stderr and emits nothing; process-
@@ -95,7 +96,7 @@ done < <(find "$WIRING_DIR" -name "*.go" -not -path "*/node_modules/*")
 # as the original per-pass loop did.
 all_hits=""
 if [[ ${#eligible_files[@]} -gt 0 ]]; then
-  all_hits="$(grep -nE 'IsDir\(\)|cameraFilePath\(|overlaysFilePath\(|sphereFilePath\(|sceneViewFilePath\(|filepath\.Join\(' \
+  all_hits="$(grep -nE 'IsDir\(\)|scenepaths\.CameraFilePath\(|scenepaths\.OverlaysFilePath\(|scenepaths\.SphereFilePath\(|scenepaths\.ViewFilePath\(|filepath\.Join\(' \
     "${eligible_files[@]}" 2>/dev/null || true)"
 fi
 
@@ -119,20 +120,21 @@ fi
 # anywhere in the package outside their own definition file: a persister could resolve a
 # scene path with a hand-rolled filepath.Join("view", ...) that never touches os.Stat/IsDir
 # at all and this guard would still report clean. Require at least one real call site of
-# cameraFilePath(/overlaysFilePath(/sphereFilePath(/sceneViewFilePath( outside
-# scene_paths.go and outside tests, proving the resolvers are load-bearing, not dead code
+# scenepaths.CameraFilePath(/scenepaths.OverlaysFilePath(/scenepaths.SphereFilePath(/
+# scenepaths.ViewFilePath( outside scenepaths/scene_paths.go and outside tests, proving the
+# resolvers are load-bearing, not dead code
 # the IsDir scan vacuously credits.
 CALL_SITES=0
 while IFS= read -r hit; do
   [[ -z "$hit" ]] && continue
   content="${hit#*:*:}"
   case "$content" in
-    *cameraFilePath\(*|*overlaysFilePath\(*|*sphereFilePath\(*|*sceneViewFilePath\(*) CALL_SITES=$((CALL_SITES + 1)) ;;
+    *scenepaths.CameraFilePath\(*|*scenepaths.OverlaysFilePath\(*|*scenepaths.SphereFilePath\(*|*scenepaths.ViewFilePath\(*) CALL_SITES=$((CALL_SITES + 1)) ;;
   esac
 done <<< "$all_hits"
 
 if [[ "$CALL_SITES" -eq 0 ]]; then
-  echo "check-scene-path-resolution: MISCONFIGURED — zero call sites of cameraFilePath()/overlaysFilePath()/sphereFilePath()/sceneViewFilePath() found outside scene_paths.go." >&2
+  echo "check-scene-path-resolution: MISCONFIGURED — zero call sites of scenepaths.CameraFilePath()/scenepaths.OverlaysFilePath()/scenepaths.SphereFilePath()/scenepaths.ViewFilePath() found outside scenepaths/scene_paths.go." >&2
   echo "  The resolvers exist but nothing calls them; the IsDir-only scan above would pass vacuously." >&2
   exit 1
 fi

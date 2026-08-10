@@ -44,7 +44,7 @@ import (
 // the startup seed (EnableViewpointPersist), then called exclusively by the view-owner
 // goroutine (RunStdinReader) — see the OWNER note above.
 type viewpointPersister struct {
-	path string // camera.json path (cameraFilePath(topologyPath))
+	path string // camera.json path (scenepaths.CameraFilePath(topologyPath))
 }
 
 // schedule writes the given viewpoint to camera.json synchronously. Fire-and-forget:

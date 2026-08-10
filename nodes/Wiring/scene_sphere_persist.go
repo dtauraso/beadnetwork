@@ -33,6 +33,7 @@ import (
 	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
@@ -45,7 +46,7 @@ type sceneSphereJSON struct {
 // yields no complete sphere — callers then content-fit.
 func loadSceneSphere(topologyPath string) (geom.SceneSphere, bool) {
 	var sj sceneSphereJSON
-	jsonpersist.ReadJSONBestEffort(sphereFilePath(topologyPath), &sj)
+	jsonpersist.ReadJSONBestEffort(scenepaths.SphereFilePath(topologyPath), &sj)
 	if sj.Center == nil || sj.Radius == nil {
 		return geom.SceneSphere{}, false
 	}
@@ -96,10 +97,10 @@ func (md *MoveDispatch) LoadSceneSphere(topologyPath string) {
 		md.ui.sceneSphere = geom.ContentFitSceneSphere(md.loadTimeCenters())
 		// Best-effort: a read-only or absent scene dir must not stop the sim from running.
 		// The in-memory sphere is correct either way; only cross-run stability is at stake.
-		// Path via sphereFilePath (scene_paths.go) — the authoritative resolver, per
-		// check-scene-path-resolution.sh; never hand-rolled.
+		// Path via scenepaths.SphereFilePath (scenepaths/scene_paths.go) — the authoritative
+		// resolver, per check-scene-path-resolution.sh; never hand-rolled.
 		if topologyPath != "" {
-			_ = writeSceneSphere(sphereFilePath(topologyPath), md.ui.sceneSphere)
+			_ = writeSceneSphere(scenepaths.SphereFilePath(topologyPath), md.ui.sceneSphere)
 		}
 	}
 	// The scene sphere is established here and never moves again (MODEL.md), so the VIEW

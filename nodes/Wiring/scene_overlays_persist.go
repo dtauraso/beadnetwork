@@ -41,6 +41,7 @@ import (
 	"encoding/json"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -84,7 +85,7 @@ func writeSceneOverlays(overlaysPath string, ov overlayState) error {
 // EnableEditPersist, then called exclusively by the view-owner goroutine (RunStdinReader)
 // — see the OWNER note above. path == "" (tests that never arm) → no-op.
 type overlaysPersister struct {
-	path string // overlays.json path (overlaysFilePath(topologyPath))
+	path string // overlays.json path (scenepaths.OverlaysFilePath(topologyPath))
 }
 
 // schedule writes the given overlay snapshot to overlays.json synchronously.
@@ -192,7 +193,7 @@ func loadSceneOverlays(overlaysPath string) (overlayState, bool) {
 // Call after LoadTopology (which builds MoveDispatch) and BEFORE EnableEditPersist so this
 // emit does not write the loaded/default state back.
 func (md *MoveDispatch) LoadOverlays(topologyPath string, tr *T.Trace) {
-	ov, _ := loadSceneOverlays(overlaysFilePath(topologyPath)) // ov = defaults with any persisted keys applied
+	ov, _ := loadSceneOverlays(scenepaths.OverlaysFilePath(topologyPath)) // ov = defaults with any persisted keys applied
 	md.ui.ov.SetGuideVisibility(ov)
 	// Decentralized (Step C, memory/feedback_no_single_writer_bridge.md): the gesture/stdin-reader goroutine
 	// (this one) writes its own VIEW frame directly, carrying the one-time overlay-flag

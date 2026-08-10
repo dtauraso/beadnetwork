@@ -5,6 +5,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	geomseeds "github.com/dtauraso/wirefold/nodes/Wiring/geomseeds"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 )
 
 // TestSceneSphereRoundTrip: writeSceneSphere then loadSceneSphere returns the same sphere.
@@ -12,7 +13,7 @@ func TestSceneSphereRoundTrip(t *testing.T) {
 	dir := t.TempDir()
 
 	want := geom.SceneSphere{Center: vec3{X: 10, Y: -20, Z: 30}, Radius: 250}
-	if err := writeSceneSphere(sphereFilePath(dir), want); err != nil {
+	if err := writeSceneSphere(scenepaths.SphereFilePath(dir), want); err != nil {
 		t.Fatalf("writeSceneSphere: %v", err)
 	}
 	got, ok := loadSceneSphere(dir)
@@ -99,7 +100,7 @@ func TestSceneSphereContentFitSurvivesReloadAfterMove(t *testing.T) {
 
 func TestSceneSpherePersisterFlushNow(t *testing.T) {
 	dir := t.TempDir()
-	p := &sceneSpherePersister{path: sphereFilePath(dir)}
+	p := &sceneSpherePersister{path: scenepaths.SphereFilePath(dir)}
 	s := geom.SceneSphere{Center: vec3{X: 1, Y: 2, Z: 3}, Radius: 40}
 	p.flushNow(s)
 

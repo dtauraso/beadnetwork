@@ -15,6 +15,8 @@ package Wiring
 import (
 	"path/filepath"
 	"testing"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 )
 
 // TestEffectiveClockSpeedRingAndPair: the ring's divisor is a no-op; the pair's divides the
@@ -83,7 +85,7 @@ func TestLoadSpeedDoesNotCompoundDivisorAcrossReload(t *testing.T) {
 	const userSpeed = 0.5
 	md.persist.speed.schedule(userSpeed)
 
-	onDisk, found := loadSceneSpeed(speedFilePath(root))
+	onDisk, found := loadSceneSpeed(scenepaths.SpeedFilePath(root))
 	if !found || onDisk != userSpeed {
 		t.Fatalf("after first save: loadSceneSpeed = (%v, %v), want (%v, true)", onDisk, found, userSpeed)
 	}
@@ -103,7 +105,7 @@ func TestLoadSpeedDoesNotCompoundDivisorAcrossReload(t *testing.T) {
 	if second.ui.speed != userSpeed {
 		t.Fatalf("second LoadSpeed (compounding check): ui.speed = %v, want unscaled %v", second.ui.speed, userSpeed)
 	}
-	onDiskAfter, found := loadSceneSpeed(speedFilePath(root))
+	onDiskAfter, found := loadSceneSpeed(scenepaths.SpeedFilePath(root))
 	if !found || onDiskAfter != userSpeed {
 		t.Fatalf("after reloads: on-disk speed = (%v, %v), want (%v, true) — divisor must never reach disk", onDiskAfter, found, userSpeed)
 	}
