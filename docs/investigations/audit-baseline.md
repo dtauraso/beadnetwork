@@ -73,7 +73,7 @@ binary framing. Do not report "unused/gap enum values" as a defect here.
 Several `*Fingerprint` string constants (e.g. `InputLayoutFingerprint` in
 `nodes/Wiring/input_codec.go`, mirrored in
 `tools/topology-vscode/src/schema/input-layout-gen.ts`; similar fingerprints for the
-buffer layout in `Buffer/layout.go` / `tools/gen-node-defs/buffer_layout.go` /
+buffer layout in `Buffer/layout.go` / `tools/gen-node-defs/buflayout/buffer_layout.go` /
 `tools/topology-vscode/src/schema/buffer-layout.ts`) are long literal strings (each several
 hundred bytes, several KB total across all of them) that encode the full shape of a wire
 protocol in one line specifically so any drift between Go and TS trips a string-equality

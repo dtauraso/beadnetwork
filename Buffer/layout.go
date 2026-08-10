@@ -3,7 +3,7 @@
 //
 // tools/gen-node-defs reads every *.go file directly under Buffer/ (scanning the
 // directory, not one named file — parseBufferLayoutDir in
-// tools/gen-node-defs/buf_layout_parse.go, same shape as
+// tools/gen-node-defs/buflayout/buf_layout_parse.go, same shape as
 // parseInputLayoutFingerprintDir) and emits:
 //   - Buffer/buffer_layout_gen.go  (Go offset constants + typed writer helpers)
 //   - tools/topology-vscode/src/schema/buffer-layout.ts  (TS constants + DataView readers)
@@ -22,7 +22,7 @@
 // staticcheck anchor (schemaTypes below) that references every block type so
 // none of them is flagged unused. BLOCK ORDER in the generated fingerprint is
 // NOT file-scan order — it is the fixed bufBlockOrder list in
-// tools/gen-node-defs/buf_layout_parse.go, so splitting this schema across
+// tools/gen-node-defs/buflayout/buf_layout_parse.go, so splitting this schema across
 // files changed nothing the fingerprint depends on.
 //
 // BUF_LAYOUT_VERSION is bumped whenever any column definition changes; the

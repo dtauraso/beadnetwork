@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: Buffer/buffer_layout_gen.go,tools/gen-node-defs/buffer_layout.go | SetOverlayRow must take one named OverlayRow struct, never positional same-typed scalars
+# PLACEMENT: Buffer/buffer_layout_gen.go,tools/gen-node-defs/buflayout/buffer_layout.go | SetOverlayRow must take one named OverlayRow struct, never positional same-typed scalars
 #
 # check-overlay-row-struct.sh — guards the overlay-flag transposition fix.
 #
@@ -29,7 +29,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 GEN_FILE="$REPO_ROOT/Buffer/buffer_layout_gen.go"
-GENERATOR="$REPO_ROOT/tools/gen-node-defs/buffer_layout.go"
+GENERATOR="$REPO_ROOT/tools/gen-node-defs/buflayout/buffer_layout.go"
 
 for f in "$GEN_FILE" "$GENERATOR"; do
   if [[ ! -f "$f" ]]; then

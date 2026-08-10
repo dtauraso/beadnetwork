@@ -21,6 +21,8 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+
+	"github.com/dtauraso/wirefold/tools/gen-node-defs/buflayout"
 )
 
 func main() {
@@ -142,21 +144,21 @@ func main() {
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d constants)\n", shadingParamsTsPath, len(shadingParams))
 
 	bufferDir := filepath.Join(repoRoot, "Buffer")
-	bufSchema, err := parseBufferLayoutDir(bufferDir)
+	bufSchema, err := buflayout.ParseBufferLayoutDir(bufferDir)
 	if err != nil {
 		fatalf("parse buffer layout: %v", err)
 	}
 	bufLayoutGenGoPath := filepath.Join(repoRoot, "Buffer", "buffer_layout_gen.go")
-	if err := writeBufferLayoutGo(bufLayoutGenGoPath, bufSchema); err != nil {
+	if err := buflayout.WriteBufferLayoutGo(bufLayoutGenGoPath, bufSchema); err != nil {
 		fatalf("write %s: %v", bufLayoutGenGoPath, err)
 	}
-	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d blocks)\n", bufLayoutGenGoPath, len(bufSchema.blocks))
+	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d blocks)\n", bufLayoutGenGoPath, len(bufSchema.Blocks))
 
 	bufLayoutTSPath := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "schema", "buffer-layout.ts")
-	if err := writeBufferLayoutTS(bufLayoutTSPath, bufSchema); err != nil {
+	if err := buflayout.WriteBufferLayoutTS(bufLayoutTSPath, bufSchema); err != nil {
 		fatalf("write %s: %v", bufLayoutTSPath, err)
 	}
-	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d blocks)\n", bufLayoutTSPath, len(bufSchema.blocks))
+	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d blocks)\n", bufLayoutTSPath, len(bufSchema.Blocks))
 
 	frameTagsGoPath := filepath.Join(repoRoot, "Buffer", "frame_tags.go")
 	frameTagsHeader, frameTagConsts, err := parseFrameTags(frameTagsGoPath)

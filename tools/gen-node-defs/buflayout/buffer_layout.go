@@ -9,7 +9,7 @@
 // every emitter below derives from) lives in buf_type_table.go; the Go/TS
 // naming helpers (const names, writer/reader function names) live in
 // buf_layout_names.go. This file holds the two emitters themselves.
-package main
+package buflayout
 
 import (
 	"bufio"
@@ -20,8 +20,8 @@ import (
 	"strings"
 )
 
-// writeBufferLayoutGo emits Buffer/buffer_layout_gen.go.
-func writeBufferLayoutGo(outPath string, schema bufLayoutSchema) error {
+// WriteBufferLayoutGo emits Buffer/buffer_layout_gen.go.
+func WriteBufferLayoutGo(outPath string, schema BufLayoutSchema) error {
 	fp := buildBufFingerprint(schema)
 	var buf bytes.Buffer
 	w := bufio.NewWriter(&buf)
@@ -51,7 +51,7 @@ func writeBufferLayoutGo(outPath string, schema bufLayoutSchema) error {
 	fmt.Fprintln(w, `// [tick:u32][layoutLinkCount:u32]`)
 	fmt.Fprintln(w, `const BufHeaderSize = 8`)
 
-	for _, blk := range schema.blocks {
+	for _, blk := range schema.Blocks {
 		fmt.Fprintln(w)
 		fmt.Fprintf(w, "// ── %s block ", blk.name)
 		fmt.Fprintln(w, strings.Repeat("─", 60-len(blk.name)-9))
@@ -128,8 +128,8 @@ func writeBufferLayoutGo(outPath string, schema bufLayoutSchema) error {
 	return os.WriteFile(outPath, formatted, 0644)
 }
 
-// writeBufferLayoutTS emits tools/topology-vscode/src/schema/buffer-layout.ts.
-func writeBufferLayoutTS(outPath string, schema bufLayoutSchema) error {
+// WriteBufferLayoutTS emits tools/topology-vscode/src/schema/buffer-layout.ts.
+func WriteBufferLayoutTS(outPath string, schema BufLayoutSchema) error {
 	fp := buildBufFingerprint(schema)
 	var buf bytes.Buffer
 	w := bufio.NewWriter(&buf)
@@ -152,7 +152,7 @@ func writeBufferLayoutTS(outPath string, schema bufLayoutSchema) error {
 	fmt.Fprintln(w, ` * marker, not consumed by any live decoder: [tick:u32][layoutLinkCount:u32] */`)
 	fmt.Fprintln(w, `export const BUF_HEADER_SIZE = 8;`)
 
-	for _, blk := range schema.blocks {
+	for _, blk := range schema.Blocks {
 		fmt.Fprintln(w)
 		sep := strings.Repeat("─", 60-len(blk.name)-9)
 		fmt.Fprintf(w, "// ── %s block %s\n", blk.name, sep)
