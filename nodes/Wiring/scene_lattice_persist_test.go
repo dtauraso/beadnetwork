@@ -31,7 +31,7 @@ func TestPersistLatticePointsRoundTrips(t *testing.T) {
 	}
 
 	fresh := loadTreeMD(t, root)
-	fresh.LoadLatticePoints(root)
+	fresh.ui.loadLatticePoints(root)
 	if fresh.ui.latticePoints != 12 {
 		t.Fatalf("LoadLatticePoints did not restore ui.latticePoints=12, got %v", fresh.ui.latticePoints)
 	}
@@ -44,7 +44,7 @@ func TestLoadLatticePointsFallsBackQuietlyWhenMissing(t *testing.T) {
 	root := writeTree(t) // no view/lattice.json
 	md := loadTreeMD(t, root)
 
-	md.LoadLatticePoints(root)
+	md.ui.loadLatticePoints(root)
 
 	if md.ui.latticePoints != defaultLatticePoints {
 		t.Fatalf("LoadLatticePoints with no file: got ui.latticePoints=%v, want default %v", md.ui.latticePoints, defaultLatticePoints)
@@ -64,7 +64,7 @@ func TestLoadLatticePointsFallsBackQuietlyWhenMalformed(t *testing.T) {
 	}
 	md := loadTreeMD(t, root)
 
-	md.LoadLatticePoints(root)
+	md.ui.loadLatticePoints(root)
 
 	if md.ui.latticePoints != defaultLatticePoints {
 		t.Fatalf("LoadLatticePoints with malformed file: got ui.latticePoints=%v, want default %v", md.ui.latticePoints, defaultLatticePoints)

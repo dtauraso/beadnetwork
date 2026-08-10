@@ -89,30 +89,27 @@ func loadSceneLattice(latticePath string) (int32, bool) {
 	return *lf.Points, true
 }
 
-// LoadLatticePoints reads the persisted lattice point count from lattice.json (FILE DATA)
-// into md.ui.latticePoints. Unlike LoadSpeed, there is no broadcast-to-sinks step here:
-// this runs during the build (buildMoveDispatch, before any node's own build func has
-// claimed BuildArgs.LatticeIn), so a node reads the seeded value directly via
+// loadLatticePoints reads the persisted lattice point count from lattice.json (FILE DATA)
+// into ui.latticePoints. Unlike LoadSpeed, there is no broadcast-to-sinks step here: this
+// runs during the build (buildMoveDispatch, before any node's own build func has claimed
+// BuildArgs.LatticeIn), so a node reads the seeded value directly via
 // BuildArgs.LatticePointsSeed() rather than receiving it on a channel that does not exist
 // yet. A live in-process change (the scene/latticePoints edit) goes through
 // BroadcastLatticePoints instead.
-func (md *MoveDispatch) LoadLatticePoints(topologyPath string) {
+func (ui *uiState) loadLatticePoints(topologyPath string) {
 	points, _ := loadSceneLattice(scenepaths.LatticeFilePath(topologyPath))
-	md.ui.latticePoints = points
+	ui.latticePoints = points
 }
 
-// BroadcastLatticePoints sends a new lattice point count to every node id's own
-// dedicated LatticeIn channel (md.latticeIns), non-blocking latest-wins (drain-then-send,
-// the same shape as wire.SendSpeedNonBlocking/SendLatestNonBlocking, just over a chan
-// int32 instead of chan float64/int64) so a node that is mid-cycle never blocks the
-// sender.
+// BroadcastLatticePoints sends a new lattice point count to every node id's own dedicated
+// LatticeIn channel. Thin nil-guarded delegator to md.inboxes (move_dispatch.go); the nil
+// check on md itself (not on inboxes) is preserved from before this pure single-owner
+// forward moved, so a bare nil *MoveDispatch still no-ops instead of panicking.
 func (md *MoveDispatch) BroadcastLatticePoints(points int32) {
 	if md == nil {
 		return
 	}
-	for _, ch := range md.inboxes.lattice {
-		sendLatticePointsNonBlocking(ch, points)
-	}
+	md.inboxes.broadcastLatticePoints(points)
 }
 
 // sendLatticePointsNonBlocking delivers points to one node's buffered-1 LatticeIn

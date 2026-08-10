@@ -138,3 +138,13 @@ type nodeInboxes struct {
 	// addressed to no single node.
 	lattice map[string]chan int32
 }
+
+// broadcastLatticePoints sends a new lattice point count to every registered node's own
+// dedicated LatticeIn channel, non-blocking latest-wins (drain-then-send, the same shape
+// as wire.SendSpeedNonBlocking/SendLatestNonBlocking, just over a chan int32 instead of
+// chan float64/int64) so a node that is mid-cycle never blocks the sender.
+func (ib *nodeInboxes) broadcastLatticePoints(points int32) {
+	for _, ch := range ib.lattice {
+		sendLatticePointsNonBlocking(ch, points)
+	}
+}
