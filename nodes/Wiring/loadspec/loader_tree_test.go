@@ -1,9 +1,26 @@
-package Wiring
+package loadspec
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
+
+// writeTreeFile writes body to <root>/<rel>, creating any missing parent directories. Own
+// copy of nodes/Wiring's wire_test_helpers_test.go helper of the same name — this package
+// cannot import nodes/Wiring (no package under nodes/Wiring/ may import nodes/Wiring), so
+// the fixture-file writer is duplicated here rather than shared.
+func writeTreeFile(t *testing.T, root, rel, body string) {
+	t.Helper()
+	p := filepath.Join(root, rel)
+	if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+		t.Fatalf("mkdir %s: %v", p, err)
+	}
+	if err := os.WriteFile(p, []byte(body), 0o644); err != nil {
+		t.Fatalf("write %s: %v", p, err)
+	}
+}
 
 // writeLoaderTreeFixture lays down a small, self-contained directory-tree topology
 // (independent of the production topology/ dir) that exercises the loadTree shapes
@@ -32,7 +49,7 @@ func writeLoaderTreeFixture(t *testing.T) string {
 func TestLoadTreeRoundTrip(t *testing.T) {
 	root := writeLoaderTreeFixture(t)
 
-	spec, err := loadTree(root)
+	spec, err := LoadTree(root)
 	if err != nil {
 		t.Fatalf("loadTree: %v", err)
 	}
@@ -126,7 +143,7 @@ func TestLoadTreeRowCountIsLargestID(t *testing.T) {
 		writeTreeFile(t, root, "nodes/"+id+"/meta.json", `{"id":"`+id+`","type":"Input"}`)
 	}
 
-	spec, err := loadTree(root)
+	spec, err := LoadTree(root)
 	if err != nil {
 		t.Fatalf("loadTree: %v", err)
 	}
@@ -155,7 +172,7 @@ func TestLoadTreeGapLeavesRowCountAtLargestID(t *testing.T) {
 	for _, id := range []string{"1", "2", "3", "4", "6"} { // no "5"
 		writeTreeFile(t, root, "nodes/"+id+"/meta.json", `{"id":"`+id+`","type":"Input"}`)
 	}
-	spec, err := loadTree(root)
+	spec, err := LoadTree(root)
 	if err != nil {
 		t.Fatalf("loadTree: %v", err)
 	}
@@ -172,7 +189,7 @@ func TestLoadTreeGapLeavesRowCountAtLargestID(t *testing.T) {
 func TestLoadTreeNonNumericNodeDirFailsLoudly(t *testing.T) {
 	root := t.TempDir()
 	writeTreeFile(t, root, "nodes/abc/meta.json", `{"id":"abc","type":"Input"}`)
-	_, err := loadTree(root)
+	_, err := LoadTree(root)
 	if err == nil {
 		t.Fatalf("loadTree: expected an error for non-numeric node directory %q, got nil", "abc")
 	}
@@ -187,7 +204,7 @@ func TestLoadTreeZeroOrNegativeNodeIDFailsLoudly(t *testing.T) {
 	for _, id := range []string{"0", "-1"} {
 		root := t.TempDir()
 		writeTreeFile(t, root, "nodes/"+id+"/meta.json", `{"id":"`+id+`","type":"Input"}`)
-		_, err := loadTree(root)
+		_, err := LoadTree(root)
 		if err == nil {
 			t.Fatalf("loadTree: expected an error for node id %q (ids are 1-based), got nil", id)
 		}
@@ -201,7 +218,7 @@ func TestLoadTreeDuplicateParsedIDFailsLoudly(t *testing.T) {
 	root := t.TempDir()
 	writeTreeFile(t, root, "nodes/1/meta.json", `{"id":"1","type":"Input"}`)
 	writeTreeFile(t, root, "nodes/01/meta.json", `{"id":"01","type":"Input"}`)
-	_, err := loadTree(root)
+	_, err := LoadTree(root)
 	if err == nil {
 		t.Fatalf("loadTree: expected an error for duplicate node id (dirs \"1\" and \"01\"), got nil")
 	}
@@ -221,7 +238,7 @@ func TestLoadTreeEdgeOrderIsLexicographicByLabel(t *testing.T) {
 			`{"label":"`+id+`","kind":"data","sourceHandle":"Out","target":"`+dstID[id]+`","targetHandle":"FromPrev"}`)
 	}
 
-	spec, err := loadTree(root)
+	spec, err := LoadTree(root)
 	if err != nil {
 		t.Fatalf("loadTree: %v", err)
 	}
@@ -250,7 +267,7 @@ func TestLoadTreeNonNumericNodeIDFailsLoudly(t *testing.T) {
 	writeTreeFile(t, root, "nodes/1/meta.json", `{"id":"1","type":"Input"}`)
 	writeTreeFile(t, root, "nodes/alpha/meta.json", `{"id":"alpha","type":"Input"}`)
 
-	_, err := loadTree(root)
+	_, err := LoadTree(root)
 	if err == nil {
 		t.Fatal("loadTree with a non-numeric node directory name succeeded; want a load error")
 	}

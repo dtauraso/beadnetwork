@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
@@ -66,7 +67,7 @@ func (b *buildCtx) buildNodes() error {
 					// Look up wire by destination of the first outbound edge.
 					// For fan-in, the destination port owns the wire.
 					// Send rule is node-owned, keyed by this output port name.
-					rule := nodeSendRule(n, port.Name)
+					rule := loadspec.NodeSendRule(n, port.Name)
 					lbl := labels[0]
 					pb.SetSinglePacedRule(port.Name, b.edgeWire[lbl], rule, b.edgeSteps[lbl], b.edgeSegments[lbl], lbl)
 				}
@@ -82,7 +83,7 @@ func (b *buildCtx) buildNodes() error {
 					}
 					// Per-port (per fan-out element): the rule is keyed by the
 					// concrete output port name (sourceHandle, e.g. "ToNext0").
-					rule := nodeSendRule(n, handle)
+					rule := loadspec.NodeSendRule(n, handle)
 					pb.AppendBroadcastWithHandle(port.Name, handle, b.edgeWire[lbl], rule, b.edgeSteps[lbl], b.edgeSegments[lbl], lbl)
 				}
 				// If no outbound edges, builder falls back to a dead-end slice.

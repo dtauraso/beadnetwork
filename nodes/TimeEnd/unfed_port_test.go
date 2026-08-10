@@ -38,7 +38,7 @@ func TestUnfedRequiredPortLoadsAndStaysInert(t *testing.T) {
 	// Inline directory-tree fixture (this package cannot see Wiring's unexported
 	// _test.go helpers): meta.json + inputs/In.json for the one node, no edges/ dir
 	// at all (node "1" has no outgoing edges). The directory name is numeric ("1") because loadTree now
-	// parses node directory names as integers for row order (nodes/Wiring/loader_tree.go)
+	// parses node directory names as integers for row order (nodes/Wiring/loadspec/loader_tree.go)
 	// and rejects a non-numeric name.
 	root := t.TempDir()
 	writeFile := func(rel, body string) {

@@ -10,13 +10,13 @@
 // Deleting it is what PROVED the migration: if any kind had still depended on reflection,
 // removing these functions would not compile.
 
-package Wiring
+package loadspec
 
-// verticalRingNormal and flatRingNormal are the two great-circle ring normals
+// VerticalRingNormal and FlatRingNormal are the two great-circle ring normals
 // streamed on every node-geometry event so TS never hardcodes ring orientation.
 // vertical: ring stands upright (normal points along +Z world axis).
 // flat: ring lies flat (normal points along +Y world axis, Three y-up convention).
 const (
-	verticalRingNormalX, verticalRingNormalY, verticalRingNormalZ = 0.0, 0.0, 1.0
-	flatRingNormalX, flatRingNormalY, flatRingNormalZ             = 0.0, 1.0, 0.0
+	VerticalRingNormalX, VerticalRingNormalY, VerticalRingNormalZ = 0.0, 0.0, 1.0
+	FlatRingNormalX, FlatRingNormalY, FlatRingNormalZ             = 0.0, 1.0, 0.0
 )

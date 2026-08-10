@@ -5,7 +5,7 @@
 //
 // Fixture: topology/ tree — adjacency layout, nodes/<id>/edges/*.json and
 // nodes/*/meta.json. An edge's source is the node directory it sits under, not a field
-// in the file (dropped as redundant — see nodes/Wiring/topo_spec.go's specEdge doc
+// in the file (dropped as redundant — see nodes/Wiring/loadspec/topo_spec.go's specEdge doc
 // comment), so this test derives it the same way loadTree does.
 
 import { describe, expect, it } from "vitest";

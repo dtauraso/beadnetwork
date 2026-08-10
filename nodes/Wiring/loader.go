@@ -5,10 +5,10 @@
 // An edge-label-keyed WireRegistry is built internally to bind each source Out to
 // its wire, but it is not returned: no caller consumed the map.
 //
-// The spec format (specNode/specEdge/topoSpec/NodeData) and reading/validating it
-// (parseSpec/readSpec/validateNoFanIn) live in topo_spec.go. Turning a parsed spec
-// into the running graph (buildCtx/buildFromSpec and its phase helpers) lives in
-// build.go. This file holds only the two public entry points.
+// The spec format (specNode/specEdge/TopoSpec/NodeData) and reading/validating it
+// (ParseSpec/readSpec/validateNoFanIn) live in nodes/Wiring/loadspec's topo_spec.go.
+// Turning a parsed spec into the running graph (buildCtx/buildFromSpec and its phase
+// helpers) lives in build.go. This file holds only the two public entry points.
 //
 // Key behaviors:
 //   - One *PacedWire per (destNode, destPort), fed by exactly one edge — fan-in
@@ -26,6 +26,8 @@ import (
 	"context"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
@@ -50,11 +52,19 @@ import (
 // (tests that don't drive a speed slider) can discard it.
 func LoadTopology(ctx context.Context, jsonPath string, tr *T.Trace, clk clock.Clock) ([]wire.Node, inputcodec.SlotRegistry, *MoveDispatch, []chan float64, error) {
 	BuildRegistry()
-	spec, err := parseSpec(jsonPath)
+	spec, err := loadspec.ParseSpec(jsonPath)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
-	if err := validateSpec(&spec); err != nil {
+	// kindPorts is the one thing loadspec.ValidateSpec reads from Registry — each
+	// registered kind's own port list — built here and passed in rather than handing
+	// validation the whole Registry (see NodeBuilder's doc comment for why Registry
+	// itself cannot live in loadspec).
+	kindPorts := make(map[string][]portwiring.PortSpec, len(Registry))
+	for kind, bind := range Registry {
+		kindPorts[kind] = bind.Ports
+	}
+	if err := loadspec.ValidateSpec(&spec, kindPorts); err != nil {
 		return nil, nil, nil, nil, err
 	}
 	// Load the persisted scene sphere (if any) BEFORE positioning nodes, so nodes stored as

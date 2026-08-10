@@ -73,10 +73,10 @@ func main() {
 	}
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d entries)\n", outPath, len(kinds))
 
-	loaderPath := filepath.Join(repoRoot, "nodes", "Wiring", "topo_spec.go")
+	loaderPath := filepath.Join(repoRoot, "nodes", "Wiring", "loadspec", "topo_spec.go")
 	wireProps, err := parseWirePropsFromFile(loaderPath)
 	if err != nil {
-		fatalf("parse wire props from topo_spec.go: %v", err)
+		fatalf("parse wire props from loadspec/topo_spec.go: %v", err)
 	}
 	wireDefsPath := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "schema", "wire-defs.ts")
 	if err := writeWireDefs(wireDefsPath, wireProps); err != nil {

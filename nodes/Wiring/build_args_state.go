@@ -4,6 +4,8 @@
 
 package Wiring
 
+import "github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
+
 // StateSeed returns the persisted `data.state` seed for one field, or def when the spec
 // carries none. key is the struct field name with its first letter lowercased — the same
 // convention the `wire:"data.state"` tag used (field Held -> key "held").
@@ -22,4 +24,4 @@ func (a BuildArgs) StateSeed(key string, def int) int {
 
 // Data exposes the raw spec data block for the `wire:"data.<key>"` fields that have no
 // dedicated accessor above. Nil when the spec carries no data block.
-func (a BuildArgs) Data() *NodeData { return a.data }
+func (a BuildArgs) Data() *loadspec.NodeData { return a.data }

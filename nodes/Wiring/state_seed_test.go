@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
+	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 )
 
 // state_seed_test.go — locks in: a `data.state` seed (e.g. Held on Time/HoldFlip/Pacer) is
@@ -28,7 +29,7 @@ func TestStateSeedIsOptional(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			a := BuildArgs{data: &NodeData{State: c.state}}
+			a := BuildArgs{data: &loadspec.NodeData{State: c.state}}
 			if got := a.StateSeed("held", interior.NoValue); got != c.want {
 				t.Fatalf("StateSeed(\"held\", NoValue) = %d, want %d", got, c.want)
 			}

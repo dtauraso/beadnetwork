@@ -7,7 +7,7 @@ paths:
 # Wire props — a tag alone does not reach the screen
 
 Wire props (`WireProps` from `tools/topology-vscode/src/schema/wire-defs.ts`, generated from
-`wire:"prop,..."` tags on `specEdge` in `nodes/Wiring/topo_spec.go`) are Go-owned edge
+`wire:"prop,..."` tags on `specEdge` in `nodes/Wiring/loadspec/topo_spec.go`) are Go-owned edge
 metadata from the spec JSON.
 
 Today the only prop is `label`, and it does **NOT** feed the render path: there is no

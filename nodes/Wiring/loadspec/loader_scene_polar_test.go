@@ -1,10 +1,11 @@
-package Wiring
+package loadspec
 
 import (
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
 // TestToNodeGeomScenePolar: a node's world center is DERIVED from its stored scene polar
@@ -16,9 +17,9 @@ func TestToNodeGeomScenePolar(t *testing.T) {
 		ID: "n", Type: "TestKind",
 		ScenePolarR: &r, ScenePolarTheta: &th, ScenePolarPhi: &ph,
 	}
-	sceneCenter := vec3{X: 10, Y: 20, Z: -5}
+	sceneCenter := wire.Vec3{X: 10, Y: 20, Z: -5}
 
-	g := n.toNodeGeom(sceneCenter)
+	g := n.ToNodeGeom(sceneCenter)
 	if !g.HasPos {
 		t.Fatalf("scene polar present: HasPos=false, want true")
 	}
@@ -29,7 +30,7 @@ func TestToNodeGeomScenePolar(t *testing.T) {
 
 	// A node with NO scene polar has no position (HasPos false → world origin).
 	n2 := specNode{ID: "n2", Type: "TestKind"}
-	g2 := n2.toNodeGeom(sceneCenter)
+	g2 := n2.ToNodeGeom(sceneCenter)
 	if g2.HasPos {
 		t.Fatalf("no polar fields: HasPos=true, want false")
 	}

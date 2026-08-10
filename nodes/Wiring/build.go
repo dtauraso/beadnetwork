@@ -15,6 +15,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
@@ -32,7 +33,7 @@ import (
 // flow exactly — no behavior changes, only the grouping into named steps.
 type buildCtx struct {
 	ctx      context.Context
-	spec     topoSpec
+	spec     loadspec.TopoSpec
 	tr       *T.Trace
 	clk      clock.Clock
 	sphere   geom.SceneSphere
@@ -57,7 +58,7 @@ type buildCtx struct {
 
 	// Phase 4: per-destination-port wire allocation + per-edge geometry.
 	destWire      map[string]*wire.PacedWire
-	edgeWire      WireRegistry
+	edgeWire      loadspec.WireRegistry
 	edgeEndpoints map[string]inputcodec.EdgeEndpoints
 	// edgeSteps is each edge's own bead-step count (docs/bead-model/bead-lattice.md "The
 	// count") — its INITIAL published value, computed once at load time from the
@@ -102,7 +103,7 @@ type buildCtx struct {
 // buildFromSpec constructs nodes, wires, and the MoveDispatch from an already-parsed
 // and validated topoSpec. It orchestrates the phase helpers below in the same order
 // the original monolithic function performed them; behavior is unchanged.
-func buildFromSpec(ctx context.Context, spec topoSpec, tr *T.Trace, clk clock.Clock, sphere geom.SceneSphere, hasScene bool, scenePath string) ([]wire.Node, inputcodec.SlotRegistry, *MoveDispatch, []chan float64, error) {
+func buildFromSpec(ctx context.Context, spec loadspec.TopoSpec, tr *T.Trace, clk clock.Clock, sphere geom.SceneSphere, hasScene bool, scenePath string) ([]wire.Node, inputcodec.SlotRegistry, *MoveDispatch, []chan float64, error) {
 	b := &buildCtx{ctx: ctx, spec: spec, tr: tr, clk: clk, sphere: sphere, hasScene: hasScene, scenePath: scenePath}
 
 	b.computeNodeGeometry()

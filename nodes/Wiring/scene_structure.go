@@ -26,6 +26,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/countspersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgefile"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 )
@@ -103,7 +104,7 @@ func (md *MoveDispatch) CreateNode(kindID uint8, ndcX, ndcY float64, tr *T.Trace
 		md.refuseStructuralEdit(fmt.Sprintf("could not write node %s: %v", target, err))
 		return
 	}
-	edges := countEdgeFiles(md.Scenes.TreeRoot)
+	edges := loadspec.CountEdgeFiles(md.Scenes.TreeRoot)
 	if okNear {
 		if err := edgefile.WriteEdgeFile(md.Scenes.TreeRoot, src, srcPort, target, targetPort); err != nil {
 			md.refuseStructuralEdit(fmt.Sprintf("could not write edge %s->%s: %v", src, target, err))
@@ -113,7 +114,7 @@ func (md *MoveDispatch) CreateNode(kindID uint8, ndcX, ndcY float64, tr *T.Trace
 	}
 	// An empty scene has no nearest node, so the new node stands alone. That is not an
 	// error — there is nothing to refuse, only nothing to connect to.
-	if err := countspersist.WriteCounts(md.Scenes.TreeRoot, largestNodeID(md.Scenes.TreeRoot), edges); err != nil {
+	if err := countspersist.WriteCounts(md.Scenes.TreeRoot, loadspec.LargestNodeID(md.Scenes.TreeRoot), edges); err != nil {
 		md.refuseStructuralEdit(fmt.Sprintf("could not update counts.json: %v", err))
 		return
 	}
@@ -148,7 +149,7 @@ func (md *MoveDispatch) DeleteNode(row int, tr *T.Trace) {
 		md.refuseStructuralEdit(fmt.Sprintf("could not remove node %s: %v", id, err))
 		return
 	}
-	if err := edgefile.RemoveEdgesTo(root, id, NodeIDStringsInTree(root)); err != nil {
+	if err := edgefile.RemoveEdgesTo(root, id, loadspec.NodeIDStringsInTree(root)); err != nil {
 		md.refuseStructuralEdit(fmt.Sprintf("could not remove edges into %s: %v", id, err))
 		return
 	}
@@ -156,7 +157,7 @@ func (md *MoveDispatch) DeleteNode(row int, tr *T.Trace) {
 	// count, so deleting a middle node leaves its row empty rather than shifting the ids
 	// above it down — that shift is the silent rename ROW ID = NODE ID - 1 exists to
 	// prevent (node 6's geometry arriving on node 5's row the moment 5 is deleted).
-	if err := countspersist.WriteCounts(root, largestNodeID(root), countEdgeFiles(root)); err != nil {
+	if err := countspersist.WriteCounts(root, loadspec.LargestNodeID(root), loadspec.CountEdgeFiles(root)); err != nil {
 		md.refuseStructuralEdit(fmt.Sprintf("could not update counts.json: %v", err))
 		return
 	}
@@ -282,10 +283,10 @@ func kindForID(id uint8) (string, bool) {
 // newNodeID is one past the largest id — never a reused hole. Reusing a freed id would make
 // a node's identity ambiguous across a session boundary: the same directory name would name
 // a different node before and after, which is the whole reason ids are not renumbered.
-// largestNodeID/nodeIDs/countEdgeFiles live in loader_tree.go, which is where reading the
-// tree's shape belongs.
+// LargestNodeID/NodeIDsInTree/CountEdgeFiles live in nodes/Wiring/loadspec's
+// loader_tree.go, which is where reading the tree's shape belongs.
 func newNodeID(root string) string {
-	return strconv.Itoa(largestNodeID(root) + 1)
+	return strconv.Itoa(loadspec.LargestNodeID(root) + 1)
 }
 
 // THE WRITES THEMSELVES LIVE WITH THEIR OWNERS, not here: a per-node file is written by

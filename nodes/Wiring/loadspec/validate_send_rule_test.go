@@ -1,11 +1,15 @@
-// validate_send_rule_test.go — validateSpec's sendRules/duplicate-id checks. Split out
+// validate_send_rule_test.go — ValidateSpec's sendRules/duplicate-id checks. Split out
 // of ports_test.go when ports.go moved to nodes/wire (that file's SendRule-specific
 // tests, TestOutGated/TestParseSendRule, stayed in nodes/wire; these two exercise
-// validateSpec/topoSpec, which are still Wiring's own loader machinery).
+// ValidateSpec/TopoSpec, which are still this package's own loader machinery).
 
-package Wiring
+package loadspec
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
+)
 
 // TestValidateSpecSendRule verifies that validateSpec rejects invalid sendRules
 // values and accepts valid/absent ones.
@@ -17,7 +21,7 @@ func TestValidateSpecSendRule(t *testing.T) {
 	// but we only care about the sendRules error being present/absent.
 
 	// Invalid sendRule value: expect an error containing the bad value.
-	badSpec := &topoSpec{
+	badSpec := &TopoSpec{
 		Nodes: []specNode{
 			{
 				ID:   "n1",
@@ -30,7 +34,7 @@ func TestValidateSpecSendRule(t *testing.T) {
 			},
 		},
 	}
-	err := validateSpec(badSpec)
+	err := ValidateSpec(badSpec, map[string][]portwiring.PortSpec{})
 	if err == nil {
 		t.Fatal("validateSpec with bad sendRule: expected error, got nil")
 	}
@@ -39,7 +43,7 @@ func TestValidateSpecSendRule(t *testing.T) {
 	}
 
 	// Valid sendRule value: error should NOT mention the sendRules key.
-	goodSpec := &topoSpec{
+	goodSpec := &TopoSpec{
 		Nodes: []specNode{
 			{
 				ID:   "n1",
@@ -52,19 +56,19 @@ func TestValidateSpecSendRule(t *testing.T) {
 			},
 		},
 	}
-	err = validateSpec(goodSpec)
+	err = ValidateSpec(goodSpec, map[string][]portwiring.PortSpec{})
 	// May have errors for unknown kind etc., but NOT for sendRules.
 	if err != nil && containsStr(err.Error(), "sendRule") {
 		t.Errorf("valid sendRule should not produce a sendRule error; got: %v", err)
 	}
 
 	// Missing sendRules map: no sendRules error.
-	emptySpec := &topoSpec{
+	emptySpec := &TopoSpec{
 		Nodes: []specNode{
 			{ID: "n1", Type: "", Data: &NodeData{}},
 		},
 	}
-	err = validateSpec(emptySpec)
+	err = ValidateSpec(emptySpec, map[string][]portwiring.PortSpec{})
 	if err != nil && containsStr(err.Error(), "sendRule") {
 		t.Errorf("absent sendRules should not produce a sendRule error; got: %v", err)
 	}
@@ -73,13 +77,13 @@ func TestValidateSpecSendRule(t *testing.T) {
 // TestValidateSpecDuplicateNodeID verifies validateSpec rejects two nodes sharing
 // an id (which would otherwise silently last-wins the kind map).
 func TestValidateSpecDuplicateNodeID(t *testing.T) {
-	dup := &topoSpec{
+	dup := &TopoSpec{
 		Nodes: []specNode{
 			{ID: "n1", Type: "", Data: &NodeData{}},
 			{ID: "n1", Type: "", Data: &NodeData{}},
 		},
 	}
-	err := validateSpec(dup)
+	err := ValidateSpec(dup, map[string][]portwiring.PortSpec{})
 	if err == nil {
 		t.Fatal("validateSpec with duplicate node id: expected error, got nil")
 	}

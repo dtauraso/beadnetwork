@@ -4,7 +4,10 @@
 
 package Wiring
 
-import "github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
+import (
+	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
+)
 
 // buildTypeMaps builds the id→type map and per-kind Broadcast port set (needed
 // for sourceHandle normalization in buildEdgeMaps).
@@ -49,7 +52,7 @@ func (b *buildCtx) buildEdgeMaps() {
 		}
 		inbound[e.Target][e.TargetHandle] = e.Target + "." + e.TargetHandle
 		srcKey := e.SourceHandle
-		if base, isMulti := broadcastBaseName(e.SourceHandle, b.nodeType[e.Source], b.kindBroadcastPorts); isMulti {
+		if base, isMulti := loadspec.BroadcastBaseName(e.SourceHandle, b.nodeType[e.Source], b.kindBroadcastPorts); isMulti {
 			srcKey = base
 		}
 		outbound[e.Source][srcKey] = append(outbound[e.Source][srcKey], e.Label)

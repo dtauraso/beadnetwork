@@ -14,6 +14,7 @@ import (
 
 	geomseeds "github.com/dtauraso/wirefold/nodes/Wiring/geomseeds"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	rowtables "github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
@@ -106,8 +107,8 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 			ID: id, Label: label, Kind: g.Kind,
 			CX: cx, CY: cy, CZ: cz,
 			Radius: nodegeom.NodeRadius(g.Kind), SphereR: nodegeom.EffectiveRadius(g),
-			VRX: verticalRingNormalX, VRY: verticalRingNormalY, VRZ: verticalRingNormalZ,
-			FRX: flatRingNormalX, FRY: flatRingNormalY, FRZ: flatRingNormalZ,
+			VRX: loadspec.VerticalRingNormalX, VRY: loadspec.VerticalRingNormalY, VRZ: loadspec.VerticalRingNormalZ,
+			FRX: loadspec.FlatRingNormalX, FRY: loadspec.FlatRingNormalY, FRZ: loadspec.FlatRingNormalZ,
 			Row: row,
 		})
 	}

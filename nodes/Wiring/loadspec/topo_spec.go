@@ -1,11 +1,11 @@
 // topo_spec.go — the topology spec format: the JSON shapes (specPort, specNode,
-// specEdge, topoSpec, NodeData) and reading/validating a spec into memory
-// (parseSpec, readSpec, validateNoFanIn), plus small per-node/per-edge helpers
-// used at build time (label, toNodeGeom, broadcastBaseName, specPortsToGeom,
-// nodeSendRule). loader.go's LoadTopology consumes this;
-// build.go turns a parsed+validated topoSpec into the running graph.
+// specEdge, TopoSpec, NodeData) and reading/validating a spec into memory
+// (ParseSpec, readSpec, validateNoFanIn), plus small per-node/per-edge helpers
+// used at build time (label, toNodeGeom, BroadcastBaseName, specPortsToGeom,
+// NodeSendRule). nodes/Wiring's loader.go's LoadTopology consumes this;
+// nodes/Wiring's build.go turns a parsed+validated TopoSpec into the running graph.
 
-package Wiring
+package loadspec
 
 import (
 	"fmt"
@@ -69,11 +69,11 @@ func (n specNode) label() string {
 	return n.ID
 }
 
-// toNodeGeom builds the geometry descriptor for edge-segment computation. A port
+// ToNodeGeom builds the geometry descriptor for edge-segment computation. A port
 // contributes no geometry at all (docs/bead-model/channels-not-ports.md — it is a load-time
 // channel-binding ROLE, resolved by PortSpec/a.In()/a.Out() at build time, never here),
 // so this no longer resolves or falls back to any port list.
-func (n specNode) toNodeGeom(sceneCenter vec3) nodegeom.NodeGeom {
+func (n specNode) ToNodeGeom(sceneCenter wire.Vec3) nodegeom.NodeGeom {
 	// Position is POLAR (polar-frame-rewrite.md). The stored ScenePolar (r,θ,φ about the scene
 	// sphere center) is the ONLY stored position and is adopted directly — there is no cartesian
 	// x/y/z load path. When it is absent the node has no position (HasPos false → NodeWorldPos
@@ -92,7 +92,7 @@ func (n specNode) toNodeGeom(sceneCenter vec3) nodegeom.NodeGeom {
 // set of Broadcast port names). e.g. "ToNext0" → "ToNext" for a kind with Broadcast
 // port "ToNext". Returns the canonical port name and whether it resolved. Shared
 // by buildFromSpec and validateSpec so the two normalizations can never drift.
-func broadcastBaseName(handle, kind string, kindBroadcastPorts map[string]map[string]bool) (string, bool) {
+func BroadcastBaseName(handle, kind string, kindBroadcastPorts map[string]map[string]bool) (string, bool) {
 	if len(handle) == 0 {
 		return handle, false
 	}
@@ -138,8 +138,8 @@ type specEdge struct {
 	TargetHandle string `json:"targetHandle"`
 }
 
-// topoSpec is the top-level JSON shape.
-type topoSpec struct {
+// TopoSpec is the top-level JSON shape.
+type TopoSpec struct {
 	Nodes []specNode `json:"nodes"`
 	Edges []specEdge `json:"edges"`
 	// RowCount is the buffer's row space: rows 0..RowCount-1, where row = id-1 (node identity
@@ -156,41 +156,41 @@ type topoSpec struct {
 type WireRegistry map[string]*wire.PacedWire
 
 // parseSpec reads and parses the topology spec at path — a directory tree
-// (loadTree; readSpec below rejects anything else) — into a topoSpec, WITHOUT
+// (loadTree; readSpec below rejects anything else) — into a TopoSpec, WITHOUT
 // validating or building. LoadTopology validates + builds from the result.
-func parseSpec(path string) (topoSpec, error) {
+func ParseSpec(path string) (TopoSpec, error) {
 	spec, err := readSpec(path)
 	if err != nil {
-		return topoSpec{}, err
+		return TopoSpec{}, err
 	}
 	// Fan-in is not part of the model: reject a spec where two edges target the same
 	// input port, at parse time, so it fails cleanly at load rather than silently sharing
 	// one wire deeper in the build.
 	if err := validateNoFanIn(spec); err != nil {
-		return topoSpec{}, fmt.Errorf("LoadTopology: %s: %w", path, err)
+		return TopoSpec{}, fmt.Errorf("LoadTopology: %s: %w", path, err)
 	}
 	return spec, nil
 }
 
-// readSpec loads the raw topoSpec from the tree at path, without semantic validation
+// readSpec loads the raw TopoSpec from the tree at path, without semantic validation
 // (that is parseSpec's job).
 // A topology is a DIRECTORY TREE and nothing else. The monolithic single-file form
-// (a topology.json parsed straight into a topoSpec) is gone: two supported shapes meant
+// (a topology.json parsed straight into a TopoSpec) is gone: two supported shapes meant
 // every persister carried a second code path, and the tree is the form the editor writes,
 // the form on disk, and the only one anything still produced.
 //
 // Fails loudly on a non-directory rather than falling back — a path that used to name a
 // monolithic file would otherwise load as an empty spec and surface much later as a
 // mystery empty scene.
-func readSpec(path string) (topoSpec, error) {
+func readSpec(path string) (TopoSpec, error) {
 	info, err := os.Stat(path) // path-resolution-ok: loader dispatch, not scene path resolution
 	if err != nil {
-		return topoSpec{}, fmt.Errorf("LoadTopology: stat %s: %w", path, err)
+		return TopoSpec{}, fmt.Errorf("LoadTopology: stat %s: %w", path, err)
 	}
 	if !info.IsDir() { // path-resolution-ok: loader form check, not scene path resolution
-		return topoSpec{}, fmt.Errorf("LoadTopology: %s is a file; a topology is a directory tree (nodes/<id>/{meta,data,inputs,outputs,edges}.json — adjacency layout). The monolithic single-file form was removed", path)
+		return TopoSpec{}, fmt.Errorf("LoadTopology: %s is a file; a topology is a directory tree (nodes/<id>/{meta,data,inputs,outputs,edges}.json — adjacency layout). The monolithic single-file form was removed", path)
 	}
-	return loadTree(path)
+	return LoadTree(path)
 }
 
 // validateNoFanIn rejects a topology where two edges target the SAME destination input
@@ -198,7 +198,7 @@ func readSpec(path string) (topoSpec, error) {
 // exactly ONE incident edge; multiple sources into one node use DISTINCT input ports — as
 // every production node already does (e.g. a gate's FromLeft/FromRight, each fed by one
 // edge). Enforced at parse so edge:wire:input-port is strictly 1:1 from load onward.
-func validateNoFanIn(spec topoSpec) error {
+func validateNoFanIn(spec TopoSpec) error {
 	seen := make(map[string]string, len(spec.Edges))
 	for _, e := range spec.Edges {
 		key := e.Target + "." + e.TargetHandle
@@ -215,7 +215,7 @@ func validateNoFanIn(spec topoSpec) error {
 // given node id and output port name (sourceHandle). The rule lives on the
 // SOURCE NODE's data.sendRules map, keyed by output port name. Ports not
 // listed default to consumeGated.
-func nodeSendRule(n specNode, port string) wire.SendRule {
+func NodeSendRule(n specNode, port string) wire.SendRule {
 	if n.Data == nil || n.Data.SendRules == nil {
 		return wire.RuleConsumeGated
 	}

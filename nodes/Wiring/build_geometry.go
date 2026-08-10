@@ -21,7 +21,7 @@ import (
 func (b *buildCtx) computeNodeGeometry() {
 	nodeGeoms := map[string]nodegeom.NodeGeom{}
 	for _, n := range b.spec.Nodes {
-		nodeGeoms[n.ID] = n.toNodeGeom(b.sphere.Center)
+		nodeGeoms[n.ID] = n.ToNodeGeom(b.sphere.Center)
 	}
 	b.nodeGeoms = nodeGeoms
 

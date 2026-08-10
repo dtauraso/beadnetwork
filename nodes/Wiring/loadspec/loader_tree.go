@@ -12,10 +12,10 @@
 // port is a load-time channel-binding ROLE resolved from the kind's registry
 // (PortSpec/a.In()/a.Out()), never a placed entity with its own geometry file.
 //
-// It returns a topoSpec in the same shape parseSpec/LoadTopology consume regardless of
+// It returns a TopoSpec in the same shape ParseSpec/LoadTopology consume regardless of
 // how the tree was read.
 
-package Wiring
+package loadspec
 
 import (
 	"encoding/json"
@@ -30,8 +30,8 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/positionfile"
 )
 
-// jsonMeta is the shape of nodes/<id>/meta.json.
-type jsonMeta struct {
+// JSONMeta is the shape of nodes/<id>/meta.json.
+type JSONMeta struct {
 	ID   string   `json:"id"`
 	Type string   `json:"type"`
 	R    *float64 `json:"r,omitempty"` // optional per-node sphere radius; nil → nodegeom.DefaultNodeR (see nodegeom.NodeR)
@@ -55,10 +55,10 @@ type jsonMeta struct {
 	Gate bool `json:"gate,omitempty"`
 }
 
-// loadTree reads the directory-tree topology rooted at root and assembles a
-// topoSpec.  All subdirectory entries are sorted so the result is deterministic.
-func loadTree(root string) (topoSpec, error) {
-	var spec topoSpec
+// LoadTree reads the directory-tree topology rooted at root and assembles a
+// TopoSpec.  All subdirectory entries are sorted so the result is deterministic.
+func LoadTree(root string) (TopoSpec, error) {
+	var spec TopoSpec
 
 	// ── nodes ────────────────────────────────────────────────────────────────
 	nodesDir := filepath.Join(root, "nodes")
@@ -105,7 +105,7 @@ func loadTree(root string) (topoSpec, error) {
 		if err != nil {
 			return spec, fmt.Errorf("loadTree: node %q meta: %w", nodeID, err)
 		}
-		var meta jsonMeta
+		var meta JSONMeta
 		if err := json.Unmarshal(metaRaw, &meta); err != nil {
 			return spec, fmt.Errorf("loadTree: node %q meta parse: %w", nodeID, err)
 		}
@@ -253,10 +253,10 @@ func NodeIDStringsInTree(root string) []string {
 	return out
 }
 
-// largestNodeID is counts.json's "nodes": the LARGEST id, which is the ROW COUNT under
+// LargestNodeID is counts.json's "nodes": the LARGEST id, which is the ROW COUNT under
 // ROW ID = NODE ID - 1 — not how many directories exist. A gap in the id space still needs
 // its row, and its dedicated fd, allocated.
-func largestNodeID(root string) int {
+func LargestNodeID(root string) int {
 	best := 0
 	for _, id := range NodeIDsInTree(root) {
 		if id > best {
@@ -266,9 +266,9 @@ func largestNodeID(root string) int {
 	return best
 }
 
-// countEdgeFiles is counts.json's "edges": a plain count, since an edge has no id space to
+// CountEdgeFiles is counts.json's "edges": a plain count, since an edge has no id space to
 // leave gaps in.
-func countEdgeFiles(root string) int {
+func CountEdgeFiles(root string) int {
 	total := 0
 	for _, id := range NodeIDStringsInTree(root) {
 		names, err := readDirNames(filepath.Join(root, "nodes", id, "edges"))

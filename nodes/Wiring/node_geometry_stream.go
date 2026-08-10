@@ -9,6 +9,7 @@ import (
 	"math"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
@@ -178,12 +179,12 @@ func (m *nodeGeometry) writeStreamFrame(events []wire.RowEvent) {
 		CZ:                    float32(center.Z),
 		Radius:                float32(nodegeom.NodeRadius(m.geom.Kind)),
 		SphereR:               float32(sphereR),
-		VRX:                   verticalRingNormalX,
-		VRY:                   verticalRingNormalY,
-		VRZ:                   verticalRingNormalZ,
-		FRX:                   flatRingNormalX,
-		FRY:                   flatRingNormalY,
-		FRZ:                   flatRingNormalZ,
+		VRX:                   loadspec.VerticalRingNormalX,
+		VRY:                   loadspec.VerticalRingNormalY,
+		VRZ:                   loadspec.VerticalRingNormalZ,
+		FRX:                   loadspec.FlatRingNormalX,
+		FRY:                   loadspec.FlatRingNormalY,
+		FRZ:                   loadspec.FlatRingNormalZ,
 		PoleTheta:             float32(poleTheta),
 		PolePhi:               float32(polePhi),
 		RingAxisTheta:         float32(ringAxisTheta),

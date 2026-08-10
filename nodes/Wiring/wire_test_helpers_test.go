@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/beadcrud"
+	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
@@ -42,13 +43,13 @@ func writeTreeFile(t *testing.T, root, rel, body string) {
 // Returns root so callers can pass it straight to LoadTopology.
 func writeSpecTree(t *testing.T, root string, specJSON string) string {
 	t.Helper()
-	var spec topoSpec
+	var spec loadspec.TopoSpec
 	if err := json.Unmarshal([]byte(specJSON), &spec); err != nil {
 		t.Fatalf("writeSpecTree: parse spec JSON: %v", err)
 	}
 
 	for _, n := range spec.Nodes {
-		meta := jsonMeta{
+		meta := loadspec.JSONMeta{
 			ID:              n.ID,
 			Type:            n.Type,
 			R:               n.R,

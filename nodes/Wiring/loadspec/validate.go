@@ -1,6 +1,6 @@
 // validate.go — parse-time spec validation for topology JSON.
 //
-// validateSpec runs immediately after JSON unmarshal in LoadTopology, before
+// ValidateSpec runs immediately after JSON unmarshal in LoadTopology, before
 // any graph construction.  It aggregates all spec-shape errors and
 // returns them together so the caller sees every problem in one pass.
 //
@@ -8,7 +8,7 @@
 // Genuinely runtime-only checks (e.g. wire allocation failures) stay in
 // LoadTopology.
 
-package Wiring
+package loadspec
 
 import (
 	"fmt"
@@ -20,21 +20,28 @@ import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
-// validateSpec checks the parsed topoSpec for shape errors that are
+// ValidateSpec checks the parsed TopoSpec for shape errors that are
 // decidable without constructing any Go objects.  It returns a
 // combined error listing every problem found, or nil if the spec is valid.
-func validateSpec(spec *topoSpec) error {
+//
+// kindPorts is each registered kind's own port list (kind -> its []portwiring.PortSpec) —
+// the one thing this check needs FROM nodes/Wiring's kind registry (Registry/NodeBuilder
+// stay in nodes/Wiring: NodeBuilder.Build carries buildDeps, a Wiring-internal hub type
+// this leaf package cannot name without an import cycle back to nodes/Wiring). The caller
+// (nodes/Wiring's loader.go) builds this map from Registry and passes it in, so
+// validation depends only on the specific values it reads, not on the registry itself.
+func ValidateSpec(spec *TopoSpec, kindPorts map[string][]portwiring.PortSpec) error {
 	var errs []string
 
 	// Build per-kind port sets needed by the handle and required-port checks.
 	kindInPorts := map[string]map[string]bool{}
 	kindOutPorts := map[string]map[string]bool{}
 	kindBroadcastPorts := map[string]map[string]bool{}
-	for kind, bind := range Registry {
+	for kind, ports := range kindPorts {
 		ins := map[string]bool{}
 		outs := map[string]bool{}
 		outMultis := map[string]bool{}
-		for _, p := range bind.Ports {
+		for _, p := range ports {
 			switch p.Dir {
 			case portwiring.PortIn:
 				ins[p.Name] = true
@@ -63,7 +70,7 @@ func validateSpec(spec *topoSpec) error {
 		}
 		seenID[n.ID] = true
 		nodeType[n.ID] = n.Type
-		if _, ok := Registry[n.Type]; !ok {
+		if _, ok := kindPorts[n.Type]; !ok {
 			errs = append(errs, fmt.Sprintf("node %q: unknown type %q", n.ID, n.Type))
 		}
 	}
@@ -97,7 +104,7 @@ func validateSpec(spec *topoSpec) error {
 			errs = append(errs, fmt.Sprintf("edge %q references unknown node id %q as its source", e.Label, e.Source))
 		} else {
 			srcHandle := e.SourceHandle
-			if base, isMulti := broadcastBaseName(srcHandle, srcKind, kindBroadcastPorts); isMulti {
+			if base, isMulti := BroadcastBaseName(srcHandle, srcKind, kindBroadcastPorts); isMulti {
 				srcHandle = base
 			}
 			if !kindOutPorts[srcKind][srcHandle] {

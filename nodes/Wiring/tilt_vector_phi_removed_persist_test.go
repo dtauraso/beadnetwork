@@ -1,6 +1,10 @@
 package Wiring
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
+)
 
 // TestLoadTreeIgnoresLegacyTopTiltVectorPhiIdx: task/drop-tilt-vector-phi removed φ from
 // the tilt-vector model end to end, including position.json's TopTiltVectorPhiIdx field.
@@ -19,9 +23,9 @@ func TestLoadTreeIgnoresLegacyTopTiltVectorPhiIdx(t *testing.T) {
 			`"stepTheta":0.1,"stepPhi":0.1,"stepR":1,`+
 			`"topTiltVectorThetaIdx":5,"topTiltVectorPhiIdx":9}`)
 
-	spec, err := loadTree(root)
+	spec, err := loadspec.LoadTree(root)
 	if err != nil {
-		t.Fatalf("loadTree: %v (a legacy topTiltVectorPhiIdx field must not be a load error)", err)
+		t.Fatalf("LoadTree: %v (a legacy topTiltVectorPhiIdx field must not be a load error)", err)
 	}
 	if len(spec.Nodes) != 1 {
 		t.Fatalf("expected 1 node, got %d", len(spec.Nodes))

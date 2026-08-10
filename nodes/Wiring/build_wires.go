@@ -6,6 +6,7 @@ package Wiring
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
@@ -25,7 +26,7 @@ import (
 // All keyed by edge label; consumed by buildNodes when binding the source Out.
 func (b *buildCtx) allocateWires() {
 	destWire := map[string]*wire.PacedWire{}
-	edgeWire := WireRegistry{}
+	edgeWire := loadspec.WireRegistry{}
 	edgeEndpoints := map[string]inputcodec.EdgeEndpoints{}
 	edgeSteps := map[string]int{}
 	edgeSegments := map[string]wireSegment{}
