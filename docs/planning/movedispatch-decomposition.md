@@ -121,6 +121,58 @@ values, the honest answer is that the code belongs together — record that and 
   went silently green — that fix is in, but re-verify).
 - No new package may import `nodes/Wiring`. That is the invariant; state it as the check.
 
+## Can each part add itself to the build, instead of a central builder?
+
+Worth answering, because the repo already does exactly this for the thing that varies. A node
+kind CONSTRUCTS ITSELF: `nodes/pulse/node.go`'s `init()` calls `Wiring.RegisterBuilder("Pulse",
+ports, buildFunc)`, and `Wiring` knows nothing about `Pulse`. Adding a kind adds no line to
+`Wiring`. That is self-registration, and it works.
+
+**It does not generalise to the build phases, and the reason is worth writing down.**
+`buildFromSpec` runs 11 phases in a fixed order:
+
+```
+computeNodeGeometry → computeQuantizedLayout → computeReachRadii → allocateWires →
+allocateVectorChannels → buildMoveDispatch → buildTypeMaps → buildEdgeMaps →
+buildNodes → finalizeActors → bindDispatch
+```
+
+Kinds are an OPEN SET of INDEPENDENT things — order is irrelevant, and new members arrive
+without the centre changing. Phases are a CLOSED SEQUENCE of DEPENDENT things: `allocateWires`
+needs the geometry, `buildNodes` needs the wires, `finalizeActors` must run after every kind's
+build func has claimed self-drive. Letting each phase "register itself" would require either a
+priority number (hidden ordering, fragile) or declared inter-phase dependencies (a DAG
+scheduler) — MORE machinery for eleven known steps, not less. A registry for a fixed sequence
+is a worse spelling of a function call.
+
+**But the instinct is right about where the coupling is.** It is not the ordering — it is
+`buildCtx`, a **26-field shared mutable blackboard** (`ctx spec tr clk sphere nodeGeoms centers
+quantizedOffsets destWire edgeWire edgeEndpoints edgeSteps edgeSegments md speedSinks nodeType
+kindBroadcastPorts inbound outbound outboundHandle outSink nodes vectorOutByNode
+vectorInByNode …`). Every phase reaches into it for its inputs and writes its outputs back.
+Nothing in a signature says which fields a phase reads or produces.
+
+That is the SAME defect as `pb.md` and `currentBuildMD`: reaching for state instead of being
+handed it. And it is why the build files cannot leave `Wiring` — a phase in another package
+would need `buildCtx`, and `buildCtx` needs the phases.
+
+**The achievable version of the question:** make each phase a function that TAKES what it
+reads and RETURNS what it produces.
+
+```go
+geoms  := computeNodeGeometry(spec, sphere)
+wires  := allocateWires(spec, geoms)
+nodes  := buildNodes(spec, wires, geoms, …)
+```
+
+Then the ordering is not a convention held in one function — it is data flow the compiler
+enforces, a phase cannot silently read something a later phase writes, and each phase becomes
+liftable because it takes values rather than a hub. That is step 1's rule applied to the
+build, and it is the honest way to get "each part owns its own contribution".
+
+This is NOT in scope for steps 1–7 below. It is recorded here because it is the next question
+after them, and because the answer to "should we use a registry" is specifically no.
+
 ## Target
 
 `MoveDispatch` becomes a struct of owners with no behaviour of its own beyond construction
