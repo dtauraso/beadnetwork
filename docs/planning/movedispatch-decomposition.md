@@ -128,7 +128,45 @@ kind CONSTRUCTS ITSELF: `nodes/pulse/node.go`'s `init()` calls `Wiring.RegisterB
 ports, buildFunc)`, and `Wiring` knows nothing about `Pulse`. Adding a kind adds no line to
 `Wiring`. That is self-registration, and it works.
 
-**It does not generalise to the build phases, and the reason is worth writing down.**
+### The frames are equal, and that is the point
+
+Before the ordering argument below, the prior question: is the build ordered because different
+parts use different reference frames, or because a frame cannot be changed once set? **Neither.**
+MODEL.md is explicit — *"A centre is a sum of polar vectors from ONE centre — the scene
+sphere's centre… There is NO hierarchy between nodes: every node hangs off the scene centre
+directly, one hop."* One coordinate system, persisted, established once. Nodes and camera
+views both measure about it.
+
+Which means the ordering is not a fact about the domain. **Roughly 3½ of the 11 phases
+recompute centrally what each mover already derives locally from that same frame.** The
+clearest evidence is one function called from three places:
+
+```
+nodegeom.EdgeStepCount(dist, srcKind, dstKind)
+  build_wires.go:45           — at BUILD, from the spec's geometry
+  chain_beads.go:154          — at RUNTIME, by the node's own mover
+  beadcrud/touching_beads.go:95 — at RUNTIME, during a drag
+```
+
+Same function, same one frame, same inputs. `computeNodeGeometry`, `computeQuantizedLayout`
+and `computeReachRadii` are the same shape: derived quantities that a mover recomputes for
+itself whenever a node moves, computed once more up front because construction is written as a
+different activity from running.
+
+**So the honest scope is narrower than "the build phases are a necessary sequence".** The
+structural phases genuinely are one-time work — `allocateWires` creates channels,
+`allocateVectorChannels` creates channels, `buildMoveDispatch`/`buildNodes`/`finalizeActors`/
+`bindDispatch` construct and start goroutines. Those must happen once, in order, because you
+cannot bind a channel that does not exist. But the derived-geometry phases need not exist at
+all: if each node derives its own geometry from its position and the scene sphere — which it
+already does at runtime — then construction is just the first update, and those phases delete
+rather than move.
+
+That is a larger change than this plan, and it is the one that would actually shrink the
+build. It is recorded here so the ordering argument below is read as a description of the code
+as it stands, not as a justification for it.
+
+**Given the code as it stands, self-registration does not fit the phases.**
 `buildFromSpec` runs 11 phases in a fixed order:
 
 ```
@@ -172,6 +210,11 @@ build, and it is the honest way to get "each part owns its own contribution".
 
 This is NOT in scope for steps 1–7 below. It is recorded here because it is the next question
 after them, and because the answer to "should we use a registry" is specifically no.
+
+**And the question after THAT is the derived-geometry one above** — delete the phases that
+recompute what a mover derives, rather than make them liftable. Passing values explicitly
+makes an 11-phase pipeline honest; deleting 3½ of the phases makes it shorter. The second is
+worth more, and doing the first does not block it.
 
 ## Target
 
