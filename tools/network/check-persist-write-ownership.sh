@@ -91,7 +91,7 @@ in_list() {
   return 1
 }
 
-GO_FILE_COUNT=$(find "$WIRING_DIR" -maxdepth 1 -name "*.go" -not -name "*_test.go" | wc -l | tr -d ' ')
+GO_FILE_COUNT=$(find "$WIRING_DIR" -name "*.go" -not -name "*_test.go" | wc -l | tr -d ' ')
 if [[ "$GO_FILE_COUNT" -eq 0 ]]; then
   echo "check-persist-write-ownership: MISCONFIGURED — no non-test .go files found under $WIRING_DIR." >&2
   exit 1
@@ -101,7 +101,7 @@ eligible_files=()
 while IFS= read -r file; do
   [[ "${file##*/}" == "$PLUMBING" ]] && continue
   eligible_files+=("$file")
-done < <(find "$WIRING_DIR" -maxdepth 1 -name "*.go" -not -name "*_test.go")
+done < <(find "$WIRING_DIR" -name "*.go" -not -name "*_test.go")
 
 all_hits=""
 if [[ ${#eligible_files[@]} -gt 0 ]]; then

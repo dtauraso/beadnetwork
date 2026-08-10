@@ -8,39 +8,41 @@
 
 package Wiring
 
-func decodeRawInput(r *recReader) (rawInputMsg, bool) {
+import "github.com/dtauraso/wirefold/nodes/Wiring/recread"
+
+func decodeRawInput(r *recread.Reader) (rawInputMsg, bool) {
 	var ev rawInputMsg
 	var e error
 	f := func() float64 {
-		v, err := r.f64()
+		v, err := r.F64()
 		if err != nil && e == nil {
 			e = err
 		}
 		return v
 	}
 	i := func() int {
-		v, err := r.i32()
+		v, err := r.I32()
 		if err != nil && e == nil {
 			e = err
 		}
 		return int(v)
 	}
 	b := func() bool {
-		v, err := r.boolByte()
+		v, err := r.BoolByte()
 		if err != nil && e == nil {
 			e = err
 		}
 		return v
 	}
 	u := func() byte {
-		v, err := r.u8()
+		v, err := r.U8()
 		if err != nil && e == nil {
 			e = err
 		}
 		return v
 	}
 
-	ev.Kind = enumAt(inEventKinds, u())
+	ev.Kind = recread.EnumAt(inEventKinds, u())
 	ev.X = f()
 	ev.Y = f()
 	ev.RectLeft = f()
@@ -55,7 +57,7 @@ func decodeRawInput(r *recReader) (rawInputMsg, bool) {
 	ev.DeltaX = f()
 	ev.DeltaY = f()
 	ev.Fov = f()
-	ev.Hit.Kind = enumAt(inHitKinds, u())
+	ev.Hit.Kind = recread.EnumAt(inHitKinds, u())
 	ev.Hit.IsInput = b()
 	ev.Hit.NodeRow = i()
 	ev.Hit.PortRow = i()

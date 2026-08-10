@@ -64,7 +64,7 @@ if [[ ! -f "$RESOLVER" ]]; then
   exit 1
 fi
 
-GO_FILE_COUNT=$(find "$WIRING_DIR" -maxdepth 1 -name "*.go" | wc -l | tr -d ' ')
+GO_FILE_COUNT=$(find "$WIRING_DIR" -name "*.go" | wc -l | tr -d ' ')
 if [[ "$GO_FILE_COUNT" -eq 0 ]]; then
   echo "check-scene-path-resolution: MISCONFIGURED — no .go files found under $WIRING_DIR." >&2
   echo "  The scan must actually see source files; refusing a vacuous pass." >&2
@@ -86,7 +86,7 @@ while IFS= read -r file; do
   [[ "$file" == *"_test.go" ]] && continue
   [[ "${file##*/}" == "scene_paths.go" ]] && continue
   eligible_files+=("$file")
-done < <(find "$WIRING_DIR" -maxdepth 1 -name "*.go" -not -path "*/node_modules/*")
+done < <(find "$WIRING_DIR" -name "*.go" -not -path "*/node_modules/*")
 
 # One `grep -n` across the WHOLE eligible file list for all three patterns at once (IsDir(),
 # the three resolver-call names, and filepath.Join() ) — grep prefixes each hit with

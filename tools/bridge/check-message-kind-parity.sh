@@ -40,7 +40,7 @@ if [[ ! -d "$GO_PKG_DIR" ]]; then
   exit 1
 fi
 # Non-test .go files of the package, as an argument list for grep/awk.
-GO_FILES=$(find "$GO_PKG_DIR" -maxdepth 1 -name '*.go' ! -name '*_test.go' | sort)
+GO_FILES=$(find "$GO_PKG_DIR" -name '*.go' ! -name '*_test.go' | sort)
 if [[ -z "$GO_FILES" ]]; then
   echo "message-kind-parity: MISCONFIGURED — no non-test .go files under $GO_PKG_DIR" >&2
   exit 1

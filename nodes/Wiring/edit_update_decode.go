@@ -12,15 +12,17 @@
 
 package Wiring
 
+import "github.com/dtauraso/wirefold/nodes/Wiring/recread"
+
 // decodeEditUpdate decodes an edit-update record's [entityKind][attr][numeric payload] and
 // hands the payload to the per-entity decoder. entity="overlays" (attr toggle, u8 flag-id).
-func decodeEditUpdate(r *recReader) (stdinMsg, bool) {
-	kindByte, err1 := r.u8()
+func decodeEditUpdate(r *recread.Reader) (stdinMsg, bool) {
+	kindByte, err1 := r.U8()
 	if err1 != nil {
 		return stdinMsg{}, false
 	}
-	entity := enumAt(inUpdateKinds, kindByte)
-	attr, err2 := r.u8()
+	entity := recread.EnumAt(inUpdateKinds, kindByte)
+	attr, err2 := r.U8()
 	if err2 != nil {
 		return stdinMsg{}, false
 	}
@@ -49,30 +51,30 @@ func dirWord(dirUp byte) string {
 	return "down"
 }
 
-func decodeUpdateOverlays(r *recReader, attr byte) (stdinMsg, bool) {
+func decodeUpdateOverlays(r *recread.Reader, attr byte) (stdinMsg, bool) {
 	if attr != inOverlayAttrToggle {
 		return stdinMsg{}, false
 	}
-	flagID, err := r.u8()
+	flagID, err := r.U8()
 	if err != nil || int(flagID) >= len(inOverlayFlags) {
 		return stdinMsg{}, false
 	}
 	return stdinMsg{Type: "edit", Op: "update", Kind: "overlays", Attr: "toggle", Flag: inOverlayFlags[flagID]}, true
 }
 
-func decodeUpdateClock(r *recReader, attr byte) (stdinMsg, bool) {
+func decodeUpdateClock(r *recread.Reader, attr byte) (stdinMsg, bool) {
 	if attr != inClockAttrSpeed {
 		return stdinMsg{}, false
 	}
 	// [u8 speed] — the playback multiplier (0/1/2 from the slider).
-	speed, err := r.u8()
+	speed, err := r.U8()
 	if err != nil {
 		return stdinMsg{}, false
 	}
 	return stdinMsg{Type: "edit", Op: "update", Kind: "clock", Attr: "speed", Num: int(speed)}, true
 }
 
-func decodeUpdateDistanceGroup(r *recReader, attr byte) (stdinMsg, bool) {
+func decodeUpdateDistanceGroup(r *recread.Reader, attr byte) (stdinMsg, bool) {
 	if attr != inDistanceGroupAttrLength {
 		return stdinMsg{}, false
 	}
@@ -80,11 +82,11 @@ func decodeUpdateDistanceGroup(r *recReader, attr byte) (stdinMsg, bool) {
 	// dirUp is 1 for the up arrow (×1.1), 0 for down (÷1.1). Flag carries the
 	// direction as a readable string ("up"/"down") rather than adding a second
 	// numeric field to stdinMsg — Num already carries the group index.
-	groupIdx, errG := r.u8()
+	groupIdx, errG := r.U8()
 	if errG != nil {
 		return stdinMsg{}, false
 	}
-	dirUp, errD := r.u8()
+	dirUp, errD := r.U8()
 	if errD != nil {
 		return stdinMsg{}, false
 	}
@@ -92,14 +94,14 @@ func decodeUpdateDistanceGroup(r *recReader, attr byte) (stdinMsg, bool) {
 	return stdinMsg{Type: "edit", Op: "update", Kind: "distanceGroup", Attr: "length", Num: int(groupIdx), Flag: dir}, true
 }
 
-func decodeUpdateScene(r *recReader, attr byte) (stdinMsg, bool) {
+func decodeUpdateScene(r *recread.Reader, attr byte) (stdinMsg, bool) {
 	switch attr {
 	case inSceneAttrSelected:
 		// [u8 tabIndex] — an index into Wiring.SceneTabs, the Go-owned tab strip the
 		// VIEW frame carries. Out-of-range indices are rejected by SelectScene, not
 		// here: the decoder's job is the byte layout, and the tab list is scene
 		// state, not wire state.
-		tabIdx, err := r.u8()
+		tabIdx, err := r.U8()
 		if err != nil {
 			return stdinMsg{}, false
 		}
@@ -108,7 +110,7 @@ func decodeUpdateScene(r *recReader, attr byte) (stdinMsg, bool) {
 		// [u8 points] — the pair lattice's new point count. Out-of-range/non-multiple
 		// values are rejected by the handler (applyUpdateScene's "latticePoints"
 		// case), not here: the decoder's job is the byte layout only.
-		points, err := r.u8()
+		points, err := r.U8()
 		if err != nil {
 			return stdinMsg{}, false
 		}
@@ -125,15 +127,15 @@ func decodeUpdateScene(r *recReader, attr byte) (stdinMsg, bool) {
 		// forwards where the pointer was, exactly as raw-input does, and computes
 		// no geometry. Which node it connects to is not here either — Go picks the
 		// nearest from its own node positions.
-		kindID, err := r.u8()
+		kindID, err := r.U8()
 		if err != nil {
 			return stdinMsg{}, false
 		}
-		ndcX, err := r.f32()
+		ndcX, err := r.F32()
 		if err != nil {
 			return stdinMsg{}, false
 		}
-		ndcY, err := r.f32()
+		ndcY, err := r.F32()
 		if err != nil {
 			return stdinMsg{}, false
 		}
@@ -144,7 +146,7 @@ func decodeUpdateScene(r *recReader, attr byte) (stdinMsg, bool) {
 	case inSceneAttrDelete:
 		// [u8 nodeRow] — the target's buffer ROW, never its id or name (no sidecar,
 		// same as every other addressed edit). Go resolves the row to a node.
-		row, err := r.u8()
+		row, err := r.U8()
 		if err != nil {
 			return stdinMsg{}, false
 		}
@@ -153,7 +155,7 @@ func decodeUpdateScene(r *recReader, attr byte) (stdinMsg, bool) {
 	return stdinMsg{}, false
 }
 
-func decodeUpdateTiltVector(r *recReader, attr byte) (stdinMsg, bool) {
+func decodeUpdateTiltVector(r *recread.Reader, attr byte) (stdinMsg, bool) {
 	switch attr {
 	case inTiltVectorAttrTheta:
 		// [u8 nodeRow][u8 dirUp] — nodeRow is the target node's buffer ROW (never
@@ -161,11 +163,11 @@ func decodeUpdateTiltVector(r *recReader, attr byte) (stdinMsg, bool) {
 		// down (-1). There is only one axis now (theta), so attr alone identifies
 		// this as a theta adjust — same shape as distanceGroup's groupIndex+dir
 		// payload.
-		row, errR := r.u8()
+		row, errR := r.U8()
 		if errR != nil {
 			return stdinMsg{}, false
 		}
-		dirUp, errD := r.u8()
+		dirUp, errD := r.U8()
 		if errD != nil {
 			return stdinMsg{}, false
 		}
@@ -175,7 +177,7 @@ func decodeUpdateTiltVector(r *recReader, attr byte) (stdinMsg, bool) {
 		// [u8 nodeRow] — the RESET button (TiltResetButton.tsx). No direction: a
 		// reset always returns the index to 0, so there is nothing else to
 		// carry on the wire.
-		row, errR := r.u8()
+		row, errR := r.U8()
 		if errR != nil {
 			return stdinMsg{}, false
 		}
@@ -184,7 +186,7 @@ func decodeUpdateTiltVector(r *recReader, attr byte) (stdinMsg, bool) {
 		// [u8 nodeRow] — the START TILT button (TiltVectorButtons.tsx). No
 		// direction: Start never touches an index, it only opens the vector
 		// exchange from whatever angles are currently set.
-		row, errR := r.u8()
+		row, errR := r.U8()
 		if errR != nil {
 			return stdinMsg{}, false
 		}

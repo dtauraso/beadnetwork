@@ -31,11 +31,13 @@
 // "Defined ONCE here" is the FILE SET this header opens, not this one file: the layout PIN
 // (InputLayoutFingerprint, the kind bytes, the attr indices, the enum orderings) is
 // input_fingerprint.go — the file tools/gen-node-defs reads; the byte-reading primitives
-// are rec_reader.go; the raw-input record's flat field run is raw_input_decode.go; and the
+// are nodes/Wiring/recread; the raw-input record's flat field run is raw_input_decode.go; and the
 // addressed edit's entity→attribute decoders are edit_update_decode.go. What is left in
 // THIS file is the one thing that has to know all four: the top-level KIND BYTE dispatch.
 
 package Wiring
+
+import "github.com/dtauraso/wirefold/nodes/Wiring/recread"
 
 // decodeInputRecord decodes one deframed record body (WITHOUT the [len] frame) into a
 // stdinMsg. ok=false means the record was malformed/unknown and must be ignored
@@ -44,7 +46,7 @@ func decodeInputRecord(rec []byte) (stdinMsg, bool) {
 	if len(rec) == 0 {
 		return stdinMsg{}, false
 	}
-	r := &recReader{b: rec, pos: 1}
+	r := recread.NewReader(rec, 1)
 	switch rec[0] {
 	case inKindSave:
 		return stdinMsg{Type: "save"}, true

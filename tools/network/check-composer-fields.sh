@@ -59,7 +59,7 @@ for row in "${COMPOSERS[@]}"; do
   # `|| true`: with set -e, a grep that matches nothing would abort the script on this
   # assignment and exit non-zero WITHOUT the MISCONFIGURED report below — a failure whose
   # reason nobody can read. Let it produce an empty FILE and fall into the report instead.
-  FILE=$( (grep -rl "^${decl}\$" nodes/Wiring/*.go || true) | grep -v _test | head -1 || true)
+  FILE=$( (grep -rl "^${decl}\$" nodes/Wiring/ --include="*.go" || true) | grep -v _test | head -1 || true)
   if [[ -z "${FILE:-}" || ! -f "$FILE" ]]; then
     echo "check-composer-fields: MISCONFIGURED — could not locate '${decl}' under nodes/Wiring/*.go; refusing vacuous pass" >&2
     fail=1
