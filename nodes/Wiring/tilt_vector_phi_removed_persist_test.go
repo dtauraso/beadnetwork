@@ -6,7 +6,7 @@ import "testing"
 // the tilt-vector model end to end, including position.json's TopTiltVectorPhiIdx field.
 // A position.json written by an OLDER build that still carries that key must still LOAD —
 // encoding/json silently drops an unrecognized field rather than erroring, and this test
-// is the proof that positionFileJSON has no DisallowUnknownFields call anywhere on this
+// is the proof that positionfile.JSON has no DisallowUnknownFields call anywhere on this
 // path that would turn that into a load failure.
 func TestLoadTreeIgnoresLegacyTopTiltVectorPhiIdx(t *testing.T) {
 	root := t.TempDir()

@@ -18,6 +18,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/positionfile"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
@@ -26,17 +27,12 @@ import (
 // A node owns every path under its own <root>/nodes/<id>/ directory EXCEPT
 // nodes/<id>/edges/ (that subtree belongs to the edgeMover of each edge leaving this
 // node — see edge_mover.go's doc comment and .claude/rules/persistence-ownership.md
-// "The model"). These are the ONLY functions in the package that build those paths;
-// quant_offset_persist.go and scene_anchor_persist.go call them rather than
+// "The model"). These are the ONLY functions in the package that build those paths
+// (positionfile.FilePath, in its own package, is the one exception — see its doc comment
+// for why); quant_offset_persist.go and scene_anchor_persist.go call them rather than
 // constructing the path themselves. jsonpersist.SafeTreePathComponent is applied
 // at each call site before use, same as it always was — node ids and port names are
 // spec-authored and must not escape the tree root via ".." or a separator.
-
-// positionFilePath is <root>/nodes/<id>/position.json — a node's exact scene-polar
-// position plus its quantized-scalar-triple cache (quant_offset_persist.go).
-func positionFilePath(root, id string) string {
-	return filepath.Join(root, "nodes", id, "position.json")
-}
 
 // nodeMetaFilePath is <root>/nodes/<id>/meta.json — a node's kind and id.
 func nodeMetaFilePath(root, id string) string {
@@ -75,7 +71,7 @@ func WriteNewNodeFiles(root, id, kind string, scenePolarR, theta, phi float64) e
 	if err := jsonpersist.WriteJSONAtomic(nodeMetaFilePath(root, id), newNodeMeta{ID: id, Type: kind}); err != nil {
 		return err
 	}
-	return jsonpersist.WriteJSONAtomic(positionFilePath(root, id), newNodePosition{
+	return jsonpersist.WriteJSONAtomic(positionfile.FilePath(root, id), newNodePosition{
 		ScenePolarR: scenePolarR, ScenePolarTheta: theta, ScenePolarPhi: phi,
 	})
 }

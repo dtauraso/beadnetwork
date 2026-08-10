@@ -17,6 +17,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/positionfile"
 )
 
 // dragAndReadBack drags a node under the given layout mode and returns what landed in that
@@ -45,7 +46,7 @@ func dragAndReadBack(t *testing.T, quantized bool, target vec3) string {
 
 	md.lq.commitNodeMoveLocal(md, nm, target)
 
-	b, err := os.ReadFile(positionFilePath(root, "1"))
+	b, err := os.ReadFile(positionfile.FilePath(root, "1"))
 	if err != nil {
 		if os.IsNotExist(err) {
 			return ""

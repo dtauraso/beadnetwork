@@ -16,6 +16,7 @@ import (
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/positionfile"
 	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
 )
 
@@ -28,7 +29,7 @@ func TestQuantOffsetScheduleWritesSynchronously(t *testing.T) {
 	newScene := geom.Polar{R: 55.5, Theta: 0.4, Phi: -1.1}
 	nm.persistQuantOffset(quantoffset.QuantizedOffset{ITheta: 3, IPhi: 4, IR: 5}, newScene)
 
-	raw, err := os.ReadFile(positionFilePath(root, "1"))
+	raw, err := os.ReadFile(positionfile.FilePath(root, "1"))
 	if err != nil {
 		t.Fatalf("read position.json: %v", err)
 	}
@@ -67,7 +68,7 @@ func TestMoveDispatchQuantOffsetScheduleWritesThroughEnableEditPersist(t *testin
 	newScene := geom.Polar{R: 61.0, Theta: 0.2, Phi: 0.9}
 	nm.persistQuantOffset(quantoffset.QuantizedOffset{ITheta: 1, IPhi: 2, IR: 3}, newScene)
 
-	raw, err := os.ReadFile(positionFilePath(root, "1"))
+	raw, err := os.ReadFile(positionfile.FilePath(root, "1"))
 	if err != nil {
 		t.Fatalf("read position.json: %v", err)
 	}

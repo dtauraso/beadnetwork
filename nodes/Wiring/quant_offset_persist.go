@@ -3,9 +3,9 @@ package Wiring
 // quant_offset_persist.go — the WRITE side of the quantized scalar triple (a,b,c) =
 // (iTheta,iPhi,iR) as file data.
 //
-// Path construction (positionFilePath, localPolarsFilePath) lives
-// in node_mover.go, not here: those are node paths, and node_mover.go is the node's
-// owning file (.claude/rules/persistence-ownership.md "The owner writes, and owns the path").
+// Path construction and the on-disk JSON shape (positionfile.FilePath, positionfile.JSON)
+// live in nodes/Wiring/positionfile, not here — this file (the node's own mover) is the
+// only writer (.claude/rules/persistence-ownership.md "The owner writes, and owns the path").
 //
 // A node's PERSISTED position is its EXACT scene-polar (r,θ,φ) about the scene center —
 // lossless, so a dragged node reloads at exactly where it was dropped. The quantized
@@ -38,6 +38,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
+	"github.com/dtauraso/wirefold/nodes/Wiring/positionfile"
 	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
 )
 
@@ -80,30 +81,6 @@ func (nm *nodeGeometry) persistTiltVectorAngle() {
 	}
 }
 
-// positionFileJSON is the shape of nodes/<id>/position.json — the node's exact scene-polar
-// position plus its quantized-scalar-triple cache. Mirrors the equivalent fields of
-// loader_tree.go's jsonMeta (the legacy, still-read fallback shape).
-type positionFileJSON struct {
-	ScenePolarR     float64 `json:"scenePolarR"`
-	ScenePolarTheta float64 `json:"scenePolarTheta"`
-	ScenePolarPhi   float64 `json:"scenePolarPhi"`
-	QuantITheta     int     `json:"quantITheta"`
-	QuantIPhi       int     `json:"quantIPhi"`
-	QuantIR         int     `json:"quantIR"`
-	StepTheta       float64 `json:"stepTheta"`
-	StepPhi         float64 `json:"stepPhi"`
-	StepR           float64 `json:"stepR"`
-	// TopTiltVectorThetaIdx is this node's own vector-direction index
-	// (node_mover.go's topTiltVectorThetaIdx — an integer count of
-	// TiltVectorAngleStep, never a stored float). Omitted (0 = world +y) for a topology
-	// saved before this field existed — matches the pre-existing hardcoded +y default.
-	// There is no φ counterpart any more (task/drop-tilt-vector-phi); a file saved by an
-	// older build that still carries "topTiltVectorPhiIdx" simply has that key ignored on
-	// load — encoding/json drops unrecognized fields by default, so an old file is not a
-	// load error.
-	TopTiltVectorThetaIdx int32 `json:"topTiltVectorThetaIdx,omitempty"`
-}
-
 // writeQuantOffset writes the node's EXACT scenePolarR/Theta/Phi (the authoritative,
 // lossless position — see the package doc comment above) PLUS the quantized scalar triple
 // (iTheta,iPhi,iR) as a self-describing cache of the drag-time snap cells, as the WHOLE
@@ -115,7 +92,7 @@ func writeQuantOffset(root, id string, off quantoffset.QuantizedOffset, scene ge
 		return fmt.Errorf("unsafe node id %q", id)
 	}
 	t, p, r := off.EffectiveSteps()
-	return jsonpersist.WriteJSONAtomic(positionFilePath(root, id), positionFileJSON{
+	return jsonpersist.WriteJSONAtomic(positionfile.FilePath(root, id), positionfile.JSON{
 		ScenePolarR: scene.R, ScenePolarTheta: scene.Theta, ScenePolarPhi: scene.Phi,
 		QuantITheta: off.ITheta, QuantIPhi: off.IPhi, QuantIR: off.IR,
 		StepTheta: t, StepPhi: p, StepR: r,

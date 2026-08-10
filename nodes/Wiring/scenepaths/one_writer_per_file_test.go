@@ -7,8 +7,8 @@ package scenepaths
 // (CameraFilePath / OverlaysFilePath / SphereFilePath). Every writer, loader and
 // persister-arming call site in nodes/Wiring reaches the file only through that one
 // function; nothing else is allowed to spell the filename itself. The sibling assertion for
-// position.json (owned by nodes/Wiring's node_mover.go, never moved here) stays in
-// nodes/Wiring/one_writer_per_file_test.go.
+// position.json (owned by nodes/Wiring's node_mover.go, via nodes/Wiring/positionfile)
+// lives in nodes/Wiring/positionfile/one_writer_per_file_test.go.
 
 import (
 	"os"

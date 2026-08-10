@@ -19,7 +19,7 @@ set -euo pipefail
 #     no such file exists in this repo's tree and nothing wrote it once the
 #     one-file-per-writer split landed.
 #   - nodes/<id>/... (position, inputs/outputs port files) —
-#     node_mover.go only (plus loader_tree.go, which READS these paths to build the graph
+#     node_mover.go/positionfile package only (plus loader_tree.go, which READS these paths to build the graph
 #     at load time — an explicitly out-of-scope concern, see the plan's "Explicitly out of
 #     scope: Loading").
 #   - nodes/<id>/edges/<label>.json — reserved for edge_mover.go once a Go-side writer
@@ -169,7 +169,7 @@ fi
 # unrepresentable — a persister reaching around node_mover.go's resolvers to build its own
 # path, which is precisely how positionFilePath/localPolarsFilePath/cascadeEdgesFilePath/
 # nodePortFilePath used to be scattered before step 3.
-NODE_PATH_OWNERS=("node_mover.go" "edge_mover.go" "edge_file.go" "loader_tree.go")
+NODE_PATH_OWNERS=("node_mover.go" "edge_mover.go" "edge_file.go" "loader_tree.go" "position_file.go")
 is_node_path_owner() {
   local f="$1"
   for owner in "${NODE_PATH_OWNERS[@]}"; do
@@ -190,9 +190,9 @@ done <<< "$all_hits"
 
 if [[ "$NODE_JOIN_HITS" -ne 0 ]]; then
   echo ""
-  echo "check-scene-path-resolution: $NODE_JOIN_HITS hand-rolled nodes/ filepath.Join(...) hit(s) outside node_mover.go/edge_mover.go/edge_file.go/loader_tree.go — a node/port path belongs to its owning mover; call node_mover.go's resolvers instead of reconstructing the path."
+  echo "check-scene-path-resolution: $NODE_JOIN_HITS hand-rolled nodes/ filepath.Join(...) hit(s) outside node_mover.go/edge_mover.go/edge_file.go/loader_tree.go/position_file.go — a node/port path belongs to its owning mover; call node_mover.go's or positionfile's resolvers instead of reconstructing the path."
   exit 1
 fi
 
-echo "check-scene-path-resolution: clean ($GO_FILE_COUNT files scanned; $CALL_SITES resolver call site(s); all IsDir/Join path-resolution lives in scene_paths.go; node-path construction lives in node_mover.go/edge_mover.go/edge_file.go)"
+echo "check-scene-path-resolution: clean ($GO_FILE_COUNT files scanned; $CALL_SITES resolver call site(s); all IsDir/Join path-resolution lives in scene_paths.go; node-path construction lives in node_mover.go/edge_mover.go/edge_file.go/positionfile)"
 exit 0

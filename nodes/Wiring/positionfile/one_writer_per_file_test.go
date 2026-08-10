@@ -1,21 +1,13 @@
-package Wiring
+package positionfile
 
 // one_writer_per_file_test.go — pins fact #2 of the one-file-per-goroutine split
-//: position.json (the one of the four NEW files this
-// split introduced that stays owned by this package) has its
-// ON-DISK NAME literal spelled out in exactly ONE place in production (non-test) source —
-// the single path-building function for that file (positionFilePath). The sibling
-// assertions for camera.json/overlays.json/sphere.json moved with scene_paths.go into
-// nodes/Wiring/scenepaths/one_writer_per_file_test.go, since those three literals now live
-// there. Every
-// writer, loader and persister-arming call site
-// reaches the file only through that one function; nothing else is allowed to spell the
-// filename itself. There is no local-polars.json any more — a node has no stored record
-// of a NEIGHBOUR's coordinate (MODEL.md "the polar model"). A
-// second writer appearing later — the exact way sceneFileMu and entityFileMus were born in
-// the first place — would need to either reuse the existing path helper (in which case grep
-// for its call sites, not this test, is the tripwire) or hand-roll the filename again, which
-// this test catches directly.
+//: position.json has its ON-DISK NAME literal spelled out in exactly ONE place in
+// production (non-test) source — the single path-building function for that file
+// (FilePath). The sibling assertions for camera.json/overlays.json/sphere.json live in
+// nodes/Wiring/scenepaths/one_writer_per_file_test.go, since those three literals live
+// there. Every writer, loader and persister-arming call site in nodes/Wiring reaches the
+// file only through this package's FilePath; nothing else is allowed to spell the filename
+// itself.
 
 import (
 	"os"
@@ -25,7 +17,7 @@ import (
 )
 
 // countLiteralOccurrences counts how many non-test .go files in this package's directory
-// contain the exact literal (e.g. `"camera.json"`), and how many total occurrences there
+// contain the exact literal (e.g. `"position.json"`), and how many total occurrences there
 // are — a second definition of the same filename anywhere in production source pushes this
 // above 1.
 func countLiteralOccurrences(t *testing.T, literal string) int {
