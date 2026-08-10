@@ -45,9 +45,9 @@ func (a BuildArgs) ClaimSelfDrive() *PairNodeSelf {
 	// even though the kind's own SEPARATE clock (its own SpeedCh, polled in its Update
 	// loop) does. See PairNodeSelf.speedCh's own doc comment for the full defect this closes.
 	var self *PairNodeSelf
-	if a.pb.speedSinks != nil {
+	if a.pb.SpeedSinks != nil {
 		speedCh := make(chan float64, 1)
-		*a.pb.speedSinks = append(*a.pb.speedSinks, speedCh)
+		*a.pb.SpeedSinks = append(*a.pb.SpeedSinks, speedCh)
 		self = &PairNodeSelf{geom: ng, speedCh: speedCh}
 	} else {
 		self = &PairNodeSelf{geom: ng}

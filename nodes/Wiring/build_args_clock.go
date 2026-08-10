@@ -10,14 +10,14 @@ import (
 // Clock returns the loader's clock ORIGIN, or nil on a test build with no loader. The
 // owning goroutine Copy()s it exactly once at its own start — this hands over the origin,
 // not a per-goroutine clock.
-func (a BuildArgs) Clock() clock.Clock { return a.pb.clock }
+func (a BuildArgs) Clock() clock.Clock { return a.pb.Clock }
 
 // Tick returns a read of the loader clock's current tick, or nil when there is no clock.
 func (a BuildArgs) Tick() func() int64 {
-	if a.pb.clock == nil {
+	if a.pb.Clock == nil {
 		return nil
 	}
-	clk := a.pb.clock
+	clk := a.pb.Clock
 	return func() int64 { return clk.Tick() }
 }
 
@@ -27,10 +27,10 @@ func (a BuildArgs) Tick() func() int64 {
 // call allocates and registers another channel, and only the last one a node keeps would
 // ever be drained.
 func (a BuildArgs) SpeedCh() <-chan float64 {
-	if a.pb.speedSinks == nil {
+	if a.pb.SpeedSinks == nil {
 		return nil
 	}
 	speedCh := make(chan float64, 1)
-	*a.pb.speedSinks = append(*a.pb.speedSinks, speedCh)
+	*a.pb.SpeedSinks = append(*a.pb.SpeedSinks, speedCh)
 	return speedCh
 }

@@ -9,23 +9,24 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
 // In resolves an input port by its SPEC name. Paced when the loader bound a wire to it,
 // dead-end otherwise (same fallback reflectBuild's wireInPort applied).
 func (a BuildArgs) In(portName string) *wire.In {
-	return newInPort(portName, a.ctx, a.name, a.pb, a.tr, a.getStream)
+	return portwiring.NewInPort(portName, a.ctx, a.name, a.pb, a.tr, a.getStream)
 }
 
 // Out resolves a single output port by its SPEC name.
 func (a BuildArgs) Out(portName string) *wire.Out {
-	return newOutPort(portName, a.ctx, a.name, a.pb, a.tr, a.sourceOuts, a.getStream)
+	return portwiring.NewOutPort(portName, a.ctx, a.name, a.pb, a.tr, a.sourceOuts, a.getStream)
 }
 
 // Broadcast resolves a fan-out output port by its SPEC name.
 func (a BuildArgs) Broadcast(portName string) wire.Broadcast {
-	return newBroadcastPort(portName, a.ctx, a.name, a.pb, a.tr, a.sourceOuts, a.getStream)
+	return portwiring.NewBroadcastPort(portName, a.ctx, a.name, a.pb, a.tr, a.sourceOuts, a.getStream)
 }
 
 // DriveOut resolves an output port that will be DRIVEN by its own gatecommon.DriveHeld
@@ -64,6 +65,6 @@ func (a BuildArgs) DriveOut(portName string, slot int) DrivenOut {
 		}
 		a.driveSlotClaims[slot] = portName
 	}
-	out := newOutPort(portName, a.ctx, a.name, a.pb, a.tr, a.sourceOuts, newDriveStreamGetter(a.name, slot, a.pb))
+	out := portwiring.NewOutPort(portName, a.ctx, a.name, a.pb, a.tr, a.sourceOuts, portwiring.NewDriveStreamGetter(a.name, slot, a.pb))
 	return newDrivenOut(out)
 }

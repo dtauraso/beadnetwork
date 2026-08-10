@@ -50,10 +50,10 @@ func (a BuildArgs) TiltEditIn() <-chan movemsg.TiltEditMsg {
 // SendVectorLatestNonBlocking already treats a nil channel as a no-op send, the
 // same fallback shape as every other unwired-port case in this file.
 func (a BuildArgs) VectorOut() chan<- tiltvector.TiltVectorMsg {
-	if a.pb.vectorOut == nil {
+	if a.pb.VectorOut == nil {
 		return nil
 	}
-	return a.pb.vectorOut[a.name]
+	return a.pb.VectorOut[a.name]
 }
 
 // VectorIn returns this node's own RECEIVE end of its dedicated tilt-vector channel
@@ -61,8 +61,8 @@ func (a BuildArgs) VectorOut() chan<- tiltvector.TiltVectorMsg {
 // PollRecvVector(nil) always reports ok=false, matching every other unwired-port
 // fallback in this file.
 func (a BuildArgs) VectorIn() <-chan tiltvector.TiltVectorMsg {
-	if a.pb.vectorIn == nil {
+	if a.pb.VectorIn == nil {
 		return nil
 	}
-	return a.pb.vectorIn[a.name]
+	return a.pb.VectorIn[a.name]
 }

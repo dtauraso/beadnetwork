@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
@@ -28,26 +29,26 @@ func (b *buildCtx) buildNodes() error {
 	nodes := make([]wire.Node, 0, len(b.spec.Nodes))
 	for _, n := range b.spec.Nodes {
 		bind := Registry[n.Type]
-		pb := newPortBindings()
-		pb.outSink = outSink
-		pb.clock = b.clk // shared clock for clock-paced interior animation (Input refill slide)
+		pb := portwiring.NewPortBindings()
+		pb.OutSink = outSink
+		pb.Clock = b.clk // shared clock for clock-paced interior animation (Input refill slide)
 		// &b.speedSinks (not a fresh slice per node): every node's channels append
 		// onto the SAME build-wide accumulator, so LoadTopology's one returned
 		// list carries every clock-owning goroutine across the whole build.
-		pb.speedSinks = &b.speedSinks
-		// interiorOuts/driveOuts/buildInteriorFrame give injectClosures's interior-bead
+		pb.SpeedSinks = &b.speedSinks
+		// InteriorOuts/DriveOuts/BuildInteriorFrame give injectClosures's interior-bead
 		// Emit* closures access to this node's OWN dedicated interior fd (keyed by node
 		// id) + the injected frame builder — the SECOND emitting goroutine per node
 		// (memory/feedback_no_single_writer_bridge.md). These are POINTERS into b.md.sw's
-		// own fields (see PortBindings' doc comment for why): nil-checked before writing,
-		// and stay effectively nil (pointing at an empty/nil map) until SetNodeStreams
-		// runs (main.go, after LoadTopology returns).
-		pb.rt = b.md.RT
-		pb.interiorOuts = &b.md.sw.interiorOuts
-		pb.driveOuts = &b.md.sw.driveOuts
-		pb.buildInteriorFrame = &b.md.sw.buildInteriorFrame
-		pb.vectorOut = b.vectorOutByNode
-		pb.vectorIn = b.vectorInByNode
+		// own fields (see portwiring.PortBindings' doc comment for why): nil-checked before
+		// writing, and stay effectively nil (pointing at an empty/nil map) until
+		// SetNodeStreams runs (main.go, after LoadTopology returns).
+		pb.RT = b.md.RT
+		pb.InteriorOuts = &b.md.sw.interiorOuts
+		pb.DriveOuts = &b.md.sw.driveOuts
+		pb.BuildInteriorFrame = &b.md.sw.buildInteriorFrame
+		pb.VectorOut = b.vectorOutByNode
+		pb.VectorIn = b.vectorInByNode
 
 		for _, port := range bind.Ports {
 			switch port.Dir {

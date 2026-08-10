@@ -35,6 +35,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -128,7 +129,7 @@ func RegisterBuilder(kind string, ports []PortSpec, build func(BuildArgs) (wire.
 				ctx: ctx, name: name, data: data, pb: pb, tr: tr,
 				geom:            geom,
 				sourceOuts:      &sourceOuts,
-				getStream:       newInteriorStreamGetter(name, pb),
+				getStream:       portwiring.NewInteriorStreamGetter(name, pb),
 				driveSlotClaims: map[int]string{},
 				tiltThetaIdx:    tiltThetaIdx,
 			})
