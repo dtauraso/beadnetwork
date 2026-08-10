@@ -25,7 +25,32 @@ co-locates a file's reader and writer to stop schema drift. That rule governs wr
 ownership, not where a type lives. A schema in its own package that both sides import
 prevents drift better than proximity.
 
-## 2. Three `ForTest` hatches, unguarded
+## 2. Two subpackages still import `nodes/Wiring` — the invariant is not held
+
+```
+nodes/Wiring/stdinreader  → Wiring.MoveDispatch, ApplyEdit, HandleRawInputMsg, HandleSaveMsg
+nodes/Wiring/scenecamera  → Wiring.MoveDispatch
+```
+
+Both were created by this branch's lift work. The coupling was not removed, only relocated:
+these packages left the directory while keeping the back-reference, which is the exact defect
+the cycle work was supposed to remove.
+
+**This was reported as verified several times and it was not.** Every check ran
+`go list -deps` against the packages just moved, never across all of them, so two survivors
+were never in scope. The correct check is over every subpackage:
+
+```
+for p in $(go list ./nodes/Wiring/... | grep -v 'nodes/Wiring$'); do
+  go list -deps "$p" | grep -qx github.com/dtauraso/wirefold/nodes/Wiring && echo "IMPORTS WIRING: $p"
+done
+```
+
+**Fix, by the usual rule:** name what each reads. `stdinreader` takes a `*MoveDispatch` and
+calls three methods on it — pass those three as function values instead, and the import goes.
+`scenecamera` names the type only. Neither needs the hub to drive it.
+
+## 3. Three `ForTest` hatches, unguarded
 
 `Wiring.NewMoveDispatchForTest`, `Wiring.NewDrivenOutForTest`, `wire.NewOutChanForTest`.
 
@@ -35,13 +60,28 @@ unexported constructor WAS that enforcement. The public `ForTest` sibling lets a
 construct one over arbitrary geometry. Nothing in the guard suite checks that a `ForTest`
 symbol has no production caller.
 
-**Close by deleting, not guarding.** Each exists because a test in an external package cannot
-reach an unexported constructor — remove that reason. `NewMoveDispatchForTest` exists only
-because `stdinreader`'s test moved out of `Wiring`; move it back or give `stdinreader` a seam
-that does not need the whole graph. A guard is the fallback for a hatch that genuinely
-survives, recorded as a fallback.
+**Close by deleting, not guarding** — but the three differ, so check each rather than
+assuming one answer:
 
-## 3. `MoveDispatch` is still 88 methods across 20 files
+- `NewMoveDispatchForTest` has ONE caller, `stdinreader`'s external test. Moving that test
+  into `package Wiring` does NOT work: `stdinreader` imports `Wiring`, so a same-package
+  `Wiring` test importing `stdinreader` is a real cycle. The test file's own header says so.
+  **This hatch is blocked behind item 2** — fix `stdinreader`'s import first and it deletes.
+- `NewDrivenOutForTest` and `NewOutChanForTest` predate this branch. Their callers are tests
+  in `nodes/gatecommon`, `nodes/holdflip`, `nodes/pulse` — packages testing their OWN firing
+  rules, which cannot move into `Wiring`/`wire`. These are the intended seam, and
+  `driven_out.go`'s header documents that. **They stay**, and are the case where a guard is
+  the right fallback.
+
+The guard, once those two are the only survivors:
+`tools/network/structure/check-fortest-has-no-production-caller.sh`, failing when a `*ForTest`
+symbol is referenced from a non-`_test.go` file, empty allowlist. It must distinguish a
+definition from a reference or it is permanently red, and must not fire on doc comments.
+Confirm it passes for the right reason (print what it scanned, not just that it was silent),
+make it fail once on purpose and record the text, and confirm `stop-checks`' guard count rises
+by exactly one — its glob is `tools/*/check-*.sh tools/*/*/check-*.sh`.
+
+## 4. `MoveDispatch` is still 88 methods across 20 files
 
 Its state is already twelve named owners; the facade over them was never decomposed.
 Measured: **68 of 88 touch exactly one owner** and rehome mechanically (43 `ui`, 12 `mr`, 3
@@ -57,7 +97,7 @@ returning under a new name.
 `moverRegistry` is not a target. It owns `nodeMover`/`edgeMover`/`nodeGeometry`, the actors
 MODEL.md pins, and whatever remains of `MoveDispatch` stays with it.
 
-## 4. `buildCtx` is a 26-field shared mutable blackboard
+## 5. `buildCtx` is a 26-field shared mutable blackboard
 
 11 build phases read and write it; no signature says what any phase reads or produces. Same
 defect as `pb.md` and `currentBuildMD` — reaching for state instead of being handed it — and
@@ -69,7 +109,7 @@ are an open set of independent things; the phases are a closed ordered sequence,
 registering them would need priority numbers or a dependency DAG — more machinery for eleven
 known steps.
 
-## 5. ~3½ build phases recompute what the movers already derive
+## 6. ~3½ build phases recompute what the movers already derive
 
 One coordinate system: MODEL.md — *"a centre is a sum of polar vectors from ONE centre… every
 node hangs off the scene centre directly, one hop."* `nodegeom.EdgeStepCount` is called from
@@ -80,7 +120,7 @@ node hangs off the scene centre directly, one hop."* `nodegeom.EdgeStepCount` is
 The structural phases are genuinely one-time (you cannot bind a channel that does not exist).
 The derived-geometry ones need not exist: if a node derives its geometry from its position and
 the scene sphere, as it already does at runtime, construction is the first update and those
-phases delete rather than move. Worth more than item 4, and item 4 does not block it.
+phases delete rather than move. Worth more than item 5, and item 5 does not block it.
 
 ---
 
@@ -109,7 +149,9 @@ locally true statements that did not reach the conclusion drawn from them.
 - No interfaces, no `types`/`common` package, no alias shims, no dot-imports, no new
   package-level actor globals, no new `ForTest` hatches. All of these make the compiler stop
   complaining while leaving the coupling in the design.
-- No package under `nodes/Wiring/` may import `nodes/Wiring`. Verify with `go list -deps`.
+- No package under `nodes/Wiring/` may import `nodes/Wiring`. Verify across EVERY subpackage,
+  not just the one being moved — scoping this check to the current change is how item 2's two
+  violations survived while the invariant was repeatedly reported as held.
 - No behaviour change: ownership, goroutine structure, channel wiring and timing are fixed.
 - **The tests cannot prove no-behaviour-change.** `docs/process/testing-shape.md` forbids
   cross-goroutine tests, so nothing asserts the movers still coordinate. Drive the editor.
