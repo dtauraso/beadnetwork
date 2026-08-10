@@ -5,7 +5,7 @@
 // nothing. The strip's rendering lives in SceneTabs.tsx; keeping the two apart is what
 // makes "this file only reflects" checkable per-file rather than per-function.
 //
-// Everything about a tab is GO-OWNED (nodes/Wiring/scene_tabs.go): the list, the labels,
+// Everything about a tab is GO-OWNED (nodes/Wiring/scene/scene_tabs.go): the list, the labels,
 // which one is selected, what each one loads, and how the switch is performed. This file
 // reflects the strip off the VIEW frame and forwards a click as ONE addressed edit
 // (edit-update kind="scene" attr="selected", carrying the tab INDEX — no name, no path).

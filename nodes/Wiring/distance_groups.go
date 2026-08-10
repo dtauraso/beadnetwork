@@ -19,7 +19,11 @@
 // no new position/commit path.
 package Wiring
 
-import "time"
+import (
+	"time"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
+)
 
 // distancePair is one (source, target) bead-edge pair; TARGET is the node that moves.
 type distancePair struct {
@@ -47,13 +51,13 @@ var distanceGroups = map[string][]distancePair{
 // "no groups", which is the safe direction: a scene that should have them shows them one
 // frame later, whereas the reverse would flash the ring's lengths into another scene's tab.
 func (md *MoveDispatch) ResolveSceneDistanceGroups(scenePath string) {
-	md.ui.hasDistanceGroups = SceneHasDistanceGroups(scenePath)
+	md.ui.hasDistanceGroups = scene.SceneHasDistanceGroups(scenePath)
 	// Resolved from the same path at the same moment, for the same reason: both are facts
 	// about the tree being loaded, and both ride the VIEW frame. Until this runs the scene
 	// reads as NOT editable, which is the safe direction — a palette that appears a frame
 	// late costs nothing, one that appears in a scene that cannot take it invites a delete.
-	md.ui.sceneEditable = SceneIsEditable(scenePath)
-	md.ui.sceneKinds = SceneKindMask(scenePath)
+	md.ui.sceneEditable = scene.SceneIsEditable(scenePath)
+	md.ui.sceneKinds = scene.SceneKindMask(scenePath)
 }
 
 // distanceGroupMax computes a group's CURRENT max pair length (max over the group's

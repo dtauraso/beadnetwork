@@ -16,6 +16,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 )
 
@@ -23,7 +24,7 @@ import (
 // user's speed by whatever the SceneTabs table currently holds, across the fractional table
 // the six-value slider actually sends (0, 0.25, 0.5, 0.75, 1, 2) plus 0 itself.
 func TestEffectiveClockSpeedRingAndPair(t *testing.T) {
-	pairDivisor := SceneClockDivisor(filepath.Join("/anywhere", "topology-pair"))
+	pairDivisor := scene.SceneClockDivisor(filepath.Join("/anywhere", "topology-pair"))
 	cases := []float64{0, 0.25, 0.5, 0.75, 1, 2}
 	for _, userSpeed := range cases {
 		if got := EffectiveClockSpeed(userSpeed, 1); got != userSpeed {
@@ -51,11 +52,11 @@ func TestEffectiveClockSpeedGuardsInvalidDivisor(t *testing.T) {
 // must hold is the relationship (and that the value can never be one a division would choke
 // on, which is the case the guard above covers from the other side).
 func TestSceneClockDivisorKnownScenes(t *testing.T) {
-	ring := SceneClockDivisor(filepath.Join("/anywhere", "topology"))
+	ring := scene.SceneClockDivisor(filepath.Join("/anywhere", "topology"))
 	if ring != 1 {
 		t.Fatalf("ring SceneClockDivisor = %v, want 1 (the ring is the unscaled reference)", ring)
 	}
-	pair := SceneClockDivisor(filepath.Join("/anywhere", "topology-pair"))
+	pair := scene.SceneClockDivisor(filepath.Join("/anywhere", "topology-pair"))
 	if pair <= ring {
 		t.Fatalf("pair SceneClockDivisor = %v, want > the ring's %v — the pair scene is smaller and must run slower at the same slider setting", pair, ring)
 	}
@@ -65,7 +66,7 @@ func TestSceneClockDivisorKnownScenes(t *testing.T) {
 // a one-off path) resolves to divisor 1, never 0 — a 0 divisor reaching EffectiveClockSpeed
 // would be a latent division-by-zero even though the guard above also catches it.
 func TestSceneClockDivisorUnknownSceneIsOne(t *testing.T) {
-	got := SceneClockDivisor(filepath.Join("/anywhere", "some-one-off-fixture"))
+	got := scene.SceneClockDivisor(filepath.Join("/anywhere", "some-one-off-fixture"))
 	if got != 1 {
 		t.Fatalf("unknown scene SceneClockDivisor = %v, want 1", got)
 	}

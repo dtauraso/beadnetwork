@@ -89,7 +89,7 @@ type EditMsg =
   // index. No direction, like reset.
   | { type: "edit"; op: "update"; kind: "tiltVector"; attr: "start"; row: number }
   // scene — a click on the scene tab strip. tab is the tab's WIRE INDEX into Go's own
-  // SceneTabs (nodes/Wiring/scene_tabs.go); no scene name or directory crosses the wire.
+  // SceneTabs (nodes/Wiring/scene/scene_tabs.go); no scene name or directory crosses the wire.
   // Go owns the tab list, the labels it streams on the VIEW frame, the selection, and the
   // switch itself (persist + end the run, which the host's looping runner respawns).
   | { type: "edit"; op: "update"; kind: "scene"; attr: "selected"; tab: number }

@@ -16,14 +16,14 @@ import (
 	"path/filepath"
 	"testing"
 
-	W "github.com/dtauraso/wirefold/nodes/Wiring"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 )
 
 // sceneRootFor resolves a tab's committed tree from the repo root. It mirrors
 // ResolveScenePath's own rule (a tab Dir is a SIBLING of the anchor) without calling it,
 // since ResolveScenePath answers "which one is selected" and this test asks about all of
 // them regardless of selection.
-func sceneRootFor(repoRoot string, tab W.SceneTab) string {
+func sceneRootFor(repoRoot string, tab scene.SceneTab) string {
 	return filepath.Join(repoRoot, tab.Dir)
 }
 
@@ -35,7 +35,7 @@ func TestEverySceneTabCountsMatchItsTree(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Getwd: %v", err)
 	}
-	for _, tab := range W.SceneTabs {
+	for _, tab := range scene.SceneTabs {
 		root := sceneRootFor(repoRoot, tab)
 		stored := topologyCounts(t, root)
 		wantNodes := len(nodeRowLabels(t, root))
@@ -61,16 +61,16 @@ func TestNoSceneTabExceedsTheAnchorsCounts(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Getwd: %v", err)
 	}
-	anchor := topologyCounts(t, sceneRootFor(repoRoot, W.SceneTabs[0]))
-	for _, tab := range W.SceneTabs[1:] {
-		scene := topologyCounts(t, sceneRootFor(repoRoot, tab))
-		if scene.Nodes > anchor.Nodes || scene.Edges > anchor.Edges {
+	anchor := topologyCounts(t, sceneRootFor(repoRoot, scene.SceneTabs[0]))
+	for _, tab := range scene.SceneTabs[1:] {
+		sceneCounts := topologyCounts(t, sceneRootFor(repoRoot, tab))
+		if sceneCounts.Nodes > anchor.Nodes || sceneCounts.Edges > anchor.Edges {
 			t.Fatalf("scene %q (%s) needs {nodes:%d edges:%d} but the ANCHOR %q allocates only "+
 				"{nodes:%d edges:%d}; the extension host sizes its stdio array from the anchor's "+
 				"counts.json alone, so this scene's extra streams would land on unallocated fds "+
 				"and its geometry would silently not draw. Raise the anchor's counts.json, or "+
 				"shrink this scene",
-				tab.Name, tab.Dir, scene.Nodes, scene.Edges, W.SceneTabs[0].Dir, anchor.Nodes, anchor.Edges)
+				tab.Name, tab.Dir, sceneCounts.Nodes, sceneCounts.Edges, scene.SceneTabs[0].Dir, anchor.Nodes, anchor.Edges)
 		}
 	}
 }

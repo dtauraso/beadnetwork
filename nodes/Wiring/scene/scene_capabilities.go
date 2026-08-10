@@ -1,9 +1,9 @@
 // scene_capabilities.go — per-scene CAPABILITY queries: what the tree actually being LOADED
 // declares about itself (SceneTab's bool/numeric fields, plus its accepted kind mask), keyed
 // by the loaded scene's own directory name rather than the anchor. The tab registry lives in
-// scene_tabs.go; the switch lives in scene_switch.go; anchor/selection resolution lives in
-// scene_selection.go.
-package Wiring
+// scene_tabs.go; the switch lives in Wiring's scene_switch.go (a MoveDispatch method cannot
+// live in this package); anchor/selection resolution lives in scene_selection.go.
+package scene
 
 import (
 	"path/filepath"

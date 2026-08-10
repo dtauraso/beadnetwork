@@ -35,7 +35,7 @@ type buildCtx struct {
 	sphere   geom.SceneSphere
 	hasScene bool
 	// scenePath is the tree being loaded — carried so the build can ask which DRAG this
-	// scene uses (scene_tabs.go's SceneUsesQuantizedDrag). It is the loaded scene's own
+	// scene uses (scene/scene_capabilities.go's SceneUsesQuantizedDrag). It is the loaded scene's own
 	// path, never the anchor: the loader knows which tree it is opening, not which tab
 	// pointed it there. "" (test call sites that build a spec directly) reads as unknown,
 	// which SceneUsesQuantizedDrag answers with the quantized drag every scene had before

@@ -1,9 +1,10 @@
 // scene_selection.go — ANCHOR/PATH RESOLUTION for the scene tabs: which anchor is tabbed,
 // which tab is currently selected, and the directory that selection maps to. The tab
 // REGISTRY itself (SceneTab, SceneTabs) lives in scene_tabs.go; the switch (the two
-// *MoveDispatch methods that perform it) lives in scene_switch.go; the per-scene capability
-// queries derived from a resolved scene path live in scene_capabilities.go.
-package Wiring
+// *MoveDispatch methods that perform it) lives in Wiring's scene_switch.go (a MoveDispatch
+// method cannot live in this package); the per-scene capability queries derived from a
+// resolved scene path live in scene_capabilities.go.
+package scene
 
 import (
 	"encoding/json"
@@ -13,8 +14,8 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 )
 
-// sceneSelectionFile is the persisted selection, held at the ANCHOR (never inside a scene).
-type sceneSelectionFile struct {
+// SceneSelectionFile is the persisted selection, held at the ANCHOR (never inside a scene).
+type SceneSelectionFile struct {
 	Selected string `json:"selected"`
 }
 
@@ -38,7 +39,7 @@ func SelectedSceneIndex(anchorPath string) int {
 	if err != nil {
 		return 0
 	}
-	var f sceneSelectionFile
+	var f SceneSelectionFile
 	if json.Unmarshal(b, &f) != nil {
 		return 0
 	}

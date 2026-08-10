@@ -10,6 +10,7 @@ import (
 	SF "github.com/dtauraso/wirefold/Buffer/streamframe"
 	T "github.com/dtauraso/wirefold/Trace"
 	W "github.com/dtauraso/wirefold/nodes/Wiring"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 )
 
 // RunTopology loads and runs the topology under ctx, blocking until ctx is
@@ -44,13 +45,13 @@ func RunTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 	// emits its geometry once at startup (below, after this function's node-goroutine
 	// launch loop); see the row-seeding comment there for why the buffer's row tables do
 	// not depend on that emit order.
-	// SCENE TABS (nodes/Wiring/scene_tabs.go). topologyPath is the ANCHOR — the fixed path
+	// SCENE TABS (nodes/Wiring/scene/scene_tabs.go). topologyPath is the ANCHOR — the fixed path
 	// the extension host launched against; the scene actually LOADED is the selected tab's
 	// sibling directory. An untabbed anchor (any tree that is not the tab-0 directory —
 	// every test fixture, every one-off run) resolves to itself and streams an empty strip.
-	sceneTabNames := W.SceneTabNames(topologyPath)
-	sceneTabSelected := W.SelectedSceneIndex(topologyPath)
-	scenePath := W.ResolveScenePath(topologyPath)
+	sceneTabNames := scene.SceneTabNames(topologyPath)
+	sceneTabSelected := scene.SelectedSceneIndex(topologyPath)
+	scenePath := scene.ResolveScenePath(topologyPath)
 	nodes, slotReg, md, speedSinks, err := W.LoadTopology(ctx, scenePath, tr, clk)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "load topology: %v\n", err)

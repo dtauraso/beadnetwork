@@ -51,7 +51,7 @@ func wireViewStream(md *W.MoveDispatch, viewFile *os.File, viewStreamWired bool,
 					sceneCX, sceneCY, sceneCZ, sceneRadius,
 					// The tab strip is CONSTANT for this process's lifetime: the list is
 					// Go's own registry and the selection is what this run was loaded
-					// with (switching tabs ends the run — scene_tabs.go's SelectScene),
+					// with (switching tabs ends the run — scene_switch.go's SelectScene),
 					// so it is captured here rather than threaded through MoveDispatch's
 					// view-frame signature as if it were live state.
 					sceneTabNames, uint16(sceneTabSelected),

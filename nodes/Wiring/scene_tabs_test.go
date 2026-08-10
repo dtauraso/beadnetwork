@@ -11,6 +11,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
+
 	T "github.com/dtauraso/wirefold/Trace"
 )
 
@@ -18,7 +20,7 @@ import (
 // an anchor tabbed at all (AnchorIsTabbed).
 func tabbedAnchor(t *testing.T) string {
 	t.Helper()
-	anchor := filepath.Join(t.TempDir(), SceneTabs[0].Dir)
+	anchor := filepath.Join(t.TempDir(), scene.SceneTabs[0].Dir)
 	if err := os.MkdirAll(anchor, 0o755); err != nil {
 		t.Fatalf("mkdir anchor: %v", err)
 	}
@@ -45,7 +47,7 @@ func TestSelectSceneWritesTheSelectionAndEndsTheRun(t *testing.T) {
 		t.Fatalf("SelectScene(1) did not end the run; without that the respawn never happens and the tab never changes")
 	}
 	// Read the selection back the way a fresh process would — not by inspecting a field.
-	if got := SelectedSceneIndex(anchor); got != 1 {
+	if got := scene.SelectedSceneIndex(anchor); got != 1 {
 		t.Fatalf("after SelectScene(1), a fresh read of the persisted selection = %d, want 1", got)
 	}
 	// And the bytes name the TAB, not its index (see writeSelectedScene's doc comment).
@@ -53,7 +55,7 @@ func TestSelectSceneWritesTheSelectionAndEndsTheRun(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read scene.json: %v", err)
 	}
-	if want := `{"selected":"` + SceneTabs[1].Name + `"}`; string(raw) != want {
+	if want := `{"selected":"` + scene.SceneTabs[1].Name + `"}`; string(raw) != want {
 		t.Fatalf("scene.json = %s, want %s", raw, want)
 	}
 }
@@ -76,7 +78,7 @@ func TestSelectSceneRejectsAnOutOfRangeTab(t *testing.T) {
 	anchor := tabbedAnchor(t)
 	md, quit := armedDispatch(t, anchor)
 
-	md.SelectScene(len(SceneTabs)) // one past the end
+	md.SelectScene(len(scene.SceneTabs)) // one past the end
 	md.SelectScene(-1)
 
 	if *quit {
@@ -103,7 +105,7 @@ func TestSelectedSceneIndexFallsBackToTabZero(t *testing.T) {
 		if err := os.WriteFile(filepath.Join(viewDir, "scene.json"), []byte(tc.body), 0o644); err != nil {
 			t.Fatalf("write scene.json: %v", err)
 		}
-		if got := SelectedSceneIndex(anchor); got != 0 {
+		if got := scene.SelectedSceneIndex(anchor); got != 0 {
 			t.Fatalf("%s scene.json: SelectedSceneIndex = %d, want 0 — an unreadable selection must load the default scene, not fail to start", tc.name, got)
 		}
 	}
@@ -117,13 +119,13 @@ func TestUntabbedAnchorLoadsItselfAndHasNoTabs(t *testing.T) {
 	if err := os.MkdirAll(anchor, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
-	if AnchorIsTabbed(anchor) {
-		t.Fatalf("AnchorIsTabbed(%q) = true; only a tree named %q is the tabbed anchor", anchor, SceneTabs[0].Dir)
+	if scene.AnchorIsTabbed(anchor) {
+		t.Fatalf("AnchorIsTabbed(%q) = true; only a tree named %q is the tabbed anchor", anchor, scene.SceneTabs[0].Dir)
 	}
-	if got := ResolveScenePath(anchor); got != anchor {
+	if got := scene.ResolveScenePath(anchor); got != anchor {
 		t.Fatalf("ResolveScenePath(%q) = %q, want the anchor itself", anchor, got)
 	}
-	if got := SceneTabNames(anchor); len(got) != 0 {
+	if got := scene.SceneTabNames(anchor); len(got) != 0 {
 		t.Fatalf("SceneTabNames(%q) = %v, want none", anchor, got)
 	}
 }
@@ -134,16 +136,16 @@ func TestResolveScenePathPicksTheSelectedSibling(t *testing.T) {
 	anchor := tabbedAnchor(t)
 	parent := filepath.Dir(anchor)
 
-	if got, want := ResolveScenePath(anchor), anchor; got != want {
+	if got, want := scene.ResolveScenePath(anchor), anchor; got != want {
 		t.Fatalf("with no selection, ResolveScenePath = %q, want the anchor %q", got, want)
 	}
 	if err := writeSelectedScene(anchor, 1); err != nil {
 		t.Fatalf("writeSelectedScene: %v", err)
 	}
-	if got, want := ResolveScenePath(anchor), filepath.Join(parent, SceneTabs[1].Dir); got != want {
+	if got, want := scene.ResolveScenePath(anchor), filepath.Join(parent, scene.SceneTabs[1].Dir); got != want {
 		t.Fatalf("ResolveScenePath = %q, want %q", got, want)
 	}
-	if got, want := len(SceneTabNames(anchor)), len(SceneTabs); got != want {
+	if got, want := len(scene.SceneTabNames(anchor)), len(scene.SceneTabs); got != want {
 		t.Fatalf("SceneTabNames returned %d labels, want %d — the strip must show every tab, not only the selected one", got, want)
 	}
 }

@@ -1,6 +1,6 @@
 // scene_switch.go — the two *MoveDispatch methods that PERFORM a tab switch: arming it
 // (EnableSceneSwitch) and carrying out a click (SelectScene). The tab registry lives in
-// scene_tabs.go; anchor/path resolution against the persisted selection lives in
+// scene/scene_tabs.go; anchor/path resolution against the persisted selection lives in
 // scene_selection.go.
 package Wiring
 
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 )
 
@@ -27,10 +28,10 @@ func (md *MoveDispatch) SelectScene(idx int) {
 	if md.Scenes.AnchorPath == "" || md.Scenes.Quit == nil {
 		return
 	}
-	if idx < 0 || idx >= len(SceneTabs) {
+	if idx < 0 || idx >= len(scene.SceneTabs) {
 		return
 	}
-	if idx == SelectedSceneIndex(md.Scenes.AnchorPath) {
+	if idx == scene.SelectedSceneIndex(md.Scenes.AnchorPath) {
 		return
 	}
 	if err := writeSelectedScene(md.Scenes.AnchorPath, idx); err != nil {

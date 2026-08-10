@@ -1,7 +1,7 @@
 // SceneTabs.tsx — the scene tab strip: which diagram is showing, and a click to show
 // another one.
 //
-// Everything about a tab is GO-OWNED (nodes/Wiring/scene_tabs.go): the list, the labels,
+// Everything about a tab is GO-OWNED (nodes/Wiring/scene/scene_tabs.go): the list, the labels,
 // which one is selected, what each one loads, and how the switch is performed. This file
 // forwards a click as ONE addressed edit (edit-update kind="scene" attr="selected",
 // carrying the tab INDEX — no name, no path) and renders what scene-tabs.ts reflects. Same

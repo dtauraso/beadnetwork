@@ -57,7 +57,7 @@ func BuildViewStreamFrame(tick uint32,
 //
 //	[count:u16][selected:u16] then count × ( [nameLen:u16][name bytes] )
 //
-// A zero count (an untabbed anchor — see nodes/Wiring/scene_tabs.go's AnchorIsTabbed) still
+// A zero count (an untabbed anchor — see nodes/Wiring/scene/scene_selection.go's AnchorIsTabbed) still
 // writes the two header fields, so the section's own width is never zero and the decoder
 // never has to special-case "is there a tabs section at all". Names are the labels Go owns;
 // TS renders them and never invents one.

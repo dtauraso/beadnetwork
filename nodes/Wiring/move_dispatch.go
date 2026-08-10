@@ -81,7 +81,7 @@ type MoveDispatch struct {
 	// gesture.go) are unchanged.
 	lq layoutQuantizer
 	// Scenes owns tab switching: the anchor to persist the selection against, and the
-	// quit func whose call the extension host's looping respawn follows (scene_tabs.go).
+	// quit func whose call the extension host's looping respawn follows (scene_switch.go).
 	// Zero until EnableSceneSwitch arms it, so a bare test-constructed MoveDispatch can
 	// never end a process. Exported: external callers reach it directly.
 	Scenes sceneswitch.SceneSwitch

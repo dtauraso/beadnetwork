@@ -9,12 +9,13 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
 func TestSceneDragModeIsPerScene(t *testing.T) {
-	for _, tab := range SceneTabs {
-		got := SceneUsesQuantizedDrag(filepath.Join("/somewhere", tab.Dir))
+	for _, tab := range scene.SceneTabs {
+		got := scene.SceneUsesQuantizedDrag(filepath.Join("/somewhere", tab.Dir))
 		if got != tab.QuantizedDrag {
 			t.Fatalf("scene %q: SceneUsesQuantizedDrag = %v, want %v (the tab's own QuantizedDrag)", tab.Name, got, tab.QuantizedDrag)
 		}
@@ -25,7 +26,7 @@ func TestSceneDragModeIsPerScene(t *testing.T) {
 // than only against the table it is read from — a table-only check passes just as happily
 // when someone flips the field.
 func TestPairSceneDragsContinuously(t *testing.T) {
-	if SceneUsesQuantizedDrag("topology-pair") {
+	if scene.SceneUsesQuantizedDrag("topology-pair") {
 		t.Fatalf("the pair scene must drag CONTINUOUSLY: its nodes sit ~40 world units apart while " +
 			"one quantized step is wire.BeadStepR, so a step moves the node a large fraction of the " +
 			"whole scene and the node cannot be positioned at all")
@@ -37,8 +38,8 @@ func TestPairSceneDragsContinuously(t *testing.T) {
 // continuous drag rather than getting it by being unrecognised.
 func TestUnknownSceneKeepsTheQuantizedDrag(t *testing.T) {
 	for _, p := range []string{"", "/tmp/some-fixture", "/tmp/topology-pair-copy"} {
-		if !SceneUsesQuantizedDrag(p) {
-			t.Fatalf("SceneUsesQuantizedDrag(%q) = false; an unrecognised tree must keep the quantized drag", p)
+		if !scene.SceneUsesQuantizedDrag(p) {
+			t.Fatalf("scene.SceneUsesQuantizedDrag(%q) = false; an unrecognised tree must keep the quantized drag", p)
 		}
 	}
 }
@@ -54,7 +55,7 @@ func TestPairSeparationIsSmallAgainstOneQuantizedStep(t *testing.T) {
 	}
 	// Otherwise the step is a large fraction of the scene — exactly the case the continuous
 	// drag exists for, so the pair must not be on the quantized one.
-	if SceneUsesQuantizedDrag("topology-pair") {
+	if scene.SceneUsesQuantizedDrag("topology-pair") {
 		t.Fatalf("one quantized step (%.2f) is more than a tenth of the pair's whole extent (%.1f), "+
 			"yet the pair is on the quantized drag", wire.BeadStepR, pairSeparation)
 	}
@@ -67,7 +68,7 @@ func TestPairSeparationIsSmallAgainstOneQuantizedStep(t *testing.T) {
 // point went. The bead count then fills whatever line that leaves, which edgeStepCount
 // already derives from the live centre-to-centre distance.
 func TestRingSceneDragsContinuously(t *testing.T) {
-	if SceneUsesQuantizedDrag("topology") {
+	if scene.SceneUsesQuantizedDrag("topology") {
 		t.Fatalf("the ring scene must drag CONTINUOUSLY: under the quantized drag a node's new " +
 			"centre came from the bead operation along the chain axis, so the drag target only " +
 			"nominated a direction rather than saying where the node went")
@@ -78,7 +79,7 @@ func TestRingSceneDragsContinuously(t *testing.T) {
 // it SHOULD stay that way — it is a tripwire, so that whoever adds a scene using it, or
 // deletes the path outright, has to come here and say which they meant.
 func TestNoCommittedSceneUsesTheQuantizedDrag(t *testing.T) {
-	for _, tab := range SceneTabs {
+	for _, tab := range scene.SceneTabs {
 		if tab.QuantizedDrag {
 			t.Fatalf("scene %q is on the quantized drag; if that is deliberate, update this test "+
 				"and SceneTab.QuantizedDrag's doc comment, which currently records that no "+

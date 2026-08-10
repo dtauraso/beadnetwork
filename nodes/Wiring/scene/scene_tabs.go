@@ -15,6 +15,10 @@
 // selects) is what makes the selection readable before any scene has been chosen — a
 // selection stored inside scene B would be unreachable while scene A is loaded.
 //
+// This package holds the pure tab data and path resolution; the switch itself (the two
+// *MoveDispatch methods, EnableSceneSwitch/SelectScene) lives in package Wiring's
+// scene_switch.go, since a method on another package's type cannot live here.
+//
 // HOW THE SWITCH HAPPENS — no in-process teardown, and no new TS restart path. SelectScene
 // persists the new selection and asks the process to end. runCommand.ts's runner is already
 // LOOPING (runCommand.ts sets looping = true on every successful run), so a natural exit is
@@ -22,7 +26,7 @@
 // selection and loads the other scene. Killing live node goroutines and their in-flight
 // beads mid-traversal — an in-process rebuild — buys nothing over the respawn that the .go
 // file watcher already performs on every Go edit.
-package Wiring
+package scene
 
 // SceneTab is one tab: the label Go streams to the strip, and the directory it loads.
 // Dir is resolved relative to the ANCHOR'S PARENT, so the scenes are sibling topology

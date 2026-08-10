@@ -5,7 +5,11 @@
 
 package Wiring
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
+)
 
 // buildMoveDispatch builds the MoveDispatch from initial geometry and edge
 // endpoints. It creates one nodeMover per node and one edgeMover per edge; each
@@ -52,17 +56,17 @@ func (b *buildCtx) buildMoveDispatch() error {
 	// was the "concurrent map read and map write" fatal fixed by node6-drag-decentralized.md's
 	// per-node ownership). A node missing an entry in b.quantizedOffsets keeps its
 	// nodeMover's zero-value quantOffset, matching the old map's zero-value-on-miss read.
-	// PER SCENE, not always-on (scene_tabs.go's QuantizedDrag): a bead-distance step is
+	// PER SCENE, not always-on (scene/scene_tabs.go's QuantizedDrag): a bead-distance step is
 	// invisible in a scene that is large against it and dominant in one that is not.
-	md.lq.quantizedLayout = SceneUsesQuantizedDrag(b.scenePath)
-	// Per scene as well (scene_tabs.go's CoplanarEdges): each node's own copy, set here on
+	md.lq.quantizedLayout = scene.SceneUsesQuantizedDrag(b.scenePath)
+	// Per scene as well (scene/scene_tabs.go's CoplanarEdges): each node's own copy, set here on
 	// the single-threaded build path, read afterwards only by that node's own goroutine.
-	if SceneWantsCoplanarEdges(b.scenePath) {
+	if scene.SceneWantsCoplanarEdges(b.scenePath) {
 		for _, nm := range md.mr.nodeGeoms {
 			nm.flags.coplanarEdges = true
 		}
 	}
-	if SceneWantsUpAxis(b.scenePath) {
+	if scene.SceneWantsUpAxis(b.scenePath) {
 		for _, nm := range md.mr.nodeGeoms {
 			nm.flags.upAxis = true
 		}

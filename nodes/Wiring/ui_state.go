@@ -41,7 +41,7 @@ type uiState struct {
 	// the content-fit) at startup; its Center is the one cartesian anchor. Phase 1 stores
 	// it; later phases derive node world from it and move it on pan.
 	sceneSphere geom.SceneSphere
-	// clockDivisor is this SCENE's ClockDivisor (SceneTab.ClockDivisor, scene_tabs.go),
+	// clockDivisor is this SCENE's ClockDivisor (SceneTab.ClockDivisor, scene/scene_tabs.go),
 	// resolved ONCE at load by LoadSpeed from the scene actually loaded (the process is
 	// respawned per tab switch, so a per-process value is correct). Defaults to 1 (no
 	// scaling) so a bare test-constructed MoveDispatch that never calls LoadSpeed behaves
@@ -50,7 +50,7 @@ type uiState struct {
 	// seed can never disagree. Never persisted and never crosses the bridge.
 	clockDivisor float64
 	// hasDistanceGroups is this SCENE's DistanceGroups flag (SceneTab.DistanceGroups,
-	// scene_tabs.go), resolved ONCE at load from the scene actually loaded — same
+	// scene/scene_tabs.go), resolved ONCE at load from the scene actually loaded — same
 	// per-process shape as clockDivisor above, and correct for the same reason (a tab switch
 	// respawns the process). Defaults to FALSE: a bare test-constructed MoveDispatch, and
 	// any tree that is not a known scene, must not read the ring's node ids against its own

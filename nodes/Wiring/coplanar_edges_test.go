@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 )
 
 // The whole point: a node's ring PLANE must contain the edge leaving it, so the chain, the
@@ -64,13 +65,13 @@ func TestCoincidentCentresAreNotResolvable(t *testing.T) {
 // Per scene, like the drag: the pair asks for coplanar edges, the ring does not, and an
 // unknown tree keeps the plain inward pole.
 func TestCoplanarEdgesIsPerScene(t *testing.T) {
-	if !SceneWantsCoplanarEdges("topology-pair") {
+	if !scene.SceneWantsCoplanarEdges("topology-pair") {
 		t.Fatal("the pair scene must ask for coplanar edges")
 	}
-	if SceneWantsCoplanarEdges("topology") {
+	if scene.SceneWantsCoplanarEdges("topology") {
 		t.Fatal("the ring scene must keep the plain inward pole")
 	}
-	if SceneWantsCoplanarEdges("/tmp/some-fixture") {
+	if scene.SceneWantsCoplanarEdges("/tmp/some-fixture") {
 		t.Fatal("an unknown tree must keep the plain inward pole")
 	}
 }

@@ -19,6 +19,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -62,13 +63,13 @@ func TestRingResolvesItsDistanceGroups(t *testing.T) {
 func TestPairSceneIsDeniedTheGroups(t *testing.T) {
 	root := repoRootForDistanceGroupsTest(t)
 	pair := filepath.Join(root, "topology-pair")
-	if SceneHasDistanceGroups(pair) {
-		t.Fatal("SceneHasDistanceGroups(topology-pair) = true, want false — the ring's groups are not the pair's")
+	if scene.SceneHasDistanceGroups(pair) {
+		t.Fatal("scene.SceneHasDistanceGroups(topology-pair) = true, want false — the ring's groups are not the pair's")
 	}
-	if !SceneHasDistanceGroups(filepath.Join(root, "topology")) {
-		t.Fatal("SceneHasDistanceGroups(topology) = false, want true — the ring owns these groups")
+	if !scene.SceneHasDistanceGroups(filepath.Join(root, "topology")) {
+		t.Fatal("scene.SceneHasDistanceGroups(topology) = false, want true — the ring owns these groups")
 	}
-	if SceneHasDistanceGroups(filepath.Join(root, "no-such-scene")) {
+	if scene.SceneHasDistanceGroups(filepath.Join(root, "no-such-scene")) {
 		t.Fatal("an unknown tree claimed the ring's distance groups, want false")
 	}
 	for _, id := range []string{"1", "2"} {

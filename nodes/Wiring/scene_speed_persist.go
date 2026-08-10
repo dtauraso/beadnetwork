@@ -27,6 +27,7 @@ import (
 	"encoding/json"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
@@ -60,7 +61,7 @@ const HumanEditSpeed = 1.0
 // EffectiveClockSpeed is the ONE place userSpeed (the slider's number, unscaled, the same
 // value persisted to view/speed.json) is turned into the rate actually broadcast to the
 // clocks: userSpeed / scene's ClockDivisor (SceneTab.ClockDivisor / SceneClockDivisor,
-// scene_tabs.go). Both broadcast sites — the live slider edit (clockAttrHandlers's "speed"
+// scene/scene_tabs.go). Both broadcast sites — the live slider edit (clockAttrHandlers's "speed"
 // case) and the load-time seed (LoadSpeed) — call this so they can never disagree.
 //
 // divisor is guarded against 0/negative (SceneClockDivisor should never return one, but a
@@ -154,7 +155,7 @@ func (md *MoveDispatch) SliderSpeed() float64 {
 
 func (md *MoveDispatch) LoadSpeed(topologyPath string, speedSinks []chan float64, tr *T.Trace) {
 	speed, _ := loadSceneSpeed(scenepaths.SpeedFilePath(topologyPath))
-	md.ui.clockDivisor = SceneClockDivisor(topologyPath)
+	md.ui.clockDivisor = scene.SceneClockDivisor(topologyPath)
 	md.ui.speed = speed
 	effective := EffectiveClockSpeed(speed, md.ui.clockDivisor)
 	for _, ch := range speedSinks {

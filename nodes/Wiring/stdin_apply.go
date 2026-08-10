@@ -115,7 +115,7 @@ func applyUpdateTiltVector(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trac
 // "selected": msg.Num is the tab INDEX into Wiring.SceneTabs — Go owns the tab list, the
 // labels it streams on the VIEW frame, and the selection; the strip sends only which tab
 // was hit. The switch itself (persist, then end this run so the runner's respawn loads the
-// other scene) is SelectScene's — see scene_tabs.go for why there is no in-process
+// other scene) is SelectScene's — see scene_switch.go for why there is no in-process
 // rebuild.
 //
 // "latticePoints": msg.Num is the new point count. Go owns the valid range (4..64,

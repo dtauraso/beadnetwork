@@ -1,6 +1,10 @@
 package Wiring
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
+)
 
 // tilt_edit_speed_test.go — SETTING a tilt runs the clocks at human speed; STARTING or
 // RESETTING puts the slider's speed back.
@@ -19,7 +23,7 @@ func TestHumanEditSpeedIsUnscaledAndDiffersFromASlowedScene(t *testing.T) {
 	}
 	// A scene with a divisor (the pair) must resolve to something SLOWER than the edit
 	// speed, or the override would be a no-op there and the click would still wait.
-	pairDivisor := SceneClockDivisor("/anywhere/topology-pair")
+	pairDivisor := scene.SceneClockDivisor("/anywhere/topology-pair")
 	slider := EffectiveClockSpeed(1, pairDivisor)
 	if slider >= HumanEditSpeed {
 		t.Fatalf("pair slider speed %v is not slower than HumanEditSpeed %v — the override buys nothing", slider, HumanEditSpeed)

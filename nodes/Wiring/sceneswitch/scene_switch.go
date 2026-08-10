@@ -2,7 +2,7 @@
 // decomposition), as a pure move (no logic changes): SceneSwitch is MoveDispatch's half
 // of scene-tab switching — the anchor to persist against, and the way to end this process
 // so the runner's looping respawn loads the newly selected scene. Both AnchorPath/Quit are
-// zero/nil until EnableSceneSwitch (nodes/Wiring/scene_tabs.go) arms them, so a bare
+// zero/nil until EnableSceneSwitch (nodes/Wiring/scene_switch.go) arms them, so a bare
 // test-constructed MoveDispatch cannot exit anything.
 //
 // The surrounding logic (SceneTabs, EnableSceneSwitch, SelectScene, structural-edit

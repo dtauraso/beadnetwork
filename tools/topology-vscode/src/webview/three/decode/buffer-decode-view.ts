@@ -45,7 +45,7 @@ export interface DecodedViewFrame {
   cameraView: DataView;
   overlayView: DataView;
   sceneView: DataView;
-  /** The Go-owned scene tab strip (nodes/Wiring/scene_tabs.go): the labels to draw and
+  /** The Go-owned scene tab strip (nodes/Wiring/scene/scene_tabs.go): the labels to draw and
    *  which one is showing. Empty for an untabbed anchor, which is what makes the strip
    *  absent rather than a single dead tab. TS renders these; it never invents one. */
   sceneTabs: string[];

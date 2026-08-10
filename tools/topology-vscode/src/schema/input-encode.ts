@@ -79,7 +79,7 @@ export function encodeDistanceGroupAdjust(groupIndex: number, dir: "up" | "down"
 }
 
 /** Build a scene SELECTED record: [22][entityKind=scene][attr=selected][u8 tabIndex].
- *  tabIndex indexes Go's OWN scene tab strip (nodes/Wiring/scene_tabs.go's SceneTabs), the
+ *  tabIndex indexes Go's OWN scene tab strip (nodes/Wiring/scene/scene_tabs.go's SceneTabs), the
  *  same list whose labels arrive on the VIEW frame — no scene name or directory crosses the
  *  wire. Go owns what the tabs are, which one is selected, and how the switch happens. */
 export function encodeSceneSelected(tabIndex: number): ArrayBuffer {
