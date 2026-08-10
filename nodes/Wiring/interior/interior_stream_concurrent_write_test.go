@@ -37,7 +37,7 @@
 // (memory/feedback_no_single_writer_bridge.md), not a framing-format bug — BuildInterior-
 // StreamFrame/BuildEventsSection were independently checked and always produce a byte count
 // that matches their own declared length (see docs/investigations/interior-stream-framing.md's point 3).
-package Wiring
+package interior
 
 import (
 	"encoding/binary"

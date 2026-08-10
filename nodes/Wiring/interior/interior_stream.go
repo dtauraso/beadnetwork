@@ -1,9 +1,15 @@
-// interior_stream.go — the interiorStream I/O type split out of emit_geometry.go, as a pure
-// move (no logic changes): interiorStream, write/writeEvents, writeInteriorStreamFrame,
+// interior_stream.go — the InteriorStream I/O type split out of emit_geometry.go, as a pure
+// move (no logic changes): InteriorStream, write/writeEvents, writeInteriorStreamFrame,
 // boolU8. See bead_emit.go and port_geom_emit.go for emit_geometry.go's other two
 // concerns; builders.go keeps the reflection-driven port-manifest/node-construction half.
-
-package Wiring
+//
+// Package interior (further god-object decomposition, pure move): InteriorStream is
+// exported because package Wiring's own port/build wiring (port_wiring.go, build_args.go)
+// constructs and threads it through. boolU8 stays a SEPARATE unexported copy in this
+// package and in package Wiring (view_stream.go/overlay_gen.go) — same precedent as the
+// existing local copy of Buffer.boolU8 this file's own comment already names, rather than
+// inventing a shared bool-encoding package for one trivial one-liner.
+package interior
 
 import (
 	"encoding/binary"
@@ -12,11 +18,11 @@ import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
-// interiorStream bundles ONE node's own dedicated interior fd + injected frame builder +
-// a local monotonic tick counter, so emitNodeBeads/emitHeldBead/emitInputBeads can pass
+// InteriorStream bundles ONE node's own dedicated interior fd + injected frame builder +
+// a local monotonic tick counter, so EmitNodeBeads/EmitHeldBead/EmitInputBeads can pass
 // one small value instead of three loose params. Built once per node (injectClosures);
-// nil-safe (a zero-value *interiorStream is fine — write is a no-op when out is nil).
-type interiorStream struct {
+// nil-safe (a zero-value *InteriorStream is fine — write is a no-op when out is nil).
+type InteriorStream struct {
 	out        io.Writer
 	buildFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte
 	tick       uint32
@@ -37,13 +43,37 @@ type interiorStream struct {
 	lastOx, lastOy, lastOz []float32
 }
 
-// nodeRowOf reports this stream's stable buffer node-row index, so a port can stamp it
-// onto a recv/send/breadcrumb RowEvent without naming the concrete interiorStream type —
+// NewInteriorStream builds a fresh *InteriorStream for one node's dedicated interior fd
+// (or drive-slot fd — the two callers, newInteriorStreamGetter/newDriveStreamGetter in
+// package Wiring's port_wiring.go, differ only in WHICH fd they resolve), seeded with an
+// all-absent slots-slot snapshot so an events-only WriteEvents before any real write()
+// still ships a valid cached snapshot (lastPresent's doc comment). Exported because
+// InteriorStream's own fields stay unexported (this package's sole writer discipline) —
+// construction from another package must go through here, not a struct literal.
+func NewInteriorStream(out io.Writer, buildFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte, nodeRow int32, slots int) *InteriorStream {
+	absent := make([]uint8, slots)
+	zeroI := make([]int32, slots)
+	zeroF := make([]float32, slots)
+	return &InteriorStream{
+		out: out, buildFrame: buildFrame, nodeRow: nodeRow,
+		lastPresent: absent, lastValue: zeroI,
+		lastOx: zeroF, lastOy: append([]float32{}, zeroF...), lastOz: append([]float32{}, zeroF...),
+	}
+}
+
+// OutWriter reports this stream's underlying io.Writer, exported solely so package
+// Wiring's own drive_stream_wiring_test.go can assert two streams resolve to genuinely
+// DIFFERENT writers (the exact wiring mistake docs/investigations/interior-stream-framing.md
+// documents) without this package exposing the field itself for general use.
+func (s *InteriorStream) OutWriter() io.Writer { return s.out }
+
+// NodeRowOf reports this stream's stable buffer node-row index, so a port can stamp it
+// onto a recv/send/breadcrumb RowEvent without naming the concrete InteriorStream type —
 // see the eventSink seam in ports.go. Called only after a non-nil check, so no nil guard.
-// NodeRowOf and WriteEvents are exported (unlike the rest of interiorStream) solely so
-// this type satisfies wire.EventSink from another package — Go requires an interface's
-// methods be exported to be implementable outside the interface's own package.
-func (s *interiorStream) NodeRowOf() int32 { return s.nodeRow }
+// NodeRowOf and WriteEvents are exported (like the type itself now) so this type satisfies
+// wire.EventSink from another package — Go requires an interface's methods be exported to
+// be implementable outside the interface's own package.
+func (s *InteriorStream) NodeRowOf() int32 { return s.nodeRow }
 
 // write packs and writes this node's current interior-slot arrays via
 // writeInteriorStreamFrame, advancing its own local tick counter. No-op (including on a
@@ -52,7 +82,7 @@ func (s *interiorStream) NodeRowOf() int32 { return s.nodeRow }
 // function invocation (emitNodeBeads/emitHeldBead/emitInputBeads) that built them.
 // Caches the passed bead-slot arrays (see lastPresent's doc comment) so a later
 // writeEvents call has a valid snapshot to reuse.
-func (s *interiorStream) write(present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) {
+func (s *InteriorStream) write(present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) {
 	if s == nil {
 		return
 	}
@@ -67,7 +97,7 @@ func (s *interiorStream) write(present []uint8, value []int32, ox, oy, oz []floa
 // (lastPresent's doc comment) and carries only the caller's new row-resolved
 // RowEvents (Fire/Recv/Send — see owner_events.go). No-op on a nil receiver, same as
 // write.
-func (s *interiorStream) WriteEvents(events []wire.RowEvent) {
+func (s *InteriorStream) WriteEvents(events []wire.RowEvent) {
 	if s == nil {
 		return
 	}

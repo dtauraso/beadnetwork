@@ -22,7 +22,7 @@
 // only that the kind asks for it by name instead of being handed it by reflection.
 //
 // DEPENDENCY DIRECTION (why this type lives in Wiring and not in nodes/wire): the kinds
-// import Wiring — several already do, for Wiring.NoValue — while Wiring imports NO kind
+// import Wiring — several already do, for BuildArgs itself — while Wiring imports NO kind
 // at all. The blank imports that run each kind's init() live in kinds_generated.go at the
 // repo root (package main). So a kind may legally receive Wiring types, and BuildArgs can
 // name PortBindings/nodeGeom/NodeData. It could NOT live in nodes/wire, which Wiring
@@ -33,6 +33,7 @@ package Wiring
 import (
 	"context"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -69,8 +70,8 @@ type BuildArgs struct {
 	sourceOuts *[]*wire.Out
 	// getStream is THIS node's one shared interior-stream getter (lazy-cache-once), so
 	// every closure and port that records an event for this node lands on the SAME
-	// *interiorStream instance and shares its cached bead-slot snapshot.
-	getStream func() *interiorStream
+	// *interior.InteriorStream instance and shares its cached bead-slot snapshot.
+	getStream func() *interior.InteriorStream
 	// driveSlotClaims tracks, for THIS node's ONE build call, which drive slot each
 	// DriveOut(portName, slot) call has already claimed (slot -> claiming port name).
 	// Allocated once per node in RegisterBuilder's wrapper and never shared across

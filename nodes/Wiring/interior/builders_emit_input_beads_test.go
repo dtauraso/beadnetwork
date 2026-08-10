@@ -1,4 +1,4 @@
-package Wiring
+package interior
 
 import (
 	"testing"
@@ -6,14 +6,14 @@ import (
 	T "github.com/dtauraso/wirefold/Trace"
 )
 
-// builders_emit_input_beads_test.go — emitInputBeads streams a gate's two held inputs as
+// builders_emit_input_beads_test.go — EmitInputBeads streams a gate's two held inputs as
 // interior beads: LEFT at slot (0,0) with negative-x offset, RIGHT at slot (0,1) with
 // positive-x offset. A value of -1 means "not held" → present=false. Row is always 0.
 
 func TestEmitInputBeadsBothHeld(t *testing.T) {
 	tr := T.New()
 	var snap nodeBeadSnapshot
-	emitInputBeads(tr, "G", 1, 0, captureInteriorSnapshot(&snap))
+	EmitInputBeads(tr, "G", 1, 0, captureInteriorSnapshot(&snap))
 
 	// slot 0 == (row 0, col 0) == left; slot 1 == (row 0, col 1) == right.
 	if snap.present[0] == 0 {
@@ -43,7 +43,7 @@ func TestEmitInputBeadsBothHeld(t *testing.T) {
 func TestEmitInputBeadsNotHeld(t *testing.T) {
 	tr := T.New()
 	var snap nodeBeadSnapshot
-	emitInputBeads(tr, "G", -1, 5, captureInteriorSnapshot(&snap))
+	EmitInputBeads(tr, "G", -1, 5, captureInteriorSnapshot(&snap))
 
 	if snap.present[0] != 0 {
 		t.Fatalf("left bead with -1 input: present=true, want present=false")

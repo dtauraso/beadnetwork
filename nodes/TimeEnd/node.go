@@ -6,13 +6,14 @@ import (
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring"
+	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
 )
 
 // noValue is the sentinel meaning "no value seen yet" → empty interior.
 // Real values are non-negative indices so noValue (-1) never collides.
-// Aliases Wiring.NoValue, the one definition (gatecommon.NoValue aliases the
+// Aliases interior.NoValue, the one definition (gatecommon.NoValue aliases the
 // same constant).
-const noValue = Wiring.NoValue
+const noValue = interior.NoValue
 
 // TimeEnd is the terminal "TimeEnd" kind (registered as "TimeEnd" below). Its
 // functions: Update runs the node goroutine — it receives a value on the single

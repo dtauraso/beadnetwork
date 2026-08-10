@@ -70,20 +70,20 @@ func TestDriveStreamNeverSharesNodesInteriorStream(t *testing.T) {
 	if interior == drive0 || interior == drive1 || drive0 == drive1 {
 		t.Fatalf("a node's interior stream and its drive-slot streams must be THREE DISTINCT *interiorStream instances (three separate goroutines' fds) — got interior=%p drive0=%p drive1=%p", interior, drive0, drive1)
 	}
-	if interior.out != interiorW {
+	if interior.OutWriter() != interiorW {
 		t.Fatalf("interior stream's writer must be the node's OWN interiorOuts entry, got a different io.Writer")
 	}
-	if drive0.out != drive0W {
+	if drive0.OutWriter() != drive0W {
 		t.Fatalf("drive slot 0's writer must be driveOuts[nodeA][0], got a different io.Writer")
 	}
-	if drive1.out != drive1W {
+	if drive1.OutWriter() != drive1W {
 		t.Fatalf("drive slot 1's writer must be driveOuts[nodeA][1], got a different io.Writer")
 	}
 	// Cross-check the specific historical bug directly: drive0's writer must not be the
 	// SAME writer the node's own interior stream uses — this is the exact "DriveHeld
 	// writes the node's shared interiorStream" violation docs/investigations/interior-stream-framing.md
 	// documents.
-	if drive0.out == interior.out {
+	if drive0.OutWriter() == interior.OutWriter() {
 		t.Fatalf("drive slot 0 shares its writer with the node's own interior stream — this IS the original bug (docs/investigations/interior-stream-framing.md)")
 	}
 }

@@ -1,6 +1,10 @@
 package Wiring
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
+)
 
 // state_seed_test.go — locks in: a `data.state` seed (e.g. Held on Time/HoldFlip/Pacer) is
 // OPTIONAL. When the spec omits the key, the seed accessor must leave the kind's own
@@ -18,14 +22,14 @@ func TestStateSeedIsOptional(t *testing.T) {
 		state map[string]int
 		want  int
 	}{
-		{"absent key keeps the kind's own default (NoValue)", nil, NoValue},
+		{"absent key keeps the kind's own default (NoValue)", nil, interior.NoValue},
 		{"authored held:0 is honored, not treated as unset", map[string]int{"held": 0}, 0},
 		{"authored held:-1 stays -1", map[string]int{"held": -1}, -1},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			a := BuildArgs{data: &NodeData{State: c.state}}
-			if got := a.StateSeed("held", NoValue); got != c.want {
+			if got := a.StateSeed("held", interior.NoValue); got != c.want {
 				t.Fatalf("StateSeed(\"held\", NoValue) = %d, want %d", got, c.want)
 			}
 		})
@@ -36,7 +40,7 @@ func TestStateSeedIsOptional(t *testing.T) {
 // kind's default — the nil-data path is how most nodes are authored.
 func TestStateSeedNoDataBlock(t *testing.T) {
 	a := BuildArgs{}
-	if got := a.StateSeed("held", NoValue); got != NoValue {
-		t.Fatalf("StateSeed with no data block = %d, want %d", got, NoValue)
+	if got := a.StateSeed("held", interior.NoValue); got != interior.NoValue {
+		t.Fatalf("StateSeed with no data block = %d, want %d", got, interior.NoValue)
 	}
 }

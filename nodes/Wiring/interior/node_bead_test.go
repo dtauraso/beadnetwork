@@ -1,8 +1,7 @@
-package Wiring
+package interior
 
 import (
 	"io"
-	"math"
 	"testing"
 
 	wire "github.com/dtauraso/wirefold/nodes/wire"
@@ -10,10 +9,10 @@ import (
 	T "github.com/dtauraso/wirefold/Trace"
 )
 
-// nodeBeadSnapshot captures one interiorStream.write() call's full 4-slot arrays plus
-// its row-resolved RowEvents, so a test can assert on emitNodeBeads/emitHeldBead/
-// emitInputBeads' output without a real fd. Slot index == row*2+col (see
-// interiorStream's doc comment).
+// nodeBeadSnapshot captures one InteriorStream.write() call's full 4-slot arrays plus
+// its row-resolved RowEvents, so a test can assert on EmitNodeBeads/EmitHeldBead/
+// EmitInputBeads' output without a real fd. Slot index == row*2+col (see
+// InteriorStream's doc comment).
 type nodeBeadSnapshot struct {
 	present    []uint8
 	value      []int32
@@ -21,8 +20,8 @@ type nodeBeadSnapshot struct {
 	events     []wire.RowEvent
 }
 
-func captureInteriorSnapshot(snap *nodeBeadSnapshot) *interiorStream {
-	return &interiorStream{
+func captureInteriorSnapshot(snap *nodeBeadSnapshot) *InteriorStream {
+	return &InteriorStream{
 		out: io.Discard,
 		buildFrame: func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, evs []wire.RowEvent) []byte {
 			snap.present, snap.value = present, value
@@ -33,7 +32,7 @@ func captureInteriorSnapshot(snap *nodeBeadSnapshot) *interiorStream {
 	}
 }
 
-// TestEmitNodeBeadsPositions verifies that emitNodeBeads streams a 4-SLOT SNAPSHOT
+// TestEmitNodeBeadsPositions verifies that EmitNodeBeads streams a 4-SLOT SNAPSHOT
 // (all rows {0,1} × cols {0,1}) with positions matching interiorSlotPos for each
 // (row,col): top row (0) = backup, bottom row (1) = working. A popped/absent slot is
 // present=false (not omitted) so TS can clear it. Always a 4-element snapshot.
@@ -41,7 +40,7 @@ func TestEmitNodeBeadsPositions(t *testing.T) {
 	// Full state: working=[1,0], backup=[1,0] → 4 present slots.
 	tr := T.New()
 	var snap nodeBeadSnapshot
-	emitNodeBeads(tr, "in", []int{1, 0}, []int{1, 0}, captureInteriorSnapshot(&snap))
+	EmitNodeBeads(tr, "in", []int{1, 0}, []int{1, 0}, captureInteriorSnapshot(&snap))
 	if len(snap.present) != 4 {
 		t.Fatalf("full state: got %d slots, want 4", len(snap.present))
 	}
@@ -64,7 +63,7 @@ func TestEmitNodeBeadsPositions(t *testing.T) {
 		if snap.value[slot] != wantVal[slot] {
 			t.Errorf("slot (%d,%d): value=%d, want %d", row, col, snap.value[slot], wantVal[slot])
 		}
-		p := interiorSlotOffset(row, col)
+		p := InteriorSlotOffset(row, col)
 		e, ok := byslot[int32(slot)]
 		if !ok {
 			t.Errorf("slot (%d,%d): no RowEvent", row, col)
@@ -85,7 +84,7 @@ func TestEmitNodeBeadsPositions(t *testing.T) {
 	// are present=true.
 	tr2 := T.New()
 	var snap2 nodeBeadSnapshot
-	emitNodeBeads(tr2, "in", []int{1}, []int{1, 0}, captureInteriorSnapshot(&snap2))
+	EmitNodeBeads(tr2, "in", []int{1}, []int{1, 0}, captureInteriorSnapshot(&snap2))
 	if len(snap2.present) != 4 {
 		t.Fatalf("after pop: got %d slots, want 4 (snapshot)", len(snap2.present))
 	}
@@ -105,16 +104,21 @@ func TestEmitNodeBeadsPositions(t *testing.T) {
 // TestInteriorSlotOffsetFormula pins the torus-aware slotOffset(row,col) formula —
 // a NODE-LOCAL offset centered at the origin (no node center added):
 //
-//	slot = interiorTorusOuterR + interiorBeadGap/2 ; pitch = 2*slot
+//	slot = InteriorTorusOuterR + interiorBeadGap/2 ; pitch = 2*slot
 //	dx = (col-0.5)*pitch ; dy = (0.5-row)*pitch ; dz = 0
 //
 // Pitch follows bead size, not node radius.
+//
+// The sphere-fit tests (torus reach must stay inside the node's own sphere radius) live
+// in package Wiring's interior_sphere_test.go instead of here: they need Wiring's own
+// nodeRadius, and this package must not import Wiring (Wiring imports this package, for
+// InteriorStream/EmitNodeBeads/etc — importing back would cycle).
 func TestInteriorSlotOffsetFormula(t *testing.T) {
-	pitch := 2 * interiorSlot
+	pitch := 2 * InteriorSlot
 
 	cases := []struct{ row, col int }{{0, 0}, {0, 1}, {1, 0}, {1, 1}}
 	for _, tc := range cases {
-		got := interiorSlotOffset(tc.row, tc.col)
+		got := InteriorSlotOffset(tc.row, tc.col)
 		wantX := (float64(tc.col) - 0.5) * pitch
 		wantY := (0.5 - float64(tc.row)) * pitch
 		if got.X != wantX || got.Y != wantY || got.Z != 0 {
@@ -123,45 +127,12 @@ func TestInteriorSlotOffsetFormula(t *testing.T) {
 	}
 }
 
-// TestInteriorBeadsInsideSphere asserts each of the 4 interior bead's TORUS reach
-// stays inside the node sphere: |offset| + interiorTorusOuterR ≤ r. Offsets are
-// node-local (centered at origin), so the distance is measured from the origin.
-// The torus (outer radius rt), not the sphere, is the bead's true visual extent.
-func TestInteriorBeadsInsideSphere(t *testing.T) {
-	rt := interiorTorusOuterR
-	r := nodeRadius("Input")
-	cases := []struct{ row, col int }{{0, 0}, {0, 1}, {1, 0}, {1, 1}}
-	for _, tc := range cases {
-		p := interiorSlotOffset(tc.row, tc.col)
-		dist := math.Sqrt(p.X*p.X + p.Y*p.Y + p.Z*p.Z)
-		reach := dist + rt
-		if reach > r {
-			t.Errorf("slot(%d,%d): torus reach %v > r %v — ring pokes outside sphere", tc.row, tc.col, reach, r)
-		}
-	}
-}
-
-// TestInputBeadsInsideSphere asserts the two SelectLeft side beads (at
-// ±interiorSlot on x, vertically centered) keep their torus reach inside the
-// node sphere: |offset| + interiorTorusOuterR ≤ nodeRadius("SelectLeft").
-func TestInputBeadsInsideSphere(t *testing.T) {
-	rt := interiorTorusOuterR
-	r := nodeRadius("SelectLeft")
-	for _, x := range []float64{-interiorSlot, interiorSlot} {
-		dist := math.Abs(x)
-		reach := dist + rt
-		if reach > r {
-			t.Errorf("side bead x=%v: torus reach %v > r %v — ring pokes outside sphere", x, reach, r)
-		}
-	}
-}
-
 // TestInteriorTorusesDoNotOverlap asserts adjacent same-row/col toruses keep a
 // non-negative gap: pitch (2*slot) ≥ 2*rt, i.e. torus-to-torus gap ≥ 0.
 func TestInteriorTorusesDoNotOverlap(t *testing.T) {
-	pitch := 2 * interiorSlot
-	gap := pitch - 2*interiorTorusOuterR
+	pitch := 2 * InteriorSlot
+	gap := pitch - 2*InteriorTorusOuterR
 	if gap < 0 {
-		t.Errorf("adjacent toruses overlap: pitch %v < 2*rt %v (gap %v)", pitch, 2*interiorTorusOuterR, gap)
+		t.Errorf("adjacent toruses overlap: pitch %v < 2*rt %v (gap %v)", pitch, 2*InteriorTorusOuterR, gap)
 	}
 }

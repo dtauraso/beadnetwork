@@ -1,4 +1,4 @@
-package Wiring
+package interior
 
 import (
 	"context"
@@ -29,7 +29,7 @@ import (
 func runSlideAndTimeCompletion(t *testing.T, setSpeed float64) time.Duration {
 	t.Helper()
 
-	dest := interiorSlotOffset(1, 0)
+	dest := InteriorSlotOffset(1, 0)
 
 	var mu sync.Mutex
 	done := make(chan struct{})
@@ -55,7 +55,7 @@ func runSlideAndTimeCompletion(t *testing.T, setSpeed float64) time.Duration {
 	defer cancel()
 
 	start := time.Now()
-	go emitRefillSlide(ctx, tr, "TestInput", clk.Copy(), speedCh, []int{1})
+	go EmitRefillSlide(ctx, tr, "TestInput", clk.Copy(), speedCh, []int{1})
 
 	select {
 	case <-done:
@@ -96,7 +96,7 @@ func TestEmitRefillSlideScalesWithSpeed(t *testing.T) {
 // speedCh WHILE the slide is running (not just once before the loop starts) —
 // exactly the bug reported live: "in-node bead animations" ignored the slider.
 func TestEmitRefillSlideAppliesMidSlideSpeedChange(t *testing.T) {
-	dest := interiorSlotOffset(1, 0)
+	dest := InteriorSlotOffset(1, 0)
 
 	done := make(chan struct{})
 	var closeOnce sync.Once
@@ -117,7 +117,7 @@ func TestEmitRefillSlideAppliesMidSlideSpeedChange(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	go emitRefillSlide(ctx, tr, "TestInput", clk.Copy(), speedCh, []int{1})
+	go EmitRefillSlide(ctx, tr, "TestInput", clk.Copy(), speedCh, []int{1})
 
 	// Frozen: must NOT complete within a grace window comfortably shorter than
 	// a speed-1 completion (~a few hundred ms per the durationTicks math).

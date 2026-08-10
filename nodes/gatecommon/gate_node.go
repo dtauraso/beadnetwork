@@ -8,7 +8,7 @@ import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring"
+	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
 )
 
 // WindowMs is the target coincidence window expressed in milliseconds. This is a
@@ -27,11 +27,11 @@ const PollIntervalTicks = 1
 // second-arriving interior bead only flashes for ~1ms before the fire clears it.
 const FireDwellMs = 800
 
-// NoValue aliases Wiring.NoValue, the sentinel meaning "no value yet" / "no real
-// bead". Defined in Wiring (not here) because gatecommon imports Wiring, not the
-// reverse — Wiring.NoValue is the one definition; this is just gatecommon's name
+// NoValue aliases interior.NoValue, the sentinel meaning "no value yet" / "no real
+// bead". Defined in package interior (not here) because gatecommon imports interior, not
+// the reverse — interior.NoValue is the one definition; this is just gatecommon's name
 // for it.
-const NoValue = Wiring.NoValue
+const NoValue = interior.NoValue
 
 // GateNode holds all the fields shared between the two gate node kinds.
 // Each kind embeds GateNode so its init/Update can delegate here.

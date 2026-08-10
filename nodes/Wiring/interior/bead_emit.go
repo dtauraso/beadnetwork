@@ -1,10 +1,13 @@
 // bead_emit.go — the interior-bead emission half of emit_geometry.go, split out as a pure
-// move (no logic changes): emitNodeBeads, NoValue, emitHeldBead, emitInputBeads,
-// emitRefillSlide. See interior_stream.go for the interiorStream I/O type and
+// move (no logic changes): EmitNodeBeads, NoValue, EmitHeldBead, EmitInputBeads,
+// EmitRefillSlide. See interior_stream.go for the InteriorStream I/O type and
 // port_geom_emit.go for the port-geometry helpers; builders.go keeps the
 // reflection-driven port-manifest/node-construction half.
-
-package Wiring
+//
+// Package interior (further god-object decomposition, pure move): these four are
+// exported because package Wiring's own build phase (build_args_beads.go) calls them
+// to build each node's injected emit closures.
+package interior
 
 import (
 	"context"
@@ -15,9 +18,9 @@ import (
 	T "github.com/dtauraso/wirefold/Trace"
 )
 
-// emitNodeBeads streams node 1's interior 2x2 buffer as a 4-SLOT SNAPSHOT: one
+// EmitNodeBeads streams node 1's interior 2x2 buffer as a 4-SLOT SNAPSHOT: one
 // node-bead event per fixed slot (rows {0,1} × cols {0,1}). The event's x/y/z
-// carry the NODE-LOCAL OFFSET (interiorSlotOffset, relative to the node center —
+// carry the NODE-LOCAL OFFSET (InteriorSlotOffset, relative to the node center —
 // NOT a world position); TS renders each bead as a child of the node group, so
 // the node center is composed by the scene graph and the beads ride the node on
 // move (no re-emit needed). backup is the top row (row 0), working is the bottom
@@ -27,7 +30,7 @@ import (
 // slot can. Discrete positions only (beads snap to slots; no slide yet). Called from
 // the node's injected EmitNodeBeads closure whenever the arrays change. Offsets are
 // node-local, so no node geometry is needed.
-func emitNodeBeads(tr *T.Trace, nodeName string, working, backup []int, stream *interiorStream) {
+func EmitNodeBeads(tr *T.Trace, nodeName string, working, backup []int, stream *InteriorStream) {
 	const cols = 2
 	present := make([]uint8, 0, 4)
 	value := make([]int32, 0, 4)
@@ -39,7 +42,7 @@ func emitNodeBeads(tr *T.Trace, nodeName string, working, backup []int, stream *
 	var events []wire.RowEvent
 	emitRow := func(row int, slice []int) {
 		for col := 0; col < cols; col++ {
-			p := interiorSlotOffset(row, col)
+			p := InteriorSlotOffset(row, col)
 			has := col < len(slice)
 			v := 0
 			if has {
@@ -60,7 +63,7 @@ func emitNodeBeads(tr *T.Trace, nodeName string, working, backup []int, stream *
 	stream.write(present, value, ox, oy, oz, events)
 }
 
-// emitHeldBead streams the Time node's interior as a SINGLE centered
+// EmitHeldBead streams the Time node's interior as a SINGLE centered
 // bead (row 0, col 0) at the node center (offset 0,0,0). The bead is PRESENT when
 // NoValue is the sentinel meaning "no value yet" / "no real bead". Real values
 // are non-negative indices so NoValue (-1) never collides with a legitimate
@@ -74,7 +77,7 @@ const NoValue = -1
 // existing node-bead convention); held == NoValue (no value seen yet) →
 // present=false so the interior renders empty. Called from the node's injected
 // EmitHeldBead closure only when the held value changes.
-func emitHeldBead(tr *T.Trace, nodeName string, held int, stream *interiorStream) {
+func EmitHeldBead(tr *T.Trace, nodeName string, held int, stream *InteriorStream) {
 	has := held != NoValue
 	// Only slot (0,0) is meaningful for a Time node; the remaining 3 fixed
 	// slots stay absent, matching the fd-3 Interior block's convention for this kind
@@ -99,13 +102,13 @@ func emitHeldBead(tr *T.Trace, nodeName string, held int, stream *interiorStream
 	)
 }
 
-// emitInputBeads streams a gate's two held inputs as interior beads: the LEFT
+// EmitInputBeads streams a gate's two held inputs as interior beads: the LEFT
 // input on the left of the node (negative x), the RIGHT input on the right
 // (positive x), vertically centered. NoValue = not held → present=false. Slot
-// keys (0,0)=left, (0,1)=right. Offsets use interiorSlot so they sit inside the
+// keys (0,0)=left, (0,1)=right. Offsets use InteriorSlot so they sit inside the
 // sphere.
-func emitInputBeads(tr *T.Trace, nodeName string, left, right int, stream *interiorStream) {
-	s := interiorSlot
+func EmitInputBeads(tr *T.Trace, nodeName string, left, right int, stream *InteriorStream) {
+	s := InteriorSlot
 	hasL, hasR := left != NoValue, right != NoValue
 	vL, vR := 0, 0
 	if hasL {
@@ -130,7 +133,7 @@ func emitInputBeads(tr *T.Trace, nodeName string, left, right int, stream *inter
 	)
 }
 
-// emitRefillSlide runs the clock-paced animated refill for the Input node's
+// EmitRefillSlide runs the clock-paced animated refill for the Input node's
 // interior buffer: the OLD backup row (row 0, top) slides DOWN into the working
 // row (row 1, bottom) at human speed (the same wire-bead pulse speed), so a paused
 // clock freezes the slide just like every wire. beads is the OLD backup contents
@@ -155,12 +158,12 @@ func emitInputBeads(tr *T.Trace, nodeName string, left, right int, stream *inter
 // the caller's own loop resumes and drains it one cycle later — the in-node
 // animation would run at the OLD speed for its entire duration regardless of
 // the slider (the bug this fixes).
-func emitRefillSlide(ctx context.Context, tr *T.Trace, nodeName string, clk clock.Clock, speedCh <-chan float64, beads []int) {
+func EmitRefillSlide(ctx context.Context, tr *T.Trace, nodeName string, clk clock.Clock, speedCh <-chan float64, beads []int) {
 	if clk == nil || len(beads) == 0 {
 		return
 	}
-	row0Y := interiorSlotOffset(0, 0).Y
-	row1Y := interiorSlotOffset(1, 0).Y
+	row0Y := InteriorSlotOffset(0, 0).Y
+	row1Y := InteriorSlotOffset(1, 0).Y
 	rowPitch := row0Y - row1Y // downward translation distance (local y, positive)
 	// Slide runs at the base pulse speed — the same constant speed as the wire
 	// beads; the clock is still pause-aware. Duration is a tick count.
@@ -169,13 +172,13 @@ func emitRefillSlide(ctx context.Context, tr *T.Trace, nodeName string, clk cloc
 	start := clk.Tick()
 	emitFrame := func(t float64) {
 		for col := 0; col < len(beads); col++ {
-			a := interiorSlotOffset(0, col)
-			b := interiorSlotOffset(1, col)
+			a := InteriorSlotOffset(0, col)
+			b := InteriorSlotOffset(1, col)
 			tr.NodeBead(nodeName, 1, col, true, beads[col],
 				a.X+(b.X-a.X)*t, a.Y+(b.Y-a.Y)*t, a.Z+(b.Z-a.Z)*t)
 		}
 		for col := 0; col < len(beads); col++ {
-			p := interiorSlotOffset(0, col)
+			p := InteriorSlotOffset(0, col)
 			tr.NodeBead(nodeName, 0, col, false, 0, p.X, p.Y, p.Z)
 		}
 	}

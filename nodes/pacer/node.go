@@ -6,13 +6,14 @@ import (
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring"
+	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
 )
 
 // noValue is the sentinel meaning "no value seen yet". Real values are
 // non-negative indices so noValue (-1) never collides with a legitimate value.
-// Aliases Wiring.NoValue, the one definition (gatecommon.NoValue aliases the
+// Aliases interior.NoValue, the one definition (gatecommon.NoValue aliases the
 // same constant).
-const noValue = Wiring.NoValue
+const noValue = interior.NoValue
 
 type Node struct {
 	Fire         func()

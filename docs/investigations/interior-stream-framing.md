@@ -55,7 +55,7 @@ it is a second one `DriveHeld` itself spawns.
 
 ## 2. Write atomicity — the mechanism that turns the violation into corruption
 
-`writeInteriorStreamFrame` (`nodes/Wiring/interior_stream.go:95-106`) writes a frame in
+`writeInteriorStreamFrame` (`nodes/Wiring/interior/interior_stream.go:95-106`) writes a frame in
 **two separate `io.Writer.Write` calls**: the 4-byte `[len:u32]` header, then the frame
 payload. There is no lock held across the two. Each individual `Write` call is atomic (Go's
 `os.File.Write` is safe for concurrent callers and won't itself split a call's bytes), but
@@ -96,7 +96,7 @@ which is exactly why they passed while the live editor didn't.
 
 ## Reproduction (original, pre-fix)
 
-`nodes/Wiring/interior_stream_concurrent_write_test.go`'s original
+`nodes/Wiring/interior/interior_stream_concurrent_write_test.go`'s original
 `TestInteriorStreamConcurrentWritersDesyncFraming` (since renamed and reshaped — see
 "Fix" below for its current form): constructed ONE shared `*interiorStream` over a real
 `os.Pipe`, spawned two goroutines against it (one calling `write` the way a node's Update
@@ -202,7 +202,7 @@ and probe-logged, they just never reach the webview's interior cell or its repla
 (`tools/topology-vscode/test/runner/driveFramesAreEventsOnly.test.ts`).
 
 **Single-Write framing, done alongside**: `writeInteriorStreamFrame`
-(`nodes/Wiring/interior_stream.go`) now issues ONE `io.Writer.Write` call per frame
+(`nodes/Wiring/interior/interior_stream.go`) now issues ONE `io.Writer.Write` call per frame
 (header+payload in one buffer) instead of two — closes the short-write/signal hazard for a
 genuinely single writer, on top of (not instead of) the per-fd fix. It does NOT make
 sharing a stream between two goroutines safe on its own (see the reproduction test's
@@ -212,7 +212,7 @@ own backing array can't be mutated in place, since callers may still hold it).
 
 **Tests**:
 
-- `nodes/Wiring/interior_stream_concurrent_write_test.go`'s
+- `nodes/Wiring/interior/interior_stream_concurrent_write_test.go`'s
   `TestInteriorStreamTwoCallSharedWriterMechanismStillDesyncs` pins the ORIGINAL
   mechanism by hand — two goroutines, one pipe, each framing via a frozen copy of the
   PRE-FIX two-Write-calls shape (`writeTwoCallFrame`). It PASSES when the desync it exists

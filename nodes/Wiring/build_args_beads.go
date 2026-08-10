@@ -5,6 +5,7 @@
 package Wiring
 
 import (
+	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
@@ -19,7 +20,7 @@ func (a BuildArgs) Fire() func() {
 	return func() {
 		if s := getStream(); s != nil {
 			s.WriteEvents([]wire.RowEvent{{
-				Kind: T.KindFire, NodeRow: s.nodeRow,
+				Kind: T.KindFire, NodeRow: s.NodeRowOf(),
 				PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1,
 			}})
 		}
@@ -29,20 +30,20 @@ func (a BuildArgs) Fire() func() {
 // EmitNodeBeads returns the interior working/backup bead emitter.
 func (a BuildArgs) EmitNodeBeads() func(working, backup []int) {
 	tr, name, getStream := a.tr, a.name, a.getStream
-	return func(working, backup []int) { emitNodeBeads(tr, name, working, backup, getStream()) }
+	return func(working, backup []int) { interior.EmitNodeBeads(tr, name, working, backup, getStream()) }
 }
 
 // EmitHeldBead returns the single centered held-value bead emitter (held == NoValue
 // renders as an empty interior).
 func (a BuildArgs) EmitHeldBead() func(held int) {
 	tr, name, getStream := a.tr, a.name, a.getStream
-	return func(held int) { emitHeldBead(tr, name, held, getStream()) }
+	return func(held int) { interior.EmitHeldBead(tr, name, held, getStream()) }
 }
 
 // EmitInputBeads returns a gate's two-sided held-input bead emitter.
 func (a BuildArgs) EmitInputBeads() func(left, right int) {
 	tr, name, getStream := a.tr, a.name, a.getStream
-	return func(left, right int) { emitInputBeads(tr, name, left, right, getStream()) }
+	return func(left, right int) { interior.EmitInputBeads(tr, name, left, right, getStream()) }
 }
 
 // EmitRefillSlide returns the clock-paced refill-slide emitter. The clock and speed
@@ -51,6 +52,6 @@ func (a BuildArgs) EmitInputBeads() func(left, right int) {
 func (a BuildArgs) EmitRefillSlide() func(clk clock.Clock, speedCh <-chan float64, beads []int) {
 	ctx, tr, name := a.ctx, a.tr, a.name
 	return func(clk clock.Clock, speedCh <-chan float64, beads []int) {
-		emitRefillSlide(ctx, tr, name, clk, speedCh, beads)
+		interior.EmitRefillSlide(ctx, tr, name, clk, speedCh, beads)
 	}
 }
