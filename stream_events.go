@@ -3,22 +3,22 @@ package main
 import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
-	B "github.com/dtauraso/wirefold/Buffer"
+	SF "github.com/dtauraso/wirefold/Buffer/streamframe"
 )
 
 // toStreamEvents converts a nodeMover/edgeMover/interiorStream goroutine's own
 // row-resolved events (Wiring.RowEvent, string kind — kept Buffer-independent there) into
-// Buffer.StreamEvent (numeric kind, via Buffer.KindID) for packing into that SAME
+// streamframe.StreamEvent (numeric kind, via streamframe.KindID) for packing into that SAME
 // goroutine's own frame's trailing EVENTS section (memory/feedback_no_single_writer_bridge.md).
 // Pure value conversion — no shared state, safe to call from any owner goroutine.
-func toStreamEvents(events []wire.RowEvent) []B.StreamEvent {
+func toStreamEvents(events []wire.RowEvent) []SF.StreamEvent {
 	if len(events) == 0 {
 		return nil
 	}
-	out := make([]B.StreamEvent, len(events))
+	out := make([]SF.StreamEvent, len(events))
 	for i, e := range events {
-		out[i] = B.StreamEvent{
-			Kind:          B.KindID(e.Kind),
+		out[i] = SF.StreamEvent{
+			Kind:          SF.KindID(e.Kind),
 			NodeRow:       e.NodeRow,
 			PortRow:       e.PortRow,
 			TargetRow:     e.TargetRow,

@@ -1,5 +1,5 @@
-// Buffer/edge_stream_frame.go — the per-edge dedicated-stream frame packer (see
-// Buffer/stream_fds.go's StreamKindEdge doc comment and
+// Buffer/streamframe/edge_stream_frame.go — the per-edge dedicated-stream frame packer (see
+// Buffer/streamframe/stream_fds.go's StreamKindEdge doc comment and
 // memory/feedback_no_single_writer_bridge.md). This is the combined frame ONE edgeMover
 // goroutine writes to ITS OWN fd every cycle it changes (geometry recompute OR a bead
 // step) — the edge's own Edge-block row PLUS the beads currently in flight on that
@@ -17,11 +17,13 @@
 // Injected into nodes/Wiring's MoveDispatch.SetEdgeStreams as a plain func (not a Buffer
 // import in the Wiring package — mirrors PortRowResolver/EdgeRowResolver's existing
 // interface-injection pattern, keeping Wiring Buffer-independent).
-package Buffer
+package streamframe
 
 import (
 	"encoding/binary"
 	"fmt"
+
+	B "github.com/dtauraso/wirefold/Buffer"
 )
 
 // BuildEdgeStreamFrame packs one edge's combined per-fd frame payload (see this file's
@@ -35,15 +37,15 @@ import (
 // single-goroutine ownership pw.inflight requires.
 func BuildEdgeStreamFrame(tick uint32, sx, sy, sz, ex, ey, ez float32, selected uint8, label string, events []StreamEvent) []byte {
 	labelBytes := []byte(label)
-	size := BufEdgeStreamFrameHeaderSize + BufEdgeStride + len(labelBytes)
+	size := B.BufEdgeStreamFrameHeaderSize + B.BufEdgeStride + len(labelBytes)
 	buf := make([]byte, size)
 	off := 0
 	binary.LittleEndian.PutUint32(buf[off:], tick)
 	off += 4
 	// edgeLabelOff=0: this frame's own label bytes immediately follow the Edge row —
 	// there is no shared EdgeLabel section on a dedicated per-edge stream.
-	SetEdgeRow(buf[off:off+BufEdgeStride], 0, sx, sy, sz, ex, ey, ez, selected, 0, uint32(len(labelBytes)))
-	off += BufEdgeStride
+	B.SetEdgeRow(buf[off:off+B.BufEdgeStride], 0, sx, sy, sz, ex, ey, ez, selected, 0, uint32(len(labelBytes)))
+	off += B.BufEdgeStride
 	copy(buf[off:off+len(labelBytes)], labelBytes)
 	off += len(labelBytes)
 	// INVARIANT: walk ends where the size formula says — the runtime half of buffer-layout

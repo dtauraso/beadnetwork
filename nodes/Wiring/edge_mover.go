@@ -89,7 +89,7 @@ type edgeMover struct {
 
 	// --- dedicated per-edge stream (memory/feedback_no_single_writer_bridge.md) ---
 	// streamOut, when Ok(), is THIS edge's OWN dedicated fd (see
-	// MoveDispatch.SetEdgeStreams / Buffer/stream_fds.go's StreamKindEdge). A dead
+	// MoveDispatch.SetEdgeStreams / Buffer/streamframe/stream_fds.go's StreamKindEdge). A dead
 	// claimedStream (the default — no WIREFOLD_STREAM_FDS "edge" entry, e.g. headless
 	// tests, OR a rejected second claim — see stream_claim.go) means writeStreamFrame is
 	// a no-op: this edge's geometry+beads are simply never written to a per-edge stream.

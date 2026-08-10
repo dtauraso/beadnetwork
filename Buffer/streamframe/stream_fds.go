@@ -1,4 +1,4 @@
-// Buffer/stream_fds.go — the fd-ALLOCATION contract for the "N inherited stdio pipes,
+// Buffer/streamframe/stream_fds.go — the fd-ALLOCATION contract for the "N inherited stdio pipes,
 // one per emitting goroutine" transport (memory/feedback_no_single_writer_bridge.md).
 //
 // fd 3 (WIREFOLD_BUF_OUT_FD, see main.go) was the FIRST such pipe — the ext host's
@@ -35,7 +35,7 @@
 // (main.go, for the view stream) resolves its own fd number, opens it via os.NewFile,
 // and gets nil back when the env var doesn't name its kind — the write side (e.g.
 // MoveDispatch.SetViewStream) nil-checks that and simply never writes the frame.
-package Buffer
+package streamframe
 
 import (
 	"fmt"

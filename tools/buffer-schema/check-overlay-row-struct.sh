@@ -13,7 +13,7 @@ set -euo pipefail
 # — it would surface only as the wrong overlay toggling live in the editor.
 #
 # The fix (tools/gen-node-defs) generates SetOverlayRow to take ONE named-field OverlayRow
-# struct value instead of nine positional scalars, so every writer (Buffer/view_stream_frame.go's
+# struct value instead of nine positional scalars, so every writer (Buffer/streamframe/view_stream_frame.go's
 # BuildViewStreamFrame today) passes a single named struct rather than a positional run.
 #
 # check-generated.sh already catches a stale/hand-reverted regen of buffer_layout_gen.go

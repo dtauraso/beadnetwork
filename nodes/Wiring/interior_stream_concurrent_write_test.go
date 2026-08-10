@@ -46,7 +46,7 @@ import (
 	"testing"
 	"time"
 
-	B "github.com/dtauraso/wirefold/Buffer"
+	B "github.com/dtauraso/wirefold/Buffer/streamframe"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 

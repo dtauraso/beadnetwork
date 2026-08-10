@@ -5,7 +5,7 @@ set -euo pipefail
 # must say so when the condition fails.
 #
 # THE BUG THIS EXISTS FOR. main.go wires each per-owner stream behind
-# `if base, ok := streamFDs[B.StreamKind<X>]; ok`. When the entry is absent the block is
+# `if base, ok := streamFDs[SF.StreamKind<X>]; ok`. When the entry is absent the block is
 # simply skipped: every mover of that kind keeps a nil streamOut and emits nothing, so an
 # ENTIRE ENTITY CLASS vanishes from the editor while every file on disk is correct. That
 # happened to edges on 2026-07-28 — a VS Code extension host left running across a change
@@ -18,7 +18,7 @@ set -euo pipefail
 # one are both point fixes; this guard is what keeps the NEXT stream kind from landing with
 # a silent skip, since the failure is invisible precisely when it matters.
 #
-# WHAT IT ASSERTS: every per-owner StreamKind constant declared in Buffer/stream_fds.go is
+# WHAT IT ASSERTS: every per-owner StreamKind constant declared in Buffer/streamframe/stream_fds.go is
 # named in a stream-fd mismatch report in main.go. Not that the report is correct — a guard
 # cannot know that — only that the silent-skip path has a voice.
 #
@@ -35,13 +35,13 @@ set -euo pipefail
 #
 # Exit 0 clean, exit 1 with a named report.
 #
-# PLACEMENT: main.go,edge_stream.go,node_stream.go,Buffer/stream_fds.go | every conditionally-wired per-owner StreamKind must have a named stream-fd mismatch report
+# PLACEMENT: main.go,edge_stream.go,node_stream.go,Buffer/streamframe/stream_fds.go | every conditionally-wired per-owner StreamKind must have a named stream-fd mismatch report
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
 
-KINDS_FILE="Buffer/stream_fds.go"
+KINDS_FILE="Buffer/streamframe/stream_fds.go"
 # main.go itself now holds only the startup sequence; the per-owner stream wiring
 # (and its stream-fd mismatch reports) lives in edge_stream.go/node_stream.go
 # (main.go's split, tools/buffer-schema/check-generated.sh-adjacent decomposition). Scan every
@@ -78,12 +78,14 @@ for k in "${kinds[@]}"; do
   case " $EXCLUDED " in
     *" $k "*) continue ;;
   esac
-  # Only kinds these files actually wire conditionally can have a silent-skip path.
-  grep -qF "streamFDs[B.$k]" $MAIN_FILE || continue
+  # Only kinds these files actually wire conditionally can have a silent-skip path. The
+  # import alias in front of the kind constant is not hardcoded (B./SF./etc. all count) —
+  # a future re-alias must not blind this guard again.
+  grep -qE "streamFDs\[[A-Za-z_][A-Za-z0-9_]*\.$k\]" $MAIN_FILE || continue
   checked=$((checked + 1))
   # The report must name the kind constant and sit on a stream-fd mismatch line.
-  if ! grep -F 'stream-fd mismatch' $MAIN_FILE | grep -qF "B.$k"; then
-    if ! grep -A6 'stream-fd mismatch' $MAIN_FILE | grep -qF "B.$k"; then
+  if ! grep -F 'stream-fd mismatch' $MAIN_FILE | grep -qE "[A-Za-z_][A-Za-z0-9_]*\.$k\b"; then
+    if ! grep -A6 'stream-fd mismatch' $MAIN_FILE | grep -qE "[A-Za-z_][A-Za-z0-9_]*\.$k\b"; then
       missing="$missing $k"
     fi
   fi

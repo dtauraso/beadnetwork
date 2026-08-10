@@ -3,7 +3,7 @@
 // Regenerate with: npm run gen:node-defs
 //
 // Buffer/frame_tags.go — SYNTHETIC ext-host-side tags for the dedicated per-owner stream
-// frames (memory/feedback_no_single_writer_bridge.md, Buffer/stream_fds.go), plus the
+// frames (memory/feedback_no_single_writer_bridge.md, Buffer/streamframe/stream_fds.go), plus the
 // per-stream frame ENVELOPE constants (header sizes). This file is the SINGLE Go-side
 // source for all of it; the mirrored TS file,
 // tools/topology-vscode/src/schema/frame-tags.ts, is GENERATED from it by
@@ -20,7 +20,7 @@
 //
 // Every dedicated stream fd (view/edge/node/interior) carries frames as
 // [len:u32-LE][payload] with NO tag byte on the wire — the fd POSITION already
-// identifies which stream/row it is (see Buffer/stream_fds.go). The four BufBlockTag*
+// identifies which stream/row it is (see Buffer/streamframe/stream_fds.go). The four BufBlockTag*
 // constants below exist ONLY so the ext host can relay a decoded frame to the webview
 // under one uniform "buffer-snapshot" message shape (tag + optional row), letting the
 // render tree route by cell without a second message shape. They are NEVER written as a
@@ -57,7 +57,7 @@ export const BUF_VIEW_FRAME_HEADER_SIZE = 4;
 /**
  * BufBlockTagEdgeStream is the SYNTHETIC ext-host-side tag for a decoded per-edge
  * dedicated-stream frame (one edgeMover writes ITS OWN combined edge+bead frame to its own
- * fd — see Buffer/stream_fds.go's StreamKindEdge). NEVER a wire tag byte on the dedicated
+ * fd — see Buffer/streamframe/stream_fds.go's StreamKindEdge). NEVER a wire tag byte on the dedicated
  * per-edge fd itself (the fd POSITION already identifies which edge). Relayed to the
  * webview under the same "buffer-snapshot" shape as BufBlockTagView, plus a `row` field
  * (there are many edge streams, not a singleton).
@@ -66,7 +66,7 @@ export const BUF_BLOCK_TAG_EDGE_STREAM = 5;
 
 /**
  * BufEdgeStreamFrameHeaderSize is the byte width of the leading header on one edge's
- * combined per-fd frame (Buffer.BuildEdgeStreamFrame), before the Edge row: [tick:u32].
+ * combined per-fd frame (streamframe.BuildEdgeStreamFrame), before the Edge row: [tick:u32].
  * The rest of that frame's byte layout: one BufEdgeStride row (SX..EZ/Selected,
  * EdgeLabelOff=0/Len) + that edge's own label bytes (labelLen, from the row).
  */
@@ -75,7 +75,7 @@ export const BUF_EDGE_STREAM_FRAME_HEADER_SIZE = 4;
 /**
  * BufBlockTagNodeStream is the SYNTHETIC ext-host-side tag for a decoded per-node
  * dedicated-stream frame (one nodeMover writes ITS OWN node geometry + ports + label to
- * its own fd — see Buffer/stream_fds.go's StreamKindNode / Buffer/node_stream_frame.go's
+ * its own fd — see Buffer/streamframe/stream_fds.go's StreamKindNode / Buffer/streamframe/node_stream_frame.go's
  * BuildNodeStreamFrame). NEVER a wire tag byte on the dedicated per-node fd itself (the fd
  * POSITION already identifies which node). Relayed under the same "buffer-snapshot" shape
  * as BufBlockTagEdgeStream, plus a `row` field (one per node row).
@@ -85,7 +85,7 @@ export const BUF_BLOCK_TAG_NODE_STREAM = 6;
 /**
  * BufBlockTagInteriorStream is the SYNTHETIC ext-host-side tag for a decoded per-node
  * INTERIOR stream frame (that node's OWN Update goroutine writes its interior beads to its
- * own fd — see Buffer/stream_fds.go's StreamKindInterior / Buffer/node_stream_frame.go's
+ * own fd — see Buffer/streamframe/stream_fds.go's StreamKindInterior / Buffer/streamframe/node_stream_frame.go's
  * BuildInteriorStreamFrame). NEVER a wire tag byte on the dedicated fd itself. Relayed
  * under the same "buffer-snapshot" shape as BufBlockTagNodeStream, plus a `row` field (one
  * per node row, same numbering as BufBlockTagNodeStream, a SEPARATE goroutine's fd).
@@ -94,7 +94,7 @@ export const BUF_BLOCK_TAG_INTERIOR_STREAM = 7;
 
 /**
  * BufNodeStreamFrameHeaderSize is the byte width of the leading header on one node's
- * combined per-fd frame (Buffer.BuildNodeStreamFrame), before the Node row:
+ * combined per-fd frame (streamframe.BuildNodeStreamFrame), before the Node row:
  * [tick:u32][labelLen:u32][chainBeadCount:u32]. No port section any
  * more (docs/bead-model/channels-not-ports.md — a port carries no geometry, so there is no portCount/
  * portNameBytesCount to size).
@@ -105,7 +105,7 @@ export const BUF_NODE_STREAM_FRAME_HEADER_SIZE = 12;
 
 /**
  * BufInteriorStreamFrameHeaderSize is the byte width of the leading header on one node's
- * INTERIOR per-fd frame (Buffer.BuildInteriorStreamFrame), before the interior rows:
+ * INTERIOR per-fd frame (streamframe.BuildInteriorStreamFrame), before the interior rows:
  * [tick:u32]. Followed by a FIXED BufInteriorSlotsPerNode × BufInteriorStride bytes (no
  * count — the decoder derives the length from the fixed per-node slot count, same as the
  * combined Interior block).

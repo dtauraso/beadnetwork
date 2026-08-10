@@ -3,10 +3,10 @@ set -euo pipefail
 
 # check-stream-kind-ts-parity.sh — a stream KIND declared in Go must exist on the TS side.
 #
-# PLACEMENT: Buffer/stream_fds.go,tools/topology-vscode/src/runCommand.ts,tools/topology-vscode/src/runner/stream-fds.ts,tools/topology-vscode/src/runner/spawn-layout.ts,tools/topology-vscode/src/runner/stream-demux.ts | a new StreamKind must gain a WIREFOLD_STREAM_FDS env entry (runner/spawn-layout.ts builds the string, runCommand.ts's spawn env assigns it) and its own handle<Kind>Fd reader (runner/stream-demux.ts) in the ext host
+# PLACEMENT: Buffer/streamframe/stream_fds.go,tools/topology-vscode/src/runCommand.ts,tools/topology-vscode/src/runner/stream-fds.ts,tools/topology-vscode/src/runner/spawn-layout.ts,tools/topology-vscode/src/runner/stream-demux.ts | a new StreamKind must gain a WIREFOLD_STREAM_FDS env entry (runner/spawn-layout.ts builds the string, runCommand.ts's spawn env assigns it) and its own handle<Kind>Fd reader (runner/stream-demux.ts) in the ext host
 #
 # THE BUG THIS EXISTS FOR. The "one inherited stdio pipe per emitting goroutine" transport
-# is agreed BY POSITION and BY NAME, with no runtime negotiation (Buffer/stream_fds.go's
+# is agreed BY POSITION and BY NAME, with no runtime negotiation (Buffer/streamframe/stream_fds.go's
 # header): the ext host computes a base fd per stream KIND, spells the kind name into
 # WIREFOLD_STREAM_FDS, and attaches one reader per fd. Go then looks its own kind up in
 # that env var and, when the entry is ABSENT, silently no-ops — every mover of that kind
@@ -36,7 +36,7 @@ set -euo pipefail
 #   - No per-kind TABLE in webview/snapshot-buffer.ts is checked. The kind→table mapping is
 #     genuinely NOT one-per-kind: view has no row table at all (singleton), and drive
 #     deliberately shares interior's table (a drive-slot frame IS an interior-shaped frame,
-#     last-writer-wins — see Buffer/stream_fds.go's StreamKindDrive). Asserting a table per
+#     last-writer-wins — see Buffer/streamframe/stream_fds.go's StreamKindDrive). Asserting a table per
 #     kind would false-fail on the tree as it stands.
 #   - No per-kind FRAME TAG in src/schema/frame-tags.ts is checked, for the same reason:
 #     drive reuses BUF_BLOCK_TAG_INTERIOR_STREAM.

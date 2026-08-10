@@ -53,7 +53,7 @@ const BufInteriorSlotsPerNode = 4
 // files and a tautological test asserting the constants equal themselves.
 // The REAL per-tick event kind byte written into the buffer (EVENT block Kind
 // column, and the Node block's transient per-tick flags) is the INDEX into
-// T.TraceEventKinds (Buffer/stream_events.go buildKindIDMap: Recv=0, Fire=1,
+// T.TraceEventKinds (Buffer/streamframe/stream_events.go buildKindIDMap: Recv=0, Fire=1,
 // Send=2, EdgeBead=3, Geometry=4, NodeGeometry=5, Arrive=6, NodeBead=7, …) —
 // an entirely different, already-correct numbering that has nothing to do
 // with the deleted enum. Do not reintroduce a parallel BufEvent* enum; if a

@@ -15,7 +15,7 @@ import (
 // edgeBeadTraceEnabled gates whether stepAll appends a T.KindEdgeBead pendingWireEvent
 // for every in-flight bead every tick. It is read ONCE at process startup from the
 // WIREFOLD_EDGE_BEAD_TRACE env var (same "one env var, read once before any wire
-// goroutine exists" shape as Buffer/stream_fds.go's WIREFOLD_STREAM_FDS) -- never
+// goroutine exists" shape as Buffer/streamframe/stream_fds.go's WIREFOLD_STREAM_FDS) -- never
 // re-read per tick, so this package-level bool is race-free by construction (written
 // once at init, before any PacedWire goroutine starts; see
 // memory/feedback_no_atomics_are_defects.md). Default (env var absent/unset/anything

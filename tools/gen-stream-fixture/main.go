@@ -4,7 +4,7 @@
 // gap this closes).
 //
 // It builds real per-owner stream-frame bytes with the REAL production packers
-// (Buffer.BuildNodeStreamFrame / BuildEdgeStreamFrame / BuildInteriorStreamFrame), using
+// (streamframe.BuildNodeStreamFrame / BuildEdgeStreamFrame / BuildInteriorStreamFrame), using
 // distinctive, all-different field values, and emits a JSON fixture:
 //
 //	{"nodeFrame": {...fields..., "hex": "..."},
@@ -31,7 +31,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/dtauraso/wirefold/Buffer"
+	streamframe "github.com/dtauraso/wirefold/Buffer/streamframe"
 )
 
 // chainBeadFixture is ONE node-local chain-bead offset row (Buffer bufLayoutChainBead).
@@ -159,7 +159,7 @@ func buildNodeFrame() nodeFrameFixture {
 		chainOX[i], chainOY[i], chainOZ[i], chainLit[i], chainLitVal[i] = cb.OX, cb.OY, cb.OZ, cb.Lit, cb.LitValue
 	}
 
-	raw := Buffer.BuildNodeStreamFrame(Buffer.NodeStreamFrame{
+	raw := streamframe.BuildNodeStreamFrame(streamframe.NodeStreamFrame{
 		Tick:                  f.Tick,
 		NodeRow:               f.NodeRow,
 		NodeID:                f.NodeId,
@@ -208,7 +208,7 @@ func buildEdgeFrame() edgeFrameFixture {
 		Tick: 8181, SX: 12.5, SY: -13.25, SZ: 14.125, EX: 34.5, EY: -35.25, EZ: 36.125,
 		Selected: 1, Label: "edgeLabel",
 	}
-	raw := Buffer.BuildEdgeStreamFrame(f.Tick, f.SX, f.SY, f.SZ, f.EX, f.EY, f.EZ, f.Selected, f.Label, nil)
+	raw := streamframe.BuildEdgeStreamFrame(f.Tick, f.SX, f.SY, f.SZ, f.EX, f.EY, f.EZ, f.Selected, f.Label, nil)
 	f.Hex = hex.EncodeToString(raw)
 	return f
 }
@@ -226,7 +226,7 @@ func buildInteriorFrame() interiorFrameFixture {
 	for i, p := range f.Present {
 		present[i] = uint8(p)
 	}
-	raw := Buffer.BuildInteriorStreamFrame(f.Tick, present, f.Value, f.OX, f.OY, f.OZ, nil)
+	raw := streamframe.BuildInteriorStreamFrame(f.Tick, present, f.Value, f.OX, f.OY, f.OZ, nil)
 	f.Hex = hex.EncodeToString(raw)
 	return f
 }

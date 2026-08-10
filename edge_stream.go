@@ -6,7 +6,7 @@ import (
 
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
-	B "github.com/dtauraso/wirefold/Buffer"
+	SF "github.com/dtauraso/wirefold/Buffer/streamframe"
 	W "github.com/dtauraso/wirefold/nodes/Wiring"
 )
 
@@ -36,24 +36,24 @@ import (
 //
 // Not fatal: a deliberate no-fd launch (headless runs, tools with no dedicated pipes)
 // is legitimate input, exactly like a large topology. Loud, not dead.
-func wireEdgeStreams(streamFDs B.StreamFDs, md *W.MoveDispatch) {
-	if _, edgeFDsWired := streamFDs[B.StreamKindEdge]; !edgeFDsWired {
+func wireEdgeStreams(streamFDs SF.StreamFDs, md *W.MoveDispatch) {
+	if _, edgeFDsWired := streamFDs[SF.StreamKindEdge]; !edgeFDsWired {
 		if n := len(md.EdgeSeeds()); n > 0 {
 			fmt.Fprintf(os.Stderr,
 				"stream-fd mismatch: topology loaded %d edges but WIREFOLD_STREAM_FDS carries no %q entry; "+
 					"every edgeMover's stream stays nil, so NO EDGES will be drawn. If the editor was open "+
 					"across a rebuild, run \"Developer: Reload Window\" — reopening the file restarts only the "+
 					"webview, not the extension host that allocates these fds.\n",
-				n, B.StreamKindEdge)
+				n, SF.StreamKindEdge)
 		}
 	}
-	if edgeBase, ok := streamFDs[B.StreamKindEdge]; ok {
+	if edgeBase, ok := streamFDs[SF.StreamKindEdge]; ok {
 		// Edge selection is no longer an injected lookup: each edgeMover owns its OWN
 		// selected bit, set via a moveMsgKindSelect message the gesture goroutine sends
 		// on select/deselect (MoveDispatch.sendEdgeSelect).
 		md.SetEdgeStreams(edgeBase, md.RT.NodeRowFor,
 			func(tick uint32, sx, sy, sz, ex, ey, ez float32, selected uint8, label string, events []wire.RowEvent) []byte {
-				return B.BuildEdgeStreamFrame(tick, sx, sy, sz, ex, ey, ez, selected, label, toStreamEvents(events))
+				return SF.BuildEdgeStreamFrame(tick, sx, sy, sz, ex, ey, ez, selected, label, toStreamEvents(events))
 			})
 	}
 }

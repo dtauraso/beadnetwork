@@ -35,7 +35,7 @@ type wireReadout struct {
 	Trace *T.Trace
 
 	// StreamsActive reports whether a real consumer is wired for this edge's
-	// pending-event buffer (Buffer/stream_fds.go's per-edge fd, via
+	// pending-event buffer (Buffer/streamframe/stream_fds.go's per-edge fd, via
 	// streamWiring.setEdgeStreams — see edgeMover.streamOut). Set EXACTLY ONCE,
 	// through PacedWire.SetStreamsActive, at wiring time BEFORE this edge's mover
 	// goroutine launches (the same "wire before launch, read-only afterward"

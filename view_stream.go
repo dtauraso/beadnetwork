@@ -6,6 +6,7 @@ import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	B "github.com/dtauraso/wirefold/Buffer"
+	SF "github.com/dtauraso/wirefold/Buffer/streamframe"
 	W "github.com/dtauraso/wirefold/nodes/Wiring"
 )
 
@@ -31,7 +32,7 @@ func wireViewStream(md *W.MoveDispatch, viewFile *os.File, viewStreamWired bool,
 				sceneCX, sceneCY, sceneCZ, sceneRadius float32,
 				events []wire.RowEvent,
 			) []byte {
-				return B.BuildViewStreamFrame(tick,
+				return SF.BuildViewStreamFrame(tick,
 					camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi,
 					B.OverlayRow{
 						SceneTori: flags.SceneTori, ScenePoles: flags.ScenePoles, NodePoles: flags.NodePoles,

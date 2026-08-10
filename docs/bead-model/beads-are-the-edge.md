@@ -80,7 +80,7 @@ Measured on this branch:
 - `nodes/wire/paced_wire.go` — **781 lines**, referenced by **39 files** (16 non-test):
   `Trace/Trace.go`, `nodes/wire/{ports,geometry}.go`, `nodes/input/node.go`,
   `nodes/Wiring/{gesture,topo_spec,build,stream_wiring,edge_mover,loader,node_mover,stdin_reader,input_codec,port_bindings}.go`,
-  `Buffer/edge_stream_frame.go`.
+  `Buffer/streamframe/edge_stream_frame.go`.
 - `edgeMover` / `StreamKindEdge` touch **35 files**.
 
 This is the largest change since the per-owner buffer split. It is not a rendering tweak.
@@ -94,14 +94,14 @@ that owns that edge, see open question 1).
 
 That reaches further than the network:
 
-- `topology/counts.json` and the fd layout (`Buffer/stream_fds.go`, `WIREFOLD_STREAM_FDS`)
+- `topology/counts.json` and the fd layout (`Buffer/streamframe/stream_fds.go`, `WIREFOLD_STREAM_FDS`)
 - `tools/topology-vscode/src/runCommand.ts`'s fixed fd allocation and its per-edge
   last-frame cache
 - the headless harness's spawn (`headless_stream_helpers_test.go`) and
   `TestHeadlessEdgeFdDedicatedStream`, which exists precisely to prove edges reach their own
   fd — that test does not get fixed, it gets **deleted**, because the invariant it guards
   stops being true
-- `Buffer/edge_stream_frame.go` and the Edge/Bead blocks
+- `Buffer/streamframe/edge_stream_frame.go` and the Edge/Bead blocks
 
 **Decide this before writing code**, because it determines whether this is one change or two:
 does the edge stream disappear in the same commit as the wire goroutine, or does the edge

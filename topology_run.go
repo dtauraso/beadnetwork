@@ -7,7 +7,7 @@ import (
 
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
-	B "github.com/dtauraso/wirefold/Buffer"
+	SF "github.com/dtauraso/wirefold/Buffer/streamframe"
 	T "github.com/dtauraso/wirefold/Trace"
 	W "github.com/dtauraso/wirefold/nodes/Wiring"
 )
@@ -22,11 +22,11 @@ func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 	// The VIEW stream (camera+overlay+scene, one singleton row) — per-owner buffer rows
 	// (memory/feedback_no_single_writer_bridge.md, memory/feedback_no_single_writer_bridge.md): WIREFOLD_STREAM_FDS
 	// is now MANDATORY (the old central accumulator + fallback packer were deleted along
-	// with this migration's final step — see Buffer/stream_fds.go). The gesture/stdin-reader
+	// with this migration's final step — see Buffer/streamframe/stream_fds.go). The gesture/stdin-reader
 	// goroutine (nodes/Wiring's MoveDispatch, wired below once it exists) is the sole WRITER of
 	// this stream.
-	streamFDs := B.ParseStreamFDs(os.Getenv("WIREFOLD_STREAM_FDS"))
-	viewFile, viewStreamWired := streamFDs.Open(B.StreamKindView, 0)
+	streamFDs := SF.ParseStreamFDs(os.Getenv("WIREFOLD_STREAM_FDS"))
+	viewFile, viewStreamWired := streamFDs.Open(SF.StreamKindView, 0)
 	// Trace is now just the breadcrumb writer (the central event channel/drain and the
 	// -trace JSONL dump were deleted — memory/feedback_no_single_writer_bridge.md's final step: every
 	// emitting goroutine packs its own frame directly; see Trace/Trace.go's doc comment).

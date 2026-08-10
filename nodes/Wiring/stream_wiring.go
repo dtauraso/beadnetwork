@@ -57,7 +57,7 @@ type streamWiring struct {
 	// memory/feedback_no_single_writer_bridge.md Step C) --- see view_stream.go.
 	//
 	// viewOut, when Ok(), is the VIEW stream's OWN dedicated fd (see SetViewStream /
-	// Buffer/stream_fds.go's StreamKindView). A dead claimedStream (the default — no
+	// Buffer/streamframe/stream_fds.go's StreamKindView). A dead claimedStream (the default — no
 	// WIREFOLD_STREAM_FDS "view" entry, e.g. headless tests, OR a rejected second
 	// SetViewStream claim — see stream_claim.go) means emitViewFrame is a no-op: nothing
 	// here ever writes, and camera/overlay/scene are simply never emitted. Written ONLY

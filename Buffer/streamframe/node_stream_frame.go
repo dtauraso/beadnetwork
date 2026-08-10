@@ -1,5 +1,5 @@
-// Buffer/node_stream_frame.go — the per-node dedicated-stream frame packers (see
-// Buffer/stream_fds.go's StreamKindNode/StreamKindInterior doc comments and
+// Buffer/streamframe/node_stream_frame.go — the per-node dedicated-stream frame packers (see
+// Buffer/streamframe/stream_fds.go's StreamKindNode/StreamKindInterior doc comments and
 // memory/feedback_no_single_writer_bridge.md). Two frames, one per emitting goroutine:
 //
 //   - BuildNodeStreamFrame is written by ONE node's nodeMover goroutine — its own Node row
@@ -16,11 +16,13 @@
 // maps Wiring.RowEvent → Buffer.StreamEvent for the same reason). BuildInteriorStreamFrame
 // and BuildEdgeStreamFrame keep plain parallel slices/scalars: their parameter lists are
 // short and not a long run of same-typed values.
-package Buffer
+package streamframe
 
 import (
 	"encoding/binary"
 	"fmt"
+
+	B "github.com/dtauraso/wirefold/Buffer"
 )
 
 // NodeStreamFrame is BuildNodeStreamFrame's single named-field input — one node's own
@@ -122,7 +124,7 @@ type NodeStreamFrame struct {
 //
 // The Port block/section is GONE (docs/bead-model/channels-not-ports.md): a port is a load-time
 // channel-binding ROLE, never a place, so it has no row here any more. An edge's own
-// endpoints ride the Edge block's SX..EZ instead (Buffer/edge_stream_frame.go).
+// endpoints ride the Edge block's SX..EZ instead (Buffer/streamframe/edge_stream_frame.go).
 func BuildNodeStreamFrame(f NodeStreamFrame) []byte {
 	labelBytes := []byte(f.Label)
 	chainBeadCount := len(f.ChainBeadOX)
@@ -139,8 +141,8 @@ func BuildNodeStreamFrame(f NodeStreamFrame) []byte {
 		}
 	}
 
-	size := BufNodeStreamFrameHeaderSize + BufNodeStride + len(labelBytes) +
-		chainBeadCount*BufChainBeadStride
+	size := B.BufNodeStreamFrameHeaderSize + B.BufNodeStride + len(labelBytes) +
+		chainBeadCount*B.BufChainBeadStride
 	buf := make([]byte, size)
 	off := 0
 	binary.LittleEndian.PutUint32(buf[off:], f.Tick)
@@ -150,18 +152,18 @@ func BuildNodeStreamFrame(f NodeStreamFrame) []byte {
 	binary.LittleEndian.PutUint32(buf[off:], uint32(chainBeadCount))
 	off += 4
 
-	SetNodeRow(buf[off:off+BufNodeStride], 0, f.NodeID, f.CX, f.CY, f.CZ, f.Radius, f.SphereR, f.VRX, f.VRY, f.VRZ, f.FRX, f.FRY, f.FRZ,
+	B.SetNodeRow(buf[off:off+B.BufNodeStride], 0, f.NodeID, f.CX, f.CY, f.CZ, f.Radius, f.SphereR, f.VRX, f.VRY, f.VRZ, f.FRX, f.FRY, f.FRZ,
 		f.PoleTheta, f.PolePhi, f.RingAxisTheta, f.RingAxisPhi, f.TopTiltVectorLen, f.TopTiltVectorTheta, f.BottomTiltVectorTheta, f.CoplanarNormalTheta, f.ReceivedVectorLen, f.ReceivedVectorTheta, f.Selected, f.KindID, 0, uint32(len(labelBytes)), f.Hovered, f.LatchedSel, f.LatticePoints, f.RoundsToParallel, f.MsgsToParallel)
-	off += BufNodeStride
+	off += B.BufNodeStride
 
 	copy(buf[off:off+len(labelBytes)], labelBytes)
 	off += len(labelBytes)
 
 	for i := 0; i < chainBeadCount; i++ {
-		rowOff := off + i*BufChainBeadStride
-		SetChainBeadRow(buf[rowOff:rowOff+BufChainBeadStride], 0, f.ChainBeadOX[i], f.ChainBeadOY[i], f.ChainBeadOZ[i], f.ChainBeadLit[i], f.ChainBeadLitValue[i])
+		rowOff := off + i*B.BufChainBeadStride
+		B.SetChainBeadRow(buf[rowOff:rowOff+B.BufChainBeadStride], 0, f.ChainBeadOX[i], f.ChainBeadOY[i], f.ChainBeadOZ[i], f.ChainBeadLit[i], f.ChainBeadLitValue[i])
 	}
-	off += chainBeadCount * BufChainBeadStride
+	off += chainBeadCount * B.BufChainBeadStride
 
 	// INVARIANT: the walk that WRITES the frame ends exactly where the `size` formula that
 	// ALLOCATED it says it should. This is the runtime half of buffer-layout parity —
@@ -202,11 +204,11 @@ func BuildInteriorStreamFrame(tick uint32, present []uint8, value []int32, ox, o
 				n, s.name, s.n))
 		}
 	}
-	buf := make([]byte, BufInteriorStreamFrameHeaderSize+n*BufInteriorStride)
+	buf := make([]byte, B.BufInteriorStreamFrameHeaderSize+n*B.BufInteriorStride)
 	binary.LittleEndian.PutUint32(buf[0:], tick)
 	interiorBuf := buf[4:]
 	for i := 0; i < n; i++ {
-		SetInteriorRow(interiorBuf, i, present[i], value[i], ox[i], oy[i], oz[i])
+		B.SetInteriorRow(interiorBuf, i, present[i], value[i], ox[i], oy[i], oz[i])
 	}
 	return append(buf, BuildEventsSection(events)...)
 }

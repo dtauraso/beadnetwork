@@ -31,7 +31,7 @@ to find what a *live* editor session does differently.
 ## 1. Who writes the interior fd — REPRODUCED VIOLATION
 
 The model requires one writer per fd (`memory/feedback_no_single_writer_bridge.md`,
-`Buffer/stream_fds.go`'s `StreamKindInterior` doc comment: "written by that node's OWN
+`Buffer/streamframe/stream_fds.go`'s `StreamKindInterior` doc comment: "written by that node's OWN
 Update goroutine"). That invariant is **violated by construction** for every node kind that
 uses `gatecommon.DriveHeld` — `Pulse`, `PulseLeft`, `PulseRight`, `holdflip`, `Time`,
 `TimeStart` (`nodes/gatecommon/drive.go`).
@@ -72,12 +72,12 @@ not inside one.
 
 ## 3. The events section — checked, not the cause
 
-`BuildEventsSection` (`Buffer/stream_events.go`) allocates
+`BuildEventsSection` (`Buffer/streamframe/stream_events.go`) allocates
 `4 + len(events)*BufEventStride + textLen` bytes and returns exactly that many — the
 declared `[count:u32]` plus per-row `TextOff/TextLen` columns are computed from the SAME
 `textBytes` slice that gets appended, so the returned buffer's actual length always equals
 what the header will declare (`writeInteriorStreamFrame` writes `len(frame)`, where `frame`
-is that exact returned/appended byte slice — `Buffer/node_stream_frame.go:140-163`). The
+is that exact returned/appended byte slice — `Buffer/streamframe/node_stream_frame.go:140-163`). The
 prior note that the *headless test's* length formula ignores event Text bytes describes a
 gap in that ONE test's arithmetic, not in the production writer — the writer never computes
 a length formula at all, it measures the real slice. `main.go`'s `toStreamEvents` also
@@ -138,7 +138,7 @@ through the node's own Update goroutine (that would still be a real option under
 model, but the per-fd shape was chosen as the more direct fix and matches how `interior`
 itself was already split out from the old fd-3 accumulator).
 
-**New stream kind: `drive`** (`Buffer.StreamKindDrive`, `Buffer/stream_fds.go`). One
+**New stream kind: `drive`** (`Buffer.StreamKindDrive`, `Buffer/streamframe/stream_fds.go`). One
 dedicated fd per **(node row, drive slot)** — `fd = baseFd["drive"] + nodeRow*
 DriveSlotsPerNode + slot`, `DriveSlotsPerNode = 2` (the current max: `Pulse` drives both
 `Out` and `OutFanout`; every other `DriveHeld`-driving kind — `PulseLeft`, `PulseRight`,

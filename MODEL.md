@@ -144,7 +144,7 @@ mistake to avoid (chain_beads.go's own header comment makes the same split):
   holds them in node-local state until its firing rule is satisfied,
   then fires. There is no held-value slot in this model sense — node-local held
   state replaces it. (This is a different concept from the buffer's `Slot`
-  column — `nodes/wire/owner_events.go`, `Buffer/stream_events.go`,
+  column — `nodes/wire/owner_events.go`, `Buffer/streamframe/stream_events.go`,
   `Buffer/layout.go` — which is a live 2x2 interior VISUAL grid position,
   slot = gridRow*2 + gridCol, for where a held bead is drawn inside a node.)
 - **Input port.** A ROLE, not a place (`docs/bead-model/channels-not-ports.md`): declared by the
@@ -296,13 +296,13 @@ when a bead has arrived. Go owns the clock.
   parameters, camera pose, selection, and overlay visibility. There is no
   single combined buffer or central packer: each emitting goroutine packs
   and streams its OWN binary content buffer to its OWN dedicated inherited
-  stdio pipe (`Buffer/stream_fds.go`, memory/feedback_no_single_writer_bridge.md)
+  stdio pipe (`Buffer/streamframe/stream_fds.go`, memory/feedback_no_single_writer_bridge.md)
   — one VIEW stream (camera/overlay/scene, the gesture/stdin-reader
   goroutine), one stream per edge row (that edgeMover's own geometry + its
   wire's live beads), one stream per node row (that nodeMover's own
   geometry+ports+label), one INTERIOR stream per node row (that node's own
   Update-goroutine's interior beads — the ONLY writer of that node's four
-  interior slots), and a fixed `DriveSlotsPerNode` (`Buffer/stream_fds.go`)
+  interior slots), and a fixed `DriveSlotsPerNode` (`Buffer/streamframe/stream_fds.go`)
   of DRIVE streams per node row for any kind whose held value is driven by
   a separate `DriveHeld` goroutine (`Pulse`/`PulseLeft`/`PulseRight`/
   `holdflip`) — a second goroutine that must never share the interior

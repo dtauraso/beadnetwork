@@ -7,6 +7,7 @@ import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	B "github.com/dtauraso/wirefold/Buffer"
+	SF "github.com/dtauraso/wirefold/Buffer/streamframe"
 	W "github.com/dtauraso/wirefold/nodes/Wiring"
 )
 
@@ -32,20 +33,20 @@ import (
 // needs it exactly as much as it needs "interior", or that goroutine falls back to
 // writing nothing (a quieter failure than the pre-fix framing desync, but still a
 // silent one) rather than sharing the node's own interior fd (the original bug).
-func wireNodeStreams(streamFDs B.StreamFDs, md *W.MoveDispatch) {
-	_, nodeFDsWired := streamFDs[B.StreamKindNode]
-	_, interiorFDsWired := streamFDs[B.StreamKindInterior]
-	_, driveFDsWired := streamFDs[B.StreamKindDrive]
+func wireNodeStreams(streamFDs SF.StreamFDs, md *W.MoveDispatch) {
+	_, nodeFDsWired := streamFDs[SF.StreamKindNode]
+	_, interiorFDsWired := streamFDs[SF.StreamKindInterior]
+	_, driveFDsWired := streamFDs[SF.StreamKindDrive]
 	if nodeFDsWired != interiorFDsWired || nodeFDsWired != driveFDsWired {
 		fmt.Fprintf(os.Stderr,
 			"stream-fd mismatch: WIREFOLD_STREAM_FDS carries %q=%t, %q=%t, %q=%t; all three are "+
 				"required together, so ALL THREE per-node streams stay unwired and node geometry/"+
 				"interior beads/drive-goroutine sends will not be drawn.\n",
-			B.StreamKindNode, nodeFDsWired, B.StreamKindInterior, interiorFDsWired, B.StreamKindDrive, driveFDsWired)
+			SF.StreamKindNode, nodeFDsWired, SF.StreamKindInterior, interiorFDsWired, SF.StreamKindDrive, driveFDsWired)
 	}
-	if nodeBase, ok := streamFDs[B.StreamKindNode]; ok {
-		if interiorBase, ok2 := streamFDs[B.StreamKindInterior]; ok2 {
-			driveBase, driveWired := streamFDs[B.StreamKindDrive]
+	if nodeBase, ok := streamFDs[SF.StreamKindNode]; ok {
+		if interiorBase, ok2 := streamFDs[SF.StreamKindInterior]; ok2 {
+			driveBase, driveWired := streamFDs[SF.StreamKindDrive]
 			if !driveWired {
 				driveBase = 0
 			}
@@ -62,7 +63,7 @@ func wireNodeStreams(streamFDs B.StreamFDs, md *W.MoveDispatch) {
 				// Two structs, one per side, so a transposition is a wrong field name
 				// rather than a silently wrong scene.
 				func(f W.NodeFrameInput) []byte {
-					return B.BuildNodeStreamFrame(B.NodeStreamFrame{
+					return SF.BuildNodeStreamFrame(SF.NodeStreamFrame{
 						Tick:                  f.Tick,
 						NodeRow:               f.NodeRow,
 						NodeID:                f.NodeID,
@@ -104,7 +105,7 @@ func wireNodeStreams(streamFDs B.StreamFDs, md *W.MoveDispatch) {
 					})
 				},
 				func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte {
-					return B.BuildInteriorStreamFrame(tick, present, value, ox, oy, oz, toStreamEvents(events))
+					return SF.BuildInteriorStreamFrame(tick, present, value, ox, oy, oz, toStreamEvents(events))
 				},
 				B.NodeKindID)
 		}

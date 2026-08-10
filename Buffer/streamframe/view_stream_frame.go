@@ -1,5 +1,5 @@
-// Buffer/view_stream_frame.go — the VIEW stream's dedicated-frame packer (see
-// Buffer/stream_fds.go's StreamKindView doc comment and
+// Buffer/streamframe/view_stream_frame.go — the VIEW stream's dedicated-frame packer (see
+// Buffer/streamframe/stream_fds.go's StreamKindView doc comment and
 // memory/feedback_no_single_writer_bridge.md). Step C of retiring the old central
 // accumulator (memory/feedback_no_single_writer_bridge.md): the
 // gesture/stdin-reader goroutine (nodes/Wiring's MoveDispatch) already owns camera/overlay/
@@ -12,9 +12,13 @@
 // BuildNodeStreamFrame/BuildEdgeStreamFrame's shape, so the emitting side (nodes/Wiring)
 // needs only this one plain function, injected from main.go (which imports Buffer), to
 // stay Buffer-independent itself.
-package Buffer
+package streamframe
 
-import "encoding/binary"
+import (
+	"encoding/binary"
+
+	B "github.com/dtauraso/wirefold/Buffer"
+)
 
 // BuildViewStreamFrame packs the VIEW stream's own frame payload (no outer tag byte — the
 // fd position already identifies the stream):
@@ -32,19 +36,19 @@ import "encoding/binary"
 // bookkeeping, so nothing may follow them).
 func BuildViewStreamFrame(tick uint32,
 	camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
-	overlay OverlayRow,
+	overlay B.OverlayRow,
 	sceneCX, sceneCY, sceneCZ, sceneRadius float32,
 	tabNames []string, tabSelected uint16,
 	events []StreamEvent,
 ) []byte {
-	buf := make([]byte, BufViewFrameHeaderSize+BufCameraStride+BufOverlayStride+BufSceneStride)
+	buf := make([]byte, B.BufViewFrameHeaderSize+B.BufCameraStride+B.BufOverlayStride+B.BufSceneStride)
 	binary.LittleEndian.PutUint32(buf[0:], tick)
-	off := BufViewFrameHeaderSize
-	SetCameraRow(buf[off:], camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi)
-	off += BufCameraStride
-	SetOverlayRow(buf[off:], overlay)
-	off += BufOverlayStride
-	SetSceneRow(buf[off:], sceneCX, sceneCY, sceneCZ, sceneRadius)
+	off := B.BufViewFrameHeaderSize
+	B.SetCameraRow(buf[off:], camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi)
+	off += B.BufCameraStride
+	B.SetOverlayRow(buf[off:], overlay)
+	off += B.BufOverlayStride
+	B.SetSceneRow(buf[off:], sceneCX, sceneCY, sceneCZ, sceneRadius)
 	buf = append(buf, BuildSceneTabsSection(tabNames, tabSelected)...)
 	return append(buf, BuildEventsSection(events)...)
 }
