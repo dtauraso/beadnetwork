@@ -13,7 +13,11 @@
 //
 // Pure helpers — B3 wires these into position computation; no behavior change here.
 
-package Wiring
+package sphere
+
+import wire "github.com/dtauraso/wirefold/nodes/wire"
+
+type vec3 = wire.Vec3
 
 // projectToSphere returns the point on the sphere of radius R centered at
 // `center` that lies along the direction from `center` toward `neighborPos`:
