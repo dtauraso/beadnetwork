@@ -21,14 +21,14 @@ const bufInteriorSlotsPerNode = 4
 
 // newInteriorStreamGetter returns a func() *interior.InteriorStream that lazily builds
 // (exactly once) and thereafter always returns THIS node's one dedicated
-// interior-stream instance from pb.md.sw.interiorOuts — so every closure/port
+// interior-stream instance from *pb.interiorOuts — so every closure/port
 // belonging to this node (EmitNodeBeads/EmitHeldBead/EmitInputBeads via
 // injectClosures, and Fire/Recv/Send via the Fire closure and In/Out — see
 // wirePorts) shares the SAME instance, and therefore the same cached last-known
 // bead-slot snapshot (interiorStream.lastPresent's doc comment) a Fire/Recv/Send
 // event needs to flush a valid frame between bead-state changes.
 //
-// Lazy because pb.md.sw.interiorOuts is only populated by main.go AFTER LoadTopology
+// Lazy because *pb.interiorOuts is only populated by main.go AFTER LoadTopology
 // returns (i.e. after this node's own construction runs) — see the prior
 // buildInteriorStream doc comment this replaces. The returned func's first REAL
 // call is always made from this node's OWN Update goroutine (after node-goroutine
@@ -43,18 +43,18 @@ func newInteriorStreamGetter(name string, pb PortBindings) func() *interior.Inte
 			return stream
 		}
 		built = true
-		if pb.md == nil || pb.md.sw.interiorOuts == nil {
+		if pb.interiorOuts == nil || *pb.interiorOuts == nil {
 			return nil
 		}
-		out, ok := pb.md.sw.interiorOuts[name]
-		if !ok || out == nil || pb.md.sw.buildInteriorFrame == nil {
+		out, ok := (*pb.interiorOuts)[name]
+		if !ok || out == nil || pb.buildInteriorFrame == nil || *pb.buildInteriorFrame == nil {
 			return nil
 		}
 		nodeRow := int32(-1)
-		if r, ok := pb.md.RT.NodeRowFor(name); ok {
+		if r, ok := pb.rt.NodeRowFor(name); ok {
 			nodeRow = r
 		}
-		stream = interior.NewInteriorStream(out, pb.md.sw.buildInteriorFrame, nodeRow, bufInteriorSlotsPerNode)
+		stream = interior.NewInteriorStream(out, *pb.buildInteriorFrame, nodeRow, bufInteriorSlotsPerNode)
 		return stream
 	}
 }
@@ -64,10 +64,10 @@ func newInteriorStreamGetter(name string, pb PortBindings) func() *interior.Inte
 // framing.md) — the fix for the framing desync that getter's doc comment describes:
 // a DriveHeld goroutine used to record its Send events through the SAME *interior.InteriorStream
 // the node's own Update goroutine writes, which is exactly the two-goroutines-one-fd
-// violation that corrupted framing. This getter instead resolves pb.md.sw.driveOuts[name]
+// violation that corrupted framing. This getter instead resolves (*pb.driveOuts)[name]
 // [slot] — a DIFFERENT fd, dedicated to this one drive slot — so the Out a caller builds
 // via BuildArgs.DriveOut never shares a stream instance with the node's own getStream.
-// Lazy-cache-once for the SAME reason newInteriorStreamGetter is: pb.md.sw.driveOuts is
+// Lazy-cache-once for the SAME reason newInteriorStreamGetter is: *pb.driveOuts is
 // only populated by main.go after LoadTopology returns, and the first real call is always
 // made from this node's own Update goroutine (the goroutine that then spawns the
 // DriveHeld goroutine using the *wire.Out this getter feeds — no data race, since the
@@ -81,18 +81,18 @@ func newDriveStreamGetter(name string, slot int, pb PortBindings) func() *interi
 			return stream
 		}
 		built = true
-		if pb.md == nil || pb.md.sw.driveOuts == nil {
+		if pb.driveOuts == nil || *pb.driveOuts == nil {
 			return nil
 		}
-		slots, ok := pb.md.sw.driveOuts[name]
-		if !ok || slot < 0 || slot >= len(slots) || slots[slot] == nil || pb.md.sw.buildInteriorFrame == nil {
+		slots, ok := (*pb.driveOuts)[name]
+		if !ok || slot < 0 || slot >= len(slots) || slots[slot] == nil || pb.buildInteriorFrame == nil || *pb.buildInteriorFrame == nil {
 			return nil
 		}
 		nodeRow := int32(-1)
-		if r, ok := pb.md.RT.NodeRowFor(name); ok {
+		if r, ok := pb.rt.NodeRowFor(name); ok {
 			nodeRow = r
 		}
-		stream = interior.NewInteriorStream(slots[slot], pb.md.sw.buildInteriorFrame, nodeRow, bufInteriorSlotsPerNode)
+		stream = interior.NewInteriorStream(slots[slot], *pb.buildInteriorFrame, nodeRow, bufInteriorSlotsPerNode)
 		return stream
 	}
 }
@@ -130,8 +130,8 @@ func newInPort(portName string, ctx context.Context, name string, pb PortBinding
 func newOutPort(portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, sourceOuts *[]*wire.Out, getStream func() *interior.InteriorStream) *wire.Out {
 	if b := pb.singlePaced[portName]; b.pw != nil {
 		targetRow := int32(-1)
-		if pb.md != nil && b.pw.Target != "" {
-			if r, ok := pb.md.RT.NodeRowFor(b.pw.Target); ok {
+		if b.pw.Target != "" {
+			if r, ok := pb.rt.NodeRowFor(b.pw.Target); ok {
 				targetRow = r
 			}
 		}
@@ -151,8 +151,8 @@ func newBroadcastPort(portName string, ctx context.Context, name string, pb Port
 		outs := make(wire.Broadcast, len(bs))
 		for i, b := range bs {
 			targetRow := int32(-1)
-			if pb.md != nil && b.pw.Target != "" {
-				if r, ok := pb.md.RT.NodeRowFor(b.pw.Target); ok {
+			if b.pw.Target != "" {
+				if r, ok := pb.rt.NodeRowFor(b.pw.Target); ok {
 					targetRow = r
 				}
 			}

@@ -6,10 +6,21 @@
 package Wiring
 
 import (
+	"io"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
+
+// pbDriveSlotsPerNode is a local copy of stream_wiring.go's own driveSlotsPerNode/
+// Buffer.DriveSlotsPerNode (2) — kept here (under a different name, since both files are
+// still package Wiring today; the two collapse to one identifier once this file moves to
+// its own portwiring package) so this file's PortBindings.driveOuts field type matches
+// the array size streamWiring.driveOuts actually uses, the same "duplicate the small
+// constant" precedent bufInteriorSlotsPerNode (port_wiring.go) already follows.
+const pbDriveSlotsPerNode = 2
 
 // PortDir describes which direction a port flows.
 type PortDir int
@@ -59,14 +70,27 @@ type PortBindings struct {
 	// with no speed channel just never hears a speed change, same as it never
 	// had a clock to speed up before this plan).
 	speedSinks *[]chan float64
-	// md, when non-nil, gives injectClosures's interior-bead Emit* closures access to
-	// this node's OWN dedicated interior fd (md.sw.interiorOuts, keyed by node id) and the
-	// injected interior-frame builder (md.sw.buildInteriorFrame) — see
-	// MoveDispatch.SetNodeStreams / memory/feedback_no_single_writer_bridge.md. Set once
-	// per node at construction (loader.go's buildNodes: pb.md = b.md); nil in test builds
-	// with no loader, in which case the Emit* closures just skip the dedicated-stream
-	// write (tr.NodeBead alone, unchanged).
-	md *MoveDispatch
+	// rt is a COPY of the loader's row-identity tables (rowtables.RowTables), read only by
+	// NodeRowFor to resolve a node id to its buffer row for a stream frame's nodeRow field.
+	// Safe to copy by value: RowTables.Build runs once, before buildNodes (buildMoveDispatch
+	// precedes buildNodes — build.go), and is never mutated afterward (its own doc comment).
+	// Zero value (bare test builds with no loader) makes NodeRowFor always report ok=false,
+	// matching the old pb.md==nil fallback.
+	rt rowtables.RowTables
+	// interiorOuts/driveOuts/buildInteriorFrame give injectClosures's interior-bead Emit*
+	// closures (and BuildArgs.DriveOut) access to this node's OWN dedicated interior fd
+	// (keyed by node id) and drive-slot fds, plus the injected interior-frame builder — see
+	// MoveDispatch.SetNodeStreams / memory/feedback_no_single_writer_bridge.md. These are
+	// POINTERS to streamWiring's own fields (build_nodes.go's buildNodes: pb.interiorOuts =
+	// &b.md.sw.interiorOuts, etc.), not copies — SetNodeStreams populates the underlying
+	// maps/func LATE, only after LoadTopology returns (main.go), so a plain copy taken here
+	// (before that happens) would freeze at nil forever; the pointer indirection is what
+	// lets these getters see the values SetNodeStreams installs afterward. nil in test
+	// builds with no loader, in which case the Emit* closures just skip the dedicated-stream
+	// write (tr.NodeBead alone, unchanged) — same fallback shape as the old pb.md==nil check.
+	interiorOuts       *map[string]io.Writer
+	driveOuts          *map[string][pbDriveSlotsPerNode]io.Writer
+	buildInteriorFrame *func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte
 	// vectorOut/vectorIn, when non-nil, map a node id to the SEND/RECEIVE end of its
 	// own dedicated tilt-vector channel (tilt_vector_channel.go) — built once, for
 	// EVERY node in the whole load, by build.go's allocateVectorChannels phase and

@@ -7,10 +7,10 @@ package Wiring
 // LatticePointsSeed returns the scene's currently-loaded lattice point count
 // (md.ui.latticePoints, seeded from view/lattice.json by LoadLatticePoints BEFORE
 // buildNodes runs) — the load-time seed a node builds its FIRST ring at. nil-safe: on a
-// bare test build with no loader (a.pb.md == nil) this returns defaultLatticePoints (24),
+// bare test build with no loader (currentBuildMD == nil) this returns defaultLatticePoints (24),
 // matching every other build-time fallback in this file.
 func (a BuildArgs) LatticePointsSeed() int32 {
-	md := a.pb.md
+	md := currentBuildMD
 	if md == nil {
 		return defaultLatticePoints
 	}
@@ -21,12 +21,12 @@ func (a BuildArgs) LatticePointsSeed() int32 {
 // lattice-point-count change, registering it in MoveDispatch.latticeIns so
 // BroadcastLatticePoints (scene_lattice_persist.go) delivers a new count to this node.
 // Call this ONLY from a kind whose own goroutine owns its own lattice (PairNode) — every
-// other kind simply never calls this. nil-safe: a.pb.md is nil on a bare test build with
+// other kind simply never calls this. nil-safe: currentBuildMD is nil on a bare test build with
 // no loader, in which case this returns a channel that is never written to (PollRecv-style
 // non-blocking reads on it always find nothing, matching every other build-time fallback
 // in this file).
 func (a BuildArgs) LatticeIn() <-chan int32 {
-	md := a.pb.md
+	md := currentBuildMD
 	if md == nil {
 		return make(chan int32)
 	}

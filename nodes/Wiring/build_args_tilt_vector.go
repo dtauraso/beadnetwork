@@ -24,12 +24,12 @@ func (a BuildArgs) TiltVectorAngleSeed() (theta int32) {
 // applyUpdateTiltVector (stdin_reader.go) routes that node's edits HERE instead of to its
 // mover. Call this ONLY from a kind whose own goroutine independently owns/decides its
 // tilt index (PairNode) — every other kind must keep using the old mover-owned path by
-// simply never calling this. nil-safe: a.pb.md is nil on a bare test build with no
+// simply never calling this. nil-safe: currentBuildMD is nil on a bare test build with no
 // loader, in which case this returns a channel that is never written to (PollRecv-style
 // non-blocking reads on it always find nothing, matching every other build-time fallback
 // in this file).
 func (a BuildArgs) TiltEditIn() <-chan movemsg.TiltEditMsg {
-	md := a.pb.md
+	md := currentBuildMD
 	if md == nil {
 		return make(chan movemsg.TiltEditMsg)
 	}

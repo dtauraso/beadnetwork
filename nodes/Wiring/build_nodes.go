@@ -15,6 +15,15 @@ import (
 // earlier phases. outSink collects every paced source Out keyed by "node.handle"
 // so node-move can update per-edge travel-time on the Out.
 func (b *buildCtx) buildNodes() error {
+	// currentBuildMD gives BuildArgs methods that need more of MoveDispatch than
+	// PortBindings can portably carry (LatticePointsSeed/LatticeIn, TiltEditIn,
+	// ClaimSelfDrive — all Wiring-internal state: md.ui, md.inboxes, md.mr) a way to
+	// reach it without PortBindings holding a *MoveDispatch back-reference. Set once,
+	// here, before any node is built; buildNodes runs single-threaded (LoadTopology's
+	// build phase, before any node/mover goroutine exists — see RowTables' own doc
+	// comment for the same "built before Start" reasoning), so a package-level var read
+	// back by those methods is safe, matching Registry's own existing package-level state.
+	currentBuildMD = b.md
 	outSink := map[string]*wire.Out{}
 	nodes := make([]wire.Node, 0, len(b.spec.Nodes))
 	for _, n := range b.spec.Nodes {
@@ -26,13 +35,17 @@ func (b *buildCtx) buildNodes() error {
 		// onto the SAME build-wide accumulator, so LoadTopology's one returned
 		// list carries every clock-owning goroutine across the whole build.
 		pb.speedSinks = &b.speedSinks
-		// md gives injectClosures's interior-bead Emit* closures access to this node's
-		// OWN dedicated interior fd (md.sw.interiorOuts, keyed by node id) + the injected
-		// frame builder (md.sw.buildInteriorFrame) — the SECOND emitting goroutine per node
-		// (memory/feedback_no_single_writer_bridge.md). nil until SetNodeStreams runs
-		// (main.go, after LoadTopology returns); the Emit* closures nil-check both before
-		// writing and no-op until then.
-		pb.md = b.md
+		// interiorOuts/driveOuts/buildInteriorFrame give injectClosures's interior-bead
+		// Emit* closures access to this node's OWN dedicated interior fd (keyed by node
+		// id) + the injected frame builder — the SECOND emitting goroutine per node
+		// (memory/feedback_no_single_writer_bridge.md). These are POINTERS into b.md.sw's
+		// own fields (see PortBindings' doc comment for why): nil-checked before writing,
+		// and stay effectively nil (pointing at an empty/nil map) until SetNodeStreams
+		// runs (main.go, after LoadTopology returns).
+		pb.rt = b.md.RT
+		pb.interiorOuts = &b.md.sw.interiorOuts
+		pb.driveOuts = &b.md.sw.driveOuts
+		pb.buildInteriorFrame = &b.md.sw.buildInteriorFrame
 		pb.vectorOut = b.vectorOutByNode
 		pb.vectorIn = b.vectorInByNode
 

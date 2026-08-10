@@ -49,12 +49,11 @@ func TestDriveStreamNeverSharesNodesInteriorStream(t *testing.T) {
 	drive0W := &discardWriter{name: "drive-0"}
 	drive1W := &discardWriter{name: "drive-1"}
 
-	md := &MoveDispatch{}
-	md.sw.interiorOuts = map[string]io.Writer{"nodeA": interiorW}
-	md.sw.driveOuts = map[string][driveSlotsPerNode]io.Writer{"nodeA": {drive0W, drive1W}}
-	md.sw.buildInteriorFrame = testBuildInteriorFrame
+	interiorOuts := map[string]io.Writer{"nodeA": interiorW}
+	driveOuts := map[string][pbDriveSlotsPerNode]io.Writer{"nodeA": {drive0W, drive1W}}
+	var buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte = testBuildInteriorFrame
 
-	pb := PortBindings{md: md}
+	pb := PortBindings{interiorOuts: &interiorOuts, driveOuts: &driveOuts, buildInteriorFrame: &buildInteriorFrame}
 
 	interiorStreamFn := newInteriorStreamGetter("nodeA", pb)
 	drive0Fn := newDriveStreamGetter("nodeA", 0, pb)
@@ -93,12 +92,11 @@ func TestDriveStreamNeverSharesNodesInteriorStream(t *testing.T) {
 // (e.g. a kind that never calls DriveOut, or a slot beyond what a kind uses) gets nil, not
 // a stream aliasing something else.
 func TestDriveStreamAbsentWhenUnwired(t *testing.T) {
-	md := &MoveDispatch{}
 	// driveOuts populated (setNodeStreams always does, once "drive" resolves) but with no
 	// entry for this particular node id — mirrors a missing nodeMover row, or (more to the
 	// point for this test) simply calling DriveOut for a slot/name never actually wired.
-	md.sw.driveOuts = map[string][driveSlotsPerNode]io.Writer{}
-	pb := PortBindings{md: md}
+	driveOuts := map[string][pbDriveSlotsPerNode]io.Writer{}
+	pb := PortBindings{driveOuts: &driveOuts}
 	if s := newDriveStreamGetter("nodeB", 0, pb)(); s != nil {
 		t.Fatalf("newDriveStreamGetter for an unwired node must return nil, got a stream")
 	}

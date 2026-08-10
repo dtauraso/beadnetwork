@@ -16,11 +16,11 @@ package Wiring
 // and to apply what used to be one-way notification messages to it (SetTiltIndex/
 // SetReceivedVector/ClearOutBeads) as plain method calls instead — there is no longer
 // anything to notify: the caller's own goroutine already IS the driver. Returns nil on a
-// bare test build with no loader (a.pb.md == nil) or if this node has no geometry entry,
+// bare test build with no loader (currentBuildMD == nil) or if this node has no geometry entry,
 // matching the nil-safe fallback every other closure in this file takes; every method on
 // a nil *PairNodeSelf is itself a no-op.
 func (a BuildArgs) ClaimSelfDrive() *PairNodeSelf {
-	md := a.pb.md
+	md := currentBuildMD
 	if md == nil {
 		return nil
 	}

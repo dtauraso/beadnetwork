@@ -40,6 +40,15 @@ import (
 	T "github.com/dtauraso/wirefold/Trace"
 )
 
+// currentBuildMD is the current load's *MoveDispatch, set once by build_nodes.go's
+// buildNodes before any node is built. It exists so build_args_lattice.go/
+// build_args_tilt_vector.go/build_args_selfdrive.go's methods — which need
+// Wiring-internal MoveDispatch state (md.ui, md.inboxes, md.mr) that PortBindings
+// cannot portably carry once PortBindings/PortSpec live in their own portwiring
+// package — can reach it without PortBindings holding a *MoveDispatch
+// back-reference. See buildNodes' doc comment for why a package-level var is safe here.
+var currentBuildMD *MoveDispatch
+
 // BuildArgs carries everything a node kind needs to construct itself. It is passed as ONE
 // struct rather than as separate parameters so that adding an input later does not edit
 // every kind's build func — with 14 kinds, that churn is the dominant cost of the
