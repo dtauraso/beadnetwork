@@ -23,7 +23,7 @@ import (
 // Initial camera viewpoint = FILE DATA: Go reads the saved camera from
 // <topologyPath>/view/camera.json and installs it into the gesture-FSM viewpoint.
 func loadSceneState(scenePath string, md *W.MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
-	scenecamera.SeedInitialViewpoint(scenePath, md, tr)
+	scenecamera.SeedInitialViewpoint(scenePath, md.SetViewpoint, md.EmitViewpoint, tr)
 	// Does THIS scene own the three named distance groups? Resolve before anything emits a
 	// VIEW frame, since that frame carries the three group lengths. Not file data — it is a
 	// property of which scene was loaded (Wiring.SceneTab.DistanceGroups).

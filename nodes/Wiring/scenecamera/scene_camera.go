@@ -22,7 +22,6 @@ import (
 	"math"
 
 	T "github.com/dtauraso/wirefold/Trace"
-	Wiring "github.com/dtauraso/wirefold/nodes/Wiring"
 	"github.com/dtauraso/wirefold/nodes/Wiring/camerapersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
@@ -36,20 +35,24 @@ type vec3 = wire.Vec3
 
 // SeedInitialViewpoint installs the initial camera viewpoint from FILE DATA. It loads the
 // saved polar camera from `<topologyPath>/view/camera.json` (or the fixed default when the
-// file is absent/malformed) and installs it into the gesture-FSM viewpoint via
-// SetViewpoint + EmitViewpoint — the exact path a gesture uses — so the pose streams out to
-// the buffer camera columns. Called on startup only under the new system; the old render
-// path restores the camera via the webview's PolarCameraRestorer instead.
-func SeedInitialViewpoint(topologyPath string, md *Wiring.MoveDispatch, tr *T.Trace) {
-	if md == nil {
+// file is absent/malformed) and installs it via setViewpoint + emitViewpoint — the exact
+// path a gesture uses — so the pose streams out to the buffer camera columns. Called on
+// startup only under the new system; the old render path restores the camera via the
+// webview's PolarCameraRestorer instead.
+//
+// setViewpoint and emitViewpoint are the caller's MoveDispatch.SetViewpoint /
+// MoveDispatch.EmitViewpoint, passed as function values so this package does not import
+// nodes/Wiring.
+func SeedInitialViewpoint(topologyPath string, setViewpoint func(pivot vec3, r float64, pos, up geom.Dir), emitViewpoint func(tr *T.Trace), tr *T.Trace) {
+	if setViewpoint == nil || emitViewpoint == nil {
 		return
 	}
 	pivot, r, pos, up, ok := LoadSceneViewpoint(topologyPath)
 	if !ok {
 		pivot, r, pos, up = DefaultViewpoint()
 	}
-	md.SetViewpoint(pivot, r, pos, up)
-	md.EmitViewpoint(tr)
+	setViewpoint(pivot, r, pos, up)
+	emitViewpoint(tr)
 }
 
 // LoadSceneViewpoint reads the saved polar camera from camera.json and converts it to the
