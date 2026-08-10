@@ -525,13 +525,13 @@ and none is a source of truth.
   connect to a node; you move the node by removing links from those chains or adding links
   to them — that is the whole mechanism. There is no solver, no constraint system, no
   enumeration across neighbours: each touching bead decides for itself
-  (`nodes/Wiring/bead_crud.go`'s `beadCrudDecide`, wired in `commitNodeMoveLocal`,
+  (`nodes/Wiring/beadcrud/bead_crud.go`'s `BeadCrudDecide`, wired in `commitNodeMoveLocal`,
   `nodes/Wiring/commit_node_move.go`).
 
   The drag gives the node's own polar vector `v` (its previous position to its
   destination). Each touching bead has its own **source point** — the previous bead's
   centre along its chain, or the chain origin on the neighbour's torus surface when it is
-  the only bead (`nodes/Wiring/touching_beads.go`'s `dragTouchingBeads`) — NEVER the
+  the only bead (`nodes/Wiring/beadcrud/touching_beads.go`'s `DragTouchingBeads`) — NEVER the
   touching bead's own centre; using the centre instead is wrong by one bead. The **third
   polar vector** runs from the bead's source point to the node's destination point.
   Compare its length to one bead length (`lattice.BeadStepR`):
@@ -551,8 +551,8 @@ and none is a source of truth.
   OPERATION, never from `v`.** Every touching bead performs the same judgement against the
   same `v`, but `v` (the drag) supplies only the third-vector test and the angle gate above
   — it never sets the node's new position or its direction of travel
-  (`nodes/Wiring/bead_crud.go`'s `beadCrudImpliedCentre`, resolved across every touching
-  bead by `resolveBeadCrudMove`):
+  (`nodes/Wiring/beadcrud/bead_crud.go`'s `BeadCrudImpliedCentre`, resolved across every touching
+  bead by `ResolveBeadCrudMove`):
 
   - **REMOVE** → the node's new centre IS the removed bead's own former centre exactly — it
     takes that bead's place.

@@ -1,7 +1,7 @@
 package Wiring
 
 // drag_touching_bead_source_regression_test.go — regression coverage for the
-// dragTouchingBeads `isSource` bug fixed in quantized_move.go: the SOURCE-side branch used
+// dragTouchingBeads isSource bug fixed in quantized_move.go: the SOURCE-side branch used
 // to compute `beadSource = prevPos + aimDir*selfTorusR`, a point on THIS node's own torus
 // surface — neither of the two source points MODEL.md's bead-CRUD section allows (the
 // previous bead's centre along the chain, or the chain origin on the NEIGHBOUR's torus when

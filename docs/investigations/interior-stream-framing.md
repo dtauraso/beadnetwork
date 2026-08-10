@@ -40,8 +40,8 @@ uses `gatecommon.DriveHeld` — `Pulse`, `PulseLeft`, `PulseRight`, `holdflip`, 
 ... }()`) that calls `Out.PlaceDrivenAt` → `flushSendEvent` → `s.WriteEvents(...)` on the
 node's shared `*interiorStream` (`nodes/wire/out_port.go`'s `flushSendEvent`). Meanwhile the node's own
 `Update` goroutine (its main loop, e.g. `nodes/pulse/node.go`'s `consume()`) calls
-`EmitHeldBead(v)` → the SAME shared `*interiorStream` (`nodes/Wiring/port_wiring.go`'s
-`newInteriorStreamGetter` lazily builds **one** `*interiorStream` per node and hands the
+`EmitHeldBead(v)` → the SAME shared `*interiorStream` (`nodes/Wiring/portwiring/port_wiring.go`'s
+`NewInteriorStreamGetter` lazily builds **one** `*interiorStream` per node and hands the
 same instance to every closure/port belonging to that node, by design — see its doc
 comment, "every closure/port... shares the SAME instance").
 
@@ -154,8 +154,8 @@ imprecise on that point; only `Pulse`/`PulseLeft`/`PulseRight`/`holdflip` actual
 **Go-side wiring**: `nodes/Wiring/stream_wiring.go`'s `streamWiring.driveOuts` holds
 `[DriveSlotsPerNode]io.Writer` per node id, populated by `setNodeStreams` alongside
 `interiorOuts` (same "wire before any goroutine launches" ordering).
-`nodes/Wiring/port_wiring.go`'s `newDriveStreamGetter(name, slot, pb)` is
-`newInteriorStreamGetter`'s counterpart, reading `driveOuts[name][slot]` instead of
+`nodes/Wiring/portwiring/port_wiring.go`'s `NewDriveStreamGetter(name, slot, pb)` is
+`NewInteriorStreamGetter`'s counterpart, reading `driveOuts[name][slot]` instead of
 `interiorOuts[name]` — a DIFFERENT lazy-cache-once closure, so it can never alias the
 node's own interior stream by construction. `nodes/Wiring/build_args.go`'s
 `BuildArgs.DriveOut(portName, slot)` is the kind-facing entry point: `Pulse`/`PulseLeft`/
@@ -223,9 +223,9 @@ own backing array can't be mutated in place, since callers may still hold it).
   pipe-buffer threshold turned out to pass unreliably (this OS's pipe write behavior
   serialized even the large single-Write frames in practice) — the two-Write-calls shape is
   the deterministic reproduction that doesn't depend on guessing pipe internals.
-- `nodes/Wiring/drive_stream_wiring_test.go`'s `TestDriveStreamNeverSharesNodesInteriorStream`
+- `nodes/Wiring/portwiring/drive_stream_wiring_test.go`'s `TestDriveStreamNeverSharesNodesInteriorStream`
   is the WIRING assertion the original bug actually needed: that
-  `newInteriorStreamGetter` and `newDriveStreamGetter` resolve to DIFFERENT
+  `NewInteriorStreamGetter` and `NewDriveStreamGetter` resolve to DIFFERENT
   `*interiorStream` instances (and different underlying `io.Writer`s) for the same node.
   Confirmed to fail against a deliberately-reintroduced pre-fix arrangement (patched
   `newDriveStreamGetter` to alias `newInteriorStreamGetter`) and pass against the real fix.
