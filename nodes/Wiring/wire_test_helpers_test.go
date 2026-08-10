@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
 // writeTreeFile writes body to <root>/<rel>, creating any missing parent directories.
@@ -127,6 +127,6 @@ func quantizedDragTarget(md *MoveDispatch, nodeID string, target vec3) vec3 {
 	if len(beads) == 0 {
 		return target
 	}
-	committed, _ := resolveBeadCrudMove(beads, prev, target, wire.BeadStepR)
+	committed, _ := resolveBeadCrudMove(beads, prev, target, lattice.BeadStepR)
 	return committed
 }

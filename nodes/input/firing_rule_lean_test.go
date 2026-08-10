@@ -4,6 +4,7 @@ import (
 	"context"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 	"testing"
 	"time"
 
@@ -62,8 +63,8 @@ func TestEmitsInitValuesLean(t *testing.T) {
 
 	want := []int{30, 20, 10}
 	for i, w := range want {
-		// Scaled by wire.PulseSubStepsPerBead — see the same wait in nodes/pulse.
-		deadline := time.Now().Add(3 * wire.PulseSubStepsPerBead * time.Second)
+		// Scaled by lattice.PulseSubStepsPerBead — see the same wait in nodes/pulse.
+		deadline := time.Now().Add(3 * lattice.PulseSubStepsPerBead * time.Second)
 		got := false
 		for time.Now().Before(deadline) {
 			if v, ok := obs.PollRecv(); ok {

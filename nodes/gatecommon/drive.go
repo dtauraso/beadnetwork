@@ -3,8 +3,8 @@ package gatecommon
 import (
 	"context"
 	"github.com/dtauraso/wirefold/nodes/Wiring"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
 // DriveHeld runs a continuous-drive goroutine on out, repeatedly emitting
@@ -155,7 +155,7 @@ func DriveHeld(ctx context.Context, out Wiring.DrivenOut, heldCh <-chan int64, t
 			place := !paced
 			if paced {
 				if steps := out.Steps(); steps > 0 {
-					k := int64(float64(steps)*wire.DwellTicksPerBead + 0.999999)
+					k := int64(float64(steps)*lattice.DwellTicksPerBead + 0.999999)
 					if k < 1 {
 						k = 1
 					}
@@ -196,7 +196,7 @@ func DriveHeld(ctx context.Context, out Wiring.DrivenOut, heldCh <-chan int64, t
 			// the next cycle and a clock held at 0 simply never reaches the target.
 			if paced {
 				if steps := out.Steps(); steps > 0 {
-					k := int64(float64(steps)*wire.DwellTicksPerBead + 0.999999)
+					k := int64(float64(steps)*lattice.DwellTicksPerBead + 0.999999)
 					if k < 1 {
 						k = 1
 					}

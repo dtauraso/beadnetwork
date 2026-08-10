@@ -7,6 +7,7 @@ package Wiring
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
 // allocateWires allocates one *PacedWire per destination port (one edge per port —
@@ -49,11 +50,11 @@ func (b *buildCtx) allocateWires() {
 		if _, exists := destWire[destKey]; exists {
 			panic("allocateWires: two edges target " + destKey + " — validateNoFanIn should have rejected this fan-in at parse")
 		}
-		// wire.DwellTicksPerBead is the ONE canonical dwell-per-step constant
+		// lattice.DwellTicksPerBead is the ONE canonical dwell-per-step constant
 		// (docs/bead-model/bead-lattice.md "Timing" — uniform pulse speed is now structural,
 		// not a length divided by a speed); guarded as the sole non-test
 		// NewPacedWire call site by tools/network/beads/check-uniform-pulse-speed.sh.
-		pw := wire.NewPacedWire(steps, wire.DwellTicksPerBead)
+		pw := wire.NewPacedWire(steps, lattice.DwellTicksPerBead)
 		pw.Target = e.Target
 		pw.TargetHandle = e.TargetHandle
 		pw.SetTrace(b.tr)

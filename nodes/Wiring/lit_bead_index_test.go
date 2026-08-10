@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/beadindex"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
 // lit_bead_index_test.go — beadindex.LitBeadIndex: every index is reachable as traversal
@@ -57,7 +57,7 @@ func TestLitBeadIndexSameElapsedLightsSameBead(t *testing.T) {
 	const longSteps, shortSteps = 32, 28
 
 	for elapsed := 0.0; elapsed < 120; elapsed += 0.25 {
-		coveredSteps := elapsed / wire.DwellTicksPerBead // elapsed is in the SAME ticks unit as dwell
+		coveredSteps := elapsed / lattice.DwellTicksPerBead // elapsed is in the SAME ticks unit as dwell
 		gotLong, okLong := beadindex.LitBeadIndex(coveredSteps/longSteps, longSteps)
 		gotShort, okShort := beadindex.LitBeadIndex(coveredSteps/shortSteps, shortSteps)
 		if !okLong || !okShort {

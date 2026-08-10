@@ -97,7 +97,7 @@ const (
 // TestParseShadingParams_EvaluatesCrossPackageExpression is the regression guard for the
 // actual bug this change closes: a ShadingParam* const written as an EXPRESSION —
 // including one that references a const in another package, the exact shape
-// ShadingParamBeadRadius uses for wire.BeadTorusOuterR — must still show up in the
+// ShadingParamBeadRadius uses for lattice.BeadTorusOuterR — must still show up in the
 // generated TS mirror with the correct evaluated value. Before constexpr.go, parseShadingParams
 // only recognized a plain *ast.BasicLit and silently DROPPED anything else (see the git
 // history of ShadingParamBeadRadius, which was written as a hand-computed literal for

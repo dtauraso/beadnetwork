@@ -12,6 +12,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -95,7 +96,7 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeGeometr
 		if len(beads) == 0 {
 			committedPos = newPos
 		} else {
-			committedPos, _ = resolveBeadCrudMove(beads, prevPos, newPos, wire.BeadStepR)
+			committedPos, _ = resolveBeadCrudMove(beads, prevPos, newPos, lattice.BeadStepR)
 		}
 		committedPolar = geom.Cart2polar(committedPos.Sub(md.ui.sceneSphere.Center))
 
@@ -111,7 +112,7 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeGeometr
 			dragVector := newPos.Sub(prevPos)
 			parts := make([]string, 0, len(beads))
 			for _, b := range beads {
-				diag := beadCrudDiagnose(b.NeighborID, b.Source, b.Centre, b.AimDir, prevPos, newPos, dragVector, wire.BeadStepR)
+				diag := beadCrudDiagnose(b.NeighborID, b.Source, b.Centre, b.AimDir, prevPos, newPos, dragVector, lattice.BeadStepR)
 				verdictStr := "none"
 				switch diag.Verdict {
 				case beadCrudAdd:

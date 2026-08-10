@@ -39,7 +39,7 @@ type SceneTab struct {
 	// genuinely different behaviours rather than a tuning knob:
 	//
 	//   true  — the node is drawn from its QUANTIZED polar triple, so it steps one bead
-	//           distance (wire.BeadStepR) at a time, exactly like the beads on its own
+	//           distance (lattice.BeadStepR) at a time, exactly like the beads on its own
 	//           chains. Commit 0a60ffb6 made this the behaviour, fixing the complaint that
 	//           "when I move a node it's jump is very very small. when a bead moves it's
 	//           jump is multiple times larger" — the node used to glide continuously while

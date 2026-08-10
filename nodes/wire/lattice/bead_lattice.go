@@ -5,7 +5,29 @@
 // own radial cell, and the uniform per-bead dwell that makes pulse speed structural
 // instead of computed — falls out of the bead's AUTHORED size and these constants,
 // not from independently chosen literals that could drift apart from it.
-package wire
+package lattice
+
+import "github.com/dtauraso/wirefold/nodes/wire/clock"
+
+// PulseSpeedWuPerMs is the fixed world-units-per-MILLISECOND conversion for the
+// SimLatencyMs REPORTING path (the ms value emitted on the send trace); it is NOT
+// the clock's unit. This is an intentional duplicate of the literal value in
+// nodes/Wiring/curve_params.go's CurveParamPulseSpeedWuPerMs — that copy is the
+// single source of truth gen-node-defs reads (by literal AST value) to emit TS,
+// and it cannot be an alias of this one because nodes/wire must not import
+// nodes/Wiring (that would be a package cycle: Wiring already imports wire, and
+// this lattice subpackage is imported by wire in turn). Keep the two literals in
+// sync by hand; a mismatch would only affect SimLatencyMs reporting/pacing math,
+// not correctness of delivery.
+const PulseSpeedWuPerMs = 0.04
+
+// PulseSpeedWuPerTick is the uniform pulse speed reinterpreted in world-units per
+// TICK (MODEL.md: pulseSpeed is world-units-per-tick). It is the ms speed scaled
+// by the tick period: 0.04 wu/ms × 16 ms/tick = 0.64 wu/tick. This is what the
+// human-speed clock uses to derive ticksToCross = arcLength / PulseSpeedWuPerTick,
+// which equals the retired arc/pulseSpeedMs/16 sample count — so a bead visits the
+// same number of positions in the same wall time.
+const PulseSpeedWuPerTick = PulseSpeedWuPerMs * clock.MsPerTick
 
 // BeadRadius is the bead's own visible sphere radius — the AUTHORED primitive
 // this whole file derives from. It used to be the other way around: the node
@@ -23,11 +45,11 @@ const BeadRadius = 4.0
 
 // BeadRingTubeRatio is a bead ring's torus tube radius as a fraction of
 // BeadRadius, same role as ShadingParamBeadRingTubeRatio used to play alone —
-// moved into this package (from nodes/Wiring/shading_params.go) because it now
-// feeds BeadTorusOuterR, which nodes/wire's own lattice constants need, and
-// nodes/wire cannot import nodes/Wiring (Wiring imports wire; that direction
-// would be a cycle). nodes/Wiring's ShadingParamBeadRingTubeRatio now just
-// references this value.
+// moved out of nodes/Wiring/shading_params.go (and now out of nodes/wire itself,
+// into this lattice subpackage) because it feeds BeadTorusOuterR, which needs to
+// be readable by both nodes/wire and nodes/Wiring, and neither package may import
+// the other in the wrong direction (Wiring imports wire). nodes/Wiring's
+// ShadingParamBeadRingTubeRatio now just references this value.
 const BeadRingTubeRatio = 0.12
 
 // BeadTorusOuterR is a bead's true extent — its invisible sphere radius — now

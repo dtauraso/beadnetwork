@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
 func TestSceneDragModeIsPerScene(t *testing.T) {
@@ -28,7 +28,7 @@ func TestSceneDragModeIsPerScene(t *testing.T) {
 func TestPairSceneDragsContinuously(t *testing.T) {
 	if scene.SceneUsesQuantizedDrag("topology-pair") {
 		t.Fatalf("the pair scene must drag CONTINUOUSLY: its nodes sit ~40 world units apart while " +
-			"one quantized step is wire.BeadStepR, so a step moves the node a large fraction of the " +
+			"one quantized step is lattice.BeadStepR, so a step moves the node a large fraction of the " +
 			"whole scene and the node cannot be positioned at all")
 	}
 }
@@ -50,14 +50,14 @@ func TestUnknownSceneKeepsTheQuantizedDrag(t *testing.T) {
 // shows up here rather than as "I can't drag the nodes".
 func TestPairSeparationIsSmallAgainstOneQuantizedStep(t *testing.T) {
 	const pairSeparation = 40.3 // node 1 to node 2 in the committed pair scene
-	if wire.BeadStepR < pairSeparation/10 {
+	if lattice.BeadStepR < pairSeparation/10 {
 		return // a step this small would be invisible; the split would no longer be motivated
 	}
 	// Otherwise the step is a large fraction of the scene — exactly the case the continuous
 	// drag exists for, so the pair must not be on the quantized one.
 	if scene.SceneUsesQuantizedDrag("topology-pair") {
 		t.Fatalf("one quantized step (%.2f) is more than a tenth of the pair's whole extent (%.1f), "+
-			"yet the pair is on the quantized drag", wire.BeadStepR, pairSeparation)
+			"yet the pair is on the quantized drag", lattice.BeadStepR, pairSeparation)
 	}
 }
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring"
 )
@@ -300,7 +301,7 @@ func (n *Node) Update(ctx context.Context) {
 // cadence — no overlap. Measured in ticks, so it freezes on pause with Tick().
 // Recomputed live so a drag that changes the edge's step count re-paces emission.
 func inputCadenceTicks(n *Node) int64 {
-	c := int64(float64(n.OutCadence.Geom().Steps) * wire.DwellTicksPerBead)
+	c := int64(float64(n.OutCadence.Geom().Steps) * lattice.DwellTicksPerBead)
 	if c < 1 {
 		return 1
 	}

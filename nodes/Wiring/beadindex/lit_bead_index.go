@@ -16,7 +16,7 @@ import "math"
 //	t*steps = (elapsed/ticksToCross)*steps = elapsed/dwell
 //
 // which is the same for every edge (dwell is the uniform per-bead constant,
-// wire.DwellTicksPerBead), so each index lasts exactly one dwell everywhere.
+// lattice.DwellTicksPerBead), so each index lasts exactly one dwell everywhere.
 //
 // FLOOR, not round. The lit bead is the last one the traversal has reached, which is what
 // floor means; round would instead light the NEAREST, and that ties exactly halfway between

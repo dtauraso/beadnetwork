@@ -5,6 +5,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 	"testing"
 	"time"
 
@@ -66,8 +67,8 @@ func TestFlipRoundTripLean(t *testing.T) {
 
 	expectFlip := func(want int) {
 		t.Helper()
-		// Scaled by wire.PulseSubStepsPerBead — see the same wait in nodes/pulse.
-		deadline := time.Now().Add(3 * wire.PulseSubStepsPerBead * time.Second)
+		// Scaled by lattice.PulseSubStepsPerBead — see the same wait in nodes/pulse.
+		deadline := time.Now().Add(3 * lattice.PulseSubStepsPerBead * time.Second)
 		for time.Now().Before(deadline) {
 			if v, ok := observer.PollRecv(); ok && v == want {
 				return

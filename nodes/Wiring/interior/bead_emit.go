@@ -14,6 +14,7 @@ import (
 
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -167,7 +168,7 @@ func EmitRefillSlide(ctx context.Context, tr *T.Trace, nodeName string, clk cloc
 	rowPitch := row0Y - row1Y // downward translation distance (local y, positive)
 	// Slide runs at the base pulse speed — the same constant speed as the wire
 	// beads; the clock is still pause-aware. Duration is a tick count.
-	durationTicks := rowPitch / wire.PulseSpeedWuPerTick
+	durationTicks := rowPitch / lattice.PulseSpeedWuPerTick
 
 	start := clk.Tick()
 	emitFrame := func(t float64) {

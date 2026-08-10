@@ -396,7 +396,7 @@ choice — not a tuning knob:**
 - **Drag mode** (`SceneTab.QuantizedDrag`). The default is the CONTINUOUS drag: a node is
   one point, an edge is the distance between two of them, and a drag says where the point
   went — the bead count on that edge then fills whatever line that leaves. The alternative,
-  quantized drag steps the node one bead length (`wire.BeadStepR`) at a time, matching its
+  quantized drag steps the node one bead length (`lattice.BeadStepR`) at a time, matching its
   own chain beads' jump size — it exists so a dragged node and its own beads move in the
   same quanta, instead of the node gliding while its beads jump. That only works when the
   step is small AGAINST THE SCENE: the ring spans ~500 world units, so a ~9-unit step reads
@@ -504,7 +504,7 @@ and none is a source of truth.
   center and each bead's NODE-LOCAL offset as two separate columns on purpose (constant-time
   node moves: moving a node costs one center write, not degree × N bead positions), and
   this is the one place they are summed into an absolute bead centre. Beads after the first
-  keep their existing chain-relative placement (index × `wire.BeadStepR` along the same aim)
+  keep their existing chain-relative placement (index × `lattice.BeadStepR` along the same aim)
   — this model change is about the node's coordinate, the per-edge first-bead vector, and
   this one summation site, not the rest of the chain.
 - **The node STORES ITS SUM** — its own world center (`nodeMover.geom`, written once per
@@ -534,7 +534,7 @@ and none is a source of truth.
   the only bead (`nodes/Wiring/touching_beads.go`'s `dragTouchingBeads`) — NEVER the
   touching bead's own centre; using the centre instead is wrong by one bead. The **third
   polar vector** runs from the bead's source point to the node's destination point.
-  Compare its length to one bead length (`wire.BeadStepR`):
+  Compare its length to one bead length (`lattice.BeadStepR`):
 
   - too small → that bead is **removed**, and the bead before it becomes the touching bead.
   - too large → a bead is **added** (subject to the angle gate below), and it becomes the

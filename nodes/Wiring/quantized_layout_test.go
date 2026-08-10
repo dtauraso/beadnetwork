@@ -4,7 +4,7 @@ import (
 	"math"
 	"testing"
 
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
 // measureScalars/deriveCenters round-trip: a node's world center, re-measured about the
@@ -35,14 +35,14 @@ func TestMeasureScalarsRoundTrips(t *testing.T) {
 // node's offset never depends on another node's position.
 func TestMeasureScalarsMeasuresEveryNodeAboutSceneCenter(t *testing.T) {
 	sceneCenter := vec3{X: 10, Y: 20, Z: 30}
-	// Offsets are exact multiples of stepR (wire.BeadStepR, now the scene lattice's own
+	// Offsets are exact multiples of stepR (lattice.BeadStepR, now the scene lattice's own
 	// radial cell) so the round-trip below is lossless — an off-grid offset would be
 	// legitimately rounded to the nearest cell, which TestMeasureScalarsRoundTrips'
 	// doc comment already covers; this test's point is independence from other nodes,
 	// not quantization rounding.
 	centers := map[string]vec3{
-		"a": sceneCenter.Add(vec3{X: 5 * wire.BeadStepR, Y: 0, Z: 0}),
-		"b": sceneCenter.Add(vec3{X: 0, Y: 0, Z: 8 * wire.BeadStepR}),
+		"a": sceneCenter.Add(vec3{X: 5 * lattice.BeadStepR, Y: 0, Z: 0}),
+		"b": sceneCenter.Add(vec3{X: 0, Y: 0, Z: 8 * lattice.BeadStepR}),
 	}
 	ids := map[string]bool{"a": true, "b": true}
 	offs := measureScalars(centers, ids, sceneCenter, nil)
@@ -189,8 +189,8 @@ func TestCommitNodeMoveLocalDrawsQuantizedNotRawTarget(t *testing.T) {
 	// The Cartesian SIZE of that move is whatever the winning verdict's own geometry
 	// implies (beadCrudImpliedCentre) — a REMOVE lands exactly on the removed bead's own
 	// centre and an ADD one bead length beyond the newly added bead, along that edge's
-	// own axis; neither is pinned to wire.BeadStepR itself (a REMOVE's distance from
-	// prevPos is nodeTorusOuterR+wire.BeadTorusOuterR, which can exceed BeadStepR for a
+	// own axis; neither is pinned to lattice.BeadStepR itself (a REMOVE's distance from
+	// prevPos is nodeTorusOuterR+lattice.BeadTorusOuterR, which can exceed BeadStepR for a
 	// node kind with a large torus). TestCommitNodeMoveLocalRemoveTakesBeadsPlace and
 	// TestCommitNodeMoveLocalAddMovesOneBeadBeyondNewBead pin the exact magnitude/axis for
 	// each verdict directly.
@@ -206,7 +206,7 @@ func TestCommitNodeMoveLocalDrawsQuantizedNotRawTarget(t *testing.T) {
 // commitNodeMoveLocal and quantizedDragTarget both call through resolveBeadCrudMove) —
 // that would only prove production agrees with the oracle, not that the oracle itself is
 // right. Instead it hand-computes the WRONG answer directly (the deleted-then-rebuilt
-// walkBeadPath formula: prevPos moved one wire.BeadStepR toward the raw target) and
+// walkBeadPath formula: prevPos moved one lattice.BeadStepR toward the raw target) and
 // asserts the real commit does NOT match it, for both a REMOVE-triggering drag and an
 // ADD-triggering drag on the same single-neighbour fixture.
 func TestCommitNodeMoveLocalNeverMovesTowardMouseTarget(t *testing.T) {
@@ -215,7 +215,7 @@ func TestCommitNodeMoveLocalNeverMovesTowardMouseTarget(t *testing.T) {
 		if delta.Length() < 1e-9 {
 			return prevPos
 		}
-		return prevPos.Add(delta.Normalize().Scale(wire.BeadStepR))
+		return prevPos.Add(delta.Normalize().Scale(lattice.BeadStepR))
 	}
 
 	t.Run("remove", func(t *testing.T) {
@@ -293,7 +293,7 @@ func TestCommitNodeMoveLocalRemoveTakesBeadsPlace(t *testing.T) {
 	removedBeadCentre := beads[0].Centre
 	target := beads[0].Source // |third| == 0 < one bead length -> beadCrudRemove
 
-	verdict, _ := beadCrudDecide(beads[0].Source, beads[0].Centre, target, target.Sub(before), wire.BeadStepR)
+	verdict, _ := beadCrudDecide(beads[0].Source, beads[0].Centre, target, target.Sub(before), lattice.BeadStepR)
 	if verdict != beadCrudRemove {
 		t.Fatalf("fixture assumption: this drag should verdict beadCrudRemove, got %v", verdict)
 	}
@@ -331,7 +331,7 @@ func TestCommitNodeMoveLocalAddMovesOneBeadBeyondNewBead(t *testing.T) {
 	target := before.Add(outward.Scale(40))
 
 	dragVector := target.Sub(before)
-	verdict, _ := beadCrudDecide(beads[0].Source, beads[0].Centre, target, dragVector, wire.BeadStepR)
+	verdict, _ := beadCrudDecide(beads[0].Source, beads[0].Centre, target, dragVector, lattice.BeadStepR)
 	if verdict != beadCrudAdd {
 		t.Fatalf("fixture assumption: this drag should verdict beadCrudAdd, got %v", verdict)
 	}
@@ -339,8 +339,8 @@ func TestCommitNodeMoveLocalAddMovesOneBeadBeyondNewBead(t *testing.T) {
 	// implementation: the new bead sits one bead length CLOSER to the node than the old
 	// touching bead (along the chain axis), and the node's new centre is one bead length
 	// further BEYOND that new bead, away from the neighbour.
-	newBeadCentre := beads[0].Centre.Sub(beads[0].AimDir.Scale(wire.BeadStepR))
-	wantNodeCentre := newBeadCentre.Sub(beads[0].AimDir.Scale(wire.BeadStepR))
+	newBeadCentre := beads[0].Centre.Sub(beads[0].AimDir.Scale(lattice.BeadStepR))
+	wantNodeCentre := newBeadCentre.Sub(beads[0].AimDir.Scale(lattice.BeadStepR))
 
 	md.lq.commitNodeMoveLocal(md, nm, target)
 	got, ok := md.centerOfNode("2")

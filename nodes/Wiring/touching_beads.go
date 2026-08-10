@@ -8,7 +8,7 @@
 package Wiring
 
 import (
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
 // touchingBead is the per-neighbour geometry commitNodeMoveLocal hands to beadCrudDecide:
@@ -34,7 +34,7 @@ type touchingBead struct {
 // node owns the chain — tangency to nm's own torus falls out of the placement formula
 // (chain_beads.go), not from where nm's centre happens to be:
 //
-//	beadCentre = prevPos + aimDir*(selfTorusR + wire.BeadTorusOuterR)
+//	beadCentre = prevPos + aimDir*(selfTorusR + lattice.BeadTorusOuterR)
 //
 // where aimDir is the live unit direction from nm toward the neighbour. What differs by
 // ownership is the touching bead's SOURCE point (PLAN.md: "the previous bead's centre
@@ -49,7 +49,7 @@ type touchingBead struct {
 //     bead, owned and counted by the neighbour (edgeStepCount, same formula chain_beads.go
 //     uses, mirrored here on the live distance). With more than one bead, its predecessor
 //     is the bead one step back toward the neighbour:
-//     beadSource = beadCentre + aimDir*wire.BeadStepR
+//     beadSource = beadCentre + aimDir*lattice.BeadStepR
 //     With exactly one bead, there is no predecessor bead — the chain's own origin is the
 //     NEIGHBOUR's torus surface (nm.topo.neighborKinds gives the neighbour's kind, derived from
 //     domain adjacency at load — see build.go — so every direct neighbour has an entry):
@@ -76,7 +76,7 @@ func dragTouchingBeads(md *MoveDispatch, nm *nodeGeometry, prevPos vec3) []touch
 		if !ok {
 			continue
 		}
-		beadCentre := prevPos.Add(aimDir.Scale(selfTorusR + wire.BeadTorusOuterR))
+		beadCentre := prevPos.Add(aimDir.Scale(selfTorusR + lattice.BeadTorusOuterR))
 
 		// A touching bead's SOURCE POINT is the previous bead's centre along its chain, or
 		// the chain origin on the NEIGHBOUR's torus surface when it is the only bead
@@ -100,7 +100,7 @@ func dragTouchingBeads(md *MoveDispatch, nm *nodeGeometry, prevPos vec3) []touch
 		count := edgeStepCount(dist, neighborKind, nm.selfKind)
 		var beadSource vec3
 		if count >= 2 {
-			beadSource = beadCentre.Add(aimDir.Scale(wire.BeadStepR))
+			beadSource = beadCentre.Add(aimDir.Scale(lattice.BeadStepR))
 		} else {
 			beadSource = neighborCenter.Sub(aimDir.Scale(nodeTorusOuterR(neighborKind)))
 		}

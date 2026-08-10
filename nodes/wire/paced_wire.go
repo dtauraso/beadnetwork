@@ -10,8 +10,6 @@ package wire
 
 import (
 	"os"
-
-	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
 // edgeBeadTraceEnabled gates whether stepAll appends a T.KindEdgeBead pendingWireEvent
@@ -47,24 +45,12 @@ type deliveredBead struct {
 	deliverTick int64
 }
 
-// PulseSpeedWuPerMs is the fixed world-units-per-MILLISECOND conversion for the
-// SimLatencyMs REPORTING path (the ms value emitted on the send trace); it is NOT
-// the clock's unit. This is an intentional duplicate of the literal value in
-// nodes/Wiring/curve_params.go's CurveParamPulseSpeedWuPerMs — that copy is the
-// single source of truth gen-node-defs reads (by literal AST value) to emit TS,
-// and it cannot be an alias of this one because wire must not import Wiring
-// (that would be a package cycle: Wiring already imports wire). Keep the two
-// literals in sync by hand; a mismatch would only affect SimLatencyMs
-// reporting/pacing math, not correctness of delivery.
-const PulseSpeedWuPerMs = 0.04
-
-// PulseSpeedWuPerTick is the uniform pulse speed reinterpreted in world-units per
-// TICK (MODEL.md: pulseSpeed is world-units-per-tick). It is the ms speed scaled
-// by the tick period: 0.04 wu/ms × 16 ms/tick = 0.64 wu/tick. This is what the
-// human-speed clock uses to derive ticksToCross = arcLength / PulseSpeedWuPerTick,
-// which equals the retired arc/pulseSpeedMs/16 sample count — so a bead visits the
-// same number of positions in the same wall time.
-const PulseSpeedWuPerTick = PulseSpeedWuPerMs * clock.MsPerTick
+// PulseSpeedWuPerMs / PulseSpeedWuPerTick — the uniform pulse speed, in world-units
+// per millisecond and per tick — now live in nodes/wire/lattice (lattice.go), not
+// here: DwellTicksPerBead (also in that package) derives from both BeadStepR and
+// PulseSpeedWuPerTick, and nodes/wire itself needs DwellTicksPerBead (out_port.go's
+// SimLatencyMs), so the constants those two depend on cannot live in package wire
+// without a wire<->lattice import cycle.
 
 // PacedWire is an ACTIVE GOROUTINE (MODEL.md "The network"), not a passive
 // struct: a channel in from its source node, a channel out to its destination

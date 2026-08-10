@@ -4,6 +4,7 @@ import (
 	"context"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring"
 	"github.com/dtauraso/wirefold/nodes/gatecommon"
@@ -160,7 +161,7 @@ func (in *TimeStart) Update(ctx context.Context) {
 						continue
 					}
 					anyLive = true
-					if t := float64(in.ToNext[i].Geom().Steps) * wire.DwellTicksPerBead; t > maxTicks {
+					if t := float64(in.ToNext[i].Geom().Steps) * lattice.DwellTicksPerBead; t > maxTicks {
 						maxTicks = t
 					}
 				}

@@ -33,7 +33,7 @@ import (
 	"strconv"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
 // edgeSegment is the straight world segment the renderer draws for an edge: NODE SURFACE
@@ -116,7 +116,7 @@ func edgeCenterDistAndDir(selfCenter, targetCenter vec3) (dist float64, unitDir 
 // the sign is then taken from which end this node is. Local decision, no coordination, and
 // the pair cannot disagree because neither is asking the other.
 //
-// The magnitude is one bead STEP each way, so the two chains end up exactly 2*wire.BeadStepR
+// The magnitude is one bead STEP each way, so the two chains end up exactly 2*lattice.BeadStepR
 // apart — still on the lattice, not a tuned pixel gap. It was half that (one bead radius
 // each way, the chains exactly touching), which separated them in principle but read as one
 // thick wire; a full step each way leaves a clear bead-sized gap between the two chains.
@@ -170,7 +170,7 @@ func parallelChainOffset(selfID, targetID string, selfCenter, targetCenter, scen
 	if !nodeIDLess(selfID, targetID) {
 		sign = -1.0
 	}
-	return perp.Normalize().Scale(sign * wire.BeadStepR), true
+	return perp.Normalize().Scale(sign * lattice.BeadStepR), true
 }
 
 // nodeIDLess orders two node ids NUMERICALLY, because node ids are numbers that are strings

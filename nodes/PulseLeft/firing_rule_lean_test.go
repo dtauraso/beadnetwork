@@ -5,6 +5,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 	"testing"
 	"time"
 
@@ -92,8 +93,8 @@ func TestPulseLeftDrivesHeldValueLean(t *testing.T) {
 	}
 
 	// The drive goroutine continuously pulses the held value (5) to Out.
-	// Scaled by wire.PulseSubStepsPerBead — see the same wait in nodes/pulse.
-	deadline := time.Now().Add(3 * wire.PulseSubStepsPerBead * time.Second)
+	// Scaled by lattice.PulseSubStepsPerBead — see the same wait in nodes/pulse.
+	deadline := time.Now().Add(3 * lattice.PulseSubStepsPerBead * time.Second)
 	got := false
 	for time.Now().Before(deadline) {
 		if v, ok := observer.PollRecv(); ok && v == 5 {

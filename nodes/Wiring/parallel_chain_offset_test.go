@@ -10,7 +10,7 @@ import (
 	"math"
 	"testing"
 
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
 // Two nodes at the SAME radius about the scene centre, 90 degrees apart — the ordinary
@@ -54,7 +54,7 @@ func TestOffsetIsPerpendicularToTheEdge(t *testing.T) {
 func TestTheTwoChainsSitTwoBeadStepsApart(t *testing.T) {
 	a, _ := parallelChainOffset("1", "2", centerA, centerB, sceneOrigin)
 	b, _ := parallelChainOffset("2", "1", centerB, centerA, sceneOrigin)
-	if got, want := a.Sub(b).Length(), 2*wire.BeadStepR; math.Abs(got-want) > 1e-9 {
+	if got, want := a.Sub(b).Length(), 2*lattice.BeadStepR; math.Abs(got-want) > 1e-9 {
 		t.Fatalf("chain separation = %v, want two bead steps (%v)", got, want)
 	}
 }

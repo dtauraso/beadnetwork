@@ -4,6 +4,7 @@ import (
 	"context"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 	"testing"
 	"time"
 
@@ -66,8 +67,8 @@ func TestPacerChangeStepFeedbackLean(t *testing.T) {
 
 	waitFor := func(want int) {
 		t.Helper()
-		// Scaled by wire.PulseSubStepsPerBead — see the same wait in nodes/pulse.
-		deadline := time.Now().Add(3 * wire.PulseSubStepsPerBead * time.Second)
+		// Scaled by lattice.PulseSubStepsPerBead — see the same wait in nodes/pulse.
+		deadline := time.Now().Add(3 * lattice.PulseSubStepsPerBead * time.Second)
 		for time.Now().Before(deadline) {
 			if v, ok := observer.PollRecv(); ok {
 				if v != want {

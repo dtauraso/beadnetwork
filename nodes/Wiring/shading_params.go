@@ -24,7 +24,7 @@
 package Wiring
 
 import (
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
 // --- Node body: glass (MeshPhysicalMaterial) parameters -------------------
@@ -138,28 +138,28 @@ const ShadingParamNodeRingTubeRatio = 0.08
 // ShadingParamBeadRadius is the sphere radius of a bead — the 0/1 beads AND the grey chain
 // beads, which are the same size and structure by design (a chain bead is a grey version of
 // bead 1, not a smaller marker). Mirrored into TS as SHADING_PARAM_BEAD_RADIUS, and read
-// Go-side by chain_beads.go to space the chain at exactly one bead STEP (wire.BeadStepR) so
+// Go-side by chain_beads.go to space the chain at exactly one bead STEP (lattice.BeadStepR) so
 // adjacent beads TOUCH: a chain is a solid line of beads, not a dotted one.
 //
 // AUTHORED, not derived (docs/bead-model/bead-lattice.md "The lattice is derived, not the bead" —
 // renamed from "The bead radius is derived, not chosen", which this constant used to obey
-// in the OPPOSITE direction: it was wire.BeadTorusOuterR/(1+ratio), computed from a node
+// in the OPPOSITE direction: it was lattice.BeadTorusOuterR/(1+ratio), computed from a node
 // lattice cell David never actually chose for bead size, and it landed at
 // 3.5714285714285716 — visibly ~11% smaller than the 4.0 he wanted. The direction is now
-// flipped: wire.BeadRadius is the primitive this file just re-exports, and the node
+// flipped: lattice.BeadRadius is the primitive this file just re-exports, and the node
 // lattice's own cell (wire.LocalStepR, layout_holder.go) is what derives from IT via
 // tangency instead. Simple re-export, not `= 4.0` here, so there is still only one copy of
 // the fact (see the codegen note below).
-const ShadingParamBeadRadius = wire.BeadRadius
+const ShadingParamBeadRadius = lattice.BeadRadius
 
 // ShadingParamBeadRingTubeRatio is a bead ring's torus tube radius as a fraction of
 // ShadingParamBeadRadius. Same for chain beads as for the 0/1 beads — same structure.
 //
-// Re-exports wire.BeadRingTubeRatio rather than repeating 0.12 as a second literal: the
+// Re-exports lattice.BeadRingTubeRatio rather than repeating 0.12 as a second literal: the
 // ratio moved into nodes/wire (bead_lattice.go) because BeadTorusOuterR — which nodes/wire's
 // own lattice constants (BeadStepR, and through it LocalStepR) now derive from — needs it,
 // and nodes/wire cannot import nodes/Wiring (Wiring imports wire; the reverse would cycle).
-const ShadingParamBeadRingTubeRatio = wire.BeadRingTubeRatio
+const ShadingParamBeadRingTubeRatio = lattice.BeadRingTubeRatio
 
 // ShadingParamChainBeadFill is the UNLIT chain bead's fill — a pale cyan, DELIBERATELY its own
 // tone rather than reusing another material's color (the wire-tube color it used to be

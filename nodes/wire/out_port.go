@@ -13,6 +13,7 @@ import (
 
 	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	"github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
 // outGeom is an immutable snapshot of an Out's per-edge geometry: this edge's
@@ -248,7 +249,7 @@ func (o *Out) flushSendEvent(value int, steps int) {
 		TargetRow: o.targetRow, TargetPortRow: o.targetPortRow, EdgeRow: -1,
 		Value:        int32(value),
 		BeadSteps:    float64(steps),
-		SimLatencyMs: float64(steps) * DwellTicksPerBead * clock.MsPerTick,
+		SimLatencyMs: float64(steps) * lattice.DwellTicksPerBead * clock.MsPerTick,
 	}})
 }
 

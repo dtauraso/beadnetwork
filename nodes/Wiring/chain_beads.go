@@ -9,6 +9,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/stepdeliver"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
 // chainAimTraceEnabled gates the per-tick "chain-aim" breadcrumb below. Read ONCE at
@@ -84,11 +85,11 @@ var chainAimTraceEnabled = os.Getenv("WIREFOLD_CHAIN_AIM_TRACE") == "1"
 // in-flight traversal has reached (with that traversal's bead VALUE alongside), 0 elsewhere. A chain with nothing traversing it is fully populated
 // and entirely unlit — that resting state is normal, not an absence of data.
 //
-// Bead SIZE is the single, uniform lattice constant wire.BeadRadius everywhere — every
+// Bead SIZE is the single, uniform lattice constant lattice.BeadRadius everywhere — every
 // bead on every edge is the same size (memory/feedback_uniform_pulse_speed.md's sibling
 // rule for size: no per-edge knob). There is no per-bead radius column any more: under
 // bead CRUD (MODEL.md "Moving a node is CRUD on the edge beads that touch it",
-// bead_crud.go) count*wire.BeadStepR (uniform spacing, uniform size) always lands bead 0's
+// bead_crud.go) count*lattice.BeadStepR (uniform spacing, uniform size) always lands bead 0's
 // near edge on this node's own torus by construction of the placement formula below — no
 // per-edge size or stretched spacing is needed for that (see the removed
 // "per-edge-bead-scale"/"stretch spacing" history below `spacing`'s declaration).
@@ -210,7 +211,7 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 			}
 		}
 		// spacing is the center-to-center distance between consecutive beads on THIS
-		// edge, and it is the single UNIFORM lattice constant wire.BeadStepR everywhere
+		// edge, and it is the single UNIFORM lattice constant lattice.BeadStepR everywhere
 		// (memory/feedback_uniform_pulse_speed.md's sibling rule for size/spacing: no
 		// per-edge knob). This used to be stretched per edge (an earlier "absorb the
 		// half-bead residue in spacing" fix) and, later, per-edge bead SIZE was made the
@@ -225,7 +226,7 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 		// count==1, regardless of whether dist(node, neighbor) happens to land on an
 		// exact multiple of BeadStepR — that global guarantee belonged to the rejected
 		// bead-cell solver and is not one this model makes. count (edgeStepCount, read
-		// from the same live distance) times the fixed wire.BeadStepR is what fixes the
+		// from the same live distance) times the fixed lattice.BeadStepR is what fixes the
 		// FAR edge's residue against the neighbour's torus instead; it is bounded by
 		// round(), never bent into an arc.
 		//
@@ -264,7 +265,7 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 			livePhi := math.Atan2(liveDir.Z, liveDir.X)
 			value := fmt.Sprintf(
 				"to=%s count=%d K=%d liveDir=(theta=%.4f,phi=%.4f)",
-				to, count, int(math.Round(dist/wire.BeadStepR)), liveTheta, livePhi)
+				to, count, int(math.Round(dist/lattice.BeadStepR)), liveTheta, livePhi)
 			m.tr.Breadcrumb("chain-aim", m.id, to, value)
 			breadcrumbs = append(breadcrumbs, wire.RowEvent{
 				Kind: T.KindBreadcrumb, Label: T.BreadcrumbChainAim, Debug: 1,
@@ -273,11 +274,11 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 			})
 		}
 		// One coordinate: bead index i. Offset from this node's centre is
-		// selfTorusR + wire.BeadTorusOuterR + i*wire.BeadStepR (docs/bead-model/bead-lattice.md
+		// selfTorusR + lattice.BeadTorusOuterR + i*lattice.BeadStepR (docs/bead-model/bead-lattice.md
 		// "Placement"). "Beads never inside a node" falls out of this tangency, with no
 		// clamp.
-		step := wire.BeadStepR
-		base := selfTorusR + wire.BeadTorusOuterR
+		step := lattice.BeadStepR
+		base := selfTorusR + lattice.BeadTorusOuterR
 		offsetAt := func(i int) float64 {
 			return base + float64(i)*step
 		}

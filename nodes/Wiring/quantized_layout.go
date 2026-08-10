@@ -4,7 +4,7 @@ import (
 	"math"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
 // quantized_layout.go — the quantized FLAT ABSOLUTE SCENE-POLAR layout: every node is
@@ -38,12 +38,12 @@ const (
 	// angle at a different radius, which is worse than this approximation.
 	stepTheta = math.Pi / 180
 	stepPhi   = math.Pi / 180
-	// stepR is now literally wire.BeadStepR (8.96) — one bead distance — not an
+	// stepR is now literally lattice.BeadStepR (8.96) — one bead distance — not an
 	// independently hand-picked value (was 20.0, chosen only to keep nodes distinct
 	// at the ~80-unit spacing this graph happened to have). Derived, not copied as a
 	// literal: bead_lattice.go owns the authored primitive (BeadRadius) this falls
 	// out of, and this constant must move with it, never drift from a second copy.
-	stepR = wire.BeadStepR
+	stepR = lattice.BeadStepR
 )
 
 // quantizedOffset is a node's quantized polar offset (iTheta,iPhi,iR) about the ONE

@@ -1,7 +1,7 @@
 package Wiring
 
 import (
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
 // chain_beads_helpers_test.go — shared fixtures used by more than one of this package's
@@ -62,7 +62,7 @@ const tangencyEps = 1e-3
 func offAxisFixture(srcKind, dstKind string, count int) *nodeGeometry {
 	selfTorus := nodeTorusOuterR(srcKind)
 	dstTorus := nodeTorusOuterR(dstKind)
-	dist := selfTorus + float64(count)*wire.BeadStepR + dstTorus
+	dist := selfTorus + float64(count)*lattice.BeadStepR + dstTorus
 	// Live direction: (3,0,4)/5 — a unit vector off any coordinate axis, with no sqrt
 	// needed to state exactly (a 3-4-5 triangle), scaled to the exact required
 	// center-to-center distance.

@@ -63,7 +63,7 @@ type edgeBeadChain struct {
 // reconcileBeadChain grows or shrinks this node's own bead-actor chain for outgoing edge
 // `to` to `count` beads, then broadcasts fresh geometry (one hop, one close) when the
 // count or the aim changed. offsetAt(i) is chainBeads' own fixed per-index offset
-// (selfTorusR + wire.BeadTorusOuterR + i*wire.BeadStepR) — unchanged for the life of bead
+// (selfTorusR + lattice.BeadTorusOuterR + i*lattice.BeadStepR) — unchanged for the life of bead
 // i, exactly as bead_actor.go's Bead.offsetR documents. Called only from chainBeads, only
 // on this node's own goroutine.
 func (m *nodeGeometry) reconcileBeadChain(to string, count int, offsetAt func(i int) float64, aim wire.Vec3) *edgeBeadChain {

@@ -2,7 +2,7 @@
 // parseShadingParams (and available to any future ShadingParam*/CurveParam*
 // const) so a ShadingParam const can be written as a real Go expression —
 // including one that references a const in ANOTHER package, like
-// `wire.BeadTorusOuterR / (1 + ShadingParamBeadRingTubeRatio)` — instead of a
+// `lattice.BeadTorusOuterR / (1 + ShadingParamBeadRingTubeRatio)` — instead of a
 // hand-computed literal that is a second copy of the same fact and free to
 // drift (docs/bead-model/bead-lattice.md).
 //

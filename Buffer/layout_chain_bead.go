@@ -37,7 +37,7 @@ type bufLayoutChainBead struct {
 	LitValue int32 `buf:"i32"` // traversing bead's value (0|1); meaningful when Lit==1
 	// There is no per-bead Radius column. Under bead CRUD (MODEL.md "Moving a node is
 	// CRUD on the edge beads that touch it", nodes/Wiring/bead_crud.go) the single global
-	// wire.BeadRadius/wire.BeadStepR lattice constants already make every chain's beads
+	// lattice.BeadRadius/lattice.BeadStepR lattice constants already make every chain's beads
 	// touch their own neighbours on the chain exactly — a per-edge radius (added in
 	// commit d50fab83, removed here) is unnecessary and was removed along with the
 	// residue it existed to absorb.

@@ -70,7 +70,7 @@ type beadGeometryState struct {
 }
 
 // applyTransform computes this bead's position directly from the node's broadcast
-// transform and this bead's own fixed node-local offset (index*wire.BeadStepR along the
+// transform and this bead's own fixed node-local offset (index*lattice.BeadStepR along the
 // node's aim, docs/bead-model/bead-lattice.md "Placement") — ONE hop, no dependency on any other
 // bead's position. offsetR is this bead's fixed distance from the node center along Aim.
 func (g *beadGeometryState) applyTransform(xf BeadGeometryIn, offsetR float64) {
@@ -135,7 +135,7 @@ func (c *BroadcastChain) AdvanceWithValue(v BeadGeometryIn) *BroadcastChain {
 }
 
 // Bead is a placeholder chain bead, now a goroutine. offsetR is fixed at construction
-// (index*wire.BeadStepR along the owning node's aim) and never changes — only the AIM the
+// (index*lattice.BeadStepR along the owning node's aim) and never changes — only the AIM the
 // offset is applied against changes, via geometry broadcasts, which is what makes a node
 // move reposition every bead in one hop instead of by neighbour-following.
 type Bead struct {

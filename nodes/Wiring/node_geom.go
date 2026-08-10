@@ -12,7 +12,7 @@ import (
 	"math"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
 // nodeIdentity is the WRITE-ONCE-AT-CONSTRUCTION part of a node's geometry: set by the
@@ -156,7 +156,7 @@ func setNodeWorld(g *nodeGeom, world vec3) {
 // requirement. Round keeps the node closest to its authored width/height size.
 func nodeTorusSteps(kind string) int {
 	unsnapped := bareNodeRadius(kind) * (1 + ShadingParamNodeRingTubeRatio)
-	return int(math.Round(unsnapped / wire.BeadStepR))
+	return int(math.Round(unsnapped / lattice.BeadStepR))
 }
 
 // nodeTorusOuterR is a node's TORUS OUTER radius, SNAPPED to a whole number of bead
@@ -166,5 +166,5 @@ func nodeTorusSteps(kind string) int {
 // point at nodeTorusOuterR(kind) can never disagree: there is one snapped number,
 // not a snapped one for beads and an independently-rounded one for the renderer.
 func nodeTorusOuterR(kind string) float64 {
-	return float64(nodeTorusSteps(kind)) * wire.BeadStepR
+	return float64(nodeTorusSteps(kind)) * lattice.BeadStepR
 }

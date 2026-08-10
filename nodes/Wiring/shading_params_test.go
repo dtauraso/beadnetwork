@@ -3,7 +3,7 @@ package Wiring
 import (
 	"testing"
 
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
 // Phase 4 verifier (docs/go-authoritative-clock/index.html, Verify row "4 ·
@@ -70,11 +70,11 @@ func TestShadingParamNodeRingTubeRatioMatchesTS(t *testing.T) {
 }
 
 // TestShadingParamBeadRadiusMatchesDerivation now merely restates ShadingParamBeadRadius's
-// own definition: it IS `wire.BeadRadius` (docs/bead-model/bead-lattice.md "The lattice is derived,
+// own definition: it IS `lattice.BeadRadius` (docs/bead-model/bead-lattice.md "The lattice is derived,
 // not the bead") — the AUTHORED primitive, re-exported rather than duplicated as a literal
 // — not a literal pinned to a formula by a separate test. This used to run the other
-// direction (ShadingParamBeadRadius computed FROM wire.BeadTorusOuterR); the identity
-// `wire.BeadTorusOuterR/(1+ratio) == wire.BeadRadius` still holds either way (it is the
+// direction (ShadingParamBeadRadius computed FROM lattice.BeadTorusOuterR); the identity
+// `lattice.BeadTorusOuterR/(1+ratio) == lattice.BeadRadius` still holds either way (it is the
 // same tangency relationship, just read from the other end), which is why this second
 // form is kept alongside the direct comparison below — both must agree with the primitive.
 // Left in place as a cheap regression guard against someone reintroducing a hand-computed
@@ -83,13 +83,13 @@ func TestShadingParamNodeRingTubeRatioMatchesTS(t *testing.T) {
 // evaluated, not silently dropped — is TestParseShadingParams_EvaluatesCrossPackageExpression
 // in tools/gen-node-defs.
 func TestShadingParamBeadRadiusMatchesDerivation(t *testing.T) {
-	if ShadingParamBeadRadius != wire.BeadRadius {
-		t.Fatalf("ShadingParamBeadRadius = %v, want wire.BeadRadius = %v", ShadingParamBeadRadius, wire.BeadRadius)
+	if ShadingParamBeadRadius != lattice.BeadRadius {
+		t.Fatalf("ShadingParamBeadRadius = %v, want lattice.BeadRadius = %v", ShadingParamBeadRadius, lattice.BeadRadius)
 	}
 	// The inverse relationship (tangency) still holds, read from the other end.
-	wantViaTangency := wire.BeadTorusOuterR / (1 + ShadingParamBeadRingTubeRatio)
+	wantViaTangency := lattice.BeadTorusOuterR / (1 + ShadingParamBeadRingTubeRatio)
 	if ShadingParamBeadRadius != wantViaTangency {
-		t.Fatalf("ShadingParamBeadRadius = %v, want %v (wire.BeadTorusOuterR / (1+ratio), the tangency identity)", ShadingParamBeadRadius, wantViaTangency)
+		t.Fatalf("ShadingParamBeadRadius = %v, want %v (lattice.BeadTorusOuterR / (1+ratio), the tangency identity)", ShadingParamBeadRadius, wantViaTangency)
 	}
 }
 

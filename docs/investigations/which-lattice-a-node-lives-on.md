@@ -73,7 +73,7 @@ against each other — less arbitrarily, but visibly.
 
 ### 2. Make the scene lattice the bead lattice
 
-`stepR` 20 → `wire.BeadStepR` (8.96), angular steps 15° → 1°, so there would genuinely be
+`stepR` 20 → `lattice.BeadStepR` (8.96), angular steps 15° → 1°, so there would genuinely be
 one lattice and a node's position would be a bead-distance multiple in the same terms its
 neighbour distances are.
 
@@ -102,7 +102,7 @@ needed checking against.
 None of the three. The framing itself — "a node's position lives on a grid, pick which
 one" — assumed a grid was the right shape for a drag path at all, and that assumption is
 what broke. The model David specified instead: a bead is a polar VECTOR of fixed length
-(one `wire.BeadStepR`, end to end, identical in every direction by construction), and a
+(one `lattice.BeadStepR`, end to end, identical in every direction by construction), and a
 drag is a PATH of those vectors combined — "take the dragging of the node and fit it to a
 path of the polar vectors ... the dragging should be vectors combining."
 

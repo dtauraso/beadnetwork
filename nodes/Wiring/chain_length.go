@@ -3,14 +3,14 @@ package Wiring
 import (
 	"math"
 
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
 // edgeStepCount is the bead-lattice length of an edge (docs/bead-model/bead-lattice.md "The count"): ONE
 // INTEGER, the number of bead steps between the two nodes' tori. Computed from the LIVE
 // measured center-to-center distance (dist), never a stored cache, plus both nodes' kinds:
 //
-//	K = round(dist / wire.BeadStepR)
+//	K = round(dist / lattice.BeadStepR)
 //	N = K - nodeTorusSteps(srcKind) - nodeTorusSteps(dstKind), minimum 1
 //
 // Under bead CRUD (MODEL.md "Moving a node is CRUD on the edge beads that touch it",
@@ -40,7 +40,7 @@ import (
 // layout and timing can never read two different lengths (the exact divergence
 // docs/bead-model/bead-lattice.md replaces the old arc-length model to close off).
 func edgeStepCount(dist float64, srcKind, dstKind string) int {
-	k := int(math.Round(dist / wire.BeadStepR))
+	k := int(math.Round(dist / lattice.BeadStepR))
 	n := k - nodeTorusSteps(srcKind) - nodeTorusSteps(dstKind)
 	if n < 1 {
 		return 1

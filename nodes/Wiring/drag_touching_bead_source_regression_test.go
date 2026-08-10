@@ -8,7 +8,7 @@ package Wiring
 // it is the only bead). That broke two things nothing here previously caught:
 //
 //   - |third| at rest (nodeDestination == the touching bead's own current centre) came out
-//     as ~selfTorusR (several bead lengths) instead of one bead length (wire.BeadStepR), so
+//     as ~selfTorusR (several bead lengths) instead of one bead length (lattice.BeadStepR), so
 //     REMOVE (`|third| < beadLen`) could never fire on a source-side edge; and
 //   - beadVec (beadCentre - beadSource) pointed TOWARD the neighbour instead of away from
 //     it, inverting the ADD angle gate: dragging AWAY from the neighbour (which should open
@@ -23,7 +23,7 @@ package Wiring
 import (
 	"testing"
 
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
 // touchingBeadFor returns writeTree's single touching bead for nodeID ("1" or "2") and
@@ -43,7 +43,7 @@ func touchingBeadFor(t *testing.T, md *MoveDispatch, nodeID string) (touchingBea
 }
 
 // TestTouchingBeadSourceIsOneBeadLengthFromCentre asserts the touching bead's own SOURCE
-// point sits ONE BEAD LENGTH (wire.BeadStepR) from the touching bead's own CENTRE — not
+// point sits ONE BEAD LENGTH (lattice.BeadStepR) from the touching bead's own CENTRE — not
 // nodeTorusOuterR(selfKind) (~5 bead lengths), which is what the broken isSource branch
 // produced. writeTree's single edge puts "1" only ever on the source-side branch and
 // "2" only ever on the target-side branch, so this exercises both.
@@ -55,24 +55,24 @@ func TestTouchingBeadSourceIsOneBeadLengthFromCentre(t *testing.T) {
 	for _, id := range []string{"1", "2"} {
 		bead, _ := touchingBeadFor(t, md, id)
 		got := bead.Centre.Sub(bead.Source).Length()
-		if diff := got - wire.BeadStepR; diff > eps || diff < -eps {
-			t.Fatalf("%s: touching bead source should be one bead length (wire.BeadStepR=%g) from its centre, got %g",
-				id, wire.BeadStepR, got)
+		if diff := got - lattice.BeadStepR; diff > eps || diff < -eps {
+			t.Fatalf("%s: touching bead source should be one bead length (lattice.BeadStepR=%g) from its centre, got %g",
+				id, lattice.BeadStepR, got)
 		}
 		// selfTorusR is a genuinely different (larger) number in this fixture — pin that,
 		// so a regression back to `prevPos + aimDir*selfTorusR` is caught even if
 		// BeadStepR and selfTorusR ever happened to coincide for some future fixture.
 		selfTorusR := nodeTorusOuterR(md.mr.nodeGeoms[id].selfKind)
-		if selfTorusR-wire.BeadStepR < 1.0 {
-			t.Fatalf("%s: fixture's selfTorusR (%g) is too close to wire.BeadStepR (%g) to distinguish the two forms",
-				id, selfTorusR, wire.BeadStepR)
+		if selfTorusR-lattice.BeadStepR < 1.0 {
+			t.Fatalf("%s: fixture's selfTorusR (%g) is too close to lattice.BeadStepR (%g) to distinguish the two forms",
+				id, selfTorusR, lattice.BeadStepR)
 		}
 	}
 }
 
 // TestThirdAtRestIsOneBeadLengthNotSelfTorusR asserts |third| (bead_crud.go: nodeDestination
 // - beadSource) measured with nodeDestination AT REST — the touching bead's own current
-// centre, i.e. no drag at all — equals one bead length (wire.BeadStepR), not selfTorusR. The
+// centre, i.e. no drag at all — equals one bead length (lattice.BeadStepR), not selfTorusR. The
 // broken isSource branch made this ~selfTorusR (several bead lengths) on the source side, so
 // |third| could never fall below the one-bead REMOVE threshold and REMOVE could never fire.
 func TestThirdAtRestIsOneBeadLengthNotSelfTorusR(t *testing.T) {
@@ -84,9 +84,9 @@ func TestThirdAtRestIsOneBeadLengthNotSelfTorusR(t *testing.T) {
 		bead, _ := touchingBeadFor(t, md, id)
 		third := bead.Centre.Sub(bead.Source)
 		got := third.Length()
-		if diff := got - wire.BeadStepR; diff > eps || diff < -eps {
-			t.Fatalf("%s: |third| at rest should equal one bead length (wire.BeadStepR=%g), got %g (selfTorusR=%g)",
-				id, wire.BeadStepR, got, nodeTorusOuterR(md.mr.nodeGeoms[id].selfKind))
+		if diff := got - lattice.BeadStepR; diff > eps || diff < -eps {
+			t.Fatalf("%s: |third| at rest should equal one bead length (lattice.BeadStepR=%g), got %g (selfTorusR=%g)",
+				id, lattice.BeadStepR, got, nodeTorusOuterR(md.mr.nodeGeoms[id].selfKind))
 		}
 	}
 }
@@ -112,9 +112,9 @@ func TestAngleGateAdmitsAddAwayAndBlocksAddToward(t *testing.T) {
 		// direction — |third| > beadLen and beadVec (beadCentre - beadSource, pointing
 		// away from the neighbour when correct) forms an ACUTE angle with dragVector, so
 		// ADD must be admitted.
-		awayDest := prevPos.Sub(bead.AimDir.Scale(3 * wire.BeadStepR))
+		awayDest := prevPos.Sub(bead.AimDir.Scale(3 * lattice.BeadStepR))
 		awayDrag := awayDest.Sub(prevPos)
-		verdict, _ := beadCrudDecide(bead.Source, bead.Centre, awayDest, awayDrag, wire.BeadStepR)
+		verdict, _ := beadCrudDecide(bead.Source, bead.Centre, awayDest, awayDrag, lattice.BeadStepR)
 		if verdict != beadCrudAdd {
 			t.Fatalf("%s: dragging AWAY from the neighbour should admit ADD, got verdict=%d", id, verdict)
 		}
@@ -126,14 +126,14 @@ func TestAngleGateAdmitsAddAwayAndBlocksAddToward(t *testing.T) {
 		// sourceOffset is how far along aimDir the source sits from prevPos; overshooting
 		// it by another 2 bead lengths guarantees |third| clears beadLen on the far side.
 		sourceOffset := bead.Source.Sub(prevPos).Dot(bead.AimDir)
-		towardDest := prevPos.Add(bead.AimDir.Scale(sourceOffset + 2*wire.BeadStepR))
+		towardDest := prevPos.Add(bead.AimDir.Scale(sourceOffset + 2*lattice.BeadStepR))
 		towardDrag := towardDest.Sub(prevPos)
 		third := towardDest.Sub(bead.Source)
-		if third.Length() <= wire.BeadStepR {
+		if third.Length() <= lattice.BeadStepR {
 			t.Fatalf("%s: toward-destination fixture is degenerate — |third|=%g must exceed beadLen=%g to isolate the angle gate",
-				id, third.Length(), wire.BeadStepR)
+				id, third.Length(), lattice.BeadStepR)
 		}
-		verdict, _ = beadCrudDecide(bead.Source, bead.Centre, towardDest, towardDrag, wire.BeadStepR)
+		verdict, _ = beadCrudDecide(bead.Source, bead.Centre, towardDest, towardDrag, lattice.BeadStepR)
 		if verdict != beadCrudNone {
 			t.Fatalf("%s: dragging TOWARD the neighbour (back across the bead) should block ADD, got verdict=%d", id, verdict)
 		}

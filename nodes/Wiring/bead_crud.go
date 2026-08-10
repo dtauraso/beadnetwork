@@ -40,7 +40,7 @@ const (
 //     polar vector v", PLAN.md) — the node's own previous position to its destination.
 //     ONE vector, computed once by the caller and passed unchanged to every touching
 //     bead; it is never derived per-bead.
-//   - beadLen is one bead length (wire.BeadStepR).
+//   - beadLen is one bead length (lattice.BeadStepR).
 //
 // third = nodeDestination - beadSource is the span the touching bead now has to occupy:
 //
@@ -89,7 +89,7 @@ func beadCrudDecide(beadSource, beadCentre, nodeDestination, dragVector vec3, be
 // bead added -> the node moves away from the newly added bead's place." aimDir is the
 // chain's own axis (the live unit direction from the node toward the neighbour, NEVER the
 // drag direction); beadCentre is the touching bead's own CURRENT centre (before this
-// event); beadLen is one bead length (wire.BeadStepR). ok is false for beadCrudNone — a
+// event); beadLen is one bead length (lattice.BeadStepR). ok is false for beadCrudNone — a
 // "none" verdict implies no new position, only "unchanged".
 //
 //   - beadCrudRemove: the node's new centre IS the removed bead's own centre — the node

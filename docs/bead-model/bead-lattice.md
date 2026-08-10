@@ -51,8 +51,8 @@ property the second draft got right — the bead lattice is still a coarse SUBLA
 node lattice, so `quantIR`'s cell-counted meaning is preserved, only the cell's SIZE
 changes), but now the derivation runs the other way:
 
-	BeadRadius              = 4.0                                  (authored — wire.BeadRadius)
-	BeadRingTubeRatio       = 0.12                                  (authored — wire.BeadRingTubeRatio)
+	BeadRadius              = 4.0                                  (authored — lattice.BeadRadius)
+	BeadRingTubeRatio       = 0.12                                  (authored — lattice.BeadRingTubeRatio)
 	BeadTorusOuterR         = BeadRadius * (1 + BeadRingTubeRatio) = 4.48
 	BeadStepR               = 2 * BeadTorusOuterR                  = 8.96
 	BeadStepCells           = 4                                    (unchanged)
