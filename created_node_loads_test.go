@@ -26,6 +26,7 @@ import (
 
 	T "github.com/dtauraso/wirefold/Trace"
 	Wiring "github.com/dtauraso/wirefold/nodes/Wiring"
+	"github.com/dtauraso/wirefold/nodes/Wiring/edgefile"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
@@ -131,7 +132,7 @@ func TestCreatedNodeTreeStillLoads(t *testing.T) {
 	if targetPort == "In" {
 		t.Fatalf("%s's first input is called In, so this test can no longer tell a resolved port from the old hardcoded one — point it at a kind whose ports are named something else", newKind)
 	}
-	if err := Wiring.WriteEdgeFile(root, "1", srcPort, newID, targetPort); err != nil {
+	if err := edgefile.WriteEdgeFile(root, "1", srcPort, newID, targetPort); err != nil {
 		t.Fatalf("WriteEdgeFile: %v", err)
 	}
 	// Counts derived the same way, for the same reason: nodes is the LARGEST id (the row

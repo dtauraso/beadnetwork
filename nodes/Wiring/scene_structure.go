@@ -23,6 +23,7 @@ import (
 
 	B "github.com/dtauraso/wirefold/Buffer"
 	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/Wiring/edgefile"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 )
@@ -102,7 +103,7 @@ func (md *MoveDispatch) CreateNode(kindID uint8, ndcX, ndcY float64, tr *T.Trace
 	}
 	edges := countEdgeFiles(md.Scenes.TreeRoot)
 	if okNear {
-		if err := WriteEdgeFile(md.Scenes.TreeRoot, src, srcPort, target, targetPort); err != nil {
+		if err := edgefile.WriteEdgeFile(md.Scenes.TreeRoot, src, srcPort, target, targetPort); err != nil {
 			md.refuseStructuralEdit(fmt.Sprintf("could not write edge %s->%s: %v", src, target, err))
 			return
 		}
@@ -145,7 +146,7 @@ func (md *MoveDispatch) DeleteNode(row int, tr *T.Trace) {
 		md.refuseStructuralEdit(fmt.Sprintf("could not remove node %s: %v", id, err))
 		return
 	}
-	if err := RemoveEdgesTo(root, id, NodeIDStringsInTree(root)); err != nil {
+	if err := edgefile.RemoveEdgesTo(root, id, NodeIDStringsInTree(root)); err != nil {
 		md.refuseStructuralEdit(fmt.Sprintf("could not remove edges into %s: %v", id, err))
 		return
 	}

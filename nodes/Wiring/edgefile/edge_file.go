@@ -9,7 +9,7 @@
 // edge_file.go (check-persist-write-ownership) — the palette's create and delete write
 // through them rather than constructing an edge path of their own.
 
-package Wiring
+package edgefile
 
 import (
 	"os"
