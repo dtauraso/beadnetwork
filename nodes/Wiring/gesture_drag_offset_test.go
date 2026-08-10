@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
@@ -37,7 +38,7 @@ func dragOffsetMD() *MoveDispatch {
 
 func nodeHit() inputcodec.RawHit { return inputcodec.RawHit{Kind: "node", NodeRow: 0} }
 
-// drainDrag reads off nm.msg.extIn until it sees a moveMsgKindDrag, returning its Target. Fails
+// drainDrag reads off nm.msg.extIn until it sees a movemsg.KindDrag, returning its Target. Fails
 // the test if none arrives (commitDragStart's DragStart message precedes it on the same
 // channel for the first move of a drag).
 func drainDrag(t *testing.T, nm *nodeGeometry) vec3 {
@@ -45,11 +46,11 @@ func drainDrag(t *testing.T, nm *nodeGeometry) vec3 {
 	for {
 		select {
 		case msg := <-nm.msg.extIn:
-			if msg.Kind == moveMsgKindDrag {
+			if msg.Kind == movemsg.KindDrag {
 				return msg.Target
 			}
 		default:
-			t.Fatal("no moveMsgKindDrag arrived on extIn")
+			t.Fatal("no movemsg.KindDrag arrived on extIn")
 			return vec3{}
 		}
 	}

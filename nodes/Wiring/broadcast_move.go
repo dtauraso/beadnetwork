@@ -9,6 +9,7 @@ package Wiring
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 )
 
 // broadcastToEdgesAndPartners messages every incident edge's mover (batched per-edge Centers) and
@@ -19,7 +20,7 @@ import (
 // fanCenters, was removed — it deadlocked/staled when its only caller turned out to run
 // on the moved node's own goroutine too. See commitNodeMoveLocal for the applyCenter +
 // broadcastToEdgesAndPartners pattern).
-func (lq *layoutQuantizer) broadcastToEdgesAndPartners(md *MoveDispatch, newCenters map[string]vec3, enqueue func(id string, msg moveMsg)) {
+func (lq *layoutQuantizer) broadcastToEdgesAndPartners(md *MoveDispatch, newCenters map[string]vec3, enqueue func(id string, msg movemsg.Msg)) {
 	// Per-edge: send ONE batched message carrying every moved endpoint of that edge,
 	// so an edge whose both endpoints moved this frame recomputes/emits exactly once.
 	// enqueue (the sending node's own retry queue — nm.msg.sendMove) appends the
@@ -42,7 +43,7 @@ func (lq *layoutQuantizer) broadcastToEdgesAndPartners(md *MoveDispatch, newCent
 		if len(eps) == 0 {
 			continue
 		}
-		enqueue(edgeID, moveMsg{Kind: moveMsgKindCenters, Centers: eps})
+		enqueue(edgeID, movemsg.Msg{Kind: movemsg.KindCenters, Centers: eps})
 	}
 
 	// Partner re-emit: find every partner node — the OTHER end of any edge incident to a
@@ -82,7 +83,7 @@ func (lq *layoutQuantizer) broadcastToEdgesAndPartners(md *MoveDispatch, newCent
 		// drains in append order onto that target's one directed channel) preserves
 		// ordering now that delivery goes through the sender's own
 		// nm.pending/flushPending instead of a shared outbox.
-		enqueue(partnerID, moveMsg{Kind: moveMsgKindCenter, NodeID: partnerID, Center: nil,
+		enqueue(partnerID, movemsg.Msg{Kind: movemsg.KindCenter, NodeID: partnerID, Center: nil,
 			SenderID: movedID})
 	}
 }

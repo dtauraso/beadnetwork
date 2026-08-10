@@ -13,6 +13,7 @@ import (
 	"sync"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
@@ -50,11 +51,11 @@ func (md *MoveDispatch) centerOfNode(id string) (vec3, bool) {
 	return md.mr.centerOfNode(id)
 }
 
-// sendMove routes one moveMsg to a node's dedicated external-entry channel (extIn).
+// sendMove routes one movemsg.Msg to a node's dedicated external-entry channel (extIn).
 // Thin delegator to md.mr (mover_registry.go); md.ctx is threaded through (not part of
 // moverRegistry). This is the bare external-entry path (RootMove, gesture.go) with no
 // owning mover goroutine, so it never fires a tap — see nodeMover.tap's doc comment.
-func (md *MoveDispatch) sendMove(id string, msg moveMsg) {
+func (md *MoveDispatch) sendMove(id string, msg movemsg.Msg) {
 	md.mr.sendMove(md.ctx, id, msg)
 }
 
@@ -65,7 +66,7 @@ func (md *MoveDispatch) sendMove(id string, msg moveMsg) {
 // instead. Same blocking-with-ctx-cancel-escape shape as sendMove/mr.sendMove, for the
 // same reason: this is a bare external-entry send with no owning goroutine to thread a
 // ctx from.
-func (md *MoveDispatch) sendTiltEdit(id string, msg TiltEditMsg) bool {
+func (md *MoveDispatch) sendTiltEdit(id string, msg movemsg.TiltEditMsg) bool {
 	ch, ok := md.inboxes.tiltEdit[id]
 	if !ok {
 		return false
@@ -83,7 +84,7 @@ func (md *MoveDispatch) sendTiltEdit(id string, msg TiltEditMsg) bool {
 
 // enqueueFor returns nm's own non-blocking send function. Thin delegator to md.mr
 // (mover_registry.go).
-func (md *MoveDispatch) enqueueFor(nm *nodeGeometry) func(id string, msg moveMsg) {
+func (md *MoveDispatch) enqueueFor(nm *nodeGeometry) func(id string, msg movemsg.Msg) {
 	return md.mr.enqueueFor(nm)
 }
 

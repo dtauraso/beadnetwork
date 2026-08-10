@@ -7,6 +7,7 @@ package Wiring
 
 import (
 	geomseeds "github.com/dtauraso/wirefold/nodes/Wiring/geomseeds"
+	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
@@ -15,7 +16,7 @@ import (
 // Start (a setup-goroutine write to each mover's plain field is safe only because it
 // happens-before the mover goroutines are launched; there is no concurrent access once
 // Start has run). Test-only — production code never calls this.
-func (md *MoveDispatch) SetMsgTap(tap func(destID string, msg moveMsg)) {
+func (md *MoveDispatch) SetMsgTap(tap func(destID string, msg movemsg.Msg)) {
 	md.tapToInstall = tap
 	for _, nm := range md.mr.nodeGeoms {
 		nm.msg.tap = tap
@@ -30,7 +31,7 @@ func (md *MoveDispatch) SetMsgTap(tap func(destID string, msg moveMsg)) {
 // per-edge frame bytes (Buffer.BuildEdgeStreamFrame) straight from the edge's own SEGMENT
 // endpoints (docs/bead-model/channels-not-ports.md — there is no port row to resolve any more).
 // Edge selection is NOT injected: each edgeMover owns its OWN selected bit, set via a
-// moveMsgKindSelect message on its extIn (md.sendEdgeSelect), not a lookup. Call once at
+// movemsg.KindSelect message on its extIn (md.sendEdgeSelect), not a lookup. Call once at
 // startup after LoadTopology, before Start — mirrors SetPortRowResolver/
 // SetEdgeRowResolver's call site in main.go. A missing edgeMover for a seed row (should
 // not happen) is skipped rather than panicking.
@@ -52,7 +53,7 @@ func (md *MoveDispatch) SetEdgeStreams(
 // buildInteriorFrame are injected funcs (not a Buffer import), matching SetEdgeStreams'
 // existing pattern. Selection/hover/abc-drag/kind are NOT injected lookups: each nodeMover
 // owns its OWN selected/hovered/latchedSel/gotDragMsg/dragDelta*/kindID fields, set via
-// moveMsgKindSelect/Hover/Latched/AbcReset messages (or, for kindID, once here at
+// movemsg.KindSelect/Hover/Latched/AbcReset messages (or, for kindID, once here at
 // construction — a node's kind never changes after load, so there is no lookup to
 // perform on every emit). Call once at startup after LoadTopology, before Start — mirrors
 // SetEdgeStreams' call site in main.go. A missing nodeMover for a seed row (should not

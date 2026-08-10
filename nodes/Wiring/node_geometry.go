@@ -26,6 +26,7 @@ package Wiring
 import (
 	"fmt"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
@@ -83,7 +84,7 @@ type nodeGeometry struct {
 	// holds.
 
 	// msg owns this node's dedicated inbound channels, its outbound retry queue and the
-	// routing closures it hands a moveMsg to (nodeMessaging, node_geometry_parts.go).
+	// routing closures it hands a movemsg.Msg to (nodeMessaging, node_geometry_parts.go).
 	msg nodeMessaging
 	// clocks owns the clock source this node copies from once and its own copy
 	// (nodeClocks).
@@ -120,8 +121,8 @@ func newNodeGeometry(id string, geom nodegeom.NodeGeom, tr *T.Trace, clockSrc cl
 	ng := &nodeGeometry{
 		id: id, geom: geom, tr: tr,
 		msg: nodeMessaging{
-			extIn:      make(chan moveMsg, moverInboxDepth),
-			neighborIn: map[string]chan moveMsg{},
+			extIn:      make(chan movemsg.Msg, moverInboxDepth),
+			neighborIn: map[string]chan movemsg.Msg{},
 			centerOut:  make(chan vec3, 1),
 		},
 		topo:   neighborTopology{partnerCenters: map[string]vec3{}},
@@ -141,11 +142,11 @@ func newNodeGeometry(id string, geom nodegeom.NodeGeom, tr *T.Trace, clockSrc cl
 }
 
 // handle applies one move to this node: update held position, re-emit node-geometry.
-func (m *nodeGeometry) handle(msg moveMsg) {
+func (m *nodeGeometry) handle(msg movemsg.Msg) {
 	if msg.NodeID != m.id {
 		return
 	}
-	if msg.Kind == moveMsgKindCenter {
+	if msg.Kind == movemsg.KindCenter {
 		// This node is the SOLE writer of its own position (single-writer by
 		// construction — this is the only path that mutates it). A Center payload is
 		// the flat absolute-scene-polar drag write from fanCenters: apply it via
@@ -162,7 +163,7 @@ func (m *nodeGeometry) handle(msg moveMsg) {
 		}
 		return
 	}
-	if msg.Kind == moveMsgKindDrag {
+	if msg.Kind == movemsg.KindDrag {
 		// Owner-goroutine drag entry (generalized to EVERY node so no node's quantized
 		// offset is ever touched by a foreign goroutine): commit this node's OWN new
 		// position via the local (synchronous-snap-publish) commit path. A drag is
@@ -186,19 +187,19 @@ func (m *nodeGeometry) handle(msg moveMsg) {
 		}
 		return
 	}
-	if msg.Kind == moveMsgKindDragStart {
+	if msg.Kind == movemsg.KindDragStart {
 		m.startBeadDrag()
 		return
 	}
-	if msg.Kind == moveMsgKindDragEnd {
+	if msg.Kind == movemsg.KindDragEnd {
 		// "done dragging" is not optional (PLAN.md): sent from gesture.go's
 		// gestPointerUp on EVERY path a drag can end by (including one abandoned
-		// without a clean pointer-move first — see moveMsgKindDragEnd's own doc
+		// without a clean pointer-move first — see movemsg.KindDragEnd's own doc
 		// comment), so no chain bead this node woke is ever left on machine time.
 		m.endBeadDrag()
 		return
 	}
-	if msg.Kind == moveMsgKindSelect {
+	if msg.Kind == movemsg.KindSelect {
 		if msg.Bool {
 			m.ui.selected = 1
 		} else {
@@ -206,7 +207,7 @@ func (m *nodeGeometry) handle(msg moveMsg) {
 		}
 		return
 	}
-	if msg.Kind == moveMsgKindHover {
+	if msg.Kind == movemsg.KindHover {
 		if msg.Bool {
 			m.ui.hovered = 1
 			m.ui.hoverPort = msg.Port
@@ -218,7 +219,7 @@ func (m *nodeGeometry) handle(msg moveMsg) {
 		}
 		return
 	}
-	if msg.Kind == moveMsgKindLatched {
+	if msg.Kind == movemsg.KindLatched {
 		if msg.Bool {
 			m.ui.latchedSel = 1
 		} else {
@@ -226,7 +227,7 @@ func (m *nodeGeometry) handle(msg moveMsg) {
 		}
 		return
 	}
-	if msg.Kind == moveMsgKindTiltVectorAngle {
+	if msg.Kind == movemsg.KindTiltVectorAngle {
 		// Adjust THIS node's own vector-direction index by one TiltVectorAngleStep click —
 		// index arithmetic only (memory/feedback_abc_times_constant_not_rederive.md), no
 		// trig here. Persisted immediately to this node's OWN file (persistTiltVectorAngle,
@@ -242,14 +243,14 @@ func (m *nodeGeometry) handle(msg moveMsg) {
 			m.emitGeometry()
 		}
 		// NOTE: this path only runs for a kind that has NOT claimed BuildArgs.TiltEditIn
-		// (every kind except PairNode today — see moveMsgKindTiltVectorAngle's own doc
+		// (every kind except PairNode today — see movemsg.KindTiltVectorAngle's own doc
 		// comment and applyUpdateTiltVector's fallback, stdin_reader.go). PairNode's own
 		// tilt-panel edits are routed to its OWN goroutine instead (TiltEditIn), which
 		// applies the click, syncs this value back via PairNodeSelf.SetTiltIndex, AND places
 		// "the kick" bead on its own Out directly — none of that happens here anymore.
 		return
 	}
-	if msg.Kind == moveMsgKindTiltVectorReset {
+	if msg.Kind == movemsg.KindTiltVectorReset {
 		// Return THIS node's own vector direction to the start position — both indices to
 		// 0, the documented default (tilt vector at world +y). No bead: this is a
 		// stop-and-return, not a kick. Persisted immediately, same as an adjust.
@@ -258,18 +259,18 @@ func (m *nodeGeometry) handle(msg moveMsg) {
 		if m.tr != nil {
 			m.emitGeometry()
 		}
-		// NOTE: same split as moveMsgKindTiltVectorAngle — this path only runs for a kind
+		// NOTE: same split as movemsg.KindTiltVectorAngle — this path only runs for a kind
 		// that has NOT claimed BuildArgs.TiltEditIn. PairNode routes a reset through
-		// its own TiltEditIn/TiltEditMsg.Reset instead.
+		// its own TiltEditIn/movemsg.TiltEditMsg.Reset instead.
 		return
 	}
-	// moveMsgKindTiltIndexSync/ReceivedVectorSync/BeadClear are GONE
+	// movemsg.KindTiltIndexSync/ReceivedVectorSync/BeadClear are GONE
 	// (task/pair-node-owns-itself): a pair node (PairNode) owns this geometry
 	// directly (PairNodeSelf, pair_node_self.go), so what used to be a one-way
 	// notification message to itself is now a plain method call on the same
 	// goroutine — see PairNodeSelf.SetTiltIndex/SetReceivedVector/ClearOutBeads,
 	// which apply exactly what this handle() branch used to apply.
-	if msg.Kind == moveMsgKindNeighborCenter {
+	if msg.Kind == movemsg.KindNeighborCenter {
 		// Delivery-mechanism push (see applyCenter/partnerCenters' doc comments): a
 		// direct neighbor's OWN center just changed. Store it in THIS node's owned
 		// partnerCenters map (write, own goroutine only) and re-emit THIS node's own

@@ -146,7 +146,7 @@ func (md *MoveDispatch) ApplyDistanceGroupTarget(groupIdx, dir int) bool {
 		newPos := cs.Add(offset.Normalize().Scale(targetLen))
 		if md.RootMove(p.Target, newPos) {
 			moved = true
-			// RootMove is fire-and-forget (a moveMsgKindDrag message to the target's OWN
+			// RootMove is fire-and-forget (a movemsg.KindDrag message to the target's OWN
 			// goroutine — see its doc comment): it returns before the target's commit
 			// lands. A later pair in this SAME group can name this target as its own
 			// SOURCE (e.g. "time"'s node 5: target of (2,5), source of (5,8)/(5,7)), so

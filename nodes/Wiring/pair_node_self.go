@@ -103,8 +103,8 @@ func (p *PairNodeSelf) Step(ctx context.Context, tick int64) {
 		select {
 		case msg := <-g.msg.extIn:
 			g.handle(msg)
-			if msg.testDone != nil {
-				close(msg.testDone)
+			if msg.TestDone != nil {
+				close(msg.TestDone)
 			}
 			progressed = true
 		default:
@@ -113,8 +113,8 @@ func (p *PairNodeSelf) Step(ctx context.Context, tick int64) {
 			select {
 			case msg := <-ch:
 				g.handle(msg)
-				if msg.testDone != nil {
-					close(msg.testDone)
+				if msg.TestDone != nil {
+					close(msg.TestDone)
 				}
 				progressed = true
 			default:
@@ -133,7 +133,7 @@ func (p *PairNodeSelf) Step(ctx context.Context, tick int64) {
 
 // SetTiltIndex applies this node's own new top/normal/bottom tilt-vector index triple
 // directly to its own geometry state — the direct-call replacement for the removed
-// moveMsgKindTiltIndexSync message-to-self (see that constant's retirement note in
+// movemsg.KindTiltIndexSync message-to-self (see that constant's retirement note in
 // move_msg.go). Same effect as that message's old handle() branch: persist to this
 // node's OWN position.json and re-emit.
 //
@@ -182,7 +182,7 @@ func (p *PairNodeSelf) SetRoundsToParallel(rounds, msgs int32) {
 
 // SetReceivedVector applies this node's own last-received vector-channel direction
 // directly to its own geometry state — the direct-call replacement for the removed
-// moveMsgKindReceivedVectorSync message-to-self. Same effect as that message's old
+// movemsg.KindReceivedVectorSync message-to-self. Same effect as that message's old
 // handle() branch: re-emit so the third drawn arrow picks up the change; nothing here is
 // persisted (a channel arrival is transient session state).
 func (p *PairNodeSelf) SetReceivedVector(theta int32, set bool) {
@@ -250,7 +250,7 @@ func (md *MoveDispatch) NodeQuantOffset(id string) (iTheta, iPhi, iR int, ok boo
 }
 
 // ClearOutBeads empties every one of this node's own outgoing wires directly — the
-// direct-call replacement for the removed moveMsgKindBeadClear message-to-self. This
+// direct-call replacement for the removed movemsg.KindBeadClear message-to-self. This
 // node's own geometry already drives those wires (Step, above), so it may clear them
 // itself with no message needed at all.
 func (p *PairNodeSelf) ClearOutBeads() {

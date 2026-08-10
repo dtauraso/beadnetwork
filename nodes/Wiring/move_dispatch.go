@@ -34,6 +34,7 @@ import (
 	"context"
 
 	geomseeds "github.com/dtauraso/wirefold/nodes/Wiring/geomseeds"
+	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	rowtables "github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
 	sceneswitch "github.com/dtauraso/wirefold/nodes/Wiring/sceneswitch"
 
@@ -94,7 +95,7 @@ type MoveDispatch struct {
 	// SetMsgTap below — there is no shared/concurrently-read tap anymore: each mover
 	// owns and reads only its own copy, on its own goroutine. nil in production —
 	// production code never calls SetMsgTap.
-	tapToInstall func(destID string, msg moveMsg)
+	tapToInstall func(destID string, msg movemsg.Msg)
 	// ctx is the process-lifetime context, captured in Start. sendMove (the bare
 	// blocking directory send, used by external entry points like RootMove with
 	// no owning mover goroutine to thread a ctx from) selects on ctx.Done() so a
@@ -130,7 +131,7 @@ type nodeInboxes struct {
 	// channel for a panel-driven tilt-angle click. A node id with no entry is a kind that
 	// still routes tiltVectorAngle straight to its mover (applyUpdateTiltVector's fallback,
 	// stdin_reader.go). Read only by sendTiltEdit.
-	tiltEdit map[string]chan TiltEditMsg
+	tiltEdit map[string]chan movemsg.TiltEditMsg
 
 	// lattice holds, for each node id whose own kind claimed BuildArgs.LatticeIn (PairNode —
 	// the only kind that owns a lattice), that node's dedicated inbound channel for a

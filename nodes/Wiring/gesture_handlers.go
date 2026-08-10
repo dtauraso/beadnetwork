@@ -6,6 +6,7 @@ import (
 	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 )
 
 // gesture_handlers.go — the per-event PHASE HANDLERS the dispatch table in gesture_dispatch.go
@@ -104,7 +105,7 @@ func (md *MoveDispatch) gestPointerUp(ev inputcodec.RawInputMsg, slotReg inputco
 		md.applySelect(ev, tr)
 	}
 	wasDragging := g.phase == gestDragging
-	// Capture BEFORE reset() clears it (below) — moveMsgKindDragEnd must name the node
+	// Capture BEFORE reset() clears it (below) — movemsg.KindDragEnd must name the node
 	// that was actually dragged, and reset() zeroes g.dragNode unconditionally.
 	draggedNode := g.dragNode
 	g.reset(&md.ui.vp.Viewpoint)
@@ -114,12 +115,12 @@ func (md *MoveDispatch) gestPointerUp(ev inputcodec.RawInputMsg, slotReg inputco
 		// waiting for the next unrelated view-frame emit. Mirrors commitDragStart's own
 		// emitViewFrame call at drag START.
 		md.emitViewFrame(nil)
-		// "done dragging" (PLAN.md) — mirrors commitDragStart's own moveMsgKindDragStart
+		// "done dragging" (PLAN.md) — mirrors commitDragStart's own movemsg.KindDragStart
 		// send. Sent on EVERY path a drag ends by (this is the FSM's one drag-end exit),
 		// so a chain bead this node woke can never be left on machine time — see
-		// moveMsgKindDragEnd's own doc comment.
+		// movemsg.KindDragEnd's own doc comment.
 		if draggedNode != "" {
-			md.sendMove(draggedNode, moveMsg{Kind: moveMsgKindDragEnd, NodeID: draggedNode})
+			md.sendMove(draggedNode, movemsg.Msg{Kind: movemsg.KindDragEnd, NodeID: draggedNode})
 		}
 	}
 }

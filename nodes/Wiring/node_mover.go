@@ -17,6 +17,7 @@ import (
 	"path/filepath"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
+	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
@@ -92,7 +93,7 @@ func RemoveNodeDir(root, id string) error {
 // node's own driving goroutine ever reads or writes it.
 type pendingSend struct {
 	destID string
-	msg    moveMsg
+	msg    movemsg.Msg
 }
 
 // nodeMover is the RING actor: its own goroutine (run, launched by moverRegistry.start)
@@ -152,8 +153,8 @@ func (m *nodeMover) run(ctx context.Context) {
 				return
 			case msg := <-g.msg.extIn:
 				g.handle(msg)
-				if msg.testDone != nil {
-					close(msg.testDone)
+				if msg.TestDone != nil {
+					close(msg.TestDone)
 				}
 				progressed = true
 			default:
@@ -162,8 +163,8 @@ func (m *nodeMover) run(ctx context.Context) {
 				select {
 				case msg := <-ch:
 					g.handle(msg)
-					if msg.testDone != nil {
-						close(msg.testDone)
+					if msg.TestDone != nil {
+						close(msg.TestDone)
 					}
 					progressed = true
 				default:

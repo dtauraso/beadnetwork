@@ -8,6 +8,8 @@ package Wiring
 import (
 	"strings"
 	"testing"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 )
 
 // TestEnqueueForPanicsWhenPendingExceedsBound drives sends to a destination whose
@@ -16,11 +18,11 @@ import (
 // sender) rather than a generic "limit exceeded".
 func TestEnqueueForPanicsWhenPendingExceedsBound(t *testing.T) {
 	mr := &moverRegistry{}
-	blockedCh := make(chan moveMsg) // unbuffered, nobody ever receives -> always full
+	blockedCh := make(chan movemsg.Msg) // unbuffered, nobody ever receives -> always full
 	nm := &nodeGeometry{
 		id: "wedged-peer-test",
 		msg: nodeMessaging{
-			resolveDest: func(id string) (chan moveMsg, bool) {
+			resolveDest: func(id string) (chan movemsg.Msg, bool) {
 				return blockedCh, true
 			},
 		},
@@ -37,7 +39,7 @@ func TestEnqueueForPanicsWhenPendingExceedsBound(t *testing.T) {
 			}
 		}()
 		for i := 0; i <= maxPendingSends; i++ {
-			send("peer", moveMsg{})
+			send("peer", movemsg.Msg{})
 		}
 	}()
 
@@ -62,11 +64,11 @@ func TestEnqueueForPanicsWhenPendingExceedsBound(t *testing.T) {
 // many sends are made, because flushPending always removes what it enqueues.
 func TestEnqueueForNeverTripsBoundWhenDestinationDrains(t *testing.T) {
 	mr := &moverRegistry{}
-	liveCh := make(chan moveMsg, moverInboxDepth)
+	liveCh := make(chan movemsg.Msg, moverInboxDepth)
 	nm := &nodeGeometry{
 		id: "live-peer-test",
 		msg: nodeMessaging{
-			resolveDest: func(id string) (chan moveMsg, bool) {
+			resolveDest: func(id string) (chan movemsg.Msg, bool) {
 				return liveCh, true
 			},
 		},
@@ -74,7 +76,7 @@ func TestEnqueueForNeverTripsBoundWhenDestinationDrains(t *testing.T) {
 	send := mr.enqueueFor(nm)
 
 	for range maxPendingSends * 10 {
-		send("peer", moveMsg{})
+		send("peer", movemsg.Msg{})
 		// Drain immediately, exactly as a live peer's own goroutine would each cycle.
 		select {
 		case <-liveCh:

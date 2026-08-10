@@ -53,7 +53,7 @@ const AXES = ["theta"] as const;
 //
 // Clicking an arrow fire-and-forgets an edit-update(tiltVector, theta) record naming
 // the target node's buffer ROW (never its id/name) and the direction; Go owns the step
-// and the index arithmetic (node_mover.go's moveMsgKindTiltVectorAngle handler) — this
+// and the index arithmetic (node_geometry.go's movemsg.KindTiltVectorAngle handler) — this
 // component sends no angle value, only which node + which direction.
 //
 // The actual derivation lives in tilt-vector-angle-format.ts (formatAngle, imported above)

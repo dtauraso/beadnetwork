@@ -15,6 +15,7 @@ import (
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 )
 
@@ -38,7 +39,7 @@ func dragAndReadBack(t *testing.T, quantized bool, target vec3) string {
 		persistRoot: root,
 		geom:        nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: "PairNode"}, ScenePolar: geom.Cart2polar(vec3{X: 100}), HasPos: true},
 		topo:        neighborTopology{partnerCenters: map[string]vec3{}},
-		msg:         nodeMessaging{neighborIn: map[string]chan moveMsg{}},
+		msg:         nodeMessaging{neighborIn: map[string]chan movemsg.Msg{}},
 	}
 	md.mr.nodeGeoms["1"] = nm
 

@@ -128,7 +128,7 @@ func TestReconcileBeadChainAppliesPosition(t *testing.T) {
 // TestStartEndBeadDragTogglesEveryChain: startBeadDrag/endBeadDrag reach EVERY one of this
 // node's own outgoing-edge chains with one StartDrag/EndDrag call each — not a per-bead
 // send loop — mirroring the primitive-level TestWakeSetsEveryAffectedBead but through the
-// production entry points handle() drives (moveMsgKindDragStart/moveMsgKindDragEnd).
+// production entry points handle() drives (movemsg.KindDragStart/movemsg.KindDragEnd).
 func TestStartEndBeadDragTogglesEveryChain(t *testing.T) {
 	m := &nodeGeometry{id: "a", beads: nodeBeads{beadTickFn: clock.NewTickChan}}
 	offsetAt := func(i int) float64 { return float64(i) }

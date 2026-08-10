@@ -21,6 +21,7 @@ import (
 
 	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 )
 
 func applyUpdateClock(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
@@ -60,7 +61,7 @@ func applyUpdateDistanceGroup(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.T
 // its tilt index independently, per the straightening loop's firing rule): md.sendTiltEdit
 // tries that node's dedicated channel first and reports whether one exists. When it does
 // NOT (every other kind), this falls back to the old path — md.sendMove onto the node's
-// mover (moveMsgKindTiltVectorAngle / moveMsgKindTiltVectorReset) — so the index write +
+// mover (movemsg.KindTiltVectorAngle / movemsg.KindTiltVectorReset) — so the index write +
 // persist + re-emit still run on that node's own mover goroutine, unchanged for every kind
 // but the pair. A theta click now moves the index by exactly one step and sends/places
 // nothing else (task/pair-node-owns-itself split); reset places NO bead either.
@@ -79,10 +80,10 @@ func applyUpdateTiltVector(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trac
 	if msg.Attr == "reset" {
 		// Done setting: the slider's speed governs again. See HumanEditSpeed.
 		BroadcastSpeed(speedSinks, md.SliderSpeed())
-		if md.sendTiltEdit(id, TiltEditMsg{Reset: true}) {
+		if md.sendTiltEdit(id, movemsg.TiltEditMsg{Reset: true}) {
 			return
 		}
-		md.sendMove(id, moveMsg{Kind: moveMsgKindTiltVectorReset, NodeID: id})
+		md.sendMove(id, movemsg.Msg{Kind: movemsg.KindTiltVectorReset, NodeID: id})
 		return
 	}
 	if msg.Attr == "start" {
@@ -94,7 +95,7 @@ func applyUpdateTiltVector(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trac
 		// VectorOut/outgoingVector) — there is no mover-owned fallback, unlike
 		// theta/phi/reset: a kind that never claimed BuildArgs.TiltEditIn has no vector
 		// exchange to open, so a Start for it is simply a no-op.
-		md.sendTiltEdit(id, TiltEditMsg{Start: true})
+		md.sendTiltEdit(id, movemsg.TiltEditMsg{Start: true})
 		return
 	}
 	// A ▲/▼ ANGLE CLICK — the user is SETTING a tilt. Run every clock at human speed until
@@ -103,10 +104,10 @@ func applyUpdateTiltVector(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trac
 	// so the very node about to drain this edit is already cycling at that speed.
 	BroadcastSpeed(speedSinks, HumanEditSpeed)
 	up := msg.Flag == "up"
-	if md.sendTiltEdit(id, TiltEditMsg{Axis: msg.Attr, Up: up}) {
+	if md.sendTiltEdit(id, movemsg.TiltEditMsg{Axis: msg.Attr, Up: up}) {
 		return
 	}
-	md.sendMove(id, moveMsg{Kind: moveMsgKindTiltVectorAngle, NodeID: id, Axis: msg.Attr, Bool: up})
+	md.sendMove(id, movemsg.Msg{Kind: movemsg.KindTiltVectorAngle, NodeID: id, Axis: msg.Attr, Bool: up})
 }
 
 // applyUpdateScene handles kind=="scene" attr=="selected" (one click on the scene tab

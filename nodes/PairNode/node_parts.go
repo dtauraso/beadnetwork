@@ -24,6 +24,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring"
+	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 )
 
@@ -142,7 +143,7 @@ type tiltHeld struct {
 	// TiltEditIn is this node's dedicated channel for a panel-driven tilt-angle click
 	// (TiltVectorAnglePanel), claimed at build time via BuildArgs.TiltEditIn — see the
 	// package doc comment's "THE KICK".
-	TiltEditIn <-chan Wiring.TiltEditMsg
+	TiltEditIn <-chan movemsg.TiltEditMsg
 	// SyncTiltIndex notifies this node's own geometry of the current TopTiltThetaIdx AND the
 	// current coplanar-normal index (coplanarNormal, below) — one-way, fire-and-forget,
 	// never an ack (BuildArgs.SyncTiltIndex).

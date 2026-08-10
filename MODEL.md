@@ -48,8 +48,8 @@ mistake to avoid (chain_beads.go's own header comment makes the same split):
   `nodes/wire/beadchain/bead_wake_group.go`'s `BeadWakeGroup`), with a real production call site:
   `nodes/Wiring/bead_chain.go`'s `reconcileBeadChain`/`startBeadDrag`/`endBeadDrag`, driven
   from `chainBeads()` (`nodes/Wiring/chain_beads.go`) and from `handle()`'s
-  `moveMsgKindDragStart`/`moveMsgKindDragEnd` cases (`nodes/Wiring/node_mover.go`,
-  `move_msg.go`). `chainBeads()` itself stays a pure, synchronous function of this node's
+  `movemsg.KindDragStart`/`movemsg.KindDragEnd` cases (`nodes/Wiring/node_mover.go`,
+  `nodes/Wiring/movemsg/move_msg.go`). `chainBeads()` itself stays a pure, synchronous function of this node's
   own state (its own kind/radius and its own live copy of each neighbour's world
   center, `partnerCenters` — see "the polar model" below) — the bead-actor path is
   entered only when the node's own `beadTickFn` is set (production's `newNodeMover`; nil in
@@ -71,9 +71,9 @@ mistake to avoid (chain_beads.go's own header comment makes the same split):
   - **Mode**: two more `BroadcastChain`s — wake (sets the ONE local `dragging` flag) and
     settle (clears it) — each advanced by a SINGLE close from the owning node
     (`BeadWakeGroup.StartDrag`/`EndDrag`), once per drag gesture (the gesture FSM's
-    `gestPointerDown`→`gestDragging` edge sends `moveMsgKindDragStart`;
+    `gestPointerDown`→`gestDragging` edge sends `movemsg.KindDragStart`;
     `gestPointerUp`, on every path a drag ends by, sends the mirroring
-    `moveMsgKindDragEnd`), never per pointer event. Position and animation are disjoint
+    `movemsg.KindDragEnd`), never per pointer event. Position and animation are disjoint
     state (one writer each), so the two clocks never coordinate and the bead is never in
     both modes.
 

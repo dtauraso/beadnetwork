@@ -64,18 +64,18 @@ func (m *edgeMover) run(ctx context.Context) {
 				m.steps = steps
 			case msg := <-m.extIn:
 				m.handle(msg)
-				if msg.testDone != nil {
-					close(msg.testDone)
+				if msg.TestDone != nil {
+					close(msg.TestDone)
 				}
 			case msg := <-m.srcIn:
 				m.handle(msg)
-				if msg.testDone != nil {
-					close(msg.testDone)
+				if msg.TestDone != nil {
+					close(msg.TestDone)
 				}
 			case msg := <-m.dstIn:
 				m.handle(msg)
-				if msg.testDone != nil {
-					close(msg.testDone)
+				if msg.TestDone != nil {
+					close(msg.TestDone)
 				}
 			default:
 				break drain

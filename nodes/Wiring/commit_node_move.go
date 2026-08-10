@@ -22,7 +22,7 @@ import (
 // commitNodeMoveLocal is the OWNER-GOROUTINE single-node commit path
 // (generalized to every node): used when the commit
 // originates on nodeID's OWN mover goroutine (its own inbox handler for a
-// moveMsgKindDrag). It applies nodeID's OWN new center SYNCHRONOUSLY via
+// movemsg.KindDrag). It applies nodeID's OWN new center SYNCHRONOUSLY via
 // applyCenter — safe and correct here because applyCenter's doc contract is "called
 // only from this nodeMover's own inbox-drain goroutine", which this is. Also fans
 // centers to incident edges/partners, persists the per-node quantized-offset

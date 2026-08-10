@@ -4,6 +4,7 @@ import (
 	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 )
 
 // gesture_graph.go — an explicit adjacency-list TABLE + driver for the two gestPointerMove
@@ -83,11 +84,11 @@ func (md *MoveDispatch) commitDragStart(g *gestureState, ev inputcodec.RawInputM
 	// dragNodeRow derivation (which reads lastDraggedNode) already reflects this
 	// drag, not the previous one.
 	md.ui.lastDraggedNode = g.dragNode
-	// Arm the dragged node's OWN bead-actor wake (moveMsgKindDragStart, see
+	// Arm the dragged node's OWN bead-actor wake (movemsg.KindDragStart, see
 	// nodeMover.startBeadDrag) at this same slop-crossing edge — the ONE place a drag
 	// begins. Blocking send (md.sendMove, not lossy): this must not be dropped, same as
 	// the drag/center kinds it rides alongside.
-	md.sendMove(g.dragNode, moveMsg{Kind: moveMsgKindDragStart, NodeID: g.dragNode})
+	md.sendMove(g.dragNode, movemsg.Msg{Kind: movemsg.KindDragStart, NodeID: g.dragNode})
 }
 
 // commitHandholdStart is the handhold-constrained-orbit commit action, copied verbatim from

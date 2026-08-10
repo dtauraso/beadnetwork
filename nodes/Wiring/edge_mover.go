@@ -16,6 +16,7 @@ package Wiring
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
@@ -43,9 +44,9 @@ type edgeMover struct {
 	// srcID's nodeMover, dstIn only by dstID's — the literal "two channels" the design
 	// specifies, one per direction this edge can be told about a moved endpoint.
 	// Nothing else ever writes on any of the three.
-	extIn chan moveMsg
-	srcIn chan moveMsg
-	dstIn chan moveMsg
+	extIn chan movemsg.Msg
+	srcIn chan movemsg.Msg
+	dstIn chan movemsg.Msg
 	// stepsIn is a buffered-1, latest-wins channel carrying this edge's freshly
 	// computed bead-step count (docs/bead-model/bead-lattice.md "The count") FROM the SOURCE
 	// node's own goroutine (nodeMover.chainBeads, node_mover.go/chain_beads.go —
@@ -111,7 +112,7 @@ type edgeMover struct {
 	// resolve the SOURCE node's row for this edge's own Geometry/Position/Arrive events.
 	nodeRowFor func(id string) (int32, bool)
 	// selected is this edge's OWN CURRENT click-selected bit — set only by this
-	// edgeMover's own goroutine (handle's moveMsgKindSelect case, from a
+	// edgeMover's own goroutine (handle's movemsg.KindSelect case, from a
 	// MoveDispatch.sendEdgeSelect message), no shared map.
 	selected uint8
 	// buildFrame packs this edge's combined per-fd frame (edge fields + this wire's
@@ -137,9 +138,9 @@ func newEdgeMover(ep inputcodec.EdgeEndpoints, edgeID string, srcGeom, dstGeom n
 		dstH:     ep.TargetHandle,
 		srcGeom:  srcGeom,
 		dstGeom:  dstGeom,
-		extIn:    make(chan moveMsg, moverInboxDepth),
-		srcIn:    make(chan moveMsg, moverInboxDepth),
-		dstIn:    make(chan moveMsg, moverInboxDepth),
+		extIn:    make(chan movemsg.Msg, moverInboxDepth),
+		srcIn:    make(chan movemsg.Msg, moverInboxDepth),
+		dstIn:    make(chan movemsg.Msg, moverInboxDepth),
 		stepsIn:  make(chan int, 1),
 		tr:       tr,
 		clockSrc: clockSrc,
@@ -152,8 +153,8 @@ func newEdgeMover(ep inputcodec.EdgeEndpoints, edgeID string, srcGeom, dstGeom n
 // matching endpoint geom, recomputes the edge's segment + arc, writes them onto the
 // source Out, revises any in-flight bead, emits the new edge geometry, and updates
 // the dest port's latency aggregate. A move that touches neither endpoint is ignored.
-func (m *edgeMover) handle(msg moveMsg) {
-	if msg.Kind == moveMsgKindSelect {
+func (m *edgeMover) handle(msg movemsg.Msg) {
+	if msg.Kind == movemsg.KindSelect {
 		if msg.Bool {
 			m.selected = 1
 		} else {
@@ -161,7 +162,7 @@ func (m *edgeMover) handle(msg moveMsg) {
 		}
 		return
 	}
-	if msg.Kind == moveMsgKindCenter {
+	if msg.Kind == movemsg.KindCenter {
 		// Polar re-propagation: adopt the centrally-computed center on whichever
 		// endpoint this message names, then recompute the edge.
 		if msg.Center == nil {
@@ -178,7 +179,7 @@ func (m *edgeMover) handle(msg moveMsg) {
 		m.recomputeGeometry()
 		return
 	}
-	if msg.Kind == moveMsgKindCenters {
+	if msg.Kind == movemsg.KindCenters {
 		// Batched polar re-propagation: apply every moved endpoint this edge owns,
 		// then recompute ONCE. An edge whose both endpoints moved in one frame would
 		// otherwise recompute (and emit) twice — the duplicate-emit source on a node-2

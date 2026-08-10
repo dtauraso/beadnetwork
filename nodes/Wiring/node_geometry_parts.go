@@ -17,25 +17,26 @@
 package Wiring
 
 import (
+	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
 // nodeMessaging owns this node's own inbound channel set, its outbound retry queue, and
 // the closures it routes through — everything about how this node's own goroutine
-// receives and hands off a moveMsg. No shared inbox appears anywhere in it.
+// receives and hands off a movemsg.Msg. No shared inbox appears anywhere in it.
 type nodeMessaging struct {
 	// extIn is this node's dedicated channel for EXTERNAL entries — the stdin/gesture
 	// goroutine's drag/dragStart sends (md.sendMove). Nothing else ever writes here: no
 	// other node shares it.
-	extIn chan moveMsg
+	extIn chan movemsg.Msg
 	// neighborIn holds one dedicated inbound channel PER ADJACENT NODE (keyed by that
 	// neighbor's id) — the "two channels, A→B and B→A" topology generalized to this
 	// node's whole neighbor set. Built once at construction (newMoveDispatch) from edge
 	// adjacency and never mutated afterward, so it's safe for the driving goroutine to
 	// snapshot into a fixed select-case list at its own start. A neighbor M's own
 	// goroutine is the only writer of neighborIn[M]; nothing else ever sends on it.
-	neighborIn map[string]chan moveMsg
+	neighborIn map[string]chan movemsg.Msg
 	// centerOut is this node's OWN dedicated one-slot delivery channel to the DISPATCH
 	// goroutine's owned center mirror (moverRegistry.centerMirror). A size-1 buffered
 	// channel written with LATEST-WINS semantics (applyCenter drains any stale unread
@@ -44,17 +45,17 @@ type nodeMessaging struct {
 	// than queued. Only this node's own driving goroutine (applyCenter) ever sends here;
 	// only the dispatch goroutine (moverRegistry.drainCenterMirror) ever receives.
 	centerOut chan vec3
-	// sendMove routes a moveMsg to another id's OWN dedicated channel (resolveDest,
+	// sendMove routes a movemsg.Msg to another id's OWN dedicated channel (resolveDest,
 	// below) — no shared inbox, no shared mutable state. Bound to md.enqueueFor(this): it
 	// appends to pending and immediately attempts a non-blocking flush (never blocks the
 	// calling handler goroutine).
-	sendMove func(id string, msg moveMsg)
+	sendMove func(id string, msg movemsg.Msg)
 	// resolveDest looks up the ONE dedicated directed channel FROM this node TO the given
 	// destination id — the destination's neighborIn[this node's id] if destID is another
 	// node, or the destination edge's srcIn/dstIn depending on which endpoint this node
 	// is. There is no shared inbox to look up. nil only in tests that build a bare
 	// nodeGeometry directly, in which case flushPending is a no-op.
-	resolveDest func(id string) (chan moveMsg, bool)
+	resolveDest func(id string) (chan movemsg.Msg, bool)
 	// centerOf resolves another node's current world center, bound to md.centerOfNode.
 	// Unused by any live handler now that the rule/gate/anchor cascade (which used it to
 	// read rule-neighbor centers) is gone; kept wired for any future direct-neighbor
@@ -63,7 +64,7 @@ type nodeMessaging struct {
 	// commitLocal is the OWNER-GOROUTINE commit path, bound to md.commitNodeMoveLocal
 	// (generalized to every node). It publishes this node's own snap SYNCHRONOUSLY via
 	// applyCenter instead of enqueuing an async self-send, so it is safe to call from
-	// THIS node's own handle() for a moveMsgKindDrag, with no cross-goroutine self-send
+	// THIS node's own handle() for a movemsg.KindDrag, with no cross-goroutine self-send
 	// and no shared mutable state (each node's quantized offset lives on its own
 	// geometry — see quantOffset). nil in tests that build a bare nodeGeometry directly.
 	commitLocal func(id string, newPos vec3)
@@ -78,7 +79,7 @@ type nodeMessaging struct {
 	// tap is a TEST-ONLY observability seam: when non-nil, THIS node's own enqueueFor
 	// closure invokes it with every (destID, msg) it routes, before appending to
 	// pending. nil in production.
-	tap func(destID string, msg moveMsg)
+	tap func(destID string, msg movemsg.Msg)
 }
 
 // nodeClocks owns this node's clock pair: the source it copies from once, and its own
@@ -251,7 +252,7 @@ type neighborTopology struct {
 	// center, read by quantized_move.go's neighbor-move math. Written ONLY by this
 	// node's own driving goroutine: seeded once at construction (newMoveDispatch,
 	// single-threaded setup) from each neighbor's load-time geom, then kept current by
-	// the moveMsgKindNeighborCenter handler in handle() below, fed by every direct
+	// the movemsg.KindNeighborCenter handler in handle() below, fed by every direct
 	// neighbor's own applyCenter push. Never read or written by any other goroutine.
 	partnerCenters map[string]vec3
 	neighborKinds  map[string]string

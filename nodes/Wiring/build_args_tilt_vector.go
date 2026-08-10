@@ -6,7 +6,10 @@
 
 package Wiring
 
-import "github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
+import (
+	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
+)
 
 // TiltVectorAngleSeed returns this node's persisted tilt-vector-angle index
 // (specNode.TopTiltVectorThetaIdx, 0 default) — the load-time seed for a kind that
@@ -25,14 +28,14 @@ func (a BuildArgs) TiltVectorAngleSeed() (theta int32) {
 // loader, in which case this returns a channel that is never written to (PollRecv-style
 // non-blocking reads on it always find nothing, matching every other build-time fallback
 // in this file).
-func (a BuildArgs) TiltEditIn() <-chan TiltEditMsg {
+func (a BuildArgs) TiltEditIn() <-chan movemsg.TiltEditMsg {
 	md := a.pb.md
 	if md == nil {
-		return make(chan TiltEditMsg)
+		return make(chan movemsg.TiltEditMsg)
 	}
-	panelToNodeTiltEditIn := make(chan TiltEditMsg, moverInboxDepth)
+	panelToNodeTiltEditIn := make(chan movemsg.TiltEditMsg, moverInboxDepth)
 	if md.inboxes.tiltEdit == nil {
-		md.inboxes.tiltEdit = map[string]chan TiltEditMsg{}
+		md.inboxes.tiltEdit = map[string]chan movemsg.TiltEditMsg{}
 	}
 	md.inboxes.tiltEdit[a.name] = panelToNodeTiltEditIn
 	return panelToNodeTiltEditIn

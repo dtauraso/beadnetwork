@@ -1,29 +1,33 @@
-// move_msg.go — the inter-mover message vocabulary: moveMsgKind* constants and the
-// moveMsg type routed between mover goroutines (move_dispatch.go).
+// move_msg.go — the inter-mover message vocabulary: Kind* constants and the
+// Msg type routed between mover goroutines (nodes/Wiring/move_dispatch.go).
 
-package Wiring
+package movemsg
 
-// moveMsgKind discriminates moveMsg payloads.
+import "github.com/dtauraso/wirefold/nodes/wire"
+
+type vec3 = wire.Vec3
+
+// Kind discriminates Msg payloads.
 const (
 	// The node-move kind ("move", the zero value "") carries no payload and is a
 	// no-op in every mover switch, so it has no constant — the switches simply
 	// fall through. The remaining kinds each select a distinct payload.
-	moveMsgKindAnchor  = "anchor"  // per-port anchor update (drag along the ring)
-	moveMsgKindCenter  = "center"  // polar-layout re-propagated world center for one node
-	moveMsgKindCenters = "centers" // batched centers for an edge: update both endpoints, recompute ONCE
-	// moveMsgKindDrag is a node's own-goroutine drag entry: the drag itself is routed
+	KindAnchor  = "anchor"  // per-port anchor update (drag along the ring)
+	KindCenter  = "center"  // polar-layout re-propagated world center for one node
+	KindCenters = "centers" // batched centers for an edge: update both endpoints, recompute ONCE
+	// KindDrag is a node's own-goroutine drag entry: the drag itself is routed
 	// to the dragged node's OWN dedicated extIn channel instead of the stdin reader
 	// committing on its behalf. The receiver commits its OWN new position via the owner-goroutine commit
 	// path (commitNodeMoveLocal, which publishes its snap SYNCHRONOUSLY via
 	// applyCenter). A drag is always a FREE move -- no equal-radii solve, no
 	// self-trigger cascade.
-	moveMsgKindDrag = "drag"
-	// moveMsgKindDragStart arms the dragged node X's OWN bead-actor wake
+	KindDrag = "drag"
+	// KindDragStart arms the dragged node X's OWN bead-actor wake
 	// (nodeMover.startBeadDrag, bead_chain.go) — sent from gesture.go's
 	// gestPending->gestDragging transition (the one place a drag begins). Sent via the
 	// BLOCKING md.sendMove: this must never be dropped, same as drag/center.
-	moveMsgKindDragStart = "dragStart"
-	// moveMsgKindDragEnd is dragStart's mirror: sent to the dragged node X's own extIn
+	KindDragStart = "dragStart"
+	// KindDragEnd is dragStart's mirror: sent to the dragged node X's own extIn
 	// when the gesture FSM's drag concludes (gesture.go's gestPointerUp, on EVERY path a
 	// drag can end by — a clean pointer-up after moves, or a pointer-up with no move in
 	// between — there is no separate "abandoned" branch, matching
@@ -32,19 +36,19 @@ const (
 	// (nodeMover.endBeadDrag, bead_chain.go) — clearing every bead's dragging flag with
 	// one close per edge, never a per-bead send-loop. Without this kind, "done dragging"
 	// would have no sender and a woken bead's mode flag could never clear.
-	moveMsgKindDragEnd = "dragEnd"
-	// moveMsgKindSelect (nodeMover) / edge-select (edgeMover, same kind) is the
+	KindDragEnd = "dragEnd"
+	// KindSelect (nodeMover) / edge-select (edgeMover, same kind) is the
 	// gesture goroutine's message telling ONE node/edge to turn its OWN selected bit
 	// on or off (Bool). Sent to a node via its extIn (md.sendMove) and to an edge via
 	// its extIn (md.sendEdgeSelect) — see setSelectionUI's doc comment.
-	moveMsgKindSelect = "select"
-	// moveMsgKindHover tells a node to turn its OWN hovered bit on (with the hovered
+	KindSelect = "select"
+	// KindHover tells a node to turn its OWN hovered bit on (with the hovered
 	// port, if any — Port/IsInput) or off (Bool=false). See setHoverUI's doc comment.
-	moveMsgKindHover = "hover"
-	// moveMsgKindLatched tells a node to turn its OWN latchedSel bit on or off (Bool).
+	KindHover = "hover"
+	// KindLatched tells a node to turn its OWN latchedSel bit on or off (Bool).
 	// See setSelectionUI's doc comment.
-	moveMsgKindLatched = "latched"
-	// moveMsgKindNeighborCenter is the PUSH delivery of a moved node's fresh world
+	KindLatched = "latched"
+	// KindNeighborCenter is the PUSH delivery of a moved node's fresh world
 	// center to one of its direct neighbors, the neighbor's aimed-port partnerCenter
 	// lookup source. Sent from applyCenter (the sole write site of a node's own center)
 	// immediately after that node updates its own position, to EVERY node in its own
@@ -55,8 +59,8 @@ const (
 	// this before the existing nil-Center re-emit broadcastToEdgesAndPartners sends
 	// right after, so the re-emit always sees the just-pushed center). Reuses the
 	// existing SenderID/FromCenter fields.
-	moveMsgKindNeighborCenter = "neighborCenter"
-	// moveMsgKindTiltVectorAngle tells a node to adjust its OWN vector direction by one
+	KindNeighborCenter = "neighborCenter"
+	// KindTiltVectorAngle tells a node to adjust its OWN vector direction by one
 	// TiltVectorAngleStep click (Buffer/layout.go's TopTiltVectorTheta,
 	// nodes/Wiring/node_mover.go's topTiltVectorThetaIdx): Axis is always "theta" — there is
 	// no φ any more (task/drop-tilt-vector-phi) — and Bool is the
@@ -65,18 +69,18 @@ const (
 	// Sent to the target node's own extIn via md.sendMove from applyUpdateTiltVector
 	// (stdin_reader.go), so the index write + persist + re-emit all run on that node's
 	// OWN goroutine.
-	moveMsgKindTiltVectorAngle = "tiltVectorAngle"
-	// moveMsgKindTiltVectorReset tells a node to return its OWN vector direction to the
+	KindTiltVectorAngle = "tiltVectorAngle"
+	// KindTiltVectorReset tells a node to return its OWN vector direction to the
 	// start position — both indices to 0, the documented default that points the tilt
 	// vector at world +y. This is a STOP-AND-RETURN, not a nudge: unlike
-	// moveMsgKindTiltVectorAngle, it never places a bead — see applyUpdateTiltVector's
+	// KindTiltVectorAngle, it never places a bead — see applyUpdateTiltVector's
 	// (stdin_reader.go) "reset" branch and the RESET button's own doc comment
 	// (TiltResetButton.tsx). Sent to the target node's own extIn via md.sendMove from
 	// applyUpdateTiltVector for any kind that has NOT claimed BuildArgs.TiltEditIn — the
 	// only kind that has (PairNode) instead routes this through its own
-	// TiltEditIn/TiltEditMsg.Reset, same split as moveMsgKindTiltVectorAngle.
-	moveMsgKindTiltVectorReset = "tiltVectorReset"
-	// moveMsgKindTiltIndexSync/moveMsgKindReceivedVectorSync/moveMsgKindBeadClear are
+	// TiltEditIn/TiltEditMsg.Reset, same split as KindTiltVectorAngle.
+	KindTiltVectorReset = "tiltVectorReset"
+	// KindTiltIndexSync/KindReceivedVectorSync/KindBeadClear are
 	// GONE (task/pair-node-owns-itself). They used to be the ONE-WAY notifications a
 	// pair kind's (PairNode) own goroutine sent to a SEPARATE mover goroutine for
 	// the same node id. That separate goroutine no longer exists: a pair node owns its
@@ -91,7 +95,7 @@ const (
 // goroutine independently owns/decides their tilt index, per the straightening loop's
 // firing rule). A kind that never calls TiltEditIn is not registered in
 // MoveDispatch.tiltEditIns, so stdin_reader's applyUpdateTiltVector falls back to the old
-// mover-owned path (moveMsgKindTiltVectorAngle) for it unchanged.
+// mover-owned path (KindTiltVectorAngle) for it unchanged.
 type TiltEditMsg struct {
 	Axis string // "theta" or "phi" — which of the node's own indices to adjust. Ignored when Reset or Start is true.
 	Up   bool   // true = +1 step, false = -1 step. Ignored when Reset or Start is true.
@@ -109,7 +113,7 @@ type TiltEditMsg struct {
 	Reset bool
 }
 
-// moveMsg is one entry routed to one of a mover's own dedicated channels (there is no
+// Msg is one entry routed to one of a mover's own dedicated channels (there is no
 // shared inbox). kind selects the
 // payload:
 //   - "" or "move": node-move — currently a no-op (polar-layout positions all nodes via "center" messages).
@@ -119,13 +123,13 @@ type TiltEditMsg struct {
 // local work on its own goroutine and drives its own outputs (MODEL.md: no ack, no
 // send-gating, no delivery signal).
 //
-// testDone is the one exception and it is NOT a production mechanism: it exists only so
+// TestDone is the one exception and it is NOT a production mechanism: it exists only so
 // a test can block until an async mover has handled a message before asserting (see
 // node_move_test.go's `deliver`). It is needed because an edgeMover publishes no
 // snapshot a test could safely poll. Production ALWAYS leaves it nil — if you find
 // yourself setting it outside a _test.go file, you are reintroducing the ack the model
 // forbids; make the receiver's own goroutine do the work instead.
-type moveMsg struct {
+type Msg struct {
 	Kind   string
 	NodeID string
 	// Anchor payload (Kind == "anchor"): identify the port whose anchor changed.
@@ -166,6 +170,6 @@ type moveMsg struct {
 	// is θ-only end to end (task/drop-tilt-vector-phi), so this names
 	// topTiltVectorThetaIdx and nothing else.
 	Axis string
-	// testDone: see the type comment. Test-only; production leaves it nil.
-	testDone chan struct{}
+	// TestDone: see the type comment. Test-only; production leaves it nil.
+	TestDone chan struct{}
 }

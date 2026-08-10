@@ -14,10 +14,11 @@ import (
 	"sync"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
-// moverInboxDepth is the declared capacity of every per-mover moveMsg inbox: an
+// moverInboxDepth is the declared capacity of every per-mover movemsg.Msg inbox: an
 // edgeMover's extIn/srcIn/dstIn (edge_mover.go), a nodeMover's extIn
 // (node_mover.go), and each directed neighborIn (move_dispatch_construct.go). Previously the same
 // bare 8 repeated at six construction sites — the largest group of magic numbers in
@@ -229,7 +230,7 @@ func (mr *moverRegistry) centerOfNode(id string) (vec3, bool) {
 	return c, ok
 }
 
-// sendMove routes one moveMsg to a node's dedicated external-entry channel (extIn), if
+// sendMove routes one movemsg.Msg to a node's dedicated external-entry channel (extIn), if
 // the id is a known node. This is the EXTERNAL-caller path — RootMove (drag) and
 // gesture.go's dragStart send — not a mover-to-mover send (those go through a node's
 // own pending/flushPending onto its OWN dedicated channel, never through this
@@ -240,7 +241,7 @@ func (mr *moverRegistry) centerOfNode(id string) (vec3, bool) {
 // node's own goroutine) — a read-only directory once construction finishes, safe to
 // read from any goroutine. ctx is threaded through from MoveDispatch (not part of
 // moverRegistry).
-func (mr *moverRegistry) sendMove(ctx context.Context, id string, msg moveMsg) {
+func (mr *moverRegistry) sendMove(ctx context.Context, id string, msg movemsg.Msg) {
 	nm, ok := mr.nodeGeoms[id]
 	if !ok {
 		return
@@ -274,8 +275,8 @@ func (mr *moverRegistry) sendMove(ctx context.Context, id string, msg moveMsg) {
 // fanEdgesAndPartners/requantizeLocalPolars make on that node's behalf — goes through
 // nm's own retry queue, never a raw blocking channel write and never a second node's
 // queue (there is no shared outbox to route through anymore).
-func (mr *moverRegistry) enqueueFor(nm *nodeGeometry) func(id string, msg moveMsg) {
-	return func(id string, msg moveMsg) {
+func (mr *moverRegistry) enqueueFor(nm *nodeGeometry) func(id string, msg movemsg.Msg) {
+	return func(id string, msg movemsg.Msg) {
 		if nm.msg.tap != nil {
 			nm.msg.tap(id, msg)
 		}

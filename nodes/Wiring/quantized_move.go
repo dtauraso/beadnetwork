@@ -26,6 +26,7 @@ package Wiring
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 )
 
 // layoutQuantizer owns the quantized scene-polar move math. See MoveDispatch.lq's doc
@@ -68,8 +69,8 @@ func (lq *layoutQuantizer) heldEdges(md *MoveDispatch) []geom.SphereEdge {
 //
 // RootMove is the decentralized drag entry, widened to EVERY node (the generalization
 // that came with the quantizedOffsets data-race fix): dragging any node does not commit
-// on the stdin reader's own goroutine — it routes a single moveMsgKindDrag to the
-// dragged node's OWN inbox and returns. The dragged node's own moveMsgKindDrag handler
+// on the stdin reader's own goroutine — it routes a single movemsg.KindDrag to the
+// dragged node's OWN inbox and returns. The dragged node's own movemsg.KindDrag handler
 // (nodeMover.handle) does the rest, entirely on its own goroutine: commit its own new
 // position (commitLocal — fan + persist, no cross-goroutine self-send). There is no
 // equal-radii solve, no rule-node cascade, no gate-anchor broadcast, and no per-neighbour
@@ -87,9 +88,9 @@ func (lq *layoutQuantizer) RootMove(md *MoveDispatch, nodeID string, target vec3
 		return false
 	}
 	// Route the drag itself to the dragged node's OWN inbox instead of committing on
-	// the stdin reader's goroutine — every node's moveMsgKindDrag handler commits
+	// the stdin reader's goroutine — every node's movemsg.KindDrag handler commits
 	// (synchronous local apply, reported over reportCh) on its own goroutine. No
 	// central commit call here.
-	md.sendMove(nodeID, moveMsg{Kind: moveMsgKindDrag, NodeID: nodeID, Target: target})
+	md.sendMove(nodeID, movemsg.Msg{Kind: movemsg.KindDrag, NodeID: nodeID, Target: target})
 	return true
 }

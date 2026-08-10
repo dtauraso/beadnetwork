@@ -146,7 +146,7 @@ func (m *nodeGeometry) reconcileBeadChain(to string, count int, offsetAt func(i 
 
 // startBeadDrag arms every one of this node's OWN outgoing-edge bead chains onto machine
 // time — one close per edge (StartDrag), never a per-bead send-loop. Called from handle's
-// moveMsgKindDragStart case, the same edge armDragAnchor already runs on. A chain that
+// movemsg.KindDragStart case, the same edge armDragAnchor already runs on. A chain that
 // does not exist yet (this node has never emitted a frame with beads on that edge) is
 // simply absent from m.beads.beadChains and is skipped — its beads will be constructed already
 // resting (dragging=false) by the first reconcileBeadChain call this drag makes, which is
@@ -160,7 +160,7 @@ func (m *nodeGeometry) startBeadDrag() {
 
 // endBeadDrag is startBeadDrag's mirror: settles every one of this node's own outgoing
 // bead chains — clears the dragging flag with one close per edge. Called from handle's
-// moveMsgKindDragEnd case, on EVERY path a drag ends by (see that message kind's own doc
+// movemsg.KindDragEnd case, on EVERY path a drag ends by (see that message kind's own doc
 // comment), so no bead this node woke is ever left on machine time.
 func (m *nodeGeometry) endBeadDrag() {
 	for _, c := range m.beads.beadChains {

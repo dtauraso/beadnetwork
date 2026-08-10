@@ -12,7 +12,7 @@ package PairNode
 // decision is node.go's; this file only starts and stops the exchange those run.
 
 import (
-	"github.com/dtauraso/wirefold/nodes/Wiring"
+	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
@@ -55,7 +55,7 @@ func (n *Node) drainTiltEdit(clk clock.Clock) {
 //     this node's own outgoing vector and asking the caller to place a bead. Previously an
 //     adjust sent nothing, which is why a tilted pair just sat there: the tilted end went deaf
 //     and silent at once.
-func (n *Node) applyTiltEdit(edit Wiring.TiltEditMsg) (placeBead bool) {
+func (n *Node) applyTiltEdit(edit movemsg.TiltEditMsg) (placeBead bool) {
 	if edit.Reset {
 		n.clear()
 		// Tell the partner, so it clears too — see clear's own doc comment for why the

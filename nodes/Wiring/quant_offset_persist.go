@@ -68,7 +68,7 @@ func (nm *nodeGeometry) persistQuantOffset(off quantoffset.QuantizedOffset, scen
 
 // persistTiltVectorAngle writes THIS node's own vector-direction indices to its OWN
 // position.json, synchronously, on THIS node's own mover goroutine (handle's
-// moveMsgKindTiltVectorAngle case). Carries the node's CURRENT position/quant-offset along
+// movemsg.KindTiltVectorAngle case). Carries the node's CURRENT position/quant-offset along
 // unchanged (same one-file whole-marshal shape as persistQuantOffset, reversed: this
 // write is angle-driven, not position-driven). nm.persistRoot == "" is a no-op.
 func (nm *nodeGeometry) persistTiltVectorAngle() {

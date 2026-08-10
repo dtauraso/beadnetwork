@@ -93,7 +93,7 @@ func (sw *streamWiring) ensureClaims() streamClaims {
 // row is the STABLE edge-seed order (edgeSeeds, the same spec order the Edge block uses).
 // buildFrame is an injected func (not a Buffer import) so this package stays
 // Buffer-independent. Edge selection is NOT injected: each edgeMover owns its OWN
-// selected bit, set via a moveMsgKindSelect message on its extIn (md.sendEdgeSelect), not
+// selected bit, set via a movemsg.KindSelect message on its extIn (md.sendEdgeSelect), not
 // a lookup. A missing edgeMover for a seed row (should not happen) is skipped rather than
 // panicking.
 func (sw *streamWiring) setEdgeStreams(
@@ -140,7 +140,7 @@ func (sw *streamWiring) setEdgeStreams(
 // buildInteriorFrame are injected funcs (not a Buffer import), matching setEdgeStreams'
 // existing pattern. Selection/hover/
 // kind are NOT injected lookups: each nodeMover owns its OWN selected/hovered/
-// latchedSel/kindID fields, set via moveMsgKindSelect/Hover/Latched messages (or, for
+// latchedSel/kindID fields, set via movemsg.KindSelect/Hover/Latched messages (or, for
 // kindID, once here at construction — a node's kind never changes after load, so there
 // is no lookup to perform on every emit). A missing nodeMover for a seed row (should not
 // happen) is skipped rather than panicking.

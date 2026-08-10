@@ -19,7 +19,7 @@ import { useTiltVectorRows } from "../flags/overlay-flags-tilt-vectors";
 // currently shown, each naming that node's buffer ROW (never its id/name — no sidecar). Go
 // owns what each means and applies it on that node's own goroutine
 // (nodes/PairNode/node.go's applyTiltEdit for the pair, run unmodified by both nodes,
-// node_mover.go's moveMsgKindTiltVectorReset for every other kind's reset — start has no
+// node_geometry.go's movemsg.KindTiltVectorReset for every other kind's reset — start has no
 // mover fallback, since it is meaningless off the pair's own vector exchange):
 //
 //   - START opens the vector exchange from whatever angles are currently set — this is

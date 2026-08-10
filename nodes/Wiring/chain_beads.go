@@ -73,7 +73,7 @@ var chainAimTraceEnabled = os.Getenv("WIREFOLD_CHAIN_AIM_TRACE") == "1"
 // Offsets are NODE-LOCAL on purpose: this node moving does not change a single one of them,
 // so a move costs one center write instead of degree × N bead positions. Only a NEIGHBOUR
 // moving re-aims a chain, and that arrives as the one-hop center message that already
-// exists (moveMsgKindNeighborCenter, which is what keeps m.topo.partnerCenters current). That is
+// exists (movemsg.KindNeighborCenter, which is what keeps m.topo.partnerCenters current). That is
 // the whole constant-time claim.
 //
 // A target with no live partner center yet (never linked, or a bare test mover with no

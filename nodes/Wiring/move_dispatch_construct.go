@@ -14,6 +14,7 @@ import (
 
 	geomseeds "github.com/dtauraso/wirefold/nodes/Wiring/geomseeds"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	rowtables "github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
@@ -139,7 +140,7 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 		// read-only directories, safe to read from any goroutine once construction
 		// finishes.
 		selfID := id
-		ng.msg.resolveDest = func(destID string) (chan moveMsg, bool) {
+		ng.msg.resolveDest = func(destID string) (chan movemsg.Msg, bool) {
 			if em, ok := md.mr.edgeMovers[destID]; ok {
 				switch selfID {
 				case em.srcID:
@@ -203,10 +204,10 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 		if srcNM, ok := md.mr.nodeGeoms[ep.Source]; ok {
 			if dstNM, ok := md.mr.nodeGeoms[ep.Target]; ok {
 				if _, exists := dstNM.msg.neighborIn[ep.Source]; !exists {
-					dstNM.msg.neighborIn[ep.Source] = make(chan moveMsg, moverInboxDepth)
+					dstNM.msg.neighborIn[ep.Source] = make(chan movemsg.Msg, moverInboxDepth)
 				}
 				if _, exists := srcNM.msg.neighborIn[ep.Target]; !exists {
-					srcNM.msg.neighborIn[ep.Target] = make(chan moveMsg, moverInboxDepth)
+					srcNM.msg.neighborIn[ep.Target] = make(chan movemsg.Msg, moverInboxDepth)
 				}
 			}
 		}
@@ -214,7 +215,7 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 	// Seed every nodeMover's own partnerCenters map: quantized_move.go's neighbor-move
 	// math (neighborSetCReposition et al.) reads a direct neighbor's CURRENT world center
 	// off THIS node's OWN partnerCenters map (owned, written only by this node's own
-	// goroutine), kept current thereafter by each neighbor's own moveMsgKindNeighborCenter
+	// goroutine), kept current thereafter by each neighbor's own movemsg.KindNeighborCenter
 	// push (applyCenter) — one hop, no cascade.
 	for _, nm := range md.mr.nodeGeoms {
 		// Seed partnerCenters at construction (single-threaded setup, before md.Start —

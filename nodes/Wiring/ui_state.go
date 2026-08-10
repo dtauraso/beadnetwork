@@ -12,6 +12,7 @@ import (
 	"context"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 )
 
 // uiState groups the CURRENTLY-SELECTED (click-select) and CURRENTLY-HOVERED (pointer
@@ -82,7 +83,7 @@ type uiState struct {
 	// intent. It is now owned directly by whichever goroutine sets it: the gesture/
 	// MoveDispatch goroutine tracks its OWN local record of the current selection/hover/
 	// latched node below (single-owner, mutated only here), and MESSAGES
-	// each change to the owning mover's own dedicated channel (moveMsgKindSelect/Hover/
+	// each change to the owning mover's own dedicated channel (movemsg.KindSelect/Hover/
 	// Latched — see setSelectionUI/setHoverUI). Each mover stores its
 	// OWN selected/hovered/latchedSel/kindID fields (nodeMover) or
 	// selected field (edgeMover) and writes them into its own stream frame — no shared map.
@@ -131,7 +132,7 @@ func (ui *uiState) sendEdgeSelect(edgeMovers map[string]*edgeMover, ctx context.
 	if !ok {
 		return
 	}
-	msg := moveMsg{Kind: moveMsgKindSelect, Bool: on}
+	msg := movemsg.Msg{Kind: movemsg.KindSelect, Bool: on}
 	if ctx == nil {
 		em.extIn <- msg
 		return
@@ -150,16 +151,16 @@ func (ui *uiState) sendEdgeSelect(edgeMovers map[string]*edgeMover, ctx context.
 // mutated only here, and each message ride the mover's own
 // dedicated channel so the mover mutates only its own fields on its own goroutine.
 // edgeMovers/ctx/sendMove are threaded through from MoveDispatch (not part of uiState).
-func (ui *uiState) setSelectionUI(edgeMovers map[string]*edgeMover, ctx context.Context, sendMove func(id string, msg moveMsg), node, edge string) {
+func (ui *uiState) setSelectionUI(edgeMovers map[string]*edgeMover, ctx context.Context, sendMove func(id string, msg movemsg.Msg), node, edge string) {
 	prevNode := ui.sel.selected
 	prevEdge := ui.sel.selectedEdge
 	ui.sel.selected = node
 	ui.sel.selectedEdge = edge
 	if prevNode != "" && prevNode != node {
-		sendMove(prevNode, moveMsg{Kind: moveMsgKindSelect, NodeID: prevNode, Bool: false})
+		sendMove(prevNode, movemsg.Msg{Kind: movemsg.KindSelect, NodeID: prevNode, Bool: false})
 	}
 	if node != "" && node != prevNode {
-		sendMove(node, moveMsg{Kind: moveMsgKindSelect, NodeID: node, Bool: true})
+		sendMove(node, movemsg.Msg{Kind: movemsg.KindSelect, NodeID: node, Bool: true})
 	}
 	if prevEdge != "" && prevEdge != edge {
 		ui.sendEdgeSelect(edgeMovers, ctx, prevEdge, false)
@@ -171,9 +172,9 @@ func (ui *uiState) setSelectionUI(edgeMovers map[string]*edgeMover, ctx context.
 		prevLatched := ui.latchedNode
 		ui.latchedNode = node
 		if prevLatched != "" {
-			sendMove(prevLatched, moveMsg{Kind: moveMsgKindLatched, NodeID: prevLatched, Bool: false})
+			sendMove(prevLatched, movemsg.Msg{Kind: movemsg.KindLatched, NodeID: prevLatched, Bool: false})
 		}
-		sendMove(node, moveMsg{Kind: moveMsgKindLatched, NodeID: node, Bool: true})
+		sendMove(node, movemsg.Msg{Kind: movemsg.KindLatched, NodeID: node, Bool: true})
 	}
 }
 
@@ -182,13 +183,13 @@ func (ui *uiState) setSelectionUI(edgeMovers map[string]*edgeMover, ctx context.
 // goroutine (setHover's dedupe check reads ui.sel.hoverNode/Port/Input directly —
 // safe since only this same goroutine ever writes them — see gesture.go's
 // setHover). sendMove is threaded through from MoveDispatch (not part of uiState).
-func (ui *uiState) setHoverUI(sendMove func(id string, msg moveMsg), node, port string, isInput bool) {
+func (ui *uiState) setHoverUI(sendMove func(id string, msg movemsg.Msg), node, port string, isInput bool) {
 	prevNode := ui.sel.hoverNode
 	ui.sel.hoverNode, ui.sel.hoverPort, ui.sel.hoverInput = node, port, isInput
 	if prevNode != "" && prevNode != node {
-		sendMove(prevNode, moveMsg{Kind: moveMsgKindHover, NodeID: prevNode, Bool: false})
+		sendMove(prevNode, movemsg.Msg{Kind: movemsg.KindHover, NodeID: prevNode, Bool: false})
 	}
 	if node != "" {
-		sendMove(node, moveMsg{Kind: moveMsgKindHover, NodeID: node, Bool: true, Port: port, IsInput: isInput})
+		sendMove(node, movemsg.Msg{Kind: movemsg.KindHover, NodeID: node, Bool: true, Port: port, IsInput: isInput})
 	}
 }

@@ -4,10 +4,13 @@
 // vocabulary (god-object decomposition, pure move — no logic change).
 package Wiring
 
-import "github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+import (
+	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+)
 
 // applyCenter is the SOLE WRITE of this node's center/reach. It is called ONLY from this
-// node's own driving goroutine (handle's moveMsgKindCenter case, driven by fanCenters
+// node's own driving goroutine (handle's movemsg.KindCenter case, driven by fanCenters
 // below), which is what makes that one goroutine the exclusive writer of m.geom. It sets
 // the held polar position, pushes the fresh center to the dispatch goroutine's owned
 // center mirror (m.msg.centerOut, latest-wins — see its doc comment) and to every direct
@@ -28,14 +31,14 @@ func (m *nodeGeometry) applyCenter(center vec3, reach float64) {
 	}
 	// Push this fresh center to every direct neighbor (nm.msg.neighborIn's key set — one
 	// hop, no cascade) so each neighbor's OWN partnerCenters map picks it up via
-	// moveMsgKindNeighborCenter (handle, below). Routed through m.msg.sendMove (this
+	// movemsg.KindNeighborCenter (handle, below). Routed through m.msg.sendMove (this
 	// node's own retry queue), same as every other fan-out this file makes, so a
 	// momentarily-full neighbor inbox is retried, never dropped or blocking. Sent
 	// BEFORE this same commit's broadcastToEdgesAndPartners nil-Center re-emit (called
 	// right after applyCenter by every live caller), so per-destination FIFO delivers
 	// this push first and the re-emit always sees the just-pushed center.
 	for neighborID := range m.msg.neighborIn {
-		m.msg.sendMove(neighborID, moveMsg{Kind: moveMsgKindNeighborCenter, NodeID: neighborID,
+		m.msg.sendMove(neighborID, movemsg.Msg{Kind: movemsg.KindNeighborCenter, NodeID: neighborID,
 			SenderID: m.id, FromCenter: center})
 	}
 	if m.tr != nil {
