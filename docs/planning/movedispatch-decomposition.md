@@ -28,12 +28,24 @@ prevents drift better than proximity.
 ## 2. Two holes opened by the cycle work
 
 - **`var currentBuildMD *MoveDispatch`** (`build_args.go:51`), read by
-  `build_args_lattice.go`, `build_args_tilt_vector.go`, `build_args_selfdrive.go`. Added to
-  break the `portwiring` cycle. The import cycle is gone and the coupling is not — it is now
-  a shared mutable global in a codebase whose architecture is ownership plus message passing
-  with zero shared memory. Safe only by the argument that the build phase is single-threaded;
-  nothing enforces that. **Fix:** pass those three values into `BuildArgs` at construction,
-  delete the var.
+  `build_args_lattice.go`, `build_args_tilt_vector.go`, `build_args_selfdrive.go`. A shared
+  mutable global in a codebase whose architecture is ownership plus message passing with zero
+  shared memory. Safe only by the argument that the build phase is single-threaded; nothing
+  enforces that.
+
+  It was justified as unavoidable: `PortBindings` moved to `portwiring`, so it can no longer
+  carry a `*MoveDispatch` without recreating the cycle. True — and it does not follow. The
+  three readers are methods on **`BuildArgs`**, which is in `package Wiring` and never moved.
+  It already carries ten fields (`ctx name data pb tr geom tiltThetaIdx sourceOuts getStream
+  driveSlotClaims`). "`PortBindings` can't hold it" was read as "nothing can hold it".
+
+  **Fix — three files.** `NodeBuilder.Build` (`node_registry.go:20`) takes one more parameter;
+  its ONE caller is `build_nodes.go:95`, whose `b` is a `*buildCtx` that already holds `md`;
+  set the field in `RegisterBuilder`'s wrapper and delete the var. The 14 node-kind packages
+  are untouched — they only ever see `BuildArgs`.
+
+  Prefer passing the three VALUES (`latticePoints` and the tilt/self-drive equivalents) over
+  passing `md`, so `BuildArgs` does not hold the hub either. That is this doc's own rule.
 - **6 re-export aliases** (`type PortSpec = portwiring.PortSpec` etc., `port_bindings.go`).
   Alias shims are banned here — a `geom_bridge.go` of this shape was built and deleted
   earlier on this branch. They exist because 14 node-kind packages call `Wiring.PortSpec` /
@@ -112,6 +124,13 @@ has been the same category, and it is indistinguishable from an impossibility at
 
 Be suspicious of a blocker justified by architectural prose citing a rule that does not cover
 the case, offered in place of an error message. Prefer the compiler.
+
+The same test catches a bad FIX, not just a bad blocker: when something is introduced as
+unavoidable, name the alternative that was rejected and why. `currentBuildMD` was justified by
+"`PortBindings` can no longer carry this" — true, and it says nothing about `BuildArgs`, which
+was sitting next to it in the same package with ten fields already on it. `loadspec` was
+justified by a persistence rule that governs a different thing. Both justifications were
+locally true statements that did not reach the conclusion drawn from them.
 
 ## Constraints
 
