@@ -6,6 +6,7 @@ import (
 	"os"
 
 	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/Wiring/stepdeliver"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
@@ -19,10 +20,10 @@ var chainAimTraceEnabled = os.Getenv("WIREFOLD_CHAIN_AIM_TRACE") == "1"
 // Design and staging: docs/bead-model/beads-are-the-edge.md. The LENGTH model (one integer bead-step
 // count, tangent placement, no arc) is docs/bead-model/bead-lattice.md — this file implements it.
 // The length itself (edgeStepCount) is in chain_length.go, the step-count publish helper
-// (sendStepsNonBlocking) is in step_publish.go, and the progress->index math (litBeadIndex,
-// used by tests and documented here for the lit-pulse placement below) is in
-// lit_bead_index.go — this file keeps the one thing that reads all three: the placement
-// loop itself.
+// (stepdeliver.SendStepsNonBlocking) is in nodes/Wiring/stepdeliver, and the
+// progress->index math (beadindex.LitBeadIndex, used by tests and documented here for the
+// lit-pulse placement below) is in nodes/Wiring/beadindex — this file keeps the one thing
+// that reads all three: the placement loop itself.
 //
 // A node owns one chain per OUTGOING edge, following ownership the tree already has: an edge
 // is stored at topology/nodes/<source>/edges/<label>.json, outgoing only, "carries no
@@ -164,7 +165,7 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 				m.outs.outWireOuts[i].PublishSteps(count)
 			}
 			if i < len(m.outs.outStepsIn) && m.outs.outStepsIn[i] != nil {
-				sendStepsNonBlocking(m.outs.outStepsIn[i], count)
+				stepdeliver.SendStepsNonBlocking(m.outs.outStepsIn[i], count)
 			}
 		}
 
