@@ -23,7 +23,7 @@ import (
 func (md *MoveDispatch) beginSphereRotation(ev inputcodec.RawInputMsg) {
 	g := &md.ui.gest
 	vp := md.ui.vp.Viewpoint
-	pivot := geom.FocusAhead(vp, md.heldCenters())
+	pivot := geom.FocusAhead(vp, md.lq.heldCenters(md))
 	g.rotPivot = pivot
 
 	eye := geom.EyeOf(vp)
@@ -36,7 +36,7 @@ func (md *MoveDispatch) beginSphereRotation(ev inputcodec.RawInputMsg) {
 	// scales by csRadius/pivotDist (the sphere's angular size), so a quarter-turn (pi/2) is
 	// reached by dragging one on-screen content-sphere radius, at every zoom level. Without the
 	// anchor, pi/2 required dragging nearly the full screen height and felt unreachable.
-	_, csRadius := geom.ContentSphereOf(md.heldCenters())
+	_, csRadius := geom.ContentSphereOf(md.lq.heldCenters(md))
 	pivotDist := eye.Sub(pivot).Length()
 	fovRad := ev.Fov * math.Pi / 180
 	rpx := (g.rect.height / 2) / math.Tan(fovRad/2)
@@ -146,7 +146,7 @@ func (md *MoveDispatch) applyNodeDragTarget(ev inputcodec.RawInputMsg) bool {
 	if !ok {
 		return false
 	}
-	md.RootMove(g.dragNode, hit.Add(g.dragGrabOffset))
+	md.lq.RootMove(md, g.dragNode, hit.Add(g.dragGrabOffset))
 	return true
 }
 
@@ -156,10 +156,10 @@ func (md *MoveDispatch) setHover(node, port string, isInput bool, tr *T.Trace) {
 	if node == md.ui.sel.HoverNode && port == md.ui.sel.HoverPort && isInput == md.ui.sel.HoverInput {
 		return // no change → no re-emit (dedupe)
 	}
-	// setHoverUI (move_dispatch_api.go) is the AUTHORITATIVE write: it sets md.ui.sel's hover
+	// ui_state.go's setHoverUI is the AUTHORITATIVE write: it sets md.ui.sel's hover
 	// fields (mutated only by this goroutine) and MESSAGES the affected
 	// node(s) to set their OWN hovered bit — no shared/republished map.
-	md.setHoverUI(node, port, isInput)
+	md.ui.setHoverUI(md.sendMove, node, port, isInput)
 	// Decentralized (Step C, memory/feedback_no_single_writer_bridge.md): this same goroutine also writes
 	// its own VIEW frame directly, carrying this one hover event resolved to buffer rows
 	// (mirrors owner_events.go's pattern for every other per-owner stream).

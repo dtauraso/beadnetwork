@@ -80,8 +80,8 @@ func (md *MoveDispatch) distanceGroupMax(group string) (float64, bool) {
 	max := 0.0
 	any := false
 	for _, p := range pairs {
-		cs, okS := md.centerOfNode(p.Source)
-		ct, okT := md.centerOfNode(p.Target)
+		cs, okS := md.mr.centerOfNode(p.Source)
+		ct, okT := md.mr.centerOfNode(p.Target)
 		if !okS || !okT {
 			continue
 		}
@@ -112,7 +112,7 @@ func (md *MoveDispatch) DistanceGroupLens() (timeLen, inputLen, gateLen float32)
 // length L = currentMax*1.1), dir < 0 is down (L = currentMax/1.1). For EACH pair in
 // the group's flat list, IN ORDER, the target node's new world position is
 // center(source) + normalize(center(target)-center(source))*L, applied via
-// md.RootMove(target, newPos) — the same decentralized drag entry every programmatic
+// md.lq.RootMove(md, target, newPos) — the same decentralized drag entry every programmatic
 // move test uses. Returns false if the group is unknown, has no resolvable pair, or
 // groupIdx is out of range.
 func (md *MoveDispatch) ApplyDistanceGroupTarget(groupIdx, dir int) bool {
@@ -134,8 +134,8 @@ func (md *MoveDispatch) ApplyDistanceGroupTarget(groupIdx, dir int) bool {
 	}
 	moved := false
 	for _, p := range pairs {
-		cs, okS := md.centerOfNode(p.Source)
-		ct, okT := md.centerOfNode(p.Target)
+		cs, okS := md.mr.centerOfNode(p.Source)
+		ct, okT := md.mr.centerOfNode(p.Target)
 		if !okS || !okT {
 			continue
 		}
@@ -144,7 +144,7 @@ func (md *MoveDispatch) ApplyDistanceGroupTarget(groupIdx, dir int) bool {
 			continue
 		}
 		newPos := cs.Add(offset.Normalize().Scale(targetLen))
-		if md.RootMove(p.Target, newPos) {
+		if md.lq.RootMove(md, p.Target, newPos) {
 			moved = true
 			// RootMove is fire-and-forget (a movemsg.KindDrag message to the target's OWN
 			// goroutine — see its doc comment): it returns before the target's commit
@@ -186,13 +186,13 @@ func (md *MoveDispatch) ApplyDistanceGroupTarget(groupIdx, dir int) bool {
 	return moved
 }
 
-// waitForCenterSettle polls md.centerOfNode(id) until it matches want (within a small
+// waitForCenterSettle polls md.mr.centerOfNode(id) until it matches want (within a small
 // tolerance) or a short deadline passes. See ApplyDistanceGroupTarget's call site.
 func waitForCenterSettle(md *MoveDispatch, id string, want vec3) {
 	const tol = 1e-6
 	deadline := time.Now().Add(200 * time.Millisecond)
 	for time.Now().Before(deadline) {
-		if c, ok := md.centerOfNode(id); ok && c.Sub(want).Length() <= tol {
+		if c, ok := md.mr.centerOfNode(id); ok && c.Sub(want).Length() <= tol {
 			return
 		}
 		time.Sleep(time.Millisecond)

@@ -1,10 +1,12 @@
 // mover_registry.go — the nodeMover/edgeMover directory owner split out of MoveDispatch
 // (god-object decomposition), as a pure move (no logic changes): moverRegistry owns
-// nodeMovers/edgeMovers/edgeOut and the Bind/Start/EdgeOut/sendMove/enqueueFor/
-// centerOfNode logic. MoveDispatch's public Bind/Start/EdgeOut stay as thin delegators so
-// the external API is unchanged; sendMove threads through md.ctx (owned elsewhere, NOT
-// part of this extraction) as a parameter. The test-only message tap is per-mover
-// (nodeMover.tap, node_mover.go) — enqueueFor no longer takes or threads a shared tap.
+// nodeMovers/edgeMovers/edgeOut and the bind/start/sendMove/enqueueFor/
+// centerOfNode logic. In-package callers address md.mr.X directly (bind/edgeOutFor/
+// centerOfNode/enqueueFor/finalizeActors have no MoveDispatch-level delegator); only
+// Start stays on MoveDispatch, since it also sets md.ctx. sendMove threads through
+// md.ctx (owned elsewhere, NOT part of this extraction) as a parameter. The test-only
+// message tap is per-mover (nodeMover.tap, node_mover.go) — enqueueFor no longer takes
+// or threads a shared tap.
 
 package Wiring
 
@@ -57,9 +59,8 @@ const maxPendingSends = moverInboxDepth * moverInboxDepth
 // moverRegistry is the pure registry that owns every mover and wires their dedicated
 // channels together — there is no shared dispatch map; nodeMovers/edgeMovers themselves
 // are the directories a mover's resolveDest closure and the external-entry helpers below
-// look up. It also retains the per-edge source Outs so out-of-package test/verifier
-// callers can read an edge's loaded geometry (EdgeOut) without going through a central
-// coordinator.
+// look up. It also retains the per-edge source Outs so in-package callers can read an
+// edge's loaded geometry (edgeOutFor) without going through a central coordinator.
 type moverRegistry struct {
 	// nodeGeoms is the UNIVERSAL per-node directory — every node's own *nodeGeometry,
 	// ring and pair alike. This is what routing (resolveDest, sendMove, centerOfNode,
@@ -193,13 +194,6 @@ func (mr *moverRegistry) finalizeActors(speedSinks *[]chan float64) {
 	}
 }
 
-// edgeOutFor returns the source *Out bound to the given edge label, or nil if unknown.
-// Read-only accessor for out-of-package verifiers (the headless cascade reads an
-// edge's per-edge in-flight time from the loaded geometry).
-func (mr *moverRegistry) edgeOutFor(edgeID string) *wire.Out {
-	return mr.edgeOut[edgeID]
-}
-
 // drainCenterMirror drains every nodeMover's centerOut channel non-blockingly,
 // updating mr.centerMirror with whatever's newest for each node. Called before every
 // dispatch-side framing read (centerOfNode) so those reads always see the latest
@@ -270,7 +264,7 @@ func (mr *moverRegistry) sendMove(ctx context.Context, id string, msg movemsg.Ms
 // nil check + direct call, since nm.msg.tap is owned and read only by nm's own goroutine,
 // which is the only caller of the closure returned here), appends the message to nm's
 // own pending retry queue, and attempts an immediate flush — never blocking the calling
-// handler goroutine. Bound once per node at construction (nm.sendMove = md.enqueueFor(nm))
+// handler goroutine. Bound once per node at construction (nm.sendMove = md.mr.enqueueFor(nm))
 // so every send a node's own handle performs — including the ones
 // fanEdgesAndPartners/requantizeLocalPolars make on that node's behalf — goes through
 // nm's own retry queue, never a raw blocking channel write and never a second node's

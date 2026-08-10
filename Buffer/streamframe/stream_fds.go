@@ -20,8 +20,8 @@
 //     that simply doesn't wire the extra pipe).
 //
 //   - Ordering convention within a kind: fd = baseFd[kind] + rowIndex, where rowIndex is
-//     the STABLE load/seed order that already assigns buffer rows (see main.go's
-//     md.NodeSeeds()/md.EdgeSeeds() loop). VIEW is a singleton stream (one gesture/
+//     the STABLE load/seed order that already assigns buffer rows (see runtopology's
+//     md.GS.NodeSeedsFn()/md.GS.EdgeSeedsFn() loop). VIEW is a singleton stream (one gesture/
 //     MoveDispatch goroutine owns camera+overlay+scene network-wide) — its rowIndex is
 //     always 0, so its fd is exactly baseFd["view"].
 //

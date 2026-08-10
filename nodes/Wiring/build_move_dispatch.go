@@ -23,7 +23,7 @@ import (
 func (b *buildCtx) buildMoveDispatch() error {
 	// SPEC order (b.spec.Nodes/Edges — the deterministic directory-sorted order parseSpec
 	// read the topology in), NOT map iteration order, so the buffer's row seed
-	// (md.NodeSeeds/EdgeSeeds) gives every node/edge a deterministic row.
+	// (md.GS.NodeSeedsFn/EdgeSeedsFn) gives every node/edge a deterministic row.
 	nodeOrder := make([]string, len(b.spec.Nodes))
 	for i, n := range b.spec.Nodes {
 		nodeOrder[i] = n.ID

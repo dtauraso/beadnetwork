@@ -64,7 +64,7 @@ func HandleSaveMsg(md *MoveDispatch) {
 // The create/delete edge ops were removed end-to-end: no TS sender ever emitted them,
 // and the create path's only live trigger — a port-drop gesture — tore down a live
 // wire's in-flight beads via PacedWire.Restore. The destination-keyed inputcodec.SlotRegistry
-// stays live for delivery/movers (md.Bind), but the reader no longer indexes it here.
+// stays live for delivery/movers (md.mr.bind), but the reader no longer indexes it here.
 //
 // Unknown ops/kinds/attrs are ignored (forward-compat).
 // EDIT_OPS_START

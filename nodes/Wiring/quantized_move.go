@@ -45,7 +45,7 @@ type layoutQuantizer struct {
 func (lq *layoutQuantizer) heldCenters(md *MoveDispatch) map[string]vec3 {
 	out := make(map[string]vec3, len(md.mr.nodeGeoms))
 	for id := range md.mr.nodeGeoms {
-		if c, ok := md.centerOfNode(id); ok {
+		if c, ok := md.mr.centerOfNode(id); ok {
 			out[id] = c
 		}
 	}

@@ -25,7 +25,7 @@ co-locates a file's reader and writer to stop schema drift. That rule governs wr
 ownership, not where a type lives. A schema in its own package that both sides import
 prevents drift better than proximity.
 
-## 2. `MoveDispatch` is still 75 methods across 20 files (was 88)
+## 2. `MoveDispatch` is still 63 methods across 20 files (was 88)
 
 Its state is already twelve named owners; the facade over them was never fully decomposed.
 The 13 generated pure delegators are done: `overlayToggles` now binds
@@ -34,17 +34,37 @@ The 13 generated pure delegators are done: `overlayToggles` now binds
 `fn(&md.ui.ov, tr)`, and the scenePoles/nodePoles debug breadcrumb (the one non-pure part of
 those 13 — it needed `md.EmitBreadcrumb`, a `MoveDispatch` method) moved to that same call
 site via two small generated tables, `overlayFlagBreadcrumbScope` and `overlayFlagValue`.
-88 → 75 methods (the drop is exactly 13, `grep -h "^func ([a-z]* \*MoveDispatch)"
-nodes/Wiring/*.go | grep -v _test | wc -l`).
+88 → 75 methods (the drop is exactly 13).
 
-Remaining, unstarted: measured 68 of the original 88 touch exactly one owner and rehome
-mechanically (43 `ui`, 12 `mr`, 3 `lq`, 3 `RT`, 3 `GS`, 2 `Scenes`, 1 `sw`, 1 `inboxes`) — that
-count included the 13 delegators just removed, so ~55 single-owner methods remain to rehome.
-12 span two or more owners; the dominant shape among them is *mutate state, then emit a view
-frame*, 8 times.
+Round 2 deleted the 15 remaining one-line pure forwards to a single owner field: `Bind`,
+`EdgeOut`, `centerOfNode`, `enqueueFor`, `finalizeActors` (→ `md.mr`); `RootMove`,
+`commitNodeMoveLocal`, `heldCenters` (→ `md.lq`); `setHoverUI` (→ `md.ui`); `NodeSeeds`,
+`EdgeSeeds`, `loadTimeCenters` (→ `md.GS`, already exported — external callers in
+`runtopology` now call `md.GS.NodeSeedsFn()`/`md.GS.EdgeSeedsFn()` directly, no new export).
+Callers now address the owner field directly (`md.mr.X`, `md.lq.X(md, ...)`, `md.ui.X`).
+`EdgeOut`'s own body (`mr.edgeOutFor`) turned out to have zero live callers anywhere — it
+was deleted too as dead code once the delegator was gone (staticcheck U1000 caught it).
 
-Order: rehome the ~55, then answer the write-then-emit question once. Do not answer it by
-giving owners a back-reference to the hub — that is the cycle returning under a new name.
+Three of the 15 turned out NOT to be pure/single-owner and were excluded, kept as-is:
+`SliderSpeed` (`ui`) computes `EffectiveClockSpeed(md.ui.speed, md.ui.clockDivisor)` — a
+derived value from two fields via a package function, not a plain forward. `SetViewpoint`
+and `Viewpoint` (`ui`) both have OUT-OF-PACKAGE callers that cannot reach the unexported
+`md.ui.vp` field directly — `runtopology.loadSceneState` passes `md.SetViewpoint` as a func
+value to `scenecamera.SeedInitialViewpoint`, and `nodes/Wiring/scenecamera`'s own tests call
+`md.Viewpoint()`. Deleting either would force exporting `ui`/`vp`, which the branch's own
+constraint rules out.
+
+75 → 63 methods (drop of 12, `grep -h "^func ([a-z]* \*MoveDispatch)"
+nodes/Wiring/*.go | grep -v _test | wc -l`). Exported-symbol count for package `Wiring`
+dropped 119 → 114 (no new exports).
+
+Remaining, unstarted: ~43 single-owner methods remain to rehome (mostly `ui`, plus a few
+`RT`/`Scenes`/`sw`/`inboxes`), the same mechanical shape as this round. 12 span two or more
+owners; the dominant shape among them is *mutate state, then emit a view frame*, 8 times.
+
+Order: rehome the remaining single-owner methods, then answer the write-then-emit question
+once. Do not answer it by giving owners a back-reference to the hub — that is the cycle
+returning under a new name.
 
 `moverRegistry` is not a target. It owns `nodeMover`/`edgeMover`/`nodeGeometry`, the actors
 MODEL.md pins, and whatever remains of `MoveDispatch` stays with it.

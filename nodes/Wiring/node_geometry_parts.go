@@ -46,7 +46,7 @@ type nodeMessaging struct {
 	// only the dispatch goroutine (moverRegistry.drainCenterMirror) ever receives.
 	centerOut chan vec3
 	// sendMove routes a movemsg.Msg to another id's OWN dedicated channel (resolveDest,
-	// below) — no shared inbox, no shared mutable state. Bound to md.enqueueFor(this): it
+	// below) — no shared inbox, no shared mutable state. Bound to md.mr.enqueueFor(this): it
 	// appends to pending and immediately attempts a non-blocking flush (never blocks the
 	// calling handler goroutine).
 	sendMove func(id string, msg movemsg.Msg)
@@ -56,12 +56,12 @@ type nodeMessaging struct {
 	// is. There is no shared inbox to look up. nil only in tests that build a bare
 	// nodeGeometry directly, in which case flushPending is a no-op.
 	resolveDest func(id string) (chan movemsg.Msg, bool)
-	// centerOf resolves another node's current world center, bound to md.centerOfNode.
+	// centerOf resolves another node's current world center, bound to md.mr.centerOfNode.
 	// Unused by any live handler now that the rule/gate/anchor cascade (which used it to
 	// read rule-neighbor centers) is gone; kept wired for any future direct-neighbor
 	// lookup need.
 	centerOf func(id string) (vec3, bool)
-	// commitLocal is the OWNER-GOROUTINE commit path, bound to md.commitNodeMoveLocal
+	// commitLocal is the OWNER-GOROUTINE commit path, bound to md.lq.commitNodeMoveLocal
 	// (generalized to every node). It publishes this node's own snap SYNCHRONOUSLY via
 	// applyCenter instead of enqueuing an async self-send, so it is safe to call from
 	// THIS node's own handle() for a movemsg.KindDrag, with no cross-goroutine self-send

@@ -75,8 +75,11 @@ func (v *viewpointState) PanViewpoint(delta vec3, tr *T.Trace) {
 	v.EmitViewpoint(tr)
 }
 
-// Camera viewpoint API — thin delegators to the owned viewpointState above.
-// The public signatures are unchanged; the state and behavior live on md.ui.vp.
+// Camera viewpoint API — thin delegators to the owned viewpointState above. SetViewpoint
+// and Viewpoint both have out-of-package callers (runtopology passes md.SetViewpoint as a
+// func value to scenecamera.SeedInitialViewpoint; nodes/Wiring/scenecamera's own tests read
+// md.Viewpoint()) that cannot reach the unexported md.ui.vp field directly, so neither can
+// be deleted without exporting ui/vp.
 
 func (md *MoveDispatch) SetViewpoint(pivot vec3, r float64, pos, up geom.Dir) {
 	md.ui.vp.SetViewpoint(pivot, r, pos, up)

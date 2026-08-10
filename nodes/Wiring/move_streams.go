@@ -1,12 +1,11 @@
 // move_streams.go — stream/seed wiring & setup: dedicated per-mover fd wiring
-// (SetMsgTap/SetEdgeStreams/SetNodeStreams) and load-time seed geometry accessors
-// (NodeSeeds/EdgeSeeds/loadTimeCenters — the NodeGeomSeed/EdgeGeomSeed types themselves
-// now live in nodes/Wiring/geomseeds).
+// (SetMsgTap/SetEdgeStreams/SetNodeStreams). Load-time seed geometry (NodeGeomSeed/
+// EdgeGeomSeed types and their NodeSeedsFn/EdgeSeedsFn/LoadTimeCenters accessors) lives
+// on md.GS directly (nodes/Wiring/geomseeds) — no MoveDispatch delegator.
 
 package Wiring
 
 import (
-	geomseeds "github.com/dtauraso/wirefold/nodes/Wiring/geomseeds"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
@@ -26,7 +25,7 @@ func (md *MoveDispatch) SetMsgTap(tap func(destID string, msg movemsg.Msg)) {
 // SetEdgeStreams wires every edgeMover to ITS OWN dedicated fd — the per-edge stream
 // (memory/feedback_no_single_writer_bridge.md): fd = baseFd + row, where row is the
 // STABLE edge-seed order (md.GS.EdgeSeeds, the same spec order the Edge
-// block uses — see main.go's md.EdgeSeeds() seed loop). buildFrame is an injected func
+// block uses — see runtopology's md.GS.EdgeSeedsFn() seed loop). buildFrame is an injected func
 // (not a Buffer import) so this package stays Buffer-independent, packing the combined
 // per-edge frame bytes (Buffer.BuildEdgeStreamFrame) straight from the edge's own SEGMENT
 // endpoints (docs/bead-model/channels-not-ports.md — there is no port row to resolve any more).
@@ -49,7 +48,7 @@ func (md *MoveDispatch) SetEdgeStreams(
 // interior-fd — the two emitting goroutines per node (memory/feedback_no_single_writer_bridge.md).
 // nodeBase/interiorBase are the two fd ranges' base fds; row is the STABLE node-seed
 // order (md.GS.NodeSeeds, the same spec order the Node block uses — see
-// main.go's md.NodeSeeds() seed loop). nodeRowFor/buildFrame/
+// runtopology's md.GS.NodeSeedsFn() seed loop). nodeRowFor/buildFrame/
 // buildInteriorFrame are injected funcs (not a Buffer import), matching SetEdgeStreams'
 // existing pattern. Selection/hover/abc-drag/kind are NOT injected lookups: each nodeMover
 // owns its OWN selected/hovered/latchedSel/gotDragMsg/dragDelta*/kindID fields, set via
@@ -72,17 +71,7 @@ func (md *MoveDispatch) SetNodeStreams(
 	md.sw.setNodeStreams(md.GS.NodeSeeds, md.mr.nodeGeoms, nodeBase, interiorBase, driveBase, driveWired, nodeRowFor, buildFrame, buildInteriorFrame, kindIDFor)
 }
 
-// NodeSeeds returns every node's load-time seed geometry in SPEC ORDER (see
-// geomseeds.GeomSeeds.NodeSeeds). Call after LoadTopology returns, before launching any
-// node goroutine, and stream each entry via tr.NodeGeometry (main.go). Thin delegator to
-// md.GS (nodes/Wiring/geomseeds).
-func (md *MoveDispatch) NodeSeeds() []geomseeds.NodeGeomSeed { return md.GS.NodeSeedsFn() }
-
-// loadTimeCenters returns the node-id → LOAD-TIME world center map. Thin delegator to
-// md.GS (nodes/Wiring/geomseeds).
-func (md *MoveDispatch) loadTimeCenters() map[string]vec3 { return md.GS.LoadTimeCenters() }
-
-// EdgeSeeds returns every edge's load-time seed topology (with real endpoint geometry) in
-// SPEC ORDER. Call alongside NodeSeeds; stream each entry via tr.Geometry (main.go). Thin
-// delegator to md.GS (nodes/Wiring/geomseeds).
-func (md *MoveDispatch) EdgeSeeds() []geomseeds.EdgeGeomSeed { return md.GS.EdgeSeedsFn() }
+// NodeSeeds/EdgeSeeds/loadTimeCenters were deleted as pure one-line forwards to md.GS
+// (nodes/Wiring/geomseeds). GS is an exported field, so every caller — in-package and
+// out-of-package (runtopology) alike — now calls md.GS.NodeSeedsFn() /
+// md.GS.EdgeSeedsFn() / md.GS.LoadTimeCenters() directly with no new export needed.

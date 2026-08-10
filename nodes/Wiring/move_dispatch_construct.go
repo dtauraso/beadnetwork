@@ -158,11 +158,11 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 			}
 			return nil, false
 		}
-		ng.msg.sendMove = md.enqueueFor(ng)
+		ng.msg.sendMove = md.mr.enqueueFor(ng)
 		ng.msg.tap = md.tapToInstall
-		ng.msg.centerOf = md.centerOfNode
+		ng.msg.centerOf = md.mr.centerOfNode
 		ownGeom := ng
-		ng.msg.commitLocal = func(_ string, newPos vec3) { md.commitNodeMoveLocal(ownGeom, newPos) }
+		ng.msg.commitLocal = func(_ string, newPos vec3) { md.lq.commitNodeMoveLocal(md, ownGeom, newPos) }
 		md.mr.nodeGeoms[id] = ng
 		// Seed the dispatch goroutine's center mirror from the same load-time geom
 		// (single-threaded setup, before md.Start — no driving goroutine is running yet)

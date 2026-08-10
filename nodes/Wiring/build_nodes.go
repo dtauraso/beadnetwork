@@ -108,5 +108,5 @@ func (b *buildCtx) buildNodes() error {
 // bindDispatch binds per-edge source Outs and dest wires into each edgeMover so
 // a node-move updates per-edge travel-time.
 func (b *buildCtx) bindDispatch() {
-	b.md.Bind(b.outSink, inputcodec.SlotRegistry(b.destWire))
+	b.md.mr.bind(b.outSink, inputcodec.SlotRegistry(b.destWire))
 }

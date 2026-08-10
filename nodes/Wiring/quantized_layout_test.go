@@ -27,11 +27,11 @@ func TestCommitNodeMoveLocalDrawsQuantizedNotRawTarget(t *testing.T) {
 	if !ok {
 		t.Fatal("no nodeMover for dst")
 	}
-	before, ok := md.centerOfNode("2")
+	before, ok := md.mr.centerOfNode("2")
 	if !ok {
 		t.Fatal("no center for dst")
 	}
-	srcCenter, ok := md.centerOfNode("1")
+	srcCenter, ok := md.mr.centerOfNode("1")
 	if !ok {
 		t.Fatal("no center for src")
 	}
@@ -51,7 +51,7 @@ func TestCommitNodeMoveLocalDrawsQuantizedNotRawTarget(t *testing.T) {
 
 	md.lq.commitNodeMoveLocal(md, nm, target)
 
-	got, ok := md.centerOfNode("2")
+	got, ok := md.mr.centerOfNode("2")
 	if !ok {
 		t.Fatal("no center for dst after commit")
 	}
@@ -111,7 +111,7 @@ func TestCommitNodeMoveLocalNeverMovesTowardMouseTarget(t *testing.T) {
 		root := writeTree(t)
 		md := loadTreeMD(t, root)
 		nm := md.mr.nodeGeoms["2"]
-		before, ok := md.centerOfNode("2")
+		before, ok := md.mr.centerOfNode("2")
 		if !ok {
 			t.Fatal("no center for dst")
 		}
@@ -125,7 +125,7 @@ func TestCommitNodeMoveLocalNeverMovesTowardMouseTarget(t *testing.T) {
 		wrong := cursorFollow(before, target)
 
 		md.lq.commitNodeMoveLocal(md, nm, target)
-		got, ok := md.centerOfNode("2")
+		got, ok := md.mr.centerOfNode("2")
 		if !ok {
 			t.Fatal("no center for dst after commit")
 		}
@@ -138,11 +138,11 @@ func TestCommitNodeMoveLocalNeverMovesTowardMouseTarget(t *testing.T) {
 		root := writeTree(t)
 		md := loadTreeMD(t, root)
 		nm := md.mr.nodeGeoms["2"]
-		before, ok := md.centerOfNode("2")
+		before, ok := md.mr.centerOfNode("2")
 		if !ok {
 			t.Fatal("no center for dst")
 		}
-		srcCenter, ok := md.centerOfNode("1")
+		srcCenter, ok := md.mr.centerOfNode("1")
 		if !ok {
 			t.Fatal("no center for src")
 		}
@@ -153,7 +153,7 @@ func TestCommitNodeMoveLocalNeverMovesTowardMouseTarget(t *testing.T) {
 		wrong := cursorFollow(before, target)
 
 		md.lq.commitNodeMoveLocal(md, nm, target)
-		got, ok := md.centerOfNode("2")
+		got, ok := md.mr.centerOfNode("2")
 		if !ok {
 			t.Fatal("no center for dst after commit")
 		}
@@ -171,7 +171,7 @@ func TestCommitNodeMoveLocalRemoveTakesBeadsPlace(t *testing.T) {
 	root := writeTree(t)
 	md := loadTreeMD(t, root)
 	nm := md.mr.nodeGeoms["2"]
-	before, ok := md.centerOfNode("2")
+	before, ok := md.mr.centerOfNode("2")
 	if !ok {
 		t.Fatal("no center for dst")
 	}
@@ -188,7 +188,7 @@ func TestCommitNodeMoveLocalRemoveTakesBeadsPlace(t *testing.T) {
 	}
 
 	md.lq.commitNodeMoveLocal(md, nm, target)
-	got, ok := md.centerOfNode("2")
+	got, ok := md.mr.centerOfNode("2")
 	if !ok {
 		t.Fatal("no center for dst after commit")
 	}
@@ -204,11 +204,11 @@ func TestCommitNodeMoveLocalAddMovesOneBeadBeyondNewBead(t *testing.T) {
 	root := writeTree(t)
 	md := loadTreeMD(t, root)
 	nm := md.mr.nodeGeoms["2"]
-	before, ok := md.centerOfNode("2")
+	before, ok := md.mr.centerOfNode("2")
 	if !ok {
 		t.Fatal("no center for dst")
 	}
-	srcCenter, ok := md.centerOfNode("1")
+	srcCenter, ok := md.mr.centerOfNode("1")
 	if !ok {
 		t.Fatal("no center for src")
 	}
@@ -232,7 +232,7 @@ func TestCommitNodeMoveLocalAddMovesOneBeadBeyondNewBead(t *testing.T) {
 	wantNodeCentre := newBeadCentre.Sub(beads[0].AimDir.Scale(lattice.BeadStepR))
 
 	md.lq.commitNodeMoveLocal(md, nm, target)
-	got, ok := md.centerOfNode("2")
+	got, ok := md.mr.centerOfNode("2")
 	if !ok {
 		t.Fatal("no center for dst after commit")
 	}

@@ -94,7 +94,7 @@ func (md *MoveDispatch) LoadSceneSphere(topologyPath string) {
 		// goroutine and before RunStdinReader's dispatch loop begins, so md.positions
 		// (which heldCenters reads) is still empty here — use the load-time geom sweep
 		// instead (safe: no mover goroutine is mutating geom yet).
-		md.ui.sceneSphere = geom.ContentFitSceneSphere(md.loadTimeCenters())
+		md.ui.sceneSphere = geom.ContentFitSceneSphere(md.GS.LoadTimeCenters())
 		// Best-effort: a read-only or absent scene dir must not stop the sim from running.
 		// The in-memory sphere is correct either way; only cross-run stability is at stake.
 		// Path via scenepaths.SphereFilePath (scenepaths/scene_paths.go) — the authoritative

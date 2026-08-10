@@ -38,7 +38,7 @@ import (
 // is legitimate input, exactly like a large topology. Loud, not dead.
 func wireEdgeStreams(streamFDs SF.StreamFDs, md *W.MoveDispatch) {
 	if _, edgeFDsWired := streamFDs[SF.StreamKindEdge]; !edgeFDsWired {
-		if n := len(md.EdgeSeeds()); n > 0 {
+		if n := len(md.GS.EdgeSeedsFn()); n > 0 {
 			fmt.Fprintf(os.Stderr,
 				"stream-fd mismatch: topology loaded %d edges but WIREFOLD_STREAM_FDS carries no %q entry; "+
 					"every edgeMover's stream stays nil, so NO EDGES will be drawn. If the editor was open "+

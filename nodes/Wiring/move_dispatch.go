@@ -45,12 +45,10 @@ import (
 // dedicated channels together — there
 // is no shared dispatch map anymore; md.mr.nodeGeoms/md.mr.edgeMovers themselves are the
 // directories a mover's resolveDest closure and the external-entry helpers below look up.
-// It also retains the per-edge source Outs so out-of-package test/verifier callers can
-// read an edge's loaded geometry (EdgeOut) without going through a central coordinator.
 type MoveDispatch struct {
-	// mr owns the nodeMover/edgeMover directories + edgeOut (mover_registry.go).
-	// MoveDispatch's public Bind/Start/EdgeOut methods are thin delegators so the
-	// external API is unchanged.
+	// mr owns the nodeMover/edgeMover directories (mover_registry.go). bind/centerOfNode/
+	// enqueueFor/finalizeActors are called directly as md.mr.X by in-package callers; only
+	// Start stays a MoveDispatch method (it also sets md.ctx).
 	mr moverRegistry
 	// GS owns every node/edge's load-time seed geometry (nodes/Wiring/geomseeds). Exported:
 	// external callers reach it directly (md.GS.NodeSeedsFn()) instead of through

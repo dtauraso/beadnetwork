@@ -24,7 +24,7 @@ var hitClassifiers = map[string]func(md *MoveDispatch, g *gestureState, ev input
 	},
 	"node": func(md *MoveDispatch, g *gestureState, ev inputcodec.RawInputMsg) {
 		if node, ok := md.nodeFromHit(ev.Hit); ok {
-			if c, ok := md.centerOfNode(node); ok {
+			if c, ok := md.mr.centerOfNode(node); ok {
 				g.dragNode = node
 				g.dragStartCenter = c
 			}

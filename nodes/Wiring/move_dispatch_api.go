@@ -1,10 +1,10 @@
-// move_dispatch_api.go — MoveDispatch's public methods: thin delegators to the owner
-// sub-objects composed in move_dispatch.go (mr/gs/sw/ui/lq/rt/scenes/persist), plus the
-// two package-private helpers (sendTiltEdit, NodeKind) that read/route across them
-// directly. Each owner keeps the actual logic in its own file (mover_registry.go,
-// ui_state.go, quantized_move.go, ...); this file exists so the external API surface
-// stays discoverable from one place without pulling the construction logic
-// (move_dispatch_construct.go) along with it.
+// move_dispatch_api.go — MoveDispatch's remaining cross-owner public methods (Start,
+// setSelectionUI, NodeKind) plus the package-private helpers (sendMove, sendTiltEdit)
+// that read/route across owners directly. Pure single-owner forwards (Bind, EdgeOut,
+// centerOfNode, enqueueFor, finalizeActors on md.mr; heldCenters, commitNodeMoveLocal,
+// RootMove on md.lq; setHoverUI on md.ui) were deleted — callers address the owner field
+// directly (md.mr.X / md.lq.X(md, ...) / md.ui.X). Each owner keeps the actual logic in
+// its own file (mover_registry.go, ui_state.go, quantized_move.go, ...).
 
 package Wiring
 
@@ -12,24 +12,8 @@ import (
 	"context"
 	"sync"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
-
-// finalizeActors builds the ring's nodeMover actor directory from md.mr.nodeGeoms, AFTER
-// every kind's own build func has run (so every BuildArgs.ClaimSelfDrive call has already
-// happened — see moverRegistry.selfDriveClaimed's own doc comment). Thin delegator to
-// md.mr (mover_registry.go).
-func (md *MoveDispatch) finalizeActors(speedSinks *[]chan float64) {
-	md.mr.finalizeActors(speedSinks)
-}
-
-// Bind wires the per-edge source Outs and dest wires into each edgeMover. Thin delegator
-// to md.mr (mover_registry.go).
-func (md *MoveDispatch) Bind(outSink map[string]*wire.Out, slotReg inputcodec.SlotRegistry) {
-	md.mr.bind(outSink, slotReg)
-}
 
 // Start launches every mover's goroutine. Thin delegator to md.mr (mover_registry.go);
 // md.ctx is set here (not part of moverRegistry — see sendMove/enqueueFor's doc
@@ -37,18 +21,6 @@ func (md *MoveDispatch) Bind(outSink map[string]*wire.Out, slotReg inputcodec.Sl
 func (md *MoveDispatch) Start(ctx context.Context) *sync.WaitGroup {
 	md.ctx = ctx
 	return md.mr.start(ctx)
-}
-
-// EdgeOut returns the source *Out bound to the given edge label, or nil if unknown.
-// Thin delegator to md.mr (mover_registry.go).
-func (md *MoveDispatch) EdgeOut(edgeID string) *wire.Out {
-	return md.mr.edgeOutFor(edgeID)
-}
-
-// centerOfNode returns the current world center for a node id. Thin delegator to md.mr
-// (mover_registry.go).
-func (md *MoveDispatch) centerOfNode(id string) (vec3, bool) {
-	return md.mr.centerOfNode(id)
 }
 
 // sendMove routes one movemsg.Msg to a node's dedicated external-entry channel (extIn).
@@ -82,22 +54,10 @@ func (md *MoveDispatch) sendTiltEdit(id string, msg movemsg.TiltEditMsg) bool {
 	return true
 }
 
-// enqueueFor returns nm's own non-blocking send function. Thin delegator to md.mr
-// (mover_registry.go).
-func (md *MoveDispatch) enqueueFor(nm *nodeGeometry) func(id string, msg movemsg.Msg) {
-	return md.mr.enqueueFor(nm)
-}
-
 // setSelectionUI sets the Go-owned selection (node XOR edge, exclusive). Thin delegator
 // to md.ui (ui_state.go).
 func (md *MoveDispatch) setSelectionUI(node, edge string) {
 	md.ui.setSelectionUI(md.mr.edgeMovers, md.ctx, md.sendMove, node, edge)
-}
-
-// setHoverUI sets the Go-owned hover state and MESSAGES the affected node(s). Thin
-// delegator to md.ui (ui_state.go).
-func (md *MoveDispatch) setHoverUI(node, port string, isInput bool) {
-	md.ui.setHoverUI(md.sendMove, node, port, isInput)
 }
 
 // NodeKind returns the kind string for the given node id, or "" if unknown.
@@ -123,20 +83,6 @@ func (md *MoveDispatch) NodeKind(nodeID string) string {
 		return nm.geom.Kind
 	}
 	return ""
-}
-
-// Quantized scene-polar move math (quantized_move.go): thin delegators to md.lq so
-// their existing in-package call sites (tests, move_dispatch_construct.go, gesture.go)
-// are unchanged.
-func (md *MoveDispatch) heldCenters() map[string]vec3 { return md.lq.heldCenters(md) }
-func (md *MoveDispatch) commitNodeMoveLocal(nm *nodeGeometry, newPos vec3) {
-	md.lq.commitNodeMoveLocal(md, nm, newPos)
-}
-
-// RootMove handles a node-drag under the flat absolute scene-polar layout. Thin
-// delegator to md.lq (quantized_move.go).
-func (md *MoveDispatch) RootMove(nodeID string, target vec3) bool {
-	return md.lq.RootMove(md, nodeID, target)
 }
 
 // The overlayState methods, the overlayToggles table, defaultOverlayState, and the

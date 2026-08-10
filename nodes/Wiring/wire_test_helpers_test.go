@@ -121,7 +121,7 @@ func quantizedDragTarget(md *MoveDispatch, nodeID string, target vec3) vec3 {
 	if !ok {
 		return target
 	}
-	prev, ok := md.centerOfNode(nodeID)
+	prev, ok := md.mr.centerOfNode(nodeID)
 	if !ok {
 		return target
 	}
