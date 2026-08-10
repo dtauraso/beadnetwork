@@ -5,6 +5,8 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"path/filepath"
+	"sort"
 	"strings"
 )
 
@@ -29,10 +31,102 @@ type bufLayoutSchema struct {
 	interiorSlotsPerNode int
 }
 
-// parseBufferLayout reads Buffer/layout.go and returns the schema:
-// - BufLayoutVersion const → version
-// - bufLayout* struct types in source order → blocks with columns + strides
-func parseBufferLayout(layoutPath string) (bufLayoutSchema, error) {
+// bufBlockOrder is the FIXED, canonical ordering of bufLayout* blocks that
+// BUF_LAYOUT_FINGERPRINT was built from back when they all lived in source
+// order in one file (Buffer/layout.go). Splitting the schema across several
+// files (Buffer/layout_*.go, one struct per file, scanned by
+// parseBufferLayoutDir below) makes filesystem scan order no longer the
+// source of block order, so this list is what keeps the fingerprint byte-
+// identical across that split: every block found is re-sorted into this
+// order before the fingerprint is built. A block name missing from this list
+// is a loud error (fatalf), never a silent append — the same "scan, don't
+// hardcode a path, but never guess an order" shape as
+// parseInputLayoutFingerprintDir (memory/feedback_guards_hardcoding_single_file_break_on_split.md).
+var bufBlockOrder = []string{
+	"Node", "ChainBead", "Interior", "Edge", "Camera", "Overlay", "Scene", "Event",
+}
+
+// parseBufferLayoutDir scans every *.go file directly in dir (Buffer/) for the
+// BufLayoutVersion/BufInteriorSlotsPerNode consts and bufLayout* struct types,
+// and returns the accumulated schema. Scanning the directory rather than a
+// single named file is what lets Buffer/layout.go's schema be split into
+// several files, one struct per file, without the generator losing track of
+// any of them (memory/feedback_guards_hardcoding_single_file_break_on_split.md,
+// the same shape as parseInputLayoutFingerprintDir in input_layout.go). Block
+// ORDER is then normalized via bufBlockOrder (above), independent of scan
+// order, so the fingerprint stays exactly what it was when everything lived
+// in declaration order in one file.
+func parseBufferLayoutDir(dir string) (bufLayoutSchema, error) {
+	paths, err := filepath.Glob(filepath.Join(dir, "*.go"))
+	if err != nil {
+		return bufLayoutSchema{}, err
+	}
+	sort.Strings(paths)
+
+	var schema bufLayoutSchema
+	var blocks []bufBlock
+	for _, p := range paths {
+		if strings.HasSuffix(p, "_test.go") {
+			continue
+		}
+		fileSchema, err := parseBufferLayoutFile(p)
+		if err != nil {
+			return bufLayoutSchema{}, fmt.Errorf("%s: %w", p, err)
+		}
+		if fileSchema.version != 0 {
+			if schema.version != 0 && schema.version != fileSchema.version {
+				return bufLayoutSchema{}, fmt.Errorf("%s: BufLayoutVersion %d conflicts with earlier %d", p, fileSchema.version, schema.version)
+			}
+			schema.version = fileSchema.version
+		}
+		if fileSchema.interiorSlotsPerNode != 0 {
+			schema.interiorSlotsPerNode = fileSchema.interiorSlotsPerNode
+		}
+		blocks = append(blocks, fileSchema.blocks...)
+	}
+
+	if schema.version == 0 {
+		return bufLayoutSchema{}, fmt.Errorf("BufLayoutVersion const not found under %s", dir)
+	}
+	if schema.interiorSlotsPerNode == 0 {
+		return bufLayoutSchema{}, fmt.Errorf("BufInteriorSlotsPerNode const not found under %s", dir)
+	}
+	if len(blocks) == 0 {
+		return bufLayoutSchema{}, fmt.Errorf("no bufLayout* struct types found under %s", dir)
+	}
+
+	byName := map[string]bufBlock{}
+	for _, b := range blocks {
+		byName[b.name] = b
+	}
+	if len(byName) != len(blocks) {
+		return bufLayoutSchema{}, fmt.Errorf("duplicate bufLayout block name found under %s", dir)
+	}
+	for _, name := range bufBlockOrder {
+		b, ok := byName[name]
+		if !ok {
+			return bufLayoutSchema{}, fmt.Errorf("bufBlockOrder names block %q but no bufLayout%s struct was found under %s", name, name, dir)
+		}
+		schema.blocks = append(schema.blocks, b)
+		delete(byName, name)
+	}
+	if len(byName) != 0 {
+		var leftover []string
+		for name := range byName {
+			leftover = append(leftover, name)
+		}
+		sort.Strings(leftover)
+		return bufLayoutSchema{}, fmt.Errorf("bufLayout block(s) %v found under %s but missing from bufBlockOrder — add them there", leftover, dir)
+	}
+
+	return schema, nil
+}
+
+// parseBufferLayoutFile parses one file for its BufLayoutVersion/
+// BufInteriorSlotsPerNode consts (zero value if this file declares neither)
+// and its bufLayout* struct types (nil if this file declares none) — the
+// per-file half of parseBufferLayoutDir's directory scan.
+func parseBufferLayoutFile(layoutPath string) (bufLayoutSchema, error) {
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, layoutPath, nil, 0)
 	if err != nil {
@@ -43,7 +137,7 @@ func parseBufferLayout(layoutPath string) (bufLayoutSchema, error) {
 
 	// Walk declarations in source order to preserve relative ordering of consts
 	// and struct types (they are interleaved intentionally — version first, then
-	// blocks).
+	// blocks — within a file that declares more than one).
 	for _, decl := range f.Decls {
 		switch d := decl.(type) {
 		case *ast.GenDecl:
@@ -115,15 +209,6 @@ func parseBufferLayout(layoutPath string) (bufLayoutSchema, error) {
 		}
 	}
 
-	if schema.version == 0 {
-		return bufLayoutSchema{}, fmt.Errorf("BufLayoutVersion const not found in %s", layoutPath)
-	}
-	if schema.interiorSlotsPerNode == 0 {
-		return bufLayoutSchema{}, fmt.Errorf("BufInteriorSlotsPerNode const not found in %s", layoutPath)
-	}
-	if len(schema.blocks) == 0 {
-		return bufLayoutSchema{}, fmt.Errorf("no bufLayout* struct types found in %s", layoutPath)
-	}
 	return schema, nil
 }
 

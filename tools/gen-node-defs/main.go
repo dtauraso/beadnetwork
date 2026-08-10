@@ -141,8 +141,8 @@ func main() {
 	}
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d constants)\n", shadingParamsTsPath, len(shadingParams))
 
-	bufLayoutGoPath := filepath.Join(repoRoot, "Buffer", "layout.go")
-	bufSchema, err := parseBufferLayout(bufLayoutGoPath)
+	bufferDir := filepath.Join(repoRoot, "Buffer")
+	bufSchema, err := parseBufferLayoutDir(bufferDir)
 	if err != nil {
 		fatalf("parse buffer layout: %v", err)
 	}

@@ -5,7 +5,7 @@ set -euo pipefail
 # discipline (task/breadcrumbs-binary-buffer).
 #
 # THE DISCIPLINE THIS DEFENDS
-# Breadcrumbs became structured EVENT rows in bufLayoutEvent (Buffer/layout.go) instead of
+# Breadcrumbs became structured EVENT rows in bufLayoutEvent (Buffer/layout_event.go) instead of
 # free-form JSON. The agreed model is: one wide, sparse event row whose columns are REUSED
 # across event kinds (Value/X/Y/Z/NodeRow/... mean different things per Kind, with -1/0
 # sentinels), plus AT MOST ONE free-form text escape hatch — a single string section
@@ -31,11 +31,11 @@ set -euo pipefail
 #
 # Exit 0 if clean; exit 1 with a report otherwise.
 #
-# PLACEMENT: Buffer/layout.go | bufLayoutEvent may declare at most one `<Name>Off uint32` free-form string section
+# PLACEMENT: Buffer/layout_event.go | bufLayoutEvent may declare at most one `<Name>Off uint32` free-form string section
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-LAYOUT_FILE="$REPO_ROOT/Buffer/layout.go"
+LAYOUT_FILE="$REPO_ROOT/Buffer/layout_event.go"
 
 if [[ ! -f "$LAYOUT_FILE" ]]; then
   echo "check-event-string-section-singular: MISCONFIGURED — file not found: $LAYOUT_FILE" >&2
