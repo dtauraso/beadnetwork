@@ -1,8 +1,8 @@
-package Wiring
+package beadindex
 
 import "math"
 
-// litBeadIndex maps a bead's progress t (elapsed/ticksToCross, this edge's OWN t) onto the
+// LitBeadIndex maps a bead's progress t (elapsed/ticksToCross, this edge's OWN t) onto the
 // index of the chain bead it currently occupies, for a chain of the given STEP count. ok is
 // false only when t is outside [0, 1) — off the edge entirely — never because the geometry
 // ran out of beads: an index at or past steps is clamped onto the last bead rather than
@@ -23,7 +23,7 @@ import "math"
 // two beads — not academic here, since two edges reach the same distance via different t
 // values and float error would decide the tie differently per edge
 // (TestLitBeadIndexSameElapsedLightsSameBead pins this).
-func litBeadIndex(t float64, steps int) (int, bool) {
+func LitBeadIndex(t float64, steps int) (int, bool) {
 	if t < 0 || t >= 1 || steps <= 0 {
 		return 0, false
 	}
