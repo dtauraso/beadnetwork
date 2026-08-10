@@ -197,8 +197,30 @@ for f in "${files[@]}"; do
   added_lines=$(printf '%s\n' "$fdiff" | grep -E '^\+' | grep -vE '^\+\+\+' || true)
   removed_lines=$(printf '%s\n' "$fdiff" | grep -E '^-' | grep -vE '^---' || true)
 
-  r=$(printf '%s\n' "$removed_lines" | grep -cE "$ASSERT_RE" || true)
   a=$(printf '%s\n' "$added_lines" | grep -cE "$ASSERT_RE" || true)
+
+  # An assertion that MOVED is not an assertion that was lost. Splitting one big test file
+  # into several — the same decomposition applied to tests — takes assertions out of the
+  # original, so a per-file tally reads the split as shed strength and blocks the very
+  # cleanup this repo is doing. Count a removed assertion only when its line survives
+  # NOWHERE ELSE in the tree's test files.
+  #
+  # Deliberately searches OTHER files only: an identical line elsewhere in THIS file would
+  # let a genuine deletion hide behind a duplicate of itself.
+  r=0
+  while IFS= read -r rline; do
+    [ -n "$rline" ] || continue
+    body=${rline#-}
+    stripped=$(printf '%s' "$body" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+    [ -n "$stripped" ] || continue
+    if [ -n "$(grep -rlxF --include='*_test.go' --include='*.test.ts' --include='*.test.tsx' \
+                 --include='*.spec.ts' --include='*.spec.tsx' \
+                 "$stripped" . --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=out 2>/dev/null \
+               | grep -vxF "./$f")" ]; then
+      continue   # same assertion lives in another test file — relocated, not removed
+    fi
+    r=$((r + 1))
+  done < <(printf '%s\n' "$removed_lines" | grep -E "$ASSERT_RE" || true)
   total_removed=$((total_removed + r))
   total_added=$((total_added + a))
   if [ "$r" -gt "$a" ]; then
