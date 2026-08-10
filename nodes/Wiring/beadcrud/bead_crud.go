@@ -1,33 +1,47 @@
-package Wiring
+// Package beadcrud is the per-bead CRUD decision (PLAN.md "moving a node is CRUD on the
+// edge beads touching it") plus the touching-bead resolution it judges, split out of
+// nodes/Wiring (god-object decomposition): a would-be leaf that used to hold a
+// *MoveDispatch/*nodeGeometry back-reference (dragTouchingBeads) now takes the values it
+// reads — node id/kind, incident edge ids, each edge's neighbour id, partner centres, and
+// neighbour kinds — as plain parameters, so this package needs nothing from nodes/Wiring
+// and nodes/Wiring can import it with no cycle.
+//
+// bead_crud.go itself was always pure geometry: no node/edge state, no map lookups, no
+// persistence, no side effects. Moving a node is decided independently, per touching bead,
+// from that bead's own SOURCE point and the node's DESTINATION point — no solver, no
+// enumeration across neighbours, no selection of one edge over another. The caller
+// (nodes/Wiring's commit_node_move.go) supplies the real beadSource/beadCentre/
+// nodeDestination for every touching bead and applies the verdicts; this file only judges
+// ONE bead at a time.
+package beadcrud
 
-import "math"
+import (
+	"math"
 
-// bead_crud.go — the per-bead CRUD decision (PLAN.md "moving a node is CRUD on the edge
-// beads touching it"). Moving a node is decided independently, per touching bead, from
-// that bead's own SOURCE point and the node's DESTINATION point — no solver, no
-// enumeration across neighbours, no selection of one edge over another. This file is
-// pure geometry: no node/edge state, no map lookups, no persistence, no side effects.
-// The caller (quantized_move.go's commitNodeMoveLocal) supplies the real beadSource/
-// beadCentre/nodeDestination for every touching bead and applies the verdicts; this file
-// only judges ONE bead at a time.
-
-// beadCrudVerdict is one touching bead's own answer to "does the node's drag change my
-// edge's bead count".
-type beadCrudVerdict int
-
-const (
-	// beadCrudNone: the touching bead's span to the node's destination still measures
-	// one bead length — nothing changes.
-	beadCrudNone beadCrudVerdict = iota
-	// beadCrudAdd: a gap has opened beyond this bead — a bead is added, and it becomes
-	// the new touching bead.
-	beadCrudAdd
-	// beadCrudRemove: this bead no longer fits — it is removed, and the bead before it
-	// becomes the touching bead.
-	beadCrudRemove
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
-// beadCrudDecide judges ONE touching bead.
+// vec3 is a local alias for wire.Vec3 — nodes/Wiring/vec_alias.go's own precedent for
+// staying independent of any package that itself aliases the concrete type.
+type vec3 = wire.Vec3
+
+// BeadCrudVerdict is one touching bead's own answer to "does the node's drag change my
+// edge's bead count".
+type BeadCrudVerdict int
+
+const (
+	// BeadCrudNone: the touching bead's span to the node's destination still measures
+	// one bead length — nothing changes.
+	BeadCrudNone BeadCrudVerdict = iota
+	// BeadCrudAdd: a gap has opened beyond this bead — a bead is added, and it becomes
+	// the new touching bead.
+	BeadCrudAdd
+	// BeadCrudRemove: this bead no longer fits — it is removed, and the bead before it
+	// becomes the touching bead.
+	BeadCrudRemove
+)
+
+// BeadCrudDecide judges ONE touching bead.
 //
 //   - beadSource is that bead's own SOURCE point: the previous bead's centre along its
 //     chain, or the chain origin on the neighbour's torus surface when it is the only
@@ -44,9 +58,9 @@ const (
 //
 // third = nodeDestination - beadSource is the span the touching bead now has to occupy:
 //
-//   - |third| < beadLen  -> beadCrudRemove — the bead no longer fits.
-//   - |third| > beadLen  -> beadCrudAdd, gated by the angle test below.
-//   - |third| == beadLen -> beadCrudNone — the drag changes nothing on this edge.
+//   - |third| < beadLen  -> BeadCrudRemove — the bead no longer fits.
+//   - |third| > beadLen  -> BeadCrudAdd, gated by the angle test below.
+//   - |third| == beadLen -> BeadCrudNone — the drag changes nothing on this edge.
 //
 // The angle gate applies to ADD only, never to REMOVE: the angle between dragVector (v)
 // and the edge-bead vector (beadSource -> beadCentre) —
@@ -58,51 +72,51 @@ const (
 //
 // third is returned alongside the verdict purely for the caller's own observability
 // (breadcrumbs); this function makes no other use of it and has no side effects.
-func beadCrudDecide(beadSource, beadCentre, nodeDestination, dragVector vec3, beadLen float64) (beadCrudVerdict, vec3) {
+func BeadCrudDecide(beadSource, beadCentre, nodeDestination, dragVector vec3, beadLen float64) (BeadCrudVerdict, vec3) {
 	third := nodeDestination.Sub(beadSource)
 	tl := third.Length()
 	switch {
 	case tl < beadLen:
-		return beadCrudRemove, third
+		return BeadCrudRemove, third
 	case tl > beadLen:
 		beadVec := beadCentre.Sub(beadSource)
 		bl, dl := beadVec.Length(), dragVector.Length()
 		if bl < 1e-12 || dl < 1e-12 {
 			// Degenerate — no direction to gate against, so no add without a real
 			// triangle to judge it by.
-			return beadCrudNone, third
+			return BeadCrudNone, third
 		}
 		cosA := beadVec.Dot(dragVector) / (bl * dl)
 		if cosA < 0 {
 			// angle > 90 degrees: drag is heading back across the bead.
-			return beadCrudNone, third
+			return BeadCrudNone, third
 		}
-		return beadCrudAdd, third
+		return BeadCrudAdd, third
 	default:
-		return beadCrudNone, third
+		return BeadCrudNone, third
 	}
 }
 
-// beadCrudImpliedCentre computes the NODE's implied new centre from ONE touching bead's
+// BeadCrudImpliedCentre computes the NODE's implied new centre from ONE touching bead's
 // verdict — PLAN.md: "the node's position comes from the bead operation — NOT from the
 // drag destination point... bead removed -> the node moves to take that bead's place;
 // bead added -> the node moves away from the newly added bead's place." aimDir is the
 // chain's own axis (the live unit direction from the node toward the neighbour, NEVER the
 // drag direction); beadCentre is the touching bead's own CURRENT centre (before this
-// event); beadLen is one bead length (lattice.BeadStepR). ok is false for beadCrudNone — a
+// event); beadLen is one bead length (lattice.BeadStepR). ok is false for BeadCrudNone — a
 // "none" verdict implies no new position, only "unchanged".
 //
-//   - beadCrudRemove: the node's new centre IS the removed bead's own centre — the node
+//   - BeadCrudRemove: the node's new centre IS the removed bead's own centre — the node
 //     takes that bead's place exactly.
-//   - beadCrudAdd: a new bead is inserted one bead length closer to the node than the old
+//   - BeadCrudAdd: a new bead is inserted one bead length closer to the node than the old
 //     touching bead, along aimDir (the "next chain position"); the node's new centre is
 //     one bead length BEYOND that new bead, away from the neighbour (continuing along the
 //     same axis, in the direction opposite aimDir).
-func beadCrudImpliedCentre(verdict beadCrudVerdict, beadCentre, aimDir vec3, beadLen float64) (vec3, bool) {
+func BeadCrudImpliedCentre(verdict BeadCrudVerdict, beadCentre, aimDir vec3, beadLen float64) (vec3, bool) {
 	switch verdict {
-	case beadCrudRemove:
+	case BeadCrudRemove:
 		return beadCentre, true
-	case beadCrudAdd:
+	case BeadCrudAdd:
 		newBeadCentre := beadCentre.Sub(aimDir.Scale(beadLen))
 		nodeCentre := newBeadCentre.Sub(aimDir.Scale(beadLen))
 		return nodeCentre, true
@@ -111,19 +125,19 @@ func beadCrudImpliedCentre(verdict beadCrudVerdict, beadCentre, aimDir vec3, bea
 	}
 }
 
-// beadCrudDiag is ONE touching bead's full CRUD arithmetic, captured for observability
+// BeadCrudDiag is ONE touching bead's full CRUD arithmetic, captured for observability
 // only (task/log-node2-bead-crud breadcrumb) — commitNodeMoveLocal's "bead-crud"
 // breadcrumb packs one of these per touching bead so a drag-time trace can show WHY a
-// bead returned "none" instead of just that it did. Mirrors beadCrudDecide's own
+// bead returned "none" instead of just that it did. Mirrors BeadCrudDecide's own
 // arithmetic exactly (never a second, drifting copy of the verdict logic) but also keeps
-// the intermediate values beadCrudDecide discards: the angle-gate cosine and whether the
+// the intermediate values BeadCrudDecide discards: the angle-gate cosine and whether the
 // gate is what blocked an otherwise-qualifying add, and the touching bead's own source
 // distance from the node's previous position.
-type beadCrudDiag struct {
+type BeadCrudDiag struct {
 	NeighborID  string
 	ThirdLen    float64 // |nodeDestination - beadSource|
 	BeadLen     float64
-	Verdict     beadCrudVerdict
+	Verdict     BeadCrudVerdict
 	CosAngle    float64 // angle-gate cosine; NaN when the gate was never evaluated (verdict != add-candidate-by-length)
 	GateBlocked bool    // true iff |third|>beadLen but the angle gate turned it into "none"
 	SourceDist  float64 // |beadSource - prevPos|
@@ -131,14 +145,14 @@ type beadCrudDiag struct {
 	ImpliedOK   bool
 }
 
-// beadCrudDiagnose judges ONE touching bead exactly like beadCrudDecide, but also returns
+// BeadCrudDiagnose judges ONE touching bead exactly like BeadCrudDecide, but also returns
 // the intermediate angle-gate arithmetic for breadcrumb observability. DIAGNOSTIC ONLY —
-// no caller depends on this for placement/movement; beadCrudDecide remains the sole
+// no caller depends on this for placement/movement; BeadCrudDecide remains the sole
 // production judge.
-func beadCrudDiagnose(neighborID string, beadSource, beadCentre, aimDir, prevPos, nodeDestination, dragVector vec3, beadLen float64) beadCrudDiag {
+func BeadCrudDiagnose(neighborID string, beadSource, beadCentre, aimDir, prevPos, nodeDestination, dragVector vec3, beadLen float64) BeadCrudDiag {
 	third := nodeDestination.Sub(beadSource)
 	tl := third.Length()
-	d := beadCrudDiag{
+	d := BeadCrudDiag{
 		NeighborID: neighborID,
 		ThirdLen:   tl,
 		BeadLen:    beadLen,
@@ -147,41 +161,41 @@ func beadCrudDiagnose(neighborID string, beadSource, beadCentre, aimDir, prevPos
 	}
 	switch {
 	case tl < beadLen:
-		d.Verdict = beadCrudRemove
+		d.Verdict = BeadCrudRemove
 	case tl > beadLen:
 		beadVec := beadCentre.Sub(beadSource)
 		bl, dl := beadVec.Length(), dragVector.Length()
 		if bl < 1e-12 || dl < 1e-12 {
-			d.Verdict = beadCrudNone
+			d.Verdict = BeadCrudNone
 		} else {
 			cosA := beadVec.Dot(dragVector) / (bl * dl)
 			d.CosAngle = cosA
 			if cosA < 0 {
-				d.Verdict = beadCrudNone
+				d.Verdict = BeadCrudNone
 				d.GateBlocked = true
 			} else {
-				d.Verdict = beadCrudAdd
+				d.Verdict = BeadCrudAdd
 			}
 		}
 	default:
-		d.Verdict = beadCrudNone
+		d.Verdict = BeadCrudNone
 	}
-	if implied, ok := beadCrudImpliedCentre(d.Verdict, beadCentre, aimDir, beadLen); ok {
+	if implied, ok := BeadCrudImpliedCentre(d.Verdict, beadCentre, aimDir, beadLen); ok {
 		d.Implied, d.ImpliedOK = implied, true
 	}
 	return d
 }
 
-// beadCrudResult is one touching bead's non-"none" verdict and the node centre it implies
-// — resolveBeadCrudMove's per-edge working set, kept for observability (breadcrumbs)
+// BeadCrudResult is one touching bead's non-"none" verdict and the node centre it implies
+// — ResolveBeadCrudMove's per-edge working set, kept for observability (breadcrumbs)
 // alongside the resolved commit.
-type beadCrudResult struct {
+type BeadCrudResult struct {
 	NeighborID string
-	Verdict    beadCrudVerdict
+	Verdict    BeadCrudVerdict
 	Implied    vec3
 }
 
-// resolveBeadCrudMove judges every touching bead against the SAME drag (nodeDestination,
+// ResolveBeadCrudMove judges every touching bead against the SAME drag (nodeDestination,
 // dragVector = nodeDestination-prevPos) and resolves the node's single committed centre —
 // the ONE place this package decides how multiple touching beads' verdicts become one
 // Cartesian point, so commitNodeMoveLocal (production) and quantizedDragTarget (the test
@@ -192,7 +206,7 @@ type beadCrudResult struct {
 //     beads at all): the node does not move — prevPos, unchanged. (A node with NO incident
 //     edges is a different case, handled by the caller before this is reached: it follows
 //     the raw target directly, matching the historic free-node behaviour.)
-//   - Exactly one touching bead signals a change: its beadCrudImpliedCentre IS the node's
+//   - Exactly one touching bead signals a change: its BeadCrudImpliedCentre IS the node's
 //     new committed centre.
 //   - More than one touching bead signals a change: a node with several neighbours has
 //     touching beads on several different chain axes, so their implied centres essentially
@@ -204,18 +218,18 @@ type beadCrudResult struct {
 //     average, and never the mouse target. Movement stays one bead at a time; an edge whose
 //     verdict implied a larger step reaches it over successive pointer-move events instead
 //     of in one jump (edgeStepCount re-counts against the live distance every commit).
-func resolveBeadCrudMove(beads []touchingBead, prevPos, nodeDestination vec3, beadLen float64) (committed vec3, results []beadCrudResult) {
+func ResolveBeadCrudMove(beads []TouchingBead, prevPos, nodeDestination vec3, beadLen float64) (committed vec3, results []BeadCrudResult) {
 	dragVector := nodeDestination.Sub(prevPos)
 	for _, b := range beads {
-		verdict, _ := beadCrudDecide(b.Source, b.Centre, nodeDestination, dragVector, beadLen)
-		if verdict == beadCrudNone {
+		verdict, _ := BeadCrudDecide(b.Source, b.Centre, nodeDestination, dragVector, beadLen)
+		if verdict == BeadCrudNone {
 			continue
 		}
-		implied, ok := beadCrudImpliedCentre(verdict, b.Centre, b.AimDir, beadLen)
+		implied, ok := BeadCrudImpliedCentre(verdict, b.Centre, b.AimDir, beadLen)
 		if !ok {
 			continue
 		}
-		results = append(results, beadCrudResult{NeighborID: b.NeighborID, Verdict: verdict, Implied: implied})
+		results = append(results, BeadCrudResult{NeighborID: b.NeighborID, Verdict: verdict, Implied: implied})
 	}
 	if len(results) == 0 {
 		return prevPos, results

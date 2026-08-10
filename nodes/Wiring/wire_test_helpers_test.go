@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/beadcrud"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
@@ -127,6 +128,6 @@ func quantizedDragTarget(md *MoveDispatch, nodeID string, target vec3) vec3 {
 	if len(beads) == 0 {
 		return target
 	}
-	committed, _ := resolveBeadCrudMove(beads, prev, target, lattice.BeadStepR)
+	committed, _ := beadcrud.ResolveBeadCrudMove(beads, prev, target, lattice.BeadStepR)
 	return committed
 }

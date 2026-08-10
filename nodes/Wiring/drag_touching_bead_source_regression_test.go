@@ -23,13 +23,14 @@ package Wiring
 import (
 	"testing"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/beadcrud"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
 // touchingBeadFor returns writeTree's single touching bead for nodeID ("1" or "2") and
 // nodeID's own live centre, using the SAME dragTouchingBeads call production drives.
-func touchingBeadFor(t *testing.T, md *MoveDispatch, nodeID string) (touchingBead, vec3) {
+func touchingBeadFor(t *testing.T, md *MoveDispatch, nodeID string) (beadcrud.TouchingBead, vec3) {
 	t.Helper()
 	nm, ok := md.mr.nodeGeoms[nodeID]
 	if !ok {
@@ -115,8 +116,8 @@ func TestAngleGateAdmitsAddAwayAndBlocksAddToward(t *testing.T) {
 		// ADD must be admitted.
 		awayDest := prevPos.Sub(bead.AimDir.Scale(3 * lattice.BeadStepR))
 		awayDrag := awayDest.Sub(prevPos)
-		verdict, _ := beadCrudDecide(bead.Source, bead.Centre, awayDest, awayDrag, lattice.BeadStepR)
-		if verdict != beadCrudAdd {
+		verdict, _ := beadcrud.BeadCrudDecide(bead.Source, bead.Centre, awayDest, awayDrag, lattice.BeadStepR)
+		if verdict != beadcrud.BeadCrudAdd {
 			t.Fatalf("%s: dragging AWAY from the neighbour should admit ADD, got verdict=%d", id, verdict)
 		}
 
@@ -134,8 +135,8 @@ func TestAngleGateAdmitsAddAwayAndBlocksAddToward(t *testing.T) {
 			t.Fatalf("%s: toward-destination fixture is degenerate — |third|=%g must exceed beadLen=%g to isolate the angle gate",
 				id, third.Length(), lattice.BeadStepR)
 		}
-		verdict, _ = beadCrudDecide(bead.Source, bead.Centre, towardDest, towardDrag, lattice.BeadStepR)
-		if verdict != beadCrudNone {
+		verdict, _ = beadcrud.BeadCrudDecide(bead.Source, bead.Centre, towardDest, towardDrag, lattice.BeadStepR)
+		if verdict != beadcrud.BeadCrudNone {
 			t.Fatalf("%s: dragging TOWARD the neighbour (back across the bead) should block ADD, got verdict=%d", id, verdict)
 		}
 	}

@@ -3,6 +3,7 @@ package Wiring
 import (
 	"testing"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/beadcrud"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
@@ -181,8 +182,8 @@ func TestCommitNodeMoveLocalRemoveTakesBeadsPlace(t *testing.T) {
 	removedBeadCentre := beads[0].Centre
 	target := beads[0].Source // |third| == 0 < one bead length -> beadCrudRemove
 
-	verdict, _ := beadCrudDecide(beads[0].Source, beads[0].Centre, target, target.Sub(before), lattice.BeadStepR)
-	if verdict != beadCrudRemove {
+	verdict, _ := beadcrud.BeadCrudDecide(beads[0].Source, beads[0].Centre, target, target.Sub(before), lattice.BeadStepR)
+	if verdict != beadcrud.BeadCrudRemove {
 		t.Fatalf("fixture assumption: this drag should verdict beadCrudRemove, got %v", verdict)
 	}
 
@@ -219,8 +220,8 @@ func TestCommitNodeMoveLocalAddMovesOneBeadBeyondNewBead(t *testing.T) {
 	target := before.Add(outward.Scale(40))
 
 	dragVector := target.Sub(before)
-	verdict, _ := beadCrudDecide(beads[0].Source, beads[0].Centre, target, dragVector, lattice.BeadStepR)
-	if verdict != beadCrudAdd {
+	verdict, _ := beadcrud.BeadCrudDecide(beads[0].Source, beads[0].Centre, target, dragVector, lattice.BeadStepR)
+	if verdict != beadcrud.BeadCrudAdd {
 		t.Fatalf("fixture assumption: this drag should verdict beadCrudAdd, got %v", verdict)
 	}
 	// Hand-computed expected centre, independent of beadCrudImpliedCentre's own

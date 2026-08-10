@@ -1,4 +1,4 @@
-package Wiring
+package beadcrud
 
 import "testing"
 
@@ -20,9 +20,9 @@ func TestBeadCrudUsesSourcePointNotBeadCentre(t *testing.T) {
 	dest := vec3{X: 2 * testBeadLen, Y: 0, Z: 0}
 	drag := dest.Sub(source)
 
-	verdict, third := beadCrudDecide(source, centre, dest, drag, testBeadLen)
-	if verdict != beadCrudAdd {
-		t.Fatalf("verdict from the correct source point = %v, want beadCrudAdd", verdict)
+	verdict, third := BeadCrudDecide(source, centre, dest, drag, testBeadLen)
+	if verdict != BeadCrudAdd {
+		t.Fatalf("verdict from the correct source point = %v, want BeadCrudAdd", verdict)
 	}
 	if got := third.Length(); got != 2*testBeadLen {
 		t.Fatalf("third length = %v, want %v (source-to-destination)", got, 2*testBeadLen)
@@ -31,12 +31,12 @@ func TestBeadCrudUsesSourcePointNotBeadCentre(t *testing.T) {
 	// Using the bead's own CENTRE as the source (the mistake PLAN.md warns against)
 	// measures only ONE bead length of span (dest-centre), not two — a materially
 	// different, wrong verdict (none, not add) for the identical drag.
-	wrongVerdict, wrongThird := beadCrudDecide(centre, centre, dest, drag, testBeadLen)
+	wrongVerdict, wrongThird := BeadCrudDecide(centre, centre, dest, drag, testBeadLen)
 	if wrongVerdict == verdict && wrongThird.Length() == third.Length() {
 		t.Fatal("test setup invalid: using the bead's own centre as source must disagree with using the true source point")
 	}
-	if wrongVerdict != beadCrudNone {
-		t.Fatalf("using the bead's own centre as source gave verdict %v, want the off-by-one-bead answer beadCrudNone", wrongVerdict)
+	if wrongVerdict != BeadCrudNone {
+		t.Fatalf("using the bead's own centre as source gave verdict %v, want the off-by-one-bead answer BeadCrudNone", wrongVerdict)
 	}
 }
 
@@ -48,9 +48,9 @@ func TestBeadCrudRemoveWhenSpanTooShort(t *testing.T) {
 	dest := vec3{X: testBeadLen * 0.4, Y: 0, Z: 0} // span < one bead length
 	drag := dest.Sub(source)
 
-	verdict, _ := beadCrudDecide(source, centre, dest, drag, testBeadLen)
-	if verdict != beadCrudRemove {
-		t.Fatalf("verdict = %v, want beadCrudRemove", verdict)
+	verdict, _ := BeadCrudDecide(source, centre, dest, drag, testBeadLen)
+	if verdict != BeadCrudRemove {
+		t.Fatalf("verdict = %v, want BeadCrudRemove", verdict)
 	}
 }
 
@@ -62,9 +62,9 @@ func TestBeadCrudExactBeadLengthMovesNothing(t *testing.T) {
 	dest := vec3{X: testBeadLen, Y: 0, Z: 0} // |third| == beadLen exactly
 	drag := dest.Sub(source)
 
-	verdict, _ := beadCrudDecide(source, centre, dest, drag, testBeadLen)
-	if verdict != beadCrudNone {
-		t.Fatalf("verdict = %v, want beadCrudNone", verdict)
+	verdict, _ := BeadCrudDecide(source, centre, dest, drag, testBeadLen)
+	if verdict != BeadCrudNone {
+		t.Fatalf("verdict = %v, want BeadCrudNone", verdict)
 	}
 }
 
@@ -81,9 +81,9 @@ func TestBeadCrudAngleGateBlocksAddOnly(t *testing.T) {
 	// angle): |third| is large (add-worthy) and the gate admits it.
 	forwardDest := vec3{X: 3 * testBeadLen, Y: 0, Z: 0}
 	forwardDrag := forwardDest.Sub(source)
-	verdict, _ := beadCrudDecide(source, centre, forwardDest, forwardDrag, testBeadLen)
-	if verdict != beadCrudAdd {
-		t.Fatalf("aligned drag: verdict = %v, want beadCrudAdd", verdict)
+	verdict, _ := BeadCrudDecide(source, centre, forwardDest, forwardDrag, testBeadLen)
+	if verdict != BeadCrudAdd {
+		t.Fatalf("aligned drag: verdict = %v, want BeadCrudAdd", verdict)
 	}
 
 	// Destination far in the OPPOSITE direction from source (drag heading back across
@@ -92,24 +92,24 @@ func TestBeadCrudAngleGateBlocksAddOnly(t *testing.T) {
 	// vector is 180 degrees, so the gate must block it.
 	backwardDest := vec3{X: -3 * testBeadLen, Y: 0, Z: 0}
 	backwardDrag := backwardDest.Sub(source)
-	blockedVerdict, blockedThird := beadCrudDecide(source, centre, backwardDest, backwardDrag, testBeadLen)
+	blockedVerdict, blockedThird := BeadCrudDecide(source, centre, backwardDest, backwardDrag, testBeadLen)
 	if blockedThird.Length() <= testBeadLen {
 		t.Fatalf("test setup invalid: backward third length %v must exceed one bead length for the gate to be exercised", blockedThird.Length())
 	}
-	if blockedVerdict != beadCrudNone {
-		t.Fatalf("backward drag past the gate: verdict = %v, want beadCrudNone (angle gate must block the add)", blockedVerdict)
+	if blockedVerdict != BeadCrudNone {
+		t.Fatalf("backward drag past the gate: verdict = %v, want BeadCrudNone (angle gate must block the add)", blockedVerdict)
 	}
 
 	// A REMOVAL is never gated: drive |third| below one bead length along the SAME
 	// "backward" heading the add gate just blocked, and it must still remove.
 	removeDest := vec3{X: testBeadLen * 0.2, Y: 0, Z: 0}
 	removeDrag := removeDest.Sub(source)
-	removeVerdict, removeThird := beadCrudDecide(source, centre, removeDest, removeDrag, testBeadLen)
+	removeVerdict, removeThird := BeadCrudDecide(source, centre, removeDest, removeDrag, testBeadLen)
 	if removeThird.Length() >= testBeadLen {
 		t.Fatalf("test setup invalid: remove third length %v must be under one bead length", removeThird.Length())
 	}
-	if removeVerdict != beadCrudRemove {
-		t.Fatalf("verdict = %v, want beadCrudRemove — a removal must not be affected by the angle gate", removeVerdict)
+	if removeVerdict != BeadCrudRemove {
+		t.Fatalf("verdict = %v, want BeadCrudRemove — a removal must not be affected by the angle gate", removeVerdict)
 	}
 }
 
@@ -124,7 +124,7 @@ func TestBeadCrudNoConfigurationDependence(t *testing.T) {
 	centreA := vec3{X: testBeadLen, Y: 0, Z: 0}
 	destA := vec3{X: 2 * testBeadLen, Y: 0, Z: 0}
 	dragA := destA.Sub(sourceA)
-	verdictA, _ := beadCrudDecide(sourceA, centreA, destA, dragA, testBeadLen)
+	verdictA, _ := BeadCrudDecide(sourceA, centreA, destA, dragA, testBeadLen)
 
 	// Configuration B: same relative geometry, translated and rotated into a totally
 	// different part of space (large radius / different colatitude), same bead length.
@@ -135,7 +135,7 @@ func TestBeadCrudNoConfigurationDependence(t *testing.T) {
 	centreB := rot(centreA).Add(offset)
 	destB := rot(destA).Add(offset)
 	dragB := rot(dragA)
-	verdictB, _ := beadCrudDecide(sourceB, centreB, destB, dragB, testBeadLen)
+	verdictB, _ := BeadCrudDecide(sourceB, centreB, destB, dragB, testBeadLen)
 
 	if verdictA != verdictB {
 		t.Fatalf("verdict depended on configuration: A=%v B=%v for the same relative geometry", verdictA, verdictB)
@@ -159,19 +159,19 @@ func TestResolveBeadCrudMoveThreeNeighborsDisagreeStillMoves(t *testing.T) {
 	// independently — REMOVE's implied centre is the bead's own current centre exactly
 	// (beadCrudImpliedCentre), so the three implied centres below (X=5, Y=3, Z=7) are
 	// necessarily different points, by construction, not by accident.
-	beads := []touchingBead{
+	beads := []TouchingBead{
 		{NeighborID: "N1", Source: vec3{X: 1, Y: 0, Z: 0}, Centre: vec3{X: 5, Y: 0, Z: 0}, AimDir: vec3{X: 1, Y: 0, Z: 0}},
 		{NeighborID: "N2", Source: vec3{X: 0, Y: 1, Z: 0}, Centre: vec3{X: 0, Y: 3, Z: 0}, AimDir: vec3{X: 0, Y: 1, Z: 0}},
 		{NeighborID: "N3", Source: vec3{X: 0, Y: 0, Z: 1}, Centre: vec3{X: 0, Y: 0, Z: 7}, AimDir: vec3{X: 0, Y: 0, Z: 1}},
 	}
 
-	committed, results := resolveBeadCrudMove(beads, prevPos, nodeDestination, testBeadLen)
+	committed, results := ResolveBeadCrudMove(beads, prevPos, nodeDestination, testBeadLen)
 
 	if len(results) != 3 {
 		t.Fatalf("expected all three touching beads to reach a non-none verdict, got %d results: %+v", len(results), results)
 	}
 	for _, r := range results {
-		if r.Verdict != beadCrudRemove {
+		if r.Verdict != BeadCrudRemove {
 			t.Fatalf("test setup invalid: expected every bead to judge REMOVE, got %v for %s", r.Verdict, r.NeighborID)
 		}
 	}
