@@ -11,9 +11,9 @@
 // package and call them from main() below.
 //
 // main() itself holds only the entry point and the call sequence; kind
-// collection lives in kind_scan.go, kind-id assignment in kind_ids.go, the
-// shared kindEntry/port/etc. types in kind_types.go, and repo-root resolution
-// in repo_root.go.
+// collection, kind-id assignment, and the shared KindEntry/Port/etc. types
+// live in tools/gen-node-defs/kindscan, and repo-root resolution in
+// repo_root.go.
 package main
 
 import (
@@ -23,6 +23,7 @@ import (
 	"sort"
 
 	"github.com/dtauraso/wirefold/tools/gen-node-defs/buflayout"
+	"github.com/dtauraso/wirefold/tools/gen-node-defs/kindscan"
 )
 
 func main() {
@@ -39,20 +40,20 @@ func main() {
 	}
 
 	nodesDir := filepath.Join(repoRoot, "nodes")
-	kinds := collectKinds(nodesDir)
+	kinds := kindscan.CollectKinds(nodesDir)
 
 	// Finding B: KindId is a stable, assigned-once fact per kind (from SPEC.md's
 	// View "kindId" field), NOT a sort-derived index — adding a kind must never
 	// renumber an existing one. Resolve each kind's id, auto-assigning (and
 	// writing back into its SPEC.md) the next free id for any kind that doesn't
 	// have one yet, so a new kind is stable from the moment it's first generated.
-	assignKindIDs(kinds, nodesDir)
+	kindscan.AssignKindIDs(kinds, nodesDir)
 
 	// Sort alphabetically by Go kind name (PascalCase spec kind) for stable,
 	// human-readable emission ORDER only — this sort has no bearing on the id
 	// VALUE, which comes from kindID above.
 	sort.Slice(kinds, func(i, j int) bool {
-		return kinds[i].goKind < kinds[j].goKind
+		return kinds[i].GoKind < kinds[j].GoKind
 	})
 
 	// kinds_generated.go — blank imports that make each node package's init() (and thus
@@ -61,7 +62,7 @@ func main() {
 	// silently diverge from this one (audit finding). check-generated.sh guards it via the
 	// "wrote" line below, so no dedicated guard is needed.
 	kindImportsPath := filepath.Join(repoRoot, "kinds_generated.go")
-	if err := writeKindImports(kindImportsPath, kinds); err != nil {
+	if err := kindscan.WriteKindImports(kindImportsPath, kinds); err != nil {
 		fatalf("write %s: %v", kindImportsPath, err)
 	}
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d kinds)\n", kindImportsPath, len(kinds))

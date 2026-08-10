@@ -1,6 +1,6 @@
 // AST reads that identify a kind: its registered Go kind name (parseGoKindName)
 // and its wire:"data.*" tagged fields (parseDataFieldsFromAST).
-package main
+package kindscan
 
 import (
 	"fmt"
@@ -72,7 +72,7 @@ func parseGoKindName(pkgDir string) (string, error) {
 				continue
 			}
 			if !goIdentRE.MatchString(name2) {
-				fatalf("kind name %q from %s in %s is not a legal identifier (must match [A-Za-z_][A-Za-z0-9_]*); it is emitted as an unquoted TS object key", name2, marker, pkgDir)
+				return "", fmt.Errorf("kind name %q from %s in %s is not a legal identifier (must match [A-Za-z_][A-Za-z0-9_]*); it is emitted as an unquoted TS object key", name2, marker, pkgDir)
 			}
 			return name2, nil
 		}
@@ -82,7 +82,7 @@ func parseGoKindName(pkgDir string) (string, error) {
 
 // parseDataFieldsFromAST reads all .go files in pkgDir and returns data fields
 // derived from struct fields tagged with wire:"data.*".
-func parseDataFieldsFromAST(pkgDir string) ([]dataField, error) {
+func parseDataFieldsFromAST(pkgDir string) ([]DataField, error) {
 	fset := token.NewFileSet()
 	entries, err := os.ReadDir(pkgDir)
 	if err != nil {
@@ -101,7 +101,7 @@ func parseDataFieldsFromAST(pkgDir string) ([]dataField, error) {
 		}
 		files = append(files, f)
 	}
-	var fields []dataField
+	var fields []DataField
 	for _, file := range files {
 		for _, decl := range file.Decls {
 			genDecl, ok := decl.(*ast.GenDecl)
@@ -143,7 +143,7 @@ func parseDataFieldsFromAST(pkgDir string) ([]dataField, error) {
 						}
 						return nil, fmt.Errorf("kind %q: wire:\"data.%s\" field %q has an unsupported/unstringifiable Go type %T", filepath.Base(pkgDir), wireKey, displayName, field.Type)
 					}
-					fields = append(fields, dataField{wireTag: wireKey, goType: typeStr, fieldName: fname})
+					fields = append(fields, DataField{WireTag: wireKey, GoType: typeStr, FieldName: fname})
 				}
 			}
 		}

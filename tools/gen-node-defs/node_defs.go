@@ -1,5 +1,5 @@
 // node-defs.ts emitter: builds NODE_DEFS/NODE_DEFS_ARRAY/NODE_KIND_NAMES from
-// the parsed kindEntry slice.
+// the parsed kindscan.KindEntry slice.
 package main
 
 import (
@@ -8,10 +8,12 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/dtauraso/wirefold/tools/gen-node-defs/kindscan"
 )
 
 // writeNodeDefs emits the node-defs.ts file.
-func writeNodeDefs(outPath string, kinds []kindEntry) error {
+func writeNodeDefs(outPath string, kinds []kindscan.KindEntry) error {
 	var buf bytes.Buffer
 	w := bufio.NewWriter(&buf)
 
@@ -41,7 +43,7 @@ func writeNodeDefs(outPath string, kinds []kindEntry) error {
 	fmt.Fprintln(w, `// Single source of truth — derived from wire.Register calls.`)
 	fmt.Fprintf(w, "export const RUNTIME_IMPLEMENTED_KINDS: ReadonlySet<string> = new Set([\n")
 	for _, e := range kinds {
-		fmt.Fprintf(w, "  %q,\n", e.goKind)
+		fmt.Fprintf(w, "  %q,\n", e.GoKind)
 	}
 	fmt.Fprintln(w, `]);`)
 	fmt.Fprintln(w)
@@ -54,7 +56,7 @@ func writeNodeDefs(outPath string, kinds []kindEntry) error {
 	}
 	defs := make([]kindDef, len(kinds))
 	for i, e := range kinds {
-		defs[i] = kindDef{goKind: e.goKind, kindID: e.kindID, def: buildDef(e.view, e.ports)}
+		defs[i] = kindDef{goKind: e.GoKind, kindID: e.KindID, def: buildDef(e.View, e.Ports)}
 	}
 	fmt.Fprintln(w, `export const NODE_DEFS: Record<string, NodeDef> = {`)
 	for _, kd := range defs {
@@ -62,7 +64,7 @@ func writeNodeDefs(outPath string, kinds []kindEntry) error {
 	}
 	fmt.Fprint(w, `};`, "\n")
 	fmt.Fprintln(w)
-	// NODE_DEFS_ARRAY is indexed by the stable buffer KindId (see assignKindIDs in
+	// NODE_DEFS_ARRAY is indexed by the stable buffer KindId (see kindscan.AssignKindIDs in
 	// main.go), NOT by alphabetical position — a removed kind can leave a gap, which
 	// is emitted here as `undefined` so NODE_DEFS_ARRAY[id] still resolves correctly
 	// for every OTHER id (TS consumers already tolerate undefined via `def?.x ?? default`).
@@ -114,35 +116,35 @@ func writeNodeDefs(outPath string, kinds []kindEntry) error {
 	return os.WriteFile(outPath, buf.Bytes(), 0644)
 }
 
-func buildDef(v viewDef, ports []port) string {
+func buildDef(v kindscan.ViewDef, ports []kindscan.Port) string {
 	targets := filterPorts(ports, "in")
 	sources := filterPorts(ports, "out")
 
 	var fields []string
-	fields = append(fields, fmt.Sprintf(`bg: "%s"`, v.bg))
-	fields = append(fields, fmt.Sprintf(`border: "%s"`, v.border))
-	fields = append(fields, fmt.Sprintf(`text: "%s"`, v.text))
-	if v.minWidth != "" {
-		fields = append(fields, fmt.Sprintf(`minWidth: %s`, v.minWidth))
+	fields = append(fields, fmt.Sprintf(`bg: "%s"`, v.Bg))
+	fields = append(fields, fmt.Sprintf(`border: "%s"`, v.Border))
+	fields = append(fields, fmt.Sprintf(`text: "%s"`, v.Text))
+	if v.MinWidth != "" {
+		fields = append(fields, fmt.Sprintf(`minWidth: %s`, v.MinWidth))
 	}
-	if v.shape != "" {
-		fields = append(fields, fmt.Sprintf(`shape: "%s"`, v.shape))
+	if v.Shape != "" {
+		fields = append(fields, fmt.Sprintf(`shape: "%s"`, v.Shape))
 	}
-	if v.fill != "" {
-		fields = append(fields, fmt.Sprintf(`fill: "%s"`, v.fill))
+	if v.Fill != "" {
+		fields = append(fields, fmt.Sprintf(`fill: "%s"`, v.Fill))
 	}
-	if v.stroke != "" {
-		fields = append(fields, fmt.Sprintf(`stroke: "%s"`, v.stroke))
+	if v.Stroke != "" {
+		fields = append(fields, fmt.Sprintf(`stroke: "%s"`, v.Stroke))
 	}
-	if v.width != "" {
-		fields = append(fields, fmt.Sprintf(`width: %s`, v.width))
+	if v.Width != "" {
+		fields = append(fields, fmt.Sprintf(`width: %s`, v.Width))
 	}
-	if v.height != "" {
-		fields = append(fields, fmt.Sprintf(`height: %s`, v.height))
+	if v.Height != "" {
+		fields = append(fields, fmt.Sprintf(`height: %s`, v.Height))
 	}
-	if v.desc != "" {
+	if v.Desc != "" {
 		// %q, not "%s": a description is prose and will contain quotes and apostrophes.
-		fields = append(fields, fmt.Sprintf(`desc: %q`, v.desc))
+		fields = append(fields, fmt.Sprintf(`desc: %q`, v.Desc))
 	}
 	// Emit typed inputs/outputs for schema/adapter consumers.
 	if len(targets) > 0 {
@@ -154,10 +156,10 @@ func buildDef(v viewDef, ports []port) string {
 	return "{ " + strings.Join(fields, ", ") + " }"
 }
 
-func filterPorts(ports []port, dir string) []port {
-	var out []port
+func filterPorts(ports []kindscan.Port, dir string) []kindscan.Port {
+	var out []kindscan.Port
 	for _, p := range ports {
-		if p.direction == dir {
+		if p.Direction == dir {
 			out = append(out, p)
 		}
 	}
@@ -165,17 +167,17 @@ func filterPorts(ports []port, dir string) []port {
 }
 
 // joinPortsTyped emits {name, kind, isMulti?} pairs for NodeTypeDef-compatible consumers.
-func joinPortsTyped(ports []port) string {
+func joinPortsTyped(ports []kindscan.Port) string {
 	var parts []string
 	for _, p := range ports {
-		ek := p.edgeKind
+		ek := p.EdgeKind
 		if ek == "" {
 			ek = "chain" // default
 		}
-		if p.isMulti {
-			parts = append(parts, fmt.Sprintf(`{ name: "%s", kind: "%s", isMulti: true }`, p.id, ek))
+		if p.IsMulti {
+			parts = append(parts, fmt.Sprintf(`{ name: "%s", kind: "%s", isMulti: true }`, p.ID, ek))
 		} else {
-			parts = append(parts, fmt.Sprintf(`{ name: "%s", kind: "%s" }`, p.id, ek))
+			parts = append(parts, fmt.Sprintf(`{ name: "%s", kind: "%s" }`, p.ID, ek))
 		}
 	}
 	return strings.Join(parts, ", ")

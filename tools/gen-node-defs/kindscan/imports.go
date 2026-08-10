@@ -1,4 +1,4 @@
-package main
+package kindscan
 
 import (
 	"bytes"
@@ -14,12 +14,12 @@ import (
 // wire.Register ONLY via this file's blank import; a missing import means the kind fails at
 // runtime with `unknown type "X"`. The import list is sorted by directory name (the import
 // path segment), independent of the goKind sort used elsewhere.
-func writeKindImports(outPath string, kinds []kindEntry) error {
+func WriteKindImports(outPath string, kinds []KindEntry) error {
 	const modulePath = "github.com/dtauraso/wirefold"
 
 	dirs := make([]string, 0, len(kinds))
 	for _, k := range kinds {
-		dirs = append(dirs, k.dir)
+		dirs = append(dirs, k.Dir)
 	}
 	sort.Strings(dirs)
 

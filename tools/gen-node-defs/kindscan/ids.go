@@ -1,4 +1,4 @@
-package main
+package kindscan
 
 import (
 	"fmt"
@@ -14,27 +14,27 @@ import (
 // back into its SPEC.md immediately, so the id is stable from here on —
 // regenerating never reassigns it again. Fails loudly on a duplicate id or
 // an id colliding with/exceeding the KindIDUnknown sentinel (0xFF).
-func assignKindIDs(kinds []kindEntry, nodesDir string) {
+func AssignKindIDs(kinds []KindEntry, nodesDir string) {
 	usedBy := map[uint8]string{} // id -> goKind that claimed it
 	maxID := -1
 	var unassigned []int // indices into kinds needing auto-assignment
 
 	for i := range kinds {
-		raw := strings.TrimSpace(kinds[i].view.kindID)
+		raw := strings.TrimSpace(kinds[i].View.KindID)
 		if raw == "" {
 			unassigned = append(unassigned, i)
 			continue
 		}
 		n, err := strconv.Atoi(raw)
 		if err != nil || n < 0 || n > 254 {
-			fatalf("kind %q: SPEC.md kindId %q must be an integer in [0,254]", kinds[i].goKind, raw)
+			fatalf("kind %q: SPEC.md kindId %q must be an integer in [0,254]", kinds[i].GoKind, raw)
 		}
 		id := uint8(n)
 		if prev, dup := usedBy[id]; dup {
-			fatalf("kind %q and kind %q both claim KindId %d in their SPEC.md — ids must be unique and assigned once", prev, kinds[i].goKind, id)
+			fatalf("kind %q and kind %q both claim KindId %d in their SPEC.md — ids must be unique and assigned once", prev, kinds[i].GoKind, id)
 		}
-		usedBy[id] = kinds[i].goKind
-		kinds[i].kindID = id
+		usedBy[id] = kinds[i].GoKind
+		kinds[i].KindID = id
 		if n > maxID {
 			maxID = n
 		}
@@ -43,15 +43,15 @@ func assignKindIDs(kinds []kindEntry, nodesDir string) {
 	for _, i := range unassigned {
 		maxID++
 		if maxID > 254 {
-			fatalf("kind %q: no free KindId below the KindIDUnknown sentinel (0xFF)", kinds[i].goKind)
+			fatalf("kind %q: no free KindId below the KindIDUnknown sentinel (0xFF)", kinds[i].GoKind)
 		}
 		id := uint8(maxID)
-		usedBy[id] = kinds[i].goKind
-		kinds[i].kindID = id
-		if err := writeBackKindID(nodesDir, kinds[i].dir, id); err != nil {
-			fatalf("kind %q: auto-assigned KindId %d but failed to write it back into SPEC.md: %v", kinds[i].goKind, id, err)
+		usedBy[id] = kinds[i].GoKind
+		kinds[i].KindID = id
+		if err := writeBackKindID(nodesDir, kinds[i].Dir, id); err != nil {
+			fatalf("kind %q: auto-assigned KindId %d but failed to write it back into SPEC.md: %v", kinds[i].GoKind, id, err)
 		}
-		fmt.Fprintf(os.Stderr, "gen-node-defs: auto-assigned KindId %d to new kind %q (written to nodes/%s/SPEC.md)\n", id, kinds[i].goKind, kinds[i].dir)
+		fmt.Fprintf(os.Stderr, "gen-node-defs: auto-assigned KindId %d to new kind %q (written to nodes/%s/SPEC.md)\n", id, kinds[i].GoKind, kinds[i].Dir)
 	}
 }
 

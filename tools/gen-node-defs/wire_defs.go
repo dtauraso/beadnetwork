@@ -14,6 +14,13 @@ import (
 	"strings"
 )
 
+// wireProp represents one wire:"prop,..." tagged field on specEdge.
+type wireProp struct {
+	jsonName string // from json:"..." tag
+	tsType   string // from tsType:... in wire tag
+	required bool   // false if "optional", true if "required"
+}
+
 // parseWirePropsFromFile parses wire:"prop,..." tags on fields of specEdge
 // in the given Go source file and returns them in declaration order.
 func parseWirePropsFromFile(filePath string) ([]wireProp, error) {

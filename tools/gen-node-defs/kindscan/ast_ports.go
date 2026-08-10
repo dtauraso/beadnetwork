@@ -1,4 +1,4 @@
-package main
+package kindscan
 
 import (
 	"go/ast"
@@ -12,7 +12,7 @@ import (
 
 // parsePortsFromAST reads all .go files in pkgDir and returns ports derived
 // from channel-typed struct fields. Fields with wire:"data.*" tags are skipped.
-func parsePortsFromAST(pkgDir string) ([]port, error) {
+func parsePortsFromAST(pkgDir string) ([]Port, error) {
 	fset := token.NewFileSet()
 	entries, err := os.ReadDir(pkgDir)
 	if err != nil {
@@ -32,7 +32,7 @@ func parsePortsFromAST(pkgDir string) ([]port, error) {
 		pkgName := f.Name.Name
 		pkgs[pkgName] = append(pkgs[pkgName], f)
 	}
-	var ports []port
+	var ports []Port
 	// Iterate package names in sorted order so the emitted port order is
 	// deterministic even when a dir contains two package names (map iteration
 	// order is otherwise random and would flip-flop check-generated).
@@ -77,7 +77,7 @@ func parsePortsFromAST(pkgDir string) ([]port, error) {
 							outDir = "out"
 						}
 						for _, name := range field.Names {
-							ports = append(ports, port{id: name.Name, direction: outDir, isMulti: multi})
+							ports = append(ports, Port{ID: name.Name, Direction: outDir, IsMulti: multi})
 						}
 					}
 				}
@@ -94,13 +94,13 @@ func parsePortsFromAST(pkgDir string) ([]port, error) {
 // visited to avoid cycles). This lets a wrapper kind's SPEC.md-independent
 // AST port discovery still pick up promoted fields from a shared embedded
 // struct package.
-func parseEmbeddedPorts(nodesDir, pkgDir string, visited map[string]bool) ([]port, error) {
+func parseEmbeddedPorts(nodesDir, pkgDir string, visited map[string]bool) ([]Port, error) {
 	fset := token.NewFileSet()
 	entries, err := os.ReadDir(pkgDir)
 	if err != nil {
 		return nil, err
 	}
-	var ports []port
+	var ports []Port
 	for _, entry := range entries {
 		name := entry.Name()
 		if entry.IsDir() || !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") {

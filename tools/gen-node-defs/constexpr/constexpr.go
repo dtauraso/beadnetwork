@@ -19,7 +19,7 @@
 // module and parsing its const declarations the same way. Anything outside
 // that (function calls, iota, non-const identifiers) is a hard error, not a
 // silent fallback — a ShadingParam* value should always be one of these.
-package main
+package constexpr
 
 import (
 	"fmt"
@@ -42,7 +42,7 @@ type constDecl struct {
 // constEnv caches parsed packages (by directory) and this module's import
 // path prefix, across however many identifiers a single evaluation needs to
 // chase.
-type constEnv struct {
+type Env struct {
 	fset         *token.FileSet
 	repoRoot     string
 	modulePrefix string // e.g. "github.com/dtauraso/wirefold", from go.mod's module line
@@ -52,7 +52,7 @@ type constEnv struct {
 // newConstEnv builds an evaluator rooted at repoRoot, reading the module path
 // out of go.mod so qualified identifiers (wire.Foo) can be mapped from their
 // import path to a directory on disk.
-func newConstEnv(fset *token.FileSet, repoRoot string) (*constEnv, error) {
+func NewEnv(fset *token.FileSet, repoRoot string) (*Env, error) {
 	modBytes, err := os.ReadFile(filepath.Join(repoRoot, "go.mod"))
 	if err != nil {
 		return nil, fmt.Errorf("read go.mod: %w", err)
@@ -68,7 +68,7 @@ func newConstEnv(fset *token.FileSet, repoRoot string) (*constEnv, error) {
 	if modulePrefix == "" {
 		return nil, fmt.Errorf("go.mod has no module line")
 	}
-	return &constEnv{
+	return &Env{
 		fset:         fset,
 		repoRoot:     repoRoot,
 		modulePrefix: modulePrefix,
@@ -80,7 +80,7 @@ func newConstEnv(fset *token.FileSet, repoRoot string) (*constEnv, error) {
 // name -> constDecl map of its top-level const declarations. Cached per dir
 // since a package's consts are often chased more than once (e.g. LocalStepR
 // depends on BeadStepR, both looked up while resolving BeadTorusOuterR).
-func (env *constEnv) loadPkgConsts(dir string) (map[string]constDecl, error) {
+func (env *Env) loadPkgConsts(dir string) (map[string]constDecl, error) {
 	if cached, ok := env.pkgsByDir[dir]; ok {
 		return cached, nil
 	}
@@ -135,7 +135,7 @@ func (env *constEnv) loadPkgConsts(dir string) (map[string]constDecl, error) {
 // onto repoRoot. Only intra-module imports are supported (a ShadingParam*
 // expression has no reason to reach into the standard library or a
 // dependency), and gen-node-defs has none of those to resolve anyway.
-func (env *constEnv) importDir(file *ast.File, alias string) (string, error) {
+func (env *Env) importDir(file *ast.File, alias string) (string, error) {
 	for _, imp := range file.Imports {
 		path := strings.Trim(imp.Path.Value, `"`)
 		name := path[strings.LastIndex(path, "/")+1:]
@@ -158,7 +158,7 @@ func (env *constEnv) importDir(file *ast.File, alias string) (string, error) {
 // go/constant.Value — the same representation cmd/compile uses for untyped
 // constant arithmetic, so a chain of untyped-float divisions round-trips to
 // exactly the float64 Go itself would produce, with no lossy string hop.
-func (env *constEnv) eval(dir string, file *ast.File, expr ast.Expr) (constant.Value, error) {
+func (env *Env) Eval(dir string, file *ast.File, expr ast.Expr) (constant.Value, error) {
 	switch e := expr.(type) {
 	case *ast.BasicLit:
 		v := constant.MakeFromLiteral(e.Value, e.Kind, 0)
@@ -168,21 +168,21 @@ func (env *constEnv) eval(dir string, file *ast.File, expr ast.Expr) (constant.V
 		return v, nil
 
 	case *ast.ParenExpr:
-		return env.eval(dir, file, e.X)
+		return env.Eval(dir, file, e.X)
 
 	case *ast.UnaryExpr:
-		x, err := env.eval(dir, file, e.X)
+		x, err := env.Eval(dir, file, e.X)
 		if err != nil {
 			return nil, err
 		}
 		return constant.UnaryOp(e.Op, x, 0), nil
 
 	case *ast.BinaryExpr:
-		x, err := env.eval(dir, file, e.X)
+		x, err := env.Eval(dir, file, e.X)
 		if err != nil {
 			return nil, err
 		}
-		y, err := env.eval(dir, file, e.Y)
+		y, err := env.Eval(dir, file, e.Y)
 		if err != nil {
 			return nil, err
 		}
@@ -197,7 +197,7 @@ func (env *constEnv) eval(dir string, file *ast.File, expr ast.Expr) (constant.V
 		if !ok {
 			return nil, fmt.Errorf("identifier %q is not a const in %s", e.Name, dir)
 		}
-		return env.eval(dir, decl.file, decl.expr)
+		return env.Eval(dir, decl.file, decl.expr)
 
 	case *ast.SelectorExpr:
 		pkgIdent, ok := e.X.(*ast.Ident)
@@ -216,7 +216,7 @@ func (env *constEnv) eval(dir string, file *ast.File, expr ast.Expr) (constant.V
 		if !ok {
 			return nil, fmt.Errorf("identifier %q is not a const in %s", e.Sel.Name, otherDir)
 		}
-		return env.eval(otherDir, decl.file, decl.expr)
+		return env.Eval(otherDir, decl.file, decl.expr)
 
 	default:
 		return nil, fmt.Errorf("unsupported const expression %T (%s)", expr, exprString(expr))

@@ -1,24 +1,34 @@
-package main
+package kindscan
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 )
 
-// collectKinds walks nodesDir and returns one kindEntry per node package that
+// fatalf prints a gen-node-defs error and exits — mirrors main.go's fatalf.
+// Kept as its own small copy rather than a cross-package call: collectKinds
+// is meant to fail loudly on a half-landed kind, and that behavior belongs to
+// this package, not to a callback threaded in from main.
+func fatalf(format string, args ...any) {
+	fmt.Fprintf(os.Stderr, "gen-node-defs: "+format+"\n", args...)
+	os.Exit(1)
+}
+
+// CollectKinds walks nodesDir and returns one KindEntry per node package that
 // registers a Go runtime (hasRegister), with ports/dataFields/view resolved
 // from its AST and SPEC.md. Order is directory-read order; the caller sorts
 // and assigns stable KindIds afterward.
-func collectKinds(nodesDir string) []kindEntry {
+func CollectKinds(nodesDir string) []KindEntry {
 	entries, err := os.ReadDir(nodesDir)
 	if err != nil {
 		fatalf("readdir nodes: %v", err)
 	}
 
-	var kinds []kindEntry
+	var kinds []KindEntry
 	seenGoKind := map[string]string{} // goKind → dir name that registered it
 	for _, e := range entries {
 		if !e.IsDir() {
@@ -67,7 +77,7 @@ func collectKinds(nodesDir string) []kindEntry {
 			// than silently dropping the kind from all generated files.
 			fatalf("kind %q registers a Go runtime but its SPEC.md View section is missing/broken: %v", e.Name(), err)
 		}
-		if view.kind == "" {
+		if view.Kind == "" {
 			fatalf("kind %q registers a Go runtime but its SPEC.md ## View has an empty view.kind", e.Name())
 		}
 		// Finding C: every Ports-table "Name" must resolve to a real AST-derived port
@@ -75,7 +85,7 @@ func collectKinds(nodesDir string) []kindEntry {
 		// silently; now it's a loud generator error.
 		astPortIDs := map[string]bool{}
 		for _, p := range ports {
-			astPortIDs[p.id] = true
+			astPortIDs[p.ID] = true
 		}
 		for name := range specPortNames {
 			if !astPortIDs[name] {
@@ -84,18 +94,18 @@ func collectKinds(nodesDir string) []kindEntry {
 		}
 		// Apply accent, edgeKind overrides, and optional flags from SPEC.md Ports table.
 		for i, p := range ports {
-			if a, ok := accentOverrides[p.id]; ok && a != "" {
-				ports[i].accent = a
+			if a, ok := accentOverrides[p.ID]; ok && a != "" {
+				ports[i].Accent = a
 			}
-			if ek, ok := edgeKindOverrides[p.id]; ok && ek != "" {
-				ports[i].edgeKind = ek
+			if ek, ok := edgeKindOverrides[p.ID]; ok && ek != "" {
+				ports[i].EdgeKind = ek
 			}
-			if optionalPorts[p.id] {
-				ports[i].optional = true
+			if optionalPorts[p.ID] {
+				ports[i].Optional = true
 			}
 		}
 		defaultData := parseDefaultData(pkgDir)
-		kinds = append(kinds, kindEntry{kind: view.kind, goKind: goKind, dir: e.Name(), view: view, ports: ports, dataFields: dataFields, defaultData: defaultData})
+		kinds = append(kinds, KindEntry{Kind: view.Kind, GoKind: goKind, Dir: e.Name(), View: view, Ports: ports, DataFields: dataFields, DefaultData: defaultData})
 	}
 	return kinds
 }

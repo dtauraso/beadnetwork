@@ -14,6 +14,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/dtauraso/wirefold/tools/gen-node-defs/constexpr"
 )
 
 // curveParam is one exported constant from curve_params.go with a "CurveParam"
@@ -137,7 +139,7 @@ type shadingParam struct {
 // rather than a hand-computed literal that is a second copy of the same fact.
 // A plain *ast.BasicLit is still handled with the old direct text extraction
 // (byte-identical output for every param that stays a literal); anything else
-// is evaluated via constEnv, which resolves identifiers — including ones
+// is evaluated via constexpr.Env, which resolves identifiers — including ones
 // qualified into another package — against real Go constant arithmetic
 // (go/constant), so the emitted value is exactly what the Go compiler would
 // compute, not a re-derivation that could itself drift from the formula.
@@ -148,7 +150,7 @@ func parseShadingParams(repoRoot, goPath string) ([]shadingParam, error) {
 		return nil, err
 	}
 	dir := filepath.Dir(goPath)
-	var env *constEnv // built lazily: only a non-literal value expression needs it (and its go.mod read)
+	var env *constexpr.Env // built lazily: only a non-literal value expression needs it (and its go.mod read)
 	var params []shadingParam
 	for _, decl := range f.Decls {
 		genDecl, ok := decl.(*ast.GenDecl)
@@ -178,12 +180,12 @@ func parseShadingParams(repoRoot, goPath string) ([]shadingParam, error) {
 					continue
 				}
 				if env == nil {
-					env, err = newConstEnv(fset, repoRoot)
+					env, err = constexpr.NewEnv(fset, repoRoot)
 					if err != nil {
 						return nil, err
 					}
 				}
-				val, err := env.eval(dir, f, vs.Values[i])
+				val, err := env.Eval(dir, f, vs.Values[i])
 				if err != nil {
 					return nil, fmt.Errorf("evaluate %s: %w", name.Name, err)
 				}

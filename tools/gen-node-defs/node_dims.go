@@ -9,13 +9,15 @@ import (
 	"go/format"
 	"os"
 	"sort"
+
+	"github.com/dtauraso/wirefold/tools/gen-node-defs/kindscan"
 )
 
 // writeNodeDims emits nodes/Wiring/node_dims_gen.go: a kind → render width/height
 // map sourced from each kind's SPEC.md ## View width/height fields. The Go
 // Go uses these to mirror nodeRadius/nodeWorldPos in geometry-helpers.ts
 // when computing port-to-port arc length. Single source of truth = SPEC.md.
-func writeNodeDims(outPath string, kinds []kindEntry) error {
+func writeNodeDims(outPath string, kinds []kindscan.KindEntry) error {
 	var buf bytes.Buffer
 	w := bufio.NewWriter(&buf)
 
@@ -32,15 +34,15 @@ func writeNodeDims(outPath string, kinds []kindEntry) error {
 	fmt.Fprintln(w, `// kindDims maps each runtime kind to its render dimensions.`)
 	fmt.Fprintln(w, `var kindDims = map[string]kindDim{`)
 	for _, e := range kinds {
-		width := e.view.width
-		height := e.view.height
+		width := e.View.Width
+		height := e.View.Height
 		if width == "" {
 			width = "110"
 		}
 		if height == "" {
 			height = "60"
 		}
-		fmt.Fprintf(w, "\t%q: {Width: %s, Height: %s},\n", e.goKind, width, height)
+		fmt.Fprintf(w, "\t%q: {Width: %s, Height: %s},\n", e.GoKind, width, height)
 	}
 	fmt.Fprintln(w, `}`)
 
@@ -57,9 +59,9 @@ func writeNodeDims(outPath string, kinds []kindEntry) error {
 // writeNodeKindID emits Buffer/node_kind_id_gen.go: a kind → uint8 id map so
 // each node's own emit path can populate the KindId column in the buffer node block.
 // The id is the STABLE, assigned-once value from each kind's SPEC.md "kindId" field
-// (see assignKindIDs in main.go) — NOT a sort-derived index, so adding a kind never
+// (see kindscan.AssignKindIDs in main.go) — NOT a sort-derived index, so adding a kind never
 // renumbers an existing one. NODE_DEFS_ARRAY in node-defs.ts is indexed by this same id.
-func writeNodeKindID(outPath string, kinds []kindEntry) error {
+func writeNodeKindID(outPath string, kinds []kindscan.KindEntry) error {
 	var buf bytes.Buffer
 	w := bufio.NewWriter(&buf)
 
@@ -79,10 +81,10 @@ func writeNodeKindID(outPath string, kinds []kindEntry) error {
 	fmt.Fprintln(w, `var kindIDMap = map[string]uint8{`)
 	// Emit in ascending id order for a stable, readable diff independent of the
 	// alphabetical goKind emission order used elsewhere.
-	byID := append([]kindEntry(nil), kinds...)
-	sort.Slice(byID, func(i, j int) bool { return byID[i].kindID < byID[j].kindID })
+	byID := append([]kindscan.KindEntry(nil), kinds...)
+	sort.Slice(byID, func(i, j int) bool { return byID[i].KindID < byID[j].KindID })
 	for _, e := range byID {
-		fmt.Fprintf(w, "\t%q: %d,\n", e.goKind, e.kindID)
+		fmt.Fprintf(w, "\t%q: %d,\n", e.GoKind, e.KindID)
 	}
 	fmt.Fprintln(w, `}`)
 	fmt.Fprintln(w)

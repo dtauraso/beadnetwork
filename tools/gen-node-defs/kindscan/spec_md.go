@@ -1,6 +1,6 @@
 // SPEC.md parsing: the View table, the Ports table (accent/edgeKind/optional
 // overrides and the fallback port list), and the Default data fenced block.
-package main
+package kindscan
 
 import (
 	"fmt"
@@ -34,11 +34,11 @@ func firstParagraph(sec []string) string {
 	return strings.Join(out, " ")
 }
 
-func parseSpecMD(pkgDir string) (viewDef, map[string]string, map[string]string, map[string]bool, map[string]bool, error) {
+func parseSpecMD(pkgDir string) (ViewDef, map[string]string, map[string]string, map[string]bool, map[string]bool, error) {
 	specPortNames := map[string]bool{}
 	data, readErr := os.ReadFile(filepath.Join(pkgDir, "SPEC.md"))
 	if readErr != nil {
-		return viewDef{}, nil, nil, nil, nil, readErr
+		return ViewDef{}, nil, nil, nil, nil, readErr
 	}
 	lines := strings.Split(string(data), "\n")
 
@@ -117,13 +117,13 @@ func parseSpecMD(pkgDir string) (viewDef, map[string]string, map[string]string, 
 	// Parse View section.
 	viewLines := sectionLines("View")
 	if viewLines == nil {
-		return viewDef{}, nil, nil, nil, nil, fmt.Errorf("no View section")
+		return ViewDef{}, nil, nil, nil, nil, fmt.Errorf("no View section")
 	}
 	headers, rows := parseTable(viewLines)
 	fieldIdx := indexOf(headers, "Field")
 	valueIdx := indexOf(headers, "Value")
 	if fieldIdx == -1 || valueIdx == -1 {
-		return viewDef{}, nil, nil, nil, nil, fmt.Errorf("view table missing Field/Value columns")
+		return ViewDef{}, nil, nil, nil, nil, fmt.Errorf("view table missing Field/Value columns")
 	}
 	vmap := map[string]string{}
 	for _, row := range rows {
@@ -131,19 +131,19 @@ func parseSpecMD(pkgDir string) (viewDef, map[string]string, map[string]string, 
 			vmap[row[fieldIdx]] = row[valueIdx]
 		}
 	}
-	view := viewDef{
-		kind:     vmap["kind"],
-		kindID:   vmap["kindId"],
-		bg:       vmap["bg"],
-		border:   vmap["border"],
-		text:     vmap["text"],
-		minWidth: vmap["minWidth"],
-		shape:    vmap["shape"],
-		fill:     vmap["fill"],
-		stroke:   vmap["stroke"],
-		width:    vmap["width"],
-		height:   vmap["height"],
-		desc:     firstParagraph(sectionLines("Description")),
+	view := ViewDef{
+		Kind:     vmap["kind"],
+		KindID:   vmap["kindId"],
+		Bg:       vmap["bg"],
+		Border:   vmap["border"],
+		Text:     vmap["text"],
+		MinWidth: vmap["minWidth"],
+		Shape:    vmap["shape"],
+		Fill:     vmap["fill"],
+		Stroke:   vmap["stroke"],
+		Width:    vmap["width"],
+		Height:   vmap["height"],
+		Desc:     firstParagraph(sectionLines("Description")),
 	}
 
 	// Parse Ports section for accent, edgeKind overrides, and optional flags.
@@ -188,7 +188,7 @@ func parseSpecMD(pkgDir string) (viewDef, map[string]string, map[string]string, 
 // the Ports table (Name + Direction columns). Used as a fallback when AST
 // parsing discovers 0 ports — e.g. when all ports live in an embedded struct
 // from another package that the AST walker cannot follow.
-func parsePortsFromSpec(pkgDir string) []port {
+func parsePortsFromSpec(pkgDir string) []Port {
 	data, err := os.ReadFile(filepath.Join(pkgDir, "SPEC.md"))
 	if err != nil {
 		return nil
@@ -236,7 +236,7 @@ func parsePortsFromSpec(pkgDir string) []port {
 	if nameIdx == -1 || dirIdx == -1 {
 		return nil
 	}
-	var ports []port
+	var ports []Port
 	for _, row := range rows[1:] {
 		parts := strings.Split(row, "|")
 		var cells []string
@@ -268,7 +268,7 @@ func parsePortsFromSpec(pkgDir string) []port {
 		if name == "" || (dir != "in" && dir != "out") {
 			continue
 		}
-		ports = append(ports, port{id: name, direction: dir})
+		ports = append(ports, Port{ID: name, Direction: dir})
 	}
 	return ports
 }
