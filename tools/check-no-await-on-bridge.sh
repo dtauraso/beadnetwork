@@ -14,7 +14,7 @@ set -euo pipefail
 # no direct webview call to writeStdin/postMessage (checked by grepping the tree —
 # see tools/check-no-await-on-bridge.sh history for the miss this replaced):
 #   webview (call site)  -> postGoRecord()   (webview/vscode-api.ts)
-#   webview (call site)  -> sendRawInput()   (webview/three/raw-input.ts, wraps postGoRecord)
+#   webview (call site)  -> sendRawInput()   (webview/three/interaction/raw-input.ts, wraps postGoRecord)
 #   host    -> Go        -> writeStdin()     (the runner; file LOCATED BY SCANNING, below)
 # postGoRecord itself is a thin wrapper over vscode.postMessage; sendRawInput wraps
 # postGoRecord. Grepping for all three names (plus the raw postMessage/writeStdin

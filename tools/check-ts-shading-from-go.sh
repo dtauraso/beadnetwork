@@ -128,7 +128,7 @@ for prop in "${PROPS[@]}"; do
 done
 
 # Positive assertion: the render dir must import the Go-supplied shading params.
-if ! grep -arq --include='*.ts' --include='*.tsx' 'from "../../schema/shading-params"' "$SCAN_DIR"; then
+if ! grep -arq --include='*.ts' --include='*.tsx' 'schema/shading-params"' "$SCAN_DIR"; then
   echo 'ts-shading-from-go: three/ does not import from "../../schema/shading-params" — shading params must come from Go'
   HITS=$((HITS + 1))
 fi

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# PLACEMENT: tools/topology-vscode/src/webview/three/interaction-controls.ts | the nav handler does no Cartesian math; angle/sphere math lives in the polar helpers
+# PLACEMENT: tools/topology-vscode/src/webview/three/interaction/interaction-controls.ts | the nav handler does no Cartesian math; angle/sphere math lives in the polar helpers
 # check-polar-only-nav.sh — guard that the nav handler stays polar-only.
 #
 # The rotation handler in interaction-controls.ts must do NO Cartesian math itself.
@@ -30,7 +30,7 @@ set -euo pipefail
 # below plus stop-checks happening to cd first.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-NAV_DIR="$REPO_ROOT/tools/topology-vscode/src/webview/three"
+NAV_DIR="$REPO_ROOT/tools/topology-vscode/src/webview/three/interaction"
 # Nullglob so a no-match expands to empty (caught by the count check below)
 # rather than leaving the literal pattern in the array.
 shopt -s nullglob

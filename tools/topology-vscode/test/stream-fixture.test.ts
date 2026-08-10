@@ -1,7 +1,7 @@
 // stream-fixture.test.ts — CROSS-LANGUAGE byte-level verification that the REAL Go
 // stream-frame packers (Buffer.BuildNodeStreamFrame / BuildEdgeStreamFrame /
 // BuildInteriorStreamFrame) and the REAL TS stream-frame decoders (decodeNodeStreamFrame /
-// decodeEdgeStreamFrame / decodeInteriorStreamFrame in ../src/webview/three's
+// decodeEdgeStreamFrame / decodeInteriorStreamFrame in ../src/webview/three/decode's
 // buffer-decode-node.ts / buffer-decode-edge.ts / buffer-decode-interior.ts)
 // agree on the wire bytes — the Go->TS direction mirror of
 // nodes/Wiring/input_fixture_test.go (TS->Go).
@@ -33,9 +33,9 @@ import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
 import { execFileSync } from "child_process";
-import { decodeNodeStreamFrame } from "../src/webview/three/buffer-decode-node";
-import { decodeEdgeStreamFrame } from "../src/webview/three/buffer-decode-edge";
-import { decodeInteriorStreamFrame } from "../src/webview/three/buffer-decode-interior";
+import { decodeNodeStreamFrame } from "../src/webview/three/decode/buffer-decode-node";
+import { decodeEdgeStreamFrame } from "../src/webview/three/decode/buffer-decode-edge";
+import { decodeInteriorStreamFrame } from "../src/webview/three/decode/buffer-decode-interior";
 import {
   readNodeNodeId,
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius, readNodeSphereR,

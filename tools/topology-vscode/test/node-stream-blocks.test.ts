@@ -8,8 +8,8 @@
 // (edge-tube-port-resolution.test.ts).
 
 import { describe, it, expect, vi } from "vitest";
-import { decodeNodeStreamFrame } from "../src/webview/three/buffer-decode-node";
-import { decodeInteriorStreamFrame } from "../src/webview/three/buffer-decode-interior";
+import { decodeNodeStreamFrame } from "../src/webview/three/decode/buffer-decode-node";
+import { decodeInteriorStreamFrame } from "../src/webview/three/decode/buffer-decode-interior";
 import {
   BUF_NODE_STREAM_FRAME_HEADER_SIZE, BUF_INTERIOR_STREAM_FRAME_HEADER_SIZE,
 } from "../src/schema/frame-tags";
@@ -28,7 +28,7 @@ import {
 async function freshNodeStreamModules() {
   vi.resetModules();
   const snapshotBuffer = await import("../src/webview/snapshot-buffer");
-  const nodeStreamBlocks = await import("../src/webview/three/node-stream-blocks");
+  const nodeStreamBlocks = await import("../src/webview/three/scene/node-stream-blocks");
   return { snapshotBuffer, nodeStreamBlocks };
 }
 

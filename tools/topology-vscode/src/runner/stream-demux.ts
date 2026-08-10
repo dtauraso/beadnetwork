@@ -1,9 +1,9 @@
 import * as fs from "fs";
 import type { HostToWebviewMsg } from "../messages";
 import { decodeBufferLog, decodeStreamFrameEvents } from "../buffer-log";
-import { decodeNodeStreamFrame } from "../webview/three/buffer-decode-node";
-import { decodeEdgeStreamFrame } from "../webview/three/buffer-decode-edge";
-import { decodeInteriorStreamFrame } from "../webview/three/buffer-decode-interior";
+import { decodeNodeStreamFrame } from "../webview/three/decode/buffer-decode-node";
+import { decodeEdgeStreamFrame } from "../webview/three/decode/buffer-decode-edge";
+import { decodeInteriorStreamFrame } from "../webview/three/decode/buffer-decode-interior";
 import { BUF_BLOCK_TAG_VIEW, BUF_BLOCK_TAG_EDGE_STREAM, BUF_BLOCK_TAG_NODE_STREAM, BUF_BLOCK_TAG_INTERIOR_STREAM } from "../schema/frame-tags";
 import { nodeIdForRow } from "./stream-fds";
 import { splitJsonlLines, splitFrames } from "./framing";

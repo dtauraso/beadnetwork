@@ -9,12 +9,12 @@
 //     NOT a TS-derived centroid over node centers
 
 import { describe, it, expect } from "vitest";
-import { decodeViewFrame, SCENE_TABS_HEADER_SIZE } from "../src/webview/three/buffer-decode-view";
-import { INTERIOR_SLOTS_PER_NODE } from "../src/webview/three/buffer-decode-interior";
-import { type DecodedNodeFrame } from "../src/webview/three/buffer-decode-node";
+import { decodeViewFrame, SCENE_TABS_HEADER_SIZE } from "../src/webview/three/decode/buffer-decode-view";
+import { INTERIOR_SLOTS_PER_NODE } from "../src/webview/three/decode/buffer-decode-interior";
+import { type DecodedNodeFrame } from "../src/webview/three/decode/buffer-decode-node";
 import {
   decodeNavNodes, sceneSphereFromSnapshot,
-} from "../src/webview/three/buffer-nav";
+} from "../src/webview/three/nav/buffer-nav";
 import {
   NODE_STRIDE, INTERIOR_STRIDE, PORT_STRIDE, CAMERA_STRIDE, OVERLAY_STRIDE, SCENE_STRIDE,
   NODE_COL_CX, NODE_COL_CY, NODE_COL_CZ, NODE_COL_RADIUS,

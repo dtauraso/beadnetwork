@@ -249,7 +249,7 @@ resolving instantaneously.
   It no longer computes or streams an absolute bead position: nothing draws a moving bead.
   The source node quantises its own `t` onto its own chain and streams which bead is LIT
   (`readChainBeadLit` from `tools/topology-vscode/src/schema/buffer-layout.ts`, consumed by
-  `tools/topology-vscode/src/webview/three/ChainBeadInstances.tsx`). The editor does not
+  `tools/topology-vscode/src/webview/three/scene/ChainBeadInstances.tsx`). The editor does not
   interpolate, does not own positions, and does not decide which bead is lit.
 - Durations are tick counts: bead traversal (`ticksToCross`) and node processing windows.
 ## Driver
@@ -335,18 +335,18 @@ when a bead has arrived. Go owns the clock.
   per-owner stream's own trailing EVENTS section (`buffer-log.ts`), not a
   stdout parse. Stdout carries only the DEBUG BREADCRUMB channel's sparse
   `{"kind":"breadcrumb",...}` control-event lines.
-- **`BufferScene`** (`tools/topology-vscode/src/webview/three/buffer-scene.tsx`)
+- **`BufferScene`** (`tools/topology-vscode/src/webview/three/scene/buffer-scene.tsx`)
   is the composition root of the render tree — it decodes the buffer and
   assembles the per-concern components that draw ALL geometry from it. It is a
-  small file; the drawing lives in its siblings under `three/`. Grep the symbol,
-  not this filename. The tree covers: node bodies (`tools/topology-vscode/src/webview/three/NodeInstances.tsx` — sphere
+  small file; the drawing lives in its siblings under `three/scene/`. Grep the symbol,
+  not this filename. The tree covers: node bodies (`tools/topology-vscode/src/webview/three/scene/NodeInstances.tsx` — sphere
   mesh + ring, keyed off `node.data.fill`/`node.data.stroke` from `NODE_DEFS`; no port
   geometry — a port is a load-time channel-binding ROLE, never drawn, `docs/channels-not-ports.md`),
   transit and interior
-  beads (`tools/topology-vscode/src/webview/three/ChainBeadInstances.tsx`, `tools/topology-vscode/src/webview/three/InteriorBeadInstances.tsx` — there is no
+  beads (`tools/topology-vscode/src/webview/three/scene/ChainBeadInstances.tsx`, `tools/topology-vscode/src/webview/three/scene/InteriorBeadInstances.tsx` — there is no
   per-edge drawn tube any more; the source node's own chain of placeholder beads is the
   edge's visual, `docs/beads-are-the-edge.md`), selection highlight
-  (`tools/topology-vscode/src/webview/three/SelectionHighlight.tsx`), and the camera (`tools/topology-vscode/src/webview/three/BufferCamera.tsx` maps the buffer
+  (`tools/topology-vscode/src/webview/three/scene/SelectionHighlight.tsx`), and the camera (`tools/topology-vscode/src/webview/three/scene/BufferCamera.tsx` maps the buffer
   Camera row onto the three.js camera). Nothing in this tree owns traversal
   timing, positions, or geometry.
 - **Bridge surface — binary BOTH ways.** **Go → TS:** the binary content
@@ -499,7 +499,7 @@ and none is a source of truth.
   stored copy. It is NEVER stored as an independent absolute position — it is computed at
   ONE site by summation: the node's world center (already `sceneCenter +
   polar2cart(scenePolar)`) plus this node-local vector, at the render/decode boundary
-  (`tools/topology-vscode/src/webview/three/node-stream-blocks.ts`'s `getChainBeads`,
+  (`tools/topology-vscode/src/webview/three/scene/node-stream-blocks.ts`'s `getChainBeads`,
   `cx + readChainBeadOX(...)` and its Y/Z siblings) — the buffer streams the node's world
   center and each bead's NODE-LOCAL offset as two separate columns on purpose (constant-time
   node moves: moving a node costs one center write, not degree × N bead positions), and

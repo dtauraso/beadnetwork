@@ -17,7 +17,7 @@
 //     runCommand.ts), the first stream migrated off fd 3 per the no-single-writer-bridge
 //     rule. Null until the first frame has landed.
 
-import { decodeViewFrame } from "./three/buffer-decode-view";
+import { decodeViewFrame } from "./three/decode/buffer-decode-view";
 
 let latestViewFrame: ArrayBuffer | null = null;
 

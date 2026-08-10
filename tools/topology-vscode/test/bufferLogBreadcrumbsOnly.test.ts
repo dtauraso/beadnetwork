@@ -18,7 +18,7 @@
 
 import { describe, it, expect } from "vitest";
 import { decodeStreamFrameEvents } from "../src/buffer-log";
-import { decodeTrailingEvents } from "../src/webview/three/buffer-decode-shared";
+import { decodeTrailingEvents } from "../src/webview/three/decode/buffer-decode-shared";
 import {
   EVENT_STRIDE,
   EVENT_COL_KIND, EVENT_COL_NODE_ROW, EVENT_COL_PORT_ROW, EVENT_COL_TARGET_ROW,

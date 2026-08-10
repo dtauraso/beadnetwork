@@ -13,10 +13,10 @@
 
 import { TRACE_EVENT_KINDS, BREADCRUMB_LABELS } from "./schema/trace-kinds";
 import { NODE_KIND_NAMES } from "./schema/node-defs";
-import { decodeViewFrame } from "./webview/three/buffer-decode-view";
-import { nodeLabel, type DecodedNodeFrame } from "./webview/three/buffer-decode-node";
-import { edgeLabel, type DecodedEdgeFrame } from "./webview/three/buffer-decode-edge";
-import { INTERIOR_SLOTS_PER_NODE } from "./webview/three/buffer-decode-interior";
+import { decodeViewFrame } from "./webview/three/decode/buffer-decode-view";
+import { nodeLabel, type DecodedNodeFrame } from "./webview/three/decode/buffer-decode-node";
+import { edgeLabel, type DecodedEdgeFrame } from "./webview/three/decode/buffer-decode-edge";
+import { INTERIOR_SLOTS_PER_NODE } from "./webview/three/decode/buffer-decode-interior";
 import {
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius, readNodeSphereR,
   readNodeVRX, readNodeVRY, readNodeVRZ, readNodeFRX, readNodeFRY, readNodeFRZ,
@@ -106,7 +106,7 @@ export type DecodedEventLine =
  */
 /** camera/overlay/scene views resolved from EITHER source — the SCENE frame's embedded
  *  blocks (fallback, no dedicated view fd) OR the dedicated VIEW frame (see
- *  webview/three/view-blocks.ts's ext-host-side mirror). Null fields mean neither
+ *  webview/three/scene/view-blocks.ts's ext-host-side mirror). Null fields mean neither
  *  source has landed for that block yet. */
 interface ViewBlocksOrNull {
   cameraView: DataView | null;

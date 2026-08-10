@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: nodes/Wiring/stdin_dispatch.go,tools/topology-vscode/src/messages.ts,tools/topology-vscode/src/schema/input-layout-gen.ts,tools/topology-vscode/src/webview/three/overlay-flags.ts | edit ops/update-kinds/overlay flags must stay listed identically on both sides of the bridge
+# PLACEMENT: nodes/Wiring/stdin_dispatch.go,tools/topology-vscode/src/messages.ts,tools/topology-vscode/src/schema/input-layout-gen.ts,tools/topology-vscode/src/webview/three/controls/overlay-flags.ts | edit ops/update-kinds/overlay flags must stay listed identically on both sides of the bridge
 #
 # Verifies the editor->Go geometry-CRUD "edit" bridge stays in parity across every
 # axis below the top-level msg.Type (which check-message-kind-parity.sh covers).
@@ -53,7 +53,7 @@ HANDLE_MSG="$REPO_ROOT/tools/topology-vscode/src/schema/input-layout-gen.ts"
 # OverlayFlagVals object literal are the TS-side consumer that must stay in sync with the
 # overlay flag list (axis 3). (The old JSON-trace consumer pump.ts was removed in the
 # content-buffer erase; overlay state now round-trips through the buffer.)
-OVERLAY_FLAGS_TS="$REPO_ROOT/tools/topology-vscode/src/webview/three/overlay-flags.ts"
+OVERLAY_FLAGS_TS="$REPO_ROOT/tools/topology-vscode/src/webview/three/controls/overlay-flags.ts"
 
 for f in "$MESSAGES_TS" "$HANDLE_MSG" "$OVERLAY_FLAGS_TS"; do
   if [[ ! -f "$f" ]]; then

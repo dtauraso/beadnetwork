@@ -16,7 +16,7 @@ import {
 async function freshModules() {
   vi.resetModules();
   const snapshotBuffer = await import("../src/webview/snapshot-buffer");
-  const edgeStreamBlocks = await import("../src/webview/three/edge-stream-blocks");
+  const edgeStreamBlocks = await import("../src/webview/three/scene/edge-stream-blocks");
   return { snapshotBuffer, edgeStreamBlocks };
 }
 
