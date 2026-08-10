@@ -25,35 +25,7 @@ co-locates a file's reader and writer to stop schema drift. That rule governs wr
 ownership, not where a type lives. A schema in its own package that both sides import
 prevents drift better than proximity.
 
-## 2. Two holes opened by the cycle work
-
-- **`var currentBuildMD *MoveDispatch`** (`build_args.go:51`), read by
-  `build_args_lattice.go`, `build_args_tilt_vector.go`, `build_args_selfdrive.go`. A shared
-  mutable global in a codebase whose architecture is ownership plus message passing with zero
-  shared memory. Safe only by the argument that the build phase is single-threaded; nothing
-  enforces that.
-
-  It was justified as unavoidable: `PortBindings` moved to `portwiring`, so it can no longer
-  carry a `*MoveDispatch` without recreating the cycle. True — and it does not follow. The
-  three readers are methods on **`BuildArgs`**, which is in `package Wiring` and never moved.
-  It already carries ten fields (`ctx name data pb tr geom tiltThetaIdx sourceOuts getStream
-  driveSlotClaims`). "`PortBindings` can't hold it" was read as "nothing can hold it".
-
-  **Fix — three files.** `NodeBuilder.Build` (`node_registry.go:20`) takes one more parameter;
-  its ONE caller is `build_nodes.go:95`, whose `b` is a `*buildCtx` that already holds `md`;
-  set the field in `RegisterBuilder`'s wrapper and delete the var. The 14 node-kind packages
-  are untouched — they only ever see `BuildArgs`.
-
-  Prefer passing the three VALUES (`latticePoints` and the tilt/self-drive equivalents) over
-  passing `md`, so `BuildArgs` does not hold the hub either. That is this doc's own rule.
-- **6 re-export aliases** (`type PortSpec = portwiring.PortSpec` etc., `port_bindings.go`).
-  Alias shims are banned here — a `geom_bridge.go` of this shape was built and deleted
-  earlier on this branch. They exist because 14 node-kind packages call `Wiring.PortSpec` /
-  `Wiring.PortIn` as their documented construction API. **Fix:** repoint the 14 packages and
-  update `.claude/rules/node-kinds.md` — or decide the re-export is deliberate and write that
-  in the rule file. Undecided is the only wrong answer.
-
-## 3. Three `ForTest` hatches, unguarded
+## 2. Three `ForTest` hatches, unguarded
 
 `Wiring.NewMoveDispatchForTest`, `Wiring.NewDrivenOutForTest`, `wire.NewOutChanForTest`.
 
@@ -69,7 +41,7 @@ because `stdinreader`'s test moved out of `Wiring`; move it back or give `stdinr
 that does not need the whole graph. A guard is the fallback for a hatch that genuinely
 survives, recorded as a fallback.
 
-## 4. `MoveDispatch` is still 88 methods across 20 files
+## 3. `MoveDispatch` is still 88 methods across 20 files
 
 Its state is already twelve named owners; the facade over them was never decomposed.
 Measured: **68 of 88 touch exactly one owner** and rehome mechanically (43 `ui`, 12 `mr`, 3
@@ -85,7 +57,7 @@ returning under a new name.
 `moverRegistry` is not a target. It owns `nodeMover`/`edgeMover`/`nodeGeometry`, the actors
 MODEL.md pins, and whatever remains of `MoveDispatch` stays with it.
 
-## 5. `buildCtx` is a 26-field shared mutable blackboard
+## 4. `buildCtx` is a 26-field shared mutable blackboard
 
 11 build phases read and write it; no signature says what any phase reads or produces. Same
 defect as `pb.md` and `currentBuildMD` — reaching for state instead of being handed it — and
@@ -97,7 +69,7 @@ are an open set of independent things; the phases are a closed ordered sequence,
 registering them would need priority numbers or a dependency DAG — more machinery for eleven
 known steps.
 
-## 6. ~3½ build phases recompute what the movers already derive
+## 5. ~3½ build phases recompute what the movers already derive
 
 One coordinate system: MODEL.md — *"a centre is a sum of polar vectors from ONE centre… every
 node hangs off the scene centre directly, one hop."* `nodegeom.EdgeStepCount` is called from
@@ -108,7 +80,7 @@ node hangs off the scene centre directly, one hop."* `nodegeom.EdgeStepCount` is
 The structural phases are genuinely one-time (you cannot bind a channel that does not exist).
 The derived-geometry ones need not exist: if a node derives its geometry from its position and
 the scene sphere, as it already does at runtime, construction is the first update and those
-phases delete rather than move. Worth more than item 5, and item 5 does not block it.
+phases delete rather than move. Worth more than item 4, and item 4 does not block it.
 
 ---
 
