@@ -52,7 +52,7 @@ func (b *buildCtx) allocateWires() {
 		// wire.DwellTicksPerBead is the ONE canonical dwell-per-step constant
 		// (docs/bead-model/bead-lattice.md "Timing" — uniform pulse speed is now structural,
 		// not a length divided by a speed); guarded as the sole non-test
-		// NewPacedWire call site by tools/network/check-uniform-pulse-speed.sh.
+		// NewPacedWire call site by tools/network/beads/check-uniform-pulse-speed.sh.
 		pw := wire.NewPacedWire(steps, wire.DwellTicksPerBead)
 		pw.Target = e.Target
 		pw.TargetHandle = e.TargetHandle

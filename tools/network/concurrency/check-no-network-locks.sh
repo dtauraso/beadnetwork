@@ -3,7 +3,7 @@
 # PLACEMENT: nodes/**/*.go | no sync.Mutex/RWMutex and no sync/atomic in the network: use ownership + message passing
 # check-no-network-locks.sh — forbid shared-synchronization primitives (sync.Mutex/RWMutex
 # AND sync/atomic) in the concurrent node network. Run from repo root:
-# bash tools/network/check-no-network-locks.sh
+# bash tools/network/concurrency/check-no-network-locks.sh
 #
 # WHY THIS EXISTS (audit shared-state cluster): the network's model is ownership +
 # message-passing with ZERO shared memory — each piece of mutable state is owned by exactly
@@ -27,7 +27,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 cd "$REPO_ROOT"
 
 report="$(python3 - <<'PY'

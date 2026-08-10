@@ -18,7 +18,7 @@ set -euo pipefail
 # Exit 0 clean, exit 1 with a report.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 
 shopt -s nullglob
 node_files=("$REPO_ROOT"/nodes/*/node.go)

@@ -67,7 +67,7 @@ const BeadStepR = 2 * BeadTorusOuterR
 // edge: ticksToCross for an N-step edge is simply N * DwellTicksPerBead, with
 // no per-edge arc to divide by speed (docs/bead-model/bead-lattice.md "Timing"). This is
 // the value the ONE production PacedWire construction site (loader.go, guarded
-// by tools/network/check-uniform-pulse-speed.sh) is expected to pass as dwellTicks.
+// by tools/network/beads/check-uniform-pulse-speed.sh) is expected to pass as dwellTicks.
 const DwellTicksPerBead = BeadStepR / PulseSpeedWuPerTick * PulseSubStepsPerBead
 
 // PulseSubStepsPerBead is how many ticks the pulse takes to cross ONE bead step, as a

@@ -195,7 +195,10 @@ fi
 # Guards live one level deep, grouped by WHAT THEY GUARD (tools/network,
 # tools/bridge, tools/buffer-schema, tools/webview, tools/docs, tools/repo-hygiene,
 # tools/lang) rather than all 60+ dumped flat in tools/ — so the glob below is
-# two levels (tools/*/check-*.sh), not tools/check-*.sh.
+# two levels (tools/*/check-*.sh), not tools/check-*.sh. A guard GROUP may itself be
+# split into subdirectories by invariant (e.g. tools/network/beads/check-*.sh) — the
+# glob below also matches three levels deep (tools/*/*/check-*.sh) so a group split
+# like that stays discovered instead of silently dropping out of the suite.
 #
 # EXCLUDED, deliberately:
 #   check-staticcheck / check-eslint / check-vitest — expensive; invoked above under their
@@ -205,7 +208,7 @@ fi
 GUARD_EXCLUDE="check-staticcheck|check-eslint|check-vitest|check-no-foreground-sim|check-stray-screenshots|check-no-shell-source-edits"
 
 shopt -s nullglob
-guards=(tools/*/check-*.sh)
+guards=(tools/*/check-*.sh tools/*/*/check-*.sh)
 shopt -u nullglob
 
 if [ ${#guards[@]} -eq 0 ]; then

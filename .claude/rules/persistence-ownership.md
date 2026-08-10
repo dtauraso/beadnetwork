@@ -65,8 +65,8 @@ recording the edge under the target — that reintroduces the duplication the la
 writes through the source node's mover would make one goroutine write another's state on
 request — the coordination this model exists to avoid.
 
-Guards: `tools/network/check-persist-write-ownership.sh` (who may write which path pattern),
-`tools/network/check-scene-path-resolution.sh` (who may construct a `nodes/` path).
+Guards: `tools/network/persist/check-persist-write-ownership.sh` (who may write which path pattern),
+`tools/network/persist/check-scene-path-resolution.sh` (who may construct a `nodes/` path).
 
 ## A topology is a directory tree, always
 

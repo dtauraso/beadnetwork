@@ -19,7 +19,7 @@ set -euo pipefail
 # PLACEMENT: nodes/Wiring/chain_beads.go | no math.Sqrt/.Length()/.Normalize(); bead placement stays index arithmetic (QuantIR*StepR)
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 FILE="$REPO_ROOT/nodes/Wiring/chain_beads.go"
 
 if [ ! -f "$FILE" ]; then

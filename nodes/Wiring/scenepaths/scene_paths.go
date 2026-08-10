@@ -18,7 +18,7 @@
 // nodes/<source>/edges/<label>.json). See MODEL.md / docs/planning/decentralized-
 // persistence.md "The model": the owner writes the file AND owns the path.
 //
-// Guard: tools/network/check-scene-path-resolution.sh enforces the split by path pattern — see the
+// Guard: tools/network/persist/check-scene-path-resolution.sh enforces the split by path pattern — see the
 // guard's own header for the current rule.
 package scenepaths
 

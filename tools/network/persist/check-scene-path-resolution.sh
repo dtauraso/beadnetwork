@@ -38,7 +38,7 @@ set -euo pipefail
 # PLACEMENT: nodes/Wiring/*.go | view/*.json path resolution lives only in scene_paths.go; nodes/ path Join lives only in node_mover.go/edge_mover.go/loader_tree.go
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 WIRING_DIR="$REPO_ROOT/nodes/Wiring"
 RESOLVER="$WIRING_DIR/scenepaths/scene_paths.go"
 

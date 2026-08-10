@@ -3,7 +3,7 @@
 # (nodes/wire/beadchain/bead_actor.go, nodes/wire/beadchain/bead_wake_group.go) has NO production call site.
 #
 # PLACEMENT: nodes/wire/beadchain/bead_actor.go,nodes/wire/beadchain/bead_wake_group.go | must have a production call site outside nodes/wire and _test.go
-# Run from repo root: bash tools/network/check-bead-actor-has-call-site.sh
+# Run from repo root: bash tools/network/beads/check-bead-actor-has-call-site.sh
 #
 # WHY THIS EXISTS: the primitive was built and tested in isolation (bead_actor_test.go)
 # for one whole commit with nothing in the running editor constructing a Bead or a
@@ -19,7 +19,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 cd "$REPO_ROOT"
 
 # Symbols that only exist to be called from a real production wake/geometry/mode path —

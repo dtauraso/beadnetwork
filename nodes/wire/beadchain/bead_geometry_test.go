@@ -183,7 +183,7 @@ func TestDisjointWriters(t *testing.T) {
 }
 
 // --- No sleeping (behavioural half; the source-guard half is
-// tools/network/check-no-wall-clock-wait.sh, which already scans nodes/wire) ------------------
+// tools/network/concurrency/check-no-wall-clock-wait.sh, which already scans nodes/wire) ------------------
 
 // TestGeometryServicedWithoutWaitingForATick: a bead waiting for its next tick still
 // services a geometry update immediately — nothing here blocks on a timer.

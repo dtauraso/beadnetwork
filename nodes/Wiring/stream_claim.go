@@ -22,7 +22,7 @@
 // threaded bookkeeping during LoadTopology's wiring phase, before any mover/gesture
 // goroutine exists, mirroring BuildArgs.driveSlotClaims' existing precedent (no lock
 // needed: this all runs on ONE goroutine before any other goroutine is launched, and no
-// lock/atomic belongs in this network regardless — tools/network/check-no-network-locks.sh). A
+// lock/atomic belongs in this network regardless — tools/network/concurrency/check-no-network-locks.sh). A
 // second claim for the same (kind, key) is a WIRING-TIME failure reported to stderr (never
 // a panic — main.go's existing stream-fd-mismatch posture: loud, not a crash-loop), and the
 // second claimant receives a DEAD claimedStream (zero value: Write is then a safe no-op),

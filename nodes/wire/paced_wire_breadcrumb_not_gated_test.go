@@ -3,7 +3,7 @@
 // WIREFOLD_EDGE_BEAD_TRACE unset). Breadcrumbs are CLAUDE.md's designated
 // Go-layer debugging channel and must never go silent depending on an
 // unrelated trace-volume knob — see memory/feedback_make_bug_class_unrepresentable.md
-// and tools/network/check-breadcrumb-not-gated.sh, which enforces the same invariant
+// and tools/network/trace/check-breadcrumb-not-gated.sh, which enforces the same invariant
 // statically. This test observes ONLY what this one PacedWire goroutine (the
 // test goroutine itself, calling Send synchronously) recorded and drained —
 // no second goroutine, no channel delivery between goroutines, no timing (see

@@ -21,7 +21,7 @@ Two corollaries, and the second is the sharper one:
    not ordering, not absence-of-deadlock, not absence-of-race. In this model that
    correctness is guaranteed BY CONSTRUCTION: each mover owns its own state, writes only
    its own fields, and communicates over dedicated per-pair channels with no locks and no
-   atomics — enforced by `tools/network/check-no-network-locks.sh` with an empty allowlist, and by
+   atomics — enforced by `tools/network/concurrency/check-no-network-locks.sh` with an empty allowlist, and by
    the write-once/mutable type split documented on `nodeMover.geom`. A test asserting two
    movers interact correctly asserts what the structure already guarantees; what it
    actually exercises is Go's runtime.

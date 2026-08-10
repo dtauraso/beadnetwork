@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # check-no-wall-clock-wait.sh — forbid time.Sleep/time.After/time.NewTicker anywhere in
 # the node network EXCEPT the single clock goroutine's own implementation. Run from repo
-# root: bash tools/network/check-no-wall-clock-wait.sh
+# root: bash tools/network/concurrency/check-no-wall-clock-wait.sh
 #
 # WHY THIS EXISTS (PLAN.md "No sleeping" / two-clock-beads Phase A): a goroutine parked in
 # time.After (or time.Sleep, or blocked on a time.Ticker) cannot service any of its other
@@ -28,7 +28,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 cd "$REPO_ROOT"
 
 report="$(python3 "$SCRIPT_DIR/check-no-wall-clock-wait.py")"

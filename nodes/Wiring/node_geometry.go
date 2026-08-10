@@ -40,7 +40,7 @@ import (
 // NAMED sub-object declared in node_geometry_parts.go and accessed explicitly
 // (m.ui.selected), never embedded — embedding would keep the old flat 46-field namespace
 // and hide which owner a field belongs to. New state belongs on (or as) one of those
-// owners, not as another loose field here. Guard: tools/network/check-composer-fields.sh.
+// owners, not as another loose field here. Guard: tools/network/structure/check-composer-fields.sh.
 type nodeGeometry struct {
 	id   string
 	geom nodeGeom

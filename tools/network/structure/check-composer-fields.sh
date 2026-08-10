@@ -2,7 +2,7 @@
 #
 # PLACEMENT: nodes/Wiring/move_dispatch.go,nodes/Wiring/node_geometry.go | a composer struct (MoveDispatch, nodeGeometry) stays THIN: new state belongs in a named sub-struct, not a new loose field
 # check-composer-fields.sh — keep this package's COMPOSER structs thin, not regrown
-# god-objects. Run from repo root: bash tools/network/check-composer-fields.sh
+# god-objects. Run from repo root: bash tools/network/structure/check-composer-fields.sh
 #
 # WHY THIS EXISTS (audit god-module decouple): MoveDispatch was a 27-field god-object
 # owning ~7 responsibilities (row tables, seeds, stream wiring, UI state, mover registry,
@@ -29,7 +29,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 cd "$REPO_ROOT"
 
 # One row per capped composer:

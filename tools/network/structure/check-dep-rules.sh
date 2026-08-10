@@ -2,7 +2,7 @@
 #
 # PLACEMENT: nodes/*/node.go,nodes/*/*.go | a node-kind package may import only the shared spine (Wiring/gatecommon/wire), never a sibling kind
 # check-dep-rules.sh — fail if a node-kind package imports a SIBLING node-kind package.
-# Run from repo root: bash tools/network/check-dep-rules.sh
+# Run from repo root: bash tools/network/structure/check-dep-rules.sh
 #
 # WHY THIS EXISTS (audit-integrate-into-repo-systems): the blast-radius audit found that
 # node packages are singly-owned and DO NOT import each other today — every kind depends
@@ -27,7 +27,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 cd "$REPO_ROOT"
 
 NODES_DIR="$REPO_ROOT/nodes"

@@ -85,7 +85,7 @@ func edgeSegment(src, tgt nodeGeom) wireSegment {
 //
 // This one Length()/Normalize() pair is deliberately NOT in chain_beads.go: that file is
 // guarded against math.Sqrt/Vec3.Length/Normalize
-// (tools/network/check-no-sqrt-in-chain-beads.sh, "index arithmetic, trig only at the
+// (tools/network/beads/check-no-sqrt-in-chain-beads.sh, "index arithmetic, trig only at the
 // polar2cart boundary" — memory/feedback_abc_times_constant_not_rederive.md).
 // chainBeads calls this helper and receives only the resulting scalar distance and unit
 // vector; the sqrt itself lives here, in the file that already computes edgeSegment the

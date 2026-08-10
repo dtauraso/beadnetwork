@@ -52,7 +52,7 @@ func (c *RealClock) SleepCycle(ctx context.Context) error {
 // SleepUntilTick blocks until this clock's own Tick() reaches target — see the interface
 // doc. Implemented as whole SleepCycle waits rather than as one long wall wait, so it stays
 // inside the ONE clock: no time.After, no deadline computed in milliseconds
-// (tools/network/check-no-wall-clock-wait.sh forbids both outside clock.go), and a playback-speed
+// (tools/network/concurrency/check-no-wall-clock-wait.sh forbids both outside clock.go), and a playback-speed
 // change during the wait is honoured on the very next cycle because the loop re-reads Tick()
 // each time rather than having pre-computed when to wake.
 func (c *RealClock) SleepUntilTick(ctx context.Context, target int64) error {

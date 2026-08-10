@@ -56,7 +56,7 @@ brief_for() {
   local hits=""
 
   local guard
-  for guard in "$REPO_ROOT"/tools/*/check-*.sh; do
+  for guard in "$REPO_ROOT"/tools/*/check-*.sh "$REPO_ROOT"/tools/*/*/check-*.sh; do
     [ -f "$guard" ] || continue
     local line
     while IFS= read -r line; do

@@ -18,7 +18,7 @@
 #
 # PLACEMENT: *_test.go | a bare `<recv>.Start(ctx)` call must capture and Wait() its returned WaitGroup before cleanup
 set -uo pipefail
-cd "$(dirname "$0")/../.."
+cd "$(dirname "$0")/../../.."
 
 # Bare-statement call: a line whose entire content is `<recv>.Start(ctx)` with no
 # assignment. An assigned call (`wg := md.Start(ctx)`) contains `=` and is not matched.

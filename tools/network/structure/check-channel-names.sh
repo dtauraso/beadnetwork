@@ -7,5 +7,5 @@
 # Without this wrapper the audit script existed but nothing ever invoked it.
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 bash "$REPO_ROOT/scripts/audit-channel-names.sh"

@@ -82,7 +82,7 @@ A test asserts what **one goroutine itself** decided, emitted, or persisted. Do 
 test that two or more goroutines communicate properly — not delivery, not ordering, not
 absence-of-deadlock, not absence-of-race. That correctness is guaranteed BY CONSTRUCTION
 here (per-mover ownership, dedicated per-pair channels, no locks/atomics — guard:
-`tools/network/check-no-network-locks.sh`, empty allowlist), so such a test asserts what the
+`tools/network/concurrency/check-no-network-locks.sh`, empty allowlist), so such a test asserts what the
 structure already gives you and exercises Go's runtime instead of this codebase.
 
 The one exception is **persistence**: bytes on disk through a real reload

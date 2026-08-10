@@ -33,7 +33,7 @@ set -euo pipefail
 # Exit 0 if clean; exit 1 with a report otherwise.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 
 CANONICAL_SPEED="DwellTicksPerBead"
 

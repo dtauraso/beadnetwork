@@ -132,7 +132,7 @@ separate `Write()` calls — worth noting for whoever writes the guard, since "r
 
 **Chosen: each emitting goroutine gets its own fd** — the stated bridge invariant
 (CLAUDE.md: "one dedicated inherited-stdio pipe per emitting goroutine",
-`memory/feedback/feedback_no_single_writer_bridge.md`), not a lock (`tools/network/check-no-network-locks.sh`
+`memory/feedback/feedback_no_single_writer_bridge.md`), not a lock (`tools/network/concurrency/check-no-network-locks.sh`
 has an empty allowlist — a mutex was never on the table) and not channel-routing back
 through the node's own Update goroutine (that would still be a real option under the
 model, but the per-fd shape was chosen as the more direct fix and matches how `interior`

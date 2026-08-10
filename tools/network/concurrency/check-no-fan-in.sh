@@ -15,7 +15,7 @@ set -euo pipefail
 # PLACEMENT: topology/nodes/*/edges/*.json | two committed edges may not target the same target+targetHandle (fan-in)
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 NODES_DIR="$REPO_ROOT/topology/nodes"
 
 if [ ! -d "$NODES_DIR" ]; then

@@ -17,7 +17,7 @@
 // its Send call site, StreamsActive/Trace written once at wiring time before that goroutine
 // launches. No lock and no atomic appears here, and none may be added: ownership replaces
 // locking (MODEL.md, memory/feedback_no_atomics_are_defects.md,
-// tools/network/check-no-network-locks.sh with an EMPTY allowlist).
+// tools/network/concurrency/check-no-network-locks.sh with an EMPTY allowlist).
 package wire
 
 import (
@@ -188,7 +188,7 @@ const maxPendingEvents = wireChanBufferSize
 // rate. Reaching this bound is a code bug, never ordinary traffic, the same
 // "can only break via a code bug" shape as wire.Register's and build.go's
 // panics. The convention is stated in MODEL.md "Assertions" and enforced by
-// tools/network/check-panic-message.sh.
+// tools/network/quality/check-panic-message.sh.
 func (r *wireReadout) appendPending(ev pendingWireEvent, target, targetHandle string) {
 	r.pending = append(r.pending, ev)
 	if len(r.pending) > maxPendingEvents {

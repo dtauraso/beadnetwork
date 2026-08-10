@@ -2,7 +2,7 @@
 #
 # PLACEMENT: nodes/**/*.go,Buffer/*.go,Trace/*.go | a panic must NAME the invariant it broke, not just the symptom
 # check-panic-message.sh — fail if a network panic does not name the invariant it broke.
-# Run from repo root: bash tools/network/check-panic-message.sh
+# Run from repo root: bash tools/network/quality/check-panic-message.sh
 #
 # WHY THIS EXISTS: a panic in nodes/, Buffer/, or Trace/ is an ASSERTION — it fires only via
 # a code bug, never via ordinary traffic (MODEL.md "Assertions"). Its message is therefore
@@ -34,7 +34,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 cd "$REPO_ROOT"
 
 # Shortest message that can plausibly name a site AND what broke. The current corpus's

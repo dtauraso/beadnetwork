@@ -55,7 +55,7 @@ set -euo pipefail
 # PLACEMENT: nodes/Wiring/*.go | writeJSONAtomic/entityReadModifyWrite calls must live in the owning file (node/edge/view mover), never elsewhere
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 WIRING_DIR="$REPO_ROOT/nodes/Wiring"
 PLUMBING="json_persist.go"
 PLUMBING_PATH="$WIRING_DIR/jsonpersist/$PLUMBING"

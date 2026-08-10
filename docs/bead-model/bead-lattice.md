@@ -159,7 +159,7 @@ they read the same `N`.
 
 - `PacedWire` stores `steps int`, not an arc float. Its per-instance dwell stays a TEST
   affordance exactly as the per-instance `pulseSpeed` was: production passes the one
-  constant (guard: `tools/network/check-uniform-pulse-speed.sh`), lean tests pass
+  constant (guard: `tools/network/beads/check-uniform-pulse-speed.sh`), lean tests pass
   `NewPacedWire(latMs, 1.0)` so `ticksToCross == latMs` and their tick expectations are
   unchanged.
 - The buffer's Event block carries `BeadSteps` where it carried `ArcLength`. Fingerprint

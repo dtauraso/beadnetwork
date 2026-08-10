@@ -40,7 +40,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 shopt -s nullglob
-guards=("$REPO_ROOT"/tools/*/check-*.sh)
+guards=("$REPO_ROOT"/tools/*/check-*.sh "$REPO_ROOT"/tools/*/*/check-*.sh)
 shopt -u nullglob
 
 if [ "${#guards[@]}" -eq 0 ]; then
