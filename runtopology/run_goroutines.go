@@ -10,6 +10,7 @@ import (
 	T "github.com/dtauraso/wirefold/Trace"
 	W "github.com/dtauraso/wirefold/nodes/Wiring"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/stdinreader"
 )
 
 // startStdinReader launches the editor→Go bridge dispatch loop and returns the WaitGroup
@@ -34,7 +35,7 @@ func startStdinReader(ctx context.Context, cancel context.CancelFunc, slotReg in
 	stdinWG.Add(1)
 	go func() {
 		defer stdinWG.Done()
-		W.RunStdinReader(ctx, os.Stdin, slotReg, md, tr, speedSinks)
+		stdinreader.RunStdinReader(ctx, os.Stdin, slotReg, md, tr, speedSinks)
 		cancel()
 	}()
 	return stdinWG

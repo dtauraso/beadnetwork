@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: nodes/Wiring/stdin_reader.go,tools/topology-vscode/src/runner/framing.ts | maxFrameBytes and MAX_FRAME_BYTES must be numerically equal
+# PLACEMENT: nodes/Wiring/stdinreader/stdin_reader.go,tools/topology-vscode/src/runner/framing.ts | maxFrameBytes and MAX_FRAME_BYTES must be numerically equal
 #
 # Verifies that the two sides of the SAME framed-binary protocol ([len:u32-LE][payload])
 # agree on the maximum frame length they will accept:
-#   nodes/Wiring/stdin_reader.go        `const maxFrameBytes = ...`   (TS -> Go direction)
+#   nodes/Wiring/stdinreader/stdin_reader.go        `const maxFrameBytes = ...`   (TS -> Go direction)
 #   tools/topology-vscode/src/runner/framing.ts  `export const MAX_FRAME_BYTES = ...`  (Go -> TS direction)
 #
 # This protocol is used in BOTH directions on the same wire shape, and each side's reader
@@ -22,7 +22,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
-GO_FILE="$REPO_ROOT/nodes/Wiring/stdin_reader.go"
+GO_FILE="$REPO_ROOT/nodes/Wiring/stdinreader/stdin_reader.go"
 TS_FILE="$REPO_ROOT/tools/topology-vscode/src/runner/framing.ts"
 
 for f in "$GO_FILE" "$TS_FILE"; do
@@ -57,7 +57,7 @@ assert_nonempty() { # value label
 RAW_GO=$(value_go)
 RAW_TS=$(value_ts)
 
-assert_nonempty "$RAW_GO" "nodes/Wiring/stdin_reader.go maxFrameBytes"
+assert_nonempty "$RAW_GO" "nodes/Wiring/stdinreader/stdin_reader.go maxFrameBytes"
 assert_nonempty "$RAW_TS" "runner/framing.ts MAX_FRAME_BYTES"
 
 # Evaluate as bash arithmetic so "1 << 20" (Go/TS shift syntax happens to match bash's)

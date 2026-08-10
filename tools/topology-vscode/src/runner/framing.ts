@@ -16,7 +16,7 @@ export function splitJsonlLines(buf: string, chunk: string): { lines: string[]; 
 }
 
 // MAX_FRAME_BYTES bounds a single framed-binary record read off ANY dedicated stream fd
-// (view/edge/node/interior). MUST match Go's `maxFrameBytes` in nodes/Wiring/stdin_reader.go
+// (view/edge/node/interior). MUST match Go's `maxFrameBytes` in nodes/Wiring/stdinreader/stdin_reader.go
 // — this is the SAME [len:u32-LE][payload] protocol, just read in the opposite direction
 // (Go emits, TS decodes here), and a corrupt/hostile length must be rejected the same way
 // on both ends or a bound that only fires going one way is not a bound on the protocol at

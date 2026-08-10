@@ -3,7 +3,7 @@
 // The editor→Go bridge is a purely BINARY buffer (symmetric with the Go→TS content
 // buffer on fd 3): each message is a binary RECORD written FRAMED as [len:u32-LE][record]
 // to stdin. input_codec.go decodes a record into the stdinMsg below; the dispatch switch
-// and every handler (applyEdit / HandleRawInput) are UNCHANGED —
+// and every handler (Wiring.ApplyEdit / Wiring.HandleRawInputMsg) are UNCHANGED —
 // only the wire decode moved from newline-JSON to framed binary.
 //
 // ONE JOB HERE: bytes off the pipe, whole records out. The message SHAPES are
@@ -51,7 +51,7 @@
 // One goroutine; cancellable via context. On EOF or context cancel, exits
 // cleanly. Unknown message types and ops are silently ignored (forward-compat).
 
-package Wiring
+package stdinreader
 
 import (
 	"bufio"
@@ -62,6 +62,7 @@ import (
 	"os"
 
 	T "github.com/dtauraso/wirefold/Trace"
+	Wiring "github.com/dtauraso/wirefold/nodes/Wiring"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 )
 
@@ -91,7 +92,7 @@ const maxFrameBytes = 1 << 20
 // over the slice and calls SendSpeedNonBlocking. nil (or an
 // empty slice) is fine: the speed edit then simply reaches nobody, same as
 // today's known-inert slider before this delivery path existed.
-func RunStdinReader(ctx context.Context, r io.Reader, slotReg inputcodec.SlotRegistry, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
+func RunStdinReader(ctx context.Context, r io.Reader, slotReg inputcodec.SlotRegistry, md *Wiring.MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
 	// Every persister now writes synchronously the moment its value changes (see
 	// scene_persist.go's header comment for why the prior debounce/clean-shutdown-flush
 	// machinery was removed), so there is nothing pending to flush on exit here anymore.
@@ -174,11 +175,11 @@ func RunStdinReader(ctx context.Context, r io.Reader, slotReg inputcodec.SlotReg
 			// MSG_TYPES_START
 			switch msg.Type {
 			case "edit":
-				applyEdit(msg, md, tr, speedSinks)
+				Wiring.ApplyEdit(msg, md, tr, speedSinks)
 			case "raw-input":
-				handleRawInputMsg(msg, slotReg, md, tr)
+				Wiring.HandleRawInputMsg(msg, slotReg, md, tr)
 			case "save":
-				handleSaveMsg(md)
+				Wiring.HandleSaveMsg(md)
 			}
 			// MSG_TYPES_END
 		}

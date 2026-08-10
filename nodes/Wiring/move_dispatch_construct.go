@@ -41,6 +41,16 @@ import (
 // rowCount is the buffer's node-row space (topoSpec.RowCount — the largest node id found,
 // not the node count): rows 0..rowCount-1, ROW ID = NODE ID - 1. 0 (test call sites that
 // don't pass one) falls back to the number of resolved seeds, i.e. no gaps.
+// NewMoveDispatchForTest exposes newMoveDispatch to an EXTERNAL test package (one that
+// cannot import this package's own _test.go helpers) that needs a real, bare MoveDispatch
+// without going through LoadTopology (which requires the full kind registry populated by
+// kinds_generated.go's blank imports — package main only). Same escape-hatch shape as
+// NewDrivenOutForTest (driven_out.go): a clearly-named, test-only constructor, no
+// production caller.
+func NewMoveDispatchForTest(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[string]inputcodec.EdgeEndpoints, tr *T.Trace, nodeOrder, edgeOrder []string, clk clock.Clock, speedSinks *[]chan float64, rowCount int) (*MoveDispatch, error) {
+	return newMoveDispatch(geoms, edgeEndpoints, tr, nodeOrder, edgeOrder, clk, speedSinks, rowCount)
+}
+
 func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[string]inputcodec.EdgeEndpoints, tr *T.Trace, nodeOrder, edgeOrder []string, clk clock.Clock, speedSinks *[]chan float64, rowCount int) (*MoveDispatch, error) {
 	// nil order (test call sites that don't care about seed order) falls back to sorted
 	// map keys — still deterministic, just not necessarily spec order.

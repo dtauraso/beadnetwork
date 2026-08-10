@@ -22,19 +22,19 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 )
 
-// handleRawInputMsg hands a raw pointer/wheel event + stateless raycast hit to the
+// HandleRawInputMsg hands a raw pointer/wheel event + stateless raycast hit to the
 // gesture state machine, which owns gesture bookkeeping and produces camera/topology
 // changes. Fire-and-forget — nothing on this seam triggers delivery.
-func handleRawInputMsg(msg inputcodec.StdinMsg, slotReg inputcodec.SlotRegistry, md *MoveDispatch, tr *T.Trace) {
+func HandleRawInputMsg(msg inputcodec.StdinMsg, slotReg inputcodec.SlotRegistry, md *MoveDispatch, tr *T.Trace) {
 	if md != nil && msg.Event != nil {
 		md.HandleRawInput(*msg.Event, slotReg, tr)
 	}
 }
 
-// handleSaveMsg persists Go's OWN authoritative scene state (overlay visibility and the
+// HandleSaveMsg persists Go's OWN authoritative scene state (overlay visibility and the
 // scene sphere) in response to the bare "save" command. The camera pose is already
 // continuously flushed elsewhere (scene_camera_persist.go).
-func handleSaveMsg(md *MoveDispatch) {
+func HandleSaveMsg(md *MoveDispatch) {
 	if md == nil {
 		return
 	}
@@ -74,7 +74,7 @@ var editOps = map[string]func(inputcodec.StdinMsg, *MoveDispatch, *T.Trace, []ch
 
 // EDIT_OPS_END
 
-func applyEdit(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
+func ApplyEdit(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
 	if h, ok := editOps[msg.Op]; ok {
 		h(msg, md, tr, speedSinks)
 	}

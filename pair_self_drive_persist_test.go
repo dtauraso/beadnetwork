@@ -4,7 +4,7 @@ package main
 // bytes on disk, through a REAL reload, driving the ACTUAL production path (a real
 // LoadTopology, a real MoveDispatch.Start, the real Update goroutines of the two PairNode
 // instances that make up a pair, and
-// the real editor->Go binary bridge — W.RunStdinReader decoding a framed edit record
+// the real editor->Go binary bridge — stdinreader.RunStdinReader decoding a framed edit record
 // exactly as stdin_reader.go's own doc comment describes) rather than a bare mover
 // literal or an in-package short-circuit. task/pair-node-owns-itself removed the
 // separate nodeMover goroutine for a pair node (PairNode); this pins that its
@@ -31,6 +31,7 @@ import (
 
 	Wiring "github.com/dtauraso/wirefold/nodes/Wiring"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/stdinreader"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -114,7 +115,7 @@ func readNode2Position(t *testing.T, root string) string {
 // instances in the pair
 // (no separate nodeMover goroutine exists for either, per task/pair-node-owns-itself:
 // mr.start skips a selfDriven node), and the real editor->Go binary bridge
-// (W.RunStdinReader decoding a framed tiltVector edit record) — and confirms:
+// (stdinreader.RunStdinReader decoding a framed tiltVector edit record) — and confirms:
 //  1. Neither pair node has a separate mover goroutine (NodeSelfDriven == true for both).
 //  2. Node 2's own goroutine writes its own position.json in response to the edit (its
 //     r-index follows the tilt index, repositionForTiltIndex's model).
@@ -161,7 +162,7 @@ func TestPairNodeSelfDrivePersistsThroughRealReload(t *testing.T) {
 	stdinWG.Add(1)
 	go func() {
 		defer stdinWG.Done()
-		Wiring.RunStdinReader(ctx, pr, slotReg, md, tr, speedSinks)
+		stdinreader.RunStdinReader(ctx, pr, slotReg, md, tr, speedSinks)
 	}()
 
 	before := readNode2Position(t, root)

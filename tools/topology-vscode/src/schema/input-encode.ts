@@ -129,7 +129,7 @@ export function encodeSceneDelete(nodeRow: number): ArrayBuffer {
 
 /** Build a scene LATTICE-POINTS record: [22][entityKind=scene][attr=latticePoints]
  *  [u8 points]. points is the pair lattice's new point count (4..64, a multiple of 4 —
- *  Go rejects anything else, nodes/Wiring/stdin_reader.go's applyUpdateScene); Go owns the
+ *  Go rejects anything else, nodes/Wiring/stdin_apply.go's applyUpdateScene); Go owns the
  *  valid range and the delivery to every pair node, this just signals the requested count. */
 export function encodeSceneLatticePoints(points: number): ArrayBuffer {
   const w = new ByteWriter();
