@@ -27,6 +27,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -47,7 +48,7 @@ import (
 // this call and read thereafter by exactly one goroutine (stdin_reader's),
 // never touched by the goroutines that own the receive ends. Most callers
 // (tests that don't drive a speed slider) can discard it.
-func LoadTopology(ctx context.Context, jsonPath string, tr *T.Trace, clk wire.Clock) ([]wire.Node, inputcodec.SlotRegistry, *MoveDispatch, []chan float64, error) {
+func LoadTopology(ctx context.Context, jsonPath string, tr *T.Trace, clk clock.Clock) ([]wire.Node, inputcodec.SlotRegistry, *MoveDispatch, []chan float64, error) {
 	BuildRegistry()
 	spec, err := parseSpec(jsonPath)
 	if err != nil {

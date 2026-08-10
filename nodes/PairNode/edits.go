@@ -12,15 +12,14 @@ package PairNode
 // decision is node.go's; this file only starts and stops the exchange those run.
 
 import (
-	wire "github.com/dtauraso/wirefold/nodes/wire"
-
 	"github.com/dtauraso/wirefold/nodes/Wiring"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
 // drainTiltEdit drains TiltEditIn non-blocking: a panel/RESET/START edit — see the package doc
 // comment for the three-way split. applyTiltEdit decides placeBead: true for Start
 // and for a plain adjust (both open the exchange), false only for Reset.
-func (n *Node) drainTiltEdit(clk wire.Clock) {
+func (n *Node) drainTiltEdit(clk clock.Clock) {
 	if n.tilt.TiltEditIn == nil {
 		return
 	}

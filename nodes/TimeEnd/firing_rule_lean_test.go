@@ -3,6 +3,7 @@ package timeend
 import (
 	"context"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 	"testing"
 	"time"
 
@@ -14,7 +15,7 @@ import (
 // blocking delivery loop). clk is this goroutine's OWN clock copy, which
 // advances on its own, so a placed bead is carried to delivery once its
 // deadline is crossed.
-func stepWire(ctx context.Context, pw *wire.PacedWire, clk wire.Clock) {
+func stepWire(ctx context.Context, pw *wire.PacedWire, clk clock.Clock) {
 	go func() {
 		for {
 			select {
@@ -40,7 +41,7 @@ func TestHoldFiresAndHoldsOnReceiveLean(t *testing.T) {
 	defer cancel()
 
 	pw := wire.NewPacedWire(int(latMs), 1.0)
-	clk := wire.NewRealClock()
+	clk := clock.NewRealClock()
 	stepWire(ctx, pw, clk.Copy())
 	// inSrc is a test-only seeding source on pw: PlaceDrivenAt places a bead
 	// (no walker) that the stepWire loop above then drives to delivery,

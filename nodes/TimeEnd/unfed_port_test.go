@@ -21,7 +21,7 @@ package timeend
 
 import (
 	"context"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 	"os"
 	"path/filepath"
 	"testing"
@@ -60,7 +60,7 @@ func TestUnfedRequiredPortLoadsAndStaysInert(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	nodes, _, _, _, err := Wiring.LoadTopology(ctx, root, T.New(), wire.NewRealClock())
+	nodes, _, _, _, err := Wiring.LoadTopology(ctx, root, T.New(), clock.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology rejected an unfed port, but validate.go promises it loads: %v", err)
 	}

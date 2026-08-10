@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
 // TestSendSpeedNonBlockingNeverBlocks: sending speed changes onto a channel whose
@@ -22,7 +22,7 @@ func TestSendSpeedNonBlockingNeverBlocks(t *testing.T) {
 	done := make(chan struct{})
 	go func() {
 		for i := 0; i < 1000; i++ {
-			wire.SendSpeedNonBlocking(ch, float64(i))
+			clock.SendSpeedNonBlocking(ch, float64(i))
 		}
 		close(done)
 	}()
@@ -39,9 +39,9 @@ func TestSendSpeedNonBlockingNeverBlocks(t *testing.T) {
 // not lossy (per-goroutine-clock.md "Delivery").
 func TestSendSpeedNonBlockingLatestWins(t *testing.T) {
 	ch := make(chan float64, 1)
-	wire.SendSpeedNonBlocking(ch, 1)
-	wire.SendSpeedNonBlocking(ch, 2)
-	wire.SendSpeedNonBlocking(ch, 3)
+	clock.SendSpeedNonBlocking(ch, 1)
+	clock.SendSpeedNonBlocking(ch, 2)
+	clock.SendSpeedNonBlocking(ch, 3)
 
 	select {
 	case got := <-ch:
@@ -64,21 +64,21 @@ func TestSendSpeedNonBlockingLatestWins(t *testing.T) {
 // time it calls ApplySpeedNonBlocking on waking — the buffered-1 channel holds it
 // across the sleep window.
 func TestApplySpeedNonBlockingAppliesOnWake(t *testing.T) {
-	clk := wire.NewRealClock()
+	clk := clock.NewRealClock()
 	ch := make(chan float64, 1)
 
 	// Measure the tick advance at speed 1 over one window ("asleep").
-	time.Sleep(2 * wire.TickPeriod)
+	time.Sleep(2 * clock.TickPeriod)
 	before := clk.Tick()
 
 	// Send while nobody is polling — simulates a goroutine parked in SleepCycle.
-	wire.SendSpeedNonBlocking(ch, 4)
+	clock.SendSpeedNonBlocking(ch, 4)
 
 	// The goroutine "wakes" and, per the Delivery model, checks its channel before
 	// (or instead of) blocking again.
-	wire.ApplySpeedNonBlocking(clk, ch)
+	clock.ApplySpeedNonBlocking(clk, ch)
 
-	time.Sleep(2 * wire.TickPeriod)
+	time.Sleep(2 * clock.TickPeriod)
 	after := clk.Tick()
 	advanced := after - before
 	// At the OLD speed (1) two periods would advance ~2 ticks; at the delivered
@@ -94,12 +94,12 @@ func TestApplySpeedNonBlockingAppliesOnWake(t *testing.T) {
 // leave the clock's speed untouched — reading from a nil channel in a select with a
 // default case is never selected, which is exactly what makes this safe.
 func TestApplySpeedNonBlockingNilChannelIsNoop(t *testing.T) {
-	clk := wire.NewRealClock()
+	clk := clock.NewRealClock()
 	var nilCh <-chan float64 // no goroutine holds a channel to send on
-	wire.ApplySpeedNonBlocking(clk, nilCh)
+	clock.ApplySpeedNonBlocking(clk, nilCh)
 	// No panic is the primary assertion; also confirm the clock still ticks at the
 	// default speed (1), i.e. nothing mutated it.
-	time.Sleep(2 * wire.TickPeriod)
+	time.Sleep(2 * clock.TickPeriod)
 	if clk.Tick() < 1 {
 		t.Fatalf("clock did not advance at default speed after a nil-channel ApplySpeedNonBlocking: tick=%d", clk.Tick())
 	}
@@ -108,12 +108,12 @@ func TestApplySpeedNonBlockingNilChannelIsNoop(t *testing.T) {
 // TestApplySpeedNonBlockingEmptyChannelIsNoop: an empty (but non-nil) channel must
 // also be a no-op — no pending value means nothing to apply.
 func TestApplySpeedNonBlockingEmptyChannelIsNoop(t *testing.T) {
-	clk := wire.NewRealClock()
+	clk := clock.NewRealClock()
 	ch := make(chan float64, 1)
-	time.Sleep(2 * wire.TickPeriod)
+	time.Sleep(2 * clock.TickPeriod)
 	before := clk.Tick()
-	wire.ApplySpeedNonBlocking(clk, ch) // nothing pending
-	time.Sleep(2 * wire.TickPeriod)
+	clock.ApplySpeedNonBlocking(clk, ch) // nothing pending
+	time.Sleep(2 * clock.TickPeriod)
 	after := clk.Tick()
 	// Advance should reflect the unchanged default speed 1 (~2 ticks), not a jump.
 	if after-before > 5 {

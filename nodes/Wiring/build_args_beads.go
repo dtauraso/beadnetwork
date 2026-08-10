@@ -6,6 +6,7 @@ package Wiring
 
 import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -47,9 +48,9 @@ func (a BuildArgs) EmitInputBeads() func(left, right int) {
 // EmitRefillSlide returns the clock-paced refill-slide emitter. The clock and speed
 // channel are supplied by the CALLER at invocation time — its own already-Copy()'d clock
 // and its own SpeedCh — never captured here, per per-goroutine-clock.md.
-func (a BuildArgs) EmitRefillSlide() func(clk wire.Clock, speedCh <-chan float64, beads []int) {
+func (a BuildArgs) EmitRefillSlide() func(clk clock.Clock, speedCh <-chan float64, beads []int) {
 	ctx, tr, name := a.ctx, a.tr, a.name
-	return func(clk wire.Clock, speedCh <-chan float64, beads []int) {
+	return func(clk clock.Clock, speedCh <-chan float64, beads []int) {
 		emitRefillSlide(ctx, tr, name, clk, speedCh, beads)
 	}
 }

@@ -166,12 +166,12 @@
             <tr>
               <td class="e">pulses = clamp(⌈1 / speed⌉, 1, 64)</td>
               <td class="n">speed ≤ 0 → 64</td>
-              <td class="s" data-src="nodes/wire/sleep_cycle.go">wire/sleep_cycle.go</td>
+              <td class="s" data-src="nodes/wire/clock/sleep_cycle.go">wire/clock/sleep_cycle.go</td>
             </tr>
             <tr>
               <td class="e">one cycle = pulses × 16 ms</td>
               <td class="n">one process-wide ticker</td>
-              <td class="s" data-src="nodes/wire/tick_broadcaster.go">wire/tick_broadcaster.go</td>
+              <td class="s" data-src="nodes/wire/clock/tick_broadcaster.go">wire/clock/tick_broadcaster.go</td>
             </tr>
             <tr>
               <td class="e">HumanEditSpeed = 1.0</td>

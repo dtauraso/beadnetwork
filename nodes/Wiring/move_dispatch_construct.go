@@ -16,6 +16,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	rowtables "github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -38,7 +39,7 @@ import (
 // rowCount is the buffer's node-row space (topoSpec.RowCount — the largest node id found,
 // not the node count): rows 0..rowCount-1, ROW ID = NODE ID - 1. 0 (test call sites that
 // don't pass one) falls back to the number of resolved seeds, i.e. no gaps.
-func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]inputcodec.EdgeEndpoints, tr *T.Trace, nodeOrder, edgeOrder []string, clk wire.Clock, speedSinks *[]chan float64, rowCount int) (*MoveDispatch, error) {
+func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]inputcodec.EdgeEndpoints, tr *T.Trace, nodeOrder, edgeOrder []string, clk clock.Clock, speedSinks *[]chan float64, rowCount int) (*MoveDispatch, error) {
 	// nil order (test call sites that don't care about seed order) falls back to sorted
 	// map keys — still deterministic, just not necessarily spec order.
 	if nodeOrder == nil {

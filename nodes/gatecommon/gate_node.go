@@ -6,6 +6,7 @@ package gatecommon
 
 import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring"
 )
@@ -50,13 +51,13 @@ type GateNode struct {
 	Tick func() int64
 	// Clock is this node's OWN clock storage, assigned by the kind's own builder from the
 	// loader's origin (builders.go injectClosures, bare-field injection matched by
-	// exact type wire.Clock — see input.Node.Clock for the model this mirrors).
+	// exact type clock.Clock — see input.Node.Clock for the model this mirrors).
 	// RunGate Copies it exactly ONCE at its own goroutine's start; ports no
 	// longer carry or hand out a clock (API demolition item 1), so this is the
 	// only path in.
 	// nil on a test build with no loader — RunGate falls back to Tick/wall-clock
 	// sleep in that case, exactly as before.
-	Clock wire.Clock
+	Clock clock.Clock
 	// SpeedCh delivers a speed change to RunGate's own clock copy
 	// (per-goroutine-clock.md "Delivery"), assigned by this kind's own builder
 	// (injectSpeedChans). nil on a test build with no loader / chan mode.
@@ -71,10 +72,10 @@ type GateNode struct {
 }
 
 // windowTicks is the fixed coincidence window as a tick count (WindowMs / MsPerTick).
-const windowTicks = int64(WindowMs / wire.MsPerTick)
+const windowTicks = int64(WindowMs / clock.MsPerTick)
 
 // fireDwellTicks is FireDwellMs converted to a tick count.
-const fireDwellTicks = int64(FireDwellMs / wire.MsPerTick)
+const fireDwellTicks = int64(FireDwellMs / clock.MsPerTick)
 
 // gateWindow holds the window/dwell timing state for one RunGate loop instance.
 // It is local to a single call (not part of GateNode) since it is pure loop-scoped

@@ -27,6 +27,7 @@ import (
 	"fmt"
 
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -112,7 +113,7 @@ type nodeGeometry struct {
 // newNodeGeometry constructs one node's geometry — no actor, no goroutine. Whoever drives
 // it (a ring's nodeMover, or a pair kind's own goroutine via ClaimSelfDrive) copies
 // clockSrc into clk once, at its own start.
-func newNodeGeometry(id string, geom nodeGeom, tr *T.Trace, clockSrc wire.Clock) *nodeGeometry {
+func newNodeGeometry(id string, geom nodeGeom, tr *T.Trace, clockSrc clock.Clock) *nodeGeometry {
 	ng := &nodeGeometry{
 		id: id, geom: geom, tr: tr,
 		msg: nodeMessaging{
@@ -121,7 +122,7 @@ func newNodeGeometry(id string, geom nodeGeom, tr *T.Trace, clockSrc wire.Clock)
 			centerOut:  make(chan vec3, 1),
 		},
 		topo:   neighborTopology{partnerCenters: map[string]vec3{}},
-		clocks: nodeClocks{clockSrc: clockSrc, clk: wire.NewRealClock()},
+		clocks: nodeClocks{clockSrc: clockSrc, clk: clock.NewRealClock()},
 		tilt:   nodeTilt{latticePoints: FullTurnThetaIdx},
 	}
 	// Self-seed centerOut with the initial geometry (even when !HasPos, in which case
@@ -132,7 +133,7 @@ func newNodeGeometry(id string, geom nodeGeom, tr *T.Trace, clockSrc wire.Clock)
 	// (bead_chain.go). Bare `&nodeGeometry{...}` test literals never call
 	// newNodeGeometry, so beadTickFn stays nil there and chainBeads' pure-function tests
 	// never touch a live TickBroadcaster goroutine.
-	ng.beads.beadTickFn = wire.NewTickChan
+	ng.beads.beadTickFn = clock.NewTickChan
 	return ng
 }
 

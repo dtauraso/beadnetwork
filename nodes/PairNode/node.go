@@ -50,6 +50,7 @@ import (
 	"strconv"
 
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring"
 )
@@ -73,9 +74,9 @@ type Node struct {
 	rest restCounters
 }
 
-func (n *Node) clock() wire.Clock {
+func (n *Node) clock() clock.Clock {
 	if n.plumb.Clock == nil {
-		return wire.NewRealClock()
+		return clock.NewRealClock()
 	}
 	return n.plumb.Clock
 }
@@ -227,7 +228,7 @@ func (n *Node) Update(ctx context.Context) {
 		// itself) — see Self's own doc comment.
 		n.plumb.Self.Step(ctx, clk.Tick())
 
-		wire.ApplySpeedNonBlocking(clk, n.plumb.SpeedCh)
+		clock.ApplySpeedNonBlocking(clk, n.plumb.SpeedCh)
 		if err := clk.SleepCycle(ctx); err != nil {
 			return
 		}
@@ -282,7 +283,7 @@ func init() {
 		},
 		func(a Wiring.BuildArgs) (wire.Node, error) {
 			n := &Node{
-				plumb: nodePlumbing{Clock: wire.NewRealClock()},
+				plumb: nodePlumbing{Clock: clock.NewRealClock()},
 			}
 			// This node's own spec id, which is what START is addressed by — see PairID's
 			// own doc comment. A name that is not a number leaves PairID at 0, so such a

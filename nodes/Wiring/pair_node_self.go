@@ -17,6 +17,7 @@ import (
 
 	T "github.com/dtauraso/wirefold/Trace"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
 // PairNodeSelf wraps this node's own *nodeGeometry so a pair kind's Update loop can drive
@@ -96,7 +97,7 @@ func (p *PairNodeSelf) Step(ctx context.Context, tick int64) {
 		return
 	}
 	g := p.geom
-	wire.ApplySpeedNonBlocking(g.clocks.clk, p.speedCh)
+	clock.ApplySpeedNonBlocking(g.clocks.clk, p.speedCh)
 	for {
 		progressed := false
 		select {

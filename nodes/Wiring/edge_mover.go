@@ -17,6 +17,7 @@ package Wiring
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -71,7 +72,7 @@ type edgeMover struct {
 	// clockSrc is the Clock this edgeMover's own goroutine (run, edge_mover_run.go)
 	// Copies from EXACTLY ONCE at its own start, into clk below. Not read again
 	// afterward.
-	clockSrc wire.Clock
+	clockSrc clock.Clock
 	// clk is this edgeMover's OWN clock copy, set once by run() at goroutine
 	// start. Only this goroutine (handle, called from run's loop) ever reads
 	// it. Defaults to a fresh, real, live-ticking
@@ -80,7 +81,7 @@ type edgeMover struct {
 	// per-goroutine-clock.md's API demolition deleted the old inert/zero-Tick
 	// placeholder (item 3), so the only non-nil default left is a genuine
 	// clock, not a fake stand-in.
-	clk wire.Clock
+	clk clock.Clock
 	// speedCh delivers a speed change to THIS edgeMover's own clk copy
 	// (per-goroutine-clock.md "Delivery"). Set once, at construction
 	// (newMoveDispatch), from the loader's build-wide speed-sink accumulator;
@@ -120,7 +121,7 @@ type edgeMover struct {
 	buildFrame func(tick uint32, sx, sy, sz, ex, ey, ez float32, selected uint8, label string, events []wire.RowEvent) []byte
 }
 
-func newEdgeMover(ep inputcodec.EdgeEndpoints, edgeID string, srcGeom, dstGeom nodeGeom, tr *T.Trace, clockSrc wire.Clock) *edgeMover {
+func newEdgeMover(ep inputcodec.EdgeEndpoints, edgeID string, srcGeom, dstGeom nodeGeom, tr *T.Trace, clockSrc clock.Clock) *edgeMover {
 	// clk defaults to a fresh RealClock (its own independent origin — fine here:
 	// this default is only ever read by a test calling handle() directly, never by
 	// production, where run() always overwrites it below with clockSrc.Copy() before
@@ -141,7 +142,7 @@ func newEdgeMover(ep inputcodec.EdgeEndpoints, edgeID string, srcGeom, dstGeom n
 		stepsIn:  make(chan int, 1),
 		tr:       tr,
 		clockSrc: clockSrc,
-		clk:      wire.NewRealClock(),
+		clk:      clock.NewRealClock(),
 		edgeRow:  -1,
 	}
 }

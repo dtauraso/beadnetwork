@@ -36,7 +36,7 @@
 // end-to-end), so the tick advances monotonically with wall time for the life of
 // the process.
 
-package wire
+package clock
 
 import (
 	"context"

@@ -3,6 +3,7 @@ package holdflip
 import (
 	"context"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring"
 	"github.com/dtauraso/wirefold/nodes/gatecommon"
@@ -26,7 +27,7 @@ import (
 //
 // held is owned by the MAIN loop; the drive goroutine gets its own channel
 // (DriveHeldCh) that the main loop sends the latest held value on
-// (wire.SendLatestNonBlocking) whenever it changes — the same
+// (clock.SendLatestNonBlocking) whenever it changes — the same
 // per-goroutine-channel shape as DriveSpeedCh below.
 type Node struct {
 	Fire         func()
@@ -38,11 +39,11 @@ type Node struct {
 	EmitHeldBead func(held int)
 	// Clock is this node's OWN clock storage, assigned by this kind's own builder
 	// directly from the loader's origin (bare-field injection by exact type
-	// wire.Clock — see input.Node.Clock; ports no longer hand out a clock,
+	// clock.Clock — see input.Node.Clock; ports no longer hand out a clock,
 	// per-goroutine-clock.md API demolition item 1). Update() Copies it once for
 	// its own loop, and passes the ORIGIN (not that copy) to the DRIVE goroutine
 	// below, which Copies independently at ITS OWN start.
-	Clock wire.Clock
+	Clock clock.Clock
 	// SpeedCh delivers a speed change to the MAIN loop's own clock copy;
 	// DriveSpeedCh does the same for the DRIVE goroutine's OWN independent
 	// copy (per-goroutine-clock.md "Delivery") — two separate clock-owning
@@ -105,7 +106,7 @@ func (g *Node) Update(ctx context.Context) {
 			g.Fire()
 		}
 		newHeld := int64(v)
-		wire.SendLatestNonBlocking(heldCh, newHeld)
+		clock.SendLatestNonBlocking(heldCh, newHeld)
 		if newHeld != lastDisplayed && g.EmitHeldBead != nil {
 			g.EmitHeldBead(v)
 		}
@@ -123,7 +124,7 @@ func (g *Node) Update(ctx context.Context) {
 			return
 		}
 		consume()
-		wire.ApplySpeedNonBlocking(clk, g.SpeedCh)
+		clock.ApplySpeedNonBlocking(clk, g.SpeedCh)
 		if err := clk.SleepCycle(ctx); err != nil {
 			return
 		}

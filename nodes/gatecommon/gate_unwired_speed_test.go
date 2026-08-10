@@ -3,6 +3,7 @@ package gatecommon
 import (
 	"context"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 	"strings"
 	"sync"
 	"testing"
@@ -55,7 +56,7 @@ func TestGateWithUnwiredOutputStillObeysSpeed(t *testing.T) {
 	leftPw := wire.NewPacedWire(int(latMs), 1.0)
 	rightPw := wire.NewPacedWire(int(latMs), 1.0)
 
-	clk := wire.NewRealClock()
+	clk := clock.NewRealClock()
 	go stepPacedWire(ctx, leftPw, clk.Copy())
 	go stepPacedWire(ctx, rightPw, clk.Copy())
 
@@ -116,7 +117,7 @@ func TestGateWithUnwiredOutputStillObeysSpeed(t *testing.T) {
 // stepPacedWire mirrors selectright's firing_rule_lean_test.go
 // stepWire helper: continuously StepOnceAts pw on a short wall-clock poll,
 // matching the production per-cycle StepOnceAt delivery path.
-func stepPacedWire(ctx context.Context, pw *wire.PacedWire, clk wire.Clock) {
+func stepPacedWire(ctx context.Context, pw *wire.PacedWire, clk clock.Clock) {
 	for {
 		select {
 		case <-ctx.Done():

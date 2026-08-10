@@ -14,7 +14,7 @@ import (
 	"math"
 	"testing"
 
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
 // latticeFrameAngles captures the four θ columns writeStreamFrame packs that this task
@@ -27,7 +27,7 @@ type latticeFrameAngles struct {
 func captureLatticeAngles(snap *latticeFrameAngles) *nodeGeometry {
 	return &nodeGeometry{
 		id:     "n",
-		clocks: nodeClocks{clk: wire.NewRealClock()},
+		clocks: nodeClocks{clk: clock.NewRealClock()},
 		stream: nodeStream{
 			streamOut: newClaimedStream(nil, "node", "n", io.Discard),
 			buildFrame: func(f NodeFrameInput) []byte {

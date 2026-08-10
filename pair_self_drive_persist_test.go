@@ -27,7 +27,7 @@ import (
 	"testing"
 	"time"
 
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	Wiring "github.com/dtauraso/wirefold/nodes/Wiring"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
@@ -126,7 +126,7 @@ func TestPairNodeSelfDrivePersistsThroughRealReload(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	nodes, slotReg, md, speedSinks, err := Wiring.LoadTopology(ctx, root, tr, wire.NewRealClock())
+	nodes, slotReg, md, speedSinks, err := Wiring.LoadTopology(ctx, root, tr, clock.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology: %v", err)
 	}
@@ -206,7 +206,7 @@ func TestPairNodeSelfDrivePersistsThroughRealReload(t *testing.T) {
 	// struct — must land on the SAME quantized offset repositionForTiltIndex just wrote.
 	ctx2, cancel2 := context.WithCancel(context.Background())
 	defer cancel2()
-	_, _, md2, _, err := Wiring.LoadTopology(ctx2, root, tr, wire.NewRealClock())
+	_, _, md2, _, err := Wiring.LoadTopology(ctx2, root, tr, clock.NewRealClock())
 	if err != nil {
 		t.Fatalf("reload LoadTopology: %v", err)
 	}

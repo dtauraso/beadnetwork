@@ -48,9 +48,14 @@ for dir in "$NODES_DIR"/*/; do
   kind="$(basename "$dir")"
   is_spine "$kind" && continue
 
-  # Every internal import this kind's .go files make, reduced to the package name under nodes/.
-  imported="$(grep -rhoE "\"$MODULE/nodes/[A-Za-z0-9_]+\"" "$dir" --include="*.go" 2>/dev/null \
-      | sed -E "s#\"$MODULE/nodes/([A-Za-z0-9_]+)\"#\1#" | sort -u || true)"
+  # Every internal import this kind's .go files make, reduced to the TOP-LEVEL package name
+  # under nodes/ — matches both a direct import ("nodes/wire") and a subpackage import
+  # ("nodes/wire/clock"), so a guard-blind spot can't reopen if a spine package (wire, or a
+  # future Wiring/gatecommon split) grows subpackages: without the optional "(/...)?" group a
+  # subpackage import's trailing "/clock\"" breaks the match entirely and the whole import
+  # line goes uninspected, silently.
+  imported="$(grep -rhoE "\"$MODULE/nodes/[A-Za-z0-9_]+(/[A-Za-z0-9_/]+)?\"" "$dir" --include="*.go" 2>/dev/null \
+      | sed -E "s#\"$MODULE/nodes/([A-Za-z0-9_]+)(/[A-Za-z0-9_/]+)?\"#\1#" | sort -u || true)"
 
   while IFS= read -r dep; do
     [ -z "$dep" ] && continue

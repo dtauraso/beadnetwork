@@ -17,7 +17,7 @@ import (
 	"path/filepath"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
 // --- node path construction ---
@@ -140,7 +140,7 @@ func (m *nodeMover) run(ctx context.Context) {
 		g.emitGeometry()
 	}
 	for {
-		wire.ApplySpeedNonBlocking(g.clocks.clk, m.speedCh)
+		clock.ApplySpeedNonBlocking(g.clocks.clk, m.speedCh)
 		// Drain-until-empty, transitively bounded by each channel's own declared
 		// capacity (moverInboxDepth) -- no iteration cap; see
 		// nodes/wire/paced_wire_drive.go's drainPlacements doc comment for the full

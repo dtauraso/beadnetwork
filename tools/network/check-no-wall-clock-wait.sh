@@ -6,10 +6,10 @@
 # WHY THIS EXISTS (PLAN.md "No sleeping" / two-clock-beads Phase A): a goroutine parked in
 # time.After (or time.Sleep, or blocked on a time.Ticker) cannot service any of its other
 # channels for the duration of the wait — that stall is exactly what the two-clock model
-# must not have. The fix is ONE clock goroutine (nodes/wire/clock.go's TickBroadcaster) that
-# is the only thing in the process that ever waits on wall time; every pacing loop instead
-# blocks on RECEIVE from a dedicated channel that goroutine pushes to
-# (RealClock.SleepCycle / wire.NewTickChan). A NEW time.Sleep/After/NewTicker anywhere else
+# must not have. The fix is ONE clock goroutine (nodes/wire/clock/tick_broadcaster.go's
+# TickBroadcaster) that is the only thing in the process that ever waits on wall time; every
+# pacing loop instead blocks on RECEIVE from a dedicated channel that goroutine pushes to
+# (RealClock.SleepCycle / clock.NewTickChan). A NEW time.Sleep/After/NewTicker anywhere else
 # in the network re-adds a wall-time wait outside that one goroutine, silently reintroducing
 # the stall this file guards against.
 #
@@ -17,14 +17,14 @@
 # other non-network code are NOT scanned. Comments are stripped before matching, so prose
 # about the removed pattern does not trip it.
 #
-# EXEMPT: nodes/wire/clock.go — this is the single clock goroutine's own implementation
+# EXEMPT: nodes/wire/clock/clock.go — this is the single clock goroutine's own implementation
 # (TickBroadcaster.run's time.NewTicker); it is what everything else routes through.
 #
 # ALLOWLIST (may only shrink): sites that predate this rule and are NOT on the tick-pacing
 # path — see the comment for each. A new entry must justify why it is not a mover/node
 # pacing wait; anything that paces a network goroutine belongs on the tick channel instead.
 #
-# PLACEMENT: nodes/**/*.go | no time.Sleep/time.After/time.NewTicker outside nodes/wire/clock.go; block on the tick channel instead
+# PLACEMENT: nodes/**/*.go | no time.Sleep/time.After/time.NewTicker outside nodes/wire/clock/clock.go; block on the tick channel instead
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -43,9 +43,9 @@ while IFS= read -r line; do
   case "$line" in
     WAIT)
       echo "WALL-CLOCK WAIT OUTSIDE THE CLOCK GOROUTINE: time.Sleep/time.After/time.NewTicker"
-      echo "found outside nodes/wire/clock.go. A goroutine parked here cannot service its other"
-      echo "channels for the wait — route through wire.NewRealClock()'s SleepCycle or"
-      echo "wire.NewTickChan() instead, both backed by the process's one TickBroadcaster:"
+      echo "found outside nodes/wire/clock/clock.go. A goroutine parked here cannot service its other"
+      echo "channels for the wait — route through clock.NewRealClock()'s SleepCycle or"
+      echo "clock.NewTickChan() instead, both backed by the process's one TickBroadcaster:"
       fail=1; section=body; continue ;;
     STALE_ALLOW)
       echo "STALE ALLOWLIST: an entry in check-no-wall-clock-wait.sh's ALLOWED set no longer"

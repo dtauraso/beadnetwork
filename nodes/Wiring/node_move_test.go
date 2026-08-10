@@ -15,7 +15,7 @@ import (
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -47,7 +47,7 @@ func TestNodeGeometryLabelSidecar(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	tr := T.New()
-	_, _, md, _, err := LoadTopology(ctx, root, tr, wire.NewRealClock())
+	_, _, md, _, err := LoadTopology(ctx, root, tr, clock.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology: %v", err)
 	}
@@ -90,7 +90,7 @@ func TestNewMoveDispatchRejectsDanglingEdgeTarget(t *testing.T) {
 	edgeEndpoints := map[string]inputcodec.EdgeEndpoints{
 		"e0": {Source: "1", Target: "9", SourceHandle: "Out", TargetHandle: "In"},
 	}
-	_, err := newMoveDispatch(geoms, edgeEndpoints, nil, nil, nil, wire.NewRealClock(), nil, 0)
+	_, err := newMoveDispatch(geoms, edgeEndpoints, nil, nil, nil, clock.NewRealClock(), nil, 0)
 	if err == nil {
 		t.Fatal("newMoveDispatch: want error for edge targeting a missing node, got nil")
 	}

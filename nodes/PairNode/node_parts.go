@@ -21,6 +21,7 @@ package PairNode
 
 import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring"
 )
@@ -55,7 +56,7 @@ type nodePlumbing struct {
 	// builder directly from the loader's origin (per-goroutine-clock.md; see
 	// input.Node.Clock for the fuller rationale). Update() Copies it once for
 	// its own loop — the sole clock-owning goroutine this node has.
-	Clock wire.Clock
+	Clock clock.Clock
 	// SpeedCh delivers a speed change to this goroutine's own clk copy.
 	// Assigned by this kind's own builder; nil on a test build with no loader.
 	SpeedCh <-chan float64

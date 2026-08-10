@@ -7,6 +7,7 @@ package Wiring
 
 import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
 // PortDir describes which direction a port flows.
@@ -47,7 +48,7 @@ type PortBindings struct {
 	// Test builds without a loader leave this nil, and such nodes' Clock/Tick
 	// fields simply stay unset (their own zero-value fallback, e.g. gatecommon's
 	// defaultTick/defaultSleep).
-	clock wire.Clock
+	clock clock.Clock
 	// speedSinks accumulates the SEND end of every speed channel created for
 	// this node during construction (one per clock-owning goroutine the node
 	// spawns — see injectSpeedChans). It points at the loader's build-wide slice

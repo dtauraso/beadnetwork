@@ -19,7 +19,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -30,7 +30,7 @@ func loadSceneMD(t *testing.T, sceneDir string) *MoveDispatch {
 	t.Helper()
 	root := filepath.Join(repoRootForDistanceGroupsTest(t), sceneDir)
 	tr := T.NewWithSinkHook(nil, nil)
-	_, _, md, _, err := LoadTopology(context.Background(), root, tr, wire.NewRealClock())
+	_, _, md, _, err := LoadTopology(context.Background(), root, tr, clock.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology(%s): %v", sceneDir, err)
 	}
@@ -96,7 +96,7 @@ func TestPairSceneIsDeniedTheGroups(t *testing.T) {
 func TestGroupsAreInertUntilResolved(t *testing.T) {
 	root := filepath.Join(repoRootForDistanceGroupsTest(t), "topology")
 	tr := T.NewWithSinkHook(nil, nil)
-	_, _, md, _, err := LoadTopology(context.Background(), root, tr, wire.NewRealClock())
+	_, _, md, _, err := LoadTopology(context.Background(), root, tr, clock.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology(topology): %v", err)
 	}

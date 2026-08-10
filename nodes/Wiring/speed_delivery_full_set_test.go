@@ -8,7 +8,7 @@ import (
 	"context"
 	"testing"
 
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	T "github.com/dtauraso/wirefold/Trace"
 	_ "github.com/dtauraso/wirefold/nodes/PulseLeft"
@@ -88,7 +88,7 @@ func TestSpeedSinksCoverEveryClockOwningGoroutine(t *testing.T) {
 	defer cancel()
 	tr := T.New()
 
-	_, _, _, speedSinks, err := W.LoadTopology(ctx, root, tr, wire.NewRealClock())
+	_, _, _, speedSinks, err := W.LoadTopology(ctx, root, tr, clock.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology: %v", err)
 	}
@@ -102,7 +102,7 @@ func TestSpeedSinksCoverEveryClockOwningGoroutine(t *testing.T) {
 	done := make(chan struct{})
 	go func() {
 		for _, ch := range speedSinks {
-			wire.SendSpeedNonBlocking(ch, 2)
+			clock.SendSpeedNonBlocking(ch, 2)
 		}
 		close(done)
 	}()

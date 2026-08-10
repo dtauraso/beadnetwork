@@ -2,7 +2,7 @@
 // SleepUntilTick) lives in sleep_cycle.go; the process-wide pulse it paces
 // against lives in tick_broadcaster.go.
 
-package wire
+package clock
 
 import "time"
 

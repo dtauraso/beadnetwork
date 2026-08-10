@@ -12,8 +12,8 @@ roots = ["nodes"]
 wait_pat = re.compile(r'\btime\.(Sleep|After|NewTicker)\s*\(')
 
 EXEMPT_FILES = {
-    os.path.join("nodes", "wire", "clock.go"),
-    os.path.join("nodes", "wire", "tick_broadcaster.go"),
+    os.path.join("nodes", "wire", "clock", "clock.go"),
+    os.path.join("nodes", "wire", "clock", "tick_broadcaster.go"),
 }
 
 # Known pre-existing sites that are NOT mover/node tick-pacing waits — each is a distinct,

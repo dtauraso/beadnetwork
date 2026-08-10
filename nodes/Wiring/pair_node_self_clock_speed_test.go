@@ -20,7 +20,7 @@ import (
 	"testing"
 	"time"
 
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
 // TestSelfDrivenGeometryClockAppliesDeliveredSpeed: a self-driven node's geometry clock
@@ -46,7 +46,7 @@ func TestSelfDrivenGeometryClockAppliesDeliveredSpeed(t *testing.T) {
 
 	// Baseline: default speed 1, ~2 ticks over 2 periods.
 	before := geom.clocks.clk.Tick()
-	time.Sleep(2 * wire.TickPeriod)
+	time.Sleep(2 * clock.TickPeriod)
 	self.Step(ctx, geom.clocks.clk.Tick())
 	afterDefault := geom.clocks.clk.Tick()
 	if advanced := afterDefault - before; advanced > 5 {
@@ -58,11 +58,11 @@ func TestSelfDrivenGeometryClockAppliesDeliveredSpeed(t *testing.T) {
 	// BEFORE the measurement window starts (SetSpeed only affects the rate going forward
 	// from the moment it is applied, same ordering TestApplySpeedNonBlockingAppliesOnWake
 	// uses: send, apply-on-wake, THEN measure the next window).
-	wire.SendSpeedNonBlocking(speedCh, 8)
+	clock.SendSpeedNonBlocking(speedCh, 8)
 	self.Step(ctx, geom.clocks.clk.Tick())
 
 	before2 := geom.clocks.clk.Tick()
-	time.Sleep(2 * wire.TickPeriod)
+	time.Sleep(2 * clock.TickPeriod)
 	self.Step(ctx, geom.clocks.clk.Tick())
 	after2 := geom.clocks.clk.Tick()
 	if advanced := after2 - before2; advanced < 5 {

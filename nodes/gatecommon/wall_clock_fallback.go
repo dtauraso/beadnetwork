@@ -4,14 +4,14 @@ import (
 	"context"
 	"time"
 
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
 // tickDuration converts a tick count to the equivalent wall-clock time.Duration
 // using the same MsPerTick conversion as defaultTick/defaultSleep below, so both
 // wall-clock fallbacks agree on what a "tick" means.
 func tickDuration(ticks int64) time.Duration {
-	return time.Duration(ticks) * wire.MsPerTick * time.Millisecond
+	return time.Duration(ticks) * clock.MsPerTick * time.Millisecond
 }
 
 // defaultTick returns a wall-clock-derived tick function for use when GateNode.Tick
@@ -28,7 +28,7 @@ func defaultTick() func() int64 {
 // the process's one TickBroadcaster, nodes/wire/tick_broadcaster.go) rather than blocking
 // on time.After — no goroutine outside the broadcaster waits on wall time.
 func defaultSleep() func(ctx context.Context) error {
-	tickCh := wire.NewTickChan()
+	tickCh := clock.NewTickChan()
 	return func(ctx context.Context) error {
 		select {
 		case <-ctx.Done():

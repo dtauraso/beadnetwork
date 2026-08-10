@@ -6,7 +6,7 @@ package Wiring
 import (
 	"context"
 
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
 // run is the edge's per-goroutine loop. It IS the wire's own goroutine
@@ -53,7 +53,7 @@ func (m *edgeMover) run(ctx context.Context) {
 			case sp := <-m.speedCh:
 				// Delivery (per-goroutine-clock.md): apply directly to this
 				// goroutine's own clk copy — nothing else reaches it.
-				if rc, ok := m.clk.(*wire.RealClock); ok {
+				if rc, ok := m.clk.(*clock.RealClock); ok {
 					rc.SetSpeed(sp)
 				}
 			case steps := <-m.stepsIn:

@@ -3,6 +3,7 @@ package pacer
 import (
 	"context"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 	"testing"
 	"time"
 
@@ -12,7 +13,7 @@ import (
 // stepWire continuously StepOnceAts pw on a short wall-clock poll until ctx is
 // cancelled, matching the production per-cycle StepOnceAt delivery path. clk is
 // this goroutine's OWN clock copy; callers must not share it with another goroutine.
-func stepWire(ctx context.Context, pw *wire.PacedWire, clk wire.Clock) {
+func stepWire(ctx context.Context, pw *wire.PacedWire, clk clock.Clock) {
 	go func() {
 		for {
 			select {
@@ -38,7 +39,7 @@ func TestPacerChangeStepFeedbackLean(t *testing.T) {
 	defer cancel()
 
 	inPw := wire.NewPacedWire(int(latMs), 1.0)
-	clk := wire.NewRealClock()
+	clk := clock.NewRealClock()
 	stepWire(ctx, inPw, clk.Copy())
 	// inSrc is a test-only seeding source on inPw: PlaceDrivenAt places a bead
 	// (no walker) that the stepWire loop above then drives to delivery,

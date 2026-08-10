@@ -99,7 +99,7 @@ spec"; the rest are behavioral. Sorted by how much they actually transfer here.
   (Go 1.25) runs a test inside a bubble with a FAKE clock, where `time.Sleep` advances
   time exactly with no scheduler jitter, so `RealClock` reads deterministic time and
   assertions can be equalities instead of wall-clock inequalities with slack (see
-  `nodes/wire/clock_realclock_test.go`, `clock_copy_test.go`, `clock_speed_test.go`,
+  `nodes/wire/clock/clock_realclock_test.go`, `clock_copy_test.go`, `clock_speed_test.go`,
   `nodes/Wiring/pending_bound_test.go`). This does not cover every test: pieces pacing on
   a real goroutine schedule outside a bubble (e.g. a gate loop's own background ticking in
   `nodes/gatecommon/gate_unwired_speed_test.go`) still sleep on real wall time — that test

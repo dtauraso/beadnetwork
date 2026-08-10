@@ -4,13 +4,13 @@
 package Wiring
 
 import (
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
 // Clock returns the loader's clock ORIGIN, or nil on a test build with no loader. The
 // owning goroutine Copy()s it exactly once at its own start — this hands over the origin,
 // not a per-goroutine clock.
-func (a BuildArgs) Clock() wire.Clock { return a.pb.clock }
+func (a BuildArgs) Clock() clock.Clock { return a.pb.clock }
 
 // Tick returns a read of the loader clock's current tick, or nil when there is no clock.
 func (a BuildArgs) Tick() func() int64 {

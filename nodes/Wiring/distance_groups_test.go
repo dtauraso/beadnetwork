@@ -9,7 +9,7 @@ import (
 	"runtime"
 	"testing"
 
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -31,7 +31,7 @@ func repoRootForDistanceGroupsTest(t *testing.T) string {
 func TestDistanceGroupOutOfRangeIndexIsNoOp(t *testing.T) {
 	root := filepath.Join(repoRootForDistanceGroupsTest(t), "topology")
 	tr := T.NewWithSinkHook(nil, nil)
-	_, _, md, _, err := LoadTopology(context.Background(), root, tr, wire.NewRealClock())
+	_, _, md, _, err := LoadTopology(context.Background(), root, tr, clock.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology(production topology): %v", err)
 	}

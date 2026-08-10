@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -47,7 +47,7 @@ func runSlideAndTimeCompletion(t *testing.T, setSpeed float64) time.Duration {
 	}
 	tr := T.NewWithSinkHook(nil, onEvent)
 
-	clk := wire.NewRealClock()
+	clk := clock.NewRealClock()
 	speedCh := make(chan float64, 1)
 	speedCh <- setSpeed
 
@@ -110,7 +110,7 @@ func TestEmitRefillSlideAppliesMidSlideSpeedChange(t *testing.T) {
 	}
 	tr := T.NewWithSinkHook(nil, onEvent)
 
-	clk := wire.NewRealClock()
+	clk := clock.NewRealClock()
 	clk.SetSpeed(0) // frozen from the start
 	speedCh := make(chan float64, 1)
 

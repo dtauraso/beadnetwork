@@ -13,7 +13,7 @@ import (
 	"context"
 	"testing"
 
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -37,7 +37,7 @@ func TestMoveDispatchRowTablesUseNodeIDMinusOne(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	tr := T.New()
-	clk := wire.NewRealClock()
+	clk := clock.NewRealClock()
 	_, _, md, _, err := LoadTopology(ctx, root, tr, clk)
 	if err != nil {
 		t.Fatalf("LoadTopology: %v", err)

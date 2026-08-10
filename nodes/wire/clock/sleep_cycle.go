@@ -2,7 +2,7 @@
 // Both block on the process-wide pulse (tick_broadcaster.go), never on wall time
 // directly.
 
-package wire
+package clock
 
 import (
 	"context"

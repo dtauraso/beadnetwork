@@ -3,7 +3,7 @@ package gatecommon
 import (
 	"context"
 
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
 // runGateLoop is the shared window/dwell/clock loop body used by both RunGate
@@ -38,7 +38,7 @@ func runGateLoop(ctx context.Context, g *GateNode, captureLeftFn, captureRightFn
 		// has (per-goroutine-clock.md "Delivery" — DriveHeld's sibling note
 		// applies equally here: RunGate's only blocking point is this sleep).
 		sleep = func(ctx context.Context) error {
-			wire.ApplySpeedNonBlocking(clk, g.SpeedCh)
+			clock.ApplySpeedNonBlocking(clk, g.SpeedCh)
 			return clk.SleepCycle(ctx)
 		}
 	} else if g.Tick != nil {

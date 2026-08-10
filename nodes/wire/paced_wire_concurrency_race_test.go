@@ -20,6 +20,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
 // TestPacedWireOwnershipUnderRace drives a PacedWire the way production actually
@@ -46,7 +48,7 @@ func TestPacedWireOwnershipUnderRace(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		clk := NewRealClock()
+		clk := clock.NewRealClock()
 		i := 0.0
 		for time.Now().Before(deadline) {
 			i++
@@ -81,7 +83,7 @@ func TestPacedWireOwnershipUnderRace(t *testing.T) {
 		// once per emission and stamps it as placementTick (placeRequest's doc
 		// comment), so this source role needs a clock of its own rather than
 		// sharing the wire-driving goroutine's clk above.
-		srcClk := NewRealClock()
+		srcClk := clock.NewRealClock()
 		val := 0
 		for time.Now().Before(deadline) {
 			val++

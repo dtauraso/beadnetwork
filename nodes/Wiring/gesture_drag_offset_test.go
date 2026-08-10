@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
 // gesture_drag_offset_test.go — pins the grab-offset fix: dragging a node from a point OFF
@@ -25,7 +25,7 @@ func dragOffsetMD() *MoveDispatch {
 	md.ui.vp.Viewpoint = canonicalViewpoint()
 	g := nodeGeom{nodeIdentity: nodeIdentity{Kind: "TimeEnd"}}
 	setNodeWorld(&g, vec3{X: 0, Y: 0, Z: 0})
-	nm := newNodeGeometry("n", g, nil, wire.NewRealClock())
+	nm := newNodeGeometry("n", g, nil, clock.NewRealClock())
 	md.mr.nodeGeoms["n"] = nm
 	// No goroutine started (mirrors gesture_home_test's homeMD): extIn is a buffered
 	// channel (moverInboxDepth), so sendMove's writes land there for the test to drain

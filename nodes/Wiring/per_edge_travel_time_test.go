@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -38,7 +38,7 @@ func TestFanInRejectedAtLoad(t *testing.T) {
 	root := writeSpecTree(t, t.TempDir(), topo)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	_, _, _, _, err := LoadTopology(ctx, root, T.New(), wire.NewRealClock())
+	_, _, _, _, err := LoadTopology(ctx, root, T.New(), clock.NewRealClock())
 	if err == nil {
 		t.Fatalf("LoadTopology accepted a fan-in topology (two edges into sink.In); want a fan-in rejection error")
 	}

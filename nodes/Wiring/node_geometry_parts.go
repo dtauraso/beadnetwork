@@ -18,6 +18,7 @@ package Wiring
 
 import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
 // nodeMessaging owns this node's own inbound channel set, its outbound retry queue, and
@@ -86,14 +87,14 @@ type nodeClocks struct {
 	// clockSrc is the Clock this node's driving goroutine Copies from EXACTLY ONCE, at its
 	// own start, into clk below (per-goroutine-clock.md). Set once at construction. Not
 	// read again after that copy.
-	clockSrc wire.Clock
+	clockSrc clock.Clock
 	// clk is this node's OWN clock copy — read by writeStreamFrame (the frame tick) and,
 	// for a ring node, by its owning nodeMover's pacing loop (ApplySpeedNonBlocking/
 	// SleepCycle). Only the one goroutine driving this geometry ever reads or writes it.
 	// Defaults to a fresh, real, live-ticking RealClock (see newNodeGeometry) so a test
 	// that never launches a driving goroutine (e.g. a bare literal calling flushPending
 	// directly) never dereferences a nil Clock.
-	clk wire.Clock
+	clk clock.Clock
 	// speedCh is not here because polling one every cycle is pacing — an ACTOR concern. It
 	// lives on whatever drives this geometry: nodeMover for a ring node (node_mover.go),
 	// PairNodeSelf for a pair node (pair_node_self.go). BOTH must poll it.

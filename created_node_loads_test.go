@@ -26,7 +26,7 @@ import (
 
 	T "github.com/dtauraso/wirefold/Trace"
 	Wiring "github.com/dtauraso/wirefold/nodes/Wiring"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
 // copyTreeForCreate copies a topology tree into t.TempDir() so the test can write into it
@@ -149,7 +149,7 @@ func TestCreatedNodeTreeStillLoads(t *testing.T) {
 	defer cancel()
 	tr := T.New()
 	tr.SetSink(os.Stderr)
-	if _, _, _, _, err := Wiring.LoadTopology(ctx, root, tr, wire.NewRealClock()); err != nil {
+	if _, _, _, _, err := Wiring.LoadTopology(ctx, root, tr, clock.NewRealClock()); err != nil {
 		t.Fatalf("a tree with a created node did not load: %v\n"+
 			"That is what the editor sees after a drop: the run ends, the host respawns, and the "+
 			"new process exits during load — no camera, so no zoom, pan or rotate.", err)

@@ -3,6 +3,7 @@ package selectleft
 import (
 	"context"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 	"testing"
 	"time"
 
@@ -15,7 +16,7 @@ import (
 // goroutine (edgeMover.run) would otherwise supply. Needed for every wire here
 // (both inputs and ToPassed): this bare-wire unit test has no edgeMover of its
 // own. clk is this goroutine's OWN clock copy; callers must not share it with another goroutine.
-func stepWire(ctx context.Context, pw *wire.PacedWire, clk wire.Clock) {
+func stepWire(ctx context.Context, pw *wire.PacedWire, clk clock.Clock) {
 	go func() {
 		for {
 			select {
@@ -44,7 +45,7 @@ func runGate(t *testing.T, left, right int) int {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	clk := wire.NewRealClock()
+	clk := clock.NewRealClock()
 
 	leftPw := wire.NewPacedWire(int(latMs), 1.0)
 	stepWire(ctx, leftPw, clk.Copy())

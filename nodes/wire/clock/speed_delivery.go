@@ -2,7 +2,7 @@
 // latest-wins helpers a goroutine uses to poll for a speed/held-value change on
 // its own inbox channel, and the sender-side counterparts.
 
-package wire
+package clock
 
 // ApplySpeedNonBlocking is the delivery half of per-goroutine-clock.md
 // "Delivery": every paced loop grows exactly this one poll, folded into its

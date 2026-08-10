@@ -1,4 +1,4 @@
-package wire
+package clock
 
 import (
 	"go/ast"

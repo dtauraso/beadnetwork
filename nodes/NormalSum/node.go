@@ -20,6 +20,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
 // noNormal marks an input that has not arrived yet. -1 rather than 0, because 0 is a
@@ -34,7 +35,7 @@ const noNormal = -1
 // here and no channel to itself.
 type Node struct {
 	Fire  func()
-	Clock wire.Clock
+	Clock clock.Clock
 	// Self is this node's own handle for driving its own geometry — SetTiltIndex, which is
 	// what makes the total DRAWN rather than merely held.
 	Self *Wiring.PairNodeSelf
@@ -76,7 +77,7 @@ func (n *Node) Update(ctx context.Context) {
 		if ctx.Err() != nil {
 			return
 		}
-		wire.ApplySpeedNonBlocking(c, n.SpeedCh)
+		clock.ApplySpeedNonBlocking(c, n.SpeedCh)
 		select {
 		case pts := <-n.LatticeIn:
 			if pts > 0 {

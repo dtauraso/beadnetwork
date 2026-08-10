@@ -14,7 +14,7 @@
 //
 // LOAD side: loadSceneSpeed reads the value back; MoveDispatch.LoadSpeed installs it into
 // md.ui.speed on startup, broadcasts it to every clock-owning goroutine's own speed channel
-// the SAME way a live slider edit does (wire.SendSpeedNonBlocking over speedSinks), and
+// the SAME way a live slider edit does (clock.SendSpeedNonBlocking over speedSinks), and
 // emits it so the buffer reflects the loaded speed from the first frame — closing the
 // slider→reload→still-at-that-speed round trip.
 //
@@ -28,7 +28,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -141,7 +141,7 @@ func loadSceneSpeed(speedPath string) (float64, bool) {
 // tilt-edit speed override (HumanEditSpeed) cannot drift from it.
 func BroadcastSpeed(speedSinks []chan float64, effective float64) {
 	for _, ch := range speedSinks {
-		wire.SendSpeedNonBlocking(ch, effective)
+		clock.SendSpeedNonBlocking(ch, effective)
 	}
 }
 
@@ -158,7 +158,7 @@ func (md *MoveDispatch) LoadSpeed(topologyPath string, speedSinks []chan float64
 	md.ui.speed = speed
 	effective := EffectiveClockSpeed(speed, md.ui.clockDivisor)
 	for _, ch := range speedSinks {
-		wire.SendSpeedNonBlocking(ch, effective)
+		clock.SendSpeedNonBlocking(ch, effective)
 	}
 	md.emitViewFrame(nil)
 }

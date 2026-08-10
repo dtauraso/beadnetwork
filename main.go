@@ -9,7 +9,7 @@ import (
 	"syscall"
 	"time"
 
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 	"github.com/dtauraso/wirefold/runtopology"
 )
 
@@ -19,7 +19,7 @@ import (
 func Run(topologyPath string) {
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 	defer cancel()
-	runtopology.RunTopology(ctx, cancel, topologyPath, wire.NewRealClock())
+	runtopology.RunTopology(ctx, cancel, topologyPath, clock.NewRealClock())
 }
 
 // RunTest wires the topology and lets it run for dur before cancelling, using a
@@ -27,7 +27,7 @@ func Run(topologyPath string) {
 func RunTest(dur time.Duration, topologyPath string) {
 	ctx, cancel := context.WithTimeout(context.Background(), dur)
 	defer cancel()
-	runtopology.RunTopology(ctx, cancel, topologyPath, wire.NewRealClock())
+	runtopology.RunTopology(ctx, cancel, topologyPath, clock.NewRealClock())
 }
 
 func main() {

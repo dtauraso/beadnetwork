@@ -16,6 +16,7 @@ package Wiring
 
 import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
@@ -134,7 +135,7 @@ var clockAttrHandlers = map[string]func(msg inputcodec.StdinMsg, md *MoveDispatc
 		// channels; SendSpeedNonBlocking never blocks on a
 		// receiver that is asleep or never reads (latest-wins coalescing).
 		for _, ch := range speedSinks {
-			wire.SendSpeedNonBlocking(ch, effective)
+			clock.SendSpeedNonBlocking(ch, effective)
 		}
 		if md == nil {
 			return

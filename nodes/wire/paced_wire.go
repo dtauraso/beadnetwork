@@ -10,6 +10,8 @@ package wire
 
 import (
 	"os"
+
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
 // edgeBeadTraceEnabled gates whether stepAll appends a T.KindEdgeBead pendingWireEvent
@@ -62,7 +64,7 @@ const PulseSpeedWuPerMs = 0.04
 // human-speed clock uses to derive ticksToCross = arcLength / PulseSpeedWuPerTick,
 // which equals the retired arc/pulseSpeedMs/16 sample count — so a bead visits the
 // same number of positions in the same wall time.
-const PulseSpeedWuPerTick = PulseSpeedWuPerMs * MsPerTick
+const PulseSpeedWuPerTick = PulseSpeedWuPerMs * clock.MsPerTick
 
 // PacedWire is an ACTIVE GOROUTINE (MODEL.md "The network"), not a passive
 // struct: a channel in from its source node, a channel out to its destination

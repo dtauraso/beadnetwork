@@ -14,6 +14,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -76,7 +77,7 @@ func writeTree(t *testing.T) string {
 func loadTreeMD(t *testing.T, root string) *MoveDispatch {
 	t.Helper()
 	tr := T.New()
-	_, _, md, _, err := LoadTopology(context.Background(), root, tr, wire.NewRealClock())
+	_, _, md, _, err := LoadTopology(context.Background(), root, tr, clock.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology: %v", err)
 	}

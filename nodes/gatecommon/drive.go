@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/dtauraso/wirefold/nodes/Wiring"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
 // DriveHeld runs a continuous-drive goroutine on out, repeatedly emitting
@@ -89,15 +90,15 @@ import (
 // call — passing the same channel to two DriveHeld goroutines would starve
 // whichever one loses a given receive. nil is fine (chan mode, or a caller
 // with no speed channel to give): ApplySpeedNonBlocking is then a no-op.
-func DriveHeld(ctx context.Context, out Wiring.DrivenOut, heldCh <-chan int64, transform func(int64) int, clk wire.Clock, speedCh <-chan float64) {
+func DriveHeld(ctx context.Context, out Wiring.DrivenOut, heldCh <-chan int64, transform func(int64) int, clk clock.Clock, speedCh <-chan float64) {
 	go func() {
 		paced := out.Paced()
 		cur := int64(NoValue)
-		var c wire.Clock
+		var c clock.Clock
 		// No-loader fallback: a dedicated tick-pulse channel subscribed ONCE here
 		// against the process's one TickBroadcaster (nodes/wire/clock.go), so this
 		// goroutine blocks on receive instead of on its own time.After.
-		tickCh := wire.NewTickChan()
+		tickCh := clock.NewTickChan()
 		sleep := func(ctx context.Context) error {
 			select {
 			case <-ctx.Done():
@@ -123,7 +124,7 @@ func DriveHeld(ctx context.Context, out Wiring.DrivenOut, heldCh <-chan int64, t
 			// (this comment block's own note above it): DriveHeld's only blocking
 			// point is sleep, so that is where the check goes.
 			sleep = func(ctx context.Context) error {
-				wire.ApplySpeedNonBlocking(c, speedCh)
+				clock.ApplySpeedNonBlocking(c, speedCh)
 				return c.SleepCycle(ctx)
 			}
 			tick = c.Tick
@@ -199,7 +200,7 @@ func DriveHeld(ctx context.Context, out Wiring.DrivenOut, heldCh <-chan int64, t
 					if k < 1 {
 						k = 1
 					}
-					wire.ApplySpeedNonBlocking(c, speedCh)
+					clock.ApplySpeedNonBlocking(c, speedCh)
 					if err := c.SleepUntilTick(ctx, lastPlaceTick+k); err != nil {
 						return
 					}

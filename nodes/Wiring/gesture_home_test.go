@@ -6,7 +6,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
 // gesture_home_test.go — the "home" (fit-to-content) command: Go frames all nodes from its
@@ -26,7 +26,7 @@ func homeMD(v geom.Viewpoint, centers map[string]vec3) *MoveDispatch {
 	for id, c := range centers {
 		g := nodeGeom{nodeIdentity: nodeIdentity{Kind: "TimeEnd"}}
 		setNodeWorld(&g, c)
-		md.mr.nodeGeoms[id] = newNodeGeometry(id, g, nil, wire.NewRealClock())
+		md.mr.nodeGeoms[id] = newNodeGeometry(id, g, nil, clock.NewRealClock())
 	}
 	return md
 }

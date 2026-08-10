@@ -2,7 +2,7 @@
 // ever waits on wall time. Every RealClock (real_clock.go) subscribes against
 // the single instance here and paces itself off the pulse (sleep_cycle.go).
 
-package wire
+package clock
 
 import (
 	"sync"

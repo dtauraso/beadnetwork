@@ -3,6 +3,7 @@ package pulseleft
 import (
 	"context"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring"
 	"github.com/dtauraso/wirefold/nodes/gatecommon"
@@ -26,7 +27,7 @@ import (
 //
 // held is owned by the MAIN loop; the drive goroutine gets its OWN channel
 // (Out1HeldCh) the main loop sends the latest held value on
-// (wire.SendLatestNonBlocking) whenever it changes — the same per-goroutine-channel
+// (clock.SendLatestNonBlocking) whenever it changes — the same per-goroutine-channel
 // shape as SpeedCh/Out1SpeedCh below. The output is NOT precondition-gated: it
 // self-emits noValue from the start (like the Input bootstrap), never inert
 // until fed.
@@ -39,11 +40,11 @@ type PulseLeft struct {
 	EmitHeldBead func(held int)
 	// Clock is this node's OWN clock storage, assigned by this kind's own builder
 	// directly from the loader's origin (bare-field injection by exact type
-	// wire.Clock — see input.Node.Clock; ports no longer hand out a clock,
+	// clock.Clock — see input.Node.Clock; ports no longer hand out a clock,
 	// per-goroutine-clock.md API demolition item 1). Update() Copies it once
 	// for its own loop, and passes the ORIGIN (not that copy) to each DRIVE
 	// goroutine below, which Copies independently at ITS OWN start.
-	Clock wire.Clock
+	Clock clock.Clock
 	// SpeedCh delivers a speed change to the MAIN loop's own clock copy;
 	// Out1SpeedCh does the same for the DriveHeld goroutine's OWN independent
 	// copy (per-goroutine-clock.md "Delivery") — two separate clock-owning
@@ -62,7 +63,7 @@ type PulseLeft struct {
 // driveOutput runs a continuous-drive goroutine on out, always emitting the
 // current value of held. Delegates to gatecommon.DriveHeld (shared with
 // HoldFlip's identical-shaped drive goroutine) with an identity transform.
-func driveOutput(ctx context.Context, out Wiring.DrivenOut, heldCh <-chan int64, clk wire.Clock, speedCh <-chan float64) {
+func driveOutput(ctx context.Context, out Wiring.DrivenOut, heldCh <-chan int64, clk clock.Clock, speedCh <-chan float64) {
 	gatecommon.DriveHeld(ctx, out, heldCh, func(h int64) int { return int(h) }, clk, speedCh)
 }
 
@@ -102,7 +103,7 @@ func (g *PulseLeft) Update(ctx context.Context) {
 			g.EmitHeldBead(v) // show the new interior bead IMMEDIATELY
 		}
 		cur = int64(v)
-		wire.SendLatestNonBlocking(out1HeldCh, cur)
+		clock.SendLatestNonBlocking(out1HeldCh, cur)
 	}
 
 	// Copy taken ONCE at this goroutine's start (Update IS the goroutine); each
@@ -116,7 +117,7 @@ func (g *PulseLeft) Update(ctx context.Context) {
 			return
 		}
 		consume()
-		wire.ApplySpeedNonBlocking(clk, g.SpeedCh)
+		clock.ApplySpeedNonBlocking(clk, g.SpeedCh)
 		if err := clk.SleepCycle(ctx); err != nil {
 			return
 		}

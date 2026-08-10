@@ -3,6 +3,7 @@ package input
 import (
 	"context"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring"
 )
@@ -29,7 +30,7 @@ type Node struct {
 	// main loop). nil on test builds without injection — the caller then falls
 	// back to the instant refill. beads is the OLD backup contents that become the
 	// new working row.
-	EmitRefillSlide func(clk wire.Clock, speedCh <-chan float64, beads []int)
+	EmitRefillSlide func(clk clock.Clock, speedCh <-chan float64, beads []int)
 	// Clock is this node's OWN clock storage, assigned by this kind's own builder
 	// directly from the loader's origin (not derived from any specific wired
 	// output port — deriving it from OutCadence/ToExcitatory was fragile:
@@ -39,12 +40,12 @@ type Node struct {
 	// nil-interface trap on any construction path that does not set it (a test
 	// building &Node{} directly, say): an unguarded `clk.Tick()` panics with no
 	// recover over the node goroutine, taking down every other node and the
-	// buffer stream with it. The builder below defaults it to wire.NewRealClock()
+	// buffer stream with it. The builder below defaults it to clock.NewRealClock()
 	// so it is NEVER nil even on a test build with no loader, and overwrites it
 	// with the loader's origin clock when there is one; clock() re-guards on
 	// every read as a second line of defense in case some future construction
 	// path bypasses the builder.
-	Clock wire.Clock
+	Clock clock.Clock
 	// SpeedCh delivers a speed change to THIS goroutine's own clk copy
 	// (per-goroutine-clock.md "Delivery"), assigned by this kind's own builder
 	// (injectSpeedChans) with a fresh buffered-1 channel. nil on a test build
@@ -73,9 +74,9 @@ type Node struct {
 // Register factory below already seeds a real default, but this is the single
 // read path every call site goes through so no future construction path can
 // reintroduce the bare-nil panic hazard described on the Clock field).
-func (n *Node) clock() wire.Clock {
+func (n *Node) clock() clock.Clock {
 	if n.Clock == nil {
-		return wire.NewRealClock()
+		return clock.NewRealClock()
 	}
 	return n.Clock
 }
@@ -132,7 +133,7 @@ func popEnd(working, backup *[]int, init []int) int {
 //
 //	s == 1 -> POP the end (the "change the bead" action); refill on empty.
 //	s == 0 -> hold: do nothing, keep sending the same last bead next loop.
-func (n *Node) updateFeedbackRing(ctx context.Context, working, backup *[]int, init []int, emitBeads func(), clk wire.Clock) {
+func (n *Node) updateFeedbackRing(ctx context.Context, working, backup *[]int, init []int, emitBeads func(), clk clock.Clock) {
 	// clk is this goroutine's own copy, taken once by the caller (Update) at
 	// startup. Do not re-derive from n.clock() here; that would be a second,
 	// independent copy from the same shared source, defeating "one copy per
@@ -181,7 +182,7 @@ func (n *Node) updateFeedbackRing(ctx context.Context, working, backup *[]int, i
 		// broadcast wire's own goroutine advances its in-flight beads; this node
 		// is never parked across the traversal and no longer steps the wires
 		// itself.
-		wire.ApplySpeedNonBlocking(clk, n.SpeedCh)
+		clock.ApplySpeedNonBlocking(clk, n.SpeedCh)
 		if err := clk.SleepCycle(ctx); err != nil {
 			return
 		}
@@ -286,7 +287,7 @@ func (n *Node) Update(ctx context.Context) {
 			emitted++
 		}
 
-		wire.ApplySpeedNonBlocking(clk, n.SpeedCh)
+		clock.ApplySpeedNonBlocking(clk, n.SpeedCh)
 		if err := clk.SleepCycle(ctx); err != nil {
 			return
 		}
@@ -324,8 +325,8 @@ func init() {
 				// builds): a.Clock() below returns nil in that case (BuildArgs.Clock
 				// doc: "nil on a test build with no loader"), and this default is
 				// what previously came from the Register factory's zero-value seed
-				// (`&Node{Clock: wire.NewRealClock()}`) the old registration supplied.
-				Clock: wire.NewRealClock(),
+				// (`&Node{Clock: clock.NewRealClock()}`) the old registration supplied.
+				Clock: clock.NewRealClock(),
 			}
 			n.Fire = a.Fire()
 			n.EmitNodeBeads = a.EmitNodeBeads()

@@ -3,6 +3,7 @@ package input
 import (
 	"context"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 	"testing"
 	"time"
 
@@ -13,7 +14,7 @@ import (
 // is cancelled, matching the production per-cycle drive path a wire's own
 // goroutine (edgeMover.run) would otherwise supply. clk is this goroutine's OWN
 // clock copy; callers must not share it with another goroutine.
-func stepWire(ctx context.Context, pw *wire.PacedWire, clk wire.Clock) {
+func stepWire(ctx context.Context, pw *wire.PacedWire, clk clock.Clock) {
 	go func() {
 		for {
 			select {
@@ -41,7 +42,7 @@ func TestEmitsInitValuesLean(t *testing.T) {
 	defer cancel()
 
 	pw := wire.NewPacedWire(int(latMs), 1.0)
-	clk := wire.NewRealClock()
+	clk := clock.NewRealClock()
 	// Production drives this output wire via its edge's own goroutine
 	// (edgeMover.run); this bare-wire unit test has no edgeMover, so it must
 	// supply the same per-cycle drive itself.

@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/dtauraso/wirefold/nodes/Wiring"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 	"testing"
 	"time"
 )
@@ -32,7 +33,7 @@ func TestDriveHeldChanModeStillObeysSpeed(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	clk := wire.NewRealClock()
+	clk := clock.NewRealClock()
 	speedCh := make(chan float64, 1)
 
 	// Chan mode: out.Paced() == false. Before the fix, DriveHeld would never

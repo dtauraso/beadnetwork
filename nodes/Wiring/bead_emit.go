@@ -10,6 +10,7 @@ import (
 	"context"
 
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -154,7 +155,7 @@ func emitInputBeads(tr *T.Trace, nodeName string, left, right int, stream *inter
 // the caller's own loop resumes and drains it one cycle later — the in-node
 // animation would run at the OLD speed for its entire duration regardless of
 // the slider (the bug this fixes).
-func emitRefillSlide(ctx context.Context, tr *T.Trace, nodeName string, clk wire.Clock, speedCh <-chan float64, beads []int) {
+func emitRefillSlide(ctx context.Context, tr *T.Trace, nodeName string, clk clock.Clock, speedCh <-chan float64, beads []int) {
 	if clk == nil || len(beads) == 0 {
 		return
 	}
@@ -181,7 +182,7 @@ func emitRefillSlide(ctx context.Context, tr *T.Trace, nodeName string, clk wire
 
 	emitFrame(0) // initial frame: beads at the top, top row cleared
 	for {
-		wire.ApplySpeedNonBlocking(clk, speedCh)
+		clock.ApplySpeedNonBlocking(clk, speedCh)
 		if err := clk.SleepCycle(ctx); err != nil {
 			return
 		}

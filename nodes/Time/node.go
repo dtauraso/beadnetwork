@@ -3,6 +3,7 @@ package time
 import (
 	"context"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring"
 	"github.com/dtauraso/wirefold/nodes/gatecommon"
@@ -21,10 +22,10 @@ type Time struct {
 	Held         int `wire:"data.state"`
 	// Clock is this node's OWN clock storage, assigned by this kind's own builder
 	// directly from the loader's origin (bare-field injection by exact type
-	// wire.Clock — see input.Node.Clock; ports no longer hand out a clock,
+	// clock.Clock — see input.Node.Clock; ports no longer hand out a clock,
 	// per-goroutine-clock.md API demolition item 1). Update() Copies it exactly
 	// once at its own start.
-	Clock wire.Clock
+	Clock clock.Clock
 	// SpeedCh delivers a speed change to THIS goroutine's own clk copy
 	// (per-goroutine-clock.md "Delivery"), assigned by this kind's own builder
 	// (injectSpeedChans). nil on a test build with no loader.
@@ -94,7 +95,7 @@ func (in *Time) Update(ctx context.Context) {
 		default:
 		}
 
-		wire.ApplySpeedNonBlocking(clk, in.SpeedCh)
+		clock.ApplySpeedNonBlocking(clk, in.SpeedCh)
 		if err := clk.SleepCycle(ctx); err != nil {
 			return
 		}
