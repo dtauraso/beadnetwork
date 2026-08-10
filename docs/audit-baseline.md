@@ -50,9 +50,9 @@ entry — don't leave it stale.
 column. This is not accidental duplication to fix — it is the mechanism by which the binary
 content buffer stays agnostic between the Go producer and the TS consumer. It is fully
 guarded:
-- `tools/check-generated.sh` — generated files match their generator.
-- `tools/check-buffer-layout-parity.sh` — Go/TS column layouts agree.
-- `tools/check-no-dead-buffer-column.sh` — no column is defined but unused.
+- `tools/buffer-schema/check-generated.sh` — generated files match their generator.
+- `tools/buffer-schema/check-buffer-layout-parity.sh` — Go/TS column layouts agree.
+- `tools/buffer-schema/check-no-dead-buffer-column.sh` — no column is defined but unused.
 
 Do not propose collapsing this lockstep; propose only guard gaps if the parity guards
 above are found not to cover a specific new column.

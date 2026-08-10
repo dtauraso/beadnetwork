@@ -28,7 +28,7 @@ type StreamEvent struct {
 	// KindBreadcrumb only). Text is packed by BuildEventsSection into this frame's
 	// own trailing event-text-bytes section, immediately after the fixed-stride
 	// event rows — the single sanctioned free-form string escape hatch on this row
-	// (tools/check-event-string-section-singular.sh).
+	// (tools/buffer-schema/check-event-string-section-singular.sh).
 	Label uint8
 	Debug uint8
 	Text  string

@@ -20,7 +20,7 @@ export function splitJsonlLines(buf: string, chunk: string): { lines: string[]; 
 // — this is the SAME [len:u32-LE][payload] protocol, just read in the opposite direction
 // (Go emits, TS decodes here), and a corrupt/hostile length must be rejected the same way
 // on both ends or a bound that only fires going one way is not a bound on the protocol at
-// all. Parity is enforced by tools/check-frame-bytes-parity.sh. Without this bound, a
+// all. Parity is enforced by tools/bridge/check-frame-bytes-parity.sh. Without this bound, a
 // corrupt length makes splitFrames' carried-over `rest` grow forever waiting for bytes that
 // will never complete the frame — unbounded memory, silently.
 export const MAX_FRAME_BYTES = 1 << 20;

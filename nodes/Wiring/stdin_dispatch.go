@@ -9,8 +9,8 @@
 // Every level is deliberately FORWARD-COMPAT: an unknown op/kind/attr is ignored rather
 // than an error, because a newer webview may send a message this binary predates. That is
 // also why the tables are sentinel-fenced and guarded — a silently-ignored edit looks
-// exactly like a working one from the outside (tools/check-input-attr-dispatched.sh,
-// tools/check-edit-op-parity.sh).
+// exactly like a working one from the outside (tools/bridge/check-input-attr-dispatched.sh,
+// tools/bridge/check-edit-op-parity.sh).
 
 package Wiring
 

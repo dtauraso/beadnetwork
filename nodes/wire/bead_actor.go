@@ -43,7 +43,7 @@
 // that distinction is load-bearing: `default:` makes the loop non-blocking, so a caller
 // looping around it spins a core; omitting it lets the runtime park the goroutine on every
 // channel's wait queue at zero CPU until one of them has something. Guarded in source by
-// tools/check-no-select-default.sh (scoped to this file's run loop, fenced by
+// tools/network/check-no-select-default.sh (scoped to this file's run loop, fenced by
 // the run-loop fence markers below — NOT a repo-wide "no default in any select" rule, since
 // sendStepsNonBlocking and friends elsewhere in this package correctly rely on `default:`
 // for a non-blocking latest-wins send).

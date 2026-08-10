@@ -20,7 +20,7 @@
 // too. The invariant is narrower and stronger than "cartesian appears once": every other
 // cartesian is DERIVED from this anchor (sceneCenter + polar2cart(…)) or QUARANTINED at the
 // renderer edge — none is persisted, and none is a source of truth. Nav stays polar-only
-// (guard: tools/check-polar-only-nav.sh). On-disk shape:
+// (guard: tools/webview/check-polar-only-nav.sh). On-disk shape:
 //
 //	{ "sceneSphere": { "center": [x,y,z], "radius": n } }
 //

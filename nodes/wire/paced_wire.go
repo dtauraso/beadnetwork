@@ -137,7 +137,7 @@ const maxInflightBeads = wireChanBufferSize
 // the desired latMs so that ticksToCross falls out as latMs. What keeps production uniform
 // is that there is exactly ONE non-test call site (loader.go), passing DwellTicksPerBead.
 //
-// That one-call-site invariant is enforced by tools/check-uniform-pulse-speed.sh. Do not
+// That one-call-site invariant is enforced by tools/network/check-uniform-pulse-speed.sh. Do not
 // add a second production caller: it converts "uniform" from structural to conventional.
 // If production ever needs to build a wire elsewhere, drop this parameter instead and let
 // the tests express ticksToCross directly as steps*DwellTicksPerBead.

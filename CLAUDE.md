@@ -23,7 +23,7 @@ overlays) into a **binary content buffer** and streams it. The render tree under
 and draws that buffer; it computes no positions, no geometry, and no traversal timing,
 and never tells Go when a bead arrived. There is no JSON-trace render path and no
 `pump.ts`; the TS layer is **render + forward only** and holds no domain state (guard:
-`tools/check-no-webview-state.sh`).
+`tools/webview/check-no-webview-state.sh`).
 
 The model's real entities live in [MODEL.md](MODEL.md): bead, wire (`PacedWire` — a
 PASSIVE delay queue holding its own in-flight beads, with a channel on each end, stepped by
@@ -32,7 +32,7 @@ clock, and the node-owned chain of placeholder beads that renders a traversal
 ([docs/beads-are-the-edge.md](docs/beads-are-the-edge.md)). The active node kinds are the structs under `nodes/<Kind>/`.
 
 **Drift rule:** see MODEL.md's "Drift rule" section for the full statement (guards:
-`tools/check-no-webview-state.sh`, `tools/check-no-await-on-bridge.sh`).
+`tools/webview/check-no-webview-state.sh`, `tools/bridge/check-no-await-on-bridge.sh`).
 
 ## Primitive landing rule (narrowed)
 
@@ -61,7 +61,7 @@ entity kind or attribute, NOT a new op), **bare commands** (`save` only), and **
 produced in-process by the FSM, they do not cross this seam as edits).
 
 The TS → Go send is **fire-and-forget** — no `await`, no Promise chain, no request/response,
-no delivery signal (guard: `tools/check-no-await-on-bridge.sh`).
+no delivery signal (guard: `tools/bridge/check-no-await-on-bridge.sh`).
 
 Vocabulary detail, parity guards, and the no-sidecar rule: `.claude/rules/bridge-surface.md`.
 
@@ -82,7 +82,7 @@ A test asserts what **one goroutine itself** decided, emitted, or persisted. Do 
 test that two or more goroutines communicate properly — not delivery, not ordering, not
 absence-of-deadlock, not absence-of-race. That correctness is guaranteed BY CONSTRUCTION
 here (per-mover ownership, dedicated per-pair channels, no locks/atomics — guard:
-`tools/check-no-network-locks.sh`, empty allowlist), so such a test asserts what the
+`tools/network/check-no-network-locks.sh`, empty allowlist), so such a test asserts what the
 structure already gives you and exercises Go's runtime instead of this codebase.
 
 The one exception is **persistence**: bytes on disk through a real reload

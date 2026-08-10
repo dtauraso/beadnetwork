@@ -226,7 +226,7 @@ func writeInputLayout(outPath string, fp *inputLayoutFingerprint) error {
 	fmt.Fprintln(w, `// Enum orderings (u8 index -> string), shared with input_fingerprint.go.`)
 	writeTSArray(w, "IN_EVENT_KINDS", fp.eventKinds)
 	writeTSArray(w, "IN_HIT_KINDS", fp.hitKinds)
-	// EDIT_UPDATE_KINDS_START / _END bound tools/check-edit-op-parity.sh's axis-2 extraction
+	// EDIT_UPDATE_KINDS_START / _END bound tools/bridge/check-edit-op-parity.sh's axis-2 extraction
 	// (the 3rd update-kind parity source, alongside messages.ts EditMsg + stdin_reader.go
 	// applyUpdate). Keep the sentinel lines immediately around IN_UPDATE_KINDS.
 	fmt.Fprintln(w, `// EDIT_UPDATE_KINDS_START`)

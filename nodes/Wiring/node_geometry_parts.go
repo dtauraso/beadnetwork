@@ -8,7 +8,7 @@
 // concern a NAMED type; node_geometry.go keeps the composer plus every method.
 //
 // Same pattern MoveDispatch already follows (move_dispatch.go, guarded by
-// tools/check-composer-fields.sh): NAMED sub-objects accessed explicitly (m.ui.selected),
+// tools/network/check-composer-fields.sh): NAMED sub-objects accessed explicitly (m.ui.selected),
 // never Go embedding — embedding would keep the flat namespace and hide the owner.
 //
 // This is a pure regrouping. Every field keeps its name, its type, its zero value and its

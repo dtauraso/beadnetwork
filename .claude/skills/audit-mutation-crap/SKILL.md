@@ -15,7 +15,7 @@ on every commit.
 CONSTRUCTION (ownership + message-passing, no locks/atomics), and a prior audit pass
 used that argument to delete ~27 tests (see that doc's "History" section). The argument
 may well be right, but nothing in this repo currently produces EVIDENCE for or against
-it. `tools/check-test-integrity.sh` (if present) only catches tests being WEAKENED over
+it. `tools/repo-hygiene/check-test-integrity.sh` (if present) only catches tests being WEAKENED over
 time — it says nothing about whether the surviving tests had teeth to begin with.
 
 Two tools, two different questions:
@@ -111,10 +111,10 @@ DIFFERENTIAL mode fast on a second run (only re-mutates functions whose hash cha
 but a stray committed manifest — or a leftover `<file>.mutate4go.bak` backup written
 next to the source mid-run — will trip THREE of this repo's stop-checks guards:
 
-- `tools/check-gofmt.sh` — the rewritten file may not be gofmt-clean.
-- `tools/check-no-untracked-source.sh` — a surviving `.mutate4go.bak` is untracked
+- `tools/lang/check-gofmt.sh` — the rewritten file may not be gofmt-clean.
+- `tools/repo-hygiene/check-no-untracked-source.sh` — a surviving `.mutate4go.bak` is untracked
   source this guard is specifically built to catch.
-- `tools/check-comment-vocab.sh` — any banned token the manifest JSON happens to echo
+- `tools/docs/check-comment-vocab.sh` — any banned token the manifest JSON happens to echo
   (unlikely but not impossible: function names land verbatim in the JSON) would trip
   the retired-vocabulary scan.
 

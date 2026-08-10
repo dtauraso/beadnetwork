@@ -13,7 +13,7 @@
 //
 // The editor→Go bridge carries these top-level message kinds (all fully binary; no JSON
 // on the wire — see input_codec.go). This list is the AUTHORITATIVE doc for the dispatch
-// switch below and is checked against it by tools/check-message-kind-parity.sh: every type
+// switch below and is checked against it by tools/bridge/check-message-kind-parity.sh: every type
 // fenced by MSG_TYPES_START/END must be declared here and vice versa. Adding a case without
 // adding a numbered entry (or the reverse) fails the guard.
 //

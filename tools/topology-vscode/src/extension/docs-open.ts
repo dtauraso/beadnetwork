@@ -28,7 +28,7 @@ import * as vscode from "vscode";
 // say `node.go#handleVectorCycle` and never carry a line number. A line number in a
 // doc is wrong the first time anyone inserts a line above it, and nothing tells you —
 // the link still opens, just somewhere else. A name is checkable, and
-// tools/check-docs-symbols.sh checks it.
+// tools/docs/check-docs-symbols.sh checks it.
 //
 // Deliberately a regex over the text rather than vscode.executeDocumentSymbolProvider:
 // the symbol provider is gopls, which returns nothing until the language server has

@@ -60,7 +60,7 @@ var chainAimTraceEnabled = os.Getenv("WIREFOLD_CHAIN_AIM_TRACE") == "1"
 // cross-goroutine read here, which is why this can run on the emit path.
 //
 // NO SQRT ANYWHERE in this path except the ONE edgeCenterDistAndDir call per target (guard:
-// tools/check-no-sqrt-in-chain-beads.sh) — a neighbour's distance and direction come from
+// tools/network/check-no-sqrt-in-chain-beads.sh) — a neighbour's distance and direction come from
 // this single live measurement, reused for both layout and the published step count, never
 // re-measured a second time per bead. The only OTHER trig is a boundary conversion, matching
 // the "trig only at the boundary" model this file enforces. edgeStepCount's integer subtraction is plain arithmetic, not sqrt, so publishing
@@ -140,7 +140,7 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 		//
 		// edgeCenterDistAndDir's one sqrt-based vector-length/normalize pair is
 		// deliberately NOT inlined here: this file is guarded against a cartesian sqrt
-		// (tools/check-no-sqrt-in-chain-beads.sh) so bead placement stays a direct read of
+		// (tools/network/check-no-sqrt-in-chain-beads.sh) so bead placement stays a direct read of
 		// the live measurement; the sqrt itself lives in port_geometry.go, which already
 		// computes edgeSegment the same way.
 		dist, liveDir, ok := edgeCenterDistAndDir(selfCenter, targetCenter)
@@ -255,7 +255,7 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 			}
 			// liveDir is ALREADY a unit vector (Normalize() above), so its own theta/phi
 			// come from math.Acos/math.Atan2 directly on the unit components — no second
-			// vector-length or re-normalize call, which tools/check-no-sqrt-in-chain-beads.sh
+			// vector-length or re-normalize call, which tools/network/check-no-sqrt-in-chain-beads.sh
 			// bans in this file (trig itself is allowed, only the sqrt-fingerprinted
 			// helpers are not).
 			liveTheta := math.Acos(clamp(liveDir.Y, -1, 1))
@@ -292,7 +292,7 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 		// measured in canonical id order and why each end can decide alone. Zero for every
 		// ordinary edge, so a one-way chain is untouched. The vector math lives in
 		// port_geometry.go because this file is guarded against it
-		// (tools/check-no-sqrt-in-chain-beads.sh), the same split edgeCenterDistAndDir uses.
+		// (tools/network/check-no-sqrt-in-chain-beads.sh), the same split edgeCenterDistAndDir uses.
 		var chainSep vec3
 		if m.topo.mutualTargets[to] {
 			if off, ok := parallelChainOffset(m.id, to, selfCenter, targetCenter, m.geom.SceneCenter); ok {

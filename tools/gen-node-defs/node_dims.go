@@ -46,7 +46,7 @@ func writeNodeDims(outPath string, kinds []kindEntry) error {
 
 	w.Flush()
 	// gofmt the generated Go so the output is canonical and the repo-wide
-	// gofmt guard (tools/check-gofmt.sh) stays in agreement with check-generated.
+	// gofmt guard (tools/lang/check-gofmt.sh) stays in agreement with check-generated.
 	formatted, err := format.Source(buf.Bytes())
 	if err != nil {
 		return fmt.Errorf("format node_dims_gen.go: %w", err)

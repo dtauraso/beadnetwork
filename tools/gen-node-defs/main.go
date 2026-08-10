@@ -5,7 +5,7 @@
 //
 // This is the SINGLE entry point for every generator pipeline in this package
 // (node-defs, wire-defs, trace-kinds, node-dims/kind-id, curve/shading params,
-// overlay-gen, buffer-layout). tools/check-generated.sh derives its guarded-file
+// overlay-gen, buffer-layout). tools/buffer-schema/check-generated.sh derives its guarded-file
 // list from this one invocation's "wrote <path>" stderr lines — do not split
 // this into multiple binaries; add new pipelines as new files/functions in this
 // package and call them from main() below.

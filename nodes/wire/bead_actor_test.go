@@ -225,7 +225,7 @@ func TestDisjointWriters(t *testing.T) {
 }
 
 // --- No sleeping (behavioural half; the source-guard half is
-// tools/check-no-wall-clock-wait.sh, which already scans nodes/wire) ------------------
+// tools/network/check-no-wall-clock-wait.sh, which already scans nodes/wire) ------------------
 
 // TestGeometryServicedWithoutWaitingForATick: a bead waiting for its next tick still
 // services a geometry update immediately — nothing here blocks on a timer.
@@ -247,7 +247,7 @@ func TestGeometryServicedWithoutWaitingForATick(t *testing.T) {
 // bead goroutine's own frame (Bead.run, chan receive) shows up in a goroutine dump as
 // blocked in Go's "[select]" state — never running/runnable — which is what "parked at
 // zero CPU" means at the runtime level. This is the direct behavioural evidence for the
-// claim tools/check-no-select-default.sh backs structurally: default: would make the frame
+// claim tools/network/check-no-select-default.sh backs structurally: default: would make the frame
 // appear as "[running]" in a tight loop instead of "[select]" here.
 func TestIdleBeadIsBlockedNotRunnable(t *testing.T) {
 	const n = 50

@@ -5,7 +5,7 @@ set -uo pipefail
 # where it goes."
 #
 # THE PROBLEM THIS SOLVES
-# The guards in tools/check-*.sh encode a placement discipline: a write to view/* belongs in
+# The guards in tools/*/check-*.sh encode a placement discipline: a write to view/* belongs in
 # a view-owner file; a filepath.Join("view", …) belongs in scene_paths.go; useSyncExternalStore
 # belongs in a named buffer-reflect resource; a breadcrumb label must be registered. Each rule
 # is documented — in the guard's own header, which nobody reads until that guard fails. The
@@ -56,7 +56,7 @@ brief_for() {
   local hits=""
 
   local guard
-  for guard in "$REPO_ROOT"/tools/check-*.sh; do
+  for guard in "$REPO_ROOT"/tools/*/check-*.sh; do
     [ -f "$guard" ] || continue
     local line
     while IFS= read -r line; do

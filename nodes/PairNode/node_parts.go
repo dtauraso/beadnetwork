@@ -9,7 +9,7 @@ package PairNode
 // file gives each concern a NAMED type; node.go keeps the composer, the builder, the Update
 // loop and the two functions that decide.
 //
-// Same pattern nodes/Wiring/node_geometry_parts.go follows (and tools/check-composer-fields.sh
+// Same pattern nodes/Wiring/node_geometry_parts.go follows (and tools/network/check-composer-fields.sh
 // guards there): NAMED sub-objects accessed explicitly (n.vec.VectorOut), never Go embedding
 // — embedding would keep the flat namespace and hide the owner.
 //
@@ -212,7 +212,7 @@ type vectorExchange struct {
 // pure counting and reporting ABOUT the exchange — no part of the pair rule reads it, and
 // nothing in it can change where a tilt turns.
 //
-// Same pattern node_geometry_parts.go follows (and tools/check-composer-fields.sh guards
+// Same pattern node_geometry_parts.go follows (and tools/network/check-composer-fields.sh guards
 // there): a NAMED sub-object accessed explicitly (n.rest.roundsSinceOpen), never Go embedding
 // — embedding would keep the flat namespace and hide the owner.
 type restCounters struct {

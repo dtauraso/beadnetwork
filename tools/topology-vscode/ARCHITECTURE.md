@@ -74,7 +74,7 @@ generically from the decoded content buffer, keyed off `NODE_DEFS`
 
 There is no JSON-trace render path, no `pump.ts`, and no zustand/Redux-style
 store — the TS layer is render + forward only (guard:
-`tools/check-no-webview-state.sh`).
+`tools/webview/check-no-webview-state.sh`).
 
 ## Spec vs viewer state
 

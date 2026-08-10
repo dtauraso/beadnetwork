@@ -440,7 +440,7 @@ type bufLayoutEvent struct {
 	Debug uint8 `buf:"u8"` // 1 = this row is a debug breadcrumb
 	// TextOff/TextLen are this event's slice into the frame's trailing EVENT-TEXT
 	// BYTES section (the sanctioned SINGLE free-form string escape hatch for the
-	// event row — tools/check-event-string-section-singular.sh enforces at most
+	// event row — tools/buffer-schema/check-event-string-section-singular.sh enforces at most
 	// one such Off/Len pair on this struct). Used only for genuinely free-form
 	// remainder text a breadcrumb payload doesn't fit into a typed column
 	// (Value/X/Y/Z/NodeRow/PortRow/TargetRow/TargetPortRow/EdgeRow/Slot). TextLen=0

@@ -29,7 +29,7 @@ export interface EdgeAccessor {
   // receive an edge-select raw-input hit either (raw-input.ts's `edgeOnly` pick,
   // scene-content.tsx's pickBufferEdge). Left AS DATA (not deleted from Buffer/layout.go —
   // that is a bridge/schema change, a separate decision) — see
-  // tools/check-no-dead-buffer-column.sh's ALLOWED_DEAD entry for readEdgeSelected.
+  // tools/buffer-schema/check-no-dead-buffer-column.sh's ALLOWED_DEAD entry for readEdgeSelected.
   // No beads() accessor either: the Bead block is gone. A traversal renders as the LIT bead
   // of the source node's own fixed chain (ChainBeadInstances), not a moving position on the
   // edge stream — docs/beads-are-the-edge.md.

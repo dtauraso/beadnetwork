@@ -3,7 +3,7 @@ set -euo pipefail
 
 # wip.sh — park work in progress as a commit on YOUR branch, instead of `git stash`.
 #
-# The stash stack is repo-global (see tools/check-no-stash.sh): every concurrent session
+# The stash stack is repo-global (see tools/repo-hygiene/check-no-stash.sh): every concurrent session
 # in this one checkout sees and can pop the same entries, so it is shared mutable state.
 # A commit is not — it belongs to the branch you are on.
 #

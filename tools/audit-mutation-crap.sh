@@ -8,7 +8,7 @@
 # guaranteed BY CONSTRUCTION (ownership + message-passing, no locks), and a prior
 # audit pass deleted ~27 tests on that argument (docs/testing-shape.md "History").
 # Nothing in this repo produces EVIDENCE for or against that argument.
-# tools/check-test-integrity.sh (if present) only detects tests being WEAKENED over
+# tools/repo-hygiene/check-test-integrity.sh (if present) only detects tests being WEAKENED over
 # time — it says nothing about whether they had strength to begin with. This script
 # runs two tools that together do:
 #
@@ -35,11 +35,11 @@
 #   (~/Downloads/unclebob-repos/mutate4go/internal/manifest/manifest.go: Embed() is
 #   called by cmd/mutate4go's non-scan path and writes the file with os.WriteFile).
 #   That footer WILL collide with three guards in this repo's stop-checks suite:
-#     - tools/check-gofmt.sh              — the rewritten file may need `gofmt -w`
-#     - tools/check-no-untracked-source.sh — mutate4go also leaves a `<file>.mutate4go.bak`
+#     - tools/lang/check-gofmt.sh              — the rewritten file may need `gofmt -w`
+#     - tools/repo-hygiene/check-no-untracked-source.sh — mutate4go also leaves a `<file>.mutate4go.bak`
 #                                            backup NEXT TO the source; if a worker crashes
 #                                            mid-run the .bak can survive and is untracked
-#     - tools/check-comment-vocab.sh       — any retired-vocabulary token the manifest
+#     - tools/docs/check-comment-vocab.sh       — any retired-vocabulary token the manifest
 #                                            JSON happens to echo (function names, etc.)
 #                                            would trip the banned-token scan
 #   None of this is a bug in mutate4go — the manifest is what makes its differential

@@ -2,7 +2,7 @@
 // its closed set of constants, and the parse that turns a persisted string into
 // one. It is deliberately separate from the port that carries it (out_port.go's
 // Out.Rule): the rule is data the topology file authors, kept in parity with the
-// TS SEND_RULES array (tools/check-send-rule-parity.sh), and the wire itself never
+// TS SEND_RULES array (tools/bridge/check-send-rule-parity.sh), and the wire itself never
 // consults it — the source node does.
 
 package wire

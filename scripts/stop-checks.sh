@@ -132,7 +132,7 @@ if [ -n "$go_changed" ]; then
   # go vet + staticcheck. staticcheck COMPILES the whole module, so it is
   # expensive — it lives here in the go-gated block (Go changed / branch ahead of
   # origin/main), never in the fast unconditional guard loop below.
-  if ! sc_out=$(bash tools/check-staticcheck.sh 2>&1); then
+  if ! sc_out=$(bash tools/lang/check-staticcheck.sh 2>&1); then
     out+="check-staticcheck failed:\n$sc_out\n\n"
     fail=1
   fi
@@ -174,23 +174,28 @@ if [ -n "$ts_changed" ] || [ -n "$css_changed" ]; then
   fi
   # ESLint (react-hooks correctness guard) — TS-only, needs node_modules, so it
   # lives in the ts_changed block alongside tsc rather than the generic loop.
-  if ! eslint_out=$(bash tools/check-eslint.sh 2>&1); then
+  if ! eslint_out=$(bash tools/lang/check-eslint.sh 2>&1); then
     out+="check-eslint failed:\n$eslint_out\n\n"
     fail=1
   fi
   # Vitest unit suite (trace-event field contracts, parseSpec, round-trips) —
   # compiles + runs the tests, so EXPENSIVE; lives in the ts_changed block, not
   # the fast unconditional guard loop.
-  if ! vitest_out=$(bash tools/check-vitest.sh 2>&1); then
+  if ! vitest_out=$(bash tools/lang/check-vitest.sh 2>&1); then
     out+="check-vitest failed:\n$vitest_out\n\n"
     fail=1
   fi
 fi
 
 # DISCOVER the guard suite; do not hand-list it. The list used to be hardcoded here, which
-# meant a new tools/check-*.sh was simply not run until someone remembered to edit this line
-# — a guard nobody invokes is a guard that cannot fail. Globbing makes "written" and "run"
-# the same fact.
+# meant a new tools/**/check-*.sh was simply not run until someone remembered to edit this
+# line — a guard nobody invokes is a guard that cannot fail. Globbing makes "written" and
+# "run" the same fact.
+#
+# Guards live one level deep, grouped by WHAT THEY GUARD (tools/network,
+# tools/bridge, tools/buffer-schema, tools/webview, tools/docs, tools/repo-hygiene,
+# tools/lang) rather than all 60+ dumped flat in tools/ — so the glob below is
+# two levels (tools/*/check-*.sh), not tools/check-*.sh.
 #
 # EXCLUDED, deliberately:
 #   check-staticcheck / check-eslint / check-vitest — expensive; invoked above under their
@@ -200,11 +205,11 @@ fi
 GUARD_EXCLUDE="check-staticcheck|check-eslint|check-vitest|check-no-foreground-sim|check-stray-screenshots|check-no-shell-source-edits"
 
 shopt -s nullglob
-guards=(tools/check-*.sh)
+guards=(tools/*/check-*.sh)
 shopt -u nullglob
 
 if [ ${#guards[@]} -eq 0 ]; then
-  echo "stop-checks: MISCONFIGURED — no tools/check-*.sh found; refusing to report success." >&2
+  echo "stop-checks: MISCONFIGURED — no tools/*/check-*.sh found; refusing to report success." >&2
   exit 1
 fi
 

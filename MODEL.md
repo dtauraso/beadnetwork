@@ -83,13 +83,13 @@ mistake to avoid (chain_beads.go's own header comment makes the same split):
   stop channel, which the removed bead's `run` loop observes and returns from immediately —
   no goroutine outlives its bead (`nodes/Wiring/bead_chain_test.go`'s
   `TestBeadGoroutineLifetimeFollowsChainLength` asserts the live count returns to baseline
-  after a grow-then-shrink). `tools/check-bead-actor-has-call-site.sh` fails the build if
+  after a grow-then-shrink). `tools/network/check-bead-actor-has-call-site.sh` fails the build if
   this primitive ever loses its last production reference.
 
   The bead's own goroutine is ONE `select` over all three channel sets, with **no
   `default:` case** — parked at zero CPU when idle, never spinning
-  (`tools/check-no-select-default.sh`). A node's wake/settle/geometry broadcast is a single
-  channel close, never a loop over N beads (`tools/check-broadcast-is-close-not-loop.sh`,
+  (`tools/network/check-no-select-default.sh`). A node's wake/settle/geometry broadcast is a single
+  channel close, never a loop over N beads (`tools/network/check-broadcast-is-close-not-loop.sh`,
   via the lock-free `BroadcastChain` generation-chain primitive: the owning goroutine writes
   `Next` before closing `Fire`, so a woken receiver can read `Next` with no lock/atomic —
   Go's memory model makes the close a happens-before edge for that read).
@@ -215,7 +215,7 @@ arrived.
   never stored as one shared value on the wire, so the wire reshaping
   mid-flight (a node drag) re-derives each bead correctly. The loader
   rejects a fan-in topology at parse (`validateNoFanIn`); the guard
-  `tools/check-no-fan-in.sh` keeps it out of the committed diagram.
+  `tools/network/check-no-fan-in.sh` keeps it out of the committed diagram.
 
 ## Sending
 
@@ -494,7 +494,7 @@ and none is a source of truth.
 - **A node has ONE polar vector PER EDGE, pointing to that edge's STARTING bead.** This
   vector is owned by that edge's FIRST BEAD's own goroutine (`nodes/wire/bead_actor.go`'s
   `Bead`) — ownership + message passing, one writer, no locks/atomics
-  (`tools/check-no-network-locks.sh`, empty allowlist) — resolved from the node's own live
+  (`tools/network/check-no-network-locks.sh`, empty allowlist) — resolved from the node's own live
   aim broadcast (`BroadcastChain`, see the Chain bead bullet above) rather than a second
   stored copy. It is NEVER stored as an independent absolute position — it is computed at
   ONE site by summation: the node's world center (already `sceneCenter +
@@ -517,7 +517,7 @@ and none is a source of truth.
   bug that made positions fly to infinity. A moved center rigidly translates its satellites
   (offset unchanged ⇒ locks stay satisfied ⇒ the wave terminates). This is STRUCTURAL, not a
   test: the reconstruction that caused the blow-up has no call site to write. Nav is held
-  polar-only by `tools/check-polar-only-nav.sh`.
+  polar-only by `tools/webview/check-polar-only-nav.sh`.
 - **Panel-authored locks must be structurally incapable of a position blow-up.** If one
   happens, the implementation is wrong (an offset was reconstructed from a moving reference),
   not the locks.
@@ -587,7 +587,7 @@ and none is a source of truth.
   endpoints derive the SAME side independently — neither node needs to know what the other
   decided. The offset stays INSIDE that pair's own ring plane (not along a fixed world
   axis), so it composes with coplanar rings rather than fighting them. `chain_beads.go` is
-  guarded against doing this vector math itself (`tools/check-no-sqrt-in-chain-beads.sh`);
+  guarded against doing this vector math itself (`tools/network/check-no-sqrt-in-chain-beads.sh`);
   it calls into `port_geometry.go` for it, same split as `edgeCenterDistAndDir`.
 
 ## Assertions
@@ -620,7 +620,7 @@ is the only context they get. It must:
 **No `recover()` in the network.** Swallowing an assertion converts a loud, located failure
 into a silent wrong answer.
 
-Guard: `tools/check-panic-message.sh` (site tag + substance + no `recover()`). It enforces
+Guard: `tools/network/check-panic-message.sh` (site tag + substance + no `recover()`). It enforces
 the shape, not the content — (3) is the part only a human can write, and the part that pays.
 
 ## Allowed vocabulary
