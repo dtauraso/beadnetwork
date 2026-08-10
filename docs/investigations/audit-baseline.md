@@ -99,7 +99,8 @@ only the writer's name and what it stores changed.)
 
 ## 6. Package-level var maps in `nodes/Wiring` are read-only dispatch tables
 
-`nodes/Wiring/gesture.go` (`rawInputHandlers`, `hitClassifiers`), `gesture_graph.go`
+`nodes/Wiring/gesture_dispatch.go` (`rawInputHandlers`), `gesture_hitclassify.go`
+(`hitClassifiers`), `gesture_graph.go`
 (`commitEdges`, `applyAction`), `distance_groups.go` (`distanceGroupOrder`,
 `distanceGroups`), and `port_wiring.go` (`speedChanFieldNames`) all declare package-level
 `var` maps/slices. Each is a composite literal fully initialized at declaration (function
