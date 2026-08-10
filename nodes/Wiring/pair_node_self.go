@@ -218,35 +218,29 @@ func (p *PairNodeSelf) SetLatticePoints(points int32) {
 
 // NodeSelfDriven reports whether node id's own geometry is driven by that node's own kind
 // goroutine (task/pair-node-owns-itself, ClaimSelfDrive) rather than a separate nodeMover
-// goroutine — equivalently, whether id has NO entry in the ring's nodeMover actor
-// directory at all (finalizeActors never builds one for a claimed id). Exposed for
-// verification: the model's whole point — one goroutine, not two, for the same node id —
-// is otherwise invisible from outside this package (package main's own headless tests are
-// the only place every kind, PairNode included, is registered — see
-// kind_registry_parity_test.go's own doc comment).
+// goroutine. Exposed for verification: the model's whole point — one goroutine, not two,
+// for the same node id — is otherwise invisible from outside this package (package main's
+// own headless tests are the only place every kind, PairNode included, is registered — see
+// kind_registry_parity_test.go's own doc comment). Thin delegator to md.mr
+// (mover_registry.go); kept on MoveDispatch because package main's own tests call it and
+// mr is unexported.
 func (md *MoveDispatch) NodeSelfDriven(id string) bool {
-	if _, hasGeom := md.mr.nodeGeoms[id]; !hasGeom {
-		return false
-	}
-	return !md.HasNodeMover(id)
+	return md.mr.nodeSelfDriven(id)
 }
 
 // HasNodeMover reports whether node id has a real, separate nodeMover actor (a ring
 // node) as opposed to no nodeMover at all (a self-driven pair node, or an unknown id).
+// Thin delegator to md.mr, kept for the same reason as NodeSelfDriven.
 func (md *MoveDispatch) HasNodeMover(id string) bool {
-	_, ok := md.mr.nodeMovers[id]
-	return ok
+	return md.mr.hasNodeMover(id)
 }
 
 // NodeQuantOffset returns node id's own current quantized polar offset triple
 // (iTheta, iPhi, iR), for the same external-verification reason as NodeSelfDriven — e.g.
-// confirming a real reload lands on the same offset a live edit just persisted.
+// confirming a real reload lands on the same offset a live edit just persisted. Thin
+// delegator to md.mr, kept for the same reason as NodeSelfDriven.
 func (md *MoveDispatch) NodeQuantOffset(id string) (iTheta, iPhi, iR int, ok bool) {
-	nm, exists := md.mr.nodeGeoms[id]
-	if !exists {
-		return 0, 0, 0, false
-	}
-	return nm.quantOffset.ITheta, nm.quantOffset.IPhi, nm.quantOffset.IR, true
+	return md.mr.nodeQuantOffset(id)
 }
 
 // ClearOutBeads empties every one of this node's own outgoing wires directly — the

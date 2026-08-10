@@ -10,6 +10,7 @@ package Wiring
 
 import (
 	"context"
+	"math"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
@@ -177,6 +178,33 @@ func (ui *uiState) setSelectionUI(edgeMovers map[string]*edgeMover, ctx context.
 		}
 		sendMove(node, movemsg.Msg{Kind: movemsg.KindLatched, NodeID: node, Bool: true})
 	}
+}
+
+// dropPointFromNDC unprojects a drop's screen position onto the camera-facing plane through
+// the SCENE CENTRE — the same ray-through-NDC a node drag already unprojects
+// (gesture_actions.go's dragPlaneHit), against a plane that exists whether or not anything
+// was under the pointer. ok=false when the ray is parallel to the plane or the hit is
+// non-finite, which is a refusal rather than a guess at where the node should go. g.fov/
+// g.rect are the last render params the viewport reported: a gesture reads them off the
+// event it is handling, but a palette DROP has no event of its own — it arrives as an
+// addressed edit, not raw input — so it uses the ones every pointer move across the canvas
+// has been keeping current.
+func (ui *uiState) dropPointFromNDC(ndcX, ndcY float64) (vec3, bool) {
+	vp := ui.vp.Viewpoint
+	eye := geom.EyeOf(vp)
+	basis := geom.BasisFromViewpoint(vp.Pos, vp.Up)
+	dir := geom.RayDirThroughNDC(ndcX, ndcY, basis, ui.gest.fov, ui.gest.rect.aspect())
+	forward := basis.Pole.Scale(-1) // camera looks along -pole
+	denom := dir.Dot(forward)
+	if denom == 0 {
+		return vec3{}, false
+	}
+	t := ui.sceneSphere.Center.Sub(eye).Dot(forward) / denom
+	hit := eye.Add(dir.Scale(t))
+	if math.IsNaN(hit.X) || math.IsInf(hit.X, 0) {
+		return vec3{}, false
+	}
+	return hit, true
 }
 
 // setHoverUI sets the Go-owned hover state and MESSAGES the affected node(s) to update

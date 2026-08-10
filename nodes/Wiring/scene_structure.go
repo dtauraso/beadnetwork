@@ -17,7 +17,6 @@ package Wiring
 
 import (
 	"fmt"
-	"math"
 	"os"
 	"strconv"
 
@@ -27,7 +26,6 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgefile"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
-	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 )
 
@@ -70,7 +68,7 @@ func (md *MoveDispatch) CreateNode(kindID uint8, ndcX, ndcY float64, tr *T.Trace
 	// rather than the plane through some node, is what makes a drop into empty space land
 	// somewhere sensible: the scene sphere is the frame every node position is measured
 	// from anyway.
-	drop, okDrop := md.dropPointFromNDC(ndcX, ndcY)
+	drop, okDrop := md.ui.dropPointFromNDC(ndcX, ndcY)
 	if !okDrop {
 		md.refuseStructuralEdit("could not resolve where the drop landed")
 		return
@@ -78,13 +76,13 @@ func (md *MoveDispatch) CreateNode(kindID uint8, ndcX, ndcY float64, tr *T.Trace
 	// The nearest node is also the SOURCE of the new edge: an edge is stored under its
 	// source and carries no `source` key, so choosing the source is choosing the directory
 	// the edge file lands in.
-	src, okNear := md.nearestNodeTo(drop)
+	src, okNear := md.mr.nearestNodeTo(drop)
 	target := newNodeID(md.Scenes.TreeRoot)
 	var srcPort, targetPort string
 	if okNear {
 		var why string
 		var canLink bool
-		if srcPort, targetPort, why, canLink = md.linkRefusal(src, kind); !canLink {
+		if srcPort, targetPort, why, canLink = md.mr.linkRefusal(src, kind); !canLink {
 			md.refuseStructuralEdit(why)
 			return
 		}
@@ -164,8 +162,9 @@ func (md *MoveDispatch) DeleteNode(row int, tr *T.Trace) {
 	md.Scenes.Quit()
 }
 
-// linkRefusal answers whether an edge from src to a NEW node of kind can exist, and says why
-// not when it cannot. Both reasons are structural facts Go already holds:
+// linkRefusal (moverRegistry.linkRefusal, mover_registry.go) answers whether an edge from
+// src to a NEW node of kind can exist, and says why not when it cannot. Both reasons are
+// structural facts Go already holds:
 //
 //   - the new kind declares NO input port at all — nothing can be sent to it, so an edge to
 //     it would be a line with no meaning;
@@ -178,21 +177,6 @@ func (md *MoveDispatch) DeleteNode(row int, tr *T.Trace) {
 // deciding which ports carry it are the same question asked once. Answering them separately
 // is what let an edge be written to a port that does not exist: the check looked at the
 // kind's real ports, and the writer then assumed "Out" and "In".
-func (md *MoveDispatch) linkRefusal(src, kind string) (srcPort, targetPort, why string, ok bool) {
-	targetPort, hasIn := firstPortOfDir(kind, portwiring.PortIn)
-	if !hasIn {
-		return "", "", fmt.Sprintf("%s takes no input, so nothing can connect to it", kind), false
-	}
-	srcGeom, found := md.mr.nodeGeoms[src]
-	if !found {
-		return "", "", fmt.Sprintf("no geometry for %s", src), false
-	}
-	srcPort, hasOut := firstPortOfDir(srcGeom.geom.Kind, portwiring.PortOut)
-	if !hasOut {
-		return "", "", fmt.Sprintf("%s has no output to connect from", srcGeom.geom.Kind), false
-	}
-	return srcPort, targetPort, "", true
-}
 
 // firstPortOfDir returns a registered kind's FIRST port in dir, in the order the kind
 // declared them at RegisterBuilder. First, not "In": a kind names its own ports, and the
@@ -211,48 +195,15 @@ func firstPortOfDir(kind string, dir portwiring.PortDir) (string, bool) {
 	return "", false
 }
 
-// dropPointFromNDC unprojects a drop's screen position onto the camera-facing plane through
-// the SCENE CENTRE — the same ray-through-NDC a node drag already unprojects
-// (gesture_actions.go's dragPlaneHit), against a plane that exists whether or not anything
-// was under the pointer. ok=false when the ray is parallel to the plane or the hit is
-// non-finite, which is a refusal rather than a guess at where the node should go.
-func (md *MoveDispatch) dropPointFromNDC(ndcX, ndcY float64) (vec3, bool) {
-	vp := md.ui.vp.Viewpoint
-	eye := geom.EyeOf(vp)
-	basis := geom.BasisFromViewpoint(vp.Pos, vp.Up)
-	// g.fov/g.rect are the last render params the viewport reported. A gesture reads them
-	// off the event it is handling; a palette DROP has no event of its own — it arrives as
-	// an addressed edit, not raw input — so it uses the ones every pointer move across the
-	// canvas has been keeping current.
-	dir := geom.RayDirThroughNDC(ndcX, ndcY, basis, md.ui.gest.fov, md.ui.gest.rect.aspect())
-	forward := basis.Pole.Scale(-1) // camera looks along -pole
-	denom := dir.Dot(forward)
-	if denom == 0 {
-		return vec3{}, false
-	}
-	t := md.ui.sceneSphere.Center.Sub(eye).Dot(forward) / denom
-	hit := eye.Add(dir.Scale(t))
-	if math.IsNaN(hit.X) || math.IsInf(hit.X, 0) {
-		return vec3{}, false
-	}
-	return hit, true
-}
+// dropPointFromNDC (uiState.dropPointFromNDC, ui_state.go) unprojects a drop's screen
+// position onto the camera-facing plane through the SCENE CENTRE — the same ray-through-NDC
+// a node drag already unprojects (gesture_actions.go's dragPlaneHit), against a plane that
+// exists whether or not anything was under the pointer. ok=false when the ray is parallel to
+// the plane or the hit is non-finite, which is a refusal rather than a guess at where the
+// node should go.
 
-// nearestNodeTo picks the live node whose centre is closest to p, from this process's own
-// geometry. Squared distance — the ordering is the same and there is no reason to take a
-// square root to compare.
-func (md *MoveDispatch) nearestNodeTo(p vec3) (string, bool) {
-	best, bestD2, found := "", 0.0, false
-	for id, ng := range md.mr.nodeGeoms {
-		c := nodegeom.NodeWorldPos(ng.geom)
-		d := c.Sub(p)
-		d2 := d.X*d.X + d.Y*d.Y + d.Z*d.Z
-		if !found || d2 < bestD2 {
-			best, bestD2, found = id, d2, true
-		}
-	}
-	return best, found
-}
+// nearestNodeTo (moverRegistry.nearestNodeTo, mover_registry.go) picks the live node whose
+// centre is closest to p, from this process's own geometry.
 
 // refuseStructuralEdit reports a refused create/delete. It goes to STDERR, which the
 // extension host pipes to the sim's output channel and .probe/go-errors.jsonl — the same

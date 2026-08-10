@@ -60,31 +60,6 @@ func (md *MoveDispatch) setSelectionUI(node, edge string) {
 	md.ui.setSelectionUI(md.mr.edgeMovers, md.ctx, md.sendMove, node, edge)
 }
 
-// NodeKind returns the kind string for the given node id, or "" if unknown.
-// Used by applyEdit to resolve the node's kind when snapping a port-anchor
-// world-space direction to the nearest ring-anchor index. Called from the
-// gesture/stdin-reader goroutine (gesture.go:164, :653), which is NOT the
-// nodeMover's own goroutine — this is the ONE genuine cross-goroutine read of
-// nm.geom.
-//
-// Kind lives on nm.geom's embedded nodegeom.NodeIdentity (nodegeom/port_geometry.go), a type carrying
-// only the fields the loader sets once at construction and that no handler
-// (applyCenter, setPortAnchorId, emitGeometry) ever writes again — grepped clean of
-// any write to NodeIdentity's fields outside the load-time literal. That split makes
-// this safe by CONSTRUCTION rather than by coincidence of which byte ranges a
-// particular access happens to touch: identity fields are not merely
-// unwritten-in-practice today, they are not reachable from any writer's
-// field-assignment at all, in a different embedded struct from the mutable
-// ScenePolar/HasPos/ReachR/Inputs/Outputs applyCenter and setPortAnchorId do write.
-// TestNodeKindConcurrentWithApplyCenterUnderRace exercises this concurrently under
-// -race as a regression check on the split holding.
-func (md *MoveDispatch) NodeKind(nodeID string) string {
-	if nm, ok := md.mr.nodeGeoms[nodeID]; ok {
-		return nm.geom.Kind
-	}
-	return ""
-}
-
 // The overlayState methods, the overlayToggles table, defaultOverlayState, and the
 // stdinGuideVisPayload mapper are all GENERATED into overlay_gen.go from
 // OVERLAY_FLAG_NAMES (tools/gen-node-defs).

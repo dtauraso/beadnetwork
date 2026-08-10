@@ -26,7 +26,7 @@ func (md *MoveDispatch) gestHome(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	centers := md.lq.heldCenters(md)
 	radius := make(map[string]float64, len(centers))
 	for id := range centers {
-		radius[id] = md.nodeBodyRadius(id)
+		radius[id] = md.mr.nodeBodyRadius(id)
 	}
 	pivot, r, pos, up, ok := geom.HomeFitPose(centers, radius, ev.Fov, md.ui.gest.rect.aspect())
 	if !ok {

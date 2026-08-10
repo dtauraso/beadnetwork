@@ -61,7 +61,7 @@ func (md *MoveDispatch) updateHover(ev inputcodec.RawInputMsg, tr *T.Trace) {
 		// cursor is actually on the ring — NOT on the node body. A plain "node"-body hit
 		// deliberately falls through here and clears hover (node-body hover feedback is a
 		// separate concern, not wired yet).
-		if n, ok := md.nodeFromHit(ev.Hit); ok {
+		if n, ok := md.RT.NodeFromHit(ev.Hit); ok {
 			node = n
 		}
 	}
@@ -193,7 +193,7 @@ func (md *MoveDispatch) applySelect(ev inputcodec.RawInputMsg, tr *T.Trace) {
 		return
 	}
 	if ev.Hit.Kind == "edge" {
-		if label, ok := md.edgeFromHit(ev.Hit); ok {
+		if label, ok := md.RT.EdgeFromHit(ev.Hit); ok {
 			md.setSelectionUI("", label)
 			// An edge selection carries no NodeRow (see decodeEventLine's "select" case,
 			// buffer-log.ts — it never reads EdgeRow for this kind), mirroring the
@@ -206,7 +206,7 @@ func (md *MoveDispatch) applySelect(ev inputcodec.RawInputMsg, tr *T.Trace) {
 
 	var node string
 	if ev.Hit.Kind == "node" {
-		if n, ok := md.nodeFromHit(ev.Hit); ok {
+		if n, ok := md.RT.NodeFromHit(ev.Hit); ok {
 			node = n
 		}
 	}

@@ -5,6 +5,8 @@
 // its exported RT field so the external API is unchanged.
 package rowtables
 
+import "github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+
 // EdgeEndpoint is one edge row's endpoint node ids.
 type EdgeEndpoint struct {
 	SrcNode, DstNode string
@@ -119,4 +121,26 @@ func (rt *RowTables) EdgeRowForPair(a, b string) (int32, bool) {
 		}
 	}
 	return -1, false
+}
+
+// NodeFromHit resolves a node hit to its node id. A node hit carries only a numeric buffer
+// NODE-ROW index (the node InstancedMesh instanceId == its buffer node row); Go maps it back
+// through its own node-row table (built at load), since Go owns the topology and wrote the
+// Node block in that same row order.
+func (rt *RowTables) NodeFromHit(h inputcodec.RawHit) (node string, ok bool) {
+	if h.NodeRow >= 0 {
+		return rt.LookupNodeRow(h.NodeRow)
+	}
+	return "", false
+}
+
+// EdgeFromHit resolves an edge hit to its edge label. An edge hit carries only a numeric
+// buffer EDGE-ROW index (no label string); Go maps it back through its own edge-row table
+// (built at load), since Go owns the topology and wrote the Edge block in that same row
+// order.
+func (rt *RowTables) EdgeFromHit(h inputcodec.RawHit) (label string, ok bool) {
+	if h.EdgeRow >= 0 {
+		return rt.LookupEdgeRow(h.EdgeRow)
+	}
+	return "", false
 }

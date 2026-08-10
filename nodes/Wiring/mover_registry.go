@@ -17,6 +17,8 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
@@ -297,4 +299,86 @@ func (mr *moverRegistry) enqueueFor(nm *nodeGeometry) func(id string, msg movems
 				nm.id, maxPendingSends))
 		}
 	}
+}
+
+// nodeKind returns the kind string for the given node id, or "" if unknown. Kind lives
+// on nm.geom's embedded nodegeom.NodeIdentity — see MoveDispatch.NodeKind's former doc
+// comment (move_dispatch_api.go, before this pure single-owner forward moved here) for
+// why reading it off mr.nodeGeoms is safe under concurrent access.
+func (mr *moverRegistry) nodeKind(nodeID string) string {
+	if nm, ok := mr.nodeGeoms[nodeID]; ok {
+		return nm.geom.Kind
+	}
+	return ""
+}
+
+// nodeBodyRadius is the node's body sphere radius used to size the home fit (gestHome,
+// gesture_handlers.go). It reuses the SAME nodeRadius the pre-branch HomeButton framed
+// with: nodegeom.NodeRadius(kind) = min(width,height)/CurveParamNodeRadiusDivisor, with
+// the (110,60) default for an unknown kind.
+func (mr *moverRegistry) nodeBodyRadius(id string) float64 {
+	return nodegeom.NodeRadius(mr.nodeKind(id))
+}
+
+// hasNodeMover reports whether node id has a real, separate nodeMover actor (a ring
+// node) as opposed to no nodeMover at all (a self-driven pair node, or an unknown id).
+func (mr *moverRegistry) hasNodeMover(id string) bool {
+	_, ok := mr.nodeMovers[id]
+	return ok
+}
+
+// nodeSelfDriven reports whether node id is driven by its OWN pair-node goroutine
+// (task/pair-node-owns-itself, ClaimSelfDrive) rather than a separate nodeMover
+// goroutine — equivalently, whether id has NO entry in mr.nodeMovers at all
+// (finalizeActors never builds one for a claimed id).
+func (mr *moverRegistry) nodeSelfDriven(id string) bool {
+	if _, hasGeom := mr.nodeGeoms[id]; !hasGeom {
+		return false
+	}
+	return !mr.hasNodeMover(id)
+}
+
+// nodeQuantOffset returns node id's own current quantized polar offset triple
+// (iTheta, iPhi, iR).
+func (mr *moverRegistry) nodeQuantOffset(id string) (iTheta, iPhi, iR int, ok bool) {
+	nm, exists := mr.nodeGeoms[id]
+	if !exists {
+		return 0, 0, 0, false
+	}
+	return nm.quantOffset.ITheta, nm.quantOffset.IPhi, nm.quantOffset.IR, true
+}
+
+// linkRefusal answers whether an edge from src to a NEW node of kind can exist, and says
+// why not when it cannot — see scene_structure.go's former doc comment (before this pure
+// single-owner forward moved here) for the two structural reasons checked.
+func (mr *moverRegistry) linkRefusal(src, kind string) (srcPort, targetPort, why string, ok bool) {
+	targetPort, hasIn := firstPortOfDir(kind, portwiring.PortIn)
+	if !hasIn {
+		return "", "", fmt.Sprintf("%s takes no input, so nothing can connect to it", kind), false
+	}
+	srcGeom, found := mr.nodeGeoms[src]
+	if !found {
+		return "", "", fmt.Sprintf("no geometry for %s", src), false
+	}
+	srcPort, hasOut := firstPortOfDir(srcGeom.geom.Kind, portwiring.PortOut)
+	if !hasOut {
+		return "", "", fmt.Sprintf("%s has no output to connect from", srcGeom.geom.Kind), false
+	}
+	return srcPort, targetPort, "", true
+}
+
+// nearestNodeTo picks the live node whose centre is closest to p, from this process's
+// own geometry. Squared distance — the ordering is the same and there is no reason to
+// take a square root to compare.
+func (mr *moverRegistry) nearestNodeTo(p vec3) (string, bool) {
+	best, bestD2, found := "", 0.0, false
+	for id, ng := range mr.nodeGeoms {
+		c := nodegeom.NodeWorldPos(ng.geom)
+		d := c.Sub(p)
+		d2 := d.X*d.X + d.Y*d.Y + d.Z*d.Z
+		if !found || d2 < bestD2 {
+			best, bestD2, found = id, d2, true
+		}
+	}
+	return best, found
 }
