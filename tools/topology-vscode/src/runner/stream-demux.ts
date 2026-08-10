@@ -264,7 +264,7 @@ export class StreamDemux {
 
   // handleDriveFd parses ONE dedicated per-(node row, drive slot) DRIVE stream pipe (fd =
   // driveBaseFd + row*DRIVE_SLOTS_PER_NODE + slot) — one gatecommon.DriveHeld goroutine's
-  // OWN fd (docs/interior-stream-framing.md's fix: this goroutine used to share the
+  // OWN fd (docs/investigations/interior-stream-framing.md's fix: this goroutine used to share the
   // node's INTERIOR fd with its Update-loop goroutine, desyncing the frame reader — see
   // that doc for the mechanism). Its OWN carry buffer and dead-stream key
   // (`drive:{row}:{slot}`) are kept separate per (row, slot) — see driveBufs' doc

@@ -235,7 +235,7 @@ export class BuildAndRunRunner {
     // interior beads, a SEPARATE goroutine's fd — see NODE_BASE_FD's doc comment). The
     // FOLLOWING nodeCount*DRIVE_SLOTS_PER_NODE indices are one dedicated pipe PER (NODE,
     // DRIVE SLOT) — the "drive" stream, one per gatecommon.DriveHeld goroutine a node kind
-    // may spawn (docs/interior-stream-framing.md's fix; see driveBaseFd's doc comment). Any
+    // may spawn (docs/investigations/interior-stream-framing.md's fix; see driveBaseFd's doc comment). Any
     // of these ranges is omitted (and its kind left out of WIREFOLD_STREAM_FDS) when its
     // count is 0 (e.g. a topology with no edges) — Go simply never streams that kind.
     // "pipe" opens a readable pipe at each index; the existing stdin(0)/stdout(1)/stderr(2)
