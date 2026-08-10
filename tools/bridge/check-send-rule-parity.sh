@@ -41,7 +41,7 @@ fi
 # nodes/wire/: lines of the form:  RuleFoo SendRule = "someValue"
 rules_from_go() {
   local go_files
-  go_files=$(cd "$REPO_ROOT" && git ls-files 'nodes/Wiring/*.go' 'nodes/wire/*.go')
+  go_files=$(cd "$REPO_ROOT" && git ls-files 'nodes/Wiring/*.go' 'nodes/Wiring/**/*.go' 'nodes/wire/*.go' 'nodes/wire/**/*.go')
   [[ -z "$go_files" ]] && return
   ( cd "$REPO_ROOT" && grep -haE 'SendRule[[:space:]]*=[[:space:]]*"[^"]+"' $go_files ) \
     | grep -o '"[^"]*"' \

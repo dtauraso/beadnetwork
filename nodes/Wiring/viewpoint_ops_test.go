@@ -20,8 +20,8 @@ func TestZoomViewpointEmitsRadius(t *testing.T) {
 	vp.SetViewpoint(vec3{}, 100, dir{Theta: 1.0}, dir{Theta: 1.5708})
 
 	vp.ZoomViewpoint(0.5, tr)
-	if vp.r != 50 {
-		t.Fatalf("Zoom(0.5) on r=100: r=%v, want 50", vp.r)
+	if vp.R != 50 {
+		t.Fatalf("Zoom(0.5) on r=100: r=%v, want 50", vp.R)
 	}
 }
 
@@ -32,8 +32,8 @@ func TestPanViewpointEmitsPivot(t *testing.T) {
 	vp.SetViewpoint(vec3{X: 1, Y: 2, Z: 3}, 100, dir{Theta: 1.0}, dir{Theta: 1.5708})
 
 	vp.PanViewpoint(vec3{X: 10, Y: 0, Z: -3}, tr)
-	if vp.pivot.X != 11 || vp.pivot.Y != 2 || vp.pivot.Z != 0 {
-		t.Fatalf("Pan: pivot=(%v,%v,%v), want (11,2,0)", vp.pivot.X, vp.pivot.Y, vp.pivot.Z)
+	if vp.Pivot.X != 11 || vp.Pivot.Y != 2 || vp.Pivot.Z != 0 {
+		t.Fatalf("Pan: pivot=(%v,%v,%v), want (11,2,0)", vp.Pivot.X, vp.Pivot.Y, vp.Pivot.Z)
 	}
 }
 
@@ -46,8 +46,8 @@ func TestOrbitViewpointEmitsMovedPos(t *testing.T) {
 	vp.SetViewpoint(vec3{}, 100, before, dir{Theta: 1.5708})
 
 	vp.OrbitViewpoint(dir{Theta: 1.0, Phi: 0.0}, dir{Theta: 1.2, Phi: 0.3}, tr)
-	if vp.pos.Theta == before.Theta && vp.pos.Phi == before.Phi {
-		t.Fatalf("Orbit did not change pos: still (%v,%v)", vp.pos.Theta, vp.pos.Phi)
+	if vp.Pos.Theta == before.Theta && vp.Pos.Phi == before.Phi {
+		t.Fatalf("Orbit did not change pos: still (%v,%v)", vp.Pos.Theta, vp.Pos.Phi)
 	}
 }
 
@@ -68,7 +68,7 @@ func TestMoveDispatchViewpointDelegatorsEmit(t *testing.T) {
 		t.Fatalf("expected >=3 camera events from delegators, got %d", n)
 	}
 	// Confirm the final viewpoint state reflects the zoom+pan (r halved, pivot moved).
-	if md.ui.vp.r != 50 || md.ui.vp.pivot.X != 5 {
-		t.Fatalf("delegator state: r=%v pivot.X=%v, want r=50 pivot.X=5", md.ui.vp.r, md.ui.vp.pivot.X)
+	if md.ui.vp.R != 50 || md.ui.vp.Pivot.X != 5 {
+		t.Fatalf("delegator state: r=%v pivot.X=%v, want r=50 pivot.X=5", md.ui.vp.R, md.ui.vp.Pivot.X)
 	}
 }

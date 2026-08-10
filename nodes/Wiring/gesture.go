@@ -300,8 +300,8 @@ func (md *MoveDispatch) gestPointerUp(ev rawInputMsg, slotReg SlotRegistry, tr *
 }
 
 // reset clears the gesture FSM back to idle at the end of every gesture (pointer-up).
-// It also clears vp.lockedAxis (the handhold-constrained-orbit rotation axis frozen at
-// gesture start — see viewpoint.lockedAxis's doc comment) so that field's own "nil
+// It also clears vp.LockedAxis (the handhold-constrained-orbit rotation axis frozen at
+// gesture start — see geom.Viewpoint.LockedAxis's doc comment) so that field's own "nil
 // between gestures" doc is actually true: lockedAxis is gesture-scoped state, exactly
 // like dragNode above, it just happens to live on viewpoint
 // instead of gestureState (frozen once per handhold gesture in orbit's lazy-init path).
@@ -316,7 +316,7 @@ func (g *gestureState) reset(vp *viewpoint) {
 	g.dragGrabOffset = vec3{}
 	g.handholdDown = false
 	g.secondary = false
-	vp.lockedAxis = nil
+	vp.LockedAxis = nil
 }
 
 // gestWheel mirrors interaction-handlers.ts handleWheelNative: ctrl+wheel = zoom-to-cursor
@@ -335,7 +335,7 @@ func (md *MoveDispatch) gestWheel(ev rawInputMsg, tr *T.Trace) {
 		// ride together); pos/up are unchanged, so the node keeps projecting to the same pixel.
 		// The cursor→node pick is a screen-space selection at the input boundary (projectNDC).
 		mouseNdcX, mouseNdcY := md.ui.gest.pixelToNDC(ev.X, ev.Y)
-		basis := basisFromViewpoint(vp.pos, vp.up)
+		basis := basisFromViewpoint(vp.Pos, vp.Up)
 		aspect := md.ui.gest.rect.aspect()
 		target := pivot
 		best := math.Inf(1)
@@ -351,7 +351,7 @@ func (md *MoveDispatch) gestWheel(ev rawInputMsg, tr *T.Trace) {
 		}
 		toTarget := target.Sub(eye)
 		distP := toTarget.Length()
-		rayDir := anglesToWorldOffset(1, vp.pos.Theta, vp.pos.Phi).Scale(-1) // forward, if AT the node
+		rayDir := anglesToWorldOffset(1, vp.Pos.Theta, vp.Pos.Phi).Scale(-1) // forward, if AT the node
 		if distP > 1e-9 {
 			rayDir = toTarget.Scale(1 / distP)
 		}
@@ -361,7 +361,7 @@ func (md *MoveDispatch) gestWheel(ev rawInputMsg, tr *T.Trace) {
 		// pilot camera flies past nodes. No stop-short clamp.
 		amt := 1 - math.Pow(gestureZoomBase, ev.DeltaY)
 		step := distP * amt
-		if minStep := vp.r * (gestureZoomBase - 1); math.Abs(step) < minStep {
+		if minStep := vp.R * (gestureZoomBase - 1); math.Abs(step) < minStep {
 			step = math.Copysign(minStep, amt)
 		}
 		md.PanViewpoint(rayDir.Scale(step), tr)
@@ -376,7 +376,7 @@ func (md *MoveDispatch) gestWheel(ev rawInputMsg, tr *T.Trace) {
 	// stays a usable pilot speed at any zoom. The displacement is built in polar; PanViewpoint
 	// translates pivot+eye together with the look direction unchanged. The scene does not move.
 	fovRad := ev.Fov * math.Pi / 180
-	worldPerPixel := (2 * vp.r * math.Tan(fovRad/2)) / md.ui.gest.rect.height
-	disp := panDisplacementPolar(vp.pos, vp.up, ev.DeltaX, ev.DeltaY, worldPerPixel)
+	worldPerPixel := (2 * vp.R * math.Tan(fovRad/2)) / md.ui.gest.rect.height
+	disp := panDisplacementPolar(vp.Pos, vp.Up, ev.DeltaX, ev.DeltaY, worldPerPixel)
 	md.PanViewpoint(disp, tr)
 }

@@ -18,7 +18,7 @@ func newGestureMD(v viewpoint) *MoveDispatch {
 
 // canonical "+Z camera looking at origin, up +Y, r=100" viewpoint.
 func canonicalViewpoint() viewpoint {
-	return viewpoint{pivot: vec3{X: 0, Y: 0, Z: 0}, r: 100, pos: dir{Theta: math.Pi / 2, Phi: math.Pi / 2}, up: dir{Theta: 0, Phi: 0}}
+	return viewpoint{Pivot: vec3{X: 0, Y: 0, Z: 0}, R: 100, Pos: dir{Theta: math.Pi / 2, Phi: math.Pi / 2}, Up: dir{Theta: 0, Phi: 0}}
 }
 
 func rawEvent(kind string, x, y float64) rawInputMsg {
@@ -52,25 +52,25 @@ func TestGestureEmptyDragOrbits(t *testing.T) {
 	if md.ui.gest.phase != gestRotating {
 		t.Fatalf("after slop-cross move: phase=%v want rotating", md.ui.gest.phase)
 	}
-	if !vecClose(md.ui.vp.pivot, vec3{X: 0, Y: 0, Z: 90}, 1e-9) {
-		t.Fatalf("seed pivot=%v want focus-ahead (0,0,90)", md.ui.vp.pivot)
+	if !vecClose(md.ui.vp.Pivot, vec3{X: 0, Y: 0, Z: 90}, 1e-9) {
+		t.Fatalf("seed pivot=%v want focus-ahead (0,0,90)", md.ui.vp.Pivot)
 	}
-	if math.Abs(md.ui.vp.r-10) > 1e-9 {
-		t.Fatalf("seed r=%v want 10 (eye→focus-ahead)", md.ui.vp.r)
+	if math.Abs(md.ui.vp.R-10) > 1e-9 {
+		t.Fatalf("seed r=%v want 10 (eye→focus-ahead)", md.ui.vp.R)
 	}
-	posBefore := md.ui.vp.pos
-	rBefore, pivotBefore := md.ui.vp.r, md.ui.vp.pivot
+	posBefore := md.ui.vp.Pos
+	rBefore, pivotBefore := md.ui.vp.R, md.ui.vp.Pivot
 
 	// Second move: genuine cursor delta → orbit. pos must change; r + pivot preserved.
 	md.HandleRawInput(rawEvent("pointermove", 480, 320), nil, nil)
-	if math.Abs(md.ui.vp.r-rBefore) > 1e-9 {
-		t.Fatalf("orbit changed r: %v != %v", md.ui.vp.r, rBefore)
+	if math.Abs(md.ui.vp.R-rBefore) > 1e-9 {
+		t.Fatalf("orbit changed r: %v != %v", md.ui.vp.R, rBefore)
 	}
-	if !vecClose(md.ui.vp.pivot, pivotBefore, 1e-9) {
-		t.Fatalf("orbit moved pivot: %v != %v", md.ui.vp.pivot, pivotBefore)
+	if !vecClose(md.ui.vp.Pivot, pivotBefore, 1e-9) {
+		t.Fatalf("orbit moved pivot: %v != %v", md.ui.vp.Pivot, pivotBefore)
 	}
-	if angularDistance(md.ui.vp.pos, posBefore) < 1e-6 {
-		t.Fatalf("orbit did not change pos (dir stayed %v)", md.ui.vp.pos)
+	if angularDistance(md.ui.vp.Pos, posBefore) < 1e-6 {
+		t.Fatalf("orbit did not change pos (dir stayed %v)", md.ui.vp.Pos)
 	}
 
 	md.HandleRawInput(rawEvent("pointerup", 480, 320), nil, nil)
@@ -83,15 +83,15 @@ func TestGestureEmptyDragOrbits(t *testing.T) {
 // toward the cursor target). Both leave the radius set by the region-focus seed.
 func TestGestureWheelStrafesCamera(t *testing.T) {
 	md := newGestureMD(canonicalViewpoint())
-	pivotBefore := md.ui.vp.pivot
+	pivotBefore := md.ui.vp.Pivot
 	centerBefore := md.ui.sceneSphere.Center
 	ev := rawEvent("wheel", 400, 300)
 	ev.DeltaX = 10
 	ev.DeltaY = 0
 	md.HandleRawInput(ev, nil, nil)
 	// Lateral pan strafes the CAMERA (free-camera model); the fixed scene does not move.
-	if vecClose(md.ui.vp.pivot, pivotBefore, 1e-9) {
-		t.Fatalf("plain wheel did not strafe the camera (pivot stayed %v)", md.ui.vp.pivot)
+	if vecClose(md.ui.vp.Pivot, pivotBefore, 1e-9) {
+		t.Fatalf("plain wheel did not strafe the camera (pivot stayed %v)", md.ui.vp.Pivot)
 	}
 	if !vecClose(md.ui.sceneSphere.Center, centerBefore, 1e-9) {
 		t.Fatalf("plain wheel moved the scene center %v; the scene must stay fixed", md.ui.sceneSphere.Center)
@@ -110,14 +110,14 @@ func TestGestureWheelPansOverNodeAndEdgeHit(t *testing.T) {
 	} {
 		md := newGestureMD(canonicalViewpoint())
 		md.RT.NodeRowTable = []string{"N7"}
-		before := md.ui.vp.pivot
+		before := md.ui.vp.Pivot
 		ev := rawEvent("wheel", 400, 300)
 		ev.DeltaX = 10
 		ev.DeltaY = 0
 		ev.Hit = h
 		md.HandleRawInput(ev, nil, nil)
-		if vecClose(md.ui.vp.pivot, before, 1e-9) {
-			t.Fatalf("plain wheel with %s hit did not strafe the camera (pivot stayed %v)", h.Kind, md.ui.vp.pivot)
+		if vecClose(md.ui.vp.Pivot, before, 1e-9) {
+			t.Fatalf("plain wheel with %s hit did not strafe the camera (pivot stayed %v)", h.Kind, md.ui.vp.Pivot)
 		}
 	}
 }
@@ -134,11 +134,11 @@ func TestGestureCtrlWheelZoomsToCursor(t *testing.T) {
 	// floor (minStep = vp.r*(zoomBase-1) = 1), so the camera moves minStep AWAY (DeltaY=1) →
 	// pivot.Z = +1.
 	wantZ := 100 * (gestureZoomBase - 1)
-	if math.Abs(md.ui.vp.pivot.Z-wantZ) > 1e-9 || math.Abs(md.ui.vp.pivot.X) > 1e-9 {
-		t.Fatalf("ctrl-wheel pivot=%v want Z≈%v (dolly toward cursor)", md.ui.vp.pivot, wantZ)
+	if math.Abs(md.ui.vp.Pivot.Z-wantZ) > 1e-9 || math.Abs(md.ui.vp.Pivot.X) > 1e-9 {
+		t.Fatalf("ctrl-wheel pivot=%v want Z≈%v (dolly toward cursor)", md.ui.vp.Pivot, wantZ)
 	}
 	// The look direction is unchanged (no re-aim).
-	if angularDistance(md.ui.vp.pos, canonicalViewpoint().pos) > 1e-9 {
+	if angularDistance(md.ui.vp.Pos, canonicalViewpoint().Pos) > 1e-9 {
 		t.Fatalf("ctrl-wheel re-aimed the camera (pos changed); zoom-to-cursor must keep orientation")
 	}
 }
@@ -317,16 +317,16 @@ func TestGestureHandholdOrbits(t *testing.T) {
 	if md.ui.gest.phase != gestHandhold {
 		t.Fatalf("phase=%v want handhold", md.ui.gest.phase)
 	}
-	rBefore, pivotBefore, posBefore := md.ui.vp.r, md.ui.vp.pivot, md.ui.vp.pos
+	rBefore, pivotBefore, posBefore := md.ui.vp.R, md.ui.vp.Pivot, md.ui.vp.Pos
 	md.HandleRawInput(rawEvent("pointermove", 520, 360), nil, nil)
-	if math.Abs(md.ui.vp.r-rBefore) > 1e-9 {
-		t.Fatalf("handhold orbit changed r: %v != %v", md.ui.vp.r, rBefore)
+	if math.Abs(md.ui.vp.R-rBefore) > 1e-9 {
+		t.Fatalf("handhold orbit changed r: %v != %v", md.ui.vp.R, rBefore)
 	}
-	if !vecClose(md.ui.vp.pivot, pivotBefore, 1e-9) {
-		t.Fatalf("handhold orbit moved pivot: %v != %v", md.ui.vp.pivot, pivotBefore)
+	if !vecClose(md.ui.vp.Pivot, pivotBefore, 1e-9) {
+		t.Fatalf("handhold orbit moved pivot: %v != %v", md.ui.vp.Pivot, pivotBefore)
 	}
-	if angularDistance(md.ui.vp.pos, posBefore) < 1e-6 {
-		t.Fatalf("handhold orbit did not change pos (stayed %v)", md.ui.vp.pos)
+	if angularDistance(md.ui.vp.Pos, posBefore) < 1e-6 {
+		t.Fatalf("handhold orbit did not change pos (stayed %v)", md.ui.vp.Pos)
 	}
 	md.HandleRawInput(rawEvent("pointerup", 520, 360), nil, nil)
 	if md.ui.gest.phase != gestIdle {

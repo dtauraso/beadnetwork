@@ -135,8 +135,8 @@ func (md *MoveDispatch) emitViewFrame(events []wire.RowEvent) {
 	// Go owns the group definitions and the math.
 	groupLenTime, groupLenInput, groupLenGate := md.DistanceGroupLens()
 	frame := md.sw.viewBuildFrame(md.sw.viewTick,
-		float32(v.pivot.X), float32(v.pivot.Y), float32(v.pivot.Z), float32(v.r),
-		float32(v.pos.Theta), float32(v.pos.Phi), float32(v.up.Theta), float32(v.up.Phi),
+		float32(v.Pivot.X), float32(v.Pivot.Y), float32(v.Pivot.Z), float32(v.R),
+		float32(v.Pos.Theta), float32(v.Pos.Phi), float32(v.Up.Theta), float32(v.Up.Phi),
 		ViewOverlayFlags{
 			SceneTori:      boolU8(md.ui.ov.sceneToriVisible),
 			ScenePoles:     boolU8(md.ui.ov.scenePolesVisible),

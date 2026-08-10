@@ -618,7 +618,7 @@ t?
       <b style="color:var(--ink)">Root cause</b> — position is stored as φ about the fixed +y pole, then quantized,
       locked, and persisted; φ is degenerate there so a nudge crosses many grid cells and the lock freezes a wrong one.
       <b style="color:var(--ink)">Fix</b> — mirror <code>spherical.go</code>'s great-circle bearing
-      (<code>azimuthFrom</code>/<code>fromAxisFrame</code>, no <code>/sinθ</code>) at the
+      (<code>AzimuthFrom</code>/<code>FromAxisFrame</code>, no <code>/sinθ</code>) at the
       <code>cart2polar</code>→quantize sites in <code>node_move.go</code> (1372, 1470, 1688).
     </footer>
   </div>

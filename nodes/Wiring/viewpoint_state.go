@@ -7,8 +7,8 @@ package Wiring
 // serialize externally (the stdin reader runs in a single goroutine).
 //
 // The viewpoint value is embedded so callers that reach through the field (e.g. tests
-// asserting md.ui.vp.lockedAxis) keep resolving, and the *viewpoint navigation ops
-// (orbit/orbitLocked/zoom/pan) promote onto viewpointState.
+// asserting md.ui.vp.LockedAxis) keep resolving, and the *geom.Viewpoint navigation ops
+// (Orbit/OrbitLocked/Zoom/Pan) promote onto viewpointState.
 
 import (
 	T "github.com/dtauraso/wirefold/Trace"
@@ -30,11 +30,11 @@ type viewpointState struct {
 // EmitViewpoint to broadcast it. Also clears any locked rotation axis from a prior
 // handhold gesture so the next gesture starts fresh.
 func (v *viewpointState) SetViewpoint(pivot vec3, r float64, pos, up dir) {
-	v.pivot = pivot
-	v.r = r
-	v.pos = pos
-	v.up = up
-	v.lockedAxis = nil
+	v.Pivot = pivot
+	v.R = r
+	v.Pos = pos
+	v.Up = up
+	v.LockedAxis = nil
 }
 
 // EmitViewpoint persists the current camera viewpoint state (the VIEW frame carrying it
@@ -50,7 +50,7 @@ func (v *viewpointState) EmitViewpoint(tr *T.Trace) {
 
 // OrbitViewpoint applies a great-circle orbit (carrying from→to) and emits the new state.
 func (v *viewpointState) OrbitViewpoint(from, to dir, tr *T.Trace) {
-	v.orbit(from, to)
+	v.Orbit(from, to)
 	v.EmitViewpoint(tr)
 }
 
@@ -58,19 +58,19 @@ func (v *viewpointState) OrbitViewpoint(from, to dir, tr *T.Trace) {
 // rotation axis from the from→to arc; subsequent calls keep the same axis. The lock is
 // cleared by the next SetViewpoint. Emits a camera event each call.
 func (v *viewpointState) OrbitLockedViewpoint(from, to dir, tr *T.Trace) {
-	v.orbitLocked(from, to)
+	v.OrbitLocked(from, to)
 	v.EmitViewpoint(tr)
 }
 
 // ZoomViewpoint scales the orbit radius by factor and emits the new state.
 func (v *viewpointState) ZoomViewpoint(factor float64, tr *T.Trace) {
-	v.zoom(factor)
+	v.Zoom(factor)
 	v.EmitViewpoint(tr)
 }
 
 // PanViewpoint slides the orbit pivot by a world delta and emits the new state.
 func (v *viewpointState) PanViewpoint(delta vec3, tr *T.Trace) {
-	v.pan(delta)
+	v.Pan(delta)
 	v.EmitViewpoint(tr)
 }
 

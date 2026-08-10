@@ -1,4 +1,4 @@
-package Wiring
+package geom
 
 import "math"
 
@@ -18,16 +18,16 @@ import "math"
 // All angles are in radians. Conversions are pure functions of an origin-
 // relative vector; the caller subtracts the frame origin first.
 
-// polar is a point in spherical coordinates relative to some (caller-supplied)
+// Polar is a point in spherical coordinates relative to some (caller-supplied)
 // origin, pole = +y.
-type polar struct {
+type Polar struct {
 	R     float64 // radius
 	Theta float64 // polar angle from +y (radians, 0..π)
 	Phi   float64 // azimuth around +y (radians, -π..π)
 }
 
-// polar2cart converts a polar coordinate to an origin-relative Cartesian vec3.
-func polar2cart(p polar) vec3 {
+// Polar2cart converts a polar coordinate to an origin-relative Cartesian vec3.
+func Polar2cart(p Polar) vec3 {
 	st := math.Sin(p.Theta)
 	return vec3{
 		X: p.R * st * math.Cos(p.Phi),
@@ -46,34 +46,34 @@ func polar2cart(p polar) vec3 {
 // placeholder (cart2polar's r=0 case), and reversing that placeholder would aim the frame
 // straight down for a reason that isn't geometric. So r=0 returns world +y (0,0): the
 // unrotated frame, same as a node whose position hasn't been established yet.
-func inwardPole(p polar) (theta, phi float64) {
+func InwardPole(p Polar) (theta, phi float64) {
 	if p.R == 0 {
 		return 0, 0
 	}
-	return math.Pi - p.Theta, wrapPi(p.Phi + math.Pi)
+	return math.Pi - p.Theta, WrapPi(p.Phi + math.Pi)
 }
 
-// cart2polar converts an origin-relative Cartesian vec3 to polar (pole = +y).
+// Cart2polar converts an origin-relative Cartesian vec3 to polar (pole = +y).
 // At the origin (r=0) θ and φ are 0. On the +y/-y axis (st=0) φ is 0 since
 // azimuth is undefined there.
-func cart2polar(v vec3) polar {
+func Cart2polar(v vec3) Polar {
 	r := v.Length()
 	if r == 0 {
-		return polar{}
+		return Polar{}
 	}
-	theta := math.Acos(clamp(v.Y/r, -1, 1))
+	theta := math.Acos(Clamp(v.Y/r, -1, 1))
 	phi := math.Atan2(v.Z, v.X) // 0 when on the y-axis (Z=X=0)
-	return polar{R: r, Theta: theta, Phi: phi}
+	return Polar{R: r, Theta: theta, Phi: phi}
 }
 
-// polarDist returns the straight-line distance between two points given in polar about the
+// PolarDist returns the straight-line distance between two points given in polar about the
 // SAME origin (pole +y), via the spherical law of cosines — NO cartesian, no vector
 // subtraction (polar-frame-rewrite.md: all geometry math stays polar; cartesian appears only
 // at the GPU boundary):
 //
 //	cosγ = cosθ₁·cosθ₂ + sinθ₁·sinθ₂·cos(φ₁−φ₂)   // angle between the two radial vectors
 //	d²   = r₁² + r₂² − 2·r₁·r₂·cosγ                // law of cosines on the triangle O,P₁,P₂
-func polarDist(a, b polar) float64 {
+func PolarDist(a, b Polar) float64 {
 	cosG := math.Cos(a.Theta)*math.Cos(b.Theta) +
 		math.Sin(a.Theta)*math.Sin(b.Theta)*math.Cos(a.Phi-b.Phi)
 	d2 := a.R*a.R + b.R*b.R - 2*a.R*b.R*cosG
@@ -83,7 +83,7 @@ func polarDist(a, b polar) float64 {
 	return math.Sqrt(d2)
 }
 
-func clamp(v, lo, hi float64) float64 {
+func Clamp(v, lo, hi float64) float64 {
 	if v < lo {
 		return lo
 	}

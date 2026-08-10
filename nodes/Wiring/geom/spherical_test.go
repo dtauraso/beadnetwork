@@ -1,4 +1,4 @@
-package Wiring
+package geom
 
 import (
 	"math"
@@ -11,13 +11,13 @@ import (
 // here we use vectors + Rodrigues to independently check the spherical trig.
 // ---------------------------------------------------------------------------
 
-func dirToVec(d dir) vec3 {
-	return polar2cart(polar{R: 1, Theta: d.Theta, Phi: d.Phi})
+func dirToVec(d Dir) vec3 {
+	return Polar2cart(Polar{R: 1, Theta: d.Theta, Phi: d.Phi})
 }
 
-func vecToDir(v vec3) dir {
-	p := cart2polar(v)
-	return dir{Theta: p.Theta, Phi: p.Phi}
+func vecToDir(v vec3) Dir {
+	p := Cart2polar(v)
+	return Dir{Theta: p.Theta, Phi: p.Phi}
 }
 
 func cross(a, b vec3) vec3 {
@@ -47,11 +47,11 @@ func TestAngularDistanceMatchesOracle(t *testing.T) {
 	for i := 0; i < 2000; i++ {
 		a := randDir(rng)
 		b := randDir(rng)
-		got := angularDistance(a, b)
+		got := AngularDistance(a, b)
 		va, vb := dirToVec(a), dirToVec(b)
-		want := math.Acos(clamp(dot(va, vb), -1, 1))
+		want := math.Acos(Clamp(dot(va, vb), -1, 1))
 		if math.Abs(got-want) > tol {
-			t.Fatalf("angularDistance(%v,%v)=%v want %v", a, b, got, want)
+			t.Fatalf("AngularDistance(%v,%v)=%v want %v", a, b, got, want)
 		}
 	}
 }
@@ -63,11 +63,11 @@ func TestRotateDirMatchesRodrigues(t *testing.T) {
 		p := randDir(rng)
 		axis := randDir(rng)
 		angle := (rng.Float64()*2 - 1) * math.Pi
-		got := rotateDir(p, axis, angle)
+		got := RotateDir(p, axis, angle)
 		want := vecToDir(rodrigues(dirToVec(p), dirToVec(axis), angle))
-		if angularDistance(got, want) > tol {
-			t.Fatalf("rotateDir(%v,axis=%v,angle=%v)=%v want %v (Δ=%v)",
-				p, axis, angle, got, want, angularDistance(got, want))
+		if AngularDistance(got, want) > tol {
+			t.Fatalf("RotateDir(%v,axis=%v,angle=%v)=%v want %v (Δ=%v)",
+				p, axis, angle, got, want, AngularDistance(got, want))
 		}
 	}
 }
@@ -78,16 +78,16 @@ func TestRotateDirIdentities(t *testing.T) {
 		p := randDir(rng)
 		axis := randDir(rng)
 		// Zero angle = no-op (within the round-trip's float precision).
-		if d := angularDistance(rotateDir(p, axis, 0), p); d > 1e-6 {
-			t.Fatalf("rotateDir zero-angle moved p by %v", d)
+		if d := AngularDistance(RotateDir(p, axis, 0), p); d > 1e-6 {
+			t.Fatalf("RotateDir zero-angle moved p by %v", d)
 		}
 		// Full turn returns home.
-		if d := angularDistance(rotateDir(p, axis, 2*math.Pi), p); d > 1e-7 {
-			t.Fatalf("rotateDir 2π moved p by %v", d)
+		if d := AngularDistance(RotateDir(p, axis, 2*math.Pi), p); d > 1e-7 {
+			t.Fatalf("RotateDir 2π moved p by %v", d)
 		}
 		// Rotating about p itself leaves p fixed.
-		if d := angularDistance(rotateDir(p, p, rng.Float64()*math.Pi), p); d > 1e-7 {
-			t.Fatalf("rotateDir about self moved p by %v", d)
+		if d := AngularDistance(RotateDir(p, p, rng.Float64()*math.Pi), p); d > 1e-7 {
+			t.Fatalf("RotateDir about self moved p by %v", d)
 		}
 	}
 }
@@ -95,16 +95,16 @@ func TestRotateDirIdentities(t *testing.T) {
 func TestRotateDirPoleAxes(t *testing.T) {
 	rng := rand.New(rand.NewSource(4))
 	const tol = 1e-7
-	yUp := dir{Theta: 0, Phi: 0}
-	yDown := dir{Theta: math.Pi, Phi: 0}
+	yUp := Dir{Theta: 0, Phi: 0}
+	yDown := Dir{Theta: math.Pi, Phi: 0}
 	for i := 0; i < 2000; i++ {
 		p := randDir(rng)
 		angle := (rng.Float64()*2 - 1) * math.Pi
-		for _, axis := range []dir{yUp, yDown} {
-			got := rotateDir(p, axis, angle)
+		for _, axis := range []Dir{yUp, yDown} {
+			got := RotateDir(p, axis, angle)
 			want := vecToDir(rodrigues(dirToVec(p), dirToVec(axis), angle))
-			if angularDistance(got, want) > tol {
-				t.Fatalf("rotateDir about pole %v: got %v want %v", axis, got, want)
+			if AngularDistance(got, want) > tol {
+				t.Fatalf("RotateDir about pole %v: got %v want %v", axis, got, want)
 			}
 		}
 	}
@@ -116,21 +116,21 @@ func TestArcBetweenCarriesFromToTo(t *testing.T) {
 	for i := 0; i < 5000; i++ {
 		from := randDir(rng)
 		to := randDir(rng)
-		r := arcBetween(from, to)
-		if d := math.Abs(r.Angle - angularDistance(from, to)); d > tol {
-			t.Fatalf("arcBetween angle %v != distance %v", r.Angle, angularDistance(from, to))
+		r := ArcBetween(from, to)
+		if d := math.Abs(r.Angle - AngularDistance(from, to)); d > tol {
+			t.Fatalf("ArcBetween angle %v != distance %v", r.Angle, AngularDistance(from, to))
 		}
-		landed := rotateDir(from, r.Axis, r.Angle)
-		if d := angularDistance(landed, to); d > tol {
-			t.Fatalf("arcBetween(%v,%v) landed at %v (Δ=%v)", from, to, landed, d)
+		landed := RotateDir(from, r.Axis, r.Angle)
+		if d := AngularDistance(landed, to); d > tol {
+			t.Fatalf("ArcBetween(%v,%v) landed at %v (Δ=%v)", from, to, landed, d)
 		}
 	}
 }
 
-func randDir(rng *rand.Rand) dir {
+func randDir(rng *rand.Rand) Dir {
 	// Uniform-ish over the sphere; θ in (0,π), φ in (-π,π].
-	return dir{
-		Theta: math.Acos(clamp(rng.Float64()*2-1, -1, 1)),
+	return Dir{
+		Theta: math.Acos(Clamp(rng.Float64()*2-1, -1, 1)),
 		Phi:   (rng.Float64()*2 - 1) * math.Pi,
 	}
 }

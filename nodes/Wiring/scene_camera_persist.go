@@ -60,10 +60,10 @@ func (p *viewpointPersister) schedule(v viewpoint) {
 // viewpointToPolar converts an FSM viewpoint to the persisted cameraPolar shape. It is the
 // exact inverse of loadSceneViewpoint's mapping, so a load→persist→load round-trips.
 func viewpointToPolar(v viewpoint) *scenePolarCamera {
-	pivot := [3]float64{v.pivot.X, v.pivot.Y, v.pivot.Z}
-	r := v.r
-	pos := [2]float64{v.pos.Theta, v.pos.Phi}
-	up := [2]float64{v.up.Theta, v.up.Phi}
+	pivot := [3]float64{v.Pivot.X, v.Pivot.Y, v.Pivot.Z}
+	r := v.R
+	pos := [2]float64{v.Pos.Theta, v.Pos.Phi}
+	up := [2]float64{v.Up.Theta, v.Up.Phi}
 	return &scenePolarCamera{Pivot: &pivot, R: &r, Pos: &pos, Up: &up}
 }
 

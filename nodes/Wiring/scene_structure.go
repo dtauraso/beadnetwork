@@ -213,13 +213,13 @@ func firstPortOfDir(kind string, dir PortDir) (string, bool) {
 func (md *MoveDispatch) dropPointFromNDC(ndcX, ndcY float64) (vec3, bool) {
 	vp := md.ui.vp.viewpoint
 	eye := eyeOf(vp)
-	basis := basisFromViewpoint(vp.pos, vp.up)
+	basis := basisFromViewpoint(vp.Pos, vp.Up)
 	// g.fov/g.rect are the last render params the viewport reported. A gesture reads them
 	// off the event it is handling; a palette DROP has no event of its own — it arrives as
 	// an addressed edit, not raw input — so it uses the ones every pointer move across the
 	// canvas has been keeping current.
 	dir := rayDirThroughNDC(ndcX, ndcY, basis, md.ui.gest.fov, md.ui.gest.rect.aspect())
-	forward := basis.pole.Scale(-1) // camera looks along -pole
+	forward := basis.Pole.Scale(-1) // camera looks along -pole
 	denom := dir.Dot(forward)
 	if denom == 0 {
 		return vec3{}, false

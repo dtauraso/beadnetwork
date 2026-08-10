@@ -24,7 +24,7 @@ func (md *MoveDispatch) beginSphereRotation(ev rawInputMsg) {
 	g.rotPivot = pivot
 
 	eye := eyeOf(vp)
-	basis := basisFromViewpoint(vp.pos, vp.up)
+	basis := basisFromViewpoint(vp.Pos, vp.Up)
 	ndcX, ndcY, _ := projectNDC(pivot, eye, basis, ev.Fov, g.rect.aspect())
 	g.rotCx = ((ndcX+1)/2)*g.rect.width + g.rect.left
 	g.rotCy = ((-ndcY+1)/2)*g.rect.height + g.rect.top
@@ -73,7 +73,7 @@ func (md *MoveDispatch) seedOrbitPivot(pivot vec3) {
 	eye := eyeOf(vp)
 	r := eye.Sub(pivot).Length()
 	pos := worldDirToAngles(eye.Sub(pivot))
-	md.SetViewpoint(pivot, r, pos, vp.up)
+	md.SetViewpoint(pivot, r, pos, vp.Up)
 }
 
 // applyOrbit mirrors the "rotating" branch of interaction-handlers.ts handlePointerMove:
@@ -82,7 +82,7 @@ func (md *MoveDispatch) seedOrbitPivot(pivot vec3) {
 func (md *MoveDispatch) applyOrbit(ev rawInputMsg, tr *T.Trace) {
 	g := &md.ui.gest
 	vp := md.ui.vp.viewpoint
-	basis := basisFromViewpoint(vp.pos, vp.up)
+	basis := basisFromViewpoint(vp.Pos, vp.Up)
 	prev := screenToPolar(g.prevX-g.rotCx, g.prevY-g.rotCy, g.rotPxPerRad)
 	curr := screenToPolar(ev.X-g.rotCx, ev.Y-g.rotCy, g.rotPxPerRad)
 	prevDir := toWorldDir(basis, prev)
@@ -97,7 +97,7 @@ func (md *MoveDispatch) applyOrbit(ev rawInputMsg, tr *T.Trace) {
 func (md *MoveDispatch) applyOrbitLocked(ev rawInputMsg, tr *T.Trace) {
 	g := &md.ui.gest
 	vp := md.ui.vp.viewpoint
-	basis := basisFromViewpoint(vp.pos, vp.up)
+	basis := basisFromViewpoint(vp.Pos, vp.Up)
 	prev := screenToPolar(g.prevX-g.rotCx, g.prevY-g.rotCy, g.rotPxPerRad)
 	curr := screenToPolar(ev.X-g.rotCx, ev.Y-g.rotCy, g.rotPxPerRad)
 	prevDir := toWorldDir(basis, prev)
@@ -114,10 +114,10 @@ func (md *MoveDispatch) dragPlaneHit(ev rawInputMsg) (hit vec3, ok bool) {
 	g := &md.ui.gest
 	vp := md.ui.vp.viewpoint
 	eye := eyeOf(vp)
-	basis := basisFromViewpoint(vp.pos, vp.up)
+	basis := basisFromViewpoint(vp.Pos, vp.Up)
 	nx, ny := g.pixelToNDC(ev.X, ev.Y)
 	dir := rayDirThroughNDC(nx, ny, basis, ev.Fov, g.rect.aspect())
-	forward := basis.pole.Scale(-1) // camera looks along -pole
+	forward := basis.Pole.Scale(-1) // camera looks along -pole
 	denom := dir.Dot(forward)
 	if denom == 0 {
 		return vec3{}, false
