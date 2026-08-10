@@ -1,11 +1,11 @@
-// stdin_reader_integration_test.go — tests that drive RunStdinReader itself (framed
-// partial reads, ctx-cancel shutdown) through a real pipe. Split out of
-// nodes/Wiring/stdin_input_integration_test.go when RunStdinReader moved to this package:
-// neither test here reaches an unexported Wiring field, so both run as an EXTERNAL test of
-// this package (package stdinreader_test), importing Wiring and stdinreader side by side —
-// an in-package Wiring test cannot do that (stdinreader already imports Wiring, so a
-// same-package Wiring test importing stdinreader is a real cycle, not a style choice).
-package stdinreader_test
+// stdin_reader_framing_test.go — tests that drive RunStdinReader itself (framed
+// partial reads, ctx-cancel shutdown) through a real pipe. Moved from
+// nodes/Wiring/stdinreader/stdin_reader_integration_test.go: stdinreader no longer
+// imports Wiring (it takes its three dispatch operations as function values,
+// stdinreader.Handlers), so this now runs as an in-package Wiring test that imports
+// stdinreader directly, calling the unexported newMoveDispatch instead of the
+// now-deleted NewMoveDispatchForTest hatch.
+package Wiring
 
 import (
 	"context"
@@ -17,16 +17,16 @@ import (
 	"testing"
 	"time"
 
-	Wiring "github.com/dtauraso/wirefold/nodes/Wiring"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/stdinreader"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
-// frameRecord wraps a record body with the [len:u32-LE] transport frame RunStdinReader
-// expects.
-func frameRecord(rec []byte) []byte {
+// frameRecord2 wraps a record body with the [len:u32-LE] transport frame RunStdinReader
+// expects. (Suffixed _2 to avoid colliding with any identically-named helper elsewhere in
+// package Wiring's test files.)
+func frameRecord2(rec []byte) []byte {
 	return append(binary.LittleEndian.AppendUint32(nil, uint32(len(rec))), rec...)
 }
 
@@ -39,15 +39,15 @@ func TestFramedPartialReads(t *testing.T) {
 	defer cancel()
 	pr, pw := io.Pipe()
 	// A real (empty) dispatch so the `save` command has an overlay snapshot to persist.
-	md, err := Wiring.NewMoveDispatchForTest(map[string]nodegeom.NodeGeom{}, map[string]inputcodec.EdgeEndpoints{}, nil, nil, nil, clock.NewRealClock(), nil, 0)
+	md, err := newMoveDispatch(map[string]nodegeom.NodeGeom{}, map[string]inputcodec.EdgeEndpoints{}, nil, nil, nil, clock.NewRealClock(), nil, 0)
 	if err != nil {
 		t.Fatalf("newMoveDispatch: %v", err)
 	}
 	md.EnableEditPersist(root) // arms overlaysPersist so `save` can write overlays.json
 	h := stdinreader.Handlers{
-		ApplyEdit:      func(msg inputcodec.StdinMsg) { Wiring.ApplyEdit(msg, md, nil, nil) },
-		HandleRawInput: func(msg inputcodec.StdinMsg) { Wiring.HandleRawInputMsg(msg, inputcodec.SlotRegistry{}, md, nil) },
-		HandleSave:     func() { Wiring.HandleSaveMsg(md) },
+		ApplyEdit:      func(msg inputcodec.StdinMsg) { ApplyEdit(msg, md, nil, nil) },
+		HandleRawInput: func(msg inputcodec.StdinMsg) { HandleRawInputMsg(msg, inputcodec.SlotRegistry{}, md, nil) },
+		HandleSave:     func() { HandleSaveMsg(md) },
 	}
 	readerDone := make(chan struct{})
 	go func() {
@@ -59,7 +59,7 @@ func TestFramedPartialReads(t *testing.T) {
 	// test's t.TempDir() cleanup removes root, or the flush can race the RemoveAll.
 	defer func() { <-readerDone }()
 
-	frame := frameRecord([]byte{inputcodec.InKindSave})
+	frame := frameRecord2([]byte{inputcodec.InKindSave})
 	go func() {
 		for _, b := range frame {
 			pw.Write([]byte{b})
