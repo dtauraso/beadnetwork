@@ -4,7 +4,7 @@
 // frames per chunk, and a trailing partial buffered until enough bytes arrive.
 
 import { describe, it, expect } from "vitest";
-import { splitFrames } from "../src/runCommand";
+import { splitFrames } from "../../src/runCommand";
 
 /** Build a framed Buffer: [len:u32-LE][payload bytes]. */
 function frame(payload: number[]): Buffer {

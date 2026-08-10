@@ -10,7 +10,7 @@
 // graph from disk and would double-apply. That drop is a prior-audit fix; this locks it.
 
 import { describe, it, expect } from "vitest";
-import { handleMessage, type MessageCtx } from "../src/extension/handle-message";
+import { handleMessage, type MessageCtx } from "../../src/extension/handle-message";
 
 type Call = { method: string; args: unknown[] };
 

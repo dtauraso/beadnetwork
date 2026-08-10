@@ -199,7 +199,7 @@ all-absent snapshot over a held bead the node's own interior stream had just emi
 the node's own interior stream — its Update loop's `emitHeldBead`/`emitNodeBeads`/
 `emitInputBeads` — is the one writer of slot state; a drive frame's EVENTS are still decoded
 and probe-logged, they just never reach the webview's interior cell or its replay cache
-(`tools/topology-vscode/test/driveFramesAreEventsOnly.test.ts`).
+(`tools/topology-vscode/test/runner/driveFramesAreEventsOnly.test.ts`).
 
 **Single-Write framing, done alongside**: `writeInteriorStreamFrame`
 (`nodes/Wiring/interior_stream.go`) now issues ONE `io.Writer.Write` call per frame

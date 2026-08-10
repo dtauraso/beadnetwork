@@ -33,9 +33,9 @@ import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
 import { execFileSync } from "child_process";
-import { decodeNodeStreamFrame } from "../src/webview/three/decode/buffer-decode-node";
-import { decodeEdgeStreamFrame } from "../src/webview/three/decode/buffer-decode-edge";
-import { decodeInteriorStreamFrame } from "../src/webview/three/decode/buffer-decode-interior";
+import { decodeNodeStreamFrame } from "../../src/webview/three/decode/buffer-decode-node";
+import { decodeEdgeStreamFrame } from "../../src/webview/three/decode/buffer-decode-edge";
+import { decodeInteriorStreamFrame } from "../../src/webview/three/decode/buffer-decode-interior";
 import {
   readNodeNodeId,
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius, readNodeSphereR,
@@ -48,10 +48,10 @@ import {
   readChainBeadLitValue,
   readEdgeSX, readEdgeSY, readEdgeSZ, readEdgeEX, readEdgeEY, readEdgeEZ, readEdgeSelected,
   readInteriorPresent, readInteriorValue, readInteriorOX, readInteriorOY, readInteriorOZ,
-} from "../src/schema/buffer-layout";
+} from "../../src/schema/buffer-layout";
 
-const repoRoot = path.resolve(__dirname, "../../..");
-const committedFixturePath = path.join(__dirname, "fixtures", "stream_fixture.json");
+const repoRoot = path.resolve(__dirname, "../../../..");
+const committedFixturePath = path.join(__dirname, "..", "fixtures", "stream_fixture.json");
 
 interface NodeFrameFixture {
   tick: number; nodeRow: number; nodeId: number;

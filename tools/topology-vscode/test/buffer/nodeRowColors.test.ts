@@ -5,8 +5,8 @@
 //   - The fill/stroke colors at each KindId index match the expected NODE_DEFS entry
 
 import { describe, it, expect } from "vitest";
-import { NODE_DEFS, NODE_DEFS_ARRAY } from "../src/schema/node-defs";
-import { NODE_COL_KIND_ID, NODE_STRIDE, readNodeKindId } from "../src/schema/buffer-layout";
+import { NODE_DEFS, NODE_DEFS_ARRAY } from "../../src/schema/node-defs";
+import { NODE_COL_KIND_ID, NODE_STRIDE, readNodeKindId } from "../../src/schema/buffer-layout";
 
 function makeNodeView(kindId: number): DataView {
   const buf = new ArrayBuffer(NODE_STRIDE);

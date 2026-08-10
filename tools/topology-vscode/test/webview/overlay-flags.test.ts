@@ -11,17 +11,17 @@
 //     not re-render every 60fps snapshot).
 
 import { describe, it, expect, beforeEach } from "vitest";
-import { readOverlayFlags } from "../src/webview/three/controls/overlay-flags";
-import { setLatestViewFrame } from "../src/webview/snapshot-buffer";
-import { OVERLAY_FLAG_ORDER } from "../src/messages";
-import { BUF_VIEW_FRAME_HEADER_SIZE } from "../src/schema/frame-tags";
-import { SCENE_TABS_HEADER_SIZE } from "../src/webview/three/decode/buffer-decode-view";
+import { readOverlayFlags } from "../../src/webview/three/controls/overlay-flags";
+import { setLatestViewFrame } from "../../src/webview/snapshot-buffer";
+import { OVERLAY_FLAG_ORDER } from "../../src/messages";
+import { BUF_VIEW_FRAME_HEADER_SIZE } from "../../src/schema/frame-tags";
+import { SCENE_TABS_HEADER_SIZE } from "../../src/webview/three/decode/buffer-decode-view";
 import {
   CAMERA_STRIDE, OVERLAY_STRIDE, SCENE_STRIDE,
   OVERLAY_COL_SCENE_TORI, OVERLAY_COL_SCENE_POLES, OVERLAY_COL_NODE_POLES,
   OVERLAY_COL_SEL_SPHERE_POLES, OVERLAY_COL_HANDHOLDS,
   OVERLAY_COL_LABELS_GLOBAL, OVERLAY_COL_OVERLAYS_VIS,
-} from "../src/schema/buffer-layout";
+} from "../../src/schema/buffer-layout";
 
 // Build a VIEW-stream frame (camera+overlay+scene) carrying only the Overlay columns of
 // interest — the live production shape (decodeViewFrame), replacing the deleted combined

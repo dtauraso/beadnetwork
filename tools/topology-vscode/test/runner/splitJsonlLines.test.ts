@@ -5,7 +5,7 @@
 // lines in one chunk, and a trailing partial buffered until its newline arrives.
 
 import { describe, it, expect } from "vitest";
-import { splitJsonlLines } from "../src/runCommand";
+import { splitJsonlLines } from "../../src/runCommand";
 
 describe("splitJsonlLines", () => {
   it("reassembles a line split across two chunks into one complete line", () => {

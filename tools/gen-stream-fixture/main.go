@@ -15,7 +15,7 @@
 // regenerated via `go run ./tools/gen-stream-fixture <outPath>` (outPath defaults to that
 // path, resolved from the repo root this binary is invoked from).
 //
-// tools/topology-vscode/test/stream-fixture.test.ts decodes the fixture's hex with the REAL
+// tools/topology-vscode/test/buffer/stream-fixture.test.ts decodes the fixture's hex with the REAL
 // TS decoders (decodeNodeStreamFrame/decodeEdgeStreamFrame/decodeInteriorStreamFrame in
 // buffer-decode-node.ts/buffer-decode-edge.ts/buffer-decode-interior.ts) and asserts every
 // field — the actual cross-language byte-level

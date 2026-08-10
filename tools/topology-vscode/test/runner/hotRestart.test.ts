@@ -2,7 +2,7 @@
 // functions / one debouncer instance, no cross-process communication — see
 // docs/process/testing-shape.md).
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { shouldRestartAfterBuild, TrailingDebouncer } from "../src/hotRestart";
+import { shouldRestartAfterBuild, TrailingDebouncer } from "../../src/hotRestart";
 
 describe("shouldRestartAfterBuild", () => {
   it("restarts on a genuinely completed successful build", () => {

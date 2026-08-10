@@ -8,17 +8,17 @@
 // (edge-tube-port-resolution.test.ts).
 
 import { describe, it, expect, vi } from "vitest";
-import { decodeNodeStreamFrame } from "../src/webview/three/decode/buffer-decode-node";
-import { decodeInteriorStreamFrame } from "../src/webview/three/decode/buffer-decode-interior";
+import { decodeNodeStreamFrame } from "../../src/webview/three/decode/buffer-decode-node";
+import { decodeInteriorStreamFrame } from "../../src/webview/three/decode/buffer-decode-interior";
 import {
   BUF_NODE_STREAM_FRAME_HEADER_SIZE, BUF_INTERIOR_STREAM_FRAME_HEADER_SIZE,
-} from "../src/schema/frame-tags";
+} from "../../src/schema/frame-tags";
 import {
   NODE_STRIDE, INTERIOR_STRIDE, INTERIOR_SLOTS_PER_NODE,
   NODE_COL_NODE_ID, NODE_COL_CX, NODE_COL_CY, NODE_COL_CZ, NODE_COL_RADIUS,
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius,
   readInteriorPresent, readInteriorValue,
-} from "../src/schema/buffer-layout";
+} from "../../src/schema/buffer-layout";
 
 // Every test below that touches the STATEFUL per-node cells (snapshot-buffer.ts's plain
 // module-level maps) gets a FRESH module instance via vi.resetModules() + dynamic import —
@@ -27,8 +27,8 @@ import {
 // shared helper for that pattern.
 async function freshNodeStreamModules() {
   vi.resetModules();
-  const snapshotBuffer = await import("../src/webview/snapshot-buffer");
-  const nodeStreamBlocks = await import("../src/webview/three/scene/node-stream-blocks");
+  const snapshotBuffer = await import("../../src/webview/snapshot-buffer");
+  const nodeStreamBlocks = await import("../../src/webview/three/scene/node-stream-blocks");
   return { snapshotBuffer, nodeStreamBlocks };
 }
 

@@ -15,10 +15,10 @@ import {
   IN_UPDATE_KINDS,
   IN_UPDATE_ATTRS,
   INPUT_LAYOUT_FINGERPRINT,
-} from "../src/schema/input-layout-gen";
-import { encodeOverlaysToggle, encodeClockSpeed, frameRecord } from "../src/schema/input-encode";
-import { decodeInputRecord } from "../src/schema/input-decode";
-import { OVERLAY_FLAG_ORDER } from "../src/messages";
+} from "../../src/schema/input-layout-gen";
+import { encodeOverlaysToggle, encodeClockSpeed, frameRecord } from "../../src/schema/input-encode";
+import { decodeInputRecord } from "../../src/schema/input-decode";
+import { OVERLAY_FLAG_ORDER } from "../../src/messages";
 
 /** Build a bare kind-byte control record (mirrors ByteWriter's u8-only shape). No live
  *  TS encoder builds a "save" record today (Go still decodes it and it is in the

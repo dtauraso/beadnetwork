@@ -51,7 +51,7 @@ import {
   readOverlayLabelsGlobal, readOverlayOverlaysVis,
   // No Port block any more (docs/bead-model/channels-not-ports.md — a port carries no geometry, so
   // there is no buffer row for it to have).
-} from "../src/schema/buffer-layout";
+} from "../../src/schema/buffer-layout";
 
 // ─ helpers ──────────────────────────────────────────────────────────────────
 

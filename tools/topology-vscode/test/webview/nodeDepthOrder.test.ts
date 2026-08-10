@@ -6,7 +6,7 @@
 // not three.js rendering (docs/process/testing-shape.md: no canvas, no renderer).
 
 import { describe, it, expect } from "vitest";
-import { computeNodeDepthOrder, setNodeDrawOrder, resolveNodeDrawSlot } from "../src/webview/three/scene/node-depth-order";
+import { computeNodeDepthOrder, setNodeDrawOrder, resolveNodeDrawSlot } from "../../src/webview/three/scene/node-depth-order";
 
 describe("computeNodeDepthOrder", () => {
   it("sorts three colinear nodes far-to-near from the camera", () => {

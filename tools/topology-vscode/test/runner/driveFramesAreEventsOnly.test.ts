@@ -16,7 +16,7 @@
 // The frames are still decoded and probe-logged; they are simply not interior state.
 
 import { describe, it, expect } from "vitest";
-import { BuildAndRunRunner } from "../src/runCommand";
+import { BuildAndRunRunner } from "../../src/runCommand";
 
 /** Reach the private relay tail directly: this is a unit test of the routing decision, not
  *  of process spawning, and driving a real child would test the OS rather than this rule.

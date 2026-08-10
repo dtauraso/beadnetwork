@@ -12,7 +12,7 @@
 //   - looping respawns only on a NATURAL exit; cancel()/stop() must not respawn.
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { frameRecord } from "../src/schema/input-encode";
+import { frameRecord } from "../../src/schema/input-encode";
 import { EventEmitter } from "node:events";
 import * as fs from "fs";
 import * as os from "os";
@@ -53,14 +53,14 @@ vi.mock("child_process", () => ({
   spawn: (...args: unknown[]) => spawnMock(...(args as [])),
 }));
 
-vi.mock("../src/goBuild", () => ({
+vi.mock("../../src/goBuild", () => ({
   buildBinary: () => ({ ok: true, busy: false }),
   maxGoMtime: () => 0,
   killOrphanedSims: () => ({ killed: 0 }),
 }));
 
 // Imported after the mocks are registered.
-import { BuildAndRunRunner } from "../src/runCommand";
+import { BuildAndRunRunner } from "../../src/runCommand";
 
 let tmpDir: string;
 let killSpy: ReturnType<typeof vi.spyOn>;

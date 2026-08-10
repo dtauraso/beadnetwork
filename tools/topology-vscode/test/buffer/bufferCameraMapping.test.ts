@@ -8,15 +8,15 @@
 
 import { describe, it, expect } from "vitest";
 import * as THREE from "three";
-import { decodeViewFrame, SCENE_TABS_HEADER_SIZE } from "../src/webview/three/decode/buffer-decode-view";
-import { BUF_VIEW_FRAME_HEADER_SIZE } from "../src/schema/frame-tags";
+import { decodeViewFrame, SCENE_TABS_HEADER_SIZE } from "../../src/webview/three/decode/buffer-decode-view";
+import { BUF_VIEW_FRAME_HEADER_SIZE } from "../../src/schema/frame-tags";
 import {
   CAMERA_STRIDE, OVERLAY_STRIDE, SCENE_STRIDE,
   CAMERA_COL_PX, CAMERA_COL_PY, CAMERA_COL_PZ, CAMERA_COL_R,
   CAMERA_COL_POS_THETA, CAMERA_COL_POS_PHI, CAMERA_COL_UP_THETA, CAMERA_COL_UP_PHI,
   readCameraPX, readCameraPY, readCameraPZ, readCameraR,
   readCameraPosTheta, readCameraPosPhi, readCameraUpTheta, readCameraUpPhi,
-} from "../src/schema/buffer-layout";
+} from "../../src/schema/buffer-layout";
 
 // Local copy of viewpoint-bridge.ts's anglesToWorldOffset. Kept inline (not imported)
 // because viewpoint-bridge pulls in the VS Code api at module load, which is absent under

@@ -7,7 +7,7 @@
 // same physical direction, different index and different denominator, because the step
 // (2π/points) itself depends on the count.
 import { describe, it, expect } from "vitest";
-import { formatAngle, widestAngle } from "../src/webview/three/controls/tilt-vector-angle-format";
+import { formatAngle, widestAngle } from "../../src/webview/three/controls/tilt-vector-angle-format";
 
 describe("TiltVectorAnglePanel formatAngle", () => {
   it("at 24 points, π/2 is index 6 shown as 6π/12", () => {

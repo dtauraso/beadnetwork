@@ -8,15 +8,15 @@
 import { describe, it, expect, vi } from "vitest";
 import {
   BUF_EDGE_STREAM_FRAME_HEADER_SIZE,
-} from "../src/schema/frame-tags";
+} from "../../src/schema/frame-tags";
 import {
   EDGE_STRIDE, EDGE_COL_SX, EDGE_COL_SY, EDGE_COL_SZ, EDGE_COL_EX, EDGE_COL_EY, EDGE_COL_EZ,
-} from "../src/schema/buffer-layout";
+} from "../../src/schema/buffer-layout";
 
 async function freshModules() {
   vi.resetModules();
-  const snapshotBuffer = await import("../src/webview/snapshot-buffer");
-  const edgeStreamBlocks = await import("../src/webview/three/scene/edge-stream-blocks");
+  const snapshotBuffer = await import("../../src/webview/snapshot-buffer");
+  const edgeStreamBlocks = await import("../../src/webview/three/scene/edge-stream-blocks");
   return { snapshotBuffer, edgeStreamBlocks };
 }
 

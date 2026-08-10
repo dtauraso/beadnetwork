@@ -3,7 +3,7 @@
 // mapping and the "invalid value → hidden (no style)" rule so a buffer transit bead
 // cannot diverge from the pre-branch PulseBead look.
 import { describe, it, expect } from "vitest";
-import { beadStyleForValue } from "../src/webview/three/scene/bead-style";
+import { beadStyleForValue } from "../../src/webview/three/scene/bead-style";
 
 describe("beadStyleForValue (transit + interior bead color source of truth)", () => {
   it("value 0 → black fill, black ring", () => {

@@ -17,16 +17,16 @@
 //     function every real per-owner stream frame is decoded through. No hardcoded offsets.
 
 import { describe, it, expect } from "vitest";
-import { decodeStreamFrameEvents } from "../src/buffer-log";
-import { decodeTrailingEvents } from "../src/webview/three/decode/buffer-decode-shared";
+import { decodeStreamFrameEvents } from "../../src/buffer-log";
+import { decodeTrailingEvents } from "../../src/webview/three/decode/buffer-decode-shared";
 import {
   EVENT_STRIDE,
   EVENT_COL_KIND, EVENT_COL_NODE_ROW, EVENT_COL_PORT_ROW, EVENT_COL_TARGET_ROW,
   EVENT_COL_TARGET_PORT_ROW, EVENT_COL_EDGE_ROW, EVENT_COL_SLOT, EVENT_COL_VALUE,
   EVENT_COL_BEAD, EVENT_COL_X, EVENT_COL_Y, EVENT_COL_Z, EVENT_COL_F,
   EVENT_COL_LABEL, EVENT_COL_DEBUG, EVENT_COL_TEXT_OFF, EVENT_COL_TEXT_LEN,
-} from "../src/schema/buffer-layout";
-import { TRACE_EVENT_KINDS, BREADCRUMB_LABELS } from "../src/schema/trace-kinds";
+} from "../../src/schema/buffer-layout";
+import { TRACE_EVENT_KINDS, BREADCRUMB_LABELS } from "../../src/schema/trace-kinds";
 
 const EDGE_BEAD_KIND_ID = TRACE_EVENT_KINDS.indexOf("edge-bead");
 const BREADCRUMB_KIND_ID = TRACE_EVENT_KINDS.indexOf("breadcrumb");

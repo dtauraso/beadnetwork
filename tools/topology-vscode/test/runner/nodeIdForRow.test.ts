@@ -3,7 +3,7 @@
 // Pure arithmetic — no vscode/child_process mocking needed.
 
 import { describe, it, expect } from "vitest";
-import { nodeIdForRow, rowForNodeId } from "../src/runCommand";
+import { nodeIdForRow, rowForNodeId } from "../../src/runCommand";
 
 describe("nodeIdForRow / rowForNodeId", () => {
   it("row 0 is node 1 (1-based node ids, 0-based rows)", () => {

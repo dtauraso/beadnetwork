@@ -2,7 +2,7 @@
 // dropped (undefined) so it can never reach a downstream consumer and throw, blanking the
 // editor.
 import { describe, it, expect } from "vitest";
-import { parseHostToWebview } from "../src/messages";
+import { parseHostToWebview } from "../../src/messages";
 
 describe("parseHostToWebview", () => {
   it("rejects the removed trace-event type (nothing posts it; Go's JSON-on-stdout path was removed)", () => {

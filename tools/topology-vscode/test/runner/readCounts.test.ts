@@ -8,7 +8,7 @@ import { describe, it, expect } from "vitest";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
-import { readCounts } from "../src/runCommand";
+import { readCounts } from "../../src/runCommand";
 
 function mkTmpDir(): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), "wirefold-readcounts-"));
@@ -53,7 +53,7 @@ describe("readCounts", () => {
   });
 
   it("reads the committed topology's counts.json (repo self-check)", () => {
-    const repoRoot = path.join(__dirname, "..", "..", "..");
+    const repoRoot = path.join(__dirname, "..", "..", "..", "..");
     const counts = readCounts(path.join(repoRoot, "topology"));
     expect(counts.nodes).toBeGreaterThan(0);
     expect(counts.edges).toBeGreaterThan(0);

@@ -3,7 +3,7 @@
 // docs/process/testing-shape.md). Matches hotRestart.test.ts's shape.
 import { describe, it, expect, afterEach } from "vitest";
 import { workspace } from "vscode";
-import { hashBundle, isHostReloadEnabled, shouldReloadHost } from "../src/hostReload";
+import { hashBundle, isHostReloadEnabled, shouldReloadHost } from "../../src/hostReload";
 
 describe("shouldReloadHost", () => {
   it("reloads when the on-disk bundle hash differs from the loaded baseline", () => {
