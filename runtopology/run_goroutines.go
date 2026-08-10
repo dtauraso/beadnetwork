@@ -33,9 +33,14 @@ import (
 func startStdinReader(ctx context.Context, cancel context.CancelFunc, slotReg inputcodec.SlotRegistry, md *W.MoveDispatch, tr *T.Trace, speedSinks []chan float64) *sync.WaitGroup {
 	stdinWG := new(sync.WaitGroup)
 	stdinWG.Add(1)
+	h := stdinreader.Handlers{
+		ApplyEdit:      func(msg inputcodec.StdinMsg) { W.ApplyEdit(msg, md, tr, speedSinks) },
+		HandleRawInput: func(msg inputcodec.StdinMsg) { W.HandleRawInputMsg(msg, slotReg, md, tr) },
+		HandleSave:     func() { W.HandleSaveMsg(md) },
+	}
 	go func() {
 		defer stdinWG.Done()
-		stdinreader.RunStdinReader(ctx, os.Stdin, slotReg, md, tr, speedSinks)
+		stdinreader.RunStdinReader(ctx, os.Stdin, h)
 		cancel()
 	}()
 	return stdinWG

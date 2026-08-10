@@ -3,13 +3,15 @@
 // The editor→Go bridge is a purely BINARY buffer (symmetric with the Go→TS content
 // buffer on fd 3): each message is a binary RECORD written FRAMED as [len:u32-LE][record]
 // to stdin. input_codec.go decodes a record into the stdinMsg below; the dispatch switch
-// and every handler (Wiring.ApplyEdit / Wiring.HandleRawInputMsg) are UNCHANGED —
-// only the wire decode moved from newline-JSON to framed binary.
+// calls into the three Handlers (ApplyEdit / HandleRawInput / HandleSave, package
+// nodes/Wiring's ApplyEdit / HandleRawInputMsg / HandleSaveMsg wrapped as closures by the
+// caller so this package does not import nodes/Wiring) — only the wire decode moved from
+// newline-JSON to framed binary.
 //
 // ONE JOB HERE: bytes off the pipe, whole records out. The message SHAPES are
 // stdin_msg_types.go, the decode is input_codec.go, and the routing tables (applyEdit /
-// applyUpdate / the per-attr tables) are stdin_dispatch.go. This file owns framing,
-// back-pressure, and shutdown — nothing else.
+// applyUpdate / the per-attr tables) are nodes/Wiring's stdin_dispatch.go. This file owns
+// framing, back-pressure, and shutdown — nothing else.
 //
 // The editor→Go bridge carries these top-level message kinds (all fully binary; no JSON
 // on the wire — see input_codec.go). This list is the AUTHORITATIVE doc for the dispatch
@@ -61,10 +63,23 @@ import (
 	"io"
 	"os"
 
-	T "github.com/dtauraso/wirefold/Trace"
-	Wiring "github.com/dtauraso/wirefold/nodes/Wiring"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 )
+
+// Handlers is the three dispatch operations RunStdinReader needs, passed as function
+// values so this package does not import nodes/Wiring. The caller (runtopology) builds
+// them from its own *Wiring.MoveDispatch, closing over whatever else each op needs
+// (Trace, speedSinks, slotReg) — RunStdinReader itself only ever hands each one the
+// decoded message.
+type Handlers struct {
+	// ApplyEdit handles a decoded "edit" message (geometry-CRUD update op).
+	ApplyEdit func(msg inputcodec.StdinMsg)
+	// HandleRawInput handles a decoded "raw-input" message (pointer/wheel + raycast hit
+	// → gesture FSM).
+	HandleRawInput func(msg inputcodec.StdinMsg)
+	// HandleSave handles the bare "save" command.
+	HandleSave func()
+}
 
 // RunStdinReader reads FRAMED BINARY records from r, dispatching geometry-CRUD "edit"
 // messages and the bare save command. RunStdinReader itself returns
@@ -75,24 +90,14 @@ import (
 // r is os.Stdin and this only runs as the process is already exiting, so the close is
 // harmless. Call in a goroutine alongside the node run loop.
 //
-// slotReg is keyed by "target.targetHandle" (the destination port's wire); it stays
-// live for delivery/movers though no edit op indexes it any longer. md may be nil; if
-// non-nil, update (node-move) ops mail-sort each entry to the owning node/edge goroutine's inbox.
-// tr emits control breadcrumbs for the edit ops.
+// h supplies the three dispatch operations (Handlers, above); any nil field is simply
+// never called (a message of that kind is then silently ignored, same as an unknown type).
 // maxFrameBytes bounds a single framed-binary record: the reader buffer size and the
 // upper limit a decoded [len:u32] is allowed to request, so a corrupt/hostile length can't
 // drive an unbounded allocation. Matches the 1 MB headroom of the pre-frame line buffer.
 const maxFrameBytes = 1 << 20
 
-// speedSinks is the build-wide list of every clock-owning goroutine's speed
-// channel (LoadTopology's 4th return value, per-goroutine-clock.md
-// "Delivery"), collected ONCE at load before any goroutine spawned. This
-// RunStdinReader goroutine is the sole writer of every channel in it from here
-// on — nothing else sends on them — broadcasting a speed change loops
-// over the slice and calls SendSpeedNonBlocking. nil (or an
-// empty slice) is fine: the speed edit then simply reaches nobody, same as
-// today's known-inert slider before this delivery path existed.
-func RunStdinReader(ctx context.Context, r io.Reader, slotReg inputcodec.SlotRegistry, md *Wiring.MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
+func RunStdinReader(ctx context.Context, r io.Reader, h Handlers) {
 	// Every persister now writes synchronously the moment its value changes (see
 	// scene_persist.go's header comment for why the prior debounce/clean-shutdown-flush
 	// machinery was removed), so there is nothing pending to flush on exit here anymore.
@@ -158,8 +163,9 @@ func RunStdinReader(ctx context.Context, r io.Reader, slotReg inputcodec.SlotReg
 			}
 			// Row-identity resolution (a "raw-input" record's rawHit carries only numeric
 			// rows; portFromHit/edgeFromHit/nodeFromHit in gesture.go resolve them) reads
-			// md.portRowTable/edgeRowTable/nodeRowTable directly — those are a LOAD-TIME
-			// CONSTANT built once in newMoveDispatch (move_dispatch_construct.go buildRowTables), not a
+			// MoveDispatch's portRowTable/edgeRowTable/nodeRowTable directly, inside
+			// h.HandleRawInput's closure — those are a LOAD-TIME CONSTANT built once in
+			// newMoveDispatch (move_dispatch_construct.go buildRowTables), not a
 			// per-iteration drain: node/edge/port row order never changes after load (a
 			// new node/edge only ever arrives via a full respawn), so there is nothing to
 			// drain here anymore. Likewise heldCenters/centerOfNode read the dispatch
@@ -175,11 +181,17 @@ func RunStdinReader(ctx context.Context, r io.Reader, slotReg inputcodec.SlotReg
 			// MSG_TYPES_START
 			switch msg.Type {
 			case "edit":
-				Wiring.ApplyEdit(msg, md, tr, speedSinks)
+				if h.ApplyEdit != nil {
+					h.ApplyEdit(msg)
+				}
 			case "raw-input":
-				Wiring.HandleRawInputMsg(msg, slotReg, md, tr)
+				if h.HandleRawInput != nil {
+					h.HandleRawInput(msg)
+				}
 			case "save":
-				Wiring.HandleSaveMsg(md)
+				if h.HandleSave != nil {
+					h.HandleSave()
+				}
 			}
 			// MSG_TYPES_END
 		}

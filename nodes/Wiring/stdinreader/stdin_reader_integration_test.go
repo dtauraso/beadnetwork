@@ -44,9 +44,14 @@ func TestFramedPartialReads(t *testing.T) {
 		t.Fatalf("newMoveDispatch: %v", err)
 	}
 	md.EnableEditPersist(root) // arms overlaysPersist so `save` can write overlays.json
+	h := stdinreader.Handlers{
+		ApplyEdit:      func(msg inputcodec.StdinMsg) { Wiring.ApplyEdit(msg, md, nil, nil) },
+		HandleRawInput: func(msg inputcodec.StdinMsg) { Wiring.HandleRawInputMsg(msg, inputcodec.SlotRegistry{}, md, nil) },
+		HandleSave:     func() { Wiring.HandleSaveMsg(md) },
+	}
 	readerDone := make(chan struct{})
 	go func() {
-		stdinreader.RunStdinReader(ctx, pr, inputcodec.SlotRegistry{}, md, nil, nil)
+		stdinreader.RunStdinReader(ctx, pr, h)
 		close(readerDone)
 	}()
 	// RunStdinReader now flushes pending debounced persisters (writes under root) on its
@@ -93,7 +98,7 @@ func TestStdinReaderCancelWithoutEOF(t *testing.T) {
 
 	readerDone := make(chan struct{})
 	go func() {
-		stdinreader.RunStdinReader(ctx, pr, inputcodec.SlotRegistry{}, nil, nil, nil)
+		stdinreader.RunStdinReader(ctx, pr, stdinreader.Handlers{})
 		close(readerDone)
 	}()
 

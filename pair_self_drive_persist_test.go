@@ -160,9 +160,14 @@ func TestPairNodeSelfDrivePersistsThroughRealReload(t *testing.T) {
 	pr, pw := io.Pipe()
 	var stdinWG sync.WaitGroup
 	stdinWG.Add(1)
+	h := stdinreader.Handlers{
+		ApplyEdit:      func(msg inputcodec.StdinMsg) { Wiring.ApplyEdit(msg, md, tr, speedSinks) },
+		HandleRawInput: func(msg inputcodec.StdinMsg) { Wiring.HandleRawInputMsg(msg, slotReg, md, tr) },
+		HandleSave:     func() { Wiring.HandleSaveMsg(md) },
+	}
 	go func() {
 		defer stdinWG.Done()
-		stdinreader.RunStdinReader(ctx, pr, slotReg, md, tr, speedSinks)
+		stdinreader.RunStdinReader(ctx, pr, h)
 	}()
 
 	before := readNode2Position(t, root)
