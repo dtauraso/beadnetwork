@@ -7,6 +7,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring"
 	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
+	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 )
 
 // noValue is the sentinel meaning "no value seen yet". Real values are
@@ -90,9 +91,9 @@ func init() {
 	// Pacer CONSTRUCTS ITSELF. Every assignment below was previously performed by
 	// Wiring.reflectBuild via reflection — see Time for the general note.
 	Wiring.RegisterBuilder("Pacer",
-		[]Wiring.PortSpec{
-			{Name: "In", Dir: Wiring.PortIn},
-			{Name: "FeedbackOut", Dir: Wiring.PortOut},
+		[]portwiring.PortSpec{
+			{Name: "In", Dir: portwiring.PortIn},
+			{Name: "FeedbackOut", Dir: portwiring.PortOut},
 		},
 		func(a Wiring.BuildArgs) (wire.Node, error) {
 			n := &Node{

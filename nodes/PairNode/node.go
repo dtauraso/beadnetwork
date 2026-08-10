@@ -53,6 +53,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring"
+	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 )
 
@@ -278,9 +279,9 @@ func init() {
 	// shape as every other kind — see Pacer/Input for the general note on why
 	// this replaced reflectBuild.
 	Wiring.RegisterBuilder("PairNode",
-		[]Wiring.PortSpec{
-			{Name: "In", Dir: Wiring.PortIn},
-			{Name: "Out", Dir: Wiring.PortOut},
+		[]portwiring.PortSpec{
+			{Name: "In", Dir: portwiring.PortIn},
+			{Name: "Out", Dir: portwiring.PortOut},
 		},
 		func(a Wiring.BuildArgs) (wire.Node, error) {
 			n := &Node{

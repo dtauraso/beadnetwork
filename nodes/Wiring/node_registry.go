@@ -8,6 +8,7 @@ import (
 	"context"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -16,8 +17,8 @@ import (
 // NodeBuilder is the public-facing type consumed by the loader.
 // Ports and Build both come from the kind itself, via RegisterBuilder.
 type NodeBuilder struct {
-	Ports []PortSpec
-	Build func(ctx context.Context, name string, data *NodeData, pb PortBindings, tr *T.Trace, geom nodegeom.NodeGeom, tiltThetaIdx int32, deps buildDeps) (wire.Node, error)
+	Ports []portwiring.PortSpec
+	Build func(ctx context.Context, name string, data *NodeData, pb portwiring.PortBindings, tr *T.Trace, geom nodegeom.NodeGeom, tiltThetaIdx int32, deps buildDeps) (wire.Node, error)
 }
 
 // Registry is the loader-facing map, populated one kind at a time by

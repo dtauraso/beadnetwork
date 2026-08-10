@@ -19,6 +19,7 @@ import (
 	"context"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring"
+	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
@@ -170,10 +171,10 @@ func wrapIndex(i, points int32) int32 {
 
 func init() {
 	Wiring.RegisterBuilder("NormalSum",
-		[]Wiring.PortSpec{
-			{Name: "NormalA", Dir: Wiring.PortIn},
-			{Name: "NormalB", Dir: Wiring.PortIn},
-			{Name: "Out", Dir: Wiring.PortOut},
+		[]portwiring.PortSpec{
+			{Name: "NormalA", Dir: portwiring.PortIn},
+			{Name: "NormalB", Dir: portwiring.PortIn},
+			{Name: "Out", Dir: portwiring.PortOut},
 		},
 		func(a Wiring.BuildArgs) (wire.Node, error) {
 			n := &Node{}

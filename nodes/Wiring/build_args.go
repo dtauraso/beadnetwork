@@ -72,7 +72,7 @@ type BuildArgs struct {
 	ctx  context.Context
 	name string
 	data *NodeData
-	pb   PortBindings
+	pb   portwiring.PortBindings
 	tr   *T.Trace
 	geom nodegeom.NodeGeom
 
@@ -130,13 +130,13 @@ func (a BuildArgs) Ctx() context.Context { return a.ctx }
 // BuildRegistry skips any kind already present in Registry, so a self-registered kind is
 // never overwritten by the reflection fallback — that is what lets the 14 kinds migrate
 // ONE AT A TIME while the rest keep working untouched.
-func RegisterBuilder(kind string, ports []PortSpec, build func(BuildArgs) (wire.Node, error)) {
+func RegisterBuilder(kind string, ports []portwiring.PortSpec, build func(BuildArgs) (wire.Node, error)) {
 	if _, exists := Registry[kind]; exists {
 		panic("Wiring.RegisterBuilder: kind already registered: " + kind)
 	}
 	Registry[kind] = NodeBuilder{
 		Ports: ports,
-		Build: func(ctx context.Context, name string, data *NodeData, pb PortBindings, tr *T.Trace, geom nodegeom.NodeGeom, tiltThetaIdx int32, deps buildDeps) (wire.Node, error) {
+		Build: func(ctx context.Context, name string, data *NodeData, pb portwiring.PortBindings, tr *T.Trace, geom nodegeom.NodeGeom, tiltThetaIdx int32, deps buildDeps) (wire.Node, error) {
 			var sourceOuts []*wire.Out
 			return build(BuildArgs{
 				ctx: ctx, name: name, data: data, pb: pb, tr: tr,

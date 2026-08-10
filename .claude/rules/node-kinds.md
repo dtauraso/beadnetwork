@@ -28,11 +28,13 @@ package's `init()` — and therefore its `Wiring.RegisterBuilder` call — run a
 
 `RegisterBuilder(kind, ports, build)` (`nodes/Wiring/build_args.go`) populates
 `Wiring.Registry` directly, so the registry is complete before `main` runs. The kind
-declares its ports as an explicit `[]PortSpec` argument rather than having them reflected
-off its struct, which is why a forgotten field is now a compile error instead of a silently
-nil one. `BuildRegistry()` survives but no longer BUILDS anything — it is the loader's
-"registry is ready" assertion, and panics on an empty registry, which is what a
-`kinds_generated.go` that lost its blank imports looks like.
+declares its ports as an explicit `[]portwiring.PortSpec` argument (imported from
+`nodes/Wiring/portwiring`, named directly — `Wiring.PortSpec`/`Wiring.PortIn`/
+`Wiring.PortOut`/`Wiring.PortBroadcast` were re-export aliases and no longer exist) rather
+than having them reflected off its struct, which is why a forgotten field is now a compile
+error instead of a silently nil one. `BuildRegistry()` survives but no longer BUILDS
+anything — it is the loader's "registry is ready" assertion, and panics on an empty
+registry, which is what a `kinds_generated.go` that lost its blank imports looks like.
 
 **Skip step 4 and the kind does not exist in the binary**: it fails at runtime with
 `unknown type "X"` while its SPEC.md, Go package, and `NODE_DEFS` entry all look correct.

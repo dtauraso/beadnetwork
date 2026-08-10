@@ -8,6 +8,7 @@ package Wiring
 import (
 	"context"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
@@ -34,14 +35,14 @@ func (n *sinkNode) Update(ctx context.Context) {
 // tests exercise the SAME construction path the loader uses rather than a parallel one.
 func init() {
 	RegisterBuilder("SrcNode",
-		[]PortSpec{{Name: "Out", Dir: PortOut}},
+		[]portwiring.PortSpec{{Name: "Out", Dir: portwiring.PortOut}},
 		func(a BuildArgs) (wire.Node, error) {
 			n := &srcNode{}
 			n.Out = a.Out("Out")
 			return n, nil
 		})
 	RegisterBuilder("SinkNode",
-		[]PortSpec{{Name: "In", Dir: PortIn}},
+		[]portwiring.PortSpec{{Name: "In", Dir: portwiring.PortIn}},
 		func(a BuildArgs) (wire.Node, error) {
 			n := &sinkNode{}
 			n.In = a.In("In")

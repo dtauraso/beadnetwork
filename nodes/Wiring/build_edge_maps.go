@@ -4,6 +4,8 @@
 
 package Wiring
 
+import "github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
+
 // buildTypeMaps builds the id→type map and per-kind Broadcast port set (needed
 // for sourceHandle normalization in buildEdgeMaps).
 func (b *buildCtx) buildTypeMaps() {
@@ -15,7 +17,7 @@ func (b *buildCtx) buildTypeMaps() {
 	for kind, bind := range Registry {
 		outMultis := map[string]bool{}
 		for _, p := range bind.Ports {
-			if p.Dir == PortBroadcast {
+			if p.Dir == portwiring.PortBroadcast {
 				outMultis[p.Name] = true
 			}
 		}

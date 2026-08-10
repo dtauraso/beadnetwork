@@ -5,6 +5,7 @@ import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring"
+	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	"github.com/dtauraso/wirefold/nodes/gatecommon"
 )
 
@@ -33,10 +34,10 @@ func init() {
 	// Wiring.reflectBuild via reflection over the embedded gatecommon.GateNode fields —
 	// a rename here is now a compile error instead of a silently-nil field.
 	Wiring.RegisterBuilder("SelectLeft",
-		[]Wiring.PortSpec{
-			{Name: "FromLeft", Dir: Wiring.PortIn},
-			{Name: "FromRight", Dir: Wiring.PortIn},
-			{Name: "ToPassed", Dir: Wiring.PortOut},
+		[]portwiring.PortSpec{
+			{Name: "FromLeft", Dir: portwiring.PortIn},
+			{Name: "FromRight", Dir: portwiring.PortIn},
+			{Name: "ToPassed", Dir: portwiring.PortOut},
 		},
 		func(a Wiring.BuildArgs) (wire.Node, error) {
 			n := &SelectLeft{}

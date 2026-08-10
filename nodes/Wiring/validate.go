@@ -16,6 +16,7 @@ import (
 	"strings"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
+	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
@@ -35,11 +36,11 @@ func validateSpec(spec *topoSpec) error {
 		outMultis := map[string]bool{}
 		for _, p := range bind.Ports {
 			switch p.Dir {
-			case PortIn:
+			case portwiring.PortIn:
 				ins[p.Name] = true
-			case PortOut:
+			case portwiring.PortOut:
 				outs[p.Name] = true
-			case PortBroadcast:
+			case portwiring.PortBroadcast:
 				outMultis[p.Name] = true
 				outs[p.Name] = true
 			}

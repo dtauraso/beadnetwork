@@ -7,6 +7,7 @@ import (
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring"
+	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 )
 
 type Node struct {
@@ -314,10 +315,10 @@ func init() {
 	// wire:"data.*" tags for Init/Repeat) — a renamed field now fails to compile
 	// instead of silently staying nil/zero.
 	Wiring.RegisterBuilder("Input",
-		[]Wiring.PortSpec{
-			{Name: "OutCadence", Dir: Wiring.PortOut},
-			{Name: "ToExcitatory", Dir: Wiring.PortOut},
-			{Name: "FeedbackIn", Dir: Wiring.PortIn},
+		[]portwiring.PortSpec{
+			{Name: "OutCadence", Dir: portwiring.PortOut},
+			{Name: "ToExcitatory", Dir: portwiring.PortOut},
+			{Name: "FeedbackIn", Dir: portwiring.PortIn},
 		},
 		func(a Wiring.BuildArgs) (wire.Node, error) {
 			n := &Node{

@@ -6,6 +6,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring"
+	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	"github.com/dtauraso/wirefold/nodes/gatecommon"
 )
 
@@ -128,9 +129,9 @@ func init() {
 	// PulseLeft CONSTRUCTS ITSELF. Every assignment below was previously performed by
 	// Wiring.reflectBuild via field-name/type reflection; a rename now fails to compile.
 	Wiring.RegisterBuilder("PulseLeft",
-		[]Wiring.PortSpec{
-			{Name: "In", Dir: Wiring.PortIn},
-			{Name: "Out", Dir: Wiring.PortOut},
+		[]portwiring.PortSpec{
+			{Name: "In", Dir: portwiring.PortIn},
+			{Name: "Out", Dir: portwiring.PortOut},
 		},
 		func(a Wiring.BuildArgs) (wire.Node, error) {
 			n := &PulseLeft{}

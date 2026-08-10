@@ -3,6 +3,7 @@ package Wiring
 import (
 	"context"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
@@ -39,7 +40,7 @@ func (n *aimedPacer) Update(ctx context.Context) {
 // Self-registering, like every production kind — same construction path as the loader.
 func init() {
 	RegisterBuilder("AimedSrc",
-		[]PortSpec{{Name: "Out", Dir: PortOut}, {Name: "FeedbackIn", Dir: PortIn}},
+		[]portwiring.PortSpec{{Name: "Out", Dir: portwiring.PortOut}, {Name: "FeedbackIn", Dir: portwiring.PortIn}},
 		func(a BuildArgs) (wire.Node, error) {
 			n := &aimedSrc{}
 			n.Out = a.Out("Out")
@@ -47,14 +48,14 @@ func init() {
 			return n, nil
 		})
 	RegisterBuilder("AimedSink",
-		[]PortSpec{{Name: "In", Dir: PortIn}},
+		[]portwiring.PortSpec{{Name: "In", Dir: portwiring.PortIn}},
 		func(a BuildArgs) (wire.Node, error) {
 			n := &aimedSink{}
 			n.In = a.In("In")
 			return n, nil
 		})
 	RegisterBuilder("AimedPacer",
-		[]PortSpec{{Name: "FromSrc", Dir: PortIn}, {Name: "Feedback", Dir: PortOut}},
+		[]portwiring.PortSpec{{Name: "FromSrc", Dir: portwiring.PortIn}, {Name: "Feedback", Dir: portwiring.PortOut}},
 		func(a BuildArgs) (wire.Node, error) {
 			n := &aimedPacer{}
 			n.FromSrc = a.In("FromSrc")

@@ -7,6 +7,7 @@ import (
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring"
+	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	"github.com/dtauraso/wirefold/nodes/gatecommon"
 )
 
@@ -186,9 +187,9 @@ func init() {
 	// reflection — so renaming a field here used to leave it silently nil rather than
 	// failing to compile. Now it is a compile error.
 	Wiring.RegisterBuilder("TimeStart",
-		[]Wiring.PortSpec{
-			{Name: "In", Dir: Wiring.PortIn},
-			{Name: "ToNext", Dir: Wiring.PortBroadcast},
+		[]portwiring.PortSpec{
+			{Name: "In", Dir: portwiring.PortIn},
+			{Name: "ToNext", Dir: portwiring.PortBroadcast},
 		},
 		func(a Wiring.BuildArgs) (wire.Node, error) {
 			n := &TimeStart{

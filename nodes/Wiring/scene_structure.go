@@ -27,6 +27,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgefile"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 )
 
 // CreateNode adds a node of kindID at a dropped world point, connected to the NEAREST
@@ -177,7 +178,7 @@ func (md *MoveDispatch) DeleteNode(row int, tr *T.Trace) {
 // is what let an edge be written to a port that does not exist: the check looked at the
 // kind's real ports, and the writer then assumed "Out" and "In".
 func (md *MoveDispatch) linkRefusal(src, kind string) (srcPort, targetPort, why string, ok bool) {
-	targetPort, hasIn := firstPortOfDir(kind, PortIn)
+	targetPort, hasIn := firstPortOfDir(kind, portwiring.PortIn)
 	if !hasIn {
 		return "", "", fmt.Sprintf("%s takes no input, so nothing can connect to it", kind), false
 	}
@@ -185,7 +186,7 @@ func (md *MoveDispatch) linkRefusal(src, kind string) (srcPort, targetPort, why 
 	if !found {
 		return "", "", fmt.Sprintf("no geometry for %s", src), false
 	}
-	srcPort, hasOut := firstPortOfDir(srcGeom.geom.Kind, PortOut)
+	srcPort, hasOut := firstPortOfDir(srcGeom.geom.Kind, portwiring.PortOut)
 	if !hasOut {
 		return "", "", fmt.Sprintf("%s has no output to connect from", srcGeom.geom.Kind), false
 	}
@@ -196,7 +197,7 @@ func (md *MoveDispatch) linkRefusal(src, kind string) (srcPort, targetPort, why 
 // declared them at RegisterBuilder. First, not "In": a kind names its own ports, and the
 // declaration order is the only ranking there is — NormalSum's NormalA before NormalB says
 // which one an edge should take when nothing else has been said.
-func firstPortOfDir(kind string, dir PortDir) (string, bool) {
+func firstPortOfDir(kind string, dir portwiring.PortDir) (string, bool) {
 	b, ok := Registry[kind]
 	if !ok {
 		return "", false

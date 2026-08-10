@@ -7,6 +7,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring"
 	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
+	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 )
 
 // noValue is the sentinel meaning "no value seen yet" → empty interior.
@@ -80,8 +81,8 @@ func init() {
 	// reflection — so renaming a field here used to leave it silently nil rather than
 	// failing to compile. Now it is a compile error.
 	Wiring.RegisterBuilder("TimeEnd",
-		[]Wiring.PortSpec{
-			{Name: "In", Dir: Wiring.PortIn},
+		[]portwiring.PortSpec{
+			{Name: "In", Dir: portwiring.PortIn},
 		},
 		func(a Wiring.BuildArgs) (wire.Node, error) {
 			n := &TimeEnd{

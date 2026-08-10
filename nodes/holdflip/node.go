@@ -6,6 +6,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring"
+	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	"github.com/dtauraso/wirefold/nodes/gatecommon"
 )
 
@@ -141,9 +142,9 @@ func init() {
 	// exactly once — matching the retired injectSpeedChans, which allocated
 	// one channel per <-chan float64-typed field.
 	Wiring.RegisterBuilder("HoldFlip",
-		[]Wiring.PortSpec{
-			{Name: "In", Dir: Wiring.PortIn},
-			{Name: "Out", Dir: Wiring.PortOut},
+		[]portwiring.PortSpec{
+			{Name: "In", Dir: portwiring.PortIn},
+			{Name: "Out", Dir: portwiring.PortOut},
 		},
 		func(a Wiring.BuildArgs) (wire.Node, error) {
 			n := &Node{}

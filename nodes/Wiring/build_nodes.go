@@ -53,14 +53,14 @@ func (b *buildCtx) buildNodes() error {
 
 		for _, port := range bind.Ports {
 			switch port.Dir {
-			case PortIn:
+			case portwiring.PortIn:
 				dk, ok := b.inbound[n.ID][port.Name]
 				if ok {
 					pb.SetSinglePaced(port.Name, b.destWire[dk])
 				}
 				// If no inbound edge, a.In() falls back to a dead-end chan.
 
-			case PortOut:
+			case portwiring.PortOut:
 				labels := b.outbound[n.ID][port.Name]
 				if len(labels) > 0 {
 					// Look up wire by destination of the first outbound edge.
@@ -72,7 +72,7 @@ func (b *buildCtx) buildNodes() error {
 				}
 				// If no outbound edge, a.Out() falls back to a dead-end chan.
 
-			case PortBroadcast:
+			case portwiring.PortBroadcast:
 				labels := b.outbound[n.ID][port.Name]
 				handles := b.outboundHandle[n.ID][port.Name]
 				for i, lbl := range labels {

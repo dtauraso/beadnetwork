@@ -28,6 +28,7 @@ import (
 	Wiring "github.com/dtauraso/wirefold/nodes/Wiring"
 	"github.com/dtauraso/wirefold/nodes/Wiring/countspersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgefile"
+	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
@@ -62,7 +63,7 @@ func copyTreeForCreate(t *testing.T, src string) string {
 
 // firstPort is the same rule CreateNode resolves an edge's handles by: a kind's FIRST
 // declared port in that direction.
-func firstPort(t *testing.T, kind string, dir Wiring.PortDir) string {
+func firstPort(t *testing.T, kind string, dir portwiring.PortDir) string {
 	t.Helper()
 	b, ok := Wiring.Registry[kind]
 	if !ok {
@@ -128,8 +129,8 @@ func TestCreatedNodeTreeStillLoads(t *testing.T) {
 	// THE PORTS COME FROM THE KINDS, exactly as CreateNode resolves them. Hardcoding
 	// "Out"/"In" here would make this test pass while the live path wrote an edge to a port
 	// the target does not have — which is the bug it exists to catch.
-	srcPort := firstPort(t, "PairNode", Wiring.PortOut)
-	targetPort := firstPort(t, newKind, Wiring.PortIn)
+	srcPort := firstPort(t, "PairNode", portwiring.PortOut)
+	targetPort := firstPort(t, newKind, portwiring.PortIn)
 	if targetPort == "In" {
 		t.Fatalf("%s's first input is called In, so this test can no longer tell a resolved port from the old hardcoded one — point it at a kind whose ports are named something else", newKind)
 	}
