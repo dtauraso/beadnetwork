@@ -13,6 +13,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
+	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
 )
 
 func TestSafeTreePathComponent(t *testing.T) {
@@ -40,7 +41,7 @@ func TestSafeTreePathComponent(t *testing.T) {
 
 func TestWriteQuantOffsetRejectsTraversalID(t *testing.T) {
 	root := t.TempDir()
-	err := writeQuantOffset(root, "../../evil", quantizedOffset{}, geom.Polar{}, 0)
+	err := writeQuantOffset(root, "../../evil", quantoffset.QuantizedOffset{}, geom.Polar{}, 0)
 	if err == nil {
 		t.Fatal("expected error for traversal node id, got nil")
 	}

@@ -27,6 +27,7 @@ import (
 	"fmt"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
@@ -62,7 +63,7 @@ type nodeGeometry struct {
 	// computed/persisted offset, then mutated ONLY by this node's own commit path
 	// (commitNodeMoveCommon, called from this node's own driving goroutine via
 	// commitLocal) — single-writer, no map, no race.
-	quantOffset quantizedOffset
+	quantOffset quantoffset.QuantizedOffset
 	tr          *T.Trace
 
 	// There is no geomMu. m.geom (nodegeom/port_geometry.go) splits into an embedded, write-once

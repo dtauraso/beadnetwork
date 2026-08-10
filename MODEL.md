@@ -479,8 +479,8 @@ and none is a source of truth.
   two levels — a rooted/parent layout was tried and rejected,
   `memory/project/project_layout_model_evolution.md`).
 - **A node has ONE polar coordinate.** `(r,θ,φ)` about the scene-sphere center — the node's
-  whole POSITION, in the QUANTISED integer form (`quantizedOffset` — `iTheta`/`iPhi`/`iR`
-  × per-node step constants, `nodes/Wiring/quantized_layout.go`), persisted
+  whole POSITION, in the QUANTISED integer form (`quantoffset.QuantizedOffset` — `ITheta`/`IPhi`/`IR`
+  × per-node step constants, `nodes/Wiring/quantoffset/quantized_layout.go`), persisted
   (`nodes/<id>/position.json` `scenePolarR`/`scenePolarTheta`/`scenePolarPhi` +
   `quantITheta`/`quantIPhi`/`quantIR`). World = `sceneCenter + polar2cart(scenePolar)`.
   **A node carries NO stored coordinate for a NEIGHBOUR.** An earlier double-link

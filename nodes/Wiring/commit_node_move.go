@@ -12,6 +12,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 
@@ -90,7 +91,7 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeGeometr
 	// offset is measured.
 	committedPos := newPos
 	committedPolar := nodePolar
-	var off quantizedOffset
+	var off quantoffset.QuantizedOffset
 	if lq.quantizedLayout {
 		prevPos := nodegeom.NodeWorldPos(nm.geom)
 		beads := dragTouchingBeads(md, nm, prevPos)
@@ -162,7 +163,7 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeGeometr
 	// source (quant_offset_persist.go) — the source is committedPolar either way. Measuring
 	// it under the continuous drag keeps that cache describing the position actually stored
 	// rather than the last one a quantized drag happened to leave behind.
-	off = measureScalar(committedPolar, nm.quantOffset)
+	off = quantoffset.MeasureScalar(committedPolar, nm.quantOffset)
 	nm.quantOffset = off
 	nm.persistQuantOffset(off, committedPolar)
 }

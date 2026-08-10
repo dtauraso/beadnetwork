@@ -16,6 +16,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
@@ -52,7 +53,7 @@ type buildCtx struct {
 	// resolved BEFORE reach/wire/dispatch phases so every later phase computes from the
 	// COMPOSED (authoritative) centers, not the raw loaded ones. Every node is a root
 	// measured about the scene center — no reference/parent concept.
-	quantizedOffsets map[string]quantizedOffset
+	quantizedOffsets map[string]quantoffset.QuantizedOffset
 
 	// Phase 4: per-destination-port wire allocation + per-edge geometry.
 	destWire      map[string]*wire.PacedWire

@@ -246,7 +246,7 @@ func (md *MoveDispatch) NodeQuantOffset(id string) (iTheta, iPhi, iR int, ok boo
 	if !exists {
 		return 0, 0, 0, false
 	}
-	return nm.quantOffset.iTheta, nm.quantOffset.iPhi, nm.quantOffset.iR, true
+	return nm.quantOffset.ITheta, nm.quantOffset.IPhi, nm.quantOffset.IR, true
 }
 
 // ClearOutBeads empties every one of this node's own outgoing wires directly — the
