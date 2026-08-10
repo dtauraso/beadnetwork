@@ -1,4 +1,4 @@
-package Wiring
+package nodegeom
 
 import (
 	"testing"

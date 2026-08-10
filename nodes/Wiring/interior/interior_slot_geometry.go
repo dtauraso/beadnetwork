@@ -5,13 +5,13 @@
 // polar position or a port-to-port segment. Package interior (further god-object
 // decomposition, pure move): InteriorSlot/InteriorTorusOuterR/InteriorSlotOffset are
 // exported because package Wiring's own sphere-fit tests (interior_sphere_test.go) need
-// them alongside Wiring's own nodeRadius, which this package must not import (nodeRadius
-// lives in node_geom.go, part of Wiring's port/node geometry cluster, not this one).
+// them alongside nodegeom's own NodeRadius, which this package must not import (NodeRadius
+// lives in nodegeom/node_geom.go, part of the node geometry cluster, not this one).
 package interior
 
 import wire "github.com/dtauraso/wirefold/nodes/wire"
 
-// vec3 mirrors package Wiring's own local alias (curve_params.go) and package geom's
+// vec3 mirrors package Wiring's own local alias (vec_alias.go, mirroring nodegeom's curve_params.go) and package geom's
 // (geom/vec3.go) — each package that needs it aliases wire.Vec3 locally rather than
 // importing one another for a bare type alias.
 type vec3 = wire.Vec3
@@ -34,7 +34,7 @@ const InteriorTorusOuterR = interiorBeadR * (1 + interiorTorusTubeFrac) // 5.6
 // torus outer radius plus half the desired inter-torus gap. Adjacent same-row
 // beads are 2*InteriorSlot apart, so torus-to-torus gap = 2*InteriorSlot -
 // 2*rt = interiorBeadGap. Pitch follows bead size (beads are a fixed visual
-// size), NOT the node radius — nodeRadius is used only for the wall-fit guarantee.
+// size), NOT the node radius — nodegeom.NodeRadius is used only for the wall-fit guarantee.
 const InteriorSlot = InteriorTorusOuterR + interiorBeadGap/2 // 5.9
 
 // InteriorSlotOffset returns the NODE-LOCAL OFFSET of the 2x2 interior grid slot

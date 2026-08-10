@@ -1,4 +1,4 @@
-package Wiring
+package nodegeom
 
 import (
 	"math"
@@ -6,12 +6,12 @@ import (
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
-// edgeStepCount is the bead-lattice length of an edge (docs/bead-model/bead-lattice.md "The count"): ONE
+// EdgeStepCount is the bead-lattice length of an edge (docs/bead-model/bead-lattice.md "The count"): ONE
 // INTEGER, the number of bead steps between the two nodes' tori. Computed from the LIVE
 // measured center-to-center distance (dist), never a stored cache, plus both nodes' kinds:
 //
 //	K = round(dist / lattice.BeadStepR)
-//	N = K - nodeTorusSteps(srcKind) - nodeTorusSteps(dstKind), minimum 1
+//	N = K - NodeTorusSteps(srcKind) - NodeTorusSteps(dstKind), minimum 1
 //
 // Under bead CRUD (MODEL.md "Moving a node is CRUD on the edge beads that touch it",
 // bead_crud.go) a node's placement does NOT guarantee dist lands on an exact integer
@@ -29,7 +29,7 @@ import (
 // Reading the live distance instead means this can never disagree with where the node
 // ACTUALLY is.
 //
-// nodeTorusOuterR is still snapped to a whole number of bead steps (nodeTorusSteps,
+// NodeTorusOuterR is still snapped to a whole number of bead steps (NodeTorusSteps,
 // port_geometry.go) rather than measured from width/height, so the subtraction's second and
 // third terms are exact integers too — no term here can reintroduce a fraction.
 //
@@ -39,9 +39,9 @@ import (
 // count) — both call this same function on the same live center-to-center distance, so
 // layout and timing can never read two different lengths (the exact divergence
 // docs/bead-model/bead-lattice.md replaces the old arc-length model to close off).
-func edgeStepCount(dist float64, srcKind, dstKind string) int {
+func EdgeStepCount(dist float64, srcKind, dstKind string) int {
 	k := int(math.Round(dist / lattice.BeadStepR))
-	n := k - nodeTorusSteps(srcKind) - nodeTorusSteps(dstKind)
+	n := k - NodeTorusSteps(srcKind) - NodeTorusSteps(dstKind)
 	if n < 1 {
 		return 1
 	}

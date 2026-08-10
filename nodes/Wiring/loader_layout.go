@@ -1,6 +1,9 @@
 package Wiring
 
-import "github.com/dtauraso/wirefold/nodes/Wiring/geom"
+import (
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+)
 
 // node's quantizedOffset — the stored quantITheta/quantIPhi/quantIR when ALL THREE are
 // present (a scene saved under this model), otherwise the offset MEASURED from the
@@ -101,7 +104,7 @@ func (b *buildCtx) computeQuantizedLayout() {
 		}
 		b.centers[id] = pos
 		if g, ok := b.nodeGeoms[id]; ok {
-			setNodeWorld(&g, pos)
+			nodegeom.SetNodeWorld(&g, pos)
 			b.nodeGeoms[id] = g
 		}
 	}

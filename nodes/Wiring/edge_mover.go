@@ -16,6 +16,7 @@ package Wiring
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
@@ -32,8 +33,8 @@ type edgeMover struct {
 	dstID   string
 	srcH    string
 	dstH    string
-	srcGeom nodeGeom
-	dstGeom nodeGeom
+	srcGeom nodegeom.NodeGeom
+	dstGeom nodegeom.NodeGeom
 	out     *wire.Out       // source Out for this edge (this edgeMover publishes the SEGMENT onto it)
 	dest    *wire.PacedWire // dest wire (in-flight bead revision)
 	// extIn is this edge's dedicated channel for EXTERNAL entries (gesture.go's
@@ -121,7 +122,7 @@ type edgeMover struct {
 	buildFrame func(tick uint32, sx, sy, sz, ex, ey, ez float32, selected uint8, label string, events []wire.RowEvent) []byte
 }
 
-func newEdgeMover(ep inputcodec.EdgeEndpoints, edgeID string, srcGeom, dstGeom nodeGeom, tr *T.Trace, clockSrc clock.Clock) *edgeMover {
+func newEdgeMover(ep inputcodec.EdgeEndpoints, edgeID string, srcGeom, dstGeom nodegeom.NodeGeom, tr *T.Trace, clockSrc clock.Clock) *edgeMover {
 	// clk defaults to a fresh RealClock (its own independent origin — fine here:
 	// this default is only ever read by a test calling handle() directly, never by
 	// production, where run() always overwrites it below with clockSrc.Copy() before
@@ -168,9 +169,9 @@ func (m *edgeMover) handle(msg moveMsg) {
 		}
 		switch msg.NodeID {
 		case m.srcID:
-			setNodeWorld(&m.srcGeom, *msg.Center)
+			nodegeom.SetNodeWorld(&m.srcGeom, *msg.Center)
 		case m.dstID:
-			setNodeWorld(&m.dstGeom, *msg.Center)
+			nodegeom.SetNodeWorld(&m.dstGeom, *msg.Center)
 		default:
 			return
 		}
@@ -184,11 +185,11 @@ func (m *edgeMover) handle(msg moveMsg) {
 		// drag, where the dragged node and its sphere center both move.
 		moved := false
 		if c, ok := msg.Centers[m.srcID]; ok {
-			setNodeWorld(&m.srcGeom, c)
+			nodegeom.SetNodeWorld(&m.srcGeom, c)
 			moved = true
 		}
 		if c, ok := msg.Centers[m.dstID]; ok {
-			setNodeWorld(&m.dstGeom, c)
+			nodegeom.SetNodeWorld(&m.dstGeom, c)
 			moved = true
 		}
 		if moved {
@@ -213,7 +214,7 @@ func (m *edgeMover) handle(msg moveMsg) {
 // derivation are both gone, not replaced by an edge-side re-derivation of the same
 // integer from a different (and potentially disagreeing) measurement.
 func (m *edgeMover) recomputeGeometry() {
-	seg := edgeSegment(m.srcGeom, m.dstGeom)
+	seg := nodegeom.EdgeSegment(m.srcGeom, m.dstGeom)
 
 	// Publish the new segment onto the source Out's own buffered-1, latest-wins
 	// channel, so the next placement (on the source node's own goroutine) reads it

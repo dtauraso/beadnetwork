@@ -1,6 +1,6 @@
 // node_geometry_lattice_points_test.go — pins writeStreamFrame's conversion of a tilt-vector
 // INDEX to a streamed angle against THIS node's own lattice size (nodeGeometry.latticePoints),
-// not the fixed compile-time CurveParamTiltVectorAngleStep — task/pair-lattice-points.
+// not the fixed compile-time nodegeom.CurveParamTiltVectorAngleStep — task/pair-lattice-points.
 //
 // Seam used: writeStreamFrame's own injected buildFrame closure (the same seam
 // node_bead_test.go's captureInteriorSnapshot uses for interiorStream) — this is the actual
@@ -14,6 +14,7 @@ import (
 	"math"
 	"testing"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
@@ -44,7 +45,7 @@ func captureLatticeAngles(snap *latticeFrameAngles) *nodeGeometry {
 
 // TestWriteStreamFrameDefaultLatticeMatchesOldConstant: a nodeGeometry that never calls
 // SetLatticePoints (every ring node, and any pair geometry built before this task) must
-// stream the SAME four angles it always did — index × CurveParamTiltVectorAngleStep (π/12,
+// stream the SAME four angles it always did — index × nodegeom.CurveParamTiltVectorAngleStep (π/12,
 // 2π/24) — because latticePoints' zero value is documented to fall back to
 // Wiring.FullTurnThetaIdx (24). This is the "unchanged for everyone who never opts in" half
 // of the task.
@@ -59,15 +60,15 @@ func TestWriteStreamFrameDefaultLatticeMatchesOldConstant(t *testing.T) {
 	g.tilt.receivedVectorSet = true
 	g.writeStreamFrame(nil)
 
-	want := float32(float64(idx) * CurveParamTiltVectorAngleStep)
+	want := float32(float64(idx) * nodegeom.CurveParamTiltVectorAngleStep)
 	if snap.top != want || snap.bottom != want || snap.coplanar != want || snap.received != want {
-		t.Fatalf("default-lattice angles = (top=%v bottom=%v coplanar=%v received=%v), want all %v (idx=%d * CurveParamTiltVectorAngleStep)",
+		t.Fatalf("default-lattice angles = (top=%v bottom=%v coplanar=%v received=%v), want all %v (idx=%d * nodegeom.CurveParamTiltVectorAngleStep)",
 			snap.top, snap.bottom, snap.coplanar, snap.received, want, idx)
 	}
 }
 
 // TestWriteStreamFrameFollowsSetLatticePoints: the SAME index streams a DIFFERENT angle once
-// this node's own lattice size changes — 2π/12 instead of 2π/24 (== CurveParamTiltVectorAngleStep)
+// this node's own lattice size changes — 2π/12 instead of 2π/24 (== nodegeom.CurveParamTiltVectorAngleStep)
 // for index 5 on a 12-point lattice — because writeStreamFrame derives its step from
 // THIS node's own latticePoints, not the fixed constant.
 func TestWriteStreamFrameFollowsSetLatticePoints(t *testing.T) {
@@ -85,12 +86,12 @@ func TestWriteStreamFrameFollowsSetLatticePoints(t *testing.T) {
 
 	wantStep := 2 * math.Pi / float64(points)
 	want := float32(float64(idx) * wantStep)
-	oldConstantAngle := float32(float64(idx) * CurveParamTiltVectorAngleStep)
+	oldConstantAngle := float32(float64(idx) * nodegeom.CurveParamTiltVectorAngleStep)
 	if want == oldConstantAngle {
 		t.Fatalf("test setup error: 12-point step equals the 24-point constant for idx=%d — cases don't distinguish", idx)
 	}
 	if snap.top != want || snap.bottom != want || snap.coplanar != want || snap.received != want {
-		t.Fatalf("12-point-lattice angles = (top=%v bottom=%v coplanar=%v received=%v), want all %v (idx=%d * 2π/12, NOT the fixed CurveParamTiltVectorAngleStep %v)",
+		t.Fatalf("12-point-lattice angles = (top=%v bottom=%v coplanar=%v received=%v), want all %v (idx=%d * 2π/12, NOT the fixed nodegeom.CurveParamTiltVectorAngleStep %v)",
 			snap.top, snap.bottom, snap.coplanar, snap.received, want, idx, oldConstantAngle)
 	}
 	if snap.points != uint8(points) {

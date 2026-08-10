@@ -7,6 +7,7 @@ import (
 
 	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/stepdeliver"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
@@ -62,7 +63,7 @@ var chainAimTraceEnabled = os.Getenv("WIREFOLD_CHAIN_AIM_TRACE") == "1"
 // applyCenter), never reaching into another goroutine's state directly. There is no
 // cross-goroutine read here, which is why this can run on the emit path.
 //
-// NO SQRT ANYWHERE in this path except the ONE edgeCenterDistAndDir call per target (guard:
+// NO SQRT ANYWHERE in this path except the ONE nodegeom.EdgeCenterDistAndDir call per target (guard:
 // tools/network/beads/check-no-sqrt-in-chain-beads.sh) — a neighbour's distance and direction come from
 // this single live measurement, reused for both layout and the published step count, never
 // re-measured a second time per bead. The only OTHER trig is a boundary conversion, matching
@@ -111,12 +112,12 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 	if len(m.outs.outWires) > 0 {
 		tick = m.clocks.clk.Tick()
 	}
-	selfTorusR := nodeTorusOuterR(m.geom.Kind)
+	selfTorusR := nodegeom.NodeTorusOuterR(m.geom.Kind)
 	// selfCenter is THIS node's own live world center, read the same way
-	// emitGeometry/edgeSegment do (nodeWorldPos(m.geom)) — this node's own goroutine
+	// emitGeometry/EdgeSegment do (nodegeom.NodeWorldPos(m.geom)) — this node's own goroutine
 	// is the sole writer of m.geom (applyCenter), so this is a same-goroutine read of
 	// state already owned here, not a second cross-goroutine touch.
-	selfCenter := nodeWorldPos(m.geom)
+	selfCenter := nodegeom.NodeWorldPos(m.geom)
 	for _, to := range m.outs.outTargets {
 		// MODEL.md "the polar model": a node has ONE polar vector PER EDGE, pointing to
 		// that edge's starting bead — measured live from this node's own center and its
@@ -136,21 +137,21 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 		// from the LIVE center-to-center distance — the model has no stored fallback any
 		// more (wire.LocalPolar deleted): a target with no live measurement was already
 		// skipped above via haveTargetCenter. dist and liveDir (the DIRECTION, consumed
-		// further down) come from the SAME edgeCenterDistAndDir call — one measurement of
+		// further down) come from the SAME nodegeom.EdgeCenterDistAndDir call — one measurement of
 		// the edge, not two (that function's own doc comment). Both the placement loop
 		// below and this edge's wire (via PublishSteps/outStepsIn just after) read this
 		// SAME integer, so layout and timing cannot disagree.
 		//
-		// edgeCenterDistAndDir's one sqrt-based vector-length/normalize pair is
+		// nodegeom.EdgeCenterDistAndDir's one sqrt-based vector-length/normalize pair is
 		// deliberately NOT inlined here: this file is guarded against a cartesian sqrt
 		// (tools/network/beads/check-no-sqrt-in-chain-beads.sh) so bead placement stays a direct read of
 		// the live measurement; the sqrt itself lives in port_geometry.go, which already
-		// computes edgeSegment the same way.
-		dist, liveDir, ok := edgeCenterDistAndDir(selfCenter, targetCenter)
+		// computes nodegeom.EdgeSegment the same way.
+		dist, liveDir, ok := nodegeom.EdgeCenterDistAndDir(selfCenter, targetCenter)
 		if !ok {
 			continue
 		}
-		count := edgeStepCount(dist, m.geom.Kind, m.topo.neighborKinds[to])
+		count := nodegeom.EdgeStepCount(dist, m.geom.Kind, m.topo.neighborKinds[to])
 
 		// Publish this edge's freshly computed step count onto its own *wire.Out
 		// (docs/bead-model/bead-lattice.md "Ownership") and onto its edgeMover's stepsIn (so a live
@@ -291,14 +292,14 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 		aimUnit := liveDir
 		// A MUTUAL pair (this target also aims back here) offsets its own chain
 		// perpendicular to the shared centre line so the two chains do not draw on top of
-		// each other — see parallelChainOffset (port_geometry.go) for why the direction is
+		// each other — see nodegeom.ParallelChainOffset (nodegeom/port_geometry.go) for why the direction is
 		// measured in canonical id order and why each end can decide alone. Zero for every
 		// ordinary edge, so a one-way chain is untouched. The vector math lives in
 		// port_geometry.go because this file is guarded against it
-		// (tools/network/beads/check-no-sqrt-in-chain-beads.sh), the same split edgeCenterDistAndDir uses.
+		// (tools/network/beads/check-no-sqrt-in-chain-beads.sh), the same split nodegeom.EdgeCenterDistAndDir uses.
 		var chainSep vec3
 		if m.topo.mutualTargets[to] {
-			if off, ok := parallelChainOffset(m.id, to, selfCenter, targetCenter, m.geom.SceneCenter); ok {
+			if off, ok := nodegeom.ParallelChainOffset(m.id, to, selfCenter, targetCenter, m.geom.SceneCenter); ok {
 				chainSep = off
 			}
 		}

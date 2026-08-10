@@ -9,6 +9,7 @@ import (
 	"math"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -60,8 +61,8 @@ func (m *nodeGeometry) writeStreamFrame(events []wire.RowEvent) {
 				m.id, m.stream.nodeRow, e.Kind, e.NodeRow))
 		}
 	}
-	center := nodeWorldPos(m.geom)
-	sphereR := effectiveRadius(m.geom)
+	center := nodegeom.NodeWorldPos(m.geom)
+	sphereR := nodegeom.EffectiveRadius(m.geom)
 	// This node's own local-frame pole: its own scene-polar direction reversed, so the frame
 	// points back at the scene centre (Buffer/layout.go PoleTheta/PolePhi). Derived here from
 	// m.geom.ScenePolar — this node's own coordinate, on this node's own goroutine, no
@@ -73,7 +74,7 @@ func (m *nodeGeometry) writeStreamFrame(events []wire.RowEvent) {
 	// The DRAWN ring's axis, separate from the navigation pole above (Buffer/layout.go's
 	// RingAxisTheta/RingAxisPhi). Default is the torus's own +Z normal, which draws exactly
 	// as an unrotated ring did — so a scene that has not asked for anything looks unchanged.
-	ringAxisTheta, ringAxisPhi := torusDefaultAxisAngles()
+	ringAxisTheta, ringAxisPhi := nodegeom.TorusDefaultAxisAngles()
 	// topTiltVectorLen is this node's own drawn vector, along the SAME axis as its ring, and 0
 	// where a scene draws none (Buffer/layout.go's TopTiltVectorLen). It runs from the node's
 	// centre to its own top, so its length IS the node's radius.
@@ -84,11 +85,11 @@ func (m *nodeGeometry) writeStreamFrame(events []wire.RowEvent) {
 		// sticking out of a flat disc. An axis of +y itself would lie the ring flat and
 		// put the vector perpendicular to it, which is the opposite arrangement.
 		for _, partner := range m.topo.partnerCenters {
-			if t, p, ok := uprightRingAxis(nodeWorldPos(m.geom), partner); ok {
+			if t, p, ok := nodegeom.UprightRingAxis(nodegeom.NodeWorldPos(m.geom), partner); ok {
 				ringAxisTheta, ringAxisPhi = t, p
 			}
 		}
-		topTiltVectorLen = nodeRadius(m.geom.Kind)
+		topTiltVectorLen = nodegeom.NodeRadius(m.geom.Kind)
 	} else if m.flags.coplanarEdges && m.geom.HasPos && len(m.topo.partnerCenters) == 1 {
 		// COPLANAR EDGES: swing the axis off the inward pole by the smallest amount that
 		// puts the edge INSIDE the ring plane — the inward pole with its along-the-edge
@@ -96,7 +97,7 @@ func (m *nodeGeometry) writeStreamFrame(events []wire.RowEvent) {
 		// share one plane instead of the chain running through the holes. Only for a node
 		// with exactly ONE neighbour: two non-collinear edges have no common plane.
 		for _, partner := range m.topo.partnerCenters {
-			if t, p, ok := poleContainingEdge(poleTheta, polePhi, nodeWorldPos(m.geom), partner); ok {
+			if t, p, ok := nodegeom.PoleContainingEdge(poleTheta, polePhi, nodegeom.NodeWorldPos(m.geom), partner); ok {
 				ringAxisTheta, ringAxisPhi = t, p
 			}
 		}
@@ -145,7 +146,7 @@ func (m *nodeGeometry) writeStreamFrame(events []wire.RowEvent) {
 	var receivedVectorLen float64
 	var receivedVectorTheta float64
 	if m.tilt.receivedVectorSet {
-		receivedVectorLen = nodeRadius(m.geom.Kind)
+		receivedVectorLen = nodegeom.NodeRadius(m.geom.Kind)
 		receivedVectorTheta = float64(m.tilt.receivedVectorThetaIdx) * latticeThetaStep
 	}
 	label := m.geom.Label
@@ -174,7 +175,7 @@ func (m *nodeGeometry) writeStreamFrame(events []wire.RowEvent) {
 		CX:                    float32(center.X),
 		CY:                    float32(center.Y),
 		CZ:                    float32(center.Z),
-		Radius:                float32(nodeRadius(m.geom.Kind)),
+		Radius:                float32(nodegeom.NodeRadius(m.geom.Kind)),
 		SphereR:               float32(sphereR),
 		VRX:                   verticalRingNormalX,
 		VRY:                   verticalRingNormalY,

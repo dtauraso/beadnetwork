@@ -8,6 +8,7 @@
 package Wiring
 
 import (
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
@@ -53,10 +54,10 @@ type touchingBead struct {
 //     With exactly one bead, there is no predecessor bead — the chain's own origin is the
 //     NEIGHBOUR's torus surface (nm.topo.neighborKinds gives the neighbour's kind, derived from
 //     domain adjacency at load — see build.go — so every direct neighbour has an entry):
-//     beadSource = neighborCenter - aimDir*nodeTorusOuterR(neighborKind)
+//     beadSource = neighborCenter - aimDir*nodegeom.NodeTorusOuterR(neighborKind)
 func dragTouchingBeads(md *MoveDispatch, nm *nodeGeometry, prevPos vec3) []touchingBead {
 	nodeID := nm.id
-	selfTorusR := nodeTorusOuterR(nm.selfKind)
+	selfTorusR := nodegeom.NodeTorusOuterR(nm.selfKind)
 	out := make([]touchingBead, 0, len(nm.topo.edgeIDs))
 	for _, edgeID := range nm.topo.edgeIDs {
 		em, ok := md.mr.edgeMovers[edgeID]
@@ -72,7 +73,7 @@ func dragTouchingBeads(md *MoveDispatch, nm *nodeGeometry, prevPos vec3) []touch
 		if !ok {
 			continue
 		}
-		dist, aimDir, ok := edgeCenterDistAndDir(prevPos, neighborCenter)
+		dist, aimDir, ok := nodegeom.EdgeCenterDistAndDir(prevPos, neighborCenter)
 		if !ok {
 			continue
 		}
@@ -97,12 +98,12 @@ func dragTouchingBeads(md *MoveDispatch, nm *nodeGeometry, prevPos vec3) []touch
 		//     away. Hence: drag far in most directions and nothing happens; drag the other
 		//     way and the node jumps.
 		neighborKind := nm.topo.neighborKinds[neighborID]
-		count := edgeStepCount(dist, neighborKind, nm.selfKind)
+		count := nodegeom.EdgeStepCount(dist, neighborKind, nm.selfKind)
 		var beadSource vec3
 		if count >= 2 {
 			beadSource = beadCentre.Add(aimDir.Scale(lattice.BeadStepR))
 		} else {
-			beadSource = neighborCenter.Sub(aimDir.Scale(nodeTorusOuterR(neighborKind)))
+			beadSource = neighborCenter.Sub(aimDir.Scale(nodegeom.NodeTorusOuterR(neighborKind)))
 		}
 		out = append(out, touchingBead{NeighborID: neighborID, Source: beadSource, Centre: beadCentre, AimDir: aimDir})
 	}

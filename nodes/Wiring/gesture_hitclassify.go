@@ -1,6 +1,9 @@
 package Wiring
 
-import "github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+import (
+	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+)
 
 // gesture_hitclassify.go — POINTER-DOWN HIT CLASSIFICATION: what a raycast hit's KIND means
 // for the gesture about to start (hitClassifiers, gestPointerDown's dispatch table), plus
@@ -36,9 +39,9 @@ var hitClassifiers = map[string]func(md *MoveDispatch, g *gestureState, ev input
 // nodeBodyRadius is the node's body sphere radius used to size the home fit. It reuses the
 // SAME nodeRadius the pre-branch HomeButton framed with (geometry-helpers.ts nodeRadius ←
 // getNodeGeometry(id).radius, the streamed radius the buffer also renders), i.e. the shared
-// port_geometry.go nodeRadius(kind) = min(width,height)/CurveParamNodeRadiusDivisor with the
+// nodegeom/port_geometry.go nodegeom.NodeRadius(kind) = min(width,height)/CurveParamNodeRadiusDivisor with the
 // (110,60) default for an unknown kind. Framing an unknown-kind node as a zero-size POINT
 // (the earlier behavior) tightened the fit vs the pre-branch, which framed it at radius 15.
 func (md *MoveDispatch) nodeBodyRadius(id string) float64 {
-	return nodeRadius(md.NodeKind(id))
+	return nodegeom.NodeRadius(md.NodeKind(id))
 }

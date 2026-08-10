@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 )
 
 // TestInteriorBeadsInsideSphere asserts each of the 4 interior bead's TORUS reach
@@ -18,7 +19,7 @@ import (
 // The torus (outer radius rt), not the sphere, is the bead's true visual extent.
 func TestInteriorBeadsInsideSphere(t *testing.T) {
 	rt := interior.InteriorTorusOuterR
-	r := nodeRadius("Input")
+	r := nodegeom.NodeRadius("Input")
 	cases := []struct{ row, col int }{{0, 0}, {0, 1}, {1, 0}, {1, 1}}
 	for _, tc := range cases {
 		p := interior.InteriorSlotOffset(tc.row, tc.col)
@@ -35,7 +36,7 @@ func TestInteriorBeadsInsideSphere(t *testing.T) {
 // node sphere: |offset| + InteriorTorusOuterR ≤ nodeRadius("SelectLeft").
 func TestInputBeadsInsideSphere(t *testing.T) {
 	rt := interior.InteriorTorusOuterR
-	r := nodeRadius("SelectLeft")
+	r := nodegeom.NodeRadius("SelectLeft")
 	for _, x := range []float64{-interior.InteriorSlot, interior.InteriorSlot} {
 		dist := math.Abs(x)
 		reach := dist + rt

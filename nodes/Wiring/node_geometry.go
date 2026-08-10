@@ -26,6 +26,7 @@ package Wiring
 import (
 	"fmt"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
@@ -43,7 +44,7 @@ import (
 // owners, not as another loose field here. Guard: tools/network/structure/check-composer-fields.sh.
 type nodeGeometry struct {
 	id   string
-	geom nodeGeom
+	geom nodegeom.NodeGeom
 	// persistRoot is the tree root this node writes its OWN per-node files (position.json
 	// — quant_offset_persist.go; port anchor files — scene_anchor_persist.go) into. Set
 	// once, for every node, by MoveDispatch.EnableEditPersist after the startup seed.
@@ -63,15 +64,15 @@ type nodeGeometry struct {
 	quantOffset quantizedOffset
 	tr          *T.Trace
 
-	// There is no geomMu. m.geom (port_geometry.go) splits into an embedded, write-once
-	// nodeIdentity (Kind/Label/R/SceneCenter — set once at construction in loader.go,
+	// There is no geomMu. m.geom (nodegeom/port_geometry.go) splits into an embedded, write-once
+	// NodeIdentity (Kind/Label/R/SceneCenter — set once at construction in loader.go,
 	// grepped clean of any later write anywhere in this package) and MUTABLE state
 	// (ScenePolar/HasPos/ReachR) written only by applyCenter. Every writer AND every
 	// reader of the mutable part — applyCenter, emitGeometry's full-struct copy — runs
 	// exclusively on this node's OWN driving goroutine (whichever one that is), so there
 	// is never more than one goroutine touching that memory. The one cross-goroutine
 	// reader, MoveDispatch.NodeKind (move_dispatch_api.go), called from the gesture/stdin-reader
-	// goroutine, reads ONLY nm.geom.Kind — a field on the embedded nodeIdentity, which no
+	// goroutine, reads ONLY nm.geom.Kind — a field on the embedded NodeIdentity, which no
 	// writer here ever touches.
 	//
 	// CHECKED BY CODE: TestNodeKindConcurrentWithApplyCenterUnderRace
@@ -113,7 +114,7 @@ type nodeGeometry struct {
 // newNodeGeometry constructs one node's geometry — no actor, no goroutine. Whoever drives
 // it (a ring's nodeMover, or a pair kind's own goroutine via ClaimSelfDrive) copies
 // clockSrc into clk once, at its own start.
-func newNodeGeometry(id string, geom nodeGeom, tr *T.Trace, clockSrc clock.Clock) *nodeGeometry {
+func newNodeGeometry(id string, geom nodegeom.NodeGeom, tr *T.Trace, clockSrc clock.Clock) *nodeGeometry {
 	ng := &nodeGeometry{
 		id: id, geom: geom, tr: tr,
 		msg: nodeMessaging{
@@ -128,7 +129,7 @@ func newNodeGeometry(id string, geom nodeGeom, tr *T.Trace, clockSrc clock.Clock
 	// Self-seed centerOut with the initial geometry (even when !HasPos, in which case
 	// nodeWorldPos falls back to the origin) so the dispatch goroutine's first drain
 	// always finds a valid center.
-	ng.msg.centerOut <- nodeWorldPos(geom)
+	ng.msg.centerOut <- nodegeom.NodeWorldPos(geom)
 	// Production-only hook: arms the bead-actor path in chainBeads/reconcileBeadChain
 	// (bead_chain.go). Bare `&nodeGeometry{...}` test literals never call
 	// newNodeGeometry, so beadTickFn stays nil there and chainBeads' pure-function tests

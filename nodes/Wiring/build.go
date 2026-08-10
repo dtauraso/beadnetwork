@@ -15,6 +15,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
@@ -43,7 +44,7 @@ type buildCtx struct {
 	scenePath string
 
 	// Phase 1: node geometry + world centers.
-	nodeGeoms map[string]nodeGeom
+	nodeGeoms map[string]nodegeom.NodeGeom
 	centers   map[string]vec3
 
 	// Phase 1b: quantized flat absolute scene-polar layout (quantized_layout.go) —

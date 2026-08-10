@@ -1,6 +1,6 @@
 // sphere_slots.go — sphere-SURFACE placement helpers for the polar layout.
 //
-// A node is a sphere of radius R (nodeR, port_geometry.go). There is no global
+// A node is a sphere of radius R (nodegeom.NodeR, nodegeom/port_geometry.go). There is no global
 // slot grid and no Fibonacci distribution. Two pure helpers seed and quantize
 // surface positions:
 //

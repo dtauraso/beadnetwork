@@ -6,6 +6,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
@@ -24,8 +25,8 @@ func homeMD(v geom.Viewpoint, centers map[string]vec3) *MoveDispatch {
 	md := &MoveDispatch{mr: moverRegistry{nodeGeoms: map[string]*nodeGeometry{}, edgeMovers: map[string]*edgeMover{}}}
 	md.ui.vp.Viewpoint = v
 	for id, c := range centers {
-		g := nodeGeom{nodeIdentity: nodeIdentity{Kind: "TimeEnd"}}
-		setNodeWorld(&g, c)
+		g := nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: "TimeEnd"}}
+		nodegeom.SetNodeWorld(&g, c)
 		md.mr.nodeGeoms[id] = newNodeGeometry(id, g, nil, clock.NewRealClock())
 	}
 	return md
@@ -50,7 +51,7 @@ func TestGestureHomeComputesFitPoseFromGeometry(t *testing.T) {
 	// docs/bead-model/bead-lattice.md "The count"), not the raw min(60,60)/divisor formula, so this
 	// must call the same function the production home-fit path calls rather than
 	// re-deriving the pre-snap number.
-	rad := nodeRadius("TimeEnd")
+	rad := nodegeom.NodeRadius("TimeEnd")
 	sizeX := (30 + rad) - (-30 - rad) // 60 + 2*rad
 	sizeY := (0 + rad) - (0 - rad)    // 2*rad
 	sizeZ := (0 + rad) - (0 - rad)    // 2*rad
@@ -95,7 +96,7 @@ func TestGestureHomeFramesUnknownKindAtRenderRadius(t *testing.T) {
 	// is now the bead-lattice-SNAPPED value (docs/bead-model/bead-lattice.md "The count"), not the
 	// raw min(110,60)/divisor formula, so this calls the same function the production
 	// home-fit path calls.
-	renderRadius := nodeRadius("NotAKind")
+	renderRadius := nodegeom.NodeRadius("NotAKind")
 	if renderRadius <= 0 {
 		t.Fatalf("render radius must be positive, got %v", renderRadius)
 	}

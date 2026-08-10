@@ -1,6 +1,10 @@
 package Wiring
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+)
 
 // The straightening loop's rule now lives on the NODE KIND's own goroutine (PairNode,
 // nodes/PairNode/node_test.go — one goroutine, no mover involved,
@@ -14,7 +18,7 @@ import "testing"
 func TestPerpendicularThetaIdxIsSixSteps(t *testing.T) {
 	const wantSteps = 6
 	if PerpendicularThetaIdx != wantSteps {
-		t.Fatalf("PerpendicularThetaIdx = %d, want %d (π/2 at %v-radian steps)", PerpendicularThetaIdx, wantSteps, CurveParamTiltVectorAngleStep)
+		t.Fatalf("PerpendicularThetaIdx = %d, want %d (π/2 at %v-radian steps)", PerpendicularThetaIdx, wantSteps, nodegeom.CurveParamTiltVectorAngleStep)
 	}
 }
 

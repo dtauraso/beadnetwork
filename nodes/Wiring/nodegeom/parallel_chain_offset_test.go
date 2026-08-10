@@ -4,7 +4,7 @@
 // The property that matters is not "an offset exists" but that the two ends, deciding
 // ALONE on their own goroutines with no message between them, land on OPPOSITE sides. That
 // is the one thing a local decision can get wrong, and the reason canonical id order exists.
-package Wiring
+package nodegeom
 
 import (
 	"math"
@@ -23,8 +23,8 @@ var (
 )
 
 func TestMutualPairOffsetsToOppositeSides(t *testing.T) {
-	a, okA := parallelChainOffset("1", "2", centerA, centerB, sceneOrigin)
-	b, okB := parallelChainOffset("2", "1", centerB, centerA, sceneOrigin)
+	a, okA := ParallelChainOffset("1", "2", centerA, centerB, sceneOrigin)
+	b, okB := ParallelChainOffset("2", "1", centerB, centerA, sceneOrigin)
 	if !okA || !okB {
 		t.Fatalf("offset not resolvable for a well-separated pair: okA=%v okB=%v", okA, okB)
 	}
@@ -38,7 +38,7 @@ func TestMutualPairOffsetsToOppositeSides(t *testing.T) {
 }
 
 func TestOffsetIsPerpendicularToTheEdge(t *testing.T) {
-	off, ok := parallelChainOffset("1", "2", centerA, centerB, sceneOrigin)
+	off, ok := ParallelChainOffset("1", "2", centerA, centerB, sceneOrigin)
 	if !ok {
 		t.Fatal("offset not resolvable")
 	}
@@ -52,8 +52,8 @@ func TestOffsetIsPerpendicularToTheEdge(t *testing.T) {
 // One step each way, so a full bead-sized gap sits between them; at half this (the chains
 // exactly touching) the pair read as a single thick wire rather than as two edges.
 func TestTheTwoChainsSitTwoBeadStepsApart(t *testing.T) {
-	a, _ := parallelChainOffset("1", "2", centerA, centerB, sceneOrigin)
-	b, _ := parallelChainOffset("2", "1", centerB, centerA, sceneOrigin)
+	a, _ := ParallelChainOffset("1", "2", centerA, centerB, sceneOrigin)
+	b, _ := ParallelChainOffset("2", "1", centerB, centerA, sceneOrigin)
 	if got, want := a.Sub(b).Length(), 2*lattice.BeadStepR; math.Abs(got-want) > 1e-9 {
 		t.Fatalf("chain separation = %v, want two bead steps (%v)", got, want)
 	}
@@ -63,8 +63,8 @@ func TestTheTwoChainsSitTwoBeadStepsApart(t *testing.T) {
 // compare puts "10" before "2", which would hand both ends of that pair the same sign and
 // collapse them back onto one line — the failure this orders numerically to avoid.
 func TestOrderingIsNumericNotLexicographic(t *testing.T) {
-	a, _ := parallelChainOffset("2", "10", centerA, centerB, sceneOrigin)
-	b, _ := parallelChainOffset("10", "2", centerB, centerA, sceneOrigin)
+	a, _ := ParallelChainOffset("2", "10", centerA, centerB, sceneOrigin)
+	b, _ := ParallelChainOffset("10", "2", centerB, centerA, sceneOrigin)
 	if math.Abs(a.X+b.X) > 1e-9 || math.Abs(a.Y+b.Y) > 1e-9 || math.Abs(a.Z+b.Z) > 1e-9 {
 		t.Fatalf("ids 2 and 10 must order numerically: got %v and %v, which do not oppose", a, b)
 	}
@@ -77,8 +77,8 @@ func TestOrderingIsNumericNotLexicographic(t *testing.T) {
 func TestRadialEdgeStillSeparates(t *testing.T) {
 	near := vec3{X: 50, Y: 0, Z: 0}
 	far := vec3{X: 150, Y: 0, Z: 0}
-	a, okA := parallelChainOffset("1", "2", near, far, sceneOrigin)
-	b, okB := parallelChainOffset("2", "1", far, near, sceneOrigin)
+	a, okA := ParallelChainOffset("1", "2", near, far, sceneOrigin)
+	b, okB := ParallelChainOffset("2", "1", far, near, sceneOrigin)
 	if !okA || !okB {
 		t.Fatalf("a radial edge must still resolve an offset: okA=%v okB=%v", okA, okB)
 	}
@@ -93,7 +93,7 @@ func TestRadialEdgeStillSeparates(t *testing.T) {
 // The offset must lie IN the node's ring plane — perpendicular to the inward pole — so the
 // chain stays coplanar with the tori it runs between.
 func TestOffsetLiesInTheRingPlane(t *testing.T) {
-	off, ok := parallelChainOffset("1", "2", centerA, centerB, sceneOrigin)
+	off, ok := ParallelChainOffset("1", "2", centerA, centerB, sceneOrigin)
 	if !ok {
 		t.Fatal("offset not resolvable")
 	}
@@ -107,7 +107,7 @@ func TestOffsetLiesInTheRingPlane(t *testing.T) {
 // Coincident centres have no direction to be perpendicular to; report that rather than
 // dividing by ~0 and emitting a NaN position into the buffer.
 func TestCoincidentCentresReportNotResolvable(t *testing.T) {
-	if _, ok := parallelChainOffset("1", "2", centerA, centerA, sceneOrigin); ok {
+	if _, ok := ParallelChainOffset("1", "2", centerA, centerA, sceneOrigin); ok {
 		t.Fatal("coincident centres must report not-resolvable, not produce an offset")
 	}
 }

@@ -2,14 +2,14 @@
 // Source: nodes/<Kind>/SPEC.md ## View width/height fields.
 // Regenerate with: cd tools/topology-vscode && npm run gen:node-defs
 
-package Wiring
+package nodegeom
 
-// kindDim is the render width/height for one node kind, mirroring
+// KindDim is the render width/height for one node kind, mirroring
 // NODE_DEFS[kind].width/height in node-defs.ts.
-type kindDim struct{ Width, Height float64 }
+type KindDim struct{ Width, Height float64 }
 
-// kindDims maps each runtime kind to its render dimensions.
-var kindDims = map[string]kindDim{
+// KindDims maps each runtime kind to its render dimensions.
+var KindDims = map[string]KindDim{
 	"HoldFlip":    {Width: 36, Height: 36},
 	"Input":       {Width: 80, Height: 60},
 	"NormalSum":   {Width: 70, Height: 60},

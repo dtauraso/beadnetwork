@@ -1,8 +1,8 @@
 // geometry.go — the minimal 3-D vector/segment types used by the port/wire
 // primitives (Out.outGeom, PacedWire's beadPlacement, position-stream lerp).
-// Moved out of nodes/Wiring/curve_params.go (which keeps the CurveParam*
+// Moved out of nodes/Wiring/nodegeom/curve_params.go (which keeps the CurveParam*
 // constants gen-node-defs reads to emit tools/topology-vscode/src/schema/
-// curve-params.ts — those constants are Wiring-owned still; only the plain
+// curve-params.ts — those constants are nodegeom-owned still; only the plain
 // vector math primitive moved here so it can be a leaf, dependency-free type
 // shared by nodes/wire and nodes/Wiring).
 
@@ -13,7 +13,7 @@ import "math"
 // Vec3 is a minimal 3-D vector used by port-geometry math. Exported (and its
 // methods below) because nodes/Wiring aliases this type as its own `vec3` and
 // calls these methods across the package boundary — see
-// nodes/Wiring/curve_params.go.
+// nodes/Wiring/vec_alias.go and nodes/Wiring/nodegeom/curve_params.go.
 type Vec3 struct{ X, Y, Z float64 }
 
 // WireSegment is one edge's straight-line segment from the source OUT-port world

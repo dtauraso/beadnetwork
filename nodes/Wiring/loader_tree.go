@@ -33,7 +33,7 @@ import (
 type jsonMeta struct {
 	ID   string   `json:"id"`
 	Type string   `json:"type"`
-	R    *float64 `json:"r,omitempty"` // optional per-node sphere radius; nil → defaultNodeR (see nodeR)
+	R    *float64 `json:"r,omitempty"` // optional per-node sphere radius; nil → nodegeom.DefaultNodeR (see nodegeom.NodeR)
 	// Scene polar (polar-frame-rewrite.md) — the node's position as (r,θ,φ) about the scene
 	// sphere center. This is the authoritative stored position. These MUST be carried through
 	// to specNode below: dropping them collapses every node to the origin (the blob bug).

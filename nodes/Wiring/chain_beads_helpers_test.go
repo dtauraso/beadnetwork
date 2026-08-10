@@ -1,6 +1,7 @@
 package Wiring
 
 import (
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
@@ -32,9 +33,9 @@ func singleNeighborCenter(to string, centerGap float64) map[string]vec3 {
 
 // THE REGRESSION GUARD for this commit: exact double tangency, no float tolerance wider
 // than round-trip noise. Before this commit, edgeStepCount measured
-// `round((QuantIR*stepR - nodeTorusOuterR(src) - nodeTorusOuterR(dst)) / BeadStepR)` against
-// an nodeTorusOuterR that was an arbitrary float NOT on the bead lattice
-// (nodeRadius(kind)*(1+ShadingParamNodeRingTubeRatio)), so the division was essentially never
+// `round((QuantIR*stepR - nodegeom.NodeTorusOuterR(src) - nodegeom.NodeTorusOuterR(dst)) / BeadStepR)` against
+// an nodegeom.NodeTorusOuterR that was an arbitrary float NOT on the bead lattice
+// (nodegeom.NodeRadius(kind)*(1+ShadingParamNodeRingTubeRatio)), so the division was essentially never
 // exact and the rounding silently absorbed up to half a bead step at the TARGET end — bead 0
 // was always exactly tangent to the source (offset by construction), but the last bead's far
 // edge only APPROXIMATELY met the target's torus. This test pins the far edge to the target's
@@ -60,8 +61,8 @@ const tangencyEps = 1e-3
 // tori (on-lattice, by this fixture's own construction) so the far-edge tangency assertion
 // below has no residue to tolerate beyond float round-off.
 func offAxisFixture(srcKind, dstKind string, count int) *nodeGeometry {
-	selfTorus := nodeTorusOuterR(srcKind)
-	dstTorus := nodeTorusOuterR(dstKind)
+	selfTorus := nodegeom.NodeTorusOuterR(srcKind)
+	dstTorus := nodegeom.NodeTorusOuterR(dstKind)
 	dist := selfTorus + float64(count)*lattice.BeadStepR + dstTorus
 	// Live direction: (3,0,4)/5 — a unit vector off any coordinate axis, with no sqrt
 	// needed to state exactly (a 3-4-5 triangle), scaled to the exact required
@@ -69,7 +70,7 @@ func offAxisFixture(srcKind, dstKind string, count int) *nodeGeometry {
 	targetCenter := vec3{X: dist * 0.6, Y: 0, Z: dist * 0.8}
 	return &nodeGeometry{
 		id:   "a",
-		geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: srcKind}}, // HasPos false -> center at origin
+		geom: nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: srcKind}}, // HasPos false -> center at origin
 		outs: nodeOuts{outTargets: []string{"b"}},
 		topo: neighborTopology{
 			neighborKinds:  map[string]string{"b": dstKind},

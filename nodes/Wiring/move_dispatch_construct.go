@@ -14,6 +14,7 @@ import (
 
 	geomseeds "github.com/dtauraso/wirefold/nodes/Wiring/geomseeds"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	rowtables "github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
@@ -39,7 +40,7 @@ import (
 // rowCount is the buffer's node-row space (topoSpec.RowCount — the largest node id found,
 // not the node count): rows 0..rowCount-1, ROW ID = NODE ID - 1. 0 (test call sites that
 // don't pass one) falls back to the number of resolved seeds, i.e. no gaps.
-func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]inputcodec.EdgeEndpoints, tr *T.Trace, nodeOrder, edgeOrder []string, clk clock.Clock, speedSinks *[]chan float64, rowCount int) (*MoveDispatch, error) {
+func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[string]inputcodec.EdgeEndpoints, tr *T.Trace, nodeOrder, edgeOrder []string, clk clock.Clock, speedSinks *[]chan float64, rowCount int) (*MoveDispatch, error) {
 	// nil order (test call sites that don't care about seed order) falls back to sorted
 	// map keys — still deterministic, just not necessarily spec order.
 	if nodeOrder == nil {
@@ -79,7 +80,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]inputco
 		}
 		var cx, cy, cz float64
 		if g.HasPos {
-			c := nodeWorldPos(g)
+			c := nodegeom.NodeWorldPos(g)
 			cx, cy, cz = c.X, c.Y, c.Z
 		}
 		// ROW ID = NODE ID - 1 — declared by the id, not by position in nodeOrder. Falls
@@ -93,7 +94,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]inputco
 		md.GS.NodeSeeds = append(md.GS.NodeSeeds, geomseeds.NodeGeomSeed{
 			ID: id, Label: label, Kind: g.Kind,
 			CX: cx, CY: cy, CZ: cz,
-			Radius: nodeRadius(g.Kind), SphereR: effectiveRadius(g),
+			Radius: nodegeom.NodeRadius(g.Kind), SphereR: nodegeom.EffectiveRadius(g),
 			VRX: verticalRingNormalX, VRY: verticalRingNormalY, VRZ: verticalRingNormalZ,
 			FRX: flatRingNormalX, FRY: flatRingNormalY, FRZ: flatRingNormalZ,
 			Row: row,
@@ -105,7 +106,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]inputco
 		if !ok {
 			continue
 		}
-		// Real endpoint geometry: the same edgeSegment computation recomputeGeometry
+		// Real endpoint geometry: the same nodegeom.EdgeSegment computation recomputeGeometry
 		// (below) uses on every live move, evaluated once here against the load-time
 		// geoms so the seed row is never a degenerate 0,0,0->0,0,0 segment. A missed
 		// lookup means the edge's source or target node id has no geometry — a
@@ -121,7 +122,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]inputco
 		if !dstOK {
 			return nil, fmt.Errorf("newMoveDispatch: edge %q references missing target node %q (no geometry loaded for it)", label, ep.Target)
 		}
-		seg := edgeSegment(srcG, dstG)
+		seg := nodegeom.EdgeSegment(srcG, dstG)
 		sx, sy, sz := seg.Start.X, seg.Start.Y, seg.Start.Z
 		ex, ey, ez := seg.End.X, seg.End.Y, seg.End.Z
 		md.GS.EdgeSeeds = append(md.GS.EdgeSeeds, geomseeds.EdgeGeomSeed{
@@ -165,13 +166,13 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]inputco
 		// (single-threaded setup, before md.Start — no driving goroutine is running yet)
 		// so the first framing read has every center before any push arrives (mirrors
 		// the partnerCenters seed below).
-		md.mr.centerMirror[id] = nodeWorldPos(g)
+		md.mr.centerMirror[id] = nodegeom.NodeWorldPos(g)
 	}
 	// A pair that points at each other is a LOAD-TIME fact of the edge set, resolved here
 	// (single-threaded setup, before any mover goroutine exists) and copied into each
 	// node's own field. Without it a node cannot know whether its target also aims back —
 	// its own outTargets say nothing about the other node's — and the two chains would draw
-	// along the identical centre line (parallelChainOffset, port_geometry.go).
+	// along the identical centre line (nodegeom.ParallelChainOffset, nodegeom/port_geometry.go).
 	hasEdge := make(map[string]bool, len(edgeEndpoints))
 	for _, ep := range edgeEndpoints {
 		hasEdge[ep.Source+"\x00"+ep.Target] = true
@@ -219,12 +220,12 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]inputco
 		// Seed partnerCenters at construction (single-threaded setup, before md.Start —
 		// no mover goroutine is running yet, so reading a neighbor's geom directly here
 		// is safe) with the SAME value the old snap seed used (newNodeMover seeds snap
-		// from nodeWorldPos(geom)), so the first emit reproduces today's center exactly.
+		// from nodegeom.NodeWorldPos(geom)), so the first emit reproduces today's center exactly.
 		// A node's neighbor set is nm.msg.neighborIn's key set (populated above from
 		// edgeEndpoints — one dedicated channel per adjacent node, both directions).
 		for neighborID := range nm.msg.neighborIn {
 			if other, ok := md.mr.nodeGeoms[neighborID]; ok {
-				nm.topo.partnerCenters[neighborID] = nodeWorldPos(other.geom)
+				nm.topo.partnerCenters[neighborID] = nodegeom.NodeWorldPos(other.geom)
 			}
 		}
 	}

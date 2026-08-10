@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 
@@ -91,7 +92,7 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeGeometr
 	committedPolar := nodePolar
 	var off quantizedOffset
 	if lq.quantizedLayout {
-		prevPos := nodeWorldPos(nm.geom)
+		prevPos := nodegeom.NodeWorldPos(nm.geom)
 		beads := dragTouchingBeads(md, nm, prevPos)
 		if len(beads) == 0 {
 			committedPos = newPos

@@ -575,12 +575,12 @@ and none is a source of truth.
   jump (`edgeStepCount` re-counts against the live distance every commit).
 
   Bead count on an edge falls out of the resulting geometry as one integer subtraction
-  (`nodes/Wiring/chain_beads.go`'s `edgeStepCount`), with the near end tangent to the node's
+  (`nodes/Wiring/nodegeom/chain_length.go`'s `EdgeStepCount`), with the near end tangent to the node's
   own torus by construction of the placement formula and one uniform global bead size — see
   `docs/bead-model/bead-lattice.md`.
 - **A mutual pair (two nodes each pointing an edge at the other) offsets its two chains to
-  opposite sides**, so they do not draw on top of each other. `parallelChainOffset`
-  (`nodes/Wiring/port_geometry.go`) computes the offset from the pair's own two centres and
+  opposite sides**, so they do not draw on top of each other. `nodegeom.ParallelChainOffset`
+  (`nodes/Wiring/nodegeom/port_geometry.go`) computes the offset from the pair's own two centres and
   the scene centre, in CANONICAL id order (NUMERICALLY smaller id first — a string compare
   would put "10" before "2" and hand both ends the same side, collapsing the two chains back
   onto one line) so both
@@ -588,7 +588,7 @@ and none is a source of truth.
   decided. The offset stays INSIDE that pair's own ring plane (not along a fixed world
   axis), so it composes with coplanar rings rather than fighting them. `chain_beads.go` is
   guarded against doing this vector math itself (`tools/network/beads/check-no-sqrt-in-chain-beads.sh`);
-  it calls into `port_geometry.go` for it, same split as `edgeCenterDistAndDir`.
+  it calls into `nodes/Wiring/nodegeom/port_geometry.go` for it, same split as `nodegeom.EdgeCenterDistAndDir`.
 
 ## Assertions
 

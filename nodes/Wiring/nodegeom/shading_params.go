@@ -21,7 +21,7 @@
 //
 // Colors are hex strings (consumed by THREE.Color); scalars are float/int.
 
-package Wiring
+package nodegeom
 
 import (
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
@@ -122,7 +122,7 @@ const ShadingParamSceneDirIntensity = 0.8
 
 // --- Node ring: torus outer radius (docs/bead-model/bead-lattice.md) -----------------
 // The node's border ring (above) is a torus, not a bare sphere; its OUTER radius —
-// nodeRadius(kind) * (1 + this ratio) — is now LOAD-BEARING GEOMETRY, not decoration:
+// NodeRadius(kind) * (1 + this ratio) — is now LOAD-BEARING GEOMETRY, not decoration:
 // the first chain bead on every edge is placed tangent to it (chain_beads.go), so a
 // wrong ratio here would bury the first bead in the node or float it off the surface.
 // Mirrors NODE_RING_TUBE_RATIO in

@@ -12,7 +12,7 @@ import "github.com/dtauraso/wirefold/nodes/wire/clock"
 // PulseSpeedWuPerMs is the fixed world-units-per-MILLISECOND conversion for the
 // SimLatencyMs REPORTING path (the ms value emitted on the send trace); it is NOT
 // the clock's unit. This is an intentional duplicate of the literal value in
-// nodes/Wiring/curve_params.go's CurveParamPulseSpeedWuPerMs — that copy is the
+// nodes/Wiring/nodegeom/curve_params.go's CurveParamPulseSpeedWuPerMs — that copy is the
 // single source of truth gen-node-defs reads (by literal AST value) to emit TS,
 // and it cannot be an alias of this one because nodes/wire must not import
 // nodes/Wiring (that would be a package cycle: Wiring already imports wire, and

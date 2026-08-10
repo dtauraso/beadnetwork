@@ -25,7 +25,7 @@
 // import Wiring — several already do, for BuildArgs itself — while Wiring imports NO kind
 // at all. The blank imports that run each kind's init() live in kinds_generated.go at the
 // repo root (package main). So a kind may legally receive Wiring types, and BuildArgs can
-// name PortBindings/nodeGeom/NodeData. It could NOT live in nodes/wire, which Wiring
+// name PortBindings/nodegeom.NodeGeom/NodeData. It could NOT live in nodes/wire, which Wiring
 // imports and which therefore cannot name any of them.
 
 package Wiring
@@ -34,6 +34,7 @@ import (
 	"context"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -53,7 +54,7 @@ type BuildArgs struct {
 	data *NodeData
 	pb   PortBindings
 	tr   *T.Trace
-	geom nodeGeom
+	geom nodegeom.NodeGeom
 
 	// tiltThetaIdx is this node's PERSISTED tilt-vector-angle index
 	// (topo_spec.go's specNode.TopTiltVectorThetaIdx, dereferenced with a 0 default),
@@ -112,7 +113,7 @@ func RegisterBuilder(kind string, ports []PortSpec, build func(BuildArgs) (wire.
 	}
 	Registry[kind] = NodeBuilder{
 		Ports: ports,
-		Build: func(ctx context.Context, name string, data *NodeData, pb PortBindings, tr *T.Trace, geom nodeGeom, tiltThetaIdx int32) (wire.Node, error) {
+		Build: func(ctx context.Context, name string, data *NodeData, pb PortBindings, tr *T.Trace, geom nodegeom.NodeGeom, tiltThetaIdx int32) (wire.Node, error) {
 			var sourceOuts []*wire.Out
 			return build(BuildArgs{
 				ctx: ctx, name: name, data: data, pb: pb, tr: tr,

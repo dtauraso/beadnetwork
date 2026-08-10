@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
@@ -23,8 +24,8 @@ import (
 func dragOffsetMD() *MoveDispatch {
 	md := &MoveDispatch{mr: moverRegistry{nodeGeoms: map[string]*nodeGeometry{}, edgeMovers: map[string]*edgeMover{}}}
 	md.ui.vp.Viewpoint = canonicalViewpoint()
-	g := nodeGeom{nodeIdentity: nodeIdentity{Kind: "TimeEnd"}}
-	setNodeWorld(&g, vec3{X: 0, Y: 0, Z: 0})
+	g := nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: "TimeEnd"}}
+	nodegeom.SetNodeWorld(&g, vec3{X: 0, Y: 0, Z: 0})
 	nm := newNodeGeometry("n", g, nil, clock.NewRealClock())
 	md.mr.nodeGeoms["n"] = nm
 	// No goroutine started (mirrors gesture_home_test's homeMD): extIn is a buffered

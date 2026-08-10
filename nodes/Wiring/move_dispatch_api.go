@@ -106,10 +106,10 @@ func (md *MoveDispatch) setHoverUI(node, port string, isInput bool) {
 // nodeMover's own goroutine — this is the ONE genuine cross-goroutine read of
 // nm.geom.
 //
-// Kind lives on nm.geom's embedded nodeIdentity (port_geometry.go), a type carrying
+// Kind lives on nm.geom's embedded nodegeom.NodeIdentity (nodegeom/port_geometry.go), a type carrying
 // only the fields the loader sets once at construction and that no handler
 // (applyCenter, setPortAnchorId, emitGeometry) ever writes again — grepped clean of
-// any write to nodeIdentity's fields outside the load-time literal. That split makes
+// any write to NodeIdentity's fields outside the load-time literal. That split makes
 // this safe by CONSTRUCTION rather than by coincidence of which byte ranges a
 // particular access happens to touch: identity fields are not merely
 // unwritten-in-practice today, they are not reachable from any writer's

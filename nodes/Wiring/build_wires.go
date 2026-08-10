@@ -6,6 +6,7 @@ package Wiring
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
@@ -30,17 +31,17 @@ func (b *buildCtx) allocateWires() {
 	for _, e := range b.spec.Edges {
 		destKey := e.Target + "." + e.TargetHandle
 		// Segment: node SURFACE to node surface (docs/bead-model/channels-not-ports.md), the GPU
-		// boundary the renderer draws from (edgeSegment) — no port name feeds this any
+		// boundary the renderer draws from (nodegeom.EdgeSegment) — no port name feeds this any
 		// more, a port contributes no geometry.
 		srcG, tgtG := b.nodeGeoms[e.Source], b.nodeGeoms[e.Target]
-		seg := edgeSegment(srcG, tgtG)
+		seg := nodegeom.EdgeSegment(srcG, tgtG)
 		// Steps: the LIVE center-to-center distance between the two nodes, run through
-		// edgeStepCount (docs/bead-model/bead-lattice.md "The count") — the SAME function and the
+		// EdgeStepCount (docs/bead-model/bead-lattice.md "The count") — the SAME function and the
 		// SAME kind of distance the source node's own chainBeads pass (chain_beads.go)
 		// will keep recomputing once running, so this load-time value and that first
 		// live pass can never disagree.
-		dist := nodeWorldPos(srcG).Sub(nodeWorldPos(tgtG)).Length()
-		steps := edgeStepCount(dist, srcG.Kind, tgtG.Kind)
+		dist := nodegeom.NodeWorldPos(srcG).Sub(nodegeom.NodeWorldPos(tgtG)).Length()
+		steps := nodegeom.EdgeStepCount(dist, srcG.Kind, tgtG.Kind)
 		edgeSteps[e.Label] = steps
 		edgeSegments[e.Label] = seg
 		// One wire per destination input port, and — since fan-in is removed

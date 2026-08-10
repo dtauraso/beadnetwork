@@ -49,7 +49,7 @@ type bufLayoutNode struct {
 	// SEPARATE from the pole on purpose. The pole is the node's own local polar frame,
 	// consumed by navigation (buffer-nav.ts, NavGuides); the ring axis is what the ring is
 	// DRAWN with. They coincide in a scene that wants its rings poled inward, and differ in
-	// one that wants an edge to lie in the ring plane (nodes/Wiring's poleContainingEdge) —
+	// one that wants an edge to lie in the ring plane (nodes/Wiring/nodegeom's PoleContainingEdge) —
 	// and a scene that wants neither streams the torus's own +Z, which draws exactly as an
 	// unrotated ring did. Reusing the pole for both would have made a rendering choice
 	// change what navigation reads.

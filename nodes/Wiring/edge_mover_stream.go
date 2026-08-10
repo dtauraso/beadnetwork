@@ -8,6 +8,7 @@ import (
 	"encoding/binary"
 	"fmt"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
@@ -42,7 +43,7 @@ func (m *edgeMover) writeStreamFrame(tick int64, events []wire.RowEvent) {
 	// Segment endpoints for this frame's own Edge row (SX..EZ) — no port row to
 	// resolve any more (docs/bead-model/channels-not-ports.md), so this is a plain re-derive
 	// from the held endpoint geoms, same computation recomputeGeometry uses.
-	seg := edgeSegment(m.srcGeom, m.dstGeom)
+	seg := nodegeom.EdgeSegment(m.srcGeom, m.dstGeom)
 	selected := m.selected
 	if m.dest != nil {
 		// NO live-bead read here. This runs on the EDGE goroutine, but the wire is now

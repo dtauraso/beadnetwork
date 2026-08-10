@@ -12,6 +12,7 @@ import (
 	"os"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
@@ -21,7 +22,7 @@ type specNode struct {
 	Type  string    `json:"type"`
 	Index *int      `json:"index,omitempty"`
 	Data  *NodeData `json:"data,omitempty"`
-	R     *float64  `json:"r,omitempty"` // optional per-node sphere radius for this node's edges (nil → default; see nodeR)
+	R     *float64  `json:"r,omitempty"` // optional per-node sphere radius for this node's edges (nil → default; see nodegeom.NodeR)
 	// Scene polar (polar-model.md phase 2): the node's position as (r,θ,φ) about the scene
 	// sphere. When present AND a persisted scene sphere exists, world = sceneCenter +
 	// polar2cart(scenePolar) is AUTHORITATIVE over x/y/z (which stay for back-compat).
@@ -72,13 +73,13 @@ func (n specNode) label() string {
 // contributes no geometry at all (docs/bead-model/channels-not-ports.md — it is a load-time
 // channel-binding ROLE, resolved by PortSpec/a.In()/a.Out() at build time, never here),
 // so this no longer resolves or falls back to any port list.
-func (n specNode) toNodeGeom(sceneCenter vec3) nodeGeom {
+func (n specNode) toNodeGeom(sceneCenter vec3) nodegeom.NodeGeom {
 	// Position is POLAR (polar-frame-rewrite.md). The stored ScenePolar (r,θ,φ about the scene
 	// sphere center) is the ONLY stored position and is adopted directly — there is no cartesian
-	// x/y/z load path. When it is absent the node has no position (HasPos false → nodeWorldPos
+	// x/y/z load path. When it is absent the node has no position (HasPos false → NodeWorldPos
 	// returns origin). Scene presence does not gate polar adoption: the stored polar is
 	// authoritative regardless.
-	g := nodeGeom{nodeIdentity: nodeIdentity{Kind: n.Type, Label: n.label(), R: n.R, SceneCenter: sceneCenter}}
+	g := nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: n.Type, Label: n.label(), R: n.R, SceneCenter: sceneCenter}}
 	if n.ScenePolarR != nil && n.ScenePolarTheta != nil && n.ScenePolarPhi != nil {
 		g.ScenePolar = geom.Polar{R: *n.ScenePolarR, Theta: *n.ScenePolarTheta, Phi: *n.ScenePolarPhi}
 		g.HasPos = true

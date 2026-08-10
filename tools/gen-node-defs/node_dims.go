@@ -13,9 +13,9 @@ import (
 	"github.com/dtauraso/wirefold/tools/gen-node-defs/kindscan"
 )
 
-// writeNodeDims emits nodes/Wiring/node_dims_gen.go: a kind → render width/height
+// writeNodeDims emits nodes/Wiring/nodegeom/node_dims_gen.go: a kind → render width/height
 // map sourced from each kind's SPEC.md ## View width/height fields. The Go
-// Go uses these to mirror nodeRadius/nodeWorldPos in geometry-helpers.ts
+// Go uses these to mirror nodegeom.NodeRadius/nodegeom.NodeWorldPos in geometry-helpers.ts
 // when computing port-to-port arc length. Single source of truth = SPEC.md.
 func writeNodeDims(outPath string, kinds []kindscan.KindEntry) error {
 	var buf bytes.Buffer
@@ -25,14 +25,14 @@ func writeNodeDims(outPath string, kinds []kindscan.KindEntry) error {
 	fmt.Fprintln(w, `// Source: nodes/<Kind>/SPEC.md ## View width/height fields.`)
 	fmt.Fprintln(w, `// Regenerate with: cd tools/topology-vscode && npm run gen:node-defs`)
 	fmt.Fprintln(w)
-	fmt.Fprintln(w, `package Wiring`)
+	fmt.Fprintln(w, `package nodegeom`)
 	fmt.Fprintln(w)
-	fmt.Fprintln(w, `// kindDim is the render width/height for one node kind, mirroring`)
+	fmt.Fprintln(w, `// KindDim is the render width/height for one node kind, mirroring`)
 	fmt.Fprintln(w, `// NODE_DEFS[kind].width/height in node-defs.ts.`)
-	fmt.Fprintln(w, `type kindDim struct{ Width, Height float64 }`)
+	fmt.Fprintln(w, `type KindDim struct{ Width, Height float64 }`)
 	fmt.Fprintln(w)
-	fmt.Fprintln(w, `// kindDims maps each runtime kind to its render dimensions.`)
-	fmt.Fprintln(w, `var kindDims = map[string]kindDim{`)
+	fmt.Fprintln(w, `// KindDims maps each runtime kind to its render dimensions.`)
+	fmt.Fprintln(w, `var KindDims = map[string]KindDim{`)
 	for _, e := range kinds {
 		width := e.View.Width
 		height := e.View.Height

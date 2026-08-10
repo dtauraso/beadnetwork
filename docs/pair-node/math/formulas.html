@@ -55,7 +55,7 @@
             <tr>
               <td class="e">step = π/12 = 0.2617993877991494 rad</td>
               <td class="n">15°, the one quantum</td>
-              <td class="s" data-src="nodes/Wiring/curve_params.go">curve_params.go</td>
+              <td class="s" data-src="nodes/Wiring/nodegeom/curve_params.go">curve_params.go</td>
             </tr>
             <tr>
               <td class="e">PERP = 6</td>
@@ -187,7 +187,7 @@
             <tr>
               <td class="e">θ = idx × step</td>
               <td class="n">radians, measured from world +y</td>
-              <td class="s" data-src="nodes/Wiring/curve_params.go">curve_params.go</td>
+              <td class="s" data-src="nodes/Wiring/nodegeom/curve_params.go">curve_params.go</td>
             </tr>
             <tr>
               <td class="e">x = r·sinθ·cosφ</td>
@@ -207,12 +207,12 @@
             <tr>
               <td class="e">r = nodeRadius(kind)</td>
               <td class="n">arrow length; 0 = draw none</td>
-              <td class="s" data-src="nodes/Wiring/port_geometry.go">port_geometry.go</td>
+              <td class="s" data-src="nodes/Wiring/nodegeom/port_geometry.go">port_geometry.go</td>
             </tr>
             <tr>
               <td class="e">nodeRadius = outerR / (1 + tubeRatio)</td>
               <td class="n">the ring's own radius</td>
-              <td class="s" data-src="nodes/Wiring/port_geometry.go">port_geometry.go</td>
+              <td class="s" data-src="nodes/Wiring/nodegeom/port_geometry.go">port_geometry.go</td>
             </tr>
           </table>
           <div class="cap">Four columns carry it to the renderer: <code>TopTiltVectorLen</code>,

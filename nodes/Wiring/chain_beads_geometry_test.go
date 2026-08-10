@@ -4,6 +4,7 @@ import (
 	"math"
 	"testing"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
@@ -22,7 +23,7 @@ func TestChainBeadsStayOutsideBothNodes(t *testing.T) {
 	const gap = 200 * lattice.BeadStepR
 	m := &nodeGeometry{
 		id:   "a",
-		geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}}, // radius 15
+		geom: nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: "Input"}}, // radius 15
 		outs: nodeOuts{outTargets: []string{"b"}},
 		topo: neighborTopology{
 			neighborKinds:  map[string]string{"b": "Time"}, // radius 9
@@ -33,8 +34,8 @@ func TestChainBeadsStayOutsideBothNodes(t *testing.T) {
 	if len(ox) == 0 {
 		t.Fatal("no beads emitted for a 400-unit gap")
 	}
-	srcClear := nodeTorusOuterR("Input")
-	dstClear := gap - nodeTorusOuterR("Time")
+	srcClear := nodegeom.NodeTorusOuterR("Input")
+	dstClear := gap - nodegeom.NodeTorusOuterR("Time")
 	for i := range ox {
 		d := math.Sqrt(float64(ox[i]*ox[i] + oy[i]*oy[i] + oz[i]*oz[i]))
 		// Tangent-outside at each end: a bead's OWN torus clears the surface too, so no bead
@@ -55,7 +56,7 @@ func TestChainBeadsStayOutsideBothNodes(t *testing.T) {
 // absorb; MODEL.md "Moving a node is CRUD on the edge beads that touch it").
 func TestChainBeadsTouch(t *testing.T) {
 	m := &nodeGeometry{
-		id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}},
+		id: "a", geom: nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: "Input"}},
 		outs: nodeOuts{outTargets: []string{"b"}},
 		topo: neighborTopology{
 			neighborKinds: map[string]string{"b": "Input"},
@@ -83,7 +84,7 @@ func TestChainBeadsTouch(t *testing.T) {
 // edge never has zero beads, even when the gap collapses.
 func TestChainBeadsAlwaysAtLeastOneBead(t *testing.T) {
 	m := &nodeGeometry{
-		id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}},
+		id: "a", geom: nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: "Input"}},
 		outs: nodeOuts{outTargets: []string{"b"}},
 		topo: neighborTopology{
 			neighborKinds: map[string]string{"b": "Input"},
@@ -105,7 +106,7 @@ func TestChainBeadsAlwaysAtLeastOneBead(t *testing.T) {
 // (MODEL.md "the polar model": no node-node stored coordinate).
 func TestChainBeadsUnknownPartnerContributesNothing(t *testing.T) {
 	m := &nodeGeometry{
-		id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}},
+		id: "a", geom: nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: "Input"}},
 		outs: nodeOuts{outTargets: []string{"b"}},
 	}
 	if ox, _, _, _, _, _ := m.chainBeads(); len(ox) != 0 {
@@ -120,7 +121,7 @@ func TestChainBeadsUnknownPartnerContributesNothing(t *testing.T) {
 func TestChainBeadsCountIsSpanProportional(t *testing.T) {
 	count := func(centerGap float64) int {
 		m := &nodeGeometry{
-			id: "a", geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: "Input"}},
+			id: "a", geom: nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: "Input"}},
 			outs: nodeOuts{outTargets: []string{"b"}},
 			topo: neighborTopology{
 				neighborKinds:  map[string]string{"b": "Input"},
@@ -149,9 +150,9 @@ func TestChainBeadsCountIsSpanProportional(t *testing.T) {
 
 // THE REGRESSION GUARD for this commit: exact double tangency, no float tolerance wider
 // than round-trip noise. Before this commit, edgeStepCount measured
-// `round((QuantIR*stepR - nodeTorusOuterR(src) - nodeTorusOuterR(dst)) / BeadStepR)` against
-// an nodeTorusOuterR that was an arbitrary float NOT on the bead lattice
-// (nodeRadius(kind)*(1+ShadingParamNodeRingTubeRatio)), so the division was essentially never
+// `round((QuantIR*stepR - nodegeom.NodeTorusOuterR(src) - nodegeom.NodeTorusOuterR(dst)) / BeadStepR)` against
+// an nodegeom.NodeTorusOuterR that was an arbitrary float NOT on the bead lattice
+// (nodegeom.NodeRadius(kind)*(1+ShadingParamNodeRingTubeRatio)), so the division was essentially never
 // exact and the rounding silently absorbed up to half a bead step at the TARGET end — bead 0
 // was always exactly tangent to the source (offset by construction), but the last bead's far
 // edge only APPROXIMATELY met the target's torus. This test pins the far edge to the target's
@@ -180,7 +181,7 @@ func TestChainBeadsExactDoubleTangency(t *testing.T) {
 		for _, gap := range centerGaps {
 			m := &nodeGeometry{
 				id:   "a",
-				geom: nodeGeom{nodeIdentity: nodeIdentity{Kind: srcKind}},
+				geom: nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: srcKind}},
 				outs: nodeOuts{outTargets: []string{"b"}},
 				topo: neighborTopology{
 					neighborKinds:  map[string]string{"b": dstKind},
@@ -192,8 +193,8 @@ func TestChainBeadsExactDoubleTangency(t *testing.T) {
 				t.Fatalf("%s->%s gap %.0f: no beads emitted", srcKind, dstKind, gap)
 			}
 
-			srcTorus := nodeTorusOuterR(srcKind)
-			dstTorus := nodeTorusOuterR(dstKind)
+			srcTorus := nodegeom.NodeTorusOuterR(srcKind)
+			dstTorus := nodegeom.NodeTorusOuterR(dstKind)
 
 			// Bead 0's NEAR edge: its offset from center minus its own torus radius must
 			// equal the source's torus radius EXACTLY.
@@ -232,8 +233,8 @@ func TestChainBeadsLastBeadOnTargetTorusOffAxis(t *testing.T) {
 	const count = 12
 	m := offAxisFixture("Input", "Time", count)
 	targetCenter := m.topo.partnerCenters["b"]
-	srcTorus := nodeTorusOuterR("Input")
-	dstTorus := nodeTorusOuterR("Time")
+	srcTorus := nodegeom.NodeTorusOuterR("Input")
+	dstTorus := nodegeom.NodeTorusOuterR("Time")
 
 	ox, oy, oz, _, _, _ := m.chainBeads()
 	if len(ox) != count {

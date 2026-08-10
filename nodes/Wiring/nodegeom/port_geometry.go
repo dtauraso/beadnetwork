@@ -9,12 +9,12 @@
 //
 // Go must compute a pulse's travel budget from the SAME segment the
 // bead is drawn on: a straight line from the source OUTPUT port's sphere-surface
-// point to the target INPUT port's sphere-surface point. nodeWorldPos, nodeRadius,
+// point to the target INPUT port's sphere-surface point. NodeWorldPos, NodeRadius,
 // portDir and portWorldPos here feed arcLengthBetweenPorts
 // (loader.go / stdin_reader.go), which returns the chord length.
 //
 // Inputs the geometry needs, per node:
-//   - kind        → width/height via kindDims (generated from SPEC.md View)
+//   - kind        → width/height via KindDims (generated from SPEC.md View)
 //   - center      → world center (from meta.json x/y/z or origin fallback)
 //   - port lists  → inputs/outputs with optional side + slot (from the spec node;
 //                   falls back to registry ports with default sides when absent)
@@ -26,7 +26,7 @@
 // This file keeps the seam it is named for: the geometry BETWEEN two nodes — edge
 // segments, the mutual-pair parallel-chain offset, and ring-axis derivation.
 
-package Wiring
+package nodegeom
 
 import (
 	"math"
@@ -36,12 +36,12 @@ import (
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
-// edgeSegment is the straight world segment the renderer draws for an edge: NODE SURFACE
+// EdgeSegment is the straight world segment the renderer draws for an edge: NODE SURFACE
 // TO NODE SURFACE along the centre-to-centre line (docs/bead-model/channels-not-ports.md — a port is
 // a load-time channel-binding ROLE now, never a place, so it contributes no geometry to
 // this segment at all). start = the source node's center, moved out to its own
-// nodeTorusOuterR toward the target; end = the target's center, moved out to ITS
-// nodeTorusOuterR toward the source. These are the SAME two surface points
+// NodeTorusOuterR toward the target; end = the target's center, moved out to ITS
+// NodeTorusOuterR toward the source. These are the SAME two surface points
 // chain_beads.go anchors bead 0 and the last bead to (docs/bead-model/bead-lattice.md "Placement":
 // "Bead 0's torus is tangent to the source node's torus... bead N-1's torus is tangent to
 // the target node's torus, EXACTLY") — this is deliberate, not incidental: the edge
@@ -49,9 +49,9 @@ import (
 // exactly the invariant the old port-radius offset broke (the chain measured node-torus
 // to node-torus while the port sat proud of/inside that surface, so the first and last
 // bead were off by the port's own radius while interior spacing stayed correct).
-func edgeSegment(src, tgt nodeGeom) wireSegment {
-	srcCenter := nodeWorldPos(src)
-	tgtCenter := nodeWorldPos(tgt)
+func EdgeSegment(src, tgt NodeGeom) wireSegment {
+	srcCenter := NodeWorldPos(src)
+	tgtCenter := NodeWorldPos(tgt)
 	dir := tgtCenter.Sub(srcCenter)
 	if dir.Length() < 1e-9 {
 		// Degenerate (coincident centers, e.g. a not-yet-positioned node): fall back to the
@@ -59,20 +59,20 @@ func edgeSegment(src, tgt nodeGeom) wireSegment {
 		return wireSegment{Start: srcCenter, End: tgtCenter}
 	}
 	unit := dir.Normalize()
-	start := srcCenter.Add(unit.Scale(nodeTorusOuterR(src.Kind)))
-	end := tgtCenter.Sub(unit.Scale(nodeTorusOuterR(tgt.Kind)))
+	start := srcCenter.Add(unit.Scale(NodeTorusOuterR(src.Kind)))
+	end := tgtCenter.Sub(unit.Scale(NodeTorusOuterR(tgt.Kind)))
 	return wireSegment{Start: start, End: end}
 }
 
-// edgeCenterDistAndDir returns the LIVE center-to-center distance BETWEEN two nodes AND
+// EdgeCenterDistAndDir returns the LIVE center-to-center distance BETWEEN two nodes AND
 // the live unit direction from selfCenter toward targetCenter, from their live cartesian
 // world centers — ONE measurement of the edge, not two. selfCenter/targetCenter must be
-// nodeWorldPos of each node, the SAME function edgeSegment (above) and every emitGeometry
+// NodeWorldPos of each node, the SAME function EdgeSegment (above) and every emitGeometry
 // call use, so this reads the identical value the renderer draws the node at — not the
 // SOURCE node's stored, quantized LocalPolar (lp.QuantIR*StepR and its QuantITheta/
 // QuantIPhi bearing), which is an integer-step APPROXIMATION of both this distance and
 // this direction (1-degree angular cells), which can drift from the live geometry between
-// drags. chain_beads.go reads the LIVE value (edgeStepCount's `dist`) rather than the
+// drags. chain_beads.go reads the LIVE value (EdgeStepCount's `dist`) rather than the
 // stored one, so a bearing residue (a chain aimed up to half a degree off, from the
 // 1-degree stored cell) can never reappear independent of the length: distance and
 // direction are returned from the SAME Length()/Sub() call, so a caller cannot read a
@@ -88,9 +88,9 @@ func edgeSegment(src, tgt nodeGeom) wireSegment {
 // (tools/network/beads/check-no-sqrt-in-chain-beads.sh, "index arithmetic, trig only at the
 // polar2cart boundary" — memory/feedback_abc_times_constant_not_rederive.md).
 // chainBeads calls this helper and receives only the resulting scalar distance and unit
-// vector; the sqrt itself lives here, in the file that already computes edgeSegment the
+// vector; the sqrt itself lives here, in the file that already computes EdgeSegment the
 // same way.
-func edgeCenterDistAndDir(selfCenter, targetCenter vec3) (dist float64, unitDir vec3, ok bool) {
+func EdgeCenterDistAndDir(selfCenter, targetCenter vec3) (dist float64, unitDir vec3, ok bool) {
 	delta := targetCenter.Sub(selfCenter)
 	length := delta.Length()
 	if length < 1e-9 {
@@ -99,7 +99,7 @@ func edgeCenterDistAndDir(selfCenter, targetCenter vec3) (dist float64, unitDir 
 	return length, delta.Normalize(), true
 }
 
-// parallelChainOffset is the perpendicular displacement a node applies to its OWN chain
+// ParallelChainOffset is the perpendicular displacement a node applies to its OWN chain
 // toward `targetID` so that two nodes pointing AT EACH OTHER do not draw their chains on
 // top of one another.
 //
@@ -124,9 +124,9 @@ func edgeCenterDistAndDir(selfCenter, targetCenter vec3) (dist float64, unitDir 
 // The cost, stated rather than hidden: an offset chain no longer starts exactly tangent to
 // its node's torus, since it is displaced off the centre line that tangency is measured on.
 // That is the trade the separation buys, and it applies ONLY to a mutual pair.
-func parallelChainOffset(selfID, targetID string, selfCenter, targetCenter, sceneCenter vec3) (vec3, bool) {
+func ParallelChainOffset(selfID, targetID string, selfCenter, targetCenter, sceneCenter vec3) (vec3, bool) {
 	lowCenter, highCenter := selfCenter, targetCenter
-	if !nodeIDLess(selfID, targetID) {
+	if !NodeIDLess(selfID, targetID) {
 		lowCenter, highCenter = targetCenter, selfCenter
 	}
 	delta := highCenter.Sub(lowCenter)
@@ -167,19 +167,19 @@ func parallelChainOffset(selfID, targetID string, selfCenter, targetCenter, scen
 		return vec3{}, false
 	}
 	sign := 1.0
-	if !nodeIDLess(selfID, targetID) {
+	if !NodeIDLess(selfID, targetID) {
 		sign = -1.0
 	}
 	return perp.Normalize().Scale(sign * lattice.BeadStepR), true
 }
 
-// nodeIDLess orders two node ids NUMERICALLY, because node ids are numbers that are strings
+// NodeIDLess orders two node ids NUMERICALLY, because node ids are numbers that are strings
 // only because they are directory names (.claude/rules/persistence-ownership.md). A plain
 // string compare would order "10" before "2" and hand both ends of that pair the same sign,
-// which is the one thing parallelChainOffset must never do. A non-numeric id (impossible
+// which is the one thing ParallelChainOffset must never do. A non-numeric id (impossible
 // today — loadTree rejects one) falls back to the string compare rather than panicking in
 // geometry code.
-func nodeIDLess(a, b string) bool {
+func NodeIDLess(a, b string) bool {
 	ai, aerr := strconv.Atoi(a)
 	bi, berr := strconv.Atoi(b)
 	if aerr == nil && berr == nil {
@@ -188,7 +188,7 @@ func nodeIDLess(a, b string) bool {
 	return a < b
 }
 
-// poleContainingEdge returns the ring axis closest to the given pole whose PLANE contains
+// PoleContainingEdge returns the ring axis closest to the given pole whose PLANE contains
 // the edge from selfCenter to partnerCenter — the pole with its along-the-edge component
 // projected out.
 //
@@ -200,7 +200,7 @@ func nodeIDLess(a, b string) bool {
 // Not resolvable when the two centres coincide (no edge direction) or when the pole is
 // PARALLEL to the edge — there the projection vanishes and every perpendicular is equally
 // good, so the caller keeps the pole it had rather than this function inventing one.
-func poleContainingEdge(poleTheta, polePhi float64, selfCenter, partnerCenter vec3) (theta, phi float64, ok bool) {
+func PoleContainingEdge(poleTheta, polePhi float64, selfCenter, partnerCenter vec3) (theta, phi float64, ok bool) {
 	delta := partnerCenter.Sub(selfCenter)
 	if delta.Length() < 1e-9 {
 		return 0, 0, false
@@ -215,15 +215,15 @@ func poleContainingEdge(poleTheta, polePhi float64, selfCenter, partnerCenter ve
 	return math.Acos(geom.Clamp(u.Y, -1, 1)), math.Atan2(u.Z, u.X), true
 }
 
-// torusDefaultAxisAngles is the torus geometry's OWN normal (+Z) as this codebase's angle
+// TorusDefaultAxisAngles is the torus geometry's OWN normal (+Z) as this codebase's angle
 // pair. A ring streamed with this axis is drawn exactly as an unrotated one, which is what
 // every scene looked like before ring orientation existed — so it is the default, and a
 // scene opts IN to anything else.
-func torusDefaultAxisAngles() (theta, phi float64) {
+func TorusDefaultAxisAngles() (theta, phi float64) {
 	return math.Pi / 2, math.Pi / 2
 }
 
-// uprightRingAxis returns the ring axis whose PLANE contains BOTH the edge and world +y —
+// UprightRingAxis returns the ring axis whose PLANE contains BOTH the edge and world +y —
 // a ring standing upright along the edge, with the node's own up-vector lying IN that plane
 // rather than sticking out of it.
 //
@@ -235,7 +235,7 @@ func torusDefaultAxisAngles() (theta, phi float64) {
 //
 // Not resolvable when the edge runs straight up (parallel to +y): the cross product vanishes,
 // every plane through the edge also contains up, and there is no unique answer to give.
-func uprightRingAxis(selfCenter, partnerCenter vec3) (theta, phi float64, ok bool) {
+func UprightRingAxis(selfCenter, partnerCenter vec3) (theta, phi float64, ok bool) {
 	delta := partnerCenter.Sub(selfCenter)
 	if delta.Length() < 1e-9 {
 		return 0, 0, false

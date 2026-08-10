@@ -99,7 +99,7 @@ func main() {
 	}
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d kinds)\n", traceKindsPath, len(traceKinds))
 
-	nodeDimsGoPath := filepath.Join(repoRoot, "nodes", "Wiring", "node_dims_gen.go")
+	nodeDimsGoPath := filepath.Join(repoRoot, "nodes", "Wiring", "nodegeom", "node_dims_gen.go")
 	if err := writeNodeDims(nodeDimsGoPath, kinds); err != nil {
 		fatalf("write %s: %v", nodeDimsGoPath, err)
 	}
@@ -111,7 +111,7 @@ func main() {
 	}
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d kinds)\n", nodeKindIDGoPath, len(kinds))
 
-	curveParamsGoPath := filepath.Join(repoRoot, "nodes", "Wiring", "curve_params.go")
+	curveParamsGoPath := filepath.Join(repoRoot, "nodes", "Wiring", "nodegeom", "curve_params.go")
 	curveParams, err := parseCurveParams(curveParamsGoPath)
 	if err != nil {
 		fatalf("parse curve params: %v", err)
@@ -133,7 +133,7 @@ func main() {
 	}
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d overlay flags)\n", overlayGenGoPath, len(overlayFlags))
 
-	shadingParamsGoPath := filepath.Join(repoRoot, "nodes", "Wiring", "shading_params.go")
+	shadingParamsGoPath := filepath.Join(repoRoot, "nodes", "Wiring", "nodegeom", "shading_params.go")
 	shadingParams, err := parseShadingParams(repoRoot, shadingParamsGoPath)
 	if err != nil {
 		fatalf("parse shading params: %v", err)

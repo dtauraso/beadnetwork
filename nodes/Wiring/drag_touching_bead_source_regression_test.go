@@ -23,6 +23,7 @@ package Wiring
 import (
 	"testing"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
@@ -34,7 +35,7 @@ func touchingBeadFor(t *testing.T, md *MoveDispatch, nodeID string) (touchingBea
 	if !ok {
 		t.Fatalf("no nodeMover for %s", nodeID)
 	}
-	prevPos := nodeWorldPos(nm.geom)
+	prevPos := nodegeom.NodeWorldPos(nm.geom)
 	beads := dragTouchingBeads(md, nm, prevPos)
 	if len(beads) != 1 {
 		t.Fatalf("%s: expected exactly one touching bead (one incident edge), got %d", nodeID, len(beads))
@@ -62,7 +63,7 @@ func TestTouchingBeadSourceIsOneBeadLengthFromCentre(t *testing.T) {
 		// selfTorusR is a genuinely different (larger) number in this fixture — pin that,
 		// so a regression back to `prevPos + aimDir*selfTorusR` is caught even if
 		// BeadStepR and selfTorusR ever happened to coincide for some future fixture.
-		selfTorusR := nodeTorusOuterR(md.mr.nodeGeoms[id].selfKind)
+		selfTorusR := nodegeom.NodeTorusOuterR(md.mr.nodeGeoms[id].selfKind)
 		if selfTorusR-lattice.BeadStepR < 1.0 {
 			t.Fatalf("%s: fixture's selfTorusR (%g) is too close to lattice.BeadStepR (%g) to distinguish the two forms",
 				id, selfTorusR, lattice.BeadStepR)
@@ -86,7 +87,7 @@ func TestThirdAtRestIsOneBeadLengthNotSelfTorusR(t *testing.T) {
 		got := third.Length()
 		if diff := got - lattice.BeadStepR; diff > eps || diff < -eps {
 			t.Fatalf("%s: |third| at rest should equal one bead length (lattice.BeadStepR=%g), got %g (selfTorusR=%g)",
-				id, lattice.BeadStepR, got, nodeTorusOuterR(md.mr.nodeGeoms[id].selfKind))
+				id, lattice.BeadStepR, got, nodegeom.NodeTorusOuterR(md.mr.nodeGeoms[id].selfKind))
 		}
 	}
 }

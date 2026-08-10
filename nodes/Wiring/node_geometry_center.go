@@ -2,6 +2,8 @@
 // one constant that write's tilt-vector-angle callers compare against.
 package Wiring
 
+import "github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+
 // PerpendicularThetaIdx is the topTiltVectorThetaIdx value at which the tilt vector is exactly
 // perpendicular to world +y: CurveParamTiltVectorAngleStep is π/12 (15°), and π/2 (90°) is
 // exactly 6 steps. Comparing to this INTEGER is what makes the straightening loop's stop
@@ -30,7 +32,7 @@ const PerpendicularThetaIdx int32 = 6
 // center mirror (m.msg.centerOut, latest-wins — see its doc comment) and to every direct
 // neighbor's partnerCenters map (below), and re-emits this node's live geometry.
 func (m *nodeGeometry) applyCenter(center vec3, reach float64) {
-	setNodeWorld(&m.geom, center)
+	nodegeom.SetNodeWorld(&m.geom, center)
 	m.geom.ReachR = reach
 	// Latest-wins non-blocking push onto centerOut: drain any stale unread value first
 	// so the slot always ends up holding the newest center, never blocking this

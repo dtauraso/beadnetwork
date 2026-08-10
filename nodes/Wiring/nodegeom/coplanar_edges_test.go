@@ -1,4 +1,4 @@
-package Wiring
+package nodegeom
 
 import (
 	"math"
@@ -15,7 +15,7 @@ func TestPoleContainingEdgeIsPerpendicularToIt(t *testing.T) {
 	self := vec3{X: 100}
 	partner := vec3{X: 100, Z: 100} // edge runs along +z
 	inT, inP := geom.InwardPole(geom.Cart2polar(self))
-	theta, phi, ok := poleContainingEdge(inT, inP, self, partner)
+	theta, phi, ok := PoleContainingEdge(inT, inP, self, partner)
 	if !ok {
 		t.Fatal("a well-separated pair must resolve an axis")
 	}
@@ -34,7 +34,7 @@ func TestPoleContainingEdgeStaysNearestTheInwardPole(t *testing.T) {
 	partner := vec3{X: 100, Z: 100}
 	inT, inP := geom.InwardPole(geom.Cart2polar(self))
 	inward := geom.AnglesToWorldOffset(1, inT, inP)
-	theta, phi, _ := poleContainingEdge(inT, inP, self, partner)
+	theta, phi, _ := PoleContainingEdge(inT, inP, self, partner)
 	axis := geom.AnglesToWorldOffset(1, theta, phi)
 
 	dir := partner.Sub(self).Normalize()
@@ -50,14 +50,14 @@ func TestPoleParallelToTheEdgeIsNotResolvable(t *testing.T) {
 	self := vec3{X: 100}
 	partner := vec3{} // edge points straight at the scene centre — along the inward pole
 	inT, inP := geom.InwardPole(geom.Cart2polar(self))
-	if _, _, ok := poleContainingEdge(inT, inP, self, partner); ok {
+	if _, _, ok := PoleContainingEdge(inT, inP, self, partner); ok {
 		t.Fatal("a pole parallel to the edge must report not-resolvable")
 	}
 }
 
 func TestCoincidentCentresAreNotResolvable(t *testing.T) {
 	self := vec3{X: 100}
-	if _, _, ok := poleContainingEdge(0, 0, self, self); ok {
+	if _, _, ok := PoleContainingEdge(0, 0, self, self); ok {
 		t.Fatal("coincident centres have no edge direction and must report not-resolvable")
 	}
 }
@@ -81,7 +81,7 @@ func TestCoplanarEdgesIsPerScene(t *testing.T) {
 // drawn before ring orientation existed. This is the assertion that keeps a pair-scene
 // feature from quietly restyling another scene.
 func TestDefaultRingAxisIsTheUnrotatedTorusNormal(t *testing.T) {
-	theta, phi := torusDefaultAxisAngles()
+	theta, phi := TorusDefaultAxisAngles()
 	axis := geom.AnglesToWorldOffset(1, theta, phi)
 	want := vec3{X: 0, Y: 0, Z: 1} // three.js torusGeometry's own normal
 	if axis.Sub(want).Length() > 1e-9 {
@@ -97,7 +97,7 @@ func TestDefaultRingAxisIsTheUnrotatedTorusNormal(t *testing.T) {
 func TestUprightRingPlaneHoldsTheEdgeAndUp(t *testing.T) {
 	self := vec3{X: 96, Z: -80}
 	partner := vec3{X: 96, Z: -40} // the pair's own shape: same height, edge along +z
-	theta, phi, ok := uprightRingAxis(self, partner)
+	theta, phi, ok := UprightRingAxis(self, partner)
 	if !ok {
 		t.Fatal("a horizontal edge must resolve an upright axis")
 	}
@@ -115,7 +115,7 @@ func TestUprightRingPlaneHoldsTheEdgeAndUp(t *testing.T) {
 // An edge running straight up has no unique upright plane — every plane through it already
 // contains up. Report that rather than returning a degenerate axis.
 func TestVerticalEdgeHasNoUniqueUprightPlane(t *testing.T) {
-	if _, _, ok := uprightRingAxis(vec3{}, vec3{Y: 100}); ok {
+	if _, _, ok := UprightRingAxis(vec3{}, vec3{Y: 100}); ok {
 		t.Fatal("an edge parallel to +y must report not-resolvable")
 	}
 }

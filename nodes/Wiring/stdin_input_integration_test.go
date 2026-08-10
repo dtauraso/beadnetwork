@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
@@ -56,7 +57,7 @@ func frameRecord(rec []byte) []byte {
 // not a stale/empty snapshot. This is the "Go persists its own current topology" guarantee.
 func TestSavePersistsCurrentOverlayState(t *testing.T) {
 	root := t.TempDir()
-	md, err := newMoveDispatch(map[string]nodeGeom{}, map[string]inputcodec.EdgeEndpoints{}, nil, nil, nil, clock.NewRealClock(), nil, 0)
+	md, err := newMoveDispatch(map[string]nodegeom.NodeGeom{}, map[string]inputcodec.EdgeEndpoints{}, nil, nil, nil, clock.NewRealClock(), nil, 0)
 	if err != nil {
 		t.Fatalf("newMoveDispatch: %v", err)
 	}
@@ -88,7 +89,7 @@ func TestFramedPartialReads(t *testing.T) {
 	defer cancel()
 	pr, pw := io.Pipe()
 	// A real (empty) dispatch so the `save` command has an overlay snapshot to persist.
-	md, err := newMoveDispatch(map[string]nodeGeom{}, map[string]inputcodec.EdgeEndpoints{}, nil, nil, nil, clock.NewRealClock(), nil, 0)
+	md, err := newMoveDispatch(map[string]nodegeom.NodeGeom{}, map[string]inputcodec.EdgeEndpoints{}, nil, nil, nil, clock.NewRealClock(), nil, 0)
 	if err != nil {
 		t.Fatalf("newMoveDispatch: %v", err)
 	}

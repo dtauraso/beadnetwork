@@ -24,6 +24,7 @@ import (
 	B "github.com/dtauraso/wirefold/Buffer"
 	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 )
 
 // CreateNode adds a node of kindID at a dropped world point, connected to the NEAREST
@@ -239,7 +240,7 @@ func (md *MoveDispatch) dropPointFromNDC(ndcX, ndcY float64) (vec3, bool) {
 func (md *MoveDispatch) nearestNodeTo(p vec3) (string, bool) {
 	best, bestD2, found := "", 0.0, false
 	for id, ng := range md.mr.nodeGeoms {
-		c := nodeWorldPos(ng.geom)
+		c := nodegeom.NodeWorldPos(ng.geom)
 		d := c.Sub(p)
 		d2 := d.X*d.X + d.Y*d.Y + d.Z*d.Z
 		if !found || d2 < bestD2 {

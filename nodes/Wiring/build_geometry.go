@@ -5,17 +5,21 @@
 
 package Wiring
 
+import (
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+)
+
 // computeNodeGeometry builds the id→geometry map used for arc-length computation
-// at wire construction (nodeGeom carries kind/dims/port side+slot so the Go arc
+// at wire construction (nodegeom.NodeGeom carries kind/dims/port side+slot so the Go arc
 // length mirrors buildPortCurve exactly), plus the shared world-center map built
 // ONCE from that geometry and reused by the reach-radius pass, the aimed-port
 // registry, and the edge-geometry centerOf closure. Each node's world center is
-// loaded directly from its spec (meta.json x/y/z, injected as nodeGeom.Center in
+// loaded directly from its spec (meta.json x/y/z, injected as nodegeom.NodeGeom.Center in
 // toNodeGeom); nothing later mutates a node's Center, so this snapshot stays
 // authoritative for the whole build (the reach-radius pass writes ReachR, which
 // does not affect centers).
 func (b *buildCtx) computeNodeGeometry() {
-	nodeGeoms := map[string]nodeGeom{}
+	nodeGeoms := map[string]nodegeom.NodeGeom{}
 	for _, n := range b.spec.Nodes {
 		nodeGeoms[n.ID] = n.toNodeGeom(b.sphere.Center)
 	}
@@ -24,7 +28,7 @@ func (b *buildCtx) computeNodeGeometry() {
 	centers := map[string]vec3{}
 	for id, g := range nodeGeoms {
 		if g.HasPos {
-			centers[id] = nodeWorldPos(g)
+			centers[id] = nodegeom.NodeWorldPos(g)
 		}
 	}
 	b.centers = centers

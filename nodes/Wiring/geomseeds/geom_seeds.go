@@ -24,7 +24,7 @@ type NodeGeomSeed struct {
 }
 
 // EdgeGeomSeed is one edge's load-time topology AND its real segment endpoints — the same
-// edgeSegment(srcGeom, dstGeom) computation the edge's own live recomputeGeometry
+// nodegeom.EdgeSegment(srcGeom, dstGeom) computation the edge's own live recomputeGeometry
 // (edge_mover.go) uses, evaluated here against the load-time geoms so the seed row is never a
 // degenerate 0,0,0→0,0,0 segment.
 type EdgeGeomSeed struct {

@@ -15,6 +15,7 @@ import (
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -84,7 +85,7 @@ func TestNodeGeometryLabelSidecar(t *testing.T) {
 // fail newMoveDispatch loudly, naming both the edge label and the missing node id,
 // rather than silently seeding a degenerate 0,0,0->0,0,0 EdgeGeomSeed.
 func TestNewMoveDispatchRejectsDanglingEdgeTarget(t *testing.T) {
-	geoms := map[string]nodeGeom{
+	geoms := map[string]nodegeom.NodeGeom{
 		"1": {},
 	}
 	edgeEndpoints := map[string]inputcodec.EdgeEndpoints{

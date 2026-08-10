@@ -5,7 +5,7 @@ package Buffer
 //
 // SX..EZ is the edge's own straight SEGMENT (docs/bead-model/bead-lattice.md "Ownership": the
 // edgeMover publishes the segment only) — NODE SURFACE TO NODE SURFACE along the
-// centre-to-centre line (edgeSegment, nodes/Wiring/port_geometry.go), the same two
+// centre-to-centre line (nodegeom.EdgeSegment, nodes/Wiring/nodegeom/port_geometry.go), the same two
 // points chain_beads.go anchors bead 0 and the last bead to. There is no port row to
 // reference any more: a port stopped being a place (docs/bead-model/channels-not-ports.md), so this
 // column pair is the edge's own emitted endpoints, not an index into a Port block that no

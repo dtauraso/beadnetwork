@@ -36,7 +36,7 @@ func TestWriteNodeDims_EmitsPerKindDimensionsWithDefaults(t *testing.T) {
 	if !strings.Contains(out, `"Alpha"`) || !strings.Contains(out, `"Beta"`) {
 		t.Errorf("output missing kind keys:\n%s", out)
 	}
-	if !strings.Contains(out, "package Wiring") {
+	if !strings.Contains(out, "package nodegeom") {
 		t.Errorf("output missing package clause:\n%s", out)
 	}
 }

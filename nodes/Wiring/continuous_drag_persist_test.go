@@ -15,6 +15,7 @@ import (
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 )
 
 // dragAndReadBack drags a node under the given layout mode and returns what landed in that
@@ -35,7 +36,7 @@ func dragAndReadBack(t *testing.T, quantized bool, target vec3) string {
 	nm := &nodeGeometry{
 		id:          "1",
 		persistRoot: root,
-		geom:        nodeGeom{nodeIdentity: nodeIdentity{Kind: "PairNode"}, ScenePolar: geom.Cart2polar(vec3{X: 100}), HasPos: true},
+		geom:        nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: "PairNode"}, ScenePolar: geom.Cart2polar(vec3{X: 100}), HasPos: true},
 		topo:        neighborTopology{partnerCenters: map[string]vec3{}},
 		msg:         nodeMessaging{neighborIn: map[string]chan moveMsg{}},
 	}

@@ -9,7 +9,7 @@
 // curve-params constants are prefixed with CurveParam so gen-node-defs can
 // identify them via the "CurveParam" name prefix.
 
-package Wiring
+package nodegeom
 
 import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
@@ -23,7 +23,7 @@ import (
 const CurveParamPulseSpeedWuPerMs = 0.04
 
 // CurveParamNodeRadiusDivisor is the divisor applied to min(width,height)
-// to obtain the node sphere radius.  Matches nodeRadius in geometry-helpers.ts
+// to obtain the node sphere radius.  Matches NodeRadius in geometry-helpers.ts
 // (Math.min(width, height) / 4); port endpoints sit on this sphere surface.
 const CurveParamNodeRadiusDivisor = 4
 
