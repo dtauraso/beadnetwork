@@ -9,74 +9,19 @@
 // list from this one invocation's "wrote <path>" stderr lines — do not split
 // this into multiple binaries; add new pipelines as new files/functions in this
 // package and call them from main() below.
+//
+// main() itself holds only the entry point and the call sequence; kind
+// collection lives in kind_scan.go, kind-id assignment in kind_ids.go, the
+// shared kindEntry/port/etc. types in kind_types.go, and repo-root resolution
+// in repo_root.go.
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
-	"strconv"
-	"strings"
 )
-
-// wireProp represents one wire:"prop,..." tagged field on specEdge.
-type wireProp struct {
-	jsonName string // from json:"..." tag
-	tsType   string // from tsType:... in wire tag
-	required bool   // false if "optional", true if "required"
-}
-
-// port represents one channel-typed struct field.
-type port struct {
-	id        string // Go field name
-	direction string // "in" or "out"
-	accent    string // optional hex color from SPEC.md
-	edgeKind  string // optional edge kind from SPEC.md Ports table EdgeKind column
-	isMulti   bool   // true when the Go type is Wiring.OutMulti
-	optional  bool   // true when SPEC.md Ports table marks this port Optional=yes
-}
-
-// dataField represents a wire:"data.*" tagged struct field.
-type dataField struct {
-	wireTag   string // full tag value after wire:"data." prefix, e.g. "init" or "state"
-	goType    string // Go type string, e.g. "[]int", "int", "string"
-	fieldName string // Go struct field name (used for wire:"data.state" key derivation)
-}
-
-// viewDef holds the SPEC.md ## View section fields.
-type viewDef struct {
-	kind     string
-	kindID   string // raw "kindId" Field/Value cell from SPEC.md's View table; "" if unassigned
-	bg       string
-	border   string
-	text     string
-	minWidth string
-	// NodeTypeDef-compatible fields (used by schema/node-types consumers).
-	shape  string
-	fill   string
-	stroke string
-	width  string
-	height string
-	// desc is one line saying what this kind IS, from SPEC.md's "## Description" section —
-	// what the palette shows under a kind's name so a person picking one does not have to
-	// already know the vocabulary. Empty for a kind whose SPEC has no such section, which
-	// renders as no description rather than as a placeholder.
-	desc string
-}
-
-// kindEntry is one node kind to emit.
-type kindEntry struct {
-	kind        string // RF/view kind name (camelCase, from SPEC.md)
-	goKind      string // Go/topology kind name (PascalCase, from Wiring.Register)
-	dir         string // node package directory name under nodes/ (import path segment)
-	kindID      uint8  // stable buffer KindId — assigned once, never renumbered by sort order
-	view        viewDef
-	ports       []port
-	dataFields  []dataField
-	defaultData string // raw JSON from SPEC.md ## Default data, or ""
-}
 
 func main() {
 	// Generator is invoked from tools/topology-vscode/ via npm run gen:node-defs.
@@ -92,90 +37,7 @@ func main() {
 	}
 
 	nodesDir := filepath.Join(repoRoot, "nodes")
-	entries, err := os.ReadDir(nodesDir)
-	if err != nil {
-		fatalf("readdir nodes: %v", err)
-	}
-
-	var kinds []kindEntry
-	seenGoKind := map[string]string{} // goKind → dir name that registered it
-	for _, e := range entries {
-		if !e.IsDir() {
-			continue
-		}
-		pkgDir := filepath.Join(nodesDir, e.Name())
-		if !hasRegister(pkgDir) {
-			continue
-		}
-		ports, err := parsePortsFromAST(pkgDir)
-		if err != nil {
-			fatalf("parse ports %s: %v", e.Name(), err)
-		}
-		// Merge in ports declared on embedded structs from other local nodes/
-		// packages (e.g. gatecommon.GateNode) — AST parsing only looks at
-		// pkgDir's own files, so promoted fields from an embedded sibling
-		// package are otherwise invisible.
-		embedded, err := parseEmbeddedPorts(nodesDir, pkgDir, map[string]bool{})
-		if err != nil {
-			fatalf("parse embedded ports %s: %v", e.Name(), err)
-		}
-		ports = append(ports, embedded...)
-		// Fallback: if AST found no ports (e.g. all ports are in an embedded struct
-		// from another package), read them from the SPEC.md Ports table.
-		if len(ports) == 0 {
-			ports = parsePortsFromSpec(pkgDir)
-		}
-		dataFields, err := parseDataFieldsFromAST(pkgDir)
-		if err != nil {
-			fatalf("parse data fields %s: %v", e.Name(), err)
-		}
-		goKind, err := parseGoKindName(pkgDir)
-		if err != nil {
-			fatalf("parse go kind name %s: %v", e.Name(), err)
-		}
-		// A duplicate goKind across dirs produces a silent last-wins duplicate TS
-		// object key in node-defs.ts; reject it here naming both dirs.
-		if prev, dup := seenGoKind[goKind]; dup {
-			fatalf("duplicate kind name %q registered by both %q and %q", goKind, prev, e.Name())
-		}
-		seenGoKind[goKind] = e.Name()
-		view, accentOverrides, edgeKindOverrides, optionalPorts, specPortNames, err := parseSpecMD(pkgDir)
-		if err != nil {
-			// This dir has a wire.Register call (a real node package), so a missing or
-			// broken SPEC.md View section is a half-landed kind — fail loudly rather
-			// than silently dropping the kind from all generated files.
-			fatalf("kind %q registers a Go runtime but its SPEC.md View section is missing/broken: %v", e.Name(), err)
-		}
-		if view.kind == "" {
-			fatalf("kind %q registers a Go runtime but its SPEC.md ## View has an empty view.kind", e.Name())
-		}
-		// Finding C: every Ports-table "Name" must resolve to a real AST-derived port
-		// id. A typo here previously dropped its accent/edgeKind/optional override
-		// silently; now it's a loud generator error.
-		astPortIDs := map[string]bool{}
-		for _, p := range ports {
-			astPortIDs[p.id] = true
-		}
-		for name := range specPortNames {
-			if !astPortIDs[name] {
-				fatalf("kind %q: SPEC.md Ports table Name %q does not match any Go channel-typed port (got: %v)", e.Name(), name, sortedKeys(astPortIDs))
-			}
-		}
-		// Apply accent, edgeKind overrides, and optional flags from SPEC.md Ports table.
-		for i, p := range ports {
-			if a, ok := accentOverrides[p.id]; ok && a != "" {
-				ports[i].accent = a
-			}
-			if ek, ok := edgeKindOverrides[p.id]; ok && ek != "" {
-				ports[i].edgeKind = ek
-			}
-			if optionalPorts[p.id] {
-				ports[i].optional = true
-			}
-		}
-		defaultData := parseDefaultData(pkgDir)
-		kinds = append(kinds, kindEntry{kind: view.kind, goKind: goKind, dir: e.Name(), view: view, ports: ports, dataFields: dataFields, defaultData: defaultData})
-	}
+	kinds := collectKinds(nodesDir)
 
 	// Finding B: KindId is a stable, assigned-once fact per kind (from SPEC.md's
 	// View "kindId" field), NOT a sort-derived index — adding a kind must never
@@ -321,129 +183,6 @@ func main() {
 	}
 	numConsts := 1 /* fingerprint */ + len(inputFP.kindNames) + 4 /* enum arrays */
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d constants)\n", inputLayoutTSPath, numConsts)
-}
-
-// findRepoRoot walks up from dir until it finds a directory containing "nodes/".
-func findRepoRoot(dir string) string {
-	for {
-		if _, err := os.Stat(filepath.Join(dir, "nodes")); err == nil {
-			return dir
-		}
-		parent := filepath.Dir(dir)
-		if parent == dir {
-			return ""
-		}
-		dir = parent
-	}
-}
-
-// hasRegister reports whether any .go file in dir registers a node kind, which is now
-// exactly one marker: the self-construction registration in build_args.go. The older
-// empty-struct registration and the pre-decompose monolithic form are both retired.
-func hasRegister(dir string) bool {
-	entries, err := os.ReadDir(dir)
-	if err != nil {
-		return false
-	}
-	for _, e := range entries {
-		// PRODUCTION files only, matching parseGoKindName's scope: nodes/Wiring's own
-		// tests call wire.Register to register throwaway fixture kinds (aimed_ports_test.go
-		// etc.) — counting those would wrongly mark nodes/Wiring itself as a registered
-		// node kind now that those calls are package-qualified (wire.Register, not the old
-		// bare unqualified Register()).
-		if e.IsDir() || !strings.HasSuffix(e.Name(), ".go") || strings.HasSuffix(e.Name(), "_test.go") {
-			continue
-		}
-		data, err := os.ReadFile(filepath.Join(dir, e.Name()))
-		if err != nil {
-			continue
-		}
-		// Register moved from nodes/Wiring to the leaf nodes/wire package
-		// (task/wiring-decompose); node packages now call wire.Register.
-		if bytes.Contains(data, []byte("Wiring.RegisterBuilder(")) {
-			return true
-		}
-	}
-	return false
-}
-
-// sortedKeys returns the keys of a string-keyed bool set in sorted order, for
-// deterministic error messages.
-func sortedKeys(m map[string]bool) []string {
-	out := make([]string, 0, len(m))
-	for k := range m {
-		out = append(out, k)
-	}
-	sort.Strings(out)
-	return out
-}
-
-// assignKindIDs resolves each kind's stable buffer KindId from its SPEC.md
-// View "kindId" field, in place on kinds. A kind whose SPEC.md has no kindId
-// yet is auto-assigned max(existing ids)+1 and that assignment is written
-// back into its SPEC.md immediately, so the id is stable from here on —
-// regenerating never reassigns it again. Fails loudly on a duplicate id or
-// an id colliding with/exceeding the KindIDUnknown sentinel (0xFF).
-func assignKindIDs(kinds []kindEntry, nodesDir string) {
-	usedBy := map[uint8]string{} // id -> goKind that claimed it
-	maxID := -1
-	var unassigned []int // indices into kinds needing auto-assignment
-
-	for i := range kinds {
-		raw := strings.TrimSpace(kinds[i].view.kindID)
-		if raw == "" {
-			unassigned = append(unassigned, i)
-			continue
-		}
-		n, err := strconv.Atoi(raw)
-		if err != nil || n < 0 || n > 254 {
-			fatalf("kind %q: SPEC.md kindId %q must be an integer in [0,254]", kinds[i].goKind, raw)
-		}
-		id := uint8(n)
-		if prev, dup := usedBy[id]; dup {
-			fatalf("kind %q and kind %q both claim KindId %d in their SPEC.md — ids must be unique and assigned once", prev, kinds[i].goKind, id)
-		}
-		usedBy[id] = kinds[i].goKind
-		kinds[i].kindID = id
-		if n > maxID {
-			maxID = n
-		}
-	}
-
-	for _, i := range unassigned {
-		maxID++
-		if maxID > 254 {
-			fatalf("kind %q: no free KindId below the KindIDUnknown sentinel (0xFF)", kinds[i].goKind)
-		}
-		id := uint8(maxID)
-		usedBy[id] = kinds[i].goKind
-		kinds[i].kindID = id
-		if err := writeBackKindID(nodesDir, kinds[i].dir, id); err != nil {
-			fatalf("kind %q: auto-assigned KindId %d but failed to write it back into SPEC.md: %v", kinds[i].goKind, id, err)
-		}
-		fmt.Fprintf(os.Stderr, "gen-node-defs: auto-assigned KindId %d to new kind %q (written to nodes/%s/SPEC.md)\n", id, kinds[i].goKind, kinds[i].dir)
-	}
-}
-
-// writeBackKindID inserts a "| kindId | N |" row directly above the existing
-// "| kind | ... |" row in nodes/<dir>/SPEC.md's View table, so a newly
-// auto-assigned id is persisted and stable on the next regeneration.
-func writeBackKindID(nodesDir, dir string, id uint8) error {
-	specPath := filepath.Join(nodesDir, dir, "SPEC.md")
-	data, err := os.ReadFile(specPath)
-	if err != nil {
-		return err
-	}
-	lines := strings.Split(string(data), "\n")
-	for i, l := range lines {
-		trimmed := strings.TrimSpace(l)
-		if strings.HasPrefix(trimmed, "| kind |") || strings.HasPrefix(trimmed, "|kind|") {
-			row := fmt.Sprintf("| kindId | %d |", id)
-			lines = append(lines[:i], append([]string{row}, lines[i:]...)...)
-			return os.WriteFile(specPath, []byte(strings.Join(lines, "\n")), 0644)
-		}
-	}
-	return fmt.Errorf("no '| kind |' row found in View table to anchor kindId insertion")
 }
 
 func fatalf(format string, args ...any) {
