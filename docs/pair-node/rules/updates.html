@@ -216,7 +216,7 @@
             half turn apart in g, so their two distances sum to a constant, which is why one is the
             other upside down</p>
           <p>guarded by
-            <span data-src="nodes/PairNode/node_test.go#TestRestingLengthsFollowFromTheGaps">TestRestingLengthsFollowFromTheGaps</span>,
+            <span data-src="nodes/PairNode/arith_test.go#TestRestingLengthsFollowFromTheGaps">TestRestingLengthsFollowFromTheGaps</span>,
             which sweeps every partner-and-tilt pair and checks that no other gap lands on a resting
             length by accident</p>
         </div>
@@ -282,7 +282,7 @@
             returns</p>
           <p>f survives as a test-side measurement, because "each step lands nearer than it started"
             cannot be said without one — checked over both lattices and every tilt-and-arrival pair
-            by <span data-src="nodes/PairNode/node_test.go#TestFromRestIsTheQuarterOffset">TestFromRestIsTheQuarterOffset</span></p>
+            by <span data-src="nodes/PairNode/arith_test.go#TestFromRestIsTheQuarterOffset">TestFromRestIsTheQuarterOffset</span></p>
           <p>ℓ, ℓ₊ and ℓ₋ are one function called three times —
             <span data-src="nodes/PairNode/machine.go#settled">settled</span> uses the first,
             <span data-src="nodes/PairNode/machine.go#step">step</span> the other two</p>
