@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -50,7 +51,7 @@ func TestSelectSceneWritesTheSelectionAndEndsTheRun(t *testing.T) {
 	if got := scene.SelectedSceneIndex(anchor); got != 1 {
 		t.Fatalf("after SelectScene(1), a fresh read of the persisted selection = %d, want 1", got)
 	}
-	// And the bytes name the TAB, not its index (see writeSelectedScene's doc comment).
+	// And the bytes name the TAB, not its index (see WriteSelectedScene's doc comment).
 	raw, err := os.ReadFile(filepath.Join(anchor, "view", "scene.json"))
 	if err != nil {
 		t.Fatalf("read scene.json: %v", err)
@@ -139,8 +140,8 @@ func TestResolveScenePathPicksTheSelectedSibling(t *testing.T) {
 	if got, want := scene.ResolveScenePath(anchor), anchor; got != want {
 		t.Fatalf("with no selection, ResolveScenePath = %q, want the anchor %q", got, want)
 	}
-	if err := writeSelectedScene(anchor, 1); err != nil {
-		t.Fatalf("writeSelectedScene: %v", err)
+	if err := scenepersist.WriteSelectedScene(anchor, 1); err != nil {
+		t.Fatalf("WriteSelectedScene: %v", err)
 	}
 	if got, want := scene.ResolveScenePath(anchor), filepath.Join(parent, scene.SceneTabs[1].Dir); got != want {
 		t.Fatalf("ResolveScenePath = %q, want %q", got, want)

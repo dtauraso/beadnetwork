@@ -1,4 +1,8 @@
-package Wiring
+// scene_camera_test.go is an EXTERNAL test (package scenecamera_test): SeedInitialViewpoint
+// and LoadSceneViewpoint need no unexported Wiring field, only the exported Viewpoint()
+// accessor (viewpoint_state.go) added for exactly this — a same-package Wiring test cannot
+// import scenecamera, since scenecamera already imports Wiring (a real cycle).
+package scenecamera_test
 
 import (
 	"math"
@@ -6,8 +10,20 @@ import (
 	"path/filepath"
 	"testing"
 
+	Wiring "github.com/dtauraso/wirefold/nodes/Wiring"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenecamera"
+	"github.com/dtauraso/wirefold/nodes/wire"
 )
+
+// vec3 / vecClose: local test-only spellings, same pattern every other package's own test
+// suite carries (nodes/Wiring/geom/gesture_camera_test.go's vecClose, etc.) — this package
+// has no production vec3 alias for a test file to reuse.
+type vec3 = wire.Vec3
+
+func vecClose(a, b vec3, tol float64) bool {
+	return math.Abs(a.X-b.X) < tol && math.Abs(a.Y-b.Y) < tol && math.Abs(a.Z-b.Z) < tol
+}
 
 // scene_camera_test.go — the initial camera viewpoint is FILE DATA loaded by Go from
 // view/camera.json (SeedInitialViewpoint), not a computed seed. These tests pin the schema
@@ -55,9 +71,9 @@ func TestLoadSceneViewpointMatchesCameraPolar(t *testing.T) {
 	  "up": [0.3, 0.4]
 	}`)
 
-	pivot, r, pos, up, ok := loadSceneViewpoint(dir)
+	pivot, r, pos, up, ok := scenecamera.LoadSceneViewpoint(dir)
 	if !ok {
-		t.Fatalf("loadSceneViewpoint: ok=false for a valid cameraPolar")
+		t.Fatalf("LoadSceneViewpoint: ok=false for a valid cameraPolar")
 	}
 	if !vecClose(pivot, vec3{X: 10, Y: 20, Z: 30}, 1e-9) {
 		t.Fatalf("pivot=%v want (10,20,30)", pivot)
@@ -74,50 +90,52 @@ func TestLoadSceneViewpointMatchesCameraPolar(t *testing.T) {
 
 	// The loaded pose is installed into the FSM and is non-degenerate; a pan then moves the
 	// pivot within a valid basis (the exact thing the old zero-value viewpoint broke).
-	md := &MoveDispatch{}
-	SeedInitialViewpoint(dir, md, nil)
-	if !vecClose(md.ui.vp.Pivot, vec3{X: 10, Y: 20, Z: 30}, 1e-9) || math.Abs(md.ui.vp.R-250) > 1e-9 {
-		t.Fatalf("SeedInitialViewpoint did not install the loaded pose: %+v", md.ui.vp.Viewpoint)
+	md := &Wiring.MoveDispatch{}
+	scenecamera.SeedInitialViewpoint(dir, md, nil)
+	vp := md.Viewpoint()
+	if !vecClose(vp.Pivot, vec3{X: 10, Y: 20, Z: 30}, 1e-9) || math.Abs(vp.R-250) > 1e-9 {
+		t.Fatalf("SeedInitialViewpoint did not install the loaded pose: %+v", vp)
 	}
-	basisNonDegenerate(t, md.ui.vp.Pos, md.ui.vp.Up)
+	basisNonDegenerate(t, vp.Pos, vp.Up)
 
-	before := md.ui.vp.Pivot
+	before := vp.Pivot
 	md.PanViewpoint(vec3{X: 5, Y: -7, Z: 2}, nil)
-	if !vecClose(md.ui.vp.Pivot, before.Add(vec3{X: 5, Y: -7, Z: 2}), 1e-9) {
-		t.Fatalf("pan pivot=%v want %v", md.ui.vp.Pivot, before.Add(vec3{X: 5, Y: -7, Z: 2}))
+	if got := md.Viewpoint().Pivot; !vecClose(got, before.Add(vec3{X: 5, Y: -7, Z: 2}), 1e-9) {
+		t.Fatalf("pan pivot=%v want %v", got, before.Add(vec3{X: 5, Y: -7, Z: 2}))
 	}
 }
 
 func TestSeedInitialViewpointAbsentFileUsesDefault(t *testing.T) {
 	// A fresh topology dir with no view/camera.json → the fixed non-degenerate default.
 	dir := t.TempDir()
-	if _, _, _, _, ok := loadSceneViewpoint(dir); ok {
-		t.Fatalf("loadSceneViewpoint: ok=true for an absent camera.json")
+	if _, _, _, _, ok := scenecamera.LoadSceneViewpoint(dir); ok {
+		t.Fatalf("LoadSceneViewpoint: ok=true for an absent camera.json")
 	}
 
-	md := &MoveDispatch{}
-	SeedInitialViewpoint(dir, md, nil)
+	md := &Wiring.MoveDispatch{}
+	scenecamera.SeedInitialViewpoint(dir, md, nil)
+	vp := md.Viewpoint()
 
-	// Default: pivot=origin, r=defaultViewpointR, pos=+Z (square-on), up=+Y.
-	if !vecClose(md.ui.vp.Pivot, vec3{X: 0, Y: 0, Z: 0}, 1e-9) {
-		t.Fatalf("default pivot=%v want origin", md.ui.vp.Pivot)
+	// Default: pivot=origin, r=DefaultViewpointR, pos=+Z (square-on), up=+Y.
+	if !vecClose(vp.Pivot, vec3{X: 0, Y: 0, Z: 0}, 1e-9) {
+		t.Fatalf("default pivot=%v want origin", vp.Pivot)
 	}
-	if math.Abs(md.ui.vp.R-defaultViewpointR) > 1e-9 {
-		t.Fatalf("default r=%v want %v", md.ui.vp.R, defaultViewpointR)
+	if math.Abs(vp.R-scenecamera.DefaultViewpointR) > 1e-9 {
+		t.Fatalf("default r=%v want %v", vp.R, scenecamera.DefaultViewpointR)
 	}
 	// pos +Z, up +Y → non-degenerate basis, and pan works.
-	basisNonDegenerate(t, md.ui.vp.Pos, md.ui.vp.Up)
-	posW := geom.AnglesToWorldOffset(1, md.ui.vp.Pos.Theta, md.ui.vp.Pos.Phi)
+	basisNonDegenerate(t, vp.Pos, vp.Up)
+	posW := geom.AnglesToWorldOffset(1, vp.Pos.Theta, vp.Pos.Phi)
 	if !vecClose(posW, vec3{X: 0, Y: 0, Z: 1}, 1e-9) {
 		t.Fatalf("default pos world=%v want +Z", posW)
 	}
-	upW := geom.AnglesToWorldOffset(1, md.ui.vp.Up.Theta, md.ui.vp.Up.Phi)
+	upW := geom.AnglesToWorldOffset(1, vp.Up.Theta, vp.Up.Phi)
 	if !vecClose(upW, vec3{X: 0, Y: 1, Z: 0}, 1e-9) {
 		t.Fatalf("default up world=%v want +Y", upW)
 	}
 	md.PanViewpoint(vec3{X: 1, Y: 2, Z: 3}, nil)
-	if !vecClose(md.ui.vp.Pivot, vec3{X: 1, Y: 2, Z: 3}, 1e-9) {
-		t.Fatalf("default pan pivot=%v want (1,2,3)", md.ui.vp.Pivot)
+	if got := md.Viewpoint().Pivot; !vecClose(got, vec3{X: 1, Y: 2, Z: 3}, 1e-9) {
+		t.Fatalf("default pan pivot=%v want (1,2,3)", got)
 	}
 }
 
@@ -125,7 +143,7 @@ func TestSeedInitialViewpointAbsentFileUsesDefault(t *testing.T) {
 // which drops a partial object rather than reading a degenerate pose.
 func TestLoadSceneViewpointRejectsPartial(t *testing.T) {
 	dir := writeCameraFile(t, `{ "pivot": [1,2,3], "r": 100 }`)
-	if _, _, _, _, ok := loadSceneViewpoint(dir); ok {
-		t.Fatalf("loadSceneViewpoint: ok=true for a partial cameraPolar (missing pos/up)")
+	if _, _, _, _, ok := scenecamera.LoadSceneViewpoint(dir); ok {
+		t.Fatalf("LoadSceneViewpoint: ok=true for a partial cameraPolar (missing pos/up)")
 	}
 }

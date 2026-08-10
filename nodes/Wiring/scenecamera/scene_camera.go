@@ -1,6 +1,4 @@
-package Wiring
-
-// scene_camera.go — the initial camera VIEWPOINT is FILE DATA, not a computed seed.
+// Package scenecamera — the initial camera VIEWPOINT is FILE DATA, not a computed seed.
 //
 // The saved camera lives in `<topologyPath>/view/camera.json` (one-file-per-writer,
 // the one-file-per-writer split — the sole successor to the old
@@ -18,16 +16,23 @@ package Wiring
 // clearly-labelled DEFAULT viewpoint (defaultViewpoint) — a valid non-degenerate basis,
 // NOT a geometry fit. That keeps pan working before the first save without seeding from
 // the scene's node positions.
+package scenecamera
 
 import (
 	"math"
 
 	T "github.com/dtauraso/wirefold/Trace"
+	Wiring "github.com/dtauraso/wirefold/nodes/Wiring"
 	"github.com/dtauraso/wirefold/nodes/Wiring/camerapersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
+	"github.com/dtauraso/wirefold/nodes/wire"
 )
+
+// vec3 is the local spelling for the shared vector type — same alias every other
+// Wiring subpackage carries its own copy of (vec_alias.go, nodegeom/vec3.go, ...).
+type vec3 = wire.Vec3
 
 // SeedInitialViewpoint installs the initial camera viewpoint from FILE DATA. It loads the
 // saved polar camera from `<topologyPath>/view/camera.json` (or the fixed default when the
@@ -35,27 +40,27 @@ import (
 // SetViewpoint + EmitViewpoint — the exact path a gesture uses — so the pose streams out to
 // the buffer camera columns. Called on startup only under the new system; the old render
 // path restores the camera via the webview's PolarCameraRestorer instead.
-func SeedInitialViewpoint(topologyPath string, md *MoveDispatch, tr *T.Trace) {
+func SeedInitialViewpoint(topologyPath string, md *Wiring.MoveDispatch, tr *T.Trace) {
 	if md == nil {
 		return
 	}
-	pivot, r, pos, up, ok := loadSceneViewpoint(topologyPath)
+	pivot, r, pos, up, ok := LoadSceneViewpoint(topologyPath)
 	if !ok {
-		pivot, r, pos, up = defaultViewpoint()
+		pivot, r, pos, up = DefaultViewpoint()
 	}
 	md.SetViewpoint(pivot, r, pos, up)
 	md.EmitViewpoint(tr)
 }
 
-// loadSceneViewpoint reads the saved polar camera from camera.json and converts it to the
+// LoadSceneViewpoint reads the saved polar camera from camera.json and converts it to the
 // FSM viewpoint tuple (pivot, r, pos, up). ok is false when camera.json yields no complete
-// pose — callers then use defaultViewpoint. The mapping is 1:1 with the TS schema
+// pose — callers then use DefaultViewpoint. The mapping is 1:1 with the TS schema
 // (camerapersist.PolarCamera mirrors camera-store.ts PolarCamera / parse.ts
 // parsePolarCamera):
 //
 //	pivot = (pivot[0], pivot[1], pivot[2])   r = r
 //	pos   = {Theta: pos[0], Phi: pos[1]}     up = {Theta: up[0], Phi: up[1]}
-func loadSceneViewpoint(topologyPath string) (pivot vec3, r float64, pos, up geom.Dir, ok bool) {
+func LoadSceneViewpoint(topologyPath string) (pivot vec3, r float64, pos, up geom.Dir, ok bool) {
 	var cp camerapersist.PolarCamera
 	jsonpersist.ReadJSONBestEffort(scenepaths.CameraFilePath(topologyPath), &cp)
 	// Require every field (matches parsePolarCamera, which drops a partial object).
@@ -69,11 +74,11 @@ func loadSceneViewpoint(topologyPath string) (pivot vec3, r float64, pos, up geo
 	return pivot, r, pos, up, true
 }
 
-// defaultViewpointR is the fallback orbit distance when no camera is saved yet. It is a
+// DefaultViewpointR is the fallback orbit distance when no camera is saved yet. It is a
 // plain sane default, NOT a fit computed from node positions.
-const defaultViewpointR = 500.0
+const DefaultViewpointR = 500.0
 
-// defaultViewpoint is the fixed, non-degenerate fallback pose used when the scene sidecar
+// DefaultViewpoint is the fixed, non-degenerate fallback pose used when the scene sidecar
 // has no saved camera (fresh topology). It is deliberately NOT a geometry fit — it is a
 // square-on view of the origin with a valid screen basis so PAN works before the first
 // save:
@@ -84,9 +89,9 @@ const defaultViewpointR = 500.0
 //
 // pos (+Z) and up (+Y) are orthogonal, so basisFromViewpoint (up × pole) is non-degenerate
 // — the exact bug the old degenerate zero-value viewpoint (pos = up = +Y) caused for pan.
-func defaultViewpoint() (pivot vec3, r float64, pos, up geom.Dir) {
+func DefaultViewpoint() (pivot vec3, r float64, pos, up geom.Dir) {
 	return vec3{X: 0, Y: 0, Z: 0},
-		defaultViewpointR,
+		DefaultViewpointR,
 		geom.Dir{Theta: math.Pi / 2, Phi: math.Pi / 2}, // +Z, square-on (matches the home pose's +z look)
 		geom.Dir{Theta: 0, Phi: 0} // +Y up
 }

@@ -10,6 +10,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 )
 
 // EnableSceneSwitch arms tab switching. quit ends the run (main's context cancel), which
@@ -34,7 +35,7 @@ func (md *MoveDispatch) SelectScene(idx int) {
 	if idx == scene.SelectedSceneIndex(md.Scenes.AnchorPath) {
 		return
 	}
-	if err := writeSelectedScene(md.Scenes.AnchorPath, idx); err != nil {
+	if err := scenepersist.WriteSelectedScene(md.Scenes.AnchorPath, idx); err != nil {
 		// Do NOT quit on a failed write: the respawn would reload the OLD scene and the
 		// click would read as "the editor restarted for no reason". Report and stay put.
 		// stderr, not a breadcrumb: the extension host pipes this straight to the sim's

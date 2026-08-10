@@ -82,6 +82,14 @@ func (md *MoveDispatch) SetViewpoint(pivot vec3, r float64, pos, up geom.Dir) {
 	md.ui.vp.SetViewpoint(pivot, r, pos, up)
 }
 
+// Viewpoint returns the CURRENT camera viewpoint (pivot/r/pos/up/lockedAxis). Read-only
+// accessor for callers outside this package that cannot reach the unexported md.ui.vp field
+// directly — e.g. an external test of a package that itself takes *MoveDispatch, such as
+// nodes/Wiring/scenecamera's own tests asserting what SeedInitialViewpoint installed.
+func (md *MoveDispatch) Viewpoint() geom.Viewpoint {
+	return md.ui.vp.Viewpoint
+}
+
 // cameraViewEvent is the single Camera event every camera-changing delegator below hands
 // to emitViewFrame. Camera decodes entirely from the VIEW frame's own Camera block (see
 // buffer-log.ts's decodeEventLine "camera" case) — no row identity to resolve.
