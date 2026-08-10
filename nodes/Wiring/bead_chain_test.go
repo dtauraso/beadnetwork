@@ -17,7 +17,7 @@ import (
 // production call site chainBeads uses when m.beadTickFn is set (see beadTickFn's own
 // doc comment on why chainBeads itself stays untouched/synchronous when it is nil).
 
-// beadRunGoroutineCount counts live goroutines currently inside wire.(*Bead).run, via the
+// beadRunGoroutineCount counts live goroutines currently inside beadchain.(*Bead).run, via the
 // same goroutine-profile technique bead_actor_test.go's TestIdleBeadIsBlockedNotRunnable
 // already uses — the sanctioned way to observe another goroutine's existence without
 // touching its owned state.
@@ -30,7 +30,7 @@ func beadRunGoroutineCount(t *testing.T) int {
 	dump := buf.String()
 	count := 0
 	for _, sec := range strings.Split(dump, "\n\n") {
-		if strings.Contains(sec, "wire.(*Bead).run") {
+		if strings.Contains(sec, "beadchain.(*Bead).run") {
 			count++
 		}
 	}

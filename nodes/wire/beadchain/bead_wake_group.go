@@ -11,7 +11,7 @@
 // holds the CURRENT generation of each of the three BroadcastChains (geometry, wake,
 // settle) and is the only thing that ever calls Advance on them — a single-writer
 // discipline, same as every other owned-state type in this package.
-package wire
+package beadchain
 
 // BeadWakeGroup is one edge's broadcast surface, owned by the edge's SOURCE node's own
 // goroutine (an edge's target node reaches the same beads through its OWN BeadWakeGroup —

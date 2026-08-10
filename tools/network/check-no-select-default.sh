@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# PLACEMENT: nodes/wire/bead_actor.go,nodes/wire/*.go | a bead goroutine's select must have NO default: case — it parks, it never spins
+# PLACEMENT: nodes/wire/beadchain/bead_actor.go,nodes/wire/*.go | a bead goroutine's select must have NO default: case — it parks, it never spins
 set -euo pipefail
 
 # check-no-select-default.sh — guard that the bead goroutine's own select carries no
@@ -11,7 +11,7 @@ set -euo pipefail
 # goroutine on every case's wait queue at zero CPU until something is ready. This is
 # invisible to any behavioural test (both versions pass identically under a real drag) —
 # only a source guard can catch a `default:` creeping back in. Scoped to the exact select in
-# nodes/wire/bead_actor.go's Bead.run, fenced by BEAD-SELECT-START/END, NOT a repo-wide "no
+# nodes/wire/beadchain/bead_actor.go's Bead.run, fenced by BEAD-SELECT-START/END, NOT a repo-wide "no
 # default in any select" rule — sendStepsNonBlocking and friends elsewhere in this package
 # correctly rely on `default:` for a non-blocking latest-wins send, and banning it there
 # would break that idiom.
@@ -20,7 +20,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-FILE="$REPO_ROOT/nodes/wire/bead_actor.go"
+FILE="$REPO_ROOT/nodes/wire/beadchain/bead_actor.go"
 
 if [ ! -f "$FILE" ]; then
   echo "✗ no-select-default: MISCONFIGURED — file not found: $FILE" >&2
@@ -41,4 +41,4 @@ if echo "$body" | grep -qE '^\s*default:'; then
   exit 1
 fi
 
-echo "✓ no default: in Bead.run's select (nodes/wire/bead_actor.go) — the loop parks, it does not spin."
+echo "✓ no default: in Bead.run's select (nodes/wire/beadchain/bead_actor.go) — the loop parks, it does not spin."

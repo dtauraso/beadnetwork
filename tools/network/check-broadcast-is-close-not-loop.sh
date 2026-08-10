@@ -8,16 +8,16 @@ set -euo pipefail
 # behaviourally identical to a single close (every bead still gets woken) but SCALES WITH N
 # — exactly the cost the close-based BroadcastChain exists to avoid. Invisible to a
 # behavioural test with a small bead count, so this is a source guard: BeadWakeGroup's
-# StartDrag/EndDrag/BroadcastGeometry methods (nodes/wire/bead_wake_group.go) must each call
+# StartDrag/EndDrag/BroadcastGeometry methods (nodes/wire/beadchain/bead_wake_group.go) must each call
 # Advance/AdvanceWithValue and must not contain a `for`/`range` loop.
 #
-# PLACEMENT: nodes/wire/bead_wake_group.go | StartDrag/EndDrag/BroadcastGeometry must call Advance, never loop over beads
+# PLACEMENT: nodes/wire/beadchain/bead_wake_group.go | StartDrag/EndDrag/BroadcastGeometry must call Advance, never loop over beads
 #
 # Exit 0 clean, exit 1 with a report.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-FILE="$REPO_ROOT/nodes/wire/bead_wake_group.go"
+FILE="$REPO_ROOT/nodes/wire/beadchain/bead_wake_group.go"
 
 if [ ! -f "$FILE" ]; then
   echo "✗ broadcast-is-close-not-loop: MISCONFIGURED — file not found: $FILE" >&2
@@ -52,4 +52,4 @@ if [ "$fail" -ne 0 ]; then
   exit 1
 fi
 
-echo "✓ BeadWakeGroup wake/settle/geometry broadcasts are single closes, not send-loops (nodes/wire/bead_wake_group.go)."
+echo "✓ BeadWakeGroup wake/settle/geometry broadcasts are single closes, not send-loops (nodes/wire/beadchain/bead_wake_group.go)."

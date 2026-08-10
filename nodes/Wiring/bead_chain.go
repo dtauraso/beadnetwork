@@ -15,6 +15,7 @@ package Wiring
 
 import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	beadchain "github.com/dtauraso/wirefold/nodes/wire/beadchain"
 )
 
 // edgeBeadChain is ONE outgoing edge's live chain of bead-actor goroutines, owned by this
@@ -23,8 +24,8 @@ import (
 // per chain-bead index, always kept the same length as each other and as the edge's
 // current bead count (chain_beads.go's edgeStepCount) by reconcileBeadChain.
 type edgeBeadChain struct {
-	group *wire.BeadWakeGroup
-	beads []*wire.Bead
+	group *beadchain.BeadWakeGroup
+	beads []*beadchain.Bead
 	// stops holds THIS chain's own per-bead teardown channel (one per bead, individually
 	// closable) — reconcileBeadChain closes stops[i] to tear down bead i's goroutine when
 	// the chain shrinks, which is what keeps bead-goroutine lifetime following chain
@@ -33,13 +34,13 @@ type edgeBeadChain struct {
 	// snaps is bead i's own observe channel (see Bead.WithObserve) — this node's own
 	// goroutine is the ONLY reader (Bead.observe's doc comment: a plain getter would
 	// reintroduce the cross-goroutine shared-read the type exists to rule out).
-	snaps []<-chan wire.BeadSnapshot
+	snaps []<-chan beadchain.BeadSnapshot
 	// last is the most recently drained snapshot per bead; valid[i] is false until bead
 	// i's goroutine has pushed at least once (a freshly started bead, or one that has not
 	// yet serviced its first geometry broadcast) — chainBeads falls back to its own
 	// inline computation for any index where valid[i] is false, so a frame is never wrong
 	// while an actor is still catching up, only briefly one hop behind.
-	last  []wire.BeadSnapshot
+	last  []beadchain.BeadSnapshot
 	valid []bool
 	// haveAim/lastAim: the aim direction this chain's beads were last broadcast, so
 	// reconcileBeadChain only issues a fresh BroadcastGeometry when the aim (or the bead
@@ -71,7 +72,7 @@ func (m *nodeGeometry) reconcileBeadChain(to string, count int, offsetAt func(i 
 	}
 	c := m.beads.beadChains[to]
 	if c == nil {
-		c = &edgeBeadChain{group: wire.NewBeadWakeGroup()}
+		c = &edgeBeadChain{group: beadchain.NewBeadWakeGroup()}
 		m.beads.beadChains[to] = c
 	}
 	// Re-space: the per-index offsets changed (the tween overlay flipping the lattice), so
@@ -95,13 +96,13 @@ func (m *nodeGeometry) reconcileBeadChain(to string, count int, offsetAt func(i 
 		i := len(c.beads)
 		geom, wake, settle := c.group.Current()
 		stop := make(chan struct{})
-		b := wire.NewBead(offsetAt(i), geom, wake, settle, m.beads.beadTickFn(), stop)
+		b := beadchain.NewBead(offsetAt(i), geom, wake, settle, m.beads.beadTickFn(), stop)
 		snap := b.WithObserve()
 		b.Start()
 		c.beads = append(c.beads, b)
 		c.stops = append(c.stops, stop)
 		c.snaps = append(c.snaps, snap)
-		c.last = append(c.last, wire.BeadSnapshot{})
+		c.last = append(c.last, beadchain.BeadSnapshot{})
 		c.valid = append(c.valid, false)
 	}
 	// Shrink: remove beads from the chain END, closing each removed bead's OWN stop
@@ -124,7 +125,7 @@ func (m *nodeGeometry) reconcileBeadChain(to string, count int, offsetAt func(i 
 		// already carries the distance) so a bead's resolved position IS the node-local
 		// offset chainBeads has always returned — no separate absolute/local
 		// conversion is needed here or downstream.
-		c.group.BroadcastGeometry(wire.BeadGeometryIn{Aim: aim})
+		c.group.BroadcastGeometry(beadchain.BeadGeometryIn{Aim: aim})
 		c.lastAim = aim
 		c.haveAim = true
 	}

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # check-bead-actor-has-call-site.sh — fail if the chain-bead actor primitive
-# (nodes/wire/bead_actor.go, nodes/wire/bead_wake_group.go) has NO production call site.
+# (nodes/wire/beadchain/bead_actor.go, nodes/wire/beadchain/bead_wake_group.go) has NO production call site.
 #
-# PLACEMENT: nodes/wire/bead_actor.go,nodes/wire/bead_wake_group.go | must have a production call site outside nodes/wire and _test.go
+# PLACEMENT: nodes/wire/beadchain/bead_actor.go,nodes/wire/beadchain/bead_wake_group.go | must have a production call site outside nodes/wire and _test.go
 # Run from repo root: bash tools/network/check-bead-actor-has-call-site.sh
 #
 # WHY THIS EXISTS: the primitive was built and tested in isolation (bead_actor_test.go)
@@ -27,8 +27,8 @@ cd "$REPO_ROOT"
 # since StartDrag/BroadcastGeometry/EndDrag are the three verbs the lifecycle actually
 # needs (PLAN.md's lifecycle section, now MODEL.md).
 readonly SYMBOLS=(
-  "wire.NewBead("
-  "wire.NewBeadWakeGroup("
+  "beadchain.NewBead("
+  "beadchain.NewBeadWakeGroup("
   ".StartDrag("
   ".BroadcastGeometry("
   ".EndDrag("
@@ -60,7 +60,7 @@ done
 
 if [[ "$fail" -eq 1 ]]; then
   echo "BEAD-ACTOR PRIMITIVE HAS NO PRODUCTION CALL SITE: none of ${SYMBOLS[*]} appear outside nodes/wire or a _test.go file."
-  echo "  The chain-bead actor (nodes/wire/bead_actor.go, bead_wake_group.go) has drifted back to a validated-in-isolation primitive with nothing driving it in the live editor."
+  echo "  The chain-bead actor (nodes/wire/beadchain/bead_actor.go, bead_wake_group.go) has drifted back to a validated-in-isolation primitive with nothing driving it in the live editor."
   echo "  Fix: wire it back into nodes/Wiring's node drag path (see bead_chain.go's history), or if it is being deliberately retired, delete the primitive and its tests together instead of leaving them dead."
 fi
 

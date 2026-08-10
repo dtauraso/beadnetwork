@@ -1,4 +1,4 @@
-package wire
+package beadchain
 
 import (
 	"bytes"
@@ -7,6 +7,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
 // newTestBead builds one bead against a fresh BeadWakeGroup and its own dedicated tick
@@ -61,10 +63,10 @@ func TestGeometryCompletesWithHumanClockStopped(t *testing.T) {
 	defer close(stop)
 	b.Start()
 
-	g.BroadcastGeometry(BeadGeometryIn{Center: Vec3{X: 10}, Aim: Vec3{X: 1}})
+	g.BroadcastGeometry(BeadGeometryIn{Center: wire.Vec3{X: 10}, Aim: wire.Vec3{X: 1}})
 
 	snap, ok := waitForSnapshot(t, obs, time.Second, func(s BeadSnapshot) bool {
-		return s.Position == (Vec3{X: 12}) // Center + Aim*offsetR
+		return s.Position == (wire.Vec3{X: 12}) // Center + Aim*offsetR
 	})
 	if !ok {
 		t.Fatalf("position update did not complete with the human clock stopped; last=%+v", snap)
@@ -83,7 +85,7 @@ func TestAnimationStepDoesNotAdvancePosition(t *testing.T) {
 	if !ok {
 		t.Fatalf("tick never reached the bead's animation state")
 	}
-	if snap.Position != (Vec3{}) {
+	if snap.Position != (wire.Vec3{}) {
 		t.Fatalf("an animation tick moved position: %+v", snap.Position)
 	}
 }
@@ -105,8 +107,8 @@ func TestModeSwitchingRestsThenDragsThenRests(t *testing.T) {
 	}
 
 	// A geometry update arriving mid-drag is not lost.
-	g.BroadcastGeometry(BeadGeometryIn{Center: Vec3{Y: 5}, Aim: Vec3{Y: 1}})
-	if _, ok := waitForSnapshot(t, obs, time.Second, func(s BeadSnapshot) bool { return s.Position == (Vec3{Y: 6}) }); !ok {
+	g.BroadcastGeometry(BeadGeometryIn{Center: wire.Vec3{Y: 5}, Aim: wire.Vec3{Y: 1}})
+	if _, ok := waitForSnapshot(t, obs, time.Second, func(s BeadSnapshot) bool { return s.Position == (wire.Vec3{Y: 6}) }); !ok {
 		t.Fatalf("geometry update lost while dragging")
 	}
 
@@ -146,10 +148,10 @@ func TestOneHopNotN(t *testing.T) {
 			}
 
 			// ONE broadcast call for the whole group, regardless of n.
-			g.BroadcastGeometry(BeadGeometryIn{Center: Vec3{X: 100}, Aim: Vec3{X: 1}})
+			g.BroadcastGeometry(BeadGeometryIn{Center: wire.Vec3{X: 100}, Aim: wire.Vec3{X: 1}})
 
 			for i, obs := range obss {
-				want := Vec3{X: 100 + float64(i)}
+				want := wire.Vec3{X: 100 + float64(i)}
 				if _, ok := waitForSnapshot(t, obs, 2*time.Second, func(s BeadSnapshot) bool { return s.Position == want }); !ok {
 					t.Fatalf("bead %d never reached the broadcast position", i)
 				}
@@ -184,12 +186,12 @@ func TestNoDiffusion(t *testing.T) {
 	b1.Start()
 	b2.Start()
 
-	g.BroadcastGeometry(BeadGeometryIn{Center: Vec3{X: 0}, Aim: Vec3{X: 1}})
+	g.BroadcastGeometry(BeadGeometryIn{Center: wire.Vec3{X: 0}, Aim: wire.Vec3{X: 1}})
 
-	if _, ok := waitForSnapshot(t, obs1, time.Second, func(s BeadSnapshot) bool { return s.Position == (Vec3{X: 1}) }); !ok {
+	if _, ok := waitForSnapshot(t, obs1, time.Second, func(s BeadSnapshot) bool { return s.Position == (wire.Vec3{X: 1}) }); !ok {
 		t.Fatalf("b1 did not reach its offset-derived position")
 	}
-	if _, ok := waitForSnapshot(t, obs2, time.Second, func(s BeadSnapshot) bool { return s.Position == (Vec3{X: 9}) }); !ok {
+	if _, ok := waitForSnapshot(t, obs2, time.Second, func(s BeadSnapshot) bool { return s.Position == (wire.Vec3{X: 9}) }); !ok {
 		t.Fatalf("b2 did not reach its offset-derived position")
 	}
 }
@@ -209,13 +211,13 @@ func TestDisjointWriters(t *testing.T) {
 	if !ok {
 		t.Fatalf("tick did not update animation")
 	}
-	if snap.Position != (Vec3{}) {
+	if snap.Position != (wire.Vec3{}) {
 		t.Fatalf("tick unexpectedly moved position: %+v", snap.Position)
 	}
 	litBefore := snap.Lit
 
-	g.BroadcastGeometry(BeadGeometryIn{Center: Vec3{Z: 4}, Aim: Vec3{Z: 1}})
-	snap, ok = waitForSnapshot(t, obs, time.Second, func(s BeadSnapshot) bool { return s.Position == (Vec3{Z: 5}) })
+	g.BroadcastGeometry(BeadGeometryIn{Center: wire.Vec3{Z: 4}, Aim: wire.Vec3{Z: 1}})
+	snap, ok = waitForSnapshot(t, obs, time.Second, func(s BeadSnapshot) bool { return s.Position == (wire.Vec3{Z: 5}) })
 	if !ok {
 		t.Fatalf("geometry did not update position")
 	}
@@ -235,8 +237,8 @@ func TestGeometryServicedWithoutWaitingForATick(t *testing.T) {
 	b.Start()
 
 	start := time.Now()
-	g.BroadcastGeometry(BeadGeometryIn{Center: Vec3{X: 1}, Aim: Vec3{X: 1}})
-	if _, ok := waitForSnapshot(t, obs, 200*time.Millisecond, func(s BeadSnapshot) bool { return s.Position == (Vec3{X: 2}) }); !ok {
+	g.BroadcastGeometry(BeadGeometryIn{Center: wire.Vec3{X: 1}, Aim: wire.Vec3{X: 1}})
+	if _, ok := waitForSnapshot(t, obs, 200*time.Millisecond, func(s BeadSnapshot) bool { return s.Position == (wire.Vec3{X: 2}) }); !ok {
 		t.Fatalf("geometry update took too long (possible hidden wait): %v", time.Since(start))
 	}
 }
@@ -276,7 +278,7 @@ func TestIdleBeadIsBlockedNotRunnable(t *testing.T) {
 	sections := strings.Split(dump, "\n\n")
 	found := 0
 	for _, sec := range sections {
-		if !strings.Contains(sec, "wire.(*Bead).run") {
+		if !strings.Contains(sec, "beadchain.(*Bead).run") {
 			continue
 		}
 		found++
@@ -377,8 +379,8 @@ func TestFlagSetOncePerDragNotPerEvent(t *testing.T) {
 	}
 
 	for i := 0; i < 60; i++ { // one gesture's worth of pointer events
-		g.BroadcastGeometry(BeadGeometryIn{Center: Vec3{X: float64(i)}, Aim: Vec3{X: 1}})
-		want := Vec3{X: float64(i) + 1}
+		g.BroadcastGeometry(BeadGeometryIn{Center: wire.Vec3{X: float64(i)}, Aim: wire.Vec3{X: 1}})
+		want := wire.Vec3{X: float64(i) + 1}
 		snap, ok := waitForSnapshot(t, obs, time.Second, func(s BeadSnapshot) bool { return s.Position == want })
 		if !ok {
 			t.Fatalf("geometry event %d never resolved", i)
@@ -442,9 +444,9 @@ func TestFrameBudgetN1000(t *testing.T) {
 	}
 
 	start := time.Now()
-	g.BroadcastGeometry(BeadGeometryIn{Center: Vec3{X: 1}, Aim: Vec3{X: 1}})
+	g.BroadcastGeometry(BeadGeometryIn{Center: wire.Vec3{X: 1}, Aim: wire.Vec3{X: 1}})
 	for i, obs := range obss {
-		want := Vec3{X: 1 + float64(i)}
+		want := wire.Vec3{X: 1 + float64(i)}
 		if _, ok := waitForSnapshot(t, obs, 200*time.Millisecond, func(s BeadSnapshot) bool { return s.Position == want }); !ok {
 			t.Fatalf("bead %d did not resolve position", i)
 		}

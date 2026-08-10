@@ -47,7 +47,9 @@
 // the run-loop fence markers below — NOT a repo-wide "no default in any select" rule, since
 // sendStepsNonBlocking and friends elsewhere in this package correctly rely on `default:`
 // for a non-blocking latest-wins send).
-package wire
+package beadchain
+
+import wire "github.com/dtauraso/wirefold/nodes/wire"
 
 // BeadGeometryIn is the payload a node broadcasts to every bead on its edges each time its
 // own transform changes: the one thing a bead's position is computed FROM. It carries
@@ -55,8 +57,8 @@ package wire
 // center and its live unit aim toward the edge's far end — with no neighbour-of-neighbour
 // read and no relaxation pass.
 type BeadGeometryIn struct {
-	Center Vec3
-	Aim    Vec3 // unit direction from Center toward the edge's far node
+	Center wire.Vec3
+	Aim    wire.Vec3 // unit direction from Center toward the edge's far node
 }
 
 // beadGeometryState is the bead's POSITION — written from exactly one place: Bead.run's
@@ -64,7 +66,7 @@ type BeadGeometryIn struct {
 // not the tick case), which is the "disjoint writers" test PLAN.md asks for made a
 // separate Go type instead of a shared struct field.
 type beadGeometryState struct {
-	position Vec3
+	position wire.Vec3
 }
 
 // applyTransform computes this bead's position directly from the node's broadcast
@@ -167,7 +169,7 @@ type Bead struct {
 // BeadSnapshot is a bead's state as of the last change, PUSHED by the bead's own goroutine
 // — the only way another goroutine may observe a Bead's local state (see observe above).
 type BeadSnapshot struct {
-	Position Vec3
+	Position wire.Vec3
 	Dragging bool
 	Lit      bool
 	LitVal   int32
