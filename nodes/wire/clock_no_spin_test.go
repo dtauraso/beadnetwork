@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-// clock_no_spin_test.go — source guard: RealClock.SleepCycle's blocking select must carry
+// clock_no_spin_test.go — source guard: RealClock.SleepCycle's (sleep_cycle.go) blocking select must carry
 // NO default case. select WITH default is non-blocking, so a caller looping around it
 // spins and burns a core; select WITHOUT default parks the goroutine on both channels'
 // wait queues at zero CPU. This distinction is invisible to any behavioural test (a
@@ -16,9 +16,9 @@ import (
 // PLAN.md calls for.
 func TestSleepCycleSelectHasNoDefaultCase(t *testing.T) {
 	fset := token.NewFileSet()
-	file, err := parser.ParseFile(fset, "clock.go", nil, 0)
+	file, err := parser.ParseFile(fset, "sleep_cycle.go", nil, 0)
 	if err != nil {
-		t.Fatalf("parse clock.go: %v", err)
+		t.Fatalf("parse sleep_cycle.go: %v", err)
 	}
 
 	var fn *ast.FuncDecl
@@ -31,7 +31,7 @@ func TestSleepCycleSelectHasNoDefaultCase(t *testing.T) {
 		break
 	}
 	if fn == nil {
-		t.Fatal("SleepCycle function not found in clock.go")
+		t.Fatal("SleepCycle function not found in sleep_cycle.go")
 	}
 
 	found := false
