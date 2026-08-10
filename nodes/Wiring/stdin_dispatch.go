@@ -1,6 +1,6 @@
 // stdin_dispatch.go — ROUTING for a decoded editor→Go message.
 //
-// One job: given a stdinMsg, decide what runs. The read loop (stdin_reader.go) hands this
+// One job: given a inputcodec.StdinMsg, decide what runs. The read loop (stdin_reader.go) hands this
 // file a message and never looks at it again; the handlers that say what an attribute MEANS
 // live in stdin_apply.go. What is here is the tables in between — op → update, entity kind →
 // per-kind handler, attribute → its effect — plus the two top-level types that need no
@@ -18,12 +18,13 @@ import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 )
 
 // handleRawInputMsg hands a raw pointer/wheel event + stateless raycast hit to the
 // gesture state machine, which owns gesture bookkeeping and produces camera/topology
 // changes. Fire-and-forget — nothing on this seam triggers delivery.
-func handleRawInputMsg(msg stdinMsg, slotReg SlotRegistry, md *MoveDispatch, tr *T.Trace) {
+func handleRawInputMsg(msg inputcodec.StdinMsg, slotReg inputcodec.SlotRegistry, md *MoveDispatch, tr *T.Trace) {
 	if md != nil && msg.Event != nil {
 		md.HandleRawInput(*msg.Event, slotReg, tr)
 	}
@@ -61,18 +62,18 @@ func handleSaveMsg(md *MoveDispatch) {
 //
 // The create/delete edge ops were removed end-to-end: no TS sender ever emitted them,
 // and the create path's only live trigger — a port-drop gesture — tore down a live
-// wire's in-flight beads via PacedWire.Restore. The destination-keyed SlotRegistry
+// wire's in-flight beads via PacedWire.Restore. The destination-keyed inputcodec.SlotRegistry
 // stays live for delivery/movers (md.Bind), but the reader no longer indexes it here.
 //
 // Unknown ops/kinds/attrs are ignored (forward-compat).
 // EDIT_OPS_START
-var editOps = map[string]func(stdinMsg, *MoveDispatch, *T.Trace, []chan float64){
+var editOps = map[string]func(inputcodec.StdinMsg, *MoveDispatch, *T.Trace, []chan float64){
 	"update": applyUpdate,
 }
 
 // EDIT_OPS_END
 
-func applyEdit(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
+func applyEdit(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
 	if h, ok := editOps[msg.Op]; ok {
 		h(msg, md, tr, speedSinks)
 	}
@@ -87,7 +88,7 @@ func applyEdit(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan fl
 // kind-specific behavior that runs regardless of which attr matched (e.g. overlays'
 // unconditional persist-on-change) without distorting the attr dispatch itself.
 // EDIT_UPDATE_KINDS_START
-var updateKindHandlers = map[string]func(stdinMsg, *MoveDispatch, *T.Trace, []chan float64){
+var updateKindHandlers = map[string]func(inputcodec.StdinMsg, *MoveDispatch, *T.Trace, []chan float64){
 	"clock":         applyUpdateClock,
 	"overlays":      applyUpdateOverlays,
 	"distanceGroup": applyUpdateDistanceGroup,
@@ -97,15 +98,15 @@ var updateKindHandlers = map[string]func(stdinMsg, *MoveDispatch, *T.Trace, []ch
 
 // EDIT_UPDATE_KINDS_END
 
-func applyUpdate(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
+func applyUpdate(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
 	if h, ok := updateKindHandlers[msg.Kind]; ok {
 		h(msg, md, tr, speedSinks)
 	}
 }
 
 // clockAttrHandlers is the attr-level table for kind=="clock".
-var clockAttrHandlers = map[string]func(msg stdinMsg, md *MoveDispatch, speedSinks []chan float64){
-	"speed": func(msg stdinMsg, md *MoveDispatch, speedSinks []chan float64) {
+var clockAttrHandlers = map[string]func(msg inputcodec.StdinMsg, md *MoveDispatch, speedSinks []chan float64){
+	"speed": func(msg inputcodec.StdinMsg, md *MoveDispatch, speedSinks []chan float64) {
 		// msg.Num carries the playback multiplier in QUARTER-UNITS (an integer 0..8:
 		// the SpeedSlider's six-value table 0, 0.25, 0.5, 0.75, 1, 2 sent as 0, 1, 2, 3,
 		// 4, 8) — input-layout.ts's encodeClockSpeed and input_codec.go's decode agree on
@@ -150,8 +151,8 @@ var clockAttrHandlers = map[string]func(msg stdinMsg, md *MoveDispatch, speedSin
 }
 
 // overlayAttrHandlers is the attr-level table for kind=="overlays".
-var overlayAttrHandlers = map[string]func(msg stdinMsg, md *MoveDispatch, tr *T.Trace){
-	"toggle": func(msg stdinMsg, md *MoveDispatch, tr *T.Trace) {
+var overlayAttrHandlers = map[string]func(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trace){
+	"toggle": func(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trace) {
 		// Flip the named flag — Go owns the state; TS just signals the flip.
 		if fn, ok := overlayToggles[msg.Flag]; ok {
 			fn(md, tr)

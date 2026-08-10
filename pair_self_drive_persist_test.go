@@ -30,6 +30,7 @@ import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	Wiring "github.com/dtauraso/wirefold/nodes/Wiring"
+	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -39,7 +40,7 @@ import (
 // source of truth both languages derive their enum order from (input_codec.go).
 func tiltVectorEntityIndex(t *testing.T) byte {
 	t.Helper()
-	fp := Wiring.InputLayoutFingerprint
+	fp := inputcodec.InputLayoutFingerprint
 	const marker = "updateKinds="
 	i := strings.Index(fp, marker)
 	if i < 0 {

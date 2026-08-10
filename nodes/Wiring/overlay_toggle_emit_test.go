@@ -13,6 +13,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -25,7 +26,7 @@ import (
 // and change nothing on screen, which reads as "the overlay is broken" rather than as
 // "a field is missing".
 //
-// Driven off inOverlayFlags (the fingerprint's own list), it asserts both halves: the
+// Driven off inputcodec.InOverlayFlags (the fingerprint's own list), it asserts both halves: the
 // struct carries exactly as many flags as the vocabulary, and with every flag defaulting
 // ON, every field arrives set — a field left unassigned in emitViewFrame is a 0 here.
 func TestViewFrameCarriesEveryOverlayFlag(t *testing.T) {
@@ -47,9 +48,9 @@ func TestViewFrameCarriesEveryOverlayFlag(t *testing.T) {
 	md.emitViewFrame(nil)
 
 	rv := reflect.ValueOf(got)
-	if rv.NumField() != len(inOverlayFlags) {
+	if rv.NumField() != len(inputcodec.InOverlayFlags) {
 		t.Fatalf("ViewOverlayFlags has %d fields, but there are %d overlay flags (%v) — a flag was added to OVERLAY_FLAG_NAMES without a field to carry it across the frame builder",
-			rv.NumField(), len(inOverlayFlags), inOverlayFlags)
+			rv.NumField(), len(inputcodec.InOverlayFlags), inputcodec.InOverlayFlags)
 	}
 	for i := 0; i < rv.NumField(); i++ {
 		if rv.Field(i).Interface().(uint8) != 1 {
@@ -100,7 +101,7 @@ func TestApplyUpdateOverlayToggleEmitsViewFrame(t *testing.T) {
 
 			tr := T.New()
 			tr.SetSink(io.Discard)
-			msg := stdinMsg{Type: "edit", Op: "update", Kind: "overlays", Attr: "toggle", Flag: flag}
+			msg := inputcodec.StdinMsg{Type: "edit", Op: "update", Kind: "overlays", Attr: "toggle", Flag: flag}
 			applyUpdate(msg, md, tr, nil)
 
 			seen := false

@@ -173,8 +173,10 @@ func main() {
 
 	// Scan the package for whichever file declares InputLayoutFingerprint rather than
 	// naming one (it moved from input_codec.go to input_fingerprint.go when that file was
-	// split by job — memory/feedback_guards_hardcoding_single_file_break_on_split.md).
-	wiringGoDir := filepath.Join(repoRoot, "nodes", "Wiring")
+	// split by job — memory/feedback_guards_hardcoding_single_file_break_on_split.md — and
+	// again from nodes/Wiring to nodes/Wiring/inputcodec when the TS->Go decode cluster
+	// was lifted into its own package).
+	wiringGoDir := filepath.Join(repoRoot, "nodes", "Wiring", "inputcodec")
 	inputFP, err := parseInputLayoutFingerprintDir(wiringGoDir)
 	if err != nil {
 		fatalf("parse input layout fingerprint: %v", err)

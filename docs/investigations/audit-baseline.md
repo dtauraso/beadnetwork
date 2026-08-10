@@ -59,7 +59,7 @@ above are found not to cover a specific new column.
 
 ## 3. Gap-numbered wire values are deliberate, never renumbered
 
-`nodes/Wiring/input_codec.go` documents the input-record kind bytes as gap-numbered:
+`nodes/Wiring/inputcodec/input_codec.go` documents the input-record kind bytes as gap-numbered:
 `save=4`, `raw-input=10`, `edit-update=22`, with kind bytes 20 and 21 explicitly left as
 gaps ("kind bytes (20, 21) are left as GAPS below, never renumbered"). Likewise
 `Buffer/frame_tags.go` numbers its four `BufBlockTag*` constants 4-7
@@ -71,13 +71,13 @@ binary framing. Do not report "unused/gap enum values" as a defect here.
 ## 4. Fingerprint strings duplicated in Go and TS are deliberate and effective
 
 Several `*Fingerprint` string constants (e.g. `InputLayoutFingerprint` in
-`nodes/Wiring/input_codec.go`, mirrored in
+`nodes/Wiring/inputcodec/input_fingerprint.go`, mirrored in
 `tools/topology-vscode/src/schema/input-layout-gen.ts`; similar fingerprints for the
 buffer layout in `Buffer/layout.go` / `tools/gen-node-defs/buflayout/buffer_layout.go` /
 `tools/topology-vscode/src/schema/buffer-layout.ts`) are long literal strings (each several
 hundred bytes, several KB total across all of them) that encode the full shape of a wire
 protocol in one line specifically so any drift between Go and TS trips a string-equality
-test immediately (see e.g. `nodes/Wiring/input_codec_test.go`) instead of drifting silently
+test immediately (see e.g. `nodes/Wiring/inputcodec/input_codec_test.go`) instead of drifting silently
 column-by-column. This is a deliberate, working anti-drift mechanism, not accidental
 duplication — do not propose replacing it with something "less duplicated" unless the
 replacement preserves the single-string-equality-check property.

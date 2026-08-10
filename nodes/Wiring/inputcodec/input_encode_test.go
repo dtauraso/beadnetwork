@@ -1,12 +1,13 @@
 // input_encode_test.go — the TEST-ONLY encoder for the editor→Go input stream.
 //
 // These exist only to build byte-exact fixtures for the decoder tests in this
-// package. Go never encodes an input record in production: the production
+// package (and for Wiring's own stdin-reader integration tests, which import this
+// package for them). Go never encodes an input record in production: the production
 // encoder is the TS one (tools/topology-vscode/src/schema/input-layout.ts), and
 // Go only ever DECODES (input_codec.go). They live in a _test.go file so the
 // production source reads as the decoder it is.
 
-package Wiring
+package inputcodec
 
 import (
 	"encoding/binary"
@@ -35,26 +36,26 @@ func enumIndex(list []string, s string) byte {
 	return 0
 }
 
-// encodeControl builds a payload-less control record (save).
-func encodeControl(kind byte) []byte { return []byte{kind} }
+// EncodeControl builds a payload-less control record (save).
+func EncodeControl(kind byte) []byte { return []byte{kind} }
 
-// encodeOverlaysToggle builds an overlays TOGGLE record (test helper).
-func encodeOverlaysToggle(flag string) []byte {
+// EncodeOverlaysToggle builds an overlays TOGGLE record (test helper).
+func EncodeOverlaysToggle(flag string) []byte {
 	w := &recWriter{}
-	w.u8(inKindEditUpdate)
-	w.u8(enumIndex(inUpdateKinds, "overlays"))
-	w.u8(inOverlayAttrToggle)
-	w.u8(enumIndex(inOverlayFlags, flag))
+	w.u8(InKindEditUpdate)
+	w.u8(enumIndex(InUpdateKinds, "overlays"))
+	w.u8(InOverlayAttrToggle)
+	w.u8(enumIndex(InOverlayFlags, flag))
 	return w.b
 }
 
-// encodeDistanceGroupAdjust builds a distanceGroup LENGTH record (test helper):
+// EncodeDistanceGroupAdjust builds a distanceGroup LENGTH record (test helper):
 // [22][entityKind=distanceGroup][attr=length][u8 groupIndex][u8 dirUp].
-func encodeDistanceGroupAdjust(groupIdx int, dirUp bool) []byte {
+func EncodeDistanceGroupAdjust(groupIdx int, dirUp bool) []byte {
 	w := &recWriter{}
-	w.u8(inKindEditUpdate)
-	w.u8(enumIndex(inUpdateKinds, "distanceGroup"))
-	w.u8(inDistanceGroupAttrLength)
+	w.u8(InKindEditUpdate)
+	w.u8(enumIndex(InUpdateKinds, "distanceGroup"))
+	w.u8(InDistanceGroupAttrLength)
 	w.u8(byte(groupIdx))
 	if dirUp {
 		w.u8(1)
@@ -64,22 +65,22 @@ func encodeDistanceGroupAdjust(groupIdx int, dirUp bool) []byte {
 	return w.b
 }
 
-// encodeSceneLatticePoints builds a scene LATTICE-POINTS record (test helper):
+// EncodeSceneLatticePoints builds a scene LATTICE-POINTS record (test helper):
 // [22][entityKind=scene][attr=latticePoints][u8 points].
-func encodeSceneLatticePoints(points int) []byte {
+func EncodeSceneLatticePoints(points int) []byte {
 	w := &recWriter{}
-	w.u8(inKindEditUpdate)
-	w.u8(enumIndex(inUpdateKinds, "scene"))
-	w.u8(inSceneAttrLatticePoints)
+	w.u8(InKindEditUpdate)
+	w.u8(enumIndex(InUpdateKinds, "scene"))
+	w.u8(InSceneAttrLatticePoints)
 	w.u8(byte(points))
 	return w.b
 }
 
-// encodeRawInput builds a raw-input record from a rawInputMsg (test helper).
-func encodeRawInput(ev rawInputMsg) []byte {
+// EncodeRawInput builds a raw-input record from a RawInputMsg (test helper).
+func EncodeRawInput(ev RawInputMsg) []byte {
 	w := &recWriter{}
-	w.u8(inKindRawInput)
-	w.u8(enumIndex(inEventKinds, ev.Kind))
+	w.u8(InKindRawInput)
+	w.u8(enumIndex(InEventKinds, ev.Kind))
 	w.f64(ev.X)
 	w.f64(ev.Y)
 	w.f64(ev.RectLeft)
@@ -94,7 +95,7 @@ func encodeRawInput(ev rawInputMsg) []byte {
 	w.f64(ev.DeltaX)
 	w.f64(ev.DeltaY)
 	w.f64(ev.Fov)
-	w.u8(enumIndex(inHitKinds, ev.Hit.Kind))
+	w.u8(enumIndex(InHitKinds, ev.Hit.Kind))
 	w.boolByte(ev.Hit.IsInput)
 	w.i32(int32(ev.Hit.NodeRow))
 	w.i32(int32(ev.Hit.PortRow))
@@ -102,7 +103,7 @@ func encodeRawInput(ev rawInputMsg) []byte {
 	return w.b
 }
 
-// frameRecord wraps a record body with the [len:u32-LE] transport frame.
-func frameRecord(rec []byte) []byte {
+// FrameRecord wraps a record body with the [len:u32-LE] transport frame.
+func FrameRecord(rec []byte) []byte {
 	return append(binary.LittleEndian.AppendUint32(nil, uint32(len(rec))), rec...)
 }

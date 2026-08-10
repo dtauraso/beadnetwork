@@ -3,12 +3,12 @@
 // One job: say what the wire vocabulary IS. The record kind bytes, the update-attr
 // indices, and the five enum orderings all derive from a single string constant here, and
 // nothing in this file reads a byte off the wire — that is rec_reader.go's job, and
-// turning bytes into a stdinMsg is input_codec.go's.
+// turning bytes into a StdinMsg is input_codec.go's.
 //
 // This is also the file tools/gen-node-defs reads (via go/ast) to GENERATE the TS side's
 // input-layout-gen.ts, so the fingerprint below is the single source for both languages.
 
-package Wiring
+package inputcodec
 
 import "strings"
 
@@ -31,35 +31,35 @@ const InputLayoutFingerprint = "kinds=save:4,raw-input:10,edit-update:22 eventKi
 const (
 	// Kinds 1 (resume) and 2 (pause) removed — the play/pause clock gate was deleted
 	// end-to-end. Intentional gaps, per house style (never renumber a live wire value).
-	// Kind 3 (inKindResend) removed — intentional gap, see comment above.
-	inKindSave = 4 // save  — Go persists its OWN scene state (bare command)
-	// Kind 5 (inKindFadeToggle) removed — the fade feature was deleted end-to-end.
-	inKindRawInput = 10 // raw pointer/wheel/home event
-	// Kind 20 (inKindEditCreate) removed — edge creation via edit op was deleted
+	// Kind 3 (InKindResend) removed — intentional gap, see comment above.
+	InKindSave = 4 // save  — Go persists its OWN scene state (bare command)
+	// Kind 5 (InKindFadeToggle) removed — the fade feature was deleted end-to-end.
+	InKindRawInput = 10 // raw pointer/wheel/home event
+	// Kind 20 (InKindEditCreate) removed — edge creation via edit op was deleted
 	// end-to-end. Intentional gap, per house style (never renumber a live wire value).
-	// Kind 21 (inKindEditDelete) removed — same removal as above.
-	inKindEditUpdate = 22 // edit op=update (entity byte + attr byte + numeric payload)
+	// Kind 21 (InKindEditDelete) removed — same removal as above.
+	InKindEditUpdate = 22 // edit op=update (entity byte + attr byte + numeric payload)
 )
 
 // Update attr indices (positional in IN_UPDATE_ATTRS; the order is pinned across both
 // languages by the updateAttrs= token in the fingerprint).
 const (
-	inOverlayAttrToggle       = 0 // overlays: flip one flag
-	inClockAttrSpeed          = 1 // clock: set the playback-speed multiplier
-	inDistanceGroupAttrLength = 2 // distanceGroup: set the group's target pair length
-	inSceneAttrSelected       = 3 // scene: select a tab from the Go-owned scene tab strip
-	inTiltVectorAttrTheta     = 4 // tiltVector: adjust the vector's θ index by one click
+	InOverlayAttrToggle       = 0 // overlays: flip one flag
+	InClockAttrSpeed          = 1 // clock: set the playback-speed multiplier
+	InDistanceGroupAttrLength = 2 // distanceGroup: set the group's target pair length
+	InSceneAttrSelected       = 3 // scene: select a tab from the Go-owned scene tab strip
+	InTiltVectorAttrTheta     = 4 // tiltVector: adjust the vector's θ index by one click
 	// attr 5 (φ) is a GAP — the tilt vector is θ-only end to end now
 	// (task/drop-tilt-vector-phi); never renumber the survivors.
-	inTiltVectorAttrReset    = 6 // tiltVector: return the index to 0 (the RESET button)
-	inTiltVectorAttrStart    = 7 // tiltVector: begin the vector exchange from the current angles (the START TILT button)
-	inSceneAttrLatticePoints = 8 // scene: set the pair lattice's point count
+	InTiltVectorAttrReset    = 6 // tiltVector: return the index to 0 (the RESET button)
+	InTiltVectorAttrStart    = 7 // tiltVector: begin the vector exchange from the current angles (the START TILT button)
+	InSceneAttrLatticePoints = 8 // scene: set the pair lattice's point count
 	// scene: CREATE a node at a dropped world point, and DELETE the node on a buffer row.
 	// ATTRIBUTES, not the create/delete OPS that were removed end-to-end (their kind bytes
 	// 20/21 stay gaps and are not reused): the edit surface still has exactly one op, and a
 	// new capability is a new entity kind or attribute (CLAUDE.md's bridge-surface rule).
-	inSceneAttrCreate = 9  // scene: create a node of a kind, at a world point
-	inSceneAttrDelete = 10 // scene: delete the node on a buffer row, and every edge touching it
+	InSceneAttrCreate = 9  // scene: create a node of a kind, at a world point
+	InSceneAttrDelete = 10 // scene: delete the node on a buffer row, and every edge touching it
 )
 
 // Enum orderings (u8 index → string), shared with input-layout-gen.ts. All five orderings
@@ -75,11 +75,11 @@ const (
 // index is all that crosses the bridge), so an unchecked reorder is a silent
 // mis-dispatch — a raycast hit on a node decoding as an edge — with nothing to fail.
 var (
-	inEventKinds   = parseFPList(InputLayoutFingerprint, "eventKinds=")
-	inHitKinds     = parseFPList(InputLayoutFingerprint, "hitKinds=")
-	inUpdateKinds  = parseFPList(InputLayoutFingerprint, "updateKinds=")
-	inUpdateAttrs  = parseFPList(InputLayoutFingerprint, "updateAttrs=")
-	inOverlayFlags = parseFPList(InputLayoutFingerprint, "overlayFlags=")
+	InEventKinds   = parseFPList(InputLayoutFingerprint, "eventKinds=")
+	InHitKinds     = parseFPList(InputLayoutFingerprint, "hitKinds=")
+	InUpdateKinds  = parseFPList(InputLayoutFingerprint, "updateKinds=")
+	InUpdateAttrs  = parseFPList(InputLayoutFingerprint, "updateAttrs=")
+	InOverlayFlags = parseFPList(InputLayoutFingerprint, "overlayFlags=")
 )
 
 // init fails the process at STARTUP if any enum token is missing from the fingerprint.
@@ -92,11 +92,11 @@ func init() {
 		marker string
 		list   []string
 	}{
-		{"eventKinds=", inEventKinds},
-		{"hitKinds=", inHitKinds},
-		{"updateKinds=", inUpdateKinds},
-		{"updateAttrs=", inUpdateAttrs},
-		{"overlayFlags=", inOverlayFlags},
+		{"eventKinds=", InEventKinds},
+		{"hitKinds=", InHitKinds},
+		{"updateKinds=", InUpdateKinds},
+		{"updateAttrs=", InUpdateAttrs},
+		{"overlayFlags=", InOverlayFlags},
 	} {
 		if len(e.list) == 0 {
 			panic("input_codec: INPUT_LAYOUT_FINGERPRINT is missing the " + e.marker + " token — the wire enum orderings derive from it")

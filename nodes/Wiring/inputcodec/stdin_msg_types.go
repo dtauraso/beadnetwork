@@ -1,15 +1,16 @@
 // stdin_msg_types.go — the SHAPES on the editor→Go seam.
 //
 // One job: declare what a decoded message IS. Nothing here reads a byte, frames a record,
-// or dispatches anything — input_codec.go fills these structs, stdin_reader.go deframes,
-// stdin_dispatch.go routes. They live together because they are the vocabulary all three
-// share, and because the field-by-field commentary is the contract: which numeric row means
-// what, and what deliberately does NOT cross the bridge.
+// or dispatches anything — input_codec.go fills these structs, Wiring's stdin_reader.go
+// deframes, Wiring's stdin_dispatch.go routes. They live together because they are the
+// vocabulary this package shares with itself, and because the field-by-field commentary is
+// the contract: which numeric row means what, and what deliberately does NOT cross the
+// bridge.
 //
 // None of these structs carry json tags: the seam is framed binary end to end, and the
 // field ORDER is pinned by INPUT_LAYOUT_FINGERPRINT (input_fingerprint.go), not by a tag.
 
-package Wiring
+package inputcodec
 
 import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
@@ -24,7 +25,7 @@ type EdgeEndpoints struct {
 	TargetHandle string
 }
 
-// stdinMsg is the single editor→Go bridge shape. For type=="edit", op is the sole
+// StdinMsg is the single editor→Go bridge shape. For type=="edit", op is the sole
 // remaining value "update", which sets an attribute on a typed entity — the sole live
 // entity is overlays: Attr=="toggle" (Flag names one overlay). The other top-level types
 // are raw-input (Event) and the bare command (save).
@@ -32,7 +33,7 @@ type EdgeEndpoints struct {
 // These structs carry NO json tags: this seam is framed binary end to end and nothing
 // unmarshals them (input_codec.go decodes the record). The wire field order is the
 // INPUT_LAYOUT_FINGERPRINT, not a struct tag.
-type stdinMsg struct {
+type StdinMsg struct {
 	Type string
 	Op   string
 	Kind string
@@ -49,15 +50,15 @@ type stdinMsg struct {
 	// the new one connects to is Go's decision from its own geometry.
 	X, Y float64
 	// Event is the payload for the top-level type=="raw-input" message; nil otherwise.
-	Event *rawInputMsg
+	Event *RawInputMsg
 }
 
-// rawInputMsg carries the payload for a top-level type=="raw-input" message (Phase 6):
+// RawInputMsg carries the payload for a top-level type=="raw-input" message (Phase 6):
 // a single RAW pointer/wheel event plus the stateless three.js raycast hit. Go's gesture
 // state machine (gesture.go) decides what it means — TS does not interpret it. Mirrors the
 // TS RawInputEvent (messages.ts); the field ORDER is pinned by INPUT_LAYOUT_FINGERPRINT
 // (input_codec.go), not by struct tags — this seam is framed binary, never JSON.
-type rawInputMsg struct {
+type RawInputMsg struct {
 	Kind       string // pointerdown | pointermove | pointerup | wheel | home
 	X          float64
 	Y          float64 // client pixel X/Y
@@ -73,15 +74,15 @@ type rawInputMsg struct {
 	DeltaX     float64
 	DeltaY     float64
 	Fov        float64
-	Hit        rawHit
+	Hit        RawHit
 }
 
-// rawHit is the classified raycast hit: which rendered entity is under the pointer. Kind ∈
+// RawHit is the classified raycast hit: which rendered entity is under the pointer. Kind ∈
 // port|handhold|node|edge|torus|empty. Topology facts (e.g. connected?) are NOT carried —
 // Go's FSM decides those from its own held state. There is no world point on this record:
 // any ray/plane unprojection Go needs is computed Go-side from the raw pointer NDC + Go's
 // own camera/surface state (pointerOnRingPlane / rayDirThroughNDC in gesture.go).
-type rawHit struct {
+type RawHit struct {
 	Kind string
 	// PortRow is the numeric buffer PORT-ROW index for a port hit (the port InstancedMesh
 	// instanceId == its buffer port row). -1 (or absent) when not a port hit. Go resolves

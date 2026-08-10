@@ -7,6 +7,7 @@ package Wiring
 import (
 	"fmt"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
@@ -91,5 +92,5 @@ func (b *buildCtx) buildNodes() error {
 // bindDispatch binds per-edge source Outs and dest wires into each edgeMover so
 // a node-move updates per-edge travel-time.
 func (b *buildCtx) bindDispatch() {
-	b.md.Bind(b.outSink, SlotRegistry(b.destWire))
+	b.md.Bind(b.outSink, inputcodec.SlotRegistry(b.destWire))
 }

@@ -12,6 +12,7 @@ import (
 	"context"
 	"sync"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
@@ -25,7 +26,7 @@ func (md *MoveDispatch) finalizeActors(speedSinks *[]chan float64) {
 
 // Bind wires the per-edge source Outs and dest wires into each edgeMover. Thin delegator
 // to md.mr (mover_registry.go).
-func (md *MoveDispatch) Bind(outSink map[string]*wire.Out, slotReg SlotRegistry) {
+func (md *MoveDispatch) Bind(outSink map[string]*wire.Out, slotReg inputcodec.SlotRegistry) {
 	md.mr.bind(outSink, slotReg)
 }
 

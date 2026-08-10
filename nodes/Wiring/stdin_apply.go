@@ -20,9 +20,10 @@ import (
 	"strconv"
 
 	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 )
 
-func applyUpdateClock(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
+func applyUpdateClock(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
 	if h, ok := clockAttrHandlers[msg.Attr]; ok {
 		h(msg, md, speedSinks)
 	}
@@ -33,7 +34,7 @@ func applyUpdateClock(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []
 // (0/1/2, into distanceGroupOrder — time/input/gate); msg.Flag is "up" (×1.1) or
 // "down" (÷1.1). Go owns the group definitions and the ×1.1 math (ApplyDistanceGroupTarget,
 // distance_groups.go) — the panel sends only which group and which direction.
-func applyUpdateDistanceGroup(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
+func applyUpdateDistanceGroup(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
 	if md == nil || msg.Attr != "length" {
 		return
 	}
@@ -67,7 +68,7 @@ func applyUpdateDistanceGroup(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speed
 // start has ONE route only: it is meaningless off the pair's own vector exchange, so it is
 // sent to md.sendTiltEdit and simply dropped when that channel does not exist (see the
 // "start" branch below) — no mover fallback, unlike theta/reset.
-func applyUpdateTiltVector(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
+func applyUpdateTiltVector(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
 	if md == nil || (msg.Attr != "theta" && msg.Attr != "reset" && msg.Attr != "start") {
 		return
 	}
@@ -125,7 +126,7 @@ func applyUpdateTiltVector(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSin
 // (BroadcastLatticePoints); it does NOT touch md.ui.speed/clockDivisor — a lattice size
 // has no "setting" mode the way a tilt angle does, so there is no HumanEditSpeed-style
 // speed override here.
-func applyUpdateScene(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
+func applyUpdateScene(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
 	if md == nil {
 		return
 	}
@@ -151,7 +152,7 @@ func applyUpdateScene(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []
 	}
 }
 
-func applyUpdateOverlays(msg stdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
+func applyUpdateOverlays(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
 	if md == nil {
 		return
 	}

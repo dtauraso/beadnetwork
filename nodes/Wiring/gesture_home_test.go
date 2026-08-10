@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
@@ -40,7 +41,7 @@ func TestGestureHomeComputesFitPoseFromGeometry(t *testing.T) {
 	md := homeMD(stale, centers)
 	// Match the raw "home" event TS sends: fov + aspect encoded as rectWidth/rectHeight.
 	const fov, aspect = 50.0, 800.0 / 600.0
-	ev := rawInputMsg{Kind: "home", Fov: fov, RectWidth: aspect, RectHeight: 1}
+	ev := inputcodec.RawInputMsg{Kind: "home", Fov: fov, RectWidth: aspect, RectHeight: 1}
 
 	md.HandleRawInput(ev, nil, nil)
 
@@ -88,7 +89,7 @@ func TestGestureHomeFramesUnknownKindAtRenderRadius(t *testing.T) {
 	md.mr.nodeGeoms["x"].geom.Kind = "NotAKind"
 
 	const fov, aspect = 50.0, 800.0 / 600.0
-	md.HandleRawInput(rawInputMsg{Kind: "home", Fov: fov, RectWidth: aspect, RectHeight: 1}, nil, nil)
+	md.HandleRawInput(inputcodec.RawInputMsg{Kind: "home", Fov: fov, RectWidth: aspect, RectHeight: 1}, nil, nil)
 
 	// Expected: bbox is ±renderRadius on every axis (single node at origin). nodeRadius
 	// is now the bead-lattice-SNAPPED value (docs/bead-model/bead-lattice.md "The count"), not the
@@ -117,13 +118,13 @@ func TestGestureHomeThenOrbitBuildsOnHomePose(t *testing.T) {
 	}
 	md := homeMD(stale, centers)
 	const fov, aspect = 50.0, 800.0 / 600.0
-	md.HandleRawInput(rawInputMsg{Kind: "home", Fov: fov, RectWidth: aspect, RectHeight: 1}, nil, nil)
+	md.HandleRawInput(inputcodec.RawInputMsg{Kind: "home", Fov: fov, RectWidth: aspect, RectHeight: 1}, nil, nil)
 
 	homePivot, homeR, homePos := md.ui.vp.Pivot, md.ui.vp.R, md.ui.vp.Pos
 
 	// Empty-space drag: pointerdown → move past slop (seeds region-focus orbit) → move (orbit).
-	raw := func(kind string, x, y float64) rawInputMsg {
-		return rawInputMsg{Kind: kind, X: x, Y: y, RectLeft: 0, RectTop: 0, RectWidth: 800, RectHeight: 600, Button: 0, Fov: fov, Hit: rawHit{Kind: "empty"}}
+	raw := func(kind string, x, y float64) inputcodec.RawInputMsg {
+		return inputcodec.RawInputMsg{Kind: kind, X: x, Y: y, RectLeft: 0, RectTop: 0, RectWidth: 800, RectHeight: 600, Button: 0, Fov: fov, Hit: inputcodec.RawHit{Kind: "empty"}}
 	}
 	md.HandleRawInput(raw("pointerdown", 400, 300), nil, nil)
 	md.HandleRawInput(raw("pointermove", 420, 300), nil, nil) // slop-cross → seed orbit

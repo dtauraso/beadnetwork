@@ -6,12 +6,12 @@
 // per-kind edit decoding. Go's gesture FSM decides what the event MEANS; this file only
 // says where each number is.
 
-package Wiring
+package inputcodec
 
 import "github.com/dtauraso/wirefold/nodes/Wiring/recread"
 
-func decodeRawInput(r *recread.Reader) (rawInputMsg, bool) {
-	var ev rawInputMsg
+func decodeRawInput(r *recread.Reader) (RawInputMsg, bool) {
+	var ev RawInputMsg
 	var e error
 	f := func() float64 {
 		v, err := r.F64()
@@ -42,7 +42,7 @@ func decodeRawInput(r *recread.Reader) (rawInputMsg, bool) {
 		return v
 	}
 
-	ev.Kind = recread.EnumAt(inEventKinds, u())
+	ev.Kind = recread.EnumAt(InEventKinds, u())
 	ev.X = f()
 	ev.Y = f()
 	ev.RectLeft = f()
@@ -57,7 +57,7 @@ func decodeRawInput(r *recread.Reader) (rawInputMsg, bool) {
 	ev.DeltaX = f()
 	ev.DeltaY = f()
 	ev.Fov = f()
-	ev.Hit.Kind = recread.EnumAt(inHitKinds, u())
+	ev.Hit.Kind = recread.EnumAt(InHitKinds, u())
 	ev.Hit.IsInput = b()
 	ev.Hit.NodeRow = i()
 	ev.Hit.PortRow = i()

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 )
 
 // gesture_test.go — drive the gesture state machine (gesture.go) with raw pointer/wheel
@@ -23,12 +24,12 @@ func canonicalViewpoint() geom.Viewpoint {
 	return geom.Viewpoint{Pivot: vec3{X: 0, Y: 0, Z: 0}, R: 100, Pos: geom.Dir{Theta: math.Pi / 2, Phi: math.Pi / 2}, Up: geom.Dir{Theta: 0, Phi: 0}}
 }
 
-func rawEvent(kind string, x, y float64) rawInputMsg {
-	return rawInputMsg{
+func rawEvent(kind string, x, y float64) inputcodec.RawInputMsg {
+	return inputcodec.RawInputMsg{
 		Kind: kind, X: x, Y: y,
 		RectLeft: 0, RectTop: 0, RectWidth: 800, RectHeight: 600,
 		Button: 0, Fov: 50,
-		Hit: rawHit{Kind: "empty"},
+		Hit: inputcodec.RawHit{Kind: "empty"},
 	}
 }
 
@@ -105,7 +106,7 @@ func TestGestureWheelStrafesCamera(t *testing.T) {
 // node/edge hit does NOT suppress or divert the pan (the TS-side validator drop of "edge"
 // hits was the real bug; this guards the Go contract the fix relies on).
 func TestGestureWheelPansOverNodeAndEdgeHit(t *testing.T) {
-	for _, h := range []rawHit{
+	for _, h := range []inputcodec.RawHit{
 		{Kind: "node", NodeRow: 0},
 		{Kind: "edge", EdgeRow: 0},
 		{Kind: "port", PortRow: 0},
@@ -156,10 +157,10 @@ func TestGestureClickSelectsEdgeGoOwned(t *testing.T) {
 
 	// First select a node so we can prove edge-select clears it.
 	nd := rawEvent("pointerdown", 400, 300)
-	nd.Hit = rawHit{Kind: "node", NodeRow: 0}
+	nd.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(nd, nil, nil)
 	nu := rawEvent("pointerup", 400, 300)
-	nu.Hit = rawHit{Kind: "node", NodeRow: 0}
+	nu.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(nu, nil, nil)
 	if md.ui.sel.selected != "N7" {
 		t.Fatalf("pre: selected=%q want N7", md.ui.sel.selected)
@@ -167,10 +168,10 @@ func TestGestureClickSelectsEdgeGoOwned(t *testing.T) {
 
 	// Tap EDGE row 1 → selectedEdge=e1, node selection cleared.
 	ed := rawEvent("pointerdown", 400, 300)
-	ed.Hit = rawHit{Kind: "edge", EdgeRow: 1}
+	ed.Hit = inputcodec.RawHit{Kind: "edge", EdgeRow: 1}
 	md.HandleRawInput(ed, nil, nil)
 	eu := rawEvent("pointerup", 400, 300)
-	eu.Hit = rawHit{Kind: "edge", EdgeRow: 1}
+	eu.Hit = inputcodec.RawHit{Kind: "edge", EdgeRow: 1}
 	md.HandleRawInput(eu, nil, nil)
 	if md.ui.sel.selectedEdge != "e1" {
 		t.Fatalf("selectedEdge=%q want e1", md.ui.sel.selectedEdge)
@@ -181,10 +182,10 @@ func TestGestureClickSelectsEdgeGoOwned(t *testing.T) {
 
 	// Selecting a node clears the edge selection (exclusive both ways).
 	nd2 := rawEvent("pointerdown", 400, 300)
-	nd2.Hit = rawHit{Kind: "node", NodeRow: 0}
+	nd2.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(nd2, nil, nil)
 	nu2 := rawEvent("pointerup", 400, 300)
-	nu2.Hit = rawHit{Kind: "node", NodeRow: 0}
+	nu2.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(nu2, nil, nil)
 	if md.ui.sel.selectedEdge != "" {
 		t.Fatalf("selectedEdge=%q want empty after node select", md.ui.sel.selectedEdge)
@@ -205,11 +206,11 @@ func TestGestureClickSelectsNodeGoOwned(t *testing.T) {
 	md.RT.NodeRowTable = []string{"N7"}
 
 	down := rawEvent("pointerdown", 400, 300)
-	down.Hit = rawHit{Kind: "node", NodeRow: 0}
+	down.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(down, nil, nil)
-	md.HandleRawInput(func() rawInputMsg {
+	md.HandleRawInput(func() inputcodec.RawInputMsg {
 		e := rawEvent("pointerup", 401, 300)
-		e.Hit = rawHit{Kind: "node", NodeRow: 0}
+		e.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 		return e
 	}(), nil, nil)
 	if md.ui.sel.selected != "N7" {
@@ -237,7 +238,7 @@ func TestGestureHoverTracksNode(t *testing.T) {
 
 	// Move over node N7's torus ring → hovered node.
 	mv := rawEvent("pointermove", 400, 300)
-	mv.Hit = rawHit{Kind: "torus", NodeRow: 0}
+	mv.Hit = inputcodec.RawHit{Kind: "torus", NodeRow: 0}
 	md.HandleRawInput(mv, nil, nil)
 	if md.ui.sel.hoverNode != "N7" || md.ui.sel.hoverPort != "" {
 		t.Fatalf("torus hover: hoverNode=%q hoverPort=%q want N7,''", md.ui.sel.hoverNode, md.ui.sel.hoverPort)
@@ -245,7 +246,7 @@ func TestGestureHoverTracksNode(t *testing.T) {
 
 	// Move over the node BODY (kind "node") → hover clears (body does not light the ring).
 	bodyMv := rawEvent("pointermove", 402, 300)
-	bodyMv.Hit = rawHit{Kind: "node", NodeRow: 0}
+	bodyMv.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(bodyMv, nil, nil)
 	if md.ui.sel.hoverNode != "" || md.ui.sel.hoverPort != "" {
 		t.Fatalf("body hover: hoverNode=%q hoverPort=%q want '',''", md.ui.sel.hoverNode, md.ui.sel.hoverPort)
@@ -269,7 +270,7 @@ func TestGestureSecondaryTapSelectsThroughDrift(t *testing.T) {
 	// Two-finger tap ON a node, with drift between down and up.
 	down := rawEvent("pointerdown", 400, 300)
 	down.Button = 2
-	down.Hit = rawHit{Kind: "node", NodeRow: 0}
+	down.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(down, nil, nil)
 	if !md.ui.gest.secondary || md.ui.gest.phase != gestPending {
 		t.Fatalf("after secondary down: secondary=%v phase=%v", md.ui.gest.secondary, md.ui.gest.phase)
@@ -277,14 +278,14 @@ func TestGestureSecondaryTapSelectsThroughDrift(t *testing.T) {
 	// Finger drift past the slop must NOT convert to drag/rotate — it stays a tap-select.
 	drift := rawEvent("pointermove", 410, 300)
 	drift.Button = 2
-	drift.Hit = rawHit{Kind: "node", NodeRow: 0}
+	drift.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(drift, nil, nil)
 	if md.ui.gest.phase != gestPending {
 		t.Fatalf("secondary tap converted out of pending: phase=%v", md.ui.gest.phase)
 	}
 	up := rawEvent("pointerup", 410, 300)
 	up.Button = 2
-	up.Hit = rawHit{Kind: "node", NodeRow: 0}
+	up.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(up, nil, nil)
 	if md.ui.sel.selected != "N7" {
 		t.Fatalf("selected=%q want N7 after secondary tap-select through drift", md.ui.sel.selected)
@@ -310,7 +311,7 @@ func TestGestureSecondaryTapSelectsThroughDrift(t *testing.T) {
 func TestGestureHandholdOrbits(t *testing.T) {
 	md := newGestureMD(canonicalViewpoint())
 	down := rawEvent("pointerdown", 400, 300)
-	down.Hit = rawHit{Kind: "handhold"}
+	down.Hit = inputcodec.RawHit{Kind: "handhold"}
 	md.HandleRawInput(down, nil, nil)
 	if !md.ui.gest.handholdDown || md.ui.gest.phase != gestPending {
 		t.Fatalf("after handhold down: handholdDown=%v phase=%v", md.ui.gest.handholdDown, md.ui.gest.phase)
@@ -343,7 +344,7 @@ func TestGestureClickNoCameraChange(t *testing.T) {
 	md := newGestureMD(canonicalViewpoint())
 	before := md.ui.vp.Viewpoint
 	nodeHit := rawEvent("pointerdown", 400, 300)
-	nodeHit.Hit = rawHit{Kind: "empty"}
+	nodeHit.Hit = inputcodec.RawHit{Kind: "empty"}
 	md.HandleRawInput(nodeHit, nil, nil)
 	md.HandleRawInput(rawEvent("pointerup", 402, 301), nil, nil) // no move event → click
 	if md.ui.vp.Viewpoint != before {
@@ -362,14 +363,14 @@ func TestGestureOnePixelMoveCommitsToDrag(t *testing.T) {
 	md := dragOffsetMD() // real nodeMover for "n" so the dragNode commit guard's centerOfNode succeeds
 
 	down := rawEvent("pointerdown", 400, 300)
-	down.Hit = rawHit{Kind: "node", NodeRow: 0}
+	down.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(down, nil, nil)
 	if md.ui.gest.phase != gestPending {
 		t.Fatalf("after pointerdown: phase=%v want pending", md.ui.gest.phase)
 	}
 
 	move := rawEvent("pointermove", 401, 300) // 1px displacement, well under the old 6px slop
-	move.Hit = rawHit{Kind: "node", NodeRow: 0}
+	move.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(move, nil, nil)
 	if md.ui.gest.phase != gestDragging {
 		t.Fatalf("after 1px move: phase=%v want dragging (movement itself commits)", md.ui.gest.phase)
@@ -384,11 +385,11 @@ func TestGestureMoveAtPressPointDoesNotCommit(t *testing.T) {
 	md.RT.NodeRowTable = []string{"n"}
 
 	down := rawEvent("pointerdown", 400, 300)
-	down.Hit = rawHit{Kind: "node", NodeRow: 0}
+	down.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(down, nil, nil)
 
 	same := rawEvent("pointermove", 400, 300) // identical to the press point → zero displacement
-	same.Hit = rawHit{Kind: "node", NodeRow: 0}
+	same.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(same, nil, nil)
 	if md.ui.gest.phase != gestPending {
 		t.Fatalf("after zero-displacement move: phase=%v want still pending (no movement occurred)", md.ui.gest.phase)
@@ -403,10 +404,10 @@ func TestGesturePressReleaseNoMoveSelects(t *testing.T) {
 	md.RT.NodeRowTable = []string{"N7"}
 
 	down := rawEvent("pointerdown", 400, 300)
-	down.Hit = rawHit{Kind: "node", NodeRow: 0}
+	down.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(down, nil, nil)
 	up := rawEvent("pointerup", 400, 300)
-	up.Hit = rawHit{Kind: "node", NodeRow: 0}
+	up.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(up, nil, nil)
 
 	if md.ui.sel.selected != "N7" {
@@ -427,12 +428,12 @@ func TestGestureSecondaryMoveStaysPendingAndTapSelects(t *testing.T) {
 
 	down := rawEvent("pointerdown", 400, 300)
 	down.Button = 2
-	down.Hit = rawHit{Kind: "node", NodeRow: 0}
+	down.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(down, nil, nil)
 
 	move := rawEvent("pointermove", 401, 300) // 1px is enough to commit a PRIMARY press
 	move.Button = 2
-	move.Hit = rawHit{Kind: "node", NodeRow: 0}
+	move.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(move, nil, nil)
 	if md.ui.gest.phase != gestPending {
 		t.Fatalf("secondary press converted out of pending on move: phase=%v", md.ui.gest.phase)
@@ -440,7 +441,7 @@ func TestGestureSecondaryMoveStaysPendingAndTapSelects(t *testing.T) {
 
 	up := rawEvent("pointerup", 401, 300)
 	up.Button = 2
-	up.Hit = rawHit{Kind: "node", NodeRow: 0}
+	up.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(up, nil, nil)
 	if md.ui.sel.selected != "N7" {
 		t.Fatalf("selected=%q want N7 after secondary tap-select", md.ui.sel.selected)
@@ -456,10 +457,10 @@ func TestGestureSelectModeOffStillHighlights(t *testing.T) {
 	md.RT.NodeRowTable = []string{"A"}
 
 	down := rawEvent("pointerdown", 400, 300)
-	down.Hit = rawHit{Kind: "node", NodeRow: 0}
+	down.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(down, nil, nil)
 	up := rawEvent("pointerup", 401, 300)
-	up.Hit = rawHit{Kind: "node", NodeRow: 0}
+	up.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(up, nil, nil)
 
 	if md.ui.sel.selected != "A" {

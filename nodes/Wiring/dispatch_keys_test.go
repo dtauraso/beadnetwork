@@ -1,6 +1,10 @@
 package Wiring
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+)
 
 // TestDispatchTableKeysMatchFingerprint guards the table-driven dispatchers introduced when
 // several switches were converted to maps: nothing else checks that a hardcoded string key in
@@ -16,15 +20,15 @@ func TestDispatchTableKeysMatchFingerprint(t *testing.T) {
 		enumName  string
 		enum      []string
 	}{
-		{"rawInputHandlers", mapKeys(rawInputHandlers), "inEventKinds", inEventKinds},
-		{"hitClassifiers", mapKeys(hitClassifiers), "inHitKinds", inHitKinds},
-		{"updateKindHandlers", mapKeys(updateKindHandlers), "inUpdateKinds", inUpdateKinds},
-		{"clockAttrHandlers", mapKeys(clockAttrHandlers), "inUpdateAttrs", inUpdateAttrs},
-		{"overlayAttrHandlers", mapKeys(overlayAttrHandlers), "inUpdateAttrs", inUpdateAttrs},
+		{"rawInputHandlers", mapKeys(rawInputHandlers), "InEventKinds", inputcodec.InEventKinds},
+		{"hitClassifiers", mapKeys(hitClassifiers), "InHitKinds", inputcodec.InHitKinds},
+		{"updateKindHandlers", mapKeys(updateKindHandlers), "InUpdateKinds", inputcodec.InUpdateKinds},
+		{"clockAttrHandlers", mapKeys(clockAttrHandlers), "InUpdateAttrs", inputcodec.InUpdateAttrs},
+		{"overlayAttrHandlers", mapKeys(overlayAttrHandlers), "InUpdateAttrs", inputcodec.InUpdateAttrs},
 		// overlayFlagTraceKind maps each overlay flag NAME → its trace kind. The values are
 		// compile-checked (T.Kind* consts), but the string keys can drift from the flag list;
-		// guard them here (a key absent from inOverlayFlags is a typo'd/stale flag name).
-		{"overlayFlagTraceKind", mapKeys(overlayFlagTraceKind), "inOverlayFlags", inOverlayFlags},
+		// guard them here (a key absent from InOverlayFlags is a typo'd/stale flag name).
+		{"overlayFlagTraceKind", mapKeys(overlayFlagTraceKind), "InOverlayFlags", inputcodec.InOverlayFlags},
 	}
 
 	for _, c := range checks {

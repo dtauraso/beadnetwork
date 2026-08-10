@@ -62,6 +62,7 @@ import (
 	"os"
 
 	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 )
 
 // RunStdinReader reads FRAMED BINARY records from r, dispatching geometry-CRUD "edit"
@@ -90,7 +91,7 @@ const maxFrameBytes = 1 << 20
 // over the slice and calls SendSpeedNonBlocking. nil (or an
 // empty slice) is fine: the speed edit then simply reaches nobody, same as
 // today's known-inert slider before this delivery path existed.
-func RunStdinReader(ctx context.Context, r io.Reader, slotReg SlotRegistry, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
+func RunStdinReader(ctx context.Context, r io.Reader, slotReg inputcodec.SlotRegistry, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
 	// Every persister now writes synchronously the moment its value changes (see
 	// scene_persist.go's header comment for why the prior debounce/clean-shutdown-flush
 	// machinery was removed), so there is nothing pending to flush on exit here anymore.
@@ -163,7 +164,7 @@ func RunStdinReader(ctx context.Context, r io.Reader, slotReg SlotRegistry, md *
 			// drain here anymore. Likewise heldCenters/centerOfNode read the dispatch
 			// goroutine's own centerMirror, kept current by message from each mover —
 			// there is no accumulated positions map to drain either.
-			msg, decoded := decodeInputRecord(rec)
+			msg, decoded := inputcodec.DecodeInputRecord(rec)
 			if !decoded {
 				continue
 			}

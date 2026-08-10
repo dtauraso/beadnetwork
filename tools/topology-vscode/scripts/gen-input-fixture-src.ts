@@ -6,8 +6,8 @@
 // schema/input-layout.ts. Emits {fingerprint, records:[{event, hex}]} as JSON.
 //
 // This is the TS SIDE of the cross-language input-layout parity check. The Go test
-// (nodes/Wiring/input_fixture_test.go) decodes the hex with the REAL Go decoder
-// (decodeInputRecord in input_codec.go) and asserts every field matches `event` — a
+// (nodes/Wiring/inputcodec/input_fixture_test.go) decodes the hex with the REAL Go decoder
+// (DecodeInputRecord in input_codec.go) and asserts every field matches `event` — a
 // field-count or offset disagreement between the two REAL codecs fails there, not just
 // a same-language round-trip.
 //

@@ -1,7 +1,7 @@
 // input-encode.ts — BINARY encoders for the editor→Go input stream, plus the transport
 // frame. The webview builds a binary RECORD per message here; the extension host writes
 // each record FRAMED as [len:u32-LE][record] to Go's stdin. Go decodes it in
-// nodes/Wiring/input_codec.go into the SAME stdinMsg the dispatch loop consumes.
+// nodes/Wiring/inputcodec/input_codec.go into the SAME StdinMsg the dispatch loop consumes.
 //
 // Numbers are little-endian (matching the content buffer's little-endian encoding). Enum
 // discriminators (event kind, hit kind, update entity kind, update attr, overlay flag) are

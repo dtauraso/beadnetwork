@@ -1,6 +1,6 @@
 // input-decode.ts — decode one editor→Go input record body. Used by unit tests + the
 // encode/decode round-trip; production decode of the SAME wire format is
-// nodes/Wiring/input_codec.go (Go decodes for real, TS here never reads its own traffic
+// nodes/Wiring/inputcodec/input_codec.go (Go decodes for real, TS here never reads its own traffic
 // back off the bridge).
 
 import { ByteReader } from "./byte-reader";

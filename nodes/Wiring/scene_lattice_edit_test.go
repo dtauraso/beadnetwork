@@ -6,7 +6,11 @@ package Wiring
 // never broadcast), accept a valid count (persist it, install it on md.ui.latticePoints,
 // broadcast it), and never block a registered-but-full LatticeIn channel.
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+)
 
 // TestApplyUpdateSceneLatticePointsIgnoresInvalidCounts: 0, 3, 25, 65, and -4 must each be
 // a no-op — md.ui.latticePoints stays at whatever it was, and nothing is written to disk.
@@ -17,7 +21,7 @@ func TestApplyUpdateSceneLatticePointsIgnoresInvalidCounts(t *testing.T) {
 	md.ui.latticePoints = 24 // known starting value
 
 	for _, bad := range []int{0, 3, 25, 65, -4} {
-		msg := stdinMsg{Type: "edit", Op: "update", Kind: "scene", Attr: "latticePoints", Num: bad}
+		msg := inputcodec.StdinMsg{Type: "edit", Op: "update", Kind: "scene", Attr: "latticePoints", Num: bad}
 		applyUpdate(msg, md, nil, nil)
 		if md.ui.latticePoints != 24 {
 			t.Fatalf("latticePoints=%d: md.ui.latticePoints changed to %d, want unchanged 24", bad, md.ui.latticePoints)
@@ -36,7 +40,7 @@ func TestApplyUpdateSceneLatticePointsAcceptsValidCounts(t *testing.T) {
 		md := loadTreeMD(t, root)
 		md.EnableEditPersist(root)
 
-		msg := stdinMsg{Type: "edit", Op: "update", Kind: "scene", Attr: "latticePoints", Num: good}
+		msg := inputcodec.StdinMsg{Type: "edit", Op: "update", Kind: "scene", Attr: "latticePoints", Num: good}
 		applyUpdate(msg, md, nil, nil)
 
 		if md.ui.latticePoints != int32(good) {

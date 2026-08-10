@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
@@ -93,7 +94,7 @@ type moverRegistry struct {
 // bind wires the per-edge source Outs (keyed "source.sourceHandle" in outSink) and dest
 // wires (slotReg, keyed "target.targetHandle") into each edgeMover. Call once after node
 // construction.
-func (mr *moverRegistry) bind(outSink map[string]*wire.Out, slotReg SlotRegistry) {
+func (mr *moverRegistry) bind(outSink map[string]*wire.Out, slotReg inputcodec.SlotRegistry) {
 	for edgeID, em := range mr.edgeMovers {
 		var o *wire.Out
 		if oo, ok := outSink[em.srcID+"."+em.srcH]; ok {

@@ -3,6 +3,7 @@ package Wiring
 import (
 	"testing"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
@@ -33,7 +34,7 @@ func dragOffsetMD() *MoveDispatch {
 	return md
 }
 
-func nodeHit() rawHit { return rawHit{Kind: "node", NodeRow: 0} }
+func nodeHit() inputcodec.RawHit { return inputcodec.RawHit{Kind: "node", NodeRow: 0} }
 
 // drainDrag reads off nm.msg.extIn until it sees a moveMsgKindDrag, returning its Target. Fails
 // the test if none arrives (commitDragStart's DragStart message precedes it on the same

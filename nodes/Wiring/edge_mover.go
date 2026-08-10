@@ -15,6 +15,7 @@
 package Wiring
 
 import (
+	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -119,7 +120,7 @@ type edgeMover struct {
 	buildFrame func(tick uint32, sx, sy, sz, ex, ey, ez float32, selected uint8, label string, events []wire.RowEvent) []byte
 }
 
-func newEdgeMover(ep EdgeEndpoints, edgeID string, srcGeom, dstGeom nodeGeom, tr *T.Trace, clockSrc wire.Clock) *edgeMover {
+func newEdgeMover(ep inputcodec.EdgeEndpoints, edgeID string, srcGeom, dstGeom nodeGeom, tr *T.Trace, clockSrc wire.Clock) *edgeMover {
 	// clk defaults to a fresh RealClock (its own independent origin — fine here:
 	// this default is only ever read by a test calling handle() directly, never by
 	// production, where run() always overwrites it below with clockSrc.Copy() before

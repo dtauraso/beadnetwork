@@ -5,6 +5,7 @@
 package Wiring
 
 import (
+	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
@@ -22,7 +23,7 @@ import (
 func (b *buildCtx) allocateWires() {
 	destWire := map[string]*wire.PacedWire{}
 	edgeWire := WireRegistry{}
-	edgeEndpoints := map[string]EdgeEndpoints{}
+	edgeEndpoints := map[string]inputcodec.EdgeEndpoints{}
 	edgeSteps := map[string]int{}
 	edgeSegments := map[string]wireSegment{}
 	for _, e := range b.spec.Edges {
@@ -58,7 +59,7 @@ func (b *buildCtx) allocateWires() {
 		pw.SetTrace(b.tr)
 		destWire[destKey] = pw
 		edgeWire[e.Label] = pw
-		edgeEndpoints[e.Label] = EdgeEndpoints{
+		edgeEndpoints[e.Label] = inputcodec.EdgeEndpoints{
 			Source: e.Source, Target: e.Target,
 			SourceHandle: e.SourceHandle, TargetHandle: e.TargetHandle,
 		}

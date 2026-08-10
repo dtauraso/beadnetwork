@@ -4,6 +4,7 @@ import (
 	"math"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -19,7 +20,7 @@ import (
 // camera is most pointed at, at its depth on the view-center ray. So rotate orbits whatever you
 // have flown to and centered (fly to a node → rotate spins around it), the orbit depth tracks
 // what you look at, and — because the pivot is on the view axis — it does not re-aim the camera.
-func (md *MoveDispatch) beginSphereRotation(ev rawInputMsg) {
+func (md *MoveDispatch) beginSphereRotation(ev inputcodec.RawInputMsg) {
 	g := &md.ui.gest
 	vp := md.ui.vp.Viewpoint
 	pivot := geom.FocusAhead(vp, md.heldCenters())
@@ -52,7 +53,7 @@ func (md *MoveDispatch) beginSphereRotation(ev rawInputMsg) {
 // is gone. Deduping on the node keeps a still pointer and a same-entity drag from re-emitting
 // a snapshot each pointer-move (no new flood — Go already emits per raw-input; a hover only
 // fires on a genuine target change). An empty / edge / other hit clears hover.
-func (md *MoveDispatch) updateHover(ev rawInputMsg, tr *T.Trace) {
+func (md *MoveDispatch) updateHover(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	var node string
 	switch ev.Hit.Kind {
 	case "torus":
@@ -81,7 +82,7 @@ func (md *MoveDispatch) seedOrbitPivot(pivot vec3) {
 // applyOrbit mirrors the "rotating" branch of interaction-handlers.ts handlePointerMove:
 // map prev/curr cursor pixels through the frozen sphere frame to world directions and orbit
 // (curr → prev), so the grabbed direction follows the cursor.
-func (md *MoveDispatch) applyOrbit(ev rawInputMsg, tr *T.Trace) {
+func (md *MoveDispatch) applyOrbit(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	g := &md.ui.gest
 	vp := md.ui.vp.Viewpoint
 	basis := geom.BasisFromViewpoint(vp.Pos, vp.Up)
@@ -96,7 +97,7 @@ func (md *MoveDispatch) applyOrbit(ev rawInputMsg, tr *T.Trace) {
 // handlePointerMove: identical prev/curr → world-direction mapping as applyOrbit, but the
 // arc is applied through OrbitLockedViewpoint, which locks the rotation axis on the first
 // call and reuses it (constrained "disk" orbit). The lock clears on the next SetViewpoint.
-func (md *MoveDispatch) applyOrbitLocked(ev rawInputMsg, tr *T.Trace) {
+func (md *MoveDispatch) applyOrbitLocked(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	g := &md.ui.gest
 	vp := md.ui.vp.Viewpoint
 	basis := geom.BasisFromViewpoint(vp.Pos, vp.Up)
@@ -112,7 +113,7 @@ func (md *MoveDispatch) applyOrbitLocked(ev rawInputMsg, tr *T.Trace) {
 // it ONCE to capture g.dragGrabOffset) and applyNodeDragTarget (which uses it every move) so
 // both project against the exact same plane instead of two copies that can drift apart.
 // Returns ok=false when the ray is parallel to the plane or the hit is non-finite.
-func (md *MoveDispatch) dragPlaneHit(ev rawInputMsg) (hit vec3, ok bool) {
+func (md *MoveDispatch) dragPlaneHit(ev inputcodec.RawInputMsg) (hit vec3, ok bool) {
 	g := &md.ui.gest
 	vp := md.ui.vp.Viewpoint
 	eye := geom.EyeOf(vp)
@@ -139,7 +140,7 @@ func (md *MoveDispatch) dragPlaneHit(ev rawInputMsg) (hit vec3, ok bool) {
 // center straight to the hit — is what keeps the point you grabbed under the cursor instead
 // of the node teleporting so its center lands there. Returns false if the ray is parallel
 // to the plane.
-func (md *MoveDispatch) applyNodeDragTarget(ev rawInputMsg) bool {
+func (md *MoveDispatch) applyNodeDragTarget(ev inputcodec.RawInputMsg) bool {
 	g := &md.ui.gest
 	hit, ok := md.dragPlaneHit(ev)
 	if !ok {
@@ -181,7 +182,7 @@ func (md *MoveDispatch) setHover(node, port string, isInput bool, tr *T.Trace) {
 // node selection); a node/port hit selects that node (clearing any edge selection); an
 // empty-space hit CLEARS the transient highlight (md.ui.sel.selected / md.ui.sel.selectedEdge) — this is
 // the original click-empty-clears behavior.
-func (md *MoveDispatch) applySelect(ev rawInputMsg, tr *T.Trace) {
+func (md *MoveDispatch) applySelect(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	// setSelectionUI (move_dispatch_api.go) is the AUTHORITATIVE write, same reasoning as
 	// setHoverUI above: it sets md.ui.sel's selection fields (+ latchedNode, mutated only
 	// by this goroutine) and MESSAGES the affected node(s)/edge to set their

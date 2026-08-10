@@ -9,6 +9,7 @@ import (
 
 	T "github.com/dtauraso/wirefold/Trace"
 	W "github.com/dtauraso/wirefold/nodes/Wiring"
+	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 )
 
 // startStdinReader launches the editor→Go bridge dispatch loop and returns the WaitGroup
@@ -28,7 +29,7 @@ import (
 // reader goroutine is deliberately left un-waited (detached); in production it
 // outlives the process only as long as it takes the OS to tear down the closed fd,
 // which is bounded by process exit, not by this WaitGroup.
-func startStdinReader(ctx context.Context, cancel context.CancelFunc, slotReg W.SlotRegistry, md *W.MoveDispatch, tr *T.Trace, speedSinks []chan float64) *sync.WaitGroup {
+func startStdinReader(ctx context.Context, cancel context.CancelFunc, slotReg inputcodec.SlotRegistry, md *W.MoveDispatch, tr *T.Trace, speedSinks []chan float64) *sync.WaitGroup {
 	stdinWG := new(sync.WaitGroup)
 	stdinWG.Add(1)
 	go func() {

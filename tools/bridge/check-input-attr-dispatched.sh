@@ -3,7 +3,7 @@ set -euo pipefail
 
 # check-input-attr-dispatched.sh — an attribute Go can DECODE must be DISPATCHED.
 #
-# PLACEMENT: nodes/Wiring/edit_update_decode.go,nodes/Wiring/stdin_dispatch.go,nodes/Wiring/stdin_apply.go | a new addressed-edit attribute must reach a handler, not just decode off the wire
+# PLACEMENT: nodes/Wiring/inputcodec/edit_update_decode.go,nodes/Wiring/stdin_dispatch.go,nodes/Wiring/stdin_apply.go | a new addressed-edit attribute must reach a handler, not just decode off the wire
 #
 # THE BUG THIS EXISTS FOR. A new addressed-edit ATTRIBUTE (the only way new addressed
 # capability lands — .claude/rules/bridge-surface.md: new entity kind or attribute, never a

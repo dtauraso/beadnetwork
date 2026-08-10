@@ -14,6 +14,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -86,7 +87,7 @@ func TestNewMoveDispatchRejectsDanglingEdgeTarget(t *testing.T) {
 	geoms := map[string]nodeGeom{
 		"1": {},
 	}
-	edgeEndpoints := map[string]EdgeEndpoints{
+	edgeEndpoints := map[string]inputcodec.EdgeEndpoints{
 		"e0": {Source: "1", Target: "9", SourceHandle: "Out", TargetHandle: "In"},
 	}
 	_, err := newMoveDispatch(geoms, edgeEndpoints, nil, nil, nil, wire.NewRealClock(), nil, 0)

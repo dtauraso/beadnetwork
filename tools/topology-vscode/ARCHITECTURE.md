@@ -36,7 +36,7 @@ for the full bridge-surface model, not duplicated here.
 
 **Do not restate the kind list here.** The authority is
 `INPUT_LAYOUT_FINGERPRINT` — one string encoding every kind byte, update kind,
-attr, and overlay flag, defined in `nodes/Wiring/input_fingerprint.go`. The TS side
+attr, and overlay flag, defined in `nodes/Wiring/inputcodec/input_fingerprint.go`. The TS side
 (`src/schema/input-layout-gen.ts`) is GENERATED from that Go string by
 `tools/gen-node-defs`, so it cannot drift — there is no second hand-kept copy to compare.
 Read the fingerprint to learn the current surface; prose copied into this file cannot fail

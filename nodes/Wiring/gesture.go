@@ -5,6 +5,7 @@ import (
 
 	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 )
 
 // gesture.go — the GESTURE STATE MACHINE. It consumes RAW pointer/wheel input (forwarded
@@ -117,7 +118,7 @@ func (r gestureRect) aspect() float64 {
 // and (possibly) a camera or topology change. Called by the stdin reader for a
 // type=="raw-input" message. slotReg resolves an edge's destination slot; tr emits camera
 // events + breadcrumbs. Fire-and-forget: nothing here triggers delivery.
-func (md *MoveDispatch) HandleRawInput(ev rawInputMsg, slotReg SlotRegistry, tr *T.Trace) {
+func (md *MoveDispatch) HandleRawInput(ev inputcodec.RawInputMsg, slotReg inputcodec.SlotRegistry, tr *T.Trace) {
 	g := &md.ui.gest
 	g.fov = ev.Fov
 	g.rect = gestureRect{left: ev.RectLeft, top: ev.RectTop, width: ev.RectWidth, height: ev.RectHeight}
@@ -128,21 +129,21 @@ func (md *MoveDispatch) HandleRawInput(ev rawInputMsg, slotReg SlotRegistry, tr 
 
 // rawInputHandlers is the flat dispatch table for HandleRawInput: raw-input kind →
 // handler. An unknown kind is a no-op, matching the switch's absent default.
-var rawInputHandlers = map[string]func(md *MoveDispatch, ev rawInputMsg, slotReg SlotRegistry, tr *T.Trace){
-	"pointerdown": func(md *MoveDispatch, ev rawInputMsg, slotReg SlotRegistry, tr *T.Trace) {
+var rawInputHandlers = map[string]func(md *MoveDispatch, ev inputcodec.RawInputMsg, slotReg inputcodec.SlotRegistry, tr *T.Trace){
+	"pointerdown": func(md *MoveDispatch, ev inputcodec.RawInputMsg, slotReg inputcodec.SlotRegistry, tr *T.Trace) {
 		md.gestPointerDown(ev, tr)
 	},
-	"pointermove": func(md *MoveDispatch, ev rawInputMsg, slotReg SlotRegistry, tr *T.Trace) {
+	"pointermove": func(md *MoveDispatch, ev inputcodec.RawInputMsg, slotReg inputcodec.SlotRegistry, tr *T.Trace) {
 		md.updateHover(ev, tr)
 		md.gestPointerMove(ev, tr)
 	},
-	"pointerup": func(md *MoveDispatch, ev rawInputMsg, slotReg SlotRegistry, tr *T.Trace) {
+	"pointerup": func(md *MoveDispatch, ev inputcodec.RawInputMsg, slotReg inputcodec.SlotRegistry, tr *T.Trace) {
 		md.gestPointerUp(ev, slotReg, tr)
 	},
-	"wheel": func(md *MoveDispatch, ev rawInputMsg, slotReg SlotRegistry, tr *T.Trace) {
+	"wheel": func(md *MoveDispatch, ev inputcodec.RawInputMsg, slotReg inputcodec.SlotRegistry, tr *T.Trace) {
 		md.gestWheel(ev, tr)
 	},
-	"home": func(md *MoveDispatch, ev rawInputMsg, slotReg SlotRegistry, tr *T.Trace) {
+	"home": func(md *MoveDispatch, ev inputcodec.RawInputMsg, slotReg inputcodec.SlotRegistry, tr *T.Trace) {
 		md.gestHome(ev, tr)
 	},
 }
@@ -155,7 +156,7 @@ var rawInputHandlers = map[string]func(md *MoveDispatch, ev rawInputMsg, slotReg
 // sent no pose, only render context (fov + aspect). Because the FSM's own viewpoint now IS
 // the framed pose, the next orbit/pan/zoom builds on it (no snap-back). Does nothing when
 // there are no nodes, mirroring HomeButton's early return.
-func (md *MoveDispatch) gestHome(ev rawInputMsg, tr *T.Trace) {
+func (md *MoveDispatch) gestHome(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	centers := md.heldCenters()
 	radius := make(map[string]float64, len(centers))
 	for id := range centers {
@@ -186,7 +187,7 @@ func (g *gestureState) pixelToNDC(x, y float64) (nx, ny float64) {
 	return nx, ny
 }
 
-func (md *MoveDispatch) gestPointerDown(ev rawInputMsg, tr *T.Trace) {
+func (md *MoveDispatch) gestPointerDown(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	g := &md.ui.gest
 	g.downX, g.downY = ev.X, ev.Y
 	g.prevX, g.prevY = ev.X, ev.Y
@@ -206,14 +207,14 @@ func (md *MoveDispatch) gestPointerDown(ev rawInputMsg, tr *T.Trace) {
 // switch it replaces was TERMINAL in gestPointerDown (nothing ran after it), so each case's
 // `return` becomes a `return` from the handler func here — behavior-equivalent because
 // nothing downstream of the switch depended on falling through to it.
-var hitClassifiers = map[string]func(md *MoveDispatch, g *gestureState, ev rawInputMsg){
-	"handhold": func(md *MoveDispatch, g *gestureState, ev rawInputMsg) {
+var hitClassifiers = map[string]func(md *MoveDispatch, g *gestureState, ev inputcodec.RawInputMsg){
+	"handhold": func(md *MoveDispatch, g *gestureState, ev inputcodec.RawInputMsg) {
 		// Handhold grab → axis-locked (constrained) orbit. Freeze the sphere rotation frame
 		// now (mirrors interaction-handlers.ts: beginSphereRotation on a handhold hit).
 		g.handholdDown = true
 		md.beginSphereRotation(ev)
 	},
-	"node": func(md *MoveDispatch, g *gestureState, ev rawInputMsg) {
+	"node": func(md *MoveDispatch, g *gestureState, ev inputcodec.RawInputMsg) {
 		if node, ok := md.nodeFromHit(ev.Hit); ok {
 			if c, ok := md.centerOfNode(node); ok {
 				g.dragNode = node
@@ -221,13 +222,13 @@ var hitClassifiers = map[string]func(md *MoveDispatch, g *gestureState, ev rawIn
 			}
 		}
 	},
-	"empty": func(md *MoveDispatch, g *gestureState, ev rawInputMsg) {
+	"empty": func(md *MoveDispatch, g *gestureState, ev inputcodec.RawInputMsg) {
 		g.emptyDown = true
 		md.beginSphereRotation(ev)
 	},
 }
 
-func (md *MoveDispatch) gestPointerMove(ev rawInputMsg, tr *T.Trace) {
+func (md *MoveDispatch) gestPointerMove(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	g := &md.ui.gest
 	if g.phase == gestIdle {
 		return
@@ -266,7 +267,7 @@ func (md *MoveDispatch) gestPointerMove(ev rawInputMsg, tr *T.Trace) {
 	}
 }
 
-func (md *MoveDispatch) gestPointerUp(ev rawInputMsg, slotReg SlotRegistry, tr *T.Trace) {
+func (md *MoveDispatch) gestPointerUp(ev inputcodec.RawInputMsg, slotReg inputcodec.SlotRegistry, tr *T.Trace) {
 	g := &md.ui.gest
 	switch {
 	case g.phase == gestDragging:
@@ -323,7 +324,7 @@ func (g *gestureState) reset(vp *geom.Viewpoint) {
 // gestWheel mirrors interaction-handlers.ts handleWheelNative: ctrl+wheel = zoom-to-cursor
 // dolly (expressed as a PAN in the polar model — a pivot translation, not a radius change),
 // plain wheel = screen-space pan. Both first seed the viewpoint to region-focus, then pan.
-func (md *MoveDispatch) gestWheel(ev rawInputMsg, tr *T.Trace) {
+func (md *MoveDispatch) gestWheel(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	vp := md.ui.vp.Viewpoint
 	eye := geom.EyeOf(vp)
 	pivot := geom.RegionFocus(vp, md.heldCenters())

@@ -4,8 +4,8 @@
 // buffer streamed on fd 3. The webview builds a binary RECORD per message and the
 // extension host writes each record FRAMED as [len:u32-LE][record] to Go's stdin.
 // This file decodes one record (kind byte + fixed numeric fields + length-prefixed
-// UTF-8 sections) back into the SAME stdinMsg the old newline-JSON path produced,
-// so applyEdit / HandleRawInput dispatch is UNCHANGED — only the wire
+// UTF-8 sections) back into the SAME StdinMsg the old newline-JSON path produced,
+// so Wiring's applyEdit / HandleRawInput dispatch is UNCHANGED — only the wire
 // decode differs.
 //
 // The record layout is defined ONCE here. The TS side
@@ -35,29 +35,29 @@
 // addressed edit's entity→attribute decoders are edit_update_decode.go. What is left in
 // THIS file is the one thing that has to know all four: the top-level KIND BYTE dispatch.
 
-package Wiring
+package inputcodec
 
 import "github.com/dtauraso/wirefold/nodes/Wiring/recread"
 
-// decodeInputRecord decodes one deframed record body (WITHOUT the [len] frame) into a
-// stdinMsg. ok=false means the record was malformed/unknown and must be ignored
+// DecodeInputRecord decodes one deframed record body (WITHOUT the [len] frame) into a
+// StdinMsg. ok=false means the record was malformed/unknown and must be ignored
 // (forward-compatible; mirrors the old json.Unmarshal-error `continue`).
-func decodeInputRecord(rec []byte) (stdinMsg, bool) {
+func DecodeInputRecord(rec []byte) (StdinMsg, bool) {
 	if len(rec) == 0 {
-		return stdinMsg{}, false
+		return StdinMsg{}, false
 	}
 	r := recread.NewReader(rec, 1)
 	switch rec[0] {
-	case inKindSave:
-		return stdinMsg{Type: "save"}, true
-	case inKindRawInput:
+	case InKindSave:
+		return StdinMsg{Type: "save"}, true
+	case InKindRawInput:
 		ev, ok := decodeRawInput(r)
 		if !ok {
-			return stdinMsg{}, false
+			return StdinMsg{}, false
 		}
-		return stdinMsg{Type: "raw-input", Event: &ev}, true
-	case inKindEditUpdate:
+		return StdinMsg{Type: "raw-input", Event: &ev}, true
+	case InKindEditUpdate:
 		return decodeEditUpdate(r)
 	}
-	return stdinMsg{}, false
+	return StdinMsg{}, false
 }

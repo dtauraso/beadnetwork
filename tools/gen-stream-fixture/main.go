@@ -1,6 +1,6 @@
 // gen-stream-fixture is the Go SIDE of the Go->TS stream-frame cross-language fixture
 // (mirrors tools/topology-vscode/scripts/gen-input-fixture-src.ts, which is the TS side of
-// the TS->Go input-record fixture — see nodes/Wiring/input_fixture_test.go's header for the
+// the TS->Go input-record fixture — see nodes/Wiring/inputcodec/input_fixture_test.go's header for the
 // gap this closes).
 //
 // It builds real per-owner stream-frame bytes with the REAL production packers

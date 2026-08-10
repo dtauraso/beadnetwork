@@ -4,7 +4,7 @@
 // decodeEdgeStreamFrame / decodeInteriorStreamFrame in ../src/webview/three/decode's
 // buffer-decode-node.ts / buffer-decode-edge.ts / buffer-decode-interior.ts)
 // agree on the wire bytes — the Go->TS direction mirror of
-// nodes/Wiring/input_fixture_test.go (TS->Go).
+// nodes/Wiring/inputcodec/input_fixture_test.go (TS->Go).
 //
 // node-stream-blocks.test.ts already covers this decode path, but it builds its own frame
 // bytes with `new ArrayBuffer`/`new DataView` in TS and decodes them in TS — a same-language
