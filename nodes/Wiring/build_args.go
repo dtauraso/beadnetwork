@@ -41,14 +41,24 @@ import (
 	T "github.com/dtauraso/wirefold/Trace"
 )
 
-// currentBuildMD is the current load's *MoveDispatch, set once by build_nodes.go's
-// buildNodes before any node is built. It exists so build_args_lattice.go/
-// build_args_tilt_vector.go/build_args_selfdrive.go's methods — which need
-// Wiring-internal MoveDispatch state (md.ui, md.inboxes, md.mr) that PortBindings
-// cannot portably carry once PortBindings/PortSpec live in their own portwiring
-// package — can reach it without PortBindings holding a *MoveDispatch
-// back-reference. See buildNodes' doc comment for why a package-level var is safe here.
-var currentBuildMD *MoveDispatch
+// buildDeps carries the specific pieces of MoveDispatch state that
+// build_args_lattice.go/build_args_tilt_vector.go/build_args_selfdrive.go's methods need
+// (md.ui.latticePoints, md.inboxes, md.mr) — the Wiring-internal state PortBindings cannot
+// portably carry once PortBindings/PortSpec live in their own portwiring package. It is
+// built once per load by buildNodes (build_nodes.go) from its *buildCtx's *MoveDispatch and
+// handed down through RegisterBuilder's wrapper into each node's BuildArgs, instead of a
+// package-level *MoveDispatch var any node's build could reach for — the hub back-reference
+// this struct exists to avoid. Two of the three consuming methods MUTATE through these
+// fields (LatticeIn/TiltEditIn register this node's own channel in the inboxes map,
+// ClaimSelfDrive marks this node's own id in mr.selfDriveClaimed), so inboxes/mr are
+// pointers, not copies. Zero value (nil inboxes/mr, zero latticePoints) is what a bare test
+// build with no loader passes, and every consuming method's nil-safe fallback is keyed off
+// that zero value.
+type buildDeps struct {
+	latticePoints int32
+	inboxes       *nodeInboxes
+	mr            *moverRegistry
+}
 
 // BuildArgs carries everything a node kind needs to construct itself. It is passed as ONE
 // struct rather than as separate parameters so that adding an input later does not edit
@@ -94,6 +104,9 @@ type BuildArgs struct {
 	// desync the moment both driven Outs got handed to two DriveHeld goroutines) — see
 	// DriveOut below.
 	driveSlotClaims map[int]string
+
+	// deps carries the caller-supplied buildDeps — see that type's own doc comment.
+	deps buildDeps
 }
 
 // Name is this node's spec id.
@@ -123,7 +136,7 @@ func RegisterBuilder(kind string, ports []PortSpec, build func(BuildArgs) (wire.
 	}
 	Registry[kind] = NodeBuilder{
 		Ports: ports,
-		Build: func(ctx context.Context, name string, data *NodeData, pb PortBindings, tr *T.Trace, geom nodegeom.NodeGeom, tiltThetaIdx int32) (wire.Node, error) {
+		Build: func(ctx context.Context, name string, data *NodeData, pb PortBindings, tr *T.Trace, geom nodegeom.NodeGeom, tiltThetaIdx int32, deps buildDeps) (wire.Node, error) {
 			var sourceOuts []*wire.Out
 			return build(BuildArgs{
 				ctx: ctx, name: name, data: data, pb: pb, tr: tr,
@@ -132,6 +145,7 @@ func RegisterBuilder(kind string, ports []PortSpec, build func(BuildArgs) (wire.
 				getStream:       portwiring.NewInteriorStreamGetter(name, pb),
 				driveSlotClaims: map[int]string{},
 				tiltThetaIdx:    tiltThetaIdx,
+				deps:            deps,
 			})
 		},
 	}

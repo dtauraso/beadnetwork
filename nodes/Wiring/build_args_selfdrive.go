@@ -16,22 +16,22 @@ package Wiring
 // and to apply what used to be one-way notification messages to it (SetTiltIndex/
 // SetReceivedVector/ClearOutBeads) as plain method calls instead — there is no longer
 // anything to notify: the caller's own goroutine already IS the driver. Returns nil on a
-// bare test build with no loader (currentBuildMD == nil) or if this node has no geometry entry,
+// bare test build with no loader (a.deps.mr == nil) or if this node has no geometry entry,
 // matching the nil-safe fallback every other closure in this file takes; every method on
 // a nil *PairNodeSelf is itself a no-op.
 func (a BuildArgs) ClaimSelfDrive() *PairNodeSelf {
-	md := currentBuildMD
-	if md == nil {
+	mr := a.deps.mr
+	if mr == nil {
 		return nil
 	}
-	ng, ok := md.mr.nodeGeoms[a.name]
+	ng, ok := mr.nodeGeoms[a.name]
 	if !ok {
 		return nil
 	}
-	if md.mr.selfDriveClaimed == nil {
-		md.mr.selfDriveClaimed = map[string]bool{}
+	if mr.selfDriveClaimed == nil {
+		mr.selfDriveClaimed = map[string]bool{}
 	}
-	md.mr.selfDriveClaimed[a.name] = true
+	mr.selfDriveClaimed[a.name] = true
 	// A ring node's nodeMover.run Copies clockSrc into clk once, at its own goroutine
 	// start. There is no such goroutine start for a self-driven node — ClaimSelfDrive
 	// runs during buildNodes, single-threaded setup, before any goroutine exists — so do

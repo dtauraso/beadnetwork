@@ -16,15 +16,16 @@ import (
 // earlier phases. outSink collects every paced source Out keyed by "node.handle"
 // so node-move can update per-edge travel-time on the Out.
 func (b *buildCtx) buildNodes() error {
-	// currentBuildMD gives BuildArgs methods that need more of MoveDispatch than
-	// PortBindings can portably carry (LatticePointsSeed/LatticeIn, TiltEditIn,
-	// ClaimSelfDrive — all Wiring-internal state: md.ui, md.inboxes, md.mr) a way to
-	// reach it without PortBindings holding a *MoveDispatch back-reference. Set once,
-	// here, before any node is built; buildNodes runs single-threaded (LoadTopology's
-	// build phase, before any node/mover goroutine exists — see RowTables' own doc
-	// comment for the same "built before Start" reasoning), so a package-level var read
-	// back by those methods is safe, matching Registry's own existing package-level state.
-	currentBuildMD = b.md
+	// deps gives BuildArgs methods that need more of MoveDispatch than PortBindings can
+	// portably carry (LatticePointsSeed/LatticeIn, TiltEditIn, ClaimSelfDrive —
+	// Wiring-internal state: md.ui.latticePoints, md.inboxes, md.mr) a way to reach it
+	// without PortBindings holding a *MoveDispatch back-reference. Built once, here,
+	// before any node is built, and threaded down through each bind.Build call below.
+	deps := buildDeps{
+		latticePoints: b.md.ui.latticePoints,
+		inboxes:       &b.md.inboxes,
+		mr:            &b.md.mr,
+	}
 	outSink := map[string]*wire.Out{}
 	nodes := make([]wire.Node, 0, len(b.spec.Nodes))
 	for _, n := range b.spec.Nodes {
@@ -92,7 +93,7 @@ func (b *buildCtx) buildNodes() error {
 		if n.TopTiltVectorThetaIdx != nil {
 			tiltThetaIdx = *n.TopTiltVectorThetaIdx
 		}
-		nd, err := bind.Build(b.ctx, n.ID, n.Data, pb, b.tr, b.nodeGeoms[n.ID], tiltThetaIdx)
+		nd, err := bind.Build(b.ctx, n.ID, n.Data, pb, b.tr, b.nodeGeoms[n.ID], tiltThetaIdx, deps)
 		if err != nil {
 			return fmt.Errorf("LoadTopology: build node %q: %w", n.ID, err)
 		}
