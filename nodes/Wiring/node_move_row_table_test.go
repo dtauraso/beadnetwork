@@ -45,40 +45,40 @@ func TestMoveDispatchRowTablesUseNodeIDMinusOne(t *testing.T) {
 	// Node rows: ROW ID = NODE ID - 1.
 	wantRows := map[string]int{"3": 2, "15": 14, "30": 29}
 	for id, row := range wantRows {
-		got, ok := md.LookupNodeRow(row)
+		got, ok := md.RT.LookupNodeRow(row)
 		if !ok || got != id {
 			t.Fatalf("LookupNodeRow(%d)=(%q,%v) want (%q,true)", row, got, ok, id)
 		}
-		if r, ok := md.NodeRowFor(id); !ok || r != int32(row) {
+		if r, ok := md.RT.NodeRowFor(id); !ok || r != int32(row) {
 			t.Fatalf("NodeRowFor(%q)=(%d,%v) want (%d,true)", id, r, ok, row)
 		}
 	}
 
 	// A gap row (no node has id 1, so row 0 is empty) resolves to not-found, not to some
 	// other node sliding down to fill it.
-	if got, ok := md.LookupNodeRow(0); ok {
+	if got, ok := md.RT.LookupNodeRow(0); ok {
 		t.Fatalf("LookupNodeRow(0) (gap row, no node id 1) = (%q,true), want ok=false", got)
 	}
 
 	// Out of the row space entirely (RowCount=30, rows 0..29) is also not-found.
-	if _, ok := md.LookupNodeRow(30); ok {
+	if _, ok := md.RT.LookupNodeRow(30); ok {
 		t.Fatalf("LookupNodeRow(30) out of range: want ok=false")
 	}
 
 	// Edge rows: one edge, row 0 (edge rows are dense spec order — not node-id-derived).
-	if l, ok := md.LookupEdgeRow(0); !ok || l != "e0" {
+	if l, ok := md.RT.LookupEdgeRow(0); !ok || l != "e0" {
 		t.Fatalf("LookupEdgeRow(0)=(%q,%v) want (e0,true)", l, ok)
 	}
-	if _, ok := md.LookupEdgeRow(1); ok {
+	if _, ok := md.RT.LookupEdgeRow(1); ok {
 		t.Fatalf("LookupEdgeRow(1) out of range: want ok=false")
 	}
-	if r, ok := md.EdgeRowForPair("3", "30"); !ok || r != 0 {
+	if r, ok := md.RT.EdgeRowForPair("3", "30"); !ok || r != 0 {
 		t.Fatalf("EdgeRowForPair(3,30)=(%d,%v) want (0,true)", r, ok)
 	}
-	if r, ok := md.EdgeRowForPair("30", "3"); !ok || r != 0 {
+	if r, ok := md.RT.EdgeRowForPair("30", "3"); !ok || r != 0 {
 		t.Fatalf("EdgeRowForPair(30,3)=(%d,%v) want (0,true) (order-independent)", r, ok)
 	}
-	if _, ok := md.EdgeRowForPair("3", "15"); ok {
+	if _, ok := md.RT.EdgeRowForPair("3", "15"); ok {
 		t.Fatalf("EdgeRowForPair(3,15): want ok=false (no such edge)")
 	}
 }

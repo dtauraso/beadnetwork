@@ -56,7 +56,7 @@ func wireNodeStreams(streamFDs B.StreamFDs, md *W.MoveDispatch) {
 			// kindIDFor resolves a node's static load-time kind string to its NODE_DEFS
 			// index (Buffer.NodeKindID) — injected so Wiring stays Buffer-independent.
 			md.SetNodeStreams(nodeBase, interiorBase, driveBase, driveWired,
-				md.NodeRowFor,
+				md.RT.NodeRowFor,
 				// Field-by-NAME across the Buffer-independence seam, same shape as
 				// toStreamEvents above: Wiring.NodeFrameInput → Buffer.NodeStreamFrame.
 				// Two structs, one per side, so a transposition is a wrong field name

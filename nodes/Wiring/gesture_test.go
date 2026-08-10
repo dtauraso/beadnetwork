@@ -109,7 +109,7 @@ func TestGestureWheelPansOverNodeAndEdgeHit(t *testing.T) {
 		{Kind: "port", PortRow: 0},
 	} {
 		md := newGestureMD(canonicalViewpoint())
-		md.rt.nodeRowTable = []string{"N7"}
+		md.RT.NodeRowTable = []string{"N7"}
 		before := md.ui.vp.pivot
 		ev := rawEvent("wheel", 400, 300)
 		ev.DeltaX = 10
@@ -149,8 +149,8 @@ func TestGestureCtrlWheelZoomsToCursor(t *testing.T) {
 // clears the edge selection, and an empty click clears both.
 func TestGestureClickSelectsEdgeGoOwned(t *testing.T) {
 	md := newGestureMD(canonicalViewpoint())
-	md.rt.edgeRowTable = []string{"e0", "e1"}
-	md.rt.nodeRowTable = []string{"N7"}
+	md.RT.EdgeRowTable = []string{"e0", "e1"}
+	md.RT.NodeRowTable = []string{"N7"}
 
 	// First select a node so we can prove edge-select clears it.
 	nd := rawEvent("pointerdown", 400, 300)
@@ -200,7 +200,7 @@ func TestGestureClickSelectsEdgeGoOwned(t *testing.T) {
 // empty space clears it. (No camera change — covered by TestGestureClickNoCameraChange.)
 func TestGestureClickSelectsNodeGoOwned(t *testing.T) {
 	md := newGestureMD(canonicalViewpoint())
-	md.rt.nodeRowTable = []string{"N7"}
+	md.RT.NodeRowTable = []string{"N7"}
 
 	down := rawEvent("pointerdown", 400, 300)
 	down.Hit = rawHit{Kind: "node", NodeRow: 0}
@@ -231,7 +231,7 @@ func TestGestureClickSelectsNodeGoOwned(t *testing.T) {
 // Drives moves and asserts md.ui.sel.hoverNode tracks the hit.
 func TestGestureHoverTracksNode(t *testing.T) {
 	md := newGestureMD(canonicalViewpoint())
-	md.rt.nodeRowTable = []string{"N7"}
+	md.RT.NodeRowTable = []string{"N7"}
 
 	// Move over node N7's torus ring → hovered node.
 	mv := rawEvent("pointermove", 400, 300)
@@ -262,7 +262,7 @@ func TestGestureHoverTracksNode(t *testing.T) {
 // still resolve to a node select on pointer-up. Empty-space two-finger tap preserves selection.
 func TestGestureSecondaryTapSelectsThroughDrift(t *testing.T) {
 	md := newGestureMD(canonicalViewpoint())
-	md.rt.nodeRowTable = []string{"N7"}
+	md.RT.NodeRowTable = []string{"N7"}
 
 	// Two-finger tap ON a node, with drift between down and up.
 	down := rawEvent("pointerdown", 400, 300)
@@ -379,7 +379,7 @@ func TestGestureOnePixelMoveCommitsToDrag(t *testing.T) {
 // displacement (dist > 0), not "a move event arrived".
 func TestGestureMoveAtPressPointDoesNotCommit(t *testing.T) {
 	md := newGestureMD(canonicalViewpoint())
-	md.rt.nodeRowTable = []string{"n"}
+	md.RT.NodeRowTable = []string{"n"}
 
 	down := rawEvent("pointerdown", 400, 300)
 	down.Hit = rawHit{Kind: "node", NodeRow: 0}
@@ -398,7 +398,7 @@ func TestGestureMoveAtPressPointDoesNotCommit(t *testing.T) {
 // of this, and TestGestureSelectModeOffStillHighlights below for a node-target click).
 func TestGesturePressReleaseNoMoveSelects(t *testing.T) {
 	md := newGestureMD(canonicalViewpoint())
-	md.rt.nodeRowTable = []string{"N7"}
+	md.RT.NodeRowTable = []string{"N7"}
 
 	down := rawEvent("pointerdown", 400, 300)
 	down.Hit = rawHit{Kind: "node", NodeRow: 0}
@@ -421,7 +421,7 @@ func TestGesturePressReleaseNoMoveSelects(t *testing.T) {
 // the commit guard is `dist > 0 && !g.secondary`, so the secondary check must still gate it.
 func TestGestureSecondaryMoveStaysPendingAndTapSelects(t *testing.T) {
 	md := newGestureMD(canonicalViewpoint())
-	md.rt.nodeRowTable = []string{"N7"}
+	md.RT.NodeRowTable = []string{"N7"}
 
 	down := rawEvent("pointerdown", 400, 300)
 	down.Button = 2
@@ -451,7 +451,7 @@ func TestGestureSecondaryMoveStaysPendingAndTapSelects(t *testing.T) {
 func TestGestureSelectModeOffStillHighlights(t *testing.T) {
 	md := newGestureMD(canonicalViewpoint())
 	md.ui.ov.selSpherePolesVisible = false
-	md.rt.nodeRowTable = []string{"A"}
+	md.RT.NodeRowTable = []string{"A"}
 
 	down := rawEvent("pointerdown", 400, 300)
 	down.Hit = rawHit{Kind: "node", NodeRow: 0}

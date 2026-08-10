@@ -33,6 +33,8 @@ package Wiring
 import (
 	"context"
 
+	rowtables "github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
+
 	T "github.com/dtauraso/wirefold/Trace"
 )
 
@@ -100,10 +102,10 @@ type MoveDispatch struct {
 	// and falls back to the plain blocking send (matches prior test behavior).
 	ctx context.Context
 
-	// rowTables owns the four row-identity tables (row_tables.go). MoveDispatch's
-	// public Lookup*/…RowFor methods below are thin delegators to it so the external
-	// API is unchanged.
-	rt rowTables
+	// RT owns the three row-identity tables (nodes/Wiring/rowtables). Exported: external
+	// callers (root package) reach it directly (md.RT.NodeRowFor(...)) instead of through
+	// MoveDispatch delegator methods.
+	RT rowtables.RowTables
 
 	// inboxes owns the directories of per-node dedicated channels a kind can claim for
 	// itself at build time — see nodeInboxes' own doc comment.

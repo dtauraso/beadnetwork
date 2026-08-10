@@ -28,7 +28,7 @@ func dragOffsetMD() *MoveDispatch {
 	// No goroutine started (mirrors gesture_home_test's homeMD): extIn is a buffered
 	// channel (moverInboxDepth), so sendMove's writes land there for the test to drain
 	// without a live mover loop committing them.
-	md.rt.nodeRowTable = []string{"n"}
+	md.RT.NodeRowTable = []string{"n"}
 	return md
 }
 

@@ -50,7 +50,7 @@ func newInteriorStreamGetter(name string, pb PortBindings) func() *interiorStrea
 			return nil
 		}
 		nodeRow := int32(-1)
-		if r, ok := pb.md.NodeRowFor(name); ok {
+		if r, ok := pb.md.RT.NodeRowFor(name); ok {
 			nodeRow = r
 		}
 		absent := make([]uint8, bufInteriorSlotsPerNode)
@@ -95,7 +95,7 @@ func newDriveStreamGetter(name string, slot int, pb PortBindings) func() *interi
 			return nil
 		}
 		nodeRow := int32(-1)
-		if r, ok := pb.md.NodeRowFor(name); ok {
+		if r, ok := pb.md.RT.NodeRowFor(name); ok {
 			nodeRow = r
 		}
 		absent := make([]uint8, bufInteriorSlotsPerNode)
@@ -144,7 +144,7 @@ func newOutPort(portName string, ctx context.Context, name string, pb PortBindin
 	if b := pb.singlePaced[portName]; b.pw != nil {
 		targetRow := int32(-1)
 		if pb.md != nil && b.pw.Target != "" {
-			if r, ok := pb.md.NodeRowFor(b.pw.Target); ok {
+			if r, ok := pb.md.RT.NodeRowFor(b.pw.Target); ok {
 				targetRow = r
 			}
 		}
@@ -165,7 +165,7 @@ func newBroadcastPort(portName string, ctx context.Context, name string, pb Port
 		for i, b := range bs {
 			targetRow := int32(-1)
 			if pb.md != nil && b.pw.Target != "" {
-				if r, ok := pb.md.NodeRowFor(b.pw.Target); ok {
+				if r, ok := pb.md.RT.NodeRowFor(b.pw.Target); ok {
 					targetRow = r
 				}
 			}

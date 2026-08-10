@@ -126,7 +126,7 @@ func (md *MoveDispatch) emitViewFrame(events []wire.RowEvent) {
 	// to "" when the drag ends. "" (nothing ever dragged) resolves to -1.
 	dragNodeRow := int32(-1)
 	if md.ui.lastDraggedNode != "" {
-		if r, ok := md.NodeRowFor(md.ui.lastDraggedNode); ok {
+		if r, ok := md.RT.NodeRowFor(md.ui.lastDraggedNode); ok {
 			dragNodeRow = r
 		}
 	}

@@ -161,7 +161,7 @@ func (md *MoveDispatch) setHover(node, port string, isInput bool, tr *T.Trace) {
 	// its own VIEW frame directly, carrying this one hover event resolved to buffer rows
 	// (mirrors owner_events.go's pattern for every other per-owner stream).
 	nodeRow := int32(-1)
-	if r, ok := md.NodeRowFor(node); ok {
+	if r, ok := md.RT.NodeRowFor(node); ok {
 		nodeRow = r
 	}
 	// portRow is always -1: a port has no buffer row of its own any more
@@ -217,7 +217,7 @@ func (md *MoveDispatch) applySelect(ev rawInputMsg, tr *T.Trace) {
 func (md *MoveDispatch) emitSelectViewFrame(node string) {
 	nodeRow := int32(-1)
 	if node != "" {
-		if r, ok := md.NodeRowFor(node); ok {
+		if r, ok := md.RT.NodeRowFor(node); ok {
 			nodeRow = r
 		}
 	}

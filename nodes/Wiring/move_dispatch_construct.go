@@ -12,6 +12,7 @@ import (
 	"sort"
 	"strconv"
 
+	rowtables "github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -235,8 +236,16 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 		}
 	}
 	// Row-identity tables: built ONCE here, from nodeSeeds/edgeSeeds (each node seed already
-	// carries its own absolute Row = id-1) — see buildRowTables' doc comment for why this is
+	// carries its own absolute Row = id-1) — see RowTables.Build's doc comment for why this is
 	// a load-time constant, not a discovery log.
-	md.rt.buildRowTables(md.gs.nodeSeeds, md.gs.edgeSeeds, rowCount)
+	rtNodeSeeds := make([]rowtables.NodeSeed, len(md.gs.nodeSeeds))
+	for i, sd := range md.gs.nodeSeeds {
+		rtNodeSeeds[i] = rowtables.NodeSeed{ID: sd.ID, Row: sd.Row}
+	}
+	rtEdgeSeeds := make([]rowtables.EdgeSeed, len(md.gs.edgeSeeds))
+	for i, sd := range md.gs.edgeSeeds {
+		rtEdgeSeeds[i] = rowtables.EdgeSeed{Label: sd.Label, SrcNode: sd.SrcNode, DstNode: sd.DstNode}
+	}
+	md.RT.Build(rtNodeSeeds, rtEdgeSeeds, rowCount)
 	return md, nil
 }

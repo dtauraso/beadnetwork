@@ -133,7 +133,7 @@ func (md *MoveDispatch) DeleteNode(row int, tr *T.Trace) {
 		md.refuseStructuralEdit("this scene does not take structural edits")
 		return
 	}
-	id, ok := md.LookupNodeRow(row)
+	id, ok := md.RT.LookupNodeRow(row)
 	if !ok {
 		md.refuseStructuralEdit(fmt.Sprintf("no node on row %d", row))
 		return

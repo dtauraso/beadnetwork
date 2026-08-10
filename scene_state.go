@@ -15,10 +15,10 @@ import (
 // frame (pan works immediately). Absent/malformed file → a fixed non-degenerate default.
 //
 // The buffer's node/edge/port row-identity tables now live ON md itself (built once at
-// load, in newMoveDispatch's buildRowTables call, from the same spec-order nodeSeeds/
+// load, in newMoveDispatch's RowTables.Build call, from the same spec-order nodeSeeds/
 // edgeSeeds each per-owner stream frame uses below) — a node/edge/port hit (which
 // carries only a numeric buffer row index) resolves back to its identity via
-// md.LookupNodeRow/LookupEdgeRow/LookupPortRow with no separate resolver wiring.
+// md.RT.LookupNodeRow/md.RT.LookupEdgeRow/md.LookupPortRow with no separate resolver wiring.
 // Initial camera viewpoint = FILE DATA: Go reads the saved camera from
 // <topologyPath>/view/camera.json and installs it into the gesture-FSM viewpoint.
 func loadSceneState(scenePath string, md *W.MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
