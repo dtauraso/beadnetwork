@@ -1,9 +1,11 @@
 package Wiring
 
 import (
-	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"io"
 	"testing"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -55,14 +57,14 @@ func TestOrbitLockedViewpointEmitsCamera(t *testing.T) {
 	md.SetViewpoint(
 		vec3{X: 0, Y: 0, Z: 0},
 		100,
-		dir{Theta: 1.0, Phi: 0.0},
-		dir{Theta: 1.5708, Phi: 0.0},
+		geom.Dir{Theta: 1.0, Phi: 0.0},
+		geom.Dir{Theta: 1.5708, Phi: 0.0},
 	)
 
 	// First OrbitLockedViewpoint should write a camera RowEvent.
-	md.OrbitLockedViewpoint(dir{Theta: 1.0, Phi: 0.0}, dir{Theta: 1.1, Phi: 0.1}, tr)
+	md.OrbitLockedViewpoint(geom.Dir{Theta: 1.0, Phi: 0.0}, geom.Dir{Theta: 1.1, Phi: 0.1}, tr)
 	// Second OrbitLockedViewpoint should write another camera RowEvent.
-	md.OrbitLockedViewpoint(dir{Theta: 1.1, Phi: 0.1}, dir{Theta: 1.2, Phi: 0.15}, tr)
+	md.OrbitLockedViewpoint(geom.Dir{Theta: 1.1, Phi: 0.1}, geom.Dir{Theta: 1.2, Phi: 0.15}, tr)
 
 	if n := countCameraEvents(events); n < 2 {
 		t.Fatalf("expected at least 2 camera events, got %d", n)
@@ -74,19 +76,19 @@ func TestSetViewpointClearsLock(t *testing.T) {
 	md := &MoveDispatch{}
 
 	// After SetViewpoint the lock must be nil.
-	md.SetViewpoint(vec3{}, 100, dir{Theta: 1.0}, dir{Theta: 1.5708})
+	md.SetViewpoint(vec3{}, 100, geom.Dir{Theta: 1.0}, geom.Dir{Theta: 1.5708})
 	if md.ui.vp.LockedAxis != nil {
 		t.Fatal("lockedAxis should be nil after SetViewpoint")
 	}
 
 	// After the first OrbitLocked the lock must be non-nil.
-	md.OrbitLockedViewpoint(dir{Theta: 1.0, Phi: 0.0}, dir{Theta: 1.1, Phi: 0.1}, tr)
+	md.OrbitLockedViewpoint(geom.Dir{Theta: 1.0, Phi: 0.0}, geom.Dir{Theta: 1.1, Phi: 0.1}, tr)
 	if md.ui.vp.LockedAxis == nil {
 		t.Fatal("lockedAxis should be non-nil after first OrbitLockedViewpoint")
 	}
 
 	// Another SetViewpoint must clear the lock again.
-	md.SetViewpoint(vec3{}, 100, dir{Theta: 1.0}, dir{Theta: 1.5708})
+	md.SetViewpoint(vec3{}, 100, geom.Dir{Theta: 1.0}, geom.Dir{Theta: 1.5708})
 	if md.ui.vp.LockedAxis != nil {
 		t.Fatal("lockedAxis should be nil after second SetViewpoint")
 	}

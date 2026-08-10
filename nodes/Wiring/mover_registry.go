@@ -11,8 +11,9 @@ package Wiring
 import (
 	"context"
 	"fmt"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"sync"
+
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
 // moverInboxDepth is the declared capacity of every per-mover moveMsg inbox: an

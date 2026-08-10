@@ -12,24 +12,25 @@ package Wiring
 
 import (
 	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
 // viewpointState carries the camera viewpoint and its emit/navigation methods.
 type viewpointState struct {
-	viewpoint
+	geom.Viewpoint
 	// persist, when non-nil, is called with the current viewpoint after every EmitViewpoint
 	// so a gesture-driven change is persisted to camera.json. nil until armed by
 	// MoveDispatch.EnableViewpointPersist (after the startup seed), so the seed's own emit
 	// does not write. Owned by MoveDispatch; the debounce/write live in the persister.
-	persist func(viewpoint)
+	persist func(geom.Viewpoint)
 }
 
 // SetViewpoint installs a known camera state without emitting. Used by the "set"
 // viewpoint op to seed the viewpoint from persisted or initial values, followed by
 // EmitViewpoint to broadcast it. Also clears any locked rotation axis from a prior
 // handhold gesture so the next gesture starts fresh.
-func (v *viewpointState) SetViewpoint(pivot vec3, r float64, pos, up dir) {
+func (v *viewpointState) SetViewpoint(pivot vec3, r float64, pos, up geom.Dir) {
 	v.Pivot = pivot
 	v.R = r
 	v.Pos = pos
@@ -44,12 +45,12 @@ func (v *viewpointState) EmitViewpoint(tr *T.Trace) {
 	// independent of the trace sink. Every gesture viewpoint change (orbit/zoom/pan/home)
 	// flows through EmitViewpoint, so this is the single chokepoint for the write side.
 	if v.persist != nil {
-		v.persist(v.viewpoint)
+		v.persist(v.Viewpoint)
 	}
 }
 
 // OrbitViewpoint applies a great-circle orbit (carrying from→to) and emits the new state.
-func (v *viewpointState) OrbitViewpoint(from, to dir, tr *T.Trace) {
+func (v *viewpointState) OrbitViewpoint(from, to geom.Dir, tr *T.Trace) {
 	v.Orbit(from, to)
 	v.EmitViewpoint(tr)
 }
@@ -57,7 +58,7 @@ func (v *viewpointState) OrbitViewpoint(from, to dir, tr *T.Trace) {
 // OrbitLockedViewpoint applies a handhold-constrained orbit: the first call locks the
 // rotation axis from the from→to arc; subsequent calls keep the same axis. The lock is
 // cleared by the next SetViewpoint. Emits a camera event each call.
-func (v *viewpointState) OrbitLockedViewpoint(from, to dir, tr *T.Trace) {
+func (v *viewpointState) OrbitLockedViewpoint(from, to geom.Dir, tr *T.Trace) {
 	v.OrbitLocked(from, to)
 	v.EmitViewpoint(tr)
 }
@@ -77,7 +78,7 @@ func (v *viewpointState) PanViewpoint(delta vec3, tr *T.Trace) {
 // Camera viewpoint API — thin delegators to the owned viewpointState above.
 // The public signatures are unchanged; the state and behavior live on md.ui.vp.
 
-func (md *MoveDispatch) SetViewpoint(pivot vec3, r float64, pos, up dir) {
+func (md *MoveDispatch) SetViewpoint(pivot vec3, r float64, pos, up geom.Dir) {
 	md.ui.vp.SetViewpoint(pivot, r, pos, up)
 }
 
@@ -92,11 +93,11 @@ func (md *MoveDispatch) EmitViewpoint(tr *T.Trace) {
 	md.ui.vp.EmitViewpoint(tr)
 	md.emitViewFrame(cameraViewEvent())
 }
-func (md *MoveDispatch) OrbitViewpoint(from, to dir, tr *T.Trace) {
+func (md *MoveDispatch) OrbitViewpoint(from, to geom.Dir, tr *T.Trace) {
 	md.ui.vp.OrbitViewpoint(from, to, tr)
 	md.emitViewFrame(cameraViewEvent())
 }
-func (md *MoveDispatch) OrbitLockedViewpoint(from, to dir, tr *T.Trace) {
+func (md *MoveDispatch) OrbitLockedViewpoint(from, to geom.Dir, tr *T.Trace) {
 	md.ui.vp.OrbitLockedViewpoint(from, to, tr)
 	md.emitViewFrame(cameraViewEvent())
 }

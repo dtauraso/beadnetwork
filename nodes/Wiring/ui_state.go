@@ -10,6 +10,8 @@ package Wiring
 
 import (
 	"context"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 )
 
 // uiState groups the CURRENTLY-SELECTED (click-select) and CURRENTLY-HOVERED (pointer
@@ -38,7 +40,7 @@ type uiState struct {
 	// about (polar-model.md, sphere_layout.go). Loaded from sphere.json (or defaulted from
 	// the content-fit) at startup; its Center is the one cartesian anchor. Phase 1 stores
 	// it; later phases derive node world from it and move it on pan.
-	sceneSphere sceneSphere
+	sceneSphere geom.SceneSphere
 	// clockDivisor is this SCENE's ClockDivisor (SceneTab.ClockDivisor, scene_tabs.go),
 	// resolved ONCE at load by LoadSpeed from the scene actually loaded (the process is
 	// respawned per tab switch, so a per-process value is correct). Defaults to 1 (no

@@ -23,6 +23,7 @@ import (
 	"math"
 
 	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 )
 
@@ -64,17 +65,17 @@ type scenePolarCamera struct {
 //
 //	pivot = (pivot[0], pivot[1], pivot[2])   r = r
 //	pos   = {Theta: pos[0], Phi: pos[1]}     up = {Theta: up[0], Phi: up[1]}
-func loadSceneViewpoint(topologyPath string) (pivot vec3, r float64, pos, up dir, ok bool) {
+func loadSceneViewpoint(topologyPath string) (pivot vec3, r float64, pos, up geom.Dir, ok bool) {
 	var cp scenePolarCamera
 	jsonpersist.ReadJSONBestEffort(cameraFilePath(topologyPath), &cp)
 	// Require every field (matches parsePolarCamera, which drops a partial object).
 	if cp.Pivot == nil || cp.R == nil || cp.Pos == nil || cp.Up == nil {
-		return vec3{}, 0, dir{}, dir{}, false
+		return vec3{}, 0, geom.Dir{}, geom.Dir{}, false
 	}
 	pivot = vec3{X: cp.Pivot[0], Y: cp.Pivot[1], Z: cp.Pivot[2]}
 	r = *cp.R
-	pos = dir{Theta: cp.Pos[0], Phi: cp.Pos[1]}
-	up = dir{Theta: cp.Up[0], Phi: cp.Up[1]}
+	pos = geom.Dir{Theta: cp.Pos[0], Phi: cp.Pos[1]}
+	up = geom.Dir{Theta: cp.Up[0], Phi: cp.Up[1]}
 	return pivot, r, pos, up, true
 }
 
@@ -93,9 +94,9 @@ const defaultViewpointR = 500.0
 //
 // pos (+Z) and up (+Y) are orthogonal, so basisFromViewpoint (up × pole) is non-degenerate
 // — the exact bug the old degenerate zero-value viewpoint (pos = up = +Y) caused for pan.
-func defaultViewpoint() (pivot vec3, r float64, pos, up dir) {
+func defaultViewpoint() (pivot vec3, r float64, pos, up geom.Dir) {
 	return vec3{X: 0, Y: 0, Z: 0},
 		defaultViewpointR,
-		dir{Theta: math.Pi / 2, Phi: math.Pi / 2}, // +Z, square-on (matches the home pose's +z look)
-		dir{Theta: 0, Phi: 0} // +Y up
+		geom.Dir{Theta: math.Pi / 2, Phi: math.Pi / 2}, // +Z, square-on (matches the home pose's +z look)
+		geom.Dir{Theta: 0, Phi: 0} // +Y up
 }

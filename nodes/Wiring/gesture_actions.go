@@ -1,8 +1,10 @@
 package Wiring
 
 import (
-	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"math"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -19,13 +21,13 @@ import (
 // what you look at, and — because the pivot is on the view axis — it does not re-aim the camera.
 func (md *MoveDispatch) beginSphereRotation(ev rawInputMsg) {
 	g := &md.ui.gest
-	vp := md.ui.vp.viewpoint
-	pivot := focusAhead(vp, md.heldCenters())
+	vp := md.ui.vp.Viewpoint
+	pivot := geom.FocusAhead(vp, md.heldCenters())
 	g.rotPivot = pivot
 
-	eye := eyeOf(vp)
-	basis := basisFromViewpoint(vp.Pos, vp.Up)
-	ndcX, ndcY, _ := projectNDC(pivot, eye, basis, ev.Fov, g.rect.aspect())
+	eye := geom.EyeOf(vp)
+	basis := geom.BasisFromViewpoint(vp.Pos, vp.Up)
+	ndcX, ndcY, _ := geom.ProjectNDC(pivot, eye, basis, ev.Fov, g.rect.aspect())
 	g.rotCx = ((ndcX+1)/2)*g.rect.width + g.rect.left
 	g.rotCy = ((-ndcY+1)/2)*g.rect.height + g.rect.top
 
@@ -33,7 +35,7 @@ func (md *MoveDispatch) beginSphereRotation(ev rawInputMsg) {
 	// scales by csRadius/pivotDist (the sphere's angular size), so a quarter-turn (pi/2) is
 	// reached by dragging one on-screen content-sphere radius, at every zoom level. Without the
 	// anchor, pi/2 required dragging nearly the full screen height and felt unreachable.
-	_, csRadius := contentSphereOf(md.heldCenters())
+	_, csRadius := geom.ContentSphereOf(md.heldCenters())
 	pivotDist := eye.Sub(pivot).Length()
 	fovRad := ev.Fov * math.Pi / 180
 	rpx := (g.rect.height / 2) / math.Tan(fovRad/2)
@@ -69,10 +71,10 @@ func (md *MoveDispatch) updateHover(ev rawInputMsg, tr *T.Trace) {
 // sendViewpointSet at rotation start): pos/up/r recompute about the new pivot so the
 // subsequent orbit is rigid about it.
 func (md *MoveDispatch) seedOrbitPivot(pivot vec3) {
-	vp := md.ui.vp.viewpoint
-	eye := eyeOf(vp)
+	vp := md.ui.vp.Viewpoint
+	eye := geom.EyeOf(vp)
 	r := eye.Sub(pivot).Length()
-	pos := worldDirToAngles(eye.Sub(pivot))
+	pos := geom.WorldDirToAngles(eye.Sub(pivot))
 	md.SetViewpoint(pivot, r, pos, vp.Up)
 }
 
@@ -81,13 +83,13 @@ func (md *MoveDispatch) seedOrbitPivot(pivot vec3) {
 // (curr → prev), so the grabbed direction follows the cursor.
 func (md *MoveDispatch) applyOrbit(ev rawInputMsg, tr *T.Trace) {
 	g := &md.ui.gest
-	vp := md.ui.vp.viewpoint
-	basis := basisFromViewpoint(vp.Pos, vp.Up)
-	prev := screenToPolar(g.prevX-g.rotCx, g.prevY-g.rotCy, g.rotPxPerRad)
-	curr := screenToPolar(ev.X-g.rotCx, ev.Y-g.rotCy, g.rotPxPerRad)
-	prevDir := toWorldDir(basis, prev)
-	currDir := toWorldDir(basis, curr)
-	md.OrbitViewpoint(worldDirToAngles(currDir), worldDirToAngles(prevDir), tr)
+	vp := md.ui.vp.Viewpoint
+	basis := geom.BasisFromViewpoint(vp.Pos, vp.Up)
+	prev := geom.ScreenToPolar(g.prevX-g.rotCx, g.prevY-g.rotCy, g.rotPxPerRad)
+	curr := geom.ScreenToPolar(ev.X-g.rotCx, ev.Y-g.rotCy, g.rotPxPerRad)
+	prevDir := geom.ToWorldDir(basis, prev)
+	currDir := geom.ToWorldDir(basis, curr)
+	md.OrbitViewpoint(geom.WorldDirToAngles(currDir), geom.WorldDirToAngles(prevDir), tr)
 }
 
 // applyOrbitLocked mirrors the "handhold-rotating" branch of interaction-handlers.ts
@@ -96,13 +98,13 @@ func (md *MoveDispatch) applyOrbit(ev rawInputMsg, tr *T.Trace) {
 // call and reuses it (constrained "disk" orbit). The lock clears on the next SetViewpoint.
 func (md *MoveDispatch) applyOrbitLocked(ev rawInputMsg, tr *T.Trace) {
 	g := &md.ui.gest
-	vp := md.ui.vp.viewpoint
-	basis := basisFromViewpoint(vp.Pos, vp.Up)
-	prev := screenToPolar(g.prevX-g.rotCx, g.prevY-g.rotCy, g.rotPxPerRad)
-	curr := screenToPolar(ev.X-g.rotCx, ev.Y-g.rotCy, g.rotPxPerRad)
-	prevDir := toWorldDir(basis, prev)
-	currDir := toWorldDir(basis, curr)
-	md.OrbitLockedViewpoint(worldDirToAngles(currDir), worldDirToAngles(prevDir), tr)
+	vp := md.ui.vp.Viewpoint
+	basis := geom.BasisFromViewpoint(vp.Pos, vp.Up)
+	prev := geom.ScreenToPolar(g.prevX-g.rotCx, g.prevY-g.rotCy, g.rotPxPerRad)
+	curr := geom.ScreenToPolar(ev.X-g.rotCx, ev.Y-g.rotCy, g.rotPxPerRad)
+	prevDir := geom.ToWorldDir(basis, prev)
+	currDir := geom.ToWorldDir(basis, curr)
+	md.OrbitLockedViewpoint(geom.WorldDirToAngles(currDir), geom.WorldDirToAngles(prevDir), tr)
 }
 
 // dragPlaneHit unprojects ev's pointer onto the camera-facing plane through
@@ -112,11 +114,11 @@ func (md *MoveDispatch) applyOrbitLocked(ev rawInputMsg, tr *T.Trace) {
 // Returns ok=false when the ray is parallel to the plane or the hit is non-finite.
 func (md *MoveDispatch) dragPlaneHit(ev rawInputMsg) (hit vec3, ok bool) {
 	g := &md.ui.gest
-	vp := md.ui.vp.viewpoint
-	eye := eyeOf(vp)
-	basis := basisFromViewpoint(vp.Pos, vp.Up)
+	vp := md.ui.vp.Viewpoint
+	eye := geom.EyeOf(vp)
+	basis := geom.BasisFromViewpoint(vp.Pos, vp.Up)
 	nx, ny := g.pixelToNDC(ev.X, ev.Y)
-	dir := rayDirThroughNDC(nx, ny, basis, ev.Fov, g.rect.aspect())
+	dir := geom.RayDirThroughNDC(nx, ny, basis, ev.Fov, g.rect.aspect())
 	forward := basis.Pole.Scale(-1) // camera looks along -pole
 	denom := dir.Dot(forward)
 	if denom == 0 {

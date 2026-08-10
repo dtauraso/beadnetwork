@@ -1,5 +1,7 @@
 package Wiring
 
+import "github.com/dtauraso/wirefold/nodes/Wiring/geom"
+
 // node's quantizedOffset — the stored quantITheta/quantIPhi/quantIR when ALL THREE are
 // present (a scene saved under this model), otherwise the offset MEASURED from the
 // node's current (pre-quantized) scenePolar-derived center (an old scene, or a node
@@ -111,11 +113,11 @@ func (b *buildCtx) computeQuantizedLayout() {
 // surface node. Computed before newMoveDispatch so each node/edge mover captures
 // it in its held geom.
 func (b *buildCtx) computeReachRadii() {
-	edges := make([]sphereEdge, 0, len(b.spec.Edges))
+	edges := make([]geom.SphereEdge, 0, len(b.spec.Edges))
 	for _, e := range b.spec.Edges {
-		edges = append(edges, sphereEdge{Source: e.Source, Target: e.Target})
+		edges = append(edges, geom.SphereEdge{Source: e.Source, Target: e.Target})
 	}
-	polars := map[string]polar{}
+	polars := map[string]geom.Polar{}
 	for id, g := range b.nodeGeoms {
 		if g.HasPos {
 			polars[id] = g.ScenePolar

@@ -3,6 +3,8 @@ package Wiring
 import (
 	"math"
 	"testing"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 )
 
 // gesture_test.go — drive the gesture state machine (gesture.go) with raw pointer/wheel
@@ -10,15 +12,15 @@ import (
 // Uses a zero-value MoveDispatch (no node movers → empty heldCenters → deterministic
 // region-focus fallback), so the outcomes are hand-computable.
 
-func newGestureMD(v viewpoint) *MoveDispatch {
+func newGestureMD(v geom.Viewpoint) *MoveDispatch {
 	md := &MoveDispatch{}
-	md.ui.vp.viewpoint = v
+	md.ui.vp.Viewpoint = v
 	return md
 }
 
 // canonical "+Z camera looking at origin, up +Y, r=100" viewpoint.
-func canonicalViewpoint() viewpoint {
-	return viewpoint{Pivot: vec3{X: 0, Y: 0, Z: 0}, R: 100, Pos: dir{Theta: math.Pi / 2, Phi: math.Pi / 2}, Up: dir{Theta: 0, Phi: 0}}
+func canonicalViewpoint() geom.Viewpoint {
+	return geom.Viewpoint{Pivot: vec3{X: 0, Y: 0, Z: 0}, R: 100, Pos: geom.Dir{Theta: math.Pi / 2, Phi: math.Pi / 2}, Up: geom.Dir{Theta: 0, Phi: 0}}
 }
 
 func rawEvent(kind string, x, y float64) rawInputMsg {
@@ -69,7 +71,7 @@ func TestGestureEmptyDragOrbits(t *testing.T) {
 	if !vecClose(md.ui.vp.Pivot, pivotBefore, 1e-9) {
 		t.Fatalf("orbit moved pivot: %v != %v", md.ui.vp.Pivot, pivotBefore)
 	}
-	if angularDistance(md.ui.vp.Pos, posBefore) < 1e-6 {
+	if geom.AngularDistance(md.ui.vp.Pos, posBefore) < 1e-6 {
 		t.Fatalf("orbit did not change pos (dir stayed %v)", md.ui.vp.Pos)
 	}
 
@@ -133,12 +135,12 @@ func TestGestureCtrlWheelZoomsToCursor(t *testing.T) {
 	// rayDir=(0,0,-1), distP=10. The fractional step (10*(1-1.01)=-0.1) is below the pass-through
 	// floor (minStep = vp.r*(zoomBase-1) = 1), so the camera moves minStep AWAY (DeltaY=1) →
 	// pivot.Z = +1.
-	wantZ := 100 * (gestureZoomBase - 1)
+	wantZ := 100 * (geom.GestureZoomBase - 1)
 	if math.Abs(md.ui.vp.Pivot.Z-wantZ) > 1e-9 || math.Abs(md.ui.vp.Pivot.X) > 1e-9 {
 		t.Fatalf("ctrl-wheel pivot=%v want Z≈%v (dolly toward cursor)", md.ui.vp.Pivot, wantZ)
 	}
 	// The look direction is unchanged (no re-aim).
-	if angularDistance(md.ui.vp.Pos, canonicalViewpoint().Pos) > 1e-9 {
+	if geom.AngularDistance(md.ui.vp.Pos, canonicalViewpoint().Pos) > 1e-9 {
 		t.Fatalf("ctrl-wheel re-aimed the camera (pos changed); zoom-to-cursor must keep orientation")
 	}
 }
@@ -325,7 +327,7 @@ func TestGestureHandholdOrbits(t *testing.T) {
 	if !vecClose(md.ui.vp.Pivot, pivotBefore, 1e-9) {
 		t.Fatalf("handhold orbit moved pivot: %v != %v", md.ui.vp.Pivot, pivotBefore)
 	}
-	if angularDistance(md.ui.vp.Pos, posBefore) < 1e-6 {
+	if geom.AngularDistance(md.ui.vp.Pos, posBefore) < 1e-6 {
 		t.Fatalf("handhold orbit did not change pos (stayed %v)", md.ui.vp.Pos)
 	}
 	md.HandleRawInput(rawEvent("pointerup", 520, 360), nil, nil)
@@ -339,13 +341,13 @@ func TestGestureHandholdOrbits(t *testing.T) {
 // NOT change the camera pose.
 func TestGestureClickNoCameraChange(t *testing.T) {
 	md := newGestureMD(canonicalViewpoint())
-	before := md.ui.vp.viewpoint
+	before := md.ui.vp.Viewpoint
 	nodeHit := rawEvent("pointerdown", 400, 300)
 	nodeHit.Hit = rawHit{Kind: "empty"}
 	md.HandleRawInput(nodeHit, nil, nil)
 	md.HandleRawInput(rawEvent("pointerup", 402, 301), nil, nil) // no move event → click
-	if md.ui.vp.viewpoint != before {
-		t.Fatalf("click changed camera: %+v != %+v", md.ui.vp.viewpoint, before)
+	if md.ui.vp.Viewpoint != before {
+		t.Fatalf("click changed camera: %+v != %+v", md.ui.vp.Viewpoint, before)
 	}
 	if md.ui.gest.phase != gestIdle {
 		t.Fatalf("after click phase=%v want idle", md.ui.gest.phase)

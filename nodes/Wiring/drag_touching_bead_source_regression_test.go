@@ -21,8 +21,9 @@ package Wiring
 // a regression on either side is caught.
 
 import (
-	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"testing"
+
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
 // touchingBeadFor returns writeTree's single touching bead for nodeID ("1" or "2") and

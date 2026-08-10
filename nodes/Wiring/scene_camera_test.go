@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 )
 
 // scene_camera_test.go — the initial camera viewpoint is FILE DATA loaded by Go from
@@ -31,9 +33,9 @@ func writeCameraFile(t *testing.T, body string) string {
 
 // basisNonDegenerate asserts the screen basis has three finite, unit-length, mutually
 // orthogonal vectors — i.e. up and pos are not collinear (the old zero-value bug).
-func basisNonDegenerate(t *testing.T, pos, up dir) {
+func basisNonDegenerate(t *testing.T, pos, up geom.Dir) {
 	t.Helper()
-	b := basisFromViewpoint(pos, up)
+	b := geom.BasisFromViewpoint(pos, up)
 	for _, v := range []vec3{b.RefX, b.RefY, b.Pole} {
 		if math.IsNaN(v.X) || math.IsNaN(v.Y) || math.IsNaN(v.Z) {
 			t.Fatalf("basis vector has NaN (degenerate): %v", v)
@@ -75,7 +77,7 @@ func TestLoadSceneViewpointMatchesCameraPolar(t *testing.T) {
 	md := &MoveDispatch{}
 	SeedInitialViewpoint(dir, md, nil)
 	if !vecClose(md.ui.vp.Pivot, vec3{X: 10, Y: 20, Z: 30}, 1e-9) || math.Abs(md.ui.vp.R-250) > 1e-9 {
-		t.Fatalf("SeedInitialViewpoint did not install the loaded pose: %+v", md.ui.vp.viewpoint)
+		t.Fatalf("SeedInitialViewpoint did not install the loaded pose: %+v", md.ui.vp.Viewpoint)
 	}
 	basisNonDegenerate(t, md.ui.vp.Pos, md.ui.vp.Up)
 
@@ -105,11 +107,11 @@ func TestSeedInitialViewpointAbsentFileUsesDefault(t *testing.T) {
 	}
 	// pos +Z, up +Y → non-degenerate basis, and pan works.
 	basisNonDegenerate(t, md.ui.vp.Pos, md.ui.vp.Up)
-	posW := anglesToWorldOffset(1, md.ui.vp.Pos.Theta, md.ui.vp.Pos.Phi)
+	posW := geom.AnglesToWorldOffset(1, md.ui.vp.Pos.Theta, md.ui.vp.Pos.Phi)
 	if !vecClose(posW, vec3{X: 0, Y: 0, Z: 1}, 1e-9) {
 		t.Fatalf("default pos world=%v want +Z", posW)
 	}
-	upW := anglesToWorldOffset(1, md.ui.vp.Up.Theta, md.ui.vp.Up.Phi)
+	upW := geom.AnglesToWorldOffset(1, md.ui.vp.Up.Theta, md.ui.vp.Up.Phi)
 	if !vecClose(upW, vec3{X: 0, Y: 1, Z: 0}, 1e-9) {
 		t.Fatalf("default up world=%v want +Y", upW)
 	}

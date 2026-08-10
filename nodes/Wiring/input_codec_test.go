@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/binary"
 	"encoding/json"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"io"
 	"os"
 	"path/filepath"
@@ -17,6 +16,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
 // TestKindsTokenMatchesConstants pins the fingerprint's `kinds=` token to the actual

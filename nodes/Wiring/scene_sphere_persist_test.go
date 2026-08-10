@@ -3,6 +3,7 @@ package Wiring
 import (
 	"testing"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	geomseeds "github.com/dtauraso/wirefold/nodes/Wiring/geomseeds"
 )
 
@@ -10,7 +11,7 @@ import (
 func TestSceneSphereRoundTrip(t *testing.T) {
 	dir := t.TempDir()
 
-	want := sceneSphere{Center: vec3{X: 10, Y: -20, Z: 30}, Radius: 250}
+	want := geom.SceneSphere{Center: vec3{X: 10, Y: -20, Z: 30}, Radius: 250}
 	if err := writeSceneSphere(sphereFilePath(dir), want); err != nil {
 		t.Fatalf("writeSceneSphere: %v", err)
 	}
@@ -99,7 +100,7 @@ func TestSceneSphereContentFitSurvivesReloadAfterMove(t *testing.T) {
 func TestSceneSpherePersisterFlushNow(t *testing.T) {
 	dir := t.TempDir()
 	p := &sceneSpherePersister{path: sphereFilePath(dir)}
-	s := sceneSphere{Center: vec3{X: 1, Y: 2, Z: 3}, Radius: 40}
+	s := geom.SceneSphere{Center: vec3{X: 1, Y: 2, Z: 3}, Radius: 40}
 	p.flushNow(s)
 
 	got, ok := loadSceneSphere(dir)

@@ -23,8 +23,10 @@ package Wiring
 
 import (
 	"fmt"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"strings"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -52,10 +54,10 @@ func (lq *layoutQuantizer) heldCenters(md *MoveDispatch) map[string]vec3 {
 	return out
 }
 
-func (lq *layoutQuantizer) heldEdges(md *MoveDispatch) []sphereEdge {
-	edges := make([]sphereEdge, 0, len(md.mr.edgeMovers))
+func (lq *layoutQuantizer) heldEdges(md *MoveDispatch) []geom.SphereEdge {
+	edges := make([]geom.SphereEdge, 0, len(md.mr.edgeMovers))
 	for _, em := range md.mr.edgeMovers {
-		edges = append(edges, sphereEdge{Source: em.srcID, Target: em.dstID})
+		edges = append(edges, geom.SphereEdge{Source: em.srcID, Target: em.dstID})
 	}
 	return edges
 }
@@ -258,7 +260,7 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeGeometr
 	// is a pure re-derive off the fixed, write-once md.ui.sceneSphere.Center (never
 	// mutated after load), so this stays race-free with no cross-goroutine read at
 	// all now (this runs on nm's own goroutine, reading nm's own map).
-	polars := map[string]polar{}
+	polars := map[string]geom.Polar{}
 	for _, edgeID := range nm.topo.edgeIDs {
 		em, ok := md.mr.edgeMovers[edgeID]
 		if !ok {
@@ -269,14 +271,14 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeGeometr
 			neighborID = em.dstID
 		}
 		if c, ok := nm.topo.partnerCenters[neighborID]; ok {
-			polars[neighborID] = cart2polar(c.Sub(md.ui.sceneSphere.Center))
+			polars[neighborID] = geom.Cart2polar(c.Sub(md.ui.sceneSphere.Center))
 		}
 	}
 	// Single cart2polar boundary conversion for this drag target — newPos is mouse-
 	// derived cartesian (gesture.go ray/plane unproject); everything downstream
 	// (reach, measureScalar, the persist schedule) reuses this one polar value rather
 	// than re-deriving it from newPos.
-	nodePolar := cart2polar(newPos.Sub(md.ui.sceneSphere.Center))
+	nodePolar := geom.Cart2polar(newPos.Sub(md.ui.sceneSphere.Center))
 
 	// committedPos/committedPolar are what gets DRAWN (applyCenter), FANNED
 	// (broadcastToEdgesAndPartners), PERSISTED (persistQuantOffset), and re-quantized
@@ -315,7 +317,7 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeGeometr
 		} else {
 			committedPos, _ = resolveBeadCrudMove(beads, prevPos, newPos, wire.BeadStepR)
 		}
-		committedPolar = cart2polar(committedPos.Sub(md.ui.sceneSphere.Center))
+		committedPolar = geom.Cart2polar(committedPos.Sub(md.ui.sceneSphere.Center))
 
 		// DIAGNOSTIC ONLY (task/log-node2-bead-crud): one breadcrumb per pointer-move
 		// commit — node 2 (neighbours 1, 4, 5) can barely be dragged; long drags produce
@@ -423,7 +425,7 @@ func (lq *layoutQuantizer) RootMove(md *MoveDispatch, nodeID string, target vec3
 // law-of-cosines distance between the two polar positions (polarDist) — no cartesian, no vector
 // subtraction. Called by loader.go buildFromSpec and by RootMove so the fanned "center" message
 // carries the new reach radius and the ring stays sized during a drag.
-func reachRFromPolar(polars map[string]polar, edges []sphereEdge) map[string]float64 {
+func reachRFromPolar(polars map[string]geom.Polar, edges []geom.SphereEdge) map[string]float64 {
 	reachR := map[string]float64{}
 	for _, e := range edges {
 		sp, okS := polars[e.Source]
@@ -431,7 +433,7 @@ func reachRFromPolar(polars map[string]polar, edges []sphereEdge) map[string]flo
 		if !okS || !okT {
 			continue
 		}
-		if d := polarDist(sp, tp); d > reachR[e.Source] {
+		if d := geom.PolarDist(sp, tp); d > reachR[e.Source] {
 			reachR[e.Source] = d
 		}
 	}

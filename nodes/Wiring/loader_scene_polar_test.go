@@ -1,6 +1,10 @@
 package Wiring
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+)
 
 // TestToNodeGeomScenePolar: a node's world center is DERIVED from its stored scene polar
 // about the scene sphere center — SceneCenter + polar2cart(ScenePolar) (polar-frame-rewrite.md).
@@ -17,7 +21,7 @@ func TestToNodeGeomScenePolar(t *testing.T) {
 	if !g.HasPos {
 		t.Fatalf("scene polar present: HasPos=false, want true")
 	}
-	want := sceneCenter.Add(polar2cart(polar{R: r, Theta: th, Phi: ph}))
+	want := sceneCenter.Add(geom.Polar2cart(geom.Polar{R: r, Theta: th, Phi: ph}))
 	if nodeWorldPos(g).Sub(want).Length() > 1e-9 {
 		t.Fatalf("world=%v want %v", nodeWorldPos(g), want)
 	}

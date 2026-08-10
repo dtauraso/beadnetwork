@@ -1,8 +1,10 @@
 package Wiring
 
 import (
-	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"testing"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -17,7 +19,7 @@ import (
 func TestZoomViewpointEmitsRadius(t *testing.T) {
 	tr := T.New()
 	vp := &viewpointState{}
-	vp.SetViewpoint(vec3{}, 100, dir{Theta: 1.0}, dir{Theta: 1.5708})
+	vp.SetViewpoint(vec3{}, 100, geom.Dir{Theta: 1.0}, geom.Dir{Theta: 1.5708})
 
 	vp.ZoomViewpoint(0.5, tr)
 	if vp.R != 50 {
@@ -29,7 +31,7 @@ func TestZoomViewpointEmitsRadius(t *testing.T) {
 func TestPanViewpointEmitsPivot(t *testing.T) {
 	tr := T.New()
 	vp := &viewpointState{}
-	vp.SetViewpoint(vec3{X: 1, Y: 2, Z: 3}, 100, dir{Theta: 1.0}, dir{Theta: 1.5708})
+	vp.SetViewpoint(vec3{X: 1, Y: 2, Z: 3}, 100, geom.Dir{Theta: 1.0}, geom.Dir{Theta: 1.5708})
 
 	vp.PanViewpoint(vec3{X: 10, Y: 0, Z: -3}, tr)
 	if vp.Pivot.X != 11 || vp.Pivot.Y != 2 || vp.Pivot.Z != 0 {
@@ -42,10 +44,10 @@ func TestPanViewpointEmitsPivot(t *testing.T) {
 func TestOrbitViewpointEmitsMovedPos(t *testing.T) {
 	tr := T.New()
 	vp := &viewpointState{}
-	before := dir{Theta: 1.0, Phi: 0.0}
-	vp.SetViewpoint(vec3{}, 100, before, dir{Theta: 1.5708})
+	before := geom.Dir{Theta: 1.0, Phi: 0.0}
+	vp.SetViewpoint(vec3{}, 100, before, geom.Dir{Theta: 1.5708})
 
-	vp.OrbitViewpoint(dir{Theta: 1.0, Phi: 0.0}, dir{Theta: 1.2, Phi: 0.3}, tr)
+	vp.OrbitViewpoint(geom.Dir{Theta: 1.0, Phi: 0.0}, geom.Dir{Theta: 1.2, Phi: 0.3}, tr)
 	if vp.Pos.Theta == before.Theta && vp.Pos.Phi == before.Phi {
 		t.Fatalf("Orbit did not change pos: still (%v,%v)", vp.Pos.Theta, vp.Pos.Phi)
 	}
@@ -58,11 +60,11 @@ func TestMoveDispatchViewpointDelegatorsEmit(t *testing.T) {
 	md := &MoveDispatch{}
 	var events []wire.RowEvent
 	captureViewFrameKinds(md, &events)
-	md.SetViewpoint(vec3{}, 100, dir{Theta: 1.0}, dir{Theta: 1.5708})
+	md.SetViewpoint(vec3{}, 100, geom.Dir{Theta: 1.0}, geom.Dir{Theta: 1.5708})
 
 	md.ZoomViewpoint(0.5, tr)
 	md.PanViewpoint(vec3{X: 5}, tr)
-	md.OrbitViewpoint(dir{Theta: 1.0, Phi: 0.0}, dir{Theta: 1.1, Phi: 0.1}, tr)
+	md.OrbitViewpoint(geom.Dir{Theta: 1.0, Phi: 0.0}, geom.Dir{Theta: 1.1, Phi: 0.1}, tr)
 
 	if n := countCameraEvents(events); n < 3 {
 		t.Fatalf("expected >=3 camera events from delegators, got %d", n)

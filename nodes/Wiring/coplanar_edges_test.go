@@ -3,6 +3,8 @@ package Wiring
 import (
 	"math"
 	"testing"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 )
 
 // The whole point: a node's ring PLANE must contain the edge leaving it, so the chain, the
@@ -11,12 +13,12 @@ import (
 func TestPoleContainingEdgeIsPerpendicularToIt(t *testing.T) {
 	self := vec3{X: 100}
 	partner := vec3{X: 100, Z: 100} // edge runs along +z
-	inT, inP := inwardPole(cart2polar(self))
+	inT, inP := geom.InwardPole(geom.Cart2polar(self))
 	theta, phi, ok := poleContainingEdge(inT, inP, self, partner)
 	if !ok {
 		t.Fatal("a well-separated pair must resolve an axis")
 	}
-	axis := anglesToWorldOffset(1, theta, phi)
+	axis := geom.AnglesToWorldOffset(1, theta, phi)
 	dir := partner.Sub(self).Normalize()
 	if dot := axis.Dot(dir); math.Abs(dot) > 1e-9 {
 		t.Fatalf("ring axis must be perpendicular to the edge (the edge lies IN the plane), got dot=%v", dot)
@@ -29,10 +31,10 @@ func TestPoleContainingEdgeIsPerpendicularToIt(t *testing.T) {
 func TestPoleContainingEdgeStaysNearestTheInwardPole(t *testing.T) {
 	self := vec3{X: 100}
 	partner := vec3{X: 100, Z: 100}
-	inT, inP := inwardPole(cart2polar(self))
-	inward := anglesToWorldOffset(1, inT, inP)
+	inT, inP := geom.InwardPole(geom.Cart2polar(self))
+	inward := geom.AnglesToWorldOffset(1, inT, inP)
 	theta, phi, _ := poleContainingEdge(inT, inP, self, partner)
-	axis := anglesToWorldOffset(1, theta, phi)
+	axis := geom.AnglesToWorldOffset(1, theta, phi)
 
 	dir := partner.Sub(self).Normalize()
 	want := inward.Sub(dir.Scale(inward.Dot(dir))).Normalize()
@@ -46,7 +48,7 @@ func TestPoleContainingEdgeStaysNearestTheInwardPole(t *testing.T) {
 func TestPoleParallelToTheEdgeIsNotResolvable(t *testing.T) {
 	self := vec3{X: 100}
 	partner := vec3{} // edge points straight at the scene centre — along the inward pole
-	inT, inP := inwardPole(cart2polar(self))
+	inT, inP := geom.InwardPole(geom.Cart2polar(self))
 	if _, _, ok := poleContainingEdge(inT, inP, self, partner); ok {
 		t.Fatal("a pole parallel to the edge must report not-resolvable")
 	}
@@ -79,7 +81,7 @@ func TestCoplanarEdgesIsPerScene(t *testing.T) {
 // feature from quietly restyling another scene.
 func TestDefaultRingAxisIsTheUnrotatedTorusNormal(t *testing.T) {
 	theta, phi := torusDefaultAxisAngles()
-	axis := anglesToWorldOffset(1, theta, phi)
+	axis := geom.AnglesToWorldOffset(1, theta, phi)
 	want := vec3{X: 0, Y: 0, Z: 1} // three.js torusGeometry's own normal
 	if axis.Sub(want).Length() > 1e-9 {
 		t.Fatalf("default ring axis = %v, want the torus's own +Z normal %v — anything else "+
@@ -98,7 +100,7 @@ func TestUprightRingPlaneHoldsTheEdgeAndUp(t *testing.T) {
 	if !ok {
 		t.Fatal("a horizontal edge must resolve an upright axis")
 	}
-	axis := anglesToWorldOffset(1, theta, phi)
+	axis := geom.AnglesToWorldOffset(1, theta, phi)
 	edge := partner.Sub(self).Normalize()
 	up := vec3{X: 0, Y: 1, Z: 0}
 	if d := axis.Dot(edge); math.Abs(d) > 1e-9 {

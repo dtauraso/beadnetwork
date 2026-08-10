@@ -6,9 +6,10 @@
 package Wiring
 
 import (
-	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"testing"
 	"time"
+
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
 // TestSendSpeedNonBlockingNeverBlocks: sending speed changes onto a channel whose

@@ -8,9 +8,11 @@ package Wiring
 
 import (
 	"context"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"io"
 	"testing"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -124,7 +126,7 @@ func TestOverlaysPersistPreservesCamera(t *testing.T) {
 	root := writeTree(t)
 	md := loadTreeMD(t, root)
 	md.EnableViewpointPersist(root)
-	md.SetViewpoint(vec3{X: 1, Y: 2, Z: 3}, 200, dir{Theta: 0.5, Phi: 1.5}, dir{Theta: 0.05, Phi: 0.15})
+	md.SetViewpoint(vec3{X: 1, Y: 2, Z: 3}, 200, geom.Dir{Theta: 0.5, Phi: 1.5}, geom.Dir{Theta: 0.05, Phi: 0.15})
 	md.EmitViewpoint(nil)
 
 	md.EnableEditPersist(root)

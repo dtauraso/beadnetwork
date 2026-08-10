@@ -1,16 +1,20 @@
 package Wiring
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+)
 
 func TestUnseededViewpointPanIsDegenerate(t *testing.T) {
 	// Zero viewpoint: pos = up = {Theta:0, Phi:0} → both map to +Y → parallel.
-	md := newGestureMD(viewpoint{})
+	md := newGestureMD(geom.Viewpoint{})
 	ev := rawEvent("wheel", 400, 300)
 	ev.DeltaX = 40
 	md.HandleRawInput(ev, nil, nil)
 
-	posW := anglesToWorldOffset(1, md.ui.vp.Pos.Theta, md.ui.vp.Pos.Phi)
-	upW := anglesToWorldOffset(1, md.ui.vp.Up.Theta, md.ui.vp.Up.Phi)
+	posW := geom.AnglesToWorldOffset(1, md.ui.vp.Pos.Theta, md.ui.vp.Pos.Phi)
+	upW := geom.AnglesToWorldOffset(1, md.ui.vp.Up.Theta, md.ui.vp.Up.Phi)
 	// Degenerate: |pos × up| ≈ 0 (parallel), the collapsed-basis condition.
 	if cross := posW.Cross(upW).Length(); cross > 1e-9 {
 		t.Fatalf("expected degenerate (parallel pos/up) from zero viewpoint, |pos×up|=%v", cross)
@@ -19,8 +23,8 @@ func TestUnseededViewpointPanIsDegenerate(t *testing.T) {
 	// A seeded viewpoint keeps a valid (non-degenerate) basis after the same pan.
 	md2 := newGestureMD(canonicalViewpoint())
 	md2.HandleRawInput(ev, nil, nil)
-	posW2 := anglesToWorldOffset(1, md2.ui.vp.Pos.Theta, md2.ui.vp.Pos.Phi)
-	upW2 := anglesToWorldOffset(1, md2.ui.vp.Up.Theta, md2.ui.vp.Up.Phi)
+	posW2 := geom.AnglesToWorldOffset(1, md2.ui.vp.Pos.Theta, md2.ui.vp.Pos.Phi)
+	upW2 := geom.AnglesToWorldOffset(1, md2.ui.vp.Up.Theta, md2.ui.vp.Up.Phi)
 	if cross := posW2.Cross(upW2).Length(); cross < 1e-6 {
 		t.Fatalf("seeded viewpoint should keep a valid basis, but |pos×up|=%v", cross)
 	}

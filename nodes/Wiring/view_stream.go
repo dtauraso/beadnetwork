@@ -33,8 +33,9 @@ package Wiring
 
 import (
 	"encoding/binary"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"io"
+
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -116,7 +117,7 @@ func (md *MoveDispatch) emitViewFrame(events []wire.RowEvent) {
 		return
 	}
 	md.sw.viewTick++
-	v := md.ui.vp.viewpoint
+	v := md.ui.vp.Viewpoint
 	sc := md.ui.sceneSphere
 	// dragNodeRow is derived from uiState.lastDraggedNode, NOT the live gest.dragNode:
 	// the in-editor "dragging <name>" label must persist across pointerup (show the

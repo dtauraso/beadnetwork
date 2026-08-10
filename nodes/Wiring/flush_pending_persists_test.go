@@ -14,6 +14,8 @@ import (
 	"encoding/json"
 	"os"
 	"testing"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 )
 
 // TestQuantOffsetScheduleWritesSynchronously proves persistQuantOffset writes a position
@@ -22,7 +24,7 @@ func TestQuantOffsetScheduleWritesSynchronously(t *testing.T) {
 	root := writeTree(t)
 	nm := &nodeGeometry{id: "1", persistRoot: root}
 
-	newScene := polar{R: 55.5, Theta: 0.4, Phi: -1.1}
+	newScene := geom.Polar{R: 55.5, Theta: 0.4, Phi: -1.1}
 	nm.persistQuantOffset(quantizedOffset{iTheta: 3, iPhi: 4, iR: 5}, newScene)
 
 	raw, err := os.ReadFile(positionFilePath(root, "1"))
@@ -61,7 +63,7 @@ func TestMoveDispatchQuantOffsetScheduleWritesThroughEnableEditPersist(t *testin
 	if !ok {
 		t.Fatal("no nodeMover for src")
 	}
-	newScene := polar{R: 61.0, Theta: 0.2, Phi: 0.9}
+	newScene := geom.Polar{R: 61.0, Theta: 0.2, Phi: 0.9}
 	nm.persistQuantOffset(quantizedOffset{iTheta: 1, iPhi: 2, iR: 3}, newScene)
 
 	raw, err := os.ReadFile(positionFilePath(root, "1"))
@@ -85,6 +87,6 @@ func TestMoveDispatchQuantOffsetScheduleWritesThroughEnableEditPersist(t *testin
 // panic on a persist call — tests/headless contexts construct a MoveDispatch without
 // EnableEditPersist.
 func TestQuantOffsetScheduleNilSafe(t *testing.T) {
-	nm := &nodeGeometry{id: "x"}                      // persistRoot == "" — unarmed
-	nm.persistQuantOffset(quantizedOffset{}, polar{}) // must not panic
+	nm := &nodeGeometry{id: "x"}                           // persistRoot == "" — unarmed
+	nm.persistQuantOffset(quantizedOffset{}, geom.Polar{}) // must not panic
 }

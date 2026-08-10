@@ -2,10 +2,11 @@ package Wiring
 
 import (
 	"context"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"sync"
 	"testing"
 	"time"
+
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )

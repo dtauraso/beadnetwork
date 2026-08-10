@@ -1,8 +1,9 @@
 package Wiring
 
 import (
-	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"testing"
+
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
 // gesture_drag_offset_test.go — pins the grab-offset fix: dragging a node from a point OFF
@@ -20,7 +21,7 @@ import (
 // grab" case the companion test below relies on.
 func dragOffsetMD() *MoveDispatch {
 	md := &MoveDispatch{mr: moverRegistry{nodeGeoms: map[string]*nodeGeometry{}, edgeMovers: map[string]*edgeMover{}}}
-	md.ui.vp.viewpoint = canonicalViewpoint()
+	md.ui.vp.Viewpoint = canonicalViewpoint()
 	g := nodeGeom{nodeIdentity: nodeIdentity{Kind: "TimeEnd"}}
 	setNodeWorld(&g, vec3{X: 0, Y: 0, Z: 0})
 	nm := newNodeGeometry("n", g, nil, wire.NewRealClock())

@@ -36,6 +36,7 @@ package Wiring
 import (
 	"fmt"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 )
 
@@ -51,7 +52,7 @@ import (
 // file (position.json is keyed by node id, so no two calls ever race the same
 // os.WriteFile/Rename) and nm.persistRoot is set once, before any mover goroutine starts,
 // and never written again.
-func (nm *nodeGeometry) persistQuantOffset(off quantizedOffset, scene polar) {
+func (nm *nodeGeometry) persistQuantOffset(off quantizedOffset, scene geom.Polar) {
 	if nm.persistRoot == "" {
 		return
 	}
@@ -108,7 +109,7 @@ type positionFileJSON struct {
 // content of <root>/nodes/<id>/position.json — the sole writer of that file, so each write
 // is a fresh marshal (no read-modify-write, and no leftover `reference` field to drop: that
 // was a meta.json-only artifact of the removed reference-tree model).
-func writeQuantOffset(root, id string, off quantizedOffset, scene polar, topTiltVectorThetaIdx int32) error {
+func writeQuantOffset(root, id string, off quantizedOffset, scene geom.Polar, topTiltVectorThetaIdx int32) error {
 	if !jsonpersist.SafeTreePathComponent(id) {
 		return fmt.Errorf("unsafe node id %q", id)
 	}

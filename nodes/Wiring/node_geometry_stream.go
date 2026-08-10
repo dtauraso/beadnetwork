@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -67,7 +68,7 @@ func (m *nodeGeometry) writeStreamFrame(events []wire.RowEvent) {
 	// neighbour read. Before HasPos there is no direction yet, so the frame stays world +y.
 	var poleTheta, polePhi float64
 	if m.geom.HasPos {
-		poleTheta, polePhi = inwardPole(m.geom.ScenePolar)
+		poleTheta, polePhi = geom.InwardPole(m.geom.ScenePolar)
 	}
 	// The DRAWN ring's axis, separate from the navigation pole above (Buffer/layout.go's
 	// RingAxisTheta/RingAxisPhi). Default is the torus's own +Z normal, which draws exactly

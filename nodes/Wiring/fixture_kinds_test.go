@@ -7,6 +7,7 @@ package Wiring
 
 import (
 	"context"
+
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 

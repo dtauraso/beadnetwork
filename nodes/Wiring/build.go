@@ -12,6 +12,8 @@ package Wiring
 
 import (
 	"context"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -28,7 +30,7 @@ type buildCtx struct {
 	spec     topoSpec
 	tr       *T.Trace
 	clk      wire.Clock
-	sphere   sceneSphere
+	sphere   geom.SceneSphere
 	hasScene bool
 	// scenePath is the tree being loaded — carried so the build can ask which DRAG this
 	// scene uses (scene_tabs.go's SceneUsesQuantizedDrag). It is the loaded scene's own
@@ -95,7 +97,7 @@ type buildCtx struct {
 // buildFromSpec constructs nodes, wires, and the MoveDispatch from an already-parsed
 // and validated topoSpec. It orchestrates the phase helpers below in the same order
 // the original monolithic function performed them; behavior is unchanged.
-func buildFromSpec(ctx context.Context, spec topoSpec, tr *T.Trace, clk wire.Clock, sphere sceneSphere, hasScene bool, scenePath string) ([]wire.Node, SlotRegistry, *MoveDispatch, []chan float64, error) {
+func buildFromSpec(ctx context.Context, spec topoSpec, tr *T.Trace, clk wire.Clock, sphere geom.SceneSphere, hasScene bool, scenePath string) ([]wire.Node, SlotRegistry, *MoveDispatch, []chan float64, error) {
 	b := &buildCtx{ctx: ctx, spec: spec, tr: tr, clk: clk, sphere: sphere, hasScene: hasScene, scenePath: scenePath}
 
 	b.computeNodeGeometry()

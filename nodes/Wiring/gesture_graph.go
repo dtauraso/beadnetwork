@@ -2,6 +2,7 @@ package Wiring
 
 import (
 	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 )
 
 // gesture_graph.go — an explicit adjacency-list TABLE + driver for the two gestPointerMove
@@ -123,16 +124,16 @@ var applyAction = map[gesturePhase]func(md *MoveDispatch, g *gestureState, ev ra
 		}
 	},
 	gestRotating: func(md *MoveDispatch, g *gestureState, ev rawInputMsg, tr *T.Trace) {
-		g.smoothX += rotSmoothAlpha * (ev.X - g.smoothX)
-		g.smoothY += rotSmoothAlpha * (ev.Y - g.smoothY)
+		g.smoothX += geom.RotSmoothAlpha * (ev.X - g.smoothX)
+		g.smoothY += geom.RotSmoothAlpha * (ev.Y - g.smoothY)
 		smoothEv := ev
 		smoothEv.X, smoothEv.Y = g.smoothX, g.smoothY
 		md.applyOrbit(smoothEv, tr)
 		g.prevX, g.prevY = g.smoothX, g.smoothY
 	},
 	gestHandhold: func(md *MoveDispatch, g *gestureState, ev rawInputMsg, tr *T.Trace) {
-		g.smoothX += rotSmoothAlpha * (ev.X - g.smoothX)
-		g.smoothY += rotSmoothAlpha * (ev.Y - g.smoothY)
+		g.smoothX += geom.RotSmoothAlpha * (ev.X - g.smoothX)
+		g.smoothY += geom.RotSmoothAlpha * (ev.Y - g.smoothY)
 		smoothEv := ev
 		smoothEv.X, smoothEv.Y = g.smoothX, g.smoothY
 		md.applyOrbitLocked(smoothEv, tr)

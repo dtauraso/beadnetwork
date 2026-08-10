@@ -1,6 +1,9 @@
 package Wiring
 
-import "github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
+import (
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
+)
 
 // scene_camera_persist.go — the WRITE side of camera-viewpoint-as-file-data.
 //
@@ -46,7 +49,7 @@ type viewpointPersister struct {
 
 // schedule writes the given viewpoint to camera.json synchronously. Fire-and-forget:
 // errors are logged, not returned.
-func (p *viewpointPersister) schedule(v viewpoint) {
+func (p *viewpointPersister) schedule(v geom.Viewpoint) {
 	if p == nil || p.path == "" {
 		return
 	}
@@ -59,7 +62,7 @@ func (p *viewpointPersister) schedule(v viewpoint) {
 
 // viewpointToPolar converts an FSM viewpoint to the persisted cameraPolar shape. It is the
 // exact inverse of loadSceneViewpoint's mapping, so a load→persist→load round-trips.
-func viewpointToPolar(v viewpoint) *scenePolarCamera {
+func viewpointToPolar(v geom.Viewpoint) *scenePolarCamera {
 	pivot := [3]float64{v.Pivot.X, v.Pivot.Y, v.Pivot.Z}
 	r := v.R
 	pos := [2]float64{v.Pos.Theta, v.Pos.Phi}

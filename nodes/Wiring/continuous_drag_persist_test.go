@@ -13,6 +13,8 @@ import (
 	"encoding/json"
 	"os"
 	"testing"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 )
 
 // dragAndReadBack drags a node under the given layout mode and returns what landed in that
@@ -25,7 +27,7 @@ func dragAndReadBack(t *testing.T, quantized bool, target vec3) string {
 
 	md := &MoveDispatch{}
 	md.lq.quantizedLayout = quantized
-	md.ui.sceneSphere = sceneSphere{Center: vec3{}, Radius: 100}
+	md.ui.sceneSphere = geom.SceneSphere{Center: vec3{}, Radius: 100}
 	md.mr.nodeGeoms = map[string]*nodeGeometry{}
 	md.mr.edgeMovers = map[string]*edgeMover{}
 	md.mr.centerMirror = map[string]vec3{}
@@ -33,7 +35,7 @@ func dragAndReadBack(t *testing.T, quantized bool, target vec3) string {
 	nm := &nodeGeometry{
 		id:          "1",
 		persistRoot: root,
-		geom:        nodeGeom{nodeIdentity: nodeIdentity{Kind: "PairNode"}, ScenePolar: cart2polar(vec3{X: 100}), HasPos: true},
+		geom:        nodeGeom{nodeIdentity: nodeIdentity{Kind: "PairNode"}, ScenePolar: geom.Cart2polar(vec3{X: 100}), HasPos: true},
 		topo:        neighborTopology{partnerCenters: map[string]vec3{}},
 		msg:         nodeMessaging{neighborIn: map[string]chan moveMsg{}},
 	}

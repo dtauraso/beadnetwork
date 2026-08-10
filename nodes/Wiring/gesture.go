@@ -4,6 +4,7 @@ import (
 	"math"
 
 	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 )
 
 // gesture.go — the GESTURE STATE MACHINE. It consumes RAW pointer/wheel input (forwarded
@@ -160,7 +161,7 @@ func (md *MoveDispatch) gestHome(ev rawInputMsg, tr *T.Trace) {
 	for id := range centers {
 		radius[id] = md.nodeBodyRadius(id)
 	}
-	pivot, r, pos, up, ok := homeFitPose(centers, radius, ev.Fov, md.ui.gest.rect.aspect())
+	pivot, r, pos, up, ok := geom.HomeFitPose(centers, radius, ev.Fov, md.ui.gest.rect.aspect())
 	if !ok {
 		return
 	}
@@ -282,7 +283,7 @@ func (md *MoveDispatch) gestPointerUp(ev rawInputMsg, slotReg SlotRegistry, tr *
 	// Capture BEFORE reset() clears it (below) — moveMsgKindDragEnd must name the node
 	// that was actually dragged, and reset() zeroes g.dragNode unconditionally.
 	draggedNode := g.dragNode
-	g.reset(&md.ui.vp.viewpoint)
+	g.reset(&md.ui.vp.Viewpoint)
 	if wasDragging {
 		// The drag just ended: g.dragNode is now "" (cleared by reset above), so the
 		// Overlay block's DragNodeRow column must go back to -1 promptly rather than
@@ -309,7 +310,7 @@ func (md *MoveDispatch) gestPointerUp(ev rawInputMsg, slotReg SlotRegistry, tr *
 // SetViewpoint/seedOrbitPivot before orbit ever reads it), so this had no live bug —
 // but reset() is the obvious single home for "gesture-scoped state ends here", so it
 // belongs here rather than living only as an unenforced comment.
-func (g *gestureState) reset(vp *viewpoint) {
+func (g *gestureState) reset(vp *geom.Viewpoint) {
 	g.phase = gestIdle
 	g.emptyDown = false
 	g.dragNode = ""
@@ -323,9 +324,9 @@ func (g *gestureState) reset(vp *viewpoint) {
 // dolly (expressed as a PAN in the polar model — a pivot translation, not a radius change),
 // plain wheel = screen-space pan. Both first seed the viewpoint to region-focus, then pan.
 func (md *MoveDispatch) gestWheel(ev rawInputMsg, tr *T.Trace) {
-	vp := md.ui.vp.viewpoint
-	eye := eyeOf(vp)
-	pivot := regionFocus(vp, md.heldCenters())
+	vp := md.ui.vp.Viewpoint
+	eye := geom.EyeOf(vp)
+	pivot := geom.RegionFocus(vp, md.heldCenters())
 
 	if ev.Ctrl {
 		// Zoom-to-cursor: move the camera TOWARD the node under the cursor along the cursor→node
@@ -335,12 +336,12 @@ func (md *MoveDispatch) gestWheel(ev rawInputMsg, tr *T.Trace) {
 		// ride together); pos/up are unchanged, so the node keeps projecting to the same pixel.
 		// The cursor→node pick is a screen-space selection at the input boundary (projectNDC).
 		mouseNdcX, mouseNdcY := md.ui.gest.pixelToNDC(ev.X, ev.Y)
-		basis := basisFromViewpoint(vp.Pos, vp.Up)
+		basis := geom.BasisFromViewpoint(vp.Pos, vp.Up)
 		aspect := md.ui.gest.rect.aspect()
 		target := pivot
 		best := math.Inf(1)
 		for _, c := range md.heldCenters() {
-			nx, ny, inFront := projectNDC(c, eye, basis, ev.Fov, aspect)
+			nx, ny, inFront := geom.ProjectNDC(c, eye, basis, ev.Fov, aspect)
 			if !inFront {
 				continue
 			}
@@ -351,7 +352,7 @@ func (md *MoveDispatch) gestWheel(ev rawInputMsg, tr *T.Trace) {
 		}
 		toTarget := target.Sub(eye)
 		distP := toTarget.Length()
-		rayDir := anglesToWorldOffset(1, vp.Pos.Theta, vp.Pos.Phi).Scale(-1) // forward, if AT the node
+		rayDir := geom.AnglesToWorldOffset(1, vp.Pos.Theta, vp.Pos.Phi).Scale(-1) // forward, if AT the node
 		if distP > 1e-9 {
 			rayDir = toTarget.Scale(1 / distP)
 		}
@@ -359,9 +360,9 @@ func (md *MoveDispatch) gestWheel(ev rawInputMsg, tr *T.Trace) {
 		// fraction of the remaining distance (fast approach when far), FLOORED at a scene-scaled
 		// minimum so you can push THROUGH the node instead of asymptotically creeping to it — a
 		// pilot camera flies past nodes. No stop-short clamp.
-		amt := 1 - math.Pow(gestureZoomBase, ev.DeltaY)
+		amt := 1 - math.Pow(geom.GestureZoomBase, ev.DeltaY)
 		step := distP * amt
-		if minStep := vp.R * (gestureZoomBase - 1); math.Abs(step) < minStep {
+		if minStep := vp.R * (geom.GestureZoomBase - 1); math.Abs(step) < minStep {
 			step = math.Copysign(minStep, amt)
 		}
 		md.PanViewpoint(rayDir.Scale(step), tr)
@@ -377,6 +378,6 @@ func (md *MoveDispatch) gestWheel(ev rawInputMsg, tr *T.Trace) {
 	// translates pivot+eye together with the look direction unchanged. The scene does not move.
 	fovRad := ev.Fov * math.Pi / 180
 	worldPerPixel := (2 * vp.R * math.Tan(fovRad/2)) / md.ui.gest.rect.height
-	disp := panDisplacementPolar(vp.Pos, vp.Up, ev.DeltaX, ev.DeltaY, worldPerPixel)
+	disp := geom.PanDisplacementPolar(vp.Pos, vp.Up, ev.DeltaX, ev.DeltaY, worldPerPixel)
 	md.PanViewpoint(disp, tr)
 }

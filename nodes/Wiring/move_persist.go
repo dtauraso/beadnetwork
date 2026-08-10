@@ -1,7 +1,5 @@
 package Wiring
 
-import ()
-
 // persisters is the view-owner goroutine's (RunStdinReader, stdin_reader.go) OWN state for
 // the three SCENE-LEVEL files it writes — camera.json/overlays.json/sphere.json, each
 // genuinely singular (there is only one camera pose, one overlay-flag set, one scene

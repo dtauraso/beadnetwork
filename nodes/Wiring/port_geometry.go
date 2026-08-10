@@ -27,6 +27,7 @@ import (
 	"math"
 	"strconv"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
@@ -65,7 +66,7 @@ type nodeGeom struct {
 	// truth. World is derived: SceneCenter + polar2cart(ScenePolar). Valid only when HasPos.
 	// Mutated only by setNodeWorld (applyCenter's sole write path), on the node's own
 	// mover goroutine.
-	ScenePolar polar
+	ScenePolar geom.Polar
 	HasPos     bool // false for hand-written/partial specs with no position → nodeWorldPos returns origin
 	// ReachR is the sphere REACH radius: the max distance from this node's center to
 	// any node it outputs to (its surface children), under the resolved centers. It is
@@ -192,7 +193,7 @@ func nodeWorldPos(g nodeGeom) vec3 {
 	if !g.HasPos {
 		return vec3{}
 	}
-	return g.SceneCenter.Add(polar2cart(g.ScenePolar))
+	return g.SceneCenter.Add(geom.Polar2cart(g.ScenePolar))
 }
 
 // setNodeWorld updates a node's polar source of truth from a world center at an INPUT
@@ -200,7 +201,7 @@ func nodeWorldPos(g nodeGeom) vec3 {
 // representation stays polar: ScenePolar = cart2polar(world − SceneCenter). Cartesian
 // enters only here and at nodeWorldPos — never as a stored cartesian center.
 func setNodeWorld(g *nodeGeom, world vec3) {
-	g.ScenePolar = cart2polar(world.Sub(g.SceneCenter))
+	g.ScenePolar = geom.Cart2polar(world.Sub(g.SceneCenter))
 	g.HasPos = true
 }
 
@@ -402,13 +403,13 @@ func poleContainingEdge(poleTheta, polePhi float64, selfCenter, partnerCenter ve
 		return 0, 0, false
 	}
 	dir := delta.Normalize()
-	pole := anglesToWorldOffset(1, poleTheta, polePhi)
+	pole := geom.AnglesToWorldOffset(1, poleTheta, polePhi)
 	projected := pole.Sub(dir.Scale(pole.Dot(dir)))
 	if projected.Length() < 1e-6 {
 		return 0, 0, false
 	}
 	u := projected.Normalize()
-	return math.Acos(clamp(u.Y, -1, 1)), math.Atan2(u.Z, u.X), true
+	return math.Acos(geom.Clamp(u.Y, -1, 1)), math.Atan2(u.Z, u.X), true
 }
 
 // torusDefaultAxisAngles is the torus geometry's OWN normal (+Z) as this codebase's angle
@@ -441,7 +442,7 @@ func uprightRingAxis(selfCenter, partnerCenter vec3) (theta, phi float64, ok boo
 		return 0, 0, false
 	}
 	u := n.Normalize()
-	return math.Acos(clamp(u.Y, -1, 1)), math.Atan2(u.Z, u.X), true
+	return math.Acos(geom.Clamp(u.Y, -1, 1)), math.Atan2(u.Z, u.X), true
 }
 
 // coplanarNormalTowardPartner (the edge-derived coplanar normal) was REMOVED: the drawn

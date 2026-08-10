@@ -23,6 +23,7 @@ import (
 
 	B "github.com/dtauraso/wirefold/Buffer"
 	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 )
 
 // CreateNode adds a node of kindID at a dropped world point, connected to the NEAREST
@@ -93,7 +94,7 @@ func (md *MoveDispatch) CreateNode(kindID uint8, ndcX, ndcY float64, tr *T.Trace
 	// nearest node either, so the drop is measured from the origin.
 	c := md.ui.sceneSphere.Center
 	off := drop.Sub(c)
-	d := worldDirToAngles(off)
+	d := geom.WorldDirToAngles(off)
 	if err := WriteNewNodeFiles(md.Scenes.TreeRoot, target, kind, off.Length(), d.Theta, d.Phi); err != nil {
 		md.refuseStructuralEdit(fmt.Sprintf("could not write node %s: %v", target, err))
 		return
@@ -211,14 +212,14 @@ func firstPortOfDir(kind string, dir PortDir) (string, bool) {
 // was under the pointer. ok=false when the ray is parallel to the plane or the hit is
 // non-finite, which is a refusal rather than a guess at where the node should go.
 func (md *MoveDispatch) dropPointFromNDC(ndcX, ndcY float64) (vec3, bool) {
-	vp := md.ui.vp.viewpoint
-	eye := eyeOf(vp)
-	basis := basisFromViewpoint(vp.Pos, vp.Up)
+	vp := md.ui.vp.Viewpoint
+	eye := geom.EyeOf(vp)
+	basis := geom.BasisFromViewpoint(vp.Pos, vp.Up)
 	// g.fov/g.rect are the last render params the viewport reported. A gesture reads them
 	// off the event it is handling; a palette DROP has no event of its own — it arrives as
 	// an addressed edit, not raw input — so it uses the ones every pointer move across the
 	// canvas has been keeping current.
-	dir := rayDirThroughNDC(ndcX, ndcY, basis, md.ui.gest.fov, md.ui.gest.rect.aspect())
+	dir := geom.RayDirThroughNDC(ndcX, ndcY, basis, md.ui.gest.fov, md.ui.gest.rect.aspect())
 	forward := basis.Pole.Scale(-1) // camera looks along -pole
 	denom := dir.Dot(forward)
 	if denom == 0 {

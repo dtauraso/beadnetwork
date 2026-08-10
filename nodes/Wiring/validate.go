@@ -13,9 +13,10 @@ package Wiring
 import (
 	"fmt"
 
+	"strings"
+
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
-	"strings"
 )
 
 // validateSpec checks the parsed topoSpec for shape errors that are

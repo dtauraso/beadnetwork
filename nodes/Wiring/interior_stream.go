@@ -7,8 +7,9 @@ package Wiring
 
 import (
 	"encoding/binary"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"io"
+
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
 // interiorStream bundles ONE node's own dedicated interior fd + injected frame builder +

@@ -1,9 +1,10 @@
 package Wiring
 
 import (
-	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"math"
 	"testing"
+
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
 // measureScalars/deriveCenters round-trip: a node's world center, re-measured about the

@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 )
 
 // scene_camera_persist_test.go — the WRITE side of camera-viewpoint-as-file-data. These
@@ -23,7 +25,7 @@ import (
 // legacy sidecar now loses its camera pose on load and falls back to defaultViewpoint.
 
 // vpEqual asserts two FSM viewpoint tuples match within tolerance.
-func vpEqual(t *testing.T, gotPivot vec3, gotR float64, gotPos, gotUp dir, wantPivot vec3, wantR float64, wantPos, wantUp dir) {
+func vpEqual(t *testing.T, gotPivot vec3, gotR float64, gotPos, gotUp geom.Dir, wantPivot vec3, wantR float64, wantPos, wantUp geom.Dir) {
 	t.Helper()
 	if !vecClose(gotPivot, wantPivot, 1e-9) {
 		t.Fatalf("pivot=%v want %v", gotPivot, wantPivot)
@@ -48,8 +50,8 @@ func TestPersistViewpointRoundTrips(t *testing.T) {
 
 	wantPivot := vec3{X: 10, Y: 20, Z: 30}
 	wantR := 250.0
-	wantPos := dir{Theta: 1.1, Phi: 2.2}
-	wantUp := dir{Theta: 0.3, Phi: 0.4}
+	wantPos := geom.Dir{Theta: 1.1, Phi: 2.2}
+	wantUp := geom.Dir{Theta: 0.3, Phi: 0.4}
 
 	md.SetViewpoint(wantPivot, wantR, wantPos, wantUp)
 	md.EmitViewpoint(nil) // synchronously writes camera.json (gesture path is EmitViewpoint)
@@ -72,9 +74,9 @@ func TestPersistWriteBurstLandsFinalValue(t *testing.T) {
 	td := t.TempDir()
 	md := &MoveDispatch{}
 	md.EnableViewpointPersist(td)
-	md.SetViewpoint(vec3{}, 1, dir{}, dir{})
+	md.SetViewpoint(vec3{}, 1, geom.Dir{}, geom.Dir{})
 	for i := 0; i < 50; i++ {
-		md.SetViewpoint(vec3{X: float64(i)}, float64(100+i), dir{Theta: float64(i) * 0.01}, dir{Phi: float64(i) * 0.02})
+		md.SetViewpoint(vec3{X: float64(i)}, float64(100+i), geom.Dir{Theta: float64(i) * 0.01}, geom.Dir{Phi: float64(i) * 0.02})
 		md.EmitViewpoint(nil) // synchronous write, every call
 	}
 
@@ -84,7 +86,7 @@ func TestPersistWriteBurstLandsFinalValue(t *testing.T) {
 		t.Fatalf("loadSceneViewpoint: ok=false")
 	}
 	vpEqual(t, pivot, r, pos, up,
-		vec3{X: 49}, 149, dir{Theta: 49 * 0.01}, dir{Phi: 49 * 0.02})
+		vec3{X: 49}, 149, geom.Dir{Theta: 49 * 0.01}, geom.Dir{Phi: 49 * 0.02})
 }
 
 // TestCameraAndOverlaysFilesDoNotClobber pins the point of this split: camera.json and
@@ -97,7 +99,7 @@ func TestCameraAndOverlaysFilesDoNotClobber(t *testing.T) {
 	// Go persists a camera first.
 	md := &MoveDispatch{}
 	md.EnableViewpointPersist(td)
-	md.SetViewpoint(vec3{X: 11, Y: 22, Z: 33}, 321, dir{Theta: 0.5, Phi: 1.5}, dir{Theta: 0.05, Phi: 0.15})
+	md.SetViewpoint(vec3{X: 11, Y: 22, Z: 33}, 321, geom.Dir{Theta: 0.5, Phi: 1.5}, geom.Dir{Theta: 0.05, Phi: 0.15})
 	md.EmitViewpoint(nil)
 
 	// A save persists Go's OWN overlay state into a SEPARATE file (overlays.json).
@@ -112,7 +114,7 @@ func TestCameraAndOverlaysFilesDoNotClobber(t *testing.T) {
 	if !ok {
 		t.Fatalf("loadSceneViewpoint: ok=false")
 	}
-	vpEqual(t, pivot, r, pos, up, vec3{X: 11, Y: 22, Z: 33}, 321, dir{Theta: 0.5, Phi: 1.5}, dir{Theta: 0.05, Phi: 0.15})
+	vpEqual(t, pivot, r, pos, up, vec3{X: 11, Y: 22, Z: 33}, 321, geom.Dir{Theta: 0.5, Phi: 1.5}, geom.Dir{Theta: 0.05, Phi: 0.15})
 
 	// camera.json holds ONLY the camera pose — no overlay keys leaked in.
 	raw, err := os.ReadFile(filepath.Join(td, "view", "camera.json"))

@@ -9,8 +9,10 @@ package Wiring
 
 import (
 	"fmt"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"os"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
 // specNode mirrors the JSON node shape.
@@ -78,7 +80,7 @@ func (n specNode) toNodeGeom(sceneCenter vec3) nodeGeom {
 	// authoritative regardless.
 	g := nodeGeom{nodeIdentity: nodeIdentity{Kind: n.Type, Label: n.label(), R: n.R, SceneCenter: sceneCenter}}
 	if n.ScenePolarR != nil && n.ScenePolarTheta != nil && n.ScenePolarPhi != nil {
-		g.ScenePolar = polar{R: *n.ScenePolarR, Theta: *n.ScenePolarTheta, Phi: *n.ScenePolarPhi}
+		g.ScenePolar = geom.Polar{R: *n.ScenePolarR, Theta: *n.ScenePolarTheta, Phi: *n.ScenePolarPhi}
 		g.HasPos = true
 	}
 	return g

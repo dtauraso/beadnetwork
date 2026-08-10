@@ -31,6 +31,7 @@ package Wiring
 
 import (
 	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
@@ -42,13 +43,13 @@ type sceneSphereJSON struct {
 
 // loadSceneSphere reads the persisted scene sphere from sphere.json. ok is false when it
 // yields no complete sphere — callers then content-fit.
-func loadSceneSphere(topologyPath string) (sceneSphere, bool) {
+func loadSceneSphere(topologyPath string) (geom.SceneSphere, bool) {
 	var sj sceneSphereJSON
 	jsonpersist.ReadJSONBestEffort(sphereFilePath(topologyPath), &sj)
 	if sj.Center == nil || sj.Radius == nil {
-		return sceneSphere{}, false
+		return geom.SceneSphere{}, false
 	}
-	return sceneSphere{
+	return geom.SceneSphere{
 		Center: vec3{X: sj.Center[0], Y: sj.Center[1], Z: sj.Center[2]},
 		Radius: *sj.Radius,
 	}, true
@@ -56,7 +57,7 @@ func loadSceneSphere(topologyPath string) (sceneSphere, bool) {
 
 // writeSceneSphere writes the scene sphere as the whole content of sphereJSONPath
 // (sphere.json) — the sole writer of that file, so no read-modify-write is needed.
-func writeSceneSphere(sphereJSONPath string, s sceneSphere) error {
+func writeSceneSphere(sphereJSONPath string, s geom.SceneSphere) error {
 	center := [3]float64{s.Center.X, s.Center.Y, s.Center.Z}
 	radius := s.Radius
 	return jsonpersist.WriteJSONAtomic(sphereJSONPath, sceneSphereJSON{Center: &center, Radius: &radius})
@@ -92,7 +93,7 @@ func (md *MoveDispatch) LoadSceneSphere(topologyPath string) {
 		// goroutine and before RunStdinReader's dispatch loop begins, so md.positions
 		// (which heldCenters reads) is still empty here — use the load-time geom sweep
 		// instead (safe: no mover goroutine is mutating geom yet).
-		md.ui.sceneSphere = contentFitSceneSphere(md.loadTimeCenters())
+		md.ui.sceneSphere = geom.ContentFitSceneSphere(md.loadTimeCenters())
 		// Best-effort: a read-only or absent scene dir must not stop the sim from running.
 		// The in-memory sphere is correct either way; only cross-run stability is at stake.
 		// Path via sphereFilePath (scene_paths.go) — the authoritative resolver, per
@@ -124,7 +125,7 @@ type sceneSpherePersister struct {
 }
 
 // flushNow writes the current sphere synchronously.
-func (p *sceneSpherePersister) flushNow(s sceneSphere) {
+func (p *sceneSpherePersister) flushNow(s geom.SceneSphere) {
 	if p == nil || p.path == "" {
 		return
 	}

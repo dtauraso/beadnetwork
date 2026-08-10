@@ -1,8 +1,10 @@
 package Wiring
 
 import (
-	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"math"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
 // quantized_layout.go — the quantized FLAT ABSOLUTE SCENE-POLAR layout: every node is
@@ -101,7 +103,7 @@ func measureScalars(centers map[string]vec3, ids map[string]bool, sceneCenter ve
 		}
 		carried := prior[id] // zero value if absent — constants default to unset
 		t, p_, r := carried.effectiveSteps()
-		p := cart2polar(pos.Sub(sceneCenter))
+		p := geom.Cart2polar(pos.Sub(sceneCenter))
 		result[id] = quantizedOffset{
 			iTheta: int(math.Round(p.Theta / t)),
 			iPhi:   int(math.Round(p.Phi / p_)),
@@ -122,7 +124,7 @@ func measureScalars(centers map[string]vec3, ids map[string]bool, sceneCenter ve
 // (commitNodeMoveLocal) so each node's quantized offset lives on that node's OWN mover
 // (nodeMover.quantOffset) rather than a shared map read/written from multiple mover
 // goroutines — see node6-drag-decentralized.md / the quantizedOffsets data-race fix.
-func measureScalar(p polar, prior quantizedOffset) quantizedOffset {
+func measureScalar(p geom.Polar, prior quantizedOffset) quantizedOffset {
 	t, p_, r := prior.effectiveSteps()
 	return quantizedOffset{
 		iTheta: int(math.Round(p.Theta / t)),
@@ -144,9 +146,9 @@ func measureScalar(p polar, prior quantizedOffset) quantizedOffset {
 //
 // using o's OWN effective step constants (o.effectiveSteps()), falling back to the
 // global defaults for any unset component.
-func offsetScenePolar(o quantizedOffset) polar {
+func offsetScenePolar(o quantizedOffset) geom.Polar {
 	t, p, r := o.effectiveSteps()
-	return polar{R: float64(o.iR) * r, Theta: float64(o.iTheta) * t, Phi: float64(o.iPhi) * p}
+	return geom.Polar{R: float64(o.iR) * r, Theta: float64(o.iTheta) * t, Phi: float64(o.iPhi) * p}
 }
 
 // deriveCenters is the flat-polar FORWARD computation: given each node's scalar triple
@@ -156,7 +158,7 @@ func offsetScenePolar(o quantizedOffset) polar {
 func deriveCenters(scalars map[string]quantizedOffset, sceneCenter vec3) map[string]vec3 {
 	derived := make(map[string]vec3, len(scalars))
 	for id, o := range scalars {
-		derived[id] = sceneCenter.Add(polar2cart(offsetScenePolar(o)))
+		derived[id] = sceneCenter.Add(geom.Polar2cart(offsetScenePolar(o)))
 	}
 	return derived
 }

@@ -6,6 +6,7 @@ import (
 	"os"
 
 	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/stepdeliver"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
@@ -259,7 +260,7 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 			// vector-length or re-normalize call, which tools/network/check-no-sqrt-in-chain-beads.sh
 			// bans in this file (trig itself is allowed, only the sqrt-fingerprinted
 			// helpers are not).
-			liveTheta := math.Acos(clamp(liveDir.Y, -1, 1))
+			liveTheta := math.Acos(geom.Clamp(liveDir.Y, -1, 1))
 			livePhi := math.Atan2(liveDir.Z, liveDir.X)
 			value := fmt.Sprintf(
 				"to=%s count=%d K=%d liveDir=(theta=%.4f,phi=%.4f)",

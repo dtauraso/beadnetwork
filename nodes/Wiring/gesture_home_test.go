@@ -1,9 +1,11 @@
 package Wiring
 
 import (
-	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"math"
 	"testing"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
 // gesture_home_test.go — the "home" (fit-to-content) command: Go frames all nodes from its
@@ -17,9 +19,9 @@ import (
 // (Width==Height==60 → body radius 60/CurveParamNodeRadiusDivisor). Each center is seeded
 // via a real nodeMover's atomic snap (newNodeMover + setNodeWorld) so heldCenters() observes
 // it, mirroring a live post-layout dispatch after nodeMovers are constructed.
-func homeMD(v viewpoint, centers map[string]vec3) *MoveDispatch {
+func homeMD(v geom.Viewpoint, centers map[string]vec3) *MoveDispatch {
 	md := &MoveDispatch{mr: moverRegistry{nodeGeoms: map[string]*nodeGeometry{}, edgeMovers: map[string]*edgeMover{}}}
-	md.ui.vp.viewpoint = v
+	md.ui.vp.Viewpoint = v
 	for id, c := range centers {
 		g := nodeGeom{nodeIdentity: nodeIdentity{Kind: "TimeEnd"}}
 		setNodeWorld(&g, c)
@@ -30,7 +32,7 @@ func homeMD(v viewpoint, centers map[string]vec3) *MoveDispatch {
 
 func TestGestureHomeComputesFitPoseFromGeometry(t *testing.T) {
 	// A deliberately stale/off pose: the pre-home viewpoint the FSM would otherwise reuse.
-	stale := viewpoint{Pivot: vec3{X: 500, Y: 500, Z: 500}, R: 999, Pos: dir{Theta: 0.3, Phi: 0.7}, Up: dir{Theta: 0.1, Phi: 0.2}}
+	stale := geom.Viewpoint{Pivot: vec3{X: 500, Y: 500, Z: 500}, R: 999, Pos: geom.Dir{Theta: 0.3, Phi: 0.7}, Up: geom.Dir{Theta: 0.1, Phi: 0.2}}
 	centers := map[string]vec3{
 		"a": {X: -30, Y: 0, Z: 0},
 		"b": {X: 30, Y: 0, Z: 0},
@@ -51,7 +53,7 @@ func TestGestureHomeComputesFitPoseFromGeometry(t *testing.T) {
 	sizeX := (30 + rad) - (-30 - rad) // 60 + 2*rad
 	sizeY := (0 + rad) - (0 - rad)    // 2*rad
 	sizeZ := (0 + rad) - (0 - rad)    // 2*rad
-	wantDist := fitDistanceGo(fov, aspect, sizeX, sizeY) + sizeZ/2
+	wantDist := geom.FitDistanceGo(fov, aspect, sizeX, sizeY) + sizeZ/2
 	wantR := wantDist * 1.2
 
 	if !vecClose(md.ui.vp.Pivot, vec3{X: 0, Y: 0, Z: 0}, 1e-9) {
@@ -61,7 +63,7 @@ func TestGestureHomeComputesFitPoseFromGeometry(t *testing.T) {
 		t.Fatalf("home r=%v want padded fit distance %v", md.ui.vp.R, wantR)
 	}
 	// Square-on: camera along +z, up +y — eye = pivot + r·(+z).
-	eye := eyeOf(md.ui.vp.viewpoint)
+	eye := geom.EyeOf(md.ui.vp.Viewpoint)
 	if !vecClose(eye, vec3{X: 0, Y: 0, Z: wantR}, 1e-6) {
 		t.Fatalf("home eye=%v want (0,0,%v) (square-on +z)", eye, wantR)
 	}
@@ -78,7 +80,7 @@ func TestGestureHomeComputesFitPoseFromGeometry(t *testing.T) {
 // (110,60) default → nodeRadius's fallback, NOT a zero-size point. This locks the
 // home-fit radius to the pre-branch so an unsized node is not cut off at the frame edge.
 func TestGestureHomeFramesUnknownKindAtRenderRadius(t *testing.T) {
-	stale := viewpoint{Pivot: vec3{X: 500, Y: 500, Z: 500}, R: 999, Pos: dir{Theta: 0.3, Phi: 0.7}, Up: dir{Theta: 0.1, Phi: 0.2}}
+	stale := geom.Viewpoint{Pivot: vec3{X: 500, Y: 500, Z: 500}, R: 999, Pos: geom.Dir{Theta: 0.3, Phi: 0.7}, Up: geom.Dir{Theta: 0.1, Phi: 0.2}}
 	// A single node of an unknown kind at the origin. homeMD seeds kind "TimeEnd"; override
 	// the mover's kind to an unrecognized one so nodeBodyRadius takes the (110,60) fallback.
 	centers := map[string]vec3{"x": {X: 0, Y: 0, Z: 0}}
@@ -97,7 +99,7 @@ func TestGestureHomeFramesUnknownKindAtRenderRadius(t *testing.T) {
 		t.Fatalf("render radius must be positive, got %v", renderRadius)
 	}
 	size := 2 * renderRadius
-	wantDist := fitDistanceGo(fov, aspect, size, size) + size/2
+	wantDist := geom.FitDistanceGo(fov, aspect, size, size) + size/2
 	wantR := wantDist * 1.2
 	if math.Abs(md.ui.vp.R-wantR) > 1e-9 {
 		t.Fatalf("home r=%v want %v (unknown kind framed at render radius %v, not 0)", md.ui.vp.R, wantR, renderRadius)
@@ -108,7 +110,7 @@ func TestGestureHomeFramesUnknownKindAtRenderRadius(t *testing.T) {
 // HOME radius — it does NOT reset to the pre-home (stale) pose. This is the anti-snap-back
 // invariant: the FSM's own pose is the seed for the next gesture.
 func TestGestureHomeThenOrbitBuildsOnHomePose(t *testing.T) {
-	stale := viewpoint{Pivot: vec3{X: 500, Y: 500, Z: 500}, R: 999, Pos: dir{Theta: 0.3, Phi: 0.7}, Up: dir{Theta: 0.1, Phi: 0.2}}
+	stale := geom.Viewpoint{Pivot: vec3{X: 500, Y: 500, Z: 500}, R: 999, Pos: geom.Dir{Theta: 0.3, Phi: 0.7}, Up: geom.Dir{Theta: 0.1, Phi: 0.2}}
 	centers := map[string]vec3{
 		"a": {X: -30, Y: 0, Z: 0},
 		"b": {X: 30, Y: 0, Z: 0},
