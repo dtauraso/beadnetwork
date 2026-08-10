@@ -14,7 +14,7 @@ Two corollaries, and the second is the sharper one:
    goroutine owns the bead and times its own traversal. "Node A fired, therefore the bead
    arrived at node B's input" asserts a guarantee the model deliberately does not have —
    no ack, no nack, no handshake, no send-gating
-   (`memory/feedback_node_model_not_networking_handshake.md`). Split it: A's own emit
+   (`memory/feedback/feedback_node_model_not_networking_handshake.md`). Split it: A's own emit
    decision, and B's own behavior given an input.
 
 2. **Do not test that two or more goroutines communicate properly at all.** Not delivery,
@@ -34,7 +34,7 @@ fail for a reason that is about this codebase.
 ## The one exception: persistence
 
 Tests that assert **bytes on disk through a real reload** stay, even though a goroutine
-wrote those bytes. `memory/feedback_headless_repro_verifies_persistence` records that
+wrote those bytes. `memory/feedback/feedback_headless_repro_verifies_persistence` records that
 green unit tests hid live persistence failures three times, and that the fix was driving
 the real thing and reading on-disk bytes. That hole is real and empirical; do not close it
 on theory.

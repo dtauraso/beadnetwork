@@ -111,7 +111,7 @@ binary (reading raw frames and diffing them) showed `nodeMover.run` calls
 `writeStreamFrame` **every clock cycle unconditionally** — not on change — at roughly a
 17ms cadence, forever, and `edgeMover` does the same plus every edge frame carries its
 wire's live in-flight bead positions, which change every single frame for as long as a bead
-is on the wire. This repo's topology has a self-feeding ring (`memory/feedback_edge_seed_
+is on the wire. This repo's topology has a self-feeding ring (`memory/feedback/feedback_edge_seed_
 required_for_rings.md`), so in a headless run with no pointer input that is *forever*. A
 per-frame idle timeout on a stream that never goes idle degenerates back to exactly the
 problem being fixed: wait for the child to die at the 20s `runCtx` deadline.
@@ -231,7 +231,7 @@ on this test, and it removes the reason to tune it at all.
 **The three per-owner fd tests (view / node / edge) are NOT redundant with each other** even
 though their headers read almost identically. Each proves a different stream kind reaches
 its own dedicated fd, which is the invariant in
-`memory/feedback_no_single_writer_bridge.md`, and no other test drives real fds. Keep all
+`memory/feedback/feedback_no_single_writer_bridge.md`, and no other test drives real fds. Keep all
 three.
 
 **`TestHeadlessFirstFrameHasRealGeometry` has a stale name, not a redundant assertion.** It
@@ -243,7 +243,7 @@ the name should be corrected to match, and that rename belongs in the same commi
 So the honest expected outcome is a mix: one test loses four spawns, one gets renamed, and
 all five lose their frame counts. Re-measure after each, not once at the end — otherwise a
 removal and a speedup get credited to whichever landed last
-(`memory/feedback_ease_of_fix_is_confounded.md`).
+(`memory/feedback/feedback_ease_of_fix_is_confounded.md`).
 
 ## What this does not change
 
@@ -258,7 +258,7 @@ is information worth having, not a reason to keep the counts.
 (`docs/process/testing-shape.md`) is hostile to tests that assert across goroutines by waiting. This
 change does not add such an assertion — the tests already wait; it makes the wait
 proportional to the thing being waited for instead of to an unrelated constant. But the
-idle interval is a knob, and per `memory/feedback_go_vs_coordinator_bias.md` a knob is worth
+idle interval is a knob, and per `memory/feedback/feedback_go_vs_coordinator_bias.md` a knob is worth
 being suspicious of. If 250ms proves flaky under load, the answer is not to raise it: it is
 that the harness should read a definite end-of-settling signal, and finding that signal is
 the better fix.

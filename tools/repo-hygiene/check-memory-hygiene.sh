@@ -32,7 +32,7 @@ fi
 allowed_type() { case "$1" in user|feedback|project|reference) return 0;; *) return 1;; esac; }
 
 files=()
-while IFS= read -r f; do files+=("$f"); done < <(find "$MEM_DIR" -maxdepth 1 -name '*.md' ! -name 'MEMORY.md' | sort)
+while IFS= read -r f; do files+=("$f"); done < <(find "$MEM_DIR" -name '*.md' ! -name 'MEMORY.md' | sort)
 
 if [[ ${#files[@]} -eq 0 ]]; then
   echo "check-memory-hygiene: MISCONFIGURED — no memory/*.md files found; refusing vacuous pass" >&2

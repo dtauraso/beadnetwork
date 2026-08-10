@@ -47,6 +47,6 @@ previously decoded and discarded it every tick regardless. `KindBreadcrumb` and
 buffer path that actually renders beads reads neither flag and is unaffected.
 
 On editor hang/decouple/compound symptoms, read the `.probe` ERROR logs first
-(`memory/feedback_runner_errors_probe_first.md`). For intermittent UI bugs, add cheap
+(`memory/feedback/feedback_runner_errors_probe_first.md`). For intermittent UI bugs, add cheap
 runtime breadcrumbs + a repro before theorizing
-(`memory/feedback_runtime_breadcrumbs_beat_static_analysis.md`).
+(`memory/feedback/feedback_runtime_breadcrumbs_beat_static_analysis.md`).

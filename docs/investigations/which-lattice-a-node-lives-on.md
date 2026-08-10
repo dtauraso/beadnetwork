@@ -130,7 +130,7 @@ model this vector reuses.
 - **The cartesian drag target has exactly ONE live producer.** `RootMove`'s only callers are
   the drag path (`gesture_actions.go`) and `distance_groups.go`, and the latter has no
   references outside its own file — consistent with
-  `memory/project_distance_group_decentralization_deadend.md`, which records that feature as
+  `memory/project/project_distance_group_decentralization_deadend.md`, which records that feature as
   built and reverted.
 - **The boundary conversion already existed** in `commitNodeMoveLocal` — `cart2polar` once,
   then `measureScalar` — and still does, now feeding the post-walk cache measurement instead

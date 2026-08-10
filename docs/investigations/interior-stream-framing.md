@@ -30,7 +30,7 @@ to find what a *live* editor session does differently.
 
 ## 1. Who writes the interior fd — REPRODUCED VIOLATION
 
-The model requires one writer per fd (`memory/feedback_no_single_writer_bridge.md`,
+The model requires one writer per fd (`memory/feedback/feedback_no_single_writer_bridge.md`,
 `Buffer/streamframe/stream_fds.go`'s `StreamKindInterior` doc comment: "written by that node's OWN
 Update goroutine"). That invariant is **violated by construction** for every node kind that
 uses `gatecommon.DriveHeld` — `Pulse`, `PulseLeft`, `PulseRight`, `holdflip`, `Time`,
@@ -132,7 +132,7 @@ separate `Write()` calls — worth noting for whoever writes the guard, since "r
 
 **Chosen: each emitting goroutine gets its own fd** — the stated bridge invariant
 (CLAUDE.md: "one dedicated inherited-stdio pipe per emitting goroutine",
-`memory/feedback_no_single_writer_bridge.md`), not a lock (`tools/network/check-no-network-locks.sh`
+`memory/feedback/feedback_no_single_writer_bridge.md`), not a lock (`tools/network/check-no-network-locks.sh`
 has an empty allowlist — a mutex was never on the table) and not channel-routing back
 through the node's own Update goroutine (that would still be a real option under the
 model, but the per-fd shape was chosen as the more direct fix and matches how `interior`

@@ -63,7 +63,7 @@ mistake to avoid (chain_beads.go's own header comment makes the same split):
     called by `reconcileBeadChain` only when the aim or the bead count actually changed) —
     a body force, dependency depth 1: each bead computes its own position directly from the
     broadcast and its own fixed offset, never from a neighbour bead's position
-    (memory/project_wire_is_straight_line_not_chain.md's O(N²) defect was momentum-free
+    (memory/project/project_wire_is_straight_line_not_chain.md's O(N²) defect was momentum-free
     midpoint averaging plus human-clock gating, not "a chain of beads" per se — see that
     memory file's corrected framing).
   - **Animation/tick** (human time, `MsPerTick`): a pulse from the process's one
@@ -296,7 +296,7 @@ when a bead has arrived. Go owns the clock.
   parameters, camera pose, selection, and overlay visibility. There is no
   single combined buffer or central packer: each emitting goroutine packs
   and streams its OWN binary content buffer to its OWN dedicated inherited
-  stdio pipe (`Buffer/streamframe/stream_fds.go`, memory/feedback_no_single_writer_bridge.md)
+  stdio pipe (`Buffer/streamframe/stream_fds.go`, memory/feedback/feedback_no_single_writer_bridge.md)
   — one VIEW stream (camera/overlay/scene, the gesture/stdin-reader
   goroutine), one stream per edge row (that edgeMover's own geometry + its
   wire's live beads), one stream per node row (that nodeMover's own
@@ -477,7 +477,7 @@ and none is a source of truth.
   `bead centre = (scene centre -> node) + (node -> bead)`. There is NO hierarchy between
   nodes: every node hangs off the scene centre directly, one hop (scene -> node -> bead,
   two levels — a rooted/parent layout was tried and rejected,
-  `memory/project_layout_model_evolution.md`).
+  `memory/project/project_layout_model_evolution.md`).
 - **A node has ONE polar coordinate.** `(r,θ,φ)` about the scene-sphere center — the node's
   whole POSITION, in the QUANTISED integer form (`quantizedOffset` — `iTheta`/`iPhi`/`iR`
   × per-node step constants, `nodes/Wiring/quantized_layout.go`), persisted
