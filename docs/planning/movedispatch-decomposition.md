@@ -133,6 +133,41 @@ Order: apply the split to the 14 `emitViewFrame` callers first (largest and best
 then `sendMove`'s 4, then the rest. Do not answer this by giving owners a back-reference to
 the hub — that is the cycle returning under a new name.
 
+**The `emitViewFrame` pass is done.** Applied: `viewpoint_state.go`'s 5 (`EmitViewpoint`/
+`OrbitViewpoint`/`OrbitLockedViewpoint`/`ZoomViewpoint`/`PanViewpoint` no longer call
+`emitViewFrame` themselves — their callers in `gesture_handlers.go`/`gesture_actions.go` do,
+after the mutation, matching the toggle precedent); `gesture_actions.go`'s `setHover` (now
+returns `(events, changed)`, `updateHover` emits) and `applySelect` (its `emitSelectViewFrame`
+delegator was deleted, replaced by a pure `selectViewEvent` builder `applySelect` itself calls
+`emitViewFrame` on, at each of its 3 branches); `scene_structure.go`'s `refuseStructuralEdit`
+(now mutates `md.ui.editRefused` only; each of its 12 `CreateNode`/`DeleteNode` call sites
+emits its own frame); `distance_groups.go`'s `ApplyDistanceGroupTarget` (returns `moved`
+without emitting; its one caller, `applyUpdateDistanceGroup` in `stdin_apply.go`, emits when
+`moved`). Every split call site was confirmed reached from `RunStdinReader`'s own dispatch
+(gesture handlers, `applyUpdate`'s tables) before moving it.
+
+Held back, NOT split, for named reasons:
+- `stdin_dispatch.go`'s 2 (`clockAttrHandlers["speed"]`, `overlayAttrHandlers["toggle"]`) —
+  already at the target shape: each is an inline closure that mutates then emits directly,
+  with no intermediate `MoveDispatch` method to split (`overlayAttrHandlers["toggle"]` is the
+  literal precedent this whole pass follows).
+- `view_stream.go`'s `EmitBreadcrumb` — no owner mutation exists in its body (it only sets
+  fields on its `ev` parameter and forwards to `emitViewFrame`), so there is nothing to hoist
+  to an owner type; the write-then-emit split does not apply to a method that never mutates.
+- `scene_sphere_persist.go`'s `LoadSceneSphere`, `scene_speed_persist.go`'s `LoadSpeed`,
+  `scene_overlays_persist.go`'s `LoadOverlays` — each has an out-of-package caller
+  (`runtopology/scene_state.go`) that cannot reach the unexported `emitViewFrame` method
+  directly; same export-block class as the 7 already-documented methods below (`LoadSpeed`/
+  `LoadOverlays` are literally 2 of that 7).
+- `gesture_graph.go` — its 1 listed mention was a doc comment describing a call already
+  deleted in an earlier pass (`the local-polar drag-log reset (emitViewFrame(KindAbcDragReset)
+  ...) that used to run here was deleted`); no live `emitViewFrame` call exists in the file.
+
+Method/export counts unchanged by this pass (55 `MoveDispatch` methods total, 158 exported
+`Wiring` symbols) — the split moves emit calls between existing methods and their callers, it
+does not delete or add a `MoveDispatch` method (one exception nets to zero:
+`emitSelectViewFrame` deleted, `selectViewEvent` added, both unexported).
+
 `moverRegistry` is not a target. It owns `nodeMover`/`edgeMover`/`nodeGeometry`, the actors
 MODEL.md pins, and whatever remains of `MoveDispatch` stays with it.
 
