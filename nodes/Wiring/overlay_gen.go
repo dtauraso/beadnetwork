@@ -8,12 +8,11 @@ import (
 	"fmt"
 
 	T "github.com/dtauraso/wirefold/Trace"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
 // overlayState groups the per-toggle overlay-visibility booleans and their
-// flip/emit logic. Owned by MoveDispatch (md.ui.ov); the delegators below keep the
-// stdin reader's overlayToggles method-expression table binding MoveDispatch.
+// flip/emit logic. Owned by MoveDispatch (md.ui.ov); the stdin reader's overlayToggles
+// method-expression table binds these methods directly.
 type overlayState struct {
 	sceneToriVisible      bool
 	scenePolesVisible     bool
@@ -129,49 +128,46 @@ func defaultOverlayState() overlayState {
 	}
 }
 
-// Overlay-visibility API — thin delegators to the owned overlayState. The public
-// signatures are unchanged (overlayToggles binds these method expressions).
-func (md *MoveDispatch) ToggleSceneTori(tr *T.Trace) { md.ui.ov.ToggleSceneTori(tr) }
-func (md *MoveDispatch) ToggleScenePoles(tr *T.Trace) {
-	md.ui.ov.ToggleScenePoles(tr)
-	md.EmitBreadcrumb(wire.RowEvent{Label: T.BreadcrumbPoleToggleGo, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1, Value: int32(boolU8(md.ui.ov.scenePolesVisible)), Text: "scene"})
-}
-func (md *MoveDispatch) ToggleNodePoles(tr *T.Trace) {
-	md.ui.ov.ToggleNodePoles(tr)
-	md.EmitBreadcrumb(wire.RowEvent{Label: T.BreadcrumbPoleToggleGo, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1, Value: int32(boolU8(md.ui.ov.nodePolesVisible)), Text: "nodes"})
-}
-func (md *MoveDispatch) ToggleSelSpherePoles(tr *T.Trace) { md.ui.ov.ToggleSelSpherePoles(tr) }
-func (md *MoveDispatch) ToggleHandholds(tr *T.Trace)      { md.ui.ov.ToggleHandholds(tr) }
-func (md *MoveDispatch) ToggleLabelsGlobal(tr *T.Trace)   { md.ui.ov.ToggleLabelsGlobal(tr) }
-func (md *MoveDispatch) ToggleOverlaysVis(tr *T.Trace)    { md.ui.ov.ToggleOverlaysVis(tr) }
-func (md *MoveDispatch) ToggleNodeBody(tr *T.Trace)       { md.ui.ov.ToggleNodeBody(tr) }
-func (md *MoveDispatch) ToggleNodeRing(tr *T.Trace)       { md.ui.ov.ToggleNodeRing(tr) }
-func (md *MoveDispatch) ToggleRingPick(tr *T.Trace)       { md.ui.ov.ToggleRingPick(tr) }
-func (md *MoveDispatch) ToggleSelectionRing(tr *T.Trace)  { md.ui.ov.ToggleSelectionRing(tr) }
-func (md *MoveDispatch) ToggleHoverRing(tr *T.Trace)      { md.ui.ov.ToggleHoverRing(tr) }
-func (md *MoveDispatch) ToggleReachSphere(tr *T.Trace)    { md.ui.ov.ToggleReachSphere(tr) }
-
 // overlayToggles maps an overlay FLAG name (the attr="toggle" wire name) to the
-// MoveDispatch method that flips it.
+// overlayState method that flips it.
 //
 // OVERLAY_TOGGLES_START
-var overlayToggles = map[string]func(*MoveDispatch, *T.Trace){
-	"tori":           (*MoveDispatch).ToggleSceneTori,
-	"scenePoles":     (*MoveDispatch).ToggleScenePoles,
-	"nodePoles":      (*MoveDispatch).ToggleNodePoles,
-	"selSpherePoles": (*MoveDispatch).ToggleSelSpherePoles,
-	"handholds":      (*MoveDispatch).ToggleHandholds,
-	"labelsGlobal":   (*MoveDispatch).ToggleLabelsGlobal,
-	"overlays":       (*MoveDispatch).ToggleOverlaysVis,
-	"nodeBody":       (*MoveDispatch).ToggleNodeBody,
-	"nodeRing":       (*MoveDispatch).ToggleNodeRing,
-	"ringPick":       (*MoveDispatch).ToggleRingPick,
-	"selectionRing":  (*MoveDispatch).ToggleSelectionRing,
-	"hoverRing":      (*MoveDispatch).ToggleHoverRing,
-	"reachSphere":    (*MoveDispatch).ToggleReachSphere,
+var overlayToggles = map[string]func(*overlayState, *T.Trace){
+	"tori":           (*overlayState).ToggleSceneTori,
+	"scenePoles":     (*overlayState).ToggleScenePoles,
+	"nodePoles":      (*overlayState).ToggleNodePoles,
+	"selSpherePoles": (*overlayState).ToggleSelSpherePoles,
+	"handholds":      (*overlayState).ToggleHandholds,
+	"labelsGlobal":   (*overlayState).ToggleLabelsGlobal,
+	"overlays":       (*overlayState).ToggleOverlaysVis,
+	"nodeBody":       (*overlayState).ToggleNodeBody,
+	"nodeRing":       (*overlayState).ToggleNodeRing,
+	"ringPick":       (*overlayState).ToggleRingPick,
+	"selectionRing":  (*overlayState).ToggleSelectionRing,
+	"hoverRing":      (*overlayState).ToggleHoverRing,
+	"reachSphere":    (*overlayState).ToggleReachSphere,
 }
 
 // OVERLAY_TOGGLES_END
+
+// overlayFlagBreadcrumbScope names the overlay flags whose Toggle also logs a
+// structured "pole-toggle-go" debug breadcrumb, and the scope text that breadcrumb
+// carries. Flags absent here emit no such breadcrumb.
+//
+// OVERLAY_BREADCRUMB_SCOPES_START
+var overlayFlagBreadcrumbScope = map[string]string{
+	"scenePoles": "scene",
+	"nodePoles":  "nodes",
+}
+
+// OVERLAY_BREADCRUMB_SCOPES_END
+
+// overlayFlagValue reads the post-toggle bool for the flags named in
+// overlayFlagBreadcrumbScope (same key set).
+var overlayFlagValue = map[string]func(*overlayState) bool{
+	"scenePoles": func(o *overlayState) bool { return o.scenePolesVisible },
+	"nodePoles":  func(o *overlayState) bool { return o.nodePolesVisible },
+}
 
 // overlayFlagTraceKind maps the wire FLAG name (same keys as overlayToggles) to its
 // Trace.Kind* string, so applyUpdate's toggle case can hand emitViewFrame the ONE event

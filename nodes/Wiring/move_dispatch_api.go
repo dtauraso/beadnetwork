@@ -139,6 +139,6 @@ func (md *MoveDispatch) RootMove(nodeID string, target vec3) bool {
 	return md.lq.RootMove(md, nodeID, target)
 }
 
-// Overlay-visibility API (MoveDispatch delegators), the overlayState methods, the
-// overlayToggles table, defaultOverlayState, and the stdinGuideVisPayload mapper are all
-// GENERATED into overlay_gen.go from OVERLAY_FLAG_NAMES (tools/gen-node-defs).
+// The overlayState methods, the overlayToggles table, defaultOverlayState, and the
+// stdinGuideVisPayload mapper are all GENERATED into overlay_gen.go from
+// OVERLAY_FLAG_NAMES (tools/gen-node-defs).

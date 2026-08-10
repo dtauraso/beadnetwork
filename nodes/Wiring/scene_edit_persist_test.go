@@ -92,8 +92,8 @@ func TestPersistOverlaysRoundTrips(t *testing.T) {
 	md.EnableEditPersist(root)
 
 	// Flip a visible-sense flag off (tori) and the hidden-sense flag on (labelsGlobal off).
-	md.ToggleSceneTori(nil)    // sceneToriVisible: true -> false
-	md.ToggleLabelsGlobal(nil) // labelsGlobalVisible: true -> false
+	md.ui.ov.ToggleSceneTori(nil)    // sceneToriVisible: true -> false
+	md.ui.ov.ToggleLabelsGlobal(nil) // labelsGlobalVisible: true -> false
 	md.persist.overlays.schedule(md.ui.ov)
 
 	ov, found := loadSceneOverlays(scenepaths.OverlaysFilePath(root))
@@ -133,7 +133,7 @@ func TestOverlaysPersistPreservesCamera(t *testing.T) {
 
 	md.EnableEditPersist(root)
 
-	md.ToggleSceneTori(nil)
+	md.ui.ov.ToggleSceneTori(nil)
 	md.persist.overlays.schedule(md.ui.ov)
 
 	// Camera survives.

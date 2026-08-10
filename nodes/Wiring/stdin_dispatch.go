@@ -45,7 +45,7 @@ func HandleSaveMsg(md *MoveDispatch) {
 	md.persist.sphere.flushNow(md.ui.sceneSphere)
 }
 
-// overlayToggles (the FLAG name → MoveDispatch flip-method table) and
+// overlayToggles (the FLAG name → overlayState flip-method table) and
 // overlayFlagTraceKind (the FLAG name → Trace.Kind* string, so applyUpdate's toggle case
 // can hand emitViewFrame the ONE event that flag's toggle logged) are both GENERATED into
 // overlay_gen.go from the SAME OVERLAY_FLAG_NAMES source, so they cannot drift apart by
@@ -156,7 +156,17 @@ var overlayAttrHandlers = map[string]func(msg inputcodec.StdinMsg, md *MoveDispa
 	"toggle": func(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trace) {
 		// Flip the named flag — Go owns the state; TS just signals the flip.
 		if fn, ok := overlayToggles[msg.Flag]; ok {
-			fn(md, tr)
+			fn(&md.ui.ov, tr)
+			// Structured buffer counterpart of the "pole-toggle-go" debug breadcrumb
+			// overlayState.Toggle* logs for scene/node poles (overlayFlagBreadcrumbScope,
+			// overlay_gen.go): only this goroutine (RunStdinReader's dispatch loop, the
+			// VIEW stream's owner) ever calls md.EmitBreadcrumb, so it is safe here with
+			// no lock. Value=visible(0/1); the scope ("scene"/"nodes") rides the
+			// sanctioned free-form Text column since it names which pole-flag fired, not
+			// a typed row ref.
+			if scope, ok := overlayFlagBreadcrumbScope[msg.Flag]; ok {
+				md.EmitBreadcrumb(wire.RowEvent{Label: T.BreadcrumbPoleToggleGo, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1, Value: int32(boolU8(overlayFlagValue[msg.Flag](&md.ui.ov))), Text: scope})
+			}
 			// Decentralized (Step C, memory/feedback_no_single_writer_bridge.md): this goroutine (the sole
 			// caller of every overlay Toggle*) also writes its own VIEW frame directly,
 			// carrying the one flag that just changed — matches the ONE tr.X(bool) event
