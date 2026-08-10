@@ -92,9 +92,46 @@ shape — or has a cross-package caller through an unexported field, so it stays
 write-then-emit question is answered once (see below). 12 span two or more owners
 outright; the dominant shape among them is *mutate state, then emit a view frame*, 8 times.
 
-Order: rehome the remaining single-owner methods, then answer the write-then-emit question
-once. Do not answer it by giving owners a back-reference to the hub — that is the cycle
-returning under a new name.
+### The write-then-emit answer: the owner mutates, the view-owner goroutine emits
+
+Measured on the 55 remaining methods: **31 are blocked by calling another `MoveDispatch`
+method**, not by ownership — 9 are multi-owner, and only 15 are still cleanly rehomable. So
+this question gates the majority of what is left, not a tail of 12. (The original "68 of 88
+rehome mechanically" figure counted owner FIELDS and ignored method calls. It measured the
+wrong thing; every estimate built on it was too optimistic.)
+
+What they call, and why one method dominates:
+
+```
+14 emitViewFrame   4 sendMove   2 each: seedOrbitPivot, refuseStructuralEdit,
+                                        dragPlaneHit, distanceGroupMax, SetViewpoint
+```
+
+`emitViewFrame` is not a helper — it is the VIEW frame SERIALIZER. It reads nearly all of
+`ui` (all 11 overlay flags, viewpoint, sceneSphere, speed, sceneKinds, sceneEditable,
+editRefused, lastDraggedNode), plus `sw` (viewOut/viewBuildFrame/viewTick) and `RT`
+(NodeRowFor). Of course it touches three owners: a frame is a snapshot of the whole view.
+
+**Decision: split mutation from emission at the CALL SITE.** The owner method mutates and
+nothing else; the caller — which is always the view-owner goroutine — emits the frame after
+it. Owners never gain a way to emit, and never gain a back-reference.
+
+This is not a new idea; **it is already proven in-tree on this branch.** The 13 generated
+overlay toggles were converted to exactly this shape: `stdin_dispatch.go` now calls
+`fn(&md.ui.ov, tr)` to flip the flag, then emits the frame itself. Thirteen methods, no
+back-reference, no behaviour change.
+
+It is also what the codebase's own ownership already says. The VIEW stream is single-owner —
+`RunStdinReader` — and the source says so in several places ("the view-owner goroutine
+(RunStdinReader) is the SOLE caller"). Every `emitViewFrame` call site is reached from that
+one goroutine (gesture handlers, dispatch handlers, scene persisters). So moving the emit
+from callee to caller does not change which goroutine writes the VIEW stream. **Verify that
+per call site before moving it** — if any call site turns out to run on a mover goroutine,
+that one is a genuine ownership change and stops, rather than being pushed through.
+
+Order: apply the split to the 14 `emitViewFrame` callers first (largest and best-precedented),
+then `sendMove`'s 4, then the rest. Do not answer this by giving owners a back-reference to
+the hub — that is the cycle returning under a new name.
 
 `moverRegistry` is not a target. It owns `nodeMover`/`edgeMover`/`nodeGeometry`, the actors
 MODEL.md pins, and whatever remains of `MoveDispatch` stays with it.
