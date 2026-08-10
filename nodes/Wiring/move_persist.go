@@ -72,7 +72,7 @@ func (md *MoveDispatch) EnableEditPersist(topologyPath string) {
 	// here already closes over a path derived from it; this is the one operation that needs
 	// the root itself, because it creates and removes whole node directories rather than
 	// rewriting one known file.
-	md.scenes.treeRoot = root
+	md.Scenes.TreeRoot = root
 	md.persist.overlays = &overlaysPersister{path: overlaysFilePath(topologyPath)}
 	md.persist.sphere = &sceneSpherePersister{path: sphereFilePath(topologyPath)}
 	md.persist.speed = &speedPersister{path: speedFilePath(topologyPath)}

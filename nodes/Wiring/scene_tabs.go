@@ -233,54 +233,39 @@ func SceneTabNames(anchorPath string) []string {
 	return names
 }
 
-// sceneSwitch is MoveDispatch's half: the anchor to persist against, and the way to end
-// this process so the runner's looping respawn loads the newly selected scene. Both nil/
-// empty until EnableSceneSwitch arms them, so a bare test-constructed MoveDispatch cannot
-// exit anything.
-type sceneSwitch struct {
-	anchorPath string
-	quit       func()
-	// treeRoot is the LOADED scene's own directory (the anchor's sibling the selected tab
-	// points at), set by EnableEditPersist. A structural edit writes here, while the tab
-	// SELECTION is written at the anchor — the two are different paths for the reason this
-	// file's header gives: a selection stored inside the scene it selects is unreachable
-	// while another scene is loaded.
-	treeRoot string
-}
-
 // EnableSceneSwitch arms tab switching. quit ends the run (main's context cancel), which
 // the extension host's looping runner follows with a respawn. Called from main.go after
 // load, before the stdin reader starts — the view-owner goroutine is the only caller of
 // SelectScene, so this field is written once, before that goroutine exists.
 func (md *MoveDispatch) EnableSceneSwitch(anchorPath string, quit func()) {
-	md.scenes.anchorPath = anchorPath
-	md.scenes.quit = quit
+	md.Scenes.AnchorPath = anchorPath
+	md.Scenes.Quit = quit
 }
 
 // SelectScene handles a tab click: persist, then end the run so the respawn loads it.
 // Selecting the tab already showing is a no-op — restarting the sim to arrive at the same
 // diagram would look like a random flicker to whoever clicked.
 func (md *MoveDispatch) SelectScene(idx int) {
-	if md.scenes.anchorPath == "" || md.scenes.quit == nil {
+	if md.Scenes.AnchorPath == "" || md.Scenes.Quit == nil {
 		return
 	}
 	if idx < 0 || idx >= len(SceneTabs) {
 		return
 	}
-	if idx == SelectedSceneIndex(md.scenes.anchorPath) {
+	if idx == SelectedSceneIndex(md.Scenes.AnchorPath) {
 		return
 	}
-	if err := writeSelectedScene(md.scenes.anchorPath, idx); err != nil {
+	if err := writeSelectedScene(md.Scenes.AnchorPath, idx); err != nil {
 		// Do NOT quit on a failed write: the respawn would reload the OLD scene and the
 		// click would read as "the editor restarted for no reason". Report and stay put.
 		// stderr, not a breadcrumb: the extension host pipes this straight to the sim's
 		// output channel AND .probe/go-errors.jsonl, which is where an operator looks when
 		// a click did nothing (memory/feedback_runner_errors_probe_first.md).
 		fmt.Fprintf(os.Stderr, "scene tab: could not persist selection to %s: %v — staying on the current scene\n",
-			sceneSelectionFilePath(md.scenes.anchorPath), err)
+			sceneSelectionFilePath(md.Scenes.AnchorPath), err)
 		return
 	}
-	md.scenes.quit()
+	md.Scenes.Quit()
 }
 
 // SceneUsesQuantizedDrag answers, for the tree actually being LOADED, whether the node

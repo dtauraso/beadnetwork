@@ -35,6 +35,7 @@ import (
 
 	geomseeds "github.com/dtauraso/wirefold/nodes/Wiring/geomseeds"
 	rowtables "github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
+	sceneswitch "github.com/dtauraso/wirefold/nodes/Wiring/sceneswitch"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -79,11 +80,11 @@ type MoveDispatch struct {
 	// thin delegators so their existing in-package call sites (tests, move_dispatch_construct.go,
 	// gesture.go) are unchanged.
 	lq layoutQuantizer
-	// scenes owns tab switching: the anchor to persist the selection against, and the
+	// Scenes owns tab switching: the anchor to persist the selection against, and the
 	// quit func whose call the extension host's looping respawn follows (scene_tabs.go).
 	// Zero until EnableSceneSwitch arms it, so a bare test-constructed MoveDispatch can
-	// never end a process.
-	scenes sceneSwitch
+	// never end a process. Exported: external callers reach it directly.
+	Scenes sceneswitch.SceneSwitch
 	// tapToInstall is a TEST-ONLY observability seam: when SetMsgTap is called (before
 	// Start), this is stashed here so any nodeMover constructed AFTER that call (there
 	// are none in practice — all nodeMovers are built once in newMoveDispatch, before

@@ -36,7 +36,7 @@ import (
 // the refusal is emitted so the editor can say so. A drop that silently does nothing is
 // indistinguishable from a broken build.
 func (md *MoveDispatch) CreateNode(kindID uint8, ndcX, ndcY float64, tr *T.Trace) {
-	if md == nil || md.scenes.treeRoot == "" || md.scenes.quit == nil {
+	if md == nil || md.Scenes.TreeRoot == "" || md.Scenes.Quit == nil {
 		return
 	}
 	// A scene that does not take structural edits refuses every one of them, here rather
@@ -73,7 +73,7 @@ func (md *MoveDispatch) CreateNode(kindID uint8, ndcX, ndcY float64, tr *T.Trace
 	// source and carries no `source` key, so choosing the source is choosing the directory
 	// the edge file lands in.
 	src, okNear := md.nearestNodeTo(drop)
-	target := newNodeID(md.scenes.treeRoot)
+	target := newNodeID(md.Scenes.TreeRoot)
 	var srcPort, targetPort string
 	if okNear {
 		var why string
@@ -94,13 +94,13 @@ func (md *MoveDispatch) CreateNode(kindID uint8, ndcX, ndcY float64, tr *T.Trace
 	c := md.ui.sceneSphere.Center
 	off := drop.Sub(c)
 	d := worldDirToAngles(off)
-	if err := WriteNewNodeFiles(md.scenes.treeRoot, target, kind, off.Length(), d.Theta, d.Phi); err != nil {
+	if err := WriteNewNodeFiles(md.Scenes.TreeRoot, target, kind, off.Length(), d.Theta, d.Phi); err != nil {
 		md.refuseStructuralEdit(fmt.Sprintf("could not write node %s: %v", target, err))
 		return
 	}
-	edges := countEdgeFiles(md.scenes.treeRoot)
+	edges := countEdgeFiles(md.Scenes.TreeRoot)
 	if okNear {
-		if err := WriteEdgeFile(md.scenes.treeRoot, src, srcPort, target, targetPort); err != nil {
+		if err := WriteEdgeFile(md.Scenes.TreeRoot, src, srcPort, target, targetPort); err != nil {
 			md.refuseStructuralEdit(fmt.Sprintf("could not write edge %s->%s: %v", src, target, err))
 			return
 		}
@@ -108,11 +108,11 @@ func (md *MoveDispatch) CreateNode(kindID uint8, ndcX, ndcY float64, tr *T.Trace
 	}
 	// An empty scene has no nearest node, so the new node stands alone. That is not an
 	// error — there is nothing to refuse, only nothing to connect to.
-	if err := WriteCounts(md.scenes.treeRoot, largestNodeID(md.scenes.treeRoot), edges); err != nil {
+	if err := WriteCounts(md.Scenes.TreeRoot, largestNodeID(md.Scenes.TreeRoot), edges); err != nil {
 		md.refuseStructuralEdit(fmt.Sprintf("could not update counts.json: %v", err))
 		return
 	}
-	md.scenes.quit()
+	md.Scenes.Quit()
 }
 
 // DeleteNode removes the node on a buffer ROW and EVERY edge touching it, then ends the run.
@@ -123,7 +123,7 @@ func (md *MoveDispatch) CreateNode(kindID uint8, ndcX, ndcY float64, tr *T.Trace
 // makes. That cost is why in-edges are not duplicated, and paying it here is cheaper than
 // keeping a second copy that can drift.
 func (md *MoveDispatch) DeleteNode(row int, tr *T.Trace) {
-	if md == nil || md.scenes.treeRoot == "" || md.scenes.quit == nil {
+	if md == nil || md.Scenes.TreeRoot == "" || md.Scenes.Quit == nil {
 		return
 	}
 	// A scene that does not take structural edits refuses every one of them, here rather
@@ -138,7 +138,7 @@ func (md *MoveDispatch) DeleteNode(row int, tr *T.Trace) {
 		md.refuseStructuralEdit(fmt.Sprintf("no node on row %d", row))
 		return
 	}
-	root := md.scenes.treeRoot
+	root := md.Scenes.TreeRoot
 	if err := RemoveNodeDir(root, id); err != nil {
 		md.refuseStructuralEdit(fmt.Sprintf("could not remove node %s: %v", id, err))
 		return
@@ -155,7 +155,7 @@ func (md *MoveDispatch) DeleteNode(row int, tr *T.Trace) {
 		md.refuseStructuralEdit(fmt.Sprintf("could not update counts.json: %v", err))
 		return
 	}
-	md.scenes.quit()
+	md.Scenes.Quit()
 }
 
 // linkRefusal answers whether an edge from src to a NEW node of kind can exist, and says why
