@@ -1,6 +1,6 @@
 // edge-tube-port-resolution.test.ts — proves EdgeTube.tsx reads an edge's SEGMENT
 // straight off that edge's OWN dedicated stream frame (SX..EZ), with no port-row
-// indirection through a separate node frame's own Port block (docs/channels-not-ports.md
+// indirection through a separate node frame's own Port block (docs/bead-model/channels-not-ports.md
 // — there is no Port block any more). This is the tear-free property in its current form:
 // the edge's endpoints are never a second, separately-timed copy of anything a node frame
 // carries — they are the edge's own bytes.

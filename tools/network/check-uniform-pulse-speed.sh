@@ -20,7 +20,7 @@ set -euo pipefail
 #   2. it passes DwellTicksPerBead as the dwell argument.
 #
 # DwellTicksPerBead (nodes/wire/bead_lattice.go), not PulseSpeedWuPerTick: the bead lattice
-# (docs/bead-lattice.md "Timing") made "uniform pulse speed" a constant DWELL PER BEAD-STEP
+# (docs/bead-model/bead-lattice.md "Timing") made "uniform pulse speed" a constant DWELL PER BEAD-STEP
 # rather than a world-units-per-tick speed divided into a chord length — there is no arc left
 # to divide by a speed, only an integer step count times a constant per-step dwell.
 #
@@ -88,7 +88,7 @@ if ! printf '%s' "$CALLS" | grep -q "$CANONICAL_SPEED"; then
   echo "uniform-pulse-speed: the production call site does not pass $CANONICAL_SPEED:"
   printf '%s\n' "$CALLS" | sed 's/^/  /'
   echo ""
-  echo "  DwellTicksPerBead (docs/bead-lattice.md) is ticks per bead-step. A different"
+  echo "  DwellTicksPerBead (docs/bead-model/bead-lattice.md) is ticks per bead-step. A different"
   echo "  constant here (e.g. a raw PulseSpeedWuPerMs/PulseSpeedWuPerTick) would silently"
   echo "  desync this wire's timing from the bead-step count the source node's chain is"
   echo "  laid out on."

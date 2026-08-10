@@ -10,7 +10,7 @@
 // Both assertions are needed and they fail in opposite directions: without the "ring still
 // resolves" case a flag stuck at false would look correct, and without the "pair resolves
 // nothing" case the bug itself comes back. Each test drives ONE MoveDispatch, reads what
-// that one goroutine computed, and starts no mover network (docs/testing-shape.md).
+// that one goroutine computed, and starts no mover network (docs/process/testing-shape.md).
 package Wiring
 
 import (

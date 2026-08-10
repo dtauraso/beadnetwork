@@ -429,7 +429,7 @@ already emits (the <code>"abc-drag"</code> breadcrumb, or a tapped
 <h2>gone · scene_persist — the second party was a timer goroutine</h2>
 <p class="verdict ok"><b>RESOLVED</b> — task/mutex-debounced-persister deleted the debounce
 timer (and its lock) outright rather than keeping it: see
-<code>docs/debounced-persister-architecture.html</code> for the full analysis. Every domain
+<code>docs/concurrency/debounced-persister-architecture.html</code> for the full analysis. Every domain
 persister below now writes synchronously on the calling goroutine; there is no timer
 goroutine left to race. This section is kept as the historical record of why the lock
 existed.</p>
@@ -561,7 +561,7 @@ the speed channels are built at load time and only the stdin reader's goroutine 
 <footer>
   Verified against the tree on <span style="font-family:var(--mono)">task/framing-event-order</span>.
   Line numbers drift — re-grep before trusting them. Companion to
-  <span style="font-family:var(--mono)">docs/framings.md</span>, which records <i>why</i> each lock
+  <span style="font-family:var(--mono)">docs/concurrency/framings.md</span>, which records <i>why</i> each lock
   exists; this page records <i>who touches it</i>.
 </footer>
 

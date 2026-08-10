@@ -14,7 +14,7 @@ import (
 )
 
 // emitGeometry re-emits this node's authoritative geometry (center, radius, ring
-// normals — no port geometry: a port carries none, docs/channels-not-ports.md).
+// normals — no port geometry: a port carries none, docs/bead-model/channels-not-ports.md).
 // This method and applyCenter both run on this node's own driving goroutine only, so a
 // plain field read here can never race a concurrent writer.
 func (m *nodeGeometry) emitGeometry() {

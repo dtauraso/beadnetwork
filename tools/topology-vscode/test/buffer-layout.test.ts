@@ -49,7 +49,7 @@ import {
   readOverlaySceneTori, readOverlayScenePoles, readOverlayNodePoles,
   readOverlaySelSpherePoles, readOverlayHandholds,
   readOverlayLabelsGlobal, readOverlayOverlaysVis,
-  // No Port block any more (docs/channels-not-ports.md — a port carries no geometry, so
+  // No Port block any more (docs/bead-model/channels-not-ports.md — a port carries no geometry, so
   // there is no buffer row for it to have).
 } from "../src/schema/buffer-layout";
 
@@ -129,7 +129,7 @@ describe("buffer-layout — Node block", () => {
   });
 });
 
-// There is no Port block any more (docs/channels-not-ports.md): a port is a load-time
+// There is no Port block any more (docs/bead-model/channels-not-ports.md): a port is a load-time
 // channel-binding ROLE, never a place, so it has no ring anchor, no world position, and no
 // buffer row.
 
@@ -164,7 +164,7 @@ describe("buffer-layout — Interior block", () => {
 describe("buffer-layout — Edge block", () => {
   it("stride equals packed field sizes", () => {
     // 6×f32 (SX..EZ, the edge's own node-surface-to-node-surface segment —
-    // docs/channels-not-ports.md, there is no port row to reference any more) + 1×u8
+    // docs/bead-model/channels-not-ports.md, there is no port row to reference any more) + 1×u8
     // (selected) + 2×u32 (edge-label off/len) = 24 + 1 + 8 = 33.
     expect(EDGE_STRIDE).toBe(33);
   });

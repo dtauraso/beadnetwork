@@ -29,7 +29,7 @@ The model's real entities live in [MODEL.md](MODEL.md): bead, wire (`PacedWire` 
 PASSIVE delay queue holding its own in-flight beads, with a channel on each end, stepped by
 its SOURCE NODE's own goroutine — it is not a goroutine itself), node goroutine, input port,
 clock, and the node-owned chain of placeholder beads that renders a traversal
-([docs/beads-are-the-edge.md](docs/beads-are-the-edge.md)). The active node kinds are the structs under `nodes/<Kind>/`.
+([docs/bead-model/beads-are-the-edge.md](docs/bead-model/beads-are-the-edge.md)). The active node kinds are the structs under `nodes/<Kind>/`.
 
 **Drift rule:** see MODEL.md's "Drift rule" section for the full statement (guards:
 `tools/webview/check-no-webview-state.sh`, `tools/bridge/check-no-await-on-bridge.sh`).
@@ -90,7 +90,7 @@ The one exception is **persistence**: bytes on disk through a real reload
 
 Full doctrine — the dividing line, why absence assertions can't be polled, the industry
 patterns and which actually transfer, a decision procedure, and named anti-patterns — is
-in [docs/testing-shape.md](docs/testing-shape.md). Read it before adding a test that needs
+in [docs/process/testing-shape.md](docs/process/testing-shape.md). Read it before adding a test that needs
 more than one goroutine running.
 
 ## Workflow
@@ -120,7 +120,7 @@ more than one goroutine running.
   Put detail here when it only matters for one part of the codebase.
 - Root CLAUDE.md — cross-cutting invariants only. It is re-injected after `/compact`;
   rules are not.
-- [docs/drift-checklist.md](docs/drift-checklist.md) — the periodic agent-health audit.
+- [docs/process/drift-checklist.md](docs/process/drift-checklist.md) — the periodic agent-health audit.
 
 ## Session handoff
 

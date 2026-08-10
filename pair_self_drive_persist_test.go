@@ -1,6 +1,6 @@
 package main
 
-// pair_self_drive_persist_test.go — the persistence exception (docs/testing-shape.md):
+// pair_self_drive_persist_test.go — the persistence exception (docs/process/testing-shape.md):
 // bytes on disk, through a REAL reload, driving the ACTUAL production path (a real
 // LoadTopology, a real MoveDispatch.Start, the real Update goroutines of the two PairNode
 // instances that make up a pair, and

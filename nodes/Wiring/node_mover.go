@@ -175,7 +175,7 @@ func (m *nodeMover) run(ctx context.Context) {
 		// Drive THIS node's own outgoing wires — placement drain, position step, delivery
 		// — on this node's own goroutine and its own clock reading. This is the work
 		// edgeMover.run used to do for the wire; the wire has no goroutine of its own
-		// (docs/beads-are-the-edge.md step 3). Driving it here is also what makes
+		// (docs/bead-model/beads-are-the-edge.md step 3). Driving it here is also what makes
 		// LiveBeadFractions safe to read below: same goroutine, no shared state.
 		//
 		// Read the clock ONCE for this whole pass, not once per wire: a per-wire read

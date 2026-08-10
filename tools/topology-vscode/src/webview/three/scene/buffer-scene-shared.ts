@@ -17,7 +17,7 @@ export interface BufferLabelPos { row: number; label: string; px: number; py: nu
 // hit and resolves hit.instanceId → node id via the buffer-nav id table, since the
 // buffer-rendered nodes carry no per-node userData.nodeId the old raycast path relies on.
 export const BUFFER_NODE_TAG = "bufferNode";
-// There is no PORT pick tag any more (docs/channels-not-ports.md): a port is a load-time
+// There is no PORT pick tag any more (docs/bead-model/channels-not-ports.md): a port is a load-time
 // channel-binding ROLE, never drawn or hit-testable, so there is no InstancedMesh for a
 // raycast to hit and no buffer PORT-ROW to resolve.
 // userData tag marking the NodeInstances border-ring InstancedMesh as the pickable TORUS
@@ -73,7 +73,7 @@ export const RING_BAND_MAJOR = 1 + NODE_RING_TUBE_RATIO * 1.6;
 export const RING_BAND_TUBE = NODE_RING_TUBE_RATIO * 0.275;
 // Pointer-hover highlight (pre-branch scene-graph.tsx): the hovered node's border ring turns
 // #aaddff and thickens to r*0.14 (HOVER_RING_TUBE_RATIO). Go OWNS hover (the Hovered
-// column); this is render-only. There is no port hover any more (docs/channels-not-ports.md
+// column); this is render-only. There is no port hover any more (docs/bead-model/channels-not-ports.md
 // — a port is never drawn or hit-testable).
 export const HOVER_COLOR = "#aaddff";
 export const HOVER_RING_TUBE_RATIO = 0.14;

@@ -83,7 +83,7 @@ const StreamKindInterior = "interior"
 const DriveSlotsPerNode = 2
 
 // StreamKindDrive is the per-DriveHeld-goroutine stream kind — the FIX for the framing
-// desync documented in docs/interior-stream-framing.md: gatecommon.DriveHeld spawns its
+// desync documented in docs/investigations/interior-stream-framing.md: gatecommon.DriveHeld spawns its
 // OWN goroutine per driven Out, independent of the node's own Update goroutine, and that
 // goroutine used to share the node's StreamKindInterior fd — two goroutines writing one
 // pipe with no lock between a frame's two Write() calls, which desyncs the reader (see

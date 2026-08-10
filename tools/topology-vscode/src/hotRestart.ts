@@ -1,5 +1,5 @@
 // Decision logic for the .go-change hot-restart feature (extension.ts's goWatcher). Split
-// out from extension.ts so it can be unit-tested directly (per docs/testing-shape.md: this
+// out from extension.ts so it can be unit-tested directly (per docs/process/testing-shape.md: this
 // is single-actor decision logic, not two goroutines/processes communicating) — extension.ts
 // itself is wiring that cannot be driven headlessly (it needs a live vscode.WebviewPanel).
 import type { BuildResult } from "./goBuild";

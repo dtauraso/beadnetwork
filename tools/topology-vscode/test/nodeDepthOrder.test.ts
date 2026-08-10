@@ -3,7 +3,7 @@
 // depthWrite=false InstancedMeshes only sort BETWEEN objects, not instances within one mesh —
 // see node-depth-order.ts's header comment). Tests the ORDERING function itself (positions +
 // camera -> sorted indices) and the instanceId -> nodeRow resolution used by the pick path —
-// not three.js rendering (docs/testing-shape.md: no canvas, no renderer).
+// not three.js rendering (docs/process/testing-shape.md: no canvas, no renderer).
 
 import { describe, it, expect } from "vitest";
 import { computeNodeDepthOrder, setNodeDrawOrder, resolveNodeDrawSlot } from "../src/webview/three/scene/node-depth-order";

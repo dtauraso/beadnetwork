@@ -2,7 +2,7 @@
 // default for anything unrecognised is the quantized one.
 //
 // This is one goroutine's own decision (the loader's, at build time), not a handoff, so it
-// is testable directly — see docs/testing-shape.md.
+// is testable directly — see docs/process/testing-shape.md.
 package Wiring
 
 import (

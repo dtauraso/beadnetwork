@@ -8,14 +8,14 @@
 package wire
 
 // beadPlacement bundles everything one placement needs. Steps times delivery
-// (docs/bead-lattice.md "Timing" — ticksToCross = steps * dwell, no length to
+// (docs/bead-model/bead-lattice.md "Timing" — ticksToCross = steps * dwell, no length to
 // divide); the segment endpoints + source identity drive the per-frame position
 // stream. Geometry travels WITH the bead, never stored on the shared wire, so
 // each in-flight bead evaluates the exact segment it is drawn on.
 // The zero value (empty segment + identity) means "no position stream" — unit
 // tests that only exercise delivery pass just Steps.
 type beadPlacement struct {
-	// Steps is this placement's bead-step count (docs/bead-lattice.md "The
+	// Steps is this placement's bead-step count (docs/bead-model/bead-lattice.md "The
 	// count") — copied straight from the sending Out's own Geom().Steps at Send
 	// time, so the wire never re-derives it from anything else.
 	Steps int
@@ -65,7 +65,7 @@ type placeRequest struct {
 type inflightBead struct {
 	val           int
 	placementTick float64     // this wire's own tick reading when placed (fractional after a geometry rebase)
-	steps         int         // current bead-step length of this bead's edge (docs/bead-lattice.md)
+	steps         int         // current bead-step length of this bead's edge (docs/bead-model/bead-lattice.md)
 	seg           WireSegment // current straight-segment endpoints of this bead's edge
 	node          string      // source node id — the position/cancel routing key
 	port          string      // source output port — the position/cancel routing key

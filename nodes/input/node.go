@@ -295,7 +295,7 @@ func (n *Node) Update(ctx context.Context) {
 
 // inputCadenceTicks is Input's fire cadence in clock ticks: the CROSSING TIME of
 // the OutCadence edge, Steps * DwellTicksPerBead (= ticksToCross,
-// docs/bead-lattice.md "Timing"), so exactly one bead crosses the edge per
+// docs/bead-model/bead-lattice.md "Timing"), so exactly one bead crosses the edge per
 // cadence — no overlap. Measured in ticks, so it freezes on pause with Tick().
 // Recomputed live so a drag that changes the edge's step count re-paces emission.
 func inputCadenceTicks(n *Node) int64 {

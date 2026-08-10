@@ -9,7 +9,7 @@
 // why the defect was invisible to anything that only checked bead delivery/tilt-turn timing:
 // the visible thing (rendered bead motion) ran at the un-scaled rate regardless.
 //
-// This test asserts what ONE goroutine's own clock state does (docs/testing-shape.md): no
+// This test asserts what ONE goroutine's own clock state does (docs/process/testing-shape.md): no
 // second goroutine is launched, no cross-goroutine delivery is exercised — Step is called
 // directly, synchronously, on the test goroutine, exactly the same shape
 // speed_delivery_test.go already uses for ApplySpeedNonBlocking itself.

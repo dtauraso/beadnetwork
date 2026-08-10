@@ -28,7 +28,7 @@ type LiveBeadProgress struct {
 	// Steps is the bead's OWN step count — the geometry its t was computed
 	// against (ticksToCross = steps*dwell). The caller recovers WHICH BEAD is
 	// lit as floor(t*Steps) — no length multiplication anywhere
-	// (docs/bead-lattice.md "Timing"): layout laid the chain out on this same
+	// (docs/bead-model/bead-lattice.md "Timing"): layout laid the chain out on this same
 	// integer, so lighting and layout read the same N and cannot disagree.
 	Steps int
 }
@@ -37,7 +37,7 @@ type LiveBeadProgress struct {
 // bead on this wire at tick, in FIFO order — the same t advanceBead computes for the moving
 // bead's position, exposed as the scalar it always was.
 //
-// This is what the chain-bead animation needs and ALL it needs (docs/beads-are-the-edge.md):
+// This is what the chain-bead animation needs and ALL it needs (docs/bead-model/beads-are-the-edge.md):
 // a chain is a fixed sequence, so "where has this traversal got to" is one number per bead
 // in flight, not a recomputed world position. The lit bead is index = t × count.
 //

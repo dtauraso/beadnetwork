@@ -4,7 +4,7 @@
 # .yaml/.gitignore/Makefile source comments)
 # runs in the discovered tools/check-*.sh guard loop (scripts/stop-checks.sh
 # globs that dir only). Without this wrapper the audit script existed but
-# nothing ever invoked it — see docs/drift-checklist.md item 1 ("Can the model
+# nothing ever invoked it — see docs/process/drift-checklist.md item 1 ("Can the model
 # skip a required step/tool and still answer?").
 #
 # PLACEMENT: none | thin wrapper invoking scripts/audit-doc-drift.mjs so it runs in the guard loop

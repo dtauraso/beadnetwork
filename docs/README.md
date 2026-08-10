@@ -18,19 +18,24 @@ The mutex-removal work: each `sync.Mutex`/`Cond` replaced by single-owner state.
 
 | Doc | What it covers |
 |---|---|
-| [framings.md](framings.md) | The framing ledger — what replaced what, and the architecture built for the old model. No locks remain. |
-| [concurrency-map.html](concurrency-map.html) | Map of the concurrency model — goroutines, channels, who owns what. |
-| [mutex-architecture.html](mutex-architecture.html) | Overview of the mutex architecture (and its removal). |
-| [outbox-architecture.html](outbox-architecture.html) | `outbox.mu` resolved — per-direction channels replaced the shared move queue. |
-| [trace-mutex-architecture.html](trace-mutex-architecture.html) | `Trace.mu` resolved — events ride each owner's own stream. |
-| [debounced-persister-architecture.html](debounced-persister-architecture.html) | `debouncedPersister.mu` resolved — inline per-caller writes, no shared timer. |
-| [scene-persist-architecture.html](scene-persist-architecture.html) | `scene_persist` — the last unexamined locks; per-writer file ownership. |
+| [framings.md](concurrency/framings.md) | The framing ledger — what replaced what, and the architecture built for the old model. No locks remain. |
+| [concurrency-map.html](concurrency/concurrency-map.html) | Map of the concurrency model — goroutines, channels, who owns what. |
+| [mutex-architecture.html](concurrency/mutex-architecture.html) | Overview of the mutex architecture (and its removal). |
+| [outbox-architecture.html](concurrency/outbox-architecture.html) | `outbox.mu` resolved — per-direction channels replaced the shared move queue. |
+| [trace-mutex-architecture.html](concurrency/trace-mutex-architecture.html) | `Trace.mu` resolved — events ride each owner's own stream. |
+| [debounced-persister-architecture.html](concurrency/debounced-persister-architecture.html) | `debouncedPersister.mu` resolved — inline per-caller writes, no shared timer. |
+| [scene-persist-architecture.html](concurrency/scene-persist-architecture.html) | `scene_persist` — the last unexamined locks; per-writer file ownership. |
+| [node1-fanout-goroutines.html](concurrency/node1-fanout-goroutines.html) | Node-1 fan-out — one node driving several outgoing edges. |
 
 ## Investigations
 
 | Doc | What it covers |
 |---|---|
-| [backpressure-investigation-order.md](backpressure-investigation-order.md) | Recommended order for the 7 backpressure/concurrency investigation branches (the branch docs themselves are branch-local). |
+| [backpressure-investigation-order.md](investigations/backpressure-investigation-order.md) | Recommended order for the 7 backpressure/concurrency investigation branches (the branch docs themselves are branch-local). |
+| [interior-stream-framing.md](investigations/interior-stream-framing.md) | Interior-stream framing corruption — investigation and reproduction. |
+| [headless-test-latency.md](investigations/headless-test-latency.md) | Headless test latency — why the Go leg cost ~68s, and the fix (fixed). |
+| [which-lattice-a-node-lives-on.md](investigations/which-lattice-a-node-lives-on.md) | Which lattice a node lives on — resolved; kept as history. |
+| [audit-baseline.md](investigations/audit-baseline.md) | Audit baseline — settled findings audit subagents must not re-report. |
 
 ## Design specs & audits
 
@@ -43,8 +48,24 @@ The mutex-removal work: each `sync.Mutex`/`Cond` replaced by single-owner state.
 
 | Doc | What it covers |
 |---|---|
-| [polar-sphere.html](polar-sphere.html) | The polar coordinate system for a sphere. |
-| [pole-singularity.html](pole-singularity.html) | The layout pole singularity — φ grid vs great-circle bearing. |
+| [polar-sphere.html](polar-geometry/polar-sphere.html) | The polar coordinate system for a sphere. |
+| [pole-singularity.html](polar-geometry/pole-singularity.html) | The layout pole singularity — φ grid vs great-circle bearing. |
+
+## Bead / edge model
+
+| Doc | What it covers |
+|---|---|
+| [beads-are-the-edge.md](bead-model/beads-are-the-edge.md) | Beads are the edge — the node-owned chain of placeholder beads (superseded on the length model; chain description still current). |
+| [bead-lattice.md](bead-model/bead-lattice.md) | The bead lattice — an edge is one integer; supersedes the arc-length model. |
+| [arc-from-local-polar.md](bead-model/arc-from-local-polar.md) | One integer per edge — the arc comes from the stored LocalPolar (superseded by bead-lattice.md). |
+| [channels-not-ports.md](bead-model/channels-not-ports.md) | A port is a ROLE, not a place — agreed model narrowing MODEL.md. |
+
+## Process
+
+| Doc | What it covers |
+|---|---|
+| [testing-shape.md](process/testing-shape.md) | Testing shape for a decentralized goroutine system. |
+| [drift-checklist.md](process/drift-checklist.md) | Drift checklist — periodic agent/model-health audit. |
 
 ## Visual-editor planning (`docs/planning/visual-editor/`)
 

@@ -132,7 +132,7 @@ type shadingParam struct {
 // color literals correctly.
 //
 // Unlike parseCurveParams, a ShadingParam* value need not be a bare literal:
-// docs/bead-lattice.md wants ShadingParamBeadRadius written as the actual
+// docs/bead-model/bead-lattice.md wants ShadingParamBeadRadius written as the actual
 // derivation (`wire.BeadTorusOuterR / (1 + ShadingParamBeadRingTubeRatio)`)
 // rather than a hand-computed literal that is a second copy of the same fact.
 // A plain *ast.BasicLit is still handled with the old direct text extraction

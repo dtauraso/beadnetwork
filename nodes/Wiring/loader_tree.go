@@ -8,7 +8,7 @@
 //	                                        source is the directory the file sits in, not a
 //	                                        field in the file — see specEdge's doc comment)
 //
-// There is no nodes/<id>/inputs/ or outputs/ any more (docs/channels-not-ports.md): a
+// There is no nodes/<id>/inputs/ or outputs/ any more (docs/bead-model/channels-not-ports.md): a
 // port is a load-time channel-binding ROLE resolved from the kind's registry
 // (PortSpec/a.In()/a.Out()), never a placed entity with its own geometry file.
 //

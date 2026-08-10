@@ -80,7 +80,7 @@ func (pw *PacedWire) drainPlacements() {
 				// copied from the sending Out's own Geom().Steps) — there is no
 				// length to reconstruct here, unlike the retired arc/ms model,
 				// because the sender already carries the bead-step count as an
-				// integer all the way from PublishGeom (docs/bead-lattice.md
+				// integer all the way from PublishGeom (docs/bead-model/bead-lattice.md
 				// "The count").
 				steps:   req.bp.Steps,
 				seg:     WireSegment{Start: req.bp.Start, End: req.bp.End},

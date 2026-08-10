@@ -27,7 +27,7 @@ export function sendRawInput(event: RawInputEvent): void {
  *  row back to its entity via its own row tables. Topology facts (connected?) are NOT decided
  *  here — Go's FSM owns those. */
 function classifyHit(pickRequest: PickRef, ndcX: number, ndcY: number): { kind: RawHit["kind"]; isInput: boolean; nodeRow: number; portRow: number; edgeRow: number } {
-  // There is no port pick any more (docs/channels-not-ports.md): a port is a load-time
+  // There is no port pick any more (docs/bead-model/channels-not-ports.md): a port is a load-time
   // channel-binding ROLE, never drawn or hit-testable, so "port" is not a hit kind this
   // classifier can produce. portRow always rides the wire as -1 (RawHit still carries the
   // field — see its own doc comment for why the wire shape didn't need to shrink here).

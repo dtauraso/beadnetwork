@@ -52,7 +52,7 @@ type buildCtx struct {
 	destWire      map[string]*wire.PacedWire
 	edgeWire      WireRegistry
 	edgeEndpoints map[string]EdgeEndpoints
-	// edgeSteps is each edge's own bead-step count (docs/bead-lattice.md "The
+	// edgeSteps is each edge's own bead-step count (docs/bead-model/bead-lattice.md "The
 	// count") — its INITIAL published value, computed once at load time from the
 	// source node's own b.localPolars entry to the target. The source node's own
 	// goroutine recomputes and republishes this same integer every cycle once

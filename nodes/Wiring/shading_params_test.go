@@ -49,7 +49,7 @@ func TestShadingParamsFloat(t *testing.T) {
 		{"SceneAmbientIntensity", ShadingParamSceneAmbientIntensity, 0.6},
 		{"SceneDirIntensity", ShadingParamSceneDirIntensity, 0.8},
 		// Bead (the wire tube's shading params are gone with the drawn tube line —
-		// docs/beads-are-the-edge.md).
+		// docs/bead-model/beads-are-the-edge.md).
 		{"BeadEmissiveIntensity", ShadingParamBeadEmissiveIntensity, 2.5},
 	}
 	for _, c := range cases {
@@ -70,7 +70,7 @@ func TestShadingParamNodeRingTubeRatioMatchesTS(t *testing.T) {
 }
 
 // TestShadingParamBeadRadiusMatchesDerivation now merely restates ShadingParamBeadRadius's
-// own definition: it IS `wire.BeadRadius` (docs/bead-lattice.md "The lattice is derived,
+// own definition: it IS `wire.BeadRadius` (docs/bead-model/bead-lattice.md "The lattice is derived,
 // not the bead") — the AUTHORED primitive, re-exported rather than duplicated as a literal
 // — not a literal pinned to a formula by a separate test. This used to run the other
 // direction (ShadingParamBeadRadius computed FROM wire.BeadTorusOuterR); the identity

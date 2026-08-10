@@ -5,7 +5,7 @@
 // shifting later rows down. This is the MoveDispatch-side analogue of
 // Buffer/row_order_test.go: proof that the row tables this package now owns produce
 // identical, reproducible row indices for a representative graph. There is no port-row
-// table any more (docs/channels-not-ports.md — a port has no buffer row of its own).
+// table any more (docs/bead-model/channels-not-ports.md — a port has no buffer row of its own).
 
 package Wiring
 

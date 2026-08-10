@@ -23,7 +23,7 @@
 // testing its own past self. If `go` is unavailable, the staleness check is skipped (not
 // silently passed) and the decode assertions still run against the committed fixture.
 //
-// Testing-shape note (docs/testing-shape.md): this does NOT assert that two goroutines
+// Testing-shape note (docs/process/testing-shape.md): this does NOT assert that two goroutines
 // communicate. It builds one frame (with the real Go builder, in a separate `go run`
 // process, no network running) and decodes it (with the real TS decoder, no movers, no
 // wiring). Same shape as the sanctioned persistence exception — bytes on the wire, checked
@@ -177,7 +177,7 @@ describe("stream fixture cross-language decode", () => {
       expect(readChainBeadLitValue(decoded.chainBeadView, i), `chainBead[${i}].litValue`).toBe(cb.litValue);
     }
 
-    // No port section any more (docs/channels-not-ports.md — a port carries no geometry,
+    // No port section any more (docs/bead-model/channels-not-ports.md — a port carries no geometry,
     // so the fixture and the decoder both have nothing to carry for it).
   });
 

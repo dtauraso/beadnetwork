@@ -67,7 +67,7 @@ func (n specNode) label() string {
 }
 
 // toNodeGeom builds the geometry descriptor for edge-segment computation. A port
-// contributes no geometry at all (docs/channels-not-ports.md — it is a load-time
+// contributes no geometry at all (docs/bead-model/channels-not-ports.md — it is a load-time
 // channel-binding ROLE, resolved by PortSpec/a.In()/a.Out() at build time, never here),
 // so this no longer resolves or falls back to any port list.
 func (n specNode) toNodeGeom(sceneCenter vec3) nodeGeom {

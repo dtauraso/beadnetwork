@@ -40,7 +40,7 @@ func (m *edgeMover) writeStreamFrame(tick int64, events []wire.RowEvent) {
 		}
 	}
 	// Segment endpoints for this frame's own Edge row (SX..EZ) — no port row to
-	// resolve any more (docs/channels-not-ports.md), so this is a plain re-derive
+	// resolve any more (docs/bead-model/channels-not-ports.md), so this is a plain re-derive
 	// from the held endpoint geoms, same computation recomputeGeometry uses.
 	seg := edgeSegment(m.srcGeom, m.dstGeom)
 	selected := m.selected
@@ -50,7 +50,7 @@ func (m *edgeMover) writeStreamFrame(tick int64, events []wire.RowEvent) {
 		// from here would break the single-goroutine ownership LiveBeadRows/stepAll depend
 		// on. Nothing needs it either: the transit bead is not drawn any more — the
 		// animation is the LIT bead on the source node's own chain, which that node
-		// computes on its own goroutine (docs/beads-are-the-edge.md).
+		// computes on its own goroutine (docs/bead-model/beads-are-the-edge.md).
 		// Drain this wire's own OWN-goroutine-recorded Position/Arrive events, resolved
 		// to rows here (nodeRowFor — the SAME resolver this frame's own edge columns
 		// above just used), and fold them in alongside any caller-supplied events (e.g.

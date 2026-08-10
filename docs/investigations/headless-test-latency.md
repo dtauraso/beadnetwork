@@ -208,7 +208,7 @@ The steps above assume all five tests survive and only get faster. That assumpti
 be tested per-test BEFORE optimising, because making a test that should not exist run
 faster is the more expensive mistake — it locks the test in by making it cheap.
 
-The criterion is `docs/testing-shape.md`'s: a test asserts what **one goroutine itself**
+The criterion is `docs/process/testing-shape.md`'s: a test asserts what **one goroutine itself**
 decided, emitted, or persisted. A test whose cost buys a property the structure already
 guarantees is not slow, it is unnecessary.
 
@@ -255,7 +255,7 @@ is information worth having, not a reason to keep the counts.
 ## Risk worth naming
 
 "Quiet for 250ms" is a timing heuristic, and this repo's testing doctrine
-(`docs/testing-shape.md`) is hostile to tests that assert across goroutines by waiting. This
+(`docs/process/testing-shape.md`) is hostile to tests that assert across goroutines by waiting. This
 change does not add such an assertion — the tests already wait; it makes the wait
 proportional to the thing being waited for instead of to an unrelated constant. But the
 idle interval is a knob, and per `memory/feedback_go_vs_coordinator_bias.md` a knob is worth

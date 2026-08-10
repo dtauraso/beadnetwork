@@ -4,7 +4,7 @@ package PairNode
 //
 // Every test here calls a decision function directly and checks what it returned. None of them
 // starts a goroutine, and none checks that two nodes reached each other: delivery, ordering and
-// the absence of races are guaranteed by construction in this network (docs/testing-shape.md),
+// the absence of races are guaranteed by construction in this network (docs/process/testing-shape.md),
 // so a test asserting them would exercise Go's runtime rather than this rule.
 //
 // The rule these cover is the one the last session's log kept disproving, and each test names
@@ -143,7 +143,7 @@ func TestPerpendicularStepsThroughTheParallelHalt(t *testing.T) {
 	}
 }
 
-// TestOneRoundIsSignAndRemainder is the other half of what docs/pair-node/arith.html rests on: ONE
+// TestOneRoundIsSignAndRemainder is the other half of what docs/pair-node/math/arith.html rests on: ONE
 // update round, written without a case in it.
 //
 // The page prints its numbers for a 24-point lattice: its 6 is a QUARTER TURN and its 12 a HALF
@@ -332,7 +332,7 @@ func oneRoundSweep(t *testing.T, points int32) {
 				// compare |c - q| at the two tilts one slot away; parallel walks to the smaller
 				// (its stop is c = q) and perpendicular toward the larger (its stop is
 				// c = 0, which is |c - q| at its largest). Ties go up in both, as step
-				// does. This is what docs/pair-node/arith.html prints as two branches per
+				// does. This is what docs/pair-node/math/arith.html prints as two branches per
 				// arrangement, so it cannot be left as "nearer its stop".
 				cAt := func(x int32) int32 {
 					uu := ((x-arr)%points + points) % points
@@ -605,7 +605,7 @@ func oneRoundSweep(t *testing.T, points int32) {
 	}
 }
 
-// TestTheWalkIsClosedForm holds the WHERE IT STOPS claim that docs/pair-node/arith.html makes, and
+// TestTheWalkIsClosedForm holds the WHERE IT STOPS claim that docs/pair-node/math/arith.html makes, and
 // two more the page deliberately does not. For a HELD arrival, swept over both modes and every
 // (arrival, tilt) pair:
 //
@@ -673,7 +673,7 @@ func TestTheWalkIsClosedForm(t *testing.T) {
 //	parallel       fromRest = q
 //	perpendicular  fromRest = quarter - q
 //
-// The two being complements is the audit's "one is the other upside down" (docs/pair-node/audit.html),
+// The two being complements is the audit's "one is the other upside down" (docs/pair-node/rules/audit.html),
 // here as arithmetic rather than as a picture. This sweeps both lattices the model runs on, every
 // tilt against every arrival, so the page cannot claim a shortcut the code does not honour.
 func TestFromRestIsTheQuarterOffset(t *testing.T) {
@@ -736,7 +736,7 @@ func TestRestingLengthsFollowFromTheGaps(t *testing.T) {
 // not merely alike, they are one rule read in two directions. If this ever fails, the stopping counts
 // have stopped being midpoints of each other and the two modes are genuinely separate rules
 // again — which is the reading under which the split into two files was right (machine.go's
-// header, docs/pair-node/audit.html).
+// header, docs/pair-node/rules/audit.html).
 func TestTheTwoMissesAreComplements(t *testing.T) {
 	r := testRing()
 	top := r.at(0)
@@ -1010,7 +1010,7 @@ func runOpening(r *ring, tiltA, tiltB int32) openingOutcome {
 
 func TestEveryOpeningSettlesOnTheMachineItChose(t *testing.T) {
 	r := newRing(24)
-	// The counts this sweep produces are what docs/pair-node/math.html reports, so run it with
+	// The counts this sweep produces are what docs/pair-node/math/math.html reports, so run it with
 	// -v after changing the rule and put the new numbers on the page rather than leaving the
 	// old ones there.
 	var perp, par, worst int

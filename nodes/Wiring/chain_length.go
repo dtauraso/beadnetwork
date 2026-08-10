@@ -6,7 +6,7 @@ import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
-// edgeStepCount is the bead-lattice length of an edge (docs/bead-lattice.md "The count"): ONE
+// edgeStepCount is the bead-lattice length of an edge (docs/bead-model/bead-lattice.md "The count"): ONE
 // INTEGER, the number of bead steps between the two nodes' tori. Computed from the LIVE
 // measured center-to-center distance (dist), never a stored cache, plus both nodes' kinds:
 //
@@ -38,7 +38,7 @@ import (
 // LAYOUT) and build.go's allocateWires (load time, for the wire's INITIAL published step
 // count) — both call this same function on the same live center-to-center distance, so
 // layout and timing can never read two different lengths (the exact divergence
-// docs/bead-lattice.md replaces the old arc-length model to close off).
+// docs/bead-model/bead-lattice.md replaces the old arc-length model to close off).
 func edgeStepCount(dist float64, srcKind, dstKind string) int {
 	k := int(math.Round(dist / wire.BeadStepR))
 	n := k - nodeTorusSteps(srcKind) - nodeTorusSteps(dstKind)

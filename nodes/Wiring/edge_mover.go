@@ -21,7 +21,7 @@ import (
 )
 
 // edgeMover owns one edge. It holds both endpoint geometries and recomputes its own
-// SEGMENT (never a length — docs/bead-lattice.md "Ownership": the step count is the
+// SEGMENT (never a length — docs/bead-model/bead-lattice.md "Ownership": the step count is the
 // SOURCE NODE's) on an endpoint move (the edge label, which keys its channels below,
 // encodes the two connected nodes).
 type edgeMover struct {
@@ -44,7 +44,7 @@ type edgeMover struct {
 	srcIn chan moveMsg
 	dstIn chan moveMsg
 	// stepsIn is a buffered-1, latest-wins channel carrying this edge's freshly
-	// computed bead-step count (docs/bead-lattice.md "The count") FROM the SOURCE
+	// computed bead-step count (docs/bead-model/bead-lattice.md "The count") FROM the SOURCE
 	// node's own goroutine (nodeMover.chainBeads, node_mover.go/chain_beads.go —
 	// the count owner) TO this edgeMover's own goroutine. Needed because
 	// recomputeGeometry (below) calls ReviseInFlightGeometry, which needs the
@@ -205,7 +205,7 @@ func (m *edgeMover) handle(msg moveMsg) {
 // step count — see stepsIn's doc comment), and emit the new segment so the renderer
 // redraws the wire. Shared by node-move and port-anchor handling.
 //
-// NO LENGTH IS COMPUTED HERE (docs/bead-lattice.md "Ownership"): the step count is
+// NO LENGTH IS COMPUTED HERE (docs/bead-model/bead-lattice.md "Ownership"): the step count is
 // the SOURCE NODE's, published separately (chain_beads.go's PublishSteps + this
 // edge's stepsIn) — the old edgeArcPolar call and its lat := arc/PulseSpeedWuPerMs
 // derivation are both gone, not replaced by an edge-side re-derivation of the same

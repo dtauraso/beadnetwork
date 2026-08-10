@@ -10,7 +10,7 @@ import (
 // It enumerates every path the table can express from gestPending and asserts the set of
 // recognizable gestures is EXACTLY the 4 named in gesture.go's doc comment: tap-select,
 // node-drag, rotate, handhold-orbit — no phantom edge, none missing. wire/port-move were
-// removed with port geometry (docs/channels-not-ports.md): a port is never drawn or
+// removed with port geometry (docs/bead-model/channels-not-ports.md): a port is never drawn or
 // hit-testable, so the "port" raycast-hit kind that fed both commit edges can never fire.
 
 // gestureName maps a terminal phase to the human gesture name used in gesture.go's doc

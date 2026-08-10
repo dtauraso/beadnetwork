@@ -208,7 +208,7 @@ function decodeEventLine(ev: DataView, eventTextView: DataView, dn: DecodedNodeF
   const bead = readEventBead(ev, i);
   const node = dn && nodeRow >= 0 ? nodeLabel(dn, nodeRow) : "";
   // port is always "" now: a port has no name/row on the buffer any more
-  // (docs/channels-not-ports.md). portRow still rides the event as a sentinel (-1).
+  // (docs/bead-model/channels-not-ports.md). portRow still rides the event as a sentinel (-1).
   const port = "";
 
   if (kind === "breadcrumb") {
@@ -249,7 +249,7 @@ function decodeEventLine(ev: DataView, eventTextView: DataView, dn: DecodedNodeF
         const l: Line = { kind, node, port, value, beadSteps, simLatencyMs: lat };
         const t = dn && targetRow >= 0 ? nodeLabel(dn, targetRow) : "";
         if (t) l.target = t;
-        // No targetHandle any more: a port has no name on the buffer (docs/channels-not-ports.md).
+        // No targetHandle any more: a port has no name on the buffer (docs/bead-model/channels-not-ports.md).
         return l;
       }
       return { kind, node, port, value };
@@ -267,7 +267,7 @@ function decodeEventLine(ev: DataView, eventTextView: DataView, dn: DecodedNodeF
     case "geometry": {
       const edge = de ? edgeLabel(de, edgeRow) : "";
       // The Edge block carries its own SEGMENT (SX..EZ) directly — node surface to node
-      // surface (docs/channels-not-ports.md), not a reference through a port row.
+      // surface (docs/bead-model/channels-not-ports.md), not a reference through a port row.
       let sx = 0, sy = 0, sz = 0, ex = 0, ey = 0, ez = 0;
       if (de && edgeRow >= 0 && edgeRow < de.edgeCount) {
         sx = readEdgeSX(de.edgeView, edgeRow); sy = readEdgeSY(de.edgeView, edgeRow); sz = readEdgeSZ(de.edgeView, edgeRow);
@@ -325,7 +325,7 @@ function nodeGeometryLine(dn: DecodedNodeFrame, nodeRow: number, node: string): 
   const radius = readNodeRadius(n, nodeRow);
   const sphereR = readNodeSphereR(n, nodeRow);
   const kindId = readNodeKindId(n, nodeRow);
-  // No `ports` array any more (docs/channels-not-ports.md): a port carries no geometry,
+  // No `ports` array any more (docs/bead-model/channels-not-ports.md): a port carries no geometry,
   // so there is nothing to report per node beyond its own fields below.
   const l: Line = { kind: "node-geometry", node };
   if (node) l.label = node;

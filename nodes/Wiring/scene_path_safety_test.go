@@ -3,7 +3,7 @@ package Wiring
 // scene_path_safety_test.go — verifies safeTreePathComponent rejects path-traversal
 // values and that writeQuantOffset rejects an unsafe id rather than escaping the tree
 // root (see quant_offset_persist.go). The former port-anchor write sink
-// (scene_anchor_persist.go) is gone — docs/channels-not-ports.md, a port has no file
+// (scene_anchor_persist.go) is gone — docs/bead-model/channels-not-ports.md, a port has no file
 // of its own any more.
 
 import (

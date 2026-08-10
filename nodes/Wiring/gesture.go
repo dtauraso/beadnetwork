@@ -35,7 +35,7 @@ import (
 // KindSelect trace → buffer Selected column); handhold-constrained orbit is ported here
 // formula-faithfully from interaction-handlers.ts. gestWiring and gestPortMove (an
 // unconnected/connected port drag) were removed with port geometry
-// (docs/channels-not-ports.md): a port is a load-time channel-binding ROLE only, never
+// (docs/bead-model/channels-not-ports.md): a port is a load-time channel-binding ROLE only, never
 // drawn or hit-testable, so the "port" raycast-hit kind that fed both phases can never
 // fire. They were already dead in effect before this deletion — wire-drop created no edge
 // (the create/delete edit ops were removed end-to-end) and port-move only snapped a

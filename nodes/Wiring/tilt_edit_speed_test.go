@@ -12,7 +12,7 @@ import "testing"
 // Asserted on the ARITHMETIC both call sites use (HumanEditSpeed vs md.SliderSpeed) rather
 // than by driving the reader and watching channels — what a click is worth is one
 // goroutine's own decision, and a delivery test would assert what the channels already
-// guarantee (docs/testing-shape.md).
+// guarantee (docs/process/testing-shape.md).
 func TestHumanEditSpeedIsUnscaledAndDiffersFromASlowedScene(t *testing.T) {
 	if HumanEditSpeed != 1 {
 		t.Fatalf("HumanEditSpeed = %v, want 1 — setting an angle is an interaction, not a simulation", HumanEditSpeed)

@@ -5,7 +5,7 @@ import (
 )
 
 // TestNodeTorusOuterR verifies nodeTorusOuterR = nodeRadius(kind) * (1 + ratio),
-// the formula chain_beads.go's tangent placement depends on (docs/bead-lattice.md).
+// the formula chain_beads.go's tangent placement depends on (docs/bead-model/bead-lattice.md).
 func TestNodeTorusOuterR(t *testing.T) {
 	for _, kind := range []string{"Input", "Time"} {
 		want := nodeRadius(kind) * (1 + ShadingParamNodeRingTubeRatio)

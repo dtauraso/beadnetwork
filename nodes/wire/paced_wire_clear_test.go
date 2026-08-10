@@ -3,7 +3,7 @@
 //
 // Every test here exercises only this ONE PacedWire's own goroutine (the test goroutine
 // itself, calling Send/DriveOneCycle/ClearInFlight synchronously) — no second goroutine,
-// no cross-goroutine delivery or timing (docs/testing-shape.md).
+// no cross-goroutine delivery or timing (docs/process/testing-shape.md).
 package wire
 
 import (

@@ -118,9 +118,9 @@ type NodeStreamFrame struct {
 //	           ([OX,OY,OZ] f32 + [Lit] u8), concatenated
 //	           across all of this node's outgoing edges in that order. The chain is the
 //	           VISUAL of a traversal, never a picture of the node-to-node channels
-//	           (docs/beads-are-the-edge.md); nothing here identifies a channel or a message.
+//	           (docs/bead-model/beads-are-the-edge.md); nothing here identifies a channel or a message.
 //
-// The Port block/section is GONE (docs/channels-not-ports.md): a port is a load-time
+// The Port block/section is GONE (docs/bead-model/channels-not-ports.md): a port is a load-time
 // channel-binding ROLE, never a place, so it has no row here any more. An edge's own
 // endpoints ride the Edge block's SX..EZ instead (Buffer/edge_stream_frame.go).
 func BuildNodeStreamFrame(f NodeStreamFrame) []byte {

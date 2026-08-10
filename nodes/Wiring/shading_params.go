@@ -120,7 +120,7 @@ const ShadingParamSceneAmbientIntensity = 0.6
 // ShadingParamSceneDirIntensity is the scene directional-light intensity.
 const ShadingParamSceneDirIntensity = 0.8
 
-// --- Node ring: torus outer radius (docs/bead-lattice.md) -----------------
+// --- Node ring: torus outer radius (docs/bead-model/bead-lattice.md) -----------------
 // The node's border ring (above) is a torus, not a bare sphere; its OUTER radius —
 // nodeRadius(kind) * (1 + this ratio) — is now LOAD-BEARING GEOMETRY, not decoration:
 // the first chain bead on every edge is placed tangent to it (chain_beads.go), so a
@@ -141,7 +141,7 @@ const ShadingParamNodeRingTubeRatio = 0.08
 // Go-side by chain_beads.go to space the chain at exactly one bead STEP (wire.BeadStepR) so
 // adjacent beads TOUCH: a chain is a solid line of beads, not a dotted one.
 //
-// AUTHORED, not derived (docs/bead-lattice.md "The lattice is derived, not the bead" —
+// AUTHORED, not derived (docs/bead-model/bead-lattice.md "The lattice is derived, not the bead" —
 // renamed from "The bead radius is derived, not chosen", which this constant used to obey
 // in the OPPOSITE direction: it was wire.BeadTorusOuterR/(1+ratio), computed from a node
 // lattice cell David never actually chose for bead size, and it landed at
@@ -164,7 +164,7 @@ const ShadingParamBeadRingTubeRatio = wire.BeadRingTubeRatio
 // ShadingParamChainBeadFill is the UNLIT chain bead's fill — a pale cyan, DELIBERATELY its own
 // tone rather than reusing another material's color (the wire-tube color it used to be
 // deliberately distinct from, ShadingParamTubeColor, is gone along with the drawn tube line —
-// docs/beads-are-the-edge.md).
+// docs/bead-model/beads-are-the-edge.md).
 //
 // This constant existed, was deleted on the reasoning that the chain IS the edge visual so a
 // second colour would just be a copy free to drift, and is now back because the divergence is

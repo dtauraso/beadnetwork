@@ -107,7 +107,7 @@ func (pw *PacedWire) Recv() (int, bool) {
 // as empty as a freshly built one. Nothing is delivered: a cleared bead never reaches
 // the destination's outCh, which is the point. Beads already handed off to outCh are
 // NOT touched here; they belong to the DESTINATION node now, and that node drains its
-// own In (docs/beads-are-the-edge.md's ownership split).
+// own In (docs/bead-model/beads-are-the-edge.md's ownership split).
 //
 // Same single-goroutine contract as DriveOneCycle/LiveBeadFractions, and for the same
 // reason: inflight and inCh are owned by whichever goroutine drives this wire, which in

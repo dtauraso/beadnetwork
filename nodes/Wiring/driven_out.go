@@ -1,5 +1,5 @@
 // driven_out.go — DrivenOut is the STRUCTURAL fix for the framing desync documented in
-// docs/interior-stream-framing.md: a *wire.Out obtained by a.Out(...)/a.Broadcast(...) is
+// docs/investigations/interior-stream-framing.md: a *wire.Out obtained by a.Out(...)/a.Broadcast(...) is
 // written by this node's own Update-loop goroutine (via its shared getStream), while a
 // *wire.Out obtained by a.DriveOut(...) is meant to be written by a SEPARATE
 // gatecommon.DriveHeld goroutine, on its OWN dedicated per-(node,slot) drive-stream fd

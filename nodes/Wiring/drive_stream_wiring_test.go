@@ -1,5 +1,5 @@
 // drive_stream_wiring_test.go — asserts the WIRING that fixes the framing desync
-// documented in docs/interior-stream-framing.md and pinned mechanically by
+// documented in docs/investigations/interior-stream-framing.md and pinned mechanically by
 // interior_stream_concurrent_write_test.go: a node's own interior-stream getter
 // (newInteriorStreamGetter, used by its Update-loop closures) and its per-DriveHeld-
 // goroutine drive-stream getter (newDriveStreamGetter, used by BuildArgs.DriveOut) must
@@ -81,10 +81,10 @@ func TestDriveStreamNeverSharesNodesInteriorStream(t *testing.T) {
 	}
 	// Cross-check the specific historical bug directly: drive0's writer must not be the
 	// SAME writer the node's own interior stream uses — this is the exact "DriveHeld
-	// writes the node's shared interiorStream" violation docs/interior-stream-framing.md
+	// writes the node's shared interiorStream" violation docs/investigations/interior-stream-framing.md
 	// documents.
 	if drive0.out == interior.out {
-		t.Fatalf("drive slot 0 shares its writer with the node's own interior stream — this IS the original bug (docs/interior-stream-framing.md)")
+		t.Fatalf("drive slot 0 shares its writer with the node's own interior stream — this IS the original bug (docs/investigations/interior-stream-framing.md)")
 	}
 }
 

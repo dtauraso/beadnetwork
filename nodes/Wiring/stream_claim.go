@@ -12,7 +12,7 @@
 // SECOND call from silently overwriting the first (or, worse, a second wiring path handing
 // the SAME underlying fd to a different goroutine) — exactly the "someone traced the call
 // sites and there's only one today" claim that was true, documented, and then false for the
-// interior stream (docs/interior-stream-framing.md). An audit describes today; it does not
+// interior stream (docs/investigations/interior-stream-framing.md). An audit describes today; it does not
 // prevent tomorrow's second wiring call.
 //
 // claimedStream is the fix: its only field is unexported, and the only way to build one
@@ -66,7 +66,7 @@ func newClaimedStream(reg streamClaims, kind, key string, w io.Writer) claimedSt
 			fmt.Fprintf(os.Stderr,
 				"stream-claim collision: %s stream %q already claimed; a second wiring call "+
 					"cannot also claim it — handing it to a second goroutine would reintroduce "+
-					"the two-goroutines-one-fd desync docs/interior-stream-framing.md documents. "+
+					"the two-goroutines-one-fd desync docs/investigations/interior-stream-framing.md documents. "+
 					"This claimant's stream stays unwired (writes nothing) instead.\n",
 				kind, key)
 			return claimedStream{}

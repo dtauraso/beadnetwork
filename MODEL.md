@@ -43,7 +43,7 @@ mistake to avoid (chain_beads.go's own header comment makes the same split):
   a destination node, timed by the wire's own traversal fraction `t`. This bead is data, not
   a goroutine — see the Wire bullet below, unchanged by the chain-bead goroutine model.
 - **Chain (render/placeholder) bead.** The node-owned visual entity that IS a traversal's
-  picture (`docs/beads-are-the-edge.md`) — one per node-local offset along an outgoing
+  picture (`docs/bead-model/beads-are-the-edge.md`) — one per node-local offset along an outgoing
   edge's aim. **This bead is a goroutine**, per (`nodes/wire/bead_actor.go`'s `Bead`,
   `bead_wake_group.go`'s `BeadWakeGroup`), with a real production call site:
   `nodes/Wiring/bead_chain.go`'s `reconcileBeadChain`/`startBeadDrag`/`endBeadDrag`, driven
@@ -125,7 +125,7 @@ mistake to avoid (chain_beads.go's own header comment makes the same split):
   below) by driving the wire each cycle, then on traversal-complete sends
   the bead over its out-channel to the destination. The wire is no longer
   the visual depiction either — the source node's own chain of placeholder
-  beads is (docs/beads-are-the-edge.md). There is one owner
+  beads is (docs/bead-model/beads-are-the-edge.md). There is one owner
   of `inflight`/`delivered` and the in-flight geometry: the source node
   goroutine. Because it is the sole owner, `PacedWire.mu` does not exist
   — ownership replaces locking, the same move that removed `RealClock.mu`.
@@ -147,14 +147,14 @@ mistake to avoid (chain_beads.go's own header comment makes the same split):
   column — `nodes/wire/owner_events.go`, `Buffer/stream_events.go`,
   `Buffer/layout.go` — which is a live 2x2 interior VISUAL grid position,
   slot = gridRow*2 + gridCol, for where a held bead is drawn inside a node.)
-- **Input port.** A ROLE, not a place (`docs/channels-not-ports.md`): declared by the
+- **Input port.** A ROLE, not a place (`docs/bead-model/channels-not-ports.md`): declared by the
   node kind as a `Wiring.PortSpec` and bound to a channel at LOAD time
   (`a.In(...)`), never drawn and never hit-testable. One input port is one wire,
   and the wire's out-channel is the connection between them — the node receives
   whatever the source node's drive of that wire sends. Ports carry no geometry of their
-  own; an edge attaches at its two nodes' SURFACES (`docs/bead-lattice.md`), not at a
+  own; an edge attaches at its two nodes' SURFACES (`docs/bead-model/bead-lattice.md`), not at a
   port position.
-- **Clock (the human-speed clock).** There is exactly one clock: the system monotonic clock, read through a **scale** so it advances in integer **ticks** at human-watchable speed (`tick = ⌊(now − start) / tickPeriod⌋`; the scale is the human-speed / playback-speed knob, `MsPerTick = 16` ⇒ ≈62.5 ticks/sec). All timing is **tick counts**, not wall-clock durations. The model is **sleep-only**: a pacing loop calls `SleepCycle` to wait exactly ONE cycle and re-reads `Tick()`, rather than blocking on a target tick — there is no wait-until-tick-k primitive. The clock is **free-running**: it advances monotonically with wall time and never pauses (there is no play/pause gate). **Everything that animates runs in these ticks:** bead traveling, all in-node animations, and all node/gate processing windows. Per-update tick counts come from formulas, not literals — a bead crossing an edge takes `ticksToCross = steps * DwellTicksPerBead` (steps the edge's own bead-step count, `DwellTicksPerBead` a uniform constant per bead-lattice step across all wires — [docs/bead-lattice.md](docs/bead-lattice.md)); node processing windows are tick counts. There is no separate render cadence — the tick IS the animation clock.
+- **Clock (the human-speed clock).** There is exactly one clock: the system monotonic clock, read through a **scale** so it advances in integer **ticks** at human-watchable speed (`tick = ⌊(now − start) / tickPeriod⌋`; the scale is the human-speed / playback-speed knob, `MsPerTick = 16` ⇒ ≈62.5 ticks/sec). All timing is **tick counts**, not wall-clock durations. The model is **sleep-only**: a pacing loop calls `SleepCycle` to wait exactly ONE cycle and re-reads `Tick()`, rather than blocking on a target tick — there is no wait-until-tick-k primitive. The clock is **free-running**: it advances monotonically with wall time and never pauses (there is no play/pause gate). **Everything that animates runs in these ticks:** bead traveling, all in-node animations, and all node/gate processing windows. Per-update tick counts come from formulas, not literals — a bead crossing an edge takes `ticksToCross = steps * DwellTicksPerBead` (steps the edge's own bead-step count, `DwellTicksPerBead` a uniform constant per bead-lattice step across all wires — [docs/bead-model/bead-lattice.md](docs/bead-model/bead-lattice.md)); node processing windows are tick counts. There is no separate render cadence — the tick IS the animation clock.
   A wire is stepped with its SOURCE NODE's own clock copy and tick reading,
   exactly like every other per-goroutine clock use — there is no shared
   clock to pin a tick against. But a bead's **placement tick** (when it
@@ -175,7 +175,7 @@ A bead crosses a wire in one direction:
 
 1. The source node sends the bead over the wire's in-channel with its
    traversal timed in ticks: `ticksToCross = steps * DwellTicksPerBead`
-   (steps the edge's own bead-step count — [docs/bead-lattice.md](docs/bead-lattice.md)). The
+   (steps the edge's own bead-step count — [docs/bead-model/bead-lattice.md](docs/bead-model/bead-lattice.md)). The
    send does not block on the wire and does not wait for the destination
    — see §Sending.
 2. While in flight, the SOURCE NODE — reading its own clock, its own tick
@@ -194,7 +194,7 @@ offsets), and the animation is which bead is LIT: the node reads its own
 wires' in-flight fraction `t` — the same `t` step 2 above advances — and
 lights `index = t × count`. The chain is the visual of a traversal; it is
 never a picture of the node-to-node channels, which are the real connection
-and are never drawn. See [docs/beads-are-the-edge.md](docs/beads-are-the-edge.md).
+and are never drawn. See [docs/bead-model/beads-are-the-edge.md](docs/bead-model/beads-are-the-edge.md).
 
 The source node times its own delivery. There is no TS-driven delivery
 signal — the renderer is told which bead is lit, not asked when a bead has
@@ -206,7 +206,7 @@ arrived.
   holds them in node-local state.
 - When the node's firing rule is satisfied, it fires.
 - **One edge per input port.** An input port is a channel-binding ROLE (see above,
-  `docs/channels-not-ports.md`), one wire, fed by EXACTLY ONE edge — fan-in (several
+  `docs/bead-model/channels-not-ports.md`), one wire, fed by EXACTLY ONE edge — fan-in (several
   edges into one port) is not part of the model.
   A node that needs several sources uses DISTINCT input ports, each its own
   wire (e.g. a gate's separate left/right ports). Multiple beads may still
@@ -231,7 +231,7 @@ resolving instantaneously.
 ## Geometry and time
 
 - Wire geometry sets traversal in ticks:
-  `ticksToCross = steps * DwellTicksPerBead` (steps: docs/bead-lattice.md "The
+  `ticksToCross = steps * DwellTicksPerBead` (steps: docs/bead-model/bead-lattice.md "The
   count", computed by the SOURCE NODE from its own live measured distance to the
   target — one integer, not an arc length divided by a speed). Geometry has
   no other effect on timing.
@@ -307,7 +307,7 @@ when a bead has arrived. Go owns the clock.
   a separate `DriveHeld` goroutine (`Pulse`/`PulseLeft`/`PulseRight`/
   `holdflip`) — a second goroutine that must never share the interior
   stream's fd (two goroutines racing one fd interleaves their frames'
-  header/payload writes into garbage — `docs/interior-stream-framing.md`).
+  header/payload writes into garbage — `docs/investigations/interior-stream-framing.md`).
   A drive frame is INTERIOR-shaped and its EVENTS are decoded and
   probe-logged like any other, but it asserts no slot state: nothing ever
   sets a drive stream's own `lastPresent`, so treating a drive frame as a
@@ -341,11 +341,11 @@ when a bead has arrived. Go owns the clock.
   small file; the drawing lives in its siblings under `three/scene/`. Grep the symbol,
   not this filename. The tree covers: node bodies (`tools/topology-vscode/src/webview/three/scene/NodeInstances.tsx` — sphere
   mesh + ring, keyed off `node.data.fill`/`node.data.stroke` from `NODE_DEFS`; no port
-  geometry — a port is a load-time channel-binding ROLE, never drawn, `docs/channels-not-ports.md`),
+  geometry — a port is a load-time channel-binding ROLE, never drawn, `docs/bead-model/channels-not-ports.md`),
   transit and interior
   beads (`tools/topology-vscode/src/webview/three/scene/ChainBeadInstances.tsx`, `tools/topology-vscode/src/webview/three/scene/InteriorBeadInstances.tsx` — there is no
   per-edge drawn tube any more; the source node's own chain of placeholder beads is the
-  edge's visual, `docs/beads-are-the-edge.md`), selection highlight
+  edge's visual, `docs/bead-model/beads-are-the-edge.md`), selection highlight
   (`tools/topology-vscode/src/webview/three/scene/SelectionHighlight.tsx`), and the camera (`tools/topology-vscode/src/webview/three/scene/BufferCamera.tsx` maps the buffer
   Camera row onto the three.js camera). Nothing in this tree owns traversal
   timing, positions, or geometry.
@@ -577,7 +577,7 @@ and none is a source of truth.
   Bead count on an edge falls out of the resulting geometry as one integer subtraction
   (`nodes/Wiring/chain_beads.go`'s `edgeStepCount`), with the near end tangent to the node's
   own torus by construction of the placement formula and one uniform global bead size — see
-  `docs/bead-lattice.md`.
+  `docs/bead-model/bead-lattice.md`.
 - **A mutual pair (two nodes each pointing an edge at the other) offsets its two chains to
   opposite sides**, so they do not draw on top of each other. `parallelChainOffset`
   (`nodes/Wiring/port_geometry.go`) computes the offset from the pair's own two centres and

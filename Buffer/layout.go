@@ -56,7 +56,7 @@ const BufInteriorSlotsPerNode = 4
 // The Bead block is GONE. It was one row per live in-flight bead (world X/Y/Z + Value),
 // repacked every tick as the bead moved. Nothing draws a moving bead any more: a traversal
 // is rendered as the LIT bead of a node-owned fixed chain (see bufLayoutChainBead's Lit
-// column and docs/beads-are-the-edge.md), so there is no per-tick position to carry.
+// column and docs/bead-model/beads-are-the-edge.md), so there is no per-tick position to carry.
 //
 // bufLayoutNode defines one row of the nodes column block.
 // One row per node. Persistent geometry. (Recv/Fire/Send/Arrive/Done events are
@@ -216,7 +216,7 @@ type bufLayoutNode struct {
 }
 
 // bufLayoutChainBead defines one row of the chain-bead column block — the node-owned
-// placeholder sequence that IS the visual of an edge (docs/beads-are-the-edge.md). One row
+// placeholder sequence that IS the visual of an edge (docs/bead-model/beads-are-the-edge.md). One row
 // per placeholder bead on one of this node's OUTGOING edges, in that edge's order outward
 // from this node.
 //
@@ -239,7 +239,7 @@ type bufLayoutChainBead struct {
 	OZ float32 `buf:"f32"` // node-local offset z
 	// Lit is the ANIMATION: 1 marks the bead a traversal has currently reached on this
 	// chain, 0 every other bead. This replaces a bead MOVING along a wire — the chain is
-	// fixed and the lighting is what advances (docs/beads-are-the-edge.md).
+	// fixed and the lighting is what advances (docs/bead-model/beads-are-the-edge.md).
 	//
 	// Go owns it: the source node drives its own outgoing wires and reads their in-flight
 	// fractional progress t on its own goroutine, then lights index = t × count. The
@@ -276,11 +276,11 @@ type bufLayoutInterior struct {
 // bufLayoutEdge defines one row of the edges column block.
 // One row per edge (wire). Matched from KindGeometry trace events.
 //
-// SX..EZ is the edge's own straight SEGMENT (docs/bead-lattice.md "Ownership": the
+// SX..EZ is the edge's own straight SEGMENT (docs/bead-model/bead-lattice.md "Ownership": the
 // edgeMover publishes the segment only) — NODE SURFACE TO NODE SURFACE along the
 // centre-to-centre line (edgeSegment, nodes/Wiring/port_geometry.go), the same two
 // points chain_beads.go anchors bead 0 and the last bead to. There is no port row to
-// reference any more: a port stopped being a place (docs/channels-not-ports.md), so this
+// reference any more: a port stopped being a place (docs/bead-model/channels-not-ports.md), so this
 // column pair is the edge's own emitted endpoints, not an index into a Port block that no
 // longer exists. This DOES reintroduce a second copy of a world position (the node's own
 // center + torus radius, computed once here rather than read live) — the prior port-row
@@ -307,7 +307,7 @@ type bufLayoutEdge struct {
 	EdgeLabelLen uint32 `buf:"u32"` // edge-label UTF-8 byte length
 }
 
-// The Port block is GONE (docs/channels-not-ports.md): a port is a load-time
+// The Port block is GONE (docs/bead-model/channels-not-ports.md): a port is a load-time
 // channel-binding ROLE (PortSpec, a.In()/a.Out()), never a place, so it has no ring
 // anchor, no world position, and no buffer row of its own any more. An edge's
 // endpoints now ride the Edge block's own SX..EZ (bufLayoutEdge, above); hover/select
@@ -423,7 +423,7 @@ type bufLayoutEvent struct {
 	Slot          int32  `buf:"i32"` // node-bead interior slot = row*2+col (-1 = none)
 	Value         int32  `buf:"i32"` // event value (recv/send/position/status/select mode/…)
 	Bead          uint32 `buf:"u32"` // per-wire bead id (wire-bead events; 0 = none)
-	// BeadSteps is a send event's edge bead-step count (docs/bead-lattice.md "The
+	// BeadSteps is a send event's edge bead-step count (docs/bead-model/bead-lattice.md "The
 	// count") — was ArcLength before the bead lattice replaced the arc-length model.
 	BeadSteps    float32 `buf:"f32"` // send: edge bead-step count
 	SimLatencyMs float32 `buf:"f32"` // send: wire traversal latency (ms), derived from BeadSteps

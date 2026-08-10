@@ -151,7 +151,7 @@ func kindWidthHeight(kind string) (float64, float64) {
 // lattice below; nothing else may call it. Every other reader of "this kind's
 // radius" must go through nodeRadius (which is the SNAPPED value, derived from
 // nodeTorusOuterR) — a second, unsnapped copy of the radius reaching a renderer or
-// a placement calculation is exactly the half-bead-step drift docs/bead-lattice.md
+// a placement calculation is exactly the half-bead-step drift docs/bead-model/bead-lattice.md
 // exists to remove, so this helper is deliberately unexported and single-purpose.
 func bareNodeRadius(kind string) float64 {
 	w, h := kindWidthHeight(kind)
@@ -169,7 +169,7 @@ func bareNodeRadius(kind string) float64 {
 // drawn ring and the bead-tangent point can never disagree, because both trace back
 // to the one snapped integer nodeTorusSteps. Nodes change size by up to one bead
 // step versus the pre-snap width/height formula; that is the intended cost of
-// making the tangency exact (docs/bead-lattice.md "Placement").
+// making the tangency exact (docs/bead-model/bead-lattice.md "Placement").
 func nodeRadius(kind string) float64 {
 	return nodeTorusOuterR(kind) / (1 + ShadingParamNodeRingTubeRatio)
 }
@@ -205,12 +205,12 @@ func setNodeWorld(g *nodeGeom, world vec3) {
 }
 
 // edgeSegment is the straight world segment the renderer draws for an edge: NODE SURFACE
-// TO NODE SURFACE along the centre-to-centre line (docs/channels-not-ports.md — a port is
+// TO NODE SURFACE along the centre-to-centre line (docs/bead-model/channels-not-ports.md — a port is
 // a load-time channel-binding ROLE now, never a place, so it contributes no geometry to
 // this segment at all). start = the source node's center, moved out to its own
 // nodeTorusOuterR toward the target; end = the target's center, moved out to ITS
 // nodeTorusOuterR toward the source. These are the SAME two surface points
-// chain_beads.go anchors bead 0 and the last bead to (docs/bead-lattice.md "Placement":
+// chain_beads.go anchors bead 0 and the last bead to (docs/bead-model/bead-lattice.md "Placement":
 // "Bead 0's torus is tangent to the source node's torus... bead N-1's torus is tangent to
 // the target node's torus, EXACTLY") — this is deliberate, not incidental: the edge
 // segment and the bead chain must measure between the identical two points, which is
@@ -234,7 +234,7 @@ func edgeSegment(src, tgt nodeGeom) wireSegment {
 
 // nodeTorusSteps is a node's torus-outer extent expressed as a whole number of bead
 // steps — the integer edgeStepCount subtracts from an edge's separation
-// (docs/bead-lattice.md "The count"). ROUND, not ceil: this used to ceil, on the
+// (docs/bead-model/bead-lattice.md "The count"). ROUND, not ceil: this used to ceil, on the
 // reasoning that rounding down could snap the extent smaller than the node's true
 // unsnapped body and let a bead's tangent point land inside it. That reasoning was
 // wrong — there IS no unsnapped body left to protect. nodeRadius (below) is DERIVED
@@ -252,7 +252,7 @@ func nodeTorusSteps(kind string) int {
 
 // nodeTorusOuterR is a node's TORUS OUTER radius, SNAPPED to a whole number of bead
 // steps (nodeTorusSteps) — its true visual/geometric extent, not the unsnapped
-// width/height formula (docs/bead-lattice.md "Placement"). nodeRadius (above) is
+// width/height formula (docs/bead-model/bead-lattice.md "Placement"). nodeRadius (above) is
 // DERIVED from this value, so the node's drawn sphere/ring and the bead-tangent
 // point at nodeTorusOuterR(kind) can never disagree: there is one snapped number,
 // not a snapped one for beads and an independently-rounded one for the renderer.

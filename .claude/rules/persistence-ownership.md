@@ -54,7 +54,7 @@ recording the edge under the target — that reintroduces the duplication the la
 - A `nodeMover` writes its own `position/local-polars`, and constructs those
   paths (`node_mover.go`). There is no longer a separate `inputs/`/`outputs/` port-geometry
   file — port geometry was removed with the port model (edges attach on the bead lattice,
-  docs/bead-lattice.md); this bullet used to list it as a second thing the mover writes.
+  docs/bead-model/bead-lattice.md); this bullet used to list it as a second thing the mover writes.
 - An `edgeMover` owns `nodes/<source>/edges/<label>.json`. No Go writer exists yet — edges
   are editor-authored — but when one is added, its path construction belongs there.
 - Scene-level state (camera, overlays, sphere) is genuinely singular and belongs to the

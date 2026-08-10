@@ -19,7 +19,7 @@ type RowEvent struct {
 	Kind                                                             string
 	NodeRow, PortRow, TargetRow, TargetPortRow, EdgeRow, Slot, Value int32
 	Bead                                                             uint64
-	// BeadSteps is a send event's edge bead-step count (docs/bead-lattice.md "The
+	// BeadSteps is a send event's edge bead-step count (docs/bead-model/bead-lattice.md "The
 	// count") — was ArcLength before the bead lattice replaced the arc-length
 	// model. SimLatencyMs is still a REPORTED diagnostic derived from it
 	// (steps*DwellTicksPerBead*MsPerTick), not an independently measured value.

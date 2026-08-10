@@ -3,7 +3,7 @@ set -euo pipefail
 
 # check-no-sqrt-in-chain-beads.sh — guard that chain-bead placement stays index arithmetic.
 #
-# docs/beads-are-the-edge.md's chain beads sit on the SAME local polar lattice a node's own
+# docs/bead-model/beads-are-the-edge.md's chain beads sit on the SAME local polar lattice a node's own
 # LocalPolar triples describe (nodes/wire/layout_holder.go). A bead's distance from its
 # source node comes from an integer index (QuantIR) times a step constant (StepR) —
 # multiplication, per memory/feedback_abc_times_constant_not_rederive.md — never from a
@@ -34,7 +34,7 @@ hits=$(grep -nE "$PATTERN" "$FILE" || true)
 if [ -n "$hits" ]; then
   echo "✗ sqrt fingerprint(s) found in chain_beads.go — bead placement must stay index arithmetic on the node's own local polar lattice, never a cartesian distance:"
   echo "$hits"
-  echo "  (math.Sqrt / Vec3.Length() / Vec3.Normalize() are each a sqrt — use QuantIR*StepR and fromAxisFrame instead. See docs/beads-are-the-edge.md and memory/feedback_abc_times_constant_not_rederive.md.)"
+  echo "  (math.Sqrt / Vec3.Length() / Vec3.Normalize() are each a sqrt — use QuantIR*StepR and fromAxisFrame instead. See docs/bead-model/beads-are-the-edge.md and memory/feedback_abc_times_constant_not_rederive.md.)"
   exit 1
 fi
 

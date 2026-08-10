@@ -44,7 +44,7 @@ func TestGestureHomeComputesFitPoseFromGeometry(t *testing.T) {
 
 	// Expected fit pose: bbox over centers ± body radius. nodeRadius(kind) is now the
 	// bead-lattice-SNAPPED value (port_geometry.go's nodeTorusOuterR/nodeTorusSteps,
-	// docs/bead-lattice.md "The count"), not the raw min(60,60)/divisor formula, so this
+	// docs/bead-model/bead-lattice.md "The count"), not the raw min(60,60)/divisor formula, so this
 	// must call the same function the production home-fit path calls rather than
 	// re-deriving the pre-snap number.
 	rad := nodeRadius("TimeEnd")
@@ -89,7 +89,7 @@ func TestGestureHomeFramesUnknownKindAtRenderRadius(t *testing.T) {
 	md.HandleRawInput(rawInputMsg{Kind: "home", Fov: fov, RectWidth: aspect, RectHeight: 1}, nil, nil)
 
 	// Expected: bbox is ±renderRadius on every axis (single node at origin). nodeRadius
-	// is now the bead-lattice-SNAPPED value (docs/bead-lattice.md "The count"), not the
+	// is now the bead-lattice-SNAPPED value (docs/bead-model/bead-lattice.md "The count"), not the
 	// raw min(110,60)/divisor formula, so this calls the same function the production
 	// home-fit path calls.
 	renderRadius := nodeRadius("NotAKind")

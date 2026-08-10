@@ -8,7 +8,7 @@ import { STR_DECODER, decodeTrailingEvents } from "./buffer-decode-shared";
 
 /** Aggregate view assembled from per-edge EDGE_STREAM frames: the Edge block + EdgeLabel
  *  bytes. The Edge block carries its own SEGMENT (SX..EZ) directly — node surface to node
- *  surface (docs/channels-not-ports.md) — not a reference through a port row. */
+ *  surface (docs/bead-model/channels-not-ports.md) — not a reference through a port row. */
 export interface DecodedEdgeFrame {
   tick: number;
   edgeCount: number;
@@ -31,7 +31,7 @@ export interface DecodedEdgeStreamFrame {
    *  Off into a foreign frame — unlike the combined Edge block's EdgeLabelOff/Len). */
   label: string;
   // No beadCount/beadView: the Bead block is gone with the moving bead it carried. A
-  // traversal renders as the LIT bead of the source node's own chain — docs/beads-are-the-edge.md.
+  // traversal renders as the LIT bead of the source node's own chain — docs/bead-model/beads-are-the-edge.md.
   /** This edge's own trailing EVENTS section (.probe log only; see decodeTrailingEvents). */
   eventCount: number;
   eventView: DataView;

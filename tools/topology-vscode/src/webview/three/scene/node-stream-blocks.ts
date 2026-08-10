@@ -6,7 +6,7 @@
 // stream frame (Buffer.BuildNodeStreamFrame/BuildInteriorStreamFrame — one goroutine's fd
 // each), rewriting only the LabelOff column that must point into the aggregated label-bytes
 // section instead of each frame's own inline bytes (no PortNameOff any more —
-// docs/channels-not-ports.md, there is no Port section to aggregate).
+// docs/bead-model/channels-not-ports.md, there is no Port section to aggregate).
 // This IS a byte copy (the source bytes live in N separate ArrayBuffers, one per node/
 // interior fd) — but it happens once per (nodeStreamVersion, interiorStreamVersion) change,
 // not once per render-tree consumer per frame (of which there are ~8), via the module-level
@@ -158,7 +158,7 @@ function buildAggregate(
 }
 
 /** One node's placeholder chain beads, resolved to WORLD positions. The buffer carries
- *  NODE-LOCAL offsets (Go owns them, docs/beads-are-the-edge.md); this adds that node's own
+ *  NODE-LOCAL offsets (Go owns them, docs/bead-model/beads-are-the-edge.md); this adds that node's own
  *  streamed center, exactly as the Interior block's slots are resolved — one add, no
  *  interpolation, no layout decision on this side.
  *

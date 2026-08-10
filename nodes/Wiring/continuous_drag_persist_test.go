@@ -1,6 +1,6 @@
 // continuous_drag_persist_test.go — a drag is written down in BOTH drag modes.
 //
-// This is the persistence exception in docs/testing-shape.md: bytes on disk, through the
+// This is the persistence exception in docs/process/testing-shape.md: bytes on disk, through the
 // real writer, rather than an assertion about a field.
 //
 // The regression it pins is a quiet one. Persisting used to sit inside the quantized

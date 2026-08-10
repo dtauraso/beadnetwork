@@ -7,7 +7,7 @@ import "testing"
 // rather than waking every cycle to ask whether it has.
 //
 // These assert one goroutine's own arithmetic over its own in-flight beads — no delivery, no
-// second goroutine, nothing about two goroutines communicating (docs/testing-shape.md).
+// second goroutine, nothing about two goroutines communicating (docs/process/testing-shape.md).
 
 // place puts a bead in flight directly, the way the wire's own goroutine would after draining
 // its inCh — the drain path itself is not what these tests are about.

@@ -126,7 +126,7 @@ func asEventSinkGetter(g func() *interiorStream) func() wire.EventSink {
 	}
 }
 
-// portRow is always -1 now: a port has no buffer row of its own (docs/channels-not-ports.md
+// portRow is always -1 now: a port has no buffer row of its own (docs/bead-model/channels-not-ports.md
 // — no Port block, no port-row table). Kept as a named sentinel rather than a bare -1
 // literal at each call site below so the reason reads at the call site, not just here.
 const noPortRow = int32(-1)

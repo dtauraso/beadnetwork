@@ -58,7 +58,7 @@ the wire's out-channel was the destination's input-port channel.
 
 - **Ports lose their geometry.** No ring anchor, no port radius, no `port ∈ torus` gesture,
   no port rows or port geometry columns in the buffer, no `nodes/<id>/inputs/` or
-  `outputs/`. Edges attach at node surfaces on the bead lattice (docs/bead-lattice.md,
+  `outputs/`. Edges attach at node surfaces on the bead lattice (docs/bead-model/bead-lattice.md,
   which lands with task/arc-from-local-polar). This is the entire fix for the end-bead gap: the
   chain measured node-torus to node-torus while the port sat proud of (or inside) that
   surface, so the first and last bead were off by the port's own radius while interior

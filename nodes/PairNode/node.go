@@ -100,7 +100,7 @@ func (n *Node) clock() wire.Clock {
 // Both ends of a pair run this same unmodified rule, and both directions of travel are links
 // rather than ±1, so a step cannot leave the ring. The pairing that matters is with what
 // outgoingVector sends: this reads an arrival that is the partner's coplanar normal as-is.
-// Worked run: docs/pair-node/vectors.html.
+// Worked run: docs/pair-node/math/vectors.html.
 func (n *Node) stepFromVector(received Wiring.TiltVectorMsg) bool {
 	arrival := n.ringOf().arrivedState(received.ThetaIdx)
 	before := n.topState()

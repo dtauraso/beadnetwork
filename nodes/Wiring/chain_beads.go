@@ -16,8 +16,8 @@ import (
 var chainAimTraceEnabled = os.Getenv("WIREFOLD_CHAIN_AIM_TRACE") == "1"
 
 // chain_beads.go — the node-owned placeholder bead chain that IS the visual of an edge.
-// Design and staging: docs/beads-are-the-edge.md. The LENGTH model (one integer bead-step
-// count, tangent placement, no arc) is docs/bead-lattice.md — this file implements it.
+// Design and staging: docs/bead-model/beads-are-the-edge.md. The LENGTH model (one integer bead-step
+// count, tangent placement, no arc) is docs/bead-model/bead-lattice.md — this file implements it.
 // The length itself (edgeStepCount) is in chain_length.go, the step-count publish helper
 // (sendStepsNonBlocking) is in step_publish.go, and the progress->index math (litBeadIndex,
 // used by tests and documented here for the lit-pulse placement below) is in
@@ -50,7 +50,7 @@ var chainAimTraceEnabled = os.Getenv("WIREFOLD_CHAIN_AIM_TRACE") == "1"
 // chainBeads returns THIS node's own placeholder chain beads as node-local offsets, in
 // outgoing-edge order (m.outs.outTargets), each edge's beads ordered outward from this node. It
 // also PUBLISHES each edge's freshly computed step count onto that edge's own *wire.Out
-// (docs/bead-lattice.md "Ownership": the source node owns the count) — the same call that
+// (docs/bead-model/bead-lattice.md "Ownership": the source node owns the count) — the same call that
 // lays the chain out on that integer, so the wire's own timing budget and this chain's
 // layout can never disagree.
 //
@@ -129,7 +129,7 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 			continue
 		}
 
-		// The ONE authoritative length: docs/bead-lattice.md's edgeStepCount, computed
+		// The ONE authoritative length: docs/bead-model/bead-lattice.md's edgeStepCount, computed
 		// from the LIVE center-to-center distance — the model has no stored fallback any
 		// more (wire.LocalPolar deleted): a target with no live measurement was already
 		// skipped above via haveTargetCenter. dist and liveDir (the DIRECTION, consumed
@@ -150,7 +150,7 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 		count := edgeStepCount(dist, m.geom.Kind, m.topo.neighborKinds[to])
 
 		// Publish this edge's freshly computed step count onto its own *wire.Out
-		// (docs/bead-lattice.md "Ownership") and onto its edgeMover's stepsIn (so a live
+		// (docs/bead-model/bead-lattice.md "Ownership") and onto its edgeMover's stepsIn (so a live
 		// in-flight bead's remaining travel — edgeMover.recomputeGeometry's
 		// ReviseInFlightGeometry call — is revised against the same integer too; see
 		// edge_mover.go's stepsIn doc comment for why a second delivery is needed instead of
@@ -271,7 +271,7 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 			})
 		}
 		// One coordinate: bead index i. Offset from this node's centre is
-		// selfTorusR + wire.BeadTorusOuterR + i*wire.BeadStepR (docs/bead-lattice.md
+		// selfTorusR + wire.BeadTorusOuterR + i*wire.BeadStepR (docs/bead-model/bead-lattice.md
 		// "Placement"). "Beads never inside a node" falls out of this tangency, with no
 		// clamp.
 		step := wire.BeadStepR

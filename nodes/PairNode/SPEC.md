@@ -145,7 +145,7 @@ loop body) runs:
   own normal on screen. Nothing rotates it on the way out: a rotation has to be undone by the
   receiver's step signs to leave behaviour unchanged, and a half turn in particular cannot
   move where the pair comes to rest, since the bottom tilt is the top plus that same half
-  turn. `docs/pair-node/vectors.html`.
+  turn. `docs/pair-node/math/vectors.html`.
 - **On receiving a vector**: FIRST, unconditionally, this node records the received
   direction as its own THIRD drawn vector (`ReceivedThetaIdx`/
   `ReceivedSet`, reported to its own geometry via `SyncReceivedVector` — same

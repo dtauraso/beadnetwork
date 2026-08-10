@@ -67,7 +67,7 @@ func validateSpec(spec *topoSpec) error {
 	// Check 1b: node ids must be safe single path segments — later filepath.Join'd into
 	// per-node persistence paths (node meta.json etc.); a value like "../../x" would
 	// otherwise escape the tree root (path traversal). Port names are no longer
-	// filepath.Join'd anywhere (docs/channels-not-ports.md: no nodes/<id>/inputs/
+	// filepath.Join'd anywhere (docs/bead-model/channels-not-ports.md: no nodes/<id>/inputs/
 	// or outputs/ any more), so there is nothing left to check on them here.
 	for _, n := range spec.Nodes {
 		if !safeTreePathComponent(n.ID) {

@@ -8,7 +8,7 @@
 //
 // This exercises only this ONE PacedWire's own goroutine (the test goroutine
 // itself, calling Send synchronously) — no second goroutine, no channel
-// delivery between goroutines, no timing (docs/testing-shape.md).
+// delivery between goroutines, no timing (docs/process/testing-shape.md).
 package wire
 
 import (

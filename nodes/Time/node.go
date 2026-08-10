@@ -75,7 +75,7 @@ func (in *Time) Update(ctx context.Context) {
 	// consuming an input value until the placed ToNext beads' own traversal tick
 	// count has elapsed. Per MODEL.md §Sending, a node's processing window is a
 	// TICK COUNT derived from a formula, not a query of wire occupancy: the
-	// window length is ticksToCross (steps*DwellTicksPerBead, docs/bead-lattice.md
+	// window length is ticksToCross (steps*DwellTicksPerBead, docs/bead-model/bead-lattice.md
 	// "Timing", already computed per wire) of the LONGEST ToNext edge, so it does
 	// not ask any wire whether a
 	// bead is still in flight. While a window is active, the input port is
@@ -146,7 +146,7 @@ func (in *Time) Update(ctx context.Context) {
 				// No live bead placed (suppressed sentinel broadcast) ⇒ no real
 				// output transit ⇒ no processing window to observe. Otherwise
 				// the window length is the LONGEST ToNext edge's ticksToCross
-				// (steps*DwellTicksPerBead, docs/bead-lattice.md "Timing") counted
+				// (steps*DwellTicksPerBead, docs/bead-model/bead-lattice.md "Timing") counted
 				// from this placement tick — a formula over the node's own
 				// outputs, not a query of wire state.
 				var maxTicks float64

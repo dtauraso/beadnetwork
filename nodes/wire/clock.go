@@ -6,7 +6,7 @@
 // tick counts, never wall-clock durations: goroutines pace themselves with
 // SleepCycle, which blocks for exactly one clock cycle. A bead crossing an edge
 // takes `ticksToCross = steps * DwellTicksPerBead` ticks (steps: the edge's own
-// bead-step count, docs/bead-lattice.md "The count"; DwellTicksPerBead: the one
+// bead-step count, docs/bead-model/bead-lattice.md "The count"; DwellTicksPerBead: the one
 // uniform per-step dwell, bead_lattice.go); node
 // processing windows are tick counts. There is no separate render cadence — the
 // tick IS the animation clock.
@@ -17,7 +17,7 @@
 // SleepCycle exactly the same way; only what it blocks on changed.
 //
 // SCALE arithmetic (behavior-preserving vs. the retired wall-clock model, and
-// vs. the later retired arc-length model — docs/bead-lattice.md superseded both):
+// vs. the later retired arc-length model — docs/bead-model/bead-lattice.md superseded both):
 // the original model sampled bead positions every 16 ms. We pick one tick ≈ one
 // old 16 ms sample:
 //

@@ -10,7 +10,7 @@ import (
 // chainBeads is a pure function of ONE node's own state — its own kind, its own
 // neighborKinds, and its own live copy of the neighbour's world center
 // (m.partnerCenters) — all written only by that node's goroutine — so these are plain
-// tables, no second goroutine (docs/testing-shape.md).
+// tables, no second goroutine (docs/process/testing-shape.md).
 //
 // Every case sets BOTH kinds explicitly. An unset kind is NOT neutral: kindWidthHeight falls
 // back to (110, 60), i.e. radius 15. The original tests left kinds unset and asserted on
@@ -32,7 +32,7 @@ func singleNeighborCenter(to string, centerGap float64) map[string]vec3 {
 
 // The invariant the original tests missed, and the bug that shipped: a bead must never sit
 // inside either node's sphere — restated in TANGENCY terms under the bead lattice
-// (docs/bead-lattice.md "Placement"): bead 0's torus is tangent OUTSIDE the source node's
+// (docs/bead-model/bead-lattice.md "Placement"): bead 0's torus is tangent OUTSIDE the source node's
 // torus, and the last bead's torus is tangent OUTSIDE the target's, never overlapping either.
 func TestChainBeadsStayOutsideBothNodes(t *testing.T) {
 	// Expressed as a cell count * wire.BeadStepR, not a bare literal, so this
@@ -97,7 +97,7 @@ func TestChainBeadsTouch(t *testing.T) {
 }
 
 // Two nodes whose TORI are closer than one bead step apart still contribute at least
-// ONE bead — edgeStepCount clamps to a minimum of 1 (docs/bead-lattice.md "The count") so an
+// ONE bead — edgeStepCount clamps to a minimum of 1 (docs/bead-model/bead-lattice.md "The count") so an
 // edge never has zero beads, even when the gap collapses.
 func TestChainBeadsAlwaysAtLeastOneBead(t *testing.T) {
 	m := &nodeGeometry{
@@ -249,7 +249,7 @@ func TestLitBeadIndexOffChainLightsNothing(t *testing.T) {
 	}
 }
 
-// edgeStepCount pins the formula (docs/bead-lattice.md "The count") directly, independent of
+// edgeStepCount pins the formula (docs/bead-model/bead-lattice.md "The count") directly, independent of
 // chainBeads' node-mover plumbing. It now takes the LIVE center-to-center distance directly
 // (K = round(dist/BeadStepR)) rather than a stored LocalPolar, so a distance already an exact
 // multiple of BeadStepR (as every test fixture here uses) is plain integer subtraction with

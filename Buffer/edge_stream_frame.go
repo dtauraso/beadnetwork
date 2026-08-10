@@ -28,7 +28,7 @@ import (
 // header comment for the byte layout).
 //
 // There is NO bead section any more. The transit bead is not drawn: the animation is the LIT
-// bead on the SOURCE NODE's own placeholder chain (docs/beads-are-the-edge.md), which that
+// bead on the SOURCE NODE's own placeholder chain (docs/bead-model/beads-are-the-edge.md), which that
 // node computes and streams on its own node frame. Removing it also removed a real race —
 // the bead rows were read via PacedWire.LiveBeadRows from the EDGE goroutine, while the wire
 // is now stepped by its source node's goroutine, so that read no longer satisfied the

@@ -17,11 +17,11 @@ export interface EdgeAccessor {
    *  every downstream lookup depends on). A row with no frame yet reads as "unresolved"
    *  (segment 0,0,0->0,0,0). */
   edgeCount: number;
-  /** This edge's own SEGMENT — node surface to node surface (docs/channels-not-ports.md).
+  /** This edge's own SEGMENT — node surface to node surface (docs/bead-model/channels-not-ports.md).
    *  No port row to resolve any more: the edge carries its own endpoints directly. Still
    *  read for stream-capacity growth (buffer-scene.tsx) and the .probe debug decoder
    *  (buffer-log.ts) — NOT for rendering: the edge's own drawn line/pick halo is REMOVED,
-   *  the source node's bead chain is the edge's visual now (docs/beads-are-the-edge.md). */
+   *  the source node's bead chain is the edge's visual now (docs/bead-model/beads-are-the-edge.md). */
   segment(row: number): [number, number, number, number, number, number];
   // No selected() accessor: the Edge block's Selected column had exactly one caller (the
   // now-deleted pick halo, EdgeTube.tsx) and is now genuinely unreachable from the UI — the
@@ -32,7 +32,7 @@ export interface EdgeAccessor {
   // tools/buffer-schema/check-no-dead-buffer-column.sh's ALLOWED_DEAD entry for readEdgeSelected.
   // No beads() accessor either: the Bead block is gone. A traversal renders as the LIT bead
   // of the source node's own fixed chain (ChainBeadInstances), not a moving position on the
-  // edge stream — docs/beads-are-the-edge.md.
+  // edge stream — docs/bead-model/beads-are-the-edge.md.
 }
 
 function decodedFor(frames: ReadonlyMap<number, ArrayBuffer>, row: number): DecodedEdgeStreamFrame | null {

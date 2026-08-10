@@ -14,7 +14,7 @@
 #     wg := md.Start(ctx)
 #     t.Cleanup(func() { cancel(); wg.Wait() })
 #
-# See docs/testing-shape.md ("Signal-without-wait teardown").
+# See docs/process/testing-shape.md ("Signal-without-wait teardown").
 #
 # PLACEMENT: *_test.go | a bare `<recv>.Start(ctx)` call must capture and Wait() its returned WaitGroup before cleanup
 set -uo pipefail
@@ -28,7 +28,7 @@ hits=$(git ls-files '*_test.go' -z \
 
 if [ -n "$hits" ]; then
   echo "check-start-waitgroup-used: test(s) discard MoveDispatch.Start's WaitGroup, so"
-  echo "nothing waits for the goroutines before cleanup runs (see docs/testing-shape.md):"
+  echo "nothing waits for the goroutines before cleanup runs (see docs/process/testing-shape.md):"
   echo "$hits" | sed 's/^/  /'
   echo
   echo "Fix — capture the group and wait, registered AFTER t.TempDir() so t.Cleanup LIFO"

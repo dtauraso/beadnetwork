@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# PLACEMENT: docs/pair-node/*.html | a data-src naming a definition must name one that still exists
+# PLACEMENT: docs/pair-node/**/*.html | a data-src naming a definition must name one that still exists
 set -euo pipefail
 
 # check-docs-symbols.sh — every source name on the pair-node docs pages points at
@@ -27,7 +27,7 @@ fail=0
 note() { echo "check-docs-symbols: $*" >&2; fail=1; }
 
 # Every data-src value on every docs page, one per line: `path` or `path#symbol`.
-refs=$(grep -ho 'data-src="[^"]*"' docs/*/*.html 2>/dev/null \
+refs=$(grep -ho 'data-src="[^"]*"' docs/pair-node/*.html docs/pair-node/*/*.html 2>/dev/null \
   | sed -E 's/^data-src="//; s/"$//' | sort -u)
 
 if [ -z "$refs" ]; then

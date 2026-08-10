@@ -18,7 +18,7 @@ import (
 //
 // out is a Wiring.DrivenOut, not a bare *wire.Out, ON PURPOSE (nodes/Wiring/driven_out.go):
 // this is the STRUCTURAL fix for the framing desync documented in
-// docs/interior-stream-framing.md — a plain a.Out(...) result (written by this node's own
+// docs/investigations/interior-stream-framing.md — a plain a.Out(...) result (written by this node's own
 // Update-loop goroutine) cannot be passed here at all, because only BuildArgs.DriveOut can
 // construct a DrivenOut (routed through its own dedicated per-(node,slot) drive-stream fd).
 // Passing the wrong one is a `go build` failure, not a live-editor desync.
@@ -34,7 +34,7 @@ import (
 // The wire's own goroutine advances in-flight beads every cycle (one
 // position-step per tick, never jumping); this goroutine only PLACES a new
 // bead once per this edge's OWN tick-count period, `K = ticksToCross =
-// Steps*DwellTicksPerBead` (docs/bead-lattice.md "Timing"; same ceil-rounding
+// Steps*DwellTicksPerBead` (docs/bead-model/bead-lattice.md "Timing"; same ceil-rounding
 // convention as Time/node.go's ToNext processing window) — one placement per
 // full crossing, so a wire carries roughly one resident bead rather than one
 // per tick. Per MODEL.md §Sending this is still legal: K is read from the

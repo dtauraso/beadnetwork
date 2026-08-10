@@ -7,7 +7,7 @@ You are running a code-self-defends audit. Goal: identify places where an AI doi
 
 # Procedure
 
-1. Spawn an Explore subagent (model: haiku) with the prompt template below. It surveys all four categories in one pass. Have it read `docs/audit-baseline.md` first — findings already judged deliberate-and-structural there (e.g. the fingerprint-string duplication in category A, gap-numbered wire values) must not be re-reported; only NEW deviations count.
+1. Spawn an Explore subagent (model: haiku) with the prompt template below. It surveys all four categories in one pass. Have it read `docs/investigations/audit-baseline.md` first — findings already judged deliberate-and-structural there (e.g. the fingerprint-string duplication in category A, gap-numbered wire values) must not be re-reported; only NEW deviations count.
 
 2. When it returns, present findings to the user as a ranked menu:
    - Findings sorted by leverage (how many drift hazards each one eliminates).
@@ -21,7 +21,7 @@ You are running a code-self-defends audit. Goal: identify places where an AI doi
 Use this prompt verbatim, substituting nothing:
 
 ---
-Repo: <current repo>. First read `docs/audit-baseline.md` — it lists findings already judged
+Repo: <current repo>. First read `docs/investigations/audit-baseline.md` — it lists findings already judged
 deliberate-and-structural (e.g. duplicated fingerprint strings, gap-numbered wire values).
 Do not report anything listed there; only report NEW deviations from it. Then identify
 verifying-grep hotspots. Four categories:

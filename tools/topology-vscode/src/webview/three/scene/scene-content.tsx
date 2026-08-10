@@ -20,7 +20,7 @@ import { resolveNodeDrawSlot } from "./node-depth-order";
 // Buffer-backed pick helpers. Nodes/edges are InstancedMesh / halo meshes
 // rendered by buffer-scene.tsx in buffer-row order; the pick resolves the hit to a numeric
 // buffer ROW (node / edge), forwarded to Go — Go resolves the row back to its entity. There
-// is no PORT pick any more (docs/channels-not-ports.md — a port is never drawn or
+// is no PORT pick any more (docs/bead-model/channels-not-ports.md — a port is never drawn or
 // hit-testable).
 // ---------------------------------------------------------------------------
 

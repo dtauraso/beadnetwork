@@ -4,7 +4,7 @@ package main
 // itself calls for: a PAIR node has NO separate nodeMover actor at all (not merely a
 // flag saying "don't launch it"), while a RING node still gets a real one. This is a
 // single-goroutine STRUCTURAL fact about one MoveDispatch's own registry
-// (docs/testing-shape.md) — not a test of cross-goroutine delivery/ordering.
+// (docs/process/testing-shape.md) — not a test of cross-goroutine delivery/ordering.
 import (
 	"context"
 	"testing"

@@ -113,7 +113,7 @@ func (pb *PortBindings) SetSinglePaced(name string, pw *wire.PacedWire) {
 }
 
 // SetSinglePacedRule binds a single paced output with its per-edge send rule,
-// that edge's own bead-step count (docs/bead-lattice.md "The count"), its
+// that edge's own bead-step count (docs/bead-model/bead-lattice.md "The count"), its
 // straight-segment endpoints (so the bead's position stream evaluates the exact
 // drawn segment), and the TS edge id (label) so the node's EmitGeometry closure
 // can stream the segment.

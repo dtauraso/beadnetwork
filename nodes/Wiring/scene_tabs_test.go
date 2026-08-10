@@ -1,5 +1,5 @@
 // scene_tabs_test.go — what ONE goroutine (the view-owner) decides and persists when a tab
-// is clicked, verified through real bytes on disk (docs/testing-shape.md's one exception:
+// is clicked, verified through real bytes on disk (docs/process/testing-shape.md's one exception:
 // persistence through a real write/read round trip).
 //
 // Nothing here runs two goroutines: SelectScene's quit func is a plain recorder, so these

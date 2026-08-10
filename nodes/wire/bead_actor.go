@@ -1,5 +1,5 @@
 // bead_actor.go — the render (CHAIN) bead as its own goroutine, per MODEL.md's "Chain
-// (render/placeholder) bead" bullet (docs/beads-are-the-edge.md names this same entity:
+// (render/placeholder) bead" bullet (docs/bead-model/beads-are-the-edge.md names this same entity:
 // the node-owned placeholder chain that IS the visual of an edge).
 //
 // This is the PRIMITIVE, validated by its own tests (bead_actor_test.go); its production
@@ -69,7 +69,7 @@ type beadGeometryState struct {
 
 // applyTransform computes this bead's position directly from the node's broadcast
 // transform and this bead's own fixed node-local offset (index*wire.BeadStepR along the
-// node's aim, docs/bead-lattice.md "Placement") — ONE hop, no dependency on any other
+// node's aim, docs/bead-model/bead-lattice.md "Placement") — ONE hop, no dependency on any other
 // bead's position. offsetR is this bead's fixed distance from the node center along Aim.
 func (g *beadGeometryState) applyTransform(xf BeadGeometryIn, offsetR float64) {
 	g.position = xf.Center.Add(xf.Aim.Scale(offsetR))
@@ -84,7 +84,7 @@ type beadAnimationState struct {
 }
 
 // tick applies one human-clock pulse's worth of animation update. The actual traversal-lit
-// rule (which index is lit, docs/beads-are-the-edge.md) is owned by the node's
+// rule (which index is lit, docs/bead-model/beads-are-the-edge.md) is owned by the node's
 // chainBeads/litBeadIndex computation (nodes/Wiring/chain_beads.go) today; lit/val here are
 // simply the latest values this bead was told to display — the point under test is that
 // this write happens ONLY on a tick pulse, never on a geometry or mode event.

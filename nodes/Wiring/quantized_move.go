@@ -97,7 +97,7 @@ func (lq *layoutQuantizer) broadcastToEdgesAndPartners(md *MoveDispatch, newCent
 	// Partner re-emit: find every partner node — the OTHER end of any edge incident to a
 	// moved node — and ask it to re-emit its OWN geometry with its OWN (unchanged)
 	// center. Node geometry no longer depends on a connected partner's position at all
-	// (a port carries no geometry, docs/channels-not-ports.md — this used to be how an
+	// (a port carries no geometry, docs/bead-model/channels-not-ports.md — this used to be how an
 	// AIMED port picked up its moved partner's fresh center; that aiming is gone), but
 	// the re-emit stays: it is what keeps a downstream watcher's view of this partner
 	// current on the SAME cadence a moved node's own re-emit fires, without adding a
@@ -282,7 +282,7 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeGeometr
 	// (broadcastToEdgesAndPartners), PERSISTED (persistQuantOffset), and re-quantized
 	// against by every neighbor (requantizeLocalPolars) for this commit — ONE position,
 	// not the raw drag target for some of those and a quantized point for others
-	// (docs/which-lattice-a-node-lives-on.md "Why the drag makes it worst": that split is
+	// (docs/investigations/which-lattice-a-node-lives-on.md "Why the drag makes it worst": that split is
 	// exactly what made the node glide continuously while its own chain beads jumped one
 	// bead distance at a time). Under the quantized scene lattice (lq.quantizedLayout),
 	// moving the node is now CRUD on the edge beads that touch it (PLAN.md, bead_crud.go)

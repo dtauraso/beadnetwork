@@ -9,7 +9,7 @@ import "math"
 // reported off-chain.
 //
 // steps must be the SAME integer chainBeads used to lay the chain out — two different
-// lengths for layout vs. lighting is exactly the drift docs/bead-lattice.md's one-integer
+// lengths for layout vs. lighting is exactly the drift docs/bead-model/bead-lattice.md's one-integer
 // model exists to make impossible (LiveBeadProgress.Steps travels with the bead precisely so
 // this can never be re-derived from a second source).
 //

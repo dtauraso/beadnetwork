@@ -98,7 +98,7 @@ func writeInteriorStreamFrame(out io.Writer, buildFrame func(tick uint32, presen
 	}
 	frame := buildFrame(tick, present, value, ox, oy, oz, events)
 	// ONE Write call carrying [len:u32][payload] together, not two. The real fix for the
-	// framing desync (docs/interior-stream-framing.md) is giving every emitting goroutine
+	// framing desync (docs/investigations/interior-stream-framing.md) is giving every emitting goroutine
 	// its own fd (this file's out is now single-writer by construction — see
 	// Buffer.StreamKindDrive), but a single os.File.Write per frame is cheap insurance on
 	// top of that: even a single writer can, in principle, be interrupted between two

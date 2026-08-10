@@ -14,7 +14,7 @@ type moveDispatchEdgeEndpoint struct {
 }
 
 // rowTables owns the three row-identity tables (hit-testing + mover row resolution). A
-// port has no row of its own any more (docs/channels-not-ports.md — no Port block, no
+// port has no row of its own any more (docs/bead-model/channels-not-ports.md — no Port block, no
 // port hit kind), so this is three tables, not four.
 //
 // These tables used to live on a central accumulator, built as a side effect of

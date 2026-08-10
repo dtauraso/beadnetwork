@@ -31,8 +31,8 @@ package PairNode
 // THE SECOND QUESTION IS ASKED FROM WHERE THE NODE IS, not from the two places it could go. It
 // used to fold the arrival to an angle length, hold that against a list, and then redo that whole
 // measurement at BOTH NEIGHBOURS so the two results could be compared — a machine choosing between
-// its next two positions without ever working out where it was heading. What docs/pair-node/arith.html
-// states, and what this file now computes, is one count compared to one number.
+// its next two positions without ever working out where it was heading. What
+// docs/pair-node/math/arith.html states, and what this file now computes, is one count compared to one number.
 //
 // Setting is a mode like the other two and not an absence of one: while a node is still being set
 // up nothing is out of place, so every count is a stopping one and the node holds still by the
@@ -47,7 +47,7 @@ package PairNode
 // distance to perpendicular to pick a target. Two files had nowhere to put that coupling, and
 // that worked: both rules were finished without either disturbing the other.
 //
-// The audit that followed (docs/pair-node/audit.html) measured what the two had become. Across
+// The audit that followed (docs/pair-node/rules/audit.html) measured what the two had become. Across
 // 103 lines: step was character-for-character identical; settled was each machine restating its
 // own distance being zero; String and choice were mirrored boilerplate; and the two distances are
 // EXACT COMPLEMENTS -- perpendicular's = quarter − parallel's, everywhere on the ring, proved on
@@ -92,7 +92,7 @@ type tiltMachine struct {
 	mode Wiring.TiltMachine
 }
 
-// nearerEndCount is THE measurement, and it is the one docs/pair-node/arith.html makes: how far the
+// nearerEndCount is THE measurement, and it is the one docs/pair-node/math/arith.html makes: how far the
 // arrival is from the nearer END OF THIS NODE'S TILT LINE.
 //
 // A node draws two ends, t and t + h, so there are two counts to the arrival and they differ by a
@@ -172,7 +172,7 @@ func (m tiltMachine) settled(from, arrival *tiltState) bool {
 // upward count is at most a quarter turn. There is no downward count to work out and nothing to
 // take a minimum over, and a tie — exactly a quarter each way — goes up by the ≤.
 //
-// This is what docs/pair-node/arith.html prints as two four-line blocks, one per arrangement.
+// This is what docs/pair-node/math/arith.html prints as two four-line blocks, one per arrangement.
 // Perpendicular stops at 0, so its (0 − c) mod h ≤ q reads as c ≥ q; parallel stops at q, so its
 // reads as c ≤ q. Two blocks, one sentence, and no mode reaching the rule.
 //

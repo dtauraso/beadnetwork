@@ -21,7 +21,7 @@ Drag a node and its own chain of beads slides against it instead of moving with 
 | **Local polar** (was `nodes/wire/layout_holder.go`, deleted with the whole local-polar model — MODEL.md "the polar model") | **8.96** | **1°** | a node's distance and bearing to each NEIGHBOUR — what `chain_beads.go` lays beads out from |
 
 20 is not a multiple of 8.96 (it is 2.23×), so a node cannot sit exactly on both at once.
-"One lattice", as [bead-lattice.md](bead-lattice.md) describes it, was only ever true of the
+"One lattice", as [bead-lattice.md](../bead-model/bead-lattice.md) describes it, was only ever true of the
 node↔neighbour relation. A node's own position has always been quantized on a separate,
 coarser grid, and nothing reconciled the two — this part of the finding still stands.
 
@@ -122,7 +122,7 @@ position for `position.json` (`quant_offset_persist.go`'s own doc comment: "ride
 a self-describing cache of the drag-time snap cells, NOT the position source") — nothing
 downstream reconstructs the drawn/committed position from it. So the two lattices this doc
 found still exist on disk, but the drag path that used to straddle them no longer reads
-from either; it walks the bead vector. See [bead-lattice.md](bead-lattice.md) for the bead
+from either; it walks the bead vector. See [bead-lattice.md](../bead-model/bead-lattice.md) for the bead
 model this vector reuses.
 
 ## Facts that stayed true and narrowed the eventual work

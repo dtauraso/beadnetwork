@@ -169,7 +169,7 @@ func parseEmbeddedPorts(nodesDir, pkgDir string, visited map[string]bool) ([]por
 // (older SPEC.md fixtures, generator tests). Wiring.DrivenOut (nodes/Wiring/driven_out.go)
 // is a bare (non-pointer) selector, like Broadcast — a node kind's DriveHeld-driven output
 // port (BuildArgs.DriveOut) still counts as an "out" port for SPEC.md/NODE_DEFS purposes;
-// it is a different WRITE-SIDE ownership shape (docs/interior-stream-framing.md), not a
+// it is a different WRITE-SIDE ownership shape (docs/investigations/interior-stream-framing.md), not a
 // different port direction.
 func chanDirection(expr ast.Expr) (string, bool) {
 	isWirePkg := func(pkg *ast.Ident) bool { return pkg.Name == "Wiring" || pkg.Name == "wire" }

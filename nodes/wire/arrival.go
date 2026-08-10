@@ -9,7 +9,7 @@ package wire
 import "math"
 
 // ticksToCross returns the tick count for a bead of the given STEP count to
-// cross, at this wire's own dwell-per-bead: steps * dwell (docs/bead-lattice.md
+// cross, at this wire's own dwell-per-bead: steps * dwell (docs/bead-model/bead-lattice.md
 // "Timing" — a longer edge is simply more beads, dwell is a constant, so there
 // is no per-edge division left the way arcLength/pulseSpeed used to require).
 // Fractional; the driver delivers on the first integer tick at or past

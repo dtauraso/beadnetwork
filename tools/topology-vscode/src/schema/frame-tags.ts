@@ -96,7 +96,7 @@ export const BUF_BLOCK_TAG_INTERIOR_STREAM = 7;
  * BufNodeStreamFrameHeaderSize is the byte width of the leading header on one node's
  * combined per-fd frame (Buffer.BuildNodeStreamFrame), before the Node row:
  * [tick:u32][labelLen:u32][chainBeadCount:u32]. No port section any
- * more (docs/channels-not-ports.md — a port carries no geometry, so there is no portCount/
+ * more (docs/bead-model/channels-not-ports.md — a port carries no geometry, so there is no portCount/
  * portNameBytesCount to size).
  * The rest of that frame's layout: one BufNodeStride row (LabelOff=0 into this frame's own
  * label bytes) + labelLen label bytes + chainBeadCount chain-bead rows.

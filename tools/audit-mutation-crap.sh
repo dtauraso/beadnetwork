@@ -4,9 +4,9 @@
 # and re-runs the whole test suite per mutation site, taking minutes to tens of
 # minutes depending on scope. Run it by hand, occasionally, not per commit.
 #
-# WHY THIS EXISTS: docs/testing-shape.md argues cross-goroutine correctness is
+# WHY THIS EXISTS: docs/process/testing-shape.md argues cross-goroutine correctness is
 # guaranteed BY CONSTRUCTION (ownership + message-passing, no locks), and a prior
-# audit pass deleted ~27 tests on that argument (docs/testing-shape.md "History").
+# audit pass deleted ~27 tests on that argument (docs/process/testing-shape.md "History").
 # Nothing in this repo produces EVIDENCE for or against that argument.
 # tools/repo-hygiene/check-test-integrity.sh (if present) only detects tests being WEAKENED over
 # time — it says nothing about whether they had strength to begin with. This script

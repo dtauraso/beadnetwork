@@ -5,7 +5,7 @@
 // (StreamsActive true). This asserts only what this ONE PacedWire goroutine
 // (the test goroutine itself, driving DriveOneCycle synchronously) itself
 // decided/emitted — no second goroutine, no cross-goroutine delivery/timing
-// (see docs/testing-shape.md and CLAUDE.md's "Testing shape" section).
+// (see docs/process/testing-shape.md and CLAUDE.md's "Testing shape" section).
 package wire
 
 import (

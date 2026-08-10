@@ -34,7 +34,7 @@ function reportNodeIdMismatch(row: number, expectedId: number, statedId: number)
 
 /** Aggregate view assembled from per-node NODE_STREAM frames (see node-stream-blocks.ts):
  *  the Node/Interior blocks + Label bytes — the node-owner-group blocks, which share one
- *  owner (the node movers). No Port block any more (docs/channels-not-ports.md — a port
+ *  owner (the node movers). No Port block any more (docs/bead-model/channels-not-ports.md — a port
  *  carries no geometry, so there is nothing to aggregate). */
 export interface DecodedNodeFrame {
   tick: number;
@@ -73,7 +73,7 @@ export function nodeLabel(decoded: DecodedNodeFrame, row: number): string {
   return STR_DECODER.decode(decoded.labelBytes.subarray(off, off + len));
 }
 
-// There is no portName() any more (docs/channels-not-ports.md): a port has no name/row of
+// There is no portName() any more (docs/bead-model/channels-not-ports.md): a port has no name/row of
 // its own on the buffer, so there is nothing to slice out of a port-name-bytes section.
 
 /** Decoded view over ONE node's dedicated per-fd NODE-stream frame (BUF_BLOCK_TAG_NODE_STREAM
@@ -81,7 +81,7 @@ export function nodeLabel(decoded: DecodedNodeFrame, row: number): string {
  *  [tick:u32][labelLen:u32][chainBeadCount:u32] +
  *  this node's own single NODE_STRIDE row (index 0) + its own inline label bytes + its own
  *  chain-bead rows. No Port section any more
- *  (docs/channels-not-ports.md — a port carries no geometry, so there is no port-row/
+ *  (docs/bead-model/channels-not-ports.md — a port carries no geometry, so there is no port-row/
  *  port-name-bytes section to size or decode). */
 export interface DecodedNodeStreamFrame {
   tick: number;
@@ -90,7 +90,7 @@ export interface DecodedNodeStreamFrame {
   /** This node's own label, decoded straight from its inline bytes (LabelOff is always 0
    *  into THIS frame's own bytes — unlike the combined Node block's shared label section). */
   label: string;
-  /** Number of this node's own chain-bead rows (docs/beads-are-the-edge.md) — the
+  /** Number of this node's own chain-bead rows (docs/bead-model/beads-are-the-edge.md) — the
    *  placeholder sequence that is the VISUAL of a traversal along its outgoing edges,
    *  concatenated across those edges in order. Not a count of anything on a channel: the
    *  node-to-node channels are the real connection and are never drawn. */

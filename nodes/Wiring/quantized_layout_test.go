@@ -121,7 +121,7 @@ func TestNormalizeOffsetConvertsIndexAndStepTogether(t *testing.T) {
 // drag's COMMITTED position (what applyCenter draws, what gets persisted, what neighbors
 // re-quantize against) must be the LATTICE POINT implied by measureScalar/offsetScenePolar,
 // never the raw continuous drag target — the bug this whole change fixes
-// (docs/which-lattice-a-node-lives-on.md "Why the drag makes it worst": the node used to
+// (docs/investigations/which-lattice-a-node-lives-on.md "Why the drag makes it worst": the node used to
 // glide continuously while its own chain beads moved in bead-distance jumps). Proof of
 // failure: the raw target chosen below is deliberately OFF the lattice (not an exact
 // multiple of stepR/stepTheta/stepPhi), so "commit the raw target" and "commit the

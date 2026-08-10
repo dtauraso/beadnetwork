@@ -7,7 +7,7 @@
 // statically. This test observes ONLY what this one PacedWire goroutine (the
 // test goroutine itself, calling Send synchronously) recorded and drained —
 // no second goroutine, no channel delivery between goroutines, no timing (see
-// docs/testing-shape.md and CLAUDE.md's "Testing shape" section).
+// docs/process/testing-shape.md and CLAUDE.md's "Testing shape" section).
 package wire
 
 import (

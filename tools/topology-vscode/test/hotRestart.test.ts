@@ -1,6 +1,6 @@
 // Decision-logic tests for the .go-change hot-restart feature (single-actor: pure
 // functions / one debouncer instance, no cross-process communication — see
-// docs/testing-shape.md).
+// docs/process/testing-shape.md).
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { shouldRestartAfterBuild, TrailingDebouncer } from "../src/hotRestart";
 

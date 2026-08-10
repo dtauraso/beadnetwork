@@ -16,7 +16,7 @@ import (
 
 // outGeom is an immutable snapshot of an Out's per-edge geometry: this edge's
 // bead-step count plus its drawn straight-segment endpoints. It is assembled from
-// TWO INDEPENDENT publishers, per docs/bead-lattice.md "Ownership" — the source
+// TWO INDEPENDENT publishers, per docs/bead-model/bead-lattice.md "Ownership" — the source
 // node owns the count, the edgeMover owns the segment — delivered to the ONE
 // reading goroutine (the node's own Update goroutine, via Geom() below) over two
 // SEPARATE buffered-1, latest-wins channels (geomSendSteps/geomSendSeg), never a
@@ -24,7 +24,7 @@ import (
 // per-goroutine-clock.md's speedCh Delivery pattern (SendSpeedNonBlocking/
 // ApplySpeedNonBlocking): each producer sends, the one consumer owns its own copy.
 //
-//   - Steps: this edge's own bead-step count (docs/bead-lattice.md "The count"),
+//   - Steps: this edge's own bead-step count (docs/bead-model/bead-lattice.md "The count"),
 //     computed by the SOURCE NODE from its own stored LocalPolar to the target —
 //     ONE integer, not a chord length divided by a speed. Published by
 //     PublishSteps, called only from the source node's own goroutine (its
@@ -65,7 +65,7 @@ type Out struct {
 	trace *T.Trace
 	// geomSendSteps/geomSendSeg are the two INDEPENDENT buffered-1, latest-wins
 	// channels outGeom's doc comment describes: geomSendSteps fed by PublishSteps
-	// (the source node's own goroutine, docs/bead-lattice.md's step count owner),
+	// (the source node's own goroutine, docs/bead-model/bead-lattice.md's step count owner),
 	// geomSendSeg fed by PublishSegment (the edgeMover's own goroutine, the
 	// segment owner). The load-time file geometry for BOTH is NOT sent through
 	// either channel — sendCur is initialized to it directly in NewOutPaced. Both
@@ -120,7 +120,7 @@ func (o *Out) Geom() outGeom {
 // publishSteps hands a fresh bead-step count to geomSendSteps' reader,
 // latest-wins (dropping any undrained stale value first). Called only on the
 // SOURCE NODE's own goroutine (chainBeads, nodes/Wiring/chain_beads.go) —
-// docs/bead-lattice.md "Ownership": the source node owns the count, never the
+// docs/bead-model/bead-lattice.md "Ownership": the source node owns the count, never the
 // edgeMover. The load-time file steps is set directly on sendCur in
 // NewOutPaced, not published here. geomSendSteps is nil on a chan-mode Out
 // (test-only, never published to); sendIntNonBlocking on a nil channel is a
@@ -139,7 +139,7 @@ func (o *Out) PublishSteps(steps int) {
 // publishSegment hands a fresh straight-segment (source OUT-port world pos, dest
 // IN-port world pos) to geomSendSeg's reader, latest-wins. Called only on the
 // EDGEMOVER's own goroutine (recomputeGeometry, nodes/Wiring/edge_mover.go) —
-// docs/bead-lattice.md "Ownership": the edgeMover owns the segment, never the
+// docs/bead-model/bead-lattice.md "Ownership": the edgeMover owns the segment, never the
 // step count. The load-time file segment is set directly on sendCur in
 // NewOutPaced, not published here.
 func (o *Out) publishSegment(start, end Vec3) {
@@ -231,7 +231,7 @@ func (o *Out) placeDrivenNoWalker(v int, tick int64) SendOutcome {
 //
 // flushSendEvent records this send as a row-resolved RowEvent on this Out's owning
 // node's shared interior-stream frame. BeadSteps carries the bead-lattice length
-// directly (docs/bead-lattice.md "The count") — no chord/arc to derive it from
+// directly (docs/bead-model/bead-lattice.md "The count") — no chord/arc to derive it from
 // anymore. SimLatencyMs stays a REPORTED diagnostic derived from steps
 // (steps*DwellTicksPerBead*MsPerTick), not an independently measured value.
 func (o *Out) flushSendEvent(value int, steps int) {

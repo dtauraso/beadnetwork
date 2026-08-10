@@ -26,7 +26,7 @@ func (md *MoveDispatch) SetMsgTap(tap func(destID string, msg moveMsg)) {
 // block uses — see main.go's md.EdgeSeeds() seed loop). buildFrame is an injected func
 // (not a Buffer import) so this package stays Buffer-independent, packing the combined
 // per-edge frame bytes (Buffer.BuildEdgeStreamFrame) straight from the edge's own SEGMENT
-// endpoints (docs/channels-not-ports.md — there is no port row to resolve any more).
+// endpoints (docs/bead-model/channels-not-ports.md — there is no port row to resolve any more).
 // Edge selection is NOT injected: each edgeMover owns its OWN selected bit, set via a
 // moveMsgKindSelect message on its extIn (md.sendEdgeSelect), not a lookup. Call once at
 // startup after LoadTopology, before Start — mirrors SetPortRowResolver/
@@ -71,7 +71,7 @@ func (md *MoveDispatch) SetNodeStreams(
 
 // NodeGeomSeed is one node's load-time seed geometry, exported in spec order and consumed
 // by main.go's pre-launch tr.NodeGeometry loop (see the row-seeding comment in main.go).
-// No port geometry rides here any more (docs/channels-not-ports.md — a port carries none).
+// No port geometry rides here any more (docs/bead-model/channels-not-ports.md — a port carries none).
 type NodeGeomSeed struct {
 	ID, Label, Kind              string
 	CX, CY, CZ, Radius, SphereR  float64

@@ -3,7 +3,7 @@ package Wiring
 // scene_edit_persist_test.go — round-trip test for the FSM-applied node-drag position
 // edit persister (meta.json x/y/z): an FSM edit → the debounced writer persists it to
 // disk preserving sibling fields → a reload reads it back. The former ring-move anchor
-// persister (port json anchorId) is gone — docs/channels-not-ports.md, a port has no
+// persister (port json anchorId) is gone — docs/bead-model/channels-not-ports.md, a port has no
 // file of its own any more.
 
 import (

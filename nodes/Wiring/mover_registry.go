@@ -105,7 +105,7 @@ func (mr *moverRegistry) bind(outSink map[string]*wire.Out, slotReg SlotRegistry
 			// The SOURCE node also takes this wire, paired with the outTargets entry for
 			// the same edge: the source node's own goroutine drives it (nodeMover.run)
 			// and reads its in-flight fractions to light its own chain
-			// (docs/beads-are-the-edge.md step 3). The wire is no longer driven by a
+			// (docs/bead-model/beads-are-the-edge.md step 3). The wire is no longer driven by a
 			// goroutine of its own — that is what "the wire goroutine is removed" means
 			// concretely, and it is why the node can read the fraction without touching
 			// another goroutine's state.

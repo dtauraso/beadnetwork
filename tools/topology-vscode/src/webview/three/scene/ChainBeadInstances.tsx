@@ -1,4 +1,4 @@
-// ChainBeadInstances.tsx — the node-owned bead chain that IS the edge (docs/beads-are-the-edge.md).
+// ChainBeadInstances.tsx — the node-owned bead chain that IS the edge (docs/bead-model/beads-are-the-edge.md).
 //
 // A node owns one chain per OUTGOING edge. The chain is what a traversal along that edge LOOKS
 // like. It is NOT a picture of the node-to-node channels — those are the real connection and

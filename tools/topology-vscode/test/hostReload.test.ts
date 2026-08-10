@@ -1,6 +1,6 @@
 // Decision-logic tests for the extension-host-bundle reload feature (single-actor: pure
 // hash comparison + a settings read, no cross-process communication — see
-// docs/testing-shape.md). Matches hotRestart.test.ts's shape.
+// docs/process/testing-shape.md). Matches hotRestart.test.ts's shape.
 import { describe, it, expect, afterEach } from "vitest";
 import { workspace } from "vscode";
 import { hashBundle, isHostReloadEnabled, shouldReloadHost } from "../src/hostReload";

@@ -57,7 +57,7 @@ export const MAX_NODE_STREAMS = 256;
 
 // DRIVE_SLOTS_PER_NODE mirrors Buffer.DriveSlotsPerNode (Go) — the fixed number of
 // dedicated "drive" fds allocated per node row, one per gatecommon.DriveHeld goroutine a
-// node kind may spawn (docs/interior-stream-framing.md's fix: each such goroutine gets
+// node kind may spawn (docs/investigations/interior-stream-framing.md's fix: each such goroutine gets
 // its OWN fd instead of sharing the node's "interior" fd with its Update-loop goroutine).
 // Kept as a separate mirrored constant rather than a generated one, matching
 // MAX_EDGE_STREAMS/MAX_NODE_STREAMS's existing "small bound, hand-kept in parity" shape —

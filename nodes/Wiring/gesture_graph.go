@@ -26,7 +26,7 @@ type gestureEdge struct {
 
 // commitEdges is the SAME precedence order as the old commit switch in gestPointerMove:
 // dragNode, handholdDown, emptyDown. wireNode/portMoveNode arms (gestWiring/gestPortMove)
-// were removed with port geometry (docs/channels-not-ports.md): a port is no longer drawn
+// were removed with port geometry (docs/bead-model/channels-not-ports.md): a port is no longer drawn
 // or hit-testable, so the "port" raycast-hit kind that fed both arms can never fire — they
 // were dead code even before this deletion (wire-drop already created no edge; portMove's
 // only effect was a ring-anchor snap that no longer exists).

@@ -5,9 +5,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pair node — Update rules</title>
-  <link rel="stylesheet" href="pair.css">
-  <script src="port.js"></script>
-  <script src="pair.js" defer></script>
+  <link rel="stylesheet" href="../pair.css">
+  <script src="../port.js"></script>
+  <script src="../pair.js" defer></script>
 </head>
 
 <body>
@@ -18,22 +18,22 @@
   </header>
 
   <nav>
-    <a href="index.html">Index</a>
-    <a href="anatomy.html">Anatomy</a>
-    <a href="own.html">Ownership</a>
-    <a href="vectors.html">Vectors</a>
-    <a href="math.html">Math</a>
-    <a href="formulas.html">Formulas</a>
-    <a href="dots.html">Separation</a>
-    <a href="perpendicular.html">Perpendicular</a>
+    <a href="../index.html">Index</a>
+    <a href="../structure/anatomy.html">Anatomy</a>
+    <a href="../structure/own.html">Ownership</a>
+    <a href="../math/vectors.html">Vectors</a>
+    <a href="../math/math.html">Math</a>
+    <a href="../math/formulas.html">Formulas</a>
+    <a href="../math/dots.html">Separation</a>
+    <a href="../math/perpendicular.html">Perpendicular</a>
     <a href="cases.html">Cases</a>
-    <a href="channels.html">Channels</a>
-    <a href="cycle.html">Cycle</a>
+    <a href="../structure/channels.html">Channels</a>
+    <a href="../structure/cycle.html">Cycle</a>
     <a class="on" href="updates.html">Update rules</a>
-    <a href="arith.html">Arithmetic instead</a>
+    <a href="../math/arith.html">Arithmetic instead</a>
   <a href="code.html">In code</a>
-    <a href="clock.html">Clock</a>
-    <a href="geometry.html">Geometry</a>
+    <a href="../structure/clock.html">Clock</a>
+    <a href="../math/geometry.html">Geometry</a>
     <a href="asym.html">Asymmetry</a>
   </nav>
 
@@ -58,7 +58,7 @@
 
       <div class="card wide">
         <h2>The state</h2>
-        <img class="figure" src="panel-state.svg"
+        <img class="figure" src="../diagrams/panel-state.svg"
           alt="A 24-slot ring. Slots 0, 6, 12 and 18 are marked; one step of the ring is pi/12; the link from 23 back to 0 is highlighted.">
         <div class="keynote">
           <p><code>t ∈ {0 … 23}</code></p>
@@ -75,10 +75,10 @@
       <div class="card wide">
         <h2>What is read off the tilt</h2>
         <div class="strip">
-          <img src="panel-triad-0.svg" alt="tilt 0, with its normal and bottom">
-          <img src="panel-triad-6.svg" alt="tilt 6, with its normal and bottom">
-          <img src="panel-triad-12.svg" alt="tilt 12, with its normal and bottom">
-          <img src="panel-triad-17.svg" alt="tilt 17, with its normal and bottom">
+          <img src="../diagrams/panel-triad-0.svg" alt="tilt 0, with its normal and bottom">
+          <img src="../diagrams/panel-triad-6.svg" alt="tilt 6, with its normal and bottom">
+          <img src="../diagrams/panel-triad-12.svg" alt="tilt 12, with its normal and bottom">
+          <img src="../diagrams/panel-triad-17.svg" alt="tilt 17, with its normal and bottom">
         </div>
         <div class="keynote">
           <p><i class="sw" style="background:#5fd68a"></i>t — the tilt</p>
@@ -94,18 +94,18 @@
             (<span data-src="nodes/PairNode/vectors.go#outgoingVector">outgoingVector</span>); the bottom
             is drawn and never sent</p>
         </div>
-        <img class="math" src="update-read.svg" style="width:184px"
+        <img class="math" src="../diagrams/update-read.svg" style="width:184px"
           alt="normal(t) = t+6. bottom(t) = t+12. sends = normal(t). angle(i) = (pi/12) i.">
       </div>
 
       <div class="card wide">
         <h2>The angle length, and what it says the pair is at</h2>
         <div class="strip">
-          <img src="panel-length-0.svg" alt="angle length 0 — the arrival is on this node's top, so perpendicular stops">
-          <img src="panel-length-3.svg" alt="angle length 3, an acute angle — neither mode stops here, so the node turns">
-          <img src="panel-length-6.svg" alt="angle length 6 — the arrival is a quarter turn off, so parallel stops">
-          <img src="panel-length-11.svg" alt="angle length 11, an obtuse angle — neither mode stops here, so the node turns">
-          <img src="panel-length-12.svg" alt="angle length 12, a half turn — the arrival is on this node's bottom, which is the SAME count of 0 taken at the nearer end, so perpendicular stops">
+          <img src="../diagrams/panel-length-0.svg" alt="angle length 0 — the arrival is on this node's top, so perpendicular stops">
+          <img src="../diagrams/panel-length-3.svg" alt="angle length 3, an acute angle — neither mode stops here, so the node turns">
+          <img src="../diagrams/panel-length-6.svg" alt="angle length 6 — the arrival is a quarter turn off, so parallel stops">
+          <img src="../diagrams/panel-length-11.svg" alt="angle length 11, an obtuse angle — neither mode stops here, so the node turns">
+          <img src="../diagrams/panel-length-12.svg" alt="angle length 12, a half turn — the arrival is on this node's bottom, which is the SAME count of 0 taken at the nearer end, so perpendicular stops">
         </div>
         <div class="keynote">
           <p><i class="sw" style="background:#5fd68a"></i>t — this node's own tilt</p>
@@ -125,7 +125,7 @@
             the one question about the two TILTS rather than the arrival: which mode the pair runs</p>
           <p>integers, so exact — no dot product, no epsilon to tune</p>
         </div>
-        <img class="math" src="update-length.svg" style="width:396px"
+        <img class="math" src="../diagrams/update-length.svg" style="width:396px"
           alt="d = absolute value of t minus a. L, short for angleLength(t,a), = min(d, 24 - d) — the shorter of the two arcs.">
       </div>
 
@@ -133,7 +133,7 @@
 
       <div class="card wide">
         <h2>The tilt as a state machine — 24 states, two links out of each</h2>
-        <img class="figure" src="panel-links.svg"
+        <img class="figure" src="../diagrams/panel-links.svg"
           alt="Five adjacent states, 21 22 23 0 1, with a next link running one way between them and a prev link running the other. The seam between 23 and 0 is marked and is an ordinary link.">
         <div class="keynote">
           <p><i class="sw" style="background:#5fd68a"></i>next &nbsp;
@@ -147,7 +147,7 @@
 
       <div class="card wide">
         <h2>The mode as a state machine — three modes, four transitions</h2>
-        <img class="figure" src="panel-modes.svg"
+        <img class="figure" src="../diagrams/panel-modes.svg"
           alt="Three modes: setting, perpendicular and parallel. Setting goes to either of the other two, chosen from the gap at the first arrival. Both go back to setting on a reset. There is no edge between perpendicular and parallel.">
         <div class="keynote">
           <p>setting is where a node starts and what a reset restores — it is the zero value, so a
@@ -165,10 +165,10 @@
           difference in size between them is the point: one has 24 states and two inputs, the other
           three states and two, and neither has anything else in it.</p>
         <p class="figlabel">the tilt</p>
-        <img class="math" src="update-machine-tilt.svg" style="width:299px"
+        <img class="math" src="../diagrams/update-machine-tilt.svg" style="width:299px"
           alt="S = the integers mod 24. Sigma = next, prev. delta(t, next) = t+1 mod 24. delta(t, prev) = t-1 mod 24.">
         <p class="figlabel">the mode</p>
-        <img class="math" src="update-machine-mode.svg" style="width:453px"
+        <img class="math" src="../diagrams/update-machine-mode.svg" style="width:453px"
           alt="S = R setting, R perpendicular, R parallel. Sigma = a, reset. delta(R setting, a) = R perpendicular if angleLength(t, a sub minus six) = 6, else R parallel. delta(R, a) = R for R not setting. delta(R, reset) = R setting.">
         <div class="keynote">
           <p>the tilt ring is the Cayley graph of ℤ₂₄ on the generator 1 — which is exactly what
@@ -196,13 +196,13 @@
              not render at the size it was set at. The doubled constant it carried was a fix for
              being the widest; split, each step is 211-300pt, in the same band as the rest, so
              there is nothing left to compensate for. -->
-        <img class="math" src="update-arith-groups.svg" style="width:468px"
+        <img class="math" src="../diagrams/update-arith-groups.svg" style="width:468px"
           alt="The ring: x runs 0 to 23, counted round, so 24 is 0 again. The half turn: x and x + 12 name the same line, so a line is a number counted round twelve.">
-        <img class="math" src="update-arith-distance.svg" style="width:439px"
+        <img class="math" src="../diagrams/update-arith-distance.svg" style="width:439px"
           alt="The length between two numbers: d = |x - y|, and L(x, y) is d or 24 - d, whichever is shorter — never more than 12.">
-        <img class="math" src="update-arith-gap.svg" style="width:387px"
+        <img class="math" src="../diagrams/update-arith-gap.svg" style="width:387px"
           alt="The four quarter gaps, with g = x - y: g is 0 or 12, where x and y name the same line; and g is 6 or 18, a quarter of the ring between them.">
-        <img class="math" src="update-arith-rests.svg" style="width:602px"
+        <img class="math" src="../diagrams/update-arith-rests.svg" style="width:602px"
           alt="Shift one of the two by 6, and only those four land on 0, 6, 12: a gap of 0 or 12 gives L(x, y + 6) = 6; a gap of 6 or 18 gives L(x, y + 6) = 0 or 12; every other gap gives an L(x, y + 6) that is none of 0, 6, 12.">
         <div class="keynote">
           <p>this is where <span data-src="nodes/PairNode/machine.go#stoppingCounts">stoppingCounts</span>
@@ -226,7 +226,7 @@
 
       <div class="card">
         <h2 id="loop">Where each mode stops</h2>
-        <img class="math" src="update-resting.svg" style="width:112px"
+        <img class="math" src="../diagrams/update-resting.svg" style="width:112px"
           alt="R perpendicular = {0}. R parallel = {6}. R setting = any.">
       </div>
 
@@ -234,12 +234,12 @@
         <h2>Which mode to be in — measure, then decide, and it is the only update that reads the
           arrival's own tilt</h2>
         <div class="strip">
-          <img src="panel-gap-perp.svg"
+          <img src="../diagrams/panel-gap-perp.svg"
             alt="The arrival at slot 12; backing out its quarter puts the partner's tilt at 6, a quarter turn from this node's tilt, so the pair runs perpendicular.">
-          <img src="panel-gap-par.svg"
+          <img src="../diagrams/panel-gap-par.svg"
             alt="The arrival at slot 9; backing out its quarter puts the partner's tilt at 3, three slots from this node's tilt, so the pair runs parallel.">
         </div>
-        <img class="math" src="update-decide-mode.svg" style="width:603px"
+        <img class="math" src="../diagrams/update-decide-mode.svg" style="width:603px"
           alt="If R is not R setting, nothing changes — the choice already stuck. Otherwise measure: p = a minus six, the partner's tilt backed out of the arrival, and G = angleLength(t, p), the gap between the two tilts. Then decide: if G = 6, R becomes R perpendicular; else R becomes R parallel.">
         <div class="keynote">
           <p><i class="sw" style="background:#5fd68a"></i>t — this node's own tilt</p>
@@ -255,7 +255,7 @@
 
       <div class="card wide">
         <h2>Which slot to go to — measure, then decide</h2>
-        <img class="math" src="update-decide-turn.svg" style="width:456px"
+        <img class="math" src="../diagrams/update-decide-turn.svg" style="width:456px"
           alt="Measure once, at the end the arrival is nearer: u = (t - a) mod 24; c = u if u is under 12, else (b - a) mod 24; e is t if u is under 12, else b — the end that was counted from. The count each mode stops at: parallel s = 6, perpendicular s = 0, setting every c. Then decide, with no distance and nothing measured at the neighbours: c = s gives e after = e; (s - c) mod 12 at most 6 gives e after = e plus one; else e after = e minus one.">
         <div class="keynote">
           <p>ONE measurement, and it is taken where the node already is — not at the two places it
@@ -291,7 +291,7 @@
 
       <div class="card wide">
         <h2>The other updates</h2>
-        <img class="math" src="update-other.svg" style="width:396px"
+        <img class="math" src="../diagrams/update-other.svg" style="width:396px"
           alt="Every arrival: r sub after = a. Panel up/down: t sub after = t sub plus or minus one, R sub after = R sub before. Reset: t sub after = 0, R sub after = R sub setting.">
       </div>
 
@@ -299,7 +299,7 @@
 
       <div class="card wide">
         <h2>One step, worked</h2>
-        <img class="figure" src="panel-step.svg"
+        <img class="figure" src="../diagrams/panel-step.svg"
           alt="Parallel mode. The arrival sits at slot 0, the tilt at slot 10. Slots 6 and 18 are the two tilts that would rest for this arrival; slots 9 and 11 are the only two the tilt can turn to.">
         <div class="keynote">
           <p><code>settle?</code> c = 10 is not parallel's stop of 6 → <b>no</b></p>
@@ -315,10 +315,10 @@
       <div class="card wide">
         <h2>A run, from START to the halt</h2>
         <div class="strip">
-          <img src="panel-run-1.svg" alt="START: node 1 sends 5">
-          <img src="panel-run-2.svg" alt="node 2 reads 5 and is one slot short">
-          <img src="panel-run-3.svg" alt="node 2 turns to 11 and sends 17">
-          <img src="panel-run-4.svg" alt="node 1 reads 17, angle length 6, and settles">
+          <img src="../diagrams/panel-run-1.svg" alt="START: node 1 sends 5">
+          <img src="../diagrams/panel-run-2.svg" alt="node 2 reads 5 and is one slot short">
+          <img src="../diagrams/panel-run-3.svg" alt="node 2 turns to 11 and sends 17">
+          <img src="../diagrams/panel-run-4.svg" alt="node 1 reads 17, angle length 6, and settles">
         </div>
         <div class="keynote">
           <p><i class="sw" style="background:#5fd68a"></i>t — each node's own tilt</p>
@@ -332,7 +332,7 @@
 
       <div class="card wide">
         <h2>What a report puts on the frame</h2>
-        <img class="figure" src="panel-frame.svg"
+        <img class="figure" src="../diagrams/panel-frame.svg"
           alt="One node's ring carrying four arrows: its tilt, its normal, its bottom, and the direction it last received.">
         <div class="keynote">
           <p><i class="sw" style="background:#5fd68a"></i><code>(π/12) · t</code> — persisted, position.json</p>
@@ -347,8 +347,8 @@
       <div class="card wide">
         <h2>What a reset puts back</h2>
         <div class="strip">
-          <img src="panel-reset-before.svg" alt="before the reset: tilt 17, and a received direction drawn">
-          <img src="panel-reset-after.svg" alt="after the reset: tilt 0, and no received direction">
+          <img src="../diagrams/panel-reset-before.svg" alt="before the reset: tilt 17, and a received direction drawn">
+          <img src="../diagrams/panel-reset-after.svg" alt="after the reset: tilt 0, and no received direction">
         </div>
         <div class="keynote">
           <p>the tilt goes to 0 and the other two follow, being links off it</p>

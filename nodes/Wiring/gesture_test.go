@@ -227,7 +227,7 @@ func TestGestureClickSelectsNodeGoOwned(t *testing.T) {
 // Hover is Go-owned: a pointer-move over a node's TORUS ring records it as the hovered node
 // (the concentric hover ring emphasizes the ring handle, so it lights only on a torus hit, not
 // a body hit); a move over empty space — or over the node BODY — clears hover. There is no
-// port hover any more (docs/channels-not-ports.md — a port is never drawn or hit-testable).
+// port hover any more (docs/bead-model/channels-not-ports.md — a port is never drawn or hit-testable).
 // Drives moves and asserts md.ui.sel.hoverNode tracks the hit.
 func TestGestureHoverTracksNode(t *testing.T) {
 	md := newGestureMD(canonicalViewpoint())

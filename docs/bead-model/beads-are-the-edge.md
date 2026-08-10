@@ -3,7 +3,7 @@
 **Superseded on the LENGTH model:** every `arcLength`/chord-distance formula this document
 describes below (item 4's `count = len / s`, `ticksToCross = arcLength / pulseSpeed`, and the
 in-flight revision rule's `newArc`) is historical — the arc-length model it plans is gone.
-[docs/bead-lattice.md](bead-lattice.md) is now the length model: an edge's length is ONE
+[docs/bead-model/bead-lattice.md](bead-lattice.md) is now the length model: an edge's length is ONE
 INTEGER (the bead-step count between two nodes' tori), computed from index arithmetic on the
 source node's own stored `LocalPolar`, no arc, no sqrt, no chord. This document's staging
 narrative, the chain/lighting split, and the ownership decisions below it are still current;

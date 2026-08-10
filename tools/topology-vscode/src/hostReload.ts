@@ -1,6 +1,6 @@
 // Decision logic for the extension-host-bundle hot-reload feature (extension.ts's
 // hostWatcher). Split out from extension.ts for the same reason hotRestart.ts is split
-// out (docs/testing-shape.md): this is single-actor decision logic (a hash comparison, a
+// out (docs/process/testing-shape.md): this is single-actor decision logic (a hash comparison, a
 // settings read), not two goroutines/processes communicating — extension.ts itself is
 // wiring that cannot be driven headlessly (it needs a live vscode.ExtensionContext and a
 // real reload command).

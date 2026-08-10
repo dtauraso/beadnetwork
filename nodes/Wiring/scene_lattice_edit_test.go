@@ -1,7 +1,7 @@
 package Wiring
 
 // scene_lattice_edit_test.go — asserts what ONE goroutine (the view-owner, driving
-// applyUpdateScene directly, per docs/testing-shape.md) decided on a scene/latticePoints
+// applyUpdateScene directly, per docs/process/testing-shape.md) decided on a scene/latticePoints
 // edit: reject anything outside 4..64 or not a multiple of 4 (never panic, never persist,
 // never broadcast), accept a valid count (persist it, install it on md.ui.latticePoints,
 // broadcast it), and never block a registered-but-full LatticeIn channel.
@@ -55,7 +55,7 @@ func TestApplyUpdateSceneLatticePointsAcceptsValidCounts(t *testing.T) {
 // TestBroadcastLatticePointsReachesEveryRegisteredChannel: a channel registered in
 // md.latticeIns receives the broadcast count. This is what ONE goroutine (the stdin
 // reader) decided to send onto directory entries it owns — not a claim about a second
-// goroutine actually reading it (docs/testing-shape.md).
+// goroutine actually reading it (docs/process/testing-shape.md).
 func TestBroadcastLatticePointsReachesEveryRegisteredChannel(t *testing.T) {
 	md := &MoveDispatch{}
 	chA := make(chan int32, 1)

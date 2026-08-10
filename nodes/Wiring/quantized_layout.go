@@ -18,7 +18,7 @@ import (
 //
 // This used to be a SEPARATE, coarser lattice (15°/20.0) than the local-polar lattice a
 // node's own chain beads are laid out from (layout_holder.go, 1°/8.96) — the finding in
-// docs/which-lattice-a-node-lives-on.md: a node could not sit exactly on both, so its
+// docs/investigations/which-lattice-a-node-lives-on.md: a node could not sit exactly on both, so its
 // drawn position (this file) glided continuously while its beads jumped one bead distance
 // at a time, and the two visibly slid against each other during a drag. Collapsing onto
 // the SAME lattice (below) is the fix: a node's absolute position now moves by the same
@@ -162,7 +162,7 @@ func deriveCenters(scalars map[string]quantizedOffset, sceneCenter vec3) map[str
 }
 
 // normalizeOffset converts a quantized offset loaded with STALE per-axis step constants
-// (from an older, coarser scene lattice — docs/which-lattice-a-node-lives-on.md) to the
+// (from an older, coarser scene lattice — docs/investigations/which-lattice-a-node-lives-on.md) to the
 // CURRENT step constants, preserving each axis's world distance/angle exactly the way
 // LayoutHolder.LoadLocalPolars does for the local-polar lattice: new index = round(old
 // index * old step / new step), and the step is rewritten ALONGSIDE the index, never left

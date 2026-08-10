@@ -46,7 +46,7 @@ func (md *MoveDispatch) beginSphereRotation(ev rawInputMsg) {
 // updateHover resolves the entity under the pointer from the raycast hit and, WHEN IT
 // CHANGES, records it as the Go-owned hover and emits KindHover so the buffer snapshot marks
 // the node's Hovered column. Hover is node-only now — a port is a load-time channel-binding
-// ROLE (docs/channels-not-ports.md), never drawn or raycast-hit, so the old "port" hit branch
+// ROLE (docs/bead-model/channels-not-ports.md), never drawn or raycast-hit, so the old "port" hit branch
 // is gone. Deduping on the node keeps a still pointer and a same-entity drag from re-emitting
 // a snapshot each pointer-move (no new flood — Go already emits per raw-input; a hover only
 // fires on a genuine target change). An empty / edge / other hit clears hover.
@@ -165,7 +165,7 @@ func (md *MoveDispatch) setHover(node, port string, isInput bool, tr *T.Trace) {
 		nodeRow = r
 	}
 	// portRow is always -1: a port has no buffer row of its own any more
-	// (docs/channels-not-ports.md — hover addresses the node, not a port).
+	// (docs/bead-model/channels-not-ports.md — hover addresses the node, not a port).
 	portRow := int32(-1)
 	value := int32(0)
 	if isInput {

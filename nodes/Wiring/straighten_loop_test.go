@@ -4,7 +4,7 @@ import "testing"
 
 // The straightening loop's rule now lives on the NODE KIND's own goroutine (PairNode,
 // nodes/PairNode/node_test.go — one goroutine, no mover involved,
-// per docs/testing-shape.md). What remains testable here, at the mover/geometry layer, is
+// per docs/process/testing-shape.md). What remains testable here, at the mover/geometry layer, is
 // the shared constant the rule compares against and the geometric fact the rule's
 // shortcut depends on: the coplanar normal must be independent of the tilt it's compared
 // against.

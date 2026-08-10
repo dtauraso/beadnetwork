@@ -28,7 +28,7 @@ import (
 // as the edge case, and harder to spot because the half that IS wired looks healthy.
 // "drive" joins "node"/"interior" as a THIRD entry now required in lockstep: it is
 // the per-gatecommon.DriveHeld-goroutine fd (Buffer.StreamKindDrive,
-// docs/interior-stream-framing.md's fix) — a node with a DriveHeld drive goroutine
+// docs/investigations/interior-stream-framing.md's fix) — a node with a DriveHeld drive goroutine
 // needs it exactly as much as it needs "interior", or that goroutine falls back to
 // writing nothing (a quieter failure than the pre-fix framing desync, but still a
 // silent one) rather than sharing the node's own interior fd (the original bug).

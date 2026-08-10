@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pair node — Vectors</title>
-  <link rel="stylesheet" href="pair.css">
+  <link rel="stylesheet" href="../pair.css">
 </head>
 
 <body>
@@ -16,23 +16,23 @@
   </header>
 
   <nav>
-    <a href="index.html">Index</a>
-    <a href="anatomy.html">Anatomy</a>
-    <a href="own.html">Ownership</a>
+    <a href="../index.html">Index</a>
+    <a href="../structure/anatomy.html">Anatomy</a>
+    <a href="../structure/own.html">Ownership</a>
     <a class="on" href="vectors.html">Vectors</a>
     <a href="math.html">Math</a>
     <a href="formulas.html">Formulas</a>
     <a href="dots.html">Separation</a>
     <a href="perpendicular.html">Perpendicular</a>
-    <a href="cases.html">Cases</a>
-    <a href="channels.html">Channels</a>
-    <a href="cycle.html">Cycle</a>
-    <a href="updates.html">Update rules</a>
+    <a href="../rules/cases.html">Cases</a>
+    <a href="../structure/channels.html">Channels</a>
+    <a href="../structure/cycle.html">Cycle</a>
+    <a href="../rules/updates.html">Update rules</a>
     <a href="arith.html">Arithmetic instead</a>
-  <a href="code.html">In code</a>
-    <a href="clock.html">Clock</a>
+  <a href="../rules/code.html">In code</a>
+    <a href="../structure/clock.html">Clock</a>
     <a href="geometry.html">Geometry</a>
-    <a href="asym.html">Asymmetry</a>
+    <a href="../rules/asym.html">Asymmetry</a>
   </nav>
 
   <main>
@@ -130,7 +130,7 @@
                 already halted wherever it stands. The choice is made at START, not here</td>
             </tr>
           </table>
-          <div class="cap">There is ONE machine with three modes (<a href="cases.html">Cases</a>), and a node is
+          <div class="cap">There is ONE machine with three modes (<a href="../rules/cases.html">Cases</a>), and a node is
             in exactly one of them. A chosen mode steps straight over the OTHER mode's halt on the way back to
             its own — see <span data-src="nodes/PairNode/node.go#stepFromVector">stepFromVector</span>.
             The step itself is answerable everywhere on the ring, including sitting exactly on a halt.</div>

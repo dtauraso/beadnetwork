@@ -1,6 +1,6 @@
 // interior_stream_concurrent_write_test.go — PINS THE MECHANISM behind the live-editor "bad
 // frame length" desync that used to be reported on the interior stream (handleInteriorFd in
-// runCommand.ts). See docs/interior-stream-framing.md for the investigation this test was
+// runCommand.ts). See docs/investigations/interior-stream-framing.md for the investigation this test was
 // originally the deliverable of, and its "Fix" section for what changed.
 //
 // The mechanism (now FIXED in production, not reproduced from it — see below): a
@@ -14,7 +14,7 @@
 //
 // PRODUCTION no longer constructs this sharing at all: every gatecommon.DriveHeld goroutine
 // now gets its OWN dedicated fd (Buffer.StreamKindDrive, nodes/Wiring/build_args.go's
-// BuildArgs.DriveOut) — see docs/interior-stream-framing.md's "Fix" section for why a
+// BuildArgs.DriveOut) — see docs/investigations/interior-stream-framing.md's "Fix" section for why a
 // per-goroutine fd was chosen over a lock (this codebase has none: check-no-network-
 // locks.sh's allowlist is empty) or channel-routing. writeInteriorStreamFrame ALSO now
 // folds the header and payload into ONE io.Writer.Write call (this file's other change),
@@ -36,7 +36,7 @@
 // This is a violation of the model's single-writer-per-fd invariant
 // (memory/feedback_no_single_writer_bridge.md), not a framing-format bug — BuildInterior-
 // StreamFrame/BuildEventsSection were independently checked and always produce a byte count
-// that matches their own declared length (see docs/interior-stream-framing.md's point 3).
+// that matches their own declared length (see docs/investigations/interior-stream-framing.md's point 3).
 package Wiring
 
 import (

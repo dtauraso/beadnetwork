@@ -107,7 +107,7 @@ func TestSetNodeRow(t *testing.T) {
 }
 
 func TestSetEdgeRow(t *testing.T) {
-	// Edge SX..EZ are the edge's own SEGMENT endpoints (docs/channels-not-ports.md — a
+	// Edge SX..EZ are the edge's own SEGMENT endpoints (docs/bead-model/channels-not-ports.md — a
 	// port has no row/geometry of its own any more, so the edge carries its own
 	// node-surface-to-node-surface segment directly instead of referencing a Port block).
 	buf := make([]byte, BufEdgeStride*2)
@@ -188,7 +188,7 @@ func TestNodeStrideIsPackedSize(t *testing.T) {
 
 func TestEdgeStrideIsPackedSize(t *testing.T) {
 	// Edge block: 6×f32 (SX..EZ, the edge's own node-surface-to-node-surface segment —
-	// docs/channels-not-ports.md, there is no port row to reference any more) + 1×u8
+	// docs/bead-model/channels-not-ports.md, there is no port row to reference any more) + 1×u8
 	// (selected) + 2×u32 (edge-label off/len) = 33.
 	want := 6*4 + 1 + 2*4
 	if BufEdgeStride != want {

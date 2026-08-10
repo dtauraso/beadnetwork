@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pair node — Asymmetry</title>
-  <link rel="stylesheet" href="pair.css">
+  <link rel="stylesheet" href="../pair.css">
 </head>
 
 <body>
@@ -16,22 +16,22 @@
   </header>
 
   <nav>
-    <a href="index.html">Index</a>
-    <a href="anatomy.html">Anatomy</a>
-    <a href="own.html">Ownership</a>
-    <a href="vectors.html">Vectors</a>
-    <a href="math.html">Math</a>
-    <a href="formulas.html">Formulas</a>
-    <a href="dots.html">Separation</a>
-    <a href="perpendicular.html">Perpendicular</a>
+    <a href="../index.html">Index</a>
+    <a href="../structure/anatomy.html">Anatomy</a>
+    <a href="../structure/own.html">Ownership</a>
+    <a href="../math/vectors.html">Vectors</a>
+    <a href="../math/math.html">Math</a>
+    <a href="../math/formulas.html">Formulas</a>
+    <a href="../math/dots.html">Separation</a>
+    <a href="../math/perpendicular.html">Perpendicular</a>
     <a href="cases.html">Cases</a>
-    <a href="channels.html">Channels</a>
-    <a href="cycle.html">Cycle</a>
+    <a href="../structure/channels.html">Channels</a>
+    <a href="../structure/cycle.html">Cycle</a>
     <a href="updates.html">Update rules</a>
-    <a href="arith.html">Arithmetic instead</a>
+    <a href="../math/arith.html">Arithmetic instead</a>
   <a href="code.html">In code</a>
-    <a href="clock.html">Clock</a>
-    <a href="geometry.html">Geometry</a>
+    <a href="../structure/clock.html">Clock</a>
+    <a href="../math/geometry.html">Geometry</a>
     <a class="on" href="asym.html">Asymmetry</a>
   </nav>
 
@@ -61,7 +61,7 @@
             <text x="330" y="216" class="lblm" fill="#5fd68a">halts on its own machine's halt</text>
           </svg>
           <div class="cap">Both run the same unmodified code and halt on the same rule: each holds the one
-            machine in one of its chosen modes (<a href="perpendicular.html">perpendicular</a> or parallel),
+            machine in one of its chosen modes (<a href="../math/perpendicular.html">perpendicular</a> or parallel),
             read from the gap at START and carried to the other end on every reply — see
             <span data-src="nodes/PairNode/machine.go#machineForGap">machineForGap</span>. Neither halts on the
             other's separation; it steps straight over it. The one asymmetry is START, which the node

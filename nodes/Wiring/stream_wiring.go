@@ -45,7 +45,7 @@ type streamWiring struct {
 	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte
 	// driveOuts holds DriveSlotsPerNode dedicated per-node DRIVE fds, keyed by node id —
 	// one PER gatecommon.DriveHeld goroutine that node spawns (Buffer.StreamKindDrive;
-	// docs/interior-stream-framing.md). Populated ONCE by setNodeStreams alongside
+	// docs/investigations/interior-stream-framing.md). Populated ONCE by setNodeStreams alongside
 	// interiorOuts, BEFORE any node's Update/DriveHeld goroutines launch. A nil slot
 	// entry (no WIREFOLD_STREAM_FDS "drive" entry, or a kind that doesn't use that slot)
 	// means writes through it are simply never made — nil-safe, same fallback shape as
@@ -128,7 +128,7 @@ func (sw *streamWiring) setEdgeStreams(
 // own dedicated interior-fd — the two emitting goroutines per node (memory/
 // feedback_no_single_writer_bridge.md). It ALSO wires sw.driveOuts, one dedicated fd PER
 // (node row, drive slot) for each gatecommon.DriveHeld goroutine that node spawns (a
-// THIRD-and-beyond kind of emitting goroutine per node — docs/interior-stream-framing.md,
+// THIRD-and-beyond kind of emitting goroutine per node — docs/investigations/interior-stream-framing.md,
 // Buffer.StreamKindDrive), when driveWired is true; driveBase is then the drive fd
 // range's base fd. driveWired false leaves sw.driveOuts populated with nil-slot entries
 // only (see the loop body) — main.go requires "drive" present exactly when "node"/

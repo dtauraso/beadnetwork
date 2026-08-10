@@ -6,12 +6,12 @@ description: SLOW-LANE, periodic test-strength audit (NOT per-commit, NOT in sto
 **Slow lane. Do not fold this into `scripts/stop-checks.sh`.** stop-checks is ~3s by
 design; both tools here recompile the module and re-run tests per mutation site, so a
 single file's mutation run can take minutes. Run this by hand, occasionally — when
-`docs/drift-checklist.md` or a real "did we lose test coverage" question comes up, not
+`docs/process/drift-checklist.md` or a real "did we lose test coverage" question comes up, not
 on every commit.
 
 ## Why this exists
 
-`docs/testing-shape.md` argues cross-goroutine correctness is guaranteed BY
+`docs/process/testing-shape.md` argues cross-goroutine correctness is guaranteed BY
 CONSTRUCTION (ownership + message-passing, no locks/atomics), and a prior audit pass
 used that argument to delete ~27 tests (see that doc's "History" section). The argument
 may well be right, but nothing in this repo currently produces EVIDENCE for or against
@@ -66,7 +66,7 @@ this doc summarizes and does not replace them. Read them before inventing invoca
    `edgeMover.writeStreamFrame` (CC 15, 4.9% cov, CRAP 208.7, `nodes/Wiring/edge_mover.go`) —
    the geometry-streaming path, which makes sense as
    an audit target: high branch count, low coverage, and it's the kind of thing
-   `docs/testing-shape.md`'s corollary 2 would say not to unit-test directly (it's a
+   `docs/process/testing-shape.md`'s corollary 2 would say not to unit-test directly (it's a
    goroutine's own emission, which IS a legitimate shape per that doc — so mutate4go
    applies here, this isn't a cross-goroutine test).
 

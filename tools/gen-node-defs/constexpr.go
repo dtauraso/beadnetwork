@@ -4,7 +4,7 @@
 // including one that references a const in ANOTHER package, like
 // `wire.BeadTorusOuterR / (1 + ShadingParamBeadRingTubeRatio)` — instead of a
 // hand-computed literal that is a second copy of the same fact and free to
-// drift (docs/bead-lattice.md).
+// drift (docs/bead-model/bead-lattice.md).
 //
 // go/types + go/packages would be the textbook way to get this exactly right,
 // but this repo has no external dependencies (no go.sum) and gen-node-defs

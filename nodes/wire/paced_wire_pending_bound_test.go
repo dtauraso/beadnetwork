@@ -7,7 +7,7 @@
 //
 // Both tests exercise only this ONE PacedWire's own goroutine (the test
 // goroutine itself, calling appendPending/DriveOneCycle synchronously) — no
-// second goroutine, no cross-goroutine delivery/timing (docs/testing-shape.md).
+// second goroutine, no cross-goroutine delivery/timing (docs/process/testing-shape.md).
 package wire
 
 import (

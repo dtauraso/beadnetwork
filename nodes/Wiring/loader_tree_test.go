@@ -10,7 +10,7 @@ import (
 // TestLoadTreeRoundTrip asserts on: distinct source/target handles per edge, and one
 // edge label that is deliberately NEVER written to the fixture (so an absence assertion
 // on it is a genuine proof, not a tautology about a string nobody could produce). There
-// are no port files any more (docs/channels-not-ports.md — a port is a load-time
+// are no port files any more (docs/bead-model/channels-not-ports.md — a port is a load-time
 // channel-binding ROLE, resolved from the kind's registry, never a placed file on disk).
 func writeLoaderTreeFixture(t *testing.T) string {
 	t.Helper()

@@ -3,7 +3,7 @@
 // buffer-decode-node.ts's decodeNodeStreamFrame and buffer-decode-interior.ts's
 // decodeInteriorStreamFrame, and
 // three/node-stream-blocks.ts's getNodeFrame aggregator). No Port section any more
-// (docs/channels-not-ports.md — a port carries no geometry, so there is nothing to
+// (docs/bead-model/channels-not-ports.md — a port carries no geometry, so there is nothing to
 // decode/aggregate for it); an edge's endpoints ride its own frame's SX..EZ instead
 // (edge-tube-port-resolution.test.ts).
 
@@ -40,7 +40,7 @@ function expectF32(got: number, want: number) {
 
 /** Build one node's BUF_BLOCK_TAG_NODE_STREAM frame: [tick][labelLen][chainBeadCount=0] +
  *  1 Node row (LabelOff always 0 here) + label bytes. No Port section any
- *  more (docs/channels-not-ports.md). */
+ *  more (docs/bead-model/channels-not-ports.md). */
 function makeNodeStreamFrame(opts: {
   nodeRow: number;
   cx: number; cy: number; cz: number; radius: number;

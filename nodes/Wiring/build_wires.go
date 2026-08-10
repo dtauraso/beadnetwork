@@ -10,7 +10,7 @@ import (
 
 // allocateWires allocates one *PacedWire per destination port (one edge per port —
 // fan-in is rejected at parse) and computes each edge's own INITIAL bead-step count
-// (docs/bead-lattice.md "The count") and straight-segment endpoints.
+// (docs/bead-model/bead-lattice.md "The count") and straight-segment endpoints.
 //   - destWire: "destNode.destPort" → *PacedWire (owned by the destination).
 //   - edgeWire: edge label → *PacedWire (same pointer; for stdin_reader lookup).
 //   - edgeEndpoints: edge label → source/target node IDs + handles (for NodeMoveRegistry).
@@ -27,13 +27,13 @@ func (b *buildCtx) allocateWires() {
 	edgeSegments := map[string]wireSegment{}
 	for _, e := range b.spec.Edges {
 		destKey := e.Target + "." + e.TargetHandle
-		// Segment: node SURFACE to node surface (docs/channels-not-ports.md), the GPU
+		// Segment: node SURFACE to node surface (docs/bead-model/channels-not-ports.md), the GPU
 		// boundary the renderer draws from (edgeSegment) — no port name feeds this any
 		// more, a port contributes no geometry.
 		srcG, tgtG := b.nodeGeoms[e.Source], b.nodeGeoms[e.Target]
 		seg := edgeSegment(srcG, tgtG)
 		// Steps: the LIVE center-to-center distance between the two nodes, run through
-		// edgeStepCount (docs/bead-lattice.md "The count") — the SAME function and the
+		// edgeStepCount (docs/bead-model/bead-lattice.md "The count") — the SAME function and the
 		// SAME kind of distance the source node's own chainBeads pass (chain_beads.go)
 		// will keep recomputing once running, so this load-time value and that first
 		// live pass can never disagree.
@@ -49,7 +49,7 @@ func (b *buildCtx) allocateWires() {
 			panic("allocateWires: two edges target " + destKey + " — validateNoFanIn should have rejected this fan-in at parse")
 		}
 		// wire.DwellTicksPerBead is the ONE canonical dwell-per-step constant
-		// (docs/bead-lattice.md "Timing" — uniform pulse speed is now structural,
+		// (docs/bead-model/bead-lattice.md "Timing" — uniform pulse speed is now structural,
 		// not a length divided by a speed); guarded as the sole non-test
 		// NewPacedWire call site by tools/network/check-uniform-pulse-speed.sh.
 		pw := wire.NewPacedWire(steps, wire.DwellTicksPerBead)

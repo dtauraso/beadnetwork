@@ -2,7 +2,7 @@
 // (nodes/Wiring/driven_out.go): acquiring a drive-stream slot is possible AT MOST ONCE.
 // This is the wiring-time half of the fix — the compile-time half (a plain a.Out(...)
 // result can never become a Wiring.DrivenOut at all) is exercised by hand in
-// docs/interior-stream-framing.md's "Guard verdict"/"Tests" sections, not by a Go test,
+// docs/investigations/interior-stream-framing.md's "Guard verdict"/"Tests" sections, not by a Go test,
 // since a type mismatch is a build failure, not a runtime assertion.
 package Wiring
 

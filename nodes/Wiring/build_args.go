@@ -113,7 +113,7 @@ func (a BuildArgs) Broadcast(portName string) wire.Broadcast {
 // PulseRight/holdflip's shape), instead of Out(). It routes the port's eventSink through
 // a DEDICATED per-(node, slot) drive stream (newDriveStreamGetter, Buffer.StreamKindDrive)
 // rather than this node's shared getStream — the fix for the framing desync documented in
-// docs/interior-stream-framing.md: two goroutines (this node's Update loop and its
+// docs/investigations/interior-stream-framing.md: two goroutines (this node's Update loop and its
 // DriveHeld goroutine) must never write the same *interiorStream/fd. slot distinguishes
 // multiple DriveHeld outputs on ONE node (Pulse's Out=slot 0, OutFanout=slot 1 — see
 // Buffer.DriveSlotsPerNode's doc comment for the current max) and must be a DIFFERENT

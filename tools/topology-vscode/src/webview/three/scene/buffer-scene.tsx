@@ -14,9 +14,9 @@
 // BufferCamera, BufferLabelProjector) — this file is just the capacity-manager
 // orchestrator that mounts them, plus the shared pick-tag re-exports scene-content.tsx and
 // ThreeView.tsx still import from here. There is no PortInstances any more
-// (docs/channels-not-ports.md): a port is a load-time channel-binding ROLE, never drawn or
+// (docs/bead-model/channels-not-ports.md): a port is a load-time channel-binding ROLE, never drawn or
 // hit-testable. There is no per-edge drawn tube any more either (the source node's own
-// chain of placeholder beads is the edge's visual, docs/beads-are-the-edge.md).
+// chain of placeholder beads is the edge's visual, docs/bead-model/beads-are-the-edge.md).
 
 import { useState } from "react";
 import { useFrame } from "@react-three/fiber";
@@ -25,7 +25,7 @@ import { getNodeFrame, getChainBeads } from "./node-stream-blocks";
 import { INTERIOR_SLOTS_PER_NODE } from "../decode/buffer-decode-interior";
 // BeadInstances (the single MOVING transit bead per wire) is gone: the animation is now the
 // LIT bead advancing along a node-owned fixed chain (ChainBeadInstances,
-// docs/beads-are-the-edge.md). Two representations of one traversal would drift.
+// docs/bead-model/beads-are-the-edge.md). Two representations of one traversal would drift.
 import { ChainBeadInstances } from "./ChainBeadInstances";
 import { EdgeLines } from "./EdgeLines";
 import { getEdgeStreamAccessor } from "./edge-stream-blocks";

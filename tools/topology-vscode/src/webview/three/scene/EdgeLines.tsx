@@ -3,7 +3,7 @@
 // runs. Pure buffer→GPU render, no state authority.
 //
 // This restores a drawn edge. The chain of placeholder beads used to BE the edge's picture
-// (docs/beads-are-the-edge.md); it no longer is — the chain still exists in Go, it is simply
+// (docs/bead-model/beads-are-the-edge.md); it no longer is — the chain still exists in Go, it is simply
 // not what you see. What renders a traversal now is a single pulse bead moving along this
 // line (ChainBeadInstances), which is why the line and the pulse share one colour: they are
 // the same edge, one at rest and one carrying a value.

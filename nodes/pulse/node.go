@@ -159,7 +159,7 @@ func init() {
 			// DriveOut, not Out: both Out and OutFanout are driven by their OWN
 			// gatecommon.DriveHeld goroutine below (driveOutput calls), a SEPARATE
 			// goroutine from this node's own Update loop — see DriveOut's doc
-			// comment and docs/interior-stream-framing.md. Distinct slots (0, 1):
+			// comment and docs/investigations/interior-stream-framing.md. Distinct slots (0, 1):
 			// two DriveHeld goroutines on one node must never share a stream.
 			n.Out = a.DriveOut("Out", 0)
 			n.OutFanout = a.DriveOut("OutFanout", 1)

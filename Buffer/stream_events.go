@@ -19,7 +19,7 @@ type StreamEvent struct {
 	Kind                                                             uint8
 	NodeRow, PortRow, TargetRow, TargetPortRow, EdgeRow, Slot, Value int32
 	Bead                                                             uint32
-	// BeadSteps is a send event's edge bead-step count (docs/bead-lattice.md "The
+	// BeadSteps is a send event's edge bead-step count (docs/bead-model/bead-lattice.md "The
 	// count") — was ArcLength before the bead lattice replaced the arc-length
 	// model.
 	BeadSteps                float32

@@ -88,7 +88,7 @@ type PacedWire struct {
 	inflight []inflightBead
 	// nextGen mints a unique id for each placed bead (the bead's emitted identity).
 	nextGen uint64
-	// dwell is this wire's own ticks-per-bead-step (docs/bead-lattice.md
+	// dwell is this wire's own ticks-per-bead-step (docs/bead-model/bead-lattice.md
 	// "Timing"): ticksToCross(steps) = steps * dwell. Same TEST-affordance role
 	// the retired pulseSpeed field had (see NewPacedWire's doc comment) — the
 	// one production call site passes DwellTicksPerBead.
