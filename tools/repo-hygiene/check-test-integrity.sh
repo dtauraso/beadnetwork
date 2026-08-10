@@ -181,7 +181,33 @@ for f in "${files[@]}"; do
   # accounted for at the new path, which is separately in this loop.
   if [ ! -f "$f" ]; then
     was_renamed_away "$f" && continue
-    report+="  $f: test file DELETED (all its coverage removed)\n"
+    # An N-WAY SPLIT is not a deletion. git's rename detection only pairs the original with a
+    # single survivor, so an even 4-way split — no one piece similar enough to the original —
+    # pairs with nothing and reads as "all its coverage removed". Left unhandled, that makes
+    # this guard dictate file layout: the only way to appease it is to merge behaviour groups
+    # back together so one file stays big enough to pair, which is the opposite of the
+    # decomposition it is sitting in front of.
+    #
+    # So ask the question that actually matters: does every test this file declared still
+    # exist somewhere in the tree? If so the coverage moved. If even one name is gone, this
+    # is a real deletion and gets reported.
+    missing=""
+    while IFS= read -r tname; do
+      [ -n "$tname" ] || continue
+      if ! git grep -qE "^(func|export function|const) +${tname}\b|\b${tname}\(" HEAD -- '*_test.go' '*.test.ts' '*.test.tsx' '*.spec.ts' '*.spec.tsx' 2>/dev/null \
+         && ! grep -rqE "^(func|export function|const) +${tname}\b|['\"]${tname}['\"]" \
+              --include='*_test.go' --include='*.test.ts' --include='*.test.tsx' \
+              --include='*.spec.ts' --include='*.spec.tsx' \
+              . --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=out 2>/dev/null; then
+        missing="$missing $tname"
+      fi
+    done < <(git show "$base:$f" 2>/dev/null \
+             | grep -oE '^func (Test[A-Za-z0-9_]+)|^\s*(it|test)\("[^"]+"' \
+             | sed -E 's/^func //; s/^\s*(it|test)\("//; s/"$//' || true)
+    if [ -z "$missing" ]; then
+      continue   # every test it declared lives on elsewhere — split, not deleted
+    fi
+    report+="  $f: test file DELETED — these tests exist nowhere else:${missing}\n"
     continue
   fi
   # For a moved file, diff against where it came FROM, so only real content changes count.
