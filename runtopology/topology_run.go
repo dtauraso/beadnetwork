@@ -1,4 +1,4 @@
-package main
+package runtopology
 
 import (
 	"context"
@@ -12,13 +12,13 @@ import (
 	W "github.com/dtauraso/wirefold/nodes/Wiring"
 )
 
-// runTopology loads and runs the topology under ctx, blocking until ctx is
-// cancelled or all nodes exit. Shared by Run and RunTest.
+// RunTopology loads and runs the topology under ctx, blocking until ctx is
+// cancelled or all nodes exit. Shared by main's Run and RunTest.
 //
 // clk is the single monotonic clock every wire reads to time its own delivery
 // (MODEL.md). Both callers (Run, RunTest) pass a real clock; it is always non-nil.
 // The clock is free-running (no play/pause gate).
-func runTopology(ctx context.Context, cancel context.CancelFunc, topologyPath string, clk wire.Clock) {
+func RunTopology(ctx context.Context, cancel context.CancelFunc, topologyPath string, clk wire.Clock) {
 	// The VIEW stream (camera+overlay+scene, one singleton row) — per-owner buffer rows
 	// (memory/feedback_no_single_writer_bridge.md, memory/feedback_no_single_writer_bridge.md): WIREFOLD_STREAM_FDS
 	// is now MANDATORY (the old central accumulator + fallback packer were deleted along

@@ -65,7 +65,7 @@ That predicts the measurements, and it does:
 | `TestHeadlessViewFdDedicatedStream` | view | 200 | 20.26s (capped) |
 
 The view case is the worst kind of capped: the **VIEW stream is event-driven**, unlike
-NODE/EDGE/INTERIOR (`distance_groups.go:141` and `view_stream.go`'s header). A headless run
+NODE/EDGE/INTERIOR (`distance_groups.go:141` and `runtopology/view_stream.go`'s header). A headless run
 with no pointer input emits a handful of view frames and then goes quiet *forever*. That
 test can never reach 200 frames, so it is structurally guaranteed to sit until the deadline.
 Raising or lowering the deadline just changes how long it sits.

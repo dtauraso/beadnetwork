@@ -1,4 +1,4 @@
-package main
+package runtopology
 
 import (
 	T "github.com/dtauraso/wirefold/Trace"

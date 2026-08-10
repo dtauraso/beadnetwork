@@ -1,4 +1,4 @@
-package main
+package runtopology
 
 import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"

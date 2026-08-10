@@ -35,7 +35,7 @@ set -euo pipefail
 #
 # Exit 0 clean, exit 1 with a named report.
 #
-# PLACEMENT: main.go,edge_stream.go,node_stream.go,Buffer/streamframe/stream_fds.go | every conditionally-wired per-owner StreamKind must have a named stream-fd mismatch report
+# PLACEMENT: main.go,runtopology/edge_stream.go,runtopology/node_stream.go,Buffer/streamframe/stream_fds.go | every conditionally-wired per-owner StreamKind must have a named stream-fd mismatch report
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
@@ -43,11 +43,11 @@ cd "$REPO_ROOT"
 
 KINDS_FILE="Buffer/streamframe/stream_fds.go"
 # main.go itself now holds only the startup sequence; the per-owner stream wiring
-# (and its stream-fd mismatch reports) lives in edge_stream.go/node_stream.go
-# (main.go's split, tools/buffer-schema/check-generated.sh-adjacent decomposition). Scan every
-# root-package .go file, not a single hardcoded name, so a future split doesn't
+# (and its stream-fd mismatch reports) lives in runtopology/edge_stream.go and
+# runtopology/node_stream.go (main.go's split into the runtopology package). Scan every
+# one of these named files, not a directory glob, so a future split doesn't
 # blind this guard again.
-MAIN_FILE="main.go edge_stream.go node_stream.go"
+MAIN_FILE="main.go runtopology/edge_stream.go runtopology/node_stream.go"
 
 # A missing scan root is a disarmed guard, not a clean one (check-guards-refuse-vacuous).
 for f in "$KINDS_FILE" $MAIN_FILE; do
