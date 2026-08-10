@@ -153,7 +153,7 @@ func (md *MoveDispatch) applyNodeDragTarget(ev inputcodec.RawInputMsg) bool {
 // setHover is the shared dedupe+emit hover write; updateHover (pointer path) is its
 // one caller.
 func (md *MoveDispatch) setHover(node, port string, isInput bool, tr *T.Trace) {
-	if node == md.ui.sel.hoverNode && port == md.ui.sel.hoverPort && isInput == md.ui.sel.hoverInput {
+	if node == md.ui.sel.HoverNode && port == md.ui.sel.HoverPort && isInput == md.ui.sel.HoverInput {
 		return // no change → no re-emit (dedupe)
 	}
 	// setHoverUI (move_dispatch_api.go) is the AUTHORITATIVE write: it sets md.ui.sel's hover
@@ -180,7 +180,7 @@ func (md *MoveDispatch) setHover(node, port string, isInput bool, tr *T.Trace) {
 // applySelect sets the Go-owned selection from a click hit and emits it. Selection is
 // single + EXCLUSIVE across nodes and edges: an EDGE hit selects that edge (clearing any
 // node selection); a node/port hit selects that node (clearing any edge selection); an
-// empty-space hit CLEARS the transient highlight (md.ui.sel.selected / md.ui.sel.selectedEdge) — this is
+// empty-space hit CLEARS the transient highlight (md.ui.sel.Selected / md.ui.sel.SelectedEdge) — this is
 // the original click-empty-clears behavior.
 func (md *MoveDispatch) applySelect(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	// setSelectionUI (move_dispatch_api.go) is the AUTHORITATIVE write, same reasoning as

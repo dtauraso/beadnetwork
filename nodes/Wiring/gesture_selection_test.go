@@ -12,7 +12,7 @@ import (
 
 // Click-select is Go-owned for EDGES too: a click on an edge (new-system: a numeric buffer
 // EDGE-ROW hit) resolves the row → edge label via the injected edge-row table and sets
-// md.ui.sel.selectedEdge, clearing any node selection (exclusive). Selecting a node afterwards
+// md.ui.sel.SelectedEdge, clearing any node selection (exclusive). Selecting a node afterwards
 // clears the edge selection, and an empty click clears both.
 func TestGestureClickSelectsEdgeGoOwned(t *testing.T) {
 	md := newGestureMD(canonicalViewpoint())
@@ -26,8 +26,8 @@ func TestGestureClickSelectsEdgeGoOwned(t *testing.T) {
 	nu := rawEvent("pointerup", 400, 300)
 	nu.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(nu, nil, nil)
-	if md.ui.sel.selected != "N7" {
-		t.Fatalf("pre: selected=%q want N7", md.ui.sel.selected)
+	if md.ui.sel.Selected != "N7" {
+		t.Fatalf("pre: selected=%q want N7", md.ui.sel.Selected)
 	}
 
 	// Tap EDGE row 1 → selectedEdge=e1, node selection cleared.
@@ -37,11 +37,11 @@ func TestGestureClickSelectsEdgeGoOwned(t *testing.T) {
 	eu := rawEvent("pointerup", 400, 300)
 	eu.Hit = inputcodec.RawHit{Kind: "edge", EdgeRow: 1}
 	md.HandleRawInput(eu, nil, nil)
-	if md.ui.sel.selectedEdge != "e1" {
-		t.Fatalf("selectedEdge=%q want e1", md.ui.sel.selectedEdge)
+	if md.ui.sel.SelectedEdge != "e1" {
+		t.Fatalf("selectedEdge=%q want e1", md.ui.sel.SelectedEdge)
 	}
-	if md.ui.sel.selected != "" {
-		t.Fatalf("selected=%q want empty (edge select clears node)", md.ui.sel.selected)
+	if md.ui.sel.Selected != "" {
+		t.Fatalf("selected=%q want empty (edge select clears node)", md.ui.sel.Selected)
 	}
 
 	// Selecting a node clears the edge selection (exclusive both ways).
@@ -51,19 +51,19 @@ func TestGestureClickSelectsEdgeGoOwned(t *testing.T) {
 	nu2 := rawEvent("pointerup", 400, 300)
 	nu2.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(nu2, nil, nil)
-	if md.ui.sel.selectedEdge != "" {
-		t.Fatalf("selectedEdge=%q want empty after node select", md.ui.sel.selectedEdge)
+	if md.ui.sel.SelectedEdge != "" {
+		t.Fatalf("selectedEdge=%q want empty after node select", md.ui.sel.SelectedEdge)
 	}
 
 	// Empty-space click clears the current selection (highlight is transient).
 	md.HandleRawInput(rawEvent("pointerdown", 400, 300), nil, nil)
 	md.HandleRawInput(rawEvent("pointerup", 400, 300), nil, nil)
-	if md.ui.sel.selected != "" || md.ui.sel.selectedEdge != "" {
-		t.Fatalf("after empty click: selected=%q selectedEdge=%q want empty,empty (cleared)", md.ui.sel.selected, md.ui.sel.selectedEdge)
+	if md.ui.sel.Selected != "" || md.ui.sel.SelectedEdge != "" {
+		t.Fatalf("after empty click: selected=%q selectedEdge=%q want empty,empty (cleared)", md.ui.sel.Selected, md.ui.sel.SelectedEdge)
 	}
 }
 
-// Click-select is Go-owned: a click on a node sets md.ui.sel.selected to that node id; a click on
+// Click-select is Go-owned: a click on a node sets md.ui.sel.Selected to that node id; a click on
 // empty space clears it. (No camera change — covered by TestGestureClickNoCameraChange.)
 func TestGestureClickSelectsNodeGoOwned(t *testing.T) {
 	md := newGestureMD(canonicalViewpoint())
@@ -77,17 +77,17 @@ func TestGestureClickSelectsNodeGoOwned(t *testing.T) {
 		e.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 		return e
 	}(), nil, nil)
-	if md.ui.sel.selected != "N7" {
-		t.Fatalf("selected=%q want N7", md.ui.sel.selected)
+	if md.ui.sel.Selected != "N7" {
+		t.Fatalf("selected=%q want N7", md.ui.sel.Selected)
 	}
 
-	// Empty-space click CLEARS the highlight (md.ui.sel.selected), even though the rule-builder's
+	// Empty-space click CLEARS the highlight (md.ui.sel.Selected), even though the rule-builder's
 	// sticky panel Center (md.ruleCenter) stays put — see TestGestureRuleCenterStickyOnEmptyClick.
 	d2 := rawEvent("pointerdown", 400, 300) // Hit defaults to empty
 	md.HandleRawInput(d2, nil, nil)
 	md.HandleRawInput(rawEvent("pointerup", 401, 300), nil, nil)
-	if md.ui.sel.selected != "" {
-		t.Fatalf("selected=%q want empty (cleared) after empty-space click", md.ui.sel.selected)
+	if md.ui.sel.Selected != "" {
+		t.Fatalf("selected=%q want empty (cleared) after empty-space click", md.ui.sel.Selected)
 	}
 }
 
@@ -119,8 +119,8 @@ func TestGestureSecondaryTapSelectsThroughDrift(t *testing.T) {
 	up.Button = 2
 	up.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(up, nil, nil)
-	if md.ui.sel.selected != "N7" {
-		t.Fatalf("selected=%q want N7 after secondary tap-select through drift", md.ui.sel.selected)
+	if md.ui.sel.Selected != "N7" {
+		t.Fatalf("selected=%q want N7 after secondary tap-select through drift", md.ui.sel.Selected)
 	}
 
 	// Two-finger tap on EMPTY space (with drift) clears the current selection.
@@ -133,8 +133,8 @@ func TestGestureSecondaryTapSelectsThroughDrift(t *testing.T) {
 	u2 := rawEvent("pointerup", 410, 300)
 	u2.Button = 2
 	md.HandleRawInput(u2, nil, nil)
-	if md.ui.sel.selected != "" {
-		t.Fatalf("selected=%q want empty (cleared) after secondary empty-space tap", md.ui.sel.selected)
+	if md.ui.sel.Selected != "" {
+		t.Fatalf("selected=%q want empty (cleared) after secondary empty-space tap", md.ui.sel.Selected)
 	}
 }
 
@@ -152,8 +152,8 @@ func TestGesturePressReleaseNoMoveSelects(t *testing.T) {
 	up.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(up, nil, nil)
 
-	if md.ui.sel.selected != "N7" {
-		t.Fatalf("selected=%q want N7 after press+release with no move", md.ui.sel.selected)
+	if md.ui.sel.Selected != "N7" {
+		t.Fatalf("selected=%q want N7 after press+release with no move", md.ui.sel.Selected)
 	}
 	if md.ui.gest.phase != gestIdle {
 		t.Fatalf("after click phase=%v want idle", md.ui.gest.phase)
@@ -185,12 +185,12 @@ func TestGestureSecondaryMoveStaysPendingAndTapSelects(t *testing.T) {
 	up.Button = 2
 	up.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(up, nil, nil)
-	if md.ui.sel.selected != "N7" {
-		t.Fatalf("selected=%q want N7 after secondary tap-select", md.ui.sel.selected)
+	if md.ui.sel.Selected != "N7" {
+		t.Fatalf("selected=%q want N7 after secondary tap-select", md.ui.sel.Selected)
 	}
 }
 
-// A node click sets md.ui.sel.selected regardless of the selSpherePoles overlay state (the
+// A node click sets md.ui.sel.Selected regardless of the selSpherePoles overlay state (the
 // rule-builder authoring path that used to intercept it under selSpherePoles has been
 // removed; click-select is now uniform).
 func TestGestureSelectModeOffStillHighlights(t *testing.T) {
@@ -205,8 +205,8 @@ func TestGestureSelectModeOffStillHighlights(t *testing.T) {
 	up.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(up, nil, nil)
 
-	if md.ui.sel.selected != "A" {
-		t.Fatalf("selected=%q after node click with select mode OFF, want A", md.ui.sel.selected)
+	if md.ui.sel.Selected != "A" {
+		t.Fatalf("selected=%q after node click with select mode OFF, want A", md.ui.sel.Selected)
 	}
 }
 

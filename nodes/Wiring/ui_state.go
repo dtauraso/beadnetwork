@@ -13,6 +13,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/selectionstate"
 )
 
 // uiState groups the CURRENTLY-SELECTED (click-select) and CURRENTLY-HOVERED (pointer
@@ -74,7 +75,7 @@ type uiState struct {
 	// UI-only state (selection_state.go) — pure routing-directory-parked UI state, owned by
 	// Go but not part of the dispatch/persist/camera concerns. Grouped the same way
 	// vp/ov/gest are.
-	sel selectionState
+	sel selectionstate.SelectionState
 
 	// --- selection/hover/abc-drag UI state: per-owner, no shared/republished copy ---
 	//
@@ -152,10 +153,10 @@ func (ui *uiState) sendEdgeSelect(edgeMovers map[string]*edgeMover, ctx context.
 // dedicated channel so the mover mutates only its own fields on its own goroutine.
 // edgeMovers/ctx/sendMove are threaded through from MoveDispatch (not part of uiState).
 func (ui *uiState) setSelectionUI(edgeMovers map[string]*edgeMover, ctx context.Context, sendMove func(id string, msg movemsg.Msg), node, edge string) {
-	prevNode := ui.sel.selected
-	prevEdge := ui.sel.selectedEdge
-	ui.sel.selected = node
-	ui.sel.selectedEdge = edge
+	prevNode := ui.sel.Selected
+	prevEdge := ui.sel.SelectedEdge
+	ui.sel.Selected = node
+	ui.sel.SelectedEdge = edge
 	if prevNode != "" && prevNode != node {
 		sendMove(prevNode, movemsg.Msg{Kind: movemsg.KindSelect, NodeID: prevNode, Bool: false})
 	}
@@ -180,12 +181,12 @@ func (ui *uiState) setSelectionUI(edgeMovers map[string]*edgeMover, ctx context.
 
 // setHoverUI sets the Go-owned hover state and MESSAGES the affected node(s) to update
 // their OWN hovered bit — no shared/republished map. Called only from the gesture
-// goroutine (setHover's dedupe check reads ui.sel.hoverNode/Port/Input directly —
+// goroutine (setHover's dedupe check reads ui.sel.HoverNode/Port/Input directly —
 // safe since only this same goroutine ever writes them — see gesture.go's
 // setHover). sendMove is threaded through from MoveDispatch (not part of uiState).
 func (ui *uiState) setHoverUI(sendMove func(id string, msg movemsg.Msg), node, port string, isInput bool) {
-	prevNode := ui.sel.hoverNode
-	ui.sel.hoverNode, ui.sel.hoverPort, ui.sel.hoverInput = node, port, isInput
+	prevNode := ui.sel.HoverNode
+	ui.sel.HoverNode, ui.sel.HoverPort, ui.sel.HoverInput = node, port, isInput
 	if prevNode != "" && prevNode != node {
 		sendMove(prevNode, movemsg.Msg{Kind: movemsg.KindHover, NodeID: prevNode, Bool: false})
 	}

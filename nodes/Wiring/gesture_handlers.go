@@ -100,7 +100,7 @@ func (md *MoveDispatch) gestPointerUp(ev inputcodec.RawInputMsg, slotReg inputco
 		// Rotation completed (free or handhold-constrained): nothing to flush.
 	case g.phase == gestPending:
 		// Click → Go-owned selection. A node hit selects it; empty space clears the
-		// selection. md.ui.sel.selected is the authoritative selection; Select() emits it so the
+		// selection. md.ui.sel.Selected is the authoritative selection; Select() emits it so the
 		// buffer snapshot marks the node's Selected column.
 		md.applySelect(ev, tr)
 	}

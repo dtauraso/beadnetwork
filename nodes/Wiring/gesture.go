@@ -32,7 +32,7 @@ import (
 //   dragging  — node body drag (world target on a camera-facing plane → RootMove).
 //   handhold  — a handhold grab-sphere is dragged for axis-locked (constrained) orbit.
 //
-// Phase 7 closed the interaction gaps: click-select is Go-owned (md.ui.sel.selected +
+// Phase 7 closed the interaction gaps: click-select is Go-owned (md.ui.sel.Selected +
 // KindSelect trace → buffer Selected column); handhold-constrained orbit is ported here
 // formula-faithfully from interaction-handlers.ts. gestWiring and gestPortMove (an
 // unconnected/connected port drag) were removed with port geometry
