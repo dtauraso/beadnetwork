@@ -41,7 +41,7 @@ cd "$REPO_ROOT"
 # fields today, headroom 20. A little room for legitimate coordination state, but well
 # below god-object territory.
 COMPOSERS=(
-  "type MoveDispatch struct {|12|the responsible owner type (rowtables.RowTables/geomSeeds/streamWiring/uiState/moverRegistry/layoutQuantizer)"
+  "type MoveDispatch struct {|12|the responsible owner type (rowtables.RowTables/geomseeds.GeomSeeds/streamWiring/uiState/moverRegistry/layoutQuantizer)"
   "type nodeGeometry struct {|20|the responsible owner type (nodeMessaging/nodeClocks/nodeStream/nodeUI/nodeTilt/pairReadout/nodeOuts/neighborTopology/sceneFlags/nodeBeads, node_geometry_parts.go)"
 )
 

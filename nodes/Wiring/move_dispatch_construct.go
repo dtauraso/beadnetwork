@@ -12,6 +12,7 @@ import (
 	"sort"
 	"strconv"
 
+	geomseeds "github.com/dtauraso/wirefold/nodes/Wiring/geomseeds"
 	rowtables "github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
@@ -24,7 +25,7 @@ import (
 // directed channels between adjacent movers. Outs and dest wires are bound later by Bind once node
 // construction has populated them. nodeOrder/edgeOrder are the
 // SPEC order (deterministic directory-sorted order, not map iteration order) used to
-// build md.gs.nodeSeeds/edgeSeeds for buffer row seeding.
+// build md.GS.NodeSeeds/EdgeSeeds for buffer row seeding.
 //
 // speedSinks, when non-nil, is the loader's build-wide accumulator
 // (buildCtx.speedSinks): each nodeMover AND each edgeMover created below gets its own
@@ -64,7 +65,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 	md.ui.speed = 1                            // default playback multiplier; LoadSpeed overwrites from view/speed.json if present
 	md.ui.clockDivisor = 1                     // no scaling until LoadSpeed resolves the loaded scene's own divisor
 	md.ui.latticePoints = defaultLatticePoints // LoadLatticePoints overwrites from view/lattice.json if present
-	md.gs.nodeSeeds = make([]NodeGeomSeed, 0, len(nodeOrder))
+	md.GS.NodeSeeds = make([]geomseeds.NodeGeomSeed, 0, len(nodeOrder))
 	for i, id := range nodeOrder {
 		g, ok := geoms[id]
 		if !ok {
@@ -87,7 +88,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 		if n, err := strconv.Atoi(id); err == nil {
 			row = n - 1
 		}
-		md.gs.nodeSeeds = append(md.gs.nodeSeeds, NodeGeomSeed{
+		md.GS.NodeSeeds = append(md.GS.NodeSeeds, geomseeds.NodeGeomSeed{
 			ID: id, Label: label, Kind: g.Kind,
 			CX: cx, CY: cy, CZ: cz,
 			Radius: nodeRadius(g.Kind), SphereR: effectiveRadius(g),
@@ -96,7 +97,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 			Row: row,
 		})
 	}
-	md.gs.edgeSeeds = make([]EdgeGeomSeed, 0, len(edgeOrder))
+	md.GS.EdgeSeeds = make([]geomseeds.EdgeGeomSeed, 0, len(edgeOrder))
 	for _, label := range edgeOrder {
 		ep, ok := edgeEndpoints[label]
 		if !ok {
@@ -121,7 +122,7 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 		seg := edgeSegment(srcG, dstG)
 		sx, sy, sz := seg.Start.X, seg.Start.Y, seg.Start.Z
 		ex, ey, ez := seg.End.X, seg.End.Y, seg.End.Z
-		md.gs.edgeSeeds = append(md.gs.edgeSeeds, EdgeGeomSeed{
+		md.GS.EdgeSeeds = append(md.GS.EdgeSeeds, geomseeds.EdgeGeomSeed{
 			Label: label, SrcNode: ep.Source, DstNode: ep.Target,
 			SX: sx, SY: sy, SZ: sz, EX: ex, EY: ey, EZ: ez,
 		})
@@ -238,12 +239,12 @@ func newMoveDispatch(geoms map[string]nodeGeom, edgeEndpoints map[string]EdgeEnd
 	// Row-identity tables: built ONCE here, from nodeSeeds/edgeSeeds (each node seed already
 	// carries its own absolute Row = id-1) — see RowTables.Build's doc comment for why this is
 	// a load-time constant, not a discovery log.
-	rtNodeSeeds := make([]rowtables.NodeSeed, len(md.gs.nodeSeeds))
-	for i, sd := range md.gs.nodeSeeds {
+	rtNodeSeeds := make([]rowtables.NodeSeed, len(md.GS.NodeSeeds))
+	for i, sd := range md.GS.NodeSeeds {
 		rtNodeSeeds[i] = rowtables.NodeSeed{ID: sd.ID, Row: sd.Row}
 	}
-	rtEdgeSeeds := make([]rowtables.EdgeSeed, len(md.gs.edgeSeeds))
-	for i, sd := range md.gs.edgeSeeds {
+	rtEdgeSeeds := make([]rowtables.EdgeSeed, len(md.GS.EdgeSeeds))
+	for i, sd := range md.GS.EdgeSeeds {
 		rtEdgeSeeds[i] = rowtables.EdgeSeed{Label: sd.Label, SrcNode: sd.SrcNode, DstNode: sd.DstNode}
 	}
 	md.RT.Build(rtNodeSeeds, rtEdgeSeeds, rowCount)

@@ -33,6 +33,7 @@ package Wiring
 import (
 	"context"
 
+	geomseeds "github.com/dtauraso/wirefold/nodes/Wiring/geomseeds"
 	rowtables "github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -49,10 +50,10 @@ type MoveDispatch struct {
 	// MoveDispatch's public Bind/Start/EdgeOut methods are thin delegators so the
 	// external API is unchanged.
 	mr moverRegistry
-	// gs owns every node/edge's load-time seed geometry (geom_seeds.go). MoveDispatch's
-	// public NodeSeeds/EdgeSeeds methods are thin delegators so the external API is
-	// unchanged.
-	gs geomSeeds
+	// GS owns every node/edge's load-time seed geometry (nodes/Wiring/geomseeds). Exported:
+	// external callers reach it directly (md.GS.NodeSeedsFn()) instead of through
+	// MoveDispatch delegator methods.
+	GS geomseeds.GeomSeeds
 	// tr is the trace sink (retained for trace emission; diagnostic breadcrumbs removed).
 	tr *T.Trace
 	// persist groups the six debounced disk persisters (move_persist.go), each nil until

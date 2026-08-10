@@ -2,6 +2,8 @@ package Wiring
 
 import (
 	"testing"
+
+	geomseeds "github.com/dtauraso/wirefold/nodes/Wiring/geomseeds"
 )
 
 // TestSceneSphereRoundTrip: writeSceneSphere then loadSceneSphere returns the same sphere.
@@ -24,10 +26,10 @@ func TestSceneSphereRoundTrip(t *testing.T) {
 // seedsFromCenters builds a nodeSeeds slice (the frozen load-time set loadTimeCenters
 // rebuilds from) directly from world centers, for tests that don't go through a real
 // newMoveDispatch/LoadTopology pass.
-func seedsFromCenters(centers map[string]vec3) []NodeGeomSeed {
-	out := make([]NodeGeomSeed, 0, len(centers))
+func seedsFromCenters(centers map[string]vec3) []geomseeds.NodeGeomSeed {
+	out := make([]geomseeds.NodeGeomSeed, 0, len(centers))
 	for id, c := range centers {
-		out = append(out, NodeGeomSeed{ID: id, CX: c.X, CY: c.Y, CZ: c.Z})
+		out = append(out, geomseeds.NodeGeomSeed{ID: id, CX: c.X, CY: c.Y, CZ: c.Z})
 	}
 	return out
 }
@@ -36,12 +38,12 @@ func seedsFromCenters(centers map[string]vec3) []NodeGeomSeed {
 // back to a content-fit of the node centers rather than a zero sphere.
 func TestSceneSphereDefaultsFromContentFit(t *testing.T) {
 	md := &MoveDispatch{}
-	md.gs.nodeSeeds = seedsFromCenters(map[string]vec3{
+	md.GS.NodeSeeds = seedsFromCenters(map[string]vec3{
 		"a": {X: 0, Y: 0, Z: 0},
 		"b": {X: 100, Y: 0, Z: 0},
 	})
 	// LoadSceneSphere's content-fit path now reads loadTimeCenters() (rebuilt from the
-	// frozen md.gs.nodeSeeds set above), not an atomic snap.
+	// frozen md.GS.NodeSeeds set above), not an atomic snap.
 	md.LoadSceneSphere(t.TempDir()) // no scene.json → content-fit
 	if md.ui.sceneSphere.Radius <= 0 {
 		t.Fatalf("content-fit sphere has non-positive radius: %+v", md.ui.sceneSphere)
@@ -67,7 +69,7 @@ func TestSceneSphereContentFitSurvivesReloadAfterMove(t *testing.T) {
 
 	newMD := func(bx float64) *MoveDispatch {
 		md := &MoveDispatch{}
-		md.gs.nodeSeeds = seedsFromCenters(map[string]vec3{
+		md.GS.NodeSeeds = seedsFromCenters(map[string]vec3{
 			"a": {X: 0, Y: 0, Z: 0},
 			"b": {X: bx, Y: 0, Z: 0},
 		})

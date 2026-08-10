@@ -13,9 +13,11 @@ package Wiring
 
 import (
 	"fmt"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"io"
 	"os"
+
+	geomseeds "github.com/dtauraso/wirefold/nodes/Wiring/geomseeds"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
 // streamWiring owns the fd directories the two dedicated-per-goroutine emitting streams
@@ -95,7 +97,7 @@ func (sw *streamWiring) ensureClaims() streamClaims {
 // a lookup. A missing edgeMover for a seed row (should not happen) is skipped rather than
 // panicking.
 func (sw *streamWiring) setEdgeStreams(
-	edgeSeeds []EdgeGeomSeed,
+	edgeSeeds []geomseeds.EdgeGeomSeed,
 	edgeMovers map[string]*edgeMover,
 	baseFd int,
 	nodeRowFor func(id string) (int32, bool),
@@ -143,7 +145,7 @@ func (sw *streamWiring) setEdgeStreams(
 // is no lookup to perform on every emit). A missing nodeMover for a seed row (should not
 // happen) is skipped rather than panicking.
 func (sw *streamWiring) setNodeStreams(
-	nodeSeeds []NodeGeomSeed,
+	nodeSeeds []geomseeds.NodeGeomSeed,
 	nodeMovers map[string]*nodeGeometry,
 	nodeBase, interiorBase int,
 	driveBase int, driveWired bool,
