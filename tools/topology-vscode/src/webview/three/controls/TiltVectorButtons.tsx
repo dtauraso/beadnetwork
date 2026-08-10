@@ -1,7 +1,7 @@
 import { createPortal } from "react-dom";
 import { postGoRecord } from "../../vscode-api";
 import { encodeTiltVectorStart, encodeTiltVectorReset } from "../../../schema/input-encode";
-import { useTiltVectorRows } from "./overlay-flags";
+import { useTiltVectorRows } from "./overlay-flags-tilt-vectors";
 
 // TiltVectorButtons — the START TILT and RESET TILT controls, portaled into "#run-mount",
 // the SAME toolbar mount SpeedSlider uses (html.ts). #run-mount itself lays out its direct

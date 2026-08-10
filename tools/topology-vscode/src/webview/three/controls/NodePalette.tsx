@@ -16,7 +16,9 @@ import React, { useEffect, useRef, useState } from "react";
 import { postGoRecord } from "../../vscode-api";
 import { encodeSceneCreate, encodeSceneDelete } from "../../../schema/input-encode";
 import { NODE_KIND_NAMES, NODE_DEFS } from "../../../schema/node-defs";
-import { useSelectedNodeRow, useSceneEditable, useSceneKinds, useEditRefused } from "./overlay-flags";
+import { useSelectedNodeRow } from "./overlay-flags-selection";
+import { useSceneEditable, useSceneKinds } from "./overlay-flags-scene";
+import { useEditRefused } from "./overlay-flags-edit-refused";
 import {
   pillContainerStyle,
   pillBodyStyle,

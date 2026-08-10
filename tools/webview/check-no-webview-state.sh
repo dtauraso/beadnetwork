@@ -20,6 +20,11 @@ set -euo pipefail
 # Allowed buffer-reflect resources (they mirror Go, they do not author state):
 #   - snapshot-buffer.ts   (holds the latest binary snapshot + subscribe)
 #   - overlay-flags.ts     (decodes the buffer Overlay columns via useSyncExternalStore)
+#   - overlay-flags-drag.ts, overlay-flags-edit-refused.ts, overlay-flags-scene.ts,
+#     overlay-flags-selection.ts, overlay-flags-distance-groups.ts,
+#     overlay-flags-speed.ts, overlay-flags-tilt-vectors.ts
+#                          (overlay-flags.ts's sibling files, split by which buffer state
+#                           each read/use pair reflects — same shape, same allowance)
 #   - buffer-nav.ts        (row-keyed id/label table decoded from the buffer)
 #   - scene-tabs.ts        (decodes the VIEW frame's Go-owned scene tab strip)
 #
@@ -64,6 +69,9 @@ while IFS= read -r line; do
   base="$(basename "$f")"
   case "$base" in
     snapshot-buffer.ts|overlay-flags.ts|buffer-nav.ts|scene-tabs.ts) continue ;;
+    overlay-flags-drag.ts|overlay-flags-edit-refused.ts|overlay-flags-scene.ts) continue ;;
+    overlay-flags-selection.ts|overlay-flags-distance-groups.ts) continue ;;
+    overlay-flags-speed.ts|overlay-flags-tilt-vectors.ts) continue ;;
   esac
   report "domain-hook: $line  (useSyncExternalStore outside the allowed buffer-reflect resources)"
 done < <(grep -arnE '\buseSyncExternalStore\b' \

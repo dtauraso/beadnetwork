@@ -8,10 +8,18 @@
 // control, NavGuides gating). It is NOT a domain store — it authors nothing; it only
 // decodes the latest snapshot's Overlay row and subscribes to snapshot arrivals so a
 // toggle round-trips to the displayed state.
+//
+// The REST of this Overlay-column read surface — drag row / dragged node name,
+// edit-refused count, scene editable + scene kinds, selected node row, distance-group
+// lens, playback speed, and per-node tilt-vector rows — lives in sibling files split by
+// which buffer state each pair reflects: overlay-flags-drag.ts, overlay-flags-edit-
+// refused.ts, overlay-flags-scene.ts, overlay-flags-selection.ts, overlay-flags-
+// distance-groups.ts, overlay-flags-speed.ts, overlay-flags-tilt-vectors.ts. Every one
+// of them is the same shape as this file (read + use + equality-helper trio, read-only
+// reflect of the buffer) and is covered by the same check-no-webview-state.sh allowlist.
 
 import { useSyncExternalStore } from "react";
 import { OVERLAY_FLAG_ORDER, type OverlayFlag } from "../../../messages";
-import { getNodeFrame, subscribeNodeStreamBlocks } from "../scene/node-stream-blocks";
 import { getViewBlocks, subscribeViewBlocks } from "../scene/view-blocks";
 import {
   readOverlaySceneTori,
@@ -27,22 +35,7 @@ import {
   readOverlaySelectionRing,
   readOverlayHoverRing,
   readOverlayReachSphere,
-  readOverlayEditRefused,
-  readOverlaySceneEditable,
-  readOverlaySceneKinds,
-  readNodeSelected,
-  readOverlayDragNodeRow,
-  readOverlayGroupLenTime,
-  readOverlayGroupLenInput,
-  readOverlayGroupLenGate,
-  readOverlaySpeed,
-  readNodeTopTiltVectorLen,
-  readNodeTopTiltVectorTheta,
-  readNodeLatticePoints,
-  readNodeRoundsToParallel,
-  readNodeMsgsToParallel,
 } from "../../../schema/buffer-layout";
-import { nodeLabel } from "../decode/buffer-decode-node";
 
 // Keyed by OverlayFlag. Polarity is MIXED — a historical wart worth stating plainly, since
 // the ViewerState key names it mirrored are gone (that state island was deleted once Go
@@ -115,247 +108,5 @@ export function overlayOn(read: (v: DataView) => number): boolean {
  *  null until the first snapshot lands. */
 export function useOverlayFlags(): OverlayFlagVals | null {
   return useSyncExternalStore(subscribeViewBlocks, readOverlayFlags, readOverlayFlags);
-}
-
-/** Decode the row index of the node currently being dragged (Overlay block
- *  DragNodeRow column, Go's gesture FSM g.dragNode resolved via NodeRowFor), or -1
- *  when idle. Returns -1 if no snapshot / decode failure yet. */
-export function readDragNodeRow(): number {
-  const blocks = getViewBlocks();
-  if (!blocks) return -1;
-  return readOverlayDragNodeRow(blocks.overlayView);
-}
-
-/** Decode how many structural edits Go has REFUSED this run (Overlay block EditRefused).
- *  A count, not a flag: a second refusal has to be distinguishable from the first, or making
- *  the same mistake twice looks like the editor ignoring you. 0 before the first snapshot. */
-export function readEditRefused(): number {
-  const blocks = getViewBlocks();
-  if (!blocks) return 0;
-  return readOverlayEditRefused(blocks.overlayView);
-}
-
-/** React hook: re-renders the caller each time Go refuses a structural edit. */
-export function useEditRefused(): number {
-  return useSyncExternalStore(subscribeViewBlocks, readEditRefused, readEditRefused);
-}
-
-/** Decode whether THIS scene can be structurally edited (Overlay block SceneEditable —
- *  SceneTab.Editable, Go's own per-scene property). false before the first snapshot: a
- *  palette that appears for an instant in a scene that cannot take one is worse than a
- *  palette that appears a frame late. */
-export function readSceneEditable(): boolean {
-  const blocks = getViewBlocks();
-  if (!blocks) return false;
-  return readOverlaySceneEditable(blocks.overlayView) !== 0;
-}
-
-/** React hook: whether this scene can be structurally edited. */
-export function useSceneEditable(): boolean {
-  return useSyncExternalStore(subscribeViewBlocks, readSceneEditable, readSceneEditable);
-}
-
-/** Decode the BITMASK of kind ids this scene accepts (Overlay block SceneKinds — bit N = the
- *  kind whose KindId is N). 0 before the first snapshot, which offers nothing: a palette that
- *  briefly offers kinds this scene has no place for is worse than one that appears a frame
- *  late. */
-export function readSceneKinds(): number {
-  const blocks = getViewBlocks();
-  if (!blocks) return 0;
-  return readOverlaySceneKinds(blocks.overlayView);
-}
-
-/** React hook: the scene's accepted-kind mask. */
-export function useSceneKinds(): number {
-  return useSyncExternalStore(subscribeViewBlocks, readSceneKinds, readSceneKinds);
-}
-
-/** Decode the SELECTED node's buffer row, or -1 when nothing is selected. Selection is
- *  Go-owned (the Node block's Selected column); this is a second READER of that truth, never
- *  a cache of it — which is what lets the delete key forward a row without TS ever deciding
- *  what is selected. */
-export function readSelectedNodeRow(): number {
-  const decoded = getNodeFrame();
-  if (!decoded) return -1;
-  for (let i = 0; i < decoded.nodeCount; i++) {
-    if (readNodeSelected(decoded.nodeView, i)) return i;
-  }
-  return -1;
-}
-
-/** React hook: the selected node's row, or -1. */
-export function useSelectedNodeRow(): number {
-  return useSyncExternalStore(subscribeViewBlocks, readSelectedNodeRow, readSelectedNodeRow);
-}
-
-/** React hook: re-renders the caller when the dragged node's row changes (drag
- *  start/end). Returns -1 when no drag is in progress. */
-export function useDragNodeRow(): number {
-  return useSyncExternalStore(subscribeViewBlocks, readDragNodeRow, readDragNodeRow);
-}
-
-/** Decode the human name of the node currently being dragged, by resolving
- *  DragNodeRow against the Node block's own Label section — identity rides row
- *  index, the name is never sidecar'd (same plumbing readAbcDragRows uses per-row).
- *  Returns "" when idle or the row can't be resolved yet (no node frame decoded). */
-export function readDraggedNodeName(): string {
-  const row = readDragNodeRow();
-  if (row < 0) return "";
-  const decoded = getNodeFrame();
-  if (!decoded || row >= decoded.nodeCount) return "";
-  return nodeLabel(decoded, row);
-}
-
-/** subscribeDraggedNodeName subscribes to BOTH the VIEW stream (DragNodeRow lives in
- *  the Overlay block) and the node stream (the Label section lives in the Node block)
- *  — either arrival can change the resolved name (drag start/end flips the row; a
- *  node-frame arrival while dragging can (re)decode its label). */
-function subscribeDraggedNodeName(fn: () => void): () => void {
-  const unsubView = subscribeViewBlocks(fn);
-  const unsubNode = subscribeNodeStreamBlocks(fn);
-  return () => {
-    unsubView();
-    unsubNode();
-  };
-}
-
-/** React hook: re-renders the caller when the dragged node's name changes (drag
- *  start/end, or a node-frame arrival while dragging). Returns "" when idle. */
-export function useDraggedNodeName(): string {
-  return useSyncExternalStore(subscribeDraggedNodeName, readDraggedNodeName, readDraggedNodeName);
-}
-
-/** The "distance home button" toolbar panel's 3 group max-pair-lengths, in Go's
- *  distanceGroupOrder (nodes/Wiring/distance_groups.go): time, input, gate. Read-only
- *  reflect of the Overlay block's GroupLenTime/GroupLenInput/GroupLenGate columns — Go
- *  computes these fresh every VIEW-frame emit; TS holds no group definitions. */
-export interface DistanceGroupLens {
-  time: number;
-  input: number;
-  gate: number;
-}
-
-let cachedGroupLens: DistanceGroupLens | null = null;
-
-function distanceGroupLensEqual(a: DistanceGroupLens, b: DistanceGroupLens): boolean {
-  return a.time === b.time && a.input === b.input && a.gate === b.gate;
-}
-
-/** Decode the current 3 group max-pair-lengths, or null if no snapshot yet. Stable
- *  identity while unchanged (useSyncExternalStore compares by identity). */
-export function readDistanceGroupLens(): DistanceGroupLens | null {
-  const blocks = getViewBlocks();
-  if (!blocks) return cachedGroupLens;
-  const overlayView = blocks.overlayView;
-  const next: DistanceGroupLens = {
-    time: readOverlayGroupLenTime(overlayView),
-    input: readOverlayGroupLenInput(overlayView),
-    gate: readOverlayGroupLenGate(overlayView),
-  };
-  if (cachedGroupLens && distanceGroupLensEqual(cachedGroupLens, next)) return cachedGroupLens;
-  cachedGroupLens = next;
-  return cachedGroupLens;
-}
-
-/** React hook: re-renders the caller when any of the 3 group max-pair-lengths change. */
-export function useDistanceGroupLens(): DistanceGroupLens | null {
-  return useSyncExternalStore(subscribeViewBlocks, readDistanceGroupLens, readDistanceGroupLens);
-}
-
-/** The current playback-speed multiplier (Overlay block's Speed column) — Go-owned
- *  (RunStdinReader's clock/speed edit handler, seeded at load from view/speed.json).
- *  Read-only reflect for the SpeedSlider so it shows the persisted/live value instead of
- *  a local default that snaps back on reload (memory/feedback_reflect_dont_create_store.md).
- *  Returns null if no snapshot has decoded yet. */
-export function readPlaybackSpeed(): number | null {
-  const blocks = getViewBlocks();
-  if (!blocks) return null;
-  return readOverlaySpeed(blocks.overlayView);
-}
-
-/** React hook: re-renders the caller when the playback speed changes. Returns null until
- *  the first VIEW snapshot lands. */
-export function usePlaybackSpeed(): number | null {
-  return useSyncExternalStore(subscribeViewBlocks, readPlaybackSpeed, readPlaybackSpeed);
-}
-
-/** One row of the per-node tilt-vector-angle panel: read-only reflect of a single node's
- *  own TopTiltVectorTheta (Buffer/layout.go), as the ALREADY-MULTIPLIED
- *  radians the buffer carries — TS holds no step constant of its own
- *  (nodes/Wiring.CurveParamTiltVectorAngleStep is Go's). row is the node's buffer ROW
- *  (never an id/name — no sidecar), label its human label for display only. There is no
- *  φ field: every tilt vector in this model is θ-only (TiltVectorAnglePanel.tsx's own
- *  doc comment). */
-export interface TiltVectorRow {
-  row: number;
-  label: string;
-  theta: number;
-  /** This node's own streamed lattice point count (Buffer/layout.go's LatticePoints) — the
-   *  N `theta` was converted against, so a reader can invert it back to an index at the
-   *  CURRENT count instead of assuming a fixed compile-time step. */
-  points: number;
-  /** This node's own streamed rounds-to-rest count (Buffer/layout.go's RoundsToParallel) —
-   *  vector-exchange rounds between the exchange opening and this node's rule settling.
-   *  Frozen at rest by Go, so it does not climb while the settled exchange keeps
-   *  circulating; 0 means not yet at rest, or opened already at rest. */
-  roundsToParallel: number;
-  /** The same span counted in vector-channel messages (Buffer/layout.go's MsgsToParallel) —
-   *  every receive and every reply this node performed. Streamed separately rather than
-   *  derived as 2×rounds, because Go owns the relationship between the two. */
-  msgsToParallel: number;
-}
-
-let cachedTiltVectorRows: TiltVectorRow[] | null = null;
-
-function tiltVectorRowsEqual(a: TiltVectorRow[], b: TiltVectorRow[]): boolean {
-  if (a.length !== b.length) return false;
-  for (let i = 0; i < a.length; i++) {
-    const ai = a[i];
-    const bi = b[i];
-    if (!ai || !bi) return false;
-    if (
-      ai.row !== bi.row ||
-      ai.theta !== bi.theta ||
-      ai.label !== bi.label ||
-      ai.points !== bi.points ||
-      ai.roundsToParallel !== bi.roundsToParallel ||
-      ai.msgsToParallel !== bi.msgsToParallel
-    ) {
-      return false;
-    }
-  }
-  return true;
-}
-
-/** Decode every node whose TopTiltVectorLen is > 0 (Go's "this node draws a tilt vector"
- *  answer — same column TiltVectors.tsx gates its own draw on) into a TiltVectorRow list,
- *  or null if no node frame has decoded yet. An EMPTY (non-null) list is the "no
- *  groups"-shaped signal for a scene that streams no tilt vectors at all — the panel that
- *  reads this renders nothing for that case, with no scene branch on either side. */
-export function readTiltVectorRows(): TiltVectorRow[] | null {
-  const decoded = getNodeFrame();
-  if (!decoded) return cachedTiltVectorRows;
-  const { nodeCount, nodeView } = decoded;
-  const next: TiltVectorRow[] = [];
-  for (let row = 0; row < nodeCount; row++) {
-    if (!(readNodeTopTiltVectorLen(nodeView, row) > 0)) continue;
-    next.push({
-      row,
-      label: nodeLabel(decoded, row),
-      theta: readNodeTopTiltVectorTheta(nodeView, row),
-      points: readNodeLatticePoints(nodeView, row),
-      roundsToParallel: readNodeRoundsToParallel(nodeView, row),
-      msgsToParallel: readNodeMsgsToParallel(nodeView, row),
-    });
-  }
-  if (cachedTiltVectorRows && tiltVectorRowsEqual(cachedTiltVectorRows, next)) return cachedTiltVectorRows;
-  cachedTiltVectorRows = next;
-  return cachedTiltVectorRows;
-}
-
-/** React hook: re-renders the caller when the set of tilt-vector-drawing nodes or any of
- *  their angles changes. Returns null until the first node frame decodes. */
-export function useTiltVectorRows(): TiltVectorRow[] | null {
-  return useSyncExternalStore(subscribeNodeStreamBlocks, readTiltVectorRows, readTiltVectorRows);
 }
 
