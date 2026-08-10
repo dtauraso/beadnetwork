@@ -26,7 +26,7 @@ type interiorStream struct {
 	// lastPresent/lastValue/lastOx/lastOy/lastOz cache the most recently written 4-slot
 	// interior-bead snapshot. BuildInteriorStreamFrame's slot count is FIXED (the decoder
 	// reads a constant INTERIOR_SLOTS_PER_NODE, not a length carried by the frame — see
-	// buffer-decode.ts), so an events-only flush (writeEvents, for a Fire/Recv/Send
+	// buffer-decode-interior.ts), so an events-only flush (writeEvents, for a Fire/Recv/Send
 	// occurring BETWEEN bead-state changes) must still ship a full, valid 4-slot
 	// snapshot — it reuses this cache rather than inventing/omitting bead state.
 	// Populated to an all-absent 4-slot snapshot at construction (buildInteriorStream)

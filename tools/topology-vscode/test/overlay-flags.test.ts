@@ -15,7 +15,7 @@ import { readOverlayFlags } from "../src/webview/three/overlay-flags";
 import { setLatestViewFrame } from "../src/webview/snapshot-buffer";
 import { OVERLAY_FLAG_ORDER } from "../src/messages";
 import { BUF_VIEW_FRAME_HEADER_SIZE } from "../src/schema/frame-tags";
-import { SCENE_TABS_HEADER_SIZE } from "../src/webview/three/buffer-decode";
+import { SCENE_TABS_HEADER_SIZE } from "../src/webview/three/buffer-decode-view";
 import {
   CAMERA_STRIDE, OVERLAY_STRIDE, SCENE_STRIDE,
   OVERLAY_COL_SCENE_TORI, OVERLAY_COL_SCENE_POLES, OVERLAY_COL_NODE_POLES,

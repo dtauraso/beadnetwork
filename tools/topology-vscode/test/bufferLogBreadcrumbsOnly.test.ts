@@ -13,12 +13,12 @@
 //     that writes just an events section to disk).
 //  3. So: hand-construct the binary EVENTS section using ONLY generated layout constants —
 //     EVENT_COL_*/EVENT_STRIDE from schema/buffer-layout.ts (generated from Buffer/layout.go)
-//     — and decode it through the real decodeTrailingEvents (buffer-decode.ts), the same
+//     — and decode it through the real decodeTrailingEvents (buffer-decode-shared.ts), the same
 //     function every real per-owner stream frame is decoded through. No hardcoded offsets.
 
 import { describe, it, expect } from "vitest";
 import { decodeStreamFrameEvents } from "../src/buffer-log";
-import { decodeTrailingEvents } from "../src/webview/three/buffer-decode";
+import { decodeTrailingEvents } from "../src/webview/three/buffer-decode-shared";
 import {
   EVENT_STRIDE,
   EVENT_COL_KIND, EVENT_COL_NODE_ROW, EVENT_COL_PORT_ROW, EVENT_COL_TARGET_ROW,

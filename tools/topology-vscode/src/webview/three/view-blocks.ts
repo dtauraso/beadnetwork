@@ -10,7 +10,7 @@
 // expressed in exactly ONE place.
 
 import { getLatestViewFrame, subscribeViewFrame } from "../snapshot-buffer";
-import { decodeViewFrame } from "./buffer-decode";
+import { decodeViewFrame } from "./buffer-decode-view";
 
 export interface ViewBlocks {
   cameraView: DataView;

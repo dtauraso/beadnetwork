@@ -69,7 +69,7 @@ type bufLayoutNode struct {
 	// position by the SAME offline rule, so a frame could never contradict where it landed —
 	// a permutation would render silently in the wrong place. This column makes that
 	// contradiction detectable: the decoder compares Id against (arrival row + 1) and reports
-	// a mismatch loudly (buffer-decode.ts's decodeNodeStreamFrame) instead of trusting the
+	// a mismatch loudly (buffer-decode-node.ts's decodeNodeStreamFrame) instead of trusting the
 	// row. This is NOT the removed id/label/kind sidecar message (bridge-surface.md's
 	// no-sidecar clause) — it is a column inside the Node block, the same shape as KindId.
 	NodeId  int32   `buf:"i32"` // this node's own numeric id (1-based); row+1 by construction

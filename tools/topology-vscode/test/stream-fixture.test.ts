@@ -1,7 +1,8 @@
 // stream-fixture.test.ts — CROSS-LANGUAGE byte-level verification that the REAL Go
 // stream-frame packers (Buffer.BuildNodeStreamFrame / BuildEdgeStreamFrame /
 // BuildInteriorStreamFrame) and the REAL TS stream-frame decoders (decodeNodeStreamFrame /
-// decodeEdgeStreamFrame / decodeInteriorStreamFrame in ../src/webview/three/buffer-decode)
+// decodeEdgeStreamFrame / decodeInteriorStreamFrame in ../src/webview/three's
+// buffer-decode-node.ts / buffer-decode-edge.ts / buffer-decode-interior.ts)
 // agree on the wire bytes — the Go->TS direction mirror of
 // nodes/Wiring/input_fixture_test.go (TS->Go).
 //
@@ -32,11 +33,9 @@ import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
 import { execFileSync } from "child_process";
-import {
-  decodeNodeStreamFrame,
-  decodeEdgeStreamFrame,
-  decodeInteriorStreamFrame,
-} from "../src/webview/three/buffer-decode";
+import { decodeNodeStreamFrame } from "../src/webview/three/buffer-decode-node";
+import { decodeEdgeStreamFrame } from "../src/webview/three/buffer-decode-edge";
+import { decodeInteriorStreamFrame } from "../src/webview/three/buffer-decode-interior";
 import {
   readNodeNodeId,
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius, readNodeSphereR,
@@ -205,7 +204,7 @@ describe("stream fixture cross-language decode", () => {
   it("decodeNodeStreamFrame reports a loud mismatch when NodeId disagrees with the arrival row", () => {
     // The whole point of the NodeId column: a frame's stated identity can now CONTRADICT the
     // row it arrived on, and that must be reported loudly, not silently trusted (see
-    // buffer-decode.ts's reportNodeIdMismatch). Decode the same fixture bytes (NodeId=8) on a
+    // buffer-decode-node.ts's reportNodeIdMismatch). Decode the same fixture bytes (NodeId=8) on a
     // row that does NOT satisfy id==row+1.
     const want = fx.nodeFrame;
     const wrongRow = want.nodeRow + 1; // id 8 would need row 7, not row 8

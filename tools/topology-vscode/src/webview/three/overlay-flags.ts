@@ -42,7 +42,7 @@ import {
   readNodeRoundsToParallel,
   readNodeMsgsToParallel,
 } from "../../schema/buffer-layout";
-import { nodeLabel } from "./buffer-decode";
+import { nodeLabel } from "./buffer-decode-node";
 
 // Keyed by OverlayFlag. Polarity is MIXED — a historical wart worth stating plainly, since
 // the ViewerState key names it mirrored are gone (that state island was deleted once Go

@@ -24,10 +24,11 @@
 
 import { getLatestNodeStreamFrames, getLatestInteriorStreamFrames, getNodeStreamVersion, getInteriorStreamVersion, subscribeNodeStreamFrame, subscribeInteriorStreamFrame } from "../snapshot-buffer";
 import {
-  decodeNodeStreamFrame, decodeInteriorStreamFrame,
+  decodeNodeStreamFrame,
   type DecodedNodeFrame,
   type DecodedNodeStreamFrame,
-} from "./buffer-decode";
+} from "./buffer-decode-node";
+import { decodeInteriorStreamFrame } from "./buffer-decode-interior";
 import {
   readNodeRingAxisTheta,
   readNodeRingAxisPhi,

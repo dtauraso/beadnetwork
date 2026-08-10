@@ -6,7 +6,7 @@ import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { getNodeFrame } from "./node-stream-blocks";
-import { INTERIOR_SLOTS_PER_NODE } from "./buffer-decode";
+import { INTERIOR_SLOTS_PER_NODE } from "./buffer-decode-interior";
 import { interiorBeadStyleForValue } from "./bead-style";
 import {
   readNodeCX, readNodeCY, readNodeCZ,

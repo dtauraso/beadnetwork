@@ -27,7 +27,7 @@ import {
   getLatestInteriorStreamFrames,
   resetSceneIdentityForTest,
 } from "../src/webview/snapshot-buffer";
-import { SCENE_TABS_HEADER_SIZE } from "../src/webview/three/buffer-decode";
+import { SCENE_TABS_HEADER_SIZE } from "../src/webview/three/buffer-decode-view";
 import { BUF_VIEW_FRAME_HEADER_SIZE } from "../src/schema/frame-tags";
 import { CAMERA_STRIDE, OVERLAY_STRIDE, SCENE_STRIDE } from "../src/schema/buffer-layout";
 

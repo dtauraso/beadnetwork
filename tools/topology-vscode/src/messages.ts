@@ -200,7 +200,7 @@ export type HostToWebviewMsg =
   // The ArrayBuffer is transferred zero-copy (postMessage transferable).
   // Go → TS is the binary content buffer ONLY (no id/label sidecar): each node's human label
   // rides the buffer node block (LabelOff/LabelLen into the trailing label section) and is
-  // decoded row-keyed via buffer-decode nodeLabel.
+  // decoded row-keyed via buffer-decode-node's nodeLabel.
   //
   // tag carries a SYNTHETIC tag the ext host attaches when relaying a frame decoded off a
   // dedicated per-goroutine fd (never a wire tag byte there — see frame-tags.ts):

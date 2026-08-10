@@ -6,7 +6,7 @@
 //   - Edges: LineSegments updated from edge column (start/end endpoints).
 //
 // This component does NOT write to any Zustand store. It reads the snapshot
-// buffer directly (zero-copy DataView slices via buffer-decode.ts) and fills
+// buffer directly (zero-copy DataView slices via the buffer-decode-* decoders) and fills
 // GPU attribute arrays imperatively via useFrame. No domain state flows out.
 //
 // The actual per-block renderers live in sibling files (BeadInstances, NodeInstances,
@@ -22,7 +22,7 @@ import { useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import type * as THREE from "three";
 import { getNodeFrame, getChainBeads } from "./node-stream-blocks";
-import { INTERIOR_SLOTS_PER_NODE } from "./buffer-decode";
+import { INTERIOR_SLOTS_PER_NODE } from "./buffer-decode-interior";
 // BeadInstances (the single MOVING transit bead per wire) is gone: the animation is now the
 // LIT bead advancing along a node-owned fixed chain (ChainBeadInstances,
 // docs/beads-are-the-edge.md). Two representations of one traversal would drift.

@@ -1,15 +1,15 @@
 // Unit tests for the per-node dedicated-stream decode + aggregation path
 // (schema/frame-tags.ts's BUF_BLOCK_TAG_NODE_STREAM/BUF_BLOCK_TAG_INTERIOR_STREAM,
-// buffer-decode.ts's decodeNodeStreamFrame/decodeInteriorStreamFrame, and
+// buffer-decode-node.ts's decodeNodeStreamFrame and buffer-decode-interior.ts's
+// decodeInteriorStreamFrame, and
 // three/node-stream-blocks.ts's getNodeFrame aggregator). No Port section any more
 // (docs/channels-not-ports.md — a port carries no geometry, so there is nothing to
 // decode/aggregate for it); an edge's endpoints ride its own frame's SX..EZ instead
 // (edge-tube-port-resolution.test.ts).
 
 import { describe, it, expect, vi } from "vitest";
-import {
-  decodeNodeStreamFrame, decodeInteriorStreamFrame,
-} from "../src/webview/three/buffer-decode";
+import { decodeNodeStreamFrame } from "../src/webview/three/buffer-decode-node";
+import { decodeInteriorStreamFrame } from "../src/webview/three/buffer-decode-interior";
 import {
   BUF_NODE_STREAM_FRAME_HEADER_SIZE, BUF_INTERIOR_STREAM_FRAME_HEADER_SIZE,
 } from "../src/schema/frame-tags";

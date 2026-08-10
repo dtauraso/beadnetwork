@@ -5,7 +5,7 @@
 // so draw nothing this frame" null-check.
 
 import { getLatestEdgeStreamFrames } from "../snapshot-buffer";
-import { decodeEdgeStreamFrame, type DecodedEdgeStreamFrame } from "./buffer-decode";
+import { decodeEdgeStreamFrame, type DecodedEdgeStreamFrame } from "./buffer-decode-edge";
 import {
   readEdgeSX, readEdgeSY, readEdgeSZ, readEdgeEX, readEdgeEY, readEdgeEZ,
 } from "../../schema/buffer-layout";

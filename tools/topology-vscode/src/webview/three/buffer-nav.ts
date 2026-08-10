@@ -1,8 +1,8 @@
 // buffer-nav.ts — buffer-driven nav-overlay data source (buffer-only path).
 //
 // The binary snapshot's node block carries per-node cx/cy/cz/radius/sphereR/selected AND the
-// per-node label (LabelOff/LabelLen into the trailing label section — see buffer-decode
-// nodeLabel). Identity in this system is the buffer NODE-ROW INDEX: Go resolves a row back to
+// per-node label (LabelOff/LabelLen into the trailing label section — see
+// buffer-decode-node's nodeLabel). Identity in this system is the buffer NODE-ROW INDEX: Go resolves a row back to
 // its node id (nodes/Wiring's MoveDispatch.LookupNodeRow) for any topology edit, so the
 // webview needs no node-id strings at all. This module is the pure decode that turns the
 // numeric node rows (paired with their decoded labels) into NavNode records so NavGuides /
@@ -19,7 +19,7 @@
 // positions/radii/sphereR/selection/label all come from the buffer via decodeNavNodes.
 
 import * as THREE from "three";
-import { type DecodedNodeFrame, nodeLabel } from "./buffer-decode";
+import { type DecodedNodeFrame, nodeLabel } from "./buffer-decode-node";
 import { type ViewBlocks } from "./view-blocks";
 import {
   readNodeCX, readNodeCY, readNodeCZ,

@@ -17,7 +17,8 @@
 //
 // tools/topology-vscode/test/stream-fixture.test.ts decodes the fixture's hex with the REAL
 // TS decoders (decodeNodeStreamFrame/decodeEdgeStreamFrame/decodeInteriorStreamFrame in
-// buffer-decode.ts) and asserts every field — the actual cross-language byte-level
+// buffer-decode-node.ts/buffer-decode-edge.ts/buffer-decode-interior.ts) and asserts every
+// field — the actual cross-language byte-level
 // agreement check. It also regenerates this fixture live (via `go run`) and diffs it
 // against the committed copy, so a stale fixture fails loudly instead of silently testing
 // its own past self (same freshness shape as TestInputFixtureFreshness, mirrored onto the

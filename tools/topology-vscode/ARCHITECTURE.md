@@ -13,7 +13,7 @@ extension host (Node)                webview (browser)
   src/extension.ts            ◄──►   src/webview/main.tsx
   src/runCommand.ts                  src/webview/three/ThreeView.tsx
   src/extension/handle-message.ts    src/webview/three/buffer-scene.tsx
-  src/extension/html.ts              src/webview/three/buffer-decode.ts
+  src/extension/html.ts              src/webview/three/buffer-decode-{view,edge,node,interior}.ts
   src/goBuild.ts                     src/webview/snapshot-buffer.ts
   src/schema/* (shared)
 ```
@@ -65,7 +65,7 @@ generically from the decoded content buffer, keyed off `NODE_DEFS`
 |---|---|
 | `src/webview/main.tsx` | Entry point, message handling |
 | `src/webview/snapshot-buffer.ts` | Raw buffer receive/framing on the webview side |
-| `src/webview/three/buffer-decode.ts` | Decodes the binary content buffer into a typed snapshot |
+| `src/webview/three/buffer-decode-view.ts` / `-edge.ts` / `-node.ts` / `-interior.ts` | Decode each per-owner stream frame into a typed snapshot (shared trailing-EVENTS decode in `buffer-decode-shared.ts`) |
 | `src/webview/three/buffer-scene.tsx` | Draws the whole scene generically from the decoded snapshot |
 | `src/webview/three/ThreeView.tsx` | R3F `<Canvas>` root. Holds NO gesture state — raw pointer/wheel events forward verbatim to Go's FSM (`nodes/Wiring/gesture.go`) |
 | `src/webview/three/raw-input.ts` | Raw pointer/wheel + raycast hit → binary `raw-input` record to Go |

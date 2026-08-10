@@ -13,14 +13,10 @@
 
 import { TRACE_EVENT_KINDS, BREADCRUMB_LABELS } from "./schema/trace-kinds";
 import { NODE_KIND_NAMES } from "./schema/node-defs";
-import {
-  decodeViewFrame,
-  nodeLabel,
-  edgeLabel,
-  INTERIOR_SLOTS_PER_NODE,
-  type DecodedNodeFrame,
-  type DecodedEdgeFrame,
-} from "./webview/three/buffer-decode";
+import { decodeViewFrame } from "./webview/three/buffer-decode-view";
+import { nodeLabel, type DecodedNodeFrame } from "./webview/three/buffer-decode-node";
+import { edgeLabel, type DecodedEdgeFrame } from "./webview/three/buffer-decode-edge";
+import { INTERIOR_SLOTS_PER_NODE } from "./webview/three/buffer-decode-interior";
 import {
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius, readNodeSphereR,
   readNodeVRX, readNodeVRY, readNodeVRZ, readNodeFRX, readNodeFRY, readNodeFRZ,

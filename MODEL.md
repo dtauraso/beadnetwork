@@ -325,7 +325,8 @@ when a bead has arrived. Go owns the clock.
   for hits). The ext host relays each dedicated-fd frame to the webview
   under a synthetic tag (`BUF_BLOCK_TAG_VIEW`/`_EDGE_STREAM`/`_NODE_STREAM`/
   `_INTERIOR_STREAM`, `Buffer/frame_tags.go`) purely for cell routing —
-  never a wire byte. The webview decodes each stream (`buffer-decode.ts`)
+  never a wire byte. The webview decodes each stream (`buffer-decode-view.ts`/
+  `buffer-decode-edge.ts`/`buffer-decode-node.ts`/`buffer-decode-interior.ts`)
   and renders it; row-keyed reflect resources (`snapshot-buffer.ts`,
   `overlay-flags.ts`) mirror Go — they author nothing. There is **no
   JSON-trace render path and no `pump.ts`**; Go emits no trace-event JSON
