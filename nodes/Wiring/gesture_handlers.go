@@ -96,7 +96,7 @@ func (md *MoveDispatch) gestPointerUp(ev inputcodec.RawInputMsg, slotReg inputco
 	g := &md.ui.gest
 	switch {
 	case g.phase == gestDragging:
-		md.applyNodeDragTarget(ev) // final target flush
+		applyNodeDragTarget(md.ctx, &md.ui, &md.mr, &md.lq, ev) // final target flush
 	case g.phase == gestHandhold, g.phase == gestRotating:
 		// Rotation completed (free or handhold-constrained): nothing to flush.
 	case g.phase == gestPending:

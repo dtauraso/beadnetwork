@@ -106,8 +106,8 @@ func TestGroupsAreInertUntilResolved(t *testing.T) {
 		t.Fatalf("unresolved dispatch streamed (%v, %v, %v), want all 0", timeLen, inputLen, gateLen)
 	}
 	for i := range distanceGroupOrder {
-		if ok := md.ApplyDistanceGroupTarget(i, 1); ok {
-			t.Fatalf("ApplyDistanceGroupTarget(%d, up) = true before the scene was resolved, want false", i)
+		if ok := applyDistanceGroupTarget(md.ctx, &md.ui, &md.mr, &md.lq, i, 1); ok {
+			t.Fatalf("applyDistanceGroupTarget(%d, up) = true before the scene was resolved, want false", i)
 		}
 	}
 }

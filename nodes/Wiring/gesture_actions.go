@@ -23,10 +23,10 @@ import (
 // camera is most pointed at, at its depth on the view-center ray. So rotate orbits whatever you
 // have flown to and centered (fly to a node → rotate spins around it), the orbit depth tracks
 // what you look at, and — because the pivot is on the view axis — it does not re-aim the camera.
-func (md *MoveDispatch) beginSphereRotation(ev inputcodec.RawInputMsg) {
-	g := &md.ui.gest
-	vp := md.ui.vp.Viewpoint
-	pivot := geom.FocusAhead(vp, md.lq.heldCenters(&md.mr))
+func beginSphereRotation(ui *uiState, mr *moverRegistry, lq *layoutQuantizer, ev inputcodec.RawInputMsg) {
+	g := &ui.gest
+	vp := ui.vp.Viewpoint
+	pivot := geom.FocusAhead(vp, lq.heldCenters(mr))
 	g.rotPivot = pivot
 
 	eye := geom.EyeOf(vp)
@@ -39,7 +39,7 @@ func (md *MoveDispatch) beginSphereRotation(ev inputcodec.RawInputMsg) {
 	// scales by csRadius/pivotDist (the sphere's angular size), so a quarter-turn (pi/2) is
 	// reached by dragging one on-screen content-sphere radius, at every zoom level. Without the
 	// anchor, pi/2 required dragging nearly the full screen height and felt unreachable.
-	_, csRadius := geom.ContentSphereOf(md.lq.heldCenters(&md.mr))
+	_, csRadius := geom.ContentSphereOf(lq.heldCenters(mr))
 	pivotDist := eye.Sub(pivot).Length()
 	fovRad := ev.Fov * math.Pi / 180
 	rpx := (g.rect.height / 2) / math.Tan(fovRad/2)
@@ -147,13 +147,13 @@ func (ui *uiState) dragPlaneHit(ev inputcodec.RawInputMsg) (hit vec3, ok bool) {
 // center straight to the hit — is what keeps the point you grabbed under the cursor instead
 // of the node teleporting so its center lands there. Returns false if the ray is parallel
 // to the plane.
-func (md *MoveDispatch) applyNodeDragTarget(ev inputcodec.RawInputMsg) bool {
-	g := &md.ui.gest
-	hit, ok := md.ui.dragPlaneHit(ev)
+func applyNodeDragTarget(ctx context.Context, ui *uiState, mr *moverRegistry, lq *layoutQuantizer, ev inputcodec.RawInputMsg) bool {
+	g := &ui.gest
+	hit, ok := ui.dragPlaneHit(ev)
 	if !ok {
 		return false
 	}
-	md.lq.RootMove(md.ctx, &md.mr, g.dragNode, hit.Add(g.dragGrabOffset))
+	lq.RootMove(ctx, mr, g.dragNode, hit.Add(g.dragGrabOffset))
 	return true
 }
 

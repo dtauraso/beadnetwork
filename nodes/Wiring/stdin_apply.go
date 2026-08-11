@@ -43,7 +43,7 @@ func applyUpdateDistanceGroup(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.T
 	if msg.Flag == "up" {
 		dir = 1
 	}
-	if md.ApplyDistanceGroupTarget(msg.Num, dir) {
+	if applyDistanceGroupTarget(md.ctx, &md.ui, &md.mr, &md.lq, msg.Num, dir) {
 		md.emitViewFrame(nil)
 	}
 }

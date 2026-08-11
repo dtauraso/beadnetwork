@@ -12,7 +12,7 @@
 // accepted (per the agreed model): there is no tree/graph solver, no averaging, no
 // equal-radii resolve for a shared target.
 //
-// The repositioning itself reuses md.RootMove exactly as the drag tests call it
+// The repositioning itself reuses lq.RootMove exactly as the drag tests call it
 // programmatically (abc_drag_count_target_node_test.go) — RootMove already routes the
 // move to the target node's OWN goroutine, commits via commitNodeMoveLocal, and
 // rebroadcasts geometry so incident edges' segments recompute and redraw. This file adds
@@ -20,6 +20,7 @@
 package Wiring
 
 import (
+	"context"
 	"time"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
@@ -112,10 +113,10 @@ func DistanceGroupLens(ui *uiState, mr *moverRegistry) (timeLen, inputLen, gateL
 // length L = currentMax*1.1), dir < 0 is down (L = currentMax/1.1). For EACH pair in
 // the group's flat list, IN ORDER, the target node's new world position is
 // center(source) + normalize(center(target)-center(source))*L, applied via
-// md.lq.RootMove(md, target, newPos) — the same decentralized drag entry every programmatic
+// lq.RootMove(ctx, mr, target, newPos) — the same decentralized drag entry every programmatic
 // move test uses. Returns false if the group is unknown, has no resolvable pair, or
 // groupIdx is out of range.
-func (md *MoveDispatch) ApplyDistanceGroupTarget(groupIdx, dir int) bool {
+func applyDistanceGroupTarget(ctx context.Context, ui *uiState, mr *moverRegistry, lq *layoutQuantizer, groupIdx, dir int) bool {
 	if groupIdx < 0 || groupIdx >= len(distanceGroupOrder) {
 		return false
 	}
@@ -124,7 +125,7 @@ func (md *MoveDispatch) ApplyDistanceGroupTarget(groupIdx, dir int) bool {
 	if !ok {
 		return false
 	}
-	currentMax, any := distanceGroupMax(&md.ui, &md.mr, group)
+	currentMax, any := distanceGroupMax(ui, mr, group)
 	if !any {
 		return false
 	}
@@ -134,8 +135,8 @@ func (md *MoveDispatch) ApplyDistanceGroupTarget(groupIdx, dir int) bool {
 	}
 	moved := false
 	for _, p := range pairs {
-		cs, okS := md.mr.centerOfNode(p.Source)
-		ct, okT := md.mr.centerOfNode(p.Target)
+		cs, okS := mr.centerOfNode(p.Source)
+		ct, okT := mr.centerOfNode(p.Target)
 		if !okS || !okT {
 			continue
 		}
@@ -144,7 +145,7 @@ func (md *MoveDispatch) ApplyDistanceGroupTarget(groupIdx, dir int) bool {
 			continue
 		}
 		newPos := cs.Add(offset.Normalize().Scale(targetLen))
-		if md.lq.RootMove(md.ctx, &md.mr, p.Target, newPos) {
+		if lq.RootMove(ctx, mr, p.Target, newPos) {
 			moved = true
 			// RootMove is fire-and-forget (a movemsg.KindDrag message to the target's OWN
 			// goroutine — see its doc comment): it returns before the target's commit
@@ -155,7 +156,7 @@ func (md *MoveDispatch) ApplyDistanceGroupTarget(groupIdx, dir int) bool {
 			// (never blocks forever); a target whose commit doesn't land within the
 			// deadline just leaves the next pair reading whatever center is currently
 			// live, same as any other cross-goroutine read on this seam.
-			waitForCenterSettle(md, p.Target, newPos)
+			waitForCenterSettle(mr, p.Target, newPos)
 		}
 	}
 	// The 3 GroupLen* Overlay columns are recomputed from live centers ONLY inside
@@ -189,11 +190,11 @@ func (md *MoveDispatch) ApplyDistanceGroupTarget(groupIdx, dir int) bool {
 
 // waitForCenterSettle polls md.mr.centerOfNode(id) until it matches want (within a small
 // tolerance) or a short deadline passes. See ApplyDistanceGroupTarget's call site.
-func waitForCenterSettle(md *MoveDispatch, id string, want vec3) {
+func waitForCenterSettle(mr *moverRegistry, id string, want vec3) {
 	const tol = 1e-6
 	deadline := time.Now().Add(200 * time.Millisecond)
 	for time.Now().Before(deadline) {
-		if c, ok := md.mr.centerOfNode(id); ok && c.Sub(want).Length() <= tol {
+		if c, ok := mr.centerOfNode(id); ok && c.Sub(want).Length() <= tol {
 			return
 		}
 		time.Sleep(time.Millisecond)
