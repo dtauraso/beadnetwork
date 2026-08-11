@@ -26,6 +26,7 @@ import (
 
 	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
+	"github.com/dtauraso/wirefold/nodes/Wiring/distancegroups"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
@@ -51,7 +52,7 @@ func applyUpdateDistanceGroup(ctx context.Context, msg inputcodec.StdinMsg, md *
 	if msg.Flag == "up" {
 		dir = 1
 	}
-	if dispatch.ApplyDistanceGroupTarget(ctx, &md.UI, &md.MR, &md.LQ, msg.Num, dir) {
+	if distancegroups.ApplyDistanceGroupTarget(ctx, &md.UI, &md.MR, &md.LQ, msg.Num, dir) {
 		md.UI.EmitViewFrame(nil)
 	}
 }

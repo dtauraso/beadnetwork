@@ -38,7 +38,7 @@ func loadSceneMD(t *testing.T, sceneDir string) *dispatch.MoveDispatch {
 	if err != nil {
 		t.Fatalf("LoadTopology(%s): %v", sceneDir, err)
 	}
-	md.ResolveSceneDistanceGroups(root)
+	distancegroups.ResolveSceneDistanceGroups(&md.UI, root)
 	return md
 }
 
@@ -111,7 +111,7 @@ func TestGroupsAreInertUntilResolved(t *testing.T) {
 	// md.ctx (unexported) is never set here — LoadTopology does not call Start — so it is
 	// always nil; context.Background() is the same "no cancellation" value this test needs.
 	for i := range distancegroups.GroupOrder {
-		if ok := dispatch.ApplyDistanceGroupTarget(context.Background(), &md.UI, &md.MR, &md.LQ, i, 1); ok {
+		if ok := distancegroups.ApplyDistanceGroupTarget(context.Background(), &md.UI, &md.MR, &md.LQ, i, 1); ok {
 			t.Fatalf("ApplyDistanceGroupTarget(%d, up) = true before the scene was resolved, want false", i)
 		}
 	}
