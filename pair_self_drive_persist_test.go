@@ -137,7 +137,7 @@ func TestPairNodeSelfDrivePersistsThroughRealReload(t *testing.T) {
 	md.EnableEditPersist(root)
 
 	for _, id := range []string{"1", "2"} {
-		if !md.NodeSelfDriven(id) {
+		if !md.MR.NodeSelfDriven(id) {
 			t.Fatalf("node %q is not self-driven — task/pair-node-owns-itself requires every PAIR node to own itself, not a separate nodeMover goroutine", id)
 		}
 	}
@@ -216,7 +216,7 @@ func TestPairNodeSelfDrivePersistsThroughRealReload(t *testing.T) {
 	if err != nil {
 		t.Fatalf("reload LoadTopology: %v", err)
 	}
-	iTheta, iPhi, iR, ok := md2.NodeQuantOffset("2")
+	iTheta, iPhi, iR, ok := md2.MR.NodeQuantOffset("2")
 	if !ok {
 		t.Fatal("reload: no nodeMover for node 2")
 	}

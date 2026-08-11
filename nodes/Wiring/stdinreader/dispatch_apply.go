@@ -69,16 +69,16 @@ func applyUpdateDistanceGroup(ctx context.Context, msg inputcodec.StdinMsg, md *
 //
 // theta/reset each have two routes, decided by whether the target node's OWN kind
 // claimed BuildArgs.TiltEditIn at build time (PairNode today — the only kind that owns
-// its tilt index independently, per the straightening loop's firing rule): dispatch.SendTiltEdit
+// its tilt index independently, per the straightening loop's firing rule): md.Inboxes.SendTiltEdit
 // tries that node's dedicated channel first and reports whether one exists. When it does
-// NOT (every other kind), this falls back to the old path — dispatch.SendMove onto the node's
+// NOT (every other kind), this falls back to the old path — md.MR.SendMove onto the node's
 // mover (movemsg.KindTiltVectorAngle / movemsg.KindTiltVectorReset) — so the index write +
 // persist + re-emit still run on that node's own mover goroutine, unchanged for every kind
 // but the pair. A theta click now moves the index by exactly one step and sends/places
 // nothing else (task/pair-node-owns-itself split); reset places NO bead either.
 //
 // start has ONE route only: it is meaningless off the pair's own vector exchange, so it is
-// sent to dispatch.SendTiltEdit and simply dropped when that channel does not exist (see the
+// sent to md.Inboxes.SendTiltEdit and simply dropped when that channel does not exist (see the
 // "start" branch below) — no mover fallback, unlike theta/reset.
 func applyUpdateTiltVector(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
 	if md == nil || (msg.Attr != "theta" && msg.Attr != "reset" && msg.Attr != "start") {
@@ -91,10 +91,10 @@ func applyUpdateTiltVector(ctx context.Context, msg inputcodec.StdinMsg, md *dis
 	if msg.Attr == "reset" {
 		// Done setting: the slider's speed governs again. See HumanEditSpeed.
 		scenepersist.BroadcastSpeed(speedSinks, md.SliderSpeed())
-		if dispatch.SendTiltEdit(&md.Inboxes, ctx, id, movemsg.TiltEditMsg{Reset: true}) {
+		if md.Inboxes.SendTiltEdit(ctx, id, movemsg.TiltEditMsg{Reset: true}) {
 			return
 		}
-		dispatch.SendMove(&md.MR, ctx, id, movemsg.Msg{Kind: movemsg.KindTiltVectorReset, NodeID: id})
+		md.MR.SendMove(ctx, id, movemsg.Msg{Kind: movemsg.KindTiltVectorReset, NodeID: id})
 		return
 	}
 	if msg.Attr == "start" {
@@ -106,7 +106,7 @@ func applyUpdateTiltVector(ctx context.Context, msg inputcodec.StdinMsg, md *dis
 		// VectorOut/outgoingVector) — there is no mover-owned fallback, unlike
 		// theta/phi/reset: a kind that never claimed BuildArgs.TiltEditIn has no vector
 		// exchange to open, so a Start for it is simply a no-op.
-		dispatch.SendTiltEdit(&md.Inboxes, ctx, id, movemsg.TiltEditMsg{Start: true})
+		md.Inboxes.SendTiltEdit(ctx, id, movemsg.TiltEditMsg{Start: true})
 		return
 	}
 	// A ▲/▼ ANGLE CLICK — the user is SETTING a tilt. Run every clock at human speed until
@@ -115,10 +115,10 @@ func applyUpdateTiltVector(ctx context.Context, msg inputcodec.StdinMsg, md *dis
 	// so the very node about to drain this edit is already cycling at that speed.
 	scenepersist.BroadcastSpeed(speedSinks, dispatch.HumanEditSpeed)
 	up := msg.Flag == "up"
-	if dispatch.SendTiltEdit(&md.Inboxes, ctx, id, movemsg.TiltEditMsg{Axis: msg.Attr, Up: up}) {
+	if md.Inboxes.SendTiltEdit(ctx, id, movemsg.TiltEditMsg{Axis: msg.Attr, Up: up}) {
 		return
 	}
-	dispatch.SendMove(&md.MR, ctx, id, movemsg.Msg{Kind: movemsg.KindTiltVectorAngle, NodeID: id, Axis: msg.Attr, Bool: up})
+	md.MR.SendMove(ctx, id, movemsg.Msg{Kind: movemsg.KindTiltVectorAngle, NodeID: id, Axis: msg.Attr, Bool: up})
 }
 
 // applyUpdateScene handles kind=="scene" attr=="selected" (one click on the scene tab

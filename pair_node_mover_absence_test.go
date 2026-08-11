@@ -32,7 +32,7 @@ func TestPairNodesHaveNoNodeMoverRingNodesDo(t *testing.T) {
 		t.Fatalf("LoadTopology(pair): %v", err)
 	}
 	for _, id := range []string{"1", "2"} {
-		if pairMD.HasNodeMover(id) {
+		if pairMD.MR.HasNodeMover(id) {
 			t.Fatalf("pair node %q has a nodeMover — task/pair-node-owns-itself requires none be constructed for a self-driven node", id)
 		}
 	}
@@ -49,7 +49,7 @@ func TestPairNodesHaveNoNodeMoverRingNodesDo(t *testing.T) {
 		if i >= 10 {
 			t.Fatalf("test assumes single-digit ring node ids")
 		}
-		if !ringMD.HasNodeMover(id) {
+		if !ringMD.MR.HasNodeMover(id) {
 			continue
 		}
 		sawOne = true
