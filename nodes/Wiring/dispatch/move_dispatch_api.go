@@ -15,6 +15,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgemover"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/moverreg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeinbox"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 )
 
@@ -38,23 +39,10 @@ func sendMove(mr *moverreg.MoverRegistry, ctx context.Context, id string, msg mo
 // tiltEditIns channel and returns true, or returns false when id has no such channel (a
 // kind that never called BuildArgs.TiltEditIn — every kind except PairNode today),
 // telling the caller (applyUpdateTiltVector) to fall back to the old mover-owned path
-// instead. Same blocking-with-ctx-cancel-escape shape as sendMove/mr.sendMove, for the
-// same reason: this is a bare external-entry send with no owning goroutine to thread a
-// ctx from.
-func sendTiltEdit(inboxes *nodeInboxes, ctx context.Context, id string, msg movemsg.TiltEditMsg) bool {
-	ch, ok := inboxes.tiltEdit[id]
-	if !ok {
-		return false
-	}
-	if ctx == nil {
-		ch <- msg
-		return true
-	}
-	select {
-	case ch <- msg:
-	case <-ctx.Done():
-	}
-	return true
+// instead. Thin delegator to nodeinbox.NodeInboxes.SendTiltEdit (nodes/Wiring/nodeinbox,
+// lifted out of this package in docs/planning/movedispatch-decomposition.md §29).
+func sendTiltEdit(inboxes *nodeinbox.NodeInboxes, ctx context.Context, id string, msg movemsg.TiltEditMsg) bool {
+	return inboxes.SendTiltEdit(ctx, id, msg)
 }
 
 // setSelectionUI sets the Go-owned selection (node XOR edge, exclusive). Thin delegator to

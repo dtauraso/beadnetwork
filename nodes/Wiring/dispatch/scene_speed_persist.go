@@ -44,7 +44,7 @@ const HumanEditSpeed = 1.0
 // The speed's own file persister (view/speed.json) is one instantiation of
 // scenepersist.Persister[float64] (the shared debounce-then-write actor shape, see that
 // type's own doc comment), bound to WriteSceneSpeed, constructed in move_persist.go's
-// EnableEditPersist and held at md.persist.speed. Armed by EnableEditPersist, then called
+// EnableEditPersist and held at md.Persist, reached via md.Persist.Speed(). Armed by EnableEditPersist, then called
 // exclusively by the view-owner goroutine (RunStdinReader) — see the OWNER note above. Its
 // Path == "" (tests that never arm) → Schedule is a no-op.
 

@@ -83,7 +83,7 @@ func applyUpdateTiltVector(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trac
 	if msg.Attr == "reset" {
 		// Done setting: the slider's speed governs again. See HumanEditSpeed.
 		scenepersist.BroadcastSpeed(speedSinks, md.SliderSpeed())
-		if sendTiltEdit(&md.inboxes, md.ctx, id, movemsg.TiltEditMsg{Reset: true}) {
+		if sendTiltEdit(&md.Inboxes, md.ctx, id, movemsg.TiltEditMsg{Reset: true}) {
 			return
 		}
 		sendMove(&md.MR, md.ctx, id, movemsg.Msg{Kind: movemsg.KindTiltVectorReset, NodeID: id})
@@ -98,7 +98,7 @@ func applyUpdateTiltVector(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trac
 		// VectorOut/outgoingVector) — there is no mover-owned fallback, unlike
 		// theta/phi/reset: a kind that never claimed BuildArgs.TiltEditIn has no vector
 		// exchange to open, so a Start for it is simply a no-op.
-		sendTiltEdit(&md.inboxes, md.ctx, id, movemsg.TiltEditMsg{Start: true})
+		sendTiltEdit(&md.Inboxes, md.ctx, id, movemsg.TiltEditMsg{Start: true})
 		return
 	}
 	// A ▲/▼ ANGLE CLICK — the user is SETTING a tilt. Run every clock at human speed until
@@ -107,7 +107,7 @@ func applyUpdateTiltVector(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trac
 	// so the very node about to drain this edit is already cycling at that speed.
 	scenepersist.BroadcastSpeed(speedSinks, HumanEditSpeed)
 	up := msg.Flag == "up"
-	if sendTiltEdit(&md.inboxes, md.ctx, id, movemsg.TiltEditMsg{Axis: msg.Attr, Up: up}) {
+	if sendTiltEdit(&md.Inboxes, md.ctx, id, movemsg.TiltEditMsg{Axis: msg.Attr, Up: up}) {
 		return
 	}
 	sendMove(&md.MR, md.ctx, id, movemsg.Msg{Kind: movemsg.KindTiltVectorAngle, NodeID: id, Axis: msg.Attr, Bool: up})
@@ -143,7 +143,7 @@ func applyUpdateScene(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trace, sp
 			return
 		}
 		md.UI.LatticePoints = points
-		md.persist.lattice.Schedule(points)
+		md.Persist.Lattice().Schedule(points)
 		md.BroadcastLatticePoints(points)
 	case "create":
 		// The palette's drop. Num is the kind id, X/Y the drop's NDC — see
@@ -168,5 +168,5 @@ func applyUpdateOverlays(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trace,
 	// EnableEditPersist arms the writer (nil-receiver / empty-treeRoot guard in schedule).
 	// Runs regardless of which (or whether an) attr matched, matching the original
 	// switch's post-inner-switch placement.
-	md.persist.overlays.Schedule(md.UI.OV)
+	md.Persist.Overlays().Schedule(md.UI.OV)
 }

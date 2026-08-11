@@ -11,7 +11,7 @@ package dispatch
 // dependency on *uiState/*MoveDispatch/*moverRegistry/*layoutQuantizer. md.ui.vp is typed
 // gesturefsm.ViewpointState directly (no alias shim), and the *geom.Viewpoint navigation ops
 // (Orbit/OrbitLocked/Zoom/Pan) still promote onto it. The delegators below (which need
-// md.sw/md.RT to emit the VIEW frame, per the write-then-emit split) stay here.
+// md.Sw/md.RT to emit the VIEW frame, per the write-then-emit split) stay here.
 
 import (
 	T "github.com/dtauraso/wirefold/Trace"

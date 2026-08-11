@@ -73,7 +73,7 @@ func (md *MoveDispatch) LoadSceneSphere(topologyPath string) {
 // The sphere's own file persister (view/sphere.json) is one instantiation of
 // scenepersist.Persister[geom.SceneSphere] (the shared debounce-then-write actor shape, see
 // that type's own doc comment), bound to WriteSceneSphere, constructed in move_persist.go's
-// EnableEditPersist and held at md.persist.sphere. Its Path == "" ⇒ Schedule is a no-op
+// EnableEditPersist and held at md.Persist, reached via md.Persist.Sphere(). Its Path == "" ⇒ Schedule is a no-op
 // (tests that never arm persistence). The sphere is "established once and never moves"
 // (MODEL.md) — Schedule is its only writer, called by LoadSceneSphere's content-fit below
 // and by the "save" command (handleSaveMsg); there was never a debounce for it to begin

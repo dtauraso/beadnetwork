@@ -85,7 +85,7 @@ func TestLoadSpeedDoesNotCompoundDivisorAcrossReload(t *testing.T) {
 	md.EnableEditPersist(root)
 
 	const userSpeed = 0.5
-	md.persist.speed.Schedule(userSpeed)
+	md.Persist.Speed().Schedule(userSpeed)
 
 	onDisk, found := scenepersist.LoadSceneSpeed(scenepaths.SpeedFilePath(root))
 	if !found || onDisk != userSpeed {

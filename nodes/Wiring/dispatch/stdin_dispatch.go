@@ -40,11 +40,11 @@ func HandleSaveMsg(md *MoveDispatch) {
 	if md == nil {
 		return
 	}
-	md.persist.overlays.Schedule(md.UI.OV)
+	md.Persist.Overlays().Schedule(md.UI.OV)
 	// Persist the scene sphere immediately (not debounced) so save reliably activates
 	// the polar-load path (scene_sphere_persist.go LoadSceneSphere) — until the sphere
 	// is in sphere.json, reload stays on cartesian x/y/z.
-	md.persist.sphere.Schedule(md.UI.SceneSphere)
+	md.Persist.Sphere().Schedule(md.UI.SceneSphere)
 }
 
 // viewstate.OverlayToggles (the FLAG name → OverlayState flip-method table) and
@@ -149,7 +149,7 @@ var clockAttrHandlers = map[string]func(msg inputcodec.StdinMsg, md *MoveDispatc
 		// this view-owner goroutine's own file — .claude/rules/persistence-ownership.md). The
 		// divisor never crosses the bridge and never reaches disk.
 		md.UI.Speed = userSpeed
-		md.persist.speed.Schedule(userSpeed)
+		md.Persist.Speed().Schedule(userSpeed)
 		md.UI.EmitViewFrame(nil)
 	},
 }

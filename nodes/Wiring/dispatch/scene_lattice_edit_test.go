@@ -66,7 +66,8 @@ func TestBroadcastLatticePointsReachesEveryRegisteredChannel(t *testing.T) {
 	md := &MoveDispatch{}
 	chA := make(chan int32, 1)
 	chB := make(chan int32, 1)
-	md.inboxes.lattice = map[string]chan int32{"1": chA, "2": chB}
+	md.Inboxes.ClaimLatticeIn("1", chA)
+	md.Inboxes.ClaimLatticeIn("2", chB)
 
 	md.BroadcastLatticePoints(12)
 
@@ -90,7 +91,7 @@ func TestBroadcastLatticePointsDoesNotBlockOnAFullChannel(t *testing.T) {
 	md := &MoveDispatch{}
 	ch := make(chan int32, 1)
 	ch <- 8 // pre-fill: simulates a stale pending value nobody has drained yet
-	md.inboxes.lattice = map[string]chan int32{"1": ch}
+	md.Inboxes.ClaimLatticeIn("1", ch)
 
 	// Called directly, on this test's own goroutine: a non-blocking drain-then-send
 	// either returns immediately (pass) or the test itself hangs and the runner times it

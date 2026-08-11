@@ -16,17 +16,18 @@ package dispatch
 // The lattice's own file persister (view/lattice.json) is one instantiation of
 // scenepersist.Persister[int32] (the shared debounce-then-write actor shape, see that type's
 // own doc comment), bound to WriteSceneLattice, constructed in move_persist.go's
-// EnableEditPersist and held at md.persist.lattice. Armed by EnableEditPersist, then called
-// exclusively by the view-owner goroutine (RunStdinReader). Its Path == "" (tests that never
-// arm) → Schedule is a no-op.
+// EnableEditPersist and held at md.Persist (nodes/Wiring/viewpersist), reached via
+// md.Persist.Lattice(). Armed by EnableEditPersist, then called exclusively by the
+// view-owner goroutine (RunStdinReader). Its Path == "" (tests that never arm) →
+// Schedule is a no-op.
 
 // BroadcastLatticePoints sends a new lattice point count to every node id's own dedicated
-// LatticeIn channel. Thin nil-guarded delegator to md.inboxes (move_dispatch.go); the nil
-// check on md itself (not on inboxes) is preserved from before this pure single-owner
+// LatticeIn channel. Thin nil-guarded delegator to md.Inboxes (nodes/Wiring/nodeinbox); the
+// nil check on md itself (not on Inboxes) is preserved from before this pure single-owner
 // forward moved, so a bare nil *MoveDispatch still no-ops instead of panicking.
 func (md *MoveDispatch) BroadcastLatticePoints(points int32) {
 	if md == nil {
 		return
 	}
-	md.inboxes.broadcastLatticePoints(points)
+	md.Inboxes.BroadcastLatticePoints(points)
 }

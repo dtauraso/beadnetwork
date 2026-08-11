@@ -151,8 +151,8 @@ a second goroutine — the original per-kind list in this doc's earlier sections
 imprecise on that point; only `Pulse`/`PulseLeft`/`PulseRight`/`holdflip` actually call
 `gatecommon.DriveHeld`.
 
-**Go-side wiring**: `nodes/Wiring/dispatch/stream_wiring.go`'s `streamWiring.driveOuts` holds
-`[DriveSlotsPerNode]io.Writer` per node id, populated by `setNodeStreams` alongside
+**Go-side wiring**: `nodes/Wiring/streamwire/stream_wiring.go`'s `StreamWiring.driveOuts` holds
+`[DriveSlotsPerNode]io.Writer` per node id, populated by `SetNodeStreams` alongside
 `interiorOuts` (same "wire before any goroutine launches" ordering).
 `nodes/Wiring/portwiring/port_wiring.go`'s `NewDriveStreamGetter(name, slot, pb)` is
 `NewInteriorStreamGetter`'s counterpart, reading `driveOuts[name][slot]` instead of

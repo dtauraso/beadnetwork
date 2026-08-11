@@ -23,28 +23,22 @@ import (
 func (b *buildCtx) buildNodes() error {
 	// deps gives BuildArgs methods that need more of MoveDispatch than PortBindings can
 	// portably carry (LatticePointsSeed/LatticeIn, TiltEditIn, ClaimSelfDrive — dispatch
-	// core state: md.UI.LatticePoints, md.inboxes, md.MR) a way to reach it WITHOUT
+	// core state: md.UI.LatticePoints, md.Inboxes, md.MR) a way to reach it WITHOUT
 	// kindapi naming any dispatch-core type (docs/planning/movedispatch-decomposition.md
 	// §24): each of the three consuming BuildArgs methods gets its OWN bound func value,
 	// closed over this build's own *MoveDispatch, instead of raw pointers into
-	// nodeInboxes/moverreg.MoverRegistry. Built once, here, before any node is built, and threaded
-	// down through each bind.Build call below.
+	// nodeinbox.NodeInboxes/moverreg.MoverRegistry. Built once, here, before any node is
+	// built, and threaded down through each bind.Build call below.
 	deps := kindapi.BuildDeps{
 		LatticePoints: b.md.UI.LatticePoints,
 		ClaimLatticeIn: func(name string) chan int32 {
 			sceneToNodeLatticeIn := make(chan int32, moverreg.InboxDepth)
-			if b.md.inboxes.lattice == nil {
-				b.md.inboxes.lattice = map[string]chan int32{}
-			}
-			b.md.inboxes.lattice[name] = sceneToNodeLatticeIn
+			b.md.Inboxes.ClaimLatticeIn(name, sceneToNodeLatticeIn)
 			return sceneToNodeLatticeIn
 		},
 		ClaimTiltEditIn: func(name string) chan movemsg.TiltEditMsg {
 			panelToNodeTiltEditIn := make(chan movemsg.TiltEditMsg, moverreg.InboxDepth)
-			if b.md.inboxes.tiltEdit == nil {
-				b.md.inboxes.tiltEdit = map[string]chan movemsg.TiltEditMsg{}
-			}
-			b.md.inboxes.tiltEdit[name] = panelToNodeTiltEditIn
+			b.md.Inboxes.ClaimTiltEditIn(name, panelToNodeTiltEditIn)
 			return panelToNodeTiltEditIn
 		},
 		ClaimSelfDriveGeom: func(name string) *nodeactor.NodeGeometry {
@@ -76,14 +70,14 @@ func (b *buildCtx) buildNodes() error {
 		// InteriorOuts/DriveOuts/BuildInteriorFrame give injectClosures's interior-bead
 		// Emit* closures access to this node's OWN dedicated interior fd (keyed by node
 		// id) + the injected frame builder — the SECOND emitting goroutine per node
-		// (memory/feedback_no_single_writer_bridge.md). These are POINTERS into b.md.sw's
+		// (memory/feedback_no_single_writer_bridge.md). These are POINTERS into b.md.Sw's
 		// own fields (see portwiring.PortBindings' doc comment for why): nil-checked before
 		// writing, and stay effectively nil (pointing at an empty/nil map) until
 		// SetNodeStreams runs (main.go, after LoadTopology returns).
 		pb.RT = b.md.RT
-		pb.InteriorOuts = &b.md.sw.interiorOuts
-		pb.DriveOuts = &b.md.sw.driveOuts
-		pb.BuildInteriorFrame = &b.md.sw.buildInteriorFrame
+		pb.InteriorOuts = b.md.Sw.InteriorOutsPtr()
+		pb.DriveOuts = b.md.Sw.DriveOutsPtr()
+		pb.BuildInteriorFrame = b.md.Sw.BuildInteriorFramePtr()
 		pb.VectorOut = b.vectorOutByNode
 		pb.VectorIn = b.vectorInByNode
 
