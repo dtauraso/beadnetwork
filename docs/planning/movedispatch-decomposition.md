@@ -950,3 +950,71 @@ probe; `go build ./...` was run against the untouched tree only to confirm the s
 No interface, `types`/`common` package, alias shim, dot-import, package-level actor global, or
 `ForTest` hatch was used to route around this — the decline is the outcome, not a placeholder
 for one of those.
+
+## 8. Scene-persistence pure helpers lifted into `nodes/Wiring/scenepersist`
+
+Measured `nodes/Wiring` by coupling rather than by category: 42 pure standalone functions
+(~550 lines) touch no `md.`, no `buildCtx`, no actor type. Fourteen of them clustered in one
+subject — scene persistence I/O across `scene_lattice_persist.go`/`scene_speed_persist.go`/
+`scene_overlays_persist.go`/`scene_sphere_persist.go` — and `scenepersist` already existed
+(holding `scene_selection_persist.go` from an earlier lift), so this had a named home rather
+than a new grab-bag package.
+
+**Moved, verified pure:** `WriteSceneLattice`/`FormatLatticeJSON`/`LoadSceneLattice`/
+`LoadLatticePoints`/`SendLatticePointsNonBlocking` (+ `DefaultLatticePoints`, exported
+alongside since three other `Wiring` files read it directly);
+`EffectiveClockSpeed`/`WriteSceneSpeed`/`FormatSpeedJSON`/`LoadSceneSpeed`/`BroadcastSpeed`
+(+ `DefaultPlaybackSpeed`, same reason); `WriteSceneOverlays`/`LoadSceneOverlays`;
+`LoadSceneSphere`/`WriteSceneSphere`. All 14 matched the task brief's list exactly — none
+turned out to secretly close over a `Wiring` type.
+
+**Stayed, as directed:** the `MoveDispatch` methods `LoadOverlays`/`LoadSpeed`/
+`LoadSceneSphere`/`SliderSpeed`, and the four persister types (`latticePersister`/
+`speedPersister`/`overlaysPersister`/`sceneSpherePersister`) — each now calls
+`scenepersist.X(...)` instead of the in-package function. `HumanEditSpeed` also stayed (an
+interaction-mode override, not a persistence default). The four Wiring-side files kept their
+exact basenames (`scene_lattice_persist.go` etc.) — `scene_selection_persist.go`'s own header
+already recorded why: `check-persist-write-ownership.sh` matches by basename only, so a
+package split that keeps the name needs no guard edit. Both persistence guards were re-run
+clean after the move with no edits, then proven with teeth: a `jsonpersist.WriteJSONAtomic`
+call dropped into `nodes/Wiring/teeth_probe.go` AND into
+`nodes/Wiring/scenepersist/teeth_probe.go` (recursive scan, basename-only match — both
+non-owner basenames) each produced `unauthorized-write`; a hand-rolled
+`filepath.Join(root, "view", "probe.json")` in `nodes/Wiring/scenepersist/teeth_probe.go`
+produced `hand-rolled-join`. All three probe files were deleted immediately after observing
+the failure; `git status --short` was empty before each commit.
+
+Six call sites elsewhere in `Wiring` (`build_move_dispatch.go`, `build_args_lattice.go`,
+`move_dispatch.go`, `move_dispatch_construct.go`, `loader.go`, `stdin_dispatch.go`,
+`stdin_apply.go`) were updated to call the new `scenepersist.` names. Test files
+(`scene_camera_persist_test.go`, `scene_clock_divisor_test.go`, `scene_edit_persist_test.go`,
+`scene_lattice_edit_test.go`, `scene_lattice_persist_test.go`, `scene_speed_persist_test.go`,
+`scene_sphere_persist_test.go`, `stdin_input_integration_test.go`, `tilt_edit_speed_test.go`)
+were qualified the same way rather than moved, because every one of them depends on the
+`Wiring`-only `writeTree`/`loadTreeMD`/`MoveDispatch` test harness and so cannot move to
+`scenepersist` without `scenepersist` importing `Wiring` (forbidden). The one exception —
+`TestSceneSphereRoundTrip` in `scene_sphere_persist_test.go`, which drove only
+`writeSceneSphere`/`loadSceneSphere` and `t.TempDir()`, no `MoveDispatch` — moved to a new
+`nodes/Wiring/scenepersist/scene_sphere_persist_test.go` verbatim (same assertions, same
+name). No test was weakened; no `[allow-test-weakening: ...]` marker was added.
+
+`nodes/Wiring` non-test `.go` file count: 61 → 61 (no file deleted or added at that level;
+the four files shrank, `scenepersist` gained 4 new files + 1 moved test). JSON byte-identity
+was verified by keeping every struct tag, key name, and polarity/ordering literal
+byte-for-byte identical in the moved copy (`sceneLatticeFile`, `sceneSpeedFile`,
+`sceneOverlaysFile`'s 13 tagged fields, `sceneSphereJSON`) — confirmed by the full existing
+persistence-round-trip suite passing unchanged
+(`TestPersistLatticePointsRoundTrips`/`TestPersistSpeedRoundTrips`/
+`TestOverlaysPersistPreservesCamera`/`TestSceneSphereRoundTrip`/
+`TestSceneSphereContentFitSurvivesReloadAfterMove` among others), which reads the actual
+bytes off disk (`memory/feedback_headless_repro_verifies_persistence.md`'s shape), not an
+in-memory stub.
+
+The no-imports-`Wiring` loop is empty (`scenepersist` imports only `jsonpersist`,
+`scenepaths`, `tiltvector`, `viewstate`, `geom`, `nodes/wire`, `nodes/wire/clock` — none of
+them `Wiring`). `go build ./...`, `go vet ./...`, `go run ./tools/gen-node-defs` (no
+generated diff) all clean. `go test -race -count=1 ./...` passes clean, including the new
+`nodes/Wiring/scenepersist` package.
+
+No interface, `types`/`common` package, alias shim, dot-import, package-level actor global,
+or `ForTest` hatch was added.

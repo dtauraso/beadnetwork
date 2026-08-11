@@ -1,10 +1,10 @@
-// scene_sphere_persist.go — persist + load the first-class SCENE SPHERE (sphere_layout.go
-// sceneSphere; the fixed reference every node's scene polar is measured about) to
-// view/sphere.json, mirroring scene_camera_persist.go. sphere.json has exactly one writer
-// (writeSceneSphere), so each write is a fresh whole-file marshal — no read-modify-write, no
-// sceneFileMu (deleted; one-file-per-writer,
-// the one-file-per-writer split). loadSceneSphere reads sphere.json only — the legacy
-// scene.json fallback for a pre-split topology was REMOVED (scene_paths.go's header).
+// scene_sphere_persist.go — MoveDispatch-facing side of the first-class SCENE SPHERE
+// (sphere_layout.go sceneSphere; the fixed reference every node's scene polar is measured
+// about) persister (view/sphere.json): the LoadSceneSphere method and the
+// sceneSpherePersister type. Pure read/write helpers (WriteSceneSphere/LoadSceneSphere in
+// package scenepersist — note the package-qualified name collides on purpose with this
+// file's method name, same shape as LoadOverlays/LoadSceneOverlays) live in
+// nodes/Wiring/scenepersist/scene_sphere_persist.go.
 //
 // OWNER: the view-owner goroutine (RunStdinReader, stdin_reader.go) is the SOLE caller of
 // sceneSpherePersister.flushNow() below — both triggers (LoadSceneSphere's content-fit,
@@ -14,19 +14,8 @@
 // rather than a per-entity split.
 //
 // The Center is the only PERSISTED, AUTHORITATIVE cartesian value — the world anchor every
-// scene polar is measured about. It is NOT the only cartesian value in the system: the
-// camera pose (gesture_camera.go), port anchors (port_geometry.go), bead segments
-// (paced_wire.go) and per-node centers (quantized_layout.go deriveCenters) are all cartesian
-// too. The invariant is narrower and stronger than "cartesian appears once": every other
-// cartesian is DERIVED from this anchor (sceneCenter + polar2cart(…)) or QUARANTINED at the
-// renderer edge — none is persisted, and none is a source of truth. Nav stays polar-only
-// (guard: tools/webview/check-polar-only-nav.sh). On-disk shape:
-//
-//	{ "sceneSphere": { "center": [x,y,z], "radius": n } }
-//
-// Pointer fields distinguish "absent" from a legitimate zero so a partial object is
-// rejected (→ content-fit default) rather than silently read as a degenerate sphere.
-
+// scene polar is measured about. See scenepersist/scene_sphere_persist.go for the on-disk
+// shape and the pure read/write functions this file's methods call.
 package Wiring
 
 import (
@@ -34,35 +23,9 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
-
-type sceneSphereJSON struct {
-	Center *[3]float64 `json:"center"`
-	Radius *float64    `json:"radius"`
-}
-
-// loadSceneSphere reads the persisted scene sphere from sphere.json. ok is false when it
-// yields no complete sphere — callers then content-fit.
-func loadSceneSphere(topologyPath string) (geom.SceneSphere, bool) {
-	var sj sceneSphereJSON
-	jsonpersist.ReadJSONBestEffort(scenepaths.SphereFilePath(topologyPath), &sj)
-	if sj.Center == nil || sj.Radius == nil {
-		return geom.SceneSphere{}, false
-	}
-	return geom.SceneSphere{
-		Center: vec3{X: sj.Center[0], Y: sj.Center[1], Z: sj.Center[2]},
-		Radius: *sj.Radius,
-	}, true
-}
-
-// writeSceneSphere writes the scene sphere as the whole content of sphereJSONPath
-// (sphere.json) — the sole writer of that file, so no read-modify-write is needed.
-func writeSceneSphere(sphereJSONPath string, s geom.SceneSphere) error {
-	center := [3]float64{s.Center.X, s.Center.Y, s.Center.Z}
-	radius := s.Radius
-	return jsonpersist.WriteJSONAtomic(sphereJSONPath, sceneSphereJSON{Center: &center, Radius: &radius})
-}
 
 // LoadSceneSphere installs md.UI.SceneSphere from FILE DATA, or — when sphere.json has no
 // persisted sphere — from a one-time content-fit of the current node centers (so an
@@ -77,17 +40,11 @@ func writeSceneSphere(sphereJSONPath string, s geom.SceneSphere) error {
 //	load 2: still no sphere -> content-fit over the NEW centers -> S2 != S1
 //	        -> every scenePolar now read about S2 -> the whole diagram drifts
 //
-// The sphere used to reach disk only via the "save" command (spherePersist.flushNow). That
-// command has not fired since the old system was erased: its trigger chain (save.ts
-// markViewSynced <- store.ts) died with it, so _sendScene() has early-returned
-// "not-synced-yet" ever since. The existing topology/ is masked only because its sphere was
-// persisted back when save still worked. Any NEW topology walks straight into the drift.
-//
 // Go owns the authoritative scene state (MODEL.md), so its durability must not depend on the
 // webview sending a command. Persisting here removes the last reason for TS to trigger a
 // save at all.
 func (md *MoveDispatch) LoadSceneSphere(topologyPath string) {
-	if s, ok := loadSceneSphere(topologyPath); ok {
+	if s, ok := scenepersist.LoadSceneSphere(topologyPath); ok {
 		md.UI.SceneSphere = s
 	} else {
 		// LoadSceneSphere runs on the main goroutine BEFORE Start launches any mover
@@ -100,7 +57,7 @@ func (md *MoveDispatch) LoadSceneSphere(topologyPath string) {
 		// Path via scenepaths.SphereFilePath (scenepaths/scene_paths.go) — the authoritative
 		// resolver, per check-scene-path-resolution.sh; never hand-rolled.
 		if topologyPath != "" {
-			_ = writeSceneSphere(scenepaths.SphereFilePath(topologyPath), md.UI.SceneSphere)
+			_ = scenepersist.WriteSceneSphere(scenepaths.SphereFilePath(topologyPath), md.UI.SceneSphere)
 		}
 	}
 	// The scene sphere is established here and never moves again (MODEL.md), so the VIEW
@@ -130,7 +87,7 @@ func (p *sceneSpherePersister) flushNow(s geom.SceneSphere) {
 	if p == nil || p.path == "" {
 		return
 	}
-	if err := writeSceneSphere(p.path, s); err != nil {
+	if err := scenepersist.WriteSceneSphere(p.path, s); err != nil {
 		jsonpersist.LogPersistErr("scene_sphere_persist", p.path, err)
 		return
 	}

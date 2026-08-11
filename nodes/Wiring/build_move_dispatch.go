@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 )
 
 // buildMoveDispatch builds the MoveDispatch from initial geometry and edge
@@ -39,7 +40,7 @@ func (b *buildCtx) buildMoveDispatch() error {
 	// Seed the scene's lattice point count from view/lattice.json BEFORE buildNodes runs,
 	// so BuildArgs.LatticePointsSeed (called from each PairNode's own build func) hands back
 	// the loaded count rather than the compile-time default.
-	loadLatticePoints(&md.UI, b.scenePath)
+	scenepersist.LoadLatticePoints(&md.UI, b.scenePath)
 	if b.hasScene {
 		// Persisted scene sphere: install it now so md.UI.SceneSphere is consistent straight out
 		// of LoadTopology (a fresh/legacy scene has none — main.go's LoadSceneSphere then

@@ -6,24 +6,12 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	geomseeds "github.com/dtauraso/wirefold/nodes/Wiring/geomseeds"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 )
 
-// TestSceneSphereRoundTrip: writeSceneSphere then loadSceneSphere returns the same sphere.
-func TestSceneSphereRoundTrip(t *testing.T) {
-	dir := t.TempDir()
-
-	want := geom.SceneSphere{Center: vec3{X: 10, Y: -20, Z: 30}, Radius: 250}
-	if err := writeSceneSphere(scenepaths.SphereFilePath(dir), want); err != nil {
-		t.Fatalf("writeSceneSphere: %v", err)
-	}
-	got, ok := loadSceneSphere(dir)
-	if !ok {
-		t.Fatal("loadSceneSphere: ok=false after write")
-	}
-	if got != want {
-		t.Fatalf("round-trip: got %+v want %+v", got, want)
-	}
-}
+// TestSceneSphereRoundTrip (writeSceneSphere then loadSceneSphere returns the same sphere)
+// moved to nodes/Wiring/scenepersist/scene_sphere_persist_test.go — it drove only the pure
+// functions, no MoveDispatch/loadTreeMD.
 
 // seedsFromCenters builds a nodeSeeds slice (the frozen load-time set loadTimeCenters
 // rebuilds from) directly from world centers, for tests that don't go through a real
@@ -104,7 +92,7 @@ func TestSceneSpherePersisterFlushNow(t *testing.T) {
 	s := geom.SceneSphere{Center: vec3{X: 1, Y: 2, Z: 3}, Radius: 40}
 	p.flushNow(s)
 
-	got, ok := loadSceneSphere(dir)
+	got, ok := scenepersist.LoadSceneSphere(dir)
 	if !ok {
 		t.Fatal("loadSceneSphere: ok=false after flushNow")
 	}

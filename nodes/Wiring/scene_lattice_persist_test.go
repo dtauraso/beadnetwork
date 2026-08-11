@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 )
 
 // TestPersistLatticePointsRoundTrips: schedule a lattice write -> lattice.json carries the
@@ -22,7 +23,7 @@ func TestPersistLatticePointsRoundTrips(t *testing.T) {
 
 	md.persist.lattice.schedule(12)
 
-	got, found := loadSceneLattice(scenepaths.LatticeFilePath(root))
+	got, found := scenepersist.LoadSceneLattice(scenepaths.LatticeFilePath(root))
 	if !found {
 		t.Fatalf("loadSceneLattice found no points key after flush")
 	}
@@ -31,7 +32,7 @@ func TestPersistLatticePointsRoundTrips(t *testing.T) {
 	}
 
 	fresh := loadTreeMD(t, root)
-	loadLatticePoints(&fresh.UI, root)
+	scenepersist.LoadLatticePoints(&fresh.UI, root)
 	if fresh.UI.LatticePoints != 12 {
 		t.Fatalf("LoadLatticePoints did not restore ui.latticePoints=12, got %v", fresh.UI.LatticePoints)
 	}
@@ -44,10 +45,10 @@ func TestLoadLatticePointsFallsBackQuietlyWhenMissing(t *testing.T) {
 	root := writeTree(t) // no view/lattice.json
 	md := loadTreeMD(t, root)
 
-	loadLatticePoints(&md.UI, root)
+	scenepersist.LoadLatticePoints(&md.UI, root)
 
-	if md.UI.LatticePoints != defaultLatticePoints {
-		t.Fatalf("LoadLatticePoints with no file: got ui.latticePoints=%v, want default %v", md.UI.LatticePoints, defaultLatticePoints)
+	if md.UI.LatticePoints != scenepersist.DefaultLatticePoints {
+		t.Fatalf("LoadLatticePoints with no file: got ui.latticePoints=%v, want default %v", md.UI.LatticePoints, scenepersist.DefaultLatticePoints)
 	}
 }
 
@@ -64,9 +65,9 @@ func TestLoadLatticePointsFallsBackQuietlyWhenMalformed(t *testing.T) {
 	}
 	md := loadTreeMD(t, root)
 
-	loadLatticePoints(&md.UI, root)
+	scenepersist.LoadLatticePoints(&md.UI, root)
 
-	if md.UI.LatticePoints != defaultLatticePoints {
-		t.Fatalf("LoadLatticePoints with malformed file: got ui.latticePoints=%v, want default %v", md.UI.LatticePoints, defaultLatticePoints)
+	if md.UI.LatticePoints != scenepersist.DefaultLatticePoints {
+		t.Fatalf("LoadLatticePoints with malformed file: got ui.latticePoints=%v, want default %v", md.UI.LatticePoints, scenepersist.DefaultLatticePoints)
 	}
 }

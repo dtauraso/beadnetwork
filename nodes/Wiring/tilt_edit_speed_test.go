@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 )
 
 // tilt_edit_speed_test.go — SETTING a tilt runs the clocks at human speed; STARTING or
@@ -24,7 +25,7 @@ func TestHumanEditSpeedIsUnscaledAndDiffersFromASlowedScene(t *testing.T) {
 	// A scene with a divisor (the pair) must resolve to something SLOWER than the edit
 	// speed, or the override would be a no-op there and the click would still wait.
 	pairDivisor := scene.SceneClockDivisor("/anywhere/topology-pair")
-	slider := EffectiveClockSpeed(1, pairDivisor)
+	slider := scenepersist.EffectiveClockSpeed(1, pairDivisor)
 	if slider >= HumanEditSpeed {
 		t.Fatalf("pair slider speed %v is not slower than HumanEditSpeed %v — the override buys nothing", slider, HumanEditSpeed)
 	}
@@ -39,7 +40,7 @@ func TestSliderSpeedMatchesALiveSliderChange(t *testing.T) {
 			md := &MoveDispatch{}
 			md.UI.Speed = userSpeed
 			md.UI.ClockDivisor = divisor
-			want := EffectiveClockSpeed(userSpeed, divisor)
+			want := scenepersist.EffectiveClockSpeed(userSpeed, divisor)
 			if got := md.SliderSpeed(); got != want {
 				t.Fatalf("userSpeed=%v divisor=%v: SliderSpeed = %v, want %v", userSpeed, divisor, got, want)
 			}
@@ -52,7 +53,7 @@ func TestSliderSpeedMatchesALiveSliderChange(t *testing.T) {
 // rest of the network.
 func TestBroadcastSpeedReachesEverySink(t *testing.T) {
 	sinks := []chan float64{make(chan float64, 1), make(chan float64, 1), make(chan float64, 1)}
-	BroadcastSpeed(sinks, 0.25)
+	scenepersist.BroadcastSpeed(sinks, 0.25)
 	for i, ch := range sinks {
 		select {
 		case got := <-ch:

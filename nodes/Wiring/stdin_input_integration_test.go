@@ -22,6 +22,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
@@ -63,7 +64,7 @@ func TestSavePersistsCurrentOverlayState(t *testing.T) {
 		t.Fatal("decode toggle failed")
 	}
 	ApplyEdit(toggle, md, nil, nil)
-	if err := writeSceneOverlays(scenepaths.OverlaysFilePath(root), md.UI.OV); err != nil {
+	if err := scenepersist.WriteSceneOverlays(scenepaths.OverlaysFilePath(root), md.UI.OV); err != nil {
 		t.Fatalf("writeSceneOverlays: %v", err)
 	}
 	raw, _ := os.ReadFile(filepath.Join(root, "view", "overlays.json"))

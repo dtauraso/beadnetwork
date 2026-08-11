@@ -4,6 +4,8 @@
 
 package Wiring
 
+import "github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
+
 // LatticePointsSeed returns the scene's currently-loaded lattice point count
 // (a.deps.latticePoints, seeded from view/lattice.json by LoadLatticePoints BEFORE
 // buildNodes runs) — the load-time seed a node builds its FIRST ring at. nil-safe: on a
@@ -11,7 +13,7 @@ package Wiring
 // (24), matching every other build-time fallback in this file.
 func (a BuildArgs) LatticePointsSeed() int32 {
 	if a.deps.inboxes == nil {
-		return defaultLatticePoints
+		return scenepersist.DefaultLatticePoints
 	}
 	return a.deps.latticePoints
 }

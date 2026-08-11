@@ -9,6 +9,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 )
 
@@ -107,7 +108,7 @@ func TestCameraAndOverlaysFilesDoNotClobber(t *testing.T) {
 	// A save persists Go's OWN overlay state into a SEPARATE file (overlays.json).
 	ov := viewstate.DefaultOverlayState()
 	ov.LabelsGlobalVisible = false
-	if err := writeSceneOverlays(scenepaths.OverlaysFilePath(td), ov); err != nil {
+	if err := scenepersist.WriteSceneOverlays(scenepaths.OverlaysFilePath(td), ov); err != nil {
 		t.Fatalf("writeSceneOverlays: %v", err)
 	}
 

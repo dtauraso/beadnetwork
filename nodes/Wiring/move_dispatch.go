@@ -36,6 +36,7 @@ import (
 	geomseeds "github.com/dtauraso/wirefold/nodes/Wiring/geomseeds"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	rowtables "github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 	sceneswitch "github.com/dtauraso/wirefold/nodes/Wiring/sceneswitch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 
@@ -153,6 +154,6 @@ type nodeInboxes struct {
 // chan float64/int64) so a node that is mid-cycle never blocks the sender.
 func (ib *nodeInboxes) broadcastLatticePoints(points int32) {
 	for _, ch := range ib.lattice {
-		sendLatticePointsNonBlocking(ch, points)
+		scenepersist.SendLatticePointsNonBlocking(ch, points)
 	}
 }

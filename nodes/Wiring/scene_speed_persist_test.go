@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 )
 
 // TestPersistSpeedRoundTrips: schedule a speed write -> speed.json carries the exact
@@ -23,7 +24,7 @@ func TestPersistSpeedRoundTrips(t *testing.T) {
 
 	md.persist.speed.schedule(0.25)
 
-	got, found := loadSceneSpeed(scenepaths.SpeedFilePath(root))
+	got, found := scenepersist.LoadSceneSpeed(scenepaths.SpeedFilePath(root))
 	if !found {
 		t.Fatalf("loadSceneSpeed found no speed key after flush")
 	}
@@ -49,8 +50,8 @@ func TestLoadSpeedFallsBackQuietlyWhenMissing(t *testing.T) {
 
 	md.LoadSpeed(root, nil, nil)
 
-	if md.UI.Speed != defaultPlaybackSpeed {
-		t.Fatalf("LoadSpeed with no file: got ui.speed=%v, want default %v", md.UI.Speed, defaultPlaybackSpeed)
+	if md.UI.Speed != scenepersist.DefaultPlaybackSpeed {
+		t.Fatalf("LoadSpeed with no file: got ui.speed=%v, want default %v", md.UI.Speed, scenepersist.DefaultPlaybackSpeed)
 	}
 }
 

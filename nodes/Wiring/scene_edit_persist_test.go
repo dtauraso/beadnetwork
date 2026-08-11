@@ -13,6 +13,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
@@ -97,7 +98,7 @@ func TestPersistOverlaysRoundTrips(t *testing.T) {
 	md.UI.OV.ToggleLabelsGlobal(nil) // LabelsGlobalVisible: true -> false
 	md.persist.overlays.schedule(md.UI.OV)
 
-	ov, found := loadSceneOverlays(scenepaths.OverlaysFilePath(root))
+	ov, found := scenepersist.LoadSceneOverlays(scenepaths.OverlaysFilePath(root))
 	if !found {
 		t.Fatalf("loadSceneOverlays found no overlay keys after flush")
 	}
@@ -142,7 +143,7 @@ func TestOverlaysPersistPreservesCamera(t *testing.T) {
 		t.Fatalf("cameraPolar clobbered by overlay write")
 	}
 	// Overlay landed.
-	ov, found := loadSceneOverlays(scenepaths.OverlaysFilePath(root))
+	ov, found := scenepersist.LoadSceneOverlays(scenepaths.OverlaysFilePath(root))
 	if !found || ov.SceneToriVisible {
 		t.Fatalf("overlay not persisted alongside camera (found=%v ov=%+v)", found, ov)
 	}

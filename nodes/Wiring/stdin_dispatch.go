@@ -20,6 +20,7 @@ import (
 
 	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 )
 
@@ -126,7 +127,7 @@ var clockAttrHandlers = map[string]func(msg inputcodec.StdinMsg, md *MoveDispatc
 		if md != nil {
 			divisor = md.UI.ClockDivisor
 		}
-		effective := EffectiveClockSpeed(userSpeed, divisor)
+		effective := scenepersist.EffectiveClockSpeed(userSpeed, divisor)
 		// SetSpeed left the Clock INTERFACE in the per-goroutine-clock demolition (item 4):
 		// nothing outside a goroutine's own copy may mutate it anymore, since a copy is
 		// owned by exactly one goroutine.

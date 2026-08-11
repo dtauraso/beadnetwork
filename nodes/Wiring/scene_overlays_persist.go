@@ -1,6 +1,7 @@
-// scene_overlays_persist.go — persist + load Go's OWN overlay-visibility state to
-// view/overlays.json (writer + debounced persister + loader + seed, mirroring
-// scene_camera_persist.go).
+// scene_overlays_persist.go — MoveDispatch-facing side of Go's OWN overlay-visibility
+// persister (view/overlays.json): the overlaysPersister type + LoadOverlays. Pure
+// read/write helpers (WriteSceneOverlays/LoadSceneOverlays) live in
+// nodes/Wiring/scenepersist/scene_overlays_persist.go.
 //
 // OWNER: the view-owner goroutine (RunStdinReader, stdin_reader.go) is the SOLE caller of
 // overlaysPersister.schedule() below — both triggers (the bare `save` command and the
@@ -8,79 +9,20 @@
 // and genuinely singular, so it stays one file with one named owning goroutine
 // (.claude/rules/persistence-ownership.md "The owner writes, and owns the path") rather than a per-entity split.
 //
-// Go owns the overlay flags (overlay_gen.go's overlayState). Persistence has two triggers:
-// the bare `save` command (stdin_reader.go) and — like camera — an ON-CHANGE synchronous
-// write scheduled whenever an overlays update lands (applyUpdate toggle/set); see
-// scene_persist.go's header comment for why the prior debounce was removed. The camera pose
-// is written the same way by scene_camera_persist.go; this file handles the overlay half. No
-// scene document crosses the TS→Go bridge — Go writes ITS OWN current snapshot.
-//
-// LOAD side: loadSceneOverlays reads the keys back (inverting the *Hidden polarity) and
-// MoveDispatch.LoadOverlays installs them into md.ui.ov on startup + emits them so the first
-// snapshot reflects the saved state — closing the toggle→reload→still-toggled round trip.
-// It reads overlays.json only — the legacy scene.json fallback for a pre-split topology was
-// REMOVED (scene_paths.go's header).
-//
-// WHOLE-FILE write (one-file-per-writer, the one-file-per-writer split):
-// overlays.json holds ONLY these flags and has exactly one writer, so each flush marshals the
-// current overlayState fresh — no read-modify-write, no sceneFileMu (deleted). The key names
-// + polarity + default-omission mirror TS's serializeSceneState (webview/state/viewer/types.ts):
-// most flags are visible-sense written only when hidden (false); labelsGlobalHidden/badgesHidden
-// are hidden-sense written only when hidden (true); a key at its default is deleted so the
-// on-disk shape matches what the editor would have written. An old scene.json that still
-// carries a "badgesHidden" key (from before the occlusion-badge feature was removed) is
-// tolerated: json.Unmarshal into sceneOverlaysFile silently ignores unknown keys, so it is
-// dropped on the next save without needing an explicit migration.
-//
-// The crash-safe (tmp-then-rename) write plumbing is shared machinery from
-// scene_persist.go (writeJSONAtomic) — this file holds only the overlays-specific shape.
-
+// LOAD side: LoadOverlays installs the persisted overlay state into md.ui.ov on startup +
+// emits it so the first snapshot reflects the saved state — closing the
+// toggle→reload→still-toggled round trip.
 package Wiring
 
 import (
-	"encoding/json"
-
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
-
-// writeSceneOverlays writes the current overlay-visibility snapshot as the WHOLE content of
-// overlaysPath (overlays.json) — the sole writer of that file, so each call builds a fresh
-// object (no read-modify-write of any prior content).
-func writeSceneOverlays(overlaysPath string, ov viewstate.OverlayState) error {
-	obj := map[string]json.RawMessage{}
-	// visible-sense: default true — write `false` only when hidden, else drop the key.
-	setVisible := func(key string, visible bool) {
-		if !visible {
-			obj[key] = json.RawMessage("false")
-		}
-	}
-	// hidden-sense: default visible — write `true` only when hidden, else drop the key.
-	setHidden := func(key string, visible bool) {
-		if !visible {
-			obj[key] = json.RawMessage("true")
-		}
-	}
-
-	setVisible("sceneToriVisible", ov.SceneToriVisible)
-	setVisible("scenePolesVisible", ov.ScenePolesVisible)
-	setVisible("nodePolesVisible", ov.NodePolesVisible)
-	setVisible("selSpherePolesVisible", ov.SelSpherePolesVisible)
-	setVisible("handholdsVisible", ov.HandholdsVisible)
-	setVisible("overlaysActive", ov.OverlaysVisible)
-	setHidden("labelsGlobalHidden", ov.LabelsGlobalVisible)
-	setVisible("nodeBodyVisible", ov.NodeBodyVisible)
-	setVisible("nodeRingVisible", ov.NodeRingVisible)
-	setVisible("ringPickVisible", ov.RingPickVisible)
-	setVisible("selectionRingVisible", ov.SelectionRingVisible)
-	setVisible("hoverRingVisible", ov.HoverRingVisible)
-	setVisible("reachSphereVisible", ov.ReachSphereVisible)
-	return jsonpersist.WriteJSONAtomic(overlaysPath, obj)
-}
 
 // overlaysPersister writes overlay toggles/sets to overlays.json as they happen. Armed by
 // EnableEditPersist, then called exclusively by the view-owner goroutine (RunStdinReader)
@@ -94,107 +36,21 @@ func (p *overlaysPersister) schedule(ov viewstate.OverlayState) {
 	if p == nil || p.path == "" {
 		return
 	}
-	if err := writeSceneOverlays(p.path, ov); err != nil {
+	if err := scenepersist.WriteSceneOverlays(p.path, ov); err != nil {
 		jsonpersist.LogPersistErr("scene_overlays_persist", p.path, err)
 		return
 	}
 }
 
-// sceneOverlaysFile is the on-disk shape of overlays.json the overlay loader reads. Pointer fields
-// distinguish an ABSENT key (keep the code default) from a present false/true — the writer
-// omits any key at its default, so absence must not be read as false. Key names + polarity
-// mirror writeSceneOverlays (setVisible / setHidden) exactly.
-type sceneOverlaysFile struct {
-	SceneToriVisible      *bool `json:"sceneToriVisible"`
-	ScenePolesVisible     *bool `json:"scenePolesVisible"`
-	NodePolesVisible      *bool `json:"nodePolesVisible"`
-	SelSpherePolesVisible *bool `json:"selSpherePolesVisible"`
-	HandholdsVisible      *bool `json:"handholdsVisible"`
-	OverlaysActive        *bool `json:"overlaysActive"`
-	LabelsGlobalHidden    *bool `json:"labelsGlobalHidden"`
-	NodeBodyVisible       *bool `json:"nodeBodyVisible"`
-	NodeRingVisible       *bool `json:"nodeRingVisible"`
-	RingPickVisible       *bool `json:"ringPickVisible"`
-	SelectionRingVisible  *bool `json:"selectionRingVisible"`
-	HoverRingVisible      *bool `json:"hoverRingVisible"`
-	ReachSphereVisible    *bool `json:"reachSphereVisible"`
-}
-
-// loadSceneOverlays reads the persisted overlay-visibility snapshot from overlaysPath
-// (overlays.json), applying the same key names + polarity the writer used (visible-sense
-// keys straight through; the two *Hidden keys inverted back to visible-sense). Starts from
-// defaultOverlayState so any key the writer omitted (because it was at its default) keeps
-// the code default. The bool return is false when the file yields no overlay key (fresh
-// topology) — the caller then keeps the code defaults.
-func loadSceneOverlays(overlaysPath string) (viewstate.OverlayState, bool) {
-	ov := viewstate.DefaultOverlayState()
-	var sf sceneOverlaysFile
-	jsonpersist.ReadJSONBestEffort(overlaysPath, &sf)
-	found := false
-	if sf.SceneToriVisible != nil {
-		ov.SceneToriVisible = *sf.SceneToriVisible
-		found = true
-	}
-	if sf.ScenePolesVisible != nil {
-		ov.ScenePolesVisible = *sf.ScenePolesVisible
-		found = true
-	}
-	if sf.NodePolesVisible != nil {
-		ov.NodePolesVisible = *sf.NodePolesVisible
-		found = true
-	}
-	if sf.SelSpherePolesVisible != nil {
-		ov.SelSpherePolesVisible = *sf.SelSpherePolesVisible
-		found = true
-	}
-	if sf.HandholdsVisible != nil {
-		ov.HandholdsVisible = *sf.HandholdsVisible
-		found = true
-	}
-	if sf.OverlaysActive != nil {
-		ov.OverlaysVisible = *sf.OverlaysActive
-		found = true
-	}
-	if sf.LabelsGlobalHidden != nil {
-		ov.LabelsGlobalVisible = !*sf.LabelsGlobalHidden
-		found = true
-	}
-	if sf.NodeBodyVisible != nil {
-		ov.NodeBodyVisible = *sf.NodeBodyVisible
-		found = true
-	}
-	if sf.NodeRingVisible != nil {
-		ov.NodeRingVisible = *sf.NodeRingVisible
-		found = true
-	}
-	if sf.RingPickVisible != nil {
-		ov.RingPickVisible = *sf.RingPickVisible
-		found = true
-	}
-	if sf.SelectionRingVisible != nil {
-		ov.SelectionRingVisible = *sf.SelectionRingVisible
-		found = true
-	}
-	if sf.HoverRingVisible != nil {
-		ov.HoverRingVisible = *sf.HoverRingVisible
-		found = true
-	}
-	if sf.ReachSphereVisible != nil {
-		ov.ReachSphereVisible = *sf.ReachSphereVisible
-		found = true
-	}
-	return ov, found
-}
-
 // LoadOverlays reads the overlay-visibility state from overlays.json (FILE DATA) into
 // md.ui.ov and streams it so the buffer reflects the current overlay state from the first
-// frame. A file with no overlay keys resolves to the code defaults (loadSceneOverlays
-// starts from defaultOverlayState and applies any present keys) — and those defaults are
-// STILL emitted, so the UI shows the default-visible overlays instead of an all-off buffer.
-// Call after LoadTopology (which builds MoveDispatch) and BEFORE EnableEditPersist so this
-// emit does not write the loaded/default state back.
+// frame. A file with no overlay keys resolves to the code defaults (LoadSceneOverlays
+// starts from viewstate.DefaultOverlayState and applies any present keys) — and those
+// defaults are STILL emitted, so the UI shows the default-visible overlays instead of an
+// all-off buffer. Call after LoadTopology (which builds MoveDispatch) and BEFORE
+// EnableEditPersist so this emit does not write the loaded/default state back.
 func (md *MoveDispatch) LoadOverlays(topologyPath string, tr *T.Trace) {
-	ov, _ := loadSceneOverlays(scenepaths.OverlaysFilePath(topologyPath)) // ov = defaults with any persisted keys applied
+	ov, _ := scenepersist.LoadSceneOverlays(scenepaths.OverlaysFilePath(topologyPath)) // ov = defaults with any persisted keys applied
 	md.UI.OV.SetGuideVisibility(ov)
 	// Decentralized (Step C, memory/feedback_no_single_writer_bridge.md): the gesture/stdin-reader goroutine
 	// (this one) writes its own VIEW frame directly, carrying the one-time overlay-flag

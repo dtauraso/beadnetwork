@@ -18,6 +18,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	rowtables "github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
@@ -68,9 +69,9 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 	md.mr.edgeOut = map[string]*wire.Out{}
 	md.mr.centerMirror = map[string]vec3{}
 	md.UI.OV = viewstate.DefaultOverlayState()
-	md.UI.Speed = 1                            // default playback multiplier; LoadSpeed overwrites from view/speed.json if present
-	md.UI.ClockDivisor = 1                     // no scaling until LoadSpeed resolves the loaded scene's own divisor
-	md.UI.LatticePoints = defaultLatticePoints // LoadLatticePoints overwrites from view/lattice.json if present
+	md.UI.Speed = 1                                         // default playback multiplier; LoadSpeed overwrites from view/speed.json if present
+	md.UI.ClockDivisor = 1                                  // no scaling until LoadSpeed resolves the loaded scene's own divisor
+	md.UI.LatticePoints = scenepersist.DefaultLatticePoints // LoadLatticePoints overwrites from view/lattice.json if present
 	md.GS.NodeSeeds = make([]geomseeds.NodeGeomSeed, 0, len(nodeOrder))
 	for i, id := range nodeOrder {
 		g, ok := geoms[id]

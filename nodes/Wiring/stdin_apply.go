@@ -22,6 +22,7 @@ import (
 	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 )
 
 func applyUpdateClock(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
@@ -81,7 +82,7 @@ func applyUpdateTiltVector(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trac
 	}
 	if msg.Attr == "reset" {
 		// Done setting: the slider's speed governs again. See HumanEditSpeed.
-		BroadcastSpeed(speedSinks, md.SliderSpeed())
+		scenepersist.BroadcastSpeed(speedSinks, md.SliderSpeed())
 		if sendTiltEdit(&md.inboxes, md.ctx, id, movemsg.TiltEditMsg{Reset: true}) {
 			return
 		}
@@ -92,7 +93,7 @@ func applyUpdateTiltVector(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trac
 		// Done setting — the exchange is about to run, and running it is exactly what the
 		// slider's number is about. Sent BEFORE the Start edit so the first cycle of the
 		// exchange is already at the intended speed rather than one cycle of human speed.
-		BroadcastSpeed(speedSinks, md.SliderSpeed())
+		scenepersist.BroadcastSpeed(speedSinks, md.SliderSpeed())
 		// Start only exists on the pair kind's own dedicated channel (PairNode's
 		// VectorOut/outgoingVector) — there is no mover-owned fallback, unlike
 		// theta/phi/reset: a kind that never claimed BuildArgs.TiltEditIn has no vector
@@ -104,7 +105,7 @@ func applyUpdateTiltVector(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trac
 	// they start or reset, so the click is answered now rather than a scaled cycle from now
 	// (see HumanEditSpeed for why this is not the slider's business). Sent BEFORE the edit,
 	// so the very node about to drain this edit is already cycling at that speed.
-	BroadcastSpeed(speedSinks, HumanEditSpeed)
+	scenepersist.BroadcastSpeed(speedSinks, HumanEditSpeed)
 	up := msg.Flag == "up"
 	if sendTiltEdit(&md.inboxes, md.ctx, id, movemsg.TiltEditMsg{Axis: msg.Attr, Up: up}) {
 		return

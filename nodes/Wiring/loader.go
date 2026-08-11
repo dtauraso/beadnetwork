@@ -28,6 +28,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
@@ -71,6 +72,6 @@ func LoadTopology(ctx context.Context, jsonPath string, tr *T.Trace, clk clock.C
 	// scene polar can be placed as sceneCenter + polar2cart(scenePolar). A persisted sphere
 	// is not derived from node positions, so there is no circularity; a fresh/legacy scene
 	// has none and nodes fall back to cartesian x/y/z (polar-model.md phase 2b).
-	sphere, hasScene := loadSceneSphere(jsonPath)
+	sphere, hasScene := scenepersist.LoadSceneSphere(jsonPath)
 	return buildFromSpec(ctx, spec, tr, clk, sphere, hasScene, jsonPath)
 }

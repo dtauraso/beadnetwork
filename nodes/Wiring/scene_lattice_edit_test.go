@@ -11,6 +11,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 )
 
 // TestApplyUpdateSceneLatticePointsIgnoresInvalidCounts: 0, 3, 25, 65, and -4 must each be
@@ -27,7 +28,7 @@ func TestApplyUpdateSceneLatticePointsIgnoresInvalidCounts(t *testing.T) {
 		if md.UI.LatticePoints != 24 {
 			t.Fatalf("latticePoints=%d: md.UI.LatticePoints changed to %d, want unchanged 24", bad, md.UI.LatticePoints)
 		}
-		if _, found := loadSceneLattice(scenepaths.LatticeFilePath(root)); found {
+		if _, found := scenepersist.LoadSceneLattice(scenepaths.LatticeFilePath(root)); found {
 			t.Fatalf("latticePoints=%d: lattice.json was written for an invalid count", bad)
 		}
 	}
@@ -47,7 +48,7 @@ func TestApplyUpdateSceneLatticePointsAcceptsValidCounts(t *testing.T) {
 		if md.UI.LatticePoints != int32(good) {
 			t.Fatalf("latticePoints=%d: md.UI.LatticePoints = %d, want %d", good, md.UI.LatticePoints, good)
 		}
-		got, found := loadSceneLattice(scenepaths.LatticeFilePath(root))
+		got, found := scenepersist.LoadSceneLattice(scenepaths.LatticeFilePath(root))
 		if !found {
 			t.Fatalf("latticePoints=%d: lattice.json was not written", good)
 		}

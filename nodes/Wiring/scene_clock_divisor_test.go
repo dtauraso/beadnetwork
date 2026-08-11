@@ -18,6 +18,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 )
 
 // TestEffectiveClockSpeedRingAndPair: the ring's divisor is a no-op; the pair's divides the
@@ -27,11 +28,11 @@ func TestEffectiveClockSpeedRingAndPair(t *testing.T) {
 	pairDivisor := scene.SceneClockDivisor(filepath.Join("/anywhere", "topology-pair"))
 	cases := []float64{0, 0.25, 0.5, 0.75, 1, 2}
 	for _, userSpeed := range cases {
-		if got := EffectiveClockSpeed(userSpeed, 1); got != userSpeed {
+		if got := scenepersist.EffectiveClockSpeed(userSpeed, 1); got != userSpeed {
 			t.Fatalf("ring divisor=1: EffectiveClockSpeed(%v, 1) = %v, want %v (no scaling)", userSpeed, got, userSpeed)
 		}
 		want := userSpeed / pairDivisor
-		if got := EffectiveClockSpeed(userSpeed, pairDivisor); got != want {
+		if got := scenepersist.EffectiveClockSpeed(userSpeed, pairDivisor); got != want {
 			t.Fatalf("pair divisor=%v: EffectiveClockSpeed(%v, %v) = %v, want %v", pairDivisor, userSpeed, pairDivisor, got, want)
 		}
 	}
@@ -41,7 +42,7 @@ func TestEffectiveClockSpeedRingAndPair(t *testing.T) {
 // division — EffectiveClockSpeed treats it as "no scaling" instead.
 func TestEffectiveClockSpeedGuardsInvalidDivisor(t *testing.T) {
 	for _, divisor := range []float64{0, -1, -4} {
-		if got := EffectiveClockSpeed(1, divisor); got != 1 {
+		if got := scenepersist.EffectiveClockSpeed(1, divisor); got != 1 {
 			t.Fatalf("EffectiveClockSpeed(1, %v) = %v, want 1 (guarded, no scaling)", divisor, got)
 		}
 	}
@@ -86,7 +87,7 @@ func TestLoadSpeedDoesNotCompoundDivisorAcrossReload(t *testing.T) {
 	const userSpeed = 0.5
 	md.persist.speed.schedule(userSpeed)
 
-	onDisk, found := loadSceneSpeed(scenepaths.SpeedFilePath(root))
+	onDisk, found := scenepersist.LoadSceneSpeed(scenepaths.SpeedFilePath(root))
 	if !found || onDisk != userSpeed {
 		t.Fatalf("after first save: loadSceneSpeed = (%v, %v), want (%v, true)", onDisk, found, userSpeed)
 	}
@@ -106,7 +107,7 @@ func TestLoadSpeedDoesNotCompoundDivisorAcrossReload(t *testing.T) {
 	if second.UI.Speed != userSpeed {
 		t.Fatalf("second LoadSpeed (compounding check): ui.speed = %v, want unscaled %v", second.UI.Speed, userSpeed)
 	}
-	onDiskAfter, found := loadSceneSpeed(scenepaths.SpeedFilePath(root))
+	onDiskAfter, found := scenepersist.LoadSceneSpeed(scenepaths.SpeedFilePath(root))
 	if !found || onDiskAfter != userSpeed {
 		t.Fatalf("after reloads: on-disk speed = (%v, %v), want (%v, true) — divisor must never reach disk", onDiskAfter, found, userSpeed)
 	}
