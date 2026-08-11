@@ -90,7 +90,7 @@ func applyUpdateTiltVector(ctx context.Context, msg inputcodec.StdinMsg, md *dis
 	}
 	if msg.Attr == "reset" {
 		// Done setting: the slider's speed governs again. See HumanEditSpeed.
-		scenepersist.BroadcastSpeed(speedSinks, md.SliderSpeed())
+		scenepersist.BroadcastSpeed(speedSinks, scenepersist.SliderSpeed(&md.UI))
 		if md.Inboxes.SendTiltEdit(ctx, id, movemsg.TiltEditMsg{Reset: true}) {
 			return
 		}
@@ -101,7 +101,7 @@ func applyUpdateTiltVector(ctx context.Context, msg inputcodec.StdinMsg, md *dis
 		// Done setting — the exchange is about to run, and running it is exactly what the
 		// slider's number is about. Sent BEFORE the Start edit so the first cycle of the
 		// exchange is already at the intended speed rather than one cycle of human speed.
-		scenepersist.BroadcastSpeed(speedSinks, md.SliderSpeed())
+		scenepersist.BroadcastSpeed(speedSinks, scenepersist.SliderSpeed(&md.UI))
 		// Start only exists on the pair kind's own dedicated channel (PairNode's
 		// VectorOut/outgoingVector) — there is no mover-owned fallback, unlike
 		// theta/phi/reset: a kind that never claimed BuildArgs.TiltEditIn has no vector
@@ -113,7 +113,7 @@ func applyUpdateTiltVector(ctx context.Context, msg inputcodec.StdinMsg, md *dis
 	// they start or reset, so the click is answered now rather than a scaled cycle from now
 	// (see HumanEditSpeed for why this is not the slider's business). Sent BEFORE the edit,
 	// so the very node about to drain this edit is already cycling at that speed.
-	scenepersist.BroadcastSpeed(speedSinks, dispatch.HumanEditSpeed)
+	scenepersist.BroadcastSpeed(speedSinks, scenepersist.HumanEditSpeed)
 	up := msg.Flag == "up"
 	if md.Inboxes.SendTiltEdit(ctx, id, movemsg.TiltEditMsg{Axis: msg.Attr, Up: up}) {
 		return

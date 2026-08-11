@@ -52,7 +52,7 @@ func TestLoadOverlaysEmitsDefaultsWhenNoPersistedKeys(t *testing.T) {
 		return nil
 	})
 	tr := T.New()
-	md.LoadOverlays(root, tr)
+	scenepersist.InstallOverlays(&md.UI, root, tr)
 	// The default-visible overlay flags must have been emitted, not skipped.
 	for _, want := range []string{"scene-tori", "overlays-vis"} {
 		seen := false
@@ -115,7 +115,7 @@ func TestPersistOverlaysRoundTrips(t *testing.T) {
 
 	// Seed a fresh dispatch from disk and confirm md.UI.OV is restored.
 	fresh := &dispatch.MoveDispatch{UI: viewstate.UIState{OV: viewstate.DefaultOverlayState()}}
-	fresh.LoadOverlays(root, nil)
+	scenepersist.InstallOverlays(&fresh.UI, root, nil)
 	if fresh.UI.OV.SceneToriVisible {
 		t.Fatalf("LoadOverlays did not restore sceneToriVisible=false")
 	}

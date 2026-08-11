@@ -1,7 +1,9 @@
 // scene_overlays_persist.go — pure read/write helpers for Go's OWN overlay-visibility
-// state in view/overlays.json, lifted out of nodes/Wiring/scene_overlays_persist.go (which
-// keeps the MoveDispatch-facing LoadOverlays method and the overlaysPersister type — see
-// that file's own header).
+// state in view/overlays.json, plus InstallOverlays (the view-owner-goroutine-facing entry
+// point that seeds ui.OV from disk and emits it) — the former dispatch.MoveDispatch.LoadOverlays
+// method, moved here since it read/wrote nothing but *viewstate.UIState
+// (docs/planning/movedispatch-decomposition.md §34). The overlaysPersister instance itself
+// still lives in nodes/Wiring/viewpersist (Persisters.overlays, armed by EnableEditPersist).
 //
 // WHOLE-FILE write (one-file-per-writer): overlays.json holds ONLY these flags and has
 // exactly one writer, so each flush marshals the current overlayState fresh — no
@@ -16,8 +18,45 @@ import (
 	"encoding/json"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
+
+	T "github.com/dtauraso/wirefold/Trace"
 )
+
+// InstallOverlays reads the overlay-visibility state from overlays.json (FILE DATA) into
+// ui.OV and streams it so the buffer reflects the current overlay state from the first
+// frame. A file with no overlay keys resolves to the code defaults (LoadSceneOverlays
+// starts from viewstate.DefaultOverlayState and applies any present keys) — and those
+// defaults are STILL emitted, so the UI shows the default-visible overlays instead of an
+// all-off buffer. Call after LoadTopology (which builds MoveDispatch) and BEFORE
+// EnableEditPersist so this emit does not write the loaded/default state back.
+func InstallOverlays(ui *viewstate.UIState, topologyPath string, tr *T.Trace) {
+	ov, _ := LoadSceneOverlays(scenepaths.OverlaysFilePath(topologyPath)) // ov = defaults with any persisted keys applied
+	ui.OV.SetGuideVisibility(ov)
+	// Decentralized (Step C, memory/feedback_no_single_writer_bridge.md): the gesture/stdin-reader goroutine
+	// (this one) writes its own VIEW frame directly, carrying the one-time overlay-flag
+	// events this load implies — one RowEvent per flag kind. Every overlay kind decodes
+	// entirely from the VIEW frame's own Overlay block (buffer-log.ts's decodeEventLine
+	// OVERLAY_KINDS branch) — no row identity to resolve. tr is unused now (kept in the
+	// signature to avoid rippling a call-site signature change through main.go).
+	ui.EmitViewFrame([]wire.RowEvent{
+		{Kind: T.KindSceneTori, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
+		{Kind: T.KindScenePoles, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
+		{Kind: T.KindNodePoles, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
+		{Kind: T.KindSelSpherePoles, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
+		{Kind: T.KindHandholds, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
+		{Kind: T.KindLabelsGlobal, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
+		{Kind: T.KindOverlaysVis, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
+		{Kind: T.KindNodeBody, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
+		{Kind: T.KindNodeRing, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
+		{Kind: T.KindRingPick, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
+		{Kind: T.KindSelectionRing, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
+		{Kind: T.KindHoverRing, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
+		{Kind: T.KindReachSphere, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
+	})
+}
 
 // WriteSceneOverlays writes the current overlay-visibility snapshot as the WHOLE content of
 // overlaysPath (overlays.json) — the sole writer of that file, so each call builds a fresh

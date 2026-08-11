@@ -1,22 +1,24 @@
-package dispatch
+package scenepersist
+
+// install_scene_sphere_test.go — round-trip/content-fit coverage for InstallSceneSphere and
+// the sphere Persister's flush, moved from nodes/Wiring/dispatch/scene_sphere_persist_test.go
+// (docs/planning/movedispatch-decomposition.md §34): none of it drove anything beyond
+// viewstate.UIState/geomseeds.GeomSeeds fields and this package's own functions.
 
 import (
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
-	geomseeds "github.com/dtauraso/wirefold/nodes/Wiring/geomseeds"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geomseeds"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
-	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
+	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
-
-// TestSceneSphereRoundTrip (writeSceneSphere then loadSceneSphere returns the same sphere)
-// moved to nodes/Wiring/scenepersist/scene_sphere_persist_test.go — it drove only the pure
-// functions, no MoveDispatch/loadTreeMD.
 
 // seedsFromCenters builds a nodeSeeds slice (the frozen load-time set loadTimeCenters
 // rebuilds from) directly from world centers, for tests that don't go through a real
 // newMoveDispatch/LoadTopology pass.
-func seedsFromCenters(centers map[string]vec3) []geomseeds.NodeGeomSeed {
+func seedsFromCenters(centers map[string]wire.Vec3) []geomseeds.NodeGeomSeed {
 	out := make([]geomseeds.NodeGeomSeed, 0, len(centers))
 	for id, c := range centers {
 		out = append(out, geomseeds.NodeGeomSeed{ID: id, CX: c.X, CY: c.Y, CZ: c.Z})
@@ -24,23 +26,24 @@ func seedsFromCenters(centers map[string]vec3) []geomseeds.NodeGeomSeed {
 	return out
 }
 
-// TestSceneSphereDefaultsFromContentFit: with no persisted sphere, LoadSceneSphere falls
+// TestSceneSphereDefaultsFromContentFit: with no persisted sphere, InstallSceneSphere falls
 // back to a content-fit of the node centers rather than a zero sphere.
 func TestSceneSphereDefaultsFromContentFit(t *testing.T) {
-	md := &MoveDispatch{}
-	md.GS.NodeSeeds = seedsFromCenters(map[string]vec3{
+	ui := &viewstate.UIState{}
+	gs := &geomseeds.GeomSeeds{}
+	gs.NodeSeeds = seedsFromCenters(map[string]wire.Vec3{
 		"a": {X: 0, Y: 0, Z: 0},
 		"b": {X: 100, Y: 0, Z: 0},
 	})
-	// LoadSceneSphere's content-fit path now reads loadTimeCenters() (rebuilt from the
-	// frozen md.GS.NodeSeeds set above), not an atomic snap.
-	md.LoadSceneSphere(t.TempDir()) // no scene.json → content-fit
-	if md.UI.SceneSphere.Radius <= 0 {
-		t.Fatalf("content-fit sphere has non-positive radius: %+v", md.UI.SceneSphere)
+	// InstallSceneSphere's content-fit path reads gs.LoadTimeCenters() (rebuilt from the
+	// frozen gs.NodeSeeds set above), not an atomic snap.
+	InstallSceneSphere(ui, gs, t.TempDir()) // no scene.json → content-fit
+	if ui.SceneSphere.Radius <= 0 {
+		t.Fatalf("content-fit sphere has non-positive radius: %+v", ui.SceneSphere)
 	}
 	// Center should be the bbox midpoint (≈ (50,0,0)), not the origin default.
-	if md.UI.SceneSphere.Center.X < 40 || md.UI.SceneSphere.Center.X > 60 {
-		t.Fatalf("content-fit center X=%v, want ≈50", md.UI.SceneSphere.Center.X)
+	if ui.SceneSphere.Center.X < 40 || ui.SceneSphere.Center.X > 60 {
+		t.Fatalf("content-fit center X=%v, want ≈50", ui.SceneSphere.Center.X)
 	}
 }
 
@@ -57,28 +60,29 @@ func TestSceneSphereDefaultsFromContentFit(t *testing.T) {
 func TestSceneSphereContentFitSurvivesReloadAfterMove(t *testing.T) {
 	dir := t.TempDir()
 
-	newMD := func(bx float64) *MoveDispatch {
-		md := &MoveDispatch{}
-		md.GS.NodeSeeds = seedsFromCenters(map[string]vec3{
+	newState := func(bx float64) (*viewstate.UIState, *geomseeds.GeomSeeds) {
+		ui := &viewstate.UIState{}
+		gs := &geomseeds.GeomSeeds{}
+		gs.NodeSeeds = seedsFromCenters(map[string]wire.Vec3{
 			"a": {X: 0, Y: 0, Z: 0},
 			"b": {X: bx, Y: 0, Z: 0},
 		})
-		return md
+		return ui, gs
 	}
 
 	// Load 1: no scene.json → content-fit S1, which must be persisted.
-	md1 := newMD(100)
-	md1.LoadSceneSphere(dir)
-	s1 := md1.UI.SceneSphere
+	ui1, gs1 := newState(100)
+	InstallSceneSphere(ui1, gs1, dir)
+	s1 := ui1.SceneSphere
 	if s1.Radius <= 0 {
 		t.Fatalf("load 1: content-fit sphere has non-positive radius: %+v", s1)
 	}
 
 	// The user drags node b far away. Its scene polar was measured about S1.
 	// Load 2: a NEW process over the MOVED tree. It must read S1 back, not re-fit.
-	md2 := newMD(900)
-	md2.LoadSceneSphere(dir)
-	s2 := md2.UI.SceneSphere
+	ui2, gs2 := newState(900)
+	InstallSceneSphere(ui2, gs2, dir)
+	s2 := ui2.SceneSphere
 
 	if s2.Center != s1.Center || s2.Radius != s1.Radius {
 		t.Fatalf("scene sphere drifted across reload after a move:\n  load 1: %+v\n  load 2: %+v\n"+
@@ -88,15 +92,15 @@ func TestSceneSphereContentFitSurvivesReloadAfterMove(t *testing.T) {
 
 func TestSceneSpherePersisterFlushNow(t *testing.T) {
 	dir := t.TempDir()
-	p := &scenepersist.Persister[geom.SceneSphere]{
-		Path: scenepaths.SphereFilePath(dir), Write: scenepersist.WriteSceneSphere, Tag: "scene_sphere_persist",
+	p := &Persister[geom.SceneSphere]{
+		Path: scenepaths.SphereFilePath(dir), Write: WriteSceneSphere, Tag: "scene_sphere_persist",
 	}
-	s := geom.SceneSphere{Center: vec3{X: 1, Y: 2, Z: 3}, Radius: 40}
+	s := geom.SceneSphere{Center: wire.Vec3{X: 1, Y: 2, Z: 3}, Radius: 40}
 	p.Schedule(s)
 
-	got, ok := scenepersist.LoadSceneSphere(dir)
+	got, ok := LoadSceneSphere(dir)
 	if !ok {
-		t.Fatal("loadSceneSphere: ok=false after flushNow")
+		t.Fatal("LoadSceneSphere: ok=false after flushNow")
 	}
 	if got != s {
 		t.Fatalf("flushNow round-trip: got %+v want %+v", got, s)

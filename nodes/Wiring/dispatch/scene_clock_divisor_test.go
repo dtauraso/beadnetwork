@@ -95,7 +95,7 @@ func TestLoadSpeedDoesNotCompoundDivisorAcrossReload(t *testing.T) {
 
 	// Reload once.
 	first := loadTreeMD(t, root)
-	first.LoadSpeed(root, nil, nil)
+	scenepersist.InstallSpeed(&first.UI, root, nil, nil)
 	if first.UI.Speed != userSpeed {
 		t.Fatalf("first LoadSpeed: ui.speed = %v, want unscaled %v", first.UI.Speed, userSpeed)
 	}
@@ -104,7 +104,7 @@ func TestLoadSpeedDoesNotCompoundDivisorAcrossReload(t *testing.T) {
 	// back) — if LoadSpeed ever wrote a scaled value back to disk this second read would see
 	// userSpeed/divisor instead of userSpeed.
 	second := loadTreeMD(t, root)
-	second.LoadSpeed(root, nil, nil)
+	scenepersist.InstallSpeed(&second.UI, root, nil, nil)
 	if second.UI.Speed != userSpeed {
 		t.Fatalf("second LoadSpeed (compounding check): ui.speed = %v, want unscaled %v", second.UI.Speed, userSpeed)
 	}

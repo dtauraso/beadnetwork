@@ -36,7 +36,7 @@ func TestPersistSpeedRoundTrips(t *testing.T) {
 	// A fresh dispatch's LoadSpeed restores md.UI.Speed from the same file — no speedSinks
 	// needed for this assertion (nil slice, per LoadSpeed's own nil-tolerant loop).
 	fresh := loadTreeMD(t, root)
-	fresh.LoadSpeed(root, nil, nil)
+	scenepersist.InstallSpeed(&fresh.UI, root, nil, nil)
 	if fresh.UI.Speed != 0.25 {
 		t.Fatalf("LoadSpeed did not restore ui.speed=0.25, got %v", fresh.UI.Speed)
 	}
@@ -49,7 +49,7 @@ func TestLoadSpeedFallsBackQuietlyWhenMissing(t *testing.T) {
 	root := writeTree(t) // no view/speed.json
 	md := loadTreeMD(t, root)
 
-	md.LoadSpeed(root, nil, nil)
+	scenepersist.InstallSpeed(&md.UI, root, nil, nil)
 
 	if md.UI.Speed != scenepersist.DefaultPlaybackSpeed {
 		t.Fatalf("LoadSpeed with no file: got ui.speed=%v, want default %v", md.UI.Speed, scenepersist.DefaultPlaybackSpeed)
@@ -68,7 +68,7 @@ func TestLoadSpeedSeedsEverySpeedSink(t *testing.T) {
 
 	fresh := loadTreeMD(t, root)
 	ch := make(chan float64, 1)
-	fresh.LoadSpeed(root, []chan float64{ch}, nil)
+	scenepersist.InstallSpeed(&fresh.UI, root, []chan float64{ch}, nil)
 
 	select {
 	case got := <-ch:

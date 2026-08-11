@@ -1,7 +1,10 @@
 // scene_speed_persist.go — pure read/write helpers + the divisor arithmetic for Go's OWN
-// playback-speed multiplier in view/speed.json, lifted out of
-// nodes/Wiring/scene_speed_persist.go (which keeps the MoveDispatch-facing methods,
-// HumanEditSpeed, and the speedPersister type — see that file's own header).
+// playback-speed multiplier in view/speed.json, plus HumanEditSpeed, SliderSpeed, and
+// InstallSpeed (the view-owner-goroutine-facing entry point that seeds ui.Speed from disk,
+// broadcasts it, and emits it) — these were the former dispatch.MoveDispatch-facing methods,
+// moved here since they read/wrote nothing but *viewstate.UIState
+// (docs/planning/movedispatch-decomposition.md §34). The speed Persister instance itself
+// still lives in nodes/Wiring/viewpersist (Persisters.speed, armed by EnableEditPersist).
 //
 // UNLIKE counts.json, a missing or malformed speed.json is a PREFERENCE, not a structural
 // invariant: it falls back to DefaultPlaybackSpeed quietly rather than failing loudly.
@@ -11,12 +14,59 @@ import (
 	"encoding/json"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
+	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
+
+	T "github.com/dtauraso/wirefold/Trace"
 )
 
 // DefaultPlaybackSpeed is the speed a fresh topology (or a missing/malformed speed.json)
 // falls back to.
 const DefaultPlaybackSpeed = 1.0
+
+// HumanEditSpeed is the speed every clock runs at WHILE A TILT IS BEING SET from the angle
+// panel — unscaled, the same rate the ring runs at.
+//
+// Setting an angle is an interaction, not a simulation. Since SleepCycle became
+// speed-scaled (nodes/wire/clock.go), a scene's own divisor stretches every paced loop:
+// at the pair's divisor one cycle is about a second, and a node drains its TiltEditIn in
+// that loop — so a ▲/▼ click could sit unanswered for a second and the panel felt dead.
+// The slider's number is about how fast the exchange should RUN, and it should not be
+// what decides how fast a click is noticed.
+//
+// The boundaries are the user's own actions rather than a timer or an idle guess: an angle
+// click switches to this speed, and START or RESET puts the slider's speed back
+// (applyUpdateTiltVector). Those are exactly the edges of "setting the tilt" — you stop
+// setting when you start the exchange, or when you abandon it.
+//
+// Nothing about the user's chosen speed changes: ui.Speed and view/speed.json still
+// hold the slider's number untouched. Only what is BROADCAST to the clocks differs, and
+// only until the next start or reset.
+const HumanEditSpeed = 1.0
+
+// SliderSpeed is what the clocks run at when nothing is overriding them: the user's own
+// chosen number scaled by this scene's divisor. Reading it off ui means the restore after
+// a tilt edit can never disagree with what a live slider change would have sent.
+func SliderSpeed(ui *viewstate.UIState) float64 {
+	return EffectiveClockSpeed(ui.Speed, ui.ClockDivisor)
+}
+
+// InstallSpeed reads the persisted playback-speed multiplier from speed.json (FILE DATA) into
+// ui.Speed, broadcasts it to every clock-owning goroutine's own speed channel (the SAME
+// Delivery path a live slider edit uses — see clockAttrHandlers's "speed" case), and emits
+// it so the buffer reflects the loaded speed from the first frame. Call after LoadTopology
+// (which builds MoveDispatch and returns speedSinks) and BEFORE EnableEditPersist so this
+// emit does not write the loaded/default speed back.
+func InstallSpeed(ui *viewstate.UIState, topologyPath string, speedSinks []chan float64, tr *T.Trace) {
+	speed, _ := LoadSceneSpeed(scenepaths.SpeedFilePath(topologyPath))
+	ui.ClockDivisor = scene.SceneClockDivisor(topologyPath)
+	ui.Speed = speed
+	effective := EffectiveClockSpeed(speed, ui.ClockDivisor)
+	BroadcastSpeed(speedSinks, effective)
+	ui.EmitViewFrame(nil)
+}
 
 // EffectiveClockSpeed is the ONE place userSpeed (the slider's number, unscaled, the same
 // value persisted to view/speed.json) is turned into the rate actually broadcast to the

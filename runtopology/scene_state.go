@@ -5,6 +5,7 @@ import (
 	W "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/distancegroups"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenecamera"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewpersist"
 )
 
@@ -33,12 +34,12 @@ func loadSceneState(scenePath string, md *W.MoveDispatch, tr *T.Trace, speedSink
 	// Restore persisted overlay visibility: seed md.ov from overlays.json and emit each flag
 	// so the buffer streams the saved overlay state from the first frame. Seed BEFORE
 	// EnableEditPersist so the seed's own emit does not write the loaded state back.
-	md.LoadOverlays(scenePath, tr)
+	scenepersist.InstallOverlays(&md.UI, scenePath, tr)
 	// Restore the persisted playback speed: seed md.ui.speed from view/speed.json, broadcast
 	// it to every clock-owning goroutine's own channel (same Delivery path a live slider
 	// edit uses), and emit it so the buffer reflects it from the first frame. Seed BEFORE
 	// EnableEditPersist so the seed's own emit does not write the loaded/default speed back.
-	md.LoadSpeed(scenePath, speedSinks, tr)
+	scenepersist.InstallSpeed(&md.UI, scenePath, speedSinks, tr)
 	// Arm the WRITE side AFTER the seeds: from here, every gesture that changes the FSM
 	// viewpoint (orbit/zoom/pan/home) debounces a write of the current pose back to
 	// <topologyPath>/view/camera.json, so navigate-then-reload round-trips.
@@ -54,5 +55,5 @@ func loadSceneState(scenePath string, md *W.MoveDispatch, tr *T.Trace, speedSink
 	// movers to be BUILT (their seeded centers, available since LoadTopology), not
 	// running; installing it after Start left md.sceneSphere written unsynchronized
 	// while the mover/gesture goroutines could already read it on the drag path.
-	md.LoadSceneSphere(scenePath)
+	scenepersist.InstallSceneSphere(&md.UI, &md.GS, scenePath)
 }

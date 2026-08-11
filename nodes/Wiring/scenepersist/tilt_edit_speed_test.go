@@ -1,20 +1,23 @@
-package dispatch
+package scenepersist
 
 import (
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
-	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
+	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 )
 
 // tilt_edit_speed_test.go — SETTING a tilt runs the clocks at human speed; STARTING or
-// RESETTING puts the slider's speed back.
+// RESETTING puts the slider's speed back. Moved from
+// nodes/Wiring/dispatch/tilt_edit_speed_test.go (docs/planning/movedispatch-decomposition.md
+// §34) alongside HumanEditSpeed/SliderSpeed/BroadcastSpeed — none of it drove anything
+// beyond those functions and a bare viewstate.UIState.
 //
 // The two speeds have to differ for the override to be observable at all, which is the
 // point: since SleepCycle became speed-scaled, a scene's divisor stretches the very loop
 // that drains a ▲/▼ click, so without this a click waits a scaled cycle to be noticed.
 //
-// Asserted on the ARITHMETIC both call sites use (HumanEditSpeed vs md.SliderSpeed) rather
+// Asserted on the ARITHMETIC both call sites use (HumanEditSpeed vs SliderSpeed) rather
 // than by driving the reader and watching channels — what a click is worth is one
 // goroutine's own decision, and a delivery test would assert what the channels already
 // guarantee (docs/process/testing-shape.md).
@@ -25,7 +28,7 @@ func TestHumanEditSpeedIsUnscaledAndDiffersFromASlowedScene(t *testing.T) {
 	// A scene with a divisor (the pair) must resolve to something SLOWER than the edit
 	// speed, or the override would be a no-op there and the click would still wait.
 	pairDivisor := scene.SceneClockDivisor("/anywhere/topology-pair")
-	slider := scenepersist.EffectiveClockSpeed(1, pairDivisor)
+	slider := EffectiveClockSpeed(1, pairDivisor)
 	if slider >= HumanEditSpeed {
 		t.Fatalf("pair slider speed %v is not slower than HumanEditSpeed %v — the override buys nothing", slider, HumanEditSpeed)
 	}
@@ -37,11 +40,11 @@ func TestHumanEditSpeedIsUnscaledAndDiffersFromASlowedScene(t *testing.T) {
 func TestSliderSpeedMatchesALiveSliderChange(t *testing.T) {
 	for _, userSpeed := range []float64{0, 0.25, 0.5, 0.75, 1, 2} {
 		for _, divisor := range []float64{1, 4, 64} {
-			md := &MoveDispatch{}
-			md.UI.Speed = userSpeed
-			md.UI.ClockDivisor = divisor
-			want := scenepersist.EffectiveClockSpeed(userSpeed, divisor)
-			if got := md.SliderSpeed(); got != want {
+			ui := &viewstate.UIState{}
+			ui.Speed = userSpeed
+			ui.ClockDivisor = divisor
+			want := EffectiveClockSpeed(userSpeed, divisor)
+			if got := SliderSpeed(ui); got != want {
 				t.Fatalf("userSpeed=%v divisor=%v: SliderSpeed = %v, want %v", userSpeed, divisor, got, want)
 			}
 		}
@@ -53,7 +56,7 @@ func TestSliderSpeedMatchesALiveSliderChange(t *testing.T) {
 // rest of the network.
 func TestBroadcastSpeedReachesEverySink(t *testing.T) {
 	sinks := []chan float64{make(chan float64, 1), make(chan float64, 1), make(chan float64, 1)}
-	scenepersist.BroadcastSpeed(sinks, 0.25)
+	BroadcastSpeed(sinks, 0.25)
 	for i, ch := range sinks {
 		select {
 		case got := <-ch:
