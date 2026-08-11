@@ -81,7 +81,7 @@ func applyUpdateTiltVector(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trac
 	}
 	if msg.Attr == "reset" {
 		// Done setting: the slider's speed governs again. See HumanEditSpeed.
-		BroadcastSpeed(speedSinks, md.SliderSpeed())
+		BroadcastSpeed(speedSinks, md.ui.SliderSpeed())
 		if md.sendTiltEdit(id, movemsg.TiltEditMsg{Reset: true}) {
 			return
 		}
@@ -92,7 +92,7 @@ func applyUpdateTiltVector(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trac
 		// Done setting — the exchange is about to run, and running it is exactly what the
 		// slider's number is about. Sent BEFORE the Start edit so the first cycle of the
 		// exchange is already at the intended speed rather than one cycle of human speed.
-		BroadcastSpeed(speedSinks, md.SliderSpeed())
+		BroadcastSpeed(speedSinks, md.ui.SliderSpeed())
 		// Start only exists on the pair kind's own dedicated channel (PairNode's
 		// VectorOut/outgoingVector) — there is no mover-owned fallback, unlike
 		// theta/phi/reset: a kind that never claimed BuildArgs.TiltEditIn has no vector

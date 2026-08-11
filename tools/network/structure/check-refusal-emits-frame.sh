@@ -36,7 +36,7 @@ import os, re
 
 root = "nodes"
 call_pat = re.compile(r'\brefuseStructuralEdit\(')
-def_pat = re.compile(r'func\s+\(md \*MoveDispatch\)\s+refuseStructuralEdit\(')
+def_pat = re.compile(r'func\s+\([a-zA-Z_]+ \*\w+\)\s+refuseStructuralEdit\(')
 next_pat = re.compile(r'\bemitViewFrame\(')
 
 hits = []

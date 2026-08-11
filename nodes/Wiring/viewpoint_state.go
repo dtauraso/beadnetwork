@@ -110,14 +110,14 @@ func cameraViewEvent() []wire.RowEvent {
 func (md *MoveDispatch) EmitViewpoint(tr *T.Trace) {
 	md.ui.vp.EmitViewpoint(tr)
 }
-func (md *MoveDispatch) OrbitViewpoint(from, to geom.Dir, tr *T.Trace) {
-	md.ui.vp.OrbitViewpoint(from, to, tr)
+func (ui *uiState) OrbitViewpoint(from, to geom.Dir, tr *T.Trace) {
+	ui.vp.OrbitViewpoint(from, to, tr)
 }
-func (md *MoveDispatch) OrbitLockedViewpoint(from, to geom.Dir, tr *T.Trace) {
-	md.ui.vp.OrbitLockedViewpoint(from, to, tr)
+func (ui *uiState) OrbitLockedViewpoint(from, to geom.Dir, tr *T.Trace) {
+	ui.vp.OrbitLockedViewpoint(from, to, tr)
 }
-func (md *MoveDispatch) ZoomViewpoint(factor float64, tr *T.Trace) {
-	md.ui.vp.ZoomViewpoint(factor, tr)
+func (ui *uiState) ZoomViewpoint(factor float64, tr *T.Trace) {
+	ui.vp.ZoomViewpoint(factor, tr)
 }
 func (md *MoveDispatch) PanViewpoint(delta vec3, tr *T.Trace) {
 	// A dolly is a pure CAMERA move (the eye translates toward the cursor). It must NOT move the

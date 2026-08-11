@@ -65,10 +65,10 @@ func TestOrbitLockedViewpointEmitsCamera(t *testing.T) {
 	)
 
 	// First OrbitLockedViewpoint + the caller's emit should write a camera RowEvent.
-	md.OrbitLockedViewpoint(geom.Dir{Theta: 1.0, Phi: 0.0}, geom.Dir{Theta: 1.1, Phi: 0.1}, tr)
+	md.ui.OrbitLockedViewpoint(geom.Dir{Theta: 1.0, Phi: 0.0}, geom.Dir{Theta: 1.1, Phi: 0.1}, tr)
 	md.emitViewFrame(cameraViewEvent())
 	// Second OrbitLockedViewpoint + emit should write another camera RowEvent.
-	md.OrbitLockedViewpoint(geom.Dir{Theta: 1.1, Phi: 0.1}, geom.Dir{Theta: 1.2, Phi: 0.15}, tr)
+	md.ui.OrbitLockedViewpoint(geom.Dir{Theta: 1.1, Phi: 0.1}, geom.Dir{Theta: 1.2, Phi: 0.15}, tr)
 	md.emitViewFrame(cameraViewEvent())
 
 	if n := countCameraEvents(events); n < 2 {
@@ -87,7 +87,7 @@ func TestSetViewpointClearsLock(t *testing.T) {
 	}
 
 	// After the first OrbitLocked the lock must be non-nil.
-	md.OrbitLockedViewpoint(geom.Dir{Theta: 1.0, Phi: 0.0}, geom.Dir{Theta: 1.1, Phi: 0.1}, tr)
+	md.ui.OrbitLockedViewpoint(geom.Dir{Theta: 1.0, Phi: 0.0}, geom.Dir{Theta: 1.1, Phi: 0.1}, tr)
 	if md.ui.vp.LockedAxis == nil {
 		t.Fatal("lockedAxis should be non-nil after first OrbitLockedViewpoint")
 	}

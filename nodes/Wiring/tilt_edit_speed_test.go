@@ -40,7 +40,7 @@ func TestSliderSpeedMatchesALiveSliderChange(t *testing.T) {
 			md.ui.speed = userSpeed
 			md.ui.clockDivisor = divisor
 			want := EffectiveClockSpeed(userSpeed, divisor)
-			if got := md.SliderSpeed(); got != want {
+			if got := md.ui.SliderSpeed(); got != want {
 				t.Fatalf("userSpeed=%v divisor=%v: SliderSpeed = %v, want %v", userSpeed, divisor, got, want)
 			}
 		}

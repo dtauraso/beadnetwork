@@ -67,7 +67,7 @@ func (md *MoveDispatch) commitDragStart(g *gestureState, ev inputcodec.RawInputM
 	// not inside the move path — see dragGrabOffset's doc comment in gesture.go. A parallel
 	// ray (ok==false) leaves the offset at its zero value, degrading to centre-on-cursor
 	// rather than breaking the drag.
-	if hit, ok := md.dragPlaneHit(ev); ok {
+	if hit, ok := md.ui.dragPlaneHit(ev); ok {
 		g.dragGrabOffset = g.dragStartCenter.Sub(hit)
 	}
 	// Re-scope the in-editor drag-log to THIS drag. This is the ONE place a drag

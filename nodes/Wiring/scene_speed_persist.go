@@ -147,10 +147,10 @@ func BroadcastSpeed(speedSinks []chan float64, effective float64) {
 }
 
 // SliderSpeed is what the clocks run at when nothing is overriding them: the user's own
-// chosen number scaled by this scene's divisor. Reading it from md means the restore after
+// chosen number scaled by this scene's divisor. Reading it from ui means the restore after
 // a tilt edit can never disagree with what a live slider change would have sent.
-func (md *MoveDispatch) SliderSpeed() float64 {
-	return EffectiveClockSpeed(md.ui.speed, md.ui.clockDivisor)
+func (ui *uiState) SliderSpeed() float64 {
+	return EffectiveClockSpeed(ui.speed, ui.clockDivisor)
 }
 
 func (md *MoveDispatch) LoadSpeed(topologyPath string, speedSinks []chan float64, tr *T.Trace) {

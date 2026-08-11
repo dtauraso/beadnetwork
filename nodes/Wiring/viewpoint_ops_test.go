@@ -65,11 +65,11 @@ func TestMoveDispatchViewpointDelegatorsEmit(t *testing.T) {
 	captureViewFrameKinds(md, &events)
 	md.SetViewpoint(vec3{}, 100, geom.Dir{Theta: 1.0}, geom.Dir{Theta: 1.5708})
 
-	md.ZoomViewpoint(0.5, tr)
+	md.ui.ZoomViewpoint(0.5, tr)
 	md.emitViewFrame(cameraViewEvent())
 	md.PanViewpoint(vec3{X: 5}, tr)
 	md.emitViewFrame(cameraViewEvent())
-	md.OrbitViewpoint(geom.Dir{Theta: 1.0, Phi: 0.0}, geom.Dir{Theta: 1.1, Phi: 0.1}, tr)
+	md.ui.OrbitViewpoint(geom.Dir{Theta: 1.0, Phi: 0.0}, geom.Dir{Theta: 1.1, Phi: 0.1}, tr)
 	md.emitViewFrame(cameraViewEvent())
 
 	if n := countCameraEvents(events); n < 3 {

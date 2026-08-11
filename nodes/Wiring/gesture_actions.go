@@ -92,7 +92,7 @@ func (md *MoveDispatch) applyOrbit(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	curr := geom.ScreenToPolar(ev.X-g.rotCx, ev.Y-g.rotCy, g.rotPxPerRad)
 	prevDir := geom.ToWorldDir(basis, prev)
 	currDir := geom.ToWorldDir(basis, curr)
-	md.OrbitViewpoint(geom.WorldDirToAngles(currDir), geom.WorldDirToAngles(prevDir), tr)
+	md.ui.OrbitViewpoint(geom.WorldDirToAngles(currDir), geom.WorldDirToAngles(prevDir), tr)
 	md.emitViewFrame(cameraViewEvent())
 }
 
@@ -108,7 +108,7 @@ func (md *MoveDispatch) applyOrbitLocked(ev inputcodec.RawInputMsg, tr *T.Trace)
 	curr := geom.ScreenToPolar(ev.X-g.rotCx, ev.Y-g.rotCy, g.rotPxPerRad)
 	prevDir := geom.ToWorldDir(basis, prev)
 	currDir := geom.ToWorldDir(basis, curr)
-	md.OrbitLockedViewpoint(geom.WorldDirToAngles(currDir), geom.WorldDirToAngles(prevDir), tr)
+	md.ui.OrbitLockedViewpoint(geom.WorldDirToAngles(currDir), geom.WorldDirToAngles(prevDir), tr)
 	md.emitViewFrame(cameraViewEvent())
 }
 
@@ -117,9 +117,9 @@ func (md *MoveDispatch) applyOrbitLocked(ev inputcodec.RawInputMsg, tr *T.Trace)
 // it ONCE to capture g.dragGrabOffset) and applyNodeDragTarget (which uses it every move) so
 // both project against the exact same plane instead of two copies that can drift apart.
 // Returns ok=false when the ray is parallel to the plane or the hit is non-finite.
-func (md *MoveDispatch) dragPlaneHit(ev inputcodec.RawInputMsg) (hit vec3, ok bool) {
-	g := &md.ui.gest
-	vp := md.ui.vp.Viewpoint
+func (ui *uiState) dragPlaneHit(ev inputcodec.RawInputMsg) (hit vec3, ok bool) {
+	g := &ui.gest
+	vp := ui.vp.Viewpoint
 	eye := geom.EyeOf(vp)
 	basis := geom.BasisFromViewpoint(vp.Pos, vp.Up)
 	nx, ny := g.pixelToNDC(ev.X, ev.Y)
@@ -146,7 +146,7 @@ func (md *MoveDispatch) dragPlaneHit(ev inputcodec.RawInputMsg) (hit vec3, ok bo
 // to the plane.
 func (md *MoveDispatch) applyNodeDragTarget(ev inputcodec.RawInputMsg) bool {
 	g := &md.ui.gest
-	hit, ok := md.dragPlaneHit(ev)
+	hit, ok := md.ui.dragPlaneHit(ev)
 	if !ok {
 		return false
 	}
