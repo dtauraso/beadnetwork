@@ -5,6 +5,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -166,7 +167,7 @@ func (md *MoveDispatch) setHover(node, port string, isInput bool, tr *T.Trace) (
 	// ui_state.go's setHoverUI is the AUTHORITATIVE write: it sets md.ui.sel's hover
 	// fields (mutated only by this goroutine) and MESSAGES the affected
 	// node(s) to set their OWN hovered bit — no shared/republished map.
-	md.ui.setHoverUI(md.sendMove, node, port, isInput)
+	md.ui.setHoverUI(func(id string, msg movemsg.Msg) { sendMove(&md.mr, md.ctx, id, msg) }, node, port, isInput)
 	nodeRow := int32(-1)
 	if r, ok := md.RT.NodeRowFor(node); ok {
 		nodeRow = r
@@ -192,13 +193,13 @@ func (md *MoveDispatch) applySelect(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	// by this goroutine) and MESSAGES the affected node(s)/edge to set their
 	// OWN selected/latchedSel bit.
 	if ev.Hit.Kind == "empty" {
-		md.setSelectionUI("", "")
+		setSelectionUI(&md.ui, &md.mr, md.ctx, "", "")
 		md.emitViewFrame(md.RT.SelectViewEvent(""))
 		return
 	}
 	if ev.Hit.Kind == "edge" {
 		if label, ok := md.RT.EdgeFromHit(ev.Hit); ok {
-			md.setSelectionUI("", label)
+			setSelectionUI(&md.ui, &md.mr, md.ctx, "", label)
 			// An edge selection carries no NodeRow (see decodeEventLine's "select" case,
 			// buffer-log.ts — it never reads EdgeRow for this kind), mirroring the
 			// KindSelect{Edge: label, Node: ""} shape exactly.
@@ -214,6 +215,6 @@ func (md *MoveDispatch) applySelect(ev inputcodec.RawInputMsg, tr *T.Trace) {
 			node = n
 		}
 	}
-	md.setSelectionUI(node, "")
+	setSelectionUI(&md.ui, &md.mr, md.ctx, node, "")
 	md.emitViewFrame(md.RT.SelectViewEvent(node))
 }

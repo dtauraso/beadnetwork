@@ -82,10 +82,10 @@ func applyUpdateTiltVector(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trac
 	if msg.Attr == "reset" {
 		// Done setting: the slider's speed governs again. See HumanEditSpeed.
 		BroadcastSpeed(speedSinks, md.ui.SliderSpeed())
-		if md.sendTiltEdit(id, movemsg.TiltEditMsg{Reset: true}) {
+		if sendTiltEdit(&md.inboxes, md.ctx, id, movemsg.TiltEditMsg{Reset: true}) {
 			return
 		}
-		md.sendMove(id, movemsg.Msg{Kind: movemsg.KindTiltVectorReset, NodeID: id})
+		sendMove(&md.mr, md.ctx, id, movemsg.Msg{Kind: movemsg.KindTiltVectorReset, NodeID: id})
 		return
 	}
 	if msg.Attr == "start" {
@@ -97,7 +97,7 @@ func applyUpdateTiltVector(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trac
 		// VectorOut/outgoingVector) — there is no mover-owned fallback, unlike
 		// theta/phi/reset: a kind that never claimed BuildArgs.TiltEditIn has no vector
 		// exchange to open, so a Start for it is simply a no-op.
-		md.sendTiltEdit(id, movemsg.TiltEditMsg{Start: true})
+		sendTiltEdit(&md.inboxes, md.ctx, id, movemsg.TiltEditMsg{Start: true})
 		return
 	}
 	// A ▲/▼ ANGLE CLICK — the user is SETTING a tilt. Run every clock at human speed until
@@ -106,10 +106,10 @@ func applyUpdateTiltVector(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trac
 	// so the very node about to drain this edit is already cycling at that speed.
 	BroadcastSpeed(speedSinks, HumanEditSpeed)
 	up := msg.Flag == "up"
-	if md.sendTiltEdit(id, movemsg.TiltEditMsg{Axis: msg.Attr, Up: up}) {
+	if sendTiltEdit(&md.inboxes, md.ctx, id, movemsg.TiltEditMsg{Axis: msg.Attr, Up: up}) {
 		return
 	}
-	md.sendMove(id, movemsg.Msg{Kind: movemsg.KindTiltVectorAngle, NodeID: id, Axis: msg.Attr, Bool: up})
+	sendMove(&md.mr, md.ctx, id, movemsg.Msg{Kind: movemsg.KindTiltVectorAngle, NodeID: id, Axis: msg.Attr, Bool: up})
 }
 
 // applyUpdateScene handles kind=="scene" attr=="selected" (one click on the scene tab

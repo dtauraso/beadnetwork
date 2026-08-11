@@ -24,11 +24,11 @@ func (md *MoveDispatch) Start(ctx context.Context) *sync.WaitGroup {
 }
 
 // sendMove routes one movemsg.Msg to a node's dedicated external-entry channel (extIn).
-// Thin delegator to md.mr (mover_registry.go); md.ctx is threaded through (not part of
+// Thin delegator to mr (mover_registry.go); ctx is threaded through (not part of
 // moverRegistry). This is the bare external-entry path (RootMove, gesture.go) with no
 // owning mover goroutine, so it never fires a tap — see nodeMover.tap's doc comment.
-func (md *MoveDispatch) sendMove(id string, msg movemsg.Msg) {
-	md.mr.sendMove(md.ctx, id, msg)
+func sendMove(mr *moverRegistry, ctx context.Context, id string, msg movemsg.Msg) {
+	mr.sendMove(ctx, id, msg)
 }
 
 // sendTiltEdit routes one panel-driven tilt-angle click to node id's OWN dedicated
@@ -38,26 +38,26 @@ func (md *MoveDispatch) sendMove(id string, msg movemsg.Msg) {
 // instead. Same blocking-with-ctx-cancel-escape shape as sendMove/mr.sendMove, for the
 // same reason: this is a bare external-entry send with no owning goroutine to thread a
 // ctx from.
-func (md *MoveDispatch) sendTiltEdit(id string, msg movemsg.TiltEditMsg) bool {
-	ch, ok := md.inboxes.tiltEdit[id]
+func sendTiltEdit(inboxes *nodeInboxes, ctx context.Context, id string, msg movemsg.TiltEditMsg) bool {
+	ch, ok := inboxes.tiltEdit[id]
 	if !ok {
 		return false
 	}
-	if md.ctx == nil {
+	if ctx == nil {
 		ch <- msg
 		return true
 	}
 	select {
 	case ch <- msg:
-	case <-md.ctx.Done():
+	case <-ctx.Done():
 	}
 	return true
 }
 
 // setSelectionUI sets the Go-owned selection (node XOR edge, exclusive). Thin delegator
-// to md.ui (ui_state.go).
-func (md *MoveDispatch) setSelectionUI(node, edge string) {
-	md.ui.setSelectionUI(md.mr.edgeMovers, md.ctx, md.sendMove, node, edge)
+// to ui (ui_state.go).
+func setSelectionUI(ui *uiState, mr *moverRegistry, ctx context.Context, node, edge string) {
+	ui.setSelectionUI(mr.edgeMovers, ctx, func(id string, msg movemsg.Msg) { sendMove(mr, ctx, id, msg) }, node, edge)
 }
 
 // The overlayState methods, the overlayToggles table, defaultOverlayState, and the

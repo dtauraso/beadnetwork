@@ -91,6 +91,6 @@ func (lq *layoutQuantizer) RootMove(md *MoveDispatch, nodeID string, target vec3
 	// the stdin reader's goroutine — every node's movemsg.KindDrag handler commits
 	// (synchronous local apply, reported over reportCh) on its own goroutine. No
 	// central commit call here.
-	md.sendMove(nodeID, movemsg.Msg{Kind: movemsg.KindDrag, NodeID: nodeID, Target: target})
+	sendMove(&md.mr, md.ctx, nodeID, movemsg.Msg{Kind: movemsg.KindDrag, NodeID: nodeID, Target: target})
 	return true
 }
