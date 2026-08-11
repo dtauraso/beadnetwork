@@ -1,10 +1,9 @@
-package Wiring
+package beadindex
 
 import (
 	"math"
 	"testing"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring/beadindex"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
@@ -27,7 +26,7 @@ func TestChainBeadsEveryIndexIsReachable(t *testing.T) {
 		if tt >= 1 {
 			tt = math.Nextafter(1, 0) // sweep right up to, but not touching, t=1
 		}
-		idx, ok := beadindex.LitBeadIndex(tt, steps)
+		idx, ok := LitBeadIndex(tt, steps)
 		if !ok {
 			continue
 		}
@@ -58,8 +57,8 @@ func TestLitBeadIndexSameElapsedLightsSameBead(t *testing.T) {
 
 	for elapsed := 0.0; elapsed < 120; elapsed += 0.25 {
 		coveredSteps := elapsed / lattice.DwellTicksPerBead // elapsed is in the SAME ticks unit as dwell
-		gotLong, okLong := beadindex.LitBeadIndex(coveredSteps/longSteps, longSteps)
-		gotShort, okShort := beadindex.LitBeadIndex(coveredSteps/shortSteps, shortSteps)
+		gotLong, okLong := LitBeadIndex(coveredSteps/longSteps, longSteps)
+		gotShort, okShort := LitBeadIndex(coveredSteps/shortSteps, shortSteps)
 		if !okLong || !okShort {
 			continue
 		}
@@ -75,7 +74,7 @@ func TestLitBeadIndexSameElapsedLightsSameBead(t *testing.T) {
 func TestLitBeadIndexAdvancesOncePerStep(t *testing.T) {
 	const steps = 25
 	for i := 0; i < steps; i++ {
-		got, ok := beadindex.LitBeadIndex(float64(i)/steps, steps)
+		got, ok := LitBeadIndex(float64(i)/steps, steps)
 		if !ok {
 			t.Fatalf("bead %d: t=%.4f reported off-chain", i, float64(i)/steps)
 		}
@@ -88,10 +87,10 @@ func TestLitBeadIndexAdvancesOncePerStep(t *testing.T) {
 // t outside [0,1) — before departure, or having arrived — lights nothing.
 func TestLitBeadIndexOffChainLightsNothing(t *testing.T) {
 	const steps = 25
-	if _, ok := beadindex.LitBeadIndex(-0.01, steps); ok {
+	if _, ok := LitBeadIndex(-0.01, steps); ok {
 		t.Error("t<0 (not yet departed) lit a bead; want nothing lit")
 	}
-	if _, ok := beadindex.LitBeadIndex(1, steps); ok {
+	if _, ok := LitBeadIndex(1, steps); ok {
 		t.Error("t=1 (arrived at the target) lit a bead; want nothing lit")
 	}
 }
