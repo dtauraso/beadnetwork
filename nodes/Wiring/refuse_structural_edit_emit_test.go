@@ -3,7 +3,7 @@ package Wiring
 // refuse_structural_edit_emit_test.go — regression for the write-then-emit split described
 // in docs/planning/movedispatch-decomposition.md: refuseStructuralEdit itself no longer
 // emits a VIEW frame (it only bumps md.ui.editRefused); each of CreateNode/DeleteNode's 12
-// call sites is now responsible for calling md.emitViewFrame(nil) right after. That is 12
+// call sites is now responsible for calling md.UI.EmitViewFrame(nil) right after. That is 12
 // hand-edits with nothing enforcing them — deleting one produced zero test failures when
 // this was checked, which is exactly the hazard this test and its sibling guard close.
 //

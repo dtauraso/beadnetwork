@@ -202,7 +202,7 @@ func (md *MoveDispatch) LoadOverlays(topologyPath string, tr *T.Trace) {
 	// entirely from the VIEW frame's own Overlay block (buffer-log.ts's decodeEventLine
 	// OVERLAY_KINDS branch) — no row identity to resolve. tr is unused now (kept in the
 	// signature to avoid rippling a call-site signature change through main.go).
-	md.emitViewFrame([]wire.RowEvent{
+	md.UI.EmitViewFrame([]wire.RowEvent{
 		{Kind: T.KindSceneTori, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
 		{Kind: T.KindScenePoles, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
 		{Kind: T.KindNodePoles, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},

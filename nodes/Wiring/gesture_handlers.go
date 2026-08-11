@@ -35,7 +35,7 @@ func (md *MoveDispatch) gestHome(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	}
 	md.UI.VP.SetViewpoint(pivot, r, pos, up)
 	md.UI.VP.EmitViewpoint(tr)
-	md.emitViewFrame(cameraViewEvent())
+	md.UI.EmitViewFrame(cameraViewEvent())
 }
 
 func (md *MoveDispatch) gestPointerDown(ev inputcodec.RawInputMsg, tr *T.Trace) {
@@ -117,7 +117,7 @@ func (md *MoveDispatch) gestPointerUp(ev inputcodec.RawInputMsg, slotReg inputco
 		// Overlay block's DragNodeRow column must go back to -1 promptly rather than
 		// waiting for the next unrelated view-frame emit. Mirrors commitDragStart's own
 		// emitViewFrame call at drag START.
-		md.emitViewFrame(nil)
+		md.UI.EmitViewFrame(nil)
 		// "done dragging" (PLAN.md) — mirrors commitDragStart's own movemsg.KindDragStart
 		// send. Sent on EVERY path a drag ends by (this is the FSM's one drag-end exit),
 		// so a chain bead this node woke can never be left on machine time — see
@@ -174,7 +174,7 @@ func (md *MoveDispatch) gestWheel(ev inputcodec.RawInputMsg, tr *T.Trace) {
 			step = math.Copysign(minStep, amt)
 		}
 		md.PanViewpoint(rayDir.Scale(step), tr)
-		md.emitViewFrame(cameraViewEvent())
+		md.UI.EmitViewFrame(cameraViewEvent())
 		return
 	}
 
@@ -189,5 +189,5 @@ func (md *MoveDispatch) gestWheel(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	worldPerPixel := (2 * vp.R * math.Tan(fovRad/2)) / md.UI.Gest.Rect.Height
 	disp := geom.PanDisplacementPolar(vp.Pos, vp.Up, ev.DeltaX, ev.DeltaY, worldPerPixel)
 	md.PanViewpoint(disp, tr)
-	md.emitViewFrame(cameraViewEvent())
+	md.UI.EmitViewFrame(cameraViewEvent())
 }

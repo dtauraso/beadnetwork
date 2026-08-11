@@ -67,10 +67,10 @@ func TestOrbitLockedViewpointEmitsCamera(t *testing.T) {
 
 	// First OrbitLockedViewpoint + the caller's emit should write a camera RowEvent.
 	md.UI.OrbitLockedViewpoint(geom.Dir{Theta: 1.0, Phi: 0.0}, geom.Dir{Theta: 1.1, Phi: 0.1}, tr)
-	md.emitViewFrame(cameraViewEvent())
+	md.UI.EmitViewFrame(cameraViewEvent())
 	// Second OrbitLockedViewpoint + emit should write another camera RowEvent.
 	md.UI.OrbitLockedViewpoint(geom.Dir{Theta: 1.1, Phi: 0.1}, geom.Dir{Theta: 1.2, Phi: 0.15}, tr)
-	md.emitViewFrame(cameraViewEvent())
+	md.UI.EmitViewFrame(cameraViewEvent())
 
 	if n := countCameraEvents(events); n < 2 {
 		t.Fatalf("expected at least 2 camera events, got %d", n)

@@ -71,7 +71,7 @@ func (md *MoveDispatch) updateHover(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	mr, ctx := &md.mr, md.ctx
 	sendMoveFn := func(id string, msg movemsg.Msg) { sendMove(mr, ctx, id, msg) }
 	if events, changed := setHover(&md.UI, sendMoveFn, &md.RT, node, "", false, tr); changed {
-		md.emitViewFrame(events)
+		md.UI.EmitViewFrame(events)
 	}
 }
 
@@ -98,7 +98,7 @@ func (md *MoveDispatch) applyOrbit(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	prevDir := geom.ToWorldDir(basis, prev)
 	currDir := geom.ToWorldDir(basis, curr)
 	md.UI.OrbitViewpoint(geom.WorldDirToAngles(currDir), geom.WorldDirToAngles(prevDir), tr)
-	md.emitViewFrame(cameraViewEvent())
+	md.UI.EmitViewFrame(cameraViewEvent())
 }
 
 // applyOrbitLocked mirrors the "handhold-rotating" branch of interaction-handlers.ts
@@ -114,7 +114,7 @@ func (md *MoveDispatch) applyOrbitLocked(ev inputcodec.RawInputMsg, tr *T.Trace)
 	prevDir := geom.ToWorldDir(basis, prev)
 	currDir := geom.ToWorldDir(basis, curr)
 	md.UI.OrbitLockedViewpoint(geom.WorldDirToAngles(currDir), geom.WorldDirToAngles(prevDir), tr)
-	md.emitViewFrame(cameraViewEvent())
+	md.UI.EmitViewFrame(cameraViewEvent())
 }
 
 // dragPlaneHit unprojects ev's pointer onto the camera-facing plane through
@@ -178,7 +178,7 @@ func (md *MoveDispatch) applySelect(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	// OWN selected/latchedSel bit.
 	if ev.Hit.Kind == "empty" {
 		setSelectionUI(&md.UI, &md.mr, md.ctx, "", "")
-		md.emitViewFrame(md.RT.SelectViewEvent(""))
+		md.UI.EmitViewFrame(md.RT.SelectViewEvent(""))
 		return
 	}
 	if ev.Hit.Kind == "edge" {
@@ -187,7 +187,7 @@ func (md *MoveDispatch) applySelect(ev inputcodec.RawInputMsg, tr *T.Trace) {
 			// An edge selection carries no NodeRow (see decodeEventLine's "select" case,
 			// buffer-log.ts — it never reads EdgeRow for this kind), mirroring the
 			// KindSelect{Edge: label, Node: ""} shape exactly.
-			md.emitViewFrame(md.RT.SelectViewEvent(""))
+			md.UI.EmitViewFrame(md.RT.SelectViewEvent(""))
 			return
 		}
 		// Unresolvable edge hit → clear selection rather than leaving stale state.
@@ -200,5 +200,5 @@ func (md *MoveDispatch) applySelect(ev inputcodec.RawInputMsg, tr *T.Trace) {
 		}
 	}
 	setSelectionUI(&md.UI, &md.mr, md.ctx, node, "")
-	md.emitViewFrame(md.RT.SelectViewEvent(node))
+	md.UI.EmitViewFrame(md.RT.SelectViewEvent(node))
 }

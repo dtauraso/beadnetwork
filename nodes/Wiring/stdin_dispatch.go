@@ -149,7 +149,7 @@ var clockAttrHandlers = map[string]func(msg inputcodec.StdinMsg, md *MoveDispatc
 		// divisor never crosses the bridge and never reaches disk.
 		md.UI.Speed = userSpeed
 		md.persist.speed.schedule(userSpeed)
-		md.emitViewFrame(nil)
+		md.UI.EmitViewFrame(nil)
 	},
 }
 
@@ -174,7 +174,7 @@ var overlayAttrHandlers = map[string]func(msg inputcodec.StdinMsg, md *MoveDispa
 			// carrying the one flag that just changed — matches the ONE tr.X(bool) event
 			// the toggle already logged.
 			if kind, ok := viewstate.OverlayFlagTraceKind[msg.Flag]; ok {
-				md.emitViewFrame([]wire.RowEvent{{Kind: kind, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}})
+				md.UI.EmitViewFrame([]wire.RowEvent{{Kind: kind, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}})
 			}
 		}
 	},

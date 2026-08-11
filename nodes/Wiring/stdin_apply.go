@@ -44,7 +44,7 @@ func applyUpdateDistanceGroup(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.T
 		dir = 1
 	}
 	if applyDistanceGroupTarget(md.ctx, &md.UI, &md.mr, &md.lq, msg.Num, dir) {
-		md.emitViewFrame(nil)
+		md.UI.EmitViewFrame(nil)
 	}
 }
 

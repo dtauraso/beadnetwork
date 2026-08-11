@@ -6,9 +6,9 @@
 // out-of-package caller (runtopology/view_stream.go) calls md.UI.SetViewStream(...)
 // directly. EmitBreadcrumb stays a thin delegator — its own in-package callers
 // (stdin_dispatch.go) and its out-of-package caller (runtopology/startup_report.go) are
-// both left calling md.EmitBreadcrumb(...) unchanged; emitViewFrame stays too, since it is
-// unexported and its ~30 in-package call sites (md.emitViewFrame(...)) would otherwise all
-// need editing for a purely mechanical rename with no export-blocking to relieve.
+// both left calling md.EmitBreadcrumb(...) unchanged. emitViewFrame itself was deleted:
+// every former in-package call site (md.emitViewFrame(...)) now calls
+// md.UI.EmitViewFrame(...) directly.
 package Wiring
 
 import (
@@ -19,10 +19,4 @@ import (
 // viewstate.UIState.EmitBreadcrumb.
 func (md *MoveDispatch) EmitBreadcrumb(ev wire.RowEvent) {
 	md.UI.EmitBreadcrumb(ev)
-}
-
-// emitViewFrame packs and writes the current camera/overlay/scene-sphere state as this
-// goroutine's own VIEW frame. See viewstate.UIState.EmitViewFrame.
-func (md *MoveDispatch) emitViewFrame(events []wire.RowEvent) {
-	md.UI.EmitViewFrame(events)
 }

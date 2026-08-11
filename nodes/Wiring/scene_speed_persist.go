@@ -161,5 +161,5 @@ func (md *MoveDispatch) LoadSpeed(topologyPath string, speedSinks []chan float64
 	for _, ch := range speedSinks {
 		clock.SendSpeedNonBlocking(ch, effective)
 	}
-	md.emitViewFrame(nil)
+	md.UI.EmitViewFrame(nil)
 }

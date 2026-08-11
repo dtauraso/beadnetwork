@@ -46,7 +46,7 @@ func TestViewFrameCarriesEveryOverlayFlag(t *testing.T) {
 		got = flags
 		return nil
 	})
-	md.emitViewFrame(nil)
+	md.UI.EmitViewFrame(nil)
 
 	rv := reflect.ValueOf(got)
 	if rv.NumField() != len(inputcodec.InOverlayFlags) {
