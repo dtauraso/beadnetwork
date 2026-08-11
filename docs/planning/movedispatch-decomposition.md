@@ -1949,3 +1949,108 @@ exported surface or a genuine model-shaped change. Per §17's own rule, a correc
 a move that opens the ownership hole.
 
 Nothing was moved. This entry records the measurement, not a plan to revisit it.
+
+## 19. `nodeGeometry`'s CONSTRUCTION-TIME writes consolidated into its own wiring API (in-package)
+
+§18 declined the package move but did not act on its own 11-file, 35-write measurement.
+Re-measured with a field-selector grep restricted to actual assignment statements (`=`,
+`append`, excluding comments): **30 external writes were construction-time** (the
+single-threaded wiring pass, before any driving goroutine starts), spread across
+`move_dispatch_construct.go` (11), `build_move_dispatch.go` (7), `stream_wiring.go` (5),
+`mover_registry.go`'s `bind` (4), `move_streams.go` (1), `move_persist.go` (1),
+`build_args_selfdrive.go` (1). `distance_groups.go` had none live on the current tree (§18's
+"1" there was already stale — some other pass had already cleared it; recorded here rather
+than silently trusted). 5 more, all genuinely RUNTIME (the node's own goroutine writing its
+own field, repeatedly, while running) were re-confirmed and left untouched as instructed:
+`commit_node_move.go`'s `nm.quantOffset = off` (commit path), `mover_registry.go`'s
+`nm.msg.pending = append(...)` (`enqueueFor`'s retry queue), and `pair_node_self.go`'s 6
+`g.tilt.*` writes (`PairNodeSelf`'s own methods, called from the pair kind's own goroutine).
+
+**Added `nodes/Wiring/node_geometry_wire.go`** — unexported wiring methods on
+`*nodeGeometry`, one per construction-time concern, each named for what it wires rather than
+which sub-struct it touches: `wireMessaging` (bundles the 5 `msg.*` closures set together,
+once, right after `newNodeGeometry`), `setMsgTap`, `ensureNeighborChannel`,
+`addMutualTarget`, `seedPartnerCenter`, `addEdgeID`, `addNeighborKind`, `setSceneFlags`
+(bundles the two scene-wide flag loops into one), `setQuantOffset`,
+`setTopTiltVectorThetaIdx`, `addOutTarget`, `addOutWire` (bundles the 4 index-parallel
+`nodeOuts` appends `moverRegistry.bind` makes per edge), `wireStream` (bundles the 5
+`nodeStream`/`neighborTopology.nodeRowFor` writes `setNodeStreams` makes per node),
+`setPersistRoot`, `copyClockSrc`. All 15 stay unexported (package `Wiring` only) — no
+exported accessor, no interface, matching the task's constraint that this is NOT §18's
+declined move.
+
+**Shape chosen: several narrow methods, not one big constructor.** `newNodeGeometry` itself
+was left alone — its own callers (`move_dispatch_construct.go`'s node loop) still call it
+first, then wire the rest in separate calls, because the wired values are only knowable at
+different points across the loader's phases (messaging closures need `md`/other nodes to
+exist; scene flags/quant offsets/tilt/neighbor-kinds/out-targets are seeded phases later, in
+`buildMoveDispatch`; the stream fds arrive later still, in `setNodeStreams`; the persist root
+arrives last, in `EnableEditPersist`). Folding all of that into one constructor would force
+either passing every one of those not-yet-computed values through `newNodeGeometry` (which
+runs before most of them exist) or a giant post-hoc setter with 20+ parameters — the exact
+bloated-constructor outcome the task named as a worse alternative than several well-named
+methods. Each method instead matches one PHASE of construction, in the order that phase
+already ran.
+
+**Writes deliberately left at the call site (not folded into a method), with reasons:**
+- `commit_node_move.go`'s `nm.quantOffset = off` and `mover_registry.go`'s
+  `nm.msg.pending = append(...)` — RUNTIME, not construction; explicitly out of scope.
+- `pair_node_self.go`'s 6 `g.tilt.*` writes — also runtime (the pair kind's own goroutine
+  applying `SetTiltIndex`/`SetReceivedVector`/`SetLatticePoints`), same class as the two
+  above; not touched.
+- `build_move_dispatch.go`'s `nm.selfKind = n.Type` — a direct field on `nodeGeometry`
+  itself, not one of the 9 named sub-structs/fields the task scoped in (`msg`/`topo`/`outs`/
+  `stream`/`tilt`/`flags`/`quantOffset`/`persistRoot`/`clocks`); left as a bare field write,
+  same as before.
+- `node_mover.go`'s `g.clocks.clk = g.clocks.clockSrc.Copy()` (inside `nodeMover.run`, at the
+  actor's own goroutine start) — this is the actor's OWN file, not an external caller; the
+  identical copy done by `build_args_selfdrive.go`'s `ClaimSelfDrive` (a genuinely external,
+  construction-time call site, since a self-driven node has no `nodeMover.run` to perform it)
+  was folded into `copyClockSrc`, but `node_mover.go`'s own inline copy was left exactly as
+  it was — converting it would not reduce an external write, since it isn't one.
+
+**Assignment order relative to `buildFromSpec`'s phases is unchanged.** Every consolidated
+call sits at the exact call site the direct field write used to sit at — no method was moved
+to a different phase, no call was hoisted or deferred; `setSceneFlags`' two-loops-into-one
+merge is the one non-mechanical change, verified separately: both original loops ran over
+`md.mr.nodeGeoms` between the same two neighboring statements with nothing reading
+`nm.flags` in between, so folding them into a single loop over the same map, calling
+`setSceneFlags(coplanarEdges, upAxis)` once per node, produces the identical final `flags`
+value on every node (each loop only ever WROTE `true` when its own scene condition held;
+`false` was always the zero-value default either way, so setting both fields explicitly to
+their computed booleans reproduces the same two-separate-conditional-write outcome).
+
+**Guards.** `check-composer-fields.sh`, `check-persist-write-ownership.sh`,
+`check-scene-path-resolution.sh` all re-ran clean on the new file and the touched call
+sites (`check-persist-write-ownership: clean (11 write call site(s) scanned across 132
+files...)`, `check-scene-path-resolution: clean (222 files scanned...)`) — none match by
+symbol name, since no persistence write or path-construction call moved; only field
+assignments inside the same package did. No guard needed re-keying.
+
+**Verification.** `go build ./...`, `go vet ./...` clean. `go test -race -count=1 ./...`
+clean, no race, no failures (`ok` for every package with tests, including
+`nodes/Wiring`, `nodes/Wiring/scenecamera`, `nodes/PairNode`). The no-imports-`Wiring` loop
+(`for p in $(go list ./nodes/Wiring/... | grep -v 'nodes/Wiring$'); do go list -deps "$p" |
+grep -qx github.com/dtauraso/wirefold/nodes/Wiring && echo "IMPORTS WIRING: $p"; done`) is
+empty — nothing new imports `Wiring` (the new file is IN `Wiring`, nothing moved out).
+`bash scripts/verify.sh` (run from repo root) reports `stop-checks: clean`.
+
+**Deliberate breaks, confirmed and restored:**
+- Dropped `setQuantOffset`'s real value (`quantoffset.QuantizedOffset{}` for every node) in
+  `build_move_dispatch.go` → `TestLoadTopologyComputesQuantizedOffsets` failed by name
+  (`node 2 quantOffset derives to {X:0 Y:0 Z:0}, want close to {X:50 ...}`), then restored.
+- Forced `wireStream`'s `kindID` to a constant `255` for every node in `setNodeStreams` →
+  **no test failed.** Uncovered, reported rather than assumed: nothing asserts a loaded
+  node's streamed `KindID` column against its spec-declared kind.
+- Made `addOutWire` always pass `nil`/`nil` for `outWireOuts`/`outStepsIn` → **no test
+  failed.** Same class as §17's own documented gap (`TrySendFromSrc`'s delivery outcome is
+  untestable per `docs/process/testing-shape.md`'s own doctrine): `outWireOuts`/`outStepsIn`
+  feed `chainBeads`' publish/step-revision paths, cross-goroutine delivery correctness this
+  doc's testing doctrine excludes from unit tests by design, not a gap this task introduced.
+
+Before/after external construction-time write count: **30 → 0** (all 30 now route through
+one of the 15 new `nodeGeometry` wiring methods; the 5 genuinely runtime writes stay
+unchanged, as instructed). Exported `Wiring`-package symbol count unchanged — all 15 new
+methods are unexported. `nodes/Wiring` non-test top-level `.go` file count: +1
+(`node_geometry_wire.go`). No interface, `types`/`common` package, alias shim, dot-import,
+package-level actor global, or `ForTest` hatch was added.
