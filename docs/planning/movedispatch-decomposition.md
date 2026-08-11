@@ -2796,3 +2796,132 @@ Decoupling audience 1 from the dispatch core remains a real, separate, not-yet-d
 follow-up (narrow interface over `nodeInboxes`/`moverRegistry`, then a kind-API package
 extraction) — the REQUIREMENT this section's title names (`nodes/Wiring/` holding zero
 `.go` files, only subdirectories) is met; the BONUS is not, and was never claimed to be.
+
+## §24 — the BONUS goal done (`buildDeps` → bound func values, `kindapi` package); the
+3-way-split requirement measured and only partly met
+
+The follow-up §23 named as "not attempted" is now done: `buildDeps` (renamed `BuildDeps`,
+exported) no longer embeds `*moverRegistry`/`*nodeInboxes` at all. It carries three BOUND
+FUNC VALUES instead — `ClaimLatticeIn func(name string) chan int32`,
+`ClaimTiltEditIn func(name string) chan movemsg.TiltEditMsg`,
+`ClaimSelfDriveGeom func(name string) *nodeactor.NodeGeometry` — each closed over
+`buildNodes`'s own `*MoveDispatch` at construction (`nodes/Wiring/dispatch/build_nodes.go`),
+mirroring the exact pattern §17/§20 already used to cross the edgemover/nodeactor package
+boundary (`resolveDest`/`centerOf`/`sendMove` as func values, never a raw pointer into the
+owning actor). `BuildArgs`'s three consuming methods (`LatticeIn`/`TiltEditIn`/
+`ClaimSelfDrive`) now call the bound func instead of reaching into `a.deps.mr`/
+`a.deps.inboxes` directly — same nil-safe fallback shape (a zero `BuildDeps{}`, as a bare
+test build with no loader passes, leaves every func nil, and each method degrades to the
+same dead-end channel / nil return it always did).
+
+This let `BuildArgs`/`BuildDeps`/`RegisterBuilder`/`NodeBuilder`/`Registry`/`BuildRegistry`/
+`DrivenOut`/`NewDrivenOutForTest` — plus `build_edge_maps.go`'s `BuildTypeMaps` (its only
+coupling was reading `Registry`, now in the same package) — move into a NEW package,
+`nodes/Wiring/kindapi` (11 non-test + 2 test files: `drive_slot_claim_test.go`,
+`state_seed_test.go`; `fixture_kinds_test.go`/`aimed_ports_test.go` stayed in `dispatch`
+because their `init()`-registered fixture kinds — `SrcNode`/`SinkNode`/`AimedSrc`/
+`AimedSink`/`AimedPacer` — are referenced by other `dispatch`-package tests that need them
+in the SAME test binary; they now call `kindapi.RegisterBuilder`/`kindapi.BuildArgs`
+qualified instead of unqualified). Every one of the 13 node-kind packages plus
+`nodes/gatecommon` now imports `nodes/Wiring/kindapi`, not `nodes/Wiring/dispatch` — confirmed
+by `go list -deps`, zero hits, for all 14 packages. The loop from the task brief
+(`for p in $(go list ./nodes/Wiring/... | grep -v 'nodes/Wiring$'); do go list -deps "$p" |
+grep -qx .../dispatch && echo DEPENDS; done`) reports only `dispatch` itself (trivially
+depends on itself), confirming no OTHER subpackage under `nodes/Wiring/` reaches the
+dispatch core either.
+
+**Test-name/assertion parity.** 109 `TestXxx` functions across `dispatch`+`kindapi`'s test
+files, identical set before/after (diff empty); 324 `t.Fatal|Fatalf|Error|Errorf(` calls,
+identical count before/after. (The repo-wide 241/642 figure in §23 covered the WHOLE
+`nodes/Wiring/` tree at that point in time, not just this directory — not directly
+comparable; the number that matters here is dispatch+kindapi's own before/after equality,
+which holds exactly.)
+
+**Deliberate break, confirmed and restored.** Forced `ClaimSelfDriveGeom` to always return
+`nil` (bound closure, `build_nodes.go`) → two tests failed by name:
+`TestPairNodesHaveNoNodeMoverRingNodesDo`, `TestPairNodeSelfDrivePersistsThroughRealReload`.
+Restored; `go build ./...` and `git diff` clean again. `LatticeIn`/`TiltEditIn`'s rewired
+surface is exercised (not independently break-tested) by `scene_lattice_edit_test.go` and
+`tilt_edit_speed_test.go` — both integration-shaped tests that already round-trip through
+the real bound closures, so breaking `ClaimSelfDriveGeom` (the one with no such integration
+test at this remove) was the more informative probe.
+
+**Guard evidence.** `check-channel-names.sh` caught a real regression: the two bound
+closures' local channel variables were named the generic `ch`, reported as
+`channel-naming: nodes/Wiring/dispatch/build_nodes.go: generic name 'ch'` — renamed back to
+`sceneToNodeLatticeIn`/`panelToNodeTiltEditIn` (the SAME names the pre-move
+`build_args_lattice.go`/`build_args_tilt_vector.go` used), guard clean. `bash
+scripts/stop-checks.sh` is empty (clean) both before this fix (it caught it) and after.
+Doc citations of the four moved files (`build_args.go`, `driven_out.go`) repointed in
+`.claude/rules/node-kinds.md`, `docs/investigations/audit-baseline.md`,
+`docs/investigations/interior-stream-framing.md` — `check-docs-symbols`/`check-doc-drift`
+clean.
+
+**Verification.** `go build ./...`, `go vet ./...`: clean. `go test -race -count=1 ./...`:
+every package `ok` or `[no test files]`, zero `FAIL`, zero race reports. `bash
+scripts/stop-checks.sh`: empty stdout. `gofmt -l .`: empty (two import-order fixes needed
+and applied, `nodes/TimeEnd/node.go`/`nodes/pacer/node.go`).
+
+### The 3-way-split / ≤31-files-per-package requirement: only PARTLY met
+
+`ls nodes/Wiring/kindapi/*.go | wc -l` → 13 (11 non-test + 2 test), well under the cap.
+`ls nodes/Wiring/dispatch/*.go | wc -l` → 81 (34 non-test + 47 test) — still ONE package,
+still well over ~31, and this task's "3 or more packages" ask is therefore not met: there
+are two packages here (`dispatch`, `kindapi`), not three-plus, and `dispatch` itself did not
+shrink enough.
+
+**What was actually measured, and why a further split was not attempted this pass.** Every
+file remaining in `dispatch` was checked for a `func (x *MoveDispatch)` /
+`func (x *moverRegistry)` / `func (x *buildCtx)` / `func (x *layoutQuantizer)` method
+receiver — 20 of 34 non-test files have one. Go requires a method's receiver type to be
+DEFINED in the same package as the method, so none of those 20 can leave `dispatch` without
+`MoveDispatch`/`moverRegistry`/`buildCtx`/`layoutQuantizer` themselves leaving too — not a
+design choice, a language rule. The remaining 14 (after `kindapi` took 11) were checked by
+hand: every one either references one of these four types as a PARAMETER/FIELD type
+(`loader.go`'s `*MoveDispatch` return, `move_dispatch.go`'s own type definitions,
+`move_dispatch_construct.go`'s constructor, `stdin_apply.go`/`stdin_dispatch.go`'s dispatch
+tables, `stream_wiring.go`'s field wiring, `touching_beads.go`'s `*moverRegistry` parameter)
+or is a small, genuinely free helper with NO thematic cohesion of its own
+(`vec_alias.go` — a transparent alias to `wire.Vec3`/`wire.WireSegment`, unqualified at 84
+call sites across 29 OTHER `dispatch` files; `bool_u8.go` — a two-call-site one-liner;
+`gesture.go` — a doc-only file with zero declarations, header comment for the
+`MoveDispatch`-method gesture cluster). None of these three is a package on its own without
+becoming exactly the `types`/`common`/`util` grab-bag this task explicitly bans — there is no
+shared THEME across "a vector type alias", "a bool-to-byte converter", and "a doc comment",
+only "things that happen not to touch `MoveDispatch`".
+
+**The gesture cluster specifically contradicts this task's own suggested shape.** The brief
+suggested "gesture entry points" as a candidate for a core-free package;
+`gesture_actions.go`/`gesture_dispatch.go`/`gesture_graph.go`/`gesture_handlers.go`/
+`gesture_hitclassify.go` (5 of the 6 gesture files) are ALL `*MoveDispatch` methods, pinned
+by the same Go same-package-receiver rule above — measured, not assumed, before writing this
+down (the earlier "10 of 45 name none of the six coupling tokens" scan in the task brief
+undercounted this cluster for the same reason §20 named for its own undercount: a
+field-selector/token regex does not see a method RECEIVER, only a token occurring in text).
+
+**What WOULD close the gap, named but not attempted here.** A further split needs the SAME
+move this section just made applied to another cluster — new exported accessors on
+`MoveDispatch`/`moverRegistry` (or a further bound-func extraction) that let a coherent
+GROUP of the 20 receiver-bound files move together, the same shape as §16 (four Persister
+types unified and lifted), §17 (edgemover), or §20 (nodeactor) — each of which was ITS OWN
+multi-hour task with its own field-by-field measurement, its own exported-surface design,
+and its own deliberate-break verification. The best candidate by file count and thematic
+cohesion is the persistence/scene-state cluster (`move_persist.go`, `scene_lattice_persist.go`,
+`scene_overlays_persist.go`, `scene_speed_persist.go`, `scene_sphere_persist.go`,
+`scene_structure.go`, `scene_switch.go`, `viewpoint_state.go` — 8 files) — its methods touch
+`md.UI` (already exported), `md.mr.nodeGeoms` (not exported), `md.persist` (the type this
+cluster itself would need to own), and `md.Scenes.TreeRoot`; a real design pass, not a
+mechanical consequence of a file move, matching exactly the caveat §23 already stated for
+this same follow-up ("neither is a mechanical consequence of a file move"). Not attempted
+this pass because it is comparable in size to §16/§17/§20 each on their own, and this task's
+remaining budget was spent verifying the `buildDeps` rewrite (the move actually requested as
+"the key move") to the same standard the rest of this document holds every move to, rather
+than attempting a second, under-verified architectural lift in the same pass.
+
+**Good-outcome stopping point.** Per this task's own instruction, this is reported as a
+committed, buildable stage rather than a claimed-complete one: `git status --short` is
+empty, `bash scripts/stop-checks.sh` is empty, `go test -race -count=1 ./...` is clean, and
+the BONUS goal named in §23 (node kinds decoupled from the dispatch core) is now genuinely
+done and load-bearing (proven by the `go list -deps` loop and the deliberate-break test).
+The 3-way, ≤31-files-per-package split requested THIS task is not — `dispatch` remains one
+81-file package, for the file-by-file reasons measured above, not by assumption.
