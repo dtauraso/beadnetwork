@@ -161,8 +161,8 @@
           moves the end it measured and derives the other, so the ends never have to agree about
           who moved: one of them is written and the other is read off it</p>
         <p>the node stores both ends and runs exactly this:
-          <span data-src="nodes/PairNode/machine.go#nearerEndCount">nearerEndCount</span> says which
-          end the count came from, <span data-src="nodes/PairNode/machine.go#step">step</span> returns
+          <span data-src="nodes/PairNode/tiltring/machine.go#NearerEndCount">nearerEndCount</span> says which
+          end the count came from, <span data-src="nodes/PairNode/tiltring/machine.go#Step">step</span> returns
           that end moved one slot, and
           <span data-src="nodes/PairNode/ring.go#setTop">setTop</span> /
           <span data-src="nodes/PairNode/ring.go#setBottom">setBottom</span> write it — each writing
@@ -175,7 +175,7 @@
           descriptions still pick the same move</p>
         <p>the direction is a comparison, not a sign: no value here is negative</p>
         <p>swept over every pair by
-          <span data-src="nodes/PairNode/arith_round_test.go#TestOneRoundIsSignAndRemainder">TestOneRoundIsSignAndRemainder</span></p>
+          <span data-src="nodes/PairNode/tiltring/arith_round_test.go#TestOneRoundIsSignAndRemainder">TestOneRoundIsSignAndRemainder</span></p>
       </div>
     </div>
 
@@ -192,7 +192,7 @@
         <p>taken mod 12 a tilt and its bottom are the same number, so these two lines fix the
           arrangement without naming which way t turned to reach it</p>
         <p>swept by
-          <span data-src="nodes/PairNode/arith_walk_test.go#TestTheWalkIsClosedForm">TestTheWalkIsClosedForm</span></p>
+          <span data-src="nodes/PairNode/tiltring/arith_walk_test.go#TestTheWalkIsClosedForm">TestTheWalkIsClosedForm</span></p>
       </div>
     </div>
 

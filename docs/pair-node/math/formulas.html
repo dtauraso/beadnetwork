@@ -99,26 +99,26 @@
               <td class="e">sep = |a.idx − b.idx|, folded to ≤ HALF</td>
               <td class="n">the short way round, so the number means the same thing whichever side
                 the arrival sits on</td>
-              <td class="s" data-src="nodes/PairNode/ring.go#angleLength">ring.go</td>
+              <td class="s" data-src="nodes/PairNode/tiltring/lattice.go#AngleLength">ring.go</td>
             </tr>
             <tr>
             <tr>
               <td class="e">c = u if u &lt; HALF, else (b − a) mod points</td>
               <td class="n">the count from the NEARER END of the tilt line, which is the one measurement
                 the rule makes. It lives on a ring of a half turn</td>
-              <td class="s" data-src="nodes/PairNode/machine.go#nearerEndCount">nearerEndCount</td>
+              <td class="s" data-src="nodes/PairNode/tiltring/machine.go#NearerEndCount">nearerEndCount</td>
             </tr>
             <tr>
               <td class="e">settled = (c = stop)</td>
               <td class="n">perpendicular stops at 0, parallel at a quarter. A comparison — no distance
                 is taken and nothing is minimised</td>
-              <td class="s" data-src="nodes/PairNode/machine.go#stoppingCounts">stoppingCounts</td>
+              <td class="s" data-src="nodes/PairNode/tiltring/machine.go#stoppingCounts">stoppingCounts</td>
             </tr>
             <tr>
               <td class="e">step = next if (stop − c) mod HALF ≤ QUARTER, else prev</td>
               <td class="n">written ONCE and shared by every mode; the way down is the rest of the circle,
                 so one subtraction settles it. Answerable everywhere on the ring, every halt included</td>
-              <td class="s" data-src="nodes/PairNode/machine.go#step">step</td>
+              <td class="s" data-src="nodes/PairNode/tiltring/machine.go#Step">step</td>
             </tr>
 
             <tr class="h">

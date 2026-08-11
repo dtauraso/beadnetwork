@@ -87,8 +87,8 @@
           <p>links, not sums — the triad turns as one, and nothing wraps</p>
           <p>ONLY t is updated, and only ever by this node's own loop
             (<span data-src="nodes/PairNode/node_parts.go#Top">Top</span>). The normal and the bottom are
-            links off it — <span data-src="nodes/PairNode/ring.go#tiltState">quarter</span> and
-            <span data-src="nodes/PairNode/ring.go#tiltState">opposite</span> — so they are not two
+            links off it — <span data-src="nodes/PairNode/tiltring/lattice.go#State">quarter</span> and
+            <span data-src="nodes/PairNode/tiltring/lattice.go#State">opposite</span> — so they are not two
             more vectors to move, and cannot fall out of step with the tilt</p>
           <p>the normal is what LEAVES
             (<span data-src="nodes/PairNode/vectors.go#outgoingVector">outgoingVector</span>); the bottom
@@ -111,7 +111,7 @@
           <p><i class="sw" style="background:#5fd68a"></i>t — this node's own tilt</p>
           <p><i class="sw" style="background:#f9a825"></i>a — the direction that arrived</p>
           <p><i class="sw" style="background:#e05fd8"></i>L — short for
-            <span data-src="nodes/PairNode/ring.go#angleLength">angleLength</span>, the slots between
+            <span data-src="nodes/PairNode/tiltring/lattice.go#AngleLength">angleLength</span>, the slots between
             them the short way round, so never more than 12</p>
           <p>the two slots have TWO arcs between them, one each way round, and L is the shorter —
             that choice is what min is for. It is not wrap handling: a tilt is a state on the ring
@@ -119,7 +119,7 @@
           <p>0 and 12 are where perpendicular stops and 6 is where parallel does; every other length —
             acute below the quarter, obtuse above it — is ordinary to both, and gets turned over</p>
           <p><b>the RULE does not read L.</b> It counts from the nearer END of the tilt line
-            (<span data-src="nodes/PairNode/machine.go#nearerEndCount">nearerEndCount</span>), which is
+            (<span data-src="nodes/PairNode/tiltring/machine.go#NearerEndCount">nearerEndCount</span>), which is
             under 12 by construction and remembers which end it came from — and that fold is why
             perpendicular's two lengths here, 0 and 12, are ONE count of 0 to the code. L survives for
             the one question about the two TILTS rather than the arrival: which mode the pair runs</p>
@@ -174,7 +174,7 @@
           <p>the tilt ring is the Cayley graph of ℤ₂₄ on the generator 1 — which is exactly what
             "24 states, two links out of each" says</p>
           <p>the mod 24 above is the DEFINITION the links implement, not an operation the code
-            performs: <span data-src="nodes/PairNode/ring.go#newRing">newRing</span> resolves next and
+            performs: <span data-src="nodes/PairNode/tiltring/lattice.go#NewRing">newRing</span> resolves next and
             prev once, so a turn is a field read and no arithmetic runs at a turn at all</p>
           <p>δ(R, a) = R for a chosen mode is the whole of "a choice sticks", and it is why there is
             no edge between perpendicular and parallel</p>
@@ -205,7 +205,7 @@
         <img class="math" src="../diagrams/mathblocks/update-arith-rests.svg" style="width:602px"
           alt="Shift one of the two by 6, and only those four land on 0, 6, 12: a gap of 0 or 12 gives L(x, y + 6) = 6; a gap of 6 or 18 gives L(x, y + 6) = 0 or 12; every other gap gives an L(x, y + 6) that is none of 0, 6, 12.">
         <div class="keynote">
-          <p>this is where <span data-src="nodes/PairNode/machine.go#stoppingCounts">stoppingCounts</span>
+          <p>this is where <span data-src="nodes/PairNode/tiltring/machine.go#stoppingCounts">stoppingCounts</span>
             comes from. { 6 } and { 0, 12 } are not two facts to remember — they are the four
             quarter gaps, and the shift by 6 above is the quarter turn the partner adds when it
             sends its normal instead of its tilt</p>
@@ -216,7 +216,7 @@
             half turn apart in g, so their two distances sum to a constant, which is why one is the
             other upside down</p>
           <p>guarded by
-            <span data-src="nodes/PairNode/arith_resting_lengths_test.go#TestRestingLengthsFollowFromTheGaps">TestRestingLengthsFollowFromTheGaps</span>,
+            <span data-src="nodes/PairNode/tiltring/arith_resting_lengths_test.go#TestRestingLengthsFollowFromTheGaps">TestRestingLengthsFollowFromTheGaps</span>,
             which sweeps every partner-and-tilt pair and checks that no other gap lands on a resting
             length by accident</p>
         </div>
@@ -273,19 +273,19 @@
             because it is a link and nothing moves it</p>
           <p>f is a quantity of THIS PAGE, not of the node. One arrival turns the tilt at most one
             slot, so the code asks a comparison and a subtraction and never works out a distance at
-            all — <span data-src="nodes/PairNode/machine.go#settled">settled</span> tests
+            all — <span data-src="nodes/PairNode/tiltring/machine.go#Settled">settled</span> tests
             <var>c</var> against the mode's one stopping count, and
-            <span data-src="nodes/PairNode/machine.go#step">step</span> tests the way up against a
+            <span data-src="nodes/PairNode/tiltring/machine.go#Step">step</span> tests the way up against a
             quarter turn</p>
           <p>the deciding never names a mode — by the time it runs, the mode is spent, having
-            produced the one count <span data-src="nodes/PairNode/machine.go#stopping">stopping</span>
+            produced the one count <span data-src="nodes/PairNode/tiltring/machine.go#Stopping">stopping</span>
             returns</p>
           <p>f survives as a test-side measurement, because "each step lands nearer than it started"
             cannot be said without one — checked over both lattices and every tilt-and-arrival pair
-            by <span data-src="nodes/PairNode/arith_fromrest_test.go#TestFromRestIsTheQuarterOffset">TestFromRestIsTheQuarterOffset</span></p>
+            by <span data-src="nodes/PairNode/tiltring/arith_fromrest_test.go#TestFromRestIsTheQuarterOffset">TestFromRestIsTheQuarterOffset</span></p>
           <p>ℓ, ℓ₊ and ℓ₋ are one function called three times —
-            <span data-src="nodes/PairNode/machine.go#settled">settled</span> uses the first,
-            <span data-src="nodes/PairNode/machine.go#step">step</span> the other two</p>
+            <span data-src="nodes/PairNode/tiltring/machine.go#Settled">settled</span> uses the first,
+            <span data-src="nodes/PairNode/tiltring/machine.go#Step">step</span> the other two</p>
         </div>
       </div>
 
@@ -393,25 +393,25 @@
             </td>
           </tr>
           <tr>
-            <td class="n">nodes/PairNode/ring.go — the 24 states</td>
+            <td class="n">nodes/PairNode/tiltring/lattice.go — the 24 states</td>
             <td class="s" colspan="2">
-              <span data-src="nodes/PairNode/ring.go#tiltState">tiltState</span> ·
-              <span data-src="nodes/PairNode/ring.go#ring">ring</span> ·
-              <span data-src="nodes/PairNode/ring.go#at">at</span> ·
-              <span data-src="nodes/PairNode/ring.go#arrivedState">arrivedState</span> ·
-              <span data-src="nodes/PairNode/ring.go#seedState">seedState</span> ·
-              <span data-src="nodes/PairNode/ring.go#angleLength">angleLength</span> ·
+              <span data-src="nodes/PairNode/tiltring/lattice.go#State">tiltState</span> ·
+              <span data-src="nodes/PairNode/tiltring/lattice.go#Ring">ring</span> ·
+              <span data-src="nodes/PairNode/tiltring/lattice.go#At">at</span> ·
+              <span data-src="nodes/PairNode/tiltring/lattice.go#ArrivedState">arrivedState</span> ·
+              <span data-src="nodes/PairNode/tiltring/lattice.go#SeedState">seedState</span> ·
+              <span data-src="nodes/PairNode/tiltring/lattice.go#AngleLength">angleLength</span> ·
               <span data-src="nodes/PairNode/ring.go#setTop">setTop</span> ·
               <span data-src="nodes/PairNode/ring.go#setBottom">setBottom</span> ·
               <span data-src="nodes/PairNode/ring.go#adoptLattice">adoptLattice</span>
             </td>
           </tr>
           <tr>
-            <td class="n">nodes/PairNode/machine.go — the one rule</td>
+            <td class="n">nodes/PairNode/tiltring/machine.go — the one rule</td>
             <td class="s" colspan="2">
-              <span data-src="nodes/PairNode/machine.go#tiltMachine">tiltMachine</span> ·
-              <span data-src="nodes/PairNode/machine.go#stoppingCounts">stoppingCounts</span> ·
-              <span data-src="nodes/PairNode/machine.go#nearerEndCount">nearerEndCount</span> ·
+              <span data-src="nodes/PairNode/tiltring/machine.go#Machine">tiltMachine</span> ·
+              <span data-src="nodes/PairNode/tiltring/machine.go#stoppingCounts">stoppingCounts</span> ·
+              <span data-src="nodes/PairNode/tiltring/machine.go#NearerEndCount">nearerEndCount</span> ·
               <span data-src="nodes/PairNode/machine.go#machineForGap">machineForGap</span> ·
               <span data-src="nodes/PairNode/machine.go#adoptMachine">adoptMachine</span>
             </td>

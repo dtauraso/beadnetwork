@@ -45,10 +45,10 @@
       <div class="card wide">
         <h2>The whole case space</h2>
         <p>A node's tilt machine is ONE instance
-          (<span data-src="nodes/PairNode/machine.go#tiltMachine">tiltMachine</span>) whose entire state is
+          (<span data-src="nodes/PairNode/tiltring/machine.go#Machine">tiltMachine</span>) whose entire state is
           which mode it is in. So the cases are: three modes, each against every COUNT an arrival can
           produce — the ring slots between the arrival and the NEARER END of this node's tilt line
-          (<span data-src="nodes/PairNode/machine.go#nearerEndCount">nearerEndCount</span>). A node draws two
+          (<span data-src="nodes/PairNode/tiltring/machine.go#NearerEndCount">nearerEndCount</span>). A node draws two
           ends a half turn apart, so exactly one count is under a half turn, and that is the one. The grid
           runs 0 to 11 on a 24-point ring, not 0 to 12: <var>c</var> lives on a ring of a HALF TURN, and 12
           is 0 at the other end. Nothing else is a case: the turn never sees which mode is running, and there
@@ -148,7 +148,7 @@
           </tr>
         </table>
         <div class="cap">Both fall out of one <code>&lt;=</code> in
-          <span data-src="nodes/PairNode/machine.go#step">step</span>: the way up is measured against a quarter
+          <span data-src="nodes/PairNode/tiltring/machine.go#Step">step</span>: the way up is measured against a quarter
           turn, and at exactly a quarter the two ways round are the same length, so the ≤ takes it up. It is
           a convention, not a measurement — there is no better answer, since the two directions are genuinely
           the same distance. What matters is that it MOVES: standing still at a tie is the freeze the old
@@ -278,13 +278,13 @@
             <td class="n">not a case at all — the count is taken from whichever END is nearer, so a
               reversed partner lands exactly where an aligned one does and parallel reads both as its one
               stopping count</td>
-            <td class="s" data-src="nodes/PairNode/machine.go#nearerEndCount">nearerEndCount</td>
+            <td class="s" data-src="nodes/PairNode/tiltring/machine.go#NearerEndCount">nearerEndCount</td>
           </tr>
           <tr>
             <td class="e">a mode with no stopping count</td>
             <td class="n">refused where the broken invariant can still be named, rather than silently
               behaving like some other mode</td>
-            <td class="s" data-src="nodes/PairNode/machine.go#machineFor">machineFor</td>
+            <td class="s" data-src="nodes/PairNode/tiltring/machine.go#MachineFor">machineFor</td>
           </tr>
         </table>
       </div>

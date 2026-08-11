@@ -12,6 +12,7 @@ package PairNode
 // decision is node.go's; this file only starts and stops the exchange those run.
 
 import (
+	"github.com/dtauraso/wirefold/nodes/PairNode/tiltring"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
@@ -88,9 +89,9 @@ func (n *Node) applyTiltEdit(edit movemsg.TiltEditMsg) (placeBead bool) {
 	}
 	// A click names the TOP — it is the arrow the user is dragging, not a measured end.
 	if edit.Up {
-		n.setTop(n.topState().next)
+		n.setTop(n.topState().Next)
 	} else {
-		n.setTop(n.topState().prev)
+		n.setTop(n.topState().Prev)
 	}
 	// AND IT STOPS THERE: no send, no bead, and NO MACHINE CHOSEN. A click is not the moment
 	// to read the gap — the setup is not finished until START, and a user clicks their way up
@@ -132,10 +133,10 @@ func (n *Node) applyTiltEdit(edit movemsg.TiltEditMsg) (placeBead bool) {
 // one that provably lands last. The marker gets no reply (handleVectorCycle), so it stops
 // there instead of bouncing.
 func (n *Node) clear() {
-	n.setTop(n.ringOf().at(0))
+	n.setTop(n.ringOf().At(0))
 	// The machine this node was running goes too — RESET is the one thing that releases it, and
 	// what it returns to is the setting mode, which is also where a fresh node starts.
-	n.tilt.Machine = setting
+	n.tilt.Machine = tiltring.Setting
 	n.syncTiltIndex()
 	n.vec.ReceivedThetaIdx = 0
 	n.vec.ReceivedSet = false

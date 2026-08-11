@@ -1,9 +1,10 @@
-package PairNode
+package tiltring
 
 // arith_resting_lengths_test.go — the resting lengths derived from the possible gaps, which
 // docs/pair-node/math/arith.html rests on.
 //
-// See docs/process/testing-shape.md for what a test here may assert.
+// See docs/process/testing-shape.md for what a test here may assert. (Was
+// PairNode/arith_resting_lengths_test.go.)
 
 import "testing"
 
@@ -21,12 +22,12 @@ import "testing"
 // sweeps every (partner, tilt) pair to confirm it, including that no other gap produces a
 // resting length by accident.
 func TestRestingLengthsFollowFromTheGaps(t *testing.T) {
-	r := newRing(24)
+	r := NewRing(24)
 	for p := int32(0); p < 24; p++ {
-		a := r.at((p + 6) % 24) // the partner sends its normal, not its tilt
+		a := r.At((p + 6) % 24) // the partner sends its normal, not its tilt
 		for tilt := int32(0); tilt < 24; tilt++ {
 			g := ((tilt-p)%24 + 24) % 24
-			L := r.at(tilt).angleLength(a)
+			L := r.At(tilt).AngleLength(a)
 			parallel := g == 0 || g == 12
 			perpendicular := g == 6 || g == 18
 			switch {

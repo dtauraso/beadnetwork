@@ -57,13 +57,13 @@
     <h3 class="secname">The count, taken at the end the arrival is nearer</h3>
 
     <div class="card wide">
-      <h2><span data-src="nodes/PairNode/machine.go#nearerEndCount">nearerEndCount</span></h2>
+      <h2><span data-src="nodes/PairNode/tiltring/machine.go#NearerEndCount">nearerEndCount</span></h2>
       <div class="cap"><span data-src="nodes/PairNode/machine.go">nodes/PairNode/machine.go</span></div>
-      <p class="eq step" data-src="nodes/PairNode/machine.go#nearerEndCount"><span class="lhs"><var>u</var></span>=
+      <p class="eq step" data-src="nodes/PairNode/tiltring/machine.go#NearerEndCount"><span class="lhs"><var>u</var></span>=
         (<var>t</var> − <var>a</var>) mod points</p>
-      <p class="eq step" data-src="nodes/PairNode/machine.go#nearerEndCount"><span class="lhs"><var>u</var>
+      <p class="eq step" data-src="nodes/PairNode/tiltring/machine.go#NearerEndCount"><span class="lhs"><var>u</var>
           &lt; <var>h</var></span><var>c</var> = <var>u</var> <span class="note">the top is nearer</span></p>
-      <p class="eq step" data-src="nodes/PairNode/machine.go#nearerEndCount"><span class="lhs"><var>u</var>
+      <p class="eq step" data-src="nodes/PairNode/tiltring/machine.go#NearerEndCount"><span class="lhs"><var>u</var>
           ≥ <var>h</var></span><var>c</var> = (<var>b</var> − <var>a</var>) mod points
         <span class="note">the bottom is</span></p>
       <p class="eq step dim"><span class="lhs">always</span>0 ≤ <var>c</var> &lt; <var>h</var></p>
@@ -73,7 +73,7 @@
       <h2>where <var>t</var>, <var>b</var> and <var>a</var> come from</h2>
       <div class="cap"><span data-src="nodes/PairNode/ring.go">nodes/PairNode/ring.go</span> ·
         <span data-src="nodes/PairNode/vectors.go">nodes/PairNode/vectors.go</span></div>
-      <p class="eq step" data-src="nodes/PairNode/ring.go#tiltState"><span class="lhs wide"><var>b</var></span>=
+      <p class="eq step" data-src="nodes/PairNode/tiltring/lattice.go#State"><span class="lhs wide"><var>b</var></span>=
         t.opposite <span class="note">a link the ring resolved, not <var>t</var> + <var>h</var></span></p>
       <p class="eq step" data-src="nodes/PairNode/vectors.go#outgoingVector"><span class="lhs wide"><var>a</var></span>=
         the partner's t.quarter <span class="note">its normal, not its tilt</span></p>
@@ -86,15 +86,15 @@
     <h3 class="secname">A mode, as the counts it stops at</h3>
 
     <div class="card wide">
-      <h2><span data-src="nodes/PairNode/machine.go#stoppingCounts">stoppingCounts</span></h2>
+      <h2><span data-src="nodes/PairNode/tiltring/machine.go#stoppingCounts">stoppingCounts</span></h2>
       <div class="cap"><span data-src="nodes/PairNode/machine.go">nodes/PairNode/machine.go</span></div>
-      <p class="eq step perp" data-src="nodes/PairNode/machine.go#stoppingCounts"><span class="lhs">perpendicular</span>stop
+      <p class="eq step perp" data-src="nodes/PairNode/tiltring/machine.go#stoppingCounts"><span class="lhs">perpendicular</span>stop
         = 0</p>
-      <p class="eq step par" data-src="nodes/PairNode/machine.go#stoppingCounts"><span class="lhs">parallel</span>stop
+      <p class="eq step par" data-src="nodes/PairNode/tiltring/machine.go#stoppingCounts"><span class="lhs">parallel</span>stop
         = <var>q</var></p>
-      <p class="eq step dim" data-src="nodes/PairNode/machine.go#stoppingCounts"><span class="lhs">setting</span>anywhere
+      <p class="eq step dim" data-src="nodes/PairNode/tiltring/machine.go#stoppingCounts"><span class="lhs">setting</span>anywhere
         <span class="note">so it is settled wherever it stands</span></p>
-      <p class="eq step" data-src="nodes/PairNode/machine.go#machineFor"><span class="lhs">machineFor</span>panics
+      <p class="eq step" data-src="nodes/PairNode/tiltring/machine.go#MachineFor"><span class="lhs">machineFor</span>panics
         unless the mode has a row</p>
     </div>
 
@@ -103,13 +103,13 @@
       <div class="cap"><span data-src="nodes/PairNode/machine.go">nodes/PairNode/machine.go</span></div>
       <p class="eq step" data-src="nodes/PairNode/machine.go#machineForGap"><span class="lhs">partner's tilt</span>=
         <var>a</var>.quarter.opposite</p>
-      <p class="eq step" data-src="nodes/PairNode/ring.go#angleLength"><span class="lhs"><var>G</var></span>=
+      <p class="eq step" data-src="nodes/PairNode/tiltring/lattice.go#AngleLength"><span class="lhs"><var>G</var></span>=
         angleLength(<var>t</var>, partner's tilt)</p>
       <p class="eq step perp" data-src="nodes/PairNode/machine.go#machineForGap"><span class="lhs"><var>G</var>
           = <var>q</var></span>perpendicular</p>
       <p class="eq step par" data-src="nodes/PairNode/machine.go#machineForGap"><span class="lhs">otherwise</span>parallel</p>
       <p class="eq step dim">the ONE place the gap between the two TILTS is measured, and the one
-        use of <span data-src="nodes/PairNode/ring.go#angleLength">angleLength</span> left in the rule;
+        use of <span data-src="nodes/PairNode/tiltring/lattice.go#AngleLength">angleLength</span> left in the rule;
         <span data-src="nodes/PairNode/machine.go#adoptMachine">adoptMachine</span> makes it stick until a
         reset</p>
     </div>
@@ -134,28 +134,28 @@
     <h3 class="secname">Two questions, and neither answer is a length</h3>
 
     <div class="card wide">
-      <h2><span data-src="nodes/PairNode/machine.go#settled">settled</span> ·
-        <span data-src="nodes/PairNode/machine.go#step">step</span></h2>
+      <h2><span data-src="nodes/PairNode/tiltring/machine.go#Settled">settled</span> ·
+        <span data-src="nodes/PairNode/tiltring/machine.go#Step">step</span></h2>
       <div class="cap"><span data-src="nodes/PairNode/machine.go">nodes/PairNode/machine.go</span></div>
-      <p class="eq step" data-src="nodes/PairNode/machine.go#settled"><span class="lhs">settled</span><var>c</var>
+      <p class="eq step" data-src="nodes/PairNode/tiltring/machine.go#Settled"><span class="lhs">settled</span><var>c</var>
         = <var>stop</var>, or the row stops anywhere</p>
-      <p class="eq step" data-src="nodes/PairNode/machine.go#step"><span class="lhs">step</span>the measured
+      <p class="eq step" data-src="nodes/PairNode/tiltring/machine.go#Step"><span class="lhs">step</span>the measured
         end, one slot: next if (<var>stop</var> − <var>c</var>) mod <var>h</var> ≤ <var>q</var>, else prev</p>
       <p class="eq step dim">no distance is taken and no minimum: the way down is the rest of the
         circle, so asking which is shorter is asking whether the way up is at most a quarter</p>
       <p class="eq step dim">no mode is read below
-        <span data-src="nodes/PairNode/machine.go#stopping">stopping</span>; no value is negative</p>
+        <span data-src="nodes/PairNode/tiltring/machine.go#Stopping">stopping</span>; no value is negative</p>
     </div>
 
     <div class="card wide">
       <h2>what that one line comes to, per arrangement</h2>
       <div class="cap">arith.html prints these twelve; the code holds none of them</div>
-      <p class="eq step perp" data-src="nodes/PairNode/machine.go#step"><span class="lhs">perpendicular</span>(0
+      <p class="eq step perp" data-src="nodes/PairNode/tiltring/machine.go#Step"><span class="lhs">perpendicular</span>(0
         − <var>c</var>) mod <var>h</var> ≤ <var>q</var>, which is <var>c</var> ≥ <var>q</var></p>
       <p class="eq step sub"><span class="lhs"><var>c</var> = 0</span>stay</p>
       <p class="eq step sub"><span class="lhs"><var>c</var> ≥ <var>q</var></span>+1</p>
       <p class="eq step sub"><span class="lhs"><var>c</var> &lt; <var>q</var></span>−1</p>
-      <p class="eq step par" data-src="nodes/PairNode/machine.go#step"><span class="lhs">parallel</span>(<var>q</var>
+      <p class="eq step par" data-src="nodes/PairNode/tiltring/machine.go#Step"><span class="lhs">parallel</span>(<var>q</var>
         − <var>c</var>) mod <var>h</var> ≤ <var>q</var>, which is <var>c</var> ≤ <var>q</var></p>
       <p class="eq step sub"><span class="lhs"><var>c</var> = <var>q</var></span>stay</p>
       <p class="eq step sub"><span class="lhs"><var>c</var> &lt; <var>q</var></span>+1</p>
@@ -166,7 +166,7 @@
         <span data-src="nodes/PairNode/machine.go">machine.go</span>: they are the one comparison
         above, read for a stop of 0 and a stop of <var>q</var></p>
       <p class="eq step dim">the collapse is not taken on trust —
-        <span data-src="nodes/PairNode/arith_round_test.go#TestOneRoundIsSignAndRemainder">TestOneRoundIsSignAndRemainder</span>
+        <span data-src="nodes/PairNode/tiltring/arith_round_test.go#TestOneRoundIsSignAndRemainder">TestOneRoundIsSignAndRemainder</span>
         derives the page's branches and asks the machine for the same state, on every pair of both
         lattices</p>
     </div>
@@ -200,7 +200,7 @@
       <p class="eq step dim">computed NOWHERE in <code>nodes/PairNode</code>. One arrival turns one
         slot; <var>f</var> is made inside it and discarded, no walk is planned, and the next
         arrival re-derives everything. The closed form is a property of the rule, held by
-        <span data-src="nodes/PairNode/arith_walk_test.go#TestTheWalkIsClosedForm">TestTheWalkIsClosedForm</span>,
+        <span data-src="nodes/PairNode/tiltring/arith_walk_test.go#TestTheWalkIsClosedForm">TestTheWalkIsClosedForm</span>,
         not a quantity a node holds</p>
       <p class="eq head">the one thing held fixed — <var>a</var></p>
       <p class="eq step dim">an assumption of that page's analysis, and one the live exchange
@@ -214,17 +214,17 @@
 
     <div class="card wide">
       <h2>swept over every (tilt, arrival) pair, on the 24- and 48-point lattices</h2>
-      <div class="cap"><span data-src="nodes/PairNode/arith_round_test.go">nodes/PairNode/arith_round_test.go</span> ·
-        <span data-src="nodes/PairNode/arith_walk_test.go">nodes/PairNode/arith_walk_test.go</span> ·
-        <span data-src="nodes/PairNode/arith_fromrest_test.go">nodes/PairNode/arith_fromrest_test.go</span> ·
-        <span data-src="nodes/PairNode/arith_resting_lengths_test.go">nodes/PairNode/arith_resting_lengths_test.go</span> ·
+      <div class="cap"><span data-src="nodes/PairNode/tiltring/arith_round_test.go">nodes/PairNode/tiltring/arith_round_test.go</span> ·
+        <span data-src="nodes/PairNode/tiltring/arith_walk_test.go">nodes/PairNode/tiltring/arith_walk_test.go</span> ·
+        <span data-src="nodes/PairNode/tiltring/arith_fromrest_test.go">nodes/PairNode/tiltring/arith_fromrest_test.go</span> ·
+        <span data-src="nodes/PairNode/tiltring/arith_resting_lengths_test.go">nodes/PairNode/tiltring/arith_resting_lengths_test.go</span> ·
         <span data-src="nodes/PairNode/machine_adoption_test.go">nodes/PairNode/machine_adoption_test.go</span> ·
-        <span data-src="nodes/PairNode/machine_halt_test.go">nodes/PairNode/machine_halt_test.go</span></div>
-      <p class="eq step" data-src="nodes/PairNode/arith_round_test.go#TestOneRoundIsSignAndRemainder">TestOneRoundIsSignAndRemainder
+        <span data-src="nodes/PairNode/tiltring/machine_halt_test.go">nodes/PairNode/tiltring/machine_halt_test.go</span></div>
+      <p class="eq step" data-src="nodes/PairNode/tiltring/arith_round_test.go#TestOneRoundIsSignAndRemainder">TestOneRoundIsSignAndRemainder
         <span class="note">arith.html's forms = this machine's answers</span></p>
       <p class="eq step" data-src="nodes/PairNode/machine_adoption_test.go#TestAnUpdateDrivesTheEndItMeasured">TestAnUpdateDrivesTheEndItMeasured
         <span class="note">driven end = measured end; the ends stay <var>h</var> apart</span></p>
-      <p class="eq step" data-src="nodes/PairNode/machine_halt_test.go#TestAModeHaltsExactlyOnItsHomeSet">TestAModeHaltsExactlyOnItsHomeSet
+      <p class="eq step" data-src="nodes/PairNode/tiltring/machine_halt_test.go#TestAModeHaltsExactlyOnItsHomeSet">TestAModeHaltsExactlyOnItsHomeSet
         <span class="note">settled = the mode's own row</span></p>
     </div>
   </section>

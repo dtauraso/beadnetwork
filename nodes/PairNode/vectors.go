@@ -20,7 +20,7 @@ import (
 // in θ alone already negates the direction exactly (see tiltvector.HalfTurnThetaIdx's own doc
 // comment).
 func (n *Node) bottomTilt() tiltvector.TiltVectorMsg {
-	return tiltvector.TiltVectorMsg{ThetaIdx: n.bottomState().idx}
+	return tiltvector.TiltVectorMsg{ThetaIdx: n.bottomState().Idx}
 }
 
 // coplanarNormal is THIS node's own coplanar normal: ONE QUARTER TURN past this node's own
@@ -45,7 +45,7 @@ func (n *Node) bottomTilt() tiltvector.TiltVectorMsg {
 // point the normal the OTHER way, t + 18 rather than t + 6, over half the index range,
 // including the negative indices a ▼ click reaches first.
 func (n *Node) coplanarNormal() tiltvector.TiltVectorMsg {
-	return tiltvector.TiltVectorMsg{ThetaIdx: n.topState().quarter.idx}
+	return tiltvector.TiltVectorMsg{ThetaIdx: n.topState().Quarter.Idx}
 }
 
 // syncTiltIndex reports THIS node's current tilt index AND its current coplanar-normal
@@ -60,7 +60,7 @@ func (n *Node) syncTiltIndex() {
 	}
 	norm := n.coplanarNormal()
 	bottom := n.bottomTilt()
-	n.tilt.SyncTiltIndex(n.topState().idx, norm.ThetaIdx, bottom.ThetaIdx)
+	n.tilt.SyncTiltIndex(n.topState().Idx, norm.ThetaIdx, bottom.ThetaIdx)
 }
 
 // syncReceivedVector reports THIS node's current received-vector state (ReceivedThetaIdx/
@@ -113,12 +113,12 @@ func (n *Node) outgoingVector() tiltvector.TiltVectorMsg {
 	// The lattice the index is on travels with it — see TiltVectorMsg.Points. Without it the
 	// partner cannot tell a direction picked before a point-count change from one picked
 	// after, and the two mean different angles.
-	v.Points = n.ringOf().points
+	v.Points = n.ringOf().Points
 	// WHICH MACHINE THIS NODE IS RUNNING travels with every direction it sends. One end reads
 	// the gap when the exchange opens and the other has no way to know what it decided; this is
 	// how it finds out, on the first reply, without a message of its own. A node still in the
 	// setting mode says TiltMachineNone here — that mode's own choice, not a special case for
 	// having none — and the other end ignores it (adoptMachine).
-	v.Machine = n.tilt.Machine.choice()
+	v.Machine = n.tilt.Machine.Choice()
 	return v
 }

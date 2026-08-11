@@ -57,19 +57,19 @@
           <tr>
             <td class="e">a quarter turn apart</td>
             <td class="n">separation 0 — the arrival sits exactly on this node's own TOP</td>
-            <td class="s" data-src="nodes/PairNode/machine.go#stoppingCounts">stops at { 0 }</td>
+            <td class="s" data-src="nodes/PairNode/tiltring/machine.go#stoppingCounts">stops at { 0 }</td>
           </tr>
           <tr>
             <td class="e">a quarter turn apart, the other way</td>
             <td class="n">separation a half turn — the arrival sits exactly on its BOTTOM, which is
               the SAME count of 0, taken at the nearer end</td>
-            <td class="s" data-src="nodes/PairNode/machine.go#stoppingCounts">stops at { 0 }</td>
+            <td class="s" data-src="nodes/PairNode/tiltring/machine.go#stoppingCounts">stops at { 0 }</td>
           </tr>
           <tr>
             <td class="e">on one line, either way round</td>
             <td class="n">separation a quarter turn — this is PARALLEL, and to this machine it is an
               ordinary angle it walks straight over</td>
-            <td class="s" data-src="nodes/PairNode/machine.go#stoppingCounts">stops at { quarter }</td>
+            <td class="s" data-src="nodes/PairNode/tiltring/machine.go#stoppingCounts">stops at { quarter }</td>
           </tr>
         </table>
         <p>The two ends see the same relationship from opposite sides: each receives the other's
@@ -89,7 +89,7 @@
             <td class="e">halted ⟺ sep = 0 ∨ sep = HALF</td>
             <td class="n">stand still. The node still replies, so the partner has something to correct
               against</td>
-            <td class="s" data-src="nodes/PairNode/machine.go#settled">halted</td>
+            <td class="s" data-src="nodes/PairNode/tiltring/machine.go#Settled">halted</td>
           </tr>
           <tr>
             <td class="e">miss = min(sep, |sep − HALF|)</td>
@@ -97,14 +97,14 @@
               not compute it — it compares the count against the mode's stopping count
               (<code>settled</code>) — so this is the measure the page reasons with, held by
               <code>offBy</code> in the tests</td>
-            <td class="s" data-src="nodes/PairNode/node_helpers_test.go#offBy">miss</td>
+            <td class="s" data-src="nodes/PairNode/tiltring/helpers_test.go#offBy">miss</td>
           </tr>
           <tr>
             <td class="e">step = next if (stop − c) mod HALF ≤ QUARTER, else prev</td>
             <td class="n">ONE move, a link either way, so a step cannot leave the ring. Answerable
               everywhere — including at a quarter turn, where the old acute test said "not acute" and
               the rule read that as stand still, exactly where this machine most needs to move</td>
-            <td class="s" data-src="nodes/PairNode/machine.go#step">step</td>
+            <td class="s" data-src="nodes/PairNode/tiltring/machine.go#Step">step</td>
           </tr>
         </table>
       </div>
@@ -121,12 +121,12 @@
           then measured what they had become: one rule, its exact complement, and a single line of
           genuinely distinct data — which reading counts as HOME.</p>
         <p>So the two are now one machine
-          (<span data-src="nodes/PairNode/machine.go#tiltMachine">tiltMachine</span>) and a mode is the ONE
+          (<span data-src="nodes/PairNode/tiltring/machine.go#Machine">tiltMachine</span>) and a mode is the ONE
           COUNT it stops at and nothing else. This is not the fourth attempt at the three above: those
           parameterized the RULE, and a branch inside a shared miss is what let a change meant for one
           mode land in the other. Nothing branches on the mode now —
-          <span data-src="nodes/PairNode/machine.go#settled">settled</span> compares the count against the
-          row and <span data-src="nodes/PairNode/machine.go#step">step</span> measures the way up against a
+          <span data-src="nodes/PairNode/tiltring/machine.go#Settled">settled</span> compares the count against the
+          row and <span data-src="nodes/PairNode/tiltring/machine.go#Step">step</span> measures the way up against a
           quarter turn, and neither can ask whose row it is holding — so the coupling has no place left
           to live.</p>
         <p>The row is one count and not two because the count is taken from the NEARER END of this
@@ -188,23 +188,23 @@
           <tr>
             <td class="n">nodes/PairNode/machine.go</td>
             <td class="s" colspan="2">
-              <span data-src="nodes/PairNode/machine.go#tiltMachine">tiltMachine</span> ·
-              <span data-src="nodes/PairNode/machine.go#settled">halted</span> ·
-              <span data-src="nodes/PairNode/machine.go#step">step</span> ·
-              <span data-src="nodes/PairNode/node_helpers_test.go#offBy">miss</span>
+              <span data-src="nodes/PairNode/tiltring/machine.go#Machine">tiltMachine</span> ·
+              <span data-src="nodes/PairNode/tiltring/machine.go#Settled">halted</span> ·
+              <span data-src="nodes/PairNode/tiltring/machine.go#Step">step</span> ·
+              <span data-src="nodes/PairNode/tiltring/helpers_test.go#offBy">miss</span>
             </td>
           </tr>
           <tr>
             <td class="n">— the three modes, each the counts it stops at</td>
             <td class="s" colspan="2">
-              <span data-src="nodes/PairNode/machine.go#stoppingCounts">stoppingCounts</span> ·
-              <span data-src="nodes/PairNode/machine.go#setting">setting</span>
+              <span data-src="nodes/PairNode/tiltring/machine.go#stoppingCounts">stoppingCounts</span> ·
+              <span data-src="nodes/PairNode/tiltring/machine.go#Setting">setting</span>
             </td>
           </tr>
           <tr>
             <td class="n">nodes/PairNode/ring.go</td>
             <td class="s" colspan="2">
-              <span data-src="nodes/PairNode/ring.go#angleLength">separation</span>
+              <span data-src="nodes/PairNode/tiltring/lattice.go#AngleLength">separation</span>
             </td>
           </tr>
           <tr>

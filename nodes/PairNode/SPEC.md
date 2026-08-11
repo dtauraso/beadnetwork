@@ -154,7 +154,7 @@ loop body) runs:
   regardless of whether the step below fires. THEN the step decision (`stepFromVector`):
   THERE ARE TWO TARGETS, and each has its own halt. The arrival is the partner's normal,
   already a quarter turn off the partner's tilt, so the ANGLE LENGTH between it and this node's
-  own TOP says what the two TILTS are doing. The angle length (`angleLength`) is how many ring
+  own TOP says what the two TILTS are doing. The angle length (`AngleLength`) is how many ring
   slots lie between two directions, counted the short way round, so never more than a half turn:
 
   The rule counts from the NEARER END of the node's own tilt line. A node draws two ends a half
@@ -184,7 +184,7 @@ loop body) runs:
   re-derives all of it. NO DISTANCE IS COMPUTED EITHER — the first question is a comparison and the
   second is one subtraction against a quarter turn, so neither answer is a length.
 
-  A node holds ONE `tiltMachine` (`Machine`), whose only state is which mode it is in — the same
+  A node holds ONE tilt machine (`tiltring.Machine`), whose only state is which mode it is in — the same
   `Wiring.TiltMachine` value the two ends say to each other. Its zero value is `setting`, so a node
   starts there with nothing to construct and there is no nil to test for.
 

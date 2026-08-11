@@ -23,6 +23,7 @@ import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
+	"github.com/dtauraso/wirefold/nodes/PairNode/tiltring"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
@@ -111,7 +112,7 @@ type tiltHeld struct {
 	// such test say so. There is no companion φ — every tilt vector in this exchange lives in
 	// the θ-only plane (memory/feedback_abc_times_constant_not_rederive.md: an index times a
 	// step constant, trig only at the cartesian/polar boundary).
-	Top *tiltState
+	Top *tiltring.State
 
 	// Bottom is the OTHER end of the same line, a half turn from Top, and it is stored rather
 	// than fetched through Top.opposite so that an update can NAME the end it drove. The rule
@@ -125,7 +126,7 @@ type tiltHeld struct {
 	// names, not a second degree of freedom.
 	//
 	// nil means the ring origin's opposite, for the same reason Top's nil means the origin.
-	Bottom *tiltState
+	Bottom *tiltring.State
 
 	// Machine is THIS NODE'S tilt machine — one instance, carrying which mode it is in. The
 	// modes differ only in the angle lengths they call home (machine.go). A node has to know
@@ -138,7 +139,7 @@ type tiltHeld struct {
 	// It is set when an arrival lands on one machine's halt and by nothing else — no arrival in
 	// between erases it, so a node disturbed mid-turn still knows what it is returning to. The
 	// RESET button is the one thing that erases it (clear).
-	Machine tiltMachine
+	Machine tiltring.Machine
 
 	// TiltEditIn is this node's dedicated channel for a panel-driven tilt-angle click
 	// (TiltVectorAnglePanel), claimed at build time via BuildArgs.TiltEditIn — see the
@@ -161,7 +162,7 @@ type latticeState struct {
 	//
 	// nil means the default lattice, which is what a bare test build gets — see ringOf below,
 	// the one read of this field.
-	Ring *ring
+	Ring *tiltring.Ring
 	// LatticeIn carries a new POINT COUNT for this node's own ring — the scene setting the
 	// angles panel changes, delivered to every pair node on its own dedicated channel, the
 	// same shape as TiltEditIn. Drained non-blocking every cycle; a value that matches the

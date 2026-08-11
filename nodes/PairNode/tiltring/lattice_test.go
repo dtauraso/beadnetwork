@@ -1,7 +1,7 @@
-package PairNode
+package tiltring
 
-// ring_test.go — the ring's own load-time validation. See docs/process/testing-shape.md for what
-// a test here may assert.
+// lattice_test.go — the ring's own load-time validation. See docs/process/testing-shape.md for
+// what a test here may assert. (Was PairNode/ring_test.go.)
 
 import (
 	"testing"
@@ -15,5 +15,5 @@ func TestARingMustHaveAWholeQuarterTurn(t *testing.T) {
 			t.Error("a 10-point lattice has no quarter turn and must not build")
 		}
 	}()
-	newRing(10)
+	NewRing(10)
 }

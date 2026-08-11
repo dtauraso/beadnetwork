@@ -1,9 +1,10 @@
-package PairNode
+package tiltring
 
 // arith_fromrest_test.go — the resting lengths derived from the possible gaps, which
 // docs/pair-node/rules/audit.html and update-rules rest on.
 //
-// See docs/process/testing-shape.md for what a test here may assert.
+// See docs/process/testing-shape.md for what a test here may assert. (Was
+// PairNode/arith_fromrest_test.go.)
 
 import (
 	"testing"
@@ -27,20 +28,20 @@ import (
 // tilt against every arrival, so the page cannot claim a shortcut the code does not honour.
 func TestFromRestIsTheQuarterOffset(t *testing.T) {
 	for _, points := range []int32{24, 48} {
-		r := newRing(points)
-		perp := tiltMachine{mode: tiltvector.TiltMachinePerpendicular}
-		par := tiltMachine{mode: tiltvector.TiltMachineParallel}
+		r := NewRing(points)
+		perp := Machine{Mode: tiltvector.TiltMachinePerpendicular}
+		par := Machine{Mode: tiltvector.TiltMachineParallel}
 		for tilt := int32(0); tilt < points; tilt++ {
 			for arr := int32(0); arr < points; arr++ {
-				from, a := r.at(tilt), r.at(arr)
-				q := abs32(from.angleLength(a) - r.quarterTurn)
+				from, a := r.At(tilt), r.At(arr)
+				q := abs32(from.AngleLength(a) - r.QuarterTurn)
 				if got := offBy(par, from, a); got != q {
 					t.Fatalf("points=%d tilt=%d arrival=%d: parallel offBy=%d, want q=%d",
 						points, tilt, arr, got, q)
 				}
-				if got := offBy(perp, from, a); got != r.quarterTurn-q {
+				if got := offBy(perp, from, a); got != r.QuarterTurn-q {
 					t.Fatalf("points=%d tilt=%d arrival=%d: perpendicular offBy=%d, want quarter-q=%d",
-						points, tilt, arr, got, r.quarterTurn-q)
+						points, tilt, arr, got, r.QuarterTurn-q)
 				}
 			}
 		}

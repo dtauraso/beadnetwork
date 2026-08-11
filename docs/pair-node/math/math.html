@@ -134,9 +134,9 @@
           </svg>
           <div class="cap">No trig: both states are already on the ring, so the fold is one subtraction
             against the ring's own half-turn count
-            (<span data-src="nodes/PairNode/ring.go#angleLength">separation</span>). The turn does not read
+            (<span data-src="nodes/PairNode/tiltring/lattice.go#AngleLength">separation</span>). The turn does not read
             this number: it counts from the NEARER END of the tilt line instead
-            (<span data-src="nodes/PairNode/machine.go#nearerEndCount">nearerEndCount</span>), which keeps
+            (<span data-src="nodes/PairNode/tiltring/machine.go#NearerEndCount">nearerEndCount</span>), which keeps
             the end it measured. Separation survives for the one question that is about the two TILTS
             rather than the arrival — which mode the pair runs
             (<span data-src="nodes/PairNode/machine.go#machineForGap">machineForGap</span>) — and there it names
@@ -226,7 +226,7 @@
             they point the same way, so reversing one changes nothing about the relationship. The rule
             reads it that way without being told to: its halt is a separation of a quarter turn between
             this node's top and the arrival, and
-            <span data-src="nodes/PairNode/ring.go#angleLength">separation</span> folds the long way round
+            <span data-src="nodes/PairNode/tiltring/lattice.go#AngleLength">separation</span> folds the long way round
             into the short one, so a reversed partner lands exactly where an aligned one does. The split
             is listed here only because the arrows LOOK different in the editor.</p>
         </div>

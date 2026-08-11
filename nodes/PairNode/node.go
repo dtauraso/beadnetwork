@@ -52,6 +52,7 @@ import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
+	"github.com/dtauraso/wirefold/nodes/PairNode/tiltring"
 	"github.com/dtauraso/wirefold/nodes/Wiring"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
@@ -105,7 +106,7 @@ func (n *Node) clock() clock.Clock {
 // outgoingVector sends: this reads an arrival that is the partner's coplanar normal as-is.
 // Worked run: docs/pair-node/math/vectors.html.
 func (n *Node) stepFromVector(received tiltvector.TiltVectorMsg) bool {
-	arrival := n.ringOf().arrivedState(received.ThetaIdx)
+	arrival := n.ringOf().ArrivedState(received.ThetaIdx)
 	before := n.topState()
 
 	// A NODE HALTS ON ITS OWN HALT AND STEPS THROUGH THE OTHER ONE. Until it is holding either,
@@ -127,8 +128,8 @@ func (n *Node) stepFromVector(received tiltvector.TiltVectorMsg) bool {
 	// and derive the other. Behaviour is the same either way — the ends are a half turn apart, so
 	// a slot gained by one is a slot gained by both — but the write now says which end the
 	// arrival was near, instead of expressing a bottom-side turn as a negated top-side one.
-	if !n.tilt.Machine.settled(before, arrival) {
-		if moved, atBottom := n.tilt.Machine.step(before, arrival); atBottom {
+	if !n.tilt.Machine.Settled(before, arrival) {
+		if moved, atBottom := n.tilt.Machine.Step(before, arrival); atBottom {
 			n.setBottom(moved)
 		} else {
 			n.setTop(moved)
@@ -185,8 +186,8 @@ func (n *Node) handleVectorCycle(tick int64) {
 	// Only while still in the setting mode: this is the setup being read, and after that a click
 	// is a jitter for the running machine to correct, not a new instruction. The other end learns
 	// the answer from this node's next reply, which carries it (outgoingVector).
-	if n.tilt.Machine == setting {
-		n.adoptMachine(n.machineForGap(n.ringOf().arrivedState(received.ThetaIdx)))
+	if n.tilt.Machine == tiltring.Setting {
+		n.adoptMachine(n.machineForGap(n.ringOf().ArrivedState(received.ThetaIdx)))
 	}
 	if !n.stepFromVector(received) {
 		return
@@ -308,8 +309,8 @@ func init() {
 			// count (view/lattice.json via BuildArgs.LatticePointsSeed) rather than the
 			// compile-time default.
 			latticeSeed := a.LatticePointsSeed()
-			n.lattice.Ring = newRing(latticeSeed)
-			seed, seedUnknown := n.lattice.Ring.seedState(a.TiltVectorAngleSeed())
+			n.lattice.Ring = tiltring.NewRing(latticeSeed)
+			seed, seedUnknown := n.lattice.Ring.SeedState(a.TiltVectorAngleSeed())
 			n.setTop(seed)
 			n.tilt.TiltEditIn = a.TiltEditIn()
 			n.lattice.LatticeIn = a.LatticeIn()
@@ -329,7 +330,7 @@ func init() {
 				// The node opens at the origin and says which number it refused, rather
 				// than computing some other direction and drawing it as if chosen.
 				self.Breadcrumb("pair-seed-unknown", fmt.Sprintf(
-					"node=%s persisted=%d loaded=%d", a.Name(), a.TiltVectorAngleSeed(), seed.idx))
+					"node=%s persisted=%d loaded=%d", a.Name(), a.TiltVectorAngleSeed(), seed.Idx))
 			}
 			n.tilt.SyncTiltIndex = func(theta, normalTheta, bottomTheta int32) {
 				self.SetTiltIndex(theta, normalTheta, bottomTheta)
