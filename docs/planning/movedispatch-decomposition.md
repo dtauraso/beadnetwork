@@ -2454,3 +2454,143 @@ M  nodes/wire/paced_wire_drive.go
 `0343a81b` — "The bead's fractional-progress clamp math and SimLatencyMs's reported latency
 arithmetic move into nodes/wire/lattice as pure functions, replacing three duplicated copies
 in nodes/wire."
+
+## 22. `nodes/PairNode` — the θ lattice and tilt state machine lifted into `nodes/PairNode/tiltring`
+
+`nodes/PairNode` was the last untouched god-cluster on this branch: 17 non-test files, 2687
+LOC, zero subpackages, and `arith_round_test.go` at 475 lines was the largest file in the
+whole repo. Classified every function statement-by-statement per the task's own rule
+(measure BODIES, never signatures or whole files):
+
+- **`ring.go`'s pure functions** (`newRing`, `at`, `arrivedState`, `seedState`,
+  `angleLength`, and `tiltState`/`ring`'s own fields) — every statement was (b): arithmetic
+  on locals, parameters, and the ring's own fields, with zero reference to `*Node`, no
+  channel op, no goroutine start, no state write outside the ring being constructed. Lifted.
+- **`machine.go`'s `tiltMachine` type and its methods** (`nearerEndCount`, `stopping`,
+  `settled`, `step`, `choice`, `String`, `machineFor`, the `stoppingCounts` table, the
+  `setting` var) — same shape: pure functions of a `tiltState`/`ring` and a `tiltvector.TiltMachine`
+  value, no `*Node` anywhere in a body. Lifted.
+- **Declined, with the specific statement**: `machineForGap` and `adoptMachine`
+  (`machine.go`) both take `*Node` receivers and their bodies READ `n.tilt.Machine`
+  (`adoptMachine`'s `if n.tilt.Machine != setting { return }`) or call `n.topState()`/
+  `n.ringOf()` (`machineForGap`) — a field READ is bucket (b) by the task's own rule, but
+  `adoptMachine`'s body also WRITES `n.tilt.Machine = machineFor(choice)`, one bucket-(a)
+  statement in an otherwise-pure function, so the whole function stayed with the node whose
+  state it writes. `ringOf`/`topState`/`bottomState`/`setTop`/`setBottom`/
+  `fromAnotherLattice`/`drainLattice`/`adoptLattice` (`ring.go`) all read or write
+  `n.tilt.*`/`n.lattice.*`/`n.vec.*` directly, or (`drainLattice`) do a channel receive —
+  bucket (a) — so all eight stayed.
+- **`node.go`/`vectors.go`/`edits.go`/`rest.go`**: every function reads or writes `n.*`
+  fields, sends/receives on a channel, or is the goroutine entry point (`Update`) itself.
+  No function in these four files is bucket-(b) only; none moved.
+
+**New package `nodes/PairNode/tiltring`** — "the θ lattice PairNode's tilts live on, and the
+one state machine that decides where a tilt returns to: pure math, no node, no goroutine, no
+channel" (its own package doc comment). Exported: `State`, `Ring`, `NewRing`, `(*Ring).At`/
+`ArrivedState`/`SeedState`, `(*State).AngleLength`/`NearerEndCount`, `Machine`,
+`StoppingCount`, `(Machine).Stopping`/`Settled`/`Step`/`Choice`/`String`, `Setting`,
+`MachineFor`. `ring.go`/`machine.go` shrank to the eight/two `*Node` methods that stayed,
+with updated field types (`node_parts.go`'s `Top`/`Bottom *tiltring.State`, `Machine
+tiltring.Machine`, `Ring *tiltring.Ring`) and call-site renames only (`.idx`→`.Idx`,
+`.next`→`.Next`, `.quarter`→`.Quarter`, `n.ringOf().points`→`.Points`, etc.) — no behavior
+change, confirmed by the full suite passing unmodified and by the deliberate-break loop
+below.
+
+**`arith_round_test.go` (475 lines, was the largest file in the repo) — NOT split, moved
+whole.** Read statement-by-statement: it is ONE `Test` function (`TestOneRoundIsSignAndRemainder`)
+plus one helper (`oneRoundSweep`), not several concerns in one file — the file's own header
+comment states this ("ONE update round, written without a case in it"). Every check in its
+body reads chained local state computed earlier in the SAME loop iteration (`e`, `c`, `u`,
+`v`, `d`, `eNbr`, `up`, ...) — splitting it into several files would mean re-deriving that
+chain from scratch in each one (duplicating the O(24²+48²) sweep and ~30 lines of setup per
+split) or inventing a new struct to carry the chain across files, either of which
+restructures the test rather than moves it, which the task's own constraint forbids
+("VERBATIM"). It moved whole into `tiltring/arith_round_test.go`, alongside the pure
+lattice/machine code it exercises, with only symbol-name updates (`newRing`→`NewRing`,
+`tiltMachine{mode: ...}`→`Machine{Mode: ...}`, `.idx`→`.Idx`, etc.) — no assertion added,
+removed, or reworded.
+
+**Six more pure-math test files moved whole** alongside it, for the same reason
+(zero `*Node`, zero channel, zero goroutine in any test body): `ring_test.go` →
+`tiltring/lattice_test.go`, `node_helpers_test.go` (the `offBy`/`steppedTop`/`testRing`/
+`perpendicular`/`parallel` shared fixtures) → `tiltring/helpers_test.go`,
+`arith_fromrest_test.go`, `arith_walk_test.go`, `arith_resting_lengths_test.go`,
+`machine_halt_test.go`. **Two test files stayed** (`machine_adoption_test.go`,
+`opening_test.go`) — both construct `&Node{...}` and call `*Node` methods
+(`machineForGap`/`stepFromVector`/`adoptMachine`/`clear`), so they exercise the part of the
+rule this task did NOT lift; each picked up a one-line local `testRing()`/`perpendicular`/
+`parallel` fixture (same values, `tiltring.NewRing(48)`/`tiltring.MachineFor(...)`) since the
+tiltring package's own copies are unexported to that package's own test files.
+
+**Assertion count before vs after, counted across ALL seven affected files together** (the
+task's own doctrine: moving a test between files is net-zero): `t.Fatal[f]`/`t.Error[f]`
+call count was **55 before, 55 after** — every assertion moved, none added, none removed,
+none reworded. Test-NAME set is identical (`TestOneRoundIsSignAndRemainder`,
+`TestARingMustHaveAWholeQuarterTurn`, `TestFromRestIsTheQuarterOffset`,
+`TestTheWalkIsClosedForm`, `TestRestingLengthsFollowFromTheGaps`,
+`TestPerpendicularHaltsOnItsOwnTwoSeparations`, `TestParallelHaltsOnlyOnAQuarterTurn`,
+`TestEachMachineStepsTowardItsOwnHalt`, `TestPerpendicularStepsThroughTheParallelHalt`,
+`TestTheTwoMissesAreComplements`, `TestAModeHaltsExactlyOnItsHomeSet`,
+`TestSeparationIsTheShortWayRound`), only their file relocated.
+`tools/repo-hygiene/check-test-integrity.sh` (N-way-split aware) ran clean on the staged
+diff.
+
+**Docs.** `docs/pair-node/*.html`'s `data-src="nodes/PairNode/machine.go#tiltMachine"`-style
+click-to-open annotations (checked by `tools/docs/check-docs-symbols.sh`, exact case-sensitive
+symbol match against the named file) and `nodes/PairNode/SPEC.md`'s two backticked symbol
+references (`tools/docs/check-doc-symbols.sh`) all pointed at the old, now-moved names.
+Updated every `data-src` for a lifted symbol to `nodes/PairNode/tiltring/<file>#<ExportedName>`;
+left every `data-src` for a symbol that stayed (`machineForGap`, `adoptMachine`, `setTop`,
+`setBottom`, `adoptLattice`, `machine_adoption_test.go`, `opening_test.go`) untouched. One
+self-inflicted bug caught by re-running the guard: a `replace_all` on
+`nodes/PairNode/machine.go#machineFor` inside `cases.html` matched the substring inside
+`nodes/PairNode/machine.go#machineForGap` too (three call sites), silently retargeting them
+at a symbol (`MachineForGap`) that does not exist in `tiltring/machine.go` — the guard caught
+it (`has no definition of "MachineForGap"`) and it was reverted to the correct, unmoved name.
+
+**Functions with NO test that can fail if broken**: `tiltring.Machine.String()` — every test
+that prints a `Machine` via `%v` does invoke it (satisfying `fmt.Stringer`), but none asserts
+on the returned string; forcing it to always return `"BROKEN"` left the entire suite green.
+Reported, not fixed, per this document's own "uncovered, reported rather than silently
+accepted" convention. Every other lifted function (`NewRing`, `AngleLength`, `SeedState`,
+`ArrivedState`, `NearerEndCount`, `Settled`, `Step`, `Choice`, `MachineFor`) has a test that
+fails by name if broken — confirmed for `AngleLength` below and for the others by the sweep
+tests' own coverage (each is called and its result checked against an independently-derived
+closed form on every lattice position, both real modes).
+
+**Deliberate break, confirmed, restored.** Forced `(*State).AngleLength` to `return 0`
+unconditionally: `TestMachineIsReadFromTheGapNotFromOneTilt` (package `PairNode`) failed by
+name on all three quarter-turn cases (`chose parallel, want perpendicular`), and
+`TestFromRestIsTheQuarterOffset`/`TestRestingLengthsFollowFromTheGaps`/
+`TestOneRoundIsSignAndRemainder` (package `tiltring`) failed by name — proving both the
+surviving `*Node`-coupled test and the moved pure-math tests exercise the real lifted
+function, not a stale copy. Restored; `go build ./...` and `git diff` confirmed clean before
+re-committing.
+
+**Guards.** `tools/network/quality/check-panic-message.sh`: broke `MachineFor`'s panic message
+to a bare `"bad machine"` (no site tag) — guard reported `nodes/PairNode/tiltring/machine.go:163:
+panic message does not open with a site tag` and exited 1; restored, clean. `tools/network/structure/check-dep-rules.sh`
+passed unmodified — a same-kind subpackage (`nodes/PairNode/tiltring` importing nothing outside
+the shared spine plus its own parent's kind name) is explicitly exempted by the guard's own
+`[ "$dep" = "$kind" ] && continue`. `tools/network/structure/check-composer-fields.sh` does not
+police `PairNode.Node` (it only caps `MoveDispatch`/`NodeGeometry`) — not applicable here, not
+touched. The no-imports-`PairNode` loop (`for p in $(go list ./nodes/PairNode/... | grep -v
+'nodes/PairNode$'); do go list -deps "$p" | grep -qx github.com/dtauraso/wirefold/nodes/PairNode
+&& echo "IMPORTS PAIRNODE: $p"; done`) is empty — `tiltring` does not import `PairNode`.
+
+**Verification.** `go build ./...`, `go vet ./...` clean. `go test -race -count=1 ./...`: all
+packages `ok`, no race, no failure (including `nodes/PairNode` and the new
+`nodes/PairNode/tiltring`). `bash scripts/verify.sh` reports `stop-checks: clean`.
+
+**LOC/file count.** `nodes/PairNode` non-test top-level `.go` files: 7 (was 9: `node.go`,
+`node_parts.go`, `ring.go`, `machine.go`, `vectors.go`, `edits.go`, `rest.go` remain; `ring.go`
+156→ from 337, `machine.go` 44 from 269). `nodes/PairNode` total files at top level (incl.
+SPEC.md and test files): 10 (was 17). New `nodes/PairNode/tiltring/`: 9 files (2 production —
+`lattice.go` 173 LOC, `machine.go` 167 LOC — plus 7 test files, 1218 LOC). No `types`/`common`
+package, no alias shim, no dot-import, no package-level actor global, no `*ForTest` hatch, no
+interface added.
+
+**`git status --short` and commit:** 27 files changed (9 modified in `PairNode`, 4 test files
+renamed into `tiltring`, 4 new files in `tiltring`, 1 deleted (`node_helpers_test.go`, content
+moved), 8 docs pages updated, `SPEC.md` updated). `d0501639` — "PairNode tilt lattice and state
+machine moved to tiltring package with their tests".
