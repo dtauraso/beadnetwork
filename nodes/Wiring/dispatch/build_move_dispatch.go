@@ -59,24 +59,24 @@ func (b *buildCtx) buildMoveDispatch() error {
 	// nodeMover's zero-value quantOffset, matching the old map's zero-value-on-miss read.
 	// PER SCENE, not always-on (scene/scene_tabs.go's QuantizedDrag): a bead-distance step is
 	// invisible in a scene that is large against it and dominant in one that is not.
-	md.lq.QuantizedLayout = scene.SceneUsesQuantizedDrag(b.scenePath)
+	md.LQ.QuantizedLayout = scene.SceneUsesQuantizedDrag(b.scenePath)
 	// Per scene as well (scene/scene_tabs.go's CoplanarEdges): each node's own copy, set here on
 	// the single-threaded build path, read afterwards only by that node's own goroutine.
 	coplanarEdges := scene.SceneWantsCoplanarEdges(b.scenePath)
 	upAxis := scene.SceneWantsUpAxis(b.scenePath)
 	if coplanarEdges || upAxis {
-		for _, nm := range md.mr.NodeGeoms() {
+		for _, nm := range md.MR.NodeGeoms() {
 			nm.SetSceneFlags(coplanarEdges, upAxis)
 		}
 	}
 	for id, off := range b.quantizedOffsets {
-		if nm, ok := md.mr.NodeGeoms()[id]; ok {
+		if nm, ok := md.MR.NodeGeoms()[id]; ok {
 			nm.SetQuantOffset(off)
 		}
 	}
 	// Seed each node's OWN selfKind (specNode.Type), set once at construction.
 	for _, n := range b.spec.Nodes {
-		nm, ok := md.mr.NodeGeoms()[n.ID]
+		nm, ok := md.MR.NodeGeoms()[n.ID]
 		if !ok {
 			continue
 		}
@@ -96,7 +96,7 @@ func (b *buildCtx) buildMoveDispatch() error {
 		kindByID[n.ID] = n.Type
 	}
 	linkNeighborKind := func(fromID, toID string) {
-		nm, ok := md.mr.NodeGeoms()[fromID]
+		nm, ok := md.MR.NodeGeoms()[fromID]
 		if !ok {
 			return
 		}
@@ -110,7 +110,7 @@ func (b *buildCtx) buildMoveDispatch() error {
 	// owns (chain_beads.go). A chain belongs to exactly one endpoint: the source, matching
 	// where the edge is stored on disk.
 	for _, e := range b.spec.Edges {
-		nm, ok := md.mr.NodeGeoms()[e.Source]
+		nm, ok := md.MR.NodeGeoms()[e.Source]
 		if !ok {
 			continue
 		}

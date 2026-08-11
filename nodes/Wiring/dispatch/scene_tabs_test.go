@@ -32,7 +32,7 @@ func tabbedAnchor(t *testing.T) string {
 // quit-called flag.
 func armedDispatch(t *testing.T, anchor string) (*MoveDispatch, *bool) {
 	t.Helper()
-	md := &MoveDispatch{tr: T.New()}
+	md := &MoveDispatch{TR: T.New()}
 	quit := false
 	md.Scenes.AnchorPath = anchor
 	md.Scenes.Quit = func() { quit = true }
@@ -89,7 +89,7 @@ func TestSelectSceneRejectsAnOutOfRangeTab(t *testing.T) {
 }
 
 func TestUnarmedDispatchCannotEndTheRun(t *testing.T) {
-	md := &MoveDispatch{tr: T.New()} // EnableSceneSwitch never called
+	md := &MoveDispatch{TR: T.New()} // EnableSceneSwitch never called
 	SelectScene(&md.Scenes, 1)       // must not panic, must not exit
 }
 

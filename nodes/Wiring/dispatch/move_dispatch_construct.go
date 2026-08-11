@@ -28,7 +28,7 @@ import (
 
 // newMoveDispatch builds the registry from per-node geometry and per-edge endpoints.
 // It creates one nodeMover per node and one edgeMover per edge, registering each under
-// its key (node id / edge id) in md.mr.NodeGeoms()/md.mr.EdgeMovers(), and wires the dedicated
+// its key (node id / edge id) in md.MR.NodeGeoms()/md.MR.EdgeMovers(), and wires the dedicated
 // directed channels between adjacent movers. Outs and dest wires are bound later by Bind once node
 // construction has populated them. nodeOrder/edgeOrder are the
 // SPEC order (deterministic directory-sorted order, not map iteration order) used to
@@ -62,9 +62,9 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 		sort.Strings(edgeOrder)
 	}
 	md := &MoveDispatch{
-		tr: tr,
+		TR: tr,
 	}
-	md.mr = moverreg.New()
+	md.MR = moverreg.New()
 	md.UI.OV = viewstate.DefaultOverlayState()
 	md.UI.Speed = 1                                         // default playback multiplier; LoadSpeed overwrites from view/speed.json if present
 	md.UI.ClockDivisor = 1                                  // no scaling until LoadSpeed resolves the loaded scene's own divisor
@@ -111,12 +111,12 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 		// resolveDest resolves the ONE dedicated directed channel FROM this node
 		// (selfID, captured below) TO destID: another node's own neighborIn[selfID]
 		// slot, or an incident edge's srcIn/dstIn depending on which endpoint this
-		// node is. There is no shared dispatch map to look up — md.mr.NodeGeoms()/md.mr.EdgeMovers() are the
+		// node is. There is no shared dispatch map to look up — md.MR.NodeGeoms()/md.MR.EdgeMovers() are the
 		// read-only directories, safe to read from any goroutine once construction
 		// finishes.
 		selfID := id
 		resolveDest := func(destID string) (func(movemsg.Msg) bool, bool) {
-			if em, ok := md.mr.EdgeMovers()[destID]; ok {
+			if em, ok := md.MR.EdgeMovers()[destID]; ok {
 				switch selfID {
 				case em.SrcID():
 					return em.TrySendFromSrc, true
@@ -125,22 +125,22 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 				}
 				return nil, false
 			}
-			if other, ok := md.mr.NodeGeoms()[destID]; ok {
+			if other, ok := md.MR.NodeGeoms()[destID]; ok {
 				return other.NeighborTrySend(selfID)
 			}
 			return nil, false
 		}
 		ownGeom := ng
 		commitLocal := func(_ string, newPos vec3) {
-			md.lq.CommitNodeMoveLocal(md.mr.NodeGeoms(), md.mr.EdgeMovers(), &md.UI, ownGeom, newPos)
+			md.LQ.CommitNodeMoveLocal(md.MR.NodeGeoms(), md.MR.EdgeMovers(), &md.UI, ownGeom, newPos)
 		}
-		ng.WireMessaging(resolveDest, md.mr.EnqueueFor(ng), md.tapToInstall, md.mr.CenterOfNode, commitLocal)
-		md.mr.NodeGeoms()[id] = ng
+		ng.WireMessaging(resolveDest, md.MR.EnqueueFor(ng), md.tapToInstall, md.MR.CenterOfNode, commitLocal)
+		md.MR.NodeGeoms()[id] = ng
 		// Seed the dispatch goroutine's center mirror from the same load-time geom
 		// (single-threaded setup, before md.Start — no driving goroutine is running yet)
 		// so the first framing read has every center before any push arrives (mirrors
 		// the partnerCenters seed below).
-		md.mr.SeedCenter(id, nodegeom.NodeWorldPos(g))
+		md.MR.SeedCenter(id, nodegeom.NodeWorldPos(g))
 	}
 	// A pair that points at each other is a LOAD-TIME fact of the edge set, resolved here
 	// (single-threaded setup, before any mover goroutine exists) and copied into each
@@ -148,7 +148,7 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 	// its own outTargets say nothing about the other node's — and the two chains would draw
 	// along the identical centre line (nodegeom.ParallelChainOffset, nodegeom/port_geometry.go).
 	for src, targets := range geomseeds.MutualPairs(edgeEndpoints) {
-		if nm, ok := md.mr.NodeGeoms()[src]; ok {
+		if nm, ok := md.MR.NodeGeoms()[src]; ok {
 			for target := range targets {
 				nm.AddMutualTarget(target)
 			}
@@ -161,13 +161,13 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 			em.SetSpeedCh(edgeSpeedCh)
 			*speedSinks = append(*speedSinks, edgeSpeedCh)
 		}
-		md.mr.EdgeMovers()[edgeID] = em
+		md.MR.EdgeMovers()[edgeID] = em
 		// This edge's two nodes each get a dedicated channel TO this edge (already
 		// created above, srcIn/dstIn) — and each other's own dedicated channel for
 		// node-to-node traffic (neighborIn, the plain-neighbor/partner-reemit fan):
 		// two directed channels per ordered pair, never a shared inbox.
-		if srcNM, ok := md.mr.NodeGeoms()[ep.Source]; ok {
-			if dstNM, ok := md.mr.NodeGeoms()[ep.Target]; ok {
+		if srcNM, ok := md.MR.NodeGeoms()[ep.Source]; ok {
+			if dstNM, ok := md.MR.NodeGeoms()[ep.Target]; ok {
 				dstNM.EnsureNeighborChannel(ep.Source)
 				srcNM.EnsureNeighborChannel(ep.Target)
 			}
@@ -178,7 +178,7 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 	// off THIS node's OWN partnerCenters map (owned, written only by this node's own
 	// goroutine), kept current thereafter by each neighbor's own movemsg.KindNeighborCenter
 	// push (applyCenter) — one hop, no cascade.
-	for _, nm := range md.mr.NodeGeoms() {
+	for _, nm := range md.MR.NodeGeoms() {
 		// Seed partnerCenters at construction (single-threaded setup, before md.Start —
 		// no mover goroutine is running yet, so reading a neighbor's geom directly here
 		// is safe) with the SAME value the old snap seed used (newNodeMover seeds snap
@@ -186,7 +186,7 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 		// A node's neighbor set is nm.NeighborIDs() (populated above from
 		// edgeEndpoints — one dedicated channel per adjacent node, both directions).
 		for _, neighborID := range nm.NeighborIDs() {
-			if other, ok := md.mr.NodeGeoms()[neighborID]; ok {
+			if other, ok := md.MR.NodeGeoms()[neighborID]; ok {
 				nm.SeedPartnerCenter(neighborID, other.WorldCenter())
 			}
 		}
@@ -194,8 +194,8 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 	// Give every nodeMover the ids of its OWN incident edges, so a lock-driven move can
 	// notify its edges via sendMove (resolveDest's per-pair channel lookup) — no cached
 	// channel slice.
-	for id, nm := range md.mr.NodeGeoms() {
-		for edgeID, em := range md.mr.EdgeMovers() {
+	for id, nm := range md.MR.NodeGeoms() {
+		for edgeID, em := range md.MR.EdgeMovers() {
 			if em.SrcID() == id || em.DstID() == id {
 				nm.AddEdgeID(edgeID)
 			}
@@ -213,16 +213,16 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 		rtEdgeSeeds[i] = rowtables.EdgeSeed{Label: sd.Label, SrcNode: sd.SrcNode, DstNode: sd.DstNode}
 	}
 	md.RT.Build(rtNodeSeeds, rtEdgeSeeds, rowCount)
-	// Bind the two closures EmitViewFrame needs but cannot reach directly (md.RT/md.mr are
+	// Bind the two closures EmitViewFrame needs but cannot reach directly (md.RT/md.MR are
 	// unexported-package-internal from viewstate's point of view — RT is exported but
 	// UIState cannot hold a *rowtables.RowTables field of its own without MoveDispatch
 	// handing it one, and DistanceGroupLens needs *moverreg.MoverRegistry, an unexported
-	// dispatch-owned field). Bound ONCE, here, mirroring ng.msg.sendMove = md.mr.EnqueueFor(ng) above — not
+	// dispatch-owned field). Bound ONCE, here, mirroring ng.msg.sendMove = md.MR.EnqueueFor(ng) above — not
 	// re-resolved on every emit. Method value md.RT.NodeRowFor captures &md.RT (md.RT is
 	// addressable through the *MoveDispatch pointer), so it keeps seeing whatever RT.Build
 	// just populated even though this bind runs after it.
 	md.UI.NodeRowFor = md.RT.NodeRowFor
-	mrForLens, uiForLens := &md.mr, &md.UI
+	mrForLens, uiForLens := &md.MR, &md.UI
 	md.UI.DistanceGroupLensFn = func() (float32, float32, float32) {
 		return DistanceGroupLens(uiForLens, mrForLens)
 	}

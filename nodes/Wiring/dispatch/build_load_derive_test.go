@@ -50,7 +50,7 @@ func TestLoadTopologyComputesReachRadii(t *testing.T) {
 		t.Fatalf("LoadTopology: %v", err)
 	}
 
-	src, ok := md.mr.NodeGeoms()["1"]
+	src, ok := md.MR.NodeGeoms()["1"]
 	if !ok {
 		t.Fatalf("nodeGeoms missing source node %q", "1")
 	}
@@ -91,7 +91,7 @@ func TestLoadTopologyComputesQuantizedOffsets(t *testing.T) {
 		t.Fatalf("LoadTopology: %v", err)
 	}
 
-	dst, ok := md.mr.NodeGeoms()["2"]
+	dst, ok := md.MR.NodeGeoms()["2"]
 	if !ok {
 		t.Fatalf("nodeGeoms missing node %q", "2")
 	}

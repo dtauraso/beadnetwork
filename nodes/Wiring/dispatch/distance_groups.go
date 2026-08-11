@@ -23,7 +23,7 @@
 // and "move a node's target" through *moverreg.MoverRegistry/*layoutQuantizer, both actor
 // types — so they now take centerOf/rootMove as plain func values, bound to the real
 // actor methods here, the same bound-func-value pattern move_dispatch_construct.go already
-// uses (`ng.msg.sendMove = md.mr.EnqueueFor(ng)`). This file is left holding exactly the
+// uses (`ng.msg.sendMove = md.MR.EnqueueFor(ng)`). This file is left holding exactly the
 // parts that read/write MoveDispatch's own actor state: the ResolveSceneDistanceGroups
 // writer, and the two thin wrappers that bind centerOf/rootMove and forward.
 package dispatch

@@ -14,10 +14,10 @@ import (
 // geometry (empty heldCenters → deterministic region-focus fallback), so the outcomes are
 // hand-computable. mr is a real, empty moverreg.MoverRegistry (moverreg.New()) rather than a
 // zero value: MoverRegistry's fields are unexported outside its own package, so a caller
-// that later writes into md.mr.NodeGeoms() (e.g. TestGesturePressReleaseNoMoveSelects) needs
+// that later writes into md.MR.NodeGeoms() (e.g. TestGesturePressReleaseNoMoveSelects) needs
 // the map already initialized.
 func newGestureMD(v geom.Viewpoint) *MoveDispatch {
-	md := &MoveDispatch{mr: moverreg.New()}
+	md := &MoveDispatch{MR: moverreg.New()}
 	md.UI.VP.Viewpoint = v
 	return md
 }

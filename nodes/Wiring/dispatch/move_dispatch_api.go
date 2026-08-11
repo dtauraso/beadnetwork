@@ -1,9 +1,9 @@
 // move_dispatch_api.go — MoveDispatch's remaining cross-owner public methods (Start,
 // setSelectionUI, NodeKind) plus the package-private helpers (sendMove, sendTiltEdit)
 // that read/route across owners directly. Pure single-owner forwards (Bind, EdgeOut,
-// centerOfNode, enqueueFor, finalizeActors on md.mr; heldCenters, commitNodeMoveLocal,
-// RootMove on md.lq; setHoverUI on md.ui) were deleted — callers address the owner field
-// directly (md.mr.X / md.lq.X(md, ...) / md.ui.X). Each owner keeps the actual logic in
+// centerOfNode, enqueueFor, finalizeActors on md.MR; heldCenters, commitNodeMoveLocal,
+// RootMove on md.LQ; setHoverUI on md.ui) were deleted — callers address the owner field
+// directly (md.MR.X / md.LQ.X(md, ...) / md.ui.X). Each owner keeps the actual logic in
 // its own file (mover_registry.go, ui_state.go, quantized_move.go, ...).
 
 package dispatch
@@ -18,12 +18,12 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 )
 
-// Start launches every mover's goroutine. Thin delegator to md.mr (mover_registry.go);
+// Start launches every mover's goroutine. Thin delegator to md.MR (mover_registry.go);
 // md.ctx is set here (not part of moverRegistry — see sendMove/enqueueFor's doc
 // comments for why sendMove needs it threaded through).
 func (md *MoveDispatch) Start(ctx context.Context) *sync.WaitGroup {
 	md.ctx = ctx
-	return md.mr.Start(ctx)
+	return md.MR.Start(ctx)
 }
 
 // sendMove routes one movemsg.Msg to a node's dedicated external-entry channel (extIn).
@@ -73,28 +73,28 @@ func setSelectionUI(ui *viewstate.UIState, mr *moverreg.MoverRegistry, ctx conte
 // goroutine. Exposed for verification: the model's whole point — one goroutine, not two,
 // for the same node id — is otherwise invisible from outside this package (package main's
 // own headless tests are the only place every kind, PairNode included, is registered — see
-// kind_registry_parity_test.go's own doc comment). Thin delegator to md.mr
+// kind_registry_parity_test.go's own doc comment). Thin delegator to md.MR
 // (mover_registry.go); kept on MoveDispatch because package main's own tests call it and
 // mr is unexported. Moved here from the former pair_node_self.go in §20
 // (docs/planning/movedispatch-decomposition.md) when PairNodeSelf itself moved to package
 // nodeactor — this method stays in package Wiring because MoveDispatch is a Wiring type.
 func (md *MoveDispatch) NodeSelfDriven(id string) bool {
-	return md.mr.NodeSelfDriven(id)
+	return md.MR.NodeSelfDriven(id)
 }
 
 // HasNodeMover reports whether node id has a real, separate NodeMover actor (a ring
 // node) as opposed to no NodeMover at all (a self-driven pair node, or an unknown id).
-// Thin delegator to md.mr, kept for the same reason as NodeSelfDriven.
+// Thin delegator to md.MR, kept for the same reason as NodeSelfDriven.
 func (md *MoveDispatch) HasNodeMover(id string) bool {
-	return md.mr.HasNodeMover(id)
+	return md.MR.HasNodeMover(id)
 }
 
 // NodeQuantOffset returns node id's own current quantized polar offset triple
 // (iTheta, iPhi, iR), for the same external-verification reason as NodeSelfDriven — e.g.
 // confirming a real reload lands on the same offset a live edit just persisted. Thin
-// delegator to md.mr, kept for the same reason as NodeSelfDriven.
+// delegator to md.MR, kept for the same reason as NodeSelfDriven.
 func (md *MoveDispatch) NodeQuantOffset(id string) (iTheta, iPhi, iR int, ok bool) {
-	return md.mr.NodeQuantOffset(id)
+	return md.MR.NodeQuantOffset(id)
 }
 
 // sendEdgeSelect routes a select/deselect message to one edge's OWN dedicated extIn

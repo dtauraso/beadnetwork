@@ -44,7 +44,7 @@ func applyUpdateDistanceGroup(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.T
 	if msg.Flag == "up" {
 		dir = 1
 	}
-	if applyDistanceGroupTarget(md.ctx, &md.UI, &md.mr, &md.lq, msg.Num, dir) {
+	if applyDistanceGroupTarget(md.ctx, &md.UI, &md.MR, &md.LQ, msg.Num, dir) {
 		md.UI.EmitViewFrame(nil)
 	}
 }
@@ -77,7 +77,7 @@ func applyUpdateTiltVector(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trac
 		return
 	}
 	id := strconv.Itoa(msg.Num + 1)
-	if _, ok := md.mr.NodeGeoms()[id]; !ok {
+	if _, ok := md.MR.NodeGeoms()[id]; !ok {
 		return
 	}
 	if msg.Attr == "reset" {
@@ -86,7 +86,7 @@ func applyUpdateTiltVector(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trac
 		if sendTiltEdit(&md.inboxes, md.ctx, id, movemsg.TiltEditMsg{Reset: true}) {
 			return
 		}
-		sendMove(&md.mr, md.ctx, id, movemsg.Msg{Kind: movemsg.KindTiltVectorReset, NodeID: id})
+		sendMove(&md.MR, md.ctx, id, movemsg.Msg{Kind: movemsg.KindTiltVectorReset, NodeID: id})
 		return
 	}
 	if msg.Attr == "start" {
@@ -110,7 +110,7 @@ func applyUpdateTiltVector(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trac
 	if sendTiltEdit(&md.inboxes, md.ctx, id, movemsg.TiltEditMsg{Axis: msg.Attr, Up: up}) {
 		return
 	}
-	sendMove(&md.mr, md.ctx, id, movemsg.Msg{Kind: movemsg.KindTiltVectorAngle, NodeID: id, Axis: msg.Attr, Bool: up})
+	sendMove(&md.MR, md.ctx, id, movemsg.Msg{Kind: movemsg.KindTiltVectorAngle, NodeID: id, Axis: msg.Attr, Bool: up})
 }
 
 // applyUpdateScene handles kind=="scene" attr=="selected" (one click on the scene tab

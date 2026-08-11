@@ -25,10 +25,10 @@ import (
 // the framed pose, the next orbit/pan/zoom builds on it (no snap-back). Does nothing when
 // there are no nodes, mirroring HomeButton's early return.
 func (md *MoveDispatch) gestHome(ev inputcodec.RawInputMsg, tr *T.Trace) {
-	centers := layoutquant.HeldCenters(md.mr.NodeGeoms(), md.mr.CenterOfNode)
+	centers := layoutquant.HeldCenters(md.MR.NodeGeoms(), md.MR.CenterOfNode)
 	radius := make(map[string]float64, len(centers))
 	for id := range centers {
-		radius[id] = md.mr.NodeBodyRadius(id)
+		radius[id] = md.MR.NodeBodyRadius(id)
 	}
 	pivot, r, pos, up, ok := geom.HomeFitPose(centers, radius, ev.Fov, md.UI.Gest.Rect.Aspect())
 	if !ok {
@@ -98,7 +98,7 @@ func (md *MoveDispatch) gestPointerUp(ev inputcodec.RawInputMsg) {
 	g := &md.UI.Gest
 	switch {
 	case g.Phase == gesturefsm.GestDragging:
-		nodeGeoms, lq, ctx := md.mr.NodeGeoms(), &md.lq, md.ctx
+		nodeGeoms, lq, ctx := md.MR.NodeGeoms(), &md.LQ, md.ctx
 		applyNodeDragTarget(&md.UI, func(id string, target vec3) bool { return lq.RootMove(ctx, nodeGeoms, id, target) }, ev) // final target flush
 	case g.Phase == gesturefsm.GestHandhold, g.Phase == gesturefsm.GestRotating:
 		// Rotation completed (free or handhold-constrained): nothing to flush.
@@ -124,7 +124,7 @@ func (md *MoveDispatch) gestPointerUp(ev inputcodec.RawInputMsg) {
 		// so a chain bead this node woke can never be left on machine time — see
 		// movemsg.KindDragEnd's own doc comment.
 		if draggedNode != "" {
-			sendMove(&md.mr, md.ctx, draggedNode, movemsg.Msg{Kind: movemsg.KindDragEnd, NodeID: draggedNode})
+			sendMove(&md.MR, md.ctx, draggedNode, movemsg.Msg{Kind: movemsg.KindDragEnd, NodeID: draggedNode})
 		}
 	}
 }
@@ -135,7 +135,7 @@ func (md *MoveDispatch) gestPointerUp(ev inputcodec.RawInputMsg) {
 func (md *MoveDispatch) gestWheel(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	vp := md.UI.VP.Viewpoint
 	eye := geom.EyeOf(vp)
-	pivot := geom.RegionFocus(vp, layoutquant.HeldCenters(md.mr.NodeGeoms(), md.mr.CenterOfNode))
+	pivot := geom.RegionFocus(vp, layoutquant.HeldCenters(md.MR.NodeGeoms(), md.MR.CenterOfNode))
 
 	if ev.Ctrl {
 		// Zoom-to-cursor: move the camera TOWARD the node under the cursor along the cursor→node
@@ -149,7 +149,7 @@ func (md *MoveDispatch) gestWheel(ev inputcodec.RawInputMsg, tr *T.Trace) {
 		aspect := md.UI.Gest.Rect.Aspect()
 		target := pivot
 		best := math.Inf(1)
-		for _, c := range layoutquant.HeldCenters(md.mr.NodeGeoms(), md.mr.CenterOfNode) {
+		for _, c := range layoutquant.HeldCenters(md.MR.NodeGeoms(), md.MR.CenterOfNode) {
 			nx, ny, inFront := geom.ProjectNDC(c, eye, basis, ev.Fov, aspect)
 			if !inFront {
 				continue

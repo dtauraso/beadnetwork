@@ -85,11 +85,11 @@ func TestSetNodeStreamsResolvesPerNodeKindID(t *testing.T) {
 	// regardless of write success.
 	md.SetNodeStreams(1000, 2000, 0, false, md.RT.NodeRowFor, buildFrame, buildInteriorFrame, kindIDFor)
 
-	src, ok := md.mr.NodeGeoms()["1"]
+	src, ok := md.MR.NodeGeoms()["1"]
 	if !ok {
 		t.Fatalf("nodeGeoms missing node %q", "1")
 	}
-	dst, ok := md.mr.NodeGeoms()["2"]
+	dst, ok := md.MR.NodeGeoms()["2"]
 	if !ok {
 		t.Fatalf("nodeGeoms missing node %q", "2")
 	}

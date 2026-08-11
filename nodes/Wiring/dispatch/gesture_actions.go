@@ -35,7 +35,7 @@ func (md *MoveDispatch) updateHover(ev inputcodec.RawInputMsg) {
 			node = n
 		}
 	}
-	mr, ctx := &md.mr, md.ctx
+	mr, ctx := &md.MR, md.ctx
 	sendMoveFn := func(id string, msg movemsg.Msg) { sendMove(mr, ctx, id, msg) }
 	if events, changed := setHover(&md.UI, sendMoveFn, &md.RT, node, "", false); changed {
 		md.UI.EmitViewFrame(events)
@@ -144,13 +144,13 @@ func (md *MoveDispatch) applySelect(ev inputcodec.RawInputMsg) {
 	// by this goroutine) and MESSAGES the affected node(s)/edge to set their
 	// OWN selected/latchedSel bit.
 	if ev.Hit.Kind == "empty" {
-		setSelectionUI(&md.UI, &md.mr, md.ctx, "", "")
+		setSelectionUI(&md.UI, &md.MR, md.ctx, "", "")
 		md.UI.EmitViewFrame(md.RT.SelectViewEvent(""))
 		return
 	}
 	if ev.Hit.Kind == "edge" {
 		if label, ok := md.RT.EdgeFromHit(ev.Hit); ok {
-			setSelectionUI(&md.UI, &md.mr, md.ctx, "", label)
+			setSelectionUI(&md.UI, &md.MR, md.ctx, "", label)
 			// An edge selection carries no NodeRow (see decodeEventLine's "select" case,
 			// buffer-log.ts — it never reads EdgeRow for this kind), mirroring the
 			// KindSelect{Edge: label, Node: ""} shape exactly.
@@ -166,6 +166,6 @@ func (md *MoveDispatch) applySelect(ev inputcodec.RawInputMsg) {
 			node = n
 		}
 	}
-	setSelectionUI(&md.UI, &md.mr, md.ctx, node, "")
+	setSelectionUI(&md.UI, &md.MR, md.ctx, node, "")
 	md.UI.EmitViewFrame(md.RT.SelectViewEvent(node))
 }

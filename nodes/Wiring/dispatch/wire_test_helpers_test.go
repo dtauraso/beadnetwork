@@ -115,18 +115,18 @@ func WriteSpecTree(t *testing.T, root string, specJSON string) string {
 // resolveBeadCrudMove commitNodeMoveLocal calls, so this is not an independent oracle of
 // the formula, only of the call.
 func quantizedDragTarget(md *MoveDispatch, nodeID string, target vec3) vec3 {
-	if !md.lq.QuantizedLayout {
+	if !md.LQ.QuantizedLayout {
 		return target
 	}
-	nm, ok := md.mr.NodeGeoms()[nodeID]
+	nm, ok := md.MR.NodeGeoms()[nodeID]
 	if !ok {
 		return target
 	}
-	prev, ok := md.mr.CenterOfNode(nodeID)
+	prev, ok := md.MR.CenterOfNode(nodeID)
 	if !ok {
 		return target
 	}
-	beads := layoutquant.DragTouchingBeads(md.mr.EdgeMovers(), nm, prev)
+	beads := layoutquant.DragTouchingBeads(md.MR.EdgeMovers(), nm, prev)
 	if len(beads) == 0 {
 		return target
 	}

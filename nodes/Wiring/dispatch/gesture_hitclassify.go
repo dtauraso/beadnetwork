@@ -22,12 +22,12 @@ var hitClassifiers = map[string]func(md *MoveDispatch, g *gesturefsm.GestureStat
 		// Handhold grab → axis-locked (constrained) orbit. Freeze the sphere rotation frame
 		// now (mirrors interaction-handlers.ts: beginSphereRotation on a handhold hit).
 		g.HandholdDown = true
-		nodeGeoms, centerOf := md.mr.NodeGeoms(), md.mr.CenterOfNode
+		nodeGeoms, centerOf := md.MR.NodeGeoms(), md.MR.CenterOfNode
 		g.BeginSphereRotation(md.UI.VP.Viewpoint, func() map[string]vec3 { return layoutquant.HeldCenters(nodeGeoms, centerOf) }, ev)
 	},
 	"node": func(md *MoveDispatch, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg) {
 		if node, ok := md.RT.NodeFromHit(ev.Hit); ok {
-			if c, ok := md.mr.CenterOfNode(node); ok {
+			if c, ok := md.MR.CenterOfNode(node); ok {
 				g.DragNode = node
 				g.DragStartCenter = c
 			}
@@ -35,7 +35,7 @@ var hitClassifiers = map[string]func(md *MoveDispatch, g *gesturefsm.GestureStat
 	},
 	"empty": func(md *MoveDispatch, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg) {
 		g.EmptyDown = true
-		nodeGeoms, centerOf := md.mr.NodeGeoms(), md.mr.CenterOfNode
+		nodeGeoms, centerOf := md.MR.NodeGeoms(), md.MR.CenterOfNode
 		g.BeginSphereRotation(md.UI.VP.Viewpoint, func() map[string]vec3 { return layoutquant.HeldCenters(nodeGeoms, centerOf) }, ev)
 	},
 }

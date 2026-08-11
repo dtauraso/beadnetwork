@@ -25,18 +25,18 @@ import (
 func TestCommitNodeMoveLocalDrawsQuantizedNotRawTarget(t *testing.T) {
 	root := writeTree(t)
 	md := loadTreeMD(t, root)
-	if !md.lq.QuantizedLayout {
+	if !md.LQ.QuantizedLayout {
 		t.Fatal("test assumes quantizedLayout is on by default")
 	}
-	nm, ok := md.mr.NodeGeoms()["2"]
+	nm, ok := md.MR.NodeGeoms()["2"]
 	if !ok {
 		t.Fatal("no nodeMover for dst")
 	}
-	before, ok := md.mr.CenterOfNode("2")
+	before, ok := md.MR.CenterOfNode("2")
 	if !ok {
 		t.Fatal("no center for dst")
 	}
-	srcCenter, ok := md.mr.CenterOfNode("1")
+	srcCenter, ok := md.MR.CenterOfNode("1")
 	if !ok {
 		t.Fatal("no center for src")
 	}
@@ -54,9 +54,9 @@ func TestCommitNodeMoveLocalDrawsQuantizedNotRawTarget(t *testing.T) {
 	// quantizedDragTarget's doc comment in subtree_persist_test.go).
 	want := quantizedDragTarget(md, "2", target)
 
-	md.lq.CommitNodeMoveLocal(md.mr.NodeGeoms(), md.mr.EdgeMovers(), &md.UI, nm, target)
+	md.LQ.CommitNodeMoveLocal(md.MR.NodeGeoms(), md.MR.EdgeMovers(), &md.UI, nm, target)
 
-	got, ok := md.mr.CenterOfNode("2")
+	got, ok := md.MR.CenterOfNode("2")
 	if !ok {
 		t.Fatal("no center for dst after commit")
 	}
@@ -115,12 +115,12 @@ func TestCommitNodeMoveLocalNeverMovesTowardMouseTarget(t *testing.T) {
 	t.Run("remove", func(t *testing.T) {
 		root := writeTree(t)
 		md := loadTreeMD(t, root)
-		nm := md.mr.NodeGeoms()["2"]
-		before, ok := md.mr.CenterOfNode("2")
+		nm := md.MR.NodeGeoms()["2"]
+		before, ok := md.MR.CenterOfNode("2")
 		if !ok {
 			t.Fatal("no center for dst")
 		}
-		beads := layoutquant.DragTouchingBeads(md.mr.EdgeMovers(), nm, before)
+		beads := layoutquant.DragTouchingBeads(md.MR.EdgeMovers(), nm, before)
 		if len(beads) == 0 {
 			t.Fatal("dst has no touching beads to judge")
 		}
@@ -129,8 +129,8 @@ func TestCommitNodeMoveLocalNeverMovesTowardMouseTarget(t *testing.T) {
 		target := beads[0].Source
 		wrong := cursorFollow(before, target)
 
-		md.lq.CommitNodeMoveLocal(md.mr.NodeGeoms(), md.mr.EdgeMovers(), &md.UI, nm, target)
-		got, ok := md.mr.CenterOfNode("2")
+		md.LQ.CommitNodeMoveLocal(md.MR.NodeGeoms(), md.MR.EdgeMovers(), &md.UI, nm, target)
+		got, ok := md.MR.CenterOfNode("2")
 		if !ok {
 			t.Fatal("no center for dst after commit")
 		}
@@ -142,12 +142,12 @@ func TestCommitNodeMoveLocalNeverMovesTowardMouseTarget(t *testing.T) {
 	t.Run("add", func(t *testing.T) {
 		root := writeTree(t)
 		md := loadTreeMD(t, root)
-		nm := md.mr.NodeGeoms()["2"]
-		before, ok := md.mr.CenterOfNode("2")
+		nm := md.MR.NodeGeoms()["2"]
+		before, ok := md.MR.CenterOfNode("2")
 		if !ok {
 			t.Fatal("no center for dst")
 		}
-		srcCenter, ok := md.mr.CenterOfNode("1")
+		srcCenter, ok := md.MR.CenterOfNode("1")
 		if !ok {
 			t.Fatal("no center for src")
 		}
@@ -157,8 +157,8 @@ func TestCommitNodeMoveLocalNeverMovesTowardMouseTarget(t *testing.T) {
 		target := before.Add(outward.Scale(40))
 		wrong := cursorFollow(before, target)
 
-		md.lq.CommitNodeMoveLocal(md.mr.NodeGeoms(), md.mr.EdgeMovers(), &md.UI, nm, target)
-		got, ok := md.mr.CenterOfNode("2")
+		md.LQ.CommitNodeMoveLocal(md.MR.NodeGeoms(), md.MR.EdgeMovers(), &md.UI, nm, target)
+		got, ok := md.MR.CenterOfNode("2")
 		if !ok {
 			t.Fatal("no center for dst after commit")
 		}
@@ -175,12 +175,12 @@ func TestCommitNodeMoveLocalNeverMovesTowardMouseTarget(t *testing.T) {
 func TestCommitNodeMoveLocalRemoveTakesBeadsPlace(t *testing.T) {
 	root := writeTree(t)
 	md := loadTreeMD(t, root)
-	nm := md.mr.NodeGeoms()["2"]
-	before, ok := md.mr.CenterOfNode("2")
+	nm := md.MR.NodeGeoms()["2"]
+	before, ok := md.MR.CenterOfNode("2")
 	if !ok {
 		t.Fatal("no center for dst")
 	}
-	beads := layoutquant.DragTouchingBeads(md.mr.EdgeMovers(), nm, before)
+	beads := layoutquant.DragTouchingBeads(md.MR.EdgeMovers(), nm, before)
 	if len(beads) != 1 {
 		t.Fatalf("fixture assumption: dst has exactly one touching bead, got %d", len(beads))
 	}
@@ -192,8 +192,8 @@ func TestCommitNodeMoveLocalRemoveTakesBeadsPlace(t *testing.T) {
 		t.Fatalf("fixture assumption: this drag should verdict beadCrudRemove, got %v", verdict)
 	}
 
-	md.lq.CommitNodeMoveLocal(md.mr.NodeGeoms(), md.mr.EdgeMovers(), &md.UI, nm, target)
-	got, ok := md.mr.CenterOfNode("2")
+	md.LQ.CommitNodeMoveLocal(md.MR.NodeGeoms(), md.MR.EdgeMovers(), &md.UI, nm, target)
+	got, ok := md.MR.CenterOfNode("2")
 	if !ok {
 		t.Fatal("no center for dst after commit")
 	}
@@ -208,16 +208,16 @@ func TestCommitNodeMoveLocalRemoveTakesBeadsPlace(t *testing.T) {
 func TestCommitNodeMoveLocalAddMovesOneBeadBeyondNewBead(t *testing.T) {
 	root := writeTree(t)
 	md := loadTreeMD(t, root)
-	nm := md.mr.NodeGeoms()["2"]
-	before, ok := md.mr.CenterOfNode("2")
+	nm := md.MR.NodeGeoms()["2"]
+	before, ok := md.MR.CenterOfNode("2")
 	if !ok {
 		t.Fatal("no center for dst")
 	}
-	srcCenter, ok := md.mr.CenterOfNode("1")
+	srcCenter, ok := md.MR.CenterOfNode("1")
 	if !ok {
 		t.Fatal("no center for src")
 	}
-	beads := layoutquant.DragTouchingBeads(md.mr.EdgeMovers(), nm, before)
+	beads := layoutquant.DragTouchingBeads(md.MR.EdgeMovers(), nm, before)
 	if len(beads) != 1 {
 		t.Fatalf("fixture assumption: dst has exactly one touching bead, got %d", len(beads))
 	}
@@ -236,8 +236,8 @@ func TestCommitNodeMoveLocalAddMovesOneBeadBeyondNewBead(t *testing.T) {
 	newBeadCentre := beads[0].Centre.Sub(beads[0].AimDir.Scale(lattice.BeadStepR))
 	wantNodeCentre := newBeadCentre.Sub(beads[0].AimDir.Scale(lattice.BeadStepR))
 
-	md.lq.CommitNodeMoveLocal(md.mr.NodeGeoms(), md.mr.EdgeMovers(), &md.UI, nm, target)
-	got, ok := md.mr.CenterOfNode("2")
+	md.LQ.CommitNodeMoveLocal(md.MR.NodeGeoms(), md.MR.EdgeMovers(), &md.UI, nm, target)
+	got, ok := md.MR.CenterOfNode("2")
 	if !ok {
 		t.Fatal("no center for dst after commit")
 	}
@@ -248,7 +248,7 @@ func TestCommitNodeMoveLocalAddMovesOneBeadBeyondNewBead(t *testing.T) {
 
 // TestCommitNodeMoveLocalPersistsQuantizedNotRawPolar closes a coverage hole the tests
 // above miss entirely: they all assert `ApplyCenter`'s DRAWN center
-// (md.mr.CenterOfNode), never the scene-polar written to nodes/<id>/position.json by
+// (md.MR.CenterOfNode), never the scene-polar written to nodes/<id>/position.json by
 // persistQuantOffset (commit_node_move.go, quant_offset_persist.go). A prior injected bug
 // — computing committedPolar from newPos (the raw drag target) instead of committedPos
 // (the quantized lattice landing point) — passed every existing node-drag test, because
@@ -264,18 +264,18 @@ func TestCommitNodeMoveLocalPersistsQuantizedNotRawPolar(t *testing.T) {
 	root := writeTree(t)
 	md := loadTreeMD(t, root)
 	md.EnableEditPersist(root)
-	if !md.lq.QuantizedLayout {
+	if !md.LQ.QuantizedLayout {
 		t.Fatal("test assumes quantizedLayout is on by default")
 	}
-	nm, ok := md.mr.NodeGeoms()["2"]
+	nm, ok := md.MR.NodeGeoms()["2"]
 	if !ok {
 		t.Fatal("no nodeMover for dst")
 	}
-	before, ok := md.mr.CenterOfNode("2")
+	before, ok := md.MR.CenterOfNode("2")
 	if !ok {
 		t.Fatal("no center for dst")
 	}
-	srcCenter, ok := md.mr.CenterOfNode("1")
+	srcCenter, ok := md.MR.CenterOfNode("1")
 	if !ok {
 		t.Fatal("no center for src")
 	}
@@ -285,9 +285,9 @@ func TestCommitNodeMoveLocalPersistsQuantizedNotRawPolar(t *testing.T) {
 	// scene-polar and the committed (quantized) center's scene-polar are distinguishable.
 	target := before.Add(outward.Scale(30))
 
-	md.lq.CommitNodeMoveLocal(md.mr.NodeGeoms(), md.mr.EdgeMovers(), &md.UI, nm, target)
+	md.LQ.CommitNodeMoveLocal(md.MR.NodeGeoms(), md.MR.EdgeMovers(), &md.UI, nm, target)
 
-	got, ok := md.mr.CenterOfNode("2")
+	got, ok := md.MR.CenterOfNode("2")
 	if !ok {
 		t.Fatal("no center for dst after commit")
 	}

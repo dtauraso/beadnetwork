@@ -77,13 +77,13 @@ func (md *MoveDispatch) CreateNode(kindID uint8, ndcX, ndcY float64, tr *T.Trace
 	// The nearest node is also the SOURCE of the new edge: an edge is stored under its
 	// source and carries no `source` key, so choosing the source is choosing the directory
 	// the edge file lands in.
-	src, okNear := md.mr.NearestNodeTo(drop)
+	src, okNear := md.MR.NearestNodeTo(drop)
 	target := loadspec.NewNodeID(md.Scenes.TreeRoot)
 	var srcPort, targetPort string
 	if okNear {
 		var why string
 		var canLink bool
-		if srcPort, targetPort, why, canLink = md.mr.LinkRefusal(src, kind); !canLink {
+		if srcPort, targetPort, why, canLink = md.MR.LinkRefusal(src, kind); !canLink {
 			md.UI.RefuseStructuralEdit(why)
 			md.UI.EmitViewFrame(nil)
 			return

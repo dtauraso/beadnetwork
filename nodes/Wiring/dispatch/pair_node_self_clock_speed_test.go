@@ -32,7 +32,7 @@ func TestSelfDrivenGeometryClockAppliesDeliveredSpeed(t *testing.T) {
 	root := writeTree(t) // generic two-node/one-edge fixture (writeTree, scene_edit_persist_test.go)
 	md := loadTreeMD(t, root)
 
-	geom := md.mr.NodeGeoms()["1"]
+	geom := md.MR.NodeGeoms()["1"]
 	if geom == nil {
 		t.Fatalf("no nodeGeometry for node 1")
 	}

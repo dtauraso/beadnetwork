@@ -39,7 +39,7 @@ var commitEdges = []gestureEdge{
 	{
 		guard: func(g *gesturefsm.GestureState) bool { return g.DragNode != "" },
 		action: func(md *MoveDispatch, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
-			mr, ctx := &md.mr, md.ctx
+			mr, ctx := &md.MR, md.ctx
 			commitDragStart(&md.UI, func(id string, msg movemsg.Msg) { sendMove(mr, ctx, id, msg) }, g, ev, tr)
 		},
 		to: gesturefsm.GestDragging,
@@ -126,7 +126,7 @@ func (md *MoveDispatch) commitRotateStart(g *gesturefsm.GestureState, ev inputco
 // old switch's implicit default (gestIdle, gestPending fell through to nothing).
 var applyAction = map[gesturefsm.GesturePhase]func(md *MoveDispatch, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg, tr *T.Trace){
 	gesturefsm.GestDragging: func(md *MoveDispatch, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
-		nodeGeoms, lq, ctx := md.mr.NodeGeoms(), &md.lq, md.ctx
+		nodeGeoms, lq, ctx := md.MR.NodeGeoms(), &md.LQ, md.ctx
 		if applyNodeDragTarget(&md.UI, func(id string, target vec3) bool { return lq.RootMove(ctx, nodeGeoms, id, target) }, ev) {
 			g.PrevX, g.PrevY = ev.X, ev.Y
 		}

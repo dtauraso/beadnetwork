@@ -47,20 +47,26 @@ import (
 
 // MoveDispatch is the pure registry built at load that owns every mover and wires their
 // dedicated channels together — there
-// is no shared dispatch map anymore; md.mr.NodeGeoms()/md.mr.EdgeMovers() themselves are the
+// is no shared dispatch map anymore; md.MR.NodeGeoms()/md.MR.EdgeMovers() themselves are the
 // directories a mover's resolveDest closure and the external-entry helpers below look up.
 type MoveDispatch struct {
-	// mr owns the nodeMover/edgeMover directories (nodes/Wiring/moverreg, lifted out of this
+	// MR owns the nodeMover/edgeMover directories (nodes/Wiring/moverreg, lifted out of this
 	// package in docs/planning/movedispatch-decomposition.md §25). Bind/CenterOfNode/
-	// EnqueueFor/FinalizeActors are called directly as md.mr.X by in-package callers; only
-	// Start stays a MoveDispatch method (it also sets md.ctx).
-	mr moverreg.MoverRegistry
+	// EnqueueFor/FinalizeActors are called directly as md.MR.X by in-package callers; only
+	// Start stays a MoveDispatch method (it also sets md.ctx). Exported (§28): its own
+	// field surface is already reached through moverreg's own exported accessors
+	// (NodeGeoms()/EdgeMovers()/...), so this is the same "already-exported sub-object"
+	// shape as GS/UI/Scenes/RT below, applied to the one field that predated the pattern.
+	MR moverreg.MoverRegistry
 	// GS owns every node/edge's load-time seed geometry (nodes/Wiring/geomseeds). Exported:
 	// external callers reach it directly (md.GS.NodeSeedsFn()) instead of through
 	// MoveDispatch delegator methods.
 	GS geomseeds.GeomSeeds
-	// tr is the trace sink (retained for trace emission; diagnostic breadcrumbs removed).
-	tr *T.Trace
+	// TR is the trace sink (retained for trace emission; diagnostic breadcrumbs removed).
+	// Exported (§28): write-only from outside this file already (newMoveDispatch's own
+	// struct literal); no in-package reader of md.TR exists, so exporting it costs nothing
+	// and matches GS/UI/Scenes/RT's pattern rather than staying the one unexplained holdout.
+	TR *T.Trace
 	// persist groups the six debounced disk persisters (move_persist.go), each nil until
 	// armed by EnableViewpointPersist / EnableEditPersist after the startup seed. Grouped
 	// the same way ui.vp/ui.ov/ui.gest are, so a bare test-constructed MoveDispatch only
@@ -82,15 +88,16 @@ type MoveDispatch struct {
 	// bound func values (move_dispatch_api.go), since moverRegistry/layoutQuantizer/
 	// edgeMover are unexported Wiring types viewstate cannot name.
 	UI viewstate.UIState
-	// lq owns the quantized scene-polar move math (nodes/Wiring/layoutquant, lifted out
+	// LQ owns the quantized scene-polar move math (nodes/Wiring/layoutquant, lifted out
 	// per docs/planning/movedispatch-decomposition.md §24 — quantizedLayout gates the
 	// quantized absolute-scene-polar snap — every node is a root, measured/derived
 	// about the scene center only, with no per-neighbour stored coordinate (MODEL.md
 	// "the polar model"). Its methods take moverreg.MoverRegistry's own directories
-	// (md.mr.NodeGeoms()/md.mr.EdgeMovers()) as explicit parameters rather than a
+	// (md.MR.NodeGeoms()/md.MR.EdgeMovers()) as explicit parameters rather than a
 	// *moverreg.MoverRegistry back-reference, which is what let the type move to its own
-	// package with nothing in MoverRegistry exported.
-	lq layoutquant.LayoutQuantizer
+	// package with nothing in MoverRegistry exported. Exported (§28): same
+	// already-exported-sub-object shape as MR above.
+	LQ layoutquant.LayoutQuantizer
 	// Scenes owns tab switching: the anchor to persist the selection against, and the
 	// quit func whose call the extension host's looping respawn follows (scene_switch.go).
 	// Zero until the run's setup code arms it (Scenes.AnchorPath/Scenes.Quit, set directly

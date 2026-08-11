@@ -26,12 +26,12 @@ import (
 // center (400,300) projects EXACTLY onto the node's center — the deterministic "center
 // grab" case the companion test below relies on.
 func dragOffsetMD() *MoveDispatch {
-	md := &MoveDispatch{mr: moverreg.New()}
+	md := &MoveDispatch{MR: moverreg.New()}
 	md.UI.VP.Viewpoint = canonicalViewpoint()
 	g := nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: "TimeEnd"}}
 	nodegeom.SetNodeWorld(&g, vec3{X: 0, Y: 0, Z: 0})
 	nm := nodeactor.NewNodeGeometry("n", g, nil, clock.NewRealClock())
-	md.mr.NodeGeoms()["n"] = nm
+	md.MR.NodeGeoms()["n"] = nm
 	// No goroutine started (mirrors gesture_home_test's homeMD): extIn is a buffered
 	// channel (moverInboxDepth), so sendMove's writes land there for the test to drain
 	// without a live mover loop committing them.
@@ -65,7 +65,7 @@ func drainDrag(t *testing.T, nm *nodeactor.NodeGeometry) vec3 {
 // second, genuine move.
 func TestGestureDragOffCenterPreservesGrabPoint(t *testing.T) {
 	md := dragOffsetMD()
-	nm := md.mr.NodeGeoms()["n"]
+	nm := md.MR.NodeGeoms()["n"]
 
 	down := rawEvent("pointerdown", 450, 300) // OFF the node's screen-center projection
 	down.Hit = nodeHit()
@@ -118,7 +118,7 @@ func TestGestureDragOffCenterPreservesGrabPoint(t *testing.T) {
 // zero offset and drag targets equal to the raw plane-hit, same as before the fix.
 func TestGestureDragCenterGrabUnchanged(t *testing.T) {
 	md := dragOffsetMD()
-	nm := md.mr.NodeGeoms()["n"]
+	nm := md.MR.NodeGeoms()["n"]
 
 	down := rawEvent("pointerdown", 410, 300) // off-center; only its distance to move1 matters for the slop check
 	down.Hit = nodeHit()
