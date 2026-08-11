@@ -6,6 +6,11 @@
 package geomseeds
 
 import (
+	"fmt"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
@@ -61,6 +66,79 @@ func (gs *GeomSeeds) LoadTimeCenters() map[string]wire.Vec3 {
 	out := make(map[string]wire.Vec3, len(gs.NodeSeeds))
 	for _, sd := range gs.NodeSeeds {
 		out[sd.ID] = wire.Vec3{X: sd.CX, Y: sd.CY, Z: sd.CZ}
+	}
+	return out
+}
+
+// BuildNodeSeed computes one node's own NodeGeomSeed from its load-time geometry — pulled
+// out of newMoveDispatch's node loop (nodes/Wiring/move_dispatch_construct.go), which
+// never touched *MoveDispatch here: every input is a parameter (id, its position in spec
+// order, and its own geometry) and the only side effect at the old call site was
+// appending the return value to md.GS.NodeSeeds. row falls back to i (position in spec
+// order) only for a non-numeric id, which real loadTree-built specs never produce; ROW ID
+// = NODE ID - 1 is still the rule for every real id.
+func BuildNodeSeed(id string, i int, g nodegeom.NodeGeom, row int) NodeGeomSeed {
+	label := g.Label
+	if label == "" {
+		label = id
+	}
+	var cx, cy, cz float64
+	if g.HasPos {
+		c := nodegeom.NodeWorldPos(g)
+		cx, cy, cz = c.X, c.Y, c.Z
+	}
+	return NodeGeomSeed{
+		ID: id, Label: label, Kind: g.Kind,
+		CX: cx, CY: cy, CZ: cz,
+		Radius: nodegeom.NodeRadius(g.Kind), SphereR: nodegeom.EffectiveRadius(g),
+		VRX: loadspec.VerticalRingNormalX, VRY: loadspec.VerticalRingNormalY, VRZ: loadspec.VerticalRingNormalZ,
+		FRX: loadspec.FlatRingNormalX, FRY: loadspec.FlatRingNormalY, FRZ: loadspec.FlatRingNormalZ,
+		Row: row,
+	}
+}
+
+// BuildEdgeSeed computes one edge's own EdgeGeomSeed from its load-time endpoints —
+// pulled out of newMoveDispatch's edge loop, same file. geoms is the full node-geometry
+// map (a parameter, not md.mr.nodeGeoms) so this stays a pure function of its inputs; the
+// missing-endpoint case is reported as an error rather than a panic since a stale edge
+// file left behind after its target node's directory was hand-deleted is malformed
+// input, not a code bug (in-edges are not indexed, so nothing else catches this at load).
+func BuildEdgeSeed(label string, ep inputcodec.EdgeEndpoints, geoms map[string]nodegeom.NodeGeom) (EdgeGeomSeed, error) {
+	srcG, srcOK := geoms[ep.Source]
+	if !srcOK {
+		return EdgeGeomSeed{}, fmt.Errorf("newMoveDispatch: edge %q references missing source node %q (no geometry loaded for it)", label, ep.Source)
+	}
+	dstG, dstOK := geoms[ep.Target]
+	if !dstOK {
+		return EdgeGeomSeed{}, fmt.Errorf("newMoveDispatch: edge %q references missing target node %q (no geometry loaded for it)", label, ep.Target)
+	}
+	seg := nodegeom.EdgeSegment(srcG, dstG)
+	return EdgeGeomSeed{
+		Label: label, SrcNode: ep.Source, DstNode: ep.Target,
+		SX: seg.Start.X, SY: seg.Start.Y, SZ: seg.Start.Z,
+		EX: seg.End.X, EY: seg.End.Y, EZ: seg.End.Z,
+	}, nil
+}
+
+// MutualPairs reports, for every ordered (source, target) pair in edgeEndpoints, whether
+// the REVERSE edge (target -> source) also exists — a load-time fact of the edge set
+// alone, computed once here with no touch of any node's own state. newMoveDispatch uses
+// this to seed each node's topo.mutualTargets so the two chains of a mutual pair offset
+// to opposite sides (nodegeom.ParallelChainOffset) instead of drawing on the same line.
+func MutualPairs(edgeEndpoints map[string]inputcodec.EdgeEndpoints) map[string]map[string]bool {
+	hasEdge := make(map[string]bool, len(edgeEndpoints))
+	for _, ep := range edgeEndpoints {
+		hasEdge[ep.Source+"\x00"+ep.Target] = true
+	}
+	out := map[string]map[string]bool{}
+	for _, ep := range edgeEndpoints {
+		if !hasEdge[ep.Target+"\x00"+ep.Source] {
+			continue
+		}
+		if out[ep.Source] == nil {
+			out[ep.Source] = map[string]bool{}
+		}
+		out[ep.Source][ep.Target] = true
 	}
 	return out
 }

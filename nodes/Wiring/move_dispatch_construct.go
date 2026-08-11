@@ -8,13 +8,11 @@
 package Wiring
 
 import (
-	"fmt"
 	"sort"
 	"strconv"
 
 	geomseeds "github.com/dtauraso/wirefold/nodes/Wiring/geomseeds"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
-	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	rowtables "github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
@@ -78,15 +76,6 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 		if !ok {
 			continue
 		}
-		label := g.Label
-		if label == "" {
-			label = id
-		}
-		var cx, cy, cz float64
-		if g.HasPos {
-			c := nodegeom.NodeWorldPos(g)
-			cx, cy, cz = c.X, c.Y, c.Z
-		}
 		// ROW ID = NODE ID - 1 — declared by the id, not by position in nodeOrder. Falls
 		// back to positional index only for a non-numeric id, which real (loadTree-built)
 		// specs never produce (loud load-time error there); this keeps synthetic-id unit
@@ -95,14 +84,7 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 		if n, err := strconv.Atoi(id); err == nil {
 			row = n - 1
 		}
-		md.GS.NodeSeeds = append(md.GS.NodeSeeds, geomseeds.NodeGeomSeed{
-			ID: id, Label: label, Kind: g.Kind,
-			CX: cx, CY: cy, CZ: cz,
-			Radius: nodegeom.NodeRadius(g.Kind), SphereR: nodegeom.EffectiveRadius(g),
-			VRX: loadspec.VerticalRingNormalX, VRY: loadspec.VerticalRingNormalY, VRZ: loadspec.VerticalRingNormalZ,
-			FRX: loadspec.FlatRingNormalX, FRY: loadspec.FlatRingNormalY, FRZ: loadspec.FlatRingNormalZ,
-			Row: row,
-		})
+		md.GS.NodeSeeds = append(md.GS.NodeSeeds, geomseeds.BuildNodeSeed(id, i, g, row))
 	}
 	md.GS.EdgeSeeds = make([]geomseeds.EdgeGeomSeed, 0, len(edgeOrder))
 	for _, label := range edgeOrder {
@@ -110,29 +92,20 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 		if !ok {
 			continue
 		}
-		// Real endpoint geometry: the same nodegeom.EdgeSegment computation recomputeGeometry
-		// (below) uses on every live move, evaluated once here against the load-time
-		// geoms so the seed row is never a degenerate 0,0,0->0,0,0 segment. A missed
-		// lookup means the edge's source or target node id has no geometry — a
-		// malformed topology (most commonly a stale edge file left behind after its
-		// target node's directory was deleted by hand; in-edges are not indexed, so
-		// nothing else catches this) — and must fail the load loudly, never seed a
-		// silent 0,0,0->0,0,0 segment indistinguishable from real data.
-		srcG, srcOK := geoms[ep.Source]
-		if !srcOK {
-			return nil, fmt.Errorf("newMoveDispatch: edge %q references missing source node %q (no geometry loaded for it)", label, ep.Source)
+		// Real endpoint geometry, computed by geomseeds.BuildEdgeSeed: the same
+		// nodegeom.EdgeSegment computation recomputeGeometry (below) uses on every live
+		// move, evaluated once here against the load-time geoms so the seed row is never
+		// a degenerate 0,0,0->0,0,0 segment. A missed lookup means the edge's source or
+		// target node id has no geometry — a malformed topology (most commonly a stale
+		// edge file left behind after its target node's directory was deleted by hand;
+		// in-edges are not indexed, so nothing else catches this) — and must fail the
+		// load loudly, never seed a silent 0,0,0->0,0,0 segment indistinguishable from
+		// real data.
+		seed, err := geomseeds.BuildEdgeSeed(label, ep, geoms)
+		if err != nil {
+			return nil, err
 		}
-		dstG, dstOK := geoms[ep.Target]
-		if !dstOK {
-			return nil, fmt.Errorf("newMoveDispatch: edge %q references missing target node %q (no geometry loaded for it)", label, ep.Target)
-		}
-		seg := nodegeom.EdgeSegment(srcG, dstG)
-		sx, sy, sz := seg.Start.X, seg.Start.Y, seg.Start.Z
-		ex, ey, ez := seg.End.X, seg.End.Y, seg.End.Z
-		md.GS.EdgeSeeds = append(md.GS.EdgeSeeds, geomseeds.EdgeGeomSeed{
-			Label: label, SrcNode: ep.Source, DstNode: ep.Target,
-			SX: sx, SY: sy, SZ: sz, EX: ex, EY: ey, EZ: ez,
-		})
+		md.GS.EdgeSeeds = append(md.GS.EdgeSeeds, seed)
 	}
 	for id, g := range geoms {
 		ng := newNodeGeometry(id, g, tr, clk)
@@ -177,19 +150,14 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 	// node's own field. Without it a node cannot know whether its target also aims back —
 	// its own outTargets say nothing about the other node's — and the two chains would draw
 	// along the identical centre line (nodegeom.ParallelChainOffset, nodegeom/port_geometry.go).
-	hasEdge := make(map[string]bool, len(edgeEndpoints))
-	for _, ep := range edgeEndpoints {
-		hasEdge[ep.Source+"\x00"+ep.Target] = true
-	}
-	for _, ep := range edgeEndpoints {
-		if !hasEdge[ep.Target+"\x00"+ep.Source] {
-			continue
-		}
-		if nm, ok := md.mr.nodeGeoms[ep.Source]; ok {
+	for src, targets := range geomseeds.MutualPairs(edgeEndpoints) {
+		if nm, ok := md.mr.nodeGeoms[src]; ok {
 			if nm.topo.mutualTargets == nil {
 				nm.topo.mutualTargets = map[string]bool{}
 			}
-			nm.topo.mutualTargets[ep.Target] = true
+			for target := range targets {
+				nm.topo.mutualTargets[target] = true
+			}
 		}
 	}
 	for edgeID, ep := range edgeEndpoints {
