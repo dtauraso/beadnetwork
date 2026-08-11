@@ -121,6 +121,38 @@ shape — or has a cross-package caller through an unexported field, so it stays
 write-then-emit question is answered once (see below). 12 span two or more owners
 outright; the dominant shape among them is *mutate state, then emit a view frame*, 8 times.
 
+### The floor is 14, not 48 — "they are entry points" was not a reason
+
+At 48 methods the remainder was described as "command entry points that legitimately stay".
+That was an unexamined stopping point, not a constraint. Measured:
+
+| | count |
+|---|---|
+| owner fields touched: 1 | 24 |
+| owner fields touched: 2 | 12 |
+| owner fields touched: 3 | 8 |
+| owner fields touched: 0 | 4 |
+
+A free function taking two or three owners is unremarkable, so "it is an entry point" is a
+preference for method syntax over passing parameters — the same shape as every other blocker
+this branch has dissolved. The real constraint is WHO CALLS IT:
+
+| | count | |
+|---|---|---|
+| production callers outside `nodes/Wiring` | **14** | the genuine external API; the hub is the natural receiver because `runtopology` holds only `md` |
+| **test-only** callers outside (prod = 0) | **3** | `NodeSelfDriven`, `HasNodeMover`, `NodeQuantOffset` |
+| in-package only | **31** | could be free functions taking the owners they read |
+
+So `MoveDispatch`'s honest floor is **14 methods** — the external API — and everything else is
+open. The 31 in-package ones are the next tranche: make each a package-level func taking the
+owners it reads (`func gestHome(lq *layoutQuantizer, mr *moverRegistry, ui *uiState, …)`),
+which is this doc's own rule applied one level up.
+
+The 3 test-only ones are the same class as the `ForTest` hatches already closed: a public
+method existing solely because a test in `package main` cannot reach an unexported field.
+Close them the same way — remove the reason (move the test, or give it a real entry point),
+not by keeping the delegator.
+
 ### The write-then-emit answer: the owner mutates, the view-owner goroutine emits
 
 Measured on the 55 remaining methods: **31 are blocked by calling another `MoveDispatch`
