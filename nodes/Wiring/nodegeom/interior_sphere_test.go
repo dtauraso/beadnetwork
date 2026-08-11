@@ -1,9 +1,9 @@
 // interior_sphere_test.go — the interior beads' TORUS reach must stay inside the node's own
 // sphere radius. Split out from the interior package's own node_bead_test.go (god-object
-// decomposition): these two assertions need Wiring's own nodeRadius, which package interior
-// must not import (Wiring imports interior for InteriorStream/EmitNodeBeads/etc — importing
-// back would cycle), so they stay here, calling into interior's exported slot geometry.
-package dispatch
+// decomposition), then moved bodily from nodes/Wiring/dispatch
+// (docs/planning/movedispatch-decomposition.md §34): it exercises only nodegeom.NodeRadius
+// and interior's exported slot geometry, never MoveDispatch.
+package nodegeom_test
 
 import (
 	"math"

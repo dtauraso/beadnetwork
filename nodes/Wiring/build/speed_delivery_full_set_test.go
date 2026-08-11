@@ -1,8 +1,10 @@
 // speed_delivery_full_set_test.go — proves item 3 of per-goroutine-clock.md's "What
 // must be proven": a speed change reaches EVERY clock-owning goroutine, not a sample.
-// External test package so it can import every node kind that owns a clock copy
-// without an import cycle back into Wiring.
-package dispatch_test
+// External test package so it can import every node kind that owns a clock copy without an
+// import cycle back into Wiring. Moved bodily from nodes/Wiring/dispatch
+// (docs/planning/movedispatch-decomposition.md §34): it exercises build.LoadTopology, never
+// MoveDispatch's own methods.
+package build_test
 
 import (
 	"context"
@@ -17,7 +19,6 @@ import (
 	_ "github.com/dtauraso/wirefold/nodes/TimeEnd"
 	_ "github.com/dtauraso/wirefold/nodes/TimeStart"
 	Bld "github.com/dtauraso/wirefold/nodes/Wiring/build"
-	W "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	_ "github.com/dtauraso/wirefold/nodes/holdflip"
 	_ "github.com/dtauraso/wirefold/nodes/input"
 	_ "github.com/dtauraso/wirefold/nodes/pacer"
@@ -84,7 +85,7 @@ const expectedSpeedSinkCount = 18
 // count by 1) and confirming this assertion goes red; restored afterward (see the
 // task report, not committed here).
 func TestSpeedSinksCoverEveryClockOwningGoroutine(t *testing.T) {
-	root := W.WriteSpecTree(t, t.TempDir(), speedFullSetTopo)
+	root := writeSpecTree(t, t.TempDir(), speedFullSetTopo)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	tr := T.New()

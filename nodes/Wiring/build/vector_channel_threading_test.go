@@ -7,8 +7,10 @@
 // own n.vec.VectorOut/VectorIn, and nothing asserted that threading actually lands each end
 // on the right node. Reads those two unexported-but-otherwise-untouchable fields via
 // reflection (read-only, before any goroutine is started — LoadTopology never launches one)
-// rather than adding a production accessor.
-package dispatch_test
+// rather than adding a production accessor. Moved bodily from nodes/Wiring/dispatch
+// (docs/planning/movedispatch-decomposition.md §34): it exercises build.LoadTopology, never
+// MoveDispatch's own methods.
+package build_test
 
 import (
 	"context"
@@ -22,7 +24,6 @@ import (
 	T "github.com/dtauraso/wirefold/Trace"
 	_ "github.com/dtauraso/wirefold/nodes/PairNode"
 	Bld "github.com/dtauraso/wirefold/nodes/Wiring/build"
-	W "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 )
 
 // unexportedField reads any unexported field by NAME off v (a struct or pointer-to-struct)
@@ -81,7 +82,7 @@ func TestPairNodeVectorChannelsThreadSourceOutTargetIn(t *testing.T) {
 	    {"label":"e0","kind":"data","source":"1","sourceHandle":"Out","target":"2","targetHandle":"In"}
 	  ]
 	}`
-	root := W.WriteSpecTree(t, t.TempDir(), topo)
+	root := writeSpecTree(t, t.TempDir(), topo)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	nodes, _, _, _, err := Bld.LoadTopology(ctx, root, T.New(), clock.NewRealClock())
