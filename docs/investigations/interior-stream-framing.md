@@ -88,30 +88,25 @@ carries `Text` through unchanged from `wire.RowEvent` to `Buffer.StreamEvent`. R
 Given #1/#2 fully explain the symptom by construction, #4 (drag-rate raw-input, reload,
 hot-restart, backpressure) was not pursued as an independent cause — but it is exactly the
 kind of condition (concurrent activity on a `DriveHeld` node under load) that would make
-this race land *more often* in a live session than in a short/synthetic headless run:
-`TestHeadlessInteriorFdSustainedFraming` and the Node harness were not confirmed to include
-a topology with an actively-firing `Pulse`/`Time`/`HoldFlip`-family node (recv events
-racing its own drive goroutine's send events) for long enough to hit this timing window —
-which is exactly why they passed while the live editor didn't.
+this race land *more often* in a live session than in a short/synthetic headless run: a
+topology with an actively-firing `Pulse`/`Time`/`HoldFlip`-family node (recv events racing
+its own drive goroutine's send events) needs to run for long enough to hit this timing
+window — which is exactly why a short headless run can pass while the live editor didn't.
 
 ## Reproduction (original, pre-fix)
 
-`nodes/Wiring/interior/interior_stream_concurrent_write_test.go`'s original
-`TestInteriorStreamConcurrentWritersDesyncFraming` (since renamed and reshaped — see
-"Fix" below for its current form): constructed ONE shared `*interiorStream` over a real
-`os.Pipe`, spawned two goroutines against it (one calling `write` the way a node's Update
-loop does via `EmitHeldBead`, one calling `WriteEvents` the way a `DriveHeld` drive
-goroutine's `flushSendEvent` does) for 20000 iterations each, and a reader goroutine
-applying the SAME `[len:u32]` framing + `MAX_FRAME_BYTES` bound `runCommand.ts`'s
-`splitFrames`/`handleInteriorFd` use, plus a stricter "is this one of the two legitimate
-frame shapes" check (since a corrupted-but-small length can slip under `MAX_FRAME_BYTES`
-and silently misdecode instead of erroring loudly — a quieter version of the same bug). It
-failed reliably (every run observed, in well under 1s) with a decoded frame of a length
-that was neither of the two legitimate shapes — the corrupted-length symptom, reproduced
-from the writer side alone, no editor or extension host involved. This was the reproduction
-this doc's original version was the deliverable of — the fix landed since (see "Fix" below,
-which also covers what the test looks like now that production no longer constructs this
-sharing at all).
+Constructing ONE shared `*interiorStream` over a real `os.Pipe`, and spawning two
+goroutines against it (one calling `write` the way a node's Update loop does via
+`EmitHeldBead`, one calling `WriteEvents` the way a `DriveHeld` drive goroutine's
+`flushSendEvent` does) for 20000 iterations each, with a reader goroutine applying the SAME
+`[len:u32]` framing + `MAX_FRAME_BYTES` bound `runCommand.ts`'s `splitFrames`/
+`handleInteriorFd` use, plus a stricter "is this one of the two legitimate frame shapes"
+check (since a corrupted-but-small length can slip under `MAX_FRAME_BYTES` and silently
+misdecode instead of erroring loudly — a quieter version of the same bug), failed reliably
+(every run observed, in well under 1s) with a decoded frame of a length that was neither of
+the two legitimate shapes — the corrupted-length symptom, reproduced from the writer side
+alone, no editor or extension host involved. This was the reproduction this doc's original
+version was the deliverable of — the fix landed since (see "Fix" below).
 
 ## Guard verdict
 
@@ -198,8 +193,7 @@ by anything, so relaying its frame as though it stated the node's slots painted 
 all-absent snapshot over a held bead the node's own interior stream had just emitted. Only
 the node's own interior stream — its Update loop's `emitHeldBead`/`emitNodeBeads`/
 `emitInputBeads` — is the one writer of slot state; a drive frame's EVENTS are still decoded
-and probe-logged, they just never reach the webview's interior cell or its replay cache
-(`tools/topology-vscode/test/runner/driveFramesAreEventsOnly.test.ts`).
+and probe-logged, they just never reach the webview's interior cell or its replay cache.
 
 **Single-Write framing, done alongside**: `writeInteriorStreamFrame`
 (`nodes/Wiring/interior/interior_stream.go`) now issues ONE `io.Writer.Write` call per frame
@@ -210,25 +204,8 @@ current form, below) — the per-fd split is the structural fix; the single-Writ
 insurance layered on it, at the cost of one extra byte-slice allocation per frame (buildFrame's
 own backing array can't be mutated in place, since callers may still hold it).
 
-**Tests**:
+**Verification**:
 
-- `nodes/Wiring/interior/interior_stream_concurrent_write_test.go`'s
-  `TestInteriorStreamTwoCallSharedWriterMechanismStillDesyncs` pins the ORIGINAL
-  mechanism by hand — two goroutines, one pipe, each framing via a frozen copy of the
-  PRE-FIX two-Write-calls shape (`writeTwoCallFrame`). It PASSES when the desync it exists
-  to pin actually occurs and FAILS when it does not (inverted from the original
-  fail-on-desync form, because a permanent `go test ./...` member cannot be "expected to
-  fail" — see the test's own doc comment). The single-Write fix alone does not make sharing
-  safe: an earlier attempt to prove that by inflating frame size past a guessed OS
-  pipe-buffer threshold turned out to pass unreliably (this OS's pipe write behavior
-  serialized even the large single-Write frames in practice) — the two-Write-calls shape is
-  the deterministic reproduction that doesn't depend on guessing pipe internals.
-- `nodes/Wiring/portwiring/drive_stream_wiring_test.go`'s `TestDriveStreamNeverSharesNodesInteriorStream`
-  is the WIRING assertion the original bug actually needed: that
-  `NewInteriorStreamGetter` and `NewDriveStreamGetter` resolve to DIFFERENT
-  `*interiorStream` instances (and different underlying `io.Writer`s) for the same node.
-  Confirmed to fail against a deliberately-reintroduced pre-fix arrangement (patched
-  `newDriveStreamGetter` to alias `newInteriorStreamGetter`) and pass against the real fix.
 - **`tools/check-driveheld-uses-driveout.sh` REMOVED (2026-08), superseded by a compile-time
   fix.** It used to express the SAME invariant at the source-text level — every
   `nodes/<Kind>/node.go` that calls `gatecommon.DriveHeld` must also call `a.DriveOut(...)`,

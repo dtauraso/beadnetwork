@@ -77,10 +77,10 @@ buffer layout in `Buffer/layout.go` / `tools/gen-node-defs/buflayout/buffer_layo
 `tools/topology-vscode/src/schema/buffer-layout.ts`) are long literal strings (each several
 hundred bytes, several KB total across all of them) that encode the full shape of a wire
 protocol in one line specifically so any drift between Go and TS trips a string-equality
-test immediately (see e.g. `nodes/Wiring/inputcodec/input_codec_test.go`) instead of drifting silently
-column-by-column. This is a deliberate, working anti-drift mechanism, not accidental
-duplication — do not propose replacing it with something "less duplicated" unless the
-replacement preserves the single-string-equality-check property.
+mismatch immediately instead of drifting silently column-by-column. This is a deliberate,
+working anti-drift mechanism, not accidental duplication — do not propose replacing it with
+something "less duplicated" unless the replacement preserves the single-string-equality-check
+property.
 
 ## 5. `Wiring.Registry` is init-only self-registration, not shared mutable state
 

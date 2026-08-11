@@ -165,10 +165,6 @@
         twelve in all, and not one of them is written down in
         <span data-src="nodes/PairNode/machine.go">machine.go</span>: they are the one comparison
         above, read for a stop of 0 and a stop of <var>q</var></p>
-      <p class="eq step dim">the collapse is not taken on trust —
-        <span data-src="nodes/PairNode/tiltring/arith_round_test.go#TestOneRoundIsSignAndRemainder">TestOneRoundIsSignAndRemainder</span>
-        derives the page's branches and asks the machine for the same state, on every pair of both
-        lattices</p>
     </div>
   </section>
 
@@ -199,9 +195,8 @@
       <p class="eq head">the tilt it stops on — <var>t</var> + <var>s</var>·<var>f</var></p>
       <p class="eq step dim">computed NOWHERE in <code>nodes/PairNode</code>. One arrival turns one
         slot; <var>f</var> is made inside it and discarded, no walk is planned, and the next
-        arrival re-derives everything. The closed form is a property of the rule, held by
-        <span data-src="nodes/PairNode/tiltring/arith_walk_test.go#TestTheWalkIsClosedForm">TestTheWalkIsClosedForm</span>,
-        not a quantity a node holds</p>
+        arrival re-derives everything. The closed form is a property of the rule, not a
+        quantity a node holds</p>
       <p class="eq head">the one thing held fixed — <var>a</var></p>
       <p class="eq step dim">an assumption of that page's analysis, and one the live exchange
         breaks: both ends move, so <var>a</var> is not held. Nothing in the code assumes it, which
@@ -209,23 +204,5 @@
     </div>
   </section>
 
-  <section>
-    <h3 class="secname">What holds this page to the code</h3>
 
-    <div class="card wide">
-      <h2>swept over every (tilt, arrival) pair, on the 24- and 48-point lattices</h2>
-      <div class="cap"><span data-src="nodes/PairNode/tiltring/arith_round_test.go">nodes/PairNode/tiltring/arith_round_test.go</span> ·
-        <span data-src="nodes/PairNode/tiltring/arith_walk_test.go">nodes/PairNode/tiltring/arith_walk_test.go</span> ·
-        <span data-src="nodes/PairNode/tiltring/arith_fromrest_test.go">nodes/PairNode/tiltring/arith_fromrest_test.go</span> ·
-        <span data-src="nodes/PairNode/tiltring/arith_resting_lengths_test.go">nodes/PairNode/tiltring/arith_resting_lengths_test.go</span> ·
-        <span data-src="nodes/PairNode/machine_adoption_test.go">nodes/PairNode/machine_adoption_test.go</span> ·
-        <span data-src="nodes/PairNode/tiltring/machine_halt_test.go">nodes/PairNode/tiltring/machine_halt_test.go</span></div>
-      <p class="eq step" data-src="nodes/PairNode/tiltring/arith_round_test.go#TestOneRoundIsSignAndRemainder">TestOneRoundIsSignAndRemainder
-        <span class="note">arith.html's forms = this machine's answers</span></p>
-      <p class="eq step" data-src="nodes/PairNode/machine_adoption_test.go#TestAnUpdateDrivesTheEndItMeasured">TestAnUpdateDrivesTheEndItMeasured
-        <span class="note">driven end = measured end; the ends stay <var>h</var> apart</span></p>
-      <p class="eq step" data-src="nodes/PairNode/tiltring/machine_halt_test.go#TestAModeHaltsExactlyOnItsHomeSet">TestAModeHaltsExactlyOnItsHomeSet
-        <span class="note">settled = the mode's own row</span></p>
-    </div>
-  </section>
 </main>

@@ -95,9 +95,8 @@
             <td class="e">miss = min(sep, |sep − HALF|)</td>
             <td class="n">distance to the nearer of the two halts; zero is the halt. The CODE does
               not compute it — it compares the count against the mode's stopping count
-              (<code>settled</code>) — so this is the measure the page reasons with, held by
-              <code>offBy</code> in the tests</td>
-            <td class="s" data-src="nodes/PairNode/tiltring/helpers_test.go#offBy">miss</td>
+              (<code>settled</code>) — so this is the measure the page reasons with</td>
+            <td class="s">miss</td>
           </tr>
           <tr>
             <td class="e">step = next if (stop − c) mod HALF ≤ QUARTER, else prev</td>
@@ -191,7 +190,7 @@
               <span data-src="nodes/PairNode/tiltring/machine.go#Machine">tiltMachine</span> ·
               <span data-src="nodes/PairNode/tiltring/machine.go#Settled">halted</span> ·
               <span data-src="nodes/PairNode/tiltring/machine.go#Step">step</span> ·
-              <span data-src="nodes/PairNode/tiltring/helpers_test.go#offBy">miss</span>
+              <span>miss</span>
             </td>
           </tr>
           <tr>

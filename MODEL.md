@@ -81,9 +81,7 @@ mistake to avoid (chain_beads.go's own header comment makes the same split):
   starting one goroutine per added bead (at the chain end, matching bead CRUD's own
   convention, `bead_crud.go`) and shrinks it by closing each removed bead's OWN dedicated
   stop channel, which the removed bead's `run` loop observes and returns from immediately —
-  no goroutine outlives its bead (`nodes/Wiring/nodeactor/bead_chain_test.go`'s
-  `TestBeadGoroutineLifetimeFollowsChainLength` asserts the live count returns to baseline
-  after a grow-then-shrink). `tools/network/beads/check-bead-actor-has-call-site.sh` fails the build if
+  no goroutine outlives its bead. `tools/network/beads/check-bead-actor-has-call-site.sh` fails the build if
   this primitive ever loses its last production reference.
 
   The bead's own goroutine is ONE `select` over all three channel sets, with **no
@@ -112,9 +110,8 @@ mistake to avoid (chain_beads.go's own header comment makes the same split):
   `ApplyCenter` already sends on every commit — unchanged, pre-existing machinery), but it
   does so through `chainBeads`' own inline placement math for that edge on that call rather
   than through the target also toggling that chain's `BeadWakeGroup` mode flags. The
-  `BeadWakeGroup`/`Bead` primitive itself supports either endpoint waking the SAME beads
-  (`nodes/wire/beadchain/bead_wake_settle_test.go`'s `TestEitherEndpointCanWakeSource`/
-  `TestEitherEndpointCanWakeTarget`); wiring the TARGET's own drag lifecycle through to the
+  `BeadWakeGroup`/`Bead` primitive itself supports either endpoint waking the SAME beads;
+  wiring the TARGET's own drag lifecycle through to the
   SOURCE's chain (so target-drags also toggle the mode flag, not just geometry) is future
   work, not yet done.
 
@@ -572,7 +569,7 @@ and none is a source of truth.
   node's previous centre among all verdicts — never an average, never nearest-to-cursor,
   never the raw drag target. Movement stays one bead at a time; an edge whose verdict
   implied a larger step reaches it over successive pointer-move events instead of in one
-  jump (`edgeStepCount` re-counts against the live distance every commit).
+  jump (the edge step count re-counts against the live distance every commit).
 
   Bead count on an edge falls out of the resulting geometry as one integer subtraction
   (`nodes/Wiring/nodegeom/chain_length.go`'s `EdgeStepCount`), with the near end tangent to the node's
