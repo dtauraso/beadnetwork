@@ -70,7 +70,7 @@ func TestGestureDragOffCenterPreservesGrabPoint(t *testing.T) {
 
 	down := rawEvent("pointerdown", 450, 300) // OFF the node's screen-center projection
 	down.Hit = nodeHit()
-	md.HandleRawInput(context.Background(),down, nil, nil)
+	md.HandleRawInput(context.Background(), down, nil, nil)
 	if md.UI.Gest.DragNode != "n" {
 		t.Fatalf("pointerdown on node did not arm dragNode: got %q", md.UI.Gest.DragNode)
 	}
@@ -82,7 +82,7 @@ func TestGestureDragOffCenterPreservesGrabPoint(t *testing.T) {
 
 	move1 := rawEvent("pointermove", 480, 300) // any displacement from (450,300) commits
 	move1.Hit = nodeHit()
-	md.HandleRawInput(context.Background(),move1, nil, nil)
+	md.HandleRawInput(context.Background(), move1, nil, nil)
 	if md.UI.Gest.Phase != gesturefsm.GestDragging {
 		t.Fatalf("after slop-cross move: phase=%v want dragging", md.UI.Gest.Phase)
 	}
@@ -98,7 +98,7 @@ func TestGestureDragOffCenterPreservesGrabPoint(t *testing.T) {
 
 	// A second, genuine move: target must track hit2 PLUS the same offset, not hit2 alone.
 	move2 := rawEvent("pointermove", 520, 340)
-	md.HandleRawInput(context.Background(),move2, nil, nil)
+	md.HandleRawInput(context.Background(), move2, nil, nil)
 	hit2, ok := md.UI.DragPlaneHit(move2)
 	if !ok {
 		t.Fatal("dragPlaneHit(ev2) reported not-ok; test setup assumption broken")
@@ -123,11 +123,11 @@ func TestGestureDragCenterGrabUnchanged(t *testing.T) {
 
 	down := rawEvent("pointerdown", 410, 300) // off-center; only its distance to move1 matters for the slop check
 	down.Hit = nodeHit()
-	md.HandleRawInput(context.Background(),down, nil, nil)
+	md.HandleRawInput(context.Background(), down, nil, nil)
 
 	move1 := rawEvent("pointermove", 400, 300) // screen center → projects exactly onto (0,0,0)
 	move1.Hit = nodeHit()
-	md.HandleRawInput(context.Background(),move1, nil, nil)
+	md.HandleRawInput(context.Background(), move1, nil, nil)
 	if md.UI.Gest.Phase != gesturefsm.GestDragging {
 		t.Fatalf("after slop-cross move: phase=%v want dragging", md.UI.Gest.Phase)
 	}

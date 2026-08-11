@@ -19,7 +19,7 @@ func TestGestureEmptyDragOrbits(t *testing.T) {
 	md := newGestureMD(canonicalViewpoint())
 
 	down := rawEvent("pointerdown", 400, 300)
-	md.HandleRawInput(context.Background(),down, nil, nil)
+	md.HandleRawInput(context.Background(), down, nil, nil)
 	if md.UI.Gest.Phase != gesturefsm.GestPending || !md.UI.Gest.EmptyDown {
 		t.Fatalf("after pointerdown: phase=%v emptyDown=%v", md.UI.Gest.Phase, md.UI.Gest.EmptyDown)
 	}
@@ -31,7 +31,7 @@ func TestGestureEmptyDragOrbits(t *testing.T) {
 
 	// First move past the slop: transitions to rotating and seeds the viewpoint. The first
 	// frame's arc is ~zero (prev==curr), so pose is essentially the seeded one.
-	md.HandleRawInput(context.Background(),rawEvent("pointermove", 420, 300), nil, nil)
+	md.HandleRawInput(context.Background(), rawEvent("pointermove", 420, 300), nil, nil)
 	if md.UI.Gest.Phase != gesturefsm.GestRotating {
 		t.Fatalf("after slop-cross move: phase=%v want rotating", md.UI.Gest.Phase)
 	}
@@ -45,7 +45,7 @@ func TestGestureEmptyDragOrbits(t *testing.T) {
 	rBefore, pivotBefore := md.UI.VP.R, md.UI.VP.Pivot
 
 	// Second move: genuine cursor delta → orbit. pos must change; r + pivot preserved.
-	md.HandleRawInput(context.Background(),rawEvent("pointermove", 480, 320), nil, nil)
+	md.HandleRawInput(context.Background(), rawEvent("pointermove", 480, 320), nil, nil)
 	if math.Abs(md.UI.VP.R-rBefore) > 1e-9 {
 		t.Fatalf("orbit changed r: %v != %v", md.UI.VP.R, rBefore)
 	}
@@ -56,7 +56,7 @@ func TestGestureEmptyDragOrbits(t *testing.T) {
 		t.Fatalf("orbit did not change pos (dir stayed %v)", md.UI.VP.Pos)
 	}
 
-	md.HandleRawInput(context.Background(),rawEvent("pointerup", 480, 320), nil, nil)
+	md.HandleRawInput(context.Background(), rawEvent("pointerup", 480, 320), nil, nil)
 	if md.UI.Gest.Phase != gesturefsm.GestIdle {
 		t.Fatalf("after pointerup: phase=%v want idle", md.UI.Gest.Phase)
 	}
@@ -71,7 +71,7 @@ func TestGestureWheelStrafesCamera(t *testing.T) {
 	ev := rawEvent("wheel", 400, 300)
 	ev.DeltaX = 10
 	ev.DeltaY = 0
-	md.HandleRawInput(context.Background(),ev, nil, nil)
+	md.HandleRawInput(context.Background(), ev, nil, nil)
 	// Lateral pan strafes the CAMERA (free-camera model); the fixed scene does not move.
 	if vecClose(md.UI.VP.Pivot, pivotBefore, 1e-9) {
 		t.Fatalf("plain wheel did not strafe the camera (pivot stayed %v)", md.UI.VP.Pivot)
@@ -98,7 +98,7 @@ func TestGestureWheelPansOverNodeAndEdgeHit(t *testing.T) {
 		ev.DeltaX = 10
 		ev.DeltaY = 0
 		ev.Hit = h
-		md.HandleRawInput(context.Background(),ev, nil, nil)
+		md.HandleRawInput(context.Background(), ev, nil, nil)
 		if vecClose(md.UI.VP.Pivot, before, 1e-9) {
 			t.Fatalf("plain wheel with %s hit did not strafe the camera (pivot stayed %v)", h.Kind, md.UI.VP.Pivot)
 		}
@@ -110,7 +110,7 @@ func TestGestureCtrlWheelZoomsToCursor(t *testing.T) {
 	ev := rawEvent("wheel", 400, 300)
 	ev.Ctrl = true
 	ev.DeltaY = 1
-	md.HandleRawInput(context.Background(),ev, nil, nil)
+	md.HandleRawInput(context.Background(), ev, nil, nil)
 	// ctrl-wheel dollies the camera along the cursor→node ray KEEPING orientation (node stays
 	// under the mouse — no re-aim). Empty centers → target=regionFocus=(0,0,90), eye=(0,0,100),
 	// rayDir=(0,0,-1), distP=10. The fractional step (10*(1-1.01)=-0.1) is below the pass-through
@@ -132,16 +132,16 @@ func TestGestureHandholdOrbits(t *testing.T) {
 	md := newGestureMD(canonicalViewpoint())
 	down := rawEvent("pointerdown", 400, 300)
 	down.Hit = inputcodec.RawHit{Kind: "handhold"}
-	md.HandleRawInput(context.Background(),down, nil, nil)
+	md.HandleRawInput(context.Background(), down, nil, nil)
 	if !md.UI.Gest.HandholdDown || md.UI.Gest.Phase != gesturefsm.GestPending {
 		t.Fatalf("after handhold down: handholdDown=%v phase=%v", md.UI.Gest.HandholdDown, md.UI.Gest.Phase)
 	}
-	md.HandleRawInput(context.Background(),rawEvent("pointermove", 460, 320), nil, nil)
+	md.HandleRawInput(context.Background(), rawEvent("pointermove", 460, 320), nil, nil)
 	if md.UI.Gest.Phase != gesturefsm.GestHandhold {
 		t.Fatalf("phase=%v want handhold", md.UI.Gest.Phase)
 	}
 	rBefore, pivotBefore, posBefore := md.UI.VP.R, md.UI.VP.Pivot, md.UI.VP.Pos
-	md.HandleRawInput(context.Background(),rawEvent("pointermove", 520, 360), nil, nil)
+	md.HandleRawInput(context.Background(), rawEvent("pointermove", 520, 360), nil, nil)
 	if math.Abs(md.UI.VP.R-rBefore) > 1e-9 {
 		t.Fatalf("handhold orbit changed r: %v != %v", md.UI.VP.R, rBefore)
 	}
@@ -151,7 +151,7 @@ func TestGestureHandholdOrbits(t *testing.T) {
 	if geom.AngularDistance(md.UI.VP.Pos, posBefore) < 1e-6 {
 		t.Fatalf("handhold orbit did not change pos (stayed %v)", md.UI.VP.Pos)
 	}
-	md.HandleRawInput(context.Background(),rawEvent("pointerup", 520, 360), nil, nil)
+	md.HandleRawInput(context.Background(), rawEvent("pointerup", 520, 360), nil, nil)
 	if md.UI.Gest.Phase != gesturefsm.GestIdle {
 		t.Fatalf("after handhold up phase=%v want idle", md.UI.Gest.Phase)
 	}

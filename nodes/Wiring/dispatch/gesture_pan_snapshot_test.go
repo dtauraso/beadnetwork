@@ -12,7 +12,7 @@ func TestUnseededViewpointPanIsDegenerate(t *testing.T) {
 	md := newGestureMD(geom.Viewpoint{})
 	ev := rawEvent("wheel", 400, 300)
 	ev.DeltaX = 40
-	md.HandleRawInput(context.Background(),ev, nil, nil)
+	md.HandleRawInput(context.Background(), ev, nil, nil)
 
 	posW := geom.AnglesToWorldOffset(1, md.UI.VP.Pos.Theta, md.UI.VP.Pos.Phi)
 	upW := geom.AnglesToWorldOffset(1, md.UI.VP.Up.Theta, md.UI.VP.Up.Phi)
