@@ -1,6 +1,7 @@
 // bead_fraction.go — the pure per-bead progress math shared by everywhere a wire
-// reports "how far across has this bead got" (nodes/wire's live_beads.go and
-// paced_wire_drive.go's ReviseInFlightGeometry): a bead's fractional progress t
+// reports "how far across has this bead got" (nodes/wire's live_beads.go,
+// bead_advance.go's advanceBead, and paced_wire_drive.go's
+// ReviseInFlightGeometry): a bead's fractional progress t
 // (0..1) is always the same clamp-and-divide of (nowTick, placementTick,
 // crossTicks), independent of any wire's own in-flight state — lifted here so the
 // three call sites share one definition instead of three copies of the same

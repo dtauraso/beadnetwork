@@ -9,6 +9,7 @@ package wire
 
 import (
 	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
 // arriveInfo carries the source identity a delivery must echo on the arrive trace.
@@ -57,23 +58,15 @@ func (pw *PacedWire) advanceBead(b *inflightBead, nowTick float64) (emit bool, p
 	crossTicks := pw.ticksToCross(steps)
 
 	deadline := placementTick + crossTicks
-
-	target := nowTick
-	if nowTick >= deadline {
-		target = deadline
-		final = true
-	}
+	final = nowTick >= deadline
 
 	if stream {
 		// fractional progress t = elapsed ticks / ticksToCross (== steps
-		// covered / steps, since both scale by the uniform per-bead dwell).
-		t := 0.0
-		if crossTicks > 0 {
-			t = (target - placementTick) / crossTicks
-		}
-		if t > 1 {
-			t = 1
-		}
+		// covered / steps, since both scale by the uniform per-bead dwell) — the
+		// same clamp-and-divide as live_beads.go/ReviseInFlightGeometry, shared
+		// via lattice.BeadFraction (nodes/wire/lattice/bead_fraction.go) rather
+		// than a fourth inline copy of the same math.
+		t := lattice.BeadFraction(nowTick, placementTick, crossTicks)
 		p := lerp(seg.Start, seg.End, t)
 		emit = true
 		pos = posEmitArgs{
