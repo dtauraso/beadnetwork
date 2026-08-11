@@ -144,7 +144,7 @@ func (md *MoveDispatch) ApplyDistanceGroupTarget(groupIdx, dir int) bool {
 			continue
 		}
 		newPos := cs.Add(offset.Normalize().Scale(targetLen))
-		if md.lq.RootMove(md, p.Target, newPos) {
+		if md.lq.RootMove(md.ctx, &md.mr, p.Target, newPos) {
 			moved = true
 			// RootMove is fire-and-forget (a movemsg.KindDrag message to the target's OWN
 			// goroutine — see its doc comment): it returns before the target's commit

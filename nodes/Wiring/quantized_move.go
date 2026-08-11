@@ -14,17 +14,17 @@
 // RootMove's invariant is load-bearing and MUST stay prominent after this move: it runs
 // ONCE PER POINTER-MOVE EVENT, not once per drag (memory/project_rootmove_is_per_pointer_move.md).
 //
-// Every method below takes md *MoveDispatch explicitly for everything that is NOT part of
-// layoutQuantizer's own field (quantizedLayout) — mr/ui/tr/persist/
-// centerOfNode/NodeRowFor/sendMove are owned elsewhere. MoveDispatch's
-// public RootMove, and its several package-private methods of the same names as below
-// (heldCenters, heldEdges, broadcastToEdgesAndPartners, commitNodeMoveLocal), stay thin
-// delegators in move_dispatch_api.go so their existing in-package call sites (tests,
-// move_dispatch_construct.go, gesture.go) are unchanged.
+// Every method below takes the exact owners it reads as explicit parameters (mr, ui, ctx)
+// instead of a *MoveDispatch back-reference — RootMove reads ctx/mr, heldCenters/heldEdges
+// read mr, and commitNodeMoveLocal/broadcastToEdgesAndPartners (commit_node_move.go,
+// broadcast_move.go) read mr (and ui, for commitNodeMoveLocal). Callers hand over
+// &md.mr/&md.ui/md.ctx directly; there is no MoveDispatch delegator to keep in sync.
 
 package Wiring
 
 import (
+	"context"
+
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 )
@@ -42,19 +42,19 @@ type layoutQuantizer struct {
 // current by message (drainCenterMirror) — safe to call from the stdin/gesture dispatch
 // goroutine, which is every live caller. There is no separate accumulated positions map
 // to drain.
-func (lq *layoutQuantizer) heldCenters(md *MoveDispatch) map[string]vec3 {
-	out := make(map[string]vec3, len(md.mr.nodeGeoms))
-	for id := range md.mr.nodeGeoms {
-		if c, ok := md.mr.centerOfNode(id); ok {
+func (lq *layoutQuantizer) heldCenters(mr *moverRegistry) map[string]vec3 {
+	out := make(map[string]vec3, len(mr.nodeGeoms))
+	for id := range mr.nodeGeoms {
+		if c, ok := mr.centerOfNode(id); ok {
 			out[id] = c
 		}
 	}
 	return out
 }
 
-func (lq *layoutQuantizer) heldEdges(md *MoveDispatch) []geom.SphereEdge {
-	edges := make([]geom.SphereEdge, 0, len(md.mr.edgeMovers))
-	for _, em := range md.mr.edgeMovers {
+func (lq *layoutQuantizer) heldEdges(mr *moverRegistry) []geom.SphereEdge {
+	edges := make([]geom.SphereEdge, 0, len(mr.edgeMovers))
+	for _, em := range mr.edgeMovers {
 		edges = append(edges, geom.SphereEdge{Source: em.srcID, Target: em.dstID})
 	}
 	return edges
@@ -83,14 +83,14 @@ func (lq *layoutQuantizer) heldEdges(md *MoveDispatch) []geom.SphereEdge {
 // memory/project_rootmove_is_per_pointer_move.md). The drag-log reset is NOT emitted
 // here for that reason: the reset belongs at the real drag-start edge (the
 // pending→dragging transition in gesture.go), not on every move tick RootMove sees.
-func (lq *layoutQuantizer) RootMove(md *MoveDispatch, nodeID string, target vec3) bool {
-	if _, ok := md.mr.nodeGeoms[nodeID]; !ok {
+func (lq *layoutQuantizer) RootMove(ctx context.Context, mr *moverRegistry, nodeID string, target vec3) bool {
+	if _, ok := mr.nodeGeoms[nodeID]; !ok {
 		return false
 	}
 	// Route the drag itself to the dragged node's OWN inbox instead of committing on
 	// the stdin reader's goroutine — every node's movemsg.KindDrag handler commits
 	// (synchronous local apply, reported over reportCh) on its own goroutine. No
 	// central commit call here.
-	sendMove(&md.mr, md.ctx, nodeID, movemsg.Msg{Kind: movemsg.KindDrag, NodeID: nodeID, Target: target})
+	sendMove(mr, ctx, nodeID, movemsg.Msg{Kind: movemsg.KindDrag, NodeID: nodeID, Target: target})
 	return true
 }

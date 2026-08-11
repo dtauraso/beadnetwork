@@ -125,7 +125,7 @@ func quantizedDragTarget(md *MoveDispatch, nodeID string, target vec3) vec3 {
 	if !ok {
 		return target
 	}
-	beads := dragTouchingBeads(md, nm, prev)
+	beads := dragTouchingBeads(&md.mr, nm, prev)
 	if len(beads) == 0 {
 		return target
 	}

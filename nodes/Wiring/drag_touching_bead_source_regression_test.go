@@ -37,7 +37,7 @@ func touchingBeadFor(t *testing.T, md *MoveDispatch, nodeID string) (beadcrud.To
 		t.Fatalf("no nodeMover for %s", nodeID)
 	}
 	prevPos := nodegeom.NodeWorldPos(nm.geom)
-	beads := dragTouchingBeads(md, nm, prevPos)
+	beads := dragTouchingBeads(&md.mr, nm, prevPos)
 	if len(beads) != 1 {
 		t.Fatalf("%s: expected exactly one touching bead (one incident edge), got %d", nodeID, len(beads))
 	}

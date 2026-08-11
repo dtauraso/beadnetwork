@@ -20,7 +20,7 @@ import (
 // fanCenters, was removed — it deadlocked/staled when its only caller turned out to run
 // on the moved node's own goroutine too. See commitNodeMoveLocal for the applyCenter +
 // broadcastToEdgesAndPartners pattern).
-func (lq *layoutQuantizer) broadcastToEdgesAndPartners(md *MoveDispatch, newCenters map[string]vec3, enqueue func(id string, msg movemsg.Msg)) {
+func (lq *layoutQuantizer) broadcastToEdgesAndPartners(mr *moverRegistry, newCenters map[string]vec3, enqueue func(id string, msg movemsg.Msg)) {
 	// Per-edge: send ONE batched message carrying every moved endpoint of that edge,
 	// so an edge whose both endpoints moved this frame recomputes/emits exactly once.
 	// enqueue (the sending node's own retry queue — nm.msg.sendMove) appends the
@@ -32,7 +32,7 @@ func (lq *layoutQuantizer) broadcastToEdgesAndPartners(md *MoveDispatch, newCent
 	// resolve to a live mover) is checked at send time inside that retry path, matching
 	// enqueue's other call sites (m.sendMove), which already tap/enqueue unconditionally
 	// regardless of whether id resolves.
-	for edgeID, em := range md.mr.edgeMovers {
+	for edgeID, em := range mr.edgeMovers {
 		eps := map[string]vec3{}
 		if c, ok := newCenters[em.srcID]; ok {
 			eps[em.srcID] = c
@@ -58,7 +58,7 @@ func (lq *layoutQuantizer) broadcastToEdgesAndPartners(md *MoveDispatch, newCent
 	// parity with the prior shape; movedID itself is otherwise unused now that the
 	// re-emit carries no cache payload).
 	partners := map[string]string{}
-	for _, em := range md.mr.edgeMovers {
+	for _, em := range mr.edgeMovers {
 		if _, moved := newCenters[em.srcID]; moved {
 			if _, alsoMoved := newCenters[em.dstID]; !alsoMoved {
 				partners[em.dstID] = em.srcID
@@ -71,7 +71,7 @@ func (lq *layoutQuantizer) broadcastToEdgesAndPartners(md *MoveDispatch, newCent
 		}
 	}
 	for partnerID, movedID := range partners {
-		if _, ok := md.mr.nodeGeoms[partnerID]; !ok {
+		if _, ok := mr.nodeGeoms[partnerID]; !ok {
 			continue
 		}
 		// Center is deliberately nil (see the doc comment above): this is a PURE

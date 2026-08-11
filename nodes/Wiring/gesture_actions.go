@@ -26,7 +26,7 @@ import (
 func (md *MoveDispatch) beginSphereRotation(ev inputcodec.RawInputMsg) {
 	g := &md.ui.gest
 	vp := md.ui.vp.Viewpoint
-	pivot := geom.FocusAhead(vp, md.lq.heldCenters(md))
+	pivot := geom.FocusAhead(vp, md.lq.heldCenters(&md.mr))
 	g.rotPivot = pivot
 
 	eye := geom.EyeOf(vp)
@@ -39,7 +39,7 @@ func (md *MoveDispatch) beginSphereRotation(ev inputcodec.RawInputMsg) {
 	// scales by csRadius/pivotDist (the sphere's angular size), so a quarter-turn (pi/2) is
 	// reached by dragging one on-screen content-sphere radius, at every zoom level. Without the
 	// anchor, pi/2 required dragging nearly the full screen height and felt unreachable.
-	_, csRadius := geom.ContentSphereOf(md.lq.heldCenters(md))
+	_, csRadius := geom.ContentSphereOf(md.lq.heldCenters(&md.mr))
 	pivotDist := eye.Sub(pivot).Length()
 	fovRad := ev.Fov * math.Pi / 180
 	rpx := (g.rect.height / 2) / math.Tan(fovRad/2)
@@ -153,7 +153,7 @@ func (md *MoveDispatch) applyNodeDragTarget(ev inputcodec.RawInputMsg) bool {
 	if !ok {
 		return false
 	}
-	md.lq.RootMove(md, g.dragNode, hit.Add(g.dragGrabOffset))
+	md.lq.RootMove(md.ctx, &md.mr, g.dragNode, hit.Add(g.dragGrabOffset))
 	return true
 }
 

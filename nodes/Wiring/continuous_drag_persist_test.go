@@ -44,7 +44,7 @@ func dragAndReadBack(t *testing.T, quantized bool, target vec3) string {
 	}
 	md.mr.nodeGeoms["1"] = nm
 
-	md.lq.commitNodeMoveLocal(md, nm, target)
+	md.lq.commitNodeMoveLocal(&md.mr, &md.ui, nm, target)
 
 	b, err := os.ReadFile(positionfile.FilePath(root, "1"))
 	if err != nil {

@@ -30,9 +30,9 @@ import (
 // (nodeMover.quantOffset — never a shared map, so no other mover goroutine's commit
 // can race this write even for a different node id), and requantizes nodeID's
 // local-polar cascade-links against its (unmoved) neighbors.
-func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeGeometry, newPos vec3) {
+func (lq *layoutQuantizer) commitNodeMoveLocal(mr *moverRegistry, ui *uiState, nm *nodeGeometry, newPos vec3) {
 	nodeID := nm.id
-	edges := lq.heldEdges(md)
+	edges := lq.heldEdges(mr)
 	// reach[nodeID] only ever needs nodeID's own fresh polar plus its DIRECT
 	// neighbors' polar (reachRFromPolar only accumulates reach for an edge's
 	// SOURCE, from that edge's Target) — each direct neighbor's last-pushed
@@ -41,12 +41,12 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeGeometr
 	// doc comment), resolved via nm.topo.edgeIDs (this node's own incident edges, fixed
 	// at construction; every edgeIDs neighbor is by construction a key of
 	// nm.neighborIn, the same set partnerCenters is seeded/kept from). scene polar
-	// is a pure re-derive off the fixed, write-once md.ui.sceneSphere.Center (never
+	// is a pure re-derive off the fixed, write-once ui.sceneSphere.Center (never
 	// mutated after load), so this stays race-free with no cross-goroutine read at
 	// all now (this runs on nm's own goroutine, reading nm's own map).
 	polars := map[string]geom.Polar{}
 	for _, edgeID := range nm.topo.edgeIDs {
-		em, ok := md.mr.edgeMovers[edgeID]
+		em, ok := mr.edgeMovers[edgeID]
 		if !ok {
 			continue
 		}
@@ -55,14 +55,14 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeGeometr
 			neighborID = em.dstID
 		}
 		if c, ok := nm.topo.partnerCenters[neighborID]; ok {
-			polars[neighborID] = geom.Cart2polar(c.Sub(md.ui.sceneSphere.Center))
+			polars[neighborID] = geom.Cart2polar(c.Sub(ui.sceneSphere.Center))
 		}
 	}
 	// Single cart2polar boundary conversion for this drag target — newPos is mouse-
 	// derived cartesian (gesture.go ray/plane unproject); everything downstream
 	// (reach, measureScalar, the persist schedule) reuses this one polar value rather
 	// than re-deriving it from newPos.
-	nodePolar := geom.Cart2polar(newPos.Sub(md.ui.sceneSphere.Center))
+	nodePolar := geom.Cart2polar(newPos.Sub(ui.sceneSphere.Center))
 
 	// committedPos/committedPolar are what gets DRAWN (applyCenter), FANNED
 	// (broadcastToEdgesAndPartners), PERSISTED (persistQuantOffset), and re-quantized
@@ -95,13 +95,13 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeGeometr
 	var off quantoffset.QuantizedOffset
 	if lq.quantizedLayout {
 		prevPos := nodegeom.NodeWorldPos(nm.geom)
-		beads := dragTouchingBeads(md, nm, prevPos)
+		beads := dragTouchingBeads(mr, nm, prevPos)
 		if len(beads) == 0 {
 			committedPos = newPos
 		} else {
 			committedPos, _ = beadcrud.ResolveBeadCrudMove(beads, prevPos, newPos, lattice.BeadStepR)
 		}
-		committedPolar = geom.Cart2polar(committedPos.Sub(md.ui.sceneSphere.Center))
+		committedPolar = geom.Cart2polar(committedPos.Sub(ui.sceneSphere.Center))
 
 		// DIAGNOSTIC ONLY (task/log-node2-bead-crud): one breadcrumb per pointer-move
 		// commit — node 2 (neighbours 1, 4, 5) can barely be dragged; long drags produce
@@ -151,7 +151,7 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(md *MoveDispatch, nm *nodeGeometr
 	reach := reachRFromPolar(polars, edges)
 
 	nm.applyCenter(committedPos, reach[nodeID])
-	lq.broadcastToEdgesAndPartners(md, map[string]vec3{nodeID: committedPos}, nm.msg.sendMove)
+	lq.broadcastToEdgesAndPartners(mr, map[string]vec3{nodeID: committedPos}, nm.msg.sendMove)
 
 	// PERSIST ON EVERY DRAG, both modes. This used to sit inside `if lq.quantizedLayout`,
 	// which silently stopped saving the moment a scene chose the continuous drag: the node

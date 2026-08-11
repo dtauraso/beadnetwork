@@ -23,7 +23,7 @@ import (
 // the framed pose, the next orbit/pan/zoom builds on it (no snap-back). Does nothing when
 // there are no nodes, mirroring HomeButton's early return.
 func (md *MoveDispatch) gestHome(ev inputcodec.RawInputMsg, tr *T.Trace) {
-	centers := md.lq.heldCenters(md)
+	centers := md.lq.heldCenters(&md.mr)
 	radius := make(map[string]float64, len(centers))
 	for id := range centers {
 		radius[id] = md.mr.nodeBodyRadius(id)
@@ -132,7 +132,7 @@ func (md *MoveDispatch) gestPointerUp(ev inputcodec.RawInputMsg, slotReg inputco
 func (md *MoveDispatch) gestWheel(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	vp := md.ui.vp.Viewpoint
 	eye := geom.EyeOf(vp)
-	pivot := geom.RegionFocus(vp, md.lq.heldCenters(md))
+	pivot := geom.RegionFocus(vp, md.lq.heldCenters(&md.mr))
 
 	if ev.Ctrl {
 		// Zoom-to-cursor: move the camera TOWARD the node under the cursor along the cursor→node
@@ -146,7 +146,7 @@ func (md *MoveDispatch) gestWheel(ev inputcodec.RawInputMsg, tr *T.Trace) {
 		aspect := md.ui.gest.rect.aspect()
 		target := pivot
 		best := math.Inf(1)
-		for _, c := range md.lq.heldCenters(md) {
+		for _, c := range md.lq.heldCenters(&md.mr) {
 			nx, ny, inFront := geom.ProjectNDC(c, eye, basis, ev.Fov, aspect)
 			if !inFront {
 				continue

@@ -49,7 +49,7 @@ func TestCommitNodeMoveLocalDrawsQuantizedNotRawTarget(t *testing.T) {
 	// quantizedDragTarget's doc comment in subtree_persist_test.go).
 	want := quantizedDragTarget(md, "2", target)
 
-	md.lq.commitNodeMoveLocal(md, nm, target)
+	md.lq.commitNodeMoveLocal(&md.mr, &md.ui, nm, target)
 
 	got, ok := md.mr.centerOfNode("2")
 	if !ok {
@@ -115,7 +115,7 @@ func TestCommitNodeMoveLocalNeverMovesTowardMouseTarget(t *testing.T) {
 		if !ok {
 			t.Fatal("no center for dst")
 		}
-		beads := dragTouchingBeads(md, nm, before)
+		beads := dragTouchingBeads(&md.mr, nm, before)
 		if len(beads) == 0 {
 			t.Fatal("dst has no touching beads to judge")
 		}
@@ -124,7 +124,7 @@ func TestCommitNodeMoveLocalNeverMovesTowardMouseTarget(t *testing.T) {
 		target := beads[0].Source
 		wrong := cursorFollow(before, target)
 
-		md.lq.commitNodeMoveLocal(md, nm, target)
+		md.lq.commitNodeMoveLocal(&md.mr, &md.ui, nm, target)
 		got, ok := md.mr.centerOfNode("2")
 		if !ok {
 			t.Fatal("no center for dst after commit")
@@ -152,7 +152,7 @@ func TestCommitNodeMoveLocalNeverMovesTowardMouseTarget(t *testing.T) {
 		target := before.Add(outward.Scale(40))
 		wrong := cursorFollow(before, target)
 
-		md.lq.commitNodeMoveLocal(md, nm, target)
+		md.lq.commitNodeMoveLocal(&md.mr, &md.ui, nm, target)
 		got, ok := md.mr.centerOfNode("2")
 		if !ok {
 			t.Fatal("no center for dst after commit")
@@ -175,7 +175,7 @@ func TestCommitNodeMoveLocalRemoveTakesBeadsPlace(t *testing.T) {
 	if !ok {
 		t.Fatal("no center for dst")
 	}
-	beads := dragTouchingBeads(md, nm, before)
+	beads := dragTouchingBeads(&md.mr, nm, before)
 	if len(beads) != 1 {
 		t.Fatalf("fixture assumption: dst has exactly one touching bead, got %d", len(beads))
 	}
@@ -187,7 +187,7 @@ func TestCommitNodeMoveLocalRemoveTakesBeadsPlace(t *testing.T) {
 		t.Fatalf("fixture assumption: this drag should verdict beadCrudRemove, got %v", verdict)
 	}
 
-	md.lq.commitNodeMoveLocal(md, nm, target)
+	md.lq.commitNodeMoveLocal(&md.mr, &md.ui, nm, target)
 	got, ok := md.mr.centerOfNode("2")
 	if !ok {
 		t.Fatal("no center for dst after commit")
@@ -212,7 +212,7 @@ func TestCommitNodeMoveLocalAddMovesOneBeadBeyondNewBead(t *testing.T) {
 	if !ok {
 		t.Fatal("no center for src")
 	}
-	beads := dragTouchingBeads(md, nm, before)
+	beads := dragTouchingBeads(&md.mr, nm, before)
 	if len(beads) != 1 {
 		t.Fatalf("fixture assumption: dst has exactly one touching bead, got %d", len(beads))
 	}
@@ -231,7 +231,7 @@ func TestCommitNodeMoveLocalAddMovesOneBeadBeyondNewBead(t *testing.T) {
 	newBeadCentre := beads[0].Centre.Sub(beads[0].AimDir.Scale(lattice.BeadStepR))
 	wantNodeCentre := newBeadCentre.Sub(beads[0].AimDir.Scale(lattice.BeadStepR))
 
-	md.lq.commitNodeMoveLocal(md, nm, target)
+	md.lq.commitNodeMoveLocal(&md.mr, &md.ui, nm, target)
 	got, ok := md.mr.centerOfNode("2")
 	if !ok {
 		t.Fatal("no center for dst after commit")
