@@ -40,7 +40,7 @@ var commitEdges = []gestureEdge{
 		guard: func(g *gesturefsm.GestureState) bool { return g.DragNode != "" },
 		action: func(md *MoveDispatch, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
 			mr, ctx := &md.MR, md.ctx
-			commitDragStart(&md.UI, func(id string, msg movemsg.Msg) { sendMove(mr, ctx, id, msg) }, g, ev, tr)
+			commitDragStart(&md.UI, func(id string, msg movemsg.Msg) { SendMove(mr, ctx, id, msg) }, g, ev, tr)
 		},
 		to: gesturefsm.GestDragging,
 	},

@@ -78,7 +78,10 @@ func DistanceGroupLens(ui *viewstate.UIState, mr *moverreg.MoverRegistry) (timeL
 // This function itself no longer emits: the caller (applyUpdateDistanceGroup,
 // stdin_apply.go — the same stdin/dispatch goroutine) emits the VIEW frame when moved is
 // true, per docs/planning/movedispatch-decomposition.md's write-then-emit split.
-func applyDistanceGroupTarget(ctx context.Context, ui *viewstate.UIState, mr *moverreg.MoverRegistry, lq *layoutquant.LayoutQuantizer, groupIdx, dir int) bool {
+// ApplyDistanceGroupTarget is exported (§30, docs/planning/movedispatch-decomposition.md)
+// so the stdin cluster (nodes/Wiring/stdinreader) can call it without reaching back into
+// this package for an unexported name.
+func ApplyDistanceGroupTarget(ctx context.Context, ui *viewstate.UIState, mr *moverreg.MoverRegistry, lq *layoutquant.LayoutQuantizer, groupIdx, dir int) bool {
 	rootMove := func(ctx context.Context, target string, newPos vec3) bool {
 		return lq.RootMove(ctx, mr.NodeGeoms(), target, newPos)
 	}

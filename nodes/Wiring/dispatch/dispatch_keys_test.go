@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
-	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 )
 
 // TestDispatchTableKeysMatchFingerprint guards the table-driven dispatchers introduced when
@@ -14,6 +13,12 @@ import (
 // replaced, which at least had every case visible next to the enum. Each table's keys must be
 // a SUBSET of its corresponding fingerprint-derived enum list; an enum value with no handler is
 // legal (forward-compat / not-yet-wired), but a handler key absent from the enum is a bug.
+//
+// The updateKindHandlers/clockAttrHandlers/overlayAttrHandlers/OverlayFlagTraceKind
+// checks that used to run alongside these two moved to
+// nodes/Wiring/stdinreader/dispatch_keys_test.go (§30,
+// docs/planning/movedispatch-decomposition.md) when the tables themselves moved there —
+// rawInputHandlers and hitClassifiers are the gesture cluster's own tables and stayed here.
 func TestDispatchTableKeysMatchFingerprint(t *testing.T) {
 	checks := []struct {
 		tableName string
@@ -23,14 +28,6 @@ func TestDispatchTableKeysMatchFingerprint(t *testing.T) {
 	}{
 		{"rawInputHandlers", mapKeys(rawInputHandlers), "InEventKinds", inputcodec.InEventKinds},
 		{"hitClassifiers", mapKeys(hitClassifiers), "InHitKinds", inputcodec.InHitKinds},
-		{"updateKindHandlers", mapKeys(updateKindHandlers), "InUpdateKinds", inputcodec.InUpdateKinds},
-		{"clockAttrHandlers", mapKeys(clockAttrHandlers), "InUpdateAttrs", inputcodec.InUpdateAttrs},
-		{"overlayAttrHandlers", mapKeys(overlayAttrHandlers), "InUpdateAttrs", inputcodec.InUpdateAttrs},
-		// viewstate.OverlayFlagTraceKind maps each overlay flag NAME → its trace kind. The
-		// values are compile-checked (T.Kind* consts), but the string keys can drift from the
-		// flag list; guard them here (a key absent from InOverlayFlags is a typo'd/stale flag
-		// name).
-		{"OverlayFlagTraceKind", mapKeys(viewstate.OverlayFlagTraceKind), "InOverlayFlags", inputcodec.InOverlayFlags},
 	}
 
 	for _, c := range checks {

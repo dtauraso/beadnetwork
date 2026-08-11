@@ -1,11 +1,10 @@
 // stdin_reader_framing_test.go — tests that drive RunStdinReader itself (framed
-// partial reads, ctx-cancel shutdown) through a real pipe. Moved from
-// nodes/Wiring/stdinreader/stdin_reader_integration_test.go: stdinreader no longer
-// imports Wiring (it takes its three dispatch operations as function values,
-// stdinreader.Handlers), so this now runs as an in-package Wiring test that imports
-// stdinreader directly, calling the unexported newMoveDispatch instead of the
-// now-deleted NewMoveDispatchForTest hatch.
-package dispatch
+// partial reads, ctx-cancel shutdown) through a real pipe. Runs in-package (this package
+// already imports nodes/Wiring/dispatch for *dispatch.MoveDispatch — dispatch_edit.go,
+// dispatch_apply.go — so building a real MoveDispatch here needs no separate hatch beyond
+// dispatch.LoadTopology, the same exported constructor dispatch_edit_integration_test.go's
+// writeMinimalTree/loadMinimalMD helpers already use).
+package stdinreader
 
 import (
 	"context"
@@ -18,14 +17,11 @@ import (
 	"time"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
-	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
-	"github.com/dtauraso/wirefold/nodes/Wiring/stdinreader"
-	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
 // frameRecord2 wraps a record body with the [len:u32-LE] transport frame RunStdinReader
 // expects. (Suffixed _2 to avoid colliding with any identically-named helper elsewhere in
-// package Wiring's test files.)
+// this package's test files.)
 func frameRecord2(rec []byte) []byte {
 	return append(binary.LittleEndian.AppendUint32(nil, uint32(len(rec))), rec...)
 }
@@ -34,24 +30,20 @@ func frameRecord2(rec []byte) []byte {
 // asserts the reader reassembles the frame and applies its side effect (a save writes
 // overlays.json).
 func TestFramedPartialReads(t *testing.T) {
-	root := t.TempDir()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	pr, pw := io.Pipe()
-	// A real (empty) dispatch so the `save` command has an overlay snapshot to persist.
-	md, err := newMoveDispatch(map[string]nodegeom.NodeGeom{}, map[string]inputcodec.EdgeEndpoints{}, nil, nil, nil, clock.NewRealClock(), nil, 0)
-	if err != nil {
-		t.Fatalf("newMoveDispatch: %v", err)
-	}
+	root := writeMinimalTree(t)
+	md := loadMinimalMD(t, root)
 	md.EnableEditPersist(root) // arms overlaysPersist so `save` can write overlays.json
-	h := stdinreader.Handlers{
-		ApplyEdit:      func(msg inputcodec.StdinMsg) { ApplyEdit(msg, md, nil, nil) },
+	h := Handlers{
+		ApplyEdit:      func(msg inputcodec.StdinMsg) { ApplyEdit(ctx, msg, md, nil, nil) },
 		HandleRawInput: func(msg inputcodec.StdinMsg) { HandleRawInputMsg(msg, inputcodec.SlotRegistry{}, md, nil) },
 		HandleSave:     func() { HandleSaveMsg(md) },
 	}
 	readerDone := make(chan struct{})
 	go func() {
-		stdinreader.RunStdinReader(ctx, pr, h)
+		RunStdinReader(ctx, pr, h)
 		close(readerDone)
 	}()
 	// RunStdinReader now flushes pending debounced persisters (writes under root) on its
@@ -98,7 +90,7 @@ func TestStdinReaderCancelWithoutEOF(t *testing.T) {
 
 	readerDone := make(chan struct{})
 	go func() {
-		stdinreader.RunStdinReader(ctx, pr, stdinreader.Handlers{})
+		RunStdinReader(ctx, pr, Handlers{})
 		close(readerDone)
 	}()
 

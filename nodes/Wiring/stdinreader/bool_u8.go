@@ -3,7 +3,7 @@
 // (interior_stream.go's own doc comment) and in Buffer (unexported there too) — each
 // package keeps its own trivial copy rather than importing another package for one
 // function, the same precedent Buffer.boolU8's original comment already set.
-package dispatch
+package stdinreader
 
 func boolU8(b bool) uint8 {
 	if b {

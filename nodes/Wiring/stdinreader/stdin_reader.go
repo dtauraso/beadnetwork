@@ -3,15 +3,18 @@
 // The editor→Go bridge is a purely BINARY buffer (symmetric with the Go→TS content
 // buffer on fd 3): each message is a binary RECORD written FRAMED as [len:u32-LE][record]
 // to stdin. input_codec.go decodes a record into the stdinMsg below; the dispatch switch
-// calls into the three Handlers (ApplyEdit / HandleRawInput / HandleSave, package
-// nodes/Wiring's ApplyEdit / HandleRawInputMsg / HandleSaveMsg wrapped as closures by the
-// caller so this package does not import nodes/Wiring) — only the wire decode moved from
-// newline-JSON to framed binary.
+// calls into the three Handlers (ApplyEdit / HandleRawInput / HandleSave — this package's
+// OWN ApplyEdit / HandleRawInputMsg / HandleSaveMsg, dispatch_edit.go/dispatch_apply.go,
+// wrapped as closures by the caller) — only the wire decode moved from newline-JSON to
+// framed binary.
 //
-// ONE JOB HERE: bytes off the pipe, whole records out. The message SHAPES are
+// ONE JOB IN THIS FILE: bytes off the pipe, whole records out. The message SHAPES are
 // stdin_msg_types.go, the decode is input_codec.go, and the routing tables (applyEdit /
-// applyUpdate / the per-attr tables) are nodes/Wiring's stdin_dispatch.go. This file owns
-// framing, back-pressure, and shutdown — nothing else.
+// applyUpdate / the per-attr tables) are this package's own dispatch_edit.go. THIS FILE
+// (framing/back-pressure/shutdown) still takes its three dispatch operations as plain
+// function values (Handlers) and does not import nodes/Wiring/dispatch itself —
+// dispatch_edit.go/dispatch_apply.go are the two files in this package that DO, for
+// *dispatch.MoveDispatch (§30, docs/planning/movedispatch-decomposition.md).
 //
 // The editor→Go bridge carries these top-level message kinds (all fully binary; no JSON
 // on the wire — see input_codec.go). This list is the AUTHORITATIVE doc for the dispatch

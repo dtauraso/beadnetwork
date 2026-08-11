@@ -7,6 +7,7 @@ import (
 	T "github.com/dtauraso/wirefold/Trace"
 	W "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/stdinreader"
 )
 
 // gesture_actor.go — STEP 1 of docs/planning/gesture-actor.md: cuts the stdin-reader ->
@@ -75,11 +76,11 @@ func startGestureActor(ctx context.Context, slotReg inputcodec.SlotRegistry, md 
 			case gm := <-inbox:
 				switch gm.kind {
 				case gestureMsgEdit:
-					W.ApplyEdit(gm.msg, md, tr, speedSinks)
+					stdinreader.ApplyEdit(ctx, gm.msg, md, tr, speedSinks)
 				case gestureMsgRawInput:
-					W.HandleRawInputMsg(gm.msg, slotReg, md, tr)
+					stdinreader.HandleRawInputMsg(gm.msg, slotReg, md, tr)
 				case gestureMsgSave:
-					W.HandleSaveMsg(md)
+					stdinreader.HandleSaveMsg(md)
 				}
 			}
 		}

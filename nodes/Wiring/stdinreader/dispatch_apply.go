@@ -1,31 +1,37 @@
-// stdin_apply.go — WHAT AN ATTRIBUTE EDIT MEANS.
+// dispatch_apply.go — WHAT AN ATTRIBUTE EDIT MEANS.
 //
 // This file is the APPLICATION-SEMANTICS half of the editor→Go bridge's stdin seam: one
 // apply* handler per entity kind, each interpreting the attribute an "edit" record asked
 // to set (clock speed, distanceGroup length, tiltVector theta/reset/start, scene
 // selection/lattice/create/delete, overlay flag toggles).
 //
-// The OTHER half — HOW BYTES BECOME A DISPATCH — stays in stdin_reader.go (framing) and stdin_dispatch.go (routing): the wire
-// structs, the framed-binary read loop and maxFrameBytes framing, raw-input forwarding and
-// the bare save command, and the dispatch TABLES (editOps, updateKindHandlers,
-// clockAttrHandlers, overlayAttrHandlers) that route into the handlers below. The tables
-// are the ROUTING surface and belong with the reader; what an attribute MEANS belongs
-// here. The edit vocabulary is unchanged by this split — the sole op is still update
-// (.claude/rules/bridge-surface.md: new capability is a new entity kind or attribute,
-// never a new op).
+// The OTHER half — HOW BYTES BECOME A DISPATCH — stays in stdin_reader.go (framing) and
+// dispatch_edit.go (routing): the wire structs, the framed-binary read loop and
+// maxFrameBytes framing, raw-input forwarding and the bare save command, and the dispatch
+// TABLES (editOps, updateKindHandlers, clockAttrHandlers, overlayAttrHandlers) that route
+// into the handlers below. The tables are the ROUTING surface and belong with the reader;
+// what an attribute MEANS belongs here. The edit vocabulary is unchanged by this split —
+// the sole op is still update (.claude/rules/bridge-surface.md: new capability is a new
+// entity kind or attribute, never a new op).
+//
+// Moved here from nodes/Wiring/dispatch (§30, docs/planning/movedispatch-decomposition.md)
+// alongside dispatch_edit.go — see that file's header for why this package now imports
+// nodes/Wiring/dispatch.
 
-package dispatch
+package stdinreader
 
 import (
+	"context"
 	"strconv"
 
 	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 )
 
-func applyUpdateClock(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
+func applyUpdateClock(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
 	if h, ok := clockAttrHandlers[msg.Attr]; ok {
 		h(msg, md, speedSinks)
 	}
@@ -36,7 +42,7 @@ func applyUpdateClock(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trace, sp
 // (0/1/2, into distanceGroupOrder — time/input/gate); msg.Flag is "up" (×1.1) or
 // "down" (÷1.1). Go owns the group definitions and the ×1.1 math (ApplyDistanceGroupTarget,
 // distance_groups.go) — the panel sends only which group and which direction.
-func applyUpdateDistanceGroup(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
+func applyUpdateDistanceGroup(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
 	if md == nil || msg.Attr != "length" {
 		return
 	}
@@ -44,7 +50,7 @@ func applyUpdateDistanceGroup(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.T
 	if msg.Flag == "up" {
 		dir = 1
 	}
-	if applyDistanceGroupTarget(md.ctx, &md.UI, &md.MR, &md.LQ, msg.Num, dir) {
+	if dispatch.ApplyDistanceGroupTarget(ctx, &md.UI, &md.MR, &md.LQ, msg.Num, dir) {
 		md.UI.EmitViewFrame(nil)
 	}
 }
@@ -61,18 +67,18 @@ func applyUpdateDistanceGroup(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.T
 //
 // theta/reset each have two routes, decided by whether the target node's OWN kind
 // claimed BuildArgs.TiltEditIn at build time (PairNode today — the only kind that owns
-// its tilt index independently, per the straightening loop's firing rule): md.sendTiltEdit
+// its tilt index independently, per the straightening loop's firing rule): dispatch.SendTiltEdit
 // tries that node's dedicated channel first and reports whether one exists. When it does
-// NOT (every other kind), this falls back to the old path — md.sendMove onto the node's
+// NOT (every other kind), this falls back to the old path — dispatch.SendMove onto the node's
 // mover (movemsg.KindTiltVectorAngle / movemsg.KindTiltVectorReset) — so the index write +
 // persist + re-emit still run on that node's own mover goroutine, unchanged for every kind
 // but the pair. A theta click now moves the index by exactly one step and sends/places
 // nothing else (task/pair-node-owns-itself split); reset places NO bead either.
 //
 // start has ONE route only: it is meaningless off the pair's own vector exchange, so it is
-// sent to md.sendTiltEdit and simply dropped when that channel does not exist (see the
+// sent to dispatch.SendTiltEdit and simply dropped when that channel does not exist (see the
 // "start" branch below) — no mover fallback, unlike theta/reset.
-func applyUpdateTiltVector(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
+func applyUpdateTiltVector(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
 	if md == nil || (msg.Attr != "theta" && msg.Attr != "reset" && msg.Attr != "start") {
 		return
 	}
@@ -83,10 +89,10 @@ func applyUpdateTiltVector(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trac
 	if msg.Attr == "reset" {
 		// Done setting: the slider's speed governs again. See HumanEditSpeed.
 		scenepersist.BroadcastSpeed(speedSinks, md.SliderSpeed())
-		if sendTiltEdit(&md.Inboxes, md.ctx, id, movemsg.TiltEditMsg{Reset: true}) {
+		if dispatch.SendTiltEdit(&md.Inboxes, ctx, id, movemsg.TiltEditMsg{Reset: true}) {
 			return
 		}
-		sendMove(&md.MR, md.ctx, id, movemsg.Msg{Kind: movemsg.KindTiltVectorReset, NodeID: id})
+		dispatch.SendMove(&md.MR, ctx, id, movemsg.Msg{Kind: movemsg.KindTiltVectorReset, NodeID: id})
 		return
 	}
 	if msg.Attr == "start" {
@@ -98,19 +104,19 @@ func applyUpdateTiltVector(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trac
 		// VectorOut/outgoingVector) — there is no mover-owned fallback, unlike
 		// theta/phi/reset: a kind that never claimed BuildArgs.TiltEditIn has no vector
 		// exchange to open, so a Start for it is simply a no-op.
-		sendTiltEdit(&md.Inboxes, md.ctx, id, movemsg.TiltEditMsg{Start: true})
+		dispatch.SendTiltEdit(&md.Inboxes, ctx, id, movemsg.TiltEditMsg{Start: true})
 		return
 	}
 	// A ▲/▼ ANGLE CLICK — the user is SETTING a tilt. Run every clock at human speed until
 	// they start or reset, so the click is answered now rather than a scaled cycle from now
 	// (see HumanEditSpeed for why this is not the slider's business). Sent BEFORE the edit,
 	// so the very node about to drain this edit is already cycling at that speed.
-	scenepersist.BroadcastSpeed(speedSinks, HumanEditSpeed)
+	scenepersist.BroadcastSpeed(speedSinks, dispatch.HumanEditSpeed)
 	up := msg.Flag == "up"
-	if sendTiltEdit(&md.Inboxes, md.ctx, id, movemsg.TiltEditMsg{Axis: msg.Attr, Up: up}) {
+	if dispatch.SendTiltEdit(&md.Inboxes, ctx, id, movemsg.TiltEditMsg{Axis: msg.Attr, Up: up}) {
 		return
 	}
-	sendMove(&md.MR, md.ctx, id, movemsg.Msg{Kind: movemsg.KindTiltVectorAngle, NodeID: id, Axis: msg.Attr, Bool: up})
+	dispatch.SendMove(&md.MR, ctx, id, movemsg.Msg{Kind: movemsg.KindTiltVectorAngle, NodeID: id, Axis: msg.Attr, Bool: up})
 }
 
 // applyUpdateScene handles kind=="scene" attr=="selected" (one click on the scene tab
@@ -130,13 +136,13 @@ func applyUpdateTiltVector(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trac
 // (BroadcastLatticePoints); it does NOT touch md.ui.speed/clockDivisor — a lattice size
 // has no "setting" mode the way a tilt angle does, so there is no HumanEditSpeed-style
 // speed override here.
-func applyUpdateScene(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
+func applyUpdateScene(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
 	if md == nil {
 		return
 	}
 	switch msg.Attr {
 	case "selected":
-		SelectScene(&md.Scenes, int(msg.Num))
+		dispatch.SelectScene(&md.Scenes, int(msg.Num))
 	case "latticePoints":
 		points := int32(msg.Num)
 		if points < 4 || points > 64 || points%4 != 0 {
@@ -156,7 +162,7 @@ func applyUpdateScene(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trace, sp
 	}
 }
 
-func applyUpdateOverlays(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
+func applyUpdateOverlays(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
 	if md == nil {
 		return
 	}

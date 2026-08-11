@@ -124,7 +124,7 @@ func (md *MoveDispatch) gestPointerUp(ev inputcodec.RawInputMsg) {
 		// so a chain bead this node woke can never be left on machine time — see
 		// movemsg.KindDragEnd's own doc comment.
 		if draggedNode != "" {
-			sendMove(&md.MR, md.ctx, draggedNode, movemsg.Msg{Kind: movemsg.KindDragEnd, NodeID: draggedNode})
+			SendMove(&md.MR, md.ctx, draggedNode, movemsg.Msg{Kind: movemsg.KindDragEnd, NodeID: draggedNode})
 		}
 	}
 }

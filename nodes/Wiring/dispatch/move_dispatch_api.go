@@ -27,21 +27,25 @@ func (md *MoveDispatch) Start(ctx context.Context) *sync.WaitGroup {
 	return md.MR.Start(ctx)
 }
 
-// sendMove routes one movemsg.Msg to a node's dedicated external-entry channel (extIn).
+// SendMove routes one movemsg.Msg to a node's dedicated external-entry channel (extIn).
 // Thin delegator to mr (nodes/Wiring/moverreg); ctx is threaded through (not part of
 // moverreg.MoverRegistry). This is the bare external-entry path (RootMove, gesture.go) with
 // no owning mover goroutine, so it never fires a tap — see nodeMover.tap's doc comment.
-func sendMove(mr *moverreg.MoverRegistry, ctx context.Context, id string, msg movemsg.Msg) {
+// Exported (§30, docs/planning/movedispatch-decomposition.md) so the stdin cluster
+// (nodes/Wiring/stdinreader) can call it without reaching back into this package for an
+// unexported name.
+func SendMove(mr *moverreg.MoverRegistry, ctx context.Context, id string, msg movemsg.Msg) {
 	mr.SendMove(ctx, id, msg)
 }
 
-// sendTiltEdit routes one panel-driven tilt-angle click to node id's OWN dedicated
+// SendTiltEdit routes one panel-driven tilt-angle click to node id's OWN dedicated
 // tiltEditIns channel and returns true, or returns false when id has no such channel (a
 // kind that never called BuildArgs.TiltEditIn — every kind except PairNode today),
 // telling the caller (applyUpdateTiltVector) to fall back to the old mover-owned path
 // instead. Thin delegator to nodeinbox.NodeInboxes.SendTiltEdit (nodes/Wiring/nodeinbox,
-// lifted out of this package in docs/planning/movedispatch-decomposition.md §29).
-func sendTiltEdit(inboxes *nodeinbox.NodeInboxes, ctx context.Context, id string, msg movemsg.TiltEditMsg) bool {
+// lifted out of this package in docs/planning/movedispatch-decomposition.md §29). Exported
+// (§30) for the same reason as SendMove.
+func SendTiltEdit(inboxes *nodeinbox.NodeInboxes, ctx context.Context, id string, msg movemsg.TiltEditMsg) bool {
 	return inboxes.SendTiltEdit(ctx, id, msg)
 }
 
@@ -51,7 +55,7 @@ func sendTiltEdit(inboxes *nodeinbox.NodeInboxes, ctx context.Context, id string
 // bound-func treatment as the gesture cluster
 // (docs/planning/movedispatch-decomposition.md section 6).
 func setSelectionUI(ui *viewstate.UIState, mr *moverreg.MoverRegistry, ctx context.Context, node, edge string) {
-	sendMoveFn := func(id string, msg movemsg.Msg) { sendMove(mr, ctx, id, msg) }
+	sendMoveFn := func(id string, msg movemsg.Msg) { SendMove(mr, ctx, id, msg) }
 	sendEdgeSelectFn := func(label string, on bool) { sendEdgeSelect(mr.EdgeMovers(), ctx, label, on) }
 	ui.SetSelectionUI(sendMoveFn, sendEdgeSelectFn, node, edge)
 }

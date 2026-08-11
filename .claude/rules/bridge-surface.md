@@ -15,7 +15,7 @@ carries the TS → Go vocabulary.
 **TS → Go** is framed binary records on stdin. Two shapes, and the distinction is the model:
 
 - **Addressed edits** — a single geometry-CRUD `edit` message whose sole op is `update`
-  (see `nodes/Wiring/dispatch/stdin_dispatch.go` `applyEdit`, fenced by `EDIT_OPS_START`/
+  (see `nodes/Wiring/stdinreader/dispatch_edit.go` `applyEdit`, fenced by `EDIT_OPS_START`/
   `EDIT_OPS_END`, and `tools/topology-vscode/src/messages.ts` `EditMsg`): **`update` sets
   an ATTRIBUTE on a typed entity** (`kind` = node / edge / camera / overlays / scene) —
   there is no per-feature op. New *addressed* capability is a new entity kind or
@@ -59,7 +59,7 @@ and `memory/feedback/architecture/feedback_per_goroutine_bridge.md`.
 ## Parity
 
 Keep all of it in parity across `messages.ts`, the `nodes/Wiring` stdin reader/dispatch
-(`stdin_reader.go`'s `MSG_TYPES` fence, `stdin_dispatch.go`'s edit tables), and `handle-message.ts`
+(`stdin_reader.go`'s `MSG_TYPES` fence, `dispatch_edit.go`'s edit tables), and `handle-message.ts`
 (guards: `tools/bridge/check-edit-op-parity.sh`, `tools/bridge/check-message-kind-parity.sh`, and the
 `INPUT_LAYOUT_FINGERPRINT` in `input_codec.go` /
 `tools/topology-vscode/src/schema/input-layout-gen.ts`).

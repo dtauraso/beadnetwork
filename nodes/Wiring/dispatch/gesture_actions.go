@@ -36,7 +36,7 @@ func (md *MoveDispatch) updateHover(ev inputcodec.RawInputMsg) {
 		}
 	}
 	mr, ctx := &md.MR, md.ctx
-	sendMoveFn := func(id string, msg movemsg.Msg) { sendMove(mr, ctx, id, msg) }
+	sendMoveFn := func(id string, msg movemsg.Msg) { SendMove(mr, ctx, id, msg) }
 	if events, changed := setHover(&md.UI, sendMoveFn, &md.RT, node, "", false); changed {
 		md.UI.EmitViewFrame(events)
 	}
