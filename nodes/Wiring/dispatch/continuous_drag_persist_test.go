@@ -31,7 +31,7 @@ func dragAndReadBack(t *testing.T, quantized bool, target vec3) string {
 	root := t.TempDir()
 
 	md := &MoveDispatch{}
-	md.lq.quantizedLayout = quantized
+	md.lq.QuantizedLayout = quantized
 	md.UI.SceneSphere = geom.SceneSphere{Center: vec3{}, Radius: 100}
 	md.mr.nodeGeoms = map[string]*nodeactor.NodeGeometry{}
 	md.mr.edgeMovers = map[string]*edgemover.EdgeMover{}
@@ -43,7 +43,7 @@ func dragAndReadBack(t *testing.T, quantized bool, target vec3) string {
 	nm.SetPersistRoot(root)
 	md.mr.nodeGeoms["1"] = nm
 
-	md.lq.commitNodeMoveLocal(&md.mr, &md.UI, nm, target)
+	md.lq.CommitNodeMoveLocal(md.mr.nodeGeoms, md.mr.edgeMovers, &md.UI, nm, target)
 
 	b, err := os.ReadFile(positionfile.FilePath(root, "1"))
 	if err != nil {

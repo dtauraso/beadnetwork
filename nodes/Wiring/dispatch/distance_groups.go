@@ -32,6 +32,7 @@ import (
 	"context"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/distancegroups"
+	"github.com/dtauraso/wirefold/nodes/Wiring/layoutquant"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 )
@@ -76,9 +77,9 @@ func DistanceGroupLens(ui *viewstate.UIState, mr *moverRegistry) (timeLen, input
 // This function itself no longer emits: the caller (applyUpdateDistanceGroup,
 // stdin_apply.go — the same stdin/dispatch goroutine) emits the VIEW frame when moved is
 // true, per docs/planning/movedispatch-decomposition.md's write-then-emit split.
-func applyDistanceGroupTarget(ctx context.Context, ui *viewstate.UIState, mr *moverRegistry, lq *layoutQuantizer, groupIdx, dir int) bool {
+func applyDistanceGroupTarget(ctx context.Context, ui *viewstate.UIState, mr *moverRegistry, lq *layoutquant.LayoutQuantizer, groupIdx, dir int) bool {
 	rootMove := func(ctx context.Context, target string, newPos vec3) bool {
-		return lq.RootMove(ctx, mr, target, newPos)
+		return lq.RootMove(ctx, mr.nodeGeoms, target, newPos)
 	}
 	return distancegroups.ApplyTarget(ctx, ui.HasDistanceGroups, mr.centerOfNode, rootMove, groupIdx, dir)
 }

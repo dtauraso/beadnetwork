@@ -24,6 +24,7 @@ import (
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/beadcrud"
+	"github.com/dtauraso/wirefold/nodes/Wiring/layoutquant"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
@@ -37,7 +38,7 @@ func touchingBeadFor(t *testing.T, md *MoveDispatch, nodeID string) (beadcrud.To
 		t.Fatalf("no nodeMover for %s", nodeID)
 	}
 	prevPos := nm.WorldCenter()
-	beads := dragTouchingBeads(&md.mr, nm, prevPos)
+	beads := layoutquant.DragTouchingBeads(md.mr.edgeMovers, nm, prevPos)
 	if len(beads) != 1 {
 		t.Fatalf("%s: expected exactly one touching bead (one incident edge), got %d", nodeID, len(beads))
 	}

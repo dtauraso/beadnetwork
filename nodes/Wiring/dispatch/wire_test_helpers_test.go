@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/beadcrud"
+	"github.com/dtauraso/wirefold/nodes/Wiring/layoutquant"
 	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
@@ -114,7 +115,7 @@ func WriteSpecTree(t *testing.T, root string, specJSON string) string {
 // resolveBeadCrudMove commitNodeMoveLocal calls, so this is not an independent oracle of
 // the formula, only of the call.
 func quantizedDragTarget(md *MoveDispatch, nodeID string, target vec3) vec3 {
-	if !md.lq.quantizedLayout {
+	if !md.lq.QuantizedLayout {
 		return target
 	}
 	nm, ok := md.mr.nodeGeoms[nodeID]
@@ -125,7 +126,7 @@ func quantizedDragTarget(md *MoveDispatch, nodeID string, target vec3) vec3 {
 	if !ok {
 		return target
 	}
-	beads := dragTouchingBeads(&md.mr, nm, prev)
+	beads := layoutquant.DragTouchingBeads(md.mr.edgeMovers, nm, prev)
 	if len(beads) == 0 {
 		return target
 	}

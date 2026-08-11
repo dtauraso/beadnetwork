@@ -34,6 +34,7 @@ import (
 	"context"
 
 	geomseeds "github.com/dtauraso/wirefold/nodes/Wiring/geomseeds"
+	"github.com/dtauraso/wirefold/nodes/Wiring/layoutquant"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	rowtables "github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
@@ -79,14 +80,15 @@ type MoveDispatch struct {
 	// bound func values (move_dispatch_api.go), since moverRegistry/layoutQuantizer/
 	// edgeMover are unexported Wiring types viewstate cannot name.
 	UI viewstate.UIState
-	// lq owns the quantized scene-polar move math (quantized_move.go): quantizedLayout
-	// gates the quantized absolute-scene-polar snap — every node is a root,
-	// measured/derived about the scene center only, with no per-neighbour stored
-	// coordinate (MODEL.md "the polar model"). MoveDispatch's public RootMove stays a
-	// thin delegator; the several package-private quantized_move.go methods also stay
-	// thin delegators so their existing in-package call sites (tests, move_dispatch_construct.go,
-	// gesture.go) are unchanged.
-	lq layoutQuantizer
+	// lq owns the quantized scene-polar move math (nodes/Wiring/layoutquant, lifted out
+	// per docs/planning/movedispatch-decomposition.md §24 — quantizedLayout gates the
+	// quantized absolute-scene-polar snap — every node is a root, measured/derived
+	// about the scene center only, with no per-neighbour stored coordinate (MODEL.md
+	// "the polar model"). Its methods take moverRegistry's own directories
+	// (md.mr.nodeGeoms/md.mr.edgeMovers) as explicit parameters rather than a
+	// *moverRegistry back-reference, which is what let the type move to its own
+	// package with nothing in moverRegistry exported.
+	lq layoutquant.LayoutQuantizer
 	// Scenes owns tab switching: the anchor to persist the selection against, and the
 	// quit func whose call the extension host's looping respawn follows (scene_switch.go).
 	// Zero until the run's setup code arms it (Scenes.AnchorPath/Scenes.Quit, set directly

@@ -1,16 +1,16 @@
-// commit_node_move.go — the owner-goroutine single-node commit path.
-//
-// Split out of quantized_move.go (god-object decomposition, pure move — no logic
-// changes): kept apart from held-state snapshots, touching-bead resolution, and the
+// commit_node_move.go — the owner-goroutine single-node commit path. Lifted from
+// nodes/Wiring/dispatch (docs/planning/movedispatch-decomposition.md §24 — pure move, no
+// logic change): kept apart from held-state snapshots, touching-bead resolution, and the
 // broadcast-after-commit fan-out.
 
-package dispatch
+package layoutquant
 
 import (
 	"fmt"
 	"strings"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/beadcrud"
+	"github.com/dtauraso/wirefold/nodes/Wiring/edgemover"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/topoderive"
@@ -21,19 +21,19 @@ import (
 	T "github.com/dtauraso/wirefold/Trace"
 )
 
-// commitNodeMoveLocal is the OWNER-GOROUTINE single-node commit path
+// CommitNodeMoveLocal is the OWNER-GOROUTINE single-node commit path
 // (generalized to every node): used when the commit
-// originates on nodeID's OWN mover goroutine (its own inbox handler for a
-// movemsg.KindDrag). It applies nodeID's OWN new center SYNCHRONOUSLY via
+// originates on nm's OWN mover goroutine (its own inbox handler for a
+// movemsg.KindDrag). It applies nm's OWN new center SYNCHRONOUSLY via
 // applyCenter — safe and correct here because applyCenter's doc contract is "called
 // only from this nodeMover's own inbox-drain goroutine", which this is. Also fans
 // centers to incident edges/partners, persists the per-node quantized-offset
 // (nodeMover.quantOffset — never a shared map, so no other mover goroutine's commit
-// can race this write even for a different node id), and requantizes nodeID's
+// can race this write even for a different node id), and requantizes nm's
 // local-polar cascade-links against its (unmoved) neighbors.
-func (lq *layoutQuantizer) commitNodeMoveLocal(mr *moverRegistry, ui *viewstate.UIState, nm *nodeactor.NodeGeometry, newPos vec3) {
+func (lq *LayoutQuantizer) CommitNodeMoveLocal(nodeGeoms map[string]*nodeactor.NodeGeometry, edgeMovers map[string]*edgemover.EdgeMover, ui *viewstate.UIState, nm *nodeactor.NodeGeometry, newPos wire.Vec3) {
 	nodeID := nm.ID()
-	edges := lq.heldEdges(mr)
+	edges := HeldEdges(edgeMovers)
 	// reach[nodeID] only ever needs nodeID's own fresh polar plus its DIRECT
 	// neighbors' polar (reachRFromPolar only accumulates reach for an edge's
 	// SOURCE, from that edge's Target) — each direct neighbor's last-pushed
@@ -48,7 +48,7 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(mr *moverRegistry, ui *viewstate.
 	polars := map[string]geom.Polar{}
 	partnerCenters := nm.PartnerCenters()
 	for _, edgeID := range nm.EdgeIDs() {
-		em, ok := mr.edgeMovers[edgeID]
+		em, ok := edgeMovers[edgeID]
 		if !ok {
 			continue
 		}
@@ -67,15 +67,15 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(mr *moverRegistry, ui *viewstate.
 	nodePolar := geom.Cart2polar(newPos.Sub(ui.SceneSphere.Center))
 
 	// committedPos/committedPolar are what gets DRAWN (applyCenter), FANNED
-	// (broadcastToEdgesAndPartners), PERSISTED (persistQuantOffset), and re-quantized
+	// (BroadcastToEdgesAndPartners), PERSISTED (persistQuantOffset), and re-quantized
 	// against by every neighbor (requantizeLocalPolars) for this commit — ONE position,
 	// not the raw drag target for some of those and a quantized point for others
 	// (docs/investigations/which-lattice-a-node-lives-on.md "Why the drag makes it worst": that split is
 	// exactly what made the node glide continuously while its own chain beads jumped one
-	// bead distance at a time). Under the quantized scene lattice (lq.quantizedLayout),
+	// bead distance at a time). Under the quantized scene lattice (lq.QuantizedLayout),
 	// moving the node is now CRUD on the edge beads that touch it (PLAN.md, bead_crud.go)
 	// instead of solving a joint lattice-intersection: EVERY touching bead
-	// (dragTouchingBeads) judges the SAME raw mouse target independently
+	// (DragTouchingBeads) judges the SAME raw mouse target independently
 	// (resolveBeadCrudMove/beadCrudDecide) — no solver, no enumeration across neighbours,
 	// no selection of one edge over another, and no summing of per-edge results into a
 	// displacement. The node's new centre comes from the BEAD OPERATION
@@ -94,9 +94,9 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(mr *moverRegistry, ui *viewstate.
 	// offset is measured.
 	committedPos := newPos
 	committedPolar := nodePolar
-	if lq.quantizedLayout {
+	if lq.QuantizedLayout {
 		prevPos := nm.WorldCenter()
-		beads := dragTouchingBeads(mr, nm, prevPos)
+		beads := DragTouchingBeads(edgeMovers, nm, prevPos)
 		if len(beads) == 0 {
 			committedPos = newPos
 		} else {
@@ -152,9 +152,9 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(mr *moverRegistry, ui *viewstate.
 	reach := topoderive.ReachRFromPolar(polars, edges)
 
 	nm.ApplyCenter(committedPos, reach[nodeID])
-	lq.broadcastToEdgesAndPartners(mr, map[string]vec3{nodeID: committedPos}, nm.SendMove())
+	BroadcastToEdgesAndPartners(edgeMovers, nodeGeoms, map[string]wire.Vec3{nodeID: committedPos}, nm.SendMove())
 
-	// PERSIST ON EVERY DRAG, both modes. This used to sit inside `if lq.quantizedLayout`,
+	// PERSIST ON EVERY DRAG, both modes. This used to sit inside `if lq.QuantizedLayout`,
 	// which silently stopped saving the moment a scene chose the continuous drag: the node
 	// moved, drew, fanned to its neighbours and looked entirely correct, and the position
 	// was gone on the next load. The two modes differ in WHERE the node lands, never in

@@ -3,6 +3,7 @@ package dispatch
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/gesturefsm"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/layoutquant"
 )
 
 // gesture_hitclassify.go — POINTER-DOWN HIT CLASSIFICATION: what a raycast hit's KIND means
@@ -21,8 +22,8 @@ var hitClassifiers = map[string]func(md *MoveDispatch, g *gesturefsm.GestureStat
 		// Handhold grab → axis-locked (constrained) orbit. Freeze the sphere rotation frame
 		// now (mirrors interaction-handlers.ts: beginSphereRotation on a handhold hit).
 		g.HandholdDown = true
-		lq, mr := &md.lq, &md.mr
-		g.BeginSphereRotation(md.UI.VP.Viewpoint, func() map[string]vec3 { return lq.heldCenters(mr) }, ev)
+		nodeGeoms, centerOf := md.mr.nodeGeoms, md.mr.centerOfNode
+		g.BeginSphereRotation(md.UI.VP.Viewpoint, func() map[string]vec3 { return layoutquant.HeldCenters(nodeGeoms, centerOf) }, ev)
 	},
 	"node": func(md *MoveDispatch, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg) {
 		if node, ok := md.RT.NodeFromHit(ev.Hit); ok {
@@ -34,7 +35,7 @@ var hitClassifiers = map[string]func(md *MoveDispatch, g *gesturefsm.GestureStat
 	},
 	"empty": func(md *MoveDispatch, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg) {
 		g.EmptyDown = true
-		lq, mr := &md.lq, &md.mr
-		g.BeginSphereRotation(md.UI.VP.Viewpoint, func() map[string]vec3 { return lq.heldCenters(mr) }, ev)
+		nodeGeoms, centerOf := md.mr.nodeGeoms, md.mr.centerOfNode
+		g.BeginSphereRotation(md.UI.VP.Viewpoint, func() map[string]vec3 { return layoutquant.HeldCenters(nodeGeoms, centerOf) }, ev)
 	},
 }

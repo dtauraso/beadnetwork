@@ -126,8 +126,8 @@ func (md *MoveDispatch) commitRotateStart(g *gesturefsm.GestureState, ev inputco
 // old switch's implicit default (gestIdle, gestPending fell through to nothing).
 var applyAction = map[gesturefsm.GesturePhase]func(md *MoveDispatch, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg, tr *T.Trace){
 	gesturefsm.GestDragging: func(md *MoveDispatch, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
-		mr, lq, ctx := &md.mr, &md.lq, md.ctx
-		if applyNodeDragTarget(&md.UI, func(id string, target vec3) bool { return lq.RootMove(ctx, mr, id, target) }, ev) {
+		nodeGeoms, lq, ctx := md.mr.nodeGeoms, &md.lq, md.ctx
+		if applyNodeDragTarget(&md.UI, func(id string, target vec3) bool { return lq.RootMove(ctx, nodeGeoms, id, target) }, ev) {
 			g.PrevX, g.PrevY = ev.X, ev.Y
 		}
 	},

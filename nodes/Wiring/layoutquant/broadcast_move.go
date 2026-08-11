@@ -1,27 +1,29 @@
 // broadcast_move.go — fanning an already-applied set of moved node centers to incident
-// edges/partners.
-//
-// Split out of quantized_move.go (god-object decomposition, pure move — no logic
-// changes): kept apart from held-state snapshots, touching-bead resolution, and the
-// commit path itself. The reach-radius math that used to ride along with it
-// (reachRFromPolar) moved to nodes/Wiring/topoderive (a pure derive phase); this
-// package's own callers (commit_node_move.go) now call topoderive.ReachRFromPolar.
+// edges/partners. Lifted from nodes/Wiring/dispatch (docs/planning/movedispatch-
+// decomposition.md §24 — pure move, no logic change): kept apart from held-state
+// snapshots, touching-bead resolution, and the commit path itself. The reach-radius math
+// that used to ride along with it (reachRFromPolar) lives in nodes/Wiring/topoderive (a
+// pure derive phase); this package's own caller (commit_node_move.go) calls
+// topoderive.ReachRFromPolar directly.
 
-package dispatch
+package layoutquant
 
 import (
+	"github.com/dtauraso/wirefold/nodes/Wiring/edgemover"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
-// broadcastToEdgesAndPartners messages every incident edge's mover (batched per-edge Centers) and
+// BroadcastToEdgesAndPartners messages every incident edge's mover (batched per-edge Centers) and
 // every aimed-port partner (pure re-emit), for the given already-applied set of moved node
 // centers. It never writes the moved node's OWN snap — that responsibility belongs to
 // whichever caller applied the moved node's own center via applyCenter directly (every
 // live caller is owner-goroutine; the old central "self-send into own inbox" path,
 // fanCenters, was removed — it deadlocked/staled when its only caller turned out to run
-// on the moved node's own goroutine too. See commitNodeMoveLocal for the applyCenter +
-// broadcastToEdgesAndPartners pattern).
-func (lq *layoutQuantizer) broadcastToEdgesAndPartners(mr *moverRegistry, newCenters map[string]vec3, enqueue func(id string, msg movemsg.Msg)) {
+// on the moved node's own goroutine too. See CommitNodeMoveLocal for the applyCenter +
+// BroadcastToEdgesAndPartners pattern).
+func BroadcastToEdgesAndPartners(edgeMovers map[string]*edgemover.EdgeMover, nodeGeoms map[string]*nodeactor.NodeGeometry, newCenters map[string]wire.Vec3, enqueue func(id string, msg movemsg.Msg)) {
 	// Per-edge: send ONE batched message carrying every moved endpoint of that edge,
 	// so an edge whose both endpoints moved this frame recomputes/emits exactly once.
 	// enqueue (the sending node's own retry queue — nm.msg.sendMove) appends the
@@ -33,8 +35,8 @@ func (lq *layoutQuantizer) broadcastToEdgesAndPartners(mr *moverRegistry, newCen
 	// resolve to a live mover) is checked at send time inside that retry path, matching
 	// enqueue's other call sites (m.sendMove), which already tap/enqueue unconditionally
 	// regardless of whether id resolves.
-	for edgeID, em := range mr.edgeMovers {
-		eps := map[string]vec3{}
+	for edgeID, em := range edgeMovers {
+		eps := map[string]wire.Vec3{}
 		if c, ok := newCenters[em.SrcID()]; ok {
 			eps[em.SrcID()] = c
 		}
@@ -59,7 +61,7 @@ func (lq *layoutQuantizer) broadcastToEdgesAndPartners(mr *moverRegistry, newCen
 	// parity with the prior shape; movedID itself is otherwise unused now that the
 	// re-emit carries no cache payload).
 	partners := map[string]string{}
-	for _, em := range mr.edgeMovers {
+	for _, em := range edgeMovers {
 		if _, moved := newCenters[em.SrcID()]; moved {
 			if _, alsoMoved := newCenters[em.DstID()]; !alsoMoved {
 				partners[em.DstID()] = em.SrcID()
@@ -72,7 +74,7 @@ func (lq *layoutQuantizer) broadcastToEdgesAndPartners(mr *moverRegistry, newCen
 		}
 	}
 	for partnerID, movedID := range partners {
-		if _, ok := mr.nodeGeoms[partnerID]; !ok {
+		if _, ok := nodeGeoms[partnerID]; !ok {
 			continue
 		}
 		// Center is deliberately nil (see the doc comment above): this is a PURE

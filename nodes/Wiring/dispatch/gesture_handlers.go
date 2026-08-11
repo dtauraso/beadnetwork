@@ -7,6 +7,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/gesturefsm"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/layoutquant"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 )
 
@@ -24,7 +25,7 @@ import (
 // the framed pose, the next orbit/pan/zoom builds on it (no snap-back). Does nothing when
 // there are no nodes, mirroring HomeButton's early return.
 func (md *MoveDispatch) gestHome(ev inputcodec.RawInputMsg, tr *T.Trace) {
-	centers := md.lq.heldCenters(&md.mr)
+	centers := layoutquant.HeldCenters(md.mr.nodeGeoms, md.mr.centerOfNode)
 	radius := make(map[string]float64, len(centers))
 	for id := range centers {
 		radius[id] = md.mr.nodeBodyRadius(id)
@@ -97,8 +98,8 @@ func (md *MoveDispatch) gestPointerUp(ev inputcodec.RawInputMsg) {
 	g := &md.UI.Gest
 	switch {
 	case g.Phase == gesturefsm.GestDragging:
-		mr, lq, ctx := &md.mr, &md.lq, md.ctx
-		applyNodeDragTarget(&md.UI, func(id string, target vec3) bool { return lq.RootMove(ctx, mr, id, target) }, ev) // final target flush
+		nodeGeoms, lq, ctx := md.mr.nodeGeoms, &md.lq, md.ctx
+		applyNodeDragTarget(&md.UI, func(id string, target vec3) bool { return lq.RootMove(ctx, nodeGeoms, id, target) }, ev) // final target flush
 	case g.Phase == gesturefsm.GestHandhold, g.Phase == gesturefsm.GestRotating:
 		// Rotation completed (free or handhold-constrained): nothing to flush.
 	case g.Phase == gesturefsm.GestPending:
@@ -134,7 +135,7 @@ func (md *MoveDispatch) gestPointerUp(ev inputcodec.RawInputMsg) {
 func (md *MoveDispatch) gestWheel(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	vp := md.UI.VP.Viewpoint
 	eye := geom.EyeOf(vp)
-	pivot := geom.RegionFocus(vp, md.lq.heldCenters(&md.mr))
+	pivot := geom.RegionFocus(vp, layoutquant.HeldCenters(md.mr.nodeGeoms, md.mr.centerOfNode))
 
 	if ev.Ctrl {
 		// Zoom-to-cursor: move the camera TOWARD the node under the cursor along the cursor→node
@@ -148,7 +149,7 @@ func (md *MoveDispatch) gestWheel(ev inputcodec.RawInputMsg, tr *T.Trace) {
 		aspect := md.UI.Gest.Rect.Aspect()
 		target := pivot
 		best := math.Inf(1)
-		for _, c := range md.lq.heldCenters(&md.mr) {
+		for _, c := range layoutquant.HeldCenters(md.mr.nodeGeoms, md.mr.centerOfNode) {
 			nx, ny, inFront := geom.ProjectNDC(c, eye, basis, ev.Fov, aspect)
 			if !inFront {
 				continue

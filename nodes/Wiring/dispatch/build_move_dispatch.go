@@ -59,7 +59,7 @@ func (b *buildCtx) buildMoveDispatch() error {
 	// nodeMover's zero-value quantOffset, matching the old map's zero-value-on-miss read.
 	// PER SCENE, not always-on (scene/scene_tabs.go's QuantizedDrag): a bead-distance step is
 	// invisible in a scene that is large against it and dominant in one that is not.
-	md.lq.quantizedLayout = scene.SceneUsesQuantizedDrag(b.scenePath)
+	md.lq.QuantizedLayout = scene.SceneUsesQuantizedDrag(b.scenePath)
 	// Per scene as well (scene/scene_tabs.go's CoplanarEdges): each node's own copy, set here on
 	// the single-threaded build path, read afterwards only by that node's own goroutine.
 	coplanarEdges := scene.SceneWantsCoplanarEdges(b.scenePath)
