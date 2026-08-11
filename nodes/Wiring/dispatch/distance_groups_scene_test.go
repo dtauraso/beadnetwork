@@ -11,7 +11,7 @@
 // resolves" case a flag stuck at false would look correct, and without the "pair resolves
 // nothing" case the bug itself comes back. Each test drives ONE MoveDispatch, reads what
 // that one goroutine computed, and starts no mover network (docs/process/testing-shape.md).
-package dispatch
+package dispatch_test
 
 import (
 	"context"
@@ -19,6 +19,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/build"
+	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/distancegroups"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
@@ -28,11 +30,11 @@ import (
 
 // loadSceneMD loads a scene tree by directory name and resolves its distance-group flag the
 // way main.go does at startup.
-func loadSceneMD(t *testing.T, sceneDir string) *MoveDispatch {
+func loadSceneMD(t *testing.T, sceneDir string) *dispatch.MoveDispatch {
 	t.Helper()
 	root := filepath.Join(repoRootForDistanceGroupsTest(t), sceneDir)
 	tr := T.NewWithSinkHook(nil, nil)
-	_, _, md, _, err := LoadTopology(context.Background(), root, tr, clock.NewRealClock())
+	_, _, md, _, err := build.LoadTopology(context.Background(), root, tr, clock.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology(%s): %v", sceneDir, err)
 	}
@@ -44,7 +46,7 @@ func loadSceneMD(t *testing.T, sceneDir string) *MoveDispatch {
 // owns these groups, so at least one of the three must come back with a length.
 func TestRingResolvesItsDistanceGroups(t *testing.T) {
 	md := loadSceneMD(t, "topology")
-	timeLen, inputLen, gateLen := DistanceGroupLens(&md.UI, &md.MR)
+	timeLen, inputLen, gateLen := dispatch.DistanceGroupLens(&md.UI, &md.MR)
 	if timeLen == 0 && inputLen == 0 && gateLen == 0 {
 		t.Fatal("ring streamed all three group lengths as 0 — the ring owns these groups, so the panel would not render")
 	}
@@ -98,16 +100,18 @@ func TestPairSceneIsDeniedTheGroups(t *testing.T) {
 func TestGroupsAreInertUntilResolved(t *testing.T) {
 	root := filepath.Join(repoRootForDistanceGroupsTest(t), "topology")
 	tr := T.NewWithSinkHook(nil, nil)
-	_, _, md, _, err := LoadTopology(context.Background(), root, tr, clock.NewRealClock())
+	_, _, md, _, err := build.LoadTopology(context.Background(), root, tr, clock.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology(topology): %v", err)
 	}
 	// Deliberately NOT calling md.ResolveSceneDistanceGroups.
-	if timeLen, inputLen, gateLen := DistanceGroupLens(&md.UI, &md.MR); timeLen != 0 || inputLen != 0 || gateLen != 0 {
+	if timeLen, inputLen, gateLen := dispatch.DistanceGroupLens(&md.UI, &md.MR); timeLen != 0 || inputLen != 0 || gateLen != 0 {
 		t.Fatalf("unresolved dispatch streamed (%v, %v, %v), want all 0", timeLen, inputLen, gateLen)
 	}
+	// md.ctx (unexported) is never set here — LoadTopology does not call Start — so it is
+	// always nil; context.Background() is the same "no cancellation" value this test needs.
 	for i := range distancegroups.GroupOrder {
-		if ok := ApplyDistanceGroupTarget(md.ctx, &md.UI, &md.MR, &md.LQ, i, 1); ok {
+		if ok := dispatch.ApplyDistanceGroupTarget(context.Background(), &md.UI, &md.MR, &md.LQ, i, 1); ok {
 			t.Fatalf("ApplyDistanceGroupTarget(%d, up) = true before the scene was resolved, want false", i)
 		}
 	}

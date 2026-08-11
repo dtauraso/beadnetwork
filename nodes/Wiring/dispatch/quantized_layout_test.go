@@ -1,4 +1,4 @@
-package dispatch
+package dispatch_test
 
 import (
 	"encoding/json"
@@ -6,9 +6,11 @@ import (
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/beadcrud"
+	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/layoutquant"
 	"github.com/dtauraso/wirefold/nodes/Wiring/positionfile"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
@@ -52,7 +54,7 @@ func TestCommitNodeMoveLocalDrawsQuantizedNotRawTarget(t *testing.T) {
 	// neighbours') CURRENT centers as the solve's starting configuration, so calling it
 	// after commitNodeMoveLocal has already moved dst would race its own answer (see
 	// quantizedDragTarget's doc comment in subtree_persist_test.go).
-	want := quantizedDragTarget(md, "2", target)
+	want := dispatch.QuantizedDragTarget(md, "2", target)
 
 	md.LQ.CommitNodeMoveLocal(md.MR.NodeGeoms(), md.MR.EdgeMovers(), &md.UI, nm, target)
 
@@ -104,7 +106,7 @@ func TestCommitNodeMoveLocalDrawsQuantizedNotRawTarget(t *testing.T) {
 // asserts the real commit does NOT match it, for both a REMOVE-triggering drag and an
 // ADD-triggering drag on the same single-neighbour fixture.
 func TestCommitNodeMoveLocalNeverMovesTowardMouseTarget(t *testing.T) {
-	cursorFollow := func(prevPos, target vec3) vec3 {
+	cursorFollow := func(prevPos, target wire.Vec3) wire.Vec3 {
 		delta := target.Sub(prevPos)
 		if delta.Length() < 1e-9 {
 			return prevPos

@@ -28,7 +28,7 @@ import (
 	"time"
 
 	T "github.com/dtauraso/wirefold/Trace"
-	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
+	Bld "github.com/dtauraso/wirefold/nodes/Wiring/build"
 )
 
 func TestUnfedRequiredPortLoadsAndStaysInert(t *testing.T) {
@@ -60,7 +60,7 @@ func TestUnfedRequiredPortLoadsAndStaysInert(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	nodes, _, _, _, err := Wiring.LoadTopology(ctx, root, T.New(), clock.NewRealClock())
+	nodes, _, _, _, err := Bld.LoadTopology(ctx, root, T.New(), clock.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology rejected an unfed port, but validate.go promises it loads: %v", err)
 	}

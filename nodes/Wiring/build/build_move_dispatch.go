@@ -3,11 +3,12 @@
 // per-node field (quantized offset, scene flags, self kind, neighbor kinds, outgoing
 // chain targets) that a mover needs before any node goroutine exists.
 
-package dispatch
+package build
 
 import (
 	"fmt"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 )
@@ -33,7 +34,7 @@ func (b *buildCtx) buildMoveDispatch() error {
 	for i, e := range b.spec.Edges {
 		edgeOrder[i] = e.Label
 	}
-	md, err := newMoveDispatch(b.nodeGeoms, b.edgeEndpoints, b.tr, nodeOrder, edgeOrder, b.clk, &b.speedSinks, b.spec.RowCount)
+	md, err := dispatch.NewMoveDispatch(b.nodeGeoms, b.edgeEndpoints, b.tr, nodeOrder, edgeOrder, b.clk, &b.speedSinks, b.spec.RowCount)
 	if err != nil {
 		return fmt.Errorf("buildMoveDispatch: %w", err)
 	}

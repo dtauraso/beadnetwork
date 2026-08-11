@@ -1,4 +1,4 @@
-package dispatch
+package dispatch_test
 
 // scene_edit_persist_test.go — round-trip test for the FSM-applied node-drag position
 // edit persister (meta.json x/y/z): an FSM edit → the debounced writer persists it to
@@ -11,7 +11,10 @@ import (
 	"io"
 	"testing"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/build"
+	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenecamera"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
@@ -27,7 +30,7 @@ import (
 // state. LoadOverlays must ALWAYS stream the resolved state (file data or defaults).
 func TestLoadOverlaysEmitsDefaultsWhenNoPersistedKeys(t *testing.T) {
 	root := writeTree(t) // no view/scene.json → loadSceneOverlays returns found=false
-	md := &MoveDispatch{UI: viewstate.UIState{OV: viewstate.DefaultOverlayState()}}
+	md := &dispatch.MoveDispatch{UI: viewstate.UIState{OV: viewstate.DefaultOverlayState()}}
 	var kinds []string
 	// Decentralized (Step C, memory/feedback_no_single_writer_bridge.md): LoadOverlays writes its own VIEW
 	// frame directly via md.emitViewFrame; capture the RowEvent kinds it carries instead of
@@ -64,22 +67,18 @@ func TestLoadOverlaysEmitsDefaultsWhenNoPersistedKeys(t *testing.T) {
 	}
 }
 
-// writeTree lays down a minimal directory-tree topology (two nodes + one edge) so
-// LoadTopology can build a real MoveDispatch. Positions come from meta.json scenePolar.
+// writeTree is dispatch.WriteTree (this file moved to package dispatch_test — see
+// wire_test_helpers_test.go's doc comment on writeTree/WriteTree for why the canonical
+// copy stays in package dispatch).
 func writeTree(t *testing.T) string {
 	t.Helper()
-	root := t.TempDir()
-	mk := func(rel, body string) { writeTreeFile(t, root, rel, body) }
-	mk("nodes/1/meta.json", `{"id":"1","type":"SrcNode","r":100,"scenePolarR":37.4165738677,"scenePolarTheta":1.00685368543,"scenePolarPhi":1.2490457724}`)
-	mk("nodes/2/meta.json", `{"id":"2","type":"SinkNode","r":100,"scenePolarR":87.7496438739,"scenePolarTheta":0.96453035788,"scenePolarPhi":-2.15879893034}`)
-	mk("nodes/1/edges/e0.json", `{"label":"e0","kind":"data","sourceHandle":"Out","target":"2","targetHandle":"In"}`)
-	return root
+	return dispatch.WriteTree(t)
 }
 
-func loadTreeMD(t *testing.T, root string) *MoveDispatch {
+func loadTreeMD(t *testing.T, root string) *dispatch.MoveDispatch {
 	t.Helper()
 	tr := T.New()
-	_, _, md, _, err := LoadTopology(context.Background(), root, tr, clock.NewRealClock())
+	_, _, md, _, err := build.LoadTopology(context.Background(), root, tr, clock.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology: %v", err)
 	}
@@ -114,7 +113,7 @@ func TestPersistOverlaysRoundTrips(t *testing.T) {
 	}
 
 	// Seed a fresh dispatch from disk and confirm md.UI.OV is restored.
-	fresh := &MoveDispatch{UI: viewstate.UIState{OV: viewstate.DefaultOverlayState()}}
+	fresh := &dispatch.MoveDispatch{UI: viewstate.UIState{OV: viewstate.DefaultOverlayState()}}
 	fresh.LoadOverlays(root, nil)
 	if fresh.UI.OV.SceneToriVisible {
 		t.Fatalf("LoadOverlays did not restore sceneToriVisible=false")
@@ -130,7 +129,7 @@ func TestOverlaysPersistPreservesCamera(t *testing.T) {
 	root := writeTree(t)
 	md := loadTreeMD(t, root)
 	md.EnableViewpointPersist(root)
-	md.UI.VP.SetViewpoint(vec3{X: 1, Y: 2, Z: 3}, 200, geom.Dir{Theta: 0.5, Phi: 1.5}, geom.Dir{Theta: 0.05, Phi: 0.15})
+	md.UI.VP.SetViewpoint(wire.Vec3{X: 1, Y: 2, Z: 3}, 200, geom.Dir{Theta: 0.5, Phi: 1.5}, geom.Dir{Theta: 0.05, Phi: 0.15})
 	md.UI.VP.EmitViewpoint(nil)
 
 	md.EnableEditPersist(root)
@@ -139,7 +138,7 @@ func TestOverlaysPersistPreservesCamera(t *testing.T) {
 	md.Persist.Overlays().Schedule(md.UI.OV)
 
 	// Camera survives.
-	if _, _, _, _, ok := loadSceneViewpoint(root); !ok {
+	if _, _, _, _, ok := scenecamera.LoadSceneViewpoint(root); !ok {
 		t.Fatalf("cameraPolar clobbered by overlay write")
 	}
 	// Overlay landed.

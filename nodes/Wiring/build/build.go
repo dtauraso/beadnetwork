@@ -12,11 +12,12 @@
 // monolithic loader.go function performed them; behavior is unchanged. loader.go's
 // LoadTopology calls buildFromSpec after parsing + validating via topo_spec.go.
 
-package dispatch
+package build
 
 import (
 	"context"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
@@ -54,7 +55,7 @@ type buildCtx struct {
 
 	// Phase 1: node geometry + world centers.
 	nodeGeoms map[string]nodegeom.NodeGeom
-	centers   map[string]vec3
+	centers   map[string]wire.Vec3
 
 	// Phase 1b: quantized flat absolute scene-polar layout (quantized_layout.go) —
 	// resolved BEFORE reach/wire/dispatch phases so every later phase computes from the
@@ -73,10 +74,10 @@ type buildCtx struct {
 	// running (chain_beads.go's chainBeads); this load-time value is what the
 	// wire's dwell and the first-frame chain layout start from before that.
 	edgeSteps    map[string]int
-	edgeSegments map[string]wireSegment
+	edgeSegments map[string]wire.WireSegment
 
 	// Phase 5: the MoveDispatch.
-	md *MoveDispatch
+	md *dispatch.MoveDispatch
 
 	// speedSinks accumulates the SEND end of every speed channel created for
 	// any clock-owning goroutine across the whole build — edge movers
@@ -109,7 +110,7 @@ type buildCtx struct {
 // buildFromSpec constructs nodes, wires, and the MoveDispatch from an already-parsed
 // and validated topoSpec. It orchestrates the phase helpers below in the same order
 // the original monolithic function performed them; behavior is unchanged.
-func buildFromSpec(ctx context.Context, spec loadspec.TopoSpec, tr *T.Trace, clk clock.Clock, sphere geom.SceneSphere, hasScene bool, scenePath string) ([]wire.Node, inputcodec.SlotRegistry, *MoveDispatch, []chan float64, error) {
+func buildFromSpec(ctx context.Context, spec loadspec.TopoSpec, tr *T.Trace, clk clock.Clock, sphere geom.SceneSphere, hasScene bool, scenePath string) ([]wire.Node, inputcodec.SlotRegistry, *dispatch.MoveDispatch, []chan float64, error) {
 	b := &buildCtx{ctx: ctx, spec: spec, tr: tr, clk: clk, sphere: sphere, hasScene: hasScene, scenePath: scenePath}
 
 	b.nodeGeoms, b.centers = topoderive.ComputeNodeGeometry(b.spec, b.sphere)

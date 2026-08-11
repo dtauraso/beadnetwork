@@ -7,13 +7,15 @@
 // move is delivered exactly as the live bridge does — by mail-sorting each entry onto
 // the node's own extIn channel and every incident edge's own extIn channel.
 
-package dispatch
+package dispatch_test
 
 import (
 	"context"
 	"strings"
 	"testing"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/build"
+	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
@@ -43,12 +45,12 @@ func TestNodeGeometryLabelSidecar(t *testing.T) {
 	  }}
 	}`
 
-	root := writeSpecTree(t, t.TempDir(), topo)
+	root := dispatch.WriteSpecTree(t, t.TempDir(), topo)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	tr := T.New()
-	_, _, md, _, err := LoadTopology(ctx, root, tr, clock.NewRealClock())
+	_, _, md, _, err := build.LoadTopology(ctx, root, tr, clock.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology: %v", err)
 	}
@@ -92,14 +94,14 @@ func TestNewMoveDispatchRejectsDanglingEdgeTarget(t *testing.T) {
 	edgeEndpoints := map[string]inputcodec.EdgeEndpoints{
 		"e0": {Source: "1", Target: "9", SourceHandle: "Out", TargetHandle: "In"},
 	}
-	_, err := newMoveDispatch(geoms, edgeEndpoints, nil, nil, nil, clock.NewRealClock(), nil, 0)
+	_, err := dispatch.NewMoveDispatch(geoms, edgeEndpoints, nil, nil, nil, clock.NewRealClock(), nil, 0)
 	if err == nil {
-		t.Fatal("newMoveDispatch: want error for edge targeting a missing node, got nil")
+		t.Fatal("NewMoveDispatch: want error for edge targeting a missing node, got nil")
 	}
 	if !strings.Contains(err.Error(), `"e0"`) {
-		t.Fatalf("newMoveDispatch error %q does not name the edge label \"e0\"", err.Error())
+		t.Fatalf("NewMoveDispatch error %q does not name the edge label \"e0\"", err.Error())
 	}
 	if !strings.Contains(err.Error(), `"9"`) {
-		t.Fatalf("newMoveDispatch error %q does not name the missing node id \"9\"", err.Error())
+		t.Fatalf("NewMoveDispatch error %q does not name the missing node id \"9\"", err.Error())
 	}
 }

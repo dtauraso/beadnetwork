@@ -1,4 +1,4 @@
-package dispatch
+package dispatch_test
 
 // scene_clock_divisor_test.go — the PAIR scene's clock runs SLOWER than the ring's at the
 // same user-chosen speed, an entirely GO-OWNED scaling (never crosses the bridge, never

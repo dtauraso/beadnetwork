@@ -11,7 +11,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
-	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
+	Bld "github.com/dtauraso/wirefold/nodes/Wiring/build"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -27,7 +27,7 @@ func TestPairNodesHaveNoNodeMoverRingNodesDo(t *testing.T) {
 	pairRoot := writePairTree(t)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	_, _, pairMD, _, err := Wiring.LoadTopology(ctx, pairRoot, tr, clock.NewRealClock())
+	_, _, pairMD, _, err := Bld.LoadTopology(ctx, pairRoot, tr, clock.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology(pair): %v", err)
 	}
@@ -39,7 +39,7 @@ func TestPairNodesHaveNoNodeMoverRingNodesDo(t *testing.T) {
 
 	ringCtx, ringCancel := context.WithCancel(context.Background())
 	defer ringCancel()
-	_, _, ringMD, _, err := Wiring.LoadTopology(ringCtx, "topology", tr, clock.NewRealClock())
+	_, _, ringMD, _, err := Bld.LoadTopology(ringCtx, "topology", tr, clock.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology(topology): %v", err)
 	}

@@ -1,4 +1,4 @@
-package dispatch
+package dispatch_test
 
 // flush_pending_persists_test.go — the load-path half of the quant-offset persistence
 // coverage; the bare-NodeGeometry half moved to

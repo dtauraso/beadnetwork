@@ -1,13 +1,15 @@
 // per_edge_travel_time_test.go — load-time validation guard for the model boundary:
 // fan-in (two edges into the same input port) is rejected at load.
 
-package dispatch
+package dispatch_test
 
 import (
 	"context"
 	"strings"
 	"testing"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/build"
+	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -35,10 +37,10 @@ func TestFanInRejectedAtLoad(t *testing.T) {
 	    {"label":"eB","kind":"data","source":"2","sourceHandle":"Out","target":"3","targetHandle":"In"}
 	  ]
 	}`
-	root := writeSpecTree(t, t.TempDir(), topo)
+	root := dispatch.WriteSpecTree(t, t.TempDir(), topo)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	_, _, _, _, err := LoadTopology(ctx, root, T.New(), clock.NewRealClock())
+	_, _, _, _, err := build.LoadTopology(ctx, root, T.New(), clock.NewRealClock())
 	if err == nil {
 		t.Fatalf("LoadTopology accepted a fan-in topology (two edges into sink.In); want a fan-in rejection error")
 	}

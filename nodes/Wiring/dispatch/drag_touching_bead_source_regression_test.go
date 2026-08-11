@@ -1,4 +1,4 @@
-package dispatch
+package dispatch_test
 
 // drag_touching_bead_source_regression_test.go — regression coverage for the
 // dragTouchingBeads isSource bug fixed in quantized_move.go: the SOURCE-side branch used
@@ -24,14 +24,16 @@ import (
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/beadcrud"
+	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/layoutquant"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
 // touchingBeadFor returns writeTree's single touching bead for nodeID ("1" or "2") and
 // nodeID's own live centre, using the SAME dragTouchingBeads call production drives.
-func touchingBeadFor(t *testing.T, md *MoveDispatch, nodeID string) (beadcrud.TouchingBead, vec3) {
+func touchingBeadFor(t *testing.T, md *dispatch.MoveDispatch, nodeID string) (beadcrud.TouchingBead, wire.Vec3) {
 	t.Helper()
 	nm, ok := md.MR.NodeGeoms()[nodeID]
 	if !ok {

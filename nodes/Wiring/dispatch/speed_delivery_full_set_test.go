@@ -16,6 +16,7 @@ import (
 	_ "github.com/dtauraso/wirefold/nodes/Time"
 	_ "github.com/dtauraso/wirefold/nodes/TimeEnd"
 	_ "github.com/dtauraso/wirefold/nodes/TimeStart"
+	Bld "github.com/dtauraso/wirefold/nodes/Wiring/build"
 	W "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	_ "github.com/dtauraso/wirefold/nodes/holdflip"
 	_ "github.com/dtauraso/wirefold/nodes/input"
@@ -88,7 +89,7 @@ func TestSpeedSinksCoverEveryClockOwningGoroutine(t *testing.T) {
 	defer cancel()
 	tr := T.New()
 
-	_, _, _, speedSinks, err := W.LoadTopology(ctx, root, tr, clock.NewRealClock())
+	_, _, _, speedSinks, err := Bld.LoadTopology(ctx, root, tr, clock.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology: %v", err)
 	}

@@ -21,6 +21,7 @@ import (
 
 	T "github.com/dtauraso/wirefold/Trace"
 	_ "github.com/dtauraso/wirefold/nodes/PairNode"
+	Bld "github.com/dtauraso/wirefold/nodes/Wiring/build"
 	W "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 )
 
@@ -83,7 +84,7 @@ func TestPairNodeVectorChannelsThreadSourceOutTargetIn(t *testing.T) {
 	root := W.WriteSpecTree(t, t.TempDir(), topo)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	nodes, _, _, _, err := W.LoadTopology(ctx, root, T.New(), clock.NewRealClock())
+	nodes, _, _, _, err := Bld.LoadTopology(ctx, root, T.New(), clock.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology: %v", err)
 	}

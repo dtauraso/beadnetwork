@@ -2,11 +2,12 @@
 // node from the wire allocation and edge maps computed by earlier phases, then
 // binds the resulting Outs and dest wires into the already-built MoveDispatch.
 
-package dispatch
+package build
 
 import (
 	"fmt"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
 	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
@@ -136,6 +137,6 @@ func (b *buildCtx) buildNodes() error {
 
 // bindDispatch binds per-edge source Outs and dest wires into each edgeMover so
 // a node-move updates per-edge travel-time.
-func bindDispatch(md *MoveDispatch, outSink map[string]*wire.Out, destWire map[string]*wire.PacedWire) {
+func bindDispatch(md *dispatch.MoveDispatch, outSink map[string]*wire.Out, destWire map[string]*wire.PacedWire) {
 	md.MR.Bind(outSink, inputcodec.SlotRegistry(destWire))
 }

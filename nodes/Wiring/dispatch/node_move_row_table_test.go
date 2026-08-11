@@ -7,12 +7,14 @@
 // identical, reproducible row indices for a representative graph. There is no port-row
 // table any more (docs/bead-model/channels-not-ports.md — a port has no buffer row of its own).
 
-package dispatch
+package dispatch_test
 
 import (
 	"context"
 	"testing"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/build"
+	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -33,12 +35,12 @@ func TestMoveDispatchRowTablesUseNodeIDMinusOne(t *testing.T) {
 	    {"label":"e0","kind":"data","source":"30","sourceHandle":"Out","target":"3","targetHandle":"In"}
 	  ]
 	}`
-	root := writeSpecTree(t, t.TempDir(), topo)
+	root := dispatch.WriteSpecTree(t, t.TempDir(), topo)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	tr := T.New()
 	clk := clock.NewRealClock()
-	_, _, md, _, err := LoadTopology(ctx, root, tr, clk)
+	_, _, md, _, err := build.LoadTopology(ctx, root, tr, clk)
 	if err != nil {
 		t.Fatalf("LoadTopology: %v", err)
 	}

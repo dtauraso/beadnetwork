@@ -9,7 +9,7 @@ import (
 
 	SF "github.com/dtauraso/wirefold/Buffer/streamframe"
 	T "github.com/dtauraso/wirefold/Trace"
-	W "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
+	Bld "github.com/dtauraso/wirefold/nodes/Wiring/build"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 )
 
@@ -52,7 +52,7 @@ func RunTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 	sceneTabNames := scene.SceneTabNames(topologyPath)
 	sceneTabSelected := scene.SelectedSceneIndex(topologyPath)
 	scenePath := scene.ResolveScenePath(topologyPath)
-	nodes, slotReg, md, speedSinks, err := W.LoadTopology(ctx, scenePath, tr, clk)
+	nodes, slotReg, md, speedSinks, err := Bld.LoadTopology(ctx, scenePath, tr, clk)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "load topology: %v\n", err)
 		os.Exit(1)

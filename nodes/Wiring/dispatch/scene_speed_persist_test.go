@@ -1,4 +1,4 @@
-package dispatch
+package dispatch_test
 
 // scene_speed_persist_test.go — round-trip test for the playback-speed persister
 // (view/speed.json): a clock/speed edit → the synchronous writer persists the multiplier to

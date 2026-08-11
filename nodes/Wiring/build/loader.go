@@ -20,11 +20,12 @@
 //   - Slice output ports (ToEdge): all outbound wires appended in spec order.
 //   - Output ports with no outbound edge: dead-end chan int (buf 1).
 
-package dispatch
+package build
 
 import (
 	"context"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
 	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
@@ -52,7 +53,7 @@ import (
 // this call and read thereafter by exactly one goroutine (stdin_reader's),
 // never touched by the goroutines that own the receive ends. Most callers
 // (tests that don't drive a speed slider) can discard it.
-func LoadTopology(ctx context.Context, jsonPath string, tr *T.Trace, clk clock.Clock) ([]wire.Node, inputcodec.SlotRegistry, *MoveDispatch, []chan float64, error) {
+func LoadTopology(ctx context.Context, jsonPath string, tr *T.Trace, clk clock.Clock) ([]wire.Node, inputcodec.SlotRegistry, *dispatch.MoveDispatch, []chan float64, error) {
 	kindapi.BuildRegistry()
 	spec, err := loadspec.ParseSpec(jsonPath)
 	if err != nil {

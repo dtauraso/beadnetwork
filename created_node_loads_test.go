@@ -25,8 +25,8 @@ import (
 	"testing"
 
 	T "github.com/dtauraso/wirefold/Trace"
+	Bld "github.com/dtauraso/wirefold/nodes/Wiring/build"
 	"github.com/dtauraso/wirefold/nodes/Wiring/countspersist"
-	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgefile"
 	"github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
@@ -154,7 +154,7 @@ func TestCreatedNodeTreeStillLoads(t *testing.T) {
 	defer cancel()
 	tr := T.New()
 	tr.SetSink(os.Stderr)
-	if _, _, _, _, err := Wiring.LoadTopology(ctx, root, tr, clock.NewRealClock()); err != nil {
+	if _, _, _, _, err := Bld.LoadTopology(ctx, root, tr, clock.NewRealClock()); err != nil {
 		t.Fatalf("a tree with a created node did not load: %v\n"+
 			"That is what the editor sees after a drop: the run ends, the host respawns, and the "+
 			"new process exits during load — no camera, so no zoom, pan or rotate.", err)

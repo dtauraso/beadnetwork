@@ -1,7 +1,7 @@
 // distance_groups_test.go — the "distance home button" controller's synchronous bounds
 // check: ApplyDistanceGroupTarget with an out-of-range group index must return false and
 // touch nothing, without needing the mover network running.
-package dispatch
+package dispatch_test
 
 import (
 	"context"
@@ -9,6 +9,8 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/build"
+	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -31,11 +33,13 @@ func repoRootForDistanceGroupsTest(t *testing.T) string {
 func TestDistanceGroupOutOfRangeIndexIsNoOp(t *testing.T) {
 	root := filepath.Join(repoRootForDistanceGroupsTest(t), "topology")
 	tr := T.NewWithSinkHook(nil, nil)
-	_, _, md, _, err := LoadTopology(context.Background(), root, tr, clock.NewRealClock())
+	_, _, md, _, err := build.LoadTopology(context.Background(), root, tr, clock.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology(production topology): %v", err)
 	}
-	if ok := ApplyDistanceGroupTarget(md.ctx, &md.UI, &md.MR, &md.LQ, 99, 1); ok {
+	// md.ctx (unexported) is never set here — LoadTopology does not call Start — so it is
+	// always nil; context.Background() is the same "no cancellation" value this test needs.
+	if ok := dispatch.ApplyDistanceGroupTarget(context.Background(), &md.UI, &md.MR, &md.LQ, 99, 1); ok {
 		t.Fatal("ApplyDistanceGroupTarget(99, up) = true, want false (out of range)")
 	}
 }

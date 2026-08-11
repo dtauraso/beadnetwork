@@ -103,6 +103,43 @@ func WriteSpecTree(t *testing.T, root string, specJSON string) string {
 	return writeSpecTree(t, root, specJSON)
 }
 
+// WriteTreeFile is writeTreeFile, exported for the same reason and by the same
+// _test.go-only-export precedent as WriteSpecTree above — external test packages that
+// build a hand-authored (non-spec-JSON) directory-tree fixture need it too, once
+// LoadTopology moved to nodes/Wiring/build and their own tests had to move out of this
+// package's own test binary to keep calling it.
+func WriteTreeFile(t *testing.T, root, rel, body string) {
+	t.Helper()
+	writeTreeFile(t, root, rel, body)
+}
+
+// writeTree lays down a minimal directory-tree topology (two nodes + one edge) so
+// LoadTopology can build a real MoveDispatch. Positions come from meta.json scenePolar.
+// Moved here from scene_edit_persist_test.go (this task) once that file had to become an
+// external test package (dispatch_test) to keep calling LoadTopology after it moved to
+// nodes/Wiring/build — several OTHER in-package tests (flush_pending_persists_test.go,
+// drag_touching_bead_source_regression_test.go, pair_node_self_clock_speed_test.go,
+// quantized_layout_test.go, scene_lattice_persist_test.go, scene_clock_divisor_test.go,
+// scene_speed_persist_test.go) still call the unexported writeTree directly, so it stays
+// here rather than moving with scene_edit_persist_test.go.
+func writeTree(t *testing.T) string {
+	t.Helper()
+	root := t.TempDir()
+	mk := func(rel, body string) { writeTreeFile(t, root, rel, body) }
+	mk("nodes/1/meta.json", `{"id":"1","type":"SrcNode","r":100,"scenePolarR":37.4165738677,"scenePolarTheta":1.00685368543,"scenePolarPhi":1.2490457724}`)
+	mk("nodes/2/meta.json", `{"id":"2","type":"SinkNode","r":100,"scenePolarR":87.7496438739,"scenePolarTheta":0.96453035788,"scenePolarPhi":-2.15879893034}`)
+	mk("nodes/1/edges/e0.json", `{"label":"e0","kind":"data","sourceHandle":"Out","target":"2","targetHandle":"In"}`)
+	return root
+}
+
+// WriteTree is writeTree, exported for the same _test.go-only-export reason as
+// WriteSpecTree/WriteTreeFile above — scene_edit_persist_test.go (package dispatch_test)
+// needs it too.
+func WriteTree(t *testing.T) string {
+	t.Helper()
+	return writeTree(t)
+}
+
 // quantizedDragTarget returns the position a drag to target actually COMMITS to under the
 // scene lattice — bead CRUD (bead_crud.go, PLAN.md "moving a node is CRUD on the edge
 // beads touching it"): every touching bead (dragTouchingBeads) judges the SAME raw target
@@ -114,7 +151,11 @@ func WriteSpecTree(t *testing.T, root string, specJSON string) string {
 // pre-drag centers as the judging configuration) — calls the EXACT SAME
 // resolveBeadCrudMove commitNodeMoveLocal calls, so this is not an independent oracle of
 // the formula, only of the call.
-func quantizedDragTarget(md *MoveDispatch, nodeID string, target vec3) vec3 {
+// QuantizedDragTarget is quantizedDragTarget, exported for the same _test.go-only-export
+// reason as WriteSpecTree/WriteTreeFile/WriteTree above — every remaining in-package
+// caller now goes through here too, since it moved with the rest of this file's callers
+// to package dispatch_test once LoadTopology moved to nodes/Wiring/build.
+func QuantizedDragTarget(md *MoveDispatch, nodeID string, target vec3) vec3 {
 	if !md.LQ.QuantizedLayout {
 		return target
 	}

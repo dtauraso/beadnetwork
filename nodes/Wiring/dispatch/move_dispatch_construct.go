@@ -26,7 +26,11 @@ import (
 	T "github.com/dtauraso/wirefold/Trace"
 )
 
-// newMoveDispatch builds the registry from per-node geometry and per-edge endpoints.
+// NewMoveDispatch builds the registry from per-node geometry and per-edge endpoints.
+// Exported (this task) so nodes/Wiring/build's buildMoveDispatch can call it: it
+// constructs the MoveDispatch struct literal and reads md.tapToInstall (unexported),
+// which is why this constructor itself must stay in package dispatch even though its
+// caller moved out.
 // It creates one nodeMover per node and one edgeMover per edge, registering each under
 // its key (node id / edge id) in md.MR.NodeGeoms()/md.MR.EdgeMovers(), and wires the dedicated
 // directed channels between adjacent movers. Outs and dest wires are bound later by Bind once node
@@ -44,7 +48,7 @@ import (
 // rowCount is the buffer's node-row space (topoSpec.RowCount — the largest node id found,
 // not the node count): rows 0..rowCount-1, ROW ID = NODE ID - 1. 0 (test call sites that
 // don't pass one) falls back to the number of resolved seeds, i.e. no gaps.
-func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[string]inputcodec.EdgeEndpoints, tr *T.Trace, nodeOrder, edgeOrder []string, clk clock.Clock, speedSinks *[]chan float64, rowCount int) (*MoveDispatch, error) {
+func NewMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[string]inputcodec.EdgeEndpoints, tr *T.Trace, nodeOrder, edgeOrder []string, clk clock.Clock, speedSinks *[]chan float64, rowCount int) (*MoveDispatch, error) {
 	// nil order (test call sites that don't care about seed order) falls back to sorted
 	// map keys — still deterministic, just not necessarily spec order.
 	if nodeOrder == nil {

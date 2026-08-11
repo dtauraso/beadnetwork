@@ -13,15 +13,18 @@
 // encoding/json, no MoveDispatch/writeSpecTree/LoadTopology harness, so it did not need
 // to stay in package Wiring.
 
-package dispatch
+package dispatch_test
 
 import (
 	"context"
 	"math"
 	"testing"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/build"
+	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -42,10 +45,10 @@ func TestLoadTopologyComputesReachRadii(t *testing.T) {
 	    {"label":"e0","kind":"data","source":"1","sourceHandle":"Out","target":"2","targetHandle":"In"}
 	  ]
 	}`
-	root := writeSpecTree(t, t.TempDir(), topo)
+	root := dispatch.WriteSpecTree(t, t.TempDir(), topo)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	_, _, md, _, err := LoadTopology(ctx, root, T.New(), clock.NewRealClock())
+	_, _, md, _, err := build.LoadTopology(ctx, root, T.New(), clock.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology: %v", err)
 	}
@@ -83,10 +86,10 @@ func TestLoadTopologyComputesQuantizedOffsets(t *testing.T) {
 	    {"label":"e0","kind":"data","source":"1","sourceHandle":"Out","target":"2","targetHandle":"In"}
 	  ]
 	}`
-	root := writeSpecTree(t, t.TempDir(), topo)
+	root := dispatch.WriteSpecTree(t, t.TempDir(), topo)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	_, _, md, _, err := LoadTopology(ctx, root, T.New(), clock.NewRealClock())
+	_, _, md, _, err := build.LoadTopology(ctx, root, T.New(), clock.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology: %v", err)
 	}
@@ -98,7 +101,7 @@ func TestLoadTopologyComputesQuantizedOffsets(t *testing.T) {
 	// No sphere.json was written, so the scene center is the zero vector — the same
 	// center computeQuantizedLayout measured node 2's offset about.
 	wantCenter := geom.Polar2cart(geom.Polar{R: 50, Theta: math.Pi / 2, Phi: 0})
-	got := quantoffset.DeriveCenters(map[string]quantoffset.QuantizedOffset{"2": dst.QuantizedOffsetValue()}, vec3{})["2"]
+	got := quantoffset.DeriveCenters(map[string]quantoffset.QuantizedOffset{"2": dst.QuantizedOffsetValue()}, wire.Vec3{})["2"]
 
 	// Quantization introduces lattice rounding error (1-degree angular cells, one bead
 	// of radial cell) — a generous tolerance that still fails hard on a zero offset,

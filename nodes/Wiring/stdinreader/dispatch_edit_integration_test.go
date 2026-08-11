@@ -18,6 +18,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/build"
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
@@ -85,7 +86,7 @@ func writeMinimalTree(t *testing.T) string {
 func loadMinimalMD(t *testing.T, root string) *dispatch.MoveDispatch {
 	t.Helper()
 	tr := T.New()
-	_, _, md, _, err := dispatch.LoadTopology(context.Background(), root, tr, clock.NewRealClock())
+	_, _, md, _, err := build.LoadTopology(context.Background(), root, tr, clock.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology: %v", err)
 	}

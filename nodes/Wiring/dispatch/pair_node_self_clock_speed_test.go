@@ -13,7 +13,7 @@
 // second goroutine is launched, no cross-goroutine delivery is exercised — Step is called
 // directly, synchronously, on the test goroutine, exactly the same shape
 // speed_delivery_test.go already uses for ApplySpeedNonBlocking itself.
-package dispatch
+package dispatch_test
 
 import (
 	"context"

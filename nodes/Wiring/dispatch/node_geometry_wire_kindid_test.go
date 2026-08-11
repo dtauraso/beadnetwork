@@ -8,12 +8,14 @@
 // lookup and asserts each node's OWN nodeGeometry.writeStreamFrame call (one goroutine,
 // run synchronously here — no mover goroutine is started) packs back its OWN kindID, not
 // some other node's or a constant.
-package dispatch
+package dispatch_test
 
 import (
 	"context"
 	"testing"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/build"
+	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
@@ -37,10 +39,10 @@ func TestSetNodeStreamsResolvesPerNodeKindID(t *testing.T) {
 	    {"label":"e0","kind":"data","source":"1","sourceHandle":"Out","target":"2","targetHandle":"In"}
 	  ]
 	}`
-	root := writeSpecTree(t, t.TempDir(), topo)
+	root := dispatch.WriteSpecTree(t, t.TempDir(), topo)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	_, _, md, _, err := LoadTopology(ctx, root, T.New(), clock.NewRealClock())
+	_, _, md, _, err := build.LoadTopology(ctx, root, T.New(), clock.NewRealClock())
 	if err != nil {
 		t.Fatalf("LoadTopology: %v", err)
 	}
