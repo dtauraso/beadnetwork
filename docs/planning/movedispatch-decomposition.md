@@ -163,6 +163,14 @@ Held back, NOT split, for named reasons:
   deleted in an earlier pass (`the local-polar drag-log reset (emitViewFrame(KindAbcDragReset)
   ...) that used to run here was deleted`); no live `emitViewFrame` call exists in the file.
 
+`scene_structure.go`'s 13 `refuseStructuralEdit`/`emitViewFrame` call-site pairs (not 12 —
+the true count, `refuseStructuralEdit(` calls excluding its own definition) are now covered
+two ways: `nodes/Wiring/refuse_structural_edit_emit_test.go` drives `CreateNode`/`DeleteNode`
+down their cheapest refusal branch (`!md.ui.sceneEditable`) and asserts both the
+`ui.editRefused` counter and a captured VIEW frame; `tools/network/structure/check-refusal-emits-frame.sh`
+statically checks every call site, not just the two the test reaches. Both were confirmed to
+fail when an emit was deleted, and both are clean on the current tree.
+
 Method/export counts unchanged by this pass (55 `MoveDispatch` methods total, 158 exported
 `Wiring` symbols) — the split moves emit calls between existing methods and their callers, it
 does not delete or add a `MoveDispatch` method (one exception nets to zero:
