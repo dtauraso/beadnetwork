@@ -387,18 +387,30 @@ are an open set of independent things; the phases are a closed ordered sequence,
 registering them would need priority numbers or a dependency DAG — more machinery for eleven
 known steps.
 
-## 4. ~3½ build phases recompute what the movers already derive
+## 4. WITHDRAWN — the build phases do not duplicate the movers, they initialise them
 
-One coordinate system: MODEL.md — *"a centre is a sum of polar vectors from ONE centre… every
-node hangs off the scene centre directly, one hop."* `nodegeom.EdgeStepCount` is called from
-`build_wires.go:45` at build and from `chain_beads.go:154` and
-`beadcrud/touching_beads.go:95` at runtime — same function, same frame, same inputs.
-`computeNodeGeometry`, `computeQuantizedLayout`, `computeReachRadii` are the same shape.
+This item claimed ~3½ build phases "recompute what the movers already derive" and should be
+deleted, on the evidence that `nodegeom.EdgeStepCount` is called from `build_wires.go:45` at
+build and from `chain_beads.go:154`/`beadcrud/touching_beads.go:95` at runtime, and that
+`reachRFromPolar` is called from both `computeReachRadii` and `commitNodeMoveLocal`.
 
-The structural phases are genuinely one-time (you cannot bind a channel that does not exist).
-The derived-geometry ones need not exist: if a node derives its geometry from its position and
-the scene sphere, as it already does at runtime, construction is the first update and those
-phases delete rather than move. Worth more than item 3, and item 3 does not block it.
+**Same function called twice is not the same as redundant.** Checked: the build phases produce
+the INITIAL geometry and seed it into the movers — `newMoveDispatch(geoms, …)` takes exactly
+what `computeNodeGeometry`/`computeReachRadii` computed. The movers then MAINTAIN it: a
+mover recomputes reach when a node moves. No mover derives its own initial geometry, and none
+reads the spec — the spec is on disk and only the loader opens it. So deleting
+`computeReachRadii` leaves every node at `ReachR = 0` until its first drag, and deleting
+`computeNodeGeometry` leaves the movers with nothing to be seeded with.
+
+Initialisation and maintenance calling the same pure function is correct, not duplication —
+it is the same frame producing the same answer at two different times, which is what a single
+coordinate system is FOR.
+
+The claim was built from a grep showing one function in two places, turned into an
+architectural conclusion without testing whether either call could actually be removed. That
+is the same shape as the `loadspec` and `currentBuildMD` rationalisations recorded above: a
+locally true observation that does not reach the conclusion drawn from it. Left here as the
+record; nothing to do.
 
 ---
 
