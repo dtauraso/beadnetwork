@@ -1905,3 +1905,47 @@ the doctrine says it should: pure state reads are testable, cross-goroutine deli
 `edge_mover_stream.go`/`edge_mover_run.go` moved out) plus the deleted `stepdeliver` package
 (1 file). No interface, `types`/`common` package, alias shim, dot-import, package-level actor
 global, or `ForTest` hatch was added.
+
+## 18. `nodeGeometry` does NOT move out of package `Wiring` — measured, declined
+
+§17 moved `edgeMover` into `nodes/Wiring/edgemover`. The obvious next step was the same move
+for the per-node actor (`nodeGeometry`/`nodeMover`) into a `nodeactor` package. It was
+measured and declined. Recording it so the measurement is not redone.
+
+**What made `edgeMover` movable.** ZERO production files outside its own three touched an
+unexported field. Every external need resolved to one of 16 named members, each cleanly
+construction-time-once or a genuinely-repeated post-construction operation — so a constructor
+plus ~15 methods covered the whole surface, and all four inbox channels stayed unexported
+behind methods that close over them.
+
+**Why `nodeGeometry` is a different shape.** A first pass grepped the literal type name
+`*nodeGeometry` in signatures and found 5 external files. That UNDERCOUNTS: it misses every
+file that receives an already-typed `nm`/`ng` (ranged out of `md.mr.nodeGeoms`) and then reads
+or WRITES its unexported sub-struct fields without re-declaring the type. Grepping by field
+selector instead (`.geom`, `.topo.`, `.msg.`, `.outs.`, `.stream.`, `.tilt.`, `.readout.`,
+`.clocks.`, `.beads.`, `.flags.`, `.quantOffset`, `.persistRoot`, `.selfKind`) finds 11 files
+outside the actor's own files:
+
+`mover_registry.go`, `move_dispatch_construct.go`, `commit_node_move.go`, `touching_beads.go`,
+`stream_wiring.go`, `build_move_dispatch.go`, `build_args_selfdrive.go`, `move_streams.go`,
+`move_persist.go`, `broadcast_move.go`, `distance_groups.go`.
+
+These are not reads at the edges. `move_dispatch_construct.go` assigns five `ng.msg.*` fields
+and creates `nm.msg.neighborIn` channels in both directions; `nm.topo.mutualTargets`,
+`edgeIDs`, and `partnerCenters` are read AND written from outside the actor during the
+single-threaded wiring pass, and `edgeIDs`/`partnerCenters` again from the runtime commit/drag
+path (`commit_node_move.go`, `touching_beads.go`). The touched set spans nearly every one of
+the type's named sub-owners.
+
+**Why the §17 remedy does not transfer.** An exported accessor/setter per touched field would
+be roughly 25–35 new exported methods, and would convert most of the loader's node-wiring code
+from field writes to method calls in the same commit. That is not "move the actor" — it is a
+materially larger change that would re-open the reach-back-in shape item 5 declined for
+`uiState`, at larger scale (item 5 found ONE file reaching `uiState` by field; this is 11).
+
+**The stop condition that applies.** Not the channel rule specifically — the surface simply
+cannot be reduced to a constructor plus a small post-construction API without an oversized
+exported surface or a genuine model-shaped change. Per §17's own rule, a correct decline beats
+a move that opens the ownership hole.
+
+Nothing was moved. This entry records the measurement, not a plan to revisit it.
