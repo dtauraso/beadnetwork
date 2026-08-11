@@ -12,6 +12,7 @@ import (
 	"fmt"
 
 	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
 // DriveOneCycle is this wire's single per-cycle unit of work: drain newly
@@ -180,18 +181,9 @@ func (pw *PacedWire) ReviseInFlightGeometry(tick int64, newSteps int, newSeg Wir
 	nowTick := float64(tick)
 	for i := range pw.inflight {
 		b := &pw.inflight[i]
-		t := 0.0
+		// elapsed ticks / old ticksToCross = fraction covered.
 		oldCross := pw.ticksToCross(b.steps)
-		if oldCross > 0 {
-			// elapsed ticks / old ticksToCross = fraction covered.
-			t = (nowTick - b.placementTick) / oldCross
-			if t < 0 {
-				t = 0
-			}
-			if t > 1 {
-				t = 1
-			}
-		}
+		t := lattice.BeadFraction(nowTick, b.placementTick, oldCross)
 		b.steps = newSteps
 		b.seg = newSeg
 		// Rebase placementTick so elapsed-since-placement maps to the same fraction t

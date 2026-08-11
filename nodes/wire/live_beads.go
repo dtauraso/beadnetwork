@@ -6,7 +6,15 @@
 // methods on PacedWire, under the wire's usual single-goroutine contract: call them only
 // from the goroutine that drives this wire, which in production is its SOURCE NODE's own
 // mover. This file is a split for readability; the code below is unchanged.
+//
+// The per-bead clamp-and-divide fraction math itself (nowTick/placementTick/crossTicks ->
+// t) is not wire-specific at all — it never reads pw.inflight, only the three float64s a
+// caller already extracted from one bead — so it is lattice.BeadFraction
+// (nodes/wire/lattice/bead_fraction.go), shared with paced_wire_drive.go's
+// ReviseInFlightGeometry.
 package wire
+
+import "github.com/dtauraso/wirefold/nodes/wire/lattice"
 
 // LiveBeadRow is one in-flight bead's CURRENT world position + value + id, computed with
 // the same lerp math advanceBead uses but with NO side effects — no trace emit, no state
@@ -54,17 +62,7 @@ func (pw *PacedWire) LiveBeadFractions(tick int64) []LiveBeadProgress {
 		if crossTicks <= 0 {
 			continue
 		}
-		target := nowTick
-		if nowTick >= b.placementTick+crossTicks {
-			target = b.placementTick + crossTicks
-		}
-		t := (target - b.placementTick) / crossTicks
-		if t > 1 {
-			t = 1
-		}
-		if t < 0 {
-			t = 0
-		}
+		t := lattice.BeadFraction(nowTick, b.placementTick, crossTicks)
 		out = append(out, LiveBeadProgress{T: t, Val: b.val, Steps: b.steps})
 	}
 	return out
@@ -84,20 +82,7 @@ func (pw *PacedWire) LiveBeadRows(tick int64) []LiveBeadRow {
 			continue
 		}
 		crossTicks := pw.ticksToCross(b.steps)
-		target := nowTick
-		if crossTicks > 0 && nowTick >= b.placementTick+crossTicks {
-			target = b.placementTick + crossTicks
-		}
-		t := 0.0
-		if crossTicks > 0 {
-			t = (target - b.placementTick) / crossTicks
-		}
-		if t < 0 {
-			t = 0
-		}
-		if t > 1 {
-			t = 1
-		}
+		t := lattice.BeadFraction(nowTick, b.placementTick, crossTicks)
 		p := lerp(b.seg.Start, b.seg.End, t)
 		rows = append(rows, LiveBeadRow{Val: b.val, X: p.X, Y: p.Y, Z: p.Z, Gen: b.gen})
 	}
