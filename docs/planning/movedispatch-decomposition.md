@@ -2925,3 +2925,127 @@ the BONUS goal named in §23 (node kinds decoupled from the dispatch core) is no
 done and load-bearing (proven by the `go list -deps` loop and the deliberate-break test).
 The 3-way, ≤31-files-per-package split requested THIS task is not — `dispatch` remains one
 81-file package, for the file-by-file reasons measured above, not by assumption.
+
+## 25. The TS extension host's five largest files — one real split found, four declined
+
+A separate concurrent pass (same branch) measured the five largest TS files in
+`tools/topology-vscode/src/` for the same god-object shape, statement by statement, never by
+signature or whole-file label.
+
+**`buffer-log.ts` (338 → 131 lines) — real split, landed.** `decodeEventLine` (117 lines) and
+its two helpers `nodeGeometryLine` (21 lines) and `overlayFlag`/`OVERLAY_KINDS` (25 lines) are
+100% bucket (b): every statement in all three is a `readEvent*`/`readNode*`/`readOverlay*`
+column read, a `switch` on the decoded `kind` string, or object-literal construction from
+those reads — no `vscode.*`, no process/webview call, no mutation of anything outside the
+function's own locals. They moved to
+`src/webview/three/decode/decode-event-line.ts`, an EXISTING directory that already holds the
+sibling `buffer-decode-{edge,node,interior,view,shared}.ts` modules these functions already
+imported from (`nodeLabel`, `edgeLabel`, `INTERIOR_SLOTS_PER_NODE`) — no new directory. What
+stayed in `buffer-log.ts`: `decodeBufferLog`, `decodeEventsFromView`, `decodeStreamFrameEvents`
+(the per-frame loop that calls `decodeEventLine` once per row and serializes to a
+`.probe/go*.jsonl` line) and the `DecodedEventLine` exported type (pinned by
+`test/contracts/trace-event-fields.test.ts`, which imports it by that path and was left
+untouched). `ViewBlocksOrNull` (the camera/overlay/scene-sphere view lookup) moved with
+`decodeEventLine` since only that function reads it.
+
+No guard names `buffer-log.ts`, `decodeEventLine`, or the moved symbols by path or string
+(`grep -rl "buffer-log\|decodeEventLine\|decodeBufferLog\|decodeStreamFrameEvents\|nodeGeometryLine\|DecodedEventLine" tools/ --include="*.sh"`
+— zero hits) — no guard to re-key. `messages.ts`'s parity fences (`OVERLAY_FLAGS_START/END`,
+`EDIT_MSG_START/END`, `RAW_INPUT_START/END`) are untouched — the file was not moved.
+
+Test-name/assertion equality: both consuming test files
+(`test/contracts/trace-event-fields.test.ts`, `test/buffer/bufferLogBreadcrumbsOnly.test.ts`,
+14 tests total) import unchanged from `../../src/buffer-log` and pass unmodified, same names,
+same assertion counts, verified by `npx vitest run` before and after (180/180 project-wide).
+Deliberate-break proof: `decodeEventLine`'s breadcrumb-label line
+(`const label = BREADCRUMB_LABELS[labelId] ?? String(labelId);`) hardcoded to `"BROKEN"`
+failed both `bufferLogBreadcrumbsOnly.test.ts` cases (`expected 'BROKEN' to be 'dwell_start'`);
+restored and reconfirmed green. Named gap: `bufferLogBreadcrumbsOnly.test.ts` also carries an
+`edge-bead` row through the same decode but asserts only its `kind`, never its
+`x`/`y`/`z`/`f`/`bead` fields — breaking `readEventX` in the `edge-bead` case (tried:
+substituting a literal for `readEventX(ev, i)`) did NOT fail either test. The `recv`/`fire`/
+`send`/`arrive`/`geometry`/`node-geometry`/`node-bead`/`camera`/`scene-sphere`/`select`/
+`hover`/overlay-kind branches of `decodeEventLine`, and all of `nodeGeometryLine`, have NO
+live test that can fail on a wrong field value — `trace-event-fields.test.ts` only checks the
+STATIC fixture JSONL's shape (`DecodedEventLine`'s type), it never calls `decodeEventLine`.
+This gap pre-dates the move (same functions, same file, before the split) — the move does not
+change it, only relocates it; recorded here per this task's instruction to say plainly which
+lifted functions have no test that can fail.
+
+**Declined, with the specific pinning statement quoted:**
+
+- **`runCommand.ts` (408 lines).** Every remaining statement in the class body (`run`,
+  `cancel`, `restart`, `dispose`, `newDemux`, `writeStdin`, the four `getLast*` accessors) is
+  one of: a `vscode.*` call (`vscode.workspace.workspaceFolders`,
+  `vscode.window.createOutputChannel`), a `cp.spawn`/`this.proc.*`/`process.kill` call, or a
+  read/write of `this.proc`/`this.channel`/`this.demux`/`this.spawnGen`/`this.cancelled`/
+  `this.looping`/`this.pendingStdin` — the runner's own process-lifecycle state, by
+  construction (comment at the file's own head names what was ALREADY extracted to
+  `runner/*.ts`: `stream-fds.ts`, `spawn-layout.ts`, `attach-listeners.ts`, `counts.ts`,
+  `go-errors.ts`, `probe-paths.ts`, `framing.ts`, `parse-state.ts`, `stream-demux.ts`). No
+  statement measured is bucket (b) on its own locals; the file is what a prior pass on this
+  same branch already reduced it to. Declined as already-lifted, not as "it's the runner".
+- **`stream-demux.ts` (364 lines).** Every `handle*Fd` method interleaves three things per
+  statement: `splitFrames`/framing (already its own module, `runner/framing.ts`, imported not
+  reimplemented here), `fs.appendFileSync` to a `.probe/go*.jsonl` file (bucket a — a real
+  filesystem write, this class's own job per its doc comment: "the per-owner probe-log
+  decode ... AND the relay to the webview"), and cache mutation
+  (`this.lastViewFrame = ab.slice(0)`) plus `this.onSnapshot(...)` (bucket a — instance-state
+  write + a callback into the render seam). The decode calls themselves
+  (`decodeNodeStreamFrame`, `decodeEdgeStreamFrame`, `decodeInteriorStreamFrame`,
+  `decodeStreamFrameEvents`) are already pure functions imported from
+  `webview/three/decode/*.ts` — there is no further pure computation to lift; what remains
+  is the demux's own per-fd orchestration statement by statement.
+  `processInteriorLikeFrames`'s own doc comment states directly why its two callers
+  (`handleInteriorFd`/`handleDriveFd`) cannot be further merged even though their bodies
+  look similar (`docs/investigations/interior-stream-framing.md`'s fix: merging their CARRY
+  BUFFERS would desync two physically distinct pipes) — declined on that concrete
+  statement-level reason, not on file cohesion.
+- **`messages.ts` (277 lines).** Read function-by-function: `parseWebviewToHost` (18 lines)
+  and `parseHostToWebview` (17 lines) are pure (bucket b — `typeof`/`instanceof` checks on
+  their `raw` argument, no `vscode.*`), but the remainder of the file is type-only
+  (`EditMsg`, `RawInputEvent`, `RawHit`, `HostToWebviewMsg`, `WebviewToHostMsg`,
+  `OVERLAY_FLAG_NAMES`) — TypeScript types erase at compile time, so "splitting" them is
+  moving declarations, not lifting impure code away from pure code; there is no (a)/(b) split
+  to make here, the whole file is already (b) or type-erased. Declined for lack of an (a)/(b)
+  boundary to act on, not for file size. The `OVERLAY_FLAGS_START/END`, `EDIT_MSG_START/END`,
+  `RAW_INPUT_START/END` parity fences (`.claude/rules/bridge-surface.md`: parity guards grep
+  this file) are an added reason any future split of this file specifically must re-key
+  `check-edit-op-parity.sh`/`check-message-kind-parity.sh` and re-prove teeth before landing.
+- **`extension.ts` (290 lines).** `activate`, `armHostReloadWatcher`, `resetProbeLogs`,
+  `openTopologyEditor` — every statement measured touches `vscode.*` (commands, output
+  channels, webview panels, file-system watchers), `fs.*` tied 1:1 to a watcher/panel
+  lifecycle, or constructs a `cp`-adjacent runner/callback. The genuinely pure helpers this
+  file's watchers call (`hashBundle`, `isHostReloadEnabled`, `shouldReloadHost`,
+  `shouldRestartAfterBuild`, `TrailingDebouncer`) are already extracted to
+  `hostReload.ts`/`hotRestart.ts`, imported not reimplemented. No statement measured is
+  bucket (b) on this file's own locals.
+
+**Domain-state check:** the one real split (`decode-event-line.ts`) adds no store, cache,
+manager class, or module-level mutable — it is three free functions plus one interface,
+called synchronously per event row, holding nothing between calls. Refused: nothing here
+would have given state a home.
+
+**Verification.** `npx tsc --noEmit -p tools/topology-vscode` clean;
+`npm run build` (from `tools/topology-vscode`) succeeds (`out/extension.js`, `out/webview.js`
+both rebuilt); `npx eslint src/` clean; `npx vitest run` — 30 files, 180/180 passed, before and
+after. `bash scripts/stop-checks.sh` from repo root could not be read as a pass/fail signal in
+isolation on this branch: a concurrent Go-side agent's untracked/staged files
+(`nodes/Wiring/layoutquant/*.go`, mid-refactor) trip `check-no-untracked-source` regardless of
+this TS change; the TS-scoped checks above were run directly instead, per this task's
+instruction to check the signal a check actually emits rather than trust a shared gate mid
+concurrent-session.
+
+**Process note — a `git commit` with no pathspec is not scoped by a prior `git add
+<files>`.** The first commit here (`git add tools/topology-vscode/src/buffer-log.ts
+tools/topology-vscode/src/webview/three/decode/decode-event-line.ts` followed by `git commit`
+with no pathspec on the message) committed FOUR of the concurrent Go agent's already-staged
+file deletions (`nodes/Wiring/dispatch/broadcast_move.go`, `commit_node_move.go`,
+`quantized_move.go`, `touching_beads.go` — staged by that agent as part of an in-progress
+rename into `nodes/Wiring/layoutquant/`) along with the two intended TS files, because `git
+commit` with no pathspec commits the WHOLE INDEX, not just files added in the same shell
+call. Caught immediately via `git show --stat HEAD`, fixed with a second commit restoring
+those four files' HEAD~1 content as untracked (matching their pre-commit state exactly —
+verified via `git diff a82dd640~1 fc10d7ed -- nodes/Wiring` returning empty), never staged or
+committed by this pass again. `git status --short` after the fix shows only the other agent's
+pre-existing unstaged/untracked WIP, unchanged from before this pass touched the tree.
