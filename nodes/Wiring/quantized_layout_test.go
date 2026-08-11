@@ -1,9 +1,13 @@
 package Wiring
 
 import (
+	"encoding/json"
+	"os"
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/beadcrud"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/positionfile"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
@@ -239,4 +243,97 @@ func TestCommitNodeMoveLocalAddMovesOneBeadBeyondNewBead(t *testing.T) {
 	if d := got.Sub(wantNodeCentre).Length(); d > 1e-6 {
 		t.Fatalf("dst's new centre should be one bead length beyond the newly added bead, along the chain axis: got=%+v want=%+v (off by %g)", got, wantNodeCentre, d)
 	}
+}
+
+// TestCommitNodeMoveLocalPersistsQuantizedNotRawPolar closes a coverage hole the tests
+// above miss entirely: they all assert `applyCenter`'s DRAWN center
+// (md.mr.centerOfNode), never the scene-polar written to nodes/<id>/position.json by
+// persistQuantOffset (commit_node_move.go, quant_offset_persist.go). A prior injected bug
+// — computing committedPolar from newPos (the raw drag target) instead of committedPos
+// (the quantized lattice landing point) — passed every existing node-drag test, because
+// none of them read the persisted file; it only surfaces on reload
+// (.claude/rules/persistence-ownership.md, docs/process/testing-shape.md's persistence
+// exception is the one case a test may go through real disk bytes). This test drives a
+// real commitNodeMoveLocal with EnableEditPersist armed (same setup as
+// TestCommitNodeMoveLocalDrawsQuantizedNotRawTarget: an off-lattice drag target so the raw
+// target and the quantized landing point are distinguishable) and reads position.json back
+// off a t.TempDir() tree, asserting the persisted scene-polar corresponds to committedPos
+// (what got drawn/committed), never to the raw drag target's polar.
+func TestCommitNodeMoveLocalPersistsQuantizedNotRawPolar(t *testing.T) {
+	root := writeTree(t)
+	md := loadTreeMD(t, root)
+	md.EnableEditPersist(root)
+	if !md.lq.quantizedLayout {
+		t.Fatal("test assumes quantizedLayout is on by default")
+	}
+	nm, ok := md.mr.nodeGeoms["2"]
+	if !ok {
+		t.Fatal("no nodeMover for dst")
+	}
+	before, ok := md.mr.centerOfNode("2")
+	if !ok {
+		t.Fatal("no center for dst")
+	}
+	srcCenter, ok := md.mr.centerOfNode("1")
+	if !ok {
+		t.Fatal("no center for src")
+	}
+	outward := before.Sub(srcCenter).Normalize()
+	// Off-lattice, same as TestCommitNodeMoveLocalDrawsQuantizedNotRawTarget: stepR is
+	// 8.96, so +30 world units is not an exact multiple of it — the raw target's own
+	// scene-polar and the committed (quantized) center's scene-polar are distinguishable.
+	target := before.Add(outward.Scale(30))
+
+	md.lq.commitNodeMoveLocal(&md.mr, &md.ui, nm, target)
+
+	got, ok := md.mr.centerOfNode("2")
+	if !ok {
+		t.Fatal("no center for dst after commit")
+	}
+	wantPolar := geom.Cart2polar(got.Sub(md.ui.sceneSphere.Center))
+	rawTargetPolar := geom.Cart2polar(target.Sub(md.ui.sceneSphere.Center))
+
+	// Assert real bytes on disk, per docs/process/testing-shape.md's persistence
+	// exception — persistQuantOffset is synchronous on the calling (this test's own)
+	// goroutine, so no wait/barrier is needed before reading the file back.
+	raw, err := os.ReadFile(positionfile.FilePath(root, "2"))
+	if err != nil {
+		t.Fatalf("reading position.json: %v", err)
+	}
+	var pf positionfile.JSON
+	if err := json.Unmarshal(raw, &pf); err != nil {
+		t.Fatalf("unmarshal position.json: %v", err)
+	}
+
+	// (1) The persisted scene-polar must NOT be the raw drag target's polar — proves the
+	// injected bug (committedPolar := geom.Cart2polar(newPos.Sub(...)) in the quantized
+	// branch) is caught.
+	if closePolar(pf.ScenePolarR, pf.ScenePolarTheta, pf.ScenePolarPhi,
+		rawTargetPolar.R, rawTargetPolar.Theta, rawTargetPolar.Phi) {
+		t.Fatalf("position.json persisted the RAW drag target's polar instead of the quantized committed polar: "+
+			"persisted=(%g,%g,%g) raw-target-polar=(%g,%g,%g)",
+			pf.ScenePolarR, pf.ScenePolarTheta, pf.ScenePolarPhi,
+			rawTargetPolar.R, rawTargetPolar.Theta, rawTargetPolar.Phi)
+	}
+	// (2) The persisted scene-polar must equal committedPos's own polar (what was
+	// actually drawn/committed) — the positive half of the assertion.
+	if !closePolar(pf.ScenePolarR, pf.ScenePolarTheta, pf.ScenePolarPhi,
+		wantPolar.R, wantPolar.Theta, wantPolar.Phi) {
+		t.Fatalf("position.json's persisted polar does not match the committed center's own polar: "+
+			"persisted=(%g,%g,%g) want=(%g,%g,%g)",
+			pf.ScenePolarR, pf.ScenePolarTheta, pf.ScenePolarPhi,
+			wantPolar.R, wantPolar.Theta, wantPolar.Phi)
+	}
+}
+
+func closePolar(r1, t1, p1, r2, t2, p2 float64) bool {
+	const eps = 1e-6
+	d := func(a, b float64) float64 {
+		x := a - b
+		if x < 0 {
+			x = -x
+		}
+		return x
+	}
+	return d(r1, r2) < eps && d(t1, t2) < eps && d(p1, p2) < eps
 }
