@@ -22,7 +22,7 @@ var hitClassifiers = map[string]func(md *MoveDispatch, g *gesturefsm.GestureStat
 		// now (mirrors interaction-handlers.ts: beginSphereRotation on a handhold hit).
 		g.HandholdDown = true
 		lq, mr := &md.lq, &md.mr
-		beginSphereRotation(&md.UI, func() map[string]vec3 { return lq.heldCenters(mr) }, ev)
+		g.BeginSphereRotation(md.UI.VP.Viewpoint, func() map[string]vec3 { return lq.heldCenters(mr) }, ev)
 	},
 	"node": func(md *MoveDispatch, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg) {
 		if node, ok := md.RT.NodeFromHit(ev.Hit); ok {
@@ -35,6 +35,6 @@ var hitClassifiers = map[string]func(md *MoveDispatch, g *gesturefsm.GestureStat
 	"empty": func(md *MoveDispatch, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg) {
 		g.EmptyDown = true
 		lq, mr := &md.lq, &md.mr
-		beginSphereRotation(&md.UI, func() map[string]vec3 { return lq.heldCenters(mr) }, ev)
+		g.BeginSphereRotation(md.UI.VP.Viewpoint, func() map[string]vec3 { return lq.heldCenters(mr) }, ev)
 	},
 }

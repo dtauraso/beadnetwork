@@ -1,16 +1,28 @@
 // Package gesturefsm holds the gesture FSM's OWNED STATE: the phase enum, GestureState,
-// GestureRect, and their pure state-only methods (PixelToNDC, Reset, Aspect) — lifted out of
-// package Wiring per docs/planning/movedispatch-decomposition.md's "6." section and
-// docs/planning/gesture-actor.md's step 3.
+// GestureRect, and both their pure state-only methods (PixelToNDC, Reset, Aspect) and any
+// leaf computation whose body reads/writes only this state's own fields plus params/locals
+// (BeginSphereRotation) — lifted out of package Wiring per
+// docs/planning/movedispatch-decomposition.md's "6." section and docs/planning/gesture-actor.md's
+// step 3.
 //
-// This package holds ONLY the state and its own methods — not the FSM's entry points
-// (gestPointerDown/Move/Up, HandleRawInput, gestHome, gestWheel) or the leaf actions that
-// read/write *uiState (beginSphereRotation, applyNodeDragTarget, commitDragStart, setHover).
-// Those stay on MoveDispatch/in package Wiring: they are reached by view_stream.go and other
-// Wiring files through the unexported *uiState type directly, by field, so they cannot move
-// without either dragging uiState (blocked — see movedispatch-decomposition.md item 5) or
-// exporting uiState's entire private surface, which the task that authored this package
-// declined to do.
+// The "cannot move without dragging uiState" claim this comment used to make does not hold
+// as stated: `uiState` itself DID move (it is `viewstate.UIState`, exported, since Step 4 of
+// gesture-actor.md), and several of the leaf actions that take it now take it as a bound
+// PARAMETER (`ui *viewstate.UIState`), not through `*MoveDispatch`/`*uiState` field access —
+// `applyNodeDragTarget`, `commitDragStart`, `setHover` were already written this way before
+// this pass. The real blocker for those three is narrower: `viewstate` imports `gesturefsm`
+// (`UIState.Gest gesturefsm.GestureState`), so `gesturefsm` importing `viewstate` back would
+// be a cycle — a function whose body genuinely needs to read/write OTHER `UIState` fields
+// (`ui.Sel`, `ui.LastDraggedNode`, `ui.SetHoverUI`, `ui.DragPlaneHit`) belongs in `viewstate`,
+// not here, regardless of parameter shape. `BeginSphereRotation` moved here because its body
+// reads only `vp` (passed by value) and this type's OWN fields (`Rect`, then writes
+// `RotPivot`/`RotCx`/`RotCy`/`RotPxPerRad`) — no `viewstate` dependency at all. The FSM's
+// entry points (`gestPointerDown/Move/Up`, `HandleRawInput`, `gestHome`, `gestWheel`) and the
+// remaining leaf actions that read/write OTHER `*viewstate.UIState` fields
+// (`applyNodeDragTarget`, `commitDragStart`, `setHover`, `updateHover`, `applySelect`) stay in
+// package Wiring for that reason, and additionally because several also reach unexported
+// `MoveDispatch` fields (`md.mr`, `md.lq`, `md.RT`, `md.ctx`) that cannot be named outside
+// package Wiring at all.
 package gesturefsm
 
 import (

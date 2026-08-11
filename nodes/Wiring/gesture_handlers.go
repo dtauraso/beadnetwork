@@ -38,7 +38,7 @@ func (md *MoveDispatch) gestHome(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	md.UI.EmitViewFrame(cameraViewEvent())
 }
 
-func (md *MoveDispatch) gestPointerDown(ev inputcodec.RawInputMsg, tr *T.Trace) {
+func (md *MoveDispatch) gestPointerDown(ev inputcodec.RawInputMsg) {
 	g := &md.UI.Gest
 	g.DownX, g.DownY = ev.X, ev.Y
 	g.PrevX, g.PrevY = ev.X, ev.Y
@@ -93,7 +93,7 @@ func (md *MoveDispatch) gestPointerMove(ev inputcodec.RawInputMsg, tr *T.Trace) 
 	}
 }
 
-func (md *MoveDispatch) gestPointerUp(ev inputcodec.RawInputMsg, slotReg inputcodec.SlotRegistry, tr *T.Trace) {
+func (md *MoveDispatch) gestPointerUp(ev inputcodec.RawInputMsg) {
 	g := &md.UI.Gest
 	switch {
 	case g.Phase == gesturefsm.GestDragging:
@@ -105,7 +105,7 @@ func (md *MoveDispatch) gestPointerUp(ev inputcodec.RawInputMsg, slotReg inputco
 		// Click → Go-owned selection. A node hit selects it; empty space clears the
 		// selection. md.UI.Sel.Selected is the authoritative selection; Select() emits it so the
 		// buffer snapshot marks the node's Selected column.
-		md.applySelect(ev, tr)
+		md.applySelect(ev)
 	}
 	wasDragging := g.Phase == gesturefsm.GestDragging
 	// Capture BEFORE reset() clears it (below) — movemsg.KindDragEnd must name the node

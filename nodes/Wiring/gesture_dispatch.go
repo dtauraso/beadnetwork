@@ -27,14 +27,14 @@ func (md *MoveDispatch) HandleRawInput(ev inputcodec.RawInputMsg, slotReg inputc
 // handler. An unknown kind is a no-op, matching the switch's absent default.
 var rawInputHandlers = map[string]func(md *MoveDispatch, ev inputcodec.RawInputMsg, slotReg inputcodec.SlotRegistry, tr *T.Trace){
 	"pointerdown": func(md *MoveDispatch, ev inputcodec.RawInputMsg, slotReg inputcodec.SlotRegistry, tr *T.Trace) {
-		md.gestPointerDown(ev, tr)
+		md.gestPointerDown(ev)
 	},
 	"pointermove": func(md *MoveDispatch, ev inputcodec.RawInputMsg, slotReg inputcodec.SlotRegistry, tr *T.Trace) {
-		md.updateHover(ev, tr)
+		md.updateHover(ev)
 		md.gestPointerMove(ev, tr)
 	},
 	"pointerup": func(md *MoveDispatch, ev inputcodec.RawInputMsg, slotReg inputcodec.SlotRegistry, tr *T.Trace) {
-		md.gestPointerUp(ev, slotReg, tr)
+		md.gestPointerUp(ev)
 	},
 	"wheel": func(md *MoveDispatch, ev inputcodec.RawInputMsg, slotReg inputcodec.SlotRegistry, tr *T.Trace) {
 		md.gestWheel(ev, tr)

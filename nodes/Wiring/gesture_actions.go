@@ -1,8 +1,6 @@
 package Wiring
 
 import (
-	"math"
-
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
@@ -18,37 +16,6 @@ import (
 // file owns no FSM state transitions; it only performs the behavior a phase handler decided
 // to invoke.
 
-// beginSphereRotation freezes the orbit pivot, its screen-pixel center, and pixels-per-radian
-// for the whole gesture. The pivot is the CONTENT DIRECTLY AHEAD (focusAhead): the node the
-// camera is most pointed at, at its depth on the view-center ray. So rotate orbits whatever you
-// have flown to and centered (fly to a node → rotate spins around it), the orbit depth tracks
-// what you look at, and — because the pivot is on the view axis — it does not re-aim the camera.
-func beginSphereRotation(ui *viewstate.UIState, heldCenters func() map[string]vec3, ev inputcodec.RawInputMsg) {
-	g := &ui.Gest
-	vp := ui.VP.Viewpoint
-	pivot := geom.FocusAhead(vp, heldCenters())
-	g.RotPivot = pivot
-
-	eye := geom.EyeOf(vp)
-	basis := geom.BasisFromViewpoint(vp.Pos, vp.Up)
-	ndcX, ndcY, _ := geom.ProjectNDC(pivot, eye, basis, ev.Fov, g.Rect.Aspect())
-	g.RotCx = ((ndcX+1)/2)*g.Rect.Width + g.Rect.Left
-	g.RotCy = ((-ndcY+1)/2)*g.Rect.Height + g.Rect.Top
-
-	// Rotate sensitivity is ANCHORED TO THE ON-SCREEN CONTENT-SPHERE RADIUS: pixels-per-radian
-	// scales by csRadius/pivotDist (the sphere's angular size), so a quarter-turn (pi/2) is
-	// reached by dragging one on-screen content-sphere radius, at every zoom level. Without the
-	// anchor, pi/2 required dragging nearly the full screen height and felt unreachable.
-	_, csRadius := geom.ContentSphereOf(heldCenters())
-	pivotDist := eye.Sub(pivot).Length()
-	fovRad := ev.Fov * math.Pi / 180
-	rpx := (g.Rect.Height / 2) / math.Tan(fovRad/2)
-	if pivotDist > 0 {
-		rpx *= csRadius / pivotDist
-	}
-	g.RotPxPerRad = math.Max(rpx*(2/math.Pi), 1)
-}
-
 // updateHover resolves the entity under the pointer from the raycast hit and, WHEN IT
 // CHANGES, records it as the Go-owned hover and emits KindHover so the buffer snapshot marks
 // the node's Hovered column. Hover is node-only now — a port is a load-time channel-binding
@@ -56,7 +23,7 @@ func beginSphereRotation(ui *viewstate.UIState, heldCenters func() map[string]ve
 // is gone. Deduping on the node keeps a still pointer and a same-entity drag from re-emitting
 // a snapshot each pointer-move (no new flood — Go already emits per raw-input; a hover only
 // fires on a genuine target change). An empty / edge / other hit clears hover.
-func (md *MoveDispatch) updateHover(ev inputcodec.RawInputMsg, tr *T.Trace) {
+func (md *MoveDispatch) updateHover(ev inputcodec.RawInputMsg) {
 	var node string
 	switch ev.Hit.Kind {
 	case "torus":
@@ -70,7 +37,7 @@ func (md *MoveDispatch) updateHover(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	}
 	mr, ctx := &md.mr, md.ctx
 	sendMoveFn := func(id string, msg movemsg.Msg) { sendMove(mr, ctx, id, msg) }
-	if events, changed := setHover(&md.UI, sendMoveFn, &md.RT, node, "", false, tr); changed {
+	if events, changed := setHover(&md.UI, sendMoveFn, &md.RT, node, "", false); changed {
 		md.UI.EmitViewFrame(events)
 	}
 }
@@ -144,7 +111,7 @@ func applyNodeDragTarget(ui *viewstate.UIState, rootMove func(id string, target 
 // hover RowEvent to emit; the caller (the view-owner goroutine) emits it — this method
 // itself never calls emitViewFrame, per docs/planning/movedispatch-decomposition.md's
 // write-then-emit split.
-func setHover(ui *viewstate.UIState, sendMoveFn func(id string, msg movemsg.Msg), RT *rowtables.RowTables, node, port string, isInput bool, tr *T.Trace) (events []wire.RowEvent, changed bool) {
+func setHover(ui *viewstate.UIState, sendMoveFn func(id string, msg movemsg.Msg), RT *rowtables.RowTables, node, port string, isInput bool) (events []wire.RowEvent, changed bool) {
 	if node == ui.Sel.HoverNode && port == ui.Sel.HoverPort && isInput == ui.Sel.HoverInput {
 		return nil, false // no change → no re-emit (dedupe)
 	}
@@ -171,7 +138,7 @@ func setHover(ui *viewstate.UIState, sendMoveFn func(id string, msg movemsg.Msg)
 // node selection); a node/port hit selects that node (clearing any edge selection); an
 // empty-space hit CLEARS the transient highlight (md.ui.sel.Selected / md.ui.sel.SelectedEdge) — this is
 // the original click-empty-clears behavior.
-func (md *MoveDispatch) applySelect(ev inputcodec.RawInputMsg, tr *T.Trace) {
+func (md *MoveDispatch) applySelect(ev inputcodec.RawInputMsg) {
 	// setSelectionUI (move_dispatch_api.go) is the AUTHORITATIVE write, same reasoning as
 	// setHoverUI above: it sets md.ui.sel's selection fields (+ latchedNode, mutated only
 	// by this goroutine) and MESSAGES the affected node(s)/edge to set their
