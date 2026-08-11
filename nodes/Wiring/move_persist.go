@@ -2,7 +2,10 @@ package Wiring
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/camerapersist"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
+	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 )
 
 // persisters is the view-owner goroutine's (RunStdinReader, stdin_reader.go) OWN state for
@@ -26,20 +29,23 @@ type persisters struct {
 	// EnableViewpointPersist after the startup seed. nil until armed (old path / tests).
 	vp *camerapersist.ViewpointPersister
 	// overlays is the overlay-flags persister (scene_overlays_persist.go), armed by
-	// EnableEditPersist after the startup seed. nil until armed (tests that never arm).
-	overlays *overlaysPersister
+	// EnableEditPersist after the startup seed. nil until armed (tests that never arm). Each
+	// of overlays/sphere/speed/lattice is one instantiation of the shared
+	// scenepersist.Persister[T] actor (persister.go) — same shape, different payload type
+	// and bound write func.
+	overlays *scenepersist.Persister[viewstate.OverlayState]
 	// sphere is the disk persister for the scene sphere (sphere_layout.go md.ui.sceneSphere),
 	// armed by EnableEditPersist. It is only ever flushed — by LoadSceneSphere on a
 	// content-fit, and by handleSaveMsg — never scheduled on a value-change, because the
 	// sphere is "established once and never moves" (MODEL.md). nil until armed (tests that
 	// never arm).
-	sphere *sceneSpherePersister
+	sphere *scenepersist.Persister[geom.SceneSphere]
 	// speed is the playback-speed persister (scene_speed_persist.go), armed by
 	// EnableEditPersist. nil until armed (tests that never arm).
-	speed *speedPersister
+	speed *scenepersist.Persister[float64]
 	// lattice is the lattice-point-count persister (scene_lattice_persist.go), armed by
 	// EnableEditPersist. nil until armed (tests that never arm).
-	lattice *latticePersister
+	lattice *scenepersist.Persister[int32]
 }
 
 // EnableViewpointPersist arms gesture-driven camera persistence: every subsequent
@@ -76,10 +82,18 @@ func (md *MoveDispatch) EnableEditPersist(topologyPath string) {
 	// the root itself, because it creates and removes whole node directories rather than
 	// rewriting one known file.
 	md.Scenes.TreeRoot = root
-	md.persist.overlays = &overlaysPersister{path: scenepaths.OverlaysFilePath(topologyPath)}
-	md.persist.sphere = &sceneSpherePersister{path: scenepaths.SphereFilePath(topologyPath)}
-	md.persist.speed = &speedPersister{path: scenepaths.SpeedFilePath(topologyPath)}
-	md.persist.lattice = &latticePersister{path: scenepaths.LatticeFilePath(topologyPath)}
+	md.persist.overlays = &scenepersist.Persister[viewstate.OverlayState]{
+		Path: scenepaths.OverlaysFilePath(topologyPath), Write: scenepersist.WriteSceneOverlays, Tag: "scene_overlays_persist",
+	}
+	md.persist.sphere = &scenepersist.Persister[geom.SceneSphere]{
+		Path: scenepaths.SphereFilePath(topologyPath), Write: scenepersist.WriteSceneSphere, Tag: "scene_sphere_persist",
+	}
+	md.persist.speed = &scenepersist.Persister[float64]{
+		Path: scenepaths.SpeedFilePath(topologyPath), Write: scenepersist.WriteSceneSpeed, Tag: "scene_speed_persist",
+	}
+	md.persist.lattice = &scenepersist.Persister[int32]{
+		Path: scenepaths.LatticeFilePath(topologyPath), Write: scenepersist.WriteSceneLattice, Tag: "scene_lattice_persist",
+	}
 	// Every node's own mover writes its own position.json/local-polars.json/port-anchor
 	// files — set the tree root on each nodeMover directly rather than routing writes
 	// through a shared MoveDispatch-owned persister (docs/planning/decentralized-

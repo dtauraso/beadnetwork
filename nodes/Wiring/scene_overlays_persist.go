@@ -1,12 +1,14 @@
 // scene_overlays_persist.go — MoveDispatch-facing side of Go's OWN overlay-visibility
-// persister (view/overlays.json): the overlaysPersister type + LoadOverlays. Pure
-// read/write helpers (WriteSceneOverlays/LoadSceneOverlays) live in
-// nodes/Wiring/scenepersist/scene_overlays_persist.go.
+// persister (view/overlays.json): LoadOverlays. The persister itself is one instantiation
+// of scenepersist.Persister[viewstate.OverlayState] (the shared debounce-then-write actor
+// shape used by every scene-level file writer, see that type's own doc comment), constructed
+// in move_persist.go's EnableEditPersist. Pure read/write helpers (WriteSceneOverlays/
+// LoadSceneOverlays) live in nodes/Wiring/scenepersist/scene_overlays_persist.go.
 //
 // OWNER: the view-owner goroutine (RunStdinReader, stdin_reader.go) is the SOLE caller of
-// overlaysPersister.schedule() below — both triggers (the bare `save` command and the
-// on-change write) are dispatched from its own message loop. overlays.json is scene-level
-// and genuinely singular, so it stays one file with one named owning goroutine
+// the persister's Schedule() — both triggers (the bare `save` command and the on-change
+// write) are dispatched from its own message loop. overlays.json is scene-level and
+// genuinely singular, so it stays one file with one named owning goroutine
 // (.claude/rules/persistence-ownership.md "The owner writes, and owns the path") rather than a per-entity split.
 //
 // LOAD side: LoadOverlays installs the persisted overlay state into md.ui.ov on startup +
@@ -15,32 +17,12 @@
 package Wiring
 
 import (
-	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
-	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
-
-// overlaysPersister writes overlay toggles/sets to overlays.json as they happen. Armed by
-// EnableEditPersist, then called exclusively by the view-owner goroutine (RunStdinReader)
-// — see the OWNER note above. path == "" (tests that never arm) → no-op.
-type overlaysPersister struct {
-	path string // overlays.json path (scenepaths.OverlaysFilePath(topologyPath))
-}
-
-// schedule writes the given overlay snapshot to overlays.json synchronously.
-func (p *overlaysPersister) schedule(ov viewstate.OverlayState) {
-	if p == nil || p.path == "" {
-		return
-	}
-	if err := scenepersist.WriteSceneOverlays(p.path, ov); err != nil {
-		jsonpersist.LogPersistErr("scene_overlays_persist", p.path, err)
-		return
-	}
-}
 
 // LoadOverlays reads the overlay-visibility state from overlays.json (FILE DATA) into
 // md.ui.ov and streams it so the buffer reflects the current overlay state from the first

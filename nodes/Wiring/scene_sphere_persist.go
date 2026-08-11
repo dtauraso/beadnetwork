@@ -7,7 +7,7 @@
 // nodes/Wiring/scenepersist/scene_sphere_persist.go.
 //
 // OWNER: the view-owner goroutine (RunStdinReader, stdin_reader.go) is the SOLE caller of
-// sceneSpherePersister.flushNow() below — both triggers (LoadSceneSphere's content-fit,
+// the sphere Persister's Schedule() below — both triggers (LoadSceneSphere's content-fit,
 // which runs before any other goroutine launches, and the `save` command's handleSaveMsg)
 // run on it. sphere.json is scene-level and genuinely singular, so it stays one file with
 // one named owning goroutine (.claude/rules/persistence-ownership.md "The owner writes, and owns the path")
@@ -21,7 +21,6 @@ package Wiring
 import (
 	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
-	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
@@ -71,24 +70,12 @@ func (md *MoveDispatch) LoadSceneSphere(topologyPath string) {
 	md.UI.EmitViewFrame([]wire.RowEvent{{Kind: T.KindSceneSphere, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}})
 }
 
-// sceneSpherePersister writes the scene sphere to view/sphere.json, mirroring
-// overlaysPersister. path == "" ⇒ no-op (tests that never arm persistence). The sphere is
-// "established once and never moves" (MODEL.md) — flushNow is its only writer, called by
-// LoadSceneSphere's content-fit and by the "save" command (handleSaveMsg); there was never a
-// debounced schedule() for it to begin with.
-// Armed by EnableEditPersist, then called exclusively by the view-owner goroutine
-// (RunStdinReader) — see the OWNER note above.
-type sceneSpherePersister struct {
-	path string
-}
-
-// flushNow writes the current sphere synchronously.
-func (p *sceneSpherePersister) flushNow(s geom.SceneSphere) {
-	if p == nil || p.path == "" {
-		return
-	}
-	if err := scenepersist.WriteSceneSphere(p.path, s); err != nil {
-		jsonpersist.LogPersistErr("scene_sphere_persist", p.path, err)
-		return
-	}
-}
+// The sphere's own file persister (view/sphere.json) is one instantiation of
+// scenepersist.Persister[geom.SceneSphere] (the shared debounce-then-write actor shape, see
+// that type's own doc comment), bound to WriteSceneSphere, constructed in move_persist.go's
+// EnableEditPersist and held at md.persist.sphere. Its Path == "" ⇒ Schedule is a no-op
+// (tests that never arm persistence). The sphere is "established once and never moves"
+// (MODEL.md) — Schedule is its only writer, called by LoadSceneSphere's content-fit below
+// and by the "save" command (handleSaveMsg); there was never a debounce for it to begin
+// with, despite the shared type's historical name. Armed by EnableEditPersist, then called
+// exclusively by the view-owner goroutine (RunStdinReader) — see the OWNER note above.

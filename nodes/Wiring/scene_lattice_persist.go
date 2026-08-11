@@ -5,7 +5,7 @@
 // nodes/Wiring/scenepersist/scene_lattice_persist.go.
 //
 // OWNER: the view-owner goroutine (RunStdinReader, stdin_reader.go) is the SOLE caller of
-// latticePersister.schedule() below — the scene/latticePoints edit handler
+// the lattice Persister's Schedule() below — the scene/latticePoints edit handler
 // (applyUpdateScene's "latticePoints" case, stdin_reader.go) is the only trigger.
 // lattice.json is scene-level and genuinely singular (there is only one lattice point
 // count), so it stays one file with one named owning goroutine
@@ -13,28 +13,12 @@
 // shape as camera.json/overlays.json/sphere.json/speed.json, not a per-node split.
 package Wiring
 
-import (
-	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
-	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
-)
-
-// latticePersister writes the lattice point count to lattice.json as it changes. Armed by
-// EnableEditPersist, then called exclusively by the view-owner goroutine (RunStdinReader).
-// path == "" (tests that never arm) → no-op.
-type latticePersister struct {
-	path string // lattice.json path (scenepaths.LatticeFilePath(topologyPath))
-}
-
-// schedule writes the given point count to lattice.json synchronously.
-func (p *latticePersister) schedule(points int32) {
-	if p == nil || p.path == "" {
-		return
-	}
-	if err := scenepersist.WriteSceneLattice(p.path, points); err != nil {
-		jsonpersist.LogPersistErr("scene_lattice_persist", p.path, err)
-		return
-	}
-}
+// The lattice's own file persister (view/lattice.json) is one instantiation of
+// scenepersist.Persister[int32] (the shared debounce-then-write actor shape, see that type's
+// own doc comment), bound to WriteSceneLattice, constructed in move_persist.go's
+// EnableEditPersist and held at md.persist.lattice. Armed by EnableEditPersist, then called
+// exclusively by the view-owner goroutine (RunStdinReader). Its Path == "" (tests that never
+// arm) → Schedule is a no-op.
 
 // BroadcastLatticePoints sends a new lattice point count to every node id's own dedicated
 // LatticeIn channel. Thin nil-guarded delegator to md.inboxes (move_dispatch.go); the nil

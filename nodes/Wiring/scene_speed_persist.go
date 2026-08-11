@@ -5,7 +5,7 @@
 // nodes/Wiring/scenepersist/scene_speed_persist.go.
 //
 // OWNER: the view-owner goroutine (RunStdinReader, stdin_reader.go) is the SOLE caller of
-// speedPersister.schedule() below — the clock/speed edit handler (clockAttrHandlers, in
+// the speed Persister's Schedule() below — the clock/speed edit handler (clockAttrHandlers, in
 // stdin_reader.go) is the only trigger. speed.json is scene-level and genuinely singular
 // (there is only one playback speed), so it stays one file with one named owning goroutine
 // (.claude/rules/persistence-ownership.md "The owner writes, and owns the path") — same
@@ -13,7 +13,6 @@
 package Wiring
 
 import (
-	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
@@ -42,23 +41,12 @@ import (
 // only until the next start or reset.
 const HumanEditSpeed = 1.0
 
-// speedPersister writes the playback speed to speed.json as it changes. Armed by
-// EnableEditPersist, then called exclusively by the view-owner goroutine (RunStdinReader)
-// — see the OWNER note above. path == "" (tests that never arm) → no-op.
-type speedPersister struct {
-	path string // speed.json path (scenepaths.SpeedFilePath(topologyPath))
-}
-
-// schedule writes the given speed to speed.json synchronously.
-func (p *speedPersister) schedule(speed float64) {
-	if p == nil || p.path == "" {
-		return
-	}
-	if err := scenepersist.WriteSceneSpeed(p.path, speed); err != nil {
-		jsonpersist.LogPersistErr("scene_speed_persist", p.path, err)
-		return
-	}
-}
+// The speed's own file persister (view/speed.json) is one instantiation of
+// scenepersist.Persister[float64] (the shared debounce-then-write actor shape, see that
+// type's own doc comment), bound to WriteSceneSpeed, constructed in move_persist.go's
+// EnableEditPersist and held at md.persist.speed. Armed by EnableEditPersist, then called
+// exclusively by the view-owner goroutine (RunStdinReader) — see the OWNER note above. Its
+// Path == "" (tests that never arm) → Schedule is a no-op.
 
 // SliderSpeed is what the clocks run at when nothing is overriding them: the user's own
 // chosen number scaled by this scene's divisor. Reading it off md.UI means the restore after

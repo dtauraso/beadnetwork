@@ -21,7 +21,7 @@ func TestPersistLatticePointsRoundTrips(t *testing.T) {
 	md := loadTreeMD(t, root)
 	md.EnableEditPersist(root)
 
-	md.persist.lattice.schedule(12)
+	md.persist.lattice.Schedule(12)
 
 	got, found := scenepersist.LoadSceneLattice(scenepaths.LatticeFilePath(root))
 	if !found {

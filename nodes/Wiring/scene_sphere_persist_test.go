@@ -88,9 +88,11 @@ func TestSceneSphereContentFitSurvivesReloadAfterMove(t *testing.T) {
 
 func TestSceneSpherePersisterFlushNow(t *testing.T) {
 	dir := t.TempDir()
-	p := &sceneSpherePersister{path: scenepaths.SphereFilePath(dir)}
+	p := &scenepersist.Persister[geom.SceneSphere]{
+		Path: scenepaths.SphereFilePath(dir), Write: scenepersist.WriteSceneSphere, Tag: "scene_sphere_persist",
+	}
 	s := geom.SceneSphere{Center: vec3{X: 1, Y: 2, Z: 3}, Radius: 40}
-	p.flushNow(s)
+	p.Schedule(s)
 
 	got, ok := scenepersist.LoadSceneSphere(dir)
 	if !ok {

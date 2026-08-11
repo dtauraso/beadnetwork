@@ -143,7 +143,7 @@ func applyUpdateScene(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trace, sp
 			return
 		}
 		md.UI.LatticePoints = points
-		md.persist.lattice.schedule(points)
+		md.persist.lattice.Schedule(points)
 		md.BroadcastLatticePoints(points)
 	case "create":
 		// The palette's drop. Num is the kind id, X/Y the drop's NDC — see
@@ -168,5 +168,5 @@ func applyUpdateOverlays(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trace,
 	// EnableEditPersist arms the writer (nil-receiver / empty-treeRoot guard in schedule).
 	// Runs regardless of which (or whether an) attr matched, matching the original
 	// switch's post-inner-switch placement.
-	md.persist.overlays.schedule(md.UI.OV)
+	md.persist.overlays.Schedule(md.UI.OV)
 }

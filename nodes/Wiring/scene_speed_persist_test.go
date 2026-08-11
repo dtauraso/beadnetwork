@@ -22,7 +22,7 @@ func TestPersistSpeedRoundTrips(t *testing.T) {
 	md := loadTreeMD(t, root)
 	md.EnableEditPersist(root)
 
-	md.persist.speed.schedule(0.25)
+	md.persist.speed.Schedule(0.25)
 
 	got, found := scenepersist.LoadSceneSpeed(scenepaths.SpeedFilePath(root))
 	if !found {
@@ -63,7 +63,7 @@ func TestLoadSpeedSeedsEverySpeedSink(t *testing.T) {
 	root := writeTree(t)
 	md := loadTreeMD(t, root)
 	md.EnableEditPersist(root)
-	md.persist.speed.schedule(0.5)
+	md.persist.speed.Schedule(0.5)
 
 	fresh := loadTreeMD(t, root)
 	ch := make(chan float64, 1)
