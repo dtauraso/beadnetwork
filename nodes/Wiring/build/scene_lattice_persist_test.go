@@ -1,4 +1,4 @@
-package dispatch_test
+package build_test
 
 // scene_lattice_persist_test.go — round-trip test for the pair-lattice point-count
 // persister (view/lattice.json): a scene/latticePoints edit -> the synchronous writer
