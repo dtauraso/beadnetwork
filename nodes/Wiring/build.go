@@ -106,16 +106,16 @@ type buildCtx struct {
 func buildFromSpec(ctx context.Context, spec loadspec.TopoSpec, tr *T.Trace, clk clock.Clock, sphere geom.SceneSphere, hasScene bool, scenePath string) ([]wire.Node, inputcodec.SlotRegistry, *MoveDispatch, []chan float64, error) {
 	b := &buildCtx{ctx: ctx, spec: spec, tr: tr, clk: clk, sphere: sphere, hasScene: hasScene, scenePath: scenePath}
 
-	b.computeNodeGeometry()
-	b.computeQuantizedLayout()
-	b.computeReachRadii()
+	b.nodeGeoms, b.centers = computeNodeGeometry(b.spec, b.sphere)
+	b.quantizedOffsets = computeQuantizedLayout(b.spec, b.sphere, b.centers, b.nodeGeoms)
+	computeReachRadii(b.spec, b.nodeGeoms)
 	b.allocateWires()
-	b.allocateVectorChannels()
+	b.vectorOutByNode, b.vectorInByNode = allocateVectorChannels(b.spec)
 	if err := b.buildMoveDispatch(); err != nil {
 		return nil, nil, nil, nil, err
 	}
-	b.buildTypeMaps()
-	b.buildEdgeMaps()
+	b.nodeType, b.kindBroadcastPorts = buildTypeMaps(b.spec)
+	b.inbound, b.outbound, b.outboundHandle = buildEdgeMaps(b.spec, b.nodeType, b.kindBroadcastPorts)
 	if err := b.buildNodes(); err != nil {
 		return nil, nil, nil, nil, err
 	}
@@ -124,7 +124,7 @@ func buildFromSpec(ctx context.Context, spec loadspec.TopoSpec, tr *T.Trace, clk
 	// already recorded itself in md.selfDriveClaimed. Only NOW is it known which node
 	// ids get a real nodeMover actor at all (task/pair-node-owns-itself).
 	b.md.mr.finalizeActors(&b.speedSinks)
-	b.bindDispatch()
+	bindDispatch(b.md, b.outSink, b.destWire)
 
 	return b.nodes, inputcodec.SlotRegistry(b.destWire), b.md, b.speedSinks, nil
 }

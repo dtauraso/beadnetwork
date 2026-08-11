@@ -10,13 +10,14 @@ import (
 )
 
 // buildTypeMaps builds the id→type map and per-kind Broadcast port set (needed
-// for sourceHandle normalization in buildEdgeMaps).
-func (b *buildCtx) buildTypeMaps() {
-	nodeType := map[string]string{}
-	for _, n := range b.spec.Nodes {
+// for sourceHandle normalization in buildEdgeMaps). It reads the package-level
+// Registry, not just spec, for the per-kind Broadcast port set.
+func buildTypeMaps(spec loadspec.TopoSpec) (nodeType map[string]string, kindBroadcastPorts map[string]map[string]bool) {
+	nodeType = map[string]string{}
+	for _, n := range spec.Nodes {
 		nodeType[n.ID] = n.Type
 	}
-	kindBroadcastPorts := map[string]map[string]bool{}
+	kindBroadcastPorts = map[string]map[string]bool{}
 	for kind, bind := range Registry {
 		outMultis := map[string]bool{}
 		for _, p := range bind.Ports {
@@ -26,8 +27,7 @@ func (b *buildCtx) buildTypeMaps() {
 		}
 		kindBroadcastPorts[kind] = outMultis
 	}
-	b.nodeType = nodeType
-	b.kindBroadcastPorts = kindBroadcastPorts
+	return nodeType, kindBroadcastPorts
 }
 
 // buildEdgeMaps builds the inbound and outbound edge maps.
@@ -36,11 +36,11 @@ func (b *buildCtx) buildTypeMaps() {
 //   - outboundHandle: source node id → port name → []sourceHandle (indexed, same order as outbound)
 //
 // For Broadcast ports, sourceHandle may be "<portName><index>" — normalize to portName.
-func (b *buildCtx) buildEdgeMaps() {
-	inbound := map[string]map[string]string{}
-	outbound := map[string]map[string][]string{}
-	outboundHandle := map[string]map[string][]string{}
-	for _, e := range b.spec.Edges {
+func buildEdgeMaps(spec loadspec.TopoSpec, nodeType map[string]string, kindBroadcastPorts map[string]map[string]bool) (inbound map[string]map[string]string, outbound map[string]map[string][]string, outboundHandle map[string]map[string][]string) {
+	inbound = map[string]map[string]string{}
+	outbound = map[string]map[string][]string{}
+	outboundHandle = map[string]map[string][]string{}
+	for _, e := range spec.Edges {
 		if inbound[e.Target] == nil {
 			inbound[e.Target] = map[string]string{}
 		}
@@ -52,13 +52,11 @@ func (b *buildCtx) buildEdgeMaps() {
 		}
 		inbound[e.Target][e.TargetHandle] = e.Target + "." + e.TargetHandle
 		srcKey := e.SourceHandle
-		if base, isMulti := loadspec.BroadcastBaseName(e.SourceHandle, b.nodeType[e.Source], b.kindBroadcastPorts); isMulti {
+		if base, isMulti := loadspec.BroadcastBaseName(e.SourceHandle, nodeType[e.Source], kindBroadcastPorts); isMulti {
 			srcKey = base
 		}
 		outbound[e.Source][srcKey] = append(outbound[e.Source][srcKey], e.Label)
 		outboundHandle[e.Source][srcKey] = append(outboundHandle[e.Source][srcKey], e.SourceHandle)
 	}
-	b.inbound = inbound
-	b.outbound = outbound
-	b.outboundHandle = outboundHandle
+	return inbound, outbound, outboundHandle
 }

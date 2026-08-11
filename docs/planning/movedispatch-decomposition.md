@@ -387,6 +387,62 @@ are an open set of independent things; the phases are a closed ordered sequence,
 registering them would need priority numbers or a dependency DAG — more machinery for eleven
 known steps.
 
+**Measured per-phase field touch counts** (10 phase methods on `buildCtx`):
+
+```
+computeReachRadii          reads 2   writes 1
+allocateVectorChannels     reads 3   writes 2
+bindDispatch                reads 3   writes 0
+buildTypeMaps               reads 3   writes 2
+computeNodeGeometry          reads 4   writes 2
+computeQuantizedLayout       reads 5   writes 3
+buildEdgeMaps                reads 6   writes 4
+--- wide, NOT converted ---
+allocateWires                reads 8   writes 6
+buildMoveDispatch             reads 11  writes 1
+buildNodes                    reads 18  writes 10
+```
+
+**Converted the seven narrow phases to package-level functions.** Each now takes what it
+reads and returns what it produces; `buildFromSpec` threads the values explicitly:
+
+```go
+func computeNodeGeometry(spec loadspec.TopoSpec, sphere geom.SceneSphere) (map[string]nodegeom.NodeGeom, map[string]vec3)
+func computeQuantizedLayout(spec loadspec.TopoSpec, sphere geom.SceneSphere, centers map[string]vec3, nodeGeoms map[string]nodegeom.NodeGeom) map[string]quantoffset.QuantizedOffset
+func computeReachRadii(spec loadspec.TopoSpec, nodeGeoms map[string]nodegeom.NodeGeom)
+func allocateVectorChannels(spec loadspec.TopoSpec) (vectorOutByNode, vectorInByNode map[string]chan tiltvector.TiltVectorMsg)
+func buildTypeMaps(spec loadspec.TopoSpec) (nodeType map[string]string, kindBroadcastPorts map[string]map[string]bool)
+func buildEdgeMaps(spec loadspec.TopoSpec, nodeType map[string]string, kindBroadcastPorts map[string]map[string]bool) (inbound map[string]map[string]string, outbound map[string]map[string][]string, outboundHandle map[string]map[string][]string)
+func bindDispatch(md *MoveDispatch, outSink map[string]*wire.Out, destWire map[string]*wire.PacedWire)
+```
+
+`computeQuantizedLayout`/`computeReachRadii` still MUTATE the `centers`/`nodeGeoms` maps
+handed to them in place — Go maps are reference types, so that mutation is visible to the
+caller through the same map identity `buildFromSpec` already threads, with no behaviour
+change and no extra return needed for those two.
+
+**Left as methods, on purpose:** `allocateWires` (8/6), `buildMoveDispatch` (11/1), and
+`buildNodes` (18/10) — a free function with 8, 11, or 18 parameters is worse than the
+blackboard it would replace, and `buildNodes` in particular is a hub in its own right
+(it reads nearly everything earlier phases produced to actually construct each node). These
+three still need `*buildCtx`, so `buildCtx` itself is not removed by this pass — only its
+seven narrowest phases stopped depending on it.
+
+Verification: `go build ./...`, `go vet ./...`, `go test -count=1 ./...` all clean;
+`go run ./tools/gen-node-defs` produces no generated diff; the per-subpackage
+no-imports-`Wiring` invariant holds (empty loop output); exported `Wiring`-package symbol
+count unchanged (163 → 163). No guard is keyed to any of the seven phase names.
+
+**Coverage gap found, not assumed away.** Deliberately dropping the call to
+`computeQuantizedLayout`, `computeReachRadii`, or swapping `allocateVectorChannels`'s two
+return values did NOT fail `go test ./...` — the existing suite exercises `buildFromSpec`
+only through fixtures small/simple enough that the resulting zero-value/swapped state
+happens not to diverge from what the assertions check. This is the same limitation this
+doc's own Constraints section already names ("the tests cannot prove no-behaviour-change" —
+`docs/process/testing-shape.md`): these three phases' correctness on this pass rests on manual
+review of the diff plus `go build`/`go vet` catching a signature mismatch, not on a red test.
+Each injected bug was restored immediately after observing the (lack of) failure.
+
 ## 4. WITHDRAWN — the build phases do not duplicate the movers, they initialise them
 
 This item claimed ~3½ build phases "recompute what the movers already derive" and should be

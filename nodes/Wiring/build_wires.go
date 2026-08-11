@@ -83,14 +83,14 @@ func (b *buildCtx) allocateWires() {
 // never replacing it — the source node keeps its existing *wire.Out for beads and
 // additionally gets this channel's send end; the target node keeps its existing
 // *wire.In and additionally gets this channel's receive end.
-func (b *buildCtx) allocateVectorChannels() {
-	kindByID := make(map[string]string, len(b.spec.Nodes))
-	for _, n := range b.spec.Nodes {
+func allocateVectorChannels(spec loadspec.TopoSpec) (vectorOutByNode, vectorInByNode map[string]chan tiltvector.TiltVectorMsg) {
+	kindByID := make(map[string]string, len(spec.Nodes))
+	for _, n := range spec.Nodes {
 		kindByID[n.ID] = n.Type
 	}
-	vectorOutByNode := map[string]chan tiltvector.TiltVectorMsg{}
-	vectorInByNode := map[string]chan tiltvector.TiltVectorMsg{}
-	for _, e := range b.spec.Edges {
+	vectorOutByNode = map[string]chan tiltvector.TiltVectorMsg{}
+	vectorInByNode = map[string]chan tiltvector.TiltVectorMsg{}
+	for _, e := range spec.Edges {
 		if !tiltvector.KindWantsVectorChannel(kindByID[e.Source]) || !tiltvector.KindWantsVectorChannel(kindByID[e.Target]) {
 			continue
 		}
@@ -98,6 +98,5 @@ func (b *buildCtx) allocateVectorChannels() {
 		vectorOutByNode[e.Source] = sourceToTargetVectorCh
 		vectorInByNode[e.Target] = sourceToTargetVectorCh
 	}
-	b.vectorOutByNode = vectorOutByNode
-	b.vectorInByNode = vectorInByNode
+	return vectorOutByNode, vectorInByNode
 }

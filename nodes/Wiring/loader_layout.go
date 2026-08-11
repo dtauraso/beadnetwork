@@ -2,6 +2,7 @@ package Wiring
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
 )
@@ -15,9 +16,12 @@ import (
 // per-edge arc/segment, the movers seeded in buildMoveDispatch) therefore operates on
 // the composed centers, and md.lq.quantizedLayout defaults to true (buildMoveDispatch) so
 // the live drag path (RootMove) treats this same offset model as authoritative too.
-func (b *buildCtx) computeQuantizedLayout() {
-	ids := make(map[string]bool, len(b.spec.Nodes))
-	for _, n := range b.spec.Nodes {
+// computeQuantizedLayout mutates centers and nodeGeoms IN PLACE (both are maps, so the
+// caller's copies are updated directly — there is nothing to additionally return for
+// those two) and returns the per-node quantized offsets it computed.
+func computeQuantizedLayout(spec loadspec.TopoSpec, sphere geom.SceneSphere, centers map[string]vec3, nodeGeoms map[string]nodegeom.NodeGeom) map[string]quantoffset.QuantizedOffset {
+	ids := make(map[string]bool, len(spec.Nodes))
+	for _, n := range spec.Nodes {
 		ids[n.ID] = true
 	}
 
@@ -27,8 +31,8 @@ func (b *buildCtx) computeQuantizedLayout() {
 	// prior carries each node's stored per-node step constants (when present in the
 	// spec) so measureScalars preserves them into the fallback-measured offset instead
 	// of defaulting to global constants for a node that DOES have its own.
-	prior := make(map[string]quantoffset.QuantizedOffset, len(b.spec.Nodes))
-	for _, n := range b.spec.Nodes {
+	prior := make(map[string]quantoffset.QuantizedOffset, len(spec.Nodes))
+	for _, n := range spec.Nodes {
 		o := quantoffset.QuantizedOffset{}
 		if n.StepTheta != nil {
 			o.CTheta = *n.StepTheta
@@ -42,15 +46,15 @@ func (b *buildCtx) computeQuantizedLayout() {
 		prior[n.ID] = o
 	}
 
-	measured := quantoffset.MeasureScalars(b.centers, ids, b.sphere.Center, prior)
-	offsets := make(map[string]quantoffset.QuantizedOffset, len(b.spec.Nodes))
+	measured := quantoffset.MeasureScalars(centers, ids, sphere.Center, prior)
+	offsets := make(map[string]quantoffset.QuantizedOffset, len(spec.Nodes))
 	// exact marks nodes whose EXACT position was persisted as scenePolar (r,θ,φ). For
 	// those, the loaded center (toNodeGeom placed it at exactly that polar) is the
 	// authoritative position — it is NOT overwritten by the quantized reconstruction
 	// below, so a dragged node reloads at exactly where it was dropped. The quantized
 	// triple for such a node is just measured bookkeeping.
-	exact := make(map[string]bool, len(b.spec.Nodes))
-	for _, n := range b.spec.Nodes {
+	exact := make(map[string]bool, len(spec.Nodes))
+	for _, n := range spec.Nodes {
 		if n.ScenePolarR != nil && n.ScenePolarTheta != nil && n.ScenePolarPhi != nil {
 			exact[n.ID] = true
 			if off, ok := measured[n.ID]; ok {
@@ -93,22 +97,22 @@ func (b *buildCtx) computeQuantizedLayout() {
 	for id, o := range offsets {
 		offsets[id] = quantoffset.NormalizeOffset(o)
 	}
-	b.quantizedOffsets = offsets
 
 	// Reconstruct world centers from the quantized triple ONLY for nodes without an exact
 	// stored scenePolar (legacy / un-migrated). Nodes with an exact scenePolar keep the
 	// verbatim loaded center — their drag position round-trips losslessly.
-	derived := quantoffset.DeriveCenters(offsets, b.sphere.Center)
+	derived := quantoffset.DeriveCenters(offsets, sphere.Center)
 	for id, pos := range derived {
 		if exact[id] {
 			continue
 		}
-		b.centers[id] = pos
-		if g, ok := b.nodeGeoms[id]; ok {
+		centers[id] = pos
+		if g, ok := nodeGeoms[id]; ok {
 			nodegeom.SetNodeWorld(&g, pos)
-			b.nodeGeoms[id] = g
+			nodeGeoms[id] = g
 		}
 	}
+	return offsets
 }
 
 // computeReachRadii computes each node's REACH radius (max distance from its
@@ -116,20 +120,22 @@ func (b *buildCtx) computeQuantizedLayout() {
 // — streamed in NodeGeometry's sphereR field so the TS SphereRing reaches every
 // surface node. Computed before newMoveDispatch so each node/edge mover captures
 // it in its held geom.
-func (b *buildCtx) computeReachRadii() {
-	edges := make([]geom.SphereEdge, 0, len(b.spec.Edges))
-	for _, e := range b.spec.Edges {
+// computeReachRadii mutates nodeGeoms IN PLACE (writing each node's ReachR field), so it
+// has nothing to return.
+func computeReachRadii(spec loadspec.TopoSpec, nodeGeoms map[string]nodegeom.NodeGeom) {
+	edges := make([]geom.SphereEdge, 0, len(spec.Edges))
+	for _, e := range spec.Edges {
 		edges = append(edges, geom.SphereEdge{Source: e.Source, Target: e.Target})
 	}
 	polars := map[string]geom.Polar{}
-	for id, g := range b.nodeGeoms {
+	for id, g := range nodeGeoms {
 		if g.HasPos {
 			polars[id] = g.ScenePolar
 		}
 	}
 	for id, r := range reachRFromPolar(polars, edges) {
-		g := b.nodeGeoms[id]
+		g := nodeGeoms[id]
 		g.ReachR = r
-		b.nodeGeoms[id] = g
+		nodeGeoms[id] = g
 	}
 }

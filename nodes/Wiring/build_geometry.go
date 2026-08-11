@@ -6,6 +6,8 @@
 package Wiring
 
 import (
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 )
 
@@ -18,12 +20,11 @@ import (
 // toNodeGeom); nothing later mutates a node's Center, so this snapshot stays
 // authoritative for the whole build (the reach-radius pass writes ReachR, which
 // does not affect centers).
-func (b *buildCtx) computeNodeGeometry() {
+func computeNodeGeometry(spec loadspec.TopoSpec, sphere geom.SceneSphere) (map[string]nodegeom.NodeGeom, map[string]vec3) {
 	nodeGeoms := map[string]nodegeom.NodeGeom{}
-	for _, n := range b.spec.Nodes {
-		nodeGeoms[n.ID] = n.ToNodeGeom(b.sphere.Center)
+	for _, n := range spec.Nodes {
+		nodeGeoms[n.ID] = n.ToNodeGeom(sphere.Center)
 	}
-	b.nodeGeoms = nodeGeoms
 
 	centers := map[string]vec3{}
 	for id, g := range nodeGeoms {
@@ -31,5 +32,5 @@ func (b *buildCtx) computeNodeGeometry() {
 			centers[id] = nodegeom.NodeWorldPos(g)
 		}
 	}
-	b.centers = centers
+	return nodeGeoms, centers
 }
