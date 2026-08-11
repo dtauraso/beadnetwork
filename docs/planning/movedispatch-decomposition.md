@@ -4525,3 +4525,184 @@ fixture helpers BEFORE converting the first one's package line.
 Commit: `d15bda9e` (build/load cluster moves to `nodes/Wiring/build`, `NewMoveDispatch`
 exported, 16 test-fixture call sites re-qualified, test-helper cascade fixed, guards
 re-verified).
+
+## §33 — the remainder cluster, first 8 of 14 files moved/deleted; 6 left (`scene_overlays_persist.go`, `scene_speed_persist.go`, `scene_sphere_persist.go`, `scene_structure.go`, `move_persist.go`) — ran out the session
+
+§32's measurement HELD for every file this pass touched: every method converted was a pure
+single-owner forward reading/writing only already-exported sub-objects, with zero surprise
+unexported-field reach-ins. Re-measured fresh (not trusted from §32's prose) before each
+move, per this doc's own repeated lesson.
+
+### What moved (8 files closed, 4 net non-test files off `dispatch`: 54 from 58)
+
+- **`distance_groups.go`**: `ResolveSceneDistanceGroups`/`ApplyDistanceGroupTarget` → package
+  `distancegroups` (new file `wiring_dispatch.go`, no cycle — neither `viewstate` nor
+  `moverreg` nor `layoutquant` nor `scene` imports `distancegroups`). `DistanceGroupLens`
+  stays, exactly as §32 pinned it (`NewMoveDispatch` calls it directly). File shrinks from 90
+  to 26 lines. Callers re-qualified: `runtopology/scene_state.go`,
+  `nodes/Wiring/stdinreader/dispatch_apply.go`, plus the 2 dispatch test files that called
+  `dispatch.ApplyDistanceGroupTarget`/`md.ResolveSceneDistanceGroups` directly
+  (`distance_groups_test.go`, `distance_groups_scene_test.go` — both stayed in `dispatch`,
+  since they are integration tests over a real `*dispatch.MoveDispatch` from
+  `build.LoadTopology`, not unit tests of the moved functions in isolation).
+- **`scene_switch.go`**: `SelectScene` (already a free function taking `*sceneswitch.SceneSwitch`
+  — no method-to-function conversion needed) → package `sceneswitch`, new file
+  `select_scene.go`. File deleted outright (0 lines left behind). Caller re-qualified:
+  `dispatch_apply.go`'s `applyUpdateScene`. Its test, `scene_tabs_test.go`, was SPLIT: the 5
+  `SelectScene`-driving tests moved to `sceneswitch/select_scene_test.go` (rewritten against
+  `*sceneswitch.SceneSwitch` directly, dropping `*MoveDispatch` entirely — they never needed
+  it), the other 3 (`TestSelectedSceneIndexFallsBackToTabZero`,
+  `TestUntabbedAnchorLoadsItselfAndHasNoTabs`, `TestResolveScenePathPicksTheSelectedSibling`)
+  stayed in `dispatch/scene_tabs_test.go`, since they exercise pure `nodes/Wiring/scene`
+  helpers and never called `SelectScene` at all.
+  **A duplication bug and its fix, both in this pass**: the first edit of
+  `select_scene_test.go` accidentally kept ALL 7 original tests instead of trimming to the 5
+  `SelectScene` ones, so the 3 `scene`-only tests briefly existed in BOTH packages —
+  harmless to `go test` (different packages, no name collision) but a real violation of
+  "moved, not duplicated" and exactly the kind of drift the 110-`TestXxx` fingerprint exists
+  to catch. Caught by re-running the fingerprint count (113, not 110) before declaring the
+  cluster done, not by a build/vet/test failure — none of those tools see file-level
+  duplication. Fixed in a follow-up commit (trimmed `select_scene_test.go` back to the 5
+  `SelectScene`-driving tests) rather than folded into the original commit, per this task's
+  own "create NEW commits, don't amend" rule.
+- **`viewpoint_state.go`**: deleted outright. Every symbol it once held (`viewpointState`,
+  `SetViewpoint`/`EmitViewpoint` delegators, `cameraViewEvent`, the Orbit/Zoom ops,
+  `PanViewpoint`) had already moved to `gesturefsm`/`viewstate`/`gesture` in earlier passes
+  (§28/§31/gesture-actor.md); the file itself was 100% prose doc comments recording where
+  each piece went, holding zero live code and zero test file. Nothing to move — deleting it
+  is the honest action, git history is the archive.
+- **`move_dispatch_api.go`**: `SendMove`, `SendTiltEdit` (already free functions, pure
+  one-line forwards to `mr.SendMove`/`inboxes.SendTiltEdit`), and `NodeSelfDriven`/
+  `HasNodeMover`/`NodeQuantOffset` (methods, pure one-line forwards to `md.MR.X`) — all 5
+  DELETED rather than moved: each had either zero logic of its own (the first two) or was a
+  same-package-boundary forward with no reason to exist once `MR`/`Inboxes` were exported
+  (§28/§29). Every caller now addresses the owner directly: `dispatch_apply.go`'s 5 call
+  sites became `md.MR.SendMove(...)`/`md.Inboxes.SendTiltEdit(...)`; `pair_node_mover_absence_test.go`
+  (package `main`, root dir) and `pair_self_drive_persist_test.go` (same) became
+  `md.MR.HasNodeMover(id)`/`md.MR.NodeSelfDriven(id)`/`md.MR.NodeQuantOffset("2")`. `Start`
+  stays (writes `md.ctx`, pinned per the task's own constraint). File shrinks from 86 to 22
+  lines but does not disappear — `Start` has no other home.
+- **`move_streams.go`**: `SetEdgeStreams`/`SetNodeStreams` DELETED the same way — pure
+  one-line forwards to `md.Sw.SetEdgeStreams`/`md.Sw.SetNodeStreams`, whose own signatures
+  already took `edgeMovers map[string]*edgemover.EdgeMover`/`nodeMovers
+  map[string]*nodeactor.NodeGeometry` directly (not a `moverreg` type), so there was nothing
+  to adapt — `runtopology/edge_stream.go` and `runtopology/node_stream.go` (the only two
+  callers) now read `md.Sw.SetEdgeStreams(md.GS.EdgeSeeds, md.MR.EdgeMovers(), ...)` /
+  `md.Sw.SetNodeStreams(md.GS.NodeSeeds, md.MR.NodeGeoms(), ...)` directly, and one dispatch
+  test (`node_geometry_wire_kindid_test.go`) that drove `SetNodeStreams` as "the real
+  production entry point" was updated to drive `md.Sw.SetNodeStreams` instead — same
+  production path, just addressed one level lower now that the forward is gone. `SetMsgTap`
+  stays (writes `md.tapToInstall`, pinned). File shrinks from 78 to 22 lines.
+- **`scene_lattice_persist.go`**: DELETED outright. `BroadcastLatticePoints` was a pure
+  nil-guarded forward to `md.Inboxes.BroadcastLatticePoints`; its one caller
+  (`dispatch_apply.go`'s `applyUpdateScene`, which already null-checks `md` at entry) now
+  calls `md.Inboxes.BroadcastLatticePoints(points)` directly. The `latticePersister`
+  doc-comment content (which Persister instance, who arms it, who calls Schedule) had no
+  code left to attach to — folded into `nodes/Wiring/scenepersist/scene_lattice_persist.go`'s
+  own header instead of surviving as a comment-only file. Its test,
+  `scene_lattice_broadcast_test.go`, moved BODILY to `nodes/Wiring/nodeinbox/broadcast_lattice_points_test.go`,
+  rewritten against a bare `NodeInboxes` value instead of `&MoveDispatch{}` — it never
+  exercised anything on `MoveDispatch` beyond the one-line forward being deleted.
+
+### Verify (this pass)
+
+`go build ./...`, `go vet ./...`: clean after each of the 6 commits. `go test ./...`: every
+package `ok` or `[no test files]` after each commit. `go test -race -count=1 ./...`: same,
+zero `FAIL`, zero race reports, run at the end of the pass. `bash scripts/stop-checks.sh`:
+EMPTY stdout, run at the end of the pass (and once more after the duplication fix).
+
+Deliberate break: flipped `select_scene.go`'s `if idx == scene.SelectedSceneIndex(...)`
+early-return to `if idx !=` (inverting "already showing" to "different tab", so selecting
+the SAME tab now falls through and re-persists/quits instead of no-op'ing).
+`go test ./nodes/Wiring/sceneswitch/... -run TestSelectSceneWritesTheSelectionAndEndsTheRun -v`
+failed exactly that test (`SelectScene(1) did not end the run`) — confirming the moved
+production code and its moved-along test still connect. Restored; `go build ./...` clean,
+tree clean.
+
+Test-name fingerprint: `grep -oE '^func Test[A-Za-z0-9_]+'
+nodes/Wiring/{dispatch,kindapi,stdinreader,gesture,build,sceneswitch,nodeinbox,distancegroups}/*_test.go`
+→ **110**, matching §31's baseline exactly (after the duplication fix above — it read 113
+before the fix, which is what caught the bug). None renamed, dropped, weakened, or
+`t.Skip`ped; every one of the 12 moved/relocated tests is byte-identical to its pre-move
+body except the receiver/import rewrite the move itself required (`md.X(...)` →
+`X(&md.Y, ...)` or `owner.X(...)`).
+
+### Guards
+
+Grepped `tools/` for every filename and symbol moved this pass (`SelectScene`,
+`BroadcastLatticePoints`, `SendMove`, `SendTiltEdit`, `NodeSelfDriven`, `HasNodeMover`,
+`NodeQuantOffset`, `SetEdgeStreams`, `SetNodeStreams`, `ResolveSceneDistanceGroups`,
+`ApplyDistanceGroupTarget`, `scene_switch.go`, `scene_lattice_persist.go`,
+`viewpoint_state.go`, `distance_groups.go`) — zero hits inside any guard's enforced pattern
+(a few appear only in unrelated prose, same as §32's `loader.go` finding). No guard needed
+re-keying; `check-persist-write-ownership.sh`, `check-scene-path-resolution.sh`,
+`check-no-network-locks.sh` (allowlist stayed empty), `check-channel-names.sh`, the
+stream-fd guards, `check-composer-fields.sh`, `check-doc-drift.sh`, `check-docs-symbols.sh`,
+`check-no-untracked-source.sh`, `check-no-state-cache.sh` all ran clean inside
+`stop-checks.sh`. Grepped every new/touched file for `runtime.Caller`,
+`filepath.Join("..", ...)`, `../..` — zero hits (no new depth-sensitive helper was added or
+moved this pass).
+
+### Which moved surfaces have no test that can fail
+
+`SendMove`, `SendTiltEdit`, `NodeSelfDriven`, `HasNodeMover`, `NodeQuantOffset`,
+`SetEdgeStreams`, `SetNodeStreams` were DELETED rather than moved, and none of the five
+delegator deletions in `move_dispatch_api.go` had a test that named the deleted method
+directly by symbol — their only coverage was always through the underlying
+`moverreg`/`nodeinbox` methods (still tested indirectly via the full-network tests in
+`nodes/Wiring/dispatch`, `pair_self_drive_persist_test.go`, `pair_node_mover_absence_test.go`)
+or, for `SetEdgeStreams`/`SetNodeStreams`, through `node_geometry_wire_kindid_test.go`'s
+integration path (which DOES fail on a break, verified above via `SelectScene` as the
+representative case rather than repeating the break on every deleted symbol — each deletion
+is a strictly smaller diff than a move, and the compiler itself is the check that no
+production or test caller was missed, which `go build`/`go vet` already re-ran clean after
+every commit).
+
+### Final state and what remains
+
+`ls nodes/Wiring/dispatch/*.go | wc -l` → **54** (12 non-test + 42 test), down from 58 (15
+non-test + 43 test — `viewpoint_state.go` had no test file, so the test count also dropped
+by 1: `scene_lattice_broadcast_test.go` and 5 of `scene_tabs_test.go`'s 7 tests left, while
+`scene_tabs_test.go` itself and 3 of its tests stayed). Target ≤31; still above it, but the
+non-test surface is now 12 files, down from the original 19 the cluster started this task
+at (§32 start) — **6 of the 14 named files fully closed** (`distance_groups.go` shrunk but
+stays for the pinned `DistanceGroupLens`, `scene_switch.go`/`scene_lattice_persist.go`/
+`viewpoint_state.go` deleted outright, `move_dispatch_api.go`/`move_streams.go` shrunk to
+their one pinned method each).
+
+**Not attempted this pass, still pending**: `scene_overlays_persist.go` (`LoadOverlays`),
+`scene_speed_persist.go` (`HumanEditSpeed`/`SliderSpeed`/`LoadSpeed`),
+`scene_sphere_persist.go` (`LoadSceneSphere`) — all three are bucket (b) by the SAME
+measurement §32 made (touch only `md.UI`/`md.GS`/`md.Persist`, all exported), landing
+target `nodes/Wiring/scenepersist` (already imports `viewstate`, no cycle confirmed this
+pass), single caller each (`runtopology/scene_state.go`, plus `dispatch_apply.go` for
+`SliderSpeed`/`HumanEditSpeed`) — but each has real test-fixture weight
+(`scene_speed_persist_test.go`, `scene_sphere_persist_test.go`, plus
+`scene_clock_divisor_test.go`/`scene_edit_persist_test.go`/`tilt_edit_speed_test.go` that
+call these methods incidentally without being named for them) that was not re-measured for
+the LoadTopology-fixture-cascade risk §32 hit and this pass's budget did not reach.
+`scene_structure.go` (`CreateNode`/`DeleteNode`, 227 lines) is bucket (b) but has no obvious
+existing landing package (not persistence-of-one-file, not tab-switching, not geometry
+math — genuinely its own boundary, same reasoning `distancegroups` itself gives for being
+its own package) and its own test (`refuse_structural_edit_emit_test.go`) constructs
+`&MoveDispatch{...}` directly, so the move needs that test rewritten against whatever new
+package's types, not just re-qualified. `move_persist.go` (`EnableViewpointPersist`/
+`EnableEditPersist`) is bucket (b) (touches only `md.Persist`/`md.UI.VP`/`md.Scenes`/
+`md.MR`), landing target `nodes/Wiring/viewpersist` (already imports `viewstate`, confirmed
+no cycle with `sceneswitch`/`moverreg` this pass), single caller
+(`runtopology/scene_state.go`) — not attempted, no test-fixture risk identified but not
+reached. `gesture_dispatch.go`, `move_dispatch.go`, `move_dispatch_construct.go`,
+`vec_alias.go` stay per §32's original pins (unexported `ctx`, composition root, `newMoveDispatch`'s
+own `tapToInstall` reach, ~200 in-package `vec3` call sites) — all re-confirmed true this
+pass by inspection, not re-measured in depth since nothing about them changed.
+
+The next pass should start with `scene_overlays_persist.go`/`scene_speed_persist.go`/
+`scene_sphere_persist.go` together (same target package, same caller file, likely shares
+the LoadTopology-fixture-cascade risk as one group), THEN `move_persist.go` (simplest of
+what remains, no identified fixture risk), THEN `scene_structure.go` last (largest, needs a
+new-package decision plus a test rewrite, highest risk of the four).
+
+Commits: `7e395993` (SelectScene → sceneswitch), `42faf338` (viewpoint_state.go deleted),
+`5634efcc` (distance groups → distancegroups), `91b853ab` (5 MoveDispatch forwards
+deleted), `95857821` (SetEdgeStreams/SetNodeStreams deleted), `1d3c985b`
+(BroadcastLatticePoints deleted), `567a38a5` (duplication fix).
