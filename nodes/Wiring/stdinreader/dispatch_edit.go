@@ -39,10 +39,12 @@ import (
 
 // HandleRawInputMsg hands a raw pointer/wheel event + stateless raycast hit to the
 // gesture state machine, which owns gesture bookkeeping and produces camera/topology
-// changes. Fire-and-forget — nothing on this seam triggers delivery.
-func HandleRawInputMsg(msg inputcodec.StdinMsg, slotReg inputcodec.SlotRegistry, md *dispatch.MoveDispatch, tr *T.Trace) {
+// changes. ctx comes from the caller (runtopology's gesture actor goroutine already has
+// one in scope, matching ApplyEdit's own shape). Fire-and-forget — nothing on this seam
+// triggers delivery.
+func HandleRawInputMsg(ctx context.Context, msg inputcodec.StdinMsg, slotReg inputcodec.SlotRegistry, md *dispatch.MoveDispatch, tr *T.Trace) {
 	if md != nil && msg.Event != nil {
-		md.HandleRawInput(*msg.Event, slotReg, tr)
+		md.HandleRawInput(ctx, *msg.Event, slotReg, tr)
 	}
 }
 

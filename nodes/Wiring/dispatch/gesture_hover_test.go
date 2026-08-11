@@ -1,6 +1,7 @@
 package dispatch
 
 import (
+	"context"
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
@@ -20,7 +21,7 @@ func TestGestureHoverTracksNode(t *testing.T) {
 	// Move over node N7's torus ring → hovered node.
 	mv := rawEvent("pointermove", 400, 300)
 	mv.Hit = inputcodec.RawHit{Kind: "torus", NodeRow: 0}
-	md.HandleRawInput(mv, nil, nil)
+	md.HandleRawInput(context.Background(),mv, nil, nil)
 	if md.UI.Sel.HoverNode != "N7" || md.UI.Sel.HoverPort != "" {
 		t.Fatalf("torus hover: hoverNode=%q hoverPort=%q want N7,''", md.UI.Sel.HoverNode, md.UI.Sel.HoverPort)
 	}
@@ -28,13 +29,13 @@ func TestGestureHoverTracksNode(t *testing.T) {
 	// Move over the node BODY (kind "node") → hover clears (body does not light the ring).
 	bodyMv := rawEvent("pointermove", 402, 300)
 	bodyMv.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
-	md.HandleRawInput(bodyMv, nil, nil)
+	md.HandleRawInput(context.Background(),bodyMv, nil, nil)
 	if md.UI.Sel.HoverNode != "" || md.UI.Sel.HoverPort != "" {
 		t.Fatalf("body hover: hoverNode=%q hoverPort=%q want '',''", md.UI.Sel.HoverNode, md.UI.Sel.HoverPort)
 	}
 
 	// Move over empty space → hover cleared.
-	md.HandleRawInput(rawEvent("pointermove", 500, 300), nil, nil)
+	md.HandleRawInput(context.Background(),rawEvent("pointermove", 500, 300), nil, nil)
 	if md.UI.Sel.HoverNode != "" || md.UI.Sel.HoverPort != "" {
 		t.Fatalf("empty hover: hoverNode=%q hoverPort=%q want '',''", md.UI.Sel.HoverNode, md.UI.Sel.HoverPort)
 	}

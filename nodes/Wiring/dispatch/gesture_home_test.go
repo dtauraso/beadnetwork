@@ -1,6 +1,7 @@
 package dispatch
 
 import (
+	"context"
 	"math"
 	"testing"
 
@@ -46,7 +47,7 @@ func TestGestureHomeComputesFitPoseFromGeometry(t *testing.T) {
 	const fov, aspect = 50.0, 800.0 / 600.0
 	ev := inputcodec.RawInputMsg{Kind: "home", Fov: fov, RectWidth: aspect, RectHeight: 1}
 
-	md.HandleRawInput(ev, nil, nil)
+	md.HandleRawInput(context.Background(),ev, nil, nil)
 
 	// Expected fit pose: bbox over centers ± body radius. nodeRadius(kind) is now the
 	// bead-lattice-SNAPPED value (port_geometry.go's nodeTorusOuterR/nodeTorusSteps,
@@ -96,7 +97,7 @@ func TestGestureHomeFramesUnknownKindAtRenderRadius(t *testing.T) {
 	md.MR.NodeGeoms()["x"] = nodeactor.NewNodeGeometry("x", g, nil, clock.NewRealClock())
 
 	const fov, aspect = 50.0, 800.0 / 600.0
-	md.HandleRawInput(inputcodec.RawInputMsg{Kind: "home", Fov: fov, RectWidth: aspect, RectHeight: 1}, nil, nil)
+	md.HandleRawInput(context.Background(),inputcodec.RawInputMsg{Kind: "home", Fov: fov, RectWidth: aspect, RectHeight: 1}, nil, nil)
 
 	// Expected: bbox is ±renderRadius on every axis (single node at origin). nodeRadius
 	// is now the bead-lattice-SNAPPED value (docs/bead-model/bead-lattice.md "The count"), not the
@@ -125,7 +126,7 @@ func TestGestureHomeThenOrbitBuildsOnHomePose(t *testing.T) {
 	}
 	md := homeMD(stale, centers)
 	const fov, aspect = 50.0, 800.0 / 600.0
-	md.HandleRawInput(inputcodec.RawInputMsg{Kind: "home", Fov: fov, RectWidth: aspect, RectHeight: 1}, nil, nil)
+	md.HandleRawInput(context.Background(),inputcodec.RawInputMsg{Kind: "home", Fov: fov, RectWidth: aspect, RectHeight: 1}, nil, nil)
 
 	homePivot, homeR, homePos := md.UI.VP.Pivot, md.UI.VP.R, md.UI.VP.Pos
 
@@ -133,9 +134,9 @@ func TestGestureHomeThenOrbitBuildsOnHomePose(t *testing.T) {
 	raw := func(kind string, x, y float64) inputcodec.RawInputMsg {
 		return inputcodec.RawInputMsg{Kind: kind, X: x, Y: y, RectLeft: 0, RectTop: 0, RectWidth: 800, RectHeight: 600, Button: 0, Fov: fov, Hit: inputcodec.RawHit{Kind: "empty"}}
 	}
-	md.HandleRawInput(raw("pointerdown", 400, 300), nil, nil)
-	md.HandleRawInput(raw("pointermove", 420, 300), nil, nil) // slop-cross → seed orbit
-	md.HandleRawInput(raw("pointermove", 480, 320), nil, nil) // genuine orbit
+	md.HandleRawInput(context.Background(),raw("pointerdown", 400, 300), nil, nil)
+	md.HandleRawInput(context.Background(),raw("pointermove", 420, 300), nil, nil) // slop-cross → seed orbit
+	md.HandleRawInput(context.Background(),raw("pointermove", 480, 320), nil, nil) // genuine orbit
 
 	// The orbit seeded from the HOME pose: both node centers sit at z=0, so the region focus
 	// (depth-slab midpoint straight ahead) is the content center and the seed radius is the

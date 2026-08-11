@@ -37,8 +37,9 @@ func TestDistanceGroupOutOfRangeIndexIsNoOp(t *testing.T) {
 	if err != nil {
 		t.Fatalf("LoadTopology(production topology): %v", err)
 	}
-	// md.ctx (unexported) is never set here — LoadTopology does not call Start — so it is
-	// always nil; context.Background() is the same "no cancellation" value this test needs.
+	// ApplyDistanceGroupTarget takes ctx as an explicit parameter (no MoveDispatch field
+	// backs it — §35, docs/planning/movedispatch-decomposition.md); context.Background()
+	// is the same "no cancellation" value this test needs.
 	if ok := distancegroups.ApplyDistanceGroupTarget(context.Background(), &md.UI, &md.MR, &md.LQ, 99, 1); ok {
 		t.Fatal("ApplyDistanceGroupTarget(99, up) = true, want false (out of range)")
 	}

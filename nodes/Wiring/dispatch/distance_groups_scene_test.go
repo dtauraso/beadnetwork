@@ -108,8 +108,9 @@ func TestGroupsAreInertUntilResolved(t *testing.T) {
 	if timeLen, inputLen, gateLen := dispatch.DistanceGroupLens(&md.UI, &md.MR); timeLen != 0 || inputLen != 0 || gateLen != 0 {
 		t.Fatalf("unresolved dispatch streamed (%v, %v, %v), want all 0", timeLen, inputLen, gateLen)
 	}
-	// md.ctx (unexported) is never set here — LoadTopology does not call Start — so it is
-	// always nil; context.Background() is the same "no cancellation" value this test needs.
+	// ApplyDistanceGroupTarget takes ctx as an explicit parameter (no MoveDispatch field
+	// backs it — §35, docs/planning/movedispatch-decomposition.md); context.Background()
+	// is the same "no cancellation" value this test needs.
 	for i := range distancegroups.GroupOrder {
 		if ok := distancegroups.ApplyDistanceGroupTarget(context.Background(), &md.UI, &md.MR, &md.LQ, i, 1); ok {
 			t.Fatalf("ApplyDistanceGroupTarget(%d, up) = true before the scene was resolved, want false", i)

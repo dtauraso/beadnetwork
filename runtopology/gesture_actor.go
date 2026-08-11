@@ -78,7 +78,7 @@ func startGestureActor(ctx context.Context, slotReg inputcodec.SlotRegistry, md 
 				case gestureMsgEdit:
 					stdinreader.ApplyEdit(ctx, gm.msg, md, tr, speedSinks)
 				case gestureMsgRawInput:
-					stdinreader.HandleRawInputMsg(gm.msg, slotReg, md, tr)
+					stdinreader.HandleRawInputMsg(ctx, gm.msg, slotReg, md, tr)
 				case gestureMsgSave:
 					stdinreader.HandleSaveMsg(md)
 				}

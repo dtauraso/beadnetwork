@@ -14,11 +14,8 @@ import (
 	"sync"
 )
 
-// Start launches every mover's goroutine. Thin delegator to md.MR (mover_registry.go);
-// md.ctx is set here (not part of moverRegistry — see sendMove/enqueueFor's doc
-// comments for why sendMove needs it threaded through).
+// Start launches every mover's goroutine. Thin delegator to md.MR (mover_registry.go).
 func (md *MoveDispatch) Start(ctx context.Context) *sync.WaitGroup {
-	md.ctx = ctx
 	return md.MR.Start(ctx)
 }
 

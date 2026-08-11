@@ -39,7 +39,7 @@ func TestFramedPartialReads(t *testing.T) {
 	viewpersist.EnableEditPersist(&md.Persist, &md.Scenes, &md.MR, root) // arms overlaysPersist so `save` can write overlays.json
 	h := Handlers{
 		ApplyEdit:      func(msg inputcodec.StdinMsg) { ApplyEdit(ctx, msg, md, nil, nil) },
-		HandleRawInput: func(msg inputcodec.StdinMsg) { HandleRawInputMsg(msg, inputcodec.SlotRegistry{}, md, nil) },
+		HandleRawInput: func(msg inputcodec.StdinMsg) { HandleRawInputMsg(ctx, msg, inputcodec.SlotRegistry{}, md, nil) },
 		HandleSave:     func() { HandleSaveMsg(md) },
 	}
 	readerDone := make(chan struct{})
