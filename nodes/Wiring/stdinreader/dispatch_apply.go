@@ -30,6 +30,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenestructure"
 	"github.com/dtauraso/wirefold/nodes/Wiring/sceneswitch"
 )
 
@@ -155,12 +156,12 @@ func applyUpdateScene(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch
 		md.Inboxes.BroadcastLatticePoints(points)
 	case "create":
 		// The palette's drop. Num is the kind id, X/Y the drop's NDC — see
-		// scene_structure.go for how that becomes a place, and why this ends the run rather
-		// than building anything live.
-		md.CreateNode(uint8(msg.Num), msg.X, msg.Y, tr)
+		// scenestructure/scene_structure.go for how that becomes a place, and why this ends
+		// the run rather than building anything live.
+		scenestructure.CreateNode(&md.Scenes, &md.UI, &md.MR, uint8(msg.Num), msg.X, msg.Y, tr)
 	case "delete":
 		// The delete key. Num is the target's buffer ROW.
-		md.DeleteNode(msg.Num, tr)
+		scenestructure.DeleteNode(&md.Scenes, &md.UI, &md.RT, msg.Num, tr)
 	}
 }
 
