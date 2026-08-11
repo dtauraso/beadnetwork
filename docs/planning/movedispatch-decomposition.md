@@ -1127,3 +1127,71 @@ The no-imports-`Wiring` loop is empty (`for p in $(go list ./nodes/Wiring/... | 
 passes clean including the new `nodes/Wiring/topoderive` package. No interface,
 `types`/`common` package, alias shim, dot-import, package-level actor global, or `ForTest`
 hatch was added.
+
+## 10. Six leftover tests moved to the package holding their subject; five stayed, one split
+
+Checked which test files never referenced `md.`/`MoveDispatch`/`moverRegistry`/
+`nodeGeometry`/`edgeMover`/`nodeMover`/`buildCtx`/`uiState`/the `loadTreeMD`/
+`writeSpecTree`/`LoadTopology` harness — these were left behind by the 32 earlier lifts on
+this branch, each of which moved the code but not always its test.
+
+**Moved, verbatim, one commit each:**
+- `speed_delivery_test.go` (5 tests) → `nodes/wire/clock` — exercises
+  `SendSpeedNonBlocking`/`ApplySpeedNonBlocking`/`NewRealClock`/`TickPeriod`, all of which
+  live there; only the `clock.` qualifier was stripped (in-package now).
+- `lit_bead_index_test.go` (4 tests, incl. `TestChainBeadsEveryIndexIsReachable`) →
+  `nodes/Wiring/beadindex` — every assertion calls only `beadindex.LitBeadIndex` and
+  `lattice.DwellTicksPerBead`; despite its doc comment discussing `chainBeads` (still in
+  `Wiring`, `chain_beads.go`), no test in the file calls it — the file was NOT actually
+  mixed, just documented misleadingly. Confirmed by grep: `chainBeads` has zero non-comment,
+  non-doc references anywhere in this test file.
+- `pan_polar_test.go` (1 test) → `nodes/Wiring/geom` — exercises
+  `PanDisplacementPolar`/`PlaneSlide`/`DeltaToPolar`/`BasisFromViewpoint`, all exported
+  `geom` functions.
+- `pulse_speed_parity_test.go` (1 test) → `nodes/Wiring/nodegeom` — a drift guard between
+  `nodegeom.CurveParamPulseSpeedWuPerMs` and `lattice.PulseSpeedWuPerMs`; neither symbol is
+  `Wiring`'s, and `nodegeom` already hosts the same-shaped `curve_params_test.go` guard for
+  its sibling constant (`TestTiltVectorAngleStepIsPiOver12`), so this is the established
+  pattern, not a new one.
+
+**Split:** `scene_path_safety_test.go`'s `TestSafeTreePathComponent` moved to a new
+`nodes/Wiring/jsonpersist/safe_tree_path_test.go` (pure `jsonpersist.SafeTreePathComponent`,
+no `Wiring` symbol). `TestWriteQuantOffsetRejectsTraversalID` stayed in `Wiring` — it calls
+the unexported `writeQuantOffset` (`quant_offset_persist.go`), which was never a lift
+candidate.
+
+**Kept, verified rather than assumed (per the task's own "probably staying" list):**
+- `vec_close_test.go` — `vecClose` is still called by 4 other `Wiring`-package test files
+  (`gesture_camera_outcomes_test.go`, `gesture_drag_offset_test.go`,
+  `gesture_home_test.go`, `scene_camera_persist_test.go`); its subject is its Wiring-package
+  callers, not a subpackage.
+- `drive_slot_claim_test.go` — constructs `BuildArgs` directly (unexported `Wiring` fields).
+- `dispatch_keys_test.go` — reads `Wiring`'s own unexported dispatch tables
+  (`rawInputHandlers`, `hitClassifiers`, etc.).
+- `state_seed_test.go` — constructs `BuildArgs` directly, calls `BuildArgs.StateSeed`.
+- `tilt_vector_phi_removed_persist_test.go` — needs the `writeTreeFile` harness helper
+  (`wire_test_helpers_test.go`, unexported, `Wiring`-package only).
+- `interior_sphere_test.go` — its own doc comment claims it needs "Wiring's own nodeRadius",
+  but that function no longer exists anywhere in `Wiring` (grep confirms); the test now
+  calls only `interior.*`/`nodegeom.NodeRadius`, both exported, and neither package imports
+  the other (confirmed: `go list -deps` each way, empty both directions). It stays anyway —
+  moving it would mean picking one of two unrelated packages as an arbitrary host for a test
+  that needs both, which is a new kind of coupling, not a subject match; neither `interior`
+  nor `nodegeom` was in this task's four candidate destinations
+  (`nodes/wire/clock`, `beadindex`, `jsonpersist`, `geom`). Left as a stale-comment finding,
+  not fixed (out of this task's scope).
+
+**Verification.** Each of the 5 destination packages (`clock`, `beadindex`, `geom`,
+`nodegeom`, `jsonpersist`) had its subject deliberately broken once and the moved test
+confirmed to fail from its new location, then restored — see the task's own commit history
+for the exact breaks (a `+0.5` bearing offset in `PanDisplacementPolar`, a `+1` floor offset
+in `LitBeadIndex`, a `ch <- speed` unconditional send in `SendSpeedNonBlocking`, `0.04` →
+`0.05` in `CurveParamPulseSpeedWuPerMs`, and dropping the `""`/`"."`/`".."` guards in
+`SafeTreePathComponent`). `nodes/Wiring` top-level `.go` file count: 117 → 113 (4 files
+fully departed: `speed_delivery_test.go`, `lit_bead_index_test.go`, `pan_polar_test.go`,
+`pulse_speed_parity_test.go`; `scene_path_safety_test.go` shrank but stayed since it still
+holds one test). `go build ./...`, `go vet ./...` clean; `go test -race -count=1 ./...`
+passes with no failures across every package. `check-test-integrity.sh` clean (no net
+assertion removal, no skip/only/exit/recover added — every moved test kept its exact body).
+The no-imports-`Wiring` loop is empty. No interface, `types`/`common` package, alias shim,
+dot-import, package-level actor global, or `ForTest` hatch was added.
