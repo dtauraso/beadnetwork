@@ -83,7 +83,7 @@ func (md *MoveDispatch) seedOrbitPivot(pivot vec3) {
 	eye := geom.EyeOf(vp)
 	r := eye.Sub(pivot).Length()
 	pos := geom.WorldDirToAngles(eye.Sub(pivot))
-	md.SetViewpoint(pivot, r, pos, vp.Up)
+	md.UI.VP.SetViewpoint(pivot, r, pos, vp.Up)
 }
 
 // applyOrbit mirrors the "rotating" branch of interaction-handlers.ts handlePointerMove:

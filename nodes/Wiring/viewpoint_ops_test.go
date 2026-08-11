@@ -64,7 +64,7 @@ func TestMoveDispatchViewpointDelegatorsEmit(t *testing.T) {
 	md := &MoveDispatch{}
 	var events []wire.RowEvent
 	captureViewFrameKinds(md, &events)
-	md.SetViewpoint(vec3{}, 100, geom.Dir{Theta: 1.0}, geom.Dir{Theta: 1.5708})
+	md.UI.VP.SetViewpoint(vec3{}, 100, geom.Dir{Theta: 1.0}, geom.Dir{Theta: 1.5708})
 
 	md.UI.ZoomViewpoint(0.5, tr)
 	md.emitViewFrame(cameraViewEvent())

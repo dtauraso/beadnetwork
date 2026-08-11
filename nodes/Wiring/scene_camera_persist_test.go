@@ -55,8 +55,8 @@ func TestPersistViewpointRoundTrips(t *testing.T) {
 	wantPos := geom.Dir{Theta: 1.1, Phi: 2.2}
 	wantUp := geom.Dir{Theta: 0.3, Phi: 0.4}
 
-	md.SetViewpoint(wantPivot, wantR, wantPos, wantUp)
-	md.EmitViewpoint(nil) // synchronously writes camera.json (gesture path is EmitViewpoint)
+	md.UI.VP.SetViewpoint(wantPivot, wantR, wantPos, wantUp)
+	md.UI.VP.EmitViewpoint(nil) // synchronously writes camera.json (gesture path is EmitViewpoint)
 
 	pivot, r, pos, up, ok := loadSceneViewpoint(td)
 	if !ok {
@@ -76,10 +76,10 @@ func TestPersistWriteBurstLandsFinalValue(t *testing.T) {
 	td := t.TempDir()
 	md := &MoveDispatch{}
 	md.EnableViewpointPersist(td)
-	md.SetViewpoint(vec3{}, 1, geom.Dir{}, geom.Dir{})
+	md.UI.VP.SetViewpoint(vec3{}, 1, geom.Dir{}, geom.Dir{})
 	for i := 0; i < 50; i++ {
-		md.SetViewpoint(vec3{X: float64(i)}, float64(100+i), geom.Dir{Theta: float64(i) * 0.01}, geom.Dir{Phi: float64(i) * 0.02})
-		md.EmitViewpoint(nil) // synchronous write, every call
+		md.UI.VP.SetViewpoint(vec3{X: float64(i)}, float64(100+i), geom.Dir{Theta: float64(i) * 0.01}, geom.Dir{Phi: float64(i) * 0.02})
+		md.UI.VP.EmitViewpoint(nil) // synchronous write, every call
 	}
 
 	// Final value is the last scheduled viewpoint (i=49).
@@ -101,8 +101,8 @@ func TestCameraAndOverlaysFilesDoNotClobber(t *testing.T) {
 	// Go persists a camera first.
 	md := &MoveDispatch{}
 	md.EnableViewpointPersist(td)
-	md.SetViewpoint(vec3{X: 11, Y: 22, Z: 33}, 321, geom.Dir{Theta: 0.5, Phi: 1.5}, geom.Dir{Theta: 0.05, Phi: 0.15})
-	md.EmitViewpoint(nil)
+	md.UI.VP.SetViewpoint(vec3{X: 11, Y: 22, Z: 33}, 321, geom.Dir{Theta: 0.5, Phi: 1.5}, geom.Dir{Theta: 0.05, Phi: 0.15})
+	md.UI.VP.EmitViewpoint(nil)
 
 	// A save persists Go's OWN overlay state into a SEPARATE file (overlays.json).
 	ov := viewstate.DefaultOverlayState()

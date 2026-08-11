@@ -33,7 +33,7 @@ import (
 func TestViewFrameCarriesEveryOverlayFlag(t *testing.T) {
 	md := &MoveDispatch{UI: viewstate.UIState{OV: viewstate.DefaultOverlayState()}}
 	var got viewstate.ViewOverlayFlags
-	md.SetViewStream(io.Discard, func(tick uint32,
+	md.UI.SetViewStream(io.Discard, func(tick uint32,
 		camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
 		flags viewstate.ViewOverlayFlags,
 		dragNodeRow int32,
@@ -84,7 +84,7 @@ func TestApplyUpdateOverlayToggleEmitsViewFrame(t *testing.T) {
 
 			md := &MoveDispatch{UI: viewstate.UIState{OV: viewstate.DefaultOverlayState()}}
 			var kinds []string
-			md.SetViewStream(io.Discard, func(tick uint32,
+			md.UI.SetViewStream(io.Discard, func(tick uint32,
 				camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
 				_ viewstate.ViewOverlayFlags,
 				dragNodeRow int32,

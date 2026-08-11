@@ -19,20 +19,17 @@ import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
-// Camera viewpoint API — thin delegators to the owned viewpointState above. SetViewpoint
-// and Viewpoint both have out-of-package callers (runtopology passes md.SetViewpoint as a
-// func value to scenecamera.SeedInitialViewpoint; nodes/Wiring/scenecamera's own tests read
-// md.Viewpoint()) that cannot reach the unexported md.ui.vp field directly, so neither can
-// be deleted without exporting ui/vp.
-
-func (md *MoveDispatch) SetViewpoint(pivot vec3, r float64, pos, up geom.Dir) {
-	md.UI.VP.SetViewpoint(pivot, r, pos, up)
-}
+// SetViewpoint/EmitViewpoint delegators were deleted: md.UI is now exported
+// (nodes/Wiring/viewstate.UIState), so runtopology (SetViewpoint's/EmitViewpoint's only
+// out-of-package callers) reaches md.UI.VP.SetViewpoint/md.UI.VP.EmitViewpoint directly —
+// see docs/planning/gesture-actor.md's payoff commit.
 
 // Viewpoint returns the CURRENT camera viewpoint (pivot/r/pos/up/lockedAxis). Read-only
 // accessor for callers outside this package — e.g. an external test of a package that
 // itself takes *MoveDispatch, such as nodes/Wiring/scenecamera's own tests asserting what
-// SeedInitialViewpoint installed.
+// SeedInitialViewpoint installed. Kept (not one of the deleted delegators): scenecamera's
+// tests call md.Viewpoint() as a plain accessor, not a func value SeedInitialViewpoint needs
+// to receive by signature.
 func (md *MoveDispatch) Viewpoint() geom.Viewpoint {
 	return md.UI.VP.Viewpoint
 }
@@ -42,14 +39,6 @@ func (md *MoveDispatch) Viewpoint() geom.Viewpoint {
 // buffer-log.ts's decodeEventLine "camera" case) — no row identity to resolve.
 func cameraViewEvent() []wire.RowEvent {
 	return []wire.RowEvent{{Kind: T.KindCamera, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}}
-}
-
-// EmitViewpoint/OrbitViewpoint/OrbitLockedViewpoint/ZoomViewpoint/PanViewpoint mutate the
-// owned viewpointState only. The VIEW frame is emitted by the caller — always the
-// view-owner goroutine (RunStdinReader, via the gesture handlers) — not here, per
-// docs/planning/movedispatch-decomposition.md's write-then-emit split.
-func (md *MoveDispatch) EmitViewpoint(tr *T.Trace) {
-	md.UI.VP.EmitViewpoint(tr)
 }
 
 // OrbitViewpoint/OrbitLockedViewpoint/ZoomViewpoint moved onto viewstate.UIState itself

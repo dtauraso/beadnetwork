@@ -30,7 +30,7 @@ func TestCreateNodeRefusalEmitsViewFrame(t *testing.T) {
 		UI:     viewstate.UIState{SceneEditable: false},
 	}
 	frames := 0
-	md.SetViewStream(io.Discard, func(tick uint32,
+	md.UI.SetViewStream(io.Discard, func(tick uint32,
 		camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
 		flags viewstate.ViewOverlayFlags,
 		dragNodeRow int32,
@@ -62,7 +62,7 @@ func TestDeleteNodeRefusalEmitsViewFrame(t *testing.T) {
 		UI:     viewstate.UIState{SceneEditable: false},
 	}
 	frames := 0
-	md.SetViewStream(io.Discard, func(tick uint32,
+	md.UI.SetViewStream(io.Discard, func(tick uint32,
 		camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
 		flags viewstate.ViewOverlayFlags,
 		dragNodeRow int32,

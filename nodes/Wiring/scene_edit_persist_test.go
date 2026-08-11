@@ -31,7 +31,7 @@ func TestLoadOverlaysEmitsDefaultsWhenNoPersistedKeys(t *testing.T) {
 	// Decentralized (Step C, memory/feedback_no_single_writer_bridge.md): LoadOverlays writes its own VIEW
 	// frame directly via md.emitViewFrame; capture the RowEvent kinds it carries instead of
 	// the retired central Trace onEvent hook.
-	md.SetViewStream(io.Discard, func(tick uint32,
+	md.UI.SetViewStream(io.Discard, func(tick uint32,
 		camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
 		_ viewstate.ViewOverlayFlags,
 		dragNodeRow int32,
@@ -129,8 +129,8 @@ func TestOverlaysPersistPreservesCamera(t *testing.T) {
 	root := writeTree(t)
 	md := loadTreeMD(t, root)
 	md.EnableViewpointPersist(root)
-	md.SetViewpoint(vec3{X: 1, Y: 2, Z: 3}, 200, geom.Dir{Theta: 0.5, Phi: 1.5}, geom.Dir{Theta: 0.05, Phi: 0.15})
-	md.EmitViewpoint(nil)
+	md.UI.VP.SetViewpoint(vec3{X: 1, Y: 2, Z: 3}, 200, geom.Dir{Theta: 0.5, Phi: 1.5}, geom.Dir{Theta: 0.05, Phi: 0.15})
+	md.UI.VP.EmitViewpoint(nil)
 
 	md.EnableEditPersist(root)
 

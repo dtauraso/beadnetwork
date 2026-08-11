@@ -36,7 +36,7 @@ func countCameraEvents(events []wire.RowEvent) int {
 // RowEvent kind it's handed to *kinds, mirroring what the real buffer builder does
 // (Decentralized, Step C, memory/feedback_no_single_writer_bridge.md) without needing a real fd.
 func captureViewFrameKinds(md *MoveDispatch, kinds *[]wire.RowEvent) {
-	md.SetViewStream(io.Discard, func(tick uint32,
+	md.UI.SetViewStream(io.Discard, func(tick uint32,
 		camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
 		_ viewstate.ViewOverlayFlags,
 		dragNodeRow int32,
@@ -58,7 +58,7 @@ func TestOrbitLockedViewpointEmitsCamera(t *testing.T) {
 	captureViewFrameKinds(md, &events)
 
 	// Seed a known camera state.
-	md.SetViewpoint(
+	md.UI.VP.SetViewpoint(
 		vec3{X: 0, Y: 0, Z: 0},
 		100,
 		geom.Dir{Theta: 1.0, Phi: 0.0},
@@ -82,7 +82,7 @@ func TestSetViewpointClearsLock(t *testing.T) {
 	md := &MoveDispatch{}
 
 	// After SetViewpoint the lock must be nil.
-	md.SetViewpoint(vec3{}, 100, geom.Dir{Theta: 1.0}, geom.Dir{Theta: 1.5708})
+	md.UI.VP.SetViewpoint(vec3{}, 100, geom.Dir{Theta: 1.0}, geom.Dir{Theta: 1.5708})
 	if md.UI.VP.LockedAxis != nil {
 		t.Fatal("lockedAxis should be nil after SetViewpoint")
 	}
@@ -94,7 +94,7 @@ func TestSetViewpointClearsLock(t *testing.T) {
 	}
 
 	// Another SetViewpoint must clear the lock again.
-	md.SetViewpoint(vec3{}, 100, geom.Dir{Theta: 1.0}, geom.Dir{Theta: 1.5708})
+	md.UI.VP.SetViewpoint(vec3{}, 100, geom.Dir{Theta: 1.0}, geom.Dir{Theta: 1.5708})
 	if md.UI.VP.LockedAxis != nil {
 		t.Fatal("lockedAxis should be nil after second SetViewpoint")
 	}

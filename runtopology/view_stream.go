@@ -22,7 +22,7 @@ import (
 // entry, e.g. a non-extension launch with no dedicated pipes at all).
 func wireViewStream(md *W.MoveDispatch, viewFile *os.File, viewStreamWired bool, sceneTabNames []string, sceneTabSelected int) {
 	if viewStreamWired {
-		md.SetViewStream(viewFile,
+		md.UI.SetViewStream(viewFile,
 			func(tick uint32,
 				camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
 				flags viewstate.ViewOverlayFlags,

@@ -33,8 +33,8 @@ func (md *MoveDispatch) gestHome(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	if !ok {
 		return
 	}
-	md.SetViewpoint(pivot, r, pos, up)
-	md.EmitViewpoint(tr)
+	md.UI.VP.SetViewpoint(pivot, r, pos, up)
+	md.UI.VP.EmitViewpoint(tr)
 	md.emitViewFrame(cameraViewEvent())
 }
 
