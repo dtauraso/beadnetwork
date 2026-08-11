@@ -4164,3 +4164,160 @@ should start from the gesture cluster (§26's "23 stayed" list and this doc's ow
 already measured most of its bodies) rather than re-measuring the stdin cluster again.
 
 Commit: `0a7dcbf3` (stdin cluster move + ctx-threading + guard doc fixes + test splits).
+
+## §31 — the gesture cluster moves to `nodes/Wiring/gesture`
+
+Continuing from §30's stop point. Measured all three remaining groups (gesture / build-load /
+remainder) before moving anything, per the task's partition-table requirement.
+
+### Partition table (24 non-test files in `dispatch` before this pass)
+
+- **gesture cluster (5 files)**: `gesture.go`, `gesture_hitclassify.go`, `gesture_actions.go`,
+  `gesture_handlers.go`, `gesture_graph.go` — plus two of their own dedicated test files
+  (`dispatch_keys_test.go`, `gesture_graph_test.go`, which reach the cluster's own unexported
+  tables `hitClassifiers`/`commitEdges`/`applyAction` directly, not just through
+  `MoveDispatch.HandleRawInput`).
+- **build/load cluster (3 files)**: `build.go`, `loader.go`, `move_dispatch_construct.go` —
+  not attempted this pass (see below).
+- **remainder (16 files)**: `build_move_dispatch.go`, `build_nodes.go`, `distance_groups.go`,
+  `gesture_dispatch.go` (thin wrapper, stays), `move_dispatch.go`, `move_dispatch_api.go`,
+  `move_persist.go`, `move_streams.go`, `scene_lattice_persist.go`,
+  `scene_overlays_persist.go`, `scene_speed_persist.go`, `scene_sphere_persist.go`,
+  `scene_structure.go`, `scene_switch.go`, `vec_alias.go`, `viewpoint_state.go` — not
+  attempted this pass.
+
+### Gesture cluster — (a)/(b) classification
+
+Per-statement classification (§ Method) found the SAME result across every function in the
+five files: every field access was either a call through an exported sub-object method
+(`md.MR.NodeGeoms()`, `md.UI.Gest`, `md.RT.NodeFromHit`, `md.LQ.RootMove`, all already
+exported per §29) or `md.ctx` — a `context.Context` VALUE, not a shared/mutable field. There
+was no channel send, no goroutine start, no file write, and no unexported-field WRITE on a
+type staying behind anywhere in the cluster. Bucket (b) end to end. `gesturefsm`'s own doc
+comment (written during an earlier pass) claimed several of these functions "additionally...
+reach unexported `MoveDispatch` fields (`md.mr`, `md.lq`, `md.RT`, `md.ctx`) that cannot be
+named outside package Wiring at all" — that was STALE: `MR`/`LQ`/`RT` were exported in §29,
+so only `md.ctx` was ever still true, confirming the task brief's framing exactly.
+
+### What moved where
+
+New package `nodes/Wiring/gesture` (11 files: `gesture.go` doc-only, `gesture_dispatch.go`,
+`gesture_handlers.go`, `gesture_hitclassify.go`, `gesture_actions.go`, `gesture_graph.go`,
+`gesture_select.go`, `gesture_camera.go`, `vec_alias.go`, plus `dispatch_keys_test.go` and
+`gesture_graph_test.go`). A `Deps` struct (`MR *moverreg.MoverRegistry`, `UI
+*viewstate.UIState`, `LQ *layoutquant.LayoutQuantizer`, `RT *rowtables.RowTables`, `Ctx
+context.Context`) replaces every `*MoveDispatch` receiver/parameter — the exact
+explicit-parameter shape §30 used for `applyUpdate`'s table handlers, generalized to five
+fields instead of one. Two small helpers moved WITH the cluster because they were used
+*only* by it: `setSelectionUI`/`sendEdgeSelect` (were in `move_dispatch_api.go`, now
+`gesture_select.go`, exported nothing new — `applySelect` is their one caller) and
+`cameraViewEvent` (was in `viewpoint_state.go`, now `gesture_camera.go` as exported
+`CameraViewEvent()` — package `dispatch`'s own `viewpoint_ops_test.go`/
+`viewpoint_bridge_test.go` also emit this exact event and now call
+`gesture.CameraViewEvent()` rather than duplicating the row shape, which would have been the
+alias-shim this decomposition forbids). `gesture_dispatch.go` in `dispatch` is now a
+five-line delegator: `HandleRawInput` bundles `&md.MR, &md.UI, &md.LQ, &md.RT, md.ctx` into
+a `gesture.Deps` and forwards — `md.ctx` stays unexported on `MoveDispatch`; only the
+*value* crosses as `Deps.Ctx`, per the task's explicit "do NOT export ctx" constraint.
+
+Per the task's fingerprint note: `gesture_graph.go`'s three commit actions
+(`commitDragStart`/`commitHandholdStart`/`commitRotateStart`) took a `*T.Trace` parameter
+none of their bodies ever read — confirmed by grepping each function body for `tr` and
+finding only the signature line. Dropped `tr` from `gestureEdge.action`'s type and all three
+commit actions; `applyAction`'s type (whose three entries DO use `tr`, handing it to
+`applyOrbit`/`applyOrbitLocked`) was left alone — a different table, no shared type to keep
+in sync.
+
+### Dependency direction
+
+New edge: `dispatch → gesture` (dispatch's `HandleRawInput` calls `gesture.HandleRawInput`;
+the two viewpoint test files call `gesture.CameraViewEvent()`). This is a caller depending on
+what it calls, same shape as §30's `stdinreader → dispatch` edge, and is now FIXED — package
+`gesture` must never import `dispatch`. Confirmed no cycle: `gesture` imports only
+`gesturefsm`, `viewstate`, `moverreg`, `layoutquant`, `rowtables`, `movemsg`, `inputcodec`,
+`geom`, `edgemover`, `nodes/wire`, `Trace`, `context` — none of which import `dispatch` or
+`gesture`.
+
+### Six test files stayed in `dispatch` untouched
+
+`gesture_camera_outcomes_test.go`, `gesture_home_test.go`, `gesture_selection_test.go`,
+`gesture_pan_snapshot_test.go`, `gesture_drag_offset_test.go`, `gesture_hover_test.go`, and
+their shared fixture `gesture_helpers_test.go` construct a real `*MoveDispatch` (exported
+fields only: `&MoveDispatch{MR: moverreg.New()}`) and call `md.HandleRawInput(...)` — the
+wrapper — never reaching into the moved package's internals directly. No changes needed;
+they exercise the moved code exactly as before, through the public method.
+
+### Verify
+
+`go build ./...`, `go vet ./...`: clean. `go test ./nodes/Wiring/...`: every package `ok` or
+`[no test files]`, including the new `nodes/Wiring/gesture`. `go test -race -count=1 ./...`:
+every package `ok` or `[no test files]`, zero `FAIL`, zero race reports. `bash
+scripts/stop-checks.sh` from repo root: empty stdout both before the second commit and after.
+
+Deliberate break: flipped `commitDragStart`'s grab-offset sign
+(`g.DragGrabOffset = g.DragStartCenter.Sub(hit)` → `hit.Sub(g.DragStartCenter)`) in
+`gesture_graph.go`. `go test ./nodes/Wiring/dispatch/... -run TestGesture -v` failed exactly
+`TestGestureDragOffCenterPreservesGrabPoint`, no other test — restored the correct sign and
+reran clean. Every other moved surface (the hit classifiers, the commit/apply tables'
+precedence, `gestWheel`'s zoom/pan math, `gestHome`'s fit) has a dedicated table-shape test
+(`gesture_graph_test.go`, now in package `gesture`) or an outcome test in `dispatch`
+(`gesture_camera_outcomes_test.go` etc.) — no moved surface in this cluster was found with
+NO test that can fail, unlike §30's `applyUpdateTiltVector` finding.
+
+### Test-name/assertion parity
+
+110 `TestXxx` functions across `dispatch`+`gesture`+`kindapi`+`stdinreader` before and after
+(baseline unchanged — two whole test files moved verbatim, no test renamed, dropped, or
+`t.Skip`ped; the two viewpoint test files' only edits were an import line and swapping
+`cameraViewEvent()` → `gesture.CameraViewEvent()` at three and two call sites respectively,
+no assertion touched).
+
+### Guards
+
+Grepped `tools/` (excluding `node_modules`/`out`/`.git`) for every moved file/symbol name.
+No `.sh` guard names `gesture_actions.go`/`gesture_handlers.go`/`gesture_hitclassify.go`/
+`gesture_graph.go`/`dispatch_keys_test.go`/`cameraViewEvent`/`setSelectionUI`/`commitEdges`/
+`applyAction`/`hitClassifiers` — the only hits were seven stale doc-comment references to
+`nodes/Wiring/gesture.go` (a pre-§20 path that was already wrong even before this move, since
+the file lived in `nodes/Wiring/dispatch/gesture.go`) in
+`tools/topology-vscode/ARCHITECTURE.md`, `messages.ts`, `extension.ts`,
+`raw-input.ts` (×2), `scene-content.tsx`, `viewpoint-bridge.ts` — updated the six that named
+an exact path to `nodes/Wiring/gesture package`; left the one bare "(gesture.go)" aside
+reference in `raw-input.ts`/`scene-content.tsx` as loose prose, not a guarded path.
+`check-polar-only-nav.sh`, `check-no-camera-roundtrip.sh`, `check-no-network-locks.sh`
+(allowlist stayed empty), `check-persist-write-ownership.sh`, `check-scene-path-resolution.sh`,
+`check-channel-names.sh`, the stream-fd guards, `check-doc-drift`, `check-docs-symbols.sh`
+(scoped to `docs/pair-node/*.html` only — N/A here), `check-no-untracked-source`,
+`check-input-attr-dispatched.sh` all ran clean inside `bash scripts/stop-checks.sh`, with no
+re-keying needed (none of them matched the moved names by content, and none of the moved
+files touch persistence, scene paths, camera roundtrip, or polar nav directly — they call
+through `viewstate`'s already-covered ops). Grepped every moved file for `runtime.Caller`,
+`filepath.Join("..", ...)`, `../..` — zero hits.
+
+### The no-package-under-Wiring-imports-dispatch loop
+
+Re-ran the same loop §30 introduced. It still reports exactly the one expected line
+(`DEPENDS ON DISPATCH: github.com/dtauraso/wirefold/nodes/Wiring/stdinreader`) from §30's
+edge — `nodes/Wiring/gesture` does NOT appear, confirming the new `dispatch → gesture` edge
+runs the intended direction and no package under `Wiring` imports `dispatch` back.
+
+### Final state and what did not get attempted
+
+`ls nodes/Wiring/dispatch/*.go | wc -l` → **62** (19 non-test + 43 test), down from 69 (24
+non-test + 45 test). Target is ≤31; still above it. **The build/load cluster (`build.go`,
+`loader.go`, `move_dispatch_construct.go`) and the remainder cluster (16 files) were NOT
+attempted this session** — the gesture cluster's per-statement measurement across five files
+plus a new package's worth of guard re-keying and doc updates cost the full remaining
+budget. This is a stop-at-a-committed-buildable-stage report, not a decline. The task's own
+framing ("work all three groups... do not repeat the one-enabler-per-pass pattern") was
+still not fully met this session, though this pass moved 5 non-test files + 2 test files in
+one commit pair rather than one file total. The next pass should start from the build/load
+cluster: §29 already confirmed `buildNodes`'s own pin is gone, so the remaining work is
+`buildCtx`'s own fields (which the task brief says should travel WITH the cluster into a new
+package, not be treated as a leak) and `newMoveDispatch`'s `tapToInstall` wiring — measure
+`build.go`/`loader.go`/`move_dispatch_construct.go` bodies fresh rather than trusting this
+doc's summary.
+
+Commits: `2495a7d6` (gesture cluster moves to `nodes/Wiring/gesture`, ctx threaded as
+`Deps.Ctx`), `9e5e23d2` (removes the six now-empty-of-purpose old file paths in `dispatch`
+the first commit's pathspec missed).
