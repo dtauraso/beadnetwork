@@ -152,7 +152,7 @@ func applyUpdateScene(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch
 		}
 		md.UI.LatticePoints = points
 		md.Persist.Lattice().Schedule(points)
-		md.BroadcastLatticePoints(points)
+		md.Inboxes.BroadcastLatticePoints(points)
 	case "create":
 		// The palette's drop. Num is the kind id, X/Y the drop's NDC — see
 		// scene_structure.go for how that becomes a place, and why this ends the run rather

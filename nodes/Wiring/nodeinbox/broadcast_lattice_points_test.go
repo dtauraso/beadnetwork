@@ -1,26 +1,25 @@
-package dispatch
-
-// scene_lattice_broadcast_test.go — asserts what MoveDispatch.BroadcastLatticePoints itself
-// decided: reach every registered channel, and never block on a channel already holding a
-// stale pending value (docs/process/testing-shape.md). The applyUpdateScene/latticePoints
-// edit-routing tests that used to sit alongside these two moved to
-// nodes/Wiring/stdinreader/dispatch_apply_scene_test.go (§30,
-// docs/planning/movedispatch-decomposition.md) when applyUpdateScene itself moved there.
+// broadcast_lattice_points_test.go — asserts what BroadcastLatticePoints itself decided:
+// reach every registered channel, and never block on a channel already holding a stale
+// pending value (docs/process/testing-shape.md). Moved from nodes/Wiring/dispatch's
+// scene_lattice_broadcast_test.go (docs/planning/movedispatch-decomposition.md, the
+// remainder cluster) alongside the deletion of MoveDispatch.BroadcastLatticePoints, a pure
+// single-owner forward onto *NodeInboxes — every caller now addresses md.Inboxes directly.
+package nodeinbox
 
 import "testing"
 
-// TestBroadcastLatticePointsReachesEveryRegisteredChannel: a channel registered in
-// md.latticeIns receives the broadcast count. This is what ONE goroutine (the stdin
+// TestBroadcastLatticePointsReachesEveryRegisteredChannel: a channel registered via
+// ClaimLatticeIn receives the broadcast count. This is what ONE goroutine (the stdin
 // reader) decided to send onto directory entries it owns — not a claim about a second
 // goroutine actually reading it (docs/process/testing-shape.md).
 func TestBroadcastLatticePointsReachesEveryRegisteredChannel(t *testing.T) {
-	md := &MoveDispatch{}
+	var ib NodeInboxes
 	chA := make(chan int32, 1)
 	chB := make(chan int32, 1)
-	md.Inboxes.ClaimLatticeIn("1", chA)
-	md.Inboxes.ClaimLatticeIn("2", chB)
+	ib.ClaimLatticeIn("1", chA)
+	ib.ClaimLatticeIn("2", chB)
 
-	md.BroadcastLatticePoints(12)
+	ib.BroadcastLatticePoints(12)
 
 	for id, ch := range map[string]chan int32{"1": chA, "2": chB} {
 		select {
@@ -39,15 +38,15 @@ func TestBroadcastLatticePointsReachesEveryRegisteredChannel(t *testing.T) {
 // stdin-reader goroutine) must never stall because one node's own goroutine is asleep or
 // mid-cycle.
 func TestBroadcastLatticePointsDoesNotBlockOnAFullChannel(t *testing.T) {
-	md := &MoveDispatch{}
+	var ib NodeInboxes
 	ch := make(chan int32, 1)
 	ch <- 8 // pre-fill: simulates a stale pending value nobody has drained yet
-	md.Inboxes.ClaimLatticeIn("1", ch)
+	ib.ClaimLatticeIn("1", ch)
 
 	// Called directly, on this test's own goroutine: a non-blocking drain-then-send
 	// either returns immediately (pass) or the test itself hangs and the runner times it
 	// out (fail) — no second goroutine is needed to observe that.
-	md.BroadcastLatticePoints(24)
+	ib.BroadcastLatticePoints(24)
 
 	select {
 	case got := <-ch:

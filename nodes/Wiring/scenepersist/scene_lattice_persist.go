@@ -1,6 +1,11 @@
 // scene_lattice_persist.go — pure read/write helpers for the pair lattice's POINT COUNT in
-// view/lattice.json, lifted out of nodes/Wiring/scene_lattice_persist.go (which keeps the
-// MoveDispatch-facing methods and the latticePersister type — see that file's own header).
+// view/lattice.json. nodes/Wiring/dispatch's own scene_lattice_persist.go (the
+// MoveDispatch-facing latticePersister type + BroadcastLatticePoints wrapper) was deleted
+// (docs/planning/movedispatch-decomposition.md, the remainder cluster): the Persister[int32]
+// this file's own writer is bound to is armed by EnableEditPersist (move_persist.go) and
+// reached via md.Persist.Lattice(); BroadcastLatticePoints itself was a pure forward onto
+// nodeinbox.NodeInboxes — every caller now addresses md.Inboxes.BroadcastLatticePoints
+// directly.
 //
 // UNLIKE counts.json, a missing or malformed lattice.json is a PREFERENCE, not a
 // structural invariant: it falls back to DefaultLatticePoints quietly rather than failing
