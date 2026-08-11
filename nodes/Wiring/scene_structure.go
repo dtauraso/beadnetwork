@@ -17,7 +17,6 @@ package Wiring
 
 import (
 	"fmt"
-	"os"
 	"strconv"
 
 	B "github.com/dtauraso/wirefold/Buffer"
@@ -46,22 +45,22 @@ func (md *MoveDispatch) CreateNode(kindID uint8, ndcX, ndcY float64, tr *T.Trace
 	// A scene that does not take structural edits refuses every one of them, here rather
 	// than in the editor: the palette is hidden in such a scene, but "the UI does not offer
 	// it" is not the same as "it cannot happen", and this is the side that owns the tree.
-	if !md.ui.sceneEditable {
-		md.ui.refuseStructuralEdit("this scene does not take structural edits")
+	if !md.UI.SceneEditable {
+		md.UI.RefuseStructuralEdit("this scene does not take structural edits")
 		md.emitViewFrame(nil)
 		return
 	}
 	kind, ok := kindForID(kindID)
 	if !ok {
-		md.ui.refuseStructuralEdit(fmt.Sprintf("unknown kind id %d", kindID))
+		md.UI.RefuseStructuralEdit(fmt.Sprintf("unknown kind id %d", kindID))
 		md.emitViewFrame(nil)
 		return
 	}
 	// A kind this SCENE does not take (SceneTab.Kinds). The palette does not offer it, so
 	// this should be unreachable from the editor — which is exactly why it is checked: the
 	// tree is written on this side, and "the UI does not offer it" is not "it cannot happen".
-	if md.ui.sceneKinds&(1<<uint(kindID)) == 0 {
-		md.ui.refuseStructuralEdit(fmt.Sprintf("this scene does not take %s nodes", kind))
+	if md.UI.SceneKinds&(1<<uint(kindID)) == 0 {
+		md.UI.RefuseStructuralEdit(fmt.Sprintf("this scene does not take %s nodes", kind))
 		md.emitViewFrame(nil)
 		return
 	}
@@ -71,9 +70,9 @@ func (md *MoveDispatch) CreateNode(kindID uint8, ndcX, ndcY float64, tr *T.Trace
 	// rather than the plane through some node, is what makes a drop into empty space land
 	// somewhere sensible: the scene sphere is the frame every node position is measured
 	// from anyway.
-	drop, okDrop := md.ui.dropPointFromNDC(ndcX, ndcY)
+	drop, okDrop := md.UI.DropPointFromNDC(ndcX, ndcY)
 	if !okDrop {
-		md.ui.refuseStructuralEdit("could not resolve where the drop landed")
+		md.UI.RefuseStructuralEdit("could not resolve where the drop landed")
 		md.emitViewFrame(nil)
 		return
 	}
@@ -87,7 +86,7 @@ func (md *MoveDispatch) CreateNode(kindID uint8, ndcX, ndcY float64, tr *T.Trace
 		var why string
 		var canLink bool
 		if srcPort, targetPort, why, canLink = md.mr.linkRefusal(src, kind); !canLink {
-			md.ui.refuseStructuralEdit(why)
+			md.UI.RefuseStructuralEdit(why)
 			md.emitViewFrame(nil)
 			return
 		}
@@ -100,18 +99,18 @@ func (md *MoveDispatch) CreateNode(kindID uint8, ndcX, ndcY float64, tr *T.Trace
 	// SceneCenter, established once at load — sphere_layout.go), read through the source
 	// node this create already resolved. An empty scene has no node to read it from and no
 	// nearest node either, so the drop is measured from the origin.
-	c := md.ui.sceneSphere.Center
+	c := md.UI.SceneSphere.Center
 	off := drop.Sub(c)
 	d := geom.WorldDirToAngles(off)
 	if err := WriteNewNodeFiles(md.Scenes.TreeRoot, target, kind, off.Length(), d.Theta, d.Phi); err != nil {
-		md.ui.refuseStructuralEdit(fmt.Sprintf("could not write node %s: %v", target, err))
+		md.UI.RefuseStructuralEdit(fmt.Sprintf("could not write node %s: %v", target, err))
 		md.emitViewFrame(nil)
 		return
 	}
 	edges := loadspec.CountEdgeFiles(md.Scenes.TreeRoot)
 	if okNear {
 		if err := edgefile.WriteEdgeFile(md.Scenes.TreeRoot, src, srcPort, target, targetPort); err != nil {
-			md.ui.refuseStructuralEdit(fmt.Sprintf("could not write edge %s->%s: %v", src, target, err))
+			md.UI.RefuseStructuralEdit(fmt.Sprintf("could not write edge %s->%s: %v", src, target, err))
 			md.emitViewFrame(nil)
 			return
 		}
@@ -120,7 +119,7 @@ func (md *MoveDispatch) CreateNode(kindID uint8, ndcX, ndcY float64, tr *T.Trace
 	// An empty scene has no nearest node, so the new node stands alone. That is not an
 	// error — there is nothing to refuse, only nothing to connect to.
 	if err := countspersist.WriteCounts(md.Scenes.TreeRoot, loadspec.LargestNodeID(md.Scenes.TreeRoot), edges); err != nil {
-		md.ui.refuseStructuralEdit(fmt.Sprintf("could not update counts.json: %v", err))
+		md.UI.RefuseStructuralEdit(fmt.Sprintf("could not update counts.json: %v", err))
 		md.emitViewFrame(nil)
 		return
 	}
@@ -141,25 +140,25 @@ func (md *MoveDispatch) DeleteNode(row int, tr *T.Trace) {
 	// A scene that does not take structural edits refuses every one of them, here rather
 	// than in the editor: the palette is hidden in such a scene, but "the UI does not offer
 	// it" is not the same as "it cannot happen", and this is the side that owns the tree.
-	if !md.ui.sceneEditable {
-		md.ui.refuseStructuralEdit("this scene does not take structural edits")
+	if !md.UI.SceneEditable {
+		md.UI.RefuseStructuralEdit("this scene does not take structural edits")
 		md.emitViewFrame(nil)
 		return
 	}
 	id, ok := md.RT.LookupNodeRow(row)
 	if !ok {
-		md.ui.refuseStructuralEdit(fmt.Sprintf("no node on row %d", row))
+		md.UI.RefuseStructuralEdit(fmt.Sprintf("no node on row %d", row))
 		md.emitViewFrame(nil)
 		return
 	}
 	root := md.Scenes.TreeRoot
 	if err := RemoveNodeDir(root, id); err != nil {
-		md.ui.refuseStructuralEdit(fmt.Sprintf("could not remove node %s: %v", id, err))
+		md.UI.RefuseStructuralEdit(fmt.Sprintf("could not remove node %s: %v", id, err))
 		md.emitViewFrame(nil)
 		return
 	}
 	if err := edgefile.RemoveEdgesTo(root, id, loadspec.NodeIDStringsInTree(root)); err != nil {
-		md.ui.refuseStructuralEdit(fmt.Sprintf("could not remove edges into %s: %v", id, err))
+		md.UI.RefuseStructuralEdit(fmt.Sprintf("could not remove edges into %s: %v", id, err))
 		md.emitViewFrame(nil)
 		return
 	}
@@ -168,7 +167,7 @@ func (md *MoveDispatch) DeleteNode(row int, tr *T.Trace) {
 	// above it down — that shift is the silent rename ROW ID = NODE ID - 1 exists to
 	// prevent (node 6's geometry arriving on node 5's row the moment 5 is deleted).
 	if err := countspersist.WriteCounts(root, loadspec.LargestNodeID(root), loadspec.CountEdgeFiles(root)); err != nil {
-		md.ui.refuseStructuralEdit(fmt.Sprintf("could not update counts.json: %v", err))
+		md.UI.RefuseStructuralEdit(fmt.Sprintf("could not update counts.json: %v", err))
 		md.emitViewFrame(nil)
 		return
 	}
@@ -229,12 +228,9 @@ func firstPortOfDir(kind string, dir portwiring.PortDir) (string, bool) {
 // frame is emitted by the caller, per docs/planning/movedispatch-decomposition.md's
 // write-then-emit split. Bumping the count and emitting a frame is the whole signal — the
 // editor watches the number and shows a message when it goes up.
-func (ui *uiState) refuseStructuralEdit(why string) {
-	fmt.Fprintf(os.Stderr, "structural edit refused: %s\n", why)
-	// …and SAY SO ON SCREEN. The reason belongs in the log; that the edit was refused at all
-	// is the part a person cannot otherwise see, since the scene looks exactly as it did.
-	ui.editRefused++
-}
+//
+// Moved to viewstate.UIState.RefuseStructuralEdit (docs/planning/gesture-actor.md's lift) —
+// call sites in this file now read md.UI.RefuseStructuralEdit(...).
 
 // kindForID reverses Buffer's kind-id map: the wire carries the numeric kind identity the
 // Node block's KindId column already uses, so no kind NAME crosses the bridge.

@@ -20,6 +20,7 @@ import (
 
 	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 )
 
 // HandleRawInputMsg hands a raw pointer/wheel event + stateless raycast hit to the
@@ -38,19 +39,20 @@ func HandleSaveMsg(md *MoveDispatch) {
 	if md == nil {
 		return
 	}
-	md.persist.overlays.schedule(md.ui.ov)
+	md.persist.overlays.schedule(md.UI.OV)
 	// Persist the scene sphere immediately (not debounced) so save reliably activates
 	// the polar-load path (scene_sphere_persist.go LoadSceneSphere) — until the sphere
 	// is in sphere.json, reload stays on cartesian x/y/z.
-	md.persist.sphere.flushNow(md.ui.sceneSphere)
+	md.persist.sphere.flushNow(md.UI.SceneSphere)
 }
 
-// overlayToggles (the FLAG name → overlayState flip-method table) and
-// overlayFlagTraceKind (the FLAG name → Trace.Kind* string, so applyUpdate's toggle case
-// can hand emitViewFrame the ONE event that flag's toggle logged) are both GENERATED into
-// overlay_gen.go from the SAME OVERLAY_FLAG_NAMES source, so they cannot drift apart by
-// flag-name set — a flag missing its Trace kind constant fails the Go build rather than
-// silently omitting the emit. See tools/gen-node-defs/overlay_gen.go's writeOverlayGen.
+// viewstate.OverlayToggles (the FLAG name → OverlayState flip-method table) and
+// viewstate.OverlayFlagTraceKind (the FLAG name → Trace.Kind* string, so applyUpdate's toggle
+// case can hand emitViewFrame the ONE event that flag's toggle logged) are both GENERATED
+// into nodes/Wiring/viewstate/overlay_state.go from the SAME OVERLAY_FLAG_NAMES source, so
+// they cannot drift apart by flag-name set — a flag missing its Trace kind constant fails
+// the Go build rather than silently omitting the emit. See
+// tools/gen-node-defs/overlay_gen.go's writeOverlayGen.
 
 // applyEdit dispatches one geometry-CRUD edit by its op. The sole op is update
 // (matched by value so it stays invisible to the message-kind-parity guard, which
@@ -122,7 +124,7 @@ var clockAttrHandlers = map[string]func(msg inputcodec.StdinMsg, md *MoveDispatc
 		// load-time seed can never disagree.
 		divisor := 1.0
 		if md != nil {
-			divisor = md.ui.clockDivisor
+			divisor = md.UI.ClockDivisor
 		}
 		effective := EffectiveClockSpeed(userSpeed, divisor)
 		// SetSpeed left the Clock INTERFACE in the per-goroutine-clock demolition (item 4):
@@ -145,7 +147,7 @@ var clockAttrHandlers = map[string]func(msg inputcodec.StdinMsg, md *MoveDispatc
 		// memory/feedback_reflect_dont_create_store.md), and persist it UNSCALED (scene-level,
 		// this view-owner goroutine's own file — .claude/rules/persistence-ownership.md). The
 		// divisor never crosses the bridge and never reaches disk.
-		md.ui.speed = userSpeed
+		md.UI.Speed = userSpeed
 		md.persist.speed.schedule(userSpeed)
 		md.emitViewFrame(nil)
 	},
@@ -155,23 +157,23 @@ var clockAttrHandlers = map[string]func(msg inputcodec.StdinMsg, md *MoveDispatc
 var overlayAttrHandlers = map[string]func(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trace){
 	"toggle": func(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trace) {
 		// Flip the named flag — Go owns the state; TS just signals the flip.
-		if fn, ok := overlayToggles[msg.Flag]; ok {
-			fn(&md.ui.ov, tr)
+		if fn, ok := viewstate.OverlayToggles[msg.Flag]; ok {
+			fn(&md.UI.OV, tr)
 			// Structured buffer counterpart of the "pole-toggle-go" debug breadcrumb
-			// overlayState.Toggle* logs for scene/node poles (overlayFlagBreadcrumbScope,
-			// overlay_gen.go): only this goroutine (RunStdinReader's dispatch loop, the
+			// OverlayState.Toggle* logs for scene/node poles (viewstate.OverlayFlagBreadcrumbScope,
+			// viewstate/overlay_state.go): only this goroutine (RunStdinReader's dispatch loop, the
 			// VIEW stream's owner) ever calls md.EmitBreadcrumb, so it is safe here with
 			// no lock. Value=visible(0/1); the scope ("scene"/"nodes") rides the
 			// sanctioned free-form Text column since it names which pole-flag fired, not
 			// a typed row ref.
-			if scope, ok := overlayFlagBreadcrumbScope[msg.Flag]; ok {
-				md.EmitBreadcrumb(wire.RowEvent{Label: T.BreadcrumbPoleToggleGo, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1, Value: int32(boolU8(overlayFlagValue[msg.Flag](&md.ui.ov))), Text: scope})
+			if scope, ok := viewstate.OverlayFlagBreadcrumbScope[msg.Flag]; ok {
+				md.EmitBreadcrumb(wire.RowEvent{Label: T.BreadcrumbPoleToggleGo, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1, Value: int32(boolU8(viewstate.OverlayFlagValue[msg.Flag](&md.UI.OV))), Text: scope})
 			}
 			// Decentralized (Step C, memory/feedback_no_single_writer_bridge.md): this goroutine (the sole
 			// caller of every overlay Toggle*) also writes its own VIEW frame directly,
 			// carrying the one flag that just changed — matches the ONE tr.X(bool) event
 			// the toggle already logged.
-			if kind, ok := overlayFlagTraceKind[msg.Flag]; ok {
+			if kind, ok := viewstate.OverlayFlagTraceKind[msg.Flag]; ok {
 				md.emitViewFrame([]wire.RowEvent{{Kind: kind, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}})
 			}
 		}

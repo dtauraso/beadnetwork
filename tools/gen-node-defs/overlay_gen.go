@@ -14,6 +14,18 @@ import (
 	"strings"
 )
 
+// exportField capitalizes an overlayState field name for OverlayState's exported surface —
+// OverlayState now lives in nodes/Wiring/viewstate, a different package from the code that
+// reads its fields directly (Wiring's stdin_dispatch.go/scene_overlays_persist.go), so the
+// fields must be exported; this is that type's OWN surface (docs/planning/gesture-actor.md),
+// not a second type forced open by a third file.
+func exportField(field string) string {
+	if field == "" {
+		return field
+	}
+	return strings.ToUpper(field[:1]) + field[1:]
+}
+
 // overlayFlag is one entry of the OVERLAY_FLAG_NAMES vocabulary with the mechanical
 // Go names derived from (or overridden for) its camelCase flag string.
 type overlayFlag struct {
@@ -119,10 +131,10 @@ func parseOverlayFlags(messagesPath string) ([]overlayFlag, error) {
 	return flags, nil
 }
 
-// writeOverlayGen emits nodes/Wiring/overlay_gen.go: the entire Go-side overlay wiring
-// mechanically derived from OVERLAY_FLAG_NAMES — the overlayState struct + flip/emit
-// methods, the defaultOverlayState constructor, and the overlayToggles method-expression
-// table (bound directly to overlayState, no MoveDispatch delegator tier). Deviating flags
+// writeOverlayGen emits nodes/Wiring/viewstate/overlay_state.go: the entire Go-side overlay
+// wiring mechanically derived from OVERLAY_FLAG_NAMES — the OverlayState struct + flip/emit
+// methods, the DefaultOverlayState constructor, and the OverlayToggles method-expression
+// table (bound directly to OverlayState, no MoveDispatch delegator tier). Deviating flags
 // (scene/node poles Breadcrumb) are generated from overlayOverrides. Adding an overlay flag
 // now means editing OVERLAY_FLAG_NAMES (+ the ~4-5 TS/render sites); every Go site above
 // is regenerated. Parity of the generated table is guarded by check-edit-op-parity.sh
@@ -135,7 +147,7 @@ func writeOverlayGen(outPath string, flags []overlayFlag) error {
 	fmt.Fprintln(w, `// Source: OVERLAY_FLAG_NAMES in tools/topology-vscode/src/messages.ts.`)
 	fmt.Fprintln(w, `// Regenerate with: cd tools/topology-vscode && npm run gen:node-defs`)
 	fmt.Fprintln(w)
-	fmt.Fprintln(w, `package Wiring`)
+	fmt.Fprintln(w, `package viewstate`)
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, `import (`)
 	fmt.Fprintln(w, "\t\"fmt\"")
@@ -144,13 +156,13 @@ func writeOverlayGen(outPath string, flags []overlayFlag) error {
 	fmt.Fprintln(w, `)`)
 	fmt.Fprintln(w)
 
-	// overlayState struct.
-	fmt.Fprintln(w, `// overlayState groups the per-toggle overlay-visibility booleans and their`)
-	fmt.Fprintln(w, `// flip/emit logic. Owned by MoveDispatch (md.ui.ov); the stdin reader's overlayToggles`)
+	// OverlayState struct.
+	fmt.Fprintln(w, `// OverlayState groups the per-toggle overlay-visibility booleans and their`)
+	fmt.Fprintln(w, `// flip/emit logic. Owned by UIState (ui.OV); Wiring's stdin reader's OverlayToggles`)
 	fmt.Fprintln(w, `// method-expression table binds these methods directly.`)
-	fmt.Fprintln(w, `type overlayState struct {`)
+	fmt.Fprintln(w, `type OverlayState struct {`)
 	for _, f := range flags {
-		fmt.Fprintf(w, "\t%s bool\n", f.field)
+		fmt.Fprintf(w, "\t%s bool\n", exportField(f.field))
 	}
 	fmt.Fprintln(w, `}`)
 	fmt.Fprintln(w)
@@ -158,86 +170,86 @@ func writeOverlayGen(outPath string, flags []overlayFlag) error {
 	// setFlag helper.
 	fmt.Fprintln(w, `// setFlag flips *field. Shared body of the uniform Toggle* methods. The RowEvent`)
 	fmt.Fprintln(w, `// carrying the new value is written by the caller's own goroutine directly (see`)
-	fmt.Fprintln(w, `// stdin_dispatch.go's applyUpdate) — this no longer emits through Trace.`)
-	fmt.Fprintln(w, `func (o *overlayState) setFlag(field *bool) {`)
+	fmt.Fprintln(w, `// Wiring's stdin_dispatch.go's applyUpdate) — this no longer emits through Trace.`)
+	fmt.Fprintln(w, `func (o *OverlayState) setFlag(field *bool) {`)
 	fmt.Fprintln(w, "\t*field = !*field")
 	fmt.Fprintln(w, `}`)
 	fmt.Fprintln(w)
 
-	// Per-flag Toggle (+ accessor) on overlayState. tr is kept only for the breadcrumb
+	// Per-flag Toggle (+ accessor) on OverlayState. tr is kept only for the breadcrumb
 	// variants (scenePoles/nodePoles) and to keep every Toggle* method's signature
-	// uniform for the overlayToggles method-expression table; the per-owner RowEvent
-	// write lives at the call site (stdin_dispatch.go's applyUpdate), not here.
+	// uniform for the OverlayToggles method-expression table; the per-owner RowEvent
+	// write lives at the call site (Wiring's stdin_dispatch.go's applyUpdate), not here.
 	for _, f := range flags {
-		fmt.Fprintf(w, "// Toggle%s flips %s.\n", f.method, f.field)
-		fmt.Fprintf(w, "func (o *overlayState) Toggle%s(tr *T.Trace) {\n", f.method)
+		field := exportField(f.field)
+		fmt.Fprintf(w, "// Toggle%s flips %s.\n", f.method, field)
+		fmt.Fprintf(w, "func (o *OverlayState) Toggle%s(tr *T.Trace) {\n", f.method)
 		if f.breadcrumb != "" {
-			fmt.Fprintf(w, "\to.%s = !o.%s\n", f.field, f.field)
-			fmt.Fprintf(w, "\ttr.Breadcrumb(\"pole-toggle-go\", %q, \"\", fmt.Sprintf(\"visible=%%v\", o.%s))\n", f.breadcrumb, f.field)
+			fmt.Fprintf(w, "\to.%s = !o.%s\n", field, field)
+			fmt.Fprintf(w, "\ttr.Breadcrumb(\"pole-toggle-go\", %q, \"\", fmt.Sprintf(\"visible=%%v\", o.%s))\n", f.breadcrumb, field)
 		} else {
-			fmt.Fprintf(w, "\to.setFlag(&o.%s)\n", f.field)
+			fmt.Fprintf(w, "\to.setFlag(&o.%s)\n", field)
 		}
 		fmt.Fprintln(w, `}`)
 		fmt.Fprintln(w)
 		if f.accessor {
-			fmt.Fprintf(w, "// %s returns the current %s.\n", f.method, f.field)
-			fmt.Fprintf(w, "func (o *overlayState) %s() bool {\n", f.method)
-			fmt.Fprintf(w, "\treturn o.%s\n", f.field)
+			fmt.Fprintf(w, "// %s returns the current %s.\n", f.method, field)
+			fmt.Fprintf(w, "func (o *OverlayState) %s() bool {\n", f.method)
+			fmt.Fprintf(w, "\treturn o.%s\n", field)
 			fmt.Fprintln(w, `}`)
 			fmt.Fprintln(w)
 		}
 	}
 
-	// SetGuideVisibility on overlayState. The 8 RowEvents this snapshot implies are
-	// written by the caller (scene_overlays_persist.go's LoadOverlays) directly.
+	// SetGuideVisibility on OverlayState. The 8 RowEvents this snapshot implies are
+	// written by the caller (Wiring's scene_overlays_persist.go's LoadOverlays) directly.
 	fmt.Fprintln(w, `// SetGuideVisibility installs an explicit-visibility snapshot wholesale (the TS`)
 	fmt.Fprintln(w, `// startup push so settings survive a Go respawn).`)
-	fmt.Fprintln(w, `func (o *overlayState) SetGuideVisibility(ov overlayState) {`)
+	fmt.Fprintln(w, `func (o *OverlayState) SetGuideVisibility(ov OverlayState) {`)
 	fmt.Fprintln(w, "\t*o = ov")
 	fmt.Fprintln(w, `}`)
 	fmt.Fprintln(w)
 
-	// defaultOverlayState constructor.
-	fmt.Fprintln(w, `// defaultOverlayState is the startup overlay snapshot used by newMoveDispatch.`)
-	fmt.Fprintln(w, `func defaultOverlayState() overlayState {`)
-	fmt.Fprintln(w, "\treturn overlayState{")
+	// DefaultOverlayState constructor.
+	fmt.Fprintln(w, `// DefaultOverlayState is the startup overlay snapshot used by Wiring's newMoveDispatch.`)
+	fmt.Fprintln(w, `func DefaultOverlayState() OverlayState {`)
+	fmt.Fprintln(w, "\treturn OverlayState{")
 	for _, f := range flags {
 		if f.defaultOn {
-			fmt.Fprintf(w, "\t\t%s: true,\n", f.field)
+			fmt.Fprintf(w, "\t\t%s: true,\n", exportField(f.field))
 		}
 	}
 	fmt.Fprintln(w, "\t}")
 	fmt.Fprintln(w, `}`)
 	fmt.Fprintln(w)
 
-	// overlayToggles map (sentinel-bounded for check-edit-op-parity.sh axis 3). Bound
-	// directly to the overlayState method expressions — no MoveDispatch delegator tier.
-	fmt.Fprintln(w, `// overlayToggles maps an overlay FLAG name (the attr="toggle" wire name) to the`)
-	fmt.Fprintln(w, `// overlayState method that flips it.`)
+	// OverlayToggles map (sentinel-bounded for check-edit-op-parity.sh axis 3). Bound
+	// directly to the OverlayState method expressions — no MoveDispatch delegator tier.
+	fmt.Fprintln(w, `// OverlayToggles maps an overlay FLAG name (the attr="toggle" wire name) to the`)
+	fmt.Fprintln(w, `// OverlayState method that flips it.`)
 	fmt.Fprintln(w, `//`)
 	fmt.Fprintln(w, `// OVERLAY_TOGGLES_START`)
-	fmt.Fprintln(w, `var overlayToggles = map[string]func(*overlayState, *T.Trace){`)
+	fmt.Fprintln(w, `var OverlayToggles = map[string]func(*OverlayState, *T.Trace){`)
 	for _, f := range flags {
-		fmt.Fprintf(w, "\t%q: (*overlayState).Toggle%s,\n", f.flag, f.method)
+		fmt.Fprintf(w, "\t%q: (*OverlayState).Toggle%s,\n", f.flag, f.method)
 	}
 	fmt.Fprintln(w, `}`)
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, `// OVERLAY_TOGGLES_END`)
 	fmt.Fprintln(w)
 
-	// overlayFlagBreadcrumbScope + overlayFlagValue: the subset of flags whose Toggle
+	// OverlayFlagBreadcrumbScope + OverlayFlagValue: the subset of flags whose Toggle
 	// also logs a structured "pole-toggle-go" debug breadcrumb (scene/node poles only).
-	// The breadcrumb needs md.EmitBreadcrumb (a MoveDispatch method, since it writes the
-	// VIEW stream), so it can no longer live in the deleted MoveDispatch delegator; the
-	// call site (stdin_dispatch.go's "toggle" handler) emits it after calling the
-	// overlayState method, using these two tables to find which flags need it, their
-	// scope text, and the post-toggle field value.
-	fmt.Fprintln(w, `// overlayFlagBreadcrumbScope names the overlay flags whose Toggle also logs a`)
+	// The breadcrumb needs ui.EmitBreadcrumb (a UIState method, since it writes the
+	// VIEW stream); the call site (Wiring's stdin_dispatch.go's "toggle" handler) emits it
+	// after calling the OverlayState method, using these two tables to find which flags
+	// need it, their scope text, and the post-toggle field value.
+	fmt.Fprintln(w, `// OverlayFlagBreadcrumbScope names the overlay flags whose Toggle also logs a`)
 	fmt.Fprintln(w, `// structured "pole-toggle-go" debug breadcrumb, and the scope text that breadcrumb`)
 	fmt.Fprintln(w, `// carries. Flags absent here emit no such breadcrumb.`)
 	fmt.Fprintln(w, `//`)
 	fmt.Fprintln(w, `// OVERLAY_BREADCRUMB_SCOPES_START`)
-	fmt.Fprintln(w, `var overlayFlagBreadcrumbScope = map[string]string{`)
+	fmt.Fprintln(w, `var OverlayFlagBreadcrumbScope = map[string]string{`)
 	for _, f := range flags {
 		if f.breadcrumb != "" {
 			fmt.Fprintf(w, "\t%q: %q,\n", f.flag, f.breadcrumb)
@@ -247,33 +259,33 @@ func writeOverlayGen(outPath string, flags []overlayFlag) error {
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, `// OVERLAY_BREADCRUMB_SCOPES_END`)
 	fmt.Fprintln(w)
-	fmt.Fprintln(w, `// overlayFlagValue reads the post-toggle bool for the flags named in`)
-	fmt.Fprintln(w, `// overlayFlagBreadcrumbScope (same key set).`)
-	fmt.Fprintln(w, `var overlayFlagValue = map[string]func(*overlayState) bool{`)
+	fmt.Fprintln(w, `// OverlayFlagValue reads the post-toggle bool for the flags named in`)
+	fmt.Fprintln(w, `// OverlayFlagBreadcrumbScope (same key set).`)
+	fmt.Fprintln(w, `var OverlayFlagValue = map[string]func(*OverlayState) bool{`)
 	for _, f := range flags {
 		if f.breadcrumb != "" {
-			fmt.Fprintf(w, "\t%q: func(o *overlayState) bool { return o.%s },\n", f.flag, f.field)
+			fmt.Fprintf(w, "\t%q: func(o *OverlayState) bool { return o.%s },\n", f.flag, exportField(f.field))
 		}
 	}
 	fmt.Fprintln(w, `}`)
 	fmt.Fprintln(w)
 
-	// overlayFlagTraceKind map: the wire FLAG name -> its Trace.Kind* string, so
-	// applyUpdate's toggle case can hand emitViewFrame the ONE event that flag's
-	// toggle logged. Derived from the SAME flags slice as overlayToggles above (one
+	// OverlayFlagTraceKind map: the wire FLAG name -> its Trace.Kind* string, so
+	// Wiring's applyUpdate toggle case can hand EmitViewFrame the ONE event that flag's
+	// toggle logged. Derived from the SAME flags slice as OverlayToggles above (one
 	// source, OVERLAY_FLAG_NAMES), referencing the T.Kind<Method> constant by name —
 	// if a flag's Trace kind constant does not exist, this fails LOUDLY as a Go
 	// compile error ("undefined: T.KindFoo") the moment the generated file is built,
 	// so a new overlay flag cannot ship silently without its Trace kind.
-	fmt.Fprintln(w, `// overlayFlagTraceKind maps the wire FLAG name (same keys as overlayToggles) to its`)
-	fmt.Fprintln(w, `// Trace.Kind* string, so applyUpdate's toggle case can hand emitViewFrame the ONE event`)
+	fmt.Fprintln(w, `// OverlayFlagTraceKind maps the wire FLAG name (same keys as OverlayToggles) to its`)
+	fmt.Fprintln(w, `// Trace.Kind* string, so Wiring's applyUpdate case can hand EmitViewFrame the ONE event`)
 	fmt.Fprintln(w, `// that flag's toggle logged (matching the per-toggle tr.X(bool) call).`)
 	fmt.Fprintln(w, `// Referencing T.Kind<Method> by name means a flag missing its Trace kind constant is a`)
 	fmt.Fprintln(w, `// Go compile error here, not a silent no-op — see writeOverlayGen in`)
 	fmt.Fprintln(w, `// tools/gen-node-defs/overlay_gen.go.`)
 	fmt.Fprintln(w, `//`)
 	fmt.Fprintln(w, `// OVERLAY_TRACE_KINDS_START`)
-	fmt.Fprintln(w, `var overlayFlagTraceKind = map[string]string{`)
+	fmt.Fprintln(w, `var OverlayFlagTraceKind = map[string]string{`)
 	for _, f := range flags {
 		fmt.Fprintf(w, "\t%q: T.Kind%s,\n", f.flag, f.method)
 	}

@@ -2,7 +2,7 @@ package Wiring
 
 // scene_lattice_persist_test.go — round-trip test for the pair-lattice point-count
 // persister (view/lattice.json): a scene/latticePoints edit -> the synchronous writer
-// persists the count to disk -> a reload reads it back into md.ui.latticePoints. Same
+// persists the count to disk -> a reload reads it back into md.UI.LatticePoints. Same
 // real-on-disk-tree shape as scene_speed_persist_test.go
 // (memory/feedback_headless_repro_verifies_persistence.md).
 
@@ -14,7 +14,7 @@ import (
 )
 
 // TestPersistLatticePointsRoundTrips: schedule a lattice write -> lattice.json carries the
-// exact count -> a fresh LoadLatticePoints call restores md.ui.latticePoints from disk.
+// exact count -> a fresh LoadLatticePoints call restores md.UI.LatticePoints from disk.
 func TestPersistLatticePointsRoundTrips(t *testing.T) {
 	root := writeTree(t)
 	md := loadTreeMD(t, root)
@@ -31,9 +31,9 @@ func TestPersistLatticePointsRoundTrips(t *testing.T) {
 	}
 
 	fresh := loadTreeMD(t, root)
-	fresh.ui.loadLatticePoints(root)
-	if fresh.ui.latticePoints != 12 {
-		t.Fatalf("LoadLatticePoints did not restore ui.latticePoints=12, got %v", fresh.ui.latticePoints)
+	loadLatticePoints(&fresh.UI, root)
+	if fresh.UI.LatticePoints != 12 {
+		t.Fatalf("LoadLatticePoints did not restore ui.latticePoints=12, got %v", fresh.UI.LatticePoints)
 	}
 }
 
@@ -44,10 +44,10 @@ func TestLoadLatticePointsFallsBackQuietlyWhenMissing(t *testing.T) {
 	root := writeTree(t) // no view/lattice.json
 	md := loadTreeMD(t, root)
 
-	md.ui.loadLatticePoints(root)
+	loadLatticePoints(&md.UI, root)
 
-	if md.ui.latticePoints != defaultLatticePoints {
-		t.Fatalf("LoadLatticePoints with no file: got ui.latticePoints=%v, want default %v", md.ui.latticePoints, defaultLatticePoints)
+	if md.UI.LatticePoints != defaultLatticePoints {
+		t.Fatalf("LoadLatticePoints with no file: got ui.latticePoints=%v, want default %v", md.UI.LatticePoints, defaultLatticePoints)
 	}
 }
 
@@ -64,9 +64,9 @@ func TestLoadLatticePointsFallsBackQuietlyWhenMalformed(t *testing.T) {
 	}
 	md := loadTreeMD(t, root)
 
-	md.ui.loadLatticePoints(root)
+	loadLatticePoints(&md.UI, root)
 
-	if md.ui.latticePoints != defaultLatticePoints {
-		t.Fatalf("LoadLatticePoints with malformed file: got ui.latticePoints=%v, want default %v", md.ui.latticePoints, defaultLatticePoints)
+	if md.UI.LatticePoints != defaultLatticePoints {
+		t.Fatalf("LoadLatticePoints with malformed file: got ui.latticePoints=%v, want default %v", md.UI.LatticePoints, defaultLatticePoints)
 	}
 }

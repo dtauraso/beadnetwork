@@ -47,12 +47,12 @@ func TestSceneSphereDefaultsFromContentFit(t *testing.T) {
 	// LoadSceneSphere's content-fit path now reads loadTimeCenters() (rebuilt from the
 	// frozen md.GS.NodeSeeds set above), not an atomic snap.
 	md.LoadSceneSphere(t.TempDir()) // no scene.json → content-fit
-	if md.ui.sceneSphere.Radius <= 0 {
-		t.Fatalf("content-fit sphere has non-positive radius: %+v", md.ui.sceneSphere)
+	if md.UI.SceneSphere.Radius <= 0 {
+		t.Fatalf("content-fit sphere has non-positive radius: %+v", md.UI.SceneSphere)
 	}
 	// Center should be the bbox midpoint (≈ (50,0,0)), not the origin default.
-	if md.ui.sceneSphere.Center.X < 40 || md.ui.sceneSphere.Center.X > 60 {
-		t.Fatalf("content-fit center X=%v, want ≈50", md.ui.sceneSphere.Center.X)
+	if md.UI.SceneSphere.Center.X < 40 || md.UI.SceneSphere.Center.X > 60 {
+		t.Fatalf("content-fit center X=%v, want ≈50", md.UI.SceneSphere.Center.X)
 	}
 }
 
@@ -81,7 +81,7 @@ func TestSceneSphereContentFitSurvivesReloadAfterMove(t *testing.T) {
 	// Load 1: no scene.json → content-fit S1, which must be persisted.
 	md1 := newMD(100)
 	md1.LoadSceneSphere(dir)
-	s1 := md1.ui.sceneSphere
+	s1 := md1.UI.SceneSphere
 	if s1.Radius <= 0 {
 		t.Fatalf("load 1: content-fit sphere has non-positive radius: %+v", s1)
 	}
@@ -90,7 +90,7 @@ func TestSceneSphereContentFitSurvivesReloadAfterMove(t *testing.T) {
 	// Load 2: a NEW process over the MOVED tree. It must read S1 back, not re-fit.
 	md2 := newMD(900)
 	md2.LoadSceneSphere(dir)
-	s2 := md2.ui.sceneSphere
+	s2 := md2.UI.SceneSphere
 
 	if s2.Center != s1.Center || s2.Radius != s1.Radius {
 		t.Fatalf("scene sphere drifted across reload after a move:\n  load 1: %+v\n  load 2: %+v\n"+

@@ -94,8 +94,8 @@ func TestLoadSpeedDoesNotCompoundDivisorAcrossReload(t *testing.T) {
 	// Reload once.
 	first := loadTreeMD(t, root)
 	first.LoadSpeed(root, nil, nil)
-	if first.ui.speed != userSpeed {
-		t.Fatalf("first LoadSpeed: ui.speed = %v, want unscaled %v", first.ui.speed, userSpeed)
+	if first.UI.Speed != userSpeed {
+		t.Fatalf("first LoadSpeed: ui.speed = %v, want unscaled %v", first.UI.Speed, userSpeed)
 	}
 
 	// Reload again from the SAME file, simulating a second respawn (e.g. a tab switch and
@@ -103,8 +103,8 @@ func TestLoadSpeedDoesNotCompoundDivisorAcrossReload(t *testing.T) {
 	// userSpeed/divisor instead of userSpeed.
 	second := loadTreeMD(t, root)
 	second.LoadSpeed(root, nil, nil)
-	if second.ui.speed != userSpeed {
-		t.Fatalf("second LoadSpeed (compounding check): ui.speed = %v, want unscaled %v", second.ui.speed, userSpeed)
+	if second.UI.Speed != userSpeed {
+		t.Fatalf("second LoadSpeed (compounding check): ui.speed = %v, want unscaled %v", second.UI.Speed, userSpeed)
 	}
 	onDiskAfter, found := loadSceneSpeed(scenepaths.SpeedFilePath(root))
 	if !found || onDiskAfter != userSpeed {

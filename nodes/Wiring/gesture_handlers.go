@@ -29,7 +29,7 @@ func (md *MoveDispatch) gestHome(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	for id := range centers {
 		radius[id] = md.mr.nodeBodyRadius(id)
 	}
-	pivot, r, pos, up, ok := geom.HomeFitPose(centers, radius, ev.Fov, md.ui.gest.Rect.Aspect())
+	pivot, r, pos, up, ok := geom.HomeFitPose(centers, radius, ev.Fov, md.UI.Gest.Rect.Aspect())
 	if !ok {
 		return
 	}
@@ -39,7 +39,7 @@ func (md *MoveDispatch) gestHome(ev inputcodec.RawInputMsg, tr *T.Trace) {
 }
 
 func (md *MoveDispatch) gestPointerDown(ev inputcodec.RawInputMsg, tr *T.Trace) {
-	g := &md.ui.gest
+	g := &md.UI.Gest
 	g.DownX, g.DownY = ev.X, ev.Y
 	g.PrevX, g.PrevY = ev.X, ev.Y
 	g.Button = ev.Button
@@ -55,7 +55,7 @@ func (md *MoveDispatch) gestPointerDown(ev inputcodec.RawInputMsg, tr *T.Trace) 
 }
 
 func (md *MoveDispatch) gestPointerMove(ev inputcodec.RawInputMsg, tr *T.Trace) {
-	g := &md.ui.gest
+	g := &md.UI.Gest
 	if g.Phase == gesturefsm.GestIdle {
 		return
 	}
@@ -94,16 +94,16 @@ func (md *MoveDispatch) gestPointerMove(ev inputcodec.RawInputMsg, tr *T.Trace) 
 }
 
 func (md *MoveDispatch) gestPointerUp(ev inputcodec.RawInputMsg, slotReg inputcodec.SlotRegistry, tr *T.Trace) {
-	g := &md.ui.gest
+	g := &md.UI.Gest
 	switch {
 	case g.Phase == gesturefsm.GestDragging:
 		mr, lq, ctx := &md.mr, &md.lq, md.ctx
-		applyNodeDragTarget(&md.ui, func(id string, target vec3) bool { return lq.RootMove(ctx, mr, id, target) }, ev) // final target flush
+		applyNodeDragTarget(&md.UI, func(id string, target vec3) bool { return lq.RootMove(ctx, mr, id, target) }, ev) // final target flush
 	case g.Phase == gesturefsm.GestHandhold, g.Phase == gesturefsm.GestRotating:
 		// Rotation completed (free or handhold-constrained): nothing to flush.
 	case g.Phase == gesturefsm.GestPending:
 		// Click → Go-owned selection. A node hit selects it; empty space clears the
-		// selection. md.ui.sel.Selected is the authoritative selection; Select() emits it so the
+		// selection. md.UI.Sel.Selected is the authoritative selection; Select() emits it so the
 		// buffer snapshot marks the node's Selected column.
 		md.applySelect(ev, tr)
 	}
@@ -111,7 +111,7 @@ func (md *MoveDispatch) gestPointerUp(ev inputcodec.RawInputMsg, slotReg inputco
 	// Capture BEFORE reset() clears it (below) — movemsg.KindDragEnd must name the node
 	// that was actually dragged, and reset() zeroes g.DragNode unconditionally.
 	draggedNode := g.DragNode
-	g.Reset(&md.ui.vp.Viewpoint)
+	g.Reset(&md.UI.VP.Viewpoint)
 	if wasDragging {
 		// The drag just ended: g.DragNode is now "" (cleared by reset above), so the
 		// Overlay block's DragNodeRow column must go back to -1 promptly rather than
@@ -132,7 +132,7 @@ func (md *MoveDispatch) gestPointerUp(ev inputcodec.RawInputMsg, slotReg inputco
 // dolly (expressed as a PAN in the polar model — a pivot translation, not a radius change),
 // plain wheel = screen-space pan. Both first seed the viewpoint to region-focus, then pan.
 func (md *MoveDispatch) gestWheel(ev inputcodec.RawInputMsg, tr *T.Trace) {
-	vp := md.ui.vp.Viewpoint
+	vp := md.UI.VP.Viewpoint
 	eye := geom.EyeOf(vp)
 	pivot := geom.RegionFocus(vp, md.lq.heldCenters(&md.mr))
 
@@ -143,9 +143,9 @@ func (md *MoveDispatch) gestWheel(ev inputcodec.RawInputMsg, tr *T.Trace) {
 		// the view and threw the cursor off. PanViewpoint translates the whole camera (pivot+eye
 		// ride together); pos/up are unchanged, so the node keeps projecting to the same pixel.
 		// The cursor→node pick is a screen-space selection at the input boundary (projectNDC).
-		mouseNdcX, mouseNdcY := md.ui.gest.PixelToNDC(ev.X, ev.Y)
+		mouseNdcX, mouseNdcY := md.UI.Gest.PixelToNDC(ev.X, ev.Y)
 		basis := geom.BasisFromViewpoint(vp.Pos, vp.Up)
-		aspect := md.ui.gest.Rect.Aspect()
+		aspect := md.UI.Gest.Rect.Aspect()
 		target := pivot
 		best := math.Inf(1)
 		for _, c := range md.lq.heldCenters(&md.mr) {
@@ -186,7 +186,7 @@ func (md *MoveDispatch) gestWheel(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	// stays a usable pilot speed at any zoom. The displacement is built in polar; PanViewpoint
 	// translates pivot+eye together with the look direction unchanged. The scene does not move.
 	fovRad := ev.Fov * math.Pi / 180
-	worldPerPixel := (2 * vp.R * math.Tan(fovRad/2)) / md.ui.gest.Rect.Height
+	worldPerPixel := (2 * vp.R * math.Tan(fovRad/2)) / md.UI.Gest.Rect.Height
 	disp := geom.PanDisplacementPolar(vp.Pos, vp.Up, ev.DeltaX, ev.DeltaY, worldPerPixel)
 	md.PanViewpoint(disp, tr)
 	md.emitViewFrame(cameraViewEvent())

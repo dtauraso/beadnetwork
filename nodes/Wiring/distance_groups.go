@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
+	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 )
 
 // distancePair is one (source, target) bead-edge pair; TARGET is the node that moves.
@@ -52,26 +53,26 @@ var distanceGroups = map[string][]distancePair{
 // "no groups", which is the safe direction: a scene that should have them shows them one
 // frame later, whereas the reverse would flash the ring's lengths into another scene's tab.
 func (md *MoveDispatch) ResolveSceneDistanceGroups(scenePath string) {
-	md.ui.hasDistanceGroups = scene.SceneHasDistanceGroups(scenePath)
+	md.UI.HasDistanceGroups = scene.SceneHasDistanceGroups(scenePath)
 	// Resolved from the same path at the same moment, for the same reason: both are facts
 	// about the tree being loaded, and both ride the VIEW frame. Until this runs the scene
 	// reads as NOT editable, which is the safe direction — a palette that appears a frame
 	// late costs nothing, one that appears in a scene that cannot take it invites a delete.
-	md.ui.sceneEditable = scene.SceneIsEditable(scenePath)
-	md.ui.sceneKinds = scene.SceneKindMask(scenePath)
+	md.UI.SceneEditable = scene.SceneIsEditable(scenePath)
+	md.UI.SceneKinds = scene.SceneKindMask(scenePath)
 }
 
 // distanceGroupMax computes a group's CURRENT max pair length (max over the group's
 // pairs of |center(target)-center(source)|), reading live centers from mr's own
 // centerMirror (mr.centerOfNode — the same source RootMove/reachRFromPolar use). ok is
 // false if the group is unknown or none of its pairs' centers are resolvable yet.
-func distanceGroupMax(ui *uiState, mr *moverRegistry, group string) (float64, bool) {
+func distanceGroupMax(ui *viewstate.UIState, mr *moverRegistry, group string) (float64, bool) {
 	// A scene without these groups resolves NONE of them. This is the one gate: every
 	// reader — DistanceGroupLens (and so the VIEW frame's three columns) and
 	// ApplyDistanceGroupTarget (the ▲/▼ math) — comes through here, so neither can act on a
 	// group belonging to a different scene. See SceneTab.DistanceGroups for why sharing node
 	// ids across scenes made that possible.
-	if !ui.hasDistanceGroups {
+	if !ui.HasDistanceGroups {
 		return 0, false
 	}
 	pairs, ok := distanceGroups[group]
@@ -98,7 +99,7 @@ func distanceGroupMax(ui *uiState, mr *moverRegistry, group string) (float64, bo
 // distanceGroupOrder (time, input, gate) — for the VIEW stream's Overlay
 // GroupLenTime/GroupLenInput/GroupLenGate columns (read-only reflect; see
 // view_stream.go's emitViewFrame). A group whose centers aren't resolvable yet reads 0.
-func DistanceGroupLens(ui *uiState, mr *moverRegistry) (timeLen, inputLen, gateLen float32) {
+func DistanceGroupLens(ui *viewstate.UIState, mr *moverRegistry) (timeLen, inputLen, gateLen float32) {
 	vals := make([]float32, len(distanceGroupOrder))
 	for i, g := range distanceGroupOrder {
 		if m, ok := distanceGroupMax(ui, mr, g); ok {
@@ -116,7 +117,7 @@ func DistanceGroupLens(ui *uiState, mr *moverRegistry) (timeLen, inputLen, gateL
 // lq.RootMove(ctx, mr, target, newPos) — the same decentralized drag entry every programmatic
 // move test uses. Returns false if the group is unknown, has no resolvable pair, or
 // groupIdx is out of range.
-func applyDistanceGroupTarget(ctx context.Context, ui *uiState, mr *moverRegistry, lq *layoutQuantizer, groupIdx, dir int) bool {
+func applyDistanceGroupTarget(ctx context.Context, ui *viewstate.UIState, mr *moverRegistry, lq *layoutQuantizer, groupIdx, dir int) bool {
 	if groupIdx < 0 || groupIdx >= len(distanceGroupOrder) {
 		return false
 	}

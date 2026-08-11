@@ -18,6 +18,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	rowtables "github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
+	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
@@ -66,10 +67,10 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 	md.mr.edgeMovers = map[string]*edgeMover{}
 	md.mr.edgeOut = map[string]*wire.Out{}
 	md.mr.centerMirror = map[string]vec3{}
-	md.ui.ov = defaultOverlayState()
-	md.ui.speed = 1                            // default playback multiplier; LoadSpeed overwrites from view/speed.json if present
-	md.ui.clockDivisor = 1                     // no scaling until LoadSpeed resolves the loaded scene's own divisor
-	md.ui.latticePoints = defaultLatticePoints // LoadLatticePoints overwrites from view/lattice.json if present
+	md.UI.OV = viewstate.DefaultOverlayState()
+	md.UI.Speed = 1                            // default playback multiplier; LoadSpeed overwrites from view/speed.json if present
+	md.UI.ClockDivisor = 1                     // no scaling until LoadSpeed resolves the loaded scene's own divisor
+	md.UI.LatticePoints = defaultLatticePoints // LoadLatticePoints overwrites from view/lattice.json if present
 	md.GS.NodeSeeds = make([]geomseeds.NodeGeomSeed, 0, len(nodeOrder))
 	for i, id := range nodeOrder {
 		g, ok := geoms[id]
@@ -162,7 +163,7 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 		ng.msg.tap = md.tapToInstall
 		ng.msg.centerOf = md.mr.centerOfNode
 		ownGeom := ng
-		ng.msg.commitLocal = func(_ string, newPos vec3) { md.lq.commitNodeMoveLocal(&md.mr, &md.ui, ownGeom, newPos) }
+		ng.msg.commitLocal = func(_ string, newPos vec3) { md.lq.commitNodeMoveLocal(&md.mr, &md.UI, ownGeom, newPos) }
 		md.mr.nodeGeoms[id] = ng
 		// Seed the dispatch goroutine's center mirror from the same load-time geom
 		// (single-threaded setup, before md.Start — no driving goroutine is running yet)
@@ -253,5 +254,18 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 		rtEdgeSeeds[i] = rowtables.EdgeSeed{Label: sd.Label, SrcNode: sd.SrcNode, DstNode: sd.DstNode}
 	}
 	md.RT.Build(rtNodeSeeds, rtEdgeSeeds, rowCount)
+	// Bind the two closures EmitViewFrame needs but cannot reach directly (md.RT/md.mr are
+	// unexported-package-internal from viewstate's point of view — RT is exported but
+	// UIState cannot hold a *rowtables.RowTables field of its own without MoveDispatch
+	// handing it one, and DistanceGroupLens needs *moverRegistry, an unexported Wiring
+	// type). Bound ONCE, here, mirroring ng.msg.sendMove = md.mr.enqueueFor(ng) above — not
+	// re-resolved on every emit. Method value md.RT.NodeRowFor captures &md.RT (md.RT is
+	// addressable through the *MoveDispatch pointer), so it keeps seeing whatever RT.Build
+	// just populated even though this bind runs after it.
+	md.UI.NodeRowFor = md.RT.NodeRowFor
+	mrForLens, uiForLens := &md.mr, &md.UI
+	md.UI.DistanceGroupLensFn = func() (float32, float32, float32) {
+		return DistanceGroupLens(uiForLens, mrForLens)
+	}
 	return md, nil
 }

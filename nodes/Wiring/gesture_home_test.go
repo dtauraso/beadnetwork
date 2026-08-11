@@ -14,7 +14,7 @@ import (
 // OWN geometry (homeFitPose, ported from camera-ui.tsx HomeButton) and installs the pose in
 // the gesture FSM via SetViewpoint + EmitViewpoint. The regression this guards is snap-back:
 // before the command existed, TS mutated the three.js camera directly and never told Go, so
-// md.ui.vp held a stale pose and the first gesture reset to it. Here the FSM's own pose becomes
+// md.UI.VP held a stale pose and the first gesture reset to it. Here the FSM's own pose becomes
 // the framed pose, so a subsequent orbit builds on it.
 
 // homeMD builds a MoveDispatch whose nodeMovers carry the given centers, all of kind TimeEnd
@@ -23,7 +23,7 @@ import (
 // it, mirroring a live post-layout dispatch after nodeMovers are constructed.
 func homeMD(v geom.Viewpoint, centers map[string]vec3) *MoveDispatch {
 	md := &MoveDispatch{mr: moverRegistry{nodeGeoms: map[string]*nodeGeometry{}, edgeMovers: map[string]*edgeMover{}}}
-	md.ui.vp.Viewpoint = v
+	md.UI.VP.Viewpoint = v
 	for id, c := range centers {
 		g := nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: "TimeEnd"}}
 		nodegeom.SetNodeWorld(&g, c)
@@ -58,22 +58,22 @@ func TestGestureHomeComputesFitPoseFromGeometry(t *testing.T) {
 	wantDist := geom.FitDistanceGo(fov, aspect, sizeX, sizeY) + sizeZ/2
 	wantR := wantDist * 1.2
 
-	if !vecClose(md.ui.vp.Pivot, vec3{X: 0, Y: 0, Z: 0}, 1e-9) {
-		t.Fatalf("home pivot=%v want content center (0,0,0)", md.ui.vp.Pivot)
+	if !vecClose(md.UI.VP.Pivot, vec3{X: 0, Y: 0, Z: 0}, 1e-9) {
+		t.Fatalf("home pivot=%v want content center (0,0,0)", md.UI.VP.Pivot)
 	}
-	if math.Abs(md.ui.vp.R-wantR) > 1e-9 {
-		t.Fatalf("home r=%v want padded fit distance %v", md.ui.vp.R, wantR)
+	if math.Abs(md.UI.VP.R-wantR) > 1e-9 {
+		t.Fatalf("home r=%v want padded fit distance %v", md.UI.VP.R, wantR)
 	}
 	// Square-on: camera along +z, up +y — eye = pivot + r·(+z).
-	eye := geom.EyeOf(md.ui.vp.Viewpoint)
+	eye := geom.EyeOf(md.UI.VP.Viewpoint)
 	if !vecClose(eye, vec3{X: 0, Y: 0, Z: wantR}, 1e-6) {
 		t.Fatalf("home eye=%v want (0,0,%v) (square-on +z)", eye, wantR)
 	}
-	if math.Abs(md.ui.vp.Pos.Theta-math.Pi/2) > 1e-9 || math.Abs(md.ui.vp.Pos.Phi-math.Pi/2) > 1e-9 {
-		t.Fatalf("home pos=%v want (+z) theta=pi/2 phi=pi/2", md.ui.vp.Pos)
+	if math.Abs(md.UI.VP.Pos.Theta-math.Pi/2) > 1e-9 || math.Abs(md.UI.VP.Pos.Phi-math.Pi/2) > 1e-9 {
+		t.Fatalf("home pos=%v want (+z) theta=pi/2 phi=pi/2", md.UI.VP.Pos)
 	}
-	if md.ui.vp.LockedAxis != nil {
-		t.Fatalf("home must clear any locked axis, got %v", *md.ui.vp.LockedAxis)
+	if md.UI.VP.LockedAxis != nil {
+		t.Fatalf("home must clear any locked axis, got %v", *md.UI.VP.LockedAxis)
 	}
 }
 
@@ -103,8 +103,8 @@ func TestGestureHomeFramesUnknownKindAtRenderRadius(t *testing.T) {
 	size := 2 * renderRadius
 	wantDist := geom.FitDistanceGo(fov, aspect, size, size) + size/2
 	wantR := wantDist * 1.2
-	if math.Abs(md.ui.vp.R-wantR) > 1e-9 {
-		t.Fatalf("home r=%v want %v (unknown kind framed at render radius %v, not 0)", md.ui.vp.R, wantR, renderRadius)
+	if math.Abs(md.UI.VP.R-wantR) > 1e-9 {
+		t.Fatalf("home r=%v want %v (unknown kind framed at render radius %v, not 0)", md.UI.VP.R, wantR, renderRadius)
 	}
 }
 
@@ -121,7 +121,7 @@ func TestGestureHomeThenOrbitBuildsOnHomePose(t *testing.T) {
 	const fov, aspect = 50.0, 800.0 / 600.0
 	md.HandleRawInput(inputcodec.RawInputMsg{Kind: "home", Fov: fov, RectWidth: aspect, RectHeight: 1}, nil, nil)
 
-	homePivot, homeR, homePos := md.ui.vp.Pivot, md.ui.vp.R, md.ui.vp.Pos
+	homePivot, homeR, homePos := md.UI.VP.Pivot, md.UI.VP.R, md.UI.VP.Pos
 
 	// Empty-space drag: pointerdown → move past slop (seeds region-focus orbit) → move (orbit).
 	raw := func(kind string, x, y float64) inputcodec.RawInputMsg {
@@ -135,17 +135,17 @@ func TestGestureHomeThenOrbitBuildsOnHomePose(t *testing.T) {
 	// (depth-slab midpoint straight ahead) is the content center and the seed radius is the
 	// home radius. A rigid orbit preserves radius, so r must still be the HOME radius — NOT
 	// the stale r=999.
-	if math.Abs(md.ui.vp.R-homeR) > 1e-6 {
-		t.Fatalf("after home+orbit r=%v want home radius %v (stale was 999)", md.ui.vp.R, homeR)
+	if math.Abs(md.UI.VP.R-homeR) > 1e-6 {
+		t.Fatalf("after home+orbit r=%v want home radius %v (stale was 999)", md.UI.VP.R, homeR)
 	}
-	if !vecClose(md.ui.vp.Pivot, homePivot, 1e-6) {
-		t.Fatalf("after home+orbit pivot=%v want home pivot %v (stale was (500,500,500))", md.ui.vp.Pivot, homePivot)
+	if !vecClose(md.UI.VP.Pivot, homePivot, 1e-6) {
+		t.Fatalf("after home+orbit pivot=%v want home pivot %v (stale was (500,500,500))", md.UI.VP.Pivot, homePivot)
 	}
-	if math.Abs(md.ui.vp.R-999) < 1.0 {
-		t.Fatalf("after home+orbit r reset toward stale 999: %v", md.ui.vp.R)
+	if math.Abs(md.UI.VP.R-999) < 1.0 {
+		t.Fatalf("after home+orbit r reset toward stale 999: %v", md.UI.VP.R)
 	}
 	// The orbit actually rotated the camera off the square-on home direction.
-	if math.Abs(md.ui.vp.Pos.Theta-homePos.Theta) < 1e-6 && math.Abs(md.ui.vp.Pos.Phi-homePos.Phi) < 1e-6 {
+	if math.Abs(md.UI.VP.Pos.Theta-homePos.Theta) < 1e-6 && math.Abs(md.UI.VP.Pos.Phi-homePos.Phi) < 1e-6 {
 		t.Fatalf("orbit did not change pos from home %v", homePos)
 	}
 }

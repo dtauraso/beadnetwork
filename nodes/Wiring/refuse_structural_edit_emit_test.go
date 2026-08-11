@@ -19,6 +19,7 @@ import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/sceneswitch"
+	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 )
 
 // TestCreateNodeRefusalEmitsViewFrame drives CreateNode down its cheapest refusal branch
@@ -26,14 +27,14 @@ import (
 func TestCreateNodeRefusalEmitsViewFrame(t *testing.T) {
 	md := &MoveDispatch{
 		Scenes: sceneswitch.SceneSwitch{TreeRoot: "does-not-matter", Quit: func() {}},
-		ui:     uiState{sceneEditable: false},
+		UI:     viewstate.UIState{SceneEditable: false},
 	}
 	frames := 0
 	md.SetViewStream(io.Discard, func(tick uint32,
 		camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
-		flags ViewOverlayFlags,
+		flags viewstate.ViewOverlayFlags,
 		dragNodeRow int32,
-		_ ViewSceneState,
+		_ viewstate.ViewSceneState,
 		groupLenTime, groupLenInput, groupLenGate float32,
 		speed float32,
 		sceneCX, sceneCY, sceneCZ, sceneRadius float32,
@@ -45,8 +46,8 @@ func TestCreateNodeRefusalEmitsViewFrame(t *testing.T) {
 
 	md.CreateNode(0, 0, 0, nil)
 
-	if md.ui.editRefused != 1 {
-		t.Fatalf("CreateNode on a non-editable scene: editRefused = %d, want 1", md.ui.editRefused)
+	if md.UI.EditRefused != 1 {
+		t.Fatalf("CreateNode on a non-editable scene: editRefused = %d, want 1", md.UI.EditRefused)
 	}
 	if frames != 1 {
 		t.Fatalf("CreateNode on a non-editable scene: %d VIEW frames emitted, want 1 — a refusal bumped the counter but the webview was never told", frames)
@@ -58,14 +59,14 @@ func TestCreateNodeRefusalEmitsViewFrame(t *testing.T) {
 func TestDeleteNodeRefusalEmitsViewFrame(t *testing.T) {
 	md := &MoveDispatch{
 		Scenes: sceneswitch.SceneSwitch{TreeRoot: "does-not-matter", Quit: func() {}},
-		ui:     uiState{sceneEditable: false},
+		UI:     viewstate.UIState{SceneEditable: false},
 	}
 	frames := 0
 	md.SetViewStream(io.Discard, func(tick uint32,
 		camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
-		flags ViewOverlayFlags,
+		flags viewstate.ViewOverlayFlags,
 		dragNodeRow int32,
-		_ ViewSceneState,
+		_ viewstate.ViewSceneState,
 		groupLenTime, groupLenInput, groupLenGate float32,
 		speed float32,
 		sceneCX, sceneCY, sceneCZ, sceneRadius float32,
@@ -77,8 +78,8 @@ func TestDeleteNodeRefusalEmitsViewFrame(t *testing.T) {
 
 	md.DeleteNode(0, nil)
 
-	if md.ui.editRefused != 1 {
-		t.Fatalf("DeleteNode on a non-editable scene: editRefused = %d, want 1", md.ui.editRefused)
+	if md.UI.EditRefused != 1 {
+		t.Fatalf("DeleteNode on a non-editable scene: editRefused = %d, want 1", md.UI.EditRefused)
 	}
 	if frames != 1 {
 		t.Fatalf("DeleteNode on a non-editable scene: %d VIEW frames emitted, want 1 — a refusal bumped the counter but the webview was never told", frames)

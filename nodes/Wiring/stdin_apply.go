@@ -43,7 +43,7 @@ func applyUpdateDistanceGroup(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.T
 	if msg.Flag == "up" {
 		dir = 1
 	}
-	if applyDistanceGroupTarget(md.ctx, &md.ui, &md.mr, &md.lq, msg.Num, dir) {
+	if applyDistanceGroupTarget(md.ctx, &md.UI, &md.mr, &md.lq, msg.Num, dir) {
 		md.emitViewFrame(nil)
 	}
 }
@@ -81,7 +81,7 @@ func applyUpdateTiltVector(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trac
 	}
 	if msg.Attr == "reset" {
 		// Done setting: the slider's speed governs again. See HumanEditSpeed.
-		BroadcastSpeed(speedSinks, md.ui.SliderSpeed())
+		BroadcastSpeed(speedSinks, md.SliderSpeed())
 		if sendTiltEdit(&md.inboxes, md.ctx, id, movemsg.TiltEditMsg{Reset: true}) {
 			return
 		}
@@ -92,7 +92,7 @@ func applyUpdateTiltVector(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trac
 		// Done setting — the exchange is about to run, and running it is exactly what the
 		// slider's number is about. Sent BEFORE the Start edit so the first cycle of the
 		// exchange is already at the intended speed rather than one cycle of human speed.
-		BroadcastSpeed(speedSinks, md.ui.SliderSpeed())
+		BroadcastSpeed(speedSinks, md.SliderSpeed())
 		// Start only exists on the pair kind's own dedicated channel (PairNode's
 		// VectorOut/outgoingVector) — there is no mover-owned fallback, unlike
 		// theta/phi/reset: a kind that never claimed BuildArgs.TiltEditIn has no vector
@@ -141,7 +141,7 @@ func applyUpdateScene(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trace, sp
 		if points < 4 || points > 64 || points%4 != 0 {
 			return
 		}
-		md.ui.latticePoints = points
+		md.UI.LatticePoints = points
 		md.persist.lattice.schedule(points)
 		md.BroadcastLatticePoints(points)
 	case "create":
@@ -167,5 +167,5 @@ func applyUpdateOverlays(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trace,
 	// EnableEditPersist arms the writer (nil-receiver / empty-treeRoot guard in schedule).
 	// Runs regardless of which (or whether an) attr matched, matching the original
 	// switch's post-inner-switch placement.
-	md.persist.overlays.schedule(md.ui.ov)
+	md.persist.overlays.schedule(md.UI.OV)
 }

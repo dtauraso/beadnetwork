@@ -7,6 +7,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
+	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -22,9 +23,9 @@ import (
 // camera is most pointed at, at its depth on the view-center ray. So rotate orbits whatever you
 // have flown to and centered (fly to a node → rotate spins around it), the orbit depth tracks
 // what you look at, and — because the pivot is on the view axis — it does not re-aim the camera.
-func beginSphereRotation(ui *uiState, heldCenters func() map[string]vec3, ev inputcodec.RawInputMsg) {
-	g := &ui.gest
-	vp := ui.vp.Viewpoint
+func beginSphereRotation(ui *viewstate.UIState, heldCenters func() map[string]vec3, ev inputcodec.RawInputMsg) {
+	g := &ui.Gest
+	vp := ui.VP.Viewpoint
 	pivot := geom.FocusAhead(vp, heldCenters())
 	g.RotPivot = pivot
 
@@ -69,7 +70,7 @@ func (md *MoveDispatch) updateHover(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	}
 	mr, ctx := &md.mr, md.ctx
 	sendMoveFn := func(id string, msg movemsg.Msg) { sendMove(mr, ctx, id, msg) }
-	if events, changed := setHover(&md.ui, sendMoveFn, &md.RT, node, "", false, tr); changed {
+	if events, changed := setHover(&md.UI, sendMoveFn, &md.RT, node, "", false, tr); changed {
 		md.emitViewFrame(events)
 	}
 }
@@ -78,7 +79,7 @@ func (md *MoveDispatch) updateHover(ev inputcodec.RawInputMsg, tr *T.Trace) {
 // sendViewpointSet at rotation start): pos/up/r recompute about the new pivot so the
 // subsequent orbit is rigid about it.
 func (md *MoveDispatch) seedOrbitPivot(pivot vec3) {
-	vp := md.ui.vp.Viewpoint
+	vp := md.UI.VP.Viewpoint
 	eye := geom.EyeOf(vp)
 	r := eye.Sub(pivot).Length()
 	pos := geom.WorldDirToAngles(eye.Sub(pivot))
@@ -89,14 +90,14 @@ func (md *MoveDispatch) seedOrbitPivot(pivot vec3) {
 // map prev/curr cursor pixels through the frozen sphere frame to world directions and orbit
 // (curr → prev), so the grabbed direction follows the cursor.
 func (md *MoveDispatch) applyOrbit(ev inputcodec.RawInputMsg, tr *T.Trace) {
-	g := &md.ui.gest
-	vp := md.ui.vp.Viewpoint
+	g := &md.UI.Gest
+	vp := md.UI.VP.Viewpoint
 	basis := geom.BasisFromViewpoint(vp.Pos, vp.Up)
 	prev := geom.ScreenToPolar(g.PrevX-g.RotCx, g.PrevY-g.RotCy, g.RotPxPerRad)
 	curr := geom.ScreenToPolar(ev.X-g.RotCx, ev.Y-g.RotCy, g.RotPxPerRad)
 	prevDir := geom.ToWorldDir(basis, prev)
 	currDir := geom.ToWorldDir(basis, curr)
-	md.ui.OrbitViewpoint(geom.WorldDirToAngles(currDir), geom.WorldDirToAngles(prevDir), tr)
+	md.UI.OrbitViewpoint(geom.WorldDirToAngles(currDir), geom.WorldDirToAngles(prevDir), tr)
 	md.emitViewFrame(cameraViewEvent())
 }
 
@@ -105,14 +106,14 @@ func (md *MoveDispatch) applyOrbit(ev inputcodec.RawInputMsg, tr *T.Trace) {
 // arc is applied through OrbitLockedViewpoint, which locks the rotation axis on the first
 // call and reuses it (constrained "disk" orbit). The lock clears on the next SetViewpoint.
 func (md *MoveDispatch) applyOrbitLocked(ev inputcodec.RawInputMsg, tr *T.Trace) {
-	g := &md.ui.gest
-	vp := md.ui.vp.Viewpoint
+	g := &md.UI.Gest
+	vp := md.UI.VP.Viewpoint
 	basis := geom.BasisFromViewpoint(vp.Pos, vp.Up)
 	prev := geom.ScreenToPolar(g.PrevX-g.RotCx, g.PrevY-g.RotCy, g.RotPxPerRad)
 	curr := geom.ScreenToPolar(ev.X-g.RotCx, ev.Y-g.RotCy, g.RotPxPerRad)
 	prevDir := geom.ToWorldDir(basis, prev)
 	currDir := geom.ToWorldDir(basis, curr)
-	md.ui.OrbitLockedViewpoint(geom.WorldDirToAngles(currDir), geom.WorldDirToAngles(prevDir), tr)
+	md.UI.OrbitLockedViewpoint(geom.WorldDirToAngles(currDir), geom.WorldDirToAngles(prevDir), tr)
 	md.emitViewFrame(cameraViewEvent())
 }
 
@@ -121,26 +122,6 @@ func (md *MoveDispatch) applyOrbitLocked(ev inputcodec.RawInputMsg, tr *T.Trace)
 // it ONCE to capture g.DragGrabOffset) and applyNodeDragTarget (which uses it every move) so
 // both project against the exact same plane instead of two copies that can drift apart.
 // Returns ok=false when the ray is parallel to the plane or the hit is non-finite.
-func (ui *uiState) dragPlaneHit(ev inputcodec.RawInputMsg) (hit vec3, ok bool) {
-	g := &ui.gest
-	vp := ui.vp.Viewpoint
-	eye := geom.EyeOf(vp)
-	basis := geom.BasisFromViewpoint(vp.Pos, vp.Up)
-	nx, ny := g.PixelToNDC(ev.X, ev.Y)
-	dir := geom.RayDirThroughNDC(nx, ny, basis, ev.Fov, g.Rect.Aspect())
-	forward := basis.Pole.Scale(-1) // camera looks along -pole
-	denom := dir.Dot(forward)
-	if denom == 0 {
-		return vec3{}, false
-	}
-	t := g.DragStartCenter.Sub(eye).Dot(forward) / denom
-	hit = eye.Add(dir.Scale(t))
-	if math.IsNaN(hit.X) || math.IsInf(hit.X, 0) {
-		return vec3{}, false
-	}
-	return hit, true
-}
-
 // applyNodeDragTarget mirrors the "dragging" branch: unproject the pointer onto a
 // camera-facing plane through the node's start center, giving a free world target, then
 // RootMove the node to that target PLUS the grab offset captured once at drag start (Go
@@ -148,9 +129,9 @@ func (ui *uiState) dragPlaneHit(ev inputcodec.RawInputMsg) (hit vec3, ok bool) {
 // center straight to the hit — is what keeps the point you grabbed under the cursor instead
 // of the node teleporting so its center lands there. Returns false if the ray is parallel
 // to the plane.
-func applyNodeDragTarget(ui *uiState, rootMove func(id string, target vec3) bool, ev inputcodec.RawInputMsg) bool {
-	g := &ui.gest
-	hit, ok := ui.dragPlaneHit(ev)
+func applyNodeDragTarget(ui *viewstate.UIState, rootMove func(id string, target vec3) bool, ev inputcodec.RawInputMsg) bool {
+	g := &ui.Gest
+	hit, ok := ui.DragPlaneHit(ev)
 	if !ok {
 		return false
 	}
@@ -163,14 +144,14 @@ func applyNodeDragTarget(ui *uiState, rootMove func(id string, target vec3) bool
 // hover RowEvent to emit; the caller (the view-owner goroutine) emits it — this method
 // itself never calls emitViewFrame, per docs/planning/movedispatch-decomposition.md's
 // write-then-emit split.
-func setHover(ui *uiState, sendMoveFn func(id string, msg movemsg.Msg), RT *rowtables.RowTables, node, port string, isInput bool, tr *T.Trace) (events []wire.RowEvent, changed bool) {
-	if node == ui.sel.HoverNode && port == ui.sel.HoverPort && isInput == ui.sel.HoverInput {
+func setHover(ui *viewstate.UIState, sendMoveFn func(id string, msg movemsg.Msg), RT *rowtables.RowTables, node, port string, isInput bool, tr *T.Trace) (events []wire.RowEvent, changed bool) {
+	if node == ui.Sel.HoverNode && port == ui.Sel.HoverPort && isInput == ui.Sel.HoverInput {
 		return nil, false // no change → no re-emit (dedupe)
 	}
-	// ui_state.go's setHoverUI is the AUTHORITATIVE write: it sets ui.sel's hover
+	// viewstate's UIState.SetHoverUI is the AUTHORITATIVE write: it sets ui.Sel's hover
 	// fields (mutated only by this goroutine) and MESSAGES the affected
 	// node(s) to set their OWN hovered bit — no shared/republished map.
-	ui.setHoverUI(sendMoveFn, node, port, isInput)
+	ui.SetHoverUI(sendMoveFn, node, port, isInput)
 	nodeRow := int32(-1)
 	if r, ok := RT.NodeRowFor(node); ok {
 		nodeRow = r
@@ -196,13 +177,13 @@ func (md *MoveDispatch) applySelect(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	// by this goroutine) and MESSAGES the affected node(s)/edge to set their
 	// OWN selected/latchedSel bit.
 	if ev.Hit.Kind == "empty" {
-		setSelectionUI(&md.ui, &md.mr, md.ctx, "", "")
+		setSelectionUI(&md.UI, &md.mr, md.ctx, "", "")
 		md.emitViewFrame(md.RT.SelectViewEvent(""))
 		return
 	}
 	if ev.Hit.Kind == "edge" {
 		if label, ok := md.RT.EdgeFromHit(ev.Hit); ok {
-			setSelectionUI(&md.ui, &md.mr, md.ctx, "", label)
+			setSelectionUI(&md.UI, &md.mr, md.ctx, "", label)
 			// An edge selection carries no NodeRow (see decodeEventLine's "select" case,
 			// buffer-log.ts — it never reads EdgeRow for this kind), mirroring the
 			// KindSelect{Edge: label, Node: ""} shape exactly.
@@ -218,6 +199,6 @@ func (md *MoveDispatch) applySelect(ev inputcodec.RawInputMsg, tr *T.Trace) {
 			node = n
 		}
 	}
-	setSelectionUI(&md.ui, &md.mr, md.ctx, node, "")
+	setSelectionUI(&md.UI, &md.mr, md.ctx, node, "")
 	md.emitViewFrame(md.RT.SelectViewEvent(node))
 }

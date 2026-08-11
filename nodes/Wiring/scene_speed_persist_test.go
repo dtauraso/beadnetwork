@@ -15,7 +15,7 @@ import (
 )
 
 // TestPersistSpeedRoundTrips: schedule a speed write -> speed.json carries the exact
-// fractional multiplier -> a fresh LoadSpeed call restores md.ui.speed from disk.
+// fractional multiplier -> a fresh LoadSpeed call restores md.UI.Speed from disk.
 func TestPersistSpeedRoundTrips(t *testing.T) {
 	root := writeTree(t)
 	md := loadTreeMD(t, root)
@@ -31,12 +31,12 @@ func TestPersistSpeedRoundTrips(t *testing.T) {
 		t.Fatalf("speed.json round-trip: got %v, want 0.25", got)
 	}
 
-	// A fresh dispatch's LoadSpeed restores md.ui.speed from the same file — no speedSinks
+	// A fresh dispatch's LoadSpeed restores md.UI.Speed from the same file — no speedSinks
 	// needed for this assertion (nil slice, per LoadSpeed's own nil-tolerant loop).
 	fresh := loadTreeMD(t, root)
 	fresh.LoadSpeed(root, nil, nil)
-	if fresh.ui.speed != 0.25 {
-		t.Fatalf("LoadSpeed did not restore ui.speed=0.25, got %v", fresh.ui.speed)
+	if fresh.UI.Speed != 0.25 {
+		t.Fatalf("LoadSpeed did not restore ui.speed=0.25, got %v", fresh.UI.Speed)
 	}
 }
 
@@ -49,15 +49,15 @@ func TestLoadSpeedFallsBackQuietlyWhenMissing(t *testing.T) {
 
 	md.LoadSpeed(root, nil, nil)
 
-	if md.ui.speed != defaultPlaybackSpeed {
-		t.Fatalf("LoadSpeed with no file: got ui.speed=%v, want default %v", md.ui.speed, defaultPlaybackSpeed)
+	if md.UI.Speed != defaultPlaybackSpeed {
+		t.Fatalf("LoadSpeed with no file: got ui.speed=%v, want default %v", md.UI.Speed, defaultPlaybackSpeed)
 	}
 }
 
 // TestLoadSpeedSeedsEverySpeedSink: LoadSpeed broadcasts the loaded value to every
 // clock-owning goroutine's own speed channel, the SAME Delivery path a live slider edit
 // uses (clockAttrHandlers's "speed" case) — this is what makes a persisted speed actually
-// take effect on the clocks a fresh process starts, not just on md.ui.speed.
+// take effect on the clocks a fresh process starts, not just on md.UI.Speed.
 func TestLoadSpeedSeedsEverySpeedSink(t *testing.T) {
 	root := writeTree(t)
 	md := loadTreeMD(t, root)

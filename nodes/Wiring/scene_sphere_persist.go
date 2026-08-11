@@ -64,7 +64,7 @@ func writeSceneSphere(sphereJSONPath string, s geom.SceneSphere) error {
 	return jsonpersist.WriteJSONAtomic(sphereJSONPath, sceneSphereJSON{Center: &center, Radius: &radius})
 }
 
-// LoadSceneSphere installs md.ui.sceneSphere from FILE DATA, or — when sphere.json has no
+// LoadSceneSphere installs md.UI.SceneSphere from FILE DATA, or — when sphere.json has no
 // persisted sphere — from a one-time content-fit of the current node centers (so an
 // existing scene gets a sane reference without any authored value). Call after LoadTopology
 // (node centers are loaded) and before the sphere is used to derive positions.
@@ -88,19 +88,19 @@ func writeSceneSphere(sphereJSONPath string, s geom.SceneSphere) error {
 // save at all.
 func (md *MoveDispatch) LoadSceneSphere(topologyPath string) {
 	if s, ok := loadSceneSphere(topologyPath); ok {
-		md.ui.sceneSphere = s
+		md.UI.SceneSphere = s
 	} else {
 		// LoadSceneSphere runs on the main goroutine BEFORE Start launches any mover
 		// goroutine and before RunStdinReader's dispatch loop begins, so md.positions
 		// (which heldCenters reads) is still empty here — use the load-time geom sweep
 		// instead (safe: no mover goroutine is mutating geom yet).
-		md.ui.sceneSphere = geom.ContentFitSceneSphere(md.GS.LoadTimeCenters())
+		md.UI.SceneSphere = geom.ContentFitSceneSphere(md.GS.LoadTimeCenters())
 		// Best-effort: a read-only or absent scene dir must not stop the sim from running.
 		// The in-memory sphere is correct either way; only cross-run stability is at stake.
 		// Path via scenepaths.SphereFilePath (scenepaths/scene_paths.go) — the authoritative
 		// resolver, per check-scene-path-resolution.sh; never hand-rolled.
 		if topologyPath != "" {
-			_ = writeSceneSphere(scenepaths.SphereFilePath(topologyPath), md.ui.sceneSphere)
+			_ = writeSceneSphere(scenepaths.SphereFilePath(topologyPath), md.UI.SceneSphere)
 		}
 	}
 	// The scene sphere is established here and never moves again (MODEL.md), so the VIEW

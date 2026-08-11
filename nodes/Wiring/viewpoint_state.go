@@ -26,15 +26,15 @@ import (
 // be deleted without exporting ui/vp.
 
 func (md *MoveDispatch) SetViewpoint(pivot vec3, r float64, pos, up geom.Dir) {
-	md.ui.vp.SetViewpoint(pivot, r, pos, up)
+	md.UI.VP.SetViewpoint(pivot, r, pos, up)
 }
 
 // Viewpoint returns the CURRENT camera viewpoint (pivot/r/pos/up/lockedAxis). Read-only
-// accessor for callers outside this package that cannot reach the unexported md.ui.vp field
-// directly — e.g. an external test of a package that itself takes *MoveDispatch, such as
-// nodes/Wiring/scenecamera's own tests asserting what SeedInitialViewpoint installed.
+// accessor for callers outside this package — e.g. an external test of a package that
+// itself takes *MoveDispatch, such as nodes/Wiring/scenecamera's own tests asserting what
+// SeedInitialViewpoint installed.
 func (md *MoveDispatch) Viewpoint() geom.Viewpoint {
-	return md.ui.vp.Viewpoint
+	return md.UI.VP.Viewpoint
 }
 
 // cameraViewEvent is the single Camera event every camera-changing delegator below hands
@@ -49,17 +49,14 @@ func cameraViewEvent() []wire.RowEvent {
 // view-owner goroutine (RunStdinReader, via the gesture handlers) — not here, per
 // docs/planning/movedispatch-decomposition.md's write-then-emit split.
 func (md *MoveDispatch) EmitViewpoint(tr *T.Trace) {
-	md.ui.vp.EmitViewpoint(tr)
+	md.UI.VP.EmitViewpoint(tr)
 }
-func (ui *uiState) OrbitViewpoint(from, to geom.Dir, tr *T.Trace) {
-	ui.vp.OrbitViewpoint(from, to, tr)
-}
-func (ui *uiState) OrbitLockedViewpoint(from, to geom.Dir, tr *T.Trace) {
-	ui.vp.OrbitLockedViewpoint(from, to, tr)
-}
-func (ui *uiState) ZoomViewpoint(factor float64, tr *T.Trace) {
-	ui.vp.ZoomViewpoint(factor, tr)
-}
+
+// OrbitViewpoint/OrbitLockedViewpoint/ZoomViewpoint moved onto viewstate.UIState itself
+// (docs/planning/gesture-actor.md's lift) — they are pure promotions onto the owned VP with
+// no dependency on any Wiring-only type, so they lift cleanly; Wiring's gesture_actions.go
+// now calls md.UI.OrbitViewpoint(...)/md.UI.OrbitLockedViewpoint(...) directly.
+
 func (md *MoveDispatch) PanViewpoint(delta vec3, tr *T.Trace) {
 	// A dolly is a pure CAMERA move (the eye translates toward the cursor). It must NOT move the
 	// scene sphere: coupling them left md.ui.sceneSphere.Center diverged from the movers' held
@@ -67,5 +64,5 @@ func (md *MoveDispatch) PanViewpoint(delta vec3, tr *T.Trace) {
 	// symptom). Nothing moves the sphere — MODEL.md: "It is established once and never moves."
 	// Pan-moves-the-sphere is REJECTED doctrine, not a gap to fill; if it is ever revisited it
 	// must be its own gesture, never a side effect of a camera move.
-	md.ui.vp.PanViewpoint(delta, tr)
+	md.UI.VP.PanViewpoint(delta, tr)
 }

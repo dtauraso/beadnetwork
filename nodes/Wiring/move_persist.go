@@ -50,7 +50,7 @@ type persisters struct {
 func (md *MoveDispatch) EnableViewpointPersist(topologyPath string) {
 	p := &camerapersist.ViewpointPersister{Path: scenepaths.CameraFilePath(topologyPath)}
 	md.persist.vp = p
-	md.ui.vp.Persist = p.Schedule
+	md.UI.VP.Persist = p.Schedule
 }
 
 // EnableEditPersist arms disk persistence for the FSM-applied topology edits:

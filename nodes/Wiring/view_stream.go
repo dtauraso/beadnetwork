@@ -1,176 +1,35 @@
-// view_stream.go — the VIEW stream's write side (Step C, docs/planning/visual-editor/
-// memory/feedback_no_single_writer_bridge.md; memory/feedback_no_single_writer_bridge.md).
-//
-// Camera/overlay/scene-sphere/selection/hover state already lives on MoveDispatch (md.ui.vp/
-// md.ui.ov/md.ui.sceneSphere/md.ui.sel), mutated only by the gesture/stdin-reader goroutine
-// (RunStdinReader's single dispatch loop). This file adds the WRITE side: pack
-// that state into the VIEW stream's own frame (the layout produced by
-// Buffer.BuildViewStreamFrame) and write it to the
-// dedicated view fd whenever it changes.
-//
-// VIEW IS EVENT-DRIVEN, AND IT IS THE ODD ONE OUT. Every emitViewFrame call in this
-// package comes from an explicit caller — gesture drag-start, hover, select, scene-sphere,
-// overlay toggle, camera nav, the distance-group button. There is no clock- or tick-driven
-// emit: nothing emits a VIEW frame just because time passed. Contrast the per-owner streams
-// (NODE/EDGE/INTERIOR), where each mover writes its own frame from its own goroutine as its
-// own state changes — those DO keep flowing on their own.
-//
-// The trap: "Go streams the whole scene continuously, so anything derived in a frame will
-// refresh on the next one" is true of the per-owner streams and FALSE here. Anything
-// computed inside emitViewFrame (the Overlay block's GroupLen* columns are the live case)
-// refreshes only when someone calls this. Dropping a call because a later frame will cover
-// it leaves that value stale until the user happens to hover, select, or move the camera.
-//
-// The abc-drag "drag received ×N" count no longer lives here: it used to be a single
-// counter INCREMENTED by a different goroutine (an abc-drag recipient's own nodeMover,
-// quantized_move.go's neighborSetCRequantize) than the one that writes the view frame,
-// bridged by a bounded channel (abcDragCh) that a fast drag's pointer-input load could
-// starve, silently dropping ticks. It is now per-recipient state (nodeMover's own
-// dragRequantCount field, Buffer.Node's DragRequantCount column) carried on each
-// recipient's OWN reliable node stream frame — nothing to drop, no central consumer.
-
+// view_stream.go — thin delegators onto md.UI (nodes/Wiring/viewstate), which now owns the
+// VIEW stream's own write side (docs/planning/gesture-actor.md's lift). The camera/overlay/
+// scene-sphere/selection/hover state these route through is UIState's own
+// (viewstate/ui_state.go); the frame-packing logic is viewstate/view_stream.go. Kept as
+// thin MoveDispatch delegators — not deleted — so the many in-package call sites
+// (md.emitViewFrame(...), md.EmitBreadcrumb(...)) and main.go's md.SetViewStream(...) are
+// unchanged text; SetViewStream is one of the export-blocked methods a follow-up commit may
+// delete once md.UI's own export makes the delegator redundant for its external caller
+// (runtopology/view_stream.go).
 package Wiring
 
 import (
-	"encoding/binary"
 	"io"
 
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
-	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 )
 
-// ViewFrameBuilder packs the VIEW stream's own frame payload from plain values (mirrors
-// nodeMover/edgeMover's buildFrame closures — injected from main.go, which imports Buffer,
-// so this package stays Buffer-independent). tick is a purely local sequence counter (not
-// shared with any other stream). events are this goroutine's OWN resolved events since the
-// last write.
-// ViewOverlayFlags carries the overlay-visibility bits from this package to whoever packs
-// the frame (main.go maps them onto Buffer's OverlayRow — Wiring does not import Buffer).
-// NAMED FIELDS, not a positional run of uint8s: there are thirteen flags, and a positional
-// signature that long makes "the wrong flag in the wrong slot" a silent, compiling bug —
-// the two poles flags already sit next to each other and differ only in one word.
-type ViewOverlayFlags struct {
-	SceneTori, ScenePoles, NodePoles, SelSpherePoles, Handholds, LabelsGlobal, OverlaysVis uint8
-	NodeBody, NodeRing, RingPick, SelectionRing, HoverRing, ReachSphere                    uint8
+// SetViewStream installs the VIEW stream's write side. See viewstate.UIState.SetViewStream.
+func (md *MoveDispatch) SetViewStream(out io.Writer, buildFrame viewstate.ViewFrameBuilder) {
+	md.UI.SetViewStream(out, buildFrame)
 }
 
-// ViewSceneState carries the VIEW frame's per-scene scalars that are neither camera, nor
-// overlay flags, nor a panel readout: whether this scene takes structural edits, and how
-// many it has refused.
-//
-// A named struct rather than two more positional parameters, for the reason
-// ViewOverlayFlags gives: this signature is already long, and "the wrong value in the wrong
-// slot" compiles and streams silently. Anything the frame gains that is ABOUT THE SCENE
-// belongs here rather than at the end of the argument list.
-type ViewSceneState struct {
-	EditRefused   uint32
-	SceneEditable uint8
-	SceneKinds    uint32
-}
-
-type ViewFrameBuilder func(tick uint32,
-	camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
-	flags ViewOverlayFlags,
-	dragNodeRow int32,
-	scene ViewSceneState,
-	groupLenTime, groupLenInput, groupLenGate float32,
-	speed float32,
-	sceneCX, sceneCY, sceneCZ, sceneRadius float32,
-	events []wire.RowEvent,
-) []byte
-
-// SetViewStream installs the VIEW stream's write side: out is the dedicated view fd (nil =
-// no dedicated stream, so emitViewFrame early-returns as a no-op and no
-// camera/overlay/scene frame is written) and buildFrame packs this goroutine's own frame bytes
-// (Buffer.BuildViewStreamFrame, injected from main.go). Call once at startup, before any
-// gesture/edit reaches RunStdinReader, when WIREFOLD_STREAM_FDS carries a "view" entry.
-func (md *MoveDispatch) SetViewStream(out io.Writer, buildFrame ViewFrameBuilder) {
-	// "view" is a singleton stream (StreamKindView's doc comment) — its claim key is the
-	// empty string; a second SetViewStream call is rejected the same way a second
-	// setNodeStreams/setEdgeStreams claim on one row is (stream_claim.go).
-	md.sw.viewOut = newClaimedStream(md.sw.ensureClaims(), "view", "", out)
-	md.sw.viewBuildFrame = buildFrame
-}
-
-// EmitBreadcrumb writes ev as a structured Breadcrumb event on the VIEW stream (Kind/
-// Debug are forced regardless of what the caller passed). Used for breadcrumbs with no
-// per-node/edge/interior owning stream of their own (main.go's startup breadcrumbs,
-// which run on the main goroutine before any node/edge/interior stream exists, and the
-// overlay pole-toggle breadcrumbs, which run on RunStdinReader's own dispatch goroutine
-// — the SAME goroutine that owns the VIEW stream). No-op (via emitViewFrame) when the
-// VIEW stream isn't wired.
+// EmitBreadcrumb writes ev as a structured Breadcrumb event on the VIEW stream. See
+// viewstate.UIState.EmitBreadcrumb.
 func (md *MoveDispatch) EmitBreadcrumb(ev wire.RowEvent) {
-	ev.Kind = T.KindBreadcrumb
-	ev.Debug = 1
-	md.emitViewFrame([]wire.RowEvent{ev})
+	md.UI.EmitBreadcrumb(ev)
 }
 
 // emitViewFrame packs and writes the current camera/overlay/scene-sphere state as this
-// goroutine's own VIEW frame, if the dedicated stream is active (nil viewBuildFrame — no
-// WIREFOLD_STREAM_FDS "view" entry — is the required no-op fallback). events carries
-// whatever this call's OWN state change should log (camera/select/hover/scene-sphere/
-// abc-drag/overlay-toggle) — resolved to buffer rows by the caller, mirroring
-// owner_events.go's pattern for every other per-owner stream.
+// goroutine's own VIEW frame. See viewstate.UIState.EmitViewFrame.
 func (md *MoveDispatch) emitViewFrame(events []wire.RowEvent) {
-	if md.sw.viewBuildFrame == nil {
-		return
-	}
-	md.sw.viewTick++
-	v := md.ui.vp.Viewpoint
-	sc := md.ui.sceneSphere
-	// dragNodeRow is derived from uiState.lastDraggedNode, NOT the live gest.DragNode:
-	// the in-editor "dragging <name>" label must persist across pointerup (show the
-	// LAST-dragged node until a different one is dragged), and lastDraggedNode is the
-	// latch that holds that value (see its doc comment, ui_state.go) — it is set at
-	// the same commitDragStart edge that sets gest.DragNode, but is never cleared back
-	// to "" when the drag ends. "" (nothing ever dragged) resolves to -1.
-	dragNodeRow := int32(-1)
-	if md.ui.lastDraggedNode != "" {
-		if r, ok := md.RT.NodeRowFor(md.ui.lastDraggedNode); ok {
-			dragNodeRow = r
-		}
-	}
-	// The "distance home button" panel's 3 group max-pair-lengths, recomputed fresh from
-	// live node centers on every VIEW-frame emit (distance_groups.go) — read-only reflect,
-	// Go owns the group definitions and the math.
-	groupLenTime, groupLenInput, groupLenGate := DistanceGroupLens(&md.ui, &md.mr)
-	frame := md.sw.viewBuildFrame(md.sw.viewTick,
-		float32(v.Pivot.X), float32(v.Pivot.Y), float32(v.Pivot.Z), float32(v.R),
-		float32(v.Pos.Theta), float32(v.Pos.Phi), float32(v.Up.Theta), float32(v.Up.Phi),
-		ViewOverlayFlags{
-			SceneTori:      boolU8(md.ui.ov.sceneToriVisible),
-			ScenePoles:     boolU8(md.ui.ov.scenePolesVisible),
-			NodePoles:      boolU8(md.ui.ov.nodePolesVisible),
-			SelSpherePoles: boolU8(md.ui.ov.selSpherePolesVisible),
-			Handholds:      boolU8(md.ui.ov.handholdsVisible),
-			LabelsGlobal:   boolU8(md.ui.ov.labelsGlobalVisible),
-			OverlaysVis:    boolU8(md.ui.ov.overlaysVisible),
-			NodeBody:       boolU8(md.ui.ov.nodeBodyVisible),
-			NodeRing:       boolU8(md.ui.ov.nodeRingVisible),
-			RingPick:       boolU8(md.ui.ov.ringPickVisible),
-			SelectionRing:  boolU8(md.ui.ov.selectionRingVisible),
-			HoverRing:      boolU8(md.ui.ov.hoverRingVisible),
-			ReachSphere:    boolU8(md.ui.ov.reachSphereVisible),
-		},
-		dragNodeRow,
-		ViewSceneState{
-			EditRefused:   md.ui.editRefused,
-			SceneEditable: boolU8(md.ui.sceneEditable),
-			SceneKinds:    md.ui.sceneKinds,
-		},
-		groupLenTime, groupLenInput, groupLenGate,
-		float32(md.ui.speed),
-		float32(sc.Center.X), float32(sc.Center.Y), float32(sc.Center.Z), float32(sc.Radius),
-		events,
-	)
-	if !md.sw.viewOut.Ok() {
-		return
-	}
-	var hdr [4]byte
-	binary.LittleEndian.PutUint32(hdr[:], uint32(len(frame)))
-	// Fire-and-forget, same reasoning as every other stream's frame write in this codebase:
-	// no delivery guarantee on this channel, errors ignored.
-	_, _ = md.sw.viewOut.Write(hdr[:])
-	_, _ = md.sw.viewOut.Write(frame)
+	md.UI.EmitViewFrame(events)
 }

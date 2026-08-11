@@ -15,7 +15,7 @@ import (
 // type=="raw-input" message. slotReg resolves an edge's destination slot; tr emits camera
 // events + breadcrumbs. Fire-and-forget: nothing here triggers delivery.
 func (md *MoveDispatch) HandleRawInput(ev inputcodec.RawInputMsg, slotReg inputcodec.SlotRegistry, tr *T.Trace) {
-	g := &md.ui.gest
+	g := &md.UI.Gest
 	g.Fov = ev.Fov
 	g.Rect = gesturefsm.GestureRect{Left: ev.RectLeft, Top: ev.RectTop, Width: ev.RectWidth, Height: ev.RectHeight}
 	if h := rawInputHandlers[ev.Kind]; h != nil {

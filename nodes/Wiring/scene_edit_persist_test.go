@@ -13,6 +13,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
+	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
@@ -25,16 +26,16 @@ import (
 // state. LoadOverlays must ALWAYS stream the resolved state (file data or defaults).
 func TestLoadOverlaysEmitsDefaultsWhenNoPersistedKeys(t *testing.T) {
 	root := writeTree(t) // no view/scene.json → loadSceneOverlays returns found=false
-	md := &MoveDispatch{ui: uiState{ov: defaultOverlayState()}}
+	md := &MoveDispatch{UI: viewstate.UIState{OV: viewstate.DefaultOverlayState()}}
 	var kinds []string
 	// Decentralized (Step C, memory/feedback_no_single_writer_bridge.md): LoadOverlays writes its own VIEW
 	// frame directly via md.emitViewFrame; capture the RowEvent kinds it carries instead of
 	// the retired central Trace onEvent hook.
 	md.SetViewStream(io.Discard, func(tick uint32,
 		camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
-		_ ViewOverlayFlags,
+		_ viewstate.ViewOverlayFlags,
 		dragNodeRow int32,
-		_ ViewSceneState,
+		_ viewstate.ViewSceneState,
 		groupLenTime, groupLenInput, groupLenGate float32,
 		speed float32,
 		sceneCX, sceneCY, sceneCZ, sceneRadius float32,
@@ -92,32 +93,32 @@ func TestPersistOverlaysRoundTrips(t *testing.T) {
 	md.EnableEditPersist(root)
 
 	// Flip a visible-sense flag off (tori) and the hidden-sense flag on (labelsGlobal off).
-	md.ui.ov.ToggleSceneTori(nil)    // sceneToriVisible: true -> false
-	md.ui.ov.ToggleLabelsGlobal(nil) // labelsGlobalVisible: true -> false
-	md.persist.overlays.schedule(md.ui.ov)
+	md.UI.OV.ToggleSceneTori(nil)    // SceneToriVisible: true -> false
+	md.UI.OV.ToggleLabelsGlobal(nil) // LabelsGlobalVisible: true -> false
+	md.persist.overlays.schedule(md.UI.OV)
 
 	ov, found := loadSceneOverlays(scenepaths.OverlaysFilePath(root))
 	if !found {
 		t.Fatalf("loadSceneOverlays found no overlay keys after flush")
 	}
-	if ov.sceneToriVisible {
+	if ov.SceneToriVisible {
 		t.Fatalf("sceneToriVisible not persisted as hidden")
 	}
-	if ov.labelsGlobalVisible {
+	if ov.LabelsGlobalVisible {
 		t.Fatalf("labelsGlobalVisible not persisted as hidden")
 	}
 	// Untouched flag keeps its default (visible).
-	if !ov.handholdsVisible {
+	if !ov.HandholdsVisible {
 		t.Fatalf("handholdsVisible should default visible, got hidden")
 	}
 
-	// Seed a fresh dispatch from disk and confirm md.ui.ov is restored.
-	fresh := &MoveDispatch{ui: uiState{ov: defaultOverlayState()}}
+	// Seed a fresh dispatch from disk and confirm md.UI.OV is restored.
+	fresh := &MoveDispatch{UI: viewstate.UIState{OV: viewstate.DefaultOverlayState()}}
 	fresh.LoadOverlays(root, nil)
-	if fresh.ui.ov.sceneToriVisible {
+	if fresh.UI.OV.SceneToriVisible {
 		t.Fatalf("LoadOverlays did not restore sceneToriVisible=false")
 	}
-	if fresh.ui.ov.labelsGlobalVisible {
+	if fresh.UI.OV.LabelsGlobalVisible {
 		t.Fatalf("LoadOverlays did not restore labelsGlobalVisible=false")
 	}
 }
@@ -133,8 +134,8 @@ func TestOverlaysPersistPreservesCamera(t *testing.T) {
 
 	md.EnableEditPersist(root)
 
-	md.ui.ov.ToggleSceneTori(nil)
-	md.persist.overlays.schedule(md.ui.ov)
+	md.UI.OV.ToggleSceneTori(nil)
+	md.persist.overlays.schedule(md.UI.OV)
 
 	// Camera survives.
 	if _, _, _, _, ok := loadSceneViewpoint(root); !ok {
@@ -142,7 +143,7 @@ func TestOverlaysPersistPreservesCamera(t *testing.T) {
 	}
 	// Overlay landed.
 	ov, found := loadSceneOverlays(scenepaths.OverlaysFilePath(root))
-	if !found || ov.sceneToriVisible {
+	if !found || ov.SceneToriVisible {
 		t.Fatalf("overlay not persisted alongside camera (found=%v ov=%+v)", found, ov)
 	}
 }

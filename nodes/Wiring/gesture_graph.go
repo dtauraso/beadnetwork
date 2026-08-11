@@ -6,6 +6,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/gesturefsm"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 )
 
 // gesture_graph.go — an explicit adjacency-list TABLE + driver for the two gestPointerMove
@@ -39,7 +40,7 @@ var commitEdges = []gestureEdge{
 		guard: func(g *gesturefsm.GestureState) bool { return g.DragNode != "" },
 		action: func(md *MoveDispatch, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
 			mr, ctx := &md.mr, md.ctx
-			commitDragStart(&md.ui, func(id string, msg movemsg.Msg) { sendMove(mr, ctx, id, msg) }, g, ev, tr)
+			commitDragStart(&md.UI, func(id string, msg movemsg.Msg) { sendMove(mr, ctx, id, msg) }, g, ev, tr)
 		},
 		to: gesturefsm.GestDragging,
 	},
@@ -63,7 +64,7 @@ var commitEdges = []gestureEdge{
 // (emitViewFrame(KindAbcDragReset) → resetAbcDrag()) that used to run here was deleted
 // with the local-polar model itself (MODEL.md "the polar model") — there is no more
 // per-drag recipient set to re-scope.
-func commitDragStart(ui *uiState, sendMoveFn func(id string, msg movemsg.Msg), g *gesturefsm.GestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
+func commitDragStart(ui *viewstate.UIState, sendMoveFn func(id string, msg movemsg.Msg), g *gesturefsm.GestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
 	// Capture the grab offset ONCE, at this exact slop-crossing commit event: the vector
 	// from where the pointer's ray actually hits the drag plane to the node's center. Every
 	// later move (applyNodeDragTarget) adds this same offset back so the grabbed point
@@ -71,7 +72,7 @@ func commitDragStart(ui *uiState, sendMoveFn func(id string, msg movemsg.Msg), g
 	// not inside the move path — see dragGrabOffset's doc comment in gesture.go. A parallel
 	// ray (ok==false) leaves the offset at its zero value, degrading to centre-on-cursor
 	// rather than breaking the drag.
-	if hit, ok := ui.dragPlaneHit(ev); ok {
+	if hit, ok := ui.DragPlaneHit(ev); ok {
 		g.DragGrabOffset = g.DragStartCenter.Sub(hit)
 	}
 	// Re-scope the in-editor drag-log to THIS drag. This is the ONE place a drag
@@ -87,7 +88,7 @@ func commitDragStart(ui *uiState, sendMoveFn func(id string, msg movemsg.Msg), g
 	// comment). Set BEFORE the emitViewFrame call below, so that call's own
 	// dragNodeRow derivation (which reads lastDraggedNode) already reflects this
 	// drag, not the previous one.
-	ui.lastDraggedNode = g.DragNode
+	ui.LastDraggedNode = g.DragNode
 	// Arm the dragged node's OWN bead-actor wake (movemsg.KindDragStart, see
 	// nodeMover.startBeadDrag) at this same slop-crossing edge — the ONE place a drag
 	// begins. Blocking send (sendMove, not lossy): this must not be dropped, same as
@@ -126,7 +127,7 @@ func (md *MoveDispatch) commitRotateStart(g *gesturefsm.GestureState, ev inputco
 var applyAction = map[gesturefsm.GesturePhase]func(md *MoveDispatch, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg, tr *T.Trace){
 	gesturefsm.GestDragging: func(md *MoveDispatch, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
 		mr, lq, ctx := &md.mr, &md.lq, md.ctx
-		if applyNodeDragTarget(&md.ui, func(id string, target vec3) bool { return lq.RootMove(ctx, mr, id, target) }, ev) {
+		if applyNodeDragTarget(&md.UI, func(id string, target vec3) bool { return lq.RootMove(ctx, mr, id, target) }, ev) {
 			g.PrevX, g.PrevY = ev.X, ev.Y
 		}
 	},

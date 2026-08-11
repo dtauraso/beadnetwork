@@ -14,6 +14,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
+	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 
@@ -30,7 +31,7 @@ import (
 // (nodeMover.quantOffset — never a shared map, so no other mover goroutine's commit
 // can race this write even for a different node id), and requantizes nodeID's
 // local-polar cascade-links against its (unmoved) neighbors.
-func (lq *layoutQuantizer) commitNodeMoveLocal(mr *moverRegistry, ui *uiState, nm *nodeGeometry, newPos vec3) {
+func (lq *layoutQuantizer) commitNodeMoveLocal(mr *moverRegistry, ui *viewstate.UIState, nm *nodeGeometry, newPos vec3) {
 	nodeID := nm.id
 	edges := lq.heldEdges(mr)
 	// reach[nodeID] only ever needs nodeID's own fresh polar plus its DIRECT
@@ -41,7 +42,7 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(mr *moverRegistry, ui *uiState, n
 	// doc comment), resolved via nm.topo.edgeIDs (this node's own incident edges, fixed
 	// at construction; every edgeIDs neighbor is by construction a key of
 	// nm.neighborIn, the same set partnerCenters is seeded/kept from). scene polar
-	// is a pure re-derive off the fixed, write-once ui.sceneSphere.Center (never
+	// is a pure re-derive off the fixed, write-once ui.SceneSphere.Center (never
 	// mutated after load), so this stays race-free with no cross-goroutine read at
 	// all now (this runs on nm's own goroutine, reading nm's own map).
 	polars := map[string]geom.Polar{}
@@ -55,14 +56,14 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(mr *moverRegistry, ui *uiState, n
 			neighborID = em.dstID
 		}
 		if c, ok := nm.topo.partnerCenters[neighborID]; ok {
-			polars[neighborID] = geom.Cart2polar(c.Sub(ui.sceneSphere.Center))
+			polars[neighborID] = geom.Cart2polar(c.Sub(ui.SceneSphere.Center))
 		}
 	}
 	// Single cart2polar boundary conversion for this drag target — newPos is mouse-
 	// derived cartesian (gesture.go ray/plane unproject); everything downstream
 	// (reach, measureScalar, the persist schedule) reuses this one polar value rather
 	// than re-deriving it from newPos.
-	nodePolar := geom.Cart2polar(newPos.Sub(ui.sceneSphere.Center))
+	nodePolar := geom.Cart2polar(newPos.Sub(ui.SceneSphere.Center))
 
 	// committedPos/committedPolar are what gets DRAWN (applyCenter), FANNED
 	// (broadcastToEdgesAndPartners), PERSISTED (persistQuantOffset), and re-quantized
@@ -101,7 +102,7 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(mr *moverRegistry, ui *uiState, n
 		} else {
 			committedPos, _ = beadcrud.ResolveBeadCrudMove(beads, prevPos, newPos, lattice.BeadStepR)
 		}
-		committedPolar = geom.Cart2polar(committedPos.Sub(ui.sceneSphere.Center))
+		committedPolar = geom.Cart2polar(committedPos.Sub(ui.SceneSphere.Center))
 
 		// DIAGNOSTIC ONLY (task/log-node2-bead-crud): one breadcrumb per pointer-move
 		// commit — node 2 (neighbours 1, 4, 5) can barely be dragged; long drags produce

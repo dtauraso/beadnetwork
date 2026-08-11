@@ -37,10 +37,10 @@ func TestSliderSpeedMatchesALiveSliderChange(t *testing.T) {
 	for _, userSpeed := range []float64{0, 0.25, 0.5, 0.75, 1, 2} {
 		for _, divisor := range []float64{1, 4, 64} {
 			md := &MoveDispatch{}
-			md.ui.speed = userSpeed
-			md.ui.clockDivisor = divisor
+			md.UI.Speed = userSpeed
+			md.UI.ClockDivisor = divisor
 			want := EffectiveClockSpeed(userSpeed, divisor)
-			if got := md.ui.SliderSpeed(); got != want {
+			if got := md.SliderSpeed(); got != want {
 				t.Fatalf("userSpeed=%v divisor=%v: SliderSpeed = %v, want %v", userSpeed, divisor, got, want)
 			}
 		}

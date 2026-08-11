@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 )
 
 // TestDispatchTableKeysMatchFingerprint guards the table-driven dispatchers introduced when
@@ -25,10 +26,11 @@ func TestDispatchTableKeysMatchFingerprint(t *testing.T) {
 		{"updateKindHandlers", mapKeys(updateKindHandlers), "InUpdateKinds", inputcodec.InUpdateKinds},
 		{"clockAttrHandlers", mapKeys(clockAttrHandlers), "InUpdateAttrs", inputcodec.InUpdateAttrs},
 		{"overlayAttrHandlers", mapKeys(overlayAttrHandlers), "InUpdateAttrs", inputcodec.InUpdateAttrs},
-		// overlayFlagTraceKind maps each overlay flag NAME → its trace kind. The values are
-		// compile-checked (T.Kind* consts), but the string keys can drift from the flag list;
-		// guard them here (a key absent from InOverlayFlags is a typo'd/stale flag name).
-		{"overlayFlagTraceKind", mapKeys(overlayFlagTraceKind), "InOverlayFlags", inputcodec.InOverlayFlags},
+		// viewstate.OverlayFlagTraceKind maps each overlay flag NAME → its trace kind. The
+		// values are compile-checked (T.Kind* consts), but the string keys can drift from the
+		// flag list; guard them here (a key absent from InOverlayFlags is a typo'd/stale flag
+		// name).
+		{"OverlayFlagTraceKind", mapKeys(viewstate.OverlayFlagTraceKind), "InOverlayFlags", inputcodec.InOverlayFlags},
 	}
 
 	for _, c := range checks {

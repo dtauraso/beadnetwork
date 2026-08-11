@@ -25,7 +25,7 @@ import (
 // grab" case the companion test below relies on.
 func dragOffsetMD() *MoveDispatch {
 	md := &MoveDispatch{mr: moverRegistry{nodeGeoms: map[string]*nodeGeometry{}, edgeMovers: map[string]*edgeMover{}}}
-	md.ui.vp.Viewpoint = canonicalViewpoint()
+	md.UI.VP.Viewpoint = canonicalViewpoint()
 	g := nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: "TimeEnd"}}
 	nodegeom.SetNodeWorld(&g, vec3{X: 0, Y: 0, Z: 0})
 	nm := newNodeGeometry("n", g, nil, clock.NewRealClock())
@@ -69,11 +69,11 @@ func TestGestureDragOffCenterPreservesGrabPoint(t *testing.T) {
 	down := rawEvent("pointerdown", 450, 300) // OFF the node's screen-center projection
 	down.Hit = nodeHit()
 	md.HandleRawInput(down, nil, nil)
-	if md.ui.gest.DragNode != "n" {
-		t.Fatalf("pointerdown on node did not arm dragNode: got %q", md.ui.gest.DragNode)
+	if md.UI.Gest.DragNode != "n" {
+		t.Fatalf("pointerdown on node did not arm dragNode: got %q", md.UI.Gest.DragNode)
 	}
 
-	hit1, ok := md.ui.dragPlaneHit(rawEvent("pointermove", 480, 300))
+	hit1, ok := md.UI.DragPlaneHit(rawEvent("pointermove", 480, 300))
 	if !ok {
 		t.Fatal("dragPlaneHit(ev1) reported not-ok; test setup assumption (non-parallel ray) broken")
 	}
@@ -81,8 +81,8 @@ func TestGestureDragOffCenterPreservesGrabPoint(t *testing.T) {
 	move1 := rawEvent("pointermove", 480, 300) // any displacement from (450,300) commits
 	move1.Hit = nodeHit()
 	md.HandleRawInput(move1, nil, nil)
-	if md.ui.gest.Phase != gesturefsm.GestDragging {
-		t.Fatalf("after slop-cross move: phase=%v want dragging", md.ui.gest.Phase)
+	if md.UI.Gest.Phase != gesturefsm.GestDragging {
+		t.Fatalf("after slop-cross move: phase=%v want dragging", md.UI.Gest.Phase)
 	}
 
 	// commitDragStart captured offset = dragStartCenter - hit1 = (0,0,0) - hit1 = -hit1.
@@ -97,7 +97,7 @@ func TestGestureDragOffCenterPreservesGrabPoint(t *testing.T) {
 	// A second, genuine move: target must track hit2 PLUS the same offset, not hit2 alone.
 	move2 := rawEvent("pointermove", 520, 340)
 	md.HandleRawInput(move2, nil, nil)
-	hit2, ok := md.ui.dragPlaneHit(move2)
+	hit2, ok := md.UI.DragPlaneHit(move2)
 	if !ok {
 		t.Fatal("dragPlaneHit(ev2) reported not-ok; test setup assumption broken")
 	}
@@ -126,10 +126,10 @@ func TestGestureDragCenterGrabUnchanged(t *testing.T) {
 	move1 := rawEvent("pointermove", 400, 300) // screen center → projects exactly onto (0,0,0)
 	move1.Hit = nodeHit()
 	md.HandleRawInput(move1, nil, nil)
-	if md.ui.gest.Phase != gesturefsm.GestDragging {
-		t.Fatalf("after slop-cross move: phase=%v want dragging", md.ui.gest.Phase)
+	if md.UI.Gest.Phase != gesturefsm.GestDragging {
+		t.Fatalf("after slop-cross move: phase=%v want dragging", md.UI.Gest.Phase)
 	}
-	hit1, ok := md.ui.dragPlaneHit(move1)
+	hit1, ok := md.UI.DragPlaneHit(move1)
 	if !ok {
 		t.Fatal("dragPlaneHit(move1) reported not-ok")
 	}

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -37,9 +38,9 @@ func countCameraEvents(events []wire.RowEvent) int {
 func captureViewFrameKinds(md *MoveDispatch, kinds *[]wire.RowEvent) {
 	md.SetViewStream(io.Discard, func(tick uint32,
 		camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
-		_ ViewOverlayFlags,
+		_ viewstate.ViewOverlayFlags,
 		dragNodeRow int32,
-		_ ViewSceneState,
+		_ viewstate.ViewSceneState,
 		groupLenTime, groupLenInput, groupLenGate float32,
 		speed float32,
 		sceneCX, sceneCY, sceneCZ, sceneRadius float32,
@@ -65,10 +66,10 @@ func TestOrbitLockedViewpointEmitsCamera(t *testing.T) {
 	)
 
 	// First OrbitLockedViewpoint + the caller's emit should write a camera RowEvent.
-	md.ui.OrbitLockedViewpoint(geom.Dir{Theta: 1.0, Phi: 0.0}, geom.Dir{Theta: 1.1, Phi: 0.1}, tr)
+	md.UI.OrbitLockedViewpoint(geom.Dir{Theta: 1.0, Phi: 0.0}, geom.Dir{Theta: 1.1, Phi: 0.1}, tr)
 	md.emitViewFrame(cameraViewEvent())
 	// Second OrbitLockedViewpoint + emit should write another camera RowEvent.
-	md.ui.OrbitLockedViewpoint(geom.Dir{Theta: 1.1, Phi: 0.1}, geom.Dir{Theta: 1.2, Phi: 0.15}, tr)
+	md.UI.OrbitLockedViewpoint(geom.Dir{Theta: 1.1, Phi: 0.1}, geom.Dir{Theta: 1.2, Phi: 0.15}, tr)
 	md.emitViewFrame(cameraViewEvent())
 
 	if n := countCameraEvents(events); n < 2 {
@@ -82,19 +83,19 @@ func TestSetViewpointClearsLock(t *testing.T) {
 
 	// After SetViewpoint the lock must be nil.
 	md.SetViewpoint(vec3{}, 100, geom.Dir{Theta: 1.0}, geom.Dir{Theta: 1.5708})
-	if md.ui.vp.LockedAxis != nil {
+	if md.UI.VP.LockedAxis != nil {
 		t.Fatal("lockedAxis should be nil after SetViewpoint")
 	}
 
 	// After the first OrbitLocked the lock must be non-nil.
-	md.ui.OrbitLockedViewpoint(geom.Dir{Theta: 1.0, Phi: 0.0}, geom.Dir{Theta: 1.1, Phi: 0.1}, tr)
-	if md.ui.vp.LockedAxis == nil {
+	md.UI.OrbitLockedViewpoint(geom.Dir{Theta: 1.0, Phi: 0.0}, geom.Dir{Theta: 1.1, Phi: 0.1}, tr)
+	if md.UI.VP.LockedAxis == nil {
 		t.Fatal("lockedAxis should be non-nil after first OrbitLockedViewpoint")
 	}
 
 	// Another SetViewpoint must clear the lock again.
 	md.SetViewpoint(vec3{}, 100, geom.Dir{Theta: 1.0}, geom.Dir{Theta: 1.5708})
-	if md.ui.vp.LockedAxis != nil {
+	if md.UI.VP.LockedAxis != nil {
 		t.Fatal("lockedAxis should be nil after second SetViewpoint")
 	}
 }

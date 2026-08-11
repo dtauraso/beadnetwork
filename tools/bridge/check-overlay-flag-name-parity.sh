@@ -3,11 +3,11 @@ set -euo pipefail
 
 # Overlay wire-vocabulary name parity: the overlay FLAG names authored in messages.ts
 # (OVERLAY_FLAG_NAMES, the single TS source) must be exactly the key set of the Go
-# overlayToggles map (overlay_gen.go) — the attr="toggle" wire name → flip-method table
-# stdin_dispatch.go dispatches on. A name present on one side and not the other silently
-# no-ops the toggle at runtime.
+# OverlayToggles map (nodes/Wiring/viewstate/overlay_state.go) — the attr="toggle" wire name
+# → flip-method table Wiring's stdin_dispatch.go dispatches on. A name present on one side
+# and not the other silently no-ops the toggle at runtime.
 #
-# overlay_gen.go IS generated from OVERLAY_FLAG_NAMES (tools/gen-node-defs), so
+# overlay_state.go IS generated from OVERLAY_FLAG_NAMES (tools/gen-node-defs), so
 # check-generated.sh already catches a stale regen by full-file diff. This guard is the
 # NAMED, boundary-specific complement: it fails with "these exact flag names diverge"
 # instead of "the generated file is stale", and it pins the contract at the wire-name set
@@ -16,12 +16,12 @@ set -euo pipefail
 #
 # Exit 0 clean, exit 1 with a report.
 #
-# PLACEMENT: tools/topology-vscode/src/messages.ts,nodes/Wiring/overlay_gen.go | OVERLAY_FLAG_NAMES (TS) and overlayToggles keys (Go) must be the exact same name set
+# PLACEMENT: tools/topology-vscode/src/messages.ts,nodes/Wiring/viewstate/overlay_state.go | OVERLAY_FLAG_NAMES (TS) and OverlayToggles keys (Go) must be the exact same name set
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 TS="$REPO_ROOT/tools/topology-vscode/src/messages.ts"
-GO="$REPO_ROOT/nodes/Wiring/overlay_gen.go"
+GO="$REPO_ROOT/nodes/Wiring/viewstate/overlay_state.go"
 
 if [ ! -f "$TS" ] || [ ! -f "$GO" ]; then
   echo "check-overlay-flag-name-parity: MISCONFIGURED — one or both of these are missing:" >&2
@@ -37,17 +37,17 @@ fi
 ts_names=$(awk '/OVERLAY_FLAGS_START/{on=1;next} /OVERLAY_FLAGS_END/{on=0} on' "$TS" \
   | grep -oE '"[^"]+"' | tr -d '"' | sort)
 
-# overlay_gen.go: the map KEYS between OVERLAY_TOGGLES_START / OVERLAY_TOGGLES_END
+# overlay_state.go: the map KEYS between OVERLAY_TOGGLES_START / OVERLAY_TOGGLES_END
 # (the quoted string before the ':' on each entry line).
 go_names=$(awk '/OVERLAY_TOGGLES_START/{on=1;next} /OVERLAY_TOGGLES_END/{on=0} on' "$GO" \
   | grep -oE '"[^"]+"[[:space:]]*:' | grep -oE '"[^"]+"' | tr -d '"' | sort)
 
 if [ "$ts_names" != "$go_names" ]; then
   echo "check-overlay-flag-name-parity: OVERLAY_FLAG_NAMES (messages.ts) and the"
-  echo "overlayToggles keys (overlay_gen.go) diverge. Diff (< messages.ts, > overlay_gen.go):"
+  echo "OverlayToggles keys (overlay_state.go) diverge. Diff (< messages.ts, > overlay_state.go):"
   diff <(printf '%s\n' "$ts_names") <(printf '%s\n' "$go_names") || true
   echo "If you changed the overlay vocabulary, edit OVERLAY_FLAG_NAMES in messages.ts and"
-  echo "regenerate (go run ./tools/gen-node-defs) so overlay_gen.go matches."
+  echo "regenerate (go run ./tools/gen-node-defs) so overlay_state.go matches."
   exit 1
 fi
 

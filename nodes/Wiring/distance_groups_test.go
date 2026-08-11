@@ -35,7 +35,7 @@ func TestDistanceGroupOutOfRangeIndexIsNoOp(t *testing.T) {
 	if err != nil {
 		t.Fatalf("LoadTopology(production topology): %v", err)
 	}
-	if ok := applyDistanceGroupTarget(md.ctx, &md.ui, &md.mr, &md.lq, 99, 1); ok {
+	if ok := applyDistanceGroupTarget(md.ctx, &md.UI, &md.mr, &md.lq, 99, 1); ok {
 		t.Fatal("applyDistanceGroupTarget(99, up) = true, want false (out of range)")
 	}
 }

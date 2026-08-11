@@ -53,7 +53,7 @@ func TestCommitNodeMoveLocalDrawsQuantizedNotRawTarget(t *testing.T) {
 	// quantizedDragTarget's doc comment in subtree_persist_test.go).
 	want := quantizedDragTarget(md, "2", target)
 
-	md.lq.commitNodeMoveLocal(&md.mr, &md.ui, nm, target)
+	md.lq.commitNodeMoveLocal(&md.mr, &md.UI, nm, target)
 
 	got, ok := md.mr.centerOfNode("2")
 	if !ok {
@@ -128,7 +128,7 @@ func TestCommitNodeMoveLocalNeverMovesTowardMouseTarget(t *testing.T) {
 		target := beads[0].Source
 		wrong := cursorFollow(before, target)
 
-		md.lq.commitNodeMoveLocal(&md.mr, &md.ui, nm, target)
+		md.lq.commitNodeMoveLocal(&md.mr, &md.UI, nm, target)
 		got, ok := md.mr.centerOfNode("2")
 		if !ok {
 			t.Fatal("no center for dst after commit")
@@ -156,7 +156,7 @@ func TestCommitNodeMoveLocalNeverMovesTowardMouseTarget(t *testing.T) {
 		target := before.Add(outward.Scale(40))
 		wrong := cursorFollow(before, target)
 
-		md.lq.commitNodeMoveLocal(&md.mr, &md.ui, nm, target)
+		md.lq.commitNodeMoveLocal(&md.mr, &md.UI, nm, target)
 		got, ok := md.mr.centerOfNode("2")
 		if !ok {
 			t.Fatal("no center for dst after commit")
@@ -191,7 +191,7 @@ func TestCommitNodeMoveLocalRemoveTakesBeadsPlace(t *testing.T) {
 		t.Fatalf("fixture assumption: this drag should verdict beadCrudRemove, got %v", verdict)
 	}
 
-	md.lq.commitNodeMoveLocal(&md.mr, &md.ui, nm, target)
+	md.lq.commitNodeMoveLocal(&md.mr, &md.UI, nm, target)
 	got, ok := md.mr.centerOfNode("2")
 	if !ok {
 		t.Fatal("no center for dst after commit")
@@ -235,7 +235,7 @@ func TestCommitNodeMoveLocalAddMovesOneBeadBeyondNewBead(t *testing.T) {
 	newBeadCentre := beads[0].Centre.Sub(beads[0].AimDir.Scale(lattice.BeadStepR))
 	wantNodeCentre := newBeadCentre.Sub(beads[0].AimDir.Scale(lattice.BeadStepR))
 
-	md.lq.commitNodeMoveLocal(&md.mr, &md.ui, nm, target)
+	md.lq.commitNodeMoveLocal(&md.mr, &md.UI, nm, target)
 	got, ok := md.mr.centerOfNode("2")
 	if !ok {
 		t.Fatal("no center for dst after commit")
@@ -284,14 +284,14 @@ func TestCommitNodeMoveLocalPersistsQuantizedNotRawPolar(t *testing.T) {
 	// scene-polar and the committed (quantized) center's scene-polar are distinguishable.
 	target := before.Add(outward.Scale(30))
 
-	md.lq.commitNodeMoveLocal(&md.mr, &md.ui, nm, target)
+	md.lq.commitNodeMoveLocal(&md.mr, &md.UI, nm, target)
 
 	got, ok := md.mr.centerOfNode("2")
 	if !ok {
 		t.Fatal("no center for dst after commit")
 	}
-	wantPolar := geom.Cart2polar(got.Sub(md.ui.sceneSphere.Center))
-	rawTargetPolar := geom.Cart2polar(target.Sub(md.ui.sceneSphere.Center))
+	wantPolar := geom.Cart2polar(got.Sub(md.UI.SceneSphere.Center))
+	rawTargetPolar := geom.Cart2polar(target.Sub(md.UI.SceneSphere.Center))
 
 	// Assert real bytes on disk, per docs/process/testing-shape.md's persistence
 	// exception — persistQuantOffset is synchronous on the calling (this test's own)

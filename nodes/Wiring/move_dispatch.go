@@ -37,6 +37,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	rowtables "github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
 	sceneswitch "github.com/dtauraso/wirefold/nodes/Wiring/sceneswitch"
+	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -61,16 +62,22 @@ type MoveDispatch struct {
 	// the same way ui.vp/ui.ov/ui.gest are, so a bare test-constructed MoveDispatch only
 	// has to reason about one zero-value sub-struct instead of six loose nilable fields.
 	persist persisters
-	// sw owns the fd-wiring for the per-node interior stream and the dedicated VIEW
-	// stream (stream_wiring.go). MoveDispatch's public SetEdgeStreams/SetNodeStreams
-	// methods stay as thin delegators so the external API is unchanged; view_stream.go's
-	// emitViewFrame reads md.sw.viewOut/viewBuildFrame/viewTick directly (it also reads
-	// md.ui.vp/md.ui.ov/md.ui.sceneSphere, which are NOT part of this extraction).
+	// sw owns the fd-wiring for the per-node interior stream (stream_wiring.go); the
+	// per-edge/per-node streams only — the dedicated VIEW stream's own fd/frame-builder/
+	// tick now live on UI (nodes/Wiring/viewstate), lifted out per
+	// docs/planning/gesture-actor.md. MoveDispatch's public SetEdgeStreams/SetNodeStreams
+	// methods stay as thin delegators so the external API is unchanged.
 	sw streamWiring
-	// ui owns the camera/overlay/gesture/selection/abc-drag UI state (ui_state.go).
-	// MoveDispatchs public setSelectionUI/setHoverUI/sendEdgeSelect stay as
-	// thin delegators so the external API is unchanged.
-	ui uiState
+	// UI owns the camera/overlay/gesture/selection/abc-drag UI state AND the VIEW stream's
+	// own write side (nodes/Wiring/viewstate — lifted out of this package per
+	// docs/planning/gesture-actor.md; the earlier "uiState declined" probes,
+	// docs/planning/movedispatch-decomposition.md sections 5/6b, were blocked specifically
+	// by the VIEW emitter's direct field access, which moved here too). Exported: the
+	// type's own surface, matching GS/RT/Scenes' existing pattern — MoveDispatch's
+	// setSelectionUI/setHoverUI/sendEdgeSelect-shaped helpers still route through it via
+	// bound func values (move_dispatch_api.go), since moverRegistry/layoutQuantizer/
+	// edgeMover are unexported Wiring types viewstate cannot name.
+	UI viewstate.UIState
 	// lq owns the quantized scene-polar move math (quantized_move.go): quantizedLayout
 	// gates the quantized absolute-scene-polar snap — every node is a root,
 	// measured/derived about the scene center only, with no per-neighbour stored

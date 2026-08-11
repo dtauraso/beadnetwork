@@ -7,7 +7,7 @@
 // nodes/Wiring/stdinreader/stdin_reader_integration_test.go instead: RunStdinReader itself
 // moved to its own movemsg-sibling package (stdinreader — framing only), and those two
 // tests need no unexported Wiring field, so they run as an external test of that package.
-// This file keeps the ONE test that does reach an unexported field (md.ui.ov) and so must
+// This file keeps the ONE test that does reach an internal field (md.UI.OV) and so must
 // stay an in-package Wiring test — an in-package test of Wiring cannot itself import
 // stdinreader, since stdinreader already imports Wiring (a real cycle, not a style choice).
 
@@ -63,7 +63,7 @@ func TestSavePersistsCurrentOverlayState(t *testing.T) {
 		t.Fatal("decode toggle failed")
 	}
 	ApplyEdit(toggle, md, nil, nil)
-	if err := writeSceneOverlays(scenepaths.OverlaysFilePath(root), md.ui.ov); err != nil {
+	if err := writeSceneOverlays(scenepaths.OverlaysFilePath(root), md.UI.OV); err != nil {
 		t.Fatalf("writeSceneOverlays: %v", err)
 	}
 	raw, _ := os.ReadFile(filepath.Join(root, "view", "overlays.json"))

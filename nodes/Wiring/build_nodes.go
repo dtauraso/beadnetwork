@@ -23,7 +23,7 @@ func (b *buildCtx) buildNodes() error {
 	// without PortBindings holding a *MoveDispatch back-reference. Built once, here,
 	// before any node is built, and threaded down through each bind.Build call below.
 	deps := buildDeps{
-		latticePoints: b.md.ui.latticePoints,
+		latticePoints: b.md.UI.LatticePoints,
 		inboxes:       &b.md.inboxes,
 		mr:            &b.md.mr,
 	}

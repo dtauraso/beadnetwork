@@ -127,7 +127,7 @@ func main() {
 	if err != nil {
 		fatalf("parse overlay flags: %v", err)
 	}
-	overlayGenGoPath := filepath.Join(repoRoot, "nodes", "Wiring", "overlay_gen.go")
+	overlayGenGoPath := filepath.Join(repoRoot, "nodes", "Wiring", "viewstate", "overlay_state.go")
 	if err := writeOverlayGen(overlayGenGoPath, overlayFlags); err != nil {
 		fatalf("write %s: %v", overlayGenGoPath, err)
 	}

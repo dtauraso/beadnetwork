@@ -8,6 +8,7 @@ import (
 	B "github.com/dtauraso/wirefold/Buffer"
 	SF "github.com/dtauraso/wirefold/Buffer/streamframe"
 	W "github.com/dtauraso/wirefold/nodes/Wiring"
+	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 )
 
 // wireViewStream makes md the VIEW stream's owner/writer.
@@ -24,9 +25,9 @@ func wireViewStream(md *W.MoveDispatch, viewFile *os.File, viewStreamWired bool,
 		md.SetViewStream(viewFile,
 			func(tick uint32,
 				camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
-				flags W.ViewOverlayFlags,
+				flags viewstate.ViewOverlayFlags,
 				dragNodeRow int32,
-				scene W.ViewSceneState,
+				scene viewstate.ViewSceneState,
 				groupLenTime, groupLenInput, groupLenGate float32,
 				speed float32,
 				sceneCX, sceneCY, sceneCZ, sceneRadius float32,

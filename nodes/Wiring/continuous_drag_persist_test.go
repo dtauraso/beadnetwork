@@ -30,7 +30,7 @@ func dragAndReadBack(t *testing.T, quantized bool, target vec3) string {
 
 	md := &MoveDispatch{}
 	md.lq.quantizedLayout = quantized
-	md.ui.sceneSphere = geom.SceneSphere{Center: vec3{}, Radius: 100}
+	md.UI.SceneSphere = geom.SceneSphere{Center: vec3{}, Radius: 100}
 	md.mr.nodeGeoms = map[string]*nodeGeometry{}
 	md.mr.edgeMovers = map[string]*edgeMover{}
 	md.mr.centerMirror = map[string]vec3{}
@@ -44,7 +44,7 @@ func dragAndReadBack(t *testing.T, quantized bool, target vec3) string {
 	}
 	md.mr.nodeGeoms["1"] = nm
 
-	md.lq.commitNodeMoveLocal(&md.mr, &md.ui, nm, target)
+	md.lq.commitNodeMoveLocal(&md.mr, &md.UI, nm, target)
 
 	b, err := os.ReadFile(positionfile.FilePath(root, "1"))
 	if err != nil {

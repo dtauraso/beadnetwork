@@ -15,7 +15,7 @@ import (
 
 func newGestureMD(v geom.Viewpoint) *MoveDispatch {
 	md := &MoveDispatch{}
-	md.ui.vp.Viewpoint = v
+	md.UI.VP.Viewpoint = v
 	return md
 }
 

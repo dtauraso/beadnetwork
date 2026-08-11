@@ -165,8 +165,9 @@ report_diff "$(comm -13 <(echo "$HM_KINDS") <(echo "$TS_KINDS"))" "handle-messag
             "$(comm -23 <(echo "$HM_KINDS") <(echo "$TS_KINDS"))" "messages.ts kinds"
 
 # --- Axis 3: overlay flags → hand-authored renderer -------------------------
-# Repointed (was messages.ts OVERLAY_FLAG_NAMES vs the GENERATED overlayToggles map in
-# overlay_gen.go — circular, since the latter is generated from the former; flag→Go
+# Repointed (was messages.ts OVERLAY_FLAG_NAMES vs the GENERATED OverlayToggles map in
+# nodes/Wiring/viewstate/overlay_state.go — circular, since the latter is generated from
+# the former; flag→Go
 # parity is already covered by check-generated.sh regenerate+diff and the overlay
 # behavior test). The value axis 3 adds is flag→RENDERER parity: a flag added to
 # OVERLAY_FLAG_NAMES but never wired into the hand-authored overlay-flags.ts renderer

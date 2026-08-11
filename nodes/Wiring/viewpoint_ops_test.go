@@ -55,7 +55,7 @@ func TestOrbitViewpointEmitsMovedPos(t *testing.T) {
 }
 
 // TestMoveDispatchViewpointDelegatorsEmit: the MoveDispatch delegators (Zoom/Pan/Orbit)
-// forward to md.ui.vp; the view-owner goroutine (the real callers: gesture_actions.go,
+// forward to md.UI.VP; the view-owner goroutine (the real callers: gesture_actions.go,
 // gesture_handlers.go) emits the camera RowEvent onto the VIEW stream after each mutation —
 // this test drives that same mutate-then-emit shape at the call site, per
 // docs/planning/movedispatch-decomposition.md's write-then-emit split.
@@ -66,18 +66,18 @@ func TestMoveDispatchViewpointDelegatorsEmit(t *testing.T) {
 	captureViewFrameKinds(md, &events)
 	md.SetViewpoint(vec3{}, 100, geom.Dir{Theta: 1.0}, geom.Dir{Theta: 1.5708})
 
-	md.ui.ZoomViewpoint(0.5, tr)
+	md.UI.ZoomViewpoint(0.5, tr)
 	md.emitViewFrame(cameraViewEvent())
 	md.PanViewpoint(vec3{X: 5}, tr)
 	md.emitViewFrame(cameraViewEvent())
-	md.ui.OrbitViewpoint(geom.Dir{Theta: 1.0, Phi: 0.0}, geom.Dir{Theta: 1.1, Phi: 0.1}, tr)
+	md.UI.OrbitViewpoint(geom.Dir{Theta: 1.0, Phi: 0.0}, geom.Dir{Theta: 1.1, Phi: 0.1}, tr)
 	md.emitViewFrame(cameraViewEvent())
 
 	if n := countCameraEvents(events); n < 3 {
 		t.Fatalf("expected >=3 camera events from delegators, got %d", n)
 	}
 	// Confirm the final viewpoint state reflects the zoom+pan (r halved, pivot moved).
-	if md.ui.vp.R != 50 || md.ui.vp.Pivot.X != 5 {
-		t.Fatalf("delegator state: r=%v pivot.X=%v, want r=50 pivot.X=5", md.ui.vp.R, md.ui.vp.Pivot.X)
+	if md.UI.VP.R != 50 || md.UI.VP.Pivot.X != 5 {
+		t.Fatalf("delegator state: r=%v pivot.X=%v, want r=50 pivot.X=5", md.UI.VP.R, md.UI.VP.Pivot.X)
 	}
 }

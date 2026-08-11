@@ -14,6 +14,7 @@ import (
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -30,13 +31,13 @@ import (
 // struct carries exactly as many flags as the vocabulary, and with every flag defaulting
 // ON, every field arrives set — a field left unassigned in emitViewFrame is a 0 here.
 func TestViewFrameCarriesEveryOverlayFlag(t *testing.T) {
-	md := &MoveDispatch{ui: uiState{ov: defaultOverlayState()}}
-	var got ViewOverlayFlags
+	md := &MoveDispatch{UI: viewstate.UIState{OV: viewstate.DefaultOverlayState()}}
+	var got viewstate.ViewOverlayFlags
 	md.SetViewStream(io.Discard, func(tick uint32,
 		camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
-		flags ViewOverlayFlags,
+		flags viewstate.ViewOverlayFlags,
 		dragNodeRow int32,
-		_ ViewSceneState,
+		_ viewstate.ViewSceneState,
 		groupLenTime, groupLenInput, groupLenGate float32,
 		speed float32,
 		sceneCX, sceneCY, sceneCZ, sceneRadius float32,
@@ -73,21 +74,21 @@ func TestViewFrameCarriesEveryOverlayFlag(t *testing.T) {
 // table itself (a flag reachable here is a flag a live checkbox can send), so
 // it is the correct authoritative set to drive from.
 func TestApplyUpdateOverlayToggleEmitsViewFrame(t *testing.T) {
-	for flag := range overlayToggles {
+	for flag := range viewstate.OverlayToggles {
 		flag := flag
 		t.Run(flag, func(t *testing.T) {
-			wantKind, ok := overlayFlagTraceKind[flag]
+			wantKind, ok := viewstate.OverlayFlagTraceKind[flag]
 			if !ok {
-				t.Fatalf("overlay flag %q is in overlayToggles (a live checkbox can send it) but has no entry in overlayFlagTraceKind — its toggle flips the flag and emits nothing to the webview", flag)
+				t.Fatalf("overlay flag %q is in OverlayToggles (a live checkbox can send it) but has no entry in OverlayFlagTraceKind — its toggle flips the flag and emits nothing to the webview", flag)
 			}
 
-			md := &MoveDispatch{ui: uiState{ov: defaultOverlayState()}}
+			md := &MoveDispatch{UI: viewstate.UIState{OV: viewstate.DefaultOverlayState()}}
 			var kinds []string
 			md.SetViewStream(io.Discard, func(tick uint32,
 				camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
-				_ ViewOverlayFlags,
+				_ viewstate.ViewOverlayFlags,
 				dragNodeRow int32,
-				_ ViewSceneState,
+				_ viewstate.ViewSceneState,
 				groupLenTime, groupLenInput, groupLenGate float32,
 				speed float32,
 				sceneCX, sceneCY, sceneCZ, sceneRadius float32,

@@ -35,9 +35,9 @@ report="$(python3 - <<'PY'
 import os, re
 
 root = "nodes"
-call_pat = re.compile(r'\brefuseStructuralEdit\(')
-def_pat = re.compile(r'func\s+\([a-zA-Z_]+ \*\w+\)\s+refuseStructuralEdit\(')
-next_pat = re.compile(r'\bemitViewFrame\(')
+call_pat = re.compile(r'\b[Rr]efuseStructuralEdit\(')
+def_pat = re.compile(r'func\s+\([a-zA-Z_]+ \*\w+\)\s+[Rr]efuseStructuralEdit\(')
+next_pat = re.compile(r'\b[Ee]mitViewFrame\(')
 
 hits = []
 checked = 0

@@ -1,13 +1,12 @@
-// stream_wiring.go — the per-node interior-stream and dedicated VIEW-stream fd-wiring
-// owner split out of MoveDispatch (god-object decomposition), as a pure move (no logic
-// changes): streamWiring owns interiorOuts/buildInteriorFrame (the per-node interior fd
-// directory) and viewOut/viewBuildFrame/viewTick (the VIEW stream's fd + frame builder +
-// local tick counter). MoveDispatch's public SetEdgeStreams/SetNodeStreams methods stay
-// as thin delegators so the external API is unchanged. view_stream.go's emitViewFrame
-// reads md.sw.viewOut/viewBuildFrame/viewTick directly — it ALSO reads
-// md.ui.vp/md.ui.ov/md.ui.sceneSphere, which are owned elsewhere and are NOT part
-// of this extraction, so emitViewFrame itself stays a MoveDispatch method rather than
-// moving here.
+// stream_wiring.go — the per-node interior-stream fd-wiring owner split out of
+// MoveDispatch (god-object decomposition), as a pure move (no logic changes): streamWiring
+// owns interiorOuts/buildInteriorFrame (the per-node interior fd directory) and driveOuts.
+// MoveDispatch's public SetEdgeStreams/SetNodeStreams methods stay as thin delegators so
+// the external API is unchanged. The dedicated VIEW stream's own fd/frame-builder/tick used
+// to live here too (viewOut/viewBuildFrame/viewTick) — lifted onto
+// nodes/Wiring/viewstate.UIState per docs/planning/gesture-actor.md, since its one caller
+// (emitViewFrame) needs md.UI.vp/ov/sceneSphere just as much as it needs these fields, and
+// both now live together in the same package.
 
 package Wiring
 
@@ -53,30 +52,15 @@ type streamWiring struct {
 	// means writes through it are simply never made — nil-safe, same fallback shape as
 	// interiorOuts.
 	driveOuts map[string][driveSlotsPerNode]io.Writer
-	// --- the dedicated VIEW stream (memory/feedback_no_single_writer_bridge.md,
-	// memory/feedback_no_single_writer_bridge.md Step C) --- see view_stream.go.
-	//
-	// viewOut, when Ok(), is the VIEW stream's OWN dedicated fd (see SetViewStream /
-	// Buffer/streamframe/stream_fds.go's StreamKindView). A dead claimedStream (the default — no
-	// WIREFOLD_STREAM_FDS "view" entry, e.g. headless tests, OR a rejected second
-	// SetViewStream claim — see stream_claim.go) means emitViewFrame is a no-op: nothing
-	// here ever writes, and camera/overlay/scene are simply never emitted. Written ONLY
-	// by the gesture/stdin-reader goroutine (the sole caller of every MoveDispatch
-	// method that can change camera/overlay/scene/selection/hover).
-	viewOut claimedStream
-	// viewBuildFrame packs this goroutine's own VIEW frame (Buffer.BuildViewStreamFrame),
-	// injected via SetViewStream so this package stays Buffer-independent, mirroring
-	// buildInteriorFrame/buildFrame's existing interface-injection pattern.
-	viewBuildFrame ViewFrameBuilder
-	// viewTick is a purely local frame-sequence counter for the VIEW stream (not shared
-	// with any other stream's tick) — written only by the gesture/stdin-reader goroutine.
-	viewTick uint32
 
 	// claims is the wiring-time claim registry backing every claimedStream this struct
-	// hands out (streamOut on each nodeMover/edgeMover, viewOut here) — see
-	// stream_claim.go's header comment. Lazily allocated (newStreamClaims) by whichever
-	// of setEdgeStreams/setNodeStreams/SetViewStream runs first, so a bare streamWiring
-	// zero value (test construction that never wires any stream) never allocates it.
+	// hands out (streamOut on each nodeMover/edgeMover) — see stream_claim.go's header
+	// comment. Lazily allocated (newStreamClaims) by whichever of setEdgeStreams/
+	// setNodeStreams runs first, so a bare streamWiring zero value (test construction
+	// that never wires any stream) never allocates it. The VIEW stream's own claim
+	// registry is separate (viewstate's own viewClaimedStream) — the two can never
+	// collide (namespaced "node:<id>"/"edge:<label>" vs. the VIEW stream's own
+	// singleton), so splitting them cost nothing.
 	claims streamClaims
 }
 

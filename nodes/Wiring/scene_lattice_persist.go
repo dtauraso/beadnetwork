@@ -28,6 +28,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
+	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 )
 
 // defaultLatticePoints is the point count a fresh topology (or a missing/malformed
@@ -96,9 +97,9 @@ func loadSceneLattice(latticePath string) (int32, bool) {
 // BuildArgs.LatticePointsSeed() rather than receiving it on a channel that does not exist
 // yet. A live in-process change (the scene/latticePoints edit) goes through
 // BroadcastLatticePoints instead.
-func (ui *uiState) loadLatticePoints(topologyPath string) {
+func loadLatticePoints(ui *viewstate.UIState, topologyPath string) {
 	points, _ := loadSceneLattice(scenepaths.LatticeFilePath(topologyPath))
-	ui.latticePoints = points
+	ui.LatticePoints = points
 }
 
 // BroadcastLatticePoints sends a new lattice point count to every node id's own dedicated
