@@ -4927,3 +4927,126 @@ Commits: `8649965d` (EnableViewpointPersist/EnableEditPersist → viewpersist), 
 (LoadOverlays/LoadSpeed/SliderSpeed/HumanEditSpeed/LoadSceneSphere → scenepersist),
 `4b4530a9` (CreateNode/DeleteNode → scenestructure), `c83622e3` (4 Group-B test files move,
 distance_groups_kind_import_test.go absorbs the kind registrations they took with them).
+
+## §35 — both pins on the remaining 7 non-test files closed: `ctx` un-stored, `tapToInstall`
+deleted outright (dead, not moved)
+
+§34 closed with 7 non-test files left in `dispatch`, each pinned by one of two unexported
+`MoveDispatch` fields: `ctx` (reached by `gesture_dispatch.go`) and `tapToInstall` (reached
+by `move_dispatch_construct.go`/`move_streams.go`). This pass measured both directly rather
+than trusting §34's prose, and closed both.
+
+### Pin 1 — `ctx context.Context`
+
+Measured fresh: **one write** (`move_dispatch_api.go`'s `Start`, `md.ctx = ctx`), **one
+read** (`gesture_dispatch.go`, `Ctx: md.ctx` into `gesture.Deps`). Go's own doctrine says
+not to store a `Context` on a struct; the sole production caller of `HandleRawInput`
+(`runtopology/gesture_actor.go`'s `startGestureActor` goroutine) already has a `ctx` in
+scope, the same shape `ApplyEdit` already used since §30. Fixed by threading `ctx` as an
+explicit `HandleRawInput(ctx, ev, slotReg, tr)` parameter (mirroring `ApplyEdit`), deleting
+the field, and updating every call site: `stdinreader.HandleRawInputMsg` (production caller:
+`runtopology/gesture_actor.go`; also `pair_self_drive_persist_test.go` and
+`stdin_reader_framing_test.go`, both of which already had a `ctx` in scope) and every
+in-package `dispatch` test that drives `md.HandleRawInput` directly (6 test files, ~90 call
+sites, `context.Background()` — none of these tests exercised cancellation, so the same
+"no cancellation available" value `Start`-less bare `MoveDispatch` construction used to
+supply via a nil `ctx` field is unchanged in spirit). Two stale comments in
+`distance_groups_test.go`/`distance_groups_scene_test.go` that explained "`md.ctx`
+(unexported) is never set here" were rewritten to explain the new explicit-parameter shape
+instead of describing a field that no longer exists.
+
+### Pin 2 — `tapToInstall` (bucket (a): deleted outright)
+
+Grepped every test file in the repo for `SetMsgTap` (the only way to populate the field) —
+**zero call sites, anywhere**. The field's own comment called it a "TEST-ONLY observability
+seam," but no test used the seam; it was dead code carrying three files
+(`move_dispatch.go`, `move_dispatch_construct.go`, `move_streams.go`) as reach. Chose bucket
+(a) per the task's own decision procedure: deleted `tapToInstall`, deleted
+`move_streams.go` outright (`SetMsgTap` was its only content), and dropped the `tap`
+parameter from `WireMessaging`'s call in `move_dispatch_construct.go`. Followed the reach
+one level deeper into `nodes/Wiring/nodeactor` (not one of the 3 dispatch-pinned files, but
+the same dead seam continued there): `NodeGeometry.SetMsgTap`, its `msg.tap` field, and the
+`EnqueueSend` fire-the-tap check were all deleted too — `SetMsgTap` at that layer also had
+zero test callers. `EnqueueSend` itself is unchanged in every OTHER respect (still appends
+to `pending` and calls `flushPending`).
+
+### What unpinned
+
+Both fields gone leaves `MoveDispatch` (`move_dispatch.go`) with **zero unexported
+fields** — every field is now exported. `move_dispatch_construct.go`'s `NewMoveDispatch`
+still constructs the `MoveDispatch{...}` struct literal directly (naming the type, not an
+unexported field), so it stays with the type's own declaration for that reason alone, not a
+field-reach reason. None of the 7 files actually MOVED this pass — `gesture_dispatch.go`
+and `move_dispatch_api.go` are the composition root's own thin API surface (the same
+already-argued reason §33/§34 left them), `distance_groups.go`/`vec_alias.go` are still
+pinned by `DistanceGroupLens`'s import cycle and the ~200 in-package `vec3` call sites
+(unchanged, not re-examined this pass since neither pin touches `ctx`/`tapToInstall`).
+`move_streams.go` is gone (deleted, not moved — its only content was dead code).
+
+### Verify
+
+`go build ./...`, `go vet ./...`: clean after both commits. `go test ./...`: zero FAIL after
+both commits (`pair_self_drive_persist_test.go`'s `HandleRawInputMsg` call site — the one
+production-shaped root-package caller — was the one this pass's own first `go test ./...`
+run caught missing the new `ctx` argument; fixed in the same commit, not a follow-up).
+`gofmt -l .`: 6 gesture test files needed a follow-up `gofmt -w` (the `context.Background(),`
+insertions left inconsistent alignment) — a 3rd commit, formatting-only, no behavior change.
+`go test -race -count=1 ./...`: zero `FAIL`, zero race reports, run at the end.
+`bash scripts/stop-checks.sh`: EMPTY stdout after the final (3rd) commit.
+
+`TestXxx` count: **381** before and after (grepped repo-wide, not just the package list
+§33/§34 tracked, since this pass touched call sites across `dispatch`, `stdinreader`, and
+the root package rather than moving any test file) — unchanged, since this pass edited
+existing test bodies in place and deleted zero tests (`move_streams.go`, the one file
+deleted outright, held no `_test.go` content). Zero duplicate `TestXxx` names introduced
+(re-confirmed by the same count staying flat).
+
+Deliberate breaks, one per pinned surface: (1) `gesture_dispatch.go`'s `Ctx`/`RT` forwarding
+— `RT: &md.RT` → `RT: nil` — `TestGestureHoverTracksNode` panicked (nil pointer
+dereference in `rowtables.(*RowTables).LookupNodeRow`, called through
+`gesture.updateHover`); restored, `go build`/`git status --short` clean. (2)
+`nodeactor.EnqueueSend`'s surviving-after-tap-removal `pending` append — commented out —
+`TestEnqueueForPanicsWhenPendingExceedsBound` failed by name ("EnqueueSend did not panic
+after 65 retained sends to a wedged destination"); restored, clean. (An earlier attempt at
+this same break, run against `TestGestureDragOffCenterPreservesGrabPoint`, passed —
+that test's drag-target assertion reads `extIn` via `SendExternal`, not the
+`pending`/`EnqueueSend` path, so it was the wrong test to pin this surface; recorded here so
+the same wrong pick isn't retried.)
+
+### Guards
+
+Grepped `tools/` (excluding `node_modules`) for `tapToInstall`, `SetMsgTap`,
+`move_streams.go`, and `md.ctx` — zero hits in any guard's enforced pattern; none of these
+symbols were ever guard-checked. `check-composer-fields.sh` re-run directly: exit 0 (it
+does not name `ctx`/`tapToInstall` specifically, so removing them changes nothing it
+checks). All of `bash scripts/stop-checks.sh`'s guard suite (`check-no-network-locks.sh`
+empty allowlist, `check-persist-write-ownership.sh`, `check-scene-path-resolution.sh`,
+`check-channel-names.sh`, the stream-fd guards, `check-doc-drift.sh`,
+`check-docs-symbols.sh`, `check-no-untracked-source.sh`, `check-kind-imports.sh`) ran clean
+inside the same `stop-checks.sh` pass reported above.
+
+### Which changed surfaces have no test that can fail
+
+`Start`'s own body (`md.MR.Start(ctx)`, now with no `md.ctx = ctx` side effect) has no test
+that asserts on the side effect's ABSENCE directly — every test that calls `Start` was
+already only checking the goroutines it launches, never a field write, so this is
+unobservable by construction, not a coverage gap this pass opened. The `context.Background()`
+value now threaded through ~90 `dispatch` test call sites is never itself asserted on (no
+test checks cancellation behavior through `HandleRawInput`) — same gap the old nil-`ctx`
+field already had, not newly introduced.
+
+### Final state
+
+`ls nodes/Wiring/dispatch/*.go | wc -l` → **41** (6 non-test + 35 test), down from 42 (7 +
+35) — one file (`move_streams.go`) deleted outright, zero files moved. The 6 non-test files
+left (`distance_groups.go`, `gesture_dispatch.go`, `move_dispatch.go`, `move_dispatch_api.go`,
+`move_dispatch_construct.go`, `vec_alias.go`) carry no unexported-field reach at all any
+more — what remains is the composition root itself (the struct declaration, its `Start`/
+`HandleRawInput` API, and its constructor) plus the two already-known-and-unchanged pins
+(`DistanceGroupLens`'s cycle, ~200 in-package `vec3` call sites). The 35 test files were not
+re-measured this pass (out of budget) — that is the next task's own starting point, not
+re-litigated here.
+
+Commits: `80bd90f1` (HandleRawInput takes `ctx` as an explicit parameter), `82030bd1`
+(delete `tapToInstall` and its whole tap plumbing), `3bee19f1` (gofmt the 6 touched gesture
+test files).
