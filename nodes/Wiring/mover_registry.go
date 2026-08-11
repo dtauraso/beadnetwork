@@ -349,36 +349,44 @@ func (mr *moverRegistry) nodeQuantOffset(id string) (iTheta, iPhi, iR int, ok bo
 }
 
 // linkRefusal answers whether an edge from src to a NEW node of kind can exist, and says
-// why not when it cannot — see scene_structure.go's former doc comment (before this pure
-// single-owner forward moved here) for the two structural reasons checked.
+// why not when it cannot. mr's only part is resolving src's own kind off nodeGeoms; the
+// two structural reasons themselves are decided by the pure linkRefusalFor below.
 func (mr *moverRegistry) linkRefusal(src, kind string) (srcPort, targetPort, why string, ok bool) {
+	srcGeom, found := mr.nodeGeoms[src]
+	srcKind := ""
+	if found {
+		srcKind = srcGeom.geom.Kind
+	}
+	return linkRefusalFor(src, srcKind, found, kind)
+}
+
+// linkRefusalFor is the pure decision linkRefusal makes once src's own kind (and whether
+// it was found at all) has been resolved: kind must take an input, and src must have
+// both geometry and an output to connect from. Split out of linkRefusal because it never
+// touched moverRegistry itself, only the two node kinds it was handed.
+func linkRefusalFor(src, srcKind string, srcFound bool, kind string) (srcPort, targetPort, why string, ok bool) {
 	targetPort, hasIn := firstPortOfDir(kind, portwiring.PortIn)
 	if !hasIn {
 		return "", "", fmt.Sprintf("%s takes no input, so nothing can connect to it", kind), false
 	}
-	srcGeom, found := mr.nodeGeoms[src]
-	if !found {
+	if !srcFound {
 		return "", "", fmt.Sprintf("no geometry for %s", src), false
 	}
-	srcPort, hasOut := firstPortOfDir(srcGeom.geom.Kind, portwiring.PortOut)
+	srcPort, hasOut := firstPortOfDir(srcKind, portwiring.PortOut)
 	if !hasOut {
-		return "", "", fmt.Sprintf("%s has no output to connect from", srcGeom.geom.Kind), false
+		return "", "", fmt.Sprintf("%s has no output to connect from", srcKind), false
 	}
 	return srcPort, targetPort, "", true
 }
 
 // nearestNodeTo picks the live node whose centre is closest to p, from this process's
-// own geometry. Squared distance — the ordering is the same and there is no reason to
-// take a square root to compare.
+// own geometry. The distance comparison itself is pure and lives in
+// nodegeom.NearestTo; this method's only job is building the id->center map from mr's
+// own nodeGeoms directory.
 func (mr *moverRegistry) nearestNodeTo(p vec3) (string, bool) {
-	best, bestD2, found := "", 0.0, false
+	centers := make(map[string]vec3, len(mr.nodeGeoms))
 	for id, ng := range mr.nodeGeoms {
-		c := nodegeom.NodeWorldPos(ng.geom)
-		d := c.Sub(p)
-		d2 := d.X*d.X + d.Y*d.Y + d.Z*d.Z
-		if !found || d2 < bestD2 {
-			best, bestD2, found = id, d2, true
-		}
+		centers[id] = nodegeom.NodeWorldPos(ng.geom)
 	}
-	return best, found
+	return nodegeom.NearestTo(centers, p)
 }
