@@ -1195,3 +1195,66 @@ passes with no failures across every package. `check-test-integrity.sh` clean (n
 assertion removal, no skip/only/exit/recover added — every moved test kept its exact body).
 The no-imports-`Wiring` loop is empty. No interface, `types`/`common` package, alias shim,
 dot-import, package-level actor global, or `ForTest` hatch was added.
+
+## 11. `chain_beads.go`/`bead_chain.go` re-measured — two placement formulas lifted into `beadindex`, everything else declined by mechanism
+
+Measured `chainBeads()` (`chain_beads.go`, `func (m *nodeGeometry) chainBeads()`) and
+`reconcileBeadChain`/`startBeadDrag`/`endBeadDrag` (`bead_chain.go`) function-by-function, not
+file-by-file, per this task's own instruction.
+
+**Lifted into `nodes/Wiring/beadindex`** (already home to `LitBeadIndex`, the sibling
+progress→index math): two pure formulas that were inline in `chainBeads`' placement loop —
+
+- `BeadPlacementOffset(base, step float64, i int) float64` — `base + float64(i)*step`, bead
+  `i`'s tangent-placement offset (docs/bead-model/bead-lattice.md "Placement").
+- `PulsePlacementOffset(base, step, t float64, steps int) float64` — the same formula
+  evaluated at a continuous index (`t*(steps-1)` clamped at 0) instead of an integer `i`, for
+  a travelling pulse.
+
+Both take only scalars and return a scalar; neither reads or writes `nodeGeometry`,
+`uiState`, or a channel. `chain_beads.go` now calls `beadindex.BeadPlacementOffset`/
+`beadindex.PulsePlacementOffset` instead of the inline arithmetic. `beadindex` was the
+existing, better-fitting home (not a new package) — it already holds `LitBeadIndex`,
+the same "chain progress ↔ position" family, and needed no new import cycle.
+
+**Declined, by mechanism, not by category:**
+
+- `chainBeads()` itself (the placement-loop entry point) — impure: sends on a channel via
+  `m.outs.outWireOuts[i].PublishSteps(count)` and `stepdeliver.SendStepsNonBlocking`, reads
+  `m.clocks.clk.Tick()` (external goroutine-owned clock state), calls
+  `m.tr.Breadcrumb(...)` (send on the trace channel), and calls `m.reconcileBeadChain` (see
+  below, itself impure) when `m.beads.beadTickFn != nil`. A function with four independent
+  side-effecting calls in its body is not a computed-result function regardless of what its
+  signature says.
+- `reconcileBeadChain` (`bead_chain.go`) — writes the unexported field
+  `m.beads.beadChains` (a map) by direct assignment/mutation, starts goroutines
+  (`beadchain.NewBead(...).Start()`), closes channels (`close(c.stops[i])`), and calls
+  `c.group.BroadcastGeometry(...)` (a channel-based broadcast). Exporting
+  `beadChains` to let an outside package write it would delete the single-writer
+  enforcement `node_geometry.go` already documents for `nodeGeometry`'s mutable fields.
+- `startBeadDrag`/`endBeadDrag` — each is one line, `c.group.StartDrag()` /
+  `c.group.EndDrag()`, a channel-close operation on the shared `BeadWakeGroup` actor state.
+  No computation to lift; the body is the side effect.
+- `edgeBeadChain` (the type `bead_chain.go` declares) — holds live actor handles
+  (`*beadchain.Bead`, `<-chan beadchain.BeadSnapshot`, `chan struct{}` stop channels) as its
+  own fields; it is actor bookkeeping, not a data type a pure function could take/return
+  without also exporting the goroutine-owning fields above.
+
+**LOC:** `chain_beads.go` 391 → 388 lines (net -3: two formula extractions minus their inline
+arithmetic, +1 import). `bead_chain.go` unchanged, 169 lines (nothing moved out of it).
+`nodes/Wiring` non-test top-level `.go` file count: unchanged, 59 (no file moved or
+created; `beadindex` already existed and gained two functions plus doc comments in its
+existing file).
+
+**Verification:** `go build ./...`, `go vet ./...` clean; `go test -race -count=1 ./...`
+passes with no failures (verbatim `ok` for every package, no race reported). The
+no-imports-`Wiring` loop (`for p in $(go list ./nodes/Wiring/... | grep -v 'nodes/Wiring$');
+do go list -deps "$p" | grep -qx github.com/dtauraso/wirefold/nodes/Wiring && echo "IMPORTS
+WIRING: $p"; done`) is empty.
+`tools/network/beads/check-no-sqrt-in-chain-beads.sh` re-run clean (chain_beads.go still
+calls no cartesian-sqrt helper directly — the two lifted formulas are plain scalar
+arithmetic, no `Normalize`/vector-length inside them). No file was renamed, so no guard
+keyed to `chain_beads.go`/`bead_chain.go` needed updating (both are named by
+`check-bead-actor-has-call-site.sh` and `check-no-sqrt-in-chain-beads.sh`, unaffected by an
+in-place edit). No interface, `types`/`common` package, alias shim, dot-import,
+package-level actor global, or `ForTest` hatch was added.
