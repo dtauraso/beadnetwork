@@ -37,7 +37,7 @@ type gestureEdge struct {
 // only effect was a ring-anchor snap that no longer exists).
 var commitEdges = []gestureEdge{
 	{
-		guard:  func(g *gestureState) bool { return g.dragNode != "" },
+		guard: func(g *gestureState) bool { return g.dragNode != "" },
 		action: func(md *MoveDispatch, g *gestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
 			commitDragStart(&md.ui, &md.mr, md.ctx, g, ev, tr)
 		},
