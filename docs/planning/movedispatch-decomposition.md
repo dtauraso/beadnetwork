@@ -2086,3 +2086,204 @@ corollary 2: do not test that two goroutines communicate). This is the same clas
 document's own §17 gap, not a gap this task introduced. No test was written for it, per the
 task's own instruction not to manufacture a goroutine-communication test to close an
 explicitly-excluded hole.
+
+## 20. `nodeGeometry`/`nodeMover` lifted into `nodes/Wiring/nodeactor` (§18's declined move,
+reversed by §19's own consolidation)
+
+§18 declined this exact move on an 11-file, ~30-write measurement. §19 then consolidated
+those 30 external construction-time writes into 15 in-package wiring methods, without
+re-measuring whether the decline still held. It did not: a corrected count (this task's own
+first step) found the type's remaining EXTERNAL surface had shrunk from "30 writes across 11
+files" to "23 touch sites across 5 files, 14 distinct fields" — edgeMover-shaped (§17 needed
+16 members / ~15 methods), not §18's declined 25–35-method shape.
+
+**The re-measurement, and why the coordinator's own number was also wrong.** The task's
+own field-selector regex (`\b(nm|ng|...)\.(msg|topo|outs|stream|tilt|readout|flags|clocks|
+beads)\.[a-zA-Z]`) required a dot AFTER the sub-struct name, so every BARE field read —
+`nm.geom`, `nm.id`, `nm.selfKind`, `nm.quantOffset` — was invisible to it: 10 fields, 16
+sites, 4 files. Re-running the grep for bare fields found the missing class directly: 14
+fields, 23 sites, 5 files (`mover_registry.go` 10, `commit_node_move.go` 7, `touching_beads.go`
+3, `move_dispatch_construct.go` 2, `build_move_dispatch.go` 1). This is the THIRD regex
+undercount on this branch (a signature-grep missed §18's own 11 files by the same shape of
+blind spot; a later regex counted a read as a write) — worth naming as a pattern: a
+field-selector grep that requires trailing punctuation after the matched prefix silently
+excludes every BARE-field touch, and "which fields does an external caller reach" is
+therefore not safely answerable by one regex; grep twice, once anchored on the sub-struct
+dot and once on the bare field name, or read every non-comment hit by hand as this task did.
+
+Even the corrected 23/5/14 count still missed real touches, found only by letting the
+compiler enumerate them after the move: `nm.tr` (read directly and called, `nm.tr.Breadcrumb(...)`,
+in `commit_node_move.go`) and `nm.speedCh` (written directly, `nodeMover.speedCh = nodeSpeedCh`,
+in `mover_registry.go`'s `finalizeActors` — a field on `*nodeMover`, not `*nodeGeometry`, so it
+was outside every one of this task's `nodeGeometry`-scoped greps by construction). Final tally:
+**16 distinct fields, 5 external files, plus the 15 already-in-package wiring methods §19
+built** — all absorbed into the actor's exported surface below. The reliable way to find
+"does this move compile" was never a better regex; it was moving the type and reading `go
+build`'s own error list, which is what actually caught `tr`/`speedCh`.
+
+**File classification, verified.** Methods-on-`*nodeGeometry`/`*nodeMover` files (moved,
+verbatim structure, package renamed `Wiring`→`nodeactor`, types renamed `nodeGeometry`→
+`NodeGeometry`, `nodeMover`→`NodeMover`): `node_geometry.go`, `node_geometry_parts.go`,
+`node_geometry_stream.go`, `node_geometry_retry.go`, `node_geometry_center.go`,
+`node_mover.go`, `node_geometry_wire.go` (§19's own wiring-API file — its 15 methods
+became this task's construction-time EXPORTED surface, unchanged in shape, just capitalized),
+`pair_node_self.go`, `bead_chain.go`, `chain_beads.go`, `quant_offset_persist.go` — 11 files,
+matching the task's own classification exactly. `pair_node_self.go` split: `PairNodeSelf`
+itself and its methods moved; the three thin `*MoveDispatch` delegators it also held
+(`NodeSelfDriven`/`HasNodeMover`/`NodeQuantOffset` — package-`Wiring`-only methods on a
+package-`Wiring` type, never touching an actor field) stayed behind, relocated to
+`move_dispatch_api.go`. Call-site-only files (`commit_node_move.go`,
+`move_dispatch_construct.go`, `mover_registry.go`, `touching_beads.go`, `stream_wiring.go`,
+`move_streams.go`, `move_persist.go`, `build_args_selfdrive.go`, `build_move_dispatch.go`)
+stayed in package `Wiring`, updated to the exported API — one more file than the task's own
+list (`build_move_dispatch.go`, holding `SetSelfKind`'s one call site) because the corrected
+measurement found it.
+
+**Exported surface, and why each export is unavoidable.** Two constructors
+(`NewNodeGeometry`, `NewNodeMover`) plus `NewPairNodeSelf` (new — `ClaimSelfDrive`,
+`build_args_selfdrive.go`, used to build a `PairNodeSelf` with a bare struct literal
+touching two unexported fields while both types shared a package; that literal is
+unreachable across the boundary, so a constructor replaced it, mirroring the shape
+`NewNodeGeometry`/`NewNodeMover` already have). Fifteen unexported-turned-exported
+construction-time wiring methods, unchanged from §19 (`WireMessaging`, `SetMsgTap`,
+`EnsureNeighborChannel`, `AddMutualTarget`, `SeedPartnerCenter`, `AddEdgeID`,
+`AddNeighborKind`, `SetSceneFlags`, `SetQuantOffset`, `SetTopTiltVectorThetaIdx`,
+`AddOutTarget`, `AddOutWire`, `WireStream`, `SetPersistRoot`, `CopyClockSrc`), plus one NEW
+wiring method this task added, `SetSelfKind` (`build_move_dispatch.go`'s
+`nm.selfKind = n.Type` — a bare field write §19 explicitly left alone because `selfKind`
+wasn't one of the 9 scoped sub-structs; the package move makes any external field write
+unreachable, so it needed the same treatment as the other 15). Sixteen POST-CONSTRUCTION
+accessor/mutator methods, new to this task (`node_geometry_accessors.go`): `ID`, `Kind`,
+`SelfKind`, `Label`, `WorldCenter`, `NodeRow`, `EdgeIDs`, `PartnerCenters`, `NeighborKinds`,
+`SendMove`, `NeighborIDs`, `QuantOffset`, `QuantizedOffsetValue`, `ReachR`, `Traced`,
+`Breadcrumb`, `Tick`, `ApplyCenter` (renamed from `applyCenter`, now the exported single
+write of a node's own center — `commit_node_move.go`'s external call site), `WriteStreamFrame`
+(exported door to `writeStreamFrame`, for the same file's breadcrumb write),
+`CommitQuantOffset` (folds `commit_node_move.go`'s 3-statement measure/store/persist block
+— `quantoffset.MeasureScalar` + the runtime `quantOffset` write + `persistQuantOffset` —
+into one method, so the runtime write §19 left as a bare field assignment never needed an
+exported setter at all), and `TryRecvExternal` (a non-blocking receive off `extIn`, needed
+only because two Wiring-package tests drive a bare `*NodeGeometry` with no driving
+goroutine started, so nothing else drains it). On `*NodeMover`: `SetSpeedCh` (the
+construction-time write `finalizeActors` makes) and `Run` (the goroutine entry point,
+`moverRegistry.start`'s call site). Every export is either a one-shot wiring-time
+setter/getter for a value with no other route across the boundary, or (for the four
+genuinely repeated post-construction channel touches) a method that closes over the
+channel rather than returning it.
+
+**No channel was exported — confirmed by construction, not just by review.** The three
+channel-bearing fields (`msg.extIn`, `msg.centerOut`, `msg.neighborIn`) stay unexported,
+reached only through methods that close over them: `SendExternal` (blocking send with a
+ctx-cancel escape, mirrors edgemover's `Select`), `TryRecvExternal` (non-blocking receive,
+test-only in practice), `PollCenter` (non-blocking receive), `NeighborTrySend` (returns a
+bound `func(movemsg.Msg) bool` closing over one `neighborIn` slot — mirrors edgemover's
+`TrySendFromSrc`/`TrySendFromDst` exactly), and `EnqueueSend` (absorbs what used to be
+`mover_registry.go`'s `enqueueFor` closure body — a direct external touch of `msg.tap` and
+`msg.pending` — into the actor itself, so `mover_registry.go`'s own `enqueueFor` is now a
+one-line forward: `return nm.EnqueueSend`). `msg.sendMove`/`msg.commitLocal`/`msg.resolveDest`/
+`msg.centerOf`/`msg.tap` are plain `func` values, not channels, and cross the boundary as
+values (`WireMessaging`'s five parameters, `SendMove()`'s return) the same way §17's
+`resolveDest`/`enqueueFor` bound-func-value pattern already did in the other direction — no
+new category of export. `msg.pending` (the retry queue itself, a `[]pendingSend`) is never
+exported: `EnqueueSend`'s bound check, panic, and append all happen inside the actor now,
+where before the move `mover_registry.go` touched `nm.msg.pending`/`nm.msg.tap` directly
+because it lived in the same package as an implementation-detail convenience, not because
+either needed to cross a package boundary.
+
+**The `claimedStream` obstacle, hit a third time, resolved the same way as the second.**
+`node_geometry_wire.go`'s `WireStream` takes a stream handle; `Wiring.claimedStream` is
+unexported with an unexported constructor on purpose (§17's own note on this). Rather than
+have `nodeactor` import `nodes/Wiring/edgemover` for its `StreamHandle`/`ClaimRegistry`
+(coupling two sibling actor packages for a mechanism that has nothing to do with edges),
+this task duplicated the ~70-line claim-or-reject wrapper a second time,
+`nodeactor.StreamHandle`/`ClaimRegistry`/`Claim` (`nodeactor/stream_claim.go`) — same shape,
+same reasoning, explicitly citing §17's precedent rather than re-deriving it. `stream_wiring.go`
+now holds `nodeClaims nodeactor.ClaimRegistry` alongside `edgeClaims edgemover.ClaimRegistry`
+(package `Wiring`'s own `claimedStream`/`streamClaims` type and its `newStreamClaims`/
+`newClaimedStream` constructors, `stream_claim.go`, are now DEAD — nothing outside the VIEW
+stream, which already had its own separate `viewstate.viewClaimedStream`, used the node kind
+of `Wiring`'s registry — and were deleted rather than left orphaned). The property this
+depends on — node claim keys (ids), edge claim keys (labels), and the VIEW claim's fixed
+singleton key can never collide — was already true and already documented
+(`stream_wiring.go`'s own header comment, quoted verbatim in `WireStream`'s doc comment) before
+this task moved the node registry into its own package; splitting a THIRD disjoint namespace
+out changes nothing observable, the same proof §17 used for the edge/node split.
+
+**Goroutine count, channel set, and send/receive order are unchanged.** Still exactly one
+goroutine per ring node (`NodeMover.Run`, launched from `moverRegistry.start`) and the pair
+kind's own goroutine driving a `*PairNodeSelf` directly (`ClaimSelfDrive`) — no new
+goroutine, no removed one. Still the same channels per node (`extIn`, one `neighborIn` per
+direct neighbour, `centerOut`), same buffer depths (`inboxDepth = 8` in `nodeactor/consts.go`,
+duplicated from `mover_registry.go`'s `moverInboxDepth`, same value, same "why 8" reasoning,
+same precedent as edgemover's own `InboxDepth` duplicate). Still the same drain-until-empty
+loop shape in `Run`/`PairNodeSelf.Step`, the same latest-wins `centerOut` push in
+`ApplyCenter`, the same per-destination-FIFO retry queue in `flushPending` (now called only
+from inside the actor: `Run`, `PairNodeSelf.Step`, and `EnqueueSend`).
+
+**Verification.** `go build ./...`, `go vet ./...` clean. `go test ./...` and
+`go test -race -count=1 ./...` both clean, no failures, no race, across every package
+(including `nodes/Wiring`, `nodes/Wiring/nodeactor`, `nodes/PairNode`, `nodes/NormalSum`).
+The no-imports-`Wiring` loop (`for p in $(go list ./nodes/Wiring/... | grep -v
+'nodes/Wiring$'); do go list -deps "$p" | grep -qx github.com/dtauraso/wirefold/nodes/Wiring
+&& echo "IMPORTS WIRING: $p"; done`) is empty — `nodeactor` does not import `Wiring`.
+`bash scripts/verify.sh` reports `stop-checks: clean`.
+
+**Guards re-keyed, both proven with teeth.** `check-no-sqrt-in-chain-beads.sh` hardcoded
+`nodes/Wiring/chain_beads.go`; re-pointed at `nodes/Wiring/nodeactor/chain_beads.go`.
+`check-composer-fields.sh` located `type nodeGeometry struct {` by content-grep across
+`nodes/Wiring/*.go` (recursive, so the new subdirectory was already in scope) but the
+DECLARATION TEXT itself changed with the rename; re-keyed its `COMPOSERS` row to
+`type NodeGeometry struct {`. `check-scene-path-resolution.sh` and
+`check-persist-write-ownership.sh` both match by FILENAME (`node_mover.go`,
+`quant_offset_persist.go`) via `find "$WIRING_DIR" -name "*.go"` walks that already recurse
+into subdirectories — same precedent §17 documented for `edge_mover.go` — so neither needed
+a path edit; both re-verified with teeth anyway: injected `filepath.Join("nodes", "x",
+"y.json")` into `mover_registry.go` → `check-scene-path-resolution.sh` reported
+`hand-rolled-node-path: .../mover_registry.go: 51:...` and exited 1; injected
+`jsonpersist.WriteJSONAtomic("x.json", nil)` into the same file → `check-persist-write-ownership.sh`
+reported `unauthorized-write: .../mover_registry.go: 51:...` and exited 1. Both probes
+removed immediately after, `go build ./...` and `git diff` confirmed clean.
+`check-no-network-locks.sh`, `check-stream-fd-mismatch-reported.sh`,
+`check-stream-kind-ts-parity.sh`, `check-bead-actor-has-call-site.sh` all re-ran clean,
+unmodified.
+
+Six doc citations went stale and were fixed as part of this task (not left for the next
+drift pass, since `check-doc-drift`/`check-doc-symbols`/`check-docs-symbols` all fail loud
+on them): `MODEL.md` (`bead_chain.go`/`chain_beads.go`/`node_mover.go`/`bead_chain_test.go`
+paths, `newNodeMover`→`NewNodeMover`, `applyCenter`→`ApplyCenter`),
+`docs/bead-model/bead-lattice.md` (`chain_beads_geometry_test.go` path),
+`docs/process/testing-shape.md` (`pending_bound_test.go` path),
+`memory/project/project_wire_is_straight_line_not_chain.md` (`chain_beads.go`/`bead_chain.go`
+paths), `nodes/PairNode/SPEC.md` (`pair_node_self.go` path, `Wiring.PairNodeSelf`→
+`nodeactor.PairNodeSelf`, `nodeMover`→`NodeMover`), and two static HTML doc pages under
+`docs/pair-node/` (`data-src` citations for the same three moved/renamed files).
+
+**Deliberate break, confirmed and restored, on the moved surface itself (not just the
+guards).** Forced `EdgeIDs()` to always return `nil` → 8 tests failed by name
+(`TestTouchingBeadSourceIsOneBeadLengthFromCentre`, `TestThirdAtRestIsOneBeadLengthNotSelfTorusR`,
+`TestAngleGateAdmitsAddAwayAndBlocksAddToward`, `TestCommitNodeMoveLocalDrawsQuantizedNotRawTarget`,
+`TestCommitNodeMoveLocalNeverMovesTowardMouseTarget`, `TestCommitNodeMoveLocalRemoveTakesBeadsPlace`,
+`TestCommitNodeMoveLocalAddMovesOneBeadBeyondNewBead`, `TestCommitNodeMoveLocalPersistsQuantizedNotRawPolar`)
+— restored, `go test ./nodes/Wiring/...` clean again.
+
+**Uncovered, reported rather than silently accepted.** Forced `SelfKind()` to always return
+`""` → **no test failed.** `dragTouchingBeads`'s only consumer of the value
+(`nodeTorusOuterR(selfKind)`) falls back to the default `(110,60)` radius for an unrecognised
+kind, and every fixture's sanity check (`selfTorusR - lattice.BeadStepR >= 1.0`) still holds
+against that fallback — a real kind and the empty-string fallback are numerically
+indistinguishable in every existing fixture. Same class as this document's own §17/§19 gaps
+(`TrySendFromSrc` always failing, `outWireOuts`/`outStepsIn` fed `nil`): a genuine hole, not
+one this task introduced, and not closed here per the same instruction §19a followed for
+`outWireOuts`/`outStepsIn` — reported, not manufactured shut. The four channel-touching
+methods (`SendExternal`, `NeighborTrySend`, `PollCenter`, `EnqueueSend`'s underlying send
+success) are UNTESTABLE by `docs/process/testing-shape.md`'s own doctrine (cross-goroutine
+delivery), the same excluded class §17 named for `TrySendFromSrc`/`TrySendFromDst`/`Select`/
+`SendSteps` — not re-verified individually here since the doctrine, not a new measurement,
+is what excludes them.
+
+`nodes/Wiring` non-test top-level `.go` file count: 12 fewer (11 actor files +
+`stream_claim.go`, now dead and deleted) plus `pair_node_self.go`'s three delegators folded
+into `move_dispatch_api.go` (no new file). `nodes/Wiring/nodeactor` (new): 13 non-test `.go`
+files (11 moved + `consts.go` + `stream_claim.go`, a NEW duplicate) plus
+`node_geometry_accessors.go` (new). No alias shim, interface, `types`/`common` package,
+dot-import, package-level actor global, or `*ForTest` constructor was added.

@@ -46,13 +46,13 @@ mistake to avoid (chain_beads.go's own header comment makes the same split):
   picture (`docs/bead-model/beads-are-the-edge.md`) — one per node-local offset along an outgoing
   edge's aim. **This bead is a goroutine**, per (`nodes/wire/beadchain/bead_actor.go`'s `Bead`,
   `nodes/wire/beadchain/bead_wake_group.go`'s `BeadWakeGroup`), with a real production call site:
-  `nodes/Wiring/bead_chain.go`'s `reconcileBeadChain`/`startBeadDrag`/`endBeadDrag`, driven
-  from `chainBeads()` (`nodes/Wiring/chain_beads.go`) and from `handle()`'s
-  `movemsg.KindDragStart`/`movemsg.KindDragEnd` cases (`nodes/Wiring/node_mover.go`,
+  `nodes/Wiring/nodeactor/bead_chain.go`'s `reconcileBeadChain`/`startBeadDrag`/`endBeadDrag`, driven
+  from `chainBeads()` (`nodes/Wiring/nodeactor/chain_beads.go`) and from `handle()`'s
+  `movemsg.KindDragStart`/`movemsg.KindDragEnd` cases (`nodes/Wiring/nodeactor/node_mover.go`,
   `nodes/Wiring/movemsg/move_msg.go`). `chainBeads()` itself stays a pure, synchronous function of this node's
   own state (its own kind/radius and its own live copy of each neighbour's world
   center, `partnerCenters` — see "the polar model" below) — the bead-actor path is
-  entered only when the node's own `beadTickFn` is set (production's `newNodeMover`; nil in
+  entered only when the node's own `beadTickFn` is set (production's `NewNodeMover`; nil in
   every bare-literal test `nodeMover`, which is what keeps `chainBeads`' own test suite pure
   and free of any live `TickBroadcaster` side effect). This bead is driven by TWO clocks
   over THREE structurally distinct channel sets:
@@ -81,7 +81,7 @@ mistake to avoid (chain_beads.go's own header comment makes the same split):
   starting one goroutine per added bead (at the chain end, matching bead CRUD's own
   convention, `bead_crud.go`) and shrinks it by closing each removed bead's OWN dedicated
   stop channel, which the removed bead's `run` loop observes and returns from immediately —
-  no goroutine outlives its bead (`nodes/Wiring/bead_chain_test.go`'s
+  no goroutine outlives its bead (`nodes/Wiring/nodeactor/bead_chain_test.go`'s
   `TestBeadGoroutineLifetimeFollowsChainLength` asserts the live count returns to baseline
   after a grow-then-shrink). `tools/network/beads/check-bead-actor-has-call-site.sh` fails the build if
   this primitive ever loses its last production reference.
@@ -109,7 +109,7 @@ mistake to avoid (chain_beads.go's own header comment makes the same split):
   `startBeadDrag`/`endBeadDrag` fire only when `g.dragNode` is that source node. Dragging
   the TARGET end of an edge still repositions that edge's beads with no visible lag (every
   `chainBeads()` call recomputes from the live `partnerCenters` push the target's own
-  `applyCenter` already sends on every commit — unchanged, pre-existing machinery), but it
+  `ApplyCenter` already sends on every commit — unchanged, pre-existing machinery), but it
   does so through `chainBeads`' own inline placement math for that edge on that call rather
   than through the target also toggling that chain's `BeadWakeGroup` mode flags. The
   `BeadWakeGroup`/`Bead` primitive itself supports either endpoint waking the SAME beads
@@ -508,7 +508,7 @@ and none is a source of truth.
   — this model change is about the node's coordinate, the per-edge first-bead vector, and
   this one summation site, not the rest of the chain.
 - **The node STORES ITS SUM** — its own world center (`nodeMover.geom`, written once per
-  move by `applyCenter`) — so a bead's polar view starts from that stored sum rather than
+  move by `ApplyCenter`) — so a bead's polar view starts from that stored sum rather than
   re-walking to the scene centre on every read. With no ancestors, only that node can
   invalidate it, and it owns it (single-writer, its own goroutine).
 - **No blow-up, by construction.** The offset is STORED and only carried through the

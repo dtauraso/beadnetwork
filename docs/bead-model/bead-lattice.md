@@ -126,7 +126,7 @@ The fix makes every term an integer count of bead steps, so there is nothing lef
 With both terms on the lattice, `QuantIR/BeadStepCells` is always an exact integer bead-step
 count and `N` is plain subtraction. The off-by-a-fraction bug class is UNREPRESENTABLE, not
 tuned away (`memory/feedback/architecture/feedback_make_bug_class_unrepresentable.md`) — pinned by
-`TestChainBeadsExactDoubleTangency` (`nodes/Wiring/chain_beads_geometry_test.go`).
+`TestChainBeadsExactDoubleTangency` (`nodes/Wiring/nodeactor/chain_beads_geometry_test.go`).
 
 `edgeArcPolar` — `polarDist`'s sqrt over two scene polars, minus port radii, rounded to
 `edgeLengthCellWu` — is DELETED. It was a second, independently-measured length that could
