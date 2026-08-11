@@ -55,13 +55,42 @@ one owner, one writer — the same shape as a `nodeMover`.
 1. **Give the FSM its own inbox and goroutine**, receiving a message union of {raw-input,
    edit, save}. `RunStdinReader`'s three `Handlers` funcs become three channel sends. No
    behaviour change yet — the FSM still calls the same code, just on its own goroutine.
-2. **Move VIEW-stream ownership to it.** `SetViewStream` targets the FSM. Every `emitViewFrame`
-   call site must then be on the FSM goroutine; any that is not is a bug this step must find,
-   not paper over.
-3. **Only then** re-measure `MoveDispatch`. The 20 gesture/view methods become the FSM's own,
-   and `uiState`/`gestureState` lift with it — the probe that failed does so because
-   `gestureState`'s 18 private fields are read at 49 sites by handlers that would now live
-   in the same package.
+2. **Move VIEW-stream ownership to it.** — **ALREADY DONE BY STEP 1, no separate work.**
+   Ownership followed the entry points: all three (`ApplyEdit`, `HandleRawInputMsg`,
+   `HandleSaveMsg`) moved to the actor as a unit, and every runtime `emitViewFrame` is
+   reachable only from those three, so the actor became the sole runtime writer without
+   `SetViewStream` changing at all.
+
+   Verified rather than assumed. There is exactly ONE write site for the stream
+   (`view_stream.go:174-175`, inside `writeViewFrame`). No mover emits — grep of
+   `node_geometry*.go`, `node_mover.go`, `edge_mover*.go` for `emitViewFrame` is empty.
+
+   The precise invariant is narrower than "one writer" and worth stating exactly:
+   **startup seeds sequentially, then the actor owns it.** `runtopology/topology_run.go`
+   calls `emitStartupBreadcrumbs` (line 63) and `loadSceneState` (line 65) — which reach the
+   stream via `EmitViewpoint`/`LoadOverlays`/`LoadSpeed`/`LoadSceneSphere`/`EmitBreadcrumb` —
+   BEFORE `startStdinReader` (line 80) creates the actor. Those writes are on the startup
+   goroutine, sequenced before any other goroutine exists, so they never race the actor. Two
+   writers in TIME, never concurrently.
+
+   Anything that later adds a view-stream write between line 65 and line 80, or from a
+   goroutine other than the actor, breaks this. It is program order doing the work, not a
+   lock, and nothing checks it.
+3. **Only then** re-measure `MoveDispatch`. NOTE what step 1 did and did not do: the actor
+   lives in `runtopology` and calls into `Wiring` — the GOROUTINE moved, the CODE did not. So
+   `MoveDispatch` is still 37 methods; nothing lifted yet.
+
+   The payoff is now available but is its own change: with the actor owning all gesture + view
+   work on one goroutine, the gesture files, `uiState`, `gestureState`, `viewpointState`,
+   `overlayState` and `emitViewFrame` can move into ONE package together — which is exactly
+   what the failed `uiState` probe needed. That probe declined because `gestureState`'s 18
+   private fields are read at 49 sites across 5 files by handlers typed
+   `func(md *MoveDispatch, g *gestureState, …)`; if those handlers move into the same package
+   as the state, the field access is no longer a boundary violation.
+
+   That is a large move (5 gesture files + 4 state types + the emitter) and it is NOT approved
+   by the step-1 decision. Measure it first: if the resulting package needs a back-reference to
+   `MoveDispatch` for anything, it is the same cycle under a new name and should not be built.
 
 ## Verification — the part that cannot be skipped
 
