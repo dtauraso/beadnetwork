@@ -185,6 +185,28 @@ method existing solely because a test in `package main` cannot reach an unexport
 Close them the same way — remove the reason (move the test, or give it a real entry point),
 not by keeping the delegator.
 
+**Re-investigated and confirmed genuinely blocked, not by default.** `HasNodeMover`/
+`NodeSelfDriven`/`NodeQuantOffset` are exercised only by `pair_self_drive_persist_test.go`
+and `pair_node_mover_absence_test.go`, both `package main`, both needing a REAL `PairNode`
+kind registered to build the topology they drive — `PairNode` lives in `nodes/PairNode`,
+which imports `nodes/Wiring` to call `RegisterBuilder` in its own `init()`. Two escape
+routes were tried and both fail at the compiler, not by inconvenience:
+- Moving the assertions into an internal `nodes/Wiring` test file (`package Wiring`, which
+  can reach `md.mr` directly) so the accessor is unnecessary: fails to compile —
+  `go vet` on a probe file gives `imports .../nodes/PairNode from probe_test.go / imports
+  .../nodes/Wiring from node.go: import cycle not allowed in test`. Go's internal-test
+  exception (test files may import a package that itself imports the package under test)
+  does not cover importing a package that imports the CURRENT package while also being
+  compiled as part of it.
+- Moving them into an external test package under `nodes/Wiring` (`package Wiring_test`)
+  sidesteps the cycle but gains nothing: an external package has exactly the same access
+  as `package main` — no unexported field, so the accessor is still required.
+
+So all three stay, unchanged, for the same reason recorded when they were first kept: a
+real cross-package test (package main, the only place `PairNode`+`Wiring` are both live)
+needs to observe `moverRegistry`'s unexported per-node facts, and there is no route to that
+which does not either fail to compile or still need an exported accessor. No code change.
+
 ### The 31 in-package-only conversion pass — 8 converted, 23 stayed, and one correction
 
 Re-verified the 31 one at a time (owner fields read, and every downstream call). 8 became
