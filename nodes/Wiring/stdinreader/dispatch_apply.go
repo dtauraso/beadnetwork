@@ -29,6 +29,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
+	"github.com/dtauraso/wirefold/nodes/Wiring/sceneswitch"
 )
 
 func applyUpdateClock(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
@@ -142,7 +143,7 @@ func applyUpdateScene(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch
 	}
 	switch msg.Attr {
 	case "selected":
-		dispatch.SelectScene(&md.Scenes, int(msg.Num))
+		sceneswitch.SelectScene(&md.Scenes, int(msg.Num))
 	case "latticePoints":
 		points := int32(msg.Num)
 		if points < 4 || points > 64 || points%4 != 0 {

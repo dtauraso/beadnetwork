@@ -1,12 +1,4 @@
-// scene_switch.go — SelectScene, the *MoveDispatch method that CARRIES OUT a tab-click.
-// The tab registry lives in scene/scene_tabs.go; anchor/path resolution against the
-// persisted selection lives in scene_selection.go. Arming the switch (formerly
-// EnableSceneSwitch, a pure two-field forward onto md.Scenes) was deleted — md.Scenes is
-// exported, so its one caller (runtopology/topology_run.go) sets
-// md.Scenes.AnchorPath/md.Scenes.Quit directly, before the stdin reader starts — the
-// view-owner goroutine is the only caller of SelectScene, so those fields are written
-// once, before that goroutine exists.
-package dispatch
+package sceneswitch
 
 import (
 	"fmt"
@@ -15,13 +7,16 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
-	"github.com/dtauraso/wirefold/nodes/Wiring/sceneswitch"
 )
 
 // SelectScene handles a tab click: persist, then end the run so the respawn loads it.
 // Selecting the tab already showing is a no-op — restarting the sim to arrive at the same
-// diagram would look like a random flicker to whoever clicked.
-func SelectScene(scenes *sceneswitch.SceneSwitch, idx int) {
+// diagram would look like a random flicker to whoever clicked. Moved from
+// nodes/Wiring/dispatch's scene_switch.go (docs/planning/movedispatch-decomposition.md,
+// the remainder cluster) — it already took *SceneSwitch as its sole owner parameter, so the
+// move is a pure relocation with the caller (nodes/Wiring/stdinreader's applyUpdateScene)
+// re-qualified to sceneswitch.SelectScene.
+func SelectScene(scenes *SceneSwitch, idx int) {
 	if scenes.AnchorPath == "" || scenes.Quit == nil {
 		return
 	}

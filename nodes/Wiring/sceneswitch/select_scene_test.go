@@ -1,10 +1,13 @@
-// scene_tabs_test.go — the pure nodes/Wiring/scene helpers (SelectedSceneIndex,
-// AnchorIsTabbed, ResolveScenePath, SceneTabNames) verified through real bytes on disk.
-// SelectScene itself, and the tests that drove it, moved to
-// nodes/Wiring/sceneswitch/select_scene_test.go alongside SelectScene
-// (docs/planning/movedispatch-decomposition.md, the remainder cluster) — those tests never
-// needed *MoveDispatch, only *sceneswitch.SceneSwitch.
-package dispatch
+// select_scene_test.go — what ONE goroutine (the view-owner) decides and persists when a tab
+// is clicked, verified through real bytes on disk (docs/process/testing-shape.md's one
+// exception: persistence through a real write/read round trip). Moved from
+// nodes/Wiring/dispatch's scene_tabs_test.go (docs/planning/movedispatch-decomposition.md,
+// the remainder cluster) alongside SelectScene — these tests never needed *MoveDispatch,
+// only *SceneSwitch, so the move drops the dispatch import entirely.
+//
+// Nothing here runs two goroutines: SelectScene's quit func is a plain recorder, so these
+// assert the decision and the file, never a handoff.
+package sceneswitch
 
 import (
 	"os"
@@ -24,6 +27,68 @@ func tabbedAnchor(t *testing.T) string {
 		t.Fatalf("mkdir anchor: %v", err)
 	}
 	return anchor
+}
+
+// armedSwitch returns a SceneSwitch armed for the given anchor, plus a pointer to the
+// quit-called flag.
+func armedSwitch(anchor string) (*SceneSwitch, *bool) {
+	quit := false
+	scenes := &SceneSwitch{AnchorPath: anchor, Quit: func() { quit = true }}
+	return scenes, &quit
+}
+
+func TestSelectSceneWritesTheSelectionAndEndsTheRun(t *testing.T) {
+	anchor := tabbedAnchor(t)
+	scenes, quit := armedSwitch(anchor)
+
+	SelectScene(scenes, 1)
+
+	if !*quit {
+		t.Fatalf("SelectScene(1) did not end the run; without that the respawn never happens and the tab never changes")
+	}
+	// Read the selection back the way a fresh process would — not by inspecting a field.
+	if got := scene.SelectedSceneIndex(anchor); got != 1 {
+		t.Fatalf("after SelectScene(1), a fresh read of the persisted selection = %d, want 1", got)
+	}
+	// And the bytes name the TAB, not its index (see WriteSelectedScene's doc comment).
+	raw, err := os.ReadFile(filepath.Join(anchor, "view", "scene.json"))
+	if err != nil {
+		t.Fatalf("read scene.json: %v", err)
+	}
+	if want := `{"selected":"` + scene.SceneTabs[1].Name + `"}`; string(raw) != want {
+		t.Fatalf("scene.json = %s, want %s", raw, want)
+	}
+}
+
+func TestSelectSceneIgnoresTheTabAlreadyShowing(t *testing.T) {
+	anchor := tabbedAnchor(t)
+	scenes, quit := armedSwitch(anchor)
+
+	SelectScene(scenes, 0) // tab 0 is the default with no file present
+
+	if *quit {
+		t.Fatalf("selecting the tab already showing ended the run: the sim would restart and land on the SAME diagram, which reads as a random flicker")
+	}
+	if _, err := os.Stat(filepath.Join(anchor, "view", "scene.json")); !os.IsNotExist(err) {
+		t.Fatalf("selecting the current tab wrote scene.json (err=%v); a no-op must not touch disk", err)
+	}
+}
+
+func TestSelectSceneRejectsAnOutOfRangeTab(t *testing.T) {
+	anchor := tabbedAnchor(t)
+	scenes, quit := armedSwitch(anchor)
+
+	SelectScene(scenes, len(scene.SceneTabs)) // one past the end
+	SelectScene(scenes, -1)
+
+	if *quit {
+		t.Fatalf("an out-of-range tab index ended the run; the respawn would reload the same scene for no reason")
+	}
+}
+
+func TestUnarmedDispatchCannotEndTheRun(t *testing.T) {
+	scenes := &SceneSwitch{} // AnchorPath/Quit never armed
+	SelectScene(scenes, 1)   // must not panic, must not exit
 }
 
 func TestSelectedSceneIndexFallsBackToTabZero(t *testing.T) {
