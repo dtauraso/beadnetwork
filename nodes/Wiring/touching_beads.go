@@ -20,9 +20,9 @@ func dragTouchingBeads(mr *moverRegistry, nm *nodeGeometry, prevPos vec3) []bead
 		if !ok {
 			continue
 		}
-		neighborID := em.srcID
+		neighborID := em.SrcID()
 		if neighborID == nm.id {
-			neighborID = em.dstID
+			neighborID = em.DstID()
 		}
 		neighborOf[edgeID] = neighborID
 	}

@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/edgemover"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
@@ -81,7 +82,7 @@ type moverRegistry struct {
 	// before finalizeActors runs and before any goroutine exists. finalizeActors reads it
 	// to decide which nodes get a nodeMover actor at all — an id present here gets NONE.
 	selfDriveClaimed map[string]bool
-	edgeMovers       map[string]*edgeMover
+	edgeMovers       map[string]*edgemover.EdgeMover
 	// edgeOut: edgeId → source *Out, for read-only access by tests/verifiers.
 	edgeOut map[string]*wire.Out
 	// centerMirror is the DISPATCH goroutine's OWN mirror of every node's last-known
@@ -101,13 +102,13 @@ type moverRegistry struct {
 func (mr *moverRegistry) bind(outSink map[string]*wire.Out, slotReg inputcodec.SlotRegistry) {
 	for edgeID, em := range mr.edgeMovers {
 		var o *wire.Out
-		if oo, ok := outSink[em.srcID+"."+em.srcH]; ok {
+		if oo, ok := outSink[em.SrcID()+"."+em.SrcHandle()]; ok {
 			o = oo
-			em.out = oo
+			em.SetOut(oo)
 			mr.edgeOut[edgeID] = oo
 		}
-		if pw, ok := slotReg[em.dstID+"."+em.dstH]; ok {
-			em.dest = pw
+		if pw, ok := slotReg[em.DstID()+"."+em.DstHandle()]; ok {
+			em.SetDest(pw)
 			// The SOURCE node also takes this wire, paired with the outTargets entry for
 			// the same edge: the source node's own goroutine drives it (nodeMover.run)
 			// and reads its in-flight fractions to light its own chain
@@ -115,9 +116,9 @@ func (mr *moverRegistry) bind(outSink map[string]*wire.Out, slotReg inputcodec.S
 			// goroutine of its own — that is what "the wire goroutine is removed" means
 			// concretely, and it is why the node can read the fraction without touching
 			// another goroutine's state.
-			if srcNM, ok := mr.nodeGeoms[em.srcID]; ok {
+			if srcNM, ok := mr.nodeGeoms[em.SrcID()]; ok {
 				srcNM.outs.outWires = append(srcNM.outs.outWires, pw)
-				srcNM.outs.outWireTargets = append(srcNM.outs.outWireTargets, em.dstID)
+				srcNM.outs.outWireTargets = append(srcNM.outs.outWireTargets, em.DstID())
 				// Parallel to outWires: the source *Out this edge's step count is
 				// PUBLISHED through (chainBeads calls PublishSteps on it — see
 				// outWireOuts' doc comment). o may be nil if this edge's source handle
@@ -125,13 +126,13 @@ func (mr *moverRegistry) bind(outSink map[string]*wire.Out, slotReg inputcodec.S
 				// this edge (it still lays the chain out — the step count is computed
 				// locally either way, see edgeStepCount).
 				srcNM.outs.outWireOuts = append(srcNM.outs.outWireOuts, o)
-				// Parallel to outWires/outWireOuts: this edge's OWN edgeMover.stepsIn
-				// channel (edge_mover.go's doc comment) — the second delivery
-				// chainBeads makes alongside PublishSteps, so the edgeMover's own
-				// goroutine (which cannot read the Out directly — see stepsIn's doc
+				// Parallel to outWires/outWireOuts: this edge's OWN edgeMover.SendSteps
+				// method (edgemover package's edge_mover.go doc comment) — the second
+				// delivery chainBeads makes alongside PublishSteps, so the edgeMover's
+				// own goroutine (which cannot read the Out directly — see stepsIn's doc
 				// comment) can revise an in-flight bead's remaining travel against the
 				// same freshly computed count.
-				srcNM.outs.outStepsIn = append(srcNM.outs.outStepsIn, em.stepsIn)
+				srcNM.outs.outStepsIn = append(srcNM.outs.outStepsIn, em.SendSteps)
 			}
 		}
 	}
@@ -166,7 +167,7 @@ func (mr *moverRegistry) start(ctx context.Context) *sync.WaitGroup {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			em.run(ctx)
+			em.Run(ctx)
 		}()
 	}
 	return wg

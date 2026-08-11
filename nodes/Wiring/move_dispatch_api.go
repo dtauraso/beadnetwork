@@ -12,6 +12,7 @@ import (
 	"context"
 	"sync"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/edgemover"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 )
@@ -73,20 +74,12 @@ func setSelectionUI(ui *viewstate.UIState, mr *moverRegistry, ctx context.Contex
 // (*uiState).sendEdgeSelect (docs/planning/gesture-actor.md's lift): it needs the
 // edgeMover map, an unexported Wiring type viewstate cannot name, so it stays here and is
 // handed to UIState.SetSelectionUI as a bound func value (setSelectionUI above).
-func sendEdgeSelect(edgeMovers map[string]*edgeMover, ctx context.Context, label string, on bool) {
+func sendEdgeSelect(edgeMovers map[string]*edgemover.EdgeMover, ctx context.Context, label string, on bool) {
 	em, ok := edgeMovers[label]
 	if !ok {
 		return
 	}
-	msg := movemsg.Msg{Kind: movemsg.KindSelect, Bool: on}
-	if ctx == nil {
-		em.extIn <- msg
-		return
-	}
-	select {
-	case em.extIn <- msg:
-	case <-ctx.Done():
-	}
+	em.Select(ctx, on)
 }
 
 // The OverlayState methods, the OverlayToggles table, DefaultOverlayState, and the

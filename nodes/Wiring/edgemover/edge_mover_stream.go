@@ -1,8 +1,8 @@
-// edge_mover_stream.go — edgeMover's OWN per-fd stream frame write. See edge_mover.go
+// edge_mover_stream.go — EdgeMover's OWN per-fd stream frame write. See edge_mover.go
 // for the actor's held state and edge_mover_run.go for the per-goroutine loop that calls
 // this every cycle.
 
-package Wiring
+package edgemover
 
 import (
 	"encoding/binary"
@@ -15,11 +15,11 @@ import (
 // writeStreamFrame packs and writes this edge's combined per-fd frame (edge fields +
 // this wire's currently live in-flight beads) to its OWN dedicated fd (streamOut). No-op
 // when streamOut is nil (the fallback — see its doc comment) or buildFrame was never
-// injected (bare test construction). Called only by this edgeMover's own goroutine
-// (recomputeGeometry and run's per-cycle loop), reading m.dest's
+// injected (bare test construction). Called only by this EdgeMover's own goroutine
+// (recomputeGeometry and Run's per-cycle loop), reading m.dest's
 // live bead state via LiveBeadRows (same single-goroutine-ownership contract PacedWire's
 // other methods rely on).
-func (m *edgeMover) writeStreamFrame(tick int64, events []wire.RowEvent) {
+func (m *EdgeMover) writeStreamFrame(tick int64, events []wire.RowEvent) {
 	if !m.streamOut.Ok() || m.buildFrame == nil {
 		return
 	}
@@ -76,7 +76,7 @@ func (m *edgeMover) writeStreamFrame(tick int64, events []wire.RowEvent) {
 		}
 		// This wire's own "wire-send-buffer-full" breadcrumbs, buffered on
 		// breadcrumbCh from the source node's goroutine (PacedWire.Send) and
-		// resolved to rows here, on this edgeMover's own goroutine — mirrors
+		// resolved to rows here, on this EdgeMover's own goroutine — mirrors
 		// DrainPendingEvents just above.
 		for _, ev := range m.dest.DrainBreadcrumbEvents() {
 			ev.NodeRow = nodeRow

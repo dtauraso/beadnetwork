@@ -1791,3 +1791,117 @@ off disk (`os.ReadFile`, temp probe test, deleted after): `overlays.json` contai
 
 No interface, `types`/`common` package, alias shim, dot-import, package-level actor global,
 or `ForTest` hatch was added.
+
+## 17. `edgeMover` lifted into `nodes/Wiring/edgemover` (§13's `edge_mover*.go` trio)
+
+§13 measured `edge_mover.go`/`edge_mover_stream.go`/`edge_mover_run.go` as self-contained
+(zero references to `mr.`/`md.`/`lq.`) but left them in place as a line-move-only pass. This
+task made the actual package move, as `EdgeMover`.
+
+**16-member classification** (construction-time = assigned once during the single-threaded
+wiring phase, before any goroutine starts, and either passed to `New` or set via a one-shot
+setter method; post-construction = read or sent on repeatedly while the actor is running):
+
+| member | class | how it crosses the package boundary |
+|---|---|---|
+| `srcID`/`dstID` | post-construction (read every `flushPending` retry via `resolveDest`) | exported read-only accessors `SrcID()`/`DstID()` |
+| `srcH`/`dstH` | construction-time (read once, `bind`) | exported read-only accessors `SrcHandle()`/`DstHandle()` |
+| `out` | construction-time (write-once, `bind`) | setter `SetOut` |
+| `dest` | construction-time write (`bind`) + one post-construction read (`setEdgeStreams`' `SetStreamsActive` check) | setter `SetDest`, read-only accessor `Dest()` |
+| `extIn` | post-construction (sent on every edge click-select, `sendEdgeSelect`) | **channel stays unexported**; wrapped as method `Select(ctx, on)` |
+| `srcIn`/`dstIn` | post-construction (sent on every `flushPending` retry, from the node's own goroutine) | **channels stay unexported**; wrapped as methods `TrySendFromSrc`/`TrySendFromDst`, handed back as the bound func value `resolveDest` now returns |
+| `stepsIn` | post-construction (sent every `chainBeads` pass, from the source node's own goroutine) | **channel stays unexported**; wrapped as method `SendSteps`, stored as the bound func value in `nodeOuts.outStepsIn` |
+| `speedCh` | construction-time (write-once, per-edge speed sink) | setter `SetSpeedCh` |
+| `streamOut` | construction-time (write-once, `setEdgeStreams`) | setter, bundled into `SetStream` |
+| `edgeRow` | construction-time (write-once, `setEdgeStreams`) | setter, bundled into `SetStream` |
+| `nodeRowFor` | construction-time (write-once, `setEdgeStreams`) | setter, bundled into `SetStream` |
+| `buildFrame` | construction-time (write-once, `setEdgeStreams`) | setter, bundled into `SetStream` |
+| `run` | the goroutine entry point (`moverRegistry.start`) | exported `Run(ctx)` |
+
+**No channel field was exported.** The four genuinely POST-CONSTRUCTION channels
+(`extIn`/`srcIn`/`dstIn`/`stepsIn`, all repeatedly sent-on from package `Wiring` while the
+actor is running, not just at wiring time) stayed unexported and are reached only through
+methods that close over them (`Select`/`TrySendFromSrc`/`TrySendFromDst`/`SendSteps`) — the
+same "hand back a bound func value" shape `ng.msg.sendMove = md.mr.enqueueFor(ng)` already
+uses in the other direction. This required two real signature changes in package `Wiring`,
+not just call-site renames: `nodeMessaging.resolveDest` changed from
+`func(id string) (chan movemsg.Msg, bool)` to `func(id string) (func(movemsg.Msg) bool,
+bool)` (the node-to-node `neighborIn` branch now wraps its raw channel in a same-shape
+closure, `trySendMsg`, so `flushPending` (`node_geometry_retry.go`) has one uniform call
+regardless of which kind of destination it resolved), and `nodeOuts.outStepsIn` changed from
+`[]chan int` to `[]func(int)`, storing `em.SendSteps` (a method value) instead of the raw
+channel — `chain_beads.go`'s call site became `m.outs.outStepsIn[i](count)`. The now-fully-
+inlined `nodes/Wiring/stepdeliver` package (its `SendStepsNonBlocking` helper existed for
+exactly the one call site this replaced) was deleted; `EdgeMover.SendSteps` carries the same
+latest-wins logic.
+
+**The `claimedStream` obstacle.** `streamOut`'s old type, `Wiring.claimedStream`
+(`stream_claim.go`), is unexported with an unexported constructor ON PURPOSE (its own header
+comment: a narrow capability, no `Unwrap()`), so `edgemover` cannot reference it and cannot
+import `Wiring` to ask for one. Duplicated the small mechanism as `edgemover.StreamHandle` +
+`edgemover.ClaimRegistry` + `edgemover.Claim` (`nodes/Wiring/edgemover/stream_claim.go`) —
+same claim-or-reject-with-stderr-report shape, own registry. `streamWiring` now holds two
+claim registries side by side (`claims` for node/view, `edgeClaims edgemover.ClaimRegistry`
+for edges) instead of one shared map; this changes nothing observable, since the three kinds
+were already namespaced by a `kind:key` prefix that never collided across kinds.
+
+**Exported surface of `EdgeMover`:** `New`, `Run`, `SrcID`/`DstID`/`SrcHandle`/`DstHandle`,
+`SetOut`, `SetDest`/`Dest`, `SetSpeedCh`, `SetStream`, `Select`, `TrySendFromSrc`/
+`TrySendFromDst`, `SendSteps`, plus the package-level `StreamHandle`/`ClaimRegistry`/`Claim`/
+`NewClaimRegistry`/`InboxDepth`. Every export is either a one-shot wiring-time setter/getter
+for a value that has no other route across the package boundary, or a method wrapping a
+channel operation so the channel itself never crosses — no export exists solely for
+convenience.
+
+**Goroutine count, channel set, and send/receive order are unchanged.** Still exactly one
+goroutine per edge (`EdgeMover.Run`, launched from `moverRegistry.start`, unchanged call
+site shape: `go func() { em.Run(ctx) }()`), still the same four channels per edge
+(`extIn`/`srcIn`/`dstIn`/`stepsIn`, same `InboxDepth`/buffer-1 capacities), still the same
+select order in `Run`'s drain loop, still the same non-blocking/latest-wins semantics for
+every send this move touched (`TrySendFromSrc`/`TrySendFromDst` mirror the old inline
+`select`-with-`default`; `SendSteps` mirrors `stepdeliver.SendStepsNonBlocking`'s two-phase
+drain-then-retry; `Select` mirrors the old `sendEdgeSelect`'s blocking-with-`ctx.Done()`-escape
+send exactly, statement for statement).
+
+**Guards re-keyed and proven with teeth.** `check-scene-path-resolution.sh` and
+`check-persist-write-ownership.sh` both match by FILENAME (`edge_mover.go`), and the new
+package's file is named `edge_mover.go` too (same filename, new directory, still under
+`nodes/Wiring/` recursively) — both guards' `find "$WIRING_DIR" -name "*.go"` walk picks it
+up unchanged, no allowlist edit needed. Confirmed both still bite: injected a stray
+`filepath.Join("nodes", "x", "y.json")` into `mover_registry.go` — `check-scene-path-resolution.sh`
+reported `hand-rolled-node-path: .../mover_registry.go: 27:...` and exited 1; injected a
+stray `jsonpersist.WriteJSONAtomic("x.json", nil)` into the same file —
+`check-persist-write-ownership.sh` reported `unauthorized-write: .../mover_registry.go:
+27:...` and exited 1. Both probes removed immediately after, `go build ./...` and `git diff`
+confirmed clean. `check-no-network-locks.sh`, `check-stream-fd-mismatch-reported.sh`,
+`check-stream-kind-ts-parity.sh` all re-ran clean, unmodified (none matched any moved
+symbol/filename by content).
+
+**Verification:** `go build ./...`, `go vet ./...` clean. `go test -race -count=1 ./...`
+passes with no failures and no race reported. The no-imports-`Wiring` loop
+(`for p in $(go list ./nodes/Wiring/... | grep -v 'nodes/Wiring$'); do go list -deps "$p" |
+grep -qx github.com/dtauraso/wirefold/nodes/Wiring && echo "IMPORTS WIRING: $p"; done`) is
+empty — `edgemover` does not import `Wiring`. Deliberately broke `EdgeMover.SrcID`/`DstID`
+(swapped to both return `dstID`) and confirmed 7 tests fail by name
+(`TestTouchingBeadSourceIsOneBeadLengthFromCentre`,
+`TestThirdAtRestIsOneBeadLengthNotSelfTorusR`, `TestAngleGateAdmitsAddAwayAndBlocksAddToward`,
+`TestCommitNodeMoveLocalDrawsQuantizedNotRawTarget`,
+`TestCommitNodeMoveLocalNeverMovesTowardMouseTarget`,
+`TestCommitNodeMoveLocalRemoveTakesBeadsPlace`,
+`TestCommitNodeMoveLocalAddMovesOneBeadBeyondNewBead`,
+`TestCommitNodeMoveLocalPersistsQuantizedNotRawPolar`), then restored — clean again.
+
+**Uncovered, reported rather than silently accepted.** `TrySendFromSrc`/`TrySendFromDst`/
+`Select`/`SendSteps` have no test that can fail on their own delivery outcome — deliberately
+made `TrySendFromSrc` always return `false` (never actually send) and the full suite stayed
+green. This is not a gap introduced by the move: it is the SAME cross-goroutine-delivery
+correctness `docs/process/testing-shape.md`'s own doctrine excludes from testing ("do not
+test that two or more goroutines communicate properly — not delivery, not ordering"), now
+just living behind a method instead of an inline channel send. `SrcID`/`DstID` (this same
+move's other new accessors) ARE covered, as shown above — the split lines up exactly where
+the doctrine says it should: pure state reads are testable, cross-goroutine delivery isn't.
+
+`nodes/Wiring` non-test top-level `.go` file count: 3 fewer (`edge_mover.go`/
+`edge_mover_stream.go`/`edge_mover_run.go` moved out) plus the deleted `stepdeliver` package
+(1 file). No interface, `types`/`common` package, alias shim, dot-import, package-level actor
+global, or `ForTest` hatch was added.

@@ -50,12 +50,15 @@ type nodeMessaging struct {
 	// appends to pending and immediately attempts a non-blocking flush (never blocks the
 	// calling handler goroutine).
 	sendMove func(id string, msg movemsg.Msg)
-	// resolveDest looks up the ONE dedicated directed channel FROM this node TO the given
-	// destination id — the destination's neighborIn[this node's id] if destID is another
-	// node, or the destination edge's srcIn/dstIn depending on which endpoint this node
-	// is. There is no shared inbox to look up. nil only in tests that build a bare
-	// nodeGeometry directly, in which case flushPending is a no-op.
-	resolveDest func(id string) (chan movemsg.Msg, bool)
+	// resolveDest looks up the ONE non-blocking try-send func FROM this node TO the given
+	// destination id — a func closing over the destination's neighborIn[this node's id]
+	// channel if destID is another node, or the destination edgeMover's own
+	// TrySendFromSrc/TrySendFromDst method if destID is an edge (edgeMover's srcIn/dstIn
+	// channels are unexported in package edgemover — this bound-func-value handoff is
+	// how Wiring reaches them, mirroring sendMove's own md.mr.enqueueFor(ng) pattern in
+	// the other direction). There is no shared inbox to look up. nil only in tests that
+	// build a bare nodeGeometry directly, in which case flushPending is a no-op.
+	resolveDest func(id string) (func(movemsg.Msg) bool, bool)
 	// centerOf resolves another node's current world center, bound to md.mr.centerOfNode.
 	// Unused by any live handler now that the rule/gate/anchor cascade (which used it to
 	// read rule-neighbor centers) is gone; kept wired for any future direct-neighbor
@@ -240,7 +243,11 @@ type nodeOuts struct {
 	outWires       []*wire.PacedWire
 	outWireTargets []string
 	outWireOuts    []*wire.Out
-	outStepsIn     []chan int
+	// outStepsIn is index-parallel with outWireTargets: the matching edge's own
+	// EdgeMover.SendSteps method (a bound func value — edgeMover's stepsIn channel is
+	// unexported in package edgemover, so this node hands the count to that method
+	// instead of ever reaching the channel directly).
+	outStepsIn []func(int)
 }
 
 // neighborTopology owns THIS node's own view of who it is adjacent to: incident edge ids,

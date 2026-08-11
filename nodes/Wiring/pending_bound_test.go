@@ -22,8 +22,8 @@ func TestEnqueueForPanicsWhenPendingExceedsBound(t *testing.T) {
 	nm := &nodeGeometry{
 		id: "wedged-peer-test",
 		msg: nodeMessaging{
-			resolveDest: func(id string) (chan movemsg.Msg, bool) {
-				return blockedCh, true
+			resolveDest: func(id string) (func(movemsg.Msg) bool, bool) {
+				return trySendMsg(blockedCh), true
 			},
 		},
 	}
@@ -68,8 +68,8 @@ func TestEnqueueForNeverTripsBoundWhenDestinationDrains(t *testing.T) {
 	nm := &nodeGeometry{
 		id: "live-peer-test",
 		msg: nodeMessaging{
-			resolveDest: func(id string) (chan movemsg.Msg, bool) {
-				return liveCh, true
+			resolveDest: func(id string) (func(movemsg.Msg) bool, bool) {
+				return trySendMsg(liveCh), true
 			},
 		},
 	}

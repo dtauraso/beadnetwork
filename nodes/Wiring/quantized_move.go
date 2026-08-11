@@ -55,7 +55,7 @@ func (lq *layoutQuantizer) heldCenters(mr *moverRegistry) map[string]vec3 {
 func (lq *layoutQuantizer) heldEdges(mr *moverRegistry) []geom.SphereEdge {
 	edges := make([]geom.SphereEdge, 0, len(mr.edgeMovers))
 	for _, em := range mr.edgeMovers {
-		edges = append(edges, geom.SphereEdge{Source: em.srcID, Target: em.dstID})
+		edges = append(edges, geom.SphereEdge{Source: em.SrcID(), Target: em.DstID()})
 	}
 	return edges
 }

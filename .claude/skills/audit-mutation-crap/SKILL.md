@@ -63,7 +63,7 @@ this doc summarizes and does not replace them. Read them before inventing invoca
 
    Confirmed working 2026-07-28: on this repo's `nodes/` the worst-ranked functions
    were `nodeMover.writeStreamFrame` (CC 17, 4.0% cov, CRAP 272.7, `nodes/Wiring/node_mover.go`) and
-   `edgeMover.writeStreamFrame` (CC 15, 4.9% cov, CRAP 208.7, `nodes/Wiring/edge_mover.go`) —
+   `edgeMover.writeStreamFrame` (CC 15, 4.9% cov, CRAP 208.7, `nodes/Wiring/edgemover/edge_mover_stream.go`) —
    the geometry-streaming path, which makes sense as
    an audit target: high branch count, low coverage, and it's the kind of thing
    `docs/process/testing-shape.md`'s corollary 2 would say not to unit-test directly (it's a

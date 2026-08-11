@@ -35,11 +35,11 @@ func (lq *layoutQuantizer) broadcastToEdgesAndPartners(mr *moverRegistry, newCen
 	// regardless of whether id resolves.
 	for edgeID, em := range mr.edgeMovers {
 		eps := map[string]vec3{}
-		if c, ok := newCenters[em.srcID]; ok {
-			eps[em.srcID] = c
+		if c, ok := newCenters[em.SrcID()]; ok {
+			eps[em.SrcID()] = c
 		}
-		if c, ok := newCenters[em.dstID]; ok {
-			eps[em.dstID] = c
+		if c, ok := newCenters[em.DstID()]; ok {
+			eps[em.DstID()] = c
 		}
 		if len(eps) == 0 {
 			continue
@@ -60,14 +60,14 @@ func (lq *layoutQuantizer) broadcastToEdgesAndPartners(mr *moverRegistry, newCen
 	// re-emit carries no cache payload).
 	partners := map[string]string{}
 	for _, em := range mr.edgeMovers {
-		if _, moved := newCenters[em.srcID]; moved {
-			if _, alsoMoved := newCenters[em.dstID]; !alsoMoved {
-				partners[em.dstID] = em.srcID
+		if _, moved := newCenters[em.SrcID()]; moved {
+			if _, alsoMoved := newCenters[em.DstID()]; !alsoMoved {
+				partners[em.DstID()] = em.SrcID()
 			}
 		}
-		if _, moved := newCenters[em.dstID]; moved {
-			if _, alsoMoved := newCenters[em.srcID]; !alsoMoved {
-				partners[em.srcID] = em.dstID
+		if _, moved := newCenters[em.DstID()]; moved {
+			if _, alsoMoved := newCenters[em.SrcID()]; !alsoMoved {
+				partners[em.SrcID()] = em.DstID()
 			}
 		}
 	}

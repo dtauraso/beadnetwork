@@ -1,7 +1,7 @@
-// edge_mover_run.go — edgeMover's per-goroutine loop. See edge_mover.go for the actor's
+// edge_mover_run.go — EdgeMover's per-goroutine loop. See edge_mover.go for the actor's
 // held state and edge_mover_stream.go for the per-fd frame write this loop calls.
 
-package Wiring
+package edgemover
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
-// run is the edge's per-goroutine loop. It IS the wire's own goroutine
+// Run is the edge's per-goroutine loop. It IS the wire's own goroutine
 // (MODEL.md "The network" — PacedWire is an active goroutine, and it is this
 // same per-edge goroutine that already existed to revise in-flight geometry,
 // not an additional one): every cycle it drains any pending move/speed
@@ -19,9 +19,9 @@ import (
 // lets ReviseInFlightGeometry (called from handle, edge_mover.go, on this SAME
 // goroutine) touch pw.inflight: there is exactly one goroutine
 // on either side of that call.
-func (m *edgeMover) run(ctx context.Context) {
-	// Copy taken ONCE at this goroutine's start (run IS the goroutine). If no clockSrc was
-	// given (bare test construction), keep the inert placeholder newEdgeMover
+func (m *EdgeMover) Run(ctx context.Context) {
+	// Copy taken ONCE at this goroutine's start (Run IS the goroutine). If no clockSrc was
+	// given (bare test construction), keep the inert placeholder New
 	// seeded m.clk with.
 	if m.clockSrc != nil {
 		m.clk = m.clockSrc.Copy()
@@ -42,7 +42,7 @@ func (m *edgeMover) run(ctx context.Context) {
 		// source node's own goroutine), dstIn (this edge's target node's own goroutine).
 		//
 		// Drain-until-empty, transitively bounded by each channel's own declared
-		// capacity (moverInboxDepth) -- no iteration cap; see
+		// capacity (InboxDepth) -- no iteration cap; see
 		// nodes/wire/paced_wire_drive.go's drainPlacements doc comment for the full
 		// reasoning shared by every drain-until-empty loop in this repo.
 	drain:
@@ -58,7 +58,7 @@ func (m *edgeMover) run(ctx context.Context) {
 				}
 			case steps := <-m.stepsIn:
 				// Delivery (stepsIn's doc comment): fold the source node's freshest
-				// published step count into this edgeMover's own cached copy. A bare
+				// published step count into this EdgeMover's own cached copy. A bare
 				// value update, not a geometry recompute — the next recomputeGeometry
 				// (on a move) or ReviseInFlightGeometry call reads m.steps fresh.
 				m.steps = steps

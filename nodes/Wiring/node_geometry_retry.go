@@ -20,13 +20,11 @@ func (m *nodeGeometry) flushPending() {
 			kept = append(kept, item)
 			continue
 		}
-		ch, ok := m.msg.resolveDest(item.destID)
+		trySend, ok := m.msg.resolveDest(item.destID)
 		if !ok {
 			continue
 		}
-		select {
-		case ch <- item.msg:
-		default:
+		if !trySend(item.msg) {
 			blocked[item.destID] = true
 			kept = append(kept, item)
 		}

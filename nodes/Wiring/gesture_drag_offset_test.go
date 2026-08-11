@@ -3,6 +3,7 @@ package Wiring
 import (
 	"testing"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/edgemover"
 	"github.com/dtauraso/wirefold/nodes/Wiring/gesturefsm"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
@@ -24,7 +25,7 @@ import (
 // center (400,300) projects EXACTLY onto the node's center — the deterministic "center
 // grab" case the companion test below relies on.
 func dragOffsetMD() *MoveDispatch {
-	md := &MoveDispatch{mr: moverRegistry{nodeGeoms: map[string]*nodeGeometry{}, edgeMovers: map[string]*edgeMover{}}}
+	md := &MoveDispatch{mr: moverRegistry{nodeGeoms: map[string]*nodeGeometry{}, edgeMovers: map[string]*edgemover.EdgeMover{}}}
 	md.UI.VP.Viewpoint = canonicalViewpoint()
 	g := nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: "TimeEnd"}}
 	nodegeom.SetNodeWorld(&g, vec3{X: 0, Y: 0, Z: 0})

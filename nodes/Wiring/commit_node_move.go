@@ -52,9 +52,9 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(mr *moverRegistry, ui *viewstate.
 		if !ok {
 			continue
 		}
-		neighborID := em.srcID
+		neighborID := em.SrcID()
 		if neighborID == nodeID {
-			neighborID = em.dstID
+			neighborID = em.DstID()
 		}
 		if c, ok := nm.topo.partnerCenters[neighborID]; ok {
 			polars[neighborID] = geom.Cart2polar(c.Sub(ui.SceneSphere.Center))

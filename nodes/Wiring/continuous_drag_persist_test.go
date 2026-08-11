@@ -14,6 +14,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/edgemover"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
@@ -32,7 +33,7 @@ func dragAndReadBack(t *testing.T, quantized bool, target vec3) string {
 	md.lq.quantizedLayout = quantized
 	md.UI.SceneSphere = geom.SceneSphere{Center: vec3{}, Radius: 100}
 	md.mr.nodeGeoms = map[string]*nodeGeometry{}
-	md.mr.edgeMovers = map[string]*edgeMover{}
+	md.mr.edgeMovers = map[string]*edgemover.EdgeMover{}
 	md.mr.centerMirror = map[string]vec3{}
 
 	nm := &nodeGeometry{

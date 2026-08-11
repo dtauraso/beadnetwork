@@ -11,6 +11,7 @@ import (
 	"sort"
 	"strconv"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/edgemover"
 	geomseeds "github.com/dtauraso/wirefold/nodes/Wiring/geomseeds"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
@@ -23,6 +24,22 @@ import (
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
+
+// trySendMsg wraps a raw movemsg.Msg channel (a neighboring node's own neighborIn slot) as
+// a non-blocking try-send func value, the same shape resolveDest returns for an edge
+// destination (edgemover.EdgeMover.TrySendFromSrc/TrySendFromDst) — so flushPending
+// (node_geometry_retry.go) has one uniform call shape regardless of which kind of
+// destination it resolved.
+func trySendMsg(ch chan movemsg.Msg) func(movemsg.Msg) bool {
+	return func(msg movemsg.Msg) bool {
+		select {
+		case ch <- msg:
+			return true
+		default:
+			return false
+		}
+	}
+}
 
 // newMoveDispatch builds the registry from per-node geometry and per-edge endpoints.
 // It creates one nodeMover per node and one edgeMover per edge, registering each under
@@ -63,7 +80,7 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 		tr: tr,
 	}
 	md.mr.nodeGeoms = map[string]*nodeGeometry{}
-	md.mr.edgeMovers = map[string]*edgeMover{}
+	md.mr.edgeMovers = map[string]*edgemover.EdgeMover{}
 	md.mr.edgeOut = map[string]*wire.Out{}
 	md.mr.centerMirror = map[string]vec3{}
 	md.UI.OV = viewstate.DefaultOverlayState()
@@ -116,19 +133,19 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 		// read-only directories, safe to read from any goroutine once construction
 		// finishes.
 		selfID := id
-		ng.msg.resolveDest = func(destID string) (chan movemsg.Msg, bool) {
+		ng.msg.resolveDest = func(destID string) (func(movemsg.Msg) bool, bool) {
 			if em, ok := md.mr.edgeMovers[destID]; ok {
 				switch selfID {
-				case em.srcID:
-					return em.srcIn, true
-				case em.dstID:
-					return em.dstIn, true
+				case em.SrcID():
+					return em.TrySendFromSrc, true
+				case em.DstID():
+					return em.TrySendFromDst, true
 				}
 				return nil, false
 			}
 			if other, ok := md.mr.nodeGeoms[destID]; ok {
 				if ch, ok := other.msg.neighborIn[selfID]; ok {
-					return ch, true
+					return trySendMsg(ch), true
 				}
 			}
 			return nil, false
@@ -161,10 +178,10 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 		}
 	}
 	for edgeID, ep := range edgeEndpoints {
-		em := newEdgeMover(ep, edgeID, geoms[ep.Source], geoms[ep.Target], tr, clk)
+		em := edgemover.New(edgeID, ep.Source, ep.Target, ep.SourceHandle, ep.TargetHandle, geoms[ep.Source], geoms[ep.Target], tr, clk)
 		if speedSinks != nil {
 			edgeSpeedCh := make(chan float64, 1)
-			em.speedCh = edgeSpeedCh
+			em.SetSpeedCh(edgeSpeedCh)
 			*speedSinks = append(*speedSinks, edgeSpeedCh)
 		}
 		md.mr.edgeMovers[edgeID] = em
@@ -206,7 +223,7 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 	// channel slice.
 	for id, nm := range md.mr.nodeGeoms {
 		for edgeID, em := range md.mr.edgeMovers {
-			if em.srcID == id || em.dstID == id {
+			if em.SrcID() == id || em.DstID() == id {
 				nm.topo.edgeIDs = append(nm.topo.edgeIDs, edgeID)
 			}
 		}

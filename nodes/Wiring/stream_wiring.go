@@ -15,6 +15,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/edgemover"
 	geomseeds "github.com/dtauraso/wirefold/nodes/Wiring/geomseeds"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
@@ -54,14 +55,20 @@ type streamWiring struct {
 	driveOuts map[string][driveSlotsPerNode]io.Writer
 
 	// claims is the wiring-time claim registry backing every claimedStream this struct
-	// hands out (streamOut on each nodeMover/edgeMover) — see stream_claim.go's header
-	// comment. Lazily allocated (newStreamClaims) by whichever of setEdgeStreams/
-	// setNodeStreams runs first, so a bare streamWiring zero value (test construction
-	// that never wires any stream) never allocates it. The VIEW stream's own claim
-	// registry is separate (viewstate's own viewClaimedStream) — the two can never
-	// collide (namespaced "node:<id>"/"edge:<label>" vs. the VIEW stream's own
-	// singleton), so splitting them cost nothing.
+	// hands out (streamOut on each nodeMover) — see stream_claim.go's header
+	// comment. Lazily allocated (newStreamClaims) by setNodeStreams, so a bare
+	// streamWiring zero value (test construction that never wires any stream) never
+	// allocates it. The VIEW stream's own claim registry is separate (viewstate's own
+	// viewClaimedStream), and the EDGE stream's own claim registry is separate too
+	// (edgeClaims below, package edgemover's own ClaimRegistry — edgemover cannot
+	// import package Wiring's unexported claimedStream/streamClaims types, so it keeps
+	// a small duplicate of the same mechanism; see nodes/Wiring/edgemover/stream_claim.go).
+	// The three can never collide (disjoint namespaces: node ids, edge labels, and the
+	// VIEW stream's own singleton), so splitting them cost nothing.
 	claims streamClaims
+	// edgeClaims is the edge-stream counterpart of claims above, using package
+	// edgemover's own ClaimRegistry type. Lazily allocated by setEdgeStreams.
+	edgeClaims edgemover.ClaimRegistry
 }
 
 // ensureClaims lazily allocates sw.claims on first use — see its doc comment.
@@ -70,6 +77,14 @@ func (sw *streamWiring) ensureClaims() streamClaims {
 		sw.claims = newStreamClaims()
 	}
 	return sw.claims
+}
+
+// ensureEdgeClaims lazily allocates sw.edgeClaims on first use — see its doc comment.
+func (sw *streamWiring) ensureEdgeClaims() edgemover.ClaimRegistry {
+	if sw.edgeClaims == nil {
+		sw.edgeClaims = edgemover.NewClaimRegistry()
+	}
+	return sw.edgeClaims
 }
 
 // setEdgeStreams wires every edgeMover in edgeMovers to ITS OWN dedicated fd — the
@@ -82,7 +97,7 @@ func (sw *streamWiring) ensureClaims() streamClaims {
 // panicking.
 func (sw *streamWiring) setEdgeStreams(
 	edgeSeeds []geomseeds.EdgeGeomSeed,
-	edgeMovers map[string]*edgeMover,
+	edgeMovers map[string]*edgemover.EdgeMover,
 	baseFd int,
 	nodeRowFor func(id string) (int32, bool),
 	buildFrame func(tick uint32, sx, sy, sz, ex, ey, ez float32, selected uint8, label string, events []wire.RowEvent) []byte,
@@ -94,16 +109,14 @@ func (sw *streamWiring) setEdgeStreams(
 		}
 		fd := baseFd + row
 		rawOut := os.NewFile(uintptr(fd), fmt.Sprintf("edge-fd%d", fd))
-		em.streamOut = newClaimedStream(sw.ensureClaims(), "edge", seed.Label, rawOut)
-		em.edgeRow = int32(row)
-		em.nodeRowFor = nodeRowFor
-		em.buildFrame = buildFrame
+		handle := edgemover.Claim(sw.ensureEdgeClaims(), seed.Label, rawOut)
+		em.SetStream(handle, int32(row), nodeRowFor, buildFrame)
 		// This edge now has a real consumer wired: let its PacedWire accumulate
 		// pending events (nodes/wire/wire_readout.go's StreamsActive doc comment) —
 		// set here, before this edge's mover goroutine launches, same "wire
 		// before launch" ordering as everything else in this function.
-		if em.dest != nil {
-			em.dest.SetStreamsActive(true)
+		if dest := em.Dest(); dest != nil {
+			dest.SetStreamsActive(true)
 		}
 	}
 }
