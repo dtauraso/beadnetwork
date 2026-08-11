@@ -61,16 +61,16 @@ func (md *MoveDispatch) ResolveSceneDistanceGroups(scenePath string) {
 }
 
 // distanceGroupMax computes a group's CURRENT max pair length (max over the group's
-// pairs of |center(target)-center(source)|), reading live centers from md's own
-// centerMirror (md.centerOfNode — the same source RootMove/reachRFromPolar use). ok is
+// pairs of |center(target)-center(source)|), reading live centers from mr's own
+// centerMirror (mr.centerOfNode — the same source RootMove/reachRFromPolar use). ok is
 // false if the group is unknown or none of its pairs' centers are resolvable yet.
-func (md *MoveDispatch) distanceGroupMax(group string) (float64, bool) {
+func distanceGroupMax(ui *uiState, mr *moverRegistry, group string) (float64, bool) {
 	// A scene without these groups resolves NONE of them. This is the one gate: every
 	// reader — DistanceGroupLens (and so the VIEW frame's three columns) and
 	// ApplyDistanceGroupTarget (the ▲/▼ math) — comes through here, so neither can act on a
 	// group belonging to a different scene. See SceneTab.DistanceGroups for why sharing node
 	// ids across scenes made that possible.
-	if !md.ui.hasDistanceGroups {
+	if !ui.hasDistanceGroups {
 		return 0, false
 	}
 	pairs, ok := distanceGroups[group]
@@ -80,8 +80,8 @@ func (md *MoveDispatch) distanceGroupMax(group string) (float64, bool) {
 	max := 0.0
 	any := false
 	for _, p := range pairs {
-		cs, okS := md.mr.centerOfNode(p.Source)
-		ct, okT := md.mr.centerOfNode(p.Target)
+		cs, okS := mr.centerOfNode(p.Source)
+		ct, okT := mr.centerOfNode(p.Target)
 		if !okS || !okT {
 			continue
 		}
@@ -97,10 +97,10 @@ func (md *MoveDispatch) distanceGroupMax(group string) (float64, bool) {
 // distanceGroupOrder (time, input, gate) — for the VIEW stream's Overlay
 // GroupLenTime/GroupLenInput/GroupLenGate columns (read-only reflect; see
 // view_stream.go's emitViewFrame). A group whose centers aren't resolvable yet reads 0.
-func (md *MoveDispatch) DistanceGroupLens() (timeLen, inputLen, gateLen float32) {
+func DistanceGroupLens(ui *uiState, mr *moverRegistry) (timeLen, inputLen, gateLen float32) {
 	vals := make([]float32, len(distanceGroupOrder))
 	for i, g := range distanceGroupOrder {
-		if m, ok := md.distanceGroupMax(g); ok {
+		if m, ok := distanceGroupMax(ui, mr, g); ok {
 			vals[i] = float32(m)
 		}
 	}
@@ -124,7 +124,7 @@ func (md *MoveDispatch) ApplyDistanceGroupTarget(groupIdx, dir int) bool {
 	if !ok {
 		return false
 	}
-	currentMax, any := md.distanceGroupMax(group)
+	currentMax, any := distanceGroupMax(&md.ui, &md.mr, group)
 	if !any {
 		return false
 	}

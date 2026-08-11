@@ -134,7 +134,7 @@ func (md *MoveDispatch) emitViewFrame(events []wire.RowEvent) {
 	// The "distance home button" panel's 3 group max-pair-lengths, recomputed fresh from
 	// live node centers on every VIEW-frame emit (distance_groups.go) — read-only reflect,
 	// Go owns the group definitions and the math.
-	groupLenTime, groupLenInput, groupLenGate := md.DistanceGroupLens()
+	groupLenTime, groupLenInput, groupLenGate := DistanceGroupLens(&md.ui, &md.mr)
 	frame := md.sw.viewBuildFrame(md.sw.viewTick,
 		float32(v.Pivot.X), float32(v.Pivot.Y), float32(v.Pivot.Z), float32(v.R),
 		float32(v.Pos.Theta), float32(v.Pos.Phi), float32(v.Up.Theta), float32(v.Up.Phi),

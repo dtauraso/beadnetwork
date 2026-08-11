@@ -43,7 +43,7 @@ func loadSceneMD(t *testing.T, sceneDir string) *MoveDispatch {
 // owns these groups, so at least one of the three must come back with a length.
 func TestRingResolvesItsDistanceGroups(t *testing.T) {
 	md := loadSceneMD(t, "topology")
-	timeLen, inputLen, gateLen := md.DistanceGroupLens()
+	timeLen, inputLen, gateLen := DistanceGroupLens(&md.ui, &md.mr)
 	if timeLen == 0 && inputLen == 0 && gateLen == 0 {
 		t.Fatal("ring streamed all three group lengths as 0 — the ring owns these groups, so the panel would not render")
 	}
@@ -102,7 +102,7 @@ func TestGroupsAreInertUntilResolved(t *testing.T) {
 		t.Fatalf("LoadTopology(topology): %v", err)
 	}
 	// Deliberately NOT calling md.ResolveSceneDistanceGroups.
-	if timeLen, inputLen, gateLen := md.DistanceGroupLens(); timeLen != 0 || inputLen != 0 || gateLen != 0 {
+	if timeLen, inputLen, gateLen := DistanceGroupLens(&md.ui, &md.mr); timeLen != 0 || inputLen != 0 || gateLen != 0 {
 		t.Fatalf("unresolved dispatch streamed (%v, %v, %v), want all 0", timeLen, inputLen, gateLen)
 	}
 	for i := range distanceGroupOrder {
