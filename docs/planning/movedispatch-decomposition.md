@@ -153,6 +153,87 @@ method existing solely because a test in `package main` cannot reach an unexport
 Close them the same way — remove the reason (move the test, or give it a real entry point),
 not by keeping the delegator.
 
+### The 31 in-package-only conversion pass — 8 converted, 23 stayed, and one correction
+
+Re-verified the 31 one at a time (owner fields read, and every downstream call). 8 became
+package-level functions, in this order/grouping (each its own commit):
+`distanceGroupMax`/`DistanceGroupLens` (2 owners: `uiState`, `moverRegistry` —
+`distance_groups.go`), `sendMove`/`sendTiltEdit` (`moverRegistry`+`context.Context`,
+`nodeInboxes`+`context.Context` — `move_dispatch_api.go`), `setSelectionUI` (`uiState`,
+`moverRegistry`, `context.Context`, calling the now-free `sendMove` directly instead of
+threading a func value — `move_dispatch_api.go`), `commitDragStart` (`uiState`,
+`moverRegistry`, `context.Context` — `gesture_graph.go`, wired into `commitEdges` via a
+closure since the table's `action` field still needs the `func(md *MoveDispatch, ...)`
+shape the other two entries use), `SelectScene` (`sceneswitch.SceneSwitch` alone —
+`scene_switch.go`), `setHover` (`uiState`, `moverRegistry`, `rowtables.RowTables`,
+`context.Context` — `gesture_actions.go`). `DistanceGroupLens`/`SelectScene` keep their
+existing exported names (they were already exported methods); everything else stays
+unexported.
+
+**Every one of the remaining 23 is genuinely blocked, not merely inconvenient** — three
+distinct reasons, none of them "it is an entry point":
+
+1. **Calls something that itself needs `*MoveDispatch` by signature, and that something is
+   out of THIS task's scope to change.** `layoutQuantizer.RootMove(md *MoveDispatch, ...)`
+   and `layoutQuantizer.heldCenters(md *MoveDispatch)` were converted to free methods in an
+   *earlier* round that kept `md` as an explicit parameter (not a receiver) precisely
+   because their own bodies call `md.sendMove`/reach several owners — that choice predates
+   this task and isn't being revisited here. Anything that calls either still needs to hand
+   over `*MoveDispatch`, which is the same back-reference this task exists to remove, just
+   one hop later: `applyNodeDragTarget`, `ApplyDistanceGroupTarget`, `beginSphereRotation`,
+   `gestHome`, `gestWheel`.
+2. **Calls `emitViewFrame` or `SetViewpoint`, and those stay.** `emitViewFrame` was measured
+   at 4 owners (`sw`, `ui`, `RT`, plus `mr` transitively via `DistanceGroupLens`) — the
+   "four or more is a signal" line in this doc's own rule, and the doc's own prose
+   ("a frame is a snapshot of the whole view") says why: it is not a leaf, it is the VIEW
+   serializer. `SetViewpoint` is one of the 14 held back for a genuine external caller.
+   Every one of `updateHover`, `applyOrbit`, `applyOrbitLocked`, `applySelect`,
+   `seedOrbitPivot`, `commitHandholdStart`, `commitRotateStart`, `CreateNode` (13 call
+   sites), `DeleteNode` (4 call sites) calls one of these two directly, and `HandleRawInput`/
+   `gestPointerDown`/`gestPointerMove`/`gestPointerUp` reach one transitively through the
+   `rawInputHandlers`/`hitClassifiers`/`commitEdges`/`applyAction` dispatch tables, whose
+   entries are typed `func(md *MoveDispatch, ...)` because the handlers they hold need `md`
+   for reason 1 or 2. `emitViewFrame`, `Viewpoint`, `PanViewpoint` themselves were also part
+   of the 31; see below for why `Viewpoint`/`PanViewpoint` are a MEASUREMENT correction
+   rather than a real "stayed" case.
+3. **Two field-identity reasons, not owner count.** `SetMsgTap` writes
+   `md.tapToInstall`, a field that lives directly on `MoveDispatch` (not inside any named
+   owner substruct) — converting it would need a field-pointer parameter for one
+   test-only seam, for marginal benefit; left as is. `BroadcastLatticePoints` guards
+   `if md == nil { return }` — that check is ON THE RECEIVER ITSELF; a converted
+   function's `*nodeInboxes` parameter (`&md.inboxes`) is never nil even when `md` is, so
+   preserving this guard EXACTLY (this doc's own rule) requires keeping `md` as the
+   receiver, not just threading a pointer through.
+
+**One correction to the 31's own measurement, found by re-verifying rather than trusting
+it.** `Viewpoint` and `PanViewpoint` are counted as "in-package-only" only because the
+counting grep (`grep -vE "^(\./)?nodes/Wiring/"`) treats every file under
+`nodes/Wiring/<subpackage>/` as "inside" `nodes/Wiring` — but `nodes/Wiring/scenecamera`
+is a DIFFERENT Go package (`scenecamera_test`, an external test package), and its
+`scene_camera_test.go` calls `md.Viewpoint()` / `md.PanViewpoint(...)` as exported methods
+on `*MoveDispatch`. Converting either to an unexported free function would not compile
+that test. This is the exact "grep -v without a leading ./" trap this doc names elsewhere
+in a different spot — caught here by trying to convert and checking the caller, not by
+trusting the directory-prefix count.
+
+**Result:** `MoveDispatch` method count 48 → 40 (drop of 8, `grep -h "^func ([a-z]*
+\*MoveDispatch)" nodes/Wiring/*.go | grep -v _test | wc -l`). The naive
+`grep -hE "^(func|type|var|const) [A-Z]"` exported-symbol count reads 160 → 162, but that
++2 is `DistanceGroupLens`/`SelectScene` becoming textually visible to a `^func [A-Z]`
+pattern that never matched a method declaration (`func (md *MoveDispatch) X`) in the first
+place — both names were ALREADY exported and reachable cross-package as methods before this
+pass. As free functions they now take `*uiState`/`*moverRegistry`/`*sceneswitch.SceneSwitch`
+— all unexported-package-internal or already-exported types — so nothing outside
+`nodes/Wiring` gained a new way to reach them; if anything the real cross-package-callable
+surface shrank, since a package holding only `*MoveDispatch` can no longer call
+`md.DistanceGroupLens()`/`md.SelectScene()` (neither had an outside caller, so nothing
+broke). No new interfaces, `types`/`common` package, or `ForTest` hatch were added. The
+per-subpackage no-imports-`Wiring` invariant holds (empty loop output, re-verified after
+every commit). Guards touched:
+`tools/network/structure/check-refusal-emits-frame.sh` (still finds all 13
+`refuseStructuralEdit`/`emitViewFrame` pairs, untouched by this pass since `CreateNode`/
+`DeleteNode` were not converted) and gofmt (one reformat, `gesture_graph.go`, own commit).
+
 ### The write-then-emit answer: the owner mutates, the view-owner goroutine emits
 
 Measured on the 55 remaining methods: **31 are blocked by calling another `MoveDispatch`
