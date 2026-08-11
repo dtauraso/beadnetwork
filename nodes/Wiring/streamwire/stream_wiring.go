@@ -1,14 +1,15 @@
-// stream_wiring.go — the per-node interior-stream fd-wiring owner split out of
-// MoveDispatch (god-object decomposition), as a pure move (no logic changes): streamWiring
-// owns interiorOuts/buildInteriorFrame (the per-node interior fd directory) and driveOuts.
-// MoveDispatch's public SetEdgeStreams/SetNodeStreams methods stay as thin delegators so
-// the external API is unchanged. The dedicated VIEW stream's own fd/frame-builder/tick used
-// to live here too (viewOut/viewBuildFrame/viewTick) — lifted onto
-// nodes/Wiring/viewstate.UIState per docs/planning/gesture-actor.md, since its one caller
-// (emitViewFrame) needs md.UI.vp/ov/sceneSphere just as much as it needs these fields, and
-// both now live together in the same package.
-
-package dispatch
+// Package streamwire owns the fd directories the two dedicated-per-goroutine emitting
+// streams (interior, view) need — the per-node interior-stream fd-wiring split out of
+// MoveDispatch (god-object decomposition, docs/planning/movedispatch-decomposition.md §29,
+// the same lift §26 gave moverRegistry): StreamWiring owns interiorOuts/buildInteriorFrame
+// (the per-node interior fd directory) and driveOuts. MoveDispatch's public
+// SetEdgeStreams/SetNodeStreams methods stay as thin delegators so the external API is
+// unchanged. The dedicated VIEW stream's own fd/frame-builder/tick used to live here too
+// (viewOut/viewBuildFrame/viewTick) — lifted onto nodes/Wiring/viewstate.UIState per
+// docs/planning/gesture-actor.md, since its one caller (emitViewFrame) needs
+// md.UI.vp/ov/sceneSphere just as much as it needs these fields, and both now live
+// together in the same package.
+package streamwire
 
 import (
 	"fmt"
@@ -21,15 +22,16 @@ import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
-// streamWiring owns the fd directories the two dedicated-per-goroutine emitting streams
-// (interior, view) need — see MoveDispatch.sw's doc comment.
-// driveSlotsPerNode is a local copy of Buffer.DriveSlotsPerNode's value (2), kept here
+// DriveSlotsPerNode is a local copy of Buffer.DriveSlotsPerNode's value (2), kept here
 // rather than importing Buffer — same precedent as port_wiring.go's bufInteriorSlotsPerNode
 // (this package stays Buffer-independent; buildFrame/buildInteriorFrame are injected
-// funcs for the same reason).
-const driveSlotsPerNode = 2
+// funcs for the same reason), and the same duplicate portwiring.DriveSlotsPerNode already
+// keeps for the same array-size reason.
+const DriveSlotsPerNode = 2
 
-type streamWiring struct {
+// StreamWiring owns the fd directories the two dedicated-per-goroutine emitting streams
+// (interior, view) need — see MoveDispatch.Sw's doc comment.
+type StreamWiring struct {
 	// interiorOuts holds ONE dedicated per-node interior-bead fd, keyed by node id — the
 	// SECOND emitting goroutine per node (its own Update loop, not its nodeMover) writes
 	// here (memory/feedback_no_single_writer_bridge.md). Populated ONCE by
@@ -48,31 +50,49 @@ type streamWiring struct {
 	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte
 	// driveOuts holds DriveSlotsPerNode dedicated per-node DRIVE fds, keyed by node id —
 	// one PER gatecommon.DriveHeld goroutine that node spawns (Buffer.StreamKindDrive;
-	// docs/investigations/interior-stream-framing.md). Populated ONCE by setNodeStreams alongside
+	// docs/investigations/interior-stream-framing.md). Populated ONCE by SetNodeStreams alongside
 	// interiorOuts, BEFORE any node's Update/DriveHeld goroutines launch. A nil slot
 	// entry (no WIREFOLD_STREAM_FDS "drive" entry, or a kind that doesn't use that slot)
 	// means writes through it are simply never made — nil-safe, same fallback shape as
 	// interiorOuts.
-	driveOuts map[string][driveSlotsPerNode]io.Writer
+	driveOuts map[string][DriveSlotsPerNode]io.Writer
 
 	// nodeClaims is the node-stream claim registry, using package nodeactor's own
 	// ClaimRegistry type (nodeactor/stream_claim.go) — nodeactor cannot import package
 	// Wiring's unexported claimedStream/streamClaims types (the type left this package
 	// in docs/planning/movedispatch-decomposition.md §20), so it keeps a small duplicate
 	// of the same mechanism, the same precedent §17 set for nodes/Wiring/edgemover's own
-	// stream_claim.go. Lazily allocated by setNodeStreams. The VIEW stream's own claim
+	// stream_claim.go. Lazily allocated by SetNodeStreams. The VIEW stream's own claim
 	// registry is separate (viewstate's own viewClaimedStream), and the EDGE stream's
 	// own claim registry is separate too (edgeClaims below, package edgemover's own
 	// ClaimRegistry). The three can never collide (disjoint namespaces: node ids, edge
 	// labels, and the VIEW stream's own singleton), so splitting them cost nothing.
 	nodeClaims nodeactor.ClaimRegistry
 	// edgeClaims is the edge-stream counterpart of nodeClaims above, using package
-	// edgemover's own ClaimRegistry type. Lazily allocated by setEdgeStreams.
+	// edgemover's own ClaimRegistry type. Lazily allocated by SetEdgeStreams.
 	edgeClaims edgemover.ClaimRegistry
 }
 
+// InteriorOutsPtr returns the address of the interiorOuts field for portwiring.PortBindings'
+// pointer-indirection: InteriorOuts is set at build time (build_nodes.go), before
+// SetNodeStreams has populated (or reassigned) the map, so the caller needs the field's own
+// address, not a snapshot of its (possibly still-nil) value. Not a bare field export: this
+// is a method, matching moverreg.MoverRegistry.NodeGeoms()'s own live-directory shape.
+func (sw *StreamWiring) InteriorOutsPtr() *map[string]io.Writer { return &sw.interiorOuts }
+
+// DriveOutsPtr is DriveOuts' counterpart to InteriorOutsPtr — see its doc comment.
+func (sw *StreamWiring) DriveOutsPtr() *map[string][DriveSlotsPerNode]io.Writer {
+	return &sw.driveOuts
+}
+
+// BuildInteriorFramePtr is buildInteriorFrame's counterpart to InteriorOutsPtr — see its
+// doc comment.
+func (sw *StreamWiring) BuildInteriorFramePtr() *func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte {
+	return &sw.buildInteriorFrame
+}
+
 // ensureNodeClaims lazily allocates sw.nodeClaims on first use — see its doc comment.
-func (sw *streamWiring) ensureNodeClaims() nodeactor.ClaimRegistry {
+func (sw *StreamWiring) ensureNodeClaims() nodeactor.ClaimRegistry {
 	if sw.nodeClaims == nil {
 		sw.nodeClaims = nodeactor.NewClaimRegistry()
 	}
@@ -80,14 +100,14 @@ func (sw *streamWiring) ensureNodeClaims() nodeactor.ClaimRegistry {
 }
 
 // ensureEdgeClaims lazily allocates sw.edgeClaims on first use — see its doc comment.
-func (sw *streamWiring) ensureEdgeClaims() edgemover.ClaimRegistry {
+func (sw *StreamWiring) ensureEdgeClaims() edgemover.ClaimRegistry {
 	if sw.edgeClaims == nil {
 		sw.edgeClaims = edgemover.NewClaimRegistry()
 	}
 	return sw.edgeClaims
 }
 
-// setEdgeStreams wires every edgeMover in edgeMovers to ITS OWN dedicated fd — the
+// SetEdgeStreams wires every edgeMover in edgeMovers to ITS OWN dedicated fd — the
 // per-edge stream (memory/feedback_no_single_writer_bridge.md): fd = baseFd + row, where
 // row is the STABLE edge-seed order (edgeSeeds, the same spec order the Edge block uses).
 // buildFrame is an injected func (not a Buffer import) so this package stays
@@ -95,7 +115,7 @@ func (sw *streamWiring) ensureEdgeClaims() edgemover.ClaimRegistry {
 // selected bit, set via a movemsg.KindSelect message on its extIn (md.sendEdgeSelect), not
 // a lookup. A missing edgeMover for a seed row (should not happen) is skipped rather than
 // panicking.
-func (sw *streamWiring) setEdgeStreams(
+func (sw *StreamWiring) SetEdgeStreams(
 	edgeSeeds []geomseeds.EdgeGeomSeed,
 	edgeMovers map[string]*edgemover.EdgeMover,
 	baseFd int,
@@ -121,7 +141,7 @@ func (sw *streamWiring) setEdgeStreams(
 	}
 }
 
-// setNodeStreams wires every nodeMover in nodeMovers to ITS OWN dedicated node-fd
+// SetNodeStreams wires every nodeMover in nodeMovers to ITS OWN dedicated node-fd
 // (geometry+ports+label), AND wires sw.interiorOuts + sw.buildInteriorFrame — every
 // node's own Update-loop closures (builders.go's injectClosures) look these up for its
 // own dedicated interior-fd — the two emitting goroutines per node (memory/
@@ -134,14 +154,14 @@ func (sw *streamWiring) setEdgeStreams(
 // "interior" are, so this parameter is a defense against a caller that doesn't. nodeBase/
 // interiorBase are the other two fd ranges' base fds; row is the STABLE node-seed order
 // (nodeSeeds, the same spec order the Node block uses). nodeRowFor/buildFrame/
-// buildInteriorFrame are injected funcs (not a Buffer import), matching setEdgeStreams'
+// buildInteriorFrame are injected funcs (not a Buffer import), matching SetEdgeStreams'
 // existing pattern. Selection/hover/
 // kind are NOT injected lookups: each nodeMover owns its OWN selected/hovered/
 // latchedSel/kindID fields, set via movemsg.KindSelect/Hover/Latched messages (or, for
 // kindID, once here at construction — a node's kind never changes after load, so there
 // is no lookup to perform on every emit). A missing nodeMover for a seed row (should not
 // happen) is skipped rather than panicking.
-func (sw *streamWiring) setNodeStreams(
+func (sw *StreamWiring) SetNodeStreams(
 	nodeSeeds []geomseeds.NodeGeomSeed,
 	nodeMovers map[string]*nodeactor.NodeGeometry,
 	nodeBase, interiorBase int,
@@ -157,7 +177,7 @@ func (sw *streamWiring) setNodeStreams(
 	// no "drive" entry): its slots then simply stay nil (io.Writer zero value), matching
 	// interiorOuts' own "populate the map, leave entries nil when the fd is absent"
 	// shape rather than leaving the whole map nil.
-	sw.driveOuts = map[string][driveSlotsPerNode]io.Writer{}
+	sw.driveOuts = map[string][DriveSlotsPerNode]io.Writer{}
 	for _, seed := range nodeSeeds {
 		nm, ok := nodeMovers[seed.ID]
 		if !ok {
@@ -184,9 +204,9 @@ func (sw *streamWiring) setNodeStreams(
 		// requires "node"/"interior"/"drive" present together, so in production either
 		// all three resolve or none do).
 		if driveWired {
-			var slots [driveSlotsPerNode]io.Writer
-			for slot := 0; slot < driveSlotsPerNode; slot++ {
-				dFd := driveBase + row*driveSlotsPerNode + slot
+			var slots [DriveSlotsPerNode]io.Writer
+			for slot := 0; slot < DriveSlotsPerNode; slot++ {
+				dFd := driveBase + row*DriveSlotsPerNode + slot
 				slots[slot] = os.NewFile(uintptr(dFd), fmt.Sprintf("drive-fd%d", dFd))
 			}
 			sw.driveOuts[seed.ID] = slots

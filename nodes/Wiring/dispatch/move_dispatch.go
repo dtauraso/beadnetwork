@@ -37,9 +37,11 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/layoutquant"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/moverreg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeinbox"
 	rowtables "github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
-	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 	sceneswitch "github.com/dtauraso/wirefold/nodes/Wiring/sceneswitch"
+	"github.com/dtauraso/wirefold/nodes/Wiring/streamwire"
+	"github.com/dtauraso/wirefold/nodes/Wiring/viewpersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -67,17 +69,23 @@ type MoveDispatch struct {
 	// struct literal); no in-package reader of md.TR exists, so exporting it costs nothing
 	// and matches GS/UI/Scenes/RT's pattern rather than staying the one unexplained holdout.
 	TR *T.Trace
-	// persist groups the six debounced disk persisters (move_persist.go), each nil until
-	// armed by EnableViewpointPersist / EnableEditPersist after the startup seed. Grouped
-	// the same way ui.vp/ui.ov/ui.gest are, so a bare test-constructed MoveDispatch only
-	// has to reason about one zero-value sub-struct instead of six loose nilable fields.
-	persist persisters
-	// sw owns the fd-wiring for the per-node interior stream (stream_wiring.go); the
+	// Persist groups the six debounced disk persisters (nodes/Wiring/viewpersist, lifted
+	// out of this package in docs/planning/movedispatch-decomposition.md §29), each nil
+	// until armed by EnableViewpointPersist / EnableEditPersist after the startup seed.
+	// Grouped the same way ui.vp/ui.ov/ui.gest are, so a bare test-constructed
+	// MoveDispatch only has to reason about one zero-value sub-struct instead of six loose
+	// nilable fields. Exported (§29): same already-exported-sub-object shape as MR/LQ
+	// above — its own field surface is reached only through viewpersist's own exported
+	// methods (ArmViewpoint/ArmEdit/Overlays()/Sphere()/Speed()/Lattice()).
+	Persist viewpersist.Persisters
+	// Sw owns the fd-wiring for the per-node interior stream (nodes/Wiring/streamwire,
+	// lifted out of this package in docs/planning/movedispatch-decomposition.md §29); the
 	// per-edge/per-node streams only — the dedicated VIEW stream's own fd/frame-builder/
 	// tick now live on UI (nodes/Wiring/viewstate), lifted out per
 	// docs/planning/gesture-actor.md. MoveDispatch's public SetEdgeStreams/SetNodeStreams
-	// methods stay as thin delegators so the external API is unchanged.
-	sw streamWiring
+	// methods stay as thin delegators so the external API is unchanged. Exported (§29):
+	// same already-exported-sub-object shape as MR/LQ above.
+	Sw streamwire.StreamWiring
 	// UI owns the camera/overlay/gesture/selection/abc-drag UI state AND the VIEW stream's
 	// own write side (nodes/Wiring/viewstate — lifted out of this package per
 	// docs/planning/gesture-actor.md; the earlier "uiState declined" probes,
@@ -128,43 +136,9 @@ type MoveDispatch struct {
 	// MoveDispatch delegator methods.
 	RT rowtables.RowTables
 
-	// inboxes owns the directories of per-node dedicated channels a kind can claim for
-	// itself at build time — see nodeInboxes' own doc comment.
-	inboxes nodeInboxes
-}
-
-// nodeInboxes holds the DIRECTORIES OF DEDICATED PER-NODE CHANNELS that kinds claim for
-// themselves at build time, one map per thing a node can be sent.
-//
-// It exists as an owner type rather than as loose MoveDispatch fields because that is what
-// the composer rule asks for (check-composer-fields.sh): a new thing a node can be
-// sent is a new entry HERE, and the composer's field count does not move. The two maps
-// share one lifecycle exactly — written once per entry on the single-threaded build path
-// (buildNodes, via BuildArgs), before any goroutine runs, and never touched again — so
-// after build they are read-only lookup tables, which is what lets the stdin-reader
-// goroutine read them without coordination.
-type nodeInboxes struct {
-	// tiltEdit holds, for each node id whose OWN kind claimed BuildArgs.TiltEditIn (PairNode —
-	// the only kind that owns its tilt index independently), that node's dedicated inbound
-	// channel for a panel-driven tilt-angle click. A node id with no entry is a kind that
-	// still routes tiltVectorAngle straight to its mover (applyUpdateTiltVector's fallback,
-	// stdin_reader.go). Read only by sendTiltEdit.
-	tiltEdit map[string]chan movemsg.TiltEditMsg
-
-	// lattice holds, for each node id whose own kind claimed BuildArgs.LatticeIn (PairNode —
-	// the only kind that owns a lattice), that node's dedicated inbound channel for a
-	// scene-level point-count change. Read only by BroadcastLatticePoints, which sends to
-	// every entry: the count is one scene-wide setting, so unlike a tilt edit it is
-	// addressed to no single node.
-	lattice map[string]chan int32
-}
-
-// broadcastLatticePoints sends a new lattice point count to every registered node's own
-// dedicated LatticeIn channel, non-blocking latest-wins (drain-then-send, the same shape
-// as wire.SendSpeedNonBlocking/SendLatestNonBlocking, just over a chan int32 instead of
-// chan float64/int64) so a node that is mid-cycle never blocks the sender.
-func (ib *nodeInboxes) broadcastLatticePoints(points int32) {
-	for _, ch := range ib.lattice {
-		scenepersist.SendLatticePointsNonBlocking(ch, points)
-	}
+	// Inboxes owns the directories of per-node dedicated channels a kind can claim for
+	// itself at build time (nodes/Wiring/nodeinbox, lifted out of this package in
+	// docs/planning/movedispatch-decomposition.md §29 — see its own package doc comment).
+	// Exported (§29): same already-exported-sub-object shape as MR/LQ above.
+	Inboxes nodeinbox.NodeInboxes
 }
