@@ -1196,42 +1196,71 @@ assertion removal, no skip/only/exit/recover added — every moved test kept its
 The no-imports-`Wiring` loop is empty. No interface, `types`/`common` package, alias shim,
 dot-import, package-level actor global, or `ForTest` hatch was added.
 
-## 11. `chain_beads.go`/`bead_chain.go` re-measured — two placement formulas lifted into `beadindex`, everything else declined by mechanism
+## 11. `chain_beads.go`/`bead_chain.go` re-measured twice — the 265-line loop BODY decomposed into three phases in `beadindex`, actor management declined by mechanism
 
-Measured `chainBeads()` (`chain_beads.go`, `func (m *nodeGeometry) chainBeads()`) and
-`reconcileBeadChain`/`startBeadDrag`/`endBeadDrag` (`bead_chain.go`) function-by-function, not
-file-by-file, per this task's own instruction.
+**First pass (superseded by the correction below, kept for the record):** measured only
+`chainBeads()`'s TOP LEVEL and lifted two inline scalar formulas
+(`BeadPlacementOffset`/`PulsePlacementOffset`) into `beadindex`, then declined `chainBeads()`
+itself whole because its top-level body calls four impure operations. That verdict was true
+of the top level and said nothing about the 265 lines (of `chainBeads`' 283-line body)
+inside the single `for _, to := range m.outs.outTargets` loop between them — a function that
+had not been given a name, not evidence the loop's arithmetic was impure.
 
-**Lifted into `nodes/Wiring/beadindex`** (already home to `LitBeadIndex`, the sibling
-progress→index math): two pure formulas that were inline in `chainBeads`' placement loop —
+**Correction — decomposed the loop body by phase**, matching the shape the impure statements
+and the pure arithmetic actually take: resolve target geometry + step count, publish the
+count (impure), gather live pulses (impure), build the breadcrumb text (pure) next to the
+breadcrumb send (impure), place beads along the chain and decide which are lit (pure). Added
+`nodes/Wiring/beadindex/chain_edge_layout.go`, three pure functions (still `beadindex` — no
+new package):
 
-- `BeadPlacementOffset(base, step float64, i int) float64` — `base + float64(i)*step`, bead
-  `i`'s tangent-placement offset (docs/bead-model/bead-lattice.md "Placement").
-- `PulsePlacementOffset(base, step, t float64, steps int) float64` — the same formula
-  evaluated at a continuous index (`t*(steps-1)` clamped at 0) instead of an integer `i`, for
-  a travelling pulse.
+- `ChainEdgeGeometry(selfCenter, targetCenter wire.Vec3, selfTorusR float64, selfKind, targetKind string) (dist float64, dir wire.Vec3, count int, ok bool)`
+  — `nodegeom.EdgeCenterDistAndDir` + `nodegeom.EdgeStepCount`, unchanged, given a name.
+- `ChainBeadRows(dir, chainSep wire.Vec3, base, step float64, count int, resolved []wire.Vec3, resolvedValid []bool, pulses []Pulse) (ox, oy, oz []float32, lit []uint8, litVal []int32)`
+  — the placeholder-bead loop and the lit-pulse loop, unchanged arithmetic. `resolved`/
+  `resolvedValid` are the bead-actor chain's own ALREADY-DRAINED snapshot positions, read
+  once in `chain_beads.go` and handed down as a plain slice — the function itself never
+  touches the actor, only a copy of its last-known values, which is what keeps it pure.
+- `ChainAimBreadcrumbText(to string, count int, dist float64, dir wire.Vec3) string` — the
+  `fmt.Sprintf` breadcrumb VALUE string, pure formatting from local values, split from the
+  `m.tr.Breadcrumb(...)` call next to it (that call is the side effect; the string is not).
 
-Both take only scalars and return a scalar; neither reads or writes `nodeGeometry`,
-`uiState`, or a channel. `chain_beads.go` now calls `beadindex.BeadPlacementOffset`/
-`beadindex.PulsePlacementOffset` instead of the inline arithmetic. `beadindex` was the
-existing, better-fitting home (not a new package) — it already holds `LitBeadIndex`,
-the same "chain progress ↔ position" family, and needed no new import cycle.
+`chain_beads.go`'s loop now contains only: the `m.topo.partnerCenters`/`m.topo.neighborKinds`/
+`m.topo.mutualTargets`/`m.topo.nodeRowFor` lookups (bucket (a), gathering call arguments),
+the `PublishSteps`/`SendStepsNonBlocking` channel sends, the `LiveBeadFractions` live-wire
+read that builds `pulses`, the `m.tr.Breadcrumb` send, the `m.reconcileBeadChain` call and
+the read of its returned snapshot into `resolved`/`resolvedValid`, and appending each phase's
+returned slices.
 
-**Declined, by mechanism, not by category:**
+**(a)/(b) classification of the original 265-line loop body (lines 122–386 of the
+pre-decomposition file), by statement group:**
 
-- `chainBeads()` itself (the placement-loop entry point) — impure: sends on a channel via
-  `m.outs.outWireOuts[i].PublishSteps(count)` and `stepdeliver.SendStepsNonBlocking`, reads
-  `m.clocks.clk.Tick()` (external goroutine-owned clock state), calls
-  `m.tr.Breadcrumb(...)` (send on the trace channel), and calls `m.reconcileBeadChain` (see
-  below, itself impure) when `m.beads.beadTickFn != nil`. A function with four independent
-  side-effecting calls in its body is not a computed-result function regardless of what its
-  signature says.
-- `reconcileBeadChain` (`bead_chain.go`) — writes the unexported field
-  `m.beads.beadChains` (a map) by direct assignment/mutation, starts goroutines
-  (`beadchain.NewBead(...).Start()`), closes channels (`close(c.stops[i])`), and calls
-  `c.group.BroadcastGeometry(...)` (a channel-based broadcast). Exporting
-  `beadChains` to let an outside package write it would delete the single-writer
-  enforcement `node_geometry.go` already documents for `nodeGeometry`'s mutable fields.
+| statement group | lines (approx) | bucket |
+|---|---|---|
+| `partnerCenters`/`neighborKinds` lookups + skip | 122–135 | (a) reads `m.*` |
+| `EdgeCenterDistAndDir` + `EdgeStepCount` call | 137–155 | (b) pure (now `ChainEdgeGeometry`) |
+| publish `count` onto `outWireOuts`/`outStepsIn` | 156–174 | (a) channel sends |
+| gather `pulses` from `outWires[i].LiveBeadFractions` | 176–214 | (a) reads live wire state (the `pulse` struct build itself is pure once the wire is read; kept with the read since the read dominates the group) |
+| breadcrumb gate + text formatting | 240–270 | text formatting (b, now `ChainAimBreadcrumbText`); the `if m.tr != nil`/`m.tr.Breadcrumb` framing (a) |
+| `offsetAt`/`aimUnit`/`chainSep` (incl. `ParallelChainOffset`) setup | 278–306 | (b) pure, except the `m.topo.mutualTargets[to]`/`m.geom.SceneCenter`/`m.id` reads that gather its arguments (a) |
+| `beadTickFn` check + `reconcileBeadChain` call | 307–316 | (a) impure (starts/stops actor goroutines) |
+| placeholder-bead loop | 319–344 | (b) pure (now `ChainBeadRows`, given `resolved`/`resolvedValid`) |
+| lit-pulse loop | 345–385 | (b) pure (now `ChainBeadRows`) |
+
+Roughly 190 of the 265 lines (placeholder loop, lit-pulse loop, the geometry/step-count call,
+the breadcrumb text, most of the offset/aim/chainSep setup) were bucket (b) and are now
+lifted; the rest — every channel send, every live-wire/actor read, the `reconcileBeadChain`
+call, and the small `m.*` lookups that gather each phase's arguments — stays in
+`chain_beads.go` because it is a read of node-owned state or a side effect, not because it
+sits in a loop.
+
+**Declined, by mechanism, not by category (unchanged from the first pass):**
+
+- `reconcileBeadChain` (`bead_chain.go`) — writes the unexported field `m.beads.beadChains`
+  (a map) by direct assignment/mutation, starts goroutines (`beadchain.NewBead(...).Start()`),
+  closes channels (`close(c.stops[i])`), and calls `c.group.BroadcastGeometry(...)` (a
+  channel-based broadcast). Exporting `beadChains` to let an outside package write it would
+  delete the single-writer enforcement `node_geometry.go` already documents for
+  `nodeGeometry`'s mutable fields.
 - `startBeadDrag`/`endBeadDrag` — each is one line, `c.group.StartDrag()` /
   `c.group.EndDrag()`, a channel-close operation on the shared `BeadWakeGroup` actor state.
   No computation to lift; the body is the side effect.
@@ -1240,11 +1269,23 @@ the same "chain progress ↔ position" family, and needed no new import cycle.
   own fields; it is actor bookkeeping, not a data type a pure function could take/return
   without also exporting the goroutine-owning fields above.
 
-**LOC:** `chain_beads.go` 391 → 388 lines (net -3: two formula extractions minus their inline
-arithmetic, +1 import). `bead_chain.go` unchanged, 169 lines (nothing moved out of it).
-`nodes/Wiring` non-test top-level `.go` file count: unchanged, 59 (no file moved or
-created; `beadindex` already existed and gained two functions plus doc comments in its
-existing file).
+**LOC:** `chain_beads.go` 391 → 317 lines (was 388 after the first-pass extraction; the
+phase decomposition removed another 71). `beadindex/chain_edge_layout.go`: new file, 122
+lines. `bead_chain.go` unchanged, 169 lines (nothing moved out of it — see the declines
+above). `nodes/Wiring` non-test top-level `.go` file count: unchanged, 59 (no file moved from
+`Wiring`; the new file landed in the already-existing `beadindex` package).
+
+**Verification.** `go build ./...`, `go vet ./...` clean; `go test -race -count=1 ./...`
+passes with no failures and no race across every package. The no-imports-`Wiring` loop
+(`for p in $(go list ./nodes/Wiring/... | grep -v 'nodes/Wiring$'); do go list -deps "$p" |
+grep -qx github.com/dtauraso/wirefold/nodes/Wiring && echo "IMPORTS WIRING: $p"; done`) is
+empty. `tools/network/beads/check-no-sqrt-in-chain-beads.sh` re-run clean. Deliberately broke
+`ChainEdgeGeometry`'s `count` (`+1`) and confirmed 5 of the 7 `TestChainBeads*` tests in
+`chain_beads_geometry_test.go` fail (`TestChainBeadsStayOutsideBothNodes`,
+`TestChainBeadsAlwaysAtLeastOneBead`, `TestChainBeadsCountIsSpanProportional`,
+`TestChainBeadsExactDoubleTangency`, `TestChainBeadsLastBeadOnTargetTorusOffAxis`), then
+restored and confirmed all 7 pass again. No interface, `types`/`common` package, alias shim,
+dot-import, package-level actor global, or `ForTest` hatch was added.
 
 **Verification:** `go build ./...`, `go vet ./...` clean; `go test -race -count=1 ./...`
 passes with no failures (verbatim `ok` for every package, no race reported). The
