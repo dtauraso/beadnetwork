@@ -1,23 +1,26 @@
 // build_load_derive_test.go — closes the load-path coverage gap recorded in
 // docs/planning/movedispatch-decomposition.md ("Coverage gap found, not assumed away"):
-// three build phases (computeReachRadii, computeQuantizedLayout, allocateVectorChannels)
-// were converted to explicit functions and NOTHING in the suite asserted on what they
-// PRODUCE — dropping computeReachRadii/computeQuantizedLayout entirely, or swapping
-// allocateVectorChannels' two return values, passed `go test ./...` unmodified. Each test
-// below was run against its own injected bug and confirmed to fail (see the commit history/
-// task report for the verbatim failure text); this file is the closed hole, not a guess at
-// one.
+// two build phases (computeReachRadii, computeQuantizedLayout — now
+// topoderive.ComputeReachRadii/topoderive.ComputeQuantizedLayout) were converted to
+// explicit functions and NOTHING in the suite asserted on what they PRODUCE — dropping
+// either call entirely passed `go test ./...` unmodified. Each test below was run against
+// its own injected bug and confirmed to fail (see the commit history/task report for the
+// verbatim failure text); this file is the closed hole, not a guess at one.
+//
+// The third test this file used to hold, TestAllocateVectorChannelsKeysSourceOutTargetIn,
+// moved to nodes/Wiring/topoderive/vector_channels_test.go alongside
+// topoderive.AllocateVectorChannels itself — it drove only that pure function plus
+// encoding/json, no MoveDispatch/writeSpecTree/LoadTopology harness, so it did not need
+// to stay in package Wiring.
 
 package Wiring
 
 import (
 	"context"
-	"encoding/json"
 	"math"
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
-	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
@@ -103,48 +106,5 @@ func TestLoadTopologyComputesQuantizedOffsets(t *testing.T) {
 	const tol = 10.0
 	if d := got.Sub(wantCenter).Length(); d > tol {
 		t.Fatalf("node 2 quantOffset derives to %+v, want close to %+v (scene-polar center); off by %v > tol %v", got, wantCenter, d, tol)
-	}
-}
-
-// TestAllocateVectorChannelsKeysSourceOutTargetIn pins allocateVectorChannels' two return
-// maps against being swapped: the edge's SOURCE node id must key into vectorOutByNode
-// (its own send end) and the TARGET node id must key into vectorInByNode (its own
-// receive end), both holding the SAME underlying channel (one directed channel per
-// edge). Fails under a swap of allocateVectorChannels' two return values: the source id
-// is absent from vectorOutByNode (present in vectorInByNode instead) and vice versa for
-// the target id.
-func TestAllocateVectorChannelsKeysSourceOutTargetIn(t *testing.T) {
-	const specJSON = `{
-	  "nodes": [
-	    {"id":"src","type":"PairNode"},
-	    {"id":"dst","type":"PairNode"}
-	  ],
-	  "edges": [
-	    {"label":"e0","kind":"data","source":"src","sourceHandle":"Out","target":"dst","targetHandle":"In"}
-	  ]
-	}`
-	var spec loadspec.TopoSpec
-	if err := json.Unmarshal([]byte(specJSON), &spec); err != nil {
-		t.Fatalf("parse spec JSON: %v", err)
-	}
-
-	vectorOutByNode, vectorInByNode := allocateVectorChannels(spec)
-
-	outCh, ok := vectorOutByNode["src"]
-	if !ok {
-		t.Fatalf("vectorOutByNode missing edge SOURCE id %q", "src")
-	}
-	inCh, ok := vectorInByNode["dst"]
-	if !ok {
-		t.Fatalf("vectorInByNode missing edge TARGET id %q", "dst")
-	}
-	if outCh != inCh {
-		t.Fatalf("vectorOutByNode[src] and vectorInByNode[dst] are different channels; want the same directed edge channel")
-	}
-	if _, ok := vectorOutByNode["dst"]; ok {
-		t.Fatalf("vectorOutByNode unexpectedly has an entry for the TARGET id %q — source/target keys are swapped", "dst")
-	}
-	if _, ok := vectorInByNode["src"]; ok {
-		t.Fatalf("vectorInByNode unexpectedly has an entry for the SOURCE id %q — source/target keys are swapped", "src")
 	}
 }

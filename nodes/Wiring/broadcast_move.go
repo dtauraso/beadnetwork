@@ -1,14 +1,15 @@
 // broadcast_move.go — fanning an already-applied set of moved node centers to incident
-// edges/partners, and the reach-radius math that rides along with it.
+// edges/partners.
 //
 // Split out of quantized_move.go (god-object decomposition, pure move — no logic
 // changes): kept apart from held-state snapshots, touching-bead resolution, and the
-// commit path itself.
+// commit path itself. The reach-radius math that used to ride along with it
+// (reachRFromPolar) moved to nodes/Wiring/topoderive (a pure derive phase); this
+// package's own callers (commit_node_move.go) now call topoderive.ReachRFromPolar.
 
 package Wiring
 
 import (
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 )
 
@@ -86,24 +87,4 @@ func (lq *layoutQuantizer) broadcastToEdgesAndPartners(mr *moverRegistry, newCen
 		enqueue(partnerID, movemsg.Msg{Kind: movemsg.KindCenter, NodeID: partnerID, Center: nil,
 			SenderID: movedID})
 	}
-}
-
-// reachRFromPolar computes each node's sphere REACH radius (max distance from a node to any
-// node it outputs to) under the given polar positions and edge set. Distance is the spherical
-// law-of-cosines distance between the two polar positions (polarDist) — no cartesian, no vector
-// subtraction. Called by loader.go buildFromSpec and by RootMove so the fanned "center" message
-// carries the new reach radius and the ring stays sized during a drag.
-func reachRFromPolar(polars map[string]geom.Polar, edges []geom.SphereEdge) map[string]float64 {
-	reachR := map[string]float64{}
-	for _, e := range edges {
-		sp, okS := polars[e.Source]
-		tp, okT := polars[e.Target]
-		if !okS || !okT {
-			continue
-		}
-		if d := geom.PolarDist(sp, tp); d > reachR[e.Source] {
-			reachR[e.Source] = d
-		}
-	}
-	return reachR
 }

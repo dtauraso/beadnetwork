@@ -1018,3 +1018,112 @@ generated diff) all clean. `go test -race -count=1 ./...` passes clean, includin
 
 No interface, `types`/`common` package, alias shim, dot-import, package-level actor global,
 or `ForTest` hatch was added.
+
+## 9. Six pure derive phases lifted into `nodes/Wiring/topoderive`
+
+Item 7's decline was scoped to the build cluster's actor-internals reach-ins
+(`md.mr`/`md.lq`/`md.inboxes`/`md.sw`); it explicitly did not cover the pure DERIVE phases
+item 3 had already converted to package-level functions. Re-verified each of the six named
+functions' signature AND body (not just the signature, per this doc's own "grep -v without
+a leading ./" trap and the `md\.owner\b` vs `md\.owner\.` lesson from item 6a) before moving
+anything:
+
+**Moved, confirmed pure** (touch no `md.`, `buildCtx`, or actor type, in body or signature):
+`computeNodeGeometry` → `topoderive.ComputeNodeGeometry` (`geometry.go`),
+`computeQuantizedLayout` → `topoderive.ComputeQuantizedLayout` (`quantized_layout.go`),
+`computeReachRadii` → `topoderive.ComputeReachRadii` (`reach.go`),
+`buildEdgeMaps` → `topoderive.BuildEdgeMaps` (`edge_maps.go`),
+`allocateVectorChannels` → `topoderive.AllocateVectorChannels` (`vector_channels.go`).
+`vec3` (Wiring's `= wire.Vec3` alias) is spelled `wire.Vec3` directly in the new package, per
+this doc's own standing rule against alias shims (items 6c's three prior removals) — no new
+alias file was added.
+
+**`reachRFromPolar` moved too**, alongside `computeReachRadii` (its only load-path caller) —
+`topoderive.ReachRFromPolar`, exported so `nodes/Wiring/commit_node_move.go`'s
+`commitNodeMoveLocal` (a live-drag path staying in `Wiring`, item 4's "same function called
+twice is not the same as redundant") can still call it. One-way import confirmed: `Wiring`
+now imports `topoderive`, `topoderive` imports nothing under `nodes/Wiring/`.
+
+**Stayed, with reason:** `buildTypeMaps` — its signature is pure (`loadspec.TopoSpec` in,
+two plain maps out), but its BODY reads the package-level `Registry` var
+(`node_registry.go`), whose value type `NodeBuilder` is declared in package `Wiring` itself
+(`Build func(..., deps buildDeps) (wire.Node, error)`, closing over the unexported hub type
+`buildDeps`). This is exactly the class the task brief warned the measuring script might
+miss: the SIGNATURE looked identical to the other five, but the BODY closes over a Wiring
+type via a package-level global, not a parameter — moving it would require `topoderive` to
+import `Wiring` (forbidden) or `Wiring` to export `NodeBuilder`'s internals further than
+they already are, for no behavioural gain. `buildEdgeMaps` was already parameterized on
+`buildTypeMaps`' two outputs (`nodeType`, `kindBroadcastPorts` — both plain `map[string]...`
+types), so it moved cleanly while its supplier function did not; `build.go` still calls
+`buildTypeMaps(b.spec)` in `Wiring`, then hands the two plain-map results to
+`topoderive.BuildEdgeMaps(...)`.
+
+**Phase order and mutation visibility verified, not just asserted.** `buildFromSpec`
+(`build.go`) calls the five in the exact same order as before, now qualified:
+`topoderive.ComputeNodeGeometry` → `topoderive.ComputeQuantizedLayout` →
+`topoderive.ComputeReachRadii` → `b.allocateWires()` → `topoderive.AllocateVectorChannels`
+→ `b.buildMoveDispatch()` → `buildTypeMaps` → `topoderive.BuildEdgeMaps` → `b.buildNodes()`
+— no line moved position, only the call target's package qualifier changed.
+`ComputeQuantizedLayout`/`ComputeReachRadii` still take `centers`/`nodeGeoms` as `map[...]`
+parameters and mutate them IN PLACE exactly as their `Wiring`-method predecessors did — Go
+maps are reference types regardless of which package holds the function, so the caller's
+copy in `buildCtx` sees the same writes through the same map identity as before; moving the
+function to a different package changes nothing about that, since the map itself was never
+copied, only passed by its existing reference. Confirmed with three deliberate injections at
+the `build.go` call sites (dropped `topoderive.ComputeReachRadii` call, dropped
+`topoderive.ComputeQuantizedLayout` call, swapped `topoderive.AllocateVectorChannels`'s two
+return values) — each reproduced the exact failure item 3's coverage-gap tests were written
+to catch:
+```
+--- FAIL: TestLoadTopologyComputesReachRadii (0.01s)
+    build_load_derive_test.go:65: node 1 ReachR = 0, want 50 (distance to its edge partner)
+--- FAIL: TestLoadTopologyComputesQuantizedOffsets (0.01s)
+    build_load_derive_test.go:108: node 2 quantOffset derives to {X:0 Y:0 Z:0}, want close to {X:50 ...} (scene-polar center); off by 50 > tol 10
+--- FAIL: TestPairNodeVectorChannelsThreadSourceOutTargetIn (0.00s)
+    vector_channel_threading_test.go:107: source node's (id 1) own VectorOut is nil — source end never wired
+```
+All three restored immediately after observing the failure; `go build ./...`/`go test
+-race -count=1 ./...` clean again.
+
+**Test move.** `build_load_derive_test.go`'s third test,
+`TestAllocateVectorChannelsKeysSourceOutTargetIn`, drove only
+`allocateVectorChannels(spec)` plus `encoding/json` — no `MoveDispatch`/`writeSpecTree`/
+`LoadTopology` harness — so it moved verbatim (same name, same 6 assertions) to
+`nodes/Wiring/topoderive/vector_channels_test.go`. The other two tests in that file
+(`TestLoadTopologyComputesReachRadii`, `TestLoadTopologyComputesQuantizedOffsets`) read
+`md.mr.nodeGeoms` off a real `LoadTopology`, so they stayed in `Wiring` unchanged — this is
+the file SPLIT the task called for, not a weakening (test-name-set before: 3; after: 2 in
+`Wiring` + 1 in `topoderive` = 3, assertion counts unchanged per test).
+`vector_channel_threading_test.go` (external `Wiring_test` package, needs `PairNode`) was
+untouched except for one stale doc-comment line the `check-doc-symbols` guard caught
+(`allocateVectorChannels` → `topoderive.AllocateVectorChannels`).
+
+`nodes/Wiring` non-test `.go` file count: 61 → 59 (`build_geometry.go`, `loader_layout.go`
+deleted outright — each held exactly one moved function and nothing else survived in
+either). `topoderive` gained 5 production files + 1 test file. Exported `Wiring`-package
+symbol count is unaffected in the way this doc's own grep tracks it (none of the five moved
+functions were ever capitalized in `Wiring`, so their departure removes zero from that
+count; `topoderive`'s own exported surface is new but is a DIFFERENT package, matching the
+`scenepersist`/`gesturefsm`/`viewstate` precedent of "export follows the type/function's own
+surface").
+
+Guards re-audited for silent-green risk (glob or unexported-name keying):
+`tools/repo-hygiene/check-no-untracked-source.sh` (glob-based file inventory) DID catch the
+six new files while unstaged — `git add -N` alone would have kept them permanently invisible
+to it, the doc's own instructions call this out by name (`git add -N` is explicitly
+disallowed by the task; real `git add` used instead). `tools/network/doc/check-doc-symbols.sh`
+(name unconfirmed exactly, invoked via `check-doc-symbols` in stop-checks) caught the one
+stale backtick reference to `allocateVectorChannels` left behind in
+`vector_channel_threading_test.go`'s doc comment after the rename — fixed to
+`topoderive.AllocateVectorChannels`. No guard is keyed to `build_geometry.go`/
+`loader_layout.go`/`build_edge_maps.go`/`broadcast_move.go` by filename or to any of the six
+function names (`grep -rl` against `tools/*/*.sh tools/*/*/*.sh` for every function/filename
+above returned empty before this change, confirming there was nothing to re-key).
+
+The no-imports-`Wiring` loop is empty (`for p in $(go list ./nodes/Wiring/... | grep -v
+'nodes/Wiring$'); do go list -deps "$p" | grep -qx github.com/dtauraso/wirefold/nodes/Wiring
+&& echo "IMPORTS WIRING: $p"; done` — no output). `go build ./...`, `go vet ./...` clean;
+`go run ./tools/gen-node-defs` produces no generated diff; `go test -race -count=1 ./...`
+passes clean including the new `nodes/Wiring/topoderive` package. No interface,
+`types`/`common` package, alias shim, dot-import, package-level actor global, or `ForTest`
+hatch was added.

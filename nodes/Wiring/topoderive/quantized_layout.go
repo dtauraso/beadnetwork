@@ -1,25 +1,30 @@
-package Wiring
+// quantized_layout.go — the quantized-layout derive phase, lifted out of
+// nodes/Wiring/loader_layout.go (movedispatch-decomposition.md item 8's class: a pure
+// derive phase that touches no md./buildCtx/actor type).
+package topoderive
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
-// node's quantoffset.QuantizedOffset — the stored quantITheta/quantIPhi/quantIR when ALL THREE are
-// present (a scene saved under this model), otherwise the offset MEASURED from the
-// node's current (pre-quantized) scenePolar-derived center (an old scene, or a node
-// whose scenePolar was hand-authored) — then recomputes every node's world center
-// directly about the scene center (every node independent — no reference/parent) and
-// overwrites b.nodeGeoms/b.centers with the result. Every later phase (reach radii,
-// per-edge arc/segment, the movers seeded in buildMoveDispatch) therefore operates on
-// the composed centers, and md.lq.quantizedLayout defaults to true (buildMoveDispatch) so
-// the live drag path (RootMove) treats this same offset model as authoritative too.
-// computeQuantizedLayout mutates centers and nodeGeoms IN PLACE (both are maps, so the
+// ComputeQuantizedLayout resolves every node's quantoffset.QuantizedOffset — the stored
+// quantITheta/quantIPhi/quantIR when ALL THREE are present (a scene saved under this
+// model), otherwise the offset MEASURED from the node's current (pre-quantized,
+// scenePolar-derived) center (an old scene, or a node whose scenePolar was
+// hand-authored) — then recomputes every node's world center directly about the scene
+// center (every node independent — no reference/parent) and overwrites nodeGeoms/centers
+// with the result. Every later phase (reach radii, per-edge arc/segment, the movers
+// seeded in buildMoveDispatch) therefore operates on the composed centers, and
+// md.lq.quantizedLayout defaults to true (buildMoveDispatch) so the live drag path
+// (RootMove) treats this same offset model as authoritative too.
+// ComputeQuantizedLayout mutates centers and nodeGeoms IN PLACE (both are maps, so the
 // caller's copies are updated directly — there is nothing to additionally return for
 // those two) and returns the per-node quantized offsets it computed.
-func computeQuantizedLayout(spec loadspec.TopoSpec, sphere geom.SceneSphere, centers map[string]vec3, nodeGeoms map[string]nodegeom.NodeGeom) map[string]quantoffset.QuantizedOffset {
+func ComputeQuantizedLayout(spec loadspec.TopoSpec, sphere geom.SceneSphere, centers map[string]wire.Vec3, nodeGeoms map[string]nodegeom.NodeGeom) map[string]quantoffset.QuantizedOffset {
 	ids := make(map[string]bool, len(spec.Nodes))
 	for _, n := range spec.Nodes {
 		ids[n.ID] = true
@@ -113,29 +118,4 @@ func computeQuantizedLayout(spec loadspec.TopoSpec, sphere geom.SceneSphere, cen
 		}
 	}
 	return offsets
-}
-
-// computeReachRadii computes each node's REACH radius (max distance from its
-// center to any node it outputs to) under the loaded centers — non-rooted layout
-// — streamed in NodeGeometry's sphereR field so the TS SphereRing reaches every
-// surface node. Computed before newMoveDispatch so each node/edge mover captures
-// it in its held geom.
-// computeReachRadii mutates nodeGeoms IN PLACE (writing each node's ReachR field), so it
-// has nothing to return.
-func computeReachRadii(spec loadspec.TopoSpec, nodeGeoms map[string]nodegeom.NodeGeom) {
-	edges := make([]geom.SphereEdge, 0, len(spec.Edges))
-	for _, e := range spec.Edges {
-		edges = append(edges, geom.SphereEdge{Source: e.Source, Target: e.Target})
-	}
-	polars := map[string]geom.Polar{}
-	for id, g := range nodeGeoms {
-		if g.HasPos {
-			polars[id] = g.ScenePolar
-		}
-	}
-	for id, r := range reachRFromPolar(polars, edges) {
-		g := nodeGeoms[id]
-		g.ReachR = r
-		nodeGeoms[id] = g
-	}
 }

@@ -2,10 +2,10 @@
 // the only kind that asks for a tilt-vector channel, without an import cycle back into
 // Wiring) closing the third leg of the load-path coverage gap recorded in
 // docs/planning/movedispatch-decomposition.md: buildFromSpec's
-// `b.vectorOutByNode, b.vectorInByNode = allocateVectorChannels(b.spec)` assignment
-// threads through buildNodes -> BuildArgs.VectorOut/VectorIn -> each PairNode's own
-// n.vec.VectorOut/VectorIn, and nothing asserted that threading actually lands each end on
-// the right node. Reads those two unexported-but-otherwise-untouchable fields via
+// `b.vectorOutByNode, b.vectorInByNode = topoderive.AllocateVectorChannels(b.spec)`
+// assignment threads through buildNodes -> BuildArgs.VectorOut/VectorIn -> each PairNode's
+// own n.vec.VectorOut/VectorIn, and nothing asserted that threading actually lands each end
+// on the right node. Reads those two unexported-but-otherwise-untouchable fields via
 // reflection (read-only, before any goroutine is started — LoadTopology never launches one)
 // rather than adding a production accessor.
 package Wiring_test

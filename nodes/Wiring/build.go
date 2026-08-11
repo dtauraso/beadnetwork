@@ -2,11 +2,12 @@
 // graph: node geometry, quantized layout, wire allocation, the MoveDispatch,
 // and the built []wire.Node themselves. buildFromSpec orchestrates the phase
 // helpers (each a method on buildCtx, split into its own file by phase — see
-// build_geometry.go, build_wires.go, build_move_dispatch.go, build_edge_maps.go,
-// build_nodes.go, plus loader_layout.go's computeQuantizedLayout/computeReachRadii)
-// in the same order the original monolithic loader.go function performed them;
-// behavior is unchanged. loader.go's LoadTopology calls buildFromSpec after
-// parsing + validating via topo_spec.go.
+// build_wires.go, build_move_dispatch.go, build_edge_maps.go, build_nodes.go,
+// plus the pure derive phases lifted into nodes/Wiring/topoderive:
+// ComputeNodeGeometry, ComputeQuantizedLayout, ComputeReachRadii, BuildEdgeMaps,
+// AllocateVectorChannels) in the same order the original monolithic loader.go
+// function performed them; behavior is unchanged. loader.go's LoadTopology calls
+// buildFromSpec after parsing + validating via topo_spec.go.
 
 package Wiring
 
@@ -19,6 +20,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
+	"github.com/dtauraso/wirefold/nodes/Wiring/topoderive"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
@@ -106,16 +108,16 @@ type buildCtx struct {
 func buildFromSpec(ctx context.Context, spec loadspec.TopoSpec, tr *T.Trace, clk clock.Clock, sphere geom.SceneSphere, hasScene bool, scenePath string) ([]wire.Node, inputcodec.SlotRegistry, *MoveDispatch, []chan float64, error) {
 	b := &buildCtx{ctx: ctx, spec: spec, tr: tr, clk: clk, sphere: sphere, hasScene: hasScene, scenePath: scenePath}
 
-	b.nodeGeoms, b.centers = computeNodeGeometry(b.spec, b.sphere)
-	b.quantizedOffsets = computeQuantizedLayout(b.spec, b.sphere, b.centers, b.nodeGeoms)
-	computeReachRadii(b.spec, b.nodeGeoms)
+	b.nodeGeoms, b.centers = topoderive.ComputeNodeGeometry(b.spec, b.sphere)
+	b.quantizedOffsets = topoderive.ComputeQuantizedLayout(b.spec, b.sphere, b.centers, b.nodeGeoms)
+	topoderive.ComputeReachRadii(b.spec, b.nodeGeoms)
 	b.allocateWires()
-	b.vectorOutByNode, b.vectorInByNode = allocateVectorChannels(b.spec)
+	b.vectorOutByNode, b.vectorInByNode = topoderive.AllocateVectorChannels(b.spec)
 	if err := b.buildMoveDispatch(); err != nil {
 		return nil, nil, nil, nil, err
 	}
 	b.nodeType, b.kindBroadcastPorts = buildTypeMaps(b.spec)
-	b.inbound, b.outbound, b.outboundHandle = buildEdgeMaps(b.spec, b.nodeType, b.kindBroadcastPorts)
+	b.inbound, b.outbound, b.outboundHandle = topoderive.BuildEdgeMaps(b.spec, b.nodeType, b.kindBroadcastPorts)
 	if err := b.buildNodes(); err != nil {
 		return nil, nil, nil, nil, err
 	}

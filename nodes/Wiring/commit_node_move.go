@@ -14,6 +14,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
+	"github.com/dtauraso/wirefold/nodes/Wiring/topoderive"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
@@ -149,7 +150,7 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(mr *moverRegistry, ui *viewstate.
 	}
 
 	polars[nodeID] = committedPolar
-	reach := reachRFromPolar(polars, edges)
+	reach := topoderive.ReachRFromPolar(polars, edges)
 
 	nm.applyCenter(committedPos, reach[nodeID])
 	lq.broadcastToEdgesAndPartners(mr, map[string]vec3{nodeID: committedPos}, nm.msg.sendMove)
