@@ -6,77 +6,22 @@ package Wiring
 // move_dispatch.go focused on the dispatch registry. There is no goroutine — callers
 // serialize externally (the stdin reader runs in a single goroutine).
 //
-// The viewpoint value is embedded so callers that reach through the field (e.g. tests
-// asserting md.ui.vp.LockedAxis) keep resolving, and the *geom.Viewpoint navigation ops
-// (Orbit/OrbitLocked/Zoom/Pan) promote onto viewpointState.
+// viewpointState itself now lives in nodes/Wiring/gesturefsm (ViewpointState) — lifted out
+// per docs/planning/movedispatch-decomposition.md's "6." section, since it has no
+// dependency on *uiState/*MoveDispatch/*moverRegistry/*layoutQuantizer. This is a plain
+// type alias (same shape as vec_alias.go's `vec3 = wire.Vec3`) so md.ui.vp keeps resolving
+// unqualified, and the *geom.Viewpoint navigation ops (Orbit/OrbitLocked/Zoom/Pan) still
+// promote onto it. The delegators below (which need md.sw/md.RT to emit the VIEW frame,
+// per the write-then-emit split) stay here.
 
 import (
 	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/gesturefsm"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
-// viewpointState carries the camera viewpoint and its emit/navigation methods.
-type viewpointState struct {
-	geom.Viewpoint
-	// persist, when non-nil, is called with the current viewpoint after every EmitViewpoint
-	// so a gesture-driven change is persisted to camera.json. nil until armed by
-	// MoveDispatch.EnableViewpointPersist (after the startup seed), so the seed's own emit
-	// does not write. Owned by MoveDispatch; the debounce/write live in the persister.
-	persist func(geom.Viewpoint)
-}
-
-// SetViewpoint installs a known camera state without emitting. Used by the "set"
-// viewpoint op to seed the viewpoint from persisted or initial values, followed by
-// EmitViewpoint to broadcast it. Also clears any locked rotation axis from a prior
-// handhold gesture so the next gesture starts fresh.
-func (v *viewpointState) SetViewpoint(pivot vec3, r float64, pos, up geom.Dir) {
-	v.Pivot = pivot
-	v.R = r
-	v.Pos = pos
-	v.Up = up
-	v.LockedAxis = nil
-}
-
-// EmitViewpoint persists the current camera viewpoint state (the VIEW frame carrying it
-// is written by the caller, MoveDispatch.EmitViewpoint below).
-func (v *viewpointState) EmitViewpoint(tr *T.Trace) {
-	// Persist the just-emitted viewpoint (debounced, off the hot path) when armed —
-	// independent of the trace sink. Every gesture viewpoint change (orbit/zoom/pan/home)
-	// flows through EmitViewpoint, so this is the single chokepoint for the write side.
-	if v.persist != nil {
-		v.persist(v.Viewpoint)
-	}
-}
-
-// OrbitViewpoint applies a great-circle orbit (carrying from→to) and runs the persist hook.
-// The caller (MoveDispatch.OrbitViewpoint below) emits the VIEW frame.
-func (v *viewpointState) OrbitViewpoint(from, to geom.Dir, tr *T.Trace) {
-	v.Orbit(from, to)
-	v.EmitViewpoint(tr)
-}
-
-// OrbitLockedViewpoint applies a handhold-constrained orbit: the first call locks the
-// rotation axis from the from→to arc; subsequent calls keep the same axis. The lock is
-// cleared by the next SetViewpoint. Runs the persist hook; the caller emits the frame.
-func (v *viewpointState) OrbitLockedViewpoint(from, to geom.Dir, tr *T.Trace) {
-	v.OrbitLocked(from, to)
-	v.EmitViewpoint(tr)
-}
-
-// ZoomViewpoint scales the orbit radius by factor and runs the persist hook; the caller
-// emits the frame.
-func (v *viewpointState) ZoomViewpoint(factor float64, tr *T.Trace) {
-	v.Zoom(factor)
-	v.EmitViewpoint(tr)
-}
-
-// PanViewpoint slides the orbit pivot by a world delta and runs the persist hook; the
-// caller emits the frame.
-func (v *viewpointState) PanViewpoint(delta vec3, tr *T.Trace) {
-	v.Pan(delta)
-	v.EmitViewpoint(tr)
-}
+type viewpointState = gesturefsm.ViewpointState
 
 // Camera viewpoint API — thin delegators to the owned viewpointState above. SetViewpoint
 // and Viewpoint both have out-of-package callers (runtopology passes md.SetViewpoint as a

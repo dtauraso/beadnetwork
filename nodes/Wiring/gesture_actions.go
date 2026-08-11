@@ -26,13 +26,13 @@ func beginSphereRotation(ui *uiState, heldCenters func() map[string]vec3, ev inp
 	g := &ui.gest
 	vp := ui.vp.Viewpoint
 	pivot := geom.FocusAhead(vp, heldCenters())
-	g.rotPivot = pivot
+	g.RotPivot = pivot
 
 	eye := geom.EyeOf(vp)
 	basis := geom.BasisFromViewpoint(vp.Pos, vp.Up)
-	ndcX, ndcY, _ := geom.ProjectNDC(pivot, eye, basis, ev.Fov, g.rect.aspect())
-	g.rotCx = ((ndcX+1)/2)*g.rect.width + g.rect.left
-	g.rotCy = ((-ndcY+1)/2)*g.rect.height + g.rect.top
+	ndcX, ndcY, _ := geom.ProjectNDC(pivot, eye, basis, ev.Fov, g.Rect.Aspect())
+	g.RotCx = ((ndcX+1)/2)*g.Rect.Width + g.Rect.Left
+	g.RotCy = ((-ndcY+1)/2)*g.Rect.Height + g.Rect.Top
 
 	// Rotate sensitivity is ANCHORED TO THE ON-SCREEN CONTENT-SPHERE RADIUS: pixels-per-radian
 	// scales by csRadius/pivotDist (the sphere's angular size), so a quarter-turn (pi/2) is
@@ -41,11 +41,11 @@ func beginSphereRotation(ui *uiState, heldCenters func() map[string]vec3, ev inp
 	_, csRadius := geom.ContentSphereOf(heldCenters())
 	pivotDist := eye.Sub(pivot).Length()
 	fovRad := ev.Fov * math.Pi / 180
-	rpx := (g.rect.height / 2) / math.Tan(fovRad/2)
+	rpx := (g.Rect.Height / 2) / math.Tan(fovRad/2)
 	if pivotDist > 0 {
 		rpx *= csRadius / pivotDist
 	}
-	g.rotPxPerRad = math.Max(rpx*(2/math.Pi), 1)
+	g.RotPxPerRad = math.Max(rpx*(2/math.Pi), 1)
 }
 
 // updateHover resolves the entity under the pointer from the raycast hit and, WHEN IT
@@ -92,8 +92,8 @@ func (md *MoveDispatch) applyOrbit(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	g := &md.ui.gest
 	vp := md.ui.vp.Viewpoint
 	basis := geom.BasisFromViewpoint(vp.Pos, vp.Up)
-	prev := geom.ScreenToPolar(g.prevX-g.rotCx, g.prevY-g.rotCy, g.rotPxPerRad)
-	curr := geom.ScreenToPolar(ev.X-g.rotCx, ev.Y-g.rotCy, g.rotPxPerRad)
+	prev := geom.ScreenToPolar(g.PrevX-g.RotCx, g.PrevY-g.RotCy, g.RotPxPerRad)
+	curr := geom.ScreenToPolar(ev.X-g.RotCx, ev.Y-g.RotCy, g.RotPxPerRad)
 	prevDir := geom.ToWorldDir(basis, prev)
 	currDir := geom.ToWorldDir(basis, curr)
 	md.ui.OrbitViewpoint(geom.WorldDirToAngles(currDir), geom.WorldDirToAngles(prevDir), tr)
@@ -108,8 +108,8 @@ func (md *MoveDispatch) applyOrbitLocked(ev inputcodec.RawInputMsg, tr *T.Trace)
 	g := &md.ui.gest
 	vp := md.ui.vp.Viewpoint
 	basis := geom.BasisFromViewpoint(vp.Pos, vp.Up)
-	prev := geom.ScreenToPolar(g.prevX-g.rotCx, g.prevY-g.rotCy, g.rotPxPerRad)
-	curr := geom.ScreenToPolar(ev.X-g.rotCx, ev.Y-g.rotCy, g.rotPxPerRad)
+	prev := geom.ScreenToPolar(g.PrevX-g.RotCx, g.PrevY-g.RotCy, g.RotPxPerRad)
+	curr := geom.ScreenToPolar(ev.X-g.RotCx, ev.Y-g.RotCy, g.RotPxPerRad)
 	prevDir := geom.ToWorldDir(basis, prev)
 	currDir := geom.ToWorldDir(basis, curr)
 	md.ui.OrbitLockedViewpoint(geom.WorldDirToAngles(currDir), geom.WorldDirToAngles(prevDir), tr)
@@ -117,8 +117,8 @@ func (md *MoveDispatch) applyOrbitLocked(ev inputcodec.RawInputMsg, tr *T.Trace)
 }
 
 // dragPlaneHit unprojects ev's pointer onto the camera-facing plane through
-// g.dragStartCenter, returning the world-space hit. Shared by commitDragStart (which uses
-// it ONCE to capture g.dragGrabOffset) and applyNodeDragTarget (which uses it every move) so
+// g.DragStartCenter, returning the world-space hit. Shared by commitDragStart (which uses
+// it ONCE to capture g.DragGrabOffset) and applyNodeDragTarget (which uses it every move) so
 // both project against the exact same plane instead of two copies that can drift apart.
 // Returns ok=false when the ray is parallel to the plane or the hit is non-finite.
 func (ui *uiState) dragPlaneHit(ev inputcodec.RawInputMsg) (hit vec3, ok bool) {
@@ -126,14 +126,14 @@ func (ui *uiState) dragPlaneHit(ev inputcodec.RawInputMsg) (hit vec3, ok bool) {
 	vp := ui.vp.Viewpoint
 	eye := geom.EyeOf(vp)
 	basis := geom.BasisFromViewpoint(vp.Pos, vp.Up)
-	nx, ny := g.pixelToNDC(ev.X, ev.Y)
-	dir := geom.RayDirThroughNDC(nx, ny, basis, ev.Fov, g.rect.aspect())
+	nx, ny := g.PixelToNDC(ev.X, ev.Y)
+	dir := geom.RayDirThroughNDC(nx, ny, basis, ev.Fov, g.Rect.Aspect())
 	forward := basis.Pole.Scale(-1) // camera looks along -pole
 	denom := dir.Dot(forward)
 	if denom == 0 {
 		return vec3{}, false
 	}
-	t := g.dragStartCenter.Sub(eye).Dot(forward) / denom
+	t := g.DragStartCenter.Sub(eye).Dot(forward) / denom
 	hit = eye.Add(dir.Scale(t))
 	if math.IsNaN(hit.X) || math.IsInf(hit.X, 0) {
 		return vec3{}, false
@@ -154,7 +154,7 @@ func applyNodeDragTarget(ui *uiState, rootMove func(id string, target vec3) bool
 	if !ok {
 		return false
 	}
-	rootMove(g.dragNode, hit.Add(g.dragGrabOffset))
+	rootMove(g.DragNode, hit.Add(g.DragGrabOffset))
 	return true
 }
 

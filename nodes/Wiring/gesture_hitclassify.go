@@ -19,20 +19,20 @@ var hitClassifiers = map[string]func(md *MoveDispatch, g *gestureState, ev input
 	"handhold": func(md *MoveDispatch, g *gestureState, ev inputcodec.RawInputMsg) {
 		// Handhold grab → axis-locked (constrained) orbit. Freeze the sphere rotation frame
 		// now (mirrors interaction-handlers.ts: beginSphereRotation on a handhold hit).
-		g.handholdDown = true
+		g.HandholdDown = true
 		lq, mr := &md.lq, &md.mr
 		beginSphereRotation(&md.ui, func() map[string]vec3 { return lq.heldCenters(mr) }, ev)
 	},
 	"node": func(md *MoveDispatch, g *gestureState, ev inputcodec.RawInputMsg) {
 		if node, ok := md.RT.NodeFromHit(ev.Hit); ok {
 			if c, ok := md.mr.centerOfNode(node); ok {
-				g.dragNode = node
-				g.dragStartCenter = c
+				g.DragNode = node
+				g.DragStartCenter = c
 			}
 		}
 	},
 	"empty": func(md *MoveDispatch, g *gestureState, ev inputcodec.RawInputMsg) {
-		g.emptyDown = true
+		g.EmptyDown = true
 		lq, mr := &md.lq, &md.mr
 		beginSphereRotation(&md.ui, func() map[string]vec3 { return lq.heldCenters(mr) }, ev)
 	},

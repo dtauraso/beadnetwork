@@ -119,11 +119,11 @@ func (md *MoveDispatch) emitViewFrame(events []wire.RowEvent) {
 	md.sw.viewTick++
 	v := md.ui.vp.Viewpoint
 	sc := md.ui.sceneSphere
-	// dragNodeRow is derived from uiState.lastDraggedNode, NOT the live gest.dragNode:
+	// dragNodeRow is derived from uiState.lastDraggedNode, NOT the live gest.DragNode:
 	// the in-editor "dragging <name>" label must persist across pointerup (show the
 	// LAST-dragged node until a different one is dragged), and lastDraggedNode is the
 	// latch that holds that value (see its doc comment, ui_state.go) — it is set at
-	// the same commitDragStart edge that sets gest.dragNode, but is never cleared back
+	// the same commitDragStart edge that sets gest.DragNode, but is never cleared back
 	// to "" when the drag ends. "" (nothing ever dragged) resolves to -1.
 	dragNodeRow := int32(-1)
 	if md.ui.lastDraggedNode != "" {

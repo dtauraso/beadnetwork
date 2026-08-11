@@ -15,8 +15,8 @@ import (
 // events + breadcrumbs. Fire-and-forget: nothing here triggers delivery.
 func (md *MoveDispatch) HandleRawInput(ev inputcodec.RawInputMsg, slotReg inputcodec.SlotRegistry, tr *T.Trace) {
 	g := &md.ui.gest
-	g.fov = ev.Fov
-	g.rect = gestureRect{left: ev.RectLeft, top: ev.RectTop, width: ev.RectWidth, height: ev.RectHeight}
+	g.Fov = ev.Fov
+	g.Rect = gestureRect{Left: ev.RectLeft, Top: ev.RectTop, Width: ev.RectWidth, Height: ev.RectHeight}
 	if h := rawInputHandlers[ev.Kind]; h != nil {
 		h(md, ev, slotReg, tr)
 	}

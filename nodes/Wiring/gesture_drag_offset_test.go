@@ -68,8 +68,8 @@ func TestGestureDragOffCenterPreservesGrabPoint(t *testing.T) {
 	down := rawEvent("pointerdown", 450, 300) // OFF the node's screen-center projection
 	down.Hit = nodeHit()
 	md.HandleRawInput(down, nil, nil)
-	if md.ui.gest.dragNode != "n" {
-		t.Fatalf("pointerdown on node did not arm dragNode: got %q", md.ui.gest.dragNode)
+	if md.ui.gest.DragNode != "n" {
+		t.Fatalf("pointerdown on node did not arm dragNode: got %q", md.ui.gest.DragNode)
 	}
 
 	hit1, ok := md.ui.dragPlaneHit(rawEvent("pointermove", 480, 300))
@@ -80,8 +80,8 @@ func TestGestureDragOffCenterPreservesGrabPoint(t *testing.T) {
 	move1 := rawEvent("pointermove", 480, 300) // any displacement from (450,300) commits
 	move1.Hit = nodeHit()
 	md.HandleRawInput(move1, nil, nil)
-	if md.ui.gest.phase != gestDragging {
-		t.Fatalf("after slop-cross move: phase=%v want dragging", md.ui.gest.phase)
+	if md.ui.gest.Phase != gestDragging {
+		t.Fatalf("after slop-cross move: phase=%v want dragging", md.ui.gest.Phase)
 	}
 
 	// commitDragStart captured offset = dragStartCenter - hit1 = (0,0,0) - hit1 = -hit1.
@@ -125,8 +125,8 @@ func TestGestureDragCenterGrabUnchanged(t *testing.T) {
 	move1 := rawEvent("pointermove", 400, 300) // screen center → projects exactly onto (0,0,0)
 	move1.Hit = nodeHit()
 	md.HandleRawInput(move1, nil, nil)
-	if md.ui.gest.phase != gestDragging {
-		t.Fatalf("after slop-cross move: phase=%v want dragging", md.ui.gest.phase)
+	if md.ui.gest.Phase != gestDragging {
+		t.Fatalf("after slop-cross move: phase=%v want dragging", md.ui.gest.Phase)
 	}
 	hit1, ok := md.ui.dragPlaneHit(move1)
 	if !ok {

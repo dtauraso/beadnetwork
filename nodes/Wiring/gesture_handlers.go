@@ -28,7 +28,7 @@ func (md *MoveDispatch) gestHome(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	for id := range centers {
 		radius[id] = md.mr.nodeBodyRadius(id)
 	}
-	pivot, r, pos, up, ok := geom.HomeFitPose(centers, radius, ev.Fov, md.ui.gest.rect.aspect())
+	pivot, r, pos, up, ok := geom.HomeFitPose(centers, radius, ev.Fov, md.ui.gest.Rect.Aspect())
 	if !ok {
 		return
 	}
@@ -39,14 +39,14 @@ func (md *MoveDispatch) gestHome(ev inputcodec.RawInputMsg, tr *T.Trace) {
 
 func (md *MoveDispatch) gestPointerDown(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	g := &md.ui.gest
-	g.downX, g.downY = ev.X, ev.Y
-	g.prevX, g.prevY = ev.X, ev.Y
-	g.button = ev.Button
-	g.secondary = ev.Button == 2 // two-finger trackpad tap → always a tap-select
-	g.phase = gestPending
-	g.emptyDown = false
-	g.dragNode = ""
-	g.handholdDown = false
+	g.DownX, g.DownY = ev.X, ev.Y
+	g.PrevX, g.PrevY = ev.X, ev.Y
+	g.Button = ev.Button
+	g.Secondary = ev.Button == 2 // two-finger trackpad tap → always a tap-select
+	g.Phase = gestPending
+	g.EmptyDown = false
+	g.DragNode = ""
+	g.HandholdDown = false
 
 	if h, ok := hitClassifiers[ev.Hit.Kind]; ok {
 		h(md, g, ev)
@@ -55,11 +55,11 @@ func (md *MoveDispatch) gestPointerDown(ev inputcodec.RawInputMsg, tr *T.Trace) 
 
 func (md *MoveDispatch) gestPointerMove(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	g := &md.ui.gest
-	if g.phase == gestIdle {
+	if g.Phase == gestIdle {
 		return
 	}
-	dx := ev.X - g.downX
-	dy := ev.Y - g.downY
+	dx := ev.X - g.DownX
+	dy := ev.Y - g.DownY
 	dist := math.Hypot(dx, dy)
 
 	// Click vs. drag is discriminated by MOVEMENT ITSELF, not a distance threshold: any
@@ -77,17 +77,17 @@ func (md *MoveDispatch) gestPointerMove(ev inputcodec.RawInputMsg, tr *T.Trace) 
 	//
 	// A secondary (two-finger) press never becomes a drag/rotate — it is a tap-select, so
 	// it stays gestPending through any finger drift and resolves on pointer-up.
-	if g.phase == gestPending && dist > 0 && !g.secondary {
+	if g.Phase == gestPending && dist > 0 && !g.Secondary {
 		for _, edge := range commitEdges {
 			if edge.guard(g) {
 				edge.action(md, g, ev, tr)
-				g.phase = edge.to
+				g.Phase = edge.to
 				break
 			}
 		}
 	}
 
-	if apply, ok := applyAction[g.phase]; ok {
+	if apply, ok := applyAction[g.Phase]; ok {
 		apply(md, g, ev, tr)
 	}
 }
@@ -95,24 +95,24 @@ func (md *MoveDispatch) gestPointerMove(ev inputcodec.RawInputMsg, tr *T.Trace) 
 func (md *MoveDispatch) gestPointerUp(ev inputcodec.RawInputMsg, slotReg inputcodec.SlotRegistry, tr *T.Trace) {
 	g := &md.ui.gest
 	switch {
-	case g.phase == gestDragging:
+	case g.Phase == gestDragging:
 		mr, lq, ctx := &md.mr, &md.lq, md.ctx
 		applyNodeDragTarget(&md.ui, func(id string, target vec3) bool { return lq.RootMove(ctx, mr, id, target) }, ev) // final target flush
-	case g.phase == gestHandhold, g.phase == gestRotating:
+	case g.Phase == gestHandhold, g.Phase == gestRotating:
 		// Rotation completed (free or handhold-constrained): nothing to flush.
-	case g.phase == gestPending:
+	case g.Phase == gestPending:
 		// Click → Go-owned selection. A node hit selects it; empty space clears the
 		// selection. md.ui.sel.Selected is the authoritative selection; Select() emits it so the
 		// buffer snapshot marks the node's Selected column.
 		md.applySelect(ev, tr)
 	}
-	wasDragging := g.phase == gestDragging
+	wasDragging := g.Phase == gestDragging
 	// Capture BEFORE reset() clears it (below) — movemsg.KindDragEnd must name the node
-	// that was actually dragged, and reset() zeroes g.dragNode unconditionally.
-	draggedNode := g.dragNode
-	g.reset(&md.ui.vp.Viewpoint)
+	// that was actually dragged, and reset() zeroes g.DragNode unconditionally.
+	draggedNode := g.DragNode
+	g.Reset(&md.ui.vp.Viewpoint)
 	if wasDragging {
-		// The drag just ended: g.dragNode is now "" (cleared by reset above), so the
+		// The drag just ended: g.DragNode is now "" (cleared by reset above), so the
 		// Overlay block's DragNodeRow column must go back to -1 promptly rather than
 		// waiting for the next unrelated view-frame emit. Mirrors commitDragStart's own
 		// emitViewFrame call at drag START.
@@ -142,9 +142,9 @@ func (md *MoveDispatch) gestWheel(ev inputcodec.RawInputMsg, tr *T.Trace) {
 		// the view and threw the cursor off. PanViewpoint translates the whole camera (pivot+eye
 		// ride together); pos/up are unchanged, so the node keeps projecting to the same pixel.
 		// The cursor→node pick is a screen-space selection at the input boundary (projectNDC).
-		mouseNdcX, mouseNdcY := md.ui.gest.pixelToNDC(ev.X, ev.Y)
+		mouseNdcX, mouseNdcY := md.ui.gest.PixelToNDC(ev.X, ev.Y)
 		basis := geom.BasisFromViewpoint(vp.Pos, vp.Up)
-		aspect := md.ui.gest.rect.aspect()
+		aspect := md.ui.gest.Rect.Aspect()
 		target := pivot
 		best := math.Inf(1)
 		for _, c := range md.lq.heldCenters(&md.mr) {
@@ -185,7 +185,7 @@ func (md *MoveDispatch) gestWheel(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	// stays a usable pilot speed at any zoom. The displacement is built in polar; PanViewpoint
 	// translates pivot+eye together with the look direction unchanged. The scene does not move.
 	fovRad := ev.Fov * math.Pi / 180
-	worldPerPixel := (2 * vp.R * math.Tan(fovRad/2)) / md.ui.gest.rect.height
+	worldPerPixel := (2 * vp.R * math.Tan(fovRad/2)) / md.ui.gest.Rect.Height
 	disp := geom.PanDisplacementPolar(vp.Pos, vp.Up, ev.DeltaX, ev.DeltaY, worldPerPixel)
 	md.PanViewpoint(disp, tr)
 	md.emitViewFrame(cameraViewEvent())

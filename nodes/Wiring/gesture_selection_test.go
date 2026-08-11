@@ -104,16 +104,16 @@ func TestGestureSecondaryTapSelectsThroughDrift(t *testing.T) {
 	down.Button = 2
 	down.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(down, nil, nil)
-	if !md.ui.gest.secondary || md.ui.gest.phase != gestPending {
-		t.Fatalf("after secondary down: secondary=%v phase=%v", md.ui.gest.secondary, md.ui.gest.phase)
+	if !md.ui.gest.Secondary || md.ui.gest.Phase != gestPending {
+		t.Fatalf("after secondary down: secondary=%v phase=%v", md.ui.gest.Secondary, md.ui.gest.Phase)
 	}
 	// Finger drift past the slop must NOT convert to drag/rotate — it stays a tap-select.
 	drift := rawEvent("pointermove", 410, 300)
 	drift.Button = 2
 	drift.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(drift, nil, nil)
-	if md.ui.gest.phase != gestPending {
-		t.Fatalf("secondary tap converted out of pending: phase=%v", md.ui.gest.phase)
+	if md.ui.gest.Phase != gestPending {
+		t.Fatalf("secondary tap converted out of pending: phase=%v", md.ui.gest.Phase)
 	}
 	up := rawEvent("pointerup", 410, 300)
 	up.Button = 2
@@ -155,15 +155,15 @@ func TestGesturePressReleaseNoMoveSelects(t *testing.T) {
 	if md.ui.sel.Selected != "N7" {
 		t.Fatalf("selected=%q want N7 after press+release with no move", md.ui.sel.Selected)
 	}
-	if md.ui.gest.phase != gestIdle {
-		t.Fatalf("after click phase=%v want idle", md.ui.gest.phase)
+	if md.ui.gest.Phase != gestIdle {
+		t.Fatalf("after click phase=%v want idle", md.ui.gest.Phase)
 	}
 }
 
 // A secondary (two-finger) press with movement still stays pending and tap-selects on
 // release — it never converts to a drag/rotate no matter how much it moves, unlike the
 // primary-button case pinned above. Regression guard for the movement-commits-a-drag change:
-// the commit guard is `dist > 0 && !g.secondary`, so the secondary check must still gate it.
+// the commit guard is `dist > 0 && !g.Secondary`, so the secondary check must still gate it.
 func TestGestureSecondaryMoveStaysPendingAndTapSelects(t *testing.T) {
 	md := newGestureMD(canonicalViewpoint())
 	md.RT.NodeRowTable = []string{"N7"}
@@ -177,8 +177,8 @@ func TestGestureSecondaryMoveStaysPendingAndTapSelects(t *testing.T) {
 	move.Button = 2
 	move.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(move, nil, nil)
-	if md.ui.gest.phase != gestPending {
-		t.Fatalf("secondary press converted out of pending on move: phase=%v", md.ui.gest.phase)
+	if md.ui.gest.Phase != gestPending {
+		t.Fatalf("secondary press converted out of pending on move: phase=%v", md.ui.gest.Phase)
 	}
 
 	up := rawEvent("pointerup", 401, 300)
@@ -223,8 +223,8 @@ func TestGestureClickNoCameraChange(t *testing.T) {
 	if md.ui.vp.Viewpoint != before {
 		t.Fatalf("click changed camera: %+v != %+v", md.ui.vp.Viewpoint, before)
 	}
-	if md.ui.gest.phase != gestIdle {
-		t.Fatalf("after click phase=%v want idle", md.ui.gest.phase)
+	if md.ui.gest.Phase != gestIdle {
+		t.Fatalf("after click phase=%v want idle", md.ui.gest.Phase)
 	}
 }
 
@@ -238,15 +238,15 @@ func TestGestureOnePixelMoveCommitsToDrag(t *testing.T) {
 	down := rawEvent("pointerdown", 400, 300)
 	down.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(down, nil, nil)
-	if md.ui.gest.phase != gestPending {
-		t.Fatalf("after pointerdown: phase=%v want pending", md.ui.gest.phase)
+	if md.ui.gest.Phase != gestPending {
+		t.Fatalf("after pointerdown: phase=%v want pending", md.ui.gest.Phase)
 	}
 
 	move := rawEvent("pointermove", 401, 300) // 1px displacement, well under the old 6px slop
 	move.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(move, nil, nil)
-	if md.ui.gest.phase != gestDragging {
-		t.Fatalf("after 1px move: phase=%v want dragging (movement itself commits)", md.ui.gest.phase)
+	if md.ui.gest.Phase != gestDragging {
+		t.Fatalf("after 1px move: phase=%v want dragging (movement itself commits)", md.ui.gest.Phase)
 	}
 }
 
@@ -264,7 +264,7 @@ func TestGestureMoveAtPressPointDoesNotCommit(t *testing.T) {
 	same := rawEvent("pointermove", 400, 300) // identical to the press point → zero displacement
 	same.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(same, nil, nil)
-	if md.ui.gest.phase != gestPending {
-		t.Fatalf("after zero-displacement move: phase=%v want still pending (no movement occurred)", md.ui.gest.phase)
+	if md.ui.gest.Phase != gestPending {
+		t.Fatalf("after zero-displacement move: phase=%v want still pending (no movement occurred)", md.ui.gest.Phase)
 	}
 }

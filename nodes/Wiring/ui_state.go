@@ -68,9 +68,10 @@ type uiState struct {
 	// (overlay_state.go). Initialized to defaults by newMoveDispatch (all true).
 	// MoveDispatch exposes thin delegating methods.
 	ov overlayState
-	// gest is the gesture state machine (gesture.go): it consumes raw pointer/wheel input
-	// and produces camera (viewpoint) + topology (node-move) changes. Owned by
-	// MoveDispatch; serialized by the single-goroutine stdin reader. Zero value = idle.
+	// gest is the gesture state machine (gesturefsm.GestureState, aliased as gestureState in
+	// gesture.go): it consumes raw pointer/wheel input and produces camera (viewpoint) +
+	// topology (node-move) changes. Owned by MoveDispatch; serialized by the single-goroutine
+	// stdin reader. Zero value = idle.
 	gest gestureState
 	// sel groups the CURRENTLY-SELECTED (click-select) and CURRENTLY-HOVERED (pointer hover)
 	// UI-only state (selection_state.go) — pure routing-directory-parked UI state, owned by
@@ -100,12 +101,12 @@ type uiState struct {
 	// goroutine (setSelectionUI), which also messages the affected movers.
 	latchedNode string
 	// lastDraggedNode is the id of the most recently DRAG-STARTED node, and (unlike
-	// gest.dragNode) it is NEVER cleared back to "" when a drag ends — it only moves
+	// gest.DragNode) it is NEVER cleared back to "" when a drag ends — it only moves
 	// when a NEW drag starts. This is what the in-editor "dragging <name>" line reads
 	// (via emitViewFrame's dragNodeRow derivation) so that line persists across
 	// pointerup instead of vanishing, showing the LAST-dragged node until a different
 	// one is dragged. Mutated only by the gesture goroutine, at the same slop-crossing
-	// pending→dragging commit edge that sets gest.dragNode (commitDragStart,
+	// pending→dragging commit edge that sets gest.DragNode (commitDragStart,
 	// gesture_graph.go).
 	lastDraggedNode string
 	// speed is the current playback-speed multiplier (one of the SpeedSlider's six table
@@ -184,8 +185,8 @@ func (ui *uiState) setSelectionUI(edgeMovers map[string]*edgeMover, ctx context.
 // the SCENE CENTRE — the same ray-through-NDC a node drag already unprojects
 // (gesture_actions.go's dragPlaneHit), against a plane that exists whether or not anything
 // was under the pointer. ok=false when the ray is parallel to the plane or the hit is
-// non-finite, which is a refusal rather than a guess at where the node should go. g.fov/
-// g.rect are the last render params the viewport reported: a gesture reads them off the
+// non-finite, which is a refusal rather than a guess at where the node should go. g.Fov/
+// g.Rect are the last render params the viewport reported: a gesture reads them off the
 // event it is handling, but a palette DROP has no event of its own — it arrives as an
 // addressed edit, not raw input — so it uses the ones every pointer move across the canvas
 // has been keeping current.
@@ -193,7 +194,7 @@ func (ui *uiState) dropPointFromNDC(ndcX, ndcY float64) (vec3, bool) {
 	vp := ui.vp.Viewpoint
 	eye := geom.EyeOf(vp)
 	basis := geom.BasisFromViewpoint(vp.Pos, vp.Up)
-	dir := geom.RayDirThroughNDC(ndcX, ndcY, basis, ui.gest.fov, ui.gest.rect.aspect())
+	dir := geom.RayDirThroughNDC(ndcX, ndcY, basis, ui.gest.Fov, ui.gest.Rect.Aspect())
 	forward := basis.Pole.Scale(-1) // camera looks along -pole
 	denom := dir.Dot(forward)
 	if denom == 0 {

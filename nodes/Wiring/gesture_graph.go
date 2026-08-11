@@ -35,7 +35,7 @@ type gestureEdge struct {
 // only effect was a ring-anchor snap that no longer exists).
 var commitEdges = []gestureEdge{
 	{
-		guard: func(g *gestureState) bool { return g.dragNode != "" },
+		guard: func(g *gestureState) bool { return g.DragNode != "" },
 		action: func(md *MoveDispatch, g *gestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
 			mr, ctx := &md.mr, md.ctx
 			commitDragStart(&md.ui, func(id string, msg movemsg.Msg) { sendMove(mr, ctx, id, msg) }, g, ev, tr)
@@ -43,19 +43,19 @@ var commitEdges = []gestureEdge{
 		to: gestDragging,
 	},
 	{
-		guard:  func(g *gestureState) bool { return g.handholdDown },
+		guard:  func(g *gestureState) bool { return g.HandholdDown },
 		action: (*MoveDispatch).commitHandholdStart,
 		to:     gestHandhold,
 	},
 	{
-		guard:  func(g *gestureState) bool { return g.emptyDown },
+		guard:  func(g *gestureState) bool { return g.EmptyDown },
 		action: (*MoveDispatch).commitRotateStart,
 		to:     gestRotating,
 	},
 }
 
 // commitDragStart is the drag-start commit action, copied verbatim from the old
-// gestPointerMove commit switch's `case g.dragNode != ""` arm (minus the phase assignment,
+// gestPointerMove commit switch's `case g.DragNode != ""` arm (minus the phase assignment,
 // which the driver now performs from the edge's `to`). Side-effect order preserved:
 // latch lastDraggedNode → sendMove(DragStart) (arms the dragged node's bead-actor wake,
 // nodeMover.startBeadDrag). The local-polar drag-log reset
@@ -71,7 +71,7 @@ func commitDragStart(ui *uiState, sendMoveFn func(id string, msg movemsg.Msg), g
 	// ray (ok==false) leaves the offset at its zero value, degrading to centre-on-cursor
 	// rather than breaking the drag.
 	if hit, ok := ui.dragPlaneHit(ev); ok {
-		g.dragGrabOffset = g.dragStartCenter.Sub(hit)
+		g.DragGrabOffset = g.DragStartCenter.Sub(hit)
 	}
 	// Re-scope the in-editor drag-log to THIS drag. This is the ONE place a drag
 	// begins (the slop-crossing pending→dragging transition), so it fires exactly
@@ -86,63 +86,63 @@ func commitDragStart(ui *uiState, sendMoveFn func(id string, msg movemsg.Msg), g
 	// comment). Set BEFORE the emitViewFrame call below, so that call's own
 	// dragNodeRow derivation (which reads lastDraggedNode) already reflects this
 	// drag, not the previous one.
-	ui.lastDraggedNode = g.dragNode
+	ui.lastDraggedNode = g.DragNode
 	// Arm the dragged node's OWN bead-actor wake (movemsg.KindDragStart, see
 	// nodeMover.startBeadDrag) at this same slop-crossing edge — the ONE place a drag
 	// begins. Blocking send (sendMove, not lossy): this must not be dropped, same as
 	// the drag/center kinds it rides alongside.
-	sendMoveFn(g.dragNode, movemsg.Msg{Kind: movemsg.KindDragStart, NodeID: g.dragNode})
+	sendMoveFn(g.DragNode, movemsg.Msg{Kind: movemsg.KindDragStart, NodeID: g.DragNode})
 }
 
 // commitHandholdStart is the handhold-constrained-orbit commit action, copied verbatim from
-// the old commit switch's `case g.handholdDown` arm (minus the phase assignment). Side-effect
+// the old commit switch's `case g.HandholdDown` arm (minus the phase assignment). Side-effect
 // order preserved exactly: seed prevX/prevY and smoothX/smoothY from the grab point BEFORE
 // seedOrbitPivot.
 func (md *MoveDispatch) commitHandholdStart(g *gestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
 	// Handhold-constrained orbit: seed prevX/prevY from the GRAB point (downX/downY),
 	// not the slop-crossing point, so the first locked arc is grab→first-move (mirrors
 	// interaction-handlers.ts). Seed the viewpoint about the frozen pivot, then lock.
-	g.prevX, g.prevY = g.downX, g.downY
-	g.smoothX, g.smoothY = g.downX, g.downY
-	md.seedOrbitPivot(g.rotPivot)
+	g.PrevX, g.PrevY = g.DownX, g.DownY
+	g.SmoothX, g.SmoothY = g.DownX, g.DownY
+	md.seedOrbitPivot(g.RotPivot)
 }
 
 // commitRotateStart is the empty-space-rotate commit action, copied verbatim from the old
-// commit switch's `case g.emptyDown` arm (minus the phase assignment). Side-effect order
+// commit switch's `case g.EmptyDown` arm (minus the phase assignment). Side-effect order
 // preserved exactly: seed prevX/prevY and smoothX/smoothY from the CURRENT point BEFORE
 // seedOrbitPivot.
 func (md *MoveDispatch) commitRotateStart(g *gestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
-	g.prevX, g.prevY = ev.X, ev.Y
-	g.smoothX, g.smoothY = ev.X, ev.Y
+	g.PrevX, g.PrevY = ev.X, ev.Y
+	g.SmoothX, g.SmoothY = ev.X, ev.Y
 	// Seed the viewpoint so the orbit pivot is the frozen region-focus (mirrors the
 	// TS sendViewpointSet at rotation start). pos/up/r recompute about the new pivot.
-	md.seedOrbitPivot(g.rotPivot)
+	md.seedOrbitPivot(g.RotPivot)
 }
 
 // applyAction is the Block 2 per-phase apply table, copied verbatim (per-case body) from the
-// old `switch g.phase` in gestPointerMove. A phase with no entry does nothing, matching the
+// old `switch g.Phase` in gestPointerMove. A phase with no entry does nothing, matching the
 // old switch's implicit default (gestIdle, gestPending fell through to nothing).
 var applyAction = map[gesturePhase]func(md *MoveDispatch, g *gestureState, ev inputcodec.RawInputMsg, tr *T.Trace){
 	gestDragging: func(md *MoveDispatch, g *gestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
 		mr, lq, ctx := &md.mr, &md.lq, md.ctx
 		if applyNodeDragTarget(&md.ui, func(id string, target vec3) bool { return lq.RootMove(ctx, mr, id, target) }, ev) {
-			g.prevX, g.prevY = ev.X, ev.Y
+			g.PrevX, g.PrevY = ev.X, ev.Y
 		}
 	},
 	gestRotating: func(md *MoveDispatch, g *gestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
-		g.smoothX += geom.RotSmoothAlpha * (ev.X - g.smoothX)
-		g.smoothY += geom.RotSmoothAlpha * (ev.Y - g.smoothY)
+		g.SmoothX += geom.RotSmoothAlpha * (ev.X - g.SmoothX)
+		g.SmoothY += geom.RotSmoothAlpha * (ev.Y - g.SmoothY)
 		smoothEv := ev
-		smoothEv.X, smoothEv.Y = g.smoothX, g.smoothY
+		smoothEv.X, smoothEv.Y = g.SmoothX, g.SmoothY
 		md.applyOrbit(smoothEv, tr)
-		g.prevX, g.prevY = g.smoothX, g.smoothY
+		g.PrevX, g.PrevY = g.SmoothX, g.SmoothY
 	},
 	gestHandhold: func(md *MoveDispatch, g *gestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
-		g.smoothX += geom.RotSmoothAlpha * (ev.X - g.smoothX)
-		g.smoothY += geom.RotSmoothAlpha * (ev.Y - g.smoothY)
+		g.SmoothX += geom.RotSmoothAlpha * (ev.X - g.SmoothX)
+		g.SmoothY += geom.RotSmoothAlpha * (ev.Y - g.SmoothY)
 		smoothEv := ev
-		smoothEv.X, smoothEv.Y = g.smoothX, g.smoothY
+		smoothEv.X, smoothEv.Y = g.SmoothX, g.SmoothY
 		md.applyOrbitLocked(smoothEv, tr)
-		g.prevX, g.prevY = g.smoothX, g.smoothY
+		g.PrevX, g.PrevY = g.SmoothX, g.SmoothY
 	},
 }

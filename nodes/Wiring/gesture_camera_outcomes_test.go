@@ -18,20 +18,20 @@ func TestGestureEmptyDragOrbits(t *testing.T) {
 
 	down := rawEvent("pointerdown", 400, 300)
 	md.HandleRawInput(down, nil, nil)
-	if md.ui.gest.phase != gestPending || !md.ui.gest.emptyDown {
-		t.Fatalf("after pointerdown: phase=%v emptyDown=%v", md.ui.gest.phase, md.ui.gest.emptyDown)
+	if md.ui.gest.Phase != gestPending || !md.ui.gest.EmptyDown {
+		t.Fatalf("after pointerdown: phase=%v emptyDown=%v", md.ui.gest.Phase, md.ui.gest.EmptyDown)
 	}
 	// Orbit pivot is the content ahead (focusAhead). Empty centers → a point on the view axis a
 	// fixed distance ahead: eye=(0,0,100), forward=(0,0,-1), focusMin=10 → (0,0,90).
-	if !vecClose(md.ui.gest.rotPivot, vec3{X: 0, Y: 0, Z: 90}, 1e-9) {
-		t.Fatalf("rotPivot=%v want focus-ahead (0,0,90)", md.ui.gest.rotPivot)
+	if !vecClose(md.ui.gest.RotPivot, vec3{X: 0, Y: 0, Z: 90}, 1e-9) {
+		t.Fatalf("rotPivot=%v want focus-ahead (0,0,90)", md.ui.gest.RotPivot)
 	}
 
 	// First move past the slop: transitions to rotating and seeds the viewpoint. The first
 	// frame's arc is ~zero (prev==curr), so pose is essentially the seeded one.
 	md.HandleRawInput(rawEvent("pointermove", 420, 300), nil, nil)
-	if md.ui.gest.phase != gestRotating {
-		t.Fatalf("after slop-cross move: phase=%v want rotating", md.ui.gest.phase)
+	if md.ui.gest.Phase != gestRotating {
+		t.Fatalf("after slop-cross move: phase=%v want rotating", md.ui.gest.Phase)
 	}
 	if !vecClose(md.ui.vp.Pivot, vec3{X: 0, Y: 0, Z: 90}, 1e-9) {
 		t.Fatalf("seed pivot=%v want focus-ahead (0,0,90)", md.ui.vp.Pivot)
@@ -55,8 +55,8 @@ func TestGestureEmptyDragOrbits(t *testing.T) {
 	}
 
 	md.HandleRawInput(rawEvent("pointerup", 480, 320), nil, nil)
-	if md.ui.gest.phase != gestIdle {
-		t.Fatalf("after pointerup: phase=%v want idle", md.ui.gest.phase)
+	if md.ui.gest.Phase != gestIdle {
+		t.Fatalf("after pointerup: phase=%v want idle", md.ui.gest.Phase)
 	}
 }
 
@@ -131,12 +131,12 @@ func TestGestureHandholdOrbits(t *testing.T) {
 	down := rawEvent("pointerdown", 400, 300)
 	down.Hit = inputcodec.RawHit{Kind: "handhold"}
 	md.HandleRawInput(down, nil, nil)
-	if !md.ui.gest.handholdDown || md.ui.gest.phase != gestPending {
-		t.Fatalf("after handhold down: handholdDown=%v phase=%v", md.ui.gest.handholdDown, md.ui.gest.phase)
+	if !md.ui.gest.HandholdDown || md.ui.gest.Phase != gestPending {
+		t.Fatalf("after handhold down: handholdDown=%v phase=%v", md.ui.gest.HandholdDown, md.ui.gest.Phase)
 	}
 	md.HandleRawInput(rawEvent("pointermove", 460, 320), nil, nil)
-	if md.ui.gest.phase != gestHandhold {
-		t.Fatalf("phase=%v want handhold", md.ui.gest.phase)
+	if md.ui.gest.Phase != gestHandhold {
+		t.Fatalf("phase=%v want handhold", md.ui.gest.Phase)
 	}
 	rBefore, pivotBefore, posBefore := md.ui.vp.R, md.ui.vp.Pivot, md.ui.vp.Pos
 	md.HandleRawInput(rawEvent("pointermove", 520, 360), nil, nil)
@@ -150,7 +150,7 @@ func TestGestureHandholdOrbits(t *testing.T) {
 		t.Fatalf("handhold orbit did not change pos (stayed %v)", md.ui.vp.Pos)
 	}
 	md.HandleRawInput(rawEvent("pointerup", 520, 360), nil, nil)
-	if md.ui.gest.phase != gestIdle {
-		t.Fatalf("after handhold up phase=%v want idle", md.ui.gest.phase)
+	if md.ui.gest.Phase != gestIdle {
+		t.Fatalf("after handhold up phase=%v want idle", md.ui.gest.Phase)
 	}
 }
