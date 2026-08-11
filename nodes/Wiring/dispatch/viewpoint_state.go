@@ -13,22 +13,16 @@ package dispatch
 // (Orbit/OrbitLocked/Zoom/Pan) still promote onto it. The delegators below (which need
 // md.Sw/md.RT to emit the VIEW frame, per the write-then-emit split) stay here.
 
-import (
-	T "github.com/dtauraso/wirefold/Trace"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
-)
-
 // SetViewpoint/EmitViewpoint delegators were deleted: md.UI is now exported
 // (nodes/Wiring/viewstate.UIState), so runtopology (SetViewpoint's/EmitViewpoint's only
 // out-of-package callers) reaches md.UI.VP.SetViewpoint/md.UI.VP.EmitViewpoint directly —
 // see docs/planning/gesture-actor.md's payoff commit.
 
-// cameraViewEvent is the single Camera event every camera-changing delegator below hands
-// to emitViewFrame. Camera decodes entirely from the VIEW frame's own Camera block (see
-// buffer-log.ts's decodeEventLine "camera" case) — no row identity to resolve.
-func cameraViewEvent() []wire.RowEvent {
-	return []wire.RowEvent{{Kind: T.KindCamera, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}}
-}
+// cameraViewEvent moved to nodes/Wiring/gesture as gesture.CameraViewEvent (§31,
+// docs/planning/movedispatch-decomposition.md) — it is used only by the gesture cluster's
+// camera-changing actions, which moved with it; this package's own viewpoint tests
+// (viewpoint_ops_test.go, viewpoint_bridge_test.go) call gesture.CameraViewEvent()
+// directly rather than duplicating the row shape.
 
 // OrbitViewpoint/OrbitLockedViewpoint/ZoomViewpoint moved onto viewstate.UIState itself
 // (docs/planning/gesture-actor.md's lift) — they are pure promotions onto the owned VP with

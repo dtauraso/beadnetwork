@@ -120,7 +120,7 @@ type EditMsg =
 
 // RAW INPUT (Phase 6, OFF by default behind USE_RAW_INPUT). A single raw pointer/wheel
 // event plus the stateless three.js raycast hit, forwarded fire-and-forget to Go. TS does
-// NOT interpret the gesture — Go's gesture state machine (nodes/Wiring/gesture.go) decides
+// NOT interpret the gesture — Go's gesture state machine (nodes/Wiring/gesture package) decides
 // what the raw event means (orbit / zoom / pan / drag). The hit carries only the
 // rendered ENTITY under the pointer (three.js computes the geometry); topology facts like
 // "is this port already connected?" are Go's to decide, not carried here.

@@ -83,7 +83,7 @@ function armHostReloadWatcher(context: vscode.ExtensionContext): void {
       if (!shouldReloadHost(loadedHash, newHash)) return;
       // NOTE (requirement 5): there is no cheap "a gesture is in flight" signal
       // reachable from the extension host to defer this against. Pointer/drag state
-      // lives entirely in Go's gesture FSM (nodes/Wiring/gesture.go), reached only via
+      // lives entirely in Go's gesture FSM (nodes/Wiring/gesture package), reached only via
       // fire-and-forget raw-input on Go's stdin (CLAUDE.md's bridge surface) — the host
       // never learns whether a drag is mid-flight, so there is nothing here to poll or
       // wait on. Documented as a known rough edge rather than inventing a signal that

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/gesture"
 	"github.com/dtauraso/wirefold/nodes/Wiring/gesturefsm"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
@@ -68,11 +69,11 @@ func TestMoveDispatchViewpointDelegatorsEmit(t *testing.T) {
 	md.UI.VP.SetViewpoint(vec3{}, 100, geom.Dir{Theta: 1.0}, geom.Dir{Theta: 1.5708})
 
 	md.UI.ZoomViewpoint(0.5, tr)
-	md.UI.EmitViewFrame(cameraViewEvent())
+	md.UI.EmitViewFrame(gesture.CameraViewEvent())
 	md.UI.VP.PanViewpoint(vec3{X: 5}, tr)
-	md.UI.EmitViewFrame(cameraViewEvent())
+	md.UI.EmitViewFrame(gesture.CameraViewEvent())
 	md.UI.OrbitViewpoint(geom.Dir{Theta: 1.0, Phi: 0.0}, geom.Dir{Theta: 1.1, Phi: 0.1}, tr)
-	md.UI.EmitViewFrame(cameraViewEvent())
+	md.UI.EmitViewFrame(gesture.CameraViewEvent())
 
 	if n := countCameraEvents(events); n < 3 {
 		t.Fatalf("expected >=3 camera events from delegators, got %d", n)

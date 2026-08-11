@@ -2,44 +2,22 @@ package dispatch
 
 import (
 	T "github.com/dtauraso/wirefold/Trace"
-	"github.com/dtauraso/wirefold/nodes/Wiring/gesturefsm"
+	"github.com/dtauraso/wirefold/nodes/Wiring/gesture"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 )
 
-// gesture_dispatch.go — the FSM's ENTRY POINT and its raw-input-kind dispatch table. The
-// FSM's owned state/types live in gesture.go; the per-event phase handlers this table calls
-// into live in gesture_handlers.go.
+// gesture_dispatch.go — the thin delegator into package gesture (nodes/Wiring/gesture),
+// which owns the FSM's entry point, dispatch table, phase handlers, hit classification, and
+// leaf actions (moved out of this package in §31,
+// docs/planning/movedispatch-decomposition.md). This is now the ONLY gesture-shaped file
+// left in package dispatch: it bundles MoveDispatch's already-exported sub-objects (MR/UI/
+// LQ/RT) plus md.ctx (which stays unexported here — threaded through as an explicit
+// gesture.Deps.Ctx value, not exported as a field) into a gesture.Deps and forwards.
 
 // HandleRawInput is the FSM entry point: one raw pointer/wheel event → gesture state update
 // and (possibly) a camera or topology change. Called by the stdin reader for a
 // type=="raw-input" message. slotReg resolves an edge's destination slot; tr emits camera
 // events + breadcrumbs. Fire-and-forget: nothing here triggers delivery.
 func (md *MoveDispatch) HandleRawInput(ev inputcodec.RawInputMsg, slotReg inputcodec.SlotRegistry, tr *T.Trace) {
-	g := &md.UI.Gest
-	g.Fov = ev.Fov
-	g.Rect = gesturefsm.GestureRect{Left: ev.RectLeft, Top: ev.RectTop, Width: ev.RectWidth, Height: ev.RectHeight}
-	if h := rawInputHandlers[ev.Kind]; h != nil {
-		h(md, ev, slotReg, tr)
-	}
-}
-
-// rawInputHandlers is the flat dispatch table for HandleRawInput: raw-input kind →
-// handler. An unknown kind is a no-op, matching the switch's absent default.
-var rawInputHandlers = map[string]func(md *MoveDispatch, ev inputcodec.RawInputMsg, slotReg inputcodec.SlotRegistry, tr *T.Trace){
-	"pointerdown": func(md *MoveDispatch, ev inputcodec.RawInputMsg, slotReg inputcodec.SlotRegistry, tr *T.Trace) {
-		md.gestPointerDown(ev)
-	},
-	"pointermove": func(md *MoveDispatch, ev inputcodec.RawInputMsg, slotReg inputcodec.SlotRegistry, tr *T.Trace) {
-		md.updateHover(ev)
-		md.gestPointerMove(ev, tr)
-	},
-	"pointerup": func(md *MoveDispatch, ev inputcodec.RawInputMsg, slotReg inputcodec.SlotRegistry, tr *T.Trace) {
-		md.gestPointerUp(ev)
-	},
-	"wheel": func(md *MoveDispatch, ev inputcodec.RawInputMsg, slotReg inputcodec.SlotRegistry, tr *T.Trace) {
-		md.gestWheel(ev, tr)
-	},
-	"home": func(md *MoveDispatch, ev inputcodec.RawInputMsg, slotReg inputcodec.SlotRegistry, tr *T.Trace) {
-		md.gestHome(ev, tr)
-	},
+	gesture.HandleRawInput(gesture.Deps{MR: &md.MR, UI: &md.UI, LQ: &md.LQ, RT: &md.RT, Ctx: md.ctx}, ev, slotReg, tr)
 }

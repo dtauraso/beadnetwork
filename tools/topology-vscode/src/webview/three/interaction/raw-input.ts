@@ -1,7 +1,7 @@
 // raw-input.ts — RAW-INPUT forwarding.
 //
 // The editor forwards RAW pointer/wheel events plus the stateless three.js raycast hit to
-// Go, fire-and-forget; Go's gesture state machine (nodes/Wiring/gesture.go) decides what the
+// Go, fire-and-forget; Go's gesture state machine (nodes/Wiring/gesture package) decides what the
 // input MEANS. TS holds NO gesture state.
 //
 // The raycast + hit classification (three.js hit-testing) live HERE, not in the polar-only

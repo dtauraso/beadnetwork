@@ -12,11 +12,9 @@ import (
 	"context"
 	"sync"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring/edgemover"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/moverreg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeinbox"
-	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 )
 
 // Start launches every mover's goroutine. Thin delegator to md.MR (mover_registry.go);
@@ -49,16 +47,9 @@ func SendTiltEdit(inboxes *nodeinbox.NodeInboxes, ctx context.Context, id string
 	return inboxes.SendTiltEdit(ctx, id, msg)
 }
 
-// setSelectionUI sets the Go-owned selection (node XOR edge, exclusive). Thin delegator to
-// ui.SetSelectionUI (nodes/Wiring/viewstate), binding the two closures it needs in place of
-// the *moverreg.MoverRegistry/edgeMover-map parameters that type cannot name — same
-// bound-func treatment as the gesture cluster
-// (docs/planning/movedispatch-decomposition.md section 6).
-func setSelectionUI(ui *viewstate.UIState, mr *moverreg.MoverRegistry, ctx context.Context, node, edge string) {
-	sendMoveFn := func(id string, msg movemsg.Msg) { SendMove(mr, ctx, id, msg) }
-	sendEdgeSelectFn := func(label string, on bool) { sendEdgeSelect(mr.EdgeMovers(), ctx, label, on) }
-	ui.SetSelectionUI(sendMoveFn, sendEdgeSelectFn, node, edge)
-}
+// setSelectionUI and sendEdgeSelect moved to nodes/Wiring/gesture (§31,
+// docs/planning/movedispatch-decomposition.md) — they were used ONLY by the gesture
+// cluster's applySelect, which moved with them.
 
 // NodeSelfDriven reports whether node id's own geometry is driven by that node's own kind
 // goroutine (task/pair-node-owns-itself, ClaimSelfDrive) rather than a separate NodeMover
@@ -87,21 +78,6 @@ func (md *MoveDispatch) HasNodeMover(id string) bool {
 // delegator to md.MR, kept for the same reason as NodeSelfDriven.
 func (md *MoveDispatch) NodeQuantOffset(id string) (iTheta, iPhi, iR int, ok bool) {
 	return md.MR.NodeQuantOffset(id)
-}
-
-// sendEdgeSelect routes a select/deselect message to one edge's OWN dedicated extIn
-// channel (mirrors sendMove's node counterpart) — the edgeMover sets its OWN selected
-// field on its own goroutine, no shared map. A blocking send with a ctx-cancel escape
-// hatch, same reasoning as sendMove. Moved from viewstate/ui_state.go's old
-// (*uiState).sendEdgeSelect (docs/planning/gesture-actor.md's lift): it needs the
-// edgeMover map, an unexported Wiring type viewstate cannot name, so it stays here and is
-// handed to UIState.SetSelectionUI as a bound func value (setSelectionUI above).
-func sendEdgeSelect(edgeMovers map[string]*edgemover.EdgeMover, ctx context.Context, label string, on bool) {
-	em, ok := edgeMovers[label]
-	if !ok {
-		return
-	}
-	em.Select(ctx, on)
 }
 
 // The OverlayState methods, the OverlayToggles table, DefaultOverlayState, and the

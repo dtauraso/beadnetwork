@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/gesture"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
@@ -67,10 +68,10 @@ func TestOrbitLockedViewpointEmitsCamera(t *testing.T) {
 
 	// First OrbitLockedViewpoint + the caller's emit should write a camera RowEvent.
 	md.UI.OrbitLockedViewpoint(geom.Dir{Theta: 1.0, Phi: 0.0}, geom.Dir{Theta: 1.1, Phi: 0.1}, tr)
-	md.UI.EmitViewFrame(cameraViewEvent())
+	md.UI.EmitViewFrame(gesture.CameraViewEvent())
 	// Second OrbitLockedViewpoint + emit should write another camera RowEvent.
 	md.UI.OrbitLockedViewpoint(geom.Dir{Theta: 1.1, Phi: 0.1}, geom.Dir{Theta: 1.2, Phi: 0.15}, tr)
-	md.UI.EmitViewFrame(cameraViewEvent())
+	md.UI.EmitViewFrame(gesture.CameraViewEvent())
 
 	if n := countCameraEvents(events); n < 2 {
 		t.Fatalf("expected at least 2 camera events, got %d", n)

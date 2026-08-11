@@ -1,6 +1,6 @@
 // viewpoint-bridge.ts — polar frame-convention helpers (Go uses pole = +y).
 //
-// The camera is Go-owned: the gesture FSM (nodes/Wiring/gesture.go) applies every orbit /
+// The camera is Go-owned: the gesture FSM (nodes/Wiring/gesture package) applies every orbit /
 // zoom / pan / set from raw-input IN-PROCESS and streams the resulting pose out in the
 // content buffer. There is NO camera edit on the TS→Go wire — the old sendViewpoint* senders
 // (encodeEditUpdate "camera") were removed with the JSON leaf. What remains here is the
