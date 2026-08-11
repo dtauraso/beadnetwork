@@ -12,6 +12,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
+	"github.com/dtauraso/wirefold/nodes/Wiring/viewpersist"
 )
 
 // TestPersistLatticePointsRoundTrips: schedule a lattice write -> lattice.json carries the
@@ -19,7 +20,7 @@ import (
 func TestPersistLatticePointsRoundTrips(t *testing.T) {
 	root := writeTree(t)
 	md := loadTreeMD(t, root)
-	md.EnableEditPersist(root)
+	viewpersist.EnableEditPersist(&md.Persist, &md.Scenes, &md.MR, root)
 
 	md.Persist.Lattice().Schedule(12)
 

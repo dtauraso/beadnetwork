@@ -32,6 +32,7 @@ import (
 	Bld "github.com/dtauraso/wirefold/nodes/Wiring/build"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/stdinreader"
+	"github.com/dtauraso/wirefold/nodes/Wiring/viewpersist"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -134,7 +135,7 @@ func TestPairNodeSelfDrivePersistsThroughRealReload(t *testing.T) {
 	if len(nodes) != 2 {
 		t.Fatalf("expected 2 built nodes, got %d", len(nodes))
 	}
-	md.EnableEditPersist(root)
+	viewpersist.EnableEditPersist(&md.Persist, &md.Scenes, &md.MR, root)
 
 	for _, id := range []string{"1", "2"} {
 		if !md.MR.NodeSelfDriven(id) {

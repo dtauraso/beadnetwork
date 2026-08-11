@@ -10,6 +10,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/layoutquant"
 	"github.com/dtauraso/wirefold/nodes/Wiring/positionfile"
+	"github.com/dtauraso/wirefold/nodes/Wiring/viewpersist"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
@@ -265,7 +266,7 @@ func TestCommitNodeMoveLocalAddMovesOneBeadBeyondNewBead(t *testing.T) {
 func TestCommitNodeMoveLocalPersistsQuantizedNotRawPolar(t *testing.T) {
 	root := writeTree(t)
 	md := loadTreeMD(t, root)
-	md.EnableEditPersist(root)
+	viewpersist.EnableEditPersist(&md.Persist, &md.Scenes, &md.MR, root)
 	if !md.LQ.QuantizedLayout {
 		t.Fatal("test assumes quantizedLayout is on by default")
 	}

@@ -17,6 +17,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
+	"github.com/dtauraso/wirefold/nodes/Wiring/viewpersist"
 )
 
 // TestApplyUpdateSceneLatticePointsIgnoresInvalidCounts: 0, 3, 25, 65, and -4 must each be
@@ -24,7 +25,7 @@ import (
 func TestApplyUpdateSceneLatticePointsIgnoresInvalidCounts(t *testing.T) {
 	root := writeMinimalTree(t)
 	md := loadMinimalMD(t, root)
-	md.EnableEditPersist(root)
+	viewpersist.EnableEditPersist(&md.Persist, &md.Scenes, &md.MR, root)
 	md.UI.LatticePoints = 24 // known starting value
 
 	for _, bad := range []int{0, 3, 25, 65, -4} {
@@ -45,7 +46,7 @@ func TestApplyUpdateSceneLatticePointsAcceptsValidCounts(t *testing.T) {
 	for _, good := range []int{4, 12, 24, 64} {
 		root := writeMinimalTree(t)
 		md := loadMinimalMD(t, root)
-		md.EnableEditPersist(root)
+		viewpersist.EnableEditPersist(&md.Persist, &md.Scenes, &md.MR, root)
 
 		msg := inputcodec.StdinMsg{Type: "edit", Op: "update", Kind: "scene", Attr: "latticePoints", Num: good}
 		applyUpdate(context.Background(), msg, md, nil, nil)

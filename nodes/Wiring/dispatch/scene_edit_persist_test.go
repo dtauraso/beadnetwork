@@ -17,6 +17,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenecamera"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
+	"github.com/dtauraso/wirefold/nodes/Wiring/viewpersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
@@ -90,7 +91,7 @@ func loadTreeMD(t *testing.T, root string) *dispatch.MoveDispatch {
 func TestPersistOverlaysRoundTrips(t *testing.T) {
 	root := writeTree(t)
 	md := loadTreeMD(t, root)
-	md.EnableEditPersist(root)
+	viewpersist.EnableEditPersist(&md.Persist, &md.Scenes, &md.MR, root)
 
 	// Flip a visible-sense flag off (tori) and the hidden-sense flag on (labelsGlobal off).
 	md.UI.OV.ToggleSceneTori(nil)    // SceneToriVisible: true -> false
@@ -128,11 +129,11 @@ func TestPersistOverlaysRoundTrips(t *testing.T) {
 func TestOverlaysPersistPreservesCamera(t *testing.T) {
 	root := writeTree(t)
 	md := loadTreeMD(t, root)
-	md.EnableViewpointPersist(root)
+	viewpersist.EnableViewpointPersist(&md.Persist, &md.UI, root)
 	md.UI.VP.SetViewpoint(wire.Vec3{X: 1, Y: 2, Z: 3}, 200, geom.Dir{Theta: 0.5, Phi: 1.5}, geom.Dir{Theta: 0.05, Phi: 0.15})
 	md.UI.VP.EmitViewpoint(nil)
 
-	md.EnableEditPersist(root)
+	viewpersist.EnableEditPersist(&md.Persist, &md.Scenes, &md.MR, root)
 
 	md.UI.OV.ToggleSceneTori(nil)
 	md.Persist.Overlays().Schedule(md.UI.OV)

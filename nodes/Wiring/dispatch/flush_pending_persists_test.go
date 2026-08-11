@@ -21,6 +21,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/positionfile"
+	"github.com/dtauraso/wirefold/nodes/Wiring/viewpersist"
 )
 
 // TestMoveDispatchQuantOffsetScheduleWritesThroughEnableEditPersist exercises the
@@ -35,7 +36,7 @@ import (
 func TestMoveDispatchQuantOffsetScheduleWritesThroughEnableEditPersist(t *testing.T) {
 	root := writeTree(t)
 	md := loadTreeMD(t, root)
-	md.EnableEditPersist(root)
+	viewpersist.EnableEditPersist(&md.Persist, &md.Scenes, &md.MR, root)
 
 	nm, ok := md.MR.NodeGeoms()["1"]
 	if !ok {

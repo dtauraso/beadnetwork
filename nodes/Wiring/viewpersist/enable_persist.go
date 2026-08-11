@@ -1,14 +1,19 @@
-package dispatch
+package viewpersist
+
+import (
+	"github.com/dtauraso/wirefold/nodes/Wiring/moverreg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/sceneswitch"
+	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
+)
 
 // EnableViewpointPersist arms gesture-driven camera persistence: every subsequent
 // EmitViewpoint (orbit/zoom/pan/home) writes the current viewpoint to
-// `<topologyPath>/view/camera.json` (nodes/Wiring/camerapersist, via md.Persist —
-// nodes/Wiring/viewpersist). Call AFTER SeedInitialViewpoint so the seed's own emit does
-// not write the loaded/default pose back. Go owns this write (MODEL.md); the old path
-// persists the camera via its own TS scene-save.
-func (md *MoveDispatch) EnableViewpointPersist(topologyPath string) {
-	p := md.Persist.ArmViewpoint(topologyPath)
-	md.UI.VP.Persist = p.Schedule
+// `<topologyPath>/view/camera.json` (nodes/Wiring/camerapersist, via persist). Call AFTER
+// SeedInitialViewpoint so the seed's own emit does not write the loaded/default pose back.
+// Go owns this write (MODEL.md); the old path persists the camera via its own TS scene-save.
+func EnableViewpointPersist(persist *Persisters, ui *viewstate.UIState, topologyPath string) {
+	p := persist.ArmViewpoint(topologyPath)
+	ui.VP.Persist = p.Schedule
 }
 
 // EnableEditPersist arms disk persistence for the FSM-applied topology edits:
@@ -26,22 +31,22 @@ func (md *MoveDispatch) EnableViewpointPersist(topologyPath string) {
 // topologyPath is always the tree root directory — LoadTopology rejects anything else
 // (topo_spec.go) — so it is used directly as root for the per-node/per-port persisters.
 // Call AFTER SeedInitialViewpoint so the seed emits do not write the loaded state back.
-func (md *MoveDispatch) EnableEditPersist(topologyPath string) {
+func EnableEditPersist(persist *Persisters, scenes *sceneswitch.SceneSwitch, mr *moverreg.MoverRegistry, topologyPath string) {
 	root := topologyPath
 	// The LOADED scene's own root, kept so a structural edit (scene_structure.go's node
 	// create/delete) can write into the tree that is actually showing. Every other persister
 	// already closes over a path derived from it; this is the one operation that needs
 	// the root itself, because it creates and removes whole node directories rather than
 	// rewriting one known file.
-	md.Scenes.TreeRoot = root
-	md.Persist.ArmEdit(topologyPath)
+	scenes.TreeRoot = root
+	persist.ArmEdit(topologyPath)
 	// Every node's own mover writes its own position.json/local-polars.json/port-anchor
 	// files — set the tree root on each nodeMover directly rather than routing writes
 	// through a shared MoveDispatch-owned persister (docs/planning/decentralized-
 	// persistence.md "The model"). A plain field write on each mover, done here before
 	// any mover goroutine starts (Start runs after EnableEditPersist in every real call
 	// path), so no synchronization is needed.
-	for _, nm := range md.MR.NodeGeoms() {
+	for _, nm := range mr.NodeGeoms() {
 		nm.SetPersistRoot(root)
 	}
 }

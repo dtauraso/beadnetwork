@@ -5,6 +5,7 @@ import (
 	W "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/distancegroups"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenecamera"
+	"github.com/dtauraso/wirefold/nodes/Wiring/viewpersist"
 )
 
 // loadSceneState installs the saved camera / distance groups / overlays / speed / scene
@@ -42,11 +43,11 @@ func loadSceneState(scenePath string, md *W.MoveDispatch, tr *T.Trace, speedSink
 	// viewpoint (orbit/zoom/pan/home) debounces a write of the current pose back to
 	// <topologyPath>/view/camera.json, so navigate-then-reload round-trips.
 	// Arming after the seed keeps the seed's own emit from persisting the loaded/default pose.
-	md.EnableViewpointPersist(scenePath)
+	viewpersist.EnableViewpointPersist(&md.Persist, &md.UI, scenePath)
 	// Arm disk persistence for the FSM-applied edits (node-drag position, ring-move
 	// anchor) — debounced Go-side read-modify-writes, armed after the seeds so their
 	// own emits do not write loaded state back.
-	md.EnableEditPersist(scenePath)
+	viewpersist.EnableEditPersist(&md.Persist, &md.Scenes, &md.MR, scenePath)
 
 	// Install the scene sphere (persisted, or a content-fit centroid for a fresh
 	// scene) BEFORE launching the movers and the stdin reader. It only needs the

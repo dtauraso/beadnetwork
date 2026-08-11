@@ -13,6 +13,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
+	"github.com/dtauraso/wirefold/nodes/Wiring/viewpersist"
 )
 
 // TestPersistSpeedRoundTrips: schedule a speed write -> speed.json carries the exact
@@ -20,7 +21,7 @@ import (
 func TestPersistSpeedRoundTrips(t *testing.T) {
 	root := writeTree(t)
 	md := loadTreeMD(t, root)
-	md.EnableEditPersist(root)
+	viewpersist.EnableEditPersist(&md.Persist, &md.Scenes, &md.MR, root)
 
 	md.Persist.Speed().Schedule(0.25)
 
@@ -62,7 +63,7 @@ func TestLoadSpeedFallsBackQuietlyWhenMissing(t *testing.T) {
 func TestLoadSpeedSeedsEverySpeedSink(t *testing.T) {
 	root := writeTree(t)
 	md := loadTreeMD(t, root)
-	md.EnableEditPersist(root)
+	viewpersist.EnableEditPersist(&md.Persist, &md.Scenes, &md.MR, root)
 	md.Persist.Speed().Schedule(0.5)
 
 	fresh := loadTreeMD(t, root)

@@ -10,6 +10,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
+	"github.com/dtauraso/wirefold/nodes/Wiring/viewpersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 )
 
@@ -49,7 +50,7 @@ func vpEqual(t *testing.T, gotPivot vec3, gotR float64, gotPos, gotUp geom.Dir, 
 func TestPersistViewpointRoundTrips(t *testing.T) {
 	td := t.TempDir()
 	md := &MoveDispatch{}
-	md.EnableViewpointPersist(td)
+	viewpersist.EnableViewpointPersist(&md.Persist, &md.UI, td)
 
 	wantPivot := vec3{X: 10, Y: 20, Z: 30}
 	wantR := 250.0
@@ -76,7 +77,7 @@ func TestPersistViewpointRoundTrips(t *testing.T) {
 func TestPersistWriteBurstLandsFinalValue(t *testing.T) {
 	td := t.TempDir()
 	md := &MoveDispatch{}
-	md.EnableViewpointPersist(td)
+	viewpersist.EnableViewpointPersist(&md.Persist, &md.UI, td)
 	md.UI.VP.SetViewpoint(vec3{}, 1, geom.Dir{}, geom.Dir{})
 	for i := 0; i < 50; i++ {
 		md.UI.VP.SetViewpoint(vec3{X: float64(i)}, float64(100+i), geom.Dir{Theta: float64(i) * 0.01}, geom.Dir{Phi: float64(i) * 0.02})
@@ -101,7 +102,7 @@ func TestCameraAndOverlaysFilesDoNotClobber(t *testing.T) {
 
 	// Go persists a camera first.
 	md := &MoveDispatch{}
-	md.EnableViewpointPersist(td)
+	viewpersist.EnableViewpointPersist(&md.Persist, &md.UI, td)
 	md.UI.VP.SetViewpoint(vec3{X: 11, Y: 22, Z: 33}, 321, geom.Dir{Theta: 0.5, Phi: 1.5}, geom.Dir{Theta: 0.05, Phi: 0.15})
 	md.UI.VP.EmitViewpoint(nil)
 

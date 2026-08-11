@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/viewpersist"
 )
 
 // frameRecord2 wraps a record body with the [len:u32-LE] transport frame RunStdinReader
@@ -35,7 +36,7 @@ func TestFramedPartialReads(t *testing.T) {
 	pr, pw := io.Pipe()
 	root := writeMinimalTree(t)
 	md := loadMinimalMD(t, root)
-	md.EnableEditPersist(root) // arms overlaysPersist so `save` can write overlays.json
+	viewpersist.EnableEditPersist(&md.Persist, &md.Scenes, &md.MR, root) // arms overlaysPersist so `save` can write overlays.json
 	h := Handlers{
 		ApplyEdit:      func(msg inputcodec.StdinMsg) { ApplyEdit(ctx, msg, md, nil, nil) },
 		HandleRawInput: func(msg inputcodec.StdinMsg) { HandleRawInputMsg(msg, inputcodec.SlotRegistry{}, md, nil) },

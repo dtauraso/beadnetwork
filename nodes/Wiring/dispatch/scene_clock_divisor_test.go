@@ -19,6 +19,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
+	"github.com/dtauraso/wirefold/nodes/Wiring/viewpersist"
 )
 
 // TestEffectiveClockSpeedRingAndPair: the ring's divisor is a no-op; the pair's divides the
@@ -82,7 +83,7 @@ func TestLoadSpeedDoesNotCompoundDivisorAcrossReload(t *testing.T) {
 	root := writeTree(t) // unrecognised fixture path -> divisor 1, but the compounding bug
 	// would show up at ANY divisor since it is about disk storage, not the arithmetic itself.
 	md := loadTreeMD(t, root)
-	md.EnableEditPersist(root)
+	viewpersist.EnableEditPersist(&md.Persist, &md.Scenes, &md.MR, root)
 
 	const userSpeed = 0.5
 	md.Persist.Speed().Schedule(userSpeed)
