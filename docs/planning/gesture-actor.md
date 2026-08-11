@@ -171,3 +171,83 @@ THIRD file, not the moving type's own API, which is the explicit revert conditio
 cycle existed to route around). Full detail, coverage-injection result, and the one
 uncovered gap found (Reset not asserting `DragNode` is cleared) are in
 `docs/planning/movedispatch-decomposition.md`'s "6b." section.
+
+## Step 4 — LIFTED: `uiState`/`overlayState`/the VIEW emitter into `nodes/Wiring/viewstate`
+
+The blocker in Step 3 was never `uiState`'s own field count — it was that `view_stream.go`
+(explicitly out of scope for that task) reached `md.ui.ov.*`/`md.ui.vp`/`md.ui.sceneSphere`
+by field, from a THIRD file. This task named `view_stream.go` in scope and moved it
+alongside `uiState`/`overlayState`, which dissolves that exact objection: the VIEW emitter's
+direct field access is now intra-package.
+
+**Lifted into `nodes/Wiring/viewstate`** (exported, matching `GS`/`RT`/`Scenes`'s "the
+type's own surface" cost): `UIState` (was `uiState`, all 14 fields capitalized),
+`OverlayState` (was `overlayState`, generated — `tools/gen-node-defs/overlay_gen.go` now
+writes `nodes/Wiring/viewstate/overlay_state.go`, confirmed byte-identical against a
+hand-written draft before wiring the generator to it), the VIEW frame packer
+(`ViewFrameBuilder`/`ViewOverlayFlags`/`ViewSceneState`/`EmitViewFrame`/`EmitBreadcrumb`/
+`SetViewStream`), and the VIEW stream's own fd/claim (`viewClaimedStream`, a small
+independent copy of `stream_claim.go`'s `claimedStream` scoped to the VIEW stream's own
+singleton claim — confirmed safe to split, per this doc's own earlier note that `sw.claims`
+was already namespaced `"view:"`/`"node:<id>"`/`"edge:<label>"`). `streamWiring`
+(`stream_wiring.go`) keeps only the node/edge fd directories; its `viewOut`/`viewBuildFrame`/
+`viewTick` fields moved onto `UIState`.
+
+**Two Wiring-only dependencies (`moverRegistry`'s edge-mover map, `*rowtables.RowTables`/
+`DistanceGroupLens`'s `*moverRegistry`) could not follow `EmitViewFrame`/`SetSelectionUI`
+into `viewstate`** — same class of blocker the gesture cluster hit, same fix: bound func
+values. `UIState.SetSelectionUI` takes `sendMove`/`sendEdgeSelect` closures (the edge-send
+logic itself, `sendEdgeSelect`, stays a Wiring package-level func, since it needs
+`map[string]*edgeMover`); `UIState.NodeRowFor`/`UIState.DistanceGroupLensFn` are bound ONCE
+in `newMoveDispatch` (mirroring `ng.msg.sendMove = md.mr.enqueueFor(ng)`), not re-resolved on
+every emit.
+
+**~15 small `*uiState`-typed methods that read only their own fields moved with the type**
+(`SetHoverUI`, `DropPointFromNDC`, `DragPlaneHit` (was `dragPlaneHit`),
+`OrbitViewpoint`/`OrbitLockedViewpoint`/`ZoomViewpoint`, `RefuseStructuralEdit`) — these were
+never blocked by anything but living in the same file as the type; once the type moved, so
+did they, as plain package-boundary moves (not method-syntax-preference conversions).
+
+**Every other `*uiState`-taking function in `Wiring`** (the gesture cluster's
+`beginSphereRotation`/`applyNodeDragTarget`/`commitDragStart`/`setHover`, `distance_groups.go`'s
+three functions, `commitNodeMoveLocal`) had its parameter type updated to
+`*viewstate.UIState` and stayed in `Wiring` — they are entry points/owner-crossing code, not
+part of the moving type's own surface.
+
+**Mechanical breadth, not a new blocker.** ~48 files touched (about half of
+`nodes/Wiring`'s own file count) — every file that read `md.ui.X`/`ui.X`/`overlayState.X` by
+field needed its selector capitalized and, where the value crossed a package boundary, its
+receiver retyped to `*viewstate.UIState`/`viewstate.OverlayState`. No alias shim was used
+(the ninth-shim-then-removed lesson from Step 3's own history, `movedispatch-decomposition.md`
+section "6c."); every call site names the type directly.
+
+**Second commit (the payoff): 3 of the 7 export-blocked `MoveDispatch` methods deleted.**
+`SetViewpoint`, `EmitViewpoint`, `SetViewStream` were one-line forwards to `md.UI.VP.X`/
+`md.UI.X` — with `UI` now exported, their only reason to exist (an unexported field an
+external caller could not reach) was gone. Deleted; `runtopology/scene_state.go`,
+`runtopology/view_stream.go`, and `nodes/Wiring/scenecamera`'s own external test now call
+`md.UI.VP.SetViewpoint`/`md.UI.VP.EmitViewpoint`/`md.UI.SetViewStream` directly.
+`ResolveSceneDistanceGroups`/`LoadOverlays`/`LoadSpeed`/`EnableSceneSwitch` were NOT
+attempted — they live in files outside this task's four-things scope
+(`distance_groups.go`/`scene_overlays_persist.go`/`scene_speed_persist.go`/
+`scene_switch.go`) and each reaches at least one more owner (`persist`, `Scenes`, `scene`
+package helpers) beyond `md.UI`, so deleting their delegators is a separate, unscoped
+measurement. `MoveDispatch` method count: 37 → 35 (exported: 24 → 22).
+`Viewpoint()`/`PanViewpoint()` were kept — neither is one of the 7, and both still have a
+genuine external caller reason recorded earlier in this doc.
+
+**VIEW-stream ownership verified, not assumed.** Read `runtopology/topology_run.go` after
+the change: `wireViewStream` (→ `md.UI.SetViewStream`) still runs at the same line, before
+`emitStartupBreadcrumbs`/`loadSceneState` (→ `md.UI.EmitBreadcrumb`/`md.UI.EmitViewFrame` via
+existing delegators), all still before `startStdinReader` creates the gesture actor. Nothing
+moved between those lines; only the receiver each call routes through changed name
+(`md.SetViewStream` → `md.UI.SetViewStream`), not which goroutine calls it or when.
+
+`go build ./...`, `go vet ./...`, `go test -race -count=1 ./...` clean on both commits; the
+no-imports-`Wiring` loop empty; `go run ./tools/gen-node-defs` no diff.
+`check-refusal-emits-frame.sh` and `check-overlay-flag-name-parity.sh` both had a hardcoded
+path/symbol case (`refuseStructuralEdit(`/`emitViewFrame(` regex, `nodes/Wiring/overlay_gen.go`
+path) that would have gone silently green post-rename — both fixed and each confirmed to
+fail once on purpose (a deliberately dropped `emitViewFrame(nil)` after
+`RefuseStructuralEdit` reproduced `check-refusal-emits-frame.sh`'s exact failure text) before
+being restored clean.

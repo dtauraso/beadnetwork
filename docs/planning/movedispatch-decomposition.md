@@ -691,6 +691,22 @@ channel is what makes `centerOfNode` succeed) so the pointerdown genuinely arms
 `gesture_selection_test.go:175: after click DragNode="N7" want "" (Reset must clear it)` —
 then restored it; `go test -race -count=1 ./nodes/Wiring/...` is clean again.
 
+## 6d. `uiState`/`overlayState`/the VIEW emitter LIFTED — `docs/planning/gesture-actor.md`'s "Step 4"
+
+Superseding 6b/6c's "uiState still does not come free": the blocker there was `view_stream.go`
+reading `md.ui.ov`/`md.ui.vp`/`md.ui.sceneSphere` by field from a THIRD file, out of scope for
+that task. A follow-up task named `view_stream.go` in scope and moved it alongside `uiState`/
+`overlayState` into `nodes/Wiring/viewstate`, which dissolves the objection outright (the
+access is now intra-package). Full detail — what moved, the bound-func treatment for
+`moverRegistry`/`rowtables.RowTables`, the second commit deleting `SetViewpoint`/
+`EmitViewpoint`/`SetViewStream`, VIEW-stream-ownership verification, and guard fixes — is in
+`docs/planning/gesture-actor.md`'s "Step 4" section (that document owns this lift's narrative;
+this entry exists so a reader of THIS doc's "5."/"6."/"6b."/"6c." history sees the outcome
+without switching files). `MoveDispatch` method count 37 → 35; the 7 export-blocked methods
+are now 4 (`ResolveSceneDistanceGroups`/`LoadOverlays`/`LoadSpeed`/`EnableSceneSwitch`),
+each blocked for a genuine reason unrelated to `uiState` (each reaches at least one more
+owner beyond `md.UI`, in a file outside this lift's scope).
+
 ## 6a. Original decline (superseded above, kept as the record of what was measured wrong)
 
 Attempted to lift the nine gesture+view files, `uiState`/`viewpointState`/`gestureState`/
