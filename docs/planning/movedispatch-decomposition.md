@@ -25,6 +25,38 @@ co-locates a file's reader and writer to stop schema drift. That rule governs wr
 ownership, not where a type lives. A schema in its own package that both sides import
 prevents drift better than proximity.
 
+### `layoutQuantizer`'s five `md *MoveDispatch` parameters — pre-existing, now closed
+
+Five `layoutQuantizer` methods (`RootMove`, `commitNodeMoveLocal`, `heldCenters`, `heldEdges`,
+`broadcastToEdgesAndPartners`) took `*MoveDispatch` back as an explicit parameter — an owner
+that had moved off the hub in round 2 but still reached back into it. This was PRE-EXISTING
+from `ff726c63` ("extract layoutQuantizer owner from MoveDispatch"), not introduced by this
+branch, and round 3's "23 stayed" list (reason 1, "calls something that itself needs
+`*MoveDispatch` by signature") explicitly deferred revisiting it. Measured what each actually
+read off `md`: none called a `MoveDispatch` method, only owner fields (`RootMove` → ctx, mr;
+`commitNodeMoveLocal` → mr, ui; `heldCenters`/`heldEdges`/`broadcastToEdgesAndPartners` → mr).
+Converted all five to take those owners directly (plus `dragTouchingBeads`, a package-level
+helper `commitNodeMoveLocal` called that only read `mr`, needed for the conversion to compile
+without smuggling `md` back in). Every call site was in-package (`nodes/Wiring`, including
+tests) — `RootMove` is exported but its receiver field (`md.lq`) is unexported, so no outside
+package could reach it regardless of the method's own export status.
+
+This unblocked 3 of the 5 methods round 3 held back for reason 1: `applyNodeDragTarget`,
+`ApplyDistanceGroupTarget`, `beginSphereRotation` converted to package-level functions
+(`ui`/`mr`/`lq`/`ctx`, no `MoveDispatch` method calls left in their bodies).
+`ApplyDistanceGroupTarget`'s helper `waitForCenterSettle` converted alongside it (read only
+`mr`). `gestHome` and `gestWheel` stay blocked — both still call `md.SetViewpoint`/
+`md.EmitViewpoint`/`md.PanViewpoint`/`md.emitViewFrame` (reason 2, not reason 1).
+
+`MoveDispatch` method count: 40 → 37 (drop of 3). Exported `Wiring`-package symbol count
+unchanged, 162 → 162 (`ApplyDistanceGroupTarget` was already counted via the general
+`^func [A-Z]` pattern only when unbound; as a method it never matched that grep, so
+unexporting it as `applyDistanceGroupTarget` doesn't move the count). No new interfaces,
+`types`/`common` package, or `ForTest` hatch. The per-subpackage no-imports-`Wiring`
+invariant holds (empty loop output). No guard is keyed to these five method names —
+`check-composer-fields.sh` (the one guard textually matching `layoutQuantizer`) checks
+struct field counts, not method signatures, and was re-run clean, unmodified.
+
 ## 2. `MoveDispatch` is still 48 methods across ~19 files (was 88)
 
 Round 4 re-measured the 55 remaining methods for the mechanical criterion (touches at most
