@@ -18,7 +18,7 @@ import (
 func (md *MoveDispatch) SetMsgTap(tap func(destID string, msg movemsg.Msg)) {
 	md.tapToInstall = tap
 	for _, nm := range md.mr.nodeGeoms {
-		nm.msg.tap = tap
+		nm.setMsgTap(tap)
 	}
 }
 

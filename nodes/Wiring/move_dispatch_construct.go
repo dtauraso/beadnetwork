@@ -133,7 +133,7 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 		// read-only directories, safe to read from any goroutine once construction
 		// finishes.
 		selfID := id
-		ng.msg.resolveDest = func(destID string) (func(movemsg.Msg) bool, bool) {
+		resolveDest := func(destID string) (func(movemsg.Msg) bool, bool) {
 			if em, ok := md.mr.edgeMovers[destID]; ok {
 				switch selfID {
 				case em.SrcID():
@@ -150,11 +150,9 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 			}
 			return nil, false
 		}
-		ng.msg.sendMove = md.mr.enqueueFor(ng)
-		ng.msg.tap = md.tapToInstall
-		ng.msg.centerOf = md.mr.centerOfNode
 		ownGeom := ng
-		ng.msg.commitLocal = func(_ string, newPos vec3) { md.lq.commitNodeMoveLocal(&md.mr, &md.UI, ownGeom, newPos) }
+		commitLocal := func(_ string, newPos vec3) { md.lq.commitNodeMoveLocal(&md.mr, &md.UI, ownGeom, newPos) }
+		ng.wireMessaging(resolveDest, md.mr.enqueueFor(ng), md.tapToInstall, md.mr.centerOfNode, commitLocal)
 		md.mr.nodeGeoms[id] = ng
 		// Seed the dispatch goroutine's center mirror from the same load-time geom
 		// (single-threaded setup, before md.Start — no driving goroutine is running yet)
@@ -169,11 +167,8 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 	// along the identical centre line (nodegeom.ParallelChainOffset, nodegeom/port_geometry.go).
 	for src, targets := range geomseeds.MutualPairs(edgeEndpoints) {
 		if nm, ok := md.mr.nodeGeoms[src]; ok {
-			if nm.topo.mutualTargets == nil {
-				nm.topo.mutualTargets = map[string]bool{}
-			}
 			for target := range targets {
-				nm.topo.mutualTargets[target] = true
+				nm.addMutualTarget(target)
 			}
 		}
 	}
@@ -191,12 +186,8 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 		// two directed channels per ordered pair, never a shared inbox.
 		if srcNM, ok := md.mr.nodeGeoms[ep.Source]; ok {
 			if dstNM, ok := md.mr.nodeGeoms[ep.Target]; ok {
-				if _, exists := dstNM.msg.neighborIn[ep.Source]; !exists {
-					dstNM.msg.neighborIn[ep.Source] = make(chan movemsg.Msg, moverInboxDepth)
-				}
-				if _, exists := srcNM.msg.neighborIn[ep.Target]; !exists {
-					srcNM.msg.neighborIn[ep.Target] = make(chan movemsg.Msg, moverInboxDepth)
-				}
+				dstNM.ensureNeighborChannel(ep.Source)
+				srcNM.ensureNeighborChannel(ep.Target)
 			}
 		}
 	}
@@ -214,7 +205,7 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 		// edgeEndpoints — one dedicated channel per adjacent node, both directions).
 		for neighborID := range nm.msg.neighborIn {
 			if other, ok := md.mr.nodeGeoms[neighborID]; ok {
-				nm.topo.partnerCenters[neighborID] = nodegeom.NodeWorldPos(other.geom)
+				nm.seedPartnerCenter(neighborID, nodegeom.NodeWorldPos(other.geom))
 			}
 		}
 	}
@@ -224,7 +215,7 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 	for id, nm := range md.mr.nodeGeoms {
 		for edgeID, em := range md.mr.edgeMovers {
 			if em.SrcID() == id || em.DstID() == id {
-				nm.topo.edgeIDs = append(nm.topo.edgeIDs, edgeID)
+				nm.addEdgeID(edgeID)
 			}
 		}
 	}

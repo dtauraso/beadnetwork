@@ -116,23 +116,16 @@ func (mr *moverRegistry) bind(outSink map[string]*wire.Out, slotReg inputcodec.S
 			// goroutine of its own — that is what "the wire goroutine is removed" means
 			// concretely, and it is why the node can read the fraction without touching
 			// another goroutine's state.
+			// o may be nil if this edge's source handle wasn't found in outSink;
+			// chainBeads then just skips publishing for this edge (it still lays the
+			// chain out — the step count is computed locally either way, see
+			// edgeStepCount). em.SendSteps is the second delivery chainBeads makes
+			// alongside PublishSteps, so the edgeMover's own goroutine (which cannot
+			// read the Out directly — see nodeOuts.outStepsIn's own doc comment) can
+			// revise an in-flight bead's remaining travel against the same freshly
+			// computed count.
 			if srcNM, ok := mr.nodeGeoms[em.SrcID()]; ok {
-				srcNM.outs.outWires = append(srcNM.outs.outWires, pw)
-				srcNM.outs.outWireTargets = append(srcNM.outs.outWireTargets, em.DstID())
-				// Parallel to outWires: the source *Out this edge's step count is
-				// PUBLISHED through (chainBeads calls PublishSteps on it — see
-				// outWireOuts' doc comment). o may be nil if this edge's source handle
-				// wasn't found in outSink; chainBeads then just skips publishing for
-				// this edge (it still lays the chain out — the step count is computed
-				// locally either way, see edgeStepCount).
-				srcNM.outs.outWireOuts = append(srcNM.outs.outWireOuts, o)
-				// Parallel to outWires/outWireOuts: this edge's OWN edgeMover.SendSteps
-				// method (edgemover package's edge_mover.go doc comment) — the second
-				// delivery chainBeads makes alongside PublishSteps, so the edgeMover's
-				// own goroutine (which cannot read the Out directly — see stepsIn's doc
-				// comment) can revise an in-flight bead's remaining travel against the
-				// same freshly computed count.
-				srcNM.outs.outStepsIn = append(srcNM.outs.outStepsIn, em.SendSteps)
+				srcNM.addOutWire(pw, em.DstID(), o, em.SendSteps)
 			}
 		}
 	}

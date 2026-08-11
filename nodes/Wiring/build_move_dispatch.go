@@ -62,19 +62,16 @@ func (b *buildCtx) buildMoveDispatch() error {
 	md.lq.quantizedLayout = scene.SceneUsesQuantizedDrag(b.scenePath)
 	// Per scene as well (scene/scene_tabs.go's CoplanarEdges): each node's own copy, set here on
 	// the single-threaded build path, read afterwards only by that node's own goroutine.
-	if scene.SceneWantsCoplanarEdges(b.scenePath) {
+	coplanarEdges := scene.SceneWantsCoplanarEdges(b.scenePath)
+	upAxis := scene.SceneWantsUpAxis(b.scenePath)
+	if coplanarEdges || upAxis {
 		for _, nm := range md.mr.nodeGeoms {
-			nm.flags.coplanarEdges = true
-		}
-	}
-	if scene.SceneWantsUpAxis(b.scenePath) {
-		for _, nm := range md.mr.nodeGeoms {
-			nm.flags.upAxis = true
+			nm.setSceneFlags(coplanarEdges, upAxis)
 		}
 	}
 	for id, off := range b.quantizedOffsets {
 		if nm, ok := md.mr.nodeGeoms[id]; ok {
-			nm.quantOffset = off
+			nm.setQuantOffset(off)
 		}
 	}
 	// Seed each node's OWN selfKind (specNode.Type), set once at construction.
@@ -85,7 +82,7 @@ func (b *buildCtx) buildMoveDispatch() error {
 		}
 		nm.selfKind = n.Type
 		if n.TopTiltVectorThetaIdx != nil {
-			nm.tilt.topTiltVectorThetaIdx = *n.TopTiltVectorThetaIdx
+			nm.setTopTiltVectorThetaIdx(*n.TopTiltVectorThetaIdx)
 		}
 	}
 	// Seed each node's OWN neighborKinds map — every DIRECT domain-adjacent neighbor id
@@ -103,10 +100,7 @@ func (b *buildCtx) buildMoveDispatch() error {
 		if !ok {
 			return
 		}
-		if nm.topo.neighborKinds == nil {
-			nm.topo.neighborKinds = map[string]string{}
-		}
-		nm.topo.neighborKinds[toID] = kindByID[toID]
+		nm.addNeighborKind(toID, kindByID[toID])
 	}
 	for _, e := range b.spec.Edges {
 		linkNeighborKind(e.Source, e.Target)
@@ -120,7 +114,7 @@ func (b *buildCtx) buildMoveDispatch() error {
 		if !ok {
 			continue
 		}
-		nm.outs.outTargets = append(nm.outs.outTargets, e.Target)
+		nm.addOutTarget(e.Target)
 	}
 	b.md = md
 	return nil
