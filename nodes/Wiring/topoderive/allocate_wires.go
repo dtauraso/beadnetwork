@@ -1,8 +1,16 @@
-// build_wires.go — the wire-allocation phase of buildFromSpec: one *PacedWire per
-// destination port, with each edge's own initial bead-step count and straight-segment
-// endpoints computed alongside it.
-
-package dispatch
+// allocate_wires.go — the wire-allocation phase: one *PacedWire per destination port,
+// with each edge's own initial bead-step count and straight-segment endpoints computed
+// alongside it.
+//
+// Lifted out of nodes/Wiring/dispatch/build_wires.go (docs/planning/movedispatch-
+// decomposition.md §24 — pure move, no logic change): its body already touched only
+// buildCtx's own spec/nodeGeoms/tr fields, never md/mr/lq, so it is the SAME class of pure
+// derive phase as ComputeNodeGeometry/ComputeQuantizedLayout/ComputeReachRadii/
+// BuildEdgeMaps/AllocateVectorChannels already sitting in this package — it was simply not
+// carried over with its siblings in that earlier pass. dispatch's own buildCtx.allocateWires
+// method is gone; buildFromSpec now calls AllocateWires directly and assigns the five
+// results onto buildCtx's own fields itself.
+package topoderive
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
@@ -10,9 +18,11 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
+
+	T "github.com/dtauraso/wirefold/Trace"
 )
 
-// allocateWires allocates one *PacedWire per destination port (one edge per port —
+// AllocateWires allocates one *PacedWire per destination port (one edge per port —
 // fan-in is rejected at parse) and computes each edge's own INITIAL bead-step count
 // (docs/bead-model/bead-lattice.md "The count") and straight-segment endpoints.
 //   - destWire: "destNode.destPort" → *PacedWire (owned by the destination).
@@ -23,18 +33,24 @@ import (
 //     bead's position stream evaluates P(t)=Start+t*(End-Start).
 //
 // All keyed by edge label; consumed by buildNodes when binding the source Out.
-func (b *buildCtx) allocateWires() {
-	destWire := map[string]*wire.PacedWire{}
-	edgeWire := loadspec.WireRegistry{}
-	edgeEndpoints := map[string]inputcodec.EdgeEndpoints{}
-	edgeSteps := map[string]int{}
-	edgeSegments := map[string]wireSegment{}
-	for _, e := range b.spec.Edges {
+func AllocateWires(spec loadspec.TopoSpec, nodeGeoms map[string]nodegeom.NodeGeom, tr *T.Trace) (
+	destWire map[string]*wire.PacedWire,
+	edgeWire loadspec.WireRegistry,
+	edgeEndpoints map[string]inputcodec.EdgeEndpoints,
+	edgeSteps map[string]int,
+	edgeSegments map[string]wire.WireSegment,
+) {
+	destWire = map[string]*wire.PacedWire{}
+	edgeWire = loadspec.WireRegistry{}
+	edgeEndpoints = map[string]inputcodec.EdgeEndpoints{}
+	edgeSteps = map[string]int{}
+	edgeSegments = map[string]wire.WireSegment{}
+	for _, e := range spec.Edges {
 		destKey := e.Target + "." + e.TargetHandle
 		// Segment: node SURFACE to node surface (docs/bead-model/channels-not-ports.md), the GPU
 		// boundary the renderer draws from (nodegeom.EdgeSegment) — no port name feeds this any
 		// more, a port contributes no geometry.
-		srcG, tgtG := b.nodeGeoms[e.Source], b.nodeGeoms[e.Target]
+		srcG, tgtG := nodeGeoms[e.Source], nodeGeoms[e.Target]
 		seg := nodegeom.EdgeSegment(srcG, tgtG)
 		// Steps: the LIVE center-to-center distance between the two nodes, run through
 		// EdgeStepCount (docs/bead-model/bead-lattice.md "The count") — the SAME function and the
@@ -50,7 +66,7 @@ func (b *buildCtx) allocateWires() {
 		// edge. A destKey already present means a fan-in spec slipped past the parser: that
 		// is a build-invariant violation, not a topology to silently share a wire for.
 		if _, exists := destWire[destKey]; exists {
-			panic("allocateWires: two edges target " + destKey + " — validateNoFanIn should have rejected this fan-in at parse")
+			panic("AllocateWires: two edges target " + destKey + " — validateNoFanIn should have rejected this fan-in at parse")
 		}
 		// lattice.DwellTicksPerBead is the ONE canonical dwell-per-step constant
 		// (docs/bead-model/bead-lattice.md "Timing" — uniform pulse speed is now structural,
@@ -59,7 +75,7 @@ func (b *buildCtx) allocateWires() {
 		pw := wire.NewPacedWire(steps, lattice.DwellTicksPerBead)
 		pw.Target = e.Target
 		pw.TargetHandle = e.TargetHandle
-		pw.SetTrace(b.tr)
+		pw.SetTrace(tr)
 		destWire[destKey] = pw
 		edgeWire[e.Label] = pw
 		edgeEndpoints[e.Label] = inputcodec.EdgeEndpoints{
@@ -67,9 +83,5 @@ func (b *buildCtx) allocateWires() {
 			SourceHandle: e.SourceHandle, TargetHandle: e.TargetHandle,
 		}
 	}
-	b.destWire = destWire
-	b.edgeWire = edgeWire
-	b.edgeEndpoints = edgeEndpoints
-	b.edgeSteps = edgeSteps
-	b.edgeSegments = edgeSegments
+	return destWire, edgeWire, edgeEndpoints, edgeSteps, edgeSegments
 }

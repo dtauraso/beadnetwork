@@ -1,13 +1,16 @@
 // build.go — turns an already-parsed and validated topoSpec into the running
 // graph: node geometry, quantized layout, wire allocation, the MoveDispatch,
 // and the built []wire.Node themselves. buildFromSpec orchestrates the phase
-// helpers (each a method on buildCtx, split into its own file by phase — see
-// build_wires.go, build_move_dispatch.go, build_edge_maps.go, build_nodes.go,
-// plus the pure derive phases lifted into nodes/Wiring/topoderive:
-// ComputeNodeGeometry, ComputeQuantizedLayout, ComputeReachRadii, BuildEdgeMaps,
-// AllocateVectorChannels) in the same order the original monolithic loader.go
-// function performed them; behavior is unchanged. loader.go's LoadTopology calls
-// buildFromSpec after parsing + validating via topo_spec.go.
+// helpers — the two remaining ones that genuinely construct/mutate MoveDispatch stay
+// methods on buildCtx, each split into its own file (build_move_dispatch.go,
+// build_nodes.go; kindapi.BuildTypeMaps replaced build_edge_maps.go's buildTypeMaps, §24)
+// — plus the pure derive phases in nodes/Wiring/topoderive: ComputeNodeGeometry,
+// ComputeQuantizedLayout, ComputeReachRadii, BuildEdgeMaps, AllocateVectorChannels, and
+// AllocateWires (moved from buildCtx.allocateWires, §24 — its body never touched md/mr/lq,
+// only spec/nodeGeoms/tr, so it is the same class of pure derive phase as its topoderive
+// siblings and simply hadn't been carried over with them yet). Same order the original
+// monolithic loader.go function performed them; behavior is unchanged. loader.go's
+// LoadTopology calls buildFromSpec after parsing + validating via topo_spec.go.
 
 package dispatch
 
@@ -112,7 +115,7 @@ func buildFromSpec(ctx context.Context, spec loadspec.TopoSpec, tr *T.Trace, clk
 	b.nodeGeoms, b.centers = topoderive.ComputeNodeGeometry(b.spec, b.sphere)
 	b.quantizedOffsets = topoderive.ComputeQuantizedLayout(b.spec, b.sphere, b.centers, b.nodeGeoms)
 	topoderive.ComputeReachRadii(b.spec, b.nodeGeoms)
-	b.allocateWires()
+	b.destWire, b.edgeWire, b.edgeEndpoints, b.edgeSteps, b.edgeSegments = topoderive.AllocateWires(b.spec, b.nodeGeoms, b.tr)
 	b.vectorOutByNode, b.vectorInByNode = topoderive.AllocateVectorChannels(b.spec)
 	if err := b.buildMoveDispatch(); err != nil {
 		return nil, nil, nil, nil, err
