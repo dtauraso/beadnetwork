@@ -1,8 +1,6 @@
 package Wiring
 
 import (
-	"context"
-
 	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
@@ -39,7 +37,8 @@ var commitEdges = []gestureEdge{
 	{
 		guard: func(g *gestureState) bool { return g.dragNode != "" },
 		action: func(md *MoveDispatch, g *gestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
-			commitDragStart(&md.ui, &md.mr, md.ctx, g, ev, tr)
+			mr, ctx := &md.mr, md.ctx
+			commitDragStart(&md.ui, func(id string, msg movemsg.Msg) { sendMove(mr, ctx, id, msg) }, g, ev, tr)
 		},
 		to: gestDragging,
 	},
@@ -63,7 +62,7 @@ var commitEdges = []gestureEdge{
 // (emitViewFrame(KindAbcDragReset) → resetAbcDrag()) that used to run here was deleted
 // with the local-polar model itself (MODEL.md "the polar model") — there is no more
 // per-drag recipient set to re-scope.
-func commitDragStart(ui *uiState, mr *moverRegistry, ctx context.Context, g *gestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
+func commitDragStart(ui *uiState, sendMoveFn func(id string, msg movemsg.Msg), g *gestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
 	// Capture the grab offset ONCE, at this exact slop-crossing commit event: the vector
 	// from where the pointer's ray actually hits the drag plane to the node's center. Every
 	// later move (applyNodeDragTarget) adds this same offset back so the grabbed point
@@ -92,7 +91,7 @@ func commitDragStart(ui *uiState, mr *moverRegistry, ctx context.Context, g *ges
 	// nodeMover.startBeadDrag) at this same slop-crossing edge — the ONE place a drag
 	// begins. Blocking send (sendMove, not lossy): this must not be dropped, same as
 	// the drag/center kinds it rides alongside.
-	sendMove(mr, ctx, g.dragNode, movemsg.Msg{Kind: movemsg.KindDragStart, NodeID: g.dragNode})
+	sendMoveFn(g.dragNode, movemsg.Msg{Kind: movemsg.KindDragStart, NodeID: g.dragNode})
 }
 
 // commitHandholdStart is the handhold-constrained-orbit commit action, copied verbatim from
@@ -125,7 +124,8 @@ func (md *MoveDispatch) commitRotateStart(g *gestureState, ev inputcodec.RawInpu
 // old switch's implicit default (gestIdle, gestPending fell through to nothing).
 var applyAction = map[gesturePhase]func(md *MoveDispatch, g *gestureState, ev inputcodec.RawInputMsg, tr *T.Trace){
 	gestDragging: func(md *MoveDispatch, g *gestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
-		if applyNodeDragTarget(md.ctx, &md.ui, &md.mr, &md.lq, ev) {
+		mr, lq, ctx := &md.mr, &md.lq, md.ctx
+		if applyNodeDragTarget(&md.ui, func(id string, target vec3) bool { return lq.RootMove(ctx, mr, id, target) }, ev) {
 			g.prevX, g.prevY = ev.X, ev.Y
 		}
 	},

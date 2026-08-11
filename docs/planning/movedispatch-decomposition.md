@@ -531,7 +531,61 @@ move with it or the whole thing stays. Measure field-level cross-file access bef
 a lift like this one, the same way `RootMove`/`heldCenters`/`applyNodeDragTarget` etc. were
 measured for method-level calls in round 3.
 
-## 6. Gesture-cluster lift (gesture-actor.md step 3) — probed and declined, exact edge below
+## 6. Gesture-cluster lift (gesture-actor.md step 3) — probed and declined, then the decline itself corrected
+
+**Correction (superseding the decline below without deleting the record).** The decline was
+built on the four cluster functions' SIGNATURES (`beginSphereRotation`/`applyNodeDragTarget`/
+`commitDragStart`/`setHover` take `*moverRegistry`/`*layoutQuantizer`), not on their BODIES.
+Measured: none of the four USES `mr`/`lq` for anything except passing them on to exactly
+three operations — `sendMove(mr, ctx, id, msg)`, `heldCenters(mr)` (via `lq`),
+`RootMove(ctx, mr, id, target)` (via `lq`). That is pure pass-through plumbing, the same
+shape `nodeGeometry` already solves with a bound func value
+(`ng.msg.sendMove = md.mr.enqueueFor(ng)`, `move_dispatch_construct.go:161`). Replaced the
+owner-pointer parameters with bound func values —
+
+```go
+sendMove    func(id string, msg movemsg.Msg)
+heldCenters func() map[string]vec3
+rootMove    func(id string, target vec3) bool
+```
+
+— giving `beginSphereRotation(ui *uiState, heldCenters func() map[string]vec3, ev ...)`,
+`applyNodeDragTarget(ui *uiState, rootMove func(id string, target vec3) bool, ev ...) bool`,
+`commitDragStart(ui *uiState, sendMoveFn func(id string, msg movemsg.Msg), g, ev, tr)`,
+`setHover(ui *uiState, sendMoveFn func(id string, msg movemsg.Msg), RT *rowtables.RowTables, node, port string, isInput bool, tr *T.Trace) (events, changed)`.
+
+No new `MoveDispatch` field: the composer is already at its 12-field cap
+(`check-composer-fields.sh`), so the closures are built INLINE at each of the six call sites
+(`gesture_hitclassify.go` ×2, `gesture_graph.go` ×2, `gesture_handlers.go`, `gesture_actions.go`)
+— e.g. `lq, mr := &md.lq, &md.mr; beginSphereRotation(&md.ui, func() map[string]vec3 { return lq.heldCenters(mr) }, ev)`
+— rather than stored as fields. `ctx` is captured by value at closure-construction time
+(`mr, ctx := &md.mr, md.ctx`), not held live through `md`, matching how `sendMove`/`RootMove`
+already receive `ctx` as an explicit parameter today; since `md.ctx` is set once in `Start`
+and never reassigned, this is behaviourally identical to threading `md.ctx` through, just
+without a `*MoveDispatch`/`*moverRegistry`/`*layoutQuantizer` parameter.
+
+`sendMove`'s send itself is UNCHANGED — still `mr.sendMove(ctx, id, msg)`, the blocking
+send-with-`ctx.Done()`-escape (not `enqueueFor`'s non-blocking flush; those are two different
+`sendMove`s in this codebase and this task's closures wrap the blocking one, exactly as the
+functions did before). `go test -race -count=1 ./...` passes clean. Deliberately dropped the
+`rootMove` closure's return value (`return false` instead of calling `lq.RootMove(...)`) and
+confirmed `TestGestureDragOffCenterPreservesGrabPoint`/`TestGestureDragCenterGrabUnchanged`
+fail, then restored — the binding is covered, not just built.
+
+`grep -nE "\*moverRegistry|\*layoutQuantizer"` across the nine cluster files
+(`gesture.go`, `gesture_actions.go`, `gesture_handlers.go`, `gesture_graph.go`,
+`gesture_hitclassify.go`, `gesture_dispatch.go`, `ui_state.go`, `viewpoint_state.go`,
+`view_stream.go`) is now empty. Exported `Wiring`-package symbol count unchanged, 167 → 167.
+The no-imports-`Wiring` loop is unaffected (still empty; no package moved).
+
+**This does NOT reopen the package lift.** The task was binding only, on purpose — the lift
+itself (moving the nine files + `uiState`/`viewpointState`/`gestureState`/`overlayState` +
+the view-stream half of `streamWiring` into a new package) is a separate, larger change to
+measure fresh, since removing the owner-pointer signatures is a precondition for it but not
+the whole of it (the field-level direct-access entanglement recorded in item 5 for
+`gestureState` is untouched by this pass).
+
+## 6a. Original decline (superseded above, kept as the record of what was measured wrong)
 
 Attempted to lift the nine gesture+view files, `uiState`/`viewpointState`/`gestureState`/
 `overlayState`, and the view-stream half of `streamWiring` into `nodes/Wiring/gestureview`,

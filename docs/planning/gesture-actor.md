@@ -117,16 +117,31 @@ one owner, one writer — the same shape as a `nodeMover`.
 - **If step 2 finds an `emitViewFrame` caller that cannot move to the FSM goroutine**, stop.
   That is a real second writer and the design is wrong as stated.
 
-## Step 3 — probed and declined (measurement, no code written)
+## Step 3 — probed and declined, then the decline corrected (owner-pointer binding done, lift itself still not attempted)
 
-The re-measurement this doc calls for (`## The one real problem`'s closing paragraph) found
-the lift does not go through. Full account and the exact edge are in
-`docs/planning/movedispatch-decomposition.md`'s "6." section. Short version: the gesture
+The re-measurement this doc calls for (`## The one real problem`'s closing paragraph) first
+found the lift does not go through: `docs/planning/movedispatch-decomposition.md`'s "6a."
+section has the original account. Short version of that original finding: the gesture
 files' own package-level helpers (`beginSphereRotation`, `applyNodeDragTarget`,
 `commitDragStart` in the cluster, plus `setSelectionUI`/`sendMove`/`DistanceGroupLens` in
 `move_dispatch_api.go`/`distance_groups.go`, which stay in `Wiring`) take `*moverRegistry`/
 `*layoutQuantizer` — unexported `Wiring` types — as parameters, not just through the three
 read-only accessors (`centerOfNode`, `nodeBodyRadius`, `heldCenters`) the earlier measurement
 named. Those two types cannot be named outside package `Wiring` at all (Go's export rule,
-not a design choice), so the cluster cannot lift while it still needs `mr`/`lq` by pointer.
-`git status --short` was empty throughout; no file was written.
+not a design choice), so the cluster could not lift while it still needed `mr`/`lq` by
+pointer.
+
+**That decline tested the signature, not the body — corrected in
+`docs/planning/movedispatch-decomposition.md`'s "6." section.** None of the four functions
+USES `mr`/`lq` for anything beyond passing them on to `sendMove`, `heldCenters`, and
+`RootMove`. Replaced the owner-pointer parameters with bound func values
+(`sendMove func(id string, msg movemsg.Msg)`, `heldCenters func() map[string]vec3`,
+`rootMove func(id string, target vec3) bool`), the same treatment `nodeGeometry` already
+gets (`ng.msg.sendMove = md.mr.enqueueFor(ng)`). `grep -nE "\*moverRegistry|\*layoutQuantizer"`
+across the nine cluster files is now empty; `go test -race -count=1 ./...` passes.
+
+**The package lift itself is still NOT attempted.** Binding was the whole scope of that
+task, done deliberately so the lift can be measured fresh with the owner-pointer blocker
+actually gone, rather than folded into the same change. `git status --short` was NOT empty
+during this pass (four files touched, one commit); the original probe's "no file written"
+claim applies only to the superseded decline, not to this correction.

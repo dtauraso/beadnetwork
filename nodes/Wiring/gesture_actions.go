@@ -1,7 +1,6 @@
 package Wiring
 
 import (
-	"context"
 	"math"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
@@ -23,10 +22,10 @@ import (
 // camera is most pointed at, at its depth on the view-center ray. So rotate orbits whatever you
 // have flown to and centered (fly to a node → rotate spins around it), the orbit depth tracks
 // what you look at, and — because the pivot is on the view axis — it does not re-aim the camera.
-func beginSphereRotation(ui *uiState, mr *moverRegistry, lq *layoutQuantizer, ev inputcodec.RawInputMsg) {
+func beginSphereRotation(ui *uiState, heldCenters func() map[string]vec3, ev inputcodec.RawInputMsg) {
 	g := &ui.gest
 	vp := ui.vp.Viewpoint
-	pivot := geom.FocusAhead(vp, lq.heldCenters(mr))
+	pivot := geom.FocusAhead(vp, heldCenters())
 	g.rotPivot = pivot
 
 	eye := geom.EyeOf(vp)
@@ -39,7 +38,7 @@ func beginSphereRotation(ui *uiState, mr *moverRegistry, lq *layoutQuantizer, ev
 	// scales by csRadius/pivotDist (the sphere's angular size), so a quarter-turn (pi/2) is
 	// reached by dragging one on-screen content-sphere radius, at every zoom level. Without the
 	// anchor, pi/2 required dragging nearly the full screen height and felt unreachable.
-	_, csRadius := geom.ContentSphereOf(lq.heldCenters(mr))
+	_, csRadius := geom.ContentSphereOf(heldCenters())
 	pivotDist := eye.Sub(pivot).Length()
 	fovRad := ev.Fov * math.Pi / 180
 	rpx := (g.rect.height / 2) / math.Tan(fovRad/2)
@@ -68,7 +67,9 @@ func (md *MoveDispatch) updateHover(ev inputcodec.RawInputMsg, tr *T.Trace) {
 			node = n
 		}
 	}
-	if events, changed := setHover(&md.ui, &md.mr, md.ctx, &md.RT, node, "", false, tr); changed {
+	mr, ctx := &md.mr, md.ctx
+	sendMoveFn := func(id string, msg movemsg.Msg) { sendMove(mr, ctx, id, msg) }
+	if events, changed := setHover(&md.ui, sendMoveFn, &md.RT, node, "", false, tr); changed {
 		md.emitViewFrame(events)
 	}
 }
@@ -147,13 +148,13 @@ func (ui *uiState) dragPlaneHit(ev inputcodec.RawInputMsg) (hit vec3, ok bool) {
 // center straight to the hit — is what keeps the point you grabbed under the cursor instead
 // of the node teleporting so its center lands there. Returns false if the ray is parallel
 // to the plane.
-func applyNodeDragTarget(ctx context.Context, ui *uiState, mr *moverRegistry, lq *layoutQuantizer, ev inputcodec.RawInputMsg) bool {
+func applyNodeDragTarget(ui *uiState, rootMove func(id string, target vec3) bool, ev inputcodec.RawInputMsg) bool {
 	g := &ui.gest
 	hit, ok := ui.dragPlaneHit(ev)
 	if !ok {
 		return false
 	}
-	lq.RootMove(ctx, mr, g.dragNode, hit.Add(g.dragGrabOffset))
+	rootMove(g.dragNode, hit.Add(g.dragGrabOffset))
 	return true
 }
 
@@ -162,14 +163,14 @@ func applyNodeDragTarget(ctx context.Context, ui *uiState, mr *moverRegistry, lq
 // hover RowEvent to emit; the caller (the view-owner goroutine) emits it — this method
 // itself never calls emitViewFrame, per docs/planning/movedispatch-decomposition.md's
 // write-then-emit split.
-func setHover(ui *uiState, mr *moverRegistry, ctx context.Context, RT *rowtables.RowTables, node, port string, isInput bool, tr *T.Trace) (events []wire.RowEvent, changed bool) {
+func setHover(ui *uiState, sendMoveFn func(id string, msg movemsg.Msg), RT *rowtables.RowTables, node, port string, isInput bool, tr *T.Trace) (events []wire.RowEvent, changed bool) {
 	if node == ui.sel.HoverNode && port == ui.sel.HoverPort && isInput == ui.sel.HoverInput {
 		return nil, false // no change → no re-emit (dedupe)
 	}
 	// ui_state.go's setHoverUI is the AUTHORITATIVE write: it sets ui.sel's hover
 	// fields (mutated only by this goroutine) and MESSAGES the affected
 	// node(s) to set their OWN hovered bit — no shared/republished map.
-	ui.setHoverUI(func(id string, msg movemsg.Msg) { sendMove(mr, ctx, id, msg) }, node, port, isInput)
+	ui.setHoverUI(sendMoveFn, node, port, isInput)
 	nodeRow := int32(-1)
 	if r, ok := RT.NodeRowFor(node); ok {
 		nodeRow = r
