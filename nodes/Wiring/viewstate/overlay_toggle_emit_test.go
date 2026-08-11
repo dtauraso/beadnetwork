@@ -1,4 +1,4 @@
-package dispatch
+package viewstate_test
 
 // overlay_toggle_emit_test.go — regression for the bug where ticking an overlay
 // checkbox in the editor flipped the Go-side flag but never told the webview:
@@ -10,6 +10,10 @@ package dispatch
 // ViewOverlayFlags). The applyUpdate/toggle-emits-a-VIEW-frame half moved to
 // nodes/Wiring/stdinreader/dispatch_edit_overlay_test.go (§30,
 // docs/planning/movedispatch-decomposition.md) alongside applyUpdate itself.
+//
+// Moved from nodes/Wiring/dispatch (docs/planning/movedispatch-decomposition.md §36):
+// exercised only viewstate.UIState.SetViewStream/EmitViewFrame, with MoveDispatch used
+// only to wrap a bare UIState field — dropped in favor of a bare *viewstate.UIState.
 
 import (
 	"io"
@@ -32,9 +36,9 @@ import (
 // struct carries exactly as many flags as the vocabulary, and with every flag defaulting
 // ON, every field arrives set — a field left unassigned in emitViewFrame is a 0 here.
 func TestViewFrameCarriesEveryOverlayFlag(t *testing.T) {
-	md := &MoveDispatch{UI: viewstate.UIState{OV: viewstate.DefaultOverlayState()}}
+	ui := &viewstate.UIState{OV: viewstate.DefaultOverlayState()}
 	var got viewstate.ViewOverlayFlags
-	md.UI.SetViewStream(io.Discard, func(tick uint32,
+	ui.SetViewStream(io.Discard, func(tick uint32,
 		camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
 		flags viewstate.ViewOverlayFlags,
 		dragNodeRow int32,
@@ -47,7 +51,7 @@ func TestViewFrameCarriesEveryOverlayFlag(t *testing.T) {
 		got = flags
 		return nil
 	})
-	md.UI.EmitViewFrame(nil)
+	ui.EmitViewFrame(nil)
 
 	rv := reflect.ValueOf(got)
 	if rv.NumField() != len(inputcodec.InOverlayFlags) {
