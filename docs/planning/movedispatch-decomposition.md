@@ -2595,29 +2595,21 @@ renamed into `tiltring`, 4 new files in `tiltring`, 1 deleted (`node_helpers_tes
 moved), 8 docs pages updated, `SPEC.md` updated). `d0501639` — "PairNode tilt lattice and state
 machine moved to tiltring package with their tests".
 
-## §23 — "zero `.go` files directly under `nodes/Wiring/`": measured, not attempted
+## §23 — `nodes/Wiring/` emptied into `nodes/Wiring/dispatch`; `buildDeps` still couples node kinds to it
 
-Asked: empty `nodes/Wiring/*.go` (45 non-test + 49 test files) by moving every one into a
-subpackage, re-pointing all 36 external importers, with node kinds (audience 1) decoupled
-from the dispatch core (`MoveDispatch`) as the single most valuable outcome. No files were
-moved this session — the tree is unchanged (`git status --short` empty, no commits). This
-section records why, and what a staged follow-up needs to know going in.
+The first pass at this section (superseded below) declined the REQUIREMENT — "zero `.go`
+files directly under `nodes/Wiring/`, only subdirectories" — on the grounds that the BONUS
+goal ("node kinds decoupled from the dispatch core") was blocked. The coordinator's
+correction was right: those are two different goals, and CLAUDE.md's own decomposition
+doctrine says explicitly that a genuine cycle may land in ONE package — "It is acceptable
+for one subpackage to be large if the coupling is real; it is NOT acceptable to leave a
+file at the top level." The `buildDeps` finding blocks decoupling; it does not block
+emptying the directory. Both statements are recorded here.
 
-**Measured partition (before any move).** `nodes/Wiring/*.go` non-test, grouped by what
-already coheres:
+### The `buildDeps` finding (still true, kept for the record)
 
-| Candidate package | Files (non-test) |
-|---|---|
-| load/build pipeline | `build.go`, `build_args.go`, `build_args_beads.go`, `build_args_clock.go`, `build_args_lattice.go`, `build_args_ports.go`, `build_args_selfdrive.go`, `build_args_state.go`, `build_args_tilt_vector.go`, `build_edge_maps.go`, `build_nodes.go`, `build_wires.go`, `build_move_dispatch.go`, `loader.go`, `node_registry.go` |
-| dispatch core (`MoveDispatch`/`moverRegistry`) | `move_dispatch.go`, `move_dispatch_api.go`, `move_dispatch_construct.go`, `mover_registry.go`, `commit_node_move.go`, `quantized_move.go`, `broadcast_move.go`, `driven_out.go`, `distance_groups.go`, `touching_beads.go` |
-| gesture FSM | `gesture.go`, `gesture_actions.go`, `gesture_dispatch.go`, `gesture_graph.go`, `gesture_handlers.go`, `gesture_hitclassify.go` |
-| stdin/stream wiring | `stdin_apply.go`, `stdin_dispatch.go`, `stream_wiring.go`, `move_streams.go` |
-| persisters | `move_persist.go`, `scene_lattice_persist.go`, `scene_overlays_persist.go`, `scene_speed_persist.go`, `scene_sphere_persist.go` |
-| scene/view state | `scene_structure.go`, `scene_switch.go`, `viewpoint_state.go` |
-| small/misc | `bool_u8.go`, `vec_alias.go` |
-
-**The blocker, precisely.** `BuildArgs` (`build_args.go`) is the parameter every one of the
-13 node kinds' `Build` functions takes. It embeds:
+`BuildArgs` (`build_args.go`, now `nodes/Wiring/dispatch/build_args.go`) is the parameter
+every one of the 13 node kinds' `Build` functions takes. It embeds:
 
 ```go
 type buildDeps struct {
@@ -2627,53 +2619,180 @@ type buildDeps struct {
 }
 ```
 
-`*moverRegistry` is the exact type `MoveDispatch.mr` holds (`move_dispatch.go`'s `mr
-moverRegistry` field) — the dispatch core's own registry, not a copy or a narrowed view.
-`build_args.go`'s own doc comment names this directly: "buildDeps carries the specific
-pieces of MoveDispatch state ... the Wiring-internal state PortBindings cannot portably
-carry." Two of its three consuming methods (`LatticeIn`/`TiltEditIn`, `ClaimSelfDrive`)
-mutate through these pointers (register this node's own channel in the inboxes map, mark
-this node's own id claimed in `mr`). This is not incidental coupling to prune — it is the
-mechanism by which a node claims its own inbox/self-drive slot in the live registry.
+`*moverRegistry` is the exact type `MoveDispatch.mr` holds — the dispatch core's own
+registry, not a copy or a narrowed view. Two of `buildDeps`'s three consuming methods
+(`LatticeIn`/`TiltEditIn`, `ClaimSelfDrive`) mutate through these pointers (register this
+node's own channel in the inboxes map, mark this node's own id claimed in `mr`). This is
+the mechanism by which a node claims its own inbox/self-drive slot in the live registry, so
+it is not incidental coupling to prune. A kind-API package holding `RegisterBuilder`/
+`BuildArgs`/`Registry`/`BuildRegistry` still has to import wherever `nodeInboxes`/
+`moverRegistry` live to type-check `buildDeps`, and every node kind depends on that
+transitively through `BuildArgs`. Real decoupling needs a narrow exported interface over
+`nodeInboxes`/`moverRegistry` (a design change to the registry's surface) or accepting a
+small, separately-packaged slice of the dispatch core as audience 1's dependency instead of
+zero — neither is a mechanical consequence of a file move, so it was correctly NOT
+attempted as part of this move. **Node kinds import `nodes/Wiring/dispatch` today, exactly
+as they imported `nodes/Wiring` before — the move is package-layout-neutral on this
+question, per the coordinator's framing, not a regression.**
 
-Consequence: moving `RegisterBuilder`/`BuildArgs`/`Registry`/`BuildRegistry` into their own
-package (alongside `portwiring`, as the task asked) does not by itself decouple the 13 node
-kinds from the dispatch core — that new package would still need to import wherever
-`nodeInboxes`/`moverRegistry` live to name `buildDeps`'s fields, and every node kind
-transitively depends on it through `BuildArgs`. Achieving real decoupling means either (a)
-giving `nodeInboxes`/`moverRegistry` a narrow exported interface a kind-API package can
-depend on without pulling in the rest of `MoveDispatch` (a real design change to the
-registry's surface, not a file move), or (b) accepting that audience 1 depends on a small,
-separately-packaged slice of the dispatch core (inbox registration + self-drive claim only)
-rather than zero dependency. Either is a legitimate multi-file design change in its own
-right, done BEFORE any bulk file relocation — not a mechanical consequence of moving files.
+### The move that was done
 
-**Why this was not attempted as a full 94-file / 36-importer move this session.** The task's
-own process section requires per-package commits that each leave `go build ./...` / `go test
--race ./...` green and `git status --short` empty, guard re-keying "with teeth" proven by a
-deliberate break per guard, and doc-symbol citations repointed one by one — for roughly 30
-target packages (7 above, plus the ~14 kind-specific groupings inside the remaining 15 test
-files, plus wherever the FSM/persist packages' own tests land) each touching some subset of
-36 external importers whose build/test signal only closes after the LAST package in the
-dependency order lands (the load/build pipeline and dispatch-core groups are mutually
-recursive per §17–§20's own finding, so they cannot be verified independently of each
-other). That is a multi-package, multi-session staged migration, not a single sitting's
-work; attempting it in one unbroken pass at this session's scope would force either skipping
-the per-commit verification this document's own convention requires, or presenting a
-partially-migrated `nodes/Wiring` as done when it is not. Neither is acceptable per this
-task's explicit "no half-migrated state" constraint, so no file was moved.
+All 94 files (45 non-test, 49 test) moved from `nodes/Wiring/*.go` into
+`nodes/Wiring/dispatch/*.go` as **one package**, `package dispatch` (`package dispatch_test`
+for the 3 external-test files). This is the "coupled core lands in one package" branch of
+the task's own guidance — `MoveDispatch`, `moverRegistry`, `layoutQuantizer`/
+`quantized_move.go`, `buildCtx`/the build pipeline, `BuildArgs`/`buildDeps`/`Registry`, the
+gesture FSM, stdin dispatch, stream wiring, and the five persisters all stayed together,
+unexported, unchanged, exactly as before — nothing was split further because nothing in the
+finding above suggested a sub-boundary that wouldn't immediately need `moverRegistry` or
+`buildCtx` back. `ls nodes/Wiring/*.go` now finds nothing; `nodes/Wiring/` holds only its
+34 pre-existing subpackages plus the new `dispatch/`.
 
-**What a staged follow-up should do, in order:** (1) decide (a) vs (b) above for
-`buildDeps` and land that decoupling design as its own commit, verified, with `nodes/Wiring`
-untouched otherwise; (2) move the now-narrow kind-API (`RegisterBuilder`, `BuildArgs`,
-`Registry`, `BuildRegistry`) beside `portwiring` and re-point the 13 kind-package + 6
-kind-test importers — this is the commit that actually delivers "node kinds do not depend on
-`MoveDispatch`"; (3) migrate the dispatch-core + load/build groups together (real cycle, one
-package, matching §17's finding for `MoveDispatch`/`moverRegistry`); (4) migrate gesture FSM,
-stdin/stream wiring, persisters, scene/view state each as their own commit; (5) re-point
-`runtopology`'s 8 files once, after the run-API surface (`LoadTopology`, `MoveDispatch`,
-`RunStdinReader`, stream wiring) has a stable final location. Each step re-keys the guards
-this document's own header list names (`check-scene-path-resolution.sh`,
-`check-persist-write-ownership.sh`, `check-no-network-locks.sh`, `check-dep-rules.sh`, the
-stream-fd guards, `check-doc-symbols.sh`/`check-docs-symbols.sh`) at the point that step's
-files move, not in a final sweep.
+**Why one package and not the suggested 2–4-way split:** every non-test file in the original
+7-way partition (load/build pipeline, dispatch core, gesture FSM, stdin/stream wiring,
+persisters, scene/view state, small/misc) either directly names `*MoveDispatch`/
+`*moverRegistry`/`buildDeps`/`buildCtx` or is called by something that does, in the same
+package, with unexported types crossing every proposed seam (`nm *nodeMover`,
+`streamWiring`, `persisters`, `uiState` are all unexported fields/types reached by
+unqualified name from a dozen-plus of these files). Splitting further would have meant
+exporting some of those types or fields (the task's own "no exported channel" ban is a
+specific case of a wider rule this project already follows: don't export internal state to
+make a move compile) or introducing package-level indirection this task explicitly
+disallows (no `types`/`common` package). One package matches the actual coupling measured;
+the reachable follow-up in the (declined) first pass — kind-API extraction after a
+`buildDeps` redesign — is still exactly where BONUS-goal work should resume.
+
+### Mechanics
+
+Every importer kept its existing import alias (`W`, `Wiring`) where one was already
+explicit; the ~20 bare `"github.com/dtauraso/wirefold/nodes/Wiring"` imports (all 13
+node-kind packages plus `gatecommon`) were given an explicit `Wiring
+"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"` alias so that not one `Wiring.X`
+call site inside any node kind's `node.go` needed to change — only the import line moved.
+This is an aliasing choice on the CALLER side (completely ordinary Go), not a re-export
+shim: `nodes/Wiring/dispatch` exports exactly what `nodes/Wiring` exported, nothing
+re-exports anything, and no new file exists solely to forward calls.
+
+One test helper needed a real code change, not just an import-path edit:
+`distance_groups_test.go`'s `repoRootForDistanceGroupsTest` computed the repo root from
+`runtime.Caller(0)` with a hardcoded "two levels up" comment — now three, since the file
+sits one directory deeper. Caught by the first `go test -race ./...` run (`LoadTopology:
+stat .../nodes/topology: no such file or directory`), fixed, reran clean.
+
+### Importers re-pointed (33 files, plus 2 files that self-import their own moved package)
+
+Root-level test files (4, explicit `Wiring` alias): `kind_registry_parity_test.go`,
+`created_node_loads_test.go`, `pair_self_drive_persist_test.go`,
+`pair_node_mover_absence_test.go`. `runtopology` (8, explicit `W` alias): `edge_stream.go`,
+`startup_report.go`, `scene_state.go`, `gesture_actor.go`, `node_stream.go`,
+`run_goroutines.go`, `view_stream.go`, `topology_run.go`. `nodes/Wiring/scenecamera/
+scene_camera_test.go` (1, explicit `Wiring` alias, unaffected by the move itself — it's a
+subpackage test, stays in place, only the import path changed). Node-kind packages and
+their tests (20, bare import → new explicit `Wiring` alias): `nodes/TimeStart/node.go`,
+`nodes/selectright/node.go`, `nodes/input/node.go`, `nodes/gatecommon/{drive.go,
+drive_test.go, drive_unwired_speed_test.go}`, `nodes/holdflip/{node.go,
+firing_rule_lean_test.go}`, `nodes/pulse/{node.go, firing_rule_lean_test.go}`,
+`nodes/Time/node.go`, `nodes/PairNode/node.go`, `nodes/PulseLeft/{node.go,
+firing_rule_lean_test.go}`, `nodes/PulseRight/{node.go, firing_rule_lean_test.go}`,
+`nodes/pacer/node.go`, `nodes/NormalSum/node.go`, `nodes/TimeEnd/{node.go,
+unfed_port_test.go}`, `nodes/selectleft/node.go`. Two files that moved INTO
+`nodes/Wiring/dispatch/` and import the sibling package they now live beside as an external
+test (`package dispatch_test`): `speed_delivery_full_set_test.go`,
+`vector_channel_threading_test.go` — both already used an explicit `W` alias, so only the
+import path changed.
+
+`kinds_generated.go` (repo root, package `main`) does not name `Wiring`/`dispatch` at all —
+only blank-imports each kind package — so it needed no change; `go run
+./tools/gen-node-defs` was run as a check and produced a byte-identical
+`kinds_generated.go` (confirmed via `git diff --stat`, zero lines changed beyond the files
+this task edited directly).
+
+### Test-name-set and assertion-count equality
+
+`grep -oE '^func Test[A-Za-z0-9_]+'` across every `_test.go` under `nodes/Wiring/` at `HEAD`
+(before the move) versus the working tree (after): **241 test functions, identical set,
+`diff` empty.** `t.Fatal|Fatalf|Error|Errorf(` call count: **642 before, 642 after.**
+`tools/repo-hygiene/check-test-integrity.sh` (rename- and split-aware) passed with no
+`[allow-test-weakening: ...]` needed.
+
+### Guards
+
+Ran and inspected every guard CLAUDE.md's brief named plus every guard grep found
+referencing a `nodes/Wiring/<file>.go` path:
+
+- `check-scene-path-resolution.sh`, `check-persist-write-ownership.sh`,
+  `check-dep-rules.sh`, `check-stream-fd-mismatch-reported.sh`,
+  `check-send-rule-parity.sh` (uses `git ls-files 'nodes/Wiring/*.go'
+  'nodes/Wiring/**/*.go'`, which already matches the nested `dispatch/` path — confirmed
+  `send-rule-parity: clean`), `check-no-wall-clock-wait.py` (its `ALLOWED` entry names
+  `nodes/Wiring/distancegroups/distance_groups.go` — the PRE-EXISTING `distancegroups`
+  subpackage, a different file from the one this move relocated to
+  `nodes/Wiring/dispatch/distance_groups.go`, which has no `time.Sleep`/`time.After`/
+  `time.NewTicker` call at all — confirmed by grep before relying on it), all passed
+  unmodified because they either recurse the tree dynamically or target subpackages this
+  move did not touch.
+- `check-composer-fields.sh` — deliberately added a loose field to `MoveDispatch` in its
+  new location (`nodes/Wiring/dispatch/move_dispatch.go`): guard reported `MoveDispatch has
+  13 fields (cap 12) — it is regrowing into a god-object.` and exited 1. Restored; `go
+  build ./...` and the guard both clean again.
+- `check-panic-message.sh` — deliberately broke `BuildRegistry`'s panic message (in its new
+  location, `nodes/Wiring/dispatch/node_registry.go`) to a bare `"no kinds"`: guard reported
+  `nodes/Wiring/dispatch/node_registry.go:53: panic message does not open with a site tag
+  (want "funcOrSubsystem: ..."): no kinds` and exited 1. Restored; clean.
+- `check-docs-symbols.sh` found one real stale citation:
+  `docs/pair-node/math/formulas.html` had two `data-src="nodes/Wiring/scene_speed_persist.go"`
+  cells (both symbols, `effective = userSpeed / divisor` and `HumanEditSpeed`, confirmed
+  still present in the moved file) — repointed both to
+  `nodes/Wiring/dispatch/scene_speed_persist.go`; guard now clean.
+- `check-doc-symbols.sh` was clean throughout (no citations of the moved files' exported
+  symbols existed in doc-symbol form beyond what `check-docs-symbols.sh` already found).
+- `bash scripts/stop-checks.sh`'s own `check-doc-drift` caught 15 additional broken
+  `nodes/Wiring/<file>.go` references across `.claude/rules/bridge-surface.md`,
+  `.claude/rules/node-kinds.md`, `CLAUDE.md`, `MODEL.md` (×2), `docs/investigations/
+  audit-baseline.md` (×2), `docs/investigations/interior-stream-framing.md` (×3),
+  `docs/investigations/which-lattice-a-node-lives-on.md` (×2, one file, `replace_all`),
+  `memory/feedback/architecture/feedback_schema_parser_parity.md`, `memory/project/
+  project_lock_persistence_survives_respawn.md`, `memory/project/
+  project_theta_phi_tilted_camera.md`, `nodes/PairNode/SPEC.md`, `tools/topology-vscode/
+  ARCHITECTURE.md` (×2) — every one named a symbol still present in the moved file (checked
+  with `ls`/`grep` before repointing, per the guard's own "delete rather than invent" rule
+  — none needed deleting because none were actually stale symbols, only stale paths), so
+  every citation was repointed to `nodes/Wiring/dispatch/<file>.go` rather than removed.
+  `check-gofmt` also caught one import-order violation in `created_node_loads_test.go`
+  (alphabetical ordering broke when the `Wiring` alias's import path changed) — fixed by
+  reordering the import block. `bash scripts/stop-checks.sh` is empty (clean) after both
+  fixes.
+
+### Surfaces with no test that can fail if broken
+
+Same caveat as prior sections of this document: a guard's own teeth were proven above by a
+deliberate break-and-restore for `check-composer-fields.sh` and `check-panic-message.sh`.
+No NEW no-test-can-fail surface was introduced by this move — every moved file's behavior
+is exactly what it was in `nodes/Wiring`, and the 241/642 test-name/assertion-count parity
+above is the evidence that whatever WAS or wasn't covered before the move is identically
+covered or uncovered after it. This section does not re-audit each of the 94 files'
+individual test coverage; that audit, if wanted, is a separate task from a package-layout
+move.
+
+### Verification
+
+`go build ./...`, `go vet ./...`: clean. `go test -race -count=1 ./...`: every package
+`ok` or `[no test files]`, zero `FAIL`, zero race reports (full listing in the commit's
+accompanying session output; `nodes/Wiring/dispatch` itself: `ok
+github.com/dtauraso/wirefold/nodes/Wiring/dispatch 1.453s`). `bash scripts/stop-checks.sh`:
+empty stdout. `git status --short`: empty after the commit.
+
+**Commit:** `e1ed8dac` — "All 94 nodes/Wiring files move into nodes/Wiring/dispatch as one
+package, with every external importer and doc citation repointed." 141 files changed (94
+renames with in-file edits, 47 plain edits), 152 insertions / 152 deletions (every rename
+carries exactly the package-decl line and/or one import-path line changed; no line-count
+growth anywhere).
+
+### What's still open (BONUS goal, not the requirement)
+
+The `buildDeps` finding above is unchanged: node kinds still import
+`nodes/Wiring/dispatch` for `BuildArgs`, which still embeds `*moverRegistry`/`*nodeInboxes`.
+Decoupling audience 1 from the dispatch core remains a real, separate, not-yet-designed
+follow-up (narrow interface over `nodeInboxes`/`moverRegistry`, then a kind-API package
+extraction) — the REQUIREMENT this section's title names (`nodes/Wiring/` holding zero
+`.go` files, only subdirectories) is met; the BONUS is not, and was never claimed to be.
