@@ -173,7 +173,7 @@ func (md *MoveDispatch) gestWheel(ev inputcodec.RawInputMsg, tr *T.Trace) {
 		if minStep := vp.R * (geom.GestureZoomBase - 1); math.Abs(step) < minStep {
 			step = math.Copysign(minStep, amt)
 		}
-		md.PanViewpoint(rayDir.Scale(step), tr)
+		md.UI.VP.PanViewpoint(rayDir.Scale(step), tr)
 		md.UI.EmitViewFrame(cameraViewEvent())
 		return
 	}
@@ -188,6 +188,6 @@ func (md *MoveDispatch) gestWheel(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	fovRad := ev.Fov * math.Pi / 180
 	worldPerPixel := (2 * vp.R * math.Tan(fovRad/2)) / md.UI.Gest.Rect.Height
 	disp := geom.PanDisplacementPolar(vp.Pos, vp.Up, ev.DeltaX, ev.DeltaY, worldPerPixel)
-	md.PanViewpoint(disp, tr)
+	md.UI.VP.PanViewpoint(disp, tr)
 	md.UI.EmitViewFrame(cameraViewEvent())
 }

@@ -162,12 +162,12 @@ var overlayAttrHandlers = map[string]func(msg inputcodec.StdinMsg, md *MoveDispa
 			// Structured buffer counterpart of the "pole-toggle-go" debug breadcrumb
 			// OverlayState.Toggle* logs for scene/node poles (viewstate.OverlayFlagBreadcrumbScope,
 			// viewstate/overlay_state.go): only this goroutine (RunStdinReader's dispatch loop, the
-			// VIEW stream's owner) ever calls md.EmitBreadcrumb, so it is safe here with
+			// VIEW stream's owner) ever calls md.UI.EmitBreadcrumb, so it is safe here with
 			// no lock. Value=visible(0/1); the scope ("scene"/"nodes") rides the
 			// sanctioned free-form Text column since it names which pole-flag fired, not
 			// a typed row ref.
 			if scope, ok := viewstate.OverlayFlagBreadcrumbScope[msg.Flag]; ok {
-				md.EmitBreadcrumb(wire.RowEvent{Label: T.BreadcrumbPoleToggleGo, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1, Value: int32(boolU8(viewstate.OverlayFlagValue[msg.Flag](&md.UI.OV))), Text: scope})
+				md.UI.EmitBreadcrumb(wire.RowEvent{Label: T.BreadcrumbPoleToggleGo, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1, Value: int32(boolU8(viewstate.OverlayFlagValue[msg.Flag](&md.UI.OV))), Text: scope})
 			}
 			// Decentralized (Step C, memory/feedback_no_single_writer_bridge.md): this goroutine (the sole
 			// caller of every overlay Toggle*) also writes its own VIEW frame directly,

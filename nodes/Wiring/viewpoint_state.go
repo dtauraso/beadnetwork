@@ -15,7 +15,6 @@ package Wiring
 
 import (
 	T "github.com/dtauraso/wirefold/Trace"
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
@@ -23,16 +22,6 @@ import (
 // (nodes/Wiring/viewstate.UIState), so runtopology (SetViewpoint's/EmitViewpoint's only
 // out-of-package callers) reaches md.UI.VP.SetViewpoint/md.UI.VP.EmitViewpoint directly —
 // see docs/planning/gesture-actor.md's payoff commit.
-
-// Viewpoint returns the CURRENT camera viewpoint (pivot/r/pos/up/lockedAxis). Read-only
-// accessor for callers outside this package — e.g. an external test of a package that
-// itself takes *MoveDispatch, such as nodes/Wiring/scenecamera's own tests asserting what
-// SeedInitialViewpoint installed. Kept (not one of the deleted delegators): scenecamera's
-// tests call md.Viewpoint() as a plain accessor, not a func value SeedInitialViewpoint needs
-// to receive by signature.
-func (md *MoveDispatch) Viewpoint() geom.Viewpoint {
-	return md.UI.VP.Viewpoint
-}
 
 // cameraViewEvent is the single Camera event every camera-changing delegator below hands
 // to emitViewFrame. Camera decodes entirely from the VIEW frame's own Camera block (see
@@ -46,12 +35,10 @@ func cameraViewEvent() []wire.RowEvent {
 // no dependency on any Wiring-only type, so they lift cleanly; Wiring's gesture_actions.go
 // now calls md.UI.OrbitViewpoint(...)/md.UI.OrbitLockedViewpoint(...) directly.
 
-func (md *MoveDispatch) PanViewpoint(delta vec3, tr *T.Trace) {
-	// A dolly is a pure CAMERA move (the eye translates toward the cursor). It must NOT move the
-	// scene sphere: coupling them left md.ui.sceneSphere.Center diverged from the movers' held
-	// center until a later broadcast reconciled it with a jump (the "zoom got canceled"
-	// symptom). Nothing moves the sphere — MODEL.md: "It is established once and never moves."
-	// Pan-moves-the-sphere is REJECTED doctrine, not a gap to fill; if it is ever revisited it
-	// must be its own gesture, never a side effect of a camera move.
-	md.UI.VP.PanViewpoint(delta, tr)
-}
+// PanViewpoint: a dolly is a pure CAMERA move (the eye translates toward the cursor). It
+// must NOT move the scene sphere: coupling them left md.ui.sceneSphere.Center diverged from
+// the movers' held center until a later broadcast reconciled it with a jump (the "zoom got
+// canceled" symptom). Nothing moves the sphere — MODEL.md: "It is established once and
+// never moves." Pan-moves-the-sphere is REJECTED doctrine, not a gap to fill; if it is ever
+// revisited it must be its own gesture, never a side effect of a camera move. Callers reach
+// this through md.UI.VP.PanViewpoint directly (gesturefsm.ViewpointState's own method).

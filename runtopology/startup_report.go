@@ -20,7 +20,7 @@ func emitStartupBreadcrumbs(tr *T.Trace, md *W.MoveDispatch, scenePath string, n
 	// per-node/edge/interior goroutine exists). topologyPath is genuinely free-form
 	// (a filesystem path), so it rides the sanctioned Text column; nodes count is
 	// the typed Value column.
-	md.EmitBreadcrumb(wire.RowEvent{
+	md.UI.EmitBreadcrumb(wire.RowEvent{
 		Label: T.BreadcrumbTopologyLoaded, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 		Value: int32(nodeCount), Text: scenePath,
 	})
@@ -39,7 +39,7 @@ func checkRowSeedCount(tr *T.Trace, md *W.MoveDispatch, nodeCount int) {
 		// Structured buffer counterpart, VIEW stream (same reasoning as
 		// topology-loaded above). Value=NodeSeeds count, X=nodes count — both
 		// small typed ints, no free-form text needed.
-		md.EmitBreadcrumb(wire.RowEvent{
+		md.UI.EmitBreadcrumb(wire.RowEvent{
 			Label: T.BreadcrumbRowSeedCountMismatch, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 			Value: int32(len(md.GS.NodeSeedsFn())), X: float64(nodeCount),
 		})

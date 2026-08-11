@@ -1,7 +1,7 @@
 // scene_camera_test.go is an EXTERNAL test (package scenecamera_test): SeedInitialViewpoint
-// and LoadSceneViewpoint need no unexported Wiring field, only the exported Viewpoint()
-// accessor (viewpoint_state.go) added for exactly this — a same-package Wiring test cannot
-// import scenecamera, since scenecamera already imports Wiring (a real cycle).
+// and LoadSceneViewpoint need no unexported Wiring field, only the exported md.UI.VP field
+// (nodes/Wiring/viewstate.UIState.VP) — a same-package Wiring test cannot import
+// scenecamera, since scenecamera already imports Wiring (a real cycle).
 package scenecamera_test
 
 import (
@@ -92,15 +92,15 @@ func TestLoadSceneViewpointMatchesCameraPolar(t *testing.T) {
 	// pivot within a valid basis (the exact thing the old zero-value viewpoint broke).
 	md := &Wiring.MoveDispatch{}
 	scenecamera.SeedInitialViewpoint(dir, md.UI.VP.SetViewpoint, md.UI.VP.EmitViewpoint, nil)
-	vp := md.Viewpoint()
+	vp := md.UI.VP.Viewpoint
 	if !vecClose(vp.Pivot, vec3{X: 10, Y: 20, Z: 30}, 1e-9) || math.Abs(vp.R-250) > 1e-9 {
 		t.Fatalf("SeedInitialViewpoint did not install the loaded pose: %+v", vp)
 	}
 	basisNonDegenerate(t, vp.Pos, vp.Up)
 
 	before := vp.Pivot
-	md.PanViewpoint(vec3{X: 5, Y: -7, Z: 2}, nil)
-	if got := md.Viewpoint().Pivot; !vecClose(got, before.Add(vec3{X: 5, Y: -7, Z: 2}), 1e-9) {
+	md.UI.VP.PanViewpoint(vec3{X: 5, Y: -7, Z: 2}, nil)
+	if got := md.UI.VP.Viewpoint.Pivot; !vecClose(got, before.Add(vec3{X: 5, Y: -7, Z: 2}), 1e-9) {
 		t.Fatalf("pan pivot=%v want %v", got, before.Add(vec3{X: 5, Y: -7, Z: 2}))
 	}
 }
@@ -114,7 +114,7 @@ func TestSeedInitialViewpointAbsentFileUsesDefault(t *testing.T) {
 
 	md := &Wiring.MoveDispatch{}
 	scenecamera.SeedInitialViewpoint(dir, md.UI.VP.SetViewpoint, md.UI.VP.EmitViewpoint, nil)
-	vp := md.Viewpoint()
+	vp := md.UI.VP.Viewpoint
 
 	// Default: pivot=origin, r=DefaultViewpointR, pos=+Z (square-on), up=+Y.
 	if !vecClose(vp.Pivot, vec3{X: 0, Y: 0, Z: 0}, 1e-9) {
@@ -133,8 +133,8 @@ func TestSeedInitialViewpointAbsentFileUsesDefault(t *testing.T) {
 	if !vecClose(upW, vec3{X: 0, Y: 1, Z: 0}, 1e-9) {
 		t.Fatalf("default up world=%v want +Y", upW)
 	}
-	md.PanViewpoint(vec3{X: 1, Y: 2, Z: 3}, nil)
-	if got := md.Viewpoint().Pivot; !vecClose(got, vec3{X: 1, Y: 2, Z: 3}, 1e-9) {
+	md.UI.VP.PanViewpoint(vec3{X: 1, Y: 2, Z: 3}, nil)
+	if got := md.UI.VP.Viewpoint.Pivot; !vecClose(got, vec3{X: 1, Y: 2, Z: 3}, 1e-9) {
 		t.Fatalf("default pan pivot=%v want (1,2,3)", got)
 	}
 }

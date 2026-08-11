@@ -54,8 +54,9 @@ func TestOrbitViewpointEmitsMovedPos(t *testing.T) {
 	}
 }
 
-// TestMoveDispatchViewpointDelegatorsEmit: the MoveDispatch delegators (Zoom/Pan/Orbit)
-// forward to md.UI.VP; the view-owner goroutine (the real callers: gesture_actions.go,
+// TestMoveDispatchViewpointDelegatorsEmit: Zoom/Orbit mutate through md.UI (MoveDispatch
+// delegators), Pan mutates through md.UI.VP directly; the view-owner goroutine (the real
+// callers: gesture_actions.go,
 // gesture_handlers.go) emits the camera RowEvent onto the VIEW stream after each mutation —
 // this test drives that same mutate-then-emit shape at the call site, per
 // docs/planning/movedispatch-decomposition.md's write-then-emit split.
@@ -68,7 +69,7 @@ func TestMoveDispatchViewpointDelegatorsEmit(t *testing.T) {
 
 	md.UI.ZoomViewpoint(0.5, tr)
 	md.UI.EmitViewFrame(cameraViewEvent())
-	md.PanViewpoint(vec3{X: 5}, tr)
+	md.UI.VP.PanViewpoint(vec3{X: 5}, tr)
 	md.UI.EmitViewFrame(cameraViewEvent())
 	md.UI.OrbitViewpoint(geom.Dir{Theta: 1.0, Phi: 0.0}, geom.Dir{Theta: 1.1, Phi: 0.1}, tr)
 	md.UI.EmitViewFrame(cameraViewEvent())

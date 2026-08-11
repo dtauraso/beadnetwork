@@ -741,6 +741,50 @@ touches:
 numbers (this doc is not a status board; the count is a measurement made once, not tracked
 here going forward).
 
+## 6f. Three of the four remaining pure delegators deleted; `SliderSpeed` kept as a derived value
+
+Checked the four export-exempt-only delegators onto `md.UI`: `EmitBreadcrumb` (`view_stream.go`)
+and `Viewpoint` (`viewpoint_state.go`) were plain one-line forwards — deleted, callers now
+address `md.UI.EmitBreadcrumb(...)` / `md.UI.VP.Viewpoint` directly
+(`runtopology/startup_report.go`, `nodes/Wiring/stdin_dispatch.go` in-package;
+`nodes/Wiring/scenecamera/scene_camera_test.go` out-of-package, an external test package that
+already reaches `md.UI` since it is exported). `view_stream.go` had nothing left in it once
+`EmitBreadcrumb` was gone and was deleted as a file. `PanViewpoint` (`viewpoint_state.go`) was
+also a pure one-line forward (`md.UI.VP.PanViewpoint(delta, tr)`) despite its long doctrine
+comment about pan-vs-zoom-vs-scene-sphere — the comment moved with the deletion (now sits
+directly above `md.UI.VP.PanViewpoint`'s call sites' context in the file, not attached to a
+body); deleted, callers rewritten in `gesture_handlers.go` (in-package) and
+`scene_camera_test.go` (out-of-package). `SliderSpeed` (`scene_speed_persist.go`) was
+re-examined and KEPT: its body computes `EffectiveClockSpeed(md.UI.Speed, md.UI.ClockDivisor)`,
+a derived value from two `md.UI` fields via a package function — the same "real work beyond
+forwarding" shape 6e already used to keep `ResolveSceneDistanceGroups`/`LoadOverlays`/
+`LoadSpeed`, not a plain field pass-through.
+
+`MoveDispatch` method count: 21 → 18 (drop of 3, `grep -h "^func ([a-z]* \*MoveDispatch)
+[A-Z]" nodes/Wiring/*.go | grep -v _test | wc -l`). Exported `Wiring`-package symbol count
+unchanged, 162 → 162 (same grep pattern as prior rounds in this doc — note it filters on
+`_test` appearing in the MATCHED LINE TEXT, not the source filename, since `-h` strips
+filenames; it has never actually excluded test files, and this round's before/after used the
+identical command so the comparison is apples-to-apples regardless). No new interfaces,
+`types`/`common` package, alias shim, or `ForTest` hatch. The no-imports-`Wiring` loop is
+empty. `go run ./tools/gen-node-defs` produces no diff. `go test -race -count=1 ./...` is
+clean.
+
+VIEW-stream ownership verified by reading `runtopology/topology_run.go`: `emitStartupBreadcrumbs`
+(which now calls `md.UI.EmitBreadcrumb`) still runs at line 63, and `startStdinReader` — which
+spawns the gesture/view-owner goroutine — still runs at line 81, in the same function, same
+order, unchanged by this pass; only the receiver access path changed
+(`md.EmitBreadcrumb`→`md.UI.EmitBreadcrumb`), not which goroutine calls it or when.
+
+Coverage: deliberately broke `gesturefsm.ViewpointState.PanViewpoint` (dropped the `v.Pan(delta)`
+call) — 7 tests failed across `nodes/Wiring` and `nodes/Wiring/scenecamera` (both in-package
+and external-test-package callers), confirming the rewritten call sites are exercised; restored,
+`go test -race -count=1 ./...` clean again. **Uncovered, reported rather than silently accepted:**
+no test catches `viewstate.UIState.EmitBreadcrumb` becoming a no-op — deliberately emptied its
+body and every test still passed. This gap pre-dates this pass (the method's own logic was
+untouched; only its now-deleted `MoveDispatch` wrapper was removed) and is out of this task's
+scope to fix.
+
 ## 6a. Original decline (superseded above, kept as the record of what was measured wrong)
 
 Attempted to lift the nine gesture+view files, `uiState`/`viewpointState`/`gestureState`/
