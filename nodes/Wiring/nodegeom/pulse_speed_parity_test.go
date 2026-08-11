@@ -1,9 +1,8 @@
-package Wiring
+package nodegeom
 
 import (
 	"testing"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
@@ -17,8 +16,8 @@ import (
 // the single-source-of-truth substitute: if either copy drifts, it fails loudly
 // instead of silently producing two different pulse speeds.
 func TestPulseSpeedParity(t *testing.T) {
-	if lattice.PulseSpeedWuPerMs != nodegeom.CurveParamPulseSpeedWuPerMs {
+	if lattice.PulseSpeedWuPerMs != CurveParamPulseSpeedWuPerMs {
 		t.Fatalf("lattice.PulseSpeedWuPerMs=%v != nodegeom.CurveParamPulseSpeedWuPerMs=%v — the two literal copies have drifted",
-			lattice.PulseSpeedWuPerMs, nodegeom.CurveParamPulseSpeedWuPerMs)
+			lattice.PulseSpeedWuPerMs, CurveParamPulseSpeedWuPerMs)
 	}
 }
