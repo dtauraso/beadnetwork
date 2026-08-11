@@ -484,6 +484,53 @@ record; nothing to do.
 
 ---
 
+## 5. `uiState` lift probed and declined — `gestureState` is entangled with entry points that stay on `MoveDispatch`
+
+Checked whether `uiState` (`ui_state.go`, 14 fields incl. `vp viewpointState`,
+`ov overlayState`, `gest gestureState`) could lift into `nodes/Wiring/uistate`, matching the
+pattern already established by `GS geomseeds.GeomSeeds`/`Scenes sceneswitch.SceneSwitch`/
+`RT rowtables.RowTables` — export follows the type moving, not the other way round.
+
+**Declined without writing any code, by measurement alone (revert condition 3 from the task
+brief, confirmed rather than assumed).** `gestureState`'s 18 unexported fields (`phase`,
+`dragNode`, `dragGrabOffset`, `dragStartCenter`, `rotPivot`, `rotCx`, `rotCy`, `rotPxPerRad`,
+`fov`, `rect`, `button`, `downX`, `downY`, `prevX`, `prevY`, `emptyDown`, `handholdDown`,
+`secondary`, plus the method `reset`) are read and written directly by field, not through any
+`uiState`/`gestureState` method, from `gesture_dispatch.go`, `gesture_handlers.go`,
+`gesture_graph.go`, `gesture_hitclassify.go` — every one of whose handler functions is typed
+`func(md *MoveDispatch, g *gestureState, ...)`. These are exactly the gesture ENTRY POINTS
+this doc's own round 4 already confirmed stay on `MoveDispatch`
+(`gestPointerDown/Move/Up`, `HandleRawInput`, `gestHome`, `gestWheel` — "reason 1: calls
+something that itself needs `*MoveDispatch` by signature"). Moving `uiState` would either drag
+all four of those files (and everything downstream of them, transitively `emitViewFrame`'s 14
+callers) into the new package — reintroducing the `*MoveDispatch` back-reference under a new
+name — or require exporting `gestureState` and all 18 of its fields so the entry points left
+behind in `Wiring` could keep reaching into it by field. Either way this is not "export
+`uiState`'s own surface" (the task's stated acceptable cost, matched by `GS`/`Scenes`/`RT`):
+it is exporting the FSM's entire private bookkeeping to satisfy callers that were never going
+to move, which the task explicitly named as a revert condition ("`gestureState` turns out to
+be entangled with the gesture entry points ... in a way that would drag those into the new
+package or require a back-reference").
+
+`viewpointState`/`overlayState` were not separately measured once `gestureState` alone was
+sufficient to decline — `gestureState` embeds inside `uiState`, so `uiState` cannot lift
+without it regardless of the other two owners' own entanglement.
+
+No file was edited; `git status --short` was empty throughout. `MoveDispatch`'s method/export
+counts are unchanged from round 4 (37 methods; the 7 export-blocked methods
+`ResolveSceneDistanceGroups`/`LoadOverlays`/`LoadSpeed`/`SetViewpoint`/`EmitViewpoint`/
+`SetViewStream`/`EnableSceneSwitch` remain blocked, for the same reason as before — `md.ui`
+staying unexported).
+
+**Pattern recorded for the next attempt at this class of lift:** exporting an owner field is a
+consequence of ITS TYPE moving to its own package (`GS`/`Scenes`/`RT`'s precedent) — but that
+is only cheap when the type's fields are reached exclusively through its own methods. When a
+type's fields are reached directly, by field, from entry-point functions elsewhere in the same
+package (the gesture FSM's shape here), the type cannot lift alone; the entry points have to
+move with it or the whole thing stays. Measure field-level cross-file access before proposing
+a lift like this one, the same way `RootMove`/`heldCenters`/`applyNodeDragTarget` etc. were
+measured for method-level calls in round 3.
+
 ## The one rule
 
 **Name the specific values the leaf reads from the hub.** If you can list them, it is not a
