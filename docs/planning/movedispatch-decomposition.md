@@ -2054,3 +2054,35 @@ unchanged, as instructed). Exported `Wiring`-package symbol count unchanged — 
 methods are unexported. `nodes/Wiring` non-test top-level `.go` file count: +1
 (`node_geometry_wire.go`). No interface, `types`/`common` package, alias shim, dot-import,
 package-level actor global, or `ForTest` hatch was added.
+
+### 19a. The `kindID` hole closed; the `outWireOuts`/`outStepsIn` sibling hole confirmed excluded
+
+Follow-up to the two "no test failed" breaks recorded above.
+
+**`kindID` — closed.** Added `nodes/Wiring/node_geometry_wire_kindid_test.go`,
+`TestSetNodeStreamsResolvesPerNodeKindID`: drives `MoveDispatch.SetNodeStreams` (the real,
+exported production call path — `move_streams.go` → `streamWiring.setNodeStreams`,
+`stream_wiring.go`) against a 2-node, 2-different-kind `LoadTopology` fixture (`AimedSrc`/
+`AimedSink`, the same test-registered kinds `TestLoadTopologyComputesQuantizedOffsets`
+already uses), with a synthetic `kindIDFor` mapping each kind to a distinct, non-zero,
+non-255 id. Each node's own `writeStreamFrame` call — one goroutine, invoked synchronously
+in the test, no mover goroutine started — is asserted to have packed back ITS OWN kind's
+id, not the other node's and not a constant. Verified both ways: with `wireStream`'s
+`kindID` argument forced to the constant `255` (the exact injected break `stream_wiring.go`
+"Deliberate breaks" recorded above used), the test failed by name
+(`node 1 (AimedSrc) streamed KindID = 255, want 7`); restored, it passes again.
+
+**`outWireOuts`/`outStepsIn` — confirmed the excluded class, no test added.** Traced both
+sinks to their consumers: `nodeOuts.outWireOuts[i].PublishSteps(count)` writes onto
+`wire.Out`'s `geomSendSteps` channel, drained by "whichever ONE goroutine actually places
+beads on this Out" (`nodes/wire/out_port.go`'s `Geom()` doc comment) — for most kinds that
+is the node's own separate Update/kind goroutine, not the `nodeMover` goroutine that runs
+`chainBeads`; `nodeOuts.outStepsIn[i](count)` (bound to `edgeMover.SendSteps`) hands the
+revised count to "the edgeMover's own goroutine (which cannot read the Out directly)"
+per `mover_registry.go`'s `bind` doc comment. Both are channel/closure handoffs consumed by
+a goroutine other than the one that decided the value — the cross-goroutine delivery class
+`docs/process/testing-shape.md` deliberately excludes (corollary 1: never assert delivery;
+corollary 2: do not test that two goroutines communicate). This is the same class as this
+document's own §17 gap, not a gap this task introduced. No test was written for it, per the
+task's own instruction not to manufacture a goroutine-communication test to close an
+explicitly-excluded hole.
