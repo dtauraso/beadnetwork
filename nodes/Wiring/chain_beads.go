@@ -6,6 +6,7 @@ import (
 	"os"
 
 	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/Wiring/beadindex"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/stepdeliver"
@@ -281,7 +282,7 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 		step := lattice.BeadStepR
 		base := selfTorusR + lattice.BeadTorusOuterR
 		offsetAt := func(i int) float64 {
-			return base + float64(i)*step
+			return beadindex.BeadPlacementOffset(base, step, i)
 		}
 		// aimUnit is the live direction, carried as a plain unit vector: this is what
 		// gets broadcast to this edge's bead-actor chain (reconcileBeadChain,
@@ -370,11 +371,7 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 			// finish is indistinguishable, watching it, from the next pulse starting too soon.
 			// One integer travels with the bead so placement, timing and pacing cannot read
 			// three different lengths (litBeadIndex's own doc comment names this).
-			lastSlot := float64(pl.steps - 1)
-			if lastSlot < 0 {
-				lastSlot = 0
-			}
-			p := liveDir.Scale(base + pl.t*lastSlot*step)
+			p := liveDir.Scale(beadindex.PulsePlacementOffset(base, step, pl.t, pl.steps))
 			// Offsets are NODE-LOCAL (the buffer carries them relative to this node's own
 			// centre), so the separation is added here in the same local frame rather than
 			// being folded into the aim — bending the aim would change the chain's LENGTH

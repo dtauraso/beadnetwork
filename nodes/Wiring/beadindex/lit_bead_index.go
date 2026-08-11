@@ -43,3 +43,29 @@ func LitBeadIndex(t float64, steps int) (int, bool) {
 	}
 	return idx, true
 }
+
+// BeadPlacementOffset is docs/bead-model/bead-lattice.md "Placement": the distance from the
+// source node's own centre to bead i's centre along the chain's aim direction — base (the
+// source-node's torus outer radius plus a bead's own torus outer radius, chainBeads' own
+// `selfTorusR + lattice.BeadTorusOuterR`) plus i whole bead steps. Pure index arithmetic
+// (base + i*step), moved out of chain_beads.go's placement loop alongside LitBeadIndex, the
+// sibling progress->index math this file already holds.
+func BeadPlacementOffset(base, step float64, i int) float64 {
+	return base + float64(i)*step
+}
+
+// PulsePlacementOffset is BeadPlacementOffset evaluated at a CONTINUOUS index — t (this
+// pulse's own [0,1) traversal fraction) times the chain's own last-slot index (steps-1,
+// clamped to 0 for a one-bead chain) — instead of an integer i, so a travelling pulse rides
+// through the same points the placeholder beads occupy without being rounded onto one of
+// them. steps must be the SAME step count the pulse's own t was computed against
+// (LiveBeadProgress.Steps travels with the bead, chain_beads.go's own doc comment on why:
+// a node moved mid-flight must not make placement, timing and pacing read three different
+// lengths).
+func PulsePlacementOffset(base, step, t float64, steps int) float64 {
+	lastSlot := float64(steps - 1)
+	if lastSlot < 0 {
+		lastSlot = 0
+	}
+	return base + t*lastSlot*step
+}
