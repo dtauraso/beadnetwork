@@ -69,9 +69,16 @@ fi
 PKG_DIR="$(dirname "$TABLE_FILE")"
 
 # --- Locate the DECODER: whatever file builds stdinMsg{... Kind: "x", Attr: "y" } ---
-CODEC_FILES=$(grep -rlE 'Kind: "[a-zA-Z]+", Attr: "[a-zA-Z]+"' --include='*.go' "$PKG_DIR" 2>/dev/null || true)
+# Searched REPO-WIDE, not under $PKG_DIR. The decoder used to sit in the dispatch table's own
+# package, so scoping to PKG_DIR looked equivalent — but it silently matched TEST fixtures in
+# that directory instead of the decoder, and kept passing on them. The decomposition moved the
+# real decoder to nodes/Wiring/inputcodec while the table stayed in nodes/Wiring/stdinreader,
+# and deleting the tests is what exposed it. Repo-wide is packaging-independent: it finds the
+# decoder wherever it lives next.
+CODEC_FILES=$(grep -rlE 'Kind: "[a-zA-Z]+", Attr: "[a-zA-Z]+"' --include='*.go' . \
+  --exclude-dir=node_modules --exclude-dir=out --exclude-dir=.git 2>/dev/null || true)
 if [ -z "$CODEC_FILES" ]; then
-  echo "check-input-attr-dispatched: MISCONFIGURED — nothing in $PKG_DIR produces a"
+  echo "check-input-attr-dispatched: MISCONFIGURED — nothing in the repo produces a"
   echo "'Kind: \"…\", Attr: \"…\"' decoded message literal. The decoder's shape changed;"
   echo "repoint this guard rather than trusting its silence."
   exit 1

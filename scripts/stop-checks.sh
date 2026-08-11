@@ -178,13 +178,10 @@ if [ -n "$ts_changed" ] || [ -n "$css_changed" ]; then
     out+="check-eslint failed:\n$eslint_out\n\n"
     fail=1
   fi
-  # Vitest unit suite (trace-event field contracts, parseSpec, round-trips) —
-  # compiles + runs the tests, so EXPENSIVE; lives in the ts_changed block, not
-  # the fast unconditional guard loop.
-  if ! vitest_out=$(bash tools/lang/check-vitest.sh 2>&1); then
-    out+="check-vitest failed:\n$vitest_out\n\n"
-    fail=1
-  fi
+  # The vitest unit suite was removed with every other test file: a test cannot
+  # constrain an AI that edits it as freely as the code, and on this repo the suite
+  # cost 13k lines of churn across one refactor while catching no production
+  # regression. Verification is loud runtime failure plus driving the editor.
 fi
 
 # DISCOVER the guard suite; do not hand-list it. The list used to be hardcoded here, which

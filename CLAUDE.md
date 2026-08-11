@@ -76,22 +76,26 @@ docs, and the auto-memory dir, costing tokens and time.
 - **`ls`**: prefer a specific subdir over wide listings; pipe to `head` if you only need a sample.
 - Planning docs (`docs/planning/visual-editor/`, `memory/`) contain domain vocabulary — grep them only when the question is about *planning state*, not when looking for code.
 
-## Testing shape — read before writing a test
+## There are no tests. Do not add any.
 
-A test asserts what **one goroutine itself** decided, emitted, or persisted. Do **not**
-test that two or more goroutines communicate properly — not delivery, not ordering, not
-absence-of-deadlock, not absence-of-race. That correctness is guaranteed BY CONSTRUCTION
-here (per-mover ownership, dedicated per-pair channels, no locks/atomics — guard:
-`tools/network/concurrency/check-no-network-locks.sh`, empty allowlist), so such a test asserts what the
-structure already gives you and exercises Go's runtime instead of this codebase.
+Every test file in this repo was deleted. A test cannot constrain an AI, because the AI edits
+the test as freely as the code and at the same cost — the human effort-asymmetry the whole
+mechanism rests on does not exist here. Measured on the branch that removed them: one refactor
+churned 13,271 lines across 174 test files purely to keep them compiling through requested
+changes, and caught zero production regressions. A test also cannot tell "the AI broke it" from
+"David asked for this", so on every requested change its failure is cost, never signal.
 
-The one exception is **persistence**: bytes on disk through a real reload
-(`memory/feedback/ux/feedback_headless_repro_verifies_persistence`).
+**Verification is loud runtime failure plus driving the editor.** A failure that announces
+itself in a live session reaches the human; a silent green check does not. That is the whole
+difference — not tamper-proofness. **An AI can edit the loud failures too**, and the guards, and
+this sentence. Their value is only that in the DEFAULT case they announce, so neglect makes them
+fire instead of fall silent. Nothing here is a guarantee; the only real check is the human
+noticing behavior.
 
-Full doctrine — the dividing line, why absence assertions can't be polled, the industry
-patterns and which actually transfer, a decision procedure, and named anti-patterns — is
-in [docs/process/testing-shape.md](docs/process/testing-shape.md). Read it before adding a test that needs
-more than one goroutine running.
+Prefer, in order: an assertion that fires in the running system with a site tag
+(`tools/network/quality/check-panic-message.sh`); a guard whose failure state is loud and
+whose allowlist is empty (`tools/network/concurrency/check-no-network-locks.sh`); a `.probe`
+breadcrumb (`.claude/rules/go-debugging.md`). Never a test.
 
 ## Workflow
 
