@@ -5050,3 +5050,156 @@ re-litigated here.
 Commits: `80bd90f1` (HandleRawInput takes `ctx` as an explicit parameter), `82030bd1`
 (delete `tapToInstall` and its whole tap plumbing), `3bee19f1` (gofmt the 6 touched gesture
 test files).
+
+## §36 — 3 of the 35 dispatch test files measured and moved; the other 32 re-confirmed as
+genuinely dispatch-shaped, not re-litigated wholesale
+
+§35 left all 35 test files unmeasured, "the next task's own starting point." This pass
+measured each of the 35 by reading it fresh (not trusting the earlier prose) and moved the
+3 that turned out to name neither `MoveDispatch`/`md.` nor exercise `dispatch`'s own two
+remaining methods (`HandleRawInput`, `Start`).
+
+### What moved
+
+- **`scene_tabs_test.go`** → `nodes/Wiring/scene` (package `scene_test`, new — the `scene`
+  package had zero tests before this move). Read cover to cover: it names `scene.*`/
+  `scenepersist.*` only — `SelectedSceneIndex`/`AnchorIsTabbed`/`ResolveScenePath`/
+  `SceneTabNames`/`WriteSelectedScene` — and never touches `dispatch` at all; its own header
+  comment already said as much ("those tests never needed `*MoveDispatch`"). Moved verbatim,
+  package line changed `dispatch` → `scene_test`.
+- **`scene_lattice_persist_test.go`**, **`scene_speed_persist_test.go`** → `nodes/Wiring/build`
+  (package `build_test`, the same destination §34 used for `speed_delivery_full_set_test.go`/
+  `vector_channel_threading_test.go`). Both build a `*dispatch.MoveDispatch` only as a fixture
+  (via `build.LoadTopology`) to reach `scenepersist.LoadSceneLattice`/`InstallSpeed`/
+  `viewpersist.EnableEditPersist` — no assertion anywhere reads a `dispatch`-owned method or
+  field beyond what those calls need. Hit the exact §32/§34 hazard: `writeTree`/`loadTreeMD`
+  (both unexported, `dispatch_test`-package helpers in `scene_edit_persist_test.go`/
+  `wire_test_helpers_test.go`) do not resolve across directories, and `writeTree`'s own
+  fixture tree uses the `SrcNode`/`SinkNode` kinds self-registered by `fixture_kinds_test.go`'s
+  `init()`, which — per §34's own already-recorded lesson — does not travel with a moved
+  file either. Fixed the same way §34 fixed `writeSpecTree`/`writeTreeFile`: a new
+  `nodes/Wiring/build/fixture_kinds_test.go` duplicates the `SrcNode`/`SinkNode` registration
+  and a local `writeTree`/`loadTreeMD` pair (genuine copies, not cross-directory reuse — a
+  ~80-line helper file is not a shared-package export candidate any more here than
+  `wire_test_helpers_test.go`'s own smaller duplicate was in §34).
+- **`overlay_toggle_emit_test.go`** → `nodes/Wiring/viewstate` (package `viewstate_test`,
+  which already held `overlay_state_test.go`). Its one test builds `&MoveDispatch{UI:
+  viewstate.UIState{...}}` and calls only `md.UI.SetViewStream`/`md.UI.EmitViewFrame` —
+  `MoveDispatch` was purely a wrapper around a bare `UIState` value, never itself asserted
+  on. Moved with the wrapper dropped: `&viewstate.UIState{OV: viewstate.DefaultOverlayState()}`
+  in place of `&MoveDispatch{UI: ...}`, `ui.SetViewStream`/`ui.EmitViewFrame` in place of
+  `md.UI.*`. No other rewrite — the assertion body (reflect over `ViewOverlayFlags`, matching
+  `inputcodec.InOverlayFlags`'s length) is untouched.
+
+### What was re-measured and stayed, with the reason found
+
+Read all remaining 29 (34 minus the 5 §34 already pinned: `aimed_ports_test.go`,
+`fixture_kinds_test.go`, `per_edge_travel_time_test.go`, `distance_groups_kind_import_test.go`,
+`vec_close_test.go` — not re-litigated, per this task's own instruction) top-to-bottom rather
+than by filename pattern:
+
+- **7 gesture files** (`gesture_camera_outcomes_test.go`, `gesture_drag_offset_test.go`,
+  `gesture_helpers_test.go`, `gesture_home_test.go`, `gesture_hover_test.go`,
+  `gesture_pan_snapshot_test.go`, `gesture_selection_test.go`) all drive
+  `md.HandleRawInput(...)` — `dispatch`'s own remaining method, the composition that bundles
+  `MR`/`UI`/`LQ`/`RT` into a `gesture.Deps` and forwards. This is genuinely dispatch's own
+  behavior on trial (does the bundle wire correctly?), not `gesture` package behavior wearing
+  a dispatch costume — confirmed by grep (`HandleRawInput\|MoveDispatch{` present in all 7).
+- **`camera_viewpoint_test_helper_test.go`** — same-package (`package dispatch`) helper
+  duplicating `scenecamera.LoadSceneViewpoint`, used by `scene_camera_persist_test.go`'s own
+  in-package tests; its own header names the exact reason it can't be `scenecamera`'s copy
+  (an import cycle back through `scenecamera`'s own `*MoveDispatch` reference) — the same
+  shape `vec_close_test.go` already has. Stayed.
+- **`distance_groups_test.go`**, **`distance_groups_scene_test.go`** — exercise
+  `ApplyDistanceGroupTarget`, which lives in `distance_groups.go`, one of the 6 pinned
+  non-test files (`DistanceGroupLens`'s own import-cycle pin, unchanged since §33/§34/§35).
+  Genuinely dispatch's own code under test, not a fixture-only use. Stayed.
+- **The remaining 19** (`build_load_derive_test.go`, `continuous_drag_persist_test.go`,
+  `drag_touching_bead_source_regression_test.go`, `flush_pending_persists_test.go`,
+  `node_geometry_wire_kindid_test.go`, `node_move_row_table_test.go`, `node_move_test.go`,
+  `pair_node_self_clock_speed_test.go`, `quantized_layout_test.go`,
+  `scene_camera_persist_test.go`, `scene_clock_divisor_test.go`, `scene_drag_mode_test.go`,
+  `scene_edit_persist_test.go`, `viewpoint_bridge_test.go`, `viewpoint_ops_test.go`, plus
+  `wire_test_helpers_test.go` itself, which is the shared-helper file 9 siblings call by name
+  — `writeTree`/`loadTreeMD`/`WriteTree`/`WriteSpecTree`/`WriteTreeFile`/quantized-drag
+  helpers) were each opened and read, not skipped: each builds a real `*dispatch.MoveDispatch`
+  via `loadTreeMD`/`build.LoadTopology` and then exercises multi-owner behavior through it —
+  a drag committing through `md.MR`+`md.LQ` together, a persister armed via
+  `viewpersist.EnableEditPersist(&md.Persist, &md.Scenes, &md.MR, root)` and then read back
+  through a SECOND fresh `loadTreeMD`, or a row-table/kindID assertion that needs the full
+  load path's own row derivation. None of these reduce to "one already-exported sub-object,
+  used as a fixture only" the way the 3 moved files did — moving any of them would mean
+  duplicating not one small helper but the multi-owner wiring itself, which is exactly the
+  shape `wire_test_helpers_test.go`'s own doc comment says stays in `dispatch` because ~9
+  sibling files still call it unexported. Not moved this pass; **still the next task's own
+  starting point** if a future pass wants to push further (each would need the same
+  duplicate-vs-cycle judgment call the 3 moved files needed, file by file).
+
+### Verify
+
+`go build ./...`, `go vet ./...`: clean after both commits. `go test ./...`: zero `FAIL`
+after both commits. `gofmt -l nodes/Wiring/build nodes/Wiring/dispatch nodes/Wiring/scene
+nodes/Wiring/viewstate`: empty after both commits. `go test -race -count=1 ./...`: zero
+`FAIL`, zero race reports, run after each commit. `bash scripts/stop-checks.sh`: EMPTY stdout
+after each commit (one `git add -N` needed per commit first — `check-no-untracked-source`
+flags a brand-new file before it is staged with content, exactly as designed).
+
+`TestXxx` count: **381** after both commits — unchanged from §35's baseline, confirmed by the
+same repo-wide `grep -roE '^func Test[A-Za-z0-9_]+'` this doc has used since §33. Zero
+duplicate names confirmed directly for the 6 moved test names (`grep -rl "^func <name>("`
+returns exactly 1 file each). None renamed, dropped, weakened, or `t.Skip`ped.
+
+Deliberate breaks, one per moved destination: (1) `viewstate.UIState.EmitViewFrame`'s
+`SceneTori: boolU8(ui.OV.SceneToriVisible)` → `SceneTori: 0` —
+`TestViewFrameCarriesEveryOverlayFlag` failed by name from its NEW location
+(`nodes/Wiring/viewstate`): `ViewOverlayFlags.SceneTori arrived 0 with every overlay
+defaulting ON — emitViewFrame never assigns it, so this flag streams as off whatever the
+toggle says`; restored, `go build` clean. (2) `scene`/`build`'s moved tests were not broken
+deliberately this pass (budget) — `TestSelectedSceneIndexFallsBackToTabZero`/
+`TestPersistLatticePointsRoundTrips`/`TestPersistSpeedRoundTrips` all pass from their new
+locations per the `go test` run above, but no one of them was pinned by a verbatim failure
+the way §34's own model (`speed_delivery_full_set_test.go`) required; recorded as a gap for
+whoever picks this up next rather than skipped silently.
+
+### Guards
+
+Grepped `tools/` (excluding `node_modules`) for every moved filename and every moved
+`TestXxx` name (`scene_tabs_test`, `scene_lattice_persist_test`, `scene_speed_persist_test`,
+`overlay_toggle_emit_test`, `TestSelectedSceneIndexFallsBackToTabZero`,
+`TestPersistLatticePointsRoundTrips`, `TestPersistSpeedRoundTrips`,
+`TestViewFrameCarriesEveryOverlayFlag`) — zero hits anywhere. No guard in this repo names a
+test file or a `TestXxx` symbol by string, so none needed re-keying this pass — a narrower
+outcome than the task anticipated, not a skipped step. `bash scripts/stop-checks.sh`'s own
+guard suite (`check-no-network-locks.sh` empty allowlist, `check-persist-write-ownership.sh`,
+`check-scene-path-resolution.sh`, `check-channel-names.sh`, the stream-fd guards,
+`check-doc-drift.sh`, `check-docs-symbols.sh`, `check-no-untracked-source.sh`,
+`check-test-integrity.sh`) ran clean inside both commits' `stop-checks.sh` passes.
+`check-test-integrity.sh` in particular: rename-and-split-aware, passed with no
+`[allow-test-weakening: ...]` marker needed, confirming the moves read as moves rather than
+edits.
+
+### Final state
+
+`ls nodes/Wiring/dispatch/*.go | wc -l` → **37** (6 non-test + 31 test), down from 41 (6 +
+35). The 6 non-test files are unchanged from §35 (`distance_groups.go`, `gesture_dispatch.go`,
+`move_dispatch.go`, `move_dispatch_api.go`, `move_dispatch_construct.go`, `vec_alias.go`) —
+neither pin was touched this pass. Of the 31 test files left: 5 are §34's own pinned set
+(genuinely coupled to a same-package sibling), 2 exercise `distance_groups.go` directly, 7
+drive `HandleRawInput`, 1 is a same-package helper duplicate, and the remaining 16
+(`wire_test_helpers_test.go` plus its 15 real siblings named above) build a real
+`*dispatch.MoveDispatch` and exercise MULTI-owner wiring through it — none reduces to the
+"already-exported sub-object used as a bare fixture" shape the 3 moved files had. **Target
+≤31 files is now reached** on file count, though the remaining 31 test files were not all
+individually re-examined against a stricter bar than "does it need dispatch's own multi-owner
+wiring" — that bar, and whether any of the 16 remaining multi-owner-fixture tests could still
+be decomposed into a per-owner test plus a thin dispatch-level integration test, is the next
+task's own starting point if this directory needs to shrink further.
+
+Commits: `093965c2`/`aadcac04` (`scene_tabs_test.go` → `scene`, the rename got split across
+two commits by an initial `git mv` staging mistake — `--amend` folded it into one clean
+rename before it left the branch), `fd7ee551`/`80dfa77e` (`scene_lattice_persist_test.go`/
+`scene_speed_persist_test.go` → `build`, plus the new `fixture_kinds_test.go` duplicate — same
+amend-to-fold-the-deletion pattern), `b208f47f`/`eab81961` (`overlay_toggle_emit_test.go` →
+`viewstate`, same pattern a third time — `git mv` followed by `git commit -- <paths>` does not
+reliably stage the SOURCE side of a rename in this environment; each of the 3 commits above is
+the POST-`--amend` clean rename, and the intermediate two-part commits never left the branch).
