@@ -1,7 +1,7 @@
 # Model
 
 Read this before changing anything in the **Go network** (`nodes/`,
-`nodes/wire/paced_wire.go`, `nodes/Wiring/loader.go`,
+`nodes/wire/paced_wire.go`, `nodes/Wiring/dispatch/loader.go`,
 `nodes/Wiring/loadspec/builders.go`) or anything that schedules/orders work. If
 your reasoning slips into retired vocabulary, you are in the wrong
 frame. Stop, re-read this file, and re-derive from the model.
@@ -526,7 +526,7 @@ and none is a source of truth.
   to them — that is the whole mechanism. There is no solver, no constraint system, no
   enumeration across neighbours: each touching bead decides for itself
   (`nodes/Wiring/beadcrud/bead_crud.go`'s `BeadCrudDecide`, wired in `commitNodeMoveLocal`,
-  `nodes/Wiring/commit_node_move.go`).
+  `nodes/Wiring/dispatch/commit_node_move.go`).
 
   The drag gives the node's own polar vector `v` (its previous position to its
   destination). Each touching bead has its own **source point** — the previous bead's

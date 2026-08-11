@@ -28,7 +28,7 @@ import (
 	"time"
 
 	T "github.com/dtauraso/wirefold/Trace"
-	"github.com/dtauraso/wirefold/nodes/Wiring"
+	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 )
 
 func TestUnfedRequiredPortLoadsAndStaysInert(t *testing.T) {

@@ -2,7 +2,7 @@ package gatecommon
 
 import (
 	"context"
-	"github.com/dtauraso/wirefold/nodes/Wiring"
+	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"testing"
 	"time"

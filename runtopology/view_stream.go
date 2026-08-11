@@ -7,7 +7,7 @@ import (
 
 	B "github.com/dtauraso/wirefold/Buffer"
 	SF "github.com/dtauraso/wirefold/Buffer/streamframe"
-	W "github.com/dtauraso/wirefold/nodes/Wiring"
+	W "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 )
 

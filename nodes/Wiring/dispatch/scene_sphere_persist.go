@@ -1,0 +1,81 @@
+// scene_sphere_persist.go — MoveDispatch-facing side of the first-class SCENE SPHERE
+// (sphere_layout.go sceneSphere; the fixed reference every node's scene polar is measured
+// about) persister (view/sphere.json): the LoadSceneSphere method and the
+// sceneSpherePersister type. Pure read/write helpers (WriteSceneSphere/LoadSceneSphere in
+// package scenepersist — note the package-qualified name collides on purpose with this
+// file's method name, same shape as LoadOverlays/LoadSceneOverlays) live in
+// nodes/Wiring/scenepersist/scene_sphere_persist.go.
+//
+// OWNER: the view-owner goroutine (RunStdinReader, stdin_reader.go) is the SOLE caller of
+// the sphere Persister's Schedule() below — both triggers (LoadSceneSphere's content-fit,
+// which runs before any other goroutine launches, and the `save` command's handleSaveMsg)
+// run on it. sphere.json is scene-level and genuinely singular, so it stays one file with
+// one named owning goroutine (.claude/rules/persistence-ownership.md "The owner writes, and owns the path")
+// rather than a per-entity split.
+//
+// The Center is the only PERSISTED, AUTHORITATIVE cartesian value — the world anchor every
+// scene polar is measured about. See scenepersist/scene_sphere_persist.go for the on-disk
+// shape and the pure read/write functions this file's methods call.
+package dispatch
+
+import (
+	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
+)
+
+// LoadSceneSphere installs md.UI.SceneSphere from FILE DATA, or — when sphere.json has no
+// persisted sphere — from a one-time content-fit of the current node centers (so an
+// existing scene gets a sane reference without any authored value). Call after LoadTopology
+// (node centers are loaded) and before the sphere is used to derive positions.
+//
+// A content-fit fallback is PERSISTED IMMEDIATELY, and that is load-bearing. Every node's
+// position is a scene polar measured ABOUT THIS CENTER, so the center must be the same on
+// the next load or every position is silently reinterpreted:
+//
+//	load 1: no sphere -> content-fit S1 -> user drags -> scenePolars persisted about S1
+//	load 2: still no sphere -> content-fit over the NEW centers -> S2 != S1
+//	        -> every scenePolar now read about S2 -> the whole diagram drifts
+//
+// Go owns the authoritative scene state (MODEL.md), so its durability must not depend on the
+// webview sending a command. Persisting here removes the last reason for TS to trigger a
+// save at all.
+func (md *MoveDispatch) LoadSceneSphere(topologyPath string) {
+	if s, ok := scenepersist.LoadSceneSphere(topologyPath); ok {
+		md.UI.SceneSphere = s
+	} else {
+		// LoadSceneSphere runs on the main goroutine BEFORE Start launches any mover
+		// goroutine and before RunStdinReader's dispatch loop begins, so md.positions
+		// (which heldCenters reads) is still empty here — use the load-time geom sweep
+		// instead (safe: no mover goroutine is mutating geom yet).
+		md.UI.SceneSphere = geom.ContentFitSceneSphere(md.GS.LoadTimeCenters())
+		// Best-effort: a read-only or absent scene dir must not stop the sim from running.
+		// The in-memory sphere is correct either way; only cross-run stability is at stake.
+		// Path via scenepaths.SphereFilePath (scenepaths/scene_paths.go) — the authoritative
+		// resolver, per check-scene-path-resolution.sh; never hand-rolled.
+		if topologyPath != "" {
+			_ = scenepersist.WriteSceneSphere(scenepaths.SphereFilePath(topologyPath), md.UI.SceneSphere)
+		}
+	}
+	// The scene sphere is established here and never moves again (MODEL.md), so the VIEW
+	// frame emit below is the single source-of-truth broadcast the renderer uses in place
+	// of deriving a content-sphere centroid from live node positions.
+	// Decentralized (Step C, memory/feedback_no_single_writer_bridge.md): the gesture/stdin-reader goroutine
+	// (this one — LoadSceneSphere runs before any other goroutine launches) also writes its
+	// own VIEW frame directly, carrying this one-time scene-sphere event. SceneSphere
+	// decodes entirely from the VIEW frame's own Scene block (buffer-log.ts's
+	// decodeEventLine "scene-sphere" case) — no row identity to resolve.
+	md.UI.EmitViewFrame([]wire.RowEvent{{Kind: T.KindSceneSphere, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}})
+}
+
+// The sphere's own file persister (view/sphere.json) is one instantiation of
+// scenepersist.Persister[geom.SceneSphere] (the shared debounce-then-write actor shape, see
+// that type's own doc comment), bound to WriteSceneSphere, constructed in move_persist.go's
+// EnableEditPersist and held at md.persist.sphere. Its Path == "" ⇒ Schedule is a no-op
+// (tests that never arm persistence). The sphere is "established once and never moves"
+// (MODEL.md) — Schedule is its only writer, called by LoadSceneSphere's content-fit below
+// and by the "save" command (handleSaveMsg); there was never a debounce for it to begin
+// with, despite the shared type's historical name. Armed by EnableEditPersist, then called
+// exclusively by the view-owner goroutine (RunStdinReader) — see the OWNER note above.

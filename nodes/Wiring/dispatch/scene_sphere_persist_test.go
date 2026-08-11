@@ -1,0 +1,104 @@
+package dispatch
+
+import (
+	"testing"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	geomseeds "github.com/dtauraso/wirefold/nodes/Wiring/geomseeds"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
+)
+
+// TestSceneSphereRoundTrip (writeSceneSphere then loadSceneSphere returns the same sphere)
+// moved to nodes/Wiring/scenepersist/scene_sphere_persist_test.go — it drove only the pure
+// functions, no MoveDispatch/loadTreeMD.
+
+// seedsFromCenters builds a nodeSeeds slice (the frozen load-time set loadTimeCenters
+// rebuilds from) directly from world centers, for tests that don't go through a real
+// newMoveDispatch/LoadTopology pass.
+func seedsFromCenters(centers map[string]vec3) []geomseeds.NodeGeomSeed {
+	out := make([]geomseeds.NodeGeomSeed, 0, len(centers))
+	for id, c := range centers {
+		out = append(out, geomseeds.NodeGeomSeed{ID: id, CX: c.X, CY: c.Y, CZ: c.Z})
+	}
+	return out
+}
+
+// TestSceneSphereDefaultsFromContentFit: with no persisted sphere, LoadSceneSphere falls
+// back to a content-fit of the node centers rather than a zero sphere.
+func TestSceneSphereDefaultsFromContentFit(t *testing.T) {
+	md := &MoveDispatch{}
+	md.GS.NodeSeeds = seedsFromCenters(map[string]vec3{
+		"a": {X: 0, Y: 0, Z: 0},
+		"b": {X: 100, Y: 0, Z: 0},
+	})
+	// LoadSceneSphere's content-fit path now reads loadTimeCenters() (rebuilt from the
+	// frozen md.GS.NodeSeeds set above), not an atomic snap.
+	md.LoadSceneSphere(t.TempDir()) // no scene.json → content-fit
+	if md.UI.SceneSphere.Radius <= 0 {
+		t.Fatalf("content-fit sphere has non-positive radius: %+v", md.UI.SceneSphere)
+	}
+	// Center should be the bbox midpoint (≈ (50,0,0)), not the origin default.
+	if md.UI.SceneSphere.Center.X < 40 || md.UI.SceneSphere.Center.X > 60 {
+		t.Fatalf("content-fit center X=%v, want ≈50", md.UI.SceneSphere.Center.X)
+	}
+}
+
+// TestSceneSphereContentFitSurvivesReloadAfterMove pins the invariant the content-fit
+// persist exists for: the scene center must NOT be re-derived from moved nodes.
+//
+// Every node position is a scene polar measured about this center, so a center that shifts
+// between runs silently reinterprets the whole diagram. Load 1 content-fits S1 and the user
+// drags; load 2 must still see S1. If the fallback is not persisted, load 2 content-fits
+// over the NEW centers, gets S2 != S1, and every position drifts.
+//
+// A plain "does it write the file" assertion would NOT catch that — it passes while the
+// second load still recomputes. Drive two real loads across a move instead.
+func TestSceneSphereContentFitSurvivesReloadAfterMove(t *testing.T) {
+	dir := t.TempDir()
+
+	newMD := func(bx float64) *MoveDispatch {
+		md := &MoveDispatch{}
+		md.GS.NodeSeeds = seedsFromCenters(map[string]vec3{
+			"a": {X: 0, Y: 0, Z: 0},
+			"b": {X: bx, Y: 0, Z: 0},
+		})
+		return md
+	}
+
+	// Load 1: no scene.json → content-fit S1, which must be persisted.
+	md1 := newMD(100)
+	md1.LoadSceneSphere(dir)
+	s1 := md1.UI.SceneSphere
+	if s1.Radius <= 0 {
+		t.Fatalf("load 1: content-fit sphere has non-positive radius: %+v", s1)
+	}
+
+	// The user drags node b far away. Its scene polar was measured about S1.
+	// Load 2: a NEW process over the MOVED tree. It must read S1 back, not re-fit.
+	md2 := newMD(900)
+	md2.LoadSceneSphere(dir)
+	s2 := md2.UI.SceneSphere
+
+	if s2.Center != s1.Center || s2.Radius != s1.Radius {
+		t.Fatalf("scene sphere drifted across reload after a move:\n  load 1: %+v\n  load 2: %+v\n"+
+			"every node's scenePolar is measured about this center, so the diagram would shift.", s1, s2)
+	}
+}
+
+func TestSceneSpherePersisterFlushNow(t *testing.T) {
+	dir := t.TempDir()
+	p := &scenepersist.Persister[geom.SceneSphere]{
+		Path: scenepaths.SphereFilePath(dir), Write: scenepersist.WriteSceneSphere, Tag: "scene_sphere_persist",
+	}
+	s := geom.SceneSphere{Center: vec3{X: 1, Y: 2, Z: 3}, Radius: 40}
+	p.Schedule(s)
+
+	got, ok := scenepersist.LoadSceneSphere(dir)
+	if !ok {
+		t.Fatal("loadSceneSphere: ok=false after flushNow")
+	}
+	if got != s {
+		t.Fatalf("flushNow round-trip: got %+v want %+v", got, s)
+	}
+}

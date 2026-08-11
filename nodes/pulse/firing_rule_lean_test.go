@@ -2,7 +2,7 @@ package pulse
 
 import (
 	"context"
-	"github.com/dtauraso/wirefold/nodes/Wiring"
+	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"

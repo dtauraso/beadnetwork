@@ -11,7 +11,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
-	Wiring "github.com/dtauraso/wirefold/nodes/Wiring"
+	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )

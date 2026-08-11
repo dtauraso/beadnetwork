@@ -1,0 +1,157 @@
+package dispatch
+
+import (
+	"math"
+	"testing"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/edgemover"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
+)
+
+// gesture_home_test.go — the "home" (fit-to-content) command: Go frames all nodes from its
+// OWN geometry (homeFitPose, ported from camera-ui.tsx HomeButton) and installs the pose in
+// the gesture FSM via SetViewpoint + EmitViewpoint. The regression this guards is snap-back:
+// before the command existed, TS mutated the three.js camera directly and never told Go, so
+// md.UI.VP held a stale pose and the first gesture reset to it. Here the FSM's own pose becomes
+// the framed pose, so a subsequent orbit builds on it.
+
+// homeMD builds a MoveDispatch whose nodeMovers carry the given centers, all of kind TimeEnd
+// (Width==Height==60 → body radius 60/CurveParamNodeRadiusDivisor). Each center is seeded
+// via a real nodeMover's atomic snap (newNodeMover + setNodeWorld) so heldCenters() observes
+// it, mirroring a live post-layout dispatch after nodeMovers are constructed.
+func homeMD(v geom.Viewpoint, centers map[string]vec3) *MoveDispatch {
+	md := &MoveDispatch{mr: moverRegistry{nodeGeoms: map[string]*nodeactor.NodeGeometry{}, edgeMovers: map[string]*edgemover.EdgeMover{}}}
+	md.UI.VP.Viewpoint = v
+	for id, c := range centers {
+		g := nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: "TimeEnd"}}
+		nodegeom.SetNodeWorld(&g, c)
+		md.mr.nodeGeoms[id] = nodeactor.NewNodeGeometry(id, g, nil, clock.NewRealClock())
+	}
+	return md
+}
+
+func TestGestureHomeComputesFitPoseFromGeometry(t *testing.T) {
+	// A deliberately stale/off pose: the pre-home viewpoint the FSM would otherwise reuse.
+	stale := geom.Viewpoint{Pivot: vec3{X: 500, Y: 500, Z: 500}, R: 999, Pos: geom.Dir{Theta: 0.3, Phi: 0.7}, Up: geom.Dir{Theta: 0.1, Phi: 0.2}}
+	centers := map[string]vec3{
+		"a": {X: -30, Y: 0, Z: 0},
+		"b": {X: 30, Y: 0, Z: 0},
+	}
+	md := homeMD(stale, centers)
+	// Match the raw "home" event TS sends: fov + aspect encoded as rectWidth/rectHeight.
+	const fov, aspect = 50.0, 800.0 / 600.0
+	ev := inputcodec.RawInputMsg{Kind: "home", Fov: fov, RectWidth: aspect, RectHeight: 1}
+
+	md.HandleRawInput(ev, nil, nil)
+
+	// Expected fit pose: bbox over centers ± body radius. nodeRadius(kind) is now the
+	// bead-lattice-SNAPPED value (port_geometry.go's nodeTorusOuterR/nodeTorusSteps,
+	// docs/bead-model/bead-lattice.md "The count"), not the raw min(60,60)/divisor formula, so this
+	// must call the same function the production home-fit path calls rather than
+	// re-deriving the pre-snap number.
+	rad := nodegeom.NodeRadius("TimeEnd")
+	sizeX := (30 + rad) - (-30 - rad) // 60 + 2*rad
+	sizeY := (0 + rad) - (0 - rad)    // 2*rad
+	sizeZ := (0 + rad) - (0 - rad)    // 2*rad
+	wantDist := geom.FitDistanceGo(fov, aspect, sizeX, sizeY) + sizeZ/2
+	wantR := wantDist * 1.2
+
+	if !vecClose(md.UI.VP.Pivot, vec3{X: 0, Y: 0, Z: 0}, 1e-9) {
+		t.Fatalf("home pivot=%v want content center (0,0,0)", md.UI.VP.Pivot)
+	}
+	if math.Abs(md.UI.VP.R-wantR) > 1e-9 {
+		t.Fatalf("home r=%v want padded fit distance %v", md.UI.VP.R, wantR)
+	}
+	// Square-on: camera along +z, up +y — eye = pivot + r·(+z).
+	eye := geom.EyeOf(md.UI.VP.Viewpoint)
+	if !vecClose(eye, vec3{X: 0, Y: 0, Z: wantR}, 1e-6) {
+		t.Fatalf("home eye=%v want (0,0,%v) (square-on +z)", eye, wantR)
+	}
+	if math.Abs(md.UI.VP.Pos.Theta-math.Pi/2) > 1e-9 || math.Abs(md.UI.VP.Pos.Phi-math.Pi/2) > 1e-9 {
+		t.Fatalf("home pos=%v want (+z) theta=pi/2 phi=pi/2", md.UI.VP.Pos)
+	}
+	if md.UI.VP.LockedAxis != nil {
+		t.Fatalf("home must clear any locked axis, got %v", *md.UI.VP.LockedAxis)
+	}
+}
+
+// An unknown-kind node must be framed at the SAME body radius the pre-branch used
+// (geometry-helpers.ts nodeRadius → the streamed radius the buffer renders), i.e. the
+// (110,60) default → nodeRadius's fallback, NOT a zero-size point. This locks the
+// home-fit radius to the pre-branch so an unsized node is not cut off at the frame edge.
+func TestGestureHomeFramesUnknownKindAtRenderRadius(t *testing.T) {
+	stale := geom.Viewpoint{Pivot: vec3{X: 500, Y: 500, Z: 500}, R: 999, Pos: geom.Dir{Theta: 0.3, Phi: 0.7}, Up: geom.Dir{Theta: 0.1, Phi: 0.2}}
+	// A single node of an unknown kind at the origin. homeMD seeds kind "TimeEnd"; build
+	// this one node directly with an unrecognized kind instead, so nodeBodyRadius takes
+	// the (110,60) fallback (geom.Kind is set once at construction and never written
+	// again outside applyCenter — there is no exported setter to mutate it post-hoc,
+	// docs/planning/movedispatch-decomposition.md §20).
+	md := homeMD(stale, nil)
+	g := nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: "NotAKind"}}
+	nodegeom.SetNodeWorld(&g, vec3{X: 0, Y: 0, Z: 0})
+	md.mr.nodeGeoms["x"] = nodeactor.NewNodeGeometry("x", g, nil, clock.NewRealClock())
+
+	const fov, aspect = 50.0, 800.0 / 600.0
+	md.HandleRawInput(inputcodec.RawInputMsg{Kind: "home", Fov: fov, RectWidth: aspect, RectHeight: 1}, nil, nil)
+
+	// Expected: bbox is ±renderRadius on every axis (single node at origin). nodeRadius
+	// is now the bead-lattice-SNAPPED value (docs/bead-model/bead-lattice.md "The count"), not the
+	// raw min(110,60)/divisor formula, so this calls the same function the production
+	// home-fit path calls.
+	renderRadius := nodegeom.NodeRadius("NotAKind")
+	if renderRadius <= 0 {
+		t.Fatalf("render radius must be positive, got %v", renderRadius)
+	}
+	size := 2 * renderRadius
+	wantDist := geom.FitDistanceGo(fov, aspect, size, size) + size/2
+	wantR := wantDist * 1.2
+	if math.Abs(md.UI.VP.R-wantR) > 1e-9 {
+		t.Fatalf("home r=%v want %v (unknown kind framed at render radius %v, not 0)", md.UI.VP.R, wantR, renderRadius)
+	}
+}
+
+// After home, a subsequent empty-space drag orbits about the HOME-derived region focus at the
+// HOME radius — it does NOT reset to the pre-home (stale) pose. This is the anti-snap-back
+// invariant: the FSM's own pose is the seed for the next gesture.
+func TestGestureHomeThenOrbitBuildsOnHomePose(t *testing.T) {
+	stale := geom.Viewpoint{Pivot: vec3{X: 500, Y: 500, Z: 500}, R: 999, Pos: geom.Dir{Theta: 0.3, Phi: 0.7}, Up: geom.Dir{Theta: 0.1, Phi: 0.2}}
+	centers := map[string]vec3{
+		"a": {X: -30, Y: 0, Z: 0},
+		"b": {X: 30, Y: 0, Z: 0},
+	}
+	md := homeMD(stale, centers)
+	const fov, aspect = 50.0, 800.0 / 600.0
+	md.HandleRawInput(inputcodec.RawInputMsg{Kind: "home", Fov: fov, RectWidth: aspect, RectHeight: 1}, nil, nil)
+
+	homePivot, homeR, homePos := md.UI.VP.Pivot, md.UI.VP.R, md.UI.VP.Pos
+
+	// Empty-space drag: pointerdown → move past slop (seeds region-focus orbit) → move (orbit).
+	raw := func(kind string, x, y float64) inputcodec.RawInputMsg {
+		return inputcodec.RawInputMsg{Kind: kind, X: x, Y: y, RectLeft: 0, RectTop: 0, RectWidth: 800, RectHeight: 600, Button: 0, Fov: fov, Hit: inputcodec.RawHit{Kind: "empty"}}
+	}
+	md.HandleRawInput(raw("pointerdown", 400, 300), nil, nil)
+	md.HandleRawInput(raw("pointermove", 420, 300), nil, nil) // slop-cross → seed orbit
+	md.HandleRawInput(raw("pointermove", 480, 320), nil, nil) // genuine orbit
+
+	// The orbit seeded from the HOME pose: both node centers sit at z=0, so the region focus
+	// (depth-slab midpoint straight ahead) is the content center and the seed radius is the
+	// home radius. A rigid orbit preserves radius, so r must still be the HOME radius — NOT
+	// the stale r=999.
+	if math.Abs(md.UI.VP.R-homeR) > 1e-6 {
+		t.Fatalf("after home+orbit r=%v want home radius %v (stale was 999)", md.UI.VP.R, homeR)
+	}
+	if !vecClose(md.UI.VP.Pivot, homePivot, 1e-6) {
+		t.Fatalf("after home+orbit pivot=%v want home pivot %v (stale was (500,500,500))", md.UI.VP.Pivot, homePivot)
+	}
+	if math.Abs(md.UI.VP.R-999) < 1.0 {
+		t.Fatalf("after home+orbit r reset toward stale 999: %v", md.UI.VP.R)
+	}
+	// The orbit actually rotated the camera off the square-on home direction.
+	if math.Abs(md.UI.VP.Pos.Theta-homePos.Theta) < 1e-6 && math.Abs(md.UI.VP.Pos.Phi-homePos.Phi) < 1e-6 {
+		t.Fatalf("orbit did not change pos from home %v", homePos)
+	}
+}

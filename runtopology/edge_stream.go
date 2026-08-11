@@ -7,7 +7,7 @@ import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	SF "github.com/dtauraso/wirefold/Buffer/streamframe"
-	W "github.com/dtauraso/wirefold/nodes/Wiring"
+	W "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 )
 
 // wireEdgeStreams reports the edge-fd asymmetry (loaded edges but no "edge" entry) and,

@@ -25,8 +25,8 @@ import (
 	"testing"
 
 	T "github.com/dtauraso/wirefold/Trace"
-	Wiring "github.com/dtauraso/wirefold/nodes/Wiring"
 	"github.com/dtauraso/wirefold/nodes/Wiring/countspersist"
+	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgefile"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"

@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	Wiring "github.com/dtauraso/wirefold/nodes/Wiring"
+	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenecamera"
 	"github.com/dtauraso/wirefold/nodes/wire"

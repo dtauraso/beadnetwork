@@ -4,7 +4,7 @@ This started as a PLAN framing the problem as "pick one of two lattices". That f
 WRONG, and this file now records why: the symptom, the (accurate) finding about two
 incommensurate lattices, the three options considered under the wrong framing, what was
 actually measured live, and what was built instead — `walkBeadPath`
-(`nodes/Wiring/quantized_move.go`), which has no grid in the drag path at all, so the two
+(`nodes/Wiring/dispatch/quantized_move.go`), which has no grid in the drag path at all, so the two
 lattices cannot disagree there because neither of them is present. Kept as history, not as
 a plan to act on.
 
@@ -106,7 +106,7 @@ what broke. The model David specified instead: a bead is a polar VECTOR of fixed
 drag is a PATH of those vectors combined — "take the dragging of the node and fit it to a
 path of the polar vectors ... the dragging should be vectors combining."
 
-`walkBeadPath` (`nodes/Wiring/quantized_move.go`) implements this: starting from the node's
+`walkBeadPath` (`nodes/Wiring/dispatch/quantized_move.go`) implements this: starting from the node's
 current drawn position, it advances toward the raw drag target one full `BeadStepR`-length
 stride at a time, recomputing direction fresh every stride so the path curves toward a
 moving target, and stops once the remaining distance is under one bead rather than sliding

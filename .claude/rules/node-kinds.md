@@ -26,7 +26,7 @@ separate `registry.ts` exists. The schema dir is `tools/topology-vscode/src/sche
 pipeline; it also refreshes `kinds_generated.go`. That file's blank imports are what make a
 package's `init()` — and therefore its `Wiring.RegisterBuilder` call — run at all.
 
-`RegisterBuilder(kind, ports, build)` (`nodes/Wiring/build_args.go`) populates
+`RegisterBuilder(kind, ports, build)` (`nodes/Wiring/dispatch/build_args.go`) populates
 `Wiring.Registry` directly, so the registry is complete before `main` runs. The kind
 declares its ports as an explicit `[]portwiring.PortSpec` argument (imported from
 `nodes/Wiring/portwiring`, named directly — `Wiring.PortSpec`/`Wiring.PortIn`/

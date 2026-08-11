@@ -6,7 +6,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring"
+	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	"github.com/dtauraso/wirefold/nodes/gatecommon"
 )

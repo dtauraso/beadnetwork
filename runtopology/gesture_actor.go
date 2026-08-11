@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	T "github.com/dtauraso/wirefold/Trace"
-	W "github.com/dtauraso/wirefold/nodes/Wiring"
+	W "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 )
 

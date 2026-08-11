@@ -6,7 +6,7 @@ import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
-	W "github.com/dtauraso/wirefold/nodes/Wiring"
+	W "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 )
 
 // emitStartupBreadcrumbs announces which scene loaded, on both the breadcrumb channel and
