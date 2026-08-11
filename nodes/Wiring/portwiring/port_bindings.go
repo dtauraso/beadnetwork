@@ -43,6 +43,22 @@ type PortSpec struct {
 	Dir  PortDir
 }
 
+// FirstPortOfDir returns a kind's FIRST port in dir, in the order the kind declared them
+// at RegisterBuilder (nodes/Wiring's scene_structure.go/mover_registry.go call sites). It
+// takes the resolved []PortSpec directly rather than a kind name, since the kind->[]PortSpec
+// lookup lives in nodes/Wiring's own Registry (an unexported-elsewhere map this package
+// cannot see without an import cycle) — the caller does that lookup and passes the ports.
+// First, not "In": a kind names its own ports, and the declaration order is the only
+// ranking there is.
+func FirstPortOfDir(ports []PortSpec, dir PortDir) (string, bool) {
+	for _, p := range ports {
+		if p.Dir == dir {
+			return p.Name, true
+		}
+	}
+	return "", false
+}
+
 // PortBindings holds resolved PacedWires keyed by port name.
 // For PortBroadcast ports, use AppendBroadcastWithHandle.
 // A port name with no paced binding resolves to a dead-end chan wrapper
