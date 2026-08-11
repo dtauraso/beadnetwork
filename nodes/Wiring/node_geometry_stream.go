@@ -6,9 +6,7 @@ package Wiring
 import (
 	"encoding/binary"
 	"fmt"
-	"math"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
@@ -63,94 +61,33 @@ func (m *nodeGeometry) writeStreamFrame(events []wire.RowEvent) {
 				m.id, m.stream.nodeRow, e.Kind, e.NodeRow))
 		}
 	}
-	center := nodegeom.NodeWorldPos(m.geom)
-	sphereR := nodegeom.EffectiveRadius(m.geom)
-	// This node's own local-frame pole: its own scene-polar direction reversed, so the frame
-	// points back at the scene centre (Buffer/layout.go PoleTheta/PolePhi). Derived here from
-	// m.geom.ScenePolar — this node's own coordinate, on this node's own goroutine, no
-	// neighbour read. Before HasPos there is no direction yet, so the frame stays world +y.
-	var poleTheta, polePhi float64
-	if m.geom.HasPos {
-		poleTheta, polePhi = geom.InwardPole(m.geom.ScenePolar)
-	}
-	// The DRAWN ring's axis, separate from the navigation pole above (Buffer/layout.go's
-	// RingAxisTheta/RingAxisPhi). Default is the torus's own +Z normal, which draws exactly
-	// as an unrotated ring did — so a scene that has not asked for anything looks unchanged.
-	ringAxisTheta, ringAxisPhi := nodegeom.TorusDefaultAxisAngles()
-	// topTiltVectorLen is this node's own drawn vector, along the SAME axis as its ring, and 0
-	// where a scene draws none (Buffer/layout.go's TopTiltVectorLen). It runs from the node's
-	// centre to its own top, so its length IS the node's radius.
-	var topTiltVectorLen float64
-	if m.flags.upAxis && m.geom.HasPos && len(m.topo.partnerCenters) == 1 {
-		// UPRIGHT: the ring STANDS UP along its edge — its plane holds both the edge and
-		// world +y, so the node's own up-vector lies IN the ring's plane rather than
-		// sticking out of a flat disc. An axis of +y itself would lie the ring flat and
-		// put the vector perpendicular to it, which is the opposite arrangement.
-		for _, partner := range m.topo.partnerCenters {
-			if t, p, ok := nodegeom.UprightRingAxis(nodegeom.NodeWorldPos(m.geom), partner); ok {
-				ringAxisTheta, ringAxisPhi = t, p
-			}
-		}
-		topTiltVectorLen = nodegeom.NodeRadius(m.geom.Kind)
-	} else if m.flags.coplanarEdges && m.geom.HasPos && len(m.topo.partnerCenters) == 1 {
-		// COPLANAR EDGES: swing the axis off the inward pole by the smallest amount that
-		// puts the edge INSIDE the ring plane — the inward pole with its along-the-edge
-		// component removed. The chain, this node's torus and the beads' own tori then
-		// share one plane instead of the chain running through the holes. Only for a node
-		// with exactly ONE neighbour: two non-collinear edges have no common plane.
-		for _, partner := range m.topo.partnerCenters {
-			if t, p, ok := nodegeom.PoleContainingEdge(poleTheta, polePhi, nodegeom.NodeWorldPos(m.geom), partner); ok {
-				ringAxisTheta, ringAxisPhi = t, p
-			}
-		}
-	}
-	// latticeThetaStep is THIS node's own angle-per-index — 2π / latticePoints, not the
-	// fixed CurveParamTiltVectorAngleStep (which stays π/12, the compile-time 24-point
-	// default every OTHER conversion in this codebase still uses). A pair node's own
-	// lattice size is a scene setting (Node.adoptLattice, nodes/PairNode/node.go), reported
-	// here one-way via PairNodeSelf.SetLatticePoints, so the same index draws a different
-	// angle depending on how many points that node's own ring currently has. Derived once
-	// per frame; every conversion below reads this local rather than recomputing it.
-	points := m.tilt.latticePoints
-	if points == 0 {
-		points = tiltvector.FullTurnThetaIdx
-	}
-	latticeThetaStep := 2 * math.Pi / float64(points)
-	// topTiltVectorTheta is this node's OWN vector direction — separate from the ring
-	// axis above, so a scene/user can aim a node's vector somewhere other than its ring.
-	// Never a free float: index × latticeThetaStep (this node's own lattice step, above),
-	// the streamed value is pure arithmetic on the integer state this node's own mover
-	// holds and persists (m.tilt.topTiltVectorThetaIdx). There is no φ: every tilt vector in
-	// this model is θ-only (task/drop-tilt-vector-phi).
-	topTiltVectorTheta := float64(m.tilt.topTiltVectorThetaIdx) * latticeThetaStep
-	// The BOTTOM TILT VECTOR: streamed straight from this node's own bottomThetaIdx,
-	// decided by THIS node's OWN goroutine (a half turn in θ from its own top
-	// tilt index, same rule run unmodified by both nodes of a pair — PairNode's bottomTilt)
-	// and reported one-way
-	// via PairNodeSelf.SetTiltIndex alongside the top and the normal. Pure mirror here, same
-	// as every other index on this frame: this mover derives none of them.
-	bottomTiltVectorTheta := float64(m.tilt.bottomThetaIdx) * latticeThetaStep
-	// The COPLANAR NORMAL: streamed straight from this node's own normalThetaIdx,
-	// which THIS node's OWN goroutine decided (a fixed +90° in θ from its
-	// own tilt index, same rule run unmodified by both nodes of a pair — PairNode's
-	// coplanarNormal) and reported one-way via PairNodeSelf.SetTiltIndex. This mover is a pure mirror here, same shape
-	// as topTiltVectorTheta above — it derives nothing from the edge/partner.
-	// Turning the tilt therefore visibly turns the drawn normal WITH it, staying 90° away,
-	// instead of the normal staying fixed toward the partner while the tilt moves under it.
-	coplanarNormalTheta := float64(m.tilt.normalThetaIdx) * latticeThetaStep
-	// The THIRD vector: the direction last received on this node's tilt-vector channel
-	// (receivedVectorThetaIdx, mirrored one-way from this node's own goroutine —
-	// see the field's own doc comment). Same length-says-whether-and-how-far convention
-	// as topTiltVectorLen: zero when nothing has been received yet (or a reset cleared it),
-	// non-zero (this node's own radius, same as topTiltVectorLen) otherwise — so a node with
-	// nothing received is distinguishable from one whose received direction happens to be
-	// 0, which still streams a non-zero length.
-	var receivedVectorLen float64
-	var receivedVectorTheta float64
-	if m.tilt.receivedVectorSet {
-		receivedVectorLen = nodegeom.NodeRadius(m.geom.Kind)
-		receivedVectorTheta = float64(m.tilt.receivedVectorThetaIdx) * latticeThetaStep
-	}
+	// Every derived geometry column below (pole, ring axis, tilt/received vector angles) is
+	// pure arithmetic on this node's own already-held state — see
+	// nodegeom.DeriveFrameGeometry's own doc comment for why it lives there rather than here.
+	fg := nodegeom.DeriveFrameGeometry(nodegeom.FrameGeometryInputs{
+		Geom:                   m.geom,
+		UpAxis:                 m.flags.upAxis,
+		CoplanarEdges:          m.flags.coplanarEdges,
+		PartnerCenters:         m.topo.partnerCenters,
+		TopTiltVectorThetaIdx:  m.tilt.topTiltVectorThetaIdx,
+		BottomThetaIdx:         m.tilt.bottomThetaIdx,
+		NormalThetaIdx:         m.tilt.normalThetaIdx,
+		ReceivedVectorThetaIdx: m.tilt.receivedVectorThetaIdx,
+		ReceivedVectorSet:      m.tilt.receivedVectorSet,
+		LatticePoints:          m.tilt.latticePoints,
+		DefaultLatticePoints:   tiltvector.FullTurnThetaIdx,
+	})
+	center := fg.Center
+	sphereR := fg.SphereR
+	poleTheta, polePhi := fg.PoleTheta, fg.PolePhi
+	ringAxisTheta, ringAxisPhi := fg.RingAxisTheta, fg.RingAxisPhi
+	points := fg.LatticePoints
+	topTiltVectorLen := fg.TopTiltVectorLen
+	topTiltVectorTheta := fg.TopTiltVectorTheta
+	bottomTiltVectorTheta := fg.BottomTiltVectorTheta
+	coplanarNormalTheta := fg.CoplanarNormalTheta
+	receivedVectorLen := fg.ReceivedVectorLen
+	receivedVectorTheta := fg.ReceivedVectorTheta
 	label := m.geom.Label
 	if label == "" {
 		label = m.id
