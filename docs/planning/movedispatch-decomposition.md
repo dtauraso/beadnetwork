@@ -1381,3 +1381,119 @@ dot-import, package-level actor global, or `ForTest` hatch was added. One test f
 (`distanceGroups`/`distanceGroupOrder`) updated to the moved package's exported names
 (`distancegroups.Groups`/`distancegroups.GroupOrder`) — same assertions, same bodies, no
 test renamed/dropped/weakened.
+
+## 13. `nodeGeometry` cluster (`node_geometry*.go`, `node_mover.go`, `edge_mover*.go`,
+`pair_node_self.go`) re-measured statement by statement — one pure derivation lifted, the
+rest confirmed genuinely single-writer
+
+Re-derived the prior decline rather than trusting it (the task brief's own instruction): the
+"7 unexported `nodeGeometry` fields written by direct assignment" cited in §7 belong to
+`build_move_dispatch.go` (`nm.flags.coplanarEdges`, `nm.flags.upAxis`, `nm.quantOffset`,
+`nm.selfKind`, `nm.tilt.topTiltVectorThetaIdx`, `nm.topo.neighborKinds`,
+`nm.outs.outTargets`) — the BUILD cluster, not this one. §7's decline never covered
+`node_geometry.go`/`node_geometry_parts.go`/`node_geometry_stream.go`/`node_mover.go`/
+`edge_mover.go`/`edge_mover_stream.go`/`edge_mover_run.go`/`pair_node_self.go`; those eight
+files had never been measured statement-by-statement before this task.
+
+**Classified every function's body, not its signature or its file's header comment:**
+
+- `nodeGeometry.handle` (`node_geometry.go`) — every branch either assigns an unexported
+  field directly (`m.ui.selected`/`.hovered`/`.hoverPort`/`.hoverIsInput`/`.latchedSel`,
+  `m.tilt.topTiltVectorThetaIdx`, `m.topo.partnerCenters[msg.SenderID]`) or calls another
+  single-writer method (`m.applyCenter`, `m.startBeadDrag`, `m.endBeadDrag`,
+  `m.persistTiltVectorAngle`, `m.emitGeometry`, `m.writeStreamFrame`) — 100% bucket (a), a
+  pure dispatcher over its own receiver's state.
+- `nodeGeometry.emitGeometry` (`node_geometry_stream.go`) — one call, `m.writeStreamFrame`.
+  Bucket (a).
+- `nodeGeometry.writeStreamFrame` (`node_geometry_stream.go`, 176 lines before this task) —
+  the panic guard (reads events, panics — assertion, stays), roughly **100 lines of pure
+  arithmetic on field READS** (`m.geom`, `m.flags`, `m.topo.partnerCenters`, `m.tilt`, `m.ui`
+  — no assignment to any of them), then the `NodeFrameInput` struct literal build and the
+  `m.stream.buildFrame`/`m.stream.streamOut.Write` calls (bucket (a) — the dedicated-fd
+  write, single-writer by construction). **Lifted the ~100-line pure middle** —
+  `nodegeom.DeriveFrameGeometry` (`nodes/Wiring/nodegeom/frame_geometry.go`), taking a
+  `FrameGeometryInputs` (the node's `NodeGeom`, its two scene flags, its `partnerCenters`
+  map, its four tilt indices + `receivedVectorSet` + `latticePoints`) and returning a
+  `FrameGeometryOutputs` (center, sphereR, pole θ/φ, ring-axis θ/φ, lattice points, and the
+  four tilt/received angle+length columns) — pole/ring-axis/tilt-angle derivation that used
+  to run inline now calls `nodegeom.NodeWorldPos`/`EffectiveRadius`/`geom.InwardPole`/
+  `TorusDefaultAxisAngles`/`UprightRingAxis`/`PoleContainingEdge`/`NodeRadius`, all of which
+  already lived in `nodegeom`/`geom` — this call was already cross-package before the move,
+  only the orchestrating arithmetic between those calls was inline. `writeStreamFrame` itself
+  now: panic guard → one `nodegeom.DeriveFrameGeometry` call → label fallback (2 lines,
+  read-only, left inline as not worth a second call) → `m.chainBeads()` (already a separate
+  pure function, unchanged) → struct build → write. 176 → ~100 lines.
+- `node_geometry_parts.go` — zero functions; every declaration is a type. Nothing to
+  classify.
+- `node_mover.go` — `nodeMetaFilePath`/`nodeDirPath` are pure `filepath.Join` computations,
+  but `.claude/rules/persistence-ownership.md`'s own guard
+  (`check-scene-path-resolution.sh`) requires `nodes/` path `Join` calls live ONLY in
+  `node_mover.go`/`edge_mover.go`/`loader_tree.go` — moving them would fail that guard by
+  construction, so they stay despite being pure. `WriteNewNodeFiles`/`RemoveNodeDir` write
+  files (bucket (a), same guard). `newNodeMover` is a two-field literal constructor — no
+  computation to lift. `run` is the actor loop: channel receives, `SleepCycle`, wire drive —
+  100% bucket (a).
+- `edge_mover.go`'s `handle`/`recomputeGeometry` — `handle` assigns `m.selected` or calls
+  `nodegeom.SetNodeWorld(&m.srcGeom, ...)` (mutates the receiver's own field through a
+  pointer) then `m.recomputeGeometry()`; `recomputeGeometry` calls the already-pure
+  `nodegeom.EdgeSegment` (unchanged, already cross-package) then three sends
+  (`m.out.PublishSegment`, `m.dest.ReviseInFlightGeometry`, `m.writeStreamFrame`). Both
+  functions are field-write/send at every statement — no local arithmetic worth a name.
+- `edge_mover_stream.go`'s `writeStreamFrame` — panic guard, one `nodegeom.EdgeSegment` call
+  (already pure/cross-package), then `m.dest.DrainPendingEvents()`/`DrainBreadcrumbEvents()`
+  — QUEUE DRAINS, which mutate the wire's own pending-event queue on read (the same
+  single-goroutine-ownership shape a channel receive has), not a pure read — so the
+  `RowEvent` construction immediately downstream of each drain is inseparable from a
+  stateful call and was left in place rather than split into a same-file "pure" helper that
+  would still take the drained slice as its only real input (measured, not assumed: the
+  loop body itself is 6 lines of struct-literal field copies per event, not enough
+  computation to justify a second call for its own sake).
+- `edge_mover_run.go`'s `run` — actor loop, 100% bucket (a) (channel selects, `SleepCycle`,
+  `DriveOneCycle`).
+- `pair_node_self.go` — every method (`Breadcrumb`, `EmitGeometryOnce`, `Step`,
+  `SetTiltIndex`, `SetRoundsToParallel`, `SetReceivedVector`, `SetLatticePoints`,
+  `ClearOutBeads`, plus `MoveDispatch.NodeSelfDriven`/`HasNodeMover`/`NodeQuantOffset`) either
+  assigns an unexported `nodeGeometry` field directly (`g.tilt.*`, `g.readout.*`) or is a
+  channel-driven actor step (`Step`) or a thin delegator to `md.mr` (kept for the external
+  `package main` test callers, per §2a's already-recorded reason — unchanged here). 100%
+  bucket (a).
+
+**Moved:** `nodegeom.DeriveFrameGeometry` (+ `FrameGeometryInputs`/`FrameGeometryOutputs`),
+`nodes/Wiring/nodegeom/frame_geometry.go`. Nothing else in the cluster.
+
+**Declined, with the exact statement pinning each:** every other function above — see the
+per-function breakdown; the pinning statement in every case is either a direct assignment to
+an unexported `nodeGeometry`/`edgeMover` field (`m.ui.selected = ...`, `g.tilt.topTiltVectorThetaIdx = theta`,
+`m.selected = 1`, etc.), a channel send/receive, a `SleepCycle` call, a file write
+(`jsonpersist.WriteJSONAtomic`, `os.RemoveAll`), or a `nodes/` path `Join` the persistence
+guard pins to this file by name.
+
+**LOC:** `node_geometry_stream.go` 219 → 149 lines. New file
+`nodes/Wiring/nodegeom/frame_geometry.go`, 101 lines. `node_geometry.go` (309),
+`node_geometry_parts.go` (275), `node_mover.go` (197), `edge_mover.go` (244),
+`edge_mover_stream.go` (98), `edge_mover_run.go` (96), `pair_node_self.go` (257) all
+unchanged. `nodes/Wiring` non-test top-level `.go` file count unchanged (59) — this was a
+line move within an existing top-level file into an existing subpackage, not a file removal.
+
+**Verification:** `go build ./...`, `go vet ./...` clean. `go test -race -count=1 ./...`
+passes with no failures and no race reported (every package `ok` or `[no test files]`). The
+no-imports-`Wiring` loop is empty. `nodes/Wiring/node_geometry_lattice_points_test.go`'s two
+tests (`TestWriteStreamFrameDefaultLatticeMatchesOldConstant`,
+`TestWriteStreamFrameFollowsSetLatticePoints`) already drive
+`nodeGeometry.writeStreamFrame` through its own `buildFrame` injection seam and therefore
+exercise `DeriveFrameGeometry` end-to-end with no test change needed. Deliberately broke
+`DeriveFrameGeometry`'s `TopTiltVectorTheta` line (`out.TopTiltVectorTheta = 0` instead of
+`float64(in.TopTiltVectorThetaIdx) * latticeThetaStep`) and confirmed both tests FAIL by
+name:
+```
+--- FAIL: TestWriteStreamFrameDefaultLatticeMatchesOldConstant (0.00s)
+    node_geometry_lattice_points_test.go:65: default-lattice angles = (top=0 bottom=1.3089969 coplanar=1.3089969 received=1.3089969), want all 1.3089969 (idx=5 * nodegeom.CurveParamTiltVectorAngleStep)
+--- FAIL: TestWriteStreamFrameFollowsSetLatticePoints (0.00s)
+    node_geometry_lattice_points_test.go:94: 12-point-lattice angles = (top=0 bottom=2.6179938 coplanar=2.6179938 received=2.6179938), want all 2.6179938 (idx=5 * 2π/12, NOT the fixed nodegeom.CurveParamTiltVectorAngleStep 1.3089969)
+```
+then restored and confirmed both pass again. No guard is keyed to `writeStreamFrame`,
+`node_geometry_stream.go`, or any symbol in the cluster by name (`grep -rl` across
+`tools/*/*.sh tools/*/*/*.sh` for every moved/touched function and filename returned empty
+before this change, so no guard needed re-keying and none was touched). No interface,
+`types`/`common` package, alias shim, dot-import, package-level actor global, or `ForTest`
+hatch was added.
