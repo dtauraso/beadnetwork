@@ -17,9 +17,7 @@ package Wiring
 
 import (
 	"fmt"
-	"strconv"
 
-	B "github.com/dtauraso/wirefold/Buffer"
 	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/countspersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgefile"
@@ -50,7 +48,7 @@ func (md *MoveDispatch) CreateNode(kindID uint8, ndcX, ndcY float64, tr *T.Trace
 		md.UI.EmitViewFrame(nil)
 		return
 	}
-	kind, ok := kindForID(kindID)
+	kind, ok := loadspec.KindForID(kindID)
 	if !ok {
 		md.UI.RefuseStructuralEdit(fmt.Sprintf("unknown kind id %d", kindID))
 		md.UI.EmitViewFrame(nil)
@@ -80,7 +78,7 @@ func (md *MoveDispatch) CreateNode(kindID uint8, ndcX, ndcY float64, tr *T.Trace
 	// source and carries no `source` key, so choosing the source is choosing the directory
 	// the edge file lands in.
 	src, okNear := md.mr.nearestNodeTo(drop)
-	target := newNodeID(md.Scenes.TreeRoot)
+	target := loadspec.NewNodeID(md.Scenes.TreeRoot)
 	var srcPort, targetPort string
 	if okNear {
 		var why string
@@ -232,25 +230,11 @@ func firstPortOfDir(kind string, dir portwiring.PortDir) (string, bool) {
 // Moved to viewstate.UIState.RefuseStructuralEdit (docs/planning/gesture-actor.md's lift) —
 // call sites in this file now read md.UI.RefuseStructuralEdit(...).
 
-// kindForID reverses Buffer's kind-id map: the wire carries the numeric kind identity the
-// Node block's KindId column already uses, so no kind NAME crosses the bridge.
-func kindForID(id uint8) (string, bool) {
-	for _, k := range B.KnownKinds() {
-		if B.NodeKindID(k) == id {
-			return k, true
-		}
-	}
-	return "", false
-}
-
-// newNodeID is one past the largest id — never a reused hole. Reusing a freed id would make
-// a node's identity ambiguous across a session boundary: the same directory name would name
-// a different node before and after, which is the whole reason ids are not renumbered.
+// kindForID/newNodeID moved to loadspec.KindForID/loadspec.NewNodeID (god-object
+// decomposition) — both were pure functions of their arguments with no Wiring state; call
+// sites above now read loadspec.KindForID(...)/loadspec.NewNodeID(...) directly.
 // LargestNodeID/NodeIDsInTree/CountEdgeFiles live in nodes/Wiring/loadspec's
 // loader_tree.go, which is where reading the tree's shape belongs.
-func newNodeID(root string) string {
-	return strconv.Itoa(loadspec.LargestNodeID(root) + 1)
-}
 
 // THE WRITES THEMSELVES LIVE WITH THEIR OWNERS, not here: a per-node file is written by
 // node_mover.go, a per-edge file by edge_mover.go, and the tree-level counts.json by

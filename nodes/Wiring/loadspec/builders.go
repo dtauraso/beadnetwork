@@ -12,6 +12,12 @@
 
 package loadspec
 
+import (
+	"strconv"
+
+	B "github.com/dtauraso/wirefold/Buffer"
+)
+
 // VerticalRingNormal and FlatRingNormal are the two great-circle ring normals
 // streamed on every node-geometry event so TS never hardcodes ring orientation.
 // vertical: ring stands upright (normal points along +Z world axis).
@@ -20,3 +26,25 @@ const (
 	VerticalRingNormalX, VerticalRingNormalY, VerticalRingNormalZ = 0.0, 0.0, 1.0
 	FlatRingNormalX, FlatRingNormalY, FlatRingNormalZ             = 0.0, 1.0, 0.0
 )
+
+// KindForID reverses Buffer's kind-id map: the wire carries the numeric kind identity the
+// Node block's KindId column already uses, so no kind NAME crosses the bridge. Moved from
+// nodes/Wiring's scene_structure.go (god-object decomposition) — pure over Buffer's own
+// KnownKinds/NodeKindID, no Wiring state.
+func KindForID(id uint8) (string, bool) {
+	for _, k := range B.KnownKinds() {
+		if B.NodeKindID(k) == id {
+			return k, true
+		}
+	}
+	return "", false
+}
+
+// NewNodeID is one past the largest id in root's tree — never a reused hole. Reusing a
+// freed id would make a node's identity ambiguous across a session boundary: the same
+// directory name would name a different node before and after, which is the whole reason
+// ids are not renumbered. Moved from nodes/Wiring's scene_structure.go (god-object
+// decomposition) — pure over LargestNodeID, which already lives in this package.
+func NewNodeID(root string) string {
+	return strconv.Itoa(LargestNodeID(root) + 1)
+}
