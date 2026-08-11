@@ -17,6 +17,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgemover"
 	geomseeds "github.com/dtauraso/wirefold/nodes/Wiring/geomseeds"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
@@ -54,29 +55,28 @@ type streamWiring struct {
 	// interiorOuts.
 	driveOuts map[string][driveSlotsPerNode]io.Writer
 
-	// claims is the wiring-time claim registry backing every claimedStream this struct
-	// hands out (streamOut on each nodeMover) — see stream_claim.go's header
-	// comment. Lazily allocated (newStreamClaims) by setNodeStreams, so a bare
-	// streamWiring zero value (test construction that never wires any stream) never
-	// allocates it. The VIEW stream's own claim registry is separate (viewstate's own
-	// viewClaimedStream), and the EDGE stream's own claim registry is separate too
-	// (edgeClaims below, package edgemover's own ClaimRegistry — edgemover cannot
-	// import package Wiring's unexported claimedStream/streamClaims types, so it keeps
-	// a small duplicate of the same mechanism; see nodes/Wiring/edgemover/stream_claim.go).
-	// The three can never collide (disjoint namespaces: node ids, edge labels, and the
-	// VIEW stream's own singleton), so splitting them cost nothing.
-	claims streamClaims
-	// edgeClaims is the edge-stream counterpart of claims above, using package
+	// nodeClaims is the node-stream claim registry, using package nodeactor's own
+	// ClaimRegistry type (nodeactor/stream_claim.go) — nodeactor cannot import package
+	// Wiring's unexported claimedStream/streamClaims types (the type left this package
+	// in docs/planning/movedispatch-decomposition.md §20), so it keeps a small duplicate
+	// of the same mechanism, the same precedent §17 set for nodes/Wiring/edgemover's own
+	// stream_claim.go. Lazily allocated by setNodeStreams. The VIEW stream's own claim
+	// registry is separate (viewstate's own viewClaimedStream), and the EDGE stream's
+	// own claim registry is separate too (edgeClaims below, package edgemover's own
+	// ClaimRegistry). The three can never collide (disjoint namespaces: node ids, edge
+	// labels, and the VIEW stream's own singleton), so splitting them cost nothing.
+	nodeClaims nodeactor.ClaimRegistry
+	// edgeClaims is the edge-stream counterpart of nodeClaims above, using package
 	// edgemover's own ClaimRegistry type. Lazily allocated by setEdgeStreams.
 	edgeClaims edgemover.ClaimRegistry
 }
 
-// ensureClaims lazily allocates sw.claims on first use — see its doc comment.
-func (sw *streamWiring) ensureClaims() streamClaims {
-	if sw.claims == nil {
-		sw.claims = newStreamClaims()
+// ensureNodeClaims lazily allocates sw.nodeClaims on first use — see its doc comment.
+func (sw *streamWiring) ensureNodeClaims() nodeactor.ClaimRegistry {
+	if sw.nodeClaims == nil {
+		sw.nodeClaims = nodeactor.NewClaimRegistry()
 	}
-	return sw.claims
+	return sw.nodeClaims
 }
 
 // ensureEdgeClaims lazily allocates sw.edgeClaims on first use — see its doc comment.
@@ -143,11 +143,11 @@ func (sw *streamWiring) setEdgeStreams(
 // happen) is skipped rather than panicking.
 func (sw *streamWiring) setNodeStreams(
 	nodeSeeds []geomseeds.NodeGeomSeed,
-	nodeMovers map[string]*nodeGeometry,
+	nodeMovers map[string]*nodeactor.NodeGeometry,
 	nodeBase, interiorBase int,
 	driveBase int, driveWired bool,
 	nodeRowFor func(id string) (int32, bool),
-	buildFrame NodeFrameBuilder,
+	buildFrame nodeactor.NodeFrameBuilder,
 	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte,
 	kindIDFor func(kind string) uint8,
 ) {
@@ -166,14 +166,14 @@ func (sw *streamWiring) setNodeStreams(
 		row := seed.Row
 		nFd := nodeBase + row
 		rawNodeOut := os.NewFile(uintptr(nFd), fmt.Sprintf("node-fd%d", nFd))
-		streamOut := newClaimedStream(sw.ensureClaims(), "node", seed.ID, rawNodeOut)
+		streamOut := nodeactor.Claim(sw.ensureNodeClaims(), seed.ID, rawNodeOut)
 		// kindID is static per node (never changes after load) — resolved once here,
 		// directly onto the mover's own field, not via a per-emit lookup func.
 		var kindID uint8
 		if kindIDFor != nil {
 			kindID = kindIDFor(seed.Kind)
 		}
-		nm.wireStream(streamOut, int32(row), kindID, nodeRowFor, buildFrame)
+		nm.WireStream(streamOut, int32(row), kindID, nodeRowFor, buildFrame)
 
 		iFd := interiorBase + row
 		sw.interiorOuts[seed.ID] = os.NewFile(uintptr(iFd), fmt.Sprintf("interior-fd%d", iFd))

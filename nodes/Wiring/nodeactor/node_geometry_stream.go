@@ -1,7 +1,7 @@
-// node_geometry_stream.go — a nodeGeometry's re-emit trigger and its dedicated per-fd
+// node_geometry_stream.go — a NodeGeometry's re-emit trigger and its dedicated per-fd
 // content-buffer frame packer, the two together making up the ONLY path any node writes
 // to its own stream.
-package Wiring
+package nodeactor
 
 import (
 	"encoding/binary"
@@ -17,9 +17,9 @@ import (
 
 // emitGeometry re-emits this node's authoritative geometry (center, radius, ring
 // normals — no port geometry: a port carries none, docs/bead-model/channels-not-ports.md).
-// This method and applyCenter both run on this node's own driving goroutine only, so a
+// This method and ApplyCenter both run on this node's own driving goroutine only, so a
 // plain field read here can never race a concurrent writer.
-func (m *nodeGeometry) emitGeometry() {
+func (m *NodeGeometry) emitGeometry() {
 	// Dedicated per-node stream (see streamOut's doc comment): write this node's own
 	// combined frame immediately on a geometry change, in addition to the tick-driven
 	// write in the driving loop's own per-cycle write. NodeGeometry rides THIS frame's
@@ -36,10 +36,12 @@ func (m *nodeGeometry) emitGeometry() {
 // writeStreamFrame packs and writes this node's combined per-fd frame (center/radius/
 // ring-normals + ports + label + selection-UI columns) to its OWN dedicated fd
 // (streamOut). No-op when streamOut is nil (the fallback — see its doc comment) or
-// buildFrame was never injected (bare test construction). Called only by this node's own
-// driving goroutine, reading m.geom. events carries whatever this call's caller wants
+// buildFrame was never injected (bare test construction). Called by this node's own
+// driving goroutine, or (via the exported WriteStreamFrame, node_geometry_accessors.go) by
+// package Wiring's commit path for a breadcrumb riding this same node's own frame — both
+// run on this node's own goroutine. events carries whatever this call's caller wants
 // riding this frame's trailing EVENTS section (nil from a plain tick-driven write).
-func (m *nodeGeometry) writeStreamFrame(events []wire.RowEvent) {
+func (m *NodeGeometry) writeStreamFrame(events []wire.RowEvent) {
 	if !m.stream.streamOut.Ok() || m.stream.buildFrame == nil {
 		return
 	}
@@ -47,17 +49,17 @@ func (m *nodeGeometry) writeStreamFrame(events []wire.RowEvent) {
 	// the per-goroutine bridge stated in CLAUDE.md's "Bridge surface" and in
 	// memory/feedback_no_single_writer_bridge.md + memory/feedback_per_goroutine_bridge.md,
 	// and until now it was enforced by prose alone. NodeRow is the ownership column; a
-	// FOREIGN node is referenced through TargetRow (see quantized_move.go's abc-drag
-	// breadcrumb, which sets NodeRow: nm.stream.nodeRow and TargetRow: the other node). Violating
-	// it produces a frame the TS side decodes onto the wrong row — a silently wrong scene
-	// that still renders, which is the expensive failure this panic converts into a cheap
-	// one. Placed AFTER the nil guard on purpose: bare geometries built in tests never
-	// reach the pack path, and nodeRow is seeded alongside streamOut (stream_wiring.go),
-	// so any frame that gets here has a real row.
+	// FOREIGN node is referenced through TargetRow (see package Wiring's quantized_move.go
+	// abc-drag breadcrumb, which sets NodeRow: nm.NodeRow() and TargetRow: the other node).
+	// Violating it produces a frame the TS side decodes onto the wrong row — a silently
+	// wrong scene that still renders, which is the expensive failure this panic converts
+	// into a cheap one. Placed AFTER the nil guard on purpose: bare geometries built in
+	// tests never reach the pack path, and nodeRow is seeded alongside streamOut
+	// (WireStream, node_geometry_wire.go), so any frame that gets here has a real row.
 	for _, e := range events {
 		if e.NodeRow != m.stream.nodeRow {
 			panic(fmt.Sprintf(
-				"nodeGeometry.writeStreamFrame: node %q (row %d) is carrying a %s event for row %d on its OWN dedicated stream — NodeRow is an ownership claim, not a reference; a foreign node belongs in TargetRow",
+				"NodeGeometry.writeStreamFrame: node %q (row %d) is carrying a %s event for row %d on its OWN dedicated stream — NodeRow is an ownership claim, not a reference; a foreign node belongs in TargetRow",
 				m.id, m.stream.nodeRow, e.Kind, e.NodeRow))
 		}
 	}

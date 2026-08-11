@@ -61,16 +61,17 @@ func TestNodeGeometryLabelSidecar(t *testing.T) {
 
 	seen := map[string]bool{}
 	for _, nm := range md.mr.nodeGeoms {
-		seen[nm.id] = true
-		label := nm.geom.Label
+		id := nm.ID()
+		seen[id] = true
+		label := nm.Label()
 		if label == "" {
-			label = nm.id
+			label = id
 		}
-		if want := wantLabel[nm.id]; label != want {
-			t.Fatalf("node %q: label = %q, want %q", nm.id, label, want)
+		if want := wantLabel[id]; label != want {
+			t.Fatalf("node %q: label = %q, want %q", id, label, want)
 		}
-		if want := wantKind[nm.id]; nm.geom.Kind != want {
-			t.Fatalf("node %q: kind = %q, want %q", nm.id, nm.geom.Kind, want)
+		if want := wantKind[id]; nm.Kind() != want {
+			t.Fatalf("node %q: kind = %q, want %q", id, nm.Kind(), want)
 		}
 	}
 	if len(seen) != 2 {

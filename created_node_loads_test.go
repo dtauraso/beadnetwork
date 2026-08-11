@@ -28,6 +28,7 @@ import (
 	Wiring "github.com/dtauraso/wirefold/nodes/Wiring"
 	"github.com/dtauraso/wirefold/nodes/Wiring/countspersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgefile"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
@@ -122,7 +123,7 @@ func TestCreatedNodeTreeStillLoads(t *testing.T) {
 	// the fixture had moved.
 	newID := nextNodeID(t, root)
 	const newKind = "NormalSum"
-	if err := Wiring.WriteNewNodeFiles(root, newID, newKind, 120, 1.4, 0.3); err != nil {
+	if err := nodeactor.WriteNewNodeFiles(root, newID, newKind, 120, 1.4, 0.3); err != nil {
 		t.Fatalf("WriteNewNodeFiles: %v", err)
 	}
 

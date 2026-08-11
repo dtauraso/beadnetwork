@@ -5,13 +5,13 @@
 // content buffer.
 //
 // This is deliberately NOT inside chainBeads' own placement loop by default: chainBeads
-// is exercised directly, synchronously, by bare `&nodeMover{...}` test literals
+// is exercised directly, synchronously, by bare `&NodeMover{...}` test literals
 // (chain_beads_test.go) that construct no goroutine and expect a pure, deterministic
 // answer on the calling goroutine with no live TickBroadcaster started as a side effect.
 // The switch is m.beads.beadTickFn (nil in every such test, set to wire.NewTickChan only by
-// production's newNodeMover) — chainBeads reads it once per outgoing target and only
+// production's NewNodeMover) — chainBeads reads it once per outgoing target and only
 // calls into this file when it is non-nil.
-package Wiring
+package nodeactor
 
 import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
@@ -19,7 +19,7 @@ import (
 )
 
 // edgeBeadChain is ONE outgoing edge's live chain of bead-actor goroutines, owned by this
-// node's own goroutine (nodeMover.run/handle/chainBeads — never a second goroutine reads
+// node's own goroutine (NodeMover.Run/handle/chainBeads — never a second goroutine reads
 // or writes any field here). beads/stops/snaps/last/valid are parallel slices, one entry
 // per chain-bead index, always kept the same length as each other and as the edge's
 // current bead count (chain_beads.go's edgeStepCount) by reconcileBeadChain.
@@ -66,7 +66,7 @@ type edgeBeadChain struct {
 // (selfTorusR + lattice.BeadTorusOuterR + i*lattice.BeadStepR) — unchanged for the life of bead
 // i, exactly as bead_actor.go's Bead.offsetR documents. Called only from chainBeads, only
 // on this node's own goroutine.
-func (m *nodeGeometry) reconcileBeadChain(to string, count int, offsetAt func(i int) float64, aim wire.Vec3) *edgeBeadChain {
+func (m *NodeGeometry) reconcileBeadChain(to string, count int, offsetAt func(i int) float64, aim wire.Vec3) *edgeBeadChain {
 	if m.beads.beadChains == nil {
 		m.beads.beadChains = map[string]*edgeBeadChain{}
 	}
@@ -152,7 +152,7 @@ func (m *nodeGeometry) reconcileBeadChain(to string, count int, offsetAt func(i 
 // resting (dragging=false) by the first reconcileBeadChain call this drag makes, which is
 // harmless: the mode flag does not gate geometry delivery (see bead_actor.go's Bead.run —
 // the geometry case applies unconditionally, dragging or not), only observability.
-func (m *nodeGeometry) startBeadDrag() {
+func (m *NodeGeometry) startBeadDrag() {
 	for _, c := range m.beads.beadChains {
 		c.group.StartDrag()
 	}
@@ -162,7 +162,7 @@ func (m *nodeGeometry) startBeadDrag() {
 // bead chains — clears the dragging flag with one close per edge. Called from handle's
 // movemsg.KindDragEnd case, on EVERY path a drag ends by (see that message kind's own doc
 // comment), so no bead this node woke is ever left on machine time.
-func (m *nodeGeometry) endBeadDrag() {
+func (m *NodeGeometry) endBeadDrag() {
 	for _, c := range m.beads.beadChains {
 		c.group.EndDrag()
 	}

@@ -20,6 +20,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
@@ -37,18 +38,16 @@ func TestSelfDrivenGeometryClockAppliesDeliveredSpeed(t *testing.T) {
 	}
 	// Reproduce exactly what ClaimSelfDrive does at build time: copy clockSrc into clk once,
 	// then wire this node's own dedicated speed channel (the fix under test).
-	if geom.clocks.clockSrc != nil {
-		geom.clocks.clk = geom.clocks.clockSrc.Copy()
-	}
+	geom.CopyClockSrc()
 	speedCh := make(chan float64, 1)
-	self := &PairNodeSelf{geom: geom, speedCh: speedCh}
+	self := nodeactor.NewPairNodeSelf(geom, speedCh)
 	ctx := context.Background()
 
 	// Baseline: default speed 1, ~2 ticks over 2 periods.
-	before := geom.clocks.clk.Tick()
+	before := geom.Tick()
 	time.Sleep(2 * clock.TickPeriod)
-	self.Step(ctx, geom.clocks.clk.Tick())
-	afterDefault := geom.clocks.clk.Tick()
+	self.Step(ctx, geom.Tick())
+	afterDefault := geom.Tick()
 	if advanced := afterDefault - before; advanced > 5 {
 		t.Fatalf("baseline advance too fast before any speed change: advanced=%d ticks", advanced)
 	}
@@ -59,12 +58,12 @@ func TestSelfDrivenGeometryClockAppliesDeliveredSpeed(t *testing.T) {
 	// from the moment it is applied, same ordering TestApplySpeedNonBlockingAppliesOnWake
 	// uses: send, apply-on-wake, THEN measure the next window).
 	clock.SendSpeedNonBlocking(speedCh, 8)
-	self.Step(ctx, geom.clocks.clk.Tick())
+	self.Step(ctx, geom.Tick())
 
-	before2 := geom.clocks.clk.Tick()
+	before2 := geom.Tick()
 	time.Sleep(2 * clock.TickPeriod)
-	self.Step(ctx, geom.clocks.clk.Tick())
-	after2 := geom.clocks.clk.Tick()
+	self.Step(ctx, geom.Tick())
+	after2 := geom.Tick()
 	if advanced := after2 - before2; advanced < 5 {
 		t.Fatalf("self-driven node geometry clock did not apply delivered speed: advanced=%d ticks over 2 periods at speed 8 (want >=5, i.e. clearly faster than the old speed-1 rate) — geom.clocks.clk is stuck at its build-time copy", advanced)
 	}

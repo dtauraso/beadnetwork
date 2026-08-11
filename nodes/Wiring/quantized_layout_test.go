@@ -60,7 +60,7 @@ func TestCommitNodeMoveLocalDrawsQuantizedNotRawTarget(t *testing.T) {
 		t.Fatal("no center for dst after commit")
 	}
 	// (1) The committed center must NOT be the raw target — proves the fix is active
-	// (reverting it back to `nm.applyCenter(newPos, ...)` with the raw target would make
+	// (reverting it back to `nm.ApplyCenter(newPos, ...)` with the raw target would make
 	// this assertion fail, since `got` would then equal `target` exactly).
 	if d := got.Sub(target).Length(); d < 1e-6 {
 		t.Fatalf("commitNodeMoveLocal drew the RAW target instead of the quantized lattice point: got=%+v raw-target=%+v", got, target)
@@ -246,7 +246,7 @@ func TestCommitNodeMoveLocalAddMovesOneBeadBeyondNewBead(t *testing.T) {
 }
 
 // TestCommitNodeMoveLocalPersistsQuantizedNotRawPolar closes a coverage hole the tests
-// above miss entirely: they all assert `applyCenter`'s DRAWN center
+// above miss entirely: they all assert `ApplyCenter`'s DRAWN center
 // (md.mr.centerOfNode), never the scene-polar written to nodes/<id>/position.json by
 // persistQuantOffset (commit_node_move.go, quant_offset_persist.go). A prior injected bug
 // — computing committedPolar from newPos (the raw drag target) instead of committedPos

@@ -66,12 +66,12 @@ func (b *buildCtx) buildMoveDispatch() error {
 	upAxis := scene.SceneWantsUpAxis(b.scenePath)
 	if coplanarEdges || upAxis {
 		for _, nm := range md.mr.nodeGeoms {
-			nm.setSceneFlags(coplanarEdges, upAxis)
+			nm.SetSceneFlags(coplanarEdges, upAxis)
 		}
 	}
 	for id, off := range b.quantizedOffsets {
 		if nm, ok := md.mr.nodeGeoms[id]; ok {
-			nm.setQuantOffset(off)
+			nm.SetQuantOffset(off)
 		}
 	}
 	// Seed each node's OWN selfKind (specNode.Type), set once at construction.
@@ -80,9 +80,9 @@ func (b *buildCtx) buildMoveDispatch() error {
 		if !ok {
 			continue
 		}
-		nm.selfKind = n.Type
+		nm.SetSelfKind(n.Type)
 		if n.TopTiltVectorThetaIdx != nil {
-			nm.setTopTiltVectorThetaIdx(*n.TopTiltVectorThetaIdx)
+			nm.SetTopTiltVectorThetaIdx(*n.TopTiltVectorThetaIdx)
 		}
 	}
 	// Seed each node's OWN neighborKinds map — every DIRECT domain-adjacent neighbor id
@@ -100,7 +100,7 @@ func (b *buildCtx) buildMoveDispatch() error {
 		if !ok {
 			return
 		}
-		nm.addNeighborKind(toID, kindByID[toID])
+		nm.AddNeighborKind(toID, kindByID[toID])
 	}
 	for _, e := range b.spec.Edges {
 		linkNeighborKind(e.Source, e.Target)
@@ -114,7 +114,7 @@ func (b *buildCtx) buildMoveDispatch() error {
 		if !ok {
 			continue
 		}
-		nm.addOutTarget(e.Target)
+		nm.AddOutTarget(e.Target)
 	}
 	b.md = md
 	return nil

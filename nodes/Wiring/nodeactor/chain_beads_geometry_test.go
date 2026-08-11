@@ -1,4 +1,4 @@
-package Wiring
+package nodeactor
 
 import (
 	"math"
@@ -21,7 +21,7 @@ func TestChainBeadsStayOutsideBothNodes(t *testing.T) {
 	// Expressed as a cell count * lattice.BeadStepR, not a bare literal, so this
 	// stays an exact multiple of the local-polar grid constant whatever that constant is.
 	const gap = 200 * lattice.BeadStepR
-	m := &nodeGeometry{
+	m := &NodeGeometry{
 		id:   "a",
 		geom: nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: "Input"}}, // radius 15
 		outs: nodeOuts{outTargets: []string{"b"}},
@@ -55,7 +55,7 @@ func TestChainBeadsStayOutsideBothNodes(t *testing.T) {
 // an exact multiple of lattice.BeadStepR, so there is no residue for a per-edge size to
 // absorb; MODEL.md "Moving a node is CRUD on the edge beads that touch it").
 func TestChainBeadsTouch(t *testing.T) {
-	m := &nodeGeometry{
+	m := &NodeGeometry{
 		id: "a", geom: nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: "Input"}},
 		outs: nodeOuts{outTargets: []string{"b"}},
 		topo: neighborTopology{
@@ -83,7 +83,7 @@ func TestChainBeadsTouch(t *testing.T) {
 // ONE bead — edgeStepCount clamps to a minimum of 1 (docs/bead-model/bead-lattice.md "The count") so an
 // edge never has zero beads, even when the gap collapses.
 func TestChainBeadsAlwaysAtLeastOneBead(t *testing.T) {
-	m := &nodeGeometry{
+	m := &NodeGeometry{
 		id: "a", geom: nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: "Input"}},
 		outs: nodeOuts{outTargets: []string{"b"}},
 		topo: neighborTopology{
@@ -105,7 +105,7 @@ func TestChainBeadsAlwaysAtLeastOneBead(t *testing.T) {
 // only with its own live m.partnerCenters, never a stored bearing or a made-up direction
 // (MODEL.md "the polar model": no node-node stored coordinate).
 func TestChainBeadsUnknownPartnerContributesNothing(t *testing.T) {
-	m := &nodeGeometry{
+	m := &NodeGeometry{
 		id: "a", geom: nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: "Input"}},
 		outs: nodeOuts{outTargets: []string{"b"}},
 	}
@@ -120,7 +120,7 @@ func TestChainBeadsUnknownPartnerContributesNothing(t *testing.T) {
 // what makes a constant per-bead dwell a constant visible speed.
 func TestChainBeadsCountIsSpanProportional(t *testing.T) {
 	count := func(centerGap float64) int {
-		m := &nodeGeometry{
+		m := &NodeGeometry{
 			id: "a", geom: nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: "Input"}},
 			outs: nodeOuts{outTargets: []string{"b"}},
 			topo: neighborTopology{
@@ -179,7 +179,7 @@ func TestChainBeadsExactDoubleTangency(t *testing.T) {
 	for _, kp := range kindPairs {
 		srcKind, dstKind := kp[0], kp[1]
 		for _, gap := range centerGaps {
-			m := &nodeGeometry{
+			m := &NodeGeometry{
 				id:   "a",
 				geom: nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: srcKind}},
 				outs: nodeOuts{outTargets: []string{"b"}},

@@ -7,6 +7,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgemover"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
@@ -23,12 +24,12 @@ import (
 // via a real nodeMover's atomic snap (newNodeMover + setNodeWorld) so heldCenters() observes
 // it, mirroring a live post-layout dispatch after nodeMovers are constructed.
 func homeMD(v geom.Viewpoint, centers map[string]vec3) *MoveDispatch {
-	md := &MoveDispatch{mr: moverRegistry{nodeGeoms: map[string]*nodeGeometry{}, edgeMovers: map[string]*edgemover.EdgeMover{}}}
+	md := &MoveDispatch{mr: moverRegistry{nodeGeoms: map[string]*nodeactor.NodeGeometry{}, edgeMovers: map[string]*edgemover.EdgeMover{}}}
 	md.UI.VP.Viewpoint = v
 	for id, c := range centers {
 		g := nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: "TimeEnd"}}
 		nodegeom.SetNodeWorld(&g, c)
-		md.mr.nodeGeoms[id] = newNodeGeometry(id, g, nil, clock.NewRealClock())
+		md.mr.nodeGeoms[id] = nodeactor.NewNodeGeometry(id, g, nil, clock.NewRealClock())
 	}
 	return md
 }
@@ -84,11 +85,15 @@ func TestGestureHomeComputesFitPoseFromGeometry(t *testing.T) {
 // home-fit radius to the pre-branch so an unsized node is not cut off at the frame edge.
 func TestGestureHomeFramesUnknownKindAtRenderRadius(t *testing.T) {
 	stale := geom.Viewpoint{Pivot: vec3{X: 500, Y: 500, Z: 500}, R: 999, Pos: geom.Dir{Theta: 0.3, Phi: 0.7}, Up: geom.Dir{Theta: 0.1, Phi: 0.2}}
-	// A single node of an unknown kind at the origin. homeMD seeds kind "TimeEnd"; override
-	// the mover's kind to an unrecognized one so nodeBodyRadius takes the (110,60) fallback.
-	centers := map[string]vec3{"x": {X: 0, Y: 0, Z: 0}}
-	md := homeMD(stale, centers)
-	md.mr.nodeGeoms["x"].geom.Kind = "NotAKind"
+	// A single node of an unknown kind at the origin. homeMD seeds kind "TimeEnd"; build
+	// this one node directly with an unrecognized kind instead, so nodeBodyRadius takes
+	// the (110,60) fallback (geom.Kind is set once at construction and never written
+	// again outside applyCenter — there is no exported setter to mutate it post-hoc,
+	// docs/planning/movedispatch-decomposition.md §20).
+	md := homeMD(stale, nil)
+	g := nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: "NotAKind"}}
+	nodegeom.SetNodeWorld(&g, vec3{X: 0, Y: 0, Z: 0})
+	md.mr.nodeGeoms["x"] = nodeactor.NewNodeGeometry("x", g, nil, clock.NewRealClock())
 
 	const fov, aspect = 50.0, 800.0 / 600.0
 	md.HandleRawInput(inputcodec.RawInputMsg{Kind: "home", Fov: fov, RectWidth: aspect, RectHeight: 1}, nil, nil)

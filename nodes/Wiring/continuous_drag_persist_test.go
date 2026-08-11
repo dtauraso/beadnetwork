@@ -16,9 +16,10 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgemover"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
-	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/positionfile"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
 // dragAndReadBack drags a node under the given layout mode and returns what landed in that
@@ -32,17 +33,14 @@ func dragAndReadBack(t *testing.T, quantized bool, target vec3) string {
 	md := &MoveDispatch{}
 	md.lq.quantizedLayout = quantized
 	md.UI.SceneSphere = geom.SceneSphere{Center: vec3{}, Radius: 100}
-	md.mr.nodeGeoms = map[string]*nodeGeometry{}
+	md.mr.nodeGeoms = map[string]*nodeactor.NodeGeometry{}
 	md.mr.edgeMovers = map[string]*edgemover.EdgeMover{}
 	md.mr.centerMirror = map[string]vec3{}
 
-	nm := &nodeGeometry{
-		id:          "1",
-		persistRoot: root,
-		geom:        nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: "PairNode"}, ScenePolar: geom.Cart2polar(vec3{X: 100}), HasPos: true},
-		topo:        neighborTopology{partnerCenters: map[string]vec3{}},
-		msg:         nodeMessaging{neighborIn: map[string]chan movemsg.Msg{}},
-	}
+	nm := nodeactor.NewNodeGeometry("1",
+		nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: "PairNode"}, ScenePolar: geom.Cart2polar(vec3{X: 100}), HasPos: true},
+		nil, clock.NewRealClock())
+	nm.SetPersistRoot(root)
 	md.mr.nodeGeoms["1"] = nm
 
 	md.lq.commitNodeMoveLocal(&md.mr, &md.UI, nm, target)

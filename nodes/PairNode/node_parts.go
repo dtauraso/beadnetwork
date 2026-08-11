@@ -23,8 +23,8 @@ import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 )
 
@@ -78,7 +78,7 @@ type nodePlumbing struct {
 	// goroutine (Update, below) is the sole driver of it — there is no separate
 	// nodeMover goroutine for this node any more. nil on a bare test build with no
 	// loader; every PairNodeSelf method is nil-safe.
-	Self *Wiring.PairNodeSelf
+	Self *nodeactor.PairNodeSelf
 }
 
 // tiltHeld owns THE TILT THIS NODE IS HOLDING: its two ends on the ring, the machine that

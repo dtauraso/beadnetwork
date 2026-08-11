@@ -67,6 +67,35 @@ func setSelectionUI(ui *viewstate.UIState, mr *moverRegistry, ctx context.Contex
 	ui.SetSelectionUI(sendMoveFn, sendEdgeSelectFn, node, edge)
 }
 
+// NodeSelfDriven reports whether node id's own geometry is driven by that node's own kind
+// goroutine (task/pair-node-owns-itself, ClaimSelfDrive) rather than a separate NodeMover
+// goroutine. Exposed for verification: the model's whole point — one goroutine, not two,
+// for the same node id — is otherwise invisible from outside this package (package main's
+// own headless tests are the only place every kind, PairNode included, is registered — see
+// kind_registry_parity_test.go's own doc comment). Thin delegator to md.mr
+// (mover_registry.go); kept on MoveDispatch because package main's own tests call it and
+// mr is unexported. Moved here from the former pair_node_self.go in §20
+// (docs/planning/movedispatch-decomposition.md) when PairNodeSelf itself moved to package
+// nodeactor — this method stays in package Wiring because MoveDispatch is a Wiring type.
+func (md *MoveDispatch) NodeSelfDriven(id string) bool {
+	return md.mr.nodeSelfDriven(id)
+}
+
+// HasNodeMover reports whether node id has a real, separate NodeMover actor (a ring
+// node) as opposed to no NodeMover at all (a self-driven pair node, or an unknown id).
+// Thin delegator to md.mr, kept for the same reason as NodeSelfDriven.
+func (md *MoveDispatch) HasNodeMover(id string) bool {
+	return md.mr.hasNodeMover(id)
+}
+
+// NodeQuantOffset returns node id's own current quantized polar offset triple
+// (iTheta, iPhi, iR), for the same external-verification reason as NodeSelfDriven — e.g.
+// confirming a real reload lands on the same offset a live edit just persisted. Thin
+// delegator to md.mr, kept for the same reason as NodeSelfDriven.
+func (md *MoveDispatch) NodeQuantOffset(id string) (iTheta, iPhi, iR int, ok bool) {
+	return md.mr.nodeQuantOffset(id)
+}
+
 // sendEdgeSelect routes a select/deselect message to one edge's OWN dedicated extIn
 // channel (mirrors sendMove's node counterpart) — the edgeMover sets its OWN selected
 // field on its own goroutine, no shared map. A blocking send with a ctx-cancel escape

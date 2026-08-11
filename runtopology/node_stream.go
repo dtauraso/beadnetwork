@@ -9,6 +9,7 @@ import (
 	B "github.com/dtauraso/wirefold/Buffer"
 	SF "github.com/dtauraso/wirefold/Buffer/streamframe"
 	W "github.com/dtauraso/wirefold/nodes/Wiring"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 )
 
 // wireNodeStreams wires the two per-node dedicated streams (NODE and INTERIOR) plus the
@@ -62,7 +63,7 @@ func wireNodeStreams(streamFDs SF.StreamFDs, md *W.MoveDispatch) {
 				// toStreamEvents above: Wiring.NodeFrameInput → Buffer.NodeStreamFrame.
 				// Two structs, one per side, so a transposition is a wrong field name
 				// rather than a silently wrong scene.
-				func(f W.NodeFrameInput) []byte {
+				func(f nodeactor.NodeFrameInput) []byte {
 					return SF.BuildNodeStreamFrame(SF.NodeStreamFrame{
 						Tick:                  f.Tick,
 						NodeRow:               f.NodeRow,

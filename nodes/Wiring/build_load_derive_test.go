@@ -61,8 +61,8 @@ func TestLoadTopologyComputesReachRadii(t *testing.T) {
 	if want <= 0 {
 		t.Fatalf("test fixture produced a zero expected distance; fixture is degenerate")
 	}
-	if math.Abs(src.geom.ReachR-want) > 1e-6 {
-		t.Fatalf("node 1 ReachR = %v, want %v (distance to its edge partner)", src.geom.ReachR, want)
+	if math.Abs(src.ReachR()-want) > 1e-6 {
+		t.Fatalf("node 1 ReachR = %v, want %v (distance to its edge partner)", src.ReachR(), want)
 	}
 }
 
@@ -98,7 +98,7 @@ func TestLoadTopologyComputesQuantizedOffsets(t *testing.T) {
 	// No sphere.json was written, so the scene center is the zero vector — the same
 	// center computeQuantizedLayout measured node 2's offset about.
 	wantCenter := geom.Polar2cart(geom.Polar{R: 50, Theta: math.Pi / 2, Phi: 0})
-	got := quantoffset.DeriveCenters(map[string]quantoffset.QuantizedOffset{"2": dst.quantOffset}, vec3{})["2"]
+	got := quantoffset.DeriveCenters(map[string]quantoffset.QuantizedOffset{"2": dst.QuantizedOffsetValue()}, vec3{})["2"]
 
 	// Quantization introduces lattice rounding error (1-degree angular cells, one bead
 	// of radial cell) — a generous tolerance that still fails hard on a zero offset,

@@ -1,4 +1,4 @@
-package Wiring
+package nodeactor
 
 // quant_offset_persist.go — the WRITE side of the quantized scalar triple (a,b,c) =
 // (iTheta,iPhi,iR) as file data.
@@ -10,8 +10,9 @@ package Wiring
 // A node's PERSISTED position is its EXACT scene-polar (r,θ,φ) about the scene center —
 // lossless, so a dragged node reloads at exactly where it was dropped. The quantized
 // scalar triple (quantITheta/quantIPhi/quantIR + steps) rides along as a self-describing
-// cache of the drag-time snap cells, NOT the position source. commitNodeMoveLocal calls
-// nm.persistQuantOffset (below) for the dragged node's OWN nodeMover, writing
+// cache of the drag-time snap cells, NOT the position source. package Wiring's
+// commitNodeMoveLocal calls nm.CommitQuantOffset (node_geometry_accessors.go), which calls
+// persistQuantOffset below, for the dragged node's OWN NodeGeometry, writing
 // scenePolarR/Theta/Phi + the quant cache to `<root>/nodes/<id>/position.json` —
 // one-file-per-writer: this file has exactly one writer per node id (writeQuantOffset), so
 // each write is a fresh whole-file marshal, no read-modify-write, no entityFileMu
@@ -23,15 +24,17 @@ package Wiring
 // Go owns persistence (MODEL.md): fire-and-forget, SYNCHRONOUS — persistQuantOffset writes
 // immediately, inline on the caller's own goroutine (see nodes/Wiring/jsonpersist's header
 // comment for why the prior debounce was removed) — logs on error, never blocks the gesture. Only
-// nm.persistRoot == "" (never armed via EnableEditPersist) is a no-op. The owning goroutine
-// IS the node's own nodeMover (.claude/rules/persistence-ownership.md "The owner writes, and owns the path") —
-// every call site above runs on nm's own goroutine, never routed through MoveDispatch.
+// nm.persistRoot == "" (never armed via package Wiring's EnableEditPersist/SetPersistRoot)
+// is a no-op. The owning goroutine IS the node's own NodeMover
+// (.claude/rules/persistence-ownership.md "The owner writes, and owns the path") — every
+// call site above runs on nm's own goroutine, never routed through MoveDispatch.
 //
 // LEGACY FALLBACK: an existing pre-split topology has these fields inline in meta.json
-// instead of a separate position.json/local-polars.json — loader_tree.go's loadTree reads
-// meta.json first (still required — it owns id/type/r/gate) and then overlays position.json
-// / local-polars.json when present, so an old topology still loads unchanged and the next
-// drag/move writes forward into the new files without ever migrating or deleting meta.json.
+// instead of a separate position.json/local-polars.json — package Wiring's loader_tree.go
+// loadTree reads meta.json first (still required — it owns id/type/r/gate) and then
+// overlays position.json / local-polars.json when present, so an old topology still loads
+// unchanged and the next drag/move writes forward into the new files without ever
+// migrating or deleting meta.json.
 
 import (
 	"fmt"
@@ -44,17 +47,18 @@ import (
 
 // persistQuantOffset writes THIS node's own exact position (scene) plus its quantized
 // triple to its OWN position.json, synchronously, on THIS node's own mover goroutine
-// (commitNodeMoveLocal calls it from nm's own inbox-drain goroutine — see move_dispatch_api.go).
-// nm.persistRoot == "" (unarmed — bare test construction, or no EnableEditPersist call)
-// makes this a no-op. scene is the authoritative persisted position.
+// (CommitQuantOffset calls it from nm's own inbox-drain goroutine — see
+// node_geometry_accessors.go). nm.persistRoot == "" (unarmed — bare test construction, or
+// no SetPersistRoot call) makes this a no-op. scene is the authoritative persisted
+// position.
 //
-// UNLIKE this package's scene-level persisters (camera/overlays/sphere, each with ONE
+// UNLIKE package Wiring's scene-level persisters (camera/overlays/sphere, each with ONE
 // owning goroutine), every node has its OWN mover goroutine, so many different nodes' own
 // persistQuantOffset calls can run concurrently — safe because each writes to a DIFFERENT
 // file (position.json is keyed by node id, so no two calls ever race the same
 // os.WriteFile/Rename) and nm.persistRoot is set once, before any mover goroutine starts,
 // and never written again.
-func (nm *nodeGeometry) persistQuantOffset(off quantoffset.QuantizedOffset, scene geom.Polar) {
+func (nm *NodeGeometry) persistQuantOffset(off quantoffset.QuantizedOffset, scene geom.Polar) {
 	if nm.persistRoot == "" {
 		return
 	}
@@ -72,7 +76,7 @@ func (nm *nodeGeometry) persistQuantOffset(off quantoffset.QuantizedOffset, scen
 // movemsg.KindTiltVectorAngle case). Carries the node's CURRENT position/quant-offset along
 // unchanged (same one-file whole-marshal shape as persistQuantOffset, reversed: this
 // write is angle-driven, not position-driven). nm.persistRoot == "" is a no-op.
-func (nm *nodeGeometry) persistTiltVectorAngle() {
+func (nm *NodeGeometry) persistTiltVectorAngle() {
 	if nm.persistRoot == "" {
 		return
 	}

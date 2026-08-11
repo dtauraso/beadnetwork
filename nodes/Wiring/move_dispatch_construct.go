@@ -15,6 +15,7 @@ import (
 	geomseeds "github.com/dtauraso/wirefold/nodes/Wiring/geomseeds"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	rowtables "github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
@@ -24,22 +25,6 @@ import (
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
-
-// trySendMsg wraps a raw movemsg.Msg channel (a neighboring node's own neighborIn slot) as
-// a non-blocking try-send func value, the same shape resolveDest returns for an edge
-// destination (edgemover.EdgeMover.TrySendFromSrc/TrySendFromDst) — so flushPending
-// (node_geometry_retry.go) has one uniform call shape regardless of which kind of
-// destination it resolved.
-func trySendMsg(ch chan movemsg.Msg) func(movemsg.Msg) bool {
-	return func(msg movemsg.Msg) bool {
-		select {
-		case ch <- msg:
-			return true
-		default:
-			return false
-		}
-	}
-}
 
 // newMoveDispatch builds the registry from per-node geometry and per-edge endpoints.
 // It creates one nodeMover per node and one edgeMover per edge, registering each under
@@ -79,7 +64,7 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 	md := &MoveDispatch{
 		tr: tr,
 	}
-	md.mr.nodeGeoms = map[string]*nodeGeometry{}
+	md.mr.nodeGeoms = map[string]*nodeactor.NodeGeometry{}
 	md.mr.edgeMovers = map[string]*edgemover.EdgeMover{}
 	md.mr.edgeOut = map[string]*wire.Out{}
 	md.mr.centerMirror = map[string]vec3{}
@@ -125,7 +110,7 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 		md.GS.EdgeSeeds = append(md.GS.EdgeSeeds, seed)
 	}
 	for id, g := range geoms {
-		ng := newNodeGeometry(id, g, tr, clk)
+		ng := nodeactor.NewNodeGeometry(id, g, tr, clk)
 		// resolveDest resolves the ONE dedicated directed channel FROM this node
 		// (selfID, captured below) TO destID: another node's own neighborIn[selfID]
 		// slot, or an incident edge's srcIn/dstIn depending on which endpoint this
@@ -144,15 +129,13 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 				return nil, false
 			}
 			if other, ok := md.mr.nodeGeoms[destID]; ok {
-				if ch, ok := other.msg.neighborIn[selfID]; ok {
-					return trySendMsg(ch), true
-				}
+				return other.NeighborTrySend(selfID)
 			}
 			return nil, false
 		}
 		ownGeom := ng
 		commitLocal := func(_ string, newPos vec3) { md.lq.commitNodeMoveLocal(&md.mr, &md.UI, ownGeom, newPos) }
-		ng.wireMessaging(resolveDest, md.mr.enqueueFor(ng), md.tapToInstall, md.mr.centerOfNode, commitLocal)
+		ng.WireMessaging(resolveDest, md.mr.enqueueFor(ng), md.tapToInstall, md.mr.centerOfNode, commitLocal)
 		md.mr.nodeGeoms[id] = ng
 		// Seed the dispatch goroutine's center mirror from the same load-time geom
 		// (single-threaded setup, before md.Start — no driving goroutine is running yet)
@@ -168,7 +151,7 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 	for src, targets := range geomseeds.MutualPairs(edgeEndpoints) {
 		if nm, ok := md.mr.nodeGeoms[src]; ok {
 			for target := range targets {
-				nm.addMutualTarget(target)
+				nm.AddMutualTarget(target)
 			}
 		}
 	}
@@ -186,8 +169,8 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 		// two directed channels per ordered pair, never a shared inbox.
 		if srcNM, ok := md.mr.nodeGeoms[ep.Source]; ok {
 			if dstNM, ok := md.mr.nodeGeoms[ep.Target]; ok {
-				dstNM.ensureNeighborChannel(ep.Source)
-				srcNM.ensureNeighborChannel(ep.Target)
+				dstNM.EnsureNeighborChannel(ep.Source)
+				srcNM.EnsureNeighborChannel(ep.Target)
 			}
 		}
 	}
@@ -201,11 +184,11 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 		// no mover goroutine is running yet, so reading a neighbor's geom directly here
 		// is safe) with the SAME value the old snap seed used (newNodeMover seeds snap
 		// from nodegeom.NodeWorldPos(geom)), so the first emit reproduces today's center exactly.
-		// A node's neighbor set is nm.msg.neighborIn's key set (populated above from
+		// A node's neighbor set is nm.NeighborIDs() (populated above from
 		// edgeEndpoints — one dedicated channel per adjacent node, both directions).
-		for neighborID := range nm.msg.neighborIn {
+		for _, neighborID := range nm.NeighborIDs() {
 			if other, ok := md.mr.nodeGeoms[neighborID]; ok {
-				nm.seedPartnerCenter(neighborID, nodegeom.NodeWorldPos(other.geom))
+				nm.SeedPartnerCenter(neighborID, other.WorldCenter())
 			}
 		}
 	}
@@ -215,7 +198,7 @@ func newMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 	for id, nm := range md.mr.nodeGeoms {
 		for edgeID, em := range md.mr.edgeMovers {
 			if em.SrcID() == id || em.DstID() == id {
-				nm.addEdgeID(edgeID)
+				nm.AddEdgeID(edgeID)
 			}
 		}
 	}

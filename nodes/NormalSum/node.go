@@ -19,6 +19,7 @@ import (
 	"context"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
@@ -39,7 +40,7 @@ type Node struct {
 	Clock clock.Clock
 	// Self is this node's own handle for driving its own geometry — SetTiltIndex, which is
 	// what makes the total DRAWN rather than merely held.
-	Self *Wiring.PairNodeSelf
+	Self *nodeactor.PairNodeSelf
 	// Points is the lattice's point count, the modulus the total wraps at. Seeded at load
 	// and updated live, the same as every other pair-scene node's copy.
 	Points int32

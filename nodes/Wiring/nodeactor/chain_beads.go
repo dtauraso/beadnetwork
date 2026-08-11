@@ -1,4 +1,4 @@
-package Wiring
+package nodeactor
 
 import (
 	"os"
@@ -19,11 +19,12 @@ var chainAimTraceEnabled = os.Getenv("WIREFOLD_CHAIN_AIM_TRACE") == "1"
 // chain_beads.go — the node-owned placeholder bead chain that IS the visual of an edge.
 // Design and staging: docs/bead-model/beads-are-the-edge.md. The LENGTH model (one integer bead-step
 // count, tangent placement, no arc) is docs/bead-model/bead-lattice.md — this file implements it.
-// The length itself (edgeStepCount) is in chain_length.go, the step-count publish target
-// is the matching edge's own EdgeMover.SendSteps method (nodes/Wiring/edgemover), and the
-// progress->index math (beadindex.LitBeadIndex, used by tests and documented here for the
-// lit-pulse placement below) is in nodes/Wiring/beadindex — this file keeps the one thing
-// that reads all three: the placement loop itself.
+// The length itself (edgeStepCount) is in chain_length.go (package Wiring's nodegeom
+// package, unaffected by this move), the step-count publish target is the matching edge's
+// own EdgeMover.SendSteps method (nodes/Wiring/edgemover), and the progress->index math
+// (beadindex.LitBeadIndex, used by tests and documented here for the lit-pulse placement
+// below) is in nodes/Wiring/beadindex — this file keeps the one thing that reads all
+// three: the placement loop itself.
 //
 // A node owns one chain per OUTGOING edge, following ownership the tree already has: an edge
 // is stored at topology/nodes/<source>/edges/<label>.json, outgoing only, "carries no
@@ -57,7 +58,7 @@ var chainAimTraceEnabled = os.Getenv("WIREFOLD_CHAIN_AIM_TRACE") == "1"
 //
 // Reads only state this node owns: its own kind/radius and its own live copy of each
 // neighbour's world center (m.topo.partnerCenters — pushed by that neighbour's own
-// applyCenter), never reaching into another goroutine's state directly. There is no
+// ApplyCenter), never reaching into another goroutine's state directly. There is no
 // cross-goroutine read here, which is why this can run on the emit path.
 //
 // NO SQRT ANYWHERE in this path except the ONE nodegeom.EdgeCenterDistAndDir call per target (guard:
@@ -98,12 +99,12 @@ var chainAimTraceEnabled = os.Getenv("WIREFOLD_CHAIN_AIM_TRACE") == "1"
 // writeStreamFrame itself invokes chainBeads to build its frame's chain-bead columns, so a
 // second writeStreamFrame call from inside here would recurse (and, before this fix, did:
 // chainBeads -> writeStreamFrame -> chainBeads -> ... stack overflow).
-func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []int32, breadcrumbs []wire.RowEvent) {
+func (m *NodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []int32, breadcrumbs []wire.RowEvent) {
 	if len(m.outs.outTargets) == 0 {
 		return nil, nil, nil, nil, nil, nil
 	}
 	// Read the clock only when there is a wire to ask about — m.clocks.clk is nil in tests that
-	// build a bare nodeMover directly (the same convention resolveDest/commitLocal state),
+	// build a bare NodeGeometry directly (the same convention resolveDest/commitLocal state),
 	// and such a mover has no outWires either, so geometry stays testable without a clock.
 	var tick int64
 	if len(m.outs.outWires) > 0 {
@@ -112,19 +113,19 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 	selfTorusR := nodegeom.NodeTorusOuterR(m.geom.Kind)
 	// selfCenter is THIS node's own live world center, read the same way
 	// emitGeometry/EdgeSegment do (nodegeom.NodeWorldPos(m.geom)) — this node's own goroutine
-	// is the sole writer of m.geom (applyCenter), so this is a same-goroutine read of
+	// is the sole writer of m.geom (ApplyCenter), so this is a same-goroutine read of
 	// state already owned here, not a second cross-goroutine touch.
 	selfCenter := nodegeom.NodeWorldPos(m.geom)
 	for _, to := range m.outs.outTargets {
 		// MODEL.md "the polar model": a node has ONE polar vector PER EDGE, pointing to
 		// that edge's starting bead — measured live from this node's own center and its
 		// neighbour's own center (m.topo.partnerCenters, pushed by that neighbour's own
-		// applyCenter — seeded synchronously for every domain neighbour at construction,
-		// move_dispatch_construct.go, so this is populated before this node's own goroutine ever runs).
-		// There is NO stored node-node bearing record here any more (wire.LocalPolar and
-		// its requantize machinery are deleted): a target with no live partner center yet
-		// (never linked, or a bare test mover with no pushes) contributes no beads, exactly
-		// like the old "no LocalPolar entry" skip.
+		// ApplyCenter — seeded synchronously for every domain neighbour at construction,
+		// package Wiring's move_dispatch_construct.go, so this is populated before this
+		// node's own goroutine ever runs). There is NO stored node-node bearing record
+		// here any more (wire.LocalPolar and its requantize machinery are deleted): a
+		// target with no live partner center yet (never linked, or a bare test mover with
+		// no pushes) contributes no beads, exactly like the old "no LocalPolar entry" skip.
 		targetCenter, haveTargetCenter := m.topo.partnerCenters[to]
 		if !haveTargetCenter {
 			continue
@@ -159,9 +160,10 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 		// (docs/bead-model/bead-lattice.md "Ownership") and onto its edgeMover's stepsIn (so a live
 		// in-flight bead's remaining travel — edgeMover.recomputeGeometry's
 		// ReviseInFlightGeometry call — is revised against the same integer too; see
-		// edge_mover.go's stepsIn doc comment for why a second delivery is needed instead of
-		// the edgeMover reading the Out directly). Both are non-blocking, latest-wins sends —
-		// this node's own goroutine never waits on either reader.
+		// edgemover's own edge_mover.go stepsIn doc comment for why a second delivery is
+		// needed instead of the edgeMover reading the Out directly). Both are
+		// non-blocking, latest-wins sends — this node's own goroutine never waits on
+		// either reader.
 		for i, wt := range m.outs.outWireTargets {
 			if wt != to {
 				continue
@@ -176,7 +178,7 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 
 		// Which bead this edge's traversals have reached. Read from THIS node's own
 		// outgoing wire for this target, on this node's own goroutine (it is the goroutine
-		// that drives that wire — see nodeMover.outWires), so LiveBeadFractions' single-
+		// that drives that wire — see NodeMover.outWires), so LiveBeadFractions' single-
 		// goroutine contract holds and no other goroutine's state is touched.
 		//
 		// index -> the traversing bead's VALUE. The value travels because the lit bead takes
@@ -273,7 +275,7 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 			}
 		}
 		// Production call site for the bead-actor primitive (nodes/wire/bead_actor.go,
-		// bead_wake_group.go): nil in every bare-literal test nodeMover, so this stays a
+		// bead_wake_group.go): nil in every bare-literal test NodeMover, so this stays a
 		// no-op there and chainBeads keeps its pure, synchronous, deterministic contract
 		// (see beadTickFn's own doc comment). In production this reconciles this edge's
 		// live *wire.Bead goroutine count to `count` and broadcasts fresh geometry when
@@ -284,7 +286,7 @@ func (m *nodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 		}
 		// resolved/resolvedValid are the bead-actor chain's own already-drained snapshot
 		// positions, parallel to placeholder index i — nil/empty when there is no live
-		// bead-actor chain (beadTickFn nil, every bare-literal test nodeMover), in which
+		// bead-actor chain (beadTickFn nil, every bare-literal test NodeMover), in which
 		// case beadindex.ChainBeadRows falls back to the formula for every index. This is
 		// the only piece of actor state fed into ChainBeadRows; it is read here, once, on
 		// this node's own goroutine, and handed down as a plain slice.

@@ -1,4 +1,4 @@
-package Wiring
+package nodeactor
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
@@ -26,7 +26,7 @@ import (
 
 // singleNeighborCenter builds a partnerCenters map with exactly one entry — `to` placed
 // centerGap world units along +Y from the origin (this node's own center, since a bare
-// nodeMover literal has HasPos false).
+// NodeMover literal has HasPos false).
 func singleNeighborCenter(to string, centerGap float64) map[string]vec3 {
 	return map[string]vec3{to: {X: 0, Y: centerGap, Z: 0}}
 }
@@ -54,13 +54,13 @@ const tangencyEps = 1e-3
 // diverge from (MODEL.md "the polar model": no node-node stored coordinate) — the aim is
 // ALWAYS this live measurement.
 
-// offAxisFixture builds a *nodeGeometry for one edge "a"->"b" whose LIVE partnerCenters
+// offAxisFixture builds a *NodeGeometry for one edge "a"->"b" whose LIVE partnerCenters
 // direction sits off to the side in the X/Z plane at colatitude ~53.13 degrees (a 3-4-5
 // triangle's angle, chosen only because it is not a whole degree and not a special angle,
 // so no accidental alignment). The live center is placed at EXACTLY count*BeadStepR + both
 // tori (on-lattice, by this fixture's own construction) so the far-edge tangency assertion
 // below has no residue to tolerate beyond float round-off.
-func offAxisFixture(srcKind, dstKind string, count int) *nodeGeometry {
+func offAxisFixture(srcKind, dstKind string, count int) *NodeGeometry {
 	selfTorus := nodegeom.NodeTorusOuterR(srcKind)
 	dstTorus := nodegeom.NodeTorusOuterR(dstKind)
 	dist := selfTorus + float64(count)*lattice.BeadStepR + dstTorus
@@ -68,7 +68,7 @@ func offAxisFixture(srcKind, dstKind string, count int) *nodeGeometry {
 	// needed to state exactly (a 3-4-5 triangle), scaled to the exact required
 	// center-to-center distance.
 	targetCenter := vec3{X: dist * 0.6, Y: 0, Z: dist * 0.8}
-	return &nodeGeometry{
+	return &NodeGeometry{
 		id:   "a",
 		geom: nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: srcKind}}, // HasPos false -> center at origin
 		outs: nodeOuts{outTargets: []string{"b"}},

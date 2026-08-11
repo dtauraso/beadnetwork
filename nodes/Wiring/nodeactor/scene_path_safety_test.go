@@ -1,9 +1,10 @@
-package Wiring
+package nodeactor
 
 // scene_path_safety_test.go — verifies writeQuantOffset rejects an unsafe id rather than
 // escaping the tree root (see quant_offset_persist.go). The former port-anchor write sink
-// (scene_anchor_persist.go) is gone — docs/bead-model/channels-not-ports.md, a port has no file
-// of its own any more.
+// (package Wiring's scene_anchor_persist.go) is gone — docs/bead-model/channels-not-ports.md, a
+// port has no file of its own any more. Moved here from package Wiring in
+// docs/planning/movedispatch-decomposition.md §20 alongside writeQuantOffset itself.
 
 import (
 	"os"

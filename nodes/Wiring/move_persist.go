@@ -101,6 +101,6 @@ func (md *MoveDispatch) EnableEditPersist(topologyPath string) {
 	// any mover goroutine starts (Start runs after EnableEditPersist in every real call
 	// path), so no synchronization is needed.
 	for _, nm := range md.mr.nodeGeoms {
-		nm.setPersistRoot(root)
+		nm.SetPersistRoot(root)
 	}
 }

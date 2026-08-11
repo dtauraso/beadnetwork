@@ -16,11 +16,15 @@ set -euo pipefail
 #
 # Exit 0 clean, exit 1 with a report.
 #
-# PLACEMENT: nodes/Wiring/chain_beads.go | no math.Sqrt/.Length()/.Normalize(); bead placement stays index arithmetic (QuantIR*StepR)
+# PLACEMENT: nodes/Wiring/nodeactor/chain_beads.go | no math.Sqrt/.Length()/.Normalize(); bead placement stays index arithmetic (QuantIR*StepR)
+#
+# Re-keyed in docs/planning/movedispatch-decomposition.md §20: chain_beads.go moved from
+# package Wiring into nodes/Wiring/nodeactor (the per-node actor package move), same
+# filename, new directory — the file this guard polices did not change, only its path.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-FILE="$REPO_ROOT/nodes/Wiring/chain_beads.go"
+FILE="$REPO_ROOT/nodes/Wiring/nodeactor/chain_beads.go"
 
 if [ ! -f "$FILE" ]; then
   echo "✗ no-sqrt-in-chain-beads: MISCONFIGURED — file not found: $FILE" >&2

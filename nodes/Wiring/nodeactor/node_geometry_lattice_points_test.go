@@ -1,13 +1,13 @@
 // node_geometry_lattice_points_test.go — pins writeStreamFrame's conversion of a tilt-vector
-// INDEX to a streamed angle against THIS node's own lattice size (nodeGeometry.latticePoints),
+// INDEX to a streamed angle against THIS node's own lattice size (NodeGeometry.latticePoints),
 // not the fixed compile-time nodegeom.CurveParamTiltVectorAngleStep — task/pair-lattice-points.
 //
 // Seam used: writeStreamFrame's own injected buildFrame closure (the same seam
 // node_bead_test.go's captureInteriorSnapshot uses for interiorStream) — this is the actual
 // streamed frame, not a re-derivation of the formula under test. A live streamOut is required
-// too (writeStreamFrame no-ops when !streamOut.Ok()), built via newClaimedStream(nil, ...)
+// too (writeStreamFrame no-ops when !streamOut.Ok()), built via Claim(nil, ...)
 // exactly as production wiring does, just with a discard writer and no claim registry.
-package Wiring
+package nodeactor
 
 import (
 	"io"
@@ -25,12 +25,12 @@ type latticeFrameAngles struct {
 	points                          uint8
 }
 
-func captureLatticeAngles(snap *latticeFrameAngles) *nodeGeometry {
-	return &nodeGeometry{
+func captureLatticeAngles(snap *latticeFrameAngles) *NodeGeometry {
+	return &NodeGeometry{
 		id:     "n",
 		clocks: nodeClocks{clk: clock.NewRealClock()},
 		stream: nodeStream{
-			streamOut: newClaimedStream(nil, "node", "n", io.Discard),
+			streamOut: Claim(nil, "n", io.Discard),
 			buildFrame: func(f NodeFrameInput) []byte {
 				snap.top = f.TopTiltVectorTheta
 				snap.bottom = f.BottomTiltVectorTheta
@@ -43,11 +43,11 @@ func captureLatticeAngles(snap *latticeFrameAngles) *nodeGeometry {
 	}
 }
 
-// TestWriteStreamFrameDefaultLatticeMatchesOldConstant: a nodeGeometry that never calls
+// TestWriteStreamFrameDefaultLatticeMatchesOldConstant: a NodeGeometry that never calls
 // SetLatticePoints (every ring node, and any pair geometry built before this task) must
 // stream the SAME four angles it always did — index × nodegeom.CurveParamTiltVectorAngleStep (π/12,
 // 2π/24) — because latticePoints' zero value is documented to fall back to
-// Wiring.FullTurnThetaIdx (24). This is the "unchanged for everyone who never opts in" half
+// tiltvector.FullTurnThetaIdx (24). This is the "unchanged for everyone who never opts in" half
 // of the task.
 func TestWriteStreamFrameDefaultLatticeMatchesOldConstant(t *testing.T) {
 	const idx = int32(5)

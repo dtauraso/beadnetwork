@@ -12,8 +12,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/beadcrud"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
-	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
-	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/topoderive"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
@@ -32,22 +31,23 @@ import (
 // (nodeMover.quantOffset — never a shared map, so no other mover goroutine's commit
 // can race this write even for a different node id), and requantizes nodeID's
 // local-polar cascade-links against its (unmoved) neighbors.
-func (lq *layoutQuantizer) commitNodeMoveLocal(mr *moverRegistry, ui *viewstate.UIState, nm *nodeGeometry, newPos vec3) {
-	nodeID := nm.id
+func (lq *layoutQuantizer) commitNodeMoveLocal(mr *moverRegistry, ui *viewstate.UIState, nm *nodeactor.NodeGeometry, newPos vec3) {
+	nodeID := nm.ID()
 	edges := lq.heldEdges(mr)
 	// reach[nodeID] only ever needs nodeID's own fresh polar plus its DIRECT
 	// neighbors' polar (reachRFromPolar only accumulates reach for an edge's
 	// SOURCE, from that edge's Target) — each direct neighbor's last-pushed
 	// CARTESIAN center is read from THIS node's OWN partnerCenters map (nm.
-	// partnerCenters, kept current by every neighbor's applyCenter push — see its
-	// doc comment), resolved via nm.topo.edgeIDs (this node's own incident edges, fixed
+	// PartnerCenters(), kept current by every neighbor's ApplyCenter push — see its
+	// doc comment), resolved via nm.EdgeIDs() (this node's own incident edges, fixed
 	// at construction; every edgeIDs neighbor is by construction a key of
-	// nm.neighborIn, the same set partnerCenters is seeded/kept from). scene polar
+	// nm's own neighborIn, the same set partnerCenters is seeded/kept from). scene polar
 	// is a pure re-derive off the fixed, write-once ui.SceneSphere.Center (never
 	// mutated after load), so this stays race-free with no cross-goroutine read at
 	// all now (this runs on nm's own goroutine, reading nm's own map).
 	polars := map[string]geom.Polar{}
-	for _, edgeID := range nm.topo.edgeIDs {
+	partnerCenters := nm.PartnerCenters()
+	for _, edgeID := range nm.EdgeIDs() {
 		em, ok := mr.edgeMovers[edgeID]
 		if !ok {
 			continue
@@ -56,7 +56,7 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(mr *moverRegistry, ui *viewstate.
 		if neighborID == nodeID {
 			neighborID = em.DstID()
 		}
-		if c, ok := nm.topo.partnerCenters[neighborID]; ok {
+		if c, ok := partnerCenters[neighborID]; ok {
 			polars[neighborID] = geom.Cart2polar(c.Sub(ui.SceneSphere.Center))
 		}
 	}
@@ -94,9 +94,8 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(mr *moverRegistry, ui *viewstate.
 	// offset is measured.
 	committedPos := newPos
 	committedPolar := nodePolar
-	var off quantoffset.QuantizedOffset
 	if lq.quantizedLayout {
-		prevPos := nodegeom.NodeWorldPos(nm.geom)
+		prevPos := nm.WorldCenter()
 		beads := dragTouchingBeads(mr, nm, prevPos)
 		if len(beads) == 0 {
 			committedPos = newPos
@@ -113,7 +112,7 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(mr *moverRegistry, ui *viewstate.
 		// theory, explain it. Gated on nm.tr != nil exactly like the neighbor-center-recv/
 		// neighbor-setc-recv breadcrumb sites above (node_mover.go) — cheap no-op with no
 		// stream wired (headless tests, bare movers).
-		if nm.tr != nil {
+		if nm.Traced() {
 			dragVector := newPos.Sub(prevPos)
 			parts := make([]string, 0, len(beads))
 			for _, b := range beads {
@@ -140,10 +139,10 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(mr *moverRegistry, ui *viewstate.
 				nodeID, prevPos.X, prevPos.Y, prevPos.Z, newPos.X, newPos.Y, newPos.Z, dragLen,
 				committedPos.X, committedPos.Y, committedPos.Z, committedDelta, committedDelta > 1e-9,
 				strings.Join(parts, " "))
-			nm.tr.Breadcrumb("bead-crud", nodeID, "", value)
-			nm.writeStreamFrame([]wire.RowEvent{{
+			nm.Breadcrumb("bead-crud", nodeID, "", value)
+			nm.WriteStreamFrame([]wire.RowEvent{{
 				Kind: T.KindBreadcrumb, Label: T.BreadcrumbBeadCrud, Debug: 1,
-				NodeRow: nm.stream.nodeRow, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
+				NodeRow: nm.NodeRow(), PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 				Text: value,
 			}})
 		}
@@ -152,8 +151,8 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(mr *moverRegistry, ui *viewstate.
 	polars[nodeID] = committedPolar
 	reach := topoderive.ReachRFromPolar(polars, edges)
 
-	nm.applyCenter(committedPos, reach[nodeID])
-	lq.broadcastToEdgesAndPartners(mr, map[string]vec3{nodeID: committedPos}, nm.msg.sendMove)
+	nm.ApplyCenter(committedPos, reach[nodeID])
+	lq.broadcastToEdgesAndPartners(mr, map[string]vec3{nodeID: committedPos}, nm.SendMove())
 
 	// PERSIST ON EVERY DRAG, both modes. This used to sit inside `if lq.quantizedLayout`,
 	// which silently stopped saving the moment a scene chose the continuous drag: the node
@@ -166,7 +165,5 @@ func (lq *layoutQuantizer) commitNodeMoveLocal(mr *moverRegistry, ui *viewstate.
 	// source (quant_offset_persist.go) — the source is committedPolar either way. Measuring
 	// it under the continuous drag keeps that cache describing the position actually stored
 	// rather than the last one a quantized drag happened to leave behind.
-	off = quantoffset.MeasureScalar(committedPolar, nm.quantOffset)
-	nm.quantOffset = off
-	nm.persistQuantOffset(off, committedPolar)
+	nm.CommitQuantOffset(committedPolar)
 }

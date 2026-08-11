@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# PLACEMENT: nodes/Wiring/move_dispatch.go,nodes/Wiring/node_geometry.go | a composer struct (MoveDispatch, nodeGeometry) stays THIN: new state belongs in a named sub-struct, not a new loose field
+# PLACEMENT: nodes/Wiring/move_dispatch.go,nodes/Wiring/nodeactor/node_geometry.go | a composer struct (MoveDispatch, nodeactor.NodeGeometry) stays THIN: new state belongs in a named sub-struct, not a new loose field
 # check-composer-fields.sh — keep this package's COMPOSER structs thin, not regrown
 # god-objects. Run from repo root: bash tools/network/structure/check-composer-fields.sh
 #
@@ -42,7 +42,7 @@ cd "$REPO_ROOT"
 # below god-object territory.
 COMPOSERS=(
   "type MoveDispatch struct {|12|the responsible owner type (rowtables.RowTables/geomseeds.GeomSeeds/streamWiring/uiState/moverRegistry/layoutQuantizer)"
-  "type nodeGeometry struct {|20|the responsible owner type (nodeMessaging/nodeClocks/nodeStream/nodeUI/nodeTilt/pairReadout/nodeOuts/neighborTopology/sceneFlags/nodeBeads, node_geometry_parts.go)"
+  "type NodeGeometry struct {|20|the responsible owner type (nodeMessaging/nodeClocks/nodeStream/nodeUI/nodeTilt/pairReadout/nodeOuts/neighborTopology/sceneFlags/nodeBeads, node_geometry_parts.go)"
 )
 
 fail=0

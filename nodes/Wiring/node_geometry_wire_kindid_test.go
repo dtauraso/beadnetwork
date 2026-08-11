@@ -14,6 +14,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
@@ -69,7 +70,7 @@ func TestSetNodeStreamsResolvesPerNodeKindID(t *testing.T) {
 	// captured records the KindID each node's OWN writeStreamFrame call actually
 	// packed into its frame, keyed by NodeRow (row = id-1, persistence-ownership.md).
 	captured := map[int32]uint8{}
-	buildFrame := func(f NodeFrameInput) []byte {
+	buildFrame := func(f nodeactor.NodeFrameInput) []byte {
 		captured[f.NodeRow] = f.KindID
 		return nil
 	}
@@ -97,13 +98,13 @@ func TestSetNodeStreamsResolvesPerNodeKindID(t *testing.T) {
 	// every tick/change (node_geometry_stream.go's emitGeometry); called here directly,
 	// synchronously, on this test's single goroutine (testing-shape.md: "a goroutine's
 	// own emitted stream frame" is a legitimate one-goroutine subject).
-	src.writeStreamFrame(nil)
-	dst.writeStreamFrame(nil)
+	src.WriteStreamFrame(nil)
+	dst.WriteStreamFrame(nil)
 
-	if got, want := captured[src.stream.nodeRow], aimedSrcKindID; got != want {
+	if got, want := captured[src.NodeRow()], aimedSrcKindID; got != want {
 		t.Fatalf("node 1 (AimedSrc) streamed KindID = %d, want %d", got, want)
 	}
-	if got, want := captured[dst.stream.nodeRow], aimedSinkKindID; got != want {
+	if got, want := captured[dst.NodeRow()], aimedSinkKindID; got != want {
 		t.Fatalf("node 2 (AimedSink) streamed KindID = %d, want %d", got, want)
 	}
 }

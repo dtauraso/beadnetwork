@@ -1,16 +1,16 @@
 // pair_node_self.go — PairNodeSelf, the handle a PAIR-scene node kind (PairNode) uses
-// to own its own nodeGeometry directly, on its own Update goroutine, instead of through a
-// separate nodeMover actor (task/pair-node-owns-itself). See MODEL.md and this package's
+// to own its own NodeGeometry directly, on its own Update goroutine, instead of through a
+// separate NodeMover actor (task/pair-node-owns-itself). See MODEL.md and this package's
 // node_geometry.go/node_mover.go for the split's own doc comments — nothing about what a
 // node's geometry IS changes here; only which goroutine drives it, for exactly this
 // kind.
 //
-// THE RING IS UNTOUCHED: every ring node still gets a real nodeMover (its own goroutine,
-// launched by mr.start — node_mover.go). PairNodeSelf only ever wraps a *nodeGeometry
-// whose id a kind explicitly claimed via BuildArgs.ClaimSelfDrive — mover_registry.go's
-// finalizeActors then never constructs a nodeMover for that id at all, so there is nothing
-// for mr.start to skip.
-package Wiring
+// THE RING IS UNTOUCHED: every ring node still gets a real NodeMover (its own goroutine,
+// launched by package Wiring's moverRegistry.start — node_mover.go). PairNodeSelf only
+// ever wraps a *NodeGeometry whose id a kind explicitly claimed via
+// BuildArgs.ClaimSelfDrive — package Wiring's moverRegistry.finalizeActors then never
+// constructs a NodeMover for that id at all, so there is nothing for mr.start to skip.
+package nodeactor
 
 import (
 	"context"
@@ -20,24 +20,37 @@ import (
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
-// PairNodeSelf wraps this node's own *nodeGeometry so a pair kind's Update loop can drive
+// PairNodeSelf wraps this node's own *NodeGeometry so a pair kind's Update loop can drive
 // it directly. Every method here must be called ONLY from that node's own goroutine —
 // the same single-goroutine-ownership contract node_geometry.go's own doc comment states,
 // just satisfied by a different (but still exactly one) caller. Nil-safe throughout:
-// BuildArgs.ClaimSelfDrive returns nil on a bare test build with no loader, matching
-// every other nil-safe fallback in this package.
+// package Wiring's BuildArgs.ClaimSelfDrive returns nil on a bare test build with no
+// loader, matching every other nil-safe fallback in that file; every method on a nil
+// *PairNodeSelf is itself a no-op.
 type PairNodeSelf struct {
-	geom *nodeGeometry
+	geom *NodeGeometry
 	// speedCh is geom.clk's OWN buffered-1 speed-delivery channel — the exact analogue of
-	// nodeMover.speedCh for a ring node (mover_registry.go's finalizeActors). Without this,
-	// geom.clk was copied ONCE at build time (ClaimSelfDrive) and never touched again: the
-	// kind's own SEPARATE clock (PairNode's own n.Clock, polled via its own SpeedCh in
-	// the kind's Update loop) paced wire delivery correctly, but geom.clk — the clock
-	// writeStreamFrame's frame tick and chainBeads' animation actually read — stayed frozen
-	// at whatever speed it had at load, so a pair node's RENDERED bead motion never reflected
-	// SceneTab.ClockDivisor or a live slider change at all. Polled once per Step cycle below,
-	// mirroring nodeMover.run's "ApplySpeedNonBlocking every cycle" shape exactly.
+	// NodeMover.speedCh for a ring node (package Wiring's moverRegistry.finalizeActors).
+	// Without this, geom.clk was copied ONCE at build time (ClaimSelfDrive) and never
+	// touched again: the kind's own SEPARATE clock (PairNode's own n.Clock, polled via its
+	// own SpeedCh in the kind's Update loop) paced wire delivery correctly, but geom.clk —
+	// the clock writeStreamFrame's frame tick and chainBeads' animation actually read —
+	// stayed frozen at whatever speed it had at load, so a pair node's RENDERED bead motion
+	// never reflected SceneTab.ClockDivisor or a live slider change at all. Polled once per
+	// Step cycle below, mirroring NodeMover.Run's "ApplySpeedNonBlocking every cycle" shape
+	// exactly.
 	speedCh <-chan float64
+}
+
+// NewPairNodeSelf wraps geom (and its optional speed channel) as a PairNodeSelf — the
+// exported door package Wiring's BuildArgs.ClaimSelfDrive (build_args_selfdrive.go) uses
+// now that PairNodeSelf's fields are unexported across the package boundary
+// (docs/planning/movedispatch-decomposition.md §20; ClaimSelfDrive used to build this
+// value with a bare struct literal, `&PairNodeSelf{geom: ng, speedCh: speedCh}`, while both
+// types lived in the same package). speedCh may be nil (no speed sink wired — matches the
+// old literal's zero-value default in that branch).
+func NewPairNodeSelf(geom *NodeGeometry, speedCh <-chan float64) *PairNodeSelf {
+	return &PairNodeSelf{geom: geom, speedCh: speedCh}
 }
 
 // Breadcrumb emits a DEBUG breadcrumb on this node's own stream (.claude/rules/
@@ -58,7 +71,7 @@ func (p *PairNodeSelf) Breadcrumb(label, value string) {
 	// silently discarded every pair breadcrumb until now.
 	p.geom.tr.Breadcrumb(label, p.geom.id, "", value)
 	// The PRODUCTION path: a structured KindBreadcrumb event on this node's OWN dedicated
-	// stream frame, the same shape nodeGeometry's drag.commit breadcrumb uses. An unknown
+	// stream frame, the same shape NodeGeometry's drag.commit breadcrumb uses. An unknown
 	// label is dropped rather than sent as a bad id — the decode side indexes
 	// T.BreadcrumbLabels by this number.
 	id, ok := T.BreadcrumbLabelID(label)
@@ -73,7 +86,7 @@ func (p *PairNodeSelf) Breadcrumb(label, value string) {
 }
 
 // EmitGeometryOnce sends this node's initial node-geometry frame — the one-time startup
-// emit a ring's nodeMover.run makes at goroutine start (see its own doc comment),
+// emit a ring's NodeMover.Run makes at goroutine start (see its own doc comment),
 // reproduced here since this node's own Update loop is that goroutine now.
 func (p *PairNodeSelf) EmitGeometryOnce() {
 	if p == nil || p.geom == nil {
@@ -85,10 +98,10 @@ func (p *PairNodeSelf) EmitGeometryOnce() {
 }
 
 // Step runs exactly one cycle of this node's own geometry work — the same per-cycle body
-// nodeMover.run drives for a ring node (drain every dedicated inbound channel to empty,
+// NodeMover.Run drives for a ring node (drain every dedicated inbound channel to empty,
 // drive this node's own outgoing wires one cycle on the given tick, retry any pending
 // sends, write this node's dedicated stream frame), called from the OWNING kind's own
-// goroutine instead of a nodeMover actor. There is no pacing sleep here: the caller's own
+// goroutine instead of a NodeMover actor. There is no pacing sleep here: the caller's own
 // Update loop already paces itself on its own clock (per-goroutine-clock.md), and driving
 // this geometry an extra time per caller cycle is exactly what "one goroutine, one clock
 // reading" requires — a second sleep here would just double-pace the same node.
@@ -200,7 +213,7 @@ func (p *PairNodeSelf) SetReceivedVector(theta int32, set bool) {
 // SetLatticePoints applies this node's own new lattice point count directly to its own
 // geometry state — the direct-call replacement for a message-to-self, same one-way shape
 // as SetTiltIndex above. It exists because the angle a tilt-vector INDEX draws depends on
-// how many points the lattice has (2π / points per step, node_geometry.go's
+// how many points the lattice has (2π / points per step, node_geometry_stream.go's
 // writeStreamFrame): the geometry converts index → angle every frame, but it does not
 // itself decide the point count — that is a scene setting PairNode's own goroutine owns
 // (Node.adoptLattice) — so it has to be told. Re-emits so the drawn angles pick up the
@@ -214,33 +227,6 @@ func (p *PairNodeSelf) SetLatticePoints(points int32) {
 	if g.tr != nil {
 		g.emitGeometry()
 	}
-}
-
-// NodeSelfDriven reports whether node id's own geometry is driven by that node's own kind
-// goroutine (task/pair-node-owns-itself, ClaimSelfDrive) rather than a separate nodeMover
-// goroutine. Exposed for verification: the model's whole point — one goroutine, not two,
-// for the same node id — is otherwise invisible from outside this package (package main's
-// own headless tests are the only place every kind, PairNode included, is registered — see
-// kind_registry_parity_test.go's own doc comment). Thin delegator to md.mr
-// (mover_registry.go); kept on MoveDispatch because package main's own tests call it and
-// mr is unexported.
-func (md *MoveDispatch) NodeSelfDriven(id string) bool {
-	return md.mr.nodeSelfDriven(id)
-}
-
-// HasNodeMover reports whether node id has a real, separate nodeMover actor (a ring
-// node) as opposed to no nodeMover at all (a self-driven pair node, or an unknown id).
-// Thin delegator to md.mr, kept for the same reason as NodeSelfDriven.
-func (md *MoveDispatch) HasNodeMover(id string) bool {
-	return md.mr.hasNodeMover(id)
-}
-
-// NodeQuantOffset returns node id's own current quantized polar offset triple
-// (iTheta, iPhi, iR), for the same external-verification reason as NodeSelfDriven — e.g.
-// confirming a real reload lands on the same offset a live edit just persisted. Thin
-// delegator to md.mr, kept for the same reason as NodeSelfDriven.
-func (md *MoveDispatch) NodeQuantOffset(id string) (iTheta, iPhi, iR int, ok bool) {
-	return md.mr.nodeQuantOffset(id)
 }
 
 // ClearOutBeads empties every one of this node's own outgoing wires directly — the

@@ -7,6 +7,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/gesturefsm"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
@@ -25,11 +26,11 @@ import (
 // center (400,300) projects EXACTLY onto the node's center — the deterministic "center
 // grab" case the companion test below relies on.
 func dragOffsetMD() *MoveDispatch {
-	md := &MoveDispatch{mr: moverRegistry{nodeGeoms: map[string]*nodeGeometry{}, edgeMovers: map[string]*edgemover.EdgeMover{}}}
+	md := &MoveDispatch{mr: moverRegistry{nodeGeoms: map[string]*nodeactor.NodeGeometry{}, edgeMovers: map[string]*edgemover.EdgeMover{}}}
 	md.UI.VP.Viewpoint = canonicalViewpoint()
 	g := nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: "TimeEnd"}}
 	nodegeom.SetNodeWorld(&g, vec3{X: 0, Y: 0, Z: 0})
-	nm := newNodeGeometry("n", g, nil, clock.NewRealClock())
+	nm := nodeactor.NewNodeGeometry("n", g, nil, clock.NewRealClock())
 	md.mr.nodeGeoms["n"] = nm
 	// No goroutine started (mirrors gesture_home_test's homeMD): extIn is a buffered
 	// channel (moverInboxDepth), so sendMove's writes land there for the test to drain
@@ -40,20 +41,19 @@ func dragOffsetMD() *MoveDispatch {
 
 func nodeHit() inputcodec.RawHit { return inputcodec.RawHit{Kind: "node", NodeRow: 0} }
 
-// drainDrag reads off nm.msg.extIn until it sees a movemsg.KindDrag, returning its Target. Fails
-// the test if none arrives (commitDragStart's DragStart message precedes it on the same
-// channel for the first move of a drag).
-func drainDrag(t *testing.T, nm *nodeGeometry) vec3 {
+// drainDrag reads off nm's own external inbox (TryRecvExternal) until it sees a
+// movemsg.KindDrag, returning its Target. Fails the test if none arrives (commitDragStart's
+// DragStart message precedes it on the same channel for the first move of a drag).
+func drainDrag(t *testing.T, nm *nodeactor.NodeGeometry) vec3 {
 	t.Helper()
 	for {
-		select {
-		case msg := <-nm.msg.extIn:
-			if msg.Kind == movemsg.KindDrag {
-				return msg.Target
-			}
-		default:
+		msg, ok := nm.TryRecvExternal()
+		if !ok {
 			t.Fatal("no movemsg.KindDrag arrived on extIn")
 			return vec3{}
+		}
+		if msg.Kind == movemsg.KindDrag {
+			return msg.Target
 		}
 	}
 }

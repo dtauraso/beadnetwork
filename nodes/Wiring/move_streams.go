@@ -7,6 +7,7 @@ package Wiring
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
@@ -18,7 +19,7 @@ import (
 func (md *MoveDispatch) SetMsgTap(tap func(destID string, msg movemsg.Msg)) {
 	md.tapToInstall = tap
 	for _, nm := range md.mr.nodeGeoms {
-		nm.setMsgTap(tap)
+		nm.SetMsgTap(tap)
 	}
 }
 
@@ -64,7 +65,7 @@ func (md *MoveDispatch) SetNodeStreams(
 	nodeBase, interiorBase, driveBase int,
 	driveWired bool,
 	nodeRowFor func(id string) (int32, bool),
-	buildFrame NodeFrameBuilder,
+	buildFrame nodeactor.NodeFrameBuilder,
 	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte,
 	kindIDFor func(kind string) uint8,
 ) {
