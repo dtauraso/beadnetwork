@@ -3660,3 +3660,288 @@ rename (commit 1) touched 32 existing files but added/removed none, and the re-m
 pass (commit 2, doc-only) moved no file either, since both clusters stayed pinned by
 statements unrelated to `MR`/`LQ`/`TR`. Test-name/assertion parity confirmed unchanged
 (109/324). `go test -race -count=1 ./...`: verbatim below.
+
+## §29 — `nodeInboxes`/`streamWiring`/`persisters` lifted into `nodeinbox`/`streamwire`/
+`viewpersist`; `Inboxes`/`Sw`/`Persist` exported on `MoveDispatch`; both §27/§28 clusters
+re-measured, both stay pinned, but the stdin cluster's real blocker narrows to one field
+and the build cluster's `buildNodes` blocker is gone
+
+§28 named the sole remaining lever for both clusters: lift the unexported TYPES
+`nodeInboxes` (`inboxes`) and `streamWiring` (`sw`), the way §26 lifted `moverRegistry`.
+This task took that lever, plus `persisters` (`persist`), the third unexported sub-object
+type `MoveDispatch` still held.
+
+### Construction-time vs. post-construction — the touch tables
+
+**`nodeInboxes` → `nodes/Wiring/nodeinbox.NodeInboxes`** (13 real touches across 5
+production files, 2 test files):
+
+| file | site(s) | class | disposition |
+|---|---|---|---|
+| `build_nodes.go` | `b.md.inboxes.lattice`/`.tiltEdit` nil-check+init+set (6 statements, inside `kindapi.BuildDeps` closures) | CONSTRUCTION (single-threaded build path, before any goroutine runs) | folded into `ClaimLatticeIn`/`ClaimTiltEditIn` |
+| `stdin_apply.go` | `sendTiltEdit(&md.inboxes, ...)` (×3) | POST-CONSTRUCTION (stdin dispatch, per-message) | `sendTiltEdit`'s own parameter type changed to `*nodeinbox.NodeInboxes`; its body now delegates to `NodeInboxes.SendTiltEdit` |
+| `move_dispatch_api.go` | `sendTiltEdit`'s body (`inboxes.tiltEdit[id]`, channel send/select) | POST-CONSTRUCTION (bare external-entry send helper) | body moved into `nodeinbox.NodeInboxes.SendTiltEdit`; `dispatch`'s `sendTiltEdit` is now a 1-line delegator |
+| `scene_lattice_persist.go` | `md.inboxes.broadcastLatticePoints(points)` | POST-CONSTRUCTION (`BroadcastLatticePoints`, called from the view-owner goroutine on a scene edit) | `md.Inboxes.BroadcastLatticePoints(points)` |
+| `scene_lattice_edit_test.go` | `md.inboxes.lattice = map[...]{...}` (×2, fixture setup) | CONSTRUCTION-style (test-only literal assignment) | `md.Inboxes.ClaimLatticeIn(id, ch)` per entry |
+
+**`streamWiring` → `nodes/Wiring/streamwire.StreamWiring`** (7 real touches across 3
+production files, 0 test files touching bare fields):
+
+| file | site(s) | class | disposition |
+|---|---|---|---|
+| `move_streams.go` | `md.sw.setEdgeStreams(...)`, `md.sw.setNodeStreams(...)` | POST-CONSTRUCTION (called once at startup, before `Start`) | `md.Sw.SetEdgeStreams(...)`/`md.Sw.SetNodeStreams(...)` (methods capitalized, unchanged bodies) |
+| `build_nodes.go` | `pb.InteriorOuts = &b.md.sw.interiorOuts`, `pb.DriveOuts = &b.md.sw.driveOuts`, `pb.BuildInteriorFrame = &b.md.sw.buildInteriorFrame` | CONSTRUCTION (single-threaded, before any node's Update goroutine launches — the pointers are captured empty and read live once `SetNodeStreams` populates the SAME field later) | `b.md.Sw.InteriorOutsPtr()`/`.DriveOutsPtr()`/`.BuildInteriorFramePtr()`, three new methods returning `&sw.<field>` |
+| `viewpoint_state.go` | doc-comment only (`md.sw/md.RT to emit the VIEW frame`) | — | comment reworded to `md.Sw` |
+
+**`persisters` → `nodes/Wiring/viewpersist.Persisters`** (12 real touches across 6
+production files, 5 test files):
+
+| file | site(s) | class | disposition |
+|---|---|---|---|
+| `move_persist.go` | `EnableViewpointPersist`: constructs `p := &camerapersist.ViewpointPersister{...}`, `md.persist.vp = p` | CONSTRUCTION (called once, after the startup seed, before `Start`) | `p := md.Persist.ArmViewpoint(topologyPath)` — the persister's own construction moved INTO `viewpersist.Persisters.ArmViewpoint`, which returns `p` so `EnableViewpointPersist` can still wire `md.UI.VP.Persist = p.Schedule` |
+| `move_persist.go` | `EnableEditPersist`: constructs and assigns `md.persist.overlays`/`.sphere`/`.speed`/`.lattice` (4 struct literals) | CONSTRUCTION | folded into `viewpersist.Persisters.ArmEdit(topologyPath)`; `EnableEditPersist` now calls `md.Persist.ArmEdit(topologyPath)` and keeps only its OWN remaining work (`md.Scenes.TreeRoot`, the per-mover `SetPersistRoot` loop) |
+| `stdin_apply.go` | `md.persist.lattice.Schedule(points)`, `md.persist.overlays.Schedule(md.UI.OV)` | POST-CONSTRUCTION (stdin dispatch) | `md.Persist.Lattice().Schedule(points)`, `md.Persist.Overlays().Schedule(md.UI.OV)` |
+| `stdin_dispatch.go` | `md.persist.overlays.Schedule(...)`, `md.persist.sphere.Schedule(...)`, `md.persist.speed.Schedule(...)` | POST-CONSTRUCTION (`HandleSaveMsg`, `clockAttrHandlers["speed"]`) | `md.Persist.Overlays().Schedule(...)`, `md.Persist.Sphere().Schedule(...)`, `md.Persist.Speed().Schedule(...)` |
+| `scene_sphere_persist.go`, `scene_speed_persist.go` | doc-comment only (`md.persist.sphere`/`.speed`) | — | reworded to `md.Persist`, reached via `.Sphere()`/`.Speed()` |
+| 5 test files (`scene_clock_divisor_test.go`, `scene_edit_persist_test.go` ×2, `scene_lattice_persist_test.go`, `scene_speed_persist_test.go` ×2) | `md.persist.speed.Schedule(...)`, `md.persist.lattice.Schedule(...)`, `md.persist.overlays.Schedule(...)` | — (post-`EnableEditPersist`-armed accessor reads) | rewritten to `md.Persist.Speed()`/`.Lattice()`/`.Overlays()` |
+
+### Exported surface, and why each export is unavoidable
+
+**`nodeinbox.NodeInboxes`**: `ClaimLatticeIn(id string, ch chan int32)` and
+`ClaimTiltEditIn(id string, ch chan movemsg.TiltEditMsg)` are new construction-time setters
+folding the nil-check-then-lazy-init-then-set 3-statement sequence each map needed — same
+consolidation shape §26 gave `ClaimSelfDrive`. `BroadcastLatticePoints(points int32)` and
+`SendTiltEdit(ctx, id, msg) bool` are the two post-construction methods, unchanged bodies
+from the pre-move `broadcastLatticePoints`/package-level `sendTiltEdit`, just promoted to
+receiver methods. **No channel crosses the boundary**: `ClaimLatticeIn`/`ClaimTiltEditIn`
+take a channel IN (the caller constructed it, this just registers it — same "directory
+takes ownership of a channel handed to it" shape moverreg's `Bind` already had), and
+`BroadcastLatticePoints`/`SendTiltEdit` send ON the held channels internally without ever
+returning one. `dispatch`'s own `sendTiltEdit` free function keeps its exact name and
+signature shape (now `*nodeinbox.NodeInboxes` instead of `*nodeInboxes`) as a 1-line
+delegator, so `stdin_apply.go`'s three call sites needed no edit beyond `&md.inboxes` →
+`&md.Inboxes`.
+
+**`streamwire.StreamWiring`**: `SetEdgeStreams`/`SetNodeStreams` are the same two methods
+promoted to exported, byte-identical bodies (matching §26's dozen-method precedent).
+`InteriorOutsPtr()`/`DriveOutsPtr()`/`BuildInteriorFramePtr()` are three NEW methods, each
+returning `&sw.<field>` — genuinely a pointer to internal state, but this is the same shape
+`portwiring.PortBindings` already required from the FIELD before the move
+(`*map[string]io.Writer`, not `map[string]io.Writer`): the caller needs the field's own
+address because it captures the pointer BEFORE `SetNodeStreams` has populated (or
+reassigned) the map, and reads through the pointer AFTER — a value-returning accessor
+(`InteriorOuts() map[string]io.Writer`, `moverreg.NodeGeoms()`'s own shape) cannot express
+this, since a bare map's reference semantics don't survive the map being REASSIGNED (`sw.
+interiorOuts = map[string]io.Writer{}` inside `SetNodeStreams`) the way `NodeGeoms()`'s
+directory (never reassigned, only mutated) does. This is a method, not a field export —
+`InteriorOutsPtr`/`DriveOutsPtr`/`BuildInteriorFramePtr` are identifiers Go's export rule
+governs, and what they return was already crossing this exact boundary (as
+`portwiring.PortBindings.InteriorOuts *map[string]io.Writer`) before the move; the move
+changes who owns the pointed-to field, not the pointer's own shape.
+
+**`viewpersist.Persisters`**: `ArmViewpoint(topologyPath string)
+*camerapersist.ViewpointPersister` and `ArmEdit(topologyPath string)` are two NEW
+construction-time methods that absorbed the persister-construction bodies that used to live
+directly in `MoveDispatch.EnableViewpointPersist`/`EnableEditPersist` — this is a bigger
+fold than moverreg's/nodeinbox's "3 statements → 1 call" precedent because the FULL
+struct-literal construction (`Path`/`Write`/`Tag` per persister) moved with it, since
+`viewpersist` already imports every type (`scenepaths`, `scenepersist`, `viewstate`,
+`geom`) that construction needs and `dispatch` does not need to see the literals at all.
+`ArmViewpoint` returns the constructed value (the one read of `vp` anywhere) so
+`EnableViewpointPersist` can still wire `md.UI.VP.Persist = p.Schedule` — this is why `vp`
+itself gets no accessor, matching `MoveDispatch.TR`'s own write-only precedent from §28.
+`Overlays()`/`Sphere()`/`Speed()`/`Lattice()` are four post-construction getters, each
+returning the already-exported `*scenepersist.Persister[T]` pointer — nil until `ArmEdit`
+runs, and `Persister[T].Schedule` is nil-receiver-safe (already true before this move), so
+a `.Schedule(...)` call site through the getter behaves identically to the bare-field call
+site it replaces. No new package folded scenepersist into camerapersist/viewstate/geom or
+vice versa — see the package's own doc comment for the one-sentence justification for a
+NEW package (`viewpersist`) rather than adding this grouping to `scenepersist`.
+
+### No channel or field exported — confirmed by construction
+
+Neither `nodeinbox.NodeInboxes` nor `streamwire.StreamWiring` nor `viewpersist.Persisters`
+declares an exported field — every external touch above goes through a method. The two
+channel-typed maps in `NodeInboxes` (`tiltEdit`, `lattice`) stay unexported; the two
+methods that read them (`BroadcastLatticePoints`, `SendTiltEdit`) send ON the channels
+internally and never return one — the same "no exported channel" shape §17/§20/§26 held.
+`streamwire.StreamWiring`'s pointer accessors return `*map[string]io.Writer` (a pointer to
+a directory, matching `portwiring.PortBindings`' own pre-existing field type) and
+`*func(...)([]byte)` (a pointer to a func value, not a channel) — no channel there either.
+`viewpersist.Persisters` holds no channel at all.
+
+### What moved, what stayed
+
+`nodes/Wiring/dispatch/stream_wiring.go` moved whole, as
+`nodes/Wiring/streamwire/stream_wiring.go` (only file with a `streamWiring`/`*sw`
+receiver). `nodeInboxes`'s type declaration and its one method moved out of
+`move_dispatch.go` into the new `nodeinbox/node_inbox.go`; `move_dispatch.go` itself
+stayed (it also declares `MoveDispatch`, which is not moving). `persisters`'s type
+declaration moved out of `move_persist.go` into the new `viewpersist/persisters.go`;
+`move_persist.go` stayed (its two methods, `EnableViewpointPersist`/`EnableEditPersist`,
+are `*MoveDispatch` receiver methods that also touch `md.Scenes`/`md.UI`/`md.MR`, so they
+cannot follow `persisters` out). Every other touched file (`build_nodes.go`,
+`move_dispatch_api.go`, `move_streams.go`, `stdin_apply.go`, `stdin_dispatch.go`,
+`scene_lattice_persist.go`, `scene_sphere_persist.go`, `scene_speed_persist.go`,
+`viewpoint_state.go`, and the 8 test files) merely reached the old bare fields and were
+rewritten to the exported API — all stayed in `dispatch`.
+
+### Goroutine count, channel set, ordering — unchanged
+
+Still exactly the same channels this task's own moved files touch: `NodeInboxes.tiltEdit`/
+`.lattice` are the same two channel-typed maps, populated at the same build-time call
+sites, read by the same two send paths. `StreamWiring`'s `SetEdgeStreams`/`SetNodeStreams`
+bodies are byte-identical (verified — no diff beyond capitalization and the `sw.` receiver
+staying `sw`). No goroutine was added, removed, or resequenced; no fd wiring order changed.
+
+### Test-name/assertion equality
+
+`grep -oE '^func Test[A-Za-z0-9_]+' nodes/Wiring/dispatch/*_test.go nodes/Wiring/kindapi/*_test.go`
+→ **109**, matching the count on this branch immediately before this task started (verified
+directly, not assumed — see the note below on why the number differs from §26/§28's own
+stated baseline). `grep -c 't\.Fatal\|Fatalf\|Error\|Errorf(' ...`, summed across the same
+files → **327** before AND after this task's commits (re-verified with `git stash`/`git
+stash pop` against the working tree) — §26/§28 both recorded 324, but that count was
+already stale by the time this task started (something on this branch between §28 and this
+task's start added 3 matching lines with no file-count change recorded anywhere) — not
+introduced by this task, confirmed by measuring the SAME pre-task tree with `git stash`,
+not merely re-quoting the old number. No test in this task's own two commits was renamed,
+dropped, weakened, or skipped: every rewritten test file changed only the accessor syntax
+at the call site.
+
+### Guards, re-run and proven with teeth
+
+`check-doc-drift.sh` failed once, honestly, before any deliberate-break testing began: it
+matched a broken `nodes/Wiring/dispatch/stream_wiring.go` reference inside
+`docs/investigations/interior-stream-framing.md` (a real citation, not a guard
+false-positive) — fixed by rewording that citation to `nodes/Wiring/streamwire/
+stream_wiring.go`/`StreamWiring`/`SetNodeStreams`, then re-ran clean.
+`check-no-untracked-source.sh` failed once (the three new package files were untracked,
+invisible to the git-ls-files-driven guards) — fixed with `git add -N`, then re-ran clean.
+Neither `check-persist-write-ownership.sh` nor `check-scene-path-resolution.sh` needed
+re-keying (both match by filename via a recursive `find`/`grep`, already covering the new
+`nodeinbox/`/`streamwire/`/`viewpersist/` subdirectories) — proven with teeth anyway:
+injected `jsonpersist.WriteJSONAtomic("probe.json", nil)` into
+`viewpersist.Persisters.ArmViewpoint` → `check-persist-write-ownership.sh` reported
+`unauthorized-write: .../viewpersist/persisters.go: 75:...` and exited 1; injected
+`filepath.Join("nodes", "x", "y.json")` into `streamwire.StreamWiring.InteriorOutsPtr` →
+`check-scene-path-resolution.sh` reported `hand-rolled-node-path: .../streamwire/
+stream_wiring.go: 83:...` and exited 1. Both probes removed immediately after; `diff`
+against a pre-edit backup of each file confirmed byte-identical restoration.
+`check-composer-fields.sh`, `check-channel-names.sh`, `check-no-network-locks.sh`,
+`check-docs-symbols.sh`, `check-dep-rules.sh` all ran clean, none needed re-keying (none
+match the three new type/package names by content). `bash scripts/stop-checks.sh`: empty
+stdout after both fixes above.
+
+Grepped the three new package directories for `runtime.Caller`/`filepath.Join("..", ...)`/
+`../..` — zero hits.
+
+### Verification
+
+`go build ./...`, `go vet ./...`: clean. `go test -race -count=1 ./...`: every package `ok`
+or `[no test files]`, zero `FAIL`, zero race reports, including `nodes/Wiring/dispatch` and
+the three new packages (`nodes/Wiring/nodeinbox`, `nodes/Wiring/streamwire`,
+`nodes/Wiring/viewpersist` — none has its own test file; each type's behavior is exercised
+entirely from `dispatch`'s existing suite, same shape §26 left `moverreg` in). The
+no-package-under-`Wiring`-imports-`dispatch` loop is empty.
+
+### Deliberate breaks, confirmed and restored (moved surface itself, not just guards)
+
+- `nodeinbox.NodeInboxes.BroadcastLatticePoints` forced to a no-op body (loop deleted) →
+  `TestBroadcastLatticePointsReachesEveryRegisteredChannel` and
+  `TestBroadcastLatticePointsDoesNotBlockOnAFullChannel` both fail by name, with the exact
+  assertion text (`"node 1: BroadcastLatticePoints did not deliver onto its channel"`,
+  `"channel holds 8 after broadcast, want the latest value 24"`). Restored;
+  byte-identical `diff` confirmed.
+- `viewpersist.Persisters.Overlays()` forced to `return nil` unconditionally →
+  `TestOverlaysPersistPreservesCamera` fails by name. Restored; byte-identical `diff`
+  confirmed.
+
+**Uncovered, reported rather than silently accepted.** `streamwire.StreamWiring.
+SetEdgeStreams`/`SetNodeStreams` are the channel-touching/fd-wiring class
+`docs/process/testing-shape.md`'s own doctrine excludes from unit testing (they wire real
+fds and claim registries, exercised only by the full runtime) — same excluded class §17/
+§20/§26 already named, not re-probed individually here. `InteriorOutsPtr`/`DriveOutsPtr`/
+`BuildInteriorFramePtr` and `nodeinbox.NodeInboxes.ClaimLatticeIn`/`ClaimTiltEditIn` and
+`viewpersist.Persisters.ArmViewpoint`/`ArmEdit` are all construction-time writes exercised
+only as plumbing inside integration-style tests that build a real topology — not
+independently break-tested, same class as §19's/§26's own construction-time-write coverage
+note. `viewpersist.Persisters.Sphere()`/`Speed()`/`Lattice()` were NOT individually
+break-tested (only `Overlays()` was, above) — a probe on each would very likely be caught by
+`scene_sphere_persist_test.go`/`scene_speed_persist_test.go`/`scene_lattice_persist_test.go`
+(all three exist and already call `.Schedule` through the new accessor), but that was not
+verified by an actual forced-nil run for the other three, so it is named here as unverified
+rather than assumed.
+
+### After the lifts — both clusters re-measured
+
+**Stdin cluster (`stdin_dispatch.go` + `stdin_apply.go`), re-measured**: every one of the
+11 functions/closures §27/§28 tabulated was re-read. `md.MR`/`md.LQ`/`md.UI`/`md.Scenes`
+were already exported (§28); `md.Inboxes`/`md.Persist` are now exported too (this task).
+The result: **every function's `md.Persist.X()`/`md.Inboxes` touch dropped out of its pin
+statement.** `applyUpdateScene` (which used to list `md.persist.lattice` as its blocker)
+is now bucket **(b)** outright — every remaining statement in its body
+(`SelectScene(&md.Scenes, ...)`, `md.UI.LatticePoints = ...`,
+`md.Persist.Lattice().Schedule(...)`, `md.BroadcastLatticePoints(...)`,
+`md.CreateNode(...)`, `md.DeleteNode(...)`) is an exported-field/exported-method read.
+`applyUpdateOverlays`, `HandleSaveMsg`, and the `clockAttrHandlers["speed"]` closure
+resolve the same way — their ONLY remaining `md` touch is `md.Persist.X().Schedule(...)`,
+now exported. **`applyUpdateDistanceGroup` and `applyUpdateTiltVector` are the two holdouts,
+and their pin narrows to exactly one field: `md.ctx`** (`applyDistanceGroupTarget(md.ctx,
+...)`; `sendTiltEdit(&md.Inboxes, md.ctx, ...)`, `sendMove(&md.MR, md.ctx, ...)`) —
+`md.Inboxes`/`md.MR` in those same call sites are now ordinary exported-field reads, not
+part of the pin. `ctx context.Context` stays unexported by this task's own constraint (it
+holds no exported type of its own — it is `context.Context`, already exported by the
+standard library, but the FIELD `ctx` on `*MoveDispatch` is the thing gating these two
+functions, and exporting it was never asked for and is not a "sub-object holding an
+already-exported type" the way `Inboxes`/`Persist`/`Sw` are). **Verdict: still PINNED**,
+narrower than §28 left it — 9 of 11 functions are now bucket (b) in isolation, and the
+remaining 2 are pinned by ONE field, not several. Not resolved here: exporting `ctx` (or
+threading it as an explicit parameter instead of a field read) is a DIFFERENT lever than
+the one this task was scoped to pull (lifting `inboxes`/`sw`/`persist`), and doing it was
+not attempted.
+
+**Build/load cluster (`build.go` + `loader.go` + `move_dispatch_construct.go`),
+re-measured**: `buildMoveDispatch` was already bucket (b) in isolation per §28 (unchanged
+here — nothing in its body ever touched `inboxes`/`sw`). **`buildNodes`'s OWN body pin is
+now GONE**: every statement §28 named as its blocker (`b.md.inboxes.lattice`/`.tiltEdit`
+map writes, `b.md.sw.interiorOuts`/`.driveOuts`/`.buildInteriorFrame` pointer captures) is
+now `b.md.Inboxes.ClaimLatticeIn(...)`/`.ClaimTiltEditIn(...)` and
+`b.md.Sw.InteriorOutsPtr()`/`.DriveOutsPtr()`/`.BuildInteriorFramePtr()` — all
+exported-field/exported-method reads. `buildNodes` is bucket (b) in isolation, exactly
+matching `buildMoveDispatch`'s own status. **Both `*buildCtx` methods are now bucket (b) in
+isolation** — but `buildCtx` itself still cannot move, for the SAME reason §28 already
+isolated: Go requires every method of `*buildCtx` to live in the same package as `buildCtx`,
+and `buildFromSpec`/`buildCtx`'s own construction (`&buildCtx{ctx: ..., spec: ..., tr: ...,
+...}`) sets `buildCtx`'s OWN unexported fields directly — a completely separate type from
+`MoveDispatch`, untouched by this task, unrelated to `inboxes`/`sw`/`persist`.
+`newMoveDispatch` (`move_dispatch_construct.go`) is unchanged from §28: it still constructs
+`md := &MoveDispatch{TR: tr}` then sets `md.MR = moverreg.New()` and `md.tapToInstall =
+...` via closures — the LAST of `MoveDispatch`'s seven original sub-object-shaped fields
+(`ctx`, `tapToInstall`) stays unexported by this task's own constraint, and a struct-literal
+constructor that sets even one unexported field must live in that type's own package,
+independent of which fields ARE now exported. `LoadTopology` is unchanged from §27/§28 —
+its only non-trivial call (`buildFromSpec`) is pinned above. **Verdict: still PINNED**, but
+the reason has narrowed to exactly two things, both confirmed unrelated to this task's own
+lift: (a) `buildCtx`'s own unexported field encapsulation (a different type), and (b)
+`newMoveDispatch`'s construction-time wiring through `tapToInstall` (a field this task was
+told to leave unexported) plus the struct-literal-construction rule itself. `buildNodes`'
+own reach into `inboxes`/`sw` — the ONE blocker §27/§28 attributed specifically to THIS
+task's lever — is confirmed gone.
+
+### Final state
+
+`ls nodes/Wiring/dispatch/*.go` → **74** (27 non-test + 47 test), down from 75 — the one
+file that left (`stream_wiring.go`) is exactly `moverreg`-shaped: a whole receiver-bearing
+file moved to its own package with no alias shim left behind. Test-name/assertion parity:
+109/327 (see the note above on why 327, not 324). `nodes/Wiring/nodeinbox` (new): 1
+non-test file (93 LOC), 0 test files. `nodes/Wiring/streamwire` (new): 1 non-test file (218
+LOC — includes the 3 new pointer-accessor methods), 0 test files. `nodes/Wiring/viewpersist`
+(new): 1 non-test file (106 LOC), 0 test files.
+
+No `types`/`common` package, no alias shim, no dot-import, no package-level actor global, no
+`*ForTest` constructor, no interface added.
+
+`git status --short`: empty. Commits: `dfbb2c24` (the three package lifts +
+`move_dispatch.go`'s field exports), `796a69fc` (every dispatch call site rewritten to the
+new exported APIs, plus the one doc-drift fix and 8 test-file rewrites).
