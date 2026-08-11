@@ -28,9 +28,11 @@ import (
 
 // NewMoveDispatch builds the registry from per-node geometry and per-edge endpoints.
 // Exported (this task) so nodes/Wiring/build's buildMoveDispatch can call it: it
-// constructs the MoveDispatch struct literal and reads md.tapToInstall (unexported),
-// which is why this constructor itself must stay in package dispatch even though its
-// caller moved out.
+// constructs the MoveDispatch struct literal itself, which is why this constructor stays
+// in package dispatch even though its caller moved out (every MoveDispatch field is
+// exported — §35, docs/planning/movedispatch-decomposition.md removed the last unexported
+// field, tapToInstall — but the struct LITERAL still names the type, so the constructor
+// stays where the type is declared).
 // It creates one nodeMover per node and one edgeMover per edge, registering each under
 // its key (node id / edge id) in md.MR.NodeGeoms()/md.MR.EdgeMovers(), and wires the dedicated
 // directed channels between adjacent movers. Outs and dest wires are bound later by Bind once node
@@ -138,7 +140,7 @@ func NewMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 		commitLocal := func(_ string, newPos vec3) {
 			md.LQ.CommitNodeMoveLocal(md.MR.NodeGeoms(), md.MR.EdgeMovers(), &md.UI, ownGeom, newPos)
 		}
-		ng.WireMessaging(resolveDest, md.MR.EnqueueFor(ng), md.tapToInstall, md.MR.CenterOfNode, commitLocal)
+		ng.WireMessaging(resolveDest, md.MR.EnqueueFor(ng), md.MR.CenterOfNode, commitLocal)
 		md.MR.NodeGeoms()[id] = ng
 		// Seed the dispatch goroutine's center mirror from the same load-time geom
 		// (single-threaded setup, before md.Start — no driving goroutine is running yet)

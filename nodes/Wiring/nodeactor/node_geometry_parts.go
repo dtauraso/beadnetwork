@@ -85,10 +85,6 @@ type nodeMessaging struct {
 	// originates from handle or from package Wiring's bound sendMove closure, which only
 	// ever runs on that same goroutine).
 	pending []pendingSend
-	// tap is a TEST-ONLY observability seam: when non-nil, THIS node's own EnqueueSend
-	// invokes it with every (destID, msg) it routes, before appending to pending. nil in
-	// production.
-	tap func(destID string, msg movemsg.Msg)
 }
 
 // pendingSend is one (destination, message) pair this node's own goroutine tried to

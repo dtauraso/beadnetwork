@@ -1,6 +1,6 @@
 // node_geometry_wire.go — NodeGeometry's own single-threaded WIRING API: the exported
 // methods package Wiring's construction pass (move_dispatch_construct.go,
-// build_move_dispatch.go, mover_registry.go's bind, stream_wiring.go, move_streams.go,
+// build_move_dispatch.go, mover_registry.go's bind, stream_wiring.go,
 // move_persist.go, build_args_selfdrive.go) calls to seed a node's sub-owners, instead of
 // reaching into nine different unexported sub-structs by field
 // (docs/planning/movedispatch-decomposition.md §19). Every method here runs during the
@@ -24,29 +24,20 @@ import (
 )
 
 // WireMessaging installs this node's whole routing surface in one call: how it resolves
-// another id to a send func, how it hands a move off to its own retry queue, the test-only
-// tap, how it resolves a neighbor's center, and its owner-goroutine commit path. All five
-// are set exactly once, together, right after NewNodeGeometry — see package Wiring's
+// another id to a send func, how it hands a move off to its own retry queue, how it
+// resolves a neighbor's center, and its owner-goroutine commit path. All four are set
+// exactly once, together, right after NewNodeGeometry — see package Wiring's
 // move_dispatch_construct.go per-node loop, the only call site.
 func (m *NodeGeometry) WireMessaging(
 	resolveDest func(id string) (func(movemsg.Msg) bool, bool),
 	sendMove func(id string, msg movemsg.Msg),
-	tap func(destID string, msg movemsg.Msg),
 	centerOf func(id string) (vec3, bool),
 	commitLocal func(id string, newPos vec3),
 ) {
 	m.msg.resolveDest = resolveDest
 	m.msg.sendMove = sendMove
-	m.msg.tap = tap
 	m.msg.centerOf = centerOf
 	m.msg.commitLocal = commitLocal
-}
-
-// SetMsgTap installs (or clears, with nil) the test-only message-trace hook on this node
-// alone — package Wiring's MoveDispatch.SetMsgTap loops every NodeMover's own geometry and
-// calls this once per node.
-func (m *NodeGeometry) SetMsgTap(tap func(destID string, msg movemsg.Msg)) {
-	m.msg.tap = tap
 }
 
 // EnsureNeighborChannel makes this node's dedicated inbound channel for otherID if it does

@@ -31,11 +31,8 @@
 package dispatch
 
 import (
-	"context"
-
 	geomseeds "github.com/dtauraso/wirefold/nodes/Wiring/geomseeds"
 	"github.com/dtauraso/wirefold/nodes/Wiring/layoutquant"
-	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/moverreg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeinbox"
 	rowtables "github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
@@ -55,7 +52,7 @@ type MoveDispatch struct {
 	// MR owns the nodeMover/edgeMover directories (nodes/Wiring/moverreg, lifted out of this
 	// package in docs/planning/movedispatch-decomposition.md §25). Bind/CenterOfNode/
 	// EnqueueFor/FinalizeActors are called directly as md.MR.X by in-package callers; only
-	// Start stays a MoveDispatch method (it also sets md.ctx). Exported (§28): its own
+	// Start stays a MoveDispatch method. Exported (§28): its own
 	// field surface is already reached through moverreg's own exported accessors
 	// (NodeGeoms()/EdgeMovers()/...), so this is the same "already-exported sub-object"
 	// shape as GS/UI/Scenes/RT below, applied to the one field that predated the pattern.
@@ -112,24 +109,6 @@ type MoveDispatch struct {
 	// by runtopology/topology_run.go), so a bare test-constructed MoveDispatch can never
 	// end a process. Exported: external callers reach it directly.
 	Scenes sceneswitch.SceneSwitch
-	// tapToInstall is a TEST-ONLY observability seam: when SetMsgTap is called (before
-	// Start), this is stashed here so any nodeMover constructed AFTER that call (there
-	// are none in practice — all nodeMovers are built once in newMoveDispatch, before
-	// SetMsgTap could ever run — but this keeps the two code paths symmetric and cheap)
-	// also gets the tap installed at construction. The live seam every mover goroutine
-	// actually fires is its OWN nm.tap field (node_mover.go), set once per mover by
-	// SetMsgTap below — there is no shared/concurrently-read tap anymore: each mover
-	// owns and reads only its own copy, on its own goroutine. nil in production —
-	// production code never calls SetMsgTap.
-	tapToInstall func(destID string, msg movemsg.Msg)
-	// ctx is the process-lifetime context, captured in Start. sendMove (the bare
-	// blocking directory send, used by external entry points like RootMove with
-	// no owning mover goroutine to thread a ctx from) selects on ctx.Done() so a
-	// send into a full inbox aborts on shutdown instead of leaking the calling
-	// goroutine forever. nil in tests that build a bare MoveDispatch without
-	// calling Start — sendMove treats a nil ctx as "no cancellation available"
-	// and falls back to the plain blocking send (matches prior test behavior).
-	ctx context.Context
 
 	// RT owns the three row-identity tables (nodes/Wiring/rowtables). Exported: external
 	// callers (root package) reach it directly (md.RT.NodeRowFor(...)) instead of through

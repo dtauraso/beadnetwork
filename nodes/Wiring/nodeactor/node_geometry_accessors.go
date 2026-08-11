@@ -157,8 +157,7 @@ func (m *NodeGeometry) PollCenter() (vec3, bool) {
 // ctx cancel, so nothing will ever drain it). ctx is nil only in tests that build a bare
 // MoveDispatch without Start — a nil Context's Done() channel would panic, so guard it and
 // fall back to a plain blocking send there (matches prior behavior; no shutdown path
-// exists in that setting anyway). This bare path never fires the test-only tap — see
-// EnqueueSend's own doc comment for the one that does.
+// exists in that setting anyway).
 func (m *NodeGeometry) SendExternal(ctx context.Context, msg movemsg.Msg) {
 	if ctx == nil {
 		m.msg.extIn <- msg
@@ -184,28 +183,26 @@ func (m *NodeGeometry) TryRecvExternal() (movemsg.Msg, bool) {
 	}
 }
 
-// EnqueueSend is THIS node's own non-blocking send: it fires this node's own tap (at
-// enqueue time, so tap-based tests' counts/ordering match today's behavior — a plain nil
-// check + direct call, since m.msg.tap is owned and read only by this node's own
-// goroutine, the only caller of this method once bound — see SendMove's own doc comment),
-// appends the message to this node's own pending retry queue, and attempts an immediate
-// flush — never blocking the calling handler goroutine. Bound once per node, at
-// construction, as this node's own m.msg.sendMove (package Wiring's
-// move_dispatch_construct.go: `ng.WireMessaging(..., md.mr.EnqueueFor(ng), ...)`, where
-// enqueueFor now just returns this method value) so every send this node's own handle
-// performs — including the ones broadcastToEdgesAndPartners makes on this node's own
-// behalf via SendMove() — goes through this node's own retry queue, never a raw blocking
-// channel write and never a second node's queue.
+// EnqueueSend is THIS node's own non-blocking send: it appends the message to this node's
+// own pending retry queue and attempts an immediate flush — never blocking the calling
+// handler goroutine. Bound once per node, at construction, as this node's own
+// m.msg.sendMove (package Wiring's move_dispatch_construct.go: `ng.WireMessaging(...,
+// md.mr.EnqueueFor(ng), ...)`, where enqueueFor now just returns this method value) so
+// every send this node's own handle performs — including the ones
+// broadcastToEdgesAndPartners makes on this node's own behalf via SendMove() — goes
+// through this node's own retry queue, never a raw blocking channel write and never a
+// second node's queue.
 //
 // This absorbs what used to be package Wiring's mover_registry.go enqueueFor closure body
-// (a direct external touch of msg.tap/msg.pending) into the actor itself
+// (a direct external touch of msg.pending) into the actor itself
 // (docs/planning/movedispatch-decomposition.md §20) — the same class of runtime,
 // own-goroutine write §19 already left as a bare field write for quantOffset/pending, now
 // made unreachable from outside this package by construction rather than by convention.
+// (The test-only message-trace tap this method used to fire — msg.tap/SetMsgTap/
+// MoveDispatch.tapToInstall — was removed in §35, docs/planning/movedispatch-decomposition.md:
+// no test anywhere in the repo called SetMsgTap, so it was dead observability, not a
+// load-bearing seam.)
 func (m *NodeGeometry) EnqueueSend(destID string, msg movemsg.Msg) {
-	if m.msg.tap != nil {
-		m.msg.tap(destID, msg)
-	}
 	m.msg.pending = append(m.msg.pending, pendingSend{destID: destID, msg: msg})
 	m.flushPending()
 	if len(m.msg.pending) > maxPendingSends {
