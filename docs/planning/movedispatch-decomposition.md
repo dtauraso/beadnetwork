@@ -585,6 +585,76 @@ measure fresh, since removing the owner-pointer signatures is a precondition for
 the whole of it (the field-level direct-access entanglement recorded in item 5 for
 `gestureState` is untouched by this pass).
 
+## 6b. The hub-free half lifted: GestureState/GestureRect/ViewpointState → gesturefsm; uiState still does not come free
+
+Re-measured the whole cluster (`gesture.go`, `gesture_actions.go`, `gesture_handlers.go`,
+`gesture_graph.go`, `gesture_hitclassify.go`, `gesture_dispatch.go`, `ui_state.go`,
+`viewpoint_state.go`) at method/function granularity, not just files. Two disjoint halves:
+
+- **17 `func (md *MoveDispatch)` methods** — the entry layer that builds closures from
+  `&md.mr`/`&md.lq`/`md.ctx`. Unchanged, confirmed the same count as gesture-actor.md's own
+  measurement.
+- **The FSM's non-method state**: `gestureState`/`gestureRect` (gesture.go) and
+  `viewpointState` (viewpoint_state.go) plus their own methods (`Aspect`, `PixelToNDC`,
+  `Reset`, `SetViewpoint`/`EmitViewpoint`/`OrbitViewpoint`/`OrbitLockedViewpoint`/
+  `ZoomViewpoint`/`PanViewpoint`) — none of these reference `md`, `*moverRegistry`, or
+  `*layoutQuantizer` at all; they only read/write their own fields plus `geom`/`Trace`.
+
+**Moved these three types + their own methods into `nodes/Wiring/gesturefsm`** as exported
+types (`GestureState`, `GestureRect`, `ViewpointState`, `GesturePhase` +
+`GestIdle`/`GestPending`/`GestRotating`/`GestDragging`/`GestHandhold`), all 18+ fields
+exported since they are read directly by field from entry-layer files that stay in `Wiring`
+(`gesture_handlers.go`, `gesture_dispatch.go`, `gesture_hitclassify.go`, `ui_state.go`,
+`view_stream.go`, tests) — this is the type's OWN surface, the same cost the task accepted
+for `GS`/`RT`/`Scenes`. `nodes/Wiring/gesture.go`, `nodes/Wiring/viewpoint_state.go` now hold
+plain type aliases (`type gestureState = gesturefsm.GestureState`, etc. — the same shape as
+`vec_alias.go`'s `vec3 = wire.Vec3`) so every remaining call site keeps its short unqualified
+name; only the alias declarations themselves are package-qualified.
+
+**`uiState` did NOT come free — confirmed by grep, not assumed.** `beginSphereRotation`,
+`dragPlaneHit`, `applyNodeDragTarget`, `setHover`, and `commitDragStart` (the leaf actions the
+task brief's own "hub-free half" measurement counted as non-method) all take `ui *uiState`
+directly and read/write `ui.gest`/`ui.vp`/`ui.sel`/`ui.lastDraggedNode` by field. `uiState`
+itself cannot move (item 5's finding stands, re-confirmed): `view_stream.go` — explicitly
+out of scope for this task — reads `md.ui.ov.<13 overlay fields>`, `md.ui.editRefused`,
+`md.ui.sceneEditable`, `md.ui.sceneKinds`, `md.ui.speed`, `md.ui.lastDraggedNode`, and
+`md.ui.sceneSphere` all by unexported field, and `move_persist.go` writes `md.ui.vp.Persist`
+by field. If `uiState` moved, ALL of those would need to be exported too — not the state
+type's own surface but a second type's (`overlayState`'s 13 booleans) forced open by a THIRD
+file's access pattern, which is the "export surface grows beyond the type's own API" revert
+condition. So `beginSphereRotation`/`dragPlaneHit`/`applyNodeDragTarget`/`setHover`/
+`commitDragStart` stay in `Wiring`, unchanged in shape (still take `*uiState`), and the 7
+export-blocked `MoveDispatch` methods (`ResolveSceneDistanceGroups`/`LoadOverlays`/
+`LoadSpeed`/`SetViewpoint`/`EmitViewpoint`/`SetViewStream`/`EnableSceneSwitch`) remain
+blocked for the same `md.ui` unexported reason as every prior round — no second commit was
+possible or attempted.
+
+`MoveDispatch` method count: still 17 in the cluster (unchanged — none of the 17 moved or
+were deleted). Exported `Wiring`-package symbol count is not the useful measure here (the
+alias declarations `type gestureState = ...` etc. are themselves package-level type
+declarations, already counted before as delegator methods were, net effect on the
+`^func [A-Z]`/`^type [A-Z]` grep is a wash since the OLD unexported `gestureState`/
+`gesturePhase`/`gestureRect`/`viewpointState` type declarations already existed under those
+same unexported names). Test-name-set equality: `gesture_selection_test.go` 9/9,
+`gesture_camera_outcomes_test.go` 5/5, `gesture_drag_offset_test.go` 2/2 (before/after,
+`grep -c "^func Test"`) — identical names, only field-selector renames inside assertions.
+`go test -race -count=1 ./...` passes clean (verbatim result in the task report). No
+interfaces, `types`/`common` package, alias-shim-as-cycle-workaround, dot-import, or
+`ForTest` hatch were added — the type aliases are the same pattern already in
+`nodes/Wiring/vec_alias.go`, not a workaround for an import cycle (there was no cycle:
+`gesturefsm` has zero dependency on `Wiring`, confirmed by `go build`). The no-imports-
+`Wiring` loop is empty. `go run ./tools/gen-node-defs` shows no diff.
+
+**Deliberately broke `GestureState.Reset`'s phase assignment** (`GestIdle` → `GestPending`)
+and confirmed 4 tests fail (`TestGestureEmptyDragOrbits`, `TestGestureHandholdOrbits`,
+`TestGesturePressReleaseNoMoveSelects`, `TestGestureClickNoCameraChange`), then restored —
+the moved `Reset` method is covered. **Uncovered, reported rather than silently accepted:**
+no test asserts `GestureState.DragNode` is cleared back to `""` by `Reset` specifically (only
+`Phase` is checked post-reset); a deliberate comment-out of that one line did not fail any
+test. This gap pre-dates the lift (the assertion was never written) and the lift did not
+introduce it — named here per the task's coverage-reporting requirement, not fixed (out of
+this task's scope to add tests).
+
 ## 6a. Original decline (superseded above, kept as the record of what was measured wrong)
 
 Attempted to lift the nine gesture+view files, `uiState`/`viewpointState`/`gestureState`/

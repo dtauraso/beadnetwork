@@ -145,3 +145,29 @@ task, done deliberately so the lift can be measured fresh with the owner-pointer
 actually gone, rather than folded into the same change. `git status --short` was NOT empty
 during this pass (four files touched, one commit); the original probe's "no file written"
 claim applies only to the superseded decline, not to this correction.
+
+## Step 3 — HALF lifted: the FSM's hub-free state moved, uiState still does not come free
+
+Re-measured the cluster at method granularity per
+`docs/planning/movedispatch-decomposition.md`'s "6b." section: 17 `MoveDispatch` entry
+methods stay (they build closures reaching `Wiring`); `gestureState`/`gestureRect`
+(gesture.go) and `viewpointState` (viewpoint_state.go), which reference nothing but their
+own fields plus `geom`/`Trace`, moved into `nodes/Wiring/gesturefsm` as exported types, with
+plain type aliases left behind in `Wiring` (same shape as `vec_alias.go`'s
+`vec3 = wire.Vec3`) so every call site keeps its short name.
+
+`uiState` itself is still blocked, confirmed rather than assumed: `view_stream.go` — out of
+scope for this task by the task's own constraint — reads `md.ui.ov.*` (13 fields),
+`md.ui.editRefused/sceneEditable/sceneKinds/speed/lastDraggedNode/sceneSphere` all by
+unexported field, and `move_persist.go` writes `md.ui.vp.Persist` by field. Moving `uiState`
+would force `overlayState`'s 13 booleans open too — a second type's surface forced by a
+THIRD file, not the moving type's own API, which is the explicit revert condition. So
+`beginSphereRotation`/`applyNodeDragTarget`/`commitDragStart`/`setHover`/`dragPlaneHit`
+(the leaf actions that take `*uiState`) stay in `Wiring` unchanged, and the 7 export-blocked
+`MoveDispatch` methods are still blocked — no second commit.
+
+`go test -race -count=1 ./...` clean; the no-imports-`Wiring` loop empty;
+`go run ./tools/gen-node-defs` no diff; `gesturefsm` has zero dependency on `Wiring` (no
+cycle existed to route around). Full detail, coverage-injection result, and the one
+uncovered gap found (Reset not asserting `DragNode` is cleared) are in
+`docs/planning/movedispatch-decomposition.md`'s "6b." section.
