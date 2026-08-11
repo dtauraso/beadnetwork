@@ -443,6 +443,20 @@ doc's own Constraints section already names ("the tests cannot prove no-behaviou
 review of the diff plus `go build`/`go vet` catching a signature mismatch, not on a red test.
 Each injected bug was restored immediately after observing the (lack of) failure.
 
+**Closed.** `nodes/Wiring/build_load_derive_test.go` and
+`nodes/Wiring/vector_channel_threading_test.go` now assert what `LoadTopology` actually
+produces for all three: `TestLoadTopologyComputesReachRadii` reads a load-time node's own
+`ReachR` off `md.mr.nodeGeoms`; `TestLoadTopologyComputesQuantizedOffsets` reads its
+`quantOffset` and derives it back to (approximately) the node's own scene-polar center;
+`TestAllocateVectorChannelsKeysSourceOutTargetIn` pins `allocateVectorChannels`' own
+source→Out/target→In contract; `TestPairNodeVectorChannelsThreadSourceOutTargetIn` (external
+`Wiring_test` package, so it can import PairNode) follows that threading all the way through
+`buildFromSpec`/`BuildArgs`/each PairNode's own build func by reading the built node's
+`vec.VectorOut`/`vec.VectorIn` via reflection. Each test was independently confirmed to fail
+under its own injection (dropped `computeReachRadii` call, dropped `computeQuantizedLayout`
+call, swapped `allocateVectorChannels` return values at the `buildFromSpec` call site) and to
+pass again once restored.
+
 ## 4. WITHDRAWN — the build phases do not duplicate the movers, they initialise them
 
 This item claimed ~3½ build phases "recompute what the movers already derive" and should be
