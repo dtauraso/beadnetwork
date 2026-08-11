@@ -37,7 +37,7 @@ func TestMoveDispatchQuantOffsetScheduleWritesThroughEnableEditPersist(t *testin
 	md := loadTreeMD(t, root)
 	md.EnableEditPersist(root)
 
-	nm, ok := md.mr.nodeGeoms["1"]
+	nm, ok := md.mr.NodeGeoms()["1"]
 	if !ok {
 		t.Fatal("no nodeMover for src")
 	}

@@ -65,18 +65,18 @@ func (b *buildCtx) buildMoveDispatch() error {
 	coplanarEdges := scene.SceneWantsCoplanarEdges(b.scenePath)
 	upAxis := scene.SceneWantsUpAxis(b.scenePath)
 	if coplanarEdges || upAxis {
-		for _, nm := range md.mr.nodeGeoms {
+		for _, nm := range md.mr.NodeGeoms() {
 			nm.SetSceneFlags(coplanarEdges, upAxis)
 		}
 	}
 	for id, off := range b.quantizedOffsets {
-		if nm, ok := md.mr.nodeGeoms[id]; ok {
+		if nm, ok := md.mr.NodeGeoms()[id]; ok {
 			nm.SetQuantOffset(off)
 		}
 	}
 	// Seed each node's OWN selfKind (specNode.Type), set once at construction.
 	for _, n := range b.spec.Nodes {
-		nm, ok := md.mr.nodeGeoms[n.ID]
+		nm, ok := md.mr.NodeGeoms()[n.ID]
 		if !ok {
 			continue
 		}
@@ -96,7 +96,7 @@ func (b *buildCtx) buildMoveDispatch() error {
 		kindByID[n.ID] = n.Type
 	}
 	linkNeighborKind := func(fromID, toID string) {
-		nm, ok := md.mr.nodeGeoms[fromID]
+		nm, ok := md.mr.NodeGeoms()[fromID]
 		if !ok {
 			return
 		}
@@ -110,7 +110,7 @@ func (b *buildCtx) buildMoveDispatch() error {
 	// owns (chain_beads.go). A chain belongs to exactly one endpoint: the source, matching
 	// where the edge is stored on disk.
 	for _, e := range b.spec.Edges {
-		nm, ok := md.mr.nodeGeoms[e.Source]
+		nm, ok := md.mr.NodeGeoms()[e.Source]
 		if !ok {
 			continue
 		}

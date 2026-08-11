@@ -5,16 +5,19 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/moverreg"
 )
 
 // gesture_helpers_test.go — shared fixtures for driving the gesture state machine
 // (gesture.go) with raw pointer/wheel sequences and asserting the FSM state transitions +
-// camera OUTCOMES (viewpoint pose changes). Uses a zero-value MoveDispatch (no node
-// movers → empty heldCenters → deterministic region-focus fallback), so the outcomes are
-// hand-computable.
-
+// camera OUTCOMES (viewpoint pose changes). Uses a MoveDispatch with no registered node
+// geometry (empty heldCenters → deterministic region-focus fallback), so the outcomes are
+// hand-computable. mr is a real, empty moverreg.MoverRegistry (moverreg.New()) rather than a
+// zero value: MoverRegistry's fields are unexported outside its own package, so a caller
+// that later writes into md.mr.NodeGeoms() (e.g. TestGesturePressReleaseNoMoveSelects) needs
+// the map already initialized.
 func newGestureMD(v geom.Viewpoint) *MoveDispatch {
-	md := &MoveDispatch{}
+	md := &MoveDispatch{mr: moverreg.New()}
 	md.UI.VP.Viewpoint = v
 	return md
 }

@@ -118,15 +118,15 @@ func quantizedDragTarget(md *MoveDispatch, nodeID string, target vec3) vec3 {
 	if !md.lq.QuantizedLayout {
 		return target
 	}
-	nm, ok := md.mr.nodeGeoms[nodeID]
+	nm, ok := md.mr.NodeGeoms()[nodeID]
 	if !ok {
 		return target
 	}
-	prev, ok := md.mr.centerOfNode(nodeID)
+	prev, ok := md.mr.CenterOfNode(nodeID)
 	if !ok {
 		return target
 	}
-	beads := layoutquant.DragTouchingBeads(md.mr.edgeMovers, nm, prev)
+	beads := layoutquant.DragTouchingBeads(md.mr.EdgeMovers(), nm, prev)
 	if len(beads) == 0 {
 		return target
 	}

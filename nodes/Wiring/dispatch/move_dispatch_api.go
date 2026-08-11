@@ -14,6 +14,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgemover"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/moverreg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 )
 
@@ -22,15 +23,15 @@ import (
 // comments for why sendMove needs it threaded through).
 func (md *MoveDispatch) Start(ctx context.Context) *sync.WaitGroup {
 	md.ctx = ctx
-	return md.mr.start(ctx)
+	return md.mr.Start(ctx)
 }
 
 // sendMove routes one movemsg.Msg to a node's dedicated external-entry channel (extIn).
-// Thin delegator to mr (mover_registry.go); ctx is threaded through (not part of
-// moverRegistry). This is the bare external-entry path (RootMove, gesture.go) with no
-// owning mover goroutine, so it never fires a tap — see nodeMover.tap's doc comment.
-func sendMove(mr *moverRegistry, ctx context.Context, id string, msg movemsg.Msg) {
-	mr.sendMove(ctx, id, msg)
+// Thin delegator to mr (nodes/Wiring/moverreg); ctx is threaded through (not part of
+// moverreg.MoverRegistry). This is the bare external-entry path (RootMove, gesture.go) with
+// no owning mover goroutine, so it never fires a tap — see nodeMover.tap's doc comment.
+func sendMove(mr *moverreg.MoverRegistry, ctx context.Context, id string, msg movemsg.Msg) {
+	mr.SendMove(ctx, id, msg)
 }
 
 // sendTiltEdit routes one panel-driven tilt-angle click to node id's OWN dedicated
@@ -58,12 +59,12 @@ func sendTiltEdit(inboxes *nodeInboxes, ctx context.Context, id string, msg move
 
 // setSelectionUI sets the Go-owned selection (node XOR edge, exclusive). Thin delegator to
 // ui.SetSelectionUI (nodes/Wiring/viewstate), binding the two closures it needs in place of
-// the *moverRegistry/edgeMover-map parameters that type cannot name (unexported Wiring
-// types) — same bound-func treatment as the gesture cluster
+// the *moverreg.MoverRegistry/edgeMover-map parameters that type cannot name — same
+// bound-func treatment as the gesture cluster
 // (docs/planning/movedispatch-decomposition.md section 6).
-func setSelectionUI(ui *viewstate.UIState, mr *moverRegistry, ctx context.Context, node, edge string) {
+func setSelectionUI(ui *viewstate.UIState, mr *moverreg.MoverRegistry, ctx context.Context, node, edge string) {
 	sendMoveFn := func(id string, msg movemsg.Msg) { sendMove(mr, ctx, id, msg) }
-	sendEdgeSelectFn := func(label string, on bool) { sendEdgeSelect(mr.edgeMovers, ctx, label, on) }
+	sendEdgeSelectFn := func(label string, on bool) { sendEdgeSelect(mr.EdgeMovers(), ctx, label, on) }
 	ui.SetSelectionUI(sendMoveFn, sendEdgeSelectFn, node, edge)
 }
 
@@ -78,14 +79,14 @@ func setSelectionUI(ui *viewstate.UIState, mr *moverRegistry, ctx context.Contex
 // (docs/planning/movedispatch-decomposition.md) when PairNodeSelf itself moved to package
 // nodeactor — this method stays in package Wiring because MoveDispatch is a Wiring type.
 func (md *MoveDispatch) NodeSelfDriven(id string) bool {
-	return md.mr.nodeSelfDriven(id)
+	return md.mr.NodeSelfDriven(id)
 }
 
 // HasNodeMover reports whether node id has a real, separate NodeMover actor (a ring
 // node) as opposed to no NodeMover at all (a self-driven pair node, or an unknown id).
 // Thin delegator to md.mr, kept for the same reason as NodeSelfDriven.
 func (md *MoveDispatch) HasNodeMover(id string) bool {
-	return md.mr.hasNodeMover(id)
+	return md.mr.HasNodeMover(id)
 }
 
 // NodeQuantOffset returns node id's own current quantized polar offset triple
@@ -93,7 +94,7 @@ func (md *MoveDispatch) HasNodeMover(id string) bool {
 // confirming a real reload lands on the same offset a live edit just persisted. Thin
 // delegator to md.mr, kept for the same reason as NodeSelfDriven.
 func (md *MoveDispatch) NodeQuantOffset(id string) (iTheta, iPhi, iR int, ok bool) {
-	return md.mr.nodeQuantOffset(id)
+	return md.mr.NodeQuantOffset(id)
 }
 
 // sendEdgeSelect routes a select/deselect message to one edge's OWN dedicated extIn

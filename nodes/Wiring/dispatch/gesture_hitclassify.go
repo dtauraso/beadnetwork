@@ -10,8 +10,8 @@ import (
 // for the gesture about to start (hitClassifiers, gestPointerDown's dispatch table). This
 // is a different concern from rowtables.RowTables' row-index → topology-identity lookups
 // (NodeFromHit/EdgeFromHit), which this file's classifiers call into. nodeBodyRadius, the
-// node-body sizing gestHome (gesture_handlers.go) uses to frame a fit, moved onto
-// moverRegistry (mover_registry.go) as a pure single-owner forward.
+// node-body sizing gestHome (gesture_handlers.go) uses to frame a fit, lives on
+// moverreg.MoverRegistry (nodes/Wiring/moverreg) as a pure single-owner forward.
 
 // hitClassifiers is gestPointerDown's dispatch table, keyed by the raycast hit kind. The
 // switch it replaces was TERMINAL in gestPointerDown (nothing ran after it), so each case's
@@ -22,12 +22,12 @@ var hitClassifiers = map[string]func(md *MoveDispatch, g *gesturefsm.GestureStat
 		// Handhold grab → axis-locked (constrained) orbit. Freeze the sphere rotation frame
 		// now (mirrors interaction-handlers.ts: beginSphereRotation on a handhold hit).
 		g.HandholdDown = true
-		nodeGeoms, centerOf := md.mr.nodeGeoms, md.mr.centerOfNode
+		nodeGeoms, centerOf := md.mr.NodeGeoms(), md.mr.CenterOfNode
 		g.BeginSphereRotation(md.UI.VP.Viewpoint, func() map[string]vec3 { return layoutquant.HeldCenters(nodeGeoms, centerOf) }, ev)
 	},
 	"node": func(md *MoveDispatch, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg) {
 		if node, ok := md.RT.NodeFromHit(ev.Hit); ok {
-			if c, ok := md.mr.centerOfNode(node); ok {
+			if c, ok := md.mr.CenterOfNode(node); ok {
 				g.DragNode = node
 				g.DragStartCenter = c
 			}
@@ -35,7 +35,7 @@ var hitClassifiers = map[string]func(md *MoveDispatch, g *gesturefsm.GestureStat
 	},
 	"empty": func(md *MoveDispatch, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg) {
 		g.EmptyDown = true
-		nodeGeoms, centerOf := md.mr.nodeGeoms, md.mr.centerOfNode
+		nodeGeoms, centerOf := md.mr.NodeGeoms(), md.mr.CenterOfNode
 		g.BeginSphereRotation(md.UI.VP.Viewpoint, func() map[string]vec3 { return layoutquant.HeldCenters(nodeGeoms, centerOf) }, ev)
 	},
 }

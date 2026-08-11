@@ -18,7 +18,7 @@ import (
 // Start has run). Test-only — production code never calls this.
 func (md *MoveDispatch) SetMsgTap(tap func(destID string, msg movemsg.Msg)) {
 	md.tapToInstall = tap
-	for _, nm := range md.mr.nodeGeoms {
+	for _, nm := range md.mr.NodeGeoms() {
 		nm.SetMsgTap(tap)
 	}
 }
@@ -40,7 +40,7 @@ func (md *MoveDispatch) SetEdgeStreams(
 	nodeRowFor func(id string) (int32, bool),
 	buildFrame func(tick uint32, sx, sy, sz, ex, ey, ez float32, selected uint8, label string, events []wire.RowEvent) []byte,
 ) {
-	md.sw.setEdgeStreams(md.GS.EdgeSeeds, md.mr.edgeMovers, baseFd, nodeRowFor, buildFrame)
+	md.sw.setEdgeStreams(md.GS.EdgeSeeds, md.mr.EdgeMovers(), baseFd, nodeRowFor, buildFrame)
 }
 
 // SetNodeStreams wires every nodeMover to ITS OWN dedicated node-fd (geometry+ports+
@@ -69,7 +69,7 @@ func (md *MoveDispatch) SetNodeStreams(
 	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte,
 	kindIDFor func(kind string) uint8,
 ) {
-	md.sw.setNodeStreams(md.GS.NodeSeeds, md.mr.nodeGeoms, nodeBase, interiorBase, driveBase, driveWired, nodeRowFor, buildFrame, buildInteriorFrame, kindIDFor)
+	md.sw.setNodeStreams(md.GS.NodeSeeds, md.mr.NodeGeoms(), nodeBase, interiorBase, driveBase, driveWired, nodeRowFor, buildFrame, buildInteriorFrame, kindIDFor)
 }
 
 // NodeSeeds/EdgeSeeds/loadTimeCenters were deleted as pure one-line forwards to md.GS

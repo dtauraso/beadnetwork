@@ -13,7 +13,7 @@
 // package's other files' own headers) and never came back. Parameterized here by payload
 // type T, with the write function bound as a func value — the codebase's own
 // bound-func-value pattern (move_dispatch_construct.go's
-// `ng.msg.sendMove = md.mr.enqueueFor(ng)`).
+// `ng.msg.sendMove = md.mr.EnqueueFor(ng)`).
 package scenepersist
 
 import "github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"

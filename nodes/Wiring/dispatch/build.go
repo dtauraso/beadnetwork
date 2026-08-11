@@ -129,7 +129,7 @@ func buildFromSpec(ctx context.Context, spec loadspec.TopoSpec, tr *T.Trace, clk
 	// run, so every BuildArgs.ClaimSelfDrive call (PairNode, the pair scene) has
 	// already recorded itself in md.selfDriveClaimed. Only NOW is it known which node
 	// ids get a real nodeMover actor at all (task/pair-node-owns-itself).
-	b.md.mr.finalizeActors(&b.speedSinks)
+	b.md.mr.FinalizeActors(&b.speedSinks)
 	bindDispatch(b.md, b.outSink, b.destWire)
 
 	return b.nodes, inputcodec.SlotRegistry(b.destWire), b.md, b.speedSinks, nil

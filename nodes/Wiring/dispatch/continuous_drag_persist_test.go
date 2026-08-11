@@ -14,8 +14,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring/edgemover"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/moverreg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/positionfile"
@@ -30,20 +30,17 @@ func dragAndReadBack(t *testing.T, quantized bool, target vec3) string {
 	t.Helper()
 	root := t.TempDir()
 
-	md := &MoveDispatch{}
+	md := &MoveDispatch{mr: moverreg.New()}
 	md.lq.QuantizedLayout = quantized
 	md.UI.SceneSphere = geom.SceneSphere{Center: vec3{}, Radius: 100}
-	md.mr.nodeGeoms = map[string]*nodeactor.NodeGeometry{}
-	md.mr.edgeMovers = map[string]*edgemover.EdgeMover{}
-	md.mr.centerMirror = map[string]vec3{}
 
 	nm := nodeactor.NewNodeGeometry("1",
 		nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: "PairNode"}, ScenePolar: geom.Cart2polar(vec3{X: 100}), HasPos: true},
 		nil, clock.NewRealClock())
 	nm.SetPersistRoot(root)
-	md.mr.nodeGeoms["1"] = nm
+	md.mr.NodeGeoms()["1"] = nm
 
-	md.lq.CommitNodeMoveLocal(md.mr.nodeGeoms, md.mr.edgeMovers, &md.UI, nm, target)
+	md.lq.CommitNodeMoveLocal(md.mr.NodeGeoms(), md.mr.EdgeMovers(), &md.UI, nm, target)
 
 	b, err := os.ReadFile(positionfile.FilePath(root, "1"))
 	if err != nil {

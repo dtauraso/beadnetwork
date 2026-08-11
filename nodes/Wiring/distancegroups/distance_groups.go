@@ -7,7 +7,7 @@
 // "read a node's live center" and "move a node's target" — so both are now parameters
 // (centerOf/rootMove), bound to the real actor methods at the Wiring call site, the same
 // bound-func-value pattern nodes/Wiring already uses elsewhere (move_dispatch_construct.go's
-// `ng.msg.sendMove = md.mr.enqueueFor(ng)`).
+// `ng.msg.sendMove = md.mr.EnqueueFor(ng)`).
 //
 // This is its own package rather than landing in an existing one because its boundary is
 // genuinely different from every existing nodes/Wiring subpackage: geom is stateless vector

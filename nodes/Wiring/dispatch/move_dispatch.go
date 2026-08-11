@@ -36,6 +36,7 @@ import (
 	geomseeds "github.com/dtauraso/wirefold/nodes/Wiring/geomseeds"
 	"github.com/dtauraso/wirefold/nodes/Wiring/layoutquant"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/moverreg"
 	rowtables "github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 	sceneswitch "github.com/dtauraso/wirefold/nodes/Wiring/sceneswitch"
@@ -46,13 +47,14 @@ import (
 
 // MoveDispatch is the pure registry built at load that owns every mover and wires their
 // dedicated channels together — there
-// is no shared dispatch map anymore; md.mr.nodeGeoms/md.mr.edgeMovers themselves are the
+// is no shared dispatch map anymore; md.mr.NodeGeoms()/md.mr.EdgeMovers() themselves are the
 // directories a mover's resolveDest closure and the external-entry helpers below look up.
 type MoveDispatch struct {
-	// mr owns the nodeMover/edgeMover directories (mover_registry.go). bind/centerOfNode/
-	// enqueueFor/finalizeActors are called directly as md.mr.X by in-package callers; only
+	// mr owns the nodeMover/edgeMover directories (nodes/Wiring/moverreg, lifted out of this
+	// package in docs/planning/movedispatch-decomposition.md §25). Bind/CenterOfNode/
+	// EnqueueFor/FinalizeActors are called directly as md.mr.X by in-package callers; only
 	// Start stays a MoveDispatch method (it also sets md.ctx).
-	mr moverRegistry
+	mr moverreg.MoverRegistry
 	// GS owns every node/edge's load-time seed geometry (nodes/Wiring/geomseeds). Exported:
 	// external callers reach it directly (md.GS.NodeSeedsFn()) instead of through
 	// MoveDispatch delegator methods.
@@ -84,10 +86,10 @@ type MoveDispatch struct {
 	// per docs/planning/movedispatch-decomposition.md §24 — quantizedLayout gates the
 	// quantized absolute-scene-polar snap — every node is a root, measured/derived
 	// about the scene center only, with no per-neighbour stored coordinate (MODEL.md
-	// "the polar model"). Its methods take moverRegistry's own directories
-	// (md.mr.nodeGeoms/md.mr.edgeMovers) as explicit parameters rather than a
-	// *moverRegistry back-reference, which is what let the type move to its own
-	// package with nothing in moverRegistry exported.
+	// "the polar model"). Its methods take moverreg.MoverRegistry's own directories
+	// (md.mr.NodeGeoms()/md.mr.EdgeMovers()) as explicit parameters rather than a
+	// *moverreg.MoverRegistry back-reference, which is what let the type move to its own
+	// package with nothing in MoverRegistry exported.
 	lq layoutquant.LayoutQuantizer
 	// Scenes owns tab switching: the anchor to persist the selection against, and the
 	// quit func whose call the extension host's looping respawn follows (scene_switch.go).

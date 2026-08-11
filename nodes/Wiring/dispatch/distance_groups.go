@@ -20,10 +20,10 @@
 //
 // The GROUP TABLE and the MAX/LENS/APPLY math live in nodes/Wiring/distancegroups
 // (god-object decomposition): those functions only ever needed "read a node's live center"
-// and "move a node's target" through *moverRegistry/*layoutQuantizer, both unexported Wiring
-// actor types — so they now take centerOf/rootMove as plain func values, bound to the real
+// and "move a node's target" through *moverreg.MoverRegistry/*layoutQuantizer, both actor
+// types — so they now take centerOf/rootMove as plain func values, bound to the real
 // actor methods here, the same bound-func-value pattern move_dispatch_construct.go already
-// uses (`ng.msg.sendMove = md.mr.enqueueFor(ng)`). This file is left holding exactly the
+// uses (`ng.msg.sendMove = md.mr.EnqueueFor(ng)`). This file is left holding exactly the
 // parts that read/write MoveDispatch's own actor state: the ResolveSceneDistanceGroups
 // writer, and the two thin wrappers that bind centerOf/rootMove and forward.
 package dispatch
@@ -33,6 +33,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/distancegroups"
 	"github.com/dtauraso/wirefold/nodes/Wiring/layoutquant"
+	"github.com/dtauraso/wirefold/nodes/Wiring/moverreg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 )
@@ -56,10 +57,10 @@ func (md *MoveDispatch) ResolveSceneDistanceGroups(scenePath string) {
 // distancegroups.GroupOrder (time, input, gate) — for the VIEW stream's Overlay
 // GroupLenTime/GroupLenInput/GroupLenGate columns (read-only reflect; see view_stream.go's
 // emitViewFrame). A group whose centers aren't resolvable yet reads 0. Binds
-// mr.centerOfNode once per call and forwards to distancegroups.Lens, which does the actual
+// mr.CenterOfNode once per call and forwards to distancegroups.Lens, which does the actual
 // per-group max/scan.
-func DistanceGroupLens(ui *viewstate.UIState, mr *moverRegistry) (timeLen, inputLen, gateLen float32) {
-	return distancegroups.Lens(ui.HasDistanceGroups, mr.centerOfNode)
+func DistanceGroupLens(ui *viewstate.UIState, mr *moverreg.MoverRegistry) (timeLen, inputLen, gateLen float32) {
+	return distancegroups.Lens(ui.HasDistanceGroups, mr.CenterOfNode)
 }
 
 // applyDistanceGroupTarget is the controller for one arrow click: groupIdx indexes
@@ -77,9 +78,9 @@ func DistanceGroupLens(ui *viewstate.UIState, mr *moverRegistry) (timeLen, input
 // This function itself no longer emits: the caller (applyUpdateDistanceGroup,
 // stdin_apply.go — the same stdin/dispatch goroutine) emits the VIEW frame when moved is
 // true, per docs/planning/movedispatch-decomposition.md's write-then-emit split.
-func applyDistanceGroupTarget(ctx context.Context, ui *viewstate.UIState, mr *moverRegistry, lq *layoutquant.LayoutQuantizer, groupIdx, dir int) bool {
+func applyDistanceGroupTarget(ctx context.Context, ui *viewstate.UIState, mr *moverreg.MoverRegistry, lq *layoutquant.LayoutQuantizer, groupIdx, dir int) bool {
 	rootMove := func(ctx context.Context, target string, newPos vec3) bool {
-		return lq.RootMove(ctx, mr.nodeGeoms, target, newPos)
+		return lq.RootMove(ctx, mr.NodeGeoms(), target, newPos)
 	}
-	return distancegroups.ApplyTarget(ctx, ui.HasDistanceGroups, mr.centerOfNode, rootMove, groupIdx, dir)
+	return distancegroups.ApplyTarget(ctx, ui.HasDistanceGroups, mr.CenterOfNode, rootMove, groupIdx, dir)
 }

@@ -22,10 +22,8 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/countspersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgefile"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
-	"github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
 	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
-	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 )
 
 // CreateNode adds a node of kindID at a dropped world point, connected to the NEAREST
@@ -79,13 +77,13 @@ func (md *MoveDispatch) CreateNode(kindID uint8, ndcX, ndcY float64, tr *T.Trace
 	// The nearest node is also the SOURCE of the new edge: an edge is stored under its
 	// source and carries no `source` key, so choosing the source is choosing the directory
 	// the edge file lands in.
-	src, okNear := md.mr.nearestNodeTo(drop)
+	src, okNear := md.mr.NearestNodeTo(drop)
 	target := loadspec.NewNodeID(md.Scenes.TreeRoot)
 	var srcPort, targetPort string
 	if okNear {
 		var why string
 		var canLink bool
-		if srcPort, targetPort, why, canLink = md.mr.linkRefusal(src, kind); !canLink {
+		if srcPort, targetPort, why, canLink = md.mr.LinkRefusal(src, kind); !canLink {
 			md.UI.RefuseStructuralEdit(why)
 			md.UI.EmitViewFrame(nil)
 			return
@@ -189,22 +187,6 @@ func (md *MoveDispatch) DeleteNode(row int, tr *T.Trace) {
 // deciding which ports carry it are the same question asked once. Answering them separately
 // is what let an edge be written to a port that does not exist: the check looked at the
 // kind's real ports, and the writer then assumed "Out" and "In".
-
-// firstPortOfDir looks up kind's registered ports (kindapi.Registry) and forwards to
-// portwiring.FirstPortOfDir (moved there — pure over a []PortSpec, no dispatch-core state)
-// for the FIRST port in dir, in the order the kind declared them at RegisterBuilder. First,
-// not "In": a kind names its own ports, and the declaration order is the only ranking there
-// is — NormalSum's NormalA before NormalB says which one an edge should take when nothing
-// else has been said. The Registry lookup lives in kindapi, not here: Registry's value type
-// (kindapi.NodeBuilder) is defined there, so portwiring (which node kinds import) cannot see
-// it without an import cycle.
-func firstPortOfDir(kind string, dir portwiring.PortDir) (string, bool) {
-	b, ok := kindapi.Registry[kind]
-	if !ok {
-		return "", false
-	}
-	return portwiring.FirstPortOfDir(b.Ports, dir)
-}
 
 // dropPointFromNDC (uiState.dropPointFromNDC, ui_state.go) unprojects a drop's screen
 // position onto the camera-facing plane through the SCENE CENTRE — the same ray-through-NDC

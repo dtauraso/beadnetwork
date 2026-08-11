@@ -151,9 +151,7 @@ func TestGesturePressReleaseNoMoveSelects(t *testing.T) {
 	// A real node geometry, so the "node" hit classifier's centerOfNode lookup succeeds and
 	// actually arms g.DragNode="N7" at pointerdown — needed below to prove Reset clears it
 	// even though this press never becomes a drag.
-	md.mr.nodeGeoms = map[string]*nodeactor.NodeGeometry{
-		"N7": nodeactor.NewNodeGeometry("N7", nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: "TimeEnd"}}, nil, clock.NewRealClock()),
-	}
+	md.mr.NodeGeoms()["N7"] = nodeactor.NewNodeGeometry("N7", nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: "TimeEnd"}}, nil, clock.NewRealClock())
 
 	down := rawEvent("pointerdown", 400, 300)
 	down.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}

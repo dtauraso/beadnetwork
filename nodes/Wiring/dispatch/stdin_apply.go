@@ -77,7 +77,7 @@ func applyUpdateTiltVector(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trac
 		return
 	}
 	id := strconv.Itoa(msg.Num + 1)
-	if _, ok := md.mr.nodeGeoms[id]; !ok {
+	if _, ok := md.mr.NodeGeoms()[id]; !ok {
 		return
 	}
 	if msg.Attr == "reset" {

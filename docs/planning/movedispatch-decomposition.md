@@ -3174,3 +3174,207 @@ those four files' HEAD~1 content as untracked (matching their pre-commit state e
 verified via `git diff a82dd640~1 fc10d7ed -- nodes/Wiring` returning empty), never staged or
 committed by this pass again. `git status --short` after the fix shows only the other agent's
 pre-existing unstaged/untracked WIP, unchanged from before this pass touched the tree.
+
+## §26 — `moverRegistry` lifted into `nodes/Wiring/moverreg` (§24's declined lever, taken)
+
+§24's per-type coupling table declined `moverRegistry` on its own terms: "lifting this type
+means EXPORTING its field surface ... across all 16 external files, matching the scope of §17
+(edgemover) or §20 (nodeactor) as its OWN task, not a byproduct of this one." This task IS
+that own task. Package named `moverreg` — mirrors `edgemover`/`nodeactor`'s lowercase
+actor-package naming, shorter than `moverregistry` while staying unambiguous.
+
+**Re-measured touch count.** §24's "~51 across 16 files" combined production and test files.
+Re-counted with comments excluded: **48 real code touches across 14 production files**
+(`build.go`, `build_nodes.go`, `build_move_dispatch.go`, `gesture_graph.go`,
+`gesture_handlers.go`, `gesture_hitclassify.go`, `move_persist.go`, `move_streams.go`,
+`move_dispatch_api.go`, `move_dispatch_construct.go`, `scene_structure.go`, `stdin_apply.go`,
+`distance_groups.go`) plus **~35 more across 16 test files** that construct a `*MoveDispatch`
+directly and write into `md.mr`'s bare fields for fixture setup (`gesture_home_test.go`,
+`gesture_drag_offset_test.go`, `continuous_drag_persist_test.go`, `quantized_layout_test.go`,
+and 12 others) — test files stayed in package `dispatch` per §17/§20's own precedent
+("construct a real `*MoveDispatch` and touch bare fields directly — unreachable from an
+external test package") and were mechanically rewritten to the exported API, not left broken.
+
+### Construction-time vs. post-construction — the ~48 production sites
+
+| file | site(s) | class | disposition |
+|---|---|---|---|
+| `move_dispatch_construct.go` | 4-line map init (`nodeGeoms`/`edgeMovers`/`edgeOut`/`centerMirror`) | CONSTRUCTION | folded into `moverreg.New()` |
+| `move_dispatch_construct.go` | `resolveDest`, `commitLocal`, `WireMessaging` binds, `nodeGeoms[id]=ng`, `centerMirror[id]=...`, mutual-pair/edge/partner-center/edge-id loops (14 sites) | CONSTRUCTION (single-threaded wiring pass, before any goroutine starts) | rewritten to `.NodeGeoms()`/`.EdgeMovers()`/`.EnqueueFor()`/`.CenterOfNode`/`.SeedCenter()` |
+| `build_nodes.go` | `nodeGeoms[name]` read, `selfDriveClaimed` nil-check+init+set (3 stmts), `bind(...)` | CONSTRUCTION | read → `.NodeGeoms()[name]`; 3-stmt write folded into new `ClaimSelfDrive(id)`; `bind`→`Bind` |
+| `build_move_dispatch.go` | 5 `nodeGeoms` reads/ranges (scene flags, quant offsets, self-kind, neighbor-kind, out-targets seeding) | CONSTRUCTION | `.NodeGeoms()` |
+| `build.go` | `finalizeActors(...)` | CONSTRUCTION | `.FinalizeActors(...)` |
+| `move_streams.go` | `SetMsgTap`'s `nodeGeoms` range | CONSTRUCTION-ADJACENT (test-only setup call, before `Start`) | `.NodeGeoms()` |
+| `move_persist.go` | `nodeGeoms` range (`EnableEditPersist` seeding `persistRoot`) | CONSTRUCTION-ADJACENT (runs before `Start` in every real call path) | `.NodeGeoms()` |
+| `gesture_graph.go`, `gesture_handlers.go` (×5), `gesture_hitclassify.go` (×3) | `nodeGeoms`/`centerOfNode`/`nodeBodyRadius` reads inside gesture handlers | POST-CONSTRUCTION (runs per pointer/wheel event) | `.NodeGeoms()`/`.CenterOfNode`/`.NodeBodyRadius` |
+| `move_streams.go` | `edgeMovers`/`nodeGeoms` passed into `setEdgeStreams`/`setNodeStreams` | POST-CONSTRUCTION (called once at startup, after construction, before `Start`) | `.EdgeMovers()`/`.NodeGeoms()` |
+| `move_dispatch_api.go` | `start`, `sendMove`, `nodeSelfDriven`, `hasNodeMover`, `nodeQuantOffset`, `setSelectionUI`'s `edgeMovers` | POST-CONSTRUCTION (external entry points, called after `Start`) | `.Start`/`.SendMove`/`.NodeSelfDriven`/`.HasNodeMover`/`.NodeQuantOffset`/`.EdgeMovers()` |
+| `scene_structure.go` | `nearestNodeTo`, `linkRefusal` | POST-CONSTRUCTION (palette-drop gesture) | `.NearestNodeTo`/`.LinkRefusal` |
+| `stdin_apply.go` | `nodeGeoms[id]` existence check, `sendMove` (×2) | POST-CONSTRUCTION (stdin dispatch) | `.NodeGeoms()`/`sendMove(mr, ...)` (mr now `*moverreg.MoverRegistry`) |
+| `distance_groups.go` | `centerOfNode` (×2), `nodeGeoms` (×1, inside `RootMove` bind) | POST-CONSTRUCTION (VIEW-frame length readout, arrow-click apply) | `.CenterOfNode`/`.NodeGeoms()` |
+
+### Exported surface, and why each export is unavoidable
+
+**Two live-map accessors** (`NodeGeoms() map[string]*nodeactor.NodeGeometry`,
+`EdgeMovers() map[string]*edgemover.EdgeMover`) replace every bare `md.mr.nodeGeoms`/
+`md.mr.edgeMovers` touch — construction-time writes (`mr.NodeGeoms()[id] = ng`), ranges, and
+existence checks all go through the SAME live map a bare field would have, since a Go map is
+a reference type: the accessor returns no copy. `nodeGeoms`'s element type
+(`*nodeactor.NodeGeometry`) and `edgeMovers`'s (`*edgemover.EdgeMover`) are already exported
+from already-lifted packages (§17/§20), so returning the map exports no NEW type — only the
+map's existence as a directory crosses the boundary, exactly as `md.mr.nodeGeoms` already did
+within package `dispatch`.
+
+**Two construction-time wiring methods, new** (`ClaimSelfDrive(id string)`,
+`SeedCenter(id string, c vec3)`) fold what used to be 3- and 1-statement external bare-field
+writes into one call each — the same consolidation shape §19 used for `nodeGeometry`'s own
+construction-time writes, applied here because a nil-check-then-lazy-init-then-set sequence
+on an unexported map cannot be expressed as three bare statements once the map is unexported
+to a different package.
+
+**One constructor** (`New() MoverRegistry`) replaces the 4-line init block, mirroring
+`NewNodeGeometry`/`NewNodeMover`'s existing shape.
+
+**Twelve unchanged-shape methods, exported (were unexported):** `Bind`, `Start`,
+`FinalizeActors`, `CenterOfNode`, `SendMove`, `EnqueueFor`, `NodeBodyRadius`, `HasNodeMover`,
+`NodeSelfDriven`, `NodeQuantOffset`, `LinkRefusal`, `NearestNodeTo` — each was already a
+single-owner method reading/writing `mr`'s own fields through the receiver (§24's own
+classification: "not a namespace of parameter-taking free functions the way `layoutQuantizer`
+was"); capitalizing them is the whole move for this dozen, no signature change.
+
+**Two methods stay unexported** (`nodeKind`, `drainCenterMirror`) — package `dispatch` never
+called either directly, only through `NodeBodyRadius`/`LinkRefusal` and `CenterOfNode`
+respectively, so exporting them would be surface with no caller.
+
+**One pure helper moved with its only caller** (`firstPortOfDir`, from `scene_structure.go`'s
+`linkRefusalFor`'s sibling) — it depended on `kindapi.Registry` (a package-level map) and had
+no caller left in `dispatch` once `linkRefusalFor` moved, so it moved rather than leaving a
+one-caller stub behind. `scene_structure.go` lost its `kindapi`/`portwiring` imports as a
+result (both now unused there).
+
+**`InboxDepth` exported** (was `dispatch`'s unexported `moverInboxDepth`) — a plain constant,
+not a method or a channel, still needed by `build_nodes.go` (in package `dispatch`) to size
+two directed inbox channels (`ClaimLatticeIn`/`ClaimTiltEditIn`) at the SAME depth every other
+per-mover inbox uses. Exporting a constant is not the field/channel-export the task's
+constraints ban — there was already exactly one definition, so it is exported rather than
+duplicated (unlike edgemover's/nodeactor's own `InboxDepth`/`inboxDepth` duplicates, which
+existed because those packages needed their OWN private copy for their own internal sizing).
+
+### No channel or field exported — confirmed by construction
+
+`MoverRegistry` has no channel field at all — its three channel-bearing collaborators
+(`nodeactor.NodeGeometry`, `nodeactor.NodeMover`, `edgemover.EdgeMover`) already hold their
+own channels privately behind their own exported methods (§17/§20); `MoverRegistry` itself
+only holds directories (maps) and one bool map (`selfDriveClaimed`). `SendMove`/`EnqueueFor`
+are the two places this file reaches into another actor's channel-backed send path, and both
+already did so through an exported method (`nm.SendExternal`, `nm.EnqueueSend`) before this
+move — nothing new crosses a channel boundary here. No field was exported: every access is a
+method (`NodeGeoms()`/`EdgeMovers()` return the live map value, not a struct field
+declaration; Go's export rule cares about the identifier `NodeGeoms`, not what it returns).
+
+### What moved, what stayed
+
+Only `mover_registry.go` held a `func (mr *moverRegistry)` receiver, so only that one file
+moved (as `nodes/Wiring/moverreg/mover_registry.go`, plus a new `vec_alias.go` matching
+`nodeactor`'s own local `vec3` alias pattern). The pure helper `firstPortOfDir` moved with it
+(above). Every other touched file — the 14 production files and 16 test files in the tables
+above — merely took `*moverRegistry` as a parameter or reached `md.mr.X`; all STAYED in
+`dispatch` and were rewritten to the exported API, per the task's own classification rule.
+
+### Goroutine count, channel set, ordering — unchanged
+
+Still exactly one goroutine per ring node (`NodeMover.Run`, launched from `MoverRegistry.Start`,
+formerly `moverRegistry.start` — same call site shape) and one per edge (`EdgeMover.Run`,
+same launch site). Still the same channels per node/edge (unchanged since §17/§20 — this task
+touched no channel declaration). `Start`'s body is byte-identical except the receiver's
+capitalization; `Bind`/`FinalizeActors` are byte-identical except capitalization and the
+`selfDriveClaimed`-write 3-statement fold into `ClaimSelfDrive`, which produces the exact same
+map state (nil-check → lazy-init → set, same order, same effect).
+
+### Test-name/assertion equality
+
+`grep -oE '^func Test[A-Za-z0-9_]+' nodes/Wiring/dispatch/*_test.go nodes/Wiring/kindapi/*_test.go`
+→ **109**, identical set to §24's own baseline (confirmed via prior baseline, not re-derived).
+`t.Fatal|Fatalf|Error|Errorf(` call count: **324**, identical to §24's baseline. No test was
+renamed, dropped, weakened, or skipped — every rewritten test file changed only the accessor
+syntax at the call site (`md.mr.nodeGeoms[id]` → `md.mr.NodeGeoms()[id]`, a `moverRegistry{...}`
+bare-struct literal → `moverreg.New()`), never an assertion.
+
+### Guards, re-run and proven with teeth
+
+Neither `check-scene-path-resolution.sh` nor `check-persist-write-ownership.sh` needed
+re-keying — both match by FILENAME (`mover_registry.go`) via a recursive `find`/`grep` over
+`nodes/Wiring/`, which already covers the new `moverreg/` subdirectory, the same precedent
+§17/§20 documented for `edge_mover.go`/`node_mover.go`. Proven with teeth anyway: injected
+`filepath.Join("nodes", "x", "y.json")` into `SeedCenter` — `check-scene-path-resolution.sh`
+reported `hand-rolled-node-path: .../moverreg/mover_registry.go: 137:...` and exited 1;
+injected `jsonpersist.WriteJSONAtomic("x.json", nil)` into the same method —
+`check-persist-write-ownership.sh` reported `unauthorized-write: .../moverreg/mover_registry.go:
+139:...` and exited 1. Both probes removed immediately after; `diff` against a pre-edit backup
+of the file confirmed byte-identical restoration. `check-dep-rules.sh`, `check-channel-names.sh`,
+`check-composer-fields.sh` (doesn't police `MoverRegistry` — only `MoveDispatch`/`NodeGeometry`
+are in its `COMPOSERS` table, unaffected by this move), `check-doc-drift`, `check-docs-symbols.sh`
+(the historical `mover_registry.go`/`moverRegistry` citations inside
+`docs/planning/movedispatch-decomposition.md` and `docs/planning/gesture-actor.md` describe
+PAST state as an accumulating decision log, not live symbol references the guard polices — both
+guards ran clean, confirming no doc-symbol citation broke), `check-stream-fd-mismatch-reported.sh`
+all ran clean, none needed re-keying (none match `moverreg`/`MoverRegistry` by content, only the
+already-recursive filename match above).
+
+Grepped `nodes/Wiring/moverreg/*.go` for `runtime.Caller`/`filepath.Join("..", ...)`/`../..` —
+zero hits (the class that produced a real bug on this branch already, per §23's
+`distance_groups_test.go` fix).
+
+### Verification
+
+`go build ./...`, `go vet ./...`: clean. `go test -race -count=1 ./...`: every package `ok` or
+`[no test files]`, zero `FAIL`, zero race reports, including `nodes/Wiring/dispatch` and the
+new `nodes/Wiring/moverreg` (no test files of its own — `mover_registry.go`'s own behavior is
+exercised entirely from `dispatch`'s existing suite, same shape §17's `edgemover`/§20's
+`layoutquant` extraction left behind). The no-package-under-`Wiring`-imports-`dispatch` loop
+(`for p in $(go list ./nodes/Wiring/... | grep -v 'dispatch$'); do go list -deps "$p" | grep -qx
+.../dispatch && echo DEPENDS; done`) is empty. `bash scripts/verify.sh`: empty stdout.
+
+### Deliberate breaks, confirmed and restored (moved surface itself, not just guards)
+
+- `NodeGeoms()` forced to `return nil` → `go test ./nodes/Wiring/dispatch/...` panics inside
+  `newMoveDispatch` (`nodes/Wiring/dispatch/move_dispatch_construct.go:138`, "assignment to
+  entry in nil map") on `TestLoadTopologyComputesReachRadii` and every other test that loads a
+  topology — a hard production failure, not a soft assertion miss. Restored.
+- `CenterOfNode` forced to always return `vec3{}` (dropping the real center, keeping `ok`) →
+  7 tests fail by name: `TestRingResolvesItsDistanceGroups`,
+  `TestGestureHomeComputesFitPoseFromGeometry`, `TestCommitNodeMoveLocalDrawsQuantizedNotRawTarget`,
+  `TestCommitNodeMoveLocalNeverMovesTowardMouseTarget`, `TestCommitNodeMoveLocalRemoveTakesBeadsPlace`,
+  `TestCommitNodeMoveLocalAddMovesOneBeadBeyondNewBead`, `TestCommitNodeMoveLocalPersistsQuantizedNotRawPolar`.
+  Restored.
+- `NodeBodyRadius` forced to `return 0` → `TestGestureHomeComputesFitPoseFromGeometry`,
+  `TestGestureHomeFramesUnknownKindAtRenderRadius` fail by name. Restored.
+
+**Uncovered, reported rather than silently accepted.** `LinkRefusal` forced to always return
+`("", "", "", true)` (unconditional success, no refusal) → **no test failed** anywhere in the
+full suite (`go test ./...`). `NearestNodeTo` forced to always return `("", false)` → **no test
+failed**. Both are reached only from `scene_structure.go`'s palette-drop path
+(`applyCreateNode`), which has no test driving it end-to-end today — a pre-existing gap (these
+two functions' bodies are byte-identical to their pre-move `moverRegistry` versions; nothing
+about the move introduced the hole). `Bind`/`Start`/`SendMove`/`EnqueueFor` are the
+channel-touching class `docs/process/testing-shape.md`'s own doctrine excludes from unit
+testing (cross-goroutine delivery) — same excluded class §17/§20 already named for
+`TrySendFromSrc`/`SendExternal`, not re-probed individually here since the doctrine, not a new
+measurement, is what excludes them. `ClaimSelfDrive`/`SeedCenter`/`New` are construction-time
+writes exercised only as plumbing inside the same `TestLoadTopologyComputesReachRadii`-shaped
+integration tests that already caught the `NodeGeoms()` break above — not independently
+break-tested, same class as §19's own construction-time-write coverage note.
+
+### `ls nodes/Wiring/dispatch/*.go` and final file counts
+
+`nodes/Wiring/dispatch`: **75** (was 76 — `mover_registry.go` moved out, no new file added;
+`scene_structure.go` lost `firstPortOfDir` but stayed one file). Still over the ~31 target —
+the file remains dominated by `*MoveDispatch`-receiver methods and their tests, which is
+`MoveDispatch`'s OWN unmoved surface (§24's per-type table), a separate, harder lever this task
+was not scoped to pull. `nodes/Wiring/moverreg` (new): **2** non-test files
+(`mover_registry.go` 395 LOC, `vec_alias.go` 7 LOC), 0 test files.
+
+No `types`/`common` package, no alias shim, no dot-import, no package-level actor global, no
+`*ForTest` constructor, no interface added.
+
+**`git status --short` and commits:** see below.

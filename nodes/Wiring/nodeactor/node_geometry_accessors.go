@@ -191,7 +191,7 @@ func (m *NodeGeometry) TryRecvExternal() (movemsg.Msg, bool) {
 // appends the message to this node's own pending retry queue, and attempts an immediate
 // flush — never blocking the calling handler goroutine. Bound once per node, at
 // construction, as this node's own m.msg.sendMove (package Wiring's
-// move_dispatch_construct.go: `ng.WireMessaging(..., md.mr.enqueueFor(ng), ...)`, where
+// move_dispatch_construct.go: `ng.WireMessaging(..., md.mr.EnqueueFor(ng), ...)`, where
 // enqueueFor now just returns this method value) so every send this node's own handle
 // performs — including the ones broadcastToEdgesAndPartners makes on this node's own
 // behalf via SendMove() — goes through this node's own retry queue, never a raw blocking

@@ -60,7 +60,7 @@ func TestNodeGeometryLabelSidecar(t *testing.T) {
 	wantKind := map[string]string{"1": "SrcNode", "2": "SinkNode"}
 
 	seen := map[string]bool{}
-	for _, nm := range md.mr.nodeGeoms {
+	for _, nm := range md.mr.NodeGeoms() {
 		id := nm.ID()
 		seen[id] = true
 		label := nm.Label()

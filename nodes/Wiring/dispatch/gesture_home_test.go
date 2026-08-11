@@ -4,9 +4,9 @@ import (
 	"math"
 	"testing"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring/edgemover"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/moverreg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
@@ -24,12 +24,12 @@ import (
 // via a real nodeMover's atomic snap (newNodeMover + setNodeWorld) so heldCenters() observes
 // it, mirroring a live post-layout dispatch after nodeMovers are constructed.
 func homeMD(v geom.Viewpoint, centers map[string]vec3) *MoveDispatch {
-	md := &MoveDispatch{mr: moverRegistry{nodeGeoms: map[string]*nodeactor.NodeGeometry{}, edgeMovers: map[string]*edgemover.EdgeMover{}}}
+	md := &MoveDispatch{mr: moverreg.New()}
 	md.UI.VP.Viewpoint = v
 	for id, c := range centers {
 		g := nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: "TimeEnd"}}
 		nodegeom.SetNodeWorld(&g, c)
-		md.mr.nodeGeoms[id] = nodeactor.NewNodeGeometry(id, g, nil, clock.NewRealClock())
+		md.mr.NodeGeoms()[id] = nodeactor.NewNodeGeometry(id, g, nil, clock.NewRealClock())
 	}
 	return md
 }
@@ -93,7 +93,7 @@ func TestGestureHomeFramesUnknownKindAtRenderRadius(t *testing.T) {
 	md := homeMD(stale, nil)
 	g := nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: "NotAKind"}}
 	nodegeom.SetNodeWorld(&g, vec3{X: 0, Y: 0, Z: 0})
-	md.mr.nodeGeoms["x"] = nodeactor.NewNodeGeometry("x", g, nil, clock.NewRealClock())
+	md.mr.NodeGeoms()["x"] = nodeactor.NewNodeGeometry("x", g, nil, clock.NewRealClock())
 
 	const fov, aspect = 50.0, 800.0 / 600.0
 	md.HandleRawInput(inputcodec.RawInputMsg{Kind: "home", Fov: fov, RectWidth: aspect, RectHeight: 1}, nil, nil)

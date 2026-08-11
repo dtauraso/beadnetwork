@@ -11,6 +11,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
 	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/moverreg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
@@ -26,12 +27,12 @@ func (b *buildCtx) buildNodes() error {
 	// kindapi naming any dispatch-core type (docs/planning/movedispatch-decomposition.md
 	// §24): each of the three consuming BuildArgs methods gets its OWN bound func value,
 	// closed over this build's own *MoveDispatch, instead of raw pointers into
-	// nodeInboxes/moverRegistry. Built once, here, before any node is built, and threaded
+	// nodeInboxes/moverreg.MoverRegistry. Built once, here, before any node is built, and threaded
 	// down through each bind.Build call below.
 	deps := kindapi.BuildDeps{
 		LatticePoints: b.md.UI.LatticePoints,
 		ClaimLatticeIn: func(name string) chan int32 {
-			sceneToNodeLatticeIn := make(chan int32, moverInboxDepth)
+			sceneToNodeLatticeIn := make(chan int32, moverreg.InboxDepth)
 			if b.md.inboxes.lattice == nil {
 				b.md.inboxes.lattice = map[string]chan int32{}
 			}
@@ -39,7 +40,7 @@ func (b *buildCtx) buildNodes() error {
 			return sceneToNodeLatticeIn
 		},
 		ClaimTiltEditIn: func(name string) chan movemsg.TiltEditMsg {
-			panelToNodeTiltEditIn := make(chan movemsg.TiltEditMsg, moverInboxDepth)
+			panelToNodeTiltEditIn := make(chan movemsg.TiltEditMsg, moverreg.InboxDepth)
 			if b.md.inboxes.tiltEdit == nil {
 				b.md.inboxes.tiltEdit = map[string]chan movemsg.TiltEditMsg{}
 			}
@@ -47,14 +48,11 @@ func (b *buildCtx) buildNodes() error {
 			return panelToNodeTiltEditIn
 		},
 		ClaimSelfDriveGeom: func(name string) *nodeactor.NodeGeometry {
-			ng, ok := b.md.mr.nodeGeoms[name]
+			ng, ok := b.md.mr.NodeGeoms()[name]
 			if !ok {
 				return nil
 			}
-			if b.md.mr.selfDriveClaimed == nil {
-				b.md.mr.selfDriveClaimed = map[string]bool{}
-			}
-			b.md.mr.selfDriveClaimed[name] = true
+			b.md.mr.ClaimSelfDrive(name)
 			// A ring node's NodeMover.Run Copies clockSrc into clk once, at its own
 			// goroutine start. There is no such goroutine start for a self-driven node —
 			// this runs during buildNodes, single-threaded setup, before any goroutine
@@ -145,5 +143,5 @@ func (b *buildCtx) buildNodes() error {
 // bindDispatch binds per-edge source Outs and dest wires into each edgeMover so
 // a node-move updates per-edge travel-time.
 func bindDispatch(md *MoveDispatch, outSink map[string]*wire.Out, destWire map[string]*wire.PacedWire) {
-	md.mr.bind(outSink, inputcodec.SlotRegistry(destWire))
+	md.mr.Bind(outSink, inputcodec.SlotRegistry(destWire))
 }
