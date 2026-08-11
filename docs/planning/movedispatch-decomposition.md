@@ -1729,3 +1729,65 @@ No interface, `types`/`common` package, alias shim, dot-import, package-level ac
 or `ForTest` hatch was added. No test was renamed, dropped, weakened, or skipped — none
 needed to change since no test named any of the moved/edited symbols directly (they are
 reached only through `HandleRawInput`).
+
+## 16. The four scene-level `*Persister` types were one actor written four times — unified
+
+`overlaysPersister`/`sceneSpherePersister`/`speedPersister`/`latticePersister`
+(`scene_overlays_persist.go`/`scene_sphere_persist.go`/`scene_speed_persist.go`/
+`scene_lattice_persist.go`) each declared an almost-identical unexported type: one
+`path string` field, and one method (`schedule`/`flushNow`) that checked `p == nil ||
+p.path == ""`, called a package `WriteScene*` func in `scenepersist`, and logged any error
+under a fixed site tag. `camerapersist.ViewpointPersister` (already its own lifted package)
+has the exact same shape, confirming the pattern rather than inventing it, but stays its own
+type since it also owns the FSM-viewpoint→`PolarCamera` conversion, not just a write call.
+
+None of the four had a real debounce despite the historical "schedule" naming — each write
+is SYNCHRONOUS, inline on the caller's own (view-owner) goroutine; the prior
+debounce/coalescing window was removed earlier and never came back (each file's own header
+already said so). So there was no timing/ordering/flush-on-quit semantics to preserve beyond
+"nil/unarmed is a no-op, one write call, log on error" — verified by grep before touching
+anything, per this task's own "measure bodies" rule, not assumed from the names.
+
+**Unified into `scenepersist.Persister[T]`** (`nodes/Wiring/scenepersist/persister.go`),
+parameterized by payload type T with the write function bound as a func value at
+construction — the codebase's own bound-func-value pattern
+(`move_dispatch_construct.go`'s `ng.msg.sendMove = md.mr.enqueueFor(ng)`), not an
+`interface{}`/`any` payload. `Persister[T]{Path, Write func(string, T) error, Tag}.Schedule(v
+T)` replaces all four unexported types and their two method spellings (`schedule`/
+`flushNow` → one `Schedule`). `move_persist.go`'s `persisters` struct fields and
+`EnableEditPersist`'s four constructions now name `*scenepersist.Persister[viewstate.OverlayState]`/
+`[geom.SceneSphere]`/`[float64]`/`[int32]` directly — no type alias was introduced to keep
+the old short names (an alias would be the exact "package boundary is cosmetic" shim already
+removed three times on this branch, §6c). The four now-dead unexported types and their
+methods were deleted outright from the four `nodes/Wiring/scene_*_persist.go` files, which
+keep only their `MoveDispatch`-facing `Load*`/`SliderSpeed`/`BroadcastLatticePoints` methods
+(pinned — each writes `md.UI.*` directly). Every call site (`stdin_dispatch.go`,
+`stdin_apply.go`, and 5 test files) updated `.schedule(...)`/`.flushNow(...)` →
+`.Schedule(...)`.
+
+`nodes/Wiring/quant_offset_persist.go`'s `nodeGeometry.persistQuantOffset`/
+`persistTiltVectorAngle` were measured and left alone — genuinely a different actor: no
+debounce type at all, direct methods on the PER-NODE mover (`nodeGeometry`, one goroutine
+per node, many concurrent writers to DIFFERENT files) rather than the view-owner goroutine's
+single-file writers, and each call does a whole-struct marshal with fields carried forward
+(`topTiltVectorThetaIdx`) rather than a bare single-value write — forcing it into
+`Persister[T]` would be the "wrong shared abstraction" the task warned against, not a
+missed unification.
+
+Verification: `go build ./...`, `go vet ./...`, `go test -race -count=1 ./...` clean (one
+transient failure, `TestGestureEmptyDragOrbits`/`TestGestureHomeThenOrbitBuildsOnHomePose`,
+traced to the concurrently-edited `gesture_*.go` files mid-WIP in the same shared checkout —
+gone on the next run, confirmed unrelated by grep showing neither test references
+`persist`/`Persister`). `python3 tools/network/concurrency/check-no-wall-clock-wait.py`
+clean; grepping the allowlist for any of the six touched filenames found no entries, so no
+re-keying was needed (none of these files ever used a wall-clock wait). The no-imports-
+`Wiring` loop is empty. Deliberately broke `Persister.Schedule` (early `return` before the
+write) and confirmed `TestPersistOverlaysRoundTrips`, `TestPersistLatticePointsRoundTrips`,
+`TestPersistSpeedRoundTrips`, `TestSceneSpherePersisterFlushNow` all fail by name — one test
+per persister instance, covering the shared write path for every payload type — then
+restored; clean again. Drove a real write through the unified type and read the actual bytes
+off disk (`os.ReadFile`, temp probe test, deleted after): `overlays.json` contained
+`{"sceneToriVisible":false}` after `ToggleSceneTori`+`Schedule`.
+
+No interface, `types`/`common` package, alias shim, dot-import, package-level actor global,
+or `ForTest` hatch was added.
