@@ -193,7 +193,7 @@ func (md *MoveDispatch) applySelect(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	// OWN selected/latchedSel bit.
 	if ev.Hit.Kind == "empty" {
 		md.setSelectionUI("", "")
-		md.emitViewFrame(md.selectViewEvent(""))
+		md.emitViewFrame(md.RT.SelectViewEvent(""))
 		return
 	}
 	if ev.Hit.Kind == "edge" {
@@ -202,7 +202,7 @@ func (md *MoveDispatch) applySelect(ev inputcodec.RawInputMsg, tr *T.Trace) {
 			// An edge selection carries no NodeRow (see decodeEventLine's "select" case,
 			// buffer-log.ts — it never reads EdgeRow for this kind), mirroring the
 			// KindSelect{Edge: label, Node: ""} shape exactly.
-			md.emitViewFrame(md.selectViewEvent(""))
+			md.emitViewFrame(md.RT.SelectViewEvent(""))
 			return
 		}
 		// Unresolvable edge hit → clear selection rather than leaving stale state.
@@ -215,20 +215,5 @@ func (md *MoveDispatch) applySelect(ev inputcodec.RawInputMsg, tr *T.Trace) {
 		}
 	}
 	md.setSelectionUI(node, "")
-	md.emitViewFrame(md.selectViewEvent(node))
-}
-
-// selectViewEvent builds applySelect's one select RowEvent (reading only md.RT — no
-// mutation), for the caller to hand to emitViewFrame. Kept as a MoveDispatch method
-// (rather than a free function like cameraViewEvent) because it resolves node → row via
-// md.RT.NodeRowFor; it does not itself call emitViewFrame, per
-// docs/planning/movedispatch-decomposition.md's write-then-emit split.
-func (md *MoveDispatch) selectViewEvent(node string) []wire.RowEvent {
-	nodeRow := int32(-1)
-	if node != "" {
-		if r, ok := md.RT.NodeRowFor(node); ok {
-			nodeRow = r
-		}
-	}
-	return []wire.RowEvent{{Kind: T.KindSelect, NodeRow: nodeRow, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}}
+	md.emitViewFrame(md.RT.SelectViewEvent(node))
 }

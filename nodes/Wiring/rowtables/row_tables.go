@@ -5,7 +5,11 @@
 // its exported RT field so the external API is unchanged.
 package rowtables
 
-import "github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+import (
+	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
+)
 
 // EdgeEndpoint is one edge row's endpoint node ids.
 type EdgeEndpoint struct {
@@ -138,6 +142,20 @@ func (rt *RowTables) NodeFromHit(h inputcodec.RawHit) (node string, ok bool) {
 // buffer EDGE-ROW index (no label string); Go maps it back through its own edge-row table
 // (built at load), since Go owns the topology and wrote the Edge block in that same row
 // order.
+// SelectViewEvent builds a click-select's one select RowEvent (reading only rt — no
+// mutation), for the caller to hand to emitViewFrame. It resolves node → row via
+// rt.NodeRowFor; it does not itself emit anything, per
+// docs/planning/movedispatch-decomposition.md's write-then-emit split.
+func (rt *RowTables) SelectViewEvent(node string) []wire.RowEvent {
+	nodeRow := int32(-1)
+	if node != "" {
+		if r, ok := rt.NodeRowFor(node); ok {
+			nodeRow = r
+		}
+	}
+	return []wire.RowEvent{{Kind: T.KindSelect, NodeRow: nodeRow, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}}
+}
+
 func (rt *RowTables) EdgeFromHit(h inputcodec.RawHit) (label string, ok bool) {
 	if h.EdgeRow >= 0 {
 		return rt.LookupEdgeRow(h.EdgeRow)
